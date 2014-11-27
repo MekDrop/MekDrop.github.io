@@ -1,0 +1,208 @@
+# Translation of the WordPress plugin Linkify Text v1.5 by Scott Reilly.
+# Copyright (C) 2014 Scott Reilly
+# This file is distributed under the same license as the Linkify Text plugin.
+msgid ""
+msgstr ""
+"Project-Id-Version: Linkify Text 1.5\n"
+"Report-Msgid-Bugs-To: http://wordpress.org/support/plugin/linkify-text\n"
+"POT-Creation-Date: 2014-01-04 21:56:15+00:00\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"PO-Revision-Date: 2014-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+
+#: c2c-plugin.php:75
+msgid "Invalid file specified for C2C_Plugin: %s"
+msgstr ""
+
+#: c2c-plugin.php:125 c2c-plugin.php:132
+msgid "Cheatin&#8217; huh?"
+msgstr ""
+
+#: c2c-plugin.php:309
+msgid "See the \"Help\" link to the top-right of the page for more help."
+msgstr ""
+
+#: c2c-plugin.php:342
+msgid "Settings reset."
+msgstr ""
+
+#: c2c-plugin.php:353 c2c-plugin.php:361
+msgid "A value is required for: \"%s\""
+msgstr ""
+
+#: c2c-plugin.php:370
+msgid "Expected integer value for: %s"
+msgstr ""
+
+#: c2c-plugin.php:482
+msgid "More information about %1$s %2$s"
+msgstr ""
+
+#: c2c-plugin.php:483
+msgid "Click for more help on this plugin"
+msgstr ""
+
+#: c2c-plugin.php:484
+msgid " (especially check out the \"Other Notes\" tab, if present)"
+msgstr ""
+
+#: c2c-plugin.php:598
+msgid "More Help"
+msgstr ""
+
+#: c2c-plugin.php:610
+msgid "Settings"
+msgstr ""
+
+#: c2c-plugin.php:622
+msgid "Donation for coffee2code plugin: %s"
+msgstr ""
+
+#: c2c-plugin.php:623
+msgid "Coffee fuels my coding."
+msgstr ""
+
+#: c2c-plugin.php:876
+msgid "A plugin by coffee2code"
+msgstr ""
+
+#: c2c-plugin.php:885
+msgid "Save Changes"
+msgstr ""
+
+#: c2c-plugin.php:886
+msgid "Reset Settings"
+msgstr ""
+
+#: c2c-plugin.php:892
+msgid "Scott Reilly, aka coffee2code"
+msgstr ""
+
+#: c2c-plugin.php:893
+msgid "This plugin brought to you by %s."
+msgstr ""
+
+#: c2c-plugin.php:894
+msgid "Please consider a donation"
+msgstr ""
+
+#: c2c-plugin.php:895
+msgid "Did you find this plugin useful?"
+msgstr ""
+
+#. #-#-#-#-#  linkify-text.pot (Linkify Text 1.5)  #-#-#-#-#
+#. Plugin Name of the plugin/theme
+#: linkify-text.php:108 linkify-text.php:109
+msgid "Linkify Text"
+msgstr ""
+
+#: linkify-text.php:117
+msgid "Text and Links"
+msgstr ""
+
+#: linkify-text.php:118
+msgid ""
+"Define only one text and associated link per line, and don't span lines."
+msgstr ""
+
+#: linkify-text.php:121
+msgid "Enable text linkification in comments?"
+msgstr ""
+
+#: linkify-text.php:125
+msgid "Limit linkifications to once per term per post?"
+msgstr ""
+
+#: linkify-text.php:126
+msgid ""
+"If checked, then each term will only be linkified the first time it appears "
+"in a post."
+msgstr ""
+
+#: linkify-text.php:129
+msgid "Case sensitive text matching?"
+msgstr ""
+
+#: linkify-text.php:130
+msgid ""
+"If checked, then linkification of WordPress would also affect wordpress."
+msgstr ""
+
+#: linkify-text.php:154
+msgid "Linkify Text Settings"
+msgstr ""
+
+#: linkify-text.php:156
+msgid "Description: Automatically hyperlink words or phrases in your posts."
+msgstr ""
+
+#: linkify-text.php:157
+msgid ""
+"Define text and the URL they should be linked to in the field below. The "
+"format should be like this:"
+msgstr ""
+
+#: linkify-text.php:159
+msgid ""
+"Where <code>WordPress</code> is the text you want to get linked and "
+"<code>http://wordpress.org</code> would be what the target for that link."
+msgstr ""
+
+#: linkify-text.php:160
+msgid ""
+"You can link multiple terms to the same link and only have to define the "
+"link once. Simply provide the link for a given term, then for subsequent "
+"terms sharing the same link, use the original term prepended with a colon as "
+"the link, e.g."
+msgstr ""
+
+#: linkify-text.php:165
+msgid "All of the above terms would link to %s."
+msgstr ""
+
+#: linkify-text.php:166
+msgid ""
+"NOTE: A referenced term must have a link; it cannot be a reference to "
+"another term."
+msgstr ""
+
+#: linkify-text.php:167
+msgid "Other considerations:"
+msgstr ""
+
+#: linkify-text.php:169
+msgid ""
+"List the more specific matches early to avoid stomping on another of your "
+"links. For example, if you have both <code>WordPress</code> and "
+"<code>WordPress Support Forums</code> as text to be linked, put "
+"<code>WordPress Support Forums</code> first; otherwise, the <code>WordPress</"
+"code> entry will match first, preventing the phrase <code>WordPress Support "
+"Forums</code> from ever being found."
+msgstr ""
+
+#: linkify-text.php:171
+msgid "Text must represent a whole word or phrase, not a partial string."
+msgstr ""
+
+#: linkify-text.php:173
+msgid "If the protocol is not specified, then 'http://' is assumed."
+msgstr ""
+
+#. Plugin URI of the plugin/theme
+msgid "http://coffee2code.com/wp-plugins/linkify-text/"
+msgstr ""
+
+#. Description of the plugin/theme
+msgid "Automatically hyperlink words or phrases in your posts."
+msgstr ""
+
+#. Author of the plugin/theme
+msgid "Scott Reilly"
+msgstr ""
+
+#. Author URI of the plugin/theme
+msgid "http://coffee2code.com/"
+msgstr ""

@@ -1,0 +1,61 @@
+<?php
+$lan = array(
+
+  'The temporary directory for uploading is not writable, so import will fail' => 'Das tempor&auml;re Upload-Verzeichnis ist schreibgesch&uuml;tzt. Der Import wird fehlschlagen.',
+  'Please select at least one list' => 'Bitte w&auml;hlen Sie mindestens 1 Liste aus.',
+  'File is either too large or does not exist.' => 'Die Datei ist entweder zu gross oder sie existiert nicht.',
+  'No file was specified. Maybe the file is too big?' => 'Es wurde keine Datei ausgew&auml;hlt. M&ouml;glicherweise ist die Datei zu gross?',
+  'File too big, please split it up into smaller ones' => 'Die Datei ist zu gross. Bitte teilen Sie sie in mehrere kleinere Dateien auf.',
+  'Use of wrong characters: ' => 'Es wurden falsche Zeichen benutzt: ',
+  'Please choose whether to sign up immediately or to send a notification' => 'Bitte w&auml;hlen Sie, ob die Anmeldung sofort erfolgen soll oder eine Best&auml;tigungsanfrage verschickt werden soll.',
+  'Cannot read file. It is not readable !' => 'Die Datei ist nicht lesbar.',
+  'Something went wrong while uploading the file. Empty file received. Maybe the file is too big, or you have no permissions to read it.' => 'Beim Upload der Datei ist ein Fehler aufgetreten; es wurde eine leere Datei empfangen. M&ouml;glicherweise ist die Datei zu gross, oder Sie haben keine Zugriffsberechtigung daf&uuml;r.',
+  'Some characters that are not valid have been found. These might be delimiters. Please check the file and select the right delimiter.' => 'Es wurden ung&uuml;ltige Zeichen gefunden. M&ouml;glicherweise sind es Feld- oder Datensatz-Trennzeichen. Bitte &uuml;berpr&uuml;fen Sie die Datei und w&auml;hlen Sie das korrekte Zeichen.',
+  'Import of existing subscriber' => 'Import eines bestehenden Benutzers',
+  'Import of new subscriber' => 'Import eines neuen Benutzers',
+  'No data changed' => 'Es wurden keine Benutzerdaten ge&auml;ndert.',
+  'List subscriptions:' => 'Zeige Abonnemente:',
+  'Was subscribed to:' => 'War abonniert auf:',
+  'Is now subscribed to:' => 'Ist nun abonniert auf:',
+  'Not subscribed to any lists' => 'Auf keine Liste abonniert',
+  'Import by ' => 'Import von ',
+  'list' => 'Liste',
+  'lists' => 'Listen',
+  'new email was' => 'Die neue E-Mail-Adresse war',
+  'new emails were' => 'Die neuen E-Mail-Adressen waren',
+  'email was' => 'Die E-Mail-Adresse war',
+  'emails were' => 'Die E-Mail-Adressen waren',
+  'Import some more emails' => 'Importiere weitere E-Mail-Adressen',
+  'add_list' => 'Liste hinzuf&uuml;gen',
+  'Test output:' => 'Test-Durchlauf',
+  'There should only be ONE email per line.' => 'Es sollte nur 1 E-Mail-Adresse pro Zeile existieren.',
+  'If the output looks ok, go' => 'Wenn die Ausgabe einwandfrei aussieht, gehe',
+  'back' => 'zur&uuml;ck',
+  ' to resubmit for real' => ' to resubmit for real',
+  'emails existed in the database' => 'E-Mail-Adressen existierten in der Datenbank',
+  'All the emails already exist in the database.' => 'Alle E-Mail-Adresse existierten bereits in der Datenbank.',
+  'succesfully imported to the database and added to' => 'Erfolgreich in die Datenbank importiert und hinzugef&uuml;gt zu',
+  'subscribed to the' => 'Abonniert auf',
+  'adding_users' => 'F&uuml;ge Benutzer zur Liste hinzu',
+  'select_lists' => 'W&auml;hlen Sie die Liste(n) aus, zu der/denen die E-Mail-Adressen hinzugef&uuml;gt werden sollen.',
+  'No lists available, ' => 'Es sind keine Listen verf&uuml;gbar.',
+  'The file you upload will need to contain the emails you want to add to these lists. Anything after the email will be added as attribute "Info" of the Subscriber. You can specify the rest of the attributes of these subscribers below. Warning: the file needs to be plain text. Do not upload binary files like a Word Document.' =>
+  	'Die zu importierende Datei muss die E-Mail-Adressen enthalten, die Sie zu diesen Listen hinzuf&uuml;gen wollen.
+	Alles was hinter der E-Mail-Adresse steht wird als Attribut "Info" des jeweiligen Benutzers gespeichert.
+	Die weiteren Attribute dieser Benutzer k&ouml;nnen Sie unten angeben.
+	<b>Achtung</b>: Die Datei muss eine reine Textdatei sein.
+	Importieren Sie keine bin&auml;ren Dateien wie beispielsweise Word-Dokumente.',
+  'File containing emails:' => 'Textdatei mit E-Mail-Adressen:',
+  'Field Delimiter:' => 'Feld-Trennzeichen:',
+  '(default is TAB)' => '(Standard: TAB)',
+  'Record Delimiter:' => 'Datensatz-Trennzeichen:',
+  '(default is line break)' => '(Standard: Zeilenschaltung)',
+  'If you check "Test Output", you will get the list of parsed emails on screen, and the database will not be filled with the information. This is useful to find out whether the format of your file is correct. It will only show the first 50 records.' => 'Wenn Sie einen Test-Durchlauf durchf&uuml;hren, werden die E-Mail-Adressen nur auf dem Bildschirm ausgegeben und nicht in die Datenbank geschrieben. Dies ist hilfreich um zu pr&uuml;fen, ob das Format der importierten Datei korrekt ist. Es werden allerdings nur die ersten 50 Datens&auml;tze angezeigt.',
+  'Test output:' => 'Test-Durchlauf:',
+  'If you choose "send notification email" the subscribers you are adding will be sent the request for confirmation of subscription to which they will have to reply. This is recommended, because it will identify invalid emails.' =>
+  	'Wenn Sie nachfolgend die Option "Best&auml;tigungsanfrage senden" w&auml;hlen, wird den importierten Benutzern eine E-Mail geschickt, die sie beantworten m&uuml;ssen, um das Abonnement zu best&auml;tigen. Dies wird empfohlen, denn so k&ouml;nnen ung&uuml;ltige E-Mail-Adressen identifiziert werden.',
+  'Send Notification email' => 'Best&auml;tigungsanfrage senden',
+  'Make confirmed immediately' => 'Sofort auf "best&auml;tigt" setzen',
+  'import' => 'Importieren',
+);
+?>

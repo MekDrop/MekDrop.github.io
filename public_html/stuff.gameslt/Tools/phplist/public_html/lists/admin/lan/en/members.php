@@ -1,0 +1,37 @@
+<?php
+
+$lan = array(
+
+'Add a user' => 'Add a subscriber',
+'add user' => 'Add subscriber',
+'Members of' => 'Members of',
+'Tag all users in this page' => 'Tag all subscribers in this page',
+'back to this list' => 'back to this list',
+'Download users on this list as a CSV file' => 'Download subscribers on this list as a CSV file',
+'Please enter a listid' => 'Please enter a listid',
+'users were moved to' => 'subscribers were moved to',
+'users were copied to' => 'subscribers were copied to',
+'users were deleted from this list' => 'subscribers were deleted from this list',
+'Users found, click add to add this user' => 'subscribers found, click add to add this subscriber',
+'No user found with that email' => 'No subscriber found with that email',
+'Inserting user' => 'Inserting subscriber',
+'Users on this list' => 'subscribers on this list',
+'Listing user' => 'Listing subscriber',
+'Listing user 1 to 50' => 'Listing subscriber 1 to 50',
+'Members' => 'Members',
+'Delete' => 'Delete',
+'# msgs' => '# msgs',
+'# rss' => '# rss',
+'What to do with "Tagged" users' => 'What to do with "Tagged" subscribers',
+'This will only process the users in this page that have the "Tag" checkbox checked' => 'This will only process the subscribers in this page that have the "Tag" checkbox checked',
+'Move' => 'Move',
+'Copy' => 'Copy',
+'Nothing' => 'Nothing',
+'from this list' => 'from this list',
+'What to do with all users' => 'What to do with all subscribers',
+'This will process all users on this list' => 'This will process all subscribers on this list',
+'do it' => 'do it',
+'Import Users to this list' => 'Import subscribers to this list',
+'Add' => 'Add',
+);
+?>

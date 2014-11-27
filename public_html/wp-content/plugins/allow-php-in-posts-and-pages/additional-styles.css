@@ -1,0 +1,90 @@
+@charset "utf-8";
+/* CSS Document */
+
+fieldset.snippet{
+	background: white;
+	border: 1px solid #333333;
+	border-radius: 5px;
+	float: left;
+	margin-right: 10px;
+	margin-top:10px;
+	padding: 10px;
+	position: relative;
+	width: 450px;
+}
+fieldset.snippet legend h4{
+	margin:0;	
+}
+fieldset.snippet legend + p{
+	margin-top:0;
+}
+fieldset.snippet .delete-button{
+	background:#900;
+	border-radius: 0 5px;
+	bottom: 0;
+	color: white;
+	display: block;
+	font-size: 0.9em;
+	left: 0;
+	padding: 3px;
+	position: absolute;
+	text-decoration: none;
+	
+}
+fieldset.snippet input[type=submit]{
+	float:right;	
+}
+fieldset.snippet .delete-button:hover{
+	text-decoration:underline;	
+}
+fieldset.snippet label{
+	display:inline-block;
+	width:100px;	
+	vertical-align:top;
+}
+fieldset.snippet input[type=text]{
+	width:348px;
+}
+fieldset.snippet textarea{
+	font-family:"Courier New", Courier, monospace;
+	font-size:12px;
+	width:345px;
+	height:100px;
+}
+
+div.appeal{
+	background: #eeeeee;
+	background: -webkit-gradient(linear, 0 0, 0 bottom, from(#eeeeee), to(#dddddd));
+	background: -moz-linear-gradient(#eeeeee, #dddddd);
+	background: linear-gradient(#eeeeee, #dddddd);
+	-webkit-border-radius: 10px;
+	-moz-border-radius: 10px;
+	border-radius: 10px;
+	-webkit-box-shadow: #333 0px 0px 5px;
+	-moz-box-shadow: #333 0px 0px 5px;
+	box-shadow: #333 0px 0px 5px;
+	display:block; 
+	float:right; 
+	margin:-10px 15px 25px 10px;
+	padding:10px; 
+	width:450px; 
+}
+div.appeal h2{
+	margin:0;
+	padding:0;	
+}
+div.appeal ol li{
+	margin-top:20px;	
+}
+div.appeal ol li:first-child{
+	margin-top:0;
+}
+.information p{
+	clear:left;	
+}
+.code{
+	background:#ffffcc;
+	font-family:"Courier New", Courier, monospace;
+	float:left;
+	padding:5px 50px 5px 5px;;
+}

@@ -1,0 +1,56 @@
+<?php
+$lan = array(
+  "This page can only be called from the commandline" => "Den här sidan kan endast åberopas från kommandoraden",
+  "Bounce processing error" => "Bearbetningsfel för avvisat utskick",
+  "Bounce Processing info" => "Bearbetningsinformation för avvisade utskick",
+  "error" => "fel",
+  "info" => "information",
+  "system message bounced, user marked unconfirmed" => "systemutskick avvisat, medlem markerad som obekräftad",
+  "Bounced system message" => "Avvisat systemutskick",
+  "User marked unconfirmed" => "Medlemmen har markerats som ej bekräftad",
+  "View Bounce" => "Visa utskick",
+  "Cannot create POP3 connection to" => "Kan inte skapa POP3-anslutning till",
+  "Cannot open mailbox file" => "Kan inte öppna mailboxfil",
+  "bounces to fetch from the mailbox" => "avvisade utskick att hämta från mailboxen",
+  "Please do not interrupt this process" => "Vänligen avbryt inte den här processen",
+  "bounces to process" => "avvisade utskick att bearbeta",
+  "Processing first" => "Bearbetar de första",
+  "bounces" => "avvisade utskicken",
+  "Running in test mode, not deleting messages from mailbox" => "Körs i testläge, detekterar inte utskick i mailboxen",
+  "Processed messages will be deleted from mailbox" => "Bearbetade utskick kommer tas bort från mailboxen",
+  "Deleting message" => "Tar bort meddelande",
+  "Closing mailbox, and purging messages" => "Stänger mailbox och rensar utskick",
+  "IMAP is not included in your PHP installation, cannot continue" => "IMAP finns inte i din PHP-installation, kan inte fortsätta",
+  "Check out" => "Kolla",// or 'go look', 'consult', etc.
+  "Bounce mechanism not properly configured" => "Avvisningsmekanismen är inte ordentligt konfigurerad",
+  "bounce_protocol not supported" => "bounce_protocol stöds ej",
+  "Identifying consecutive bounces" => "Identifierar konsekutiva avvisade utskick",
+  "Nothing to do" => "Ingenting att göra",
+  "Process Killed by other process" => "Processen dödades av en annan process",
+// 3 lines below = one sentence
+  "User" => "Medlemmen",
+  "has consecutive bounces" => "har konsekutiva avvisade utskick",
+  "over threshold, user marked unconfirmed" => "över tröskelvärdet, så medlemmen har markerats som ej bekräftad",
+  "Auto Unsubscribed" => "Automatiskt avanmäld",
+// 2 lines below = one sentence
+  "User auto unsubscribed for" => "Medlemmen avanmäldes automatiskt på grund av",
+  "consecutive bounces" => "konsekutiva avvisade utskick",
+// 3 lines below = one sentence
+  "Identifying consecutive bounces" => "Identifierar konsekutiva avvisade utskick",
+  "of" => "för",
+  "users processed" => "bearbetade medlem",
+  'processing first' => 'bearbetar de första',
+  'Report:' => 'Rapport:',
+  'Below are users who have been marked unconfirmed. The number in [] is their userid, the number in () is the number of consecutive bounces' => 'Nedan finns medlemmar som har markerats som ej bekräftade. Siffran inom [] är deras medlems-ID-nummer och siffran inom () är antalet konsekutiva avvisade utskick',
+  
+  ## new in 2.9.5
+  'Processing bounces based on active bounce rules' => 'Bearbetar avvisade utskick grundat på aktiv regel för avvisade utskick',
+  'Auto Blacklisted' => 'Automatiskt svartlistad',
+  'User auto blacklisted for' => 'Medlemmen svartlistades automatiskt på grund av',
+  'bounce rule' => 'avvisningsregel',
+  'system message bounced, but unknown user' => 'systemutskick avvisades, men okänd medlem',
+  'bounces processed by advanced processing' => 'avvisade utskick bearbetade genom avancerad bearbetning',
+  'bounces were not matched by advanced processing rules' => 'avvisade utskick matchades inte av avancerade bearbetningsregler',
+  'Report of advanced bounce processing:' => 'Rapport över avancerad bearbetning av avvisade utskick:',
+);
+?>

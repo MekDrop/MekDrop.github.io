@@ -1,0 +1,22 @@
+ALTER TABLE `ieefdf012_users`
+ ADD FOREIGN KEY (map_id)
+ REFERENCES `ieefdf012_dwtycoon_map`(map_id);
+ 
+ ALTER TABLE `ieefdf012_dwtycoon_map`
+ ADD FOREIGN KEY (owner)
+ REFERENCES `ieefdf012_users`(uid);
+ 
+ ieefdf012_users.map_id -> null
+ ieefdf012_dwtycoon_map owner -> MEDIUMINT UNSIGNED
+ 
+ALTER TABLE `ieefdf012_dwtycoon_building`
+ ADD FOREIGN KEY (owner)
+ REFERENCES `ieefdf012_users`(uid);
+ 
+ALTER TABLE `ieefdf012_dwtycoon_map`
+ ADD FOREIGN KEY (map_id)
+ REFERENCES `ieefdf012_dwtycoon_map` (map_id);
+ 
+ ALTER TABLE `ieefdf012_dwtycoon_building`
+ ADD FOREIGN KEY (type)
+ REFERENCES `ieefdf012_dwtycoon_btype`(bt_id);

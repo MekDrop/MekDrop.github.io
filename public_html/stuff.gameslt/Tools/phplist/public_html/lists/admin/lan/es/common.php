@@ -1,0 +1,157 @@
+<?php
+
+# file with common texts for translation
+
+$lan = array(
+  'Logout' => 'Desconectarse',
+  'Main Page' => 'P&aacute;gina principal',
+  'Subscriber' => 'Usuario',
+  'Error' => 'Error',
+  'version' => 'versi&oacute;n',
+  'powered by' => 'funciona con',
+  'Fatal Error' => 'Error cr&iacute;tico',
+  'Warning' => 'Aviso',
+  'Information' => 'Informaci&oacute;n',
+  'help' => 'ayuda',
+  'about' => 'informaci&oacute;n',
+  'lists' => 'listas',
+  'send a message' => 'Enviar un mensaje',
+  'Subscribers' => 'usuarios',
+  'manage users' => 'gestionar usuarios',
+  'Campaigns' => 'mensajes',
+  'statistics' => 'estad&iacute;sticas',
+  'process queue' => 'procesar cola de mensajes',
+  'configure' => 'configurar',
+  'Subscribe Pages' => 'P&aacute;ginas de suscripci&oacute;n',
+  'Send a prepared message' => 'Enviar un mensaje preparado',
+  'Prepare a message' => 'Preparar un mensaje',
+  'Templates' => 'Plantillas',
+  'View Bounces' => 'Ver rebotes',
+  'Process Bounces' => 'Procesar rebotes',
+  'Eventlog' => 'Registro de eventos',
+  'Sunday' => 'Domingo',
+  'Monday' => 'Lunes',
+  'Tuesday' => 'Martes',
+  'Wednesday' => 'Mi&eacute;rcoles',
+  'Thursday' => 'Jueves',
+  'Friday' => 'Viernes',
+  'Saturday' => 'S&aacute;bado',
+  'January' => 'Enero',
+  'February' => 'Febrero',
+  'March' => 'Marzo',
+  'April' => 'Abril',
+  'May' => 'Mayo',
+  'June' => 'Junio',
+  'July' => 'Julio',
+  'August' => 'Agosto',
+  'September' => 'Septiembre',
+  'October' => 'Octubre',
+  'November' => 'Noviembre',
+  'December' => 'Diciembre',
+  'Jan' => 'Ene',
+  'Feb' => 'Feb',
+  'Mar' => 'Mar',
+  'Apr' => 'Abr',
+  'May' => 'May',
+  'Jun' => 'Jun',
+  'Jul' => 'Jul',
+  'Aug' => 'Ago',
+  'Sep' => 'Set',
+  'Oct' => 'Oct',
+  'Nov' => 'Nov',
+  'Dec' => 'Dic',
+  # from sendemaillib
+  'Sending text only to' => 'Enviando texto plano a',
+  'Sending Campaign' => 'Enviando mensaje',
+  'with subject' => 'con asunto',
+  'to' => 'a',
+  'Admin Authentication initialisation failure' => 'Fall&oacute; la inicializaci&oacute;n de la
+  autenticaci&oacute;n del administrador',
+  'Your password for phplist' => 'Su contrase&ntilde;a para phplist',
+  'Your password is' => 'Su contrase&ntilde;a es',
+  'Your password has been sent by email' => 'Su contrase&ntilde;a ha sido enviada por email',
+  'Unable to send the password' => 'No se pudo enviar la contrase&ntilde;a',
+  'Your IP address has changed. For security reasons, please login again' => 'Su direcci&oacute;n IP ha cambiado. Por motivos de
+  seguridad debe conectarse de nuevo',
+  'goodbye' => 'adi&oacute;s',
+  'good morning' => 'buenos d&iacute;as',
+  'good afternoon' => 'buenas tardes',
+  'good evening' => 'buenas noches',
+  'In safe mode, not everything will work as expected' => 'En modo seguro no todo funcionar&aacute; como
+  se espera',
+  'Things will work better when PHP magic_quotes_gpc = on' => 'Las cosas funcionar&aacute;n mejor con PHP magic_quotes_gpc = <b>on</b>',
+  'Things will work better when PHP magic_quotes_runtime = off' => 'Las cosas funcionar&aacute;n mejor con PHP magic_quotes_runtime = off',
+  'You are trying to use RSS, but XML is not included in your PHP' => 'Est&aacute; intentando utilizar RSS, pero en su PHP no
+  se ha inclu&iacute;do XML',
+  'open_basedir restrictions are in effect, which may be the cause of the next warning' => 'Est&aacute;n operando restricciones
+  open_basedir, lo que puede explicar el aviso que sigue',
+  'The attachment repository does not exist or is not writable' => 'El directorio para archivos adjuntos
+  no existe o est&aacute; protegido contra escritura',
+  'You are trying to use PDF support without having FPDF loaded' => 'Est%aacute; intentando utilizar funciones PDF sin haber
+  cargado FPDF',
+  'The pageroot in your config does not match the current locationCheck your config file.' => 'El directorio ra&iacute;z establecido en su
+  configuraci&oacute;n no concuerda con la direcci&oacute;n
+  actual<br/>Compruebe su fichero de configuraci&oacute;n.',
+  'Sorry this page was not found in the plugin' => 'Lo sentimos, no se encontr&oacute; esta
+  p&aacute;gina en el m&oacute;dulo (plugin)',
+  'Sorry not Implemented yet' => 'Lo sentimos, esta funci&oacute;n aun no existe',
+  'You do not have enough privileges to access this page' => 'No tiene sufucientes privilegios para ver esta p&aacute;gina',
+  'Sorry, help for this topic is not available yet: ' => 'Lo sentimos, aun no hay ayuda pera este tema: ',
+  'Close this window' => 'Cerrar esta ventana',
+  'success' => 'logrado',
+  'failed' => 'fracasado',
+  'default login is' => 'La conexi&oacute;n por defecto es',
+  'with password' => 'con contrase&ntilde;a',
+  'Name' => 'Nombre',
+  'Password' => 'Contrase&ntilde;a',
+  'Enter' => 'Presione &#171;Enter&#187;',
+  'forgot password' => '&#191;Ha olvidado su contrase&ntilde;a?',
+  'enter your email' => 'Introduzca su email',
+  'send password' => 'Enviar contrase&ntilde;a',
+  'An image exists on the server, check this box to keep the existing
+  one' => 'En el servidor ya hay una imgen, marcar esta casilla para
+  mantener la imagen existente',
+  'View Image' => 'Ver imagen',
+  'Upload new image' => 'Cargar una imagen nueva',
+  'textline' => 'l&iacute;nea de texto',
+  'textarea' => '&aacute;rea de texto',
+  'date' => 'fecha',
+  'checkbox' => 'casilla de verificaci&oacute;n',
+  'radio' => 'radiobot&oacute;n',
+  'select' => 'seleccionar',
+  'checkboxgroup' => 'grupo de casillas de verificaci&oacute;n',
+  'unnamed list' => 'Lista sin nombre',
+  'Unknown' => 'Desconocido',
+  'very little time' => 'muy poco tiempo',
+  'A process for this page is already running and it was still alive'
+  => 'Ya se estaba ejecutando un proceso en esta p&aacute;gina, y
+  todav&iacute;a estaba en marcha',
+  'seconds ago' => 'segundos atr&aacute;s',
+  'We have been waiting too long, I guess the other process is still
+  going ok' => 'Hemos esperado ya demasiado, suponemos que el otro
+  proceso sigue funcionando bien',
+  'Sleeping for 20 seconds, aborting will quit' => 'Descansando 20
+  segundos, para cerrar interrumpir',
+  'No Image was found' => 'No se encontr&oacute; ninguna imagen',
+  'Campaigns' => 'Mensajes',
+  'Bounces' => 'Rebotes',
+  'bounce' => 'rebote',
+  'msg' => 'mensaje', # as in short for message
+  'time' => 'hora',
+  'sent' => 'enviado',
+  'text' => 'texto',
+  'html' => 'html',
+  #
+  # new for 2.9.5
+  'delete user' => 'eliminar usuario',
+  'unconfirm user' => 'marcar al usuario &#171;no confirmado&#187;',
+  'delete user and bounce' => 'eliminar usuario y rebote',
+  'unconfirm user and delete bounce' => 'marcar al usuario &#171;no confirmado&#187; y eliminar el rebote',
+  'blacklist user and delete bounce' => 'colocar al usuario en la lista negra y eliminar el rebote',
+  'delete bounce' => 'eliminar el rebote',
+  'blacklist user' => 'colocar al usuario en la lista negra',
+  'manage bounces' => 'Gestionar rebotes',
+
+);
+
+?>

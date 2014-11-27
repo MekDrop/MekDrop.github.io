@@ -1,0 +1,43 @@
+<{if $types}>
+    <h1>Pasirinkite banerių formatą sąrašo peržiūrai</h1>
+    <ul>
+    <{foreach from=$types key=key item=value}>        
+        <li>
+            <a href="?op=list&type=<{$key}>"><{$value}></a>
+        </li>        
+    <{/foreach}>
+    </ul>
+    <form action="index.php" method="post">
+        <input type="hidden" name="op" value="add" />
+        <button type="submit">Suplanuoti naują</button>
+    </form>    
+<{else}>
+    <h1>Baneriai</h1>
+    <h3>Suplanuoti baneriai</h3>
+    <{foreach from=$planned_banners item=banner name=banners}>
+    <p>
+        <a href="<{$banner.url}>" tager="gamelt"><img src="<{$banner.image}>" alt="<{$banner.game}>" title="<{$banner.name}>" style="max-width: 80%;" /></a>
+        <{if !$smarty.foreach.banners.last}>
+            <br /><br />
+        <{/if}>
+    </p>
+    <{foreachelse}>
+        <p>Šiuo metu tokių nėra</p>
+    <{/foreach}>
+    <h3>Dabar rodomi baneriai</h3>
+    <{foreach from=$current_banners item=banner}>
+    <p>
+        <a href="<{$banner.url}>" tager="gamelt"><img src="<{$banner.src}>" alt="<{$banner.title}>" title="<{$banner.text}>" style="max-width: 80%;" /></a><br />
+        <b>Liko laiko:</b> <{if $banner.time_left_parts.days > 0}>
+            <{$banner.time_left_parts.days}>
+            <{if $banner.time_left_parts.days % 10 == 1}>
+                diena
+            <{else}>
+                dienos
+            <{/if}>             
+        <{else}>
+            Pasibaigęs laikas
+        <{/if}>
+    </p>
+    <{/foreach}>
+<{/if}>

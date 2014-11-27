@@ -1,0 +1,37 @@
+<?php
+
+$lan = array(
+
+'static' => 'static',
+'Requeuing' => 'Requeuing',
+'Listing message' => 'Listing message',
+'Listing message 1 to' => 'Listing message 1 to',
+'Messages' => 'Messages',
+'Delete all draft messages' => 'Delete all draft messages',
+'Message info' => 'Message info',
+'From:' => 'From:',
+'Subject:' => 'Subject:',
+'Entered:' => 'Entered:',
+'Embargo:' => 'Embargo:',
+'click stats' => 'click stats',
+'Time to send' => 'Time to send',
+'both' => 'both',
+'PDF' => 'PDF',
+'Viewed' => 'Viewed',
+'Unique Views' => 'Unique Views',
+'Clicks' => 'Clicks',
+'Bounced' => 'Bounced',
+'Requeue' => 'Requeue',
+'prepared' => 'prepared',
+'Delete all draft messages without subject' => 'Delete all draft messages without subject',
+'suspend sending' => 'suspend sending',
+'suspending' => 'suspending',
+'Marking as sent ' => 'Marking as sent ',
+'Mark as sent' => 'Mark as sent',
+'draft' => 'draft',
+'inprocess' => 'inprocess',
+'suspended' => 'suspended',
+'submitted' => 'submitted',
+'queued' => 'queued',
+);
+?>

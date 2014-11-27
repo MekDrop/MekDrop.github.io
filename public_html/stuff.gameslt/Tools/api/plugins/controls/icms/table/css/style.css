@@ -1,0 +1,65 @@
+.icms_control.icms_table thead th {
+    cursor: pointer;
+}
+
+.icms_control.icms_table thead th.notselectable {
+    cursor: default;
+}
+
+.icms_control.icms_table thead th.selected {
+    background-repeat: no-repeat;
+    background-position: right center;
+    background-color: beige;
+}
+
+.icms_control.icms_table thead th.desc {
+    background-image: url('images/bullet_arrow_down.png');
+}
+
+.icms_control.icms_table thead th.asc {
+    background-image: url('images/bullet_arrow_up.png');
+}
+
+.icms_control.icms_table td.input, .icms_control.icms_table td.view_image {
+    text-align: center;
+}
+
+.icms_control.icms_table .actions_bar {
+    text-align: center;
+}
+
+.icms_control.icms_table tr.empty td {
+    text-align: center;
+}
+
+.icms_control.icms_table tr td.plain_text div.content {
+    vertical-align: top;
+    text-align: left;
+    overflow-y: auto;
+    white-space: pre-wrap; /* css-3 */
+    white-space: -moz-pre-wrap !important; /* Mozilla, since 1999 */
+    white-space: -pre-wrap; /* Opera 4-6 */
+    white-space: -o-pre-wrap; /* Opera 7 */
+    word-wrap: break-word; /* Internet Explorer 5.5+ */
+    max-height: 10em;
+    max-width: 80em;
+    text-overflow:ellipsis;
+    padding-bottom: 1em;
+    overflow-style:scrollbar;
+}
+
+.icms_control.icms_table tbody tr td {
+    border-bottom-style: dashed;
+    border-bottom-color: rgba(100, 100, 100, 0.2);
+    border-bottom-width: 1px;
+}
+
+.icms_control.icms_table tr td.plain_text div.content:hover {
+    vertical-align: top;
+    text-align: left;    
+    overflow-y: auto;    
+}
+
+.icms_control.icms_table tbody tr:last-child td {
+    border-bottom-style: none;
+}

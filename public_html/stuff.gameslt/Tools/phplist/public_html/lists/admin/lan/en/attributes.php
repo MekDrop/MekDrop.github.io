@@ -1,0 +1,31 @@
+<?php
+
+$lan = array(
+
+'Email is a system attribute' => 'Email is a system attribute',
+'Converting' => 'Converting',
+'from' => 'from',
+'Cannot delete attribute, it is being used by the following forms:' => 'Cannot delete attribute, it is being used by the following forms:',
+'Warning, changing types of attributes can take a long time' => 'Warning, changing types of attributes can take a long time',
+'Sorry, merging of checkbox groups is not implemented yet' => 'Sorry, merging of checkbox groups is not implemented yet',
+'cannot merge just one attribute' => 'cannot merge just one attribute',
+'Merging' => 'Merging',
+'into' => 'into',
+'Can only merge attributes of the same type' => 'Can only merge attributes of the same type',
+'Existing attributes' => 'Existing attributes',
+'No Attributes have been defined yet' => 'No Attributes have been defined yet',
+'Load data from' => 'Load data from',
+'predefined defaults' => 'predefined defaults',
+'Attribute' => 'Attribute',
+'used in' => 'used in',
+'forms' => 'forms',
+'Type' => 'Type',
+'Default Value' => 'Default Value',
+'Order of Listing' => 'Order of Listing',
+'Is this attribute required?' => 'Is this attribute required?',
+'With TAGGED attributes' => 'With TAGGED attributes',
+'Merge' => 'Merge',
+'Add new Attribute' => 'Add new Attribute',
+'authoritative list' => 'authoritative list',
+'avatar' => 'avatar',
+);

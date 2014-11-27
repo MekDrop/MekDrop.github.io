@@ -1,0 +1,5 @@
+<div class="commentWrapper threaded">
+  <{section name=i loop=$comments}>
+    <{include file="$icms_rootpath/modules/system/templates/system_comment.html" comment=$comments[i] threaded='true'}>
+  <{/section}>
+</div>

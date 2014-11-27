@@ -1,0 +1,56 @@
+﻿<?php
+$lan = array(
+  "This page can only be called from the commandline" => "Ta stran je lako priklicana le prek commandline",
+  "Bounce processing error" => "Napaka pri obdelavi odbojev",
+  "Bounce Processing info" => "Info o obdelavi odbojev",
+  "error" => "Napaka",
+  "info" => "Info",
+  "system message bounced, user marked unconfirmed" => "Odboj sistemskega sporočila, uporabnik označen kot nepotrjen",
+  "Bounced system message" => "Odboj sistemskega sporočila",
+  "User marked unconfirmed" => "Uporabnik označen kot nepotrjen",
+  "View Bounce" => "Poglej odboj",
+  "Cannot create POP3 connection to" => "Ne morem narediti POP3 povezave do",
+  "Cannot open mailbox file" => "Ne morem odpreti mailbox datoteke",
+  "bounces to fetch from the mailbox" => "Odbojev za pridobiti iz predala",
+  "Please do not interrupt this process" => "Ne prekinite procesa",
+  "bounces to process" => "Odboji za obdelavo",
+  "Processing first" => "Obdelujem najprej",
+  "bounces" => "Odboji",
+  "Running in test mode, not deleting messages from mailbox" => "Delovanje v testen načinu. Sporočila ne bodo izbrisana iz predala.",
+  "Processed messages will be deleted from mailbox" => "Obdelana sporočila bodo izbrisana iz predala.",
+  "Deleting message" => "Brišem sporočilo",
+  "Closing mailbox, and purging messages" => "Zapiram predal in čistim sporočila",
+  "IMAP is not included in your PHP installation, cannot continue" => "IMAP ni vključen v vašo PHP namestitev, ne morem nadaljevati",
+  "Check out" => "Preveri",// or 'go look', 'consult', etc.
+  "Bounce mechanism not properly configured" => "Mehanizem za odboje ni pravilno nastavljen",
+  "bounce_protocol not supported" => "bounce_protocol ni podprt",
+  "Identifying consecutive bounces" => "Prepoznavanje zaporednih odbojev",
+  "Nothing to do" => "Nič za početi..",
+  "Process Killed by other process" => "Proces prekinjen zaradi drugega procesa",
+// 3 lines below = one sentence
+  "User" => "Uporabnik",
+  "has consecutive bounces" => "Ima zaporedne odboje",
+  "over threshold, user marked unconfirmed" => "Čez mejo, uporabnik označen kot nepotrjen",
+  "Auto Unsubscribed" => "Samodejno odjavljen",
+// 2 lines below = one sentence
+  "User auto unsubscribed for" => "Uporabnik samodejno odjavljen zaradi",
+  "consecutive bounces" => "zaporednih odbojev",
+// 3 lines below = one sentence
+  "Identifying consecutive bounces" => "Prepoznavanje zaporednih odbojev",
+  "of" => "od",
+  "users processed" => "Uporabnikov obdelanih",
+  'processing first' => 'Obdelujem najprej',
+  'Report:' => 'Poročilo:',
+  'Below are users who have been marked unconfirmed. The number in [] is their userid, the number in () is the number of consecutive bounces' => 'Spodaj so uporabniki, ki so bili označeni kot nepotrjeni. Številka v [] je njihova uporabniška ID, številka v () pa je število zaporednih odbojev',
+  
+  ## new in 2.9.5
+  'Processing bounces based on active bounce rules' => 'Obdelujem odboje glede na aktivno pravilo za odboje',
+  'Auto Blacklisted' => 'Samodejno dodan na ČRNO listo',
+  'User auto blacklisted for' => 'Uporabnik samodejno dodan na ČRNO listo zaradi',
+  'bounce rule' => 'pravila odbojev',
+  'system message bounced, but unknown user' => 'odboj sistemskega sporočila, neznan uporabnik',
+  'bounces processed by advanced processing' => 'odboji obdelani z naprednim procesom',
+  'bounces were not matched by advanced processing rules' => 'odboji se ne ujemajo s pravili v naprednih procesih',
+  'Report of advanced bounce processing:' => 'Poročilo o napredni obdelavi odbojev:',
+);
+?>

@@ -1,0 +1,8 @@
+{
+    "name": "EditArea Source Code Editor",
+    "license": "GPL",
+    "version": {
+        "@file": "editor/change_log.txt",
+        "@regexp": "/\*\*\*\* v([^\*]+) \*\*\*\*/"
+    }
+}
