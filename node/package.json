@@ -1,0 +1,19 @@
+{
+  "name": "mekdrop.name-api",
+  "version": "0.0.1",
+  "description": "mekdrop.name api",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "ssh://mekdrop@git.codebreak.com/mekdrop/mekdrop.name.git"
+  },
+  "keywords": [
+    "mekdrop.name",
+    "api"
+  ],
+  "author": "MekDrop",
+  "license": "BSD-2-Clause"
+}
