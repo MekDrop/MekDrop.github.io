@@ -4,3 +4,4 @@ stats
 nbproject
 stuff.gameslt/Tools/api/templates_c/*.php
 stuff.gameslt/Tools/api/cache/*.php
+/node/node_modules/
