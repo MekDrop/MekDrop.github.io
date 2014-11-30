@@ -4,6 +4,7 @@
   "description": "mekdrop.name api",
   "main": "app.js",
   "scripts": {
+    "start": "./node_modules/forever/bin/forever -w app.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
