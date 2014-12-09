@@ -7,11 +7,9 @@ var files = require('fs').readdirSync('boot').filter(function (file) {
 }).sort();
 files.forEach(function (file) {
     tasks.task(function () {
-        var varName = file.substr(3, file.length - 10),
-            className = require('ucfirst')(varName);
-        console.log("Loading %s...", className);        
-        GLOBAL[varName] = require('./boot/' + file).create(tasks);
-    });    
+        console.log("Loading %s...", file);
+        require('./boot/' + file).launch(tasks);
+    });
 });
 tasks.do();
 
