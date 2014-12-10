@@ -20,9 +20,7 @@ class Config extends require '../abstract/boot.coffee'
         return _default
       i++
     v
-    
-  get: (name, _default) ->
-    parts = name.split('.')
+
   load: (enviroment) ->
     fs = require('fs')
     ini = require('ini')
