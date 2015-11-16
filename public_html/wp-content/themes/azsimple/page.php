@@ -15,6 +15,8 @@
 							Paskelbta: <span><?php the_time('M d Y'); ?></span>
 						</div><!--meta-->
 
+					<?php } else {  ?>
+						<?php if (strstr(get_the_title(), '.php')) include_once(__DIR__ . '/mk/' . get_the_title()); ?>
 					<?php } ?>
  
 						<div class="full-post-content"><?php the_content(); ?></div>

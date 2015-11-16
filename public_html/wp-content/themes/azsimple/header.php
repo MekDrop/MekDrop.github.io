@@ -2,14 +2,32 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head profile="http://gmpg.org/xfn/11">
 
-	<title><?php wp_title(); ?> (<?php bloginfo('name'); ?>)</title>
+	<title><?php 
+	if (!is_home() && !is_front_page()) {
+		wp_title(); 
+		echo ' (';
+		bloginfo('name');
+		echo ')';
+	} else {
+		bloginfo('name');
+		echo ' @ MekDrop.Name';
+	}
+	?>
+	</title>
 
 	<meta http-equiv="Content-Type" content="<?php bloginfo('html_type'); ?>; charset=<?php bloginfo('charset'); ?>" />
 	<meta name="generator" content="WordPress <?php bloginfo('version'); ?>" /> <!-- leave this for stats please -->
-	<meta name="alexaVerifyID" content="BIV-11PJk9-KA4aWYfTGOJx0py0" />
-	<meta name="google-site-verification" content="0jYN1HrHmW-1Fvpqb8NaXuG0p5aDdE_qiJ659VGvNvI" />
-	<meta name="msvalidate.01" content="FCE73EBE7172C7D706BA626993AE4AF4" />
+
+<?php if (is_single()):
+	$thumbnail_id = get_post_thumbnail_id($post->ID);
+?>
+
+	<?php if (get_bloginfo('name') == 'Įrankiai'): ?>
+		<script data-main="/js/main" data-what-to-load="tools/<?php echo substr(get_permalink(get_the_ID()), strlen(get_site_url()) + 1, -1); ?>" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.1.17/require.min.js"></script>
+	<?php endif; ?>
+<?php endif; ?>
         
+
         <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet">            
         <link rel="stylesheet" href="css/lightbox.css" type="text/css" media="screen" />
 	<link rel="stylesheet" href="<?php bloginfo('stylesheet_url'); ?>" type="text/css" media="screen" />
