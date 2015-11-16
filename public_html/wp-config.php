@@ -14,12 +14,16 @@
  * @package WordPress
  */
 
+/** Enable W3 Total Cache */
+define('WP_CACHE', true); // Added by W3 Total Cache
+
+
 // ** MySQL settings - You can get this info from your web host ** //
 /** The name of the database for WordPress */
-define('DB_NAME', 'mekdrop_name');
+define('DB_NAME', 'mekdrop.name');
 
 /** MySQL database username */
-define('DB_USER', 'mekdrop_name');
+define('DB_USER', 'mekdrop.name');
 
 /** MySQL database password */
 define('DB_PASSWORD', 'saUp5dxO');
