@@ -52,7 +52,7 @@ if($util->get('page404')!='')
 }
 
 ?>
-<form onsubmit="return check_from();" method="POST" id="myform" action="<?=$util->get_current_parameters(array('add','edit','page404'));?>">
+<form onsubmit="return check_from();" method="POST" id="myform" action="<?php echo $util->get_current_parameters(array('add','edit','page404'));?>">
 <table class="cform" width="100%">
 
 	<tr>
@@ -74,7 +74,7 @@ if($util->get('page404')!='')
 			<option value="Folder">Folder</option>
 			<option value="Regex">Regex</option>
 		</select>
-		<input onblur="check_redirect_from()" type="text" id="redirect_from" name="redirect_from" size="45" value="<?=$redirect_from?>">
+		<input onblur="check_redirect_from()" type="text" id="redirect_from" name="redirect_from" size="45" value="<?php echo $redirect_from?>">
 	      <select onchange="redirect_to_folder_settings_change()" size="1" name="redirect_from_folder_settings"  id="redirect_from_folder_settings">
 			<option value="1">Only the folder</option>
 			<option value="2">The folder and it's content</option>
@@ -87,7 +87,7 @@ if($util->get('page404')!='')
 		
 		 *  <font style="font-size: 12px;color:#a7a7a7">(Starting with 'http://')</font>
 		 </div>
-		 <? if($util->get('page404')!='') echo $redirect_from; ?>
+		 <?php if($util->get('page404')!='') echo $redirect_from; ?>
 		</td>
 	</tr>
 	<tr>
@@ -98,14 +98,14 @@ if($util->get('page404')!='')
 			<option value="Folder">Folder</option>
 		</select>
 		
-		<input onblur="check_redirect_to()" type="text" id="redirect_to" name="redirect_to" size="45" value="<?=$redirect_to?>">
+		<input onblur="check_redirect_to()" type="text" id="redirect_to" name="redirect_to" size="45" value="<?php echo $redirect_to?>">
 		
 		<select size="1" name="redirect_to_folder_settings"  id="redirect_to_folder_settings">
 			<option value="1">Normal</option>
 			<option value="2">Wild Card Redirect</option>
 		</select>
 		
-		 * <font style="font-size: 12px;color:#a7a7a7">(Starting with 'http://')</font>
+		 *
 		</td>
 	</tr>
 	<tr>
@@ -241,7 +241,7 @@ echo "document.getElementById('rfrom_div').style.display = 'none';";
 <br/>
 
 
-<input type="hidden" id="edit" name="edit" value="<?=intval($util->get('edit'))?>">
+<input type="hidden" id="edit" name="edit" value="<?php echo intval($util->get('edit'))?>">
 <b>Note</b>: When you move your site to another domain, the new domain name will be reflected to all links automatically.
 	<br/><br/>
 <?php
@@ -252,7 +252,7 @@ else if($util->get('edit')!='')
 echo '<input  class="button-primary" type="submit" value="Update" name="edit_exist">';
 
 ?>
- <input onclick="window.location='<?=$util->get_current_parameters(array('add','edit'));?>';"  class="button-primary" type="button" value="Cancel" name="cancel">
+ <input onclick="window.location='<?php echo $util->get_current_parameters(array('add','edit'));?>';"  class="button-primary" type="button" value="Cancel" name="cancel">
 <br/></form>
 
 <script>
@@ -264,44 +264,25 @@ var rto=document.getElementById('redirect_to').value;
 
 	if( rfrom=='')
 	{
-		alert("You must input the 'Redirect From' URL starting with 'http://'");
+		alert("You must input the 'Redirect From' URL");
 		document.getElementById('redirect_from').focus();
 		return false;		
-	}else
-	{
-		if(document.getElementById('redirect_from_type').value !='Regex')
-		{
-			if(rfrom.substring(0,4)!='http')
-			{
-				alert("'Redirect From' must be a full URL starting with 'http://'!");
-				document.getElementById('redirect_from').focus();
-				return false;
-							
-			}
-			
-		}
 	}
 	
 	
 	if( rto=='')
 	{
-		alert("You must input the 'Redirect To' URL starting with 'http://'");
+		alert("You must input the 'Redirect To' URL");
 		document.getElementById('redirect_to').focus();
 		return false;		
-	}else
-	{
-		
-		if(rto.substring(0,4)!='http')
-		{
-			alert("'Redirect To' must be a full URL starting with 'http://'!");
-			document.getElementById('redirect_to').focus();
-			return false;
-						
-		}
-		
 	}
-		
-	
+
+	if(!(rto.indexOf('://')!=-1 || rto.substr(0,1)=='/'))
+	{
+		alert('Invalid redirect target URL!');
+		document.getElementById('redirect_to').focus();
+		return false;
+	}
 	
 	return true;
 }

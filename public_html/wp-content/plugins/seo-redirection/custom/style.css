@@ -32,3 +32,14 @@ padding-top:5px;
 background:url(images/pro.png) no-repeat 5px 5px;
 height:51px;
 }
+
+
+ ul.features li {
+     background-image: url("images/check.gif");
+     background-position: 0 3px;
+     background-repeat: no-repeat;
+     font-size: 14px;
+     margin-bottom: 10px;
+     margin-left: 20px;
+     padding-left: 23px;
+ }

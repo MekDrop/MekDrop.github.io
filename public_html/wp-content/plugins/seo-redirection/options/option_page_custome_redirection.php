@@ -5,8 +5,8 @@ $table_name_404 = $table_prefix . 'WP_SEO_404_links';
 
 if($util->post('redirect_from')!=''){
 
-$redirect_from=$util->post('redirect_from');
-$redirect_to=$util->post('redirect_to');
+$redirect_from=urldecode($util->make_relative_url($util->post('redirect_from')));
+$redirect_to=$util->make_relative_url($util->post('redirect_to'));
 $redirect_type=$util->post('redirect_type');
 
 $redirect_from_type=$util->post('redirect_from_type');
@@ -91,7 +91,8 @@ if($redirect_to_type =='Folder')
 			$wpdb->query(" insert into $table_name(redirect_from,redirect_to,redirect_type,url_type,redirect_from_type,redirect_from_folder_settings,redirect_from_subfolders,redirect_to_type,redirect_to_folder_settings,regex,enabled) values('$redirect_from','$redirect_to','$redirect_type',1,'$redirect_from_type','$redirect_from_folder_settings','$redirect_from_subfolders','$redirect_to_type','$redirect_to_folder_settings','$regex','$enabled') ");
 		
 			$wpdb->query(" delete from $table_name_404 where link='$redirect_from' ");
-
+			$SR_redirect_cache = new clogica_SR_redirect_cache();
+			$SR_redirect_cache->free_cache();
 		}
 		
 		
@@ -105,7 +106,8 @@ if($redirect_to_type =='Folder')
 		}else
 		{
 			$wpdb->query(" update $table_name set redirect_from='$redirect_from',redirect_to='$redirect_to',redirect_type='$redirect_type',redirect_from_type='$redirect_from_type' ,redirect_from_folder_settings='$redirect_from_folder_settings' ,redirect_from_subfolders='$redirect_from_subfolders' ,redirect_to_type='$redirect_to_type' ,redirect_to_folder_settings='$redirect_to_folder_settings' ,regex='$regex',enabled='$enabled'  where ID=" . $edit);
-			
+			$SR_redirect_cache = new clogica_SR_redirect_cache();
+			$SR_redirect_cache->free_cache();
 		}
 	
 	

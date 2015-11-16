@@ -1,10 +1,10 @@
 === Simple Share Buttons Adder ===
 Contributors: DavidoffNeal
-Donate link: http://www.simplesharebuttons.com/donate/
-Tags: share buttons, facebook, twitter, google+, share, share links, stumble upon, linkedin, pinterest
-Requires at least: 3.5.1
-Tested up to: 4.0
-Stable tag: 4.8
+Donate link: https://simplesharebuttons.com/donate/
+Tags: share buttons, facebook, twitter, google+, share, share links, stumble upon, linkedin, pinterest, yummly, vk
+Requires at least: 3.9
+Tested up to: 4.2.2
+Stable tag: 6.0.1
 License: GPLv2
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -14,15 +14,13 @@ A simple plugin that enables you to add share buttons to all of your posts and/o
 
 The Simple Share Buttons Adder does exactly what it says on the tin – adds share buttons to all of your posts and pages, simply.
 
-This plugin has a dedicated website! Check out <a href="http://www.simplesharebuttons.com" target="_blank">www.simplesharebuttons.com</a>
+This plugin has a dedicated website! Check out <a href="https://simplesharebuttons.com" target="_blank">simplesharebuttons.com</a>
 
 No hotlinking to another website to slow downloading or for tracking use, it's simple, as promised.
 
 You can even upload and use your own custom images if you wish!
 
 Visit <a href="http://make.simplesharebuttons.com" target="_blank">make.simplesharebuttons.com</a> to make your own custom-coloured share buttons!
-
-I have now uploaded the source to GitHub so please use this to suggest any fixes/improvements! https://github.com/davidsneal/simplesharebuttons
 
 The Simple Share Buttons Adder utilises features that, as a WordPress user, you will be familiar with. A self-explanatory administration screen will have you showing your Share Buttons on your posts and pages in no time!
 
@@ -52,17 +50,62 @@ A step by step guide on how to configure this plugin can be found <a href="http:
 
 == Screenshots ==
 
-1. This is the SSBA Admin menu, where you can change the appearance and placement of your Share Buttons.
-2. Upload and use your own custom images.
-3. Drag, drop and reorder the buttons you wish to include.
-4. Show your buttons using [ssba] or hide them entirely from a page using [ssba_hide].
-5. This is an example of a set of Share Buttons you can add using Simple Share Buttons Adder.
-6. This is an example of a set of Share Buttons you can add using Simple Share Buttons Adder.
-7. You can add your share buttons anywhere using the widget option!
-8. This is an example of a set of Share Buttons you can add using Simple Share Buttons Adder.
-9. Use the widget option to add share buttons!
+1. The core settings tab - where you can choose where you want your buttons and which networks to include
+2. The styling settings tab - where you can pick an image set and resize your buttons and share text
+3. The counters settings tab - where you can enable share counts
+4. The advanced settings tab - where you can apply more advanced features
+5. The additional CSS field - where you can add your own CSS
+6. The custom CSS field - where you can use your own CSS
+7. This is an example of a set of Share Buttons you can add using Simple Share Buttons Adder
+8. This is an example of a set of Share Buttons you can add using Simple Share Buttons Adder
 
 == Changelog ==
+
+= 6.0.1 =
+* Tweak: Add more specific classes for better targeting
+* Fix: Improve XSS fix from 6.0.0
+
+= 6.0.0 =
+* Feature: New admin panel styling
+* Feature: Add additional CSS field
+* Tweak: Amend ssba_current_url for multisite compatability https://wordpress.org/support/topic/multi-site-compatibility
+* Tweak: Update share count calls to use the WP API instead of file_get_contents
+* Tweak: Split codebase into separate files for easier maintenace
+* Tweak: Replace ampersands with %26 for page/post titles for email links
+* Fix: Remove non-object notice
+* Fix: Small XSS bug
+
+= 5.6 =
+* Fix: Remove various PHP notices
+* Tweak: Correct LinkedIn title from Linkedin
+* Tweak: Fix validation error with StumbleUpon link
+* Tweak: Use lowercase 'body' and 'subject' in mailto links
+* Update: Update 'Tested up to' tag to 4.1.1
+* Update: Rebranded settings page
+
+= 5.5 =
+* Tweak: Revert to old Pinterest functionality by default
+* Update: Add option to use featured images when 'pinning' if desired
+
+= 5.4 =
+* Fix: Use full featured image for Pinterest
+
+= 5.3 =
+* Tweak: Use full featured image instead of thumbnail
+
+= 5.2 =
+* Feature: Use a post's featured image when 'pinning'
+* Feature: Add a default Pinterest image (advanced tab)
+
+= 5.1 =
+* Tweak: Button images approved by Yummly
+* Update: Compatible up to tag 4.1
+
+= 5.0 =
+* Feature: Add Yummly button!
+* Feature: Add VK button!
+* Update: Compatible up to tag 4.0.1
+* Fix: Undefined ssba_excerpts notice
 
 = 4.8 =
 * Fix: Undefined ssba_excerpts
@@ -178,9 +221,9 @@ A step by step guide on how to configure this plugin can be found <a href="http:
 
 = 2.5 =
 * Further Twitter customisation for Twitter under 'Advanced' options!
-* Buffer and Flattr buttons added! (share counts still to come!) 
+* Buffer and Flattr buttons added! (share counts still to come!)
 * Flattr requires you to enter your user ID under the advanced tab, you must also submit pages/posts here http://flattr.com/submit
-* You can now set a specified URL and Title when using shortcode - [ssba url="http://www.simplesharebuttons.com" title="Simple Share Buttons"]! 
+* You can now set a specified URL and Title when using shortcode - [ssba url="http://www.simplesharebuttons.com" title="Simple Share Buttons"]!
 * When doing the above, both a title and url must be specified.
 * 'Default' image set has been removed! If you are currently using this image set, it will be replaced with 'Somacro'!
 * Only relevant fonts are loaded if specified.

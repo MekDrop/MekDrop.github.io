@@ -7,7 +7,7 @@ if($util->post('redirect_to')!='')
 		 global $util;	
 		
 		$util->update_post_option('p404_status');
-		$util->update_option('p404_redirect_to',$_POST['redirect_to']);	
+		$util->update_option('p404_redirect_to',$util->make_relative_url($_POST['redirect_to']));
 		$util->success_option_msg('Options Saved!');	
 		
 		if($util->there_is_cache()!='') 
@@ -34,7 +34,7 @@ if($util->get_option_value('p404_discovery_status')!='1')
 function go_search(){
 var sword = document.getElementById('search').value;
 	if(sword!=''){
-		window.location = "<?=$rlink?>&search=" + sword ;
+		window.location = "<?php echo $rlink?>&search=" + sword ;
 	}else
 	{
 		alert('Please input any search words!');
@@ -53,9 +53,9 @@ var sword = document.getElementById('search').value;
 <table border="0" width="100%">
 	<tr>
 		<td align="left">
-		<input onkeyup="if (event.keyCode == 13) go_search();" style="height: 30px;" id="search" type="text" name="search" value="<?=$util->get('search')?>" size="40">
+		<input onkeyup="if (event.keyCode == 13) go_search();" style="height: 30px;" id="search" type="text" name="search" value="<?php echo $util->get('search')?>" size="40">
 		<a onclick="go_search()" href="#"><div class="search_link">Search</div></a> 
-		<a href="<?=$util->get_current_parameters('search')?>"><div class="see_link">Show All</div></a>
+		<a href="<?php echo $util->get_current_parameters('search')?>"><div class="see_link">Show All</div></a>
 		</td>
 	</tr>
 </table>
@@ -68,7 +68,8 @@ var sword = document.getElementById('search').value;
 	$grid->set_data_source($table_name);
 	$grid->add_select_field('ID');
 	$grid->add_select_field('link');
-	$grid->add_select_field('referrer');	
+	$grid->add_select_field('referrer');
+
 	$grid->set_order(" ID desc ");
 	
 	if($util->get('search')!='')
@@ -93,10 +94,12 @@ var sword = document.getElementById('search').value;
 	$grid->set_col_attr(6,'align','center');
 	$grid->set_col_attr(7,'align','center');
 	$grid->set_col_attr(8,'align','center');
-	$grid->set_col_attr(8,'width','20px');     
+	$grid->set_col_attr(8,'width','20px');
+	$grid->set_col_attr(2,'style','padding-left: 5px');
 	$grid->add_data_col('ctime','Discovered');
-	$grid->add_html_col("<a target='_blank' title='{db_link}' href='{db_link}'><span class='link'></span></a>{db_link}",'Link');
-	$grid->add_php_col('if($db_referrer !="") echo "<a target=\'_blank\' title=\'$db_referrer\' href=\'$db_referrer\'><span class=\'link\'></span></a>" ;','Ref'); 
+	//$grid->add_html_col("<a target='_blank' title='{db_link}' href='{db_link}'><span class='link'></span></a>{db_link}",'Link');
+	$grid->add_php_col(' echo " <a target=\'_blank\' href=\'" . SEOR_make_absolute_url($db_link) ."\'> {$db_link}</a>" ;','Link');
+	$grid->add_php_col('if($db_referrer !="") echo "<a target=\'_blank\' title=\'$db_referrer\' href=\'$db_referrer\'><span class=\'link\'></span></a>" ;','Ref');
 	$grid->add_data_col('ip','IP');
 	$grid->add_data_col('country','Country');	
 	$grid->add_data_col('os','OS');
@@ -130,7 +133,7 @@ var sword = document.getElementById('search').value;
 	Redirect Unknown 404 Pages to:
 	</td>
 	<td>
-	<input type="text" name="redirect_to" id="redirect_to" size="30" value="<?=$options['p404_redirect_to']?>">
+	<input type="text" name="redirect_to" id="redirect_to" size="30" value="<?php echo $options['p404_redirect_to']?>">
 	</td>
 	</tr>
 </table>		

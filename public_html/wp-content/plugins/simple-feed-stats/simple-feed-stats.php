@@ -1,19 +1,26 @@
 <?php
 /*
 	Plugin Name: Simple Feed Stats
-	Plugin URI: http://perishablepress.com/simple-feed-stats/
-	Description: Tracks feeds, displays subscriber counts, custom feed content, and much more.
+	Plugin URI: https://perishablepress.com/simple-feed-stats/
+	Description: Tracks your feeds, adds custom content, and displays your feed statistics on your site.
+	Tags: feed, feeds, stats, statistics, feedburner, tracking, subscribers
 	Author: Jeff Starr
 	Author URI: http://monzilla.biz/
 	Donate link: http://m0n.co/donate
-	Version: 20140925
-	Usage: Visit the "Simple Feed Stats" settings page for stats, tools, and more info.
-	License: GPL v2
+	Contributors: specialk
+	Requires at least: 3.9
+	Tested up to: 4.2
+	Stable tag: trunk
+	Version: 20150507
+	Text Domain: sfs
+	Domain Path: /languages/
+	License: GPL v2 or later
 */
 
 if (!defined('ABSPATH')) die();
 
-$sfs_version = '20140925';
+$sfs_wp_vers = '3.9';
+$sfs_version = '20150507';
 $sfs_options = get_option('sfs_options');
 
 // i18n
@@ -32,15 +39,15 @@ global $sfs_rand;
 
 // require minimum version
 function sfs_require_wp_version() {
-	global $wp_version;
+	global $wp_version, $sfs_wp_vers;
 	$plugin = plugin_basename(__FILE__);
 	$plugin_data = get_plugin_data(__FILE__, false);
 	
-	if (version_compare($wp_version, "3.7", "<")) {
+	if (version_compare($wp_version, $sfs_wp_vers, '<')) {
 		if (is_plugin_active($plugin)) {
 			deactivate_plugins($plugin);
-			$msg =  '<p><strong>' . $plugin_data['Name'] . '</strong> requires WordPress 3.7 or higher, and has been deactivated!</p>';
-			$msg .= '<p>Please upgrade WordPress and try again.</p><p>Return to the <a href="' .admin_url() . '">WordPress Admin area</a>.</p>';
+			$msg  = '<p><strong>'. $plugin_data['Name'] .'</strong> '. __('requires WordPress ', 'sfs') . $sfs_wp_vers . __(' or higher, and has been deactivated!', 'sfs') .'<br />';
+			$msg .= __('Please upgrade WordPress and try again. Return to the', 'sfs') .' <a href="'. admin_url() .'">'. __('WordPress Admin area', 'sfs') .'</a>.</p>';
 			wp_die($msg);
 		}
 	}
@@ -87,7 +94,7 @@ if (isset($_GET['activate']) && $_GET['activate'] == 'true') {
 function sfs_clean($string) {
 	$string = trim($string); 
 	$string = strip_tags($string);
-	$string = htmlspecialchars($string, ENT_QUOTES, get_option('blog_charset'));
+	$string = htmlspecialchars($string, ENT_QUOTES, get_option('blog_charset', 'UTF-8'));
 	$string = str_replace("\n", "", $string);
 	$string = trim($string); 
 	return $string;
@@ -102,11 +109,14 @@ function sfs_clean($string) {
 function simple_feed_stats() {
 	global $wpdb, $sfs_options;
 	if (($sfs_options['sfs_tracking_method'] == 'sfs_default_tracking') && (is_feed())) {
-
+		
+		$protocol = 'http://';
+		if (is_ssl()) $protocol = 'https://';
+		
 		$host = 'n/a'; $request = 'n/a'; $referer = 'n/a'; $qstring = 'n/a'; $address = 'n/a'; $agent = 'n/a';
 
 		if (isset($_SERVER['HTTP_HOST']))       $host    = sfs_clean($_SERVER['HTTP_HOST']);
-		if (isset($_SERVER['REQUEST_URI']))     $request = sfs_clean('http://'.$host.$_SERVER['REQUEST_URI']);
+		if (isset($_SERVER['REQUEST_URI']))     $request = sfs_clean($protocol.$host.$_SERVER['REQUEST_URI']);
 		if (isset($_SERVER['HTTP_REFERER']))    $referer = sfs_clean($_SERVER['HTTP_REFERER']);
 		if (isset($_SERVER['QUERY_STRING']))    $qstring = sfs_clean($_SERVER['QUERY_STRING']);
 		if (isset($_SERVER['REMOTE_ADDR']))     $address = sfs_clean($_SERVER['REMOTE_ADDR']);
@@ -265,7 +275,7 @@ if ($sfs_options['sfs_tracking_method'] == 'sfs_alt_tracking') {
 // display settings link on plugin page
 function sfs_plugin_action_links($links, $file) {
 	if ($file == plugin_basename(__FILE__)) {
-		$sfs_links = '<a href="'. get_admin_url() .'options-general.php?page=simple-feed-stats/simple-feed-stats.php">'. __('Settings', 'sfs') .'</a>';
+		$sfs_links = '<a href="'. get_admin_url() .'options-general.php?page=sfs-options">'. __('Settings', 'sfs') .'</a>';
 		array_unshift($links, $sfs_links);
 	}
 	return $links;
@@ -302,7 +312,7 @@ if ($sfs_options['sfs_delete_table'] == 1) {
 // define default settings
 function sfs_add_defaults() {
 	$tmp = get_option('sfs_options');
-	if(($tmp['default_options'] == '1') || (!is_array($tmp))) {
+	if (($tmp['default_options'] == '1') || (!is_array($tmp))) {
 		$arr = array(
 			'sfs_custom'              => '0', // string
 			'sfs_custom_enable'       => 0,
@@ -323,6 +333,7 @@ function sfs_add_defaults() {
 .sfs-stats { font-size: 6px; line-height: 6px; margin: 1px 0 0 1px; word-spacing: 2px; text-align: center; text-transform: uppercase; }',
 		);
 		update_option('sfs_options', $arr);
+		update_option('sfs_alert', 0);
 	}
 }
 register_activation_hook (__FILE__, 'sfs_add_defaults');
@@ -354,7 +365,7 @@ $sfs_tracking_method = array(
 // sanitize and validate input
 function sfs_validate_options($input) {
 	global $sfs_tracking_method;
-
+	
 	if (!isset($input['sfs_custom_enable'])) $input['sfs_custom_enable'] = null;
 	$input['sfs_custom_enable'] = ($input['sfs_custom_enable'] == 1 ? 1 : 0);
 
@@ -394,9 +405,9 @@ add_action('admin_init', 'sfs_init');
 
 // add the options page
 function sfs_add_options_page() {
-	add_options_page('Simple Feed Stats', 'Simple Feed Stats', 'manage_options', __FILE__, 'sfs_render_form');
+	add_options_page('Simple Feed Stats', 'Simple Feed Stats', 'manage_options', 'sfs-options', 'sfs_render_form');
 }
-add_action ('admin_menu', 'sfs_add_options_page');
+add_action('admin_menu', 'sfs_add_options_page');
 
 // add query-string variable @ http://www.addedbytes.com/code/querystring-functions/
 function add_querystring_var($url, $key, $value) { 
@@ -411,15 +422,14 @@ function add_querystring_var($url, $key, $value) {
 
 // truncate() by David Duong: shorten string & add ellipsis 
 function sfs_truncate($string, $max = 50, $rep = '') {
-    $leave = $max - strlen ($rep);
+    $leave = $max - strlen($rep);
     return substr_replace($string, $rep, $leave);
 }
 
 // display total stats template tag
 function sfs_display_total_count() {
 	global $sfs_options; 
-	if (is_multisite()) $all_count = get_site_transient('all_count');
-	else $all_count = get_transient('all_count');
+	$all_count = get_transient('all_count');
 	if ($all_count) echo $all_count;
 	else echo '0';
 }
@@ -430,8 +440,7 @@ function sfs_display_subscriber_count() {
 	if ($sfs_options['sfs_custom_enable'] == 1) {
 		echo $sfs_options['sfs_custom'];
 	} else {
-		if (is_multisite()) $feed_count = get_site_transient('feed_count');
-		else $feed_count = get_transient('feed_count');	
+		$feed_count = get_transient('feed_count');	
 		if ($feed_count) echo $feed_count;
 		else echo '0';
 	}
@@ -443,8 +452,7 @@ function sfs_subscriber_count() {
 	if ($sfs_options['sfs_custom_enable'] == 1) {
 		return $sfs_options['sfs_custom'];
 	} else {
-		if (is_multisite()) $feed_count = get_site_transient('feed_count');
-		else $feed_count = get_transient('feed_count');	
+		$feed_count = get_transient('feed_count');	
 		if ($feed_count) return $feed_count;
 		else return '0';
 	}
@@ -454,8 +462,7 @@ add_shortcode('sfs_subscriber_count','sfs_subscriber_count');
 // display daily RSS2 stats shortcode
 function sfs_rss2_count() { 
 	global $sfs_options;
-	if (is_multisite()) $feed_count = get_site_transient('rss2_count');
-	else $feed_count = get_transient('rss2_count');	
+	$feed_count = get_transient('rss2_count');	
 	if ($feed_count) return $feed_count;
 	else return '0';
 }
@@ -464,8 +471,7 @@ add_shortcode('sfs_rss2_count','sfs_rss2_count');
 // display daily comment stats shortcode
 function sfs_comments_count() {
 	global $sfs_options;
-	if (is_multisite()) $feed_count = get_site_transient('comment_count');
-	else $feed_count = get_transient('comment_count');	
+	$feed_count = get_transient('comment_count');	
 	if ($feed_count) return $feed_count;
 	else return '0';
 }
@@ -480,8 +486,7 @@ function sfs_display_count_badge() {
 	if ($sfs_options['sfs_custom_enable'] == 1) {
 		echo $sfs_pre_badge . $sfs_options['sfs_custom'] . $sfs_post_badge;
 	} else {
-		if (is_multisite()) $feed_count = get_site_transient('feed_count');
-		else $feed_count = get_transient('feed_count');	
+		$feed_count = get_transient('feed_count');	
 		if ($feed_count) echo $sfs_pre_badge . $feed_count . $sfs_post_badge;
 		else echo $sfs_pre_badge . '0' . $sfs_post_badge;
 	}
@@ -496,8 +501,7 @@ function sfs_count_badge() {
 	if ($sfs_options['sfs_custom_enable'] == 1) {
 		return $sfs_pre_badge . $sfs_options['sfs_custom'] . $sfs_post_badge;
 	} else {
-		if (is_multisite()) $feed_count = get_site_transient('feed_count');
-		else $feed_count = get_transient('feed_count');	
+		$feed_count = get_transient('feed_count');	
 		if ($feed_count) return $sfs_pre_badge . $feed_count . $sfs_post_badge;
 		else return $sfs_pre_badge . '0' . $sfs_post_badge;
 	}
@@ -529,13 +533,17 @@ if ((!empty($sfs_options['sfs_feed_content_before'])) || (!empty($sfs_options['s
 	add_filter('the_excerpt', 'sfs_feed_content');
 }
 
+
+
+
+
 // cron for caching counts
 function sfs_cron_activation() {
 	if (!wp_next_scheduled('sfs_cron_cache')) {
-		wp_schedule_event(time(), 'twicedaily', 'sfs_cron_cache'); // eg: hourly, daily, twicedaily, three_minutes
+		wp_schedule_event(time(), 'twicedaily', 'sfs_cron_cache'); // eg: hourly, daily, twicedaily (default), three_minutes
 	}
 }
-add_action('wp', 'sfs_cron_activation');
+register_activation_hook(__FILE__, 'sfs_cron_activation');
 
 // cleanup cron on deactivate
 function sfs_cron_cleanup() {
@@ -547,7 +555,7 @@ register_deactivation_hook(__FILE__, 'sfs_cron_cleanup');
 // cache feed counts
 function sfs_cache_data() {
 	global $wpdb, $sfs_options;
-
+	
 	if ($sfs_options['sfs_strict_stats']) $count = 'COUNT(DISTINCT address)';
 	else $count = 'COUNT(*)';
 	
@@ -571,27 +579,20 @@ function sfs_cache_data() {
 	if (is_array($comment_stats)) $comment_stats = $comment_stats[$count];
 	else $comment_stats = 'n/a';
 	
-	if (is_multisite()) {
-		set_site_transient('feed_count', $current_stats, 60*60*24); // 12 hour cache 60*60*12 , 24 hour cache = 60*60*24
-		$feed_count = get_site_transient('feed_count');
-		set_site_transient('all_count', $all_stats, 60*60*24); // 12 hour cache 60*60*12 , 24 hour cache = 60*60*24
-		$all_count = get_site_transient('all_count');
-		set_site_transient('rss2_count', $rss2_stats, 60*60*24); // 12 hour cache 60*60*12 , 24 hour cache = 60*60*24
-		$rss2_count = get_site_transient('rss2_count');
-		set_site_transient('comment_count', $comment_stats, 60*60*24); // 12 hour cache 60*60*12 , 24 hour cache = 60*60*24
-		$comment_count = get_site_transient('comment_count');
-	} else {
-		set_transient('feed_count', $current_stats, 60*60*24); // 12 hour cache 60*60*12 , 24 hour cache = 60*60*24
-		$feed_count = get_transient('feed_count');
-		set_transient('all_count', $all_stats, 60*60*24); // 12 hour cache 60*60*12 , 24 hour cache = 60*60*24
-		$all_count = get_transient('all_count');
-		set_transient('rss2_count', $rss2_stats, 60*60*24); // 12 hour cache 60*60*12 , 24 hour cache = 60*60*24
-		$rss2_count = get_transient('rss2_count');
-		set_transient('comment_count', $comment_stats, 60*60*24); // 12 hour cache 60*60*12 , 24 hour cache = 60*60*24
-		$comment_count = get_transient('comment_count');
-	}
+	set_transient('feed_count', $current_stats, 60*60*24); // 12 hour cache 60*60*12 , 24 hour cache = 60*60*24
+	$feed_count = get_transient('feed_count');
+	set_transient('all_count', $all_stats, 60*60*24); // 12 hour cache 60*60*12 , 24 hour cache = 60*60*24
+	$all_count = get_transient('all_count');
+	set_transient('rss2_count', $rss2_stats, 60*60*24); // 12 hour cache 60*60*12 , 24 hour cache = 60*60*24
+	$rss2_count = get_transient('rss2_count');
+	set_transient('comment_count', $comment_stats, 60*60*24); // 12 hour cache 60*60*12 , 24 hour cache = 60*60*24
+	$comment_count = get_transient('comment_count');
 }
 add_action('sfs_cron_cache', 'sfs_cache_data');
+
+
+
+
 
 // sfs dashboard widget 
 function sfs_dashboard_widget() { 
@@ -630,7 +631,7 @@ function sfs_dashboard_widget() {
 			</tbody>
 		</table>
 	</div>
-	<p><a href="<?php get_admin_url(); ?>options-general.php?page=simple-feed-stats/simple-feed-stats.php"><?php _e('More stats, tools, and options &raquo;', 'sfs'); ?></a></p>
+	<p><a href="<?php get_admin_url(); ?>options-general.php?page=sfs-options"><?php _e('More stats, tools, and options &raquo;', 'sfs'); ?></a></p>
 
 <?php }
 function add_custom_dashboard_widget() {
@@ -705,10 +706,25 @@ function sfs_query_database($sfs_query_type) {
 	}
 }
 
+// dismiss plugin notice
+function sfs_dismiss_notice() {
+	if (isset($_GET['sfs-alert']) && wp_verify_nonce($_GET['sfs-alert'], 'sfs-alert')) {
+		if (isset($_GET['sfs_alert']) && $_GET['sfs_alert'] == '1') update_option('sfs_alert', 1);
+	}
+}
+add_action('admin_init', 'sfs_dismiss_notice');
+
 // create the options page
 function sfs_render_form() {
 	global $wpdb, $sfs_options, $sfs_tracking_method;
-
+	
+	if (get_option('sfs_alert')) {
+		$display_alert = ' style="display:none;"';
+		$checked = true;
+	} else {
+		$display_alert = ' style="display:block;"';
+		$checked = false;
+	}
 	$sfs_query_current = sfs_query_database('current_stats'); 
 	$sfs_query_alltime = sfs_query_database('alltime_stats'); 
 	$numresults = $sfs_options['sfs_number_results'];
@@ -756,6 +772,10 @@ function sfs_render_form() {
 	} ?>
 
 	<style type="text/css">
+		.dismiss-alert { margin: 15px 0; }
+		.dismiss-alert-wrap { display: inline-block; padding: 7px 0 10px 0; }
+		.dismiss-alert .description { display: inline-block; margin: -2px 15px 0 0; }
+		
 		.toggle { margin: 0 15px 15px 15px; }
 		.sfs-menu-item { float: left; margin: 12px 12px 12px 0; }
 		.sfs-sub-item { display: inline-block; }
@@ -827,9 +847,37 @@ function sfs_render_form() {
 		<div class="updated settings-error"><p><?php _e('All feed stats deleted', 'sfs'); ?>.</p></div>
 		<?php endif; ?>
 
-		<div class="sfs-toggle-panels"><a href="<?php get_admin_url() . 'options-general.php?page=simple-feed-stats/simple-feed-stats.php'; ?>"><?php _e('Toggle all panels', 'sfs'); ?></a></div>
-		<div class="metabox-holder">	
+		<div class="sfs-toggle-panels"><a href="<?php get_admin_url() . 'options-general.php?page=sfs-options'; ?>"><?php _e('Toggle all panels', 'sfs'); ?></a></div>
+		<div class="metabox-holder">
 			<div class="meta-box-sortables ui-sortable">
+				
+				<div <?php echo $display_alert; ?> class="postbox">
+					<h3><?php _e('Simple Feed Stats needs your support!', 'sfs'); ?></h3>
+					<div class="toggle">
+						<div class="mm-panel-alert">
+							<p>
+								<?php _e('Please', 'sfs'); ?> <a target="_blank" href="http://m0n.co/donate" title="<?php _e('Make a donation via PayPal', 'sfs'); ?>"><?php _e('make a donation', 'sfs'); ?></a> <?php _e('and/or', 'sfs'); ?> 
+								<a target="_blank" href="http://wordpress.org/support/view/plugin-reviews/<?php echo basename(dirname(__FILE__)); ?>?rate=5#postform" title="<?php _e('Rate and review at the Plugin Directory', 'sfs'); ?>">
+									<?php _e('give it a 5-star rating', 'sfs'); ?>&nbsp;&raquo;
+								</a>
+							</p>
+							<p>
+								<?php _e('Your generous support enables continued development of this free plugin. Thank you!', 'sfs'); ?>
+							</p>
+							<div class="dismiss-alert">
+								<form action="">
+									<div class="dismiss-alert-wrap">
+										<input class="input-alert" name="sfs_alert" type="checkbox" value="1" <?php if ($checked) echo 'checked="checked"'; ?> />  
+										<label class="description" for="sfs_alert"><?php _e('Check this box if you have shown support', 'sfs') ?></label>
+										<?php wp_nonce_field('sfs-alert', 'sfs-alert', false); ?>
+										<input type="hidden" name="page" value="sfs-options" />
+									</div>
+								</form>
+							</div>
+						</div>
+					</div>
+				</div>
+				
 				<div class="postbox">
 					<h3><?php _e('Overview', 'sfs'); ?></h3>
 					<div class="toggle">
@@ -844,8 +892,9 @@ function sfs_render_form() {
 							<li><?php _e('To customize and manage SFS, visit', 'sfs'); ?> <a class="sfs-options-link" href="#sfs_custom-options"><?php _e('Tools &amp; Options', 'sfs'); ?></a></li>
 							<li><?php _e('To display your subscriber count, visit', 'sfs'); ?> <a class="sfs-shortcodes-link" href="#sfs-shortcodes"><?php _e('Template Tags &amp; Shortcodes', 'sfs'); ?></a></li>
 							<li><?php _e('Visit the SFS Widget in the', 'sfs'); ?> <a href="<?php echo get_admin_url(); ?>"><?php _e('Dashboard', 'sfs'); ?></a> <?php _e('any time for a quick overview', 'sfs'); ?></li>
-							<li><?php _e('For more info check the', 'sfs'); ?> <a target="_blank" href="<?php echo plugins_url(); ?>/simple-feed-stats/readme.txt">readme.txt</a> 
-								<?php _e('and', 'sfs'); ?> <a target="_blank" href="http://perishablepress.com/simple-feed-stats/"><?php _e('Simple Feed Stats Homepage', 'sfs'); ?></a>
+							<li>
+								<?php _e('For more info check the', 'sfs'); ?> <a target="_blank" href="<?php echo plugins_url('/simple-feed-stats/readme.txt', dirname(__FILE__)); ?>">readme.txt</a> 
+								<?php _e('and', 'sfs'); ?> <a target="_blank" href="https://perishablepress.com/simple-feed-stats/"><?php _e('Simple Feed Stats Homepage', 'sfs'); ?></a>
 							</li>
 							<li><?php _e('If you like this plugin, please', 'sfs'); ?> 
 								<a target="_blank" href="http://wordpress.org/support/view/plugin-reviews/<?php echo basename(dirname(__FILE__)); ?>?rate=5#postform" title="<?php _e('Click here to rate and review this plugin', 'sfs'); ?>">
@@ -901,7 +950,7 @@ function sfs_render_form() {
 						<?php if (isset($_GET['filter'])) : ?>
 						<div class="sfs-menu-row">
 							<?php _e('Feed stats filtered by', 'sfs'); ?> <strong><?php echo $filter; ?></strong> 
-							[ <a href="<?php echo get_admin_url(); ?>options-general.php?page=simple-feed-stats/simple-feed-stats.php"><?php _e('reset', 'sfs'); ?></a> ]
+							[ <a href="<?php echo get_admin_url(); ?>options-general.php?page=sfs-options"><?php _e('reset', 'sfs'); ?></a> ]
 						</div>
 						<?php endif; ?>
 						
@@ -916,7 +965,7 @@ function sfs_render_form() {
 									<option value="tracking"><?php _e('Tracking', 'sfs'); ?></option>
 									<option value="referer"><?php _e('Referrer', 'sfs'); ?></option>
 								</select>
-								<input type="hidden" name="page" value="simple-feed-stats/simple-feed-stats.php" />
+								<input type="hidden" name="page" value="sfs-options" />
 								<input class="button-secondary" type="submit" />
 							</form>
 						</div>
@@ -1180,14 +1229,14 @@ function sfs_render_form() {
 								<table class="form-table">
 									<tr>
 										<th scope="row"><label class="description"><?php _e('Clear the cache', 'sfs'); ?></label></th>
-										<td><strong><a href="<?php get_admin_url(); ?>options-general.php?page=simple-feed-stats/simple-feed-stats.php&amp;cache=clear"><?php _e('Clear cache', 'sfs'); ?></a></strong> 
+										<td><strong><a href="<?php get_admin_url(); ?>options-general.php?page=sfs-options&amp;cache=clear"><?php _e('Clear cache', 'sfs'); ?></a></strong> 
 											&ndash; <em><?php _e('Tip: refresh this page to renew the cache after clearing.', 'sfs'); ?></em> 
 											<span class="tooltip" title="<?php _e('Note: it&rsquo;s safe to clear the cache at any time. WP will automatically cache fresh data.', 'sfs'); ?>">?</span>
 										</td>
 									</tr>
 									<tr>
 										<th scope="row"><label class="description"><?php _e('Reset feed stats', 'sfs'); ?></label></th>
-										<td><strong><a class="reset" href="<?php get_admin_url(); ?>options-general.php?page=simple-feed-stats/simple-feed-stats.php&amp;reset=true"><?php _e('Reset stats', 'sfs'); ?></a></strong> 
+										<td><strong><a class="reset" href="<?php get_admin_url(); ?>options-general.php?page=sfs-options&amp;reset=true"><?php _e('Reset stats', 'sfs'); ?></a></strong> 
 											&ndash; <em><?php _e('Warning: this will delete all feed stats!', 'sfs'); ?></em> 
 											<span class="tooltip" title="<?php _e('Note: deletes data only. To delete the sfs table, see the &ldquo;Delete Database Table&rdquo; option (below).', 'sfs'); ?>">?</span>
 										</td>
@@ -1272,18 +1321,18 @@ function sfs_render_form() {
 						<p><strong><?php _e('Your feed URLs', 'sfs'); ?></strong></p>
 						<div class="sfs-table">
 							<ul>
-								<li><?php _e('Content RDF', 'sfs'); ?> &ndash; <a href="<?php echo $feed_rdf; ?>"><code><?php echo $feed_rdf; ?></code></a></li>
-								<li><?php _e('Content RSS2', 'sfs'); ?> &ndash; <a href="<?php echo $feed_rss2; ?>"><code><?php echo $feed_rss2; ?></code></a></li>
-								<li><?php _e('Content Atom', 'sfs'); ?> &ndash; <a href="<?php echo $feed_atom; ?>"><code><?php echo $feed_atom; ?></code></a></li>
-								<li><?php _e('Comments RSS2', 'sfs'); ?> &ndash; <a href="<?php echo $feed_coms; ?>"><code><?php echo $feed_coms; ?></code></a></li>
-								<li><?php _e('Comments Atom', 'sfs'); ?> &ndash; <a href="<?php echo $feed_coms_atom; ?>"><code><?php echo $feed_coms_atom; ?></code></a></li>
+								<li><?php _e('Content RDF', 'sfs'); ?> &ndash; <a target="_blank" href="<?php echo $feed_rdf; ?>"><code><?php echo $feed_rdf; ?></code></a></li>
+								<li><?php _e('Content RSS2', 'sfs'); ?> &ndash; <a target="_blank" href="<?php echo $feed_rss2; ?>"><code><?php echo $feed_rss2; ?></code></a></li>
+								<li><?php _e('Content Atom', 'sfs'); ?> &ndash; <a target="_blank" href="<?php echo $feed_atom; ?>"><code><?php echo $feed_atom; ?></code></a></li>
+								<li><?php _e('Comments RSS2', 'sfs'); ?> &ndash; <a target="_blank" href="<?php echo $feed_coms; ?>"><code><?php echo $feed_coms; ?></code></a></li>
+								<li><?php _e('Comments Atom', 'sfs'); ?> &ndash; <a target="_blank" href="<?php echo $feed_coms_atom; ?>"><code><?php echo $feed_coms_atom; ?></code></a></li>
 							</ul>
 						</div>
 						<p><strong><?php _e('More about WordPress feeds', 'sfs'); ?></strong></p>
 						<ul>
-							<li><a target="_blank" href="http://perishablepress.com/simple-feed-stats/"><?php _e('Simple Feed Stats Homepage', 'sfs'); ?></a></li>
+							<li><a target="_blank" href="https://perishablepress.com/simple-feed-stats/"><?php _e('Simple Feed Stats Homepage', 'sfs'); ?></a></li>
 							<li><a target="_blank" href="http://codex.wordpress.org/WordPress_Feeds"><?php _e('WP Codex: WordPress Feeds', 'sfs'); ?></a></li>
-							<li><a target="_blank" href="http://perishablepress.com/what-is-my-wordpress-feed-url/"><?php _e('What is my WordPress Feed URL?', 'sfs'); ?></a></li>
+							<li><a target="_blank" href="https://perishablepress.com/what-is-my-wordpress-feed-url/"><?php _e('What is my WordPress Feed URL?', 'sfs'); ?></a></li>
 							<li><a target="_blank" href="http://feedburner.google.com/"><?php _e('Google/Feedburner', 'sfs'); ?></a></li>
 						</ul>
 						<p><strong><?php _e('Your browser/IP info', 'sfs'); ?></strong></p>
@@ -1300,15 +1349,15 @@ function sfs_render_form() {
 					<h3><?php _e('Updates &amp; Info', 'sfs'); ?></h3>
 					<div class="toggle">
 						<div class="sfs-current">
-							<iframe src="http://perishablepress.com/current/index-sfs.html"></iframe>
+							<iframe src="https://perishablepress.com/current/index-sfs.html"></iframe>
 						</div>
 					</div>
 				</div>
 			</div>
 		</div>
 		<div class="sfs-credits">
-			<a target="_blank" href="http://perishablepress.com/simple-feed-stats/" title="Simple Feed Stats Homepage">Simple Feed Stats</a> by 
-			<a target="_blank" href="http://twitter.com/perishable" title="Jeff Starr on Twitter">Jeff Starr</a> @ 
+			<a target="_blank" href="https://perishablepress.com/simple-feed-stats/" title="Simple Feed Stats Homepage">Simple Feed Stats</a> by 
+			<a target="_blank" href="https://twitter.com/perishable" title="Jeff Starr on Twitter">Jeff Starr</a> @ 
 			<a target="_blank" href="http://monzilla.biz/" title="Obsessive Web Design &amp; Development">Monzilla Media</a>
 		</div>
 	</div>
@@ -1419,6 +1468,12 @@ function sfs_render_form() {
 			jQuery('.sfs-tracking').click(function(){
 				jQuery('.sfs-open-tracking-image, .sfs-open-tracking-url').slideUp('fast');
 			});
+			//dismiss_alert
+			if (!jQuery('.dismiss-alert-wrap input').is(':checked')){
+				jQuery('.dismiss-alert-wrap input').one('click',function(){
+					jQuery('.dismiss-alert-wrap').after('<input type="submit" class="button-secondary" value="<?php _e('Save Preference', 'gap'); ?>" />');
+				});
+			}
 		});
 	</script>
 

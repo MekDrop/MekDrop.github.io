@@ -3,8 +3,8 @@ Contributors: RavanH
 Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=ravanhagen%40gmail%2ecom&item_name=Easy%20FancyBox&item_number=1%2e3%2e4%2e9&no_shipping=0&tax=0&charset=UTF%2d8&currency_code=EUR
 Tags: fancybox, lightbox, gallery, image, photo, video, flash, nextgen, overlay, youtube, vimeo, dailymotion, pdf, svg, iframe, swf, jquery
 Requires at least: 3.3
-Tested up to: 3.8
-Stable tag: 1.5.6
+Tested up to: 4.0
+Stable tag: 1.5.7
 
 Easily enable the FancyBox jQuery extension on just about all media links. Multi-Site compatible. Supports iFrame and Flash movies.
 
@@ -16,7 +16,7 @@ After activation, all links to **JPG, GIF and PNG images** are automatically ope
 
 **Also supports:**
 
-- All other image types _and_ image maps
+- All common image types including webp _and_ image maps
 - WordPress Galleries
 - NextGEN galleries (see FAQs for instructions)
 - Youtube galleries via Youtube Simple Gallery plugin (see FAQs for instructions)
@@ -28,6 +28,8 @@ After activation, all links to **JPG, GIF and PNG images** are automatically ope
 - PDF files
 - Auto-popup on page load
 - links inside Gravity Forms in ajax mode
+
+For **advanced options** and **priority support**, there is a **[Pro extension](http://status301.net/easy-fancybox-pro-extension/)** available.
 
 See [Screenshots](http://wordpress.org/plugins/easy-fancybox/screenshots/) for an impression on how images and YouTube movies will be presented on your site as soon as you have installed and (network) activated this simple plugin.
 
@@ -42,6 +44,7 @@ Visit [FancyBox](http://fancybox.net/) for more information, examples and the Fa
 
 = Translators =
 
+- **Croatian** Ivan Capan, (version 1.5.6)
 - **Czech** *  Eldenroot (version 1.5.5)
 - **Dutch** *  R.A. van Hagen, http://status301.net (version 1.5.6)
 - **French** * Emmanuel Maillard, (version 1.5.5)
@@ -103,9 +106,9 @@ The same version as this plugin has. I aim to keep close pace to FancyBox upgrad
 
 = I installed the plugin. What now? =
 
-First, make sure that image  thumbnails in your posts and pages are linked to their full size counterpart directly. Open any post with thumbnail images in it for editing and select the first thumbnail. Click the **Edit Image** button that appears and choose **Link to Image**. From now on, clicking that thumbnail should open the full size version in FancyBox.
+First, make sure that image  thumbnails in your posts and pages are linked to their full size counterpart directly. Open any post with thumbnail images in it for editing and select the first thumbnail. Click the **Edit Image** button that appears and choose **Link To: Media File**. From now on, clicking that thumbnail should open the full size version in FancyBox.
 
-The same thing goes for WordPress Galleries. Choose **Link to: File** when inserting a gallery tag.
+The same thing goes for WordPress Galleries. Choose **Link To: Media File** when inserting a gallery tag.
 
 = I want to change something. Where is the settings page? =
 
@@ -121,7 +124,7 @@ Please follow the trouble shooting steps on [Other Notes](http://wordpress.org/p
 
 = Will a WordPress generated gallery be displayed in a FancyBox overlay? =
 
-Yes, but _only_ if you used the option **Link thumbnails to: Image File** when inserting the gallery! The gallery quicktag/shortcode should look something like `[gallery link="file"]`.
+Yes, but _only_ if you used the option **Link To: Media File** when inserting the gallery! The gallery quicktag/shortcode should look something like `[ gallery link="file" ]`.
 
 = The lightbox does not look good on mobile devices. What can I do about that? =
 
@@ -140,7 +143,7 @@ Tweak the value 641 to target other screen sizes.
 
 = Can I make a slideshow from my gallery? =
 
-In the Pro version, there is an Advanced option called "Gallery Auto-rotation" for that.
+In the [Pro extension](http://status301.net/easy-fancybox-pro-extension/), there is an Advanced option called "Gallery Auto-rotation" for that.
 
 
 = Can I exclude images or other links from auto-attribution? =
@@ -228,9 +231,19 @@ This script snippet will scan the image titles and if it finds a Youtube URL the
 
 You could do this manually by uploading individual thumbnails that you can retrieve by using the unique movie ID in these URLs for three different sizes:
 `
-http://i4.ytimg.com/vi/UNIQUE-MOVIE-ID/default.jpg
-http://i4.ytimg.com/vi/UNIQUE-MOVIE-ID/mqdefault.jpg
-http://i4.ytimg.com/vi/UNIQUE-MOVIE-ID/hqdefault.jpg
+http://img.youtube.com/vi/UNIQUE-MOVIE-ID/default.jpg
+http://img.youtube.com/vi/UNIQUE-MOVIE-ID/mqdefault.jpg
+http://img.youtube.com/vi/UNIQUE-MOVIE-ID/hqdefault.jpg
+`
+Other locations might be
+`
+http://img.youtube.com/vi/UNIQUE-MOVIE-ID/0.jpg (same as hqdefault.jpg)
+http://img.youtube.com/vi/UNIQUE-MOVIE-ID/1.jpg
+http://img.youtube.com/vi/UNIQUE-MOVIE-ID/2.jpg
+http://img.youtube.com/vi/UNIQUE-MOVIE-ID/3.jpg
+http://img.youtube.com/vi_webp/UNIQUE-MOVIE-ID/0.webp (same as hqdefault.webp)
+etc...
+
 `
 
 But an easier method is this one, shared by Shashank Shekhar (thanks!) :
@@ -477,10 +490,23 @@ If you still do not get to see your images in FancyBox, ask on the [Easy FancyBo
 
 == Upgrade Notice ==
 
-= 1.5.6 =
+= 1.5.7 =
 Bugfix release.
 
 == Changelog ==
+
+TODO: optional disable for small sceen sizes
+TODO: move all script to footer and make that optional to for theme compat
+TODO: make jQuery inclusion optional
+TODO: make jQuery 1.6- compat optional
+
+= 1.5.7 =
+* FIX: Pro extension link update
+* NEW: WebP support and class='image' to force image media type
+* IE 6-8 css rules optional
+* iframe embed for Youtube, Vimeo and Dailymotion
+* Croation translation
+* HTML5 players allowfullscreen default
 
 = 1.5.6 =
 * iPad positioning patch

@@ -25,6 +25,14 @@ add_action( 'init', array( 'Multisite_Add_Admin_Favicon', 'init' ) );
 class Multisite_Add_Admin_Favicon {
 
 	/**
+	 * Value to get sites in the Network
+	 *
+	 * @since 2015-02-26
+	 * @var int
+	 */
+	private $sites_limit = 9999;
+
+	/**
 	 * Define Hooks for add the favicon markup
 	 *
 	 * @since   0.0.2
@@ -61,6 +69,13 @@ class Multisite_Add_Admin_Favicon {
 	 * @return \Multisite_Add_Admin_Favicon
 	 */
 	public function __construct() {
+
+		/**
+		 * Filter to change the value for get sites inside the network
+		 *
+		 * @type integer
+		 */
+		$this->sites_limit = (int) apply_filters( 'multisite_enhancements_sites_limit', $this->sites_limit );
 
 		// hooks for add favicon markup
 		$hooks = apply_filters( 'multisite_enhancements_favicon', self::$favicon_hooks );
@@ -107,7 +122,7 @@ class Multisite_Add_Admin_Favicon {
 	}
 
 	/**
-	 * Add Favicon from each blog to Multsite Menu of "My Sites"
+	 * Add Favicon from each blog to Multisite Menu of "My Sites"
 	 *
 	 * Use the filter hook to change style
 	 *     Hook: multisite_enhancements_add_admin_bar_favicon
@@ -119,7 +134,11 @@ class Multisite_Add_Admin_Favicon {
 
 		if ( function_exists( 'wp_get_sites' ) ) {
 			// Since 3.7 inside the Core
-			$blogs = wp_get_sites();
+			$blogs = wp_get_sites(
+				array(
+					'limit' => $this->sites_limit,
+				)
+			);
 		} else {
 			// use alternative to core function get_blog_list()
 			$blogs = Multisite_Core::get_blog_list( 0, 'all' );
@@ -187,13 +206,17 @@ class Multisite_Add_Admin_Favicon {
 	/**
 	 * Get the path to the favicon file from the root of a theme.
 	 *
-	 * @since 1.0.5
+	 * @since    1.0.5
 	 *
-	 * @param  integer ID of blog in network
-	 * @param  string  Path to Favicon
-	 * @param  string  Path type 'url' or 'dir'
+	 * @param string $blog_id
+	 * @param string $path
+	 * @param string $path_type
 	 *
 	 * @return string File path to favicon file.
+	 * @internal param ID $integer of blog in network
+	 * @internal param Path $string to Favicon
+	 * @internal param Path $string type 'url' or 'dir'
+	 *
 	 */
 	protected function get_favicon_path( $blog_id = '', $path = '', $path_type = 'url' ) {
 
@@ -209,15 +232,15 @@ class Multisite_Add_Admin_Favicon {
 		 *
 		 * @since 1.0.5
 		 *
-		 * @param string $favicon_file_path Path to favicon file.
+		 * @param string $path Path to favicon file.
 		 *
 		 * Optional parameters:
 		 *
 		 * When using a different directory than the stylesheet use the $blog_id and $path_type
+		 * integer $blog_id
 		 *
-		 * $path_type = 'url' -> use URL for the location as a URL
-		 * $path_type = 'dir' -> use URL for the location in the server, used to check if the file exists
-		 *
+		 * string $path_type = 'url' -> use URL for the location as a URL
+		 * string $path_type = 'dir' -> use URL for the location in the server, used to check if the file exists
 		 */
 
 		return apply_filters( 'multisite_enhancements_favicon_path', $path . '/favicon.ico', $blog_id, $path_type );

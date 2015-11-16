@@ -1,0 +1,134 @@
+http://realfavicongenerator.net/faq#.Uw5pXXmEipo
+http://blogs.windows.com/windows_phone/b/wpdev/archive/2012/10/19/creating-a-custom-tile-to-link-to-your-website.aspx
+https://github.com/chrisbliss18/php-ico
+http://stackoverflow.com/questions/1056104/php-gd-how-to-copy-a-circle-from-one-image-to-another
+http://www.php.net/manual/en/imagick.compositeimage.php
+http://msdn.microsoft.com/en-us/library/ie/hh761491.aspx
+http://msdn.microsoft.com/en-us/library/windows/apps/br212859.aspx
+
+iOS Icons (apple-touch-icon-???x???.png)
+iPhone and iPod touch		57x57
+iPhone and iPod touch (2x)	114x114
+iPad						72x72
+iPad 2						144x144
+
+iOS Screens
+iPhone and iPod touch		320x460
+iPhone and iPod touch (2x)	640x920
+iPhone 5 and iPod touch 
+(5th generation)			640x1096
+iPad						768x1004
+iPad Landscape				748x1024
+iPad 2						1536x2008
+iPad 2 Landscape			1496x2048
+
+Windows 8.1 (mstile-???x???.png)
+							70x70
+							144x144
+							150x150
+							310x310
+							310x150
+
+favicons (favicon-??x??.png)
+
+							16x16
+							32x32
+							96x96
+							160x160
+Opera						256x160
+							196x196
+
+Apple code:
+
+<meta name="apple-mobile-web-app-title" content="[your title]" />
+							
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<script type="text/javascript">
+	var appleIcons_startUpImages = {
+		"iphone":"http://exchange01.darkphoton.com/wordpress/wp-content/plugins/appleicons/images/icons/iphone_image320x460.png",
+		"iphone4":"http://exchange01.darkphoton.com/wordpress/wp-content/plugins/appleicons/images/icons/iphone2x_image640x920.png",
+		"iphone5":"http://exchange01.darkphoton.com/wordpress/wp-content/plugins/appleicons/images/icons/iphone5_image640x1096.png",
+		"ipad":"http://exchange01.darkphoton.com/wordpress/wp-content/plugins/appleicons/images/icons/ipad_image768x1004.png",
+		"ipad_land":"http://exchange01.darkphoton.com/wordpress/wp-content/plugins/appleicons/images/icons/ipad_land_image748x1024.png",
+		"ipad2":"http://exchange01.darkphoton.com/wordpress/wp-content/plugins/appleicons/images/icons/ipad2x_image1536x2008.png",
+		"ipad2_land":"http://exchange01.darkphoton.com/wordpress/wp-content/plugins/appleicons/images/icons/ipad2x_land_image1496x2048.png"
+	};
+
+	(function(){
+		function AddLink(url, media){
+			var link 	= document.createElement("link");
+			link.rel	= "apple-touch-startup-image";
+			link.href	= url;
+			if(media){
+				link.media	= media;
+			}
+			document.getElementsByTagName("head")[0].appendChild(link);
+		}
+		
+		var image 				= false;
+		var land_image			= false;
+		var userAgent 			= navigator.userAgent;
+		var devicePixelRatio 	= window.devicePixelRatio ? window.devicePixelRatio:0;
+		if(userAgent.indexOf("iPhone")>-1){
+			if( devicePixelRatio>1){	
+				image = appleIcons_startUpImages["iphone4"];
+				if(window.screen.height == 568){
+					image = appleIcons_startUpImages["iphone5"];
+				}
+			}else{
+				image = appleIcons_startUpImages["iphone"];
+			}
+		}else if(userAgent.indexOf("iPad")>-1){
+			if(devicePixelRatio>1){	
+				image 		= appleIcons_startUpImages["ipad2"];
+				land_image 	= appleIcons_startUpImages["ipad2_land"];
+			}else{
+				image 		= appleIcons_startUpImages["ipad"];
+				land_image 	= appleIcons_startUpImages["ipad_land"];
+			}
+		}
+		if(image){
+			AddLink(image, ((userAgent.indexOf("iPad")>-1) ? "(orientation: portrait)":false) );
+		}
+		if(land_image){
+			AddLink(land_image, "(orientation: landscape)");
+		}
+	})();
+</script>
+<link href="http://exchange01.darkphoton.com/wordpress/wp-content/uploads/2014/02/DontArgueWithRealityLogoSquare57.png" rel="apple-touch-icon" sizes="57x57" />
+<link href="http://exchange01.darkphoton.com/wordpress/wp-content/uploads/2014/02/DontArgueWithRealityLogoSquare114.png" rel="apple-touch-icon" sizes="114x114" />
+<link href="http://exchange01.darkphoton.com/wordpress/wp-content/uploads/2014/02/DontArgueWithRealityLogoSquare72.png" rel="apple-touch-icon" sizes="72x72" />
+<link href="http://exchange01.darkphoton.com/wordpress/wp-content/uploads/2014/02/DontArgueWithRealityLogoSquare144.png" rel="apple-touch-icon" sizes="144x144" />
+	<!-- For pinned live tiles in Windows 8.1 start screens -->	
+	<meta name="application-name" content="WordPress Test Site" />
+	<meta name="msapplication-TileColor" content="#1e73be" />
+	<meta name="msapplication-notification" content="frequency=360;polling-uri=http://notifications.buildmypinnedsite.com/?feed=http://exchange01.darkphoton.com/wordpress/?feed=rss2&amp;id=1;polling-uri2=http://notifications.buildmypinnedsite.com/?feed=http://exchange01.darkphoton.com/wordpress/?feed=rss2&amp;id=2;polling-uri3=http://notifications.buildmypinnedsite.com/?feed=http://exchange01.darkphoton.com/wordpress/?feed=rss2&amp;id=3;polling-uri4=http://notifications.buildmypinnedsite.com/?feed=http://exchange01.darkphoton.com/wordpress/?feed=rss2&amp;id=4;polling-uri5=http://notifications.buildmypinnedsite.com/?feed=http://exchange01.darkphoton.com/wordpress/?feed=rss2&amp;id=5; cycle=1" />
+	
+		<meta name="msapplication-square310x310logo" content="http://exchange01.darkphoton.com/wordpress/wp-content/uploads/cwp_tiles/DontArgueWithReality-Logo-Square-310x310.png" />
+		<meta name="msapplication-wide310x150logo" content="http://exchange01.darkphoton.com/wordpress/wp-content/uploads/cwp_tiles/DontArgueWithReality-Logo-Square-310x150.png" />
+		<meta name="msapplication-square150x150logo" content="http://exchange01.darkphoton.com/wordpress/wp-content/uploads/cwp_tiles/DontArgueWithReality-Logo-Square-150x150.png" />
+		<meta name="msapplication-square70x70logo" content="http://exchange01.darkphoton.com/wordpress/wp-content/uploads/cwp_tiles/DontArgueWithReality-Logo-Square-70x70.png" />
+		<meta name="msapplication-TileImage" content="http://exchange01.darkphoton.com/wordpress/wp-content/uploads/2014/02/DontArgueWithReality-Logo-Square.png" />
+	
+	
+XML Format:
+
+<tile>
+	<visual lang="en-US" version="2">
+		<binding template="TileSquare150x150Text04" branding="logo" fallback="TileSquareImage">
+			<text id="1">NetFlix and Comcast: Quicksand or Cement?</text>
+		</binding>
+		<binding template="TileWide310x150ImageAndText01" branding="logo" fallback="TileWideImage">
+			<image id="1" src="http://jumblecat.com/wp-content/uploads/2013/01/internet-category.png"/>
+			<text id="1">NetFlix and Comcast: Quicksand or Cement?</text>
+		</binding>
+		<binding template="TileSquare310x310SmallImagesAndTextList02" branding="logo" contentId="http://jumblecat.com/?p=1967">
+			<image id="1" src="http://jumblecat.com/wp-content/uploads/2013/01/internet-category.png"/>
+			<image id="2" src="http://jumblecat.com/wp-content/uploads/2013/01/internet-category.png"/>
+			<image id="3" src="http://jumblecat.com/wp-content/uploads/2013/01/internet-category.png"/>
+			<text id="1">NetFlix and Comcast: Quicksand or Cement?</text>
+			<text id="2">Rating and Reviewing Apps and Services</text>
+			<text id="3">Net Nutrality and Anti-Competitive Behaviour</text>
+		</binding>
+	</visual>
+</tile>

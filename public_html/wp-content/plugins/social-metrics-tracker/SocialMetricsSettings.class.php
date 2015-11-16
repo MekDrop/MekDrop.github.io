@@ -6,28 +6,19 @@ class socialMetricsSettings {
 
 	private $wpsf;
 
+	private $facebook_auth_error;
+
 	function __construct($smt) {
 
+		$this->smt = $smt;
+
 		add_action( 'admin_menu', array(&$this, 'admin_menu'), 99 );
-		// add_action( 'wpsf_before_settings_fields', array($this, 'section_id'));
 
-		$section = (isset($_REQUEST['section'])) ? $_REQUEST['section'] : false;
-		switch ($section) {
-			case 'gapi':
+		$pages = array('social-metrics-tracker', 'social-metrics-tracker-export', 'social-metrics-tracker-settings');
 
-				$this->section = 'gapi';
-
-				$smt->updater->setupDataSources();
-				$this->gapi = $smt->updater->GoogleAnalyticsUpdater;
-
-				if (isset($_GET['go_to_step']) && $_GET['go_to_step']) $this->gapi->go_to_step($_GET['go_to_step']);
-
-				break;
-
-			default:
-				$this->section = 'general';
-				$this->wpsf = new WordPressSettingsFramework( plugin_dir_path( __FILE__ ) .'settings/smt-'.$this->section.'.php', 'smt' );
-				break;
+		if (isset($_REQUEST['page']) && in_array($_REQUEST['page'], $pages)) {
+			$this->section = (isset($_REQUEST['section'])) ? $_REQUEST['section'] : 'general';
+			$this->wpsf = new WordPressSettingsFramework( plugin_dir_path( __FILE__ ) .'settings/smt-'.$this->section.'.php', 'smt' );
 		}
 
 	}
@@ -39,23 +30,285 @@ class socialMetricsSettings {
 
 	// Display list of all and current option pages
 	function nav_links() {
-		print ($this->section == 'general') ? 'General Settings' : '<a href="admin.php?page=social-metrics-tracker-settings">General Settings</a>';
-		print(' | ');
-		print ($this->section == 'gapi') ? 'Google Analytics Setup' : '<a href="'.add_query_arg('section', 'gapi').'">Google Analytics Setup</a>';
+
+
+		$args = array(
+			'menu_items' => array(
+				array(
+					'slug'    => 'general',
+					'label'   => 'General Settings',
+					'url'     => 'admin.php?page=social-metrics-tracker-settings',
+					'current' => $this->section == 'general'
+				),
+				array(
+					'slug'    => 'connections',
+					'label'   => 'API Connection Settings',
+					'url'     => add_query_arg('section', 'connections'),
+					'current' => $this->section == 'connections'
+				),
+				array(
+					'slug'    => 'gapi',
+					'label'   => 'Google Analytics Setup',
+					'url'     => add_query_arg('section', 'gapi'),
+					'current' => $this->section == 'gapi'
+				),
+				array(
+					'slug'    => 'urls',
+					'label'   => 'Advanced Domain / URL Setup',
+					'url'     => add_query_arg('section', 'urls'),
+					'current' => $this->section == 'urls'
+				),
+			)
+		);
+
+		print($this->smt->renderTemplate('settings-nav', $args));
 	}
 
-	function render_settings_page() { ?>
+
+	function render_settings_page() { 
+
+		switch ($this->section) {
+			case 'gapi':
+				$this->smt->updater->setupDataSources();
+				$this->gapi = $this->smt->updater->GoogleAnalyticsUpdater;
+
+				if (isset($_GET['go_to_step']) && $_GET['go_to_step']) $this->gapi->go_to_step($_GET['go_to_step']);
+
+				break;
+
+			case 'connections':
+				if (count($_POST) > 0) {
+					$this->process_connections_form();
+				}
+				break;
+
+			case 'urls':
+				if (count($_POST) > 0) {
+					$this->process_urls_form();
+				}
+
+				break;
+
+			case 'test':
+				break;
+
+			default:
+				if (count($_POST) > 0) {
+					$this->process_general_form();
+				}
+
+				break;
+		}
+
+		?>
 		<div class="wrap">
 			<h2>Social Metrics Tracker Configuration</h2>
 			<?php $this->nav_links(); ?>
 			<?php call_user_func(array($this, $this->section.'_section')); ?>
 
 		</div>
-	<?php }
+	<?php
+	}
+
 
 	// Render the general settings page
 	function general_section() {
-		$this->wpsf->settings();
+		$this->wpsf->settings('');
+	}
+
+	// Saves the general settings page
+	function process_general_form() {
+		if (!isset($_POST) || count($_POST) == 0) return;
+		$this->smt->merge_smt_options($_POST['smt_settings']);
+	}
+
+	function connections_section() {
+
+		$args = array(
+			'facebook_public_checked' => checked('public', $this->smt->get_smt_option('connection_type_facebook'), false),
+			'facebook_graph_checked'  => checked('graph',  $this->smt->get_smt_option('connection_type_facebook'), false),
+			'facebook_access_token_valid' => strlen($this->smt->get_smt_option('facebook_access_token')) > 0,
+			'facebook_auth_error' => $this->facebook_auth_error,
+			'fb_app_id'     => isset($_POST['fb_app_id']) ? $_POST['fb_app_id'] : '',
+			'fb_app_secret' => isset($_POST['fb_app_secret']) ? $_POST['fb_app_secret'] : '',
+		);
+
+		print($this->smt->renderTemplate('settings-connections', $args));
+	}
+
+	function process_connections_form() {
+		if (!isset($_POST) || count($_POST) == 0) return;
+
+		// Save FB connection type
+		$this->smt->set_smt_option('connection_type_facebook', $_POST['connection_type_facebook']);
+
+		// Process token delete request
+		if ($_POST['action'] == 'Delete saved access token') {
+			$this->smt->delete_smt_option('facebook_access_token');
+		}
+
+		// Generate Access Token
+		if ($_POST['action'] == 'Save Changes' && ($_POST['fb_app_id'] || $_POST['fb_app_secret']) ) {
+
+			// Need this to verify token
+			$fb = new FacebookGraphUpdater();
+
+			if (strlen($_POST['fb_app_id']) == 0) {
+				$this->facebook_auth_error = 'You must enter an App ID';
+
+			} elseif (strlen($_POST['fb_app_secret']) == 0) {
+				$this->facebook_auth_error = 'You must enter an App Secret';
+
+			} elseif (false === $access_token = $fb->requestAccessToken($_POST['fb_app_id'], $_POST['fb_app_secret'])) {
+				$this->facebook_auth_error = 'The info you entered did not validate with Facebook.';
+
+				if ($fb->error_message) {
+					$this->facebook_auth_error .= ' Facebook said: '.$fb->error_message;
+				}
+
+			} else {
+				// Save the valid access token!
+				$this->smt->set_smt_option('facebook_access_token', $access_token);
+
+			}
+
+		} 
+
+	}
+
+	// Renders the Test Tool page
+	function test_section() {
+
+		$args = array();
+
+		$test_id = (isset($_POST['smt-test-post-id'])) ? $_POST['smt-test-post-id'] : $this->getPopularPostID();
+
+		if ($test_id > 0) {
+			$args['test-data']        = $this->fetchTestData($test_id);
+			$args['smt-test-post-id'] = $test_id;
+		}
+
+		print($this->smt->renderTemplate('settings-test', $args));
+	}
+
+
+	// Save the URL form
+	function process_urls_form() {
+		if (!isset($_POST) || count($_POST) == 0) return;
+
+		if (isset($_POST['url_protocol'])) $this->smt->set_smt_option('url_protocol', $_POST['url_protocol']);
+
+
+		// Domain rewrites
+		if (isset($_POST['rewrite_change_to'])) {
+			$url_rewrites = array(
+				array(
+					'rewrite_match_from'  => isset($_POST['rewrite_match_from']) ? $_POST['rewrite_match_from'] : get_home_url(),
+					'rewrite_change_to'   => $_POST['rewrite_change_to'],
+					'rewrite_before_date' => $_POST['rewrite_before_date']
+				)
+			);
+
+			$this->smt->set_smt_option('url_rewrites', $url_rewrites);
+		} else {
+			$this->smt->delete_smt_option('url_rewrites');
+		}
+
+		// Performacne
+		if (isset($_POST['alt_url_ttl_multiplier'])) {
+			$this->smt->set_smt_option('alt_url_ttl_multiplier', $_POST['alt_url_ttl_multiplier']);
+		}
+
+	}
+
+	// Render the URLs settings page
+	function urls_section() {
+
+		$args = array();
+
+		// URL Protocol
+		$url_protocol = $this->smt->get_smt_option('url_protocol');
+
+		$args['protocol_options'] = array(
+			array(
+				'key'   => 'auto',
+				'label' => 'Auto (let WordPress decide)',
+				'selected' => ($url_protocol == 'auto')
+			),
+			array(
+				'key'   => 'http',
+				'label' => 'Check only http:// versions of URLs',
+				'selected' => ($url_protocol == 'http')
+			),
+			array(
+				'key'   => 'https',
+				'label' => 'Check only https:// versions of URLs',
+				'selected' => ($url_protocol == 'https')
+			),
+			array(
+				'key'   => 'both',
+				'label' => 'Check both http:// and https:// URLs',
+				'selected' => ($url_protocol == 'both')
+			),
+		);
+
+
+		// Domain migration
+		$url_rewrites = $this->smt->get_smt_option('url_rewrites');
+
+		$args['rewrite_match_from']  = $url_rewrites[0]['rewrite_match_from'] ? $url_rewrites[0]['rewrite_match_from'] : get_home_url();
+		$args['rewrite_change_to']   = $url_rewrites[0]['rewrite_change_to'] ? $url_rewrites[0]['rewrite_change_to'] : '';
+		$args['rewrite_before_date'] = $url_rewrites[0]['rewrite_before_date'] ? $url_rewrites[0]['rewrite_before_date'] : '';
+
+		$args['example_match_from'] = get_permalink($this->getPopularPostID());
+
+
+		// Performance Option
+		$current_alt_ttl_option = ($this->smt->get_smt_option('alt_url_ttl_multiplier')) ? $this->smt->get_smt_option('alt_url_ttl_multiplier') : 5;
+
+		$args['alt_url_ttl_multiplier_options'] = array(
+			array(
+				'key'   => '1',
+				'label' => 'Same as main URL refresh rate (uses more network requests)',
+				'selected' => ($current_alt_ttl_option == '1')
+			),
+			array(
+				'key'   => '5',
+				'label' => 'Slightly slower refresh rate',
+				'selected' => ($current_alt_ttl_option == '5')
+			),
+			array(
+				'key'   => '10',
+				'label' => 'Much slower refresh rate (better server performance)',
+				'selected' => ($current_alt_ttl_option == '10')
+			)
+		);
+		
+		print($this->smt->renderTemplate('settings-urls', $args));
+	}
+
+	// Returns some live data from social networks for a variety of URL filters
+	function fetchTestData($post_id) {
+		$permalink = $this->smt->updater->adjustProtocol(get_permalink($post_id));
+		return $this->smt->updater->fetchPostStats($post_id, $permalink);
+	}
+
+	// Returns a post ID for the most shared post
+	function getPopularPostID() {
+
+		$args = array(
+			'posts_per_page'   => 1,
+			'offset'           => 0,
+			'orderby'          => 'meta_value',
+			'order'            => 'DESC',
+			'meta_key'         => 'social_aggregate_score',
+			'post_status'      => 'publish',
+			'suppress_filters' => true 
+		);
+		$posts_array = get_posts( $args );
+
+		return $posts_array[0]->ID;
+
 	}
 
 	// Render the Google API config page

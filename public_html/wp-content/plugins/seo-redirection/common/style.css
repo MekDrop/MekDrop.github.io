@@ -96,7 +96,7 @@ padding:20px;
 .grid tbody tr:nth-child(odd){background:#FFF}
 .grid thead td{padding-left:6px;padding-right:6px}
 .grid thead,.grid tfoot{background:url(images/gradient_color_bg.gif) repeat-x scroll center top #EFEFEF;color:#000;font-weight:700}
-
+.grid a {text-decoration: none; }
 
 .cfrom{border:0px;border-collapse:collapse;font-family:Tahoma;font-size:10pt}
 .cform td{padding:3px; font-family: tahoma; font-size: 12px;}

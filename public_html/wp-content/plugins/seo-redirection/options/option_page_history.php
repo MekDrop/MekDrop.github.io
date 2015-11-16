@@ -25,7 +25,7 @@ if($util->get_option_value('history_status')!='1')
 function go_search(){
 var sword = document.getElementById('search').value;
 	if(sword!=''){
-		window.location = "<?=$rlink?>&search=" + sword ;
+		window.location = "<?php echo $rlink?>&search=" + sword ;
 	}else
 	{
 		alert('Please input any search words!');
@@ -40,11 +40,11 @@ var sword = document.getElementById('search').value;
 <div class="link_buttons">
 <table border="0" width="100%">
 	<tr>
-		<td width="150"><a href="<?=$rlink?>&del=all"><div class="del_link">Clear History</div></a></div></td>
+		<td width="150"><a href="<?php echo $rlink?>&del=all"><div class="del_link">Clear History</div></a></div></td>
 		<td align="right">
-		<input onkeyup="if (event.keyCode == 13) go_search();" style="height: 30px;" id="search" type="text" name="search" value="<?=$util->get('search')?>" size="40">
+		<input onkeyup="if (event.keyCode == 13) go_search();" style="height: 30px;" id="search" type="text" name="search" value="<?php echo $util->get('search')?>" size="40">
 		<a onclick="go_search()" href="#"><div class="search_link">Search</div></a> 
-		<a href="<?=$util->get_current_parameters('search')?>"><div class="see_link">Show All</div></a>
+		<a href="<?php echo $util->get_current_parameters('search')?>"><div class="see_link">Show All</div></a>
 		</td>
 	</tr>
 </table>
@@ -92,7 +92,7 @@ var sword = document.getElementById('search').value;
 	
 	$grid->add_php_col('echo date(\'Y-n-j\',strtotime($db_ctime)) . \'<br/>\' .  date(\'H:i:s\',strtotime($db_ctime));  ','Time');
 	
-	$grid->add_html_col('<div class=\'arrow_from\'>{db_rfrom}</div><div class=\'arrow_to\'>{db_rto}</div>','Redirection');
+	$grid->add_php_col(' echo "<div class=\'arrow_from\'><a target=\'_blank\' href=\'" . SEOR_make_absolute_url($db_rfrom) ."\'>{$db_rfrom}</a></div><div class=\'arrow_to\'><a target=\'_blank\' href=\'" . SEOR_make_absolute_url($db_rto) ."\'>{$db_rto}</a></div>" ;','Redirection');
 	$grid->add_data_col('rtype','Type');
 	$grid->add_php_col('if($db_referrer !="") echo "<a target=\'_blank\' title=\'$db_referrer\' href=\'$db_referrer\'><span class=\'link\'></span></a>" ;','Ref'); 
 	

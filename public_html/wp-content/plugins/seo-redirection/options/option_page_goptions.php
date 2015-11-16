@@ -165,7 +165,7 @@ $options= $util->get_my_options();
 	</td></tr>
 
 	<tr><td>
-	Redirect All Unknown 404 Pages to: <input type="text" name="redirect_to" id="redirect_to" size="30" value="<?=$options['p404_redirect_to']?>">
+	Redirect All Unknown 404 Pages to: <input type="text" name="redirect_to" id="redirect_to" size="30" value="<?php echo $options['p404_redirect_to']?>">
 	</td></tr>
 
 </table>

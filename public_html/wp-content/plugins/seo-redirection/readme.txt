@@ -3,7 +3,7 @@ Contributors: fakhris
 Donate link:http://www.clogica.com/donations.htm
 Tags: redirection, seo redirection, redirect, redirected, Quick Redirect, post redirect, 301 redirect, 404 redirection, redirection plugin
 Requires at least: 3.0.1
-Tested up to: 3.9
+Tested up to: 4.2.1
 Stable tag: trunk
 
 By this plugin you can build 301,302 or 307 redirectios easily for your site, you can also monitor 404 Error Pages and redirect them. 
@@ -25,7 +25,7 @@ By this plugin you can build redirections easily for your site, you can set up a
 <li>Reflect changes to all links when you move your site or change the domain name</li> 
 <li>Friendly GUI and easy to use.</li>  
 </ul>
-<h3><a target="_blank" href="http://codecanyon.net/item/seo-redirection-pro/7596396?ref=fakhri">
+<h3><a target="_blank" href="http://www.clogica.com/product/seo-redirection-premium-wordpress-plugin">
 See the amazing features in the PRO version</a></h3>
 
 
@@ -45,8 +45,10 @@ To redirect a folder, go to custom redirection tab, add a new folder-to-page or 
 
 **404 Error Page Redirects**
 
-Go to Discvered 404 Error Pages tab, choose any 404 error page and choose \'Redirect\' to create It\'s redirection, you can add it as a custom redirection if you know it\'s URL.
+Go to Discvered 404 Error Pages tab, choose any 404 error page and choose 'Redirect' to create It's redirection, you can add it as a custom redirection if you know it's URL.
 
+**Note**
+This version does not support Wordpress Multisite installation.
 
 == Installation ==
 
@@ -98,3 +100,14 @@ To redirect a folder, go to custom redirection tab, add a new folder-to-page or 
 **3. How can I redirect 404 Error pages?**
 
 Go to Discvered 404 Error Pages tab, choose any 404 error page and choose 'Redirect' to create It's redirection, you can add it as a custom redirection if you know it\'s URL.
+
+== Changelog ==
+
+= 2.5 =
+* Using relative URLs instead of absolute URL's, This will usefull when changing the domian name.
+= 2.6 =
+* Some hot fixes.
+== 2.8 ==
+* Redirect loop prevention
+* The Ad for the premium version has become in a separate tab not in all the plugin screens as it may disturb some people.
+* Some other fixes

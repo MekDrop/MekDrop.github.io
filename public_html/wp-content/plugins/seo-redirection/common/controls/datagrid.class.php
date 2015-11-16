@@ -49,14 +49,11 @@ class datagrid
 		$this->body = array();
 		$this->footer = array();
 		
-		$this->pagination = new pagination($data_source,$filter);
+		$this->pagination = new cf_pagination($data_source,$filter);
 		$this->set_data_source($data_source);
 		$this->set_filter($filter);
 		$this->set_table_attr('class','grid');
-		
 
-		
-		
 	}
 	
 

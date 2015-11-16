@@ -10,6 +10,8 @@ if(!class_exists('WP_List_Table')){
 }
 class SocialMetricsTable extends WP_List_Table {
 
+	private $smt, $gapi, $data_max;
+
 	function __construct($smt){
 		global $status, $page;
 
@@ -50,12 +52,102 @@ class SocialMetricsTable extends WP_List_Table {
 		$actions = array(
 			'edit'    => sprintf('<a href="post.php?post=%s&action=edit">Edit Post</a>',$item['ID']),
 			'update'  => '<a href="'.add_query_arg( 'smt_sync_now', $item['ID']).'">Update Stats</a>',
-			'info'    => sprintf('Updated %s',SocialMetricsTracker::timeago($item['socialcount_LAST_UPDATED']))
 		);
 
-		//Return the title contents
+		// Show details button if there is alt URL data
+		if (count($item['socialcount_url_data']) > 0) {
+			$actions['details'] = '<a href="javascript:void(0);" onClick="jQuery(\'#stat-details-'.$item['ID'].'\').slideToggle();">URL Details</a>';
+		}
 
-		return '<a href="'.$item['permalink'].'"><b>'.$item['post_title'] . '</b></a>' . $this->row_actions($actions);
+		$actions['info'] = sprintf('Updated %s',SocialMetricsTracker::timeago($item['socialcount_LAST_UPDATED']));
+
+		//Return the title contents
+		$output = '<a href="'.$item['permalink'].'"><b>'.$item['post_title'] . '</b></a>' . $this->row_actions($actions);
+		
+		if (count($item['socialcount_url_data']) > 0) {
+			$output .= $this->more_details($item);
+		}
+
+		return $output;
+	}
+
+	function more_details($item) {
+		$details = array(
+			'post_id'     => $item['ID'],
+			'total_score' => number_format($item['socialcount_total'], 0, '.', ','),
+			'url_count'   => count($item['socialcount_url_data']) + 1,
+			'permalinks'  => array()
+		);
+
+		$details['permalinks'][] = array(
+			'full-url' => $item['permalink'],
+			'timeago'  => $this->smt->timeago($item['socialcount_LAST_UPDATED']),
+			'details'  => $this->breakdown_details($item, $item['socialcount_total'])
+		);
+
+		foreach ($item['socialcount_url_data'] as $key => $val) {
+			$url = is_array($val) ? $val['permalink'] : $val;
+
+			$entry = array(
+				'full-url' => $url,
+				'details' => $this->breakdown_details($val, $item['socialcount_total'])
+			);
+
+			if (array_key_exists('socialcount_alt_data_LAST_UPDATED', $item))
+				$entry['timeago'] = $this->smt->timeago($item['socialcount_alt_data_LAST_UPDATED']);
+
+			$details['permalinks'][] = $entry;
+		}
+
+		return $this->smt->renderTemplate('stat-details', $details);
+	}
+
+	function breakdown_details($obj, $total) {
+
+		$sources = array();
+
+		$sum = 0;
+		foreach ($this->smt->updater->getSources() as $HTTPResourceUpdater) {
+
+			$key = $HTTPResourceUpdater->meta_prefix . $HTTPResourceUpdater->slug;
+
+			if (!is_array($obj) || !array_key_exists($key, $obj)) continue;
+
+			$sum += $obj[$key];
+
+			$source = array(
+				'name' => $HTTPResourceUpdater->name,
+				'num' => $obj[$key]
+			);
+
+			// Subtract other values if is parent
+			if (array_key_exists('socialcount_url_data', $obj)) {
+				foreach ($obj['socialcount_url_data'] as $child) {
+					if (!is_array($child) || !array_key_exists($key, $child)) continue;
+					$sum -= $child[$key];
+					$source['num'] -= $child[$key];
+				}
+			}
+
+			// Only if some shares for this service
+			if ($source['num'] > 0) {
+				$source['num'] = number_format($source['num'], 0, '.', ',');
+				$sources[] = $source;
+			}
+
+		}
+
+		// Get percent: Ensure smallest possible percent of 0.01 if there is at least one share
+		$percent  = ($total > 0 && $sum > 0) ? max($sum / $total * 100, 0.01) : 0;
+
+		// Use two decimal places if percent between 0 and 1
+		$decimals = ($percent < 1 && $percent > 0) ? 2 : 0;
+
+		return array(
+			'num' => number_format($sum, 0, '.', ','),
+			'sources' => $sources,
+			'percent' => ($total > 0) ? number_format( $percent, $decimals ) . '%' : '0%'
+		);
 	}
 
 	// Column for Social
@@ -162,6 +254,9 @@ class SocialMetricsTable extends WP_List_Table {
 	 */
 	function handle_dashboard_sorting($query) {
 
+		// Compatibility filters with other plugins:
+		remove_filter('posts_orderby', 'postMash_orderPosts');
+
 		// get order
 		// this should be taken care of by default but something is interfering
 		// If no order, default is DESC
@@ -212,7 +307,7 @@ class SocialMetricsTable extends WP_List_Table {
 	function prepare_items() {
 		global $wpdb; //This is used only if making any database queries
 
-		$per_page = 10;
+		$per_page = empty( $this->smt->options[ 'smt_options_default_posts_per_page' ] ) ? 10 : $this->smt->options[ 'smt_options_default_posts_per_page' ];
 
 		$columns = $this->get_columns();
 		$hidden = array();
@@ -225,15 +320,14 @@ class SocialMetricsTable extends WP_List_Table {
 		// Get custom post types to display in our report.
 		$post_types = $this->smt->tracked_post_types();
 
-		$limit = 30;
-
 		// Filter our query results
 		add_filter( 'posts_where', array($this, 'date_range_filter') );
 		add_filter( 'pre_get_posts', array($this, 'handle_dashboard_sorting') );
 
 		$querydata = new WP_Query(array(
-			'posts_per_page'=> $limit,
-			'post_status'	=> 'publish',
+			'posts_per_page'=> $per_page,
+			'offset'        => ($this->get_pagenum()-1) * $per_page,
+			'post_status'	=> array( 'publish', 'inherit' ),
 			'post_type'		=> $post_types
 		));
 
@@ -259,8 +353,11 @@ class SocialMetricsTable extends WP_List_Table {
 			$item['comment_count'] = $post->comment_count;
 			$item['socialcount_total'] = (get_post_meta($post->ID, "socialcount_TOTAL", true)) ? get_post_meta($post->ID, "socialcount_TOTAL", true) : 0;
 			$item['socialcount_LAST_UPDATED'] = get_post_meta($post->ID, "socialcount_LAST_UPDATED", true);
+			$item['socialcount_alt_data_LAST_UPDATED'] = get_post_meta($post->ID, "socialcount_alt_data_LAST_UPDATED", true);
 			$item['views'] = (get_post_meta($post->ID, "ga_pageviews", true)) ? get_post_meta($post->ID, "ga_pageviews", true) : 0;
 			$item['permalink'] = get_permalink($post->ID);
+
+			$item['socialcount_url_data'] = get_post_meta($post->ID, "socialcount_url_data");
 
 			foreach ($this->smt->updater->getSources() as $HTTPResourceUpdater) {
 				$meta_key = $HTTPResourceUpdater->meta_prefix . $HTTPResourceUpdater->slug;
@@ -272,25 +369,18 @@ class SocialMetricsTable extends WP_List_Table {
 			$this->data_max['comment_count'] = max($this->data_max['comment_count'], $item['comment_count']);
 
 		   array_push($data, $item);
+
 		endwhile;
 		endif;
 
-		/**
-		 * REQUIRED for pagination.
-		 */
-		$current_page = $this->get_pagenum();
-
-		$total_items = count($data);
-
-		$data = array_slice($data,(($current_page-1)*$per_page),$per_page);
-
 		$this->items = $data;
 
-		$this->set_pagination_args( array(
-			'total_items' => $total_items,                  //WE have to calculate the total number of items
-			'per_page'    => $per_page,                     //WE have to determine how many items to show on a page
-			'total_pages' => ceil($total_items/$per_page)   //WE have to calculate the total number of pages
-		) );
+		// Pagination
+		$this->set_pagination_args(array(
+			'total_items' => $querydata->found_posts,                  // Calculate the total number of items
+			'per_page'    => $per_page,                                // Determine how many items to show on a page
+			'total_pages' => ceil($querydata->found_posts/$per_page)   // Calculate the total number of pages
+		));
 	}
 
 	/**
@@ -391,7 +481,14 @@ function smt_render_dashboard_view($smt){
 					<?php $status = $h->wpcb->getStatusDetail(); ?>
 					<div class="smt-connection-item <?php echo ($status['working']) ? 'online' : 'offline'; ?>">
 						<?php echo $h->name ?>
-						<?php if (!$status['working']) : ?> - <?php echo $status['fail_count'] ?> failures - <?php echo $status['error_message'] ?> <br /><small>Will automatically retry <?php echo date("M j, g:i a", $status['next_query_at']); ?>.</small>
+						<?php if (!$status['working']) : ?>
+						 - <?php echo $status['fail_count'] ?> failures - <?php echo $status['error_message'] ?> 
+						 <a href="javascript:void(0);" onClick="jQuery('#smt-error-details-<?php echo $h->slug; ?>').slideToggle();">[Show debug info]</a>
+						 <div id="smt-error-details-<?php echo $h->slug; ?>" style="display:none;">
+						 	<p><b>Debug information: </b>This is a record of the most recent attempt your blog server made at connecting to the social network to retrieve stats. <span style="color:red;">Warning: The debug info below may contain your private access_token for Facebook, if you have configured that under Connection Settings (it would be part of 'request_uri' below). It will also contain a URL back to one of your blog posts (see "request_uri" below). If you post this publicly on the support forums, be sure to delete any private information before posting!</span>. </p>
+						 	<textarea class="smt-debug-box"><?php echo htmlspecialchars(print_r($status['error_detail'], true)); ?></textarea>
+						 </div>
+						 <br /><small>Will automatically retry <?php echo date("M j, g:i a", $status['next_query_at']); ?>.</small>
 						<?php endif; ?>
 
 						<br />
@@ -417,6 +514,8 @@ function smt_render_dashboard_view($smt){
 			$SocialMetricsTable->prepare_items();
 			$SocialMetricsTable->display();
 			?>
+
+			<p align="center">Please <a href="https://wordpress.org/support/view/plugin-reviews/social-metrics-tracker">rate the Social Metrics Tracker</a> plugin if you have found it useful, or <a href="https://wordpress.org/support/plugin/social-metrics-tracker">visit the support forum</a> for help.</p>
 
 		</form>
 

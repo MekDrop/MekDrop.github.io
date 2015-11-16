@@ -22,6 +22,7 @@ abstract class HTTPResourceUpdater {
 	public $meta_prefix = 'socialcount_';
 
 	public $http_error = '';
+	public $http_error_detail = '';
 	public $complete;
 
 	public function __construct($slug, $name, $resource_uri) {
@@ -35,10 +36,14 @@ abstract class HTTPResourceUpdater {
 		return $this;
 	}
 
-	/***************************************************
+	/**
+	***************************************************
 	* Update all the data for a given post
 	*
-	* Note: $post_url is required to be set explicilty because it might be filtered by the MetricsUpdater class.
+	* @param  integer   $post_id - The ID of the post to update
+	* @param  string    $post_url - The permalink to query social APIs with
+	*
+	* @return (boolean | array) this will be the array of meta data OR false if the sync failed.
 	***************************************************/
 	public function sync($post_id, $post_url) {
 
@@ -52,9 +57,8 @@ abstract class HTTPResourceUpdater {
 		// Perform sync
 		$this->fetch();
 		$this->parse();
-		$this->save();
 
-		return $this->complete;
+		return $this->getMetaFields();
 	}
 
 	/***************************************************
@@ -66,9 +70,10 @@ abstract class HTTPResourceUpdater {
 		$this->post_url = $post_url;
 		$this->post_id  = $post_id;
 
-		$this->complete = false;
-		$this->data     = null;
-		$this->meta     = array();
+		$this->complete   = false;
+		$this->http_error = null;
+		$this->data       = null;
+		$this->meta       = array();
 
 	}
 
@@ -88,12 +93,19 @@ abstract class HTTPResourceUpdater {
 
 		// Report to circuit breaker
 		if (!$result) {
-			$this->wpcb->reportFailure($this->http_error);
+			$this->wpcb->reportFailure($this->http_error, $this->http_error_detail);
 		} else {
 			$this->wpcb->reportSuccess();
 		}
 
-		return $this->data = (strlen($result) > 0) ? $this->jsonp_decode($result, true) : false;
+		// Return either a json_decoded array, or a string, or false (in that order)
+		if (strlen($result) > 0) {
+			$decoded_result = $this->jsonp_decode($result, true);
+			return $this->data = ($decoded_result) ? $decoded_result : $result;
+		} else {
+			return $this->data = false;
+		}
+
 	}
 
 	/***************************************************
@@ -123,41 +135,69 @@ abstract class HTTPResourceUpdater {
 		switch (strtolower($method)) {
 			case 'post':
 				$args['body'] = json_encode($post_params);
-				$response = wp_remote_post($url, $args);
+				$request_uri = $url;
+				$response = wp_remote_post($request_uri, $args);
 				break;
 
 			case 'get' :
-				$response = wp_remote_get($url . '?' . http_build_query($this->resource_params, '', '&'), $args);
+				$request_uri = $url . '?' . http_build_query($this->resource_params, '', '&');
+				$response = wp_remote_get($request_uri, $args);
 				break;
 		}
 
 		if (is_wp_error($response)) {
 			$this->http_error = $response->get_error_message();
+			$this->http_error_detail = array(
+				'request_time'     => current_time('mysql'),
+				'request_method'   => $method,
+				'request_uri'      => $request_uri,
+				'request_response' => $response
+			);
 			return false;
 		} else if ($response['response']['code'] != 200) {
-			$this->http_error = "Received HTTP response code: <b>".$response['response']['code']." ".$response['response']['message']."</b>";
+			$this->http_error = '';
+
+			// Attempt to build a helpful error message (provided by Facebook)
+			$body = $this->jsonp_decode($response['body'], true);
+
+			if ($body && strlen($body['error']['message']) > 1) {
+				$this->http_error .= $body['error']['message'];
+			}
+
+			if ($body && strlen($body['error']['type']) > 1) {
+				$this->http_error .= ' ('.$body['error']['type'].' '.$body['error']['code'].'). ';
+			}
+
+			// Generic error message
+			$this->http_error .= "Received HTTP response code: ".$response['response']['code']." ".$response['response']['message'];
+
+			$this->http_error_detail = array(
+				'request_time'     => current_time('mysql'),
+				'request_method'   => $method,
+				'request_uri'      => $request_uri,
+				'request_response' => $response
+			);
+			return false;
 		}
 
 		return wp_remote_retrieve_body($response);
 	}
 
 	/***************************************************
-	* Writes post meta fields to database
+	* Return an array of post meta fields that need to be saved; filters invalid values.
 	***************************************************/
-	public function save() {
+	public function getMetaFields() {
 		if (!isset($this->meta) || count($this->meta) == 0) return false;
 
-		// Update each custom field
-		foreach ($this->meta as $key => $value) {
-			if (!$value) continue;
-			if (is_numeric($value) && intval($value) <= 0) continue;
+		$fields = array();
 
-			if (update_post_meta($this->post_id, $key, $value)) {
-				$this->complete = true;
-			}
+		foreach ($this->meta as $key => $value) {
+			if (!is_numeric($value)) continue;
+
+			$fields[$key] = $value;
 		}
 
-		return $this->complete;
+		return (count($fields) > 0) ? $fields : false;
 	}
 
 	/***************************************************

@@ -15,8 +15,8 @@
 *
 *******************************************************************************/
 
-if(!class_exists('pagination')){
-class pagination{
+if(!class_exists('cf_pagination')){
+class cf_pagination{
 
 private $rows=15;					//The rows per page.
 private $table_rows_count;			//The total rows to show.
@@ -47,7 +47,7 @@ private $last_page_text= "Last";		//Set text of last button
 private $invalid_page_number_text= "invalid page number!";		//Set text of invalid page number error
 
 
-public function pagination($data_source='',$filter='',$rows=15,$parameter='page_num')
+public function __construct($data_source='',$filter='',$rows=15,$parameter='page_num')
 	{
 	$this->data_source=$data_source;
 	$this->set_filter($filter);

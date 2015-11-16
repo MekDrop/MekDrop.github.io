@@ -39,12 +39,15 @@ if (isset($params['sfs_tracking']) && !empty($params['sfs_tracking'])) {
 	$time_format = get_option('time_format');
 	$logtime = date("{$date_format} {$time_format}", current_time('timestamp'));
 	
+	$protocol = 'http://';
+	if (is_ssl()) $protocol = 'https://';
+	
 	$type = 'undefined'; $feed_type = 'undefined';
 	
 	$host = 'n/a'; $request = 'n/a'; $referer = 'n/a'; $qstring = 'n/a'; $address = 'n/a'; $agent = 'n/a';
 
 	if (isset($_SERVER['HTTP_HOST']))       $host    = sfs_cleaner($_SERVER['HTTP_HOST']);
-	if (isset($_SERVER['REQUEST_URI']))     $request = sfs_cleaner('http://'.$host.$_SERVER['REQUEST_URI']);
+	if (isset($_SERVER['REQUEST_URI']))     $request = sfs_cleaner($protocol.$host.$_SERVER['REQUEST_URI']);
 	if (isset($_SERVER['HTTP_REFERER']))    $referer = sfs_cleaner($_SERVER['HTTP_REFERER']);
 	if (isset($_SERVER['QUERY_STRING']))    $qstring = sfs_cleaner($_SERVER['QUERY_STRING']);
 	if (isset($_SERVER['REMOTE_ADDR']))     $address = sfs_cleaner($_SERVER['REMOTE_ADDR']);

@@ -1,14 +1,14 @@
 === Social Metrics Tracker ===
 Contributors: bcole808
 Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=K2Z4QFWKJ5DM4
-Tags: admin, dashboard, social, social media, facebook, twitter, metrics, analytics, tracking, engagement, share, sharing, shares
+Tags: admin, dashboard, social, social media, facebook, twitter, metrics, analytics, tracking, stats, engagement, share, sharing, shares, likes, tweets
 Requires at least: 3.5
-Tested up to: 4.0
-Stable tag: 1.3.2
+Tested up to: 4.2
+Stable tag: 1.5.3
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
-Collects social data and shows you which of your posts are most popular based on how many times each post has been shared on various social networks.
+Collects social data and shows you which posts are most popular based on post shares across popular social networks.
 
 
 == Description ==
@@ -36,7 +36,7 @@ For web developers, this plugin collects and stores social metrics data in a way
 
 1. Install and activate the WordPress plugin.
 2. Data will automatically begin syncing. This will take some time.
-3. Review the plugin settings under Settings > Social Metrics
+3. Review the plugin settings under Social Metrics > Settings
 
 If you do not see any statistics on the Social Metrics dashboard, make sure that you have some posts published and that wp-cron.php is working correctly. This plugin relies on the WordPress Cron system to fetch data updates. This plugin will not work on local or development servers where URLs are not publicly accessible.
 
@@ -71,6 +71,14 @@ Absolutely! This plugin was created with large-scale Multisite blog networks in 
 
 You can link with your Google Analytics account to import pageview data for posts. This requires a free Google API Developer Key.
 
+= What about canonical URLs? =
+
+Ah yes, sometimes you have more than one URL to a post. For example, with or without www or with http:// or https://.  There is a tool on the configuration page of the plugin to help you configure the checking of canonical URLs. When there are multiple URLs associated with a post, there will be a new link that appears by each post called "URL Details" on the reporting dashboard which will provide detailed stats. 
+
+= What if I migrate to a new domain? =
+
+Most Social networks will NOT copy your old share numbers over to your new URLs. However, this plugin has a tool to continue to check and combine the numbers from your old domain name ULRs. 
+
 = Who created this? =
 
 This plugin was created by Ben Cole, as a member of the Chapman University web marketing team. Our use for the plugin is to track posts on social networks to see which stories students, alumni, and faculty are most interested in sharing.
@@ -79,10 +87,68 @@ This plugin was created by Ben Cole, as a member of the Chapman University web m
 == Screenshots ==
 
 1. The Social Metrics Tracker report view.
-2. Configuration options
+2. The report view, with both Google Analytics and multiple URL configuration
+3. Configuration options - General setup
+4. Configuration options - Google Analytics setup
+5. Configuration options - Advanced URL / Domain setup
+6. Data exported to an .xls spreadsheet
 
 
 == Changelog ==
+
+= 1.5.3 =
+* Allow attachment/media pages to be tracked
+* Added "Update Stats" link to dashboard widget
+* Fixed a bug where Google Analytics pageviews were not being updated
+
+= 1.5.2 =
+* Fixed an issue where Facebook stats were not collected for some websites in languages other than English
+* Fixed an issue where a Facebook count of one was reported as zero
+
+= 1.5.1 =
+* Updated the Facebook Graph API to version 2.3 (latest)
+* IMPORTANT: As of this version, the individual post meta fields for 'facebook_likes', 'facebook_comments' and 'facebook_shares' are no longer available. You will not notice any difference unless you have previously written a custom theme or plugin which made use of these hidden custom fields. To delete these old fields and clean up your database, you should completely un-install (and delete) this plugin from the Dashboard and then re-install it. 
+
+= 1.5.0 =
+* Compatbility with WordPress 4.2
+* Fixed a bug where connection debug info sometimes did not get displayed
+* Updated the way Facebook data is retrieved; added two options to settings page under "API Connection Settings". 
+
+= 1.4.5 =
+* Fixed the Facebook stat updater; temporarily switched back to the old Facebook API (version 1.0) because the new version now requires authentication.  The old version will stop working on April 30, 2015 and so another update will be required before that date. 
+* Improved the error reporting debug info for connection failures
+* Dashboard widget now correctly displays custom post type data
+
+= 1.4.4 =
+* Fixed a PHP warning caused by the plugin
+
+= 1.4.3 = 
+* Fixed a bug where saving the general settings page would overwrite domain migration settings
+* Fixed a bug where the dashboard widget would display regardless of if it was enabled
+* Load dashboard assets over SSL if enabled
+
+= 1.4.2 =
+* Fixed a bug where domain migration settings were being erased
+
+= 1.4.1 =
+* Removed some old debug code
+
+= 1.4.0 =
+* Added advanced Domain/URL setup options including:
+* -- The option to check either the http:// or https:// version of post URLs for share data.
+* -- A domain migration tool to keep checking for share data from old URLs/domains
+* Fixed a bug which was causing "Settings saved" to be displayed more than once.
+* Removed the "Debug mode" option which did not do anything useful. 
+* Compatibility fix with the plugin "postMash orderby" for sort order
+
+= 1.3.4 =
+* Update plugin to use Facebook API v2.0
+* Removed "Development server notice" for some configurations
+* IMPORTANT: As of April 30, 2015, versions of this plugin below 1.3.4 will fail to collect data from Facebook; update to this version before then.
+
+= 1.3.3 =
+* Optimize reporting dashboard load speed
+* Improved pagination on reporting dashboard (fixes an issue where only 30 posts were displayed)
 
 = 1.3.2 =
 * Fixed an issue where some servers were not correctly connecting to Facebook and LinkedIn
@@ -144,13 +210,49 @@ This plugin was created by Ben Cole, as a member of the Chapman University web m
 
 == Upgrade Notice ==
 
+= 1.5.3 =
+Allow attachments to be tracked, and misc. updates
+
+= 1.5.2 =
+Fixed a bug with Facebook stats on non-English websites
+
+= 1.5.1 =
+Switch to Facebook API version 2.3
+
+= 1.5.0 =
+Changed the way Facebook data is collected, and compatibility fixes. 
+
+= 1.4.5 =
+Temporary fix for the Facebook stat updater
+
+= 1.4.4 =
+Minor bug fix
+
+= 1.4.3 =
+Bug fixes
+
+= 1.4.2 =
+Fixed a bug where domain migration settings were being erased
+
+= 1.4.1 =
+Removed old debug code
+
+= 1.4.0 =
+Added advanced domain / SSL configuration options
+
+= 1.3.4 =
+Important update to the Facebook API
+
+= 1.3.3 =
+Optimize pagination on reporting dashboard
+
 = 1.3.2 =
 Hotfix for specific server configurations
 
 = 1.3.1 =
 Added better error messages and debug info
 
-= 1.3 =
+= 1.3.0 =
 Major update which changes the way social data is collected
 
 = 1.2.5 =

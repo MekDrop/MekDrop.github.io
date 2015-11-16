@@ -12,8 +12,10 @@ $table_name = $table_prefix . 'WP_SEO_Redirection';
 		
 		
 		if($util->there_is_cache()!='') 
-$util->info_option_msg("You have a cache plugin installed <b>'" . $util->there_is_cache() . "'</b>, you have to clear cache after any changes to get the changes reflected immediately! ");
+		$util->info_option_msg("You have a cache plugin installed <b>'" . $util->there_is_cache() . "'</b>, you have to clear cache after any changes to get the changes reflected immediately! ");
 
+		$SR_redirect_cache = new clogica_SR_redirect_cache();
+		$SR_redirect_cache->free_cache();
 	}
 	
 	$rlink=$util->get_current_parameters(array('del','search','page_num','add','edit'));
@@ -28,7 +30,7 @@ $util->info_option_msg("You have a cache plugin installed <b>'" . $util->there_i
 function go_search(){
 var sword = document.getElementById('search').value;
 	if(sword!=''){
-		window.location = "<?=$rlink?>&search=" + sword ;
+		window.location = "<?php echo $rlink?>&search=" + sword ;
 	}else
 	{
 		alert('Please input any search words!');
@@ -43,9 +45,9 @@ var sword = document.getElementById('search').value;
 <table border="0" width="100%">
 	<tr>
 		<td align="left">
-		<input onkeyup="if (event.keyCode == 13) go_search();" style="height: 30px;" id="search" type="text" name="search" value="<?=$util->get('search')?>" size="40">
+		<input onkeyup="if (event.keyCode == 13) go_search();" style="height: 30px;" id="search" type="text" name="search" value="<?php echo $util->get('search')?>" size="40">
 		<a onclick="go_search()" href="#"><div class="search_link">Search</div></a> 
-		<a href="<?=$util->get_current_parameters('search')?>"><div class="see_link">Show All</div></a>
+		<a href="<?php echo $util->get_current_parameters('search')?>"><div class="see_link">Show All</div></a>
 		</td>
 	</tr>
 </table>
@@ -56,6 +58,10 @@ var sword = document.getElementById('search').value;
 	$grid->set_data_source($table_name);
 	$grid->add_select_field('ID');
 	$grid->add_select_field('postID');
+	$grid->add_select_field('redirect_from');
+	$grid->add_select_field('redirect_from_type');
+	$grid->add_select_field('redirect_to');
+	$grid->add_select_field('redirect_to_type');
 	$grid->set_table_attr('width','100%');
 	$grid->set_col_attr(5,'width','50px');
 	$grid->set_col_attr(5,'width','50px','header');
@@ -74,8 +80,10 @@ var sword = document.getElementById('search').value;
 	
 	$grid->add_template_col('del', $util->get_current_parameters('del') . '&del={db_ID}','Del');
 	$grid->add_template_col('go_link','post.php?post={db_postID}&action=edit','Post');
-	$grid->add_data_col('redirect_from','Redirect from');
-	$grid->add_data_col('redirect_to','Redirect to');
+	//$grid->add_data_col('redirect_from','Redirect from');
+	//$grid->add_data_col('redirect_to','Redirect to');
+	$grid->add_php_col(' echo "<div class=\'{$db_redirect_from_type}_background_{$db_enabled}\'><a target=\'_blank\' href=\'" . SEOR_make_absolute_url($db_redirect_from) ."\'>{$db_redirect_from}</a></div>" ;','Redirect from ');
+	$grid->add_php_col(' echo "<div class=\'{$db_redirect_to_type}_background_{$db_enabled}\'><a target=\'_blank\' href=\'" . SEOR_make_absolute_url($db_redirect_to) ."\'>{$db_redirect_to}</a></div>"; ','Redirect to ');
 	$grid->add_data_col('redirect_type','Type');
 	
 	$grid->run();

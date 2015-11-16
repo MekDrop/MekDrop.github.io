@@ -13,17 +13,12 @@ private $plugin_folder='plugin_folder_name';
 public $mytabs;
 
 
-public function get($key,$escape=0)
+public function get($key,$type='text')
 {
 	if(array_key_exists($key,$_GET))
 	{
-	   if($escape)
-	   {
-	      return mysql_real_escape_string($_GET[$key]); 
-	   }else
-	   {
-	     return $_GET[$key];  
-	   }
+		  $unsafe_val=$_GET[$key];
+	      return $this->sanitize_req($unsafe_val,$type);	  
 	}
 	else
 	{
@@ -33,17 +28,12 @@ public function get($key,$escape=0)
 
 //---------------------------------------------------- 
 
-public function post($key,$escape=0)
+public function post($key,$type='text')
 {
 	if(array_key_exists($key,$_POST))
 	{
-	   if($escape)
-	   {
-	      return mysql_real_escape_string($_POST[$key]); 
-	   }else
-	   {
-	     return $_POST[$key];  
-	   }
+		  $unsafe_val=$_POST[$key];
+	      return $this->sanitize_req($unsafe_val,$type);	  
 	}
 	else
 	{
@@ -51,6 +41,33 @@ public function post($key,$escape=0)
 	}
 }
 
+
+
+//----------------------------------------------------
+
+public function sanitize_req($unsafe_val,$type='text')
+{
+	 switch ($type) {
+	   case 'text': return sanitize_text_field($unsafe_val);
+	   break;
+	   
+	   case 'int': return intval($unsafe_val);
+	   break;
+	   
+	   case 'email': return sanitize_email($unsafe_val);
+	   break;
+	   
+	   case 'filename': return sanitize_file_name($unsafe_val);
+	   break;
+	   
+	   case 'title': return sanitize_title($unsafe_val);
+	   break;
+	      
+	   default:
+        return sanitize_text_field($unsafe_val);
+	   
+	   }
+}
 
 //---------------------------------------------------- 
 
@@ -58,7 +75,7 @@ public function get_ref()
 {
 	if(array_key_exists('HTTP_REFERER',$_SERVER))
 	{
-	      return mysql_real_escape_string($_SERVER['HTTP_REFERER']); 
+	      return $this->sanitize_req(strip_tags($_SERVER['HTTP_REFERER'])); 
 	}
 	else
 	{
@@ -121,10 +138,15 @@ public function get_my_options()
 public function get_option_value($key)
 {
 	$options=$this->get_my_options();
-	return $options[$key];	
+        if(array_key_exists($key,$options))
+        {
+            return $options[$key];
+        }else
+        {
+            return '';
+        }
 }
 //---------------------------------------------------- 
-
 
 public function update_option($key,$value)
 {	
@@ -133,9 +155,7 @@ public function update_option($key,$value)
 	$this->update_my_options($options);
 }
 
-
 //---------------------------------------------------- 
-
 
 public function update_post_option($key)
 {	
@@ -154,32 +174,85 @@ public function delete_my_options()
 }
 
 
+
+/* get_current_URL ----------------------------------------------  */
+		public function get_current_URL()
+		{
+			$pageURL = 'http';
+			if ( array_key_exists("HTTPS",$_SERVER) && $_SERVER["HTTPS"] == "on")
+			{
+				$pageURL .= "s";
+			}
+			$pageURL .= "://";
+
+			if (array_key_exists("SERVER_PORT",$_SERVER) && $_SERVER["SERVER_PORT"] != "80") {
+				$pageURL .= $_SERVER["HTTP_HOST"].":".$_SERVER["SERVER_PORT"].$_SERVER["REQUEST_URI"];
+			} else {
+				$pageURL .= $_SERVER["HTTP_HOST"].$_SERVER["REQUEST_URI"];
+			}
+			return $pageURL;
+		}
+
+//-----------------------------------------------------
+
+		public function remove_url_http_www($url)
+		{
+			$url = str_ireplace("http://www.",'',$url);
+			$url = str_ireplace("https://www.",'',$url);
+			$url = str_ireplace("http://",'',$url);
+			$url = str_ireplace("https://",'',$url);
+			return $url;
+		}
+//-----------------------------------------------------
+		public function make_relative_url($url)
+		{
+			if($url=="")
+			{
+				return "";
+			}
+			$site_url = $this->remove_url_http_www(site_url());
+			if(stripos($url,$site_url) !==false)
+			{
+				$url_no_www = $this->remove_url_http_www($url);
+				if(strtolower(substr($url_no_www,0,strlen($site_url))) == strtolower($site_url))
+				{
+					$url = str_ireplace($site_url,'',$url_no_www);
+				}
+			}
+			if($url=="")
+			{
+				$url="/";
+			}
+			return $url;
+		}
+
+//----------------------------------------------------
+		public function make_absolute_url($url)
+		{
+			if(substr($url,0,1)=='/')
+			{
+				$url = site_url() . $url;
+			}
+			return $url;
+		}
+
 //----------------------------------------------------
 
-public function get_current_URL()
-{
-	$prt = $_SERVER['SERVER_PORT'];
-	$sname = $_SERVER['SERVER_NAME'];
-	
-	if (array_key_exists('HTTPS',$_SERVER) && $_SERVER['HTTPS'] != 'off' && $_SERVER['HTTPS'] != '')
-	$sname = "https://" . $sname; 
-	else
-	$sname = "http://" . $sname; 
-	
-	if($prt !=80)
-	{
-	$sname = $sname . ":" . $prt;
-	} 
-	
-	$path = $sname . $_SERVER["REQUEST_URI"];
-	
-	return $path ;
-
-}
-
-
+		public function get_current_relative_url()
+		{
+			return $this->make_relative_url($this->get_current_URL());
+		}
 //----------------------------------------------------
-
+		public function is_valid_url($url)
+		{
+			if(stripos($url,'://')!== false || substr($url,0, 1)=='/')
+			{
+				return true;
+			}else{
+				return false;
+			}
+		}
+//----------------------------------------------------
 
 public function get_current_parameters($remove_parameter="")
 {	
@@ -502,7 +575,7 @@ $plugins=get_option( 'active_plugins' );
 
 		    for($i=0;$i<count($plugins);$i++)
 		    {   
-		       if (stripos($plugins[$i],'cache')!==false)
+		       if ( array_key_exists($i, $plugins) && stripos($plugins[$i],'cache')!==false)
 		       {
 		       	  return $plugins[$i];
 		       }

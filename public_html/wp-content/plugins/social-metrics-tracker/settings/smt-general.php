@@ -1,9 +1,9 @@
 <?php
 
-$smt_post_types = get_post_types( array('public'=>true, 'show_ui'=>true), 'names' ); 
-
-// Do not allow attachments
-unset($smt_post_types['attachment']);
+$smt_post_types = array();
+foreach ( get_post_types( array('public'=>true, 'show_ui'=>true), 'objects' ) as $type ) {
+	$smt_post_types[ $type->name ] = $type->labels->name;
+}
 
 global $wpsf_settings;
 
@@ -95,25 +95,18 @@ $wpsf_settings[] = array(
 			)
 		),
 		array(
-			'id'    => 'debug_mode',
-			'title' => 'Enable Debug Mode',
-			'desc'  => 'Display additional debug information.',
-			'type'  => 'checkbox',
-			'std'   => 0
-		),
-		array(
-			'id'    => 'debug_report_visibility',
-			'title' => 'Debug Report Visibility',
-			'desc'  => 'The debug panel will be visible to users who have this capability.',
+			'id'    => 'default_posts_per_page',
+			'title' => 'Default Posts per Page',
+			'desc'  => 'Number of posts per page to display in reports',
 			'type'  => 'select',
-			'std'   => 'manage_options',
+			'std'   => '10',
 			'choices' => array(
-				'manage_network'    => 'Super Admins (Users who can manage the network)',
-				'manage_options'    => 'Admins (Users who can manage options)',
-				'edit_others_posts' => 'Editors (Users who can edit others posts)',
-				'publish_posts'     => 'Authors (Users who can publish posts)',
-				'edit_posts'        => 'Contributors (Users who can edit their own posts)',
-				'read'              => 'Subscribers (Users who can read)'
+				'10'  => '10',
+				'20'  => '20',
+				'30'  => '30',
+				'40'  => '40',
+				'50'  => '50',
+				'100' => '100'
 			)
 		)
 	)
