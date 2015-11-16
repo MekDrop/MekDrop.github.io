@@ -1,0 +1,37 @@
+#tool {
+	input[type=url], textarea {
+		width: 100%;
+	}
+	canvas {
+		border-style: solid;
+		border-width: 1px;
+		border-color: #c0c0c0;
+		margin-bottom: 1em;	
+	}
+}
+
+@media (max-width: 430px) {
+	#tool canvas { 
+		zoom: 30%; 
+	}
+}
+@media (min-width: 630px) and (max-width: 730px) {
+	#tool canvas { 
+		zoom: 80%; 
+	}
+}
+@media (min-width: 530px) and (max-width: 630px) {
+	#tool canvas { 
+		zoom: 80%; 
+	}
+}
+@media (min-width: 430px) and (max-width: 530px) {
+	#tool canvas { 
+		zoom: 65%; 
+	}
+}
+@media (min-width: 340px) and (max-width: 430px) {
+	#tool canvas { 
+		zoom: 50%; 
+	}
+}

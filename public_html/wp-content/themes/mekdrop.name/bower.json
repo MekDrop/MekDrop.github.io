@@ -1,0 +1,27 @@
+{
+  "name": "js",
+  "version": "0.0.0",
+  "authors": [
+    "Raimondas <github@mekdrop.name>"
+  ],
+  "moduleType": [
+    "amd",
+    "globals"
+  ],
+  "license": "MIT",
+  "homepage": "http://mekdrop.name",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "bootstrap": "~3.3.4",
+    "flag-icon-css": "~0.7.1",
+    "ekko-lightbox": "*",
+    "modernizr": "~2.8.3",
+    "font-awesome": "~4.3.0"
+  }
+}
