@@ -1,8 +1,8 @@
 logs
 public_ftp
-stats
+public_html/stats
 nbproject
-stuff.gameslt/Tools/api/templates_c/*.php
-stuff.gameslt/Tools/api/cache/*.php
-/node/node_modules/
-npm-debug.log
+public_html/stuff.gameslt/Tools/api/templates_c/*.php
+public_html/stuff.gameslt/Tools/api/cache/*.php
+public_html/wp-content/cache/*
+public_html/wp-content/themes/mekdrop.name/npm-debug.log
