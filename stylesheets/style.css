@@ -201,6 +201,15 @@ header {
 .fa-envelope {
 	background-color: gray!important;
 }
+.fa-gameslt {
+	background-color: black!important;
+	background-repeat: none;
+	background-size: 60%;
+	background-repeat: no-repeat;
+	background-position: 50% 50%;
+	content: ' ';
+	background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAMAAAAoLQ9TAAAABGdBTUEAALGPC/xhBQAAACBjSFJNAAB6JgAAgIQAAPoAAACA6AAAdTAAAOpgAAA6mAAAF3CculE8AAAAM1BMVEUAAAAAAAD////39vf29vb+///+/v4hISEzMzMyMjIMDAzb29vd3d3c3Nz9/f36+vr7+/uro+xzAAAAAXRSTlMAQObYZgAAAAFiS0dEAmYLfGQAAAAHdElNRQfgCxkMHSKjR0y6AAAAUElEQVQY02NgQAeMaICBkQkFMKMJsEBVsAIxGwjDtGCYAWayc3BwIAtwQhhwAS4mNAFuHl5UAUZGPiQBkJUgPj+aS/nA1rLBgQDEHeieQwcAAuQCHWI+rcYAAAAldEVYdGRhdGU6Y3JlYXRlADIwMTYtMTEtMjVUMTI6Mjk6MzQtMDU6MDDWBQVpAAAAJXRFWHRkYXRlOm1vZGlmeQAyMDE2LTExLTI1VDEyOjI5OjM0LTA1OjAwp1i91QAAAABJRU5ErkJggg==');
+}
 body.lt .en {
 	display: none;
 }
