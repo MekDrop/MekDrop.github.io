@@ -1,10 +1,9 @@
 === Simple Share Buttons Adder ===
 Contributors: DavidoffNeal
-Donate link: https://simplesharebuttons.com/donate/
 Tags: share buttons, facebook, twitter, google+, share, share links, stumble upon, linkedin, pinterest, yummly, vk
 Requires at least: 3.9
-Tested up to: 4.2.2
-Stable tag: 6.0.1
+Tested up to: 4.4.1
+Stable tag: 6.1.5
 License: GPLv2
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -15,6 +14,8 @@ A simple plugin that enables you to add share buttons to all of your posts and/o
 The Simple Share Buttons Adder does exactly what it says on the tin – adds share buttons to all of your posts and pages, simply.
 
 This plugin has a dedicated website! Check out <a href="https://simplesharebuttons.com" target="_blank">simplesharebuttons.com</a>
+
+Looking for even more? <a href="https://simplesharebuttons.com/plus/" target="_blank">Checkout the Plus version</a>!
 
 No hotlinking to another website to slow downloading or for tracking use, it's simple, as promised.
 
@@ -61,6 +62,46 @@ A step by step guide on how to configure this plugin can be found <a href="http:
 
 == Changelog ==
 
+= 6.1.5 =
+* Feature: Add newsharecounts.com option and functionality to show Twitter share counts again
+
+= 6.1.4 =
+* Tweak: PHP notice
+
+= 6.1.3 =
+* Add sharedcount.com API functionality for Facebook share counts
+
+= 6.1.2 =
+* Reluctantly remove the twitter share count - https://blog.twitter.com/2015/hard-decisions-for-a-sustainable-platform
+
+= 6.1.1 =
+* Fix: Custom images save fixed
+
+= 6.1.0 =
+* Feature: Add Yummly share counts
+* Feature: Add Tumblr share counts
+* Update: New Google+ branded buttons
+* Update: Use JSON array in a single database entry to store all core settings
+* Tweak: Add title attributes to the buttons on the network select option to assist recognition of each network
+* Tweak: Remove PHP notice
+
+= 6.0.5 =
+* Fix: Re-include http/https for URL being shared to Tumblr (404 error)
+
+= 6.0.4 =
+* Feature: Add popup-window feature when sharing
+* Feature: Add number formatting (e.g. 3,563 = 3.5k)
+* Tweak: Improve Facebook count reliability
+* Remove link border by default in CSS
+
+= 6.0.3 =
+* Tweak: Add RTL compatibility to the admin pages by moving the save button to the left
+* Fix: Remove all tags added to page/post titles by other plugins to maintain share buttons as required
+* Fix: Allow buttons to be removed if all share buttons have been added
+
+= 6.0.2 =
+* Tweak: Add 'multisite' attribute option to [ssba] shortcode to (by default) fallback to the previous ssba_current_url function
+
 = 6.0.1 =
 * Tweak: Add more specific classes for better targeting
 * Fix: Improve XSS fix from 6.0.0
@@ -68,9 +109,9 @@ A step by step guide on how to configure this plugin can be found <a href="http:
 = 6.0.0 =
 * Feature: New admin panel styling
 * Feature: Add additional CSS field
-* Tweak: Amend ssba_current_url for multisite compatability https://wordpress.org/support/topic/multi-site-compatibility
+* Tweak: Amend ssba_current_url for multisite compatibility https://wordpress.org/support/topic/multi-site-compatibility
 * Tweak: Update share count calls to use the WP API instead of file_get_contents
-* Tweak: Split codebase into separate files for easier maintenace
+* Tweak: Split codebase into separate files for easier maintenance
 * Tweak: Replace ampersands with %26 for page/post titles for email links
 * Fix: Remove non-object notice
 * Fix: Small XSS bug

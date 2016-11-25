@@ -4,6 +4,7 @@
 if (isset($_POST['frm_es_display']) && $_POST['frm_es_display'] == 'yes')
 {
 	$did = isset($_GET['did']) ? $_GET['did'] : '0';
+	es_cls_security::es_check_number($did);
 	
 	$es_success = '';
 	$es_success_msg = FALSE;
@@ -12,7 +13,7 @@ if (isset($_POST['frm_es_display']) && $_POST['frm_es_display'] == 'yes')
 	$result = es_cls_notification::es_notification_count($did);
 	if ($result != '1')
 	{
-		?><div class="error fade"><p><strong><?php _e('Oops, selected details doesnt exist.', ES_TDOMAIN); ?></strong></p></div><?php
+		?><div class="error fade"><p><strong><?php _e('Oops, selected details doesnt exist.', 'email-subscribers'); ?></strong></p></div><?php
 	}
 	else
 	{
@@ -27,7 +28,7 @@ if (isset($_POST['frm_es_display']) && $_POST['frm_es_display'] == 'yes')
 			
 			//	Set success message
 			$es_success_msg = TRUE;
-			$es_success = __('Selected record was successfully deleted.', ES_TDOMAIN);
+			$es_success = __('Selected record was successfully deleted.', 'email-subscribers');
 		}
 	}
 	
@@ -37,12 +38,11 @@ if (isset($_POST['frm_es_display']) && $_POST['frm_es_display'] == 'yes')
 	}
 }
 ?>
-<script language="javaScript" src="<?php echo ES_URL; ?>notification/notification.js"></script>
 <div class="wrap">
   <div id="icon-plugins" class="icon32"></div>
-    <h2><?php _e(ES_PLUGIN_DISPLAY, ES_TDOMAIN); ?></h2>
-	<h3><?php _e('Notification', ES_TDOMAIN); ?>  
-	<a class="add-new-h2" href="<?php echo ES_ADMINURL; ?>?page=es-notification&amp;ac=add"><?php _e('Add New', ES_TDOMAIN); ?></a></h3>
+    <h2><?php _e(ES_PLUGIN_DISPLAY, 'email-subscribers'); ?></h2>
+	<h3><?php _e('Notification', 'email-subscribers'); ?>  
+	<a class="add-new-h2" href="<?php echo ES_ADMINURL; ?>?page=es-notification&amp;ac=add"><?php _e('Add New', 'email-subscribers'); ?></a></h3>
     <div class="tool-box">
 	<?php
 	$myData = array();
@@ -52,20 +52,18 @@ if (isset($_POST['frm_es_display']) && $_POST['frm_es_display'] == 'yes')
       <table width="100%" class="widefat" id="straymanage">
         <thead>
           <tr>
-            <th width="3%" class="check-column" scope="col"><input type="checkbox" name="es_group_item[]" /></th>
-			<th scope="col"><?php _e('Mail Subject', ES_TDOMAIN); ?></th>
-			<th scope="col"><?php _e('Subscribers Group', ES_TDOMAIN); ?></th>
-			<th scope="col"><?php _e('Categories / Custom Post', ES_TDOMAIN); ?></th>
-            <th scope="col"><?php _e('Notification Status', ES_TDOMAIN); ?></th>
+			<th scope="col"><?php _e('Mail Subject', 'email-subscribers'); ?></th>
+			<th scope="col"><?php _e('Subscribers Group', 'email-subscribers'); ?></th>
+			<th scope="col"><?php _e('Categories / Custom Post', 'email-subscribers'); ?></th>
+            <th scope="col"><?php _e('Notification Status', 'email-subscribers'); ?></th>
           </tr>
         </thead>
 		<tfoot>
           <tr>
-            <th class="check-column" scope="col"><input type="checkbox" name="es_group_item[]" /></th>
-			<th scope="col"><?php _e('Mail Subject', ES_TDOMAIN); ?></th>
-			<th scope="col"><?php _e('Subscribers Group', ES_TDOMAIN); ?></th>
-			<th scope="col"><?php _e('Categories / Custom Post', ES_TDOMAIN); ?></th>
-            <th scope="col"><?php _e('Notification Status', ES_TDOMAIN); ?></th>
+			<th scope="col"><?php _e('Mail Subject', 'email-subscribers'); ?></th>
+			<th scope="col"><?php _e('Subscribers Group', 'email-subscribers'); ?></th>
+			<th scope="col"><?php _e('Categories / Custom Post', 'email-subscribers'); ?></th>
+            <th scope="col"><?php _e('Notification Status', 'email-subscribers'); ?></th>
           </tr>
         </tfoot>
 		<tbody>
@@ -79,7 +77,6 @@ if (isset($_POST['frm_es_display']) && $_POST['frm_es_display'] == 'yes')
 				{
 					?>
 					<tr class="<?php if ($i&1) { echo'alternate'; } else { echo ''; }?>">
-						<td align="left"><input type="checkbox" value="<?php echo $data['es_note_id']; ?>" name="es_group_item[]"></td>
 					  	<td>
 						<?php 
 						$template = es_cls_compose::es_template_select($data['es_note_templ']);
@@ -90,14 +87,14 @@ if (isset($_POST['frm_es_display']) && $_POST['frm_es_display'] == 'yes')
 						?>
 						<div class="row-actions">
 							<span class="edit">
-							<a title="Edit" href="<?php echo ES_ADMINURL; ?>?page=es-notification&amp;ac=edit&amp;did=<?php echo $data['es_note_id']; ?>"><?php _e('Edit', ES_TDOMAIN); ?></a> 
+							<a title="Edit" href="<?php echo ES_ADMINURL; ?>?page=es-notification&amp;ac=edit&amp;did=<?php echo $data['es_note_id']; ?>"><?php _e('Edit', 'email-subscribers'); ?></a> 
 							</span>
 							<span class="trash">
-							| <a onClick="javascript:_es_delete('<?php echo $data['es_note_id']; ?>')" href="javascript:void(0);"><?php _e('Delete', ES_TDOMAIN); ?></a>
+							| <a onClick="javascript:_es_delete('<?php echo $data['es_note_id']; ?>')" href="javascript:void(0);"><?php _e('Delete', 'email-subscribers'); ?></a>
 							</span>
 						</div>
 						</td>
-						<td><?php echo $data['es_note_group']; ?></td>
+						<td><?php echo stripslashes($data['es_note_group']); ?></td>
 						<td>
 						<?php 
 						$es_note_cat = str_replace("## -- ##", ", ", $data['es_note_cat']);
@@ -122,7 +119,11 @@ if (isset($_POST['frm_es_display']) && $_POST['frm_es_display'] == 'yes')
 						<?php 
 						if ($data['es_note_status'] == "Enable")
 						{
-							echo "Send mail when new posts are published";
+							echo "Send mail immediately<br> when new post is published.";
+						}
+						elseif ($data['es_note_status'] == "Cron")
+						{
+							echo "Add to cron and send mail via cron job.";
 						}
 						else
 						{
@@ -137,7 +138,7 @@ if (isset($_POST['frm_es_display']) && $_POST['frm_es_display'] == 'yes')
 			}
 			else
 			{
-				?><tr><td colspan="5" align="center"><?php _e('No records available.', ES_TDOMAIN); ?></td></tr><?php 
+				?><tr><td colspan="4" align="center"><?php _e('No records available.', 'email-subscribers'); ?></td></tr><?php 
 			}
 			?>
 		</tbody>
@@ -147,8 +148,8 @@ if (isset($_POST['frm_es_display']) && $_POST['frm_es_display'] == 'yes')
       </form>	
 	  <div class="tablenav">
 		  <h2>
-			<a class="button add-new-h2" href="<?php echo ES_ADMINURL; ?>?page=es-notification&amp;ac=add"><?php _e('Add New', ES_TDOMAIN); ?></a>
-			<a class="button add-new-h2" target="_blank" href="<?php echo ES_FAV; ?>"><?php _e('Help', ES_TDOMAIN); ?></a>
+			<a class="button add-new-h2" href="<?php echo ES_ADMINURL; ?>?page=es-notification&amp;ac=add"><?php _e('Add New', 'email-subscribers'); ?></a>
+			<a class="button add-new-h2" target="_blank" href="<?php echo ES_FAV; ?>"><?php _e('Help', 'email-subscribers'); ?></a>
 		  </h2>
 	  </div>
 	  <div style="height:10px;"></div>

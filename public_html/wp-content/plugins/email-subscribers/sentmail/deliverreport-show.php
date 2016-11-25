@@ -1,24 +1,27 @@
-<?php if(preg_match('#' . basename(__FILE__) . '#', $_SERVER['PHP_SELF'])) { die('You are not allowed to call this page directly.'); } ?>
-<script language="javaScript" src="<?php echo ES_URL; ?>sentmail/sentmail.js"></script>
 <?php
+if(preg_match('#' . basename(__FILE__) . '#', $_SERVER['PHP_SELF'])) { die('You are not allowed to call this page directly.'); } 
+
 $sentguid = isset($_GET['sentguid']) ? $_GET['sentguid'] : '';
+es_cls_security::es_check_guid($sentguid);
+
 if ($sentguid == '')
 {
 	?>
 	<div class="error fade">
-	  <p><strong><?php _e('Oops.. Unexpected error occurred. Please try again.', ES_TDOMAIN); ?></strong></p>
+	  <p><strong><?php _e('Oops.. Unexpected error occurred. Please try again.', 'email-subscribers'); ?></strong></p>
 	</div>
 	<?php
 }
 ?>
 <div class="wrap">
   <div id="icon-plugins" class="icon32"></div>
-    <h2><?php _e(ES_PLUGIN_DISPLAY, ES_TDOMAIN); ?></h2>
-	<h3><?php _e('Delivery Report', ES_TDOMAIN); ?></h3>
+    <h2><?php _e(ES_PLUGIN_DISPLAY, 'email-subscribers'); ?></h2>
+	<h3><?php _e('Delivery Report', 'email-subscribers'); ?></h3>
     <div class="tool-box">
 	<?php
 	$pagenum = isset( $_GET['pagenum'] ) ? absint( $_GET['pagenum'] ) : 1;
-	$limit = 100;
+	es_cls_security::es_check_number($pagenum);
+	$limit = 200;
 	$offset = ($pagenum - 1) * $limit;
 	$total = es_cls_delivery::es_delivery_count($sentguid);
 	$fulltotal = $total;
@@ -31,22 +34,26 @@ if ($sentguid == '')
       <table width="100%" class="widefat" id="straymanage">
         <thead>
           <tr>
-            <th width="3%" class="check-column" scope="col"><input type="checkbox" name="es_group_item[]" /></th>
-			<th scope="col"><?php _e('Email', ES_TDOMAIN); ?></th>
-			<th scope="col"><?php _e('Sent Date', ES_TDOMAIN); ?></th>
-			<th scope="col"><?php _e('Viewed Status', ES_TDOMAIN); ?></th>
-			<th scope="col"><?php _e('Viewed Date', ES_TDOMAIN); ?></th>
-			<th scope="col"><?php _e('Database ID', ES_TDOMAIN); ?></th>
+            <th width="3%" scope="col"><?php _e('Sno', 'email-subscribers'); ?></th>
+			<th scope="col"><?php _e('Email', 'email-subscribers'); ?></th>
+			<th scope="col"><?php _e('Sent Date', 'email-subscribers'); ?></th>
+			<th scope="col"><?php _e('Status', 'email-subscribers'); ?></th>
+			<th scope="col"><?php _e('Type', 'email-subscribers'); ?></th>
+			<th scope="col"><?php _e('Viewed Status', 'email-subscribers'); ?></th>
+			<th scope="col"><?php _e('Viewed Date', 'email-subscribers'); ?></th>
+			<th scope="col"><?php _e('Database ID', 'email-subscribers'); ?></th>
           </tr>
         </thead>
 		<tfoot>
           <tr>
-            <th width="3%" class="check-column" scope="col"><input type="checkbox" name="es_group_item[]" /></th>
-			<th scope="col"><?php _e('Email', ES_TDOMAIN); ?></th>
-			<th scope="col"><?php _e('Sent Date', ES_TDOMAIN); ?></th>
-			<th scope="col"><?php _e('Viewed Status', ES_TDOMAIN); ?></th>
-			<th scope="col"><?php _e('Viewed Date', ES_TDOMAIN); ?></th>
-			<th scope="col"><?php _e('Database ID', ES_TDOMAIN); ?></th>
+            <th width="3%" scope="col"><?php _e('Sno', 'email-subscribers'); ?></th>
+			<th scope="col"><?php _e('Email', 'email-subscribers'); ?></th>
+			<th scope="col"><?php _e('Sent Date', 'email-subscribers'); ?></th>
+			<th scope="col"><?php _e('Status', 'email-subscribers'); ?></th>
+			<th scope="col"><?php _e('Type', 'email-subscribers'); ?></th>
+			<th scope="col"><?php _e('Viewed Status', 'email-subscribers'); ?></th>
+			<th scope="col"><?php _e('Viewed Date', 'email-subscribers'); ?></th>
+			<th scope="col"><?php _e('Database ID', 'email-subscribers'); ?></th>
           </tr>
         </tfoot>
 		<tbody>
@@ -59,9 +66,11 @@ if ($sentguid == '')
 				{
 					?>
 					<tr class="<?php if ($i&1) { echo'alternate'; } else { echo ''; }?>">
-						<td align="left"><input type="checkbox" value="<?php echo $data['es_deliver_id']; ?>" name="es_group_item[]"></td>
+						<td align="left"><?php echo $i; ?></td>
 					  	<td><?php echo $data['es_deliver_emailmail']; ?></td>
 						<td><?php echo $data['es_deliver_sentdate']; ?></td>
+						<td><?php echo es_cls_common::es_disp_status($data['es_deliver_sentstatus']); ?></td>
+						<td><?php echo es_cls_common::es_disp_status($data['es_deliver_senttype']); ?></td>
 						<td><?php echo es_cls_common::es_disp_status($data['es_deliver_status']); ?></td>
 						<td><?php echo $data['es_deliver_viewdate']; ?></td>
 						<td><?php echo $data['es_deliver_emailid']; ?></td>
@@ -72,7 +81,7 @@ if ($sentguid == '')
 			}
 			else
 			{
-				?><tr><td colspan="6" align="center"><?php _e('No records available.', ES_TDOMAIN); ?></td></tr><?php 
+				?><tr><td colspan="8" align="center"><?php _e('No records available.', 'email-subscribers'); ?></td></tr><?php 
 			}
 			?>
 		</tbody>
@@ -107,8 +116,8 @@ if ($sentguid == '')
 		</style>
 		<div class="tablenav">
 			<div class="alignleft">
-				<a class="button add-new-h2" href="<?php echo ES_ADMINURL; ?>?page=es-sentmail"><?php _e('Back', ES_TDOMAIN); ?></a> &nbsp;
-				<a class="button add-new-h2" target="_blank" href="<?php echo ES_FAV; ?>"><?php _e('Help', ES_TDOMAIN); ?></a> 
+				<a class="button add-new-h2" href="<?php echo ES_ADMINURL; ?>?page=es-sentmail"><?php _e('Back', 'email-subscribers'); ?></a> &nbsp;
+				<a class="button add-new-h2" target="_blank" href="<?php echo ES_FAV; ?>"><?php _e('Help', 'email-subscribers'); ?></a> 
 			</div>
 			<div class="alignright">
 				<?php echo $page_links; ?>

@@ -2,8 +2,8 @@
 Contributors: Bueltge, inpsyde
 Tags: multisite, administration, admin bar, network,
 Requires at least: 3.0.0
-Tested up to: 4.2
-Stable tag: trunk
+Tested up to: 4.6-alpha
+Stable tag: 1.3.5
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -21,20 +21,24 @@ When you work quite a bit with WordPress Multisites, sometimes you need more inf
 * Add Favicon from theme folder to the admin area to easier identify the blog, use the `favicon.ico` file in the theme folder of the active theme in each blog
 * Add Favicon to each blog on the Admin Bar Item 'My Sites'. If you a like a custom path for each favicon, please see the [documentation](https://github.com/bueltge/WordPress-Multisite-Enhancements/wiki/Filter-Hook-for-Favicon-File-Path) for this feature.
 * Remove also the 'W' logo and his sub-links in admin bar
+* Add status to each site in the admin bar to identifier fast if the site `noindex` status and external url.
 * Add functions to be used in your install
 	 * The function `get_blog_list()` is currently deprecated in the WP Core, but currently usable. The plugin check this and get a alternative in [`inc/autoload/core.php`](https://github.com/bueltge/WordPress-Multisite-Enhancements/blob/master/inc/autoload/core.php)
 	 * If you will develop with the alternative to this function from my source, then use the method `get_blog_list()` in class `Multisite_Core`. She use also caching with the Transient API. See more about the function on the function in [`inc/autoload/class-core.php`](https://github.com/bueltge/WordPress-Multisite-Enhancements/blob/master/inc/autoload/class-core.php).
 	 * If you use WordPress version 3.7 and higher, then check the function `wp_get_sites()`, the new alternative function inside the core to get all sides inside the network. The function accept a array with arguments, see the [description](http://wpseek.com/wp_get_sites/).
+* Filter plugin list to find fast your goal. Works on single plugin page and also network plugin page.
 
-**Crafted by [Inpsyde](http://inpsyde.com) · Engineering the web since 2006.**
+= Crafted by Inpsyde =
+The team at [Inpsyde](http://inpsyde.com/) is engineering the web and WordPress since 2006.
 
-Yes, we also run that [marketplace for premium WordPress plugins and themes](http://marketpress.com).
+= Donation? =
+You want to donate - we prefer a [positive review](https://wordpress.org/support/view/plugin-reviews/multisite-enhancements?rate=5#postform), not more.
 
 == Installation ==
 
 = Requirements =
 * WordPress Multisite 3.0+
-* PHP 5.2*, newer PHP versions will work faster.
+* PHP 5.3*, newer PHP versions will work faster.
 
 = Installation =
 * Use the installer via back-end of your install or ...
@@ -53,16 +57,16 @@ Yes, we also run that [marketplace for premium WordPress plugins and themes](htt
 6. On which blog is the theme active
 7. New Admin footer text
 8. Favicon on Admin bar
+9. Filter plugin list
 
 == Other Notes ==
 
 **Crafted by [Inpsyde](http://inpsyde.com) · Engineering the web since 2006.**
 
-Yes, we also run that [marketplace for premium WordPress plugins and themes](http://marketpress.com).
-
 = Hints, knowledge =
 See also for helpful hints on the [wiki page](https://github.com/bueltge/wordpress-multisite-enhancements/wiki).
 Especially the follow topics are interest:
+
 * [Filter Hook for Favicon File Path - Define your custom Favicon path](https://github.com/bueltge/WordPress-Multisite-Enhancements/wiki/Filter-Hook-for-Favicon-File-Path)
 * [Large Network Problem](https://github.com/bueltge/wordpress-multisite-enhancements/wiki/Large-Network-Problem)
 
@@ -89,6 +93,37 @@ I'm German and my English might be gruesome here and there.
 So please be patient with me and let me know of typos or grammatical parts. Thanks
 
 == Changelog ==
+= 1.3.5 (2016-05-30) =
+* Performance: Change the function to get all sites of a user to set favicon. [#25](https://github.com/bueltge/wordpress-multisite-enhancements/issues/25)
+
+= 1.3.4 (2016-05-19) =
+* Fix value type for nodes from admin bar.
+* Enhance the Multisite requirements check.
+
+= 1.3.3 (2016-01-15) =
+* Fix Blog Id enhancement, change filter type.
+* Change different code topics for better performance and stability.
+
+= 1.3.2 (2015-12-17) =
+* Prevent PHP Warning. Props noelboss
+
+= 1.3.1 (2015-12-03) =
+* Enhance the external domain check for more exactly check, that's also work on root domain of multisite. Props Matt [Thread](https://wordpress.org/support/topic/main-blog-being-tagged-as-external-domain)
+
+= 1.3.0 (2015-11-28) =
+* Add new functionality to filter plugin list live.
+* Improve status label filter `multisite_enhancements_status_label`, now with the parameters `$blogname` and `$blog`.
+
+= 1.2.1 (2015-09-24) =
+* Bugfix: Correction for the site icon topic. The functions "has_site_icon" and "get_site_icon_url" aren't compatible with multisites. Icon only displayed when on that blog, in network or other blog the WP logo showed.
+* Enhancement: Check for active usage of admin bar before add favicon to Admin Bar.
+
+= 1.2.0 (2015-09-03) =
+* Add support for Favicon feature `wp_site_icon` since WP 4.3, probs [JoryHogeveen](https://github.com/JoryHogeveen)
+* Add status label to each site in the admin bar, probs JoryHogeveen
+* Codex changes
+* Add hook `multisite_enhancements_autoload` to unset files, there not necessary on autoload, see also the [Wiki](https://github.com/bueltge/wordpress-multisite-enhancements/wiki) for more information
+
 = 1.1.0 (2015-02-26) =
 * Some modifications to plugin and theme admin columns for better performance and usage on Multisites with more as 100 blogs, plugins, themes [Issue #16](https://github.com/bueltge/wordpress-multisite-enhancements/pull/16)
 * Code inspections

@@ -1,11 +1,7 @@
-﻿<div id="posts">
-
-			<?php if (have_posts()) : while (have_posts()) : the_post(); ?>
-
+<div id="posts">
+	<?php if (have_posts()) : while (have_posts()) : the_post(); ?>
 				<div class="full-post" id="post-<?php the_ID(); ?>"> 
-
 					<?php if (!is_front_page()) { ?>
-
 						<h3><a href="<?php the_permalink() ?>" rel="bookmark" title="Permanent Link to <?php the_title(); ?>"><?php the_title(); ?></a></h3>
 						<div class="meta">
 								<span class="text-nowrap">

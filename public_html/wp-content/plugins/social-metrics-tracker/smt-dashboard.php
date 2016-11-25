@@ -38,8 +38,7 @@ class SocialMetricsTable extends WP_List_Table {
 			// case 'comments':
 			//     return number_format($item['comment_count'],0,'.',',');
 			case 'date':
-				$dateString = date("M j, Y",strtotime($item['post_date']));
-				return $dateString;
+				return $item['post_date'];
 			default:
 				return 'Not Set';
 		}
@@ -348,8 +347,8 @@ class SocialMetricsTable extends WP_List_Table {
 			global $post;
 
 			$item['ID'] = $post->ID;
-			$item['post_title'] = $post->post_title;
-			$item['post_date'] = $post->post_date;
+			$item['post_title'] = get_the_title();
+			$item['post_date'] = get_the_date();
 			$item['comment_count'] = $post->comment_count;
 			$item['socialcount_total'] = (get_post_meta($post->ID, "socialcount_TOTAL", true)) ? get_post_meta($post->ID, "socialcount_TOTAL", true) : 0;
 			$item['socialcount_LAST_UPDATED'] = get_post_meta($post->ID, "socialcount_LAST_UPDATED", true);
@@ -498,7 +497,7 @@ function smt_render_dashboard_view($smt){
 
 					<?php if (count($offline_updaters) > 0 && !isset($_REQUEST['smt_test_http_now'])) : ?>
 					<p><a class="button" href="<?php echo add_query_arg(array('smt_test_http_now' => 1)); ?>">Re-check all connections right now.</a></p>
-					<p><small>If any of the services listed above are displaying errors, they will be automatically excluded when checking for new data. If errors do not resolve themselves within one day, there might be a problem with the servers ability to connect to social network APIs to retrieve data. </small></p>
+					<p><small>If any of the services listed above are displaying errors, they will be automatically excluded when checking for new data. If errors do not resolve themselves within one day, there might be a problem with the servers ability to connect to social network APIs to retrieve data. Clicking "re-check now" will test all connections by attempting to fetch the share count for the url "http://www.wikipedia.org" and will verify that all social networks report at least one share for that URL.</small></p>
 					<?php endif; ?>
 
 				</div>

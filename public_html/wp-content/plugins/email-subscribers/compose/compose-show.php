@@ -1,9 +1,24 @@
 <?php if(preg_match('#' . basename(__FILE__) . '#', $_SERVER['PHP_SELF'])) { die('You are not allowed to call this page directly.'); } ?>
 <?php
+$es_c_email_subscribers_ver = get_option('email-subscribers');
+if ($es_c_email_subscribers_ver <> "2.9")
+{
+	?>
+	<div class="error fade">
+		<p>
+		Note: You have recently upgraded the plugin and your tables are not sync. 
+		Please <a title="Sync plugin tables." href="<?php echo ES_ADMINURL; ?>?page=es-settings&amp;ac=sync"><?php _e('Click Here', 'email-subscribers'); ?></a> to sync the table. 
+		This is mandatory and it will not affect your data.
+		</p>
+	</div>
+	<?php
+}
+
 // Form submitted, check the data
 if (isset($_POST['frm_es_display']) && $_POST['frm_es_display'] == 'yes')
 {
 	$did = isset($_GET['did']) ? $_GET['did'] : '0';
+	es_cls_security::es_check_number($did);
 	
 	$es_success = '';
 	$es_success_msg = FALSE;
@@ -12,7 +27,7 @@ if (isset($_POST['frm_es_display']) && $_POST['frm_es_display'] == 'yes')
 	$result = es_cls_compose::es_template_count($did);
 	if ($result != '1')
 	{
-		?><div class="error fade"><p><strong><?php _e('Oops, selected details doesnt exist.', ES_TDOMAIN); ?></strong></p></div><?php
+		?><div class="error fade"><p><strong><?php _e('Oops, selected details doesnt exist.', 'email-subscribers'); ?></strong></p></div><?php
 	}
 	else
 	{
@@ -27,7 +42,7 @@ if (isset($_POST['frm_es_display']) && $_POST['frm_es_display'] == 'yes')
 			
 			//	Set success message
 			$es_success_msg = TRUE;
-			$es_success = __('Selected record was successfully deleted.', ES_TDOMAIN);
+			$es_success = __('Selected record was successfully deleted.', 'email-subscribers');
 		}
 	}
 	
@@ -37,12 +52,11 @@ if (isset($_POST['frm_es_display']) && $_POST['frm_es_display'] == 'yes')
 	}
 }
 ?>
-<script language="javaScript" src="<?php echo ES_URL; ?>compose/compose.js"></script>
 <div class="wrap">
   <div id="icon-plugins" class="icon32"></div>
-    <h2><?php _e(ES_PLUGIN_DISPLAY, ES_TDOMAIN); ?></h2>
-	<h3><?php _e('Compose Mail', ES_TDOMAIN); ?>  
-	<a class="add-new-h2" href="<?php echo ES_ADMINURL; ?>?page=es-compose&amp;ac=add"><?php _e('Add New', ES_TDOMAIN); ?></a></h3>
+    <h2><?php _e(ES_PLUGIN_DISPLAY, 'email-subscribers'); ?></h2>
+	<h3><?php _e('Compose Mail', 'email-subscribers'); ?>  
+	<a class="add-new-h2" href="<?php echo ES_ADMINURL; ?>?page=es-compose&amp;ac=add"><?php _e('Add New', 'email-subscribers'); ?></a></h3>
     <div class="tool-box">
 	<?php
 	$myData = array();
@@ -52,20 +66,18 @@ if (isset($_POST['frm_es_display']) && $_POST['frm_es_display'] == 'yes')
       <table width="100%" class="widefat" id="straymanage">
         <thead>
           <tr>
-            <th width="3%" class="check-column" scope="col"><input type="checkbox" name="es_group_item[]" /></th>
-			<th scope="col"><?php _e('Email subject', ES_TDOMAIN); ?></th>
-			<th scope="col"><?php _e('Status', ES_TDOMAIN); ?></th>
-            <th scope="col"><?php _e('Type', ES_TDOMAIN); ?></th>
-			<th scope="col"><?php _e('Action', ES_TDOMAIN); ?></th>
+			<th scope="col"><?php _e('Email subject', 'email-subscribers'); ?></th>
+			<th scope="col"><?php _e('Status', 'email-subscribers'); ?></th>
+            <th scope="col"><?php _e('Type', 'email-subscribers'); ?></th>
+			<th scope="col"><?php _e('Action', 'email-subscribers'); ?></th>
           </tr>
         </thead>
 		<tfoot>
           <tr>
-            <th class="check-column" scope="col"><input type="checkbox" name="es_group_item[]" /></th>
-			<th scope="col"><?php _e('Email subject', ES_TDOMAIN); ?></th>
-			<th scope="col"><?php _e('Status', ES_TDOMAIN); ?></th>
-            <th scope="col"><?php _e('Type', ES_TDOMAIN); ?></th>
-			<th scope="col"><?php _e('Action', ES_TDOMAIN); ?></th>
+			<th scope="col"><?php _e('Email subject', 'email-subscribers'); ?></th>
+			<th scope="col"><?php _e('Status', 'email-subscribers'); ?></th>
+            <th scope="col"><?php _e('Type', 'email-subscribers'); ?></th>
+			<th scope="col"><?php _e('Action', 'email-subscribers'); ?></th>
           </tr>
         </tfoot>
 		<tbody>
@@ -79,14 +91,13 @@ if (isset($_POST['frm_es_display']) && $_POST['frm_es_display'] == 'yes')
 				{
 					?>
 					<tr class="<?php if ($i&1) { echo'alternate'; } else { echo ''; }?>">
-						<td align="left"><input type="checkbox" value="<?php echo $data['es_templ_id']; ?>" name="es_group_item[]"></td>
 					  	<td><?php echo esc_html(stripslashes($data['es_templ_heading'])); ?></td>
 						<td><?php echo $data['es_templ_status']; ?></td>
 						<td><?php echo $data['es_email_type']; ?></td>
 						<td>
-						<a title="Edit" href="<?php echo ES_ADMINURL; ?>?page=es-compose&amp;ac=edit&amp;did=<?php echo $data['es_templ_id']; ?>"><?php _e('Edit', ES_TDOMAIN); ?></a> 
-						| <a onClick="javascript:_es_delete('<?php echo $data['es_templ_id']; ?>')" href="javascript:void(0);"><?php _e('Delete', ES_TDOMAIN); ?></a>
-						| <a title="Preview" href="<?php echo ES_ADMINURL; ?>?page=es-compose&amp;ac=preview&amp;did=<?php echo $data['es_templ_id']; ?>"><?php _e('Preview', ES_TDOMAIN); ?></a>
+						<a title="Edit" href="<?php echo ES_ADMINURL; ?>?page=es-compose&amp;ac=edit&amp;did=<?php echo $data['es_templ_id']; ?>"><?php _e('Edit', 'email-subscribers'); ?></a> 
+						| <a onClick="javascript:_es_delete('<?php echo $data['es_templ_id']; ?>')" href="javascript:void(0);"><?php _e('Delete', 'email-subscribers'); ?></a>
+						| <a title="Preview" href="<?php echo ES_ADMINURL; ?>?page=es-compose&amp;ac=preview&amp;did=<?php echo $data['es_templ_id']; ?>"><?php _e('Preview', 'email-subscribers'); ?></a>
 						</td>
 					</tr>
 					<?php
@@ -95,7 +106,7 @@ if (isset($_POST['frm_es_display']) && $_POST['frm_es_display'] == 'yes')
 			}
 			else
 			{
-				?><tr><td colspan="4" align="center"><?php _e('No records available.', ES_TDOMAIN); ?></td></tr><?php 
+				?><tr><td colspan="4" align="center"><?php _e('No records available.', 'email-subscribers'); ?></td></tr><?php 
 			}
 			?>
 		</tbody>
@@ -105,8 +116,8 @@ if (isset($_POST['frm_es_display']) && $_POST['frm_es_display'] == 'yes')
       </form>	
 	  <div class="tablenav">
 		  <h2>
-			<a class="button add-new-h2" href="<?php echo ES_ADMINURL; ?>?page=es-compose&amp;ac=add"><?php _e('Add New', ES_TDOMAIN); ?></a>
-			<a class="button add-new-h2" target="_blank" href="<?php echo ES_FAV; ?>"><?php _e('Help', ES_TDOMAIN); ?></a>
+			<a class="button add-new-h2" href="<?php echo ES_ADMINURL; ?>?page=es-compose&amp;ac=add"><?php _e('Add New', 'email-subscribers'); ?></a>
+			<a class="button add-new-h2" target="_blank" href="<?php echo ES_FAV; ?>"><?php _e('Help', 'email-subscribers'); ?></a>
 		  </h2>
 	  </div>
 	  <div style="height:10px;"></div>

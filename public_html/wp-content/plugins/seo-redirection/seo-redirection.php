@@ -1,17 +1,16 @@
 <?php
 /*
 Plugin Name: SEO Redirection
-Plugin URI: http://www.clogica.com
+Plugin URI: http://www.clogica.com/product/seo-redirection-premium-wordpress-plugin
 Description: By this plugin you can manage all your website redirection types easily.
 Author: Fakhri Alsadi
-Version: 2.8
+Version: 3.5
 Author URI: http://www.clogica.com
 */
 
 require_once ('common/controls.php');
 require_once ('custom/controls.php');
 require_once ('custom/controls/cf.SR_redirect_cache.class.php');
-
 
 if(!defined('WP_SEO_REDIRECTION_OPTIONS'))
 {
@@ -20,17 +19,15 @@ if(!defined('WP_SEO_REDIRECTION_OPTIONS'))
 
 if(!defined('WP_SEO_REDIRECTION_VERSION'))
 {
-	define( 'WP_SEO_REDIRECTION_VERSION', '2.8');
+	define( 'WP_SEO_REDIRECTION_VERSION', '3.5'); 
 }
 
-
-$util= new clogica_util();
-$util->set_option_gruop(WP_SEO_REDIRECTION_OPTIONS);
-$util->set_plugin_folder(basename(dirname(__FILE__)));
+$util= new clogica_util_1();
+$util->init(WP_SEO_REDIRECTION_OPTIONS, __FILE__);
 
 add_action('admin_enqueue_scripts', 'WPSR_header_code');
 add_action('admin_menu', 'WPSR_admin_menu');
-add_action('wp', 'WPSR_redirect');
+add_action('wp', 'WPSR_redirect',1);
 add_action( 'save_post', 'WPSR_get_post_redirection');
 add_action( 'add_meta_boxes', 'adding_WPSR_custom_meta_boxes', 10, 3 );
 add_action( 'admin_head', 'WPSR_check_default_permalink' );
@@ -58,13 +55,11 @@ function adding_WPSR_custom_meta_boxes() {
     	}
 
 	}
-
 }
 
 
 function WPSR_render_meta_box($post)
 {
-
 global $wpdb,$table_prefix,$util ;
 $table_name = $table_prefix . 'WP_SEO_Redirection';
 
@@ -86,7 +81,7 @@ $table_name = $table_prefix . 'WP_SEO_Redirection';
 		
 
 
-$theurl = $wpdb->get_row(" select redirect_to,redirect_from from $table_name where postID='$postID'  ");
+$theurl = $wpdb->get_row($wpdb->prepare(" select redirect_to,redirect_from from $table_name where postID=%d  ",$postID));
 
 $urlredirect_to='';
    if($wpdb->num_rows>0)
@@ -95,9 +90,9 @@ $urlredirect_to='';
 if($urlredirect_to !='' && $theurl->redirect_from != $permalink )
 	{
 	// the post_name field changed!
-	$wpdb->query(" update $table_name set redirect_from='$permalink'  where postID='$postID' ");
+	$wpdb->query($wpdb->prepare(" update $table_name set redirect_from=%s  where postID=%d ",$permalink,$postID));
 	if($util->get_option_value('reflect_modifications')=='1'){
-		$wpdb->query(" update $table_name set redirect_to='$permalink'  where redirect_to='" . $theurl->redirect_from . "' ");
+		$wpdb->query($wpdb->prepare(" update $table_name set redirect_to=%s  where redirect_to=%s ",$permalink,$theurl->redirect_from));
 		$util->info_option_msg('<b>SEO Redirection</b> has detected a change in Permalink, this will be reflected to the redirection records!');
 	}
 	//-------------------------------------------
@@ -259,27 +254,27 @@ $redirect_to=$util->post('wp_seo_redirection_url');
 if($redirect_to!=''){
 
 
-	$wpdb->get_results("select ID from $table_name where postID='$post_id'  ");
+	$wpdb->get_results($wpdb->prepare("select ID from $table_name where postID=%d ",$post_id));
 
 	if ($wpdb->num_rows > 0) {
 
-	$sql = "update $table_name set redirect_to='$redirect_to',redirect_from='$redirect_from',redirect_type='301',url_type=2 where postID='$post_id'";
+	$sql = $wpdb->prepare("update $table_name set redirect_to=%s,redirect_from=%s,redirect_type='301',url_type=2 where postID=%d",$redirect_to,$redirect_from,$post_id);
 		$wpdb->query($sql);
 
 	}else
 	{
-		$wpdb->query("delete from $table_name where redirect_from='$redirect_from'");
-		$sql = "insert into $table_name(redirect_from,redirect_to,redirect_type,url_type,postID) values ('$redirect_from','$redirect_to','301',2,'$post_id') ";
+		$wpdb->query($wpdb->prepare("delete from $table_name where redirect_from=%s",$redirect_from));
+		$sql = $wpdb->prepare("insert into $table_name(redirect_from,redirect_to,redirect_type,url_type,postID) values (%s,%s,'301',2,%d) ",$redirect_from,$redirect_to,$post_id);
 		$wpdb->query($sql);
 	}
 
 
 	}else
 	{
-	$wpdb->query("delete from $table_name where postID='$post_id'");
+	$wpdb->query($wpdb->prepare("delete from $table_name where postID=%d",$post_id));
 	}
 
-	$SR_redirect_cache = new clogica_SR_redirect_cache();
+	$SR_redirect_cache = new free_SR_redirect_cache();
 	$SR_redirect_cache->free_cache();
 }
 
@@ -299,7 +294,7 @@ function WPSR_log_404_redirection($link)
 	$browser=$util->get_visitor_Browser();
 
 	if($os!='Unknown' || $browser!='Unknown'){
-		$wpdb->query(" insert IGNORE into $table_name(ctime,link,referrer,ip,country,os,browser) values(NOW(),'$link','$referrer','$ip','$country','$os','$browser') ");
+		$wpdb->query($wpdb->prepare(" insert IGNORE into $table_name(ctime,link,referrer,ip,country,os,browser) values(NOW(),%s,%s,%s,%s,%s,%s) ",$link,$referrer,$ip,$country,$os,$browser));
 	}
 }
 
@@ -317,7 +312,7 @@ function WPSR_log_redirection_history($rID,$postID, $rfrom, $rto, $rtype,$rsrc)
 	$os=$util->get_visitor_OS();
 	$browser=$util->get_visitor_Browser();
 
-	$wpdb->query(" insert into $table_name(rID,postID,rfrom,rto,rtype,rsrc,ctime,referrer,ip,country,os,browser) values('$rID','$postID','$rfrom','$rto','$rtype','$rsrc',NOW(),'$referrer','$ip','$country','$os','$browser') ");
+	$wpdb->query($wpdb->prepare(" insert into $table_name(rID,postID,rfrom,rto,rtype,rsrc,ctime,referrer,ip,country,os,browser) values(%d ,%d,%s,%s,%s,%s,NOW(),%s,%s,%s,%s,%s) ",$rID,$postID,$rfrom,$rto,$rtype,$rsrc,$referrer,$ip,$country,$os,$browser));
     
     $limit= $util->get_option_value('history_limit');
     
@@ -330,7 +325,7 @@ function WPSR_log_redirection_history($rID,$postID, $rfrom, $rto, $rtype,$rsrc)
 
 function WPSR_make_redirect($redirect_to,$redirect_type,$redirect_from,$obj='')
 {
-	global $util;
+	global $util,$post;
 
         if($redirect_to == $redirect_from || !$util->is_valid_url($redirect_to))
         return 0;
@@ -382,8 +377,8 @@ function WPSR_make_redirect($redirect_to,$redirect_type,$redirect_from,$obj='')
 
 	if(is_singular())
 	{
-		$SR_redirect_cache = new clogica_SR_redirect_cache();
-		$SR_redirect_cache->add_redirect(get_the_ID(),1,$redirect_to,$redirect_type);
+		$SR_redirect_cache = new free_SR_redirect_cache();
+		$SR_redirect_cache->add_redirect($post->ID,1,$redirect_from,$redirect_to,$redirect_type);
 	}
 
 	if($redirect_type=='301')
@@ -411,21 +406,23 @@ function WPSR_make_redirect($redirect_to,$redirect_type,$redirect_from,$obj='')
 
 function WPSR_redirect()
 {
+global $wpdb,$post,$table_prefix,$util ;
 
-global $wpdb,$table_prefix,$util ;
-$table_name = $table_prefix . 'WP_SEO_Redirection';
-$permalink= urldecode($util->get_current_relative_url());
-if(substr($permalink,0,1)==":")
-{
-	$first_slash=stripos($permalink,"/");
-	$permalink = substr($permalink,$first_slash,strlen($permalink)-$first_slash);
-}
-$post_cache_result="";
-$SR_redirect_cache = new clogica_SR_redirect_cache();
+if($util->get_option_value('plugin_status')=='1'){
+
+	$table_name = $table_prefix . 'WP_SEO_Redirection';
+	$permalink= urldecode($util->get_current_relative_url());
+	if(substr($permalink,0,1)==":")
+	{
+		$first_slash=stripos($permalink,"/");
+		$permalink = substr($permalink,$first_slash,strlen($permalink)-$first_slash);
+	}
+	$post_cache_result="";
+	$SR_redirect_cache = new free_SR_redirect_cache();
 
 	if(is_singular())
 	{
-		$post_cache_result=$SR_redirect_cache->redirect_cached(get_the_ID());
+		$post_cache_result=$SR_redirect_cache->redirect_cached($post->ID);
 	}
 	if($post_cache_result == 'not_redirected')
 	{
@@ -444,14 +441,14 @@ $SR_redirect_cache = new clogica_SR_redirect_cache();
 	$permalink_options = "(redirect_from='$permalink' or redirect_from='$permalink_alternative' )";
 	$permalink_regex_options = "('$permalink' regexp regex or '$permalink_alternative'  regexp regex )";
 
-	if($util->get_option_value('plugin_status')=='1'){
+
 		if (($util->get_option_value('redirect_control_panel')!='1') || ($util->get_option_value('redirect_control_panel')=='1' && !preg_match('/^' . str_replace('/','\/', get_admin_url()) . '/i', $permalink) && !preg_match('/^' . str_replace('/','\/', site_url()) . '\/wp-login.php/i', $permalink))){
 
 
 		$theurl = $wpdb->get_row(" select * from $table_name where enabled=1 and regex='' and $permalink_options  ");
 
 			if($wpdb->num_rows>0 && $theurl->redirect_to!=''){
-				WPSR_make_redirect($theurl->redirect_to,$theurl->redirect_type,$permalink,$theurl);
+                            WPSR_make_redirect($theurl->redirect_to,$theurl->redirect_type,$permalink,$theurl);
 			}
 
 		$theurl = $wpdb->get_row(" select * from $table_name where enabled=1 and regex<>'' and $permalink_regex_options order by LENGTH(regex) desc ");
@@ -475,13 +472,14 @@ $SR_redirect_cache = new clogica_SR_redirect_cache();
 				}
 			}
 		}
-	}
+
 
 	if(is_singular() && $post_cache_result == 'not_found')
 	{
-		$SR_redirect_cache->add_redirect(get_the_ID(),0,'',0);
+		$SR_redirect_cache->add_redirect($post->ID,0,'','',0);
 	}
 
+}
 }
 
 //---------------------------------------------------------------
@@ -516,28 +514,35 @@ global $util;
 	if($util->get_option_value('plugin_status')!='1')
 		$util->info_option_msg('SEO Redirection is disabled now, you can go to option tab and enable it!');
 
-	echo '<div class="wrap"><h2>SEO Redirection</h2><br/>';
+	echo '<div class="wrap"><h2>SEO Redirection Free</h2><br/>';
+        
+        if(is_multisite())
+        {
+            
+            echo '<div class="error" id="message"><p></p><div class="warning_icon"></div>This version does not support Multisite WordPress installation, you may face troubles like losing redirects when adding new sites to your network, the premium version supports multisite well (<a target="_blank" href="http://www.clogica.com/product/seo-redirection-premium-wordpress-plugin">
+http://www.clogica.com/product/seo-redirection-premium-wordpress-plugin</a>) <p></p></div>';
+            
+        }
 
 	$mytabs = new phptab();
-	
+
 	$mytabs->set_ignore_parameter(array('del','search','page_num','add','edit','page404'));
 	$mytabs->add_file_tab('cutom','Custom Redirects','option_page_custome_redirection.php','file');
 	$mytabs->add_file_tab('posts','Post Redirects','option_page_post_redirection_list.php','file');
 	$mytabs->add_file_tab('404','404 Error Links','option_page_404.php','file');
 	$mytabs->add_file_tab('history','History','option_page_history.php','file');
 	$mytabs->add_file_tab('goptions','Options','option_page_goptions.php','file');
-	$mytabs->add_file_tab('premium','<span style="color:brown;"><b>Premium Features</b></span>','premium.php','file');
+	$mytabs->add_file_tab('premium','<span style="color:brown;"><b>&#9658; Premium Features</b></span>','premium.php','file');
 	$mytabs->run();
-    
-
+   
 }
 
 
 function WPSR_upgrade(){
 
-	$util= new clogica_util();
-	$util->set_option_gruop(WP_SEO_REDIRECTION_OPTIONS);
-	$util->set_plugin_folder(basename(dirname(__FILE__)));
+	$util= new clogica_util_1();
+        $util->init(WP_SEO_REDIRECTION_OPTIONS, __FILE__);
+	
 		
 	if($util->get_option_value('plugin_version')!= WP_SEO_REDIRECTION_VERSION)
 	{
@@ -548,11 +553,10 @@ function WPSR_upgrade(){
 
 //-----------------------------------------------------
 function WPSR_install(){
-		global $wpdb,$table_prefix ;
+        global $wpdb,$table_prefix ;
 		
-		$util= new clogica_util();
-		$util->set_option_gruop(WP_SEO_REDIRECTION_OPTIONS);
-		$util->set_plugin_folder(basename(dirname(__FILE__)));
+        $util= new clogica_util_1();
+        $util->init(WP_SEO_REDIRECTION_OPTIONS, __FILE__);
 	
 	$options=get_option(WP_SEO_REDIRECTION_OPTIONS);
 	if(!is_array($options))
@@ -617,19 +621,26 @@ function WPSR_install(){
                   `postID` int(11) unsigned DEFAULT NULL,
                   PRIMARY KEY (`ID`),
                   UNIQUE KEY `redirect_from` (`redirect_from`)
-                );";
+                )ENGINE = MyISAM ;";
 			$wpdb->query($sql);
 		}else
 		{
-			// if the table exists
-			$redirects = $wpdb->get_results(" select redirect_from,redirect_to,ID from $table_name; ");
-			foreach ($redirects as $redirect)
-			{
-				$redirect_from=$util->make_relative_url($redirect->redirect_from);
-				$redirect_to=$util->make_relative_url($redirect->redirect_to);
-				$ID=$redirect->ID;
-				$wpdb->query(" update $table_name set  redirect_from='$redirect_from',redirect_to='$redirect_to'  where ID=$ID ");
-			}
+                    //check if Innodb convert it to myisam.                
+                    $status = $wpdb->get_row("SHOW TABLE STATUS WHERE Name = '$table_name'");
+                    if($status->Engine == 'InnoDB')
+                    {
+                        $wpdb->query("alter table $table_name engine = MyISAM;");
+                    }
+
+                    // if the table exists
+                    $redirects = $wpdb->get_results(" select redirect_from,redirect_to,ID from $table_name; ");
+                    foreach ($redirects as $redirect)
+                    {
+                            $redirect_from=$util->make_relative_url($redirect->redirect_from);
+                            $redirect_to=$util->make_relative_url($redirect->redirect_to);
+                            $ID=$redirect->ID;
+                            $wpdb->query(" update $table_name set  redirect_from='$redirect_from',redirect_to='$redirect_to'  where ID=$ID ");
+                    }
 
 		}
 
@@ -639,13 +650,35 @@ function WPSR_install(){
     		CREATE TABLE IF NOT EXISTS `$table_name` (
               `ID` int(11) unsigned NOT NULL,
               `is_redirected` int(1) unsigned NOT NULL,
+              `redirect_from` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
               `redirect_to` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
               `redirect_type` int(3) unsigned NOT NULL DEFAULT 301,
               PRIMARY KEY (`ID`)
-            ) ;
+            ) ENGINE = MyISAM ;
 			";
 		$wpdb->query($sql);
-	}
+	}else
+        {
+            //check if Innodb convert it to myisam.                
+            $status = $wpdb->get_row("SHOW TABLE STATUS WHERE Name = '$table_name'");
+            if($status->Engine == 'InnoDB')
+            {
+                $wpdb->query("alter table $table_name engine = MyISAM;");
+            }
+        }
+        
+               
+        if($wpdb->get_var(" SELECT count(*) as cnt FROM INFORMATION_SCHEMA.COLUMNS
+                   WHERE TABLE_NAME = '$table_name'
+			AND table_schema = DATABASE()
+                        AND COLUMN_NAME = 'redirect_from' ") == '0') {
+
+                $sql="
+                ALTER TABLE $table_name
+                ADD COLUMN `redirect_from` varchar(255) COLLATE utf8_unicode_ci NOT NULL;
+            ";
+                $wpdb->query($sql);
+            }
 
 
 	$table_name = $table_prefix . 'WP_SEO_404_links';
@@ -662,10 +695,18 @@ function WPSR_install(){
               `browser` varchar(20) COLLATE utf8_unicode_ci NOT NULL,
               PRIMARY KEY (`ID`),
               UNIQUE KEY `link` (`link`)
-            ) ;
+            ) ENGINE = MyISAM ;
 			";
 			$wpdb->query($sql);
-		}
+		}else
+                {
+                     //check if Innodb convert it to myisam.                
+                    $status = $wpdb->get_row("SHOW TABLE STATUS WHERE Name = '$table_name'");
+                    if($status->Engine == 'InnoDB')
+                    {
+                        $wpdb->query("alter table $table_name engine = MyISAM;");
+                    }
+                }
 		
 		
 		$table_name = $table_prefix . 'WP_SEO_Redirection_LOG';
@@ -686,11 +727,19 @@ function WPSR_install(){
               `os` varchar(20) COLLATE utf8_unicode_ci NOT NULL,
               `browser` varchar(20) COLLATE utf8_unicode_ci NOT NULL,
               PRIMARY KEY (`ID`)
-            ) ;
+            ) ENGINE = MyISAM ;
 			";
 			
 			$wpdb->query($sql);
-		}
+		}else
+                {
+                    //check if Innodb convert it to myisam.                
+                    $status = $wpdb->get_row("SHOW TABLE STATUS WHERE Name = '$table_name'");
+                    if($status->Engine == 'InnoDB')
+                    {
+                        $wpdb->query("alter table $table_name engine = MyISAM;");
+                    }
+                }
 		
 }
 
@@ -701,24 +750,23 @@ function WPSR_install(){
 function WPSR_uninstall(){
     global $wpdb,$table_prefix ;
     
-    $util= new clogica_util();
-    $util->set_option_gruop('wp-seo-redirection-group');
-    $util->set_plugin_folder(basename(dirname(__FILE__)));
+    $util= new clogica_util_1();
+    $util->init(WP_SEO_REDIRECTION_OPTIONS, __FILE__);
 
     
     if($util->get_option_value('keep_data')!='1'){
         
         $table_name = $table_prefix . 'WP_SEO_Redirection';
-        $wpdb->query(" DROP TABLE `$table_name`  ");
+        $wpdb->query($wpdb->prepare(" DROP TABLE %s  ",$table_name));
 
 		$table_name = $table_prefix . 'WP_SEO_Cache';
-		$wpdb->query(" DROP TABLE `$table_name`  ");
+		$wpdb->query($wpdb->prepare(" DROP TABLE %s  ",$table_name));
 
         $table_name = $table_prefix . 'WP_SEO_404_links';
-        $wpdb->query(" DROP TABLE `$table_name`  ");
+		$wpdb->query($wpdb->prepare(" DROP TABLE %s  ",$table_name));
         
         $table_name = $table_prefix . 'WP_SEO_Redirection_LOG';
-        $wpdb->query(" DROP TABLE `$table_name`  ");
+		$wpdb->query($wpdb->prepare(" DROP TABLE %s  ",$table_name));
         
         
 		$util->delete_my_options();    

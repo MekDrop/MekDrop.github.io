@@ -62,7 +62,7 @@
             <div class="alert alert-warning browserupgrade alert-dismissible container hidden" role="alert">
 <div class="row">
 <div class="col-sm-11">
-Jūs naudojatės <strong>sena</strong> interneto naršykle. Prašome <a href="http://browsehappy.com/">atnaujinti savo naršyklę</a>, priešingu atveju kai kurios šio tinklalapio dalys gali neveikti taip kaip turėtų.
+Jūs naudojatės <strong>seną</strong> interneto naršykle. Prašome <a href="http://browsehappy.com/">atnaujinti savo naršyklę</a>, priešingu atveju kai kurios šio tinklalapio dalys gali neveikti taip kaip turėtų.
 </div>
 <div class="col-sm-1">
 <button data-dismiss="alert" class="btn btn-warning pull-right">x</button>
@@ -92,7 +92,7 @@ Jūs naudojatės <strong>sena</strong> interneto naršykle. Prašome <a href="ht
 		  </div>
           <a class="navbar-brand" href="http://mekdrop.name">
               <div class="website">MekDrop<span class="blue">.</span>Name</div>
-              <div class="description hidden-xs"><?php bloginfo('description'); ?></div>
+              <div class="description hidden"><?php bloginfo('description'); ?></div>
           </a>
 		  
         </div>
@@ -100,7 +100,7 @@ Jūs naudojatės <strong>sena</strong> interneto naršykle. Prašome <a href="ht
 			<?php 			
 			$cblog_id = get_current_blog_id();
 			foreach (mek_get_main_menu() as $blog): ?>
-	            <li<?php if ($cblog_id == $blog['blog_id']) echo ' class="active"';?>><a href="//<?php echo $blog['domain']; ?>"><div><i class="fa fa-<?php echo $blog['icon']; ?>"></i></div><div><?php echo $blog['name']; ?></div></a></li>
+	            <li<?php if ($cblog_id == $blog['blog_id']) echo ' class="active"';?>><a href="//<?php echo $blog['domain']; ?>"><div><!--<i class="fa fa-<?php echo $blog['icon']; ?>"></i>--></div><div><?php echo $blog['name']; ?></div></a></li>
 			<?php endforeach; ?>        
         </ul>
       </div>

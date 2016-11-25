@@ -5,5 +5,5 @@ function _es_redirect()
 
 function _es_help()
 {
-	window.open("http://www.gopiplus.com/work/2014/05/02/email-subscribers-wordpress-plugin/");
+	window.open("https://wordpress.org/plugins/email-subscribers/faq/");
 }

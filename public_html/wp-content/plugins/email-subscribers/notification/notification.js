@@ -2,19 +2,19 @@ function _es_submit()
 {
 	if(document.es_form.es_note_group.value == "")
 	{
-		alert("Please select subscribers group.")
+		alert(es_notification_notices.es_notification_select_group);
 		document.es_form.es_note_group.focus();
 		return false;
 	}
 	else if(document.es_form.es_note_templ.value == "")
 	{
-		alert("Please select notification mail subject. Use compose menu to create new.")
+		alert(es_notification_notices.es_notification_mail_subject);
 		document.es_form.es_note_templ.focus();
 		return false;
 	}
 	else if(document.es_form.es_note_status.value == "")
 	{
-		alert("Please select notification status.")
+		alert(es_notification_notices.es_notification_status);
 		document.es_form.es_note_status.focus();
 		return false;
 	}
@@ -22,7 +22,7 @@ function _es_submit()
 
 function _es_delete(id)
 {
-	if(confirm("Do you want to delete this record?"))
+	if(confirm(es_notification_notices.es_notification_delete_record))
 	{
 		document.frm_es_display.action="admin.php?page=es-notification&ac=del&did="+id;
 		document.frm_es_display.submit();
@@ -36,5 +36,5 @@ function _es_redirect()
 
 function _es_help()
 {
-	window.open("http://www.gopiplus.com/work/2014/05/02/email-subscribers-wordpress-plugin/");
+	window.open("https://wordpress.org/plugins/email-subscribers/faq/");
 }

@@ -2,13 +2,18 @@
 # This file is distributed under the same license as the Twenty Fifteen package.
 msgid ""
 msgstr ""
-"PO-Revision-Date: 2015-03-30 06:42:52+0000\n"
+"PO-Revision-Date: 2015-08-17 18:31:12+0000\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
-"X-Generator: GlotPress/1.0-alpha-1000\n"
+"X-Generator: GlotPress/2.1.0-alpha\n"
 "Project-Id-Version: Twenty Fifteen\n"
+
+#. translators: %s: post title
+#: inc/template-tags.php:123
+msgid "Leave a comment<span class=\"screen-reader-text\"> on %s</span>"
+msgstr "Komentuokite<span class=\"screen-reader-text\"> įrašą %s</span>"
 
 #. Theme URI of the plugin/theme
 msgid "https://wordpress.org/themes/twentyfifteen/"
@@ -20,69 +25,40 @@ msgstr "Ankstesnis įrašas:"
 
 #: single.php:34
 msgid "Next post:"
-msgstr "Paskesnis įrašas:"
+msgstr "Kitas įrašas:"
 
-#: inc/customizer.php:47 inc/customizer.php:63 inc/customizer.php:68
+#: inc/customizer.php:60 inc/customizer.php:76 inc/customizer.php:81
 msgid "Applied to the header on small screens and the sidebar on wide screens."
 msgstr "Rodoma antraštėje (header) mažuose ekranuose ir šoninėje srityje (sidebar) dideliuose ekranuose."
-
-#: single.php:36
-msgid "Previous"
-msgstr "Ankstesnis"
 
 #: single.php:33
 msgid "Next"
 msgstr "Kitas"
 
-#. Description of the plugin/theme
-msgid "Our 2015 default theme is clean, blog-focused, and designed for clarity. Twenty Fifteen's simple, straightforward typography is readable on a wide variety of screen sizes, and suitable for multiple languages. We designed it using a mobile-first approach, meaning your content takes center-stage, regardless of whether your visitors arrive by smartphone, tablet, laptop, or desktop computer."
-msgstr "WordPress tema \"2015\" yra minimalistinės struktūros, orientuota į tinklaraščius, jos dizainas aiškus ir neperkrautas. Paprasta tipografija yra lengvai įskaitoma įvairiuose ekranų dydžiuose bei tinkama naudoti su daugeliu kalbų. Ši tema buvo kuriama taikant \"mobile-first\" požiūrį - tai reiškia, kad Jūsų turinys yra svarbiausias ir gerai matomas, nepaisant ar lankytojai skaitys jį išmaniuosiuose telefonuose, planšetiniuose, nešiojamuosiuose ar stacionariuose kompiuteriuose."
-
-#: inc/template-tags.php:91 inc/template-tags.php:99
-msgctxt "Used between list items, there is a space after the comma."
-msgid ", "
-msgstr ", "
-
-#: image.php:24
-msgid "Previous Image"
-msgstr "Ankstesnis paveikslėlis"
-
-#: image.php:24
-msgid "Next Image"
-msgstr "Kitas paveikslėlis"
-
-#: inc/template-tags.php:23
-msgid "Comment navigation"
-msgstr "Komentarų navigacija"
-
-#: inc/template-tags.php:122
-msgid "Leave a comment"
-msgstr "Komentarų: 0"
-
-#: inc/template-tags.php:122
-msgid "1 Comment"
-msgstr "Komentarų: 1"
-
-#: inc/template-tags.php:122
-msgid "% Comments"
-msgstr "Komentarų: %"
-
-#: search.php:18
-msgid "Search Results for: %s"
-msgstr "Paieškos rezultatai: %s"
+#: single.php:36
+msgid "Previous"
+msgstr "Ankstesnis"
 
 #. Author of the plugin/theme
 msgid "the WordPress team"
 msgstr "WordPress komanda"
 
+#. Description of the plugin/theme
+msgid "Our 2015 default theme is clean, blog-focused, and designed for clarity. Twenty Fifteen's simple, straightforward typography is readable on a wide variety of screen sizes, and suitable for multiple languages. We designed it using a mobile-first approach, meaning your content takes center-stage, regardless of whether your visitors arrive by smartphone, tablet, laptop, or desktop computer."
+msgstr "WordPress tema \"2015\" yra minimalistinės struktūros, orientuota į tinklaraščius, jos dizainas aiškus ir neperkrautas. Paprasta tipografija yra lengvai įskaitoma įvairiuose ekranų dydžiuose bei tinkama naudoti su daugeliu kalbų. Ši tema buvo kuriama taikant \"mobile-first\" požiūrį - tai reiškia, kad Jūsų turinys yra svarbiausias ir gerai matomas, nepaisant ar lankytojai skaitys jį išmaniuosiuose telefonuose, planšetiniuose, nešiojamuosiuose ar stacionariuose kompiuteriuose."
+
 #. Theme Name of the plugin/theme
 msgid "Twenty Fifteen"
 msgstr "Twenty Fifteen"
 
+#: search.php:18
+msgid "Search Results for: %s"
+msgstr "Paieškos rezultatai: %s"
+
 #: inc/template-tags.php:113
 msgctxt "Used before full size attachment link."
 msgid "Full size"
-msgstr "Visas dydis"
+msgstr "Pilnas dydis"
 
 #: inc/template-tags.php:102
 msgctxt "Used before tag names."
@@ -93,6 +69,11 @@ msgstr "Žymos"
 msgctxt "Used before category names."
 msgid "Categories"
 msgstr "Kategorijos"
+
+#: inc/template-tags.php:91 inc/template-tags.php:99
+msgctxt "Used between list items, there is a space after the comma."
+msgid ", "
+msgstr ", "
 
 #: inc/template-tags.php:85
 msgctxt "Used before post author name."
@@ -121,39 +102,43 @@ msgstr "Naujesni komentarai"
 msgid "Featured"
 msgstr "Rekomenduojama"
 
-#: inc/customizer.php:147
+#: inc/template-tags.php:23
+msgid "Comment navigation"
+msgstr "Komentarų navigacija"
+
+#: inc/customizer.php:205
 msgid "Blue"
 msgstr "Mėlyna"
 
-#: inc/customizer.php:136
+#: inc/customizer.php:194
 msgid "Purple"
 msgstr "Violetinė"
 
-#: inc/customizer.php:125
+#: inc/customizer.php:183
 msgid "Pink"
 msgstr "Rožinė"
 
-#: inc/customizer.php:103
+#: inc/customizer.php:161
 msgid "Dark"
 msgstr "Tamsi"
 
-#: inc/customizer.php:114
+#: inc/customizer.php:172
 msgid "Yellow"
 msgstr "Geltona"
 
-#: inc/customizer.php:92
+#: inc/customizer.php:150
 msgid "Default"
 msgstr "Numatytoji"
 
-#: inc/customizer.php:62
+#: inc/customizer.php:75
 msgid "Header and Sidebar Background Color"
 msgstr "Antraštės ir šoninės srities fono spalva"
 
-#: inc/customizer.php:31
+#: inc/customizer.php:44
 msgid "Base Color Scheme"
 msgstr "Pagrindinė spalvų schema"
 
-#: inc/customizer.php:46
+#: inc/customizer.php:59
 msgid "Header and Sidebar Text Color"
 msgstr "Antraštės ir šoninės srities teksto spalva"
 
@@ -161,68 +146,39 @@ msgstr "Antraštės ir šoninės srities teksto spalva"
 msgid "Twenty Fifteen requires at least WordPress version 4.1. You are running version %s. Please upgrade and try again."
 msgstr "Twenty Fifteen būtina bent 4.1 WordPress versija. Jūs naudojate %s - atsinaujinkite ir pabandykite dar kartą."
 
+#: image.php:24
+msgid "Previous Image"
+msgstr "Ankstesnis paveikslėlis"
+
+#: image.php:24
+msgid "Next Image"
+msgstr "Kitas paveikslėlis"
+
 #: image.php:84
 msgctxt "Parent post link"
 msgid "<span class=\"meta-nav\">Published in</span><span class=\"post-title\">%title</span>"
 msgstr "<span class=\"meta-nav\">Paskelbta įraše:</span><span class=\"post-title\">%title</span>"
 
-#: header.php:43
+#: header.php:45
 msgid "Menu and widgets"
 msgstr "Meniu ir valdikliai"
 
-#: comments.php:53
-msgid "Comments are closed."
-msgstr "Komentavimo galimybė išjungta."
+#: functions.php:269
+msgid "expand child menu"
+msgstr "išskleisti sub-meniu"
 
-#: content-link.php:36 content-page.php:25 content.php:38 image.php:59
-msgid "Pages:"
-msgstr "Puslapiai:"
-
-#: content-link.php:56 content-page.php:35 content-search.php:28
-#: content-search.php:33 content.php:57 image.php:71
-msgid "Edit"
-msgstr "(Redaguoti)"
-
-#: footer.php:25
-msgid "Proudly powered by %s"
-msgstr "%s sistema"
-
-#: functions.php:85
-msgid "Primary Menu"
-msgstr "Pagrindinis meniu"
+#: functions.php:270
+msgid "collapse child menu"
+msgstr "suskleisti sub-meniu"
 
 #: header.php:26
 msgid "Skip to content"
 msgstr "Eiti prie turinio"
 
-#: content-none.php:15
-msgid "Nothing Found"
-msgstr "Nepavyko rasti"
-
-#: content-none.php:22
-msgid "Ready to publish your first post? <a href=\"%1$s\">Get started here</a>."
-msgstr "Pasirengę paskelbti pirmąjį įrašą? <a href=\"%1$s\">Pradėkite čia</a>."
-
-#: content-none.php:26
-msgid "Sorry, but nothing matched your search terms. Please try again with some different keywords."
-msgstr "Deja, nieko panašaus rasti nepavyko. Pabandykite įvesti kitokį paieškos raktažodį."
-
-#: content-none.php:31
-msgid "It seems we can&rsquo;t find what you&rsquo;re looking for. Perhaps searching can help."
-msgstr "Panašu, kad nepavyko rasti jūsų ieškomo puslapio. Galbūt jums padės paieškos galimybė."
-
-#: functions.php:255
-msgid "expand child menu"
-msgstr "išskleisti sub-meniu"
-
-#: functions.php:256
-msgid "collapse child menu"
-msgstr "suskleisti sub-meniu"
-
 #. Translators: To add an additional character subset specific to your
 #. language, translate this to 'greek', 'cyrillic', 'devanagari' or
 #. 'vietnamese'. Do not translate into your own language.
-#: functions.php:185
+#: functions.php:199
 msgctxt "Add new subset (greek, cyrillic, devanagari, vietnamese)"
 msgid "no-subset"
 msgstr "nėra kalbos poaibio"
@@ -230,7 +186,7 @@ msgstr "nėra kalbos poaibio"
 #. Translators: If there are characters in your language that are not supported
 #. by Inconsolata, translate this to 'off'. Do not translate into your own
 #. language.
-#: functions.php:177
+#: functions.php:191
 msgctxt "Inconsolata font: on or off"
 msgid "on"
 msgstr "įjungta"
@@ -238,7 +194,7 @@ msgstr "įjungta"
 #. Translators: If there are characters in your language that are not supported
 #. by Noto Sans, translate this to 'off'. Do not translate into your own
 #. language.
-#: functions.php:161
+#: functions.php:175
 msgctxt "Noto Sans font: on or off"
 msgid "on"
 msgstr "įjungta"
@@ -246,45 +202,78 @@ msgstr "įjungta"
 #. Translators: If there are characters in your language that are not supported
 #. by Noto Serif, translate this to 'off'. Do not translate into your own
 #. language.
-#: functions.php:169
+#: functions.php:183
 msgctxt "Noto Serif font: on or off"
 msgid "on"
 msgstr "įjungta"
 
-#: functions.php:135
+#: functions.php:149
 msgid "Add widgets here to appear in your sidebar."
 msgstr "Sudėkite valdiklius čia, ir jie atsiras Jūsų tinklalapio šoninėje srityje."
 
-#: functions.php:133
+#: functions.php:147
 msgid "Widget Area"
 msgstr "Valdiklių Zona"
+
+#: functions.php:85
+msgid "Primary Menu"
+msgstr "Pagrindinis meniu"
 
 #: functions.php:86
 msgid "Social Links Menu"
 msgstr "Socialinių nuorodų meniu"
 
-#. #-#-#-#-#  twentyfifteen.pot (Twenty Fifteen 1.2)  #-#-#-#-#
+#: footer.php:25
+msgid "Proudly powered by %s"
+msgstr "%s sistema"
+
+#. #-#-#-#-#  twentyfifteen.pot (Twenty Fifteen 1.5)  #-#-#-#-#
 #. Author URI of the plugin/theme
 #: footer.php:25
 msgid "https://wordpress.org/"
 msgstr "https://wordpress.org/"
 
+#: content-none.php:31
+msgid "It seems we can&rsquo;t find what you&rsquo;re looking for. Perhaps searching can help."
+msgstr "Panašu, kad nepavyko rasti jūsų ieškomo puslapio. Galbūt jums padės paieškos galimybė."
+
+#: content-none.php:26
+msgid "Sorry, but nothing matched your search terms. Please try again with some different keywords."
+msgstr "Deja, nieko panašaus rasti nepavyko. Pabandykite įvesti kitokį paieškos raktažodį."
+
+#: content-none.php:22
+msgid "Ready to publish your first post? <a href=\"%1$s\">Get started here</a>."
+msgstr "Pasirengę paskelbti pirmąjį įrašą? <a href=\"%1$s\">Pradėkite čia</a>."
+
+#: content-none.php:15
+msgid "Nothing Found"
+msgstr "Nepavyko rasti"
+
+#: content-link.php:56 content-page.php:35 content-search.php:28
+#: content-search.php:33 content.php:57 image.php:71
+msgid "Edit"
+msgstr "(Redaguoti)"
+
+#: content-link.php:36 content-page.php:25 content.php:38 image.php:59
+msgid "Pages:"
+msgstr "Puslapiai:"
+
 #. translators: %s: Name of current post
-#: content-link.php:31 content.php:33 inc/template-tags.php:237
+#: content-link.php:31 content.php:33 inc/template-tags.php:238
 msgid "Continue reading %s"
 msgstr "Skaityti toliau: %s"
+
+#: comments.php:53
+msgid "Comments are closed."
+msgstr "Komentavimo galimybė išjungta."
 
 #: comments.php:28
 msgctxt "comments title"
 msgid "One thought on &ldquo;%2$s&rdquo;"
 msgid_plural "%1$s thoughts on &ldquo;%2$s&rdquo;"
-msgstr[0] "%1$s mintis apie &ldquo;%2$s&rdquo;"
+msgstr[0] "Viena mintis apie &ldquo;%2$s&rdquo;"
 msgstr[1] "%1$s mintys apie &ldquo;%2$s&rdquo;"
 msgstr[2] "%1$s minčių apie &ldquo;%2$s&rdquo;"
-
-#: 404.php:21
-msgid "It looks like nothing was found at this location. Maybe try a search?"
-msgstr "Panašu, kad čia nieko nerasta. Pasinaudokite paieška."
 
 #: author-bio.php:34
 msgid "View all posts by %s"
@@ -306,6 +295,10 @@ msgstr "Tolesnis puslapis"
 #: archive.php:49 index.php:46 search.php:38
 msgid "Previous page"
 msgstr "Ankstesnis puslapis"
+
+#: 404.php:21
+msgid "It looks like nothing was found at this location. Maybe try a search?"
+msgstr "Panašu, kad čia nieko nerasta. Pasinaudokite paieška."
 
 #: 404.php:17
 msgid "Oops! That page can&rsquo;t be found."

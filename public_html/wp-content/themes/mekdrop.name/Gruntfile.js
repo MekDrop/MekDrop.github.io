@@ -13,13 +13,21 @@ module.exports = function (grunt) {
                 },
                 bowerOptions: {
                     relative: false
-                }
+                },
+				exclude: [
+						'free-file-icons'
+				]
             }
         },
         cssmin: {
             target: {
                 files: {
-                    'build/css/main.min.css': ['build/css/bower.css', 'build/css/less.css'],
+                    'build/css/main.min.css': [
+						'build/css/nunito.css',
+						'build/css/bootstrap.css',
+						'build/css/bower.css',
+						'build/css/less.css'
+					],
                 }
             }
         },
@@ -42,6 +50,10 @@ module.exports = function (grunt) {
 					"build/css/less.css": "less/main.less"
 				}
 			}
+		},
+		curl: {
+			'build/css/nunito.css': 'http://fonts.googleapis.com/css?family=Nunito',
+			'build/css/bootstrap.css': 'https://bootswatch.com/simplex/bootstrap.css'
 		},
 		imageEmbed: {
 			dist: {
@@ -68,13 +80,13 @@ module.exports = function (grunt) {
                             'styles/fonts/{,*/}*.*'
                         ]
                     },
-                    { //for bootstrap fonts						
+                    /*{ //for bootstrap fonts						
                         expand: true,
                         dot: true,
                         cwd: 'bower_components/bootstrap/dist',
                         src: ['fonts/*.*'],
                         dest: 'build/'
-                    },
+                    },*/
                     { //for font-awesome
                         expand: true,
                         dot: true,
@@ -88,7 +100,17 @@ module.exports = function (grunt) {
                         cwd: 'bower_components/flag-icon-css',
                         src: ['flags/**/*.*'],
                         dest: 'build/'
-                    }]
+                    },
+	                { //for file icons
+                        expand: true,
+                        dot: true,
+                        cwd: 'bower_components/free-file-icons',
+                        src: [
+							'*px/*.*'
+						],
+                        dest: 'build/icons/'
+                    },
+					]
             }
         },
 		watch: {
@@ -108,7 +130,7 @@ module.exports = function (grunt) {
 			},
 			less: {
 				files: ['less/**/*.less'],
-				tasks: ['less', 'cssmin', 'imageEmbed'],
+				tasks: ['curl', 'less', 'cssmin', 'imageEmbed'],
 				options: {
 					spawn: false,
 				},
@@ -131,7 +153,9 @@ module.exports = function (grunt) {
 	grunt.loadNpmTasks('grunt-contrib-less');
 	grunt.loadNpmTasks("grunt-image-embed");
 	grunt.loadNpmTasks('grunt-contrib-watch');
+	grunt.loadNpmTasks('grunt-curl');
 
     grunt.registerTask('default', ['watch']);
+    grunt.registerTask('run', ['copy', 'bower_concat', 'uglify', 'curl', 'less', 'cssmin', 'imageEmbed']);
 
 };

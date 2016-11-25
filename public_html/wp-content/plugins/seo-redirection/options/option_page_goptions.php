@@ -2,7 +2,6 @@
 global $util;
 
 if(isset($_POST)){
-
 if($util->post('reset_all_options')!='')
 {
 	c_init_my_options();

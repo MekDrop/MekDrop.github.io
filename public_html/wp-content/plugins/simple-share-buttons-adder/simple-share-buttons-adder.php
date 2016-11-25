@@ -3,7 +3,7 @@
 Plugin Name: Simple Share Buttons Adder
 Plugin URI: https://simplesharebuttons.com
 Description: A simple plugin that enables you to add share buttons to all of your posts and/or pages.
-Version: 6.0.1
+Version: 6.1.5
 Author: Simple Share Buttons
 Author URI: https://simplesharebuttons.com
 License: GPLv2
@@ -33,7 +33,7 @@ GNU General Public License for more details.
 
 	define('SSBA_FILE', __FILE__);
     define('SSBA_ROOT', dirname(__FILE__));
-	define('SSBA_VERSION', '6.0.1');
+	define('SSBA_VERSION', '6.1.5');
 
 //======================================================================
 // 		 SSBA SETTINGS
@@ -54,27 +54,56 @@ GNU General Public License for more details.
     include_once plugin_dir_path(__FILE__).'/inc/ssba_database.php';
 
 //======================================================================
+// 		ACTIVATE/DEACTIVATE HOOKS
+//======================================================================
+
+    // run the activation function upon acitvation of the plugin
+    register_activation_hook( __FILE__,'ssba_activate');
+
+    // register deactivation hook
+    register_uninstall_hook(__FILE__,'ssba_uninstall');
+
+//======================================================================
 // 		GET SSBA SETTINGS
 //======================================================================
 
-	// return ssba settings
-	function get_ssba_settings() {
+    // return ssba settings
+    function get_ssba_settings()
+    {
+        // get json array settings from DB
+        $jsonSettings = get_option('ssba_settings');
 
-		// globals
-		global $wpdb;
+        // decode and return settings
+        return json_decode($jsonSettings, true);
+    }
 
-		// query the db for current ssba settings
-		$arrSettings = $wpdb->get_results("SELECT option_name, option_value
-											 FROM $wpdb->options
-											WHERE option_name LIKE 'ssba_%'");
+//======================================================================
+// 		UPDATE SSBA SETTINGS
+//======================================================================
 
-		// loop through each setting in the array
-		foreach ($arrSettings as $setting) {
+    // update an array of options
+    function ssba_update_options($arrOptions)
+    {
+        // if not given an array
+        if (! is_array($arrOptions)) {
+            die('Value parsed not an array');
+        }
 
-			// add each setting to the array by name
-			$arrSettings[$setting->option_name] =  $setting->option_value;
-		}
+        // get ssba settings
+        $jsonSettings = get_option('ssba_settings');
 
-		// return
-		return $arrSettings;
-	}
+        // decode the settings
+        $ssba_settings = json_decode($jsonSettings, true);
+
+        // loop through array given
+        foreach ($arrOptions as $name => $value) {
+            // update/add the option in the array
+            $ssba_settings[$name] = $value;
+        }
+
+        // encode the options ready to save back
+        $jsonSettings = json_encode($ssba_settings);
+
+        // update the option in the db
+        update_option('ssba_settings', $jsonSettings);
+    }

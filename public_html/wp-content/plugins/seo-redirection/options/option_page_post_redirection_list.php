@@ -3,8 +3,6 @@
 global $wpdb,$table_prefix,$util;
 $table_name = $table_prefix . 'WP_SEO_Redirection';
 
-
-		
 	if($util->get('del')!='')
 	{
 		$delid=intval($util->get('del'));
@@ -14,7 +12,7 @@ $table_name = $table_prefix . 'WP_SEO_Redirection';
 		if($util->there_is_cache()!='') 
 		$util->info_option_msg("You have a cache plugin installed <b>'" . $util->there_is_cache() . "'</b>, you have to clear cache after any changes to get the changes reflected immediately! ");
 
-		$SR_redirect_cache = new clogica_SR_redirect_cache();
+		$SR_redirect_cache = new free_SR_redirect_cache();
 		$SR_redirect_cache->free_cache();
 	}
 	
@@ -45,7 +43,7 @@ var sword = document.getElementById('search').value;
 <table border="0" width="100%">
 	<tr>
 		<td align="left">
-		<input onkeyup="if (event.keyCode == 13) go_search();" style="height: 30px;" id="search" type="text" name="search" value="<?php echo $util->get('search')?>" size="40">
+		<input onkeyup="if (event.keyCode == 13) go_search();" style="height: 30px;" id="search" type="text" name="search" value="<?php echo htmlentities($util->get('search','title'))?>" size="40">
 		<a onclick="go_search()" href="#"><div class="search_link">Search</div></a> 
 		<a href="<?php echo $util->get_current_parameters('search')?>"><div class="see_link">Show All</div></a>
 		</td>

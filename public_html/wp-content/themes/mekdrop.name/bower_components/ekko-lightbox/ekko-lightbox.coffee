@@ -28,6 +28,8 @@ EkkoLightbox = ( element, options ) ->
 	@modal_dialog = @modal.find('.modal-dialog').first()
 	@modal_content = @modal.find('.modal-content').first()
 	@modal_body = @modal.find('.modal-body').first()
+	@modal_header = @modal.find('.modal-header').first()
+	@modal_footer = @modal.find('.modal-footer').first()
 
 	@lightbox_container = @modal_body.find('.ekko-lightbox-container').first()
 	@lightbox_body = @lightbox_container.find('> div:first-child').first()
@@ -75,9 +77,9 @@ EkkoLightbox.prototype = {
 			if @gallery
 				# parents('document.body') fails for some reason, so do this manually
 				if this.options.gallery_parent_selector == 'document.body' || this.options.gallery_parent_selector == ''
-					@gallery_items = $(document.body).find('*[data-toggle="lightbox"][data-gallery="' + @gallery + '"]')
+					@gallery_items = $(document.body).find('*[data-gallery="' + @gallery + '"]')
 				else
-					@gallery_items = @$element.parents(this.options.gallery_parent_selector).first().find('*[data-toggle="lightbox"][data-gallery="' + @gallery + '"]')
+					@gallery_items = @$element.parents(this.options.gallery_parent_selector).first().find('*[data-gallery="' + @gallery + '"]')
 				@gallery_index = @gallery_items.index(@$element)
 				$(document).on 'keydown.ekkoLightbox', @navigate.bind(@)
 
@@ -222,9 +224,10 @@ EkkoLightbox.prototype = {
 		@
 
 	showYoutubeVideo : (id) ->
+		if @$element.attr('data-norelated')? || @options.no_related then rel="&rel=0" else rel=""
 		width = @checkDimensions( @$element.data('width') || 560 )
 		height = width / ( 560/315 ) # aspect ratio
-		@showVideoIframe('//www.youtube.com/embed/' + id + '?badge=0&autoplay=1&html5=1', width, height)
+		@showVideoIframe('//www.youtube.com/embed/' + id + '?badge=0&autoplay=1&html5=1' + rel, width, height)
 
 	showVimeoVideo : (id) ->
 		width = @checkDimensions( @$element.data('width') || 560 )
@@ -238,16 +241,14 @@ EkkoLightbox.prototype = {
 		height = width + 80
 		@lightbox_body.html '<iframe width="'+width+'" height="'+height+'" src="' + @addTrailingSlash(id) + 'embed/" frameborder="0" allowfullscreen></iframe>'
 		@options.onContentLoaded.call(@)
-		if @modal_arrows #hide the arrows when showing video
-			@modal_arrows.css 'display', 'none'
+		@modal_arrows.css 'display', 'none' if @modal_arrows #hide the arrows when showing video
 
 	showVideoIframe: (url, width, height) -> # should be used for videos only. for remote content use loadRemoteContent (data-type=url)
 		height = height || width # default to square
 		@resize width
-		@lightbox_body.html '<div class="embed-responsive embed-responsive-16by9"><iframe width="' + width + '" height="' + height + '" src="' + url + '" frameborder="0" allowfullscreenclass="embed-responsive-item"></iframe></div>'
+		@lightbox_body.html '<div class="embed-responsive embed-responsive-16by9"><iframe width="' + width + '" height="' + height + '" src="' + url + '" frameborder="0" allowfullscreen class="embed-responsive-item"></iframe></div>'
 		@options.onContentLoaded.call(@)
-		if @modal_arrows #hide the arrows when showing video
-			@modal_arrows.css 'display', 'none'
+		@modal_arrows.css 'display', 'none' if @modal_arrows #hide the arrows when showing video
 		@
 
 	loadRemoteContent : (url) ->
@@ -265,7 +266,7 @@ EkkoLightbox.prototype = {
 			@lightbox_body.html '<iframe width="'+width+'" height="'+width+'" src="' + url + '" frameborder="0" allowfullscreen></iframe>'
 			@options.onContentLoaded.call(@)
 
-		@modal_arrows.css 'display', 'block' if @modal_arrows
+		@modal_arrows.css 'display', 'none' if @modal_arrows #hide the arrows when remote content
 		@
 
 	isExternal : (url) ->
@@ -288,13 +289,39 @@ EkkoLightbox.prototype = {
 				image.addClass('img-responsive')
 				@lightbox_body.html image
 				@modal_arrows.css 'display', 'block' if @modal_arrows
-				@resize img.width
-				@options.onContentLoaded.call(@)
+				image.load =>
+					if @options.scale_height
+						@scaleHeight img.height, img.width
+					else
+						@resize img.width
+					@options.onContentLoaded.call(@)
 			img.onerror = =>
 				@error 'Failed to load image: ' + src
 
 		img.src = src
 		img
+
+	scaleHeight : ( height, width ) ->
+		#scales the dialog based on height and width, takes all padding, borders, margins into account
+		#only used if options.scale_height is true
+		header_height = @modal_header.outerHeight(true) || 0
+		footer_height = @modal_footer.outerHeight(true) || 0
+
+		if not @modal_footer.is ':visible'
+			footer_height = 0
+
+		if not @modal_header.is ':visible'
+			header_height = 0
+
+		border_padding = @border.top + @border.bottom + @padding.top + @padding.bottom
+		#calculated each time as resizing the window can cause them to change due to Bootstraps fluid margins
+		margins = parseFloat(@modal_dialog.css('margin-top')) + parseFloat(@modal_dialog.css('margin-bottom'))
+
+		max_height = $(window).height() - border_padding - margins - header_height - footer_height
+		factor = Math.min max_height / height, 1
+
+		@modal_dialog.css('height', 'auto').css('max-height', max_height);
+		@resize factor * width
 
 	resize : ( width ) ->
 		#resize the dialog based on the width given, and adjust the directional arrow padding
@@ -344,6 +371,8 @@ $.fn.ekkoLightbox.defaults = {
 	directional_arrows: true #display the left / right arrows or not
 	type: null #force the lightbox into image / youtube mode. if null, or not image|youtube|vimeo; detect it
 	always_show_close: true #always show the close button, even if there is no title
+	no_related: false
+	scale_height: true #scales height and width if the image is taller than window size
 	loadingMessage: 'Loading...',
 	onShow : ->
 	onShown : ->

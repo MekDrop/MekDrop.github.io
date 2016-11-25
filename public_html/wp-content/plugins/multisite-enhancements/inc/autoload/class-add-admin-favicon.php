@@ -1,6 +1,7 @@
 <?php
 /**
- * Add Favicon from theme folder to the admin area to easier identify the blog
+ * Add Favicon from theme folder to the admin area to easier identify the blog.
+ *
  * Remove also the "W" logo and his sublinks in admin bar
  * Add Favicon to each blog on the Admin Bar Item "My Sites"
  *
@@ -16,16 +17,22 @@
  *     - Hook: multisite_enhancements_remove_wp_admin_bar
  *     - Default is: TRUE
  *
- * @since    07/23/2013
- * @version  02/03/2013
+ * @since   2015-07-23
+ * @version 2016-05-30
+ * @package WordPress
  */
 
 add_action( 'init', array( 'Multisite_Add_Admin_Favicon', 'init' ) );
 
+/**
+ * Add Favicon from theme folder to the admin area to easier identify the blog.
+ *
+ * Class Multisite_Add_Admin_Favicon
+ */
 class Multisite_Add_Admin_Favicon {
 
 	/**
-	 * Value to get sites in the Network
+	 * Value to get sites in the Network.
 	 *
 	 * @since 2015-02-26
 	 * @var int
@@ -33,10 +40,10 @@ class Multisite_Add_Admin_Favicon {
 	private $sites_limit = 9999;
 
 	/**
-	 * Define Hooks for add the favicon markup
+	 * Define Hooks for add the favicon markup.
 	 *
-	 * @since   0.0.2
-	 * @var     Array
+	 * @since 0.0.2
+	 * @var   array
 	 */
 	static protected $favicon_hooks = array(
 		'admin_head',
@@ -44,13 +51,16 @@ class Multisite_Add_Admin_Favicon {
 	);
 
 	/**
-	 * Filter to remove "W" logo incl. sublinks from admin bar
+	 * Filter to remove "W" logo incl. sublinks from admin bar.
 	 *
-	 * @since  0.0.2
-	 * @var    Boolean
+	 * @since 0.0.2
+	 * @var   Boolean
 	 */
 	static protected $remove_wp_admin_bar = TRUE;
 
+	/**
+	 * Initialize the class.
+	 */
 	public static function init() {
 
 		$class = __CLASS__;
@@ -60,45 +70,47 @@ class Multisite_Add_Admin_Favicon {
 	}
 
 	/**
-	 * Init function to register all used hooks
+	 * Init function to register all used hooks.
 	 *
 	 * Use the filter hook to add hooks, there will add the markup
 	 *     Hook: multisite_enhancements_favicon
 	 *
 	 * @since   0.0.2
-	 * @return \Multisite_Add_Admin_Favicon
 	 */
 	public function __construct() {
 
 		/**
-		 * Filter to change the value for get sites inside the network
+		 * Filter hook to change the value for get sites inside the network.
 		 *
 		 * @type integer
 		 */
 		$this->sites_limit = (int) apply_filters( 'multisite_enhancements_sites_limit', $this->sites_limit );
 
-		// hooks for add favicon markup
+		/**
+		 * Hooks for add favicon markup.
+		 *
+		 * @type array
+		 */
 		$hooks = apply_filters( 'multisite_enhancements_favicon', self::$favicon_hooks );
 
 		foreach ( $hooks as $hook ) {
 			add_action( esc_attr( $hook ), array( $this, 'set_favicon' ) );
 
-			// add favicon from theme folder to each blog
+			// Add favicon from theme folder to each blog.
 			add_action( esc_attr( $hook ), array( $this, 'set_admin_bar_blog_icon' ) );
 		}
 
-		// remove admin bar item with "W" logo
+		// Remove admin bar item with "W" logo.
 		add_action( 'admin_bar_menu', array( $this, 'change_admin_bar_menu' ), 25 );
 	}
 
 	/**
-	 * Create markup, if favicon is exist in active theme folder
+	 * Create markup, if favicon is exist in active theme folder.
 	 *
 	 * Use the filter hook to change style
 	 *     Hook: multisite_enhancements_add_favicon
 	 *
 	 * @since   0.0.2
-	 * @return  String
 	 */
 	public function set_favicon() {
 
@@ -117,83 +129,102 @@ class Multisite_Add_Admin_Favicon {
 			$output .= '</style>';
 		}
 
-		// Use the filter hook to change style
+		/**
+		 * Use the filter hook to change style.
+		 *
+		 * @type string
+		 */
 		echo apply_filters( 'multisite_enhancements_add_favicon', $output );
 	}
 
 	/**
-	 * Add Favicon from each blog to Multisite Menu of "My Sites"
+	 * Add Favicon from each blog to Multisite Menu of "My Sites".
 	 *
 	 * Use the filter hook to change style
 	 *     Hook: multisite_enhancements_add_admin_bar_favicon
 	 *
 	 * @since   0.0.2
-	 * @return  String
 	 */
 	public function set_admin_bar_blog_icon() {
 
-		if ( function_exists( 'wp_get_sites' ) ) {
-			// Since 3.7 inside the Core
-			$blogs = wp_get_sites(
-				array(
-					'limit' => $this->sites_limit,
-				)
-			);
-		} else {
-			// use alternative to core function get_blog_list()
-			$blogs = Multisite_Core::get_blog_list( 0, 'all' );
+		// Only usable if the user is logged in and use the admin bar.
+		if ( ! is_user_logged_in() || ! is_admin_bar_showing() ) {
+			return;
 		}
 
+		$user_id    = get_current_user_id();
+		$user_blogs = get_blogs_of_user( $user_id );
+
 		$output = '';
-		foreach ( (array) $blogs as $blog ) {
+		foreach ( (array) $user_blogs as $blog ) {
 
-			$stylesheet = get_blog_option( $blog[ 'blog_id' ], 'stylesheet' );
+			$custom_icon = FALSE;
 
-			// get stylesheet directory uri
+			// Validate, that we use nly int value.
+			$blog_id    = (int) $blog->userblog_id;
+			$stylesheet = get_blog_option( $blog_id, 'stylesheet' );
+
+			// Get stylesheet directory uri.
 			$theme_root_uri     = get_theme_root_uri( $stylesheet );
 			$stylesheet_dir_uri = "$theme_root_uri/$stylesheet";
 
-			// get stylesheet directory
+			// Get stylesheet directory.
 			$theme_root     = get_theme_root( $stylesheet );
 			$stylesheet_dir = "$theme_root/$stylesheet";
 
-			// create favicon directory and directory url locations
-			$favicon_dir_uri = $this->get_favicon_path( $blog[ 'blog_id' ], $stylesheet_dir_uri, 'url' );
-			$favicon_dir     = $this->get_favicon_path( $blog[ 'blog_id' ], $stylesheet_dir, 'dir' );
+			// Create favicon directory and directory url locations.
+			$favicon_dir_uri = $this->get_favicon_path( $blog_id, $stylesheet_dir_uri, 'url' );
+			$favicon_dir     = $this->get_favicon_path( $blog_id, $stylesheet_dir, 'dir' );
 
-			if ( file_exists( $favicon_dir ) ) {
-				$output .= '#wpadminbar .quicklinks li#wp-admin-bar-blog-' . $blog[ 'blog_id' ]
+			// Check if the user has manually added a site icon in WP (since WP 4.3).
+			$site_icon_id = (int) get_blog_option( $blog_id, 'site_icon' );
+			if ( 0 !== $site_icon_id ) {
+				switch_to_blog( $blog_id );
+				$url_data = wp_get_attachment_image_src( $site_icon_id, array( 32, 32 ) );
+				$custom_icon = esc_url( $url_data[0] );
+				restore_current_blog();
+			} else if ( file_exists( $favicon_dir ) ) {
+				$custom_icon = $favicon_dir_uri;
+			}
+
+			if ( FALSE !== $custom_icon ) {
+				$output .= '#wpadminbar .quicklinks li#wp-admin-bar-blog-' . $blog_id
 					. ' .blavatar { font-size: 0 !important; }';
-				$output .= '#wp-admin-bar-blog-' . $blog[ 'blog_id' ]
-					. ' div.blavatar { background: url( "' . $favicon_dir_uri
+				$output .= '#wp-admin-bar-blog-' . $blog_id
+					. ' div.blavatar { background: url( "' . $custom_icon
 					. '" ) left bottom/16px no-repeat !important; background-size: 16px !important; margin: 0 2px 0 -2px; }' . "\n";
 			}
 		}
 
-		if ( ! empty( $output ) ) {
-			// Use the filter hook to change style
+		if ( '' !== $output ) {
+			/**
+			 * Use the filter hook to change style.
+			 *
+			 * @type string
+			 */
 			echo apply_filters(
 				'multisite_enhancements_add_admin_bar_favicon',
-				'<style>' . $output . '</style>' . "\n"
+				"\n" . '<style>' . $output . '</style>' . "\n"
 			);
 		}
 	}
 
 	/**
-	 * Maybe removes the "W" logo incl. sublinks from the admin menu
+	 * Maybe removes the "W" logo incl. sublinks from the admin menu.
 	 *
 	 * Use the filter hook to change the default to remove the "W" logo and his sublinks
 	 *     Hook: multisite_enhancements_remove_wp_admin_bar
 	 *
 	 * @since   0.0.2
-	 *
-	 * @param   Object
-	 *
-	 * @return  Void
+	 * @param   WP_Admin_Bar $admin_bar WP_Admin_Bar instance, passed by reference.
 	 */
 	public function change_admin_bar_menu( $admin_bar ) {
 
-		// Use the filter hook to remove or not remove the first part in the admin bar
+		/**
+		 * Use the filter hook to remove or not remove the first part in the admin bar.
+		 *
+		 * @type bool
+		 */
 		if ( apply_filters(
 			'multisite_enhancements_remove_wp_admin_bar',
 			self::$remove_wp_admin_bar
@@ -208,19 +239,18 @@ class Multisite_Add_Admin_Favicon {
 	 *
 	 * @since    1.0.5
 	 *
-	 * @param string $blog_id
-	 * @param string $path
-	 * @param string $path_type
+	 * @param int    $blog_id   Id of the blog in the network.
+	 * @param string $path      Path to Favicon.
+	 * @param string $path_type Type 'url' or 'dir'.
 	 *
 	 * @return string File path to favicon file.
 	 * @internal param ID $integer of blog in network
 	 * @internal param Path $string to Favicon
 	 * @internal param Path $string type 'url' or 'dir'
-	 *
 	 */
-	protected function get_favicon_path( $blog_id = '', $path = '', $path_type = 'url' ) {
+	protected function get_favicon_path( $blog_id = 0, $path = '', $path_type = 'url' ) {
 
-		if ( empty( $blog_id ) ) {
+		if ( 0 === $blog_id ) {
 			$blog_id = get_current_blog_id();
 		}
 

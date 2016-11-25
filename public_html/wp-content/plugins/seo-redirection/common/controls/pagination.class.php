@@ -1,5 +1,4 @@
 <?php
-
 /****************************************************************************
 * pagination.class.php
 *
@@ -45,7 +44,6 @@ private $prev_page_text= "Prev";		//Set text of previous button
 private $first_page_text= "First";	//Set text of first page button
 private $last_page_text= "Last";		//Set text of last button
 private $invalid_page_number_text= "invalid page number!";		//Set text of invalid page number error
-
 
 public function __construct($data_source='',$filter='',$rows=15,$parameter='page_num')
 	{

@@ -4,7 +4,7 @@
 		</div></div>
 		<footer class="container">				
 				<div class="block pull-right text-nowrap">
-					<strong class="hidden-xs">Sek mane:</strong>
+<!--					<strong class="hidden-xs">Sek mane:</strong>
 					<a href="https://twitter.com/mekdrop" target="_blank">
 						<i class="fa fa-twitter"></i>
 					</a>
@@ -16,7 +16,7 @@
 					</a>
 					<a href="http://www.linkedin.com/in/mekdrop" target="_blank">
 						<i class="fa fa-linkedin"></i>
-					</a>				
+					</a>				-->
 
 <?php if (get_option( 'disable_feeds_redirect', null ) === null): ?>
 <span class="dropup">

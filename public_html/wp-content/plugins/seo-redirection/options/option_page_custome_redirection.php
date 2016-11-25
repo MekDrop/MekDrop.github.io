@@ -71,12 +71,11 @@ if($redirect_to_type =='Folder')
 		$redirect_to= $redirect_to. '/';		
 }
 
-	
 
 	if($util->post('add_new')!='')
 	{
 		
-	$theurl = $wpdb->get_row(" select count(ID) as cnt from $table_name where redirect_from='$redirect_from' ");
+	$theurl = $wpdb->get_row($wpdb->prepare(" select count(ID) as cnt from $table_name where redirect_from=%s ",$redirect_from));
 	if($theurl->cnt >0)
 	{
 		$util->failure_option_msg("This URL <b>'$redirect_from'</b> is added previously!");
@@ -88,10 +87,10 @@ if($redirect_to_type =='Folder')
 			$util->failure_option_msg('Please input all required fields!');
 		}else
 		{
-			$wpdb->query(" insert into $table_name(redirect_from,redirect_to,redirect_type,url_type,redirect_from_type,redirect_from_folder_settings,redirect_from_subfolders,redirect_to_type,redirect_to_folder_settings,regex,enabled) values('$redirect_from','$redirect_to','$redirect_type',1,'$redirect_from_type','$redirect_from_folder_settings','$redirect_from_subfolders','$redirect_to_type','$redirect_to_folder_settings','$regex','$enabled') ");
-		
-			$wpdb->query(" delete from $table_name_404 where link='$redirect_from' ");
-			$SR_redirect_cache = new clogica_SR_redirect_cache();
+			
+                        $wpdb->query(" insert into $table_name(redirect_from,redirect_to,redirect_type,url_type,redirect_from_type,redirect_from_folder_settings,redirect_from_subfolders,redirect_to_type,redirect_to_folder_settings,regex,enabled) values('$redirect_from','$redirect_to','$redirect_type',1,'$redirect_from_type','$redirect_from_folder_settings','$redirect_from_subfolders','$redirect_to_type','$redirect_to_folder_settings','$regex','$enabled') ");		
+			$wpdb->query($wpdb->prepare(" delete from $table_name_404 where link=%s ",$redirect_from));
+			$SR_redirect_cache = new free_SR_redirect_cache();
 			$SR_redirect_cache->free_cache();
 		}
 		
@@ -105,8 +104,9 @@ if($redirect_to_type =='Folder')
 			$util->failure_option_msg('Please input all required fields!');
 		}else
 		{
-			$wpdb->query(" update $table_name set redirect_from='$redirect_from',redirect_to='$redirect_to',redirect_type='$redirect_type',redirect_from_type='$redirect_from_type' ,redirect_from_folder_settings='$redirect_from_folder_settings' ,redirect_from_subfolders='$redirect_from_subfolders' ,redirect_to_type='$redirect_to_type' ,redirect_to_folder_settings='$redirect_to_folder_settings' ,regex='$regex',enabled='$enabled'  where ID=" . $edit);
-			$SR_redirect_cache = new clogica_SR_redirect_cache();
+			
+			$wpdb->query("update $table_name set redirect_from='$redirect_from',redirect_to='$redirect_to',redirect_type='$redirect_type',redirect_from_type='$redirect_from_type' ,redirect_from_folder_settings='$redirect_from_folder_settings',redirect_from_subfolders='$redirect_from_subfolders' ,redirect_to_type='$redirect_to_type' ,redirect_to_folder_settings='$redirect_to_folder_settings' ,regex='$regex',enabled='$enabled'  where ID='$edit' ");
+                        $SR_redirect_cache = new free_SR_redirect_cache();
 			$SR_redirect_cache->free_cache();
 		}
 	
@@ -125,9 +125,3 @@ if($util->there_is_cache()!='')
   {
   	include "option_page_custome_redirection_list.php";
   }
-
-
-
-?>
-
-

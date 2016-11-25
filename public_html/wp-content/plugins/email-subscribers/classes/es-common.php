@@ -27,6 +27,18 @@ class es_cls_common
 			case "Disable":
 				$returnstring = '<span style="color:#FF0000">Disable</span>';
 				break;
+			case "In Queue":
+				$returnstring = '<span style="color:#FF0000">In Queue</span>';
+				break;
+			case "Sent":
+				$returnstring = '<span style="color:#00FF00;font-weight:bold;">Sent</span>';
+				break;
+			case "Cron Mail":
+				$returnstring = '<span style="color:#ffd700;font-weight:bold;">Cron Mail</span>';
+				break;	
+			case "Instant Mail":
+				$returnstring = '<span style="color:#993399;">Instant Mail</span>';
+				break;
 			default:
        			$returnstring = $value;
 		}
@@ -78,7 +90,7 @@ class es_cls_common
 	{
 		$string = '';
 		$c=0;
-		$filename = ES_TDOMAIN.$option.'_'.date('Ymd_His').".csv";
+		$filename = 'email-subscribers'.$option.'_'.date('Ymd_His').".csv";
 		foreach($arrays AS $array) 
 		{
 			$val_array = array();
@@ -117,8 +129,7 @@ class es_cls_common
 		$report = $report. "Start Time: ###STARTTIME### \n";
 		$report = $report. "End Time: ###ENDTIME### \n";
 		$report = $report. "For more information, Login to your Dashboard and go to Sent Mails menu in Email Subscribers. \n\n";
-		$report = $report. "Thank You \n";
-		$report = $report. "www.gopiplus.com \n";
+		$report = $report. "Thank You. \n";
 		return $report;
 	}
 	
@@ -131,9 +142,42 @@ class es_cls_common
 		$report = $report. "Start Time: ###STARTTIME### <br/>";
 		$report = $report. "End Time: ###ENDTIME### <br/>";
 		$report = $report. "For more information, Login to your Dashboard and go to Sent Mails menu in Email Subscribers. <br/><br/>";
-		$report = $report. "Thank You <br/>";
-		$report = $report. "www.gopiplus.com <br/>";
+		$report = $report. "Thank You. <br/>";
 		return $report;
+	}
+	
+	public static function es_special_letters() 
+	{
+		$string = "/[\'^$%&*()}{@#~?><>,|=_+\"]/";
+		return $string;
+	}
+}
+
+class es_cls_security
+{
+	public static function es_check_number($value) 
+	{
+		if(!is_numeric($value)) 
+		{ 
+			die('<p>Security check failed. Are you sure you want to do this?</p>'); 
+		}
+	}
+	
+	public static function es_check_guid($value) 
+	{
+		$value_length1 = strlen($value);
+		$value_noslash = str_replace("-", "", $value);
+		$value_length2 = strlen($value_noslash);
+		
+		if( $value_length1 != 34 || $value_length2 != 30)
+		{
+			die('<p>Security check failed. Are you sure you want to do this?</p>'); 
+		}
+		
+		if (preg_match('/[^a-z]/', $value_noslash))
+		{
+			die('<p>Security check failed. Are you sure you want to do this?</p>'); 
+		}
 	}
 }
 ?>

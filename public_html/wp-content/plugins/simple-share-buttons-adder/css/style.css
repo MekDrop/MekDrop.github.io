@@ -78,7 +78,8 @@
 }
 
 .ssbp-wrap .ssbp-list {
-	height: 55px;
+	min-height: 55px;
+	min-width: 200px;
 }
 
 .ssba-include-list {

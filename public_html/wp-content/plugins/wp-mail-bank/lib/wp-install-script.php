@@ -19,7 +19,7 @@ if(!function_exists("create_table_mail_detail"))
 				smtp_username VARCHAR(100),
 				smtp_password VARCHAR(100),
 				PRIMARY KEY (id)
-				) DEFAULT CHARSET=utf8 COLLATE utf8_general_ci";
+				) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE utf8_general_ci";
 		dbDelta($sql);
 	}
 }
@@ -51,7 +51,7 @@ if (count($wpdb->get_var("SHOW TABLES LIKE '" . wp_mail_bank() . "'")) == 0)
 	);
 }
 $option_auto_update_mail = get_option("mail-bank-automatic-update");
-if($option_auto_update_mail == "")
+if($option_auto_update_mail)
 {
 	update_option("mail-bank-automatic-update", "1");
 }

@@ -2,19 +2,19 @@ function _es_addroles()
 {
 	if(document.form_addemail.es_email_mail.value=="")
 	{
-		alert("Please enter subscriber email address.")
+		alert(es_roles_notices.es_roles_email_address);
 		document.form_addemail.es_email_mail.focus();
 		return false;
 	}
 	else if(document.form_addemail.es_email_status.value=="" || document.form_addemail.es_email_status.value=="Select")
 	{
-		alert("Please select subscriber email status.")
+		alert(es_roles_notices.es_roles_email_status);
 		document.form_addemail.es_email_status.focus();
 		return false;
 	}
 	else if( (document.form_addemail.es_email_group.value == "") && (document.form_addemail.es_email_group_txt.value == "") )
 	{
-		alert("Please select or create group for this subscriber.")
+		alert(es_roles_notices.es_roles_email_group);
 		document.form_addemail.es_email_group.focus();
 		return false;
 	}
@@ -27,5 +27,5 @@ function _es_redirect()
 
 function _es_help()
 {
-	window.open("http://www.gopiplus.com/work/2014/05/02/email-subscribers-wordpress-plugin/");
+	window.open("https://wordpress.org/plugins/email-subscribers/faq/");
 }

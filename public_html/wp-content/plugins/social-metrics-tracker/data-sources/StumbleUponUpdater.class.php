@@ -10,6 +10,8 @@ class StumbleUponUpdater extends HTTPResourceUpdater {
 	public $slug  = 'stumbleupon';
 	public $name  = 'StumbleUpon';
 
+	public $enabled_by_default = true;
+
 	private $uri = 'http://www.stumbleupon.com/services/1.01/badge.getinfo';
 
 	public function __construct() {
@@ -32,8 +34,9 @@ class StumbleUponUpdater extends HTTPResourceUpdater {
 		$updater->meta[$this->updater->meta_prefix.$this->updater->slug] = $this->get_total();
 	}
 
+	// Must return an integer
 	public function get_total() {
-		return ($this->updater->data === null || $this->updater->data['result']['in_index'] == false) ? 0 : $this->updater->data['result']['views'];
+		return ($this->updater->data === null || $this->updater->data['result']['in_index'] == false) ? 0 : intval($this->updater->data['result']['views']);
 	}
 
 }

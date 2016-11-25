@@ -1,5 +1,4 @@
 <?php
-
 /****************************************************************************
 * datagrid.class.php
 *
@@ -34,8 +33,7 @@ class datagrid
 	private $paged=true;
 	private $sql;
 	private $no_data_text='No data available to display!';
-	
-	
+
 //-----------------------------------------------------------------
 	
 	public function datagrid($data_source='',$filter='')

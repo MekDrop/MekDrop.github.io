@@ -101,6 +101,8 @@
 #social-metrics-tracker .wp-list-table td.social .bar .delicious 	{ background-color: #222222; color: #EEE; }
 #social-metrics-tracker .wp-list-table td.social .bar .reddit 		{ background-color: #CEE3F8; color: #111; }
 #social-metrics-tracker .wp-list-table td.social .bar .stumbleupon 	{ background-color: #EA4B24; color: #EEE; }
+#social-metrics-tracker .wp-list-table td.social .bar .xing         { background-color: #006567; color: #EEE; }
+#social-metrics-tracker .wp-list-table td.social .bar .flattr       { background-color: #66b115; color: #EEE; }
 #social-metrics-tracker .wp-list-table td.social .bar .other 		{ background-color: #666666; color: #EEE; }
 
 #social-metrics-tracker .wp-list-table tr:hover td.social .bar {
@@ -252,7 +254,39 @@
 /* Configuration page CSS
    ========================================================================== */
 
-.social-metrics_page_social-metrics-tracker-settings .wrap {
+#smt-settings-connections-page {
+
+	table {
+		border: none;
+		border-spacing: 0;
+
+
+		th {
+			text-align: left;
+			font-weight: bold;
+			background-color: #DDD;
+
+			&:first-child {
+				border-radius: 3px 0 0 3px;
+			}
+			&:last-child {
+				border-radius: 0 3px 3px 0;
+			}
+		}
+
+		td, th {
+			padding: 8px 10px;
+		}
+
+		tr:nth-child(odd) {
+			background-color: #EEE;
+		}
+	}
+
+}
+
+.social-metrics_page_social-metrics-tracker-settings .wrap,
+.settings_page_social-metrics-tracker .wrap {
 	max-width: 900px;
 }
 
@@ -509,7 +543,8 @@ button.smt-connection-item:focus {
 
 /* Stat Details Pane
    ========================================================================== */
-.social-metrics_page_social-metrics-tracker-settings {
+.social-metrics_page_social-metrics-tracker-settings,
+.settings_page_social-metrics-tracker {
 	.smt-url-box {
 		color: #333;
 		width: 90%;

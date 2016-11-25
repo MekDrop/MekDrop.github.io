@@ -1,9 +1,10 @@
-<?php if(preg_match('#' . basename(__FILE__) . '#', $_SERVER['PHP_SELF'])) { die('You are not allowed to call this page directly.'); } ?>
-<?php
+<?php if(preg_match('#' . basename(__FILE__) . '#', $_SERVER['PHP_SELF'])) { die('You are not allowed to call this page directly.'); }
+
 // Form submitted, check the data
 if (isset($_POST['frm_es_display']) && $_POST['frm_es_display'] == 'yes')
 {
 	$did = isset($_GET['did']) ? $_GET['did'] : '0';
+	es_cls_security::es_check_number($did);
 	
 	$es_success = '';
 	$es_success_msg = FALSE;
@@ -14,7 +15,7 @@ if (isset($_POST['frm_es_display']) && $_POST['frm_es_display'] == 'yes')
 		$result = es_cls_sentmail::es_sentmail_count($did);
 		if ($result != '1')
 		{
-			?><div class="error fade"><p><strong><?php _e('Oops, selected details doesnt exist.', ES_TDOMAIN); ?></strong></p></div><?php
+			?><div class="error fade"><p><strong><?php _e('Oops, selected details doesnt exist.', 'email-subscribers'); ?></strong></p></div><?php
 		}
 		else
 		{
@@ -29,7 +30,7 @@ if (isset($_POST['frm_es_display']) && $_POST['frm_es_display'] == 'yes')
 				
 				//	Set success message
 				$es_success_msg = TRUE;
-				$es_success = __('Selected record was successfully deleted.', ES_TDOMAIN);
+				$es_success = __('Selected record was successfully deleted.', 'email-subscribers');
 			}
 		}
 	}
@@ -38,7 +39,7 @@ if (isset($_POST['frm_es_display']) && $_POST['frm_es_display'] == 'yes')
 		check_admin_referer('es_form_show');
 		es_cls_optimize::es_optimize_setdetails();
 		$es_success_msg = TRUE;
-		$es_success = __('Successfully deleted all reports except latest 10.', ES_TDOMAIN);
+		$es_success = __('Successfully deleted all reports except latest 10.', 'email-subscribers');
 	}	
 	if ($es_success_msg == TRUE)
 	{
@@ -46,15 +47,15 @@ if (isset($_POST['frm_es_display']) && $_POST['frm_es_display'] == 'yes')
 	}
 }
 ?>
-<script language="javaScript" src="<?php echo ES_URL; ?>sentmail/sentmail.js"></script>
 <div class="wrap">
   <div id="icon-plugins" class="icon32"></div>
-    <h2><?php _e(ES_PLUGIN_DISPLAY, ES_TDOMAIN); ?></h2>
-	<h3><?php _e('Sent Mails', ES_TDOMAIN); ?></h3>
+    <h2><?php _e(ES_PLUGIN_DISPLAY, 'email-subscribers'); ?></h2>
+	<h3><?php _e('Sent Mails', 'email-subscribers'); ?></h3>
     <div class="tool-box">
 	<?php
 	$pagenum = isset( $_GET['pagenum'] ) ? absint( $_GET['pagenum'] ) : 1;
-	$limit = 20;
+	es_cls_security::es_check_number($pagenum);
+	$limit = 30;
 	$offset = ($pagenum - 1) * $limit;
 	$total = es_cls_sentmail::es_sentmail_count(0);
 	$fulltotal = $total;
@@ -67,26 +68,28 @@ if (isset($_POST['frm_es_display']) && $_POST['frm_es_display'] == 'yes')
       <table width="100%" class="widefat" id="straymanage">
         <thead>
           <tr>
-            <th width="3%" class="check-column" scope="col"><input type="checkbox" name="es_group_item[]" /></th>
-			<th scope="col"><?php _e('View Reports', ES_TDOMAIN); ?></th>
-			<th scope="col"><?php _e('Mail Preview', ES_TDOMAIN); ?></th>
-			<th scope="col"><?php _e('Sent Source', ES_TDOMAIN); ?></th>
-			<th scope="col"><?php _e('Sent Start Date', ES_TDOMAIN); ?></th>
-			<th scope="col"><?php _e('Sent End Date', ES_TDOMAIN); ?></th>
-			<th scope="col"><?php _e('Total Mails', ES_TDOMAIN); ?></th>
-			<th scope="col"><?php _e('Action', ES_TDOMAIN); ?></th>
+			<th scope="col"><?php _e('View Reports', 'email-subscribers'); ?></th>
+			<th scope="col"><?php _e('Preview', 'email-subscribers'); ?></th>
+			<th scope="col"><?php _e('Source', 'email-subscribers'); ?></th>
+			<th scope="col"><?php _e('Status', 'email-subscribers'); ?></th>
+			<th scope="col"><?php _e('Type', 'email-subscribers'); ?></th>
+			<th scope="col"><?php _e('Start Date', 'email-subscribers'); ?></th>
+			<th scope="col"><?php _e('End Date', 'email-subscribers'); ?></th>
+			<th scope="col"><?php _e('Total', 'email-subscribers'); ?></th>
+			<th scope="col"><?php _e('Action', 'email-subscribers'); ?></th>
           </tr>
         </thead>
 		<tfoot>
           <tr>
-            <th width="3%" class="check-column" scope="col"><input type="checkbox" name="es_group_item[]" /></th>
-			<th scope="col"><?php _e('View Reports', ES_TDOMAIN); ?></th>
-			<th scope="col"><?php _e('Mail Preview', ES_TDOMAIN); ?></th>
-			<th scope="col"><?php _e('Sent Source', ES_TDOMAIN); ?></th>
-			<th scope="col"><?php _e('Sent Start Date', ES_TDOMAIN); ?></th>
-			<th scope="col"><?php _e('Sent End Date', ES_TDOMAIN); ?></th>
-			<th scope="col"><?php _e('Total Mails', ES_TDOMAIN); ?></th>
-			<th scope="col"><?php _e('Action', ES_TDOMAIN); ?></th>
+			<th scope="col"><?php _e('View Reports', 'email-subscribers'); ?></th>
+			<th scope="col"><?php _e('Preview', 'email-subscribers'); ?></th>
+			<th scope="col"><?php _e('Source', 'email-subscribers'); ?></th>
+			<th scope="col"><?php _e('Status', 'email-subscribers'); ?></th>
+			<th scope="col"><?php _e('Type', 'email-subscribers'); ?></th>
+			<th scope="col"><?php _e('Start Date', 'email-subscribers'); ?></th>
+			<th scope="col"><?php _e('End Date', 'email-subscribers'); ?></th>
+			<th scope="col"><?php _e('Total', 'email-subscribers'); ?></th>
+			<th scope="col"><?php _e('Action', 'email-subscribers'); ?></th>
           </tr>
         </tfoot>
 		<tbody>
@@ -99,7 +102,6 @@ if (isset($_POST['frm_es_display']) && $_POST['frm_es_display'] == 'yes')
 				{
 					?>
 					<tr class="<?php if ($i&1) { echo'alternate'; } else { echo ''; }?>">
-						<td align="left"><input type="checkbox" value="<?php echo $data['es_sent_id']; ?>" name="es_group_item[]"></td>
 					  	<td>
 						<a title="Click For Report" href="<?php echo ES_ADMINURL; ?>?page=es-sentmail&amp;ac=delivery&amp;sentguid=<?php echo $data['es_sent_guid']; ?>">
 						<?php echo $data['es_sent_guid']; ?>
@@ -107,14 +109,18 @@ if (isset($_POST['frm_es_display']) && $_POST['frm_es_display'] == 'yes')
 						</td>
 						<td>
 						<a title="Mail Preview" href="<?php echo ES_ADMINURL; ?>?page=es-sentmail&amp;ac=preview&amp;did=<?php echo $data['es_sent_id']; ?>&amp;pagenum=<?php echo $pagenum; ?>">
-							Preview
+							<img alt="Delete" src="<?php echo ES_URL; ?>images/preview.gif" />
 						</a>
 						</td>
 						<td><?php echo $data['es_sent_source']; ?></td>
+						<td><?php echo es_cls_common::es_disp_status($data['es_sent_status']); ?></td>
+						<td><?php echo es_cls_common::es_disp_status($data['es_sent_type']); ?></td>
 						<td><?php echo $data['es_sent_starttime']; ?></td>
 						<td><?php echo $data['es_sent_endtime']; ?></td>
 						<td><?php echo $data['es_sent_count']; ?></td>
-						<td><a onClick="javascript:_es_delete('<?php echo $data['es_sent_id']; ?>')" href="javascript:void(0);">Delete</a></td>
+						<td><a title="Delete Record" onClick="javascript:_es_delete('<?php echo $data['es_sent_id']; ?>')" href="javascript:void(0);">
+						<img alt="Delete" src="<?php echo ES_URL; ?>images/delete.gif" />
+						</a></td>
 					</tr>
 					<?php
 					$i = $i+1;
@@ -122,7 +128,7 @@ if (isset($_POST['frm_es_display']) && $_POST['frm_es_display'] == 'yes')
 			}
 			else
 			{
-				?><tr><td colspan="8" align="center"><?php _e('No records available.', ES_TDOMAIN); ?></td></tr><?php 
+				?><tr><td colspan="9" align="center"><?php _e('No records available.', 'email-subscribers'); ?></td></tr><?php 
 			}
 			?>
 		</tbody>
@@ -158,9 +164,9 @@ if (isset($_POST['frm_es_display']) && $_POST['frm_es_display'] == 'yes')
 		<div class="tablenav">
 			<div class="alignleft">
 				<select name="action" id="action">
-					<option value="optimize-table"><?php _e('Optimize Table', ES_TDOMAIN); ?></option>
+					<option value="optimize-table"><?php _e('Optimize Table', 'email-subscribers'); ?></option>
 				</select>
-				<input type="submit" value="<?php _e('Optimize Table', ES_TDOMAIN); ?>" class="button action" id="doaction" name="">
+				<input type="submit" value="<?php _e('Optimize Table', 'email-subscribers'); ?>" class="button action" id="doaction" name="">
 			</div>
 			<div class="alignright">
 				<?php echo $page_links; ?>
@@ -170,7 +176,7 @@ if (isset($_POST['frm_es_display']) && $_POST['frm_es_display'] == 'yes')
       </form>
 	  <?php if ($fulltotal > 30 ) { ?>
 	  <div class="error fade"><p>
-	  <?php _e('Note: Please click <strong>Optimize Table</strong> button to delete all reports except latest 10.', ES_TDOMAIN); ?>
+	  <?php _e('Note: Please click <strong>Optimize Table</strong> button to delete all reports except latest 10.', 'email-subscribers'); ?>
 	  </p></div>
 	  <?php } ?>
 	  <p class="description"><?php echo ES_OFFICIAL; ?></p>

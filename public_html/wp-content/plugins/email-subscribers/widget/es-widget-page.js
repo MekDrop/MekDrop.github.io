@@ -5,18 +5,19 @@
 	es_group = document.getElementById("es_txt_group_pg");
     if( es_email.value == "" )
     {
-        alert("Please enter email address.");
+        alert(es_widget_page_notices.es_email_notice);
         es_email.focus();
         return false;    
     }
 	if( es_email.value!="" && ( es_email.value.indexOf("@",0) == -1 || es_email.value.indexOf(".",0) == -1 ))
     {
-        alert("Please provide a valid email address.")
+        alert(es_widget_page_notices.es_incorrect_email);
         es_email.focus();
         es_email.select();
         return false;
     }
-	document.getElementById("es_msg_pg").innerHTML = "loading...";
+
+	document.getElementById("es_msg_pg").innerHTML = es_widget_page_notices.es_load_more;
 	var date_now = "";
     var mynumber = Math.random();
 	var str= "es_email="+ encodeURI(es_email.value) + "&es_name=" + encodeURI(es_name.value) + "&es_group=" + encodeURI(es_group.value) + "&timestamp=" + encodeURI(date_now) + "&action=" + encodeURI(mynumber);
@@ -24,7 +25,7 @@
 }
 
 var http_req = false;
-function es_submit_requests(url, parameters) 
+function es_submit_requests(url, parameters)
 {
 	http_req = false;
 	if (window.XMLHttpRequest) 
@@ -55,14 +56,14 @@ function es_submit_requests(url, parameters)
 	}
 	if (!http_req) 
 	{
-		alert('Cannot create XMLHTTP instance');
+		alert(es_widget_page_notices.es_ajax_error);
 		return false;
 	}
 	http_req.onreadystatechange = eemail_submitresults;
 	http_req.open('POST', url, true);
 	http_req.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-	http_req.setRequestHeader("Content-length", parameters.length);
-	http_req.setRequestHeader("Connection", "close");
+	// http_req.setRequestHeader("Content-length", parameters.length);
+	// http_req.setRequestHeader("Connection", "close");
 	http_req.send(parameters);
 }
 
@@ -78,31 +79,31 @@ function eemail_submitresults()
 			{ 
 				if((http_req.responseText).trim() == "subscribed-successfully")
 				{
-					document.getElementById("es_msg_pg").innerHTML = "Subscribed successfully.";
+					document.getElementById("es_msg_pg").innerHTML = es_widget_page_notices.es_success_message;
 					document.getElementById("es_txt_email_pg").value="";
 				}
 				else if((http_req.responseText).trim() == "subscribed-pending-doubleoptin")
 				{
-					alert('You have successfully subscribed to the newsletter. You will receive a confirmation email in few minutes. Please follow the link in it to confirm your subscription. If the email takes more than 15 minutes to appear in your mailbox, please check your spam folder.');
-					document.getElementById("es_msg_pg").innerHTML = "Subscribed successfully.";
+					alert(es_widget_page_notices.es_success_notice);
+					document.getElementById("es_msg_pg").innerHTML = es_widget_notices.es_success_message;
 					document.getElementById("es_txt_email_pg").value="";
 					document.getElementById("es_txt_name_pg").value="";
 				}
 				else if((http_req.responseText).trim() == "already-exist")
 				{
-					document.getElementById("es_msg_pg").innerHTML = "Email already exist.";
+					document.getElementById("es_msg_pg").innerHTML = es_widget_page_notices.es_email_exists;
 				}
 				else if((http_req.responseText).trim() == "unexpected-error")
 				{
-					document.getElementById("es_msg_pg").innerHTML = "Oops.. Unexpected error occurred.";
+					document.getElementById("es_msg_pg").innerHTML = es_widget_page_notices.es_error;
 				}
 				else if((http_req.responseText).trim() == "invalid-email")
 				{
-					document.getElementById("es_msg_pg").innerHTML = "Invalid email address.";
+					document.getElementById("es_msg_pg").innerHTML = es_widget_page_notices.es_invalid_email;
 				}
 				else
 				{
-					document.getElementById("es_msg_pg").innerHTML = "Please try after some time.";
+					document.getElementById("es_msg_pg").innerHTML = es_widget_page_notices.es_try_later;
 					document.getElementById("es_txt_email_pg").value="";
 					document.getElementById("es_txt_name_pg").value="";
 				}
@@ -110,7 +111,7 @@ function eemail_submitresults()
 		}
 		else 
 		{
-			alert('There was a problem with the request.');
+			alert(es_widget_page_notices.es_problem_request);
 		}
 	}
 }

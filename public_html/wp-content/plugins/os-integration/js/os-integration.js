@@ -1,6 +1,9 @@
 jQuery(document).ready(function(){
-	// prepare the color picker (3.5+ only)
-	jQuery('.color-field').wpColorPicker();
+	// prepare the color picker (3.5+ only), add in a onChange function to update the preview background color.
+	jQuery('.color-field').wpColorPicker({
+					change: function(event, ui) {
+						jQuery('#osintbgpreview').css('background-color', ui.color);
+					}});
 	
 	// File uploader
 	var file_frame;
@@ -32,6 +35,7 @@ jQuery(document).ready(function(){
 		  // We set multiple to false so only get one image from the uploader
 		  attachment = file_frame.state().get('selection').first().toJSON();
 		  jQuery('#squareimgurl').val(attachment.url);
+		  jQuery('#osintimgpreview').attr('src',attachment.url);
 		});
 		// Finally, open the modal
 		file_frame.open();

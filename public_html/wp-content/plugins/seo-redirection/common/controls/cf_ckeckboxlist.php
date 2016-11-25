@@ -1,41 +1,5 @@
 <?php
 
-/*
-Author: Fakhri Alsadi
-Date: 16-7-2010
-Contact: www.clogica.com   info@clogica.com    mobile: +972599322252
-
-*/
-
-
-
-///@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-///@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-////  class ckeckboxlist @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-/*
-
-A class to create a check boxes list using PHP
-
-------------------------------------------------
-example
-------------------------------------------------
-
-$check = new ckeckboxlist('chlist',200,100,$_POST['chlist'],'FFcaFF');
-$check->checkalltext("تحديد الكل");
-
-$check->additem('f1','الخيار الأول');
-$check->additem('f2','الخيار 2');
-$check->additem('f3','الخيار 3');
-$check->additem('f4','الخيار 4');
-$check->additem('f5','الخيار 5');
-$check->additem('f6','الخيار 6');
-$check->additem('f7','الخيار 7');
-$check->endlist();
-
-
-*/
-////@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-
 if(!class_exists('ckeckboxlist')){
 class ckeckboxlist{
       var $chname="check";

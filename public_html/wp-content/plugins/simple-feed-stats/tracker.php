@@ -1,8 +1,11 @@
 <?php // Simple Feed Stats > Tracking
 
 define('WP_USE_THEMES', false);
-require('../../../wp-blog-header.php');
+require('../../../wp-load.php');
+if (!defined('ABSPATH')) exit;
+
 $options = get_option('sfs_options');
+
 global $wpdb, $wp_query;
 
 // $wpdb->show_errors();
@@ -62,6 +65,8 @@ if (isset($params['sfs_tracking']) && !empty($params['sfs_tracking'])) {
 	elseif ($feed_type == 'comments') $type = 'Comments';
 	elseif ($feed_type == 'open')     $type = 'Open';
 	else                              $type = 'Other';
+	
+	$tracking = 'default';
 	
 	if ($options['sfs_tracking_method'] == 'sfs_custom_tracking') $tracking = 'custom';
 	if ($options['sfs_tracking_method'] == 'sfs_alt_tracking')    $tracking = 'alt';

@@ -8,64 +8,133 @@ class socialMetricsSettings {
 
 	private $facebook_auth_error;
 
+	/**
+	 * @var SocialMetricsTracker
+	 */
+	private $smt;
+
+	private $settings_pages = array();
+
 	function __construct($smt) {
 
 		$this->smt = $smt;
 
 		add_action( 'admin_menu', array(&$this, 'admin_menu'), 99 );
+		add_action( 'network_admin_menu', array(&$this, 'network_admin_menu'), 99 );
 
 		$pages = array('social-metrics-tracker', 'social-metrics-tracker-export', 'social-metrics-tracker-settings');
 
 		if (isset($_REQUEST['page']) && in_array($_REQUEST['page'], $pages)) {
-			$this->section = (isset($_REQUEST['section'])) ? $_REQUEST['section'] : 'general';
-			$this->wpsf = new WordPressSettingsFramework( plugin_dir_path( __FILE__ ) .'settings/smt-'.$this->section.'.php', 'smt' );
+			add_action( 'admin_init', array($this, 'setup'), 5 );
 		}
 
+		// $this->smt->use_network_settings = get_site_option('smt_use_network_settings_everywhere');
+
+	}
+
+	function setup() {
+		$this->section = (isset($_REQUEST['section'])) ? $_REQUEST['section'] : 'general';
+		$this->wpsf = new WordPressSettingsFramework( plugin_dir_path( __FILE__ ) .'settings/smt-'.$this->section.'.php', 'smt' );
 	}
 
 	function admin_menu() {
+		// Only add the admin page if overriding the settings is allowed. This will also prevent access to the pages
+		// if overriding is net allowed, thereby prevent options from being modified
+		if ( $this->smt->is_active_for_network() && $this->smt->use_network_settings() ) {
+			return;
+		}
 
-		add_submenu_page('social-metrics-tracker', 'Social Metrics Tracker Configuration', 'Configuration', 'manage_options', 'social-metrics-tracker-settings',  array($this, 'render_settings_page'));
+		add_submenu_page(
+			'social-metrics-tracker',
+			'Social Metrics Tracker Configuration',
+			'Configuration',
+			'manage_options',
+			'social-metrics-tracker-settings',
+			array($this, 'render_settings_page')
+		);
 	}
 
-	// Display list of all and current option pages
-	function nav_links() {
+	function network_admin_menu() {
+		if ( $this->smt->is_active_for_network() ) {
+			add_submenu_page(
+				'settings.php',
+				'Social Metrics Tracker Configuration',
+				'Social Metrics Tracker', 'manage_network_options',
+				'social-metrics-tracker',
+				array($this, 'render_settings_page'),
+				'dashicons-chart-area'
+			);
+		}
+	}
 
+	/**
+	 * Returns an array of settings pages
+	 *
+	 * @return array
+	 */
+	function get_settings_pages() {
 
-		$args = array(
-			'menu_items' => array(
-				array(
-					'slug'    => 'general',
-					'label'   => 'General Settings',
-					'url'     => 'admin.php?page=social-metrics-tracker-settings',
-					'current' => $this->section == 'general'
-				),
-				array(
-					'slug'    => 'connections',
-					'label'   => 'API Connection Settings',
-					'url'     => add_query_arg('section', 'connections'),
-					'current' => $this->section == 'connections'
-				),
-				array(
-					'slug'    => 'gapi',
-					'label'   => 'Google Analytics Setup',
-					'url'     => add_query_arg('section', 'gapi'),
-					'current' => $this->section == 'gapi'
-				),
-				array(
-					'slug'    => 'urls',
-					'label'   => 'Advanced Domain / URL Setup',
-					'url'     => add_query_arg('section', 'urls'),
-					'current' => $this->section == 'urls'
-				),
-			)
+		$pages = array();
+
+		// General
+		$pages[] = array(
+			'slug'    => 'general',
+			'label'   => 'General Settings',
+			'url'     => remove_query_arg( 'section' ),
+			'current' => $this->section == 'general'
 		);
 
-		print($this->smt->renderTemplate('settings-nav', $args));
+		// API Connections
+		$pages[] = array(
+			'slug'    => 'connections',
+			'label'   => 'API Connection Settings',
+			'url'     => add_query_arg('section', 'connections'),
+			'current' => $this->section == 'connections'
+		);
+
+		// Google Analytics
+		$pages[] = array(
+			'slug'    => 'gapi',
+			'label'   => 'Google Analytics Setup',
+			'url'     => add_query_arg('section', 'gapi'),
+			'current' => $this->section == 'gapi'
+		);
+
+		// Domain / URL setup
+		$pages[] = array(
+			'slug'    => 'urls',
+			'label'   => 'Advanced Domain / URL Setup',
+			'url'     => add_query_arg('section', 'urls'),
+			'current' => $this->section == 'urls'
+		);
+
+		return $pages;
 	}
 
 
 	function render_settings_page() { 
+		$pages = $this->get_settings_pages();
+
+		// Check if the user can access this settings page. The proper way to do this would be to user the WordPress
+		// capabilities system.
+		$invalid_page = true;
+		foreach ( $pages as $page ) {
+			if ( $page['slug'] === $this->section ) {
+				$invalid_page = false;
+				break;
+			}
+		}
+
+		// Display the WordPress access denied option
+		if ( $invalid_page ) {
+			_e( 'Cheatin&#8217; uh?' );
+			return;
+		}
+
+		// Process network settings if submitted
+		if (isset($_POST['use_network_settings_everywhere']) && is_multisite() && current_user_can('manage_network')) {
+			$this->smt->use_network_settings($_POST['use_network_settings_everywhere']);
+		}
 
 		switch ($this->section) {
 			case 'gapi':
@@ -102,9 +171,40 @@ class socialMetricsSettings {
 
 		?>
 		<div class="wrap">
+
 			<h2>Social Metrics Tracker Configuration</h2>
-			<?php $this->nav_links(); ?>
+
+			<?php /********** Show on single-site if user can network configure **********/ ?>
+			<?php if ( ! is_network_admin() && $this->smt->is_active_for_network() && current_user_can( 'manage_network' ) ) : ?>
+				<div id="message" class="update-nag notice below-h2"><p>This page will only configure the plugin for the current blog. You can configure all sites at once <a href="<?php echo network_admin_url('settings.php?page=social-metrics-tracker'); ?>">on the Network Settings page</a>.</p></div>
+			<?php endif; ?>
+
+			<?php /********** Show on network-admin always **********/ ?>
+			<?php if ( is_network_admin() && $this->smt->is_active_for_network() ) : ?>
+				<div class="box" style="margin: 15px 0;">
+					<form method="post" id="smt-settings-url-page">
+						<h3>Network Settings Mode</h3>
+						<p> 
+							<select name="use_network_settings_everywhere">
+								<option value="1" <?php selected($this->smt->use_network_settings(), 1); ?>>Use one configuration for every site.</option>
+								<option value="0" <?php selected($this->smt->use_network_settings(), 0); ?>>Allow a different configuration set by each blog admin.</option>
+							</select>
+							<input type="submit" class="button" value="Apply">
+						</p>
+					</form>
+				</div>
+			<?php endif; ?>
+
+		
+			<?php /********** Hide settings on network-admin if disabled **********/ ?>
+			<?php if (is_multisite() && is_network_admin() && !$this->smt->use_network_settings()) : ?>
+				<div class="box"><p>You must configure each blogs plugin settings seperately unless you change the setting above.</p></div>
+			<?php else : ?>
+
+			<?php print($this->smt->renderTemplate('settings-nav', array( 'menu_items' => $pages ))); ?>
 			<?php call_user_func(array($this, $this->section.'_section')); ?>
+
+			<?php endif; ?>
 
 		</div>
 	<?php
@@ -113,16 +213,26 @@ class socialMetricsSettings {
 
 	// Render the general settings page
 	function general_section() {
+		add_filter( 'pre_option_smt_settings', array( $this, 'patch_settings' ) );
 		$this->wpsf->settings('');
+		remove_filter( 'pre_option_smt_settings', array( $this, 'patch_settings' ) );
+	}
+
+	public function patch_settings()
+	{
+		return $this->smt->get_smt_options();
 	}
 
 	// Saves the general settings page
 	function process_general_form() {
 		if (!isset($_POST) || count($_POST) == 0) return;
+		if (!isset($_POST['smt_settings'])) return;
 		$this->smt->merge_smt_options($_POST['smt_settings']);
 	}
 
 	function connections_section() {
+
+		$api_enabled = $this->smt->get_smt_option('api_enabled');
 
 		$args = array(
 			'facebook_public_checked' => checked('public', $this->smt->get_smt_option('connection_type_facebook'), false),
@@ -133,11 +243,26 @@ class socialMetricsSettings {
 			'fb_app_secret' => isset($_POST['fb_app_secret']) ? $_POST['fb_app_secret'] : '',
 		);
 
+		// Build list of all available APIs and their status
+		foreach ( $this->smt->updater->allSources() as $HTTPResourceUpdater ) {
+			$args['smt_apis'][] = array(
+				'slug' => $HTTPResourceUpdater->slug,
+				'name' => $HTTPResourceUpdater->name,
+				'enable-checked'  => checked( (boolean) $api_enabled[$HTTPResourceUpdater->slug], true, false ),
+				'disable-checked' => checked( (boolean) $api_enabled[$HTTPResourceUpdater->slug], false, false ),
+			);
+		}
+
 		print($this->smt->renderTemplate('settings-connections', $args));
 	}
 
 	function process_connections_form() {
 		if (!isset($_POST) || count($_POST) == 0) return;
+
+		// Save API enabled/disabled status
+		if ( isset($_POST['smt_api_enabled']) && is_array($_POST['smt_api_enabled']) ) {
+			$this->smt->set_smt_option('api_enabled', $_POST['smt_api_enabled']);
+		}
 
 		// Save FB connection type
 		$this->smt->set_smt_option('connection_type_facebook', $_POST['connection_type_facebook']);
@@ -307,7 +432,8 @@ class socialMetricsSettings {
 		);
 		$posts_array = get_posts( $args );
 
-		return $posts_array[0]->ID;
+		if ($posts_array)
+			return $posts_array[0]->ID;
 
 	}
 
@@ -367,7 +493,7 @@ class socialMetricsSettings {
 				<li><a href="https://console.developers.google.com" target="_new">Set up a free Google Developer account</a></li>
 				<li>Create a new project</li>
 				<li>Enable the Google Analytics API for the project</li>
-				<li>Under <b>APIs & auth > Credentials</b> click "Create new Client ID" and select "Web Appplication"</li>
+				<li>Under <b>Credentials</b>, create a new credential and set it up as an "OAuth Client ID" for a "Web Appplication"</li>
 				<li>Add the following authorized redirect URI: <input value="<?php echo $this->gapi->redirect_uri; ?>" onClick="this.select();" style="min-width:300px; background:white; cursor:text; font-size:11px" readonly></li>
 				<li>Enter the information you receive below: </li>
 			</ol>

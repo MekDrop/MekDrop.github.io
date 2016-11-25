@@ -3,7 +3,7 @@ Contributors: fakhris
 Donate link:http://www.clogica.com/donations.htm
 Tags: redirection, seo redirection, redirect, redirected, Quick Redirect, post redirect, 301 redirect, 404 redirection, redirection plugin
 Requires at least: 3.0.1
-Tested up to: 4.2.1
+Tested up to: 4.4
 Stable tag: trunk
 
 By this plugin you can build 301,302 or 307 redirectios easily for your site, you can also monitor 404 Error Pages and redirect them. 
@@ -102,12 +102,32 @@ To redirect a folder, go to custom redirection tab, add a new folder-to-page or 
 Go to Discvered 404 Error Pages tab, choose any 404 error page and choose 'Redirect' to create It's redirection, you can add it as a custom redirection if you know it\'s URL.
 
 == Changelog ==
-
-= 2.5 =
-* Using relative URLs instead of absolute URL's, This will usefull when changing the domian name.
+= 3.5 =
+* Fixing some issues.
+= 3.4 =
+* Fixing error appears when deleting the plugin.
+= 3.3 =
+* Hot fixes
+= 3.2 =
+* Hot fixes
+= 3.1 =
+* Redirect loops protection
+= 3 =
+* Hot fixes
+= 2.9 =
+* Hot fixes for redirecting woocommerce products.
+= 2.8 =
+* Redirect loop prevention.
+* The Ad for the premium version has become in a separate tab not in all the plugin screens as it may disturb some people.
+* Some other fixes.
+= 2.7 =
+* Some fixes.
 = 2.6 =
 * Some hot fixes.
-== 2.8 ==
-* Redirect loop prevention
-* The Ad for the premium version has become in a separate tab not in all the plugin screens as it may disturb some people.
-* Some other fixes
+= 2.5 =
+* Using relative URLs instead of absolute URL's, This will usefull when changing the domian name.
+
+
+
+
+

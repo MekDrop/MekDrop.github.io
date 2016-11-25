@@ -10,6 +10,8 @@ class PinterestUpdater extends HTTPResourceUpdater {
 	public $slug  = 'pinterest';
 	public $name  = 'Pinterest';
 
+	public $enabled_by_default = false;
+
 	private $uri = 'http://api.pinterest.com/v1/urls/count.json';
 
 	public function __construct() {
@@ -33,8 +35,9 @@ class PinterestUpdater extends HTTPResourceUpdater {
 		$updater->meta[$this->updater->meta_prefix.$this->updater->slug] = $this->get_total();
 	}
 
+	// Must return an integer
 	public function get_total() {
-		return ($this->updater->data === null) ? 0 : $this->updater->data['count'];
+		return ($this->updater->data === null) ? 0 : intval($this->updater->data['count']);
 	}
 
 }

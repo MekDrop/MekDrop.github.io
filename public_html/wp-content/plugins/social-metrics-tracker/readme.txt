@@ -3,8 +3,8 @@ Contributors: bcole808
 Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=K2Z4QFWKJ5DM4
 Tags: admin, dashboard, social, social media, facebook, twitter, metrics, analytics, tracking, stats, engagement, share, sharing, shares, likes, tweets
 Requires at least: 3.5
-Tested up to: 4.2
-Stable tag: 1.5.3
+Tested up to: 4.4.2
+Stable tag: 1.6.6
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -19,7 +19,7 @@ This WordPress plugin collects and displays an analysis of social media interact
 
 = Get stats from these social networks: =
 
-Facebook, Twitter, LinkedIn, StumbleUpon, Pinterest, and Google+
+Facebook, Reddit, LinkedIn, StumbleUpon, Pinterest, Google+, XING, and Flattr
 
 = Focus your writing topics: =
 
@@ -53,7 +53,11 @@ The information is retrieved directly from the public APIs that each social netw
 
 = What social networks are measured? =
 
-Data is collected from the following social networks: Facebook, Twitter, LinkedIn, StumbleUpon, Pinterest, and Google+
+Facebook, Reddit, LinkedIn, StumbleUpon, Pinterest, Google+, XING, and Flattr are available for tracking. By default, not all of the data sources are enabled in order to optimize performance out of the box. You can enable or disable tracking of data from any of these social networks by going to the API Connections Settings page in the plugin configuration area. It is recommended to only turn on the networks where your visitors are actively sharing content in order to conserve server resources when fetching data.
+
+= Why is Twitter not available? =
+
+In November of 2015, Twitter officially removed their API which provided share counts of URLS on Twitter. At this time, there is no comparable way to retrieve the number of all-time shares of a URL. Please petition with Twitter to create an API for this!
 
 = What information is sent from my blog to other services? =
 
@@ -69,11 +73,19 @@ Absolutely! This plugin was created with large-scale Multisite blog networks in 
 
 = What about pageviews? =
 
-You can link with your Google Analytics account to import pageview data for posts. This requires a free Google API Developer Key.
+You can link with your Google Analytics account to import pageview data for posts. This requires a free Google API Developer Key. Note: some users have been having trouble getting Google Analytics set up correctly. This section of the plugin needs to be updated in the future to be more stable. 
 
 = What about canonical URLs? =
 
 Ah yes, sometimes you have more than one URL to a post. For example, with or without www or with http:// or https://.  There is a tool on the configuration page of the plugin to help you configure the checking of canonical URLs. When there are multiple URLs associated with a post, there will be a new link that appears by each post called "URL Details" on the reporting dashboard which will provide detailed stats. 
+
+= Why are share counts are different than what they should be? =
+
+The main thing that can cause differences in share counts is different URL variants for the same post. For example, http:// or https:// will be a different URL, or the presence or absence of a trailing slash will be a different URL as well. Sometimes social networks are smart and combine counts of canonical URLs, and sometimes they do not combine them.
+
+A good tool to figure out the "real" share count is www.SharedCount.com where you can enter a URL and the tool will tell you what the social network APIs are reporting. Try a couple of possible URL variants with that tool and see if you can figure out if maybe there is more than one version of a post URL that has shares. 
+
+It has also been reported that sometimes social networks will suddenly reduce or reset the number of shares for a given URL. I have not been able to figure out why, but please get in touch if you have any idea why this is happening. 
 
 = What if I migrate to a new domain? =
 
@@ -91,10 +103,40 @@ This plugin was created by Ben Cole, as a member of the Chapman University web m
 3. Configuration options - General setup
 4. Configuration options - Google Analytics setup
 5. Configuration options - Advanced URL / Domain setup
-6. Data exported to an .xls spreadsheet
+6. Data exported to a .csv spreadsheet
 
 
 == Changelog ==
+
+= 1.6.6 =
+* Fixed a bug where custom post types were not being listed on the settings page
+
+= 1.6.5 =
+* Added option to run updates in the page footer instead of the cron
+* Added option to set an update range to disable updating of older posts
+* Change wording of some options to make them easier to understand
+* Fixed some PHP errors with WP Multisite
+
+= 1.6.4 =
+* Minor bug fixes: resolved some PHP errors and warnings
+
+= 1.6.3 =
+* Remove Twitter API because it has been officially discontinued by Twitter.
+
+= 1.6.2 =
+* Improved error handling for Google Plus API
+
+= 1.6.1 =
+* Added colors for XING and Flattr
+
+= 1.6.0 =
+* Added API stats for Reddit.com
+* Added API stats for XING.com
+* Added API stats for Flattr.com
+* Allow admin to disable specific social network APIs from being used (Some APIs are now disabled by default to optimize performance out of the box)
+* Added network settings page when plugin is network activated
+* Changed data export tool to create .csv instead of .xls
+* Improve performance of data export tool for large sites
 
 = 1.5.3 =
 * Allow attachment/media pages to be tracked
@@ -210,6 +252,27 @@ This plugin was created by Ben Cole, as a member of the Chapman University web m
 
 == Upgrade Notice ==
 
+= 1.6.6 =
+Fixed a bug where custom post types were not being listed on the settings page
+
+= 1.6.5 =
+Added options to help control how and when updates occur
+
+= 1.6.4 =
+Minor bug fixes
+
+= 1.6.3 =
+Remove Twitter API because it has been officially discontinued by Twitter.
+
+= 1.6.2 =
+Improved error handling for Google Plus API
+
+= 1.6.1 =
+Added colors for XING and Flattr
+
+= 1.6.0 =
+Added new social networks for tracking
+
 = 1.5.3 =
 Allow attachments to be tracked, and misc. updates
 
@@ -298,7 +361,7 @@ To display the total number of social interactions, get the post meta:
 
 Here is a listing of all of the available data fields which you can access in that way:
 
-socialcount_TOTAL, socialcount_facebook, socialcount_twitter, socialcount_googleplus, socialcount_linkedin, socialcount_pinterest, socialcount_stumbleupon, socialcount_LAST_UPDATED
+socialcount_TOTAL, socialcount_facebook, socialcount_googleplus, socialcount_linkedin, socialcount_pinterest, socialcount_stumbleupon, socialcount_LAST_UPDATED
 
 **Extending the plugin**
 

@@ -10,6 +10,8 @@ class GooglePlusUpdater extends HTTPResourceUpdater {
 	public $slug  = 'googleplus';
 	public $name  = 'Google Plus';
 
+	public $enabled_by_default = false;
+
 	private $uri = 'https://clients6.google.com/rpc';
 
 	public function __construct() {
@@ -42,11 +44,34 @@ class GooglePlusUpdater extends HTTPResourceUpdater {
 		if (!is_array($updater->data)) return false;
 
 		$updater->meta = array();
-		$updater->meta[$this->updater->meta_prefix.$this->updater->slug] = $this->get_total();
+
+		if ( $this->updater->data !== null && isset($this->updater->data['result']) ) {
+			$updater->meta[$this->updater->meta_prefix.$this->updater->slug] = $this->get_total();
+		}
+
 	}
 
 	public function get_total() {
-		return ($this->updater->data === null) ? 0 : $this->updater->data['result']['metadata']['globalCounts']['count'];
+
+		if ( ($this->updater->data === null) ) return 0;
+		if ( !isset($this->updater->data['result']) ) return 0;
+
+		return intval($this->updater->data['result']['metadata']['globalCounts']['count']);
+
+	}
+
+	/**
+	 * Checks the response body and reports status to circuit breaker
+	 * @param $response
+	 */
+	public function confirmResponse($response) {
+		if ( !$response ) {
+			$this->wpcb->reportFailure($this->http_error, $this->http_error_detail);
+		} else if ( $this->updater->data === null || !isset($this->updater->data['result']) ) {
+			$this->wpcb->reportFailure('The connection was successful, but we did not receive the expected data from Google.', $this->updater->data);
+		} else {
+			$this->wpcb->reportSuccess();
+		}
 	}
 
 }

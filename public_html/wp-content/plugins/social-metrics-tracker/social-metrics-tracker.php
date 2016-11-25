@@ -3,8 +3,8 @@
 Plugin Name: Social Metrics Tracker
 Plugin URI: https://github.com/ChapmanU/wp-social-metrics-tracker
 Description: Collect and display social network shares, likes, tweets, and view counts of posts.
-Version: 1.5.3
-Author: Ben Cole, Chapman University
+Version: 1.6.6
+Author: Ben Cole
 Author URI: http://www.bencole.net
 License: GPLv2+
 */
@@ -38,9 +38,12 @@ Handlebars_Autoloader::register();
 
 class SocialMetricsTracker {
 
-	public $version = '1.5.3'; // for db upgrade comparison
+	public $version = '1.6.6'; // for db upgrade comparison
 	public $updater;
 	public $options;
+	protected $network_activated;
+	protected $use_network_settings;
+
 
 	public function __construct() {
 
@@ -53,6 +56,8 @@ class SocialMetricsTracker {
 			add_action('admin_enqueue_scripts', array($this, 'adminHeaderScripts'));
 			add_action('plugins_loaded', array($this, 'version_check'));
 			add_action('wp_dashboard_setup', array($this, 'dashboard_setup'));
+
+			new socialMetricsSettings($this);
 		}
 
 		add_action('init', array($this, 'init'));
@@ -84,7 +89,74 @@ class SocialMetricsTracker {
 
 	private function initOptions() {
 		if (is_array($this->options)) return;
-		$this->options = get_option('smt_settings', array());
+
+		if ( $this->use_network_settings() ) {
+			$this->options = get_site_option('smt_settings', array());
+		} else {
+			$this->options = get_option('smt_settings', array());
+		}
+
+	}
+
+	/**
+	 * Returns true if this blog is multisite enabled and this plugin has been activated network wide
+	 *
+	 * @return bool
+	 */
+	public function is_active_for_network() {
+
+		// Return cached value?
+		if ( null !== $this->network_activated ) {
+			return $this->network_activated;
+		}
+
+		// Single site
+		if ( ! is_multisite() ) {
+			return $this->network_activated = false;
+		}
+
+		// Multisite
+		if ( !function_exists( 'is_plugin_active_for_network' ) ) {
+			require_once( ABSPATH . '/wp-admin/includes/plugin.php' );
+		}
+
+		return $this->network_activated = is_plugin_active_for_network( 'social-metrics-tracker/social-metrics-tracker.php' );
+	}
+
+	/**
+	 * Returns true if we should always read/write to network settings instead of current blog
+	 * Also updates the saved value if provided
+	 *
+	 * @param bool - Update the option
+	 * @return bool
+	 */
+	public function use_network_settings($new_value=null) {
+
+		// If unable to use_network_settings
+		if ( !$this->is_active_for_network() ) {
+			return $this->use_network_settings = false;
+		}
+
+		// Update saved value if provided
+		if ( null !== $new_value  && strlen($new_value) > 0 ) {
+
+			// Update option
+			$this->use_network_settings = $new_value;
+			update_site_option( 'smt_use_network_settings_everywhere', $this->use_network_settings );
+
+			// Re-load options from DB (IMPORTANT!)
+			$this->options = null;
+			$this->initOptions();
+			$this->add_missing_settings();
+		}
+
+		// Return cached value?
+		if ( null !== $this->use_network_settings ) {
+			return $this->use_network_settings;
+		}
+
+		// Get saved value, or default
+		return $this->use_network_settings = get_site_option('smt_use_network_settings_everywhere', false);
 	}
 
 	/***************************************************
@@ -151,8 +223,6 @@ class SocialMetricsTracker {
 
 		// Export page
 		add_submenu_page('social-metrics-tracker', 'Data Export Tool', 'Export Data', $visibility, 'social-metrics-tracker-export',  array($this, 'render_view_export'));
-
-		new socialMetricsSettings($this);
 
 	} // end adminMenuSetup()
 
@@ -257,6 +327,25 @@ class SocialMetricsTracker {
 				$this->delete_smt_option('debug_report_visibility');
 			}
 
+			// 4: If migrating from version below 1.6.0 (not a clean install)
+			if ($installed_version !== false && version_compare($installed_version, '1.6.0', '<')) {
+
+				// users prior to this version had the following set of APIs enabled, so we should maintain that even if the defaults change. 
+				$this->set_smt_option('api_enabled', array(
+					'facebook'    => true,
+					'twitter'     => true,
+					'linkedin'    => true,
+					'googleplus'  => true,
+					'pinterest'   => true,
+					'stumbleupon' => true
+				));
+
+				// Multisite installations should explicitly retain their behavior
+				if ( is_multisite() ) {
+					$this->use_network_settings( false );
+				}
+			}
+
 			// 4: Add any new settings
 			$this->add_missing_settings();
 
@@ -269,9 +358,6 @@ class SocialMetricsTracker {
 	***************************************************/
 	public function activate() {
 
-		// Set default post types to track
-		$this->set_smt_option('post_types_post', 'post', false);
-		$this->set_smt_option('post_types_page', 'page', false);
 		$this->add_missing_settings(); // Also saves the items above
 
 		$this->version_check();
@@ -283,11 +369,20 @@ class SocialMetricsTracker {
 	public function add_missing_settings() {
 		$this->initOptions();
 
+		$updater = new MetricsUpdater($this);
+
 		// Configure default options here;
 		// They will be set only if a value does not already exist in the DB. 
 		$defaults = array(
-			'connection_type_facebook' => 'public'
+			'connection_type_facebook' => 'public',
+			'post_types_post'          => 'post',
+			'post_types_page'          => 'page',
 		);
+
+		// Allow overriding settings by default
+		if ( $this->is_active_for_network() ) {
+			if ( 'does-not-exist' === get_site_option('smt_use_network_settings_everywhere', 'does-not-exist') ) update_site_option( 'smt_use_network_settings_everywhere', 0 );
+		}
 
 		foreach ($defaults as $key => $value) {
 			if ($this->get_smt_option($key) === false) {
@@ -295,11 +390,21 @@ class SocialMetricsTracker {
 			}
 		}
 
+		// Merge the api_enabled array to ensure all APIs have a value
+		$api_enabled_defaults = array();
+		$api_enabled_current = $this->get_smt_option('api_enabled') ? $this->get_smt_option('api_enabled') : array();
+
+		foreach ($updater->allSources() as $HTTPResourceUpdater) {
+			$api_enabled_defaults[$HTTPResourceUpdater->slug] = $HTTPResourceUpdater->enabled_by_default;
+		}
+
+		$this->set_smt_option('api_enabled', array_merge($api_enabled_defaults, $api_enabled_current), false);
+
 		// Load defaults from smt-general.php
 		require('settings/smt-general.php');
 		global $wpsf_settings;
 
-		foreach ($wpsf_settings[0]['fields'] as $default) {
+		foreach ($wpsf_settings['smt']['fields'] as $default) {
 			$key = $default['id'];
 
 			if ($this->get_smt_option($key) === false) {
@@ -308,6 +413,11 @@ class SocialMetricsTracker {
 		}
 
 		$this->save_smt_options();
+	}
+
+	public function get_smt_options() {
+		$this->initOptions();
+		return $this->options;
 	}
 
 	/***************************************************
@@ -350,7 +460,11 @@ class SocialMetricsTracker {
 	* Saves the settings to the DB
 	***************************************************/
 	private function save_smt_options() {
-		return update_option('smt_settings', $this->options);
+		if ( $this->use_network_settings() ) {
+			return update_site_option('smt_settings', $this->options);
+		} else {
+			return update_option('smt_settings', $this->options);
+		}
 	}
 
 	public function deactivate() {

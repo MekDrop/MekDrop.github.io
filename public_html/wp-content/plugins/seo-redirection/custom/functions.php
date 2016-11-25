@@ -1,6 +1,5 @@
 <?php
 // custom functions
-
 if(!function_exists("SEOR_make_absolute_url")) {
 	function SEOR_make_absolute_url($url)
 	{
@@ -63,7 +62,7 @@ function c_save_404_redirection_options()
 		
  	$util->update_post_option('p404_discovery_status');
 	$util->update_post_option('p404_status');
-	$util->update_option('p404_redirect_to',$_POST['redirect_to']);		
+	$util->update_option('p404_redirect_to',$util->post('redirect_to'));
 }}
 
 //------------------------------------------------------------
@@ -107,6 +106,7 @@ function c_optimize_tables()
 	$table_name1 = $table_prefix . 'WP_SEO_404_links';
 	$table_name2 = $table_prefix . 'WP_SEO_Redirection';
 	$table_name3 = $table_prefix . 'WP_SEO_Redirection_LOG';
-	$wpdb->query(" OPTIMIZE TABLE  $table_name1,$table_name2,$table_name3 ");
+        $table_name4 = $table_prefix . 'WP_SEO_Cache';
+	$wpdb->query(" OPTIMIZE TABLE  $table_name1,$table_name2,$table_name3,$table_name4 ");
 }}
 

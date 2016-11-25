@@ -6,6 +6,8 @@ add_action( 'wp_enqueue_scripts', 'ssba_page_scripts' );
 
 // add css scripts for page/post use
 function ssba_page_scripts() {
+    // ssba.min.js
+    wp_enqueue_script('ssba', plugins_url('js/ssba.min.js', SSBA_FILE), array('jquery'), false, true);
 
 	// get settings
 	$arrSettings = get_ssba_settings();
@@ -56,6 +58,7 @@ function get_ssba_style() {
 								.ssba, .ssba a
 								{
 									text-decoration:none;
+									border:0;
 									' . ($arrSettings['ssba_div_background'] == ''	? 'background: none;' : NULL) . '
 									' . ($arrSettings['ssba_font_family'] 	!= ''	? 'font-family: ' . $arrSettings['ssba_font_family'] . ';' : NULL) . '
 									' . ($arrSettings['ssba_font_size']		!= ''	? 'font-size: 	' . $arrSettings['ssba_font_size'] . 'px;' : NULL) . '

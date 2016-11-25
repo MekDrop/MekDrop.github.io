@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 global $wpdb,$table_prefix,$util;
 
@@ -7,7 +7,7 @@ if($util->post('redirect_to')!='')
 		 global $util;	
 		
 		$util->update_post_option('p404_status');
-		$util->update_option('p404_redirect_to',$util->make_relative_url($_POST['redirect_to']));
+		$util->update_option('p404_redirect_to',$util->make_relative_url($util->post('redirect_to')));
 		$util->success_option_msg('Options Saved!');	
 		
 		if($util->there_is_cache()!='') 
@@ -24,8 +24,6 @@ if($util->get_option_value('p404_discovery_status')!='1')
 
 
 ?>
-
-
 
 <script type="text/javascript">
 
@@ -45,15 +43,12 @@ var sword = document.getElementById('search').value;
 
 </script>
 
-
-
-
 <h3>New Discovered 404 links<hr></h3>
 <div class="link_buttons">
 <table border="0" width="100%">
 	<tr>
 		<td align="left">
-		<input onkeyup="if (event.keyCode == 13) go_search();" style="height: 30px;" id="search" type="text" name="search" value="<?php echo $util->get('search')?>" size="40">
+		<input onkeyup="if (event.keyCode == 13) go_search();" style="height: 30px;" id="search" type="text" name="search" value="<?php echo htmlentities($util->get('search'))?>" size="40">
 		<a onclick="go_search()" href="#"><div class="search_link">Search</div></a> 
 		<a href="<?php echo $util->get_current_parameters('search')?>"><div class="see_link">Show All</div></a>
 		</td>
@@ -112,6 +107,8 @@ var sword = document.getElementById('search').value;
 	
 		
 ?>
+<div>* Too many 404 errors? <a target="_blank" href="http://www.clogica.com/kb/too-many-404-errors.htm">click here to see why?</a></div>
+<br/><br/>
 <form method="POST">
 <h3>Unknown 404 Links Redirection<hr></h3>	
  

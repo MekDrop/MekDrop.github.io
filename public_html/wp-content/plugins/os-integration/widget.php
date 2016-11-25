@@ -25,7 +25,7 @@
 		public function widget( $args, $instance ) {
 			extract( $args );
 			
-			$options = get_option( ISINTOPTIONNAME );
+			$options = get_option( OSINTOPTIONNAME );
 
 			// If at least one of the options is enabled, output the widget.
 			if( $options['enablefavicon'] || $options['enablelivetile'] || $options['enableios'] || $options['enablewebapp'] )

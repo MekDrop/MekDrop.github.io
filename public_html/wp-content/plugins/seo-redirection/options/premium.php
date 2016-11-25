@@ -18,6 +18,8 @@ $imgpath= $util->get_plugin_url().'custom/images/';
     <li>Supports <strong>WordPress MU</strong> installation.</li>
     <li>Friendly and easy to use GUI based on <strong>bootstrap</strong>.</li>
 </ul>
+<h2>What will happen to the current redirects in this version?</h2>
+<p>All the current redirects will remain and appear in the Premium version after upgrade without any problems</p>
 <br/>
 <p style="text-align: center"><font size="5"><a href="http://www.clogica.com/product/seo-redirection-premium-wordpress-plugin?src=freeversiom" target="_blank">Click Here for Pricing & Review</a></font></p>
 
@@ -27,5 +29,6 @@ $imgpath= $util->get_plugin_url().'custom/images/';
 <p style="text-align: center"><a href="http://www.clogica.com/product/seo-redirection-premium-wordpress-plugin?src=freeversiom" target="_blank"><img src="<?php echo $imgpath ?>control_panel.png"></a></p>
 <p style="text-align: center"><a href="http://www.clogica.com/product/seo-redirection-premium-wordpress-plugin?src=freeversiom" target="_blank"><img src="<?php echo $imgpath ?>help_center.png"></a></p>
 <p style="text-align: center"><a href="http://www.clogica.com/product/seo-redirection-premium-wordpress-plugin?src=freeversiom" target="_blank"><img src="<?php echo $imgpath ?>other_features.png"></a></p>
+<p style="text-align: center"><a href="http://www.clogica.com/product/seo-redirection-premium-wordpress-plugin?src=freeversiom" target="_blank"><img src="<?php echo $imgpath ?>circles.png"></a></p>
 
 <p style="text-align: center"><font size="5"><a href="http://www.clogica.com/product/seo-redirection-premium-wordpress-plugin?src=freeversiom" target="_blank">Click Here for Pricing & Review</a></font></p>

@@ -12,11 +12,13 @@
 require_once('data-sources/HTTPResourceUpdater.class.php');
 require_once('data-sources/FacebookGraphUpdater.class.php');
 require_once('data-sources/FacebookPublicUpdater.class.php');
-require_once('data-sources/TwitterUpdater.class.php');
 require_once('data-sources/LinkedInUpdater.class.php');
 require_once('data-sources/GooglePlusUpdater.class.php');
 require_once('data-sources/PinterestUpdater.class.php');
 require_once('data-sources/StumbleUponUpdater.class.php');
+require_once('data-sources/XingUpdater.class.php');
+require_once('data-sources/FlattrUpdater.class.php');
+require_once('data-sources/RedditUpdater.class.php');
 
 class MetricsUpdater {
 
@@ -46,35 +48,64 @@ class MetricsUpdater {
 	public function setupDataSources() {
 		if (isset($this->dataSourcesReady) && $this->dataSourcesReady) return;
 
-		if (class_exists('GoogleAnalyticsUpdater')) {
-			if (!$this->GoogleAnalyticsUpdater) $this->GoogleAnalyticsUpdater = new GoogleAnalyticsUpdater();
+		if (class_exists('GoogleAnalyticsUpdater') && !isset($this->GoogleAnalyticsUpdater)) {
+			$this->GoogleAnalyticsUpdater = new GoogleAnalyticsUpdater();
 		}
 
-		// Setup adapter for Facebook updater service
-		if ($this->smt->get_smt_option('connection_type_facebook') == 'graph') {
-			// Graph:
-			$preferred_facebook_updater = new FacebookGraphUpdater();
-			$preferred_facebook_updater->setAccessToken($this->smt->get_smt_option('facebook_access_token'));
-		} else {
-			// Public / Default:
-			$preferred_facebook_updater = new FacebookPublicUpdater();
-		}
-
-		// Set adapters for all services
-		if (!isset($this->sources->FacebookUpdater))       $this->sources->FacebookUpdater       = $preferred_facebook_updater;
-		if (!isset($this->sources->TwitterUpdater))        $this->sources->TwitterUpdater        = new TwitterUpdater();
-		if (!isset($this->sources->LinkedInUpdater))       $this->sources->LinkedInUpdater       = new LinkedInUpdater();
-		if (!isset($this->sources->GooglePlusUpdater))     $this->sources->GooglePlusUpdater     = new GooglePlusUpdater();
-		if (!isset($this->sources->PinterestUpdater))      $this->sources->PinterestUpdater      = new PinterestUpdater();
-		if (!isset($this->sources->StumbleUponUpdater))    $this->sources->StumbleUponUpdater    = new StumbleUponUpdater();
+		$this->sources = $this->activeSources();
 
 		return $this->dataSourcesReady = true;
 	}
 
-	// Gets sources object
+	// Gets active updater objects only
 	public function getSources() {
 		$this->setupDataSources();
 		return $this->sources;
+	}
+
+	// Return all possible updater objects, regardless of status
+	public function allSources() {
+		$sources = new stdClass();
+
+		// Any special settings?
+		$fb_graph_mode   = ( 'graph' == $this->smt->get_smt_option('connection_type_facebook') );
+		$fb_access_token = $this->smt->get_smt_option('facebook_access_token');
+
+		// Initialize sources
+		$sources->FacebookUpdater    = $fb_graph_mode ? new FacebookGraphUpdater($fb_access_token) : new FacebookPublicUpdater();
+		$sources->LinkedInUpdater    = new LinkedInUpdater();
+		$sources->RedditUpdater      = new RedditUpdater();
+		$sources->StumbleUponUpdater = new StumbleUponUpdater();
+		$sources->GooglePlusUpdater  = new GooglePlusUpdater();
+		$sources->PinterestUpdater   = new PinterestUpdater();
+		$sources->FlattrUpdater      = new FlattrUpdater();
+		$sources->XingUpdater        = new XingUpdater();
+
+		return $sources;
+	}
+
+	// Return only the currently active updater objects, based on user configuration
+	private function activeSources() {
+
+		// Get all sources
+		$sources = $this->allSources();
+
+		// Disable inactive sources
+		$api_enabled = $this->smt->get_smt_option('api_enabled');
+
+		foreach ($sources as $key => $HTTPResourceUpdater) {
+
+			// If there is no value, default behavior is to leave enabled
+			if ( ! isset($api_enabled[$HTTPResourceUpdater->slug]) ) continue;
+
+			// If a truthy value is present, leave enabled
+			if ( $api_enabled[$HTTPResourceUpdater->slug] ) continue;
+			
+			// Disable this source from being used
+			unset($sources->$key);
+		}
+
+		return $sources;
 	}
 
 	// Get the current time
@@ -158,16 +189,71 @@ class MetricsUpdater {
 		if (!$post || !in_array($post->post_status, array('publish', 'inherit')))   return false; // Allow only published posts
 		if ((count($types) > 0) && !is_singular($types)) return false; // Allow singular view of enabled post types
 
-		// If TTL has elapsed
-		if ($this->isPostReadyForNextUpdate($post_id)) {
+		// Block if TTL has not elapsed
+		if ( !$this->isPostReadyForNextUpdate($post_id) ) {
+			return false;
+		}
 
-			// Schedule an update
-			wp_schedule_single_event( $this->getLocalTime(), 'social_metrics_update_single_post', array( $post_id ) );
+		// Block if restricted by date range
+		if ( !$this->isPostWithinAllowedRange($post) ) {
+			return false;
+		}
 
+		// Schedule the update!
+		switch($this->smt->get_smt_option('update_mode')) {
+
+			case 'pageload' :
+					add_action('wp_footer', array($this, 'updateCurrentPostNow'), 100);
+				break;
+
+			case 'cron' :
+				// use default for case 'cron'
+			default :
+
+				// Schedule an update for cron
+				wp_schedule_single_event( $this->getLocalTime(), 'social_metrics_update_single_post', array( $post_id ) );
+
+				break;
 		}
 
 		return true;
 	} // end checkThisPost()
+
+	public function updateCurrentPostNow() {
+		global $post;
+		wp_reset_postdata();
+		$this->updatePostStats($post->ID);
+	}
+
+
+	/**
+	 * Checks if the post was published with the date range for auto-updates
+	 *
+	 * @param $post
+	 * @return bool
+     */
+	private function isPostWithinAllowedRange($post) {
+
+		// See what date range we want to allow auto-updates for
+		$range = $this->smt->get_smt_option('update_range');
+
+		if ($range == 'none') {
+			return false;
+		}
+
+		if ($range == 'all') {
+			return true;
+		}
+
+		$cutoff = current_time('timestamp') - ( $range * DAY_IN_SECONDS );
+
+		if (strtotime($post->post_date) > $cutoff) {
+			return true;
+		} else {
+			return false;
+		}
+
+	}
 
 
 	/**
@@ -454,10 +540,12 @@ class MetricsUpdater {
 
 		foreach ($alt_data as $key => $val) {
 
+			$url = '';
+
 			// Check data type
 			if (is_string($val)) {
 				$url = $val;
-			} else if (array_key_exists('permalink', $val)) {
+			} else if (is_array($val) && array_key_exists('permalink', $val)) {
 				$url = $val['permalink'];
 			} else {
 				// No matching data type
@@ -749,7 +837,7 @@ class MetricsUpdater {
 		* We really need a template engine here... the horror, the horror....
 		***************************************************/
 		if ($verbose) {
-			$percent = round(($offset + $q->post_count) / $q->found_posts * 100);
+			$percent = round(($offset + $q->post_count) / max(1, $q->found_posts * 100));
 			print('<div style="width: 100%; border:1px solid #CCC; background:#EEE; border-radius: 6px; padding:20px; margin: 15px 0; box-sizing:border-box;">');
 			print('<h1 style="margin-top:0;">Scheduled '.($offset + $q->post_count).' out of '.$q->found_posts.' posts.</h1>');
 			print('<div style="width:100%; border:1px solid #CCC; background: #BDBFC2; border-radius: 10px; overflow: hidden;">');

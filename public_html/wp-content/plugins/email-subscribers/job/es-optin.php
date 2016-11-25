@@ -10,8 +10,8 @@ if(isset($_GET['es']))
 		?>
 		<html>
 		<head>
-		<title><?php echo $blogname; ?></title>
-		<meta http-equiv="refresh" content="10; url=<?php echo $home_url; ?>" />
+			<title><?php echo $blogname; ?></title>
+			<meta http-equiv="refresh" content="10; url=<?php echo $home_url; ?>" charset="<?php echo esc_attr( get_option( 'blog_charset' ) ); ?>" />
 		</head>
 		<body>
 		<?php
@@ -61,12 +61,12 @@ if(isset($_GET['es']))
 				}
 				if($message == "")
 				{
-					$message = __('Oops.. We are getting some technical error. Please try again or contact admin.', ES_TDOMAIN);
+					$message = __('Oops.. We are getting some technical error. Please try again or contact admin.', 'email-subscribers');
 				}
 			}
 			else
 			{
-				$message = __('This email address has already been confirmed.', ES_TDOMAIN);
+				$message = __('This email address has already been confirmed.', 'email-subscribers');
 			}			
 			echo $message;
 		}
@@ -76,7 +76,7 @@ if(isset($_GET['es']))
 			$message = str_replace("\r\n", "<br />", $message);
 			if($message == "")
 			{
-				$message = __('Oops.. We are getting some technical error. Please try again or contact admin.', ES_TDOMAIN);
+				$message = __('Oops.. We are getting some technical error. Please try again or contact admin.', 'email-subscribers');
 			}
 			echo $message;
 		}

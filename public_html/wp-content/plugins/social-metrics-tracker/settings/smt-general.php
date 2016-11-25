@@ -9,7 +9,7 @@ global $wpsf_settings;
 
 $wpsf_settings = array();
 
-$wpsf_settings[] = array(
+$wpsf_settings['smt'] = array(
 	'section_id'          => 'options',
 	'section_title'       => 'General Options',
 	'section_description' => 'Configuration for the operation of the plugin and display of data.',
@@ -33,6 +33,58 @@ $wpsf_settings[] = array(
 			'std'   => 1
 		),
 		array(
+			'id'    => 'update_mode',
+			'title' => 'Update Mode',
+			'desc'  => 'By default, the plugin will connect to social network APIs during the WP Cron (as a background task). This will keep your posts loading fast! If for some reason this is a problem, you can change the it to perform updates during regular page loads instead.',
+			'type'  => 'select',
+			'std'   => 'all',
+			'choices' => array(
+				'cron'     => 'WP Cron (Default - Runs in the background)',
+				'pageload' => 'Page Footer (Can make posts load more slowly)',
+			),
+		),
+		array(
+			'id'    => 'update_range',
+			'title' => 'Update Range',
+			'desc'  => 'What posts should be automatically kept in sync? You can use this to limit the number of updates that run in case your site has a lot of older posts. It is recommended to track all posts unless you have too many.',
+			'type'  => 'select',
+			'std'   => 'all',
+			'choices' => array(
+				'all' => 'All posts',
+				'none'    => 'No posts (Disables automatic updates)',
+				'7'    => 'Only posts published within 1 week',
+				'14'   => 'Only posts published within 2 weeks',
+				'30'   => 'Only posts published within 1 month',
+				'60'   => 'Only posts published within 2 months',
+				'90'   => 'Only posts published within 3 months',
+				'180'  => 'Only posts published within 6 months',
+				'365'  => 'Only posts published within 1 year',
+				'730'  => 'Only posts published within 2 years',
+				'1460' => 'Only posts published within 4 years',
+			)
+		),
+		array(
+			'id'    => 'ttl_hours',
+			'title' => 'Data TTL',
+			'desc'  => 'Length of time to wait in between checking for new stats on each post. A shorter time will use more server resources. Longer times are recommended for sites with over 500 posts.',
+			'type'  => 'select',
+			'std'   => '12',
+			'choices' => array(
+				'1'   => '1 Hour',
+				'2'   => '2 Hours',
+				'4'   => '4 Hours',
+				'6'   => '6 Hours',
+				'8'   => '8 Hours',
+				'12'  => '12 Hours',
+				'24'  => '24 Hours',
+				'36'  => '36 Hours',
+				'48'  => '2 Days',
+				'72'  => '3 Days',
+				'168' => '1 Week',
+				'720' => '1 Month',
+			)
+		),
+		array(
 			'id'    => 'report_visibility',
 			'title' => 'Report Visibility',
 			'desc'  => 'The Social Metrics Tracker reports will be visible to users who have this capability.',
@@ -48,28 +100,8 @@ $wpsf_settings[] = array(
 			)
 		),
 		array(
-			'id'    => 'ttl_hours',
-			'title' => 'Data TTL',
-			'desc'  => 'Length of time to store the statistics locally before downloading new data. A lower value will use more server resources. High values are recommended for blogs with over 500 posts.',
-			'type'  => 'select',
-			'std'   => '12',
-			'choices' => array(
-				'1'   => '1 Hour',
-				'2'   => '2 Hours',
-				'4'   => '4 Hours',
-				'6'   => '6 Hours',
-				'8'   => '8 Hours',
-				'12'  => '12 Hours',
-				'24'  => '24 Hours',
-				'36'  => '36 Hours',
-				'48'  => '2 Days',
-				'72'  => '3 Days',
-				'168' => '1 Week',
-			)
-		),
-		array(
 			'id'    => 'default_sort_column',
-			'title' => 'Default Sort Order',
+			'title' => 'Report Sort Order',
 			'desc'  => 'Which column should be sorted by default?',
 			'type'  => 'select',
 			'std'   => 'social',
@@ -82,7 +114,7 @@ $wpsf_settings[] = array(
 		),
 		array(
 			'id'    => 'default_date_range_months',
-			'title' => 'Default Date Range',
+			'title' => 'Report Date Range',
 			'desc'  => 'Reports should display posts published within this date range.',
 			'type'  => 'select',
 			'std'   => '0',
@@ -96,7 +128,7 @@ $wpsf_settings[] = array(
 		),
 		array(
 			'id'    => 'default_posts_per_page',
-			'title' => 'Default Posts per Page',
+			'title' => 'Report Posts per Page',
 			'desc'  => 'Number of posts per page to display in reports',
 			'type'  => 'select',
 			'std'   => '10',

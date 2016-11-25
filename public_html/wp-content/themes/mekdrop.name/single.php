@@ -2,11 +2,7 @@
 
 <div class="same-height">
 <div class="row">
-	<div class="col-md-8 col-sm-8" >
-
-		<?php include __DIR__ . '/full_post.php'; ?>
-
-	</div>
+	<div class="col-md-8 col-sm-8"><?php include __DIR__ . '/full_post.php'; ?></div>
 	<?php get_sidebar(); ?>
 </div>
 </div>

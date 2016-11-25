@@ -1,5 +1,4 @@
 <?php
-
 $template = array(
 
 'edit' => array(

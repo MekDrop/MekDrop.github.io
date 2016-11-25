@@ -1,32 +1,37 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: Email subscribers\n"
-"POT-Creation-Date: 2014-08-23 09:51+0800\n"
-"PO-Revision-Date: 2014-12-20 21:49+0300\n"
+"POT-Creation-Date: 2015-11-28 14:30+0800\n"
+"PO-Revision-Date: 2015-11-28 14:30+0800\n"
 "Last-Translator: \n"
-"Language-Team: www.gopiplus.com <www.gopiplus.com>\n"
+"Language-Team: \n"
+"Language: ru\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Poedit 1.6.5\n"
+"X-Generator: Poedit 1.5.7\n"
 "X-Poedit-KeywordsList: _;gettext;gettext_noop;__;_e\n"
 "X-Poedit-Basepath: .\n"
 "Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
 "%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
-"Language: ru\n"
 "X-Poedit-SearchPath-0: ..\n"
 
-#: ../classes/es-loadwidget.php:28 ../classes/es-register.php:143
-#: ../subscribers/view-subscriber-show.php:254
-#: ../subscribers/view-subscriber-show.php:267
+#: ../classes/es-loadwidget.php:28 ../classes/es-register.php:250
+#: ../subscribers/view-subscriber-show.php:326
+#: ../subscribers/view-subscriber-show.php:339
 msgid "Name"
 msgstr "Имя"
 
-#: ../classes/es-loadwidget.php:33 ../classes/es-register.php:148
+#: ../classes/es-loadwidget.php:33 ../classes/es-register.php:255
 msgid "Email *"
 msgstr "E-mail*"
 
-#: ../classes/es-loadwidget.php:38 ../classes/es-register.php:153
+#: ../classes/es-register.php:284
+#: ../classes/es-register.php:301
+msgid "You have successfully subscribed to the newsletter. You will receive a confirmation email in a few minutes. Please follow the link in it to confirm your subscription. If the email takes more than 15 minutes to appear in your mailbox, please check your spam folder."
+msgstr "Вы успешно подписались на рассылку новостей. Вы получите подтверждение по электронной почте через несколько минут. Пожалуйста, перейдите по ссылке в этом письме для подтверждения подписки. Если письмо не пришло в течении 15 минут, проверьте папку спам."
+
+#: ../classes/es-loadwidget.php:38 ../classes/es-register.php:260
 msgid "Subscribe"
 msgstr "Подписаться"
 
@@ -34,64 +39,77 @@ msgstr "Подписаться"
 msgid "These tables could not be created on installation "
 msgstr "Эти таблицы могут не быть созданы при установке"
 
-#: ../classes/es-register.php:70 ../classes/es-register.php:71
+#: ../classes/es-register.php:133 ../classes/es-register.php:134
 msgid "Email Subscriber"
 msgstr "Email Subscriber"
 
-#: ../classes/es-register.php:73 ../classes/es-register.php:74
+#: ../classes/es-register.php:136 ../classes/es-register.php:137
 msgid "Subscribers"
 msgstr "Подписчики"
 
-#: ../classes/es-register.php:76 ../classes/es-register.php:77
+#: ../classes/es-register.php:139 ../classes/es-register.php:140
 msgid "Compose"
 msgstr "Добавить сообщение"
 
-#: ../classes/es-register.php:79 ../classes/es-register.php:80
-#: ../notification/notification-show.php:44
+#: ../classes/es-register.php:142 ../classes/es-register.php:143
+#: ../notification/notification-show.php:45
 msgid "Notification"
 msgstr "Оповещения"
 
-#: ../classes/es-register.php:82 ../classes/es-register.php:83
-#: ../sendmail/sendmail.php:71 ../sendmail/sendmail.php:214
-#: ../sendmail/sendmail.php:216
+#: ../classes/es-register.php:145 ../classes/es-register.php:146
+#: ../sendmail/sendmail.php:95 ../sendmail/sendmail.php:257
+#: ../sendmail/sendmail.php:259
 msgid "Send Email"
 msgstr "Отправить сообщение"
 
-#: ../classes/es-register.php:85 ../classes/es-register.php:86
+#: ../classes/es-register.php:148
+msgid "Cron"
+msgstr ""
+
+#: ../classes/es-register.php:149
+#, fuzzy
+msgid "Cron Mail"
+msgstr "Создать сообщение"
+
+#: ../classes/es-register.php:151 ../classes/es-register.php:152
 #: ../settings/settings-edit.php:190
 msgid "Settings"
 msgstr "Настройки"
 
-#: ../classes/es-register.php:88 ../classes/es-register.php:89
-#: ../sentmail/sentmail-show.php:53
+#: ../classes/es-register.php:154 ../classes/es-register.php:155
+msgid "Roles"
+msgstr ""
+
+#: ../classes/es-register.php:157 ../classes/es-register.php:158
+#: ../sentmail/sentmail-show.php:54
 msgid "Sent Mails"
 msgstr "Отправленные"
 
-#: ../classes/es-register.php:91 ../classes/es-register.php:92
+#: ../classes/es-register.php:160 ../classes/es-register.php:161
 msgid "Help & Info"
 msgstr "Помощь"
 
-#: ../classes/es-register.php:189
+#: ../classes/es-register.php:296
 msgid "Widget Title"
 msgstr "Заголовок виджета"
 
-#: ../classes/es-register.php:193
+#: ../classes/es-register.php:300
 msgid "Display Name Field"
 msgstr "Показывать поле Имя"
 
-#: ../classes/es-register.php:200
+#: ../classes/es-register.php:307
 msgid "Short Description"
 msgstr "Краткое описание"
 
-#: ../classes/es-register.php:202
+#: ../classes/es-register.php:309
 msgid "Short description about your subscription form."
 msgstr "Краткое описание формы подписки"
 
-#: ../classes/es-register.php:205
+#: ../classes/es-register.php:312
 msgid "Subscriber Group"
 msgstr "Группа подписчиков"
 
-#: ../compose/compose-add.php:25 ../compose/compose-edit.php:39
+#: ../compose/compose-add.php:25 ../compose/compose-edit.php:40
 msgid "Please enter template heading."
 msgstr "Пожалуйста, введите заголовок шаблона"
 
@@ -99,178 +117,260 @@ msgstr "Пожалуйста, введите заголовок шаблона"
 msgid "Template was successfully created."
 msgstr "Шаблон успешно создан"
 
-#: ../compose/compose-add.php:60 ../compose/compose-edit.php:70
+#: ../compose/compose-add.php:60 ../compose/compose-edit.php:71
+#: ../cron/cron-add.php:100 ../cron/cron-add.php:101 ../cron/cron-add.php:102
 #: ../notification/notification-add.php:91
-#: ../notification/notification-edit.php:99 ../settings/settings-edit.php:173
-#: ../subscribers/view-subscriber-add.php:87
-#: ../subscribers/view-subscriber-edit.php:72
-#: ../subscribers/view-subscriber-import.php:70
-#: ../subscribers/view-subscriber-import.php:100
+#: ../notification/notification-edit.php:100 ../roles/roles-add.php:81
+#: ../settings/settings-edit.php:173 ../subscribers/view-subscriber-add.php:92
+#: ../subscribers/view-subscriber-add.php:101
+#: ../subscribers/view-subscriber-edit.php:86
+#: ../subscribers/view-subscriber-import.php:107
+#: ../subscribers/view-subscriber-import.php:138
 msgid "Click here"
 msgstr "Нажмите сюда"
 
-#: ../compose/compose-add.php:61 ../compose/compose-edit.php:71
+#: ../compose/compose-add.php:61 ../compose/compose-edit.php:72
 #: ../notification/notification-add.php:92
-#: ../notification/notification-edit.php:100 ../settings/settings-edit.php:174
-#: ../subscribers/view-subscriber-add.php:87
-#: ../subscribers/view-subscriber-edit.php:72
-#: ../subscribers/view-subscriber-import.php:70
-#: ../subscribers/view-subscriber-import.php:100
+#: ../notification/notification-edit.php:101 ../roles/roles-add.php:81
+#: ../settings/settings-edit.php:174 ../subscribers/view-subscriber-add.php:92
+#: ../subscribers/view-subscriber-add.php:101
+#: ../subscribers/view-subscriber-edit.php:86
+#: ../subscribers/view-subscriber-import.php:107
+#: ../subscribers/view-subscriber-import.php:138
 msgid " to view the details"
 msgstr "для подробного просмотра"
 
-#: ../compose/compose-add.php:70 ../compose/compose-edit.php:82
-#: ../compose/compose-show.php:44
+#: ../compose/compose-add.php:70 ../compose/compose-edit.php:83
+#: ../compose/compose-show.php:59
 msgid "Compose Mail"
 msgstr "Создать сообщение"
 
-#: ../compose/compose-add.php:73 ../compose/compose-edit.php:85
+#: ../compose/compose-add.php:73 ../compose/compose-edit.php:86
 #: ../settings/settings-edit.php:206
 msgid "Mail type"
 msgstr "Тип сообщения"
 
-#: ../compose/compose-add.php:78 ../compose/compose-edit.php:90
+#: ../compose/compose-add.php:78 ../compose/compose-edit.php:91
+#: ../sendmail/sendmail.php:50
 msgid "Please select your mail type."
 msgstr "Пожалуйста, выберите тип сообщения"
 
-#: ../compose/compose-add.php:80 ../compose/compose-edit.php:92
+#: ../compose/compose-add.php:80 ../compose/compose-edit.php:93
 msgid "Enter mail subject."
 msgstr "Введите тему сообщения"
 
-#: ../compose/compose-add.php:82 ../compose/compose-edit.php:94
+#: ../compose/compose-add.php:82 ../compose/compose-edit.php:95
 msgid "Please enter your mail subject."
 msgstr "Пожалуйста, введите тему сообщения"
 
-#: ../compose/compose-add.php:85 ../compose/compose-edit.php:96
+#: ../compose/compose-add.php:85 ../compose/compose-edit.php:97
 msgid "Mail content"
 msgstr "Содержимое сообщения"
 
-#: ../compose/compose-add.php:88 ../compose/compose-edit.php:99
+#: ../compose/compose-add.php:88 ../compose/compose-edit.php:100
 msgid "Please enter content for your mail."
 msgstr "Пожалуйста, введите содержимое сообщения"
 
-#: ../compose/compose-add.php:91 ../compose/compose-edit.php:102
-#: ../compose/compose-show.php:57 ../compose/compose-show.php:66
-#: ../subscribers/view-subscriber-add.php:108
-#: ../subscribers/view-subscriber-edit.php:92
-#: ../subscribers/view-subscriber-show.php:255
-#: ../subscribers/view-subscriber-show.php:268
+#: ../compose/compose-add.php:91 ../compose/compose-edit.php:103
+#: ../compose/compose-show.php:71 ../compose/compose-show.php:79
+#: ../sentmail/deliverreport-show.php:40 ../sentmail/deliverreport-show.php:52
+#: ../sentmail/sentmail-show.php:75 ../sentmail/sentmail-show.php:88
+#: ../subscribers/view-subscriber-add.php:122
+#: ../subscribers/view-subscriber-edit.php:106
+#: ../subscribers/view-subscriber-import.php:156
+#: ../subscribers/view-subscriber-show.php:327
+#: ../subscribers/view-subscriber-show.php:340
 msgid "Status"
 msgstr "Статус"
 
-#: ../compose/compose-add.php:95 ../compose/compose-edit.php:106
+#: ../compose/compose-add.php:95 ../compose/compose-edit.php:107
 msgid "Please select your mail status."
 msgstr "Пожалуйста, введите статус сообщения"
 
-#: ../compose/compose-add.php:99 ../compose/compose-edit.php:111
-#: ../notification/notification-add.php:181
-#: ../notification/notification-edit.php:194
-#: ../subscribers/view-subscriber-add.php:140
-#: ../subscribers/view-subscriber-edit.php:129
+#: ../compose/compose-add.php:99 ../compose/compose-edit.php:112
+#: ../cron/cron-add.php:90 ../notification/notification-add.php:216
+#: ../notification/notification-edit.php:237 ../roles/roles-add.php:154
+#: ../subscribers/view-subscriber-add.php:154
+#: ../subscribers/view-subscriber-edit.php:147
+#: ../subscribers/view-subscriber-sync.php:156
 msgid "Submit"
 msgstr "Отправить"
 
-#: ../compose/compose-add.php:100 ../compose/compose-edit.php:112
-#: ../notification/notification-add.php:182
-#: ../notification/notification-edit.php:195 ../sendmail/sendmail.php:218
-#: ../settings/settings-edit.php:381
-#: ../subscribers/view-subscriber-add.php:141
-#: ../subscribers/view-subscriber-edit.php:130
+#: ../compose/compose-add.php:100 ../compose/compose-edit.php:113
+#: ../cron/cron-add.php:91 ../notification/notification-add.php:217
+#: ../notification/notification-edit.php:238 ../roles/roles-add.php:155
+#: ../sendmail/sendmail.php:261 ../settings/settings-edit.php:381
+#: ../subscribers/view-subscriber-add.php:155
+#: ../subscribers/view-subscriber-edit.php:148
+#: ../subscribers/view-subscriber-sync.php:157
 msgid "Cancel"
 msgstr "Отмена"
 
-#: ../compose/compose-add.php:101 ../compose/compose-edit.php:113
-#: ../compose/compose-preview.php:30 ../compose/compose-show.php:109
-#: ../notification/notification-add.php:183
-#: ../notification/notification-edit.php:196
-#: ../notification/notification-show.php:150 ../sendmail/sendmail.php:219
-#: ../sentmail/deliverreport-show.php:111 ../sentmail/sentmail-preview.php:31
-#: ../settings/settings-edit.php:382
-#: ../subscribers/view-subscriber-add.php:142
-#: ../subscribers/view-subscriber-edit.php:131
-#: ../subscribers/view-subscriber-export.php:75
-#: ../subscribers/view-subscriber-import.php:122
-#: ../subscribers/view-subscriber-show.php:243
-#: ../subscribers/view-subscriber-show.php:387
+#: ../compose/compose-add.php:101 ../compose/compose-edit.php:114
+#: ../compose/compose-preview.php:31 ../compose/compose-show.php:121
+#: ../cron/cron-add.php:92 ../notification/notification-add.php:218
+#: ../notification/notification-edit.php:239
+#: ../notification/notification-show.php:153 ../roles/roles-add.php:156
+#: ../sendmail/sendmail.php:262 ../sentmail/deliverreport-show.php:120
+#: ../sentmail/sentmail-preview.php:33 ../settings/settings-edit.php:382
+#: ../subscribers/view-subscriber-add.php:156
+#: ../subscribers/view-subscriber-edit.php:149
+#: ../subscribers/view-subscriber-export.php:70
+#: ../subscribers/view-subscriber-import.php:190
+#: ../subscribers/view-subscriber-show.php:448
+#: ../subscribers/view-subscriber-sync.php:158
 msgid "Help"
 msgstr "Помощь"
 
-#: ../compose/compose-edit.php:10 ../compose/compose-preview.php:9
-#: ../compose/compose-show.php:15 ../notification/notification-edit.php:10
-#: ../notification/notification-show.php:15
-#: ../sentmail/sentmail-preview.php:10 ../sentmail/sentmail-show.php:17
-#: ../settings/settings-edit.php:11 ../subscribers/view-subscriber-edit.php:13
-#: ../subscribers/view-subscriber-show.php:23
+#: ../compose/compose-edit.php:11 ../compose/compose-preview.php:10
+#: ../compose/compose-show.php:30 ../notification/notification-edit.php:11
+#: ../notification/notification-show.php:16
+#: ../sentmail/sentmail-preview.php:12 ../sentmail/sentmail-show.php:18
+#: ../settings/settings-edit.php:11 ../subscribers/view-subscriber-edit.php:12
+#: ../subscribers/view-subscriber-show.php:46
 msgid "Oops, selected details doesnt exist."
 msgstr "Выбранные настройки не найдены"
 
-#: ../compose/compose-edit.php:54
+#: ../compose/compose-edit.php:55
 msgid "Template was successfully updated."
 msgstr "Шаблон был успешно обновлен"
 
-#: ../compose/compose-preview.php:16 ../sentmail/sentmail-preview.php:17
+#: ../compose/compose-preview.php:17 ../sentmail/sentmail-preview.php:19
 msgid "Preview Mail"
 msgstr "Просмотр сообщения"
 
-#: ../compose/compose-preview.php:28 ../sentmail/deliverreport-show.php:110
-#: ../sentmail/sentmail-preview.php:30
-#: ../subscribers/view-subscriber-export.php:74
-#: ../subscribers/view-subscriber-import.php:121
+#: ../compose/compose-preview.php:29 ../sentmail/deliverreport-show.php:119
+#: ../sentmail/sentmail-preview.php:32
+#: ../subscribers/view-subscriber-export.php:69
+#: ../subscribers/view-subscriber-import.php:189
 msgid "Back"
 msgstr "Назад"
 
-#: ../compose/compose-preview.php:29 ../compose/compose-show.php:87
-#: ../notification/notification-show.php:93
-#: ../subscribers/view-subscriber-show.php:302
+#: ../compose/compose-preview.php:30 ../compose/compose-show.php:99
+#: ../notification/notification-show.php:91
+#: ../subscribers/view-subscriber-show.php:374
 msgid "Edit"
 msgstr "Редактировать"
 
-#: ../compose/compose-show.php:30 ../notification/notification-show.php:30
-#: ../sentmail/sentmail-show.php:32 ../subscribers/view-subscriber-show.php:40
-#: ../subscribers/view-subscriber-show.php:84
+#: ../compose/compose-show.php:10 ../sendmail/sendmail.php:11
+#: ../subscribers/view-subscriber-show.php:11
+#, fuzzy
+msgid "Click Here"
+msgstr "Нажмите сюда"
+
+#: ../compose/compose-show.php:45 ../notification/notification-show.php:31
+#: ../sentmail/sentmail-show.php:33 ../subscribers/view-subscriber-show.php:60
+#: ../subscribers/view-subscriber-show.php:104
 msgid "Selected record was successfully deleted."
 msgstr "Выбранная запись была успешно удалена"
 
-#: ../compose/compose-show.php:45 ../compose/compose-show.php:108
-#: ../notification/notification-show.php:45
-#: ../notification/notification-show.php:149
-#: ../subscribers/view-subscriber-show.php:208
-#: ../subscribers/view-subscriber-show.php:240
-#: ../subscribers/view-subscriber-show.php:384
+#: ../compose/compose-show.php:60 ../compose/compose-show.php:120
+#: ../notification/notification-show.php:46
+#: ../notification/notification-show.php:152
+#: ../subscribers/view-subscriber-show.php:233
+#: ../subscribers/view-subscriber-show.php:444
 msgid "Add New"
 msgstr "Добавить"
 
-#: ../compose/compose-show.php:56 ../compose/compose-show.php:65
+#: ../compose/compose-show.php:70 ../compose/compose-show.php:78
 msgid "Email subject"
 msgstr "Тема сообщения"
 
-#: ../compose/compose-show.php:58 ../compose/compose-show.php:67
+#: ../compose/compose-show.php:72 ../compose/compose-show.php:80
+#: ../sentmail/deliverreport-show.php:41 ../sentmail/deliverreport-show.php:53
+#: ../sentmail/sentmail-show.php:76 ../sentmail/sentmail-show.php:89
 msgid "Type"
 msgstr "Тип"
 
-#: ../compose/compose-show.php:59 ../compose/compose-show.php:68
-#: ../sentmail/sentmail-show.php:77 ../sentmail/sentmail-show.php:89
-#: ../subscribers/view-subscriber-export.php:33
-#: ../subscribers/view-subscriber-export.php:42
-#: ../subscribers/view-subscriber-show.php:258
-#: ../subscribers/view-subscriber-show.php:271
+#: ../compose/compose-show.php:73 ../compose/compose-show.php:81
+#: ../sentmail/sentmail-show.php:80 ../sentmail/sentmail-show.php:93
+#: ../subscribers/view-subscriber-export.php:32
+#: ../subscribers/view-subscriber-export.php:40
+#: ../subscribers/view-subscriber-show.php:330
+#: ../subscribers/view-subscriber-show.php:343
 msgid "Action"
 msgstr "Действие"
 
-#: ../compose/compose-show.php:88 ../notification/notification-show.php:96
-#: ../subscribers/view-subscriber-show.php:305
-#: ../subscribers/view-subscriber-show.php:347
+#: ../compose/compose-show.php:100 ../notification/notification-show.php:94
+#: ../subscribers/view-subscriber-show.php:377
+#: ../subscribers/view-subscriber-show.php:422
 msgid "Delete"
 msgstr "Удалить"
 
-#: ../compose/compose-show.php:89
+#: ../compose/compose-show.php:101 ../sentmail/sentmail-show.php:73
+#: ../sentmail/sentmail-show.php:86
 msgid "Preview"
 msgstr "Просмотр"
 
-#: ../compose/compose-show.php:98 ../notification/notification-show.php:139
-#: ../sentmail/deliverreport-show.php:75 ../sentmail/sentmail-show.php:125
+#: ../compose/compose-show.php:110 ../notification/notification-show.php:142
+#: ../sentmail/deliverreport-show.php:84 ../sentmail/sentmail-show.php:132
 msgid "No records available."
 msgstr "Нет записей"
+
+#: ../cron/cron-add.php:18
+#, fuzzy
+msgid "Please enter valid mail count."
+msgstr "Пожалуйста, введите тему сообщения"
+
+#: ../cron/cron-add.php:29
+#, fuzzy
+msgid "Cron details successfully updated."
+msgstr "Настройки успешно обновлены"
+
+#: ../cron/cron-add.php:73
+msgid "Cron Details"
+msgstr ""
+
+#: ../cron/cron-add.php:76
+msgid "Cron job URL"
+msgstr ""
+
+#: ../cron/cron-add.php:78
+msgid ""
+"Please find your cron job URL. This is read only field not able to modify "
+"from admin."
+msgstr ""
+
+#: ../cron/cron-add.php:80
+#, fuzzy
+msgid "Mail Count"
+msgstr "Содержимое сообщения"
+
+#: ../cron/cron-add.php:82
+msgid "Enter number of mails you want to send per hour/trigger."
+msgstr ""
+
+#: ../cron/cron-add.php:84
+#, fuzzy
+msgid "Admin Report"
+msgstr "Просмотреть отчеты"
+
+#: ../cron/cron-add.php:86
+msgid "Send above mail to admin whenever cron URL triggered in your server."
+msgstr ""
+
+#: ../cron/cron-add.php:98
+msgid "How to setup auto emails?"
+msgstr ""
+
+#: ../cron/cron-add.php:99
+msgid ""
+"I strongly recommend you to use \"Send mail via cron job\" option to send "
+"your newsletters and notification. The following link explains how to create "
+"a CRON job through the cPanel or Plesk."
+msgstr ""
+
+#: ../cron/cron-add.php:100
+msgid "How to setup auto emails (cron job) in Plesk"
+msgstr ""
+
+#: ../cron/cron-add.php:101
+msgid "How to setup auto emails (cron job) in cPanal"
+msgstr ""
+
+#: ../cron/cron-add.php:102
+msgid "Hosting doesnt support cron jobs?"
+msgstr ""
 
 #: ../export/export-email-address.php:39 ../export/export-email-address.php:45
 #: ../export/export-email-address.php:50
@@ -290,21 +390,21 @@ msgstr "Этот e-mail адрес уже подвержден"
 
 #: ../notification/notification-add.php:26
 #: ../notification/notification-add.php:120
-#: ../notification/notification-edit.php:39
+#: ../notification/notification-edit.php:40
 msgid "Please select subscribers group."
 msgstr "Пожалуйста, выберите группу подписчиков"
 
 #: ../notification/notification-add.php:32
-#: ../notification/notification-add.php:177
-#: ../notification/notification-edit.php:45
-#: ../notification/notification-edit.php:189
+#: ../notification/notification-add.php:212
+#: ../notification/notification-edit.php:46
+#: ../notification/notification-edit.php:232
 msgid "Please select notification status."
 msgstr "Пожалуйста, выберите статус оповещения"
 
 #: ../notification/notification-add.php:38
 #: ../notification/notification-add.php:139
-#: ../notification/notification-edit.php:51
-#: ../notification/notification-edit.php:142
+#: ../notification/notification-edit.php:52
+#: ../notification/notification-edit.php:143
 msgid ""
 "Please select notification mail subject. Use compose menu to create new."
 msgstr ""
@@ -312,9 +412,9 @@ msgstr ""
 "\"Добавить сообщение\" для создания новой темы"
 
 #: ../notification/notification-add.php:44
-#: ../notification/notification-add.php:170
-#: ../notification/notification-edit.php:57
-#: ../notification/notification-edit.php:182
+#: ../notification/notification-add.php:171
+#: ../notification/notification-edit.php:58
+#: ../notification/notification-edit.php:183
 msgid "Please select post categories."
 msgstr "Пожалуйста, выберите категории записей"
 
@@ -327,81 +427,178 @@ msgid "Add Notification"
 msgstr "Добавить оповещение"
 
 #: ../notification/notification-add.php:104
-#: ../notification/notification-edit.php:114
+#: ../notification/notification-edit.php:115
 #: ../notification/notification-show.php:57
-#: ../notification/notification-show.php:66
+#: ../notification/notification-show.php:65
 msgid "Subscribers Group"
 msgstr "Группа подписчиков"
 
 #: ../notification/notification-add.php:106
 #: ../notification/notification-add.php:124
-#: ../notification/notification-edit.php:122 ../sendmail/sendmail.php:84
-#: ../sendmail/sendmail.php:115 ../subscribers/view-subscriber-add.php:119
-#: ../subscribers/view-subscriber-edit.php:103
+#: ../notification/notification-edit.php:123 ../sendmail/sendmail.php:108
+#: ../sendmail/sendmail.php:154 ../subscribers/view-subscriber-add.php:133
+#: ../subscribers/view-subscriber-edit.php:117
+#: ../subscribers/view-subscriber-import.php:167
+#: ../subscribers/view-subscriber-sync.php:99
+#: ../subscribers/view-subscriber-sync.php:130
 msgid "Select"
 msgstr "Выбрать"
 
 #: ../notification/notification-add.php:122
-#: ../notification/notification-edit.php:120
+#: ../notification/notification-edit.php:121
 msgid "Notification Mail"
 msgstr "Оповещение"
 
 #: ../notification/notification-add.php:141
-#: ../notification/notification-edit.php:144
-#: ../notification/notification-show.php:58
-#: ../notification/notification-show.php:67
+#: ../notification/notification-edit.php:145
 msgid "Post Categories"
 msgstr "Категории записей"
 
-#: ../notification/notification-add.php:172
-#: ../notification/notification-edit.php:184
+#: ../notification/notification-add.php:173
+#: ../notification/notification-edit.php:185
+msgid "Custom post type"
+msgstr ""
+
+#: ../notification/notification-add.php:204
+#: ../notification/notification-edit.php:224
+#, fuzzy
+msgid "Please select your custom post type (Optional)."
+msgstr "Пожалуйста, выберите тип сообщения"
+
+#: ../notification/notification-add.php:206
+#: ../notification/notification-edit.php:226
 #: ../notification/notification-show.php:59
-#: ../notification/notification-show.php:68
+#: ../notification/notification-show.php:67
 msgid "Notification Status"
 msgstr "Статус оповещения"
 
-#: ../notification/notification-edit.php:83
+#: ../notification/notification-edit.php:84
 msgid "Notification was successfully updated."
 msgstr "Оповещение успешно обновлено"
 
-#: ../notification/notification-edit.php:111
+#: ../notification/notification-edit.php:112
 msgid "Edit Notification"
 msgstr "Редактировать оповещение"
 
-#: ../notification/notification-edit.php:118
+#: ../notification/notification-edit.php:119
 msgid "Not allowed to update the subscribers group in edit page."
 msgstr "Невозможно обновить группу подписчиков на странице редактирования"
 
 #: ../notification/notification-show.php:56
-#: ../notification/notification-show.php:65
+#: ../notification/notification-show.php:64
 msgid "Mail Subject"
 msgstr "Тема сообщения"
 
-#: ../sendmail/sendmail.php:19
+#: ../notification/notification-show.php:58
+#: ../notification/notification-show.php:66
+msgid "Categories / Custom Post"
+msgstr ""
+
+#: ../roles/roles-add.php:92
+msgid "Roles and Capabilities"
+msgstr ""
+
+#: ../roles/roles-add.php:94
+#, fuzzy
+msgid "Subscribers Menu"
+msgstr "Подписчики"
+
+#: ../roles/roles-add.php:100
+msgid ""
+"Select user role to access plugin Subscribers Menu. Only Admin user can "
+"change this value."
+msgstr ""
+
+#: ../roles/roles-add.php:103
+#, fuzzy
+msgid "Compose Menu"
+msgstr "Создать сообщение"
+
+#: ../roles/roles-add.php:109
+msgid ""
+"Select user role to access plugin Compose Menu. Only Admin user can change "
+"this value."
+msgstr ""
+
+#: ../roles/roles-add.php:111
+#, fuzzy
+msgid "Notification Menu"
+msgstr "Оповещения"
+
+#: ../roles/roles-add.php:117
+msgid ""
+"Select user role to access plugin Notification Menu. Only Admin user can "
+"change this value."
+msgstr ""
+
+#: ../roles/roles-add.php:119
+msgid "Send Email Menu/Cron Menu"
+msgstr ""
+
+#: ../roles/roles-add.php:125
+msgid ""
+"Select user role to access plugin Send Email Menu. Only Admin user can "
+"change this value."
+msgstr ""
+
+#: ../roles/roles-add.php:127
+#, fuzzy
+msgid "Settings Menu"
+msgstr "Настройки"
+
+#: ../roles/roles-add.php:133
+msgid ""
+"Select user role to access plugin Settings Menu. Only Admin user can change "
+"this value."
+msgstr ""
+
+#: ../roles/roles-add.php:135
+#, fuzzy
+msgid "Sent Mails Menu"
+msgstr "Отправленные"
+
+#: ../roles/roles-add.php:141
+msgid ""
+"Select user role to access plugin Sent Mails Menu. Only Admin user can "
+"change this value."
+msgstr ""
+
+#: ../roles/roles-add.php:143
+#, fuzzy
+msgid "Help & Info Menu"
+msgstr "Помощь"
+
+#: ../roles/roles-add.php:149
+msgid ""
+"Select user role to access plugin Help & Info Menu. Only Admin user can "
+"change this value."
+msgstr ""
+
+#: ../sendmail/sendmail.php:35
 msgid "Please select your mail subject."
 msgstr "Пожалуйста, выберите тему сообщения"
 
-#: ../sendmail/sendmail.php:26
+#: ../sendmail/sendmail.php:43
 msgid "No email address selected."
 msgstr "E-mail адреса не выбраны"
 
-#: ../sendmail/sendmail.php:34
+#: ../sendmail/sendmail.php:58
 msgid "Mail sent successfully"
 msgstr "Сообщение успешно отправлено"
 
-#: ../sendmail/sendmail.php:40
+#: ../sendmail/sendmail.php:64
 msgid "Click here for details"
 msgstr "Нажмите сюда для подробного просмотра"
 
-#: ../sendmail/sendmail.php:49
+#: ../sendmail/sendmail.php:73
 msgid "Oops.. We are getting some error. mail not sending."
 msgstr "Произошла ошибка. Сообщения не отправлены"
 
-#: ../sendmail/sendmail.php:78
+#: ../sendmail/sendmail.php:102
 msgid "Select your mail subject"
 msgstr "Выберите тему сообщения"
 
-#: ../sendmail/sendmail.php:79
+#: ../sendmail/sendmail.php:103
 msgid ""
 "Select a mail subject from available list. Go to Compose page to create new "
 "mail."
@@ -409,103 +606,134 @@ msgstr ""
 "Выберите тему сообщения из списка. Используйте меню \"Создать сообщения\" "
 "для создания новой"
 
-#: ../sendmail/sendmail.php:109
+#: ../sendmail/sendmail.php:133
+#, fuzzy
+msgid "Mail Type"
+msgstr "Тип сообщения"
+
+#: ../sendmail/sendmail.php:134
+#, fuzzy
+msgid "Select your mail type."
+msgstr "Пожалуйста, выберите тип сообщения"
+
+#: ../sendmail/sendmail.php:148
 msgid "Select subscriber group"
 msgstr "Выберите группу подписчика"
 
-#: ../sendmail/sendmail.php:110
+#: ../sendmail/sendmail.php:149
 msgid "Select your subscriber group to send email."
 msgstr "Выберите группу подписчиков для отправки сообщения"
 
-#: ../sendmail/sendmail.php:135
+#: ../sendmail/sendmail.php:174
 msgid "Check All"
 msgstr "Выбрать все"
 
-#: ../sendmail/sendmail.php:136
+#: ../sendmail/sendmail.php:175
 msgid "Uncheck All"
 msgstr "Снять все"
 
-#: ../sendmail/sendmail.php:199
+#: ../sendmail/sendmail.php:238
 msgid "No subscribers available for this search criteria."
 msgstr "Нет подписчиков, соответствующих критериям поиска"
 
-#: ../sentmail/deliverreport-show.php:9
+#: ../sentmail/deliverreport-show.php:11
 msgid "Oops.. Unexpected error occurred. Please try again."
 msgstr "Произошла ошибка. Попробуйте еще раз"
 
-#: ../sentmail/deliverreport-show.php:17
+#: ../sentmail/deliverreport-show.php:19
 msgid "Delivery Report"
 msgstr "Отчет о доставке"
 
-#: ../sentmail/deliverreport-show.php:35 ../sentmail/deliverreport-show.php:45
+#: ../sentmail/deliverreport-show.php:37 ../sentmail/deliverreport-show.php:49
+#: ../subscribers/view-subscriber-export.php:29
+#: ../subscribers/view-subscriber-export.php:37
+#: ../subscribers/view-subscriber-show.php:324
+#: ../subscribers/view-subscriber-show.php:337
+msgid "Sno"
+msgstr "Номер подписчика"
+
+#: ../sentmail/deliverreport-show.php:38 ../sentmail/deliverreport-show.php:50
 msgid "Email"
 msgstr "E-mail"
 
-#: ../sentmail/deliverreport-show.php:36 ../sentmail/deliverreport-show.php:46
+#: ../sentmail/deliverreport-show.php:39 ../sentmail/deliverreport-show.php:51
 msgid "Sent Date"
 msgstr "Дата отправки"
 
-#: ../sentmail/deliverreport-show.php:37 ../sentmail/deliverreport-show.php:47
+#: ../sentmail/deliverreport-show.php:42 ../sentmail/deliverreport-show.php:54
 msgid "Viewed Status"
 msgstr "Статус просмотра"
 
-#: ../sentmail/deliverreport-show.php:38 ../sentmail/deliverreport-show.php:48
+#: ../sentmail/deliverreport-show.php:43 ../sentmail/deliverreport-show.php:55
 msgid "Viewed Date"
 msgstr "Дата просмотра"
 
-#: ../sentmail/deliverreport-show.php:39 ../sentmail/deliverreport-show.php:49
-#: ../subscribers/view-subscriber-show.php:257
-#: ../subscribers/view-subscriber-show.php:270
+#: ../sentmail/deliverreport-show.php:44 ../sentmail/deliverreport-show.php:56
+#: ../subscribers/view-subscriber-show.php:329
+#: ../subscribers/view-subscriber-show.php:342
 msgid "Database ID"
 msgstr "Идентификатор в базе данных"
 
-#: ../sentmail/deliverreport-show.php:87 ../sentmail/sentmail-show.php:137
+#: ../sentmail/deliverreport-show.php:96 ../sentmail/sentmail-show.php:144
 msgid " &lt;&lt; "
 msgstr " &lt;&lt; "
 
-#: ../sentmail/deliverreport-show.php:88 ../sentmail/sentmail-show.php:138
+#: ../sentmail/deliverreport-show.php:97 ../sentmail/sentmail-show.php:145
 msgid " &gt;&gt; "
 msgstr " &gt;&gt; "
 
-#: ../sentmail/sentmail-show.php:41
+#: ../sentmail/sentmail-show.php:42
 msgid "Successfully deleted all reports except latest 10."
 msgstr "Успешно удалены все отчеты кроме последних 10"
 
-#: ../sentmail/sentmail-show.php:71 ../sentmail/sentmail-show.php:83
+#: ../sentmail/sentmail-show.php:72 ../sentmail/sentmail-show.php:85
 msgid "View Reports"
 msgstr "Просмотреть отчеты"
 
-#: ../sentmail/sentmail-show.php:72 ../sentmail/sentmail-show.php:84
-msgid "Mail Preview"
-msgstr "Просмотр сообщения"
-
-#: ../sentmail/sentmail-show.php:73 ../sentmail/sentmail-show.php:85
-msgid "Sent Source"
+#: ../sentmail/sentmail-show.php:74 ../sentmail/sentmail-show.php:87
+#, fuzzy
+msgid "Source"
 msgstr "Источник отправки"
 
-#: ../sentmail/sentmail-show.php:74 ../sentmail/sentmail-show.php:86
-msgid "Sent Start Date"
+#: ../sentmail/sentmail-show.php:77 ../sentmail/sentmail-show.php:90
+#, fuzzy
+msgid "Start Date"
 msgstr "Дата начала отправки"
 
-#: ../sentmail/sentmail-show.php:75 ../sentmail/sentmail-show.php:87
-msgid "Sent End Date"
+#: ../sentmail/sentmail-show.php:78 ../sentmail/sentmail-show.php:91
+#, fuzzy
+msgid "End Date"
 msgstr "Дата конца отправки"
 
-#: ../sentmail/sentmail-show.php:76 ../sentmail/sentmail-show.php:88
-msgid "Total Mails"
+#: ../sentmail/sentmail-show.php:79 ../sentmail/sentmail-show.php:92
+#, fuzzy
+msgid "Total"
 msgstr "Итого сообщений"
 
-#: ../sentmail/sentmail-show.php:161 ../sentmail/sentmail-show.php:163
+#: ../sentmail/sentmail-show.php:168 ../sentmail/sentmail-show.php:170
 msgid "Optimize Table"
 msgstr "Оптимизировать таблицу"
 
-#: ../sentmail/sentmail-show.php:173
+#: ../sentmail/sentmail-show.php:180
 msgid ""
 "Note: Please click <strong>Optimize Table</strong> button to delete all "
 "reports except latest 10."
 msgstr ""
 "Вы можете нажать кнопку <strong>Оптимизировать таблицу</strong> для удаления "
 "всех отчетов кроме последних 10"
+
+#: ../settings/setting-sync.php:8
+#, fuzzy
+msgid "Table sync completed successfully."
+msgstr "Сообщение успешно отправлено"
+
+#: ../settings/setting-sync.php:21
+msgid "Sync plugin tables"
+msgstr ""
+
+#: ../settings/setting-sync.php:25
+msgid "Click to sync tables"
+msgstr ""
 
 #: ../settings/settings-edit.php:102
 msgid "Please enter sender of notifications from name."
@@ -754,73 +982,92 @@ msgstr "Содержимое сообщения, содержащего отче
 msgid "Save Settings"
 msgstr "Сохранить настройки"
 
-#: ../subscribers/view-subscriber-add.php:27
-#: ../subscribers/view-subscriber-add.php:106
-#: ../subscribers/view-subscriber-edit.php:44
-#: ../subscribers/view-subscriber-edit.php:90
+#: ../subscribers/view-subscriber-add.php:28
+#: ../subscribers/view-subscriber-add.php:120
+#: ../subscribers/view-subscriber-edit.php:43
+#: ../subscribers/view-subscriber-edit.php:104
 msgid "Please enter subscriber email address."
 msgstr "Пожалуйста, введите e-mail адрес подписчика"
 
-#: ../subscribers/view-subscriber-add.php:43
+#: ../subscribers/view-subscriber-add.php:45
 msgid "Please select or create your group for this email."
 msgstr "Пожалуйста, введите или создайте группу для этого сообщения"
 
 #: ../subscribers/view-subscriber-add.php:54
+#: ../subscribers/view-subscriber-import.php:45
+msgid ""
+"Error: Special characters (['^$%&*()}{@#~?><>,|=_+\\\"]) are not allowed in "
+"the group name."
+msgstr ""
+
+#: ../subscribers/view-subscriber-add.php:66
 msgid "Email was successfully inserted."
 msgstr "Сообщение было успешно добавлено"
 
-#: ../subscribers/view-subscriber-add.php:58
+#: ../subscribers/view-subscriber-add.php:70
 msgid "Email already exist in our list."
 msgstr "Сообщение уже добавлено в этот список"
 
-#: ../subscribers/view-subscriber-add.php:63
+#: ../subscribers/view-subscriber-add.php:75
 msgid "Email is invalid."
 msgstr "Сообщение некорректно"
 
-#: ../subscribers/view-subscriber-add.php:98
+#: ../subscribers/view-subscriber-add.php:112
 msgid "Add email"
 msgstr "Добавить e-mail адрес"
 
-#: ../subscribers/view-subscriber-add.php:100
-#: ../subscribers/view-subscriber-edit.php:84
+#: ../subscribers/view-subscriber-add.php:114
+#: ../subscribers/view-subscriber-edit.php:98
 msgid "Enter full name"
 msgstr "Добавить полное имя"
 
-#: ../subscribers/view-subscriber-add.php:102
-#: ../subscribers/view-subscriber-edit.php:86
+#: ../subscribers/view-subscriber-add.php:116
+#: ../subscribers/view-subscriber-edit.php:100
 msgid "Please enter subscriber full name."
 msgstr "Пожалуйста, введите полное имя подписчика"
 
-#: ../subscribers/view-subscriber-add.php:104
-#: ../subscribers/view-subscriber-edit.php:88
+#: ../subscribers/view-subscriber-add.php:118
+#: ../subscribers/view-subscriber-edit.php:102
 msgid "Enter email address."
 msgstr "Добавить e-mail адрес"
 
-#: ../subscribers/view-subscriber-add.php:115
-#: ../subscribers/view-subscriber-edit.php:99
+#: ../subscribers/view-subscriber-add.php:129
+#: ../subscribers/view-subscriber-edit.php:113
+#: ../subscribers/view-subscriber-import.php:163
 msgid "Please select subscriber email status."
 msgstr "Пожалуйста, введите статус e-mail адреса подписчика"
 
-#: ../subscribers/view-subscriber-add.php:117
+#: ../subscribers/view-subscriber-add.php:131
+#: ../subscribers/view-subscriber-import.php:165
 msgid "Select (or) Create Group"
 msgstr "Выберите/создайте группу"
 
-#: ../subscribers/view-subscriber-add.php:135
-#: ../subscribers/view-subscriber-edit.php:123
+#: ../subscribers/view-subscriber-add.php:149
+#: ../subscribers/view-subscriber-edit.php:141
+#: ../subscribers/view-subscriber-import.php:183
 msgid "Please select or create group for this subscriber."
 msgstr "Пожалуйста, выберите или создайте группу для этого подписчика"
 
-#: ../subscribers/view-subscriber-edit.php:57
+#: ../subscribers/view-subscriber-edit.php:54
+msgid "Error: Special characters are not allowed in the group name."
+msgstr ""
+
+#: ../subscribers/view-subscriber-edit.php:66
 msgid "Email was successfully updated."
 msgstr "Сообщение успешно обновлено"
 
-#: ../subscribers/view-subscriber-edit.php:82
+#: ../subscribers/view-subscriber-edit.php:70
+#, fuzzy
+msgid "Email already exist for this group."
+msgstr "Сообщение уже добавлено в этот список"
+
+#: ../subscribers/view-subscriber-edit.php:96
 msgid "Edit email"
 msgstr "Редактировать сообщение"
 
-#: ../subscribers/view-subscriber-edit.php:101
-#: ../subscribers/view-subscriber-show.php:256
-#: ../subscribers/view-subscriber-show.php:269
+#: ../subscribers/view-subscriber-edit.php:115
+#: ../subscribers/view-subscriber-show.php:328
+#: ../subscribers/view-subscriber-show.php:341
 msgid "Group"
 msgstr "Группа"
 
@@ -829,75 +1076,67 @@ msgid "Export email address in csv format"
 msgstr "Экспорт сообщения в формат CSV"
 
 #: ../subscribers/view-subscriber-export.php:30
-#: ../subscribers/view-subscriber-export.php:39
-#: ../subscribers/view-subscriber-show.php:252
-#: ../subscribers/view-subscriber-show.php:265
-msgid "Sno"
-msgstr "Номер подписчика"
-
-#: ../subscribers/view-subscriber-export.php:31
-#: ../subscribers/view-subscriber-export.php:40
+#: ../subscribers/view-subscriber-export.php:38
 msgid "Export option"
 msgstr "Вариант экспорта"
 
-#: ../subscribers/view-subscriber-export.php:32
-#: ../subscribers/view-subscriber-export.php:41
+#: ../subscribers/view-subscriber-export.php:31
+#: ../subscribers/view-subscriber-export.php:39
 msgid "Total email"
 msgstr "Итого сообщений"
 
-#: ../subscribers/view-subscriber-export.php:49
+#: ../subscribers/view-subscriber-export.php:46
 msgid "Subscriber email address"
 msgstr "E-mail адрес подписчика"
 
-#: ../subscribers/view-subscriber-export.php:51
-#: ../subscribers/view-subscriber-export.php:58
-#: ../subscribers/view-subscriber-export.php:65
+#: ../subscribers/view-subscriber-export.php:48
+#: ../subscribers/view-subscriber-export.php:54
+#: ../subscribers/view-subscriber-export.php:60
 msgid "Click to export csv"
 msgstr "Нажмите для экспорта в формат CSV"
 
-#: ../subscribers/view-subscriber-export.php:56
+#: ../subscribers/view-subscriber-export.php:52
 msgid "Registered email address"
 msgstr "Зарегистрированный e-mail адрес"
 
-#: ../subscribers/view-subscriber-export.php:63
+#: ../subscribers/view-subscriber-export.php:58
 msgid "Comments author email address"
 msgstr "E-mail адрес автора комментариев"
 
-#: ../subscribers/view-subscriber-export.php:72
+#: ../subscribers/view-subscriber-export.php:67
 msgid "Add Email"
 msgstr "Добавить e-mail адрес"
 
-#: ../subscribers/view-subscriber-export.php:73
-#: ../subscribers/view-subscriber-show.php:241
-#: ../subscribers/view-subscriber-show.php:385
+#: ../subscribers/view-subscriber-export.php:68
+#: ../subscribers/view-subscriber-show.php:445
 msgid "Import Email"
 msgstr "Импортировать e-mail адрес"
 
-#: ../subscribers/view-subscriber-import.php:66
+#: ../subscribers/view-subscriber-import.php:103
 msgid "Email(s) was successfully imported."
 msgstr "Импорт e-mail адрес(ов) произведен успешно"
 
-#: ../subscribers/view-subscriber-import.php:67
+#: ../subscribers/view-subscriber-import.php:104
 msgid "Email(s) are already in our database."
 msgstr "E-mail адрес(а) уже в базе данных"
 
-#: ../subscribers/view-subscriber-import.php:68
+#: ../subscribers/view-subscriber-import.php:105
 msgid "Email(s) are invalid."
 msgstr "E-mail адрес(а) некорректны"
 
-#: ../subscribers/view-subscriber-import.php:78
+#: ../subscribers/view-subscriber-import.php:115
 msgid "File upload failed or no data available in the csv file."
 msgstr "Загрузка файла не удалась данные отсутствуют в файле CSV"
 
-#: ../subscribers/view-subscriber-import.php:112
+#: ../subscribers/view-subscriber-import.php:150
 msgid "Upload email"
 msgstr "Загрузить e-mail адрес"
 
-#: ../subscribers/view-subscriber-import.php:113
+#: ../subscribers/view-subscriber-import.php:151
 msgid "Select csv file"
 msgstr "Выбрать файл в формате CSV"
 
-#: ../subscribers/view-subscriber-import.php:115
+#: ../subscribers/view-subscriber-import.php:153
 msgid ""
 "Please select the input csv file. Please check official website for csv "
 "structure."
@@ -905,99 +1144,166 @@ msgstr ""
 "Пожалуйста, выберите файл в формате CSV. Ознакомьтесь с информацией на "
 "официальном сайте о требуемой структуре файла"
 
-#: ../subscribers/view-subscriber-import.php:120
+#: ../subscribers/view-subscriber-import.php:188
 msgid "Upload CSV"
 msgstr "Загрузить файл CSV"
 
-#: ../subscribers/view-subscriber-show.php:52
-#: ../subscribers/view-subscriber-show.php:105
+#: ../subscribers/view-subscriber-show.php:72
+#: ../subscribers/view-subscriber-show.php:125
 msgid ""
 "To send confirmation mail, Please change the Opt-in option to Double Opt In."
 msgstr ""
 "Для отправки e-mail сообщения для подтверждения e-mail адреса установите "
 "значение поля \"Подтверждение e-mail\" в значение Double Opt In"
 
-#: ../subscribers/view-subscriber-show.php:61
+#: ../subscribers/view-subscriber-show.php:81
 msgid "Confirmation email resent successfully."
 msgstr "E-mail сообщение для подтверждения адреса успешно отправлено"
 
-#: ../subscribers/view-subscriber-show.php:90
-#: ../subscribers/view-subscriber-show.php:136
-#: ../subscribers/view-subscriber-show.php:181
+#: ../subscribers/view-subscriber-show.php:110
+#: ../subscribers/view-subscriber-show.php:156
+#: ../subscribers/view-subscriber-show.php:201
 msgid "Oops, No record was selected."
 msgstr "Не выбрано записей"
 
-#: ../subscribers/view-subscriber-show.php:130
+#: ../subscribers/view-subscriber-show.php:150
 msgid "Confirmation email(s) resent successfully."
 msgstr ""
 "E-mail сообщение(я) для подтверждения адреса успешно отправлено(ы) повторно"
 
-#: ../subscribers/view-subscriber-show.php:166
+#: ../subscribers/view-subscriber-show.php:186
 msgid "Selected subscribers group was successfully updated."
 msgstr "Выбренная группа подписчиков успешно обновлена"
 
-#: ../subscribers/view-subscriber-show.php:172
+#: ../subscribers/view-subscriber-show.php:192
 msgid "Oops, New group name was not selected."
 msgstr "Имя новой группы не выбрано"
 
-#: ../subscribers/view-subscriber-show.php:207
+#: ../subscribers/view-subscriber-show.php:232
 msgid "View subscriber"
 msgstr "Просмотреть подписчика"
 
-#: ../subscribers/view-subscriber-show.php:242
-#: ../subscribers/view-subscriber-show.php:386
-msgid "Export Email (CSV)"
-msgstr "Экспортировать сообщение (CSV)"
+#: ../subscribers/view-subscriber-show.php:280
+#, fuzzy
+msgid "All Groups"
+msgstr "Группа"
 
-#: ../subscribers/view-subscriber-show.php:253
-#: ../subscribers/view-subscriber-show.php:266
+#: ../subscribers/view-subscriber-show.php:299
+#, fuzzy
+msgid "All Status"
+msgstr "Статус"
+
+#: ../subscribers/view-subscriber-show.php:300
+msgid "Confirmed"
+msgstr "Подтвержден"
+
+#: ../subscribers/view-subscriber-show.php:301
+msgid "Unconfirmed"
+msgstr "Не подтвержден"
+
+#: ../subscribers/view-subscriber-show.php:302
+msgid "Unsubscribed"
+msgstr "Отписан"
+
+#: ../subscribers/view-subscriber-show.php:303
+msgid "Single Opt In"
+msgstr "Без подтверждения"
+
+#: ../subscribers/view-subscriber-show.php:325
+#: ../subscribers/view-subscriber-show.php:338
 msgid "Email address"
 msgstr "E-mail адрес"
 
-#: ../subscribers/view-subscriber-show.php:313
-#: ../subscribers/view-subscriber-show.php:348
+#: ../subscribers/view-subscriber-show.php:385
+#: ../subscribers/view-subscriber-show.php:423
 msgid "Resend Confirmation"
 msgstr "Отправить сообщение для подтверждения повторно"
 
-#: ../subscribers/view-subscriber-show.php:329
+#: ../subscribers/view-subscriber-show.php:401
 msgid ""
 "No records available. Please use the above alphabet search button to search."
 msgstr ""
 "Нет доступных записей. Пожалуйста, используйте алфавитные кнопки выше для "
 "поиска"
 
-#: ../subscribers/view-subscriber-show.php:346
+#: ../subscribers/view-subscriber-show.php:421
 msgid "Bulk Actions"
 msgstr "Групповые действия"
 
-#: ../subscribers/view-subscriber-show.php:349
+#: ../subscribers/view-subscriber-show.php:424
 msgid "Update Subscribers Group"
 msgstr "Обновить группу подписчиков"
 
-#: ../subscribers/view-subscriber-show.php:352
+#: ../subscribers/view-subscriber-show.php:427
 msgid "Select Group"
 msgstr "Выбрать группу"
 
-#: ../subscribers/view-subscriber-show.php:366
+#: ../subscribers/view-subscriber-show.php:441
 msgid "Apply"
 msgstr "Применить"
 
-#: ../subscribers/view-subscriber-show.php:368
-msgid "View all status"
-msgstr "Все статусы"
+#: ../subscribers/view-subscriber-show.php:446
+#, fuzzy
+msgid "Export Email"
+msgstr "Импортировать e-mail адрес"
 
-#: ../subscribers/view-subscriber-show.php:369
-msgid "Confirmed"
-msgstr "Подтвержден"
+#: ../subscribers/view-subscriber-show.php:447
+#, fuzzy
+msgid "Sync Email"
+msgstr "Отправить сообщение"
 
-#: ../subscribers/view-subscriber-show.php:370
-msgid "Unconfirmed"
-msgstr "Не подтвержден"
+#: ../subscribers/view-subscriber-sync.php:33
+#: ../subscribers/view-subscriber-sync.php:119
+#, fuzzy
+msgid "Please select default group to newly registered user."
+msgstr "Пожалуйста, выберите или создайте группу для этого подписчика"
 
-#: ../subscribers/view-subscriber-show.php:371
-msgid "Unsubscribed"
-msgstr "Отписан"
+#: ../subscribers/view-subscriber-sync.php:39
+#: ../subscribers/view-subscriber-sync.php:150
+#, fuzzy
+msgid "Please select default group to newly commented user."
+msgstr "Пожалуйста, выберите или создайте группу для этого подписчика"
 
-#: ../subscribers/view-subscriber-show.php:372
-msgid "Single Opt In"
-msgstr "Без подтверждения"
+#: ../subscribers/view-subscriber-sync.php:56
+#, fuzzy
+msgid "Sync email successfully updated."
+msgstr "Сообщение успешно обновлено"
+
+#: ../subscribers/view-subscriber-sync.php:88
+#, fuzzy
+msgid "Sync email"
+msgstr "Отправить сообщение"
+
+#: ../subscribers/view-subscriber-sync.php:90
+msgid "Sync newly registered user"
+msgstr ""
+
+#: ../subscribers/view-subscriber-sync.php:95
+msgid ""
+"Automatically add a newly registered user email address to subscribers list."
+msgstr ""
+
+#: ../subscribers/view-subscriber-sync.php:97
+#: ../subscribers/view-subscriber-sync.php:128
+#, fuzzy
+msgid "Select default group"
+msgstr "Выбрать группу"
+
+#: ../subscribers/view-subscriber-sync.php:121
+msgid "Sync newly commented user"
+msgstr ""
+
+#: ../subscribers/view-subscriber-sync.php:126
+msgid ""
+"Automatically add a newly commented (who posted comments) user email address "
+"to subscribers list."
+msgstr ""
+
+#~ msgid "Mail Preview"
+#~ msgstr "Просмотр сообщения"
+
+#~ msgid "Export Email (CSV)"
+#~ msgstr "Экспортировать сообщение (CSV)"
+
+#~ msgid "View all status"
+#~ msgstr "Все статусы"

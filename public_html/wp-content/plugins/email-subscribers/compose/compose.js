@@ -2,20 +2,20 @@ function _es_submit()
 {
 	if(document.es_form.es_set_name.value=="")
 	{
-		alert("Please enter name for configuration.")
+		alert(es_compose_notices.es_configuration_name);
 		document.es_form.es_set_name.focus();
 		return false;
 	}
 	else if(document.es_form.es_set_templid.value=="")
 	{
-		alert("Please select template for this configuration.")
+		alert(es_compose_notices.es_configuration_template);
 		return false;
 	}
 }
 
 function _es_delete(id)
 {
-	if(confirm("Do you want to delete this record?"))
+	if(confirm(es_compose_notices.es_compose_delete_record))
 	{
 		document.frm_es_display.action="admin.php?page=es-compose&ac=del&did="+id;
 		document.frm_es_display.submit();
@@ -29,5 +29,5 @@ function _es_redirect()
 
 function _es_help()
 {
-	window.open("http://www.gopiplus.com/work/2014/05/02/email-subscribers-wordpress-plugin/");
+	window.open("https://wordpress.org/plugins/email-subscribers/faq/");
 }
