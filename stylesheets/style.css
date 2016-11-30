@@ -151,12 +151,14 @@ header {
 .fa-github {
 	background-color: #333!important;
 }
-.fa-wattpad {
+.mk-wattpad {
 	background-color: #FF9912!important;
-	background-image: url('data:image/gif;base64,R0lGODlhbABsAPMAAP+HAP+PEf+XIv+fM/+nRP+vVf+3Zv+/d//HiP/Pmf/Xqv/fu//nzP/v3f/37v///yH5BAAAAAAAIf8LSW1hZ2VNYWdpY2sOZ2FtbWE9MC40NTQ1NDUALAAAAABsAGwAAAT+EMhJq7046827/2AojmRpnmiqrmzrvnAsz3Rt33iu73zv/8CgcEgsGo/IpHLJbDqf0Kh0qgkYFI2HdsvVNhYIAiVwWDC66McXIZiQzWk0eHALIOL4LcMgSOTzCgUJDn9xDWIzBISFjI2OjgoBMQZdDQkHBgSam5sHBwpxDJ4FnKWeZ2gNCAekpZ2fXQxtLpR6iB5kiw8Ks7h+Wgu3Hbl6kiwDuggkAQwOBSTIBtCoDwstC1sHJ706zFvSKgVbClQTyF4r2A8OxuUAB1vPKAFbyu4SAYsJKeJadPcSQK1LcUcLwAnwDKIo6CCDAAQQI0bkloGAxIsdHl6ciIHAFor+Iwpa64hHWIaCaTp4jGNywsoHLUWIrFiyA0o0KmteeBkzxEySLG3iyRl055aeIH4aLbrhZheiaXryXAiMJlMNTrlARSP1KNVqVqMKjbO1S1ctSD8otfCS69iUHNqaBQrz68ilYjlk3VKWy9m6J9ZWkOv3Lc64Otl6DVyVrlu9QxFfpTCVMVjHcyGTlZxXMVq7YR83jbyB8GLPgE0IppwYK2kNpj/jTethtcvWJ1+Hzoya9ti7qEW73lwa923ZqhvjFZ6bOGzjEionv7yc93C4xScfT13CdnToFvYqzN558OnuyoNbb479ufbvyNFTV19Yc/vd9XuDxpz/+mHyzG3+55tmwJn3Xni68Xcea/GR4B0AsXHH3n/ulceghCGlZ6CFGIj3QF8LCrhfdVzYM5pz+IUIH4YyadGQglqY6N9TnAW44oAnfpgBHjJOSCOA64lomY4Y8GjYjxXaCKGKPvG1Yxzk2Edhig0KOR2RF6iTRjs+alVjkDeiIJ0FAqXR4wUeglhlmNvEk0FCcZxZQZpf9nchjhtk49AfqmTiCgG/RPWnKeCNWQIqUWKg5SOMNvoXnhoI9CKMjVZaKJMh1PKAPBgEaumnl64pQj5a7JOBN6CmqqShJfwyKQYBlKmqqo+G8w0HBugy66e1qrAIOx0YkEAWu1baawpwyglbJxusNevss9CCxKYK1PxDxUvSlvASA1xGAacLKCUqhaQukFrqFOaa2sI5WnDrrZsvsKsGpD8IsEgDMsj7QALZEoHqA+DEIAA1pVprxADUFAiDHWgwEIa/B+jirg0DLMrFGp6MMujGHHesiSeyPsCAwTYQEHKxKO/SLQ4ClJFysQ1w+kMAFiEAx8uPOEzvQTz37PPPQAct9NBEF2300UgnrfTSTDft9NNQRy311DdEAAA7');
-	background-repeat: none;
-	background-size: cover;
-	content: ' ';
+	line-height: 1.8em;
+}
+.mk-wattpad::before {
+	font-size: 1.6em;
+	vertical-align: middle;
+	    line-height: 1.4em;
 }
 .fa-jsfiddle {
 	background-color: lightblue!important;
@@ -201,14 +203,54 @@ header {
 .fa-envelope {
 	background-color: gray!important;
 }
-.fa-gameslt {
+.mk-gameslt {
 	background-color: black!important;
-	background-repeat: none;
-	background-size: 60%;
-	background-repeat: no-repeat;
-	background-position: 50% 50%;
-	content: ' ';
-	background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAMAAAAoLQ9TAAAABGdBTUEAALGPC/xhBQAAACBjSFJNAAB6JgAAgIQAAPoAAACA6AAAdTAAAOpgAAA6mAAAF3CculE8AAAAM1BMVEUAAAAAAAD////39vf29vb+///+/v4hISEzMzMyMjIMDAzb29vd3d3c3Nz9/f36+vr7+/uro+xzAAAAAXRSTlMAQObYZgAAAAFiS0dEAmYLfGQAAAAHdElNRQfgCxkMHSKjR0y6AAAAUElEQVQY02NgQAeMaICBkQkFMKMJsEBVsAIxGwjDtGCYAWayc3BwIAtwQhhwAS4mNAFuHl5UAUZGPiQBkJUgPj+aS/nA1rLBgQDEHeieQwcAAuQCHWI+rcYAAAAldEVYdGRhdGU6Y3JlYXRlADIwMTYtMTEtMjVUMTI6Mjk6MzQtMDU6MDDWBQVpAAAAJXRFWHRkYXRlOm1vZGlmeQAyMDE2LTExLTI1VDEyOjI5OjM0LTA1OjAwp1i91QAAAABJRU5ErkJggg==');
+	    line-height: 1.8em!important;
+}
+.mk-gameslt:before {
+	vertical-align: middle;
+}
+.mk-stackshare {
+	background-color: #0690FA!important;
+line-height: 1.8em!important;
+}
+
+.mk-stackshare::before {
+	vertical-align: middle;
+	font-size: 1.1em!important;
+}
+.mk-sourceforge {
+	background-color: #D1D1D1!important;
+	line-height: 1.8em!important;
+			
+}
+.mk-sourceforge::before {
+	vertical-align: middle;
+	font-size: 1.5em!important;
+}
+.mk-raptr {
+	background-color: #FBAA04!important;
+	line-height: 1.8em!important;	
+}
+.mk-raptr::before {
+	vertical-align: middle;
+	font-size: 1.1em!important;
+}
+.mk-gog {
+	background-color: #817C80!important;
+	line-height: 1.8em!important;	
+}
+.mk-gog::before {
+	vertical-align: middle;
+	font-size: 1.1em!important;
+}
+.mk-gamersgate {
+	background-color: #43B6DC!important;
+	line-height: 1.8em!important;	
+}
+.mk-gamersgate::before {
+	vertical-align: middle;
+	font-size: 1.1em!important;
 }
 body.lt .en {
 	display: none;
