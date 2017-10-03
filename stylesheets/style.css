@@ -153,8 +153,8 @@ header {
 }
 .fa-instagram {
 	background-color: white!important;
-    color: black;
-    font-weight: bold;
+    color: black!important;
+    font-weight: bold!important;
 }
 .mk-wattpad {
 	background-color: #FF9912!important;
