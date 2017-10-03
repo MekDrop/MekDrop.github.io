@@ -151,6 +151,11 @@ header {
 .fa-github {
 	background-color: #333!important;
 }
+.fa-instagram {
+	background-color: white!important;
+    color: black;
+    font-weight: bold;
+}
 .mk-wattpad {
 	background-color: #FF9912!important;
 	line-height: 1.8em;
@@ -227,14 +232,6 @@ line-height: 1.8em!important;
 .mk-sourceforge::before {
 	vertical-align: middle;
 	font-size: 1.5em!important;
-}
-.mk-raptr {
-	background-color: #FBAA04!important;
-	line-height: 1.8em!important;	
-}
-.mk-raptr::before {
-	vertical-align: middle;
-	font-size: 1.1em!important;
 }
 .mk-gog {
 	background-color: #817C80!important;
