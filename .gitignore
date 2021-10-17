@@ -1,2 +1,5 @@
 *.bak
 .idea/
+build/
+node_modules/
+/yarn-error.log

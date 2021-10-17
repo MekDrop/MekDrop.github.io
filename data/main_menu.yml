@@ -1,0 +1,14 @@
+items:
+  - name: main_menu.blog.name
+    description: main_menu.blog.description
+    url: https://blog.mekdrop.name
+    lithuanian_only: true
+    external: true
+  - name: main_menu.stories.name
+    description: main_menu.stories.description
+    url: https://stories.mekdrop.name
+    external: true
+  - name: main_menu.tools.name
+    description: main_menu.tools.description
+    url: https://tools.mekdrop.name
+    external: true
