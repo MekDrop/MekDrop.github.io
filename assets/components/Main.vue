@@ -1,50 +1,70 @@
 <template #main>
-    <h1>MekDrop.Name</h1>
-    <span class="p-float-label">
-        <LanguageSwitcher></LanguageSwitcher>
-    </span>
-
-    <div class="p-grid p-p-3">
-        <div class="p-col">
-            <VerticalMenu></VerticalMenu>
-        </div>
-        <div class="p-col">
-            <div class="p-grid">
-                <div class="p-col-6">
-                    <h2>{{ t('misc.other_places') }}</h2>
+    <div class="p-grid">
+        <div class="p-md-8 p-md-offset-2 p-sm-12 p-sm-offset-0 mk_base">
+            <div class="p-d-flex p-jc-between">
+                <h1>
+                    <OwnGravatar /> MekDrop
+                </h1>
+                <div class="p-as-center">
+                    <LanguageSwitcher></LanguageSwitcher>
                 </div>
-                <div class="p-col-6">
-                    <span class="p-float-label">
-                        <AutoComplete :dropdown="true" id="links_filter" type="text" v-model="filter"
-                                      :suggestions="filterSuggestions" @complete="searchFilterValue($event)"/>
-                        <label for="links_filter">{{ t('form.filter') }}</label>
+            </div>
+            <Divider></Divider>
+
+            <div class="p-grid">
+                <div class="p-col-12 p-sm-12 p-md-6">
+                    <VerticalMenu></VerticalMenu>
+                </div>
+                <div class="p-col-12 p-sm-12 p-md-6">
+                    <div class="p-d-flex p-jc-between">
+                        <h2>{{ t('misc.other_places') }}</h2>
+                        <div class="p-field mk-sm-hidden">
+                            <div class="p-float-label">
+                                <AutoComplete :dropdown="true" id="links_filter" type="text" v-model="filter"
+                                              :suggestions="filterSuggestions" @complete="searchFilterValue($event)"/>
+                                <label for="links_filter">{{ t('form.filter') }}</label>
+                            </div>
+                        </div>
+                    </div>
+                    <span class="p-buttonset">
+                        <form v-for="link in links" class="link" :action="link.url" method="get" target="_blank">
+                            <Button :icon="link.icon"
+                                    type="submit"
+                                    class="p-button-info p-button-sm"
+                                    :label="link.translate ? t(link.name) : link.name"
+                            />
+                        </form>
                     </span>
                 </div>
             </div>
-            <form v-for="link in links" class="link" :action="link.url" method="get" target="_blank">
-                <Button v-tooltip="link.translate ? t(link.name) : link.name" :icon="link.icon" type="submit"
-                        class="p-button-link p-button-raised p-button-rounded"/>
-            </form>
+
         </div>
     </div>
 </template>
 
 <script>
-    import Card from 'primevue/card';
     import Button from 'primevue/button';
     import Tooltip from 'primevue/tooltip';
     import AutoComplete from 'primevue/autocomplete';
     import LanguageSwitcher from './LanguageSwitcher';
     import VerticalMenu from './VerticalMenu';
     import {useI18n} from "vue-i18n/index";
+    import Divider from 'primevue/divider';
+    import Tag from 'primevue/tag';
+    import { defineAsyncComponent } from 'vue';
+    import { loadData } from "../js/loader";
 
     export default {
         components: {
-            Card,
             Button,
             AutoComplete,
             LanguageSwitcher,
-            VerticalMenu
+            VerticalMenu,
+            Divider,
+            Tag,
+            OwnGravatar: defineAsyncComponent(
+                () => import('./OwnGravatar')
+            )
         },
         directives: {
             'tooltip': Tooltip
@@ -83,7 +103,7 @@
                 let filter = this.filter.toLowerCase();
                 return this.linkItems.filter(
                     (item) => {
-                        for(let i = 0; i < item._search_data.length; i++) {
+                        for (let i = 0; i < item._search_data.length; i++) {
                             if (item._search_data[i].toString().toLowerCase().includes(filter)) {
                                 return true;
                             }
@@ -103,10 +123,10 @@
                 );
             },
             async getLinkItems() {
-                let items = await import('../../data/links.yml');
+                let items = (await loadData('links')).default;
                 let ret = [];
-                for (let x in items.default) {
-                    let item = items.default[x];
+                for (let x in items) {
+                    let item = items[x];
                     if (typeof item.name === 'undefined') {
                         item.name = x;
                     }

@@ -2,10 +2,11 @@
   "dependencies": {
     "@fortawesome/fontawesome-free": "^5.15.1",
     "flag-icon-css": "^3.5.0",
+    "hash-wasm": "^4.9.0",
     "html5shiv": "^3.7.3",
     "primeflex": "^2.0.0",
     "primeicons": "^4.1.0",
-    "primevue": "3.0.0",
+    "primevue": "^3.0.0",
     "vue": "^3",
     "vue-i18n": "^9.2.0-beta.12"
   },

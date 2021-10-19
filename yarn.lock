@@ -5395,6 +5395,11 @@ hash-sum@^2.0.0:
   resolved "https://registry.yarnpkg.com/hash-sum/-/hash-sum-2.0.0.tgz#81d01bb5de8ea4a214ad5d6ead1b523460b0b45a"
   integrity sha512-WdZTbAByD+pHfl/g9QSsBIIwy8IT+EsPiKDs0KNX+zSHhdDLFKdZu0BQHljvO+0QI/BasbMSUa8wYNCZTvhslg==
 
+hash-wasm@^4.9.0:
+  version "4.9.0"
+  resolved "https://registry.yarnpkg.com/hash-wasm/-/hash-wasm-4.9.0.tgz#7e9dcc9f7d6bd0cc802f2a58f24edce999744206"
+  integrity sha512-7SW7ejyfnRxuOc7ptQHSf4LDoZaWOivfzqw+5rpcQku0nHfmicPKE51ra9BiRLAmT8+gGLestr1XroUkqdjL6w==
+
 hash.js@^1.0.0, hash.js@^1.0.3:
   version "1.1.7"
   resolved "https://registry.yarnpkg.com/hash.js/-/hash.js-1.1.7.tgz#0babca538e8d4ee4a0f8988d68866537a003cf42"
@@ -8146,10 +8151,10 @@ primeicons@^4.1.0:
   resolved "https://registry.yarnpkg.com/primeicons/-/primeicons-4.1.0.tgz#19eaef8ef5594b0006358ae64e738d03e167c9bb"
   integrity sha512-uEv2pSPk1zQCfaB2VgnUfnUxxlGryYi+5rbdxmZBBt5v9S/pscIQYS5YDLxsQZ7D9jn5c76+Tx5wX/2J1nK6sA==
 
-primevue@3.0.0:
-  version "3.0.0"
-  resolved "https://registry.yarnpkg.com/primevue/-/primevue-3.0.0.tgz#ff3664672895ea2fff919553044c515d96d19301"
-  integrity sha512-IMxH1iDvhQz/RL/yPWTn00er4tssLPxFI7x7s7OH3jXA1NLarK6GE2/Y+JyyLO20KgLJeU16DHYn3SuRPc+A8w==
+primevue@^3.0.0:
+  version "3.8.1"
+  resolved "https://registry.yarnpkg.com/primevue/-/primevue-3.8.1.tgz#0be15b297dbcc1b0f6029d78bfe98ed133fc5353"
+  integrity sha512-YVP6uVFlLqvpqvmW0gK408+gvCODZrFt++Qmm/VZnInyT4xVntvtzbzXqhhAXxQ0aVppSHD7exXhWpeIVffZXw==
 
 prismjs@^1.20.0:
   version "1.25.0"
