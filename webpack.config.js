@@ -29,15 +29,16 @@ Encore
             options.implementation = require('sass')
         }
     )
-    .enableVueLoader(() => {}, {runtimeCompilerBuild: false})
+    .enableVueLoader(() => {
+    }, {runtimeCompilerBuild: false})
     .addRule({
-            test: /\.ya?ml$/,
-            type: 'json',
-            use: 'yaml-loader'
+        test: /\.ya?ml$/,
+        type: 'json',
+        use: 'yaml-loader'
     })
     .addRule({
-            test: /\.hbs$/,
-            loader: "handlebars-loader",
+        test: /\.hbs$/,
+        loader: "handlebars-loader",
 
     })
     .addPlugin(
@@ -67,14 +68,22 @@ Encore
             __VUE_OPTIONS_API__: true,
         })
     )
+    .addPlugin({
+        apply: (compiler) => {
+            compiler.hooks.afterEmit.tap('compile', (compilation) => {
+                console.log('Copying CNAME...');
+                fs.copyFileSync(__dirname + '/CNAME', __dirname + '/build/CNAME');
+            })
+        }
+    })
 ;
 
 if (Encore.isProduction()) {
     Encore.addPlugin(
         {
             apply: (compiler) => {
-                try {
-                    compiler.hooks.afterEmit.tap('AfterEmitPlugin', (compilation) => {
+                compiler.hooks.afterEmit.tap('afterCompile', (compilation) => {
+                    try {
                         console.log('Taking screenshot...');
                         const doScreenshot = async function () {
                             const browser = await puppeteer.launch({
@@ -96,10 +105,10 @@ if (Encore.isProduction()) {
                             console.log('Screenshot was made!');
                         };
                         doScreenshot();
-                    });
-                } catch (e) {
-                    console.warn(e);
-                }
+                    } catch (e) {
+                        console.warn(e);
+                    }
+                });
             }
         }
     );
