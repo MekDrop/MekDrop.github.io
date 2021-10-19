@@ -73,28 +73,33 @@ if (Encore.isProduction()) {
     Encore.addPlugin(
         {
             apply: (compiler) => {
-                compiler.hooks.afterEmit.tap('AfterEmitPlugin', (compilation) => {
-                    console.log('Taking screenshot...');
-                    const doScreenshot = async function () {
-                        const browser = await puppeteer.launch({
-                            args: ['--no-sandbox', '--disable-setuid-sandbox'],
-                            executablePath: process.env.PUPPETEER_EXEC_PATH
-                        });
-                        const page = await browser.newPage();
-                        page.on('console', (msg) => console.log('PAGE LOG:', msg.text()));
-                        await page.setExtraHTTPHeaders({
-                            'Accept-Language': 'en-GB,en-US;q=0.9,en;q=0.8'
-                        });
-                        await page.goto(`file://${__dirname}/build/index.html`);
-                        await page.screenshot({
-                            path: `${__dirname}/build/screenshot.png`,
-                            fullPage: true
-                        });
-                        await page.close();
-                        await browser.close()
-                    };
-                    doScreenshot();
-                });
+                try {
+                    compiler.hooks.afterEmit.tap('AfterEmitPlugin', (compilation) => {
+                        console.log('Taking screenshot...');
+                        const doScreenshot = async function () {
+                            const browser = await puppeteer.launch({
+                                args: ['--no-sandbox', '--disable-setuid-sandbox'],
+                                executablePath: process.env.PUPPETEER_EXEC_PATH
+                            });
+                            const page = await browser.newPage();
+                            page.on('console', (msg) => console.log('PAGE LOG:', msg.text()));
+                            await page.setExtraHTTPHeaders({
+                                'Accept-Language': 'en-GB,en-US;q=0.9,en;q=0.8'
+                            });
+                            await page.goto(`file://${__dirname}/build/index.html`);
+                            await page.screenshot({
+                                path: `${__dirname}/build/screenshot.png`,
+                                fullPage: true
+                            });
+                            await page.close();
+                            await browser.close()
+                            console.log('Screenshot was made!');
+                        };
+                        doScreenshot();
+                    });
+                } catch (e) {
+                    console.warn(e);
+                }
             }
         }
     );
