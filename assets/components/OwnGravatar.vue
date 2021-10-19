@@ -1,11 +1,11 @@
 <template>
-    <Avatar :image="url" size="large" shape="circle"></Avatar>
+    <Avatar :image="url" shape="square"></Avatar>
 </template>
 
 <script>
     import Avatar from 'primevue/avatar';
-    import { md5 } from 'hash-wasm';
-    import { loadData } from "../js/loader";
+    import {md5} from 'hash-wasm';
+    import {loadData} from "../js/loader";
 
     const GRAVATAR_BASE_URL = 'https://www.gravatar.com/avatar/';
 

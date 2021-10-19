@@ -1,11 +1,11 @@
 const
     Encore = require('@symfony/webpack-encore'),
-    WebpackElectroshotPlugin = require('webpack-electroshot-plugin'),
     HtmlWebpackPlugin = require('html-webpack-plugin'),
     path = require('path'),
     fs = require('fs'),
     yaml = require('js-yaml'),
-    webpack = require('webpack')
+    webpack = require('webpack'),
+    puppeteer = require('puppeteer')
 ;
 
 if (!Encore.isRuntimeEnvironmentConfigured()) {
@@ -13,9 +13,11 @@ if (!Encore.isRuntimeEnvironmentConfigured()) {
 }
 
 Encore
-    .setOutputPath( __dirname + '/build/')
-    .setPublicPath('/')
+    .setOutputPath(__dirname + '/build/')
+    .setPublicPath('./')
     .addEntry('main', './assets/js/main.js')
+    .addStyleEntry('icons', './assets/scss/icons.scss')
+    .addStyleEntry('primevue', './assets/scss/primevue.scss')
     .cleanupOutputBeforeBuild()
     .enableBuildNotifications()
     .enableSingleRuntimeChunk()
@@ -59,21 +61,42 @@ Encore
         })
     )
     .addPlugin(
-        new WebpackElectroshotPlugin({
-            filename: `screenshot.png`,
-            format: 'png',
-            url: 'index.html',
-            delay: 1000,
-            resolution: 1280,
-        })
-    )
-    .addPlugin(
         new webpack.DefinePlugin({
             __VUE_PROD_DEVTOOLS__: Encore.isProduction(),
             __VUE_OPTIONS_API__: true,
         })
     )
 ;
+
+if (Encore.isProduction()) {
+    Encore.addPlugin(
+        {
+            apply: (compiler) => {
+                compiler.hooks.afterEmit.tap('AfterEmitPlugin', (compilation) => {
+                    console.log('Taking screenshot...');
+                    const doScreenshot = async function () {
+                        const browser = await puppeteer.launch({
+                            args: ['--no-sandbox', '--disable-setuid-sandbox'],
+                        });
+                        const page = await browser.newPage();
+                        page.on('console', (msg) => console.log('PAGE LOG:', msg.text()));
+                        await page.setExtraHTTPHeaders({
+                            'Accept-Language': 'en-GB,en-US;q=0.9,en;q=0.8'
+                        });
+                        await page.goto(`file://${__dirname}/build/index.html`);
+                        await page.screenshot({
+                            path: `${__dirname}/build/screenshot.png`,
+                            fullPage: true
+                        });
+                        await page.close();
+                        await browser.close()
+                    };
+                    doScreenshot();
+                });
+            }
+        }
+    );
+}
 
 var config = Encore.getWebpackConfig();
 config.resolve.alias.vue = "vue/dist/vue.esm-bundler.js";

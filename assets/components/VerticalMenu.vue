@@ -1,39 +1,38 @@
 <template>
-    <Card v-for="menuItem in mainMenuItems">
-        <template #header>
-            <img alt="user header" :src="menuItem.image">
-        </template>
-        <template #title>
-            <a :href="menuItem.url" :target="menuItem.external ? '_blank' : '_self'">{{ t(menuItem.name) }}</a>
-        </template>
-        <template #content>
-            <div>{{ t(menuItem.description) }}</div>
-        </template>
-    </Card>
+    <div class="vertical-menu">
+        <a :href="menuItem.url" :target="menuItem.external ? '_blank' : '_self'"
+           class="vertical-menu-item p-d-flex p-mb-1 p-ai-center" v-for="menuItem in mainMenuItems">>
+            <Image :alt="t(menuItem.name)" :src="menuItem.image.src" class="p-mr-2 p-mb-1 p-mt-2" heigth="100"
+                   width="100"></Image>
+            <div class="info">
+                <h3 class="p-mt-0">{{ t(menuItem.name) }}</h3>
+                <div>{{ t(menuItem.description) }}</div>
+            </div>
+        </a>
+    </div>
 </template>
 
 <script>
 
-import MainMenuItems from "../../data/main_menu.yml";
-import Card from "primevue/card";
-import Tooltip from "primevue/tooltip";
-import { useI18n } from "vue-i18n/index";
+    import {useI18n} from "vue-i18n/index";
+    import Image from 'primevue/image';
+    import {loadData} from "../js/loader";
 
-export default {
-    components: {
-        Card,
-    },
-    directives: {
-        'tooltip': Tooltip
-    },
-    setup() {
-        const { t } = useI18n();
-        return { t };
-    },
-    data: () => {
-        return {
-            mainMenuItems: MainMenuItems.items,
-        };
-    },
-}
+    export default {
+        components: {
+            Image
+        },
+        setup() {
+            const {t} = useI18n();
+            return {t};
+        },
+        data: () => {
+            return {
+                mainMenuItems: [],
+            };
+        },
+        async mounted() {
+            this.mainMenuItems = (await loadData('main_menu')).default.items;
+        }
+    }
 </script>
