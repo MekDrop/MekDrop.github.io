@@ -14,6 +14,7 @@ if (!Encore.isRuntimeEnvironmentConfigured()) {
 
 Encore
     .setOutputPath(__dirname + '/build/')
+    .setManifestKeyPrefix('./')
     .setPublicPath('./')
     .addEntry('main', './assets/js/main.js')
     .addStyleEntry('icons', './assets/scss/icons.scss')
