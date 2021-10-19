@@ -13,19 +13,22 @@ jobs:
       - name: Checkout code...
         uses: actions/checkout@v2
 
-      - name: Install Dependencies
+      - name: Setuping node...
         uses: actions/setup-node@v2
         env:
           PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: 'true'
         with:
           args: install
 
+      - name: Install node modules...
+        run: yarn install
+
       - name: Compile assets
         uses: mujo-code/puppeteer-headful@v2
         env:
           CI: 'true'
         with:
-          args: npm run encore production
+          args: yarn encore production
 
       - name: Deploy to GitHub Pages
         if: success()
