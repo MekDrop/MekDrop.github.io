@@ -1,0 +1,9 @@
+blog:
+  name: Blog
+  description: World from MekDrop’s eyes
+stories:
+  name: Stories
+  description: Strange fictional stories from MekDrop's head!
+tools:
+  name: Tools
+  description: Some small e-tools for daily tasks

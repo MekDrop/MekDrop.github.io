@@ -1,0 +1,9 @@
+blog:
+  name: Tinklaraštis
+  description: Pasaulis MekDrop’o akimis
+stories:
+  name: Istorijos
+  description: Įvairios išgalvotos istorijos
+tools:
+  name: Įrankiai
+  description: Įvairūs ir galbūt naudingi įrankiai
