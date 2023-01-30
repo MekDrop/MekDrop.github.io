@@ -1,12 +1,14 @@
-module.exports = {
+/* eslint-disable */
+
+module.exports = api => {
+  return {
     presets: [
-        [
-            '@babel/preset-env',
-            {
-                targets: {
-                    esmodules: true,
-                },
-            },
-        ],
-    ],
-};
+      [
+        '@quasar/babel-preset-app',
+        api.caller(caller => caller && caller.target === 'node')
+          ? { targets: { node: 'current' } }
+          : {}
+      ]
+    ]
+  }
+}

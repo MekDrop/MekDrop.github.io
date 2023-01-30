@@ -1,32 +1,50 @@
 {
+  "name": "mekdrop.name",
+  "version": "0.0.1",
+  "description": "A personal Website for MekDrop",
+  "productName": "MekDrop.Name Website",
+  "author": "Raimondas Rimkevičius (aka MekDrop) <github@mekdrop.name>",
+  "private": true,
+  "scripts": {
+    "lint": "eslint --ext .js,.vue ./",
+    "test": "echo \"No test specified\" && exit 0"
+  },
   "dependencies": {
-    "@fortawesome/fontawesome-free": "^5.15.1",
-    "flag-icon-css": "^3.5.0",
-    "hash-wasm": "^4.9.0",
-    "html5shiv": "^3.7.3",
-    "primeflex": "^2.0.0",
-    "primeicons": "^4.1.0",
-    "primevue": "^3.0.0",
-    "vue": "^3",
-    "vue-i18n": "^9.2.0-beta.12"
+    "@quasar/extras": "^1.0.0",
+    "core-js": "^3.6.5",
+    "path-browserify": "^1.0.1",
+    "quasar": "^2.6.0",
+    "vue": "^3.0.0",
+    "vue-i18n": "^9.0.0",
+    "vue-router": "^4.0.0"
   },
   "devDependencies": {
-    "@symfony/webpack-encore": "^0.31.0",
-    "@vue/cli": "^4.5.9",
-    "handlebars": "^4.7.7",
-    "handlebars-loader": "^1.7.1",
-    "html-webpack-plugin": "4",
-    "i18n-loader": "^0.3.0",
-    "js-yaml": "^4.1.0",
-    "node": "^16.10.0",
-    "puppeteer": "^10.4.0",
-    "raw-loader": "^4.0.2",
-    "sass": "^1.43.2",
-    "sass-loader": "9.0.1",
-    "vue-loader": "^16",
-    "vue-template-compiler": "^2.6.14",
-    "webpack-notifier": "1.6.0",
-    "yaml-loader": "^0.6.0",
-    "yarn": "^1.22.10"
+    "@babel/eslint-parser": "^7.13.14",
+    "@quasar/app-webpack": "^3.0.0",
+    "@vue/devtools": "^6.5.0",
+    "eslint": "^8.10.0",
+    "eslint-config-standard": "^17.0.0",
+    "eslint-plugin-import": "^2.19.1",
+    "eslint-plugin-n": "^15.0.0",
+    "eslint-plugin-promise": "^6.0.0",
+    "eslint-plugin-vue": "^9.0.0",
+    "eslint-webpack-plugin": "^3.1.1",
+    "yaml-loader": "^0.8.0"
+  },
+  "browserslist": [
+    "last 10 Chrome versions",
+    "last 10 Firefox versions",
+    "last 4 Edge versions",
+    "last 7 Safari versions",
+    "last 8 Android versions",
+    "last 8 ChromeAndroid versions",
+    "last 8 FirefoxAndroid versions",
+    "last 10 iOS versions",
+    "last 5 Opera versions"
+  ],
+  "engines": {
+    "node": ">= 12.22.1",
+    "npm": ">= 6.13.4",
+    "yarn": ">= 1.21.1"
   }
 }
