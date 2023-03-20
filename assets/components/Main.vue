@@ -4,7 +4,7 @@
             <header class="p-d-flex p-jc-between">
                 <div class="p-d-inline-flex p-ai-center">
                     <OwnGravatar/>
-                    <h1 class="mk_no_selectable">MekDrop</h1>
+                    <h1 class="mk_no_selectable">MekDrop <span style="opacity: 0.2;">[Raimondas Rimkevičius]</span></h1>
                 </div>
                 <div class="p-as-center">
                     <LanguageSwitcher></LanguageSwitcher>
