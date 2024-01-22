@@ -1,0 +1,41 @@
+main_menu:
+  blog:
+    name: Blog
+    description: "World from MekDrop’s eyes"
+  stories:
+    name: Stories
+    description: Strange fictional stories from MekDrop's head!
+  tools:
+    name: Tools
+    description: Some small e-tools for daily tasks
+misc:
+  other_places: Other places
+links:
+  phone: Telephone
+  email: Email
+tag:
+  cv: CV
+  social: Social Network
+  games: Games
+  forum: Forum
+  dating: Dating
+  presentations: Presentations
+  media: Media
+  photos: Photos
+  video: Video
+  audio: Audio
+  music: Music
+  encyclopedia: Encyclopedia
+  development: Development
+  projects: Projects
+  open-source: Open source
+  contacts: Contacts
+  chat: Chat
+  crowdfunding: Crowdfunding
+  books: Books
+  shop: Shop
+form:
+  filter: Filter by
+language:
+  en-US: English (USA)
+  lt: Lithuanian
