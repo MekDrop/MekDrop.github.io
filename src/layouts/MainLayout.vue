@@ -1,14 +1,18 @@
 <template>
   <q-layout view="hHh lpR fFf">
     <q-page-container>
-      <background-canvas class="absolute-top-left" v-if="isLoaded" />
-      <div class="absolute-top-right z-top block q-ma-sm">
-        <language-switcher />
-      </div>
+      <background-canvas class="absolute-top-left background-canvas" v-if="isLoaded" />
+      <language-switcher />
       <router-view  v-if="isLoaded" />
     </q-page-container>
   </q-layout>
 </template>
+
+<style>
+.background-canvas {
+  position: fixed;
+}
+</style>
 
 <script>
 import { useBackgroundImageStore } from 'stores/background-image-store'

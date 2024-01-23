@@ -6,10 +6,12 @@
         <div class="text-h5 text-justify second-line">{{ mainConfig.header.second_line }}</div>
       </q-card-section>
       <q-card-actions class="actions">
-        <q-btn v-for="(item) in mainMenu" :key="item.url" target="_blank" :href="item.url" class="bg-dark" outline square no-caps color="white">
-          {{ item.label }}
-        </q-btn>
-        <q-btn outline square color="secondary">
+        <template v-for="(item) in mainMenu" :key="item.url">
+          <q-btn target="_blank" :href="item.url" class="bg-dark" :class="extraButtonClasses" outline square no-caps color="white">
+            {{ item.label }}
+          </q-btn>
+        </template>
+        <q-btn outline square color="secondary" :class="extraButtonClasses">
           ...
         </q-btn>
       </q-card-actions>
@@ -58,12 +60,20 @@ import mainConfig from 'src/config/main'
 import getMainMenu from 'src/config/main_menu'
 import { useI18n } from 'vue-i18n'
 import { computed } from 'vue'
+import { useQuasar } from 'quasar'
 
 const i18n = useI18n();
+const q = useQuasar();
 const mainMenu = computed(() => {
   return getMainMenu(i18n).filter(
     (item) => !!item
   );
+});
+
+const extraButtonClasses = computed(() => {
+  return {
+    'full-width q-mb-sm': q.screen.lt.sm,
+  };
 });
 
 </script>
