@@ -1,6 +1,6 @@
 <template>
   <q-page class="flex flex-center">
-    <q-card class="no-border" flat dark>
+    <q-card class="no-border" flat dark ref="main_card">
       <q-card-section>
         <div class="text-h1 non-selectable first-line">{{ mainConfig.header.first_line }}</div>
         <div class="text-h5 text-justify second-line">{{ mainConfig.header.second_line }}</div>
@@ -59,11 +59,13 @@
 import mainConfig from 'src/config/main'
 import getMainMenu from 'src/config/main_menu'
 import { useI18n } from 'vue-i18n'
-import { computed } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useQuasar } from 'quasar'
+import { animateCSS } from 'src/helpers/animate'
 
 const i18n = useI18n();
 const q = useQuasar();
+const main_card = ref(null);
 const mainMenu = computed(() => {
   return getMainMenu(i18n).filter(
     (item) => !!item
@@ -74,6 +76,10 @@ const extraButtonClasses = computed(() => {
   return {
     'full-width q-mb-sm': q.screen.lt.sm,
   };
+});
+
+watch(i18n.locale,() => {
+  animateCSS(main_card.value.$el, 'flipInX');
 });
 
 </script>

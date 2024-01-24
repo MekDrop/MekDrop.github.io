@@ -5,7 +5,7 @@ uniform sampler2D uTexture;
 uniform float uTime;
 
 float calculateQuantizationLevel(float speed, float minColors, float maxColors) {
-  return mod(uTime * speed, maxColors - minColors + 1.0) + minColors;
+  return (maxColors - minColors + 1.0) * abs(sin(uTime * speed)) + minColors;
 }
 
 vec3 quantizeColor(vec3 color, float quantizationLevel) {
@@ -30,7 +30,7 @@ void main() {
 
   uv = pixelate(uv, vec2(640.0, 480.0));
 
-  float quantizationLevel = calculateQuantizationLevel(0.5, 16.0, 256.0);
+  float quantizationLevel = calculateQuantizationLevel(0.05, 16.0, 32.0);
 
   vec4 texColor = texture2D(uTexture, uv);
   vec3 quantizedColor = quantizeColor(texColor.rgb, quantizationLevel);
