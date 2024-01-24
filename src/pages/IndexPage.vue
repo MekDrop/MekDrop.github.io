@@ -11,7 +11,7 @@
             {{ item.label }}
           </q-btn>
         </template>
-        <q-btn outline square color="secondary" :class="extraButtonClasses">
+        <q-btn outline square color="secondary" :class="extraButtonClasses" @click="onOtherLinksClicked">
           ...
         </q-btn>
       </q-card-actions>
@@ -62,6 +62,7 @@ import { useI18n } from 'vue-i18n'
 import { computed, ref, watch } from 'vue'
 import { useQuasar } from 'quasar'
 import { animateCSS } from 'src/helpers/animate'
+import OtherLinksModal from 'components/OtherLinksModal.vue'
 
 const i18n = useI18n();
 const q = useQuasar();
@@ -77,6 +78,13 @@ const extraButtonClasses = computed(() => {
     'full-width q-mb-sm': q.screen.lt.sm,
   };
 });
+
+const onOtherLinksClicked = () => {
+  q.dialog({
+    component: OtherLinksModal,
+    progress: true,
+  });
+};
 
 watch(i18n.locale,() => {
   animateCSS(main_card.value.$el, 'flipInX');

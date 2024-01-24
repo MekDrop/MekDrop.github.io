@@ -16,6 +16,7 @@
     "@quasar/cli": "^2.3.0",
     "@quasar/extras": "^1.16.4",
     "country-locale-map": "^1.9.0",
+    "lunr": "^2.3.9",
     "pinia": "^2.1.7",
     "quasar": "^2.8.0",
     "three": "^0.160.0",
