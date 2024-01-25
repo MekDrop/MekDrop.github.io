@@ -2,7 +2,7 @@
   <q-dialog v-model="show" square :class="{'full-width': $q.screen.lt.sm}">
     <q-card dark>
       <q-card-section class="row items-center">
-        <q-input autofocus dark dense filled flat square v-model="searchQuery" placeholder="Search..." clearable class="full-width" />
+        <q-input autofocus dark dense filled flat square v-model="searchQuery" :placeholder="$t('form.filter')" clearable class="full-width" />
       </q-card-section>
 
       <q-card-section class="scroll q-pt-none" style="max-height: 98vh; height: 200px; margin-right: 1em;">
@@ -19,12 +19,12 @@
           </q-item>
         </q-list>
         <div class="text-accent" v-else>
-          No links found
+          {{ $t('form.no_found') }}
         </div>
       </q-card-section>
 
       <q-card-actions align="right" style="margin-top: auto;">
-        <q-btn dark square label="Close" outline @click="close" />
+        <q-btn dark square :label="$t('form.close')" outline @click="close" />
       </q-card-actions>
     </q-card>
   </q-dialog>

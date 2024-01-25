@@ -32,10 +32,10 @@ tag:
   crowdfunding: Minios finansuojami projektai
   books: Knygos
   shop: Parduotuvė
-misc:
-  other_places: Kitos vietos
 form:
-  filter: Filtruoti pagal
+  filter: Ieškoti...
+  no_found: Nerasta
+  close: Uždaryti
 language:
   en-US: Anglų (JAV)
   lt: Lietuvių

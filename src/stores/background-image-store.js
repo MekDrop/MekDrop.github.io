@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 import * as THREE from 'three'
+import { LoadingBar } from 'quasar'
 
 export const useBackgroundImageStore = defineStore('background-image', () => {
 
@@ -14,16 +15,19 @@ export const useBackgroundImageStore = defineStore('background-image', () => {
     return new Promise((resolve, reject) => {
         loading.value = true;
         lastLoadedUrl.value = null;
+        texture.value = null;
+        LoadingBar.start();
 
         const tryLoad = () => {
           tries++;
           const textureLoader = new THREE.TextureLoader();
-          textureLoader.load(
+          texture.value = textureLoader.load(
             url,
             (imageTexture) => {
               loading.value = false;
               texture.value = imageTexture;
               lastLoadedUrl.value = url;
+              LoadingBar.stop();
               resolve();
             },
             undefined,
@@ -51,9 +55,11 @@ export const useBackgroundImageStore = defineStore('background-image', () => {
     }
   };
 
+  let lastId = 0;
   const load = () => {
-    return safeLoadFromUrl('https://picsum.photos/' + window.innerWidth) ||
-           safeLoadFromUrl('https://picsum.photos/1024');
+    lastId++;
+    return safeLoadFromUrl('https://picsum.photos/' + window.innerWidth + '?item=' + lastId) ||
+           safeLoadFromUrl('https://picsum.photos/1024?item=' + lastId);
   };
 
   return {

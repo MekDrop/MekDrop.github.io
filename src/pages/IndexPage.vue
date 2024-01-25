@@ -2,16 +2,16 @@
   <q-page class="flex flex-center">
     <q-card class="no-border" flat dark ref="main_card">
       <q-card-section>
-        <div class="text-h1 non-selectable first-line">{{ mainConfig.header.first_line }}</div>
-        <div class="text-h5 text-justify second-line">{{ mainConfig.header.second_line }}</div>
+        <div class="text-h1 non-selectable first-line" @dblclick="reloadBackground">{{ mainConfig.header.first_line }}</div>
+        <div class="text-h5 non-selectable text-justify second-line">{{ mainConfig.header.second_line }}</div>
       </q-card-section>
       <q-card-actions class="actions">
         <template v-for="(item) in mainMenu" :key="item.url">
-          <q-btn target="_blank" :href="item.url" class="bg-dark" :class="extraButtonClasses" outline square no-caps color="white">
+          <q-btn target="_blank" :href="item.url" color="white" class="bg-dark" :class="extraButtonClasses" outline square no-caps>
             {{ item.label }}
           </q-btn>
         </template>
-        <q-btn outline square color="secondary" :class="extraButtonClasses" @click="onOtherLinksClicked">
+        <q-btn outline square color="white" class="bg-dark" :class="extraButtonClasses" @click="onOtherLinksClicked">
           ...
         </q-btn>
       </q-card-actions>
@@ -64,6 +64,7 @@ import { useQuasar } from 'quasar'
 import { animateCSS } from 'src/helpers/animate'
 import OtherLinksModal from 'components/OtherLinksModal.vue'
 import { useOtherLinksStore } from 'stores/other-links-store'
+import { useBackgroundImageStore } from 'stores/background-image-store'
 
 const i18n = useI18n();
 const q = useQuasar();
@@ -86,6 +87,11 @@ const onOtherLinksClicked = () => {
     component: OtherLinksModal,
     progress: true,
   });
+};
+
+const reloadBackground = () => {
+  const backgroundImageStore = useBackgroundImageStore();
+  backgroundImageStore.load();
 };
 
 watch(i18n.locale,() => {

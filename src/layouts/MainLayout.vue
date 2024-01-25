@@ -1,6 +1,6 @@
 <template>
   <q-layout view="hHh lpR fFf">
-    <q-page-container>
+    <q-page-container  >
       <background-canvas class="absolute-top-left background-canvas" v-if="isLoaded" />
       <language-switcher />
       <router-view  v-if="isLoaded" />
@@ -25,10 +25,15 @@ export default {
     BackgroundCanvas,
     LanguageSwitcher,
   },
+  methods: {
+    onClick() {
+      alert('ddd');
+    }
+  },
   preFetch({store}) {
     const backgroundImageStore = useBackgroundImageStore(store);
 
-    return backgroundImageStore.load();
+    return backgroundImageStore.isLoaded ? null : backgroundImageStore.load();
   },
   setup() {
     const backgroundImageStore = useBackgroundImageStore();
@@ -36,6 +41,7 @@ export default {
 
     return {
       isLoaded,
+      reloadBackground: backgroundImageStore.load,
     };
   }
 }

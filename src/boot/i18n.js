@@ -4,7 +4,7 @@ import messages from 'src/i18n'
 import { watch } from 'vue'
 import { Quasar } from 'quasar'
 
-export default boot(({ app }) => {
+export default boot(({ app, router }) => {
   const i18n = createI18n({
     locale: 'en-US',
     globalInjection: true,
@@ -17,6 +17,16 @@ export default boot(({ app }) => {
   });
 
   i18n.global.locale.value = Quasar.lang.getLocale();
+
+  router.beforeEach((to) => {
+    if (!to.meta.autoSwitchLanguage) {
+      return;
+    }
+
+    if (to.params.lang && i18n.global.availableLocales.includes(to.params.lang)) {
+      i18n.global.locale.value = to.params.lang;
+    }
+  });
 
   app.use(i18n)
 })

@@ -8,8 +8,6 @@ main_menu:
   tools:
     name: Tools
     description: Some small e-tools for daily tasks
-misc:
-  other_places: Other places
 links:
   phone: Telephone
   email: Email
@@ -35,7 +33,9 @@ tag:
   books: Books
   shop: Shop
 form:
-  filter: Filter by
+  filter: Search...
+  no_found: No links found
+  close: Close
 language:
   en-US: English (USA)
   lt: Lithuanian

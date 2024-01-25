@@ -1,13 +1,20 @@
 <template>
-  <div ref="container" class="fit"></div>
+  <div ref="container" class="background-canvas fit"></div>
 </template>
+
+<style lang="scss">
+.background-canvas {
+  background-color: black;
+}
+</style>
 
 <script setup>
 import * as THREE from 'three'
-import { ref, onMounted } from 'vue'
+import { onMounted, ref, watch } from 'vue'
 import { dom } from 'quasar'
-import { create as createCrtMaterial } from 'assets/materials/background/material';
+import { create as createBackgroundMaterial } from 'assets/materials/background/material'
 import { useBackgroundImageStore } from 'stores/background-image-store'
+import { animateCSS } from 'src/helpers/animate'
 
 let camera, scene, renderer
 
@@ -28,13 +35,17 @@ const initGL = () => {
   renderer.domElement.classList.add('fit');
   container.value.appendChild(renderer.domElement)
 
-  const crtMaterial = createCrtMaterial(backgroundImageStore.texture, containerWidth, containerHeight);
+  const bgMaterial = createBackgroundMaterial(backgroundImageStore.texture, containerWidth, containerHeight);
 
-  // Glass mesh
   const geometry = new THREE.PlaneGeometry(containerWidth, containerHeight)
 
-  const mesh = new THREE.Mesh(geometry, crtMaterial);
+  const mesh = new THREE.Mesh(geometry, bgMaterial);
   scene.add(mesh);
+
+  watch(() => backgroundImageStore.lastLoadedUrl, async () => {
+    animateCSS(renderer.domElement,'flipInX');
+    bgMaterial.uniforms.uTexture.value = backgroundImageStore.texture;
+  });
 
   const updateCameraDistance = () => {
     const boundingBox = new THREE.Box3().setFromObject(mesh)
@@ -52,11 +63,10 @@ const initGL = () => {
 
   updateCameraDistance();
 
-  // Animation loop
   const animate = () => {
     requestAnimationFrame(animate);
 
-    crtMaterial.uniforms.uTime.value += 0.005;
+    bgMaterial.uniforms.uTime.value += 0.005;
 
     renderer.render(scene, camera)
   }
@@ -67,8 +77,4 @@ const initGL = () => {
 onMounted(async() => {
   initGL();
 })
-
-window.addEventListener('resize', () => {
-
-});
 </script>
