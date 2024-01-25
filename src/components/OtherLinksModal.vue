@@ -43,10 +43,12 @@
 <script setup>
 import { computed, ref } from 'vue'
 import { useOtherLinksStore } from 'stores/other-links-store'
+import { useI18n } from 'vue-i18n'
 
 const otherLinksStore = useOtherLinksStore();
 const show = ref(false);
 const searchQuery = ref('');
+const i18n = useI18n();
 const close = () => {
   show.value = false;
 };
@@ -56,7 +58,7 @@ const searchResults = computed(() => {
 });
 
 if (!otherLinksStore.isLoaded && !otherLinksStore.isLoading) {
-  otherLinksStore.load();
+  otherLinksStore.load(i18n);
 }
 
 </script>

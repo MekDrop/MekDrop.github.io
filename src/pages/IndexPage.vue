@@ -63,9 +63,11 @@ import { computed, ref, watch } from 'vue'
 import { useQuasar } from 'quasar'
 import { animateCSS } from 'src/helpers/animate'
 import OtherLinksModal from 'components/OtherLinksModal.vue'
+import { useOtherLinksStore } from 'stores/other-links-store'
 
 const i18n = useI18n();
 const q = useQuasar();
+const otherLinksStore = useOtherLinksStore();
 const main_card = ref(null);
 const mainMenu = computed(() => {
   return getMainMenu(i18n).filter(
@@ -87,6 +89,7 @@ const onOtherLinksClicked = () => {
 };
 
 watch(i18n.locale,() => {
+  otherLinksStore.unload();
   animateCSS(main_card.value.$el, 'flipInX');
 });
 

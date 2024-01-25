@@ -1,7 +1,6 @@
 import { defineStore } from 'pinia'
 import lunr from 'lunr'
 import { computed, ref } from 'vue'
-import otherLinksConfig from 'src/config/other_links.yml'
 
 export const useOtherLinksStore = defineStore('other-links', () => {
 
@@ -10,9 +9,11 @@ export const useOtherLinksStore = defineStore('other-links', () => {
 
   const index = ref(null);
   const data = ref({});
-  const load = async () => {
+  const load = async (i18n) => {
     isLoading.value = true;
     data.value = {};
+    const {default: getOtherLinks} = await import('src/config/other_links.js');
+    const otherLinksConfig = getOtherLinks(i18n);
     for (const linkName in otherLinksConfig) {
       const row = Object.assign({name: linkName}, otherLinksConfig[linkName]);
       data.value[row.name] = row;
@@ -33,6 +34,18 @@ export const useOtherLinksStore = defineStore('other-links', () => {
     isLoading.value = false;
   };
 
+  const unload = () => {
+    isLoaded.value = false;
+    isLoading.value = false;
+    index.value = null;
+    data.value = {};
+  };
+
+  const reload = async (i18n) => {
+    unload();
+    await load(i18n);
+  }
+
   const search = (term) => {
     if (!term) {
       return Object.values(data.value);
@@ -45,6 +58,8 @@ export const useOtherLinksStore = defineStore('other-links', () => {
   return {
     index,
     load,
+    unload,
+    reload,
     search,
     isLoading: computed(() => isLoading.value),
     isLoaded: computed(() => isLoaded.value),
