@@ -5,7 +5,7 @@
     direction="left"
   >
     <template v-slot:icon>
-      <q-avatar v-html="selectedLanguage.iconHTML" size="1.5em" square />
+       <q-avatar size="1.5em" square v-html="selectedLanguage.iconHTML" />
     </template>
     <template v-for="(lang) in languageOptions" :key="lang.value">
       <q-fab-action external-label label-position="top" color="primary" :to="{name: 'index', params: {lang: lang.value}}">
@@ -25,7 +25,7 @@ import { computed } from 'vue'
 import { getCountryByAlpha2 } from 'country-locale-map'
 import twemoji from 'twemoji'
 
-const i18n = useI18n();
+const i18n = useI18n({ useScope: "global" });
 const getLanguageEmoji = (lang) => {
   let country = (lang.includes('-') ? lang.split('-')[1] : lang).toUpperCase();
   let data = getCountryByAlpha2(country);

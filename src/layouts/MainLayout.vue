@@ -1,8 +1,10 @@
 <template>
   <q-layout view="hHh lpR fFf">
-    <q-page-container  >
-      <background-canvas class="absolute-top-left background-canvas" v-if="isLoaded" />
-      <language-switcher />
+    <q-page-container>
+      <q-no-ssr>
+        <background-canvas class="absolute-top-left background-canvas" v-if="isLoaded" />
+        <language-switcher />
+      </q-no-ssr>
       <router-view  v-if="isLoaded" />
     </q-page-container>
   </q-layout>
@@ -19,6 +21,8 @@ import { useBackgroundImageStore } from 'stores/background-image-store'
 import { storeToRefs } from 'pinia'
 import BackgroundCanvas from 'components/BackgroundCanvas.vue'
 import LanguageSwitcher from 'components/LanguageSwitcher.vue'
+import getMetaConfig from 'src/config/meta'
+import { useMeta } from 'quasar'
 
 export default {
   components: {
@@ -26,14 +30,30 @@ export default {
     LanguageSwitcher,
   },
   methods: {
-    onClick() {
-      alert('ddd');
-    }
-  },
-  preFetch({store}) {
-    const backgroundImageStore = useBackgroundImageStore(store);
+    updateMeta() {
+      const i18n = {
+        t: this.$t,
+        locale:this.$i18n.locale,
+        availableLocales:this.$i18n.availableLocales,
+      };
 
-    return backgroundImageStore.isLoaded ? null : backgroundImageStore.load();
+      useMeta(getMetaConfig(
+        this.$route,
+        i18n,
+        this.$router,
+        this.ssrContext,
+      ));
+    },
+  },
+  mounted() {
+    if (!this.ssrContext) {
+      const backgroundImageStore = useBackgroundImageStore();
+      if (!backgroundImageStore.isLoaded) {
+        backgroundImageStore.load();
+      }
+    }
+
+    this.updateMeta();
   },
   setup() {
     const backgroundImageStore = useBackgroundImageStore();
@@ -43,6 +63,11 @@ export default {
       isLoaded,
       reloadBackground: backgroundImageStore.load,
     };
+  },
+  watch: {
+    $route(to) {
+      this.updateMeta();
+    }
   }
 }
 </script>

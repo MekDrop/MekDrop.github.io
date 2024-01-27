@@ -11,9 +11,6 @@ import routes from './routes'
  * with the Router instance.
  */
 
-import metaConfig from 'src/config/meta';
-import { useMeta } from 'quasar'
-
 export default route(function (/* { store, ssrContext } */) {
   const createHistory = process.env.SERVER
     ? createMemoryHistory
@@ -28,12 +25,6 @@ export default route(function (/* { store, ssrContext } */) {
     // quasar.conf.js -> build -> publicPath
     history: createHistory(process.env.VUE_ROUTER_BASE)
   })
-
-  Router.beforeEach((to) => {
-    if (to.name && metaConfig[to.name]) {
-      useMeta(metaConfig[to.name]);
-    }
-  });
 
   return Router
 })
