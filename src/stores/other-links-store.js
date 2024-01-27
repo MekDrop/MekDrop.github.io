@@ -11,7 +11,9 @@ export const useOtherLinksStore = defineStore('other-links', () => {
   const data = ref({});
   const load = async (i18n) => {
     isLoading.value = true;
+    isLoaded.value = false;
     data.value = {};
+
     const {default: getOtherLinks} = await import('src/config/other_links.js');
     const otherLinksConfig = getOtherLinks(i18n);
     for (const linkName in otherLinksConfig) {
