@@ -1,3 +1,4 @@
+// noinspection AllyPlainJsInspection
 export default {
   header: {
     first_line: "MekDrop",
