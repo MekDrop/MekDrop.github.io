@@ -23,27 +23,14 @@ import BackgroundCanvas from 'components/BackgroundCanvas.vue'
 import LanguageSwitcher from 'components/LanguageSwitcher.vue'
 import getMetaConfig from 'src/config/meta'
 import { useMeta } from 'quasar'
+import { useI18n } from 'vue-i18n'
+import { useRoute, useRouter } from 'vue-router'
+import { useSSRContext } from 'vue'
 
 export default {
   components: {
     BackgroundCanvas,
     LanguageSwitcher,
-  },
-  methods: {
-    updateMeta() {
-      const i18n = {
-        t: this.$t,
-        locale:this.$i18n.locale,
-        availableLocales:this.$i18n.availableLocales,
-      };
-
-      useMeta(getMetaConfig(
-        this.$route,
-        i18n,
-        this.$router,
-        this.ssrContext,
-      ));
-    },
   },
   mounted() {
     if (!this.ssrContext) {
@@ -52,15 +39,26 @@ export default {
         backgroundImageStore.load();
       }
     }
-
-    this.updateMeta();
   },
   setup() {
     const backgroundImageStore = useBackgroundImageStore();
     const {isLoaded} = storeToRefs(backgroundImageStore);
+    const i18n = useI18n();
+    const route = useRoute();
+    const router = useRouter();
+    const ssrContext = useSSRContext();
+
+    const updateMeta = () => {
+      useMeta(
+        getMetaConfig(route, i18n, router, ssrContext)
+      );
+    };
+
+    updateMeta();
 
     return {
       isLoaded,
+      updateMeta,
       reloadBackground: backgroundImageStore.load,
     };
   },
