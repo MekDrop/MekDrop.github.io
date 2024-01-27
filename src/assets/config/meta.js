@@ -1,4 +1,4 @@
-import { getRouteUrl } from 'src/helpers/route'
+import { getRouteUrl } from 'src/assets/helpers/route'
 import { unref } from 'vue'
 
 export default function (route, i18n, router, ssrContext) {

@@ -21,7 +21,7 @@ import { useBackgroundImageStore } from 'stores/background-image-store'
 import { storeToRefs } from 'pinia'
 import BackgroundCanvas from 'components/BackgroundCanvas.vue'
 import LanguageSwitcher from 'components/LanguageSwitcher.vue'
-import getMetaConfig from 'src/config/meta'
+import getMetaConfig from 'src/assets/config/meta'
 import { useMeta } from 'quasar'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
@@ -63,7 +63,7 @@ export default {
     };
   },
   watch: {
-    $route(to) {
+    $route() {
       this.updateMeta();
     }
   }

@@ -56,12 +56,12 @@
 </style>
 
 <script setup>
-import mainConfig from 'src/config/main'
-import getMainMenu from 'src/config/main_menu'
+import mainConfig from 'src/assets/config/main'
+import getMainMenu from 'src/assets/config/main_menu'
 import { useI18n } from 'vue-i18n'
 import { computed, ref, watch } from 'vue'
 import { useQuasar } from 'quasar'
-import { animateCSS } from 'src/helpers/animate'
+import { animateCSS } from 'src/assets/helpers/animate'
 import OtherLinksModal from 'components/OtherLinksModal.vue'
 import { useOtherLinksStore } from 'stores/other-links-store'
 import { useBackgroundImageStore } from 'stores/background-image-store'

@@ -14,7 +14,7 @@ import { onMounted, ref, watch } from 'vue'
 import { dom } from 'quasar'
 import { create as createBackgroundMaterial } from 'assets/materials/background/material'
 import { useBackgroundImageStore } from 'stores/background-image-store'
-import { animateCSS } from 'src/helpers/animate'
+import { animateCSS } from 'src/assets/helpers/animate'
 
 let camera, scene, renderer
 

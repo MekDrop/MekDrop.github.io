@@ -2,11 +2,10 @@ import { boot } from 'quasar/wrappers'
 import { createI18n } from 'vue-i18n'
 import messages from 'src/i18n'
 import { watch } from 'vue'
-import { Quasar, useMeta } from 'quasar'
-import getMetaConfig from 'src/config/meta'
-import { getCurrentLocaleFromRoute } from 'src/helpers/route'
+import { Quasar } from 'quasar'
+import { getCurrentLocaleFromRoute } from 'src/assets/helpers/route'
 
-export default boot(({ app, router, ssrContext, route }) => {
+export default boot(({ app, router, ssrContext }) => {
 
   const i18n = createI18n({
     locale: getCurrentLocaleFromRoute(router.currentRoute.value),
