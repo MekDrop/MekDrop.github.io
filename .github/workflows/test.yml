@@ -23,9 +23,9 @@ jobs:
         run: yarn test:e2e:ci
 
       - name: Upload Test Artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: test-artifacts
           path: |
-            test/e2e/screenshots
-            test/e2e/videos
+            test/cypress/e2e/screenshots
+            test/cypress/e2e/videos
