@@ -8,14 +8,16 @@
   "scripts": {
     "lint": "eslint --ext .js,.vue ./",
     "format": "prettier --write \"**/*.{js,vue,scss,html,md,json}\" --ignore-path .gitignore",
-    "test": "echo \"No test specified\" && exit 0",
+    "test": "echo \"See package.json => scripts for available tests.\" && exit 0",
     "dev:spa": "quasar dev -m spa",
     "build:spa": "quasar build -m spa",
     "dev:ssr": "quasar dev -m ssr",
     "build:ssr": "quasar build -m ssr",
     "build:ssg": "quasar ssg generate",
     "dev:ssg": "quasar ssg dev",
-    "serve:ssg": "quasar ssg serve dist/ssg"
+    "serve:ssg": "quasar ssg serve dist/ssg",
+    "test:e2e": "cross-env NODE_ENV=test start-test \"quasar dev\" http-get://127.0.0.1:8080 \"cypress open --e2e\"",
+    "test:e2e:ci": "cross-env NODE_ENV=test start-test \"quasar dev\" http-get://127.0.0.1:8080 \"cypress run --e2e\""
   },
   "dependencies": {
     "@quasar/cli": "^2.3.0",
@@ -36,13 +38,16 @@
     "@intlify/vite-plugin-vue-i18n": "^3.3.1",
     "@modyfi/vite-plugin-yaml": "^1.1.0",
     "@quasar/app-vite": "^1.4.3",
+    "@quasar/quasar-app-extension-testing-e2e-cypress": "^5.2.0",
     "autoprefixer": "^10.4.2",
     "eslint": "^8.11.0",
     "eslint-config-prettier": "^8.1.0",
     "eslint-plugin-vue": "^9.0.0",
     "postcss": "^8.4.14",
     "prettier": "^2.5.1",
-    "quasar-app-extension-ssg": "^5.1.1"
+    "quasar-app-extension-ssg": "^5.1.1",
+    "cypress": "^13.6.2",
+    "eslint-plugin-cypress": "^2.15.1"
   },
   "engines": {
     "node": "^20 || ^18 || ^16",

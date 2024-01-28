@@ -1,13 +1,18 @@
 <template>
-  <q-dialog v-model="show" square :class="{'full-width': $q.screen.lt.sm}">
+  <q-dialog v-model="show" square :class="{'full-width': $q.screen.lt.sm}" id="extra_links_modal">
     <q-card dark>
       <q-card-section class="row items-center">
         <q-input autofocus dark dense filled flat square v-model="searchQuery" :placeholder="$t('form.filter')"
-                 clearable class="full-width"/>
+                 clearable class="full-width extra_links_modal__search_field" name="search" type="search" />
       </q-card-section>
 
       <q-scroll-area style="max-height: 98vh; height: 200px; margin-right: 1em;" dark>
-        <q-card-section class="scroll q-pt-none" v-if="!otherLinksStore.isLoading">
+        <q-card-section class="scroll q-pt-none extra_links_modal__search-results"
+                        :class="{
+                            'extra_links_modal__search-results--non-empty': searchResults.length > 0,
+                            'extra_links_modal__search-results--empty': searchResults.length === 0,
+                        }"
+                        v-if="!otherLinksStore.isLoading">
           <q-list v-if="searchResults.length > 0">
             <q-item v-for="(result, index) in searchResults" :key="index" dense dark>
               <q-item-section side>
@@ -24,7 +29,7 @@
             {{ $t('form.no_found') }}
           </div>
         </q-card-section>
-        <q-spinner-dots class="absolute-center" size="md" v-else />
+        <q-spinner-dots class="absolute-center extra_links_modal__loader" size="md" v-else />
       </q-scroll-area>
 
       <q-card-actions align="right" style="margin-top: auto;">

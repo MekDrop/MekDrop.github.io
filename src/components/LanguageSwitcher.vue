@@ -8,7 +8,7 @@
        <q-avatar size="1.5em" square v-html="selectedLanguage.iconHTML" />
     </template>
     <template v-for="(lang) in languageOptions" :key="lang.value">
-      <q-fab-action external-label label-position="top" color="primary" :to="{name: 'index', params: {lang: lang.value}}">
+      <q-fab-action external-label :data-locale="lang.value" label-position="top" color="primary" :to="{name: 'index', params: {lang: lang.value}}">
         <template v-slot:default>
           <q-avatar v-html="lang.iconHTML" size="1.5em" square class="q-mr-sm" />
           {{ lang.label }}

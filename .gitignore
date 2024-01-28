@@ -6,3 +6,6 @@ node_modules/
 .vscode
 .quasar
 /dist/
+
+.nyc_output
+coverage/

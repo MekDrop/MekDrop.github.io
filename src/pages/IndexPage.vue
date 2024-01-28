@@ -1,6 +1,6 @@
 <template>
   <q-page class="flex flex-center">
-    <q-card class="no-border" flat dark ref="main_card">
+    <q-card class="no-border" flat dark ref="main_card" id="main_card">
       <q-card-section>
         <div class="text-h1 non-selectable first-line" @dblclick="reloadBackground">{{ mainConfig.header.first_line }}</div>
         <div class="text-h5 non-selectable text-justify second-line">{{ mainConfig.header.second_line }}</div>
