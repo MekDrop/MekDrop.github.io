@@ -1,4 +1,4 @@
-name: Build website
+name: Build
 
 on:
   push:
@@ -10,31 +10,17 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code...
+      - name: Checkout Repository
         uses: actions/checkout@v2
 
-      - name: Setuping node...
-        uses: actions/setup-node@v2
-        env:
-          PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: 'true'
-        with:
-          args: install
-
-      - name: Install node modules...
+      - name: Install Dependencies
         run: yarn install
 
-      - name: Compile assets
-        uses: mujo-code/puppeteer-headful@v2
-        env:
-          CI: 'true'
-        with:
-          args: yarn encore production
+      - name: Generate Quasar SSG
+        run: quasar ssg generate
 
       - name: Deploy to GitHub Pages
-        if: success()
-        uses: crazy-max/ghaction-github-pages@v2
+        uses: peaceiris/actions-gh-pages@v3
         with:
-          target_branch: gh-pages
-          build_dir: build
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./dist/ssg/
