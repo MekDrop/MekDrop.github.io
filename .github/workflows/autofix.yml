@@ -5,6 +5,10 @@ on:
     branches:
       - master
 
+concurrency:
+  group: "autofix-${{ github.event.pull_request.head.ref }}"
+  cancel-in-progress: false
+
 jobs:
   prettier:
     runs-on: ubuntu-latest
@@ -25,7 +29,6 @@ jobs:
       - name: Commit changes
         uses: stefanzweifel/git-auto-commit-action@v4
         with:
-          skip_checkout: true
           commit_message: "Apply Prettier formatting"
 
       - name: Push changes
