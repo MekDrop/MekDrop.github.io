@@ -1,0 +1,33 @@
+name: Autofix
+
+on:
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  prettier:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Install dependencies
+        run: yarn install
+
+      - name: Run Prettier
+        run: yarn format
+
+      - name: Commit changes
+        uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          skip_checkout: true
+          commit_message: "Apply Prettier formatting"
+
+      - name: Push changes
+        if: success()
+        run: git push origin HEAD:${{ github.head_ref }}
