@@ -1,18 +1,17 @@
-
 const routes = [
   {
-    path: '/:lang?',
-    component: () => import('layouts/MainLayout.vue'),
+    path: "/:lang?",
+    component: () => import("layouts/MainLayout.vue"),
     meta: {
       autoSwitchLanguage: true,
     },
     children: [
       {
-        path: '',
-        component: () => import('pages/IndexPage.vue'),
-        name: 'index',
-      }
-    ]
+        path: "",
+        component: () => import("pages/IndexPage.vue"),
+        name: "index",
+      },
+    ],
   },
 
   // Always leave this as last one,
@@ -21,6 +20,6 @@ const routes = [
     path: '/:catchAll(.*)*',
     component: () => import('pages/ErrorNotFound.vue')
   }*/
-]
+];
 
-export default routes
+export default routes;

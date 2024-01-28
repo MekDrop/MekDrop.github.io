@@ -1,15 +1,16 @@
-import accepts from 'accepts'
+import accepts from "accepts";
 
 export function getRouteUrl(to, router, ssrContext = null) {
   let url = router.resolve(to).href;
-  if (url.startsWith('/')) {
+  if (url.startsWith("/")) {
     url = url.substring(1);
   }
 
   if (ssrContext) {
-    url = ssrContext.req.protocol + '://' + ssrContext.req.headers.host + '/' + url;
+    url =
+      ssrContext.req.protocol + "://" + ssrContext.req.headers.host + "/" + url;
   } else {
-    url = window.location.origin + '/' + url;
+    url = window.location.origin + "/" + url;
   }
   return url;
 }
@@ -28,9 +29,12 @@ export function getCurrentLocaleFromRoute(to, ssrContext, availableLanguages) {
         return languages[i];
       }
     }
-  } else if (typeof navigator !== 'undefined' && availableLanguages.includes(navigator.language)) {
-    return navigator.language
+  } else if (
+    typeof navigator !== "undefined" &&
+    availableLanguages.includes(navigator.language)
+  ) {
+    return navigator.language;
   }
 
-  return 'en-US';
+  return "en-US";
 }
