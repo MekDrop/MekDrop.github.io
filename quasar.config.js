@@ -12,7 +12,7 @@
 const { configure } = require('quasar/wrappers');
 const path = require('path');
 
-module.exports = configure(function (/* ctx */) {
+module.exports = configure(function (/*ctx*/) {
   return {
     eslint: {
       // fix: true,
@@ -95,11 +95,6 @@ module.exports = configure(function (/* ctx */) {
             raw: false,
           }
         ],
-        [
-          'vite-plugin-glsl', {
-
-          }
-        ]
       ]
     },
 
@@ -174,6 +169,23 @@ module.exports = configure(function (/* ctx */) {
       middlewares: [
         'render' // keep this as last one
       ]
+    },
+
+    // https://github.com/freddy38510/quasar-app-extension-ssg?tab=readme-ov-file#configuration
+    ssg: {
+      concurrency: 10,
+      interval: 0,
+      routes() {
+        const files = require('fs')
+          .readdirSync("./src/i18n")
+          .filter(file => /\.(yaml|yml)$/.test(file))
+          .map(file => '/' + path.parse(file).name)
+        ;
+        return ["/"].concat(files);
+      },
+      includeStaticRoutes: false,
+      crawler: false,
+      inlineCriticalCss: true,
     },
 
     // https://v2.quasar.dev/quasar-cli-vite/developing-pwa/configuring-pwa

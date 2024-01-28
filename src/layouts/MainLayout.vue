@@ -46,7 +46,7 @@ export default {
     const i18n = useI18n();
     const route = useRoute();
     const router = useRouter();
-    const ssrContext = useSSRContext();
+    const ssrContext = (typeof window === 'undefined') ? useSSRContext() : undefined;
 
     const updateMeta = () => {
       useMeta(

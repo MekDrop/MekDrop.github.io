@@ -1,5 +1,4 @@
 import accepts from 'accepts'
-import normalizeUrl from 'normalize-url'
 
 export function getRouteUrl(to, router, ssrContext = null) {
   let url = router.resolve(to).href;
@@ -12,7 +11,7 @@ export function getRouteUrl(to, router, ssrContext = null) {
   } else {
     url = window.location.origin + '/' + url;
   }
-  return normalizeUrl(url);
+  return url;
 }
 
 export function getCurrentLocaleFromRoute(to, ssrContext, availableLanguages) {

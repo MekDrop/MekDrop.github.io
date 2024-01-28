@@ -12,7 +12,10 @@
     "dev:spa": "quasar dev -m spa",
     "build:spa": "quasar build -m spa",
     "dev:ssr": "quasar dev -m ssr",
-    "build:ssr": "quasar build -m ssr"
+    "build:ssr": "quasar build -m ssr",
+    "build:ssg": "quasar ssg generate",
+    "dev:ssg": "quasar ssg dev",
+    "serve:ssg": "quasar ssg serve dist/ssg"
   },
   "dependencies": {
     "@quasar/cli": "^2.3.0",
@@ -20,7 +23,6 @@
     "accepts": "^1.3.8",
     "country-locale-map": "^1.9.0",
     "lunr": "^2.3.9",
-    "normalize-url": "^8.0.0",
     "pinia": "^2.1.7",
     "quasar": "^2.8.0",
     "three": "^0.160.0",
@@ -40,7 +42,7 @@
     "eslint-plugin-vue": "^9.0.0",
     "postcss": "^8.4.14",
     "prettier": "^2.5.1",
-    "vite-plugin-glsl": "^1.2.1"
+    "quasar-app-extension-ssg": "^5.1.1"
   },
   "engines": {
     "node": "^20 || ^18 || ^16",
