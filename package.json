@@ -44,7 +44,7 @@
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-vue": "^9.0.0",
     "postcss": "^8.4.14",
-    "prettier": "^2.5.1",
+    "prettier": "^3.2.4",
     "quasar-app-extension-ssg": "^5.1.1",
     "cypress": "^13.6.2",
     "eslint-plugin-cypress": "^2.15.1"
