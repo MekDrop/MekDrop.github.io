@@ -1,8 +1,7 @@
 // todo: make locales dynamically filled
 const locales = ["en-US", "lt"];
 
-locales
-  .concat([""])
+locales.concat([""])
   .sort((a, b) => a.length - b.length)
   .forEach((locale) => {
     describe("IndexPage (/" + locale + ")", () => {
@@ -44,45 +43,3 @@ locales
       });
     });
   });
-
-/*cy.visit('http://localhost:9100/');
-
-cy.visit('http://localhost:9100/en-US');
-cy.get('#f_eaa58fbc-b613-49dd-8120-4e34ecfded13').click();;
-
-cy.get('.q-btn--standard:nth-child(2) > .q-btn__content').click();
-cy.get('.q-page').click();
-cy.get('#f_740cf067-e05d-4f10-9978-db6691274f0c').type('git');
-cy.get('.q-pt-none').click();
-cy.get('.block').click();
-cy.get('.q-btn--fab').click();
-cy.get('.disabled:nth-child(1) > .q-btn__content').click();
-cy.get('.q-btn--outline:nth-child(2) > .q-btn__content').click();
-cy.get('#f_56f30064-a097-474f-bc3f-672e4c9f9679').click();
-cy.get('#f_56f30064-a097-474f-bc3f-672e4c9f9679').type('git');
-cy.get('.block').click();*/
-
-// ** The following code is an example to show you how to write some tests for your home page **
-//
-// describe('Home page tests', () => {
-//   beforeEach(() => {
-//     cy.visit('/');
-//   });
-//   it('has pretty background', () => {
-//     cy.dataCy('landing-wrapper')
-//       .should('have.css', 'background').and('match', /(".+(\/img\/background).+\.png)/);
-//   });
-//   it('has pretty logo', () => {
-//     cy.dataCy('landing-wrapper img')
-//       .should('have.class', 'logo-main')
-//       .and('have.attr', 'src')
-//       .and('match', /^(data:image\/svg\+xml).+/);
-//   });
-//   it('has very important information', () => {
-//     cy.dataCy('instruction-wrapper')
-//       .should('contain', 'SETUP INSTRUCTIONS')
-//       .and('contain', 'Configure Authentication')
-//       .and('contain', 'Database Configuration and CRUD operations')
-//       .and('contain', 'Continuous Integration & Continuous Deployment CI/CD');
-//   });
-// });

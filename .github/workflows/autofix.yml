@@ -27,6 +27,7 @@ jobs:
         run: yarn format
 
       - name: Commit changes
+        id: auto-commit-action
         uses: stefanzweifel/git-auto-commit-action@v4
         with:
           commit_message: "Apply Prettier formatting"
@@ -34,3 +35,9 @@ jobs:
       - name: Push changes
         if: success()
         run: git push origin HEAD:${{ github.head_ref }}
+
+      - name: Trigger test workflow
+        if: steps.auto-commit-action.outputs.changes_detected == 'true'
+        uses: actions/workflow-dispatch@v2
+        with:
+          workflow: 'test.yml'
