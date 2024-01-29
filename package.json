@@ -7,7 +7,7 @@
   "private": true,
   "scripts": {
     "lint": "eslint --ext .js,.vue ./",
-    "format": "prettier --write \"**/*.{js,vue,scss,html,md,json}\" --ignore-path .gitignore",
+    "format": "prettier --write \"**/*.{js,vue,scss}\" --ignore-path .gitignore",
     "test": "echo \"See package.json => scripts for available tests.\" && exit 0",
     "dev:spa": "quasar dev -m spa",
     "build:spa": "quasar build -m spa",
