@@ -28,8 +28,8 @@ jobs:
       - name: Install Dependencies
         run: yarn install
 
-      - name: Install quasar
-        run: yarn add -g quasar
+      - name: Install Quasar
+        run: yarn global add @quasar/cli
 
       - name: Generate Quasar SSG
         run: quasar ssg generate
