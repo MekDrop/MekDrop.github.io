@@ -3,7 +3,7 @@ import { Quasar } from "quasar";
 export async function updateQuasarLanguage(
   language,
   availableLanguages,
-  ssrContext
+  ssrContext,
 ) {
   let module;
   if (availableLanguages.includes(language)) {

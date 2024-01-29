@@ -9,7 +9,7 @@ export default boot(async ({ app, router, ssrContext }) => {
   const locale = getCurrentLocaleFromRoute(
     router.currentRoute.value,
     ssrContext,
-    availableLanguages
+    availableLanguages,
   );
 
   const i18n = createI18n({
@@ -27,12 +27,12 @@ export default boot(async ({ app, router, ssrContext }) => {
     i18n.global.locale.value = getCurrentLocaleFromRoute(
       to,
       ssrContext,
-      availableLanguages
+      availableLanguages,
     );
     updateQuasarLanguage(
       i18n.global.locale.value,
       availableLanguages,
-      ssrContext
+      ssrContext,
     );
   });
 

@@ -11,7 +11,7 @@ export default function (route, i18n, router, ssrContext) {
           name: route.name,
         },
         router,
-        ssrContext
+        ssrContext,
       );
 
       const fullUrl = getRouteUrl(
@@ -22,7 +22,7 @@ export default function (route, i18n, router, ssrContext) {
           },
         },
         router,
-        ssrContext
+        ssrContext,
       );
 
       ret = {
@@ -117,7 +117,7 @@ export default function (route, i18n, router, ssrContext) {
                     },
                   },
                   router,
-                  ssrContext
+                  ssrContext,
                 ),
               };
       }
