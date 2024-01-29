@@ -37,7 +37,7 @@ export const useBackgroundImageStore = defineStore("background-image", () => {
             }
 
             setTimeout(tryLoad, 250);
-          }
+          },
         );
       };
 
@@ -59,7 +59,7 @@ export const useBackgroundImageStore = defineStore("background-image", () => {
     lastId++;
     return (
       safeLoadFromUrl(
-        "https://picsum.photos/" + window.innerWidth + "?item=" + lastId
+        "https://picsum.photos/" + window.innerWidth + "?item=" + lastId,
       ) || safeLoadFromUrl("https://picsum.photos/1024?item=" + lastId)
     );
   };

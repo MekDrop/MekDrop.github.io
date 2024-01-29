@@ -32,7 +32,7 @@ const initGL = () => {
     75,
     containerWidth / containerHeight,
     0.1,
-    1000
+    1000,
   );
 
   renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
@@ -43,7 +43,7 @@ const initGL = () => {
   const bgMaterial = createBackgroundMaterial(
     backgroundImageStore.texture,
     containerWidth,
-    containerHeight
+    containerHeight,
   );
 
   const geometry = new THREE.PlaneGeometry(containerWidth, containerHeight);
@@ -56,7 +56,7 @@ const initGL = () => {
     async () => {
       animateCSS(renderer.domElement, "flipInX");
       bgMaterial.uniforms.uTexture.value = backgroundImageStore.texture;
-    }
+    },
   );
 
   const updateCameraDistance = () => {

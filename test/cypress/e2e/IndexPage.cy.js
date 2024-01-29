@@ -20,16 +20,16 @@ locales
         cy.get('#extra_links_modal input[name="search"]').type("git");
         cy.get("#extra_links_modal .extra_links_modal__search-results").should(
           "have.class",
-          "extra_links_modal__search-results--non-empty"
+          "extra_links_modal__search-results--non-empty",
         );
         cy.get(
-          "#extra_links_modal .extra_links_modal__search-results .q-item"
+          "#extra_links_modal .extra_links_modal__search-results .q-item",
         ).should("have.length", 2);
 
         cy.get('#extra_links_modal input[name="search"]').type("git-not-found");
         cy.get("#extra_links_modal .extra_links_modal__search-results").should(
           "have.class",
-          "extra_links_modal__search-results--empty"
+          "extra_links_modal__search-results--empty",
         );
 
         cy.get('#extra_links_modal input[name="search"]').type("{esc}");
