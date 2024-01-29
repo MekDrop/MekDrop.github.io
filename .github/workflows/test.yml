@@ -2,8 +2,7 @@ name: Tests
 
 on:
   workflow_run:
-    workflows: 
-      - Autofix
+    workflows: ["Autofix"]
     types:
       - completed
 
