@@ -34,5 +34,6 @@ jobs:
           commit_message: "Apply Prettier formatting"
 
       - name: Push changes
-        if: success()
+        if: success() && steps.auto-commit-action.outputs.changes_detected == 'true'
+        continue-on-error: true
         run: git push origin HEAD:${{ github.head_ref }}
