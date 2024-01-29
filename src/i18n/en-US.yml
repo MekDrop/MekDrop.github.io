@@ -1,0 +1,44 @@
+main_menu:
+  blog:
+    name: Blog
+    description: "World from MekDrop’s eyes"
+  stories:
+    name: Stories
+    description: Strange fictional stories from MekDrop's head!
+  tools:
+    name: Tools
+    description: Some small e-tools for daily tasks
+links:
+  phone: Telephone
+  email: Email
+tag:
+  cv: CV
+  social: Social Network
+  games: Games
+  forum: Forum
+  dating: Dating
+  presentations: Presentations
+  media: Media
+  photos: Photos
+  video: Video
+  audio: Audio
+  music: Music
+  encyclopedia: Encyclopedia
+  development: Development
+  projects: Projects
+  open-source: Open source
+  contacts: Contacts
+  chat: Chat
+  crowdfunding: Crowdfunding
+  books: Books
+  shop: Shop
+form:
+  filter: Search...
+  no_found: No links found
+  close: Close
+language:
+  en-US: English (USA)
+  lt: Lithuanian
+meta:
+  title: Who is MekDrop?
+  description: Personal page of Raimondas Rimkevičius with a bunch of links to contact him or see what he's up to.

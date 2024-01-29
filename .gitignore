@@ -3,3 +3,9 @@
 build/
 node_modules/
 /yarn-error.log
+.vscode
+.quasar
+/dist/
+
+.nyc_output
+coverage/

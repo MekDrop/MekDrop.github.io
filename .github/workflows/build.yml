@@ -1,40 +1,47 @@
-name: Build website
+name: Build
 
 on:
   push:
     branches:
       - master
 
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
 jobs:
   build:
+    name: "Building and deploying"
     runs-on: ubuntu-latest
-
+    environment:
+      name: master
+      url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - name: Checkout code...
+      - name: Checkout Repository
         uses: actions/checkout@v2
 
-      - name: Setuping node...
-        uses: actions/setup-node@v2
-        env:
-          PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: 'true'
-        with:
-          args: install
-
-      - name: Install node modules...
+      - name: Install Dependencies
         run: yarn install
 
-      - name: Compile assets
-        uses: mujo-code/puppeteer-headful@v2
-        env:
-          CI: 'true'
+      - name: Install Quasar
+        run: yarn global add @quasar/cli
+
+      - name: Generate Quasar SSG
+        run: quasar ssg generate
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
         with:
-          args: yarn encore production
+          path: ./dist/ssg/
 
       - name: Deploy to GitHub Pages
-        if: success()
-        uses: crazy-max/ghaction-github-pages@v2
-        with:
-          target_branch: gh-pages
-          build_dir: build
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        id: deployment
+        uses: actions/deploy-pages@v4

@@ -1,0 +1,39 @@
+name: Autofix
+
+on:
+  pull_request:
+    branches:
+      - master
+
+concurrency:
+  group: "autofix-${{ github.event.pull_request.head.ref }}"
+  cancel-in-progress: false
+
+jobs:
+  prettier:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Install dependencies
+        run: yarn install
+
+      - name: Run Prettier
+        run: yarn format
+
+      - name: Commit changes
+        id: auto-commit-action
+        continue-on-error: true
+        uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          commit_message: "Apply Prettier formatting"
+
+      - name: Push changes
+        if: success() && steps.auto-commit-action.outputs.changes_detected == 'true'
+        continue-on-error: true
+        run: git push origin HEAD:${{ github.head_ref }}
