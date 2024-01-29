@@ -1,5 +1,5 @@
-import { getRouteUrl } from 'src/assets/helpers/route'
-import { unref } from 'vue'
+import { getRouteUrl } from "src/assets/helpers/route";
+import { unref } from "vue";
 
 export default function (route, i18n, router, ssrContext) {
   let ret = [];
@@ -11,7 +11,7 @@ export default function (route, i18n, router, ssrContext) {
           name: route.name,
         },
         router,
-        ssrContext
+        ssrContext,
       );
 
       const fullUrl = getRouteUrl(
@@ -22,7 +22,7 @@ export default function (route, i18n, router, ssrContext) {
           },
         },
         router,
-        ssrContext
+        ssrContext,
       );
 
       ret = {
@@ -37,12 +37,12 @@ export default function (route, i18n, router, ssrContext) {
             crossOrigin: true,
           },
           preconnect_3: {
-            rel: 'preconnect',
-            href: 'https://fastly.picsum.photos/',
+            rel: "preconnect",
+            href: "https://fastly.picsum.photos/",
           },
           preconnect_4: {
-            rel: 'preconnect',
-            href: 'https://cdn.jsdelivr.net/',
+            rel: "preconnect",
+            href: "https://cdn.jsdelivr.net/",
           },
           itim_font: {
             href: "https://fonts.googleapis.com/css2?family=Itim&display=swap",
@@ -125,7 +125,7 @@ export default function (route, i18n, router, ssrContext) {
                     },
                   },
                   router,
-                  ssrContext
+                  ssrContext,
                 ),
               };
       }
