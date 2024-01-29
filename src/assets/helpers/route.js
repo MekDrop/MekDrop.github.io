@@ -1,4 +1,5 @@
-import accepts from "accepts";
+import accepts from 'accepts'
+import hostnameFromCName from '../../../CNAME?raw'
 
 export function getRouteUrl(to, router, ssrContext = null) {
   let url = router.resolve(to).href;
@@ -7,8 +8,10 @@ export function getRouteUrl(to, router, ssrContext = null) {
   }
 
   if (ssrContext) {
-    url =
-      ssrContext.req.protocol + "://" + ssrContext.req.headers.host + "/" + url;
+    const protocol = ssrContext.req.protocol || 'https';
+    const host = ssrContext.req.headers.host || hostnameFromCName.trim();
+
+    url = `${protocol}://${host}/${url}`;
   } else {
     url = window.location.origin + "/" + url;
   }
