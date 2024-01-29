@@ -10,8 +10,47 @@
 
 const { configure } = require("quasar/wrappers");
 const path = require("path");
+const fs = require('fs');
 
-module.exports = configure(function (/*ctx*/) {
+function getRoutes() {
+  const files = fs
+    .readdirSync('./src/i18n')
+    .filter((file) => /\.(yaml|yml)$/.test(file))
+    .map((file) => '/' + path.parse(file).name)
+  return ['/'].concat(files)
+}
+
+function getHostname() {
+  const filename = __dirname + '/CNAME';
+  if (!fs.existsSync(filename)) {
+    return 'localhost';
+  }
+
+  return fs.readFileSync(filename, 'utf8').trim()
+}
+
+function getMaxModificationDate(patterns) {
+  const glob = require('glob');
+  let maxModificationDate = 0;
+
+  patterns.forEach(pattern => {
+    const filePaths = glob.sync(pattern);
+
+    filePaths.forEach(filePath => {
+      const stats = fs.statSync(filePath);
+      const modificationDate = stats.mtime.getTime();
+
+      if (modificationDate > maxModificationDate) {
+        maxModificationDate = modificationDate;
+      }
+    });
+  });
+
+  return new Date(maxModificationDate);
+}
+
+module.exports = configure(function (ctx) {
+
   return {
     eslint: {
       // fix: true,
@@ -70,7 +109,34 @@ module.exports = configure(function (/*ctx*/) {
       // polyfillModulePreload: true,
       // distDir
 
-      // extendViteConf (viteConf) {},
+      extendViteConf (viteConf, { isClient, isServer }) {
+        // SiteMap
+        const SiteMap = require('vite-plugin-sitemap');
+        viteConf.plugins.push(
+          SiteMap(
+            {
+              hostname: `https://` + getHostname(),
+              readable: false,
+              outDir: viteConf.build.outDir,
+              changefreq: 'monthly',
+              dynamicRoutes: getRoutes(),
+              generateRobotsTxt: true,
+              priority: 0.8,
+              lastmod: getMaxModificationDate([
+                  __dirname + '/src/**/*',
+                  __dirname + '/quasar.config.js',
+                  __dirname + '/public/**/*',
+                ]),
+              robots: [
+                {
+                  userAgent: '*',
+                  allow: '/'
+                },
+              ],
+            }
+          ),
+        );
+      },
       // viteVuePluginOptions: {},
 
       vitePlugins: [
@@ -169,11 +235,7 @@ module.exports = configure(function (/*ctx*/) {
       concurrency: 10,
       interval: 0,
       routes() {
-        const files = require("fs")
-          .readdirSync("./src/i18n")
-          .filter((file) => /\.(yaml|yml)$/.test(file))
-          .map((file) => "/" + path.parse(file).name);
-        return ["/"].concat(files);
+        return getRoutes()
       },
       includeStaticRoutes: false,
       crawler: false,
