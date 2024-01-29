@@ -1,11 +1,19 @@
-import { getRouteUrl } from "src/assets/helpers/route";
-import { unref } from "vue";
+import { getRouteUrl } from 'src/assets/helpers/route'
+import { unref } from 'vue'
 
 export default function (route, i18n, router, ssrContext) {
   let ret = [];
 
   switch (route.name) {
     case "index":
+      const baseUrl = getRouteUrl(
+        {
+          name: route.name,
+        },
+        router,
+        ssrContext
+      );
+
       const fullUrl = getRouteUrl(
         {
           name: route.name,
@@ -65,7 +73,7 @@ export default function (route, i18n, router, ssrContext) {
           },
           og_image: {
             property: "og:image",
-            content: "",
+            content: baseUrl + "icons/android-chrome-512x512.png",
           },
           twitter_card: {
             property: "twitter:card",
@@ -85,7 +93,7 @@ export default function (route, i18n, router, ssrContext) {
           },
           twitter_image: {
             property: "og:image",
-            content: "",
+            content: baseUrl + "icons/android-chrome-512x512.png",
           },
         },
       };
