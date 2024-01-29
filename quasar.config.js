@@ -10,33 +10,33 @@
 
 const { configure } = require("quasar/wrappers");
 const path = require("path");
-const fs = require('fs');
+const fs = require("fs");
 
 function getRoutes() {
   const files = fs
-    .readdirSync('./src/i18n')
+    .readdirSync("./src/i18n")
     .filter((file) => /\.(yaml|yml)$/.test(file))
-    .map((file) => '/' + path.parse(file).name)
-  return ['/'].concat(files)
+    .map((file) => "/" + path.parse(file).name);
+  return ["/"].concat(files);
 }
 
 function getHostname() {
-  const filename = __dirname + '/CNAME';
+  const filename = __dirname + "/CNAME";
   if (!fs.existsSync(filename)) {
-    return 'localhost';
+    return "localhost";
   }
 
-  return fs.readFileSync(filename, 'utf8').trim()
+  return fs.readFileSync(filename, "utf8").trim();
 }
 
 function getMaxModificationDate(patterns) {
-  const glob = require('glob');
+  const glob = require("glob");
   let maxModificationDate = 0;
 
-  patterns.forEach(pattern => {
+  patterns.forEach((pattern) => {
     const filePaths = glob.sync(pattern);
 
-    filePaths.forEach(filePath => {
+    filePaths.forEach((filePath) => {
       const stats = fs.statSync(filePath);
       const modificationDate = stats.mtime.getTime();
 
@@ -50,7 +50,6 @@ function getMaxModificationDate(patterns) {
 }
 
 module.exports = configure(function (ctx) {
-
   return {
     eslint: {
       // fix: true,
@@ -109,32 +108,30 @@ module.exports = configure(function (ctx) {
       // polyfillModulePreload: true,
       // distDir
 
-      extendViteConf (viteConf, { isClient, isServer }) {
+      extendViteConf(viteConf, { isClient, isServer }) {
         // SiteMap
-        const SiteMap = require('vite-plugin-sitemap');
+        const SiteMap = require("vite-plugin-sitemap");
         viteConf.plugins.push(
-          SiteMap(
-            {
-              hostname: `https://` + getHostname(),
-              readable: false,
-              outDir: viteConf.build.outDir,
-              changefreq: 'monthly',
-              dynamicRoutes: getRoutes(),
-              generateRobotsTxt: true,
-              priority: 0.8,
-              lastmod: getMaxModificationDate([
-                  __dirname + '/src/**/*',
-                  __dirname + '/quasar.config.js',
-                  __dirname + '/public/**/*',
-                ]),
-              robots: [
-                {
-                  userAgent: '*',
-                  allow: '/'
-                },
-              ],
-            }
-          ),
+          SiteMap({
+            hostname: `https://` + getHostname(),
+            readable: false,
+            outDir: viteConf.build.outDir,
+            changefreq: "monthly",
+            dynamicRoutes: getRoutes(),
+            generateRobotsTxt: true,
+            priority: 0.8,
+            lastmod: getMaxModificationDate([
+              __dirname + "/src/**/*",
+              __dirname + "/quasar.config.js",
+              __dirname + "/public/**/*",
+            ]),
+            robots: [
+              {
+                userAgent: "*",
+                allow: "/",
+              },
+            ],
+          }),
         );
       },
       // viteVuePluginOptions: {},
@@ -235,7 +232,7 @@ module.exports = configure(function (ctx) {
       concurrency: 10,
       interval: 0,
       routes() {
-        return getRoutes()
+        return getRoutes();
       },
       includeStaticRoutes: false,
       crawler: false,
