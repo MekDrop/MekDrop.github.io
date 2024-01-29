@@ -1,7 +1,8 @@
 // todo: make locales dynamically filled
 const locales = ["en-US", "lt"];
 
-locales.concat([""])
+locales
+  .concat([""])
   .sort((a, b) => a.length - b.length)
   .forEach((locale) => {
     describe("IndexPage (/" + locale + ")", () => {
