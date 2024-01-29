@@ -1,7 +1,11 @@
 name: Tests
 
 on:
-  pull_request:
+  workflow_run:
+    workflows: 
+      - Autofix
+    types:
+      - completed
 
 concurrency:
   group: "test-${{ github.event.pull_request.head.ref }}"
