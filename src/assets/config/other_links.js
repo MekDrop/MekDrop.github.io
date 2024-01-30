@@ -179,5 +179,10 @@ export default function (i18n) {
       icon: "icon-nightcafe",
       tags: ["ai", "art", "drawings", "paintings"],
     },
+    JSFiddle: {
+      url: "https://jsfiddle.net/user/MekDrop/fiddles/",
+      icon: "fa-brands fa-jsfiddle",
+      tags: ["development"],
+    },
   };
 }
