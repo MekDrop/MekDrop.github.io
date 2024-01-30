@@ -19,6 +19,11 @@ export default function (i18n) {
       icon: "fab fa-twitter",
       tags: ["social"],
     },
+    Mastodon: {
+      url: "https://me.dm/@MekDrop",
+      icon: "fa-brands fa-mastodon",
+      tags: ["social"],
+    },
     Steam: {
       url: "http://steamcommunity.com/id/mekdrop/",
       icon: "fab fa-steam",
