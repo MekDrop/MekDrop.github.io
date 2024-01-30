@@ -188,6 +188,6 @@ export default function (i18n) {
       url: "https://www.breach.gg/profile/mekdrop",
       icon: "icon-breachgg",
       tags: ["social", "games"],
-    }
+    },
   };
 }
