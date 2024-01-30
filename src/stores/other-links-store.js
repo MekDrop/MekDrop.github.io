@@ -19,8 +19,15 @@ export const useOtherLinksStore = defineStore("other-links", () => {
     const otherLinksConfig = getOtherLinks(i18n);
     for (const linkName in otherLinksConfig) {
       const row = Object.assign({ name: linkName }, otherLinksConfig[linkName]);
+      if (row.tags) {
+        row.tags = row.tags.map(
+          (tag) => i18n.te(`tag.${tag}`) ? i18n.t(`tag.${tag}`) : tag,
+        );
+      }
+      row.search_words = (row.name + ' ' + row.tags.join(' ')).split(' ');
       data.value[row.name] = row;
     }
+
     data.value = Object.keys(data.value)
       .sort()
       .reduce((acc, key) => ((acc[key] = data.value[key]), acc), {});
@@ -28,6 +35,7 @@ export const useOtherLinksStore = defineStore("other-links", () => {
     index.value = lunr(function () {
       this.field("tags");
       this.field("url");
+      this.field('search_words', 10);
       this.ref("name");
 
       for (const linkName in data.value) {
@@ -56,7 +64,9 @@ export const useOtherLinksStore = defineStore("other-links", () => {
       return Object.values(data.value);
     }
 
-    const results = index.value.search(`*${term}*`);
+    const searchTerm = `*${lunr.utils.asString(term)}* ${lunr.utils.asString(term)}~1`;
+
+    const results = index.value.search(searchTerm);
     return results.map((result) => data.value[result.ref]);
   };
 

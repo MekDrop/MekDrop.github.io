@@ -32,6 +32,9 @@ tag:
   crowdfunding: Crowdfunding
   books: Books
   shop: Shop
+  ai: Artificial intelligence
+  drawings: Drawings
+  paintings: Paintings
 form:
   filter: Search...
   no_found: No links found
