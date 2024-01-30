@@ -194,5 +194,10 @@ export default function (i18n) {
       icon: "icon-breachgg",
       tags: ["social", "games"],
     },
+    Discord: {
+      url: "https://discordapp.com/users/215213387368366082",
+      icon: "fa-brands fa-discord",
+      tags: ["social", "chat"]
+    }
   };
 }
