@@ -20,11 +20,11 @@ export const useOtherLinksStore = defineStore("other-links", () => {
     for (const linkName in otherLinksConfig) {
       const row = Object.assign({ name: linkName }, otherLinksConfig[linkName]);
       if (row.tags) {
-        row.tags = row.tags.map(
-          (tag) => i18n.te(`tag.${tag}`) ? i18n.t(`tag.${tag}`) : tag,
+        row.tags = row.tags.map((tag) =>
+          i18n.te(`tag.${tag}`) ? i18n.t(`tag.${tag}`) : tag,
         );
       }
-      row.search_words = (row.name + ' ' + row.tags.join(' ')).split(' ');
+      row.search_words = (row.name + " " + row.tags.join(" ")).split(" ");
       data.value[row.name] = row;
     }
 
@@ -35,7 +35,7 @@ export const useOtherLinksStore = defineStore("other-links", () => {
     index.value = lunr(function () {
       this.field("tags");
       this.field("url");
-      this.field('search_words', 10);
+      this.field("search_words", 10);
       this.ref("name");
 
       for (const linkName in data.value) {
