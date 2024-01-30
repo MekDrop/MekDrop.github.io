@@ -184,5 +184,10 @@ export default function (i18n) {
       icon: "fa-brands fa-jsfiddle",
       tags: ["development"],
     },
+    "Breach.gg": {
+      url: "https://www.breach.gg/profile/mekdrop",
+      icon: "icon-breachgg",
+      tags: ["social", "games"],
+    },
   };
 }

@@ -1,11 +1,11 @@
 @font-face {
   font-family: 'custom-icons';
-  src: url('./custom-icons.eot?51379281');
-  src: url('./custom-icons.eot?51379281#iefix') format('embedded-opentype'),
-  url('./custom-icons.woff2?51379281') format('woff2'),
-  url('./custom-icons.woff?51379281') format('woff'),
-  url('./custom-icons.ttf?51379281') format('truetype'),
-  url('./custom-icons.svg?51379281#custom-icons') format('svg');
+  src: url('./custom-icons.eot?2338470');
+  src: url('./custom-icons.eot?2338470#iefix') format('embedded-opentype'),
+       url('./custom-icons.woff2?2338470') format('woff2'),
+       url('./custom-icons.woff?2338470') format('woff'),
+       url('./custom-icons.ttf?2338470') format('truetype'),
+       url('./custom-icons.svg?2338470#custom-icons') format('svg');
   font-weight: normal;
   font-style: normal;
 }
@@ -15,7 +15,7 @@
 @media screen and (-webkit-min-device-pixel-ratio:0) {
   @font-face {
     font-family: 'custom-icons';
-    src: url('./custom-icons.svg?51379281#custom-icons') format('svg');
+    src: url('./custom-icons.svg?2338470#custom-icons') format('svg');
   }
 }
 */
@@ -61,3 +61,4 @@
 .icon-indiegogo_iconape_337964:before { content: '\e804'; } /* '' */
 .icon-sourceforge:before { content: '\e805'; } /* '' */
 .icon-gamersgate_favicon:before { content: '\e806'; } /* '' */
+.icon-breachgg:before { content: '\e807'; } /* '' */
