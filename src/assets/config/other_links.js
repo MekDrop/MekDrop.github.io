@@ -182,7 +182,7 @@ export default function (i18n) {
     JSFiddle: {
       url: "https://jsfiddle.net/user/MekDrop/fiddles/",
       icon: "fa-brands fa-jsfiddle",
-      tags: ["development"]
-    }
+      tags: ["development"],
+    },
   };
 }
