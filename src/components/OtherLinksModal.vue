@@ -2,6 +2,7 @@
   <q-dialog
     v-model="show"
     square
+    class="other-links-modal"
     :class="{ 'full-width': $q.screen.lt.sm }"
     id="extra_links_modal"
   >
@@ -23,10 +24,7 @@
         />
       </q-card-section>
 
-      <q-scroll-area
-        style="max-height: 98vh; height: 200px; margin-right: 1em"
-        dark
-      >
+      <q-scroll-area class="other-links-modal__scroll-area" dark>
         <q-card-section
           class="scroll q-pt-none extra_links_modal__search-results"
           :class="{
@@ -70,7 +68,7 @@
         />
       </q-scroll-area>
 
-      <q-card-actions align="right" style="margin-top: auto">
+      <q-card-actions align="right" class="other-links-modal__actions">
         <q-btn dark square :label="$t('form.close')" outline @click="close" />
       </q-card-actions>
     </q-card>
@@ -85,6 +83,29 @@
 
 .q-dialog.full-width .q-card {
   width: 98vw !important;
+}
+
+.other-links-modal__scroll-area {
+  max-height: 98vh;
+  height: 200px;
+  margin-right: 1em;
+
+  @media (max-height: 440px) {
+    min-height: 50px;
+    height: calc(100vh - 250px);
+  }
+}
+
+.other-links-modal__actions {
+  margin-top: auto;
+  @media (max-height: 308px) {
+    display: none;
+  }
+}
+
+.other-links-modal .q-dialog__inner {
+  padding: 1em;
+  min-height: 200px;
 }
 </style>
 
