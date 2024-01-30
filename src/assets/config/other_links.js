@@ -72,17 +72,17 @@ export default function (i18n) {
     GitLab: {
       url: "https://gitlab.com/MekDrop",
       icon: "fab fa-gitlab",
-      tags: ["development"],
+      tags: ["development", "git"],
     },
-    bitbucket: {
+    Bitbucket: {
       url: "https://bitbucket.org/mekdrop/",
       icon: "fab fa-bitbucket",
-      tags: ["development"],
+      tags: ["development", "git"],
     },
     GitHub: {
       url: "https://github.com/MekDrop",
       icon: "fab fa-github",
-      tags: ["development"],
+      tags: ["development", "git"],
     },
     SourceForge: {
       url: "https://sourceforge.net/u/mekdrop/profile/",
@@ -173,6 +173,11 @@ export default function (i18n) {
       url: "https://www.indiegogo.com/individuals/538205",
       icon: "icon-indiegogo_iconape_337964",
       tags: ["crowdfunding"],
+    },
+    "NightCafe Studio": {
+      url: "https://creator.nightcafe.studio/u/MekDrop",
+      icon: "icon-nightcafe",
+      tags: ["ai", "art", "drawings", "paintings"],
     },
   };
 }

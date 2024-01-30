@@ -24,7 +24,7 @@ locales
         );
         cy.get(
           "#extra_links_modal .extra_links_modal__search-results .q-item",
-        ).should("have.length", 2);
+        ).should("have.length", 3);
 
         cy.get('#extra_links_modal input[name="search"]').type("git-not-found");
         cy.get("#extra_links_modal .extra_links_modal__search-results").should(
