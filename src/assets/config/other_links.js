@@ -177,7 +177,7 @@ export default function (i18n) {
     "NightCafe Studio": {
       url: "https://creator.nightcafe.studio/u/MekDrop",
       icon: "icon-nightcafe",
-      tags: ["ai", "art", "drawings", "paintings"]
+      tags: ["ai", "art", "drawings", "paintings"],
     },
   };
 }
