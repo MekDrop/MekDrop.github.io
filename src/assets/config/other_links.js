@@ -197,7 +197,7 @@ export default function (i18n) {
     Discord: {
       url: "https://discordapp.com/users/215213387368366082",
       icon: "fa-brands fa-discord",
-      tags: ["social", "chat"]
-    }
+      tags: ["social", "chat"],
+    },
   };
 }
