@@ -2078,13 +2078,13 @@ cors@^2.8.5:
     object-assign "^4"
     vary "^1"
 
-country-locale-map@^1.9.0:
-  version "1.9.0"
-  resolved "https://registry.yarnpkg.com/country-locale-map/-/country-locale-map-1.9.0.tgz#20c741728962ead77e5845457287bca254e58050"
-  integrity sha512-BQnks03YzZZG19YrtKqZma+Em4ikUdzy6NHUfJqYkMGiqa3lO5RwrJoRV1eMaYoWkH0BV8B9tWQCpo3TObcFSA==
+country-locale-map@^1.9.4:
+  version "1.9.4"
+  resolved "https://registry.yarnpkg.com/country-locale-map/-/country-locale-map-1.9.4.tgz#5dace641235326cc40cbe56486ad296719523abf"
+  integrity sha512-mRg2rrNfZBgJ09pfHloaFHRcVoKJ8FR/Q0wInYdA9+oBwA+rb6z9m7wtEXcmS2tbD65ZY68mjLTneq589RkTMw==
   dependencies:
     cctx "^1.0.1"
-    fuzzball "^1.3.0"
+    fuzzball "^2.1.2"
     nodemon "^3.0.2"
 
 crc-32@^1.2.0:
@@ -3533,10 +3533,10 @@ function-bind@^1.1.2:
   resolved "https://registry.yarnpkg.com/function-bind/-/function-bind-1.1.2.tgz#2c02d864d97f3ea6c8830c464cbd11ab6eab7a1c"
   integrity sha512-7XHNxH7qX9xG5mIwxkhumTox/MIRNcOgDrxWsMt2pAr23WHp6MrRlN7FBSFpCpr+oVO0F744iUgR82nJMfG2SA==
 
-fuzzball@^1.3.0:
-  version "1.4.0"
-  resolved "https://registry.yarnpkg.com/fuzzball/-/fuzzball-1.4.0.tgz#d4ae8b596d6e7cb7cc86425d7d02fa563ad94057"
-  integrity sha512-ufKO0SHW65RSqZNu4rmLmraQVuwb8kVf8S/ICpkih/PfIff2YW3sa8zTvt7d7hJFXY1IvOOGJTeXxs69XLBd4Q==
+fuzzball@^2.1.2:
+  version "2.1.2"
+  resolved "https://registry.yarnpkg.com/fuzzball/-/fuzzball-2.1.2.tgz#27f788de1716da1182e426e34ab2a67f49f7fc78"
+  integrity sha512-wVBw/a73M3luaX6ZHt9vIoEKT/rLqBkzdBRhQzWw/IQyIt0qnqc0IAJDCkX3CLgj2tRIUAfgDUT8G6YuMpmNXg==
   dependencies:
     heap ">=0.2.0"
     setimmediate "^1.0.5"
