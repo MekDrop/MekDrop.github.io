@@ -47,7 +47,9 @@ const languageOptions = computed(() => {
       value: lang,
       label: i18n.t(`language.${lang}`),
       emoji,
-      iconHTML: twemoji.parse(emoji),
+      iconHTML: twemoji.parse(emoji, {
+        base: "https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/",
+      }),
     };
   });
 });
