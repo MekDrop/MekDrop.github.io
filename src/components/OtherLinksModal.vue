@@ -49,7 +49,7 @@
                 <a
                   :href="result.url"
                   target="_blank"
-                  rel="nofollow"
+                  rel="external"
                   class="text-white"
                 >
                   {{ result.name }}
