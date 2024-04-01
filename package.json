@@ -37,7 +37,7 @@
   "devDependencies": {
     "@intlify/vite-plugin-vue-i18n": "^7.0.0",
     "@modyfi/vite-plugin-yaml": "^1.1.0",
-    "@quasar/app-vite": "^1.4.3",
+    "@quasar/app-vite": "^1.8.0",
     "@quasar/quasar-app-extension-testing-e2e-cypress": "^5.2.0",
     "autoprefixer": "^10.4.2",
     "cypress": "^13.6.4",
