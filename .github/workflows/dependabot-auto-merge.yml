@@ -19,11 +19,12 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Label Pull Request
-        uses: jburgess/AddRemovePrLabels@v1.0.4
+      - name: Add automerge label
+        uses: actions-ecosystem/action-add-labels@v1.1.0
         with:
-          githubToken: ${{ github.token }}
-          labelsToAdd: automerge
+          labels: "automerge"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Auto-merge dependabot PRs
         uses: gsoc2/automerge-action@v0.16.2
