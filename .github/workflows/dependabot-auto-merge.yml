@@ -23,8 +23,7 @@ jobs:
         uses: actions-ecosystem/action-add-labels@v1.1.0
         with:
           labels: "automerge"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Auto-merge dependabot PRs
         uses: gsoc2/automerge-action@v0.16.2
