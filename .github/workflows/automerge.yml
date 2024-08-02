@@ -15,6 +15,8 @@ jobs:
     permissions:
       pull-requests: write
       contents: read
+      id-token: write
+      statuses: write
 
     steps:
       - name: Find the pull request
@@ -25,9 +27,7 @@ jobs:
         
       - name: Merge pull request
         if: ${{ github.triggering_actor == 'dependabot[bot]' }}
-        uses: juliangruber/merge-pull-request-action@v1
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          number: ${{ steps.find_pr.outputs.number }}
-          method: merge
-          repo: ${{ github.repository }}
+        env:
+          PR_URL: ${{ steps.find_pr.outputs.url }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  
+        run: gh pr merge --auto --squash "$PR_URL"
