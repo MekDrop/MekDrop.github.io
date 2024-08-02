@@ -1,0 +1,33 @@
+name: Automerge
+
+on:
+  workflow_run:
+    workflows: ["Tests"]
+    types:
+      - completed
+
+jobs:
+  auto-merge:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    name: Merge
+    runs-on: ubuntu-latest
+
+    permissions:
+      pull-requests: write
+      contents: read
+
+    steps:
+      - name: Find the pull request
+        id: find_pr
+        uses: juliangruber/find-pull-request-action@v1
+        with:
+          branch: ${{ github.event.workflow_run.head_branch }}
+
+      - name: Merge pull request
+        if: ${{ steps.find_pr.outputs.author == 'dependabot[bot]' }}
+        uses: juliangruber/merge-pull-request-action@v1
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          number: ${{ steps.find_pr.outputs.number }}
+          method: merge
+          repo: ${{ github.repository }}
