@@ -24,7 +24,7 @@ jobs:
           branch: ${{ github.event.workflow_run.head_branch }}
 
       - name: Merge pull request
-        if: ${{ steps.find_pr.outputs.author == 'dependabot[bot]' }}
+        if: ${{ github.event.workflow_run.actor == 'dependabot[bot]' }}
         uses: juliangruber/merge-pull-request-action@v1
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
