@@ -23,6 +23,15 @@ jobs:
         with:
           branch: ${{ github.event.workflow_run.head_branch }}
 
+      - name: Print GitHub Event
+        uses: actions/github-script@v6
+        with:
+          script: |
+            console.log('Event Payload:', JSON.stringify(process.env.GITHUB_EVENT_PATH));
+            const fs = require('fs');
+            const eventPayload = JSON.parse(fs.readFileSync(process.env.GITHUB_EVENT_PATH, 'utf8'));
+            console.log('Parsed Event Payload:', JSON.stringify(eventPayload, null, 2));
+
       - name: Merge pull request
         if: ${{ github.event.workflow_run.actor == 'dependabot[bot]' }}
         uses: juliangruber/merge-pull-request-action@v1
