@@ -44,7 +44,7 @@
     "eslint": "^8.57.0",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-cypress": "^3.0.3",
-    "eslint-plugin-vue": "^9.25.0",
+    "eslint-plugin-vue": "^9.27.0",
     "glob": "^10.3.10",
     "postcss": "^8.4.39",
     "prettier": "^3.2.5",
