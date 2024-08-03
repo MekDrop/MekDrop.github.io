@@ -34,4 +34,4 @@ jobs:
         env:
           PR_URL: ${{ steps.find_pr.outputs.url }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  
-        run: gh pr merge
+        run: gh pr merge --merge
