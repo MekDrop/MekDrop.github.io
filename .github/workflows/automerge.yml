@@ -12,11 +12,7 @@ jobs:
     name: Merge
     runs-on: ubuntu-latest
 
-    permissions:
-      pull-requests: write
-      contents: read
-      id-token: write
-      statuses: write
+    permissions: write-all
 
     steps:
       - name: Find the pull request
