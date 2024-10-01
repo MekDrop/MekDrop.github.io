@@ -600,10 +600,10 @@
     route-cache "^0.5.0"
     update-notifier "^6.0.2"
 
-"@quasar/extras@^1.16.4":
-  version "1.16.9"
-  resolved "https://registry.yarnpkg.com/@quasar/extras/-/extras-1.16.9.tgz#6cdf9d34862e6f58009443a2d1e34b84a5e73ad0"
-  integrity sha512-SlOhwzXyPQHWgQIS2ncyDdYdksCJvUYNtgsDQqzAKEG3r3d/ejOxvThle79HTK3Q6HB+gQWFG21Ux00Osr5XSw==
+"@quasar/extras@^1.16.12":
+  version "1.16.12"
+  resolved "https://registry.yarnpkg.com/@quasar/extras/-/extras-1.16.12.tgz#2dac82eac8bb6b069a677d2817e479261d51f234"
+  integrity sha512-hLlb3Buxo38Xg/2w0BTkz98RBh/VH8apZ2r6Fl8YpPgrVQ0diHyN/BVTvIOk5Kch2y38L2kvwOIddsB2UcCuIg==
 
 "@quasar/quasar-app-extension-testing-e2e-cypress@^6.1.0":
   version "6.1.0"
