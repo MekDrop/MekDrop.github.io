@@ -5783,10 +5783,10 @@ quasar-app-extension-ssg@^5.1.1:
     webpack-merge "^5.10.0"
     webpack-node-externals "^3.0.0"
 
-quasar@^2.14.3:
-  version "2.14.3"
-  resolved "https://registry.yarnpkg.com/quasar/-/quasar-2.14.3.tgz#0956f6bcdc9ce5a76728e1d7b235e9ce963f1d89"
-  integrity sha512-7WzbtZxykLn2ic5oNpepZ2ZjDVpmxyVD4KC9rWe+Ia+4Er61svGr4jOuttN+Ok7IerLSCmKIRyjQMgasF60rFA==
+quasar@^2.17.0:
+  version "2.17.0"
+  resolved "https://registry.yarnpkg.com/quasar/-/quasar-2.17.0.tgz#af92f90e8d6571479745eeb6bed20b1e0a40e789"
+  integrity sha512-xFWwCt4FGuaC0M4/MA5drjBiCP7kj/5BsUPv2+dDIlyQG9YGvKIewCnWYYt02r4ijRqJSzPb7TsH89Gzkno1Mg==
 
 querystringify@^2.1.1:
   version "2.2.0"
