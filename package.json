@@ -26,7 +26,7 @@
     "country-locale-map": "^1.9.7",
     "lunr": "^2.3.9",
     "pinia": "^2.1.7",
-    "quasar": "^2.14.3",
+    "quasar": "^2.17.4",
     "three": "^0.171.0",
     "twemoji": "^14.0.2",
     "vue": "^3.5.12",
