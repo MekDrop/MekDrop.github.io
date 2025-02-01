@@ -41,7 +41,7 @@
     "@quasar/quasar-app-extension-testing-e2e-cypress": "^6.1.0",
     "autoprefixer": "^10.4.20",
     "cypress": "^14.0.1",
-    "eslint": "^8.57.0",
+    "eslint": "^9.19.0",
     "eslint-config-prettier": "^10.0.1",
     "eslint-plugin-cypress": "^4.1.0",
     "eslint-plugin-vue": "^9.32.0",
