@@ -11,6 +11,7 @@
 const { configure } = require("quasar/wrappers");
 const path = require("path");
 const fs = require("fs");
+const SiteMap = require("vite-plugin-sitemap").default;
 
 function getRoutes() {
   const files = fs
@@ -109,8 +110,6 @@ module.exports = configure(function (ctx) {
       // distDir
 
       extendViteConf(viteConf, { isClient, isServer }) {
-        // SiteMap
-        const SiteMap = require("vite-plugin-sitemap");
         viteConf.plugins.push(
           SiteMap({
             hostname: `https://` + getHostname(),
