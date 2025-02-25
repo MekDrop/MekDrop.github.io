@@ -20,14 +20,14 @@ jobs:
         uses: juliangruber/find-pull-request-action@v1
         with:
           branch: ${{ github.event.workflow_run.head_branch }}
-        
+
       - name: Checkouting code
         uses: actions/checkout@v4
         with:
           ref: ${{ github.event.workflow_run.head_branch }}
-        
+
       - name: Merge pull request
         env:
           PR_URL: ${{ steps.find_pr.outputs.url }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: gh pr merge --merge
