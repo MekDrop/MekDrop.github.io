@@ -46,7 +46,7 @@
     "eslint-plugin-cypress": "^5.0.1",
     "eslint-plugin-vue": "^9.33.0",
     "glob": "^11.0.2",
-    "postcss": "^8.5.3",
+    "postcss": "^8.5.4",
     "prettier": "^3.5.3",
     "quasar-app-extension-ssg": "^5.1.1",
     "vite-plugin-sitemap": "^0.8.2"
