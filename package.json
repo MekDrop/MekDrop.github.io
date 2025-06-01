@@ -38,7 +38,7 @@
     "@intlify/vite-plugin-vue-i18n": "^7.0.0",
     "@modyfi/vite-plugin-yaml": "^1.1.1",
     "@quasar/app-vite": "^1.8.0",
-    "@quasar/quasar-app-extension-testing-e2e-cypress": "^6.1.0",
+    "@quasar/quasar-app-extension-testing-e2e-cypress": "^6.2.1",
     "autoprefixer": "^10.4.21",
     "cypress": "^14.3.2",
     "eslint": "^8.57.0",
