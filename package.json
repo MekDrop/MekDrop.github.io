@@ -40,7 +40,7 @@
     "@quasar/app-vite": "^1.8.0",
     "@quasar/quasar-app-extension-testing-e2e-cypress": "^6.1.0",
     "autoprefixer": "^10.4.21",
-    "cypress": "^14.3.2",
+    "cypress": "^14.4.0",
     "eslint": "^8.57.0",
     "eslint-config-prettier": "^10.1.2",
     "eslint-plugin-cypress": "^4.3.0",
