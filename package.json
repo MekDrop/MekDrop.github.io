@@ -32,7 +32,7 @@
     "vue": "^3.5.18",
     "vue-i18n": "^11.1.11",
     "vue-router": "^4.5.1",
-    "yaml": "^2.8.0"
+    "yaml": "^2.8.1"
   },
   "devDependencies": {
     "@intlify/vite-plugin-vue-i18n": "^7.0.0",
