@@ -22,7 +22,7 @@ jobs:
           branch: ${{ github.event.workflow_run.head_branch }}
 
       - name: Checkouting code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           ref: ${{ github.event.workflow_run.head_branch }}
 
