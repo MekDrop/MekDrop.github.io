@@ -13,9 +13,8 @@ export const useOtherLinksStore = defineStore("other-links", () => {
     isLoaded.value = false;
     data.value = {};
 
-    const { default: getOtherLinks } = await import(
-      "src/assets/config/other_links.js"
-    );
+    const { default: getOtherLinks } =
+      await import("src/assets/config/other_links.js");
     const otherLinksConfig = getOtherLinks(i18n);
     for (const linkName in otherLinksConfig) {
       const row = Object.assign({ name: linkName }, otherLinksConfig[linkName]);
