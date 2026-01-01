@@ -39,7 +39,7 @@
     "@modyfi/vite-plugin-yaml": "^1.1.1",
     "@quasar/app-vite": "^1.8.0",
     "@quasar/quasar-app-extension-testing-e2e-cypress": "^6.2.1",
-    "autoprefixer": "^10.4.21",
+    "autoprefixer": "^10.4.23",
     "cypress": "^14.5.4",
     "eslint": "^8.57.0",
     "eslint-config-prettier": "^10.1.8",
