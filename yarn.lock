@@ -2308,10 +2308,10 @@ cors@^2.8.5:
     object-assign "^4"
     vary "^1"
 
-country-locale-map@^1.9.11:
-  version "1.9.11"
-  resolved "https://registry.yarnpkg.com/country-locale-map/-/country-locale-map-1.9.11.tgz#e3f39f69f665473c56277a08e127f69dd4e8fefe"
-  integrity sha512-Nrj31H/BmHFLzh2CYZkExQFUIZmqBSJ+nrdSRSjIqh4FMs6VRXOboDPIp7NqXBUoOTJi6Urf2cypPQez0rFYBQ==
+country-locale-map@^1.9.12:
+  version "1.9.12"
+  resolved "https://registry.yarnpkg.com/country-locale-map/-/country-locale-map-1.9.12.tgz#c6418a8eb40b9cf26d8ca97728d737c1118c8312"
+  integrity sha512-MIbBbGyugAb2z/dvvP5Sn9eNA9EN8nn+lPdAOFtkalDsMt33x5KPxn8sVBezOoCbYQXMKmp/1AylqTt7UWfZqg==
   dependencies:
     fuzzball "^2.1.2"
 
