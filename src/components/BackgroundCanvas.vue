@@ -103,6 +103,7 @@ import { create as createBackgroundMaterial } from "assets/materials/background/
 const MAX_VISIBLE_PLATFORMS = 48;
 const MAX_VISIBLE_COLLECTIBLES = 12;
 const MAX_VISIBLE_LADDERS = 20;
+const MAX_VISIBLE_SPIKES = 20;
 const GAME_VIEWPORT_WIDTH_RATIO = 0.95;
 const VERTICAL_WORLD_SCALE = 0.5625;
 const BASE_VIEW_HEIGHT = 22;
@@ -121,6 +122,9 @@ const LADDER_CLIMB_SPEED = 7.6;
 const LADDER_GRAB_RADIUS_X = 0.45;
 const LADDER_GRAB_RADIUS_Y = 0.75;
 const LADDER_REGRAB_LOCK_TIME = 0.2;
+const WALL_SPIKE_SPAWN_CHANCE = 0.36;
+const WALL_SPIKE_BASE_WIDTH = 0.92;
+const WALL_SPIKE_HEIGHT = 0.58;
 const GRAVITY = -40;
 const JUMP_VELOCITY = 16.5;
 const SUPER_JUMP_VELOCITY = JUMP_VELOCITY * 1.732;
@@ -154,6 +158,7 @@ let viewHeight = BASE_VIEW_HEIGHT;
 let visiblePlatformCount = 0;
 let visibleCollectibleCount = 0;
 let visibleLadderCount = 0;
+let visibleSpikeCount = 0;
 let worldHalfWidth = WORLD_HALF_WIDTH;
 const gameViewportPx = {
   x: 0,
@@ -194,6 +199,7 @@ const hudScore = computed(() => formatHudNumber(score.value, 7));
 const worldPlatforms = [];
 const worldCollectibles = [];
 const worldLadders = [];
+const worldSpikes = [];
 const rowMilestones = [];
 let nextCollectibleId = 1;
 
@@ -218,6 +224,13 @@ const ladderPool = Array.from({ length: MAX_VISIBLE_LADDERS }, () => ({
   w: 0,
   h: 0,
   ref: null,
+}));
+
+const spikePool = Array.from({ length: MAX_VISIBLE_SPIKES }, () => ({
+  x: -9999,
+  y: -9999,
+  w: 0,
+  h: 0,
 }));
 
 const checkpoint = {
@@ -396,6 +409,7 @@ const generateWorld = () => {
   worldPlatforms.length = 0;
   worldCollectibles.length = 0;
   worldLadders.length = 0;
+  worldSpikes.length = 0;
   rowMilestones.length = 0;
   nextCollectibleId = 1;
 
@@ -490,6 +504,35 @@ const generateWorld = () => {
     };
   };
 
+  const addWallSpikes = (platform, side, seed) => {
+    if (!platform || platform.y < 2.0) {
+      return;
+    }
+
+    if (platform.w < 1.45 || seededNoise(seed) > WALL_SPIKE_SPAWN_CHANCE) {
+      return;
+    }
+
+    const spikeWidth = Math.min(
+      platform.w - 0.34,
+      WALL_SPIKE_BASE_WIDTH + seededNoise(seed + 0.21) * 0.72,
+    );
+    if (spikeWidth < 0.36) {
+      return;
+    }
+
+    const x =
+      side < 0
+        ? platform.x + 0.14
+        : platform.x + platform.w - spikeWidth - 0.14;
+    worldSpikes.push({
+      x,
+      y: platform.y + platform.h,
+      w: spikeWidth,
+      h: WALL_SPIKE_HEIGHT + seededNoise(seed + 0.49) * 0.14,
+    });
+  };
+
   let y = 2.1;
   let row = 0;
   let previousRowPlatforms = [groundPlatform];
@@ -565,6 +608,23 @@ const generateWorld = () => {
     }
 
     addLadderBetweenRows(previousRowPlatforms, rowPlatforms, row * 12.31 + 0.19);
+    const leftWallPlatform = rowPlatforms[0] || null;
+    const rightWallPlatform = rowPlatforms[rowPlatforms.length - 1] || null;
+    if (
+      leftWallPlatform &&
+      leftWallPlatform.x <= -worldHalfWidth + 0.2 &&
+      leftWallPlatform.w > 1.2
+    ) {
+      addWallSpikes(leftWallPlatform, -1, row * 13.07 + 0.13);
+    }
+
+    if (
+      rightWallPlatform &&
+      rightWallPlatform.x + rightWallPlatform.w >= worldHalfWidth - 0.2 &&
+      rightWallPlatform.w > 1.2
+    ) {
+      addWallSpikes(rightWallPlatform, 1, row * 13.07 + 0.61);
+    }
     previousRowPlatforms = rowPlatforms;
     row++;
   }
@@ -572,6 +632,7 @@ const generateWorld = () => {
   worldPlatforms.sort((a, b) => a.y - b.y);
   worldCollectibles.sort((a, b) => a.y - b.y);
   worldLadders.sort((a, b) => a.y - b.y);
+  worldSpikes.sort((a, b) => a.y - b.y);
 };
 
 const calculateRowFromHeight = (height) => {
@@ -656,6 +717,38 @@ const collectVisibleLadders = (heroY, cameraY) => {
   }
 
   visibleLadderCount = index;
+};
+
+const collectVisibleSpikes = (heroY, cameraY) => {
+  const minY = Math.min(heroY, cameraY) - viewHeight * 0.98 - 2;
+  const maxY = Math.max(heroY, cameraY) + viewHeight * 1.02 + 2;
+  let index = 0;
+
+  for (let i = 0; i < worldSpikes.length && index < MAX_VISIBLE_SPIKES; i++) {
+    const spike = worldSpikes[i];
+    if (spike.y + spike.h < minY) {
+      continue;
+    }
+
+    if (spike.y > maxY) {
+      break;
+    }
+
+    spikePool[index].x = spike.x;
+    spikePool[index].y = spike.y;
+    spikePool[index].w = spike.w;
+    spikePool[index].h = spike.h;
+    index++;
+  }
+
+  for (let i = index; i < MAX_VISIBLE_SPIKES; i++) {
+    spikePool[i].x = -9999;
+    spikePool[i].y = -9999;
+    spikePool[i].w = 0;
+    spikePool[i].h = 0;
+  }
+
+  visibleSpikeCount = index;
 };
 
 const collectVisibleCollectibles = (cameraY) => {
@@ -896,6 +989,30 @@ const findNearbyLadder = () => {
   return closestLadder;
 };
 
+const heroTouchesSpike = () => {
+  const heroLeft = hero.x - HERO_WIDTH * 0.44;
+  const heroRight = hero.x + HERO_WIDTH * 0.44;
+  const heroBottom = hero.y + 0.03;
+  const heroTop = hero.y + HERO_HEIGHT - 0.05;
+
+  for (let i = 0; i < visibleSpikeCount; i++) {
+    const spike = spikePool[i];
+    const spikeLeft = spike.x;
+    const spikeRight = spike.x + spike.w;
+    const spikeBottom = spike.y;
+    const spikeTop = spike.y + spike.h;
+
+    const overlapX = heroRight > spikeLeft && heroLeft < spikeRight;
+    const overlapY = heroTop > spikeBottom && heroBottom < spikeTop;
+
+    if (overlapX && overlapY) {
+      return true;
+    }
+  }
+
+  return false;
+};
+
 const applyRidingPlatformMotion = (delta) => {
   if (!hero.grounded || !hero.supportPlatform) {
     return;
@@ -914,6 +1031,7 @@ const stepGame = (delta) => {
   const wasGrounded = hero.grounded;
   hero.ladderRegrabLock = Math.max(0, hero.ladderRegrabLock - delta);
   collectVisibleLadders(hero.y, gameCamera.y);
+  collectVisibleSpikes(hero.y, gameCamera.y);
   const nearbyLadder = findNearbyLadder();
   const canGrabLadderFromGround =
     hero.grounded &&
@@ -991,6 +1109,11 @@ const stepGame = (delta) => {
 
     updateHighestRow(Math.max(hero.y, checkpoint.y));
     collectNearbyCollectibles();
+
+    if (heroTouchesSpike()) {
+      onHeroDeath();
+      return;
+    }
 
     const ladderDropLimit = gameCamera.y - viewHeight * 0.98;
     if (hero.y < ladderDropLimit) {
@@ -1102,6 +1225,10 @@ const stepGame = (delta) => {
 
   updateHighestRow(Math.max(hero.y, checkpoint.y));
   collectNearbyCollectibles();
+  if (heroTouchesSpike()) {
+    onHeroDeath();
+    return;
+  }
 
   const verticalDropLimit = gameCamera.y - viewHeight * 0.98;
   if (hero.y < verticalDropLimit) {
@@ -1131,6 +1258,7 @@ const syncUniforms = (timeSeconds) => {
   collectVisiblePlatforms(hero.y, gameCamera.y);
   collectVisibleCollectibles(gameCamera.y);
   collectVisibleLadders(hero.y, gameCamera.y);
+  collectVisibleSpikes(hero.y, gameCamera.y);
 
   const shaderPlatforms = material.uniforms.uPlatforms.value;
   const shaderPlatformMotion = material.uniforms.uPlatformMotion.value;
@@ -1152,6 +1280,12 @@ const syncUniforms = (timeSeconds) => {
     shaderLadders[i].set(ladder.x, ladder.y, ladder.w, ladder.h);
   }
 
+  const shaderSpikes = material.uniforms.uSpikes.value;
+  for (let i = 0; i < MAX_VISIBLE_SPIKES; i++) {
+    const spike = spikePool[i];
+    shaderSpikes[i].set(spike.x, spike.y, spike.w, spike.h);
+  }
+
   material.uniforms.uTime.value = timeSeconds;
   material.uniforms.uCameraPos.value.set(gameCamera.x, gameCamera.y);
   material.uniforms.uHeroPos.value.set(hero.x, hero.y);
@@ -1162,6 +1296,7 @@ const syncUniforms = (timeSeconds) => {
   material.uniforms.uPlatformCount.value = visiblePlatformCount;
   material.uniforms.uCollectibleCount.value = visibleCollectibleCount;
   material.uniforms.uLadderCount.value = visibleLadderCount;
+  material.uniforms.uSpikeCount.value = visibleSpikeCount;
 };
 
 const onResize = () => {
@@ -1248,6 +1383,7 @@ const initGL = async () => {
   collectVisiblePlatforms(hero.y, gameCamera.y);
   collectVisibleCollectibles(gameCamera.y);
   collectVisibleLadders(hero.y, gameCamera.y);
+  collectVisibleSpikes(hero.y, gameCamera.y);
 
   previousTimeMs = performance.now();
 

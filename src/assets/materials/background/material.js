@@ -5,6 +5,7 @@ import fragmentShader from "./fragment.glsl?raw";
 const MAX_VISIBLE_PLATFORMS = 48;
 const MAX_VISIBLE_COLLECTIBLES = 12;
 const MAX_VISIBLE_LADDERS = 20;
+const MAX_VISIBLE_SPIKES = 20;
 
 export function create(containerWidth, containerHeight) {
   const platformBuffer = Array.from(
@@ -18,6 +19,10 @@ export function create(containerWidth, containerHeight) {
   );
   const ladderBuffer = Array.from(
     { length: MAX_VISIBLE_LADDERS },
+    () => new THREE.Vector4(-9999, -9999, 0, 0),
+  );
+  const spikeBuffer = Array.from(
+    { length: MAX_VISIBLE_SPIKES },
     () => new THREE.Vector4(-9999, -9999, 0, 0),
   );
 
@@ -52,6 +57,8 @@ export function create(containerWidth, containerHeight) {
       uCollectibleCount: { value: 0.0 },
       uLadders: { value: ladderBuffer },
       uLadderCount: { value: 0.0 },
+      uSpikes: { value: spikeBuffer },
+      uSpikeCount: { value: 0.0 },
     },
     vertexShader,
     fragmentShader,

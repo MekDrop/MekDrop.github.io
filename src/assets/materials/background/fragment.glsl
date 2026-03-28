@@ -19,6 +19,8 @@ uniform vec4 uCollectibles[12];
 uniform float uCollectibleCount;
 uniform vec4 uLadders[20];
 uniform float uLadderCount;
+uniform vec4 uSpikes[20];
+uniform float uSpikeCount;
 
 float rectMask(vec2 point, vec4 rect) {
   vec2 insideMin = step(rect.xy, point);
@@ -147,6 +149,33 @@ vec3 drawCollectibles(vec3 color, vec2 worldPos) {
     color = mix(color, coinOuter, body * enabled);
     color = mix(color, coinOutline, border * enabled);
     color = mix(color, coinInner, inner * enabled);
+  }
+
+  return color;
+}
+
+vec3 drawSpikes(vec3 color, vec2 worldPos) {
+  vec3 spikeDark = vec3(0.06, 0.20, 0.22);
+  vec3 spikeMain = vec3(0.28, 0.85, 0.78);
+  vec3 spikeLight = vec3(0.72, 1.00, 0.94);
+
+  for (int i = 0; i < 20; i++) {
+    float enabled = step(float(i) + 0.5, uSpikeCount);
+    vec4 spike = uSpikes[i];
+    vec4 spikeRect = vec4(spike.x, spike.y, spike.z, spike.w);
+    float baseMask = rectMask(worldPos, spikeRect);
+
+    float toothWidth = max(0.16, min(0.28, spike.z * 0.33));
+    float tx = fract((worldPos.x - spike.x) / toothWidth);
+    float ridge = 1.0 - abs(tx - 0.5) * 2.0;
+    float yNorm = (worldPos.y - spike.y) / max(spike.w, 0.0001);
+    float spikeMask = baseMask * step(yNorm, ridge);
+    float highlight = spikeMask * step(0.75, ridge) * step(0.62, yNorm);
+    float baseShade = spikeMask * step(yNorm, 0.34);
+
+    color = mix(color, spikeDark, baseShade * enabled);
+    color = mix(color, spikeMain, spikeMask * enabled);
+    color = mix(color, spikeLight, highlight * enabled);
   }
 
   return color;
@@ -288,6 +317,7 @@ void main() {
   color = drawBaseFloor(color, worldPos);
   color = drawPlatforms(color, worldPos);
   color = drawLadders(color, worldPos);
+  color = drawSpikes(color, worldPos);
   color = drawCollectibles(color, worldPos);
   color = drawHero(color, worldPos);
 
