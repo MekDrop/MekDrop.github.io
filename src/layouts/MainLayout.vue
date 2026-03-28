@@ -153,7 +153,8 @@
   flex-direction: column;
   gap: 0.5rem;
   flex: 1;
-  overflow-y: auto;
+  overflow: hidden;
+  min-height: 0;
 }
 
 .side-toolbar__btn {
@@ -199,6 +200,10 @@
 .side-toolbar__other-links {
   padding: 0.5rem;
   width: 100%;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
 }
 
 .side-toolbar__other-links-title {
@@ -214,8 +219,42 @@
 }
 
 .side-toolbar__other-links-results {
-  max-height: 180px;
+  flex: 1;
+  min-height: 0;
   overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(104, 255, 222, 0.85) rgba(9, 16, 23, 0.85);
+}
+
+.side-toolbar__other-links-results::-webkit-scrollbar {
+  width: 10px;
+}
+
+.side-toolbar__other-links-results::-webkit-scrollbar-track {
+  background: linear-gradient(
+    180deg,
+    rgba(9, 16, 23, 0.85),
+    rgba(18, 30, 42, 0.85)
+  );
+  border-radius: 999px;
+}
+
+.side-toolbar__other-links-results::-webkit-scrollbar-thumb {
+  background: linear-gradient(
+    180deg,
+    rgba(91, 255, 227, 0.9),
+    rgba(40, 187, 230, 0.95)
+  );
+  border-radius: 999px;
+  border: 2px solid rgba(9, 16, 23, 0.9);
+}
+
+.side-toolbar__other-links-results::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(
+    180deg,
+    rgba(134, 255, 235, 0.98),
+    rgba(63, 205, 245, 0.98)
+  );
 }
 
 .side-toolbar__other-links-item {
