@@ -68,40 +68,56 @@ precision mediump float;
 uniform vec2 u_resolution;
 uniform float u_time;
 
-float sdCircle(vec2 p, float r) {
-  return length(p) - r;
+float hash11(float p) {
+  return fract(sin(p * 127.1) * 43758.5453123);
 }
 
-float sdVShape(vec2 p, float k) {
+float sdEgg(vec2 p, float ra, float rb) {
+  const float k = 1.7320508;
   p.x = abs(p.x);
-  float a = clamp((p.x + k * p.y) / (1.0 + k * k), 0.0, 1.0);
-  return length(p - vec2(a, -k * a)) * sign(p.x * k + p.y);
+  return ((p.y < 0.0)
+      ? length(p) - rb
+      : ((k * (p.x + ra) < p.y)
+          ? length(vec2(p.x, p.y - k * ra))
+          : length(vec2(p.x + ra, p.y)) - 2.0 * ra)) -
+    rb;
 }
 
 void main() {
   vec2 uv = gl_FragCoord.xy / u_resolution.xy;
   vec2 p = uv * 2.0 - 1.0;
   p.x *= u_resolution.x / u_resolution.y;
+  p *= 1.08;
 
-  float warp = 0.06 * sin(u_time * 1.6 + p.y * 6.0);
+  float warp = 0.026 * sin(u_time * 2.1 + p.y * 8.0);
   p.x += warp;
 
-  float body = sdCircle(p + vec2(0.0, -0.12), 0.46);
-  float tip = sdVShape(p + vec2(0.0, 0.58), 1.35) - 0.06;
-  float drop = min(body, max(tip, p.y + 0.72));
+  float drop = sdEgg(p + vec2(0.0, 0.09), 0.23, 0.49);
 
-  float fillMask = smoothstep(0.035, -0.01, drop);
-  float edgeGlow = exp(-10.0 * abs(drop));
-  float shimmer = 0.5 + 0.5 * sin(u_time * 3.0 + p.y * 11.0);
+  float fillMask = smoothstep(0.02, -0.012, drop);
+  float edgeGlow = smoothstep(0.06, 0.0, abs(drop));
+  float ripple = 0.5 + 0.5 * sin(u_time * 4.6 + p.y * 12.0 + p.x * 7.0);
 
-  vec3 innerA = vec3(0.09, 0.83, 0.76);
-  vec3 innerB = vec3(0.27, 0.43, 0.95);
-  vec3 inner = mix(innerA, innerB, shimmer);
+  float vertical = clamp((p.y + 0.75) / 1.7, 0.0, 1.0);
+  vec3 innerA = vec3(0.07, 0.63, 0.84);
+  vec3 innerB = vec3(0.48, 0.83, 0.98);
+  vec3 inner = mix(innerB, innerA, vertical);
+  inner += vec3(0.08, 0.14, 0.17) * (ripple - 0.5);
 
-  vec3 highlight = vec3(0.84, 1.0, 0.98) * smoothstep(0.32, -0.45, p.y + p.x * 0.28);
-  vec3 color = inner * fillMask + highlight * fillMask * 0.35 + vec3(0.2, 0.95, 0.86) * edgeGlow * 0.28;
+  float spec = smoothstep(0.26, -0.48, p.y + p.x * 0.78) * fillMask;
+  vec3 color = inner * fillMask;
+  color += vec3(0.86, 0.98, 1.0) * spec * 0.46;
+  color += vec3(0.56, 0.96, 1.0) * edgeGlow * 0.23;
 
-  float alpha = clamp(fillMask + edgeGlow * 0.35, 0.0, 1.0);
+  float burstSeed = floor(u_time * 0.75);
+  float burst = step(0.8, hash11(burstSeed + 3.2));
+  float rapidSeed = floor(u_time * 34.0) + burstSeed * 17.0;
+  float rapid = step(0.6, hash11(rapidSeed));
+  float flicker = mix(1.0, mix(0.18, 1.32, rapid), burst);
+  float basePulse = 0.93 + 0.07 * sin(u_time * 2.4);
+  color *= basePulse * flicker;
+
+  float alpha = clamp(fillMask + edgeGlow * 0.28, 0.0, 1.0);
   gl_FragColor = vec4(color, alpha);
 }
 `;
