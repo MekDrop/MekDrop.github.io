@@ -28,6 +28,7 @@ export function create(containerWidth, containerHeight) {
     { length: MAX_VISIBLE_SPIKES },
     () => new THREE.Vector4(-9999, -9999, 0, 0),
   );
+  const spikeDirBuffer = new Float32Array(MAX_VISIBLE_SPIKES);
 
   return new THREE.ShaderMaterial({
     uniforms: {
@@ -64,6 +65,7 @@ export function create(containerWidth, containerHeight) {
       uLadders: { value: ladderBuffer },
       uLadderCount: { value: 0.0 },
       uSpikes: { value: spikeBuffer },
+      uSpikeDir: { value: spikeDirBuffer },
       uSpikeCount: { value: 0.0 },
     },
     vertexShader,

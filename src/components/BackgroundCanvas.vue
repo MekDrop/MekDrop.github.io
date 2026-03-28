@@ -123,8 +123,8 @@ const LADDER_GRAB_RADIUS_X = 0.45;
 const LADDER_GRAB_RADIUS_Y = 0.75;
 const LADDER_REGRAB_LOCK_TIME = 0.2;
 const WALL_SPIKE_SPAWN_CHANCE = 0.36;
-const WALL_SPIKE_BASE_WIDTH = 0.92;
-const WALL_SPIKE_HEIGHT = 0.58;
+const WALL_SPIKE_DEPTH = 0.62;
+const WALL_SPIKE_BASE_HEIGHT = 1.04;
 const BRITTLE_PLATFORM_CHANCE = 0.26;
 const BRITTLE_PLATFORM_MAX_WIDTH = 3.35;
 const BRITTLE_PLATFORM_STEP_WINDOW = 0.34;
@@ -241,6 +241,7 @@ const spikePool = Array.from({ length: MAX_VISIBLE_SPIKES }, () => ({
   y: -9999,
   w: 0,
   h: 0,
+  dir: 0,
 }));
 
 const checkpoint = {
@@ -542,23 +543,17 @@ const generateWorld = () => {
       return;
     }
 
-    const spikeWidth = Math.min(
-      platform.w - 0.34,
-      WALL_SPIKE_BASE_WIDTH + seededNoise(seed + 0.21) * 0.72,
-    );
-    if (spikeWidth < 0.36) {
-      return;
-    }
-
-    const x =
-      side < 0
-        ? platform.x + 0.14
-        : platform.x + platform.w - spikeWidth - 0.14;
+    const spikeDepth = WALL_SPIKE_DEPTH + seededNoise(seed + 0.21) * 0.18;
+    const spikeHeight = WALL_SPIKE_BASE_HEIGHT + seededNoise(seed + 0.49) * 0.36;
+    const anchorY = platform.y + platform.h + 0.08 + seededNoise(seed + 0.63) * 0.08;
+    const wallInset = 0.05;
+    const x = side < 0 ? -worldHalfWidth + wallInset : worldHalfWidth - spikeDepth - wallInset;
     worldSpikes.push({
       x,
-      y: platform.y + platform.h,
-      w: spikeWidth,
-      h: WALL_SPIKE_HEIGHT + seededNoise(seed + 0.49) * 0.14,
+      y: anchorY,
+      w: spikeDepth,
+      h: spikeHeight,
+      dir: side < 0 ? 1 : -1,
     });
   };
 
@@ -782,6 +777,7 @@ const collectVisibleSpikes = (heroY, cameraY) => {
     spikePool[index].y = spike.y;
     spikePool[index].w = spike.w;
     spikePool[index].h = spike.h;
+    spikePool[index].dir = spike.dir || 0;
     index++;
   }
 
@@ -790,6 +786,7 @@ const collectVisibleSpikes = (heroY, cameraY) => {
     spikePool[i].y = -9999;
     spikePool[i].w = 0;
     spikePool[i].h = 0;
+    spikePool[i].dir = 0;
   }
 
   visibleSpikeCount = index;
@@ -1434,9 +1431,11 @@ const syncUniforms = (timeSeconds) => {
   }
 
   const shaderSpikes = material.uniforms.uSpikes.value;
+  const shaderSpikeDir = material.uniforms.uSpikeDir.value;
   for (let i = 0; i < MAX_VISIBLE_SPIKES; i++) {
     const spike = spikePool[i];
     shaderSpikes[i].set(spike.x, spike.y, spike.w, spike.h);
+    shaderSpikeDir[i] = spike.dir;
   }
 
   material.uniforms.uTime.value = timeSeconds;

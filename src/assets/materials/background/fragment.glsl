@@ -23,6 +23,7 @@ uniform float uCollectibleCount;
 uniform vec4 uLadders[20];
 uniform float uLadderCount;
 uniform vec4 uSpikes[20];
+uniform float uSpikeDir[20];
 uniform float uSpikeCount;
 
 float rectMask(vec2 point, vec4 rect) {
@@ -205,18 +206,20 @@ vec3 drawSpikes(vec3 color, vec2 worldPos) {
   for (int i = 0; i < 20; i++) {
     float enabled = step(float(i) + 0.5, uSpikeCount);
     vec4 spike = uSpikes[i];
+    float dir = uSpikeDir[i];
     vec4 spikeRect = vec4(spike.x, spike.y, spike.z, spike.w);
     float baseMask = rectMask(worldPos, spikeRect);
+    vec2 local = (worldPos - spike.xy) / max(spike.zw, vec2(0.0001));
 
-    float toothWidth = max(0.16, min(0.28, spike.z * 0.33));
-    float tx = fract((worldPos.x - spike.x) / toothWidth);
-    float ridge = 1.0 - abs(tx - 0.5) * 2.0;
-    float yNorm = (worldPos.y - spike.y) / max(spike.w, 0.0001);
-    float spikeMask = baseMask * step(yNorm, ridge);
-    float highlight = spikeMask * step(0.75, ridge) * step(0.62, yNorm);
-    float baseShade = spikeMask * step(yNorm, 0.34);
+    float toothHeight = max(0.16, min(0.34, 0.22 + spike.w * 0.12));
+    float ty = fract((worldPos.y - spike.y) / toothHeight);
+    float ridge = 1.0 - abs(ty - 0.5) * 2.0;
+    float inward = dir > 0.0 ? local.x : (1.0 - local.x);
+    float spikeMask = baseMask * step(inward, ridge);
+    float baseShade = spikeMask * step(inward, 0.24);
+    float highlight = spikeMask * step(0.78, ridge) * step(0.58, inward);
 
-    color = mix(color, spikeDark, baseShade * enabled);
+    color = mix(color, spikeDark, baseShade * enabled * 1.1);
     color = mix(color, spikeMain, spikeMask * enabled);
     color = mix(color, spikeLight, highlight * enabled);
   }
