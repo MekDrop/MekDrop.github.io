@@ -158,6 +158,13 @@ const SNAKE_ATTACK_LEVEL_DELTA = 0.72;
 const SNAKE_LADDER_ATTACH_X = 0.16;
 const SNAKE_LADDER_ATTACH_Y = 0.2;
 const SNAKE_REPATH_INTERVAL = 0.35;
+const SNAKE_LADDER_DECISION_INTERVAL = 0.95;
+const SNAKE_LADDER_NEARBY_X = 1.55;
+const SNAKE_LADDER_CURIOUS_CHANCE = 0.38;
+const SNAKE_LADDER_INTENT_TIME = 1.15;
+const SNAKE_SPIKE_FEAR_RADIUS_X = 2.25;
+const SNAKE_SPIKE_FEAR_RADIUS_Y = 0.9;
+const SNAKE_SPIKE_FEAR_SPEED = 4.1;
 const SNAKE_ESCAPE_PLATFORM_RANGE_X = 4.2;
 const SNAKE_ESCAPE_PLATFORM_RANGE_Y = 0.5;
 const SNAKE_ESCAPE_SPEED_BONUS = 0.95;
@@ -166,6 +173,7 @@ const SNAKE_STATE_ATTACK = "attack";
 const SNAKE_STATE_LADDER_SEEK = "ladderSeek";
 const SNAKE_STATE_CLIMB = "climb";
 const SNAKE_STATE_ESCAPE = "escape";
+const SNAKE_STATE_SPIKE_FEAR = "spikeFear";
 const GRAVITY = -40;
 const JUMP_VELOCITY = 16.5;
 const SUPER_JUMP_VELOCITY = JUMP_VELOCITY * 1.732;
@@ -176,6 +184,7 @@ const AIR_ACCELERATION = 30;
 const GROUND_FRICTION = 22;
 const AIR_FRICTION = 7;
 const MAX_MOVE_SPEED = 9;
+const MOVE_AGAINST_PLATFORM_FACTOR = 0.58;
 const COYOTE_TIME = 0.11;
 const JUMP_BUFFER_TIME = 0.12;
 const SUPER_JUMP_CHARGE_REQUIRED = 0.01;
@@ -344,6 +353,19 @@ class SnakeEscapeState extends State {
   }
 }
 
+class SnakeSpikeFearState extends State {
+  execute() {
+    if (!snakeAI.spikeThreat) {
+      snakeAI.desiredDir = snake.patrolDir;
+      snakeAI.desiredSpeed = SNAKE_PATROL_SPEED;
+      return;
+    }
+
+    snakeAI.desiredDir = snakeAI.spikeThreat.dx >= 0 ? -1 : 1;
+    snakeAI.desiredSpeed = Math.max(SNAKE_MOVE_SPEED, SNAKE_SPIKE_FEAR_SPEED);
+  }
+}
+
 class SnakeClimbState extends State {
   execute() {
     snakeAI.desiredDir = 0;
@@ -357,6 +379,7 @@ const initSnakeStateMachine = () => {
     .add(SNAKE_STATE_ATTACK, new SnakeAttackState())
     .add(SNAKE_STATE_LADDER_SEEK, new SnakeLadderSeekState())
     .add(SNAKE_STATE_ESCAPE, new SnakeEscapeState())
+    .add(SNAKE_STATE_SPIKE_FEAR, new SnakeSpikeFearState())
     .add(SNAKE_STATE_CLIMB, new SnakeClimbState())
     .changeTo(SNAKE_STATE_PATROL);
 };
@@ -499,18 +522,27 @@ const generateWorld = () => {
   const minPlatformWidth = 1.9;
   const fixedGapWidth = HERO_WIDTH * PLATFORM_GAP_MULTIPLIER;
   const maxGapsPerRow = 3;
-  const addLadderBetweenRows = (lowerRow, upperRow, seed) => {
+  const addLaddersBetweenRows = (lowerRow, upperRow) => {
     if (!lowerRow.length || !upperRow.length) {
-      return false;
+      return 0;
     }
 
     const ladderPadding = LADDER_WIDTH * 0.72 + 0.1;
-    const ladderCandidates = [];
+    const placedLadders = [];
+    let addedCount = 0;
 
     for (let lowerIndex = 0; lowerIndex < lowerRow.length; lowerIndex++) {
       const lowerPlatform = lowerRow[lowerIndex];
+      if (!lowerPlatform || lowerPlatform.kind === 1) {
+        continue;
+      }
+
       for (let upperIndex = 0; upperIndex < upperRow.length; upperIndex++) {
         const upperPlatform = upperRow[upperIndex];
+        if (!upperPlatform || upperPlatform.kind === 1) {
+          continue;
+        }
+
         const overlapStart = Math.max(
           lowerPlatform.x + ladderPadding,
           upperPlatform.x + ladderPadding,
@@ -530,39 +562,35 @@ const generateWorld = () => {
           continue;
         }
 
-        ladderCandidates.push({
-          start: overlapStart,
-          end: overlapEnd,
-          bottom,
-          top,
+        const ladderX = (overlapStart + overlapEnd) * 0.5;
+        let tooClose = false;
+        for (let placedIndex = 0; placedIndex < placedLadders.length; placedIndex++) {
+          const placed = placedLadders[placedIndex];
+          if (Math.abs(placed.bottom - bottom) <= 0.08 && Math.abs(placed.x - ladderX) <= LADDER_WIDTH * 1.2) {
+            tooClose = true;
+            break;
+          }
+        }
+
+        if (tooClose) {
+          continue;
+        }
+
+        worldLadders.push({
+          x: ladderX,
+          y: bottom,
+          w: LADDER_WIDTH,
+          h: top - bottom,
         });
+        placedLadders.push({
+          x: ladderX,
+          bottom,
+        });
+        addedCount++;
       }
     }
 
-    if (!ladderCandidates.length) {
-      return false;
-    }
-
-    const pickIndex = Math.floor(
-      seededNoise(seed + 0.27) * ladderCandidates.length,
-    );
-    const picked = ladderCandidates[
-      clamp(pickIndex, 0, ladderCandidates.length - 1)
-    ];
-    const ladderX = THREE.MathUtils.lerp(
-      picked.start,
-      picked.end,
-      seededNoise(seed + 0.79),
-    );
-
-    worldLadders.push({
-      x: ladderX,
-      y: picked.bottom,
-      w: LADDER_WIDTH,
-      h: picked.top - picked.bottom,
-    });
-
-    return true;
+    return addedCount;
   };
 
   const createRowPlatform = (x, y, width, seedBase) => {
@@ -688,7 +716,7 @@ const generateWorld = () => {
       }
     }
 
-    addLadderBetweenRows(previousRowPlatforms, rowPlatforms, row * 12.31 + 0.19);
+    addLaddersBetweenRows(previousRowPlatforms, rowPlatforms);
     const leftWallPlatform = rowPlatforms[0] || null;
     const rightWallPlatform = rowPlatforms[rowPlatforms.length - 1] || null;
     if (
@@ -999,9 +1027,12 @@ const resetSnake = () => {
   const spawnPlatform = pickSnakeSpawnPlatform();
   if (!spawnPlatform) {
     snake.alive = false;
+    snake.ladderDecisionCooldown = 0;
+    snake.ladderIntentLeft = 0;
     snakeAI.desiredDir = 0;
     snakeAI.desiredSpeed = 0;
     snakeAI.escapeTarget = null;
+    snakeAI.spikeThreat = null;
     return;
   }
 
@@ -1024,6 +1055,8 @@ const resetSnake = () => {
   snake.patrolDir = Math.random() < 0.5 ? -1 : 1;
   snake.targetLadder = null;
   snake.targetLadderRefresh = 0;
+  snake.ladderDecisionCooldown = 0;
+  snake.ladderIntentLeft = 0;
   snake.biteCooldown = 0.9;
   snake.alive = true;
   snakeAI.desiredDir = snake.patrolDir;
@@ -1031,6 +1064,7 @@ const resetSnake = () => {
   snakeAI.attackMode = false;
   snakeAI.heroAbove = false;
   snakeAI.escapeTarget = null;
+  snakeAI.spikeThreat = null;
   setSnakeState(SNAKE_STATE_PATROL);
 };
 
@@ -1311,6 +1345,41 @@ const snakeTouchesSpike = () => {
   return entityTouchesSpike(snakeLeft, snakeRight, snakeBottom, snakeTop);
 };
 
+const findSnakeSpikeThreat = () => {
+  if (!snake.alive || !snake.grounded) {
+    return null;
+  }
+
+  const snakeCenterY = snake.y + SNAKE_HEIGHT * 0.5;
+  const heading = Math.sign(snake.vx) || snake.patrolDir || snake.facing || 1;
+  let bestThreat = null;
+  let bestScore = Number.POSITIVE_INFINITY;
+
+  for (let i = 0; i < visibleSpikeCount; i++) {
+    const spike = spikePool[i];
+    const spikeCenterY = spike.y + spike.h * 0.5;
+    if (Math.abs(spikeCenterY - snakeCenterY) > SNAKE_SPIKE_FEAR_RADIUS_Y) {
+      continue;
+    }
+
+    const spikeCenterX = spike.x + spike.w * 0.5;
+    const dx = spikeCenterX - snake.x;
+    const distance = Math.abs(dx);
+    if (distance > SNAKE_SPIKE_FEAR_RADIUS_X) {
+      continue;
+    }
+
+    const isAhead = dx * heading >= -0.05;
+    const score = distance + (isAhead ? 0 : 0.75);
+    if (score < bestScore) {
+      bestScore = score;
+      bestThreat = { dx, distance };
+    }
+  }
+
+  return bestThreat;
+};
+
 const resolveSnakeLanding = (previousY) => {
   if (snake.vy > 0) {
     return null;
@@ -1380,7 +1449,10 @@ const findSnakeStandingPlatform = () => {
   return bestPlatform;
 };
 
-const findSnakeLadderTarget = () => {
+const findSnakeLadderTarget = ({
+  preferHero = true,
+  maxDistanceX = Number.POSITIVE_INFINITY,
+} = {}) => {
   if (!snake.supportPlatform) {
     return null;
   }
@@ -1398,6 +1470,11 @@ const findSnakeLadderTarget = () => {
       continue;
     }
 
+    const snakeDx = Math.abs(ladder.x - snake.x);
+    if (snakeDx > maxDistanceX) {
+      continue;
+    }
+
     if (Math.abs(ladder.y - baseTop) > 0.3) {
       continue;
     }
@@ -1407,10 +1484,16 @@ const findSnakeLadderTarget = () => {
       continue;
     }
 
-    const score =
-      Math.abs(ladder.x - hero.x) +
-      Math.abs(ladderTop - hero.y) * 0.26 +
-      Math.abs(ladder.x - snake.x) * 0.45;
+    let score = snakeDx;
+    if (preferHero) {
+      score +=
+        Math.abs(ladder.x - hero.x) +
+        Math.abs(ladderTop - hero.y) * 0.26 +
+        snakeDx * 0.45;
+    } else {
+      score += Math.abs(ladderTop - snake.y) * 0.18;
+    }
+
     if (score < bestScore) {
       bestScore = score;
       bestLadder = ladder;
@@ -1489,7 +1572,10 @@ const stepSnake = (delta) => {
 
   snake.biteCooldown = Math.max(0, snake.biteCooldown - delta);
   snake.targetLadderRefresh = Math.max(0, snake.targetLadderRefresh - delta);
+  snake.ladderDecisionCooldown = Math.max(0, snake.ladderDecisionCooldown - delta);
+  snake.ladderIntentLeft = Math.max(0, snake.ladderIntentLeft - delta);
   collectVisiblePlatforms(Math.max(hero.y, snake.y), gameCamera.y);
+  collectVisibleSpikes(Math.max(hero.y, snake.y), gameCamera.y);
 
   const snakeEyeY = snake.y + SNAKE_HEIGHT * 0.55;
   const heroEyeY = hero.y + 0.74;
@@ -1523,9 +1609,11 @@ const stepSnake = (delta) => {
 
   const attackMode = sameLevel && !sightBlocked;
   const heroAbove = hero.y > snake.y + 0.45;
+  const spikeThreat = findSnakeSpikeThreat();
   snakeAI.attackMode = attackMode;
   snakeAI.heroAbove = heroAbove;
   snakeAI.escapeTarget = findSnakeEscapePlatform();
+  snakeAI.spikeThreat = spikeThreat;
   if (
     snake.grounded &&
     snake.supportPlatform &&
@@ -1586,35 +1674,83 @@ const stepSnake = (delta) => {
       }
     }
 
-    if (snakeAI.escapeTarget) {
+    const canUseLadders =
+      snake.grounded &&
+      snake.supportPlatform &&
+      !snake.supportPlatform.falling &&
+      !snake.supportPlatform.removed;
+    const activeLadderInvalid =
+      !canUseLadders ||
+      !snake.targetLadder ||
+      snake.targetLadder.h <= 0 ||
+      Math.abs(
+        snake.targetLadder.y - (snake.supportPlatform.y + snake.supportPlatform.h),
+      ) > 0.35;
+
+    if (activeLadderInvalid) {
       snake.targetLadder = null;
+    }
+
+    if (
+      canUseLadders &&
+      !spikeThreat &&
+      !attackMode &&
+      !snakeAI.escapeTarget &&
+      snake.ladderDecisionCooldown <= 0
+    ) {
+      const curiousLadder = findSnakeLadderTarget({
+        preferHero: false,
+        maxDistanceX: SNAKE_LADDER_NEARBY_X,
+      });
+      snake.ladderDecisionCooldown = curiousLadder ? SNAKE_LADDER_DECISION_INTERVAL : 0.4;
+      if (curiousLadder && Math.random() < SNAKE_LADDER_CURIOUS_CHANCE) {
+        snake.targetLadder = curiousLadder;
+        snake.targetLadderRefresh = SNAKE_REPATH_INTERVAL;
+        snake.ladderIntentLeft = SNAKE_LADDER_INTENT_TIME;
+      }
+    }
+
+    if (canUseLadders && heroAbove) {
+      if (!snake.targetLadder || snake.targetLadderRefresh <= 0) {
+        snake.targetLadder = findSnakeLadderTarget();
+        snake.targetLadderRefresh = SNAKE_REPATH_INTERVAL;
+      }
+
+      if (snake.targetLadder) {
+        snake.ladderIntentLeft = Math.max(snake.ladderIntentLeft, 0.32);
+      }
+    }
+
+    if (spikeThreat) {
+      snake.targetLadder = null;
+      snake.ladderIntentLeft = 0;
+      setSnakeState(SNAKE_STATE_SPIKE_FEAR);
+    } else if (snakeAI.escapeTarget) {
+      snake.targetLadder = null;
+      snake.ladderIntentLeft = 0;
       setSnakeState(SNAKE_STATE_ESCAPE);
     } else if (attackMode) {
       snake.targetLadder = null;
+      snake.ladderIntentLeft = 0;
       setSnakeState(SNAKE_STATE_ATTACK);
-    } else if (
-      snake.grounded &&
-      heroAbove &&
-      snake.supportPlatform &&
-      snake.supportPlatform !== snake.homePlatform
-    ) {
-      const ladderInvalid =
-        !snake.targetLadder ||
-        snake.targetLadder.h <= 0 ||
-        Math.abs(snake.targetLadder.y - (snake.supportPlatform.y + snake.supportPlatform.h)) >
-          0.35;
-      if (ladderInvalid || snake.targetLadderRefresh <= 0) {
-        snake.targetLadder = findSnakeLadderTarget();
+    } else if (canUseLadders && snake.ladderIntentLeft > 0) {
+      if (!snake.targetLadder || snake.targetLadderRefresh <= 0) {
+        snake.targetLadder = findSnakeLadderTarget({
+          preferHero: heroAbove,
+          maxDistanceX: heroAbove ? Number.POSITIVE_INFINITY : SNAKE_LADDER_NEARBY_X * 1.35,
+        });
         snake.targetLadderRefresh = SNAKE_REPATH_INTERVAL;
       }
 
       if (snake.targetLadder) {
         setSnakeState(SNAKE_STATE_LADDER_SEEK);
       } else {
+        snake.ladderIntentLeft = 0;
         setSnakeState(SNAKE_STATE_PATROL);
       }
     } else {
       snake.targetLadder = null;
+      snake.ladderIntentLeft = 0;
       setSnakeState(SNAKE_STATE_PATROL);
     }
 
@@ -1633,6 +1769,7 @@ const stepSnake = (delta) => {
       ) {
         snake.onLadder = true;
         snake.ladder = snake.targetLadder;
+        snake.ladderIntentLeft = 0;
         snake.grounded = false;
         snake.supportPlatform = null;
         snake.vx = 0;
@@ -1834,8 +1971,20 @@ const stepGame = (delta) => {
     : (inputState.right ? 1 : 0) - (inputState.left ? 1 : 0);
   const acceleration = hero.grounded ? GROUND_ACCELERATION : AIR_ACCELERATION;
   const friction = hero.grounded ? GROUND_FRICTION : AIR_FRICTION;
+  const supportMotion =
+    hero.grounded &&
+    hero.supportPlatform &&
+    !hero.supportPlatform.falling &&
+    !hero.supportPlatform.removed
+      ? hero.supportPlatform.moveDir * hero.supportPlatform.moveSpeed
+      : 0;
+  const movingAgainstPlatform =
+    horizontalInput !== 0 && Math.abs(supportMotion) > 0.01 && horizontalInput * supportMotion < 0;
+  const moveSpeedLimit = movingAgainstPlatform
+    ? MAX_MOVE_SPEED * MOVE_AGAINST_PLATFORM_FACTOR
+    : MAX_MOVE_SPEED;
 
-  hero.vx = approach(hero.vx, horizontalInput * MAX_MOVE_SPEED, acceleration * delta);
+  hero.vx = approach(hero.vx, horizontalInput * moveSpeedLimit, acceleration * delta);
 
   if (horizontalInput === 0) {
     hero.vx = approach(hero.vx, 0, friction * delta);

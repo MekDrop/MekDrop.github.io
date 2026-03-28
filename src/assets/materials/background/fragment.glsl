@@ -351,7 +351,12 @@ vec3 drawSnake(vec3 color, vec2 worldPos) {
   float ladder = clamp(uSnakeOnLadder, 0.0, 1.0);
   float crawlPhase = uTime * (5.2 + speed * 5.7) + uSnakePos.x * 1.31;
   float wobble = sin((snakePoint.x + 0.35) * 6.9 + crawlPhase) * 0.045 * (1.0 - ladder * 0.85);
+  float climbWaveA = sin((snakePoint.y + uSnakePos.y * 0.55) * 10.2 + uTime * 8.6) * 0.075 * ladder;
+  float climbWaveB = sin((snakePoint.y + 0.18) * 6.3 - uTime * 5.4) * 0.034 * ladder;
+  float climbLift = sin((snakePoint.y + 0.2) * 8.8 + uTime * 6.1) * 0.015 * ladder;
+  snakePoint.x += climbWaveA + climbWaveB;
   snakePoint.y -= wobble;
+  snakePoint.y += climbLift;
 
   vec3 outline = vec3(0.02, 0.07, 0.09);
   vec3 bodyDark = vec3(0.10, 0.38, 0.40);

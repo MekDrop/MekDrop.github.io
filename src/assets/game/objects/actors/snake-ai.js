@@ -6,5 +6,6 @@ export const createSnakeAI = (stateMachine, patrolSpeed) => {
     attackMode: false,
     heroAbove: false,
     escapeTarget: null,
+    spikeThreat: null,
   };
 };

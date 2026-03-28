@@ -13,6 +13,8 @@ export const createSnake = (startPos) => {
     patrolDir: 1,
     targetLadder: null,
     targetLadderRefresh: 0,
+    ladderDecisionCooldown: 0,
+    ladderIntentLeft: 0,
     biteCooldown: 0,
     alive: true,
   };
