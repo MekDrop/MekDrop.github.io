@@ -13,6 +13,9 @@ export function create(containerWidth, containerHeight) {
     () => new THREE.Vector4(-9999, -9999, 0, 0),
   );
   const platformMotionBuffer = new Float32Array(MAX_VISIBLE_PLATFORMS);
+  const platformTypeBuffer = new Float32Array(MAX_VISIBLE_PLATFORMS);
+  const platformShakeBuffer = new Float32Array(MAX_VISIBLE_PLATFORMS);
+  const platformDurabilityBuffer = new Float32Array(MAX_VISIBLE_PLATFORMS);
   const collectibleBuffer = Array.from(
     { length: MAX_VISIBLE_COLLECTIBLES },
     () => new THREE.Vector4(-9999, -9999, 0, 0),
@@ -52,6 +55,9 @@ export function create(containerWidth, containerHeight) {
       uHeroCrouch: { value: 0.0 },
       uPlatforms: { value: platformBuffer },
       uPlatformMotion: { value: platformMotionBuffer },
+      uPlatformType: { value: platformTypeBuffer },
+      uPlatformShake: { value: platformShakeBuffer },
+      uPlatformDurability: { value: platformDurabilityBuffer },
       uPlatformCount: { value: 0.0 },
       uCollectibles: { value: collectibleBuffer },
       uCollectibleCount: { value: 0.0 },

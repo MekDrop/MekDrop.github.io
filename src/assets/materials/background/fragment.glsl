@@ -14,6 +14,9 @@ uniform float uHeroGrounded;
 uniform float uHeroCrouch;
 uniform vec4 uPlatforms[48];
 uniform float uPlatformMotion[48];
+uniform float uPlatformType[48];
+uniform float uPlatformShake[48];
+uniform float uPlatformDurability[48];
 uniform float uPlatformCount;
 uniform vec4 uCollectibles[12];
 uniform float uCollectibleCount;
@@ -38,16 +41,31 @@ vec3 applyRect(vec3 color, vec2 point, vec4 rect, vec3 fillColor) {
   return mix(color, fillColor, mask);
 }
 
-vec3 drawRectPlatform(vec3 color, vec2 worldPos, vec4 platformRect, float motion) {
+vec3 drawRectPlatform(
+  vec3 color,
+  vec2 worldPos,
+  vec4 platformRect,
+  float motion,
+  float platformType,
+  float platformShake,
+  float platformDurability
+) {
   vec3 outline = vec3(0.02, 0.07, 0.09);
   vec3 blockDark = vec3(0.13, 0.43, 0.45);
   vec3 blockMain = vec3(0.26, 0.76, 0.72);
   vec3 blockLight = vec3(0.61, 1.00, 0.92);
+  float brittle = step(0.5, platformType);
+  float aged = brittle * (1.0 - clamp(platformDurability, 0.0, 1.0));
+  float shake = brittle * clamp(platformShake, 0.0, 1.0);
 
-  vec2 local = (worldPos - platformRect.xy) / max(platformRect.zw, vec2(0.0001));
-  float body = rectMask(worldPos, platformRect);
+  vec2 shakenPos = worldPos;
+  shakenPos.x += sin(uTime * 55.0 + platformRect.y * 4.1) * shake * 0.08;
+  shakenPos.y += sin(uTime * 41.0 + platformRect.x * 2.7) * shake * 0.04;
+
+  vec2 local = (shakenPos - platformRect.xy) / max(platformRect.zw, vec2(0.0001));
+  float body = rectMask(shakenPos, platformRect);
   float inner = rectMask(
-    worldPos,
+    shakenPos,
     vec4(
       platformRect.x + 0.08,
       platformRect.y + 0.06,
@@ -58,8 +76,22 @@ vec3 drawRectPlatform(vec3 color, vec2 worldPos, vec4 platformRect, float motion
   float border = max(body - inner, 0.0);
 
   float scroll = -motion * uTime * 0.8;
-  float scan = step(0.5, fract((worldPos.x - platformRect.x + scroll) * 0.85 + platformRect.y * 0.23));
+  float scan = step(0.5, fract((shakenPos.x - platformRect.x + scroll) * 0.85 + platformRect.y * 0.23));
+  float crackNoise = fract(
+    (shakenPos.x - platformRect.x) * 2.7 +
+    (shakenPos.y - platformRect.y) * 4.9 +
+    platformRect.y * 0.47
+  );
+  float crackMask = brittle * inner * step(crackNoise, 0.09 + aged * 0.06);
+
+  vec3 agedDark = vec3(0.07, 0.24, 0.26);
+  vec3 agedMain = vec3(0.20, 0.56, 0.53);
+  vec3 agedLight = vec3(0.42, 0.80, 0.73);
+  blockDark = mix(blockDark, agedDark, brittle);
+  blockMain = mix(blockMain, agedMain, brittle);
+  blockLight = mix(blockLight, agedLight, brittle);
   vec3 fill = mix(blockDark, blockMain, clamp(local.y, 0.0, 1.0) * 0.6 + scan * 0.22);
+  fill = mix(fill, blockDark * 0.82, crackMask);
 
   color = mix(color, fill, inner);
   color = mix(color, outline, border);
@@ -73,7 +105,18 @@ vec3 drawPlatforms(vec3 color, vec2 worldPos) {
     float enabled = step(float(i) + 0.5, uPlatformCount);
     vec4 platformRect = uPlatforms[i];
     float platformMotion = uPlatformMotion[i];
-    vec3 nextColor = drawRectPlatform(color, worldPos, platformRect, platformMotion);
+    float platformType = uPlatformType[i];
+    float platformShake = uPlatformShake[i];
+    float platformDurability = uPlatformDurability[i];
+    vec3 nextColor = drawRectPlatform(
+      color,
+      worldPos,
+      platformRect,
+      platformMotion,
+      platformType,
+      platformShake,
+      platformDurability
+    );
     color = mix(color, nextColor, enabled);
   }
 

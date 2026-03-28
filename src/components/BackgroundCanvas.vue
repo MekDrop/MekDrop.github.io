@@ -125,6 +125,13 @@ const LADDER_REGRAB_LOCK_TIME = 0.2;
 const WALL_SPIKE_SPAWN_CHANCE = 0.36;
 const WALL_SPIKE_BASE_WIDTH = 0.92;
 const WALL_SPIKE_HEIGHT = 0.58;
+const BRITTLE_PLATFORM_CHANCE = 0.26;
+const BRITTLE_PLATFORM_MAX_WIDTH = 3.35;
+const BRITTLE_PLATFORM_STEP_WINDOW = 0.34;
+const BRITTLE_PLATFORM_STEPS = 3;
+const BRITTLE_PLATFORM_FALL_GRAVITY = -41;
+const BRITTLE_PLATFORM_SHAKE_DECAY = 2.7;
+const BRITTLE_PLATFORM_COLLAPSE_DAMAGE = 0.5;
 const GRAVITY = -40;
 const JUMP_VELOCITY = 16.5;
 const SUPER_JUMP_VELOCITY = JUMP_VELOCITY * 1.732;
@@ -209,6 +216,9 @@ const platformPool = Array.from({ length: MAX_VISIBLE_PLATFORMS }, () => ({
   w: 0,
   h: 0,
   motion: 0,
+  type: 0,
+  shake: 0,
+  durability: 1,
   ref: null,
 }));
 
@@ -420,6 +430,13 @@ const generateWorld = () => {
     h: 1.12,
     moveDir: 0,
     moveSpeed: 0,
+    kind: 0,
+    brittleStepsLeft: 0,
+    brittleStepTimer: 0,
+    brittleShake: 0,
+    falling: false,
+    fallVy: 0,
+    removed: false,
   };
   worldPlatforms.push(groundPlatform);
 
@@ -493,14 +510,26 @@ const generateWorld = () => {
   };
 
   const createRowPlatform = (x, y, width, seedBase) => {
+    const isBrittle =
+      y > 3.2 &&
+      width <= BRITTLE_PLATFORM_MAX_WIDTH &&
+      seededNoise(seedBase + 0.91) < BRITTLE_PLATFORM_CHANCE;
     const moving = seededNoise(seedBase + 0.17) < MOVING_PLATFORM_CHANCE;
     return {
       x,
       y,
       w: width,
       h: 0.82 + seededNoise(seedBase + 0.43) * 0.12,
-      moveDir: moving ? (seededNoise(seedBase + 0.71) < 0.5 ? -1 : 1) : 0,
-      moveSpeed: moving ? MOVING_PLATFORM_SPEED : 0,
+      moveDir:
+        !isBrittle && moving ? (seededNoise(seedBase + 0.71) < 0.5 ? -1 : 1) : 0,
+      moveSpeed: !isBrittle && moving ? MOVING_PLATFORM_SPEED : 0,
+      kind: isBrittle ? 1 : 0,
+      brittleStepsLeft: isBrittle ? BRITTLE_PLATFORM_STEPS : 0,
+      brittleStepTimer: 0,
+      brittleShake: 0,
+      falling: false,
+      fallVy: 0,
+      removed: false,
     };
   };
 
@@ -599,7 +628,9 @@ const generateWorld = () => {
       );
       rowPlatforms.push(platform);
       worldPlatforms.push(platform);
-      addCollectibleForPlatform(platform, row * 8.11 + index * 0.67);
+      if (platform.kind === 0) {
+        addCollectibleForPlatform(platform, row * 8.11 + index * 0.67);
+      }
 
       cursorX += platformWidths[index];
       if (index < gapCount) {
@@ -656,6 +687,10 @@ const collectVisiblePlatforms = (heroY, cameraY) => {
 
   for (let i = 0; i < worldPlatforms.length && index < MAX_VISIBLE_PLATFORMS; i++) {
     const platform = worldPlatforms[i];
+    if (platform.removed) {
+      continue;
+    }
+
     if (platform.y + platform.h < minY) {
       continue;
     }
@@ -669,6 +704,12 @@ const collectVisiblePlatforms = (heroY, cameraY) => {
     platformPool[index].w = platform.w;
     platformPool[index].h = platform.h;
     platformPool[index].motion = platform.moveDir * platform.moveSpeed;
+    platformPool[index].type = platform.kind || 0;
+    platformPool[index].shake = platform.brittleShake || 0;
+    platformPool[index].durability =
+      platform.kind === 1
+        ? clamp(platform.brittleStepsLeft / BRITTLE_PLATFORM_STEPS, 0, 1)
+        : 1;
     platformPool[index].ref = platform;
     index++;
   }
@@ -679,6 +720,9 @@ const collectVisiblePlatforms = (heroY, cameraY) => {
     platformPool[i].w = 0;
     platformPool[i].h = 0;
     platformPool[i].motion = 0;
+    platformPool[i].type = 0;
+    platformPool[i].shake = 0;
+    platformPool[i].durability = 1;
     platformPool[i].ref = null;
   }
 
@@ -847,8 +891,8 @@ const resetHero = (x = START_POS.x, y = START_POS.y) => {
   gameCamera.y = Math.max(CAMERA_MIN_Y, startCameraY);
 };
 
-const onHeroDeath = () => {
-  livesLeft.value -= 1;
+const applyDamage = (amount) => {
+  livesLeft.value = Math.max(0, livesLeft.value - amount);
 
   if (livesLeft.value <= 0) {
     livesLeft.value = START_LIVES;
@@ -863,6 +907,89 @@ const onHeroDeath = () => {
   resetHero(checkpoint.x, Math.max(START_POS.y, checkpoint.y));
 };
 
+const onHeroDeath = () => {
+  applyDamage(1);
+};
+
+const updateBrittlePlatforms = (delta) => {
+  for (let i = 0; i < worldPlatforms.length; i++) {
+    const platform = worldPlatforms[i];
+    if (!platform || platform.kind !== 1 || platform.removed) {
+      continue;
+    }
+
+    if (platform.falling) {
+      platform.fallVy = Math.max(
+        MAX_FALL_SPEED * 1.9,
+        platform.fallVy + BRITTLE_PLATFORM_FALL_GRAVITY * delta,
+      );
+      platform.y += platform.fallVy * delta;
+      if (platform.y + platform.h < gameCamera.y - viewHeight * 1.6) {
+        platform.removed = true;
+      }
+      continue;
+    }
+
+    platform.brittleShake = Math.max(
+      0,
+      platform.brittleShake - delta * BRITTLE_PLATFORM_SHAKE_DECAY,
+    );
+  }
+};
+
+const collapseBrittlePlatform = (platform, causedByHero) => {
+  if (!platform || platform.kind !== 1 || platform.falling || platform.removed) {
+    return;
+  }
+
+  platform.falling = true;
+  platform.fallVy = -4.5;
+  platform.moveDir = 0;
+  platform.moveSpeed = 0;
+  platform.brittleShake = 1;
+
+  if (causedByHero) {
+    hero.grounded = false;
+    hero.supportPlatform = null;
+    hero.coyoteLeft = 0;
+    hero.vy = Math.min(hero.vy, -3.5);
+    applyDamage(BRITTLE_PLATFORM_COLLAPSE_DAMAGE);
+  }
+};
+
+const processBrittleSupport = (delta) => {
+  if (!hero.grounded || !hero.supportPlatform) {
+    return false;
+  }
+
+  const platform = hero.supportPlatform;
+  if (
+    platform.kind !== 1 ||
+    platform.falling ||
+    platform.removed ||
+    platform.brittleStepsLeft <= 0
+  ) {
+    return false;
+  }
+
+  const stepRate = Math.abs(hero.vx) > 0.35 ? 1.45 : 1.0;
+  platform.brittleStepTimer += delta * stepRate;
+  platform.brittleShake = Math.min(1, platform.brittleShake + delta * 3.6);
+
+  while (platform.brittleStepTimer >= BRITTLE_PLATFORM_STEP_WINDOW) {
+    platform.brittleStepTimer -= BRITTLE_PLATFORM_STEP_WINDOW;
+    platform.brittleStepsLeft = Math.max(0, platform.brittleStepsLeft - 1);
+    platform.brittleShake = 1;
+  }
+
+  if (platform.brittleStepsLeft <= 0) {
+    collapseBrittlePlatform(platform, true);
+    return true;
+  }
+
+  return false;
+};
+
 const resolveLanding = (previousY) => {
   if (hero.vy > 0) {
     return null;
@@ -875,6 +1002,10 @@ const resolveLanding = (previousY) => {
 
   for (let i = 0; i < visiblePlatformCount; i++) {
     const platform = platformPool[i];
+    if (!platform.ref || platform.ref.falling || platform.ref.removed) {
+      continue;
+    }
+
     const platformTop = platform.y + platform.h;
     const platformLeft = platform.x;
     const platformRight = platform.x + platform.w;
@@ -913,6 +1044,10 @@ const resolveCeiling = (previousY) => {
 
   for (let i = 0; i < visiblePlatformCount; i++) {
     const platform = platformPool[i];
+    if (!platform.ref || platform.ref.falling || platform.ref.removed) {
+      continue;
+    }
+
     const platformBottom = platform.y;
     const platformLeft = platform.x;
     const platformRight = platform.x + platform.w;
@@ -943,6 +1078,10 @@ const findStandingPlatform = () => {
 
   for (let i = 0; i < visiblePlatformCount; i++) {
     const platform = platformPool[i];
+    if (!platform.ref || platform.ref.falling || platform.ref.removed) {
+      continue;
+    }
+
     const platformTop = platform.y + platform.h;
     const platformLeft = platform.x;
     const platformRight = platform.x + platform.w;
@@ -1019,6 +1158,10 @@ const applyRidingPlatformMotion = (delta) => {
   }
 
   const platform = hero.supportPlatform;
+  if (platform.falling || platform.removed) {
+    return;
+  }
+
   const platformMotion = platform.moveDir * platform.moveSpeed;
   if (platformMotion === 0) {
     return;
@@ -1029,6 +1172,7 @@ const applyRidingPlatformMotion = (delta) => {
 
 const stepGame = (delta) => {
   const wasGrounded = hero.grounded;
+  updateBrittlePlatforms(delta);
   hero.ladderRegrabLock = Math.max(0, hero.ladderRegrabLock - delta);
   collectVisibleLadders(hero.y, gameCamera.y);
   collectVisibleSpikes(hero.y, gameCamera.y);
@@ -1124,6 +1268,9 @@ const stepGame = (delta) => {
   }
 
   applyRidingPlatformMotion(delta);
+  if (processBrittleSupport(delta)) {
+    return;
+  }
 
   const crouchWanted = inputState.down && hero.grounded;
   hero.crouch = approach(hero.crouch, crouchWanted ? 1 : 0, delta * 9.5);
@@ -1262,10 +1409,16 @@ const syncUniforms = (timeSeconds) => {
 
   const shaderPlatforms = material.uniforms.uPlatforms.value;
   const shaderPlatformMotion = material.uniforms.uPlatformMotion.value;
+  const shaderPlatformType = material.uniforms.uPlatformType.value;
+  const shaderPlatformShake = material.uniforms.uPlatformShake.value;
+  const shaderPlatformDurability = material.uniforms.uPlatformDurability.value;
   for (let i = 0; i < MAX_VISIBLE_PLATFORMS; i++) {
     const platform = platformPool[i];
     shaderPlatforms[i].set(platform.x, platform.y, platform.w, platform.h);
     shaderPlatformMotion[i] = platform.motion;
+    shaderPlatformType[i] = platform.type;
+    shaderPlatformShake[i] = platform.shake;
+    shaderPlatformDurability[i] = platform.durability;
   }
 
   const shaderCollectibles = material.uniforms.uCollectibles.value;
