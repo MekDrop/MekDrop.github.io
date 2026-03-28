@@ -110,28 +110,37 @@ module.exports = configure(function (ctx) {
       // distDir
 
       extendViteConf(viteConf, { isClient, isServer }) {
-        viteConf.plugins.push(
-          SiteMap({
-            hostname: `https://` + getHostname(),
-            readable: false,
-            outDir: viteConf.build.outDir,
-            changefreq: "monthly",
-            dynamicRoutes: getRoutes(),
-            generateRobotsTxt: true,
-            priority: 0.8,
-            lastmod: getMaxModificationDate([
-              __dirname + "/src/**/*",
-              __dirname + "/quasar.config.js",
-              __dirname + "/public/**/*",
-            ]),
-            robots: [
-              {
-                userAgent: "*",
-                allow: "/",
-              },
-            ],
-          }),
-        );
+        if (isServer && viteConf.ssr?.noExternal) {
+          viteConf.ssr.noExternal = viteConf.ssr.noExternal.filter(
+            (pkg) => pkg !== "quasar",
+          );
+          viteConf.ssr.external = [...(viteConf.ssr.external || []), "quasar"];
+        }
+
+        if (isClient) {
+          viteConf.plugins.push(
+            SiteMap({
+              hostname: `https://` + getHostname(),
+              readable: false,
+              outDir: viteConf.build.outDir,
+              changefreq: "monthly",
+              dynamicRoutes: getRoutes(),
+              generateRobotsTxt: true,
+              priority: 0.8,
+              lastmod: getMaxModificationDate([
+                __dirname + "/src/**/*",
+                __dirname + "/quasar.config.js",
+                __dirname + "/public/**/*",
+              ]),
+              robots: [
+                {
+                  userAgent: "*",
+                  allow: "/",
+                },
+              ],
+            }),
+          );
+        }
       },
       // viteVuePluginOptions: {},
 
@@ -233,6 +242,8 @@ module.exports = configure(function (ctx) {
       routes() {
         return getRoutes();
       },
+      // Disable SVG icon auto-import since we use font-based icons
+      autoImportSvgIcons: false,
       includeStaticRoutes: false,
       crawler: false,
       inlineCriticalCss: true,
