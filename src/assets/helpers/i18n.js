@@ -1,8 +1,8 @@
 import { Quasar } from "quasar";
 
 const quasarLanguageLoaders = {
-  "en-US": () => import("quasar/lang/en-US"),
-  lt: () => import("quasar/lang/lt"),
+  "en-US": () => import("quasar/lang/en-US.js"),
+  lt: () => import("quasar/lang/lt.js"),
 };
 
 export async function updateQuasarLanguage(
