@@ -36,9 +36,6 @@
             </template>
             <q-separator dark class="side-toolbar__section-separator" />
             <div id="other_links_panel" class="side-toolbar__other-links">
-              <div class="side-toolbar__other-links-title">
-                {{ i18n.t("main_menu.other_links.name") }}
-              </div>
               <q-input
                 v-model="otherLinksSearchQuery"
                 dark
@@ -196,7 +193,7 @@
 }
 
 .side-toolbar__other-links {
-  padding: 0.5rem;
+  padding: 0;
   width: 100%;
   display: flex;
   flex-direction: column;
@@ -206,14 +203,6 @@
 
 .side-toolbar__section-separator {
   margin: 0.15rem 0 0.35rem;
-}
-
-.side-toolbar__other-links-title {
-  font-family: "Courier New", monospace;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  margin-bottom: 0.5rem;
-  color: #dffcf6;
 }
 
 .side-toolbar__other-links-search {
