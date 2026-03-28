@@ -134,6 +134,10 @@ const LADDER_CLIMB_SPEED = 7.6;
 const LADDER_GRAB_RADIUS_X = 0.45;
 const LADDER_GRAB_RADIUS_Y = 0.75;
 const LADDER_REGRAB_LOCK_TIME = 0.2;
+const LADDER_ENDPOINT_LOCK_X = LADDER_WIDTH * 1.1;
+const LADDER_ENDPOINT_LOCK_Y = 0.08;
+const COLLECTIBLE_LADDER_CLEARANCE_X = LADDER_WIDTH * 0.5 + 0.3;
+const COLLECTIBLE_LADDER_CLEARANCE_Y = 0.26;
 const WALL_SPIKE_SPAWN_CHANCE = 0.36;
 const WALL_SPIKE_DEPTH = 0.62;
 const WALL_SPIKE_BASE_HEIGHT = 1.04;
@@ -522,6 +526,42 @@ const generateWorld = () => {
   const minPlatformWidth = 1.9;
   const fixedGapWidth = HERO_WIDTH * PLATFORM_GAP_MULTIPLIER;
   const maxGapsPerRow = 3;
+  const touchesAnyLadderEndpoint = (x, bottom, top) => {
+    for (let i = 0; i < worldLadders.length; i++) {
+      const ladder = worldLadders[i];
+      const sameTrack = Math.abs(ladder.x - x) <= LADDER_ENDPOINT_LOCK_X;
+      if (!sameTrack) {
+        continue;
+      }
+
+      const ladderBottom = ladder.y;
+      const ladderTop = ladder.y + ladder.h;
+      if (
+        Math.abs(ladderTop - bottom) <= LADDER_ENDPOINT_LOCK_Y ||
+        Math.abs(ladderBottom - top) <= LADDER_ENDPOINT_LOCK_Y
+      ) {
+        return true;
+      }
+    }
+
+    return false;
+  };
+
+  const isCollectibleOnAnyLadder = (collectible) => {
+    for (let i = 0; i < worldLadders.length; i++) {
+      const ladder = worldLadders[i];
+      const withinX = Math.abs(collectible.x - ladder.x) <= COLLECTIBLE_LADDER_CLEARANCE_X;
+      const withinY =
+        collectible.y >= ladder.y - COLLECTIBLE_LADDER_CLEARANCE_Y &&
+        collectible.y <= ladder.y + ladder.h + COLLECTIBLE_LADDER_CLEARANCE_Y;
+      if (withinX && withinY) {
+        return true;
+      }
+    }
+
+    return false;
+  };
+
   const addLaddersBetweenRows = (lowerRow, upperRow) => {
     if (!lowerRow.length || !upperRow.length) {
       return 0;
@@ -573,6 +613,10 @@ const generateWorld = () => {
         }
 
         if (tooClose) {
+          continue;
+        }
+
+        if (touchesAnyLadderEndpoint(ladderX, bottom, top)) {
           continue;
         }
 
@@ -736,6 +780,12 @@ const generateWorld = () => {
     }
     previousRowPlatforms = rowPlatforms;
     row++;
+  }
+
+  for (let i = worldCollectibles.length - 1; i >= 0; i--) {
+    if (isCollectibleOnAnyLadder(worldCollectibles[i])) {
+      worldCollectibles.splice(i, 1);
+    }
   }
 
   worldPlatforms.sort((a, b) => a.y - b.y);
