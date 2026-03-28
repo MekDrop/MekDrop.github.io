@@ -4,7 +4,6 @@
       <q-no-ssr>
         <background-canvas
           class="absolute-top-left background-canvas"
-          v-if="isLoaded"
           id="background"
         />
         <q-card
@@ -93,7 +92,7 @@
           </q-card-section>
         </q-card>
       </q-no-ssr>
-      <router-view v-if="isLoaded" />
+      <router-view />
     </q-page-container>
   </q-layout>
 </template>
@@ -242,7 +241,6 @@
 </style>
 
 <script>
-import { useBackgroundImageStore } from "stores/background-image-store";
 import { useOtherLinksStore } from "stores/other-links-store";
 import { storeToRefs } from "pinia";
 import BackgroundCanvas from "components/BackgroundCanvas.vue";
@@ -261,18 +259,8 @@ export default {
     LanguageSwitcher,
     ShaderDropTitle,
   },
-  mounted() {
-    if (!this.ssrContext) {
-      const backgroundImageStore = useBackgroundImageStore();
-      if (!backgroundImageStore.isLoaded) {
-        backgroundImageStore.load();
-      }
-    }
-  },
   setup() {
-    const backgroundImageStore = useBackgroundImageStore();
     const otherLinksStore = useOtherLinksStore();
-    const { isLoaded } = storeToRefs(backgroundImageStore);
     const { isLoading: isOtherLinksLoading } = storeToRefs(otherLinksStore);
     const i18n = useI18n();
     const route = useRoute();
@@ -308,7 +296,6 @@ export default {
     updateMeta();
 
     return {
-      isLoaded,
       isOtherLinksLoading,
       i18n,
       mainMenu,
