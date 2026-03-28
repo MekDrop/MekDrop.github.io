@@ -27,9 +27,7 @@
               <q-btn
                 target="_blank"
                 :href="item.url"
-                color="white"
-                class="bg-dark side-toolbar__btn"
-                outline
+                class="side-toolbar__btn side-toolbar__btn--game"
                 square
                 no-caps
               >
@@ -38,13 +36,11 @@
             </template>
             <q-btn
               id="other_links_button"
-              outline
               square
-              color="white"
-              class="bg-dark side-toolbar__btn"
+              class="side-toolbar__btn side-toolbar__btn--game"
               @click="onOtherLinksClicked"
             >
-              ...
+              {{ i18n.t("main_menu.other_links.name") }}
             </q-btn>
           </q-card-section>
           <q-separator dark />
@@ -108,6 +104,38 @@
 
 .side-toolbar__btn {
   width: 100%;
+}
+
+.side-toolbar__btn--game {
+  border: 1px solid rgba(104, 255, 222, 0.65);
+  background: linear-gradient(
+    135deg,
+    rgba(22, 46, 52, 0.95),
+    rgba(10, 16, 25, 0.95)
+  );
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.06),
+    0 0 14px rgba(20, 212, 184, 0.2);
+  transition:
+    transform 0.12s ease,
+    box-shadow 0.12s ease,
+    border-color 0.12s ease;
+}
+
+.side-toolbar__btn--game .q-btn__content {
+  justify-content: flex-start;
+  color: #dffcf6;
+  font-family: "Courier New", monospace;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.side-toolbar__btn--game:hover {
+  border-color: rgba(104, 255, 222, 1);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.12),
+    0 0 18px rgba(20, 212, 184, 0.42);
+  transform: translateX(2px);
 }
 
 .side-toolbar__languages {
@@ -177,6 +205,7 @@ export default {
 
     return {
       isLoaded,
+      i18n,
       mainMenu,
       onOtherLinksClicked,
       updateMeta,

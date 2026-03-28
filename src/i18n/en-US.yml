@@ -8,6 +8,8 @@ main_menu:
   tools:
     name: Tools
     description: Some small e-tools for daily tasks
+  other_links:
+    name: More links
 links:
   phone: Telephone
   email: Email

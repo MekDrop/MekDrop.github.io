@@ -4,16 +4,17 @@
       <q-btn
         :data-locale="lang.value"
         class="language-switcher__btn"
-        :color="lang.value === i18n.locale.value ? 'primary' : 'white'"
-        text-color="white"
-        :outline="lang.value !== i18n.locale.value"
+        :class="{
+          'language-switcher__btn--active': lang.value === i18n.locale.value,
+        }"
+        dense
         square
-        no-caps
-        align="left"
+        unelevated
+        :title="lang.label"
+        :aria-label="lang.label"
         :to="{ name: 'index', params: { lang: lang.value } }"
       >
-        <q-avatar v-html="lang.iconHTML" size="1.5em" square class="q-mr-sm" />
-        {{ lang.label }}
+        <q-avatar v-html="lang.iconHTML" size="1.5em" square />
       </q-btn>
     </template>
   </div>
@@ -22,12 +23,21 @@
 <style>
 .language-switcher {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
+  justify-content: center;
+  flex-wrap: nowrap;
   gap: 0.5rem;
 }
 
 .language-switcher__btn {
-  width: 100%;
+  min-width: 2.35rem;
+  border: 1px solid rgba(135, 235, 255, 0.35);
+  background: rgba(15, 20, 30, 0.9);
+}
+
+.language-switcher__btn--active {
+  border-color: rgba(135, 235, 255, 0.95);
+  box-shadow: 0 0 12px rgba(135, 235, 255, 0.45);
 }
 </style>
 

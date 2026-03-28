@@ -8,6 +8,8 @@ main_menu:
   tools:
     name: Įrankiai
     description: Įvairūs ir galbūt naudingi įrankiai
+  other_links:
+    name: Daugiau nuorodÅ³
 links:
   phone: Telefonas
   email: Elektroninis paštas
