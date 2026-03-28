@@ -34,14 +34,68 @@
                 {{ item.label }}
               </q-btn>
             </template>
-            <q-btn
-              id="other_links_button"
-              square
-              class="side-toolbar__btn side-toolbar__btn--game"
-              @click="onOtherLinksClicked"
+            <div
+              id="other_links_panel"
+              class="side-toolbar__other-links side-toolbar__btn--game"
             >
-              {{ i18n.t("main_menu.other_links.name") }}
-            </q-btn>
+              <div class="side-toolbar__other-links-title">
+                {{ i18n.t("main_menu.other_links.name") }}
+              </div>
+              <q-input
+                v-model="otherLinksSearchQuery"
+                dark
+                dense
+                filled
+                flat
+                square
+                clearable
+                :placeholder="i18n.t('form.filter')"
+                name="search"
+                type="search"
+                class="full-width side-toolbar__other-links-search"
+              />
+              <div
+                class="side-toolbar__other-links-results extra_links_modal__search-results"
+                :class="{
+                  'extra_links_modal__search-results--non-empty':
+                    otherLinksSearchResults.length > 0,
+                  'extra_links_modal__search-results--empty':
+                    otherLinksSearchResults.length === 0,
+                }"
+                v-if="!isOtherLinksLoading"
+              >
+                <q-list v-if="otherLinksSearchResults.length > 0" dense>
+                  <q-item
+                    v-for="(result, index) in otherLinksSearchResults"
+                    :key="index"
+                    dense
+                    class="side-toolbar__other-links-item"
+                  >
+                    <q-item-section side>
+                      <q-icon :name="result.icon" size="1em" color="white" />
+                    </q-item-section>
+                    <q-item-section>
+                      <a
+                        :href="result.url"
+                        target="_blank"
+                        rel="external"
+                        class="text-white"
+                      >
+                        {{ result.name }}
+                      </a>
+                    </q-item-section>
+                  </q-item>
+                </q-list>
+                <div class="text-accent" v-else>
+                  {{ i18n.t("form.no_found") }}
+                </div>
+              </div>
+              <q-spinner-dots
+                class="side-toolbar__other-links-loader"
+                size="md"
+                v-else
+              />
+            </div>
           </q-card-section>
           <q-separator dark />
           <q-card-section class="side-toolbar__section side-toolbar__languages">
@@ -141,6 +195,37 @@
 .side-toolbar__languages {
   margin-top: auto;
 }
+
+.side-toolbar__other-links {
+  padding: 0.5rem;
+  width: 100%;
+}
+
+.side-toolbar__other-links-title {
+  font-family: "Courier New", monospace;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  margin-bottom: 0.5rem;
+  color: #dffcf6;
+}
+
+.side-toolbar__other-links-search {
+  margin-bottom: 0.5rem;
+}
+
+.side-toolbar__other-links-results {
+  max-height: 180px;
+  overflow-y: auto;
+}
+
+.side-toolbar__other-links-item {
+  min-height: 1.8rem;
+}
+
+.side-toolbar__other-links-loader {
+  display: block;
+  margin: 0.75rem auto 0.5rem;
+}
 </style>
 
 <script>
@@ -149,14 +234,12 @@ import { useOtherLinksStore } from "stores/other-links-store";
 import { storeToRefs } from "pinia";
 import BackgroundCanvas from "components/BackgroundCanvas.vue";
 import LanguageSwitcher from "components/LanguageSwitcher.vue";
-import OtherLinksModal from "components/OtherLinksModal.vue";
 import getMetaConfig from "src/assets/config/meta";
 import getMainMenu from "src/assets/config/main_menu";
 import { useMeta } from "quasar";
-import { useQuasar } from "quasar";
 import { useI18n } from "vue-i18n";
 import { useRoute, useRouter } from "vue-router";
-import { computed, useSSRContext, watch } from "vue";
+import { computed, ref, useSSRContext, watch } from "vue";
 
 export default {
   components: {
@@ -175,10 +258,11 @@ export default {
     const backgroundImageStore = useBackgroundImageStore();
     const otherLinksStore = useOtherLinksStore();
     const { isLoaded } = storeToRefs(backgroundImageStore);
-    const q = useQuasar();
+    const { isLoading: isOtherLinksLoading } = storeToRefs(otherLinksStore);
     const i18n = useI18n();
     const route = useRoute();
     const router = useRouter();
+    const otherLinksSearchQuery = ref("");
     const ssrContext =
       typeof window === "undefined" ? useSSRContext() : undefined;
 
@@ -190,24 +274,31 @@ export default {
       return getMainMenu(i18n).filter((item) => !!item);
     });
 
-    const onOtherLinksClicked = () => {
-      q.dialog({
-        component: OtherLinksModal,
-        progress: true,
-      });
-    };
+    const otherLinksSearchResults = computed(() => {
+      if (!otherLinksStore.isLoaded || otherLinksStore.isLoading) {
+        return [];
+      }
+
+      return otherLinksStore.search(otherLinksSearchQuery.value);
+    });
 
     watch(i18n.locale, () => {
-      otherLinksStore.unload();
+      otherLinksStore.reload(i18n);
     });
+
+    if (!otherLinksStore.isLoaded && !otherLinksStore.isLoading) {
+      otherLinksStore.load(i18n);
+    }
 
     updateMeta();
 
     return {
       isLoaded,
+      isOtherLinksLoading,
       i18n,
       mainMenu,
-      onOtherLinksClicked,
+      otherLinksSearchQuery,
+      otherLinksSearchResults,
       updateMeta,
     };
   },

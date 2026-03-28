@@ -15,24 +15,21 @@ locales
       });
 
       it("other links opening", () => {
-        cy.get("#other_links_button").click();
-        cy.get('#extra_links_modal input[name="search"]').click();
-        cy.get('#extra_links_modal input[name="search"]').type("git");
-        cy.get("#extra_links_modal .extra_links_modal__search-results").should(
+        cy.get('#other_links_panel input[name="search"]').click();
+        cy.get('#other_links_panel input[name="search"]').type("git");
+        cy.get("#other_links_panel .extra_links_modal__search-results").should(
           "have.class",
           "extra_links_modal__search-results--non-empty",
         );
         cy.get(
-          "#extra_links_modal .extra_links_modal__search-results .q-item",
+          "#other_links_panel .extra_links_modal__search-results .q-item",
         ).should("have.length", 3);
 
-        cy.get('#extra_links_modal input[name="search"]').type("git-not-found");
-        cy.get("#extra_links_modal .extra_links_modal__search-results").should(
+        cy.get('#other_links_panel input[name="search"]').type("git-not-found");
+        cy.get("#other_links_panel .extra_links_modal__search-results").should(
           "have.class",
           "extra_links_modal__search-results--empty",
         );
-
-        cy.get('#extra_links_modal input[name="search"]').type("{esc}");
       });
 
       locales.forEach((locale2) => {
