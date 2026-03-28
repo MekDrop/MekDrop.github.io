@@ -97,7 +97,7 @@
 import * as THREE from "three";
 import { WebGPURenderer } from "three/webgpu";
 import { computed, onBeforeUnmount, onMounted, ref } from "vue";
-import { State, StateMachine } from "yuka";
+import { StateMachine } from "yuka";
 import { dom } from "quasar";
 import { create as createBackgroundMaterial } from "assets/materials/background/material";
 import {
@@ -111,6 +111,14 @@ import {
   createVisiblePools,
   createWorldState,
 } from "assets/game/objects";
+import {
+  SnakeAttackState,
+  SnakeClimbState,
+  SnakeEscapeState,
+  SnakeLadderSeekState,
+  SnakePatrolState,
+  SnakeSpikeFearState,
+} from "assets/game/objects/actors/states";
 
 const MAX_VISIBLE_PLATFORMS = 48;
 const MAX_VISIBLE_COLLECTIBLES = 12;
@@ -308,83 +316,24 @@ const getCurrentViewBoundsY = () => {
   };
 };
 
-class SnakePatrolState extends State {
-  execute() {
-    snakeAI.desiredDir = snake.patrolDir;
-    snakeAI.desiredSpeed = SNAKE_PATROL_SPEED;
-  }
-}
-
-class SnakeAttackState extends State {
-  execute() {
-    snakeAI.desiredDir = hero.x > snake.x ? 1 : hero.x < snake.x ? -1 : 0;
-    snakeAI.desiredSpeed = SNAKE_MOVE_SPEED;
-  }
-}
-
-class SnakeLadderSeekState extends State {
-  execute() {
-    if (!snake.targetLadder) {
-      snakeAI.desiredDir = snake.patrolDir;
-      snakeAI.desiredSpeed = SNAKE_PATROL_SPEED;
-      return;
-    }
-
-    const ladderDx = snake.targetLadder.x - snake.x;
-    snakeAI.desiredDir = ladderDx > 0 ? 1 : ladderDx < 0 ? -1 : 0;
-    snakeAI.desiredSpeed = SNAKE_MOVE_SPEED;
-  }
-}
-
-class SnakeEscapeState extends State {
-  execute() {
-    if (!snakeAI.escapeTarget) {
-      snakeAI.desiredDir = snake.patrolDir;
-      snakeAI.desiredSpeed = SNAKE_PATROL_SPEED;
-      return;
-    }
-
-    const targetCenter =
-      snakeAI.escapeTarget.x + snakeAI.escapeTarget.w * 0.5;
-    const dx = targetCenter - snake.x;
-    snakeAI.desiredDir = dx > 0 ? 1 : dx < 0 ? -1 : 0;
-    const platformMotion =
-      snake.supportPlatform?.moveDir * snake.supportPlatform?.moveSpeed || 0;
-    snakeAI.desiredSpeed = Math.max(
-      SNAKE_MOVE_SPEED,
-      Math.abs(platformMotion) + SNAKE_ESCAPE_SPEED_BONUS,
-    );
-  }
-}
-
-class SnakeSpikeFearState extends State {
-  execute() {
-    if (!snakeAI.spikeThreat) {
-      snakeAI.desiredDir = snake.patrolDir;
-      snakeAI.desiredSpeed = SNAKE_PATROL_SPEED;
-      return;
-    }
-
-    snakeAI.desiredDir = snakeAI.spikeThreat.dx >= 0 ? -1 : 1;
-    snakeAI.desiredSpeed = Math.max(SNAKE_MOVE_SPEED, SNAKE_SPIKE_FEAR_SPEED);
-  }
-}
-
-class SnakeClimbState extends State {
-  execute() {
-    snakeAI.desiredDir = 0;
-    snakeAI.desiredSpeed = 0;
-  }
-}
+const snakeStateContext = {
+  hero,
+  moveSpeed: SNAKE_MOVE_SPEED,
+  patrolSpeed: SNAKE_PATROL_SPEED,
+  escapeSpeedBonus: SNAKE_ESCAPE_SPEED_BONUS,
+  snake,
+  snakeAI,
+  spikeFearSpeed: SNAKE_SPIKE_FEAR_SPEED,
+};
 
 const initSnakeStateMachine = () => {
   snakeAI.stateMachine
-    .add(SNAKE_STATE_PATROL, new SnakePatrolState())
-    .add(SNAKE_STATE_ATTACK, new SnakeAttackState())
-    .add(SNAKE_STATE_LADDER_SEEK, new SnakeLadderSeekState())
-    .add(SNAKE_STATE_ESCAPE, new SnakeEscapeState())
-    .add(SNAKE_STATE_SPIKE_FEAR, new SnakeSpikeFearState())
-    .add(SNAKE_STATE_CLIMB, new SnakeClimbState())
+    .add(SNAKE_STATE_PATROL, new SnakePatrolState(snakeStateContext))
+    .add(SNAKE_STATE_ATTACK, new SnakeAttackState(snakeStateContext))
+    .add(SNAKE_STATE_LADDER_SEEK, new SnakeLadderSeekState(snakeStateContext))
+    .add(SNAKE_STATE_ESCAPE, new SnakeEscapeState(snakeStateContext))
+    .add(SNAKE_STATE_SPIKE_FEAR, new SnakeSpikeFearState(snakeStateContext))
+    .add(SNAKE_STATE_CLIMB, new SnakeClimbState(snakeStateContext))
     .changeTo(SNAKE_STATE_PATROL);
 };
 
