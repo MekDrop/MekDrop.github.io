@@ -26,10 +26,10 @@ jobs:
           node-version-file: package.json
 
       - name: Install dependencies
-        run: yarn install
+        run: npm ci
 
       - name: Run Prettier
-        run: yarn format
+        run: npm run format
 
       - name: Commit changes
         id: auto-commit-action

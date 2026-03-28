@@ -22,10 +22,10 @@ jobs:
           node-version-file: package.json
 
       - name: Install dependencies
-        run: yarn install
+        run: npm ci
 
       - name: Run Quasar E2E tests
-        run: yarn test:e2e:ci
+        run: npm run test:e2e:ci
 
       - name: Upload Test Artifacts
         uses: actions/upload-artifact@v7
