@@ -3,7 +3,7 @@ precision highp float;
 uniform vec2 uResolution;
 uniform vec2 uViewSize;
 uniform vec2 uCameraPos;
-uniform float uTime;make numbers there fixed length
+uniform float uTime;
 uniform vec2 uHeroPos;
 uniform vec2 uHeroVelocity;
 uniform float uHeroFacing;

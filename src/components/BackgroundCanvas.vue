@@ -2,7 +2,9 @@
   <div ref="container" class="background-canvas fit"></div>
   <div class="game-hud">
     <div class="game-hud__line">
-      ITEMS {{ collectedItems }} &nbsp; LIVES {{ livesLeft }} &nbsp; SCORE {{ score }}
+      ITEMS <span class="game-hud__value game-hud__value--items">{{ hudItems }}</span>
+      &nbsp; LIVES <span class="game-hud__value game-hud__value--lives">{{ hudLives }}</span>
+      &nbsp; SCORE <span class="game-hud__value game-hud__value--score">{{ hudScore }}</span>
     </div>
   </div>
 </template>
@@ -32,10 +34,29 @@
   text-shadow:
     0 0 8px rgba(97, 255, 220, 0.35),
     0 0 2px rgba(0, 0, 0, 0.9);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
 }
 
 .game-hud__line {
   white-space: nowrap;
+}
+
+.game-hud__value {
+  display: inline-block;
+  text-align: right;
+}
+
+.game-hud__value--items {
+  min-width: 4ch;
+}
+
+.game-hud__value--lives {
+  min-width: 2ch;
+}
+
+.game-hud__value--score {
+  min-width: 7ch;
 }
 </style>
 
@@ -89,6 +110,15 @@ const livesLeft = ref(START_LIVES);
 const collectedItems = ref(0);
 const highestRow = ref(0);
 const score = computed(() => highestRow.value * collectedItems.value);
+const formatHudNumber = (value, digits) => {
+  return Math.max(0, Math.floor(value))
+    .toString()
+    .padStart(digits, "0")
+    .slice(-digits);
+};
+const hudItems = computed(() => formatHudNumber(collectedItems.value, 4));
+const hudLives = computed(() => formatHudNumber(livesLeft.value, 2));
+const hudScore = computed(() => formatHudNumber(score.value, 7));
 
 const worldPlatforms = [];
 const worldCollectibles = [];
