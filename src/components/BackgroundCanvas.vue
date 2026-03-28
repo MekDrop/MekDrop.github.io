@@ -2116,9 +2116,6 @@ const onResize = () => {
 
   viewHeight = height * WORLD_UNITS_PER_PIXEL;
   viewWidth = (gameWidth / height) * viewHeight;
-  if (worldPlatforms.length === 0) {
-    worldHalfWidth = calculateWorldHalfWidth();
-  }
   gameViewportPx.x = gameX;
   gameViewportPx.y = 0;
   gameViewportPx.w = gameWidth;
@@ -2127,6 +2124,21 @@ const onResize = () => {
   material.uniforms.uResolution.value.set(width, height);
   material.uniforms.uGameViewport.value.set(gameX, 0, gameWidth, height);
   material.uniforms.uViewSize.value.set(viewWidth, viewHeight);
+
+  worldHalfWidth = calculateWorldHalfWidth();
+  generateWorld();
+
+  checkpoint.x = START_POS.x;
+  checkpoint.y = START_POS.y;
+  livesLeft.value = START_LIVES;
+  highestRow.value = 0;
+  resetCollectiblesProgress();
+  resetHero(START_POS.x, START_POS.y);
+  resetSnake();
+  collectVisiblePlatforms(hero.y, gameCamera.y);
+  collectVisibleCollectibles(gameCamera.y);
+  collectVisibleLadders(hero.y, gameCamera.y);
+  collectVisibleSpikes(hero.y, gameCamera.y);
 };
 
 const createRenderer = async () => {
@@ -2163,19 +2175,6 @@ const initGL = async () => {
   scene.add(quad);
 
   onResize();
-  generateWorld();
-
-  checkpoint.x = START_POS.x;
-  checkpoint.y = START_POS.y;
-  livesLeft.value = START_LIVES;
-  highestRow.value = 0;
-  resetCollectiblesProgress();
-  resetHero(START_POS.x, START_POS.y);
-  resetSnake();
-  collectVisiblePlatforms(hero.y, gameCamera.y);
-  collectVisibleCollectibles(gameCamera.y);
-  collectVisibleLadders(hero.y, gameCamera.y);
-  collectVisibleSpikes(hero.y, gameCamera.y);
 
   previousTimeMs = performance.now();
 
