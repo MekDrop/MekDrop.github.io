@@ -6,7 +6,7 @@
  */
 
 /**
- * Make sure to yarn add / npm install (in your project root)
+ * Make sure to npm install (in your project root)
  * anything you import here (except for express and compression).
  */
 import express from "express";
