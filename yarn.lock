@@ -942,7 +942,7 @@
     "@pnpm/network.ca-file" "^1.0.1"
     config-chain "^1.1.11"
 
-"@quasar/app-vite@1.11.0":
+"@quasar/app-vite@^1.11.0":
   version "1.11.0"
   resolved "https://registry.yarnpkg.com/@quasar/app-vite/-/app-vite-1.11.0.tgz#077c758b58f43c20aa5f70dd6d54ad1f3bd2ae96"
   integrity sha512-PUeqtYs2liA/O17LJ25jzKckB0MG1ZW/iuDC7NvCMZpYT6Ab66AypiYfPf4WGWeAqricorHVNRyMfMpTscR/hA==
