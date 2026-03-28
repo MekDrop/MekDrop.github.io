@@ -14,12 +14,7 @@
           id="side_toolbar"
         >
           <q-card-section class="side-toolbar__section side-toolbar__logo">
-            <img
-              class="side-toolbar__logo-image"
-              src="/icons/android-chrome-192x192.png"
-              alt="MekDrop logo"
-            />
-            <div class="side-toolbar__logo-text">MekDrop</div>
+            <shader-drop-title />
           </q-card-section>
           <q-separator dark />
           <q-card-section class="side-toolbar__section side-toolbar__menu">
@@ -127,20 +122,8 @@
 }
 
 .side-toolbar__logo {
-  align-items: center;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.side-toolbar__logo-image {
-  width: 64px;
-  height: 64px;
-  display: block;
-}
-
-.side-toolbar__logo-text {
-  font-size: 1.15rem;
+  padding-top: 0.95rem;
+  padding-bottom: 0.95rem;
 }
 
 .side-toolbar__menu {
@@ -264,6 +247,7 @@ import { useOtherLinksStore } from "stores/other-links-store";
 import { storeToRefs } from "pinia";
 import BackgroundCanvas from "components/BackgroundCanvas.vue";
 import LanguageSwitcher from "components/LanguageSwitcher.vue";
+import ShaderDropTitle from "components/ShaderDropTitle.vue";
 import getMetaConfig from "src/assets/config/meta";
 import getMainMenu from "src/assets/config/main_menu";
 import { useMeta } from "quasar";
@@ -275,6 +259,7 @@ export default {
   components: {
     BackgroundCanvas,
     LanguageSwitcher,
+    ShaderDropTitle,
   },
   mounted() {
     if (!this.ssrContext) {
