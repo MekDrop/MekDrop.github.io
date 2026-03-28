@@ -40,7 +40,7 @@
 </style>
 
 <script setup>
-import * as THREE from "three";
+import * as THREE from "three/webgpu";
 import { computed, onBeforeUnmount, onMounted, ref } from "vue";
 import { dom } from "quasar";
 import { create as createBackgroundMaterial } from "assets/materials/background/material";
@@ -666,18 +666,19 @@ const onResize = () => {
   material.uniforms.uViewSize.value.set(viewWidth, viewHeight);
 };
 
-const initGL = () => {
+const initGL = async () => {
   generateWorld();
 
   scene = new THREE.Scene();
   camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
   camera.position.z = 1;
 
-  renderer = new THREE.WebGLRenderer({
+  renderer = new THREE.WebGPURenderer({
     antialias: false,
     alpha: false,
     powerPreference: "high-performance",
   });
+  await renderer.init();
   renderer.domElement.classList.add("fit");
   container.value.appendChild(renderer.domElement);
 
@@ -711,8 +712,8 @@ const initGL = () => {
   frameId = requestAnimationFrame(animate);
 };
 
-onMounted(() => {
-  initGL();
+onMounted(async () => {
+  await initGL();
   window.addEventListener("resize", onResize);
   window.addEventListener("keydown", onKeyDown);
   window.addEventListener("keyup", onKeyUp);
@@ -740,7 +741,9 @@ onBeforeUnmount(() => {
 
   if (renderer) {
     renderer.dispose();
-    renderer.forceContextLoss();
+    if (typeof renderer.forceContextLoss === "function") {
+      renderer.forceContextLoss();
+    }
 
     if (renderer.domElement.parentNode) {
       renderer.domElement.parentNode.removeChild(renderer.domElement);

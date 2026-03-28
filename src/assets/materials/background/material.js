@@ -1,4 +1,4 @@
-import * as THREE from "three";
+import * as THREE from "three/webgpu";
 import vertexShader from "./vertex.glsl?raw";
 import fragmentShader from "./fragment.glsl?raw";
 
