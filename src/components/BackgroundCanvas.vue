@@ -3,7 +3,17 @@
   <div class="game-hud">
     <div class="game-hud__line">
       ITEMS <span class="game-hud__value game-hud__value--items">{{ hudItems }}</span>
-      &nbsp; LIVES <span class="game-hud__value game-hud__value--lives">{{ hudLives }}</span>
+      &nbsp; LIVES
+      <span class="game-hud__value game-hud__value--lives game-hud__hearts">
+        <span
+          v-for="(heartState, heartIndex) in hudHeartSlots"
+          :key="`heart-${heartIndex}`"
+          class="game-hud__heart"
+          :class="`game-hud__heart--${heartState}`"
+        >
+          {{ heartState === "empty" ? "♡" : "♥" }}
+        </span>
+      </span>
       &nbsp; SCORE <span class="game-hud__value game-hud__value--score">{{ hudScore }}</span>
     </div>
   </div>
@@ -52,11 +62,34 @@
 }
 
 .game-hud__value--lives {
-  min-width: 2ch;
+  min-width: 3ch;
 }
 
 .game-hud__value--score {
   min-width: 7ch;
+}
+
+.game-hud__hearts {
+  letter-spacing: 0.06em;
+}
+
+.game-hud__heart {
+  display: inline-block;
+  min-width: 1ch;
+  text-align: center;
+}
+
+.game-hud__heart--full {
+  color: #8effde;
+}
+
+.game-hud__heart--half {
+  color: #8effde;
+  opacity: 0.55;
+}
+
+.game-hud__heart--empty {
+  color: rgba(142, 255, 222, 0.35);
 }
 </style>
 
@@ -141,7 +174,21 @@ const formatHudNumber = (value, digits) => {
     .slice(-digits);
 };
 const hudItems = computed(() => formatHudNumber(collectedItems.value, 4));
-const hudLives = computed(() => formatHudNumber(livesLeft.value, 2));
+const hudHeartSlots = computed(() => {
+  const hearts = Math.max(0, Math.min(START_LIVES, livesLeft.value));
+  return Array.from({ length: START_LIVES }, (_, index) => {
+    const remaining = hearts - index;
+    if (remaining >= 1) {
+      return "full";
+    }
+
+    if (remaining >= 0.5) {
+      return "half";
+    }
+
+    return "empty";
+  });
+});
 const hudScore = computed(() => formatHudNumber(score.value, 7));
 
 const worldPlatforms = [];
