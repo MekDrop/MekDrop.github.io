@@ -97,6 +97,7 @@
 import * as THREE from "three";
 import { WebGPURenderer } from "three/webgpu";
 import { computed, onBeforeUnmount, onMounted, ref } from "vue";
+import { State, StateMachine } from "yuka";
 import { dom } from "quasar";
 import { create as createBackgroundMaterial } from "assets/materials/background/material";
 
@@ -132,6 +133,28 @@ const BRITTLE_PLATFORM_STEPS = 3;
 const BRITTLE_PLATFORM_FALL_GRAVITY = -41;
 const BRITTLE_PLATFORM_SHAKE_DECAY = 2.7;
 const BRITTLE_PLATFORM_COLLAPSE_DAMAGE = 0.5;
+const SNAKE_WIDTH = 0.88;
+const SNAKE_HEIGHT = 0.6;
+const SNAKE_MOVE_SPEED = 3.3;
+const SNAKE_CLIMB_SPEED = 5.2;
+const SNAKE_FALL_GRAVITY = -30;
+const SNAKE_MAX_FALL_SPEED = -24;
+const SNAKE_PATROL_SPEED = 1.8;
+const SNAKE_BITE_RANGE_X = 0.68;
+const SNAKE_BITE_RANGE_Y = 0.74;
+const SNAKE_BITE_COOLDOWN = 1.65;
+const SNAKE_ATTACK_LEVEL_DELTA = 0.72;
+const SNAKE_LADDER_ATTACH_X = 0.16;
+const SNAKE_LADDER_ATTACH_Y = 0.2;
+const SNAKE_REPATH_INTERVAL = 0.35;
+const SNAKE_ESCAPE_PLATFORM_RANGE_X = 4.2;
+const SNAKE_ESCAPE_PLATFORM_RANGE_Y = 0.5;
+const SNAKE_ESCAPE_SPEED_BONUS = 0.95;
+const SNAKE_STATE_PATROL = "patrol";
+const SNAKE_STATE_ATTACK = "attack";
+const SNAKE_STATE_LADDER_SEEK = "ladderSeek";
+const SNAKE_STATE_CLIMB = "climb";
+const SNAKE_STATE_ESCAPE = "escape";
 const GRAVITY = -40;
 const JUMP_VELOCITY = 16.5;
 const SUPER_JUMP_VELOCITY = JUMP_VELOCITY * 1.732;
@@ -277,6 +300,33 @@ const hero = {
   ladderRegrabLock: 0,
 };
 
+const snake = {
+  x: START_POS.x,
+  y: START_POS.y + 2.2,
+  vx: 0,
+  vy: 0,
+  facing: 1,
+  grounded: false,
+  supportPlatform: null,
+  onLadder: false,
+  ladder: null,
+  homePlatform: null,
+  patrolDir: 1,
+  targetLadder: null,
+  targetLadderRefresh: 0,
+  biteCooldown: 0,
+  alive: true,
+};
+
+const snakeAI = {
+  stateMachine: new StateMachine(),
+  desiredDir: 0,
+  desiredSpeed: SNAKE_PATROL_SPEED,
+  attackMode: false,
+  heroAbove: false,
+  escapeTarget: null,
+};
+
 const gameCamera = {
   x: 0,
   y: 6.5,
@@ -313,6 +363,88 @@ const applyVerticalCameraDeadzone = (targetY) => {
 
   return deadzonedY;
 };
+
+const getCurrentViewBoundsY = () => {
+  const half = getVisibleHalfHeightWorld();
+  return {
+    min: gameCamera.y - half,
+    max: gameCamera.y + half,
+  };
+};
+
+class SnakePatrolState extends State {
+  execute() {
+    snakeAI.desiredDir = snake.patrolDir;
+    snakeAI.desiredSpeed = SNAKE_PATROL_SPEED;
+  }
+}
+
+class SnakeAttackState extends State {
+  execute() {
+    snakeAI.desiredDir = hero.x > snake.x ? 1 : hero.x < snake.x ? -1 : 0;
+    snakeAI.desiredSpeed = SNAKE_MOVE_SPEED;
+  }
+}
+
+class SnakeLadderSeekState extends State {
+  execute() {
+    if (!snake.targetLadder) {
+      snakeAI.desiredDir = snake.patrolDir;
+      snakeAI.desiredSpeed = SNAKE_PATROL_SPEED;
+      return;
+    }
+
+    const ladderDx = snake.targetLadder.x - snake.x;
+    snakeAI.desiredDir = ladderDx > 0 ? 1 : ladderDx < 0 ? -1 : 0;
+    snakeAI.desiredSpeed = SNAKE_MOVE_SPEED;
+  }
+}
+
+class SnakeEscapeState extends State {
+  execute() {
+    if (!snakeAI.escapeTarget) {
+      snakeAI.desiredDir = snake.patrolDir;
+      snakeAI.desiredSpeed = SNAKE_PATROL_SPEED;
+      return;
+    }
+
+    const targetCenter =
+      snakeAI.escapeTarget.x + snakeAI.escapeTarget.w * 0.5;
+    const dx = targetCenter - snake.x;
+    snakeAI.desiredDir = dx > 0 ? 1 : dx < 0 ? -1 : 0;
+    const platformMotion =
+      snake.supportPlatform?.moveDir * snake.supportPlatform?.moveSpeed || 0;
+    snakeAI.desiredSpeed = Math.max(
+      SNAKE_MOVE_SPEED,
+      Math.abs(platformMotion) + SNAKE_ESCAPE_SPEED_BONUS,
+    );
+  }
+}
+
+class SnakeClimbState extends State {
+  execute() {
+    snakeAI.desiredDir = 0;
+    snakeAI.desiredSpeed = 0;
+  }
+}
+
+const initSnakeStateMachine = () => {
+  snakeAI.stateMachine
+    .add(SNAKE_STATE_PATROL, new SnakePatrolState())
+    .add(SNAKE_STATE_ATTACK, new SnakeAttackState())
+    .add(SNAKE_STATE_LADDER_SEEK, new SnakeLadderSeekState())
+    .add(SNAKE_STATE_ESCAPE, new SnakeEscapeState())
+    .add(SNAKE_STATE_CLIMB, new SnakeClimbState())
+    .changeTo(SNAKE_STATE_PATROL);
+};
+
+const setSnakeState = (stateId) => {
+  if (!snakeAI.stateMachine.in(stateId)) {
+    snakeAI.stateMachine.changeTo(stateId);
+  }
+};
+
+initSnakeStateMachine();
 
 const seededNoise = (seed) => {
   return fract(Math.sin(seed * 127.1 + 311.7) * 43758.5453123);
@@ -888,6 +1020,97 @@ const resetHero = (x = START_POS.x, y = START_POS.y) => {
   gameCamera.y = Math.max(CAMERA_MIN_Y, startCameraY);
 };
 
+const pickSnakeSpawnPlatform = () => {
+  const viewBounds = getCurrentViewBoundsY();
+  const groundTop = getGroundTop();
+  const candidates = [];
+
+  for (let i = 0; i < worldPlatforms.length; i++) {
+    const platform = worldPlatforms[i];
+    if (!platform || platform.removed || platform.falling) {
+      continue;
+    }
+
+    const top = platform.y + platform.h;
+    if (top <= groundTop + 0.9) {
+      continue;
+    }
+
+    if (Math.abs(top - hero.y) < 1.0) {
+      continue;
+    }
+
+    if (top < viewBounds.min + 0.2 || top > viewBounds.max - 0.5) {
+      continue;
+    }
+
+    if (platform.w < 1.6) {
+      continue;
+    }
+
+    candidates.push(platform);
+  }
+
+  if (!candidates.length) {
+    for (let i = 0; i < worldPlatforms.length; i++) {
+      const platform = worldPlatforms[i];
+      if (!platform || platform.removed || platform.falling) {
+        continue;
+      }
+
+      if (platform.y + platform.h > groundTop + 0.9 && platform.w >= 1.6) {
+        candidates.push(platform);
+      }
+    }
+  }
+
+  if (!candidates.length) {
+    return null;
+  }
+
+  const index = Math.floor(Math.random() * candidates.length);
+  return candidates[clamp(index, 0, candidates.length - 1)];
+};
+
+const resetSnake = () => {
+  const spawnPlatform = pickSnakeSpawnPlatform();
+  if (!spawnPlatform) {
+    snake.alive = false;
+    snakeAI.desiredDir = 0;
+    snakeAI.desiredSpeed = 0;
+    snakeAI.escapeTarget = null;
+    return;
+  }
+
+  const margin = Math.min(0.46, spawnPlatform.w * 0.25);
+  const minX = spawnPlatform.x + margin;
+  const maxX = spawnPlatform.x + spawnPlatform.w - margin;
+  const spawnX =
+    minX < maxX ? THREE.MathUtils.lerp(minX, maxX, Math.random()) : spawnPlatform.x + spawnPlatform.w * 0.5;
+
+  snake.x = spawnX;
+  snake.y = spawnPlatform.y + spawnPlatform.h;
+  snake.vx = 0;
+  snake.vy = 0;
+  snake.facing = hero.x >= spawnX ? 1 : -1;
+  snake.grounded = true;
+  snake.supportPlatform = spawnPlatform;
+  snake.onLadder = false;
+  snake.ladder = null;
+  snake.homePlatform = spawnPlatform;
+  snake.patrolDir = Math.random() < 0.5 ? -1 : 1;
+  snake.targetLadder = null;
+  snake.targetLadderRefresh = 0;
+  snake.biteCooldown = 0.9;
+  snake.alive = true;
+  snakeAI.desiredDir = snake.patrolDir;
+  snakeAI.desiredSpeed = SNAKE_PATROL_SPEED;
+  snakeAI.attackMode = false;
+  snakeAI.heroAbove = false;
+  snakeAI.escapeTarget = null;
+  setSnakeState(SNAKE_STATE_PATROL);
+};
+
 const applyDamage = (amount) => {
   livesLeft.value = Math.max(0, livesLeft.value - amount);
 
@@ -898,6 +1121,7 @@ const applyDamage = (amount) => {
     checkpoint.y = START_POS.y;
     resetCollectiblesProgress();
     resetHero(START_POS.x, START_POS.y);
+    resetSnake();
     return;
   }
 
@@ -1125,12 +1349,7 @@ const findNearbyLadder = () => {
   return closestLadder;
 };
 
-const heroTouchesSpike = () => {
-  const heroLeft = hero.x - HERO_WIDTH * 0.44;
-  const heroRight = hero.x + HERO_WIDTH * 0.44;
-  const heroBottom = hero.y + 0.03;
-  const heroTop = hero.y + HERO_HEIGHT - 0.05;
-
+const entityTouchesSpike = (left, right, bottom, top) => {
   for (let i = 0; i < visibleSpikeCount; i++) {
     const spike = spikePool[i];
     const spikeLeft = spike.x;
@@ -1138,8 +1357,8 @@ const heroTouchesSpike = () => {
     const spikeBottom = spike.y;
     const spikeTop = spike.y + spike.h;
 
-    const overlapX = heroRight > spikeLeft && heroLeft < spikeRight;
-    const overlapY = heroTop > spikeBottom && heroBottom < spikeTop;
+    const overlapX = right > spikeLeft && left < spikeRight;
+    const overlapY = top > spikeBottom && bottom < spikeTop;
 
     if (overlapX && overlapY) {
       return true;
@@ -1147,6 +1366,420 @@ const heroTouchesSpike = () => {
   }
 
   return false;
+};
+
+const heroTouchesSpike = () => {
+  const heroLeft = hero.x - HERO_WIDTH * 0.44;
+  const heroRight = hero.x + HERO_WIDTH * 0.44;
+  const heroBottom = hero.y + 0.03;
+  const heroTop = hero.y + HERO_HEIGHT - 0.05;
+  return entityTouchesSpike(heroLeft, heroRight, heroBottom, heroTop);
+};
+
+const snakeTouchesSpike = () => {
+  if (!snake.alive) {
+    return false;
+  }
+
+  const snakeLeft = snake.x - SNAKE_WIDTH * 0.46;
+  const snakeRight = snake.x + SNAKE_WIDTH * 0.46;
+  const snakeBottom = snake.y + 0.04;
+  const snakeTop = snake.y + SNAKE_HEIGHT - 0.03;
+  return entityTouchesSpike(snakeLeft, snakeRight, snakeBottom, snakeTop);
+};
+
+const resolveSnakeLanding = (previousY) => {
+  if (snake.vy > 0) {
+    return null;
+  }
+
+  const left = snake.x - SNAKE_WIDTH * 0.5 + 0.05;
+  const right = snake.x + SNAKE_WIDTH * 0.5 - 0.05;
+  let bestLanding = -Infinity;
+  let bestPlatform = null;
+
+  for (let i = 0; i < visiblePlatformCount; i++) {
+    const platform = platformPool[i];
+    if (!platform.ref || platform.ref.falling || platform.ref.removed) {
+      continue;
+    }
+
+    const platformTop = platform.y + platform.h;
+    const platformLeft = platform.x;
+    const platformRight = platform.x + platform.w;
+    if (right <= platformLeft + 0.02 || left >= platformRight - 0.02) {
+      continue;
+    }
+
+    if (previousY >= platformTop - 0.02 && snake.y <= platformTop) {
+      if (platformTop > bestLanding) {
+        bestLanding = platformTop;
+        bestPlatform = platform.ref;
+      }
+    }
+  }
+
+  if (bestLanding > -Infinity) {
+    snake.y = bestLanding;
+    snake.vy = 0;
+    return bestPlatform;
+  }
+
+  return null;
+};
+
+const findSnakeStandingPlatform = () => {
+  const left = snake.x - SNAKE_WIDTH * 0.5 + 0.05;
+  const right = snake.x + SNAKE_WIDTH * 0.5 - 0.05;
+  let bestPlatform = null;
+  let bestTop = -Infinity;
+
+  for (let i = 0; i < visiblePlatformCount; i++) {
+    const platform = platformPool[i];
+    if (!platform.ref || platform.ref.falling || platform.ref.removed) {
+      continue;
+    }
+
+    const platformTop = platform.y + platform.h;
+    const platformLeft = platform.x;
+    const platformRight = platform.x + platform.w;
+
+    if (right <= platformLeft + 0.02 || left >= platformRight - 0.02) {
+      continue;
+    }
+
+    if (Math.abs(snake.y - platformTop) <= 0.16 && platformTop > bestTop) {
+      bestTop = platformTop;
+      bestPlatform = platform.ref;
+    }
+  }
+
+  return bestPlatform;
+};
+
+const findSnakeLadderTarget = () => {
+  if (!snake.supportPlatform) {
+    return null;
+  }
+
+  const basePlatform = snake.supportPlatform;
+  const baseTop = basePlatform.y + basePlatform.h;
+  const minX = basePlatform.x + 0.14;
+  const maxX = basePlatform.x + basePlatform.w - 0.14;
+  let bestLadder = null;
+  let bestScore = Number.POSITIVE_INFINITY;
+
+  for (let i = 0; i < worldLadders.length; i++) {
+    const ladder = worldLadders[i];
+    if (ladder.x < minX || ladder.x > maxX) {
+      continue;
+    }
+
+    if (Math.abs(ladder.y - baseTop) > 0.3) {
+      continue;
+    }
+
+    const ladderTop = ladder.y + ladder.h;
+    if (ladderTop <= snake.y + 0.45) {
+      continue;
+    }
+
+    const score =
+      Math.abs(ladder.x - hero.x) +
+      Math.abs(ladderTop - hero.y) * 0.26 +
+      Math.abs(ladder.x - snake.x) * 0.45;
+    if (score < bestScore) {
+      bestScore = score;
+      bestLadder = ladder;
+    }
+  }
+
+  return bestLadder;
+};
+
+const findSnakeEscapePlatform = () => {
+  if (
+    !snake.supportPlatform ||
+    snake.supportPlatform.falling ||
+    snake.supportPlatform.removed
+  ) {
+    return null;
+  }
+
+  const supportMotion =
+    snake.supportPlatform.moveDir * snake.supportPlatform.moveSpeed;
+  if (Math.abs(supportMotion) < 0.01) {
+    return null;
+  }
+
+  const supportTop = snake.supportPlatform.y + snake.supportPlatform.h;
+  let bestCandidate = null;
+  let bestScore = Number.POSITIVE_INFINITY;
+
+  for (let i = 0; i < visiblePlatformCount; i++) {
+    const platform = platformPool[i]?.ref;
+    if (
+      !platform ||
+      platform === snake.supportPlatform ||
+      platform.falling ||
+      platform.removed
+    ) {
+      continue;
+    }
+
+    const platformMotion = platform.moveDir * platform.moveSpeed;
+    if (Math.abs(platformMotion) > 0.01) {
+      continue;
+    }
+
+    const top = platform.y + platform.h;
+    if (Math.abs(top - supportTop) > SNAKE_ESCAPE_PLATFORM_RANGE_Y) {
+      continue;
+    }
+
+    if (platform.w < 1.1) {
+      continue;
+    }
+
+    const center = platform.x + platform.w * 0.5;
+    const dx = center - snake.x;
+    if (Math.abs(dx) > SNAKE_ESCAPE_PLATFORM_RANGE_X) {
+      continue;
+    }
+
+    const forward = Math.sign(supportMotion) || snake.patrolDir || 1;
+    const forwardPenalty = dx * forward < 0 ? 1.2 : 0;
+    const score = Math.abs(dx) + forwardPenalty;
+    if (score < bestScore) {
+      bestScore = score;
+      bestCandidate = platform;
+    }
+  }
+
+  return bestCandidate;
+};
+
+const stepSnake = (delta) => {
+  if (!snake.alive) {
+    return;
+  }
+
+  snake.biteCooldown = Math.max(0, snake.biteCooldown - delta);
+  snake.targetLadderRefresh = Math.max(0, snake.targetLadderRefresh - delta);
+  collectVisiblePlatforms(Math.max(hero.y, snake.y), gameCamera.y);
+
+  const snakeEyeY = snake.y + SNAKE_HEIGHT * 0.55;
+  const heroEyeY = hero.y + 0.74;
+  const sameLevel = Math.abs(snakeEyeY - heroEyeY) <= SNAKE_ATTACK_LEVEL_DELTA;
+  let sightBlocked = false;
+  if (sameLevel) {
+    const rayMinX = Math.min(snake.x, hero.x);
+    const rayMaxX = Math.max(snake.x, hero.x);
+
+    for (let i = 0; i < visiblePlatformCount; i++) {
+      const platform = platformPool[i];
+      if (!platform.ref || platform.ref.falling || platform.ref.removed) {
+        continue;
+      }
+
+      const platformLeft = platform.x;
+      const platformRight = platform.x + platform.w;
+      if (rayMaxX <= platformLeft || rayMinX >= platformRight) {
+        continue;
+      }
+
+      const insideVerticalBody =
+        snakeEyeY >= platform.y + 0.02 &&
+        snakeEyeY <= platform.y + platform.h - 0.02;
+      if (insideVerticalBody) {
+        sightBlocked = true;
+        break;
+      }
+    }
+  }
+
+  const attackMode = sameLevel && !sightBlocked;
+  const heroAbove = hero.y > snake.y + 0.45;
+  snakeAI.attackMode = attackMode;
+  snakeAI.heroAbove = heroAbove;
+  snakeAI.escapeTarget = findSnakeEscapePlatform();
+  if (
+    snake.grounded &&
+    snake.supportPlatform &&
+    !snake.supportPlatform.falling &&
+    !snake.supportPlatform.removed
+  ) {
+    snake.x +=
+      snake.supportPlatform.moveDir * snake.supportPlatform.moveSpeed * delta;
+    snake.x = clamp(
+      snake.x,
+      -worldHalfWidth + SNAKE_WIDTH * 0.5,
+      worldHalfWidth - SNAKE_WIDTH * 0.5,
+    );
+  }
+
+  if (snake.onLadder && snake.ladder) {
+    setSnakeState(SNAKE_STATE_CLIMB);
+    snakeAI.stateMachine.update();
+    const activeLadder = snake.ladder;
+    const ladderTop = activeLadder.y + activeLadder.h;
+    snake.x = approach(snake.x, activeLadder.x, delta * 12);
+    snake.y += SNAKE_CLIMB_SPEED * delta;
+    snake.vx = 0;
+    snake.vy = 0;
+    snake.facing = hero.x >= snake.x ? 1 : -1;
+
+    if (snake.y >= ladderTop - 0.02) {
+      snake.y = ladderTop;
+      snake.onLadder = false;
+      snake.ladder = null;
+      snake.targetLadder = null;
+      collectVisiblePlatforms(snake.y, gameCamera.y);
+      const standing = findSnakeStandingPlatform();
+      snake.grounded = standing !== null;
+      snake.supportPlatform = standing;
+    }
+  } else {
+    let moveDir = 0;
+    let targetMoveSpeed = SNAKE_PATROL_SPEED;
+    const patrolPlatform =
+      snake.grounded &&
+      snake.supportPlatform &&
+      !snake.supportPlatform.falling &&
+      !snake.supportPlatform.removed
+        ? snake.supportPlatform
+        : snake.homePlatform;
+
+    if (patrolPlatform && snake.grounded) {
+      const leftPatrolEdge = patrolPlatform.x + SNAKE_WIDTH * 0.5 + 0.06;
+      const rightPatrolEdge =
+        patrolPlatform.x + patrolPlatform.w - SNAKE_WIDTH * 0.5 - 0.06;
+      if (rightPatrolEdge <= leftPatrolEdge) {
+        snake.patrolDir = 0;
+      } else if (snake.x <= leftPatrolEdge) {
+        snake.patrolDir = 1;
+      } else if (snake.x >= rightPatrolEdge) {
+        snake.patrolDir = -1;
+      }
+    }
+
+    if (snakeAI.escapeTarget) {
+      snake.targetLadder = null;
+      setSnakeState(SNAKE_STATE_ESCAPE);
+    } else if (attackMode) {
+      snake.targetLadder = null;
+      setSnakeState(SNAKE_STATE_ATTACK);
+    } else if (
+      snake.grounded &&
+      heroAbove &&
+      snake.supportPlatform &&
+      snake.supportPlatform !== snake.homePlatform
+    ) {
+      const ladderInvalid =
+        !snake.targetLadder ||
+        snake.targetLadder.h <= 0 ||
+        Math.abs(snake.targetLadder.y - (snake.supportPlatform.y + snake.supportPlatform.h)) >
+          0.35;
+      if (ladderInvalid || snake.targetLadderRefresh <= 0) {
+        snake.targetLadder = findSnakeLadderTarget();
+        snake.targetLadderRefresh = SNAKE_REPATH_INTERVAL;
+      }
+
+      if (snake.targetLadder) {
+        setSnakeState(SNAKE_STATE_LADDER_SEEK);
+      } else {
+        setSnakeState(SNAKE_STATE_PATROL);
+      }
+    } else {
+      snake.targetLadder = null;
+      setSnakeState(SNAKE_STATE_PATROL);
+    }
+
+    snakeAI.stateMachine.update();
+    moveDir = snakeAI.desiredDir;
+    targetMoveSpeed = snakeAI.desiredSpeed;
+
+    if (
+      snakeAI.stateMachine.in(SNAKE_STATE_LADDER_SEEK) &&
+      snake.targetLadder
+    ) {
+      const ladderDx = snake.targetLadder.x - snake.x;
+      if (
+        Math.abs(ladderDx) <= SNAKE_LADDER_ATTACH_X &&
+        Math.abs(snake.y - snake.targetLadder.y) <= SNAKE_LADDER_ATTACH_Y
+      ) {
+        snake.onLadder = true;
+        snake.ladder = snake.targetLadder;
+        snake.grounded = false;
+        snake.supportPlatform = null;
+        snake.vx = 0;
+        snake.vy = 0;
+        setSnakeState(SNAKE_STATE_CLIMB);
+        snakeAI.stateMachine.update();
+        moveDir = 0;
+        targetMoveSpeed = 0;
+      }
+    }
+
+    snake.vx = approach(
+      snake.vx,
+      moveDir * targetMoveSpeed,
+      (snake.grounded ? 22 : 12) * delta,
+    );
+    if (moveDir === 0) {
+      snake.vx = approach(snake.vx, 0, 15 * delta);
+    }
+
+    if (Math.abs(snake.vx) > 0.08) {
+      snake.facing = snake.vx > 0 ? 1 : -1;
+    }
+
+    snake.vy = Math.max(
+      SNAKE_MAX_FALL_SPEED,
+      snake.vy + SNAKE_FALL_GRAVITY * delta,
+    );
+
+    const previousY = snake.y;
+    snake.x += snake.vx * delta;
+    snake.x = clamp(
+      snake.x,
+      -worldHalfWidth + SNAKE_WIDTH * 0.5,
+      worldHalfWidth - SNAKE_WIDTH * 0.5,
+    );
+    snake.y += snake.vy * delta;
+
+    collectVisiblePlatforms(snake.y, gameCamera.y);
+    const landed = resolveSnakeLanding(previousY);
+    snake.grounded = landed !== null;
+    snake.supportPlatform = landed;
+    if (snake.grounded) {
+      snake.vy = 0;
+      snake.targetLadder = null;
+    }
+  }
+
+  if (snakeTouchesSpike()) {
+    snake.alive = false;
+    return;
+  }
+
+  const snakeDropLimit = gameCamera.y - viewHeight * 0.98;
+  if (snake.y < snakeDropLimit) {
+    snake.alive = false;
+    return;
+  }
+
+  const biteCenterY = snake.y + SNAKE_HEIGHT * 0.54;
+  const heroCenterY = hero.y + 0.74;
+  if (
+    attackMode &&
+    snake.biteCooldown <= 0 &&
+    Math.abs(snake.x - hero.x) <= SNAKE_BITE_RANGE_X &&
+    Math.abs(biteCenterY - heroCenterY) <= SNAKE_BITE_RANGE_Y
+  ) {
+    snake.biteCooldown = SNAKE_BITE_COOLDOWN;
+    applyDamage(1);
+  }
 };
 
 const applyRidingPlatformMotion = (delta) => {
@@ -1173,6 +1806,7 @@ const stepGame = (delta) => {
   hero.ladderRegrabLock = Math.max(0, hero.ladderRegrabLock - delta);
   collectVisibleLadders(hero.y, gameCamera.y);
   collectVisibleSpikes(hero.y, gameCamera.y);
+  stepSnake(delta);
   const nearbyLadder = findNearbyLadder();
   const canGrabLadderFromGround =
     hero.grounded &&
@@ -1445,6 +2079,11 @@ const syncUniforms = (timeSeconds) => {
   material.uniforms.uHeroFacing.value = hero.facing;
   material.uniforms.uHeroGrounded.value = hero.grounded ? 1.0 : 0.0;
   material.uniforms.uHeroCrouch.value = hero.crouch;
+  material.uniforms.uSnakePos.value.set(snake.x, snake.y);
+  material.uniforms.uSnakeVelocity.value.set(snake.vx, snake.vy);
+  material.uniforms.uSnakeFacing.value = snake.facing;
+  material.uniforms.uSnakeAlive.value = snake.alive ? 1.0 : 0.0;
+  material.uniforms.uSnakeOnLadder.value = snake.onLadder ? 1.0 : 0.0;
   material.uniforms.uPlatformCount.value = visiblePlatformCount;
   material.uniforms.uCollectibleCount.value = visibleCollectibleCount;
   material.uniforms.uLadderCount.value = visibleLadderCount;
@@ -1532,6 +2171,7 @@ const initGL = async () => {
   highestRow.value = 0;
   resetCollectiblesProgress();
   resetHero(START_POS.x, START_POS.y);
+  resetSnake();
   collectVisiblePlatforms(hero.y, gameCamera.y);
   collectVisibleCollectibles(gameCamera.y);
   collectVisibleLadders(hero.y, gameCamera.y);

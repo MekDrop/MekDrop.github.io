@@ -12,6 +12,11 @@ uniform vec2 uHeroVelocity;
 uniform float uHeroFacing;
 uniform float uHeroGrounded;
 uniform float uHeroCrouch;
+uniform vec2 uSnakePos;
+uniform vec2 uSnakeVelocity;
+uniform float uSnakeFacing;
+uniform float uSnakeAlive;
+uniform float uSnakeOnLadder;
 uniform vec4 uPlatforms[48];
 uniform float uPlatformMotion[48];
 uniform float uPlatformType[48];
@@ -335,6 +340,41 @@ vec3 drawHero(vec3 color, vec2 worldPos) {
   return color;
 }
 
+vec3 drawSnake(vec3 color, vec2 worldPos) {
+  if (uSnakeAlive < 0.5) {
+    return color;
+  }
+
+  vec2 snakePoint = worldPos - uSnakePos;
+  snakePoint.x *= uSnakeFacing;
+  float speed = clamp(abs(uSnakeVelocity.x) / 3.2, 0.0, 1.0);
+  float ladder = clamp(uSnakeOnLadder, 0.0, 1.0);
+  float crawlPhase = uTime * (5.2 + speed * 5.7) + uSnakePos.x * 1.31;
+  float wobble = sin((snakePoint.x + 0.35) * 6.9 + crawlPhase) * 0.045 * (1.0 - ladder * 0.85);
+  snakePoint.y -= wobble;
+
+  vec3 outline = vec3(0.02, 0.07, 0.09);
+  vec3 bodyDark = vec3(0.10, 0.38, 0.40);
+  vec3 bodyMain = vec3(0.25, 0.74, 0.69);
+  vec3 bodyLight = vec3(0.56, 1.00, 0.90);
+
+  color = applyRect(color, snakePoint, vec4(-0.56, 0.03, 0.20, 0.22), bodyDark);
+  color = applyRect(color, snakePoint, vec4(-0.36, 0.06, 0.22, 0.24), bodyMain);
+  color = applyRect(color, snakePoint, vec4(-0.14, 0.08, 0.24, 0.25), bodyMain);
+  color = applyRect(color, snakePoint, vec4(0.10, 0.09, 0.26, 0.26), bodyMain);
+  color = applyRect(color, snakePoint, vec4(0.34, 0.10, 0.20, 0.24), bodyMain);
+  color = applyRect(color, snakePoint, vec4(0.38, 0.14, 0.17, 0.16), bodyLight);
+
+  color = applyRect(color, snakePoint, vec4(-0.54, 0.01, 0.06, 0.25), outline);
+  color = applyRect(color, snakePoint, vec4(-0.31, 0.03, 0.05, 0.28), outline);
+  color = applyRect(color, snakePoint, vec4(-0.08, 0.05, 0.05, 0.29), outline);
+  color = applyRect(color, snakePoint, vec4(0.15, 0.06, 0.05, 0.29), outline);
+  color = applyRect(color, snakePoint, vec4(0.40, 0.08, 0.05, 0.25), outline);
+  color = applyRect(color, snakePoint, vec4(0.44, 0.22, 0.03, 0.03), outline);
+
+  return color;
+}
+
 void main() {
   vec2 fragPos = gl_FragCoord.xy;
   vec2 gameMin = uGameViewport.xy;
@@ -365,6 +405,7 @@ void main() {
   color = drawLadders(color, worldPos);
   color = drawSpikes(color, worldPos);
   color = drawCollectibles(color, worldPos);
+  color = drawSnake(color, worldPos);
   color = drawHero(color, worldPos);
 
   float scanline = 0.95 + 0.05 * sin(gl_FragCoord.y * 0.7);

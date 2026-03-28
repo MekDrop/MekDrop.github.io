@@ -54,6 +54,15 @@ export function create(containerWidth, containerHeight) {
       uHeroFacing: { value: 1.0 },
       uHeroGrounded: { value: 0.0 },
       uHeroCrouch: { value: 0.0 },
+      uSnakePos: {
+        value: new THREE.Vector2(0, 0),
+      },
+      uSnakeVelocity: {
+        value: new THREE.Vector2(0, 0),
+      },
+      uSnakeFacing: { value: 1.0 },
+      uSnakeAlive: { value: 0.0 },
+      uSnakeOnLadder: { value: 0.0 },
       uPlatforms: { value: platformBuffer },
       uPlatformMotion: { value: platformMotionBuffer },
       uPlatformType: { value: platformTypeBuffer },
