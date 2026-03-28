@@ -1,6 +1,6 @@
 <template>
-  <div class="absolute-top-right q-pr-sm q-pt-sm">
-    <q-fab color="primary" direction="left">
+  <div class="language-switcher">
+    <q-fab color="primary" :direction="direction">
       <template v-slot:icon>
         <q-avatar size="1.5em" square v-html="selectedLanguage.iconHTML" />
       </template>
@@ -32,6 +32,13 @@ import { useI18n } from "vue-i18n";
 import { computed } from "vue";
 import { getCountryByAlpha2 } from "country-locale-map";
 import twemoji from "twemoji";
+
+defineProps({
+  direction: {
+    type: String,
+    default: "left",
+  },
+});
 
 const i18n = useI18n({ useScope: "global" });
 const getLanguageEmoji = (lang) => {

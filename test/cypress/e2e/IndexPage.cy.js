@@ -10,12 +10,12 @@ locales
         cy.visit("/" + locale);
       });
 
-      it("clicking on header text changes background image", () => {
-        cy.get("#main_card .text-h1").dblclick();
+      it("left toolbar is visible", () => {
+        cy.get("#side_toolbar").should("be.visible");
       });
 
       it("other links opening", () => {
-        cy.get("#main_card .q-btn:last-child > .q-btn__content").click();
+        cy.get("#other_links_button").click();
         cy.get('#extra_links_modal input[name="search"]').click();
         cy.get('#extra_links_modal input[name="search"]').type("git");
         cy.get("#extra_links_modal .extra_links_modal__search-results").should(
