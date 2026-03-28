@@ -2,95 +2,96 @@
   <q-layout view="hHh lpR fFf">
     <q-page-container>
       <q-no-ssr>
-        <background-canvas
-          class="absolute-top-left background-canvas"
-          id="background"
-        />
-        <q-card
-          class="side-toolbar no-border bg-dark text-white"
-          flat
-          dark
-          id="side_toolbar"
-        >
-          <q-card-section class="side-toolbar__section side-toolbar__logo">
-            <shader-drop-title />
-          </q-card-section>
-          <q-separator dark />
-          <q-card-section class="side-toolbar__section side-toolbar__menu">
-            <template v-for="item in mainMenu" :key="item.url">
-              <q-btn
-                target="_blank"
-                :href="item.url"
-                class="side-toolbar__btn side-toolbar__btn--game"
-                square
-                no-caps
-              >
-                {{ item.label }}
-              </q-btn>
-            </template>
-            <q-separator dark class="side-toolbar__section-separator" />
-            <div id="other_links_panel" class="side-toolbar__other-links">
-              <q-input
-                v-model="otherLinksSearchQuery"
-                dark
-                dense
-                filled
-                flat
-                square
-                clearable
-                :placeholder="i18n.t('form.filter')"
-                name="search"
-                type="search"
-                class="full-width side-toolbar__other-links-search"
-              />
-              <div
-                class="side-toolbar__other-links-results extra_links_modal__search-results"
-                :class="{
-                  'extra_links_modal__search-results--non-empty':
-                    otherLinksSearchResults.length > 0,
-                  'extra_links_modal__search-results--empty':
-                    otherLinksSearchResults.length === 0,
-                }"
-                v-if="!isOtherLinksLoading"
-              >
-                <q-list v-if="otherLinksSearchResults.length > 0" dense>
-                  <q-item
-                    v-for="(result, index) in otherLinksSearchResults"
-                    :key="index"
-                    dense
-                    class="side-toolbar__other-links-item"
-                  >
-                    <q-item-section side>
-                      <q-icon :name="result.icon" size="1em" color="white" />
-                    </q-item-section>
-                    <q-item-section>
-                      <a
-                        :href="result.url"
-                        target="_blank"
-                        rel="external"
-                        class="text-white"
-                      >
-                        {{ result.name }}
-                      </a>
-                    </q-item-section>
-                  </q-item>
-                </q-list>
-                <div class="text-accent" v-else>
-                  {{ i18n.t("form.no_found") }}
+        <div class="layout-shell">
+          <q-card
+            class="side-toolbar no-border bg-dark text-white"
+            flat
+            dark
+            id="side_toolbar"
+          >
+            <q-card-section class="side-toolbar__section side-toolbar__logo">
+              <shader-drop-title />
+            </q-card-section>
+            <q-separator dark />
+            <q-card-section class="side-toolbar__section side-toolbar__menu">
+              <template v-for="item in mainMenu" :key="item.url">
+                <q-btn
+                  target="_blank"
+                  :href="item.url"
+                  class="side-toolbar__btn side-toolbar__btn--game"
+                  square
+                  no-caps
+                >
+                  {{ item.label }}
+                </q-btn>
+              </template>
+              <q-separator dark class="side-toolbar__section-separator" />
+              <div id="other_links_panel" class="side-toolbar__other-links">
+                <q-input
+                  v-model="otherLinksSearchQuery"
+                  dark
+                  dense
+                  filled
+                  flat
+                  square
+                  clearable
+                  :placeholder="i18n.t('form.filter')"
+                  name="search"
+                  type="search"
+                  class="full-width side-toolbar__other-links-search"
+                />
+                <div
+                  class="side-toolbar__other-links-results extra_links_modal__search-results"
+                  :class="{
+                    'extra_links_modal__search-results--non-empty':
+                      otherLinksSearchResults.length > 0,
+                    'extra_links_modal__search-results--empty':
+                      otherLinksSearchResults.length === 0,
+                  }"
+                  v-if="!isOtherLinksLoading"
+                >
+                  <q-list v-if="otherLinksSearchResults.length > 0" dense>
+                    <q-item
+                      v-for="(result, index) in otherLinksSearchResults"
+                      :key="index"
+                      dense
+                      class="side-toolbar__other-links-item"
+                    >
+                      <q-item-section side>
+                        <q-icon :name="result.icon" size="1em" color="white" />
+                      </q-item-section>
+                      <q-item-section>
+                        <a
+                          :href="result.url"
+                          target="_blank"
+                          rel="external"
+                          class="text-white"
+                        >
+                          {{ result.name }}
+                        </a>
+                      </q-item-section>
+                    </q-item>
+                  </q-list>
+                  <div class="text-accent" v-else>
+                    {{ i18n.t("form.no_found") }}
+                  </div>
                 </div>
+                <q-spinner-dots
+                  class="side-toolbar__other-links-loader"
+                  size="md"
+                  v-else
+                />
               </div>
-              <q-spinner-dots
-                class="side-toolbar__other-links-loader"
-                size="md"
-                v-else
-              />
-            </div>
-          </q-card-section>
-          <q-separator dark />
-          <q-card-section class="side-toolbar__section side-toolbar__languages">
-            <language-switcher id="language_switcher" />
-          </q-card-section>
-        </q-card>
+            </q-card-section>
+            <q-separator dark />
+            <q-card-section class="side-toolbar__section side-toolbar__languages">
+              <language-switcher id="language_switcher" />
+            </q-card-section>
+          </q-card>
+          <div class="layout-shell__game" id="background">
+            <background-canvas />
+          </div>
+        </div>
       </q-no-ssr>
       <router-view />
     </q-page-container>
@@ -98,18 +99,27 @@
 </template>
 
 <style>
-.background-canvas {
-  position: fixed;
+.layout-shell {
+  display: flex;
+  min-height: 100vh;
+  width: 100%;
+}
+
+.layout-shell__game {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  min-height: 100vh;
 }
 
 .side-toolbar {
-  position: fixed;
-  top: 0;
-  left: 0;
-  bottom: 0;
-  z-index: 100;
-  width: min(240px, 100vw);
-  opacity: 0.9;
+  position: relative;
+  z-index: 10;
+  flex: 0 0 min(240px, 34vw);
+  width: min(240px, 34vw);
+  height: 100vh;
+  opacity: 1;
+  background-color: #000 !important;
   border-radius: 0;
   display: flex;
   flex-direction: column;

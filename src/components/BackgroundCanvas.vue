@@ -21,17 +21,17 @@
 
 <style lang="scss">
 .background-canvas {
-  position: fixed;
+  position: absolute;
   inset: 0;
-  width: 100vw;
-  height: 100vh;
+  width: 100%;
+  height: 100%;
   z-index: 0;
   background-color: black;
   pointer-events: none;
 }
 
 .game-hud {
-  position: fixed;
+  position: absolute;
   top: 0.85rem;
   right: 0.85rem;
   z-index: 120;
@@ -2538,19 +2538,8 @@ const onResize = () => {
 
   const width = Math.max(1, dom.width(container.value));
   const height = Math.max(1, dom.height(container.value));
-  const toolbarElement =
-    typeof document !== "undefined"
-      ? document.getElementById("side_toolbar")
-      : null;
-  const toolbarWidth = toolbarElement
-    ? Math.max(0, toolbarElement.getBoundingClientRect().width)
-    : 0;
-  const availableWidth = Math.max(1, width - toolbarWidth);
-  const gameWidth = Math.max(
-    1,
-    Math.floor(availableWidth * GAME_VIEWPORT_WIDTH_RATIO),
-  );
-  const gameX = toolbarWidth + (availableWidth - gameWidth) * 0.5;
+  const gameWidth = Math.max(1, Math.floor(width * GAME_VIEWPORT_WIDTH_RATIO));
+  const gameX = (width - gameWidth) * 0.5;
 
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
   renderer.setSize(width, height, false);
