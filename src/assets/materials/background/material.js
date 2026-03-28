@@ -4,14 +4,20 @@ import fragmentShader from "./fragment.glsl?raw";
 
 const MAX_VISIBLE_PLATFORMS = 28;
 const MAX_VISIBLE_COLLECTIBLES = 12;
+const MAX_VISIBLE_LADDERS = 20;
 
 export function create(containerWidth, containerHeight) {
   const platformBuffer = Array.from(
     { length: MAX_VISIBLE_PLATFORMS },
     () => new THREE.Vector4(-9999, -9999, 0, 0),
   );
+  const platformMotionBuffer = new Float32Array(MAX_VISIBLE_PLATFORMS);
   const collectibleBuffer = Array.from(
     { length: MAX_VISIBLE_COLLECTIBLES },
+    () => new THREE.Vector4(-9999, -9999, 0, 0),
+  );
+  const ladderBuffer = Array.from(
+    { length: MAX_VISIBLE_LADDERS },
     () => new THREE.Vector4(-9999, -9999, 0, 0),
   );
 
@@ -37,9 +43,12 @@ export function create(containerWidth, containerHeight) {
       uHeroGrounded: { value: 0.0 },
       uHeroCrouch: { value: 0.0 },
       uPlatforms: { value: platformBuffer },
+      uPlatformMotion: { value: platformMotionBuffer },
       uPlatformCount: { value: 0.0 },
       uCollectibles: { value: collectibleBuffer },
       uCollectibleCount: { value: 0.0 },
+      uLadders: { value: ladderBuffer },
+      uLadderCount: { value: 0.0 },
     },
     vertexShader,
     fragmentShader,

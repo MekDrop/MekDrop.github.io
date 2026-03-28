@@ -69,13 +69,21 @@ import { create as createBackgroundMaterial } from "assets/materials/background/
 
 const MAX_VISIBLE_PLATFORMS = 28;
 const MAX_VISIBLE_COLLECTIBLES = 12;
-const VIEW_HEIGHT = 22;
+const MAX_VISIBLE_LADDERS = 20;
+const BASE_VIEW_HEIGHT = 22;
+const BASE_REFERENCE_HEIGHT = 900;
+const WORLD_UNITS_PER_PIXEL = BASE_VIEW_HEIGHT / BASE_REFERENCE_HEIGHT;
 const WORLD_HALF_WIDTH = 17;
 const WORLD_TOP_LIMIT = 520;
-const LEVEL_FILL_MIN = 0.6;
-const LEVEL_FILL_MAX = 0.9;
 const JUMP_GAP_SCALE = 1.5;
 const HERO_WIDTH = 0.74;
+const PLATFORM_GAP_MULTIPLIER = 1.8;
+const MOVING_PLATFORM_CHANCE = 0.3;
+const MOVING_PLATFORM_SPEED = 2.25;
+const LADDER_WIDTH = 0.32;
+const LADDER_CLIMB_SPEED = 7.6;
+const LADDER_GRAB_RADIUS_X = 0.45;
+const LADDER_GRAB_RADIUS_Y = 0.75;
 const GRAVITY = -40;
 const JUMP_VELOCITY = 16.5;
 const SUPER_JUMP_VELOCITY = JUMP_VELOCITY * 1.732;
@@ -94,16 +102,17 @@ const SUPER_JUMP_RELEASE_WINDOW = 0.25;
 const COLLECTIBLE_PICKUP_RADIUS = 0.58;
 const CAMERA_BASE_OFFSET = 4.8;
 const CAMERA_MIN_Y = -9;
-const START_POS = { x: 0, y: 1.12 };
+const START_POS = { x: 0, y: 1.16 };
 const START_LIVES = 3;
 
 let camera, scene, renderer, material, quad;
 let frameId = null;
 let previousTimeMs = 0;
-let viewWidth = VIEW_HEIGHT;
-let viewHeight = VIEW_HEIGHT;
+let viewWidth = BASE_VIEW_HEIGHT;
+let viewHeight = BASE_VIEW_HEIGHT;
 let visiblePlatformCount = 0;
 let visibleCollectibleCount = 0;
+let visibleLadderCount = 0;
 
 const container = ref(null);
 const livesLeft = ref(START_LIVES);
@@ -122,6 +131,7 @@ const hudScore = computed(() => formatHudNumber(score.value, 7));
 
 const worldPlatforms = [];
 const worldCollectibles = [];
+const worldLadders = [];
 const rowMilestones = [];
 let nextCollectibleId = 1;
 
@@ -130,12 +140,22 @@ const platformPool = Array.from({ length: MAX_VISIBLE_PLATFORMS }, () => ({
   y: -9999,
   w: 0,
   h: 0,
+  motion: 0,
+  ref: null,
 }));
 
 const collectiblePool = Array.from({ length: MAX_VISIBLE_COLLECTIBLES }, () => ({
   x: -9999,
   y: -9999,
   phase: 0,
+}));
+
+const ladderPool = Array.from({ length: MAX_VISIBLE_LADDERS }, () => ({
+  x: -9999,
+  y: -9999,
+  w: 0,
+  h: 0,
+  ref: null,
 }));
 
 const checkpoint = {
@@ -146,6 +166,7 @@ const checkpoint = {
 const inputState = {
   left: false,
   right: false,
+  up: false,
   down: false,
   jumpQueued: false,
 };
@@ -163,6 +184,9 @@ const hero = {
   superJumpCharge: 0,
   superJumpWindow: 0,
   airJumpsLeft: 1,
+  supportPlatform: null,
+  onLadder: false,
+  ladder: null,
 };
 
 const gameCamera = {
@@ -207,11 +231,11 @@ const setKeyState = (event, value) => {
 
   const isLeft = event.code === "ArrowLeft" || event.code === "KeyA";
   const isRight = event.code === "ArrowRight" || event.code === "KeyD";
+  const isUp = event.code === "ArrowUp" || event.code === "KeyW";
   const isDown = event.code === "ArrowDown" || event.code === "KeyS";
-  const isJump =
-    event.code === "ArrowUp" || event.code === "KeyW" || event.code === "Space";
+  const isJump = isUp || event.code === "Space";
 
-  if (!isLeft && !isRight && !isDown && !isJump) {
+  if (!isLeft && !isRight && !isUp && !isDown && !isJump) {
     return false;
   }
 
@@ -221,6 +245,10 @@ const setKeyState = (event, value) => {
 
   if (isRight) {
     inputState.right = value;
+  }
+
+  if (isUp) {
+    inputState.up = value;
   }
 
   if (isDown) {
@@ -237,6 +265,7 @@ const setKeyState = (event, value) => {
 const clearInputState = () => {
   inputState.left = false;
   inputState.right = false;
+  inputState.up = false;
   inputState.down = false;
   inputState.jumpQueued = false;
 };
@@ -271,6 +300,7 @@ const addCollectibleForPlatform = (platform, seed) => {
 const generateWorld = () => {
   worldPlatforms.length = 0;
   worldCollectibles.length = 0;
+  worldLadders.length = 0;
   rowMilestones.length = 0;
   nextCollectibleId = 1;
 
@@ -279,26 +309,61 @@ const generateWorld = () => {
     y: 0,
     w: WORLD_HALF_WIDTH * 2,
     h: 1.12,
+    moveDir: 0,
+    moveSpeed: 0,
   });
 
-  const worldWidth = WORLD_HALF_WIDTH * 2;
   const minEdgeWidth = 2.6;
+  const fixedGapWidth = HERO_WIDTH * PLATFORM_GAP_MULTIPLIER;
   const holeDriftRange = 10.8 * JUMP_GAP_SCALE;
+  const addLadderBetweenRows = (lowerPlatform, upperPlatform, seed) => {
+    if (!lowerPlatform || !upperPlatform) {
+      return false;
+    }
+
+    const ladderPadding = LADDER_WIDTH * 0.72 + 0.1;
+    const overlapStart = Math.max(
+      lowerPlatform.x + ladderPadding,
+      upperPlatform.x + ladderPadding,
+    );
+    const overlapEnd = Math.min(
+      lowerPlatform.x + lowerPlatform.w - ladderPadding,
+      upperPlatform.x + upperPlatform.w - ladderPadding,
+    );
+
+    if (overlapEnd <= overlapStart) {
+      return false;
+    }
+
+    const bottom = lowerPlatform.y + lowerPlatform.h;
+    const top = upperPlatform.y + upperPlatform.h;
+    if (top <= bottom + 0.4) {
+      return false;
+    }
+
+    worldLadders.push({
+      x: THREE.MathUtils.lerp(overlapStart, overlapEnd, seededNoise(seed)),
+      y: bottom,
+      w: LADDER_WIDTH,
+      h: top - bottom,
+    });
+
+    return true;
+  };
 
   let y = 2.1;
   let row = 0;
   let prevHoleCenter = 0;
+  let previousLeftPlatform = worldPlatforms[0];
+  let previousRightPlatform = worldPlatforms[0];
 
   while (y < WORLD_TOP_LIMIT) {
-    const spacing = (2.15 + seededNoise(row * 0.83) * 1.15) * JUMP_GAP_SCALE;
+    const spacingBase = (2.15 + seededNoise(row * 0.83) * 1.15) * JUMP_GAP_SCALE;
+    const spacing = row === 0 ? spacingBase * 0.35 : spacingBase;
     y += spacing;
     rowMilestones.push(y);
 
-    const fillRatio =
-      LEVEL_FILL_MIN +
-      seededNoise(row * 1.27) * (LEVEL_FILL_MAX - LEVEL_FILL_MIN);
-    const filledWidth = worldWidth * fillRatio;
-    const holeWidth = worldWidth - filledWidth;
+    const holeWidth = fixedGapWidth;
 
     const desiredHoleCenter =
       prevHoleCenter + (seededNoise(row * 2.01) - 0.5) * holeDriftRange;
@@ -312,46 +377,61 @@ const generateWorld = () => {
     const holeStart = holeCenter - holeWidth * 0.5;
     const holeEnd = holeCenter + holeWidth * 0.5;
 
+    let leftPlatform = null;
     const leftWidth = holeStart + WORLD_HALF_WIDTH;
     if (leftWidth > 1.8) {
-      const leftPlatform = {
+      const leftMoveSeed = seededNoise(row * 7.91 + 0.17);
+      const leftMoving = leftMoveSeed < MOVING_PLATFORM_CHANCE;
+      leftPlatform = {
         x: -WORLD_HALF_WIDTH,
         y,
         w: leftWidth,
         h: 0.82 + seededNoise(row * 3.49) * 0.12,
+        moveDir: leftMoving
+          ? (seededNoise(row * 8.47 + 0.61) < 0.5 ? -1 : 1)
+          : 0,
+        moveSpeed: leftMoving ? MOVING_PLATFORM_SPEED : 0,
       };
       worldPlatforms.push(leftPlatform);
       addCollectibleForPlatform(leftPlatform, row * 4.31);
     }
 
+    let rightPlatform = null;
     const rightWidth = WORLD_HALF_WIDTH - holeEnd;
     if (rightWidth > 1.8) {
-      const rightPlatform = {
+      const rightMoveSeed = seededNoise(row * 9.13 + 0.39);
+      const rightMoving = rightMoveSeed < MOVING_PLATFORM_CHANCE;
+      rightPlatform = {
         x: holeEnd,
         y,
         w: rightWidth,
         h: 0.82 + seededNoise(row * 5.71) * 0.12,
+        moveDir: rightMoving
+          ? (seededNoise(row * 9.79 + 0.83) < 0.5 ? -1 : 1)
+          : 0,
+        moveSpeed: rightMoving ? MOVING_PLATFORM_SPEED : 0,
       };
       worldPlatforms.push(rightPlatform);
       addCollectibleForPlatform(rightPlatform, row * 6.37);
     }
 
-    if (seededNoise(row * 7.11) > 0.45 && holeWidth > 2.4) {
-      const bridgeWidth = clamp(
-        holeWidth * (0.28 + seededNoise(row * 8.13) * 0.24),
-        2.2,
-        5.2,
-      );
-      const bridgeRange = Math.max(0, (holeWidth - bridgeWidth) * 0.5);
-      const bridgeCenter = holeCenter + (seededNoise(row * 9.17) - 0.5) * bridgeRange * 1.2;
-      const bridgePlatform = {
-        x: bridgeCenter - bridgeWidth * 0.5,
-        y: y + 0.75 + seededNoise(row * 10.3) * 0.7,
-        w: bridgeWidth,
-        h: 0.74 + seededNoise(row * 11.7) * 0.08,
-      };
-      worldPlatforms.push(bridgePlatform);
-      addCollectibleForPlatform(bridgePlatform, row * 12.9);
+    const preferLeftLadder = seededNoise(row * 11.13 + 0.19) < 0.5;
+    const hasPrimaryLadder = preferLeftLadder
+      ? addLadderBetweenRows(previousLeftPlatform, leftPlatform, row * 12.31 + 0.11)
+      : addLadderBetweenRows(previousRightPlatform, rightPlatform, row * 12.31 + 0.37);
+
+    if (!hasPrimaryLadder) {
+      const fallbackLower = preferLeftLadder ? previousRightPlatform : previousLeftPlatform;
+      const fallbackUpper = preferLeftLadder ? rightPlatform : leftPlatform;
+      addLadderBetweenRows(fallbackLower, fallbackUpper, row * 12.31 + 0.73);
+    }
+
+    if (leftPlatform) {
+      previousLeftPlatform = leftPlatform;
+    }
+
+    if (rightPlatform) {
+      previousRightPlatform = rightPlatform;
     }
 
     prevHoleCenter = holeCenter;
@@ -360,6 +440,7 @@ const generateWorld = () => {
 
   worldPlatforms.sort((a, b) => a.y - b.y);
   worldCollectibles.sort((a, b) => a.y - b.y);
+  worldLadders.sort((a, b) => a.y - b.y);
 };
 
 const calculateRowFromHeight = (height) => {
@@ -395,6 +476,8 @@ const collectVisiblePlatforms = (heroY, cameraY) => {
     platformPool[index].y = platform.y;
     platformPool[index].w = platform.w;
     platformPool[index].h = platform.h;
+    platformPool[index].motion = platform.moveDir * platform.moveSpeed;
+    platformPool[index].ref = platform;
     index++;
   }
 
@@ -403,9 +486,45 @@ const collectVisiblePlatforms = (heroY, cameraY) => {
     platformPool[i].y = -9999;
     platformPool[i].w = 0;
     platformPool[i].h = 0;
+    platformPool[i].motion = 0;
+    platformPool[i].ref = null;
   }
 
   visiblePlatformCount = index;
+};
+
+const collectVisibleLadders = (heroY, cameraY) => {
+  const minY = Math.min(heroY, cameraY) - viewHeight * 0.98 - 2;
+  const maxY = Math.max(heroY, cameraY) + viewHeight * 1.02 + 2;
+  let index = 0;
+
+  for (let i = 0; i < worldLadders.length && index < MAX_VISIBLE_LADDERS; i++) {
+    const ladder = worldLadders[i];
+    if (ladder.y + ladder.h < minY) {
+      continue;
+    }
+
+    if (ladder.y > maxY) {
+      break;
+    }
+
+    ladderPool[index].x = ladder.x;
+    ladderPool[index].y = ladder.y;
+    ladderPool[index].w = ladder.w;
+    ladderPool[index].h = ladder.h;
+    ladderPool[index].ref = ladder;
+    index++;
+  }
+
+  for (let i = index; i < MAX_VISIBLE_LADDERS; i++) {
+    ladderPool[i].x = -9999;
+    ladderPool[i].y = -9999;
+    ladderPool[i].w = 0;
+    ladderPool[i].h = 0;
+    ladderPool[i].ref = null;
+  }
+
+  visibleLadderCount = index;
 };
 
 const collectVisibleCollectibles = (cameraY) => {
@@ -485,6 +604,9 @@ const resetHero = (x = START_POS.x, y = START_POS.y) => {
   hero.superJumpCharge = 0;
   hero.superJumpWindow = 0;
   hero.airJumpsLeft = 1;
+  hero.supportPlatform = null;
+  hero.onLadder = false;
+  hero.ladder = null;
   gameCamera.x = 0;
   gameCamera.y = Math.max(CAMERA_MIN_Y, y + CAMERA_BASE_OFFSET);
 };
@@ -507,12 +629,13 @@ const onHeroDeath = () => {
 
 const resolveLanding = (previousY) => {
   if (hero.vy > 0) {
-    return false;
+    return null;
   }
 
   const left = hero.x - HERO_WIDTH * 0.5 + 0.04;
   const right = hero.x + HERO_WIDTH * 0.5 - 0.04;
   let bestLanding = -Infinity;
+  let bestPlatform = null;
 
   for (let i = 0; i < visiblePlatformCount; i++) {
     const platform = platformPool[i];
@@ -524,22 +647,156 @@ const resolveLanding = (previousY) => {
       continue;
     }
 
-    if (previousY >= platformTop && hero.y <= platformTop) {
-      bestLanding = Math.max(bestLanding, platformTop);
+    if (previousY >= platformTop + 0.02 && hero.y <= platformTop) {
+      if (platformTop > bestLanding) {
+        bestLanding = platformTop;
+        bestPlatform = platform.ref;
+      }
     }
   }
 
   if (bestLanding > -Infinity) {
     hero.y = bestLanding;
     hero.vy = 0;
-    return true;
+    return bestPlatform;
   }
 
-  return false;
+  return null;
+};
+
+const findStandingPlatform = () => {
+  const left = hero.x - HERO_WIDTH * 0.5 + 0.04;
+  const right = hero.x + HERO_WIDTH * 0.5 - 0.04;
+  let bestPlatform = null;
+  let bestTop = -Infinity;
+
+  for (let i = 0; i < visiblePlatformCount; i++) {
+    const platform = platformPool[i];
+    const platformTop = platform.y + platform.h;
+    const platformLeft = platform.x;
+    const platformRight = platform.x + platform.w;
+
+    if (right <= platformLeft + 0.02 || left >= platformRight - 0.02) {
+      continue;
+    }
+
+    if (Math.abs(hero.y - platformTop) <= 0.14 && platformTop > bestTop) {
+      bestTop = platformTop;
+      bestPlatform = platform.ref;
+    }
+  }
+
+  return bestPlatform;
+};
+
+const findNearbyLadder = () => {
+  const heroCenterY = hero.y + 0.72;
+  let closestLadder = null;
+  let closestDist = Number.POSITIVE_INFINITY;
+
+  for (let i = 0; i < visibleLadderCount; i++) {
+    const ladder = ladderPool[i];
+    const ladderCenterX = ladder.x;
+    const ladderBottom = ladder.y - LADDER_GRAB_RADIUS_Y;
+    const ladderTop = ladder.y + ladder.h + LADDER_GRAB_RADIUS_Y;
+    const dx = Math.abs(hero.x - ladderCenterX);
+
+    if (dx > LADDER_GRAB_RADIUS_X) {
+      continue;
+    }
+
+    if (heroCenterY < ladderBottom || heroCenterY > ladderTop) {
+      continue;
+    }
+
+    if (dx < closestDist) {
+      closestDist = dx;
+      closestLadder = ladder.ref;
+    }
+  }
+
+  return closestLadder;
+};
+
+const applyRidingPlatformMotion = (delta) => {
+  if (!hero.grounded || !hero.supportPlatform) {
+    return;
+  }
+
+  const platform = hero.supportPlatform;
+  const platformMotion = platform.moveDir * platform.moveSpeed;
+  if (platformMotion === 0) {
+    return;
+  }
+
+  hero.x += platformMotion * delta;
 };
 
 const stepGame = (delta) => {
   const wasGrounded = hero.grounded;
+  collectVisibleLadders(hero.y, gameCamera.y);
+  const nearbyLadder = findNearbyLadder();
+
+  if (!hero.onLadder && nearbyLadder && (inputState.up || inputState.down)) {
+    hero.onLadder = true;
+    hero.ladder = nearbyLadder;
+    hero.grounded = false;
+    hero.supportPlatform = null;
+    hero.vx = 0;
+    hero.vy = 0;
+    hero.jumpBufferLeft = 0;
+    hero.superJumpCharge = 0;
+    hero.superJumpWindow = 0;
+    inputState.jumpQueued = false;
+  }
+
+  if (hero.onLadder && hero.ladder) {
+    const activeLadder = hero.ladder;
+    const ladderBottom = activeLadder.y;
+    const ladderTop = activeLadder.y + activeLadder.h;
+    const climbInput = (inputState.up ? 1 : 0) - (inputState.down ? 1 : 0);
+
+    hero.crouch = approach(hero.crouch, 0, delta * 10);
+    hero.vx = 0;
+    hero.vy = 0;
+    hero.x = approach(hero.x, activeLadder.x, delta * 16);
+    hero.y += climbInput * LADDER_CLIMB_SPEED * delta;
+    hero.y = clamp(hero.y, ladderBottom - 0.02, ladderTop + 0.02);
+
+    if (inputState.jumpQueued && !inputState.up && !inputState.down) {
+      inputState.jumpQueued = false;
+      hero.onLadder = false;
+      hero.ladder = null;
+      hero.vy = JUMP_VELOCITY * 0.9;
+      hero.supportPlatform = null;
+    } else {
+      const reachedTop = climbInput > 0 && hero.y >= ladderTop - 0.01;
+      const reachedBottom = climbInput < 0 && hero.y <= ladderBottom + 0.01;
+
+      if (reachedTop || reachedBottom) {
+        hero.y = reachedTop ? ladderTop : ladderBottom;
+        hero.onLadder = false;
+        hero.ladder = null;
+        collectVisiblePlatforms(hero.y, gameCamera.y);
+        const standingPlatform = findStandingPlatform();
+        hero.grounded = standingPlatform !== null;
+        hero.supportPlatform = standingPlatform;
+      }
+    }
+
+    updateHighestRow(Math.max(hero.y, checkpoint.y));
+    collectNearbyCollectibles();
+
+    const ladderDropLimit = gameCamera.y - viewHeight * 0.98;
+    if (hero.y < ladderDropLimit) {
+      onHeroDeath();
+    }
+
+    return;
+  }
+
+  applyRidingPlatformMotion(delta);
+
   const crouchWanted = inputState.down && hero.grounded;
   hero.crouch = approach(hero.crouch, crouchWanted ? 1 : 0, delta * 9.5);
 
@@ -593,6 +850,7 @@ const stepGame = (delta) => {
 
       hero.vy = useSuperJump ? SUPER_JUMP_VELOCITY : JUMP_VELOCITY;
       hero.grounded = false;
+      hero.supportPlatform = null;
       hero.coyoteLeft = 0;
       hero.jumpBufferLeft = 0;
       hero.superJumpCharge = 0;
@@ -603,6 +861,7 @@ const stepGame = (delta) => {
       hero.airJumpsLeft -= 1;
       hero.jumpBufferLeft = 0;
       hero.superJumpWindow = 0;
+      hero.supportPlatform = null;
     }
   }
 
@@ -621,7 +880,9 @@ const stepGame = (delta) => {
 
   hero.y += hero.vy * delta;
   collectVisiblePlatforms(hero.y, gameCamera.y);
-  hero.grounded = resolveLanding(previousY);
+  const landedPlatform = resolveLanding(previousY);
+  hero.grounded = landedPlatform !== null;
+  hero.supportPlatform = landedPlatform;
 
   if (hero.grounded) {
     hero.airJumpsLeft = 1;
@@ -655,17 +916,26 @@ const syncUniforms = (timeSeconds) => {
 
   collectVisiblePlatforms(hero.y, gameCamera.y);
   collectVisibleCollectibles(gameCamera.y);
+  collectVisibleLadders(hero.y, gameCamera.y);
 
   const shaderPlatforms = material.uniforms.uPlatforms.value;
+  const shaderPlatformMotion = material.uniforms.uPlatformMotion.value;
   for (let i = 0; i < MAX_VISIBLE_PLATFORMS; i++) {
     const platform = platformPool[i];
     shaderPlatforms[i].set(platform.x, platform.y, platform.w, platform.h);
+    shaderPlatformMotion[i] = platform.motion;
   }
 
   const shaderCollectibles = material.uniforms.uCollectibles.value;
   for (let i = 0; i < MAX_VISIBLE_COLLECTIBLES; i++) {
     const item = collectiblePool[i];
     shaderCollectibles[i].set(item.x, item.y, item.phase, 1);
+  }
+
+  const shaderLadders = material.uniforms.uLadders.value;
+  for (let i = 0; i < MAX_VISIBLE_LADDERS; i++) {
+    const ladder = ladderPool[i];
+    shaderLadders[i].set(ladder.x, ladder.y, ladder.w, ladder.h);
   }
 
   material.uniforms.uTime.value = timeSeconds;
@@ -677,6 +947,7 @@ const syncUniforms = (timeSeconds) => {
   material.uniforms.uHeroCrouch.value = hero.crouch;
   material.uniforms.uPlatformCount.value = visiblePlatformCount;
   material.uniforms.uCollectibleCount.value = visibleCollectibleCount;
+  material.uniforms.uLadderCount.value = visibleLadderCount;
 };
 
 const onResize = () => {
@@ -690,7 +961,7 @@ const onResize = () => {
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
   renderer.setSize(width, height, false);
 
-  viewHeight = VIEW_HEIGHT;
+  viewHeight = height * WORLD_UNITS_PER_PIXEL;
   viewWidth = (width / height) * viewHeight;
 
   material.uniforms.uResolution.value.set(width, height);
@@ -740,6 +1011,7 @@ const initGL = async () => {
   resetHero(START_POS.x, START_POS.y);
   collectVisiblePlatforms(hero.y, gameCamera.y);
   collectVisibleCollectibles(gameCamera.y);
+  collectVisibleLadders(hero.y, gameCamera.y);
   onResize();
 
   previousTimeMs = performance.now();

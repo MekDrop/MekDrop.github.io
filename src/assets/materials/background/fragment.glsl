@@ -1,5 +1,7 @@
 precision highp float;
 
+const float VERTICAL_SCALE = 0.5625;
+
 uniform vec2 uResolution;
 uniform vec2 uViewSize;
 uniform vec2 uCameraPos;
@@ -10,9 +12,12 @@ uniform float uHeroFacing;
 uniform float uHeroGrounded;
 uniform float uHeroCrouch;
 uniform vec4 uPlatforms[28];
+uniform float uPlatformMotion[28];
 uniform float uPlatformCount;
 uniform vec4 uCollectibles[12];
 uniform float uCollectibleCount;
+uniform vec4 uLadders[20];
+uniform float uLadderCount;
 
 float rectMask(vec2 point, vec4 rect) {
   vec2 insideMin = step(rect.xy, point);
@@ -30,60 +35,32 @@ vec3 applyRect(vec3 color, vec2 point, vec4 rect, vec3 fillColor) {
   return mix(color, fillColor, mask);
 }
 
-vec3 drawBushPlatform(vec3 color, vec2 worldPos, vec4 platformRect) {
+vec3 drawRectPlatform(vec3 color, vec2 worldPos, vec4 platformRect, float motion) {
   vec3 outline = vec3(0.02, 0.07, 0.09);
-  vec3 bushDark = vec3(0.12, 0.41, 0.44);
-  vec3 bushMain = vec3(0.26, 0.76, 0.72);
-  vec3 bushLight = vec3(0.61, 1.00, 0.92);
+  vec3 blockDark = vec3(0.13, 0.43, 0.45);
+  vec3 blockMain = vec3(0.26, 0.76, 0.72);
+  vec3 blockLight = vec3(0.61, 1.00, 0.92);
 
   vec2 local = (worldPos - platformRect.xy) / max(platformRect.zw, vec2(0.0001));
-
-  float body = rectMask(
-    worldPos,
-    vec4(
-      platformRect.x,
-      platformRect.y,
-      platformRect.z,
-      platformRect.w * 0.62
-    )
-  );
-  float bodyInner = rectMask(
+  float body = rectMask(worldPos, platformRect);
+  float inner = rectMask(
     worldPos,
     vec4(
       platformRect.x + 0.08,
-      platformRect.y + 0.04,
-      platformRect.z - 0.16,
-      platformRect.w * 0.54
+      platformRect.y + 0.06,
+      max(platformRect.z - 0.16, 0.0),
+      max(platformRect.w - 0.12, 0.0)
     )
   );
+  float border = max(body - inner, 0.0);
 
-  float canopy = 0.0;
-  float canopyInner = 0.0;
-  for (int j = 0; j < 5; j++) {
-    float t = (float(j) + 0.5) / 5.0;
-    vec2 center = vec2(
-      platformRect.x + platformRect.z * t,
-      platformRect.y + platformRect.w * 0.63 + sin(float(j) * 1.37 + platformRect.x * 0.19) * 0.05
-    );
-    vec2 radius = vec2(
-      max(0.24, platformRect.z * 0.17),
-      max(0.26, platformRect.w * 0.45)
-    );
-
-    canopy = max(canopy, ellipseMask(worldPos, center, radius));
-    canopyInner = max(canopyInner, ellipseMask(worldPos, center, radius * 0.78));
-  }
-
-  float outer = max(body, canopy);
-  float inner = max(bodyInner, canopyInner);
-  float border = max(outer - inner, 0.0);
-
-  float pattern = step(0.55, fract((worldPos.x - platformRect.x) * 1.25 + platformRect.y * 0.25));
-  vec3 fill = mix(bushDark, bushMain, pattern * 0.45 + clamp(local.y, 0.0, 1.0) * 0.35);
+  float scroll = -motion * uTime * 0.8;
+  float scan = step(0.5, fract((worldPos.x - platformRect.x + scroll) * 0.85 + platformRect.y * 0.23));
+  vec3 fill = mix(blockDark, blockMain, clamp(local.y, 0.0, 1.0) * 0.6 + scan * 0.22);
 
   color = mix(color, fill, inner);
   color = mix(color, outline, border);
-  color = mix(color, bushLight, canopyInner * 0.2);
+  color = mix(color, blockLight, inner * (0.08 + min(abs(motion) * 0.03, 0.14)));
 
   return color;
 }
@@ -92,8 +69,41 @@ vec3 drawPlatforms(vec3 color, vec2 worldPos) {
   for (int i = 0; i < 28; i++) {
     float enabled = step(float(i) + 0.5, uPlatformCount);
     vec4 platformRect = uPlatforms[i];
-    vec3 nextColor = drawBushPlatform(color, worldPos, platformRect);
+    float platformMotion = uPlatformMotion[i];
+    vec3 nextColor = drawRectPlatform(color, worldPos, platformRect, platformMotion);
     color = mix(color, nextColor, enabled);
+  }
+
+  return color;
+}
+
+vec3 drawLadders(vec3 color, vec2 worldPos) {
+  vec3 rungDark = vec3(0.10, 0.32, 0.36);
+  vec3 rungMain = vec3(0.33, 0.92, 0.84);
+  vec3 rungLight = vec3(0.62, 1.00, 0.93);
+
+  for (int i = 0; i < 20; i++) {
+    float enabled = step(float(i) + 0.5, uLadderCount);
+    vec4 ladder = uLadders[i];
+
+    vec4 shaft = vec4(ladder.x - ladder.z * 0.5, ladder.y, ladder.z, ladder.w);
+    vec4 leftRail = vec4(ladder.x - ladder.z * 0.5, ladder.y, ladder.z * 0.22, ladder.w);
+    vec4 rightRail = vec4(ladder.x + ladder.z * 0.28, ladder.y, ladder.z * 0.22, ladder.w);
+
+    float shaftMask = rectMask(worldPos, shaft);
+    float leftMask = rectMask(worldPos, leftRail);
+    float rightMask = rectMask(worldPos, rightRail);
+
+    float rungPhase = fract((worldPos.y - ladder.y) / 0.52);
+    float rungBand = step(0.60, rungPhase) * step(rungPhase, 0.86);
+    float rungMask = rectMask(
+      worldPos,
+      vec4(ladder.x - ladder.z * 0.44, ladder.y, ladder.z * 0.88, ladder.w)
+    ) * rungBand;
+
+    color = mix(color, rungDark, shaftMask * enabled);
+    color = mix(color, rungMain, (leftMask + rightMask) * enabled);
+    color = mix(color, rungLight, rungMask * enabled);
   }
 
   return color;
@@ -208,12 +218,14 @@ void main() {
   vec2 uv = gl_FragCoord.xy / max(uResolution, vec2(1.0));
   vec2 worldPos = uCameraPos +
     vec2((uv.x - 0.5) * uViewSize.x, (uv.y - 0.5) * uViewSize.y);
+  worldPos.y = uCameraPos.y + (worldPos.y - uCameraPos.y) / VERTICAL_SCALE;
 
-  float pixelSize = max(uViewSize.y / 220.0, 0.02);
+  float pixelSize = max((uViewSize.y / max(uResolution.y, 1.0)) * 4.0, 0.004);
   worldPos = floor(worldPos / pixelSize) * pixelSize;
 
   vec3 color = vec3(0.0, 0.0, 0.0);
   color = drawPlatforms(color, worldPos);
+  color = drawLadders(color, worldPos);
   color = drawCollectibles(color, worldPos);
   color = drawHero(color, worldPos);
 
