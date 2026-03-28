@@ -3,6 +3,7 @@ export const createVisiblePools = ({
   maxVisibleCollectibles,
   maxVisibleLadders,
   maxVisibleSpikes,
+  maxVisiblePortals,
 }) => {
   const platformPool = Array.from({ length: maxVisiblePlatforms }, () => ({
     x: -9999,
@@ -38,10 +39,20 @@ export const createVisiblePools = ({
     dir: 0,
   }));
 
+  const portalPool = Array.from({ length: maxVisiblePortals }, () => ({
+    x: -9999,
+    y: -9999,
+    w: 0,
+    h: 0,
+    side: 0,
+    ref: null,
+  }));
+
   return {
     platformPool,
     collectiblePool,
     ladderPool,
     spikePool,
+    portalPool,
   };
 };

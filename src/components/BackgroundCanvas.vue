@@ -122,8 +122,9 @@ import {
 
 const MAX_VISIBLE_PLATFORMS = 48;
 const MAX_VISIBLE_COLLECTIBLES = 12;
-const MAX_VISIBLE_LADDERS = 20;
+const MAX_VISIBLE_LADDERS = 40;
 const MAX_VISIBLE_SPIKES = 20;
+const MAX_VISIBLE_PORTALS = 16;
 const GAME_VIEWPORT_WIDTH_RATIO = 0.95;
 const VERTICAL_WORLD_SCALE = 0.5625;
 const BASE_VIEW_HEIGHT = 22;
@@ -149,6 +150,14 @@ const COLLECTIBLE_LADDER_CLEARANCE_Y = 0.26;
 const WALL_SPIKE_SPAWN_CHANCE = 0.36;
 const WALL_SPIKE_DEPTH = 0.62;
 const WALL_SPIKE_BASE_HEIGHT = 1.04;
+const WALL_PORTAL_CANDIDATE_CHANCE = 0.24;
+const MAX_PORTAL_PAIRS_PER_SCREEN = 2;
+const PORTAL_WIDTH = 0.66;
+const PORTAL_BASE_HEIGHT = 1.56;
+const PORTAL_EXIT_PADDING = 0.08;
+const PORTAL_MIN_PAIR_DISTANCE = 5.4;
+const PORTAL_COOLDOWN = 0.42;
+const PORTAL_TRAVEL_DURATION = 0.75;
 const BRITTLE_PLATFORM_CHANCE = 0.26;
 const BRITTLE_PLATFORM_MAX_WIDTH = 3.35;
 const BRITTLE_PLATFORM_STEP_WINDOW = 0.34;
@@ -209,6 +218,7 @@ const CAMERA_GROUND_PADDING = 0.55;
 const CAMERA_SCROLL_TRIGGER_RATIO = 0.72;
 const CAMERA_SCROLL_SMOOTH = 0.2;
 const CAMERA_SCROLL_SMOOTH_CROUCH = 0.28;
+const CAMERA_LOOK_DOWN_SPEED = 8.4;
 const START_POS = { x: 0, y: 1.12 };
 const START_LIVES = 3;
 
@@ -221,7 +231,9 @@ let visiblePlatformCount = 0;
 let visibleCollectibleCount = 0;
 let visibleLadderCount = 0;
 let visibleSpikeCount = 0;
+let visiblePortalCount = 0;
 let worldHalfWidth = WORLD_HALF_WIDTH;
+let cameraLookDown = 0;
 const gameViewportPx = createGameViewport();
 
 const container = ref(null);
@@ -259,14 +271,16 @@ const {
   worldCollectibles,
   worldLadders,
   worldSpikes,
+  worldPortals,
   rowMilestones,
 } = worldState;
 
-const { platformPool, collectiblePool, ladderPool, spikePool } = createVisiblePools({
+const { platformPool, collectiblePool, ladderPool, spikePool, portalPool } = createVisiblePools({
   maxVisiblePlatforms: MAX_VISIBLE_PLATFORMS,
   maxVisibleCollectibles: MAX_VISIBLE_COLLECTIBLES,
   maxVisibleLadders: MAX_VISIBLE_LADDERS,
   maxVisibleSpikes: MAX_VISIBLE_SPIKES,
+  maxVisiblePortals: MAX_VISIBLE_PORTALS,
 });
 
 const checkpoint = createCheckpoint(START_POS);
@@ -275,6 +289,14 @@ const hero = createHero(START_POS);
 const snake = createSnake(START_POS);
 const snakeAI = createSnakeAI(new StateMachine(), SNAKE_PATROL_SPEED);
 const gameCamera = createGameCamera();
+const portalTransition = {
+  active: false,
+  targetPortal: null,
+  elapsed: 0,
+  duration: PORTAL_TRAVEL_DURATION,
+  startCameraY: 0,
+  targetCameraY: 0,
+};
 
 const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
 const fract = (value) => value - Math.floor(value);
@@ -452,6 +474,7 @@ const generateWorld = () => {
   worldCollectibles.length = 0;
   worldLadders.length = 0;
   worldSpikes.length = 0;
+  worldPortals.length = 0;
   rowMilestones.length = 0;
   worldState.nextCollectibleId = 1;
 
@@ -475,6 +498,11 @@ const generateWorld = () => {
   const minPlatformWidth = 1.9;
   const fixedGapWidth = HERO_WIDTH * PLATFORM_GAP_MULTIPLIER;
   const maxGapsPerRow = 3;
+  const screenHeight = Math.max(8, viewHeight / VERTICAL_WORLD_SCALE);
+  const getScreenBucket = (positionY) => {
+    return Math.floor(Math.max(0, positionY) / screenHeight);
+  };
+  const portalCandidates = [];
   const touchesAnyLadderEndpoint = (x, bottom, top) => {
     for (let i = 0; i < worldLadders.length; i++) {
       const ladder = worldLadders[i];
@@ -633,6 +661,33 @@ const generateWorld = () => {
     });
   };
 
+  const addWallPortalCandidate = (platform, side, seed) => {
+    if (!platform || platform.y < 2.0) {
+      return false;
+    }
+
+    if (platform.w < 1.45 || seededNoise(seed) > WALL_PORTAL_CANDIDATE_CHANCE) {
+      return false;
+    }
+
+    const portalHeight = PORTAL_BASE_HEIGHT + seededNoise(seed + 0.21) * 0.42;
+    const anchorY = platform.y + platform.h + 0.02 + seededNoise(seed + 0.39) * 0.18;
+    const wallInset = 0.06;
+    const x = side < 0
+      ? -worldHalfWidth + wallInset
+      : worldHalfWidth - PORTAL_WIDTH - wallInset;
+    portalCandidates.push({
+      x,
+      y: anchorY,
+      w: PORTAL_WIDTH,
+      h: portalHeight,
+      side,
+      seed,
+      screenBucket: getScreenBucket(anchorY + portalHeight * 0.5),
+    });
+    return true;
+  };
+
   let y = 2.1;
   let row = 0;
   let previousRowPlatforms = [groundPlatform];
@@ -717,7 +772,9 @@ const generateWorld = () => {
       leftWallPlatform.x <= -worldHalfWidth + 0.2 &&
       leftWallPlatform.w > 1.2
     ) {
-      addWallSpikes(leftWallPlatform, -1, row * 13.07 + 0.13);
+      if (!addWallPortalCandidate(leftWallPlatform, -1, row * 17.03 + 0.13)) {
+        addWallSpikes(leftWallPlatform, -1, row * 13.07 + 0.13);
+      }
     }
 
     if (
@@ -725,10 +782,110 @@ const generateWorld = () => {
       rightWallPlatform.x + rightWallPlatform.w >= worldHalfWidth - 0.2 &&
       rightWallPlatform.w > 1.2
     ) {
-      addWallSpikes(rightWallPlatform, 1, row * 13.07 + 0.61);
+      if (!addWallPortalCandidate(rightWallPlatform, 1, row * 17.03 + 0.61)) {
+        addWallSpikes(rightWallPlatform, 1, row * 13.07 + 0.61);
+      }
     }
     previousRowPlatforms = rowPlatforms;
     row++;
+  }
+
+  const pairsPerScreen = new Map();
+  const canAddPairToScreen = (screenBucket) => {
+    return (pairsPerScreen.get(screenBucket) || 0) < MAX_PORTAL_PAIRS_PER_SCREEN;
+  };
+  const markPairForScreens = (screenA, screenB) => {
+    const uniqueScreens =
+      screenA === screenB ? [screenA] : [screenA, screenB];
+    for (let i = 0; i < uniqueScreens.length; i++) {
+      const screen = uniqueScreens[i];
+      pairsPerScreen.set(screen, (pairsPerScreen.get(screen) || 0) + 1);
+    }
+  };
+  const sortedCandidates = portalCandidates
+    .map((candidate, index) => {
+      return {
+        ...candidate,
+        index,
+        sortKey: seededNoise(candidate.seed + index * 0.47),
+      };
+    })
+    .sort((a, b) => a.sortKey - b.sortKey);
+  const usedCandidateIndexes = new Set();
+
+  for (let i = 0; i < sortedCandidates.length; i++) {
+    const source = sortedCandidates[i];
+    if (usedCandidateIndexes.has(source.index)) {
+      continue;
+    }
+
+    if (!canAddPairToScreen(source.screenBucket)) {
+      continue;
+    }
+
+    let bestMatch = null;
+    let bestScore = -Number.POSITIVE_INFINITY;
+
+    for (let j = 0; j < sortedCandidates.length; j++) {
+      const target = sortedCandidates[j];
+      if (target.index === source.index || usedCandidateIndexes.has(target.index)) {
+        continue;
+      }
+
+      if (!canAddPairToScreen(target.screenBucket)) {
+        continue;
+      }
+
+      const sourceCenterY = source.y + source.h * 0.5;
+      const targetCenterY = target.y + target.h * 0.5;
+      const verticalDistance = Math.abs(sourceCenterY - targetCenterY);
+      if (verticalDistance < PORTAL_MIN_PAIR_DISTANCE) {
+        continue;
+      }
+
+      const oppositeWallBonus = source.side !== target.side ? 1.4 : 0.3;
+      const screenDistance = Math.abs(source.screenBucket - target.screenBucket) * 0.36;
+      const score =
+        verticalDistance +
+        oppositeWallBonus +
+        screenDistance +
+        seededNoise(source.seed * 0.71 + target.seed * 1.09);
+      if (score > bestScore) {
+        bestScore = score;
+        bestMatch = target;
+      }
+    }
+
+    if (!bestMatch) {
+      continue;
+    }
+
+    usedCandidateIndexes.add(source.index);
+    usedCandidateIndexes.add(bestMatch.index);
+    markPairForScreens(source.screenBucket, bestMatch.screenBucket);
+
+    const pairId = worldPortals.length * 0.5;
+    const sourcePortal = {
+      x: source.x,
+      y: source.y,
+      w: source.w,
+      h: source.h,
+      side: source.side,
+      pairId,
+      target: null,
+    };
+    const targetPortal = {
+      x: bestMatch.x,
+      y: bestMatch.y,
+      w: bestMatch.w,
+      h: bestMatch.h,
+      side: bestMatch.side,
+      pairId,
+      target: null,
+    };
+    sourcePortal.target = targetPortal;
+    targetPortal.target = sourcePortal;
+    worldPortals.push(sourcePortal, targetPortal);
   }
 
   for (let i = worldCollectibles.length - 1; i >= 0; i--) {
@@ -741,6 +898,7 @@ const generateWorld = () => {
   worldCollectibles.sort((a, b) => a.y - b.y);
   worldLadders.sort((a, b) => a.y - b.y);
   worldSpikes.sort((a, b) => a.y - b.y);
+  worldPortals.sort((a, b) => a.y - b.y);
 };
 
 const calculateRowFromHeight = (height) => {
@@ -874,6 +1032,42 @@ const collectVisibleSpikes = (heroY, cameraY) => {
   visibleSpikeCount = index;
 };
 
+const collectVisiblePortals = (heroY, cameraY) => {
+  const minY = Math.min(heroY, cameraY) - viewHeight * 1.0 - 2;
+  const maxY = Math.max(heroY, cameraY) + viewHeight * 1.04 + 2;
+  let index = 0;
+
+  for (let i = 0; i < worldPortals.length && index < MAX_VISIBLE_PORTALS; i++) {
+    const portal = worldPortals[i];
+    if (portal.y + portal.h < minY) {
+      continue;
+    }
+
+    if (portal.y > maxY) {
+      break;
+    }
+
+    portalPool[index].x = portal.x;
+    portalPool[index].y = portal.y;
+    portalPool[index].w = portal.w;
+    portalPool[index].h = portal.h;
+    portalPool[index].side = portal.side;
+    portalPool[index].ref = portal;
+    index++;
+  }
+
+  for (let i = index; i < MAX_VISIBLE_PORTALS; i++) {
+    portalPool[i].x = -9999;
+    portalPool[i].y = -9999;
+    portalPool[i].w = 0;
+    portalPool[i].h = 0;
+    portalPool[i].side = 0;
+    portalPool[i].ref = null;
+  }
+
+  visiblePortalCount = index;
+};
+
 const collectVisibleCollectibles = (cameraY) => {
   const minY = cameraY - viewHeight * 0.96 - 1;
   const maxY = cameraY + viewHeight * 0.96 + 1;
@@ -963,6 +1157,11 @@ const resetHero = (x = START_POS.x, y = START_POS.y) => {
   hero.onLadder = false;
   hero.ladder = null;
   hero.ladderRegrabLock = 0;
+  hero.portalCooldown = 0;
+  portalTransition.active = false;
+  portalTransition.targetPortal = null;
+  portalTransition.elapsed = 0;
+  cameraLookDown = 0;
   gameCamera.x = 0;
   const startCameraY = shouldSnapToGround
     ? getGroundAnchoredCameraY()
@@ -1342,6 +1541,143 @@ const snakeTouchesSpike = () => {
   const snakeBottom = snake.y + 0.04;
   const snakeTop = snake.y + SNAKE_HEIGHT - 0.03;
   return entityTouchesSpike(snakeLeft, snakeRight, snakeBottom, snakeTop);
+};
+
+const findTouchedPortal = (left, right, bottom, top) => {
+  for (let i = 0; i < visiblePortalCount; i++) {
+    const portal = portalPool[i];
+    if (!portal.ref || !portal.ref.target) {
+      continue;
+    }
+
+    const portalLeft = portal.x;
+    const portalRight = portal.x + portal.w;
+    const portalBottom = portal.y;
+    const portalTop = portal.y + portal.h;
+    const overlapX = right > portalLeft && left < portalRight;
+    const overlapY = top > portalBottom && bottom < portalTop;
+    if (overlapX && overlapY) {
+      return portal.ref;
+    }
+  }
+
+  return null;
+};
+
+const teleportHeroThroughPortal = () => {
+  if (hero.portalCooldown > 0 || portalTransition.active) {
+    return false;
+  }
+
+  const heroLeft = hero.x - HERO_WIDTH * 0.44;
+  const heroRight = hero.x + HERO_WIDTH * 0.44;
+  const heroBottom = hero.y + 0.03;
+  const heroTop = hero.y + HERO_HEIGHT - 0.05;
+  const sourcePortal = findTouchedPortal(heroLeft, heroRight, heroBottom, heroTop);
+  if (!sourcePortal || !sourcePortal.target) {
+    return false;
+  }
+
+  const targetPortal = sourcePortal.target;
+  const minCameraY = Math.max(CAMERA_MIN_Y, getGroundAnchoredCameraY());
+  portalTransition.active = true;
+  portalTransition.targetPortal = targetPortal;
+  portalTransition.elapsed = 0;
+  portalTransition.duration = PORTAL_TRAVEL_DURATION;
+  portalTransition.startCameraY = gameCamera.y;
+  portalTransition.targetCameraY = clamp(
+    targetPortal.y + CAMERA_BASE_OFFSET,
+    minCameraY,
+    WORLD_TOP_LIMIT,
+  );
+
+  hero.vx = 0;
+  hero.vy = 0;
+  hero.crouch = 0;
+  hero.facing = targetPortal.side < 0 ? 1 : -1;
+  hero.grounded = false;
+  hero.supportPlatform = null;
+  hero.onLadder = false;
+  hero.ladder = null;
+  hero.ladderRegrabLock = LADDER_REGRAB_LOCK_TIME;
+  hero.coyoteLeft = 0;
+  hero.jumpBufferLeft = 0;
+  hero.superJumpCharge = 0;
+  hero.superJumpWindow = 0;
+  hero.portalCooldown = PORTAL_COOLDOWN;
+  inputState.jumpQueued = false;
+  inputState.jumpFromSpace = false;
+
+  return true;
+};
+
+const finalizeHeroPortalTransition = () => {
+  if (!portalTransition.targetPortal) {
+    portalTransition.active = false;
+    return;
+  }
+
+  const targetPortal = portalTransition.targetPortal;
+  const exitsFromLeftWall = targetPortal.side < 0;
+  const rawExitX = exitsFromLeftWall
+    ? targetPortal.x + targetPortal.w + HERO_WIDTH * 0.5 + PORTAL_EXIT_PADDING
+    : targetPortal.x - HERO_WIDTH * 0.5 - PORTAL_EXIT_PADDING;
+  const leftBound = -worldHalfWidth + HERO_WIDTH * 0.5;
+  const rightBound = worldHalfWidth - HERO_WIDTH * 0.5;
+  hero.x = clamp(rawExitX, leftBound, rightBound);
+  hero.y = targetPortal.y + 0.02;
+  hero.vx = (exitsFromLeftWall ? 1 : -1) * 3.2;
+  hero.vy = 0;
+  hero.facing = exitsFromLeftWall ? 1 : -1;
+  hero.grounded = false;
+  hero.supportPlatform = null;
+  hero.airJumpsLeft = 1;
+  hero.coyoteLeft = 0;
+  hero.portalCooldown = PORTAL_COOLDOWN;
+
+  const minCameraY = Math.max(CAMERA_MIN_Y, getGroundAnchoredCameraY());
+  gameCamera.y = clamp(hero.y + CAMERA_BASE_OFFSET, minCameraY, WORLD_TOP_LIMIT);
+
+  collectVisiblePlatforms(hero.y, gameCamera.y);
+  collectVisibleSpikes(hero.y, gameCamera.y);
+  collectVisiblePortals(hero.y, gameCamera.y);
+  const standingPlatform = findStandingPlatform();
+  if (standingPlatform) {
+    hero.y = standingPlatform.y + standingPlatform.h;
+    hero.vy = 0;
+    hero.grounded = true;
+    hero.supportPlatform = standingPlatform;
+    hero.coyoteLeft = COYOTE_TIME;
+  }
+
+  portalTransition.active = false;
+  portalTransition.targetPortal = null;
+  portalTransition.elapsed = 0;
+};
+
+const stepPortalTransition = (delta) => {
+  if (!portalTransition.active) {
+    return false;
+  }
+
+  portalTransition.elapsed += delta;
+  const progress = clamp(
+    portalTransition.elapsed / Math.max(0.001, portalTransition.duration),
+    0,
+    1,
+  );
+  const easedProgress = progress * progress * (3 - 2 * progress);
+  gameCamera.y = THREE.MathUtils.lerp(
+    portalTransition.startCameraY,
+    portalTransition.targetCameraY,
+    easedProgress,
+  );
+
+  if (progress >= 1) {
+    finalizeHeroPortalTransition();
+  }
+
+  return true;
 };
 
 const findSnakeSpikeThreat = () => {
@@ -1861,10 +2197,20 @@ const applyRidingPlatformMotion = (delta) => {
 
 const stepGame = (delta) => {
   const wasGrounded = hero.grounded;
+  cameraLookDown = approach(
+    cameraLookDown,
+    inputState.down ? 1 : 0,
+    delta * CAMERA_LOOK_DOWN_SPEED,
+  );
   updateBrittlePlatforms(delta);
   hero.ladderRegrabLock = Math.max(0, hero.ladderRegrabLock - delta);
+  hero.portalCooldown = Math.max(0, hero.portalCooldown - delta);
+  if (stepPortalTransition(delta)) {
+    return;
+  }
   collectVisibleLadders(hero.y, gameCamera.y);
   collectVisibleSpikes(hero.y, gameCamera.y);
+  collectVisiblePortals(hero.y, gameCamera.y);
   stepSnake(delta);
   const nearbyLadder = findNearbyLadder();
   const canGrabLadderFromGround =
@@ -1943,6 +2289,9 @@ const stepGame = (delta) => {
 
     updateHighestRow(Math.max(hero.y, checkpoint.y));
     collectNearbyCollectibles();
+    if (teleportHeroThroughPortal()) {
+      return;
+    }
 
     if (heroTouchesSpike()) {
       onHeroDeath();
@@ -2074,6 +2423,9 @@ const stepGame = (delta) => {
 
   updateHighestRow(Math.max(hero.y, checkpoint.y));
   collectNearbyCollectibles();
+  if (teleportHeroThroughPortal()) {
+    return;
+  }
   if (heroTouchesSpike()) {
     onHeroDeath();
     return;
@@ -2086,28 +2438,36 @@ const stepGame = (delta) => {
 };
 
 const syncUniforms = (timeSeconds) => {
-  const groundTop = getGroundTop();
-  const isNearGround = hero.y <= groundTop + 0.95;
-  const anchoredDefaultY = isNearGround
-    ? Math.max(hero.y + CAMERA_BASE_OFFSET, getGroundAnchoredCameraY())
-    : hero.y + CAMERA_BASE_OFFSET;
-  const defaultY = anchoredDefaultY;
-  const lookDownY = hero.y - viewHeight * 0.43;
-  const targetCameraY = THREE.MathUtils.lerp(defaultY, lookDownY, hero.crouch);
-  const clampedTargetY = clamp(targetCameraY, CAMERA_MIN_Y, WORLD_TOP_LIMIT);
-  const deadzonedTargetY = applyVerticalCameraDeadzone(clampedTargetY);
-
   gameCamera.x = 0;
-  gameCamera.y = THREE.MathUtils.lerp(
-    gameCamera.y,
-    deadzonedTargetY,
-    hero.crouch > 0.05 ? CAMERA_SCROLL_SMOOTH_CROUCH : CAMERA_SCROLL_SMOOTH,
-  );
+  if (!portalTransition.active) {
+    const groundTop = getGroundTop();
+    const isNearGround = hero.y <= groundTop + 0.95;
+    const anchoredDefaultY = isNearGround
+      ? Math.max(hero.y + CAMERA_BASE_OFFSET, getGroundAnchoredCameraY())
+      : hero.y + CAMERA_BASE_OFFSET;
+    const defaultY = anchoredDefaultY;
+    const lookDownY = defaultY - getVisibleHalfHeightWorld() * 0.5;
+    const targetCameraY = THREE.MathUtils.lerp(defaultY, lookDownY, cameraLookDown);
+    const bottomCameraBoundY = Math.max(CAMERA_MIN_Y, getGroundAnchoredCameraY());
+    const clampedTargetY = clamp(targetCameraY, bottomCameraBoundY, WORLD_TOP_LIMIT);
+    const viewBounds = getCurrentViewBoundsY();
+    const heroOutOfView = hero.y < viewBounds.min || hero.y > viewBounds.max;
+    const shouldBypassDeadzone = cameraLookDown > 0.02 || heroOutOfView;
+    const verticalCameraTarget = shouldBypassDeadzone
+      ? clampedTargetY
+      : applyVerticalCameraDeadzone(clampedTargetY);
+    const cameraLerp = cameraLookDown > 0.05 || heroOutOfView
+      ? CAMERA_SCROLL_SMOOTH_CROUCH
+      : CAMERA_SCROLL_SMOOTH;
+    gameCamera.y = THREE.MathUtils.lerp(gameCamera.y, verticalCameraTarget, cameraLerp);
+  }
 
-  collectVisiblePlatforms(hero.y, gameCamera.y);
+  const visibilityAnchorY = portalTransition.active ? gameCamera.y : hero.y;
+  collectVisiblePlatforms(visibilityAnchorY, gameCamera.y);
   collectVisibleCollectibles(gameCamera.y);
-  collectVisibleLadders(hero.y, gameCamera.y);
-  collectVisibleSpikes(hero.y, gameCamera.y);
+  collectVisibleLadders(visibilityAnchorY, gameCamera.y);
+  collectVisibleSpikes(visibilityAnchorY, gameCamera.y);
+  collectVisiblePortals(visibilityAnchorY, gameCamera.y);
 
   const shaderPlatforms = material.uniforms.uPlatforms.value;
   const shaderPlatformMotion = material.uniforms.uPlatformMotion.value;
@@ -2143,6 +2503,14 @@ const syncUniforms = (timeSeconds) => {
     shaderSpikeDir[i] = spike.dir;
   }
 
+  const shaderPortals = material.uniforms.uPortals.value;
+  const shaderPortalSide = material.uniforms.uPortalSide.value;
+  for (let i = 0; i < MAX_VISIBLE_PORTALS; i++) {
+    const portal = portalPool[i];
+    shaderPortals[i].set(portal.x, portal.y, portal.w, portal.h);
+    shaderPortalSide[i] = portal.side;
+  }
+
   material.uniforms.uTime.value = timeSeconds;
   material.uniforms.uCameraPos.value.set(gameCamera.x, gameCamera.y);
   material.uniforms.uHeroPos.value.set(hero.x, hero.y);
@@ -2150,6 +2518,7 @@ const syncUniforms = (timeSeconds) => {
   material.uniforms.uHeroFacing.value = hero.facing;
   material.uniforms.uHeroGrounded.value = hero.grounded ? 1.0 : 0.0;
   material.uniforms.uHeroCrouch.value = hero.crouch;
+  material.uniforms.uHeroVisible.value = portalTransition.active ? 0.0 : 1.0;
   material.uniforms.uSnakePos.value.set(snake.x, snake.y);
   material.uniforms.uSnakeVelocity.value.set(snake.vx, snake.vy);
   material.uniforms.uSnakeFacing.value = snake.facing;
@@ -2159,6 +2528,7 @@ const syncUniforms = (timeSeconds) => {
   material.uniforms.uCollectibleCount.value = visibleCollectibleCount;
   material.uniforms.uLadderCount.value = visibleLadderCount;
   material.uniforms.uSpikeCount.value = visibleSpikeCount;
+  material.uniforms.uPortalCount.value = visiblePortalCount;
 };
 
 const onResize = () => {
@@ -2210,6 +2580,7 @@ const onResize = () => {
   collectVisibleCollectibles(gameCamera.y);
   collectVisibleLadders(hero.y, gameCamera.y);
   collectVisibleSpikes(hero.y, gameCamera.y);
+  collectVisiblePortals(hero.y, gameCamera.y);
 };
 
 const createRenderer = async () => {

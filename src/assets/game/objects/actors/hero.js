@@ -16,5 +16,6 @@ export const createHero = (startPos) => {
     onLadder: false,
     ladder: null,
     ladderRegrabLock: 0,
+    portalCooldown: 0,
   };
 };

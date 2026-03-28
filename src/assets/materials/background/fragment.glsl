@@ -12,6 +12,7 @@ uniform vec2 uHeroVelocity;
 uniform float uHeroFacing;
 uniform float uHeroGrounded;
 uniform float uHeroCrouch;
+uniform float uHeroVisible;
 uniform vec2 uSnakePos;
 uniform vec2 uSnakeVelocity;
 uniform float uSnakeFacing;
@@ -25,11 +26,14 @@ uniform float uPlatformDurability[48];
 uniform float uPlatformCount;
 uniform vec4 uCollectibles[12];
 uniform float uCollectibleCount;
-uniform vec4 uLadders[20];
+uniform vec4 uLadders[40];
 uniform float uLadderCount;
 uniform vec4 uSpikes[20];
 uniform float uSpikeDir[20];
 uniform float uSpikeCount;
+uniform vec4 uPortals[16];
+uniform float uPortalSide[16];
+uniform float uPortalCount;
 
 float rectMask(vec2 point, vec4 rect) {
   vec2 insideMin = step(rect.xy, point);
@@ -154,7 +158,7 @@ vec3 drawLadders(vec3 color, vec2 worldPos) {
   vec3 rungMain = vec3(0.33, 0.92, 0.84);
   vec3 rungLight = vec3(0.62, 1.00, 0.93);
 
-  for (int i = 0; i < 20; i++) {
+  for (int i = 0; i < 40; i++) {
     float enabled = step(float(i) + 0.5, uLadderCount);
     vec4 ladder = uLadders[i];
 
@@ -198,6 +202,42 @@ vec3 drawCollectibles(vec3 color, vec2 worldPos) {
     color = mix(color, coinOuter, body * enabled);
     color = mix(color, coinOutline, border * enabled);
     color = mix(color, coinInner, inner * enabled);
+  }
+
+  return color;
+}
+
+vec3 drawPortals(vec3 color, vec2 worldPos) {
+  vec3 frameDark = vec3(0.05, 0.15, 0.18);
+  vec3 portalMain = vec3(0.20, 0.62, 0.90);
+  vec3 portalGlow = vec3(0.68, 0.96, 1.00);
+
+  for (int i = 0; i < 16; i++) {
+    float enabled = step(float(i) + 0.5, uPortalCount);
+    vec4 portal = uPortals[i];
+    float side = uPortalSide[i];
+    float body = rectMask(worldPos, portal);
+    vec4 innerRect = vec4(
+      portal.x + 0.06,
+      portal.y + 0.06,
+      max(portal.z - 0.12, 0.0),
+      max(portal.w - 0.12, 0.0)
+    );
+    float core = rectMask(worldPos, innerRect);
+    float frame = max(body - core, 0.0);
+
+    vec2 center = portal.xy + portal.zw * 0.5;
+    vec2 scaled = (worldPos - center) / max(portal.zw * vec2(0.72, 0.48), vec2(0.0001));
+    float radius = length(scaled);
+    float direction = side < 0.0 ? -1.0 : 1.0;
+    float swirlAngle = atan(scaled.y, scaled.x * direction);
+    float swirl = 0.5 + 0.5 * sin(swirlAngle * 5.0 + uTime * 7.3 + portal.y * 0.31);
+    float stream = smoothstep(1.05, 0.30, radius) * swirl;
+    float pulse = smoothstep(0.92, 0.08, radius) * (0.72 + 0.28 * sin(uTime * 6.1 + portal.x * 1.7));
+
+    color = mix(color, frameDark, frame * enabled);
+    color = mix(color, portalMain, core * stream * enabled);
+    color = mix(color, portalGlow, core * pulse * enabled * 0.85);
   }
 
   return color;
@@ -258,6 +298,10 @@ vec3 drawSideWalls(vec2 fragPos) {
 }
 
 vec3 drawHero(vec3 color, vec2 worldPos) {
+  if (uHeroVisible < 0.5) {
+    return color;
+  }
+
   vec2 heroPoint = worldPos - uHeroPos;
   heroPoint.x *= uHeroFacing;
 
@@ -408,6 +452,7 @@ void main() {
   color = drawBaseFloor(color, worldPos);
   color = drawPlatforms(color, worldPos);
   color = drawLadders(color, worldPos);
+  color = drawPortals(color, worldPos);
   color = drawSpikes(color, worldPos);
   color = drawCollectibles(color, worldPos);
   color = drawSnake(color, worldPos);

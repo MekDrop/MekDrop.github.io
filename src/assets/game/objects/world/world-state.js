@@ -4,6 +4,7 @@ export const createWorldState = () => {
     worldCollectibles: [],
     worldLadders: [],
     worldSpikes: [],
+    worldPortals: [],
     rowMilestones: [],
     nextCollectibleId: 1,
   };

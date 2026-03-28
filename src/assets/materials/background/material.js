@@ -4,8 +4,9 @@ import fragmentShader from "./fragment.glsl?raw";
 
 const MAX_VISIBLE_PLATFORMS = 48;
 const MAX_VISIBLE_COLLECTIBLES = 12;
-const MAX_VISIBLE_LADDERS = 20;
+const MAX_VISIBLE_LADDERS = 40;
 const MAX_VISIBLE_SPIKES = 20;
+const MAX_VISIBLE_PORTALS = 16;
 
 export function create(containerWidth, containerHeight) {
   const platformBuffer = Array.from(
@@ -29,6 +30,11 @@ export function create(containerWidth, containerHeight) {
     () => new THREE.Vector4(-9999, -9999, 0, 0),
   );
   const spikeDirBuffer = new Float32Array(MAX_VISIBLE_SPIKES);
+  const portalBuffer = Array.from(
+    { length: MAX_VISIBLE_PORTALS },
+    () => new THREE.Vector4(-9999, -9999, 0, 0),
+  );
+  const portalSideBuffer = new Float32Array(MAX_VISIBLE_PORTALS);
 
   return new THREE.ShaderMaterial({
     uniforms: {
@@ -54,6 +60,7 @@ export function create(containerWidth, containerHeight) {
       uHeroFacing: { value: 1.0 },
       uHeroGrounded: { value: 0.0 },
       uHeroCrouch: { value: 0.0 },
+      uHeroVisible: { value: 1.0 },
       uSnakePos: {
         value: new THREE.Vector2(0, 0),
       },
@@ -76,6 +83,9 @@ export function create(containerWidth, containerHeight) {
       uSpikes: { value: spikeBuffer },
       uSpikeDir: { value: spikeDirBuffer },
       uSpikeCount: { value: 0.0 },
+      uPortals: { value: portalBuffer },
+      uPortalSide: { value: portalSideBuffer },
+      uPortalCount: { value: 0.0 },
     },
     vertexShader,
     fragmentShader,
