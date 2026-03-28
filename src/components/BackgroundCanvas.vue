@@ -87,6 +87,7 @@ const LADDER_WIDTH = 0.32;
 const LADDER_CLIMB_SPEED = 7.6;
 const LADDER_GRAB_RADIUS_X = 0.45;
 const LADDER_GRAB_RADIUS_Y = 0.75;
+const LADDER_REGRAB_LOCK_TIME = 0.2;
 const GRAVITY = -40;
 const JUMP_VELOCITY = 16.5;
 const SUPER_JUMP_VELOCITY = JUMP_VELOCITY * 1.732;
@@ -202,6 +203,7 @@ const hero = {
   supportPlatform: null,
   onLadder: false,
   ladder: null,
+  ladderRegrabLock: 0,
 };
 
 const gameCamera = {
@@ -697,6 +699,7 @@ const resetHero = (x = START_POS.x, y = START_POS.y) => {
   hero.supportPlatform = shouldSnapToGround ? groundPlatform : null;
   hero.onLadder = false;
   hero.ladder = null;
+  hero.ladderRegrabLock = 0;
   gameCamera.x = 0;
   const startCameraY = shouldSnapToGround
     ? getGroundAnchoredCameraY()
@@ -862,10 +865,23 @@ const applyRidingPlatformMotion = (delta) => {
 
 const stepGame = (delta) => {
   const wasGrounded = hero.grounded;
+  hero.ladderRegrabLock = Math.max(0, hero.ladderRegrabLock - delta);
   collectVisibleLadders(hero.y, gameCamera.y);
   const nearbyLadder = findNearbyLadder();
+  const canGrabLadderFromGround =
+    hero.grounded &&
+    nearbyLadder &&
+    inputState.up &&
+    hero.y <= nearbyLadder.y + 0.18;
+  const wantsLadderGrab = !hero.grounded || inputState.down || canGrabLadderFromGround;
 
-  if (!hero.onLadder && nearbyLadder && (inputState.up || inputState.down)) {
+  if (
+    !hero.onLadder &&
+    nearbyLadder &&
+    (inputState.up || inputState.down) &&
+    wantsLadderGrab &&
+    hero.ladderRegrabLock <= 0
+  ) {
     hero.onLadder = true;
     hero.ladder = nearbyLadder;
     hero.grounded = false;
@@ -900,6 +916,7 @@ const stepGame = (delta) => {
       inputState.jumpFromSpace = false;
       hero.onLadder = false;
       hero.ladder = null;
+      hero.ladderRegrabLock = LADDER_REGRAB_LOCK_TIME;
       hero.vy = JUMP_VELOCITY * 0.9;
       hero.grounded = false;
       hero.coyoteLeft = 0;
@@ -913,6 +930,7 @@ const stepGame = (delta) => {
         hero.y = reachedTop ? ladderTop : ladderBottom;
         hero.onLadder = false;
         hero.ladder = null;
+        hero.ladderRegrabLock = LADDER_REGRAB_LOCK_TIME;
         collectVisiblePlatforms(hero.y, gameCamera.y);
         const standingPlatform = findStandingPlatform();
         hero.grounded = standingPlatform !== null;
