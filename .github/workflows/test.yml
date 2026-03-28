@@ -20,12 +20,13 @@ jobs:
         uses: actions/setup-node@v6
         with:
           node-version-file: package.json
+          cache: npm
 
       - name: Install dependencies
-        run: yarn install
+        run: npm ci
 
       - name: Run Quasar E2E tests
-        run: yarn test:e2e:ci
+        run: npm run test:e2e:ci
 
       - name: Upload Test Artifacts
         uses: actions/upload-artifact@v7
