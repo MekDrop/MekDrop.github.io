@@ -37,7 +37,6 @@ locales
 
       locales.forEach((locale2) => {
         it(`switching language into ${locale2}`, () => {
-          cy.get("#language_switcher .q-icon").click();
           cy.get(`#language_switcher [data-locale="${locale2}"]`).click();
           cy.url().should("match", new RegExp(`\/${locale2}$`));
         });

@@ -13,8 +13,13 @@
           dark
           id="side_toolbar"
         >
-          <q-card-section class="side-toolbar__section">
-            <language-switcher id="language_switcher" direction="right" />
+          <q-card-section class="side-toolbar__section side-toolbar__logo">
+            <img
+              class="side-toolbar__logo-image"
+              src="/icons/android-chrome-192x192.png"
+              alt="MekDrop logo"
+            />
+            <div class="side-toolbar__logo-text">MekDrop</div>
           </q-card-section>
           <q-separator dark />
           <q-card-section class="side-toolbar__section side-toolbar__menu">
@@ -42,6 +47,10 @@
               ...
             </q-btn>
           </q-card-section>
+          <q-separator dark />
+          <q-card-section class="side-toolbar__section side-toolbar__languages">
+            <language-switcher id="language_switcher" />
+          </q-card-section>
         </q-card>
       </q-no-ssr>
       <router-view v-if="isLoaded" />
@@ -56,33 +65,53 @@
 
 .side-toolbar {
   position: fixed;
-  top: 1rem;
-  left: 1rem;
+  top: 0;
+  left: 0;
+  bottom: 0;
   z-index: 100;
-  width: min(220px, calc(100vw - 2rem));
+  width: min(240px, 100vw);
   opacity: 0.9;
   border-radius: 0;
+  display: flex;
+  flex-direction: column;
+  margin: 0;
 }
 
 .side-toolbar__section {
   padding: 0.75rem;
 }
 
+.side-toolbar__logo {
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.side-toolbar__logo-image {
+  width: 64px;
+  height: 64px;
+  display: block;
+}
+
+.side-toolbar__logo-text {
+  font-size: 1.15rem;
+}
+
 .side-toolbar__menu {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+  flex: 1;
+  overflow-y: auto;
 }
 
 .side-toolbar__btn {
   width: 100%;
 }
 
-@media (max-width: 600px) {
-  .side-toolbar {
-    top: auto;
-    bottom: 1rem;
-  }
+.side-toolbar__languages {
+  margin-top: auto;
 }
 </style>
 
