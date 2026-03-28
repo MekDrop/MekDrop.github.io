@@ -24,12 +24,13 @@ jobs:
         uses: actions/setup-node@v6
         with:
           node-version-file: package.json
+          cache: npm
 
       - name: Install dependencies
-        run: yarn install
+        run: npm ci
 
       - name: Run Prettier
-        run: yarn format
+        run: npm run format
 
       - name: Commit changes
         id: auto-commit-action

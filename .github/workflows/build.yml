@@ -29,15 +29,13 @@ jobs:
         uses: actions/setup-node@v6
         with:
           node-version-file: package.json
+          cache: npm
 
       - name: Install Dependencies
-        run: yarn install
-
-      - name: Install Quasar
-        run: yarn global add @quasar/cli
+        run: npm ci
 
       - name: Generate Quasar SSG
-        run: quasar ssg generate
+        run: npm run build:ssg
 
       - name: Setup Pages
         uses: actions/configure-pages@v6
