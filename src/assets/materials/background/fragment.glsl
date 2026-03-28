@@ -153,7 +153,7 @@ vec3 drawBaseFloor(vec3 color, vec2 worldPos) {
   return color;
 }
 
-vec3 drawLadders(vec3 color, vec2 worldPos) {
+vec3 drawLadders(vec3 color, vec2 worldPos, float pixelSize) {
   vec3 rungDark = vec3(0.10, 0.32, 0.36);
   vec3 rungMain = vec3(0.33, 0.92, 0.84);
   vec3 rungLight = vec3(0.62, 1.00, 0.93);
@@ -161,20 +161,45 @@ vec3 drawLadders(vec3 color, vec2 worldPos) {
   for (int i = 0; i < 40; i++) {
     float enabled = step(float(i) + 0.5, uLadderCount);
     vec4 ladder = uLadders[i];
+    float snappedWidth = max(pixelSize, floor(ladder.z / pixelSize + 0.5) * pixelSize);
+    float snappedHeight = max(pixelSize, floor(ladder.w / pixelSize + 0.5) * pixelSize);
+    float snappedX = floor(ladder.x / pixelSize + 0.5) * pixelSize;
+    float snappedY = floor(ladder.y / pixelSize + 0.5) * pixelSize;
 
-    vec4 shaft = vec4(ladder.x - ladder.z * 0.5, ladder.y, ladder.z, ladder.w);
-    vec4 leftRail = vec4(ladder.x - ladder.z * 0.5, ladder.y, ladder.z * 0.22, ladder.w);
-    vec4 rightRail = vec4(ladder.x + ladder.z * 0.28, ladder.y, ladder.z * 0.22, ladder.w);
+    vec4 shaft = vec4(
+      snappedX - snappedWidth * 0.5,
+      snappedY,
+      snappedWidth,
+      snappedHeight
+    );
+    vec4 leftRail = vec4(
+      snappedX - snappedWidth * 0.5,
+      snappedY,
+      snappedWidth * 0.22,
+      snappedHeight
+    );
+    vec4 rightRail = vec4(
+      snappedX + snappedWidth * 0.28,
+      snappedY,
+      snappedWidth * 0.22,
+      snappedHeight
+    );
 
     float shaftMask = rectMask(worldPos, shaft);
     float leftMask = rectMask(worldPos, leftRail);
     float rightMask = rectMask(worldPos, rightRail);
 
-    float rungPhase = fract((worldPos.y - ladder.y) / 0.52);
+    // Keep rung alignment global so all ladders share the same visual pattern.
+    float rungPhase = fract(worldPos.y / 0.52);
     float rungBand = step(0.60, rungPhase) * step(rungPhase, 0.86);
     float rungMask = rectMask(
       worldPos,
-      vec4(ladder.x - ladder.z * 0.44, ladder.y, ladder.z * 0.88, ladder.w)
+      vec4(
+        snappedX - snappedWidth * 0.44,
+        snappedY,
+        snappedWidth * 0.88,
+        snappedHeight
+      )
     ) * rungBand;
 
     color = mix(color, rungDark, shaftMask * enabled);
@@ -451,12 +476,18 @@ void main() {
   vec3 color = vec3(0.0, 0.0, 0.0);
   color = drawBaseFloor(color, worldPos);
   color = drawPlatforms(color, worldPos);
-  color = drawLadders(color, worldPos);
+  color = drawLadders(color, worldPos, pixelSize);
   color = drawPortals(color, worldPos);
   color = drawSpikes(color, worldPos);
   color = drawCollectibles(color, worldPos);
   color = drawSnake(color, worldPos);
   color = drawHero(color, worldPos);
+
+  float topZoneStart = 0.85;
+  float topZoneMask = step(topZoneStart, uv.y);
+  float topZoneGradient = smoothstep(topZoneStart, 1.0, uv.y);
+  float topZoneVisibility = mix(0.62, 1.0, topZoneGradient);
+  color *= mix(1.0, topZoneVisibility, topZoneMask);
 
   float scanline = 0.95 + 0.05 * sin(gl_FragCoord.y * 0.7);
   color *= scanline;
