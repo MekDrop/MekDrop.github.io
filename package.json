@@ -41,14 +41,14 @@
     "@quasar/quasar-app-extension-testing-e2e-cypress": "^6.2.1",
     "autoprefixer": "^10.4.27",
     "cypress": "^14.5.4",
-    "eslint": "^8.57.0",
+    "eslint": "^9.8.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-cypress": "^6.2.1",
     "eslint-plugin-vue": "^9.33.0",
     "glob": "^13.0.6",
     "postcss": "^8.5.8",
     "prettier": "^3.8.1",
-    "quasar-app-extension-ssg": "^5.1.1",
+    "quasar-app-extension-ssg": "^5.2",
     "vite-plugin-sitemap": "^0.8.2"
   },
   "engines": {
