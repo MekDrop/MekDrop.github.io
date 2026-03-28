@@ -40,7 +40,8 @@
 </style>
 
 <script setup>
-import * as THREE from "three/webgpu";
+import * as THREE from "three";
+import { WebGPURenderer } from "three/webgpu";
 import { computed, onBeforeUnmount, onMounted, ref } from "vue";
 import { dom } from "quasar";
 import { create as createBackgroundMaterial } from "assets/materials/background/material";
@@ -666,6 +667,26 @@ const onResize = () => {
   material.uniforms.uViewSize.value.set(viewWidth, viewHeight);
 };
 
+const createRenderer = async () => {
+  const rendererOptions = {
+    antialias: false,
+    alpha: false,
+    powerPreference: "high-performance",
+  };
+
+  if (typeof navigator !== "undefined" && navigator.gpu) {
+    try {
+      const webgpuRenderer = new WebGPURenderer(rendererOptions);
+      await webgpuRenderer.init();
+      return webgpuRenderer;
+    } catch {
+      // Fallback to WebGL on unsupported drivers/browsers.
+    }
+  }
+
+  return new THREE.WebGLRenderer(rendererOptions);
+};
+
 const initGL = async () => {
   generateWorld();
 
@@ -673,12 +694,7 @@ const initGL = async () => {
   camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
   camera.position.z = 1;
 
-  renderer = new THREE.WebGPURenderer({
-    antialias: false,
-    alpha: false,
-    powerPreference: "high-performance",
-  });
-  await renderer.init();
+  renderer = await createRenderer();
   renderer.domElement.classList.add("fit");
   container.value.appendChild(renderer.domElement);
 
