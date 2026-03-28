@@ -34,10 +34,8 @@
                 {{ item.label }}
               </q-btn>
             </template>
-            <div
-              id="other_links_panel"
-              class="side-toolbar__other-links side-toolbar__btn--game"
-            >
+            <q-separator dark class="side-toolbar__section-separator" />
+            <div id="other_links_panel" class="side-toolbar__other-links">
               <div class="side-toolbar__other-links-title">
                 {{ i18n.t("main_menu.other_links.name") }}
               </div>
@@ -204,6 +202,10 @@
   flex-direction: column;
   flex: 1;
   min-height: 0;
+}
+
+.side-toolbar__section-separator {
+  margin: 0.15rem 0 0.35rem;
 }
 
 .side-toolbar__other-links-title {
