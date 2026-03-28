@@ -1,12 +1,12 @@
 name: Autofix
 
 on:
-  pull_request:
+  push:
     branches:
       - master
 
 concurrency:
-  group: "autofix-${{ github.event.pull_request.head.ref }}"
+  group: "autofix-${{ github.ref_name }}"
   cancel-in-progress: false
 
 jobs:
@@ -41,4 +41,4 @@ jobs:
       - name: Push changes
         if: success() && steps.auto-commit-action.outputs.changes_detected == 'true'
         continue-on-error: true
-        run: git push origin HEAD:${{ github.head_ref }}
+        run: git push origin HEAD:${{ github.ref_name }}
