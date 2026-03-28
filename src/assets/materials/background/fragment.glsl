@@ -3,6 +3,7 @@ precision highp float;
 const float VERTICAL_SCALE = 0.5625;
 
 uniform vec2 uResolution;
+uniform vec4 uGameViewport;
 uniform vec2 uViewSize;
 uniform vec2 uCameraPos;
 uniform float uTime;
@@ -11,8 +12,8 @@ uniform vec2 uHeroVelocity;
 uniform float uHeroFacing;
 uniform float uHeroGrounded;
 uniform float uHeroCrouch;
-uniform vec4 uPlatforms[28];
-uniform float uPlatformMotion[28];
+uniform vec4 uPlatforms[48];
+uniform float uPlatformMotion[48];
 uniform float uPlatformCount;
 uniform vec4 uCollectibles[12];
 uniform float uCollectibleCount;
@@ -66,13 +67,33 @@ vec3 drawRectPlatform(vec3 color, vec2 worldPos, vec4 platformRect, float motion
 }
 
 vec3 drawPlatforms(vec3 color, vec2 worldPos) {
-  for (int i = 0; i < 28; i++) {
+  for (int i = 0; i < 48; i++) {
     float enabled = step(float(i) + 0.5, uPlatformCount);
     vec4 platformRect = uPlatforms[i];
     float platformMotion = uPlatformMotion[i];
     vec3 nextColor = drawRectPlatform(color, worldPos, platformRect, platformMotion);
     color = mix(color, nextColor, enabled);
   }
+
+  return color;
+}
+
+vec3 drawBaseFloor(vec3 color, vec2 worldPos) {
+  vec3 outline = vec3(0.02, 0.07, 0.09);
+  vec3 blockDark = vec3(0.13, 0.43, 0.45);
+  vec3 blockMain = vec3(0.26, 0.76, 0.72);
+  vec3 blockLight = vec3(0.61, 1.00, 0.92);
+
+  float body = step(0.0, worldPos.y) * step(worldPos.y, 1.12);
+  float inner = step(0.06, worldPos.y) * step(worldPos.y, 1.02);
+  float border = max(body - inner, 0.0);
+  float localY = clamp(worldPos.y / 1.12, 0.0, 1.0);
+  float scan = step(0.5, fract((worldPos.x + 0.28) * 0.82 + 0.11));
+  vec3 fill = mix(blockDark, blockMain, localY * 0.62 + scan * 0.21);
+
+  color = mix(color, fill, inner);
+  color = mix(color, outline, border);
+  color = mix(color, blockLight, inner * 0.10);
 
   return color;
 }
@@ -129,6 +150,31 @@ vec3 drawCollectibles(vec3 color, vec2 worldPos) {
   }
 
   return color;
+}
+
+vec3 drawSideWalls(vec2 fragPos) {
+  vec3 brickDark = vec3(0.03, 0.10, 0.12);
+  vec3 brickMain = vec3(0.10, 0.36, 0.40);
+  vec3 mortar = vec3(0.45, 0.95, 0.88);
+
+  vec2 brickCoord = fragPos * vec2(0.07, 0.11);
+  float rowParity = mod(floor(brickCoord.y), 2.0);
+  float brickX = fract(brickCoord.x + rowParity * 0.5);
+  float brickY = fract(brickCoord.y);
+
+  float mortarMask = max(1.0 - step(0.08, brickX), 1.0 - step(0.10, brickY));
+  float blockShade = 0.66 + 0.34 * sin(floor(brickCoord.x) * 0.71 + floor(brickCoord.y) * 0.53);
+  vec3 wall = mix(brickDark, brickMain, blockShade);
+  wall = mix(wall, mortar, mortarMask * 0.78);
+
+  float edgeDistance = min(
+    abs(fragPos.x - uGameViewport.x),
+    abs(fragPos.x - (uGameViewport.x + uGameViewport.z))
+  );
+  float edgeGlow = 1.0 - step(3.0, edgeDistance);
+  wall = mix(wall, vec3(0.70, 1.0, 0.94), edgeGlow * 0.58);
+
+  return wall;
 }
 
 vec3 drawHero(vec3 color, vec2 worldPos) {
@@ -215,7 +261,22 @@ vec3 drawHero(vec3 color, vec2 worldPos) {
 }
 
 void main() {
-  vec2 uv = gl_FragCoord.xy / max(uResolution, vec2(1.0));
+  vec2 fragPos = gl_FragCoord.xy;
+  vec2 gameMin = uGameViewport.xy;
+  vec2 gameMax = uGameViewport.xy + uGameViewport.zw;
+  float inGame = step(gameMin.x, fragPos.x) * step(fragPos.x, gameMax.x) *
+    step(gameMin.y, fragPos.y) * step(fragPos.y, gameMax.y);
+
+  if (inGame < 0.5) {
+    vec3 wallColor = drawSideWalls(fragPos);
+    float wallScanline = 0.94 + 0.06 * sin(gl_FragCoord.y * 0.7);
+    wallColor *= wallScanline;
+    wallColor = floor(wallColor * 24.0) / 24.0;
+    gl_FragColor = vec4(wallColor, 1.0);
+    return;
+  }
+
+  vec2 uv = (fragPos - uGameViewport.xy) / max(uGameViewport.zw, vec2(1.0));
   vec2 worldPos = uCameraPos +
     vec2((uv.x - 0.5) * uViewSize.x, (uv.y - 0.5) * uViewSize.y);
   worldPos.y = uCameraPos.y + (worldPos.y - uCameraPos.y) / VERTICAL_SCALE;
@@ -224,6 +285,7 @@ void main() {
   worldPos = floor(worldPos / pixelSize) * pixelSize;
 
   vec3 color = vec3(0.0, 0.0, 0.0);
+  color = drawBaseFloor(color, worldPos);
   color = drawPlatforms(color, worldPos);
   color = drawLadders(color, worldPos);
   color = drawCollectibles(color, worldPos);

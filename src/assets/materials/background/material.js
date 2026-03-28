@@ -2,7 +2,7 @@ import * as THREE from "three";
 import vertexShader from "./vertex.glsl?raw";
 import fragmentShader from "./fragment.glsl?raw";
 
-const MAX_VISIBLE_PLATFORMS = 28;
+const MAX_VISIBLE_PLATFORMS = 48;
 const MAX_VISIBLE_COLLECTIBLES = 12;
 const MAX_VISIBLE_LADDERS = 20;
 
@@ -26,6 +26,9 @@ export function create(containerWidth, containerHeight) {
       uTime: { value: 0.0 },
       uResolution: {
         value: new THREE.Vector2(containerWidth, containerHeight),
+      },
+      uGameViewport: {
+        value: new THREE.Vector4(0, 0, containerWidth, containerHeight),
       },
       uViewSize: {
         value: new THREE.Vector2(0, 0),

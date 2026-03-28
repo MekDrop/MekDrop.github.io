@@ -67,9 +67,11 @@ import { computed, onBeforeUnmount, onMounted, ref } from "vue";
 import { dom } from "quasar";
 import { create as createBackgroundMaterial } from "assets/materials/background/material";
 
-const MAX_VISIBLE_PLATFORMS = 28;
+const MAX_VISIBLE_PLATFORMS = 48;
 const MAX_VISIBLE_COLLECTIBLES = 12;
 const MAX_VISIBLE_LADDERS = 20;
+const GAME_VIEWPORT_WIDTH_RATIO = 0.95;
+const VERTICAL_WORLD_SCALE = 0.5625;
 const BASE_VIEW_HEIGHT = 22;
 const BASE_REFERENCE_HEIGHT = 900;
 const WORLD_UNITS_PER_PIXEL = BASE_VIEW_HEIGHT / BASE_REFERENCE_HEIGHT;
@@ -77,6 +79,7 @@ const WORLD_HALF_WIDTH = 17;
 const WORLD_TOP_LIMIT = 520;
 const JUMP_GAP_SCALE = 1.5;
 const HERO_WIDTH = 0.74;
+const HERO_HEIGHT = 1.46;
 const PLATFORM_GAP_MULTIPLIER = 1.8;
 const MOVING_PLATFORM_CHANCE = 0.3;
 const MOVING_PLATFORM_SPEED = 2.25;
@@ -102,7 +105,11 @@ const SUPER_JUMP_RELEASE_WINDOW = 0.25;
 const COLLECTIBLE_PICKUP_RADIUS = 0.58;
 const CAMERA_BASE_OFFSET = 4.8;
 const CAMERA_MIN_Y = -9;
-const START_POS = { x: 0, y: 1.16 };
+const CAMERA_GROUND_PADDING = 0.55;
+const CAMERA_SCROLL_TRIGGER_RATIO = 0.72;
+const CAMERA_SCROLL_SMOOTH = 0.2;
+const CAMERA_SCROLL_SMOOTH_CROUCH = 0.28;
+const START_POS = { x: 0, y: 1.12 };
 const START_LIVES = 3;
 
 let camera, scene, renderer, material, quad;
@@ -113,6 +120,13 @@ let viewHeight = BASE_VIEW_HEIGHT;
 let visiblePlatformCount = 0;
 let visibleCollectibleCount = 0;
 let visibleLadderCount = 0;
+let worldHalfWidth = WORLD_HALF_WIDTH;
+const gameViewportPx = {
+  x: 0,
+  y: 0,
+  w: 1,
+  h: 1,
+};
 
 const container = ref(null);
 const livesLeft = ref(START_LIVES);
@@ -169,6 +183,7 @@ const inputState = {
   up: false,
   down: false,
   jumpQueued: false,
+  jumpFromSpace: false,
 };
 
 const hero = {
@@ -196,6 +211,35 @@ const gameCamera = {
 
 const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
 const fract = (value) => value - Math.floor(value);
+const calculateWorldHalfWidth = () => {
+  return Math.max(WORLD_HALF_WIDTH, viewWidth * 0.5);
+};
+
+const getGroundTop = () => {
+  const ground = worldPlatforms[0];
+  return ground ? ground.y + ground.h : START_POS.y;
+};
+
+const getGroundAnchoredCameraY = () => {
+  return getGroundTop() + viewHeight * 0.5 / VERTICAL_WORLD_SCALE - CAMERA_GROUND_PADDING;
+};
+
+const getVisibleHalfHeightWorld = () => {
+  return (viewHeight * 0.5) / VERTICAL_WORLD_SCALE;
+};
+
+const applyVerticalCameraDeadzone = (targetY) => {
+  const triggerRange = getVisibleHalfHeightWorld() * CAMERA_SCROLL_TRIGGER_RATIO;
+  let deadzonedY = gameCamera.y;
+
+  if (targetY > gameCamera.y + triggerRange) {
+    deadzonedY = targetY - triggerRange;
+  } else if (targetY < gameCamera.y - triggerRange) {
+    deadzonedY = targetY + triggerRange;
+  }
+
+  return deadzonedY;
+};
 
 const seededNoise = (seed) => {
   return fract(Math.sin(seed * 127.1 + 311.7) * 43758.5453123);
@@ -257,6 +301,7 @@ const setKeyState = (event, value) => {
 
   if (isJump && value && !event.repeat) {
     inputState.jumpQueued = true;
+    inputState.jumpFromSpace = event.code === "Space";
   }
 
   return true;
@@ -268,6 +313,7 @@ const clearInputState = () => {
   inputState.up = false;
   inputState.down = false;
   inputState.jumpQueued = false;
+  inputState.jumpFromSpace = false;
 };
 
 const onKeyDown = (event) => {
@@ -304,58 +350,100 @@ const generateWorld = () => {
   rowMilestones.length = 0;
   nextCollectibleId = 1;
 
-  worldPlatforms.push({
-    x: -WORLD_HALF_WIDTH,
+  const groundPlatform = {
+    x: -worldHalfWidth,
     y: 0,
-    w: WORLD_HALF_WIDTH * 2,
+    w: worldHalfWidth * 2,
     h: 1.12,
     moveDir: 0,
     moveSpeed: 0,
-  });
+  };
+  worldPlatforms.push(groundPlatform);
 
-  const minEdgeWidth = 2.6;
+  const minPlatformWidth = 1.9;
   const fixedGapWidth = HERO_WIDTH * PLATFORM_GAP_MULTIPLIER;
-  const holeDriftRange = 10.8 * JUMP_GAP_SCALE;
-  const addLadderBetweenRows = (lowerPlatform, upperPlatform, seed) => {
-    if (!lowerPlatform || !upperPlatform) {
+  const maxGapsPerRow = 3;
+  const addLadderBetweenRows = (lowerRow, upperRow, seed) => {
+    if (!lowerRow.length || !upperRow.length) {
       return false;
     }
 
     const ladderPadding = LADDER_WIDTH * 0.72 + 0.1;
-    const overlapStart = Math.max(
-      lowerPlatform.x + ladderPadding,
-      upperPlatform.x + ladderPadding,
-    );
-    const overlapEnd = Math.min(
-      lowerPlatform.x + lowerPlatform.w - ladderPadding,
-      upperPlatform.x + upperPlatform.w - ladderPadding,
-    );
+    const ladderCandidates = [];
 
-    if (overlapEnd <= overlapStart) {
+    for (let lowerIndex = 0; lowerIndex < lowerRow.length; lowerIndex++) {
+      const lowerPlatform = lowerRow[lowerIndex];
+      for (let upperIndex = 0; upperIndex < upperRow.length; upperIndex++) {
+        const upperPlatform = upperRow[upperIndex];
+        const overlapStart = Math.max(
+          lowerPlatform.x + ladderPadding,
+          upperPlatform.x + ladderPadding,
+        );
+        const overlapEnd = Math.min(
+          lowerPlatform.x + lowerPlatform.w - ladderPadding,
+          upperPlatform.x + upperPlatform.w - ladderPadding,
+        );
+
+        if (overlapEnd <= overlapStart) {
+          continue;
+        }
+
+        const bottom = lowerPlatform.y + lowerPlatform.h;
+        const top = upperPlatform.y + upperPlatform.h;
+        if (top <= bottom + 0.4) {
+          continue;
+        }
+
+        ladderCandidates.push({
+          start: overlapStart,
+          end: overlapEnd,
+          bottom,
+          top,
+        });
+      }
+    }
+
+    if (!ladderCandidates.length) {
       return false;
     }
 
-    const bottom = lowerPlatform.y + lowerPlatform.h;
-    const top = upperPlatform.y + upperPlatform.h;
-    if (top <= bottom + 0.4) {
-      return false;
-    }
+    const pickIndex = Math.floor(
+      seededNoise(seed + 0.27) * ladderCandidates.length,
+    );
+    const picked = ladderCandidates[
+      clamp(pickIndex, 0, ladderCandidates.length - 1)
+    ];
+    const ladderX = THREE.MathUtils.lerp(
+      picked.start,
+      picked.end,
+      seededNoise(seed + 0.79),
+    );
 
     worldLadders.push({
-      x: THREE.MathUtils.lerp(overlapStart, overlapEnd, seededNoise(seed)),
-      y: bottom,
+      x: ladderX,
+      y: picked.bottom,
       w: LADDER_WIDTH,
-      h: top - bottom,
+      h: picked.top - picked.bottom,
     });
 
     return true;
   };
 
+  const createRowPlatform = (x, y, width, seedBase) => {
+    const moving = seededNoise(seedBase + 0.17) < MOVING_PLATFORM_CHANCE;
+    return {
+      x,
+      y,
+      w: width,
+      h: 0.82 + seededNoise(seedBase + 0.43) * 0.12,
+      moveDir: moving ? (seededNoise(seedBase + 0.71) < 0.5 ? -1 : 1) : 0,
+      moveSpeed: moving ? MOVING_PLATFORM_SPEED : 0,
+    };
+  };
+
   let y = 2.1;
   let row = 0;
-  let prevHoleCenter = 0;
-  let previousLeftPlatform = worldPlatforms[0];
-  let previousRightPlatform = worldPlatforms[0];
+  let previousRowPlatforms = [groundPlatform];
 
   while (y < WORLD_TOP_LIMIT) {
     const spacingBase = (2.15 + seededNoise(row * 0.83) * 1.15) * JUMP_GAP_SCALE;
@@ -363,78 +451,72 @@ const generateWorld = () => {
     y += spacing;
     rowMilestones.push(y);
 
-    const holeWidth = fixedGapWidth;
+    let gapCount = 1 + Math.floor(seededNoise(row * 2.21 + 0.33) * maxGapsPerRow);
+    if (row === 0) {
+      gapCount = Math.min(gapCount, 2);
+    }
 
-    const desiredHoleCenter =
-      prevHoleCenter + (seededNoise(row * 2.01) - 0.5) * holeDriftRange;
-    const centerMin = -WORLD_HALF_WIDTH + holeWidth * 0.5 + minEdgeWidth;
-    const centerMax = WORLD_HALF_WIDTH - holeWidth * 0.5 - minEdgeWidth;
-    const holeCenter =
-      centerMin <= centerMax
-        ? clamp(desiredHoleCenter, centerMin, centerMax)
-        : 0;
+    const rowWidth = worldHalfWidth * 2;
+    let gapWidths = [];
+    while (gapCount >= 1) {
+      gapWidths = Array.from({ length: gapCount }, (_, index) => {
+        return fixedGapWidth * (1.0 + seededNoise(row * 4.17 + index * 0.77) * 0.95);
+      });
 
-    const holeStart = holeCenter - holeWidth * 0.5;
-    const holeEnd = holeCenter + holeWidth * 0.5;
+      const totalGapWidth = gapWidths.reduce((sum, value) => sum + value, 0);
+      const platformCount = gapCount + 1;
+      if (rowWidth - totalGapWidth >= platformCount * minPlatformWidth) {
+        break;
+      }
 
-    let leftPlatform = null;
-    const leftWidth = holeStart + WORLD_HALF_WIDTH;
-    if (leftWidth > 1.8) {
-      const leftMoveSeed = seededNoise(row * 7.91 + 0.17);
-      const leftMoving = leftMoveSeed < MOVING_PLATFORM_CHANCE;
-      leftPlatform = {
-        x: -WORLD_HALF_WIDTH,
+      gapCount--;
+    }
+
+    if (gapCount < 1) {
+      gapCount = 1;
+      gapWidths = [Math.min(fixedGapWidth, rowWidth - minPlatformWidth * 2)];
+    }
+
+    const platformCount = gapCount + 1;
+    const totalGapWidth = gapWidths.reduce((sum, value) => sum + value, 0);
+    const totalPlatformWidth = rowWidth - totalGapWidth;
+    const basePlatformWidth = minPlatformWidth;
+    const extraPlatformWidth = Math.max(
+      0,
+      totalPlatformWidth - basePlatformWidth * platformCount,
+    );
+    const platformWeights = Array.from({ length: platformCount }, (_, index) => {
+      return 0.28 + seededNoise(row * 5.61 + index * 0.93) * 0.92;
+    });
+    const weightSum = platformWeights.reduce((sum, value) => sum + value, 0);
+    const platformWidths = platformWeights.map((weight) => {
+      return basePlatformWidth + (extraPlatformWidth * weight) / weightSum;
+    });
+    const usedWidth =
+      platformWidths.reduce((sum, value) => sum + value, 0) + totalGapWidth;
+    platformWidths[platformWidths.length - 1] += rowWidth - usedWidth;
+
+    const rowPlatforms = [];
+    let cursorX = -worldHalfWidth;
+    for (let index = 0; index < platformCount; index++) {
+      const platform = createRowPlatform(
+        cursorX,
         y,
-        w: leftWidth,
-        h: 0.82 + seededNoise(row * 3.49) * 0.12,
-        moveDir: leftMoving
-          ? (seededNoise(row * 8.47 + 0.61) < 0.5 ? -1 : 1)
-          : 0,
-        moveSpeed: leftMoving ? MOVING_PLATFORM_SPEED : 0,
-      };
-      worldPlatforms.push(leftPlatform);
-      addCollectibleForPlatform(leftPlatform, row * 4.31);
+        platformWidths[index],
+        row * 7.37 + index * 1.19,
+      );
+      rowPlatforms.push(platform);
+      worldPlatforms.push(platform);
+      addCollectibleForPlatform(platform, row * 8.11 + index * 0.67);
+
+      cursorX += platformWidths[index];
+      if (index < gapCount) {
+        cursorX += gapWidths[index];
+      }
     }
 
-    let rightPlatform = null;
-    const rightWidth = WORLD_HALF_WIDTH - holeEnd;
-    if (rightWidth > 1.8) {
-      const rightMoveSeed = seededNoise(row * 9.13 + 0.39);
-      const rightMoving = rightMoveSeed < MOVING_PLATFORM_CHANCE;
-      rightPlatform = {
-        x: holeEnd,
-        y,
-        w: rightWidth,
-        h: 0.82 + seededNoise(row * 5.71) * 0.12,
-        moveDir: rightMoving
-          ? (seededNoise(row * 9.79 + 0.83) < 0.5 ? -1 : 1)
-          : 0,
-        moveSpeed: rightMoving ? MOVING_PLATFORM_SPEED : 0,
-      };
-      worldPlatforms.push(rightPlatform);
-      addCollectibleForPlatform(rightPlatform, row * 6.37);
-    }
-
-    const preferLeftLadder = seededNoise(row * 11.13 + 0.19) < 0.5;
-    const hasPrimaryLadder = preferLeftLadder
-      ? addLadderBetweenRows(previousLeftPlatform, leftPlatform, row * 12.31 + 0.11)
-      : addLadderBetweenRows(previousRightPlatform, rightPlatform, row * 12.31 + 0.37);
-
-    if (!hasPrimaryLadder) {
-      const fallbackLower = preferLeftLadder ? previousRightPlatform : previousLeftPlatform;
-      const fallbackUpper = preferLeftLadder ? rightPlatform : leftPlatform;
-      addLadderBetweenRows(fallbackLower, fallbackUpper, row * 12.31 + 0.73);
-    }
-
-    if (leftPlatform) {
-      previousLeftPlatform = leftPlatform;
-    }
-
-    if (rightPlatform) {
-      previousRightPlatform = rightPlatform;
-    }
-
-    prevHoleCenter = holeCenter;
+    addLadderBetweenRows(previousRowPlatforms, rowPlatforms, row * 12.31 + 0.19);
+    previousRowPlatforms = rowPlatforms;
     row++;
   }
 
@@ -592,23 +674,34 @@ const resetCollectiblesProgress = () => {
 };
 
 const resetHero = (x = START_POS.x, y = START_POS.y) => {
+  const groundPlatform = worldPlatforms[0] || null;
+  const groundTop = groundPlatform ? groundPlatform.y + groundPlatform.h : y;
+  const isInsideGroundX = groundPlatform
+    ? x >= groundPlatform.x + HERO_WIDTH * 0.35 &&
+      x <= groundPlatform.x + groundPlatform.w - HERO_WIDTH * 0.35
+    : false;
+  const shouldSnapToGround = isInsideGroundX && y <= groundTop + 0.2;
+
   hero.x = x;
-  hero.y = y;
+  hero.y = shouldSnapToGround ? groundTop : y;
   hero.vx = 0;
   hero.vy = 0;
   hero.facing = 1;
-  hero.grounded = false;
-  hero.coyoteLeft = 0;
+  hero.grounded = shouldSnapToGround;
+  hero.coyoteLeft = shouldSnapToGround ? COYOTE_TIME : 0;
   hero.jumpBufferLeft = 0;
   hero.crouch = 0;
   hero.superJumpCharge = 0;
   hero.superJumpWindow = 0;
   hero.airJumpsLeft = 1;
-  hero.supportPlatform = null;
+  hero.supportPlatform = shouldSnapToGround ? groundPlatform : null;
   hero.onLadder = false;
   hero.ladder = null;
   gameCamera.x = 0;
-  gameCamera.y = Math.max(CAMERA_MIN_Y, y + CAMERA_BASE_OFFSET);
+  const startCameraY = shouldSnapToGround
+    ? getGroundAnchoredCameraY()
+    : hero.y + CAMERA_BASE_OFFSET;
+  gameCamera.y = Math.max(CAMERA_MIN_Y, startCameraY);
 };
 
 const onHeroDeath = () => {
@@ -647,7 +740,7 @@ const resolveLanding = (previousY) => {
       continue;
     }
 
-    if (previousY >= platformTop + 0.02 && hero.y <= platformTop) {
+    if (previousY >= platformTop - 0.02 && hero.y <= platformTop) {
       if (platformTop > bestLanding) {
         bestLanding = platformTop;
         bestPlatform = platform.ref;
@@ -662,6 +755,41 @@ const resolveLanding = (previousY) => {
   }
 
   return null;
+};
+
+const resolveCeiling = (previousY) => {
+  if (hero.vy <= 0) {
+    return false;
+  }
+
+  const left = hero.x - HERO_WIDTH * 0.5 + 0.04;
+  const right = hero.x + HERO_WIDTH * 0.5 - 0.04;
+  const previousTop = previousY + HERO_HEIGHT;
+  const currentTop = hero.y + HERO_HEIGHT;
+  let hitBottom = Number.POSITIVE_INFINITY;
+
+  for (let i = 0; i < visiblePlatformCount; i++) {
+    const platform = platformPool[i];
+    const platformBottom = platform.y;
+    const platformLeft = platform.x;
+    const platformRight = platform.x + platform.w;
+
+    if (right <= platformLeft + 0.02 || left >= platformRight - 0.02) {
+      continue;
+    }
+
+    if (previousTop <= platformBottom + 0.01 && currentTop >= platformBottom) {
+      hitBottom = Math.min(hitBottom, platformBottom);
+    }
+  }
+
+  if (hitBottom < Number.POSITIVE_INFINITY) {
+    hero.y = hitBottom - HERO_HEIGHT - 0.001;
+    hero.vy = 0;
+    return true;
+  }
+
+  return false;
 };
 
 const findStandingPlatform = () => {
@@ -748,6 +876,7 @@ const stepGame = (delta) => {
     hero.superJumpCharge = 0;
     hero.superJumpWindow = 0;
     inputState.jumpQueued = false;
+    inputState.jumpFromSpace = false;
   }
 
   if (hero.onLadder && hero.ladder) {
@@ -763,12 +892,19 @@ const stepGame = (delta) => {
     hero.y += climbInput * LADDER_CLIMB_SPEED * delta;
     hero.y = clamp(hero.y, ladderBottom - 0.02, ladderTop + 0.02);
 
-    if (inputState.jumpQueued && !inputState.up && !inputState.down) {
+    const canJumpOffLadder =
+      inputState.jumpQueued &&
+      (inputState.jumpFromSpace || (!inputState.up && !inputState.down));
+    if (canJumpOffLadder) {
       inputState.jumpQueued = false;
+      inputState.jumpFromSpace = false;
       hero.onLadder = false;
       hero.ladder = null;
       hero.vy = JUMP_VELOCITY * 0.9;
+      hero.grounded = false;
+      hero.coyoteLeft = 0;
       hero.supportPlatform = null;
+      hero.airJumpsLeft = 1;
     } else {
       const reachedTop = climbInput > 0 && hero.y >= ladderTop - 0.01;
       const reachedBottom = climbInput < 0 && hero.y <= ladderBottom + 0.01;
@@ -781,6 +917,10 @@ const stepGame = (delta) => {
         const standingPlatform = findStandingPlatform();
         hero.grounded = standingPlatform !== null;
         hero.supportPlatform = standingPlatform;
+        hero.coyoteLeft = COYOTE_TIME;
+        if (standingPlatform) {
+          hero.y = standingPlatform.y + standingPlatform.h;
+        }
       }
     }
 
@@ -819,6 +959,7 @@ const stepGame = (delta) => {
   if (inputState.jumpQueued) {
     hero.jumpBufferLeft = JUMP_BUFFER_TIME;
     inputState.jumpQueued = false;
+    inputState.jumpFromSpace = false;
   } else {
     hero.jumpBufferLeft = Math.max(0, hero.jumpBufferLeft - delta);
   }
@@ -870,8 +1011,8 @@ const stepGame = (delta) => {
   const previousY = hero.y;
 
   hero.x += hero.vx * delta;
-  const leftBound = -WORLD_HALF_WIDTH + HERO_WIDTH * 0.5;
-  const rightBound = WORLD_HALF_WIDTH - HERO_WIDTH * 0.5;
+  const leftBound = -worldHalfWidth + HERO_WIDTH * 0.5;
+  const rightBound = worldHalfWidth - HERO_WIDTH * 0.5;
   const clampedX = clamp(hero.x, leftBound, rightBound);
   if (clampedX !== hero.x) {
     hero.vx = 0;
@@ -880,6 +1021,7 @@ const stepGame = (delta) => {
 
   hero.y += hero.vy * delta;
   collectVisiblePlatforms(hero.y, gameCamera.y);
+  resolveCeiling(previousY);
   const landedPlatform = resolveLanding(previousY);
   hero.grounded = landedPlatform !== null;
   hero.supportPlatform = landedPlatform;
@@ -903,15 +1045,22 @@ const stepGame = (delta) => {
 };
 
 const syncUniforms = (timeSeconds) => {
-  const defaultY = hero.y + CAMERA_BASE_OFFSET;
+  const groundTop = getGroundTop();
+  const isNearGround = hero.y <= groundTop + 0.95;
+  const anchoredDefaultY = isNearGround
+    ? Math.max(hero.y + CAMERA_BASE_OFFSET, getGroundAnchoredCameraY())
+    : hero.y + CAMERA_BASE_OFFSET;
+  const defaultY = anchoredDefaultY;
   const lookDownY = hero.y - viewHeight * 0.43;
   const targetCameraY = THREE.MathUtils.lerp(defaultY, lookDownY, hero.crouch);
+  const clampedTargetY = clamp(targetCameraY, CAMERA_MIN_Y, WORLD_TOP_LIMIT);
+  const deadzonedTargetY = applyVerticalCameraDeadzone(clampedTargetY);
 
   gameCamera.x = 0;
   gameCamera.y = THREE.MathUtils.lerp(
     gameCamera.y,
-    clamp(targetCameraY, CAMERA_MIN_Y, WORLD_TOP_LIMIT),
-    hero.crouch > 0.05 ? 0.17 : 0.08,
+    deadzonedTargetY,
+    hero.crouch > 0.05 ? CAMERA_SCROLL_SMOOTH_CROUCH : CAMERA_SCROLL_SMOOTH,
   );
 
   collectVisiblePlatforms(hero.y, gameCamera.y);
@@ -957,14 +1106,35 @@ const onResize = () => {
 
   const width = Math.max(1, dom.width(container.value));
   const height = Math.max(1, dom.height(container.value));
+  const toolbarElement =
+    typeof document !== "undefined"
+      ? document.getElementById("side_toolbar")
+      : null;
+  const toolbarWidth = toolbarElement
+    ? Math.max(0, toolbarElement.getBoundingClientRect().width)
+    : 0;
+  const availableWidth = Math.max(1, width - toolbarWidth);
+  const gameWidth = Math.max(
+    1,
+    Math.floor(availableWidth * GAME_VIEWPORT_WIDTH_RATIO),
+  );
+  const gameX = toolbarWidth + (availableWidth - gameWidth) * 0.5;
 
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
   renderer.setSize(width, height, false);
 
   viewHeight = height * WORLD_UNITS_PER_PIXEL;
-  viewWidth = (width / height) * viewHeight;
+  viewWidth = (gameWidth / height) * viewHeight;
+  if (worldPlatforms.length === 0) {
+    worldHalfWidth = calculateWorldHalfWidth();
+  }
+  gameViewportPx.x = gameX;
+  gameViewportPx.y = 0;
+  gameViewportPx.w = gameWidth;
+  gameViewportPx.h = height;
 
   material.uniforms.uResolution.value.set(width, height);
+  material.uniforms.uGameViewport.value.set(gameX, 0, gameWidth, height);
   material.uniforms.uViewSize.value.set(viewWidth, viewHeight);
 };
 
@@ -989,8 +1159,6 @@ const createRenderer = async () => {
 };
 
 const initGL = async () => {
-  generateWorld();
-
   scene = new THREE.Scene();
   camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
   camera.position.z = 1;
@@ -1003,6 +1171,9 @@ const initGL = async () => {
   quad = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), material);
   scene.add(quad);
 
+  onResize();
+  generateWorld();
+
   checkpoint.x = START_POS.x;
   checkpoint.y = START_POS.y;
   livesLeft.value = START_LIVES;
@@ -1012,7 +1183,6 @@ const initGL = async () => {
   collectVisiblePlatforms(hero.y, gameCamera.y);
   collectVisibleCollectibles(gameCamera.y);
   collectVisibleLadders(hero.y, gameCamera.y);
-  onResize();
 
   previousTimeMs = performance.now();
 
