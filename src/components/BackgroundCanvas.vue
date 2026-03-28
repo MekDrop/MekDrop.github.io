@@ -100,6 +100,17 @@ import { computed, onBeforeUnmount, onMounted, ref } from "vue";
 import { State, StateMachine } from "yuka";
 import { dom } from "quasar";
 import { create as createBackgroundMaterial } from "assets/materials/background/material";
+import {
+  createCheckpoint,
+  createGameCamera,
+  createGameViewport,
+  createHero,
+  createInputState,
+  createSnake,
+  createSnakeAI,
+  createVisiblePools,
+  createWorldState,
+} from "assets/game/objects";
 
 const MAX_VISIBLE_PLATFORMS = 48;
 const MAX_VISIBLE_COLLECTIBLES = 12;
@@ -190,12 +201,7 @@ let visibleCollectibleCount = 0;
 let visibleLadderCount = 0;
 let visibleSpikeCount = 0;
 let worldHalfWidth = WORLD_HALF_WIDTH;
-const gameViewportPx = {
-  x: 0,
-  y: 0,
-  w: 1,
-  h: 1,
-};
+const gameViewportPx = createGameViewport();
 
 const container = ref(null);
 const livesLeft = ref(START_LIVES);
@@ -226,111 +232,28 @@ const hudHeartSlots = computed(() => {
 });
 const hudScore = computed(() => formatHudNumber(score.value, 7));
 
-const worldPlatforms = [];
-const worldCollectibles = [];
-const worldLadders = [];
-const worldSpikes = [];
-const rowMilestones = [];
-let nextCollectibleId = 1;
+const worldState = createWorldState();
+const {
+  worldPlatforms,
+  worldCollectibles,
+  worldLadders,
+  worldSpikes,
+  rowMilestones,
+} = worldState;
 
-const platformPool = Array.from({ length: MAX_VISIBLE_PLATFORMS }, () => ({
-  x: -9999,
-  y: -9999,
-  w: 0,
-  h: 0,
-  motion: 0,
-  type: 0,
-  shake: 0,
-  durability: 1,
-  ref: null,
-}));
+const { platformPool, collectiblePool, ladderPool, spikePool } = createVisiblePools({
+  maxVisiblePlatforms: MAX_VISIBLE_PLATFORMS,
+  maxVisibleCollectibles: MAX_VISIBLE_COLLECTIBLES,
+  maxVisibleLadders: MAX_VISIBLE_LADDERS,
+  maxVisibleSpikes: MAX_VISIBLE_SPIKES,
+});
 
-const collectiblePool = Array.from({ length: MAX_VISIBLE_COLLECTIBLES }, () => ({
-  x: -9999,
-  y: -9999,
-  phase: 0,
-}));
-
-const ladderPool = Array.from({ length: MAX_VISIBLE_LADDERS }, () => ({
-  x: -9999,
-  y: -9999,
-  w: 0,
-  h: 0,
-  ref: null,
-}));
-
-const spikePool = Array.from({ length: MAX_VISIBLE_SPIKES }, () => ({
-  x: -9999,
-  y: -9999,
-  w: 0,
-  h: 0,
-  dir: 0,
-}));
-
-const checkpoint = {
-  x: START_POS.x,
-  y: START_POS.y,
-};
-
-const inputState = {
-  left: false,
-  right: false,
-  up: false,
-  down: false,
-  jumpQueued: false,
-  jumpFromSpace: false,
-};
-
-const hero = {
-  x: START_POS.x,
-  y: START_POS.y,
-  vx: 0,
-  vy: 0,
-  facing: 1,
-  grounded: false,
-  coyoteLeft: 0,
-  jumpBufferLeft: 0,
-  crouch: 0,
-  superJumpCharge: 0,
-  superJumpWindow: 0,
-  airJumpsLeft: 1,
-  supportPlatform: null,
-  onLadder: false,
-  ladder: null,
-  ladderRegrabLock: 0,
-};
-
-const snake = {
-  x: START_POS.x,
-  y: START_POS.y + 2.2,
-  vx: 0,
-  vy: 0,
-  facing: 1,
-  grounded: false,
-  supportPlatform: null,
-  onLadder: false,
-  ladder: null,
-  homePlatform: null,
-  patrolDir: 1,
-  targetLadder: null,
-  targetLadderRefresh: 0,
-  biteCooldown: 0,
-  alive: true,
-};
-
-const snakeAI = {
-  stateMachine: new StateMachine(),
-  desiredDir: 0,
-  desiredSpeed: SNAKE_PATROL_SPEED,
-  attackMode: false,
-  heroAbove: false,
-  escapeTarget: null,
-};
-
-const gameCamera = {
-  x: 0,
-  y: 6.5,
-};
+const checkpoint = createCheckpoint(START_POS);
+const inputState = createInputState();
+const hero = createHero(START_POS);
+const snake = createSnake(START_POS);
+const snakeAI = createSnakeAI(new StateMachine(), SNAKE_PATROL_SPEED);
+const gameCamera = createGameCamera();
 
 const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
 const fract = (value) => value - Math.floor(value);
@@ -540,7 +463,7 @@ const addCollectibleForPlatform = (platform, seed) => {
 
   const offsetX = 0.15 + seededNoise(seed + 0.73) * 0.7;
   worldCollectibles.push({
-    id: nextCollectibleId++,
+    id: worldState.nextCollectibleId++,
     x: platform.x + platform.w * offsetX,
     y: platform.y + platform.h + 0.82,
     phase: seededNoise(seed + 1.53) * Math.PI * 2,
@@ -554,7 +477,7 @@ const generateWorld = () => {
   worldLadders.length = 0;
   worldSpikes.length = 0;
   rowMilestones.length = 0;
-  nextCollectibleId = 1;
+  worldState.nextCollectibleId = 1;
 
   const groundPlatform = {
     x: -worldHalfWidth,
