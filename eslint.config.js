@@ -1,10 +1,6 @@
-const { FlatCompat } = require("@eslint/eslintrc");
-const js = require("@eslint/js");
-
-const compat = new FlatCompat({
-  baseDirectory: __dirname,
-  recommendedConfig: js.configs.recommended,
-});
+const globals = require("globals");
+const prettier = require("eslint-config-prettier/flat");
+const vue = require("eslint-plugin-vue");
 
 module.exports = [
   {
@@ -15,37 +11,42 @@ module.exports = [
       ".quasar/**",
       "node_modules/**",
       ".eslintrc.js",
+      ".eslintrc.cjs",
       "quasar.config.*.temporary.compiled*",
     ],
   },
-  ...compat.config({
-    root: true,
-    parserOptions: {
+  {
+    languageOptions: {
       ecmaVersion: 2021,
+      sourceType: "module",
+      globals: {
+        ...globals.browser,
+        ...globals.node,
+        ga: "readonly",
+        cordova: "readonly",
+        __statics: "readonly",
+        __QUASAR_SSR__: "readonly",
+        __QUASAR_SSR_SERVER__: "readonly",
+        __QUASAR_SSR_CLIENT__: "readonly",
+        __QUASAR_SSR_PWA__: "readonly",
+        process: "readonly",
+        Capacitor: "readonly",
+        chrome: "readonly",
+      },
     },
-    env: {
-      node: true,
-      browser: true,
-      "vue/setup-compiler-macros": true,
-    },
-    extends: ["plugin:vue/vue3-essential", "prettier"],
-    plugins: ["vue"],
-    globals: {
-      ga: "readonly",
-      cordova: "readonly",
-      __statics: "readonly",
-      __QUASAR_SSR__: "readonly",
-      __QUASAR_SSR_SERVER__: "readonly",
-      __QUASAR_SSR_CLIENT__: "readonly",
-      __QUASAR_SSR_PWA__: "readonly",
-      process: "readonly",
-      Capacitor: "readonly",
-      chrome: "readonly",
+    plugins: {
+      vue,
     },
     rules: {
       "prefer-promise-reject-errors": "off",
       "no-debugger": process.env.NODE_ENV === "production" ? "error" : "off",
+    },
+  },
+  ...vue.configs["flat/essential"],
+  prettier,
+  {
+    rules: {
       "vue/no-v-text-v-html-on-component": "off",
     },
-  }),
+  },
 ];
