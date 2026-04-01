@@ -12,6 +12,9 @@ const { configure } = require("quasar/wrappers");
 const path = require("path");
 const fs = require("fs");
 const SiteMap = require("vite-plugin-sitemap").default;
+const vueI18nPluginModule = require("@intlify/unplugin-vue-i18n/vite");
+const vueI18nPlugin =
+  vueI18nPluginModule.default || vueI18nPluginModule;
 
 function getRoutes() {
   const files = fs
@@ -146,7 +149,7 @@ module.exports = configure(function (ctx) {
 
       vitePlugins: [
         [
-          "@intlify/vite-plugin-vue-i18n",
+          vueI18nPlugin,
           {
             // if you want to use Vue I18n Legacy API, you need to set `compositionOnly: false`
             // compositionOnly: false,
