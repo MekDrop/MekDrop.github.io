@@ -1,452 +1,121 @@
-precision highp float;
+precision mediump float;
 
-const float VERTICAL_SCALE = 0.5625;
+const int MAX_STRUCTURES = 1;
+const int MAX_ANCHORS = 1;
+const int MAX_MINIONS = 1;
+const int MAX_PROJECTILES = 1;
+const int MAX_IMPACTS = 1;
 
 uniform vec2 uResolution;
 uniform vec4 uGameViewport;
-uniform vec2 uViewSize;
-uniform vec2 uCameraPos;
 uniform float uTime;
-uniform vec2 uHeroPos;
-uniform vec2 uHeroVelocity;
-uniform float uHeroFacing;
-uniform float uHeroGrounded;
-uniform float uHeroCrouch;
-uniform float uHeroVisible;
-uniform vec2 uSnakePos;
-uniform vec2 uSnakeVelocity;
-uniform float uSnakeFacing;
-uniform float uSnakeAlive;
-uniform float uSnakeOnLadder;
-uniform vec4 uPlatforms[48];
-uniform float uPlatformMotion[48];
-uniform float uPlatformType[48];
-uniform float uPlatformShake[48];
-uniform float uPlatformDurability[48];
-uniform float uPlatformCount;
-uniform vec4 uCollectibles[12];
-uniform float uCollectibleCount;
-uniform vec4 uLadders[40];
-uniform float uLadderCount;
-uniform vec4 uSpikes[20];
-uniform float uSpikeDir[20];
-uniform float uSpikeCount;
-uniform vec4 uPortals[16];
-uniform float uPortalSide[16];
-uniform float uPortalCount;
+uniform float uPixelScale;
+uniform vec3 uCameraPos;
+uniform float uCameraYaw;
+uniform float uCameraPitch;
+uniform float uFov;
+uniform float uArenaHalfWidth;
+uniform float uArenaFloorY;
+uniform float uArenaCeilingY;
+uniform vec3 uPlayerPos;
+uniform vec3 uPlayerVelocity;
+uniform float uPlayerWeapon;
+uniform float uPlayerHealthNorm;
+uniform float uPlayerGrappleActive;
+uniform vec3 uPlayerGrapplePoint;
+uniform float uPlayerSwordSwing;
+uniform vec3 uBossPos;
+uniform float uBossHealthNorm;
+uniform float uBossLookUp;
+uniform float uBossSummonPulse;
+uniform float uBossAlive;
+uniform float uScanOriginZ;
+uniform float uScanDistance;
+uniform float uScanWidth;
+uniform float uScanIntensity;
+uniform vec4 uStructures[MAX_STRUCTURES];
+uniform vec4 uStructureMeta[MAX_STRUCTURES];
+uniform float uStructureCount;
+uniform vec4 uAnchors[MAX_ANCHORS];
+uniform float uAnchorState[MAX_ANCHORS];
+uniform float uAnchorCount;
+uniform vec4 uMinions[MAX_MINIONS];
+uniform vec4 uMinionMeta[MAX_MINIONS];
+uniform float uMinionCount;
+uniform vec4 uProjectiles[MAX_PROJECTILES];
+uniform vec4 uProjectileMeta[MAX_PROJECTILES];
+uniform float uProjectileCount;
+uniform vec4 uImpacts[MAX_IMPACTS];
+uniform float uImpactStrength[MAX_IMPACTS];
+uniform float uImpactCount;
 
-float rectMask(vec2 point, vec4 rect) {
-  vec2 insideMin = step(rect.xy, point);
-  vec2 insideMax = step(point, rect.xy + rect.zw);
-  return insideMin.x * insideMin.y * insideMax.x * insideMax.y;
+float saturate(float value) {
+  return clamp(value, 0.0, 1.0);
 }
 
-float ellipseMask(vec2 point, vec2 center, vec2 radius) {
-  vec2 p = (point - center) / max(radius, vec2(0.0001));
+float invSmoothstep(float edge0, float edge1, float value) {
+  return 1.0 - smoothstep(edge0, edge1, value);
+}
+
+float ellipseMask(vec2 point, vec2 radius) {
+  vec2 r = max(radius, vec2(0.0001));
+  vec2 p = point / r;
   return 1.0 - step(1.0, dot(p, p));
 }
 
-vec3 applyRect(vec3 color, vec2 point, vec4 rect, vec3 fillColor) {
-  float mask = rectMask(point, rect);
-  return mix(color, fillColor, mask);
+float segmentDistance(vec2 point, vec2 a, vec2 b) {
+  vec2 ap = point - a;
+  vec2 ab = b - a;
+  float t = clamp(dot(ap, ab) / max(dot(ab, ab), 0.0001), 0.0, 1.0);
+  return length(ap - ab * t);
 }
 
-vec3 drawRectPlatform(
-  vec3 color,
-  vec2 worldPos,
-  vec4 platformRect,
-  float motion,
-  float platformType,
-  float platformShake,
-  float platformDurability
-) {
-  vec3 outline = vec3(0.02, 0.07, 0.09);
-  vec3 blockDark = vec3(0.13, 0.43, 0.45);
-  vec3 blockMain = vec3(0.26, 0.76, 0.72);
-  vec3 blockLight = vec3(0.61, 1.00, 0.92);
-  float brittle = step(0.5, platformType);
-  float aged = brittle * (1.0 - clamp(platformDurability, 0.0, 1.0));
-  float shake = brittle * clamp(platformShake, 0.0, 1.0);
+void getCameraBasis(out vec3 right, out vec3 up, out vec3 forward) {
+  float cy = cos(uCameraYaw);
+  float sy = sin(uCameraYaw);
+  float cp = cos(uCameraPitch);
+  float sp = sin(uCameraPitch);
+  forward = normalize(vec3(sy * cp, sp, cy * cp));
+  right = normalize(cross(vec3(0.0, 1.0, 0.0), forward));
+  up = normalize(cross(forward, right));
+}
 
-  vec2 shakenPos = worldPos;
-  shakenPos.x += sin(uTime * 55.0 + platformRect.y * 4.1) * shake * 0.08;
-  shakenPos.y += sin(uTime * 41.0 + platformRect.x * 2.7) * shake * 0.04;
+vec3 worldToCamera(vec3 point, vec3 right, vec3 up, vec3 forward) {
+  vec3 offset = point - uCameraPos;
+  return vec3(dot(offset, right), dot(offset, up), dot(offset, forward));
+}
 
-  vec2 local = (shakenPos - platformRect.xy) / max(platformRect.zw, vec2(0.0001));
-  float body = rectMask(shakenPos, platformRect);
-  float inner = rectMask(
-    shakenPos,
-    vec4(
-      platformRect.x + 0.08,
-      platformRect.y + 0.06,
-      max(platformRect.z - 0.16, 0.0),
-      max(platformRect.w - 0.12, 0.0)
-    )
+vec2 projectToNdc(vec3 cameraPoint, float aspect) {
+  float z = max(cameraPoint.z, 0.0001);
+  return vec2(
+    cameraPoint.x / max(z * aspect * uFov, 0.0001),
+    cameraPoint.y / max(z * uFov, 0.0001)
   );
-  float border = max(body - inner, 0.0);
+}
 
-  float scroll = -motion * uTime * 0.8;
-  float scan = step(0.5, fract((shakenPos.x - platformRect.x + scroll) * 0.85 + platformRect.y * 0.23));
-  float crackNoise = fract(
-    (shakenPos.x - platformRect.x) * 2.7 +
-    (shakenPos.y - platformRect.y) * 4.9 +
-    platformRect.y * 0.47
+float scanBandAtZ(float z) {
+  float dz = abs((z - uScanOriginZ) - uScanDistance);
+  return invSmoothstep(uScanWidth * 0.08, uScanWidth, dz);
+}
+
+float wireLine(float coord, float density, float width) {
+  return invSmoothstep(0.0, width, abs(fract(coord * density) - 0.5));
+}
+
+vec3 drawOutsideWall(vec2 fragPos) {
+  vec3 dark = vec3(0.01, 0.05, 0.09);
+  vec3 main = vec3(0.05, 0.20, 0.34);
+  vec3 glow = vec3(0.11, 0.58, 0.88);
+  vec2 coord = fragPos * vec2(0.06, 0.12);
+  float cell = sin(floor(coord.x) * 0.71 + floor(coord.y) * 0.59);
+  float mortar = max(
+    1.0 - step(0.10, fract(coord.x)),
+    1.0 - step(0.08, fract(coord.y))
   );
-  float crackMask = brittle * inner * step(crackNoise, 0.09 + aged * 0.06);
-
-  vec3 agedDark = vec3(0.07, 0.24, 0.26);
-  vec3 agedMain = vec3(0.20, 0.56, 0.53);
-  vec3 agedLight = vec3(0.42, 0.80, 0.73);
-  blockDark = mix(blockDark, agedDark, brittle);
-  blockMain = mix(blockMain, agedMain, brittle);
-  blockLight = mix(blockLight, agedLight, brittle);
-  vec3 fill = mix(blockDark, blockMain, clamp(local.y, 0.0, 1.0) * 0.6 + scan * 0.22);
-  fill = mix(fill, blockDark * 0.82, crackMask);
-
-  color = mix(color, fill, inner);
-  color = mix(color, outline, border);
-  color = mix(color, blockLight, inner * (0.08 + min(abs(motion) * 0.03, 0.14)));
-
-  return color;
-}
-
-vec3 drawPlatforms(vec3 color, vec2 worldPos) {
-  for (int i = 0; i < 48; i++) {
-    float enabled = step(float(i) + 0.5, uPlatformCount);
-    vec4 platformRect = uPlatforms[i];
-    float platformMotion = uPlatformMotion[i];
-    float platformType = uPlatformType[i];
-    float platformShake = uPlatformShake[i];
-    float platformDurability = uPlatformDurability[i];
-    vec3 nextColor = drawRectPlatform(
-      color,
-      worldPos,
-      platformRect,
-      platformMotion,
-      platformType,
-      platformShake,
-      platformDurability
-    );
-    color = mix(color, nextColor, enabled);
-  }
-
-  return color;
-}
-
-vec3 drawBaseFloor(vec3 color, vec2 worldPos) {
-  vec3 outline = vec3(0.02, 0.07, 0.09);
-  vec3 blockDark = vec3(0.13, 0.43, 0.45);
-  vec3 blockMain = vec3(0.26, 0.76, 0.72);
-  vec3 blockLight = vec3(0.61, 1.00, 0.92);
-
-  float body = step(0.0, worldPos.y) * step(worldPos.y, 1.12);
-  float inner = step(0.06, worldPos.y) * step(worldPos.y, 1.02);
-  float border = max(body - inner, 0.0);
-  float localY = clamp(worldPos.y / 1.12, 0.0, 1.0);
-  float scan = step(0.5, fract((worldPos.x + 0.28) * 0.82 + 0.11));
-  vec3 fill = mix(blockDark, blockMain, localY * 0.62 + scan * 0.21);
-
-  color = mix(color, fill, inner);
-  color = mix(color, outline, border);
-  color = mix(color, blockLight, inner * 0.10);
-
-  return color;
-}
-
-vec3 drawLadders(vec3 color, vec2 worldPos, float pixelSize) {
-  vec3 rungDark = vec3(0.10, 0.32, 0.36);
-  vec3 rungMain = vec3(0.33, 0.92, 0.84);
-  vec3 rungLight = vec3(0.62, 1.00, 0.93);
-
-  for (int i = 0; i < 40; i++) {
-    float enabled = step(float(i) + 0.5, uLadderCount);
-    vec4 ladder = uLadders[i];
-    float snappedWidth = max(pixelSize, floor(ladder.z / pixelSize + 0.5) * pixelSize);
-    float snappedHeight = max(pixelSize, floor(ladder.w / pixelSize + 0.5) * pixelSize);
-    float snappedX = floor(ladder.x / pixelSize + 0.5) * pixelSize;
-    float snappedY = floor(ladder.y / pixelSize + 0.5) * pixelSize;
-
-    vec4 shaft = vec4(
-      snappedX - snappedWidth * 0.5,
-      snappedY,
-      snappedWidth,
-      snappedHeight
-    );
-    vec4 leftRail = vec4(
-      snappedX - snappedWidth * 0.5,
-      snappedY,
-      snappedWidth * 0.22,
-      snappedHeight
-    );
-    vec4 rightRail = vec4(
-      snappedX + snappedWidth * 0.28,
-      snappedY,
-      snappedWidth * 0.22,
-      snappedHeight
-    );
-
-    float shaftMask = rectMask(worldPos, shaft);
-    float leftMask = rectMask(worldPos, leftRail);
-    float rightMask = rectMask(worldPos, rightRail);
-
-    // Keep rung alignment global so all ladders share the same visual pattern.
-    float rungPhase = fract(worldPos.y / 0.52);
-    float rungBand = step(0.60, rungPhase) * step(rungPhase, 0.86);
-    float rungMask = rectMask(
-      worldPos,
-      vec4(
-        snappedX - snappedWidth * 0.44,
-        snappedY,
-        snappedWidth * 0.88,
-        snappedHeight
-      )
-    ) * rungBand;
-
-    color = mix(color, rungDark, shaftMask * enabled);
-    color = mix(color, rungMain, (leftMask + rightMask) * enabled);
-    color = mix(color, rungLight, rungMask * enabled);
-  }
-
-  return color;
-}
-
-vec3 drawCollectibles(vec3 color, vec2 worldPos) {
-  vec3 coinOuter = vec3(0.57, 1.00, 0.90);
-  vec3 coinInner = vec3(0.85, 1.00, 0.96);
-  vec3 coinOutline = vec3(0.08, 0.22, 0.24);
-
-  for (int i = 0; i < 12; i++) {
-    float enabled = step(float(i) + 0.5, uCollectibleCount);
-    vec4 data = uCollectibles[i];
-    vec2 coinCenter = data.xy + vec2(0.0, sin(uTime * 2.6 + data.z) * 0.12);
-
-    float body = ellipseMask(worldPos, coinCenter, vec2(0.26, 0.26));
-    float inner = ellipseMask(worldPos, coinCenter, vec2(0.15, 0.15));
-    float border = body - inner;
-
-    color = mix(color, coinOuter, body * enabled);
-    color = mix(color, coinOutline, border * enabled);
-    color = mix(color, coinInner, inner * enabled);
-  }
-
-  return color;
-}
-
-vec3 drawPortals(vec3 color, vec2 worldPos) {
-  vec3 frameDark = vec3(0.05, 0.15, 0.18);
-  vec3 portalMain = vec3(0.20, 0.62, 0.90);
-  vec3 portalGlow = vec3(0.68, 0.96, 1.00);
-
-  for (int i = 0; i < 16; i++) {
-    float enabled = step(float(i) + 0.5, uPortalCount);
-    vec4 portal = uPortals[i];
-    float side = uPortalSide[i];
-    float body = rectMask(worldPos, portal);
-    vec4 innerRect = vec4(
-      portal.x + 0.06,
-      portal.y + 0.06,
-      max(portal.z - 0.12, 0.0),
-      max(portal.w - 0.12, 0.0)
-    );
-    float core = rectMask(worldPos, innerRect);
-    float frame = max(body - core, 0.0);
-
-    vec2 center = portal.xy + portal.zw * 0.5;
-    vec2 scaled = (worldPos - center) / max(portal.zw * vec2(0.72, 0.48), vec2(0.0001));
-    float radius = length(scaled);
-    float direction = side < 0.0 ? -1.0 : 1.0;
-    float swirlAngle = atan(scaled.y, scaled.x * direction);
-    float swirl = 0.5 + 0.5 * sin(swirlAngle * 5.0 + uTime * 7.3 + portal.y * 0.31);
-    float stream = smoothstep(1.05, 0.30, radius) * swirl;
-    float pulse = smoothstep(0.92, 0.08, radius) * (0.72 + 0.28 * sin(uTime * 6.1 + portal.x * 1.7));
-
-    color = mix(color, frameDark, frame * enabled);
-    color = mix(color, portalMain, core * stream * enabled);
-    color = mix(color, portalGlow, core * pulse * enabled * 0.85);
-  }
-
-  return color;
-}
-
-vec3 drawSpikes(vec3 color, vec2 worldPos) {
-  vec3 spikeDark = vec3(0.06, 0.20, 0.22);
-  vec3 spikeMain = vec3(0.28, 0.85, 0.78);
-  vec3 spikeLight = vec3(0.72, 1.00, 0.94);
-
-  for (int i = 0; i < 20; i++) {
-    float enabled = step(float(i) + 0.5, uSpikeCount);
-    vec4 spike = uSpikes[i];
-    float dir = uSpikeDir[i];
-    vec4 spikeRect = vec4(spike.x, spike.y, spike.z, spike.w);
-    float baseMask = rectMask(worldPos, spikeRect);
-    vec2 local = (worldPos - spike.xy) / max(spike.zw, vec2(0.0001));
-
-    float toothHeight = max(0.16, min(0.34, 0.22 + spike.w * 0.12));
-    float ty = fract((worldPos.y - spike.y) / toothHeight);
-    float ridge = 1.0 - abs(ty - 0.5) * 2.0;
-    float inward = dir > 0.0 ? local.x : (1.0 - local.x);
-    float spikeMask = baseMask * step(inward, ridge);
-    float baseShade = spikeMask * step(inward, 0.24);
-    float highlight = spikeMask * step(0.78, ridge) * step(0.58, inward);
-
-    color = mix(color, spikeDark, baseShade * enabled * 1.1);
-    color = mix(color, spikeMain, spikeMask * enabled);
-    color = mix(color, spikeLight, highlight * enabled);
-  }
-
-  return color;
-}
-
-vec3 drawSideWalls(vec2 fragPos) {
-  vec3 brickDark = vec3(0.03, 0.10, 0.12);
-  vec3 brickMain = vec3(0.10, 0.36, 0.40);
-  vec3 mortar = vec3(0.45, 0.95, 0.88);
-
-  vec2 brickCoord = fragPos * vec2(0.07, 0.11);
-  float rowParity = mod(floor(brickCoord.y), 2.0);
-  float brickX = fract(brickCoord.x + rowParity * 0.5);
-  float brickY = fract(brickCoord.y);
-
-  float mortarMask = max(1.0 - step(0.08, brickX), 1.0 - step(0.10, brickY));
-  float blockShade = 0.66 + 0.34 * sin(floor(brickCoord.x) * 0.71 + floor(brickCoord.y) * 0.53);
-  vec3 wall = mix(brickDark, brickMain, blockShade);
-  wall = mix(wall, mortar, mortarMask * 0.78);
-
-  float edgeDistance = min(
-    abs(fragPos.x - uGameViewport.x),
-    abs(fragPos.x - (uGameViewport.x + uGameViewport.z))
-  );
-  float edgeGlow = 1.0 - step(3.0, edgeDistance);
-  wall = mix(wall, vec3(0.70, 1.0, 0.94), edgeGlow * 0.58);
-
-  return wall;
-}
-
-vec3 drawHero(vec3 color, vec2 worldPos) {
-  if (uHeroVisible < 0.5) {
-    return color;
-  }
-
-  vec2 heroPoint = worldPos - uHeroPos;
-  heroPoint.x *= uHeroFacing;
-
-  float speed = clamp(abs(uHeroVelocity.x) / 8.5, 0.0, 1.0);
-  float grounded = clamp(uHeroGrounded, 0.0, 1.0);
-  float air = 1.0 - grounded;
-  float crouch = clamp(uHeroCrouch, 0.0, 1.0);
-
-  float runSpeed = mix(1.0, 0.35, crouch);
-  float runPhase = uTime * (6.0 + speed * 8.0) * runSpeed;
-  float leftLift = max(0.0, sin(runPhase)) * 0.24 * speed * grounded * (1.0 - crouch * 0.75);
-  float rightLift = max(0.0, sin(runPhase + 3.14159)) * 0.24 * speed * grounded * (1.0 - crouch * 0.75);
-  float crouchPulse = sin(uTime * 10.0) * 0.03 * crouch;
-  float crouchDrop = crouch * 0.26 + crouchPulse;
-  float torsoRise = air * 0.10 - crouch * 0.08;
-  float vyNorm = clamp(uHeroVelocity.y / 14.0, -1.0, 1.0);
-  float torsoStretch = air * max(vyNorm, 0.0) * 0.12;
-  float torsoSquash = air * max(-vyNorm, 0.0) * 0.10;
-  float armSwing = sin(runPhase + 1.5708) * 0.16 * speed * grounded * (1.0 - crouch * 0.8);
-
-  vec3 outline = vec3(0.02, 0.07, 0.09);
-  vec3 suitMain = vec3(0.34, 0.93, 0.84);
-  vec3 suitDark = vec3(0.18, 0.57, 0.60);
-  vec3 suitLight = vec3(0.61, 1.00, 0.92);
-
-  float shadow = ellipseMask(
-    worldPos,
-    vec2(uHeroPos.x, 1.05),
-    vec2(0.55 + air * 0.12 + crouch * 0.08, 0.11 + air * 0.02 + crouch * 0.02)
-  ) * (0.30 + air * 0.25);
-  color = mix(color, vec3(0.0), shadow);
-
-  float headY = 1.27 + torsoRise - crouchDrop;
-  float faceY = 1.11 + torsoRise - crouchDrop * 0.96;
-  float torsoY = 0.72 + torsoRise - crouchDrop * 0.50;
-  float torsoH = mix(0.56 + torsoStretch - torsoSquash, 0.37, crouch);
-  float legYLeft = 0.16 + leftLift + crouch * 0.08;
-  float legYRight = 0.16 + rightLift + crouch * 0.08;
-  float legH = mix(0.58 - air * 0.09, 0.34, crouch);
-
-  color = applyRect(color, heroPoint, vec4(-0.24, headY, 0.48, 0.20), outline);
-  color = applyRect(color, heroPoint, vec4(-0.19, faceY, 0.38, 0.18), suitLight);
-  color = applyRect(color, heroPoint, vec4(-0.10, faceY + 0.03, 0.20, 0.06), outline);
-
-  color = applyRect(color, heroPoint, vec4(-0.26, torsoY, 0.52, torsoH), suitMain);
-  color = applyRect(color, heroPoint, vec4(-0.26, torsoY + torsoH * 0.46, 0.52, 0.08), outline);
-  color = applyRect(color, heroPoint, vec4(-0.26, torsoY, 0.08, torsoH), outline);
-  color = applyRect(color, heroPoint, vec4(0.18, torsoY, 0.08, torsoH), outline);
-
-  color = applyRect(
-    color,
-    heroPoint,
-    vec4(-0.34, 0.79 + torsoRise - crouchDrop * 0.48 + max(0.0, armSwing), 0.10, 0.40 - air * 0.05 - crouch * 0.1),
-    suitDark
-  );
-  color = applyRect(
-    color,
-    heroPoint,
-    vec4(0.24, 0.79 + torsoRise - crouchDrop * 0.48 + max(0.0, -armSwing), 0.10, 0.40 - air * 0.05 - crouch * 0.1),
-    suitDark
-  );
-
-  color = applyRect(
-    color,
-    heroPoint,
-    vec4(-0.20, legYLeft, 0.16, legH),
-    suitDark
-  );
-  color = applyRect(
-    color,
-    heroPoint,
-    vec4(0.04, legYRight, 0.16, legH),
-    suitDark
-  );
-  color = applyRect(color, heroPoint, vec4(-0.20, legYLeft, 0.05, legH), outline);
-  color = applyRect(color, heroPoint, vec4(0.15, legYRight, 0.05, legH), outline);
-  color = applyRect(color, heroPoint, vec4(-0.22, legYLeft - 0.10, 0.20, 0.14), outline);
-  color = applyRect(color, heroPoint, vec4(0.02, legYRight - 0.10, 0.20, 0.14), outline);
-
-  return color;
-}
-
-vec3 drawSnake(vec3 color, vec2 worldPos) {
-  if (uSnakeAlive < 0.5) {
-    return color;
-  }
-
-  vec2 snakePoint = worldPos - uSnakePos;
-  snakePoint.x *= uSnakeFacing;
-  float speed = clamp(abs(uSnakeVelocity.x) / 3.2, 0.0, 1.0);
-  float ladder = clamp(uSnakeOnLadder, 0.0, 1.0);
-  float crawlPhase = uTime * (5.2 + speed * 5.7) + uSnakePos.x * 1.31;
-  float wobble = sin((snakePoint.x + 0.35) * 6.9 + crawlPhase) * 0.045 * (1.0 - ladder * 0.85);
-  float climbWaveA = sin((snakePoint.y + uSnakePos.y * 0.55) * 10.2 + uTime * 8.6) * 0.075 * ladder;
-  float climbWaveB = sin((snakePoint.y + 0.18) * 6.3 - uTime * 5.4) * 0.034 * ladder;
-  float climbLift = sin((snakePoint.y + 0.2) * 8.8 + uTime * 6.1) * 0.015 * ladder;
-  snakePoint.x += climbWaveA + climbWaveB;
-  snakePoint.y -= wobble;
-  snakePoint.y += climbLift;
-
-  vec3 outline = vec3(0.02, 0.07, 0.09);
-  vec3 bodyDark = vec3(0.10, 0.38, 0.40);
-  vec3 bodyMain = vec3(0.25, 0.74, 0.69);
-  vec3 bodyLight = vec3(0.56, 1.00, 0.90);
-
-  color = applyRect(color, snakePoint, vec4(-0.56, 0.03, 0.20, 0.22), bodyDark);
-  color = applyRect(color, snakePoint, vec4(-0.36, 0.06, 0.22, 0.24), bodyMain);
-  color = applyRect(color, snakePoint, vec4(-0.14, 0.08, 0.24, 0.25), bodyMain);
-  color = applyRect(color, snakePoint, vec4(0.10, 0.09, 0.26, 0.26), bodyMain);
-  color = applyRect(color, snakePoint, vec4(0.34, 0.10, 0.20, 0.24), bodyMain);
-  color = applyRect(color, snakePoint, vec4(0.38, 0.14, 0.17, 0.16), bodyLight);
-
-  color = applyRect(color, snakePoint, vec4(-0.54, 0.01, 0.06, 0.25), outline);
-  color = applyRect(color, snakePoint, vec4(-0.31, 0.03, 0.05, 0.28), outline);
-  color = applyRect(color, snakePoint, vec4(-0.08, 0.05, 0.05, 0.29), outline);
-  color = applyRect(color, snakePoint, vec4(0.15, 0.06, 0.05, 0.29), outline);
-  color = applyRect(color, snakePoint, vec4(0.40, 0.08, 0.05, 0.25), outline);
-  color = applyRect(color, snakePoint, vec4(0.44, 0.22, 0.03, 0.03), outline);
-
-  return color;
+  vec3 wall = mix(dark, main, cell * 0.25 + 0.55);
+  wall = mix(wall, glow, mortar * 0.48);
+  float scanline = 0.90 + 0.10 * sin((fragPos.y + uTime * 10.0) * 0.85);
+  return wall * scanline;
 }
 
 void main() {
@@ -457,40 +126,226 @@ void main() {
     step(gameMin.y, fragPos.y) * step(fragPos.y, gameMax.y);
 
   if (inGame < 0.5) {
-    vec3 wallColor = drawSideWalls(fragPos);
-    float wallScanline = 0.94 + 0.06 * sin(gl_FragCoord.y * 0.7);
-    wallColor *= wallScanline;
-    wallColor = floor(wallColor * 24.0) / 24.0;
-    gl_FragColor = vec4(wallColor, 1.0);
+    vec3 wall = drawOutsideWall(fragPos);
+    wall = floor(wall * 24.0) / 24.0;
+    gl_FragColor = vec4(wall, 1.0);
     return;
   }
 
-  vec2 uv = (fragPos - uGameViewport.xy) / max(uGameViewport.zw, vec2(1.0));
-  vec2 worldPos = uCameraPos +
-    vec2((uv.x - 0.5) * uViewSize.x, (uv.y - 0.5) * uViewSize.y);
-  worldPos.y = uCameraPos.y + (worldPos.y - uCameraPos.y) / VERTICAL_SCALE;
+  vec2 uv = (fragPos - gameMin) / max(uGameViewport.zw, vec2(1.0));
+  vec2 pixelStep = vec2(
+    uPixelScale / max(uGameViewport.z, 1.0),
+    uPixelScale / max(uGameViewport.w, 1.0)
+  );
+  uv = floor(uv / pixelStep) * pixelStep + pixelStep * 0.5;
+  vec2 ndc = uv * 2.0 - 1.0;
+  float aspect = uGameViewport.z / max(uGameViewport.w, 1.0);
 
-  float pixelSize = max((uViewSize.y / max(uResolution.y, 1.0)) * 4.0, 0.004);
-  worldPos = floor(worldPos / pixelSize) * pixelSize;
+  vec3 right;
+  vec3 up;
+  vec3 forward;
+  getCameraBasis(right, up, forward);
+  vec3 ray = normalize(forward + right * ndc.x * aspect * uFov + up * ndc.y * uFov);
 
-  vec3 color = vec3(0.0, 0.0, 0.0);
-  color = drawBaseFloor(color, worldPos);
-  color = drawPlatforms(color, worldPos);
-  color = drawLadders(color, worldPos, pixelSize);
-  color = drawPortals(color, worldPos);
-  color = drawSpikes(color, worldPos);
-  color = drawCollectibles(color, worldPos);
-  color = drawSnake(color, worldPos);
-  color = drawHero(color, worldPos);
+  vec3 color = vec3(0.02, 0.06, 0.11);
+  float hitDepth = 1000.0;
+  vec3 hitPoint = vec3(0.0);
 
-  float topZoneStart = 0.85;
-  float topZoneBlend = smoothstep(topZoneStart - 0.03, topZoneStart + 0.01, uv.y);
-  float topZoneGradient = smoothstep(topZoneStart, 1.0, uv.y);
-  float topZoneVisibility = mix(0.35, 1.0, topZoneGradient);
-  color *= mix(1.0, topZoneVisibility, topZoneBlend);
+  if (ray.y < -0.0001) {
+    float tFloor = (uArenaFloorY - uCameraPos.y) / ray.y;
+    if (tFloor > 0.0) {
+      vec3 p = uCameraPos + ray * tFloor;
+      float depth = dot(p - uCameraPos, forward);
+      if (depth > 0.0 && depth < hitDepth) {
+        float longitudinal = wireLine(p.x, 0.30, 0.012);
+        float cross = wireLine(p.z, 0.11, 0.016);
+        float centerRail = invSmoothstep(0.0, 0.10, abs(p.x));
+        float sideRail = wireLine(abs(p.x), 0.085, 0.020);
+        color = mix(vec3(0.01, 0.04, 0.07), vec3(0.03, 0.11, 0.21), 0.66);
+        color = mix(color, vec3(0.10, 0.62, 0.90), longitudinal * 0.62 + cross * 0.34 + centerRail * 0.46 + sideRail * 0.20);
+        hitDepth = depth;
+        hitPoint = p;
+      }
+    }
+  }
 
-  float scanline = 0.95 + 0.05 * sin(gl_FragCoord.y * 0.7);
+  if (ray.y > 0.0001) {
+    float tCeil = (uArenaCeilingY - uCameraPos.y) / ray.y;
+    if (tCeil > 0.0) {
+      vec3 p = uCameraPos + ray * tCeil;
+      float depth = dot(p - uCameraPos, forward);
+      if (depth > 0.0 && depth < hitDepth) {
+        float longitudinal = wireLine(p.x, 0.24, 0.016);
+        float cross = wireLine(p.z, 0.10, 0.020);
+        float centerStrip = invSmoothstep(0.0, 0.12, abs(p.x));
+        color = mix(vec3(0.01, 0.03, 0.06), vec3(0.03, 0.09, 0.16), 0.74);
+        color = mix(color, vec3(0.11, 0.46, 0.74), longitudinal * 0.34 + cross * 0.26 + centerStrip * 0.32);
+        hitDepth = depth;
+        hitPoint = p;
+      }
+    }
+  }
+
+  if (ray.x > 0.0001) {
+    float tWall = (uArenaHalfWidth - uCameraPos.x) / ray.x;
+    if (tWall > 0.0) {
+      vec3 p = uCameraPos + ray * tWall;
+      float depth = dot(p - uCameraPos, forward);
+      if (depth > 0.0 && depth < hitDepth) {
+        float depthLines = wireLine(p.z, 0.12, 0.016);
+        float verticalLines = wireLine(p.y, 0.34, 0.018);
+        float floorEdge = invSmoothstep(0.0, 0.10, abs(p.y - uArenaFloorY));
+        float ceilingEdge = invSmoothstep(0.0, 0.10, abs(p.y - uArenaCeilingY));
+        color = mix(vec3(0.01, 0.05, 0.08), vec3(0.04, 0.16, 0.27), 0.34);
+        color = mix(color, vec3(0.10, 0.54, 0.86), depthLines * 0.42 + verticalLines * 0.26 + floorEdge * 0.32 + ceilingEdge * 0.24);
+        hitDepth = depth;
+        hitPoint = p;
+      }
+    }
+  } else if (ray.x < -0.0001) {
+    float tWall = (-uArenaHalfWidth - uCameraPos.x) / ray.x;
+    if (tWall > 0.0) {
+      vec3 p = uCameraPos + ray * tWall;
+      float depth = dot(p - uCameraPos, forward);
+      if (depth > 0.0 && depth < hitDepth) {
+        float depthLines = wireLine(p.z, 0.12, 0.016);
+        float verticalLines = wireLine(p.y, 0.34, 0.018);
+        float floorEdge = invSmoothstep(0.0, 0.10, abs(p.y - uArenaFloorY));
+        float ceilingEdge = invSmoothstep(0.0, 0.10, abs(p.y - uArenaCeilingY));
+        color = mix(vec3(0.01, 0.05, 0.08), vec3(0.04, 0.16, 0.27), 0.34);
+        color = mix(color, vec3(0.10, 0.54, 0.86), depthLines * 0.42 + verticalLines * 0.26 + floorEdge * 0.32 + ceilingEdge * 0.24);
+        hitDepth = depth;
+        hitPoint = p;
+      }
+    }
+  }
+
+  color *= 0.42 + 0.58 * exp(-hitDepth * 0.018);
+  float sweep = scanBandAtZ(hitPoint.z);
+  color *= 1.0 + sweep * uScanIntensity * 0.55;
+  color += vec3(0.06, 0.54, 0.94) * sweep * uScanIntensity * 0.34;
+
+  if (uStructureCount > 0.5) {
+    vec4 s = uStructures[0];
+    vec4 sm = uStructureMeta[0];
+    vec3 c = worldToCamera(s.xyz, right, up, forward);
+    if (c.z > 0.1) {
+      vec2 center = projectToNdc(c, aspect);
+      float halfW = s.w / max(c.z * aspect * uFov, 0.0001);
+      float halfH = sm.x / max(c.z * uFov, 0.0001);
+      vec2 local = vec2((ndc.x - center.x) / max(halfW, 0.0001), (ndc.y - center.y) / max(halfH, 0.0001));
+      float rect = step(abs(local.x), 1.0) * step(abs(local.y), 1.0);
+      vec3 structureColor = mix(vec3(0.04, 0.12, 0.22), vec3(0.12, 0.56, 0.90), sm.z);
+      structureColor += vec3(0.15, 0.76, 1.0) * scanBandAtZ(s.z) * 0.3;
+      color = mix(color, structureColor, rect);
+    }
+  }
+
+  if (uAnchorCount > 0.5) {
+    vec4 a = uAnchors[0];
+    vec3 c = worldToCamera(a.xyz, right, up, forward);
+    if (c.z > 0.1) {
+      vec2 center = projectToNdc(c, aspect);
+      float radius = a.w / max(c.z * aspect * uFov, 0.0001);
+      vec2 local = vec2((ndc.x - center.x) / max(radius, 0.0001), (ndc.y - center.y) / max(radius, 0.0001));
+      float orb = ellipseMask(local, vec2(1.0));
+      color = mix(color, vec3(0.46, 1.0, 1.0), orb * 0.75);
+    }
+  }
+
+  if (uBossAlive > 0.5) {
+    vec3 c = worldToCamera(uBossPos, right, up, forward);
+    if (c.z > 0.1) {
+      vec2 center = projectToNdc(c, aspect);
+      float hw = 3.4 / max(c.z * aspect * uFov, 0.0001);
+      float hh = 4.6 / max(c.z * uFov, 0.0001);
+      vec2 local = vec2((ndc.x - center.x) / max(hw, 0.0001), (ndc.y - center.y) / max(hh, 0.0001));
+      float torso = ellipseMask(local - vec2(0.0, -0.08), vec2(0.92, 0.92));
+      float head = ellipseMask(local - vec2(-uBossLookUp * 0.09, 0.74 + uBossLookUp * 0.33), vec2(0.52, 0.34));
+      float body = max(torso, head);
+      vec3 bossColor = mix(vec3(0.02, 0.08, 0.14), vec3(0.16, 0.66, 1.0), 0.45 + uBossSummonPulse * 0.4);
+      color = mix(color, bossColor, body);
+    }
+  }
+
+  if (uMinionCount > 0.5) {
+    vec4 m = uMinions[0];
+    vec3 c = worldToCamera(m.xyz, right, up, forward);
+    if (c.z > 0.1) {
+      vec2 center = projectToNdc(c, aspect);
+      float radius = m.w / max(c.z * aspect * uFov, 0.0001);
+      vec2 local = vec2((ndc.x - center.x) / max(radius, 0.0001), (ndc.y - center.y) / max(radius, 0.0001));
+      float body = ellipseMask(local, vec2(1.0));
+      color = mix(color, vec3(0.10, 0.44, 0.76), body * 0.8);
+    }
+  }
+
+  if (uProjectileCount > 0.5) {
+    vec4 p = uProjectiles[0];
+    vec4 pm = uProjectileMeta[0];
+    vec3 c = worldToCamera(p.xyz, right, up, forward);
+    if (c.z > 0.1) {
+      vec2 center = projectToNdc(c, aspect);
+      float radius = p.w / max(c.z * aspect * uFov, 0.0001);
+      vec2 local = vec2((ndc.x - center.x) / max(radius, 0.0001), (ndc.y - center.y) / max(radius, 0.0001));
+      float body = ellipseMask(local, vec2(1.0));
+      vec3 proj = pm.x < 0.5 ? vec3(0.35, 0.96, 1.00) : vec3(0.10, 0.60, 0.96);
+      color = mix(color, proj, body);
+    }
+  }
+
+  if (uImpactCount > 0.5) {
+    vec4 i = uImpacts[0];
+    vec3 c = worldToCamera(i.xyz, right, up, forward);
+    if (c.z > 0.1) {
+      vec2 center = projectToNdc(c, aspect);
+      float radius = i.w / max(c.z * aspect * uFov, 0.0001);
+      vec2 local = vec2((ndc.x - center.x) / max(radius, 0.0001), (ndc.y - center.y) / max(radius, 0.0001));
+      float ring = invSmoothstep(0.5, 1.2, length(local)) - invSmoothstep(0.1, 0.56, length(local));
+      color += vec3(0.3, 0.9, 1.0) * ring * uImpactStrength[0];
+    }
+  }
+
+  if (uPlayerGrappleActive > 0.5) {
+    vec3 aCam = worldToCamera(uPlayerPos + vec3(0.0, 1.0, 0.0), right, up, forward);
+    vec3 bCam = worldToCamera(uPlayerGrapplePoint, right, up, forward);
+    if (aCam.z > 0.1 && bCam.z > 0.1) {
+      vec2 aNdc = projectToNdc(aCam, aspect);
+      vec2 bNdc = projectToNdc(bCam, aspect);
+      float ropeDistance = segmentDistance(ndc, aNdc, bNdc);
+      float rope = invSmoothstep(0.0, 0.022, ropeDistance);
+      color = mix(color, vec3(0.54, 1.00, 1.00), rope * 0.8);
+    }
+  }
+
+  if (uPlayerSwordSwing > 0.001) {
+    vec2 slashCenter = vec2(0.10, -0.24);
+    float angle = atan(ndc.y - slashCenter.y, ndc.x - slashCenter.x);
+    float arc = smoothstep(-0.6, -0.1, angle) * (1.0 - smoothstep(0.35, 0.9, length(ndc - slashCenter)));
+    float slash = arc * uPlayerSwordSwing;
+    color = mix(color, vec3(0.58, 1.00, 1.00), slash);
+  }
+
+  vec2 crosshair = abs(ndc);
+  float crossX = invSmoothstep(0.001, 0.015, crosshair.x) * invSmoothstep(0.01, 0.08, crosshair.y);
+  float crossY = invSmoothstep(0.001, 0.015, crosshair.y) * invSmoothstep(0.01, 0.08, crosshair.x);
+  float healthPulse = 1.0 - uPlayerHealthNorm;
+  vec3 crossColor = mix(vec3(0.40, 0.95, 1.00), vec3(0.72, 0.34, 0.42), healthPulse);
+  color = mix(color, crossColor, (crossX + crossY) * 0.55);
+
+  float weaponTintRocket = 1.0 - step(0.5, abs(uPlayerWeapon - 1.0));
+  float weaponTintSword = 1.0 - step(0.5, abs(uPlayerWeapon - 2.0));
+  float weaponTintGrapple = 1.0 - step(0.5, abs(uPlayerWeapon - 0.0));
+  vec3 weaponTint = vec3(0.0);
+  weaponTint += vec3(0.08, 0.32, 0.46) * weaponTintRocket;
+  weaponTint += vec3(0.05, 0.24, 0.58) * weaponTintSword;
+  weaponTint += vec3(0.12, 0.40, 0.40) * weaponTintGrapple;
+  color = mix(color, color + weaponTint, 0.18);
+
+  float scanline = 0.92 + 0.08 * sin((fragPos.y + uTime * 7.0) * 0.82);
+  float vignette = invSmoothstep(0.2, 1.35, length((uv - 0.5) * vec2(1.05, 1.2)));
   color *= scanline;
+  color *= mix(0.54, 1.0, vignette);
   color = floor(color * 24.0) / 24.0;
 
   gl_FragColor = vec4(color, 1.0);

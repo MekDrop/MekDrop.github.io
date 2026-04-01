@@ -1,6 +1,7 @@
 export { createHero } from "./actors/hero";
-export { createSnake } from "./actors/snake";
-export { createSnakeAI } from "./actors/snake-ai";
+export { createBoss } from "./actors/boss";
+export { createMinion } from "./actors/minion";
+export { createProjectile } from "./actors/projectile";
 export { createCheckpoint } from "./state/checkpoint";
 export { createGameCamera } from "./state/game-camera";
 export { createGameViewport } from "./state/game-viewport";

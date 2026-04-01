@@ -1,58 +1,63 @@
 export const createVisiblePools = ({
-  maxVisiblePlatforms,
-  maxVisibleCollectibles,
-  maxVisibleLadders,
-  maxVisibleSpikes,
-  maxVisiblePortals,
+  maxVisibleStructures,
+  maxVisibleAnchors,
+  maxVisibleMinions,
+  maxVisibleProjectiles,
+  maxVisibleImpacts,
 }) => {
-  const platformPool = Array.from({ length: maxVisiblePlatforms }, () => ({
+  const structurePool = Array.from({ length: maxVisibleStructures }, () => ({
     x: -9999,
     y: -9999,
-    w: 0,
+    z: -9999,
+    r: 0,
     h: 0,
-    motion: 0,
     type: 0,
-    shake: 0,
-    durability: 1,
-    ref: null,
+    emissive: 0,
+    grapplable: 0,
   }));
 
-  const collectiblePool = Array.from({ length: maxVisibleCollectibles }, () => ({
+  const anchorPool = Array.from({ length: maxVisibleAnchors }, () => ({
     x: -9999,
     y: -9999,
+    z: -9999,
+    radius: 0,
+    active: 0,
+  }));
+
+  const minionPool = Array.from({ length: maxVisibleMinions }, () => ({
+    x: -9999,
+    y: -9999,
+    z: -9999,
+    radius: 0,
+    hp: 0,
     phase: 0,
+    flash: 0,
   }));
 
-  const ladderPool = Array.from({ length: maxVisibleLadders }, () => ({
+  const projectilePool = Array.from({ length: maxVisibleProjectiles }, () => ({
     x: -9999,
     y: -9999,
-    w: 0,
-    h: 0,
-    ref: null,
+    z: -9999,
+    radius: 0,
+    kind: 0,
+    lifeRatio: 0,
+    owner: 0,
+    glow: 0,
   }));
 
-  const spikePool = Array.from({ length: maxVisibleSpikes }, () => ({
+  const impactPool = Array.from({ length: maxVisibleImpacts }, () => ({
     x: -9999,
     y: -9999,
-    w: 0,
-    h: 0,
-    dir: 0,
-  }));
-
-  const portalPool = Array.from({ length: maxVisiblePortals }, () => ({
-    x: -9999,
-    y: -9999,
-    w: 0,
-    h: 0,
-    side: 0,
-    ref: null,
+    z: -9999,
+    radius: 0,
+    strength: 0,
   }));
 
   return {
-    platformPool,
-    collectiblePool,
-    ladderPool,
-    spikePool,
-    portalPool,
+    structurePool,
+    anchorPool,
+    minionPool,
+    projectilePool,
+    impactPool,
   };
 };

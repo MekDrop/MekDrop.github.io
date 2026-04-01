@@ -2,90 +2,96 @@ import * as THREE from "three";
 import vertexShader from "./vertex.glsl?raw";
 import fragmentShader from "./fragment.glsl?raw";
 
-const MAX_VISIBLE_PLATFORMS = 48;
-const MAX_VISIBLE_COLLECTIBLES = 12;
-const MAX_VISIBLE_LADDERS = 40;
-const MAX_VISIBLE_SPIKES = 20;
-const MAX_VISIBLE_PORTALS = 16;
+const MAX_VISIBLE_STRUCTURES = 1;
+const MAX_VISIBLE_ANCHORS = 1;
+const MAX_VISIBLE_MINIONS = 1;
+const MAX_VISIBLE_PROJECTILES = 1;
+const MAX_VISIBLE_IMPACTS = 1;
 
 export function create(containerWidth, containerHeight) {
-  const platformBuffer = Array.from(
-    { length: MAX_VISIBLE_PLATFORMS },
-    () => new THREE.Vector4(-9999, -9999, 0, 0),
+  const structureBuffer = Array.from(
+    { length: MAX_VISIBLE_STRUCTURES },
+    () => new THREE.Vector4(-9999, -9999, -9999, 0),
   );
-  const platformMotionBuffer = new Float32Array(MAX_VISIBLE_PLATFORMS);
-  const platformTypeBuffer = new Float32Array(MAX_VISIBLE_PLATFORMS);
-  const platformShakeBuffer = new Float32Array(MAX_VISIBLE_PLATFORMS);
-  const platformDurabilityBuffer = new Float32Array(MAX_VISIBLE_PLATFORMS);
-  const collectibleBuffer = Array.from(
-    { length: MAX_VISIBLE_COLLECTIBLES },
-    () => new THREE.Vector4(-9999, -9999, 0, 0),
+  const structureMetaBuffer = Array.from(
+    { length: MAX_VISIBLE_STRUCTURES },
+    () => new THREE.Vector4(0, 0, 0, 0),
   );
-  const ladderBuffer = Array.from(
-    { length: MAX_VISIBLE_LADDERS },
-    () => new THREE.Vector4(-9999, -9999, 0, 0),
+
+  const anchorBuffer = Array.from(
+    { length: MAX_VISIBLE_ANCHORS },
+    () => new THREE.Vector4(-9999, -9999, -9999, 0),
   );
-  const spikeBuffer = Array.from(
-    { length: MAX_VISIBLE_SPIKES },
-    () => new THREE.Vector4(-9999, -9999, 0, 0),
+  const anchorStateBuffer = new Float32Array(MAX_VISIBLE_ANCHORS);
+
+  const minionBuffer = Array.from(
+    { length: MAX_VISIBLE_MINIONS },
+    () => new THREE.Vector4(-9999, -9999, -9999, 0),
   );
-  const spikeDirBuffer = new Float32Array(MAX_VISIBLE_SPIKES);
-  const portalBuffer = Array.from(
-    { length: MAX_VISIBLE_PORTALS },
-    () => new THREE.Vector4(-9999, -9999, 0, 0),
+  const minionMetaBuffer = Array.from(
+    { length: MAX_VISIBLE_MINIONS },
+    () => new THREE.Vector4(0, 0, 0, 0),
   );
-  const portalSideBuffer = new Float32Array(MAX_VISIBLE_PORTALS);
+
+  const projectileBuffer = Array.from(
+    { length: MAX_VISIBLE_PROJECTILES },
+    () => new THREE.Vector4(-9999, -9999, -9999, 0),
+  );
+  const projectileMetaBuffer = Array.from(
+    { length: MAX_VISIBLE_PROJECTILES },
+    () => new THREE.Vector4(0, 0, 0, 0),
+  );
+
+  const impactBuffer = Array.from(
+    { length: MAX_VISIBLE_IMPACTS },
+    () => new THREE.Vector4(-9999, -9999, -9999, 0),
+  );
+  const impactStrengthBuffer = new Float32Array(MAX_VISIBLE_IMPACTS);
 
   return new THREE.ShaderMaterial({
     uniforms: {
       uTime: { value: 0.0 },
-      uResolution: {
-        value: new THREE.Vector2(containerWidth, containerHeight),
-      },
-      uGameViewport: {
-        value: new THREE.Vector4(0, 0, containerWidth, containerHeight),
-      },
-      uViewSize: {
-        value: new THREE.Vector2(0, 0),
-      },
-      uCameraPos: {
-        value: new THREE.Vector2(0, 0),
-      },
-      uHeroPos: {
-        value: new THREE.Vector2(0, 0),
-      },
-      uHeroVelocity: {
-        value: new THREE.Vector2(0, 0),
-      },
-      uHeroFacing: { value: 1.0 },
-      uHeroGrounded: { value: 0.0 },
-      uHeroCrouch: { value: 0.0 },
-      uHeroVisible: { value: 1.0 },
-      uSnakePos: {
-        value: new THREE.Vector2(0, 0),
-      },
-      uSnakeVelocity: {
-        value: new THREE.Vector2(0, 0),
-      },
-      uSnakeFacing: { value: 1.0 },
-      uSnakeAlive: { value: 0.0 },
-      uSnakeOnLadder: { value: 0.0 },
-      uPlatforms: { value: platformBuffer },
-      uPlatformMotion: { value: platformMotionBuffer },
-      uPlatformType: { value: platformTypeBuffer },
-      uPlatformShake: { value: platformShakeBuffer },
-      uPlatformDurability: { value: platformDurabilityBuffer },
-      uPlatformCount: { value: 0.0 },
-      uCollectibles: { value: collectibleBuffer },
-      uCollectibleCount: { value: 0.0 },
-      uLadders: { value: ladderBuffer },
-      uLadderCount: { value: 0.0 },
-      uSpikes: { value: spikeBuffer },
-      uSpikeDir: { value: spikeDirBuffer },
-      uSpikeCount: { value: 0.0 },
-      uPortals: { value: portalBuffer },
-      uPortalSide: { value: portalSideBuffer },
-      uPortalCount: { value: 0.0 },
+      uResolution: { value: new THREE.Vector2(containerWidth, containerHeight) },
+      uGameViewport: { value: new THREE.Vector4(0, 0, containerWidth, containerHeight) },
+      uPixelScale: { value: 3.0 },
+      uCameraPos: { value: new THREE.Vector3(0, 2, 0) },
+      uCameraYaw: { value: 0.0 },
+      uCameraPitch: { value: -0.1 },
+      uFov: { value: 1.15 },
+      uArenaHalfWidth: { value: 12.0 },
+      uArenaFloorY: { value: 0.0 },
+      uArenaCeilingY: { value: 9.0 },
+      uPlayerPos: { value: new THREE.Vector3(0, 1.5, 0) },
+      uPlayerVelocity: { value: new THREE.Vector3(0, 0, 0) },
+      uPlayerWeapon: { value: 1.0 },
+      uPlayerHealthNorm: { value: 1.0 },
+      uPlayerGrappleActive: { value: 0.0 },
+      uPlayerGrapplePoint: { value: new THREE.Vector3(0, 0, 0) },
+      uPlayerSwordSwing: { value: 0.0 },
+      uBossPos: { value: new THREE.Vector3(0, 0, 80) },
+      uBossHealthNorm: { value: 1.0 },
+      uBossLookUp: { value: 0.0 },
+      uBossSummonPulse: { value: 0.0 },
+      uBossAlive: { value: 1.0 },
+      uScanOriginZ: { value: 0.0 },
+      uScanDistance: { value: 0.0 },
+      uScanWidth: { value: 10.0 },
+      uScanIntensity: { value: 1.0 },
+      uStructures: { value: structureBuffer },
+      uStructureMeta: { value: structureMetaBuffer },
+      uStructureCount: { value: 0.0 },
+      uAnchors: { value: anchorBuffer },
+      uAnchorState: { value: anchorStateBuffer },
+      uAnchorCount: { value: 0.0 },
+      uMinions: { value: minionBuffer },
+      uMinionMeta: { value: minionMetaBuffer },
+      uMinionCount: { value: 0.0 },
+      uProjectiles: { value: projectileBuffer },
+      uProjectileMeta: { value: projectileMetaBuffer },
+      uProjectileCount: { value: 0.0 },
+      uImpacts: { value: impactBuffer },
+      uImpactStrength: { value: impactStrengthBuffer },
+      uImpactCount: { value: 0.0 },
     },
     vertexShader,
     fragmentShader,

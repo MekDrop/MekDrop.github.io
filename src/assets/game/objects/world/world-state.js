@@ -1,11 +1,12 @@
 export const createWorldState = () => {
   return {
-    worldPlatforms: [],
-    worldCollectibles: [],
-    worldLadders: [],
-    worldSpikes: [],
-    worldPortals: [],
-    rowMilestones: [],
-    nextCollectibleId: 1,
+    structures: [],
+    grappleAnchors: [],
+    minions: [],
+    projectiles: [],
+    impacts: [],
+    nextEntityId: 1,
+    score: 0,
+    elapsed: 0,
   };
 };
