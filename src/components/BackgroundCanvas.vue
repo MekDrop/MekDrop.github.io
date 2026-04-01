@@ -95,7 +95,6 @@
 
 <script setup>
 import * as THREE from "three";
-import { WebGPURenderer } from "three/webgpu";
 import { computed, onBeforeUnmount, onMounted, ref } from "vue";
 import { StateMachine } from "yuka";
 import { dom } from "quasar";
@@ -2578,16 +2577,6 @@ const createRenderer = async () => {
     alpha: false,
     powerPreference: "high-performance",
   };
-
-  if (typeof navigator !== "undefined" && navigator.gpu) {
-    try {
-      const webgpuRenderer = new WebGPURenderer(rendererOptions);
-      await webgpuRenderer.init();
-      return webgpuRenderer;
-    } catch {
-      // Fallback to WebGL on unsupported drivers/browsers.
-    }
-  }
 
   return new THREE.WebGLRenderer(rendererOptions);
 };
