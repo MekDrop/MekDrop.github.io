@@ -484,10 +484,10 @@ void main() {
   color = drawHero(color, worldPos);
 
   float topZoneStart = 0.85;
-  float topZoneMask = step(topZoneStart, uv.y);
+  float topZoneBlend = smoothstep(topZoneStart - 0.03, topZoneStart + 0.01, uv.y);
   float topZoneGradient = smoothstep(topZoneStart, 1.0, uv.y);
-  float topZoneVisibility = mix(0.62, 1.0, topZoneGradient);
-  color *= mix(1.0, topZoneVisibility, topZoneMask);
+  float topZoneVisibility = mix(0.35, 1.0, topZoneGradient);
+  color *= mix(1.0, topZoneVisibility, topZoneBlend);
 
   float scanline = 0.95 + 0.05 * sin(gl_FragCoord.y * 0.7);
   color *= scanline;
