@@ -9,7 +9,7 @@
         }"
         dense
         square
-        unelevated
+        flat
         :title="lang.label"
         :aria-label="lang.label"
         :to="{ name: 'index', params: { lang: lang.value } }"
@@ -24,20 +24,26 @@
 .language-switcher {
   display: flex;
   flex-direction: row;
-  justify-content: center;
+  justify-content: flex-start;
   flex-wrap: nowrap;
-  gap: 0.5rem;
+  gap: 0.75rem;
 }
 
 .language-switcher__btn {
-  min-width: 2.35rem;
-  border: 1px solid rgba(135, 235, 255, 0.35);
-  background: rgba(15, 20, 30, 0.9);
+  min-width: 3rem;
+  min-height: 3rem;
+  border: 1px solid rgba(150, 255, 224, 0.42);
+  background: transparent;
+  color: #d9ffe8;
 }
 
 .language-switcher__btn--active {
-  border-color: rgba(135, 235, 255, 0.95);
-  box-shadow: 0 0 12px rgba(135, 235, 255, 0.45);
+  border-color: rgba(245, 255, 250, 0.95);
+}
+
+.language-switcher__btn .q-avatar {
+  filter: grayscale(1) contrast(1.1) brightness(1.15);
+  opacity: 0.9;
 }
 </style>
 

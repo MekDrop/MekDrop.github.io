@@ -40,6 +40,10 @@ export const SHOOTER_CONFIG = {
     radius: 3.2,
     maxHealth: 950,
     attackCooldown: 2.2,
+    meleeDamage: 18,
+    meleeRange: 1.25,
+    moveSpeed: 4.8,
+    rushSpeed: 8.6,
     projectileSpeed: 20,
     projectileDamage: 14,
     summonTelegraph: 1.65,
@@ -92,4 +96,3 @@ export const SHOOTER_CONFIG = {
     bloomBoost: 0.6,
   },
 };
-

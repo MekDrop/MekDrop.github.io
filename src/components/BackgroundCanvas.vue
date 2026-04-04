@@ -1,21 +1,34 @@
 <template>
   <div ref="container" class="background-canvas fit" @contextmenu.prevent></div>
   <div class="game-hud">
-    <div>HP <span>{{ hudHp }}</span> BOSS <span>{{ hudBoss }}</span> MINIONS <span>{{ hudMinions }}</span></div>
-    <div>WEAPON <span>{{ hudWeapon }}</span> SCORE <span>{{ hudScore }}</span> PHASE <span>{{ phase }}</span></div>
-    <div class="hint">CLICK TO LOCK MOUSE - WASD MOVE - SPACE JUMP - 1/2/3 WEAPON - LMB FIRE - RMB GRAPPLE - ESC UNLOCK</div>
+    <div class="game-hud__row">HP <span>{{ hudHp }}</span> BOSS <span>{{ hudBoss }}</span> MINIONS <span>{{ hudMinions }}</span></div>
+    <div class="game-hud__row">SCORE <span>{{ hudScore }}</span> PHASE <span>{{ phase }}</span></div>
+    <div class="hint">CLICK TO LOCK - WASD MOVE - MOUSE LOOK - SPACE JUMP - 1 HOOK - 2 ROCKET - 3 SWORD - LMB USE - RMB QUICK HOOK - ESC UNLOCK</div>
   </div>
 </template>
 
 <style lang="scss">
-.background-canvas { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 0; background: #000; pointer-events: auto; }
+.background-canvas { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 0; background: #050505; pointer-events: auto; cursor: crosshair; }
 .game-hud {
-  position: absolute; top: .8rem; right: .8rem; z-index: 120; pointer-events: none; text-align: right;
-  font-family: "Courier New", monospace; font-size: .84rem; letter-spacing: .08em; color: #b8fff4;
-  text-shadow: 0 0 8px rgba(97,255,220,.35), 0 0 2px rgba(0,0,0,.9); font-variant-numeric: tabular-nums;
+  position: absolute; top: 1rem; left: 50%; transform: translateX(-50%); z-index: 120; pointer-events: none;
+  width: min(68rem, calc(100% - 2rem)); text-align: left;
+  font-family: "Courier New", monospace; font-size: .68rem; letter-spacing: .24em; color: #8fe5ff;
+  font-variant-numeric: tabular-nums; text-shadow: 0 0 8px rgba(58, 202, 255, 0.32);
+  text-transform: uppercase;
 }
-.game-hud span { display: inline-block; min-width: 4ch; text-align: right; }
-.hint { margin-top: .35rem; color: rgba(185,255,244,.8); font-size: .7rem; }
+.game-hud__row,
+.hint {
+  border: 1px solid rgba(78, 196, 255, 0.42);
+  padding: 0.48rem 0.72rem;
+  background: linear-gradient(180deg, rgba(3, 16, 34, 0.42), rgba(1, 7, 18, 0.18));
+  box-shadow: inset 0 0 10px rgba(66, 176, 255, 0.08), 0 0 10px rgba(26, 120, 255, 0.05);
+}
+.game-hud__row + .game-hud__row,
+.hint {
+  margin-top: 0.38rem;
+}
+.game-hud span { display: inline-block; min-width: 4ch; text-align: right; margin-right: 1.25rem; color: #d4f7ff; }
+.hint { color: rgba(164, 224, 255, 0.70); font-size: .54rem; line-height: 1.55; }
 </style>
 
 <script setup>
@@ -39,10 +52,9 @@ import {
 
 const MAX_STRUCTURES = 1;
 const MAX_ANCHORS = 1;
-const MAX_MINIONS = 1;
-const MAX_PROJECTILES = 1;
-const MAX_IMPACTS = 1;
-const WEAPON_NAMES = ["GRAPPLE", "ROCKET", "SWORD"];
+const MAX_MINIONS = 10;
+const MAX_PROJECTILES = 12;
+const MAX_IMPACTS = 8;
 const W_GRAPPLE = 0;
 const W_ROCKET = 1;
 const W_SWORD = 2;
@@ -98,12 +110,31 @@ const normalize3 = (v) => {
 };
 const dist3 = (a, b) => Math.hypot(a.x - b.x, a.y - b.y, a.z - b.z);
 const format = (v, d) => Math.max(0, Math.floor(v)).toString().padStart(d, "0").slice(-d);
+const isMinionState = (value) => {
+  return Boolean(value) &&
+    Number.isFinite(value.x) &&
+    Number.isFinite(value.y) &&
+    Number.isFinite(value.z) &&
+    Number.isFinite(value.hp) &&
+    Number.isFinite(value.maxHp) &&
+    Number.isFinite(value.radius) &&
+    Number.isFinite(value.damageFlash);
+};
+const isProjectileState = (value) => {
+  return Boolean(value) &&
+    Number.isFinite(value.x) &&
+    Number.isFinite(value.y) &&
+    Number.isFinite(value.z) &&
+    Number.isFinite(value.vx) &&
+    Number.isFinite(value.vy) &&
+    Number.isFinite(value.vz) &&
+    Number.isFinite(value.life);
+};
 
 const hudHp = computed(() => format(hp.value, 3));
 const hudBoss = computed(() => format(bossHp.value, 4));
 const hudMinions = computed(() => format(minionsCount.value, 2));
 const hudScore = computed(() => format(score.value, 6));
-const hudWeapon = computed(() => WEAPON_NAMES[hero.weaponIndex] || WEAPON_NAMES[1]);
 
 const nextId = () => {
   const id = world.nextEntityId;
@@ -217,8 +248,8 @@ const buildArena = () => {
   checkpoint.y = SHOOTER_CONFIG.player.start.y;
   checkpoint.z = SHOOTER_CONFIG.player.start.z;
   gameCamera.x = hero.x;
-  gameCamera.y = hero.y + SHOOTER_CONFIG.camera.height;
-  gameCamera.z = hero.z - SHOOTER_CONFIG.camera.followDistance;
+  gameCamera.y = hero.y + SHOOTER_CONFIG.player.height * 0.72;
+  gameCamera.z = hero.z;
   lookYaw = hero.yaw;
   lookPitch = -0.08;
   gameCamera.yaw = lookYaw;
@@ -263,6 +294,10 @@ const splash = (center, radius, damage, owner) => {
     }
     for (let i = world.minions.length - 1; i >= 0; i--) {
       const m = world.minions[i];
+      if (!isMinionState(m)) {
+        world.minions.splice(i, 1);
+        continue;
+      }
       const d = dist3(center, m);
       if (d > radius + m.radius) continue;
       const ratio = 1 - clamp((d - m.radius) / Math.max(radius, EPS), 0, 1);
@@ -352,6 +387,10 @@ const useSword = (dir) => {
   }
   for (let i = world.minions.length - 1; i >= 0; i--) {
     const m = world.minions[i];
+    if (!isMinionState(m)) {
+      world.minions.splice(i, 1);
+      continue;
+    }
     const toMinion = normalize3({ x: m.x - o.x, y: m.y - o.y, z: m.z - o.z });
     if (dist3(o, m) > range + m.radius || dir.x * toMinion.x + dir.y * toMinion.y + dir.z * toMinion.z < arc) continue;
     m.hp -= SHOOTER_CONFIG.weapons.sword.damage;
@@ -403,6 +442,39 @@ const spawnMinions = (count) => {
   }
 };
 
+const chaseAndMeleeBoss = (delta, speedScale = 1) => {
+  const toHeroX = hero.x - boss.x;
+  const toHeroZ = hero.z - boss.z;
+  const distXZ = Math.hypot(toHeroX, toHeroZ);
+  const dirX = distXZ > EPS ? toHeroX / distXZ : 0;
+  const dirZ = distXZ > EPS ? toHeroZ / distXZ : -1;
+  const rush = clamp((distXZ - SHOOTER_CONFIG.boss.meleeRange) / 11, 0, 1);
+  const moveSpeed = lerp(SHOOTER_CONFIG.boss.moveSpeed, SHOOTER_CONFIG.boss.rushSpeed, rush) * speedScale;
+  boss.x += dirX * moveSpeed * delta;
+  boss.z += dirZ * moveSpeed * delta;
+  boss.x = clamp(
+    boss.x,
+    -SHOOTER_CONFIG.arena.halfWidth + SHOOTER_CONFIG.boss.radius * 0.72,
+    SHOOTER_CONFIG.arena.halfWidth - SHOOTER_CONFIG.boss.radius * 0.72,
+  );
+  boss.z = clamp(
+    boss.z,
+    SHOOTER_CONFIG.arena.depthNear + SHOOTER_CONFIG.boss.radius * 0.7,
+    SHOOTER_CONFIG.arena.depthFar - SHOOTER_CONFIG.boss.radius * 0.7,
+  );
+
+  const meleeReach = SHOOTER_CONFIG.boss.radius + SHOOTER_CONFIG.player.radius + SHOOTER_CONFIG.boss.meleeRange;
+  const verticalGap = Math.abs((hero.y + 0.9) - (boss.y + 0.4));
+  if (distXZ <= meleeReach && verticalGap <= 2.6 && boss.attackCooldownLeft <= 0) {
+    damagePlayer(SHOOTER_CONFIG.boss.meleeDamage);
+    addImpact(hero.x, hero.y + 0.8, hero.z, 1.45, 0.92, 0.3);
+    boss.attackCooldownLeft = SHOOTER_CONFIG.boss.attackCooldown;
+    boss.pulse = Math.max(boss.pulse, 0.78);
+  }
+
+  return distXZ;
+};
+
 const stepBoss = (delta) => {
   if (!boss.alive) {
     boss.lookUp = approach(boss.lookUp, 0, delta * 0.8);
@@ -415,14 +487,12 @@ const stepBoss = (delta) => {
   boss.attackCooldownLeft -= delta;
   boss.summonCooldownLeft -= delta;
   if (boss.state === "idle") {
+    const distXZ = chaseAndMeleeBoss(delta, 1.0);
     boss.lookUp = approach(boss.lookUp, 0, delta * SHOOTER_CONFIG.boss.lookUpLerp);
     boss.pulse = 0.14 + Math.sin(world.elapsed * 2.3) * 0.06;
-    phase.value = "STALK";
-    if (boss.attackCooldownLeft <= 0) {
-      const origin = { x: boss.x, y: boss.y + 1.05, z: boss.z - 1.7 };
-      shootEnemy(origin, normalize3({ x: hero.x - origin.x, y: hero.y + 0.9 - origin.y, z: hero.z - origin.z }), SHOOTER_CONFIG.boss.projectileDamage, SHOOTER_CONFIG.boss.projectileSpeed, 0.45, 1.25);
-      boss.attackCooldownLeft = SHOOTER_CONFIG.boss.attackCooldown;
-    }
+    phase.value = distXZ <= SHOOTER_CONFIG.boss.radius + SHOOTER_CONFIG.player.radius + SHOOTER_CONFIG.boss.meleeRange + 0.8
+      ? "GORE"
+      : "BULL-RUSH";
     if (boss.summonCooldownLeft <= 0 && world.minions.length < 12) {
       boss.state = "telegraph";
       boss.stateTime = 0;
@@ -431,7 +501,8 @@ const stepBoss = (delta) => {
     return;
   }
   if (boss.state === "telegraph") {
-    phase.value = "SUMMON-READ";
+    chaseAndMeleeBoss(delta, 0.65);
+    phase.value = "BULL-ROAR";
     boss.lookUp = approach(boss.lookUp, 1, delta * SHOOTER_CONFIG.boss.lookUpLerp);
     boss.pulse = 0.4 + 0.6 * Math.sin(world.elapsed * 11.5) ** 2;
     if (boss.stateTime >= SHOOTER_CONFIG.boss.summonTelegraph) {
@@ -441,7 +512,8 @@ const stepBoss = (delta) => {
     return;
   }
   if (boss.state === "summoning") {
-    phase.value = "SUMMON";
+    chaseAndMeleeBoss(delta, 0.45);
+    phase.value = "HERD-CALL";
     boss.lookUp = 1;
     boss.pulse = 0.75 + 0.25 * Math.sin(world.elapsed * 18);
     if (boss.stateTime >= SHOOTER_CONFIG.boss.summonDuration) {
@@ -453,7 +525,8 @@ const stepBoss = (delta) => {
     }
     return;
   }
-  phase.value = "RESET";
+  chaseAndMeleeBoss(delta, 0.9);
+  phase.value = "TRAMPLE";
   boss.lookUp = approach(boss.lookUp, 0, delta * SHOOTER_CONFIG.boss.lookUpLerp);
   boss.pulse = approach(boss.pulse, 0.18, delta * 1.6);
   if (boss.stateTime >= 1.2) {
@@ -465,6 +538,10 @@ const stepBoss = (delta) => {
 const stepMinions = (delta) => {
   for (let i = world.minions.length - 1; i >= 0; i--) {
     const m = world.minions[i];
+    if (!isMinionState(m)) {
+      world.minions.splice(i, 1);
+      continue;
+    }
     m.damageFlash = approach(m.damageFlash, 0, delta * 4.5);
     m.attackCooldownLeft -= delta;
     m.orbitPhase += delta * 2.2;
@@ -500,6 +577,10 @@ const stepMinions = (delta) => {
 const stepProjectiles = (delta) => {
   for (let i = world.projectiles.length - 1; i >= 0; i--) {
     const p = world.projectiles[i];
+    if (!isProjectileState(p)) {
+      world.projectiles.splice(i, 1);
+      continue;
+    }
     p.life -= delta;
     p.x += p.vx * delta;
     p.y += p.vy * delta;
@@ -659,17 +740,14 @@ const stepHero = (delta) => {
   }
 };
 
-const stepCamera = (delta) => {
+const stepCamera = () => {
   gameCamera.yaw = lookYaw;
   gameCamera.pitch = lookPitch;
-  const f = forwardYaw(gameCamera.yaw);
-  const targetX = hero.x - f.x * SHOOTER_CONFIG.camera.followDistance;
-  const targetY = hero.y + SHOOTER_CONFIG.camera.height;
-  const targetZ = hero.z - f.z * SHOOTER_CONFIG.camera.followDistance;
-  const a = clamp(SHOOTER_CONFIG.camera.followLerp * (delta * 60), 0, 1);
-  gameCamera.x = lerp(gameCamera.x, targetX, a);
-  gameCamera.y = lerp(gameCamera.y, targetY, a);
-  gameCamera.z = lerp(gameCamera.z, targetZ, a);
+  const stride = clamp(Math.hypot(hero.vx, hero.vz) / SHOOTER_CONFIG.player.moveSpeed, 0, 1);
+  const bob = hero.grounded ? Math.sin(world.elapsed * 10.5) * 0.08 * stride : 0;
+  gameCamera.x = hero.x;
+  gameCamera.y = hero.y + SHOOTER_CONFIG.player.height * 0.72 + bob;
+  gameCamera.z = hero.z;
 };
 
 const stepScan = (delta) => {
@@ -684,7 +762,7 @@ const stepGame = (delta) => {
   stepMinions(delta);
   stepProjectiles(delta);
   stepImpacts(delta);
-  stepCamera(delta);
+  stepCamera();
   stepScan(delta);
   hp.value = hero.health;
   bossHp.value = boss.hp;
@@ -749,6 +827,7 @@ const fillPools = () => {
 
   for (let i = 0; i < world.minions.length && visibleMinionCount < MAX_MINIONS; i++) {
     const m = world.minions[i];
+    if (!isMinionState(m)) continue;
     const p = minionPool[visibleMinionCount];
     p.x = m.x;
     p.y = m.y;
@@ -772,6 +851,7 @@ const fillPools = () => {
 
   for (let i = 0; i < world.projectiles.length && visibleProjectileCount < MAX_PROJECTILES; i++) {
     const pr = world.projectiles[i];
+    if (!isProjectileState(pr)) continue;
     const p = projectilePool[visibleProjectileCount];
     p.x = pr.x;
     p.y = pr.y;
@@ -825,6 +905,8 @@ const syncUniforms = (t) => {
   material.uniforms.uArenaHalfWidth.value = SHOOTER_CONFIG.arena.halfWidth;
   material.uniforms.uArenaFloorY.value = SHOOTER_CONFIG.arena.floorY;
   material.uniforms.uArenaCeilingY.value = SHOOTER_CONFIG.arena.ceilingY;
+  material.uniforms.uArenaDepthNear.value = SHOOTER_CONFIG.arena.depthNear;
+  material.uniforms.uArenaDepthFar.value = SHOOTER_CONFIG.arena.depthFar;
   material.uniforms.uPlayerPos.value.set(hero.x, hero.y, hero.z);
   material.uniforms.uPlayerVelocity.value.set(hero.vx, hero.vy, hero.vz);
   material.uniforms.uPlayerWeapon.value = hero.weaponIndex;
@@ -906,7 +988,7 @@ const onResize = () => {
   gameViewportPx.h = height;
   material.uniforms.uResolution.value.set(width, height);
   material.uniforms.uGameViewport.value.set(gameX, 0, gameWidth, height);
-  material.uniforms.uPixelScale.value = SHOOTER_CONFIG.render.pixelationScale;
+  material.uniforms.uPixelScale.value = 2.0;
 };
 
 const ignoreKey = (e) => {
@@ -976,7 +1058,7 @@ const onKeyUp = (e) => {
 };
 
 const requestPointerLock = () => {
-  if (!container.value || !document.pointerLockElement) return;
+  if (!container.value || document.pointerLockElement === container.value) return;
   if (typeof container.value.requestPointerLock === "function") {
     container.value.requestPointerLock();
   }
@@ -998,6 +1080,7 @@ const onPointerMove = (e) => {
 };
 
 const onPointerDown = (e) => {
+  if (e.target !== container.value && e.target !== renderer?.domElement) return;
   requestPointerLock();
   if (e.button === 0) {
     input.fire = true;
@@ -1048,7 +1131,7 @@ onMounted(async () => {
   window.addEventListener("keyup", onKeyUp);
   window.addEventListener("blur", clearInput);
   window.addEventListener("pointermove", onPointerMove);
-  window.addEventListener("pointerdown", onPointerDown);
+  container.value?.addEventListener("pointerdown", onPointerDown);
   window.addEventListener("pointerup", onPointerUp);
   document.addEventListener("pointerlockchange", onPointerLockChange);
 });
@@ -1059,7 +1142,7 @@ onBeforeUnmount(() => {
   window.removeEventListener("keyup", onKeyUp);
   window.removeEventListener("blur", clearInput);
   window.removeEventListener("pointermove", onPointerMove);
-  window.removeEventListener("pointerdown", onPointerDown);
+  container.value?.removeEventListener("pointerdown", onPointerDown);
   window.removeEventListener("pointerup", onPointerUp);
   document.removeEventListener("pointerlockchange", onPointerLockChange);
   if (frameId) {

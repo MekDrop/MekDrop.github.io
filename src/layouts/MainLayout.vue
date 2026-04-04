@@ -4,15 +4,14 @@
       <q-no-ssr>
         <div class="layout-shell">
           <q-card
-            class="side-toolbar no-border bg-dark text-white"
+            class="side-toolbar no-border text-white"
             flat
-            dark
             id="side_toolbar"
           >
             <q-card-section class="side-toolbar__section side-toolbar__logo">
               <shader-drop-title />
             </q-card-section>
-            <q-separator dark />
+            <q-separator class="side-toolbar__rule" />
             <q-card-section class="side-toolbar__section side-toolbar__menu">
               <template v-for="item in mainMenu" :key="item.url">
                 <q-btn
@@ -21,18 +20,17 @@
                   class="side-toolbar__btn side-toolbar__btn--game"
                   square
                   no-caps
+                  flat
                 >
                   {{ item.label }}
                 </q-btn>
               </template>
-              <q-separator dark class="side-toolbar__section-separator" />
+              <q-separator class="side-toolbar__rule side-toolbar__section-separator" />
               <div id="other_links_panel" class="side-toolbar__other-links">
                 <q-input
                   v-model="otherLinksSearchQuery"
-                  dark
                   dense
-                  filled
-                  flat
+                  outlined
                   square
                   clearable
                   :placeholder="i18n.t('form.filter')"
@@ -83,7 +81,7 @@
                 />
               </div>
             </q-card-section>
-            <q-separator dark />
+            <q-separator class="side-toolbar__rule" />
             <q-card-section class="side-toolbar__section side-toolbar__languages">
               <language-switcher id="language_switcher" />
             </q-card-section>
@@ -100,45 +98,78 @@
 
 <style>
 .layout-shell {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(17rem, 20rem) minmax(0, 1fr);
+  gap: clamp(1.25rem, 3vw, 3rem);
   min-height: 100vh;
   width: 100%;
+  padding: clamp(1rem, 2vw, 2rem);
+  background:
+    linear-gradient(rgba(150, 255, 224, 0.08), rgba(150, 255, 224, 0.08))
+      0 0 / 100% 1px no-repeat,
+    linear-gradient(90deg, rgba(150, 255, 224, 0.08), rgba(150, 255, 224, 0.08))
+      0 0 / 1px 100% no-repeat,
+    radial-gradient(circle at top, rgba(110, 255, 230, 0.06), transparent 42%),
+    #050505;
+  box-sizing: border-box;
 }
 
 .layout-shell__game {
   position: relative;
-  flex: 1;
   min-width: 0;
-  min-height: 100vh;
+  min-height: calc(100vh - (2 * clamp(1rem, 2vw, 2rem)));
+  border: 1px solid rgba(150, 255, 224, 0.42);
+  overflow: hidden;
+}
+
+.layout-shell__game::before,
+.layout-shell__game::after {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.layout-shell__game::before {
+  inset: 1rem;
+  border: 1px solid rgba(150, 255, 224, 0.22);
+}
+
+.layout-shell__game::after {
+  left: 1rem;
+  right: 1rem;
+  top: 3.25rem;
+  border-top: 1px solid rgba(150, 255, 224, 0.18);
 }
 
 .side-toolbar {
   position: relative;
   z-index: 10;
-  flex: 0 0 min(240px, 34vw);
-  width: min(240px, 34vw);
-  height: 100vh;
+  width: 100%;
+  min-height: calc(100vh - (2 * clamp(1rem, 2vw, 2rem)));
   opacity: 1;
-  background-color: #000 !important;
+  background: transparent !important;
+  border: 1px solid rgba(150, 255, 224, 0.42);
   border-radius: 0;
   display: flex;
   flex-direction: column;
   margin: 0;
+  box-shadow: none;
 }
 
 .side-toolbar__section {
-  padding: 0.75rem;
+  padding: 1.3rem 1.35rem;
 }
 
 .side-toolbar__logo {
-  padding-top: 0.95rem;
-  padding-bottom: 0.95rem;
+  padding-top: 1.6rem;
+  padding-bottom: 1.35rem;
 }
 
 .side-toolbar__menu {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.85rem;
   flex: 1;
   overflow: hidden;
   min-height: 0;
@@ -146,38 +177,34 @@
 
 .side-toolbar__btn {
   width: 100%;
+  min-height: 3rem;
 }
 
 .side-toolbar__btn--game {
-  border: 1px solid rgba(104, 255, 222, 0.65);
-  background: linear-gradient(
-    135deg,
-    rgba(22, 46, 52, 0.95),
-    rgba(10, 16, 25, 0.95)
-  );
-  box-shadow:
-    inset 0 0 0 1px rgba(255, 255, 255, 0.06),
-    0 0 14px rgba(20, 212, 184, 0.2);
+  border: 1px solid rgba(150, 255, 224, 0.52);
+  background: transparent;
   transition:
-    transform 0.12s ease,
-    box-shadow 0.12s ease,
-    border-color 0.12s ease;
+    color 0.12s ease,
+    border-color 0.12s ease,
+    letter-spacing 0.12s ease;
 }
 
 .side-toolbar__btn--game .q-btn__content {
-  justify-content: flex-start;
-  color: #dffcf6;
+  justify-content: space-between;
+  color: #d9ffe8;
   font-family: "Courier New", monospace;
   font-weight: 700;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.18em;
+  font-size: 0.8rem;
 }
 
 .side-toolbar__btn--game:hover {
-  border-color: rgba(104, 255, 222, 1);
-  box-shadow:
-    inset 0 0 0 1px rgba(255, 255, 255, 0.12),
-    0 0 18px rgba(20, 212, 184, 0.42);
-  transform: translateX(2px);
+  border-color: rgba(220, 255, 242, 0.95);
+  color: #ffffff;
+}
+
+.side-toolbar__btn--game:hover .q-btn__content {
+  letter-spacing: 0.22em;
 }
 
 .side-toolbar__languages {
@@ -193,12 +220,16 @@
   min-height: 0;
 }
 
+.side-toolbar__rule {
+  background: rgba(150, 255, 224, 0.28);
+}
+
 .side-toolbar__section-separator {
-  margin: 0.15rem 0 0.35rem;
+  margin: 0.35rem 0 0.55rem;
 }
 
 .side-toolbar__other-links-search {
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.75rem;
 }
 
 .side-toolbar__other-links-results {
@@ -206,47 +237,108 @@
   min-height: 0;
   overflow-y: auto;
   scrollbar-width: thin;
-  scrollbar-color: rgba(104, 255, 222, 0.85) rgba(9, 16, 23, 0.85);
+  scrollbar-color: rgba(150, 255, 224, 0.75) transparent;
 }
 
 .side-toolbar__other-links-results::-webkit-scrollbar {
-  width: 10px;
+  width: 7px;
 }
 
 .side-toolbar__other-links-results::-webkit-scrollbar-track {
-  background: linear-gradient(
-    180deg,
-    rgba(9, 16, 23, 0.85),
-    rgba(18, 30, 42, 0.85)
-  );
-  border-radius: 999px;
+  background: transparent;
 }
 
 .side-toolbar__other-links-results::-webkit-scrollbar-thumb {
-  background: linear-gradient(
-    180deg,
-    rgba(91, 255, 227, 0.9),
-    rgba(40, 187, 230, 0.95)
-  );
-  border-radius: 999px;
-  border: 2px solid rgba(9, 16, 23, 0.9);
+  background: rgba(150, 255, 224, 0.75);
+  border-radius: 0;
+  border: 0;
 }
 
 .side-toolbar__other-links-results::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(
-    180deg,
-    rgba(134, 255, 235, 0.98),
-    rgba(63, 205, 245, 0.98)
-  );
+  background: rgba(220, 255, 242, 0.9);
 }
 
 .side-toolbar__other-links-item {
-  min-height: 1.8rem;
+  min-height: 2.1rem;
+  padding: 0;
+  color: #d9ffe8;
 }
 
 .side-toolbar__other-links-loader {
   display: block;
-  margin: 0.75rem auto 0.5rem;
+  margin: 1rem auto 0.5rem;
+  color: #d9ffe8;
+}
+
+.side-toolbar__other-links-search .q-field__control {
+  border-radius: 0;
+  color: #d9ffe8;
+  background: transparent !important;
+}
+
+.side-toolbar__other-links-search .q-field__native,
+.side-toolbar__other-links-search .q-field__input,
+.side-toolbar__other-links-search .q-field__label,
+.side-toolbar__other-links-search .q-icon,
+.side-toolbar__other-links-search input::placeholder {
+  color: rgba(217, 255, 232, 0.78) !important;
+  font-family: "Courier New", monospace;
+  letter-spacing: 0.14em;
+}
+
+.side-toolbar__other-links-search.q-field--focused .q-field__control,
+.side-toolbar__other-links-search:hover .q-field__control {
+  color: #ffffff;
+}
+
+.side-toolbar__other-links-item .q-item__section--side {
+  color: rgba(217, 255, 232, 0.72);
+  min-width: 1.25rem;
+}
+
+.side-toolbar__other-links-item a {
+  color: #d9ffe8;
+  text-decoration: none;
+  letter-spacing: 0.12em;
+  font-family: "Courier New", monospace;
+}
+
+.side-toolbar__other-links-item a:hover {
+  color: #ffffff;
+}
+
+.side-toolbar__other-links-results .text-accent {
+  color: rgba(217, 255, 232, 0.72) !important;
+  letter-spacing: 0.12em;
+  font-family: "Courier New", monospace;
+}
+
+@media (max-width: 900px) {
+  .layout-shell {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    padding: 0.85rem;
+  }
+
+  .side-toolbar,
+  .layout-shell__game {
+    min-height: auto;
+  }
+
+  .layout-shell__game {
+    min-height: 58vh;
+  }
+}
+
+@media (max-width: 600px) {
+  .side-toolbar__section {
+    padding: 1rem;
+  }
+
+  .side-toolbar__btn--game .q-btn__content {
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+  }
 }
 </style>
 

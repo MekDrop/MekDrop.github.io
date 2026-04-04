@@ -4,9 +4,9 @@ import fragmentShader from "./fragment.glsl?raw";
 
 const MAX_VISIBLE_STRUCTURES = 1;
 const MAX_VISIBLE_ANCHORS = 1;
-const MAX_VISIBLE_MINIONS = 1;
-const MAX_VISIBLE_PROJECTILES = 1;
-const MAX_VISIBLE_IMPACTS = 1;
+const MAX_VISIBLE_MINIONS = 10;
+const MAX_VISIBLE_PROJECTILES = 12;
+const MAX_VISIBLE_IMPACTS = 8;
 
 export function create(containerWidth, containerHeight) {
   const structureBuffer = Array.from(
@@ -61,6 +61,8 @@ export function create(containerWidth, containerHeight) {
       uArenaHalfWidth: { value: 12.0 },
       uArenaFloorY: { value: 0.0 },
       uArenaCeilingY: { value: 9.0 },
+      uArenaDepthNear: { value: -8.0 },
+      uArenaDepthFar: { value: 160.0 },
       uPlayerPos: { value: new THREE.Vector3(0, 1.5, 0) },
       uPlayerVelocity: { value: new THREE.Vector3(0, 0, 0) },
       uPlayerWeapon: { value: 1.0 },
