@@ -12,3 +12,9 @@ coverage/
 
 # Stakpak session files
 .stakpak/session*
+
+# Local agent/tooling folders
+/.Clairvoyance/
+/.ai/
+/.stakpak/
+/tmp/
