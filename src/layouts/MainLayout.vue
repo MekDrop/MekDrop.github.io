@@ -97,13 +97,21 @@
 </template>
 
 <style>
+.q-layout,
+.q-page-container {
+  height: 100dvh;
+  overflow: hidden;
+}
+
 .layout-shell {
+  --shell-pad: clamp(1rem, 2vw, 2rem);
   display: grid;
   grid-template-columns: minmax(17rem, 20rem) minmax(0, 1fr);
   gap: clamp(1.25rem, 3vw, 3rem);
-  min-height: 100vh;
+  height: 100dvh;
+  min-height: 100dvh;
   width: 100%;
-  padding: clamp(1rem, 2vw, 2rem);
+  padding: var(--shell-pad);
   background:
     linear-gradient(rgba(150, 255, 224, 0.08), rgba(150, 255, 224, 0.08))
       0 0 / 100% 1px no-repeat,
@@ -117,7 +125,8 @@
 .layout-shell__game {
   position: relative;
   min-width: 0;
-  min-height: calc(100vh - (2 * clamp(1rem, 2vw, 2rem)));
+  min-height: 0;
+  height: calc(100dvh - (2 * var(--shell-pad)));
   border: 1px solid rgba(150, 255, 224, 0.42);
   overflow: hidden;
 }
@@ -146,7 +155,8 @@
   position: relative;
   z-index: 10;
   width: 100%;
-  min-height: calc(100vh - (2 * clamp(1rem, 2vw, 2rem)));
+  min-height: 0;
+  height: calc(100dvh - (2 * var(--shell-pad)));
   opacity: 1;
   background: transparent !important;
   border: 1px solid rgba(150, 255, 224, 0.42);
@@ -315,14 +325,14 @@
 
 @media (max-width: 900px) {
   .layout-shell {
+    --shell-pad: 0.85rem;
     grid-template-columns: 1fr;
     gap: 1rem;
-    padding: 0.85rem;
   }
 
   .side-toolbar,
   .layout-shell__game {
-    min-height: auto;
+    height: auto;
   }
 
   .layout-shell__game {

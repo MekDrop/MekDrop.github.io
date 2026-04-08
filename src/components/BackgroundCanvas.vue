@@ -1,34 +1,85 @@
 <template>
   <div ref="container" class="background-canvas fit" @contextmenu.prevent></div>
   <div class="game-hud">
-    <div class="game-hud__row">HP <span>{{ hudHp }}</span> BOSS <span>{{ hudBoss }}</span> MINIONS <span>{{ hudMinions }}</span></div>
-    <div class="game-hud__row">SCORE <span>{{ hudScore }}</span> PHASE <span>{{ phase }}</span></div>
-    <div class="hint">CLICK TO LOCK - WASD MOVE - MOUSE LOOK - SPACE JUMP - 1 HOOK - 2 ROCKET - 3 SWORD - LMB USE - RMB QUICK HOOK - ESC UNLOCK</div>
+    <div class="game-hud__row">SCORE <span>{{ hudScore }}</span> COINS <span>{{ hudCoins }}</span> LIVES <span>{{ hudLives }}</span></div>
+    <div class="game-hud__row">TIME <span>{{ hudTimer }}</span> STATE <span>{{ hudState }}</span></div>
+    <div class="hint">A / D OR ARROWS MOVE · SPACE / W / UP JUMP · R RESET · ONE SCREEN · GENERATED STAGE</div>
   </div>
 </template>
 
 <style lang="scss">
-.background-canvas { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 0; background: #050505; pointer-events: auto; cursor: crosshair; }
+.background-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  background: #030604;
+  pointer-events: auto;
+}
+
 .game-hud {
-  position: absolute; top: 1rem; left: 50%; transform: translateX(-50%); z-index: 120; pointer-events: none;
-  width: min(68rem, calc(100% - 2rem)); text-align: left;
-  font-family: "Courier New", monospace; font-size: .68rem; letter-spacing: .24em; color: #8fe5ff;
-  font-variant-numeric: tabular-nums; text-shadow: 0 0 8px rgba(58, 202, 255, 0.32);
+  position: absolute;
+  top: 1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+  pointer-events: none;
+  width: min(62rem, calc(100% - 2rem));
+  text-align: left;
+  font-family: "Courier New", monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.24em;
+  color: #baf6d4;
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 0 10px rgba(150, 255, 224, 0.24);
   text-transform: uppercase;
 }
+
 .game-hud__row,
 .hint {
-  border: 1px solid rgba(78, 196, 255, 0.42);
+  border: 1px solid rgba(150, 255, 224, 0.34);
   padding: 0.48rem 0.72rem;
-  background: linear-gradient(180deg, rgba(3, 16, 34, 0.42), rgba(1, 7, 18, 0.18));
-  box-shadow: inset 0 0 10px rgba(66, 176, 255, 0.08), 0 0 10px rgba(26, 120, 255, 0.05);
+  background: linear-gradient(180deg, rgba(6, 18, 11, 0.58), rgba(2, 10, 6, 0.18));
+  box-shadow: inset 0 0 10px rgba(150, 255, 224, 0.07), 0 0 14px rgba(150, 255, 224, 0.06);
 }
+
 .game-hud__row + .game-hud__row,
 .hint {
   margin-top: 0.38rem;
 }
-.game-hud span { display: inline-block; min-width: 4ch; text-align: right; margin-right: 1.25rem; color: #d4f7ff; }
-.hint { color: rgba(164, 224, 255, 0.70); font-size: .54rem; line-height: 1.55; }
+
+.game-hud span {
+  display: inline-block;
+  min-width: 4ch;
+  text-align: right;
+  margin-right: 1.25rem;
+  color: #edfff3;
+}
+
+.hint {
+  color: rgba(190, 255, 220, 0.72);
+  font-size: 0.54rem;
+  line-height: 1.55;
+}
+
+@media (max-width: 700px) {
+  .game-hud {
+    top: 0.65rem;
+    width: calc(100% - 1rem);
+    font-size: 0.56rem;
+    letter-spacing: 0.14em;
+  }
+
+  .game-hud__row,
+  .hint {
+    padding: 0.38rem 0.5rem;
+  }
+
+  .hint {
+    font-size: 0.48rem;
+  }
+}
 </style>
 
 <script setup>
@@ -36,1068 +87,1219 @@ import * as THREE from "three";
 import { computed, onBeforeUnmount, onMounted, ref } from "vue";
 import { dom } from "quasar";
 import { create as createBackgroundMaterial } from "assets/materials/background/material";
-import { SHOOTER_CONFIG } from "assets/game/config/shooter-config";
-import {
-  createBoss,
-  createCheckpoint,
-  createGameCamera,
-  createGameViewport,
-  createHero,
-  createInputState,
-  createMinion,
-  createProjectile,
-  createVisiblePools,
-  createWorldState,
-} from "assets/game/objects";
 
-const MAX_STRUCTURES = 1;
-const MAX_ANCHORS = 1;
-const MAX_MINIONS = 10;
-const MAX_PROJECTILES = 12;
-const MAX_IMPACTS = 8;
-const W_GRAPPLE = 0;
-const W_ROCKET = 1;
-const W_SWORD = 2;
-const EPS = 0.0001;
-const LOOK_SENSITIVITY = 0.0024;
-const LOOK_PITCH_MIN = -1.3;
-const LOOK_PITCH_MAX = 1.1;
+const BASE_PIXEL_SCALE = 8;
+const MIN_WORLD_WIDTH = 1;
+const MIN_WORLD_HEIGHT = 1;
+const MAX_SOLIDS = 64;
+const MAX_ENEMIES = 40;
+const MAX_COINS = 40;
+const STAGE_MAX_COLLECTIBLES = 10;
+const PHASE_PLAYING = 0;
+const PHASE_DEAD = 1;
+const PHASE_CLEAR = 2;
 
-let camera, scene, renderer, material, quad, frameId = null, previousTimeMs = 0;
-let visibleStructureCount = 0, visibleAnchorCount = 0, visibleMinionCount = 0;
-let visibleProjectileCount = 0, visibleImpactCount = 0;
-let lookYaw = 0;
-let lookPitch = -0.08;
-let pointerLocked = false;
-const gameViewportPx = createGameViewport();
-const container = ref(null);
-const hp = ref(SHOOTER_CONFIG.player.maxHealth);
-const bossHp = ref(SHOOTER_CONFIG.boss.maxHealth);
-const minionsCount = ref(0);
-const score = ref(0);
-const phase = ref("IDLE");
-const world = createWorldState();
-const input = createInputState();
-const hero = createHero(SHOOTER_CONFIG.player.start);
-hero.maxHealth = SHOOTER_CONFIG.player.maxHealth;
-hero.health = hero.maxHealth;
-hero.weaponIndex = W_ROCKET;
-const boss = createBoss(SHOOTER_CONFIG.boss.start, SHOOTER_CONFIG.boss.maxHealth);
-const checkpoint = createCheckpoint(SHOOTER_CONFIG.player.start);
-const gameCamera = createGameCamera();
-const scan = {
-  distance: 0,
-  cycle:
-    SHOOTER_CONFIG.arena.depthFar -
-    SHOOTER_CONFIG.arena.depthNear +
-    SHOOTER_CONFIG.scanSweep.cyclePadding,
+const PLAYER = {
+  width: 7,
+  height: 13,
+  maxSpeed: 34,
+  groundAccel: 190,
+  airAccel: 120,
+  friction: 240,
+  gravity: -150,
+  jumpGravityHeld: -132,
+  jumpGravityReleased: -250,
+  fallGravity: -210,
+  maxFallSpeed: -110,
+  jumpVelocity: 76,
+  jumpReleaseVelocity: 34,
+  stompBounce: 42,
+  coyoteTime: 0.08,
+  jumpBuffer: 0.12,
 };
-
-const { structurePool, anchorPool, minionPool, projectilePool, impactPool } = createVisiblePools({
-  maxVisibleStructures: MAX_STRUCTURES,
-  maxVisibleAnchors: MAX_ANCHORS,
-  maxVisibleMinions: MAX_MINIONS,
-  maxVisibleProjectiles: MAX_PROJECTILES,
-  maxVisibleImpacts: MAX_IMPACTS,
-});
+const ENEMY_WIDTH = 7;
+const ENEMY_HEIGHT = 8;
+const ENEMY_STOMP_HEADROOM = PLAYER.height + 4;
+const FIRST_ENEMY_MIN_WORLD_RATIO = 0.2;
+const DEFAULT_COIN_RADIUS = 3;
+const COIN_MIN_SEPARATION = 0.75;
+const COIN_PLATFORM_CLEARANCE = 1.25;
+const PLATFORM_GRID = 4;
+const ENEMY_PLACEMENT_MIN_GAP = ENEMY_WIDTH + PLATFORM_GRID;
+const PLATFORM_ENEMY_TARGET_RATIO = 0.45;
+const FLYING_ROW_CLEARANCE = PLAYER.height;
+const PATH_MIN_GAP = 6;
+const PATH_MAX_GAP = 13;
 
 const clamp = (v, mn, mx) => Math.min(mx, Math.max(mn, v));
+const snapToPlatformGrid = (value) => Math.round(value / PLATFORM_GRID) * PLATFORM_GRID;
 const approach = (v, t, d) => (v < t ? Math.min(v + d, t) : Math.max(v - d, t));
-const lerp = (a, b, t) => a + (b - a) * t;
-const normalize3 = (v) => {
-  const l = Math.hypot(v.x, v.y, v.z);
-  return l < EPS ? { x: 0, y: 0, z: 1 } : { x: v.x / l, y: v.y / l, z: v.z / l };
+const overlap = (a, b) => a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
+const randomInt = (rng, min, max) => {
+  const lo = Math.min(min, max);
+  const hi = Math.max(min, max);
+  return Math.floor(rng() * (hi - lo + 1)) + lo;
 };
-const dist3 = (a, b) => Math.hypot(a.x - b.x, a.y - b.y, a.z - b.z);
-const format = (v, d) => Math.max(0, Math.floor(v)).toString().padStart(d, "0").slice(-d);
-const isMinionState = (value) => {
-  return Boolean(value) &&
-    Number.isFinite(value.x) &&
-    Number.isFinite(value.y) &&
-    Number.isFinite(value.z) &&
-    Number.isFinite(value.hp) &&
-    Number.isFinite(value.maxHp) &&
-    Number.isFinite(value.radius) &&
-    Number.isFinite(value.damageFlash);
+const sortByX = (a, b) => a.x - b.x;
+
+const createRng = (seed) => {
+  let state = seed >>> 0;
+  return () => {
+    state = (state * 1664525 + 1013904223) >>> 0;
+    return state / 4294967296;
+  };
 };
-const isProjectileState = (value) => {
-  return Boolean(value) &&
-    Number.isFinite(value.x) &&
-    Number.isFinite(value.y) &&
-    Number.isFinite(value.z) &&
-    Number.isFinite(value.vx) &&
-    Number.isFinite(value.vy) &&
-    Number.isFinite(value.vz) &&
-    Number.isFinite(value.life);
-};
+const pickEvenlyDistributed = (items, count) => {
+  if (items.length <= count) return [...items];
+  if (count <= 0) return [];
+  if (count === 1) return [items[Math.floor(items.length * 0.5)]];
 
-const hudHp = computed(() => format(hp.value, 3));
-const hudBoss = computed(() => format(bossHp.value, 4));
-const hudMinions = computed(() => format(minionsCount.value, 2));
-const hudScore = computed(() => format(score.value, 6));
+  const picks = [];
+  const used = new Set();
+  const denominator = Math.max(1, count - 1);
 
-const nextId = () => {
-  const id = world.nextEntityId;
-  world.nextEntityId += 1;
-  return id;
-};
-
-const forwardYaw = (yaw) => ({ x: Math.sin(yaw), z: Math.cos(yaw) });
-
-const addImpact = (x, y, z, radius, strength, life = 0.34) => {
-  world.impacts.push({ x, y, z, radius, strength, life, maxLife: life });
-  if (world.impacts.length > MAX_IMPACTS * 2) {
-    world.impacts.splice(0, world.impacts.length - MAX_IMPACTS * 2);
-  }
-};
-
-const resetHero = () => {
-  hero.x = checkpoint.x;
-  hero.y = checkpoint.y;
-  hero.z = checkpoint.z;
-  hero.vx = 0;
-  hero.vy = 0;
-  hero.vz = 0;
-  hero.health = hero.maxHealth;
-  hero.damageFlash = 0;
-  hero.grappleActive = false;
-  hero.grapplePoint = null;
-  hero.swordSwingTime = 0;
-};
-
-const resetBoss = () => {
-  boss.x = SHOOTER_CONFIG.boss.start.x;
-  boss.y = SHOOTER_CONFIG.boss.start.y;
-  boss.z = SHOOTER_CONFIG.boss.start.z;
-  boss.hp = boss.maxHp;
-  boss.alive = true;
-  boss.state = "idle";
-  boss.stateTime = 0;
-  boss.summonCooldownLeft = 2.8;
-  boss.lookUp = 0;
-  boss.pulse = 0;
-  boss.attackCooldownLeft = 1.2;
-  boss.damageFlash = 0;
-};
-
-const buildArena = () => {
-  world.structures.length = 0;
-  world.grappleAnchors.length = 0;
-  world.minions.length = 0;
-  world.projectiles.length = 0;
-  world.impacts.length = 0;
-  world.score = 0;
-  world.elapsed = 0;
-  const hw = SHOOTER_CONFIG.arena.halfWidth;
-  const spacing = SHOOTER_CONFIG.arena.structureSpacing;
-  let seg = 0;
-  for (let z = SHOOTER_CONFIG.player.start.z - 10; z <= SHOOTER_CONFIG.arena.depthFar; z += spacing) {
-    const sideX = hw - 1.4 - Math.abs(Math.sin(z * 0.07)) * 0.65;
-    const sideHeight = 3.2 + Math.cos(z * 0.08) * 0.45;
-    const sideY = 1.4 + Math.sin(z * 0.11) * 0.15;
-    const type = seg % 3 === 0 ? 1 : 0;
-    world.structures.push({ x: -sideX, y: sideY, z, r: 0.92, h: sideHeight, type, emissive: 0.36, grapplable: 1 });
-    world.structures.push({ x: sideX, y: sideY, z, r: 0.92, h: sideHeight, type, emissive: 0.36, grapplable: 1 });
-    if (seg % 2 === 0) {
-      world.structures.push({
-        x: Math.sin(z * 0.12) * 2.4,
-        y: SHOOTER_CONFIG.arena.ceilingY - 1.25,
-        z: z + spacing * 0.32,
-        r: 3.0,
-        h: 0.45,
-        type: 1,
-        emissive: 0.22,
-        grapplable: 0,
-      });
+  for (let i = 0; i < count; i++) {
+    const target = Math.round((i * (items.length - 1)) / denominator);
+    let index = target;
+    while (used.has(index) && index < items.length - 1) {
+      index += 1;
     }
-    if (seg % 4 === 1) {
-      world.structures.push({
-        x: Math.sin(z * 0.16) * 4.1,
-        y: 0.95,
-        z: z + spacing * 0.5,
-        r: 1.18,
-        h: 1.9,
-        type: 0,
-        emissive: 0.28,
-        grapplable: 0,
-      });
+    while (used.has(index) && index > 0) {
+      index -= 1;
     }
-    seg += 1;
+    if (used.has(index)) continue;
+    used.add(index);
+    picks.push(items[index]);
   }
-  for (let i = 0; i < SHOOTER_CONFIG.arena.grappleColumnsPerSide; i++) {
-    const z = 18 + i * 13;
-    const y = 6.3 + Math.sin(i * 0.63) * 0.46;
-    world.grappleAnchors.push({ x: -hw + 1.6, y, z, radius: 0.55, active: 1 });
-    world.grappleAnchors.push({ x: hw - 1.6, y, z, radius: 0.55, active: 1 });
+
+  return picks.sort(sortByX);
+};
+
+const createPlayer = () => ({
+  x: 0,
+  y: 0,
+  vx: 0,
+  vy: 0,
+  w: PLAYER.width,
+  h: PLAYER.height,
+  facing: 1,
+  grounded: false,
+  coyote: 0,
+  invulnerable: 0,
+  anim: 0,
+  prevY: 0,
+});
+
+const createEnemy = (spawn) => ({
+  ...spawn,
+  vx: spawn.speed * spawn.dir,
+  vy: 0,
+  w: ENEMY_WIDTH,
+  h: ENEMY_HEIGHT,
+  grounded: false,
+  alive: true,
+  anim: Math.random() * Math.PI * 2,
+});
+
+const createCoin = (coin) => ({
+  ...coin,
+  collected: false,
+  phase: (coin.x + coin.y) * 0.1,
+});
+
+const bodyRect = (body) => ({
+  x: body.x - body.w * 0.5,
+  y: body.y,
+  w: body.w,
+  h: body.h,
+});
+
+const spriteRect = (x, y, w, h) => ({ x: x - w * 0.5, y, w, h });
+const coinRect = (coin, padding = 0) => ({
+  x: coin.x - coin.r - padding,
+  y: coin.y - coin.r - padding,
+  w: coin.r * 2 + padding * 2,
+  h: coin.r * 2 + padding * 2,
+});
+const isCoinClearOfSolids = (coin, solids) => {
+  const rect = coinRect(coin, COIN_PLATFORM_CLEARANCE);
+  return !solids.some((solid) => overlap(rect, solid));
+};
+
+const world = {
+  width: MIN_WORLD_WIDTH,
+  height: MIN_WORLD_HEIGHT,
+  floorHeight: 12,
+  solids: [],
+  enemySpawns: [],
+  coins: [],
+  spawn: { x: 12, y: 12 },
+  goal: { x: 130, y: 12, h: 40 },
+};
+
+const snapSolidToGrid = (solid) => {
+  const snapped = { ...solid };
+  snapped.y = snapToPlatformGrid(snapped.y);
+  snapped.h = Math.max(PLATFORM_GRID, snapToPlatformGrid(snapped.h));
+
+  if (snapped.type !== 0) {
+    snapped.x = snapToPlatformGrid(snapped.x);
+    snapped.w = Math.max(PLATFORM_GRID, snapToPlatformGrid(snapped.w));
   }
-  for (let i = 0; i < 4; i++) {
-    world.structures.push({
-      x: 0,
-      y: SHOOTER_CONFIG.arena.floorY + 1.25,
-      z: SHOOTER_CONFIG.boss.start.z - 14 + i * 6,
-      r: 2.8 - i * 0.25,
-      h: 2.1,
-      type: 1,
-      emissive: 0.45,
-      grapplable: 0,
+
+  return snapped;
+};
+
+const pushSolid = (list, solid) => {
+  if (list.length >= MAX_SOLIDS) return;
+  list.push(snapSolidToGrid(solid));
+};
+
+const pushCoin = (list, coin) => {
+  if (list.length >= MAX_COINS) return;
+  const candidate = {
+    ...coin,
+    r: coin.r ?? DEFAULT_COIN_RADIUS,
+  };
+  const minDistance = candidate.r * 2 + COIN_MIN_SEPARATION;
+  const minDistanceSq = minDistance * minDistance;
+  for (let i = 0; i < list.length; i++) {
+    const other = list[i];
+    const dx = candidate.x - other.x;
+    const dy = candidate.y - other.y;
+    if (dx * dx + dy * dy < minDistanceSq) {
+      return;
+    }
+  }
+  list.push(candidate);
+};
+
+const pushEnemy = (list, enemy) => {
+  if (list.length >= MAX_ENEMIES) return;
+  list.push(enemy);
+};
+
+const addPlatformCoins = (coins, x, y, w, count) => {
+  if (count <= 0) return;
+  const step = w / (count + 1);
+  for (let i = 0; i < count; i++) {
+    pushCoin(coins, {
+      x: x + step * (i + 1),
+      y,
+      r: DEFAULT_COIN_RADIUS,
     });
   }
-  resetHero();
-  resetBoss();
-  checkpoint.x = SHOOTER_CONFIG.player.start.x;
-  checkpoint.y = SHOOTER_CONFIG.player.start.y;
-  checkpoint.z = SHOOTER_CONFIG.player.start.z;
-  gameCamera.x = hero.x;
-  gameCamera.y = hero.y + SHOOTER_CONFIG.player.height * 0.72;
-  gameCamera.z = hero.z;
-  lookYaw = hero.yaw;
-  lookPitch = -0.08;
-  gameCamera.yaw = lookYaw;
-  gameCamera.pitch = lookPitch;
-  scan.distance = 0;
 };
 
-const damagePlayer = (amount) => {
-  if (hero.damageFlash > 0.55) return;
-  hero.health = Math.max(0, hero.health - amount);
-  hero.damageFlash = 1;
-  addImpact(hero.x, hero.y + 0.9, hero.z, 0.85, 0.65, 0.26);
-  if (hero.health <= 0) {
-    world.score = Math.max(0, world.score - 300);
-    world.minions.length = 0;
-    world.projectiles.length = 0;
-    resetHero();
+const hasStompHeadroomAtX = (x, enemyGroundY, solids) => {
+  const enemyTop = enemyGroundY + ENEMY_HEIGHT;
+  const enemyHalf = ENEMY_WIDTH * 0.45;
+  let nearestCeilingBottom = Number.POSITIVE_INFINITY;
+
+  for (let i = 0; i < solids.length; i++) {
+    const solid = solids[i];
+    if (solid.y <= enemyTop + 0.01) continue;
+    const overlapsX = x + enemyHalf > solid.x && x - enemyHalf < solid.x + solid.w;
+    if (!overlapsX) continue;
+    nearestCeilingBottom = Math.min(nearestCeilingBottom, solid.y);
   }
-};
 
-const damageBoss = (amount, hit) => {
-  if (!boss.alive) return;
-  boss.hp = Math.max(0, boss.hp - amount);
-  boss.damageFlash = 1;
-  addImpact(hit.x, hit.y, hit.z, 2.6, 0.95, 0.42);
-  if (boss.hp <= 0) {
-    boss.alive = false;
-    boss.state = "dead";
-    boss.pulse = 0;
-    world.score += 5000;
+  return nearestCeilingBottom - enemyTop >= ENEMY_STOMP_HEADROOM;
+};
+const isEnemyBodyClearAtX = (x, enemyGroundY, solids) => {
+  const rect = spriteRect(x, enemyGroundY, ENEMY_WIDTH, ENEMY_HEIGHT);
+  for (let i = 0; i < solids.length; i++) {
+    if (overlap(rect, solids[i])) return false;
   }
+  return true;
+};
+const hasEnemySupportAtX = (x, enemyGroundY, solids, probe = 1.25) => {
+  const rect = {
+    x: x - ENEMY_WIDTH * 0.5 + 0.35,
+    y: enemyGroundY - probe,
+    w: ENEMY_WIDTH - 0.7,
+    h: probe,
+  };
+  for (let i = 0; i < solids.length; i++) {
+    if (overlap(rect, solids[i])) return true;
+  }
+  return false;
 };
 
-const splash = (center, radius, damage, owner) => {
-  if (owner === "player") {
-    if (boss.alive) {
-      const d = dist3(center, boss);
-      if (d <= radius + SHOOTER_CONFIG.boss.radius) {
-        const ratio = 1 - clamp((d - SHOOTER_CONFIG.boss.radius) / Math.max(radius, EPS), 0, 1);
-        damageBoss(damage * ratio, center);
-      }
-    }
-    for (let i = world.minions.length - 1; i >= 0; i--) {
-      const m = world.minions[i];
-      if (!isMinionState(m)) {
-        world.minions.splice(i, 1);
-        continue;
-      }
-      const d = dist3(center, m);
-      if (d > radius + m.radius) continue;
-      const ratio = 1 - clamp((d - m.radius) / Math.max(radius, EPS), 0, 1);
-      m.hp -= damage * ratio;
-      m.damageFlash = 1;
-      if (m.hp <= 0) {
-        addImpact(m.x, m.y, m.z, 1.4, 0.88, 0.36);
-        world.minions.splice(i, 1);
-        world.score += 220;
-      }
-    }
-    const selfD = dist3(center, hero);
-    if (selfD < radius + SHOOTER_CONFIG.player.radius) {
-      const ratio = 1 - clamp((selfD - SHOOTER_CONFIG.player.radius) / Math.max(radius, EPS), 0, 1);
-      damagePlayer(damage * ratio * 0.38);
-    }
-  } else {
-    const d = dist3(center, hero);
-    if (d < radius + SHOOTER_CONFIG.player.radius) {
-      const ratio = 1 - clamp((d - SHOOTER_CONFIG.player.radius) / Math.max(radius, EPS), 0, 1);
-      damagePlayer(damage * ratio);
+const normalizeEnemyPatrolForHeadroom = (spawn, solids) => {
+  const minX = Math.min(spawn.minX, spawn.maxX);
+  const maxX = Math.max(spawn.minX, spawn.maxX);
+  const scanStep = 1;
+  const validXs = [];
+  for (let x = minX; x <= maxX + 0.01; x += scanStep) {
+    if (!hasStompHeadroomAtX(x, spawn.y, solids)) continue;
+    if (!isEnemyBodyClearAtX(x, spawn.y, solids)) continue;
+    if (!hasEnemySupportAtX(x, spawn.y, solids)) continue;
+    validXs.push(x);
+  }
+  if (validXs.length === 0) {
+    return null;
+  }
+  let bestX = validXs[0];
+  let bestDistance = Math.abs(validXs[0] - spawn.x);
+  for (let i = 1; i < validXs.length; i++) {
+    const distance = Math.abs(validXs[i] - spawn.x);
+    if (distance < bestDistance) {
+      bestDistance = distance;
+      bestX = validXs[i];
     }
   }
-};
 
-const getLookDirection = () => {
-  const cp = Math.cos(lookPitch);
-  return normalize3({
-    x: Math.sin(lookYaw) * cp,
-    y: Math.sin(lookPitch),
-    z: Math.cos(lookYaw) * cp,
-  });
-};
-
-const findGrapple = (origin, direction) => {
-  let best = null;
-  let bestT = SHOOTER_CONFIG.weapons.grapple.range + 1;
-  const latch = SHOOTER_CONFIG.weapons.grapple.latchRadius;
-  for (let i = 0; i < world.grappleAnchors.length; i++) {
-    const a = world.grappleAnchors[i];
-    if (a.active < 0.5) continue;
-    const vx = a.x - origin.x;
-    const vy = a.y - origin.y;
-    const vz = a.z - origin.z;
-    const t = vx * direction.x + vy * direction.y + vz * direction.z;
-    if (t < 1 || t > SHOOTER_CONFIG.weapons.grapple.range) continue;
-    const px = vx - direction.x * t;
-    const py = vy - direction.y * t;
-    const pz = vz - direction.z * t;
-    if (Math.hypot(px, py, pz) > latch + a.radius || t >= bestT) continue;
-    best = a;
-    bestT = t;
+  if (spawn.lockPlatformPatrol) {
+    return {
+      ...spawn,
+      minX,
+      maxX,
+      x: bestX,
+    };
   }
-  return best;
+
+  return {
+    ...spawn,
+    minX,
+    maxX,
+    x: bestX,
+  };
 };
 
-const fireRocket = (dir) => {
-  world.projectiles.push(createProjectile({
-    id: nextId(),
-    kind: "rocket",
-    owner: "player",
-    x: hero.x + dir.x * 1.2,
-    y: hero.y + 0.95 + dir.y * 0.4,
-    z: hero.z + dir.z * 1.2,
-    vx: dir.x * SHOOTER_CONFIG.weapons.rocket.speed,
-    vy: dir.y * SHOOTER_CONFIG.weapons.rocket.speed,
-    vz: dir.z * SHOOTER_CONFIG.weapons.rocket.speed,
-    radius: 0.38,
-    damage: SHOOTER_CONFIG.weapons.rocket.damage,
-    splashRadius: SHOOTER_CONFIG.weapons.rocket.radius,
-    life: SHOOTER_CONFIG.weapons.rocket.lifeSeconds,
-  }));
-  hero.rocketCooldown = SHOOTER_CONFIG.weapons.rocket.cooldown;
-};
+const generateLevel = (nextWidth, nextHeight) => {
+  const width = Math.max(MIN_WORLD_WIDTH, Math.floor(nextWidth));
+  const height = Math.max(MIN_WORLD_HEIGHT, Math.floor(nextHeight));
+  const seed = ((width * 73856093) ^ (height * 19349663)) >>> 0;
+  const rng = createRng(seed);
+  const floorMin = Math.ceil(6 / PLATFORM_GRID) * PLATFORM_GRID;
+  const floorMaxRaw = Math.max(6, Math.floor(height * 0.22));
+  const floorMax = Math.max(floorMin, Math.floor(floorMaxRaw / PLATFORM_GRID) * PLATFORM_GRID);
+  const floorHeight = clamp(snapToPlatformGrid(Math.round(height * 0.15)), floorMin, floorMax);
+  const spawn = {
+    x: clamp(Math.round(width * 0.08), 6, Math.max(6, Math.floor(width * 0.16))),
+    y: floorHeight,
+  };
 
-const useSword = (dir) => {
-  hero.swordCooldown = SHOOTER_CONFIG.weapons.sword.cooldown;
-  hero.swordSwingTime = 1;
-  const o = { x: hero.x, y: hero.y + 0.9, z: hero.z };
-  const range = SHOOTER_CONFIG.weapons.sword.range;
-  const arc = SHOOTER_CONFIG.weapons.sword.arcCosine;
-  if (boss.alive) {
-    const toBoss = normalize3({ x: boss.x - o.x, y: boss.y - o.y, z: boss.z - o.z });
-    if (dist3(o, boss) <= range + SHOOTER_CONFIG.boss.radius && dir.x * toBoss.x + dir.y * toBoss.y + dir.z * toBoss.z >= arc) {
-      damageBoss(SHOOTER_CONFIG.weapons.sword.damage, { x: boss.x, y: boss.y + 1.2, z: boss.z });
-    }
-  }
-  for (let i = world.minions.length - 1; i >= 0; i--) {
-    const m = world.minions[i];
-    if (!isMinionState(m)) {
-      world.minions.splice(i, 1);
-      continue;
-    }
-    const toMinion = normalize3({ x: m.x - o.x, y: m.y - o.y, z: m.z - o.z });
-    if (dist3(o, m) > range + m.radius || dir.x * toMinion.x + dir.y * toMinion.y + dir.z * toMinion.z < arc) continue;
-    m.hp -= SHOOTER_CONFIG.weapons.sword.damage;
-    m.damageFlash = 1;
-    addImpact(m.x, m.y, m.z, 1.1, 0.8, 0.25);
-    if (m.hp <= 0) {
-      world.minions.splice(i, 1);
-      world.score += 240;
-    }
-  }
-};
-
-const shootEnemy = (
-  origin,
-  dir,
-  dmg,
-  speed = SHOOTER_CONFIG.minion.projectileSpeed,
-  radius = 0.3,
-  splashRadius = 0,
-) => {
-  world.projectiles.push(createProjectile({
-    id: nextId(),
-    kind: "plasma",
-    owner: "enemy",
-    x: origin.x,
-    y: origin.y,
-    z: origin.z,
-    vx: dir.x * speed,
-    vy: dir.y * speed,
-    vz: dir.z * speed,
-    radius,
-    damage: dmg,
-    splashRadius,
-    life: 5.0,
-  }));
-};
-
-const spawnMinions = (count) => {
-  for (let i = 0; i < count; i++) {
-    const angle = (i / Math.max(count, 1)) * Math.PI * 2 + world.elapsed * 0.9;
-    const radius = 3.7 + Math.random() * 1.4;
-    world.minions.push(createMinion({
-      id: nextId(),
-      x: clamp(boss.x + Math.cos(angle) * radius, -SHOOTER_CONFIG.arena.halfWidth + 1.4, SHOOTER_CONFIG.arena.halfWidth - 1.4),
-      y: 1.45 + Math.random() * 1.1,
-      z: clamp(boss.z + Math.sin(angle) * radius * 0.82, hero.z + 10, SHOOTER_CONFIG.arena.depthFar - 4),
-      maxHealth: SHOOTER_CONFIG.minion.maxHealth,
-    }));
-  }
-};
-
-const chaseAndMeleeBoss = (delta, speedScale = 1) => {
-  const toHeroX = hero.x - boss.x;
-  const toHeroZ = hero.z - boss.z;
-  const distXZ = Math.hypot(toHeroX, toHeroZ);
-  const dirX = distXZ > EPS ? toHeroX / distXZ : 0;
-  const dirZ = distXZ > EPS ? toHeroZ / distXZ : -1;
-  const rush = clamp((distXZ - SHOOTER_CONFIG.boss.meleeRange) / 11, 0, 1);
-  const moveSpeed = lerp(SHOOTER_CONFIG.boss.moveSpeed, SHOOTER_CONFIG.boss.rushSpeed, rush) * speedScale;
-  boss.x += dirX * moveSpeed * delta;
-  boss.z += dirZ * moveSpeed * delta;
-  boss.x = clamp(
-    boss.x,
-    -SHOOTER_CONFIG.arena.halfWidth + SHOOTER_CONFIG.boss.radius * 0.72,
-    SHOOTER_CONFIG.arena.halfWidth - SHOOTER_CONFIG.boss.radius * 0.72,
+  const solids = [];
+  const coins = [];
+  const enemySpawns = [];
+  const mapRightMargin = clamp(Math.round(width * 0.05), 4, 12);
+  const safeLeft = Math.min(width - 20, spawn.x + 10);
+  const goal = {
+    x: clamp(
+      randomInt(rng, Math.floor(width * 0.68), Math.floor(width * 0.9)),
+      safeLeft + 24,
+      width - mapRightMargin - 2,
+    ),
+    y: floorHeight,
+    h: clamp(Math.round(height * 0.18), 11, 16),
+  };
+  const safeRight = Math.max(safeLeft + 16, goal.x - 14);
+  const stairCount = clamp(Math.floor(width / 56), 2, 5);
+  const stepWidth = clamp(Math.floor(width * 0.05), 6, 8);
+  const stairStart = goal.x - 10 - stairCount * stepWidth;
+  const stairEnd = goal.x + stepWidth;
+  const flyingPlatformHeight = 4;
+  const flyingBandBottom = clamp(
+    snapToPlatformGrid(floorHeight + PLAYER.height + 2),
+    floorHeight + PLATFORM_GRID,
+    Math.max(floorHeight + PLATFORM_GRID, height - flyingPlatformHeight - 10),
   );
-  boss.z = clamp(
-    boss.z,
-    SHOOTER_CONFIG.arena.depthNear + SHOOTER_CONFIG.boss.radius * 0.7,
-    SHOOTER_CONFIG.arena.depthFar - SHOOTER_CONFIG.boss.radius * 0.7,
+  const flyingBandTop = clamp(
+    snapToPlatformGrid(height - flyingPlatformHeight - 10),
+    flyingBandBottom,
+    height - flyingPlatformHeight - 6,
+  );
+  const minPlatformGap = PLATFORM_GRID;
+  const flyingRowStep = Math.ceil((flyingPlatformHeight + FLYING_ROW_CLEARANCE) / PLATFORM_GRID) * PLATFORM_GRID;
+  const flyingRows = [];
+  for (let y = flyingBandBottom; y <= flyingBandTop; y += flyingRowStep) {
+    flyingRows.push(y);
+  }
+  if (flyingRows.length === 0) {
+    flyingRows.push(flyingBandBottom);
+  }
+
+  pushSolid(solids, { x: 0, y: 0, w: width, h: floorHeight, type: 0 });
+
+  const touchesOtherPlatform = (candidate, gap = minPlatformGap) => {
+    for (let i = 0; i < solids.length; i++) {
+      const solid = solids[i];
+      if (solid.type === 0) continue;
+      const intersectsWithGap =
+        candidate.x < solid.x + solid.w + gap &&
+        candidate.x + candidate.w > solid.x - gap &&
+        candidate.y < solid.y + solid.h + gap &&
+        candidate.y + candidate.h > solid.y - gap;
+      if (intersectsWithGap) {
+        return true;
+      }
+    }
+    return false;
+  };
+
+  const createFlyingPlatform = (x, width, type, rowY = flyingRows[0]) => {
+    if (solids.length >= MAX_SOLIDS) return null;
+    const candidate = snapSolidToGrid({
+      x,
+      y: rowY,
+      w: width,
+      h: flyingPlatformHeight,
+      type,
+    });
+    const overlapsStairZone =
+      candidate.x < stairEnd + minPlatformGap &&
+      candidate.x + candidate.w > stairStart - minPlatformGap;
+    if (overlapsStairZone) {
+      return null;
+    }
+    if (touchesOtherPlatform(candidate)) {
+      return null;
+    }
+    solids.push(candidate);
+    return candidate;
+  };
+  const hasLaneEnemyGap = (x, y) => {
+    return !enemySpawns.some((enemy) => {
+      const sameLane = Math.abs(enemy.y - y) < PLATFORM_GRID;
+      return sameLane && Math.abs(enemy.x - x) < ENEMY_PLACEMENT_MIN_GAP;
+    });
+  };
+  const tryPlacePlatformEnemy = (platform, chance) => {
+    if (!platform || platform.w < 14 || rng() >= chance) return;
+    const enemyHalf = ENEMY_WIDTH * 0.5;
+    const laneY = platform.y + platform.h;
+    const leftX = platform.x + enemyHalf + 1;
+    const rightX = platform.x + platform.w - enemyHalf - 1;
+    const centerX = clamp(platform.x + platform.w * 0.5, leftX, rightX);
+    const preferredXs = [centerX, leftX, rightX];
+    for (let i = 0; i < preferredXs.length; i++) {
+      const enemyX = preferredXs[i];
+      if (!hasLaneEnemyGap(enemyX, laneY)) continue;
+      pushEnemy(enemySpawns, {
+        x: enemyX,
+        y: laneY,
+        minX: platform.x + enemyHalf,
+        maxX: platform.x + platform.w - enemyHalf,
+        lockPlatformPatrol: true,
+        speed: randomInt(rng, 7, 10),
+        dir: rng() < 0.5 ? -1 : 1,
+      });
+      break;
+    }
+  };
+
+  const starterPlatformWidth = clamp(Math.floor(width * 0.12), 10, 16);
+  let starterPlatform = createFlyingPlatform(safeLeft, starterPlatformWidth, 1);
+  if (!starterPlatform) {
+    starterPlatform = snapSolidToGrid({
+      x: safeLeft,
+      y: flyingRows[0],
+      w: starterPlatformWidth,
+      h: flyingPlatformHeight,
+      type: 1,
+    });
+    if (solids.length < MAX_SOLIDS) {
+      solids.push(starterPlatform);
+    }
+  }
+
+  const starterPlatformY = starterPlatform.y;
+  const starterPlatformHeight = starterPlatform.h;
+  addPlatformCoins(
+    coins,
+    starterPlatform.x,
+    starterPlatformY + starterPlatformHeight + 6,
+    starterPlatform.w,
+    2,
   );
 
-  const meleeReach = SHOOTER_CONFIG.boss.radius + SHOOTER_CONFIG.player.radius + SHOOTER_CONFIG.boss.meleeRange;
-  const verticalGap = Math.abs((hero.y + 0.9) - (boss.y + 0.4));
-  if (distXZ <= meleeReach && verticalGap <= 2.6 && boss.attackCooldownLeft <= 0) {
-    damagePlayer(SHOOTER_CONFIG.boss.meleeDamage);
-    addImpact(hero.x, hero.y + 0.8, hero.z, 1.45, 0.92, 0.3);
-    boss.attackCooldownLeft = SHOOTER_CONFIG.boss.attackCooldown;
-    boss.pulse = Math.max(boss.pulse, 0.78);
-  }
+  let cursorX = starterPlatform.x + starterPlatform.w;
 
-  return distXZ;
-};
+  while (cursorX < safeRight - 18) {
+    cursorX += randomInt(rng, PATH_MIN_GAP, PATH_MAX_GAP);
+    if (cursorX >= safeRight - 18) {
+      break;
+    }
 
-const stepBoss = (delta) => {
-  if (!boss.alive) {
-    boss.lookUp = approach(boss.lookUp, 0, delta * 0.8);
-    boss.pulse = approach(boss.pulse, 0, delta * 2.2);
-    phase.value = "DEAD";
-    return;
-  }
-  boss.stateTime += delta;
-  boss.damageFlash = approach(boss.damageFlash, 0, delta * 3.3);
-  boss.attackCooldownLeft -= delta;
-  boss.summonCooldownLeft -= delta;
-  if (boss.state === "idle") {
-    const distXZ = chaseAndMeleeBoss(delta, 1.0);
-    boss.lookUp = approach(boss.lookUp, 0, delta * SHOOTER_CONFIG.boss.lookUpLerp);
-    boss.pulse = 0.14 + Math.sin(world.elapsed * 2.3) * 0.06;
-    phase.value = distXZ <= SHOOTER_CONFIG.boss.radius + SHOOTER_CONFIG.player.radius + SHOOTER_CONFIG.boss.meleeRange + 0.8
-      ? "GORE"
-      : "BULL-RUSH";
-    if (boss.summonCooldownLeft <= 0 && world.minions.length < 12) {
-      boss.state = "telegraph";
-      boss.stateTime = 0;
-      boss.pulse = 0.42;
-    }
-    return;
-  }
-  if (boss.state === "telegraph") {
-    chaseAndMeleeBoss(delta, 0.65);
-    phase.value = "BULL-ROAR";
-    boss.lookUp = approach(boss.lookUp, 1, delta * SHOOTER_CONFIG.boss.lookUpLerp);
-    boss.pulse = 0.4 + 0.6 * Math.sin(world.elapsed * 11.5) ** 2;
-    if (boss.stateTime >= SHOOTER_CONFIG.boss.summonTelegraph) {
-      boss.state = "summoning";
-      boss.stateTime = 0;
-    }
-    return;
-  }
-  if (boss.state === "summoning") {
-    chaseAndMeleeBoss(delta, 0.45);
-    phase.value = "HERD-CALL";
-    boss.lookUp = 1;
-    boss.pulse = 0.75 + 0.25 * Math.sin(world.elapsed * 18);
-    if (boss.stateTime >= SHOOTER_CONFIG.boss.summonDuration) {
-      spawnMinions(SHOOTER_CONFIG.boss.summonCount);
-      boss.state = "cooldown";
-      boss.stateTime = 0;
-      boss.summonCooldownLeft = SHOOTER_CONFIG.boss.summonCooldown;
-      boss.attackCooldownLeft = Math.max(0.7, SHOOTER_CONFIG.boss.attackCooldown - 0.3);
-    }
-    return;
-  }
-  chaseAndMeleeBoss(delta, 0.9);
-  phase.value = "TRAMPLE";
-  boss.lookUp = approach(boss.lookUp, 0, delta * SHOOTER_CONFIG.boss.lookUpLerp);
-  boss.pulse = approach(boss.pulse, 0.18, delta * 1.6);
-  if (boss.stateTime >= 1.2) {
-    boss.state = "idle";
-    boss.stateTime = 0;
-  }
-};
-
-const stepMinions = (delta) => {
-  for (let i = world.minions.length - 1; i >= 0; i--) {
-    const m = world.minions[i];
-    if (!isMinionState(m)) {
-      world.minions.splice(i, 1);
-      continue;
-    }
-    m.damageFlash = approach(m.damageFlash, 0, delta * 4.5);
-    m.attackCooldownLeft -= delta;
-    m.orbitPhase += delta * 2.2;
-    const tx = hero.x - m.x;
-    const tz = hero.z - m.z;
-    const d = Math.hypot(tx, tz);
-    const dx = d > EPS ? tx / d : 0;
-    const dz = d > EPS ? tz / d : -1;
-    const speed = SHOOTER_CONFIG.minion.speed * clamp(d / 9.5, 0.25, 1);
-    m.vx = approach(m.vx, dx * speed, delta * 16);
-    m.vz = approach(m.vz, dz * speed, delta * 16);
-    m.x += m.vx * delta;
-    m.z += m.vz * delta;
-    m.y = 1.35 + Math.sin(world.elapsed * 3.5 + m.orbitPhase) * 0.5;
-    m.x = clamp(m.x, -SHOOTER_CONFIG.arena.halfWidth + 0.8, SHOOTER_CONFIG.arena.halfWidth - 0.8);
-    m.z = clamp(m.z, SHOOTER_CONFIG.arena.depthNear + 2, SHOOTER_CONFIG.arena.depthFar - 2);
-    const toPlayer = dist3(m, hero);
-    if (toPlayer < m.radius + SHOOTER_CONFIG.player.radius + 0.45 && m.attackCooldownLeft <= 0) {
-      m.attackCooldownLeft = SHOOTER_CONFIG.minion.attackCooldown;
-      damagePlayer(SHOOTER_CONFIG.minion.contactDamage);
-    } else if (toPlayer < 28 && m.attackCooldownLeft <= 0) {
-      m.attackCooldownLeft = SHOOTER_CONFIG.minion.attackCooldown;
-      shootEnemy({ x: m.x, y: m.y, z: m.z }, normalize3({ x: hero.x - m.x, y: hero.y + 0.85 - m.y, z: hero.z - m.z }), SHOOTER_CONFIG.minion.projectileDamage);
-    }
-    if (m.hp <= 0) {
-      addImpact(m.x, m.y, m.z, 1.25, 0.9, 0.36);
-      world.minions.splice(i, 1);
-      world.score += 220;
-    }
-  }
-};
-
-const stepProjectiles = (delta) => {
-  for (let i = world.projectiles.length - 1; i >= 0; i--) {
-    const p = world.projectiles[i];
-    if (!isProjectileState(p)) {
-      world.projectiles.splice(i, 1);
-      continue;
-    }
-    p.life -= delta;
-    p.x += p.vx * delta;
-    p.y += p.vy * delta;
-    p.z += p.vz * delta;
-    const hitWall =
-      Math.abs(p.x) > SHOOTER_CONFIG.arena.halfWidth ||
-      p.y < SHOOTER_CONFIG.arena.floorY ||
-      p.y > SHOOTER_CONFIG.arena.ceilingY ||
-      p.z < SHOOTER_CONFIG.arena.depthNear - 8 ||
-      p.z > SHOOTER_CONFIG.arena.depthFar + 8;
-
-    if (p.owner === "player") {
-      let boom = hitWall || p.life <= 0;
-      if (!boom && boss.alive && dist3(p, boss) <= p.radius + SHOOTER_CONFIG.boss.radius) boom = true;
-      if (!boom) {
-        for (let j = 0; j < world.minions.length; j++) {
-          if (dist3(p, world.minions[j]) <= p.radius + world.minions[j].radius) {
-            boom = true;
-            break;
-          }
-        }
-      }
-      if (boom) {
-        addImpact(p.x, p.y, p.z, p.splashRadius, 0.95, 0.4);
-        splash(p, p.splashRadius, p.damage, p.owner);
-        world.projectiles.splice(i, 1);
-      }
+    const platformWidth = clamp(Math.floor(randomInt(rng, 10, Math.max(10, Math.floor(width * 0.16)))), 10, 24);
+    const placed = createFlyingPlatform(cursorX, platformWidth, rng() < 0.5 ? 1 : 4);
+    if (!placed) {
       continue;
     }
 
-    const hitHero = dist3(p, hero) <= p.radius + SHOOTER_CONFIG.player.radius;
-    if (hitHero || hitWall || p.life <= 0) {
-      addImpact(p.x, p.y, p.z, 1 + p.splashRadius, 0.8, 0.25);
-      if (hitHero) damagePlayer(p.damage);
-      else if (p.splashRadius > 0.2) splash(p, p.splashRadius, p.damage, p.owner);
-      world.projectiles.splice(i, 1);
-    }
+    addPlatformCoins(
+      coins,
+      placed.x,
+      placed.y + placed.h + 6,
+      placed.w,
+      clamp(Math.floor(placed.w / 6), 1, 4),
+    );
+    tryPlacePlatformEnemy(placed, 0.95);
+    cursorX += placed.w;
   }
-};
 
-const stepImpacts = (delta) => {
-  for (let i = world.impacts.length - 1; i >= 0; i--) {
-    const fx = world.impacts[i];
-    fx.life -= delta;
-    fx.strength = clamp(fx.life / Math.max(fx.maxLife, EPS), 0, 1);
-    fx.radius += delta * 2.7;
-    if (fx.life <= 0) world.impacts.splice(i, 1);
-  }
-};
+  // Add upper fixed rows within the allowed flying band.
+  for (let rowIndex = 1; rowIndex < flyingRows.length; rowIndex++) {
+    const rowY = flyingRows[rowIndex];
+    let rowCursor = safeLeft + randomInt(rng, 0, PATH_MAX_GAP);
+    let placedInRow = 0;
 
-const stepWeapons = (dir, delta) => {
-  hero.rocketCooldown = Math.max(0, hero.rocketCooldown - delta);
-  hero.swordCooldown = Math.max(0, hero.swordCooldown - delta);
-  hero.grappleCooldown = Math.max(0, hero.grappleCooldown - delta);
-  hero.swordSwingTime = Math.max(0, hero.swordSwingTime - delta * 3.8);
-  if (input.weaponSwitch >= 0 && input.weaponSwitch <= W_SWORD) hero.weaponIndex = input.weaponSwitch;
-  input.weaponSwitch = -1;
-
-  const fire = input.fire;
-  const wantsGrapple = input.grapple || (hero.weaponIndex === W_GRAPPLE && fire);
-  if (hero.weaponIndex !== W_GRAPPLE && hero.grappleActive) {
-    hero.grappleActive = false;
-    hero.grapplePoint = null;
-  }
-  if (hero.weaponIndex === W_GRAPPLE) {
-    if (wantsGrapple && !hero.grappleActive && hero.grappleCooldown <= 0) {
-      const target = findGrapple({ x: hero.x, y: hero.y + 1, z: hero.z }, dir);
-      if (target) {
-        hero.grappleActive = true;
-        hero.grapplePoint = { x: target.x, y: target.y, z: target.z };
-        hero.grappleTravelBoost = 1;
-        addImpact(target.x, target.y, target.z, 0.8, 0.7, 0.3);
+    while (rowCursor < safeRight - 10) {
+      const platformWidth = clamp(randomInt(rng, 8, 16), 8, 20);
+      const placed = createFlyingPlatform(rowCursor, platformWidth, rng() < 0.5 ? 1 : 4, rowY);
+      if (placed) {
+        placedInRow += 1;
+        addPlatformCoins(
+          coins,
+          placed.x,
+          placed.y + placed.h + 6,
+          placed.w,
+          clamp(Math.floor(placed.w / 8), 1, 3),
+        );
+        tryPlacePlatformEnemy(placed, 0.75);
+        rowCursor += placed.w + randomInt(rng, PATH_MIN_GAP, PATH_MAX_GAP + 4);
       } else {
-        hero.grappleCooldown = 0.1;
+        rowCursor += PLATFORM_GRID;
       }
     }
-    if (hero.grappleActive && hero.grapplePoint) {
-      const to = {
-        x: hero.grapplePoint.x - hero.x,
-        y: hero.grapplePoint.y - (hero.y + 0.85),
-        z: hero.grapplePoint.z - hero.z,
-      };
-      const d = Math.hypot(to.x, to.y, to.z);
-      const pull = normalize3(to);
-      const speed = SHOOTER_CONFIG.weapons.grapple.pullSpeed * (0.75 + hero.grappleTravelBoost * 0.35);
-      hero.vx = approach(hero.vx, pull.x * speed, delta * 46);
-      hero.vy = approach(hero.vy, pull.y * speed, delta * 38);
-      hero.vz = approach(hero.vz, pull.z * speed, delta * 46);
-      hero.grappleTravelBoost = approach(hero.grappleTravelBoost, 0.2, delta * 1.7);
-      if (!wantsGrapple || d < 1.6) {
-        hero.grappleActive = false;
-        hero.grapplePoint = null;
-        hero.grappleCooldown = SHOOTER_CONFIG.weapons.grapple.cooldown;
+
+    // Guarantee at least one platform in every upper row.
+    if (placedInRow === 0) {
+      const guaranteedWidth = clamp(randomInt(rng, 10, 14), 10, 18);
+      const anchors = [
+        safeLeft + rowIndex * (PATH_MIN_GAP + 2),
+        safeLeft + ((safeRight - safeLeft) * 0.35),
+        safeLeft + ((safeRight - safeLeft) * 0.6),
+      ];
+      for (let i = 0; i < anchors.length; i++) {
+        const placed = createFlyingPlatform(anchors[i], guaranteedWidth, rng() < 0.5 ? 1 : 4, rowY);
+        if (!placed) continue;
+        addPlatformCoins(
+          coins,
+          placed.x,
+          placed.y + placed.h + 6,
+          placed.w,
+          clamp(Math.floor(placed.w / 8), 1, 2),
+        );
+        tryPlacePlatformEnemy(placed, 0.65);
+        break;
       }
     }
-    return;
   }
-  if (hero.weaponIndex === W_ROCKET && fire && hero.rocketCooldown <= 0) {
-    fireRocket(dir);
-    return;
+
+  const desiredStepHeight = Math.max(
+    PLATFORM_GRID,
+    snapToPlatformGrid(clamp(Math.floor((height - floorHeight) * 0.12), 4, 8)),
+  );
+  const maxTotalStairHeight = Math.max(PLATFORM_GRID, flyingRows[0] - floorHeight - minPlatformGap);
+  const maxStepHeight = Math.max(PLATFORM_GRID, Math.floor(maxTotalStairHeight / stairCount / PLATFORM_GRID) * PLATFORM_GRID);
+  const stepHeight = clamp(desiredStepHeight, PLATFORM_GRID, maxStepHeight);
+  for (let i = 0; i < stairCount; i++) {
+    pushSolid(solids, {
+      x: stairStart + i * stepWidth,
+      y: floorHeight,
+      w: stepWidth,
+      h: stepHeight * (i + 1),
+      type: 3,
+    });
   }
-  if (hero.weaponIndex === W_SWORD && (fire || input.sword) && hero.swordCooldown <= 0) {
-    useSword(dir);
+  addPlatformCoins(coins, stairStart, floorHeight + stepHeight * stairCount + 7, stairCount * stepWidth, stairCount);
+
+  if (coins.length === 0) {
+    pushCoin(coins, {
+      x: safeLeft + starterPlatformWidth * 0.5,
+      y: starterPlatformY + starterPlatformHeight + 6,
+      r: DEFAULT_COIN_RADIUS,
+    });
+  }
+
+  let walkerX = safeLeft + 4;
+  while (walkerX < safeRight - 12) {
+    if (rng() < 0.42) {
+      pushEnemy(enemySpawns, {
+        x: walkerX,
+        y: floorHeight,
+        minX: clamp(walkerX - randomInt(rng, 8, 16), 4, safeRight),
+        maxX: clamp(walkerX + randomInt(rng, 8, 18), 8, safeRight),
+        speed: randomInt(rng, 8, 12),
+        dir: rng() < 0.5 ? -1 : 1,
+      });
+    }
+    walkerX += randomInt(rng, 16, 28);
+  }
+
+  const filteredSolids = solids
+    .sort(sortByX)
+    .slice(0, MAX_SOLIDS);
+
+  const filteredCoinCandidates = coins
+    .filter((coin) =>
+      coin.x > spawn.x + 8 &&
+      coin.x < goal.x - 4 &&
+      coin.y < height - 2 &&
+      isCoinClearOfSolids(coin, filteredSolids),
+    )
+    .sort(sortByX);
+  let filteredCoins = pickEvenlyDistributed(filteredCoinCandidates, STAGE_MAX_COLLECTIBLES);
+
+  if (filteredCoins.length === 0) {
+    const fallbackCoin = {
+      x: safeLeft + starterPlatformWidth * 0.5,
+      y: starterPlatformY + starterPlatformHeight + DEFAULT_COIN_RADIUS + COIN_PLATFORM_CLEARANCE + 1.5,
+      r: DEFAULT_COIN_RADIUS,
+    };
+    if (isCoinClearOfSolids(fallbackCoin, filteredSolids)) {
+      filteredCoins = [fallbackCoin];
+    }
+  }
+
+  const minEnemyX = Math.max(
+    spawn.x + 12,
+    Math.min(goal.x - 12, Math.floor(width * FIRST_ENEMY_MIN_WORLD_RATIO)),
+  );
+  const targetEnemyCount = Math.min(MAX_ENEMIES, Math.max(0, Math.floor(width / 30)));
+  const enemySpan = Math.max(0, goal.x - 12 - minEnemyX);
+  const enemyMinSpacing = clamp(
+    Math.floor(enemySpan / Math.max(2, targetEnemyCount + 1)),
+    PLATFORM_GRID,
+    12,
+  );
+  const enemyInitialCandidates = enemySpawns
+    .filter((enemy) => enemy.x >= minEnemyX && enemy.x < goal.x - 12)
+    .sort(sortByX)
+    .map((enemy) => normalizeEnemyPatrolForHeadroom(enemy, filteredSolids))
+    .filter((enemy) => enemy !== null);
+  const platformEnemyCandidates = enemyInitialCandidates
+    .filter((enemy) => enemy.lockPlatformPatrol)
+    .sort(sortByX);
+  const nonPlatformEnemyCandidates = enemyInitialCandidates
+    .filter((enemy) => !enemy.lockPlatformPatrol)
+    .sort(sortByX);
+  let filteredEnemies = [];
+
+  const tryAppendEnemy = (candidate, minSpacing = enemyMinSpacing) => {
+    if (!candidate) return false;
+    if (candidate.x < minEnemyX || candidate.x >= goal.x - 12) return false;
+    const normalized = normalizeEnemyPatrolForHeadroom(candidate, filteredSolids);
+    if (!normalized) return false;
+    const requiredSpacing = Math.max(minSpacing, ENEMY_PLACEMENT_MIN_GAP);
+    if (requiredSpacing > 0) {
+      const tooClose = filteredEnemies.some((enemy) => {
+        const sameLane = Math.abs(enemy.y - normalized.y) < PLATFORM_GRID;
+        return sameLane && Math.abs(enemy.x - normalized.x) < requiredSpacing;
+      });
+      if (tooClose) return false;
+    }
+    filteredEnemies.push(normalized);
+    return true;
+  };
+
+  const platformEnemyTarget = Math.min(
+    platformEnemyCandidates.length,
+    Math.max(1, Math.floor(targetEnemyCount * PLATFORM_ENEMY_TARGET_RATIO)),
+  );
+  for (let i = 0; i < platformEnemyCandidates.length && filteredEnemies.length < platformEnemyTarget; i++) {
+    tryAppendEnemy(platformEnemyCandidates[i], enemyMinSpacing);
+  }
+  const seededEnemyCandidates = [...platformEnemyCandidates, ...nonPlatformEnemyCandidates];
+  for (let i = 0; i < seededEnemyCandidates.length && filteredEnemies.length < targetEnemyCount; i++) {
+    tryAppendEnemy(seededEnemyCandidates[i], enemyMinSpacing);
+  }
+
+  let attempts = 0;
+  const maxAttempts = Math.max(60, targetEnemyCount * 80);
+  while (filteredEnemies.length < targetEnemyCount && attempts < maxAttempts) {
+    attempts += 1;
+    const x = randomInt(rng, Math.floor(minEnemyX), Math.floor(goal.x - 16));
+    const patrolHalf = randomInt(rng, 6, 14);
+    tryAppendEnemy({
+      x,
+      y: floorHeight,
+      minX: clamp(x - patrolHalf, 4, safeRight),
+      maxX: clamp(x + patrolHalf, 8, safeRight),
+      speed: randomInt(rng, 8, 12),
+      dir: rng() < 0.5 ? -1 : 1,
+    }, enemyMinSpacing);
+  }
+
+  const relaxedMinSpacing = Math.max(2, Math.floor(enemyMinSpacing * 0.66));
+  for (let i = 0; i < targetEnemyCount && filteredEnemies.length < targetEnemyCount; i++) {
+    const anchorRatio = (i + 0.5) / Math.max(1, targetEnemyCount);
+    const anchorX = minEnemyX + enemySpan * anchorRatio;
+    const jitter = Math.max(1, Math.floor(enemyMinSpacing * 0.4));
+    const x = clamp(
+      snapToPlatformGrid(Math.round(anchorX + randomInt(rng, -jitter, jitter))),
+      Math.floor(minEnemyX),
+      Math.floor(goal.x - 16),
+    );
+    const patrolHalf = randomInt(rng, 6, 14);
+    tryAppendEnemy({
+      x,
+      y: floorHeight,
+      minX: clamp(x - patrolHalf, 4, safeRight),
+      maxX: clamp(x + patrolHalf, 8, safeRight),
+      speed: randomInt(rng, 8, 12),
+      dir: rng() < 0.5 ? -1 : 1,
+    }, relaxedMinSpacing);
+  }
+
+  for (
+    let x = snapToPlatformGrid(Math.floor(minEnemyX));
+    filteredEnemies.length < targetEnemyCount && x < goal.x - 12;
+    x += PLATFORM_GRID
+  ) {
+    tryAppendEnemy({
+      x,
+      y: floorHeight,
+      minX: clamp(x - 4, 4, safeRight),
+      maxX: clamp(x + 4, 8, safeRight),
+      speed: randomInt(rng, 8, 12),
+      dir: rng() < 0.5 ? -1 : 1,
+    }, relaxedMinSpacing);
+  }
+
+  filteredEnemies = filteredEnemies
+    .sort(sortByX)
+    .slice(0, targetEnemyCount);
+
+  world.width = width;
+  world.height = height;
+  world.floorHeight = floorHeight;
+  world.solids = filteredSolids;
+  world.enemySpawns = filteredEnemies;
+  world.coins = filteredCoins;
+  world.spawn = spawn;
+  world.goal = goal;
+};
+
+const container = ref(null);
+const hudScoreValue = ref(0);
+const hudCoinsValue = ref(0);
+const hudLivesValue = ref(3);
+const hudTimerValue = ref(95);
+const hudStateValue = ref("RUN");
+
+const hudScore = computed(() => Math.max(0, Math.floor(hudScoreValue.value)).toString().padStart(6, "0"));
+const hudCoins = computed(() => Math.max(0, Math.floor(hudCoinsValue.value)).toString().padStart(2, "0"));
+const hudLives = computed(() => Math.max(0, Math.floor(hudLivesValue.value)).toString().padStart(2, "0"));
+const hudTimer = computed(() => Math.max(0, Math.floor(hudTimerValue.value)).toString().padStart(3, "0"));
+const hudState = computed(() => hudStateValue.value);
+
+const input = {
+  left: false,
+  right: false,
+  jumpHeld: false,
+  jumpQueued: 0,
+};
+
+const run = {
+  score: 0,
+  coins: 0,
+  coinsInStage: 0,
+  collectedInStage: 0,
+  doorUnlocked: false,
+  lives: 3,
+  timer: 95,
+  phase: PHASE_PLAYING,
+  phaseTimer: 0,
+  stagePulse: 0,
+};
+
+const player = createPlayer();
+let enemies = [];
+let coins = [];
+
+let camera;
+let scene;
+let renderer;
+let material;
+let quad;
+let frameId = null;
+let previousTimeMs = 0;
+
+const syncHud = () => {
+  hudScoreValue.value = run.score;
+  hudCoinsValue.value = run.coins;
+  hudLivesValue.value = run.lives;
+  hudTimerValue.value = run.timer;
+  hudStateValue.value = run.phase === PHASE_CLEAR
+    ? "CLEAR"
+    : run.phase === PHASE_DEAD
+      ? "RESPAWN"
+      : run.doorUnlocked
+        ? "DOOR OPEN"
+        : "COLLECT";
+};
+
+const resetPlayer = () => {
+  player.x = world.spawn.x;
+  player.y = world.spawn.y;
+  player.vx = 0;
+  player.vy = 0;
+  player.facing = 1;
+  player.grounded = false;
+  player.coyote = 0;
+  player.invulnerable = 0;
+  player.anim = 0;
+  player.prevY = world.spawn.y;
+};
+
+const resetLevel = () => {
+  run.timer = clamp(Math.round(world.width * 0.55), 90, 180);
+  run.phase = PHASE_PLAYING;
+  run.phaseTimer = 0;
+  run.stagePulse = 0;
+  resetPlayer();
+  enemies = world.enemySpawns.map(createEnemy);
+  coins = world.coins.map(createCoin);
+  run.coinsInStage = coins.length;
+  run.collectedInStage = 0;
+  run.doorUnlocked = run.coinsInStage === 0;
+  syncHud();
+};
+
+const resetRun = () => {
+  run.score = 0;
+  run.coins = 0;
+  run.lives = 3;
+  run.coinsInStage = 0;
+  run.collectedInStage = 0;
+  run.doorUnlocked = false;
+  resetLevel();
+};
+
+const preservePlayerAfterResize = () => {
+  player.x = clamp(player.x, player.w * 0.5, world.width - player.w * 0.5);
+  player.y = clamp(player.y, 0, Math.max(0, world.height - player.h));
+
+  for (let i = 0; i < world.solids.length; i++) {
+    const solid = world.solids[i];
+    const rect = bodyRect(player);
+    if (!overlap(rect, solid)) continue;
+    player.y = solid.y + solid.h;
+  }
+
+  player.grounded = solidSupportBelow(player, 1.25);
+  if (player.grounded) {
+    player.vy = Math.max(0, player.vy);
   }
 };
 
-const stepHero = (delta) => {
-  hero.damageFlash = approach(hero.damageFlash, 0, delta * 3.3);
-  const dir = getLookDirection();
-  hero.yaw = lookYaw;
-  hero.pitch = lookPitch;
-  hero.facing = dir.x >= 0 ? 1 : -1;
-  stepWeapons(dir, delta);
+const regenerateWorld = (widthPx, heightPx, resetProgress = false) => {
+  const nextWidth = Math.max(MIN_WORLD_WIDTH, Math.floor(widthPx / BASE_PIXEL_SCALE));
+  const nextHeight = Math.max(MIN_WORLD_HEIGHT, Math.floor(heightPx / BASE_PIXEL_SCALE));
+  const changed = nextWidth !== world.width || nextHeight !== world.height;
+  if (!changed) return;
 
-  const mf = (input.forward ? 1 : 0) - (input.backward ? 1 : 0);
-  const mr = (input.right ? 1 : 0) - (input.left ? 1 : 0);
-  const f = forwardYaw(lookYaw);
-  const r = { x: f.z, z: -f.x };
-  const mx = r.x * mr + f.x * mf;
-  const mz = r.z * mr + f.z * mf;
-  const ml = Math.hypot(mx, mz);
-  const tvx = ml > EPS ? (mx / ml) * SHOOTER_CONFIG.player.moveSpeed : 0;
-  const tvz = ml > EPS ? (mz / ml) * SHOOTER_CONFIG.player.moveSpeed : 0;
-  if (!hero.grappleActive) {
-    hero.vx = approach(hero.vx, tvx, delta * SHOOTER_CONFIG.player.acceleration);
-    hero.vz = approach(hero.vz, tvz, delta * SHOOTER_CONFIG.player.acceleration);
-    if (ml <= EPS) {
-      hero.vx = approach(hero.vx, 0, delta * SHOOTER_CONFIG.player.friction);
-      hero.vz = approach(hero.vz, 0, delta * SHOOTER_CONFIG.player.friction);
-    }
-  }
-  if (input.jump && hero.grounded) {
-    hero.vy = SHOOTER_CONFIG.player.jumpVelocity;
-    hero.grounded = false;
-  }
-  hero.vy = Math.max(hero.vy + SHOOTER_CONFIG.player.gravity * delta, -28);
-  hero.x += hero.vx * delta;
-  hero.y += hero.vy * delta;
-  hero.z += hero.vz * delta;
-  hero.x = clamp(hero.x, -SHOOTER_CONFIG.arena.halfWidth + SHOOTER_CONFIG.player.radius, SHOOTER_CONFIG.arena.halfWidth - SHOOTER_CONFIG.player.radius);
-  hero.z = clamp(hero.z, SHOOTER_CONFIG.arena.depthNear + 1, SHOOTER_CONFIG.arena.depthFar - 2.4);
-  if (hero.y <= SHOOTER_CONFIG.arena.floorY + SHOOTER_CONFIG.player.start.y) {
-    hero.y = SHOOTER_CONFIG.arena.floorY + SHOOTER_CONFIG.player.start.y;
-    hero.vy = 0;
-    hero.grounded = true;
+  const preservedPlayer = {
+    x: player.x,
+    y: player.y,
+    vx: player.vx,
+    vy: player.vy,
+    grounded: player.grounded,
+    coyote: player.coyote,
+    invulnerable: player.invulnerable,
+    anim: player.anim,
+    prevY: player.prevY,
+    facing: player.facing,
+  };
+
+  generateLevel(nextWidth, nextHeight);
+  if (resetProgress) {
+    resetRun();
   } else {
-    hero.grounded = false;
-  }
-  if (hero.y > SHOOTER_CONFIG.arena.ceilingY - 0.9) {
-    hero.y = SHOOTER_CONFIG.arena.ceilingY - 0.9;
-    hero.vy = Math.min(hero.vy, 0);
-  }
-  if (hero.z > checkpoint.z + 18) {
-    checkpoint.x = hero.x;
-    checkpoint.y = SHOOTER_CONFIG.player.start.y;
-    checkpoint.z = hero.z - 2;
+    player.x = preservedPlayer.x;
+    player.y = preservedPlayer.y;
+    player.vx = preservedPlayer.vx;
+    player.vy = preservedPlayer.vy;
+    player.grounded = preservedPlayer.grounded;
+    player.coyote = preservedPlayer.coyote;
+    player.invulnerable = preservedPlayer.invulnerable;
+    player.anim = preservedPlayer.anim;
+    player.prevY = preservedPlayer.prevY;
+    player.facing = preservedPlayer.facing;
+    enemies = world.enemySpawns.map(createEnemy);
+    coins = world.coins.map(createCoin);
+    run.coinsInStage = coins.length;
+    run.collectedInStage = 0;
+    run.doorUnlocked = run.coinsInStage === 0;
+    preservePlayerAfterResize();
+    syncHud();
   }
 };
 
-const stepCamera = () => {
-  gameCamera.yaw = lookYaw;
-  gameCamera.pitch = lookPitch;
-  const stride = clamp(Math.hypot(hero.vx, hero.vz) / SHOOTER_CONFIG.player.moveSpeed, 0, 1);
-  const bob = hero.grounded ? Math.sin(world.elapsed * 10.5) * 0.08 * stride : 0;
-  gameCamera.x = hero.x;
-  gameCamera.y = hero.y + SHOOTER_CONFIG.player.height * 0.72 + bob;
-  gameCamera.z = hero.z;
+const takeLife = () => {
+  if (run.phase !== PHASE_PLAYING) return;
+  run.phase = PHASE_DEAD;
+  run.phaseTimer = 1.15;
+  player.invulnerable = 1.25;
+  player.vx = 0;
+  player.vy = 28;
+  run.lives -= 1;
+  syncHud();
 };
 
-const stepScan = (delta) => {
-  scan.distance += SHOOTER_CONFIG.scanSweep.speed * delta;
-  if (scan.distance > scan.cycle) scan.distance = 0;
+const clearStage = () => {
+  if (run.phase !== PHASE_PLAYING) return;
+  run.phase = PHASE_CLEAR;
+  run.phaseTimer = 2.8;
+  run.score += 1000 + Math.floor(run.timer * 10);
+  syncHud();
+};
+
+const solidSupportBelow = (body, probe = 1.5) => {
+  const rect = {
+    x: body.x - body.w * 0.5 + 0.35,
+    y: body.y - probe,
+    w: body.w - 0.7,
+    h: probe,
+  };
+  return world.solids.some((solid) => overlap(rect, solid));
+};
+
+const moveBody = (body, delta) => {
+  let hitX = false;
+
+  body.x += body.vx * delta;
+  let rect = bodyRect(body);
+  for (let i = 0; i < world.solids.length; i++) {
+    const solid = world.solids[i];
+    if (!overlap(rect, solid)) continue;
+    if (body.vx > 0) {
+      body.x = solid.x - body.w * 0.5;
+      hitX = true;
+    } else if (body.vx < 0) {
+      body.x = solid.x + solid.w + body.w * 0.5;
+      hitX = true;
+    }
+    body.vx = 0;
+    rect = bodyRect(body);
+  }
+
+  body.y += body.vy * delta;
+  body.grounded = false;
+  rect = bodyRect(body);
+  for (let i = 0; i < world.solids.length; i++) {
+    const solid = world.solids[i];
+    if (!overlap(rect, solid)) continue;
+    if (body.vy < 0) {
+      body.y = solid.y + solid.h;
+      body.grounded = true;
+    } else if (body.vy > 0) {
+      body.y = solid.y - body.h;
+    }
+    body.vy = 0;
+    rect = bodyRect(body);
+  }
+
+  if (body.x - body.w * 0.5 < 0) {
+    body.x = body.w * 0.5;
+    body.vx = 0;
+    hitX = true;
+  }
+  if (body.x + body.w * 0.5 > world.width) {
+    body.x = world.width - body.w * 0.5;
+    body.vx = 0;
+    hitX = true;
+  }
+
+  return { hitX };
+};
+
+const collectCoins = () => {
+  const playerHitbox = bodyRect(player);
+  for (let i = 0; i < coins.length; i++) {
+    const coin = coins[i];
+    if (coin.collected) continue;
+    const hitbox = spriteRect(coin.x, coin.y - coin.r, coin.r * 2, coin.r * 2);
+    if (!overlap(playerHitbox, hitbox)) continue;
+    coin.collected = true;
+    run.score += 100;
+    run.coins += 1;
+    run.collectedInStage += 1;
+    if (run.collectedInStage >= run.coinsInStage) {
+      run.doorUnlocked = true;
+    }
+    if (run.coins > 0 && run.coins % 10 === 0) {
+      run.lives += 1;
+    }
+    syncHud();
+  }
+};
+
+const goalHitbox = () => ({
+  x: world.goal.x - 2.2,
+  y: world.goal.y,
+  w: 4.4,
+  h: world.goal.h,
+});
+
+const stompEnemy = (enemy) => {
+  enemy.alive = false;
+  enemy.vx = 0;
+  enemy.vy = 0;
+  player.vy = PLAYER.stompBounce;
+  player.grounded = false;
+  player.coyote = 0;
+  run.score += 200;
+  syncHud();
+};
+
+const resolveEnemyCollisions = () => {
+  const playerHitbox = bodyRect(player);
+  for (let i = 0; i < enemies.length; i++) {
+    const enemy = enemies[i];
+    if (!enemy.alive) continue;
+    const enemyHitbox = bodyRect(enemy);
+    if (!overlap(playerHitbox, enemyHitbox)) continue;
+    const playerWasAbove = player.prevY >= enemy.y + enemy.h - 1.2;
+    if (player.vy < -16 && playerWasAbove) {
+      stompEnemy(enemy);
+    } else if (player.invulnerable <= 0) {
+      takeLife();
+    }
+  }
+};
+
+const stepEnemies = (delta) => {
+  for (let i = 0; i < enemies.length; i++) {
+    const enemy = enemies[i];
+    if (!enemy.alive) continue;
+    enemy.anim += delta * 5;
+    enemy.vx = enemy.dir * enemy.speed;
+    enemy.vy = Math.max(enemy.vy + PLAYER.gravity * delta, -82);
+    const moved = moveBody(enemy, delta);
+    if (moved.hitX || enemy.x <= enemy.minX || enemy.x >= enemy.maxX || !solidSupportBelow(enemy, 1.25)) {
+      enemy.dir *= -1;
+      enemy.vx = enemy.dir * enemy.speed;
+      enemy.x = clamp(enemy.x, enemy.minX, enemy.maxX);
+    }
+  }
+};
+
+const stepPlayer = (delta) => {
+  const moveInput = (input.right ? 1 : 0) - (input.left ? 1 : 0);
+  const targetSpeed = moveInput * PLAYER.maxSpeed;
+  const accel = player.grounded ? PLAYER.groundAccel : PLAYER.airAccel;
+
+  player.prevY = player.y;
+  player.invulnerable = Math.max(0, player.invulnerable - delta);
+  player.anim += delta * (Math.abs(player.vx) * 0.22 + 1.2);
+  run.stagePulse = approach(run.stagePulse, run.phase === PHASE_CLEAR ? 1 : 0, delta * 1.6);
+
+  if (run.phase === PHASE_PLAYING) {
+    if (moveInput !== 0) {
+      player.vx = approach(player.vx, targetSpeed, accel * delta);
+      player.facing = moveInput > 0 ? 1 : -1;
+    } else if (player.grounded) {
+      player.vx = approach(player.vx, 0, PLAYER.friction * delta);
+    } else {
+      player.vx = approach(player.vx, 0, PLAYER.airAccel * 0.3 * delta);
+    }
+  } else if (run.phase === PHASE_CLEAR) {
+    player.vx = approach(player.vx, 14, PLAYER.groundAccel * delta);
+    player.facing = 1;
+  } else {
+    player.vx = approach(player.vx, 0, PLAYER.friction * delta);
+  }
+
+  if (run.phase === PHASE_PLAYING) {
+    input.jumpQueued = Math.max(0, input.jumpQueued - delta);
+    if (input.jumpQueued > 0 && (player.grounded || player.coyote > 0)) {
+      player.vy = PLAYER.jumpVelocity;
+      player.grounded = false;
+      player.coyote = 0;
+      input.jumpQueued = 0;
+    }
+  } else {
+    input.jumpQueued = 0;
+  }
+
+  const gravity = player.vy > 0
+    ? (input.jumpHeld ? PLAYER.jumpGravityHeld : PLAYER.jumpGravityReleased)
+    : PLAYER.fallGravity;
+  player.vy = Math.max(player.vy + gravity * delta, PLAYER.maxFallSpeed);
+  moveBody(player, delta);
+  if (player.grounded) {
+    player.coyote = PLAYER.coyoteTime;
+  } else {
+    player.coyote = Math.max(0, player.coyote - delta);
+  }
+
+  if (run.phase === PHASE_PLAYING) {
+    collectCoins();
+    resolveEnemyCollisions();
+    if (run.doorUnlocked && overlap(bodyRect(player), goalHitbox())) {
+      clearStage();
+    }
+    if (player.y < -18 || run.timer <= 0) {
+      takeLife();
+    }
+  }
+};
+
+const stepPhase = (delta) => {
+  if (run.phase === PHASE_PLAYING) {
+    run.timer = Math.max(0, run.timer - delta);
+    return;
+  }
+
+  run.phaseTimer -= delta;
+  if (run.phaseTimer > 0) return;
+
+  if (run.phase === PHASE_CLEAR) {
+    generateLevel(world.width, world.height);
+    resetLevel();
+    return;
+  }
+
+  if (run.lives > 0) {
+    resetLevel();
+  } else {
+    generateLevel(world.width, world.height);
+    resetRun();
+  }
 };
 
 const stepGame = (delta) => {
-  world.elapsed += delta;
-  stepHero(delta);
-  stepBoss(delta);
-  stepMinions(delta);
-  stepProjectiles(delta);
-  stepImpacts(delta);
-  stepCamera();
-  stepScan(delta);
-  hp.value = hero.health;
-  bossHp.value = boss.hp;
-  minionsCount.value = world.minions.length;
-  score.value = world.score;
-};
-
-const fillPools = () => {
-  visibleStructureCount = 0;
-  visibleAnchorCount = 0;
-  visibleMinionCount = 0;
-  visibleProjectileCount = 0;
-  visibleImpactCount = 0;
-  const nearZ = gameCamera.z - 20;
-  const farZ = gameCamera.z + 220;
-
-  for (let i = 0; i < world.structures.length && visibleStructureCount < MAX_STRUCTURES; i++) {
-    const s = world.structures[i];
-    if (s.z < nearZ || s.z > farZ) continue;
-    const p = structurePool[visibleStructureCount];
-    p.x = s.x;
-    p.y = s.y;
-    p.z = s.z;
-    p.r = s.r;
-    p.h = s.h;
-    p.type = s.type;
-    p.emissive = s.emissive;
-    p.grapplable = s.grapplable;
-    visibleStructureCount += 1;
-  }
-  for (let i = visibleStructureCount; i < MAX_STRUCTURES; i++) {
-    const p = structurePool[i];
-    p.x = -9999;
-    p.y = -9999;
-    p.z = -9999;
-    p.r = 0;
-    p.h = 0;
-    p.type = 0;
-    p.emissive = 0;
-    p.grapplable = 0;
-  }
-
-  for (let i = 0; i < world.grappleAnchors.length && visibleAnchorCount < MAX_ANCHORS; i++) {
-    const a = world.grappleAnchors[i];
-    if (a.z < nearZ || a.z > farZ) continue;
-    const p = anchorPool[visibleAnchorCount];
-    p.x = a.x;
-    p.y = a.y;
-    p.z = a.z;
-    p.radius = a.radius;
-    p.active = a.active;
-    visibleAnchorCount += 1;
-  }
-  for (let i = visibleAnchorCount; i < MAX_ANCHORS; i++) {
-    const p = anchorPool[i];
-    p.x = -9999;
-    p.y = -9999;
-    p.z = -9999;
-    p.radius = 0;
-    p.active = 0;
-  }
-
-  for (let i = 0; i < world.minions.length && visibleMinionCount < MAX_MINIONS; i++) {
-    const m = world.minions[i];
-    if (!isMinionState(m)) continue;
-    const p = minionPool[visibleMinionCount];
-    p.x = m.x;
-    p.y = m.y;
-    p.z = m.z;
-    p.radius = m.radius;
-    p.hp = clamp(m.hp / Math.max(m.maxHp, EPS), 0, 1);
-    p.phase = m.orbitPhase;
-    p.flash = m.damageFlash;
-    visibleMinionCount += 1;
-  }
-  for (let i = visibleMinionCount; i < MAX_MINIONS; i++) {
-    const p = minionPool[i];
-    p.x = -9999;
-    p.y = -9999;
-    p.z = -9999;
-    p.radius = 0;
-    p.hp = 0;
-    p.phase = 0;
-    p.flash = 0;
-  }
-
-  for (let i = 0; i < world.projectiles.length && visibleProjectileCount < MAX_PROJECTILES; i++) {
-    const pr = world.projectiles[i];
-    if (!isProjectileState(pr)) continue;
-    const p = projectilePool[visibleProjectileCount];
-    p.x = pr.x;
-    p.y = pr.y;
-    p.z = pr.z;
-    p.radius = pr.radius;
-    p.kind = pr.kind === "rocket" ? 0 : 1;
-    p.lifeRatio = clamp(pr.life / Math.max(pr.maxLife, EPS), 0, 1);
-    p.owner = pr.owner === "player" ? 0 : 1;
-    p.glow = pr.kind === "rocket" ? 1 : 0.75;
-    visibleProjectileCount += 1;
-  }
-  for (let i = visibleProjectileCount; i < MAX_PROJECTILES; i++) {
-    const p = projectilePool[i];
-    p.x = -9999;
-    p.y = -9999;
-    p.z = -9999;
-    p.radius = 0;
-    p.kind = 0;
-    p.lifeRatio = 0;
-    p.owner = 0;
-    p.glow = 0;
-  }
-
-  for (let i = 0; i < world.impacts.length && visibleImpactCount < MAX_IMPACTS; i++) {
-    const fx = world.impacts[i];
-    const p = impactPool[visibleImpactCount];
-    p.x = fx.x;
-    p.y = fx.y;
-    p.z = fx.z;
-    p.radius = fx.radius;
-    p.strength = fx.strength;
-    visibleImpactCount += 1;
-  }
-  for (let i = visibleImpactCount; i < MAX_IMPACTS; i++) {
-    const p = impactPool[i];
-    p.x = -9999;
-    p.y = -9999;
-    p.z = -9999;
-    p.radius = 0;
-    p.strength = 0;
-  }
-};
-
-const syncUniforms = (t) => {
-  fillPools();
-  material.uniforms.uTime.value = t;
-  material.uniforms.uCameraPos.value.set(gameCamera.x, gameCamera.y, gameCamera.z);
-  material.uniforms.uCameraYaw.value = gameCamera.yaw;
-  material.uniforms.uCameraPitch.value = gameCamera.pitch;
-  material.uniforms.uFov.value = SHOOTER_CONFIG.camera.fov;
-  material.uniforms.uArenaHalfWidth.value = SHOOTER_CONFIG.arena.halfWidth;
-  material.uniforms.uArenaFloorY.value = SHOOTER_CONFIG.arena.floorY;
-  material.uniforms.uArenaCeilingY.value = SHOOTER_CONFIG.arena.ceilingY;
-  material.uniforms.uArenaDepthNear.value = SHOOTER_CONFIG.arena.depthNear;
-  material.uniforms.uArenaDepthFar.value = SHOOTER_CONFIG.arena.depthFar;
-  material.uniforms.uPlayerPos.value.set(hero.x, hero.y, hero.z);
-  material.uniforms.uPlayerVelocity.value.set(hero.vx, hero.vy, hero.vz);
-  material.uniforms.uPlayerWeapon.value = hero.weaponIndex;
-  material.uniforms.uPlayerHealthNorm.value = clamp(hero.health / Math.max(hero.maxHealth, EPS), 0, 1);
-  material.uniforms.uPlayerGrappleActive.value = hero.grappleActive ? 1 : 0;
-  if (hero.grapplePoint) {
-    material.uniforms.uPlayerGrapplePoint.value.set(hero.grapplePoint.x, hero.grapplePoint.y, hero.grapplePoint.z);
+  stepPlayer(delta);
+  if (run.phase !== PHASE_DEAD) {
+    stepEnemies(delta);
   } else {
-    material.uniforms.uPlayerGrapplePoint.value.set(hero.x, hero.y + 1, hero.z + 1);
+    for (let i = 0; i < enemies.length; i++) {
+      enemies[i].anim += delta * 2.2;
+    }
   }
-  material.uniforms.uPlayerSwordSwing.value = hero.swordSwingTime;
-  material.uniforms.uBossPos.value.set(boss.x, boss.y, boss.z);
-  material.uniforms.uBossHealthNorm.value = clamp(boss.hp / Math.max(boss.maxHp, EPS), 0, 1);
-  material.uniforms.uBossLookUp.value = boss.lookUp;
-  material.uniforms.uBossSummonPulse.value = boss.pulse;
-  material.uniforms.uBossAlive.value = boss.alive ? 1 : 0;
-  material.uniforms.uScanOriginZ.value = hero.z;
-  material.uniforms.uScanDistance.value = scan.distance;
-  material.uniforms.uScanWidth.value = SHOOTER_CONFIG.scanSweep.width;
-  material.uniforms.uScanIntensity.value = SHOOTER_CONFIG.scanSweep.intensity;
+  stepPhase(delta);
+  syncHud();
+};
 
-  const ss = material.uniforms.uStructures.value;
-  const sm = material.uniforms.uStructureMeta.value;
-  for (let i = 0; i < MAX_STRUCTURES; i++) {
-    const p = structurePool[i];
-    ss[i].set(p.x, p.y, p.z, p.r);
-    sm[i].set(p.h, p.type, p.emissive, p.grapplable);
-  }
-  material.uniforms.uStructureCount.value = visibleStructureCount;
+const syncUniforms = (time) => {
+  material.uniforms.uTime.value = time;
+  material.uniforms.uWorldSize.value.set(world.width, world.height);
+  material.uniforms.uPlayerBox.value.set(player.x, player.y, player.w, player.h);
+  material.uniforms.uPlayerMotion.value.set(player.vx, player.vy, player.facing, player.anim);
+  material.uniforms.uPlayerState.value.set(
+    player.grounded ? 1 : 0,
+    player.invulnerable,
+    run.phase,
+    run.stagePulse,
+  );
+  material.uniforms.uGoal.value.set(world.goal.x, world.goal.y, world.goal.h, run.doorUnlocked ? 1 : 0);
 
-  const as = material.uniforms.uAnchors.value;
-  const ast = material.uniforms.uAnchorState.value;
-  for (let i = 0; i < MAX_ANCHORS; i++) {
-    const p = anchorPool[i];
-    as[i].set(p.x, p.y, p.z, p.radius);
-    ast[i] = p.active;
+  const solids = material.uniforms.uSolids.value;
+  const solidMeta = material.uniforms.uSolidMeta.value;
+  for (let i = 0; i < MAX_SOLIDS; i++) {
+    const solid = world.solids[i];
+    if (solid) {
+      solids[i].set(solid.x, solid.y, solid.w, solid.h);
+      solidMeta[i].set(solid.type, 1, 0, 0);
+    } else {
+      solids[i].set(-9999, -9999, 0, 0);
+      solidMeta[i].set(0, 0, 0, 0);
+    }
   }
-  material.uniforms.uAnchorCount.value = visibleAnchorCount;
+  material.uniforms.uSolidCount.value = world.solids.length;
 
-  const ms = material.uniforms.uMinions.value;
-  const mm = material.uniforms.uMinionMeta.value;
-  for (let i = 0; i < MAX_MINIONS; i++) {
-    const p = minionPool[i];
-    ms[i].set(p.x, p.y, p.z, p.radius);
-    mm[i].set(p.hp, p.phase, p.flash, 1);
+  const enemyUniforms = material.uniforms.uEnemies.value;
+  const enemyMeta = material.uniforms.uEnemyMeta.value;
+  for (let i = 0; i < MAX_ENEMIES; i++) {
+    const enemy = enemies[i];
+    if (enemy) {
+      enemyUniforms[i].set(enemy.x, enemy.y, enemy.w, enemy.h);
+      enemyMeta[i].set(enemy.alive ? 1 : 0, enemy.dir, enemy.anim, enemy.speed);
+    } else {
+      enemyUniforms[i].set(-9999, -9999, 0, 0);
+      enemyMeta[i].set(0, 0, 0, 0);
+    }
   }
-  material.uniforms.uMinionCount.value = visibleMinionCount;
+  material.uniforms.uEnemyCount.value = enemies.length;
 
-  const ps = material.uniforms.uProjectiles.value;
-  const pm = material.uniforms.uProjectileMeta.value;
-  for (let i = 0; i < MAX_PROJECTILES; i++) {
-    const p = projectilePool[i];
-    ps[i].set(p.x, p.y, p.z, p.radius);
-    pm[i].set(p.kind, p.lifeRatio, p.owner, p.glow);
+  const coinUniforms = material.uniforms.uCoins.value;
+  const coinMeta = material.uniforms.uCoinMeta.value;
+  for (let i = 0; i < MAX_COINS; i++) {
+    const coin = coins[i];
+    if (coin) {
+      coinUniforms[i].set(coin.x, coin.y, coin.r, 0);
+      coinMeta[i].set(coin.collected ? 1 : 0, coin.phase, 0, 0);
+    } else {
+      coinUniforms[i].set(-9999, -9999, 0, 0);
+      coinMeta[i].set(1, 0, 0, 0);
+    }
   }
-  material.uniforms.uProjectileCount.value = visibleProjectileCount;
-
-  const is = material.uniforms.uImpacts.value;
-  const ist = material.uniforms.uImpactStrength.value;
-  for (let i = 0; i < MAX_IMPACTS; i++) {
-    const p = impactPool[i];
-    is[i].set(p.x, p.y, p.z, p.radius);
-    ist[i] = p.strength;
-  }
-  material.uniforms.uImpactCount.value = visibleImpactCount;
+  material.uniforms.uCoinCount.value = coins.length;
 };
 
 const onResize = () => {
   if (!container.value || !renderer || !material) return;
   const width = Math.max(1, dom.width(container.value));
   const height = Math.max(1, dom.height(container.value));
-  const gameWidth = Math.max(1, Math.floor(width * SHOOTER_CONFIG.render.gameViewportWidthRatio));
-  const gameX = (width - gameWidth) * 0.5;
+  const viewportWidth = Math.max(BASE_PIXEL_SCALE, Math.floor(width / BASE_PIXEL_SCALE) * BASE_PIXEL_SCALE);
+  const viewportHeight = Math.max(BASE_PIXEL_SCALE, Math.floor(height / BASE_PIXEL_SCALE) * BASE_PIXEL_SCALE);
+  const viewportX = Math.floor((width - viewportWidth) * 0.5);
+  const viewportY = Math.floor((height - viewportHeight) * 0.5);
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
   renderer.setSize(width, height, false);
-  gameViewportPx.x = gameX;
-  gameViewportPx.y = 0;
-  gameViewportPx.w = gameWidth;
-  gameViewportPx.h = height;
   material.uniforms.uResolution.value.set(width, height);
-  material.uniforms.uGameViewport.value.set(gameX, 0, gameWidth, height);
-  material.uniforms.uPixelScale.value = 2.0;
+  material.uniforms.uViewport.value.set(viewportX, viewportY, viewportWidth, viewportHeight);
+  material.uniforms.uPixelScale.value = BASE_PIXEL_SCALE;
+  regenerateWorld(viewportWidth, viewportHeight, false);
 };
 
-const ignoreKey = (e) => {
-  const t = e.target;
-  if (!t) return false;
-  const tag = t.tagName;
-  return t.isContentEditable || tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT";
+const ignoreKey = (event) => {
+  const target = event.target;
+  if (!target) return false;
+  const tag = target.tagName;
+  return target.isContentEditable || tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT";
 };
 
-const setKey = (e, v) => {
-  if (v && ignoreKey(e)) return false;
-  let handled = false;
-  if (e.code === "KeyW" || e.code === "ArrowUp") {
-    input.forward = v;
-    handled = true;
-  } else if (e.code === "KeyS" || e.code === "ArrowDown") {
-    input.backward = v;
-    handled = true;
-  } else if (e.code === "KeyA" || e.code === "ArrowLeft") {
-    input.left = v;
-    handled = true;
-  } else if (e.code === "KeyD" || e.code === "ArrowRight") {
-    input.right = v;
-    handled = true;
-  } else if (e.code === "Space") {
-    input.jump = v;
-    handled = true;
-  } else if (e.code === "KeyJ" || e.code === "ControlLeft") {
-    input.fire = v;
-    handled = true;
-  } else if (e.code === "KeyE") {
-    input.grapple = v;
-    handled = true;
-  } else if (e.code === "KeyF") {
-    input.sword = v;
-    handled = true;
-  } else if (v && e.code === "Digit1") {
-    input.weaponSwitch = W_GRAPPLE;
-    handled = true;
-  } else if (v && e.code === "Digit2") {
-    input.weaponSwitch = W_ROCKET;
-    handled = true;
-  } else if (v && e.code === "Digit3") {
-    input.weaponSwitch = W_SWORD;
-    handled = true;
+const setKey = (code, value) => {
+  if (code === "KeyA" || code === "ArrowLeft") {
+    input.left = value;
+    return true;
   }
-  return handled;
+  if (code === "KeyD" || code === "ArrowRight") {
+    input.right = value;
+    return true;
+  }
+  if (code === "Space" || code === "ArrowUp" || code === "KeyW") {
+    if (value && !input.jumpHeld) {
+      input.jumpQueued = PLAYER.jumpBuffer;
+    }
+    if (!value && input.jumpHeld && player.vy > PLAYER.jumpReleaseVelocity) {
+      player.vy = PLAYER.jumpReleaseVelocity;
+    }
+    input.jumpHeld = value;
+    return true;
+  }
+  if (value && code === "KeyR") {
+    generateLevel(world.width, world.height);
+    resetRun();
+    return true;
+  }
+  return false;
+};
+
+const onKeyDown = (event) => {
+  if (ignoreKey(event)) return;
+  if (setKey(event.code, true)) {
+    event.preventDefault();
+  }
+};
+
+const onKeyUp = (event) => {
+  if (setKey(event.code, false)) {
+    event.preventDefault();
+  }
 };
 
 const clearInput = () => {
-  input.forward = false;
-  input.backward = false;
   input.left = false;
   input.right = false;
-  input.jump = false;
-  input.fire = false;
-  input.grapple = false;
-  input.sword = false;
-  input.pointerActive = false;
-};
-
-const onKeyDown = (e) => {
-  if (setKey(e, true)) e.preventDefault();
-};
-const onKeyUp = (e) => {
-  if (setKey(e, false)) e.preventDefault();
-};
-
-const requestPointerLock = () => {
-  if (!container.value || document.pointerLockElement === container.value) return;
-  if (typeof container.value.requestPointerLock === "function") {
-    container.value.requestPointerLock();
-  }
-};
-
-const onPointerLockChange = () => {
-  pointerLocked = document.pointerLockElement === container.value;
-  input.pointerActive = pointerLocked;
-};
-
-const onPointerMove = (e) => {
-  if (!pointerLocked) return;
-  lookYaw += e.movementX * LOOK_SENSITIVITY;
-  lookPitch = clamp(
-    lookPitch - e.movementY * LOOK_SENSITIVITY,
-    LOOK_PITCH_MIN,
-    LOOK_PITCH_MAX,
-  );
-};
-
-const onPointerDown = (e) => {
-  if (e.target !== container.value && e.target !== renderer?.domElement) return;
-  requestPointerLock();
-  if (e.button === 0) {
-    input.fire = true;
-    e.preventDefault();
-  } else if (e.button === 2) {
-    input.grapple = true;
-    e.preventDefault();
-  }
-};
-const onPointerUp = (e) => {
-  if (e.button === 0) {
-    input.fire = false;
-    e.preventDefault();
-  } else if (e.button === 2) {
-    input.grapple = false;
-    e.preventDefault();
-  }
+  input.jumpHeld = false;
+  input.jumpQueued = 0;
 };
 
 const initGL = async () => {
@@ -1110,8 +1312,18 @@ const initGL = async () => {
   material = createBackgroundMaterial(1, 1);
   quad = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), material);
   scene.add(quad);
-  buildArena();
+
+  const width = Math.max(1, dom.width(container.value));
+  const height = Math.max(1, dom.height(container.value));
+  const viewportWidth = Math.max(BASE_PIXEL_SCALE, Math.floor(width / BASE_PIXEL_SCALE) * BASE_PIXEL_SCALE);
+  const viewportHeight = Math.max(BASE_PIXEL_SCALE, Math.floor(height / BASE_PIXEL_SCALE) * BASE_PIXEL_SCALE);
+  generateLevel(
+    Math.max(MIN_WORLD_WIDTH, Math.floor(viewportWidth / BASE_PIXEL_SCALE)),
+    Math.max(MIN_WORLD_HEIGHT, Math.floor(viewportHeight / BASE_PIXEL_SCALE)),
+  );
+  resetRun();
   onResize();
+
   previousTimeMs = performance.now();
   const animate = (nowMs) => {
     const delta = clamp((nowMs - previousTimeMs) / 1000, 0, 1 / 24);
@@ -1130,10 +1342,6 @@ onMounted(async () => {
   window.addEventListener("keydown", onKeyDown);
   window.addEventListener("keyup", onKeyUp);
   window.addEventListener("blur", clearInput);
-  window.addEventListener("pointermove", onPointerMove);
-  container.value?.addEventListener("pointerdown", onPointerDown);
-  window.addEventListener("pointerup", onPointerUp);
-  document.addEventListener("pointerlockchange", onPointerLockChange);
 });
 
 onBeforeUnmount(() => {
@@ -1141,10 +1349,7 @@ onBeforeUnmount(() => {
   window.removeEventListener("keydown", onKeyDown);
   window.removeEventListener("keyup", onKeyUp);
   window.removeEventListener("blur", clearInput);
-  window.removeEventListener("pointermove", onPointerMove);
-  container.value?.removeEventListener("pointerdown", onPointerDown);
-  window.removeEventListener("pointerup", onPointerUp);
-  document.removeEventListener("pointerlockchange", onPointerLockChange);
+
   if (frameId) {
     cancelAnimationFrame(frameId);
     frameId = null;
