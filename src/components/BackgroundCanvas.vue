@@ -149,6 +149,10 @@ const createRng = (seed) => {
     return state / 4294967296;
   };
 };
+const createRandomSeed = () => {
+  const seed = Math.floor(Math.random() * 4294967296) >>> 0;
+  return seed === 0 ? 1 : seed;
+};
 const pickEvenlyDistributed = (items, count) => {
   if (items.length <= count) return [...items];
   if (count <= 0) return [];
@@ -229,6 +233,7 @@ const isCoinClearOfSolids = (coin, solids) => {
 const world = {
   width: MIN_WORLD_WIDTH,
   height: MIN_WORLD_HEIGHT,
+  seed: createRandomSeed(),
   floorHeight: 12,
   solids: [],
   enemySpawns: [],
@@ -367,10 +372,9 @@ const normalizeEnemyPatrolForHeadroom = (spawn, solids) => {
   };
 };
 
-const generateLevel = (nextWidth, nextHeight) => {
+const generateLevel = (nextWidth, nextHeight, seed = world.seed) => {
   const width = Math.max(MIN_WORLD_WIDTH, Math.floor(nextWidth));
   const height = Math.max(MIN_WORLD_HEIGHT, Math.floor(nextHeight));
-  const seed = ((width * 73856093) ^ (height * 19349663)) >>> 0;
   const rng = createRng(seed);
   const floorMin = Math.ceil(6 / PLATFORM_GRID) * PLATFORM_GRID;
   const floorMaxRaw = Math.max(6, Math.floor(height * 0.22));
@@ -766,12 +770,17 @@ const generateLevel = (nextWidth, nextHeight) => {
 
   world.width = width;
   world.height = height;
+  world.seed = seed;
   world.floorHeight = floorHeight;
   world.solids = filteredSolids;
   world.enemySpawns = filteredEnemies;
   world.coins = filteredCoins;
   world.spawn = spawn;
   world.goal = goal;
+};
+
+const regenerateMap = (width = world.width, height = world.height) => {
+  generateLevel(width, height, createRandomSeed());
 };
 
 const container = ref(null);
@@ -909,7 +918,7 @@ const regenerateWorld = (widthPx, heightPx, resetProgress = false) => {
     facing: player.facing,
   };
 
-  generateLevel(nextWidth, nextHeight);
+  generateLevel(nextWidth, nextHeight, world.seed);
   if (resetProgress) {
     resetRun();
   } else {
@@ -1154,13 +1163,13 @@ const stepPhase = (delta) => {
   if (run.phaseTimer > 0) return;
 
   if (run.phase === PHASE_CLEAR) {
-    generateLevel(world.width, world.height);
+    regenerateMap();
     resetLevel();
     return;
   }
 
   if (run.regenerateOnRespawn) {
-    generateLevel(world.width, world.height);
+    regenerateMap();
     resetRun();
   } else {
     resetLevel();
@@ -1279,7 +1288,7 @@ const setKey = (code, value) => {
     return true;
   }
   if (value && code === "KeyR") {
-    generateLevel(world.width, world.height);
+    regenerateMap();
     resetRun();
     return true;
   }
@@ -1321,7 +1330,7 @@ const initGL = async () => {
   const height = Math.max(1, dom.height(container.value));
   const viewportWidth = Math.max(BASE_PIXEL_SCALE, Math.floor(width / BASE_PIXEL_SCALE) * BASE_PIXEL_SCALE);
   const viewportHeight = Math.max(BASE_PIXEL_SCALE, Math.floor(height / BASE_PIXEL_SCALE) * BASE_PIXEL_SCALE);
-  generateLevel(
+  regenerateMap(
     Math.max(MIN_WORLD_WIDTH, Math.floor(viewportWidth / BASE_PIXEL_SCALE)),
     Math.max(MIN_WORLD_HEIGHT, Math.floor(viewportHeight / BASE_PIXEL_SCALE)),
   );
