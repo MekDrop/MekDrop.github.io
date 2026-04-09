@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import vertexShader from "./vertex.glsl?raw";
 import fragmentShader from "./fragment.glsl?raw";
+import { createPaletteTexture } from "./palette";
 
 const MAX_SOLIDS = 64;
 const MAX_ENEMIES = 40;
@@ -31,8 +32,9 @@ export function create(containerWidth, containerHeight) {
     { length: MAX_COINS },
     () => new THREE.Vector4(0, 0, 0, 0),
   );
+  const paletteTexture = createPaletteTexture();
 
-  return new THREE.ShaderMaterial({
+  const material = new THREE.ShaderMaterial({
     uniforms: {
       uTime: { value: 0.0 },
       uResolution: { value: new THREE.Vector2(containerWidth, containerHeight) },
@@ -52,9 +54,12 @@ export function create(containerWidth, containerHeight) {
       uCoins: { value: coinBuffer },
       uCoinMeta: { value: coinMetaBuffer },
       uCoinCount: { value: 0.0 },
+      uPalette: { value: paletteTexture },
     },
     vertexShader,
     fragmentShader,
     transparent: false,
   });
+  material.userData.paletteTexture = paletteTexture;
+  return material;
 }

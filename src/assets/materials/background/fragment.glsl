@@ -22,13 +22,65 @@ uniform float uEnemyCount;
 uniform vec4 uCoins[MAX_COINS];
 uniform vec4 uCoinMeta[MAX_COINS];
 uniform float uCoinCount;
+uniform sampler2D uPalette;
 
 float saturate(float value) {
   return clamp(value, 0.0, 1.0);
 }
 
 vec3 mono(float value) {
-  return vec3(0.74, 1.0, 0.86) * value;
+  return vec3(0.94, 0.88, 0.76) * value;
+}
+
+vec2 paletteUv(float index) {
+  float x = mod(index, 16.0);
+  float y = floor(index / 16.0);
+  return vec2((x + 0.5) / 16.0, (y + 0.5) / 16.0);
+}
+
+float bayer4(vec2 point) {
+  vec2 cell = mod(floor(point), 4.0);
+  if (cell.y < 0.5) {
+    if (cell.x < 0.5) return 0.0;
+    if (cell.x < 1.5) return 8.0;
+    if (cell.x < 2.5) return 2.0;
+    return 10.0;
+  }
+  if (cell.y < 1.5) {
+    if (cell.x < 0.5) return 12.0;
+    if (cell.x < 1.5) return 4.0;
+    if (cell.x < 2.5) return 14.0;
+    return 6.0;
+  }
+  if (cell.y < 2.5) {
+    if (cell.x < 0.5) return 3.0;
+    if (cell.x < 1.5) return 11.0;
+    if (cell.x < 2.5) return 1.0;
+    return 9.0;
+  }
+  if (cell.x < 0.5) return 15.0;
+  if (cell.x < 1.5) return 7.0;
+  if (cell.x < 2.5) return 13.0;
+  return 5.0;
+}
+
+vec3 quantizePalette(vec3 color, vec2 point) {
+  vec3 candidate = clamp(color, 0.0, 1.0);
+  float dither = (bayer4(point) / 16.0) - 0.46875;
+  candidate = clamp(candidate + dither / 255.0, 0.0, 1.0);
+
+  float bestDistance = 999.0;
+  vec3 bestColor = candidate;
+  for (int i = 0; i < 256; i++) {
+    vec3 paletteColor = texture2D(uPalette, paletteUv(float(i))).rgb;
+    vec3 delta = candidate - paletteColor;
+    float distanceSq = dot(delta, delta);
+    if (distanceSq < bestDistance) {
+      bestDistance = distanceSq;
+      bestColor = paletteColor;
+    }
+  }
+  return bestColor;
 }
 
 void applyLayer(inout vec3 color, vec3 layer, float alpha) {
@@ -80,37 +132,7 @@ float cloudMask(vec2 point, vec2 center, vec2 scale) {
 
 vec3 drawBackdrop(vec2 world) {
   float horizon = world.y / max(uWorldSize.y, 1.0);
-  vec3 color = mix(vec3(0.012, 0.024, 0.019), vec3(0.045, 0.092, 0.066), horizon);
-
-  vec2 moonCenter = vec2(uWorldSize.x * 0.82, uWorldSize.y * 0.82);
-  float moonRadius = min(uWorldSize.x, uWorldSize.y) * 0.085;
-  float moon = circleMask(world, moonCenter, moonRadius);
-  float moonGlow = circleMask(world, moonCenter, moonRadius * 1.5) * 0.45;
-  color += mono(0.12) * moonGlow;
-  applyLayer(color, vec3(0.16, 0.25, 0.20), moon * 0.85);
-
-  float cloudDrift = sin(uTime * 0.18);
-  float cloudA = cloudMask(world, vec2(uWorldSize.x * 0.20 + cloudDrift * 1.8, uWorldSize.y * 0.76), vec2(16.0, 8.0));
-  float cloudB = cloudMask(world, vec2(uWorldSize.x * 0.55 - cloudDrift * 1.2, uWorldSize.y * 0.68), vec2(14.0, 7.0));
-  float cloudC = cloudMask(world, vec2(uWorldSize.x * 0.88 + cloudDrift, uWorldSize.y * 0.73), vec2(12.0, 6.0));
-  color = mix(color, vec3(0.15, 0.22, 0.19), saturate((cloudA + cloudB + cloudC) * 0.28));
-
-  float nx = world.x / max(uWorldSize.x, 1.0);
-  float hillBack = uWorldSize.y * 0.18 + sin(nx * 13.0) * (uWorldSize.y * 0.042) + sin(nx * 27.0 + 1.4) * (uWorldSize.y * 0.022);
-  float hillFront = uWorldSize.y * 0.245 + sin(nx * 11.0 + 0.8) * (uWorldSize.y * 0.060) + sin(nx * 24.0 + 2.6) * (uWorldSize.y * 0.026);
-  float backMask = step(world.y, hillBack);
-  float frontMask = step(world.y, hillFront);
-  applyLayer(color, vec3(0.026, 0.056, 0.042), backMask);
-  applyLayer(color, vec3(0.042, 0.088, 0.062), frontMask * 0.92);
-
-  float skyline = ringMask(world, vec2(uWorldSize.x * 0.16, uWorldSize.y * 0.22), 9.0, 1.0) * step(world.y, uWorldSize.y * 0.30);
-  skyline += ringMask(world, vec2(uWorldSize.x * 0.42, uWorldSize.y * 0.20), 8.0, 1.0) * step(world.y, uWorldSize.y * 0.28);
-  skyline += ringMask(world, vec2(uWorldSize.x * 0.75, uWorldSize.y * 0.21), 10.0, 1.0) * step(world.y, uWorldSize.y * 0.30);
-  color += mono(0.05) * skyline;
-
-  float stars = step(0.9978, fract(sin(dot(floor(world * 0.7), vec2(12.9898, 78.233))) * 43758.5453));
-  color += mono(0.16) * stars * step(uWorldSize.y * 0.38, world.y);
-  return color;
+  return mix(vec3(0.43, 0.64, 0.84), vec3(0.59, 0.78, 0.93), horizon);
 }
 
 vec3 solidColor(vec2 world, vec4 solid, float type) {
@@ -122,35 +144,35 @@ vec3 solidColor(vec2 world, vec4 solid, float type) {
   float border = rectBorderMask(world, solid, 1.0);
   float topStripe = rectMask(world, vec4(solid.x, solid.y + solid.w - 2.0, solid.z, 2.0));
   vec2 local = world - solid.xy;
-  vec3 color = vec3(0.06, 0.12, 0.09);
+  vec3 color = vec3(0.18, 0.20, 0.16);
 
   if (type < 0.5) {
     float turf = rectMask(world, vec4(solid.x, solid.y + solid.w - 3.0, solid.z, 3.0));
     float soil = checker(local + vec2(0.0, floor(local.y * 0.5)), 4.0);
-    color = mix(vec3(0.05, 0.10, 0.07), vec3(0.08, 0.15, 0.10), soil);
-    color = mix(color, vec3(0.16, 0.28, 0.20), turf * 0.95);
+    color = mix(vec3(0.37, 0.25, 0.17), vec3(0.49, 0.35, 0.21), soil);
+    color = mix(color, vec3(0.43, 0.67, 0.26), turf * 0.95);
   } else if (type < 1.5) {
     float mortar = step(0.0, abs(mod(local.x, 4.0) - 0.5) - 1.2) * 0.0;
     float seams = rectBorderMask(vec2(mod(local.x, 8.0), mod(local.y, 4.0)), vec4(0.0, 0.0, 8.0, 4.0), 0.7);
-    color = mix(vec3(0.08, 0.14, 0.10), vec3(0.12, 0.22, 0.15), checker(local, 4.0));
+    color = mix(vec3(0.54, 0.43, 0.27), vec3(0.69, 0.57, 0.36), checker(local, 4.0));
     color += mono(0.06) * seams;
     color += vec3(0.0) * mortar;
   } else if (type < 2.5) {
     float lip = rectMask(world, vec4(solid.x - 1.0, solid.y + solid.w - 2.0, solid.z + 2.0, 3.0));
     float ribs = step(0.0, sin((local.x + 1.0) * 0.85)) * 0.08;
-    color = vec3(0.07, 0.14, 0.10) + mono(0.02) * ribs;
-    color = mix(color, vec3(0.13, 0.24, 0.17), lip);
+    color = vec3(0.25, 0.43, 0.34) + mono(0.02) * ribs;
+    color = mix(color, vec3(0.54, 0.74, 0.49), lip);
   } else if (type < 3.5) {
     float steps = checker(local + vec2(local.y * 0.2, 0.0), 3.0);
-    color = mix(vec3(0.07, 0.13, 0.09), vec3(0.11, 0.21, 0.14), steps);
+    color = mix(vec3(0.59, 0.41, 0.31), vec3(0.77, 0.58, 0.44), steps);
   } else {
     float slats = rectBorderMask(vec2(mod(local.x, 6.0), local.y), vec4(0.0, 0.0, 6.0, solid.w), 0.7);
-    color = vec3(0.07, 0.13, 0.09) + mono(0.05) * slats;
-    color = mix(color, vec3(0.13, 0.24, 0.17), topStripe * 0.88);
+    color = vec3(0.46, 0.29, 0.18) + mono(0.05) * slats;
+    color = mix(color, vec3(0.70, 0.50, 0.30), topStripe * 0.88);
   }
 
-  color = mix(color, vec3(0.20, 0.34, 0.24), border * 0.9);
-  color = mix(color, vec3(0.16, 0.28, 0.20), topStripe * 0.75);
+  color = mix(color, vec3(0.83, 0.68, 0.43), border * 0.9);
+  color = mix(color, vec3(0.67, 0.85, 0.38), topStripe * 0.75);
   return color;
 }
 
@@ -180,8 +202,8 @@ void drawCoins(inout vec3 color, vec2 world) {
     float pulse = 0.5 + 0.5 * sin(uTime * 6.0 + uCoinMeta[i].y);
     float ring = ringMask(world, center, radius + pulse * 0.4, 1.0);
     float core = rectMask(world, vec4(center.x - 0.5, center.y - 1.8, 1.0, 3.6));
-    applyLayer(color, vec3(0.20, 0.35, 0.25), ring * 0.95);
-    applyLayer(color, vec3(0.14, 0.24, 0.18), core * 0.82);
+    applyLayer(color, vec3(0.98, 0.78, 0.24), ring * 0.95);
+    applyLayer(color, vec3(0.86, 0.54, 0.12), core * 0.82);
   }
 }
 
@@ -201,12 +223,12 @@ void drawGoal(inout vec3 color, vec2 world) {
   float beaconPulse = 0.45 + 0.55 * sin(uTime * 5.5);
   float beacon = ringMask(world, vec2(uGoal.x, uGoal.y + doorHeight + 2.1), 1.2 + beaconPulse * 0.55, 0.55);
 
-  applyLayer(color, vec3(0.19, 0.33, 0.24), frameMask);
-  applyLayer(color, vec3(0.08, 0.15, 0.11), panelMask * 0.95);
-  applyLayer(color, vec3(0.15, 0.27, 0.20), panelInset * 0.82);
-  applyLayer(color, vec3(0.20, 0.37, 0.27), slit * 0.9);
-  applyLayer(color, vec3(0.24, 0.42, 0.31), knob);
-  applyLayer(color, vec3(0.21, 0.39, 0.29), beacon * 0.9);
+  applyLayer(color, vec3(0.73, 0.57, 0.31), frameMask);
+  applyLayer(color, vec3(0.28, 0.19, 0.14), panelMask * 0.95);
+  applyLayer(color, vec3(0.47, 0.29, 0.18), panelInset * 0.82);
+  applyLayer(color, vec3(0.90, 0.69, 0.23), slit * 0.72);
+  applyLayer(color, vec3(0.98, 0.85, 0.51), knob);
+  applyLayer(color, vec3(0.84, 0.55, 0.25), beacon * 0.6);
 }
 
 vec3 playerSprite(vec2 world) {
@@ -243,10 +265,11 @@ vec3 playerSprite(vec2 world) {
   }
 
   vec3 color = vec3(0.0);
-  color += vec3(0.08, 0.14, 0.10) * (face + arm + nose);
-  color += vec3(0.18, 0.31, 0.23) * (hat + brim + torso + bib);
-  color += vec3(0.05, 0.10, 0.07) * (legBack + legFront + bootBack + bootFront + moustache);
-  color += vec3(0.22, 0.38, 0.28) * eye;
+  color += vec3(0.92, 0.74, 0.54) * (face + arm + nose);
+  color += vec3(0.74, 0.18, 0.17) * (hat + brim);
+  color += vec3(0.26, 0.43, 0.86) * (torso + bib);
+  color += vec3(0.40, 0.26, 0.16) * (legBack + legFront + bootBack + bootFront + moustache);
+  color += vec3(0.98, 0.98, 0.94) * eye;
   return color;
 }
 
@@ -268,19 +291,22 @@ vec3 enemySprite(vec2 world, vec4 body, vec4 meta) {
   float sway = 0.05 * sin(meta.z * 1.3);
   float bodyMask = rectMask(local, vec4(0.08, 0.18, 0.84, 0.60));
   float brow = rectMask(local, vec4(0.14, 0.58, 0.72, 0.10));
-  float eyeL = rectMask(local, vec4(0.28, 0.40, 0.10, 0.18));
-  float eyeR = rectMask(local, vec4(0.56, 0.40, 0.10, 0.18));
+  float eyeL = rectMask(local, vec4(0.24, 0.38, 0.16, 0.20));
+  float eyeR = rectMask(local, vec4(0.52, 0.38, 0.16, 0.20));
+  float pupilL = rectMask(local, vec4(0.29, 0.42, 0.06, 0.10));
+  float pupilR = rectMask(local, vec4(0.57, 0.42, 0.06, 0.10));
   float footL = rectMask(local, vec4(0.18 + sway, 0.0, 0.20, 0.14));
   float footR = rectMask(local, vec4(0.50 - sway, 0.0, 0.20, 0.14));
-  float spriteMask = saturate(bodyMask + brow + eyeL + eyeR + footL + footR);
+  float spriteMask = saturate(bodyMask + brow + eyeL + eyeR + pupilL + pupilR + footL + footR);
   if (spriteMask < 0.5) {
     return vec3(-1.0);
   }
 
   vec3 color = vec3(0.0);
-  color += vec3(0.10, 0.17, 0.12) * bodyMask;
-  color += vec3(0.05, 0.10, 0.08) * (brow + footL + footR);
-  color += vec3(0.23, 0.38, 0.28) * (eyeL + eyeR);
+  color += vec3(0.74, 0.46, 0.28) * bodyMask;
+  color += vec3(0.33, 0.18, 0.11) * (brow + footL + footR);
+  color += vec3(0.98, 0.96, 0.88) * (eyeL + eyeR);
+  color += vec3(0.11, 0.05, 0.03) * (pupilL + pupilR);
   return color;
 }
 
@@ -311,22 +337,10 @@ void drawPlayer(inout vec3 color, vec2 world) {
   applyLayer(color, layer, visible);
 }
 
-vec3 drawViewportFrame(vec2 point) {
-  vec3 color = vec3(0.0);
-  color += mono(0.16) * rectBorderMask(point, vec4(0.0, 0.0, 1.0, 1.0), 0.02);
-  color += mono(0.08) * rectBorderMask(point, vec4(0.04, 0.04, 0.92, 0.92), 0.01);
-  color += mono(0.04) * lineMask(point, vec2(0.05, 0.92), vec2(0.95, 0.92), 0.0035);
-  return color;
-}
-
 vec3 drawOutside(vec2 fragPos) {
   vec2 uv = fragPos / max(uResolution, vec2(1.0));
-  vec3 color = vec3(0.005, 0.012, 0.009);
-  float frame = rectBorderMask(uv, vec4(0.02, 0.02, 0.96, 0.96), 0.004);
-  float grid = step(0.985, fract(uv.x * 18.0)) * 0.06 + step(0.985, fract(uv.y * 12.0)) * 0.06;
-  color += mono(0.10) * frame;
-  color += mono(grid);
-  return color;
+  float vignette = saturate(1.0 - dot(uv - 0.5, uv - 0.5) * 1.8);
+  return vec3(0.12, 0.18, 0.24) * vignette;
 }
 
 void main() {
@@ -337,14 +351,14 @@ void main() {
     step(fragPos.x, maxCorner.x) * step(fragPos.y, maxCorner.y);
 
   if (inside < 0.5) {
-    gl_FragColor = vec4(drawOutside(fragPos), 1.0);
+    gl_FragColor = vec4(quantizePalette(drawOutside(fragPos), fragPos), 1.0);
     return;
   }
 
-  vec2 uv = (fragPos - minCorner) / max(uViewport.zw, vec2(1.0));
+  vec2 viewportUv = (fragPos - minCorner) / max(uViewport.zw, vec2(1.0));
   vec2 renderResolution = floor(uViewport.zw / max(uPixelScale, 1.0));
   renderResolution = max(renderResolution, uWorldSize);
-  uv = floor(uv * renderResolution) / renderResolution;
+  vec2 uv = floor(viewportUv * renderResolution) / renderResolution;
   uv += 0.5 / renderResolution;
 
   vec2 world = vec2(uv.x * uWorldSize.x, uv.y * uWorldSize.y);
@@ -356,19 +370,9 @@ void main() {
   drawEnemies(color, world);
   drawPlayer(color, world);
 
-  float winGlow = uPlayerState.w;
   float deathFade = 1.0 - step(0.25, abs(uPlayerState.z - 1.0));
-  color += mono(0.05) * ringMask(world, vec2(uPlayerBox.x, uPlayerBox.y + 7.0), 10.0 + winGlow * 6.0, 1.0) * winGlow;
-  color = mix(color, vec3(0.02, 0.04, 0.03), deathFade * 0.12);
-
-  float scanline = 0.93 + 0.07 * sin(fragPos.y * 1.2 + uTime * 12.0);
-  float mask = 0.95 + 0.05 * sin(fragPos.x * 0.9);
-  float vignette = saturate(1.08 - dot(uv - 0.5, uv - 0.5) * 1.6);
-  float noise = fract(sin(dot(floor(fragPos * 0.5), vec2(12.9898, 78.233)) + uTime * 4.0) * 43758.5453);
-  color += drawViewportFrame(uv);
-  color *= scanline * mask * vignette;
-  color += mono(0.012) * noise;
-  color = floor(color * 18.0) / 18.0;
+  color = mix(color, vec3(0.10, 0.05, 0.08), deathFade * 0.12);
+  color = quantizePalette(color, fragPos);
 
   gl_FragColor = vec4(color, 1.0);
 }

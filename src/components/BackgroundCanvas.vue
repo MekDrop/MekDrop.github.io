@@ -805,6 +805,7 @@ const run = {
   phase: PHASE_PLAYING,
   phaseTimer: 0,
   stagePulse: 0,
+  regenerateOnRespawn: false,
 };
 
 const player = createPlayer();
@@ -851,6 +852,7 @@ const resetLevel = () => {
   run.phase = PHASE_PLAYING;
   run.phaseTimer = 0;
   run.stagePulse = 0;
+  run.regenerateOnRespawn = false;
   resetPlayer();
   enemies = world.enemySpawns.map(createEnemy);
   coins = world.coins.map(createCoin);
@@ -867,6 +869,7 @@ const resetRun = () => {
   run.coinsInStage = 0;
   run.collectedInStage = 0;
   run.doorUnlocked = false;
+  run.regenerateOnRespawn = false;
   resetLevel();
 };
 
@@ -938,6 +941,7 @@ const takeLife = () => {
   player.vx = 0;
   player.vy = 28;
   run.lives -= 1;
+  run.regenerateOnRespawn = run.lives <= 0;
   syncHud();
 };
 
@@ -1155,11 +1159,11 @@ const stepPhase = (delta) => {
     return;
   }
 
-  if (run.lives > 0) {
-    resetLevel();
-  } else {
+  if (run.regenerateOnRespawn) {
     generateLevel(world.width, world.height);
     resetRun();
+  } else {
+    resetLevel();
   }
 };
 
@@ -1355,6 +1359,9 @@ onBeforeUnmount(() => {
     frameId = null;
   }
   if (quad) quad.geometry.dispose();
+  if (material?.userData?.paletteTexture) {
+    material.userData.paletteTexture.dispose();
+  }
   if (material) material.dispose();
   if (renderer) {
     renderer.dispose();
