@@ -19,12 +19,6 @@ void main() {
   vec2 world = vec2(uv.x * uWorldSize.x, uv.y * uWorldSize.y);
   vec3 color = drawBackdrop(world);
 
-  drawSolids(color, world);
-  drawGoal(color, world);
-  drawCollectibles(color, world);
-  drawFoes(color, world);
-  drawHero(color, world);
-
   float deathFade = 1.0 - step(0.25, abs(uPlayerState.z - 1.0));
   color = mix(color, vec3(0.10, 0.05, 0.08), deathFade * 0.12);
   color = quantizePalette(color, fragPos);
