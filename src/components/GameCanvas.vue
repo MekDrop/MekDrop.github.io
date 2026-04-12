@@ -21,10 +21,11 @@ import { Application, Assets, Container, Graphics, Rectangle, Sprite, Text, Text
 import { nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 import { dom } from "quasar";
 import { getHeroAnimation, getHeroAnimationSources } from "assets/game/sprites/hero-sprite-registry";
+import { EnemyStateController } from "src/strategies/enemies/EnemyStateController";
+import { HeroStateController } from "src/strategies/heroes/HeroStateController";
 import { MarioLikeMapGenerator } from "src/strategies/map-generators/MarioLikeMapGenerator";
 import coinGoldSprite from "assets/game/sprites/collectibles/coin-gold.png";
-import enemyWalkFrame0 from "assets/game/sprites/enemies/mushroom-stomper-walk-0.png";
-import enemyWalkFrame1 from "assets/game/sprites/enemies/mushroom-stomper-walk-1.png";
+import blockyWalkSpritesheet from "assets/game/sprites/enemies/blocky-creature-walk-spritesheet.png";
 import portalFrame from "assets/game/sprites/goal/portal-frame-0.png";
 import platformFlyingPlatformSprite from "assets/game/sprites/platforms/platform-flying-platform-manual.png";
 import platformWallSprite from "assets/game/sprites/platforms/platform-wall.png";
@@ -81,8 +82,7 @@ const PLATFORM_STAIR_CROP = {
 };
 const REQUIRED_TEXTURE_KEYS = [
   "coinGold",
-  "enemyWalkFrame0",
-  "enemyWalkFrame1",
+  "blockyWalkSpritesheet",
   "portalFrame",
   "platformFlyingPlatform",
   "platformWall",
@@ -93,8 +93,7 @@ const HERO_TEXTURE_KEYS = HERO_TEXTURE_SOURCES.map((_, index) => `hero:${index}`
 const TEXTURE_URLS = Object.fromEntries([
   ...HERO_TEXTURE_SOURCES.map((url, index) => [`hero:${index}`, url]),
   ["coinGold", coinGoldSprite],
-  ["enemyWalkFrame0", enemyWalkFrame0],
-  ["enemyWalkFrame1", enemyWalkFrame1],
+  ["blockyWalkSpritesheet", blockyWalkSpritesheet],
   ["portalFrame", portalFrame],
   ["platformFlyingPlatform", platformFlyingPlatformSprite],
   ["platformWall", platformWallSprite],
@@ -202,16 +201,20 @@ const createPlayer = () => ({
   coyote: 0,
   invulnerable: 0,
   anim: 0,
+  animationState: "idle",
   prevY: 0,
-  turnTimer: 0,
 });
 
 const createEnemy = (spawn) => ({
   ...spawn,
+  type: "Blocky",
   vx: spawn.speed * spawn.dir,
   vy: 0,
   w: ENEMY_WIDTH,
   h: ENEMY_HEIGHT,
+  facing: spawn.dir >= 0 ? 1 : -1,
+  animationState: spawn.dir >= 0 ? "walkRight" : "walkLeft",
+  controller: null,
   grounded: false,
   alive: true,
   anim: Math.random() * Math.PI * 2,
@@ -534,6 +537,9 @@ const run = {
 };
 
 const player = createPlayer();
+const heroController = new HeroStateController(player, {
+  turnDuration: HERO_TURN_DURATION,
+});
 let enemies = [];
 let coins = [];
 
@@ -651,8 +657,20 @@ const resetPlayer = () => {
   player.coyote = 0;
   player.invulnerable = 0;
   player.anim = 0;
+  player.animationState = "idle";
   player.prevY = world.spawn.y;
-  player.turnTimer = 0;
+  heroController.reset();
+};
+
+const attachEnemyControllers = () => {
+  for (let i = 0; i < enemies.length; i++) {
+    const enemy = enemies[i];
+    if (!enemy) continue;
+    enemy.controller = new EnemyStateController(enemy, {
+      moveBody,
+      solidSupportBelow,
+    });
+  }
 };
 
 const resetLevel = () => {
@@ -663,6 +681,7 @@ const resetLevel = () => {
   run.regenerateOnRespawn = false;
   resetPlayer();
   enemies = world.enemySpawns.map(createEnemy);
+  attachEnemyControllers();
   coins = world.coins.map(createCoin);
   run.coinsInStage = coins.length;
   run.collectedInStage = 0;
@@ -715,7 +734,6 @@ const regenerateWorld = (widthPx, heightPx, resetProgress = false) => {
     anim: player.anim,
     prevY: player.prevY,
     facing: player.facing,
-    turnTimer: player.turnTimer,
   };
 
   generateLevel(nextWidth, nextHeight, world.seed);
@@ -732,8 +750,8 @@ const regenerateWorld = (widthPx, heightPx, resetProgress = false) => {
     player.anim = preservedPlayer.anim;
     player.prevY = preservedPlayer.prevY;
     player.facing = preservedPlayer.facing;
-    player.turnTimer = preservedPlayer.turnTimer;
     enemies = world.enemySpawns.map(createEnemy);
+    attachEnemyControllers();
     coins = world.coins.map(createCoin);
     run.coinsInStage = coins.length;
     run.collectedInStage = 0;
@@ -881,15 +899,7 @@ const stepEnemies = (delta) => {
   for (let i = 0; i < enemies.length; i++) {
     const enemy = enemies[i];
     if (!enemy.alive) continue;
-    enemy.anim += delta * 5;
-    enemy.vx = enemy.dir * enemy.speed;
-    enemy.vy = Math.max(enemy.vy + PLAYER.gravity * delta, -82);
-    const moved = moveBody(enemy, delta);
-    if (moved.hitX || enemy.x <= enemy.minX || enemy.x >= enemy.maxX || !solidSupportBelow(enemy, 1.25)) {
-      enemy.dir *= -1;
-      enemy.vx = enemy.dir * enemy.speed;
-      enemy.x = clamp(enemy.x, enemy.minX, enemy.maxX);
-    }
+    enemy.controller?.update(delta);
   }
 };
 
@@ -901,7 +911,6 @@ const stepPlayer = (delta) => {
   player.prevY = player.y;
   player.invulnerable = Math.max(0, player.invulnerable - delta);
   player.anim += delta * (Math.abs(player.vx) * 0.22 + 1.2);
-  player.turnTimer = Math.max(0, player.turnTimer - delta);
   run.stagePulse = approach(run.stagePulse, run.phase === PHASE_CLEAR ? 1 : 0, delta * 1.6);
 
   if (run.phase === PHASE_PLAYING) {
@@ -909,7 +918,7 @@ const stepPlayer = (delta) => {
       player.vx = approach(player.vx, targetSpeed, accel * delta);
       const nextFacing = moveInput > 0 ? 1 : -1;
       if (nextFacing !== player.facing) {
-        player.turnTimer = HERO_TURN_DURATION;
+        heroController.requestTurn();
       }
       player.facing = nextFacing;
     } else if (player.grounded) {
@@ -957,6 +966,16 @@ const stepPlayer = (delta) => {
       takeLife();
     }
   }
+
+  heroController.update(delta, {
+    runPhase: run.phase,
+    PHASE_DEAD,
+    PHASE_CLEAR,
+    invulnerable: player.invulnerable,
+    grounded: player.grounded,
+    vy: player.vy,
+    vx: player.vx,
+  });
 };
 
 const stepPhase = (delta) => {
@@ -1003,33 +1022,6 @@ const stepGame = (delta) => {
   }
   stepPhase(delta);
   syncHud();
-};
-
-const getHeroAnimationName = () => {
-  if (run.phase === PHASE_DEAD) return "death";
-  if (run.phase === PHASE_CLEAR) return "clear";
-  if (player.invulnerable > 0.9) return "hurt";
-  if (player.turnTimer > 0) return "turn";
-  if (!player.grounded) return player.vy > 0 ? "jump" : "fall";
-  if (player.grounded && Math.abs(player.vx) > 4) return "run";
-  return "idle";
-};
-
-const getHeroFrameIndex = (animationName) => {
-  const animation = getHeroAnimation(animationName);
-  if (!animation || animation.frames <= 1) return 0;
-
-  if (animationName === "turn") {
-    const progress = clamp(1 - player.turnTimer / HERO_TURN_DURATION, 0, 0.9999);
-    return Math.min(animation.frames - 1, Math.floor(progress * animation.frames));
-  }
-
-  if (animationName === "death") {
-    const deathElapsed = Math.max(0, 1.15 - run.phaseTimer);
-    return Math.min(animation.frames - 1, Math.floor(deathElapsed * animation.fps));
-  }
-
-  return Math.floor(player.anim) % animation.frames;
 };
 
 const configurePixelTexture = (texture) => {
@@ -1180,9 +1172,9 @@ const syncHeroSprite = (time) => {
   ensureHeroSprite();
   if (!heroSprite) return;
 
-  const animationName = getHeroAnimationName();
+  const animationName = player.animationState ?? "idle";
   const animation = getHeroAnimation(animationName);
-  const frameIndex = getHeroFrameIndex(animationName);
+  const frameIndex = heroController.getFrameIndex(animation);
   const sizePx = HERO_WORLD_SIZE * BASE_PIXEL_SCALE;
   const blinkHidden = player.invulnerable > 0 && Math.floor(time * 14) % 2 === 0;
   const facingKey = player.facing > 0 ? "right" : "left";
@@ -1232,6 +1224,10 @@ const syncCoinSprites = (time) => {
 const syncEnemySprites = (time) => {
   ensureEnemySprites();
   const sizePx = ENEMY_HEIGHT * BASE_PIXEL_SCALE;
+  const stateFrameMap = {
+    walkLeft: [0, 1, 2],
+    walkRight: [0, 1, 2],
+  };
 
   for (let i = 0; i < enemySprites.length; i++) {
     const sprite = enemySprites[i];
@@ -1241,14 +1237,15 @@ const syncEnemySprites = (time) => {
       continue;
     }
 
-    const frameIndex = Math.floor(enemy.anim * 0.7) % enemyTextures.length;
-    const bobOffset = Math.sin(time * 8 + enemy.x * 0.3) * 0.35;
+    const stateFrames = stateFrameMap[enemy.animationState] ?? stateFrameMap.walkRight;
+    const frameIndex = stateFrames[Math.floor(enemy.anim * 0.8) % stateFrames.length] ?? 0;
+    // Remove bob offset for walking enemies
     const left = viewport.x + (enemy.x - enemy.w * 0.5) * BASE_PIXEL_SCALE - 2;
-    const top = viewport.y + viewport.height - (enemy.y + enemy.h + bobOffset) * BASE_PIXEL_SCALE - 4;
+    const top = viewport.y + viewport.height - (enemy.y + enemy.h) * BASE_PIXEL_SCALE - 4;
     sprite.visible = true;
     sprite.texture = enemyTextures[frameIndex];
     sprite.position.set(left + sizePx * 0.5, top);
-    sprite.width = enemy.dir > 0 ? -sizePx : sizePx;
+    sprite.width = enemy.facing < 0 ? -sizePx : sizePx;
     sprite.height = sizePx;
   }
 };
@@ -1460,10 +1457,34 @@ const initPixi = async () => {
     wallFill: createCroppedTexture(getLoadedTextureByKey("platformWall"), PLATFORM_WALL_FILL_CROP),
     stair: createCroppedTexture(getLoadedTextureByKey("platformStair"), PLATFORM_STAIR_CROP),
   };
-  enemyTextures = [
-    cloneTexture(getLoadedTextureByKey("enemyWalkFrame0")),
-    cloneTexture(getLoadedTextureByKey("enemyWalkFrame1")),
+  // Extract walk frames from the top row only (consistent facing set).
+  const enemySpritesheet = getLoadedTextureByKey("blockyWalkSpritesheet");
+  const enemyFrameColumns = 3;
+  const enemyFrameRows = 2;
+  const enemyFrameCells = [
+    { col: 0, row: 0 },
+    { col: 1, row: 0 },
+    { col: 2, row: 0 },
   ];
+
+  if (enemySpritesheet) {
+    const enemyFrameWidth = enemySpritesheet.width / enemyFrameColumns;
+    const enemyFrameHeight = enemySpritesheet.height / enemyFrameRows;
+
+    enemyTextures = [];
+    for (let i = 0; i < enemyFrameCells.length; i++) {
+      const frameCell = enemyFrameCells[i];
+      const crop = {
+        x: (frameCell.col * enemyFrameWidth) / enemySpritesheet.width,
+        y: (frameCell.row * enemyFrameHeight) / enemySpritesheet.height,
+        w: enemyFrameWidth / enemySpritesheet.width,
+        h: enemyFrameHeight / enemySpritesheet.height,
+      };
+      enemyTextures.push(createCroppedTexture(enemySpritesheet, crop));
+    }
+  } else {
+    enemyTextures = [];
+  }
   ensureHeroSprite();
   ensureGoalSprite();
   ensureCoinSprites();
