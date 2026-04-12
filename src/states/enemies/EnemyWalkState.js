@@ -14,6 +14,11 @@ export class EnemyWalkState extends State {
   execute(owner) {
     const oppositeDirection = this.direction > 0 ? -1 : 1;
 
+    if (owner.shouldTriggerBackAlert(this.direction)) {
+      owner.stateMachine.changeTo(this.direction > 0 ? "alertBackRight" : "alertBackLeft");
+      return;
+    }
+
     if (!owner.canContinue(this.direction)) {
       owner.enemy.vx = 0;
       if (owner.canContinue(oppositeDirection)) {

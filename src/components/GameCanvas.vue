@@ -569,6 +569,7 @@ let loadingPercentText;
 let loadingBar;
 let frameId = null;
 let previousTimeMs = 0;
+let playerLandingEvent = null;
 const canvasSize = {
   width: 1,
   height: 1,
@@ -669,6 +670,7 @@ const attachEnemyControllers = () => {
     enemy.controller = new EnemyStateController(enemy, {
       moveBody,
       solidSupportBelow,
+      getPlayerLandingEvent: () => playerLandingEvent,
     });
   }
 };
@@ -907,6 +909,7 @@ const stepPlayer = (delta) => {
   const moveInput = (input.right ? 1 : 0) - (input.left ? 1 : 0);
   const targetSpeed = moveInput * PLAYER.maxSpeed;
   const accel = player.grounded ? PLAYER.groundAccel : PLAYER.airAccel;
+  const wasGrounded = player.grounded;
 
   player.prevY = player.y;
   player.invulnerable = Math.max(0, player.invulnerable - delta);
@@ -954,6 +957,12 @@ const stepPlayer = (delta) => {
     player.coyote = PLAYER.coyoteTime;
   } else {
     player.coyote = Math.max(0, player.coyote - delta);
+  }
+  if (run.phase === PHASE_PLAYING && !wasGrounded && player.grounded) {
+    playerLandingEvent = {
+      x: player.x,
+      y: player.y,
+    };
   }
 
   if (run.phase === PHASE_PLAYING) {
@@ -1012,6 +1021,7 @@ const stepPhase = (delta) => {
 
 const stepGame = (delta) => {
   if (loadingState.value.visible) return;
+  playerLandingEvent = null;
   stepPlayer(delta);
   if (run.phase !== PHASE_DEAD) {
     stepEnemies(delta);
@@ -1227,6 +1237,8 @@ const syncEnemySprites = (time) => {
   const stateFrameMap = {
     walkLeft: [0, 1, 2],
     walkRight: [0, 1, 2],
+    alertBackLeft: [0, 1, 2, 3, 4],
+    alertBackRight: [0, 1, 2, 3, 4],
   };
 
   for (let i = 0; i < enemySprites.length; i++) {
@@ -1457,7 +1469,7 @@ const initPixi = async () => {
     wallFill: createCroppedTexture(getLoadedTextureByKey("platformWall"), PLATFORM_WALL_FILL_CROP),
     stair: createCroppedTexture(getLoadedTextureByKey("platformStair"), PLATFORM_STAIR_CROP),
   };
-  // Extract walk frames from the top row only (consistent facing set).
+  // Extract blocky frames (top row walk + bottom row alert poses).
   const enemySpritesheet = getLoadedTextureByKey("blockyWalkSpritesheet");
   const enemyFrameColumns = 3;
   const enemyFrameRows = 2;
@@ -1465,6 +1477,8 @@ const initPixi = async () => {
     { col: 0, row: 0 },
     { col: 1, row: 0 },
     { col: 2, row: 0 },
+    { col: 0, row: 1 },
+    { col: 1, row: 1 },
   ];
 
   if (enemySpritesheet) {
