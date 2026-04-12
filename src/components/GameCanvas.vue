@@ -26,7 +26,7 @@ import coinGoldSprite from "assets/game/sprites/collectibles/coin-gold.png";
 import enemyWalkFrame0 from "assets/game/sprites/enemies/mushroom-stomper-walk-0.png";
 import enemyWalkFrame1 from "assets/game/sprites/enemies/mushroom-stomper-walk-1.png";
 import portalFrame from "assets/game/sprites/goal/portal-frame-0.png";
-import platformCenterSprite from "assets/game/sprites/platforms/platform-center.png";
+import platformFlyingPlatformSprite from "assets/game/sprites/platforms/platform-flying-platform-manual.png";
 import platformWallSprite from "assets/game/sprites/platforms/platform-wall.png";
 import platformStairSprite from "assets/game/sprites/platforms/platform-stair.png";
 
@@ -45,17 +45,33 @@ const HERO_WORLD_SIZE = 16;
 const COIN_WORLD_SIZE = HERO_WORLD_SIZE / 3;
 const HERO_TURN_DURATION = 0.34;
 const HERO_SCREEN_OFFSET_Y = 5;
-const PLATFORM_CENTER_CROP = {
-  x: 4 / 64,
-  y: 7 / 32,
-  w: 55 / 64,
-  h: 18 / 32,
+const PLATFORM_FLYING_PLATFORM_CROP = {
+  x: 0 / 64,
+  y: 0 / 24,
+  w: 64 / 64,
+  h: 24 / 24,
+};
+const PLATFORM_FLYING_PLATFORM_TILE_SCALE = {
+  x: 55 / 64,
+  y: 2,
 };
 const PLATFORM_WALL_CROP = {
   x: 0 / 32,
   y: 12 / 32,
   w: 32 / 32,
   h: 10 / 32,
+};
+const PLATFORM_WALL_TOP_CROP = {
+  x: 0 / 32,
+  y: 12 / 32,
+  w: 32 / 32,
+  h: 4 / 32,
+};
+const PLATFORM_WALL_FILL_CROP = {
+  x: 0 / 32,
+  y: 16 / 32,
+  w: 32 / 32,
+  h: 4 / 32,
 };
 const PLATFORM_STAIR_CROP = {
   x: 5 / 64,
@@ -68,7 +84,7 @@ const REQUIRED_TEXTURE_KEYS = [
   "enemyWalkFrame0",
   "enemyWalkFrame1",
   "portalFrame",
-  "platformCenter",
+  "platformFlyingPlatform",
   "platformWall",
   "platformStair",
 ];
@@ -80,7 +96,7 @@ const TEXTURE_URLS = Object.fromEntries([
   ["enemyWalkFrame0", enemyWalkFrame0],
   ["enemyWalkFrame1", enemyWalkFrame1],
   ["portalFrame", portalFrame],
-  ["platformCenter", platformCenterSprite],
+  ["platformFlyingPlatform", platformFlyingPlatformSprite],
   ["platformWall", platformWallSprite],
   ["platformStair", platformStairSprite],
 ]);
@@ -1116,17 +1132,34 @@ const ensureCoinSprites = () => {
 };
 
 const ensurePlatformSprites = () => {
-  if (!spriteScene || !platformTextures.center) return;
+  if (!spriteScene || !platformTextures.flyingPlatform) return;
   while (platformSprites.length < MAX_SOLIDS) {
-    const sprite = new TilingSprite({
-      texture: platformTextures.center,
-      width: platformTextures.center.width,
-      height: platformTextures.center.height,
+    const container = new Container();
+    const middle = new TilingSprite({
+      texture: platformTextures.flyingPlatform,
+      width: platformTextures.flyingPlatform.width,
+      height: platformTextures.flyingPlatform.height,
     });
-    sprite.visible = false;
-    sprite.zIndex = 8;
-    platformSprites.push(sprite);
-    spriteScene.addChild(sprite);
+    const left = new TilingSprite({
+      texture: platformTextures.wallTop,
+      width: platformTextures.wallTop.width,
+      height: platformTextures.wallTop.height,
+    });
+    const right = new TilingSprite({
+      texture: platformTextures.wallFill,
+      width: platformTextures.wallFill.width,
+      height: platformTextures.wallFill.height,
+    });
+    container.visible = false;
+    container.zIndex = 8;
+    left.visible = false;
+    right.visible = false;
+    container.middle = middle;
+    container.left = left;
+    container.right = right;
+    container.addChild(middle, right, left);
+    platformSprites.push(container);
+    spriteScene.addChild(container);
   }
 };
 
@@ -1233,7 +1266,7 @@ const syncPlatformSprites = () => {
 
     const widthPx = solid.w * BASE_PIXEL_SCALE;
     const heightPx = solid.h * BASE_PIXEL_SCALE;
-    const textureKey = solid.type === 0 ? "wall" : solid.type === 3 ? "stair" : "center";
+    const textureKey = solid.type === 0 ? "wall" : solid.type === 3 ? "stair" : "flyingPlatform";
     const texture = platformTextures[textureKey];
     const left = viewport.x + solid.x * BASE_PIXEL_SCALE;
     const top = viewport.y + viewport.height - (solid.y + solid.h) * BASE_PIXEL_SCALE;
@@ -1242,12 +1275,40 @@ const syncPlatformSprites = () => {
       continue;
     }
     sprite.visible = true;
-    sprite.texture = texture;
     sprite.position.set(left, top);
-    sprite.width = widthPx;
-    sprite.height = heightPx;
-    sprite.tileScale = 1;
-    sprite.tilePosition = { x: 0, y: 0 };
+    sprite.middle.position.set(0, 0);
+    sprite.middle.tileScale = textureKey === "flyingPlatform"
+      ? PLATFORM_FLYING_PLATFORM_TILE_SCALE
+      : 1;
+    sprite.middle.tilePosition = { x: 0, y: 0 };
+    sprite.left.tileScale = 1;
+    sprite.left.tilePosition = { x: 0, y: 0 };
+    sprite.right.tileScale = 1;
+    sprite.right.tilePosition = { x: 0, y: 0 };
+
+    if (textureKey === "wall") {
+      const topHeightPx = Math.min(heightPx, platformTextures.wallTop.height);
+      const fillHeightPx = Math.max(0, heightPx - topHeightPx);
+      sprite.middle.visible = false;
+      sprite.left.visible = true;
+      sprite.right.visible = fillHeightPx > 0;
+      sprite.left.texture = platformTextures.wallTop;
+      sprite.left.width = widthPx;
+      sprite.left.height = topHeightPx;
+      sprite.left.position.set(0, 0);
+      sprite.right.texture = platformTextures.wallFill;
+      sprite.right.width = widthPx;
+      sprite.right.height = fillHeightPx;
+      sprite.right.position.set(0, topHeightPx);
+      continue;
+    }
+
+    sprite.left.visible = false;
+    sprite.right.visible = false;
+    sprite.middle.visible = true;
+    sprite.middle.texture = texture;
+    sprite.middle.width = widthPx;
+    sprite.middle.height = heightPx;
   }
 };
 
@@ -1393,8 +1454,10 @@ const initPixi = async () => {
   goalTexture = cloneTexture(getLoadedTextureByKey("portalFrame"));
   coinTexture = cloneTexture(getLoadedTextureByKey("coinGold"));
   platformTextures = {
-    center: createCroppedTexture(getLoadedTextureByKey("platformCenter"), PLATFORM_CENTER_CROP),
+    flyingPlatform: createCroppedTexture(getLoadedTextureByKey("platformFlyingPlatform"), PLATFORM_FLYING_PLATFORM_CROP),
     wall: createCroppedTexture(getLoadedTextureByKey("platformWall"), PLATFORM_WALL_CROP),
+    wallTop: createCroppedTexture(getLoadedTextureByKey("platformWall"), PLATFORM_WALL_TOP_CROP),
+    wallFill: createCroppedTexture(getLoadedTextureByKey("platformWall"), PLATFORM_WALL_FILL_CROP),
     stair: createCroppedTexture(getLoadedTextureByKey("platformStair"), PLATFORM_STAIR_CROP),
   };
   enemyTextures = [
