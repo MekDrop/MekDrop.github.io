@@ -6,7 +6,7 @@ export class MarioLikeMapGenerator {
   generate(nextWidth, nextHeight, seed) {
     const state = this.#createGenerationState(nextWidth, nextHeight, seed);
 
-    this.#pushSolid(state.solids, { x: 0, y: 0, w: state.width, h: state.floorHeight, type: 0 });
+    this.#pushSolid(state.solids, { x: 0, y: 0, w: state.width, h: state.floorHeight, kind: "wall" });
     this.#buildMainPlatformPath(state);
     this.#buildUpperPlatformRows(state);
     this.#buildGoalStairs(state);
@@ -107,7 +107,7 @@ export class MarioLikeMapGenerator {
   #buildMainPlatformPath(state) {
     const starterPlatformWidth = this.config.clamp(Math.floor(state.width * 0.12), 10, 16);
 
-    state.starterPlatform = this.#createFlyingPlatform(state, state.safeLeft, starterPlatformWidth, 1);
+    state.starterPlatform = this.#createFlyingPlatform(state, state.safeLeft, starterPlatformWidth);
 
     if (!state.starterPlatform) {
       state.starterPlatform = this.#snapSolidToGrid({
@@ -115,7 +115,7 @@ export class MarioLikeMapGenerator {
         y: state.flyingRows[0],
         w: starterPlatformWidth,
         h: state.flyingPlatformHeight,
-        type: 1,
+        kind: "flyingPlatform",
       });
       if (state.solids.length < this.config.MAX_SOLIDS) {
         state.solids.push(state.starterPlatform);
@@ -141,7 +141,7 @@ export class MarioLikeMapGenerator {
         10,
         24,
       );
-      const placed = this.#createFlyingPlatform(state, cursorX, platformWidth, state.rng() < 0.5 ? 1 : 4);
+      const placed = this.#createFlyingPlatform(state, cursorX, platformWidth);
       if (!placed) continue;
 
       this.#addPlatformCoins(
@@ -169,7 +169,7 @@ export class MarioLikeMapGenerator {
 
     while (rowCursor < state.safeRight - 10) {
       const platformWidth = this.config.clamp(this.config.randomInt(state.rng, 8, 16), 8, 20);
-      const placed = this.#createFlyingPlatform(state, rowCursor, platformWidth, state.rng() < 0.5 ? 1 : 4, rowY);
+      const placed = this.#createFlyingPlatform(state, rowCursor, platformWidth, rowY);
 
       if (placed) {
         placedInRow += 1;
@@ -201,7 +201,7 @@ export class MarioLikeMapGenerator {
     ];
 
     for (let i = 0; i < anchors.length; i++) {
-      const placed = this.#createFlyingPlatform(state, anchors[i], guaranteedWidth, state.rng() < 0.5 ? 1 : 4, rowY);
+      const placed = this.#createFlyingPlatform(state, anchors[i], guaranteedWidth, rowY);
       if (!placed) continue;
 
       this.#addPlatformCoins(
@@ -239,7 +239,7 @@ export class MarioLikeMapGenerator {
         y: state.floorHeight,
         w: state.stepWidth,
         h: stepHeight * (i + 1),
-        type: 3,
+        kind: "stair",
       });
     }
 
@@ -260,8 +260,6 @@ export class MarioLikeMapGenerator {
         this.#pushEnemy(state.enemySpawns, {
           x: walkerX,
           y: state.floorHeight,
-          minX: this.config.clamp(walkerX - this.config.randomInt(state.rng, 8, 16), 4, state.safeRight),
-          maxX: this.config.clamp(walkerX + this.config.randomInt(state.rng, 8, 18), 8, state.safeRight),
           speed: this.config.randomInt(state.rng, 8, 12),
           dir: state.rng() < 0.5 ? -1 : 1,
         });
@@ -330,7 +328,6 @@ export class MarioLikeMapGenerator {
       enemyMinSpacing,
       minEnemyX,
       state.goal.x,
-      state.safeRight,
       solids,
     );
 
@@ -369,19 +366,16 @@ export class MarioLikeMapGenerator {
     return filteredEnemies;
   }
 
-  #backfillEnemies(state, filteredEnemies, targetEnemyCount, enemyMinSpacing, minEnemyX, goalX, safeRight, solids) {
+  #backfillEnemies(state, filteredEnemies, targetEnemyCount, enemyMinSpacing, minEnemyX, goalX, solids) {
     let attempts = 0;
     const maxAttempts = Math.max(60, targetEnemyCount * 80);
 
     while (filteredEnemies.length < targetEnemyCount && attempts < maxAttempts) {
       attempts += 1;
       const x = this.config.randomInt(state.rng, Math.floor(minEnemyX), Math.floor(goalX - 16));
-      const patrolHalf = this.config.randomInt(state.rng, 6, 14);
       this.#tryAppendEnemy(filteredEnemies, {
         x,
         y: state.floorHeight,
-        minX: this.config.clamp(x - patrolHalf, 4, safeRight),
-        maxX: this.config.clamp(x + patrolHalf, 8, safeRight),
         speed: this.config.randomInt(state.rng, 8, 12),
         dir: state.rng() < 0.5 ? -1 : 1,
       }, enemyMinSpacing, minEnemyX, goalX, solids);
@@ -399,12 +393,9 @@ export class MarioLikeMapGenerator {
         Math.floor(minEnemyX),
         Math.floor(goalX - 16),
       );
-      const patrolHalf = this.config.randomInt(state.rng, 6, 14);
       this.#tryAppendEnemy(filteredEnemies, {
         x,
         y: state.floorHeight,
-        minX: this.config.clamp(x - patrolHalf, 4, safeRight),
-        maxX: this.config.clamp(x + patrolHalf, 8, safeRight),
         speed: this.config.randomInt(state.rng, 8, 12),
         dir: state.rng() < 0.5 ? -1 : 1,
       }, relaxedMinSpacing, minEnemyX, goalX, solids);
@@ -418,8 +409,6 @@ export class MarioLikeMapGenerator {
       this.#tryAppendEnemy(filteredEnemies, {
         x,
         y: state.floorHeight,
-        minX: this.config.clamp(x - 4, 4, safeRight),
-        maxX: this.config.clamp(x + 4, 8, safeRight),
         speed: this.config.randomInt(state.rng, 8, 12),
         dir: state.rng() < 0.5 ? -1 : 1,
       }, relaxedMinSpacing, minEnemyX, goalX, solids);
@@ -447,7 +436,7 @@ export class MarioLikeMapGenerator {
     return true;
   }
 
-  #createFlyingPlatform(state, x, platformWidth, type, rowY = state.flyingRows[0]) {
+  #createFlyingPlatform(state, x, platformWidth, rowY = state.flyingRows[0]) {
     if (state.solids.length >= this.config.MAX_SOLIDS) return null;
 
     const candidate = this.#snapSolidToGrid({
@@ -455,7 +444,7 @@ export class MarioLikeMapGenerator {
       y: rowY,
       w: platformWidth,
       h: state.flyingPlatformHeight,
-      type,
+      kind: "flyingPlatform",
     });
 
     const overlapsStairZone =
@@ -473,7 +462,7 @@ export class MarioLikeMapGenerator {
   #touchesOtherPlatform(candidate, solids, gap) {
     for (let i = 0; i < solids.length; i++) {
       const solid = solids[i];
-      if (solid.type === 0) continue;
+      if (solid.kind === "wall") continue;
       const intersectsWithGap =
         candidate.x < solid.x + solid.w + gap &&
         candidate.x + candidate.w > solid.x - gap &&
@@ -505,8 +494,6 @@ export class MarioLikeMapGenerator {
       this.#pushEnemy(state.enemySpawns, {
         x: enemyX,
         y: laneY,
-        minX: platform.x + enemyHalf,
-        maxX: platform.x + platform.w - enemyHalf,
         lockPlatformPatrol: true,
         speed: this.config.randomInt(state.rng, 7, 10),
         dir: state.rng() < 0.5 ? -1 : 1,
@@ -527,7 +514,7 @@ export class MarioLikeMapGenerator {
     snapped.y = this.config.snapToPlatformGrid(snapped.y);
     snapped.h = Math.max(this.config.PLATFORM_GRID, this.config.snapToPlatformGrid(snapped.h));
 
-    if (snapped.type !== 0) {
+    if (snapped.kind !== "wall") {
       snapped.x = this.config.snapToPlatformGrid(snapped.x);
       snapped.w = Math.max(this.config.PLATFORM_GRID, this.config.snapToPlatformGrid(snapped.w));
     }
@@ -629,37 +616,19 @@ export class MarioLikeMapGenerator {
   }
 
   #normalizeEnemyPatrolForHeadroom(spawn, solids) {
-    const minX = Math.min(spawn.minX, spawn.maxX);
-    const maxX = Math.max(spawn.minX, spawn.maxX);
-    const validXs = [];
-
-    for (let x = minX; x <= maxX + 0.01; x += 1) {
+    const offsets = [0, -1, 1, -2, 2, -3, 3, -4, 4, -6, 6, -8, 8];
+    for (let i = 0; i < offsets.length; i++) {
+      const x = spawn.x + offsets[i];
       if (!this.#hasStompHeadroomAtX(x, spawn.y, solids)) continue;
       if (!this.#isEnemyBodyClearAtX(x, spawn.y, solids)) continue;
       if (!this.#hasEnemySupportAtX(x, spawn.y, solids)) continue;
-      validXs.push(x);
+      return {
+        ...spawn,
+        x,
+      };
     }
 
-    if (validXs.length === 0) {
-      return null;
-    }
-
-    let bestX = validXs[0];
-    let bestDistance = Math.abs(validXs[0] - spawn.x);
-    for (let i = 1; i < validXs.length; i++) {
-      const distance = Math.abs(validXs[i] - spawn.x);
-      if (distance < bestDistance) {
-        bestDistance = distance;
-        bestX = validXs[i];
-      }
-    }
-
-    return {
-      ...spawn,
-      minX,
-      maxX,
-      x: bestX,
-    };
+    return null;
   }
 
   #pickEvenlyDistributed(items, count) {

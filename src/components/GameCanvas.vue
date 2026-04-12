@@ -21,8 +21,11 @@ import { Application, Assets, Container, Graphics, Rectangle, Sprite, Text, Text
 import { nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 import { dom } from "quasar";
 import { getHeroAnimation, getHeroAnimationSources } from "assets/game/sprites/hero-sprite-registry";
-import { EnemyStateController } from "src/strategies/enemies/EnemyStateController";
-import { HeroStateController } from "src/strategies/heroes/HeroStateController";
+import { CoinGameObject } from "src/game-objects/collectibles/CoinGameObject";
+import { EnemyGameObject } from "src/game-objects/enemy/EnemyGameObject";
+import { HeroGameObject } from "src/game-objects/hero/HeroGameObject";
+import { GroundSolidGameObject } from "src/game-objects/world/GroundSolidGameObject";
+import { PlatformSolidGameObject } from "src/game-objects/world/PlatformSolidGameObject";
 import { MarioLikeMapGenerator } from "src/strategies/map-generators/MarioLikeMapGenerator";
 import coinGoldSprite from "assets/game/sprites/collectibles/coin-gold.png";
 import blockyWalkSpritesheet from "assets/game/sprites/enemies/blocky-creature-walk-spritesheet.png";
@@ -189,42 +192,22 @@ const pickEvenlyDistributed = (items, count) => {
   return picks.sort(sortByX);
 };
 
-const createPlayer = () => ({
-  x: 0,
-  y: 0,
-  vx: 0,
-  vy: 0,
+const createPlayer = () => new HeroGameObject({
   w: PLAYER.width,
   h: PLAYER.height,
-  facing: 1,
-  grounded: false,
-  coyote: 0,
-  invulnerable: 0,
-  anim: 0,
-  animationState: "idle",
-  prevY: 0,
 });
 
-const createEnemy = (spawn) => ({
-  ...spawn,
-  type: "Blocky",
-  vx: spawn.speed * spawn.dir,
-  vy: 0,
-  w: ENEMY_WIDTH,
-  h: ENEMY_HEIGHT,
-  facing: spawn.dir >= 0 ? 1 : -1,
-  animationState: spawn.dir >= 0 ? "walkRight" : "walkLeft",
-  controller: null,
-  grounded: false,
-  alive: true,
-  anim: Math.random() * Math.PI * 2,
+const createEnemy = (spawn) => new EnemyGameObject(spawn, {
+  width: ENEMY_WIDTH,
+  height: ENEMY_HEIGHT,
 });
 
-const createCoin = (coin) => ({
-  ...coin,
-  collected: false,
-  phase: (coin.x + coin.y) * 0.1,
-});
+const createCoin = (coin) => new CoinGameObject(coin);
+const createSolid = (solid) => (
+  solid.kind === "wall"
+    ? new GroundSolidGameObject(solid)
+    : new PlatformSolidGameObject(solid)
+);
 
 const bodyRect = (body) => ({
   x: body.x - body.w * 0.5,
@@ -287,7 +270,9 @@ const mapGenerator = new MarioLikeMapGenerator({
 });
 
 const generateLevel = (nextWidth, nextHeight, seed = world.seed) => {
-  Object.assign(world, mapGenerator.generate(nextWidth, nextHeight, seed));
+  const generated = mapGenerator.generate(nextWidth, nextHeight, seed);
+  generated.solids = generated.solids.map(createSolid);
+  Object.assign(world, generated);
 };
 
 const regenerateMap = (width = world.width, height = world.height) => {
@@ -537,7 +522,7 @@ const run = {
 };
 
 const player = createPlayer();
-const heroController = new HeroStateController(player, {
+player.initializeStateMachine({
   turnDuration: HERO_TURN_DURATION,
 });
 let enemies = [];
@@ -570,6 +555,7 @@ let loadingBar;
 let frameId = null;
 let previousTimeMs = 0;
 let playerLandingEvent = null;
+let lastHeroRenderFacing = 1;
 const canvasSize = {
   width: 1,
   height: 1,
@@ -659,17 +645,20 @@ const resetPlayer = () => {
   player.invulnerable = 0;
   player.anim = 0;
   player.animationState = "idle";
+  player.deathFacing = player.facing;
   player.prevY = world.spawn.y;
-  heroController.reset();
+  lastHeroRenderFacing = player.facing;
+  player.resetAnimationState();
 };
 
 const attachEnemyControllers = () => {
   for (let i = 0; i < enemies.length; i++) {
     const enemy = enemies[i];
     if (!enemy) continue;
-    enemy.controller = new EnemyStateController(enemy, {
+    enemy.initializeStateMachine({
       moveBody,
       solidSupportBelow,
+      solidSupportAhead,
       getPlayerLandingEvent: () => playerLandingEvent,
     });
   }
@@ -768,6 +757,8 @@ const takeLife = () => {
   run.phase = PHASE_DEAD;
   run.phaseTimer = 1.15;
   player.invulnerable = 1.25;
+  player.deathFacing = lastHeroRenderFacing;
+  player.facing = player.deathFacing;
   player.vx = 0;
   player.vy = 28;
   run.lives -= 1;
@@ -788,6 +779,17 @@ const solidSupportBelow = (body, probe = 1.5) => {
     x: body.x - body.w * 0.5 + 0.35,
     y: body.y - probe,
     w: body.w - 0.7,
+    h: probe,
+  };
+  return world.solids.some((solid) => overlap(rect, solid));
+};
+
+const solidSupportAhead = (body, direction, ahead = 0.9, probe = 1.25) => {
+  const footX = body.x + direction * (body.w * 0.5 + ahead);
+  const rect = {
+    x: footX - 0.2,
+    y: body.y - probe,
+    w: 0.4,
     h: probe,
   };
   return world.solids.some((solid) => overlap(rect, solid));
@@ -901,7 +903,7 @@ const stepEnemies = (delta) => {
   for (let i = 0; i < enemies.length; i++) {
     const enemy = enemies[i];
     if (!enemy.alive) continue;
-    enemy.controller?.update(delta);
+    enemy.updateState(delta);
   }
 };
 
@@ -921,7 +923,7 @@ const stepPlayer = (delta) => {
       player.vx = approach(player.vx, targetSpeed, accel * delta);
       const nextFacing = moveInput > 0 ? 1 : -1;
       if (nextFacing !== player.facing) {
-        heroController.requestTurn();
+        player.requestTurn();
       }
       player.facing = nextFacing;
     } else if (player.grounded) {
@@ -976,7 +978,7 @@ const stepPlayer = (delta) => {
     }
   }
 
-  heroController.update(delta, {
+  player.updateAnimationState(delta, {
     runPhase: run.phase,
     PHASE_DEAD,
     PHASE_CLEAR,
@@ -1184,12 +1186,14 @@ const syncHeroSprite = (time) => {
 
   const animationName = player.animationState ?? "idle";
   const animation = getHeroAnimation(animationName);
-  const frameIndex = heroController.getFrameIndex(animation);
+  const frameIndex = player.getAnimationFrameIndex(animation);
   const sizePx = HERO_WORLD_SIZE * BASE_PIXEL_SCALE;
-  const blinkHidden = player.invulnerable > 0 && Math.floor(time * 14) % 2 === 0;
-  const facingKey = player.facing > 0 ? "right" : "left";
+  const blinkHidden = run.phase !== PHASE_DEAD && player.invulnerable > 0 && Math.floor(time * 14) % 2 === 0;
+  const effectiveFacing = run.phase === PHASE_DEAD ? (player.deathFacing ?? player.facing) : player.facing;
+  lastHeroRenderFacing = effectiveFacing;
+  const facingKey = effectiveFacing > 0 ? "right" : "left";
   const spriteSrc = animation.srcByFacing?.[facingKey] ?? animation.srcByFacing?.left ?? animation.src;
-  const mirrorFacing = animation.mirrorByFacing?.[facingKey] ?? (animation.mirror && player.facing > 0);
+  const mirrorFacing = animation.mirrorByFacing?.[facingKey] ?? (animation.mirror && effectiveFacing > 0);
   const frameOffset = animation.frameOffsets?.[frameIndex] ?? animation.frameOffsets?.[0] ?? { x: 0, y: 0 };
   const offsetX = (mirrorFacing ? -frameOffset.x : frameOffset.x) * BASE_PIXEL_SCALE;
   const offsetY = frameOffset.y * BASE_PIXEL_SCALE;
@@ -1275,7 +1279,7 @@ const syncPlatformSprites = () => {
 
     const widthPx = solid.w * BASE_PIXEL_SCALE;
     const heightPx = solid.h * BASE_PIXEL_SCALE;
-    const textureKey = solid.type === 0 ? "wall" : solid.type === 3 ? "stair" : "flyingPlatform";
+    const textureKey = solid.kind;
     const texture = platformTextures[textureKey];
     const left = viewport.x + solid.x * BASE_PIXEL_SCALE;
     const top = viewport.y + viewport.height - (solid.y + solid.h) * BASE_PIXEL_SCALE;

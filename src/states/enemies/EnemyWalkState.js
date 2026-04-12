@@ -7,8 +7,8 @@ export class EnemyWalkState extends State {
   }
 
   enter(owner) {
-    owner.enemy.dir = this.direction;
-    owner.enemy.animationState = this.direction > 0 ? "walkRight" : "walkLeft";
+    owner.dir = this.direction;
+    owner.animationState = this.direction > 0 ? "walkRight" : "walkLeft";
   }
 
   execute(owner) {
@@ -20,7 +20,7 @@ export class EnemyWalkState extends State {
     }
 
     if (!owner.canContinue(this.direction)) {
-      owner.enemy.vx = 0;
+      owner.vx = 0;
       if (owner.canContinue(oppositeDirection)) {
         owner.turnTo(oppositeDirection);
       }
@@ -28,7 +28,7 @@ export class EnemyWalkState extends State {
     }
 
     if (!owner.move(this.direction)) {
-      owner.enemy.vx = 0;
+      owner.vx = 0;
       if (owner.canContinue(oppositeDirection)) {
         owner.turnTo(oppositeDirection);
       }

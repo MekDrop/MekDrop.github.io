@@ -7,6 +7,6 @@ export class HeroAnimationState extends State {
   }
 
   enter(owner) {
-    owner.player.animationState = this.name;
+    owner.animationState = this.name;
   }
 }

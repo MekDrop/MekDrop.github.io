@@ -1,16 +1,37 @@
+import { GameObject } from "src/game-objects/core/GameObject";
 import { StateMachine } from "yuka";
 import { HeroAnimationState } from "src/states/heroes/HeroAnimationState";
 
 const clamp = (v, mn, mx) => Math.min(mx, Math.max(mn, v));
 
-export class HeroStateController {
-  constructor(player, options = {}) {
-    this.player = player;
-    this.turnDuration = options.turnDuration ?? 0.34;
-    this.turnRemaining = 0;
-    this.deathElapsed = 0;
-    this.previousRunPhase = null;
-    this.context = null;
+export class HeroGameObject extends GameObject {
+  constructor(props = {}) {
+    super({
+      x: 0,
+      y: 0,
+      vx: 0,
+      vy: 0,
+      w: 7,
+      h: 13,
+      facing: 1,
+      grounded: false,
+      coyote: 0,
+      invulnerable: 0,
+      anim: 0,
+      animationState: "idle",
+      deathFacing: 1,
+      prevY: 0,
+      turnDuration: 0.34,
+      turnRemaining: 0,
+      deathElapsed: 0,
+      previousRunPhase: null,
+      stateMachine: null,
+      ...props,
+    });
+  }
+
+  initializeStateMachine(options = {}) {
+    this.turnDuration = options.turnDuration ?? this.turnDuration;
     this.stateMachine = new StateMachine(this);
     this.stateMachine.add("idle", new HeroAnimationState("idle"));
     this.stateMachine.add("run", new HeroAnimationState("run"));
@@ -20,43 +41,45 @@ export class HeroStateController {
     this.stateMachine.add("turn", new HeroAnimationState("turn"));
     this.stateMachine.add("death", new HeroAnimationState("death"));
     this.stateMachine.add("clear", new HeroAnimationState("clear"));
-    this.stateMachine.changeTo("idle");
+    this.resetAnimationState();
   }
 
   requestTurn() {
     this.turnRemaining = this.turnDuration;
   }
 
-  reset() {
+  resetAnimationState() {
     this.turnRemaining = 0;
     this.deathElapsed = 0;
     this.previousRunPhase = null;
-    this.stateMachine.changeTo("idle");
+    this.stateMachine?.changeTo("idle");
   }
 
-  update(delta, context) {
-    this.context = context;
+  updateAnimationState(delta, context) {
+    if (!this.stateMachine) return;
     const runPhaseChanged = this.previousRunPhase !== null && this.previousRunPhase !== context.runPhase;
     if (runPhaseChanged && context.runPhase !== context.PHASE_DEAD) {
       this.deathElapsed = 0;
     }
+
     this.previousRunPhase = context.runPhase;
     this.turnRemaining = Math.max(0, this.turnRemaining - delta);
     if (context.runPhase === context.PHASE_DEAD) {
       this.deathElapsed += delta;
     }
 
-    const targetState = this.#resolveState();
+    const targetState = this.resolveAnimationState(context);
     if (this.stateMachine.currentState?.name !== targetState) {
       this.stateMachine.changeTo(targetState);
     }
+
     this.stateMachine.update();
-    this.player.animationState = this.stateMachine.currentState?.name ?? "idle";
+    this.animationState = this.stateMachine.currentState?.name ?? "idle";
   }
 
-  getFrameIndex(animation) {
+  getAnimationFrameIndex(animation) {
     if (!animation || animation.frames <= 1) return 0;
-    const animationName = this.player.animationState ?? "idle";
+    const animationName = this.animationState ?? "idle";
 
     if (animationName === "turn") {
       const progress = clamp(1 - this.turnRemaining / this.turnDuration, 0, 0.9999);
@@ -67,10 +90,10 @@ export class HeroStateController {
       return Math.min(animation.frames - 1, Math.floor(this.deathElapsed * animation.fps));
     }
 
-    return Math.floor(this.player.anim) % animation.frames;
+    return Math.floor(this.anim) % animation.frames;
   }
 
-  #resolveState() {
+  resolveAnimationState(context) {
     const {
       runPhase,
       PHASE_DEAD,
@@ -79,7 +102,7 @@ export class HeroStateController {
       grounded,
       vy,
       vx,
-    } = this.context;
+    } = context;
 
     if (runPhase === PHASE_DEAD) return "death";
     if (runPhase === PHASE_CLEAR) return "clear";
