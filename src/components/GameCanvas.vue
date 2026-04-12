@@ -17,7 +17,7 @@
 
 <script setup>
 import { List, ProgressBar } from "@pixi/ui";
-import { Application, Assets, Container, Graphics, Rectangle, Sprite, Text, Texture, TilingSprite } from "pixi.js";
+import { Application, Assets, Container, Graphics, Rectangle, Sprite, Text, Texture } from "pixi.js";
 import { nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 import { dom } from "quasar";
 import { getHeroAnimation, getHeroAnimationSources } from "assets/game/sprites/hero-sprite-registry";
@@ -270,6 +270,9 @@ const mapGenerator = new MarioLikeMapGenerator({
 });
 
 const generateLevel = (nextWidth, nextHeight, seed = world.seed) => {
+  for (let i = 0; i < world.solids.length; i++) {
+    world.solids[i]?.detachSprite?.({ destroy: true });
+  }
   const generated = mapGenerator.generate(nextWidth, nextHeight, seed);
   generated.solids = generated.solids.map(createSolid);
   Object.assign(world, generated);
@@ -531,16 +534,11 @@ let coins = [];
 let app;
 let spriteScene;
 let uiScene;
-let heroSprite;
-let heroTextures = new Map();
 let goalSprite;
 let goalTexture;
 let coinTexture;
-let coinSprites = [];
 let platformTextures = {};
-let platformSprites = [];
 let enemyTextures = [];
-let enemySprites = [];
 let hudPanel;
 let hudRows;
 let hudRowItems = [];
@@ -634,6 +632,12 @@ const syncHud = () => {
   syncGameUi();
 };
 
+const detachObjectSprites = (items = []) => {
+  for (let i = 0; i < items.length; i++) {
+    items[i]?.detachSprite?.({ destroy: true });
+  }
+};
+
 const resetPlayer = () => {
   player.x = world.spawn.x;
   player.y = world.spawn.y;
@@ -671,6 +675,8 @@ const resetLevel = () => {
   run.stagePulse = 0;
   run.regenerateOnRespawn = false;
   resetPlayer();
+  detachObjectSprites(enemies);
+  detachObjectSprites(coins);
   enemies = world.enemySpawns.map(createEnemy);
   attachEnemyControllers();
   coins = world.coins.map(createCoin);
@@ -741,6 +747,8 @@ const regenerateWorld = (widthPx, heightPx, resetProgress = false) => {
     player.anim = preservedPlayer.anim;
     player.prevY = preservedPlayer.prevY;
     player.facing = preservedPlayer.facing;
+    detachObjectSprites(enemies);
+    detachObjectSprites(coins);
     enemies = world.enemySpawns.map(createEnemy);
     attachEnemyControllers();
     coins = world.coins.map(createCoin);
@@ -1070,50 +1078,6 @@ const createCroppedTexture = (texture, crop) => {
   }));
 };
 
-const getHeroTexture = (src) => {
-  if (!heroTextures.has(src)) {
-    const texture = getLoadedTextureByUrl(src);
-    if (!texture) return null;
-    heroTextures.set(src, texture);
-  }
-  return heroTextures.get(src);
-};
-
-const getHeroFrameTexture = (src, animation, frameIndex) => {
-  const cacheKey = `${src}:${animation.columns}x${animation.rows}:${frameIndex}`;
-  if (heroTextures.has(cacheKey)) {
-    return heroTextures.get(cacheKey);
-  }
-
-  const texture = getHeroTexture(src);
-  if (!texture) return null;
-  const frameWidth = Math.floor(texture.width / animation.columns);
-  const frameHeight = Math.floor(texture.height / animation.rows);
-  const frameColumn = frameIndex % animation.columns;
-  const frameRow = Math.floor(frameIndex / animation.columns);
-  const frame = new Rectangle(
-    frameColumn * frameWidth,
-    frameRow * frameHeight,
-    frameWidth,
-    frameHeight,
-  );
-  const frameTexture = configurePixelTexture(new Texture({
-    source: texture.source,
-    frame,
-  }));
-
-  heroTextures.set(cacheKey, frameTexture);
-  return frameTexture;
-};
-
-const ensureHeroSprite = () => {
-  if (heroSprite || !spriteScene) return;
-  heroSprite = new Sprite();
-  heroSprite.anchor.set(0.5, 0);
-  heroSprite.zIndex = 20;
-  spriteScene.addChild(heroSprite);
-};
-
 const ensureGoalSprite = () => {
   if (goalSprite || !spriteScene || !goalTexture) return;
   goalSprite = new Sprite(goalTexture);
@@ -1123,121 +1087,36 @@ const ensureGoalSprite = () => {
   spriteScene.addChild(goalSprite);
 };
 
-const ensureCoinSprites = () => {
-  if (!spriteScene || !coinTexture) return;
-  while (coinSprites.length < MAX_COINS) {
-    const sprite = new Sprite(coinTexture);
-    sprite.anchor.set(0.5, 0.5);
-    sprite.visible = false;
-    sprite.zIndex = 12;
-    coinSprites.push(sprite);
-    spriteScene.addChild(sprite);
-  }
-};
-
-const ensurePlatformSprites = () => {
-  if (!spriteScene || !platformTextures.flyingPlatform) return;
-  while (platformSprites.length < MAX_SOLIDS) {
-    const container = new Container();
-    const middle = new TilingSprite({
-      texture: platformTextures.flyingPlatform,
-      width: platformTextures.flyingPlatform.width,
-      height: platformTextures.flyingPlatform.height,
-    });
-    const left = new TilingSprite({
-      texture: platformTextures.wallTop,
-      width: platformTextures.wallTop.width,
-      height: platformTextures.wallTop.height,
-    });
-    const right = new TilingSprite({
-      texture: platformTextures.wallFill,
-      width: platformTextures.wallFill.width,
-      height: platformTextures.wallFill.height,
-    });
-    container.visible = false;
-    container.zIndex = 8;
-    left.visible = false;
-    right.visible = false;
-    container.middle = middle;
-    container.left = left;
-    container.right = right;
-    container.addChild(middle, right, left);
-    platformSprites.push(container);
-    spriteScene.addChild(container);
-  }
-};
-
-const ensureEnemySprites = () => {
-  if (!spriteScene || enemyTextures.length === 0) return;
-
-  while (enemySprites.length < MAX_ENEMIES) {
-    const sprite = new Sprite(enemyTextures[0]);
-    sprite.anchor.set(0.5, 0);
-    sprite.visible = false;
-    sprite.zIndex = 10;
-    enemySprites.push(sprite);
-    spriteScene.addChild(sprite);
-  }
-};
-
 const syncHeroSprite = (time) => {
-  ensureHeroSprite();
-  if (!heroSprite) return;
-
-  const animationName = player.animationState ?? "idle";
-  const animation = getHeroAnimation(animationName);
-  const frameIndex = player.getAnimationFrameIndex(animation);
-  const sizePx = HERO_WORLD_SIZE * BASE_PIXEL_SCALE;
-  const blinkHidden = run.phase !== PHASE_DEAD && player.invulnerable > 0 && Math.floor(time * 14) % 2 === 0;
-  const effectiveFacing = run.phase === PHASE_DEAD ? (player.deathFacing ?? player.facing) : player.facing;
-  lastHeroRenderFacing = effectiveFacing;
-  const facingKey = effectiveFacing > 0 ? "right" : "left";
-  const spriteSrc = animation.srcByFacing?.[facingKey] ?? animation.srcByFacing?.left ?? animation.src;
-  const mirrorFacing = animation.mirrorByFacing?.[facingKey] ?? (animation.mirror && effectiveFacing > 0);
-  const frameOffset = animation.frameOffsets?.[frameIndex] ?? animation.frameOffsets?.[0] ?? { x: 0, y: 0 };
-  const offsetX = (mirrorFacing ? -frameOffset.x : frameOffset.x) * BASE_PIXEL_SCALE;
-  const offsetY = frameOffset.y * BASE_PIXEL_SCALE;
-  const frameTexture = getHeroFrameTexture(spriteSrc, animation, frameIndex);
-  if (!frameTexture) {
-    heroSprite.visible = false;
-    return;
-  }
-  heroSprite.texture = frameTexture;
-  heroSprite.visible = !blinkHidden;
-  const left = viewport.x + (player.x - HERO_WORLD_SIZE * 0.5) * BASE_PIXEL_SCALE + offsetX;
-  const top = viewport.y + viewport.height - (player.y + HERO_WORLD_SIZE) * BASE_PIXEL_SCALE + offsetY + HERO_SCREEN_OFFSET_Y;
-  heroSprite.position.set(left + sizePx * 0.5, top);
-  heroSprite.width = mirrorFacing ? -sizePx : sizePx;
-  heroSprite.height = sizePx;
+  lastHeroRenderFacing = player.syncSprite({
+    scene: spriteScene,
+    run,
+    time,
+    viewport,
+    basePixelScale: BASE_PIXEL_SCALE,
+    heroWorldSize: HERO_WORLD_SIZE,
+    heroScreenOffsetY: HERO_SCREEN_OFFSET_Y,
+    phaseDead: PHASE_DEAD,
+    getHeroAnimation,
+    getLoadedTextureByUrl,
+    configurePixelTexture,
+  });
 };
 
 const syncCoinSprites = (time) => {
-  ensureCoinSprites();
-  const sizePx = COIN_WORLD_SIZE * BASE_PIXEL_SCALE;
-
-  for (let i = 0; i < coinSprites.length; i++) {
-    const sprite = coinSprites[i];
-    const coin = coins[i];
-    if (!sprite || !coin || coin.collected) {
-      if (sprite) sprite.visible = false;
-      continue;
-    }
-
-    const bobOffset = Math.sin(time * 3.4 + coin.phase) * 0.35;
-    const spinPhase = time * 4.5 + coin.phase * 1.4;
-    const spinScale = Math.max(0.16, Math.abs(Math.sin(spinPhase)));
-    const left = viewport.x + (coin.x - COIN_WORLD_SIZE * 0.5) * BASE_PIXEL_SCALE;
-    const top = viewport.y + viewport.height - (coin.y + COIN_WORLD_SIZE * 0.5 + bobOffset) * BASE_PIXEL_SCALE;
-    sprite.visible = true;
-    sprite.position.set(left + sizePx * 0.5, top + sizePx * 0.5);
-    sprite.width = sizePx * spinScale;
-    sprite.height = sizePx;
+  for (let i = 0; i < coins.length; i++) {
+    coins[i]?.syncSprite({
+      scene: spriteScene,
+      texture: coinTexture,
+      time,
+      viewport,
+      basePixelScale: BASE_PIXEL_SCALE,
+      coinWorldSize: COIN_WORLD_SIZE,
+    });
   }
 };
 
 const syncEnemySprites = (time) => {
-  ensureEnemySprites();
-  const sizePx = ENEMY_HEIGHT * BASE_PIXEL_SCALE;
   const stateFrameMap = {
     walkLeft: [0, 1, 2],
     walkRight: [0, 1, 2],
@@ -1245,83 +1124,39 @@ const syncEnemySprites = (time) => {
     alertBackRight: [0, 1, 2, 3, 4],
   };
 
-  for (let i = 0; i < enemySprites.length; i++) {
-    const sprite = enemySprites[i];
-    const enemy = enemies[i];
-    if (!sprite || !enemy || !enemy.alive) {
-      if (sprite) sprite.visible = false;
-      continue;
-    }
-
-    const stateFrames = stateFrameMap[enemy.animationState] ?? stateFrameMap.walkRight;
-    const frameIndex = stateFrames[Math.floor(enemy.anim * 0.8) % stateFrames.length] ?? 0;
-    // Remove bob offset for walking enemies
-    const left = viewport.x + (enemy.x - enemy.w * 0.5) * BASE_PIXEL_SCALE - 2;
-    const top = viewport.y + viewport.height - (enemy.y + enemy.h) * BASE_PIXEL_SCALE - 4;
-    sprite.visible = true;
-    sprite.texture = enemyTextures[frameIndex];
-    sprite.position.set(left + sizePx * 0.5, top);
-    sprite.width = enemy.facing < 0 ? -sizePx : sizePx;
-    sprite.height = sizePx;
+  for (let i = 0; i < enemies.length; i++) {
+    enemies[i]?.syncSprite({
+      scene: spriteScene,
+      viewport,
+      basePixelScale: BASE_PIXEL_SCALE,
+      enemyTextures,
+      stateFrameMap,
+      sizePx: ENEMY_HEIGHT * BASE_PIXEL_SCALE,
+      time,
+    });
   }
 };
 
 const syncPlatformSprites = () => {
-  ensurePlatformSprites();
-
-  for (let i = 0; i < platformSprites.length; i++) {
-    const sprite = platformSprites[i];
+  for (let i = 0; i < world.solids.length; i++) {
     const solid = world.solids[i];
-    if (!sprite || !solid) {
-      if (sprite) sprite.visible = false;
+    if (!solid) continue;
+    if (solid.kind === "wall") {
+      solid.syncSprite({
+        scene: spriteScene,
+        textures: platformTextures,
+        viewport,
+        basePixelScale: BASE_PIXEL_SCALE,
+      });
       continue;
     }
-
-    const widthPx = solid.w * BASE_PIXEL_SCALE;
-    const heightPx = solid.h * BASE_PIXEL_SCALE;
-    const textureKey = solid.kind;
-    const texture = platformTextures[textureKey];
-    const left = viewport.x + solid.x * BASE_PIXEL_SCALE;
-    const top = viewport.y + viewport.height - (solid.y + solid.h) * BASE_PIXEL_SCALE;
-    if (!texture) {
-      sprite.visible = false;
-      continue;
-    }
-    sprite.visible = true;
-    sprite.position.set(left, top);
-    sprite.middle.position.set(0, 0);
-    sprite.middle.tileScale = textureKey === "flyingPlatform"
-      ? PLATFORM_FLYING_PLATFORM_TILE_SCALE
-      : 1;
-    sprite.middle.tilePosition = { x: 0, y: 0 };
-    sprite.left.tileScale = 1;
-    sprite.left.tilePosition = { x: 0, y: 0 };
-    sprite.right.tileScale = 1;
-    sprite.right.tilePosition = { x: 0, y: 0 };
-
-    if (textureKey === "wall") {
-      const topHeightPx = Math.min(heightPx, platformTextures.wallTop.height);
-      const fillHeightPx = Math.max(0, heightPx - topHeightPx);
-      sprite.middle.visible = false;
-      sprite.left.visible = true;
-      sprite.right.visible = fillHeightPx > 0;
-      sprite.left.texture = platformTextures.wallTop;
-      sprite.left.width = widthPx;
-      sprite.left.height = topHeightPx;
-      sprite.left.position.set(0, 0);
-      sprite.right.texture = platformTextures.wallFill;
-      sprite.right.width = widthPx;
-      sprite.right.height = fillHeightPx;
-      sprite.right.position.set(0, topHeightPx);
-      continue;
-    }
-
-    sprite.left.visible = false;
-    sprite.right.visible = false;
-    sprite.middle.visible = true;
-    sprite.middle.texture = texture;
-    sprite.middle.width = widthPx;
-    sprite.middle.height = heightPx;
+    solid.syncSprite({
+      scene: spriteScene,
+      texture: platformTextures[solid.kind],
+      viewport,
+      basePixelScale: BASE_PIXEL_SCALE,
+      tileScale: solid.kind === "flyingPlatform" ? PLATFORM_FLYING_PLATFORM_TILE_SCALE : 1,
+    });
   }
 };
 
@@ -1503,11 +1338,7 @@ const initPixi = async () => {
   } else {
     enemyTextures = [];
   }
-  ensureHeroSprite();
   ensureGoalSprite();
-  ensureCoinSprites();
-  ensurePlatformSprites();
-  ensureEnemySprites();
 
   const width = Math.max(1, dom.width(container.value));
   const height = Math.max(1, dom.height(container.value));
@@ -1556,21 +1387,11 @@ onBeforeUnmount(() => {
     cancelAnimationFrame(frameId);
     frameId = null;
   }
-  if (heroSprite?.parent) heroSprite.parent.removeChild(heroSprite);
+  player.detachSprite({ destroy: true });
+  detachObjectSprites(enemies);
+  detachObjectSprites(coins);
+  detachObjectSprites(world.solids);
   if (goalSprite?.parent) goalSprite.parent.removeChild(goalSprite);
-  coinSprites.forEach((sprite) => {
-    if (sprite.parent) sprite.parent.removeChild(sprite);
-  });
-  platformSprites.forEach((sprite) => {
-    if (sprite.parent) sprite.parent.removeChild(sprite);
-  });
-  enemySprites.forEach((sprite) => {
-    if (sprite.parent) sprite.parent.removeChild(sprite);
-  });
-  for (const texture of heroTextures.values()) {
-    if (!texture?.destroyed) texture.destroy(false);
-  }
-  heroTextures.clear();
   Object.values(platformTextures).forEach((texture) => {
     if (!texture?.destroyed) texture.destroy(false);
   });

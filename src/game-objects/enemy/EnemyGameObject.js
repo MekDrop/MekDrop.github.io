@@ -3,6 +3,7 @@ import { StateMachine } from "yuka";
 import { EnemyAlertBackLeftState } from "src/states/enemies/EnemyAlertBackLeftState";
 import { EnemyAlertBackRightState } from "src/states/enemies/EnemyAlertBackRightState";
 import { EnemyWalkState } from "src/states/enemies/EnemyWalkState";
+import { Sprite } from "pixi.js";
 
 const EDGE_SUPPORT_PROBE = 1.25;
 const EDGE_LOOKAHEAD = 0.9;
@@ -127,5 +128,39 @@ export class EnemyGameObject extends GameObject {
     this.vy = 0;
     const moved = this.runtime?.moveBody?.(this, this.delta);
     return !moved?.hitX;
+  }
+
+  ensureSprite(scene, texture) {
+    if (this.sprite || !scene || !texture) return;
+    this.sprite = new Sprite(texture);
+    this.sprite.anchor.set(0.5, 0);
+    this.sprite.visible = false;
+    this.sprite.zIndex = 10;
+    scene.addChild(this.sprite);
+  }
+
+  syncSprite({
+    scene,
+    viewport,
+    basePixelScale,
+    enemyTextures,
+    stateFrameMap,
+    sizePx,
+  }) {
+    this.ensureSprite(scene, enemyTextures?.[0]);
+    if (!this.sprite || !this.alive || !enemyTextures?.length) {
+      this.hideSprite();
+      return;
+    }
+
+    const stateFrames = stateFrameMap?.[this.animationState] ?? stateFrameMap?.walkRight ?? [0];
+    const frameIndex = stateFrames[Math.floor(this.anim * 0.8) % stateFrames.length] ?? 0;
+    const left = viewport.x + (this.x - this.w * 0.5) * basePixelScale - 2;
+    const top = viewport.y + viewport.height - (this.y + this.h) * basePixelScale - 4;
+    this.sprite.visible = true;
+    this.sprite.texture = enemyTextures[frameIndex];
+    this.sprite.position.set(left + sizePx * 0.5, top);
+    this.sprite.width = this.facing < 0 ? -sizePx : sizePx;
+    this.sprite.height = sizePx;
   }
 }

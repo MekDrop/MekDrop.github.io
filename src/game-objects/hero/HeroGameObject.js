@@ -1,6 +1,7 @@
 import { GameObject } from "src/game-objects/core/GameObject";
 import { StateMachine } from "yuka";
 import { HeroAnimationState } from "src/states/heroes/HeroAnimationState";
+import { Rectangle, Sprite, Texture } from "pixi.js";
 
 const clamp = (v, mn, mx) => Math.min(mx, Math.max(mn, v));
 
@@ -25,6 +26,7 @@ export class HeroGameObject extends GameObject {
       turnRemaining: 0,
       deathElapsed: 0,
       previousRunPhase: null,
+      spriteTextureCache: new Map(),
       stateMachine: null,
       ...props,
     });
@@ -111,5 +113,110 @@ export class HeroGameObject extends GameObject {
     if (!grounded) return vy > 0 ? "jump" : "fall";
     if (Math.abs(vx) > 4) return "run";
     return "idle";
+  }
+
+  ensureSprite(scene) {
+    if (this.sprite || !scene) return;
+    this.sprite = new Sprite();
+    this.sprite.anchor.set(0.5, 0);
+    this.sprite.zIndex = 20;
+    scene.addChild(this.sprite);
+  }
+
+  getFrameTexture({
+    src,
+    animation,
+    frameIndex,
+    getLoadedTextureByUrl,
+    configurePixelTexture,
+  }) {
+    if (!src || !animation || typeof getLoadedTextureByUrl !== "function") return null;
+    const cacheKey = `${src}:${animation.columns}x${animation.rows}:${frameIndex}`;
+    if (this.spriteTextureCache.has(cacheKey)) {
+      return this.spriteTextureCache.get(cacheKey);
+    }
+
+    const texture = getLoadedTextureByUrl(src);
+    if (!texture) return null;
+    const frameWidth = Math.floor(texture.width / animation.columns);
+    const frameHeight = Math.floor(texture.height / animation.rows);
+    const frameColumn = frameIndex % animation.columns;
+    const frameRow = Math.floor(frameIndex / animation.columns);
+    const frame = new Rectangle(
+      frameColumn * frameWidth,
+      frameRow * frameHeight,
+      frameWidth,
+      frameHeight,
+    );
+    const frameTexture = (typeof configurePixelTexture === "function")
+      ? configurePixelTexture(new Texture({
+        source: texture.source,
+        frame,
+      }))
+      : new Texture({
+        source: texture.source,
+        frame,
+      });
+
+    this.spriteTextureCache.set(cacheKey, frameTexture);
+    return frameTexture;
+  }
+
+  syncSprite({
+    scene,
+    run,
+    time,
+    viewport,
+    basePixelScale,
+    heroWorldSize,
+    heroScreenOffsetY,
+    phaseDead,
+    getHeroAnimation,
+    getLoadedTextureByUrl,
+    configurePixelTexture,
+  }) {
+    this.ensureSprite(scene);
+    if (!this.sprite || typeof getHeroAnimation !== "function") return this.facing;
+
+    const animationName = this.animationState ?? "idle";
+    const animation = getHeroAnimation(animationName);
+    const frameIndex = this.getAnimationFrameIndex(animation);
+    const sizePx = heroWorldSize * basePixelScale;
+    const blinkHidden = run.phase !== phaseDead && this.invulnerable > 0 && Math.floor(time * 14) % 2 === 0;
+    const effectiveFacing = run.phase === phaseDead ? (this.deathFacing ?? this.facing) : this.facing;
+    const facingKey = effectiveFacing > 0 ? "right" : "left";
+    const spriteSrc = animation.srcByFacing?.[facingKey] ?? animation.srcByFacing?.left ?? animation.src;
+    const mirrorFacing = animation.mirrorByFacing?.[facingKey] ?? (animation.mirror && effectiveFacing > 0);
+    const frameOffset = animation.frameOffsets?.[frameIndex] ?? animation.frameOffsets?.[0] ?? { x: 0, y: 0 };
+    const offsetX = (mirrorFacing ? -frameOffset.x : frameOffset.x) * basePixelScale;
+    const offsetY = frameOffset.y * basePixelScale;
+    const frameTexture = this.getFrameTexture({
+      src: spriteSrc,
+      animation,
+      frameIndex,
+      getLoadedTextureByUrl,
+      configurePixelTexture,
+    });
+    if (!frameTexture) {
+      this.sprite.visible = false;
+      return effectiveFacing;
+    }
+
+    this.sprite.texture = frameTexture;
+    this.sprite.visible = !blinkHidden;
+    const left = viewport.x + (this.x - heroWorldSize * 0.5) * basePixelScale + offsetX;
+    const top = viewport.y + viewport.height - (this.y + heroWorldSize) * basePixelScale + offsetY + heroScreenOffsetY;
+    this.sprite.position.set(left + sizePx * 0.5, top);
+    this.sprite.width = mirrorFacing ? -sizePx : sizePx;
+    this.sprite.height = sizePx;
+    return effectiveFacing;
+  }
+
+  detachSprite(options = {}) {
+    super.detachSprite(options);
+    for (const texture of this.spriteTextureCache.values()) {
+      if (!texture?.destroyed) texture.destroy(false);
+    }
+    this.spriteTextureCache.clear();
   }
 }
