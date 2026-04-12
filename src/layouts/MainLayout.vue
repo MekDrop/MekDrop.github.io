@@ -131,26 +131,6 @@
   overflow: hidden;
 }
 
-.layout-shell__game::before,
-.layout-shell__game::after {
-  content: "";
-  position: absolute;
-  pointer-events: none;
-  z-index: 1;
-}
-
-.layout-shell__game::before {
-  inset: 1rem;
-  border: 1px solid rgba(150, 255, 224, 0.22);
-}
-
-.layout-shell__game::after {
-  left: 1rem;
-  right: 1rem;
-  top: 3.25rem;
-  border-top: 1px solid rgba(150, 255, 224, 0.18);
-}
-
 .side-toolbar {
   position: relative;
   z-index: 10;
