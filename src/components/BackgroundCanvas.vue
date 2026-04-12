@@ -83,17 +83,11 @@
 </style>
 
 <script setup>
-import * as THREE from "three";
+import { Application, Container, Rectangle, Sprite, Texture } from "pixi.js";
 import { computed, onBeforeUnmount, onMounted, ref } from "vue";
 import { dom } from "quasar";
-import { getHeroAnimation } from "assets/game/sprites/hero-sprite-registry";
-import coinGoldSprite from "assets/game/sprites/collectibles/coin-gold.png";
-import enemyWalkFrame0 from "assets/game/sprites/enemies/mushroom-stomper-walk-0.png";
-import enemyWalkFrame1 from "assets/game/sprites/enemies/mushroom-stomper-walk-1.png";
-import portalFrame from "assets/game/sprites/goal/portal-frame-0.png";
-import platformCenterSprite from "assets/game/sprites/platforms/platform-center.png";
-import platformWallSprite from "assets/game/sprites/platforms/platform-wall.png";
-import platformStairSprite from "assets/game/sprites/platforms/platform-stair.png";
+import { getHeroAnimation, getHeroAnimationSources } from "assets/game/sprites/hero-sprite-registry";
+import { useSpritesStore } from "stores/sprites-store";
 
 const BASE_PIXEL_SCALE = 8;
 const MIN_WORLD_WIDTH = 1;
@@ -127,6 +121,30 @@ const PLATFORM_STAIR_CROP = {
   w: 54 / 64,
   h: 26 / 32,
 };
+const REQUIRED_TEXTURE_KEYS = [
+  "coinGold",
+  "enemyWalkFrame0",
+  "enemyWalkFrame1",
+  "portalFrame",
+  "platformCenter",
+  "platformWall",
+  "platformStair",
+];
+const HERO_TEXTURE_SOURCES = getHeroAnimationSources();
+const HERO_TEXTURE_KEYS = HERO_TEXTURE_SOURCES.map((_, index) => `hero:${index}`);
+const getLoadedTextureRecordByKey = (key) => spritesStore.loadedTextures.find((entry) => entry.key === key) ?? null;
+const getLoadedTextureRecordByUrl = (url) => spritesStore.loadedTextures.find((entry) => entry.url === url) ?? null;
+const getUsedTextureKeys = () => [
+  ...HERO_TEXTURE_KEYS,
+  ...REQUIRED_TEXTURE_KEYS,
+];
+const createLoadedTextureRecords = (keys) => keys
+  .map((key) => ({
+    key,
+    url: spritesStore.textureUrls[key] ?? null,
+    texture: getLoadedTextureRecordByKey(key)?.texture ?? null,
+  }))
+  .filter((entry) => entry.url);
 
 const PLAYER = {
   width: 7,
@@ -853,23 +871,17 @@ const player = createPlayer();
 let enemies = [];
 let coins = [];
 
-let spriteCamera;
+let app;
 let spriteScene;
-let renderer;
 let heroSprite;
-let heroMaterial;
 let heroTextures = new Map();
 let goalSprite;
-let goalMaterial;
 let goalTexture;
 let coinTexture;
-let coinMaterial;
 let coinSprites = [];
 let platformTextures = {};
-let platformMaterials = {};
 let platformSprites = [];
 let enemyTextures = [];
-let enemyMaterials = [];
 let enemySprites = [];
 let frameId = null;
 let previousTimeMs = 0;
@@ -883,6 +895,7 @@ const viewport = {
   width: 1,
   height: 1,
 };
+const spritesStore = useSpritesStore();
 
 const syncHud = () => {
   hudScoreValue.value = run.score;
@@ -1280,96 +1293,137 @@ const getHeroFrameIndex = (animationName) => {
   return Math.floor(player.anim) % animation.frames;
 };
 
-const createPixelTexture = (src) => {
-  const texture = new THREE.TextureLoader().load(src);
-  texture.colorSpace = THREE.SRGBColorSpace;
-  texture.magFilter = THREE.NearestFilter;
-  texture.minFilter = THREE.NearestFilter;
-  texture.generateMipmaps = false;
-  texture.wrapS = THREE.ClampToEdgeWrapping;
-  texture.wrapT = THREE.ClampToEdgeWrapping;
+const configurePixelTexture = (texture) => {
+  texture.source.scaleMode = "nearest";
   return texture;
 };
 
-const applyTextureCrop = (texture, crop) => {
-  texture.repeat.set(crop.w, crop.h);
-  texture.offset.set(crop.x, 1 - crop.y - crop.h);
-  texture.needsUpdate = true;
+const cloneTexture = (texture) => {
+  if (!texture) return null;
+  return configurePixelTexture(new Texture({
+    source: texture.source,
+    frame: texture.frame,
+    orig: texture.orig,
+    trim: texture.trim,
+    rotate: texture.rotate,
+    defaultAnchor: texture.defaultAnchor,
+    defaultBorders: texture.defaultBorders,
+    label: texture.label,
+  }));
 };
 
-const toBottomAnchoredY = (topPx, heightPx) => canvasSize.height - topPx - heightPx;
-const toCenteredY = (topPx, heightPx) => canvasSize.height - topPx - heightPx * 0.5;
+const createCroppedTexture = (texture, crop) => {
+  if (!texture) return null;
+  const frame = new Rectangle(
+    Math.round(texture.width * crop.x),
+    Math.round(texture.height * crop.y),
+    Math.round(texture.width * crop.w),
+    Math.round(texture.height * crop.h),
+  );
+
+  return configurePixelTexture(new Texture({
+    source: texture.source,
+    frame,
+  }));
+};
 
 const getHeroTexture = (src) => {
   if (!heroTextures.has(src)) {
-    heroTextures.set(src, createPixelTexture(src));
+    const texture = getLoadedTextureRecordByUrl(src)?.texture ?? null;
+    if (!texture) return null;
+    heroTextures.set(src, texture);
   }
   return heroTextures.get(src);
 };
 
+const getHeroFrameTexture = (src, animation, frameIndex) => {
+  const cacheKey = `${src}:${animation.columns}x${animation.rows}:${frameIndex}`;
+  if (heroTextures.has(cacheKey)) {
+    return heroTextures.get(cacheKey);
+  }
+
+  const texture = getHeroTexture(src);
+  if (!texture) return null;
+  const frameWidth = Math.floor(texture.width / animation.columns);
+  const frameHeight = Math.floor(texture.height / animation.rows);
+  const frameColumn = frameIndex % animation.columns;
+  const frameRow = Math.floor(frameIndex / animation.columns);
+  const frame = new Rectangle(
+    frameColumn * frameWidth,
+    frameRow * frameHeight,
+    frameWidth,
+    frameHeight,
+  );
+  const frameTexture = configurePixelTexture(new Texture({
+    source: texture.source,
+    frame,
+  }));
+
+  heroTextures.set(cacheKey, frameTexture);
+  return frameTexture;
+};
+
 const ensureHeroSprite = () => {
-  if (heroSprite || !spriteScene || !heroMaterial) return;
-  heroSprite = new THREE.Sprite(heroMaterial);
-  heroSprite.center.set(0.5, 0.0);
-  heroSprite.renderOrder = 20;
-  spriteScene.add(heroSprite);
+  if (heroSprite || !spriteScene) return;
+  heroSprite = new Sprite();
+  heroSprite.anchor.set(0.5, 0);
+  heroSprite.zIndex = 20;
+  spriteScene.addChild(heroSprite);
 };
 
 const ensureGoalSprite = () => {
-  if (goalSprite || !spriteScene || !goalMaterial) return;
-  goalSprite = new THREE.Sprite(goalMaterial);
-  goalSprite.center.set(0.5, 0.0);
-  goalSprite.renderOrder = 18;
+  if (goalSprite || !spriteScene || !goalTexture) return;
+  goalSprite = new Sprite(goalTexture);
+  goalSprite.anchor.set(0.5, 0);
+  goalSprite.zIndex = 18;
   goalSprite.visible = false;
-  spriteScene.add(goalSprite);
+  spriteScene.addChild(goalSprite);
 };
 
 const ensureCoinSprites = () => {
-  if (!spriteScene || !coinMaterial) return;
+  if (!spriteScene || !coinTexture) return;
   while (coinSprites.length < MAX_COINS) {
-    const sprite = new THREE.Sprite(coinMaterial);
-    sprite.center.set(0.5, 0.5);
+    const sprite = new Sprite(coinTexture);
+    sprite.anchor.set(0.5, 0.5);
     sprite.visible = false;
-    sprite.renderOrder = 12;
+    sprite.zIndex = 12;
     coinSprites.push(sprite);
-    spriteScene.add(sprite);
+    spriteScene.addChild(sprite);
   }
 };
 
 const ensurePlatformSprites = () => {
-  if (!spriteScene) return;
+  if (!spriteScene || !platformTextures.center) return;
   while (platformSprites.length < MAX_SOLIDS) {
-    const sprite = new THREE.Sprite(platformMaterials.center);
-    sprite.center.set(0.5, 0.0);
+    const sprite = new Sprite(platformTextures.center);
+    sprite.anchor.set(0.5, 0);
     sprite.visible = false;
-    sprite.renderOrder = 8;
+    sprite.zIndex = 8;
     platformSprites.push(sprite);
-    spriteScene.add(sprite);
+    spriteScene.addChild(sprite);
   }
 };
 
 const ensureEnemySprites = () => {
-  if (!spriteScene) return;
+  if (!spriteScene || enemyTextures.length === 0) return;
 
   while (enemySprites.length < MAX_ENEMIES) {
-    const sprite = new THREE.Sprite(enemyMaterials[0]);
-    sprite.center.set(0.5, 0.0);
+    const sprite = new Sprite(enemyTextures[0]);
+    sprite.anchor.set(0.5, 0);
     sprite.visible = false;
-    sprite.renderOrder = 10;
+    sprite.zIndex = 10;
     enemySprites.push(sprite);
-    spriteScene.add(sprite);
+    spriteScene.addChild(sprite);
   }
 };
 
 const syncHeroSprite = (time) => {
   ensureHeroSprite();
-  if (!heroSprite || !heroMaterial) return;
+  if (!heroSprite) return;
 
   const animationName = getHeroAnimationName();
   const animation = getHeroAnimation(animationName);
   const frameIndex = getHeroFrameIndex(animationName);
-  const frameColumn = frameIndex % animation.columns;
-  const frameRow = Math.floor(frameIndex / animation.columns);
   const sizePx = HERO_WORLD_SIZE * BASE_PIXEL_SCALE;
   const blinkHidden = player.invulnerable > 0 && Math.floor(time * 14) % 2 === 0;
   const facingKey = player.facing > 0 ? "right" : "left";
@@ -1378,21 +1432,18 @@ const syncHeroSprite = (time) => {
   const frameOffset = animation.frameOffsets?.[frameIndex] ?? animation.frameOffsets?.[0] ?? { x: 0, y: 0 };
   const offsetX = (mirrorFacing ? -frameOffset.x : frameOffset.x) * BASE_PIXEL_SCALE;
   const offsetY = frameOffset.y * BASE_PIXEL_SCALE;
-  const texture = getHeroTexture(spriteSrc);
-
-  texture.repeat.set(1 / animation.columns, 1 / animation.rows);
-  texture.offset.set(frameColumn / animation.columns, 1 - ((frameRow + 1) / animation.rows));
-  heroMaterial.map = texture;
-  heroMaterial.needsUpdate = true;
+  const frameTexture = getHeroFrameTexture(spriteSrc, animation, frameIndex);
+  if (!frameTexture) {
+    heroSprite.visible = false;
+    return;
+  }
+  heroSprite.texture = frameTexture;
   heroSprite.visible = !blinkHidden;
   const left = viewport.x + (player.x - HERO_WORLD_SIZE * 0.5) * BASE_PIXEL_SCALE + offsetX;
   const top = viewport.y + viewport.height - (player.y + HERO_WORLD_SIZE) * BASE_PIXEL_SCALE + offsetY + HERO_SCREEN_OFFSET_Y;
-  heroSprite.position.set(
-    left + sizePx * 0.5,
-    toBottomAnchoredY(top, sizePx),
-    0,
-  );
-  heroSprite.scale.set(mirrorFacing ? -sizePx : sizePx, sizePx, 1);
+  heroSprite.position.set(left + sizePx * 0.5, top);
+  heroSprite.width = mirrorFacing ? -sizePx : sizePx;
+  heroSprite.height = sizePx;
 };
 
 const syncCoinSprites = (time) => {
@@ -1413,12 +1464,9 @@ const syncCoinSprites = (time) => {
     const left = viewport.x + (coin.x - COIN_WORLD_SIZE * 0.5) * BASE_PIXEL_SCALE;
     const top = viewport.y + viewport.height - (coin.y + COIN_WORLD_SIZE * 0.5 + bobOffset) * BASE_PIXEL_SCALE;
     sprite.visible = true;
-    sprite.position.set(
-      left + sizePx * 0.5,
-      toCenteredY(top, sizePx),
-      0,
-    );
-    sprite.scale.set(sizePx * spinScale, sizePx, 1);
+    sprite.position.set(left + sizePx * 0.5, top + sizePx * 0.5);
+    sprite.width = sizePx * spinScale;
+    sprite.height = sizePx;
   }
 };
 
@@ -1434,18 +1482,15 @@ const syncEnemySprites = (time) => {
       continue;
     }
 
-    const frameIndex = Math.floor(enemy.anim * 0.7) % enemyMaterials.length;
+    const frameIndex = Math.floor(enemy.anim * 0.7) % enemyTextures.length;
     const bobOffset = Math.sin(time * 8 + enemy.x * 0.3) * 0.35;
     const left = viewport.x + (enemy.x - enemy.w * 0.5) * BASE_PIXEL_SCALE - 2;
     const top = viewport.y + viewport.height - (enemy.y + enemy.h + bobOffset) * BASE_PIXEL_SCALE - 4;
     sprite.visible = true;
-    sprite.material = enemyMaterials[frameIndex];
-    sprite.position.set(
-      left + sizePx * 0.5,
-      toBottomAnchoredY(top, sizePx),
-      0,
-    );
-    sprite.scale.set(enemy.dir > 0 ? -sizePx : sizePx, sizePx, 1);
+    sprite.texture = enemyTextures[frameIndex];
+    sprite.position.set(left + sizePx * 0.5, top);
+    sprite.width = enemy.dir > 0 ? -sizePx : sizePx;
+    sprite.height = sizePx;
   }
 };
 
@@ -1466,19 +1511,16 @@ const syncPlatformSprites = () => {
     const left = viewport.x + solid.x * BASE_PIXEL_SCALE;
     const top = viewport.y + viewport.height - (solid.y + solid.h) * BASE_PIXEL_SCALE;
     sprite.visible = true;
-    sprite.material = platformMaterials[textureKey];
-    sprite.position.set(
-      left + widthPx * 0.5,
-      toBottomAnchoredY(top, heightPx),
-      0,
-    );
-    sprite.scale.set(widthPx, heightPx, 1);
+    sprite.texture = platformTextures[textureKey];
+    sprite.position.set(left + widthPx * 0.5, top);
+    sprite.width = widthPx;
+    sprite.height = heightPx;
   }
 };
 
 const syncGoalSprite = (time) => {
   ensureGoalSprite();
-  if (!goalSprite || !goalMaterial) return;
+  if (!goalSprite) return;
 
   const pulse = run.doorUnlocked ? 1 + Math.sin(time * 3.2) * 0.04 : 0.9;
   const widthPx = 48 * pulse;
@@ -1486,12 +1528,9 @@ const syncGoalSprite = (time) => {
   const left = viewport.x + world.goal.x * BASE_PIXEL_SCALE - widthPx * 0.5;
   const top = viewport.y + viewport.height - (world.goal.y + heightPx / BASE_PIXEL_SCALE) * BASE_PIXEL_SCALE;
   goalSprite.visible = run.doorUnlocked;
-  goalSprite.position.set(
-    left + widthPx * 0.5,
-    toBottomAnchoredY(top, heightPx),
-    0,
-  );
-  goalSprite.scale.set(widthPx, heightPx, 1);
+  goalSprite.position.set(left + widthPx * 0.5, top);
+  goalSprite.width = widthPx;
+  goalSprite.height = heightPx;
 };
 
 const syncSceneSprites = (time) => {
@@ -1503,7 +1542,7 @@ const syncSceneSprites = (time) => {
 };
 
 const onResize = () => {
-  if (!container.value || !renderer) return;
+  if (!container.value || !app) return;
   const width = Math.max(1, dom.width(container.value));
   const height = Math.max(1, dom.height(container.value));
   const viewportWidth = Math.max(BASE_PIXEL_SCALE, Math.floor(width / BASE_PIXEL_SCALE) * BASE_PIXEL_SCALE);
@@ -1516,15 +1555,8 @@ const onResize = () => {
   viewport.height = viewportHeight;
   canvasSize.width = width;
   canvasSize.height = height;
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
-  renderer.setSize(width, height, false);
-  if (spriteCamera) {
-    spriteCamera.left = 0;
-    spriteCamera.right = width;
-    spriteCamera.top = height;
-    spriteCamera.bottom = 0;
-    spriteCamera.updateProjectionMatrix();
-  }
+  app.renderer.resolution = Math.min(window.devicePixelRatio || 1, 2);
+  app.renderer.resize(width, height);
   regenerateWorld(viewportWidth, viewportHeight, false);
 };
 
@@ -1582,43 +1614,44 @@ const clearInput = () => {
   input.jumpQueued = 0;
 };
 
-const initGL = async () => {
-  spriteScene = new THREE.Scene();
-  spriteCamera = new THREE.OrthographicCamera(0, 1, 1, 0, -10, 10);
-  spriteCamera.position.z = 1;
-  renderer = new THREE.WebGLRenderer({ antialias: false, alpha: false, powerPreference: "high-performance" });
-  renderer.setClearColor(0x030604, 1);
-  renderer.domElement.classList.add("fit");
-  renderer.domElement.style.position = "absolute";
-  renderer.domElement.style.inset = "0";
-  renderer.domElement.style.zIndex = "1";
-  container.value.appendChild(renderer.domElement);
-  heroMaterial = new THREE.SpriteMaterial({ transparent: true });
-  goalTexture = createPixelTexture(portalFrame);
-  goalMaterial = new THREE.SpriteMaterial({ map: goalTexture, transparent: true });
-  coinTexture = createPixelTexture(coinGoldSprite);
-  coinMaterial = new THREE.SpriteMaterial({ map: coinTexture, transparent: true });
+const initPixi = async () => {
+  app = new Application();
+  await app.init({
+    width: Math.max(1, dom.width(container.value)),
+    height: Math.max(1, dom.height(container.value)),
+    background: "#030604",
+    preference: "webgpu",
+    powerPreference: "high-performance",
+    antialias: false,
+    autoDensity: true,
+    autoStart: false,
+    resolution: Math.min(window.devicePixelRatio || 1, 2),
+  });
+  app.canvas.classList.add("fit");
+  app.canvas.style.position = "absolute";
+  app.canvas.style.inset = "0";
+  app.canvas.style.zIndex = "1";
+  container.value.appendChild(app.canvas);
+
+  spriteScene = new Container();
+  spriteScene.sortableChildren = true;
+  app.stage.addChild(spriteScene);
+
+  const requiredTextureKeys = getUsedTextureKeys();
+  spritesStore.loadedTextures = createLoadedTextureRecords(requiredTextureKeys);
+  await spritesStore.loadTextures(requiredTextureKeys);
+
+  goalTexture = cloneTexture(getLoadedTextureRecordByKey("portalFrame")?.texture ?? null);
+  coinTexture = cloneTexture(getLoadedTextureRecordByKey("coinGold")?.texture ?? null);
   platformTextures = {
-    center: createPixelTexture(platformCenterSprite),
-    wall: createPixelTexture(platformWallSprite),
-    stair: createPixelTexture(platformStairSprite),
-  };
-  applyTextureCrop(platformTextures.center, PLATFORM_CENTER_CROP);
-  applyTextureCrop(platformTextures.wall, PLATFORM_WALL_CROP);
-  applyTextureCrop(platformTextures.stair, PLATFORM_STAIR_CROP);
-  platformMaterials = {
-    center: new THREE.SpriteMaterial({ map: platformTextures.center, transparent: true }),
-    wall: new THREE.SpriteMaterial({ map: platformTextures.wall, transparent: true }),
-    stair: new THREE.SpriteMaterial({ map: platformTextures.stair, transparent: true }),
+    center: createCroppedTexture(getLoadedTextureRecordByKey("platformCenter")?.texture ?? null, PLATFORM_CENTER_CROP),
+    wall: createCroppedTexture(getLoadedTextureRecordByKey("platformWall")?.texture ?? null, PLATFORM_WALL_CROP),
+    stair: createCroppedTexture(getLoadedTextureRecordByKey("platformStair")?.texture ?? null, PLATFORM_STAIR_CROP),
   };
   enemyTextures = [
-    createPixelTexture(enemyWalkFrame0),
-    createPixelTexture(enemyWalkFrame1),
+    cloneTexture(getLoadedTextureRecordByKey("enemyWalkFrame0")?.texture ?? null),
+    cloneTexture(getLoadedTextureRecordByKey("enemyWalkFrame1")?.texture ?? null),
   ];
-  enemyMaterials = enemyTextures.map((texture) => new THREE.SpriteMaterial({
-    map: texture,
-    transparent: true,
-  }));
   ensureHeroSprite();
   ensureGoalSprite();
   ensureCoinSprites();
@@ -1642,15 +1675,14 @@ const initGL = async () => {
     previousTimeMs = nowMs;
     stepGame(delta);
     syncSceneSprites(nowMs * 0.001);
-    renderer.clear();
-    renderer.render(spriteScene, spriteCamera);
+    app.render();
     frameId = requestAnimationFrame(animate);
   };
   frameId = requestAnimationFrame(animate);
 };
 
 onMounted(async () => {
-  await initGL();
+  await initPixi();
   window.addEventListener("resize", onResize);
   window.addEventListener("keydown", onKeyDown);
   window.addEventListener("keyup", onKeyUp);
@@ -1667,33 +1699,36 @@ onBeforeUnmount(() => {
     cancelAnimationFrame(frameId);
     frameId = null;
   }
-  if (heroSprite?.parent) heroSprite.parent.remove(heroSprite);
-  if (goalSprite?.parent) goalSprite.parent.remove(goalSprite);
+  if (heroSprite?.parent) heroSprite.parent.removeChild(heroSprite);
+  if (goalSprite?.parent) goalSprite.parent.removeChild(goalSprite);
   coinSprites.forEach((sprite) => {
-    if (sprite.parent) sprite.parent.remove(sprite);
+    if (sprite.parent) sprite.parent.removeChild(sprite);
   });
   platformSprites.forEach((sprite) => {
-    if (sprite.parent) sprite.parent.remove(sprite);
+    if (sprite.parent) sprite.parent.removeChild(sprite);
   });
   enemySprites.forEach((sprite) => {
-    if (sprite.parent) sprite.parent.remove(sprite);
+    if (sprite.parent) sprite.parent.removeChild(sprite);
   });
-  heroMaterial?.dispose();
-  goalMaterial?.dispose();
-  goalTexture?.dispose();
-  coinMaterial?.dispose();
-  coinTexture?.dispose();
   for (const texture of heroTextures.values()) {
-    texture.dispose();
+    if (!texture?.destroyed) texture.destroy(false);
   }
-  Object.values(platformMaterials).forEach((spriteMaterial) => spriteMaterial.dispose());
-  Object.values(platformTextures).forEach((texture) => texture.dispose());
-  enemyMaterials.forEach((spriteMaterial) => spriteMaterial.dispose());
-  enemyTextures.forEach((texture) => texture.dispose());
-  if (renderer) {
-    renderer.dispose();
-    if (typeof renderer.forceContextLoss === "function") renderer.forceContextLoss();
-    if (renderer.domElement.parentNode) renderer.domElement.parentNode.removeChild(renderer.domElement);
+  heroTextures.clear();
+  Object.values(platformTextures).forEach((texture) => {
+    if (!texture?.destroyed) texture.destroy(false);
+  });
+  enemyTextures.forEach((texture) => {
+    if (!texture?.destroyed) texture.destroy(false);
+  });
+  if (goalTexture && !goalTexture.destroyed) goalTexture.destroy(false);
+  if (coinTexture && !coinTexture.destroyed) coinTexture.destroy(false);
+  const requiredTextureKeys = getUsedTextureKeys();
+  spritesStore.loadedTextures = [];
+  void spritesStore.unloadTextures(requiredTextureKeys);
+  if (app) {
+    const canvas = app.canvas;
+    app.destroy();
+    if (canvas.parentNode) canvas.parentNode.removeChild(canvas);
   }
 });
 </script>

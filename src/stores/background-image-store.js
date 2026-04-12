@@ -1,6 +1,6 @@
 import { defineStore } from "pinia";
 import { computed, ref } from "vue";
-import * as THREE from "three";
+import { Assets } from "pixi.js";
 import { LoadingBar } from "quasar";
 
 export const useBackgroundImageStore = defineStore("background-image", () => {
@@ -19,26 +19,22 @@ export const useBackgroundImageStore = defineStore("background-image", () => {
 
       const tryLoad = () => {
         tries++;
-        const textureLoader = new THREE.TextureLoader();
-        texture.value = textureLoader.load(
-          url,
-          (imageTexture) => {
-            loading.value = false;
+        Assets.load(url)
+          .then((imageTexture) => {
             texture.value = imageTexture;
+            loading.value = false;
             lastLoadedUrl.value = url;
             LoadingBar.stop();
             resolve();
-          },
-          undefined,
-          (e) => {
+          })
+          .catch((e) => {
             if (tries >= maxTries) {
               reject(e);
               return;
             }
 
             setTimeout(tryLoad, 250);
-          },
-        );
+          });
       };
 
       tryLoad();

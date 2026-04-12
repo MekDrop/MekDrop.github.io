@@ -67,3 +67,17 @@ const animations = {
 };
 
 export const getHeroAnimation = (name) => animations[name] ?? animations.idle;
+export const getHeroAnimationSources = () => {
+  const sources = new Set();
+
+  Object.values(animations).forEach((animation) => {
+    if (animation.src) sources.add(animation.src);
+    if (animation.srcByFacing) {
+      Object.values(animation.srcByFacing).forEach((src) => {
+        if (src) sources.add(src);
+      });
+    }
+  });
+
+  return [...sources];
+};
