@@ -87,7 +87,7 @@
             </q-card-section>
           </q-card>
           <div class="layout-shell__game" id="background">
-            <background-canvas />
+            <game-canvas />
           </div>
         </div>
       </q-no-ssr>
@@ -355,7 +355,7 @@
 <script>
 import { useOtherLinksStore } from "stores/other-links-store";
 import { storeToRefs } from "pinia";
-import BackgroundCanvas from "components/BackgroundCanvas.vue";
+import GameCanvas from "components/GameCanvas.vue";
 import LanguageSwitcher from "components/LanguageSwitcher.vue";
 import ShaderDropTitle from "components/ShaderDropTitle.vue";
 import getMetaConfig from "src/assets/config/meta";
@@ -367,7 +367,7 @@ import { computed, ref, useSSRContext, watch } from "vue";
 
 export default {
   components: {
-    BackgroundCanvas,
+    GameCanvas,
     LanguageSwitcher,
     ShaderDropTitle,
   },
