@@ -1,19 +1,5 @@
 <template>
   <div ref="container" class="background-canvas fit" @contextmenu.prevent></div>
-  <div class="game-hud">
-    <div class="game-hud__row">SCORE <span>{{ hudScore }}</span> COINS <span>{{ hudCoins }}</span> LIVES <span>{{ hudLives }}</span></div>
-    <div class="game-hud__row">TIME <span>{{ hudTimer }}</span> STATE <span>{{ hudState }}</span> ENEMIES <span>{{ hudEnemies }}</span></div>
-    <div class="hint">A / D OR ARROWS MOVE · SPACE / W / UP JUMP · R RESET · ONE SCREEN · GENERATED STAGE</div>
-  </div>
-  <div v-if="loadingState.visible" class="game-loading-screen">
-    <div class="game-loading-screen__panel">
-      <div class="game-loading-screen__label">{{ loadingState.label }}</div>
-      <div class="game-loading-screen__bar">
-        <div class="game-loading-screen__fill" :style="{ width: `${loadingProgressPercent}%` }"></div>
-      </div>
-      <div class="game-loading-screen__percent">{{ loadingProgressText }}</div>
-    </div>
-  </div>
 </template>
 
 <style lang="scss">
@@ -27,139 +13,22 @@
   pointer-events: auto;
 }
 
-.game-hud {
-  position: absolute;
-  top: 1rem;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 10;
-  pointer-events: none;
-  width: min(62rem, calc(100% - 2rem));
-  text-align: left;
-  font-family: "Courier New", monospace;
-  font-size: 0.68rem;
-  letter-spacing: 0.24em;
-  color: #baf6d4;
-  font-variant-numeric: tabular-nums;
-  text-shadow: 0 0 10px rgba(150, 255, 224, 0.24);
-  text-transform: uppercase;
-}
-
-.game-hud__row,
-.hint {
-  border: 1px solid rgba(150, 255, 224, 0.34);
-  padding: 0.48rem 0.72rem;
-  background: linear-gradient(180deg, rgba(6, 18, 11, 0.58), rgba(2, 10, 6, 0.18));
-  box-shadow: inset 0 0 10px rgba(150, 255, 224, 0.07), 0 0 14px rgba(150, 255, 224, 0.06);
-}
-
-.game-hud__row + .game-hud__row,
-.hint {
-  margin-top: 0.38rem;
-}
-
-.game-hud span {
-  display: inline-block;
-  min-width: 4ch;
-  text-align: right;
-  margin-right: 1.25rem;
-  color: #edfff3;
-}
-
-.hint {
-  color: rgba(190, 255, 220, 0.72);
-  font-size: 0.54rem;
-  line-height: 1.55;
-}
-
-.game-loading-screen {
-  position: absolute;
-  inset: 0;
-  z-index: 20;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 1rem;
-  background:
-    radial-gradient(circle at top, rgba(16, 52, 30, 0.3), transparent 45%),
-    rgba(3, 6, 4, 0.82);
-  backdrop-filter: blur(2px);
-}
-
-.game-loading-screen__panel {
-  width: min(28rem, 100%);
-  padding: 1rem 1.1rem 0.9rem;
-  border: 1px solid rgba(150, 255, 224, 0.34);
-  background: linear-gradient(180deg, rgba(6, 18, 11, 0.92), rgba(2, 10, 6, 0.84));
-  box-shadow: inset 0 0 10px rgba(150, 255, 224, 0.07), 0 0 22px rgba(150, 255, 224, 0.12);
-  font-family: "Courier New", monospace;
-  text-transform: uppercase;
-  letter-spacing: 0.18em;
-}
-
-.game-loading-screen__label,
-.game-loading-screen__percent {
-  color: #d9ffea;
-  font-size: 0.7rem;
-}
-
-.game-loading-screen__percent {
-  margin-top: 0.45rem;
-  color: rgba(190, 255, 220, 0.82);
-  letter-spacing: 0.22em;
-}
-
-.game-loading-screen__bar {
-  margin-top: 0.72rem;
-  height: 0.85rem;
-  border: 1px solid rgba(150, 255, 224, 0.34);
-  background: rgba(2, 10, 6, 0.9);
-  overflow: hidden;
-}
-
-.game-loading-screen__fill {
-  height: 100%;
-  min-width: 0;
-  background: linear-gradient(90deg, #6ff0b5, #d8ff8b);
-  box-shadow: 0 0 14px rgba(120, 255, 194, 0.35);
-  transition: width 140ms linear;
-}
-
-@media (max-width: 700px) {
-  .game-hud {
-    top: 0.65rem;
-    width: calc(100% - 1rem);
-    font-size: 0.56rem;
-    letter-spacing: 0.14em;
-  }
-
-  .game-hud__row,
-  .hint {
-    padding: 0.38rem 0.5rem;
-  }
-
-  .hint {
-    font-size: 0.48rem;
-  }
-
-  .game-loading-screen__panel {
-    padding: 0.8rem 0.85rem 0.72rem;
-  }
-
-  .game-loading-screen__label,
-  .game-loading-screen__percent {
-    font-size: 0.58rem;
-  }
-}
 </style>
 
 <script setup>
-import { Application, Container, Rectangle, Sprite, Texture } from "pixi.js";
-import { computed, nextTick, onBeforeUnmount, onMounted, ref } from "vue";
+import { List, ProgressBar } from "@pixi/ui";
+import { Application, Assets, Container, Graphics, Rectangle, Sprite, Text, Texture, TilingSprite } from "pixi.js";
+import { nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 import { dom } from "quasar";
 import { getHeroAnimation, getHeroAnimationSources } from "assets/game/sprites/hero-sprite-registry";
-import { useSpritesStore } from "stores/sprites-store";
 import { MarioLikeMapGenerator } from "src/strategies/map-generators/MarioLikeMapGenerator";
+import coinGoldSprite from "assets/game/sprites/collectibles/coin-gold.png";
+import enemyWalkFrame0 from "assets/game/sprites/enemies/mushroom-stomper-walk-0.png";
+import enemyWalkFrame1 from "assets/game/sprites/enemies/mushroom-stomper-walk-1.png";
+import portalFrame from "assets/game/sprites/goal/portal-frame-0.png";
+import platformCenterSprite from "assets/game/sprites/platforms/platform-center.png";
+import platformWallSprite from "assets/game/sprites/platforms/platform-wall.png";
+import platformStairSprite from "assets/game/sprites/platforms/platform-stair.png";
 
 const BASE_PIXEL_SCALE = 8;
 const MIN_WORLD_WIDTH = 1;
@@ -168,6 +37,7 @@ const MAX_SOLIDS = 64;
 const MAX_ENEMIES = 40;
 const MAX_COINS = 40;
 const STAGE_MAX_COLLECTIBLES = 10;
+const GAME_HINT_TEXT = "A / D OR ARROWS MOVE · SPACE / W / UP JUMP · R RESET · ONE SCREEN · GENERATED STAGE";
 const PHASE_PLAYING = 0;
 const PHASE_DEAD = 1;
 const PHASE_CLEAR = 2;
@@ -204,19 +74,25 @@ const REQUIRED_TEXTURE_KEYS = [
 ];
 const HERO_TEXTURE_SOURCES = getHeroAnimationSources();
 const HERO_TEXTURE_KEYS = HERO_TEXTURE_SOURCES.map((_, index) => `hero:${index}`);
-const getLoadedTextureRecordByKey = (key) => spritesStore.loadedTextures.find((entry) => entry.key === key) ?? null;
-const getLoadedTextureRecordByUrl = (url) => spritesStore.loadedTextures.find((entry) => entry.url === url) ?? null;
+const TEXTURE_URLS = Object.fromEntries([
+  ...HERO_TEXTURE_SOURCES.map((url, index) => [`hero:${index}`, url]),
+  ["coinGold", coinGoldSprite],
+  ["enemyWalkFrame0", enemyWalkFrame0],
+  ["enemyWalkFrame1", enemyWalkFrame1],
+  ["portalFrame", portalFrame],
+  ["platformCenter", platformCenterSprite],
+  ["platformWall", platformWallSprite],
+  ["platformStair", platformStairSprite],
+]);
+const loadedTextures = new Map();
+const loadedTexturesByUrl = new Map();
 const getUsedTextureKeys = () => [
   ...HERO_TEXTURE_KEYS,
   ...REQUIRED_TEXTURE_KEYS,
 ];
-const createLoadedTextureRecords = (keys) => keys
-  .map((key) => ({
-    key,
-    url: spritesStore.textureUrls[key] ?? null,
-    texture: getLoadedTextureRecordByKey(key)?.texture ?? null,
-  }))
-  .filter((entry) => entry.url);
+const getTextureUrlByKey = (key) => TEXTURE_URLS[key] ?? null;
+const getLoadedTextureByKey = (key) => loadedTextures.get(key) ?? null;
+const getLoadedTextureByUrl = (url) => loadedTexturesByUrl.get(url) ?? null;
 
 const PLAYER = {
   width: 7,
@@ -418,26 +294,207 @@ const regenerateMapWithLoading = async ({
 };
 
 const container = ref(null);
-const hudScoreValue = ref(0);
-const hudCoinsValue = ref(0);
-const hudLivesValue = ref(3);
-const hudTimerValue = ref(95);
-const hudStateValue = ref("RUN");
-const hudEnemiesValue = ref(0);
 const loadingState = ref({
   visible: true,
   label: "Loading Game",
   progress: 0,
 });
 
-const hudScore = computed(() => Math.max(0, Math.floor(hudScoreValue.value)).toString().padStart(6, "0"));
-const hudCoins = computed(() => Math.max(0, Math.floor(hudCoinsValue.value)).toString().padStart(2, "0"));
-const hudLives = computed(() => Math.max(0, Math.floor(hudLivesValue.value)).toString().padStart(2, "0"));
-const hudTimer = computed(() => Math.max(0, Math.floor(hudTimerValue.value)).toString().padStart(3, "0"));
-const hudState = computed(() => hudStateValue.value);
-const hudEnemies = computed(() => Math.max(0, Math.floor(hudEnemiesValue.value)).toString().padStart(2, "0"));
-const loadingProgressPercent = computed(() => Math.round(clamp(loadingState.value.progress, 0, 1) * 100));
-const loadingProgressText = computed(() => `${loadingProgressPercent.value}%`);
+const formatScore = (value) => Math.max(0, Math.floor(value)).toString().padStart(6, "0");
+const formatCounter = (value, pad = 2) => Math.max(0, Math.floor(value)).toString().padStart(pad, "0");
+const getHudStateLabel = () => (
+  run.phase === PHASE_CLEAR
+    ? "CLEAR"
+    : run.phase === PHASE_DEAD
+      ? "RESPAWN"
+      : run.doorUnlocked
+        ? "DOOR OPEN"
+        : "COLLECT"
+);
+const getLoadingProgressPercent = () => Math.round(clamp(loadingState.value.progress, 0, 1) * 100);
+const getLoadingProgressText = () => `${getLoadingProgressPercent()}%`;
+const getHudPrimaryText = () => `SCORE ${formatScore(run.score)}   COINS ${formatCounter(run.coins)}   LIVES ${formatCounter(run.lives)}`;
+const getHudSecondaryText = () => `TIME ${formatCounter(run.timer, 3)}   STATE ${getHudStateLabel()}   ENEMIES ${formatCounter(enemies.filter((enemy) => enemy.alive).length)}`;
+
+const createPanelBackground = () => new Graphics();
+
+const drawPanelBackground = (graphics, width, height, alpha = 0.88) => {
+  graphics
+    .clear()
+    .roundRect(0, 0, width, height, 10)
+    .fill({ color: 0x06120b, alpha })
+    .stroke({ width: 1, color: 0x96ffe0, alpha: 0.34 });
+};
+
+const createUiText = (text, style) => new Text({ text, style });
+
+const createHudRow = (text, style) => {
+  const row = new Container();
+  const background = createPanelBackground();
+  const label = createUiText(text, style);
+  label.x = 12;
+  label.y = 8;
+  row.addChild(background, label);
+  row.background = background;
+  row.label = label;
+  return row;
+};
+
+const resizeHudRow = (row, width, minHeight) => {
+  const labelWidth = Math.max(1, width - 24);
+  row.label.style.wordWrapWidth = labelWidth;
+  drawPanelBackground(row.background, width, Math.max(minHeight, row.label.height + 16), 0.78);
+};
+
+const createLoadingBarView = (width, height, fillColor) => {
+  const view = new Graphics();
+  view
+    .roundRect(0, 0, width, height, 6)
+    .fill(fillColor)
+    .stroke({ width: 1, color: 0x96ffe0, alpha: fillColor === 0x06120b ? 0.34 : 0.18 });
+  return view;
+};
+
+const renderUiNow = () => {
+  if (app && uiScene) {
+    app.render();
+  }
+};
+
+const syncGameUi = () => {
+  if (hudScoreText) hudScoreText.text = getHudPrimaryText();
+  if (hudMetaText) hudMetaText.text = getHudSecondaryText();
+  if (loadingLabelText) loadingLabelText.text = loadingState.value.label;
+  if (loadingPercentText) loadingPercentText.text = getLoadingProgressText();
+  if (loadingBar) loadingBar.progress = getLoadingProgressPercent();
+  if (loadingOverlay) loadingOverlay.visible = loadingState.value.visible;
+};
+
+const layoutGameUi = () => {
+  if (!uiScene || !hudPanel || !hudRows || !loadingOverlay || !loadingPanel || !loadingBar) return;
+
+  const compact = canvasSize.width <= 700;
+  const hudWidth = Math.min(compact ? canvasSize.width - 16 : 992, Math.max(220, canvasSize.width - (compact ? 16 : 32)));
+  const hudX = Math.max(8, (canvasSize.width - hudWidth) * 0.5);
+  const hudY = compact ? 10 : 16;
+  const rowMinHeight = compact ? 32 : 36;
+  const hintMinHeight = compact ? 28 : 32;
+
+  hudScoreText.style.fontSize = compact ? 9 : 11;
+  hudScoreText.style.letterSpacing = compact ? 1.5 : 2.2;
+  hudMetaText.style.fontSize = compact ? 9 : 11;
+  hudMetaText.style.letterSpacing = compact ? 1.5 : 2.2;
+  hudHintText.style.fontSize = compact ? 8 : 9;
+  hudHintText.style.letterSpacing = compact ? 0.9 : 1.2;
+  resizeHudRow(hudRowItems[0], hudWidth, rowMinHeight);
+  resizeHudRow(hudRowItems[1], hudWidth, rowMinHeight);
+  resizeHudRow(hudRowItems[2], hudWidth, hintMinHeight);
+  hudRows.arrangeChildren();
+  hudPanel.position.set(hudX, hudY);
+
+  loadingOverlay.removeChildren();
+  const overlayBackground = createPanelBackground();
+  overlayBackground
+    .rect(0, 0, canvasSize.width, canvasSize.height)
+    .fill({ color: 0x030604, alpha: 0.82 });
+  loadingOverlay.addChild(overlayBackground, loadingPanel);
+
+  const panelWidth = Math.min(compact ? canvasSize.width - 24 : 448, Math.max(240, canvasSize.width - 32));
+  loadingLabelText.style.fontSize = compact ? 10 : 12;
+  loadingLabelText.style.letterSpacing = compact ? 1.8 : 2.3;
+  loadingPercentText.style.fontSize = compact ? 10 : 12;
+  loadingPercentText.style.letterSpacing = compact ? 1.8 : 2.6;
+  loadingLabelText.style.wordWrapWidth = panelWidth - 24;
+  loadingPercentText.style.wordWrapWidth = panelWidth - 24;
+  loadingBar.width = panelWidth - 24;
+  loadingBar.height = compact ? 12 : 14;
+  drawPanelBackground(loadingPanel.background, panelWidth, Math.max(compact ? 94 : 106, loadingPanel.content.height + 24), 0.94);
+  loadingPanel.content.arrangeChildren();
+  loadingPanel.position.set((canvasSize.width - panelWidth) * 0.5, (canvasSize.height - loadingPanel.height) * 0.5);
+};
+
+const createGameUi = () => {
+  if (!uiScene) return;
+
+  const hudTextStyle = {
+    fill: 0xbaf6d4,
+    fontFamily: "Courier New",
+    fontSize: 11,
+    fontWeight: "700",
+    letterSpacing: 2.2,
+  };
+  const hintStyle = {
+    fill: 0xbeffdc,
+    alpha: 0.82,
+    fontFamily: "Courier New",
+    fontSize: 9,
+    fontWeight: "700",
+    letterSpacing: 1.2,
+    wordWrap: true,
+  };
+  const loadingTextStyle = {
+    fill: 0xd9ffea,
+    fontFamily: "Courier New",
+    fontSize: 12,
+    fontWeight: "700",
+    letterSpacing: 2.3,
+  };
+
+  hudScoreText = createUiText("", hudTextStyle);
+  hudMetaText = createUiText("", hudTextStyle);
+  hudHintText = createUiText(GAME_HINT_TEXT, hintStyle);
+  hudRows = new List({ type: "vertical", elementsMargin: 6 });
+  hudRowItems = [
+    createHudRow("", hudTextStyle),
+    createHudRow("", hudTextStyle),
+    createHudRow(GAME_HINT_TEXT, hintStyle),
+  ];
+  hudRowItems.forEach((row) => hudRows.addChild(row));
+  hudRowItems[0].removeChild(hudRowItems[0].label);
+  hudRowItems[0].addChild(hudScoreText);
+  hudScoreText.x = 12;
+  hudScoreText.y = 8;
+  hudRowItems[0].label = hudScoreText;
+  hudRowItems[1].removeChild(hudRowItems[1].label);
+  hudRowItems[1].addChild(hudMetaText);
+  hudMetaText.x = 12;
+  hudMetaText.y = 8;
+  hudRowItems[1].label = hudMetaText;
+  hudRowItems[2].removeChild(hudRowItems[2].label);
+  hudRowItems[2].addChild(hudHintText);
+  hudHintText.x = 12;
+  hudHintText.y = 8;
+  hudRowItems[2].label = hudHintText;
+  hudPanel = new Container();
+  hudPanel.zIndex = 50;
+  hudPanel.addChild(hudRows);
+
+  loadingLabelText = createUiText(loadingState.value.label, loadingTextStyle);
+  loadingPercentText = createUiText(getLoadingProgressText(), {
+    ...loadingTextStyle,
+    fill: 0xbeffdc,
+  });
+  loadingBar = new ProgressBar({
+    bg: createLoadingBarView(320, 14, 0x06120b),
+    fill: createLoadingBarView(320, 14, 0x6ff0b5),
+    progress: getLoadingProgressPercent(),
+  });
+  loadingPanel = new Container();
+  loadingPanel.background = createPanelBackground();
+  loadingPanel.content = new List({ type: "vertical", elementsMargin: 10 });
+  loadingPanel.content.position.set(12, 12);
+  loadingPanel.content.addChild(loadingLabelText);
+  loadingPanel.content.addChild(loadingBar);
+  loadingPanel.content.addChild(loadingPercentText);
+  loadingPanel.addChild(loadingPanel.background, loadingPanel.content);
+  loadingOverlay = new Container();
+  loadingOverlay.zIndex = 60;
+  loadingOverlay.visible = loadingState.value.visible;
+
+  uiScene.addChild(hudPanel, loadingOverlay);
+  syncGameUi();
+  layoutGameUi();
+};
 
 const input = {
   left: false,
@@ -466,6 +523,7 @@ let coins = [];
 
 let app;
 let spriteScene;
+let uiScene;
 let heroSprite;
 let heroTextures = new Map();
 let goalSprite;
@@ -476,6 +534,17 @@ let platformTextures = {};
 let platformSprites = [];
 let enemyTextures = [];
 let enemySprites = [];
+let hudPanel;
+let hudRows;
+let hudRowItems = [];
+let hudScoreText;
+let hudMetaText;
+let hudHintText;
+let loadingOverlay;
+let loadingPanel;
+let loadingLabelText;
+let loadingPercentText;
+let loadingBar;
 let frameId = null;
 let previousTimeMs = 0;
 const canvasSize = {
@@ -488,7 +557,41 @@ const viewport = {
   width: 1,
   height: 1,
 };
-const spritesStore = useSpritesStore();
+
+const loadRequiredTextures = async (keys, onProgress) => {
+  const uniqueKeys = [...new Set(keys)].filter((key) => !!getTextureUrlByKey(key));
+  const total = uniqueKeys.length;
+  let completed = 0;
+
+  if (typeof onProgress === "function") {
+    onProgress({ loaded: 0, total });
+  }
+
+  await Promise.all(uniqueKeys.map(async (key) => {
+    if (!loadedTextures.has(key)) {
+      const url = getTextureUrlByKey(key);
+      const texture = await Assets.load(url);
+      texture.source.scaleMode = "nearest";
+      loadedTextures.set(key, texture);
+      loadedTexturesByUrl.set(url, texture);
+    }
+
+    completed += 1;
+    if (typeof onProgress === "function") {
+      onProgress({ loaded: completed, total });
+    }
+  }));
+};
+
+const unloadRequiredTextures = async (keys) => {
+  const uniqueKeys = [...new Set(keys)].filter((key) => !!getTextureUrlByKey(key));
+  await Promise.allSettled(uniqueKeys.map(async (key) => {
+    const url = getTextureUrlByKey(key);
+    loadedTextures.delete(key);
+    loadedTexturesByUrl.delete(url);
+    await Assets.unload(url);
+  }));
+};
 
 const setLoadingState = (label, progress) => {
   loadingState.value = {
@@ -496,6 +599,9 @@ const setLoadingState = (label, progress) => {
     label,
     progress: clamp(progress, 0, 1),
   };
+  syncGameUi();
+  layoutGameUi();
+  renderUiNow();
 };
 
 const hideLoadingState = () => {
@@ -504,6 +610,8 @@ const hideLoadingState = () => {
     label: "",
     progress: 1,
   };
+  syncGameUi();
+  renderUiNow();
 };
 
 const waitForPaint = async () => {
@@ -514,18 +622,7 @@ const waitForPaint = async () => {
 };
 
 const syncHud = () => {
-  hudScoreValue.value = run.score;
-  hudCoinsValue.value = run.coins;
-  hudLivesValue.value = run.lives;
-  hudTimerValue.value = run.timer;
-  hudEnemiesValue.value = enemies.filter((enemy) => enemy.alive).length;
-  hudStateValue.value = run.phase === PHASE_CLEAR
-    ? "CLEAR"
-    : run.phase === PHASE_DEAD
-      ? "RESPAWN"
-      : run.doorUnlocked
-        ? "DOOR OPEN"
-        : "COLLECT";
+  syncGameUi();
 };
 
 const resetPlayer = () => {
@@ -955,7 +1052,7 @@ const createCroppedTexture = (texture, crop) => {
 
 const getHeroTexture = (src) => {
   if (!heroTextures.has(src)) {
-    const texture = getLoadedTextureRecordByUrl(src)?.texture ?? null;
+    const texture = getLoadedTextureByUrl(src);
     if (!texture) return null;
     heroTextures.set(src, texture);
   }
@@ -1021,8 +1118,11 @@ const ensureCoinSprites = () => {
 const ensurePlatformSprites = () => {
   if (!spriteScene || !platformTextures.center) return;
   while (platformSprites.length < MAX_SOLIDS) {
-    const sprite = new Sprite(platformTextures.center);
-    sprite.anchor.set(0.5, 0);
+    const sprite = new TilingSprite({
+      texture: platformTextures.center,
+      width: platformTextures.center.width,
+      height: platformTextures.center.height,
+    });
     sprite.visible = false;
     sprite.zIndex = 8;
     platformSprites.push(sprite);
@@ -1134,13 +1234,20 @@ const syncPlatformSprites = () => {
     const widthPx = solid.w * BASE_PIXEL_SCALE;
     const heightPx = solid.h * BASE_PIXEL_SCALE;
     const textureKey = solid.type === 0 ? "wall" : solid.type === 3 ? "stair" : "center";
+    const texture = platformTextures[textureKey];
     const left = viewport.x + solid.x * BASE_PIXEL_SCALE;
     const top = viewport.y + viewport.height - (solid.y + solid.h) * BASE_PIXEL_SCALE;
+    if (!texture) {
+      sprite.visible = false;
+      continue;
+    }
     sprite.visible = true;
-    sprite.texture = platformTextures[textureKey];
-    sprite.position.set(left + widthPx * 0.5, top);
+    sprite.texture = texture;
+    sprite.position.set(left, top);
     sprite.width = widthPx;
     sprite.height = heightPx;
+    sprite.tileScale = 1;
+    sprite.tilePosition = { x: 0, y: 0 };
   }
 };
 
@@ -1184,6 +1291,8 @@ const onResize = () => {
   app.renderer.resolution = Math.min(window.devicePixelRatio || 1, 2);
   app.renderer.resize(width, height);
   regenerateWorld(viewportWidth, viewportHeight, false);
+  layoutGameUi();
+  syncGameUi();
 };
 
 const ignoreKey = (event) => {
@@ -1263,30 +1372,34 @@ const initPixi = async () => {
   app.canvas.style.zIndex = "1";
   container.value.appendChild(app.canvas);
 
+  app.stage.sortableChildren = true;
   spriteScene = new Container();
   spriteScene.sortableChildren = true;
-  app.stage.addChild(spriteScene);
+  uiScene = new Container();
+  uiScene.sortableChildren = true;
+  uiScene.eventMode = "none";
+  app.stage.addChild(spriteScene, uiScene);
+  createGameUi();
 
   const requiredTextureKeys = getUsedTextureKeys();
-  spritesStore.loadedTextures = createLoadedTextureRecords(requiredTextureKeys);
   setLoadingState("Loading Sprites", 0.08);
   await waitForPaint();
-  await spritesStore.loadTextures(requiredTextureKeys, ({ loaded, total }) => {
+  await loadRequiredTextures(requiredTextureKeys, ({ loaded, total }) => {
     const spriteProgress = total > 0 ? loaded / total : 1;
     setLoadingState("Loading Sprites", 0.08 + spriteProgress * 0.62);
   });
   setLoadingState("Preparing Textures", 0.74);
 
-  goalTexture = cloneTexture(getLoadedTextureRecordByKey("portalFrame")?.texture ?? null);
-  coinTexture = cloneTexture(getLoadedTextureRecordByKey("coinGold")?.texture ?? null);
+  goalTexture = cloneTexture(getLoadedTextureByKey("portalFrame"));
+  coinTexture = cloneTexture(getLoadedTextureByKey("coinGold"));
   platformTextures = {
-    center: createCroppedTexture(getLoadedTextureRecordByKey("platformCenter")?.texture ?? null, PLATFORM_CENTER_CROP),
-    wall: createCroppedTexture(getLoadedTextureRecordByKey("platformWall")?.texture ?? null, PLATFORM_WALL_CROP),
-    stair: createCroppedTexture(getLoadedTextureRecordByKey("platformStair")?.texture ?? null, PLATFORM_STAIR_CROP),
+    center: createCroppedTexture(getLoadedTextureByKey("platformCenter"), PLATFORM_CENTER_CROP),
+    wall: createCroppedTexture(getLoadedTextureByKey("platformWall"), PLATFORM_WALL_CROP),
+    stair: createCroppedTexture(getLoadedTextureByKey("platformStair"), PLATFORM_STAIR_CROP),
   };
   enemyTextures = [
-    cloneTexture(getLoadedTextureRecordByKey("enemyWalkFrame0")?.texture ?? null),
-    cloneTexture(getLoadedTextureRecordByKey("enemyWalkFrame1")?.texture ?? null),
+    cloneTexture(getLoadedTextureByKey("enemyWalkFrame0")),
+    cloneTexture(getLoadedTextureByKey("enemyWalkFrame1")),
   ];
   ensureHeroSprite();
   ensureGoalSprite();
@@ -1365,8 +1478,7 @@ onBeforeUnmount(() => {
   if (goalTexture && !goalTexture.destroyed) goalTexture.destroy(false);
   if (coinTexture && !coinTexture.destroyed) coinTexture.destroy(false);
   const requiredTextureKeys = getUsedTextureKeys();
-  spritesStore.loadedTextures = [];
-  void spritesStore.unloadTextures(requiredTextureKeys);
+  void unloadRequiredTextures(requiredTextureKeys);
   if (app) {
     const canvas = app.canvas;
     app.destroy();
