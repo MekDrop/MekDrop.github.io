@@ -5,6 +5,15 @@
     <div class="game-hud__row">TIME <span>{{ hudTimer }}</span> STATE <span>{{ hudState }}</span> ENEMIES <span>{{ hudEnemies }}</span></div>
     <div class="hint">A / D OR ARROWS MOVE · SPACE / W / UP JUMP · R RESET · ONE SCREEN · GENERATED STAGE</div>
   </div>
+  <div v-if="loadingState.visible" class="game-loading-screen">
+    <div class="game-loading-screen__panel">
+      <div class="game-loading-screen__label">{{ loadingState.label }}</div>
+      <div class="game-loading-screen__bar">
+        <div class="game-loading-screen__fill" :style="{ width: `${loadingProgressPercent}%` }"></div>
+      </div>
+      <div class="game-loading-screen__percent">{{ loadingProgressText }}</div>
+    </div>
+  </div>
 </template>
 
 <style lang="scss">
@@ -63,6 +72,59 @@
   line-height: 1.55;
 }
 
+.game-loading-screen {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background:
+    radial-gradient(circle at top, rgba(16, 52, 30, 0.3), transparent 45%),
+    rgba(3, 6, 4, 0.82);
+  backdrop-filter: blur(2px);
+}
+
+.game-loading-screen__panel {
+  width: min(28rem, 100%);
+  padding: 1rem 1.1rem 0.9rem;
+  border: 1px solid rgba(150, 255, 224, 0.34);
+  background: linear-gradient(180deg, rgba(6, 18, 11, 0.92), rgba(2, 10, 6, 0.84));
+  box-shadow: inset 0 0 10px rgba(150, 255, 224, 0.07), 0 0 22px rgba(150, 255, 224, 0.12);
+  font-family: "Courier New", monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+}
+
+.game-loading-screen__label,
+.game-loading-screen__percent {
+  color: #d9ffea;
+  font-size: 0.7rem;
+}
+
+.game-loading-screen__percent {
+  margin-top: 0.45rem;
+  color: rgba(190, 255, 220, 0.82);
+  letter-spacing: 0.22em;
+}
+
+.game-loading-screen__bar {
+  margin-top: 0.72rem;
+  height: 0.85rem;
+  border: 1px solid rgba(150, 255, 224, 0.34);
+  background: rgba(2, 10, 6, 0.9);
+  overflow: hidden;
+}
+
+.game-loading-screen__fill {
+  height: 100%;
+  min-width: 0;
+  background: linear-gradient(90deg, #6ff0b5, #d8ff8b);
+  box-shadow: 0 0 14px rgba(120, 255, 194, 0.35);
+  transition: width 140ms linear;
+}
+
 @media (max-width: 700px) {
   .game-hud {
     top: 0.65rem;
@@ -79,15 +141,25 @@
   .hint {
     font-size: 0.48rem;
   }
+
+  .game-loading-screen__panel {
+    padding: 0.8rem 0.85rem 0.72rem;
+  }
+
+  .game-loading-screen__label,
+  .game-loading-screen__percent {
+    font-size: 0.58rem;
+  }
 }
 </style>
 
 <script setup>
 import { Application, Container, Rectangle, Sprite, Texture } from "pixi.js";
-import { computed, onBeforeUnmount, onMounted, ref } from "vue";
+import { computed, nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 import { dom } from "quasar";
 import { getHeroAnimation, getHeroAnimationSources } from "assets/game/sprites/hero-sprite-registry";
 import { useSpritesStore } from "stores/sprites-store";
+import { MarioLikeMapGenerator } from "src/strategies/map-generators/MarioLikeMapGenerator";
 
 const BASE_PIXEL_SCALE = 8;
 const MIN_WORLD_WIDTH = 1;
@@ -289,546 +361,60 @@ const world = {
   spawn: { x: 12, y: 12 },
   goal: { x: 130, y: 12, h: 40 },
 };
-
-const snapSolidToGrid = (solid) => {
-  const snapped = { ...solid };
-  snapped.y = snapToPlatformGrid(snapped.y);
-  snapped.h = Math.max(PLATFORM_GRID, snapToPlatformGrid(snapped.h));
-
-  if (snapped.type !== 0) {
-    snapped.x = snapToPlatformGrid(snapped.x);
-    snapped.w = Math.max(PLATFORM_GRID, snapToPlatformGrid(snapped.w));
-  }
-
-  return snapped;
-};
-
-const pushSolid = (list, solid) => {
-  if (list.length >= MAX_SOLIDS) return;
-  list.push(snapSolidToGrid(solid));
-};
-
-const pushCoin = (list, coin) => {
-  if (list.length >= MAX_COINS) return;
-  const candidate = {
-    ...coin,
-    r: coin.r ?? DEFAULT_COIN_RADIUS,
-  };
-  const minDistance = candidate.r * 2 + COIN_MIN_SEPARATION;
-  const minDistanceSq = minDistance * minDistance;
-  for (let i = 0; i < list.length; i++) {
-    const other = list[i];
-    const dx = candidate.x - other.x;
-    const dy = candidate.y - other.y;
-    if (dx * dx + dy * dy < minDistanceSq) {
-      return;
-    }
-  }
-  list.push(candidate);
-};
-
-const pushEnemy = (list, enemy) => {
-  if (list.length >= MAX_ENEMIES) return;
-  list.push(enemy);
-};
-
-const addPlatformCoins = (coins, x, y, w, count) => {
-  if (count <= 0) return;
-  const step = w / (count + 1);
-  for (let i = 0; i < count; i++) {
-    pushCoin(coins, {
-      x: x + step * (i + 1),
-      y,
-      r: DEFAULT_COIN_RADIUS,
-    });
-  }
-};
-
-const hasStompHeadroomAtX = (x, enemyGroundY, solids) => {
-  const enemyTop = enemyGroundY + ENEMY_HEIGHT;
-  const enemyHalf = ENEMY_WIDTH * 0.45;
-  let nearestCeilingBottom = Number.POSITIVE_INFINITY;
-
-  for (let i = 0; i < solids.length; i++) {
-    const solid = solids[i];
-    if (solid.y <= enemyTop + 0.01) continue;
-    const overlapsX = x + enemyHalf > solid.x && x - enemyHalf < solid.x + solid.w;
-    if (!overlapsX) continue;
-    nearestCeilingBottom = Math.min(nearestCeilingBottom, solid.y);
-  }
-
-  return nearestCeilingBottom - enemyTop >= ENEMY_STOMP_HEADROOM;
-};
-const isEnemyBodyClearAtX = (x, enemyGroundY, solids) => {
-  const rect = spriteRect(x, enemyGroundY, ENEMY_WIDTH, ENEMY_HEIGHT);
-  for (let i = 0; i < solids.length; i++) {
-    if (overlap(rect, solids[i])) return false;
-  }
-  return true;
-};
-const hasEnemySupportAtX = (x, enemyGroundY, solids, probe = 1.25) => {
-  const rect = {
-    x: x - ENEMY_WIDTH * 0.5 + 0.35,
-    y: enemyGroundY - probe,
-    w: ENEMY_WIDTH - 0.7,
-    h: probe,
-  };
-  for (let i = 0; i < solids.length; i++) {
-    if (overlap(rect, solids[i])) return true;
-  }
-  return false;
-};
-
-const normalizeEnemyPatrolForHeadroom = (spawn, solids) => {
-  const minX = Math.min(spawn.minX, spawn.maxX);
-  const maxX = Math.max(spawn.minX, spawn.maxX);
-  const scanStep = 1;
-  const validXs = [];
-  for (let x = minX; x <= maxX + 0.01; x += scanStep) {
-    if (!hasStompHeadroomAtX(x, spawn.y, solids)) continue;
-    if (!isEnemyBodyClearAtX(x, spawn.y, solids)) continue;
-    if (!hasEnemySupportAtX(x, spawn.y, solids)) continue;
-    validXs.push(x);
-  }
-  if (validXs.length === 0) {
-    return null;
-  }
-  let bestX = validXs[0];
-  let bestDistance = Math.abs(validXs[0] - spawn.x);
-  for (let i = 1; i < validXs.length; i++) {
-    const distance = Math.abs(validXs[i] - spawn.x);
-    if (distance < bestDistance) {
-      bestDistance = distance;
-      bestX = validXs[i];
-    }
-  }
-
-  if (spawn.lockPlatformPatrol) {
-    return {
-      ...spawn,
-      minX,
-      maxX,
-      x: bestX,
-    };
-  }
-
-  return {
-    ...spawn,
-    minX,
-    maxX,
-    x: bestX,
-  };
-};
+const mapGenerator = new MarioLikeMapGenerator({
+  MIN_WORLD_WIDTH,
+  MIN_WORLD_HEIGHT,
+  PLATFORM_GRID,
+  MAX_SOLIDS,
+  MAX_ENEMIES,
+  MAX_COINS,
+  STAGE_MAX_COLLECTIBLES,
+  PLAYER,
+  ENEMY_WIDTH,
+  ENEMY_HEIGHT,
+  ENEMY_STOMP_HEADROOM,
+  FIRST_ENEMY_MIN_WORLD_RATIO,
+  DEFAULT_COIN_RADIUS,
+  COIN_MIN_SEPARATION,
+  COIN_PLATFORM_CLEARANCE,
+  ENEMY_PLACEMENT_MIN_GAP,
+  PLATFORM_ENEMY_TARGET_RATIO,
+  FLYING_ROW_CLEARANCE,
+  PATH_MIN_GAP,
+  PATH_MAX_GAP,
+  clamp,
+  snapToPlatformGrid,
+  createRng,
+  randomInt,
+  sortByX,
+  overlap,
+  spriteRect,
+});
 
 const generateLevel = (nextWidth, nextHeight, seed = world.seed) => {
-  const width = Math.max(MIN_WORLD_WIDTH, Math.floor(nextWidth));
-  const height = Math.max(MIN_WORLD_HEIGHT, Math.floor(nextHeight));
-  const rng = createRng(seed);
-  const floorMin = Math.ceil(6 / PLATFORM_GRID) * PLATFORM_GRID;
-  const floorMaxRaw = Math.max(6, Math.floor(height * 0.22));
-  const floorMax = Math.max(floorMin, Math.floor(floorMaxRaw / PLATFORM_GRID) * PLATFORM_GRID);
-  const floorHeight = clamp(snapToPlatformGrid(Math.round(height * 0.15)), floorMin, floorMax);
-  const spawn = {
-    x: clamp(Math.round(width * 0.08), 6, Math.max(6, Math.floor(width * 0.16))),
-    y: floorHeight,
-  };
-
-  const solids = [];
-  const coins = [];
-  const enemySpawns = [];
-  const mapRightMargin = clamp(Math.round(width * 0.05), 4, 12);
-  const safeLeft = Math.min(width - 20, spawn.x + 10);
-  const goal = {
-    x: clamp(
-      randomInt(rng, Math.floor(width * 0.68), Math.floor(width * 0.9)),
-      safeLeft + 24,
-      width - mapRightMargin - 2,
-    ),
-    y: floorHeight,
-    h: clamp(Math.round(height * 0.18), 11, 16),
-  };
-  const safeRight = Math.max(safeLeft + 16, goal.x - 14);
-  const stairCount = clamp(Math.floor(width / 56), 2, 5);
-  const stepWidth = clamp(Math.floor(width * 0.05), 6, 8);
-  const stairStart = goal.x - 10 - stairCount * stepWidth;
-  const stairEnd = goal.x + stepWidth;
-  const flyingPlatformHeight = 4;
-  const flyingBandBottom = clamp(
-    snapToPlatformGrid(floorHeight + PLAYER.height + 2),
-    floorHeight + PLATFORM_GRID,
-    Math.max(floorHeight + PLATFORM_GRID, height - flyingPlatformHeight - 10),
-  );
-  const flyingBandTop = clamp(
-    snapToPlatformGrid(height - flyingPlatformHeight - 10),
-    flyingBandBottom,
-    height - flyingPlatformHeight - 6,
-  );
-  const minPlatformGap = PLATFORM_GRID;
-  const flyingRowStep = Math.ceil((flyingPlatformHeight + FLYING_ROW_CLEARANCE) / PLATFORM_GRID) * PLATFORM_GRID;
-  const flyingRows = [];
-  for (let y = flyingBandBottom; y <= flyingBandTop; y += flyingRowStep) {
-    flyingRows.push(y);
-  }
-  if (flyingRows.length === 0) {
-    flyingRows.push(flyingBandBottom);
-  }
-
-  pushSolid(solids, { x: 0, y: 0, w: width, h: floorHeight, type: 0 });
-
-  const touchesOtherPlatform = (candidate, gap = minPlatformGap) => {
-    for (let i = 0; i < solids.length; i++) {
-      const solid = solids[i];
-      if (solid.type === 0) continue;
-      const intersectsWithGap =
-        candidate.x < solid.x + solid.w + gap &&
-        candidate.x + candidate.w > solid.x - gap &&
-        candidate.y < solid.y + solid.h + gap &&
-        candidate.y + candidate.h > solid.y - gap;
-      if (intersectsWithGap) {
-        return true;
-      }
-    }
-    return false;
-  };
-
-  const createFlyingPlatform = (x, width, type, rowY = flyingRows[0]) => {
-    if (solids.length >= MAX_SOLIDS) return null;
-    const candidate = snapSolidToGrid({
-      x,
-      y: rowY,
-      w: width,
-      h: flyingPlatformHeight,
-      type,
-    });
-    const overlapsStairZone =
-      candidate.x < stairEnd + minPlatformGap &&
-      candidate.x + candidate.w > stairStart - minPlatformGap;
-    if (overlapsStairZone) {
-      return null;
-    }
-    if (touchesOtherPlatform(candidate)) {
-      return null;
-    }
-    solids.push(candidate);
-    return candidate;
-  };
-  const hasLaneEnemyGap = (x, y) => {
-    return !enemySpawns.some((enemy) => {
-      const sameLane = Math.abs(enemy.y - y) < PLATFORM_GRID;
-      return sameLane && Math.abs(enemy.x - x) < ENEMY_PLACEMENT_MIN_GAP;
-    });
-  };
-  const tryPlacePlatformEnemy = (platform, chance) => {
-    if (!platform || platform.w < 14 || rng() >= chance) return;
-    const enemyHalf = ENEMY_WIDTH * 0.5;
-    const laneY = platform.y + platform.h;
-    const leftX = platform.x + enemyHalf + 1;
-    const rightX = platform.x + platform.w - enemyHalf - 1;
-    const centerX = clamp(platform.x + platform.w * 0.5, leftX, rightX);
-    const preferredXs = [centerX, leftX, rightX];
-    for (let i = 0; i < preferredXs.length; i++) {
-      const enemyX = preferredXs[i];
-      if (!hasLaneEnemyGap(enemyX, laneY)) continue;
-      pushEnemy(enemySpawns, {
-        x: enemyX,
-        y: laneY,
-        minX: platform.x + enemyHalf,
-        maxX: platform.x + platform.w - enemyHalf,
-        lockPlatformPatrol: true,
-        speed: randomInt(rng, 7, 10),
-        dir: rng() < 0.5 ? -1 : 1,
-      });
-      break;
-    }
-  };
-
-  const starterPlatformWidth = clamp(Math.floor(width * 0.12), 10, 16);
-  let starterPlatform = createFlyingPlatform(safeLeft, starterPlatformWidth, 1);
-  if (!starterPlatform) {
-    starterPlatform = snapSolidToGrid({
-      x: safeLeft,
-      y: flyingRows[0],
-      w: starterPlatformWidth,
-      h: flyingPlatformHeight,
-      type: 1,
-    });
-    if (solids.length < MAX_SOLIDS) {
-      solids.push(starterPlatform);
-    }
-  }
-
-  const starterPlatformY = starterPlatform.y;
-  const starterPlatformHeight = starterPlatform.h;
-  addPlatformCoins(
-    coins,
-    starterPlatform.x,
-    starterPlatformY + starterPlatformHeight + 6,
-    starterPlatform.w,
-    2,
-  );
-
-  let cursorX = starterPlatform.x + starterPlatform.w;
-
-  while (cursorX < safeRight - 18) {
-    cursorX += randomInt(rng, PATH_MIN_GAP, PATH_MAX_GAP);
-    if (cursorX >= safeRight - 18) {
-      break;
-    }
-
-    const platformWidth = clamp(Math.floor(randomInt(rng, 10, Math.max(10, Math.floor(width * 0.16)))), 10, 24);
-    const placed = createFlyingPlatform(cursorX, platformWidth, rng() < 0.5 ? 1 : 4);
-    if (!placed) {
-      continue;
-    }
-
-    addPlatformCoins(
-      coins,
-      placed.x,
-      placed.y + placed.h + 6,
-      placed.w,
-      clamp(Math.floor(placed.w / 6), 1, 4),
-    );
-    tryPlacePlatformEnemy(placed, 0.95);
-    cursorX += placed.w;
-  }
-
-  // Add upper fixed rows within the allowed flying band.
-  for (let rowIndex = 1; rowIndex < flyingRows.length; rowIndex++) {
-    const rowY = flyingRows[rowIndex];
-    let rowCursor = safeLeft + randomInt(rng, 0, PATH_MAX_GAP);
-    let placedInRow = 0;
-
-    while (rowCursor < safeRight - 10) {
-      const platformWidth = clamp(randomInt(rng, 8, 16), 8, 20);
-      const placed = createFlyingPlatform(rowCursor, platformWidth, rng() < 0.5 ? 1 : 4, rowY);
-      if (placed) {
-        placedInRow += 1;
-        addPlatformCoins(
-          coins,
-          placed.x,
-          placed.y + placed.h + 6,
-          placed.w,
-          clamp(Math.floor(placed.w / 8), 1, 3),
-        );
-        tryPlacePlatformEnemy(placed, 0.75);
-        rowCursor += placed.w + randomInt(rng, PATH_MIN_GAP, PATH_MAX_GAP + 4);
-      } else {
-        rowCursor += PLATFORM_GRID;
-      }
-    }
-
-    // Guarantee at least one platform in every upper row.
-    if (placedInRow === 0) {
-      const guaranteedWidth = clamp(randomInt(rng, 10, 14), 10, 18);
-      const anchors = [
-        safeLeft + rowIndex * (PATH_MIN_GAP + 2),
-        safeLeft + ((safeRight - safeLeft) * 0.35),
-        safeLeft + ((safeRight - safeLeft) * 0.6),
-      ];
-      for (let i = 0; i < anchors.length; i++) {
-        const placed = createFlyingPlatform(anchors[i], guaranteedWidth, rng() < 0.5 ? 1 : 4, rowY);
-        if (!placed) continue;
-        addPlatformCoins(
-          coins,
-          placed.x,
-          placed.y + placed.h + 6,
-          placed.w,
-          clamp(Math.floor(placed.w / 8), 1, 2),
-        );
-        tryPlacePlatformEnemy(placed, 0.65);
-        break;
-      }
-    }
-  }
-
-  const desiredStepHeight = Math.max(
-    PLATFORM_GRID,
-    snapToPlatformGrid(clamp(Math.floor((height - floorHeight) * 0.12), 4, 8)),
-  );
-  const maxTotalStairHeight = Math.max(PLATFORM_GRID, flyingRows[0] - floorHeight - minPlatformGap);
-  const maxStepHeight = Math.max(PLATFORM_GRID, Math.floor(maxTotalStairHeight / stairCount / PLATFORM_GRID) * PLATFORM_GRID);
-  const stepHeight = clamp(desiredStepHeight, PLATFORM_GRID, maxStepHeight);
-  for (let i = 0; i < stairCount; i++) {
-    pushSolid(solids, {
-      x: stairStart + i * stepWidth,
-      y: floorHeight,
-      w: stepWidth,
-      h: stepHeight * (i + 1),
-      type: 3,
-    });
-  }
-  addPlatformCoins(coins, stairStart, floorHeight + stepHeight * stairCount + 7, stairCount * stepWidth, stairCount);
-
-  if (coins.length === 0) {
-    pushCoin(coins, {
-      x: safeLeft + starterPlatformWidth * 0.5,
-      y: starterPlatformY + starterPlatformHeight + 6,
-      r: DEFAULT_COIN_RADIUS,
-    });
-  }
-
-  let walkerX = safeLeft + 4;
-  while (walkerX < safeRight - 12) {
-    if (rng() < 0.42) {
-      pushEnemy(enemySpawns, {
-        x: walkerX,
-        y: floorHeight,
-        minX: clamp(walkerX - randomInt(rng, 8, 16), 4, safeRight),
-        maxX: clamp(walkerX + randomInt(rng, 8, 18), 8, safeRight),
-        speed: randomInt(rng, 8, 12),
-        dir: rng() < 0.5 ? -1 : 1,
-      });
-    }
-    walkerX += randomInt(rng, 16, 28);
-  }
-
-  const filteredSolids = solids
-    .sort(sortByX)
-    .slice(0, MAX_SOLIDS);
-
-  const filteredCoinCandidates = coins
-    .filter((coin) =>
-      coin.x > spawn.x + 8 &&
-      coin.x < goal.x - 4 &&
-      coin.y < height - 2 &&
-      isCoinClearOfSolids(coin, filteredSolids),
-    )
-    .sort(sortByX);
-  let filteredCoins = pickEvenlyDistributed(filteredCoinCandidates, STAGE_MAX_COLLECTIBLES);
-
-  if (filteredCoins.length === 0) {
-    const fallbackCoin = {
-      x: safeLeft + starterPlatformWidth * 0.5,
-      y: starterPlatformY + starterPlatformHeight + DEFAULT_COIN_RADIUS + COIN_PLATFORM_CLEARANCE + 1.5,
-      r: DEFAULT_COIN_RADIUS,
-    };
-    if (isCoinClearOfSolids(fallbackCoin, filteredSolids)) {
-      filteredCoins = [fallbackCoin];
-    }
-  }
-
-  const minEnemyX = Math.max(
-    spawn.x + 12,
-    Math.min(goal.x - 12, Math.floor(width * FIRST_ENEMY_MIN_WORLD_RATIO)),
-  );
-  const targetEnemyCount = Math.min(MAX_ENEMIES, Math.max(0, Math.floor(width / 30)));
-  const enemySpan = Math.max(0, goal.x - 12 - minEnemyX);
-  const enemyMinSpacing = clamp(
-    Math.floor(enemySpan / Math.max(2, targetEnemyCount + 1)),
-    PLATFORM_GRID,
-    12,
-  );
-  const enemyInitialCandidates = enemySpawns
-    .filter((enemy) => enemy.x >= minEnemyX && enemy.x < goal.x - 12)
-    .sort(sortByX)
-    .map((enemy) => normalizeEnemyPatrolForHeadroom(enemy, filteredSolids))
-    .filter((enemy) => enemy !== null);
-  const platformEnemyCandidates = enemyInitialCandidates
-    .filter((enemy) => enemy.lockPlatformPatrol)
-    .sort(sortByX);
-  const nonPlatformEnemyCandidates = enemyInitialCandidates
-    .filter((enemy) => !enemy.lockPlatformPatrol)
-    .sort(sortByX);
-  let filteredEnemies = [];
-
-  const tryAppendEnemy = (candidate, minSpacing = enemyMinSpacing) => {
-    if (!candidate) return false;
-    if (candidate.x < minEnemyX || candidate.x >= goal.x - 12) return false;
-    const normalized = normalizeEnemyPatrolForHeadroom(candidate, filteredSolids);
-    if (!normalized) return false;
-    const requiredSpacing = Math.max(minSpacing, ENEMY_PLACEMENT_MIN_GAP);
-    if (requiredSpacing > 0) {
-      const tooClose = filteredEnemies.some((enemy) => {
-        const sameLane = Math.abs(enemy.y - normalized.y) < PLATFORM_GRID;
-        return sameLane && Math.abs(enemy.x - normalized.x) < requiredSpacing;
-      });
-      if (tooClose) return false;
-    }
-    filteredEnemies.push(normalized);
-    return true;
-  };
-
-  const platformEnemyTarget = Math.min(
-    platformEnemyCandidates.length,
-    Math.max(1, Math.floor(targetEnemyCount * PLATFORM_ENEMY_TARGET_RATIO)),
-  );
-  for (let i = 0; i < platformEnemyCandidates.length && filteredEnemies.length < platformEnemyTarget; i++) {
-    tryAppendEnemy(platformEnemyCandidates[i], enemyMinSpacing);
-  }
-  const seededEnemyCandidates = [...platformEnemyCandidates, ...nonPlatformEnemyCandidates];
-  for (let i = 0; i < seededEnemyCandidates.length && filteredEnemies.length < targetEnemyCount; i++) {
-    tryAppendEnemy(seededEnemyCandidates[i], enemyMinSpacing);
-  }
-
-  let attempts = 0;
-  const maxAttempts = Math.max(60, targetEnemyCount * 80);
-  while (filteredEnemies.length < targetEnemyCount && attempts < maxAttempts) {
-    attempts += 1;
-    const x = randomInt(rng, Math.floor(minEnemyX), Math.floor(goal.x - 16));
-    const patrolHalf = randomInt(rng, 6, 14);
-    tryAppendEnemy({
-      x,
-      y: floorHeight,
-      minX: clamp(x - patrolHalf, 4, safeRight),
-      maxX: clamp(x + patrolHalf, 8, safeRight),
-      speed: randomInt(rng, 8, 12),
-      dir: rng() < 0.5 ? -1 : 1,
-    }, enemyMinSpacing);
-  }
-
-  const relaxedMinSpacing = Math.max(2, Math.floor(enemyMinSpacing * 0.66));
-  for (let i = 0; i < targetEnemyCount && filteredEnemies.length < targetEnemyCount; i++) {
-    const anchorRatio = (i + 0.5) / Math.max(1, targetEnemyCount);
-    const anchorX = minEnemyX + enemySpan * anchorRatio;
-    const jitter = Math.max(1, Math.floor(enemyMinSpacing * 0.4));
-    const x = clamp(
-      snapToPlatformGrid(Math.round(anchorX + randomInt(rng, -jitter, jitter))),
-      Math.floor(minEnemyX),
-      Math.floor(goal.x - 16),
-    );
-    const patrolHalf = randomInt(rng, 6, 14);
-    tryAppendEnemy({
-      x,
-      y: floorHeight,
-      minX: clamp(x - patrolHalf, 4, safeRight),
-      maxX: clamp(x + patrolHalf, 8, safeRight),
-      speed: randomInt(rng, 8, 12),
-      dir: rng() < 0.5 ? -1 : 1,
-    }, relaxedMinSpacing);
-  }
-
-  for (
-    let x = snapToPlatformGrid(Math.floor(minEnemyX));
-    filteredEnemies.length < targetEnemyCount && x < goal.x - 12;
-    x += PLATFORM_GRID
-  ) {
-    tryAppendEnemy({
-      x,
-      y: floorHeight,
-      minX: clamp(x - 4, 4, safeRight),
-      maxX: clamp(x + 4, 8, safeRight),
-      speed: randomInt(rng, 8, 12),
-      dir: rng() < 0.5 ? -1 : 1,
-    }, relaxedMinSpacing);
-  }
-
-  filteredEnemies = filteredEnemies
-    .sort(sortByX)
-    .slice(0, targetEnemyCount);
-
-  world.width = width;
-  world.height = height;
-  world.seed = seed;
-  world.floorHeight = floorHeight;
-  world.solids = filteredSolids;
-  world.enemySpawns = filteredEnemies;
-  world.coins = filteredCoins;
-  world.spawn = spawn;
-  world.goal = goal;
+  Object.assign(world, mapGenerator.generate(nextWidth, nextHeight, seed));
 };
 
 const regenerateMap = (width = world.width, height = world.height) => {
   generateLevel(width, height, createRandomSeed());
+};
+
+const regenerateMapWithLoading = async ({
+  label = "Generating Stage",
+  width = world.width,
+  height = world.height,
+  onComplete = null,
+} = {}) => {
+  setLoadingState(label, 0.1);
+  await waitForPaint();
+  regenerateMap(width, height);
+  setLoadingState(label, 0.75);
+  if (typeof onComplete === "function") {
+    onComplete();
+  }
+  setLoadingState(label, 1);
+  await waitForPaint();
+  hideLoadingState();
 };
 
 const container = ref(null);
@@ -838,6 +424,11 @@ const hudLivesValue = ref(3);
 const hudTimerValue = ref(95);
 const hudStateValue = ref("RUN");
 const hudEnemiesValue = ref(0);
+const loadingState = ref({
+  visible: true,
+  label: "Loading Game",
+  progress: 0,
+});
 
 const hudScore = computed(() => Math.max(0, Math.floor(hudScoreValue.value)).toString().padStart(6, "0"));
 const hudCoins = computed(() => Math.max(0, Math.floor(hudCoinsValue.value)).toString().padStart(2, "0"));
@@ -845,6 +436,8 @@ const hudLives = computed(() => Math.max(0, Math.floor(hudLivesValue.value)).toS
 const hudTimer = computed(() => Math.max(0, Math.floor(hudTimerValue.value)).toString().padStart(3, "0"));
 const hudState = computed(() => hudStateValue.value);
 const hudEnemies = computed(() => Math.max(0, Math.floor(hudEnemiesValue.value)).toString().padStart(2, "0"));
+const loadingProgressPercent = computed(() => Math.round(clamp(loadingState.value.progress, 0, 1) * 100));
+const loadingProgressText = computed(() => `${loadingProgressPercent.value}%`);
 
 const input = {
   left: false,
@@ -896,6 +489,29 @@ const viewport = {
   height: 1,
 };
 const spritesStore = useSpritesStore();
+
+const setLoadingState = (label, progress) => {
+  loadingState.value = {
+    visible: true,
+    label,
+    progress: clamp(progress, 0, 1),
+  };
+};
+
+const hideLoadingState = () => {
+  loadingState.value = {
+    visible: false,
+    label: "",
+    progress: 1,
+  };
+};
+
+const waitForPaint = async () => {
+  await nextTick();
+  await new Promise((resolve) => {
+    requestAnimationFrame(resolve);
+  });
+};
 
 const syncHud = () => {
   hudScoreValue.value = run.score;
@@ -1231,6 +847,7 @@ const stepPlayer = (delta) => {
 };
 
 const stepPhase = (delta) => {
+  if (loadingState.value.visible) return;
   if (run.phase === PHASE_PLAYING) {
     run.timer = Math.max(0, run.timer - delta);
     return;
@@ -1240,20 +857,29 @@ const stepPhase = (delta) => {
   if (run.phaseTimer > 0) return;
 
   if (run.phase === PHASE_CLEAR) {
-    regenerateMap();
-    resetLevel();
+    void regenerateMapWithLoading({
+      label: "Building Next Stage",
+      onComplete: () => {
+        resetLevel();
+      },
+    });
     return;
   }
 
   if (run.regenerateOnRespawn) {
-    regenerateMap();
-    resetRun();
+    void regenerateMapWithLoading({
+      label: "Rebuilding Stage",
+      onComplete: () => {
+        resetRun();
+      },
+    });
   } else {
     resetLevel();
   }
 };
 
 const stepGame = (delta) => {
+  if (loadingState.value.visible) return;
   stepPlayer(delta);
   if (run.phase !== PHASE_DEAD) {
     stepEnemies(delta);
@@ -1587,8 +1213,12 @@ const setKey = (code, value) => {
     return true;
   }
   if (value && code === "KeyR") {
-    regenerateMap();
-    resetRun();
+    void regenerateMapWithLoading({
+      label: "Rebuilding Stage",
+      onComplete: () => {
+        resetRun();
+      },
+    });
     return true;
   }
   return false;
@@ -1639,7 +1269,13 @@ const initPixi = async () => {
 
   const requiredTextureKeys = getUsedTextureKeys();
   spritesStore.loadedTextures = createLoadedTextureRecords(requiredTextureKeys);
-  await spritesStore.loadTextures(requiredTextureKeys);
+  setLoadingState("Loading Sprites", 0.08);
+  await waitForPaint();
+  await spritesStore.loadTextures(requiredTextureKeys, ({ loaded, total }) => {
+    const spriteProgress = total > 0 ? loaded / total : 1;
+    setLoadingState("Loading Sprites", 0.08 + spriteProgress * 0.62);
+  });
+  setLoadingState("Preparing Textures", 0.74);
 
   goalTexture = cloneTexture(getLoadedTextureRecordByKey("portalFrame")?.texture ?? null);
   coinTexture = cloneTexture(getLoadedTextureRecordByKey("coinGold")?.texture ?? null);
@@ -1662,12 +1298,18 @@ const initPixi = async () => {
   const height = Math.max(1, dom.height(container.value));
   const viewportWidth = Math.max(BASE_PIXEL_SCALE, Math.floor(width / BASE_PIXEL_SCALE) * BASE_PIXEL_SCALE);
   const viewportHeight = Math.max(BASE_PIXEL_SCALE, Math.floor(height / BASE_PIXEL_SCALE) * BASE_PIXEL_SCALE);
+  setLoadingState("Generating Stage", 0.84);
+  await waitForPaint();
   regenerateMap(
     Math.max(MIN_WORLD_WIDTH, Math.floor(viewportWidth / BASE_PIXEL_SCALE)),
     Math.max(MIN_WORLD_HEIGHT, Math.floor(viewportHeight / BASE_PIXEL_SCALE)),
   );
+  setLoadingState("Spawning Run", 0.96);
   resetRun();
   onResize();
+  setLoadingState("Ready", 1);
+  await waitForPaint();
+  hideLoadingState();
 
   previousTimeMs = performance.now();
   const animate = (nowMs) => {

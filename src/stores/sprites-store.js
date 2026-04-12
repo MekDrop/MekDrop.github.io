@@ -87,9 +87,22 @@ export const useSpritesStore = defineStore("sprites", () => {
     return promise;
   };
 
-  const loadTextures = async (keys) => {
+  const loadTextures = async (keys, onProgress) => {
     const uniqueKeys = [...new Set(keys)].filter((key) => !!SPRITE_URLS[key]);
-    await Promise.all(uniqueKeys.map((key) => loadTexture(key)));
+    const total = uniqueKeys.length;
+    let completed = 0;
+
+    if (typeof onProgress === "function") {
+      onProgress({ loaded: 0, total });
+    }
+
+    await Promise.all(uniqueKeys.map((key) => loadTexture(key)
+      .finally(() => {
+        completed += 1;
+        if (typeof onProgress === "function") {
+          onProgress({ loaded: completed, total });
+        }
+      })));
   };
 
   const unloadTexture = async (key) => {
