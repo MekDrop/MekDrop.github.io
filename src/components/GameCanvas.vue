@@ -41,12 +41,13 @@ const MAX_SOLIDS = 64;
 const MAX_ENEMIES = 40;
 const MAX_COINS = 40;
 const STAGE_MAX_COLLECTIBLES = 10;
-const GAME_HINT_TEXT = "A / D OR ARROWS MOVE · SPACE / W / UP JUMP · R RESET · ONE SCREEN · GENERATED STAGE";
+const GAME_HINT_TEXT = "A / D OR ARROWS MOVE · SPACE / W / UP JUMP · R RESET · G REGEN · F3 GRID DEBUG";
 const PHASE_PLAYING = 0;
 const PHASE_DEAD = 1;
 const PHASE_CLEAR = 2;
+const PLATFORM_GRID = 4;
 const HERO_WORLD_SIZE = 16;
-const COIN_WORLD_SIZE = HERO_WORLD_SIZE / 3;
+const COIN_WORLD_SIZE = PLATFORM_GRID;
 const HERO_TURN_DURATION = 0.34;
 const HERO_SCREEN_OFFSET_Y = 5;
 const PLATFORM_FLYING_PLATFORM_CROP = {
@@ -137,7 +138,6 @@ const FIRST_ENEMY_MIN_WORLD_RATIO = 0.2;
 const DEFAULT_COIN_RADIUS = COIN_WORLD_SIZE * 0.5;
 const COIN_MIN_SEPARATION = 0.75;
 const COIN_PLATFORM_CLEARANCE = 1.25;
-const PLATFORM_GRID = 4;
 const ENEMY_PLACEMENT_MIN_GAP = ENEMY_WIDTH + PLATFORM_GRID;
 const PLATFORM_ENEMY_TARGET_RATIO = 0.45;
 const FLYING_ROW_CLEARANCE = PLAYER.height;
@@ -276,6 +276,7 @@ const generateLevel = (nextWidth, nextHeight, seed = world.seed) => {
   const generated = mapGenerator.generate(nextWidth, nextHeight, seed);
   generated.solids = generated.solids.map(createSolid);
   Object.assign(world, generated);
+  syncDebugGridOverlay();
 };
 
 const regenerateMap = (width = world.width, height = world.height) => {
@@ -295,6 +296,7 @@ const regenerateMapWithLoading = async ({
   if (typeof onComplete === "function") {
     onComplete();
   }
+  syncDebugGridOverlay();
   setLoadingState(label, 1);
   await waitForPaint();
   hideLoadingState();
@@ -420,6 +422,150 @@ const layoutGameUi = () => {
   loadingPanel.position.set((canvasSize.width - panelWidth) * 0.5, (canvasSize.height - loadingPanel.height) * 0.5);
 };
 
+const worldRectToGridBounds = (x, y, w, h) => {
+  const cols = Math.max(1, Math.ceil(world.width / PLATFORM_GRID));
+  const rows = Math.max(1, Math.ceil(world.height / PLATFORM_GRID));
+  const left = clamp(Math.floor(x / PLATFORM_GRID), 0, cols - 1);
+  const right = clamp(Math.ceil((x + w) / PLATFORM_GRID) - 1, 0, cols - 1);
+  const bottom = clamp(Math.floor(y / PLATFORM_GRID), 0, rows - 1);
+  const top = clamp(Math.ceil((y + h) / PLATFORM_GRID) - 1, 0, rows - 1);
+  if (right < left || top < bottom) return null;
+  return { left, right, bottom, top };
+};
+
+const enemyToGridBounds = (enemy) => {
+  const cols = Math.max(1, Math.ceil(world.width / PLATFORM_GRID));
+  const rows = Math.max(1, Math.ceil(world.height / PLATFORM_GRID));
+  const footprintWidth = PLATFORM_GRID * 2;
+  const footprintHeight = PLATFORM_GRID * 2;
+  const left = clamp(
+    Math.floor((enemy.x - footprintWidth * 0.5) / PLATFORM_GRID),
+    0,
+    Math.max(0, cols - 2),
+  );
+  const bottom = clamp(
+    Math.floor(enemy.y / PLATFORM_GRID),
+    0,
+    Math.max(0, rows - 2),
+  );
+  return {
+    left,
+    right: Math.min(cols - 1, left + 1),
+    bottom,
+    top: Math.min(rows - 1, bottom + Math.max(1, Math.round(footprintHeight / PLATFORM_GRID)) - 1),
+  };
+};
+
+const heroToGridBounds = (x, y, w, h) => worldRectToGridBounds(
+  x - w * 0.5,
+  y,
+  w,
+  h,
+);
+
+const coinToGridBounds = (coin) => {
+  const cols = Math.max(1, Math.ceil(world.width / PLATFORM_GRID));
+  const rows = Math.max(1, Math.ceil(world.height / PLATFORM_GRID));
+  const cellX = clamp(Math.floor(coin.x / PLATFORM_GRID), 0, cols - 1);
+  const cellY = clamp(Math.floor(coin.y / PLATFORM_GRID), 0, rows - 1);
+  return {
+    left: cellX,
+    right: cellX,
+    bottom: cellY,
+    top: cellY,
+  };
+};
+
+const drawGridCellBounds = (graphics, bounds, color, alpha = 0.34) => {
+  if (!bounds) return;
+  const cellSizePx = PLATFORM_GRID * BASE_PIXEL_SCALE;
+  const leftPx = viewport.x + bounds.left * cellSizePx;
+  const widthPx = (bounds.right - bounds.left + 1) * cellSizePx;
+  const topPx = viewport.y + viewport.height - (bounds.top + 1) * cellSizePx;
+  const heightPx = (bounds.top - bounds.bottom + 1) * cellSizePx;
+  graphics
+    .rect(leftPx, topPx, widthPx, heightPx)
+    .fill({ color, alpha });
+};
+
+const syncDebugGridPanel = () => {
+  if (!debugGrid.panel || !debugGrid.panelBackground || !debugGrid.panelLabel) return;
+  debugGrid.panel.visible = debugGrid.enabled;
+  if (!debugGrid.enabled) return;
+  const panelWidth = 340;
+  const panelHeight = 30;
+  debugGrid.panelLabel.text = "GRID DEBUG ON · FROZEN · F3 TO TOGGLE";
+  drawPanelBackground(debugGrid.panelBackground, panelWidth, panelHeight, 0.9);
+  debugGrid.panel.x = viewport.x + 10;
+  debugGrid.panel.y = viewport.y + 74;
+  debugGrid.panelLabel.x = 10;
+  debugGrid.panelLabel.y = 8;
+};
+
+const syncDebugGridOverlay = () => {
+  if (!debugGrid.container || !debugGrid.gridGraphics || !debugGrid.fillGraphics) return;
+  debugGrid.container.visible = debugGrid.enabled;
+  debugGrid.gridGraphics.clear();
+  debugGrid.fillGraphics.clear();
+  if (!debugGrid.enabled) {
+    syncDebugGridPanel();
+    return;
+  }
+
+  const cols = Math.max(1, Math.ceil(world.width / PLATFORM_GRID));
+  const rows = Math.max(1, Math.ceil(world.height / PLATFORM_GRID));
+  const cellSizePx = PLATFORM_GRID * BASE_PIXEL_SCALE;
+  const leftPx = viewport.x;
+  const gridWidthPx = cols * cellSizePx;
+  const gridHeightPx = rows * cellSizePx;
+  const topPx = viewport.y + viewport.height - gridHeightPx;
+
+  debugGrid.gridGraphics
+    .rect(leftPx, topPx, gridWidthPx, gridHeightPx)
+    .stroke({ width: 1, color: 0xd7fff2, alpha: 0.45 });
+  for (let col = 1; col < cols; col++) {
+    const x = leftPx + col * cellSizePx;
+    debugGrid.gridGraphics
+      .moveTo(x, topPx)
+      .lineTo(x, topPx + gridHeightPx)
+      .stroke({ width: 1, color: 0xb2fbe2, alpha: 0.16 });
+  }
+  for (let row = 1; row < rows; row++) {
+    const y = topPx + row * cellSizePx;
+    debugGrid.gridGraphics
+      .moveTo(leftPx, y)
+      .lineTo(leftPx + gridWidthPx, y)
+      .stroke({ width: 1, color: 0xb2fbe2, alpha: 0.16 });
+  }
+
+  for (let i = 0; i < world.solids.length; i++) {
+    const solid = world.solids[i];
+    const solidBounds = worldRectToGridBounds(solid.x, solid.y, solid.w, solid.h);
+    const color = solid.kind === "flyingPlatform" ? 0x77d8ff : (solid.kind === "stair" ? 0xffb66e : 0xff6f8f);
+    drawGridCellBounds(debugGrid.fillGraphics, solidBounds, color, 0.28);
+  }
+  const enemyDebugSource = enemies.length > 0 ? enemies : world.enemySpawns;
+  for (let i = 0; i < enemyDebugSource.length; i++) {
+    drawGridCellBounds(debugGrid.fillGraphics, enemyToGridBounds(enemyDebugSource[i]), 0xff5e5e, 0.42);
+  }
+  for (let i = 0; i < world.coins.length; i++) {
+    drawGridCellBounds(debugGrid.fillGraphics, coinToGridBounds(world.coins[i]), 0xffe56a, 0.58);
+  }
+  drawGridCellBounds(debugGrid.fillGraphics, heroToGridBounds(world.spawn.x, world.spawn.y, player.w, player.h), 0x8cff8e, 0.42);
+  drawGridCellBounds(debugGrid.fillGraphics, worldRectToGridBounds(world.spawn.x - 0.5, world.spawn.y, 1, 1), 0x8cff8e, 0.75);
+
+  syncDebugGridPanel();
+};
+
+const setDebugGridEnabled = (enabled, nowSeconds = performance.now() * 0.001) => {
+  debugGrid.enabled = enabled;
+  if (enabled) {
+    debugGrid.frozenTime = nowSeconds;
+    clearInput();
+  }
+  syncDebugGridOverlay();
+};
+
 const createGameUi = () => {
   if (!uiScene) return;
 
@@ -503,6 +649,30 @@ const createGameUi = () => {
   layoutGameUi();
 };
 
+const createDebugGridUi = () => {
+  if (!spriteScene || !uiScene) return;
+  debugGrid.container = new Container();
+  debugGrid.container.zIndex = 55;
+  debugGrid.gridGraphics = new Graphics();
+  debugGrid.fillGraphics = new Graphics();
+  debugGrid.container.addChild(debugGrid.fillGraphics, debugGrid.gridGraphics);
+  spriteScene.addChild(debugGrid.container);
+
+  debugGrid.panel = new Container();
+  debugGrid.panel.zIndex = 56;
+  debugGrid.panelBackground = createPanelBackground();
+  debugGrid.panelLabel = createUiText("", {
+    fill: 0xe6fff5,
+    fontFamily: "Courier New",
+    fontSize: 10,
+    fontWeight: "700",
+    letterSpacing: 1.4,
+  });
+  debugGrid.panel.addChild(debugGrid.panelBackground, debugGrid.panelLabel);
+  uiScene.addChild(debugGrid.panel);
+  syncDebugGridOverlay();
+};
+
 const input = {
   left: false,
   right: false,
@@ -563,6 +733,16 @@ const viewport = {
   y: 0,
   width: 1,
   height: 1,
+};
+const debugGrid = {
+  enabled: false,
+  frozenTime: 0,
+  container: null,
+  gridGraphics: null,
+  fillGraphics: null,
+  panel: null,
+  panelBackground: null,
+  panelLabel: null,
 };
 
 const loadRequiredTextures = async (keys, onProgress) => {
@@ -684,6 +864,7 @@ const resetLevel = () => {
   run.collectedInStage = 0;
   run.doorUnlocked = run.coinsInStage === 0;
   syncHud();
+  syncDebugGridOverlay();
 };
 
 const resetRun = () => {
@@ -1202,6 +1383,7 @@ const onResize = () => {
   regenerateWorld(viewportWidth, viewportHeight, false);
   layoutGameUi();
   syncGameUi();
+  syncDebugGridOverlay();
 };
 
 const ignoreKey = (event) => {
@@ -1237,6 +1419,19 @@ const setKey = (code, value) => {
         resetRun();
       },
     });
+    return true;
+  }
+  if (value && code === "KeyG") {
+    void regenerateMapWithLoading({
+      label: "Generating Stage",
+      onComplete: () => {
+        resetLevel();
+      },
+    });
+    return true;
+  }
+  if (value && code === "F3") {
+    setDebugGridEnabled(!debugGrid.enabled);
     return true;
   }
   return false;
@@ -1289,6 +1484,7 @@ const initPixi = async () => {
   uiScene.eventMode = "none";
   app.stage.addChild(spriteScene, uiScene);
   createGameUi();
+  createDebugGridUi();
 
   const requiredTextureKeys = getUsedTextureKeys();
   setLoadingState("Loading Sprites", 0.08);
@@ -1361,8 +1557,10 @@ const initPixi = async () => {
   const animate = (nowMs) => {
     const delta = clamp((nowMs - previousTimeMs) / 1000, 0, 1 / 24);
     previousTimeMs = nowMs;
-    stepGame(delta);
-    syncSceneSprites(nowMs * 0.001);
+    if (!debugGrid.enabled) {
+      stepGame(delta);
+    }
+    syncSceneSprites(debugGrid.enabled ? debugGrid.frozenTime : nowMs * 0.001);
     app.render();
     frameId = requestAnimationFrame(animate);
   };

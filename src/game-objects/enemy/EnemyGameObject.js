@@ -155,8 +155,8 @@ export class EnemyGameObject extends GameObject {
 
     const stateFrames = stateFrameMap?.[this.animationState] ?? stateFrameMap?.walkRight ?? [0];
     const frameIndex = stateFrames[Math.floor(this.anim * 0.8) % stateFrames.length] ?? 0;
-    const left = viewport.x + (this.x - this.w * 0.5) * basePixelScale - 2;
-    const top = viewport.y + viewport.height - (this.y + this.h) * basePixelScale - 4;
+    const left = viewport.x + (this.x - this.w * 0.5) * basePixelScale;
+    const top = viewport.y + viewport.height - (this.y + this.h) * basePixelScale;
     this.sprite.visible = true;
     this.sprite.texture = enemyTextures[frameIndex];
     this.sprite.position.set(left + sizePx * 0.5, top);
