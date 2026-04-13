@@ -52,4 +52,15 @@ export class CoinGameObject extends GameObject {
     this.sprite.width = sizePx * spinScale;
     this.sprite.height = sizePx;
   }
+
+  syncRender(context = {}) {
+    return this.syncSprite({
+      scene: context.scene,
+      texture: context.coinTexture,
+      time: context.time,
+      viewport: context.viewport,
+      basePixelScale: context.basePixelScale,
+      coinWorldSize: context.coinWorldSize,
+    });
+  }
 }

@@ -104,4 +104,13 @@ export class GroundSolidGameObject extends GameObject {
     this.sprite.middle.width = widthPx;
     this.sprite.middle.height = heightPx;
   }
+
+  syncRender(context = {}) {
+    return this.syncSprite({
+      scene: context.scene,
+      textures: context.platformTextures,
+      viewport: context.viewport,
+      basePixelScale: context.basePixelScale,
+    });
+  }
 }

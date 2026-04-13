@@ -196,4 +196,15 @@ export class EnemyGameObject extends GameObject {
     this.sprite.width = this.dir < 0 ? -sizePx : sizePx;
     this.sprite.height = sizePx;
   }
+
+  syncRender(context = {}) {
+    return this.syncSprite({
+      scene: context.scene,
+      viewport: context.viewport,
+      basePixelScale: context.basePixelScale,
+      enemyTextures: context.enemyTextures,
+      stateFrameMap: context.enemyStateFrameMap,
+      sizePx: context.enemySizePx,
+    });
+  }
 }

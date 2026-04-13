@@ -51,4 +51,14 @@ export class PlatformSolidGameObject extends GameObject {
     this.sprite.width = widthPx;
     this.sprite.height = heightPx;
   }
+
+  syncRender(context = {}) {
+    return this.syncSprite({
+      scene: context.scene,
+      texture: context.platformTextures?.[this.kind],
+      viewport: context.viewport,
+      basePixelScale: context.basePixelScale,
+      tileScale: this.kind === "flyingPlatform" ? context.flyingPlatformTileScale : 1,
+    });
+  }
 }

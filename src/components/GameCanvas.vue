@@ -276,6 +276,7 @@ const generateLevel = (nextWidth, nextHeight, seed = world.seed) => {
   const generated = mapGenerator.generate(nextWidth, nextHeight, seed);
   generated.solids = generated.solids.map(createSolid);
   Object.assign(world, generated);
+  invalidatePlatformSprites();
   syncDebugGridOverlay();
 };
 
@@ -296,6 +297,7 @@ const regenerateMapWithLoading = async ({
   if (typeof onComplete === "function") {
     onComplete();
   }
+  flushPlatformSprites();
   syncDebugGridOverlay();
   setLoadingState(label, 1);
   await waitForPaint();
@@ -724,10 +726,69 @@ let frameId = null;
 let previousTimeMs = 0;
 let playerLandingEvent = null;
 let lastHeroRenderFacing = 1;
+let platformSpritesDirty = true;
+const enemyStateFrameMap = {
+  walkLeft: [0, 1, 2],
+  walkRight: [0, 1, 2],
+  alertBackLeft: [0, 1, 2, 3, 4],
+  alertBackRight: [0, 1, 2, 3, 4],
+};
 const canvasSize = {
   width: 1,
   height: 1,
 };
+
+const arePlatformTexturesReady = () => (
+  Boolean(
+    platformTextures.flyingPlatform &&
+    platformTextures.wall &&
+    platformTextures.wallTop &&
+    platformTextures.wallFill &&
+    platformTextures.stair
+  )
+);
+
+const invalidatePlatformSprites = () => {
+  platformSpritesDirty = true;
+};
+
+const createRenderContext = (time = 0) => ({
+  scene: spriteScene,
+  time,
+  viewport,
+  basePixelScale: BASE_PIXEL_SCALE,
+  run,
+  phaseDead: PHASE_DEAD,
+  heroWorldSize: HERO_WORLD_SIZE,
+  heroScreenOffsetY: HERO_SCREEN_OFFSET_Y,
+  getHeroAnimation,
+  getLoadedTextureByUrl,
+  configurePixelTexture,
+  coinTexture,
+  coinWorldSize: COIN_WORLD_SIZE,
+  enemyTextures,
+  enemyStateFrameMap,
+  enemySizePx: ENEMY_HEIGHT * BASE_PIXEL_SCALE,
+  platformTextures,
+  flyingPlatformTileScale: PLATFORM_FLYING_PLATFORM_TILE_SCALE,
+});
+
+const syncRenderableObjects = (objects, renderContext) => {
+  for (let i = 0; i < objects.length; i++) {
+    const renderable = objects[i];
+    if (!renderable?.syncRender) continue;
+    const result = renderable.syncRender(renderContext);
+    if (renderable === player && result !== undefined) {
+      lastHeroRenderFacing = result;
+    }
+  }
+};
+
+const getDynamicRenderables = () => [
+  ...enemies,
+  ...coins,
+  player,
+];
 const viewport = {
   x: 0,
   y: 0,
@@ -1282,77 +1343,10 @@ const ensureGoalSprite = () => {
   spriteScene.addChild(goalSprite);
 };
 
-const syncHeroSprite = (time) => {
-  lastHeroRenderFacing = player.syncSprite({
-    scene: spriteScene,
-    run,
-    time,
-    viewport,
-    basePixelScale: BASE_PIXEL_SCALE,
-    heroWorldSize: HERO_WORLD_SIZE,
-    heroScreenOffsetY: HERO_SCREEN_OFFSET_Y,
-    phaseDead: PHASE_DEAD,
-    getHeroAnimation,
-    getLoadedTextureByUrl,
-    configurePixelTexture,
-  });
-};
-
-const syncCoinSprites = (time) => {
-  for (let i = 0; i < coins.length; i++) {
-    coins[i]?.syncSprite({
-      scene: spriteScene,
-      texture: coinTexture,
-      time,
-      viewport,
-      basePixelScale: BASE_PIXEL_SCALE,
-      coinWorldSize: COIN_WORLD_SIZE,
-    });
-  }
-};
-
-const syncEnemySprites = (time) => {
-  const stateFrameMap = {
-    walkLeft: [0, 1, 2],
-    walkRight: [0, 1, 2],
-    alertBackLeft: [0, 1, 2, 3, 4],
-    alertBackRight: [0, 1, 2, 3, 4],
-  };
-
-  for (let i = 0; i < enemies.length; i++) {
-    enemies[i]?.syncSprite({
-      scene: spriteScene,
-      viewport,
-      basePixelScale: BASE_PIXEL_SCALE,
-      enemyTextures,
-      stateFrameMap,
-      sizePx: ENEMY_HEIGHT * BASE_PIXEL_SCALE,
-      time,
-    });
-  }
-};
-
-const syncPlatformSprites = () => {
-  for (let i = 0; i < world.solids.length; i++) {
-    const solid = world.solids[i];
-    if (!solid) continue;
-    if (solid.kind === "wall") {
-      solid.syncSprite({
-        scene: spriteScene,
-        textures: platformTextures,
-        viewport,
-        basePixelScale: BASE_PIXEL_SCALE,
-      });
-      continue;
-    }
-    solid.syncSprite({
-      scene: spriteScene,
-      texture: platformTextures[solid.kind],
-      viewport,
-      basePixelScale: BASE_PIXEL_SCALE,
-      tileScale: solid.kind === "flyingPlatform" ? PLATFORM_FLYING_PLATFORM_TILE_SCALE : 1,
-    });
-  }
+const flushPlatformSprites = () => {
+  if (!platformSpritesDirty || !spriteScene || !arePlatformTexturesReady()) return;
+  syncRenderableObjects(world.solids, createRenderContext());
+  platformSpritesDirty = false;
 };
 
 const syncGoalSprite = (time) => {
@@ -1371,11 +1365,9 @@ const syncGoalSprite = (time) => {
 };
 
 const syncSceneSprites = (time) => {
-  syncPlatformSprites();
+  const renderContext = createRenderContext(time);
   syncGoalSprite(time);
-  syncEnemySprites(time);
-  syncCoinSprites(time);
-  syncHeroSprite(time);
+  syncRenderableObjects(getDynamicRenderables(), renderContext);
 };
 
 const onResize = () => {
@@ -1395,6 +1387,8 @@ const onResize = () => {
   app.renderer.resolution = Math.min(window.devicePixelRatio || 1, 2);
   app.renderer.resize(width, height);
   regenerateWorld(viewportWidth, viewportHeight, false);
+  invalidatePlatformSprites();
+  flushPlatformSprites();
   layoutGameUi();
   syncGameUi();
   syncDebugGridOverlay();
@@ -1518,6 +1512,7 @@ const initPixi = async () => {
     wallFill: createCroppedTexture(getLoadedTextureByKey("platformWall"), PLATFORM_WALL_FILL_CROP),
     stair: createCroppedTexture(getLoadedTextureByKey("platformStair"), PLATFORM_STAIR_CROP),
   };
+  flushPlatformSprites();
   // Extract blocky frames (top row walk + bottom row alert poses).
   const enemySpritesheet = getLoadedTextureByKey("blockyWalkSpritesheet");
   const enemyFrameColumns = 3;

@@ -267,6 +267,22 @@ export class HeroGameObject extends GameObject {
     return effectiveFacing;
   }
 
+  syncRender(context = {}) {
+    return this.syncSprite({
+      scene: context.scene,
+      run: context.run,
+      time: context.time,
+      viewport: context.viewport,
+      basePixelScale: context.basePixelScale,
+      heroWorldSize: context.heroWorldSize,
+      heroScreenOffsetY: context.heroScreenOffsetY,
+      phaseDead: context.phaseDead,
+      getHeroAnimation: context.getHeroAnimation,
+      getLoadedTextureByUrl: context.getLoadedTextureByUrl,
+      configurePixelTexture: context.configurePixelTexture,
+    });
+  }
+
   detachSprite(options = {}) {
     super.detachSprite(options);
     for (const texture of this.spriteTextureCache.values()) {
