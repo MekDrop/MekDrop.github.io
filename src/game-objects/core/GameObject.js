@@ -1,16 +1,7 @@
 export class GameObject {
   constructor(props = {}) {
     Object.assign(this, props);
-    this.active = props.active ?? true;
     this.sprite = props.sprite ?? null;
-  }
-
-  activate() {
-    this.active = true;
-  }
-
-  deactivate() {
-    this.active = false;
   }
 
   hideSprite() {
