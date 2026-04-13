@@ -22,7 +22,7 @@ export class CoinGameObject extends GameObject {
     this.sprite = new Sprite(texture);
     this.sprite.anchor.set(0.5, 0.5);
     this.sprite.visible = false;
-    this.sprite.zIndex = 12;
+    this.sprite.zIndex = 9;
     scene.addChild(this.sprite);
   }
 

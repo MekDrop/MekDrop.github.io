@@ -19,6 +19,14 @@ export class EnemyWalkState extends State {
       return;
     }
 
+    if (owner.shouldTurnFromNearbyEnemy(this.direction)) {
+      owner.vx = 0;
+      if (owner.canContinue(oppositeDirection)) {
+        owner.turnTo(oppositeDirection);
+      }
+      return;
+    }
+
     if (!owner.canContinue(this.direction)) {
       owner.vx = 0;
       if (owner.canContinue(oppositeDirection)) {

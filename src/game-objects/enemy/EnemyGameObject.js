@@ -13,6 +13,8 @@ const BACK_ALERT_MIN_X = 0.25;
 const BACK_ALERT_MAX_Y_DELTA = 3.25;
 const BACK_ALERT_DURATION = 0.45;
 const BACK_ALERT_COOLDOWN = 0.5;
+const NEARBY_ENEMY_TURN_DISTANCE = 7.5;
+const NEARBY_ENEMY_LANE_TOLERANCE = 2.5;
 
 export class EnemyGameObject extends GameObject {
   constructor(spawn = {}, defaults = {}) {
@@ -80,6 +82,11 @@ export class EnemyGameObject extends GameObject {
     const nextX = this.x + direction * lookaheadDistance;
     const probeBody = { x: nextX, y: this.y, w: this.w, h: this.h };
     return this.runtime?.solidSupportBelow?.(probeBody, EDGE_SUPPORT_PROBE) ?? false;
+  }
+
+  shouldTurnFromNearbyEnemy(direction) {
+    if (typeof this.runtime?.enemyAhead !== "function") return false;
+    return this.runtime.enemyAhead(this, direction, NEARBY_ENEMY_TURN_DISTANCE, NEARBY_ENEMY_LANE_TOLERANCE);
   }
 
   shouldTriggerBackAlert(direction) {

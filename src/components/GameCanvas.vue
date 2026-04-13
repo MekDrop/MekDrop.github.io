@@ -843,6 +843,7 @@ const attachEnemyControllers = () => {
       moveBody,
       solidSupportBelow,
       solidSupportAhead,
+      enemyAhead,
       getPlayerLandingEvent: () => playerLandingEvent,
     });
   }
@@ -982,6 +983,23 @@ const solidSupportAhead = (body, direction, ahead = 0.9, probe = 1.25) => {
     h: probe,
   };
   return world.solids.some((solid) => overlap(rect, solid));
+};
+
+const enemyAhead = (self, direction, maxDistance = ENEMY_WIDTH + 0.5, laneTolerance = PLATFORM_GRID * 0.5) => {
+  if (!self?.alive) return false;
+
+  for (let i = 0; i < enemies.length; i++) {
+    const other = enemies[i];
+    if (!other || !other.alive || other === self) continue;
+    if (Math.abs(other.y - self.y) > laneTolerance) continue;
+
+    const distanceX = other.x - self.x;
+    const aheadDistance = direction > 0 ? distanceX : -distanceX;
+    if (aheadDistance <= 0) continue;
+    if (aheadDistance <= maxDistance) return true;
+  }
+
+  return false;
 };
 
 const moveBody = (body, delta) => {
