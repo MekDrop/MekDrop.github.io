@@ -1234,10 +1234,6 @@ const stepGame = (delta) => {
   stepPlayer(delta);
   if (run.phase !== PHASE_DEAD) {
     stepEnemies(delta);
-  } else {
-    for (let i = 0; i < enemies.length; i++) {
-      enemies[i].anim += delta * 2.2;
-    }
   }
   stepPhase(delta);
   syncHud();

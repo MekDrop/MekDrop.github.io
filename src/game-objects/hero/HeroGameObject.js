@@ -1,7 +1,7 @@
 import { GameObject } from "src/game-objects/core/GameObject";
 import { StateMachine } from "yuka";
 import { HeroAnimationState } from "src/states/heroes/HeroAnimationState";
-import { Rectangle, Sprite, Texture } from "pixi.js";
+import { AnimatedSprite, Rectangle, Texture } from "pixi.js";
 
 const clamp = (v, mn, mx) => Math.min(mx, Math.max(mn, v));
 
@@ -27,6 +27,7 @@ export class HeroGameObject extends GameObject {
       deathElapsed: 0,
       previousRunPhase: null,
       spriteTextureCache: new Map(),
+      spriteClipCache: new Map(),
       stateMachine: null,
       ...props,
     });
@@ -117,9 +118,11 @@ export class HeroGameObject extends GameObject {
 
   ensureSprite(scene) {
     if (this.sprite || !scene) return;
-    this.sprite = new Sprite();
+    this.sprite = new AnimatedSprite([Texture.EMPTY]);
     this.sprite.anchor.set(0.5, 0);
+    this.sprite.visible = false;
     this.sprite.zIndex = 20;
+    this.sprite.stop();
     scene.addChild(this.sprite);
   }
 
@@ -162,6 +165,34 @@ export class HeroGameObject extends GameObject {
     return frameTexture;
   }
 
+  getClipTextures({
+    src,
+    animation,
+    getLoadedTextureByUrl,
+    configurePixelTexture,
+  }) {
+    if (!src || !animation) return [];
+    const cacheKey = `${src}:${animation.columns}x${animation.rows}:${animation.frames}`;
+    if (this.spriteClipCache.has(cacheKey)) {
+      return this.spriteClipCache.get(cacheKey);
+    }
+
+    const textures = [];
+    for (let frameIndex = 0; frameIndex < animation.frames; frameIndex++) {
+      const frameTexture = this.getFrameTexture({
+        src,
+        animation,
+        frameIndex,
+        getLoadedTextureByUrl,
+        configurePixelTexture,
+      });
+      if (frameTexture) textures.push(frameTexture);
+    }
+
+    this.spriteClipCache.set(cacheKey, textures);
+    return textures;
+  }
+
   syncSprite({
     scene,
     run,
@@ -180,29 +211,53 @@ export class HeroGameObject extends GameObject {
 
     const animationName = this.animationState ?? "idle";
     const animation = getHeroAnimation(animationName);
-    const frameIndex = this.getAnimationFrameIndex(animation);
     const sizePx = heroWorldSize * basePixelScale;
     const blinkHidden = run.phase !== phaseDead && this.invulnerable > 0 && Math.floor(time * 14) % 2 === 0;
     const effectiveFacing = run.phase === phaseDead ? (this.deathFacing ?? this.facing) : this.facing;
     const facingKey = effectiveFacing > 0 ? "right" : "left";
     const spriteSrc = animation.srcByFacing?.[facingKey] ?? animation.srcByFacing?.left ?? animation.src;
     const mirrorFacing = animation.mirrorByFacing?.[facingKey] ?? (animation.mirror && effectiveFacing > 0);
-    const frameOffset = animation.frameOffsets?.[frameIndex] ?? animation.frameOffsets?.[0] ?? { x: 0, y: 0 };
-    const offsetX = (mirrorFacing ? -frameOffset.x : frameOffset.x) * basePixelScale;
-    const offsetY = frameOffset.y * basePixelScale;
-    const frameTexture = this.getFrameTexture({
+    const textures = this.getClipTextures({
       src: spriteSrc,
       animation,
-      frameIndex,
       getLoadedTextureByUrl,
       configurePixelTexture,
     });
-    if (!frameTexture) {
+    if (textures.length === 0) {
       this.sprite.visible = false;
       return effectiveFacing;
     }
 
-    this.sprite.texture = frameTexture;
+    const activeTextures = this.sprite.textures ?? [];
+    const clipChanged = activeTextures.length !== textures.length || activeTextures[0] !== textures[0];
+    if (clipChanged) {
+      this.sprite.textures = textures;
+    }
+
+    const frameIndex = this.getAnimationFrameIndex(animation);
+    const isStateDrivenFrame = animationName === "turn" || animationName === "death";
+    if (isStateDrivenFrame) {
+      if (clipChanged || this.sprite.playing) {
+        this.sprite.gotoAndStop(frameIndex);
+      } else if (this.sprite.currentFrame !== frameIndex) {
+        this.sprite.gotoAndStop(frameIndex);
+      }
+    } else {
+      this.sprite.animationSpeed = (animation.fps ?? 1) / 60;
+      if (clipChanged) {
+        this.sprite.gotoAndPlay(frameIndex % textures.length);
+      } else if (!this.sprite.playing) {
+        this.sprite.play();
+      }
+    }
+
+    const currentFrameIndex = isStateDrivenFrame
+      ? frameIndex
+      : Math.min(textures.length - 1, this.sprite.currentFrame ?? 0);
+    const frameOffset = animation.frameOffsets?.[currentFrameIndex] ?? animation.frameOffsets?.[0] ?? { x: 0, y: 0 };
+    const offsetX = (mirrorFacing ? -frameOffset.x : frameOffset.x) * basePixelScale;
+    const offsetY = frameOffset.y * basePixelScale;
+
     this.sprite.visible = !blinkHidden;
     const left = viewport.x + (this.x - heroWorldSize * 0.5) * basePixelScale + offsetX;
     const top = viewport.y + viewport.height - (this.y + heroWorldSize) * basePixelScale + offsetY + heroScreenOffsetY;
@@ -218,5 +273,6 @@ export class HeroGameObject extends GameObject {
       if (!texture?.destroyed) texture.destroy(false);
     }
     this.spriteTextureCache.clear();
+    this.spriteClipCache.clear();
   }
 }

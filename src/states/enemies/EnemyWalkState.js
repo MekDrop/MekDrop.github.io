@@ -8,14 +8,17 @@ export class EnemyWalkState extends State {
 
   enter(owner) {
     owner.dir = this.direction;
-    owner.animationState = this.direction > 0 ? "walkRight" : "walkLeft";
   }
 
   execute(owner) {
     const oppositeDirection = this.direction > 0 ? -1 : 1;
+    const canMoveForward = owner.canContinue(this.direction);
 
-    if (owner.shouldTriggerBackAlert(this.direction)) {
-      owner.stateMachine.changeTo(this.direction > 0 ? "alertBackRight" : "alertBackLeft");
+    if (!canMoveForward) {
+      owner.vx = 0;
+      if (owner.canContinue(oppositeDirection)) {
+        owner.turnTo(oppositeDirection, { force: true });
+      }
       return;
     }
 
@@ -27,19 +30,25 @@ export class EnemyWalkState extends State {
       return;
     }
 
-    if (!owner.canContinue(this.direction)) {
+    if (!owner.move(this.direction)) {
       owner.vx = 0;
       if (owner.canContinue(oppositeDirection)) {
-        owner.turnTo(oppositeDirection);
+        owner.turnTo(oppositeDirection, { force: true });
       }
       return;
     }
 
-    if (!owner.move(this.direction)) {
+    // Moving onto the last supported position still counts as "at the edge".
+    if (!owner.canContinue(this.direction)) {
       owner.vx = 0;
       if (owner.canContinue(oppositeDirection)) {
-        owner.turnTo(oppositeDirection);
+        owner.turnTo(oppositeDirection, { force: true });
       }
+      return;
+    }
+
+    if (owner.shouldTriggerBackAlert(this.direction)) {
+      owner.stateMachine.changeTo(this.direction > 0 ? "alertBackRight" : "alertBackLeft");
     }
   }
 }

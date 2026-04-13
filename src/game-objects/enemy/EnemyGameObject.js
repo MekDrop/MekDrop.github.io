@@ -3,7 +3,7 @@ import { StateMachine } from "yuka";
 import { EnemyAlertBackLeftState } from "src/states/enemies/EnemyAlertBackLeftState";
 import { EnemyAlertBackRightState } from "src/states/enemies/EnemyAlertBackRightState";
 import { EnemyWalkState } from "src/states/enemies/EnemyWalkState";
-import { Sprite } from "pixi.js";
+import { AnimatedSprite } from "pixi.js";
 
 const EDGE_SUPPORT_PROBE = 1.25;
 const EDGE_LOOKAHEAD = 0.9;
@@ -13,6 +13,7 @@ const BACK_ALERT_MIN_X = 0.25;
 const BACK_ALERT_MAX_Y_DELTA = 3.25;
 const BACK_ALERT_DURATION = 0.45;
 const BACK_ALERT_COOLDOWN = 0.5;
+const BACK_ALERT_MIN_RUNWAY = 2.25;
 const NEARBY_ENEMY_TURN_DISTANCE = 7.5;
 const NEARBY_ENEMY_LANE_TOLERANCE = 2.5;
 
@@ -28,11 +29,8 @@ export class EnemyGameObject extends GameObject {
       vy: 0,
       w: defaults.width ?? 7,
       h: defaults.height ?? 8,
-      facing: spawn.dir >= 0 ? 1 : -1,
-      animationState: spawn.dir >= 0 ? "walkRight" : "walkLeft",
       grounded: false,
       alive: true,
-      anim: Math.random() * Math.PI * 2,
       turnCooldown: 0,
       backAlertTimer: 0,
       backAlertCooldown: 0,
@@ -61,13 +59,12 @@ export class EnemyGameObject extends GameObject {
     this.delta = delta;
     this.turnCooldown = Math.max(0, this.turnCooldown - delta);
     this.backAlertCooldown = Math.max(0, this.backAlertCooldown - delta);
-    this.anim += delta * 5;
     this.stateMachine.update();
   }
 
-  turnTo(direction) {
-    if (this.turnCooldown > 0) return false;
-    this.facing = direction;
+  turnTo(direction, { force = false } = {}) {
+    if (!force && this.turnCooldown > 0) return false;
+    this.dir = direction;
     this.stateMachine?.changeTo(direction > 0 ? "walkRight" : "walkLeft");
     this.turnCooldown = TURN_COOLDOWN;
     return true;
@@ -90,7 +87,20 @@ export class EnemyGameObject extends GameObject {
   }
 
   shouldTriggerBackAlert(direction) {
+    if (this.turnCooldown > 0) return false;
     if (this.backAlertCooldown > 0) return false;
+    if (typeof this.runtime?.solidSupportAhead === "function") {
+      const hasRunway = this.runtime.solidSupportAhead(
+        this,
+        direction,
+        Math.max(EDGE_LOOKAHEAD, BACK_ALERT_MIN_RUNWAY),
+        EDGE_SUPPORT_PROBE,
+      );
+      if (!hasRunway) return false;
+    } else if (!this.canContinue(direction)) {
+      return false;
+    }
+
     const landing = this.runtime?.getPlayerLandingEvent?.();
     if (!landing) return false;
 
@@ -105,8 +115,7 @@ export class EnemyGameObject extends GameObject {
 
   startBackAlert(direction = -1) {
     this.backAlertDirection = direction;
-    this.animationState = direction > 0 ? "alertBackRight" : "alertBackLeft";
-    this.facing = direction;
+    this.dir = direction;
     this.vx = 0;
     this.vy = 0;
     this.backAlertTimer = BACK_ALERT_DURATION;
@@ -125,23 +134,26 @@ export class EnemyGameObject extends GameObject {
     }
     const opposite = direction > 0 ? -1 : 1;
     if (this.canContinue(opposite)) {
-      this.turnTo(opposite);
+      this.turnTo(opposite, { force: true });
     }
   }
 
   move(direction) {
-    this.facing = direction;
+    this.dir = direction;
     this.vx = direction * this.speed;
     this.vy = 0;
     const moved = this.runtime?.moveBody?.(this, this.delta);
     return !moved?.hitX;
   }
 
-  ensureSprite(scene, texture) {
-    if (this.sprite || !scene || !texture) return;
-    this.sprite = new Sprite(texture);
+  ensureSprite(scene, textures) {
+    if (this.sprite || !scene || !textures?.length) return;
+    this.sprite = new AnimatedSprite(textures);
     this.sprite.anchor.set(0.5, 0);
     this.sprite.visible = false;
+    this.sprite.loop = true;
+    this.sprite.animationSpeed = 0.12;
+    this.sprite.stop();
     this.sprite.zIndex = 10;
     scene.addChild(this.sprite);
   }
@@ -154,20 +166,34 @@ export class EnemyGameObject extends GameObject {
     stateFrameMap,
     sizePx,
   }) {
-    this.ensureSprite(scene, enemyTextures?.[0]);
+    this.ensureSprite(scene, enemyTextures);
     if (!this.sprite || !this.alive || !enemyTextures?.length) {
+      this.sprite?.stop?.();
       this.hideSprite();
       return;
     }
 
-    const stateFrames = stateFrameMap?.[this.animationState] ?? stateFrameMap?.walkRight ?? [0];
-    const frameIndex = stateFrames[Math.floor(this.anim * 0.8) % stateFrames.length] ?? 0;
+    const currentState = this.stateMachine?.currentState?.name ?? (this.dir >= 0 ? "walkRight" : "walkLeft");
+    const stateFrames = stateFrameMap?.[currentState] ?? stateFrameMap?.walkRight ?? [0];
+    const clipTextures = stateFrames
+      .map((frame) => enemyTextures[frame])
+      .filter(Boolean);
+    const textures = clipTextures.length > 0 ? clipTextures : [enemyTextures[0]];
+    const activeTextures = this.sprite.textures ?? [];
+    const clipChanged = activeTextures.length !== textures.length || activeTextures[0] !== textures[0];
+    if (clipChanged) {
+      this.sprite.textures = textures;
+      this.sprite.animationSpeed = currentState.startsWith("alertBack") ? 0.09 : 0.13;
+      this.sprite.gotoAndPlay(0);
+    } else if (!this.sprite.playing) {
+      this.sprite.play();
+    }
+
     const left = viewport.x + (this.x - this.w * 0.5) * basePixelScale;
     const top = viewport.y + viewport.height - (this.y + this.h) * basePixelScale;
     this.sprite.visible = true;
-    this.sprite.texture = enemyTextures[frameIndex];
     this.sprite.position.set(left + sizePx * 0.5, top);
-    this.sprite.width = this.facing < 0 ? -sizePx : sizePx;
+    this.sprite.width = this.dir < 0 ? -sizePx : sizePx;
     this.sprite.height = sizePx;
   }
 }
