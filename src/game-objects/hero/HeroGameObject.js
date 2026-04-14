@@ -26,11 +26,59 @@ export class HeroGameObject extends GameObject {
       turnRemaining: 0,
       deathElapsed: 0,
       previousRunPhase: null,
+      preservedState: null,
       spriteTextureCache: new Map(),
       spriteClipCache: new Map(),
       stateMachine: null,
       ...props,
     });
+  }
+
+  captureRuntimeState() {
+    this.preservedState = {
+      x: this.x,
+      y: this.y,
+      vx: this.vx,
+      vy: this.vy,
+      grounded: this.grounded,
+      coyote: this.coyote,
+      invulnerable: this.invulnerable,
+      anim: this.anim,
+      animationState: this.animationState,
+      deathFacing: this.deathFacing,
+      prevY: this.prevY,
+      facing: this.facing,
+      turnRemaining: this.turnRemaining,
+      deathElapsed: this.deathElapsed,
+      previousRunPhase: this.previousRunPhase,
+    };
+    return this.preservedState;
+  }
+
+  restoreRuntimeState() {
+    if (!this.preservedState) return false;
+    Object.assign(this, this.preservedState);
+    this.preservedState = null;
+    return true;
+  }
+
+  reset(mode = 1) {
+    super.reset();
+    if (mode === 0) {
+      this.vx = 0;
+      this.vy = 0;
+      this.facing = 1;
+      this.grounded = false;
+      this.coyote = 0;
+      this.invulnerable = 0;
+      this.anim = 0;
+      this.animationState = "idle";
+      this.deathFacing = this.facing;
+      this.prevY = this.y;
+      this.preservedState = null;
+      this.resetAnimationState();
+    }
+    return this;
   }
 
   initializeStateMachine(options = {}) {

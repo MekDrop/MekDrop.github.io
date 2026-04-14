@@ -727,19 +727,9 @@ const detachObjectSprites = (items = []) => {
 };
 
 const resetPlayer = () => {
-  player.reset();
-  player.vx = 0;
-  player.vy = 0;
-  player.facing = 1;
-  player.grounded = false;
-  player.coyote = 0;
-  player.invulnerable = 0;
-  player.anim = 0;
-  player.animationState = "idle";
-  player.deathFacing = player.facing;
+  player.reset(0);
   player.prevY = world.spawn.y;
   lastHeroRenderFacing = player.facing;
-  player.resetAnimationState();
 };
 
 const attachEnemyControllers = () => {
@@ -865,34 +855,15 @@ const regenerateWorld = (widthPx, heightPx, resetProgress = false) => {
   const nextHeight = Math.max(MIN_WORLD_HEIGHT, Math.floor(heightPx / BASE_PIXEL_SCALE));
   const changed = nextWidth !== world.width || nextHeight !== world.height;
   if (!changed) return;
-
-  const preservedPlayer = {
-    x: player.x,
-    y: player.y,
-    vx: player.vx,
-    vy: player.vy,
-    grounded: player.grounded,
-    coyote: player.coyote,
-    invulnerable: player.invulnerable,
-    anim: player.anim,
-    prevY: player.prevY,
-    facing: player.facing,
-  };
+  player.captureRuntimeState();
 
   generateLevel(nextWidth, nextHeight, world.seed);
   if (resetProgress) {
     resetRun();
   } else {
-    player.x = preservedPlayer.x;
-    player.y = preservedPlayer.y;
-    player.vx = preservedPlayer.vx;
-    player.vy = preservedPlayer.vy;
-    player.grounded = preservedPlayer.grounded;
-    player.coyote = preservedPlayer.coyote;
-    player.invulnerable = preservedPlayer.invulnerable;
-    player.anim = preservedPlayer.anim;
-    player.prevY = preservedPlayer.prevY;
-    player.facing = preservedPlayer.facing;
+    if (!player.restoreRuntimeState()) {
+      player.reset(0);
+    }
     detachObjectSprites(enemies);
     detachObjectSprites(coins);
     enemies = world.enemySpawns.map(createEnemy);
