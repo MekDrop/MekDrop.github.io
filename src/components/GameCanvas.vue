@@ -721,8 +721,7 @@ const detachObjectSprites = (items = []) => {
 };
 
 const resetPlayer = () => {
-  player.x = world.spawn.x;
-  player.y = world.spawn.y;
+  player.reset();
   player.vx = 0;
   player.vy = 0;
   player.facing = 1;
