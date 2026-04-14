@@ -16,7 +16,7 @@
 </style>
 
 <script setup>
-import { List, ProgressBar } from "@pixi/ui";
+import { List } from "@pixi/ui";
 import { Application, Assets, Container, Graphics, Rectangle, Text, Texture } from "pixi.js";
 import { nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 import { dom } from "quasar";
@@ -25,6 +25,8 @@ import { CoinGameObject } from "src/game-objects/collectibles/CoinGameObject";
 import { DebugGridGameObject } from "src/game-objects/debug/DebugGridGameObject";
 import { EnemyGameObject } from "src/game-objects/enemy/EnemyGameObject";
 import { HeroGameObject } from "src/game-objects/hero/HeroGameObject";
+import { GameUiRowGameObject } from "src/game-objects/ui/GameUiRowGameObject";
+import { LoadingBarGameObject } from "src/game-objects/ui/LoadingBarGameObject";
 import { GoalGameObject } from "src/game-objects/world/GoalGameObject";
 import { GroundSolidGameObject } from "src/game-objects/world/GroundSolidGameObject";
 import { PlatformSolidGameObject } from "src/game-objects/world/PlatformSolidGameObject";
@@ -346,33 +348,6 @@ const drawPanelBackground = (graphics, width, height, alpha = 0.88) => {
 
 const createUiText = (text, style) => new Text({ text, style });
 
-const createHudRow = (text, style) => {
-  const row = new Container();
-  const background = createPanelBackground();
-  const label = createUiText(text, style);
-  label.x = 12;
-  label.y = 8;
-  row.addChild(background, label);
-  row.background = background;
-  row.label = label;
-  return row;
-};
-
-const resizeHudRow = (row, width, minHeight) => {
-  const labelWidth = Math.max(1, width - 24);
-  row.label.style.wordWrapWidth = labelWidth;
-  drawPanelBackground(row.background, width, Math.max(minHeight, row.label.height + 16), 0.78);
-};
-
-const createLoadingBarView = (width, height, fillColor) => {
-  const view = new Graphics();
-  view
-    .roundRect(0, 0, width, height, 6)
-    .fill(fillColor)
-    .stroke({ width: 1, color: 0x96ffe0, alpha: fillColor === 0x06120b ? 0.34 : 0.18 });
-  return view;
-};
-
 const renderUiNow = () => {
   if (app && uiScene) {
     app.render();
@@ -384,7 +359,7 @@ const syncGameUi = () => {
   if (hudMetaText) hudMetaText.text = getHudSecondaryText();
   if (loadingLabelText) loadingLabelText.text = loadingState.value.label;
   if (loadingPercentText) loadingPercentText.text = getLoadingProgressText();
-  if (loadingBar) loadingBar.progress = getLoadingProgressPercent();
+  if (loadingBar) loadingBar.setProgress(getLoadingProgressPercent());
   if (loadingOverlay) loadingOverlay.visible = loadingState.value.visible;
 };
 
@@ -404,9 +379,9 @@ const layoutGameUi = () => {
   hudMetaText.style.letterSpacing = compact ? 1.5 : 2.2;
   hudHintText.style.fontSize = compact ? 8 : 9;
   hudHintText.style.letterSpacing = compact ? 0.9 : 1.2;
-  resizeHudRow(hudRowItems[0], hudWidth, rowMinHeight);
-  resizeHudRow(hudRowItems[1], hudWidth, rowMinHeight);
-  resizeHudRow(hudRowItems[2], hudWidth, hintMinHeight);
+  hudRowItems[0]?.resize(hudWidth, rowMinHeight);
+  hudRowItems[1]?.resize(hudWidth, rowMinHeight);
+  hudRowItems[2]?.resize(hudWidth, hintMinHeight);
   hudRows.arrangeChildren();
   hudPanel.position.set(hudX, hudY);
 
@@ -424,8 +399,7 @@ const layoutGameUi = () => {
   loadingPercentText.style.letterSpacing = compact ? 1.8 : 2.6;
   loadingLabelText.style.wordWrapWidth = panelWidth - 24;
   loadingPercentText.style.wordWrapWidth = panelWidth - 24;
-  loadingBar.width = panelWidth - 24;
-  loadingBar.height = compact ? 12 : 14;
+  loadingBar.resize(panelWidth - 24, compact ? 12 : 14);
   drawPanelBackground(loadingPanel.background, panelWidth, Math.max(compact ? 94 : 106, loadingPanel.content.height + 24), 0.94);
   loadingPanel.content.arrangeChildren();
   loadingPanel.position.set((canvasSize.width - panelWidth) * 0.5, (canvasSize.height - loadingPanel.height) * 0.5);
@@ -467,31 +441,19 @@ const createGameUi = () => {
     letterSpacing: 2.3,
   };
 
-  hudScoreText = createUiText("", hudTextStyle);
-  hudMetaText = createUiText("", hudTextStyle);
-  hudHintText = createUiText(GAME_HINT_TEXT, hintStyle);
   hudRows = new List({ type: "vertical", elementsMargin: 6 });
   hudRowItems = [
-    createHudRow("", hudTextStyle),
-    createHudRow("", hudTextStyle),
-    createHudRow(GAME_HINT_TEXT, hintStyle),
+    new GameUiRowGameObject({ text: "", style: hudTextStyle }),
+    new GameUiRowGameObject({ text: "", style: hudTextStyle }),
+    new GameUiRowGameObject({ text: GAME_HINT_TEXT, style: hintStyle }),
   ];
-  hudRowItems.forEach((row) => hudRows.addChild(row));
-  hudRowItems[0].removeChild(hudRowItems[0].label);
-  hudRowItems[0].addChild(hudScoreText);
-  hudScoreText.x = 12;
-  hudScoreText.y = 8;
-  hudRowItems[0].label = hudScoreText;
-  hudRowItems[1].removeChild(hudRowItems[1].label);
-  hudRowItems[1].addChild(hudMetaText);
-  hudMetaText.x = 12;
-  hudMetaText.y = 8;
-  hudRowItems[1].label = hudMetaText;
-  hudRowItems[2].removeChild(hudRowItems[2].label);
-  hudRowItems[2].addChild(hudHintText);
-  hudHintText.x = 12;
-  hudHintText.y = 8;
-  hudRowItems[2].label = hudHintText;
+  hudRowItems.forEach((row) => {
+    row.ensureSprite();
+    hudRows.addChild(row.sprite);
+  });
+  hudScoreText = hudRowItems[0].label;
+  hudMetaText = hudRowItems[1].label;
+  hudHintText = hudRowItems[2].label;
   hudPanel = new Container();
   hudPanel.zIndex = 50;
   hudPanel.addChild(hudRows);
@@ -501,17 +463,18 @@ const createGameUi = () => {
     ...loadingTextStyle,
     fill: 0xbeffdc,
   });
-  loadingBar = new ProgressBar({
-    bg: createLoadingBarView(320, 14, 0x06120b),
-    fill: createLoadingBarView(320, 14, 0x6ff0b5),
+  loadingBar = new LoadingBarGameObject({
+    width: 320,
+    height: 14,
     progress: getLoadingProgressPercent(),
   });
+  loadingBar.ensureSprite();
   loadingPanel = new Container();
   loadingPanel.background = createPanelBackground();
   loadingPanel.content = new List({ type: "vertical", elementsMargin: 10 });
   loadingPanel.content.position.set(12, 12);
   loadingPanel.content.addChild(loadingLabelText);
-  loadingPanel.content.addChild(loadingBar);
+  loadingPanel.content.addChild(loadingBar.sprite);
   loadingPanel.content.addChild(loadingPercentText);
   loadingPanel.addChild(loadingPanel.background, loadingPanel.content);
   loadingOverlay = new Container();
