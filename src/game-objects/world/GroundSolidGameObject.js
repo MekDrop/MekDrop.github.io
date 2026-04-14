@@ -1,7 +1,20 @@
 import { GameObject } from "src/game-objects/core/GameObject";
 import { Container, TilingSprite } from "pixi.js";
+import { createTextureLoadStep } from "src/game-objects/core/texture-loader";
+import platformWallSprite from "assets/game/sprites/platforms/platform-wall.png";
+import platformStairSprite from "assets/game/sprites/platforms/platform-stair.png";
+
+const PLATFORM_WALL_TEXTURE_KEY = "platformWall";
+const PLATFORM_STAIR_TEXTURE_KEY = "platformStair";
 
 export class GroundSolidGameObject extends GameObject {
+  static getLoaderSteps(loadedTextures) {
+    return [
+      createTextureLoadStep(loadedTextures, PLATFORM_WALL_TEXTURE_KEY, platformWallSprite),
+      createTextureLoadStep(loadedTextures, PLATFORM_STAIR_TEXTURE_KEY, platformStairSprite),
+    ];
+  }
+
   constructor(solid = {}) {
     super({
       x: 0,

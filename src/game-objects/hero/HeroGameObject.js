@@ -2,10 +2,25 @@ import { GameObject } from "src/game-objects/core/GameObject";
 import { StateMachine } from "yuka";
 import { HeroAnimationState } from "src/states/heroes/HeroAnimationState";
 import { AnimatedSprite, Rectangle, Texture } from "pixi.js";
+import { getHeroAnimationSources } from "assets/game/sprites/hero-sprite-registry";
+import { createTextureLoadStep } from "src/game-objects/core/texture-loader";
 
 const clamp = (v, mn, mx) => Math.min(mx, Math.max(mn, v));
 
 export class HeroGameObject extends GameObject {
+  static getTextureKey(index) {
+    return `hero:${index}`;
+  }
+
+  static getTextureKeysByUrl() {
+    return new Map(getHeroAnimationSources().map((url, index) => [url, this.getTextureKey(index)]));
+  }
+
+  static getLoaderSteps(loadedTextures) {
+    const sources = getHeroAnimationSources();
+    return sources.map((url, index) => createTextureLoadStep(loadedTextures, this.getTextureKey(index), url));
+  }
+
   constructor(props = {}) {
     super({
       x: 0,
@@ -29,6 +44,7 @@ export class HeroGameObject extends GameObject {
       preservedState: null,
       spriteTextureCache: new Map(),
       spriteClipCache: new Map(),
+      textureKeysByUrl: null,
       stateMachine: null,
       ...props,
     });
@@ -177,16 +193,16 @@ export class HeroGameObject extends GameObject {
     src,
     animation,
     frameIndex,
-    getLoadedTextureByUrl,
     configurePixelTexture,
   }) {
-    if (!src || !animation || typeof getLoadedTextureByUrl !== "function") return null;
+    if (!src || !animation) return null;
     const cacheKey = `${src}:${animation.columns}x${animation.rows}:${frameIndex}`;
     if (this.spriteTextureCache.has(cacheKey)) {
       return this.spriteTextureCache.get(cacheKey);
     }
 
-    const texture = getLoadedTextureByUrl(src);
+    const textureKey = this.textureKeysByUrl?.get(src) ?? src;
+    const texture = this.getLoadedTexture(textureKey);
     if (!texture) return null;
     const frameWidth = Math.floor(texture.width / animation.columns);
     const frameHeight = Math.floor(texture.height / animation.rows);
@@ -215,7 +231,6 @@ export class HeroGameObject extends GameObject {
   getClipTextures({
     src,
     animation,
-    getLoadedTextureByUrl,
     configurePixelTexture,
   }) {
     if (!src || !animation) return [];
@@ -230,7 +245,6 @@ export class HeroGameObject extends GameObject {
         src,
         animation,
         frameIndex,
-        getLoadedTextureByUrl,
         configurePixelTexture,
       });
       if (frameTexture) textures.push(frameTexture);
@@ -249,7 +263,6 @@ export class HeroGameObject extends GameObject {
     heroScreenOffsetY,
     phaseDead,
     getHeroAnimation,
-    getLoadedTextureByUrl,
     configurePixelTexture,
   }) {
     if (!this.sprite || typeof getHeroAnimation !== "function") return this.facing;
@@ -265,7 +278,6 @@ export class HeroGameObject extends GameObject {
     const textures = this.getClipTextures({
       src: spriteSrc,
       animation,
-      getLoadedTextureByUrl,
       configurePixelTexture,
     });
     if (textures.length === 0) {
@@ -322,7 +334,6 @@ export class HeroGameObject extends GameObject {
       heroScreenOffsetY: context.heroScreenOffsetY,
       phaseDead: context.phaseDead,
       getHeroAnimation: context.getHeroAnimation,
-      getLoadedTextureByUrl: context.getLoadedTextureByUrl,
       configurePixelTexture: context.configurePixelTexture,
     });
   }

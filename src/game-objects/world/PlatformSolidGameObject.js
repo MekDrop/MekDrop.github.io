@@ -1,7 +1,15 @@
 import { GameObject } from "src/game-objects/core/GameObject";
 import { TilingSprite } from "pixi.js";
+import { createTextureLoadStep } from "src/game-objects/core/texture-loader";
+import platformFlyingPlatformSprite from "assets/game/sprites/platforms/platform-flying-platform-manual.png";
+
+const PLATFORM_FLYING_TEXTURE_KEY = "platformFlyingPlatform";
 
 export class PlatformSolidGameObject extends GameObject {
+  static getLoaderSteps(loadedTextures) {
+    return [createTextureLoadStep(loadedTextures, PLATFORM_FLYING_TEXTURE_KEY, platformFlyingPlatformSprite)];
+  }
+
   constructor(solid = {}) {
     super({
       x: 0,

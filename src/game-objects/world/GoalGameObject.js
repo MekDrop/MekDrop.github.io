@@ -1,11 +1,18 @@
 import { GameObject } from "src/game-objects/core/GameObject";
 import { Sprite } from "pixi.js";
+import { createTextureLoadStep } from "src/game-objects/core/texture-loader";
+import portalFrame from "assets/game/sprites/goal/portal-frame-0.png";
 
 const GOAL_BASE_WIDTH_PX = 48;
 const GOAL_BASE_HEIGHT_PX = 64;
 const GOAL_HITBOX_WIDTH = 4.4;
+const GOAL_TEXTURE_KEY = "portalFrame";
 
 export class GoalGameObject extends GameObject {
+  static getLoaderSteps(loadedTextures) {
+    return [createTextureLoadStep(loadedTextures, GOAL_TEXTURE_KEY, portalFrame)];
+  }
+
   constructor(goal = {}) {
     super({
       x: 0,
@@ -17,8 +24,9 @@ export class GoalGameObject extends GameObject {
   }
 
   ensureSprite(texture) {
-    if (this.sprite || !texture) return;
-    this.sprite = new Sprite(texture);
+    const activeTexture = texture ?? this.getLoadedTexture(GOAL_TEXTURE_KEY);
+    if (this.sprite || !activeTexture) return;
+    this.sprite = new Sprite(activeTexture);
     this.sprite.anchor.set(0.5, 0);
     this.sprite.zIndex = 18;
     this.sprite.visible = false;

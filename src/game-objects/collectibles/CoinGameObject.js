@@ -1,7 +1,15 @@
 import { GameObject } from "src/game-objects/core/GameObject";
 import { Sprite } from "pixi.js";
+import { createTextureLoadStep } from "src/game-objects/core/texture-loader";
+import coinGoldSprite from "assets/game/sprites/collectibles/coin-gold.png";
+
+const COIN_TEXTURE_KEY = "coinGold";
 
 export class CoinGameObject extends GameObject {
+  static getLoaderSteps(loadedTextures) {
+    return [createTextureLoadStep(loadedTextures, COIN_TEXTURE_KEY, coinGoldSprite)];
+  }
+
   constructor(coin = {}) {
     super({
       x: 0,
@@ -19,8 +27,9 @@ export class CoinGameObject extends GameObject {
   }
 
   ensureSprite(texture, sizePx) {
-    if (this.sprite || !texture) return;
-    this.sprite = new Sprite(texture);
+    const activeTexture = texture ?? this.getLoadedTexture(COIN_TEXTURE_KEY);
+    if (this.sprite || !activeTexture) return;
+    this.sprite = new Sprite(activeTexture);
     this.sprite.anchor.set(0.5, 0.5);
     this.sprite.visible = true;
     this.sprite.zIndex = 9;

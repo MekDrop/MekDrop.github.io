@@ -17,10 +17,10 @@
 
 <script setup>
 import { List } from "@pixi/ui";
-import { Application, Assets, Container, Graphics, Rectangle, Text, Texture } from "pixi.js";
+import { Application, Container, Graphics, Rectangle, Text, Texture } from "pixi.js";
 import { nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 import { dom } from "quasar";
-import { getHeroAnimation, getHeroAnimationSources } from "assets/game/sprites/hero-sprite-registry";
+import { getHeroAnimation } from "assets/game/sprites/hero-sprite-registry";
 import { CoinGameObject } from "src/game-objects/collectibles/CoinGameObject";
 import { DebugGridGameObject } from "src/game-objects/debug/DebugGridGameObject";
 import { EnemyGameObject } from "src/game-objects/enemy/EnemyGameObject";
@@ -30,13 +30,8 @@ import { LoadingBarGameObject } from "src/game-objects/ui/LoadingBarGameObject";
 import { GoalGameObject } from "src/game-objects/world/GoalGameObject";
 import { GroundSolidGameObject } from "src/game-objects/world/GroundSolidGameObject";
 import { PlatformSolidGameObject } from "src/game-objects/world/PlatformSolidGameObject";
+import { unloadLoadedTextureAssets } from "src/game-objects/core/texture-loader";
 import { MarioLikeMapGenerator } from "src/strategies/map-generators/MarioLikeMapGenerator";
-import coinGoldSprite from "assets/game/sprites/collectibles/coin-gold.png";
-import blockyWalkSpritesheet from "assets/game/sprites/enemies/blocky-creature-walk-spritesheet.png";
-import portalFrame from "assets/game/sprites/goal/portal-frame-0.png";
-import platformFlyingPlatformSprite from "assets/game/sprites/platforms/platform-flying-platform-manual.png";
-import platformWallSprite from "assets/game/sprites/platforms/platform-wall.png";
-import platformStairSprite from "assets/game/sprites/platforms/platform-stair.png";
 
 const BASE_PIXEL_SCALE = 8;
 const MIN_WORLD_WIDTH = 1;
@@ -88,34 +83,20 @@ const PLATFORM_STAIR_CROP = {
   w: 54 / 64,
   h: 26 / 32,
 };
-const REQUIRED_TEXTURE_KEYS = [
-  "coinGold",
-  "blockyWalkSpritesheet",
-  "portalFrame",
-  "platformFlyingPlatform",
-  "platformWall",
-  "platformStair",
-];
-const HERO_TEXTURE_SOURCES = getHeroAnimationSources();
-const HERO_TEXTURE_KEYS = HERO_TEXTURE_SOURCES.map((_, index) => `hero:${index}`);
-const TEXTURE_URLS = Object.fromEntries([
-  ...HERO_TEXTURE_SOURCES.map((url, index) => [`hero:${index}`, url]),
-  ["coinGold", coinGoldSprite],
-  ["blockyWalkSpritesheet", blockyWalkSpritesheet],
-  ["portalFrame", portalFrame],
-  ["platformFlyingPlatform", platformFlyingPlatformSprite],
-  ["platformWall", platformWallSprite],
-  ["platformStair", platformStairSprite],
-]);
 const loadedTextures = new Map();
-const loadedTexturesByUrl = new Map();
-const getUsedTextureKeys = () => [
-  ...HERO_TEXTURE_KEYS,
-  ...REQUIRED_TEXTURE_KEYS,
+const HERO_TEXTURE_KEYS_BY_URL = HeroGameObject.getTextureKeysByUrl();
+const LOADER_GAME_OBJECT_TYPES = [
+  HeroGameObject,
+  EnemyGameObject,
+  CoinGameObject,
+  GoalGameObject,
+  GroundSolidGameObject,
+  PlatformSolidGameObject,
+  DebugGridGameObject,
+  GameUiRowGameObject,
+  LoadingBarGameObject,
 ];
-const getTextureUrlByKey = (key) => TEXTURE_URLS[key] ?? null;
 const getLoadedTextureByKey = (key) => loadedTextures.get(key) ?? null;
-const getLoadedTextureByUrl = (url) => loadedTexturesByUrl.get(url) ?? null;
 
 const PLAYER = {
   width: 7,
@@ -199,19 +180,30 @@ const pickEvenlyDistributed = (items, count) => {
 const createPlayer = () => new HeroGameObject({
   w: PLAYER.width,
   h: PLAYER.height,
+  loadedTextures,
+  textureKeysByUrl: HERO_TEXTURE_KEYS_BY_URL,
 });
 
-const createEnemy = (spawn) => new EnemyGameObject(spawn, {
+const createEnemy = (spawn) => new EnemyGameObject({
+  ...spawn,
+  loadedTextures,
+}, {
   width: ENEMY_WIDTH,
   height: ENEMY_HEIGHT,
 });
 
-const createCoin = (coin) => new CoinGameObject(coin);
-const createGoal = (goalData) => new GoalGameObject(goalData);
+const createCoin = (coin) => new CoinGameObject({
+  ...coin,
+  loadedTextures,
+});
+const createGoal = (goalData) => new GoalGameObject({
+  ...goalData,
+  loadedTextures,
+});
 const createSolid = (solid) => (
   solid.kind === "wall"
-    ? new GroundSolidGameObject(solid)
-    : new PlatformSolidGameObject(solid)
+    ? new GroundSolidGameObject({ ...solid, loadedTextures })
+    : new PlatformSolidGameObject({ ...solid, loadedTextures })
 );
 
 const bodyRect = (body) => ({
@@ -443,9 +435,9 @@ const createGameUi = () => {
 
   hudRows = new List({ type: "vertical", elementsMargin: 6 });
   hudRowItems = [
-    new GameUiRowGameObject({ text: "", style: hudTextStyle }),
-    new GameUiRowGameObject({ text: "", style: hudTextStyle }),
-    new GameUiRowGameObject({ text: GAME_HINT_TEXT, style: hintStyle }),
+    new GameUiRowGameObject({ text: "", style: hudTextStyle, loadedTextures }),
+    new GameUiRowGameObject({ text: "", style: hudTextStyle, loadedTextures }),
+    new GameUiRowGameObject({ text: GAME_HINT_TEXT, style: hintStyle, loadedTextures }),
   ];
   hudRowItems.forEach((row) => {
     row.ensureSprite();
@@ -467,6 +459,7 @@ const createGameUi = () => {
     width: 320,
     height: 14,
     progress: getLoadingProgressPercent(),
+    loadedTextures,
   });
   loadingBar.ensureSprite();
   loadingPanel = new Container();
@@ -518,8 +511,6 @@ let coins = [];
 let app;
 let spriteScene;
 let uiScene;
-let goalTexture;
-let coinTexture;
 let platformTextures = {};
 let enemyTextures = [];
 let hudPanel;
@@ -579,9 +570,7 @@ const createRenderContext = (time = 0) => ({
   heroWorldSize: HERO_WORLD_SIZE,
   heroScreenOffsetY: HERO_SCREEN_OFFSET_Y,
   getHeroAnimation,
-  getLoadedTextureByUrl,
   configurePixelTexture,
-  coinTexture,
   coinWorldSize: COIN_WORLD_SIZE,
   enemyTextures,
   enemyStateFrameMap,
@@ -614,41 +603,30 @@ const viewport = {
   width: 1,
   height: 1,
 };
-const debugGrid = new DebugGridGameObject();
+const debugGrid = new DebugGridGameObject({ loadedTextures });
 
-const loadRequiredTextures = async (keys, onProgress) => {
-  const uniqueKeys = [...new Set(keys)].filter((key) => !!getTextureUrlByKey(key));
-  const total = uniqueKeys.length;
+const getLoaderSteps = (gameObjectTypes = LOADER_GAME_OBJECT_TYPES) => (
+  gameObjectTypes.flatMap((GameObjectType) => {
+    if (typeof GameObjectType?.getLoaderSteps !== "function") return [];
+    return GameObjectType.getLoaderSteps(loadedTextures) ?? [];
+  })
+);
+
+const loadRequiredTextures = async (gameObjectTypes, onProgress) => {
+  const steps = getLoaderSteps(gameObjectTypes);
+  const total = steps.length;
   let completed = 0;
 
   if (typeof onProgress === "function") {
     onProgress({ loaded: 0, total });
   }
 
-  await Promise.all(uniqueKeys.map(async (key) => {
-    if (!loadedTextures.has(key)) {
-      const url = getTextureUrlByKey(key);
-      const texture = await Assets.load(url);
-      texture.source.scaleMode = "nearest";
-      loadedTextures.set(key, texture);
-      loadedTexturesByUrl.set(url, texture);
-    }
-
+  await Promise.all(steps.map((stepPromise) => Promise.resolve(stepPromise).finally(() => {
     completed += 1;
     if (typeof onProgress === "function") {
       onProgress({ loaded: completed, total });
     }
-  }));
-};
-
-const unloadRequiredTextures = async (keys) => {
-  const uniqueKeys = [...new Set(keys)].filter((key) => !!getTextureUrlByKey(key));
-  await Promise.allSettled(uniqueKeys.map(async (key) => {
-    const url = getTextureUrlByKey(key);
-    loadedTextures.delete(key);
-    loadedTexturesByUrl.delete(url);
-    await Assets.unload(url);
-  }));
+  })));
 };
 
 const setLoadingState = (label, progress) => {
@@ -726,19 +704,19 @@ const attachEnemySprites = () => {
 };
 
 const attachCoinSprites = () => {
-  if (!spriteScene || !coinTexture) return;
+  if (!spriteScene) return;
   const coinSizePx = COIN_WORLD_SIZE * BASE_PIXEL_SCALE;
   for (let i = 0; i < coins.length; i++) {
     const coin = coins[i];
     if (!coin) continue;
-    coin.ensureSprite(coinTexture, coinSizePx);
+    coin.ensureSprite(undefined, coinSizePx);
     coin.attach(spriteScene);
   }
 };
 
 const attachGoalSprite = () => {
-  if (!spriteScene || !goalTexture || !goal) return;
-  goal.ensureSprite(goalTexture);
+  if (!spriteScene || !goal) return;
+  goal.ensureSprite();
   goal.attach(spriteScene);
 };
 
@@ -1139,20 +1117,6 @@ const configurePixelTexture = (texture) => {
   return texture;
 };
 
-const cloneTexture = (texture) => {
-  if (!texture) return null;
-  return configurePixelTexture(new Texture({
-    source: texture.source,
-    frame: texture.frame,
-    orig: texture.orig,
-    trim: texture.trim,
-    rotate: texture.rotate,
-    defaultAnchor: texture.defaultAnchor,
-    defaultBorders: texture.defaultBorders,
-    label: texture.label,
-  }));
-};
-
 const createCroppedTexture = (texture, crop) => {
   if (!texture) return null;
   const frame = new Rectangle(
@@ -1304,17 +1268,14 @@ const initPixi = async () => {
   attachDebugGridSprites();
   createGameUi();
 
-  const requiredTextureKeys = getUsedTextureKeys();
   setLoadingState("Loading Sprites", 0.08);
   await waitForPaint();
-  await loadRequiredTextures(requiredTextureKeys, ({ loaded, total }) => {
+  await loadRequiredTextures(LOADER_GAME_OBJECT_TYPES, ({ loaded, total }) => {
     const spriteProgress = total > 0 ? loaded / total : 1;
     setLoadingState("Loading Sprites", 0.08 + spriteProgress * 0.62);
   });
   setLoadingState("Preparing Textures", 0.74);
 
-  goalTexture = cloneTexture(getLoadedTextureByKey("portalFrame"));
-  coinTexture = cloneTexture(getLoadedTextureByKey("coinGold"));
   platformTextures = {
     flyingPlatform: createCroppedTexture(getLoadedTextureByKey("platformFlyingPlatform"), PLATFORM_FLYING_PLATFORM_CROP),
     wall: createCroppedTexture(getLoadedTextureByKey("platformWall"), PLATFORM_WALL_CROP),
@@ -1415,10 +1376,7 @@ onBeforeUnmount(() => {
   enemyTextures.forEach((texture) => {
     if (!texture?.destroyed) texture.destroy(false);
   });
-  if (goalTexture && !goalTexture.destroyed) goalTexture.destroy(false);
-  if (coinTexture && !coinTexture.destroyed) coinTexture.destroy(false);
-  const requiredTextureKeys = getUsedTextureKeys();
-  void unloadRequiredTextures(requiredTextureKeys);
+  void unloadLoadedTextureAssets(loadedTextures);
   if (app) {
     const canvas = app.canvas;
     app.destroy();

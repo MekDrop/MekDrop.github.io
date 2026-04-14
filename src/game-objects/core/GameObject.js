@@ -1,13 +1,24 @@
 export class GameObject {
+  #originalX;
+  #originalY;
+  #originalWidth;
+  #originalHeight;
+
+  // noinspection JSUnusedLocalSymbols
+  static getLoaderSteps(loadedTextures) {
+    return [];
+  }
+
   constructor(props = {}) {
     Object.assign(this, props);
+    this.loadedTextures = props.loadedTextures instanceof Map ? props.loadedTextures : null;
     this.sprite = props.sprite ?? null;
-    this._originalX = Number.isFinite(this.x) ? this.x : 0;
-    this._originalY = Number.isFinite(this.y) ? this.y : 0;
-    this._originalWidth = Number.isFinite(this.w)
+    this.#originalX = Number.isFinite(this.x) ? this.x : 0;
+    this.#originalY = Number.isFinite(this.y) ? this.y : 0;
+    this.#originalWidth = Number.isFinite(this.w)
       ? this.w
       : (Number.isFinite(this.r) ? this.r * 2 : 0);
-    this._originalHeight = Number.isFinite(this.h)
+    this.#originalHeight = Number.isFinite(this.h)
       ? this.h
       : (Number.isFinite(this.r) ? this.r * 2 : 0);
   }
@@ -18,29 +29,29 @@ export class GameObject {
   }
 
   get originalX() {
-    return this._originalX;
+    return this.#originalX;
   }
 
   get originalY() {
-    return this._originalY;
+    return this.#originalY;
   }
 
   get originalWidth() {
-    return this._originalWidth;
+    return this.#originalWidth;
   }
 
   get originalHeight() {
-    return this._originalHeight;
+    return this.#originalHeight;
   }
 
   reset() {
-    this.x = this._originalX;
-    this.y = this._originalY;
+    this.x = this.#originalX;
+    this.y = this.#originalY;
     if (Number.isFinite(this.w)) {
-      this.w = this._originalWidth;
+      this.w = this.#originalWidth;
     }
     if (Number.isFinite(this.h)) {
-      this.h = this._originalHeight;
+      this.h = this.#originalHeight;
     }
     return this;
   }
@@ -49,6 +60,11 @@ export class GameObject {
     if (this.sprite) {
       this.sprite.visible = false;
     }
+  }
+
+  getLoadedTexture(id) {
+    if (!id || !(this.loadedTextures instanceof Map)) return null;
+    return this.loadedTextures.get(id) ?? null;
   }
 
   detachSprite({ destroy = false } = {}) {

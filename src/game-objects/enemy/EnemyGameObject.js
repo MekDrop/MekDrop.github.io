@@ -4,6 +4,8 @@ import { EnemyAlertBackLeftState } from "src/states/enemies/EnemyAlertBackLeftSt
 import { EnemyAlertBackRightState } from "src/states/enemies/EnemyAlertBackRightState";
 import { EnemyWalkState } from "src/states/enemies/EnemyWalkState";
 import { AnimatedSprite } from "pixi.js";
+import { createTextureLoadStep } from "src/game-objects/core/texture-loader";
+import blockyWalkSpritesheet from "assets/game/sprites/enemies/blocky-creature-walk-spritesheet.png";
 
 const EDGE_SUPPORT_PROBE = 1.25;
 const EDGE_LOOKAHEAD = 0.9;
@@ -16,8 +18,13 @@ const BACK_ALERT_COOLDOWN = 0.5;
 const BACK_ALERT_MIN_RUNWAY = 2.25;
 const NEARBY_ENEMY_TURN_DISTANCE = 7.5;
 const NEARBY_ENEMY_LANE_TOLERANCE = 2.5;
+const ENEMY_SPRITESHEET_TEXTURE_KEY = "blockyWalkSpritesheet";
 
 export class EnemyGameObject extends GameObject {
+  static getLoaderSteps(loadedTextures) {
+    return [createTextureLoadStep(loadedTextures, ENEMY_SPRITESHEET_TEXTURE_KEY, blockyWalkSpritesheet)];
+  }
+
   constructor(spawn = {}, defaults = {}) {
     super({
       type: "Blocky",
