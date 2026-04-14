@@ -278,6 +278,7 @@ const generateLevel = (nextWidth, nextHeight, seed = world.seed) => {
   generated.solids = generated.solids.map(createSolid);
   Object.assign(world, generated);
   invalidatePlatformSprites();
+  attachSolidSprites();
   syncSceneSprites(debugGrid.enabled ? debugGrid.frozenTime : performance.now() * 0.001);
 };
 
@@ -603,6 +604,7 @@ const createRenderContext = (time = 0) => ({
   platformGrid: PLATFORM_GRID,
   world,
   enemies,
+  coins,
   player,
   run,
   phaseDead: PHASE_DEAD,
@@ -749,6 +751,55 @@ const attachEnemyControllers = () => {
   }
 };
 
+const attachPlayerSprite = () => {
+  if (!spriteScene) return;
+  player.ensureSprite();
+  player.attach(spriteScene);
+};
+
+const attachEnemySprites = () => {
+  if (!spriteScene || !enemyTextures?.length) return;
+  for (let i = 0; i < enemies.length; i++) {
+    const enemy = enemies[i];
+    if (!enemy) continue;
+    enemy.ensureSprite(enemyTextures);
+    enemy.attach(spriteScene);
+  }
+};
+
+const attachCoinSprites = () => {
+  if (!spriteScene || !coinTexture) return;
+  const coinSizePx = COIN_WORLD_SIZE * BASE_PIXEL_SCALE;
+  for (let i = 0; i < coins.length; i++) {
+    const coin = coins[i];
+    if (!coin) continue;
+    coin.ensureSprite(coinTexture, coinSizePx);
+    coin.attach(spriteScene);
+  }
+};
+
+const attachSolidSprites = () => {
+  if (!spriteScene || !arePlatformTexturesReady()) return;
+  for (let i = 0; i < world.solids.length; i++) {
+    const solid = world.solids[i];
+    if (!solid) continue;
+    if (solid.kind === "wall") {
+      solid.ensureSprite(platformTextures);
+    } else {
+      solid.ensureSprite(platformTextures[solid.kind]);
+    }
+    solid.attach(spriteScene);
+  }
+};
+
+const attachDebugGridSprites = () => {
+  if (!spriteScene || !uiScene) return;
+  debugGrid.ensureSprite();
+  debugGrid.attach(spriteScene);
+  debugGrid.ensurePanel();
+  debugGrid.attachPanel(uiScene);
+};
+
 const resetLevel = () => {
   run.timer = clamp(Math.round(world.width * 0.55), 90, 180);
   run.phase = PHASE_PLAYING;
@@ -760,7 +811,9 @@ const resetLevel = () => {
   detachObjectSprites(coins);
   enemies = world.enemySpawns.map(createEnemy);
   attachEnemyControllers();
+  attachEnemySprites();
   coins = world.coins.map(createCoin);
+  attachCoinSprites();
   run.coinsInStage = coins.length;
   run.collectedInStage = 0;
   run.doorUnlocked = run.coinsInStage === 0;
@@ -833,7 +886,9 @@ const regenerateWorld = (widthPx, heightPx, resetProgress = false) => {
     detachObjectSprites(coins);
     enemies = world.enemySpawns.map(createEnemy);
     attachEnemyControllers();
+    attachEnemySprites();
     coins = world.coins.map(createCoin);
+    attachCoinSprites();
     run.coinsInStage = coins.length;
     run.collectedInStage = 0;
     run.doorUnlocked = run.coinsInStage === 0;
@@ -1330,6 +1385,8 @@ const initPixi = async () => {
   uiScene.sortableChildren = true;
   uiScene.eventMode = "none";
   app.stage.addChild(spriteScene, uiScene);
+  attachPlayerSprite();
+  attachDebugGridSprites();
   createGameUi();
 
   const requiredTextureKeys = getUsedTextureKeys();

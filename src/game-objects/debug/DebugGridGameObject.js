@@ -35,18 +35,17 @@ export class DebugGridGameObject extends GameObject {
     }
   }
 
-  ensureSprite(scene) {
-    if (this.sprite || !scene) return;
+  ensureSprite() {
+    if (this.sprite) return;
     this.sprite = new Container();
     this.sprite.zIndex = 55;
     this.fillGraphics = new Graphics();
     this.gridGraphics = new Graphics();
     this.sprite.addChild(this.fillGraphics, this.gridGraphics);
-    scene.addChild(this.sprite);
   }
 
-  ensurePanel(uiScene) {
-    if (this.panel || !uiScene) return;
+  ensurePanel() {
+    if (this.panel) return;
     this.panel = new Container();
     this.panel.zIndex = 56;
     this.panelBackground = new Graphics();
@@ -61,6 +60,10 @@ export class DebugGridGameObject extends GameObject {
       },
     });
     this.panel.addChild(this.panelBackground, this.panelLabel);
+  }
+
+  attachPanel(uiScene) {
+    if (!uiScene || !this.panel) return;
     uiScene.addChild(this.panel);
   }
 
@@ -153,17 +156,15 @@ export class DebugGridGameObject extends GameObject {
 
   syncRender(context = {}) {
     const {
-      scene,
-      uiScene,
       viewport,
       basePixelScale,
       platformGrid,
       world,
       player,
+      enemies,
+      coins,
     } = context;
 
-    this.ensureSprite(scene);
-    this.ensurePanel(uiScene);
     if (!this.sprite || !this.gridGraphics || !this.fillGraphics || !viewport || !world) return;
 
     this.sprite.visible = this.enabled;
@@ -209,9 +210,14 @@ export class DebugGridGameObject extends GameObject {
       this.drawGridCellBounds(solidBounds, color, viewport, basePixelScale, platformGrid, 0.28);
     }
 
-    for (let i = 0; i < world.enemySpawns.length; i++) {
+    for (let i = 0; i < (enemies?.length ?? 0); i++) {
+      const enemy = enemies[i];
+      if (!enemy) continue;
       this.drawGridCellBounds(
-        this.enemyToGridBounds(world, platformGrid, world.enemySpawns[i]),
+        this.enemyToGridBounds(world, platformGrid, {
+          x: enemy.originalX,
+          y: enemy.originalY,
+        }),
         0xff5e5e,
         viewport,
         basePixelScale,
@@ -220,9 +226,14 @@ export class DebugGridGameObject extends GameObject {
       );
     }
 
-    for (let i = 0; i < world.coins.length; i++) {
+    for (let i = 0; i < (coins?.length ?? 0); i++) {
+      const coin = coins[i];
+      if (!coin) continue;
       this.drawGridCellBounds(
-        this.coinToGridBounds(world, platformGrid, world.coins[i]),
+        this.coinToGridBounds(world, platformGrid, {
+          x: coin.originalX,
+          y: coin.originalY,
+        }),
         0xffe56a,
         viewport,
         basePixelScale,
@@ -233,7 +244,14 @@ export class DebugGridGameObject extends GameObject {
 
     if (player) {
       this.drawGridCellBounds(
-        this.heroToGridBounds(world, platformGrid, world.spawn.x, world.spawn.y, player.w, player.h),
+        this.heroToGridBounds(
+          world,
+          platformGrid,
+          player.originalX,
+          player.originalY,
+          player.originalWidth,
+          player.originalHeight,
+        ),
         0x8cff8e,
         viewport,
         basePixelScale,
@@ -242,14 +260,16 @@ export class DebugGridGameObject extends GameObject {
       );
     }
 
-    this.drawGridCellBounds(
-      this.worldRectToGridBounds(world, platformGrid, world.spawn.x - 0.5, world.spawn.y, 1, 1),
-      0x8cff8e,
-      viewport,
-      basePixelScale,
-      platformGrid,
-      0.75,
-    );
+    if (player) {
+      this.drawGridCellBounds(
+        this.worldRectToGridBounds(world, platformGrid, player.originalX - 0.5, player.originalY, 1, 1),
+        0x8cff8e,
+        viewport,
+        basePixelScale,
+        platformGrid,
+        0.75,
+      );
+    }
 
     this.syncPanel(viewport);
   }

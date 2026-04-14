@@ -13,8 +13,8 @@ export class GroundSolidGameObject extends GameObject {
     });
   }
 
-  ensureSprite(scene, textures = {}) {
-    if (this.sprite || !scene || !textures.wallTop || !textures.wallFill) return;
+  ensureSprite(textures = {}) {
+    if (this.sprite || !textures.wallTop || !textures.wallFill) return;
     const container = new Container();
     const middle = new TilingSprite({
       texture: textures.wallTop,
@@ -41,16 +41,13 @@ export class GroundSolidGameObject extends GameObject {
     container.right = right;
     container.addChild(middle, right, left);
     this.sprite = container;
-    scene.addChild(this.sprite);
   }
 
   syncSprite({
-    scene,
     textures,
     viewport,
     basePixelScale,
   }) {
-    this.ensureSprite(scene, textures);
     if (!this.sprite) {
       this.hideSprite();
       return;
@@ -107,7 +104,6 @@ export class GroundSolidGameObject extends GameObject {
 
   syncRender(context = {}) {
     return this.syncSprite({
-      scene: context.scene,
       textures: context.platformTextures,
       viewport: context.viewport,
       basePixelScale: context.basePixelScale,

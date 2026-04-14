@@ -13,8 +13,8 @@ export class PlatformSolidGameObject extends GameObject {
     });
   }
 
-  ensureSprite(scene, texture) {
-    if (this.sprite || !scene || !texture) return;
+  ensureSprite(texture) {
+    if (this.sprite || !texture) return;
     this.sprite = new TilingSprite({
       texture,
       width: texture.width,
@@ -22,17 +22,14 @@ export class PlatformSolidGameObject extends GameObject {
     });
     this.sprite.visible = false;
     this.sprite.zIndex = 8;
-    scene.addChild(this.sprite);
   }
 
   syncSprite({
-    scene,
     texture,
     viewport,
     basePixelScale,
     tileScale = 1,
   }) {
-    this.ensureSprite(scene, texture);
     if (!this.sprite || !texture) {
       this.hideSprite();
       return;
@@ -54,7 +51,6 @@ export class PlatformSolidGameObject extends GameObject {
 
   syncRender(context = {}) {
     return this.syncSprite({
-      scene: context.scene,
       texture: context.platformTextures?.[this.kind],
       viewport: context.viewport,
       basePixelScale: context.basePixelScale,

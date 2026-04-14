@@ -146,8 +146,8 @@ export class EnemyGameObject extends GameObject {
     return !moved?.hitX;
   }
 
-  ensureSprite(scene, textures) {
-    if (this.sprite || !scene || !textures?.length) return;
+  ensureSprite(textures) {
+    if (this.sprite || !textures?.length) return;
     this.sprite = new AnimatedSprite(textures);
     this.sprite.anchor.set(0.5, 0);
     this.sprite.visible = false;
@@ -155,18 +155,15 @@ export class EnemyGameObject extends GameObject {
     this.sprite.animationSpeed = 0.12;
     this.sprite.stop();
     this.sprite.zIndex = 10;
-    scene.addChild(this.sprite);
   }
 
   syncSprite({
-    scene,
     viewport,
     basePixelScale,
     enemyTextures,
     stateFrameMap,
     sizePx,
   }) {
-    this.ensureSprite(scene, enemyTextures);
     if (!this.sprite || !this.alive || !enemyTextures?.length) {
       this.sprite?.stop?.();
       this.hideSprite();
@@ -199,7 +196,6 @@ export class EnemyGameObject extends GameObject {
 
   syncRender(context = {}) {
     return this.syncSprite({
-      scene: context.scene,
       viewport: context.viewport,
       basePixelScale: context.basePixelScale,
       enemyTextures: context.enemyTextures,

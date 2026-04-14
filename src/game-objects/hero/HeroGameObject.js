@@ -116,14 +116,13 @@ export class HeroGameObject extends GameObject {
     return "idle";
   }
 
-  ensureSprite(scene) {
-    if (this.sprite || !scene) return;
+  ensureSprite() {
+    if (this.sprite) return;
     this.sprite = new AnimatedSprite([Texture.EMPTY]);
     this.sprite.anchor.set(0.5, 0);
     this.sprite.visible = false;
     this.sprite.zIndex = 20;
     this.sprite.stop();
-    scene.addChild(this.sprite);
   }
 
   getFrameTexture({
@@ -194,7 +193,6 @@ export class HeroGameObject extends GameObject {
   }
 
   syncSprite({
-    scene,
     run,
     time,
     viewport,
@@ -206,7 +204,6 @@ export class HeroGameObject extends GameObject {
     getLoadedTextureByUrl,
     configurePixelTexture,
   }) {
-    this.ensureSprite(scene);
     if (!this.sprite || typeof getHeroAnimation !== "function") return this.facing;
 
     const animationName = this.animationState ?? "idle";
@@ -269,7 +266,6 @@ export class HeroGameObject extends GameObject {
 
   syncRender(context = {}) {
     return this.syncSprite({
-      scene: context.scene,
       run: context.run,
       time: context.time,
       viewport: context.viewport,
