@@ -1,13 +1,15 @@
 import { GameObject } from "src/game-objects/core/GameObject";
-import { Sprite } from "pixi.js";
-import { createTextureLoadStep } from "src/game-objects/core/texture-loader";
+import { Sprite, Texture } from "pixi.js";
+import { AssetsManager } from "src/core/AssetsManager";
 import coinGoldSprite from "assets/game/sprites/collectibles/coin-gold.png";
 
 const COIN_TEXTURE_KEY = "coinGold";
 
 export class CoinGameObject extends GameObject {
-  static getLoaderSteps(loadedTextures) {
-    return [createTextureLoadStep(loadedTextures, COIN_TEXTURE_KEY, coinGoldSprite)];
+  static assetsManager = new AssetsManager();
+
+  static getLoaderSteps() {
+    return [this.assetsManager.addTextureFromUrl(COIN_TEXTURE_KEY, coinGoldSprite)];
   }
 
   constructor(coin = {}) {
@@ -24,17 +26,23 @@ export class CoinGameObject extends GameObject {
     if (!coin.phase) {
       this.phase = (this.x + this.y) * 0.1;
     }
+    this.ensureSprite();
   }
 
-  ensureSprite(texture, sizePx) {
-    const activeTexture = texture ?? this.getLoadedTexture(COIN_TEXTURE_KEY);
-    if (this.sprite || !activeTexture) return;
-    this.sprite = new Sprite(activeTexture);
+  ensureSprite(texture = null, sizePx = 1) {
+    const activeTexture = texture ?? this.constructor.assetsManager.textures.get(COIN_TEXTURE_KEY) ?? null;
+    if (this.sprite) {
+      if (activeTexture && this.sprite.texture !== activeTexture) {
+        this.sprite.texture = activeTexture;
+      }
+      return;
+    }
+    this.sprite = new Sprite(activeTexture ?? Texture.EMPTY);
     this.sprite.anchor.set(0.5, 0.5);
     this.sprite.visible = true;
     this.sprite.zIndex = 9;
-    this.sprite.width = sizePx;
-    this.sprite.height = sizePx;
+    this.sprite.width = Math.max(1, sizePx);
+    this.sprite.height = Math.max(1, sizePx);
     this.baseScaleX = this.sprite.scale.x;
   }
 
@@ -45,10 +53,21 @@ export class CoinGameObject extends GameObject {
     coinWorldSize,
   }) {
     const sizePx = coinWorldSize * basePixelScale;
+    this.ensureSprite();
+    const activeTexture = this.constructor.assetsManager.textures.get(COIN_TEXTURE_KEY) ?? null;
     if (!this.sprite || this.collected) {
       this.hideSprite();
       return;
     }
+    if (!activeTexture) {
+      this.hideSprite();
+      return;
+    }
+    if (this.sprite.texture !== activeTexture) {
+      this.sprite.texture = activeTexture;
+    }
+    const textureWidth = Math.max(1, this.sprite.texture.width);
+    this.baseScaleX = sizePx / textureWidth;
 
     const bobOffset = Math.sin(time * 3.4 + this.phase) * 0.35;
     const spinPhase = time * 4.5 + this.phase * 1.4;
@@ -59,6 +78,7 @@ export class CoinGameObject extends GameObject {
     const top = viewport.y + viewport.height - (this.y + coinWorldSize * 0.5 + bobOffset) * basePixelScale;
 
     this.sprite.position.set(left + sizePx * 0.5, top + sizePx * 0.5);
+    this.sprite.height = sizePx;
     this.sprite.scale.x = this.baseScaleX * flipMagnitude * flipSign;
   }
 

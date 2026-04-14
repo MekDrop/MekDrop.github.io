@@ -4,14 +4,12 @@ export class GameObject {
   #originalWidth;
   #originalHeight;
 
-  // noinspection JSUnusedLocalSymbols
-  static getLoaderSteps(loadedTextures) {
+  static getLoaderSteps() {
     return [];
   }
 
   constructor(props = {}) {
     Object.assign(this, props);
-    this.loadedTextures = props.loadedTextures instanceof Map ? props.loadedTextures : null;
     this.sprite = props.sprite ?? null;
     this.#originalX = Number.isFinite(this.x) ? this.x : 0;
     this.#originalY = Number.isFinite(this.y) ? this.y : 0;
@@ -60,11 +58,6 @@ export class GameObject {
     if (this.sprite) {
       this.sprite.visible = false;
     }
-  }
-
-  getLoadedTexture(id) {
-    if (!id || !(this.loadedTextures instanceof Map)) return null;
-    return this.loadedTextures.get(id) ?? null;
   }
 
   detachSprite({ destroy = false } = {}) {

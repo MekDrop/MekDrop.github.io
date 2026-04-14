@@ -1,6 +1,6 @@
 import { GameObject } from "src/game-objects/core/GameObject";
-import { Sprite } from "pixi.js";
-import { createTextureLoadStep } from "src/game-objects/core/texture-loader";
+import { Sprite, Texture } from "pixi.js";
+import { AssetsManager } from "src/core/AssetsManager";
 import portalFrame from "assets/game/sprites/goal/portal-frame-0.png";
 
 const GOAL_BASE_WIDTH_PX = 48;
@@ -9,8 +9,10 @@ const GOAL_HITBOX_WIDTH = 4.4;
 const GOAL_TEXTURE_KEY = "portalFrame";
 
 export class GoalGameObject extends GameObject {
-  static getLoaderSteps(loadedTextures) {
-    return [createTextureLoadStep(loadedTextures, GOAL_TEXTURE_KEY, portalFrame)];
+  static assetsManager = new AssetsManager();
+
+  static getLoaderSteps() {
+    return [this.assetsManager.addTextureFromUrl(GOAL_TEXTURE_KEY, portalFrame)];
   }
 
   constructor(goal = {}) {
@@ -21,12 +23,18 @@ export class GoalGameObject extends GameObject {
       h: 40,
       ...goal,
     });
+    this.ensureSprite();
   }
 
-  ensureSprite(texture) {
-    const activeTexture = texture ?? this.getLoadedTexture(GOAL_TEXTURE_KEY);
-    if (this.sprite || !activeTexture) return;
-    this.sprite = new Sprite(activeTexture);
+  ensureSprite(texture = null) {
+    const activeTexture = texture ?? this.constructor.assetsManager.textures.get(GOAL_TEXTURE_KEY) ?? null;
+    if (this.sprite) {
+      if (activeTexture && this.sprite.texture !== activeTexture) {
+        this.sprite.texture = activeTexture;
+      }
+      return;
+    }
+    this.sprite = new Sprite(activeTexture ?? Texture.EMPTY);
     this.sprite.anchor.set(0.5, 0);
     this.sprite.zIndex = 18;
     this.sprite.visible = false;
@@ -47,7 +55,15 @@ export class GoalGameObject extends GameObject {
     basePixelScale,
     isUnlocked,
   }) {
-    if (!this.sprite) return;
+    this.ensureSprite();
+    const activeTexture = this.constructor.assetsManager.textures.get(GOAL_TEXTURE_KEY) ?? null;
+    if (!this.sprite || !activeTexture) {
+      this.hideSprite();
+      return;
+    }
+    if (this.sprite.texture !== activeTexture) {
+      this.sprite.texture = activeTexture;
+    }
 
     const pulse = isUnlocked ? 1 + Math.sin(time * 3.2) * 0.04 : 0.9;
     const widthPx = GOAL_BASE_WIDTH_PX * pulse;

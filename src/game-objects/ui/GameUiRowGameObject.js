@@ -22,6 +22,7 @@ export class GameUiRowGameObject extends GameObject {
       label: null,
       ...props,
     });
+    this.ensureSprite();
   }
 
   ensureSprite() {

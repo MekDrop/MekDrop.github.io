@@ -17,7 +17,7 @@
 
 <script setup>
 import { List } from "@pixi/ui";
-import { Application, Container, Graphics, Rectangle, Text, Texture } from "pixi.js";
+import { Application, Container, Graphics, Text } from "pixi.js";
 import { nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 import { dom } from "quasar";
 import { getHeroAnimation } from "assets/game/sprites/hero-sprite-registry";
@@ -30,7 +30,6 @@ import { LoadingBarGameObject } from "src/game-objects/ui/LoadingBarGameObject";
 import { GoalGameObject } from "src/game-objects/world/GoalGameObject";
 import { GroundSolidGameObject } from "src/game-objects/world/GroundSolidGameObject";
 import { PlatformSolidGameObject } from "src/game-objects/world/PlatformSolidGameObject";
-import { unloadLoadedTextureAssets } from "src/game-objects/core/texture-loader";
 import { MarioLikeMapGenerator } from "src/strategies/map-generators/MarioLikeMapGenerator";
 
 const BASE_PIXEL_SCALE = 8;
@@ -49,42 +48,6 @@ const HERO_WORLD_SIZE = 16;
 const COIN_WORLD_SIZE = PLATFORM_GRID;
 const HERO_TURN_DURATION = 0.34;
 const HERO_SCREEN_OFFSET_Y = 5;
-const PLATFORM_FLYING_PLATFORM_CROP = {
-  x: 0 / 64,
-  y: 0 / 24,
-  w: 64 / 64,
-  h: 24 / 24,
-};
-const PLATFORM_FLYING_PLATFORM_TILE_SCALE = {
-  x: 55 / 64,
-  y: 2,
-};
-const PLATFORM_WALL_CROP = {
-  x: 0 / 32,
-  y: 12 / 32,
-  w: 32 / 32,
-  h: 10 / 32,
-};
-const PLATFORM_WALL_TOP_CROP = {
-  x: 0 / 32,
-  y: 12 / 32,
-  w: 32 / 32,
-  h: 4 / 32,
-};
-const PLATFORM_WALL_FILL_CROP = {
-  x: 0 / 32,
-  y: 16 / 32,
-  w: 32 / 32,
-  h: 4 / 32,
-};
-const PLATFORM_STAIR_CROP = {
-  x: 5 / 64,
-  y: 3 / 32,
-  w: 54 / 64,
-  h: 26 / 32,
-};
-const loadedTextures = new Map();
-const HERO_TEXTURE_KEYS_BY_URL = HeroGameObject.getTextureKeysByUrl();
 const LOADER_GAME_OBJECT_TYPES = [
   HeroGameObject,
   EnemyGameObject,
@@ -96,7 +59,6 @@ const LOADER_GAME_OBJECT_TYPES = [
   GameUiRowGameObject,
   LoadingBarGameObject,
 ];
-const getLoadedTextureByKey = (key) => loadedTextures.get(key) ?? null;
 
 const PLAYER = {
   width: 7,
@@ -180,13 +142,11 @@ const pickEvenlyDistributed = (items, count) => {
 const createPlayer = () => new HeroGameObject({
   w: PLAYER.width,
   h: PLAYER.height,
-  loadedTextures,
-  textureKeysByUrl: HERO_TEXTURE_KEYS_BY_URL,
+  turnDuration: HERO_TURN_DURATION,
 });
 
 const createEnemy = (spawn) => new EnemyGameObject({
   ...spawn,
-  loadedTextures,
 }, {
   width: ENEMY_WIDTH,
   height: ENEMY_HEIGHT,
@@ -194,16 +154,14 @@ const createEnemy = (spawn) => new EnemyGameObject({
 
 const createCoin = (coin) => new CoinGameObject({
   ...coin,
-  loadedTextures,
 });
 const createGoal = (goalData) => new GoalGameObject({
   ...goalData,
-  loadedTextures,
 });
 const createSolid = (solid) => (
   solid.kind === "wall"
-    ? new GroundSolidGameObject({ ...solid, loadedTextures })
-    : new PlatformSolidGameObject({ ...solid, loadedTextures })
+    ? new GroundSolidGameObject({ ...solid })
+    : new PlatformSolidGameObject({ ...solid })
 );
 
 const bodyRect = (body) => ({
@@ -341,7 +299,7 @@ const drawPanelBackground = (graphics, width, height, alpha = 0.88) => {
 const createUiText = (text, style) => new Text({ text, style });
 
 const renderUiNow = () => {
-  if (app && uiScene) {
+  if (app?.renderer && app?.stage && uiScene) {
     app.render();
   }
 };
@@ -435,12 +393,11 @@ const createGameUi = () => {
 
   hudRows = new List({ type: "vertical", elementsMargin: 6 });
   hudRowItems = [
-    new GameUiRowGameObject({ text: "", style: hudTextStyle, loadedTextures }),
-    new GameUiRowGameObject({ text: "", style: hudTextStyle, loadedTextures }),
-    new GameUiRowGameObject({ text: GAME_HINT_TEXT, style: hintStyle, loadedTextures }),
+    new GameUiRowGameObject({ text: "", style: hudTextStyle }),
+    new GameUiRowGameObject({ text: "", style: hudTextStyle }),
+    new GameUiRowGameObject({ text: GAME_HINT_TEXT, style: hintStyle }),
   ];
   hudRowItems.forEach((row) => {
-    row.ensureSprite();
     hudRows.addChild(row.sprite);
   });
   hudScoreText = hudRowItems[0].label;
@@ -459,9 +416,7 @@ const createGameUi = () => {
     width: 320,
     height: 14,
     progress: getLoadingProgressPercent(),
-    loadedTextures,
   });
-  loadingBar.ensureSprite();
   loadingPanel = new Container();
   loadingPanel.background = createPanelBackground();
   loadingPanel.content = new List({ type: "vertical", elementsMargin: 10 });
@@ -501,9 +456,6 @@ const run = {
 };
 
 const player = createPlayer();
-player.initializeStateMachine({
-  turnDuration: HERO_TURN_DURATION,
-});
 let goal = createGoal(world.goal);
 let enemies = [];
 let coins = [];
@@ -511,8 +463,6 @@ let coins = [];
 let app;
 let spriteScene;
 let uiScene;
-let platformTextures = {};
-let enemyTextures = [];
 let hudPanel;
 let hudRows;
 let hudRowItems = [];
@@ -529,26 +479,10 @@ let previousTimeMs = 0;
 let playerLandingEvent = null;
 let lastHeroRenderFacing = 1;
 let platformSpritesDirty = true;
-const enemyStateFrameMap = {
-  walkLeft: [0, 1, 2],
-  walkRight: [0, 1, 2],
-  alertBackLeft: [0, 1, 2, 3, 4],
-  alertBackRight: [0, 1, 2, 3, 4],
-};
 const canvasSize = {
   width: 1,
   height: 1,
 };
-
-const arePlatformTexturesReady = () => (
-  Boolean(
-    platformTextures.flyingPlatform &&
-    platformTextures.wall &&
-    platformTextures.wallTop &&
-    platformTextures.wallFill &&
-    platformTextures.stair
-  )
-);
 
 const invalidatePlatformSprites = () => {
   platformSpritesDirty = true;
@@ -570,13 +504,7 @@ const createRenderContext = (time = 0) => ({
   heroWorldSize: HERO_WORLD_SIZE,
   heroScreenOffsetY: HERO_SCREEN_OFFSET_Y,
   getHeroAnimation,
-  configurePixelTexture,
   coinWorldSize: COIN_WORLD_SIZE,
-  enemyTextures,
-  enemyStateFrameMap,
-  enemySizePx: ENEMY_HEIGHT * BASE_PIXEL_SCALE,
-  platformTextures,
-  flyingPlatformTileScale: PLATFORM_FLYING_PLATFORM_TILE_SCALE,
 });
 
 const syncRenderableObjects = (objects, renderContext) => {
@@ -603,12 +531,12 @@ const viewport = {
   width: 1,
   height: 1,
 };
-const debugGrid = new DebugGridGameObject({ loadedTextures });
+const debugGrid = new DebugGridGameObject();
 
 const getLoaderSteps = (gameObjectTypes = LOADER_GAME_OBJECT_TYPES) => (
   gameObjectTypes.flatMap((GameObjectType) => {
     if (typeof GameObjectType?.getLoaderSteps !== "function") return [];
-    return GameObjectType.getLoaderSteps(loadedTextures) ?? [];
+    return GameObjectType.getLoaderSteps() ?? [];
   })
 );
 
@@ -669,6 +597,8 @@ const detachObjectSprites = (items = []) => {
 
 const resetPlayer = () => {
   player.reset(0);
+  player.x = world.spawn.x;
+  player.y = world.spawn.y;
   player.prevY = world.spawn.y;
   lastHeroRenderFacing = player.facing;
 };
@@ -677,7 +607,7 @@ const attachEnemyControllers = () => {
   for (let i = 0; i < enemies.length; i++) {
     const enemy = enemies[i];
     if (!enemy) continue;
-    enemy.initializeStateMachine({
+    enemy.setRuntime({
       moveBody,
       solidSupportBelow,
       solidSupportAhead,
@@ -689,56 +619,44 @@ const attachEnemyControllers = () => {
 
 const attachPlayerSprite = () => {
   if (!spriteScene) return;
-  player.ensureSprite();
   player.attach(spriteScene);
 };
 
 const attachEnemySprites = () => {
-  if (!spriteScene || !enemyTextures?.length) return;
+  if (!spriteScene) return;
   for (let i = 0; i < enemies.length; i++) {
     const enemy = enemies[i];
     if (!enemy) continue;
-    enemy.ensureSprite(enemyTextures);
     enemy.attach(spriteScene);
   }
 };
 
 const attachCoinSprites = () => {
   if (!spriteScene) return;
-  const coinSizePx = COIN_WORLD_SIZE * BASE_PIXEL_SCALE;
   for (let i = 0; i < coins.length; i++) {
     const coin = coins[i];
     if (!coin) continue;
-    coin.ensureSprite(undefined, coinSizePx);
     coin.attach(spriteScene);
   }
 };
 
 const attachGoalSprite = () => {
   if (!spriteScene || !goal) return;
-  goal.ensureSprite();
   goal.attach(spriteScene);
 };
 
 const attachSolidSprites = () => {
-  if (!spriteScene || !arePlatformTexturesReady()) return;
+  if (!spriteScene) return;
   for (let i = 0; i < world.solids.length; i++) {
     const solid = world.solids[i];
     if (!solid) continue;
-    if (solid.kind === "wall") {
-      solid.ensureSprite(platformTextures);
-    } else {
-      solid.ensureSprite(platformTextures[solid.kind]);
-    }
     solid.attach(spriteScene);
   }
 };
 
 const attachDebugGridSprites = () => {
   if (!spriteScene || !uiScene) return;
-  debugGrid.ensureSprite();
   debugGrid.attach(spriteScene);
-  debugGrid.ensurePanel();
   debugGrid.attachPanel(uiScene);
 };
 
@@ -804,6 +722,9 @@ const regenerateWorld = (widthPx, heightPx, resetProgress = false) => {
   } else {
     if (!player.restoreRuntimeState()) {
       player.reset(0);
+      player.x = world.spawn.x;
+      player.y = world.spawn.y;
+      player.prevY = world.spawn.y;
     }
     detachObjectSprites(enemies);
     detachObjectSprites(coins);
@@ -950,8 +871,6 @@ const collectCoins = () => {
   }
 };
 
-const goalHitbox = () => goal.getHitbox();
-
 const stompEnemy = (enemy) => {
   enemy.alive = false;
   enemy.vx = 0;
@@ -1050,7 +969,7 @@ const stepPlayer = (delta) => {
   if (run.phase === PHASE_PLAYING) {
     collectCoins();
     resolveEnemyCollisions();
-    if (run.doorUnlocked && overlap(bodyRect(player), goalHitbox())) {
+    if (run.doorUnlocked && overlap(bodyRect(player), goal.getHitbox())) {
       clearStage();
     }
     if (player.y < -18 || run.timer <= 0) {
@@ -1112,28 +1031,8 @@ const stepGame = (delta) => {
   syncHud();
 };
 
-const configurePixelTexture = (texture) => {
-  texture.source.scaleMode = "nearest";
-  return texture;
-};
-
-const createCroppedTexture = (texture, crop) => {
-  if (!texture) return null;
-  const frame = new Rectangle(
-    Math.round(texture.width * crop.x),
-    Math.round(texture.height * crop.y),
-    Math.round(texture.width * crop.w),
-    Math.round(texture.height * crop.h),
-  );
-
-  return configurePixelTexture(new Texture({
-    source: texture.source,
-    frame,
-  }));
-};
-
 const flushPlatformSprites = () => {
-  if (!platformSpritesDirty || !spriteScene || !arePlatformTexturesReady()) return;
+  if (!platformSpritesDirty || !spriteScene) return;
   syncRenderableObjects(world.solids, createRenderContext());
   platformSpritesDirty = false;
 };
@@ -1275,45 +1174,7 @@ const initPixi = async () => {
     setLoadingState("Loading Sprites", 0.08 + spriteProgress * 0.62);
   });
   setLoadingState("Preparing Textures", 0.74);
-
-  platformTextures = {
-    flyingPlatform: createCroppedTexture(getLoadedTextureByKey("platformFlyingPlatform"), PLATFORM_FLYING_PLATFORM_CROP),
-    wall: createCroppedTexture(getLoadedTextureByKey("platformWall"), PLATFORM_WALL_CROP),
-    wallTop: createCroppedTexture(getLoadedTextureByKey("platformWall"), PLATFORM_WALL_TOP_CROP),
-    wallFill: createCroppedTexture(getLoadedTextureByKey("platformWall"), PLATFORM_WALL_FILL_CROP),
-    stair: createCroppedTexture(getLoadedTextureByKey("platformStair"), PLATFORM_STAIR_CROP),
-  };
   flushPlatformSprites();
-  // Extract blocky frames (top row walk + bottom row alert poses).
-  const enemySpritesheet = getLoadedTextureByKey("blockyWalkSpritesheet");
-  const enemyFrameColumns = 3;
-  const enemyFrameRows = 2;
-  const enemyFrameCells = [
-    { col: 0, row: 0 },
-    { col: 1, row: 0 },
-    { col: 2, row: 0 },
-    { col: 0, row: 1 },
-    { col: 1, row: 1 },
-  ];
-
-  if (enemySpritesheet) {
-    const enemyFrameWidth = enemySpritesheet.width / enemyFrameColumns;
-    const enemyFrameHeight = enemySpritesheet.height / enemyFrameRows;
-
-    enemyTextures = [];
-    for (let i = 0; i < enemyFrameCells.length; i++) {
-      const frameCell = enemyFrameCells[i];
-      const crop = {
-        x: (frameCell.col * enemyFrameWidth) / enemySpritesheet.width,
-        y: (frameCell.row * enemyFrameHeight) / enemySpritesheet.height,
-        w: enemyFrameWidth / enemySpritesheet.width,
-        h: enemyFrameHeight / enemySpritesheet.height,
-      };
-      enemyTextures.push(createCroppedTexture(enemySpritesheet, crop));
-    }
-  } else {
-    enemyTextures = [];
-  }
   attachGoalSprite();
 
   const width = Math.max(1, dom.width(container.value));
@@ -1370,13 +1231,13 @@ onBeforeUnmount(() => {
   detachObjectSprites(enemies);
   detachObjectSprites(coins);
   detachObjectSprites(world.solids);
-  Object.values(platformTextures).forEach((texture) => {
-    if (!texture?.destroyed) texture.destroy(false);
-  });
-  enemyTextures.forEach((texture) => {
-    if (!texture?.destroyed) texture.destroy(false);
-  });
-  void unloadLoadedTextureAssets(loadedTextures);
+  void Promise.allSettled(
+    LOADER_GAME_OBJECT_TYPES.flatMap((GameObjectType) => {
+      const manager = GameObjectType.assetsManager;
+      if (!manager) return [];
+      return [...manager.textures.keys()].map((key) => manager.unloadTexture(key));
+    }),
+  );
   if (app) {
     const canvas = app.canvas;
     app.destroy();

@@ -26,6 +26,8 @@ export class DebugGridGameObject extends GameObject {
       panelLabel: null,
       ...props,
     });
+    this.ensureSprite();
+    this.ensurePanel();
   }
 
   setEnabled(enabled, nowSeconds = performance.now() * 0.001) {
@@ -243,12 +245,14 @@ export class DebugGridGameObject extends GameObject {
     }
 
     if (player) {
+      const heroSpawnX = world?.spawn?.x ?? player.originalX;
+      const heroSpawnY = world?.spawn?.y ?? player.originalY;
       this.drawGridCellBounds(
         this.heroToGridBounds(
           world,
           platformGrid,
-          player.originalX,
-          player.originalY,
+          heroSpawnX,
+          heroSpawnY,
           player.originalWidth,
           player.originalHeight,
         ),
@@ -261,8 +265,10 @@ export class DebugGridGameObject extends GameObject {
     }
 
     if (player) {
+      const heroSpawnX = world?.spawn?.x ?? player.originalX;
+      const heroSpawnY = world?.spawn?.y ?? player.originalY;
       this.drawGridCellBounds(
-        this.worldRectToGridBounds(world, platformGrid, player.originalX - 0.5, player.originalY, 1, 1),
+        this.worldRectToGridBounds(world, platformGrid, heroSpawnX - 0.5, heroSpawnY, 1, 1),
         0x8cff8e,
         viewport,
         basePixelScale,

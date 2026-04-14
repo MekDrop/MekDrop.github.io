@@ -3,8 +3,8 @@ import { StateMachine } from "yuka";
 import { EnemyAlertBackLeftState } from "src/states/enemies/EnemyAlertBackLeftState";
 import { EnemyAlertBackRightState } from "src/states/enemies/EnemyAlertBackRightState";
 import { EnemyWalkState } from "src/states/enemies/EnemyWalkState";
-import { AnimatedSprite } from "pixi.js";
-import { createTextureLoadStep } from "src/game-objects/core/texture-loader";
+import { AnimatedSprite, Texture } from "pixi.js";
+import { AssetsManager } from "src/core/AssetsManager";
 import blockyWalkSpritesheet from "assets/game/sprites/enemies/blocky-creature-walk-spritesheet.png";
 
 const EDGE_SUPPORT_PROBE = 1.25;
@@ -18,11 +18,53 @@ const BACK_ALERT_COOLDOWN = 0.5;
 const BACK_ALERT_MIN_RUNWAY = 2.25;
 const NEARBY_ENEMY_TURN_DISTANCE = 7.5;
 const NEARBY_ENEMY_LANE_TOLERANCE = 2.5;
-const ENEMY_SPRITESHEET_TEXTURE_KEY = "blockyWalkSpritesheet";
+const ENEMY_WALK_LEFT_FRAME_ANIMATION_KEY = "blockyFrames:walk:left";
+const ENEMY_WALK_RIGHT_FRAME_ANIMATION_KEY = "blockyFrames:walk:right";
+const ENEMY_ALERT_LEFT_FRAME_ANIMATION_KEY = "blockyFrames:alert:left";
+const ENEMY_ALERT_RIGHT_FRAME_ANIMATION_KEY = "blockyFrames:alert:right";
+const ENEMY_ANIMATION_CONFIG_BY_STATE = {
+  walkLeft: {
+    animationKey: ENEMY_WALK_LEFT_FRAME_ANIMATION_KEY,
+    frames: [0, 1, 2],
+    animationSpeed: 0.13,
+  },
+  walkRight: {
+    animationKey: ENEMY_WALK_RIGHT_FRAME_ANIMATION_KEY,
+    frames: [0, 1, 2],
+    animationSpeed: 0.13,
+  },
+  alertBackLeft: {
+    animationKey: ENEMY_ALERT_LEFT_FRAME_ANIMATION_KEY,
+    frames: [0, 1, 2, 3, 4],
+    animationSpeed: 0.09,
+  },
+  alertBackRight: {
+    animationKey: ENEMY_ALERT_RIGHT_FRAME_ANIMATION_KEY,
+    frames: [0, 1, 2, 3, 4],
+    animationSpeed: 0.09,
+  },
+};
 
 export class EnemyGameObject extends GameObject {
-  static getLoaderSteps(loadedTextures) {
-    return [createTextureLoadStep(loadedTextures, ENEMY_SPRITESHEET_TEXTURE_KEY, blockyWalkSpritesheet)];
+  static assetsManager = new AssetsManager();
+
+  static getLoaderSteps() {
+    return [
+      this.assetsManager.addAnimationFromSpritesheet(ENEMY_WALK_LEFT_FRAME_ANIMATION_KEY, blockyWalkSpritesheet, {
+        columns: 3,
+        rows: 2,
+        frames: 3,
+        frameKeyPrefix: `${ENEMY_WALK_LEFT_FRAME_ANIMATION_KEY}:`,
+      }),
+      this.assetsManager.addFlippedAnimation(ENEMY_WALK_LEFT_FRAME_ANIMATION_KEY, ENEMY_WALK_RIGHT_FRAME_ANIMATION_KEY),
+      this.assetsManager.addAnimationFromSpritesheet(ENEMY_ALERT_LEFT_FRAME_ANIMATION_KEY, blockyWalkSpritesheet, {
+        columns: 3,
+        rows: 2,
+        frames: 5,
+        frameKeyPrefix: `${ENEMY_ALERT_LEFT_FRAME_ANIMATION_KEY}:`,
+      }),
+      this.assetsManager.addFlippedAnimation(ENEMY_ALERT_LEFT_FRAME_ANIMATION_KEY, ENEMY_ALERT_RIGHT_FRAME_ANIMATION_KEY),
+    ];
   }
 
   constructor(spawn = {}, defaults = {}) {
@@ -43,22 +85,27 @@ export class EnemyGameObject extends GameObject {
       backAlertCooldown: 0,
       backAlertDirection: -1,
       runtime: null,
-      stateMachine: null,
       delta: 0,
+      currentSpriteStateName: null,
       ...spawn,
     });
 
+    this.#buildStateMachine();
     this.vx = this.speed * this.dir;
+    this.ensureSprite();
   }
 
-  initializeStateMachine(runtime) {
-    this.runtime = runtime;
+  #buildStateMachine() {
     this.stateMachine = new StateMachine(this);
     this.stateMachine.add("walkLeft", new EnemyWalkState(-1));
     this.stateMachine.add("walkRight", new EnemyWalkState(1));
     this.stateMachine.add("alertBackLeft", new EnemyAlertBackLeftState());
     this.stateMachine.add("alertBackRight", new EnemyAlertBackRightState());
     this.stateMachine.changeTo(this.dir >= 0 ? "walkRight" : "walkLeft");
+  }
+
+  setRuntime(runtime) {
+    this.runtime = runtime;
   }
 
   updateState(delta) {
@@ -153,9 +200,9 @@ export class EnemyGameObject extends GameObject {
     return !moved?.hitX;
   }
 
-  ensureSprite(textures) {
-    if (this.sprite || !textures?.length) return;
-    this.sprite = new AnimatedSprite(textures);
+  ensureSprite() {
+    if (this.sprite) return;
+    this.sprite = new AnimatedSprite([Texture.EMPTY]);
     this.sprite.anchor.set(0.5, 0);
     this.sprite.visible = false;
     this.sprite.loop = true;
@@ -167,37 +214,42 @@ export class EnemyGameObject extends GameObject {
   syncSprite({
     viewport,
     basePixelScale,
-    enemyTextures,
-    stateFrameMap,
-    sizePx,
   }) {
-    if (!this.sprite || !this.alive || !enemyTextures?.length) {
+    if (!this.sprite || !this.alive) {
       this.sprite?.stop?.();
       this.hideSprite();
       return;
     }
 
     const currentState = this.stateMachine?.currentState?.name ?? (this.dir >= 0 ? "walkRight" : "walkLeft");
-    const stateFrames = stateFrameMap?.[currentState] ?? stateFrameMap?.walkRight ?? [0];
-    const clipTextures = stateFrames
-      .map((frame) => enemyTextures[frame])
-      .filter(Boolean);
-    const textures = clipTextures.length > 0 ? clipTextures : [enemyTextures[0]];
-    const activeTextures = this.sprite.textures ?? [];
-    const clipChanged = activeTextures.length !== textures.length || activeTextures[0] !== textures[0];
-    if (clipChanged) {
+    const animationConfig = ENEMY_ANIMATION_CONFIG_BY_STATE[currentState]
+      ?? ENEMY_ANIMATION_CONFIG_BY_STATE.walkRight;
+    const sourceTextures = this.constructor.assetsManager.animations.get(animationConfig.animationKey) ?? [];
+    if (!sourceTextures?.length) {
+      this.currentSpriteStateName = null;
+      this.sprite?.stop?.();
+      this.hideSprite();
+      return;
+    }
+
+    const clipTextures = animationConfig.frames.map((frame) => sourceTextures[frame]).filter(Boolean);
+    const textures = clipTextures.length > 0 ? clipTextures : [sourceTextures[0]];
+    const stateChanged = this.currentSpriteStateName !== currentState;
+    if (stateChanged) {
       this.sprite.textures = textures;
-      this.sprite.animationSpeed = currentState.startsWith("alertBack") ? 0.09 : 0.13;
+      this.sprite.animationSpeed = animationConfig.animationSpeed;
       this.sprite.gotoAndPlay(0);
+      this.currentSpriteStateName = currentState;
     } else if (!this.sprite.playing) {
       this.sprite.play();
     }
 
     const left = viewport.x + (this.x - this.w * 0.5) * basePixelScale;
     const top = viewport.y + viewport.height - (this.y + this.h) * basePixelScale;
+    const sizePx = this.h * basePixelScale;
     this.sprite.visible = true;
     this.sprite.position.set(left + sizePx * 0.5, top);
-    this.sprite.width = this.dir < 0 ? -sizePx : sizePx;
+    this.sprite.width = sizePx;
     this.sprite.height = sizePx;
   }
 
@@ -205,9 +257,11 @@ export class EnemyGameObject extends GameObject {
     return this.syncSprite({
       viewport: context.viewport,
       basePixelScale: context.basePixelScale,
-      enemyTextures: context.enemyTextures,
-      stateFrameMap: context.enemyStateFrameMap,
-      sizePx: context.enemySizePx,
     });
+  }
+
+  detachSprite(options = {}) {
+    super.detachSprite(options);
+    this.currentSpriteStateName = null;
   }
 }

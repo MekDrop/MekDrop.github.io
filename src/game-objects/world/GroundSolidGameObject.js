@@ -1,18 +1,94 @@
 import { GameObject } from "src/game-objects/core/GameObject";
-import { Container, TilingSprite } from "pixi.js";
-import { createTextureLoadStep } from "src/game-objects/core/texture-loader";
+import { Container, Rectangle, Texture, TilingSprite } from "pixi.js";
+import { AssetsManager } from "src/core/AssetsManager";
 import platformWallSprite from "assets/game/sprites/platforms/platform-wall.png";
 import platformStairSprite from "assets/game/sprites/platforms/platform-stair.png";
 
 const PLATFORM_WALL_TEXTURE_KEY = "platformWall";
 const PLATFORM_STAIR_TEXTURE_KEY = "platformStair";
+const PLATFORM_WALL_TEXTURE_CROPPED_KEY = "platformWallCropped";
+const PLATFORM_WALL_TOP_TEXTURE_KEY = "platformWallTop";
+const PLATFORM_WALL_FILL_TEXTURE_KEY = "platformWallFill";
+const PLATFORM_STAIR_TEXTURE_CROPPED_KEY = "platformStairCropped";
+const PLATFORM_WALL_CROP = {
+  x: 0 / 32,
+  y: 12 / 32,
+  w: 32 / 32,
+  h: 10 / 32,
+};
+const PLATFORM_WALL_TOP_CROP = {
+  x: 0 / 32,
+  y: 12 / 32,
+  w: 32 / 32,
+  h: 4 / 32,
+};
+const PLATFORM_WALL_FILL_CROP = {
+  x: 0 / 32,
+  y: 16 / 32,
+  w: 32 / 32,
+  h: 4 / 32,
+};
+const PLATFORM_STAIR_CROP = {
+  x: 5 / 64,
+  y: 3 / 32,
+  w: 54 / 64,
+  h: 26 / 32,
+};
 
 export class GroundSolidGameObject extends GameObject {
-  static getLoaderSteps(loadedTextures) {
+  static assetsManager = new AssetsManager();
+
+  static #createCroppedTexture(texture, crop) {
+    if (!texture) return null;
+    const frame = new Rectangle(
+      Math.round(texture.width * crop.x),
+      Math.round(texture.height * crop.y),
+      Math.round(texture.width * crop.w),
+      Math.round(texture.height * crop.h),
+    );
+
+    const croppedTexture = new Texture({
+      source: texture.source,
+      frame,
+    });
+    croppedTexture.source.scaleMode = "nearest";
+    return croppedTexture;
+  }
+
+  static #registerDerivedTexture(baseKey, targetKey, crop) {
+    if (this.assetsManager.textures.has(targetKey)) return;
+    const baseTexture = this.assetsManager.textures.get(baseKey);
+    const croppedTexture = this.#createCroppedTexture(baseTexture, crop);
+    if (!croppedTexture) return;
+    this.assetsManager.textures.set(targetKey, croppedTexture);
+  }
+
+  static #buildDerivedTextures() {
+    this.#registerDerivedTexture(PLATFORM_WALL_TEXTURE_KEY, PLATFORM_WALL_TEXTURE_CROPPED_KEY, PLATFORM_WALL_CROP);
+    this.#registerDerivedTexture(PLATFORM_WALL_TEXTURE_KEY, PLATFORM_WALL_TOP_TEXTURE_KEY, PLATFORM_WALL_TOP_CROP);
+    this.#registerDerivedTexture(PLATFORM_WALL_TEXTURE_KEY, PLATFORM_WALL_FILL_TEXTURE_KEY, PLATFORM_WALL_FILL_CROP);
+    this.#registerDerivedTexture(PLATFORM_STAIR_TEXTURE_KEY, PLATFORM_STAIR_TEXTURE_CROPPED_KEY, PLATFORM_STAIR_CROP);
+  }
+
+  static getLoaderSteps() {
+    const loadWallTexture = this.assetsManager.addTextureFromUrl(PLATFORM_WALL_TEXTURE_KEY, platformWallSprite);
+    const loadStairTexture = this.assetsManager.addTextureFromUrl(PLATFORM_STAIR_TEXTURE_KEY, platformStairSprite);
     return [
-      createTextureLoadStep(loadedTextures, PLATFORM_WALL_TEXTURE_KEY, platformWallSprite),
-      createTextureLoadStep(loadedTextures, PLATFORM_STAIR_TEXTURE_KEY, platformStairSprite),
+      loadWallTexture,
+      loadStairTexture,
+      Promise.all([loadWallTexture, loadStairTexture]).then(() => {
+        this.#buildDerivedTextures();
+      }),
     ];
+  }
+
+  static getTextures() {
+    return {
+      wall: this.assetsManager.textures.get(PLATFORM_WALL_TEXTURE_CROPPED_KEY) ?? null,
+      wallTop: this.assetsManager.textures.get(PLATFORM_WALL_TOP_TEXTURE_KEY) ?? null,
+      wallFill: this.assetsManager.textures.get(PLATFORM_WALL_FILL_TEXTURE_KEY) ?? null,
+      stair: this.assetsManager.textures.get(PLATFORM_STAIR_TEXTURE_CROPPED_KEY) ?? null,
+    };
   }
 
   constructor(solid = {}) {
@@ -24,25 +100,27 @@ export class GroundSolidGameObject extends GameObject {
       kind: "wall",
       ...solid,
     });
+    this.ensureSprite();
   }
 
-  ensureSprite(textures = {}) {
-    if (this.sprite || !textures.wallTop || !textures.wallFill) return;
+  ensureSprite() {
+    if (this.sprite) return;
     const container = new Container();
+    const fallbackTexture = Texture.EMPTY;
     const middle = new TilingSprite({
-      texture: textures.wallTop,
-      width: textures.wallTop.width,
-      height: textures.wallTop.height,
+      texture: fallbackTexture,
+      width: 1,
+      height: 1,
     });
     const left = new TilingSprite({
-      texture: textures.wallTop,
-      width: textures.wallTop.width,
-      height: textures.wallTop.height,
+      texture: fallbackTexture,
+      width: 1,
+      height: 1,
     });
     const right = new TilingSprite({
-      texture: textures.wallFill,
-      width: textures.wallFill.width,
-      height: textures.wallFill.height,
+      texture: fallbackTexture,
+      width: 1,
+      height: 1,
     });
     container.visible = false;
     container.zIndex = 8;
@@ -57,10 +135,11 @@ export class GroundSolidGameObject extends GameObject {
   }
 
   syncSprite({
-    textures,
     viewport,
     basePixelScale,
   }) {
+    this.ensureSprite();
+    const textures = this.constructor.getTextures();
     if (!this.sprite) {
       this.hideSprite();
       return;
@@ -117,7 +196,6 @@ export class GroundSolidGameObject extends GameObject {
 
   syncRender(context = {}) {
     return this.syncSprite({
-      textures: context.platformTextures,
       viewport: context.viewport,
       basePixelScale: context.basePixelScale,
     });

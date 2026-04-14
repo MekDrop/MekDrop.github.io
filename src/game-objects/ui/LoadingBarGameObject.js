@@ -20,6 +20,7 @@ export class LoadingBarGameObject extends GameObject {
       fillView: null,
       ...props,
     });
+    this.ensureSprite();
   }
 
   ensureSprite() {

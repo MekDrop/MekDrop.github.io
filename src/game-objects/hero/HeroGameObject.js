@@ -1,24 +1,91 @@
 import { GameObject } from "src/game-objects/core/GameObject";
 import { StateMachine } from "yuka";
 import { HeroAnimationState } from "src/states/heroes/HeroAnimationState";
-import { AnimatedSprite, Rectangle, Texture } from "pixi.js";
-import { getHeroAnimationSources } from "assets/game/sprites/hero-sprite-registry";
-import { createTextureLoadStep } from "src/game-objects/core/texture-loader";
+import { AnimatedSprite, Texture } from "pixi.js";
+import { AssetsManager } from "src/core/AssetsManager";
+import idleLeft from "assets/game/sprites/hero-custom/hero-idle-left.png";
+import runLeft from "assets/game/sprites/hero-custom/hero-run-left.png";
+import deathBiteLeft from "assets/game/sprites/hero-custom/hero-death-bite-left.png";
+import turnLeftRight from "assets/game/sprites/hero-custom/hero-turn-left-right.png";
 
 const clamp = (v, mn, mx) => Math.min(mx, Math.max(mn, v));
+const HERO_IDLE_LEFT_SPRITESHEET_KEY = "hero:spritesheet:idle-left";
+const HERO_IDLE_RIGHT_SPRITESHEET_KEY = "hero:spritesheet:idle-right";
+const HERO_RUN_LEFT_SPRITESHEET_KEY = "hero:spritesheet:run-left";
+const HERO_RUN_RIGHT_SPRITESHEET_KEY = "hero:spritesheet:run-right";
+const HERO_DEATH_LEFT_SPRITESHEET_KEY = "hero:spritesheet:death-bite-left";
+const HERO_DEATH_RIGHT_SPRITESHEET_KEY = "hero:spritesheet:death-bite-right";
+const HERO_TURN_LEFT_SPRITESHEET_KEY = "hero:spritesheet:turn-left-right-left-facing";
+const HERO_TURN_RIGHT_SPRITESHEET_KEY = "hero:spritesheet:turn-left-right-right-facing";
+const HERO_SPRITESHEET_KEY_BY_ANIMATION_NAME = {
+  idle: {
+    left: HERO_IDLE_LEFT_SPRITESHEET_KEY,
+    right: HERO_IDLE_RIGHT_SPRITESHEET_KEY,
+  },
+  run: {
+    left: HERO_RUN_LEFT_SPRITESHEET_KEY,
+    right: HERO_RUN_RIGHT_SPRITESHEET_KEY,
+  },
+  jump: {
+    left: HERO_IDLE_LEFT_SPRITESHEET_KEY,
+    right: HERO_IDLE_RIGHT_SPRITESHEET_KEY,
+  },
+  fall: {
+    left: HERO_IDLE_LEFT_SPRITESHEET_KEY,
+    right: HERO_IDLE_RIGHT_SPRITESHEET_KEY,
+  },
+  hurt: {
+    left: HERO_IDLE_LEFT_SPRITESHEET_KEY,
+    right: HERO_IDLE_RIGHT_SPRITESHEET_KEY,
+  },
+  clear: {
+    left: HERO_IDLE_LEFT_SPRITESHEET_KEY,
+    right: HERO_IDLE_RIGHT_SPRITESHEET_KEY,
+  },
+  death: {
+    left: HERO_DEATH_LEFT_SPRITESHEET_KEY,
+    right: HERO_DEATH_RIGHT_SPRITESHEET_KEY,
+  },
+  turn: {
+    left: HERO_TURN_LEFT_SPRITESHEET_KEY,
+    right: HERO_TURN_RIGHT_SPRITESHEET_KEY,
+  },
+};
 
 export class HeroGameObject extends GameObject {
-  static getTextureKey(index) {
-    return `hero:${index}`;
-  }
+  static assetsManager = new AssetsManager();
 
-  static getTextureKeysByUrl() {
-    return new Map(getHeroAnimationSources().map((url, index) => [url, this.getTextureKey(index)]));
-  }
-
-  static getLoaderSteps(loadedTextures) {
-    const sources = getHeroAnimationSources();
-    return sources.map((url, index) => createTextureLoadStep(loadedTextures, this.getTextureKey(index), url));
+  static getLoaderSteps() {
+    return [
+      this.assetsManager.addAnimationFromSpritesheet(HERO_IDLE_LEFT_SPRITESHEET_KEY, idleLeft, {
+        columns: 1,
+        rows: 1,
+        frames: 1,
+        frameKeyPrefix: `${HERO_IDLE_LEFT_SPRITESHEET_KEY}:`,
+      }),
+      this.assetsManager.addFlippedAnimation(HERO_IDLE_LEFT_SPRITESHEET_KEY, HERO_IDLE_RIGHT_SPRITESHEET_KEY),
+      this.assetsManager.addAnimationFromSpritesheet(HERO_RUN_LEFT_SPRITESHEET_KEY, runLeft, {
+        columns: 3,
+        rows: 3,
+        frames: 7,
+        frameKeyPrefix: `${HERO_RUN_LEFT_SPRITESHEET_KEY}:`,
+      }),
+      this.assetsManager.addFlippedAnimation(HERO_RUN_LEFT_SPRITESHEET_KEY, HERO_RUN_RIGHT_SPRITESHEET_KEY),
+      this.assetsManager.addAnimationFromSpritesheet(HERO_DEATH_LEFT_SPRITESHEET_KEY, deathBiteLeft, {
+        columns: 4,
+        rows: 4,
+        frames: 13,
+        frameKeyPrefix: `${HERO_DEATH_LEFT_SPRITESHEET_KEY}:`,
+      }),
+      this.assetsManager.addFlippedAnimation(HERO_DEATH_LEFT_SPRITESHEET_KEY, HERO_DEATH_RIGHT_SPRITESHEET_KEY),
+      this.assetsManager.addAnimationFromSpritesheet(HERO_TURN_LEFT_SPRITESHEET_KEY, turnLeftRight, {
+        columns: 3,
+        rows: 2,
+        frames: 5,
+        frameKeyPrefix: `${HERO_TURN_LEFT_SPRITESHEET_KEY}:`,
+      }),
+      this.assetsManager.addFlippedAnimation(HERO_TURN_LEFT_SPRITESHEET_KEY, HERO_TURN_RIGHT_SPRITESHEET_KEY),
+    ];
   }
 
   constructor(props = {}) {
@@ -34,7 +101,6 @@ export class HeroGameObject extends GameObject {
       coyote: 0,
       invulnerable: 0,
       anim: 0,
-      animationState: "idle",
       deathFacing: 1,
       prevY: 0,
       turnDuration: 0.34,
@@ -42,12 +108,26 @@ export class HeroGameObject extends GameObject {
       deathElapsed: 0,
       previousRunPhase: null,
       preservedState: null,
-      spriteTextureCache: new Map(),
-      spriteClipCache: new Map(),
-      textureKeysByUrl: null,
-      stateMachine: null,
+      currentSpriteAnimationName: null,
+      currentSpriteFacingKey: null,
       ...props,
     });
+
+    this.#buildStateMachine();
+    this.resetAnimationState();
+    this.ensureSprite();
+  }
+
+  #buildStateMachine() {
+    this.stateMachine = new StateMachine(this);
+    this.stateMachine.add("idle", new HeroAnimationState("idle"));
+    this.stateMachine.add("run", new HeroAnimationState("run"));
+    this.stateMachine.add("jump", new HeroAnimationState("jump"));
+    this.stateMachine.add("fall", new HeroAnimationState("fall"));
+    this.stateMachine.add("hurt", new HeroAnimationState("hurt"));
+    this.stateMachine.add("turn", new HeroAnimationState("turn"));
+    this.stateMachine.add("death", new HeroAnimationState("death"));
+    this.stateMachine.add("clear", new HeroAnimationState("clear"));
   }
 
   captureRuntimeState() {
@@ -60,7 +140,6 @@ export class HeroGameObject extends GameObject {
       coyote: this.coyote,
       invulnerable: this.invulnerable,
       anim: this.anim,
-      animationState: this.animationState,
       deathFacing: this.deathFacing,
       prevY: this.prevY,
       facing: this.facing,
@@ -88,27 +167,12 @@ export class HeroGameObject extends GameObject {
       this.coyote = 0;
       this.invulnerable = 0;
       this.anim = 0;
-      this.animationState = "idle";
       this.deathFacing = this.facing;
       this.prevY = this.y;
       this.preservedState = null;
       this.resetAnimationState();
     }
     return this;
-  }
-
-  initializeStateMachine(options = {}) {
-    this.turnDuration = options.turnDuration ?? this.turnDuration;
-    this.stateMachine = new StateMachine(this);
-    this.stateMachine.add("idle", new HeroAnimationState("idle"));
-    this.stateMachine.add("run", new HeroAnimationState("run"));
-    this.stateMachine.add("jump", new HeroAnimationState("jump"));
-    this.stateMachine.add("fall", new HeroAnimationState("fall"));
-    this.stateMachine.add("hurt", new HeroAnimationState("hurt"));
-    this.stateMachine.add("turn", new HeroAnimationState("turn"));
-    this.stateMachine.add("death", new HeroAnimationState("death"));
-    this.stateMachine.add("clear", new HeroAnimationState("clear"));
-    this.resetAnimationState();
   }
 
   requestTurn() {
@@ -119,6 +183,8 @@ export class HeroGameObject extends GameObject {
     this.turnRemaining = 0;
     this.deathElapsed = 0;
     this.previousRunPhase = null;
+    this.currentSpriteAnimationName = null;
+    this.currentSpriteFacingKey = null;
     this.stateMachine?.changeTo("idle");
   }
 
@@ -141,12 +207,11 @@ export class HeroGameObject extends GameObject {
     }
 
     this.stateMachine.update();
-    this.animationState = this.stateMachine.currentState?.name ?? "idle";
   }
 
   getAnimationFrameIndex(animation) {
     if (!animation || animation.frames <= 1) return 0;
-    const animationName = this.animationState ?? "idle";
+    const animationName = this.stateMachine?.currentState?.name ?? "idle";
 
     if (animationName === "turn") {
       const progress = clamp(1 - this.turnRemaining / this.turnDuration, 0, 0.9999);
@@ -189,71 +254,6 @@ export class HeroGameObject extends GameObject {
     this.sprite.stop();
   }
 
-  getFrameTexture({
-    src,
-    animation,
-    frameIndex,
-    configurePixelTexture,
-  }) {
-    if (!src || !animation) return null;
-    const cacheKey = `${src}:${animation.columns}x${animation.rows}:${frameIndex}`;
-    if (this.spriteTextureCache.has(cacheKey)) {
-      return this.spriteTextureCache.get(cacheKey);
-    }
-
-    const textureKey = this.textureKeysByUrl?.get(src) ?? src;
-    const texture = this.getLoadedTexture(textureKey);
-    if (!texture) return null;
-    const frameWidth = Math.floor(texture.width / animation.columns);
-    const frameHeight = Math.floor(texture.height / animation.rows);
-    const frameColumn = frameIndex % animation.columns;
-    const frameRow = Math.floor(frameIndex / animation.columns);
-    const frame = new Rectangle(
-      frameColumn * frameWidth,
-      frameRow * frameHeight,
-      frameWidth,
-      frameHeight,
-    );
-    const frameTexture = (typeof configurePixelTexture === "function")
-      ? configurePixelTexture(new Texture({
-        source: texture.source,
-        frame,
-      }))
-      : new Texture({
-        source: texture.source,
-        frame,
-      });
-
-    this.spriteTextureCache.set(cacheKey, frameTexture);
-    return frameTexture;
-  }
-
-  getClipTextures({
-    src,
-    animation,
-    configurePixelTexture,
-  }) {
-    if (!src || !animation) return [];
-    const cacheKey = `${src}:${animation.columns}x${animation.rows}:${animation.frames}`;
-    if (this.spriteClipCache.has(cacheKey)) {
-      return this.spriteClipCache.get(cacheKey);
-    }
-
-    const textures = [];
-    for (let frameIndex = 0; frameIndex < animation.frames; frameIndex++) {
-      const frameTexture = this.getFrameTexture({
-        src,
-        animation,
-        frameIndex,
-        configurePixelTexture,
-      });
-      if (frameTexture) textures.push(frameTexture);
-    }
-
-    this.spriteClipCache.set(cacheKey, textures);
-    return textures;
-  }
-
   syncSprite({
     run,
     time,
@@ -263,45 +263,52 @@ export class HeroGameObject extends GameObject {
     heroScreenOffsetY,
     phaseDead,
     getHeroAnimation,
-    configurePixelTexture,
   }) {
     if (!this.sprite || typeof getHeroAnimation !== "function") return this.facing;
 
-    const animationName = this.animationState ?? "idle";
+    const animationName = this.stateMachine?.currentState?.name ?? "idle";
     const animation = getHeroAnimation(animationName);
     const sizePx = heroWorldSize * basePixelScale;
     const blinkHidden = run.phase !== phaseDead && this.invulnerable > 0 && Math.floor(time * 14) % 2 === 0;
     const effectiveFacing = run.phase === phaseDead ? (this.deathFacing ?? this.facing) : this.facing;
     const facingKey = effectiveFacing > 0 ? "right" : "left";
-    const spriteSrc = animation.srcByFacing?.[facingKey] ?? animation.srcByFacing?.left ?? animation.src;
-    const mirrorFacing = animation.mirrorByFacing?.[facingKey] ?? (animation.mirror && effectiveFacing > 0);
-    const textures = this.getClipTextures({
-      src: spriteSrc,
-      animation,
-      configurePixelTexture,
-    });
-    if (textures.length === 0) {
-      this.sprite.visible = false;
-      return effectiveFacing;
+    const animationConfig = HERO_SPRITESHEET_KEY_BY_ANIMATION_NAME[animationName]
+      ?? HERO_SPRITESHEET_KEY_BY_ANIMATION_NAME.idle;
+    const spritesheetKey = animationConfig?.[facingKey] ?? animationConfig?.left ?? HERO_IDLE_LEFT_SPRITESHEET_KEY;
+    const animationOrFacingChanged = this.currentSpriteAnimationName !== animationName
+      || this.currentSpriteFacingKey !== facingKey;
+    if (animationOrFacingChanged) {
+      const textures = this.constructor.assetsManager.animations.get(spritesheetKey) ?? [];
+      if (textures.length === 0) {
+        this.currentSpriteAnimationName = null;
+        this.currentSpriteFacingKey = null;
+        this.sprite.visible = false;
+        return effectiveFacing;
+      }
+      this.sprite.textures = textures;
+      this.currentSpriteAnimationName = animationName;
+      this.currentSpriteFacingKey = facingKey;
     }
 
-    const activeTextures = this.sprite.textures ?? [];
-    const clipChanged = activeTextures.length !== textures.length || activeTextures[0] !== textures[0];
-    if (clipChanged) {
-      this.sprite.textures = textures;
+    const textures = this.sprite.textures ?? [];
+    if (textures.length === 0) {
+      this.currentSpriteAnimationName = null;
+      this.currentSpriteFacingKey = null;
+      this.sprite.visible = false;
+      return effectiveFacing;
     }
 
     const frameIndex = this.getAnimationFrameIndex(animation);
     const isStateDrivenFrame = animationName === "turn" || animationName === "death";
     if (isStateDrivenFrame) {
-      if (clipChanged || this.sprite.playing) {
+      if (animationOrFacingChanged || this.sprite.playing) {
         this.sprite.gotoAndStop(frameIndex);
       } else if (this.sprite.currentFrame !== frameIndex) {
         this.sprite.gotoAndStop(frameIndex);
       }
     } else {
       this.sprite.animationSpeed = (animation.fps ?? 1) / 60;
-      if (clipChanged) {
+      if (animationOrFacingChanged) {
         this.sprite.gotoAndPlay(frameIndex % textures.length);
       } else if (!this.sprite.playing) {
         this.sprite.play();
@@ -312,14 +319,14 @@ export class HeroGameObject extends GameObject {
       ? frameIndex
       : Math.min(textures.length - 1, this.sprite.currentFrame ?? 0);
     const frameOffset = animation.frameOffsets?.[currentFrameIndex] ?? animation.frameOffsets?.[0] ?? { x: 0, y: 0 };
-    const offsetX = (mirrorFacing ? -frameOffset.x : frameOffset.x) * basePixelScale;
+    const offsetX = (effectiveFacing > 0 ? -frameOffset.x : frameOffset.x) * basePixelScale;
     const offsetY = frameOffset.y * basePixelScale;
 
     this.sprite.visible = !blinkHidden;
     const left = viewport.x + (this.x - heroWorldSize * 0.5) * basePixelScale + offsetX;
     const top = viewport.y + viewport.height - (this.y + heroWorldSize) * basePixelScale + offsetY + heroScreenOffsetY;
     this.sprite.position.set(left + sizePx * 0.5, top);
-    this.sprite.width = mirrorFacing ? -sizePx : sizePx;
+    this.sprite.width = sizePx;
     this.sprite.height = sizePx;
     return effectiveFacing;
   }
@@ -334,16 +341,12 @@ export class HeroGameObject extends GameObject {
       heroScreenOffsetY: context.heroScreenOffsetY,
       phaseDead: context.phaseDead,
       getHeroAnimation: context.getHeroAnimation,
-      configurePixelTexture: context.configurePixelTexture,
     });
   }
 
   detachSprite(options = {}) {
     super.detachSprite(options);
-    for (const texture of this.spriteTextureCache.values()) {
-      if (!texture?.destroyed) texture.destroy(false);
-    }
-    this.spriteTextureCache.clear();
-    this.spriteClipCache.clear();
+    this.currentSpriteAnimationName = null;
+    this.currentSpriteFacingKey = null;
   }
 }
