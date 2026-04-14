@@ -17,7 +17,7 @@
 
 <script setup>
 import { List, ProgressBar } from "@pixi/ui";
-import { Application, Assets, Container, Graphics, Rectangle, Sprite, Text, Texture } from "pixi.js";
+import { Application, Assets, Container, Graphics, Rectangle, Text, Texture } from "pixi.js";
 import { nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 import { dom } from "quasar";
 import { getHeroAnimation, getHeroAnimationSources } from "assets/game/sprites/hero-sprite-registry";
@@ -25,6 +25,7 @@ import { CoinGameObject } from "src/game-objects/collectibles/CoinGameObject";
 import { DebugGridGameObject } from "src/game-objects/debug/DebugGridGameObject";
 import { EnemyGameObject } from "src/game-objects/enemy/EnemyGameObject";
 import { HeroGameObject } from "src/game-objects/hero/HeroGameObject";
+import { GoalGameObject } from "src/game-objects/world/GoalGameObject";
 import { GroundSolidGameObject } from "src/game-objects/world/GroundSolidGameObject";
 import { PlatformSolidGameObject } from "src/game-objects/world/PlatformSolidGameObject";
 import { MarioLikeMapGenerator } from "src/strategies/map-generators/MarioLikeMapGenerator";
@@ -204,6 +205,7 @@ const createEnemy = (spawn) => new EnemyGameObject(spawn, {
 });
 
 const createCoin = (coin) => new CoinGameObject(coin);
+const createGoal = (goalData) => new GoalGameObject(goalData);
 const createSolid = (solid) => (
   solid.kind === "wall"
     ? new GroundSolidGameObject(solid)
@@ -274,9 +276,12 @@ const generateLevel = (nextWidth, nextHeight, seed = world.seed) => {
   for (let i = 0; i < world.solids.length; i++) {
     world.solids[i]?.detachSprite?.({ destroy: true });
   }
+  goal?.detachSprite?.({ destroy: true });
   const generated = mapGenerator.generate(nextWidth, nextHeight, seed);
   generated.solids = generated.solids.map(createSolid);
   Object.assign(world, generated);
+  goal = createGoal(world.goal);
+  attachGoalSprite();
   invalidatePlatformSprites();
   attachSolidSprites();
   syncSceneSprites(debugGrid.enabled ? debugGrid.frozenTime : performance.now() * 0.001);
@@ -543,13 +548,13 @@ const player = createPlayer();
 player.initializeStateMachine({
   turnDuration: HERO_TURN_DURATION,
 });
+let goal = createGoal(world.goal);
 let enemies = [];
 let coins = [];
 
 let app;
 let spriteScene;
 let uiScene;
-let goalSprite;
 let goalTexture;
 let coinTexture;
 let platformTextures = {};
@@ -636,6 +641,7 @@ const syncRenderableObjects = (objects, renderContext) => {
 const getDynamicRenderables = () => [
   ...enemies,
   ...coins,
+  goal,
   player,
   debugGrid,
 ];
@@ -775,6 +781,12 @@ const attachCoinSprites = () => {
     coin.ensureSprite(coinTexture, coinSizePx);
     coin.attach(spriteScene);
   }
+};
+
+const attachGoalSprite = () => {
+  if (!spriteScene || !goalTexture || !goal) return;
+  goal.ensureSprite(goalTexture);
+  goal.attach(spriteScene);
 };
 
 const attachSolidSprites = () => {
@@ -1026,12 +1038,7 @@ const collectCoins = () => {
   }
 };
 
-const goalHitbox = () => ({
-  x: world.goal.x - 2.2,
-  y: world.goal.y,
-  w: 4.4,
-  h: world.goal.h,
-});
+const goalHitbox = () => goal.getHitbox();
 
 const stompEnemy = (enemy) => {
   enemy.alive = false;
@@ -1227,39 +1234,14 @@ const createCroppedTexture = (texture, crop) => {
   }));
 };
 
-const ensureGoalSprite = () => {
-  if (goalSprite || !spriteScene || !goalTexture) return;
-  goalSprite = new Sprite(goalTexture);
-  goalSprite.anchor.set(0.5, 0);
-  goalSprite.zIndex = 18;
-  goalSprite.visible = false;
-  spriteScene.addChild(goalSprite);
-};
-
 const flushPlatformSprites = () => {
   if (!platformSpritesDirty || !spriteScene || !arePlatformTexturesReady()) return;
   syncRenderableObjects(world.solids, createRenderContext());
   platformSpritesDirty = false;
 };
 
-const syncGoalSprite = (time) => {
-  ensureGoalSprite();
-  if (!goalSprite) return;
-
-  const pulse = run.doorUnlocked ? 1 + Math.sin(time * 3.2) * 0.04 : 0.9;
-  const widthPx = 48 * pulse;
-  const heightPx = 64 * pulse;
-  const left = viewport.x + world.goal.x * BASE_PIXEL_SCALE - widthPx * 0.5;
-  const top = viewport.y + viewport.height - (world.goal.y + heightPx / BASE_PIXEL_SCALE) * BASE_PIXEL_SCALE;
-  goalSprite.visible = run.doorUnlocked;
-  goalSprite.position.set(left + widthPx * 0.5, top);
-  goalSprite.width = widthPx;
-  goalSprite.height = heightPx;
-};
-
 const syncSceneSprites = (time) => {
   const renderContext = createRenderContext(time);
-  syncGoalSprite(time);
   syncRenderableObjects(getDynamicRenderables(), renderContext);
 };
 
@@ -1437,7 +1419,7 @@ const initPixi = async () => {
   } else {
     enemyTextures = [];
   }
-  ensureGoalSprite();
+  attachGoalSprite();
 
   const width = Math.max(1, dom.width(container.value));
   const height = Math.max(1, dom.height(container.value));
@@ -1489,10 +1471,10 @@ onBeforeUnmount(() => {
     frameId = null;
   }
   player.detachSprite({ destroy: true });
+  goal.detachSprite({ destroy: true });
   detachObjectSprites(enemies);
   detachObjectSprites(coins);
   detachObjectSprites(world.solids);
-  if (goalSprite?.parent) goalSprite.parent.removeChild(goalSprite);
   Object.values(platformTextures).forEach((texture) => {
     if (!texture?.destroyed) texture.destroy(false);
   });
