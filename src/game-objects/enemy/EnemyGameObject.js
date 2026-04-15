@@ -18,6 +18,8 @@ const BACK_ALERT_COOLDOWN = 0.5;
 const BACK_ALERT_MIN_RUNWAY = 2.25;
 const NEARBY_ENEMY_TURN_DISTANCE = 7.5;
 const NEARBY_ENEMY_LANE_TOLERANCE = 2.5;
+const BLOCKED_RETRY_LIMIT = 10;
+const DROP_OFF_SPEED = -42;
 const ENEMY_WALK_LEFT_FRAME_ANIMATION_KEY = "blockyFrames:walk:left";
 const ENEMY_WALK_RIGHT_FRAME_ANIMATION_KEY = "blockyFrames:walk:right";
 const ENEMY_ALERT_LEFT_FRAME_ANIMATION_KEY = "blockyFrames:alert:left";
@@ -84,6 +86,11 @@ export class EnemyGameObject extends GameObject {
       backAlertTimer: 0,
       backAlertCooldown: 0,
       backAlertDirection: -1,
+      patrolMinX: Number.NEGATIVE_INFINITY,
+      patrolMaxX: Number.POSITIVE_INFINITY,
+      blockedRetries: 0,
+      dropOffPlatform: false,
+      dropDirection: 0,
       runtime: null,
       delta: 0,
       currentSpriteStateName: null,
@@ -125,14 +132,40 @@ export class EnemyGameObject extends GameObject {
   }
 
   canContinue(direction) {
+    if (this.dropOffPlatform && direction === this.dropDirection) {
+      return true;
+    }
+
     const lookaheadDistance = Math.max(EDGE_LOOKAHEAD, this.speed * Math.max(this.delta, 1 / 120));
+    const nextX = this.x + direction * lookaheadDistance;
+    if (nextX < this.patrolMinX || nextX > this.patrolMaxX) {
+      return false;
+    }
+
     if (typeof this.runtime?.solidSupportAhead === "function") {
       return this.runtime.solidSupportAhead(this, direction, lookaheadDistance, EDGE_SUPPORT_PROBE);
     }
 
-    const nextX = this.x + direction * lookaheadDistance;
     const probeBody = { x: nextX, y: this.y, w: this.w, h: this.h };
     return this.runtime?.solidSupportBelow?.(probeBody, EDGE_SUPPORT_PROBE) ?? false;
+  }
+
+  registerBlockedRetry(oppositeDirection) {
+    this.blockedRetries += 1;
+    if (this.blockedRetries < BLOCKED_RETRY_LIMIT) return;
+
+    this.blockedRetries = 0;
+    this.dropOffPlatform = true;
+    this.dropDirection = oppositeDirection;
+    this.patrolMinX = Number.NEGATIVE_INFINITY;
+    this.patrolMaxX = Number.POSITIVE_INFINITY;
+    this.vx = this.speed * oppositeDirection;
+    this.vy = DROP_OFF_SPEED;
+    this.turnTo(oppositeDirection, { force: true });
+  }
+
+  resetBlockedRetries() {
+    this.blockedRetries = 0;
   }
 
   shouldTurnFromNearbyEnemy(direction) {
@@ -193,10 +226,27 @@ export class EnemyGameObject extends GameObject {
   }
 
   move(direction) {
+    const isDroppingOffPlatform = this.dropOffPlatform && direction === this.dropDirection;
+    if (!isDroppingOffPlatform) {
+      const nextX = this.x + direction * this.speed * this.delta;
+      if (nextX < this.patrolMinX || nextX > this.patrolMaxX) {
+        this.vx = 0;
+        return false;
+      }
+    }
+
     this.dir = direction;
     this.vx = direction * this.speed;
-    this.vy = 0;
+    this.vy = isDroppingOffPlatform ? DROP_OFF_SPEED : 0;
     const moved = this.runtime?.moveBody?.(this, this.delta);
+    if (!isDroppingOffPlatform && Number.isFinite(this.patrolMinX) && Number.isFinite(this.patrolMaxX)) {
+      this.x = Math.min(this.patrolMaxX, Math.max(this.patrolMinX, this.x));
+    }
+    if (isDroppingOffPlatform && this.grounded) {
+      this.dropOffPlatform = false;
+      this.dropDirection = 0;
+      this.vy = 0;
+    }
     return !moved?.hitX;
   }
 

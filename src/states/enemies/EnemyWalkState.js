@@ -18,7 +18,10 @@ export class EnemyWalkState extends State {
       owner.vx = 0;
       if (owner.canContinue(oppositeDirection)) {
         owner.turnTo(oppositeDirection, { force: true });
+        owner.resetBlockedRetries();
+        return;
       }
+      owner.registerBlockedRetry(oppositeDirection);
       return;
     }
 
@@ -26,7 +29,10 @@ export class EnemyWalkState extends State {
       owner.vx = 0;
       if (owner.canContinue(oppositeDirection)) {
         owner.turnTo(oppositeDirection);
+        owner.resetBlockedRetries();
+        return;
       }
+      owner.registerBlockedRetry(oppositeDirection);
       return;
     }
 
@@ -34,16 +40,23 @@ export class EnemyWalkState extends State {
       owner.vx = 0;
       if (owner.canContinue(oppositeDirection)) {
         owner.turnTo(oppositeDirection, { force: true });
+        owner.resetBlockedRetries();
+        return;
       }
+      owner.registerBlockedRetry(oppositeDirection);
       return;
     }
+    owner.resetBlockedRetries();
 
     // Moving onto the last supported position still counts as "at the edge".
     if (!owner.canContinue(this.direction)) {
       owner.vx = 0;
       if (owner.canContinue(oppositeDirection)) {
         owner.turnTo(oppositeDirection, { force: true });
+        owner.resetBlockedRetries();
+        return;
       }
+      owner.registerBlockedRetry(oppositeDirection);
       return;
     }
 

@@ -1130,29 +1130,33 @@ export class MarioLikeMapGenerator {
     return false;
   }
 
-  #findSupportPlatformForEnemy(spawn, solids) {
-    if (!spawn?.lockPlatformPatrol) return null;
+  #findSupportSurfaceForEnemy(spawn, solids) {
     const supportY = spawn.y - 0.01;
     const enemyHalf = Math.max(this.config.ENEMY_WIDTH * 0.5, this.config.PLATFORM_GRID);
+    const candidates = [];
+
     for (let i = 0; i < solids.length; i++) {
       const solid = solids[i];
-      if (solid.kind !== "flyingPlatform") continue;
+      if (!["flyingPlatform", "wall", "stair"].includes(solid.kind)) continue;
       const sameLane = Math.abs(supportY - (solid.y + solid.h)) < this.config.PLATFORM_GRID * 0.5;
       if (!sameLane) continue;
       const fitsOnPlatform =
         spawn.x - enemyHalf >= solid.x &&
         spawn.x + enemyHalf <= solid.x + solid.w;
       if (!fitsOnPlatform) continue;
-      return solid;
+      candidates.push(solid);
     }
-    return null;
+
+    if (candidates.length === 0) return null;
+    candidates.sort((a, b) => a.w - b.w);
+    return candidates[0];
   }
 
   #normalizeEnemyPatrolForHeadroom(spawn, solids) {
-    const supportPlatform = this.#findSupportPlatformForEnemy(spawn, solids);
+    const supportSurface = this.#findSupportSurfaceForEnemy(spawn, solids);
     const enemyHalf = Math.max(this.config.ENEMY_WIDTH * 0.5, this.config.PLATFORM_GRID);
-    const patrolMinX = supportPlatform ? supportPlatform.x + enemyHalf : Number.NEGATIVE_INFINITY;
-    const patrolMaxX = supportPlatform ? supportPlatform.x + supportPlatform.w - enemyHalf : Number.POSITIVE_INFINITY;
+    const patrolMinX = supportSurface ? supportSurface.x + enemyHalf : Number.NEGATIVE_INFINITY;
+    const patrolMaxX = supportSurface ? supportSurface.x + supportSurface.w - enemyHalf : Number.POSITIVE_INFINITY;
     const offsets = [0, -1, 1, -2, 2, -3, 3, -4, 4, -6, 6, -8, 8];
     for (let i = 0; i < offsets.length; i++) {
       const x = spawn.x + offsets[i];
@@ -1163,6 +1167,8 @@ export class MarioLikeMapGenerator {
       return {
         ...spawn,
         x,
+        patrolMinX,
+        patrolMaxX,
       };
     }
 
