@@ -4,14 +4,7 @@ import { GameObject } from "src/game-objects/core/GameObject";
 const LABEL_PADDING_X = 12;
 const LABEL_PADDING_Y = 8;
 
-const drawPanelBackground = (graphics, width, height, alpha = 0.78) => {
-  graphics
-    .clear()
-    .roundRect(0, 0, width, height, 10)
-    .fill({ color: 0x06120b, alpha })
-    .stroke({ width: 1, color: 0x96ffe0, alpha: 0.34 });
-};
-
+/** @extends {GameObject<Container>} */
 export class GameUiRowGameObject extends GameObject {
   constructor(props = {}) {
     super({
@@ -22,12 +15,10 @@ export class GameUiRowGameObject extends GameObject {
       label: null,
       ...props,
     });
-    this.ensureSprite();
   }
 
-  ensureSprite() {
-    if (this.sprite) return;
-    this.sprite = new Container();
+  _prepareSprite() {
+    const sprite = new Container();
     this.background = new Graphics();
     this.label = new Text({
       text: this.text,
@@ -35,18 +26,27 @@ export class GameUiRowGameObject extends GameObject {
     });
     this.label.x = LABEL_PADDING_X;
     this.label.y = LABEL_PADDING_Y;
-    this.sprite.addChild(this.background, this.label);
+    sprite.addChild(this.background, this.label);
+    return sprite;
   }
 
   resize(width, minHeight) {
     if (!this.label || !this.background) return;
     const labelWidth = Math.max(1, width - LABEL_PADDING_X * 2);
     this.label.style.wordWrapWidth = labelWidth;
-    drawPanelBackground(
+    this.#drawPanelBackground(
       this.background,
       width,
       Math.max(minHeight, this.label.height + LABEL_PADDING_Y * 2),
       this.panelAlpha,
     );
+  }
+
+  #drawPanelBackground(graphics, width, height, alpha = 0.78) {
+    graphics
+      .clear()
+      .roundRect(0, 0, width, height, 10)
+      .fill({ color: 0x06120b, alpha })
+      .stroke({ width: 1, color: 0x96ffe0, alpha: 0.34 });
   }
 }

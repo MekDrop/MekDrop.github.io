@@ -52,6 +52,7 @@ const HERO_SPRITESHEET_KEY_BY_ANIMATION_NAME = {
   },
 };
 
+/** @extends {GameObject<import("pixi.js").AnimatedSprite>} */
 export class HeroGameObject extends GameObject {
   static assetsManager = new AssetsManager();
 
@@ -115,7 +116,6 @@ export class HeroGameObject extends GameObject {
 
     this.#buildStateMachine();
     this.resetAnimationState();
-    this.ensureSprite();
   }
 
   #buildStateMachine() {
@@ -245,13 +245,13 @@ export class HeroGameObject extends GameObject {
     return "idle";
   }
 
-  ensureSprite() {
-    if (this.sprite) return;
-    this.sprite = new AnimatedSprite([Texture.EMPTY]);
-    this.sprite.anchor.set(0.5, 0);
-    this.sprite.visible = false;
-    this.sprite.zIndex = 20;
-    this.sprite.stop();
+  _prepareSprite() {
+    const sprite = new AnimatedSprite([Texture.EMPTY]);
+    sprite.anchor.set(0.5, 0);
+    sprite.visible = false;
+    sprite.zIndex = 20;
+    sprite.stop();
+    return sprite;
   }
 
   syncSprite({
@@ -264,7 +264,7 @@ export class HeroGameObject extends GameObject {
     phaseDead,
     getHeroAnimation,
   }) {
-    if (!this.sprite || typeof getHeroAnimation !== "function") return this.facing;
+    if (typeof getHeroAnimation !== "function") return this.facing;
 
     const animationName = this.stateMachine?.currentState?.name ?? "idle";
     const animation = getHeroAnimation(animationName);

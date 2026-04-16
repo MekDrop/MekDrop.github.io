@@ -16,6 +16,7 @@ const PLATFORM_FLYING_PLATFORM_TILE_SCALE = {
   y: 2,
 };
 
+/** @extends {GameObject<TilingSprite>} */
 export class PlatformSolidGameObject extends GameObject {
   static assetsManager = new AssetsManager();
 
@@ -67,29 +68,27 @@ export class PlatformSolidGameObject extends GameObject {
       kind: "flyingPlatform",
       ...solid,
     });
-    this.ensureSprite();
   }
 
-  ensureSprite() {
-    if (this.sprite) return;
+  _prepareSprite() {
     const texture = this.constructor.getTexture() ?? Texture.EMPTY;
-    this.sprite = new TilingSprite({
+    const sprite = new TilingSprite({
       texture,
       width: Math.max(1, texture.width),
       height: Math.max(1, texture.height),
     });
-    this.sprite.visible = false;
-    this.sprite.zIndex = 8;
+    sprite.visible = false;
+    sprite.zIndex = 8;
+    return sprite;
   }
 
   syncSprite({
     viewport,
     basePixelScale,
   }) {
-    this.ensureSprite();
     const texture = this.constructor.getTexture();
-    if (!this.sprite || !texture) {
-      this.hideSprite();
+    if (!texture) {
+      this.visible = false;
       return;
     }
 

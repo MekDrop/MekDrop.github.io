@@ -14,6 +14,7 @@ const drawPanelBackground = (graphics, width, height, alpha = 0.88) => {
     .stroke({ width: 1, color: 0x96ffe0, alpha: 0.34 });
 };
 
+/** @extends {GameObject<Container>} */
 export class DebugGridGameObject extends GameObject {
   constructor(props = {}) {
     super({
@@ -26,7 +27,6 @@ export class DebugGridGameObject extends GameObject {
       panelLabel: null,
       ...props,
     });
-    this.ensureSprite();
     this.ensurePanel();
   }
 
@@ -37,13 +37,13 @@ export class DebugGridGameObject extends GameObject {
     }
   }
 
-  ensureSprite() {
-    if (this.sprite) return;
-    this.sprite = new Container();
-    this.sprite.zIndex = 55;
+  _prepareSprite() {
+    const sprite = new Container();
+    sprite.zIndex = 55;
     this.fillGraphics = new Graphics();
     this.gridGraphics = new Graphics();
-    this.sprite.addChild(this.fillGraphics, this.gridGraphics);
+    sprite.addChild(this.fillGraphics, this.gridGraphics);
+    return sprite;
   }
 
   ensurePanel() {
@@ -167,7 +167,7 @@ export class DebugGridGameObject extends GameObject {
       coins,
     } = context;
 
-    if (!this.sprite || !this.gridGraphics || !this.fillGraphics || !viewport || !world) return;
+    if (!this.gridGraphics || !this.fillGraphics || !viewport || !world) return;
 
     this.sprite.visible = this.enabled;
     this.gridGraphics.clear();

@@ -35,6 +35,15 @@ const PLATFORM_STAIR_CROP = {
   h: 26 / 32,
 };
 
+/**
+ * @typedef {Container & {
+ *   middle: TilingSprite,
+ *   left: TilingSprite,
+ *   right: TilingSprite
+ * }} GroundSpriteContainer
+ */
+
+/** @extends {GameObject<GroundSpriteContainer>} */
 export class GroundSolidGameObject extends GameObject {
   static assetsManager = new AssetsManager();
 
@@ -100,11 +109,9 @@ export class GroundSolidGameObject extends GameObject {
       kind: "wall",
       ...solid,
     });
-    this.ensureSprite();
   }
 
-  ensureSprite() {
-    if (this.sprite) return;
+  _prepareSprite() {
     const container = new Container();
     const fallbackTexture = Texture.EMPTY;
     const middle = new TilingSprite({
@@ -131,24 +138,18 @@ export class GroundSolidGameObject extends GameObject {
     container.left = left;
     container.right = right;
     container.addChild(middle, right, left);
-    this.sprite = container;
+    return container;
   }
 
   syncSprite({
     viewport,
     basePixelScale,
   }) {
-    this.ensureSprite();
     const textures = this.constructor.getTextures();
-    if (!this.sprite) {
-      this.hideSprite();
-      return;
-    }
-
     const textureKey = this.wallStyle === "stair" ? "stair" : "wall";
     const texture = textures[textureKey];
     if (!texture) {
-      this.hideSprite();
+      this.visible = false;
       return;
     }
 

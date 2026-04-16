@@ -5,6 +5,7 @@ import coinGoldSprite from "assets/game/sprites/collectibles/coin-gold.png";
 
 const COIN_TEXTURE_KEY = "coinGold";
 
+/** @extends {GameObject<Sprite>} */
 export class CoinGameObject extends GameObject {
   static assetsManager = new AssetsManager();
 
@@ -26,24 +27,18 @@ export class CoinGameObject extends GameObject {
     if (!coin.phase) {
       this.phase = (this.x + this.y) * 0.1;
     }
-    this.ensureSprite();
   }
 
-  ensureSprite(texture = null, sizePx = 1) {
-    const activeTexture = texture ?? this.constructor.assetsManager.textures.get(COIN_TEXTURE_KEY) ?? null;
-    if (this.sprite) {
-      if (activeTexture && this.sprite.texture !== activeTexture) {
-        this.sprite.texture = activeTexture;
-      }
-      return;
-    }
-    this.sprite = new Sprite(activeTexture ?? Texture.EMPTY);
-    this.sprite.anchor.set(0.5, 0.5);
-    this.sprite.visible = true;
-    this.sprite.zIndex = 9;
-    this.sprite.width = Math.max(1, sizePx);
-    this.sprite.height = Math.max(1, sizePx);
-    this.baseScaleX = this.sprite.scale.x;
+  _prepareSprite() {
+    const activeTexture = this.constructor.assetsManager.textures.get(COIN_TEXTURE_KEY) ?? null;
+    const sprite = new Sprite(activeTexture ?? Texture.EMPTY);
+    sprite.anchor.set(0.5, 0.5);
+    sprite.visible = true;
+    sprite.zIndex = 9;
+    sprite.width = 1;
+    sprite.height = 1;
+    this.baseScaleX = sprite.scale.x;
+    return sprite;
   }
 
   syncSprite({
@@ -53,14 +48,13 @@ export class CoinGameObject extends GameObject {
     coinWorldSize,
   }) {
     const sizePx = coinWorldSize * basePixelScale;
-    this.ensureSprite();
     const activeTexture = this.constructor.assetsManager.textures.get(COIN_TEXTURE_KEY) ?? null;
-    if (!this.sprite || this.collected) {
-      this.hideSprite();
+    if (this.collected) {
+      this.visible = false;
       return;
     }
     if (!activeTexture) {
-      this.hideSprite();
+      this.visible = false;
       return;
     }
     if (this.sprite.texture !== activeTexture) {
@@ -84,7 +78,7 @@ export class CoinGameObject extends GameObject {
 
   syncRender(context = {}) {
     if (this.collected) {
-      this.hideSprite();
+      this.visible = false;
       return;
     }
 

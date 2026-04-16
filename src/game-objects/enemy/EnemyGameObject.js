@@ -47,6 +47,7 @@ const ENEMY_ANIMATION_CONFIG_BY_STATE = {
   },
 };
 
+/** @extends {GameObject<AnimatedSprite>} */
 export class EnemyGameObject extends GameObject {
   static assetsManager = new AssetsManager();
 
@@ -99,7 +100,6 @@ export class EnemyGameObject extends GameObject {
 
     this.#buildStateMachine();
     this.vx = this.speed * this.dir;
-    this.ensureSprite();
   }
 
   #buildStateMachine() {
@@ -250,24 +250,24 @@ export class EnemyGameObject extends GameObject {
     return !moved?.hitX;
   }
 
-  ensureSprite() {
-    if (this.sprite) return;
-    this.sprite = new AnimatedSprite([Texture.EMPTY]);
-    this.sprite.anchor.set(0.5, 0);
-    this.sprite.visible = false;
-    this.sprite.loop = true;
-    this.sprite.animationSpeed = 0.12;
-    this.sprite.stop();
-    this.sprite.zIndex = 10;
+  _prepareSprite() {
+    const sprite = new AnimatedSprite([Texture.EMPTY]);
+    sprite.anchor.set(0.5, 0);
+    sprite.visible = false;
+    sprite.loop = true;
+    sprite.animationSpeed = 0.12;
+    sprite.stop();
+    sprite.zIndex = 10;
+    return sprite;
   }
 
   syncSprite({
     viewport,
     basePixelScale,
   }) {
-    if (!this.sprite || !this.alive) {
-      this.sprite?.stop?.();
-      this.hideSprite();
+    if (!this.alive) {
+      this.sprite.stop();
+      this.visible = false;
       return;
     }
 
@@ -277,8 +277,8 @@ export class EnemyGameObject extends GameObject {
     const sourceTextures = this.constructor.assetsManager.animations.get(animationConfig.animationKey) ?? [];
     if (!sourceTextures?.length) {
       this.currentSpriteStateName = null;
-      this.sprite?.stop?.();
-      this.hideSprite();
+      this.sprite.stop();
+      this.visible = false;
       return;
     }
 
