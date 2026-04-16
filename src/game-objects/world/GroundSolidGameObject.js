@@ -1,5 +1,5 @@
 import { GameObject } from "src/game-objects/core/GameObject";
-import { Container, Rectangle, Texture, TilingSprite } from "pixi.js";
+import { Container, Texture, TilingSprite } from "pixi.js";
 import { AssetsManager } from "src/core/AssetsManager";
 import platformWallSprite from "assets/game/sprites/platforms/platform-wall.png";
 import platformStairSprite from "assets/game/sprites/platforms/platform-stair.png";
@@ -47,29 +47,8 @@ const PLATFORM_STAIR_CROP = {
 export class GroundSolidGameObject extends GameObject {
   static assetsManager = new AssetsManager();
 
-  static #createCroppedTexture(texture, crop) {
-    if (!texture) return null;
-    const frame = new Rectangle(
-      Math.round(texture.width * crop.x),
-      Math.round(texture.height * crop.y),
-      Math.round(texture.width * crop.w),
-      Math.round(texture.height * crop.h),
-    );
-
-    const croppedTexture = new Texture({
-      source: texture.source,
-      frame,
-    });
-    croppedTexture.source.scaleMode = "nearest";
-    return croppedTexture;
-  }
-
   static #registerDerivedTexture(baseKey, targetKey, crop) {
-    if (this.assetsManager.textures.has(targetKey)) return;
-    const baseTexture = this.assetsManager.textures.get(baseKey);
-    const croppedTexture = this.#createCroppedTexture(baseTexture, crop);
-    if (!croppedTexture) return;
-    this.assetsManager.textures.set(targetKey, croppedTexture);
+    this.assetsManager.addCroppedTexture(baseKey, targetKey, crop);
   }
 
   static #buildDerivedTextures() {

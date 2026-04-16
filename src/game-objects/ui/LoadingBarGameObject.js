@@ -25,8 +25,8 @@ export class LoadingBarGameObject extends GameObject {
     });
     this.width = Math.max(1, this.width);
     this.height = Math.max(1, this.height);
-    this.#drawBar(this.backgroundView, this.width, this.height, 0x06120b);
-    this.#drawBar(this.fillView, this.width, this.height, 0x6ff0b5);
+    this.drawBar(this.backgroundView, this.width, this.height, 0x06120b);
+    this.drawBar(this.fillView, this.width, this.height, 0x6ff0b5);
     sprite.width = this.width;
     sprite.height = this.height;
     return sprite;
@@ -36,8 +36,8 @@ export class LoadingBarGameObject extends GameObject {
     this.width = Math.max(1, width);
     this.height = Math.max(1, height);
     if (!this.backgroundView || !this.fillView) return;
-    this.#drawBar(this.backgroundView, this.width, this.height, 0x06120b);
-    this.#drawBar(this.fillView, this.width, this.height, 0x6ff0b5);
+    this.drawBar(this.backgroundView, this.width, this.height, 0x06120b);
+    this.drawBar(this.fillView, this.width, this.height, 0x6ff0b5);
     this.sprite.width = this.width;
     this.sprite.height = this.height;
   }
@@ -47,7 +47,7 @@ export class LoadingBarGameObject extends GameObject {
     this.sprite.progress = progress;
   }
 
-  #drawBar(graphics, width, height, fillColor) {
+  drawBar(graphics, width, height, fillColor) {
     graphics
       .clear()
       .roundRect(0, 0, width, height, 6)

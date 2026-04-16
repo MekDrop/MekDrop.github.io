@@ -1,5 +1,5 @@
 import { GameObject } from "src/game-objects/core/GameObject";
-import { Rectangle, Texture, TilingSprite } from "pixi.js";
+import { Texture, TilingSprite } from "pixi.js";
 import { AssetsManager } from "src/core/AssetsManager";
 import platformFlyingPlatformSprite from "assets/game/sprites/platforms/platform-flying-platform-manual.png";
 
@@ -20,29 +20,12 @@ const PLATFORM_FLYING_PLATFORM_TILE_SCALE = {
 export class PlatformSolidGameObject extends GameObject {
   static assetsManager = new AssetsManager();
 
-  static #createCroppedTexture(texture, crop) {
-    if (!texture) return null;
-    const frame = new Rectangle(
-      Math.round(texture.width * crop.x),
-      Math.round(texture.height * crop.y),
-      Math.round(texture.width * crop.w),
-      Math.round(texture.height * crop.h),
-    );
-
-    const croppedTexture = new Texture({
-      source: texture.source,
-      frame,
-    });
-    croppedTexture.source.scaleMode = "nearest";
-    return croppedTexture;
-  }
-
   static #buildDerivedTextures() {
-    if (this.assetsManager.textures.has(PLATFORM_FLYING_TEXTURE_CROPPED_KEY)) return;
-    const baseTexture = this.assetsManager.textures.get(PLATFORM_FLYING_TEXTURE_KEY);
-    const croppedTexture = this.#createCroppedTexture(baseTexture, PLATFORM_FLYING_PLATFORM_CROP);
-    if (!croppedTexture) return;
-    this.assetsManager.textures.set(PLATFORM_FLYING_TEXTURE_CROPPED_KEY, croppedTexture);
+    this.assetsManager.addCroppedTexture(
+      PLATFORM_FLYING_TEXTURE_KEY,
+      PLATFORM_FLYING_TEXTURE_CROPPED_KEY,
+      PLATFORM_FLYING_PLATFORM_CROP,
+    );
   }
 
   static getLoaderSteps() {

@@ -288,6 +288,38 @@ export class AssetsManager {
   }
 
   /**
+   * Creates a cropped texture from an already loaded texture and stores it under a new key.
+   * Crop values are ratios in the 0..1 range relative to the source texture.
+   *
+   * @param {string} originalKey Existing source texture key.
+   * @param {string} newKey New key for cropped texture.
+   * @param {{x:number, y:number, w:number, h:number}} crop Crop rectangle ratios.
+   * @returns {import("pixi.js").Texture | null}
+   */
+  addCroppedTexture(originalKey, newKey, crop) {
+    if (!originalKey || !newKey || !crop) return null;
+    if (this.#textures.has(newKey)) return this.#textures.get(newKey);
+
+    const originalTexture = this.#textures.get(originalKey);
+    if (!originalTexture) return null;
+
+    const frame = new Rectangle(
+      Math.round(originalTexture.width * crop.x),
+      Math.round(originalTexture.height * crop.y),
+      Math.round(originalTexture.width * crop.w),
+      Math.round(originalTexture.height * crop.h),
+    );
+
+    const croppedTexture = new Texture({
+      source: originalTexture.source,
+      frame,
+    });
+    croppedTexture.source.scaleMode = "nearest";
+    this.#textures.set(newKey, croppedTexture);
+    return croppedTexture;
+  }
+
+  /**
    * Creates a horizontally flipped copy of an existing animation and registers it under a new key.
    * Each frame is created via `addFlippedTexture`.
    *
