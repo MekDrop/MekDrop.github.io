@@ -3,7 +3,7 @@ import { StateMachine } from "yuka";
 import { EnemyAlertBackState } from "src/states/enemies/EnemyAlertBackState";
 import { EnemyDeadState } from "src/states/enemies/EnemyDeadState";
 import { EnemyWalkState } from "src/states/enemies/EnemyWalkState";
-import { AnimatedSprite, Texture } from "pixi.js";
+import { AnimatedSprite, Rectangle, Texture } from "pixi.js";
 import { AssetsManager } from "src/core/AssetsManager";
 import blockyWalkSpritesheet from "assets/game/sprites/enemies/blocky-creature-walk-spritesheet.png";
 
@@ -242,6 +242,15 @@ export class EnemyGameObject extends GameObject {
     this.sprite.position.set(left + sizePx * 0.5, top);
     this.sprite.width = sizePx;
     this.sprite.height = sizePx;
+  }
+
+  get hitbox() {
+    return new Rectangle(
+      this.x - this.w * 0.5,
+      this.y,
+      this.w,
+      this.h,
+    );
   }
 
   syncRender(context = {}) {

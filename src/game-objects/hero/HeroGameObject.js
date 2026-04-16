@@ -8,7 +8,7 @@ import { HeroHurtState } from "src/states/heroes/HeroHurtState";
 import { HeroTurnState } from "src/states/heroes/HeroTurnState";
 import { HeroDeathState } from "src/states/heroes/HeroDeathState";
 import { HeroClearState } from "src/states/heroes/HeroClearState";
-import { AnimatedSprite, Texture } from "pixi.js";
+import { AnimatedSprite, Rectangle, Texture } from "pixi.js";
 import { AssetsManager } from "src/core/AssetsManager";
 import idleLeft from "assets/game/sprites/hero-custom/hero-idle-left.png";
 import runLeft from "assets/game/sprites/hero-custom/hero-run-left.png";
@@ -169,6 +169,15 @@ export class HeroGameObject extends GameObject {
     this.sprite.width = sizePx;
     this.sprite.height = sizePx;
     return effectiveDirection;
+  }
+
+  get hitbox() {
+    return new Rectangle(
+      this.x - this.w * 0.5,
+      this.y,
+      this.w,
+      this.h,
+    );
   }
 
   syncRender(context = {}) {

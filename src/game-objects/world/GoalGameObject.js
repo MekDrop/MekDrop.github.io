@@ -1,5 +1,5 @@
 import { GameObject } from "src/game-objects/core/GameObject";
-import { Sprite, Texture } from "pixi.js";
+import { Rectangle, Sprite, Texture } from "pixi.js";
 import { AssetsManager } from "src/core/AssetsManager";
 import portalFrame from "assets/game/sprites/goal/portal-frame-0.png";
 
@@ -35,13 +35,13 @@ export class GoalGameObject extends GameObject {
     return sprite;
   }
 
-  getHitbox() {
-    return {
-      x: this.x - this.w * 0.5,
-      y: this.y,
-      w: this.w,
-      h: this.h,
-    };
+  get hitbox() {
+    return new Rectangle(
+      this.x - this.w * 0.5,
+      this.y,
+      this.w,
+      this.h,
+    );
   }
 
   syncSprite({

@@ -1,5 +1,5 @@
 import { GameObject } from "src/game-objects/core/GameObject";
-import { Sprite, Texture } from "pixi.js";
+import { Rectangle, Sprite, Texture } from "pixi.js";
 import { AssetsManager } from "src/core/AssetsManager";
 import coinGoldSprite from "assets/game/sprites/collectibles/coin-gold.png";
 
@@ -66,6 +66,15 @@ export class CoinGameObject extends GameObject {
     this.sprite.position.set(left + sizePx * 0.5, top + sizePx * 0.5);
     this.sprite.height = sizePx;
     this.sprite.scale.x = this.baseScaleX * flipMagnitude * flipSign;
+  }
+
+  get hitbox() {
+    return new Rectangle(
+      this.x - this.r,
+      this.y - this.r,
+      this.r * 2,
+      this.r * 2,
+    );
   }
 
   syncRender(context = {}) {

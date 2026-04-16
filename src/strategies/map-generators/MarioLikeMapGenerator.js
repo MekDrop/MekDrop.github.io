@@ -1089,7 +1089,10 @@ export class MarioLikeMapGenerator {
 
   #isCoinClearOfSolids(coin, solids) {
     const rect = this.#coinRect(coin, this.config.COIN_PLATFORM_CLEARANCE);
-    return !solids.some((solid) => this.config.overlap(rect, solid));
+    return !solids.some((solid) => {
+      return rect.x < solid.x + solid.w && rect.x + rect.w > solid.x &&
+        rect.y < solid.y + solid.h && rect.y + rect.h > solid.y;
+    });
   }
 
   #hasStompHeadroomAtX(x, enemyGroundY, solids) {
@@ -1109,9 +1112,18 @@ export class MarioLikeMapGenerator {
   }
 
   #isEnemyBodyClearAtX(x, enemyGroundY, solids) {
-    const rect = this.config.spriteRect(x, enemyGroundY, this.config.ENEMY_WIDTH, this.config.ENEMY_HEIGHT);
+    const rect = {
+      x: x - this.config.ENEMY_WIDTH * 0.5,
+      y: enemyGroundY,
+      w: this.config.ENEMY_WIDTH,
+      h: this.config.ENEMY_HEIGHT,
+    };
     for (let i = 0; i < solids.length; i++) {
-      if (this.config.overlap(rect, solids[i])) return false;
+      const solid = solids[i];
+      if (rect.x < solid.x + solid.w && rect.x + rect.w > solid.x &&
+        rect.y < solid.y + solid.h && rect.y + rect.h > solid.y) {
+        return false;
+      }
     }
     return true;
   }
@@ -1124,7 +1136,11 @@ export class MarioLikeMapGenerator {
       h: probe,
     };
     for (let i = 0; i < solids.length; i++) {
-      if (this.config.overlap(rect, solids[i])) return true;
+      const solid = solids[i];
+      if (rect.x < solid.x + solid.w && rect.x + rect.w > solid.x &&
+        rect.y < solid.y + solid.h && rect.y + rect.h > solid.y) {
+        return true;
+      }
     }
     return false;
   }

@@ -17,7 +17,7 @@
 
 <script setup>
 import { List } from "@pixi/ui";
-import { Application, Container, Graphics, Text } from "pixi.js";
+import { Application, Container, Graphics, Rectangle, Text } from "pixi.js";
 import { nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 import { dom } from "quasar";
 import { CoinGameObject } from "src/game-objects/collectibles/CoinGameObject";
@@ -92,7 +92,6 @@ const PATH_MAX_GAP = 13;
 const clamp = (v, mn, mx) => Math.min(mx, Math.max(mn, v));
 const snapToPlatformGrid = (value) => Math.round(value / PLATFORM_GRID) * PLATFORM_GRID;
 const approach = (v, t, d) => (v < t ? Math.min(v + d, t) : Math.max(v - d, t));
-const overlap = (a, b) => a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
 const randomInt = (rng, min, max) => {
   const lo = Math.min(min, max);
   const hi = Math.max(min, max);
@@ -110,30 +109,6 @@ const createRng = (seed) => {
 const createRandomSeed = () => {
   const seed = Math.floor(Math.random() * 4294967296) >>> 0;
   return seed === 0 ? 1 : seed;
-};
-const pickEvenlyDistributed = (items, count) => {
-  if (items.length <= count) return [...items];
-  if (count <= 0) return [];
-  if (count === 1) return [items[Math.floor(items.length * 0.5)]];
-
-  const picks = [];
-  const used = new Set();
-  const denominator = Math.max(1, count - 1);
-
-  for (let i = 0; i < count; i++) {
-    let index = Math.round((i * (items.length - 1)) / denominator);
-    while (used.has(index) && index < items.length - 1) {
-      index += 1;
-    }
-    while (used.has(index) && index > 0) {
-      index -= 1;
-    }
-    if (used.has(index)) continue;
-    used.add(index);
-    picks.push(items[index]);
-  }
-
-  return picks.sort(sortByX);
 };
 
 const createPlayer = () => new HeroGameObject({
@@ -160,24 +135,7 @@ const createSolid = (solid) => (
     : new PlatformSolidGameObject({ ...solid })
 );
 
-const bodyRect = (body) => ({
-  x: body.x - body.w * 0.5,
-  y: body.y,
-  w: body.w,
-  h: body.h,
-});
 
-const spriteRect = (x, y, w, h) => ({ x: x - w * 0.5, y, w, h });
-const coinRect = (coin, padding = 0) => ({
-  x: coin.x - coin.r - padding,
-  y: coin.y - coin.r - padding,
-  w: coin.r * 2 + padding * 2,
-  h: coin.r * 2 + padding * 2,
-});
-const isCoinClearOfSolids = (coin, solids) => {
-  const rect = coinRect(coin, COIN_PLATFORM_CLEARANCE);
-  return !solids.some((solid) => overlap(rect, solid));
-};
 
 const world = {
   width: MIN_WORLD_WIDTH,
@@ -216,8 +174,6 @@ const mapGenerator = new MarioLikeMapGenerator({
   createRng,
   randomInt,
   sortByX,
-  overlap,
-  spriteRect,
 });
 
 const generateLevel = (nextWidth, nextHeight, seed = world.seed) => {
@@ -448,7 +404,6 @@ const run = {
   phase: PHASE_PLAYING,
   phaseTimer: 0,
   stagePulse: 0,
-  regenerateOnRespawn: false,
 };
 
 const player = createPlayer();
@@ -520,12 +475,7 @@ const getDynamicRenderables = () => [
   player,
   debugGrid,
 ];
-const viewport = {
-  x: 0,
-  y: 0,
-  width: 1,
-  height: 1,
-};
+const viewport = new Rectangle(0, 0, 1, 1);
 const debugGrid = new DebugGridGameObject();
 
 const getLoaderSteps = (gameObjectTypes = LOADER_GAME_OBJECT_TYPES) => (
@@ -660,7 +610,6 @@ const resetLevel = () => {
   run.phase = PHASE_PLAYING;
   run.phaseTimer = 0;
   run.stagePulse = 0;
-  run.regenerateOnRespawn = false;
   resetPlayer();
   detachObjectSprites(enemies);
   detachObjectSprites(coins);
@@ -683,7 +632,6 @@ const resetRun = () => {
   run.coinsInStage = 0;
   run.collectedInStage = 0;
   run.doorUnlocked = false;
-  run.regenerateOnRespawn = false;
   resetLevel();
 };
 
@@ -693,8 +641,9 @@ const preservePlayerAfterResize = () => {
 
   for (let i = 0; i < world.solids.length; i++) {
     const solid = world.solids[i];
-    const rect = bodyRect(player);
-    if (!overlap(rect, solid)) continue;
+    const rect = player.hitbox;
+    const solidRect = new Rectangle(solid.x, solid.y, solid.w, solid.h);
+    if (!rect.intersects(solidRect)) continue;
     player.y = solid.y + solid.h;
   }
 
@@ -740,12 +689,8 @@ const takeLife = () => {
   if (run.phase !== PHASE_PLAYING) return;
   run.phase = PHASE_DEAD;
   run.phaseTimer = 0;
-  player.invulnerable = 1.25;
-  player.dir = lastHeroRenderFacing > 0 ? 1 : -1;
-  player.vx = 0;
-  player.vy = 28;
   run.lives -= 1;
-  run.regenerateOnRespawn = run.lives <= 0;
+  player.onDeathAnimationComplete = handleDeathAnimationComplete;
   syncHud();
 };
 
@@ -758,24 +703,30 @@ const clearStage = () => {
 };
 
 const solidSupportBelow = (body, probe = 1.5) => {
-  const rect = {
-    x: body.x - body.w * 0.5 + 0.35,
-    y: body.y - probe,
-    w: body.w - 0.7,
-    h: probe,
-  };
-  return world.solids.some((solid) => overlap(rect, solid));
+  const rect = new Rectangle(
+    body.x - body.w * 0.5 + 0.35,
+    body.y - probe,
+    body.w - 0.7,
+    probe,
+  );
+  return world.solids.some((solid) => {
+    const solidRect = new Rectangle(solid.x, solid.y, solid.w, solid.h);
+    return rect.intersects(solidRect);
+  });
 };
 
 const solidSupportAhead = (body, direction, ahead = 0.9, probe = 1.25) => {
   const footX = body.x + direction * (body.w * 0.5 + ahead);
-  const rect = {
-    x: footX - 0.2,
-    y: body.y - probe,
-    w: 0.4,
-    h: probe,
-  };
-  return world.solids.some((solid) => overlap(rect, solid));
+  const rect = new Rectangle(
+    footX - 0.2,
+    body.y - probe,
+    0.4,
+    probe,
+  );
+  return world.solids.some((solid) => {
+    const solidRect = new Rectangle(solid.x, solid.y, solid.w, solid.h);
+    return rect.intersects(solidRect);
+  });
 };
 
 const enemyAhead = (self, direction, maxDistance = ENEMY_WIDTH + 0.5, laneTolerance = PLATFORM_GRID * 0.5) => {
@@ -799,10 +750,11 @@ const moveBody = (body, delta) => {
   let hitX = false;
 
   body.x += body.vx * delta;
-  let rect = bodyRect(body);
+  let rect = body.hitbox;
   for (let i = 0; i < world.solids.length; i++) {
     const solid = world.solids[i];
-    if (!overlap(rect, solid)) continue;
+    const solidRect = new Rectangle(solid.x, solid.y, solid.w, solid.h);
+    if (!rect.intersects(solidRect)) continue;
     if (body.vx > 0) {
       body.x = solid.x - body.w * 0.5;
       hitX = true;
@@ -811,15 +763,16 @@ const moveBody = (body, delta) => {
       hitX = true;
     }
     body.vx = 0;
-    rect = bodyRect(body);
+    rect = body.hitbox;
   }
 
   body.y += body.vy * delta;
   body.grounded = false;
-  rect = bodyRect(body);
+  rect = body.hitbox;
   for (let i = 0; i < world.solids.length; i++) {
     const solid = world.solids[i];
-    if (!overlap(rect, solid)) continue;
+    const solidRect = new Rectangle(solid.x, solid.y, solid.w, solid.h);
+    if (!rect.intersects(solidRect)) continue;
     if (body.vy < 0) {
       body.y = solid.y + solid.h;
       body.grounded = true;
@@ -827,7 +780,7 @@ const moveBody = (body, delta) => {
       body.y = solid.y - body.h;
     }
     body.vy = 0;
-    rect = bodyRect(body);
+    rect = body.hitbox;
   }
 
   if (body.x - body.w * 0.5 < 0) {
@@ -845,12 +798,12 @@ const moveBody = (body, delta) => {
 };
 
 const collectCoins = () => {
-  const playerHitbox = bodyRect(player);
+  const playerHitbox = player.hitbox;
   for (let i = 0; i < coins.length; i++) {
     const coin = coins[i];
     if (coin.collected) continue;
-    const hitbox = spriteRect(coin.x, coin.y - coin.r, coin.r * 2, coin.r * 2);
-    if (!overlap(playerHitbox, hitbox)) continue;
+    const hitbox = coin.hitbox;
+    if (!playerHitbox.intersects(hitbox)) continue;
     coin.collected = true;
     run.score += 100;
     run.coins += 1;
@@ -877,12 +830,12 @@ const stompEnemy = (enemy) => {
 };
 
 const resolveEnemyCollisions = () => {
-  const playerHitbox = bodyRect(player);
+  const playerHitbox = player.hitbox;
   for (let i = 0; i < enemies.length; i++) {
     const enemy = enemies[i];
     if (!enemy.alive) continue;
-    const enemyHitbox = bodyRect(enemy);
-    if (!overlap(playerHitbox, enemyHitbox)) continue;
+    const enemyHitbox = enemy.hitbox;
+    if (!playerHitbox.intersects(enemyHitbox)) continue;
     const playerWasAbove = player.prevY >= enemy.y + enemy.h - 1.2;
     if (player.vy < -16 && playerWasAbove) {
       stompEnemy(enemy);
@@ -996,7 +949,7 @@ const stepPlayer = (delta) => {
   if (run.phase === PHASE_PLAYING) {
     collectCoins();
     resolveEnemyCollisions();
-    if (run.doorUnlocked && overlap(bodyRect(player), goal.getHitbox())) {
+    if (run.doorUnlocked && player.hitbox.intersects(goal.hitbox)) {
       clearStage();
     }
     if (player.y < -18 || run.timer <= 0) {
@@ -1007,6 +960,19 @@ const stepPlayer = (delta) => {
   updateHeroAnimationStateMachine();
 };
 
+const handleDeathAnimationComplete = () => {
+  if (run.lives <= 0) {
+    void regenerateMapWithLoading({
+      label: "Rebuilding Stage",
+      onComplete: () => {
+        resetRun();
+      },
+    });
+  } else {
+    resetLevel();
+  }
+};
+
 const stepPhase = (delta) => {
   if (loadingState.value.visible) return;
   if (run.phase === PHASE_PLAYING) {
@@ -1015,19 +981,6 @@ const stepPhase = (delta) => {
   }
 
   if (run.phase === PHASE_DEAD) {
-    const stateName = player.stateMachine?.currentState?.name ?? "";
-    const inDeathState = stateName.startsWith("death");
-    if (!inDeathState || player.sprite.playing) return;
-    if (run.regenerateOnRespawn) {
-      void regenerateMapWithLoading({
-        label: "Rebuilding Stage",
-        onComplete: () => {
-          resetRun();
-        },
-      });
-    } else {
-      resetLevel();
-    }
     return;
   }
 
