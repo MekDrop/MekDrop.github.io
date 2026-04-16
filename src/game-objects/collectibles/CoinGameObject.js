@@ -48,17 +48,9 @@ export class CoinGameObject extends GameObject {
     coinWorldSize,
   }) {
     const sizePx = coinWorldSize * basePixelScale;
-    const activeTexture = this.constructor.assetsManager.textures.get(COIN_TEXTURE_KEY) ?? null;
     if (this.collected) {
       this.visible = false;
       return;
-    }
-    if (!activeTexture) {
-      this.visible = false;
-      return;
-    }
-    if (this.sprite.texture !== activeTexture) {
-      this.sprite.texture = activeTexture;
     }
     const textureWidth = Math.max(1, this.sprite.texture.width);
     this.baseScaleX = sizePx / textureWidth;

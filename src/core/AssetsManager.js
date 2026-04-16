@@ -294,11 +294,15 @@ export class AssetsManager {
    * @param {string} originalKey Existing source texture key.
    * @param {string} newKey New key for cropped texture.
    * @param {{x:number, y:number, w:number, h:number}} crop Crop rectangle ratios.
-   * @returns {import("pixi.js").Texture | null}
+   * @returns {Promise<import("pixi.js").Texture | null>}
    */
-  addCroppedTexture(originalKey, newKey, crop) {
+  async addCroppedTexture(originalKey, newKey, crop) {
     if (!originalKey || !newKey || !crop) return null;
     if (this.#textures.has(newKey)) return this.#textures.get(newKey);
+    const inFlightOriginal = this.#inFlightLoads.get(originalKey);
+    if (inFlightOriginal) {
+      await inFlightOriginal;
+    }
 
     const originalTexture = this.#textures.get(originalKey);
     if (!originalTexture) return null;

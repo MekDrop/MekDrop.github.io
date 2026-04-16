@@ -50,15 +50,6 @@ export class GoalGameObject extends GameObject {
     basePixelScale,
     isUnlocked,
   }) {
-    const activeTexture = this.constructor.assetsManager.textures.get(GOAL_TEXTURE_KEY) ?? null;
-    if (!activeTexture) {
-      this.visible = false;
-      return;
-    }
-    if (this.sprite.texture !== activeTexture) {
-      this.sprite.texture = activeTexture;
-    }
-
     const pulse = isUnlocked ? 1 + Math.sin(time * 3.2) * 0.04 : 0.9;
     const widthPx = GOAL_BASE_WIDTH_PX * pulse;
     const heightPx = GOAL_BASE_HEIGHT_PX * pulse;
