@@ -32,8 +32,7 @@ export class GameUiRowGameObject extends GameObject {
 
   resize(width, minHeight) {
     if (!this.label || !this.background) return;
-    const labelWidth = Math.max(1, width - LABEL_PADDING_X * 2);
-    this.label.style.wordWrapWidth = labelWidth;
+    this.label.style.wordWrapWidth = Math.max(1, width - LABEL_PADDING_X * 2);
     this.#drawPanelBackground(
       this.background,
       width,

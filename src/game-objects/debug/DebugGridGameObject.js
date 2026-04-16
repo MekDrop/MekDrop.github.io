@@ -10,8 +10,6 @@ const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
 export class DebugGridGameObject extends GameObject {
   constructor(props = {}) {
     super({
-      enabled: false,
-      frozenTime: 0,
       fillGraphics: null,
       gridGraphics: null,
       panel: null,
@@ -20,13 +18,8 @@ export class DebugGridGameObject extends GameObject {
       ...props,
     });
     this.ensurePanel();
-  }
-
-  setEnabled(enabled, nowSeconds = performance.now() * 0.001) {
-    this.enabled = enabled;
-    if (enabled) {
-      this.frozenTime = nowSeconds;
-    }
+    this.visible = false;
+    this.panel.visible = false;
   }
 
   _prepareSprite() {
@@ -138,9 +131,9 @@ export class DebugGridGameObject extends GameObject {
 
   syncPanel(viewport) {
     if (!this.panel || !this.panelBackground || !this.panelLabel) return;
-    this.panel.visible = this.enabled;
-    if (!this.enabled) return;
-    this.panelLabel.text = "GRID DEBUG ON · FROZEN · F3 TO TOGGLE";
+    this.panel.visible = this.visible;
+    if (!this.visible) return;
+    this.panelLabel.text = "GRID DEBUG ON · F3 TO TOGGLE";
     this.#drawPanelBackground(this.panelBackground, PANEL_WIDTH, PANEL_HEIGHT, 0.9);
     this.panel.x = viewport.x + 10;
     this.panel.y = viewport.y + 74;
@@ -161,10 +154,9 @@ export class DebugGridGameObject extends GameObject {
 
     if (!this.gridGraphics || !this.fillGraphics || !viewport || !world) return;
 
-    this.sprite.visible = this.enabled;
     this.gridGraphics.clear();
     this.fillGraphics.clear();
-    if (!this.enabled) {
+    if (!this.visible) {
       this.syncPanel(viewport);
       return;
     }

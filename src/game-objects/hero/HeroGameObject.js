@@ -1,14 +1,19 @@
 import { GameObject } from "src/game-objects/core/GameObject";
 import { StateMachine } from "yuka";
-import { HeroAnimationState } from "src/states/heroes/HeroAnimationState";
+import { HeroIdleState } from "src/states/heroes/HeroIdleState";
+import { HeroRunState } from "src/states/heroes/HeroRunState";
+import { HeroJumpState } from "src/states/heroes/HeroJumpState";
+import { HeroFallState } from "src/states/heroes/HeroFallState";
+import { HeroHurtState } from "src/states/heroes/HeroHurtState";
+import { HeroTurnState } from "src/states/heroes/HeroTurnState";
+import { HeroDeathState } from "src/states/heroes/HeroDeathState";
+import { HeroClearState } from "src/states/heroes/HeroClearState";
 import { AnimatedSprite, Texture } from "pixi.js";
 import { AssetsManager } from "src/core/AssetsManager";
 import idleLeft from "assets/game/sprites/hero-custom/hero-idle-left.png";
 import runLeft from "assets/game/sprites/hero-custom/hero-run-left.png";
 import deathBiteLeft from "assets/game/sprites/hero-custom/hero-death-bite-left.png";
 import turnLeftRight from "assets/game/sprites/hero-custom/hero-turn-left-right.png";
-
-const clamp = (v, mn, mx) => Math.min(mx, Math.max(mn, v));
 const HERO_IDLE_LEFT_SPRITESHEET_KEY = "hero:spritesheet:idle-left";
 const HERO_IDLE_RIGHT_SPRITESHEET_KEY = "hero:spritesheet:idle-right";
 const HERO_RUN_LEFT_SPRITESHEET_KEY = "hero:spritesheet:run-left";
@@ -17,40 +22,6 @@ const HERO_DEATH_LEFT_SPRITESHEET_KEY = "hero:spritesheet:death-bite-left";
 const HERO_DEATH_RIGHT_SPRITESHEET_KEY = "hero:spritesheet:death-bite-right";
 const HERO_TURN_LEFT_SPRITESHEET_KEY = "hero:spritesheet:turn-left-right-left-facing";
 const HERO_TURN_RIGHT_SPRITESHEET_KEY = "hero:spritesheet:turn-left-right-right-facing";
-const HERO_SPRITESHEET_KEY_BY_ANIMATION_NAME = {
-  idle: {
-    left: HERO_IDLE_LEFT_SPRITESHEET_KEY,
-    right: HERO_IDLE_RIGHT_SPRITESHEET_KEY,
-  },
-  run: {
-    left: HERO_RUN_LEFT_SPRITESHEET_KEY,
-    right: HERO_RUN_RIGHT_SPRITESHEET_KEY,
-  },
-  jump: {
-    left: HERO_IDLE_LEFT_SPRITESHEET_KEY,
-    right: HERO_IDLE_RIGHT_SPRITESHEET_KEY,
-  },
-  fall: {
-    left: HERO_IDLE_LEFT_SPRITESHEET_KEY,
-    right: HERO_IDLE_RIGHT_SPRITESHEET_KEY,
-  },
-  hurt: {
-    left: HERO_IDLE_LEFT_SPRITESHEET_KEY,
-    right: HERO_IDLE_RIGHT_SPRITESHEET_KEY,
-  },
-  clear: {
-    left: HERO_IDLE_LEFT_SPRITESHEET_KEY,
-    right: HERO_IDLE_RIGHT_SPRITESHEET_KEY,
-  },
-  death: {
-    left: HERO_DEATH_LEFT_SPRITESHEET_KEY,
-    right: HERO_DEATH_RIGHT_SPRITESHEET_KEY,
-  },
-  turn: {
-    left: HERO_TURN_LEFT_SPRITESHEET_KEY,
-    right: HERO_TURN_RIGHT_SPRITESHEET_KEY,
-  },
-};
 
 /** @extends {GameObject<import("pixi.js").AnimatedSprite>} */
 export class HeroGameObject extends GameObject {
@@ -95,39 +66,38 @@ export class HeroGameObject extends GameObject {
       y: 0,
       vx: 0,
       vy: 0,
+      dir: 1,
       w: 7,
       h: 13,
-      facing: 1,
       grounded: false,
       coyote: 0,
       invulnerable: 0,
-      anim: 0,
-      deathFacing: 1,
       prevY: 0,
-      turnDuration: 0.34,
-      turnRemaining: 0,
-      deathElapsed: 0,
-      previousRunPhase: null,
       preservedState: null,
-      currentSpriteAnimationName: null,
-      currentSpriteFacingKey: null,
       ...props,
     });
 
     this.#buildStateMachine();
-    this.resetAnimationState();
   }
 
   #buildStateMachine() {
     this.stateMachine = new StateMachine(this);
-    this.stateMachine.add("idle", new HeroAnimationState("idle"));
-    this.stateMachine.add("run", new HeroAnimationState("run"));
-    this.stateMachine.add("jump", new HeroAnimationState("jump"));
-    this.stateMachine.add("fall", new HeroAnimationState("fall"));
-    this.stateMachine.add("hurt", new HeroAnimationState("hurt"));
-    this.stateMachine.add("turn", new HeroAnimationState("turn"));
-    this.stateMachine.add("death", new HeroAnimationState("death"));
-    this.stateMachine.add("clear", new HeroAnimationState("clear"));
+    this.stateMachine.add("idleLeft", new HeroIdleState(-1));
+    this.stateMachine.add("idleRight", new HeroIdleState(1));
+    this.stateMachine.add("runLeft", new HeroRunState(-1));
+    this.stateMachine.add("runRight", new HeroRunState(1));
+    this.stateMachine.add("jumpLeft", new HeroJumpState(-1));
+    this.stateMachine.add("jumpRight", new HeroJumpState(1));
+    this.stateMachine.add("fallLeft", new HeroFallState(-1));
+    this.stateMachine.add("fallRight", new HeroFallState(1));
+    this.stateMachine.add("hurtLeft", new HeroHurtState(-1));
+    this.stateMachine.add("hurtRight", new HeroHurtState(1));
+    this.stateMachine.add("turnLeft", new HeroTurnState(-1));
+    this.stateMachine.add("turnRight", new HeroTurnState(1));
+    this.stateMachine.add("deathLeft", new HeroDeathState(-1));
+    this.stateMachine.add("deathRight", new HeroDeathState(1));
+    this.stateMachine.add("clearLeft", new HeroClearState(-1));
+    this.stateMachine.add("clearRight", new HeroClearState(1));
   }
 
   captureRuntimeState() {
@@ -139,13 +109,8 @@ export class HeroGameObject extends GameObject {
       grounded: this.grounded,
       coyote: this.coyote,
       invulnerable: this.invulnerable,
-      anim: this.anim,
-      deathFacing: this.deathFacing,
       prevY: this.prevY,
-      facing: this.facing,
-      turnRemaining: this.turnRemaining,
-      deathElapsed: this.deathElapsed,
-      previousRunPhase: this.previousRunPhase,
+      dir: this.dir,
     };
     return this.preservedState;
   }
@@ -162,12 +127,10 @@ export class HeroGameObject extends GameObject {
     if (mode === 0) {
       this.vx = 0;
       this.vy = 0;
-      this.facing = 1;
+      this.dir = 1;
       this.grounded = false;
       this.coyote = 0;
       this.invulnerable = 0;
-      this.anim = 0;
-      this.deathFacing = this.facing;
       this.prevY = this.y;
       this.preservedState = null;
       this.resetAnimationState();
@@ -175,74 +138,8 @@ export class HeroGameObject extends GameObject {
     return this;
   }
 
-  requestTurn() {
-    this.turnRemaining = this.turnDuration;
-  }
-
   resetAnimationState() {
-    this.turnRemaining = 0;
-    this.deathElapsed = 0;
-    this.previousRunPhase = null;
-    this.currentSpriteAnimationName = null;
-    this.currentSpriteFacingKey = null;
-    this.stateMachine?.changeTo("idle");
-  }
-
-  updateAnimationState(delta, context) {
-    if (!this.stateMachine) return;
-    const runPhaseChanged = this.previousRunPhase !== null && this.previousRunPhase !== context.runPhase;
-    if (runPhaseChanged && context.runPhase !== context.PHASE_DEAD) {
-      this.deathElapsed = 0;
-    }
-
-    this.previousRunPhase = context.runPhase;
-    this.turnRemaining = Math.max(0, this.turnRemaining - delta);
-    if (context.runPhase === context.PHASE_DEAD) {
-      this.deathElapsed += delta;
-    }
-
-    const targetState = this.resolveAnimationState(context);
-    if (this.stateMachine.currentState?.name !== targetState) {
-      this.stateMachine.changeTo(targetState);
-    }
-
-    this.stateMachine.update();
-  }
-
-  getAnimationFrameIndex(animation) {
-    if (!animation || animation.frames <= 1) return 0;
-    const animationName = this.stateMachine?.currentState?.name ?? "idle";
-
-    if (animationName === "turn") {
-      const progress = clamp(1 - this.turnRemaining / this.turnDuration, 0, 0.9999);
-      return Math.min(animation.frames - 1, Math.floor(progress * animation.frames));
-    }
-
-    if (animationName === "death") {
-      return Math.min(animation.frames - 1, Math.floor(this.deathElapsed * animation.fps));
-    }
-
-    return Math.floor(this.anim) % animation.frames;
-  }
-
-  resolveAnimationState(context) {
-    const {
-      runPhase,
-      PHASE_DEAD,
-      PHASE_CLEAR,
-      invulnerable,
-      grounded,
-      vy,
-      vx,
-    } = context;
-
-    if (runPhase === PHASE_DEAD) return "death";
-    if (runPhase === PHASE_CLEAR) return "clear";
-    if (invulnerable > 0.9) return "hurt";
-    if (this.turnRemaining > 0) return "turn";
-    if (!grounded) return vy > 0 ? "jump" : "fall";
-    if (Math.abs(vx) > 4) return "run";
-    return "idle";
+    this.stateMachine?.changeTo(`idle${this.dir > 0 ? "Right" : "Left"}`);
   }
 
   _prepareSprite() {
@@ -255,98 +152,32 @@ export class HeroGameObject extends GameObject {
   }
 
   syncSprite({
-    run,
-    time,
     viewport,
     basePixelScale,
     heroWorldSize,
     heroScreenOffsetY,
-    phaseDead,
-    getHeroAnimation,
   }) {
-    if (typeof getHeroAnimation !== "function") return this.facing;
-
-    const animationName = this.stateMachine?.currentState?.name ?? "idle";
-    const animation = getHeroAnimation(animationName);
     const sizePx = heroWorldSize * basePixelScale;
-    const blinkHidden = run.phase !== phaseDead && this.invulnerable > 0 && Math.floor(time * 14) % 2 === 0;
-    const effectiveFacing = run.phase === phaseDead ? (this.deathFacing ?? this.facing) : this.facing;
-    const facingKey = effectiveFacing > 0 ? "right" : "left";
-    const animationConfig = HERO_SPRITESHEET_KEY_BY_ANIMATION_NAME[animationName]
-      ?? HERO_SPRITESHEET_KEY_BY_ANIMATION_NAME.idle;
-    const spritesheetKey = animationConfig?.[facingKey] ?? animationConfig?.left ?? HERO_IDLE_LEFT_SPRITESHEET_KEY;
-    const animationOrFacingChanged = this.currentSpriteAnimationName !== animationName
-      || this.currentSpriteFacingKey !== facingKey;
-    if (animationOrFacingChanged) {
-      const textures = this.constructor.assetsManager.animations.get(spritesheetKey) ?? [];
-      if (textures.length === 0) {
-        this.currentSpriteAnimationName = null;
-        this.currentSpriteFacingKey = null;
-        this.sprite.visible = false;
-        return effectiveFacing;
-      }
-      this.sprite.textures = textures;
-      this.currentSpriteAnimationName = animationName;
-      this.currentSpriteFacingKey = facingKey;
-    }
+    const effectiveDirection = this.dir > 0 ? 1 : -1;
+    const offsetX = 0;
+    const offsetY = 0;
 
-    const textures = this.sprite.textures ?? [];
-    if (textures.length === 0) {
-      this.currentSpriteAnimationName = null;
-      this.currentSpriteFacingKey = null;
-      this.sprite.visible = false;
-      return effectiveFacing;
-    }
-
-    const frameIndex = this.getAnimationFrameIndex(animation);
-    const isStateDrivenFrame = animationName === "turn" || animationName === "death";
-    if (isStateDrivenFrame) {
-      if (animationOrFacingChanged || this.sprite.playing) {
-        this.sprite.gotoAndStop(frameIndex);
-      } else if (this.sprite.currentFrame !== frameIndex) {
-        this.sprite.gotoAndStop(frameIndex);
-      }
-    } else {
-      this.sprite.animationSpeed = (animation.fps ?? 1) / 60;
-      if (animationOrFacingChanged) {
-        this.sprite.gotoAndPlay(frameIndex % textures.length);
-      } else if (!this.sprite.playing) {
-        this.sprite.play();
-      }
-    }
-
-    const currentFrameIndex = isStateDrivenFrame
-      ? frameIndex
-      : Math.min(textures.length - 1, this.sprite.currentFrame ?? 0);
-    const frameOffset = animation.frameOffsets?.[currentFrameIndex] ?? animation.frameOffsets?.[0] ?? { x: 0, y: 0 };
-    const offsetX = (effectiveFacing > 0 ? -frameOffset.x : frameOffset.x) * basePixelScale;
-    const offsetY = frameOffset.y * basePixelScale;
-
-    this.sprite.visible = !blinkHidden;
+    this.sprite.visible = true;
     const left = viewport.x + (this.x - heroWorldSize * 0.5) * basePixelScale + offsetX;
     const top = viewport.y + viewport.height - (this.y + heroWorldSize) * basePixelScale + offsetY + heroScreenOffsetY;
     this.sprite.position.set(left + sizePx * 0.5, top);
     this.sprite.width = sizePx;
     this.sprite.height = sizePx;
-    return effectiveFacing;
+    return effectiveDirection;
   }
 
   syncRender(context = {}) {
     return this.syncSprite({
-      run: context.run,
-      time: context.time,
       viewport: context.viewport,
       basePixelScale: context.basePixelScale,
       heroWorldSize: context.heroWorldSize,
       heroScreenOffsetY: context.heroScreenOffsetY,
-      phaseDead: context.phaseDead,
-      getHeroAnimation: context.getHeroAnimation,
     });
   }
 
-  detach() {
-    super.detach();
-    this.currentSpriteAnimationName = null;
-    this.currentSpriteFacingKey = null;
-  }
 }

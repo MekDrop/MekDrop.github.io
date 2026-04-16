@@ -1,7 +1,7 @@
 import { GameObject } from "src/game-objects/core/GameObject";
 import { StateMachine } from "yuka";
-import { EnemyAlertBackLeftState } from "src/states/enemies/EnemyAlertBackLeftState";
-import { EnemyAlertBackRightState } from "src/states/enemies/EnemyAlertBackRightState";
+import { EnemyAlertBackState } from "src/states/enemies/EnemyAlertBackState";
+import { EnemyDeadState } from "src/states/enemies/EnemyDeadState";
 import { EnemyWalkState } from "src/states/enemies/EnemyWalkState";
 import { AnimatedSprite, Texture } from "pixi.js";
 import { AssetsManager } from "src/core/AssetsManager";
@@ -13,8 +13,6 @@ const TURN_COOLDOWN = 0.12;
 const BACK_ALERT_MAX_X = 5.75;
 const BACK_ALERT_MIN_X = 0.25;
 const BACK_ALERT_MAX_Y_DELTA = 3.25;
-const BACK_ALERT_DURATION = 0.45;
-const BACK_ALERT_COOLDOWN = 0.5;
 const BACK_ALERT_MIN_RUNWAY = 2.25;
 const NEARBY_ENEMY_TURN_DISTANCE = 7.5;
 const NEARBY_ENEMY_LANE_TOLERANCE = 2.5;
@@ -24,28 +22,6 @@ const ENEMY_WALK_LEFT_FRAME_ANIMATION_KEY = "blockyFrames:walk:left";
 const ENEMY_WALK_RIGHT_FRAME_ANIMATION_KEY = "blockyFrames:walk:right";
 const ENEMY_ALERT_LEFT_FRAME_ANIMATION_KEY = "blockyFrames:alert:left";
 const ENEMY_ALERT_RIGHT_FRAME_ANIMATION_KEY = "blockyFrames:alert:right";
-const ENEMY_ANIMATION_CONFIG_BY_STATE = {
-  walkLeft: {
-    animationKey: ENEMY_WALK_LEFT_FRAME_ANIMATION_KEY,
-    frames: [0, 1, 2],
-    animationSpeed: 0.13,
-  },
-  walkRight: {
-    animationKey: ENEMY_WALK_RIGHT_FRAME_ANIMATION_KEY,
-    frames: [0, 1, 2],
-    animationSpeed: 0.13,
-  },
-  alertBackLeft: {
-    animationKey: ENEMY_ALERT_LEFT_FRAME_ANIMATION_KEY,
-    frames: [0, 1, 2, 3, 4],
-    animationSpeed: 0.09,
-  },
-  alertBackRight: {
-    animationKey: ENEMY_ALERT_RIGHT_FRAME_ANIMATION_KEY,
-    frames: [0, 1, 2, 3, 4],
-    animationSpeed: 0.09,
-  },
-};
 
 /** @extends {GameObject<AnimatedSprite>} */
 export class EnemyGameObject extends GameObject {
@@ -71,6 +47,7 @@ export class EnemyGameObject extends GameObject {
   }
 
   constructor(spawn = {}, defaults = {}) {
+    const { alive: spawnAlive = true, ...spawnProps } = spawn;
     super({
       type: "Blocky",
       x: 0,
@@ -82,11 +59,7 @@ export class EnemyGameObject extends GameObject {
       w: defaults.width ?? 7,
       h: defaults.height ?? 8,
       grounded: false,
-      alive: true,
       turnCooldown: 0,
-      backAlertTimer: 0,
-      backAlertCooldown: 0,
-      backAlertDirection: -1,
       patrolMinX: Number.NEGATIVE_INFINITY,
       patrolMaxX: Number.POSITIVE_INFINITY,
       blockedRetries: 0,
@@ -94,20 +67,21 @@ export class EnemyGameObject extends GameObject {
       dropDirection: 0,
       runtime: null,
       delta: 0,
-      currentSpriteStateName: null,
-      ...spawn,
+      ...spawnProps,
     });
 
     this.#buildStateMachine();
     this.vx = this.speed * this.dir;
+    this.alive = spawnAlive;
   }
 
   #buildStateMachine() {
     this.stateMachine = new StateMachine(this);
     this.stateMachine.add("walkLeft", new EnemyWalkState(-1));
     this.stateMachine.add("walkRight", new EnemyWalkState(1));
-    this.stateMachine.add("alertBackLeft", new EnemyAlertBackLeftState());
-    this.stateMachine.add("alertBackRight", new EnemyAlertBackRightState());
+    this.stateMachine.add("alertBackLeft", new EnemyAlertBackState(-1));
+    this.stateMachine.add("alertBackRight", new EnemyAlertBackState(1));
+    this.stateMachine.add("dead", new EnemyDeadState());
     this.stateMachine.changeTo(this.dir >= 0 ? "walkRight" : "walkLeft");
   }
 
@@ -115,11 +89,32 @@ export class EnemyGameObject extends GameObject {
     this.runtime = runtime;
   }
 
+  get alive() {
+    return this.visible;
+  }
+
+  set alive(value) {
+    const isAlive = Boolean(value);
+    if (isAlive) {
+      this.sprite.play();
+      this.visible = true;
+      if (this.stateMachine?.currentState?.name === "dead") {
+        this.stateMachine.changeTo(this.dir >= 0 ? "walkRight" : "walkLeft");
+      }
+      return;
+    }
+    if (this.stateMachine) {
+      this.stateMachine.changeTo("dead");
+      return;
+    }
+    this.sprite.stop();
+    this.visible = false;
+  }
+
   updateState(delta) {
     if (!this.alive || !this.stateMachine) return;
     this.delta = delta;
     this.turnCooldown = Math.max(0, this.turnCooldown - delta);
-    this.backAlertCooldown = Math.max(0, this.backAlertCooldown - delta);
     this.stateMachine.update();
   }
 
@@ -175,7 +170,6 @@ export class EnemyGameObject extends GameObject {
 
   shouldTriggerBackAlert(direction) {
     if (this.turnCooldown > 0) return false;
-    if (this.backAlertCooldown > 0) return false;
     if (typeof this.runtime?.solidSupportAhead === "function") {
       const hasRunway = this.runtime.solidSupportAhead(
         this,
@@ -198,31 +192,6 @@ export class EnemyGameObject extends GameObject {
       : dx >= BACK_ALERT_MIN_X && dx <= BACK_ALERT_MAX_X;
     const closeVertical = dy <= BACK_ALERT_MAX_Y_DELTA;
     return closeBehind && closeVertical;
-  }
-
-  startBackAlert(direction = -1) {
-    this.backAlertDirection = direction;
-    this.dir = direction;
-    this.vx = 0;
-    this.vy = 0;
-    this.backAlertTimer = BACK_ALERT_DURATION;
-  }
-
-  stepBackAlert(direction = -1) {
-    this.vx = 0;
-    this.vy = 0;
-    this.backAlertTimer -= this.delta;
-    if (this.backAlertTimer > 0) return;
-
-    this.backAlertCooldown = BACK_ALERT_COOLDOWN;
-    if (this.canContinue(direction)) {
-      this.stateMachine?.changeTo(direction > 0 ? "walkRight" : "walkLeft");
-      return;
-    }
-    const opposite = direction > 0 ? -1 : 1;
-    if (this.canContinue(opposite)) {
-      this.turnTo(opposite, { force: true });
-    }
   }
 
   move(direction) {
@@ -261,57 +230,25 @@ export class EnemyGameObject extends GameObject {
     return sprite;
   }
 
-  syncSprite({
+  syncTransform({
     viewport,
     basePixelScale,
   }) {
-    if (!this.alive) {
-      this.sprite.stop();
-      this.visible = false;
-      return;
-    }
-
-    const currentState = this.stateMachine?.currentState?.name ?? (this.dir >= 0 ? "walkRight" : "walkLeft");
-    const animationConfig = ENEMY_ANIMATION_CONFIG_BY_STATE[currentState]
-      ?? ENEMY_ANIMATION_CONFIG_BY_STATE.walkRight;
-    const sourceTextures = this.constructor.assetsManager.animations.get(animationConfig.animationKey) ?? [];
-    if (!sourceTextures?.length) {
-      this.currentSpriteStateName = null;
-      this.sprite.stop();
-      this.visible = false;
-      return;
-    }
-
-    const clipTextures = animationConfig.frames.map((frame) => sourceTextures[frame]).filter(Boolean);
-    const textures = clipTextures.length > 0 ? clipTextures : [sourceTextures[0]];
-    const stateChanged = this.currentSpriteStateName !== currentState;
-    if (stateChanged) {
-      this.sprite.textures = textures;
-      this.sprite.animationSpeed = animationConfig.animationSpeed;
-      this.sprite.gotoAndPlay(0);
-      this.currentSpriteStateName = currentState;
-    } else if (!this.sprite.playing) {
-      this.sprite.play();
-    }
+    if (!this.visible) return;
 
     const left = viewport.x + (this.x - this.w * 0.5) * basePixelScale;
     const top = viewport.y + viewport.height - (this.y + this.h) * basePixelScale;
     const sizePx = this.h * basePixelScale;
-    this.sprite.visible = true;
     this.sprite.position.set(left + sizePx * 0.5, top);
     this.sprite.width = sizePx;
     this.sprite.height = sizePx;
   }
 
   syncRender(context = {}) {
-    return this.syncSprite({
+    return this.syncTransform({
       viewport: context.viewport,
       basePixelScale: context.basePixelScale,
     });
   }
 
-  detach() {
-    super.detach();
-    this.currentSpriteStateName = null;
-  }
 }

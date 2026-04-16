@@ -1,4 +1,8 @@
-import { State } from "yuka";
+import {State} from "yuka";
+
+const ENEMY_WALK_LEFT_FRAME_ANIMATION_KEY = "blockyFrames:walk:left";
+const ENEMY_WALK_RIGHT_FRAME_ANIMATION_KEY = "blockyFrames:walk:right";
+const ENEMY_WALK_ANIMATION_SPEED = 0.13;
 
 export class EnemyWalkState extends State {
   constructor(direction) {
@@ -8,6 +12,14 @@ export class EnemyWalkState extends State {
 
   enter(owner) {
     owner.dir = this.direction;
+    const animationKey = this.direction > 0
+      ? ENEMY_WALK_RIGHT_FRAME_ANIMATION_KEY
+      : ENEMY_WALK_LEFT_FRAME_ANIMATION_KEY;
+
+    owner.sprite.textures = owner.constructor.assetsManager.animations.get(animationKey) ?? [];
+    owner.sprite.animationSpeed = ENEMY_WALK_ANIMATION_SPEED;
+    owner.sprite.loop = true;
+    owner.sprite.gotoAndPlay(0);
   }
 
   execute(owner) {

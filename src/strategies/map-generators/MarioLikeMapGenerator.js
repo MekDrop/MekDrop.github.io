@@ -372,8 +372,7 @@ export class MarioLikeMapGenerator {
       const overlapYs = overlappingPlatforms
         .map((solid) => solid.y)
         .sort((a, b) => a - b);
-      const lowTopY = overlapYs[0];
-      let wallTopY = lowTopY;
+      let wallTopY = overlapYs[0];
       if (overlapYs.length > 1 && state.rng() < highTopAnchorChance) {
         const upperHalfStart = Math.floor((overlapYs.length - 1) * 0.5);
         const highIndex = this.config.randomInt(state.rng, upperHalfStart, overlapYs.length - 1);
@@ -1185,8 +1184,7 @@ export class MarioLikeMapGenerator {
     const denominator = Math.max(1, count - 1);
 
     for (let i = 0; i < count; i++) {
-      const target = Math.round((i * (items.length - 1)) / denominator);
-      let index = target;
+      let index = Math.round((i * (items.length - 1)) / denominator);
       while (used.has(index) && index < items.length - 1) index += 1;
       while (used.has(index) && index > 0) index -= 1;
       if (used.has(index)) continue;

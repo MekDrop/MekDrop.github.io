@@ -20,7 +20,6 @@ import { List } from "@pixi/ui";
 import { Application, Container, Graphics, Text } from "pixi.js";
 import { nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 import { dom } from "quasar";
-import { getHeroAnimation } from "assets/game/sprites/hero-sprite-registry";
 import { CoinGameObject } from "src/game-objects/collectibles/CoinGameObject";
 import { DebugGridGameObject } from "src/game-objects/debug/DebugGridGameObject";
 import { EnemyGameObject } from "src/game-objects/enemy/EnemyGameObject";
@@ -46,7 +45,6 @@ const PHASE_CLEAR = 2;
 const PLATFORM_GRID = 4;
 const HERO_WORLD_SIZE = 16;
 const COIN_WORLD_SIZE = PLATFORM_GRID;
-const HERO_TURN_DURATION = 0.34;
 const HERO_SCREEN_OFFSET_Y = 5;
 const LOADER_GAME_OBJECT_TYPES = [
   HeroGameObject,
@@ -123,8 +121,7 @@ const pickEvenlyDistributed = (items, count) => {
   const denominator = Math.max(1, count - 1);
 
   for (let i = 0; i < count; i++) {
-    const target = Math.round((i * (items.length - 1)) / denominator);
-    let index = target;
+    let index = Math.round((i * (items.length - 1)) / denominator);
     while (used.has(index) && index < items.length - 1) {
       index += 1;
     }
@@ -142,7 +139,6 @@ const pickEvenlyDistributed = (items, count) => {
 const createPlayer = () => new HeroGameObject({
   w: PLAYER.width,
   h: PLAYER.height,
-  turnDuration: HERO_TURN_DURATION,
 });
 
 const createEnemy = (spawn) => new EnemyGameObject({
@@ -236,7 +232,7 @@ const generateLevel = (nextWidth, nextHeight, seed = world.seed) => {
   attachGoalSprite();
   invalidatePlatformSprites();
   attachSolidSprites();
-  syncSceneSprites(debugGrid.enabled ? debugGrid.frozenTime : performance.now() * 0.001);
+  syncSceneSprites(performance.now() * 0.001);
 };
 
 const regenerateMap = (width = world.width, height = world.height) => {
@@ -257,7 +253,7 @@ const regenerateMapWithLoading = async ({
     onComplete();
   }
   flushPlatformSprites();
-  syncSceneSprites(debugGrid.enabled ? debugGrid.frozenTime : performance.now() * 0.001);
+  syncSceneSprites(performance.now() * 0.001);
   setLoadingState(label, 1);
   await waitForPaint();
   hideLoadingState();
@@ -355,12 +351,12 @@ const layoutGameUi = () => {
   loadingPanel.position.set((canvasSize.width - panelWidth) * 0.5, (canvasSize.height - loadingPanel.height) * 0.5);
 };
 
-const setDebugGridEnabled = (enabled, nowSeconds = performance.now() * 0.001) => {
-  debugGrid.setEnabled(enabled, nowSeconds);
+const setDebugGridEnabled = (enabled) => {
+  debugGrid.visible = enabled;
   if (enabled) {
     clearInput();
   }
-  syncSceneSprites(debugGrid.enabled ? debugGrid.frozenTime : nowSeconds);
+  syncSceneSprites(performance.now() * 0.001);
   renderUiNow();
 };
 
@@ -503,7 +499,6 @@ const createRenderContext = (time = 0) => ({
   phaseDead: PHASE_DEAD,
   heroWorldSize: HERO_WORLD_SIZE,
   heroScreenOffsetY: HERO_SCREEN_OFFSET_Y,
-  getHeroAnimation,
   coinWorldSize: COIN_WORLD_SIZE,
 });
 
@@ -600,7 +595,7 @@ const resetPlayer = () => {
   player.x = world.spawn.x;
   player.y = world.spawn.y;
   player.prevY = world.spawn.y;
-  lastHeroRenderFacing = player.facing;
+  lastHeroRenderFacing = player.dir;
 };
 
 const attachEnemyControllers = () => {
@@ -678,7 +673,7 @@ const resetLevel = () => {
   run.collectedInStage = 0;
   run.doorUnlocked = run.coinsInStage === 0;
   syncHud();
-  syncSceneSprites(debugGrid.enabled ? debugGrid.frozenTime : performance.now() * 0.001);
+  syncSceneSprites(performance.now() * 0.001);
 };
 
 const resetRun = () => {
@@ -744,10 +739,9 @@ const regenerateWorld = (widthPx, heightPx, resetProgress = false) => {
 const takeLife = () => {
   if (run.phase !== PHASE_PLAYING) return;
   run.phase = PHASE_DEAD;
-  run.phaseTimer = 1.15;
+  run.phaseTimer = 0;
   player.invulnerable = 1.25;
-  player.deathFacing = lastHeroRenderFacing;
-  player.facing = player.deathFacing;
+  player.dir = lastHeroRenderFacing > 0 ? 1 : -1;
   player.vx = 0;
   player.vy = 28;
   run.lives -= 1;
@@ -906,6 +900,38 @@ const stepEnemies = (delta) => {
   }
 };
 
+const updateHeroAnimationStateMachine = () => {
+  if (!player.stateMachine) return;
+  const moveInput = (input.right ? 1 : 0) - (input.left ? 1 : 0);
+  const suffix = player.dir > 0 ? "Right" : "Left";
+  const currentStateName = player.stateMachine.currentState?.name ?? "";
+  if (currentStateName.startsWith("turn") && player.sprite.playing) {
+    player.stateMachine.update();
+    return;
+  }
+  let targetStateName = `idle${suffix}`;
+
+  if (run.phase === PHASE_DEAD) {
+    targetStateName = `death${suffix}`;
+  } else if (run.phase === PHASE_CLEAR) {
+    targetStateName = `clear${suffix}`;
+  } else if (player.invulnerable > 0.9) {
+    targetStateName = `hurt${suffix}`;
+  } else if (!player.grounded) {
+    targetStateName = `${player.vy > 0 ? "jump" : "fall"}${suffix}`;
+  } else if (
+    run.phase === PHASE_PLAYING &&
+    (moveInput !== 0 || Math.abs(player.vx) > 1)
+  ) {
+    targetStateName = `run${suffix}`;
+  }
+
+  if (currentStateName !== targetStateName) {
+    player.stateMachine.changeTo(targetStateName);
+  }
+  player.stateMachine.update();
+};
+
 const stepPlayer = (delta) => {
   const moveInput = (input.right ? 1 : 0) - (input.left ? 1 : 0);
   const targetSpeed = moveInput * PLAYER.maxSpeed;
@@ -914,17 +940,18 @@ const stepPlayer = (delta) => {
 
   player.prevY = player.y;
   player.invulnerable = Math.max(0, player.invulnerable - delta);
-  player.anim += delta * (Math.abs(player.vx) * 0.22 + 1.2);
   run.stagePulse = approach(run.stagePulse, run.phase === PHASE_CLEAR ? 1 : 0, delta * 1.6);
 
   if (run.phase === PHASE_PLAYING) {
     if (moveInput !== 0) {
       player.vx = approach(player.vx, targetSpeed, accel * delta);
       const nextFacing = moveInput > 0 ? 1 : -1;
-      if (nextFacing !== player.facing) {
-        player.requestTurn();
+      if (nextFacing !== player.dir) {
+        player.dir = nextFacing;
+        player.stateMachine?.changeTo(`turn${nextFacing > 0 ? "Right" : "Left"}`);
+      } else {
+        player.dir = nextFacing;
       }
-      player.facing = nextFacing;
     } else if (player.grounded) {
       player.vx = approach(player.vx, 0, PLAYER.friction * delta);
     } else {
@@ -932,7 +959,7 @@ const stepPlayer = (delta) => {
     }
   } else if (run.phase === PHASE_CLEAR) {
     player.vx = approach(player.vx, 14, PLAYER.groundAccel * delta);
-    player.facing = 1;
+    player.dir = 1;
   } else {
     player.vx = approach(player.vx, 0, PLAYER.friction * delta);
   }
@@ -977,21 +1004,30 @@ const stepPlayer = (delta) => {
     }
   }
 
-  player.updateAnimationState(delta, {
-    runPhase: run.phase,
-    PHASE_DEAD,
-    PHASE_CLEAR,
-    invulnerable: player.invulnerable,
-    grounded: player.grounded,
-    vy: player.vy,
-    vx: player.vx,
-  });
+  updateHeroAnimationStateMachine();
 };
 
 const stepPhase = (delta) => {
   if (loadingState.value.visible) return;
   if (run.phase === PHASE_PLAYING) {
     run.timer = Math.max(0, run.timer - delta);
+    return;
+  }
+
+  if (run.phase === PHASE_DEAD) {
+    const stateName = player.stateMachine?.currentState?.name ?? "";
+    const inDeathState = stateName.startsWith("death");
+    if (!inDeathState || player.sprite.playing) return;
+    if (run.regenerateOnRespawn) {
+      void regenerateMapWithLoading({
+        label: "Rebuilding Stage",
+        onComplete: () => {
+          resetRun();
+        },
+      });
+    } else {
+      resetLevel();
+    }
     return;
   }
 
@@ -1008,16 +1044,6 @@ const stepPhase = (delta) => {
     return;
   }
 
-  if (run.regenerateOnRespawn) {
-    void regenerateMapWithLoading({
-      label: "Rebuilding Stage",
-      onComplete: () => {
-        resetRun();
-      },
-    });
-  } else {
-    resetLevel();
-  }
 };
 
 const stepGame = (delta) => {
@@ -1063,7 +1089,7 @@ const onResize = () => {
   flushPlatformSprites();
   layoutGameUi();
   syncGameUi();
-  syncSceneSprites(debugGrid.enabled ? debugGrid.frozenTime : performance.now() * 0.001);
+  syncSceneSprites(performance.now() * 0.001);
 };
 
 const ignoreKey = (event) => {
@@ -1111,7 +1137,7 @@ const setKey = (code, value) => {
     return true;
   }
   if (value && code === "F3") {
-    setDebugGridEnabled(!debugGrid.enabled);
+    setDebugGridEnabled(!debugGrid.visible);
     return true;
   }
   return false;
@@ -1198,10 +1224,10 @@ const initPixi = async () => {
   const animate = (nowMs) => {
     const delta = clamp((nowMs - previousTimeMs) / 1000, 0, 1 / 24);
     previousTimeMs = nowMs;
-    if (!debugGrid.enabled) {
+    if (!debugGrid.visible) {
       stepGame(delta);
     }
-    syncSceneSprites(debugGrid.enabled ? debugGrid.frozenTime : nowMs * 0.001);
+    syncSceneSprites(nowMs * 0.001);
     app.render();
     frameId = requestAnimationFrame(animate);
   };
