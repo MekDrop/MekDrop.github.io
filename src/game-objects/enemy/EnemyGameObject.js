@@ -310,8 +310,8 @@ export class EnemyGameObject extends GameObject {
     });
   }
 
-  detachSprite(options = {}) {
-    super.detachSprite(options);
+  detach() {
+    super.detach();
     this.currentSpriteStateName = null;
   }
 }

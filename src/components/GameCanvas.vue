@@ -226,9 +226,9 @@ const mapGenerator = new MarioLikeMapGenerator({
 
 const generateLevel = (nextWidth, nextHeight, seed = world.seed) => {
   for (let i = 0; i < world.solids.length; i++) {
-    world.solids[i]?.detachSprite?.({ destroy: true });
+    world.solids[i]?.detach?.();
   }
-  goal?.detachSprite?.({ destroy: true });
+  goal?.detach?.();
   const generated = mapGenerator.generate(nextWidth, nextHeight, seed);
   generated.solids = generated.solids.map(createSolid);
   Object.assign(world, generated);
@@ -591,7 +591,7 @@ const syncHud = () => {
 
 const detachObjectSprites = (items = []) => {
   for (let i = 0; i < items.length; i++) {
-    items[i]?.detachSprite?.({ destroy: true });
+    items[i]?.detach?.();
   }
 };
 
@@ -1226,8 +1226,9 @@ onBeforeUnmount(() => {
     cancelAnimationFrame(frameId);
     frameId = null;
   }
-  player.detachSprite({ destroy: true });
-  goal.detachSprite({ destroy: true });
+  player.detach();
+  goal.detach();
+  debugGrid.detach();
   detachObjectSprites(enemies);
   detachObjectSprites(coins);
   detachObjectSprites(world.solids);

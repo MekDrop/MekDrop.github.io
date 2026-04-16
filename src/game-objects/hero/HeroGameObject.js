@@ -344,8 +344,8 @@ export class HeroGameObject extends GameObject {
     });
   }
 
-  detachSprite(options = {}) {
-    super.detachSprite(options);
+  detach() {
+    super.detach();
     this.currentSpriteAnimationName = null;
     this.currentSpriteFacingKey = null;
   }

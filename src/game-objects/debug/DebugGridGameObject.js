@@ -6,14 +6,6 @@ const PANEL_HEIGHT = 30;
 
 const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
 
-const drawPanelBackground = (graphics, width, height, alpha = 0.88) => {
-  graphics
-    .clear()
-    .roundRect(0, 0, width, height, 10)
-    .fill({ color: 0x06120b, alpha })
-    .stroke({ width: 1, color: 0x96ffe0, alpha: 0.34 });
-};
-
 /** @extends {GameObject<Container>} */
 export class DebugGridGameObject extends GameObject {
   constructor(props = {}) {
@@ -149,7 +141,7 @@ export class DebugGridGameObject extends GameObject {
     this.panel.visible = this.enabled;
     if (!this.enabled) return;
     this.panelLabel.text = "GRID DEBUG ON · FROZEN · F3 TO TOGGLE";
-    drawPanelBackground(this.panelBackground, PANEL_WIDTH, PANEL_HEIGHT, 0.9);
+    this.#drawPanelBackground(this.panelBackground, PANEL_WIDTH, PANEL_HEIGHT, 0.9);
     this.panel.x = viewport.x + 10;
     this.panel.y = viewport.y + 74;
     this.panelLabel.x = 10;
@@ -280,19 +272,18 @@ export class DebugGridGameObject extends GameObject {
     this.syncPanel(viewport);
   }
 
-  detachSprite({ destroy = false } = {}) {
-    super.detachSprite({ destroy });
-    this.fillGraphics = null;
-    this.gridGraphics = null;
-
+  detach() {
+    super.detach();
     if (this.panel?.parent) {
       this.panel.parent.removeChild(this.panel);
     }
-    if (destroy) {
-      this.panel?.destroy({ children: true });
-    }
-    this.panel = null;
-    this.panelBackground = null;
-    this.panelLabel = null;
+  }
+
+  #drawPanelBackground(graphics, width, height, alpha = 0.88) {
+    graphics
+      .clear()
+      .roundRect(0, 0, width, height, 10)
+      .fill({ color: 0x06120b, alpha })
+      .stroke({ width: 1, color: 0x96ffe0, alpha: 0.34 });
   }
 }

@@ -58,6 +58,14 @@ export class GameObject {
     scene.addChild(this.sprite);
   }
 
+  detach() {
+    const sprite = this.#sprite;
+    if (!sprite) return;
+    if (sprite.parent) {
+      sprite.parent.removeChild(sprite);
+    }
+  }
+
   get originalX() {
     return this.#originalState.x;
   }
@@ -94,15 +102,4 @@ export class GameObject {
     return this;
   }
 
-  detachSprite({ destroy = false } = {}) {
-    const sprite = this.#sprite;
-    if (!sprite) return;
-    if (sprite.parent) {
-      sprite.parent.removeChild(sprite);
-    }
-    if (destroy && typeof sprite.destroy === "function") {
-      sprite.destroy({ children: true });
-    }
-    this.#sprite = this._prepareSprite();
-  }
 }
