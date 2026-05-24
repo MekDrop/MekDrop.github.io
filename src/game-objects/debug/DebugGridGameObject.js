@@ -133,7 +133,7 @@ export class DebugGridGameObject extends GameObject {
     if (!this.panel || !this.panelBackground || !this.panelLabel) return;
     this.panel.visible = this.visible;
     if (!this.visible) return;
-    this.panelLabel.text = "GRID DEBUG ON · F3 TO TOGGLE";
+    this.panelLabel.text = "GRID DEBUG ON · PAUSE TO TOGGLE";
     this.#drawPanelBackground(this.panelBackground, PANEL_WIDTH, PANEL_HEIGHT, 0.9);
     this.panel.x = viewport.x + 10;
     this.panel.y = viewport.y + 74;
