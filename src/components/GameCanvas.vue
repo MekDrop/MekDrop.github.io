@@ -19,6 +19,7 @@ import { ref, onMounted, onBeforeUnmount } from 'vue';
 import { Application } from 'pixi.js';
 import { generateMap } from 'src/game/MapGenerator.js';
 import { VoxelRenderer } from 'src/game/VoxelRenderer.js';
+import { CONTROLS } from 'src/game/config/controls.js';
 
 const container = ref(null);
 let app = null;
@@ -26,10 +27,51 @@ let renderer = null;
 let mapData = null;
 let resizeObserver = null;
 
+// --- actions (callable from any input source: keyboard, wheel, button, …) ---
+
+function toggleArrows() {
+  renderer.setArrowsVisible(!renderer._arrowsVisible);
+}
+
+function zoomIn(pivotX, pivotY) {
+  const { factor, max } = CONTROLS.zoom;
+  renderer.zoomTo(Math.min(max, renderer._zoom * factor), pivotX, pivotY);
+}
+
+function zoomOut(pivotX, pivotY) {
+  const { factor, min } = CONTROLS.zoom;
+  renderer.zoomTo(Math.max(min, renderer._zoom / factor), pivotX, pivotY);
+}
+
+function regenerateMap() {
+  const prevZoom = renderer._zoom;
+  const prevContainerX = renderer._containerX;
+  const prevContainerY = renderer._containerY;
+
+  mapData = generateMap();
+  renderer.render(mapData);
+
+  renderer._zoom = prevZoom;
+  renderer._containerX = prevContainerX;
+  renderer._containerY = prevContainerY;
+  renderer.container.scale.set(prevZoom);
+  renderer.container.position.set(prevContainerX, prevContainerY);
+}
+
+// --- device listeners (dispatch to actions based on config) ---
+
 function handleKeydown(e) {
-  if (e.code === 'Pause' || e.key === 'Pause') {
-    renderer.setArrowsVisible(!renderer._arrowsVisible);
-  }
+  const id = e.code || e.key;
+  if (CONTROLS.toggleArrows.keys.includes(id)) toggleArrows();
+  if (id === 'KeyR' || id === 'r' || id === 'R') regenerateMap();
+}
+
+function handleWheel(e) {
+  e.preventDefault();
+  const rect = container.value.getBoundingClientRect();
+  const px = e.clientX - rect.left, py = e.clientY - rect.top;
+  if (e.deltaY < 0) zoomIn(px, py);
+  else               zoomOut(px, py);
 }
 
 async function init() {
@@ -51,12 +93,14 @@ async function init() {
   resizeObserver.observe(container.value);
 
   window.addEventListener('keydown', handleKeydown);
+  container.value.addEventListener('wheel', handleWheel, { passive: false });
 }
 
 onMounted(init);
 
 onBeforeUnmount(() => {
   window.removeEventListener('keydown', handleKeydown);
+  container.value?.removeEventListener('wheel', handleWheel);
   resizeObserver?.disconnect();
   app?.destroy(true, { children: true });
 });
