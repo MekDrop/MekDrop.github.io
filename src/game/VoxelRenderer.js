@@ -17,6 +17,8 @@ const FIXED_HEIGHTS = {
 };
 
 const MAX_BLOCK_H = 12;
+const GRASS_FLAT_CHANCE = 0.3;
+const CASTLE_FLAT_RADIUS = 1;
 
 // One distinct colour per path
 const PATH_COLORS = [0xff2222, 0x2299ff, 0xffee00, 0x22ee55, 0xff44dd];
@@ -109,12 +111,6 @@ export class VoxelRenderer {
     for (const { col, row, type } of tiles) {
       this._drawVoxel(g, col, row, this._tileTopHeight(col, row), this._tilePalette(type, col, row));
     }
-
-    for (const { col, row, type } of tiles) {
-      if (type !== TileType.WATER) {
-        this._drawTopOutline(g, col, row, this._tileTopHeight(col, row), this._tilePalette(type, col, row).stroke);
-      }
-    }
     this.container.addChild(g);
 
     if (this._mapData.pipeData?.size) {
@@ -172,11 +168,37 @@ export class VoxelRenderer {
     return type === TileType.PATH || type === TileType.ENTRY;
   }
 
+  _isCastleTileType(type) {
+    return type === TileType.CASTLE_WALL || type === TileType.CASTLE_TOWER;
+  }
+
+  _isNearCastle(col, row, radius = CASTLE_FLAT_RADIUS) {
+    const { grid, cols, rows } = this._mapData;
+    for (let dr = -radius; dr <= radius; dr++) {
+      for (let dc = -radius; dc <= radius; dc++) {
+        const cc = col + dc;
+        const rr = row + dr;
+        if (cc < 0 || cc >= cols || rr < 0 || rr >= rows) continue;
+        if (this._isCastleTileType(grid[rr][cc])) return true;
+      }
+    }
+    return false;
+  }
+
+  _usesCornerHeightRules(type, col, row) {
+    if (this._isRouteTileType(type)) return true;
+    if (type === TileType.GRASS) {
+      if (this._isNearCastle(col, row)) return false;
+      return tileNoise(col, row) >= GRASS_FLAT_CHANCE;
+    }
+    return false;
+  }
+
   _tileTopProfile(col, row) {
     const { grid, cols, rows } = this._mapData;
     const type = grid[row][col];
     const center = this._tileTopHeight(col, row);
-    if (!this._isRouteTileType(type)) {
+    if (!this._usesCornerHeightRules(type, col, row)) {
       return { nw: center, ne: center, se: center, sw: center, center };
     }
 
@@ -186,12 +208,15 @@ export class VoxelRenderer {
       for (const [cc, rr] of coords) {
         if (cc < 0 || cc >= cols || rr < 0 || rr >= rows) continue;
         const neighborType = grid[rr][cc];
+        if (this._isCastleTileType(neighborType)) continue;
         if (this._isRouteTileType(neighborType)) {
           routeHeights.push(this._tileTopHeight(cc, rr));
           continue;
         }
         if (neighborType !== TileType.WATER) {
-          landHeights.push(this._tileBaseHeight(cc, rr));
+          landHeights.push(this._usesCornerHeightRules(neighborType, cc, rr)
+            ? this._tileTopHeight(cc, rr)
+            : this._tileBaseHeight(cc, rr));
         }
       }
 
@@ -384,7 +409,8 @@ export class VoxelRenderer {
     const profile = this._tileTopProfile(col, row);
 
     if (blockUnits === 0) {
-      this._poly(g, [sx, sy - hh, sx + hw, sy, sx, sy + hh, sx - hw, sy], pal.top, pal.stroke);
+      const topPts = [sx, sy - hh, sx + hw, sy, sx, sy + hh, sx - hw, sy];
+      this._poly(g, topPts, pal.top, pal.stroke);
       return;
     }
 
@@ -397,29 +423,36 @@ export class VoxelRenderer {
       : { nw: 0, ne: 0, se: 0, sw: 0, center: 0 };
 
     if (right.nw < profile.ne || right.sw < profile.se) {
-      this._poly(g, [
+      const rightPts = [
         sx + hw, sy - profile.ne * this.bh,
         sx,      sy + hh - profile.se * this.bh,
         sx,      sy + hh - right.sw * this.bh,
         sx + hw, sy - right.nw * this.bh,
-      ], pal.right, pal.stroke);
+      ];
+      this._poly(g, rightPts, pal.right, null);
+      this._strokeLine(g, sx + hw, sy - profile.ne * this.bh, sx, sy + hh - profile.se * this.bh, pal.stroke, 0.8, 0.88);
+      this._strokeLine(g, sx + hw, sy - profile.ne * this.bh, sx + hw, sy - right.nw * this.bh, pal.stroke, 0.8, 0.88);
     }
 
     if (left.nw < profile.sw || left.ne < profile.se) {
-      this._poly(g, [
+      const leftPts = [
         sx - hw, sy - profile.sw * this.bh,
         sx,      sy + hh - profile.se * this.bh,
         sx,      sy + hh - left.ne * this.bh,
         sx - hw, sy - left.nw * this.bh,
-      ], pal.left, pal.stroke);
+      ];
+      this._poly(g, leftPts, pal.left, null);
+      this._strokeLine(g, sx - hw, sy - profile.sw * this.bh, sx, sy + hh - profile.se * this.bh, pal.stroke, 0.8, 0.88);
+      this._strokeLine(g, sx - hw, sy - profile.sw * this.bh, sx - hw, sy - left.nw * this.bh, pal.stroke, 0.8, 0.88);
     }
 
-    this._poly(g, [
+    const topPts = [
       sx,      sy - hh - profile.nw * this.bh,
       sx + hw, sy - profile.ne * this.bh,
       sx,      sy + hh - profile.se * this.bh,
       sx - hw, sy - profile.sw * this.bh,
-    ], pal.top, pal.stroke);
+    ];
+    this._poly(g, topPts, pal.top, pal.stroke);
   }
 
   _drawInpaintedArrows(g, col, row, arrowList) {
@@ -495,17 +528,10 @@ export class VoxelRenderer {
     }
   }
 
-  _drawTopOutline(g, col, row, blockUnits, strokeColor) {
-    const { x: sx, y: sy } = this._toScreen(col, row);
-    const hw = this.hw, hh = this.hh;
-    const profile = this._tileTopProfile(col, row);
-
-    g.moveTo(sx, sy - hh - profile.nw * this.bh);
-    g.lineTo(sx + hw, sy - profile.ne * this.bh);
-    g.lineTo(sx, sy + hh - profile.se * this.bh);
-    g.lineTo(sx - hw, sy - profile.sw * this.bh);
-    g.closePath();
-    g.stroke({ color: strokeColor, width: 0.55, alpha: 0.62 });
+  _strokeLine(g, x1, y1, x2, y2, color, width = 0.8, alpha = 0.9) {
+    g.moveTo(x1, y1);
+    g.lineTo(x2, y2);
+    g.stroke({ color, width, alpha, cap: 'round', join: 'round' });
   }
 
   _poly(g, pts, fillColor, strokeColor = null) {
