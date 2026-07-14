@@ -12,7 +12,8 @@ export class MapGenerator {
   static #MAP_ROWS = 42;
   static #DEFAULT_MIN_PATHS = 2;
   static #DEFAULT_MAX_PATHS = 4;
-  static #GATE_COL = 4;
+  static #LEFT_GATE_COL = 4;
+  static #RIGHT_GATE_COL = this.#MAP_COLS - 1 - this.#LEFT_GATE_COL;
   static #PATH_HEIGHT = 2;
   static #FOUNDATION_HEIGHT = 3;
   static #WATER_HEIGHT = 0;
@@ -29,10 +30,10 @@ export class MapGenerator {
     NONE: 'NONE',
   };
   static #ENTRY_TEMPLATES = [
-    { id: 'northwest', gateRows: [5, 6], mergeRange: [18, 24] },
+    { id: 'north', gateRows: [5, 6], mergeRange: [18, 24] },
     { id: 'upper', gateRows: [10, 11], mergeRange: [14, 20] },
     { id: 'lower', gateRows: [19, 20], mergeRange: [11, 18] },
-    { id: 'southwest', gateRows: [25, 26], mergeRange: [13, 20] },
+    { id: 'south', gateRows: [25, 26], mergeRange: [13, 20] },
   ];
 
   static generate(options) {
@@ -56,7 +57,12 @@ export class MapGenerator {
       tileMeta,
       cols: this.#MAP_COLS,
       rows: this.#MAP_ROWS,
-      entries: layout.entries.map(entry => ({ col: this.#GATE_COL, row: entry.gateRows[0], rows: [...entry.gateRows] })),
+      entries: layout.entries.map(entry => ({
+        col: entry.gateCol,
+        row: entry.gateRows[0],
+        rows: [...entry.gateRows],
+        side: entry.side,
+      })),
       castlePos: { col: layout.castleLeft, row: layout.pathRows[0] },
       numPaths: layout.entries.length,
       paths: routeCellsByPath,
@@ -111,7 +117,7 @@ export class MapGenerator {
     const castleBottom = castleCenterRow + this.#CASTLE_HALF_HEIGHT;
     const castleRight = castleLeft + this.#CASTLE_WIDTH - 1;
     const castleEntranceRows = [...pathRows];
-    const entries = this.#selectEntries(numPaths, castleLeft);
+    const entries = this.#selectEntries(numPaths, castleLeft, castleTop, castleBottom);
     const islandEllipses = [
       {
         centerCol: this.#rng(20, 24),
@@ -150,6 +156,7 @@ export class MapGenerator {
       castleTop,
       castleBottom,
       castleCenterRow,
+      castleEntranceCol: castleLeft,
       pathRows,
       castleEntranceRows,
       entries,
@@ -158,7 +165,8 @@ export class MapGenerator {
       signature: JSON.stringify({
         castleLeft,
         castleCenterRow,
-        merges: entries.map(entry => ({ id: entry.id, mergeCol: entry.mergeCol })),
+        entries: entries.map(entry => ({ id: entry.id, side: entry.side, mergeCol: entry.mergeCol })),
+        trunkStart: Math.min(...entries.map(entry => entry.mergeCol)),
         ellipses: islandEllipses,
       }),
     };
@@ -217,16 +225,39 @@ export class MapGenerator {
 
     for (const entry of layout.entries) {
       const [topRow, bottomRow] = entry.gateRows;
-      this.#fillMaskRect(mask, this.#GATE_COL, topRow - 1, entry.mergeCol + 2, bottomRow + 1);
+      const corridorLeft = Math.min(entry.gateCol, entry.mergeCol);
+      const corridorRight = Math.max(entry.gateCol, entry.mergeCol + 1);
+      this.#fillMaskRect(mask, corridorLeft, topRow - 1, corridorRight, bottomRow + 1);
+
       for (const row of entry.gateRows) {
-        for (let col = 0; col < this.#GATE_COL; col++) {
-          mask[row][col] = false;
+        if (entry.inwardDirection === this.#DIRECTIONS.EAST) {
+          for (let col = 0; col < entry.gateCol; col++) {
+            mask[row][col] = false;
+          }
+        } else {
+          for (let col = entry.gateCol + 1; col < this.#MAP_COLS; col++) {
+            mask[row][col] = false;
+          }
         }
       }
     }
 
     this.#fillMaskRect(mask, 10, layout.pathRows[0] - 2, layout.castleLeft + 1, layout.pathRows[1] + 2);
     this.#fillMaskRect(mask, layout.castleLeft - 2, layout.castleTop - 2, layout.castleRight + 2, layout.castleBottom + 2);
+
+    for (const entry of layout.entries) {
+      for (const row of entry.gateRows) {
+        if (entry.inwardDirection === this.#DIRECTIONS.EAST) {
+          for (let col = 0; col < entry.gateCol; col++) {
+            mask[row][col] = false;
+          }
+        } else {
+          for (let col = entry.gateCol + 1; col < this.#MAP_COLS; col++) {
+            mask[row][col] = false;
+          }
+        }
+      }
+    }
 
     return mask;
   }
@@ -243,7 +274,11 @@ export class MapGenerator {
     }
   }
 
-  static #selectEntries(numPaths, castleLeft) {
+  static #rowsOverlap(rows, top, bottom) {
+    return rows[0] <= bottom && rows[1] >= top;
+  }
+
+  static #selectEntries(numPaths, castleLeft, castleTop, castleBottom) {
     const requested = Number.isFinite(numPaths)
       ? Math.round(numPaths)
       : this.#rng(this.#DEFAULT_MIN_PATHS, this.#DEFAULT_MAX_PATHS);
@@ -253,19 +288,46 @@ export class MapGenerator {
     const sharedMinMerge = Math.max(...selected.map(template => template.mergeRange[0]));
     const sharedMaxMerge = Math.min(castleLeft - 6, ...selected.map(template => template.mergeRange[1]));
     const mergeCol = this.#rng(sharedMinMerge, sharedMaxMerge);
+    const sides = selected.map(template => {
+      if (this.#rowsOverlap(template.gateRows, castleTop, castleBottom)) {
+        return 'LEFT';
+      }
+      return this.#rng(0, 1) === 0 ? 'LEFT' : 'RIGHT';
+    });
 
-    return selected.map(template => ({
-      ...template,
-      mergeCol,
-    }));
+    if (selected.length > 1 && sides.every(side => side === sides[0])) {
+      const candidateIndexes = selected
+        .map((template, index) => ({ template, index }))
+        .filter(({ template }) => !this.#rowsOverlap(template.gateRows, castleTop, castleBottom))
+        .map(({ index }) => index);
+
+      if (candidateIndexes.length) {
+        const flipIndex = candidateIndexes[this.#rng(0, candidateIndexes.length - 1)];
+        sides[flipIndex] = sides[0] === 'LEFT' ? 'RIGHT' : 'LEFT';
+      }
+    }
+
+    return selected.map((template, index) => {
+      const side = sides[index];
+      return {
+        ...template,
+        side,
+        gateCol: side === 'LEFT' ? this.#LEFT_GATE_COL : this.#RIGHT_GATE_COL,
+        inwardDirection: side === 'LEFT' ? this.#DIRECTIONS.EAST : this.#DIRECTIONS.WEST,
+        mergeCol,
+      };
+    });
   }
 
-  static #drawHorizontalPath(grid, tileMeta, left, right, rows, type = TileType.PATH) {
+  static #drawHorizontalPath(grid, tileMeta, startCol, endCol, rows, direction, type = TileType.PATH) {
+    const left = Math.min(startCol, endCol);
+    const right = Math.max(startCol, endCol);
+
     for (const row of rows) {
       this.#fillRect(grid, tileMeta, left, row, right, row, type, {
         surfaceType: type === TileType.ENTRY ? 'STRUCTURE' : 'PATH',
         baseHeight: this.#PATH_HEIGHT,
-        direction: this.#DIRECTIONS.EAST,
+        direction,
       });
     }
   }
@@ -278,12 +340,38 @@ export class MapGenerator {
     });
   }
 
+  static #addHorizontalRoute(grid, tileMeta, cells, startCol, endCol, rows, direction) {
+    this.#drawHorizontalPath(grid, tileMeta, startCol, endCol, rows, direction);
+    const left = Math.min(startCol, endCol);
+    const right = Math.max(startCol, endCol);
+    for (let col = left; col <= right; col++) {
+      for (const row of rows) {
+        cells.add(this.#tileKey(col, row));
+      }
+    }
+  }
+
+  static #addVerticalRoute(grid, tileMeta, cells, colLeft, top, bottom) {
+    this.#drawVerticalPath(grid, tileMeta, colLeft, top, bottom);
+    for (let row = top; row <= bottom; row++) {
+      cells.add(this.#tileKey(colLeft, row));
+      cells.add(this.#tileKey(colLeft + 1, row));
+    }
+  }
+
   static #carvePaths(grid, tileMeta, layout) {
     const mergeZones = new Set();
     const routeCellsByPath = [];
     const trunkStart = Math.min(...layout.entries.map(entry => entry.mergeCol));
 
-    this.#drawHorizontalPath(grid, tileMeta, trunkStart, layout.castleLeft, layout.pathRows);
+    this.#drawHorizontalPath(
+      grid,
+      tileMeta,
+      trunkStart,
+      layout.castleEntranceCol,
+      layout.pathRows,
+      this.#DIRECTIONS.EAST
+    );
 
     for (let pathIdx = 0; pathIdx < layout.entries.length; pathIdx++) {
       const entry = layout.entries[pathIdx];
@@ -291,33 +379,22 @@ export class MapGenerator {
       const cells = new Set();
 
       for (const row of entry.gateRows) {
-        this.#setTile(grid, tileMeta, this.#GATE_COL, row, TileType.ENTRY, {
+        this.#setTile(grid, tileMeta, entry.gateCol, row, TileType.ENTRY, {
           surfaceType: 'STRUCTURE',
           baseHeight: this.#PATH_HEIGHT,
-          direction: this.#DIRECTIONS.EAST,
+          direction: entry.inwardDirection,
         });
-        cells.add(this.#tileKey(this.#GATE_COL, row));
+        cells.add(this.#tileKey(entry.gateCol, row));
       }
 
-      this.#drawHorizontalPath(grid, tileMeta, this.#GATE_COL + 1, entry.mergeCol + 1, entry.gateRows);
-      for (let col = this.#GATE_COL + 1; col <= entry.mergeCol + 1; col++) {
-        for (const row of entry.gateRows) {
-          cells.add(this.#tileKey(col, row));
-        }
-      }
+      const horizontalStart = entry.inwardDirection === this.#DIRECTIONS.EAST ? entry.gateCol + 1 : entry.gateCol - 1;
+      const horizontalEnd = entry.inwardDirection === this.#DIRECTIONS.EAST ? entry.mergeCol + 1 : entry.mergeCol;
+      this.#addHorizontalRoute(grid, tileMeta, cells, horizontalStart, horizontalEnd, entry.gateRows, entry.inwardDirection);
 
       if (bottomRow < layout.pathRows[0]) {
-        this.#drawVerticalPath(grid, tileMeta, entry.mergeCol, topRow, layout.pathRows[1]);
-        for (let row = topRow; row <= layout.pathRows[1]; row++) {
-          cells.add(this.#tileKey(entry.mergeCol, row));
-          cells.add(this.#tileKey(entry.mergeCol + 1, row));
-        }
+        this.#addVerticalRoute(grid, tileMeta, cells, entry.mergeCol, topRow, layout.pathRows[1]);
       } else if (topRow > layout.pathRows[1]) {
-        this.#drawVerticalPath(grid, tileMeta, entry.mergeCol, layout.pathRows[0], bottomRow);
-        for (let row = layout.pathRows[0]; row <= bottomRow; row++) {
-          cells.add(this.#tileKey(entry.mergeCol, row));
-          cells.add(this.#tileKey(entry.mergeCol + 1, row));
-        }
+        this.#addVerticalRoute(grid, tileMeta, cells, entry.mergeCol, layout.pathRows[0], bottomRow);
       }
 
       for (let col = entry.mergeCol; col <= entry.mergeCol + 1; col++) {
@@ -328,7 +405,7 @@ export class MapGenerator {
 
       routeCellsByPath.push({
         pathIdx,
-        entry: { col: this.#GATE_COL, rows: [...entry.gateRows] },
+        entry: { col: entry.gateCol, rows: [...entry.gateRows], side: entry.side },
         mergeCol: entry.mergeCol,
         gateRows: [...entry.gateRows],
         routeCells: cells,
@@ -344,7 +421,7 @@ export class MapGenerator {
         const isCorner =
           (row === layout.castleTop || row === layout.castleBottom) &&
           (col === layout.castleLeft || col === layout.castleRight);
-        const isEntrance = col === layout.castleLeft && layout.castleEntranceRows.includes(row);
+        const isEntrance = col === layout.castleEntranceCol && layout.castleEntranceRows.includes(row);
 
         if (isEntrance) {
           this.#setTile(grid, tileMeta, col, row, TileType.PATH, {
@@ -400,7 +477,7 @@ export class MapGenerator {
       heightmap,
       10,
       layout.pathRows[0],
-      layout.castleLeft,
+      layout.castleEntranceCol,
       layout.pathRows[1],
       this.#PATH_HEIGHT,
       tile => tile === TileType.PATH || tile === TileType.ENTRY
@@ -491,9 +568,9 @@ export class MapGenerator {
 
     layout.entries.forEach((entry, pathIdx) => {
       const row = entry.gateRows[0];
-      const key = `${this.#GATE_COL},${row}`;
+      const key = `${entry.gateCol},${row}`;
       arrowData.set(key, [{
-        dc: 1,
+        dc: entry.inwardDirection === this.#DIRECTIONS.WEST ? -1 : 1,
         dr: 0,
         sideDc: 0,
         sideDr: 1,
@@ -547,14 +624,17 @@ export class MapGenerator {
 
   static #validateGatePlacement(grid, layout) {
     for (const entry of layout.entries) {
+      const outsideCol = entry.inwardDirection === this.#DIRECTIONS.WEST ? entry.gateCol + 1 : entry.gateCol - 1;
+      const insideCol = entry.inwardDirection === this.#DIRECTIONS.WEST ? entry.gateCol - 1 : entry.gateCol + 1;
+
       for (const row of entry.gateRows) {
-        if (grid[row][this.#GATE_COL] !== TileType.ENTRY) {
+        if (grid[row][entry.gateCol] !== TileType.ENTRY) {
           throw new Error('Map validation failed: gate is not placed on the first boundary path tiles.');
         }
-        if (grid[row][this.#GATE_COL - 1] !== TileType.WATER) {
+        if (this.#inBounds(outsideCol, row) && grid[row][outsideCol] !== TileType.WATER) {
           throw new Error('Map validation failed: normal path tiles appear outside a gate.');
         }
-        if (grid[row][this.#GATE_COL + 1] !== TileType.PATH) {
+        if (!this.#inBounds(insideCol, row) || grid[row][insideCol] !== TileType.PATH) {
           throw new Error('Map validation failed: gate does not connect to a valid path.');
         }
       }
@@ -628,11 +708,11 @@ export class MapGenerator {
   }
 
   static #validateRouteReachability(grid, layout) {
-    const entranceTargets = layout.castleEntranceRows.map(row => this.#tileKey(layout.castleLeft, row));
+    const entranceTargets = layout.castleEntranceRows.map(row => this.#tileKey(layout.castleEntranceCol, row));
 
     for (const entry of layout.entries) {
       const seen = new Set();
-      const queue = entry.gateRows.map(row => ({ col: this.#GATE_COL, row }));
+      const queue = entry.gateRows.map(row => ({ col: entry.gateCol, row }));
 
       while (queue.length) {
         const current = queue.shift();
@@ -655,7 +735,7 @@ export class MapGenerator {
 
   static #validateCastleEntrance(grid, layout) {
     for (const row of layout.castleEntranceRows) {
-      if (grid[row][layout.castleLeft] !== TileType.PATH) {
+      if (grid[row][layout.castleEntranceCol] !== TileType.PATH) {
         throw new Error('Map validation failed: the final path does not end at the castle entrance.');
       }
     }
@@ -694,6 +774,11 @@ export class MapGenerator {
   }
 
   static #validateLayoutVariety(layout) {
+    const distinctSides = new Set(layout.entries.map(entry => entry.side));
+    if (layout.entries.length > 1 && distinctSides.size < 2) {
+      throw new Error('Map validation failed: regeneration keeps all entry paths on the same side.');
+    }
+
     if (layout.islandEllipses.every((ellipse, index) => {
       const base = [
         { centerCol: 23, centerRow: 16, radiusX: 18, radiusY: 12 },
@@ -715,6 +800,7 @@ export class MapGenerator {
     this.#validateIslandConnectivity(grid);
     this.#validateGatePlacement(grid, layout);
     this.#validatePathSpacing(layout);
+    this.#validateParallelPathClearance(grid, layout);
     this.#validateRouteReachability(grid, layout);
     this.#validateCastleEntrance(grid, layout);
     this.#validateHeightDiscipline(grid, heightmap);
@@ -726,9 +812,6 @@ export class MapGenerator {
 export function generateMap(options) {
   return MapGenerator.generate(options);
 }
-
-
-
 
 
 
