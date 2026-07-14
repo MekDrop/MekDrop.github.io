@@ -104,6 +104,7 @@ export class MapGenerator {
         surfaceType: 'WATER',
         shape: this.#TILE_SHAPE.FLAT,
         direction: this.#DIRECTIONS.NONE,
+        renderMode: 'SOLID',
       }))
     );
   }
@@ -289,7 +290,7 @@ export class MapGenerator {
     const sharedMaxMerge = Math.min(castleLeft - 6, ...selected.map(template => template.mergeRange[1]));
     const mergeCol = this.#rng(sharedMinMerge, sharedMaxMerge);
     const sides = selected.map(template => {
-      if (this.#rowsOverlap(template.gateRows, castleTop, castleBottom)) {
+      if (this.#rowsOverlap(template.gateRows, castleTop - 3, castleBottom + 3)) {
         return 'LEFT';
       }
       return this.#rng(0, 1) === 0 ? 'LEFT' : 'RIGHT';
@@ -298,7 +299,7 @@ export class MapGenerator {
     if (selected.length > 1 && sides.every(side => side === sides[0])) {
       const candidateIndexes = selected
         .map((template, index) => ({ template, index }))
-        .filter(({ template }) => !this.#rowsOverlap(template.gateRows, castleTop, castleBottom))
+        .filter(({ template }) => !this.#rowsOverlap(template.gateRows, castleTop - 3, castleBottom + 3))
         .map(({ index }) => index);
 
       if (candidateIndexes.length) {
@@ -457,6 +458,27 @@ export class MapGenerator {
     }
   }
 
+  static #blendGrassNearPaths(grid, heightmap) {
+    for (let row = 1; row < this.#MAP_ROWS - 1; row++) {
+      for (let col = 1; col < this.#MAP_COLS - 1; col++) {
+        if (grid[row][col] !== TileType.GRASS) continue;
+
+        let touchesPath = false;
+        for (const [dc, dr] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+          const tile = grid[row + dr][col + dc];
+          if (tile === TileType.PATH || tile === TileType.ENTRY) {
+            touchesPath = true;
+            break;
+          }
+        }
+
+        if (touchesPath) {
+          heightmap[row][col] = this.#PATH_HEIGHT;
+        }
+      }
+    }
+  }
+
   static #flattenBuildableZones(grid, heightmap, layout) {
     const topPadRight = this.#clamp(layout.castleLeft - 10, 10, 15);
     this.#fillHeightRect(grid, heightmap, 6, 2, topPadRight, 8, 1, tile => tile === TileType.GRASS);
@@ -511,6 +533,7 @@ export class MapGenerator {
     }
 
     this.#smoothGrassHeights(grid, heightmap);
+    this.#blendGrassNearPaths(grid, heightmap);
     this.#flattenBuildableZones(grid, heightmap, layout);
     return heightmap;
   }
@@ -547,6 +570,7 @@ export class MapGenerator {
         tileMeta[row][col] = {
           ...tileMeta[row][col],
           baseHeight: heightmap[row][col],
+          renderMode: this.#classifyRenderMode(grid, tileMeta, col, row),
         };
 
         const tile = grid[row][col];
@@ -561,6 +585,69 @@ export class MapGenerator {
         }
       }
     }
+  }
+
+  static #classifyRenderMode(grid, tileMeta, col, row) {
+    const tile = grid[row][col];
+    if (tile !== TileType.PATH && tile !== TileType.ENTRY) {
+      return 'SOLID';
+    }
+
+    const direction = tileMeta[row][col].direction;
+    if (direction === this.#DIRECTIONS.EAST || direction === this.#DIRECTIONS.WEST) {
+      const mateRow = this.#findLaneMateRow(grid, tileMeta, col, row, direction);
+      if (mateRow === null) return 'SOLID';
+      const topOuterRow = Math.min(row, mateRow) - 1;
+      const bottomOuterRow = Math.max(row, mateRow) + 1;
+      if (!this.#inBounds(col, topOuterRow) || !this.#inBounds(col, bottomOuterRow)) {
+        return 'SOLID';
+      }
+      if (grid[topOuterRow][col] === TileType.WATER && grid[bottomOuterRow][col] === TileType.WATER) {
+        return 'BRIDGE';
+      }
+      return 'SOLID';
+    }
+
+    if (direction === this.#DIRECTIONS.NORTH || direction === this.#DIRECTIONS.SOUTH) {
+      const mateCol = this.#findLaneMateCol(grid, tileMeta, col, row, direction);
+      if (mateCol === null) return 'SOLID';
+      const leftOuterCol = Math.min(col, mateCol) - 1;
+      const rightOuterCol = Math.max(col, mateCol) + 1;
+      if (!this.#inBounds(leftOuterCol, row) || !this.#inBounds(rightOuterCol, row)) {
+        return 'SOLID';
+      }
+      if (grid[row][leftOuterCol] === TileType.WATER && grid[row][rightOuterCol] === TileType.WATER) {
+        return 'BRIDGE';
+      }
+    }
+
+    return 'SOLID';
+  }
+
+  static #findLaneMateRow(grid, tileMeta, col, row, direction) {
+    const candidates = [row - 1, row + 1];
+    for (const candidateRow of candidates) {
+      if (!this.#inBounds(col, candidateRow)) continue;
+      const candidateTile = grid[candidateRow][col];
+      if (candidateTile !== TileType.PATH && candidateTile !== TileType.ENTRY) continue;
+      if (tileMeta[candidateRow][col].direction === direction) {
+        return candidateRow;
+      }
+    }
+    return null;
+  }
+
+  static #findLaneMateCol(grid, tileMeta, col, row, direction) {
+    const candidates = [col - 1, col + 1];
+    for (const candidateCol of candidates) {
+      if (!this.#inBounds(candidateCol, row)) continue;
+      const candidateTile = grid[row][candidateCol];
+      if (candidateTile !== TileType.PATH && candidateTile !== TileType.ENTRY) continue;
+      if (tileMeta[row][candidateCol].direction === direction) {
+        return candidateCol;
+      }
+    }
+    return null;
   }
 
   static #buildArrowData(layout) {
@@ -774,11 +861,6 @@ export class MapGenerator {
   }
 
   static #validateLayoutVariety(layout) {
-    const distinctSides = new Set(layout.entries.map(entry => entry.side));
-    if (layout.entries.length > 1 && distinctSides.size < 2) {
-      throw new Error('Map validation failed: regeneration keeps all entry paths on the same side.');
-    }
-
     if (layout.islandEllipses.every((ellipse, index) => {
       const base = [
         { centerCol: 23, centerRow: 16, radiusX: 18, radiusY: 12 },

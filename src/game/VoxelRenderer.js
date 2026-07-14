@@ -17,6 +17,7 @@ const FIXED_HEIGHTS = {
 };
 
 const MAX_BLOCK_H = 12;
+const BRIDGE_DECK_DEPTH = 0.28;
 const PATH_COLORS = [0xff2222, 0x2299ff, 0xffee00, 0x22ee55, 0xff44dd];
 
 function clampByte(value) {
@@ -128,6 +129,11 @@ export class VoxelRenderer {
 
     const g = new Graphics();
     for (const { col, row, type } of tiles) {
+      if (this.#tileRenderMode(col, row) === 'BRIDGE') {
+        this.#drawTopDiamond(g, col, row, this.#tilePalette(TileType.WATER, col, row).top, null);
+        this.#drawBridgeVoxel(g, col, row, this.#tileTopProfile(col, row), this.#tilePalette(type, col, row));
+        continue;
+      }
       this.#drawVoxel(g, col, row, this.#tileTopHeight(col, row), this.#tilePalette(type, col, row));
     }
     this.container.addChild(g);
@@ -168,6 +174,20 @@ export class VoxelRenderer {
     return { nw: center, ne: center, se: center, sw: center, center };
   }
 
+  #occlusionNeighborProfile(col, row) {
+    if (!this.#mapData || col < 0 || row < 0 || col >= this.#mapData.cols || row >= this.#mapData.rows) {
+      return { nw: 0, ne: 0, se: 0, sw: 0, center: 0 };
+    }
+    if (this.#tileRenderMode(col, row) === 'BRIDGE') {
+      return { nw: 0, ne: 0, se: 0, sw: 0, center: 0 };
+    }
+    return this.#tileTopProfile(col, row);
+  }
+
+  #tileRenderMode(col, row) {
+    return this.#mapData?.tileMeta?.[row]?.[col]?.renderMode ?? 'SOLID';
+  }
+
   #tilePalette(type, col, row) {
     const base = PALETTE[type];
     const n = tileNoise(col, row);
@@ -203,17 +223,16 @@ export class VoxelRenderer {
     const profile = this.#tileTopProfile(col, row);
 
     if (blockUnits === 0) {
-      const topPts = [sx, sy - hh, sx + hw, sy, sx, sy + hh, sx - hw, sy];
-      this.#poly(g, topPts, pal.top, pal.stroke);
+      this.#drawTopDiamond(g, col, row, pal.top, pal.stroke);
       return;
     }
 
     const { cols, rows } = this.#mapData;
     const right = (col + 1 < cols)
-      ? this.#tileTopProfile(col + 1, row)
+      ? this.#occlusionNeighborProfile(col + 1, row)
       : { nw: 0, ne: 0, se: 0, sw: 0, center: 0 };
     const left = (row + 1 < rows)
-      ? this.#tileTopProfile(col, row + 1)
+      ? this.#occlusionNeighborProfile(col, row + 1)
       : { nw: 0, ne: 0, se: 0, sw: 0, center: 0 };
 
     if (right.nw < profile.ne || right.sw < profile.se) {
@@ -247,6 +266,54 @@ export class VoxelRenderer {
       sx - hw, sy - profile.sw * this.bh,
     ];
     this.#poly(g, topPts, pal.top, pal.stroke);
+  }
+
+  #drawTopDiamond(g, col, row, fillColor, strokeColor = null) {
+    const { x: sx, y: sy } = this.#toScreen(col, row);
+    const topPts = [sx, sy - this.hh, sx + this.hw, sy, sx, sy + this.hh, sx - this.hw, sy];
+    this.#poly(g, topPts, fillColor, strokeColor);
+  }
+
+  #drawBridgeVoxel(g, col, row, profile, pal) {
+    const { x: sx, y: sy } = this.#toScreen(col, row);
+    const hw = this.hw;
+    const hh = this.hh;
+    const deckThickness = this.bh * BRIDGE_DECK_DEPTH;
+    const underside = {
+      nw: profile.nw - BRIDGE_DECK_DEPTH,
+      ne: profile.ne - BRIDGE_DECK_DEPTH,
+      se: profile.se - BRIDGE_DECK_DEPTH,
+      sw: profile.sw - BRIDGE_DECK_DEPTH,
+    };
+    const bridgeLeft = shadeColor(pal.left, -0.14);
+    const bridgeRight = shadeColor(pal.right, -0.14);
+
+    const rightPts = [
+      sx + hw, sy - profile.ne * this.bh,
+      sx,      sy + hh - profile.se * this.bh,
+      sx,      sy + hh - underside.se * this.bh,
+      sx + hw, sy - underside.ne * this.bh,
+    ];
+    this.#poly(g, rightPts, bridgeRight, null);
+
+    const leftPts = [
+      sx - hw, sy - profile.sw * this.bh,
+      sx,      sy + hh - profile.se * this.bh,
+      sx,      sy + hh - underside.se * this.bh,
+      sx - hw, sy - underside.sw * this.bh,
+    ];
+    this.#poly(g, leftPts, bridgeLeft, null);
+
+    const topPts = [
+      sx,      sy - hh - profile.nw * this.bh,
+      sx + hw, sy - profile.ne * this.bh,
+      sx,      sy + hh - profile.se * this.bh,
+      sx - hw, sy - profile.sw * this.bh,
+    ];
+    this.#poly(g, topPts, pal.top, pal.stroke);
+
+    this.#strokeLine(g, sx + hw, sy - profile.ne * this.bh, sx, sy + hh - profile.se * this.bh, pal.stroke, 0.8, 0.88);
+    this.#strokeLine(g, sx - hw, sy - profile.sw * this.bh, sx, sy + hh - profile.se * this.bh, pal.stroke, 0.8, 0.88);
   }
 
   #drawInpaintedArrows(g, col, row, arrowList) {

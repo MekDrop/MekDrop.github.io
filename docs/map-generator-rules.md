@@ -203,6 +203,8 @@ slope tiles = absolute elevation difference
 * Crossings must remain exactly two tiles wide.
 * Both lanes must share the same direction and elevation.
 * Water must remain visibly continuous beneath or beside the crossing.
+* If a path segment is surrounded by water as a pure crossing, it must render as a bridge deck rather than a solid terrain block.
+* A bridge crossing may show water below it, but must not render earth, grass, or filled support mass beneath the path deck unless an explicit support structure tile exists.
 
 ## 16. Trees
 
