@@ -108,33 +108,26 @@ let resizeObserver = null;
 // --- actions (callable from any input source: keyboard, wheel, button, …) ---
 
 function toggleArrows() {
-  renderer.setArrowsVisible(!renderer._arrowsVisible);
-  debugVisible.value = renderer._arrowsVisible;
+  renderer.setArrowsVisible(!renderer.getArrowsVisible());
+  debugVisible.value = renderer.getArrowsVisible();
 }
 
 function zoomIn(pivotX, pivotY) {
   const { factor, max } = CONTROLS.zoom;
-  renderer.zoomTo(Math.min(max, renderer._zoom * factor), pivotX, pivotY);
+  renderer.zoomTo(Math.min(max, renderer.getZoom() * factor), pivotX, pivotY);
 }
 
 function zoomOut(pivotX, pivotY) {
   const { factor, min } = CONTROLS.zoom;
-  renderer.zoomTo(Math.max(min, renderer._zoom / factor), pivotX, pivotY);
+  renderer.zoomTo(Math.max(min, renderer.getZoom() / factor), pivotX, pivotY);
 }
 
 function regenerateMap() {
-  const prevZoom = renderer._zoom;
-  const prevContainerX = renderer._containerX;
-  const prevContainerY = renderer._containerY;
+  const viewport = renderer.getViewport();
 
   mapData = generateMap();
   renderer.render(mapData);
-
-  renderer._zoom = prevZoom;
-  renderer._containerX = prevContainerX;
-  renderer._containerY = prevContainerY;
-  renderer.container.scale.set(prevZoom);
-  renderer.container.position.set(prevContainerX, prevContainerY);
+  renderer.setViewport(viewport);
 }
 
 // --- device listeners (dispatch to actions based on config) ---
@@ -167,7 +160,7 @@ async function init() {
   renderer = new VoxelRenderer(app);
   mapData = generateMap();
   renderer.render(mapData);
-  debugVisible.value = renderer._arrowsVisible;
+  debugVisible.value = renderer.getArrowsVisible();
 
   resizeObserver = new ResizeObserver(() => renderer.render(mapData));
   resizeObserver.observe(container.value);
@@ -185,3 +178,4 @@ onBeforeUnmount(() => {
   app?.destroy(true, { children: true });
 });
 </script>
+
