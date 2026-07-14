@@ -269,6 +269,50 @@ slope tiles = absolute elevation difference
 * Entry path selection, merge layout, terrain massing, and major landform composition should also vary when possible.
 * Variation must preserve all structural rules in this document; randomness is allowed only inside valid constraints.
 * A generator that always produces the same earth shape and castle position is invalid, even if the rest of the map passes validation.
+## 19b. Current implementation notes
+
+These notes describe the generator behavior currently implemented in `src/game/MapGenerator.js`. They are not a replacement for the canonical rules above, but they document the present constraints and shortcuts in the live generator.
+
+* The current generator uses four predefined entry row bands:
+  * rows `[5, 6]`
+  * rows `[10, 11]`
+  * rows `[19, 20]`
+  * rows `[25, 26]`
+* Each generated map selects between one and four of those bands.
+* The current generator places gates only on the left or right island boundary.
+* Top-edge and bottom-edge gates are not implemented yet.
+* Left-side gates currently use column `4`.
+* Right-side gates currently use column `37` on the 42-column map.
+* For multi-path maps, the generator currently enforces mixed side usage when possible, so not every entry path starts from the same side.
+* Castle placement still determines which entry rows are allowed to use the right side safely.
+* The castle entrance currently remains on the left face of the castle footprint.
+* Entry paths currently use a simple route family:
+  * one horizontal inward segment from the gate
+  * one vertical join into the shared trunk rows when needed
+  * one final shared horizontal trunk to the castle
+* True multi-turn path templates are not implemented yet.
+* Explicit curved branch templates are not implemented yet.
+* The current merge model still uses one shared merge column for all selected entry paths.
+* The current generator does not yet support branch-specific merge zones or re-splitting after merge.
+* Regeneration variety currently comes from:
+  * castle horizontal placement
+  * castle row-band selection
+  * entry-band selection
+  * left/right side assignment
+  * island ellipse parameters
+  * hill ellipse parameters
+* The current validator enforces:
+  * one connected island
+  * gate placement at the first playable boundary tiles
+  * two-tile path width
+  * flat equal-height path lanes
+  * minimum spacing between parallel path bands outside merge zones
+  * route reachability from every gate to the castle
+  * castle entrance connection
+  * rejection of isolated noisy high grass
+* The current implementation still tends to produce visually smooth path families because branch routing is limited to straight inward runs plus one join.
+* If future work adds top/bottom gates, multi-turn templates, or more expressive branch graphs, this section should be updated.
+
 ## 20. Required validation
 
 Reject the map when:
