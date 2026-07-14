@@ -118,7 +118,7 @@ export class MapGenerator {
     const castleBottom = castleCenterRow + this.#CASTLE_HALF_HEIGHT;
     const castleRight = castleLeft + this.#CASTLE_WIDTH - 1;
     const castleEntranceRows = [...pathRows];
-    const entries = this.#selectEntries(numPaths, castleLeft, castleTop, castleBottom);
+    const entries = this.#selectEntries(numPaths, castleLeft, castleTop, castleBottom, pathRows);
     const islandEllipses = [
       {
         centerCol: this.#rng(20, 24),
@@ -230,6 +230,13 @@ export class MapGenerator {
       const corridorRight = Math.max(entry.gateCol, entry.mergeCol + 1);
       this.#fillMaskRect(mask, corridorLeft, topRow - 1, corridorRight, bottomRow + 1);
 
+      if (entry.curvePlan) {
+        const curveBands = [entry.gateRows, ...entry.curvePlan.bands, [layout.pathRows[0], layout.pathRows[1]]];
+        const minTop = Math.min(...curveBands.map(rows => rows[0]));
+        const maxBottom = Math.max(...curveBands.map(rows => rows[1]));
+        this.#fillMaskRect(mask, corridorLeft, minTop - 1, corridorRight, maxBottom + 1);
+      }
+
       for (const row of entry.gateRows) {
         if (entry.inwardDirection === this.#DIRECTIONS.EAST) {
           for (let col = 0; col < entry.gateCol; col++) {
@@ -279,7 +286,7 @@ export class MapGenerator {
     return rows[0] <= bottom && rows[1] >= top;
   }
 
-  static #selectEntries(numPaths, castleLeft, castleTop, castleBottom) {
+  static #selectEntries(numPaths, castleLeft, castleTop, castleBottom, pathRows) {
     const requested = Number.isFinite(numPaths)
       ? Math.round(numPaths)
       : this.#rng(this.#DEFAULT_MIN_PATHS, this.#DEFAULT_MAX_PATHS);
@@ -310,38 +317,140 @@ export class MapGenerator {
 
     return selected.map((template, index) => {
       const side = sides[index];
-      return {
+      const entry = {
         ...template,
         side,
         gateCol: side === 'LEFT' ? this.#LEFT_GATE_COL : this.#RIGHT_GATE_COL,
         inwardDirection: side === 'LEFT' ? this.#DIRECTIONS.EAST : this.#DIRECTIONS.WEST,
         mergeCol,
       };
+      return {
+        ...entry,
+        curvePlan: this.#buildCurvePlan(entry, pathRows, mergeCol, selected.map(candidate => candidate.gateRows[0])),
+      };
     });
   }
 
-  static #drawHorizontalPath(grid, tileMeta, startCol, endCol, rows, direction, type = TileType.PATH) {
+  static #buildCurvePlan(entry, pathRows, mergeCol, occupiedBandStarts) {
+    const [topRow, bottomRow] = entry.gateRows;
+    const [trunkTop, trunkBottom] = pathRows;
+    const safeBands = bottomRow < trunkTop
+      ? this.#collectSafeCurveBandStarts(bottomRow + 1, trunkTop - 4, occupiedBandStarts, pathRows[0], 1)
+      : topRow > trunkBottom
+        ? this.#collectSafeCurveBandStarts(trunkBottom + 3, topRow - 2, occupiedBandStarts, pathRows[0], -1)
+        : [];
+
+    if (!safeBands.length) return null;
+
+    const bandStarts = this.#selectCurveBandStarts(safeBands);
+    const turnCols = this.#pickCurveTurnCols(entry.side, entry.gateCol, mergeCol, bandStarts.length);
+    if (!turnCols.length) return null;
+
+    return {
+      turnCols,
+      bands: bandStarts.map(start => [start, start + 1]),
+    };
+  }
+
+  static #collectSafeCurveBandStarts(min, max, occupiedBandStarts, trunkTop, direction) {
+    if (min > max) return [];
+
+    const blocked = occupiedBandStarts.concat(trunkTop);
+    const candidates = [];
+    if (direction > 0) {
+      for (let start = min; start <= max; start++) candidates.push(start);
+    } else {
+      for (let start = max; start >= min; start--) candidates.push(start);
+    }
+
+    const safe = [];
+    for (const candidate of candidates) {
+      if (!blocked.every(start => Math.abs(candidate - start) >= 4)) continue;
+      if (!safe.every(start => Math.abs(candidate - start) >= 4)) continue;
+      safe.push(candidate);
+    }
+
+    if (safe.length >= 2) {
+      return [safe[0], safe[safe.length - 1]];
+    }
+
+    return safe;
+  }
+
+  static #selectCurveBandStarts(safeBands) {
+    if (safeBands.length >= 3) {
+      const midIndex = Math.floor(safeBands.length / 2);
+      return [safeBands[0], safeBands[midIndex], safeBands[safeBands.length - 1]];
+    }
+    if (safeBands.length >= 2) {
+      return [safeBands[0], safeBands[safeBands.length - 1]];
+    }
+    return safeBands.slice(0, 1);
+  }
+
+  static #pickCurveTurnCols(side, gateCol, mergeCol, requestedCount) {
+    if (side === 'LEFT') {
+      const width = mergeCol - gateCol;
+      const outerNearGate = gateCol + 3;
+      const farInland = mergeCol - 3;
+      const returnCol = gateCol + Math.max(6, Math.floor(width * 0.42));
+
+      if (requestedCount >= 3 && outerNearGate <= farInland - 8 && returnCol >= outerNearGate + 4 && returnCol <= farInland - 4) {
+        return [outerNearGate, farInland, returnCol];
+      }
+      if (requestedCount >= 2) {
+        const first = farInland;
+        const second = gateCol + Math.max(5, Math.floor(width * 0.38));
+        if (first >= second + 4 && second <= mergeCol - 4) {
+          return [first, second];
+        }
+      }
+      return outerNearGate <= mergeCol - 4 ? [outerNearGate] : [];
+    }
+
+    const width = gateCol - mergeCol;
+    const outerNearGate = gateCol - 4;
+    const farInland = mergeCol + 2;
+    const returnCol = gateCol - Math.max(6, Math.floor(width * 0.42));
+
+    if (requestedCount >= 3 && farInland <= outerNearGate - 8 && returnCol <= outerNearGate - 4 && returnCol >= farInland + 4) {
+      return [outerNearGate, farInland, returnCol];
+    }
+    if (requestedCount >= 2) {
+      const first = farInland;
+      const second = gateCol - Math.max(5, Math.floor(width * 0.38));
+      if (first <= second - 4 && second >= mergeCol + 3) {
+        return [first, second];
+      }
+    }
+    return outerNearGate >= mergeCol + 3 ? [outerNearGate] : [];
+  }
+
+  static #drawHorizontalPath(grid, tileMeta, startCol, endCol, rows, direction = null, type = TileType.PATH) {
     const left = Math.min(startCol, endCol);
     const right = Math.max(startCol, endCol);
+    const horizontalDirection = direction ?? (startCol <= endCol ? this.#DIRECTIONS.EAST : this.#DIRECTIONS.WEST);
 
     for (const row of rows) {
       this.#fillRect(grid, tileMeta, left, row, right, row, type, {
         surfaceType: type === TileType.ENTRY ? 'STRUCTURE' : 'PATH',
         baseHeight: this.#PATH_HEIGHT,
-        direction,
+        direction: horizontalDirection,
       });
     }
   }
 
   static #drawVerticalPath(grid, tileMeta, colLeft, top, bottom) {
-    this.#fillRect(grid, tileMeta, colLeft, top, colLeft + 1, bottom, TileType.PATH, {
+    const low = Math.min(top, bottom);
+    const high = Math.max(top, bottom);
+    this.#fillRect(grid, tileMeta, colLeft, low, colLeft + 1, high, TileType.PATH, {
       surfaceType: 'PATH',
       baseHeight: this.#PATH_HEIGHT,
       direction: top <= bottom ? this.#DIRECTIONS.SOUTH : this.#DIRECTIONS.NORTH,
     });
   }
 
-  static #addHorizontalRoute(grid, tileMeta, cells, startCol, endCol, rows, direction) {
+  static #addHorizontalRoute(grid, tileMeta, cells, startCol, endCol, rows, direction = null) {
     this.#drawHorizontalPath(grid, tileMeta, startCol, endCol, rows, direction);
     const left = Math.min(startCol, endCol);
     const right = Math.max(startCol, endCol);
@@ -354,7 +463,9 @@ export class MapGenerator {
 
   static #addVerticalRoute(grid, tileMeta, cells, colLeft, top, bottom) {
     this.#drawVerticalPath(grid, tileMeta, colLeft, top, bottom);
-    for (let row = top; row <= bottom; row++) {
+    const low = Math.min(top, bottom);
+    const high = Math.max(top, bottom);
+    for (let row = low; row <= high; row++) {
       cells.add(this.#tileKey(colLeft, row));
       cells.add(this.#tileKey(colLeft + 1, row));
     }
@@ -388,14 +499,40 @@ export class MapGenerator {
         cells.add(this.#tileKey(entry.gateCol, row));
       }
 
-      const horizontalStart = entry.inwardDirection === this.#DIRECTIONS.EAST ? entry.gateCol + 1 : entry.gateCol - 1;
-      const horizontalEnd = entry.inwardDirection === this.#DIRECTIONS.EAST ? entry.mergeCol + 1 : entry.mergeCol;
-      this.#addHorizontalRoute(grid, tileMeta, cells, horizontalStart, horizontalEnd, entry.gateRows, entry.inwardDirection);
+      if (entry.curvePlan) {
+        const { bands, turnCols } = entry.curvePlan;
+        const firstEnd = entry.inwardDirection === this.#DIRECTIONS.EAST ? turnCols[0] + 1 : turnCols[0];
+        this.#addHorizontalRoute(grid, tileMeta, cells, entry.inwardDirection === this.#DIRECTIONS.EAST ? entry.gateCol + 1 : entry.gateCol - 1, firstEnd, entry.gateRows, entry.inwardDirection);
+        this.#addVerticalRoute(grid, tileMeta, cells, turnCols[0], topRow, bands[0][1]);
 
-      if (bottomRow < layout.pathRows[0]) {
-        this.#addVerticalRoute(grid, tileMeta, cells, entry.mergeCol, topRow, layout.pathRows[1]);
-      } else if (topRow > layout.pathRows[1]) {
-        this.#addVerticalRoute(grid, tileMeta, cells, entry.mergeCol, layout.pathRows[0], bottomRow);
+        for (let index = 0; index < bands.length; index++) {
+          const startCol = turnCols[index];
+          const endCol = index + 1 < turnCols.length
+            ? entry.inwardDirection === this.#DIRECTIONS.EAST ? turnCols[index + 1] + 1 : turnCols[index + 1]
+            : entry.inwardDirection === this.#DIRECTIONS.EAST ? entry.mergeCol + 1 : entry.mergeCol;
+          this.#addHorizontalRoute(grid, tileMeta, cells, startCol, endCol, bands[index], entry.inwardDirection);
+
+          if (index + 1 < bands.length) {
+            this.#addVerticalRoute(grid, tileMeta, cells, turnCols[index + 1], bands[index][0], bands[index + 1][1]);
+          }
+        }
+
+        const finalBand = bands[bands.length - 1];
+        if (bottomRow < layout.pathRows[0]) {
+          this.#addVerticalRoute(grid, tileMeta, cells, entry.mergeCol, finalBand[0], layout.pathRows[1]);
+        } else {
+          this.#addVerticalRoute(grid, tileMeta, cells, entry.mergeCol, layout.pathRows[0], finalBand[1]);
+        }
+      } else {
+        const horizontalStart = entry.inwardDirection === this.#DIRECTIONS.EAST ? entry.gateCol + 1 : entry.gateCol - 1;
+        const horizontalEnd = entry.inwardDirection === this.#DIRECTIONS.EAST ? entry.mergeCol + 1 : entry.mergeCol;
+        this.#addHorizontalRoute(grid, tileMeta, cells, horizontalStart, horizontalEnd, entry.gateRows, entry.inwardDirection);
+
+        if (bottomRow < layout.pathRows[0]) {
+          this.#addVerticalRoute(grid, tileMeta, cells, entry.mergeCol, topRow, layout.pathRows[1]);
+        } else if (topRow > layout.pathRows[1]) {
+          this.#addVerticalRoute(grid, tileMeta, cells, entry.mergeCol, layout.pathRows[0], bottomRow);
+        }
       }
 
       for (let col = entry.mergeCol; col <= entry.mergeCol + 1; col++) {

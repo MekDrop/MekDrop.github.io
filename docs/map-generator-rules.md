@@ -288,12 +288,11 @@ These notes describe the generator behavior currently implemented in `src/game/M
 * For multi-path maps, the generator currently enforces mixed side usage when possible, so not every entry path starts from the same side.
 * Castle placement still determines which entry rows are allowed to use the right side safely.
 * The castle entrance currently remains on the left face of the castle footprint.
-* Entry paths currently use a simple route family:
-  * one horizontal inward segment from the gate
-  * one vertical join into the shared trunk rows when needed
-  * one final shared horizontal trunk to the castle
-* True multi-turn path templates are not implemented yet.
-* Explicit curved branch templates are not implemented yet.
+* Entry paths currently use a route family with a shared final trunk to the castle.
+* When spacing allows, a non-bridge entry branch may use one extra orthogonal bend before it joins the shared trunk.
+* Those bends remain fully grid-aligned and two tiles wide.
+* Bridge crossings should stay as simple straight spans rather than curved bridge turns.
+* True multi-turn path templates beyond a single extra bend are not implemented yet.
 * The current merge model still uses one shared merge column for all selected entry paths.
 * The current generator does not yet support branch-specific merge zones or re-splitting after merge.
 * Regeneration variety currently comes from:
