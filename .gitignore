@@ -24,3 +24,5 @@ coverage/
 /.junie/memory/language.json
 /.junie/memory/memory.version
 /.junie/memory/tasks.md
+/.air/docker.json
+/.air/settings.json
