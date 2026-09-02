@@ -96,10 +96,28 @@ const SIDE_MATERIALS = {
   [TileType.CASTLE_TOWER]: "castleTower",
 };
 
-const PATH_COLORS = [0xff3b30, 0x269cff, 0xffd52e, 0x2ad66f, 0xf24edb];
 const CUBE_SCALE = 1;
 const CAMERA_PITCH = Math.atan(1 / Math.sqrt(2));
 const CAMERA_DISTANCE = 80;
+const ARROW_POINTS = [
+  [-0.1, -0.32],
+  [0.1, -0.32],
+  [0.1, 0.04],
+  [-0.1, 0.04],
+  [-0.34, -0.01],
+  [0.34, -0.01],
+  [0, 0.43],
+];
+const ARROW_TRIANGLES = [
+  [0, 2, 1],
+  [0, 3, 2],
+  [4, 6, 5],
+];
+const ARROW_MIN_Z = -0.32;
+const ARROW_MAX_Z = 0.43;
+const ARROW_MERGE_DISTANCE = 0.76;
+const ARROW_COLOR_SCROLL_SPEED = 0.42;
+const ARROW_GLOW_PULSE_SPEED = 4.2;
 
 function colorFromHex(pc, value) {
   return new pc.Color(
@@ -117,8 +135,15 @@ export class PlayCanvasRenderer {
   #arrowRoot = null;
   #mapData = null;
   #cubeMeshes = null;
+  #arrowMesh = null;
+  #arrowAuraMesh = null;
+  #arrowAuraTexture = null;
+  #arrowSliceMeshes = new Map();
   #materials = new Map();
+  #animatedArrowPalettes = new Map();
+  #arrowAnimationTime = 0;
   #textureAssets = [];
+  #generatedArrowTextures = [];
   #vertexBuffers = [];
   #zoom = 1;
   #rotation = 0;
@@ -159,6 +184,9 @@ export class PlayCanvasRenderer {
 
     this.#app.scene.ambientLight = new pc.Color(0.5, 0.57, 0.64);
     this.#cubeMeshes = this.#createCubeMeshes();
+    this.#arrowMesh = this.#createArrowMesh();
+    this.#arrowAuraMesh = this.#createArrowAuraMesh();
+    this.#arrowAuraTexture = this.#createArrowAuraTexture();
 
     this.#camera = new pc.Entity("Isometric camera");
     this.#camera.addComponent("camera", {
@@ -181,6 +209,7 @@ export class PlayCanvasRenderer {
 
     await this.#createMaterials();
     this.resize();
+    this.#app.on("update", this.#updateArrowAnimation, this);
     this.#app.start();
     this.#connectGatewayInteraction();
   }
@@ -221,14 +250,19 @@ export class PlayCanvasRenderer {
     const paletteIndex = index % this.#gatewayColors.length;
     this.#gatewayColors[paletteIndex] = color;
     this.#gateways[index]?.setColor(color);
+    this.#setArrowMaterialColor(paletteIndex, color);
+    this.#refreshAnimatedArrowTextures();
   }
 
   setGatewayColors(colors) {
     if (!Array.isArray(colors) || colors.length === 0) return;
     this.#gatewayColors = [...colors];
     this.#gateways.forEach((gateway, index) => {
-      gateway.setColor(colors[index % colors.length]);
+      const color = colors[index % colors.length];
+      gateway.setColor(color);
+      this.#setArrowMaterialColor(index, color);
     });
+    this.#refreshAnimatedArrowTextures();
   }
 
   getViewport() {
@@ -285,6 +319,7 @@ export class PlayCanvasRenderer {
 
   destroy() {
     this.#disconnectGatewayInteraction();
+    this.#app?.off("update", this.#updateArrowAnimation, this);
     this.#clearScene();
     for (const material of this.#materials.values()) material.destroy();
     this.#materials.clear();
@@ -301,6 +336,19 @@ export class PlayCanvasRenderer {
       }
     }
     this.#cubeMeshes = null;
+    if (this.#arrowMesh) this.#destroyMesh(this.#arrowMesh);
+    this.#arrowMesh = null;
+    if (this.#arrowAuraMesh) this.#destroyMesh(this.#arrowAuraMesh);
+    this.#arrowAuraMesh = null;
+    this.#arrowAuraTexture?.destroy();
+    this.#arrowAuraTexture = null;
+    for (const texture of this.#generatedArrowTextures) texture.destroy();
+    this.#generatedArrowTextures = [];
+    for (const mesh of this.#arrowSliceMeshes.values()) {
+      this.#destroyMesh(mesh);
+    }
+    this.#arrowSliceMeshes.clear();
+    this.#animatedArrowPalettes.clear();
     this.#app?.destroy();
     this.#app = null;
   }
@@ -350,16 +398,46 @@ export class PlayCanvasRenderer {
       );
     });
 
-    PATH_COLORS.forEach((color, index) => {
+    GATEWAY_COLORS.forEach((color, index) => {
       this.#materials.set(
         `arrow-${index}`,
-        this.#createMaterial(`arrow-${index}`, {
-          color,
-          emissive: color,
-          gloss: 0.18,
-        }),
+        this.#createArrowCoreMaterial(`arrow-${index}`, color),
+      );
+      this.#materials.set(
+        `arrow-aura-${index}`,
+        this.#createArrowAuraMaterial(`arrow-aura-${index}`, color),
       );
     });
+  }
+
+  #createArrowCoreMaterial(name, color) {
+    return this.#createMaterial(name, {
+      color,
+      emissive: color,
+      emissiveIntensity: 1.45,
+      gloss: 0.08,
+      useLighting: false,
+    });
+  }
+
+  #createArrowAuraMaterial(name, color) {
+    const material = this.#createMaterial(name, {
+      color,
+      emissive: color,
+      emissiveIntensity: 1.2,
+      gloss: 0,
+      useLighting: false,
+    });
+    material.diffuseMap = this.#arrowAuraTexture;
+    material.emissiveMap = this.#arrowAuraTexture;
+    material.opacityMap = this.#arrowAuraTexture;
+    material.opacityMapChannel = "a";
+    material.opacity = 0.12;
+    material.blendType = this.#pc.BLEND_ADDITIVE;
+    material.depthWrite = false;
+    material.cull = this.#pc.CULLFACE_NONE;
+    material.update();
+    return material;
   }
 
   #createMaterial(name, definition, textures = new Map()) {
@@ -370,6 +448,7 @@ export class PlayCanvasRenderer {
     material.gloss = definition.gloss ?? 0.08;
     material.metalness = 0;
     material.useMetalness = true;
+    material.useLighting = definition.useLighting ?? true;
     if (definition.texture) {
       material.diffuseMap = textures.get(definition.texture) ?? null;
       if (definition.scaleU || definition.scaleV) {
@@ -388,10 +467,155 @@ export class PlayCanvasRenderer {
     }
     if (definition.emissive) {
       material.emissive = colorFromHex(pc, definition.emissive);
-      material.emissiveIntensity = 0.45;
+      material.emissiveIntensity = definition.emissiveIntensity ?? 0.45;
     }
     material.update();
     return material;
+  }
+
+  #setArrowMaterialColor(index, color) {
+    for (const name of [`arrow-${index}`, `arrow-aura-${index}`]) {
+      const material = this.#materials.get(name);
+      if (!material) continue;
+      this.#applyArrowMaterialColor(material, colorFromHex(this.#pc, color));
+    }
+  }
+
+  #applyArrowMaterialColor(material, color) {
+    material.diffuse = color.clone();
+    material.emissive = color.clone();
+    material.update();
+  }
+
+  #getAnimatedArrowMaterials(colorIndexes) {
+    const key = colorIndexes.join("-");
+    const existing = this.#animatedArrowPalettes.get(key);
+    if (existing) return existing;
+
+    const color = this.#averageGatewayColor(colorIndexes);
+    const coreName = `arrow-scroll-${key}`;
+    const auraName = `arrow-scroll-aura-${key}`;
+    const canvas = document.createElement("canvas");
+    canvas.width = 16;
+    canvas.height = 128;
+    const texture = new this.#pc.Texture(this.#app.graphicsDevice, {
+      name: `Arrow colors ${key}`,
+      width: canvas.width,
+      height: canvas.height,
+      minFilter: this.#pc.FILTER_LINEAR,
+      magFilter: this.#pc.FILTER_LINEAR,
+      addressU: this.#pc.ADDRESS_CLAMP_TO_EDGE,
+      addressV: this.#pc.ADDRESS_REPEAT,
+      mipmaps: false,
+    });
+    this.#paintArrowScrollTexture(canvas, colorIndexes);
+    texture.setSource(canvas);
+    this.#generatedArrowTextures.push(texture);
+
+    const core = this.#createArrowCoreMaterial(coreName, 0xffffff);
+    core.diffuseMap = texture;
+    core.emissiveMap = texture;
+    core.diffuseMapTiling = new this.#pc.Vec2(1, 1.35);
+    core.emissiveMapTiling = new this.#pc.Vec2(1, 1.35);
+    core.diffuseMapOffset = new this.#pc.Vec2(0, 0);
+    core.emissiveMapOffset = new this.#pc.Vec2(0, 0);
+    core.update();
+    const aura = this.#createArrowAuraMaterial(auraName, color);
+    this.#materials.set(coreName, core);
+    this.#materials.set(auraName, aura);
+    const palette = {
+      colorIndexes: [...colorIndexes],
+      coreName,
+      auraName,
+      canvas,
+      texture,
+    };
+    this.#animatedArrowPalettes.set(key, palette);
+    return palette;
+  }
+
+  #paintArrowScrollTexture(canvas, colorIndexes) {
+    const context = canvas.getContext("2d");
+    const gradient = context.createLinearGradient(0, 0, 0, canvas.height);
+    const count = colorIndexes.length;
+    for (let index = 0; index < count; index++) {
+      const start = index / count;
+      const end = (index + 1) / count;
+      const holdEnd = start + (end - start) * 0.72;
+      const color = this.#gatewayColors[colorIndexes[index]];
+      const nextColor = this.#gatewayColors[colorIndexes[(index + 1) % count]];
+      gradient.addColorStop(start, this.#colorToCss(color));
+      gradient.addColorStop(holdEnd, this.#colorToCss(color));
+      gradient.addColorStop(end, this.#colorToCss(nextColor));
+    }
+    context.clearRect(0, 0, canvas.width, canvas.height);
+    context.fillStyle = gradient;
+    context.fillRect(0, 0, canvas.width, canvas.height);
+  }
+
+  #colorToCss(color) {
+    return `#${(color >>> 0).toString(16).padStart(6, "0").slice(-6)}`;
+  }
+
+  #averageGatewayColor(colorIndexes) {
+    const channels = colorIndexes.reduce(
+      (sum, index) => {
+        const color = this.#gatewayColors[index];
+        sum.r += (color >> 16) & 0xff;
+        sum.g += (color >> 8) & 0xff;
+        sum.b += color & 0xff;
+        return sum;
+      },
+      { r: 0, g: 0, b: 0 },
+    );
+    const count = colorIndexes.length;
+    return (
+      (Math.round(channels.r / count) << 16) |
+      (Math.round(channels.g / count) << 8) |
+      Math.round(channels.b / count)
+    );
+  }
+
+  #refreshAnimatedArrowTextures() {
+    for (const palette of this.#animatedArrowPalettes.values()) {
+      this.#paintArrowScrollTexture(palette.canvas, palette.colorIndexes);
+      palette.texture.upload();
+      const aura = this.#materials.get(palette.auraName);
+      if (aura) {
+        this.#applyArrowMaterialColor(
+          aura,
+          colorFromHex(
+            this.#pc,
+            this.#averageGatewayColor(palette.colorIndexes),
+          ),
+        );
+      }
+    }
+  }
+
+  #updateArrowAnimation(dt) {
+    this.#arrowAnimationTime += dt;
+    const pulse = (Math.sin(this.#arrowAnimationTime * ARROW_GLOW_PULSE_SPEED) + 1) / 2;
+
+    for (let index = 0; index < this.#gatewayColors.length; index++) {
+      const core = this.#materials.get(`arrow-${index}`);
+      if (core) {
+        core.emissiveIntensity = 1.3 + pulse * 0.45;
+        core.update();
+      }
+    }
+
+    for (const palette of this.#animatedArrowPalettes.values()) {
+      const core = this.#materials.get(palette.coreName);
+      if (core) {
+        core.emissiveIntensity = 1.35 + pulse * 0.55;
+        const scrollOffset =
+          (this.#arrowAnimationTime * ARROW_COLOR_SCROLL_SPEED) % 1;
+        core.diffuseMapOffset.y = scrollOffset;
+        core.emissiveMapOffset.y = scrollOffset;
+        core.update();
+      }
+    }
   }
 
   #loadTexture(name, url) {
@@ -427,7 +651,7 @@ export class PlayCanvasRenderer {
     this.#mapRoot.addChild(this.#arrowRoot);
     const arrowBatches = new Map();
     this.#buildArrowMatrices(arrowBatches);
-    this.#createInstancedBatches(arrowBatches, this.#arrowRoot, false);
+    this.#createArrowInstancedBatches(arrowBatches, this.#arrowRoot);
   }
 
   #buildGateways() {
@@ -453,6 +677,10 @@ export class PlayCanvasRenderer {
         cubeSize: CUBE_SCALE / 4,
         symbol: signs[index % signs.length],
       });
+      this.#setArrowMaterialColor(
+        index,
+        entry.color ?? this.getGatewayColor(index),
+      );
       gateway.entity.setPosition(x, groundHeight, z);
       if (entry.side === "RIGHT") gateway.entity.setEulerAngles(0, 180, 0);
       this.#mapRoot.addChild(gateway.entity);
@@ -588,79 +816,136 @@ export class PlayCanvasRenderer {
     const { arrowData, cols, rows } = this.#mapData;
     if (!arrowData) return;
 
-    for (const [key, arrows] of arrowData.entries()) {
-      const [col, row] = key.split(",").map(Number);
+    for (const group of this.#groupNearbyArrows(arrowData)) {
+      const col =
+        group.reduce((sum, marker) => sum + marker.col, 0) / group.length;
+      const row =
+        group.reduce((sum, marker) => sum + marker.row, 0) / group.length;
       const baseX = col - (cols - 1) / 2;
       const baseZ = row - (rows - 1) / 2;
-      const top = this.#tileHeight(col, row) + 0.04;
+      const top = Math.max(
+        ...group.map(marker => this.#arrowHeight(marker.col, marker.row)),
+      );
+      const arrows = group.flatMap(marker => marker.arrows);
+      const directions = arrows
+        .map(arrow => {
+          const length = Math.hypot(arrow.dc, arrow.dr);
+          return length
+            ? { dx: arrow.dc / length, dz: arrow.dr / length }
+            : null;
+        })
+        .filter(Boolean);
+      if (!directions.length) continue;
 
-      arrows.forEach((arrow, index) => {
-        const length = Math.hypot(arrow.dc, arrow.dr);
-        if (!length) return;
-        const dx = arrow.dc / length;
-        const dz = arrow.dr / length;
-        const sx = arrow.sideDc ?? 0;
-        const sz = arrow.sideDr ?? 0;
-        const laneOffset = (index - (arrows.length - 1) / 2) * 0.2;
-        const x = baseX + sx * 0.18 - dz * laneOffset;
-        const z = baseZ + sz * 0.18 + dx * laneOffset;
-        const material = `arrow-${arrow.pathIdx % PATH_COLORS.length}`;
-
-        if (arrow.marker === "dot") {
-          this.#addBoxMatrix(
-            batches,
-            material,
-            material,
-            x,
-            top,
-            z,
-            0,
-            0.18,
-            0.07,
-            0.18,
-          );
-          return;
-        }
-
-        const yaw = (Math.atan2(dx, dz) * 180) / Math.PI;
-        this.#addBoxMatrix(
-          batches,
-          material,
-          material,
-          x - dx * 0.08,
-          top,
-          z - dz * 0.08,
-          yaw,
-          0.08,
-          0.06,
-          0.34,
-        );
-        this.#addBoxMatrix(
-          batches,
-          material,
-          material,
-          x + dx * 0.16 - dz * 0.07,
-          top,
-          z + dz * 0.16 + dx * 0.07,
-          yaw - 42,
-          0.075,
-          0.06,
-          0.2,
-        );
-        this.#addBoxMatrix(
-          batches,
-          material,
-          material,
-          x + dx * 0.16 + dz * 0.07,
-          top,
-          z + dz * 0.16 - dx * 0.07,
-          yaw + 42,
-          0.075,
-          0.06,
-          0.2,
-        );
-      });
+      let dx = directions.reduce((sum, direction) => sum + direction.dx, 0);
+      let dz = directions.reduce((sum, direction) => sum + direction.dz, 0);
+      const combinedLength = Math.hypot(dx, dz);
+      if (combinedLength < 0.001) {
+        ({ dx, dz } = directions[0]);
+      } else {
+        dx /= combinedLength;
+        dz /= combinedLength;
+      }
+      const colorIndexes = [
+        ...new Set(
+          arrows.map(arrow => arrow.pathIdx % GATEWAY_COLORS.length),
+        ),
+      ];
+      const widthScale = 0.86;
+      const lengthScale = 0.9;
+      const yaw = (Math.atan2(dx, dz) * 180) / Math.PI;
+      const materialNames =
+        colorIndexes.length === 1
+          ? {
+              coreName: `arrow-${colorIndexes[0]}`,
+              auraName: `arrow-aura-${colorIndexes[0]}`,
+            }
+          : this.#getAnimatedArrowMaterials(colorIndexes);
+      this.#addArrowMatrix(
+        batches,
+        materialNames.auraName,
+        "aura",
+        baseX,
+        top + 0.018,
+        baseZ,
+        yaw,
+        widthScale * 1.2,
+        lengthScale * 1.08,
+      );
+      this.#addArrowMatrix(
+        batches,
+        materialNames.coreName,
+        "full",
+        baseX,
+        top + 0.034,
+        baseZ,
+        yaw,
+        widthScale,
+        lengthScale,
+      );
     }
+  }
+
+  #groupNearbyArrows(arrowData) {
+    const markers = [...arrowData.entries()].map(([key, arrows]) => {
+      const [col, row] = key.split(",").map(Number);
+      return { col, row, arrows };
+    });
+    const remaining = new Set(markers.map((_, index) => index));
+    const groups = [];
+
+    while (remaining.size) {
+      const firstIndex = remaining.values().next().value;
+      remaining.delete(firstIndex);
+      const group = [markers[firstIndex]];
+      const queue = [markers[firstIndex]];
+
+      while (queue.length) {
+        const current = queue.shift();
+        for (const candidateIndex of [...remaining]) {
+          const candidate = markers[candidateIndex];
+          if (
+            Math.hypot(
+              candidate.col - current.col,
+              candidate.row - current.row,
+            ) > ARROW_MERGE_DISTANCE
+          ) {
+            continue;
+          }
+          remaining.delete(candidateIndex);
+          group.push(candidate);
+          queue.push(candidate);
+        }
+      }
+      groups.push(group);
+    }
+
+    return groups;
+  }
+
+  #addArrowMatrix(
+    batches,
+    material,
+    meshKey,
+    x,
+    y,
+    z,
+    yaw,
+    scaleX,
+    scaleZ,
+  ) {
+    const matrix = new this.#pc.Mat4();
+    const rotation = new this.#pc.Quat();
+    rotation.setFromEulerAngles(0, yaw, 0);
+    matrix.setTRS(
+      new this.#pc.Vec3(x, y, z),
+      rotation,
+      new this.#pc.Vec3(scaleX, 1, scaleZ),
+    );
+    const batchKey = `${material}|${meshKey}`;
+    const data = batches.get(batchKey) ?? [];
+    for (const value of matrix.data) data.push(value);
+    batches.set(batchKey, data);
   }
 
   #tileHeight(col, row) {
@@ -668,6 +953,34 @@ export class PlayCanvasRenderer {
     return type in FIXED_HEIGHTS
       ? FIXED_HEIGHTS[type]
       : this.#mapData.heightmap[row][col];
+  }
+
+  #arrowHeight(col, row) {
+    const { cols, rows, grid } = this.#mapData;
+    const candidateCols = [...new Set([Math.floor(col), Math.ceil(col)])];
+    const candidateRows = [...new Set([Math.floor(row), Math.ceil(row)])];
+    const pathHeights = [];
+
+    for (const candidateRow of candidateRows) {
+      for (const candidateCol of candidateCols) {
+        if (
+          candidateCol < 0 ||
+          candidateCol >= cols ||
+          candidateRow < 0 ||
+          candidateRow >= rows
+        ) {
+          continue;
+        }
+        const type = grid[candidateRow][candidateCol];
+        if (type !== TileType.PATH && type !== TileType.ENTRY) continue;
+        pathHeights.push(this.#tileHeight(candidateCol, candidateRow));
+      }
+    }
+
+    if (pathHeights.length) return Math.max(...pathHeights);
+    const nearestCol = Math.max(0, Math.min(cols - 1, Math.round(col)));
+    const nearestRow = Math.max(0, Math.min(rows - 1, Math.round(row)));
+    return this.#tileHeight(nearestCol, nearestRow);
   }
 
   #addCubeMatrix(
@@ -770,6 +1083,203 @@ export class PlayCanvasRenderer {
       }
       root.addChild(entity);
     }
+  }
+
+  #createArrowInstancedBatches(batches, root) {
+    const pc = this.#pc;
+    for (const [batchKey, matrices] of batches.entries()) {
+      if (matrices.length === 0) continue;
+      const [materialName, meshKey] = batchKey.split("|");
+      const vertexBuffer = new pc.VertexBuffer(
+        this.#app.graphicsDevice,
+        pc.VertexFormat.getDefaultInstancingFormat(this.#app.graphicsDevice),
+        matrices.length / 16,
+        { data: new Float32Array(matrices) },
+      );
+      this.#vertexBuffers.push(vertexBuffer);
+
+      const meshInstance = new pc.MeshInstance(
+        this.#getArrowMesh(meshKey),
+        this.#materials.get(materialName),
+      );
+      meshInstance.setInstancing(vertexBuffer, false);
+      meshInstance.castShadow = false;
+      meshInstance.receiveShadow = false;
+
+      const entity = new pc.Entity(`Path arrows ${materialName}`);
+      entity.addComponent("render", {
+        meshInstances: [meshInstance],
+        castShadows: false,
+        receiveShadows: false,
+      });
+      root.addChild(entity);
+    }
+  }
+
+  #createArrowMesh() {
+    return this.#createArrowSliceMesh(0, 1);
+  }
+
+  #getArrowMesh(meshKey) {
+    if (meshKey === "full") return this.#arrowMesh;
+    if (meshKey === "aura") return this.#arrowAuraMesh;
+    const cached = this.#arrowSliceMeshes.get(meshKey);
+    if (cached) return cached;
+    const match = /^slice-(\d+)-(\d+)$/.exec(meshKey);
+    if (!match) throw new Error(`Unknown arrow mesh: ${meshKey}`);
+    const mesh = this.#createArrowSliceMesh(Number(match[2]), Number(match[1]));
+    this.#arrowSliceMeshes.set(meshKey, mesh);
+    return mesh;
+  }
+
+  #createArrowAuraMesh() {
+    const geometry = new this.#pc.Geometry();
+    geometry.positions = [
+      -0.5, 0, -0.5,
+      0.5, 0, -0.5,
+      0.5, 0, 0.5,
+      -0.5, 0, 0.5,
+    ];
+    geometry.normals = [
+      0, 1, 0,
+      0, 1, 0,
+      0, 1, 0,
+      0, 1, 0,
+    ];
+    geometry.uvs = [0, 0, 1, 0, 1, 1, 0, 1];
+    geometry.indices = [0, 2, 1, 0, 3, 2];
+    const mesh = this.#pc.Mesh.fromGeometry(
+      this.#app.graphicsDevice,
+      geometry,
+    );
+    mesh.incRefCount();
+    return mesh;
+  }
+
+  #createArrowAuraTexture() {
+    const size = 64;
+    const canvas = document.createElement("canvas");
+    canvas.width = size;
+    canvas.height = size;
+    const context = canvas.getContext("2d");
+    const center = size / 2;
+    const gradient = context.createRadialGradient(
+      center,
+      center,
+      2,
+      center,
+      center,
+      center,
+    );
+    gradient.addColorStop(0, "rgba(255,255,255,0.58)");
+    gradient.addColorStop(0.3, "rgba(255,255,255,0.28)");
+    gradient.addColorStop(0.72, "rgba(72,72,72,0.08)");
+    gradient.addColorStop(1, "rgba(0,0,0,0)");
+    context.fillStyle = gradient;
+    context.fillRect(0, 0, size, size);
+
+    const texture = new this.#pc.Texture(this.#app.graphicsDevice, {
+      name: "Arrow aura",
+      width: size,
+      height: size,
+      minFilter: this.#pc.FILTER_LINEAR,
+      magFilter: this.#pc.FILTER_LINEAR,
+      addressU: this.#pc.ADDRESS_CLAMP_TO_EDGE,
+      addressV: this.#pc.ADDRESS_CLAMP_TO_EDGE,
+      mipmaps: false,
+    });
+    texture.setSource(canvas);
+    return texture;
+  }
+
+  #clipArrowPolygon(polygon, axis, boundary, keepAbove) {
+    const clipped = [];
+    for (let index = 0; index < polygon.length; index++) {
+      const current = polygon[index];
+      const previous = polygon[(index + polygon.length - 1) % polygon.length];
+      const currentInside = keepAbove
+        ? current[axis] >= boundary
+        : current[axis] <= boundary;
+      const previousInside = keepAbove
+        ? previous[axis] >= boundary
+        : previous[axis] <= boundary;
+
+      if (currentInside !== previousInside) {
+        const ratio =
+          (boundary - previous[axis]) / (current[axis] - previous[axis]);
+        const intersection = [
+          previous[0] + (current[0] - previous[0]) * ratio,
+          previous[1] + (current[1] - previous[1]) * ratio,
+        ];
+        intersection[axis] = boundary;
+        clipped.push(intersection);
+      }
+      if (currentInside) clipped.push(current);
+    }
+    return clipped;
+  }
+
+  #createArrowSliceMesh(sliceIndex, sliceCount) {
+    return this.#createSlicedArrowMesh(
+      ARROW_POINTS,
+      ARROW_TRIANGLES,
+      ARROW_MIN_Z,
+      ARROW_MAX_Z,
+      sliceIndex,
+      sliceCount,
+      1,
+    );
+  }
+
+  #createSlicedArrowMesh(
+    points,
+    triangles,
+    minCoordinate,
+    maxCoordinate,
+    sliceIndex,
+    sliceCount,
+    axis = 0,
+  ) {
+    const pc = this.#pc;
+    const sliceWidth = (maxCoordinate - minCoordinate) / sliceCount;
+    const sliceMin = minCoordinate + sliceWidth * sliceIndex;
+    const sliceMax = sliceMin + sliceWidth;
+    const positions = [];
+    const normals = [];
+    const uvs = [];
+    const indices = [];
+    const minX = Math.min(...points.map(point => point[0]));
+    const maxX = Math.max(...points.map(point => point[0]));
+    const minZ = Math.min(...points.map(point => point[1]));
+    const maxZ = Math.max(...points.map(point => point[1]));
+
+    for (const triangle of triangles) {
+      let polygon = triangle.map(index => points[index]);
+      polygon = this.#clipArrowPolygon(polygon, axis, sliceMin, true);
+      polygon = this.#clipArrowPolygon(polygon, axis, sliceMax, false);
+      if (polygon.length < 3) continue;
+      const start = positions.length / 3;
+      for (const [x, z] of polygon) {
+        positions.push(x, 0, z);
+        normals.push(0, 1, 0);
+        uvs.push(
+          (x - minX) / Math.max(0.001, maxX - minX),
+          (z - minZ) / Math.max(0.001, maxZ - minZ),
+        );
+      }
+      for (let index = 1; index < polygon.length - 1; index++) {
+        indices.push(start, start + index, start + index + 1);
+      }
+    }
+
+    const geometry = new pc.Geometry();
+    geometry.positions = positions;
+    geometry.normals = normals;
+    geometry.uvs = uvs;
+    geometry.indices = indices;
+    const mesh = pc.Mesh.fromGeometry(this.#app.graphicsDevice, geometry);
+    mesh.incRefCount();
+    return mesh;
   }
 
   #createCubeMeshes() {

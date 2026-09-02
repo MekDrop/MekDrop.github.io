@@ -2,7 +2,7 @@
 
 ## Project Structure & Module Organization
 
-This is a Quasar 2/Vue 3 personal site with a PixiJS isometric game layer. `src/layouts/MainLayout.vue` composes the visible site shell, while `src/pages/IndexPage.vue` is intentionally only a route placeholder. UI components live in `src/components/`; Pinia state is in `src/stores/`; routing and locale-prefixed routes are defined in `src/router/`. Game generation and rendering belong in `src/game/`, with reusable state classes under `src/states/` and asset registries/configuration under `src/assets/`. Locale content is stored as YAML in `src/i18n/`; adding a locale file also adds an SSG route through `quasar.config.js`. Static, unbundled files belong in `public/`. SSR middleware is isolated in `src-ssr/`.
+This is a Quasar 2/Vue 3 personal site with a PlayCanvas isometric 3D game layer. `src/layouts/MainLayout.vue` composes the visible site shell, while `src/pages/IndexPage.vue` is intentionally only a route placeholder. UI components live in `src/components/`; Pinia state is in `src/stores/`; routing and locale-prefixed routes are defined in `src/router/`. Game generation and PlayCanvas rendering belong in `src/game/`, with reusable state classes under `src/states/` and asset registries/configuration under `src/assets/`. PixiJS remains in use by some legacy asset-management code, but it is not the current game renderer. Locale content is stored as YAML in `src/i18n/`; adding a locale file also adds an SSG route through `quasar.config.js`. Static, unbundled files belong in `public/`. SSR middleware is isolated in `src-ssr/`.
 
 ## Build, Test, and Development Commands
 
@@ -31,9 +31,3 @@ Cypress E2E specs live in `test/cypress/e2e/` and use `*.cy.js`. The configured 
 ## Commit & Pull Request Guidelines
 
 Recent commits use short, imperative summaries, optionally with Conventional Commit prefixes and scopes such as `feat:`, `fix:`, and `refactor(game):`. Keep commits focused on one behavior change. This is a personal site and `CONTRIBUTING.md` states that outside contributions are not accepted; there is no pull-request template.
-
-
-
-
-
-

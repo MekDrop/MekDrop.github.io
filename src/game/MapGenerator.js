@@ -50,6 +50,7 @@ export class MapGenerator {
     const heightmap = this.#buildHeightmap(grid, layout);
     this.#applyHeightsToMetadata(grid, tileMeta, heightmap);
     this.#validateMap(grid, heightmap, layout);
+    const { routes, arrowData } = this.#buildRouteData(layout);
 
     return {
       grid,
@@ -65,8 +66,11 @@ export class MapGenerator {
       })),
       castlePos: { col: layout.castleLeft, row: layout.pathRows[0] },
       numPaths: layout.entries.length,
-      paths: routeCellsByPath,
-      arrowData: this.#buildArrowData(layout),
+      paths: routeCellsByPath.map((path, pathIdx) => ({
+        ...path,
+        route: routes[pathIdx],
+      })),
+      arrowData,
       pipeData: new Map(),
       mergeZones,
       trunkStart,
@@ -348,7 +352,7 @@ export class MapGenerator {
 
     return {
       turnCols,
-      bands: bandStarts.map(start => [start, start + 1]),
+      bands: bandStarts.slice(0, turnCols.length).map(start => [start, start + 1]),
     };
   }
 
@@ -787,23 +791,206 @@ export class MapGenerator {
     return null;
   }
 
-  static #buildArrowData(layout) {
+  static #routeNodeKey(col2, row2) {
+    return `${col2},${row2}`;
+  }
+
+  static #appendRouteWaypoint(waypoints, col2, row2) {
+    const previous = waypoints[waypoints.length - 1];
+    if (previous?.col2 === col2 && previous?.row2 === row2) return;
+    waypoints.push({ col2, row2 });
+  }
+
+  static #buildRouteWaypoints(layout, entry) {
+    const waypoints = [];
+    const gateCenterRow2 = entry.gateRows[0] + entry.gateRows[1];
+    const trunkCenterRow2 = layout.pathRows[0] + layout.pathRows[1];
+    const mergeCenterCol2 = entry.mergeCol * 2 + 1;
+
+    this.#appendRouteWaypoint(waypoints, entry.gateCol * 2, gateCenterRow2);
+
+    if (entry.curvePlan) {
+      const { bands, turnCols } = entry.curvePlan;
+      for (let index = 0; index < bands.length; index++) {
+        const turnCenterCol2 = turnCols[index] * 2 + 1;
+        const bandCenterRow2 = bands[index][0] + bands[index][1];
+        this.#appendRouteWaypoint(
+          waypoints,
+          turnCenterCol2,
+          waypoints[waypoints.length - 1].row2,
+        );
+        this.#appendRouteWaypoint(waypoints, turnCenterCol2, bandCenterRow2);
+      }
+    }
+
+    this.#appendRouteWaypoint(
+      waypoints,
+      mergeCenterCol2,
+      waypoints[waypoints.length - 1].row2,
+    );
+    this.#appendRouteWaypoint(waypoints, mergeCenterCol2, trunkCenterRow2);
+    this.#appendRouteWaypoint(
+      waypoints,
+      layout.castleEntranceCol * 2,
+      trunkCenterRow2,
+    );
+
+    return waypoints;
+  }
+
+  static #expandRouteWaypoints(waypoints) {
+    const points = [{ ...waypoints[0] }];
+
+    for (let index = 1; index < waypoints.length; index++) {
+      const destination = waypoints[index];
+      const current = points[points.length - 1];
+      if (![current.col2, current.row2, destination.col2, destination.row2].every(Number.isInteger)) {
+        throw new Error('Map routing failed: route waypoint is invalid.');
+      }
+      const deltaCol = destination.col2 - current.col2;
+      const deltaRow = destination.row2 - current.row2;
+      if (deltaCol !== 0 && deltaRow !== 0) {
+        throw new Error('Map routing failed: route segment is not orthogonal.');
+      }
+
+      const stepCol = Math.sign(deltaCol);
+      const stepRow = Math.sign(deltaRow);
+      let col2 = current.col2;
+      let row2 = current.row2;
+      while (col2 !== destination.col2 || row2 !== destination.row2) {
+        col2 += stepCol;
+        row2 += stepRow;
+        points.push({ col2, row2 });
+      }
+    }
+
+    return points;
+  }
+
+  static #connectRouteNodes(graph, first, second) {
+    const firstKey = this.#routeNodeKey(first.col2, first.row2);
+    const secondKey = this.#routeNodeKey(second.col2, second.row2);
+    if (!graph.has(firstKey)) graph.set(firstKey, new Set());
+    if (!graph.has(secondKey)) graph.set(secondKey, new Set());
+    graph.get(firstKey).add(secondKey);
+    graph.get(secondKey).add(firstKey);
+  }
+
+  static #buildRouteDistances(graph, targetKey) {
+    const distances = new Map([[targetKey, 0]]);
+    const queue = [targetKey];
+    let queueIndex = 0;
+
+    while (queueIndex < queue.length) {
+      const key = queue[queueIndex++];
+      const distance = distances.get(key);
+      for (const neighbor of graph.get(key) ?? []) {
+        if (distances.has(neighbor)) continue;
+        distances.set(neighbor, distance + 1);
+        queue.push(neighbor);
+      }
+    }
+
+    return distances;
+  }
+
+  static #followQuickestRoute(graph, distances, startKey, targetKey) {
+    const route = [];
+    let key = startKey;
+
+    while (true) {
+      const [col2, row2] = key.split(',').map(Number);
+      route.push({ col: col2 / 2, row: row2 / 2 });
+      if (key === targetKey) return route;
+
+      const distance = distances.get(key);
+      const nextKey = [...(graph.get(key) ?? [])]
+        .filter(neighbor => distances.get(neighbor) === distance - 1)
+        .sort()[0];
+
+      if (!nextKey) {
+        throw new Error('Map routing failed: a gate has no quickest route to the castle.');
+      }
+      key = nextKey;
+    }
+  }
+
+  static #buildArrowData(routes) {
     const arrowData = new Map();
 
-    layout.entries.forEach((entry, pathIdx) => {
-      const row = entry.gateRows[0];
-      const key = `${entry.gateCol},${row}`;
-      arrowData.set(key, [{
-        dc: entry.inwardDirection === this.#DIRECTIONS.WEST ? -1 : 1,
-        dr: 0,
-        sideDc: 0,
-        sideDr: 1,
-        marker: 'arrow',
-        pathIdx,
-      }]);
+    routes.forEach((route, pathIdx) => {
+      const turnIndices = new Set();
+      for (let index = 1; index < route.length - 1; index++) {
+        const previous = route[index - 1];
+        const current = route[index];
+        const next = route[index + 1];
+        const incomingDc = current.col - previous.col;
+        const incomingDr = current.row - previous.row;
+        const outgoingDc = next.col - current.col;
+        const outgoingDr = next.row - current.row;
+        if (incomingDc !== outgoingDc || incomingDr !== outgoingDr) {
+          turnIndices.add(index);
+        }
+      }
+
+      for (let index = 2; index < route.length - 1; index++) {
+        const current = route[index];
+        const next = route[index + 1];
+        const previous = route[index - 1];
+        let dc = next.col - current.col;
+        let dr = next.row - current.row;
+        const previousDc = current.col - previous.col;
+        const previousDr = current.row - previous.row;
+        const startsTurn = turnIndices.has(index);
+        if (startsTurn) {
+          dc += previousDc;
+          dr += previousDr;
+        } else if (
+          [...turnIndices].some(turnIndex => Math.abs(turnIndex - index) <= 2)
+        ) {
+          continue;
+        }
+        const col2 = Math.round(current.col * 2);
+        const row2 = Math.round(current.row * 2);
+        if (Math.abs(col2) % 2 !== 1 || Math.abs(row2) % 2 !== 1) continue;
+
+        const axis2 = dc === 0 ? row2 : col2;
+        if (!startsTurn && Math.abs(axis2) % 4 !== 1) continue;
+
+        const key = `${col2 / 2},${row2 / 2}`;
+        const arrows = arrowData.get(key) ?? [];
+        arrows.push({ dc, dr, marker: startsTurn ? 'turn' : 'arrow', pathIdx });
+        arrowData.set(key, arrows);
+      }
     });
 
     return arrowData;
+  }
+
+  static #buildRouteData(layout) {
+    const graph = new Map();
+    const rawRoutes = layout.entries.map(entry => {
+      const route = this.#expandRouteWaypoints(this.#buildRouteWaypoints(layout, entry));
+      for (let index = 1; index < route.length; index++) {
+        this.#connectRouteNodes(graph, route[index - 1], route[index]);
+      }
+      return route;
+    });
+    const targetKey = this.#routeNodeKey(
+      layout.castleEntranceCol * 2,
+      layout.pathRows[0] + layout.pathRows[1],
+    );
+    const distances = this.#buildRouteDistances(graph, targetKey);
+    const routes = rawRoutes.map(route =>
+      this.#followQuickestRoute(
+        graph,
+        distances,
+        this.#routeNodeKey(route[0].col2, route[0].row2),
+        targetKey,
+      )
+    );
+
+    return { routes, arrowData: this.#buildArrowData(routes) };
   }
 
   static #findConnectedComponent(grid, startTiles) {
@@ -1031,7 +1218,3 @@ export class MapGenerator {
 export function generateMap(options) {
   return MapGenerator.generate(options);
 }
-
-
-
-
