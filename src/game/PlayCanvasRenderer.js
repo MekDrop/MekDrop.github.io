@@ -1,4 +1,3 @@
-import entryPathUrl from "src/assets/game/tiles/entry-path.png";
 import earthSideUrl from "src/assets/game/tiles/earth-side.png";
 import grassSideUrl from "src/assets/game/tiles/grass-side.png";
 import grassTopUrl from "src/assets/game/tiles/grass-top.png";
@@ -6,6 +5,8 @@ import pathSideUrl from "src/assets/game/tiles/path-side.png";
 import pathTopUrl from "src/assets/game/tiles/path-top.png";
 import waterSideUrl from "src/assets/game/tiles/water-side.png";
 import waterTopUrl from "src/assets/game/tiles/water-top.png";
+import { GATEWAY_BANNER_SIGNS } from "./GatewayBannerSign.js";
+import { GATEWAY_COLORS, Gateway } from "./Gateway.js";
 import { TileType } from "./MapGenerator.js";
 
 const FIXED_HEIGHTS = {
@@ -18,7 +19,6 @@ const TEXTURE_URLS = {
   grass: grassTopUrl,
   path: pathTopUrl,
   water: waterTopUrl,
-  entry: entryPathUrl,
   earthSide: earthSideUrl,
   grassSide: grassSideUrl,
   pathSide: pathSideUrl,
@@ -30,7 +30,6 @@ const MATERIAL_DEFINITIONS = {
   grass: { color: 0xffffff, texture: "grass", gloss: 0.05 },
   path: { color: 0xfff1d9, texture: "path", gloss: 0.04 },
   water: { color: 0xd8f2ff, texture: "water", gloss: 0.22 },
-  entry: { color: 0xffead1, texture: "entry", gloss: 0.04 },
   castleWall: { color: 0x918e87, gloss: 0.12 },
   castleTower: { color: 0x77746f, gloss: 0.1 },
 };
@@ -83,7 +82,7 @@ const SURFACE_MATERIALS = {
   [TileType.GRASS]: "grass",
   [TileType.PATH]: "path",
   [TileType.WATER]: "water",
-  [TileType.ENTRY]: "entry",
+  [TileType.ENTRY]: "path",
   [TileType.CASTLE_WALL]: "castleWall",
   [TileType.CASTLE_TOWER]: "castleTower",
 };
@@ -127,6 +126,12 @@ export class PlayCanvasRenderer {
   #panZ = 0;
   #baseOrthoHeight = 24;
   #arrowsVisible = false;
+  #gateways = [];
+  #gatewayColors = [...GATEWAY_COLORS];
+  #bannerWindGateway = null;
+  #bannerWindPointerId = null;
+  #bannerWindLastTime = 0;
+  #gatewayInteractionConnected = false;
 
   constructor(canvas, container) {
     this.canvas = canvas;
@@ -177,6 +182,7 @@ export class PlayCanvasRenderer {
     await this.#createMaterials();
     this.resize();
     this.#app.start();
+    this.#connectGatewayInteraction();
   }
 
   render(mapData) {
@@ -205,6 +211,24 @@ export class PlayCanvasRenderer {
 
   getRotation() {
     return this.#rotation;
+  }
+
+  getGatewayColor(index = 0) {
+    return this.#gatewayColors[index % this.#gatewayColors.length];
+  }
+
+  setGatewayColor(color, index = 0) {
+    const paletteIndex = index % this.#gatewayColors.length;
+    this.#gatewayColors[paletteIndex] = color;
+    this.#gateways[index]?.setColor(color);
+  }
+
+  setGatewayColors(colors) {
+    if (!Array.isArray(colors) || colors.length === 0) return;
+    this.#gatewayColors = [...colors];
+    this.#gateways.forEach((gateway, index) => {
+      gateway.setColor(colors[index % colors.length]);
+    });
   }
 
   getViewport() {
@@ -260,6 +284,7 @@ export class PlayCanvasRenderer {
   }
 
   destroy() {
+    this.#disconnectGatewayInteraction();
     this.#clearScene();
     for (const material of this.#materials.values()) material.destroy();
     this.#materials.clear();
@@ -395,6 +420,7 @@ export class PlayCanvasRenderer {
     const cubeBatches = new Map();
     this.#buildTerrainMatrices(cubeBatches);
     this.#createInstancedBatches(cubeBatches, this.#mapRoot, false);
+    this.#buildGateways();
 
     this.#arrowRoot = new this.#pc.Entity("Path arrows");
     this.#arrowRoot.enabled = this.#arrowsVisible;
@@ -402,6 +428,36 @@ export class PlayCanvasRenderer {
     const arrowBatches = new Map();
     this.#buildArrowMatrices(arrowBatches);
     this.#createInstancedBatches(arrowBatches, this.#arrowRoot, false);
+  }
+
+  #buildGateways() {
+    const { entries = [], cols, rows } = this.#mapData;
+    const signs = [...GATEWAY_BANNER_SIGNS];
+    for (let index = signs.length - 1; index > 0; index -= 1) {
+      const swapIndex = Math.floor(Math.random() * (index + 1));
+      [signs[index], signs[swapIndex]] = [signs[swapIndex], signs[index]];
+    }
+    entries.forEach((entry, index) => {
+      const gateRows = entry.rows ?? [entry.row, entry.row + 1];
+      const x = entry.col - (cols - 1) / 2;
+      const z =
+        gateRows.reduce((sum, row) => sum + row, 0) / gateRows.length -
+        (rows - 1) / 2;
+      const groundHeight = Math.max(
+        ...gateRows.map((row) => this.#tileHeight(entry.col, row)),
+      );
+      const gateway = new Gateway({
+        pc: this.#pc,
+        app: this.#app,
+        color: entry.color ?? this.getGatewayColor(index),
+        cubeSize: CUBE_SCALE / 4,
+        symbol: signs[index % signs.length],
+      });
+      gateway.entity.setPosition(x, groundHeight, z);
+      if (entry.side === "RIGHT") gateway.entity.setEulerAngles(0, 180, 0);
+      this.#mapRoot.addChild(gateway.entity);
+      this.#gateways.push(gateway);
+    });
   }
 
   #buildTerrainMatrices(batches) {
@@ -934,7 +990,111 @@ export class PlayCanvasRenderer {
     };
   }
 
+  #connectGatewayInteraction() {
+    if (this.#gatewayInteractionConnected || !this.canvas) return;
+    this.canvas.addEventListener("pointerdown", this.#handleBannerPointerDown);
+    this.canvas.addEventListener("pointermove", this.#handleBannerPointerMove);
+    this.canvas.addEventListener("pointerup", this.#handleBannerPointerUp);
+    this.canvas.addEventListener("pointercancel", this.#handleBannerPointerUp);
+    this.#gatewayInteractionConnected = true;
+  }
+
+  #disconnectGatewayInteraction() {
+    if (!this.#gatewayInteractionConnected || !this.canvas) return;
+    this.canvas.removeEventListener(
+      "pointerdown",
+      this.#handleBannerPointerDown,
+    );
+    this.canvas.removeEventListener(
+      "pointermove",
+      this.#handleBannerPointerMove,
+    );
+    this.canvas.removeEventListener("pointerup", this.#handleBannerPointerUp);
+    this.canvas.removeEventListener(
+      "pointercancel",
+      this.#handleBannerPointerUp,
+    );
+    this.#finishBannerWindGesture();
+    this.#gatewayInteractionConnected = false;
+  }
+
+  #pointerRay(event) {
+    if (!this.#camera?.camera || !this.canvas) return null;
+    const rect = this.canvas.getBoundingClientRect();
+    const screenX = event.clientX - rect.left;
+    const screenY = event.clientY - rect.top;
+    return {
+      start: this.#camera.camera.screenToWorld(
+        screenX,
+        screenY,
+        this.#camera.camera.nearClip,
+      ),
+      end: this.#camera.camera.screenToWorld(
+        screenX,
+        screenY,
+        this.#camera.camera.farClip,
+      ),
+    };
+  }
+
+  #handleBannerPointerDown = (event) => {
+    if (event.button !== 0 || this.#bannerWindGateway) return;
+    const ray = this.#pointerRay(event);
+    if (!ray) return;
+
+    let closest = null;
+    for (const gateway of this.#gateways) {
+      const hit = gateway.getBannerHit(ray.start, ray.end);
+      if (!hit || (closest && hit.distance >= closest.hit.distance)) continue;
+      closest = { gateway, hit };
+    }
+    if (!closest) return;
+
+    event.preventDefault();
+    this.#bannerWindGateway = closest.gateway;
+    this.#bannerWindPointerId = event.pointerId;
+    this.#bannerWindLastTime = event.timeStamp;
+    closest.gateway.beginWindGesture(closest.hit.point);
+    this.canvas.setPointerCapture(event.pointerId);
+  };
+
+  #handleBannerPointerMove = (event) => {
+    if (!this.#bannerWindGateway) return;
+    if (event.pointerId !== this.#bannerWindPointerId) {
+      return;
+    }
+    const ray = this.#pointerRay(event);
+    if (!ray) return;
+
+    event.preventDefault();
+    const deltaTime = (event.timeStamp - this.#bannerWindLastTime) / 1000;
+    this.#bannerWindLastTime = event.timeStamp;
+    this.#bannerWindGateway.applyMouseWind(ray.start, ray.end, deltaTime);
+  };
+
+  #handleBannerPointerUp = (event) => {
+    if (event.pointerId !== this.#bannerWindPointerId) return;
+    event.preventDefault();
+    this.#finishBannerWindGesture();
+  };
+
+  #finishBannerWindGesture() {
+    this.#bannerWindGateway?.endWindGesture();
+    if (
+      this.#bannerWindPointerId !== null &&
+      this.canvas?.hasPointerCapture(this.#bannerWindPointerId)
+    ) {
+      this.canvas.releasePointerCapture(this.#bannerWindPointerId);
+    }
+    this.#bannerWindGateway = null;
+    this.#bannerWindPointerId = null;
+    this.#bannerWindLastTime = 0;
+  }
+
   #clearScene() {
+    this.#finishBannerWindGesture();
+    for (const gateway of this.#gateways) gateway.destroy();
+    this.#gateways = [];
     this.#mapRoot?.destroy();
     this.#mapRoot = null;
     this.#arrowRoot = null;

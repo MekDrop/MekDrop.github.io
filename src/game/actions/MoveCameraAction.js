@@ -8,19 +8,19 @@ export class MoveCameraAction {
   }
 
   moveUp() {
-    this.moveBy(0, -this.#step);
-  }
-
-  moveDown() {
     this.moveBy(0, this.#step);
   }
 
+  moveDown() {
+    this.moveBy(0, -this.#step);
+  }
+
   moveLeft() {
-    this.moveBy(-this.#step, 0);
+    this.moveBy(this.#step, 0);
   }
 
   moveRight() {
-    this.moveBy(this.#step, 0);
+    this.moveBy(-this.#step, 0);
   }
 
   moveBy(deltaX, deltaY) {
