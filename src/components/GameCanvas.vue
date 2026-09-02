@@ -1,24 +1,86 @@
 <template>
   <div ref="container" class="background-canvas fit" @contextmenu.prevent>
+    <canvas ref="canvas" class="background-canvas__surface" />
     <div v-if="debugVisible" class="debug-axes" aria-label="Debug axes overlay">
-      <svg viewBox="0 0 120 120" class="debug-axes__svg" role="img" aria-hidden="true">
+      <svg
+        viewBox="0 0 120 120"
+        class="debug-axes__svg"
+        role="img"
+        aria-hidden="true"
+      >
         <defs>
-          <marker id="axis-arrow-red" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+          <marker
+            id="axis-arrow-red"
+            markerWidth="6"
+            markerHeight="6"
+            refX="5"
+            refY="3"
+            orient="auto"
+          >
             <path d="M0,0 L6,3 L0,6 Z" fill="#ff6b6b" />
           </marker>
-          <marker id="axis-arrow-green" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+          <marker
+            id="axis-arrow-green"
+            markerWidth="6"
+            markerHeight="6"
+            refX="5"
+            refY="3"
+            orient="auto"
+          >
             <path d="M0,0 L6,3 L0,6 Z" fill="#7dff88" />
           </marker>
-          <marker id="axis-arrow-blue" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+          <marker
+            id="axis-arrow-blue"
+            markerWidth="6"
+            markerHeight="6"
+            refX="5"
+            refY="3"
+            orient="auto"
+          >
             <path d="M0,0 L6,3 L0,6 Z" fill="#7cc8ff" />
           </marker>
         </defs>
-        <line x1="28" y1="92" x2="84" y2="64" class="debug-axes__line debug-axes__line--x" marker-end="url(#axis-arrow-red)" />
-        <line x1="28" y1="92" x2="84" y2="104" class="debug-axes__line debug-axes__line--y" marker-end="url(#axis-arrow-green)" />
-        <line x1="28" y1="92" x2="28" y2="28" class="debug-axes__line debug-axes__line--z" marker-end="url(#axis-arrow-blue)" />
-        <text x="90" y="63" class="debug-axes__label debug-axes__label--x">X</text>
-        <text x="90" y="110" class="debug-axes__label debug-axes__label--y">Y</text>
-        <text x="20" y="22" class="debug-axes__label debug-axes__label--z">Z</text>
+        <line
+          x1="60"
+          y1="84"
+          :x2="debugAxes.x.endX"
+          :y2="debugAxes.x.endY"
+          class="debug-axes__line debug-axes__line--x"
+          marker-end="url(#axis-arrow-red)"
+        />
+        <line
+          x1="60"
+          y1="84"
+          :x2="debugAxes.y.endX"
+          :y2="debugAxes.y.endY"
+          class="debug-axes__line debug-axes__line--y"
+          marker-end="url(#axis-arrow-green)"
+        />
+        <line
+          x1="60"
+          y1="84"
+          x2="60"
+          y2="28"
+          class="debug-axes__line debug-axes__line--z"
+          marker-end="url(#axis-arrow-blue)"
+        />
+        <text
+          :x="debugAxes.x.labelX"
+          :y="debugAxes.x.labelY"
+          class="debug-axes__label debug-axes__label--x"
+        >
+          X
+        </text>
+        <text
+          :x="debugAxes.y.labelX"
+          :y="debugAxes.y.labelY"
+          class="debug-axes__label debug-axes__label--y"
+        >
+          Y
+        </text>
+        <text x="52" y="22" class="debug-axes__label debug-axes__label--z">
+          Z
+        </text>
       </svg>
     </div>
   </div>
@@ -33,6 +95,13 @@
   z-index: 0;
   background: #030604;
   pointer-events: auto;
+}
+
+.background-canvas__surface {
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
 }
 
 .debug-axes {
@@ -92,90 +161,94 @@
 </style>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount } from 'vue';
-import { Application } from 'pixi.js';
-import { generateMap } from 'src/game/MapGenerator.js';
-import { VoxelRenderer } from 'src/game/VoxelRenderer.js';
-import { CONTROLS } from 'src/game/config/controls.js';
+import { computed, ref, onMounted, onBeforeUnmount } from "vue";
+import { Notify } from "quasar";
+import { generateMap } from "src/game/MapGenerator.js";
+import { PlayCanvasRenderer } from "src/game/PlayCanvasRenderer.js";
+import { GameControls } from "src/game/GameControls.js";
+import { CopyScreenshotAction } from "src/game/actions/CopyScreenshotAction.js";
+import { MoveCameraAction } from "src/game/actions/MoveCameraAction.js";
+import { RegenerateMapAction } from "src/game/actions/RegenerateMapAction.js";
+import { RotateViewAction } from "src/game/actions/RotateViewAction.js";
+import { ToggleArrowsAction } from "src/game/actions/ToggleArrowsAction.js";
+import { ZoomAction } from "src/game/actions/ZoomAction.js";
+import { CONTROLS } from "src/game/config/controls.js";
+
+const DEBUG_AXIS_ROTATIONS = [
+  {
+    x: { endX: 98, endY: 64, labelX: 103, labelY: 61 },
+    y: { endX: 98, endY: 104, labelX: 103, labelY: 112 },
+  },
+  {
+    x: { endX: 22, endY: 104, labelX: 8, labelY: 112 },
+    y: { endX: 22, endY: 64, labelX: 8, labelY: 61 },
+  },
+  {
+    x: { endX: 22, endY: 64, labelX: 8, labelY: 61 },
+    y: { endX: 22, endY: 104, labelX: 8, labelY: 112 },
+  },
+  {
+    x: { endX: 98, endY: 104, labelX: 103, labelY: 112 },
+    y: { endX: 98, endY: 64, labelX: 103, labelY: 61 },
+  },
+];
 
 const container = ref(null);
+const canvas = ref(null);
 const debugVisible = ref(false);
-let app = null;
+const viewRotation = ref(0);
+const debugAxes = computed(() => DEBUG_AXIS_ROTATIONS[viewRotation.value]);
 let renderer = null;
 let mapData = null;
+let controls = null;
 let resizeObserver = null;
 
-// --- actions (callable from any input source: keyboard, wheel, button, …) ---
-
-function toggleArrows() {
-  renderer.setArrowsVisible(!renderer.getArrowsVisible());
-  debugVisible.value = renderer.getArrowsVisible();
-}
-
-function zoomIn(pivotX, pivotY) {
-  const { factor, max } = CONTROLS.zoom;
-  renderer.zoomTo(Math.min(max, renderer.getZoom() * factor), pivotX, pivotY);
-}
-
-function zoomOut(pivotX, pivotY) {
-  const { factor, min } = CONTROLS.zoom;
-  renderer.zoomTo(Math.max(min, renderer.getZoom() / factor), pivotX, pivotY);
-}
-
-function regenerateMap() {
-  const viewport = renderer.getViewport();
-
-  mapData = generateMap();
-  renderer.render(mapData);
-  renderer.setViewport(viewport);
-}
-
-// --- device listeners (dispatch to actions based on config) ---
-
-function handleKeydown(e) {
-  const id = e.code || e.key;
-  if (CONTROLS.toggleArrows.keys.includes(id)) toggleArrows();
-  if (id === 'KeyR' || id === 'r' || id === 'R') regenerateMap();
-}
-
-function handleWheel(e) {
-  e.preventDefault();
-  const rect = container.value.getBoundingClientRect();
-  const px = e.clientX - rect.left, py = e.clientY - rect.top;
-  if (e.deltaY < 0) zoomIn(px, py);
-  else               zoomOut(px, py);
-}
-
 async function init() {
-  app = new Application();
-  await app.init({
-    resizeTo: container.value,
-    background: 0x0a1428,
-    antialias: true,
-    resolution: window.devicePixelRatio || 1,
-    autoDensity: true,
-  });
-  container.value.appendChild(app.canvas);
-
-  renderer = new VoxelRenderer(app);
+  renderer = new PlayCanvasRenderer(canvas.value, container.value);
+  await renderer.init();
   mapData = generateMap();
   renderer.render(mapData);
   debugVisible.value = renderer.getArrowsVisible();
+  viewRotation.value = renderer.getRotation();
 
-  resizeObserver = new ResizeObserver(() => renderer.render(mapData));
+  const actions = {
+    zoom: new ZoomAction(renderer, container.value, CONTROLS.zoom),
+    moveCamera: new MoveCameraAction(renderer, CONTROLS.move),
+    rotateView: new RotateViewAction(renderer, (rotation) => {
+      viewRotation.value = rotation;
+    }),
+    copyScreenshot: new CopyScreenshotAction(renderer, () => {
+      Notify.create({
+        type: "positive",
+        position: "bottom-right",
+        message: "Screenshot taken and copied to clipboard.",
+        timeout: 2000,
+      });
+    }),
+    toggleArrows: new ToggleArrowsAction(renderer, (visible) => {
+      debugVisible.value = visible;
+    }),
+    regenerateMap: new RegenerateMapAction(
+      renderer,
+      generateMap,
+      (generated) => {
+        mapData = generated;
+      },
+    ),
+  };
+
+  controls = new GameControls(container.value, CONTROLS, actions);
+  controls.connect();
+
+  resizeObserver = new ResizeObserver(() => renderer.resize());
   resizeObserver.observe(container.value);
-
-  window.addEventListener('keydown', handleKeydown);
-  container.value.addEventListener('wheel', handleWheel, { passive: false });
 }
 
 onMounted(init);
 
 onBeforeUnmount(() => {
-  window.removeEventListener('keydown', handleKeydown);
-  container.value?.removeEventListener('wheel', handleWheel);
+  controls?.disconnect();
   resizeObserver?.disconnect();
-  app?.destroy(true, { children: true });
+  renderer?.destroy();
 });
 </script>
-
