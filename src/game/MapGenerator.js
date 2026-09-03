@@ -17,8 +17,12 @@ export class MapGenerator {
   static #PATH_HEIGHT = 2;
   static #FOUNDATION_HEIGHT = 3;
   static #WATER_HEIGHT = 0;
-  static #CASTLE_WIDTH = 7;
-  static #CASTLE_HALF_HEIGHT = 3;
+  static #CASTLE_FOOTPRINTS = [
+    { width: 8, depth: 7 },
+    { width: 11, depth: 7 },
+    { width: 9, depth: 7 },
+    { width: 10, depth: 7 },
+  ];
   static #TILE_SHAPE = {
     FLAT: 'FLAT',
   };
@@ -37,7 +41,14 @@ export class MapGenerator {
   ];
 
   static generate(options) {
-    const { numPaths } = this.#normalizeOptions(options);
+    const { numPaths: requestedNumPaths } = this.#normalizeOptions(options);
+    const numPaths = this.#clamp(
+      Number.isFinite(requestedNumPaths)
+        ? Math.round(requestedNumPaths)
+        : this.#rng(this.#DEFAULT_MIN_PATHS, this.#DEFAULT_MAX_PATHS),
+      1,
+      this.#ENTRY_TEMPLATES.length,
+    );
     const layout = this.#createLayoutConfig(numPaths);
     const grid = this.#createGrid(TileType.WATER);
     const tileMeta = this.#createTileMetadata();
@@ -51,6 +62,7 @@ export class MapGenerator {
     this.#applyHeightsToMetadata(grid, tileMeta, heightmap);
     this.#validateMap(grid, heightmap, layout);
     const { routes, arrowData } = this.#buildRouteData(layout);
+    const castle = this.#buildCastleData(grid, layout);
 
     return {
       grid,
@@ -65,6 +77,7 @@ export class MapGenerator {
         side: entry.side,
       })),
       castlePos: { col: layout.castleLeft, row: layout.pathRows[0] },
+      castle,
       numPaths: layout.entries.length,
       paths: routeCellsByPath.map((path, pathIdx) => ({
         ...path,
@@ -114,13 +127,15 @@ export class MapGenerator {
   }
 
   static #createLayoutConfig(numPaths) {
-    const castleLeft = this.#rng(24, 31);
     const anchorRows = this.#ENTRY_TEMPLATES.map(template => [...template.gateRows]);
     const pathRows = anchorRows[this.#rng(0, anchorRows.length - 1)];
+    const castleFootprintIndex = numPaths >= 4 ? 1 : numPaths === 3 ? 2 : pathRows[0] <= 6 || pathRows[1] >= 25 ? 0 : 3;
+    const castleFootprint = this.#CASTLE_FOOTPRINTS[castleFootprintIndex];
+    const castleLeft = this.#rng(24, 38 - castleFootprint.width);
     const castleCenterRow = pathRows[1];
-    const castleTop = castleCenterRow - this.#CASTLE_HALF_HEIGHT;
-    const castleBottom = castleCenterRow + this.#CASTLE_HALF_HEIGHT;
-    const castleRight = castleLeft + this.#CASTLE_WIDTH - 1;
+    const castleTop = pathRows[0] - Math.floor((castleFootprint.depth - 2) / 2);
+    const castleBottom = castleTop + castleFootprint.depth - 1;
+    const castleRight = castleLeft + castleFootprint.width - 1;
     const castleEntranceRows = [...pathRows];
     const entries = this.#selectEntries(numPaths, castleLeft, castleTop, castleBottom, pathRows);
     const islandEllipses = [
@@ -161,6 +176,7 @@ export class MapGenerator {
       castleTop,
       castleBottom,
       castleCenterRow,
+      castleFootprint,
       castleEntranceCol: castleLeft,
       pathRows,
       castleEntranceRows,
@@ -170,6 +186,7 @@ export class MapGenerator {
       signature: JSON.stringify({
         castleLeft,
         castleCenterRow,
+        castleFootprint,
         entries: entries.map(entry => ({ id: entry.id, side: entry.side, mergeCol: entry.mergeCol })),
         trunkStart: Math.min(...entries.map(entry => entry.mergeCol)),
         ellipses: islandEllipses,
@@ -580,6 +597,93 @@ export class MapGenerator {
         });
       }
     }
+  }
+
+  static #buildCastleData(grid, layout) {
+    const doors = [];
+    const collectGate = (side, cells, inwardDirection, outsideColOffset, outsideRowOffset) => {
+      if (!cells.length) return;
+
+      let run = [];
+      const flushRun = () => {
+        if (!run.length) return;
+        const verticalSide = side === 'WEST' || side === 'EAST';
+        doors.push({
+          side,
+          offset: (verticalSide ? run[0].row : run[0].col) - (verticalSide ? layout.castleTop : layout.castleLeft),
+          width: run.length,
+          cells: run.map((cell) => ({ ...cell })),
+          centerCol: run.reduce((sum, cell) => sum + cell.col, 0) / run.length,
+          centerRow: run.reduce((sum, cell) => sum + cell.row, 0) / run.length,
+          inwardDirection,
+        });
+        run = [];
+      };
+
+      for (const cell of cells) {
+        const outsideCol = cell.col + outsideColOffset;
+        const outsideRow = cell.row + outsideRowOffset;
+        const outsideTile = this.#inBounds(outsideCol, outsideRow) ? grid[outsideRow][outsideCol] : TileType.WATER;
+        if (grid[cell.row][cell.col] === TileType.PATH && (outsideTile === TileType.PATH || outsideTile === TileType.ENTRY)) {
+          run.push(cell);
+        } else {
+          flushRun();
+        }
+      }
+      flushRun();
+    };
+
+    collectGate(
+      'WEST',
+      Array.from({ length: layout.castleBottom - layout.castleTop + 1 }, (_, index) => ({
+        col: layout.castleLeft,
+        row: layout.castleTop + index,
+      })),
+      this.#DIRECTIONS.EAST,
+      -1,
+      0,
+    );
+    collectGate(
+      'EAST',
+      Array.from({ length: layout.castleBottom - layout.castleTop + 1 }, (_, index) => ({
+        col: layout.castleRight,
+        row: layout.castleTop + index,
+      })),
+      this.#DIRECTIONS.WEST,
+      1,
+      0,
+    );
+    collectGate(
+      'NORTH',
+      Array.from({ length: layout.castleRight - layout.castleLeft + 1 }, (_, index) => ({
+        col: layout.castleLeft + index,
+        row: layout.castleTop,
+      })),
+      this.#DIRECTIONS.SOUTH,
+      0,
+      -1,
+    );
+    collectGate(
+      'SOUTH',
+      Array.from({ length: layout.castleRight - layout.castleLeft + 1 }, (_, index) => ({
+        col: layout.castleLeft + index,
+        row: layout.castleBottom,
+      })),
+      this.#DIRECTIONS.NORTH,
+      0,
+      1,
+    );
+
+    return {
+      position: {
+        col: layout.castleLeft,
+        row: layout.castleTop,
+        width: layout.castleRight - layout.castleLeft + 1,
+        depth: layout.castleBottom - layout.castleTop + 1,
+        elevation: this.#FOUNDATION_HEIGHT,
+      },
+      doors,
+    };
   }
 
   static #insideEllipse(col, row, centerCol, centerRow, radiusX, radiusY) {
@@ -1145,7 +1249,12 @@ export class MapGenerator {
   }
 
   static #validateCastleEntrance(grid, layout) {
-    for (const row of layout.castleEntranceRows) {
+    const entranceRows = [...layout.castleEntranceRows].sort((left, right) => left - right);
+    if (entranceRows.length !== 2 || entranceRows[1] !== entranceRows[0] + 1) {
+      throw new Error('Map validation failed: the castle entrance must cover both full-width path lanes.');
+    }
+
+    for (const row of entranceRows) {
       if (grid[row][layout.castleEntranceCol] !== TileType.PATH) {
         throw new Error('Map validation failed: the final path does not end at the castle entrance.');
       }

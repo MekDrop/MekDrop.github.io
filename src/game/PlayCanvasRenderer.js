@@ -5,14 +5,17 @@ import pathSideUrl from "src/assets/game/tiles/path-side.png";
 import pathTopUrl from "src/assets/game/tiles/path-top.png";
 import waterSideUrl from "src/assets/game/tiles/water-side.png";
 import waterTopUrl from "src/assets/game/tiles/water-top.png";
-import { GATEWAY_BANNER_SIGNS } from "./GatewayBannerSign.js";
-import { GATEWAY_COLORS, Gateway } from "./Gateway.js";
+import { Castle } from "./objects/castle/index.js";
+import {
+  GATEWAY_BANNER_SIGNS,
+  GATEWAY_COLORS,
+  Gateway,
+} from "./objects/gateway/index.js";
+import { PathArrows } from "./objects/path/index.js";
 import { TileType } from "./MapGenerator.js";
 
 const FIXED_HEIGHTS = {
   [TileType.WATER]: 0,
-  [TileType.CASTLE_WALL]: 7,
-  [TileType.CASTLE_TOWER]: 9,
 };
 
 const TEXTURE_URLS = {
@@ -30,8 +33,6 @@ const MATERIAL_DEFINITIONS = {
   grass: { color: 0xffffff, texture: "grass", gloss: 0.05 },
   path: { color: 0xfff1d9, texture: "path", gloss: 0.04 },
   water: { color: 0xd8f2ff, texture: "water", gloss: 0.22 },
-  castleWall: { color: 0x918e87, gloss: 0.12 },
-  castleTower: { color: 0x77746f, gloss: 0.1 },
 };
 
 const SIDE_VARIANT_DEFINITIONS = {
@@ -83,8 +84,6 @@ const SURFACE_MATERIALS = {
   [TileType.PATH]: "path",
   [TileType.WATER]: "water",
   [TileType.ENTRY]: "path",
-  [TileType.CASTLE_WALL]: "castleWall",
-  [TileType.CASTLE_TOWER]: "castleTower",
 };
 
 const SIDE_MATERIALS = {
@@ -92,32 +91,11 @@ const SIDE_MATERIALS = {
   [TileType.PATH]: "pathSide",
   [TileType.WATER]: "waterSide",
   [TileType.ENTRY]: "pathSide",
-  [TileType.CASTLE_WALL]: "castleWall",
-  [TileType.CASTLE_TOWER]: "castleTower",
 };
 
 const CUBE_SCALE = 1;
 const CAMERA_PITCH = Math.atan(1 / Math.sqrt(2));
 const CAMERA_DISTANCE = 80;
-const ARROW_POINTS = [
-  [-0.1, -0.32],
-  [0.1, -0.32],
-  [0.1, 0.04],
-  [-0.1, 0.04],
-  [-0.34, -0.01],
-  [0.34, -0.01],
-  [0, 0.43],
-];
-const ARROW_TRIANGLES = [
-  [0, 2, 1],
-  [0, 3, 2],
-  [4, 6, 5],
-];
-const ARROW_MIN_Z = -0.32;
-const ARROW_MAX_Z = 0.43;
-const ARROW_MERGE_DISTANCE = 0.76;
-const ARROW_COLOR_SCROLL_SPEED = 0.42;
-const ARROW_GLOW_PULSE_SPEED = 4.2;
 
 function colorFromHex(pc, value) {
   return new pc.Color(
@@ -132,31 +110,24 @@ export class PlayCanvasRenderer {
   #app = null;
   #camera = null;
   #mapRoot = null;
-  #arrowRoot = null;
   #mapData = null;
   #cubeMeshes = null;
-  #arrowMesh = null;
-  #arrowAuraMesh = null;
-  #arrowAuraTexture = null;
-  #arrowSliceMeshes = new Map();
   #materials = new Map();
-  #animatedArrowPalettes = new Map();
-  #arrowAnimationTime = 0;
   #textureAssets = [];
-  #generatedArrowTextures = [];
   #vertexBuffers = [];
   #zoom = 1;
   #rotation = 0;
   #panX = 0;
   #panZ = 0;
   #baseOrthoHeight = 24;
-  #arrowsVisible = false;
+  #pathArrows = null;
   #gateways = [];
+  #castle = null;
   #gatewayColors = [...GATEWAY_COLORS];
-  #bannerWindGateway = null;
+  #bannerWindTarget = null;
   #bannerWindPointerId = null;
   #bannerWindLastTime = 0;
-  #gatewayInteractionConnected = false;
+  #bannerInteractionConnected = false;
 
   constructor(canvas, container) {
     this.canvas = canvas;
@@ -184,9 +155,11 @@ export class PlayCanvasRenderer {
 
     this.#app.scene.ambientLight = new pc.Color(0.5, 0.57, 0.64);
     this.#cubeMeshes = this.#createCubeMeshes();
-    this.#arrowMesh = this.#createArrowMesh();
-    this.#arrowAuraMesh = this.#createArrowAuraMesh();
-    this.#arrowAuraTexture = this.#createArrowAuraTexture();
+    this.#pathArrows = new PathArrows({
+      pc,
+      app: this.#app,
+      colors: this.#gatewayColors,
+    });
 
     this.#camera = new pc.Entity("Isometric camera");
     this.#camera.addComponent("camera", {
@@ -209,9 +182,8 @@ export class PlayCanvasRenderer {
 
     await this.#createMaterials();
     this.resize();
-    this.#app.on("update", this.#updateArrowAnimation, this);
     this.#app.start();
-    this.#connectGatewayInteraction();
+    this.#connectBannerInteraction();
   }
 
   render(mapData) {
@@ -226,12 +198,11 @@ export class PlayCanvasRenderer {
   }
 
   setArrowsVisible(visible) {
-    this.#arrowsVisible = visible;
-    if (this.#arrowRoot) this.#arrowRoot.enabled = visible;
+    this.#pathArrows?.setVisible(visible);
   }
 
   getArrowsVisible() {
-    return this.#arrowsVisible;
+    return this.#pathArrows?.visible ?? false;
   }
 
   getZoom() {
@@ -250,8 +221,7 @@ export class PlayCanvasRenderer {
     const paletteIndex = index % this.#gatewayColors.length;
     this.#gatewayColors[paletteIndex] = color;
     this.#gateways[index]?.setColor(color);
-    this.#setArrowMaterialColor(paletteIndex, color);
-    this.#refreshAnimatedArrowTextures();
+    this.#pathArrows?.setColor(paletteIndex, color);
   }
 
   setGatewayColors(colors) {
@@ -260,9 +230,8 @@ export class PlayCanvasRenderer {
     this.#gateways.forEach((gateway, index) => {
       const color = colors[index % colors.length];
       gateway.setColor(color);
-      this.#setArrowMaterialColor(index, color);
     });
-    this.#refreshAnimatedArrowTextures();
+    this.#pathArrows?.setColors(colors);
   }
 
   getViewport() {
@@ -299,7 +268,7 @@ export class PlayCanvasRenderer {
   }
 
   rotateBy(quarterTurns) {
-    this.#rotation = (this.#rotation + quarterTurns + 4) % 4;
+    this.#rotation = (((this.#rotation + quarterTurns) % 4) + 4) % 4;
     this.#updateCamera();
     return this.#rotation;
   }
@@ -318,9 +287,10 @@ export class PlayCanvasRenderer {
   }
 
   destroy() {
-    this.#disconnectGatewayInteraction();
-    this.#app?.off("update", this.#updateArrowAnimation, this);
+    this.#disconnectBannerInteraction();
     this.#clearScene();
+    this.#pathArrows?.destroy();
+    this.#pathArrows = null;
     for (const material of this.#materials.values()) material.destroy();
     this.#materials.clear();
     for (const asset of this.#textureAssets) {
@@ -336,19 +306,6 @@ export class PlayCanvasRenderer {
       }
     }
     this.#cubeMeshes = null;
-    if (this.#arrowMesh) this.#destroyMesh(this.#arrowMesh);
-    this.#arrowMesh = null;
-    if (this.#arrowAuraMesh) this.#destroyMesh(this.#arrowAuraMesh);
-    this.#arrowAuraMesh = null;
-    this.#arrowAuraTexture?.destroy();
-    this.#arrowAuraTexture = null;
-    for (const texture of this.#generatedArrowTextures) texture.destroy();
-    this.#generatedArrowTextures = [];
-    for (const mesh of this.#arrowSliceMeshes.values()) {
-      this.#destroyMesh(mesh);
-    }
-    this.#arrowSliceMeshes.clear();
-    this.#animatedArrowPalettes.clear();
     this.#app?.destroy();
     this.#app = null;
   }
@@ -360,7 +317,6 @@ export class PlayCanvasRenderer {
         textures.set(name, await this.#loadTexture(name, url));
       }),
     );
-
     for (const [name, definition] of Object.entries(MATERIAL_DEFINITIONS)) {
       this.#materials.set(
         name,
@@ -397,47 +353,6 @@ export class PlayCanvasRenderer {
         ),
       );
     });
-
-    GATEWAY_COLORS.forEach((color, index) => {
-      this.#materials.set(
-        `arrow-${index}`,
-        this.#createArrowCoreMaterial(`arrow-${index}`, color),
-      );
-      this.#materials.set(
-        `arrow-aura-${index}`,
-        this.#createArrowAuraMaterial(`arrow-aura-${index}`, color),
-      );
-    });
-  }
-
-  #createArrowCoreMaterial(name, color) {
-    return this.#createMaterial(name, {
-      color,
-      emissive: color,
-      emissiveIntensity: 1.45,
-      gloss: 0.08,
-      useLighting: false,
-    });
-  }
-
-  #createArrowAuraMaterial(name, color) {
-    const material = this.#createMaterial(name, {
-      color,
-      emissive: color,
-      emissiveIntensity: 1.2,
-      gloss: 0,
-      useLighting: false,
-    });
-    material.diffuseMap = this.#arrowAuraTexture;
-    material.emissiveMap = this.#arrowAuraTexture;
-    material.opacityMap = this.#arrowAuraTexture;
-    material.opacityMapChannel = "a";
-    material.opacity = 0.12;
-    material.blendType = this.#pc.BLEND_ADDITIVE;
-    material.depthWrite = false;
-    material.cull = this.#pc.CULLFACE_NONE;
-    material.update();
-    return material;
   }
 
   #createMaterial(name, definition, textures = new Map()) {
@@ -473,151 +388,6 @@ export class PlayCanvasRenderer {
     return material;
   }
 
-  #setArrowMaterialColor(index, color) {
-    for (const name of [`arrow-${index}`, `arrow-aura-${index}`]) {
-      const material = this.#materials.get(name);
-      if (!material) continue;
-      this.#applyArrowMaterialColor(material, colorFromHex(this.#pc, color));
-    }
-  }
-
-  #applyArrowMaterialColor(material, color) {
-    material.diffuse = color.clone();
-    material.emissive = color.clone();
-    material.update();
-  }
-
-  #getAnimatedArrowMaterials(colorIndexes) {
-    const key = colorIndexes.join("-");
-    const existing = this.#animatedArrowPalettes.get(key);
-    if (existing) return existing;
-
-    const color = this.#averageGatewayColor(colorIndexes);
-    const coreName = `arrow-scroll-${key}`;
-    const auraName = `arrow-scroll-aura-${key}`;
-    const canvas = document.createElement("canvas");
-    canvas.width = 16;
-    canvas.height = 128;
-    const texture = new this.#pc.Texture(this.#app.graphicsDevice, {
-      name: `Arrow colors ${key}`,
-      width: canvas.width,
-      height: canvas.height,
-      minFilter: this.#pc.FILTER_LINEAR,
-      magFilter: this.#pc.FILTER_LINEAR,
-      addressU: this.#pc.ADDRESS_CLAMP_TO_EDGE,
-      addressV: this.#pc.ADDRESS_REPEAT,
-      mipmaps: false,
-    });
-    this.#paintArrowScrollTexture(canvas, colorIndexes);
-    texture.setSource(canvas);
-    this.#generatedArrowTextures.push(texture);
-
-    const core = this.#createArrowCoreMaterial(coreName, 0xffffff);
-    core.diffuseMap = texture;
-    core.emissiveMap = texture;
-    core.diffuseMapTiling = new this.#pc.Vec2(1, 1.35);
-    core.emissiveMapTiling = new this.#pc.Vec2(1, 1.35);
-    core.diffuseMapOffset = new this.#pc.Vec2(0, 0);
-    core.emissiveMapOffset = new this.#pc.Vec2(0, 0);
-    core.update();
-    const aura = this.#createArrowAuraMaterial(auraName, color);
-    this.#materials.set(coreName, core);
-    this.#materials.set(auraName, aura);
-    const palette = {
-      colorIndexes: [...colorIndexes],
-      coreName,
-      auraName,
-      canvas,
-      texture,
-    };
-    this.#animatedArrowPalettes.set(key, palette);
-    return palette;
-  }
-
-  #paintArrowScrollTexture(canvas, colorIndexes) {
-    const context = canvas.getContext("2d");
-    const gradient = context.createLinearGradient(0, 0, 0, canvas.height);
-    const count = colorIndexes.length;
-    for (let index = 0; index < count; index++) {
-      const start = index / count;
-      const end = (index + 1) / count;
-      const holdEnd = start + (end - start) * 0.72;
-      const color = this.#gatewayColors[colorIndexes[index]];
-      const nextColor = this.#gatewayColors[colorIndexes[(index + 1) % count]];
-      gradient.addColorStop(start, this.#colorToCss(color));
-      gradient.addColorStop(holdEnd, this.#colorToCss(color));
-      gradient.addColorStop(end, this.#colorToCss(nextColor));
-    }
-    context.clearRect(0, 0, canvas.width, canvas.height);
-    context.fillStyle = gradient;
-    context.fillRect(0, 0, canvas.width, canvas.height);
-  }
-
-  #colorToCss(color) {
-    return `#${(color >>> 0).toString(16).padStart(6, "0").slice(-6)}`;
-  }
-
-  #averageGatewayColor(colorIndexes) {
-    const channels = colorIndexes.reduce(
-      (sum, index) => {
-        const color = this.#gatewayColors[index];
-        sum.r += (color >> 16) & 0xff;
-        sum.g += (color >> 8) & 0xff;
-        sum.b += color & 0xff;
-        return sum;
-      },
-      { r: 0, g: 0, b: 0 },
-    );
-    const count = colorIndexes.length;
-    return (
-      (Math.round(channels.r / count) << 16) |
-      (Math.round(channels.g / count) << 8) |
-      Math.round(channels.b / count)
-    );
-  }
-
-  #refreshAnimatedArrowTextures() {
-    for (const palette of this.#animatedArrowPalettes.values()) {
-      this.#paintArrowScrollTexture(palette.canvas, palette.colorIndexes);
-      palette.texture.upload();
-      const aura = this.#materials.get(palette.auraName);
-      if (aura) {
-        this.#applyArrowMaterialColor(
-          aura,
-          colorFromHex(
-            this.#pc,
-            this.#averageGatewayColor(palette.colorIndexes),
-          ),
-        );
-      }
-    }
-  }
-
-  #updateArrowAnimation(dt) {
-    this.#arrowAnimationTime += dt;
-    const pulse = (Math.sin(this.#arrowAnimationTime * ARROW_GLOW_PULSE_SPEED) + 1) / 2;
-
-    for (let index = 0; index < this.#gatewayColors.length; index++) {
-      const core = this.#materials.get(`arrow-${index}`);
-      if (core) {
-        core.emissiveIntensity = 1.3 + pulse * 0.45;
-        core.update();
-      }
-    }
-
-    for (const palette of this.#animatedArrowPalettes.values()) {
-      const core = this.#materials.get(palette.coreName);
-      if (core) {
-        core.emissiveIntensity = 1.35 + pulse * 0.55;
-        const scrollOffset =
-          (this.#arrowAnimationTime * ARROW_COLOR_SCROLL_SPEED) % 1;
-        core.diffuseMapOffset.y = scrollOffset;
-        core.emissiveMapOffset.y = scrollOffset;
-        core.update();
-      }
-    }
-  }
-
   #loadTexture(name, url) {
     const pc = this.#pc;
     const asset = new pc.Asset(name, "texture", { url });
@@ -644,14 +414,10 @@ export class PlayCanvasRenderer {
     const cubeBatches = new Map();
     this.#buildTerrainMatrices(cubeBatches);
     this.#createInstancedBatches(cubeBatches, this.#mapRoot, false);
+    this.#buildCastle();
     this.#buildGateways();
 
-    this.#arrowRoot = new this.#pc.Entity("Path arrows");
-    this.#arrowRoot.enabled = this.#arrowsVisible;
-    this.#mapRoot.addChild(this.#arrowRoot);
-    const arrowBatches = new Map();
-    this.#buildArrowMatrices(arrowBatches);
-    this.#createArrowInstancedBatches(arrowBatches, this.#arrowRoot);
+    this.#mapRoot.addChild(this.#pathArrows.render(this.#mapData));
   }
 
   #buildGateways() {
@@ -677,7 +443,7 @@ export class PlayCanvasRenderer {
         cubeSize: CUBE_SCALE / 4,
         symbol: signs[index % signs.length],
       });
-      this.#setArrowMaterialColor(
+      this.#pathArrows.setColor(
         index,
         entry.color ?? this.getGatewayColor(index),
       );
@@ -686,6 +452,29 @@ export class PlayCanvasRenderer {
       this.#mapRoot.addChild(gateway.entity);
       this.#gateways.push(gateway);
     });
+  }
+
+  #buildCastle() {
+    const { castle, cols, rows } = this.#mapData;
+    if (!castle?.position || !castle.doors?.length) return;
+
+    this.#castle = new Castle({
+      pc: this.#pc,
+      app: this.#app,
+      position: {
+        x: castle.position.col - (cols - 1) / 2 - CUBE_SCALE / 2,
+        z: castle.position.row - (rows - 1) / 2 - CUBE_SCALE / 2,
+        width: castle.position.width,
+        depth: castle.position.depth,
+        elevation: castle.position.elevation,
+      },
+      doors: castle.doors.map(({ side, offset, width }) => ({
+        side,
+        offset,
+        width,
+      })),
+    });
+    this.#mapRoot.addChild(this.#castle.entity);
   }
 
   #buildTerrainMatrices(batches) {
@@ -751,18 +540,18 @@ export class PlayCanvasRenderer {
   }
 
   #cubeMaterials(type, topCube, col, row, level) {
-    if (type === TileType.CASTLE_WALL) {
+    if (type === TileType.CASTLE_WALL || type === TileType.CASTLE_TOWER) {
+      if (!topCube) {
+        return {
+          top: "earth",
+          sides: this.#sideVariant("earthSide", col, row, level),
+          underlay: "earth",
+        };
+      }
       return {
-        top: "castleWall",
-        sides: "castleWall",
-        underlay: "castleWall",
-      };
-    }
-    if (type === TileType.CASTLE_TOWER) {
-      return {
-        top: "castleTower",
-        sides: "castleTower",
-        underlay: "castleTower",
+        top: `grass-${this.#variantIndex(col, row, level, 11, GRASS_TOP_VARIANTS.length)}`,
+        sides: this.#sideVariant("grassSide", col, row, level),
+        underlay: "earth",
       };
     }
     if (!topCube) {
@@ -812,175 +601,11 @@ export class PlayCanvasRenderer {
     return "full";
   }
 
-  #buildArrowMatrices(batches) {
-    const { arrowData, cols, rows } = this.#mapData;
-    if (!arrowData) return;
-
-    for (const group of this.#groupNearbyArrows(arrowData)) {
-      const col =
-        group.reduce((sum, marker) => sum + marker.col, 0) / group.length;
-      const row =
-        group.reduce((sum, marker) => sum + marker.row, 0) / group.length;
-      const baseX = col - (cols - 1) / 2;
-      const baseZ = row - (rows - 1) / 2;
-      const top = Math.max(
-        ...group.map(marker => this.#arrowHeight(marker.col, marker.row)),
-      );
-      const arrows = group.flatMap(marker => marker.arrows);
-      const directions = arrows
-        .map(arrow => {
-          const length = Math.hypot(arrow.dc, arrow.dr);
-          return length
-            ? { dx: arrow.dc / length, dz: arrow.dr / length }
-            : null;
-        })
-        .filter(Boolean);
-      if (!directions.length) continue;
-
-      let dx = directions.reduce((sum, direction) => sum + direction.dx, 0);
-      let dz = directions.reduce((sum, direction) => sum + direction.dz, 0);
-      const combinedLength = Math.hypot(dx, dz);
-      if (combinedLength < 0.001) {
-        ({ dx, dz } = directions[0]);
-      } else {
-        dx /= combinedLength;
-        dz /= combinedLength;
-      }
-      const colorIndexes = [
-        ...new Set(
-          arrows.map(arrow => arrow.pathIdx % GATEWAY_COLORS.length),
-        ),
-      ];
-      const widthScale = 0.86;
-      const lengthScale = 0.9;
-      const yaw = (Math.atan2(dx, dz) * 180) / Math.PI;
-      const materialNames =
-        colorIndexes.length === 1
-          ? {
-              coreName: `arrow-${colorIndexes[0]}`,
-              auraName: `arrow-aura-${colorIndexes[0]}`,
-            }
-          : this.#getAnimatedArrowMaterials(colorIndexes);
-      this.#addArrowMatrix(
-        batches,
-        materialNames.auraName,
-        "aura",
-        baseX,
-        top + 0.018,
-        baseZ,
-        yaw,
-        widthScale * 1.2,
-        lengthScale * 1.08,
-      );
-      this.#addArrowMatrix(
-        batches,
-        materialNames.coreName,
-        "full",
-        baseX,
-        top + 0.034,
-        baseZ,
-        yaw,
-        widthScale,
-        lengthScale,
-      );
-    }
-  }
-
-  #groupNearbyArrows(arrowData) {
-    const markers = [...arrowData.entries()].map(([key, arrows]) => {
-      const [col, row] = key.split(",").map(Number);
-      return { col, row, arrows };
-    });
-    const remaining = new Set(markers.map((_, index) => index));
-    const groups = [];
-
-    while (remaining.size) {
-      const firstIndex = remaining.values().next().value;
-      remaining.delete(firstIndex);
-      const group = [markers[firstIndex]];
-      const queue = [markers[firstIndex]];
-
-      while (queue.length) {
-        const current = queue.shift();
-        for (const candidateIndex of [...remaining]) {
-          const candidate = markers[candidateIndex];
-          if (
-            Math.hypot(
-              candidate.col - current.col,
-              candidate.row - current.row,
-            ) > ARROW_MERGE_DISTANCE
-          ) {
-            continue;
-          }
-          remaining.delete(candidateIndex);
-          group.push(candidate);
-          queue.push(candidate);
-        }
-      }
-      groups.push(group);
-    }
-
-    return groups;
-  }
-
-  #addArrowMatrix(
-    batches,
-    material,
-    meshKey,
-    x,
-    y,
-    z,
-    yaw,
-    scaleX,
-    scaleZ,
-  ) {
-    const matrix = new this.#pc.Mat4();
-    const rotation = new this.#pc.Quat();
-    rotation.setFromEulerAngles(0, yaw, 0);
-    matrix.setTRS(
-      new this.#pc.Vec3(x, y, z),
-      rotation,
-      new this.#pc.Vec3(scaleX, 1, scaleZ),
-    );
-    const batchKey = `${material}|${meshKey}`;
-    const data = batches.get(batchKey) ?? [];
-    for (const value of matrix.data) data.push(value);
-    batches.set(batchKey, data);
-  }
-
   #tileHeight(col, row) {
     const type = this.#mapData.grid[row][col];
     return type in FIXED_HEIGHTS
       ? FIXED_HEIGHTS[type]
       : this.#mapData.heightmap[row][col];
-  }
-
-  #arrowHeight(col, row) {
-    const { cols, rows, grid } = this.#mapData;
-    const candidateCols = [...new Set([Math.floor(col), Math.ceil(col)])];
-    const candidateRows = [...new Set([Math.floor(row), Math.ceil(row)])];
-    const pathHeights = [];
-
-    for (const candidateRow of candidateRows) {
-      for (const candidateCol of candidateCols) {
-        if (
-          candidateCol < 0 ||
-          candidateCol >= cols ||
-          candidateRow < 0 ||
-          candidateRow >= rows
-        ) {
-          continue;
-        }
-        const type = grid[candidateRow][candidateCol];
-        if (type !== TileType.PATH && type !== TileType.ENTRY) continue;
-        pathHeights.push(this.#tileHeight(candidateCol, candidateRow));
-      }
-    }
-
-    if (pathHeights.length) return Math.max(...pathHeights);
-    const nearestCol = Math.max(0, Math.min(cols - 1, Math.round(col)));
-    const nearestRow = Math.max(0, Math.min(rows - 1, Math.round(row)));
-    return this.#tileHeight(nearestCol, nearestRow);
   }
 
   #addCubeMatrix(
@@ -1083,203 +708,6 @@ export class PlayCanvasRenderer {
       }
       root.addChild(entity);
     }
-  }
-
-  #createArrowInstancedBatches(batches, root) {
-    const pc = this.#pc;
-    for (const [batchKey, matrices] of batches.entries()) {
-      if (matrices.length === 0) continue;
-      const [materialName, meshKey] = batchKey.split("|");
-      const vertexBuffer = new pc.VertexBuffer(
-        this.#app.graphicsDevice,
-        pc.VertexFormat.getDefaultInstancingFormat(this.#app.graphicsDevice),
-        matrices.length / 16,
-        { data: new Float32Array(matrices) },
-      );
-      this.#vertexBuffers.push(vertexBuffer);
-
-      const meshInstance = new pc.MeshInstance(
-        this.#getArrowMesh(meshKey),
-        this.#materials.get(materialName),
-      );
-      meshInstance.setInstancing(vertexBuffer, false);
-      meshInstance.castShadow = false;
-      meshInstance.receiveShadow = false;
-
-      const entity = new pc.Entity(`Path arrows ${materialName}`);
-      entity.addComponent("render", {
-        meshInstances: [meshInstance],
-        castShadows: false,
-        receiveShadows: false,
-      });
-      root.addChild(entity);
-    }
-  }
-
-  #createArrowMesh() {
-    return this.#createArrowSliceMesh(0, 1);
-  }
-
-  #getArrowMesh(meshKey) {
-    if (meshKey === "full") return this.#arrowMesh;
-    if (meshKey === "aura") return this.#arrowAuraMesh;
-    const cached = this.#arrowSliceMeshes.get(meshKey);
-    if (cached) return cached;
-    const match = /^slice-(\d+)-(\d+)$/.exec(meshKey);
-    if (!match) throw new Error(`Unknown arrow mesh: ${meshKey}`);
-    const mesh = this.#createArrowSliceMesh(Number(match[2]), Number(match[1]));
-    this.#arrowSliceMeshes.set(meshKey, mesh);
-    return mesh;
-  }
-
-  #createArrowAuraMesh() {
-    const geometry = new this.#pc.Geometry();
-    geometry.positions = [
-      -0.5, 0, -0.5,
-      0.5, 0, -0.5,
-      0.5, 0, 0.5,
-      -0.5, 0, 0.5,
-    ];
-    geometry.normals = [
-      0, 1, 0,
-      0, 1, 0,
-      0, 1, 0,
-      0, 1, 0,
-    ];
-    geometry.uvs = [0, 0, 1, 0, 1, 1, 0, 1];
-    geometry.indices = [0, 2, 1, 0, 3, 2];
-    const mesh = this.#pc.Mesh.fromGeometry(
-      this.#app.graphicsDevice,
-      geometry,
-    );
-    mesh.incRefCount();
-    return mesh;
-  }
-
-  #createArrowAuraTexture() {
-    const size = 64;
-    const canvas = document.createElement("canvas");
-    canvas.width = size;
-    canvas.height = size;
-    const context = canvas.getContext("2d");
-    const center = size / 2;
-    const gradient = context.createRadialGradient(
-      center,
-      center,
-      2,
-      center,
-      center,
-      center,
-    );
-    gradient.addColorStop(0, "rgba(255,255,255,0.58)");
-    gradient.addColorStop(0.3, "rgba(255,255,255,0.28)");
-    gradient.addColorStop(0.72, "rgba(72,72,72,0.08)");
-    gradient.addColorStop(1, "rgba(0,0,0,0)");
-    context.fillStyle = gradient;
-    context.fillRect(0, 0, size, size);
-
-    const texture = new this.#pc.Texture(this.#app.graphicsDevice, {
-      name: "Arrow aura",
-      width: size,
-      height: size,
-      minFilter: this.#pc.FILTER_LINEAR,
-      magFilter: this.#pc.FILTER_LINEAR,
-      addressU: this.#pc.ADDRESS_CLAMP_TO_EDGE,
-      addressV: this.#pc.ADDRESS_CLAMP_TO_EDGE,
-      mipmaps: false,
-    });
-    texture.setSource(canvas);
-    return texture;
-  }
-
-  #clipArrowPolygon(polygon, axis, boundary, keepAbove) {
-    const clipped = [];
-    for (let index = 0; index < polygon.length; index++) {
-      const current = polygon[index];
-      const previous = polygon[(index + polygon.length - 1) % polygon.length];
-      const currentInside = keepAbove
-        ? current[axis] >= boundary
-        : current[axis] <= boundary;
-      const previousInside = keepAbove
-        ? previous[axis] >= boundary
-        : previous[axis] <= boundary;
-
-      if (currentInside !== previousInside) {
-        const ratio =
-          (boundary - previous[axis]) / (current[axis] - previous[axis]);
-        const intersection = [
-          previous[0] + (current[0] - previous[0]) * ratio,
-          previous[1] + (current[1] - previous[1]) * ratio,
-        ];
-        intersection[axis] = boundary;
-        clipped.push(intersection);
-      }
-      if (currentInside) clipped.push(current);
-    }
-    return clipped;
-  }
-
-  #createArrowSliceMesh(sliceIndex, sliceCount) {
-    return this.#createSlicedArrowMesh(
-      ARROW_POINTS,
-      ARROW_TRIANGLES,
-      ARROW_MIN_Z,
-      ARROW_MAX_Z,
-      sliceIndex,
-      sliceCount,
-      1,
-    );
-  }
-
-  #createSlicedArrowMesh(
-    points,
-    triangles,
-    minCoordinate,
-    maxCoordinate,
-    sliceIndex,
-    sliceCount,
-    axis = 0,
-  ) {
-    const pc = this.#pc;
-    const sliceWidth = (maxCoordinate - minCoordinate) / sliceCount;
-    const sliceMin = minCoordinate + sliceWidth * sliceIndex;
-    const sliceMax = sliceMin + sliceWidth;
-    const positions = [];
-    const normals = [];
-    const uvs = [];
-    const indices = [];
-    const minX = Math.min(...points.map(point => point[0]));
-    const maxX = Math.max(...points.map(point => point[0]));
-    const minZ = Math.min(...points.map(point => point[1]));
-    const maxZ = Math.max(...points.map(point => point[1]));
-
-    for (const triangle of triangles) {
-      let polygon = triangle.map(index => points[index]);
-      polygon = this.#clipArrowPolygon(polygon, axis, sliceMin, true);
-      polygon = this.#clipArrowPolygon(polygon, axis, sliceMax, false);
-      if (polygon.length < 3) continue;
-      const start = positions.length / 3;
-      for (const [x, z] of polygon) {
-        positions.push(x, 0, z);
-        normals.push(0, 1, 0);
-        uvs.push(
-          (x - minX) / Math.max(0.001, maxX - minX),
-          (z - minZ) / Math.max(0.001, maxZ - minZ),
-        );
-      }
-      for (let index = 1; index < polygon.length - 1; index++) {
-        indices.push(start, start + index, start + index + 1);
-      }
-    }
-
-    const geometry = new pc.Geometry();
-    geometry.positions = positions;
-    geometry.normals = normals;
-    geometry.uvs = uvs;
-    geometry.indices = indices;
-    const mesh = pc.Mesh.fromGeometry(this.#app.graphicsDevice, geometry);
-    mesh.incRefCount();
-    return mesh;
   }
 
   #createCubeMeshes() {
@@ -1500,17 +928,17 @@ export class PlayCanvasRenderer {
     };
   }
 
-  #connectGatewayInteraction() {
-    if (this.#gatewayInteractionConnected || !this.canvas) return;
+  #connectBannerInteraction() {
+    if (this.#bannerInteractionConnected || !this.canvas) return;
     this.canvas.addEventListener("pointerdown", this.#handleBannerPointerDown);
     this.canvas.addEventListener("pointermove", this.#handleBannerPointerMove);
     this.canvas.addEventListener("pointerup", this.#handleBannerPointerUp);
     this.canvas.addEventListener("pointercancel", this.#handleBannerPointerUp);
-    this.#gatewayInteractionConnected = true;
+    this.#bannerInteractionConnected = true;
   }
 
-  #disconnectGatewayInteraction() {
-    if (!this.#gatewayInteractionConnected || !this.canvas) return;
+  #disconnectBannerInteraction() {
+    if (!this.#bannerInteractionConnected || !this.canvas) return;
     this.canvas.removeEventListener(
       "pointerdown",
       this.#handleBannerPointerDown,
@@ -1525,7 +953,7 @@ export class PlayCanvasRenderer {
       this.#handleBannerPointerUp,
     );
     this.#finishBannerWindGesture();
-    this.#gatewayInteractionConnected = false;
+    this.#bannerInteractionConnected = false;
   }
 
   #pointerRay(event) {
@@ -1548,7 +976,7 @@ export class PlayCanvasRenderer {
   }
 
   #handleBannerPointerDown = (event) => {
-    if (event.button !== 0 || this.#bannerWindGateway) return;
+    if (event.button !== 0 || this.#bannerWindTarget) return;
     const ray = this.#pointerRay(event);
     if (!ray) return;
 
@@ -1556,20 +984,24 @@ export class PlayCanvasRenderer {
     for (const gateway of this.#gateways) {
       const hit = gateway.getBannerHit(ray.start, ray.end);
       if (!hit || (closest && hit.distance >= closest.hit.distance)) continue;
-      closest = { gateway, hit };
+      closest = { target: gateway, hit };
+    }
+    const castleHit = this.#castle?.getBannerHit(ray.start, ray.end);
+    if (castleHit && (!closest || castleHit.distance < closest.hit.distance)) {
+      closest = { target: this.#castle, hit: castleHit };
     }
     if (!closest) return;
 
     event.preventDefault();
-    this.#bannerWindGateway = closest.gateway;
+    this.#bannerWindTarget = closest.target;
     this.#bannerWindPointerId = event.pointerId;
     this.#bannerWindLastTime = event.timeStamp;
-    closest.gateway.beginWindGesture(closest.hit.point);
+    closest.target.beginWindGesture(closest.hit);
     this.canvas.setPointerCapture(event.pointerId);
   };
 
   #handleBannerPointerMove = (event) => {
-    if (!this.#bannerWindGateway) return;
+    if (!this.#bannerWindTarget) return;
     if (event.pointerId !== this.#bannerWindPointerId) {
       return;
     }
@@ -1579,7 +1011,7 @@ export class PlayCanvasRenderer {
     event.preventDefault();
     const deltaTime = (event.timeStamp - this.#bannerWindLastTime) / 1000;
     this.#bannerWindLastTime = event.timeStamp;
-    this.#bannerWindGateway.applyMouseWind(ray.start, ray.end, deltaTime);
+    this.#bannerWindTarget.applyMouseWind(ray.start, ray.end, deltaTime);
   };
 
   #handleBannerPointerUp = (event) => {
@@ -1589,25 +1021,27 @@ export class PlayCanvasRenderer {
   };
 
   #finishBannerWindGesture() {
-    this.#bannerWindGateway?.endWindGesture();
+    this.#bannerWindTarget?.endWindGesture();
     if (
       this.#bannerWindPointerId !== null &&
       this.canvas?.hasPointerCapture(this.#bannerWindPointerId)
     ) {
       this.canvas.releasePointerCapture(this.#bannerWindPointerId);
     }
-    this.#bannerWindGateway = null;
+    this.#bannerWindTarget = null;
     this.#bannerWindPointerId = null;
     this.#bannerWindLastTime = 0;
   }
 
   #clearScene() {
     this.#finishBannerWindGesture();
+    this.#pathArrows?.clear();
     for (const gateway of this.#gateways) gateway.destroy();
     this.#gateways = [];
+    this.#castle?.destroy();
+    this.#castle = null;
     this.#mapRoot?.destroy();
     this.#mapRoot = null;
-    this.#arrowRoot = null;
     for (const buffer of this.#vertexBuffers) buffer.destroy();
     this.#vertexBuffers = [];
   }

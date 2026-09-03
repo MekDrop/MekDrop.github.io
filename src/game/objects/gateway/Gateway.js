@@ -1,4 +1,7 @@
+import { BannerWind } from "../shared/BannerWind.js";
 import { GatewayBannerSign } from "./GatewayBannerSign.js";
+import portalFragmentShader from "./GatewayPortal.frag?raw";
+import portalVertexShader from "./GatewayPortal.vert?raw";
 import { GatewayStoneTexture } from "./GatewayStoneTexture.js";
 
 export const DEFAULT_GATEWAY_COLOR = 0x269cff;
@@ -16,78 +19,6 @@ const FRAME_DEPTH_BLOCKS = 3;
 const FRAME_TOWER_WIDTH_BLOCKS = 4;
 const FRAME_TOWER_HEIGHT_BLOCKS = 13;
 const FRAME_STONE_COLORS = [0x434b54, 0x535d67, 0x626d77];
-
-const PORTAL_VERTEX_SHADER = `
-  attribute vec3 vertex_position;
-  attribute vec2 vertex_texCoord0;
-
-  uniform mat4 matrix_model;
-  uniform mat4 matrix_viewProjection;
-
-  varying vec2 vUv;
-
-  void main(void) {
-    gl_Position = matrix_viewProjection * matrix_model * vec4(vertex_position, 1.0);
-    vUv = vertex_texCoord0;
-  }
-`;
-
-const PORTAL_FRAGMENT_SHADER = `
-  uniform float uTime;
-  uniform vec3 uColor;
-
-  varying vec2 vUv;
-
-  float hash(vec2 point) {
-    return fract(sin(dot(point, vec2(127.1, 311.7))) * 43758.5453123);
-  }
-
-  float noise(vec2 point) {
-    vec2 cell = floor(point);
-    vec2 local = fract(point);
-    local = local * local * (3.0 - 2.0 * local);
-
-    return mix(
-      mix(hash(cell), hash(cell + vec2(1.0, 0.0)), local.x),
-      mix(hash(cell + vec2(0.0, 1.0)), hash(cell + vec2(1.0, 1.0)), local.x),
-      local.y
-    );
-  }
-
-  float archMask(vec2 uv) {
-    float horizontal = abs(uv.x * 2.0 - 1.0);
-    float rectangle = 1.0 - smoothstep(0.94, 1.0, horizontal);
-    float capDistance = length(vec2(horizontal, (uv.y - 0.64) / 0.36));
-    float cap = 1.0 - smoothstep(0.94, 1.0, capDistance);
-    return mix(rectangle, cap, smoothstep(0.62, 0.66, uv.y));
-  }
-
-  void main(void) {
-    float mask = archMask(vUv);
-    if (mask < 0.01) discard;
-
-    vec2 fallingUv = vec2(vUv.x * 3.4, vUv.y * 5.2 + uTime * 0.58);
-    float broadFlow = noise(fallingUv + vec2(sin(uTime * 0.31), 0.0));
-    float fineFlow = noise(fallingUv * 2.15 + vec2(-uTime * 0.24, uTime * 0.18));
-    float current = sin(
-      vUv.y * 23.0 + uTime * 3.1 + broadFlow * 4.2 + sin(vUv.x * 8.0) * 0.8
-    );
-    float brightCurrent = smoothstep(0.48, 0.96, current * 0.5 + 0.5);
-    float suspendedLight = smoothstep(0.62, 0.92, broadFlow * 0.7 + fineFlow * 0.3);
-    float edgeGlow = smoothstep(0.72, 0.98, abs(vUv.x * 2.0 - 1.0));
-    float shimmer = 0.92 + sin(uTime * 1.7 + vUv.y * 7.0) * 0.08;
-    vec3 color = mix(
-      uColor * 0.7,
-      mix(uColor, vec3(1.0), 0.72),
-      brightCurrent * 0.72 + suspendedLight * 0.28
-    );
-    float alpha = mask *
-      (0.26 + broadFlow * 0.16 + brightCurrent * 0.22 + edgeGlow * 0.08) *
-      shimmer;
-
-    gl_FragColor = vec4(color, alpha);
-  }
-`;
 
 /**
  * A two-lane voxel gateway with an animated, shader-driven portal surface.
@@ -115,18 +46,9 @@ export class Gateway {
   #bannerInteraction = null;
   #emblemEntity = null;
   #emblemBasePosition = null;
-  #mouseWind = {
-    active: false,
-    lastPoint: null,
-    strength: 0,
-    directionY: 0,
-    directionZ: 0,
-  };
+  #bannerWind = new BannerWind();
   #updateHandle = null;
   #elapsed = 0;
-  #windPhase = Math.random() * Math.PI * 2;
-  #windSpeed = 0.72 + Math.random() * 0.42;
-  #windStrength = 0.82 + Math.random() * 0.36;
 
   constructor({
     pc,
@@ -191,59 +113,18 @@ export class Gateway {
     return this.#intersectBannerRay(rayStart, rayEnd, true);
   }
 
-  beginWindGesture(point) {
-    if (!point) return;
-    this.#mouseWind.active = true;
-    this.#mouseWind.lastPoint = point.clone();
-    this.#mouseWind.strength = Math.max(this.#mouseWind.strength, 0.042);
-    this.#mouseWind.directionY *= 0.35;
-    this.#mouseWind.directionZ =
-      this.#mouseWind.directionZ * 0.35 +
-      Math.sin(this.#elapsed * 1.7 + this.#windPhase) * 0.22;
+  beginWindGesture(hit) {
+    this.#bannerWind.begin(hit?.point ?? hit);
   }
 
   applyMouseWind(rayStart, rayEnd, deltaTime) {
-    if (!this.#mouseWind.active || !this.#mouseWind.lastPoint) return;
     const hit = this.#intersectBannerRay(rayStart, rayEnd, false);
     if (!hit) return;
-
-    const point = hit.point;
-    const elapsed = Math.max(1 / 120, Math.min(0.08, deltaTime));
-    const movementY = point.y - this.#mouseWind.lastPoint.y;
-    const movementZ = point.z - this.#mouseWind.lastPoint.z;
-    const movementDistance = Math.hypot(movementY, movementZ);
-    const velocityY = movementY / elapsed;
-    const velocityZ = movementZ / elapsed;
-    const speed = Math.hypot(velocityY, velocityZ);
-    if (speed > 0.001) {
-      const directionBlend = 0.68;
-      const blendedDirectionY =
-        this.#mouseWind.directionY * (1 - directionBlend) +
-        (velocityY / speed) * directionBlend;
-      const blendedDirectionZ =
-        this.#mouseWind.directionZ * (1 - directionBlend) +
-        (velocityZ / speed) * directionBlend;
-      const directionLength = Math.hypot(blendedDirectionY, blendedDirectionZ);
-      this.#mouseWind.directionY =
-        directionLength > 0.000001
-          ? blendedDirectionY / directionLength
-          : velocityY / speed;
-      this.#mouseWind.directionZ =
-        directionLength > 0.000001
-          ? blendedDirectionZ / directionLength
-          : velocityZ / speed;
-      const gustImpulse = movementDistance * 0.55 + speed * 0.02;
-      this.#mouseWind.strength = Math.min(
-        0.3,
-        this.#mouseWind.strength * 0.82 + gustImpulse,
-      );
-    }
-    this.#mouseWind.lastPoint.copy(point);
+    this.#bannerWind.applyPointer(hit.point, deltaTime);
   }
 
   endWindGesture() {
-    this.#mouseWind.active = false;
-    this.#mouseWind.lastPoint = null;
+    this.#bannerWind.end();
   }
 
   destroy() {
@@ -644,66 +525,12 @@ export class Gateway {
       return;
     }
 
-    const time = this.#elapsed * this.#windSpeed;
-    const slowGust =
-      Math.sin(time * 0.43 + this.#windPhase) * 0.55 +
-      Math.sin(time * 0.17 + this.#windPhase * 1.73) * 0.28;
-    const mouseWindDamping = Math.exp(
-      -Math.max(0, deltaTime) * (this.#mouseWind.active ? 1.45 : 3.8),
-    );
-    this.#mouseWind.strength *= mouseWindDamping;
-    const mouseDirectionLength = Math.hypot(
-      this.#mouseWind.directionY,
-      this.#mouseWind.directionZ,
-    );
-    const mouseDirectionY =
-      mouseDirectionLength > 0.001
-        ? this.#mouseWind.directionY / mouseDirectionLength
-        : 0;
-    const mouseDirectionZ =
-      mouseDirectionLength > 0.001
-        ? this.#mouseWind.directionZ / mouseDirectionLength
-        : 0;
-
-    for (
-      let vertex = 0;
-      vertex < this.#bannerPositions.length / 3;
-      vertex += 1
-    ) {
-      const u = this.#bannerVertexUv[vertex * 2];
-      const v = this.#bannerVertexUv[vertex * 2 + 1];
-      const freedom = v * v;
-      const unevenFlutter = Math.sin(
-        time * 3.25 + u * 7.4 + v * 2.1 + this.#windPhase,
-      );
-      const crossRipple = Math.sin(
-        time * 1.36 - u * 4.8 + this.#windPhase * 0.62,
-      );
-      const strength = freedom * this.#windStrength;
-      const mouseWindWave = Math.sin(
-        this.#elapsed * 9.5 -
-          u * mouseDirectionZ * 6.2 -
-          v * mouseDirectionY * 5.2 +
-          this.#windPhase,
-      );
-      const mouseWindStrength = freedom * this.#mouseWind.strength;
-      const directionalSweep = 0.62 + mouseWindWave * 0.38;
-      const positionIndex = vertex * 3;
-
-      this.#bannerPositions[positionIndex] =
-        this.#bannerBasePositions[positionIndex] +
-        strength *
-          (slowGust * 0.035 + unevenFlutter * 0.014 + crossRipple * 0.008) +
-        mouseWindStrength * directionalSweep;
-      this.#bannerPositions[positionIndex + 1] =
-        this.#bannerBasePositions[positionIndex + 1] +
-        strength * (unevenFlutter * 0.008 + crossRipple * 0.005) +
-        mouseWindStrength * mouseDirectionY * 0.58;
-      this.#bannerPositions[positionIndex + 2] =
-        this.#bannerBasePositions[positionIndex + 2] +
-        strength * (crossRipple * 0.018 + unevenFlutter * 0.009 * Math.abs(u)) +
-        mouseWindStrength * mouseDirectionZ * 0.58;
-    }
+    this.#bannerWind.advance(deltaTime);
+    this.#bannerWind.deform({
+      basePositions: this.#bannerBasePositions,
+      positions: this.#bannerPositions,
+      vertexUv: this.#bannerVertexUv,
+    });
 
     this.#bannerMesh.setPositions(this.#bannerPositions);
     this.#bannerMesh.setNormals(
@@ -712,32 +539,16 @@ export class Gateway {
     this.#bannerMesh.update(this.#pc.PRIMITIVE_TRIANGLES, false);
 
     if (this.#emblemEntity && this.#emblemBasePosition) {
-      const emblemFreedom = 0.48 * 0.48 * this.#windStrength;
-      const emblemFlutter = Math.sin(time * 3.25 + 1.008 + this.#windPhase);
-      const emblemRipple = Math.sin(time * 1.36 + this.#windPhase * 0.62);
-      const emblemMouseWind = 0.48 * 0.48 * this.#mouseWind.strength;
-      const emblemWindWave = Math.sin(
-        this.#elapsed * 9.5 - 0.48 * mouseDirectionY * 5.2 + this.#windPhase,
-      );
-      const emblemX =
-        emblemFreedom *
-          (slowGust * 0.035 + emblemFlutter * 0.014 + emblemRipple * 0.008) +
-        emblemMouseWind * (0.62 + emblemWindWave * 0.38);
-      const emblemY =
-        emblemFreedom * (emblemFlutter * 0.008 + emblemRipple * 0.005) +
-        emblemMouseWind * mouseDirectionY * 0.58;
-      const emblemZ =
-        emblemFreedom * emblemRipple * 0.018 +
-        emblemMouseWind * mouseDirectionZ * 0.58;
+      const emblemOffset = this.#bannerWind.sample(0, 0.48);
       this.#emblemEntity.setLocalPosition(
-        this.#emblemBasePosition[0] + emblemX,
-        this.#emblemBasePosition[1] + emblemY,
-        this.#emblemBasePosition[2] + emblemZ,
+        this.#emblemBasePosition[0] + emblemOffset.normal,
+        this.#emblemBasePosition[1] + emblemOffset.vertical,
+        this.#emblemBasePosition[2] + emblemOffset.horizontal,
       );
       this.#emblemEntity.setLocalEulerAngles(
         0,
-        emblemRipple * 2.4 + mouseDirectionZ * this.#mouseWind.strength * 28,
-        emblemFlutter * 1.1 + mouseDirectionY * this.#mouseWind.strength * 18,
+        emblemOffset.rotationY,
+        emblemOffset.rotationZ,
       );
     }
   }
@@ -745,17 +556,16 @@ export class Gateway {
   #createPortal() {
     const pc = this.#pc;
     const width =
-      (FRAME_WIDTH_BLOCKS - FRAME_TOWER_WIDTH_BLOCKS * 2) * this.#cubeSize -
-      0.06;
-    const height = FRAME_OPENING_HEIGHT_BLOCKS * this.#cubeSize - 0.04;
+      (FRAME_WIDTH_BLOCKS - FRAME_TOWER_WIDTH_BLOCKS * 2) * this.#cubeSize;
+    const height = FRAME_OPENING_HEIGHT_BLOCKS * this.#cubeSize;
     const halfWidth = width / 2;
     const geometry = new pc.Geometry();
     geometry.positions = [
       0,
-      0.02,
+      0,
       -halfWidth,
       0,
-      0.02,
+      0,
       halfWidth,
       0,
       height,
@@ -773,8 +583,8 @@ export class Gateway {
 
     this.#portalMaterial = new pc.ShaderMaterial({
       uniqueName: "voxel-gateway-portal",
-      vertexGLSL: PORTAL_VERTEX_SHADER,
-      fragmentGLSL: PORTAL_FRAGMENT_SHADER,
+      vertexGLSL: portalVertexShader,
+      fragmentGLSL: portalFragmentShader,
       attributes: {
         vertex_position: pc.SEMANTIC_POSITION,
         vertex_texCoord0: pc.SEMANTIC_TEXCOORD0,
