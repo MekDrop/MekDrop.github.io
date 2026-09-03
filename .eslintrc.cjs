@@ -57,8 +57,16 @@ module.exports = {
 
   // add your custom rules here
   rules: {
-
     'prefer-promise-reject-errors': 'off',
+
+    'no-restricted-syntax': [
+      'error',
+      {
+        selector: 'NewExpression[callee.name="Error"]',
+        message:
+          'Use a named custom Error subclass with a predefined message or message template.',
+      },
+    ],
 
     // allow debugger during development only
     'no-debugger': process.env.NODE_ENV === 'production' ? 'error' : 'off',

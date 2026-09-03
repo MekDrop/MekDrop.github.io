@@ -1,3 +1,23 @@
+import {
+  CastleEntrancePathMissingError,
+  DisconnectedTerrainError,
+  EntryPathUnreachableError,
+  GatePathMissingError,
+  GateRouteMissingError,
+  InsufficientCastleClearanceError,
+  InsufficientEntryPathSpacingError,
+  InsufficientLayoutVarietyError,
+  InsufficientParallelPathSpacingError,
+  InvalidCastleEntranceWidthError,
+  InvalidGatePositionError,
+  InvalidRouteWaypointError,
+  IsolatedGrassElevationError,
+  NoPlayableTerrainError,
+  NonOrthogonalRouteSegmentError,
+  PathHeightMismatchError,
+  PathOutsideGateError,
+} from './errors/map/index.js';
+
 export const TileType = {
   WATER: 0,
   GRASS: 1,
@@ -956,12 +976,12 @@ export class MapGenerator {
       const destination = waypoints[index];
       const current = points[points.length - 1];
       if (![current.col2, current.row2, destination.col2, destination.row2].every(Number.isInteger)) {
-        throw new Error('Map routing failed: route waypoint is invalid.');
+        throw new InvalidRouteWaypointError();
       }
       const deltaCol = destination.col2 - current.col2;
       const deltaRow = destination.row2 - current.row2;
       if (deltaCol !== 0 && deltaRow !== 0) {
-        throw new Error('Map routing failed: route segment is not orthogonal.');
+        throw new NonOrthogonalRouteSegmentError();
       }
 
       const stepCol = Math.sign(deltaCol);
@@ -1020,7 +1040,7 @@ export class MapGenerator {
         .sort()[0];
 
       if (!nextKey) {
-        throw new Error('Map routing failed: a gate has no quickest route to the castle.');
+        throw new GateRouteMissingError();
       }
       key = nextKey;
     }
@@ -1135,12 +1155,12 @@ export class MapGenerator {
     }
 
     if (!allLand.length) {
-      throw new Error('Map validation failed: island has no playable terrain.');
+      throw new NoPlayableTerrainError();
     }
 
     const seen = this.#findConnectedComponent(grid, [allLand[0]]);
     if (seen.size !== allLand.length) {
-      throw new Error('Map validation failed: playable terrain is not one connected island.');
+      throw new DisconnectedTerrainError();
     }
   }
 
@@ -1151,13 +1171,13 @@ export class MapGenerator {
 
       for (const row of entry.gateRows) {
         if (grid[row][entry.gateCol] !== TileType.ENTRY) {
-          throw new Error('Map validation failed: gate is not placed on the first boundary path tiles.');
+          throw new InvalidGatePositionError();
         }
         if (this.#inBounds(outsideCol, row) && grid[row][outsideCol] !== TileType.WATER) {
-          throw new Error('Map validation failed: normal path tiles appear outside a gate.');
+          throw new PathOutsideGateError();
         }
         if (!this.#inBounds(insideCol, row) || grid[row][insideCol] !== TileType.PATH) {
-          throw new Error('Map validation failed: gate does not connect to a valid path.');
+          throw new GatePathMissingError();
         }
       }
     }
@@ -1169,7 +1189,7 @@ export class MapGenerator {
         const aBottom = layout.entries[i].gateRows[1];
         const bTop = layout.entries[j].gateRows[0];
         if (bTop - aBottom < 3) {
-          throw new Error('Map validation failed: parallel paths are separated by fewer than two full grass tiles.');
+          throw new InsufficientEntryPathSpacingError();
         }
       }
     }
@@ -1202,7 +1222,7 @@ export class MapGenerator {
           const topInMerge = this.#isWithinMergeZone(layout, col, topStart) || this.#isWithinMergeZone(layout, col, topStart + 1);
           const bottomInMerge = this.#isWithinMergeZone(layout, col, bottomStart) || this.#isWithinMergeZone(layout, col, bottomStart + 1);
           if (topInMerge && bottomInMerge) continue;
-          throw new Error('Map validation failed: two parallel paths are separated by fewer than two full grass tiles outside a merge zone.');
+          throw new InsufficientParallelPathSpacingError();
         }
       }
     }
@@ -1223,7 +1243,7 @@ export class MapGenerator {
           const leftInMerge = this.#isWithinMergeZone(layout, leftStart, row) || this.#isWithinMergeZone(layout, leftStart + 1, row);
           const rightInMerge = this.#isWithinMergeZone(layout, rightStart, row) || this.#isWithinMergeZone(layout, rightStart + 1, row);
           if (leftInMerge && rightInMerge) continue;
-          throw new Error('Map validation failed: two parallel paths are separated by fewer than two full grass tiles outside a merge zone.');
+          throw new InsufficientParallelPathSpacingError();
         }
       }
     }
@@ -1250,7 +1270,7 @@ export class MapGenerator {
       }
 
       if (!entranceTargets.some(key => seen.has(key))) {
-        throw new Error('Map validation failed: an entry path does not reach the castle.');
+        throw new EntryPathUnreachableError();
       }
     }
   }
@@ -1258,12 +1278,12 @@ export class MapGenerator {
   static #validateCastleEntrance(grid, layout) {
     const entranceRows = [...layout.castleEntranceRows].sort((left, right) => left - right);
     if (entranceRows.length !== 2 || entranceRows[1] !== entranceRows[0] + 1) {
-      throw new Error('Map validation failed: the castle entrance must cover both full-width path lanes.');
+      throw new InvalidCastleEntranceWidthError();
     }
 
     for (const row of entranceRows) {
       if (grid[row][layout.castleEntranceCol] !== TileType.PATH) {
-        throw new Error('Map validation failed: the final path does not end at the castle entrance.');
+        throw new CastleEntrancePathMissingError();
       }
     }
   }
@@ -1280,7 +1300,7 @@ export class MapGenerator {
         col++
       ) {
         if (!this.#inBounds(col, row) || grid[row][col] === TileType.WATER) {
-          throw new Error('Map validation failed: the castle is too close to an island edge.');
+          throw new InsufficientCastleClearanceError();
         }
       }
     }
@@ -1291,7 +1311,7 @@ export class MapGenerator {
       for (let col = 0; col < this.#MAP_COLS; col++) {
         const tile = grid[row][col];
         if ((tile === TileType.PATH || tile === TileType.ENTRY) && heightmap[row][col] !== this.#PATH_HEIGHT) {
-          throw new Error('Map validation failed: paired path lanes differ in height or slope.');
+          throw new PathHeightMismatchError();
         }
       }
     }
@@ -1312,7 +1332,7 @@ export class MapGenerator {
         }
 
         if (relatedNeighbors === 0) {
-          throw new Error('Map validation failed: grass elevation changes appear as random isolated noise.');
+          throw new IsolatedGrassElevationError();
         }
       }
     }
@@ -1332,7 +1352,7 @@ export class MapGenerator {
         ellipse.radiusX === base.radiusX &&
         ellipse.radiusY === base.radiusY;
     })) {
-      throw new Error('Map validation failed: regeneration always keeps the same island shape or castle position.');
+      throw new InsufficientLayoutVarietyError();
     }
   }
 

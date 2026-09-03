@@ -1,4 +1,5 @@
 import { TileType } from "../../MapGenerator.js";
+import { UnknownArrowMeshError } from "../../errors/path/index.js";
 
 const ARROW_POINTS = [
   [-0.1, -0.32],
@@ -509,7 +510,7 @@ export class PathArrows {
     const cached = this.#sliceMeshes.get(meshKey);
     if (cached) return cached;
     const match = /^slice-(\d+)-(\d+)$/.exec(meshKey);
-    if (!match) throw new Error(`Unknown arrow mesh: ${meshKey}`);
+    if (!match) throw new UnknownArrowMeshError(meshKey);
     const mesh = this.#createArrowSliceMesh(Number(match[2]), Number(match[1]));
     this.#sliceMeshes.set(meshKey, mesh);
     return mesh;

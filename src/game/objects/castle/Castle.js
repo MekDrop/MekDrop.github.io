@@ -3,6 +3,7 @@ import { CastleFire } from "./CastleFire.js";
 import { CastleFlag } from "./CastleFlag.js";
 import { CastleRoof } from "./CastleRoof.js";
 import { CastleStoneTexture } from "./CastleStoneTexture.js";
+import { CastlePlacementError } from "../../errors/castle/index.js";
 
 const CASTLE_MATERIAL_DEFINITIONS = {
   castleStoneDark: {
@@ -271,9 +272,7 @@ export class Castle {
     );
     if (style) return style;
 
-    throw new Error(
-      "Castle placement failed: no castle style can preserve every full-width door.",
-    );
+    throw new CastlePlacementError();
   }
 
   #styleFits(style, openings, facadeSpan, inwardCapacity) {

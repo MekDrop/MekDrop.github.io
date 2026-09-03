@@ -1,4 +1,10 @@
 import { Assets, Rectangle, Texture } from "pixi.js";
+import {
+  InvalidSpritesheetDimensionsError,
+  MissingAnimationFrameTextureError,
+  MissingAnimationTextureError,
+  TextureFlipError,
+} from "../errors/assets/index.js";
 
 /**
  * @typedef {object} SpritesheetAnimationOptions
@@ -148,7 +154,7 @@ export class AssetsManager {
 
     for (const textureKey of textureKeys) {
       if (!this.#textures.has(textureKey)) {
-        throw new Error(`Missing texture for animation "${key}": ${textureKey}`);
+        throw new MissingAnimationTextureError(key, textureKey);
       }
       textures.push(this.#textures.get(textureKey));
     }
@@ -183,7 +189,7 @@ export class AssetsManager {
         : (rows ? Math.max(1, Math.floor(spritesheetTexture.height / rows)) : null);
 
       if (!frameWidth || !frameHeight) {
-        throw new Error("addAnimationFromSpritesheet requires frameWidth/frameHeight or columns/rows");
+        throw new InvalidSpritesheetDimensionsError();
       }
 
       const maxColumns = Math.max(1, Math.floor(spritesheetTexture.width / frameWidth));
@@ -347,13 +353,13 @@ export class AssetsManager {
       const originalTexture = originalAnimation[index];
       const originalTextureKey = this.#findTextureKeyByTexture(originalTexture);
       if (!originalTextureKey) {
-        throw new Error(`Missing texture key for animation "${originalKey}" frame ${index}`);
+        throw new MissingAnimationFrameTextureError(originalKey, index);
       }
 
       const flippedTextureKey = `${newKey}:${index}`;
       const flippedTexture = this.addFlippedTexture(originalTextureKey, flippedTextureKey);
       if (!flippedTexture) {
-        throw new Error(`Failed to flip texture "${originalTextureKey}" for animation "${newKey}"`);
+        throw new TextureFlipError(originalTextureKey, newKey);
       }
       flippedTextures.push(flippedTexture);
     }

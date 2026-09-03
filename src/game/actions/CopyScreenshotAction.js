@@ -1,3 +1,9 @@
+import {
+  ClipboardCopyBlockedError,
+  ScreenshotEncodingError,
+  ScreenshotImagePreparationError,
+} from "../errors/screenshot/index.js";
+
 export class CopyScreenshotAction {
   #renderer;
   #onCopied;
@@ -12,7 +18,7 @@ export class CopyScreenshotAction {
     const blob = await new Promise((resolve, reject) => {
       canvas.toBlob((result) => {
         if (result) resolve(result);
-        else reject(new Error("Could not encode the game screenshot."));
+        else reject(new ScreenshotEncodingError());
       }, "image/png");
     });
 
@@ -39,10 +45,7 @@ export class CopyScreenshotAction {
     );
 
     if (!(await this.#copyImageLegacy(canvas))) {
-      throw new Error(
-        "This browser blocked both Async Clipboard and legacy image copying. " +
-          "Open the site over HTTPS or localhost and allow clipboard access.",
-      );
+      throw new ClipboardCopyBlockedError();
     }
   }
 
@@ -56,7 +59,7 @@ export class CopyScreenshotAction {
       image.addEventListener(
         "error",
         () =>
-          reject(new Error("Could not prepare the screenshot for copying.")),
+          reject(new ScreenshotImagePreparationError()),
         { once: true },
       );
     });
