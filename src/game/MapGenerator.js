@@ -17,6 +17,7 @@ export class MapGenerator {
   static #PATH_HEIGHT = 2;
   static #FOUNDATION_HEIGHT = 3;
   static #WATER_HEIGHT = 0;
+  static #CASTLE_GROUND_CLEARANCE = 3;
   static #CASTLE_FOOTPRINTS = [
     { width: 8, depth: 7 },
     { width: 11, depth: 7 },
@@ -272,7 +273,13 @@ export class MapGenerator {
     }
 
     this.#fillMaskRect(mask, 10, layout.pathRows[0] - 2, layout.castleLeft + 1, layout.pathRows[1] + 2);
-    this.#fillMaskRect(mask, layout.castleLeft - 2, layout.castleTop - 2, layout.castleRight + 2, layout.castleBottom + 2);
+    this.#fillMaskRect(
+      mask,
+      layout.castleLeft - this.#CASTLE_GROUND_CLEARANCE,
+      layout.castleTop - this.#CASTLE_GROUND_CLEARANCE,
+      layout.castleRight + this.#CASTLE_GROUND_CLEARANCE,
+      layout.castleBottom + this.#CASTLE_GROUND_CLEARANCE
+    );
 
     for (const entry of layout.entries) {
       for (const row of entry.gateRows) {
@@ -1261,6 +1268,24 @@ export class MapGenerator {
     }
   }
 
+  static #validateCastleGroundClearance(grid, layout) {
+    for (
+      let row = layout.castleTop - this.#CASTLE_GROUND_CLEARANCE;
+      row <= layout.castleBottom + this.#CASTLE_GROUND_CLEARANCE;
+      row++
+    ) {
+      for (
+        let col = layout.castleLeft - this.#CASTLE_GROUND_CLEARANCE;
+        col <= layout.castleRight + this.#CASTLE_GROUND_CLEARANCE;
+        col++
+      ) {
+        if (!this.#inBounds(col, row) || grid[row][col] === TileType.WATER) {
+          throw new Error('Map validation failed: the castle is too close to an island edge.');
+        }
+      }
+    }
+  }
+
   static #validateHeightDiscipline(grid, heightmap) {
     for (let row = 0; row < this.#MAP_ROWS; row++) {
       for (let col = 0; col < this.#MAP_COLS; col++) {
@@ -1318,6 +1343,7 @@ export class MapGenerator {
     this.#validateParallelPathClearance(grid, layout);
     this.#validateRouteReachability(grid, layout);
     this.#validateCastleEntrance(grid, layout);
+    this.#validateCastleGroundClearance(grid, layout);
     this.#validateHeightDiscipline(grid, heightmap);
     this.#validateGrassNoise(grid, heightmap);
     this.#validateLayoutVariety(layout);
