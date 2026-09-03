@@ -19,6 +19,7 @@ const FRAME_DEPTH_BLOCKS = 3;
 const FRAME_TOWER_WIDTH_BLOCKS = 4;
 const FRAME_TOWER_HEIGHT_BLOCKS = 13;
 const FRAME_STONE_COLORS = [0x434b54, 0x535d67, 0x626d77];
+const PORTAL_COLLISION_HALF_DEPTH = 0.08;
 
 /**
  * A two-lane voxel gateway with an animated, shader-driven portal surface.
@@ -49,6 +50,9 @@ export class Gateway {
   #bannerWind = new BannerWind();
   #updateHandle = null;
   #elapsed = 0;
+  #inverseWorldTransform = null;
+  #collisionWorldPoint = null;
+  #collisionLocalPoint = null;
 
   constructor({
     pc,
@@ -62,6 +66,8 @@ export class Gateway {
     this.#cubeSize = cubeSize;
     this.#symbol = symbol;
     this.#entity = new pc.Entity("Voxel gateway");
+    this.#collisionWorldPoint = new pc.Vec3();
+    this.#collisionLocalPoint = new pc.Vec3();
 
     this.#createFrame();
     this.#createPortal();
@@ -76,6 +82,25 @@ export class Gateway {
 
   get entity() {
     return this.#entity;
+  }
+
+  intersectsGroundFootprint(x, z, radius = 0) {
+    if (!this.#entity) return false;
+    this.#inverseWorldTransform ??= this.#entity
+      .getWorldTransform()
+      .clone()
+      .invert();
+    this.#collisionWorldPoint.set(x, this.#entity.getPosition().y, z);
+    this.#inverseWorldTransform.transformPoint(
+      this.#collisionWorldPoint,
+      this.#collisionLocalPoint,
+    );
+    return (
+      Math.abs(this.#collisionLocalPoint.x) <=
+        PORTAL_COLLISION_HALF_DEPTH + radius &&
+      Math.abs(this.#collisionLocalPoint.z) <=
+        (FRAME_WIDTH_BLOCKS * this.#cubeSize) / 2 + radius
+    );
   }
 
   setColor(value) {
@@ -154,6 +179,9 @@ export class Gateway {
     this.#bannerInteraction = null;
     this.#emblemEntity = null;
     this.#emblemBasePosition = null;
+    this.#inverseWorldTransform = null;
+    this.#collisionWorldPoint = null;
+    this.#collisionLocalPoint = null;
     this.endWindGesture();
   }
 

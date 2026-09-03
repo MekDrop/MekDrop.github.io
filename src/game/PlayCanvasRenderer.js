@@ -12,6 +12,7 @@ import {
   Gateway,
 } from "./objects/gateway/index.js";
 import { PathArrows } from "./objects/path/index.js";
+import { Hero } from "./objects/hero/index.js";
 import { TileType } from "./MapGenerator.js";
 import { GRASS_SURFACE_LIFT } from "./config/terrain.js";
 
@@ -97,6 +98,9 @@ const SIDE_MATERIALS = {
 const CUBE_SCALE = 1;
 const CAMERA_PITCH = Math.atan(1 / Math.sqrt(2));
 const CAMERA_DISTANCE = 80;
+const MAP_FIT_ZOOM = 1;
+const HERO_VIEWPORT_MARGIN = 32;
+const HERO_CAMERA_CENTER_HEIGHT = 0.85;
 
 function colorFromHex(pc, value) {
   return new pc.Color(
@@ -120,10 +124,12 @@ export class PlayCanvasRenderer {
   #rotation = 0;
   #panX = 0;
   #panZ = 0;
+  #viewportManuallyMoved = false;
   #baseOrthoHeight = 24;
   #pathArrows = null;
   #gateways = [];
   #castle = null;
+  #hero = null;
   #gatewayColors = [...GATEWAY_COLORS];
   #bannerWindTarget = null;
   #bannerWindPointerId = null;
@@ -193,6 +199,7 @@ export class PlayCanvasRenderer {
     this.#rotation = 0;
     this.#panX = 0;
     this.#panZ = 0;
+    this.#viewportManuallyMoved = false;
     this.#rebuildScene();
     this.#fitCamera();
     this.#updateCamera();
@@ -241,14 +248,30 @@ export class PlayCanvasRenderer {
       rotation: this.#rotation,
       panX: this.#panX,
       panZ: this.#panZ,
+      manuallyMoved: this.#viewportManuallyMoved,
     };
   }
 
-  setViewport({ zoom, rotation = 0, panX = 0, panZ = 0 }) {
+  setHeroMovement(screenX, screenY, running = false) {
+    this.#hero?.setMovement(screenX, screenY, running);
+  }
+
+  jumpHero() {
+    this.#hero?.jump();
+  }
+
+  setViewport({
+    zoom,
+    rotation = 0,
+    panX = 0,
+    panZ = 0,
+    manuallyMoved = false,
+  }) {
     this.#zoom = zoom;
     this.#rotation = rotation;
     this.#panX = panX;
     this.#panZ = panZ;
+    this.#viewportManuallyMoved = manuallyMoved;
     this.#updateCamera();
   }
 
@@ -265,6 +288,7 @@ export class PlayCanvasRenderer {
     const offset = this.#screenDeltaToGround(deltaX, deltaY, this.#zoom);
     this.#panX -= offset.x;
     this.#panZ -= offset.z;
+    this.#viewportManuallyMoved = true;
     this.#updateCamera();
   }
 
@@ -417,8 +441,28 @@ export class PlayCanvasRenderer {
     this.#createInstancedBatches(cubeBatches, this.#mapRoot, false);
     this.#buildCastle();
     this.#buildGateways();
+    this.#buildHero();
 
     this.#mapRoot.addChild(this.#pathArrows.render(this.#mapData));
+  }
+
+  #buildHero() {
+    this.#hero = new Hero({
+      pc: this.#pc,
+      app: this.#app,
+      mapData: this.#mapData,
+      getViewRotation: () => this.#rotation,
+      onPositionChange: this.#handleHeroPositionChange,
+      isStructureBlocked: (x, z, radius) =>
+        this.#castle?.intersectsGroundFootprint(x, z, radius) ?? false,
+      getStructureSurfaceHeight: (x, z) =>
+        this.#castle?.surfaceHeightAt(x, z) ?? null,
+      isGatewayBlocked: (x, z, radius) =>
+        this.#gateways.some((gateway) =>
+          gateway.intersectsGroundFootprint(x, z, radius),
+        ),
+    });
+    this.#mapRoot.addChild(this.#hero.entity);
   }
 
   #buildGateways() {
@@ -482,6 +526,7 @@ export class PlayCanvasRenderer {
             : castle.position.elevation,
         };
       }),
+      occupant: castle.occupant,
     });
     this.#mapRoot.addChild(this.#castle.entity);
   }
@@ -900,6 +945,52 @@ export class PlayCanvasRenderer {
     this.#baseOrthoHeight = Math.max(halfHeight, halfWidth / aspect) * 0.84;
   }
 
+  #handleHeroPositionChange = ({ x, y, z }) => {
+    this.#castle?.updateHeroPosition({ x, y, z });
+    const screenPosition = this.#camera.camera.worldToScreen(
+      new this.#pc.Vec3(x, y + HERO_CAMERA_CENTER_HEIGHT, z),
+    );
+    const width = Math.max(1, this.canvas.clientWidth);
+    const height = Math.max(1, this.canvas.clientHeight);
+    const marginX = Math.min(HERO_VIEWPORT_MARGIN, width / 4);
+    const marginY = Math.min(HERO_VIEWPORT_MARGIN, height / 4);
+    const boundedX = Math.max(
+      marginX,
+      Math.min(width - marginX, screenPosition.x),
+    );
+    const boundedY = Math.max(
+      marginY,
+      Math.min(height - marginY, screenPosition.y),
+    );
+    const heroIsOutOfBounds =
+      boundedX !== screenPosition.x || boundedY !== screenPosition.y;
+
+    if (this.#viewportManuallyMoved) {
+      if (!heroIsOutOfBounds) return;
+      const correction = this.#screenDeltaToGround(
+        screenPosition.x - boundedX,
+        screenPosition.y - boundedY,
+        this.#zoom,
+      );
+      this.#panX += correction.x;
+      this.#panZ += correction.z;
+    } else if (this.#zoom > MAP_FIT_ZOOM) {
+      this.#panX = x;
+      this.#panZ = z;
+    } else if (!heroIsOutOfBounds) {
+      return;
+    } else {
+      const correction = this.#screenDeltaToGround(
+        screenPosition.x - boundedX,
+        screenPosition.y - boundedY,
+        this.#zoom,
+      );
+      this.#panX += correction.x;
+      this.#panZ += correction.z;
+    }
+    this.#updateCamera();
+  };
+
   #updateCamera() {
     if (!this.#camera || !this.#mapData) return;
     const yaw = Math.PI / 4 + this.#rotation * (Math.PI / 2);
@@ -1051,6 +1142,8 @@ export class PlayCanvasRenderer {
     this.#gateways = [];
     this.#castle?.destroy();
     this.#castle = null;
+    this.#hero?.destroy();
+    this.#hero = null;
     this.#mapRoot?.destroy();
     this.#mapRoot = null;
     for (const buffer of this.#vertexBuffers) buffer.destroy();

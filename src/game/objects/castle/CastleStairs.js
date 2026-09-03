@@ -19,6 +19,7 @@ export class CastleStairs {
   #blockMesh;
   #materials;
   #entity;
+  #surfaces = [];
   #vertexBuffers = [];
 
   constructor({
@@ -46,11 +47,34 @@ export class CastleStairs {
     return this.#entity;
   }
 
+  surfaceHeightAt(x, z) {
+    for (const surface of this.#surfaces) {
+      const across = surface.vertical ? z : x;
+      if (across < surface.acrossStart || across > surface.acrossEnd) {
+        continue;
+      }
+
+      let inward;
+      if (surface.side === "WEST") inward = x - surface.outerEdge;
+      else if (surface.side === "EAST") inward = surface.outerEdge - x;
+      else if (surface.side === "NORTH") inward = z - surface.outerEdge;
+      else inward = surface.outerEdge - z;
+      if (inward < 0 || inward > surface.run) continue;
+
+      return (
+        surface.approachElevation +
+        (inward / surface.run) * surface.rise
+      );
+    }
+    return null;
+  }
+
   destroy() {
     this.#entity?.destroy();
     this.#entity = null;
     for (const buffer of this.#vertexBuffers) buffer.destroy();
     this.#vertexBuffers = [];
+    this.#surfaces = [];
   }
 
   #render() {
@@ -70,6 +94,7 @@ export class CastleStairs {
       );
       const widthBlocks = Math.round(door.width * blocksPerTile);
       const offsetBlocks = Math.round(door.offset * blocksPerTile);
+      this.#addSurface(door, approachElevation, riseBlocks);
 
       for (let level = 0; level < riseBlocks; level += 1) {
         for (
@@ -106,6 +131,38 @@ export class CastleStairs {
     }
 
     this.#createInstancedBatches(batches);
+  }
+
+  #addSurface(door, approachElevation, riseBlocks) {
+    if (riseBlocks <= 0) return;
+    const run = riseBlocks * STAIR_TREAD_DEPTH_BLOCKS * this.#cubeSize;
+    const rise = riseBlocks * this.#cubeSize;
+    const left = this.#position.x;
+    const right = left + this.#position.width;
+    const top = this.#position.z;
+    const bottom = top + this.#position.depth;
+    const vertical = door.side === "WEST" || door.side === "EAST";
+    const acrossOrigin = vertical ? top : left;
+    const boundaryEdge = {
+      WEST: left,
+      EAST: right,
+      NORTH: top,
+      SOUTH: bottom,
+    }[door.side];
+    const outwardSign =
+      door.side === "WEST" || door.side === "NORTH" ? -1 : 1;
+    if (!Number.isFinite(boundaryEdge)) return;
+
+    this.#surfaces.push({
+      side: door.side,
+      vertical,
+      outerEdge: boundaryEdge + outwardSign * run,
+      acrossStart: acrossOrigin + door.offset,
+      acrossEnd: acrossOrigin + door.offset + door.width,
+      approachElevation,
+      rise,
+      run,
+    });
   }
 
   #blockPosition(side, distanceBlocks, acrossBlocks, approachElevation, layer) {

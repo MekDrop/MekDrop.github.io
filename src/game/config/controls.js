@@ -19,6 +19,13 @@ export const CONTROLS = {
   moveRight: {
     keys: ["ArrowRight"],
   },
+  run: {
+    keys: ["ShiftLeft", "ShiftRight"],
+  },
+  jump: {
+    keys: ["Space"],
+    allowRepeat: false,
+  },
   rotateAnticlockwise: {
     keys: ["KeyQ"],
   },

@@ -38,6 +38,7 @@ export class MapGenerator {
   static #FOUNDATION_HEIGHT = 3;
   static #WATER_HEIGHT = 0;
   static #CASTLE_GROUND_CLEARANCE = 3;
+  static #CASTLE_OCCUPANTS = ['king', 'queen', 'princess'];
   static #CASTLE_FOOTPRINTS = [
     { width: 8, depth: 7 },
     { width: 11, depth: 7 },
@@ -723,6 +724,10 @@ export class MapGenerator {
         elevation: this.#FOUNDATION_HEIGHT,
       },
       doors,
+      occupant:
+        this.#CASTLE_OCCUPANTS[
+          this.#rng(0, this.#CASTLE_OCCUPANTS.length - 1)
+        ],
     };
   }
 

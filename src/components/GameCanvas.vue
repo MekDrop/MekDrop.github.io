@@ -177,6 +177,7 @@ import { generateMap } from "src/game/MapGenerator.js";
 import { PlayCanvasRenderer } from "src/game/PlayCanvasRenderer.js";
 import { GameControls } from "src/game/GameControls.js";
 import { CopyScreenshotAction } from "src/game/actions/CopyScreenshotAction.js";
+import { HeroMovementAction } from "src/game/actions/HeroMovementAction.js";
 import { MoveCameraAction } from "src/game/actions/MoveCameraAction.js";
 import { RegenerateMapAction } from "src/game/actions/RegenerateMapAction.js";
 import { RotateViewAction } from "src/game/actions/RotateViewAction.js";
@@ -227,6 +228,7 @@ async function init() {
   const actions = {
     zoom: new ZoomAction(renderer, container.value, CONTROLS.zoom),
     moveCamera: new MoveCameraAction(renderer, CONTROLS.move),
+    heroMovement: new HeroMovementAction(renderer),
     rotateView: new RotateViewAction(renderer, (rotation) => {
       viewRotation.value = rotation;
     }),

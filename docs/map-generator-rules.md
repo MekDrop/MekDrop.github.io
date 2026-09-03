@@ -2,6 +2,8 @@
 
 These rules are the canonical specification for any change to map generation logic, path generation, terrain shaping, water placement, or tile rendering. When updating map generation, treat this document as binding requirements rather than suggestions.
 
+The words **must**, **must not**, **always**, **never**, and **exactly** are acceptance criteria. A generated map that violates one of them is invalid and must be rejected or regenerated before rendering or gameplay begins.
+
 ## 1. Grid and projection
 
 * The map uses one fixed square grid.
@@ -37,7 +39,7 @@ These rules are the canonical specification for any change to map generation log
 ## 4. Path width and spacing
 
 * Every path is exactly two complete tiles wide.
-* It may never become one tile or three tiles wide.
+* It may never become one tile or three, four, or more tiles wide.
 * Both path lanes must remain adjacent.
 * Both lanes must use the same direction, elevation, and slope profile.
 * The full two-tile width must be preserved through:
@@ -46,8 +48,11 @@ These rules are the canonical specification for any change to map generation log
   * slopes
   * bridges
   * merges
+  * intersections
   * castle approaches
   * gate sections
+  * pipe interfaces
+* Turns, merges, intersections, castle approaches, and pipe interfaces must not create widened road plazas.
 * Every yellow tile must belong to the validated path graph.
 * If two path sections run in parallel, they must be separated by at least two full grass tiles.
 * The minimum parallel spacing is:
@@ -70,13 +75,16 @@ path | grass | grass | path
 * Both lanes must follow the same axis.
 * A path slope must face in the direction of travel.
 * A slope may not face sideways across the path width.
+* Path top faces must use the exact same isometric projection, diamond footprint, scale, and angle as grass top faces.
+* A path is a terrain-material replacement, never an overlay rectangle or differently projected mesh.
 
 ## 6. Path turns
 
 * Turns must use predefined two-tile-wide templates.
 * Every turn uses only complete path tiles.
 * Both lanes must remain continuous through the corner.
-* Turns may visually use small bevels, but the logical tile layout remains square and grid-aligned.
+* Road boundaries must not use diagonal cuts, rounded corners, chamfers, or bevels that make a turn appear non-orthogonal.
+* Decorative shading must not obscure the full-cell 90-degree turn geometry.
 * Arbitrary rounded or diagonal turns are forbidden.
 
 ## 7. Path merges
@@ -101,6 +109,30 @@ path | grass | grass | path
 * The gate opening must cover both lanes.
 * Terrain may exist beside the gate, but not in front of it.
 * Every gate must connect to a valid path leading to the castle.
+* Gates may exist only at valid island-boundary entry points.
+* Decorative or gate-like structures must never appear in the middle of a path.
+
+## 8a. Path graph, routing, and arrows
+
+* A generated level must contain between one and four gate-to-castle routes.
+* Every ordinary path cell must be reachable from at least one boundary gate and must be able to reach the castle.
+* Decorative roads, disconnected roads, orphan branches, dead-end branches, and unrelated loops are forbidden.
+* Every enemy must select the quickest valid route to the castle using only generated path and pipe-transition graph edges.
+* Equal-cost routes must use deterministic tie-breaking so the same seed produces the same movement.
+* Direction arrows must be derived from the same quickest-route data used by enemies.
+* Every arrow must point from a gate toward a neighbour with strictly lower remaining travel cost to the castle.
+* Random, backward, decorative, or castle-to-gate arrows are forbidden.
+
+## 8b. Pipe teleports
+
+* Pipes must be paired teleport endpoints with stable pair identifiers; unpaired endpoints and teleport loops are invalid.
+* A pipe must occupy reserved flat grass beside a path and must never occupy, replace, cover, or overlap a main path tile.
+* The pipe mouth must directly face and connect to the path direction at enemy ground level.
+* The mouth must abut a two-tile-wide path interface. If connector path cells are required, the connector must remain exactly two full tiles wide and orthogonal without widening the main path.
+* Enemies may enter a pipe only through its connected path-facing mouth and emerge from the paired endpoint onto its connected path interface.
+* A pipe transition is used only when it belongs to the enemy's quickest valid route to the castle.
+* A visible pipe must be a complete, smooth, round cylindrical pipe with a full circular opening and a wide flared rim.
+* Half-pipes, cutaway tunnels, arches pretending to be pipes, and cubist pipe bodies are forbidden.
 
 ## 9. Path elevation
 
@@ -154,6 +186,14 @@ slope tiles = absolute elevation difference
 * Sloped, twisted, water-covered, or cliff-edge tiles are not buildable.
 * Trees and decorations must not occupy reserved buildable cells.
 * Buildable areas should remain clearly visible.
+
+## 11a. Loot crates
+
+* Loot crates must be generated deterministically from the level seed.
+* They may spawn only on reachable, flat grass cells reserved for loot.
+* They must not overlap paths, gates, castle footprints, pipe footprints or interfaces, water, cliffs, trees, towers, or other reserved cells.
+* Every crate must be reachable and openable by the player character.
+* Opening a crate grants deterministic level resources; the reward is not audio-dependent.
 
 ## 12. Water sources
 
@@ -246,6 +286,7 @@ slope tiles = absolute elevation difference
 * The underside may be irregular, tapered, or decorative.
 * Surface geometry and underside decoration should be generated separately.
 * Paths may reach the island edge only at designated gates.
+* Every terrain voxel must use one canonical cube width, depth, and height. Materials may vary, but terrain cube dimensions may not.
 
 ## 19. Generation order
 
@@ -254,14 +295,16 @@ slope tiles = absolute elevation difference
 3. Generate the path graph.
 4. Expand every path into two lanes.
 5. Apply turns and slopes.
-6. Place gates and castle.
-7. Generate water sources and flow.
-8. Place waterfalls.
-9. Reserve buildable grass.
-10. Place trees.
-11. Add decorations.
-12. Validate the complete map.
-13. Render only after validation passes.
+6. Place boundary gates and castle.
+7. Create the quickest-route cost field and direction arrows.
+8. Place paired path-facing pipes on reserved adjacent grass and add their graph transitions.
+9. Recompute and validate quickest routes with pipe transitions.
+10. Generate water sources and flow.
+11. Place waterfalls.
+12. Reserve buildable grass and reachable loot-crate candidates.
+13. Place trees and decorations on remaining valid cells.
+14. Validate topology, footprints, bounds, spacing, routing, and route continuity.
+15. Render only after validation passes.
 
 ## 19a. Regeneration variety
 
@@ -322,21 +365,31 @@ Reject the map when:
 * tile edges do not align
 * a tile is partly path and partly grass
 * a path is not exactly two tiles wide
+* a turn, junction, castle approach, or pipe interface widens the road to three, four, or more tiles
 * paired lanes differ in direction, height, or slope
 * two parallel paths are separated by fewer than two grass tiles outside a merge zone
 * a turn cuts diagonally through a tile
+* a road boundary is rounded, chamfered, or bevelled into a non-orthogonal turn
 * a slope uses stairs
 * a slope uses too few tiles for its height difference
 * a gate is not on the first boundary path tiles
+* a gate or gate-like structure appears in the middle of a path
 * a path splits after merging
 * an entry path does not reach the castle
+* an ordinary path cell does not belong to a gate-to-castle traversal
+* a path branch is disconnected, decorative, orphaned, dead-ended, or an unrelated loop
+* an enemy route or direction arrow does not follow the quickest valid path-and-pipe graph toward lower remaining castle cost
+* a pipe is unpaired, occupies a path cell, does not face and connect to its two-lane path interface, or creates a widened route
+* a pipe is represented as a half-pipe, cutaway tunnel, arch, cubist body, incomplete cylinder, or non-circular opening
 * water has no valid source
 * water flows uphill
 * a waterfall has fewer than five upstream tiles
 * a waterfall intersects terrain or another object
 * grass elevation changes appear as random isolated noise
 * trees occupy invalid or buildable cells
+* a loot crate occupies an unreachable, non-flat, or reserved cell
 * path tiles use a different angle or footprint from grass tiles
+* terrain voxels use inconsistent cube dimensions
 * regeneration always keeps the same island shape or castle position
 
 ## 21. Suggested tile data

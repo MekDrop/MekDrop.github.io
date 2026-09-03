@@ -7,6 +7,7 @@ export class GameControls {
   #dragX = 0;
   #dragY = 0;
   #dragDistance = 0;
+  #movementDirections = new Set();
 
   constructor(element, config, actions) {
     this.#element = element;
@@ -16,6 +17,9 @@ export class GameControls {
 
   connect() {
     window.addEventListener("keydown", this.#handleKeydown, true);
+    window.addEventListener("keyup", this.#handleKeyup, true);
+    window.addEventListener("blur", this.#clearMovement);
+    document.addEventListener("visibilitychange", this.#handleVisibilityChange);
     this.#element.addEventListener("wheel", this.#handleWheel, {
       passive: false,
     });
@@ -27,12 +31,19 @@ export class GameControls {
 
   disconnect() {
     window.removeEventListener("keydown", this.#handleKeydown, true);
+    window.removeEventListener("keyup", this.#handleKeyup, true);
+    window.removeEventListener("blur", this.#clearMovement);
+    document.removeEventListener(
+      "visibilitychange",
+      this.#handleVisibilityChange,
+    );
     this.#element.removeEventListener("wheel", this.#handleWheel);
     this.#element.removeEventListener("pointerdown", this.#handlePointerDown);
     this.#element.removeEventListener("pointermove", this.#handlePointerMove);
     this.#element.removeEventListener("pointerup", this.#handlePointerUp);
     this.#element.removeEventListener("pointercancel", this.#handlePointerUp);
     this.#setDragging(false);
+    this.#clearMovement();
   }
 
   #handleKeydown = (event) => {
@@ -44,13 +55,29 @@ export class GameControls {
 
     if (this.#isEditable(event.target)) return;
 
+    if (this.#matchesKey(event, this.#config.run)) {
+      this.#actions.heroMovement.setRunning(true);
+      return;
+    }
+
+    const movementDirection = this.#movementDirection(event);
+    if (movementDirection) {
+      event.preventDefault();
+      this.#movementDirections.add(movementDirection);
+      this.#actions.heroMovement.setRunning(event.shiftKey);
+      this.#actions.heroMovement.setDirection(movementDirection, true);
+      return;
+    }
+
+    if (this.#matchesKey(event, this.#config.jump)) {
+      event.preventDefault();
+      this.#actions.heroMovement.jump();
+      return;
+    }
+
     const bindings = [
       ["zoomIn", () => this.#actions.zoom.zoomIn()],
       ["zoomOut", () => this.#actions.zoom.zoomOut()],
-      ["moveUp", () => this.#actions.moveCamera.moveUp()],
-      ["moveDown", () => this.#actions.moveCamera.moveDown()],
-      ["moveLeft", () => this.#actions.moveCamera.moveLeft()],
-      ["moveRight", () => this.#actions.moveCamera.moveRight()],
       [
         "rotateAnticlockwise",
         () => this.#actions.rotateView.rotateAnticlockwise(),
@@ -66,6 +93,30 @@ export class GameControls {
       invoke();
       return;
     }
+  };
+
+  #handleKeyup = (event) => {
+    if (this.#matchesKey(event, this.#config.run)) {
+      this.#actions.heroMovement.setRunning(event.shiftKey);
+      return;
+    }
+
+    const movementDirection = this.#movementDirection(event);
+    if (!movementDirection || !this.#movementDirections.has(movementDirection)) {
+      return;
+    }
+    event.preventDefault();
+    this.#movementDirections.delete(movementDirection);
+    this.#actions.heroMovement.setDirection(movementDirection, false);
+  };
+
+  #handleVisibilityChange = () => {
+    if (document.hidden) this.#clearMovement();
+  };
+
+  #clearMovement = () => {
+    this.#movementDirections.clear();
+    this.#actions.heroMovement?.clear();
   };
 
   #handleWheel = (event) => {
@@ -156,6 +207,15 @@ export class GameControls {
       return false;
     }
     return binding.allowRepeat !== false || !event.repeat;
+  }
+
+  #movementDirection(event) {
+    for (const direction of ["up", "down", "left", "right"]) {
+      if (this.#matchesKey(event, this.#config[`move${direction[0].toUpperCase()}${direction.slice(1)}`])) {
+        return direction;
+      }
+    }
+    return null;
   }
 
   #copyScreenshot() {
