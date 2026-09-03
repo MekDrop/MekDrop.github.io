@@ -2,6 +2,7 @@ import { CastleBanner } from "./CastleBanner.js";
 import { CastleFire } from "./CastleFire.js";
 import { CastleFlag } from "./CastleFlag.js";
 import { CastleRoof } from "./CastleRoof.js";
+import { CastleStairs } from "./CastleStairs.js";
 import { CastleStoneTexture } from "./CastleStoneTexture.js";
 import { CastlePlacementError } from "../../errors/castle/index.js";
 
@@ -117,6 +118,7 @@ export class Castle {
   #flags = null;
   #activeWindTarget = null;
   #roofs = null;
+  #stairs = null;
 
   constructor({ pc, app, position, doors = [] }) {
     this.#pc = pc;
@@ -127,6 +129,7 @@ export class Castle {
 
     this.#createStructureResources();
     this.#createDecorations();
+    this.#createStairs();
     this.#render();
   }
 
@@ -166,6 +169,8 @@ export class Castle {
     this.#flags = null;
     this.#roofs?.destroy();
     this.#roofs = null;
+    this.#stairs?.destroy();
+    this.#stairs = null;
     this.#entity?.destroy();
     this.#entity = null;
     for (const buffer of this.#vertexBuffers) buffer.destroy();
@@ -214,6 +219,19 @@ export class Castle {
     this.#entity.addChild(this.#flags.entity);
     this.#roofs = new CastleRoof({ pc: this.#pc, app: this.#app });
     this.#entity.addChild(this.#roofs.entity);
+  }
+
+  #createStairs() {
+    this.#stairs = new CastleStairs({
+      pc: this.#pc,
+      app: this.#app,
+      position: this.#position,
+      doors: this.#doors,
+      cubeSize: CASTLE_BLOCK_SIZE,
+      blockMesh: this.#blockMesh,
+      materials: this.#materials,
+    });
+    this.#entity.addChild(this.#stairs.entity);
   }
 
   #colorFromHex(value) {

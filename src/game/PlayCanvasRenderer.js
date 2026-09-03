@@ -455,7 +455,7 @@ export class PlayCanvasRenderer {
   }
 
   #buildCastle() {
-    const { castle, cols, rows } = this.#mapData;
+    const { castle, cols, rows, heightmap } = this.#mapData;
     if (!castle?.position || !castle.doors?.length) return;
 
     this.#castle = new Castle({
@@ -468,11 +468,19 @@ export class PlayCanvasRenderer {
         depth: castle.position.depth,
         elevation: castle.position.elevation,
       },
-      doors: castle.doors.map(({ side, offset, width }) => ({
-        side,
-        offset,
-        width,
-      })),
+      doors: castle.doors.map(({ side, offset, width, cells = [] }) => {
+        const approachElevations = cells
+          .map(({ col, row }) => heightmap?.[row]?.[col])
+          .filter(Number.isFinite);
+        return {
+          side,
+          offset,
+          width,
+          approachElevation: approachElevations.length
+            ? Math.max(...approachElevations)
+            : castle.position.elevation,
+        };
+      }),
     });
     this.#mapRoot.addChild(this.#castle.entity);
   }
