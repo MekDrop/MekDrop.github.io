@@ -29,6 +29,10 @@ Within each error root, group classes into subfolders by their owning feature or
 
 When a request involves updating map generation logic, path generation, terrain shaping, water placement, tile rendering, or validation for the isometric game layer, read `docs/map-generator-rules.md` first and treat it as the canonical specification. Do not implement shortcuts that violate the two-tile path width, grid-aligned ownership, projection consistency, slope-length validation, gate placement, waterfall upstream-length rules, or final validation requirements defined there.
 
+## Blender Model Rules
+
+When a visible 3D character, architectural element, or reusable prop has a stable authored shape, create or edit an imported Blender model instead of assembling that artwork from PlayCanvas primitive entities or generating its mesh in JavaScript. Store models under `src/game/models/`, grouped by feature, with exactly one reusable model per `.glb` file. Keep procedural code responsible for map-driven placement, transforms, collision, interaction, runtime color variants, shaders, particles, and other behavior. Terrain topology, route markers, portal surfaces, fire, and deformable cloth should remain procedural unless a task explicitly replaces their runtime system. Use a modular model kit rather than one monolithic asset whenever dimensions or layouts vary at runtime.
+
 ## Testing Guidelines
 
 Cypress E2E specs live in `test/cypress/e2e/` and use `*.cy.js`. The configured base URL is `http://localhost:8080/`; the npm scripts start Quasar automatically. Component specs, when added, belong beside source files as `src/**/*.cy.js`. Coverage artifacts are written to `coverage/` and `.nyc_output/` and are ignored.

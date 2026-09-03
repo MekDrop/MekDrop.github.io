@@ -120,11 +120,20 @@ const CASTLE_AUDIENCE_ROOM_DEPTH_BLOCKS = 18;
 const CASTLE_AUDIENCE_ROOM_SIDE_INSET_BLOCKS = 3;
 
 export class Castle {
+  static get modelUrls() {
+    return [
+      CastleDoor.modelUrl,
+      CastleDoorArch.modelUrl,
+      ...CastleAudienceRoom.modelUrls,
+    ];
+  }
+
   #pc;
   #app;
   #position;
   #doors;
   #occupant;
+  #modelLibrary;
   #entity;
   #materials = new Map();
   #stoneTexture = null;
@@ -145,12 +154,20 @@ export class Castle {
   #updateHandle = null;
   #interiorDepth = 0;
 
-  constructor({ pc, app, position, doors = [], occupant = "king" }) {
+  constructor({
+    pc,
+    app,
+    position,
+    doors = [],
+    occupant = "king",
+    modelLibrary,
+  }) {
     this.#pc = pc;
     this.#app = app;
     this.#position = position;
     this.#doors = doors;
     this.#occupant = occupant;
+    this.#modelLibrary = modelLibrary;
     this.#entity = new pc.Entity("Castle");
 
     this.#createStructureResources();
@@ -170,9 +187,7 @@ export class Castle {
       return true;
     }
     if (
-      this.#animatedDoors.some((door) =>
-        door.intersectsFootprint(x, z, radius),
-      )
+      this.#animatedDoors.some((door) => door.intersectsFootprint(x, z, radius))
     ) {
       return true;
     }
@@ -186,9 +201,7 @@ export class Castle {
         Math.abs(z - column.z) - CASTLE_BLOCK_SIZE / 2,
         0,
       );
-      if (
-        distanceX * distanceX + distanceZ * distanceZ <= radiusSquared
-      ) {
+      if (distanceX * distanceX + distanceZ * distanceZ <= radiusSquared) {
         return true;
       }
     }
@@ -340,6 +353,7 @@ export class Castle {
       occupant: this.#occupant,
       materials: this.#materials,
       availableDepth: this.#interiorDepth,
+      modelLibrary: this.#modelLibrary,
     });
     this.#entity.addChild(this.#audienceRoom.entity);
   }
@@ -807,10 +821,7 @@ export class Castle {
 
       const width = opening.end - opening.start;
       const localBlock = horizontalBlock - opening.start;
-      const distanceFromEdge = Math.min(
-        localBlock,
-        width - 1 - localBlock,
-      );
+      const distanceFromEdge = Math.min(localBlock, width - 1 - localBlock);
       const halfWidth = width / 2;
       const normalizedRadius = Math.min(
         1,
@@ -891,11 +902,7 @@ export class Castle {
         }
         addBanner(-0.76, towerHeight - 8, centerV, 2.5, 4.5);
       }
-      const fireTurret = addRoofFireTurret(
-        centerU,
-        centerV,
-        towerHeight,
-      );
+      const fireTurret = addRoofFireTurret(centerU, centerV, towerHeight);
       addFlame(
         fireTurret.blockU,
         fireTurret.flameBlockY,
@@ -928,20 +935,16 @@ export class Castle {
   #createAnimatedDoors() {
     for (const doorData of this.#doors) {
       const arch = new CastleDoorArch({
-        pc: this.#pc,
-        app: this.#app,
         castlePosition: this.#position,
         door: doorData,
-        material: this.#materials.get("castleArchStone"),
+        modelLibrary: this.#modelLibrary,
       });
       this.#entity.addChild(arch.entity);
       this.#doorArches.push(arch);
       const door = new CastleDoor({
-        pc: this.#pc,
-        app: this.#app,
         castlePosition: this.#position,
         door: doorData,
-        materials: this.#materials,
+        modelLibrary: this.#modelLibrary,
       });
       this.#entity.addChild(door.entity);
       this.#animatedDoors.push(door);
@@ -1041,10 +1044,7 @@ export class Castle {
       Math.ceil(roomCenter + facadeSpan / 2) -
         CASTLE_AUDIENCE_ROOM_SIDE_INSET_BLOCKS,
     );
-    const sideWallStarts = [
-      roomStart,
-      roomEnd - CASTLE_WALL_THICKNESS_BLOCKS,
-    ];
+    const sideWallStarts = [roomStart, roomEnd - CASTLE_WALL_THICKNESS_BLOCKS];
 
     for (const wallV of sideWallStarts) {
       for (let blockU = 0; blockU < castleDepth; blockU += 1) {
@@ -1055,9 +1055,7 @@ export class Castle {
         ) {
           for (let blockY = 0; blockY < wallHeight; blockY += 1) {
             const role =
-              blockY === 2 || blockY === wallHeight - 3
-                ? "trim"
-                : "stone";
+              blockY === 2 || blockY === wallHeight - 3 ? "trim" : "stone";
             addBlock(blockU, blockY, wallV + offsetV, role);
           }
           if (blockU % battlementPeriod === 0) {
@@ -1109,12 +1107,7 @@ export class Castle {
           blockU === castleDepth - 1 ||
           blockV === roomStart ||
           blockV === roomEnd - 1;
-        addBlock(
-          blockU,
-          wallHeight,
-          blockV,
-          isEdge ? "trim" : "stone",
-        );
+        addBlock(blockU, wallHeight, blockV, isEdge ? "trim" : "stone");
         if (isEdge && (blockU + blockV) % battlementPeriod === 0) {
           addBlock(blockU, wallHeight + 1, blockV, "trim");
         }
@@ -1648,10 +1641,7 @@ export class Castle {
             depth === crownDepth - 1 ||
             blockY === crownBase ||
             blockY === crownHeight - 1;
-          if (
-            isShell &&
-            !isRoofDoorOpening(depth, horizontal, blockY)
-          ) {
+          if (isShell && !isRoofDoorOpening(depth, horizontal, blockY)) {
             const isCrownEdge =
               horizontal === crownStart + topInset ||
               horizontal === crownEnd - topInset ||

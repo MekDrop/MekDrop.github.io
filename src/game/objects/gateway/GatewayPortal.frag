@@ -2,6 +2,7 @@ uniform float uTime;
 uniform vec3 uColor;
 
 varying vec2 vUv;
+varying float vSurfaceWave;
 
 float hash(vec2 point) {
   return fract(sin(dot(point, vec2(127.1, 311.7))) * 43758.5453123);
@@ -20,22 +21,40 @@ float noise(vec2 point) {
 }
 
 void main(void) {
-  vec2 fallingUv = vec2(vUv.x * 3.4, vUv.y * 5.2 + uTime * 0.58);
-  float broadFlow = noise(fallingUv + vec2(sin(uTime * 0.31), 0.0));
-  float fineFlow =
-      noise(fallingUv * 2.15 + vec2(-uTime * 0.24, uTime * 0.18));
-  float current = sin(vUv.y * 23.0 + uTime * 3.1 + broadFlow * 4.2 +
-                      sin(vUv.x * 8.0) * 0.8);
-  float brightCurrent = smoothstep(0.48, 0.96, current * 0.5 + 0.5);
-  float suspendedLight =
-      smoothstep(0.62, 0.92, broadFlow * 0.7 + fineFlow * 0.3);
-  float edgeGlow = smoothstep(0.72, 0.98, abs(vUv.x * 2.0 - 1.0));
-  float shimmer = 0.92 + sin(uTime * 1.7 + vUv.y * 7.0) * 0.08;
-  vec3 color = mix(uColor * 0.7, mix(uColor, vec3(1.0), 0.72),
-                   brightCurrent * 0.72 + suspendedLight * 0.28);
-  float alpha =
-      (0.26 + broadFlow * 0.16 + brightCurrent * 0.22 + edgeGlow * 0.08) *
-      shimmer;
+  vec2 centered = vUv - vec2(0.5);
+  float radius = length(centered);
+  float angle = atan(centered.y, centered.x);
+  vec2 swirlUv = centered * 7.0;
+  swirlUv += vec2(cos(angle + uTime * 0.23), sin(angle - uTime * 0.19)) *
+             (0.18 + radius * 0.34);
+  float broadFlow = noise(swirlUv + vec2(uTime * 0.12, -uTime * 0.16));
+  float fineFlow = noise(swirlUv * 2.35 + vec2(-uTime * 0.31, uTime * 0.27));
 
-  gl_FragColor = vec4(color, alpha);
+  float ripple = sin(radius * 46.0 - uTime * 4.4 + broadFlow * 5.0);
+  float rippleCrest = pow(ripple * 0.5 + 0.5, 7.0);
+  float caustic = smoothstep(0.72, 0.97, broadFlow * 0.56 + fineFlow * 0.44);
+  float pulseAge = fract(uTime * 0.16);
+  float pulseRadius = pulseAge * 0.72;
+  float pulse = 1.0 - smoothstep(0.0, 0.035, abs(radius - pulseRadius));
+  pulse *= 1.0 - pulseAge;
+  float edgeDistance = min(
+      min(vUv.x, 1.0 - vUv.x),
+      min(vUv.y, 1.0 - vUv.y)
+  );
+  float edgeGlow = 1.0 - smoothstep(0.0, 0.12, edgeDistance);
+  float surfaceHighlight = clamp(abs(vSurfaceWave) * 24.0, 0.0, 1.0);
+
+  float lightAmount =
+      clamp(rippleCrest * 0.56 + caustic * 0.34 + pulse * 0.72 +
+                surfaceHighlight * 0.2,
+            0.0,
+            1.0);
+  vec3 deepColor = uColor * (0.28 + broadFlow * 0.16);
+  vec3 crestColor = mix(uColor * 0.9, vec3(0.88, 0.96, 1.0), 0.28);
+  vec3 color = mix(deepColor, crestColor, lightAmount);
+  float alpha =
+      0.32 + broadFlow * 0.08 + rippleCrest * 0.1 + pulse * 0.16 +
+      edgeGlow * 0.12;
+
+  gl_FragColor = vec4(color, min(alpha, 0.72));
 }

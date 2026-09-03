@@ -1,8 +1,8 @@
 import { BannerWind } from "../shared/BannerWind.js";
+import gatewayFrameModelUrl from "../../models/gateway/gateway-frame.glb?url";
 import { GatewayBannerSign } from "./GatewayBannerSign.js";
 import portalFragmentShader from "./GatewayPortal.frag?raw";
 import portalVertexShader from "./GatewayPortal.vert?raw";
-import { GatewayStoneTexture } from "./GatewayStoneTexture.js";
 
 export const DEFAULT_GATEWAY_COLOR = 0x269cff;
 export const GATEWAY_COLORS = [
@@ -18,7 +18,6 @@ const FRAME_LINTEL_HEIGHT_BLOCKS = 3;
 const FRAME_DEPTH_BLOCKS = 3;
 const FRAME_TOWER_WIDTH_BLOCKS = 4;
 const FRAME_TOWER_HEIGHT_BLOCKS = 13;
-const FRAME_STONE_COLORS = [0x434b54, 0x535d67, 0x626d77];
 const PORTAL_COLLISION_HALF_DEPTH = 0.08;
 
 /**
@@ -27,16 +26,20 @@ const PORTAL_COLLISION_HALF_DEPTH = 0.08;
  * terrain cube by default.
  */
 export class Gateway {
+  static get modelUrl() {
+    return gatewayFrameModelUrl;
+  }
+
   #pc;
   #app;
   #entity;
   #cubeSize;
   #symbol;
+  #modelLibrary;
   #materials = [];
   #meshes = [];
   #textures = [];
   #portalMaterial = null;
-  #accentMaterial = null;
   #bannerMaterial = null;
   #emblemMaterial = null;
   #bannerMesh = null;
@@ -60,11 +63,13 @@ export class Gateway {
     color = DEFAULT_GATEWAY_COLOR,
     cubeSize = 0.25,
     symbol = "✧",
+    modelLibrary,
   }) {
     this.#pc = pc;
     this.#app = app;
     this.#cubeSize = cubeSize;
     this.#symbol = symbol;
+    this.#modelLibrary = modelLibrary;
     this.#entity = new pc.Entity("Voxel gateway");
     this.#collisionWorldPoint = new pc.Vec3();
     this.#collisionLocalPoint = new pc.Vec3();
@@ -106,29 +111,16 @@ export class Gateway {
   setColor(value) {
     const color = this.#colorFrom(value);
     this.#portalMaterial?.setParameter("uColor", [color.r, color.g, color.b]);
-    if (this.#accentMaterial) {
-      this.#accentMaterial.diffuse = new this.#pc.Color(
-        color.r * 0.18 + 0.68,
-        color.g * 0.18 + 0.68,
-        color.b * 0.18 + 0.68,
-      );
-      this.#accentMaterial.emissive = new this.#pc.Color(
-        color.r * 0.025,
-        color.g * 0.025,
-        color.b * 0.025,
-      );
-      this.#accentMaterial.update();
-    }
     if (this.#bannerMaterial) {
       this.#bannerMaterial.diffuse = new this.#pc.Color(
-        color.r * 0.72,
-        color.g * 0.72,
-        color.b * 0.72,
+        color.r * 0.35,
+        color.g * 0.35,
+        color.b * 0.35,
       );
       this.#bannerMaterial.emissive = new this.#pc.Color(
-        color.r * 0.12,
-        color.g * 0.12,
-        color.b * 0.12,
+        color.r * 0.02,
+        color.g * 0.02,
+        color.b * 0.02,
       );
       this.#bannerMaterial.update();
     }
@@ -168,7 +160,6 @@ export class Gateway {
     }
     this.#meshes = [];
     this.#portalMaterial = null;
-    this.#accentMaterial = null;
     this.#bannerMaterial = null;
     this.#emblemMaterial = null;
     this.#bannerMesh = null;
@@ -186,169 +177,19 @@ export class Gateway {
   }
 
   #createFrame() {
-    const pc = this.#pc;
-    const blocksByVariant = FRAME_STONE_COLORS.map(() => []);
-    const accentBlocks = [];
-    const lintelStart = FRAME_OPENING_HEIGHT_BLOCKS;
-    const lintelEnd = lintelStart + FRAME_LINTEL_HEIGHT_BLOCKS;
-
-    const blockPosition = (column, row, depth) => ({
-      x: (depth - (FRAME_DEPTH_BLOCKS - 1) / 2) * this.#cubeSize,
-      y: (row + 0.5) * this.#cubeSize,
-      z: (column - (FRAME_WIDTH_BLOCKS - 1) / 2) * this.#cubeSize,
-    });
-    const addStoneBlock = (column, row, depth) => {
-      const hash = Math.abs(column * 17 + row * 31 + depth * 13);
-      blocksByVariant[hash % blocksByVariant.length].push(
-        blockPosition(column, row, depth),
-      );
-    };
-    const addAccentBlock = (column, row, depth) => {
-      accentBlocks.push(blockPosition(column, row, depth));
-    };
-
-    for (let depth = 0; depth < FRAME_DEPTH_BLOCKS; depth += 1) {
-      for (let row = 0; row < FRAME_TOWER_HEIGHT_BLOCKS; row += 1) {
-        for (let column = 0; column < FRAME_TOWER_WIDTH_BLOCKS; column += 1) {
-          addStoneBlock(column, row, depth);
-          addStoneBlock(FRAME_WIDTH_BLOCKS - 1 - column, row, depth);
-        }
-      }
-
-      for (let row = lintelStart; row < lintelEnd; row += 1) {
-        for (
-          let column = FRAME_TOWER_WIDTH_BLOCKS;
-          column < FRAME_WIDTH_BLOCKS - FRAME_TOWER_WIDTH_BLOCKS;
-          column += 1
-        ) {
-          addAccentBlock(column, row, depth);
-        }
-      }
-
-      addAccentBlock(
-        FRAME_TOWER_WIDTH_BLOCKS,
-        FRAME_OPENING_HEIGHT_BLOCKS - 2,
-        depth,
-      );
-      addAccentBlock(
-        FRAME_WIDTH_BLOCKS - 1 - FRAME_TOWER_WIDTH_BLOCKS,
-        FRAME_OPENING_HEIGHT_BLOCKS - 2,
-        depth,
-      );
-      for (const column of [
-        FRAME_TOWER_WIDTH_BLOCKS,
-        FRAME_TOWER_WIDTH_BLOCKS + 1,
-        FRAME_WIDTH_BLOCKS - 2 - FRAME_TOWER_WIDTH_BLOCKS,
-        FRAME_WIDTH_BLOCKS - 1 - FRAME_TOWER_WIDTH_BLOCKS,
-      ]) {
-        addAccentBlock(column, FRAME_OPENING_HEIGHT_BLOCKS - 1, depth);
-      }
-
-      for (const startColumn of [FRAME_TOWER_WIDTH_BLOCKS, 7, 10]) {
-        addAccentBlock(startColumn, lintelEnd, depth);
-        addAccentBlock(startColumn + 1, lintelEnd, depth);
-      }
-
-      for (let column = 0; column < FRAME_TOWER_WIDTH_BLOCKS; column += 1) {
-        addStoneBlock(column, FRAME_TOWER_HEIGHT_BLOCKS, depth);
-        addStoneBlock(
-          FRAME_WIDTH_BLOCKS - 1 - column,
-          FRAME_TOWER_HEIGHT_BLOCKS,
-          depth,
-        );
-      }
-      for (const column of [
-        0,
-        FRAME_TOWER_WIDTH_BLOCKS - 1,
-        FRAME_WIDTH_BLOCKS - FRAME_TOWER_WIDTH_BLOCKS,
-        FRAME_WIDTH_BLOCKS - 1,
-      ]) {
-        addStoneBlock(column, FRAME_TOWER_HEIGHT_BLOCKS + 1, depth);
-      }
-    }
-
-    for (const depth of [-1, FRAME_DEPTH_BLOCKS]) {
-      for (let column = 0; column < FRAME_TOWER_WIDTH_BLOCKS; column += 1) {
-        addStoneBlock(column, FRAME_TOWER_HEIGHT_BLOCKS, depth);
-        addStoneBlock(
-          FRAME_WIDTH_BLOCKS - 1 - column,
-          FRAME_TOWER_HEIGHT_BLOCKS,
-          depth,
-        );
-      }
-    }
-
-    blocksByVariant.forEach((blocks, index) => {
-      if (!blocks.length) return;
-      const material = new pc.StandardMaterial();
-      material.name = `Gateway stone ${index + 1}`;
-      material.diffuse = this.#colorFrom(FRAME_STONE_COLORS[index]);
-      const textures = GatewayStoneTexture.create(
-        pc,
-        this.#app.graphicsDevice,
-        index + 1,
-      );
-      material.diffuseMap = textures.diffuse;
-      material.normalMap = textures.normal;
-      material.bumpiness = 0.48;
-      material.gloss = 0.12;
-      material.metalness = 0;
-      material.useMetalness = true;
-      material.update();
-      this.#textures.push(textures.diffuse, textures.normal);
-      this.#materials.push(material);
-
-      const mesh = this.#createBlockMesh(blocks);
-      const meshInstance = new pc.MeshInstance(mesh, material);
-      meshInstance.castShadow = false;
-      meshInstance.receiveShadow = true;
-      const part = new pc.Entity(`Gateway stonework ${index + 1}`);
-      part.addComponent("render", {
-        meshInstances: [meshInstance],
-        castShadows: false,
-        receiveShadows: true,
-      });
-      this.#entity.addChild(part);
-    });
-
-    this.#accentMaterial = new pc.StandardMaterial();
-    this.#accentMaterial.name = "Gateway washed colored arch";
-    const accentTextures = GatewayStoneTexture.create(
-      pc,
-      this.#app.graphicsDevice,
-      11,
-    );
-    this.#accentMaterial.diffuseMap = accentTextures.diffuse;
-    this.#accentMaterial.normalMap = accentTextures.normal;
-    this.#accentMaterial.bumpiness = 0.38;
-    this.#accentMaterial.gloss = 0.03;
-    this.#accentMaterial.emissiveIntensity = 0.08;
-    this.#accentMaterial.useMetalness = true;
-    this.#accentMaterial.update();
-    this.#textures.push(accentTextures.diffuse, accentTextures.normal);
-    this.#materials.push(this.#accentMaterial);
-
-    const mesh = this.#createBlockMesh(accentBlocks);
-    const meshInstance = new pc.MeshInstance(mesh, this.#accentMaterial);
-    meshInstance.castShadow = false;
-    meshInstance.receiveShadow = true;
-    const arch = new pc.Entity("Gateway washed colored arch");
-    arch.addComponent("render", {
-      meshInstances: [meshInstance],
-      castShadows: false,
-      receiveShadows: true,
-    });
-    this.#entity.addChild(arch);
+    const frame = this.#modelLibrary.instantiate(Gateway.modelUrl);
+    frame.name = "Gateway frame instance";
+    this.#entity.addChild(frame);
     this.#createBanner();
   }
-
   #createBanner() {
     const pc = this.#pc;
-    const width = 0.86 + this.#cubeSize * 2;
-    const height = 0.78 + this.#cubeSize * 2;
+    const width = this.#cubeSize * 6;
+    const height = this.#cubeSize * 5;
     const yTop =
       (FRAME_OPENING_HEIGHT_BLOCKS + FRAME_LINTEL_HEIGHT_BLOCKS - 0.2) *
       this.#cubeSize;
+    const centerZ = 0;
     const faceX = (FRAME_DEPTH_BLOCKS * this.#cubeSize) / 2 + 0.012;
     const columnSegments = 12;
     const rowSegments = 8;
@@ -357,6 +198,7 @@ export class Gateway {
       width,
       height,
       yTop,
+      centerZ,
     };
     const geometry = new pc.Geometry();
     geometry.positions = [];
@@ -379,7 +221,7 @@ export class Gateway {
         geometry.positions.push(
           faceX + foldedDepth,
           yTop - v * height - bottomSag,
-          u * (width / 2) * taper,
+          centerZ + u * (width / 2) * taper,
         );
         vertexUv.push(u, v);
       }
@@ -442,8 +284,8 @@ export class Gateway {
     this.#entity.addChild(banner);
 
     const centerY = yTop - height * 0.48;
-    const signHalfWidth = 0.23 * 1.4;
-    const signHalfHeight = 0.23 * 1.4;
+    const signHalfWidth = width * 0.3;
+    const signHalfHeight = width * 0.3;
     const emblemGeometry = new pc.Geometry();
     emblemGeometry.positions = [
       0,
@@ -485,8 +327,8 @@ export class Gateway {
     this.#emblemMaterial.opacityMap = signTexture;
     this.#emblemMaterial.opacityMapChannel = "a";
     this.#emblemMaterial.alphaTest = 0.08;
-    this.#emblemMaterial.blendType = pc.BLEND_NORMAL;
-    this.#emblemMaterial.depthWrite = false;
+    this.#emblemMaterial.blendType = pc.BLEND_NONE;
+    this.#emblemMaterial.depthWrite = true;
     this.#emblemMaterial.useLighting = false;
     this.#emblemMaterial.cull = pc.CULLFACE_BACK;
     this.#emblemMaterial.update();
@@ -499,7 +341,7 @@ export class Gateway {
     emblemMeshInstance.castShadow = false;
     emblemMeshInstance.receiveShadow = false;
     const emblem = new pc.Entity(`Gateway cloth sign ${this.#symbol}`);
-    this.#emblemBasePosition = [faceX + 0.082, centerY, 0];
+    this.#emblemBasePosition = [faceX + 0.082, centerY, centerZ];
     emblem.setLocalPosition(...this.#emblemBasePosition);
     emblem.addComponent("render", {
       meshInstances: [emblemMeshInstance],
@@ -518,7 +360,7 @@ export class Gateway {
     const localStart = inverse.transformPoint(rayStart, new pc.Vec3());
     const localEnd = inverse.transformPoint(rayEnd, new pc.Vec3());
     const directionX = localEnd.x - localStart.x;
-    const { planeX, width, height, yTop } = this.#bannerInteraction;
+    const { planeX, width, height, yTop, centerZ } = this.#bannerInteraction;
 
     if (Math.abs(directionX) < 0.000001) return null;
 
@@ -534,7 +376,7 @@ export class Gateway {
       bounded &&
       (point.y > yTop + 0.03 ||
         point.y < yTop - height - 0.09 ||
-        Math.abs(point.z) > width / 2 + 0.045)
+        Math.abs(point.z - centerZ) > width / 2 + 0.045)
     ) {
       return null;
     }
@@ -587,23 +429,36 @@ export class Gateway {
       (FRAME_WIDTH_BLOCKS - FRAME_TOWER_WIDTH_BLOCKS * 2) * this.#cubeSize;
     const height = FRAME_OPENING_HEIGHT_BLOCKS * this.#cubeSize;
     const halfWidth = width / 2;
+    const segments = 24;
     const geometry = new pc.Geometry();
-    geometry.positions = [
-      0,
-      0,
-      -halfWidth,
-      0,
-      0,
-      halfWidth,
-      0,
-      height,
-      halfWidth,
-      0,
-      height,
-      -halfWidth,
-    ];
-    geometry.uvs = [0, 0, 1, 0, 1, 1, 0, 1];
-    geometry.indices = [0, 1, 2, 0, 2, 3];
+    geometry.positions = [];
+    geometry.uvs = [];
+    geometry.indices = [];
+    for (let row = 0; row <= segments; row += 1) {
+      const v = row / segments;
+      for (let column = 0; column <= segments; column += 1) {
+        const u = column / segments;
+        geometry.positions.push(0, v * height, -halfWidth + u * width);
+        geometry.uvs.push(u, v);
+      }
+    }
+    const rowLength = segments + 1;
+    for (let row = 0; row < segments; row += 1) {
+      for (let column = 0; column < segments; column += 1) {
+        const bottomLeft = row * rowLength + column;
+        const bottomRight = bottomLeft + 1;
+        const topLeft = bottomLeft + rowLength;
+        const topRight = topLeft + 1;
+        geometry.indices.push(
+          bottomLeft,
+          bottomRight,
+          topRight,
+          bottomLeft,
+          topRight,
+          topLeft,
+        );
+      }
+    }
 
     const mesh = pc.Mesh.fromGeometry(this.#app.graphicsDevice, geometry);
     mesh.incRefCount();
@@ -623,6 +478,12 @@ export class Gateway {
     this.#portalMaterial.depthWrite = false;
     this.#portalMaterial.cull = pc.CULLFACE_NONE;
     this.#portalMaterial.setParameter("uTime", 0);
+    const portalColor = this.#colorFrom(DEFAULT_GATEWAY_COLOR);
+    this.#portalMaterial.setParameter("uColor", [
+      portalColor.r,
+      portalColor.g,
+      portalColor.b,
+    ]);
     this.#portalMaterial.update();
     this.#materials.push(this.#portalMaterial);
 
@@ -637,143 +498,6 @@ export class Gateway {
       receiveShadows: false,
     });
     this.#entity.addChild(portal);
-  }
-
-  #createBlockMesh(blocks) {
-    const pc = this.#pc;
-    const positions = [];
-    const normals = [];
-    const uvs = [];
-    const indices = [];
-    const half = this.#cubeSize / 2;
-    const inner = half - Math.min(this.#cubeSize * 0.08, 0.02);
-
-    const appendFace = (block, localPoints) => {
-      let points = localPoints.map((point) => [...point]);
-      const edgeA = points[1].map((value, axis) => value - points[0][axis]);
-      const edgeB = points[2].map((value, axis) => value - points[0][axis]);
-      let normal = [
-        edgeA[1] * edgeB[2] - edgeA[2] * edgeB[1],
-        edgeA[2] * edgeB[0] - edgeA[0] * edgeB[2],
-        edgeA[0] * edgeB[1] - edgeA[1] * edgeB[0],
-      ];
-      const center = [0, 1, 2].map(
-        (axis) =>
-          points.reduce((sum, point) => sum + point[axis], 0) / points.length,
-      );
-      if (
-        normal.reduce((sum, value, axis) => sum + value * center[axis], 0) < 0
-      ) {
-        points = points.reverse();
-        normal = normal.map((value) => -value);
-      }
-      const normalLength = Math.hypot(...normal);
-      normal = normal.map((value) => value / normalLength);
-      const normalMagnitude = normal.map((value) => Math.abs(value));
-      const dominantAxis = normalMagnitude.indexOf(
-        Math.max(...normalMagnitude),
-      );
-
-      const start = positions.length / 3;
-      for (const point of points) {
-        positions.push(
-          block.x + point[0],
-          block.y + point[1],
-          block.z + point[2],
-        );
-        normals.push(...normal);
-        const coordinateU =
-          dominantAxis === 0
-            ? point[2]
-            : dominantAxis === 1
-              ? point[0]
-              : point[0];
-        const coordinateV =
-          dominantAxis === 0
-            ? point[1]
-            : dominantAxis === 1
-              ? point[2]
-              : point[1];
-        uvs.push(
-          coordinateU / this.#cubeSize + 0.5,
-          coordinateV / this.#cubeSize + 0.5,
-        );
-      }
-      for (let index = 1; index < points.length - 1; index += 1) {
-        indices.push(start, start + index, start + index + 1);
-      }
-    };
-
-    for (const block of blocks) {
-      for (const sign of [-1, 1]) {
-        appendFace(block, [
-          [sign * half, -inner, -inner],
-          [sign * half, inner, -inner],
-          [sign * half, inner, inner],
-          [sign * half, -inner, inner],
-        ]);
-        appendFace(block, [
-          [-inner, sign * half, -inner],
-          [-inner, sign * half, inner],
-          [inner, sign * half, inner],
-          [inner, sign * half, -inner],
-        ]);
-        appendFace(block, [
-          [-inner, -inner, sign * half],
-          [inner, -inner, sign * half],
-          [inner, inner, sign * half],
-          [-inner, inner, sign * half],
-        ]);
-      }
-
-      const axisPairs = [
-        [0, 1, 2],
-        [0, 2, 1],
-        [1, 2, 0],
-      ];
-      for (const [axisA, axisB, freeAxis] of axisPairs) {
-        for (const signA of [-1, 1]) {
-          for (const signB of [-1, 1]) {
-            const point = (outerAxis, freeValue) => {
-              const result = [0, 0, 0];
-              result[axisA] = signA * (outerAxis === axisA ? half : inner);
-              result[axisB] = signB * (outerAxis === axisB ? half : inner);
-              result[freeAxis] = freeValue;
-              return result;
-            };
-            appendFace(block, [
-              point(axisA, -inner),
-              point(axisA, inner),
-              point(axisB, inner),
-              point(axisB, -inner),
-            ]);
-          }
-        }
-      }
-
-      for (const signX of [-1, 1]) {
-        for (const signY of [-1, 1]) {
-          for (const signZ of [-1, 1]) {
-            appendFace(block, [
-              [signX * half, signY * inner, signZ * inner],
-              [signX * inner, signY * half, signZ * inner],
-              [signX * inner, signY * inner, signZ * half],
-            ]);
-          }
-        }
-      }
-    }
-
-    const geometry = new pc.Geometry();
-    geometry.positions = positions;
-    geometry.normals = normals;
-    geometry.uvs = uvs;
-    geometry.tangents = pc.calculateTangents(positions, normals, uvs, indices);
-    geometry.indices = indices;
-    const mesh = pc.Mesh.fromGeometry(this.#app.graphicsDevice, geometry);
-    mesh.incRefCount();
-    this.#meshes.push(mesh);
-    return mesh;
   }
 
   #colorFrom(value) {

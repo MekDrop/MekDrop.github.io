@@ -15,6 +15,7 @@ import { PathArrows } from "./objects/path/index.js";
 import { Hero } from "./objects/hero/index.js";
 import { TileType } from "./MapGenerator.js";
 import { GRASS_SURFACE_LIFT } from "./config/terrain.js";
+import { GameModelLibrary } from "./models/index.js";
 
 const FIXED_HEIGHTS = {
   [TileType.WATER]: 0,
@@ -130,6 +131,7 @@ export class PlayCanvasRenderer {
   #gateways = [];
   #castle = null;
   #hero = null;
+  #modelLibrary = null;
   #gatewayColors = [...GATEWAY_COLORS];
   #bannerWindTarget = null;
   #bannerWindPointerId = null;
@@ -161,6 +163,7 @@ export class PlayCanvasRenderer {
     );
 
     this.#app.scene.ambientLight = new pc.Color(0.5, 0.57, 0.64);
+    this.#modelLibrary = new GameModelLibrary({ pc, app: this.#app });
     this.#cubeMeshes = this.#createCubeMeshes();
     this.#pathArrows = new PathArrows({
       pc,
@@ -187,7 +190,14 @@ export class PlayCanvasRenderer {
     sunlight.setEulerAngles(48, 132, 0);
     this.#app.root.addChild(sunlight);
 
-    await this.#createMaterials();
+    await Promise.all([
+      this.#createMaterials(),
+      this.#modelLibrary.load([
+        Hero.modelUrl,
+        Gateway.modelUrl,
+        ...Castle.modelUrls,
+      ]),
+    ]);
     this.resize();
     this.#app.start();
     this.#connectBannerInteraction();
@@ -252,8 +262,8 @@ export class PlayCanvasRenderer {
     };
   }
 
-  setHeroMovement(screenX, screenY, running = false) {
-    this.#hero?.setMovement(screenX, screenY, running);
+  setHeroMovement(inputX, inputY, running = false) {
+    this.#hero?.setMovement(inputX, inputY, running);
   }
 
   jumpHero() {
@@ -331,6 +341,8 @@ export class PlayCanvasRenderer {
       }
     }
     this.#cubeMeshes = null;
+    this.#modelLibrary?.destroy();
+    this.#modelLibrary = null;
     this.#app?.destroy();
     this.#app = null;
   }
@@ -461,6 +473,7 @@ export class PlayCanvasRenderer {
         this.#gateways.some((gateway) =>
           gateway.intersectsGroundFootprint(x, z, radius),
         ),
+      modelLibrary: this.#modelLibrary,
     });
     this.#mapRoot.addChild(this.#hero.entity);
   }
@@ -487,6 +500,7 @@ export class PlayCanvasRenderer {
         color: entry.color ?? this.getGatewayColor(index),
         cubeSize: CUBE_SCALE / 4,
         symbol: signs[index % signs.length],
+        modelLibrary: this.#modelLibrary,
       });
       this.#pathArrows.setColor(
         index,
@@ -527,6 +541,7 @@ export class PlayCanvasRenderer {
         };
       }),
       occupant: castle.occupant,
+      modelLibrary: this.#modelLibrary,
     });
     this.#mapRoot.addChild(this.#castle.entity);
   }

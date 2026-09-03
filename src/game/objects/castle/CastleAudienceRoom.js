@@ -1,4 +1,5 @@
 import { SeatedRoyal } from "./SeatedRoyal.js";
+import { CastleThrone } from "./CastleThrone.js";
 
 const ROOM_MATERIALS = {
   floorDark: { color: 0x625c52, gloss: 0.04 },
@@ -26,14 +27,20 @@ const MAX_ROOM_DEPTH = 4.1;
  * "king", "queen", or "princess".
  */
 export class CastleAudienceRoom {
+  static get modelUrls() {
+    return [CastleThrone.modelUrl, ...SeatedRoyal.modelUrls];
+  }
+
   #pc;
   #position;
   #door;
   #occupant;
   #sharedMaterials;
+  #modelLibrary;
   #entity;
   #materials = new Map();
   #royal = null;
+  #throne = null;
   #center;
   #inward;
   #tangent;
@@ -50,12 +57,14 @@ export class CastleAudienceRoom {
     occupant = "king",
     materials = new Map(),
     availableDepth = MAX_ROOM_DEPTH,
+    modelLibrary,
   }) {
     this.#pc = pc;
     this.#position = position;
     this.#door = door;
     this.#occupant = occupant;
     this.#sharedMaterials = materials;
+    this.#modelLibrary = modelLibrary;
     this.#availableDepth = availableDepth;
     this.#entity = new pc.Entity("Castle audience chamber");
     this.#baseY = position.elevation ?? 0;
@@ -96,8 +105,7 @@ export class CastleAudienceRoom {
         0,
       );
       return (
-        distanceLateral * distanceLateral +
-          distanceForward * distanceForward <=
+        distanceLateral * distanceLateral + distanceForward * distanceForward <=
         radius * radius
       );
     });
@@ -106,6 +114,8 @@ export class CastleAudienceRoom {
   destroy() {
     this.#royal?.destroy();
     this.#royal = null;
+    this.#throne?.destroy();
+    this.#throne = null;
     this.#entity?.destroy();
     this.#entity = null;
     for (const material of this.#materials.values()) material.destroy();
@@ -151,10 +161,7 @@ export class CastleAudienceRoom {
     this.#center = layout.center;
     this.#inward = layout.inward;
     this.#tangent = layout.tangent;
-    const footprintCapacity = Math.max(
-      3.2,
-      layout.capacity - EDGE_MARGIN * 2,
-    );
+    const footprintCapacity = Math.max(3.2, layout.capacity - EDGE_MARGIN * 2);
     const castleCapacity = Math.max(3.2, this.#availableDepth - 0.4);
     this.#forwardCapacity = Math.min(
       MAX_ROOM_DEPTH,
@@ -174,9 +181,7 @@ export class CastleAudienceRoom {
         woodLight: "castleDoorLight",
         iron: "castleIron",
       }[name];
-      const shared = sharedName
-        ? this.#sharedMaterials.get(sharedName)
-        : null;
+      const shared = sharedName ? this.#sharedMaterials.get(sharedName) : null;
       if (shared) continue;
 
       const material = new this.#pc.StandardMaterial();
@@ -230,14 +235,11 @@ export class CastleAudienceRoom {
       );
     }
     for (let forward = 0.75; forward < this.#forwardCapacity; forward += 0.75) {
-      this.#boxAt(
-        "Audience floor course",
-        "floorDark",
-        0,
-        forward,
-        0.057,
-        [this.#roomWidth - 0.18, 0.025, 0.035],
-      );
+      this.#boxAt("Audience floor course", "floorDark", 0, forward, 0.057, [
+        this.#roomWidth - 0.18,
+        0.025,
+        0.035,
+      ]);
     }
 
     const runnerLength = throneForward - 0.35;
@@ -270,66 +272,26 @@ export class CastleAudienceRoom {
   }
 
   #buildThrone(throneForward) {
-    for (let level = 0; level < 3; level += 1) {
-      const width = 2.6 - level * 0.32;
-      const depth = 1.55 - level * 0.2;
-      this.#boxAt(
-        "Throne dais step",
-        level % 2 ? "woodLight" : "wood",
-        0,
-        throneForward + 0.1,
-        0.09 + level * 0.14,
-        [width, 0.18, depth],
-        true,
-      );
-    }
-
-    this.#boxAt(
-      "Throne seat",
-      "woodLight",
-      0,
-      throneForward,
-      0.6,
-      [1.3, 0.28, 0.82],
+    this.#throne = new CastleThrone({ modelLibrary: this.#modelLibrary });
+    const throne = this.#throne.entity;
+    const thronePosition = this.#point(0, throneForward, 0);
+    throne.setLocalPosition(
+      thronePosition.x,
+      thronePosition.y,
+      thronePosition.z,
     );
-    this.#boxAt(
-      "Throne back",
-      "wood",
-      0,
-      throneForward + 0.36,
-      1.38,
-      [1.38, 1.82, 0.24],
-    );
-    for (const lateral of [-0.74, 0.74]) {
-      this.#boxAt(
-        "Throne carved post",
-        "gold",
-        lateral,
-        throneForward + 0.36,
-        1.31,
-        [0.16, 1.72, 0.16],
-      );
-      this.#boxAt(
-        "Throne arm",
-        "woodLight",
-        lateral * 0.82,
-        throneForward - 0.05,
-        0.89,
-        [0.18, 0.2, 0.76],
-      );
-    }
-    this.#boxAt(
-      "Throne crown crest",
-      "gold",
-      0,
-      throneForward + 0.37,
-      2.34,
-      [0.62, 0.24, 0.14],
-    );
+    throne.setLocalEulerAngles(0, this.#roomYaw(), 0);
+    this.#entity.addChild(throne);
+    this.#obstacles.push({
+      lateral: 0,
+      forward: throneForward + 0.1,
+      width: 2.6,
+      depth: 1.55,
+    });
 
     this.#royal = new SeatedRoyal({
-      pc: this.#pc,
       role: this.#occupant,
+      modelLibrary: this.#modelLibrary,
     });
     const royalPosition = this.#point(0, throneForward - 0.07, 0.37);
     this.#royal.entity.setLocalPosition(
@@ -341,7 +303,6 @@ export class CastleAudienceRoom {
     this.#royal.entity.setLocalScale(0.72, 0.72, 0.72);
     this.#entity.addChild(this.#royal.entity);
   }
-
   #buildColumns(throneForward) {
     const lateral = Math.max(1.35, this.#roomWidth / 2 - 0.76);
     const rows = [Math.min(1.72, throneForward * 0.38), throneForward * 0.72];
@@ -501,15 +462,9 @@ export class CastleAudienceRoom {
 
   #point(lateral, forward, y) {
     return {
-      x:
-        this.#center.x +
-        this.#tangent.x * lateral +
-        this.#inward.x * forward,
+      x: this.#center.x + this.#tangent.x * lateral + this.#inward.x * forward,
       y: this.#baseY + y,
-      z:
-        this.#center.z +
-        this.#tangent.z * lateral +
-        this.#inward.z * forward,
+      z: this.#center.z + this.#tangent.z * lateral + this.#inward.z * forward,
     };
   }
 
