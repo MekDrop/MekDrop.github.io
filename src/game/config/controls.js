@@ -33,6 +33,11 @@ export const CONTROLS = {
   dragCamera: {
     mouseButton: 2,
   },
+  rotateCamera: {
+    mouseButton: 1,
+    activationDistance: 4,
+    quarterTurnsPerPixel: 1 / 240,
+  },
   toggleArrows: {
     keys: ["Pause"],
   },

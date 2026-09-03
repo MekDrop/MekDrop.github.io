@@ -3,8 +3,10 @@ export class GameControls {
   #config;
   #actions;
   #dragPointerId = null;
+  #dragMode = null;
   #dragX = 0;
   #dragY = 0;
+  #dragDistance = 0;
 
   constructor(element, config, actions) {
     this.#element = element;
@@ -30,6 +32,7 @@ export class GameControls {
     this.#element.removeEventListener("pointermove", this.#handlePointerMove);
     this.#element.removeEventListener("pointerup", this.#handlePointerUp);
     this.#element.removeEventListener("pointercancel", this.#handlePointerUp);
+    this.#element.classList.remove("background-canvas--dragging");
   }
 
   #handleKeydown = (event) => {
@@ -82,12 +85,20 @@ export class GameControls {
   };
 
   #handlePointerDown = (event) => {
-    if (event.button !== this.#config.dragCamera.mouseButton) return;
+    if (event.defaultPrevented) return;
+    const isPan = event.button === this.#config.dragCamera.mouseButton;
+    const isRotate =
+      event.pointerType === "mouse" &&
+      event.button === this.#config.rotateCamera.mouseButton;
+    if (!isPan && !isRotate) return;
 
     event.preventDefault();
     this.#dragPointerId = event.pointerId;
+    this.#dragMode = isRotate ? "rotate" : "pan";
     this.#dragX = event.clientX;
     this.#dragY = event.clientY;
+    this.#dragDistance = 0;
+    this.#element.classList.add("background-canvas--dragging");
     this.#element.setPointerCapture(event.pointerId);
   };
 
@@ -98,6 +109,21 @@ export class GameControls {
     const deltaY = event.clientY - this.#dragY;
     this.#dragX = event.clientX;
     this.#dragY = event.clientY;
+    this.#dragDistance += Math.hypot(deltaX, deltaY);
+    if (
+      this.#dragDistance <
+      (this.#config.rotateCamera.activationDistance ?? 0)
+    ) {
+      return;
+    }
+
+    event.preventDefault();
+    if (this.#dragMode === "rotate") {
+      this.#actions.rotateView.rotateBy(
+        deltaX * this.#config.rotateCamera.quarterTurnsPerPixel,
+      );
+      return;
+    }
     this.#actions.moveCamera.moveBy(deltaX, deltaY);
   };
 
@@ -105,6 +131,9 @@ export class GameControls {
     if (event.pointerId !== this.#dragPointerId) return;
 
     this.#dragPointerId = null;
+    this.#dragMode = null;
+    this.#dragDistance = 0;
+    this.#element.classList.remove("background-canvas--dragging");
     if (this.#element.hasPointerCapture(event.pointerId)) {
       this.#element.releasePointerCapture(event.pointerId);
     }

@@ -8,14 +8,14 @@ export class RotateViewAction {
   }
 
   rotateAnticlockwise() {
-    return this.#rotateBy(-1);
+    return this.rotateBy(-1);
   }
 
   rotateClockwise() {
-    return this.#rotateBy(1);
+    return this.rotateBy(1);
   }
 
-  #rotateBy(quarterTurns) {
+  rotateBy(quarterTurns) {
     const rotation = this.#renderer.rotateBy(quarterTurns);
     this.#onChange(rotation);
     return rotation;

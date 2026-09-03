@@ -102,6 +102,11 @@
   width: 100%;
   height: 100%;
   touch-action: none;
+  cursor: grab;
+}
+
+.background-canvas--dragging .background-canvas__surface {
+  cursor: grabbing;
 }
 
 .debug-axes {
@@ -197,7 +202,10 @@ const container = ref(null);
 const canvas = ref(null);
 const debugVisible = ref(false);
 const viewRotation = ref(0);
-const debugAxes = computed(() => DEBUG_AXIS_ROTATIONS[viewRotation.value]);
+const debugAxes = computed(() => {
+  const rotationIndex = ((Math.round(viewRotation.value) % 4) + 4) % 4;
+  return DEBUG_AXIS_ROTATIONS[rotationIndex];
+});
 let renderer = null;
 let mapData = null;
 let controls = null;
