@@ -109,6 +109,11 @@
   cursor: grabbing;
 }
 
+html.game-viewport--dragging,
+html.game-viewport--dragging * {
+  cursor: grabbing !important;
+}
+
 .debug-axes {
   position: absolute;
   left: 14px;

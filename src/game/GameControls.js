@@ -32,7 +32,7 @@ export class GameControls {
     this.#element.removeEventListener("pointermove", this.#handlePointerMove);
     this.#element.removeEventListener("pointerup", this.#handlePointerUp);
     this.#element.removeEventListener("pointercancel", this.#handlePointerUp);
-    this.#element.classList.remove("background-canvas--dragging");
+    this.#setDragging(false);
   }
 
   #handleKeydown = (event) => {
@@ -86,7 +86,9 @@ export class GameControls {
 
   #handlePointerDown = (event) => {
     if (event.defaultPrevented) return;
-    const isPan = event.button === this.#config.dragCamera.mouseButton;
+    const isPan =
+      event.pointerType === "mouse" &&
+      this.#config.dragCamera.mouseButtons.includes(event.button);
     const isRotate =
       event.pointerType === "mouse" &&
       event.button === this.#config.rotateCamera.mouseButton;
@@ -98,7 +100,7 @@ export class GameControls {
     this.#dragX = event.clientX;
     this.#dragY = event.clientY;
     this.#dragDistance = 0;
-    this.#element.classList.add("background-canvas--dragging");
+    this.#setDragging(true);
     this.#element.setPointerCapture(event.pointerId);
   };
 
@@ -110,10 +112,11 @@ export class GameControls {
     this.#dragX = event.clientX;
     this.#dragY = event.clientY;
     this.#dragDistance += Math.hypot(deltaX, deltaY);
-    if (
-      this.#dragDistance <
-      (this.#config.rotateCamera.activationDistance ?? 0)
-    ) {
+    const dragConfig =
+      this.#dragMode === "rotate"
+        ? this.#config.rotateCamera
+        : this.#config.dragCamera;
+    if (this.#dragDistance < (dragConfig.activationDistance ?? 0)) {
       return;
     }
 
@@ -133,11 +136,19 @@ export class GameControls {
     this.#dragPointerId = null;
     this.#dragMode = null;
     this.#dragDistance = 0;
-    this.#element.classList.remove("background-canvas--dragging");
+    this.#setDragging(false);
     if (this.#element.hasPointerCapture(event.pointerId)) {
       this.#element.releasePointerCapture(event.pointerId);
     }
   };
+
+  #setDragging(isDragging) {
+    this.#element.classList.toggle("background-canvas--dragging", isDragging);
+    document.documentElement.classList.toggle(
+      "game-viewport--dragging",
+      isDragging,
+    );
+  }
 
   #matchesKey(event, binding) {
     if (!binding?.keys.includes(event.code)) return false;

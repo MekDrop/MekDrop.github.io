@@ -31,7 +31,8 @@ export const CONTROLS = {
     allowRepeat: false,
   },
   dragCamera: {
-    mouseButton: 2,
+    mouseButtons: [0, 2],
+    activationDistance: 4,
   },
   rotateCamera: {
     mouseButton: 1,
