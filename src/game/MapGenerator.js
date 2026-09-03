@@ -519,6 +519,12 @@ export class MapGenerator {
     }
   }
 
+  static #addVerticalRouteBetweenBands(grid, tileMeta, cells, colLeft, firstRows, secondRows) {
+    const top = Math.min(firstRows[0], secondRows[0]);
+    const bottom = Math.max(firstRows[1], secondRows[1]);
+    this.#addVerticalRoute(grid, tileMeta, cells, colLeft, top, bottom);
+  }
+
   static #carvePaths(grid, tileMeta, layout) {
     const mergeZones = new Set();
     const routeCellsByPath = [];
@@ -551,7 +557,7 @@ export class MapGenerator {
         const { bands, turnCols } = entry.curvePlan;
         const firstEnd = entry.inwardDirection === this.#DIRECTIONS.EAST ? turnCols[0] + 1 : turnCols[0];
         this.#addHorizontalRoute(grid, tileMeta, cells, entry.inwardDirection === this.#DIRECTIONS.EAST ? entry.gateCol + 1 : entry.gateCol - 1, firstEnd, entry.gateRows, entry.inwardDirection);
-        this.#addVerticalRoute(grid, tileMeta, cells, turnCols[0], topRow, bands[0][1]);
+        this.#addVerticalRouteBetweenBands(grid, tileMeta, cells, turnCols[0], entry.gateRows, bands[0]);
 
         for (let index = 0; index < bands.length; index++) {
           const startCol = turnCols[index];
@@ -561,7 +567,14 @@ export class MapGenerator {
           this.#addHorizontalRoute(grid, tileMeta, cells, startCol, endCol, bands[index], entry.inwardDirection);
 
           if (index + 1 < bands.length) {
-            this.#addVerticalRoute(grid, tileMeta, cells, turnCols[index + 1], bands[index][0], bands[index + 1][1]);
+            this.#addVerticalRouteBetweenBands(
+              grid,
+              tileMeta,
+              cells,
+              turnCols[index + 1],
+              bands[index],
+              bands[index + 1],
+            );
           }
         }
 
