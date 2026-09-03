@@ -115,6 +115,7 @@ export class Castle {
   #fire = null;
   #banners = null;
   #flags = null;
+  #activeWindTarget = null;
   #roofs = null;
 
   constructor({ pc, app, position, doors = [] }) {
@@ -134,22 +135,29 @@ export class Castle {
   }
 
   getBannerHit(rayStart, rayEnd) {
-    return this.#banners?.getBannerHit(rayStart, rayEnd) ?? null;
+    const bannerHit = this.#banners?.getBannerHit(rayStart, rayEnd) ?? null;
+    const flagHit = this.#flags?.getFlagHit(rayStart, rayEnd) ?? null;
+    if (!bannerHit) return flagHit;
+    if (!flagHit) return bannerHit;
+    return flagHit.distance < bannerHit.distance ? flagHit : bannerHit;
   }
 
   beginWindGesture(hit) {
-    this.#banners?.beginWindGesture(hit);
+    this.#activeWindTarget = hit?.flag ? this.#flags : this.#banners;
+    this.#activeWindTarget?.beginWindGesture(hit);
   }
 
   applyMouseWind(rayStart, rayEnd, deltaTime) {
-    this.#banners?.applyMouseWind(rayStart, rayEnd, deltaTime);
+    this.#activeWindTarget?.applyMouseWind(rayStart, rayEnd, deltaTime);
   }
 
   endWindGesture() {
-    this.#banners?.endWindGesture();
+    this.#activeWindTarget?.endWindGesture();
+    this.#activeWindTarget = null;
   }
 
   destroy() {
+    this.endWindGesture();
     this.#fire?.destroy();
     this.#fire = null;
     this.#banners?.destroy();

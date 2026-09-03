@@ -13,6 +13,7 @@ export class CastleFlag {
   #poleMaterial;
   #texture;
   #flags = [];
+  #activeFlag = null;
   #updateHandle = null;
 
   constructor({ pc, app }) {
@@ -47,7 +48,7 @@ export class CastleFlag {
       instance.material = this.#poleMaterial;
     }
     pole.setLocalPosition(0, poleHeight / 2, 0);
-    pole.setLocalScale(0.035, poleHeight / 2, 0.035);
+    pole.setLocalScale(0.035, poleHeight, 0.035);
     root.addChild(pole);
 
     const finial = new this.#pc.Entity("Castle flag finial");
@@ -82,13 +83,51 @@ export class CastleFlag {
     const seed = Math.abs(Math.sin(x * 0.31 + z * 0.47 + y * 0.19));
     this.#flags.push({
       ...geometry,
+      root,
+      width,
+      height,
+      poleHeight,
       wind: new BannerWind(seed),
     });
+  }
+
+  getFlagHit(rayStart, rayEnd) {
+    let closest = null;
+    for (const flag of this.#flags) {
+      const hit = this.#intersectFlagRay(flag, rayStart, rayEnd, true);
+      if (!hit || (closest && hit.distance >= closest.distance)) continue;
+      closest = hit;
+    }
+    return closest;
+  }
+
+  beginWindGesture(hit) {
+    if (!hit?.flag) return;
+    this.#activeFlag = hit.flag;
+    this.#activeFlag.wind.begin(hit.point);
+  }
+
+  applyMouseWind(rayStart, rayEnd, deltaTime) {
+    if (!this.#activeFlag) return;
+    const hit = this.#intersectFlagRay(
+      this.#activeFlag,
+      rayStart,
+      rayEnd,
+      false,
+    );
+    if (!hit) return;
+    this.#activeFlag.wind.applyPointer(hit.point, deltaTime);
+  }
+
+  endWindGesture() {
+    this.#activeFlag?.wind.end();
+    this.#activeFlag = null;
   }
 
   destroy() {
     this.#updateHandle?.off();
     this.#updateHandle = null;
+    this.endWindGesture();
     this.#entity?.destroy();
     this.#entity = null;
     for (const { mesh } of this.#flags) {
@@ -225,6 +264,38 @@ export class CastleFlag {
       positions: animatedPositions,
       vertexUv: Float32Array.from(vertexUv),
       indices: meshIndices,
+    };
+  }
+
+  #intersectFlagRay(flag, rayStart, rayEnd, bounded) {
+    if (!flag?.root) return null;
+    const inverse = flag.root.getWorldTransform().clone().invert();
+    const localStart = inverse.transformPoint(rayStart, new this.#pc.Vec3());
+    const localEnd = inverse.transformPoint(rayEnd, new this.#pc.Vec3());
+    const directionZ = localEnd.z - localStart.z;
+    if (Math.abs(directionZ) < 0.000001) return null;
+
+    const distance = -localStart.z / directionZ;
+    if (distance < 0 || distance > 1) return null;
+    const localX = localStart.x + (localEnd.x - localStart.x) * distance;
+    const localY = localStart.y + (localEnd.y - localStart.y) * distance;
+    const centerY = flag.poleHeight - flag.height / 2 - 0.12;
+    const freedom = Math.max(0, Math.min(1, localX / flag.width));
+    const halfHeight = (flag.height / 2) * (1 - freedom);
+    if (
+      bounded &&
+      (localX < -0.05 ||
+        localX > flag.width + 0.05 ||
+        localY < centerY - halfHeight - 0.05 ||
+        localY > centerY + halfHeight + 0.05)
+    ) {
+      return null;
+    }
+
+    return {
+      distance,
+      point: new this.#pc.Vec3(0, localY, localX),
+      flag,
     };
   }
 
