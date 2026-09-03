@@ -1,8 +1,8 @@
 import earthSideUrl from "src/assets/game/tiles/earth-side.png";
 import grassSideUrl from "src/assets/game/tiles/grass-side.png";
 import grassTopUrl from "src/assets/game/tiles/grass-top.png";
-import pathSideUrl from "src/assets/game/tiles/path-side.png";
-import pathTopUrl from "src/assets/game/tiles/path-top.png";
+import pathSideUrl from "src/assets/game/tiles/path-sandstone-side.png";
+import pathTopUrl from "src/assets/game/tiles/path-sandstone-top.png";
 import waterSideUrl from "src/assets/game/tiles/water-side.png";
 import waterTopUrl from "src/assets/game/tiles/water-top.png";
 import { Castle } from "./objects/castle/index.js";
@@ -13,6 +13,7 @@ import {
 } from "./objects/gateway/index.js";
 import { PathArrows } from "./objects/path/index.js";
 import { TileType } from "./MapGenerator.js";
+import { GRASS_SURFACE_LIFT } from "./config/terrain.js";
 
 const FIXED_HEIGHTS = {
   [TileType.WATER]: 0,
@@ -31,7 +32,7 @@ const TEXTURE_URLS = {
 const MATERIAL_DEFINITIONS = {
   earth: { color: 0xe8c4a0, texture: "earthSide", gloss: 0.08 },
   grass: { color: 0xffffff, texture: "grass", gloss: 0.05 },
-  path: { color: 0xfff1d9, texture: "path", gloss: 0.04 },
+  path: { color: 0xe8d6b5, texture: "path", gloss: 0.05 },
   water: { color: 0xd8f2ff, texture: "water", gloss: 0.22 },
 };
 
@@ -48,7 +49,7 @@ const SIDE_VARIANT_DEFINITIONS = {
   },
   pathSide: {
     texture: "pathSide",
-    colors: [0xffe2ba, 0xf6d7b0, 0xffe8c5, 0xf1cfaa, 0xfbe0bc, 0xf4d3ad],
+    colors: [0xead8b9, 0xe2ceb0, 0xecd5b4, 0xdcc6a7, 0xe8d1b0, 0xdfc9a9],
     gloss: 0.04,
   },
   waterSide: {
@@ -541,6 +542,7 @@ export class PlayCanvasRenderer {
             z,
             this.#surfaceCoverage(type, col, row, topCube),
             underlay,
+            topCube && type === TileType.GRASS ? GRASS_SURFACE_LIFT : 0,
           );
         }
       }
@@ -625,17 +627,18 @@ export class PlayCanvasRenderer {
     z,
     coverage = "full",
     underlayMaterial = sideMaterial,
+    surfaceLift = 0,
   ) {
     this.#addBoxMatrix(
       batches,
       topMaterial,
       sideMaterial,
       x,
-      y,
+      y + surfaceLift / 2,
       z,
       0,
       CUBE_SCALE,
-      CUBE_SCALE,
+      CUBE_SCALE + surfaceLift,
       CUBE_SCALE,
       coverage,
       underlayMaterial,
