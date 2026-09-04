@@ -41,6 +41,11 @@ form:
   filter: Ieškoti...
   no_found: Nerasta
   close: Uždaryti
+game:
+  interaction:
+    chop_tree: Kirsti medį
+    clear_bush: Pašalinti krūmą
+    stop_cutting: Baigti kirsti
 language:
   en-US: Anglų (JAV)
   lt: Lietuvių

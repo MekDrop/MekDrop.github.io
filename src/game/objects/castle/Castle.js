@@ -220,6 +220,7 @@ export class Castle {
     for (const door of this.#animatedDoors) {
       door.updateHeroPosition(position);
     }
+    this.#audienceRoom?.updateHeroPosition(position);
   }
 
   getBannerHit(rayStart, rayEnd) {

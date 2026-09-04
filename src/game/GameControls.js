@@ -75,6 +75,12 @@ export class GameControls {
       return;
     }
 
+    if (this.#matchesKey(event, this.#config.interact)) {
+      event.preventDefault();
+      this.#actions.vegetationInteraction.interact();
+      return;
+    }
+
     const bindings = [
       ["zoomIn", () => this.#actions.zoom.zoomIn()],
       ["zoomOut", () => this.#actions.zoom.zoomOut()],
@@ -82,9 +88,7 @@ export class GameControls {
         "rotateAnticlockwise",
         () => this.#actions.rotateView.rotateAnticlockwise(),
       ],
-      ["rotateClockwise", () => this.#actions.rotateView.rotateClockwise()],
       ["toggleArrows", () => this.#actions.toggleArrows.toggleArrows()],
-      ["regenerateMap", () => this.#actions.regenerateMap.regenerateMap()],
     ];
 
     for (const [name, invoke] of bindings) {

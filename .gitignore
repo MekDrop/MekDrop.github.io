@@ -17,6 +17,8 @@ coverage/
 /.Clairvoyance/
 /.ai/
 /.stakpak/
+
+# Temporary scripts and scratch files
 /tmp/
 /img.png
 /.junie/memory/errors.md

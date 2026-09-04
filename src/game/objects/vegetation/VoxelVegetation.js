@@ -1,76 +1,54 @@
-import oakModelUrl from "../../models/vegetation/oak.glb?url";
-import pineModelUrl from "../../models/vegetation/pine.glb?url";
-import tallTreeModelUrl from "../../models/vegetation/tall-tree.glb?url";
-import saplingModelUrl from "../../models/vegetation/sapling.glb?url";
-import roundBushModelUrl from "../../models/vegetation/round-bush.glb?url";
-import wideBushModelUrl from "../../models/vegetation/wide-bush.glb?url";
 import { GRASS_SURFACE_LIFT } from "../../config/terrain.js";
+import { RoundBush, WideBush } from "./bushes/index.js";
+import {
+  OakTree,
+  PineTree,
+  SaplingTree,
+  TallTree,
+} from "./trees/index.js";
 
-const MODEL_URLS = Object.freeze({
-  oak: oakModelUrl,
-  pine: pineModelUrl,
-  "tall-tree": tallTreeModelUrl,
-  sapling: saplingModelUrl,
-  "round-bush": roundBushModelUrl,
-  "wide-bush": wideBushModelUrl,
+const VEGETATION_TYPES = Object.freeze({
+  oak: OakTree,
+  pine: PineTree,
+  "tall-tree": TallTree,
+  sapling: SaplingTree,
+  "round-bush": RoundBush,
+  "wide-bush": WideBush,
 });
-
-const COLLISION_SIZES = Object.freeze({
-  oak: { width: 0.75, depth: 0.75, height: 1.5 },
-  pine: { width: 0.75, depth: 0.75, height: 1.5 },
-  "tall-tree": {
-    width: 0.75,
-    depth: 0.75,
-    height: 1.75,
-  },
-  sapling: { width: 0.75, depth: 0.75, height: 1 },
-  "round-bush": {
-    width: 0.75,
-    depth: 0.75,
-    height: 0.75,
-  },
-  "wide-bush": {
-    width: 1.25,
-    depth: 0.75,
-    height: 0.5,
-  },
-});
+const MINIMUM_FACING_DOT = Math.cos((50 * Math.PI) / 180);
 
 export class VoxelVegetation {
   static get modelUrls() {
-    return Object.values(MODEL_URLS);
+    return Object.values(VEGETATION_TYPES).map(
+      (VegetationType) => VegetationType.modelUrl,
+    );
   }
 
   #entity;
-  #collisionFootprints = [];
+  #items = [];
 
   constructor({ pc, mapData, modelLibrary }) {
     this.#entity = new pc.Entity("Voxel vegetation");
 
     for (const vegetation of mapData.vegetationData ?? []) {
-      const modelUrl = MODEL_URLS[vegetation.variant];
-      if (!modelUrl) continue;
+      const VegetationType = VEGETATION_TYPES[vegetation.variant];
+      if (!VegetationType) continue;
 
-      const model = modelLibrary.instantiate(modelUrl);
       const x = vegetation.col - (mapData.cols - 1) / 2;
       const z = vegetation.row - (mapData.rows - 1) / 2;
       const y =
         mapData.heightmap[vegetation.row][vegetation.col] +
         GRASS_SURFACE_LIFT;
-      model.name = `Voxel ${vegetation.variant}`;
-      model.setLocalPosition(x, y, z);
-      model.setLocalEulerAngles(0, vegetation.rotation ?? 0, 0);
-      this.#entity.addChild(model);
-
-      const baseSize = COLLISION_SIZES[vegetation.variant];
-      const rotated = Math.abs(vegetation.rotation ?? 0) % 180 === 90;
-      this.#collisionFootprints.push({
+      const item = new VegetationType({
+        modelLibrary,
+        id: `${vegetation.row}:${vegetation.col}`,
         x,
+        y,
         z,
-        width: rotated ? baseSize.depth : baseSize.width,
-        depth: rotated ? baseSize.width : baseSize.depth,
-        surfaceHeight: y + baseSize.height,
+        rotation: vegetation.rotation ?? 0,
       });
+      this.#entity.addChild(item.entity);
+      this.#items.push(item);
     }
   }
 
@@ -78,19 +56,45 @@ export class VoxelVegetation {
     return this.#entity;
   }
 
+  findNearestTarget(
+    position,
+    facingDirection = { x: 0, z: 1 },
+    reach = 0.78,
+    heightTolerance = 0.6,
+  ) {
+    let closest = null;
+    for (const item of this.#items) {
+      const description = item.describe();
+      const offsetX = description.x - position.x;
+      const offsetZ = description.z - position.z;
+      const offsetLength = Math.hypot(offsetX, offsetZ);
+      const facingDot =
+        offsetLength > 0.001
+          ? (offsetX * facingDirection.x + offsetZ * facingDirection.z) /
+            offsetLength
+          : 1;
+      if (facingDot < MINIMUM_FACING_DOT) continue;
+
+      const distance = item.interactionDistanceFrom(
+        position,
+        heightTolerance,
+      );
+      if (distance > reach || (closest && distance >= closest.distance)) {
+        continue;
+      }
+      closest = { description, distance };
+    }
+    return closest?.description ?? null;
+  }
+
+  damage(id) {
+    return this.#items.find((item) => item.id === id)?.cut() ?? null;
+  }
+
   intersectsGroundFootprint(x, z, radius = 0) {
-    const radiusSquared = radius * radius;
-    return this.#collisionFootprints.some((footprint) => {
-      const distanceX = Math.max(
-        Math.abs(x - footprint.x) - footprint.width / 2,
-        0,
-      );
-      const distanceZ = Math.max(
-        Math.abs(z - footprint.z) - footprint.depth / 2,
-        0,
-      );
-      return distanceX * distanceX + distanceZ * distanceZ <= radiusSquared;
-    });
+    return this.#items.some((item) =>
+      item.intersectsGroundFootprint(x, z, radius),
+    );
   }
 
   blocksMovementAt(
@@ -118,44 +122,29 @@ export class VoxelVegetation {
     elevation = -Infinity,
     stepClearance = 0,
   ) {
-    let totalDepth = 0;
-    for (const footprint of this.#collisionFootprints) {
-      if (
-        Number.isFinite(footprint.surfaceHeight) &&
-        footprint.surfaceHeight <= elevation + stepClearance
-      ) {
-        continue;
-      }
-      const deltaX = Math.abs(x - footprint.x) - footprint.width / 2;
-      const deltaZ = Math.abs(z - footprint.z) - footprint.depth / 2;
-      const signedDistance =
-        deltaX <= 0 && deltaZ <= 0
-          ? Math.max(deltaX, deltaZ)
-          : Math.hypot(Math.max(deltaX, 0), Math.max(deltaZ, 0));
-      totalDepth += Math.max(0, radius - signedDistance);
-    }
-    return totalDepth;
+    return this.#items.reduce(
+      (total, item) =>
+        total +
+        item.collisionDepthAt(
+          x,
+          z,
+          radius,
+          elevation,
+          stepClearance,
+        ),
+      0,
+    );
   }
 
   surfaceHeightAt(x, z, radius = 0) {
     let highestSurface = null;
-    for (const footprint of this.#collisionFootprints) {
-      if (!Number.isFinite(footprint.surfaceHeight)) continue;
-      const distanceX = Math.max(
-        Math.abs(x - footprint.x) - footprint.width / 2,
-        0,
-      );
-      const distanceZ = Math.max(
-        Math.abs(z - footprint.z) - footprint.depth / 2,
-        0,
-      );
-      if (distanceX * distanceX + distanceZ * distanceZ > radius * radius) {
-        continue;
-      }
+    for (const item of this.#items) {
+      const surfaceHeight = item.surfaceHeightAt(x, z, radius);
+      if (!Number.isFinite(surfaceHeight)) continue;
       highestSurface =
         highestSurface === null
-          ? footprint.surfaceHeight
-          : Math.max(highestSurface, footprint.surfaceHeight);
+          ? surfaceHeight
+          : Math.max(highestSurface, surfaceHeight);
     }
     return highestSurface;
   }
@@ -163,6 +152,6 @@ export class VoxelVegetation {
   destroy() {
     this.#entity?.destroy();
     this.#entity = null;
-    this.#collisionFootprints = [];
+    this.#items = [];
   }
 }

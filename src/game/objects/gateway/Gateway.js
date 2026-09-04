@@ -56,6 +56,8 @@ export class Gateway {
   #inverseWorldTransform = null;
   #collisionWorldPoint = null;
   #collisionLocalPoint = null;
+  #repulsionFromLocalPoint = null;
+  #repulsionDirection = null;
 
   constructor({
     pc,
@@ -73,6 +75,8 @@ export class Gateway {
     this.#entity = new pc.Entity("Voxel gateway");
     this.#collisionWorldPoint = new pc.Vec3();
     this.#collisionLocalPoint = new pc.Vec3();
+    this.#repulsionFromLocalPoint = new pc.Vec3();
+    this.#repulsionDirection = new pc.Vec3();
 
     this.#createFrame();
     this.#createPortal();
@@ -106,6 +110,52 @@ export class Gateway {
       Math.abs(this.#collisionLocalPoint.z) <=
         (FRAME_WIDTH_BLOCKS * this.#cubeSize) / 2 + radius
     );
+  }
+
+  repulsionForMovement(fromX, fromZ, toX, toZ, radius = 0) {
+    if (!this.#entity) return null;
+    this.#inverseWorldTransform ??= this.#entity
+      .getWorldTransform()
+      .clone()
+      .invert();
+    const elevation = this.#entity.getPosition().y;
+    this.#collisionWorldPoint.set(fromX, elevation, fromZ);
+    this.#inverseWorldTransform.transformPoint(
+      this.#collisionWorldPoint,
+      this.#repulsionFromLocalPoint,
+    );
+    this.#collisionWorldPoint.set(toX, elevation, toZ);
+    this.#inverseWorldTransform.transformPoint(
+      this.#collisionWorldPoint,
+      this.#collisionLocalPoint,
+    );
+    if (
+      Math.abs(this.#collisionLocalPoint.x) >
+        PORTAL_COLLISION_HALF_DEPTH + radius ||
+      Math.abs(this.#collisionLocalPoint.z) >
+        (FRAME_WIDTH_BLOCKS * this.#cubeSize) / 2 + radius ||
+      Math.abs(this.#collisionLocalPoint.x) >
+        Math.abs(this.#repulsionFromLocalPoint.x) + 0.000001
+    ) {
+      return null;
+    }
+
+    const side = this.#repulsionFromLocalPoint.x >= 0 ? 1 : -1;
+    this.#entity
+      .getWorldTransform()
+      .transformVector(
+        this.#repulsionDirection.set(side, 0, 0),
+        this.#repulsionDirection,
+      );
+    const length = Math.hypot(
+      this.#repulsionDirection.x,
+      this.#repulsionDirection.z,
+    );
+    if (length <= 0.001) return null;
+    return {
+      x: this.#repulsionDirection.x / length,
+      z: this.#repulsionDirection.z / length,
+    };
   }
 
   setColor(value) {
@@ -173,6 +223,8 @@ export class Gateway {
     this.#inverseWorldTransform = null;
     this.#collisionWorldPoint = null;
     this.#collisionLocalPoint = null;
+    this.#repulsionFromLocalPoint = null;
+    this.#repulsionDirection = null;
     this.endWindGesture();
   }
 

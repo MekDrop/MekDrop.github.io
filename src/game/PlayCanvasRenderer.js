@@ -143,10 +143,13 @@ export class PlayCanvasRenderer {
   #bannerWindPointerId = null;
   #bannerWindLastTime = 0;
   #bannerInteractionConnected = false;
+  #interactionTarget = null;
+  #onInteractionChange = null;
 
-  constructor(canvas, container) {
+  constructor(canvas, container, { onInteractionChange = null } = {}) {
     this.canvas = canvas;
     this.container = container;
+    this.#onInteractionChange = onInteractionChange;
   }
 
   async init() {
@@ -282,6 +285,31 @@ export class PlayCanvasRenderer {
 
   jumpHero() {
     this.#hero?.jump();
+  }
+
+  interactWithVegetation() {
+    if (this.#hero?.isCutting) {
+      this.#setInteractionTarget(null);
+      this.#hero.stopCutting();
+      return true;
+    }
+    const target = this.#interactionTarget;
+    if (!target || !this.#hero) return false;
+
+    const accepted = this.#hero.cut({
+      targetPosition: target,
+      heightClass: target.heightClass,
+      onImpact: () => {
+        const result = this.#vegetation?.damage(target.id);
+        this.#setInteractionTarget(
+          result && !result.destroyed ? { ...result, cutting: true } : null,
+        );
+        return result?.destroyed ?? true;
+      },
+      onComplete: () => this.#updateInteractionTarget(),
+    });
+    if (accepted) this.#setInteractionTarget({ ...target, cutting: true });
+    return true;
   }
 
   setViewport({
@@ -480,10 +508,14 @@ export class PlayCanvasRenderer {
       mapData: this.#mapData,
       getViewRotation: () => this.#rotation,
       onPositionChange: this.#handleHeroPositionChange,
+      onFacingChange: this.#handleHeroFacingChange,
+      getGatewayRepulsion: this.#getGatewayRepulsion,
       collisionWorld: this.#collisionWorld,
       modelLibrary: this.#modelLibrary,
     });
     this.#mapRoot.addChild(this.#hero.entity);
+    this.#castle?.updateHeroPosition(this.#hero.position);
+    this.#updateInteractionTarget();
   }
 
   #buildVegetation() {
@@ -982,6 +1014,7 @@ export class PlayCanvasRenderer {
 
   #handleHeroPositionChange = ({ x, y, z }) => {
     this.#castle?.updateHeroPosition({ x, y, z });
+    this.#updateInteractionTarget({ x, y, z });
     const screenPosition = this.#camera.camera.worldToScreen(
       new this.#pc.Vec3(x, y + HERO_CAMERA_CENTER_HEIGHT, z),
     );
@@ -1024,6 +1057,24 @@ export class PlayCanvasRenderer {
       this.#panZ += correction.z;
     }
     this.#updateCamera();
+  };
+
+  #handleHeroFacingChange = () => {
+    if (!this.#hero?.isCutting) this.#updateInteractionTarget();
+  };
+
+  #getGatewayRepulsion = (fromX, fromZ, toX, toZ, radius) => {
+    for (const gateway of this.#gateways) {
+      const direction = gateway.repulsionForMovement(
+        fromX,
+        fromZ,
+        toX,
+        toZ,
+        radius,
+      );
+      if (direction) return direction;
+    }
+    return null;
   };
 
   #updateCamera() {
@@ -1170,6 +1221,27 @@ export class PlayCanvasRenderer {
     this.#bannerWindLastTime = 0;
   }
 
+  #updateInteractionTarget(position = this.#hero?.position) {
+    const target = position
+      ? this.#vegetation?.findNearestTarget(
+          position,
+          this.#hero.facingDirection,
+        ) ?? null
+      : null;
+    this.#setInteractionTarget(target);
+  }
+
+  #setInteractionTarget(target) {
+    const previousKey = this.#interactionTarget
+      ? `${this.#interactionTarget.id}:${this.#interactionTarget.health}:${Boolean(this.#interactionTarget.cutting)}`
+      : null;
+    const nextKey = target
+      ? `${target.id}:${target.health}:${Boolean(target.cutting)}`
+      : null;
+    this.#interactionTarget = target;
+    if (previousKey !== nextKey) this.#onInteractionChange?.(target);
+  }
+
   #clearScene() {
     this.#finishBannerWindGesture();
     this.#pathArrows?.clear();
@@ -1181,6 +1253,7 @@ export class PlayCanvasRenderer {
     this.#hero = null;
     this.#vegetation?.destroy();
     this.#vegetation = null;
+    this.#setInteractionTarget(null);
     this.#mapRoot?.destroy();
     this.#mapRoot = null;
     this.#collisionWorld.clear();

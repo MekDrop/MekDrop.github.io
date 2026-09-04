@@ -26,11 +26,12 @@ export const CONTROLS = {
     keys: ["Space"],
     allowRepeat: false,
   },
+  interact: {
+    keys: ["KeyE"],
+    allowRepeat: false,
+  },
   rotateAnticlockwise: {
     keys: ["KeyQ"],
-  },
-  rotateClockwise: {
-    keys: ["KeyE"],
   },
   copyScreenshot: {
     keys: ["KeyS"],
@@ -48,9 +49,6 @@ export const CONTROLS = {
   },
   toggleArrows: {
     keys: ["Pause"],
-  },
-  regenerateMap: {
-    keys: ["KeyR"],
   },
   zoom: {
     factor: 1.1,

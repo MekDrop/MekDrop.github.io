@@ -41,6 +41,11 @@ form:
   filter: Search...
   no_found: No links found
   close: Close
+game:
+  interaction:
+    chop_tree: Chop tree
+    clear_bush: Clear bush
+    stop_cutting: Stop cutting
 language:
   en-US: English (USA)
   lt: Lithuanian

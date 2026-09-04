@@ -18,6 +18,7 @@ const ROOM_MATERIALS = {
 
 const EDGE_MARGIN = 0.82;
 const MAX_ROOM_DEPTH = 4.1;
+const VISIBILITY_MARGIN = 0.85;
 
 /**
  * Visitor-facing castle audience chamber.
@@ -72,10 +73,22 @@ export class CastleAudienceRoom {
     this.#resolveLayout();
     this.#createMaterials();
     this.#build();
+    this.#entity.enabled = false;
   }
 
   get entity() {
     return this.#entity;
+  }
+
+  updateHeroPosition({ x, z }) {
+    const deltaX = x - this.#center.x;
+    const deltaZ = z - this.#center.z;
+    const lateral = deltaX * this.#tangent.x + deltaZ * this.#tangent.z;
+    const forward = deltaX * this.#inward.x + deltaZ * this.#inward.z;
+    this.#entity.enabled =
+      Math.abs(lateral) <= this.#roomWidth / 2 + VISIBILITY_MARGIN &&
+      forward >= -VISIBILITY_MARGIN &&
+      forward <= this.#forwardCapacity + VISIBILITY_MARGIN;
   }
 
   surfaceHeightAt(x, z) {
