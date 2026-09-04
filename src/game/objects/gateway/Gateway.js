@@ -273,12 +273,12 @@ export class Gateway {
     this.#materials.push(this.#bannerMaterial);
 
     const meshInstance = new pc.MeshInstance(mesh, this.#bannerMaterial);
-    meshInstance.castShadow = false;
+    meshInstance.castShadow = true;
     meshInstance.receiveShadow = true;
     const banner = new pc.Entity("Gateway hanging cloth");
     banner.addComponent("render", {
       meshInstances: [meshInstance],
-      castShadows: false,
+      castShadows: true,
       receiveShadows: true,
     });
     this.#entity.addChild(banner);

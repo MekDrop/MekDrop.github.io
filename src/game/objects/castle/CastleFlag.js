@@ -69,13 +69,13 @@ export class CastleFlag {
       geometry.mesh,
       this.#flagMaterial,
     );
-    meshInstance.castShadow = false;
+    meshInstance.castShadow = true;
     meshInstance.receiveShadow = true;
     meshInstance.pick = false;
     const cloth = new this.#pc.Entity("Triangular castle flag");
     cloth.addComponent("render", {
       meshInstances: [meshInstance],
-      castShadows: false,
+      castShadows: true,
       receiveShadows: true,
     });
     root.addChild(cloth);

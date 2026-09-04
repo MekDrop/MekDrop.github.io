@@ -67,12 +67,12 @@ export class CastleFire {
     const brazier = new this.#pc.Entity("Fire brazier");
     brazier.addComponent("render", {
       type: "cylinder",
-      castShadows: false,
+      castShadows: true,
       receiveShadows: true,
     });
     for (const meshInstance of brazier.render.meshInstances) {
       meshInstance.material = this.#brazierMaterial;
-      meshInstance.castShadow = false;
+      meshInstance.castShadow = true;
       meshInstance.receiveShadow = true;
     }
     brazier.setLocalPosition(0, scale * 0.12, 0);

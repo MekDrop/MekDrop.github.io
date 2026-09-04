@@ -85,8 +85,6 @@ export class Hero {
   #modelLibrary;
   #entity;
   #modelRoot;
-  #shadow;
-  #materials = [];
   #spawn;
   #position;
   #velocity = { x: 0, y: 0, z: 0 };
@@ -160,8 +158,6 @@ export class Hero {
     this.#updateHandle = null;
     this.#entity?.destroy();
     this.#entity = null;
-    for (const material of this.#materials) material.destroy();
-    this.#materials = [];
     this.#animationState = null;
   }
 
@@ -576,7 +572,6 @@ export class Hero {
     }
     this.#playAnimation(animation, animationSpeed, this.#restartAnimation);
     this.#restartAnimation = false;
-    this.#updateShadow();
   }
 
   #selectIdleAnimation(deltaTime) {
@@ -622,43 +617,7 @@ export class Hero {
     this.#animationState = name;
   }
 
-  #updateShadow() {
-    const ground = this.#surfaceAt(this.#position.x, this.#position.z);
-    this.#shadow.enabled = ground !== null && this.#position.y - ground < 3;
-    if (this.#shadow.enabled) {
-      const height = Math.max(0, this.#position.y - ground);
-      const scale = Math.max(0.48, 1 - height * 0.16);
-      this.#shadow.setLocalPosition(0, ground - this.#position.y + 0.012, 0);
-      this.#shadow.setLocalScale(0.96 * scale, 0.018, 0.64 * scale);
-    }
-  }
-
   #createModel() {
-    const shadowMaterial = new this.#pc.StandardMaterial();
-    shadowMaterial.name = "Hero shadow";
-    shadowMaterial.diffuse = new this.#pc.Color(0.027, 0.075, 0.059);
-    shadowMaterial.opacity = 0.28;
-    shadowMaterial.blendType = this.#pc.BLEND_NORMAL;
-    shadowMaterial.depthWrite = false;
-    shadowMaterial.useLighting = false;
-    shadowMaterial.update();
-    this.#materials.push(shadowMaterial);
-
-    this.#shadow = new this.#pc.Entity("Hero shadow");
-    this.#shadow.addComponent("render", {
-      type: "cylinder",
-      castShadows: false,
-      receiveShadows: false,
-    });
-    for (const meshInstance of this.#shadow.render.meshInstances) {
-      meshInstance.material = shadowMaterial;
-      meshInstance.castShadow = false;
-      meshInstance.receiveShadow = false;
-    }
-    this.#shadow.setLocalPosition(0, 0.012, 0);
-    this.#shadow.setLocalScale(0.96, 0.018, 0.64);
-    this.#entity.addChild(this.#shadow);
-
     this.#modelRoot = this.#modelLibrary.instantiate(Hero.modelUrl);
     this.#modelRoot.name = "Hero model instance";
     this.#modelRoot.setLocalScale(

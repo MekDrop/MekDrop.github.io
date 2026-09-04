@@ -25,7 +25,7 @@ export class GameModelLibrary {
     if (!asset?.resource) throw new GameModelUnavailableError({ url });
 
     const entity = asset.resource.instantiateRenderEntity({
-      castShadows: false,
+      castShadows: true,
       receiveShadows: true,
     });
     this.#configureRenderHierarchy(entity);
@@ -83,7 +83,7 @@ export class GameModelLibrary {
     while (pending.length) {
       const entity = pending.pop();
       for (const meshInstance of entity.render?.meshInstances ?? []) {
-        meshInstance.castShadow = false;
+        meshInstance.castShadow = true;
         meshInstance.receiveShadow = true;
       }
       pending.push(...entity.children);

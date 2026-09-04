@@ -99,6 +99,8 @@ const SIDE_MATERIALS = {
 const CUBE_SCALE = 1;
 const CAMERA_PITCH = Math.atan(1 / Math.sqrt(2));
 const CAMERA_DISTANCE = 80;
+const SHADOW_DISTANCE = 150;
+const SHADOW_RESOLUTION = 2048;
 const MAP_FIT_ZOOM = 1;
 const HERO_VIEWPORT_MARGIN = 32;
 const HERO_CAMERA_CENTER_HEIGHT = 0.85;
@@ -185,7 +187,14 @@ export class PlayCanvasRenderer {
       type: "directional",
       color: new pc.Color(1, 0.93, 0.8),
       intensity: 2.1,
-      castShadows: false,
+      castShadows: true,
+      shadowType: pc.SHADOW_PCF5,
+      shadowDistance: SHADOW_DISTANCE,
+      shadowResolution: SHADOW_RESOLUTION,
+      shadowIntensity: 0.72,
+      shadowBias: 0.18,
+      normalOffsetBias: 0.035,
+      numCascades: 1,
     });
     sunlight.setEulerAngles(48, 132, 0);
     this.#app.root.addChild(sunlight);
@@ -450,7 +459,7 @@ export class PlayCanvasRenderer {
 
     const cubeBatches = new Map();
     this.#buildTerrainMatrices(cubeBatches);
-    this.#createInstancedBatches(cubeBatches, this.#mapRoot, false);
+    this.#createInstancedBatches(cubeBatches, this.#mapRoot, true);
     this.#buildCastle();
     this.#buildGateways();
     this.#buildHero();

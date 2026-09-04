@@ -439,7 +439,7 @@ export class CastleAudienceRoom {
     const entity = new this.#pc.Entity(name);
     entity.addComponent("render", {
       type: "box",
-      castShadows: false,
+      castShadows: true,
       receiveShadows: true,
     });
     for (const meshInstance of entity.render.meshInstances) {

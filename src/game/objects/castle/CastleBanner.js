@@ -44,13 +44,13 @@ export class CastleBanner {
       geometry.mesh,
       this.#material,
     );
-    meshInstance.castShadow = false;
+    meshInstance.castShadow = true;
     meshInstance.receiveShadow = true;
     meshInstance.pick = false;
     const cloth = new this.#pc.Entity("Castle banner cloth");
     cloth.addComponent("render", {
       meshInstances: [meshInstance],
-      castShadows: false,
+      castShadows: true,
       receiveShadows: true,
     });
     cloth.setLocalScale(width, height, 1);
@@ -59,12 +59,12 @@ export class CastleBanner {
     const rail = new this.#pc.Entity("Castle banner rail");
     rail.addComponent("render", {
       type: "cylinder",
-      castShadows: false,
+      castShadows: true,
       receiveShadows: true,
     });
     for (const instance of rail.render.meshInstances) {
       instance.material = this.#railMaterial;
-      instance.castShadow = false;
+      instance.castShadow = true;
       instance.receiveShadow = true;
     }
     rail.setLocalPosition(0, 0.035, 0.012);

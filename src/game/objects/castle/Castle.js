@@ -398,13 +398,13 @@ export class Castle {
         this.#materials.get(materialName),
       );
       meshInstance.setInstancing(vertexBuffer, false);
-      meshInstance.castShadow = false;
+      meshInstance.castShadow = true;
       meshInstance.receiveShadow = true;
 
       const entity = new this.#pc.Entity(`${materialName} castle blocks`);
       entity.addComponent("render", {
         meshInstances: [meshInstance],
-        castShadows: false,
+        castShadows: true,
         receiveShadows: true,
       });
       this.#entity.addChild(entity);
