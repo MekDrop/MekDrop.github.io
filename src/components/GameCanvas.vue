@@ -22,9 +22,13 @@
         </span>
       </div>
     </Transition>
-    <div v-if="debugVisible" class="debug-axes" aria-label="Debug axes overlay">
+    <div
+      v-if="debugVisible"
+      class="debug-axes"
+      aria-label="Debug axes and wind direction overlay"
+    >
       <svg
-        viewBox="0 0 120 120"
+        viewBox="0 0 200 120"
         class="debug-axes__svg"
         role="img"
         aria-hidden="true"
@@ -60,28 +64,58 @@
           >
             <path d="M0,0 L6,3 L0,6 Z" fill="#7cc8ff" />
           </marker>
+          <marker
+            id="wind-arrow-amber"
+            markerWidth="6"
+            markerHeight="6"
+            refX="5"
+            refY="3"
+            orient="auto"
+          >
+            <path d="M0,0 L6,3 L0,6 Z" fill="#ffd166" />
+          </marker>
         </defs>
+        <circle
+          :cx="DEBUG_WIND_ORIGIN.x"
+          :cy="DEBUG_WIND_ORIGIN.y"
+          r="27"
+          class="debug-axes__wind-dial"
+        />
         <line
-          x1="60"
-          y1="84"
+          :x1="DEBUG_WIND_ORIGIN.x"
+          :y1="DEBUG_WIND_ORIGIN.y"
+          :x2="debugWind.endX"
+          :y2="debugWind.endY"
+          class="debug-axes__wind"
+          marker-end="url(#wind-arrow-amber)"
+        />
+        <circle
+          :cx="DEBUG_WIND_ORIGIN.x"
+          :cy="DEBUG_WIND_ORIGIN.y"
+          r="3"
+          class="debug-axes__wind-origin"
+        />
+        <line
+          :x1="DEBUG_AXIS_ORIGIN.x"
+          :y1="DEBUG_AXIS_ORIGIN.y"
           :x2="debugAxes.x.endX"
           :y2="debugAxes.x.endY"
           class="debug-axes__line debug-axes__line--x"
           marker-end="url(#axis-arrow-red)"
         />
         <line
-          x1="60"
-          y1="84"
+          :x1="DEBUG_AXIS_ORIGIN.x"
+          :y1="DEBUG_AXIS_ORIGIN.y"
           :x2="debugAxes.y.endX"
           :y2="debugAxes.y.endY"
           class="debug-axes__line debug-axes__line--y"
           marker-end="url(#axis-arrow-green)"
         />
         <line
-          x1="60"
-          y1="84"
-          x2="60"
-          y2="28"
+          :x1="DEBUG_AXIS_ORIGIN.x"
+          :y1="DEBUG_AXIS_ORIGIN.y"
+          :x2="debugAxes.z.endX"
+          :y2="debugAxes.z.endY"
           class="debug-axes__line debug-axes__line--z"
           marker-end="url(#axis-arrow-blue)"
         />
@@ -99,8 +133,35 @@
         >
           Y
         </text>
-        <text x="52" y="22" class="debug-axes__label debug-axes__label--z">
+        <text
+          :x="debugAxes.z.labelX"
+          :y="debugAxes.z.labelY"
+          class="debug-axes__label debug-axes__label--z"
+        >
           Z
+        </text>
+        <line
+          x1="126"
+          y1="22"
+          x2="126"
+          y2="98"
+          class="debug-axes__divider"
+        />
+        <text
+          x="161"
+          y="20"
+          class="debug-axes__wind-label"
+          text-anchor="middle"
+        >
+          WIND
+        </text>
+        <text
+          x="161"
+          y="34"
+          class="debug-axes__wind-speed"
+          text-anchor="middle"
+        >
+          {{ windSpeedLabel }}
         </text>
       </svg>
     </div>
@@ -200,7 +261,7 @@ html.game-viewport--dragging * {
   position: absolute;
   left: 14px;
   bottom: 14px;
-  width: 120px;
+  width: 200px;
   height: 120px;
   padding: 6px;
   border: 1px solid rgba(210, 244, 228, 0.22);
@@ -220,6 +281,26 @@ html.game-viewport--dragging * {
   fill: none;
   stroke-width: 4;
   stroke-linecap: round;
+}
+
+.debug-axes__wind {
+  fill: none;
+  stroke: #ffd166;
+  stroke-width: 4;
+  stroke-linecap: round;
+}
+
+.debug-axes__wind-dial {
+  fill: rgba(255, 209, 102, 0.035);
+  stroke: rgba(255, 226, 154, 0.34);
+  stroke-width: 1.5;
+  stroke-dasharray: 2 4;
+}
+
+.debug-axes__wind-origin {
+  fill: #fff3ca;
+  stroke: rgba(3, 10, 8, 0.88);
+  stroke-width: 1.5;
 }
 
 .debug-axes__line--x {
@@ -250,6 +331,28 @@ html.game-viewport--dragging * {
 .debug-axes__label--z {
   fill: #90d8ff;
 }
+
+.debug-axes__wind-label {
+  fill: #ffe29a;
+  font: 700 9px/1 monospace;
+  letter-spacing: 0.08em;
+  paint-order: stroke;
+  stroke: rgba(3, 10, 8, 0.9);
+  stroke-width: 3px;
+}
+
+.debug-axes__wind-speed {
+  fill: #fff3ca;
+  font: 700 8px/1 monospace;
+  paint-order: stroke;
+  stroke: rgba(3, 10, 8, 0.9);
+  stroke-width: 3px;
+}
+
+.debug-axes__divider {
+  stroke: rgba(210, 244, 228, 0.18);
+  stroke-width: 1;
+}
 </style>
 
 <script setup>
@@ -267,30 +370,25 @@ import { ToggleArrowsAction } from "src/game/actions/ToggleArrowsAction.js";
 import { VegetationInteractionAction } from "src/game/actions/VegetationInteractionAction.js";
 import { ZoomAction } from "src/game/actions/ZoomAction.js";
 import { CONTROLS } from "src/game/config/controls.js";
+import { AMBIENT_WIND_DIRECTION } from "src/game/objects/shared/BannerWind.js";
 
-const DEBUG_AXIS_ROTATIONS = [
-  {
-    x: { endX: 98, endY: 64, labelX: 103, labelY: 61 },
-    y: { endX: 98, endY: 104, labelX: 103, labelY: 112 },
-  },
-  {
-    x: { endX: 22, endY: 104, labelX: 8, labelY: 112 },
-    y: { endX: 22, endY: 64, labelX: 8, labelY: 61 },
-  },
-  {
-    x: { endX: 22, endY: 64, labelX: 8, labelY: 61 },
-    y: { endX: 22, endY: 104, labelX: 8, labelY: 112 },
-  },
-  {
-    x: { endX: 98, endY: 104, labelX: 103, labelY: 112 },
-    y: { endX: 98, endY: 64, labelX: 103, labelY: 61 },
-  },
-];
+const DEBUG_AXIS_ORIGIN = Object.freeze({ x: 60, y: 62 });
+const DEBUG_GROUND_AXIS_LENGTH = 40;
+const DEBUG_VERTICAL_AXIS_LENGTH = 45;
+const DEBUG_WIND_ORIGIN = Object.freeze({ x: 162, y: 82 });
+const DEBUG_WIND_ARROW_LENGTH = 23;
+const DEFAULT_DEBUG_DIRECTIONS = Object.freeze({
+  x: { x: 0.88, y: -0.47 },
+  y: { x: 0.88, y: 0.47 },
+  z: { x: 0, y: -1 },
+});
 
 const container = ref(null);
 const canvas = ref(null);
 const debugVisible = ref(false);
-const viewRotation = ref(0);
+const debugDirections = ref(DEFAULT_DEBUG_DIRECTIONS);
+const windSpeed = ref(0);
+const windDirection = ref({ ...AMBIENT_WIND_DIRECTION });
 const interactionTarget = ref(null);
 const { t } = useI18n();
 const interactionLabel = computed(() => {
@@ -302,13 +400,63 @@ const interactionLabel = computed(() => {
     : t("game.interaction.chop_tree");
 });
 const debugAxes = computed(() => {
-  const rotationIndex = ((Math.round(viewRotation.value) % 4) + 4) % 4;
-  return DEBUG_AXIS_ROTATIONS[rotationIndex];
+  const createAxis = (direction, length) => ({
+    endX: DEBUG_AXIS_ORIGIN.x + direction.x * length,
+    endY: DEBUG_AXIS_ORIGIN.y + direction.y * length,
+    labelX: Math.max(
+      9,
+      Math.min(111, DEBUG_AXIS_ORIGIN.x + direction.x * (length + 8)),
+    ),
+    labelY: Math.max(
+      10,
+      Math.min(
+        112,
+        DEBUG_AXIS_ORIGIN.y +
+          direction.y * (length + 8) +
+          (direction.y > 0 ? 5 : 0),
+      ),
+    ),
+  });
+  return {
+    x: createAxis(debugDirections.value.x, DEBUG_GROUND_AXIS_LENGTH),
+    y: createAxis(debugDirections.value.y, DEBUG_GROUND_AXIS_LENGTH),
+    z: createAxis(debugDirections.value.z, DEBUG_VERTICAL_AXIS_LENGTH),
+  };
 });
+const debugWind = computed(() => {
+  const projected = {
+    x:
+      windDirection.value.x * debugDirections.value.x.x +
+      windDirection.value.z * debugDirections.value.y.x +
+      windDirection.value.y * debugDirections.value.z.x,
+    y:
+      windDirection.value.x * debugDirections.value.x.y +
+      windDirection.value.z * debugDirections.value.y.y +
+      windDirection.value.y * debugDirections.value.z.y,
+  };
+  const length = Math.max(0.001, Math.hypot(projected.x, projected.y));
+  const x = (projected.x / length) * DEBUG_WIND_ARROW_LENGTH;
+  const y = (projected.y / length) * DEBUG_WIND_ARROW_LENGTH;
+  return {
+    endX: DEBUG_WIND_ORIGIN.x + x,
+    endY: DEBUG_WIND_ORIGIN.y + y,
+  };
+});
+const windSpeedLabel = computed(() => `${windSpeed.value.toFixed(2)} u/s`);
 let renderer = null;
 let mapData = null;
 let controls = null;
 let resizeObserver = null;
+let windSpeedTimer = null;
+
+function updateWindDebug() {
+  const wind = renderer?.getWind();
+  if (!wind) return;
+  windSpeed.value = wind.speed;
+  windDirection.value = wind.direction;
+  debugDirections.value =
+    renderer.getDebugDirections() ?? DEFAULT_DEBUG_DIRECTIONS;
+}
 
 async function init() {
   renderer = new PlayCanvasRenderer(canvas.value, container.value, {
@@ -320,15 +468,15 @@ async function init() {
   mapData = generateMap();
   renderer.render(mapData);
   debugVisible.value = renderer.getArrowsVisible();
-  viewRotation.value = renderer.getRotation();
+  updateWindDebug();
 
   const actions = {
     zoom: new ZoomAction(renderer, container.value, CONTROLS.zoom),
     moveCamera: new MoveCameraAction(renderer, CONTROLS.move),
     heroMovement: new HeroMovementAction(renderer),
     vegetationInteraction: new VegetationInteractionAction(renderer),
-    rotateView: new RotateViewAction(renderer, (rotation) => {
-      viewRotation.value = rotation;
+    rotateView: new RotateViewAction(renderer, () => {
+      updateWindDebug();
     }),
     copyScreenshot: new CopyScreenshotAction(renderer, () => {
       Notify.create({
@@ -340,6 +488,7 @@ async function init() {
     }),
     toggleArrows: new ToggleArrowsAction(renderer, (visible) => {
       debugVisible.value = visible;
+      if (visible) updateWindDebug();
     }),
   };
 
@@ -348,6 +497,9 @@ async function init() {
 
   resizeObserver = new ResizeObserver(() => renderer.resize());
   resizeObserver.observe(container.value);
+  windSpeedTimer = window.setInterval(() => {
+    if (debugVisible.value) updateWindDebug();
+  }, 100);
 }
 
 onMounted(init);
@@ -355,6 +507,7 @@ onMounted(init);
 onBeforeUnmount(() => {
   controls?.disconnect();
   resizeObserver?.disconnect();
+  if (windSpeedTimer !== null) window.clearInterval(windSpeedTimer);
   renderer?.destroy();
 });
 </script>

@@ -14,6 +14,10 @@ import {
 import { PathArrows } from "./objects/path/index.js";
 import { Hero } from "./objects/hero/index.js";
 import { GroundCover } from "./objects/ground-cover/index.js";
+import {
+  CubeCloudField,
+  SkyIslandScenery,
+} from "./objects/scenery/index.js";
 import { VoxelVegetation } from "./objects/vegetation/index.js";
 import { TileType } from "./MapGenerator.js";
 import { GRASS_SURFACE_LIFT } from "./config/terrain.js";
@@ -39,6 +43,7 @@ const MATERIAL_DEFINITIONS = {
   grass: { color: 0xffffff, texture: "grass", gloss: 0.05 },
   path: { color: 0xe8d6b5, texture: "path", gloss: 0.05 },
   water: { color: 0xd8f2ff, texture: "water", gloss: 0.22 },
+  islandRock: { color: 0x667482, texture: "earthSide", gloss: 0.03 },
 };
 
 const SIDE_VARIANT_DEFINITIONS = {
@@ -61,6 +66,11 @@ const SIDE_VARIANT_DEFINITIONS = {
     texture: "waterSide",
     colors: [0xd8f2ff, 0xcfeaff, 0xe0f5ff, 0xc9e7ff, 0xd5efff, 0xdff7ff],
     gloss: 0.18,
+  },
+  islandRockSide: {
+    texture: "earthSide",
+    colors: [0x667482, 0x5b6c7b, 0x72808b, 0x526474, 0x6b7984, 0x5e7080],
+    gloss: 0.03,
   },
 };
 
@@ -120,6 +130,7 @@ export class PlayCanvasRenderer {
   #pc = null;
   #app = null;
   #camera = null;
+  #cloudLayer = null;
   #mapRoot = null;
   #mapData = null;
   #cubeMeshes = null;
@@ -130,6 +141,8 @@ export class PlayCanvasRenderer {
   #rotation = 0;
   #panX = 0;
   #panZ = 0;
+  #fitCenterX = 0;
+  #fitCenterZ = 0;
   #viewportManuallyMoved = false;
   #baseOrthoHeight = 24;
   #pathArrows = null;
@@ -138,6 +151,7 @@ export class PlayCanvasRenderer {
   #hero = null;
   #groundCover = null;
   #vegetation = null;
+  #cloudField = null;
   #collisionWorld = new GroundCollisionWorld();
   #modelLibrary = null;
   #gatewayColors = [...GATEWAY_COLORS];
@@ -174,6 +188,9 @@ export class PlayCanvasRenderer {
     );
 
     this.#app.scene.ambientLight = new pc.Color(0.5, 0.57, 0.64);
+    this.#cloudLayer = new pc.Layer({ name: "Cloud backdrop" });
+    this.#app.scene.layers.insert(this.#cloudLayer, 0);
+    this.#app.on("update", this.#updateClouds);
     this.#modelLibrary = new GameModelLibrary({ pc, app: this.#app });
     this.#cubeMeshes = this.#createCubeMeshes();
     this.#pathArrows = new PathArrows({
@@ -189,6 +206,10 @@ export class PlayCanvasRenderer {
       nearClip: 0.1,
       farClip: 250,
     });
+    this.#camera.camera.layers = [
+      this.#cloudLayer.id,
+      ...this.#camera.camera.layers,
+    ];
     this.#app.root.addChild(this.#camera);
 
     const sunlight = new pc.Entity("Sunlight");
@@ -249,6 +270,38 @@ export class PlayCanvasRenderer {
 
   getRotation() {
     return this.#rotation;
+  }
+
+  getWindSpeed() {
+    return this.#cloudField?.windSpeed ?? 0;
+  }
+
+  getWind() {
+    return (
+      this.#cloudField?.wind ?? {
+        direction: { x: 0, y: 0, z: 0 },
+        speed: 0,
+      }
+    );
+  }
+
+  getDebugDirections() {
+    if (!this.#pc || !this.#camera?.camera) return null;
+    const pc = this.#pc;
+    const origin = this.#camera.camera.worldToScreen(new pc.Vec3(0, 0, 0));
+    const projectDirection = (point) => {
+      const endpoint = this.#camera.camera.worldToScreen(point);
+      const x = endpoint.x - origin.x;
+      const y = endpoint.y - origin.y;
+      const length = Math.max(0.0001, Math.hypot(x, y));
+      return { x: x / length, y: y / length };
+    };
+
+    return {
+      x: projectDirection(new pc.Vec3(1, 0, 0)),
+      y: projectDirection(new pc.Vec3(0, 0, 1)),
+      z: projectDirection(new pc.Vec3(0, 1, 0)),
+    };
   }
 
   getGatewayColor(index = 0) {
@@ -322,24 +375,57 @@ export class PlayCanvasRenderer {
     panZ = 0,
     manuallyMoved = false,
   }) {
-    this.#zoom = zoom;
+    this.#zoom = Math.max(MAP_FIT_ZOOM, zoom);
     this.#rotation = rotation;
-    this.#panX = panX;
-    this.#panZ = panZ;
-    this.#viewportManuallyMoved = manuallyMoved;
+    this.#updateFitCenter();
+    const fitted = this.#zoom === MAP_FIT_ZOOM;
+    this.#panX = fitted ? this.#fitCenterX : panX;
+    this.#panZ = fitted ? this.#fitCenterZ : panZ;
+    this.#viewportManuallyMoved = fitted ? false : manuallyMoved;
     this.#updateCamera();
   }
 
   zoomTo(newZoom, pivotX, pivotY) {
+    const previousZoom = this.#zoom;
+    const constrainedZoom = Math.max(MAP_FIT_ZOOM, newZoom);
     const before = this.#screenOffsetToGround(pivotX, pivotY, this.#zoom);
-    const after = this.#screenOffsetToGround(pivotX, pivotY, newZoom);
+    const after = this.#screenOffsetToGround(
+      pivotX,
+      pivotY,
+      constrainedZoom,
+    );
     this.#panX += before.x - after.x;
     this.#panZ += before.z - after.z;
-    this.#zoom = newZoom;
+    this.#zoom = constrainedZoom;
+
+    if (constrainedZoom < previousZoom) {
+      const previousDistance = previousZoom - MAP_FIT_ZOOM;
+      const nextDistance = constrainedZoom - MAP_FIT_ZOOM;
+      const centerRetention =
+        previousDistance > 0 ? nextDistance / previousDistance : 0;
+      this.#panX =
+        this.#fitCenterX +
+        (this.#panX - this.#fitCenterX) * centerRetention;
+      this.#panZ =
+        this.#fitCenterZ +
+        (this.#panZ - this.#fitCenterZ) * centerRetention;
+    }
+    if (constrainedZoom === MAP_FIT_ZOOM) {
+      this.#panX = this.#fitCenterX;
+      this.#panZ = this.#fitCenterZ;
+      this.#viewportManuallyMoved = false;
+    }
     this.#updateCamera();
   }
 
   panBy(deltaX, deltaY) {
+    if (this.#zoom <= MAP_FIT_ZOOM) {
+      this.#panX = this.#fitCenterX;
+      this.#panZ = this.#fitCenterZ;
+      this.#viewportManuallyMoved = false;
+      this.#updateCamera();
+      return;
+    }
     const offset = this.#screenDeltaToGround(deltaX, deltaY, this.#zoom);
     this.#panX -= offset.x;
     this.#panZ -= offset.z;
@@ -368,6 +454,7 @@ export class PlayCanvasRenderer {
 
   destroy() {
     this.#disconnectBannerInteraction();
+    this.#app?.off("update", this.#updateClouds);
     this.#clearScene();
     this.#pathArrows?.destroy();
     this.#pathArrows = null;
@@ -388,6 +475,10 @@ export class PlayCanvasRenderer {
     this.#cubeMeshes = null;
     this.#modelLibrary?.destroy();
     this.#modelLibrary = null;
+    if (this.#cloudLayer) {
+      this.#app?.scene.layers.remove(this.#cloudLayer);
+      this.#cloudLayer = null;
+    }
     this.#app?.destroy();
     this.#app = null;
   }
@@ -466,6 +557,11 @@ export class PlayCanvasRenderer {
       material.emissive = colorFromHex(pc, definition.emissive);
       material.emissiveIntensity = definition.emissiveIntensity ?? 0.45;
     }
+    if (definition.opacity !== undefined) {
+      material.opacity = definition.opacity;
+      material.blendType = pc.BLEND_NORMAL;
+      material.depthWrite = false;
+    }
     material.update();
     return material;
   }
@@ -493,9 +589,22 @@ export class PlayCanvasRenderer {
     this.#mapRoot = new this.#pc.Entity("Voxel map");
     this.#app.root.addChild(this.#mapRoot);
 
+    const scenery = new SkyIslandScenery(this.#mapData);
     const cubeBatches = new Map();
+    this.#buildIslandUndersideMatrices(
+      cubeBatches,
+      scenery.createUndersideVoxels(),
+    );
     this.#buildTerrainMatrices(cubeBatches);
     this.#createInstancedBatches(cubeBatches, this.#mapRoot, true);
+
+    this.#cloudField = new CubeCloudField({
+      pc: this.#pc,
+      app: this.#app,
+      mapData: this.#mapData,
+      layerId: this.#cloudLayer.id,
+    });
+    this.#mapRoot.addChild(this.#cloudField.entity);
     this.#buildCastle();
     this.#buildGateways();
     this.#buildVegetation();
@@ -623,17 +732,6 @@ export class PlayCanvasRenderer {
         const height =
           type in FIXED_HEIGHTS ? FIXED_HEIGHTS[type] : heightmap[row][col];
 
-        if (type === TileType.WATER || renderMode === "BRIDGE") {
-          this.#addCubeMatrix(
-            batches,
-            "water",
-            this.#sideVariant("waterSide", col, row, -1),
-            x,
-            -0.5,
-            z,
-          );
-        }
-
         if (type === TileType.WATER) continue;
 
         if (renderMode === "BRIDGE") {
@@ -674,6 +772,32 @@ export class PlayCanvasRenderer {
       }
     }
   }
+
+  #buildIslandUndersideMatrices(batches, voxels) {
+    const { cols, rows } = this.#mapData;
+    for (const { col, row, level, rocky } of voxels) {
+      const x = col - (cols - 1) / 2;
+      const z = row - (rows - 1) / 2;
+      const topMaterial = rocky ? "islandRock" : "earth";
+      const sideMaterial = rocky
+        ? this.#sideVariant("islandRockSide", col, row, level)
+        : this.#sideVariant("earthSide", col, row, level);
+      this.#addCubeMatrix(
+        batches,
+        topMaterial,
+        sideMaterial,
+        x,
+        level + 0.5,
+        z,
+        "full",
+        topMaterial,
+      );
+    }
+  }
+
+  #updateClouds = (deltaTime) => {
+    this.#cloudField?.update(deltaTime);
+  };
 
   #cubeMaterials(type, topCube, col, row, level) {
     if (type === TileType.CASTLE_WALL || type === TileType.CASTLE_TOWER) {
@@ -796,7 +920,7 @@ export class PlayCanvasRenderer {
     batches.set(materialBatch, data);
   }
 
-  #createInstancedBatches(batches, root, castsShadows) {
+  #createInstancedBatches(batches, root, castsShadows, layerIds = null) {
     const pc = this.#pc;
     for (const [materialBatch, matrices] of batches.entries()) {
       if (matrices.length === 0) continue;
@@ -832,8 +956,9 @@ export class PlayCanvasRenderer {
           topMeshInstance,
         ],
         castShadows: batchCastsShadows,
-        receiveShadows: true,
+        receiveShadows: batchCastsShadows,
       });
+      if (layerIds) entity.render.layers = layerIds;
       for (const meshInstance of [
         sideMeshInstance,
         underlayMeshInstance,
@@ -841,7 +966,7 @@ export class PlayCanvasRenderer {
       ]) {
         meshInstance.setInstancing(vertexBuffer, false);
         meshInstance.castShadow = batchCastsShadows;
-        meshInstance.receiveShadow = true;
+        meshInstance.receiveShadow = batchCastsShadows;
       }
       root.addChild(entity);
     }
@@ -1024,6 +1149,42 @@ export class PlayCanvasRenderer {
       maxHeight * Math.cos(CAMERA_PITCH) +
       1;
     this.#baseOrthoHeight = Math.max(halfHeight, halfWidth / aspect) * 0.84;
+    this.#updateFitCenter();
+    if (this.#zoom === MAP_FIT_ZOOM) {
+      this.#panX = this.#fitCenterX;
+      this.#panZ = this.#fitCenterZ;
+    }
+  }
+
+  #updateFitCenter() {
+    if (!this.#mapData) return;
+    const { grid, cols, rows } = this.#mapData;
+    const yaw = Math.PI / 4 + this.#rotation * (Math.PI / 2);
+    const rightX = Math.cos(yaw);
+    const rightZ = -Math.sin(yaw);
+    let minimumProjection = Number.POSITIVE_INFINITY;
+    let maximumProjection = Number.NEGATIVE_INFINITY;
+
+    for (let row = 0; row < rows; row += 1) {
+      for (let col = 0; col < cols; col += 1) {
+        if (grid[row][col] === TileType.WATER) continue;
+        const x = col - (cols - 1) / 2;
+        const z = row - (rows - 1) / 2;
+        const projection = x * rightX + z * rightZ;
+        minimumProjection = Math.min(minimumProjection, projection);
+        maximumProjection = Math.max(maximumProjection, projection);
+      }
+    }
+
+    if (!Number.isFinite(minimumProjection)) {
+      this.#fitCenterX = 0;
+      this.#fitCenterZ = 0;
+      return;
+    }
+
+    const centerProjection = (minimumProjection + maximumProjection) / 2;
+    this.#fitCenterX = rightX * centerProjection;
+    this.#fitCenterZ = rightZ * centerProjection;
   }
 
   #handleHeroPositionChange = ({ x, y, z }) => {
@@ -1097,6 +1258,11 @@ export class PlayCanvasRenderer {
 
   #updateCamera() {
     if (!this.#camera || !this.#mapData) return;
+    if (this.#zoom === MAP_FIT_ZOOM) {
+      this.#updateFitCenter();
+      this.#panX = this.#fitCenterX;
+      this.#panZ = this.#fitCenterZ;
+    }
     const yaw = Math.PI / 4 + this.#rotation * (Math.PI / 2);
     const horizontalDistance = CAMERA_DISTANCE * Math.cos(CAMERA_PITCH);
     const target = new this.#pc.Vec3(this.#panX, 3.2, this.#panZ);
@@ -1107,6 +1273,12 @@ export class PlayCanvasRenderer {
     );
     this.#camera.lookAt(target);
     this.#camera.camera.orthoHeight = this.#baseOrthoHeight / this.#zoom;
+    this.#cloudField?.setCameraState({
+      rotation: this.#rotation,
+      panX: this.#panX,
+      panZ: this.#panZ,
+      zoom: this.#zoom,
+    });
   }
 
   #screenOffsetToGround(x, y, zoom) {
@@ -1281,6 +1453,8 @@ export class PlayCanvasRenderer {
     this.#vegetation = null;
     this.#groundCover?.destroy();
     this.#groundCover = null;
+    this.#cloudField?.destroy();
+    this.#cloudField = null;
     this.#setInteractionTarget(null);
     this.#mapRoot?.destroy();
     this.#mapRoot = null;

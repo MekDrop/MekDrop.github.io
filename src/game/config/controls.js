@@ -52,7 +52,7 @@ export const CONTROLS = {
   },
   zoom: {
     factor: 1.1,
-    min: 0.15,
+    min: 1.0,
     max: 6.0,
   },
   move: {
