@@ -48,7 +48,6 @@ const CASTLE_MATERIAL_DEFINITIONS = {
 const CASTLE_STYLES = [
   {
     id: "twin-tower",
-    preferredWidth: 8,
     layout: "STRAIGHT",
     towerPlacements: ["FRONT_LEFT", "FRONT_RIGHT"],
     wallWings: [],
@@ -58,11 +57,10 @@ const CASTLE_STYLES = [
     gateShoulderSpanBlocks: 2,
     gateCrownHeightBlocks: 24,
     battlementPeriod: 2,
-    visualDepthBlocks: 18,
+    visualDepthBlocks: 20,
   },
   {
     id: "right-angle",
-    preferredWidth: 11,
     layout: "L",
     towerPlacements: ["FRONT_RIGHT", "BACK_RIGHT"],
     wallWings: ["RIGHT"],
@@ -76,7 +74,6 @@ const CASTLE_STYLES = [
   },
   {
     id: "single-tower",
-    preferredWidth: 9,
     layout: "SINGLE_TOWER",
     towerPlacements: ["FRONT_RIGHT"],
     wallWings: [],
@@ -86,11 +83,10 @@ const CASTLE_STYLES = [
     gateShoulderSpanBlocks: 3,
     gateCrownHeightBlocks: 26,
     battlementPeriod: 2,
-    visualDepthBlocks: 18,
+    visualDepthBlocks: 20,
   },
   {
     id: "left-angle",
-    preferredWidth: 10,
     layout: "L",
     towerPlacements: ["FRONT_LEFT", "BACK_LEFT"],
     wallWings: ["LEFT"],
@@ -133,6 +129,7 @@ export class Castle {
   #app;
   #position;
   #doors;
+  #styleId;
   #occupant;
   #modelLibrary;
   #entity;
@@ -161,6 +158,7 @@ export class Castle {
     app,
     position,
     doors = [],
+    style = null,
     occupant = "king",
     modelLibrary,
   }) {
@@ -168,6 +166,7 @@ export class Castle {
     this.#app = app;
     this.#position = position;
     this.#doors = doors;
+    this.#styleId = style;
     this.#occupant = occupant;
     this.#modelLibrary = modelLibrary;
     this.#entity = new pc.Entity("Castle");
@@ -440,12 +439,18 @@ export class Castle {
     }
   }
 
-  #selectStyle(position, openings, facadeSpan, inwardCapacity) {
-    const styles = [...CASTLE_STYLES].sort(
-      (left, right) =>
-        Number(right.preferredWidth === position.width) -
-        Number(left.preferredWidth === position.width),
+  #selectStyle(openings, facadeSpan, inwardCapacity) {
+    const preferredStyle = CASTLE_STYLES.find(
+      (candidate) => candidate.id === this.#styleId,
     );
+    const styles = preferredStyle
+      ? [
+          preferredStyle,
+          ...CASTLE_STYLES.filter(
+            (candidate) => candidate !== preferredStyle,
+          ),
+        ]
+      : [...CASTLE_STYLES];
     const style = styles.find((candidate) =>
       this.#styleFits(candidate, openings, facadeSpan, inwardCapacity),
     );
@@ -579,12 +584,7 @@ export class Castle {
         end: reverse ? axisLength - opening.start : opening.end,
       };
     });
-    const style = this.#selectStyle(
-      position,
-      openings,
-      facadeSpan,
-      inwardCapacity,
-    );
+    const style = this.#selectStyle(openings, facadeSpan, inwardCapacity);
     const wallHeight = style.wallHeightBlocks ?? CASTLE_WALL_HEIGHT_BLOCKS;
     const towerSpan = style.towerSpanBlocks ?? CASTLE_TOWER_SPAN_BLOCKS;
     const towerHeight = style.towerHeightBlocks ?? CASTLE_TOWER_HEIGHT_BLOCKS;

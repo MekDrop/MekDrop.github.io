@@ -365,6 +365,7 @@ import { GameControls } from "src/game/GameControls.js";
 import { CopyScreenshotAction } from "src/game/actions/CopyScreenshotAction.js";
 import { HeroMovementAction } from "src/game/actions/HeroMovementAction.js";
 import { MoveCameraAction } from "src/game/actions/MoveCameraAction.js";
+import { RegenerateMapAction } from "src/game/actions/RegenerateMapAction.js";
 import { RotateViewAction } from "src/game/actions/RotateViewAction.js";
 import { ToggleArrowsAction } from "src/game/actions/ToggleArrowsAction.js";
 import { VegetationInteractionAction } from "src/game/actions/VegetationInteractionAction.js";
@@ -473,6 +474,16 @@ async function init() {
   const actions = {
     zoom: new ZoomAction(renderer, container.value, CONTROLS.zoom),
     moveCamera: new MoveCameraAction(renderer, CONTROLS.move),
+    regenerateMap: new RegenerateMapAction(
+      renderer,
+      generateMap,
+      (generatedMap) => {
+        mapData = generatedMap;
+        interactionTarget.value = null;
+        debugVisible.value = renderer.getArrowsVisible();
+        updateWindDebug();
+      },
+    ),
     heroMovement: new HeroMovementAction(renderer),
     vegetationInteraction: new VegetationInteractionAction(renderer),
     rotateView: new RotateViewAction(renderer, () => {

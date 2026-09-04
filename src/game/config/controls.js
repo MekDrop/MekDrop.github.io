@@ -38,6 +38,10 @@ export const CONTROLS = {
     ctrlKey: true,
     allowRepeat: false,
   },
+  regenerateMap: {
+    keys: ["F5"],
+    allowRepeat: false,
+  },
   dragCamera: {
     mouseButtons: [0, 2],
     activationDistance: 4,

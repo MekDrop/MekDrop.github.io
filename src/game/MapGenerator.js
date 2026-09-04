@@ -41,6 +41,7 @@ export class MapGenerator {
   static #FOUNDATION_HEIGHT = 3;
   static #WATER_HEIGHT = 0;
   static #CASTLE_GROUND_CLEARANCE = 3;
+  static #CASTLE_REAR_GROUND_CLEARANCE = 1;
   static #CASTLE_OCCUPANTS = ['king', 'queen', 'princess'];
   static #TREE_VARIANTS = ['oak', 'pine', 'tall-tree', 'sapling'];
   static #BUSH_VARIANTS = ['round-bush', 'wide-bush'];
@@ -71,10 +72,10 @@ export class MapGenerator {
     ...this.#BUSH_VARIANTS,
   ];
   static #CASTLE_FOOTPRINTS = [
-    { width: 8, depth: 7 },
-    { width: 11, depth: 7 },
-    { width: 9, depth: 7 },
-    { width: 10, depth: 7 },
+    { width: 5, depth: 7, style: 'twin-tower' },
+    { width: 6, depth: 7, style: 'right-angle' },
+    { width: 5, depth: 7, style: 'single-tower' },
+    { width: 6, depth: 7, style: 'left-angle' },
   ];
   static #TILE_SHAPE = {
     FLAT: 'FLAT',
@@ -217,11 +218,15 @@ export class MapGenerator {
     const pathRows = anchorRows[this.#rng(0, anchorRows.length - 1)];
     const castleFootprintIndex = numPaths >= 4 ? 1 : numPaths === 3 ? 2 : pathRows[0] <= 6 || pathRows[1] >= 25 ? 0 : 3;
     const castleFootprint = this.#CASTLE_FOOTPRINTS[castleFootprintIndex];
-    const castleLeft = this.#rng(24, 38 - castleFootprint.width);
+    // Keep the castle against the rear of its buildable plateau. The footprint
+    // still varies by width and row, while the required grass clearance remains
+    // between the back wall and the island edge.
+    const castleRight =
+      this.#MAP_COLS - this.#CASTLE_REAR_GROUND_CLEARANCE - 2;
+    const castleLeft = castleRight - castleFootprint.width + 1;
     const castleCenterRow = pathRows[1];
     const castleTop = pathRows[0] - Math.floor((castleFootprint.depth - 2) / 2);
     const castleBottom = castleTop + castleFootprint.depth - 1;
-    const castleRight = castleLeft + castleFootprint.width - 1;
     const castleEntranceRows = [...pathRows];
     const entries = this.#selectEntries(numPaths, castleLeft, castleTop, castleBottom, pathRows);
     const islandEllipses = [
@@ -362,7 +367,7 @@ export class MapGenerator {
       mask,
       layout.castleLeft - this.#CASTLE_GROUND_CLEARANCE,
       layout.castleTop - this.#CASTLE_GROUND_CLEARANCE,
-      layout.castleRight + this.#CASTLE_GROUND_CLEARANCE,
+      layout.castleRight + this.#CASTLE_REAR_GROUND_CLEARANCE,
       layout.castleBottom + this.#CASTLE_GROUND_CLEARANCE
     );
 
@@ -377,6 +382,24 @@ export class MapGenerator {
             mask[row][col] = false;
           }
         }
+      }
+    }
+
+    // End the local plateau immediately after the rear grass buffer. Entry
+    // corridors cannot overlap this band, so this keeps the castle close to
+    // the cliff without removing a valid gate approach.
+    for (
+      let row = layout.castleTop - this.#CASTLE_GROUND_CLEARANCE;
+      row <= layout.castleBottom + this.#CASTLE_GROUND_CLEARANCE;
+      row++
+    ) {
+      for (
+        let col =
+          layout.castleRight + this.#CASTLE_REAR_GROUND_CLEARANCE + 1;
+        col < this.#MAP_COLS;
+        col++
+      ) {
+        if (this.#inBounds(col, row)) mask[row][col] = false;
       }
     }
 
@@ -787,6 +810,7 @@ export class MapGenerator {
         depth: layout.castleBottom - layout.castleTop + 1,
         elevation: this.#FOUNDATION_HEIGHT,
       },
+      style: layout.castleFootprint.style,
       doors,
       occupant:
         this.#CASTLE_OCCUPANTS[
@@ -1584,7 +1608,7 @@ export class MapGenerator {
     ) {
       for (
         let col = layout.castleLeft - this.#CASTLE_GROUND_CLEARANCE;
-        col <= layout.castleRight + this.#CASTLE_GROUND_CLEARANCE;
+        col <= layout.castleRight + this.#CASTLE_REAR_GROUND_CLEARANCE;
         col++
       ) {
         if (!this.#inBounds(col, row) || grid[row][col] === TileType.WATER) {

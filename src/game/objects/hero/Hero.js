@@ -76,7 +76,21 @@ const RESPAWN_HEIGHT = -4;
 // Keeps the widest pose, including the pauldron and its outline, within one
 // 1x1 terrain/path cube.
 const HERO_MODEL_SCALE = 0.65;
-const WALKABLE_TILES = new Set([TileType.GRASS, TileType.PATH, TileType.ENTRY]);
+// Castle foundation cells render as grass. The castle collision world owns the
+// exact wall, door, stair, and furniture footprints, so open foundation ground
+// must remain traversable instead of treating the whole rectangle as a wall.
+const WALKABLE_TILES = new Set([
+  TileType.GRASS,
+  TileType.PATH,
+  TileType.ENTRY,
+  TileType.CASTLE_WALL,
+  TileType.CASTLE_TOWER,
+]);
+const GRASS_SURFACE_TILES = new Set([
+  TileType.GRASS,
+  TileType.CASTLE_WALL,
+  TileType.CASTLE_TOWER,
+]);
 const CUT_DURATION = 0.8;
 const CUT_IMPACT_TIME = 0.44;
 const SUMMON_AXE_DURATION = 0.57;
@@ -92,6 +106,7 @@ export class Hero {
 
   #pc;
   #mapData;
+  #spawnCenter;
   #getViewRotation;
   #onPositionChange;
   #onFacingChange;
@@ -130,6 +145,7 @@ export class Hero {
     pc,
     app,
     mapData,
+    spawnCenter = { x: 0, z: 0 },
     getViewRotation,
     onPositionChange,
     onFacingChange,
@@ -139,6 +155,7 @@ export class Hero {
   }) {
     this.#pc = pc;
     this.#mapData = mapData;
+    this.#spawnCenter = spawnCenter;
     this.#getViewRotation = getViewRotation;
     this.#onPositionChange = onPositionChange;
     this.#onFacingChange = onFacingChange;
@@ -148,6 +165,7 @@ export class Hero {
     this.#entity = new pc.Entity("Hero");
     this.#spawn = this.#findSpawn();
     this.#position = { ...this.#spawn };
+    this.#facingYaw = this.#initialFacingYaw();
     this.#entity.setLocalPosition(
       this.#position.x,
       this.#position.y,
@@ -542,7 +560,7 @@ export class Hero {
       type,
       height:
         this.#mapData.heightmap[row][col] +
-        (type === TileType.GRASS ? GRASS_SURFACE_LIFT : 0),
+        (GRASS_SURFACE_TILES.has(type) ? GRASS_SURFACE_LIFT : 0),
     };
   }
 
@@ -550,7 +568,6 @@ export class Hero {
     const { castle, cols, rows } = this.#mapData;
     const grassTiles = [];
     const safeGrassTiles = [];
-    const nearbyGrassTiles = [];
     const castleLeft = castle?.position?.col;
     const castleTop = castle?.position?.row;
     const castleRight = castleLeft + (castle?.position?.width ?? 0) - 1;
@@ -559,6 +576,13 @@ export class Hero {
     for (let row = 0; row < rows; row += 1) {
       for (let col = 0; col < cols; col += 1) {
         if (this.#mapData.grid[row][col] !== TileType.GRASS) continue;
+        const behindCastle =
+          Number.isFinite(castleRight) &&
+          Number.isFinite(castleTop) &&
+          col > castleRight &&
+          row >= castleTop - 1 &&
+          row <= castleBottom + 1;
+        if (behindCastle) continue;
         const tile = { col, row };
         const x = col - (cols - 1) / 2;
         const z = row - (rows - 1) / 2;
@@ -578,24 +602,23 @@ export class Hero {
         grassTiles.push(tile);
         if (!this.#hasSpawnExit(col, row)) continue;
         safeGrassTiles.push(tile);
-        if (!Number.isFinite(castleLeft) || !Number.isFinite(castleTop)) {
-          continue;
-        }
-
-        const distanceX = Math.max(castleLeft - col, 0, col - castleRight);
-        const distanceZ = Math.max(castleTop - row, 0, row - castleBottom);
-        const distance = Math.hypot(distanceX, distanceZ);
-        if (distance >= 2 && distance <= 6) nearbyGrassTiles.push(tile);
       }
     }
 
-    const candidates = nearbyGrassTiles.length
-      ? nearbyGrassTiles
-      : safeGrassTiles.length
-        ? safeGrassTiles
-        : grassTiles;
+    const candidates = safeGrassTiles.length ? safeGrassTiles : grassTiles;
     if (candidates.length) {
-      const tile = candidates[Math.floor(Math.random() * candidates.length)];
+      const centerCol = this.#spawnCenter.x + (cols - 1) / 2;
+      const centerRow = this.#spawnCenter.z + (rows - 1) / 2;
+      const tile = candidates.reduce((closest, candidate) => {
+        if (!closest) return candidate;
+        const candidateDistance =
+          (candidate.col - centerCol) ** 2 +
+          (candidate.row - centerRow) ** 2;
+        const closestDistance =
+          (closest.col - centerCol) ** 2 +
+          (closest.row - centerRow) ** 2;
+        return candidateDistance < closestDistance ? candidate : closest;
+      }, null);
       return {
         x: tile.col - (cols - 1) / 2,
         y: this.#mapData.heightmap[tile.row][tile.col] + GRASS_SURFACE_LIFT,
@@ -636,7 +659,7 @@ export class Hero {
       const type = this.#mapData.grid[neighbourRow][neighbourCol];
       const elevation =
         this.#mapData.heightmap[neighbourRow][neighbourCol] +
-        (type === TileType.GRASS ? GRASS_SURFACE_LIFT : 0);
+        (GRASS_SURFACE_TILES.has(type) ? GRASS_SURFACE_LIFT : 0);
       if (
         this.#collisionWorld?.isBlocked(
           x,
@@ -651,6 +674,26 @@ export class Hero {
       exits += 1;
     }
     return exits >= 2;
+  }
+
+  #initialFacingYaw() {
+    const { castle, cols, rows } = this.#mapData;
+    const castlePosition = castle?.position;
+    if (!castlePosition) return 0;
+
+    const castleCenterX =
+      castlePosition.col +
+      (castlePosition.width - 1) / 2 -
+      (cols - 1) / 2;
+    const castleCenterZ =
+      castlePosition.row +
+      (castlePosition.depth - 1) / 2 -
+      (rows - 1) / 2;
+    const directionX = castleCenterX - this.#position.x;
+    const directionZ = castleCenterZ - this.#position.z;
+    if (Math.hypot(directionX, directionZ) <= 0.001) return 0;
+
+    return (Math.atan2(directionX, directionZ) * 180) / Math.PI;
   }
 
   #respawn() {
@@ -772,6 +815,7 @@ export class Hero {
   #createModel() {
     this.#modelRoot = this.#modelLibrary.instantiate(Hero.modelUrl);
     this.#modelRoot.name = "Hero model instance";
+    this.#modelRoot.setLocalEulerAngles(0, this.#facingYaw, 0);
     this.#modelRoot.setLocalScale(
       HERO_MODEL_SCALE,
       HERO_MODEL_SCALE,

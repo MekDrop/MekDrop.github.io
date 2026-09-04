@@ -92,13 +92,15 @@ export class CastleStairs {
       const approachElevation = Number.isFinite(door.approachElevation)
         ? door.approachElevation
         : baseY;
+      const rise = Math.max(0, baseY - approachElevation);
       const riseBlocks = Math.max(
         0,
-        Math.round((baseY - approachElevation) / this.#cubeSize),
+        Math.ceil(rise / this.#cubeSize - 0.000001),
       );
+      const stepHeight = riseBlocks > 0 ? rise / riseBlocks : this.#cubeSize;
       const widthBlocks = Math.round(door.width * blocksPerTile);
       const offsetBlocks = Math.round(door.offset * blocksPerTile);
-      this.#addSurface(door, approachElevation, riseBlocks);
+      this.#addSurface(door, approachElevation, riseBlocks, rise);
 
       for (let level = 0; level < riseBlocks; level += 1) {
         const distanceBlocks =
@@ -113,6 +115,7 @@ export class CastleStairs {
               acrossBlocks,
               approachElevation,
               layer,
+              stepHeight,
             );
             if (!position) continue;
             this.#addModuleMatrix(
@@ -120,6 +123,7 @@ export class CastleStairs {
               this.#materialFor(distanceBlocks, acrossBlocks, layer),
               door.side,
               position,
+              stepHeight,
             );
           }
         }
@@ -129,10 +133,9 @@ export class CastleStairs {
     this.#createInstancedBatches(batches);
   }
 
-  #addSurface(door, approachElevation, riseBlocks) {
+  #addSurface(door, approachElevation, riseBlocks, rise) {
     if (riseBlocks <= 0) return;
     const run = riseBlocks * STAIR_MODULE_RUN_BLOCKS * this.#cubeSize;
-    const rise = riseBlocks * this.#cubeSize;
     const left = this.#position.x;
     const right = left + this.#position.width;
     const top = this.#position.z;
@@ -167,10 +170,11 @@ export class CastleStairs {
     acrossBlocks,
     approachElevation,
     layer,
+    stepHeight,
   ) {
     const distance = distanceBlocks * this.#cubeSize;
     const across = (acrossBlocks + 0.5) * this.#cubeSize;
-    const y = approachElevation + (layer + 0.5) * this.#cubeSize;
+    const y = approachElevation + (layer + 0.5) * stepHeight;
     const left = this.#position.x;
     const right = left + this.#position.width;
     const top = this.#position.z;
@@ -193,7 +197,7 @@ export class CastleStairs {
     return STONE_MATERIAL_NAMES[(hash >>> 0) % STONE_MATERIAL_NAMES.length];
   }
 
-  #addModuleMatrix(batches, material, side, position) {
+  #addModuleMatrix(batches, material, side, position, stepHeight) {
     const matrix = new this.#pc.Mat4();
     const rotation = new this.#pc.Quat();
     rotation.setFromEulerAngles(
@@ -204,7 +208,7 @@ export class CastleStairs {
     matrix.setTRS(
       new this.#pc.Vec3(position.x, position.y, position.z),
       rotation,
-      new this.#pc.Vec3(this.#cubeSize, this.#cubeSize, this.#cubeSize),
+      new this.#pc.Vec3(this.#cubeSize, stepHeight, this.#cubeSize),
     );
     const matrices = batches.get(material) ?? [];
     for (const value of matrix.data) matrices.push(value);

@@ -33,6 +33,11 @@ import { HeroVisibilityController } from "./camera/index.js";
 const FIXED_HEIGHTS = {
   [TileType.WATER]: 0,
 };
+const GRASS_SURFACE_TILES = new Set([
+  TileType.GRASS,
+  TileType.CASTLE_WALL,
+  TileType.CASTLE_TOWER,
+]);
 
 const TEXTURE_URLS = {
   grass: grassTopUrl,
@@ -275,6 +280,9 @@ export class PlayCanvasRenderer {
     this.#panX = 0;
     this.#panZ = 0;
     this.#viewportManuallyMoved = false;
+    this.#updateFitCenter();
+    this.#panX = this.#fitCenterX;
+    this.#panZ = this.#fitCenterZ;
     this.#rebuildScene();
     this.#fitCamera();
     this.#updateCamera();
@@ -740,6 +748,7 @@ export class PlayCanvasRenderer {
       pc: this.#pc,
       app: this.#app,
       mapData: this.#mapData,
+      spawnCenter: { x: this.#fitCenterX, z: this.#fitCenterZ },
       getViewRotation: () => this.#rotation,
       onPositionChange: this.#handleHeroPositionChange,
       onFacingChange: this.#handleHeroFacingChange,
@@ -832,7 +841,7 @@ export class PlayCanvasRenderer {
         z: castle.position.row - (rows - 1) / 2 - CUBE_SCALE / 2,
         width: castle.position.width,
         depth: castle.position.depth,
-        elevation: castle.position.elevation,
+        elevation: castle.position.elevation + GRASS_SURFACE_LIFT,
       },
       doors: castle.doors.map(({ side, offset, width, cells = [] }) => {
         const approachElevations = cells
@@ -844,9 +853,10 @@ export class PlayCanvasRenderer {
           width,
           approachElevation: approachElevations.length
             ? Math.max(...approachElevations)
-            : castle.position.elevation,
+            : castle.position.elevation + GRASS_SURFACE_LIFT,
         };
       }),
+      style: castle.style,
       occupant: castle.occupant,
       modelLibrary: this.#modelLibrary,
     });
@@ -897,9 +907,11 @@ export class PlayCanvasRenderer {
             x,
             level + 0.5,
             z,
-            this.#surfaceCoverage(type, topCube),
+            this.#surfaceCoverage(topCube),
             level === 0 ? underlay : "none",
-            topCube && type === TileType.GRASS ? GRASS_SURFACE_LIFT : 0,
+            topCube && GRASS_SURFACE_TILES.has(type)
+              ? GRASS_SURFACE_LIFT
+              : 0,
           );
         }
       }
@@ -1041,11 +1053,8 @@ export class PlayCanvasRenderer {
     return (hash >>> 0) % count;
   }
 
-  #surfaceCoverage(type, topCube) {
+  #surfaceCoverage(topCube) {
     if (!topCube) return "none";
-    if (type === TileType.CASTLE_WALL || type === TileType.CASTLE_TOWER) {
-      return "block";
-    }
     return "full";
   }
 

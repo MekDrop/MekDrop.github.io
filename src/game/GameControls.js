@@ -53,6 +53,14 @@ export class GameControls {
       return;
     }
 
+    if (this.#matchesKey(event, this.#config.regenerateMap)) {
+      event.preventDefault();
+      event.returnValue = false;
+      event.stopImmediatePropagation();
+      this.#actions.regenerateMap.regenerateMap();
+      return;
+    }
+
     if (this.#isEditable(event.target)) return;
 
     if (this.#matchesKey(event, this.#config.run)) {
@@ -100,6 +108,13 @@ export class GameControls {
   };
 
   #handleKeyup = (event) => {
+    if (this.#matchesKey(event, this.#config.regenerateMap)) {
+      event.preventDefault();
+      event.returnValue = false;
+      event.stopImmediatePropagation();
+      return;
+    }
+
     if (this.#matchesKey(event, this.#config.run)) {
       this.#actions.heroMovement.setRunning(event.shiftKey);
       return;
@@ -206,7 +221,12 @@ export class GameControls {
   }
 
   #matchesKey(event, binding) {
-    if (!binding?.keys.includes(event.code)) return false;
+    if (
+      !binding?.keys.includes(event.code) &&
+      !binding?.keys.includes(event.key)
+    ) {
+      return false;
+    }
     if (binding.ctrlKey !== undefined && binding.ctrlKey !== event.ctrlKey) {
       return false;
     }
