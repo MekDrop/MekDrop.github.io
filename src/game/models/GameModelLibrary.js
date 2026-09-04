@@ -51,7 +51,12 @@ export class GameModelLibrary {
   instantiateMergedBatch(
     url,
     matrices,
-    { name = "Instanced game model", material = null } = {},
+    {
+      name = "Instanced game model",
+      material = null,
+      castShadows = true,
+      receiveShadows = castShadows,
+    } = {},
   ) {
     const mergedModel = this.#mergedModelFor(url);
     if (!matrices.length) return null;
@@ -71,12 +76,12 @@ export class GameModelLibrary {
       entity,
     );
     meshInstance.setInstancing(vertexBuffer, false);
-    meshInstance.castShadow = true;
-    meshInstance.receiveShadow = true;
+    meshInstance.castShadow = castShadows;
+    meshInstance.receiveShadow = receiveShadows;
     entity.addComponent("render", {
       meshInstances: [meshInstance],
-      castShadows: true,
-      receiveShadows: true,
+      castShadows,
+      receiveShadows,
     });
 
     return { entity, vertexBuffer };

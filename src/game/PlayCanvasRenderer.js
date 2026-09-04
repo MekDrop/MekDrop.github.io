@@ -5,6 +5,7 @@ import pathSideUrl from "src/assets/game/tiles/path-sandstone-side.png";
 import pathTopUrl from "src/assets/game/tiles/path-sandstone-top.png";
 import waterSideUrl from "src/assets/game/tiles/water-side.png";
 import waterTopUrl from "src/assets/game/tiles/water-top.png";
+import grassTerrainFragmentShader from "./objects/ground-cover/GrassTerrain.frag?raw";
 import { Castle } from "./objects/castle/index.js";
 import {
   GATEWAY_BANNER_SIGNS,
@@ -13,7 +14,10 @@ import {
 } from "./objects/gateway/index.js";
 import { PathArrows } from "./objects/path/index.js";
 import { Hero } from "./objects/hero/index.js";
-import { GroundCover } from "./objects/ground-cover/index.js";
+import {
+  GrassSurface,
+  GroundCover,
+} from "./objects/ground-cover/index.js";
 import {
   CubeCloudField,
   FloatingIslandMotion,
@@ -42,7 +46,12 @@ const TEXTURE_URLS = {
 
 const MATERIAL_DEFINITIONS = {
   earth: { color: 0xe8c4a0, texture: "earthSide", gloss: 0.08 },
-  grass: { color: 0xffffff, texture: "grass", gloss: 0.05 },
+  grass: {
+    color: 0xffffff,
+    texture: "grass",
+    gloss: 0.05,
+    continuousTexture: true,
+  },
   path: { color: 0xe8d6b5, texture: "path", gloss: 0.05 },
   water: { color: 0xd8f2ff, texture: "water", gloss: 0.22 },
   islandRock: { color: 0x667482, texture: "earthSide", gloss: 0.03 },
@@ -90,18 +99,15 @@ const SIDE_VARIANT_TRANSFORMS = [
   { startU: 0.14, scaleU: 0.72, flipU: false },
   { startU: 0.28, scaleU: 0.72, flipU: true },
 ];
+const GRASS_EARTH_SIDE_TRANSFORMS = SIDE_VARIANT_TRANSFORMS.map(
+  (transform) => ({
+    ...transform,
+    startV: 0.18,
+    scaleV: 0.82,
+  }),
+);
 
-const GRASS_TOP_VARIANTS = [
-  { color: 0xffffff, startU: 0.02, startV: 0.02, flipU: false },
-  { color: 0xfafcf6, startU: 0.34, startV: 0.02, flipU: true },
-  { color: 0xf4f8f0, startU: 0.66, startV: 0.02, flipU: false },
-  { color: 0xfffffb, startU: 0.02, startV: 0.34, flipU: true },
-  { color: 0xf7fbf4, startU: 0.34, startV: 0.34, flipU: false },
-  { color: 0xf1f6ee, startU: 0.66, startV: 0.34, flipU: true },
-  { color: 0xfbfef8, startU: 0.02, startV: 0.66, flipU: false },
-  { color: 0xf5f9f2, startU: 0.34, startV: 0.66, flipU: true },
-  { color: 0xfdfbf5, startU: 0.66, startV: 0.66, flipU: false },
-].map((variant) => ({ ...variant, scaleU: 0.32, scaleV: 0.32 }));
+const GRASS_TOP_VARIANTS = [{ color: 0xffffff }];
 
 const SURFACE_MATERIALS = {
   [TileType.GRASS]: "grass",
@@ -167,6 +173,7 @@ export class PlayCanvasRenderer {
   #heroVisibility = null;
   #floatingIslandMotion = null;
   #groundCover = null;
+  #grassSurface = null;
   #vegetation = null;
   #cloudField = null;
   #collisionWorld = new GroundCollisionWorld();
@@ -437,6 +444,7 @@ export class PlayCanvasRenderer {
   }
 
   panBy(deltaX, deltaY) {
+    this.#grassSurface?.applyViewInteraction(deltaX, deltaY);
     if (this.#zoom <= MAP_FIT_ZOOM) {
       this.#panX = this.#fitCenterX;
       this.#panZ = this.#fitCenterZ;
@@ -452,6 +460,7 @@ export class PlayCanvasRenderer {
   }
 
   rotateBy(quarterTurns) {
+    this.#grassSurface?.applyViewInteraction(quarterTurns * 18, 0);
     this.#rotation = (((this.#rotation + quarterTurns) % 4) + 4) % 4;
     this.#updateCamera();
     this.#heroVisibility?.schedule();
@@ -487,6 +496,7 @@ export class PlayCanvasRenderer {
     this.#textureAssets = [];
     if (this.#cubeMeshes) {
       this.#destroyMesh(this.#cubeMeshes.sides);
+      this.#destroyMesh(this.#cubeMeshes.wallSides);
       this.#destroyMesh(this.#cubeMeshes.underlay);
       for (const mesh of Object.values(this.#cubeMeshes.surfaces)) {
         this.#destroyMesh(mesh);
@@ -568,6 +578,36 @@ export class PlayCanvasRenderer {
           ),
         );
       });
+      GRASS_EARTH_SIDE_TRANSFORMS.forEach((transform, variant) => {
+        const earthName = `grassEarthSide-depth-${depth}-${variant}`;
+        this.#materials.set(
+          earthName,
+          this.#createMaterial(
+            earthName,
+            {
+              color: shadeHexColor(0xffffff, shade),
+              texture: "grassSide",
+              gloss: 0.05,
+              ...transform,
+            },
+            textures,
+          ),
+        );
+        const topName = `grassTopSide-depth-${depth}-${variant}`;
+        this.#materials.set(
+          topName,
+          this.#createMaterial(
+            topName,
+            {
+              color: shadeHexColor(0xffffff, shade),
+              texture: "grassSide",
+              gloss: 0.05,
+              ...SIDE_VARIANT_TRANSFORMS[variant],
+            },
+            textures,
+          ),
+        );
+      });
     });
 
     GRASS_TOP_VARIANTS.forEach((variant, index) => {
@@ -617,6 +657,16 @@ export class PlayCanvasRenderer {
       material.blendType = pc.BLEND_NORMAL;
       material.depthWrite = false;
     }
+    if (definition.continuousTexture) {
+      material.shaderChunks.glsl.set(
+        "diffusePS",
+        grassTerrainFragmentShader,
+      );
+      material.setParameter("uGrassHeroPosition", [0, -1000, 0]);
+      material.setParameter("uGrassHeroDirection", [0, 1]);
+      material.setParameter("uGrassHeroInfluence", 0);
+      material.setParameter("uGrassMotionInfluence", 0);
+    }
     material.update();
     return material;
   }
@@ -630,8 +680,12 @@ export class PlayCanvasRenderer {
     return new Promise((resolve, reject) => {
       asset.ready((loadedAsset) => {
         loadedAsset.resource.anisotropy = 8;
-        loadedAsset.resource.addressU = pc.ADDRESS_CLAMP_TO_EDGE;
-        loadedAsset.resource.addressV = pc.ADDRESS_CLAMP_TO_EDGE;
+        const addressMode =
+          name === "grass"
+            ? pc.ADDRESS_MIRRORED_REPEAT
+            : pc.ADDRESS_CLAMP_TO_EDGE;
+        loadedAsset.resource.addressU = addressMode;
+        loadedAsset.resource.addressV = addressMode;
         resolve(loadedAsset.resource);
       });
       asset.once("error", reject);
@@ -657,6 +711,13 @@ export class PlayCanvasRenderer {
     );
     this.#buildTerrainMatrices(cubeBatches);
     this.#createInstancedBatches(cubeBatches, this.#mapRoot, true);
+    this.#grassSurface = new GrassSurface({
+      app: this.#app,
+      terrainMaterials: [
+        this.#materials.get("grass"),
+        this.#materials.get("grass-0"),
+      ].filter(Boolean),
+    });
 
     this.#cloudField = new CubeCloudField({
       pc: this.#pc,
@@ -836,8 +897,8 @@ export class PlayCanvasRenderer {
             x,
             level + 0.5,
             z,
-            this.#surfaceCoverage(type, col, row, topCube),
-            underlay,
+            this.#surfaceCoverage(type, topCube),
+            level === 0 ? underlay : "none",
             topCube && type === TileType.GRASS ? GRASS_SURFACE_LIFT : 0,
           );
         }
@@ -851,7 +912,7 @@ export class PlayCanvasRenderer {
       const x = col - (cols - 1) / 2;
       const z = row - (rows - 1) / 2;
       const topMaterial = rocky ? "islandRock" : "earth";
-      const sideMaterial = this.#earthSideMaterial(col, row, level, rocky);
+      const sideMaterial = this.#grassEarthSideMaterial(col, row, level);
       this.#addCubeMatrix(
         batches,
         topMaterial,
@@ -874,20 +935,20 @@ export class PlayCanvasRenderer {
       if (!topCube) {
         return {
           top: "earth",
-          sides: this.#earthSideMaterial(col, row, level),
+          sides: this.#grassEarthSideMaterial(col, row, level),
           underlay: "earth",
         };
       }
-      return {
-        top: `grass-${this.#variantIndex(col, row, level, 11, GRASS_TOP_VARIANTS.length)}`,
-        sides: this.#earthSideMaterial(col, row, level),
-        underlay: "earth",
-      };
+        return {
+          top: `grass-${this.#variantIndex(col, row, level, 11, GRASS_TOP_VARIANTS.length)}`,
+          sides: this.#grassTopSideMaterial(col, row, level),
+          underlay: "earth",
+        };
     }
     if (!topCube) {
       return {
         top: "earth",
-        sides: this.#earthSideMaterial(col, row, level),
+        sides: this.#grassEarthSideMaterial(col, row, level),
         underlay: "earth",
       };
     }
@@ -896,7 +957,10 @@ export class PlayCanvasRenderer {
         type === TileType.GRASS
           ? `grass-${this.#variantIndex(col, row, level, 11, GRASS_TOP_VARIANTS.length)}`
           : SURFACE_MATERIALS[type],
-      sides: this.#earthSideMaterial(col, row, level),
+      sides:
+        type === TileType.GRASS
+          ? this.#grassTopSideMaterial(col, row, level)
+          : this.#grassEarthSideMaterial(col, row, level),
       underlay: type === TileType.WATER ? "water" : "earth",
     };
   }
@@ -925,6 +989,35 @@ export class PlayCanvasRenderer {
     return `${material}-depth-${shadeIndex}-${variant}`;
   }
 
+  #grassEarthSideMaterial(col, row, level) {
+    return `grassEarthSide-depth-${this.#grassSideDepth(level)}-${this.#grassSideVariant(col, row)}`;
+  }
+
+  #grassTopSideMaterial(col, row, level) {
+    return `grassTopSide-depth-${this.#grassSideDepth(level)}-${this.#grassSideVariant(col, row)}`;
+  }
+
+  #grassSideDepth(level) {
+    return Math.max(
+      0,
+      Math.min(
+        EARTH_SIDE_DEPTH_SHADES.length - 1,
+        EARTH_SIDE_HIGHEST_LEVEL - Math.floor(level),
+      ),
+    );
+  }
+
+  #grassSideVariant(col, row) {
+    const surfaceLevel = this.#tileHeight(col, row) - 1;
+    return this.#variantIndex(
+      col,
+      row,
+      surfaceLevel,
+      83,
+      GRASS_EARTH_SIDE_TRANSFORMS.length,
+    );
+  }
+
   #sideVariant(material, col, row, level) {
     if (material === "castleWall" || material === "castleTower") {
       return material;
@@ -948,7 +1041,8 @@ export class PlayCanvasRenderer {
     return (hash >>> 0) % count;
   }
 
-  #surfaceCoverage(type) {
+  #surfaceCoverage(type, topCube) {
+    if (!topCube) return "none";
     if (type === TileType.CASTLE_WALL || type === TileType.CASTLE_TOWER) {
       return "block";
     }
@@ -1032,32 +1126,32 @@ export class PlayCanvasRenderer {
 
       const entity = new pc.Entity(`${topMaterial}/${sideMaterial} cubes`);
       const sideMeshInstance = new pc.MeshInstance(
-        this.#cubeMeshes.sides,
+        this.#cubeMeshes.wallSides,
         this.#materials.get(sideMaterial),
       );
-      const topMeshInstance = new pc.MeshInstance(
-        this.#cubeMeshes.surfaces[coverage],
-        this.#materials.get(topMaterial),
-      );
-      const underlayMeshInstance = new pc.MeshInstance(
-        this.#cubeMeshes.underlay,
-        this.#materials.get(underlayMaterial),
-      );
+      const surfaceMesh = this.#cubeMeshes.surfaces[coverage];
+      const topMeshInstance = surfaceMesh
+        ? new pc.MeshInstance(surfaceMesh, this.#materials.get(topMaterial))
+        : null;
+      const underlayMeshInstance =
+        underlayMaterial === "none"
+          ? null
+          : new pc.MeshInstance(
+              this.#cubeMeshes.underlay,
+              this.#materials.get(underlayMaterial),
+            );
+      const meshInstances = [
+        sideMeshInstance,
+        underlayMeshInstance,
+        topMeshInstance,
+      ].filter(Boolean);
       entity.addComponent("render", {
-        meshInstances: [
-          sideMeshInstance,
-          underlayMeshInstance,
-          topMeshInstance,
-        ],
+        meshInstances,
         castShadows: batchCastsShadows,
         receiveShadows: batchCastsShadows,
       });
       if (layerIds) entity.render.layers = layerIds;
-      for (const meshInstance of [
-        sideMeshInstance,
-        underlayMeshInstance,
-        topMeshInstance,
-      ]) {
+      for (const meshInstance of meshInstances) {
         meshInstance.setInstancing(vertexBuffer, false);
         meshInstance.castShadow = batchCastsShadows;
         meshInstance.receiveShadow = batchCastsShadows;
@@ -1071,6 +1165,7 @@ export class PlayCanvasRenderer {
     const groups = {
       underlay: { positions: [], normals: [], uvs: [], indices: [] },
       sides: { positions: [], normals: [], uvs: [], indices: [] },
+      wallSides: { positions: [], normals: [], uvs: [], indices: [] },
       full: { positions: [], normals: [], uvs: [], indices: [] },
       block: { positions: [], normals: [], uvs: [], indices: [] },
     };
@@ -1115,7 +1210,7 @@ export class PlayCanvasRenderer {
       points.forEach((point) => {
         group.positions.push(...point);
         group.normals.push(...normal);
-        if (groupName !== "sides") {
+        if (groupName !== "sides" && groupName !== "wallSides") {
           group.uvs.push(
             (point[0] - minX) / Math.max(0.001, maxX - minX),
             (point[2] - minZ) / Math.max(0.001, maxZ - minZ),
@@ -1192,6 +1287,35 @@ export class PlayCanvasRenderer {
       }
     }
 
+    // Terrain cubes are stacked into cliffs. Their visible walls must meet on
+    // the same vertical plane; beveling each cube's horizontal boundary makes
+    // every internal level read as a recessed stripe.
+    for (const sign of [-1, 1]) {
+      addFace("wallSides", [
+        [sign * half, -half, -inner],
+        [sign * half, half, -inner],
+        [sign * half, half, inner],
+        [sign * half, -half, inner],
+      ]);
+      addFace("wallSides", [
+        [-inner, -half, sign * half],
+        [inner, -half, sign * half],
+        [inner, half, sign * half],
+        [-inner, half, sign * half],
+      ]);
+    }
+
+    for (const signX of [-1, 1]) {
+      for (const signZ of [-1, 1]) {
+        addFace("wallSides", [
+          [signX * half, -half, signZ * inner],
+          [signX * half, half, signZ * inner],
+          [signX * inner, half, signZ * half],
+          [signX * inner, -half, signZ * half],
+        ]);
+      }
+    }
+
     const surfaceY = half + 0.0002;
     addFace("full", [
       [-half, surfaceY, -half],
@@ -1219,6 +1343,7 @@ export class PlayCanvasRenderer {
 
     return {
       sides: createMesh(groups.sides),
+      wallSides: createMesh(groups.wallSides),
       underlay: createMesh(groups.underlay),
       surfaces: {
         full: createMesh(groups.full),
@@ -1284,6 +1409,10 @@ export class PlayCanvasRenderer {
   #handleHeroPositionChange = ({ x, y, z }) => {
     this.#castle?.updateHeroPosition({ x, y, z });
     this.#groundCover?.applyHeroInteraction(
+      { x, y, z },
+      this.#hero?.movementState,
+    );
+    this.#grassSurface?.applyHeroInteraction(
       { x, y, z },
       this.#hero?.movementState,
     );
@@ -1562,6 +1691,8 @@ export class PlayCanvasRenderer {
     this.#vegetation = null;
     this.#groundCover?.destroy();
     this.#groundCover = null;
+    this.#grassSurface?.destroy();
+    this.#grassSurface = null;
     this.#cloudField?.destroy();
     this.#cloudField = null;
     this.#setInteractionTarget(null);
