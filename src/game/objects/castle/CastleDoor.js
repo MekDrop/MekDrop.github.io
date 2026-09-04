@@ -6,6 +6,8 @@ const OPEN_SPEED = 3.4;
 const OPEN_DISTANCE = 1.8;
 const CLOSE_INSIDE_DISTANCE = 0.9;
 const PASSABLE_OPEN_AMOUNT = 0.72;
+const CLICK_OPEN_SECONDS = 1;
+const DOOR_HEIGHT = 2.3;
 const OPEN_ANIMATION = "Open";
 
 export class CastleDoor {
@@ -13,6 +15,7 @@ export class CastleDoor {
     return castleDoorsModelUrl;
   }
 
+  #pc;
   #entity;
   #animationLayer;
   #animationDuration;
@@ -22,8 +25,10 @@ export class CastleDoor {
   #width;
   #targetOpen = false;
   #openAmount = 0;
+  #manualOpenRemaining = 0;
 
-  constructor({ castlePosition, door, modelLibrary }) {
+  constructor({ pc, castlePosition, door, modelLibrary }) {
+    this.#pc = pc;
     this.#width = door.width;
     const geometry = this.#doorGeometry(castlePosition, door);
     this.#center = geometry.center;
@@ -59,6 +64,40 @@ export class CastleDoor {
     return this.#entity;
   }
 
+  get revealsInterior() {
+    return this.#shouldOpen() || this.#openAmount > 0.001;
+  }
+
+  openTemporarily(duration = CLICK_OPEN_SECONDS) {
+    this.#manualOpenRemaining = Math.max(
+      this.#manualOpenRemaining,
+      duration,
+    );
+  }
+
+  getHit(rayStart, rayEnd) {
+    if (!this.#entity) return null;
+    const inverse = this.#entity.getWorldTransform().clone().invert();
+    const localStart = inverse.transformPoint(rayStart, new this.#pc.Vec3());
+    const localEnd = inverse.transformPoint(rayEnd, new this.#pc.Vec3());
+    const directionZ = localEnd.z - localStart.z;
+    if (Math.abs(directionZ) < 0.000001) return null;
+
+    const distance = -localStart.z / directionZ;
+    if (distance < 0 || distance > 1) return null;
+    const localX = localStart.x + (localEnd.x - localStart.x) * distance;
+    const localY = localStart.y + (localEnd.y - localStart.y) * distance;
+    if (
+      Math.abs(localX) > this.#width / 2 + 0.08 ||
+      localY < -0.08 ||
+      localY > DOOR_HEIGHT + 0.08
+    ) {
+      return null;
+    }
+
+    return { distance, door: this };
+  }
+
   updateHeroPosition({ x, z }) {
     const deltaX = x - this.#center.x;
     const deltaZ = z - this.#center.z;
@@ -77,7 +116,11 @@ export class CastleDoor {
   }
 
   update(deltaTime) {
-    const target = Number(this.#targetOpen);
+    this.#manualOpenRemaining = Math.max(
+      0,
+      this.#manualOpenRemaining - deltaTime,
+    );
+    const target = Number(this.#shouldOpen());
     const amount = OPEN_SPEED * deltaTime;
     if (this.#openAmount < target) {
       this.#openAmount = Math.min(target, this.#openAmount + amount);
@@ -158,5 +201,9 @@ export class CastleDoor {
   #syncAnimation() {
     this.#animationLayer.activeStateCurrentTime =
       this.#animationDuration * this.#openAmount;
+  }
+
+  #shouldOpen() {
+    return this.#targetOpen || this.#manualOpenRemaining > 0;
   }
 }

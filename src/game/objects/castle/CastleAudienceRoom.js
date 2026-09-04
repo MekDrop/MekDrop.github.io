@@ -1,9 +1,8 @@
 import { SeatedRoyal } from "./SeatedRoyal.js";
 import { CastleThrone } from "./CastleThrone.js";
+import { CastleFire } from "./CastleFire.js";
 
 const ROOM_MATERIALS = {
-  floorDark: { color: 0x625c52, gloss: 0.04 },
-  floorLight: { color: 0x7a7366, gloss: 0.05 },
   carpetDark: { color: 0x751f34, gloss: 0.05 },
   carpetLight: { color: 0xb5364c, gloss: 0.06 },
   carpetGold: { color: 0xd7a936, gloss: 0.22 },
@@ -11,7 +10,6 @@ const ROOM_MATERIALS = {
   woodLight: { color: 0x6b3a22, gloss: 0.06 },
   gold: { color: 0xd8a936, gloss: 0.36, metalness: 0.28 },
   iron: { color: 0x171b1d, gloss: 0.16 },
-  flame: { color: 0xffa62f, gloss: 0.12, emissive: 0xff6b16 },
   banner: { color: 0x234f9b, gloss: 0.05 },
   bannerLight: { color: 0x3974c7, gloss: 0.06 },
 };
@@ -19,6 +17,8 @@ const ROOM_MATERIALS = {
 const EDGE_MARGIN = 0.82;
 const MAX_ROOM_DEPTH = 4.1;
 const VISIBILITY_MARGIN = 0.85;
+const CARPET_ENTRANCE_INSET = 0.32;
+const CARPET_REAR_CLEARANCE = 0.36;
 
 /**
  * Visitor-facing castle audience chamber.
@@ -40,6 +40,7 @@ export class CastleAudienceRoom {
   #modelLibrary;
   #entity;
   #materials = new Map();
+  #fire = null;
   #royal = null;
   #throne = null;
   #center;
@@ -49,15 +50,20 @@ export class CastleAudienceRoom {
   #roomWidth;
   #baseY;
   #availableDepth;
+  #availableWidth;
   #obstacles = [];
+  #heroWithinVisibility = false;
+  #entranceVisible = false;
 
   constructor({
     pc,
+    app,
     position,
     door,
     occupant = "king",
     materials = new Map(),
     availableDepth = MAX_ROOM_DEPTH,
+    availableWidth = Number.POSITIVE_INFINITY,
     modelLibrary,
   }) {
     this.#pc = pc;
@@ -67,8 +73,11 @@ export class CastleAudienceRoom {
     this.#sharedMaterials = materials;
     this.#modelLibrary = modelLibrary;
     this.#availableDepth = availableDepth;
+    this.#availableWidth = availableWidth;
     this.#entity = new pc.Entity("Castle audience chamber");
     this.#baseY = position.elevation ?? 0;
+    this.#fire = new CastleFire({ pc, app });
+    this.#entity.addChild(this.#fire.entity);
 
     this.#resolveLayout();
     this.#createMaterials();
@@ -85,10 +94,16 @@ export class CastleAudienceRoom {
     const deltaZ = z - this.#center.z;
     const lateral = deltaX * this.#tangent.x + deltaZ * this.#tangent.z;
     const forward = deltaX * this.#inward.x + deltaZ * this.#inward.z;
-    this.#entity.enabled =
+    this.#heroWithinVisibility =
       Math.abs(lateral) <= this.#roomWidth / 2 + VISIBILITY_MARGIN &&
       forward >= -VISIBILITY_MARGIN &&
       forward <= this.#forwardCapacity + VISIBILITY_MARGIN;
+    this.#syncVisibility();
+  }
+
+  setEntranceVisible(visible) {
+    this.#entranceVisible = visible;
+    this.#syncVisibility();
   }
 
   surfaceHeightAt(x, z) {
@@ -125,6 +140,8 @@ export class CastleAudienceRoom {
   }
 
   destroy() {
+    this.#fire?.destroy();
+    this.#fire = null;
     this.#royal?.destroy();
     this.#royal = null;
     this.#throne?.destroy();
@@ -174,16 +191,20 @@ export class CastleAudienceRoom {
     this.#center = layout.center;
     this.#inward = layout.inward;
     this.#tangent = layout.tangent;
-    const footprintCapacity = Math.max(3.2, layout.capacity - EDGE_MARGIN * 2);
-    const castleCapacity = Math.max(3.2, this.#availableDepth - 0.4);
+    const footprintCapacity = Math.max(0, layout.capacity - EDGE_MARGIN * 2);
+    const castleCapacity = Math.max(0, this.#availableDepth);
     this.#forwardCapacity = Math.min(
       MAX_ROOM_DEPTH,
       footprintCapacity,
       castleCapacity,
     );
     this.#roomWidth = Math.max(
-      3.2,
-      Math.min(layout.span - EDGE_MARGIN * 2, 6.4),
+      0,
+      Math.min(
+        layout.span - EDGE_MARGIN * 2,
+        this.#availableWidth,
+        6.4,
+      ),
     );
   }
 
@@ -227,8 +248,8 @@ export class CastleAudienceRoom {
 
   #buildFloor(throneForward) {
     this.#boxAt(
-      "Audience stone floor",
-      "floorLight",
+      "Audience wooden floor",
+      "woodLight",
       0,
       this.#forwardCapacity / 2,
       0.025,
@@ -240,7 +261,7 @@ export class CastleAudienceRoom {
     ]) {
       this.#boxAt(
         "Audience floor border",
-        "floorDark",
+        "wood",
         lateral,
         this.#forwardCapacity / 2,
         0.057,
@@ -248,36 +269,45 @@ export class CastleAudienceRoom {
       );
     }
     for (let forward = 0.75; forward < this.#forwardCapacity; forward += 0.75) {
-      this.#boxAt("Audience floor course", "floorDark", 0, forward, 0.057, [
+      this.#boxAt("Audience floor plank seam", "wood", 0, forward, 0.057, [
         this.#roomWidth - 0.18,
         0.025,
         0.035,
       ]);
     }
 
-    const runnerLength = throneForward - 0.35;
+    const runnerStart = CARPET_ENTRANCE_INSET;
+    const runnerEnd = Math.min(
+      throneForward - 0.07,
+      this.#forwardCapacity - CARPET_REAR_CLEARANCE,
+    );
+    const runnerLength = Math.max(0, runnerEnd - runnerStart);
+    const runnerCenter = runnerStart + runnerLength / 2;
+    const runnerWidth = Math.min(1.2, this.#roomWidth - 0.36);
+    const runnerInnerWidth = Math.max(0, runnerWidth - 0.34);
+    const runnerEdge = runnerWidth / 2 - 0.08;
     this.#boxAt(
       "Audience carpet runner",
       "carpetDark",
       0,
-      0.28 + runnerLength / 2,
+      runnerCenter,
       0.045,
-      [1.2, 0.07, runnerLength],
+      [runnerWidth, 0.07, runnerLength],
     );
     this.#boxAt(
       "Audience carpet center",
       "carpetLight",
       0,
-      0.28 + runnerLength / 2,
+      runnerCenter,
       0.085,
-      [0.86, 0.025, runnerLength - 0.12],
+      [runnerInnerWidth, 0.025, Math.max(0, runnerLength - 0.12)],
     );
-    for (const lateral of [-0.52, 0.52]) {
+    for (const lateral of [-runnerEdge, runnerEdge]) {
       this.#boxAt(
         "Audience carpet gold edge",
         "carpetGold",
         lateral,
-        0.28 + runnerLength / 2,
+        runnerCenter,
         0.1,
         [0.08, 0.02, runnerLength],
       );
@@ -378,34 +408,40 @@ export class CastleAudienceRoom {
 
   #buildBraziers(throneForward) {
     const lateral = Math.min(1.48, this.#roomWidth / 2 - 0.42);
-    const forward = throneForward - 1.15;
-    for (const side of [-1, 1]) {
-      this.#boxAt(
-        "Royal brazier pedestal",
-        "iron",
-        side * lateral,
-        forward,
-        0.49,
-        [0.24, 0.98, 0.24],
-        true,
-      );
-      this.#boxAt(
-        "Royal brazier bowl",
-        "gold",
-        side * lateral,
-        forward,
-        1.01,
-        [0.58, 0.18, 0.58],
-      );
-      const flame = this.#boxAt(
-        "Blocky brazier flame",
-        "flame",
-        side * lateral,
-        forward,
-        1.28,
-        [0.24, 0.43, 0.24],
-      );
-      flame.setLocalEulerAngles(0, 45, 0);
+    const rows = [Math.min(1.15, throneForward * 0.32), throneForward - 1.15];
+    for (const forward of rows) {
+      for (const side of [-1, 1]) {
+        this.#boxAt(
+          "Royal torch pedestal",
+          "iron",
+          side * lateral,
+          forward,
+          0.49,
+          [0.24, 0.98, 0.24],
+          true,
+        );
+        this.#boxAt(
+          "Royal torch bowl",
+          "gold",
+          side * lateral,
+          forward,
+          1.01,
+          [0.58, 0.18, 0.58],
+        );
+        const flamePosition = this.#point(
+          side * lateral,
+          forward,
+          1.12,
+        );
+        this.#fire.add({
+          x: flamePosition.x,
+          y: flamePosition.y,
+          z: flamePosition.z,
+          scale: 0.18,
+          brazier: false,
+          intensity: 0.72,
+        });
+      }
     }
   }
 
@@ -493,6 +529,11 @@ export class CastleAudienceRoom {
     if (this.#inward.x < 0) return 90;
     if (this.#inward.z > 0) return 180;
     return 0;
+  }
+
+  #syncVisibility() {
+    this.#entity.enabled =
+      this.#heroWithinVisibility || this.#entranceVisible;
   }
 
   #material(name) {

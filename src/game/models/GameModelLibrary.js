@@ -34,14 +34,7 @@ export class GameModelLibrary {
   }
 
   instantiateMerged(url) {
-    const asset = this.#assets.get(url);
-    if (!asset?.resource) throw new GameModelUnavailableError({ url });
-
-    let mergedModel = this.#mergedModels.get(url);
-    if (!mergedModel) {
-      mergedModel = this.#mergeRenderHierarchy(asset.resource);
-      this.#mergedModels.set(url, mergedModel);
-    }
+    const mergedModel = this.#mergedModelFor(url);
 
     const entity = new this.#pc.Entity("Merged game model");
     const meshInstance = new this.#pc.MeshInstance(
@@ -53,6 +46,40 @@ export class GameModelLibrary {
     meshInstance.receiveShadow = true;
     entity.addComponent("render", { meshInstances: [meshInstance] });
     return entity;
+  }
+
+  instantiateMergedBatch(
+    url,
+    matrices,
+    { name = "Instanced game model", material = null } = {},
+  ) {
+    const mergedModel = this.#mergedModelFor(url);
+    if (!matrices.length) return null;
+
+    const vertexBuffer = new this.#pc.VertexBuffer(
+      this.#app.graphicsDevice,
+      this.#pc.VertexFormat.getDefaultInstancingFormat(
+        this.#app.graphicsDevice,
+      ),
+      matrices.length / 16,
+      { data: new Float32Array(matrices) },
+    );
+    const entity = new this.#pc.Entity(name);
+    const meshInstance = new this.#pc.MeshInstance(
+      mergedModel.mesh,
+      material ?? mergedModel.material,
+      entity,
+    );
+    meshInstance.setInstancing(vertexBuffer, false);
+    meshInstance.castShadow = true;
+    meshInstance.receiveShadow = true;
+    entity.addComponent("render", {
+      meshInstances: [meshInstance],
+      castShadows: true,
+      receiveShadows: true,
+    });
+
+    return { entity, vertexBuffer };
   }
 
   getAnimationTracks(url, requiredNames = []) {
@@ -107,6 +134,18 @@ export class GameModelLibrary {
     });
   }
 
+  #mergedModelFor(url) {
+    const asset = this.#assets.get(url);
+    if (!asset?.resource) throw new GameModelUnavailableError({ url });
+
+    let mergedModel = this.#mergedModels.get(url);
+    if (!mergedModel) {
+      mergedModel = this.#mergeRenderHierarchy(asset.resource);
+      this.#mergedModels.set(url, mergedModel);
+    }
+    return mergedModel;
+  }
+
   #configureRenderHierarchy(root) {
     const pending = [root];
     while (pending.length) {
@@ -128,6 +167,7 @@ export class GameModelLibrary {
     rootInverse.invert();
     const positions = [];
     const normals = [];
+    const uvs = [];
     const colors = [];
     const indices = [];
     const pending = [sourceRoot];
@@ -142,9 +182,11 @@ export class GameModelLibrary {
         const sourceMesh = meshInstance.mesh;
         const sourcePositions = [];
         const sourceNormals = [];
+        const sourceUvs = [];
         const sourceIndices = [];
         const vertexCount = sourceMesh.getPositions(sourcePositions);
         sourceMesh.getNormals(sourceNormals);
+        sourceMesh.getUvs(0, sourceUvs);
         sourceMesh.getIndices(sourceIndices);
 
         const modelTransform = new pc.Mat4().mul2(
@@ -176,6 +218,7 @@ export class GameModelLibrary {
           );
           normalTransform.transformVector(sourceNormal, mergedNormal).normalize();
           normals.push(mergedNormal.x, mergedNormal.y, mergedNormal.z);
+          uvs.push(sourceUvs[vertex * 2] ?? 0, sourceUvs[vertex * 2 + 1] ?? 0);
           colors.push(
             Math.round(pc.math.clamp(color.r, 0, 1) * 255),
             Math.round(pc.math.clamp(color.g, 0, 1) * 255),
@@ -214,6 +257,7 @@ export class GameModelLibrary {
     const mesh = new pc.Mesh(this.#app.graphicsDevice);
     mesh.setPositions(positions);
     mesh.setNormals(normals);
+    mesh.setUvs(0, uvs);
     mesh.setColors32(colors);
     mesh.setIndices(indices);
     mesh.update();

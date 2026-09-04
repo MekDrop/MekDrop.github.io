@@ -1190,15 +1190,23 @@ export class PlayCanvasRenderer {
     for (const gateway of this.#gateways) {
       const hit = gateway.getBannerHit(ray.start, ray.end);
       if (!hit || (closest && hit.distance >= closest.hit.distance)) continue;
-      closest = { target: gateway, hit };
+      closest = { kind: "wind", target: gateway, hit };
     }
     const castleHit = this.#castle?.getBannerHit(ray.start, ray.end);
     if (castleHit && (!closest || castleHit.distance < closest.hit.distance)) {
-      closest = { target: this.#castle, hit: castleHit };
+      closest = { kind: "wind", target: this.#castle, hit: castleHit };
+    }
+    const doorHit = this.#castle?.getDoorHit(ray.start, ray.end);
+    if (doorHit && (!closest || doorHit.distance < closest.hit.distance)) {
+      closest = { kind: "door", target: this.#castle, hit: doorHit };
     }
     if (!closest) return;
 
     event.preventDefault();
+    if (closest.kind === "door") {
+      closest.target.openDoor(closest.hit);
+      return;
+    }
     this.#bannerWindTarget = closest.target;
     this.#bannerWindPointerId = event.pointerId;
     this.#bannerWindLastTime = event.timeStamp;

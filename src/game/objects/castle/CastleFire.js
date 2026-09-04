@@ -25,12 +25,12 @@ export class CastleFire {
     return this.#entity;
   }
 
-  add({ x, y, z, scale = 0.25 }) {
+  add({ x, y, z, scale = 0.25, brazier = true, intensity = 1 }) {
     const root = new this.#pc.Entity("Castle fire");
     root.setPosition(x, y, z);
     this.#entity.addChild(root);
 
-    this.#createBrazier(root, scale);
+    if (brazier) this.#createBrazier(root, scale);
     this.#createFlameEmitter(root, scale);
     this.#createSparkEmitter(root, scale);
 
@@ -38,7 +38,7 @@ export class CastleFire {
     light.addComponent("light", {
       type: "omni",
       color: new this.#pc.Color(1, 0.27, 0.035),
-      intensity: 0.9,
+      intensity: 0.9 * intensity,
       range: scale * 12,
       castShadows: false,
     });
@@ -48,6 +48,7 @@ export class CastleFire {
     this.#lights.push({
       entity: light,
       phase: this.#lights.length * 1.713 + x * 0.37 + z * 0.53,
+      intensity,
     });
   }
 
@@ -263,11 +264,11 @@ export class CastleFire {
   }
 
   #animateLights() {
-    for (const { entity, phase } of this.#lights) {
+    for (const { entity, phase, intensity } of this.#lights) {
       const fast = this.#elapsed * 11.1 + phase;
       const slow = this.#elapsed * 4.7 + phase * 1.31;
       entity.light.intensity =
-        0.78 + Math.sin(fast) * 0.18 + Math.sin(slow) * 0.1;
+        (0.78 + Math.sin(fast) * 0.18 + Math.sin(slow) * 0.1) * intensity;
     }
   }
 

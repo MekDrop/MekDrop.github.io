@@ -1,3 +1,5 @@
+import stairModuleModelUrl from "../../models/castle/stairs/castle-stair-module.glb?url";
+
 const STONE_MATERIAL_NAMES = [
   "castleStoneDark",
   "castleStoneMid",
@@ -8,15 +10,19 @@ const STONE_MATERIAL_NAMES = [
   "castleStoneMid",
   "castleStoneDark",
 ];
-const STAIR_TREAD_DEPTH_BLOCKS = 2;
+const STAIR_MODULE_RUN_BLOCKS = 2;
 
+/** Builds variable-size flights from a reusable imported stone stair module. */
 export class CastleStairs {
+  static get modelUrl() {
+    return stairModuleModelUrl;
+  }
+
   #pc;
-  #app;
   #position;
   #doors;
   #cubeSize;
-  #blockMesh;
+  #modelLibrary;
   #materials;
   #entity;
   #surfaces = [];
@@ -24,19 +30,17 @@ export class CastleStairs {
 
   constructor({
     pc,
-    app,
     position,
     doors = [],
     cubeSize,
-    blockMesh,
+    modelLibrary,
     materials,
   }) {
     this.#pc = pc;
-    this.#app = app;
     this.#position = position;
     this.#doors = doors;
     this.#cubeSize = cubeSize;
-    this.#blockMesh = blockMesh;
+    this.#modelLibrary = modelLibrary;
     this.#materials = materials;
     this.#entity = new pc.Entity("Castle stone stairs");
 
@@ -97,34 +101,26 @@ export class CastleStairs {
       this.#addSurface(door, approachElevation, riseBlocks);
 
       for (let level = 0; level < riseBlocks; level += 1) {
-        for (
-          let treadBlock = 0;
-          treadBlock < STAIR_TREAD_DEPTH_BLOCKS;
-          treadBlock += 1
-        ) {
-          const distanceBlocks =
-            (riseBlocks - level) * STAIR_TREAD_DEPTH_BLOCKS - treadBlock;
-          for (
-            let horizontal = 0;
-            horizontal < widthBlocks;
-            horizontal += 1
-          ) {
-            for (let layer = 0; layer <= level; layer += 1) {
-              const acrossBlocks = offsetBlocks + horizontal;
-              const position = this.#blockPosition(
-                door.side,
-                distanceBlocks,
-                acrossBlocks,
-                approachElevation,
-                layer,
-              );
-              if (!position) continue;
-              this.#addBlockMatrix(
-                batches,
-                this.#materialFor(distanceBlocks, acrossBlocks, layer),
-                position,
-              );
-            }
+        const distanceBlocks =
+          (riseBlocks - level) * STAIR_MODULE_RUN_BLOCKS -
+          STAIR_MODULE_RUN_BLOCKS / 2;
+        for (let horizontal = 0; horizontal < widthBlocks; horizontal += 1) {
+          for (let layer = 0; layer <= level; layer += 1) {
+            const acrossBlocks = offsetBlocks + horizontal;
+            const position = this.#modulePosition(
+              door.side,
+              distanceBlocks,
+              acrossBlocks,
+              approachElevation,
+              layer,
+            );
+            if (!position) continue;
+            this.#addModuleMatrix(
+              batches,
+              this.#materialFor(distanceBlocks, acrossBlocks, layer),
+              door.side,
+              position,
+            );
           }
         }
       }
@@ -135,7 +131,7 @@ export class CastleStairs {
 
   #addSurface(door, approachElevation, riseBlocks) {
     if (riseBlocks <= 0) return;
-    const run = riseBlocks * STAIR_TREAD_DEPTH_BLOCKS * this.#cubeSize;
+    const run = riseBlocks * STAIR_MODULE_RUN_BLOCKS * this.#cubeSize;
     const rise = riseBlocks * this.#cubeSize;
     const left = this.#position.x;
     const right = left + this.#position.width;
@@ -165,8 +161,14 @@ export class CastleStairs {
     });
   }
 
-  #blockPosition(side, distanceBlocks, acrossBlocks, approachElevation, layer) {
-    const distance = (distanceBlocks - 0.5) * this.#cubeSize;
+  #modulePosition(
+    side,
+    distanceBlocks,
+    acrossBlocks,
+    approachElevation,
+    layer,
+  ) {
+    const distance = distanceBlocks * this.#cubeSize;
     const across = (acrossBlocks + 0.5) * this.#cubeSize;
     const y = approachElevation + (layer + 0.5) * this.#cubeSize;
     const left = this.#position.x;
@@ -191,46 +193,37 @@ export class CastleStairs {
     return STONE_MATERIAL_NAMES[(hash >>> 0) % STONE_MATERIAL_NAMES.length];
   }
 
-  #addBlockMatrix(batches, material, position) {
+  #addModuleMatrix(batches, material, side, position) {
     const matrix = new this.#pc.Mat4();
+    const rotation = new this.#pc.Quat();
+    rotation.setFromEulerAngles(
+      0,
+      side === "WEST" || side === "EAST" ? 90 : 0,
+      0,
+    );
     matrix.setTRS(
       new this.#pc.Vec3(position.x, position.y, position.z),
-      new this.#pc.Quat(),
+      rotation,
       new this.#pc.Vec3(this.#cubeSize, this.#cubeSize, this.#cubeSize),
     );
-    const data = batches.get(material) ?? [];
-    for (const value of matrix.data) data.push(value);
-    batches.set(material, data);
+    const matrices = batches.get(material) ?? [];
+    for (const value of matrix.data) matrices.push(value);
+    batches.set(material, matrices);
   }
 
   #createInstancedBatches(batches) {
     for (const [materialName, matrices] of batches.entries()) {
-      if (!matrices.length) continue;
-      const vertexBuffer = new this.#pc.VertexBuffer(
-        this.#app.graphicsDevice,
-        this.#pc.VertexFormat.getDefaultInstancingFormat(
-          this.#app.graphicsDevice,
-        ),
-        matrices.length / 16,
-        { data: new Float32Array(matrices) },
+      const batch = this.#modelLibrary.instantiateMergedBatch(
+        CastleStairs.modelUrl,
+        matrices,
+        {
+          name: `${materialName} stair modules`,
+          material: this.#materials.get(materialName),
+        },
       );
-      this.#vertexBuffers.push(vertexBuffer);
-
-      const meshInstance = new this.#pc.MeshInstance(
-        this.#blockMesh,
-        this.#materials.get(materialName),
-      );
-      meshInstance.setInstancing(vertexBuffer, false);
-      meshInstance.castShadow = true;
-      meshInstance.receiveShadow = true;
-
-      const entity = new this.#pc.Entity(`${materialName} stair blocks`);
-      entity.addComponent("render", {
-        meshInstances: [meshInstance],
-        castShadows: true,
-        receiveShadows: true,
-      });
-      this.#entity.addChild(entity);
+      if (!batch) continue;
+      this.#vertexBuffers.push(batch.vertexBuffer);
+      this.#entity.addChild(batch.entity);
     }
   }
 }

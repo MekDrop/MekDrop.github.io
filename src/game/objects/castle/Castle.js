@@ -124,6 +124,7 @@ export class Castle {
     return [
       CastleDoor.modelUrl,
       CastleDoorArch.modelUrl,
+      CastleStairs.modelUrl,
       ...CastleAudienceRoom.modelUrls,
     ];
   }
@@ -153,6 +154,7 @@ export class Castle {
   #doorArches = [];
   #updateHandle = null;
   #interiorDepth = 0;
+  #interiorWidth = 0;
 
   constructor({
     pc,
@@ -220,6 +222,7 @@ export class Castle {
     for (const door of this.#animatedDoors) {
       door.updateHeroPosition(position);
     }
+    this.#syncAudienceRoomVisibility();
     this.#audienceRoom?.updateHeroPosition(position);
   }
 
@@ -229,6 +232,23 @@ export class Castle {
     if (!bannerHit) return flagHit;
     if (!flagHit) return bannerHit;
     return flagHit.distance < bannerHit.distance ? flagHit : bannerHit;
+  }
+
+  getDoorHit(rayStart, rayEnd) {
+    let closest = null;
+    for (const door of this.#animatedDoors) {
+      const hit = door.getHit(rayStart, rayEnd);
+      if (!hit || (closest && hit.distance >= closest.distance)) continue;
+      closest = hit;
+    }
+    return closest;
+  }
+
+  openDoor(hit) {
+    if (!hit?.door) return false;
+    hit.door.openTemporarily();
+    this.#syncAudienceRoomVisibility();
+    return true;
   }
 
   beginWindGesture(hit) {
@@ -284,7 +304,14 @@ export class Castle {
 
   #update = (deltaTime) => {
     for (const door of this.#animatedDoors) door.update(deltaTime);
+    this.#syncAudienceRoomVisibility();
   };
+
+  #syncAudienceRoomVisibility() {
+    this.#audienceRoom?.setEntranceVisible(
+      this.#animatedDoors[0]?.revealsInterior ?? false,
+    );
+  }
 
   #createStructureResources() {
     this.#stoneTexture = CastleStoneTexture.create(
@@ -334,11 +361,10 @@ export class Castle {
   #createStairs() {
     this.#stairs = new CastleStairs({
       pc: this.#pc,
-      app: this.#app,
       position: this.#position,
       doors: this.#doors,
       cubeSize: CASTLE_BLOCK_SIZE,
-      blockMesh: this.#blockMesh,
+      modelLibrary: this.#modelLibrary,
       materials: this.#materials,
     });
     this.#entity.addChild(this.#stairs.entity);
@@ -349,11 +375,13 @@ export class Castle {
     if (!door) return;
     this.#audienceRoom = new CastleAudienceRoom({
       pc: this.#pc,
+      app: this.#app,
       position: this.#position,
       door,
       occupant: this.#occupant,
       materials: this.#materials,
       availableDepth: this.#interiorDepth,
+      availableWidth: this.#interiorWidth,
       modelLibrary: this.#modelLibrary,
     });
     this.#entity.addChild(this.#audienceRoom.entity);
@@ -573,7 +601,8 @@ export class Castle {
           ),
           inwardCapacity,
         );
-    this.#interiorDepth = castleDepth * CASTLE_BLOCK_SIZE;
+    this.#interiorDepth =
+      (castleDepth - CASTLE_WALL_THICKNESS_BLOCKS) * CASTLE_BLOCK_SIZE;
     const batches = new Map();
     const occupied = new Set();
     const materialFor = (blockU, blockY, blockV, role) => {
@@ -854,7 +883,7 @@ export class Castle {
       (opening) => opening.boundary === "FRONT",
     );
     if (audienceOpening) {
-      this.#buildCastleAudienceWing(
+      this.#interiorWidth = this.#buildCastleAudienceWing(
         addBlock,
         audienceOpening,
         castleDepth,
@@ -943,6 +972,7 @@ export class Castle {
       this.#entity.addChild(arch.entity);
       this.#doorArches.push(arch);
       const door = new CastleDoor({
+        pc: this.#pc,
         castlePosition: this.#position,
         door: doorData,
         modelLibrary: this.#modelLibrary,
@@ -1046,6 +1076,13 @@ export class Castle {
         CASTLE_AUDIENCE_ROOM_SIDE_INSET_BLOCKS,
     );
     const sideWallStarts = [roomStart, roomEnd - CASTLE_WALL_THICKNESS_BLOCKS];
+    const openingCenter = roomCenter * CASTLE_BLOCK_SIZE;
+    const interiorStart =
+      (roomStart + CASTLE_WALL_THICKNESS_BLOCKS) * CASTLE_BLOCK_SIZE;
+    const interiorEnd =
+      (roomEnd - CASTLE_WALL_THICKNESS_BLOCKS) * CASTLE_BLOCK_SIZE;
+    const interiorWidth =
+      Math.min(openingCenter - interiorStart, interiorEnd - openingCenter) * 2;
 
     for (const wallV of sideWallStarts) {
       for (let blockU = 0; blockU < castleDepth; blockU += 1) {
@@ -1091,6 +1128,7 @@ export class Castle {
       wallHeight,
       battlementPeriod,
     );
+    return interiorWidth;
   }
 
   #buildCastleAudienceRoof(
