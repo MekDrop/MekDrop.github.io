@@ -11,6 +11,7 @@ import {
   InsufficientVegetationVarietyError,
   InvalidCastleEntranceWidthError,
   InvalidGatePositionError,
+  InvalidGroundCoverPlacementError,
   InvalidRouteWaypointError,
   InvalidVegetationPlacementError,
   IsolatedGrassElevationError,
@@ -43,6 +44,19 @@ export class MapGenerator {
   static #CASTLE_OCCUPANTS = ['king', 'queen', 'princess'];
   static #TREE_VARIANTS = ['oak', 'pine', 'tall-tree', 'sapling'];
   static #BUSH_VARIANTS = ['round-bush', 'wide-bush'];
+  static #GROUND_COVER_VARIANTS = [
+    'grass-tuft',
+    'broadleaf-tuft',
+    'meadow-grass',
+    'daisy-patch',
+    'buttercup-patch',
+    'pink-flower-patch',
+    'blue-flower-patch',
+    'clover-patch',
+    'red-mushroom',
+    'golden-mushroom-pair',
+    'forest-mushroom-cluster',
+  ];
   static #VEGETATION_VARIANTS = [
     ...this.#TREE_VARIANTS,
     ...this.#BUSH_VARIANTS,
@@ -96,7 +110,21 @@ export class MapGenerator {
       tileMeta,
       layout,
     );
-    this.#validateMap(grid, heightmap, tileMeta, layout, vegetationData);
+    const groundCoverData = this.#placeGroundCover(
+      grid,
+      heightmap,
+      tileMeta,
+      layout,
+      vegetationData,
+    );
+    this.#validateMap(
+      grid,
+      heightmap,
+      tileMeta,
+      layout,
+      vegetationData,
+      groundCoverData,
+    );
     const { routes, arrowData } = this.#buildRouteData(layout);
     const castle = this.#buildCastleData(grid, layout);
 
@@ -121,6 +149,7 @@ export class MapGenerator {
       })),
       arrowData,
       vegetationData,
+      groundCoverData,
       pipeData: new Map(),
       mergeZones,
       trunkStart,
@@ -1316,6 +1345,73 @@ export class MapGenerator {
     });
   }
 
+  static #isGroundCoverCandidate(
+    grid,
+    heightmap,
+    tileMeta,
+    layout,
+    col,
+    row,
+  ) {
+    if (!this.#inBounds(col, row)) return false;
+    if (grid[row][col] !== TileType.GRASS) return false;
+    if (tileMeta[row][col].shape !== this.#TILE_SHAPE.FLAT) return false;
+    if (!Number.isFinite(heightmap[row][col])) return false;
+    return !(
+      col >= layout.castleLeft - 1 &&
+      col <= layout.castleRight + 1 &&
+      row >= layout.castleTop - 1 &&
+      row <= layout.castleBottom + 1
+    );
+  }
+
+  static #placeGroundCover(
+    grid,
+    heightmap,
+    tileMeta,
+    layout,
+    vegetationData,
+  ) {
+    const occupied = new Set(
+      vegetationData.map(({ col, row }) => this.#tileKey(col, row)),
+    );
+    const candidates = [];
+    for (let row = 0; row < this.#MAP_ROWS; row++) {
+      for (let col = 0; col < this.#MAP_COLS; col++) {
+        if (
+          !occupied.has(this.#tileKey(col, row)) &&
+          this.#isGroundCoverCandidate(
+            grid,
+            heightmap,
+            tileMeta,
+            layout,
+            col,
+            row,
+          )
+        ) {
+          candidates.push({ col, row });
+        }
+      }
+    }
+
+    const targetCount = Math.min(
+      candidates.length,
+      this.#clamp(Math.round(candidates.length / 10), 36, 72),
+    );
+    const variants = this.#shuffle([...this.#GROUND_COVER_VARIANTS]);
+    return this.#shuffle(candidates)
+      .slice(0, targetCount)
+      .map((candidate, index) => ({
+        ...candidate,
+        variant: variants[index % variants.length],
+        offsetX: this.#rng(-28, 28) / 100,
+        offsetZ: this.#rng(-28, 28) / 100,
+        rotation: this.#rng(0, 23) * 15,
+        scale: this.#rng(85, 115) / 100,
+        phase: this.#rng(0, 628) / 100,
+      }));
+  }
+
   static #validateIslandConnectivity(grid) {
     const allLand = [];
     for (let row = 0; row < this.#MAP_ROWS; row++) {
@@ -1583,7 +1679,62 @@ export class MapGenerator {
     }
   }
 
-  static #validateMap(grid, heightmap, tileMeta, layout, vegetationData) {
+  static #validateGroundCover(
+    grid,
+    heightmap,
+    tileMeta,
+    layout,
+    vegetationData,
+    groundCoverData,
+  ) {
+    const occupied = new Set(
+      vegetationData.map(({ col, row }) => this.#tileKey(col, row)),
+    );
+    for (const decoration of groundCoverData) {
+      const { col, row, variant } = decoration;
+      const key = this.#tileKey(col, row);
+      if (occupied.has(key)) {
+        throw new InvalidGroundCoverPlacementError({
+          col,
+          row,
+          reason: 'overlaps another decoration',
+        });
+      }
+      if (
+        !this.#isGroundCoverCandidate(
+          grid,
+          heightmap,
+          tileMeta,
+          layout,
+          col,
+          row,
+        )
+      ) {
+        throw new InvalidGroundCoverPlacementError({
+          col,
+          row,
+          reason: 'is not on valid flat grass',
+        });
+      }
+      if (!this.#GROUND_COVER_VARIANTS.includes(variant)) {
+        throw new InvalidGroundCoverPlacementError({
+          col,
+          row,
+          reason: `uses unknown variation ${variant}`,
+        });
+      }
+      occupied.add(key);
+    }
+  }
+
+  static #validateMap(
+    grid,
+    heightmap,
+    tileMeta,
+    layout,
+    vegetationData,
+    groundCoverData,
+  ) {
     this.#validateIslandConnectivity(grid);
     this.#validateGatePlacement(grid, layout);
     this.#validatePathSpacing(layout);
@@ -1600,6 +1751,14 @@ export class MapGenerator {
       tileMeta,
       layout,
       vegetationData,
+    );
+    this.#validateGroundCover(
+      grid,
+      heightmap,
+      tileMeta,
+      layout,
+      vegetationData,
+      groundCoverData,
     );
   }
 }

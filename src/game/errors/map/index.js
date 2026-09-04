@@ -10,6 +10,7 @@ export { InsufficientParallelPathSpacingError } from "./InsufficientParallelPath
 export { InsufficientVegetationVarietyError } from "./InsufficientVegetationVarietyError.js";
 export { InvalidCastleEntranceWidthError } from "./InvalidCastleEntranceWidthError.js";
 export { InvalidGatePositionError } from "./InvalidGatePositionError.js";
+export { InvalidGroundCoverPlacementError } from "./InvalidGroundCoverPlacementError.js";
 export { InvalidRouteWaypointError } from "./InvalidRouteWaypointError.js";
 export { InvalidVegetationPlacementError } from "./InvalidVegetationPlacementError.js";
 export { IsolatedGrassElevationError } from "./IsolatedGrassElevationError.js";

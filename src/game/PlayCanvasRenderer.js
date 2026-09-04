@@ -13,6 +13,7 @@ import {
 } from "./objects/gateway/index.js";
 import { PathArrows } from "./objects/path/index.js";
 import { Hero } from "./objects/hero/index.js";
+import { GroundCover } from "./objects/ground-cover/index.js";
 import { VoxelVegetation } from "./objects/vegetation/index.js";
 import { TileType } from "./MapGenerator.js";
 import { GRASS_SURFACE_LIFT } from "./config/terrain.js";
@@ -135,6 +136,7 @@ export class PlayCanvasRenderer {
   #gateways = [];
   #castle = null;
   #hero = null;
+  #groundCover = null;
   #vegetation = null;
   #collisionWorld = new GroundCollisionWorld();
   #modelLibrary = null;
@@ -212,6 +214,7 @@ export class PlayCanvasRenderer {
         Hero.modelUrl,
         Gateway.modelUrl,
         ...Castle.modelUrls,
+        ...GroundCover.modelUrls,
         ...VoxelVegetation.modelUrls,
       ]),
     ]);
@@ -496,6 +499,7 @@ export class PlayCanvasRenderer {
     this.#buildCastle();
     this.#buildGateways();
     this.#buildVegetation();
+    this.#buildGroundCover();
     this.#buildHero();
 
     this.#mapRoot.addChild(this.#pathArrows.render(this.#mapData));
@@ -526,6 +530,16 @@ export class PlayCanvasRenderer {
     });
     this.#collisionWorld.add(this.#vegetation);
     this.#mapRoot.addChild(this.#vegetation.entity);
+  }
+
+  #buildGroundCover() {
+    this.#groundCover = new GroundCover({
+      pc: this.#pc,
+      app: this.#app,
+      mapData: this.#mapData,
+      modelLibrary: this.#modelLibrary,
+    });
+    this.#mapRoot.addChild(this.#groundCover.entity);
   }
 
   #buildGateways() {
@@ -1014,6 +1028,10 @@ export class PlayCanvasRenderer {
 
   #handleHeroPositionChange = ({ x, y, z }) => {
     this.#castle?.updateHeroPosition({ x, y, z });
+    this.#groundCover?.applyHeroInteraction(
+      { x, y, z },
+      this.#hero?.movementState,
+    );
     this.#updateInteractionTarget({ x, y, z });
     const screenPosition = this.#camera.camera.worldToScreen(
       new this.#pc.Vec3(x, y + HERO_CAMERA_CENTER_HEIGHT, z),
@@ -1253,6 +1271,8 @@ export class PlayCanvasRenderer {
     this.#hero = null;
     this.#vegetation?.destroy();
     this.#vegetation = null;
+    this.#groundCover?.destroy();
+    this.#groundCover = null;
     this.#setInteractionTarget(null);
     this.#mapRoot?.destroy();
     this.#mapRoot = null;

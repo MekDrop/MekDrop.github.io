@@ -175,6 +175,18 @@ export class Hero {
     return { x: Math.sin(yaw), z: Math.cos(yaw) };
   }
 
+  get movementState() {
+    const speed = Math.hypot(this.#velocity.x, this.#velocity.z);
+    return {
+      direction:
+        speed > 0.001
+          ? { x: this.#velocity.x / speed, z: this.#velocity.z / speed }
+          : this.facingDirection,
+      speed,
+      running: this.#running && this.#grounded && speed > 0.08,
+    };
+  }
+
   setMovement(inputX, inputY, running = false) {
     this.#input.x = Math.max(-1, Math.min(1, inputX));
     this.#input.y = Math.max(-1, Math.min(1, inputY));
