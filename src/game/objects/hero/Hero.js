@@ -65,10 +65,6 @@ const RESPAWN_HEIGHT = -4;
 // 1x1 terrain/path cube.
 const HERO_MODEL_SCALE = 0.65;
 const WALKABLE_TILES = new Set([TileType.GRASS, TileType.PATH, TileType.ENTRY]);
-const STRUCTURE_SURFACE_TILES = new Set([
-  TileType.CASTLE_WALL,
-  TileType.CASTLE_TOWER,
-]);
 
 export class Hero {
   static get modelUrl() {
@@ -79,9 +75,7 @@ export class Hero {
   #mapData;
   #getViewRotation;
   #onPositionChange;
-  #isStructureBlocked;
-  #getStructureSurfaceHeight;
-  #isGatewayBlocked;
+  #collisionWorld;
   #modelLibrary;
   #entity;
   #modelRoot;
@@ -113,18 +107,14 @@ export class Hero {
     mapData,
     getViewRotation,
     onPositionChange,
-    isStructureBlocked,
-    getStructureSurfaceHeight,
-    isGatewayBlocked,
+    collisionWorld,
     modelLibrary,
   }) {
     this.#pc = pc;
     this.#mapData = mapData;
     this.#getViewRotation = getViewRotation;
     this.#onPositionChange = onPositionChange;
-    this.#isStructureBlocked = isStructureBlocked;
-    this.#getStructureSurfaceHeight = getStructureSurfaceHeight;
-    this.#isGatewayBlocked = isGatewayBlocked;
+    this.#collisionWorld = collisionWorld;
     this.#modelLibrary = modelLibrary;
     this.#entity = new pc.Entity("Hero");
     this.#spawn = this.#findSpawn();
@@ -319,13 +309,7 @@ export class Hero {
   }
 
   #occupancyAt(x, z) {
-    const structureSurface = this.#getStructureSurfaceHeight?.(x, z) ?? null;
-    if (
-      Number.isFinite(structureSurface) &&
-      structureSurface > this.#position.y + STEP_CLEARANCE
-    ) {
-      return OCCUPANCY.blocked;
-    }
+    const collisionSurface = this.#collisionWorld?.surfaceHeightAt(x, z) ?? null;
     const gridX = x + (this.#mapData.cols - 1) / 2;
     const gridZ = z + (this.#mapData.rows - 1) / 2;
     const firstCol = Math.floor(gridX - HERO_RADIUS + 0.5);
@@ -350,11 +334,10 @@ export class Hero {
 
         const type = this.#mapData.grid[row][col];
         const height = this.#mapData.heightmap[row][col];
-        const isStairSurface =
-          structureSurface !== null && STRUCTURE_SURFACE_TILES.has(type);
+        const isCollisionSurface = collisionSurface !== null;
         if (
-          (!WALKABLE_TILES.has(type) && !STRUCTURE_SURFACE_TILES.has(type)) ||
-          (!isStairSurface && height > this.#position.y + STEP_CLEARANCE)
+          (!WALKABLE_TILES.has(type) && !isCollisionSurface) ||
+          (!isCollisionSurface && height > this.#position.y + STEP_CLEARANCE)
         ) {
           const collisionRadius =
             type === TileType.WATER ? LEDGE_RADIUS : HERO_RADIUS;
@@ -385,10 +368,17 @@ export class Hero {
         }
       }
     }
-    if (this.#isStructureBlocked?.(x, z, HERO_RADIUS)) {
-      return OCCUPANCY.blocked;
-    }
-    if (this.#isGatewayBlocked?.(x, z, HERO_RADIUS)) {
+    if (
+      this.#collisionWorld?.isMovementBlocked(
+        this.#position.x,
+        this.#position.z,
+        x,
+        z,
+        HERO_RADIUS,
+        this.#position.y,
+        STEP_CLEARANCE,
+      )
+    ) {
       return OCCUPANCY.blocked;
     }
     return OCCUPANCY.open;
@@ -407,17 +397,11 @@ export class Hero {
   }
 
   #surfaceAt(x, z) {
-    const structureSurface = this.#getStructureSurfaceHeight?.(x, z);
-    if (Number.isFinite(structureSurface)) return structureSurface;
+    const collisionSurface = this.#collisionWorld?.surfaceHeightAt(x, z);
+    if (Number.isFinite(collisionSurface)) return collisionSurface;
     const tile = this.#tileAt(x, z);
     if (!tile) return null;
     if (WALKABLE_TILES.has(tile.type)) return tile.height;
-    if (
-      STRUCTURE_SURFACE_TILES.has(tile.type) &&
-      !this.#isStructureBlocked?.(x, z, 0)
-    ) {
-      return tile.height;
-    }
     return null;
   }
 
@@ -455,6 +439,21 @@ export class Hero {
       for (let col = 0; col < cols; col += 1) {
         if (this.#mapData.grid[row][col] !== TileType.GRASS) continue;
         const tile = { col, row };
+        const x = col - (cols - 1) / 2;
+        const z = row - (rows - 1) / 2;
+        const elevation =
+          this.#mapData.heightmap[row][col] + GRASS_SURFACE_LIFT;
+        if (
+          this.#collisionWorld?.isBlocked(
+            x,
+            z,
+            HERO_RADIUS,
+            elevation,
+            STEP_CLEARANCE,
+          )
+        ) {
+          continue;
+        }
         grassTiles.push(tile);
         if (!this.#hasSpawnExit(col, row)) continue;
         safeGrassTiles.push(tile);
@@ -508,6 +507,23 @@ export class Hero {
       if (
         !WALKABLE_TILES.has(this.#mapData.grid[neighbourRow][neighbourCol]) ||
         this.#mapData.heightmap[neighbourRow][neighbourCol] > height
+      ) {
+        continue;
+      }
+      const x = neighbourCol - (this.#mapData.cols - 1) / 2;
+      const z = neighbourRow - (this.#mapData.rows - 1) / 2;
+      const type = this.#mapData.grid[neighbourRow][neighbourCol];
+      const elevation =
+        this.#mapData.heightmap[neighbourRow][neighbourCol] +
+        (type === TileType.GRASS ? GRASS_SURFACE_LIFT : 0);
+      if (
+        this.#collisionWorld?.isBlocked(
+          x,
+          z,
+          HERO_RADIUS,
+          elevation,
+          STEP_CLEARANCE,
+        )
       ) {
         continue;
       }

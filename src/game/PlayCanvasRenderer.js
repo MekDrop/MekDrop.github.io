@@ -13,8 +13,10 @@ import {
 } from "./objects/gateway/index.js";
 import { PathArrows } from "./objects/path/index.js";
 import { Hero } from "./objects/hero/index.js";
+import { VoxelVegetation } from "./objects/vegetation/index.js";
 import { TileType } from "./MapGenerator.js";
 import { GRASS_SURFACE_LIFT } from "./config/terrain.js";
+import { GroundCollisionWorld } from "./collision/index.js";
 import { GameModelLibrary } from "./models/index.js";
 
 const FIXED_HEIGHTS = {
@@ -133,6 +135,8 @@ export class PlayCanvasRenderer {
   #gateways = [];
   #castle = null;
   #hero = null;
+  #vegetation = null;
+  #collisionWorld = new GroundCollisionWorld();
   #modelLibrary = null;
   #gatewayColors = [...GATEWAY_COLORS];
   #bannerWindTarget = null;
@@ -205,6 +209,7 @@ export class PlayCanvasRenderer {
         Hero.modelUrl,
         Gateway.modelUrl,
         ...Castle.modelUrls,
+        ...VoxelVegetation.modelUrls,
       ]),
     ]);
     this.resize();
@@ -462,6 +467,7 @@ export class PlayCanvasRenderer {
     this.#createInstancedBatches(cubeBatches, this.#mapRoot, true);
     this.#buildCastle();
     this.#buildGateways();
+    this.#buildVegetation();
     this.#buildHero();
 
     this.#mapRoot.addChild(this.#pathArrows.render(this.#mapData));
@@ -474,17 +480,20 @@ export class PlayCanvasRenderer {
       mapData: this.#mapData,
       getViewRotation: () => this.#rotation,
       onPositionChange: this.#handleHeroPositionChange,
-      isStructureBlocked: (x, z, radius) =>
-        this.#castle?.intersectsGroundFootprint(x, z, radius) ?? false,
-      getStructureSurfaceHeight: (x, z) =>
-        this.#castle?.surfaceHeightAt(x, z) ?? null,
-      isGatewayBlocked: (x, z, radius) =>
-        this.#gateways.some((gateway) =>
-          gateway.intersectsGroundFootprint(x, z, radius),
-        ),
+      collisionWorld: this.#collisionWorld,
       modelLibrary: this.#modelLibrary,
     });
     this.#mapRoot.addChild(this.#hero.entity);
+  }
+
+  #buildVegetation() {
+    this.#vegetation = new VoxelVegetation({
+      pc: this.#pc,
+      mapData: this.#mapData,
+      modelLibrary: this.#modelLibrary,
+    });
+    this.#collisionWorld.add(this.#vegetation);
+    this.#mapRoot.addChild(this.#vegetation.entity);
   }
 
   #buildGateways() {
@@ -511,6 +520,7 @@ export class PlayCanvasRenderer {
         symbol: signs[index % signs.length],
         modelLibrary: this.#modelLibrary,
       });
+      this.#collisionWorld.add(gateway);
       this.#pathArrows.setColor(
         index,
         entry.color ?? this.getGatewayColor(index),
@@ -552,6 +562,7 @@ export class PlayCanvasRenderer {
       occupant: castle.occupant,
       modelLibrary: this.#modelLibrary,
     });
+    this.#collisionWorld.add(this.#castle);
     this.#mapRoot.addChild(this.#castle.entity);
   }
 
@@ -1168,8 +1179,11 @@ export class PlayCanvasRenderer {
     this.#castle = null;
     this.#hero?.destroy();
     this.#hero = null;
+    this.#vegetation?.destroy();
+    this.#vegetation = null;
     this.#mapRoot?.destroy();
     this.#mapRoot = null;
+    this.#collisionWorld.clear();
     for (const buffer of this.#vertexBuffers) buffer.destroy();
     this.#vertexBuffers = [];
   }

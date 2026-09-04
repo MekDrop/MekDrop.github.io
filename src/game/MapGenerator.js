@@ -8,9 +8,11 @@ import {
   InsufficientEntryPathSpacingError,
   InsufficientLayoutVarietyError,
   InsufficientParallelPathSpacingError,
+  InsufficientVegetationVarietyError,
   InvalidCastleEntranceWidthError,
   InvalidGatePositionError,
   InvalidRouteWaypointError,
+  InvalidVegetationPlacementError,
   IsolatedGrassElevationError,
   NoPlayableTerrainError,
   NonOrthogonalRouteSegmentError,
@@ -39,6 +41,12 @@ export class MapGenerator {
   static #WATER_HEIGHT = 0;
   static #CASTLE_GROUND_CLEARANCE = 3;
   static #CASTLE_OCCUPANTS = ['king', 'queen', 'princess'];
+  static #TREE_VARIANTS = ['oak', 'pine', 'tall-tree', 'sapling'];
+  static #BUSH_VARIANTS = ['round-bush', 'wide-bush'];
+  static #VEGETATION_VARIANTS = [
+    ...this.#TREE_VARIANTS,
+    ...this.#BUSH_VARIANTS,
+  ];
   static #CASTLE_FOOTPRINTS = [
     { width: 8, depth: 7 },
     { width: 11, depth: 7 },
@@ -82,7 +90,13 @@ export class MapGenerator {
 
     const heightmap = this.#buildHeightmap(grid, layout);
     this.#applyHeightsToMetadata(grid, tileMeta, heightmap);
-    this.#validateMap(grid, heightmap, layout);
+    const vegetationData = this.#placeVegetation(
+      grid,
+      heightmap,
+      tileMeta,
+      layout,
+    );
+    this.#validateMap(grid, heightmap, tileMeta, layout, vegetationData);
     const { routes, arrowData } = this.#buildRouteData(layout);
     const castle = this.#buildCastleData(grid, layout);
 
@@ -106,6 +120,7 @@ export class MapGenerator {
         route: routes[pathIdx],
       })),
       arrowData,
+      vegetationData,
       pipeData: new Map(),
       mergeZones,
       trunkStart,
@@ -119,6 +134,14 @@ export class MapGenerator {
 
   static #clamp(value, min, max) {
     return Math.max(min, Math.min(max, value));
+  }
+
+  static #shuffle(items) {
+    for (let index = items.length - 1; index > 0; index--) {
+      const swapIndex = this.#rng(0, index);
+      [items[index], items[swapIndex]] = [items[swapIndex], items[index]];
+    }
+    return items;
   }
 
   static #normalizeOptions(options) {
@@ -1162,6 +1185,137 @@ export class MapGenerator {
     return seen;
   }
 
+  static #isVegetationCandidate(
+    grid,
+    heightmap,
+    tileMeta,
+    layout,
+    col,
+    row,
+  ) {
+    if (!this.#inBounds(col, row)) return false;
+    if (grid[row][col] !== TileType.GRASS) return false;
+    if (tileMeta[row][col].shape !== this.#TILE_SHAPE.FLAT) return false;
+    if (!Number.isFinite(heightmap[row][col])) return false;
+
+    if (
+      col >= layout.castleLeft - 2 &&
+      col <= layout.castleRight + 2 &&
+      row >= layout.castleTop - 2 &&
+      row <= layout.castleBottom + 2
+    ) {
+      return false;
+    }
+
+    for (let deltaRow = -1; deltaRow <= 1; deltaRow++) {
+      for (let deltaCol = -1; deltaCol <= 1; deltaCol++) {
+        const neighborCol = col + deltaCol;
+        const neighborRow = row + deltaRow;
+        if (!this.#inBounds(neighborCol, neighborRow)) continue;
+        if (this.#isRouteTile(grid[neighborRow][neighborCol])) return false;
+      }
+    }
+    return true;
+  }
+
+  static #placeVegetation(grid, heightmap, tileMeta, layout) {
+    const candidates = [];
+    for (let row = 0; row < this.#MAP_ROWS; row++) {
+      for (let col = 0; col < this.#MAP_COLS; col++) {
+        if (
+          this.#isVegetationCandidate(
+            grid,
+            heightmap,
+            tileMeta,
+            layout,
+            col,
+            row,
+          )
+        ) {
+          candidates.push({ col, row });
+        }
+      }
+    }
+
+    if (!candidates.length) return [];
+
+    const sparseTargetCount = this.#clamp(
+      Math.round(candidates.length / 35),
+      12,
+      24,
+    );
+    const targetCount = Math.min(candidates.length, sparseTargetCount * 9);
+    const centerCount = this.#clamp(Math.round(targetCount / 6), 18, 36);
+    const centerCandidates = this.#shuffle([...candidates]);
+    const centers = [];
+    for (const candidate of centerCandidates) {
+      if (
+        centers.some(
+          center =>
+            Math.max(
+              Math.abs(center.col - candidate.col),
+              Math.abs(center.row - candidate.row),
+            ) < 3,
+        )
+      ) {
+        continue;
+      }
+      centers.push(candidate);
+      if (centers.length === centerCount) break;
+    }
+
+    const selected = [];
+    const occupied = new Set();
+    const addCandidate = candidate => {
+      const key = this.#tileKey(candidate.col, candidate.row);
+      if (occupied.has(key) || selected.length >= targetCount) return;
+      occupied.add(key);
+      selected.push(candidate);
+    };
+
+    for (const center of centers) {
+      const nearby = this.#shuffle(
+        candidates.filter(
+          candidate =>
+            Math.max(
+              Math.abs(center.col - candidate.col),
+              Math.abs(center.row - candidate.row),
+            ) <= 2,
+        ),
+      );
+      const clusterSize = this.#rng(5, 9);
+      for (const candidate of nearby.slice(0, clusterSize)) {
+        addCandidate(candidate);
+      }
+    }
+
+    for (const candidate of this.#shuffle([...candidates])) {
+      addCandidate(candidate);
+    }
+
+    const treeVariants = this.#shuffle([...this.#TREE_VARIANTS]);
+    const bushVariants = this.#shuffle([...this.#BUSH_VARIANTS]);
+    const treeCount = Math.round(selected.length * 0.8);
+    const kinds = this.#shuffle(
+      selected.map((_, index) => (index < treeCount ? 'tree' : 'bush')),
+    );
+    let treeIndex = 0;
+    let bushIndex = 0;
+    return selected.map((candidate, index) => {
+      const kind = kinds[index];
+      const variant =
+        kind === 'tree'
+          ? treeVariants[treeIndex++ % treeVariants.length]
+          : bushVariants[bushIndex++ % bushVariants.length];
+      return {
+        ...candidate,
+        variant,
+        kind,
+        rotation: this.#rng(0, 3) * 90,
+      };
+    });
+  }
+
   static #validateIslandConnectivity(grid) {
     const allLand = [];
     for (let row = 0; row < this.#MAP_ROWS; row++) {
@@ -1374,7 +1528,62 @@ export class MapGenerator {
     }
   }
 
-  static #validateMap(grid, heightmap, layout) {
+  static #validateVegetation(
+    grid,
+    heightmap,
+    tileMeta,
+    layout,
+    vegetationData,
+  ) {
+    const occupied = new Set();
+    const variants = new Set();
+    for (const vegetation of vegetationData) {
+      const { col, row, variant } = vegetation;
+      const key = this.#tileKey(col, row);
+      if (occupied.has(key)) {
+        throw new InvalidVegetationPlacementError({
+          col,
+          row,
+          reason: 'duplicates another vegetation placement',
+        });
+      }
+      if (
+        !this.#isVegetationCandidate(
+          grid,
+          heightmap,
+          tileMeta,
+          layout,
+          col,
+          row,
+        )
+      ) {
+        throw new InvalidVegetationPlacementError({
+          col,
+          row,
+          reason: 'is not on valid, path-cleared flat grass',
+        });
+      }
+      if (!this.#VEGETATION_VARIANTS.includes(variant)) {
+        throw new InvalidVegetationPlacementError({
+          col,
+          row,
+          reason: `uses unknown variation ${variant}`,
+        });
+      }
+      occupied.add(key);
+      variants.add(variant);
+    }
+
+    const expectedVariety = Math.min(5, vegetationData.length);
+    if (variants.size < expectedVariety) {
+      throw new InsufficientVegetationVarietyError({
+        expected: expectedVariety,
+        actual: variants.size,
+      });
+    }
+  }
+
+  static #validateMap(grid, heightmap, tileMeta, layout, vegetationData) {
     this.#validateIslandConnectivity(grid);
     this.#validateGatePlacement(grid, layout);
     this.#validatePathSpacing(layout);
@@ -1385,6 +1594,13 @@ export class MapGenerator {
     this.#validateHeightDiscipline(grid, heightmap);
     this.#validateGrassNoise(grid, heightmap);
     this.#validateLayoutVariety(layout);
+    this.#validateVegetation(
+      grid,
+      heightmap,
+      tileMeta,
+      layout,
+      vegetationData,
+    );
   }
 }
 
