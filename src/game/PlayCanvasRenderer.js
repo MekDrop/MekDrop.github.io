@@ -16,6 +16,7 @@ import { Hero } from "./objects/hero/index.js";
 import { GroundCover } from "./objects/ground-cover/index.js";
 import {
   CubeCloudField,
+  FloatingIslandMotion,
   SkyIslandScenery,
 } from "./objects/scenery/index.js";
 import { VoxelVegetation } from "./objects/vegetation/index.js";
@@ -23,6 +24,7 @@ import { TileType } from "./MapGenerator.js";
 import { GRASS_SURFACE_LIFT } from "./config/terrain.js";
 import { GroundCollisionWorld } from "./collision/index.js";
 import { GameModelLibrary } from "./models/index.js";
+import { HeroVisibilityController } from "./camera/index.js";
 
 const FIXED_HEIGHTS = {
   [TileType.WATER]: 0,
@@ -47,11 +49,6 @@ const MATERIAL_DEFINITIONS = {
 };
 
 const SIDE_VARIANT_DEFINITIONS = {
-  earthSide: {
-    texture: "earthSide",
-    colors: [0xe8c4a0, 0xf0cbaa, 0xddb894, 0xebc09c, 0xe4bd99, 0xf2ceb0],
-    gloss: 0.08,
-  },
   grassSide: {
     texture: "grassSide",
     colors: [0xffffff, 0xf9f5ee, 0xf2f7ed, 0xf8fbf5, 0xf5f1e9, 0xfbf8f2],
@@ -67,12 +64,23 @@ const SIDE_VARIANT_DEFINITIONS = {
     colors: [0xd8f2ff, 0xcfeaff, 0xe0f5ff, 0xc9e7ff, 0xd5efff, 0xdff7ff],
     gloss: 0.18,
   },
-  islandRockSide: {
-    texture: "earthSide",
-    colors: [0x667482, 0x5b6c7b, 0x72808b, 0x526474, 0x6b7984, 0x5e7080],
-    gloss: 0.03,
-  },
 };
+
+const EARTH_SIDE_TEXTURE_TRANSFORMS = [
+  { startU: 0.01, startV: 0.01, scaleU: 0.32, scaleV: 0.32, flipU: false },
+  { startU: 0.67, startV: 0.01, scaleU: 0.32, scaleV: 0.32, flipU: true },
+  { startU: 0.01, startV: 0.67, scaleU: 0.32, scaleV: 0.32, flipU: true },
+  { startU: 0.67, startV: 0.67, scaleU: 0.32, scaleV: 0.32, flipU: false },
+];
+const EARTH_DETAIL_TEXTURE_TRANSFORMS = [
+  { startU: 0.34, startV: 0.02, scaleU: 0.32, scaleV: 0.32, flipU: false },
+  { startU: 0.34, startV: 0.34, scaleU: 0.32, scaleV: 0.32, flipU: true },
+  { startU: 0.34, startV: 0.66, scaleU: 0.32, scaleV: 0.32, flipU: false },
+];
+const EARTH_SIDE_HIGHEST_LEVEL = 1;
+const EARTH_SIDE_DEPTH_SHADES = [
+  1, 0.92, 0.84, 0.76, 0.68, 0.6, 0.53, 0.47, 0.42, 0.38,
+];
 
 const SIDE_VARIANT_TRANSFORMS = [
   { startU: 0, scaleU: 0.72, flipU: false },
@@ -126,6 +134,13 @@ function colorFromHex(pc, value) {
   );
 }
 
+function shadeHexColor(value, shade) {
+  const red = Math.round(((value >> 16) & 0xff) * shade);
+  const green = Math.round(((value >> 8) & 0xff) * shade);
+  const blue = Math.round((value & 0xff) * shade);
+  return (red << 16) | (green << 8) | blue;
+}
+
 export class PlayCanvasRenderer {
   #pc = null;
   #app = null;
@@ -149,6 +164,8 @@ export class PlayCanvasRenderer {
   #gateways = [];
   #castle = null;
   #hero = null;
+  #heroVisibility = null;
+  #floatingIslandMotion = null;
   #groundCover = null;
   #vegetation = null;
   #cloudField = null;
@@ -254,6 +271,7 @@ export class PlayCanvasRenderer {
     this.#rebuildScene();
     this.#fitCamera();
     this.#updateCamera();
+    this.#heroVisibility?.schedule();
   }
 
   setArrowsVisible(visible) {
@@ -436,6 +454,7 @@ export class PlayCanvasRenderer {
   rotateBy(quarterTurns) {
     this.#rotation = (((this.#rotation + quarterTurns) % 4) + 4) % 4;
     this.#updateCamera();
+    this.#heroVisibility?.schedule();
     return this.#rotation;
   }
 
@@ -446,6 +465,7 @@ export class PlayCanvasRenderer {
     this.#app.resizeCanvas(width, height);
     this.#fitCamera();
     this.#updateCamera();
+    this.#heroVisibility?.schedule();
   }
 
   getCanvas() {
@@ -514,6 +534,41 @@ export class PlayCanvasRenderer {
         );
       });
     }
+
+    EARTH_SIDE_DEPTH_SHADES.forEach((shade, depth) => {
+      EARTH_SIDE_TEXTURE_TRANSFORMS.forEach((transform, variant) => {
+        const name = `earthSide-depth-${depth}-${variant}`;
+        this.#materials.set(
+          name,
+          this.#createMaterial(
+            name,
+            {
+              color: shadeHexColor(0xffffff, shade),
+              texture: "earthSide",
+              gloss: 0.08,
+              ...transform,
+            },
+            textures,
+          ),
+        );
+      });
+      EARTH_DETAIL_TEXTURE_TRANSFORMS.forEach((transform, variant) => {
+        const name = `earthDetailSide-depth-${depth}-${variant}`;
+        this.#materials.set(
+          name,
+          this.#createMaterial(
+            name,
+            {
+              color: shadeHexColor(0xffffff, shade),
+              texture: "earthSide",
+              gloss: 0.08,
+              ...transform,
+            },
+            textures,
+          ),
+        );
+      });
+    });
 
     GRASS_TOP_VARIANTS.forEach((variant, index) => {
       const name = `grass-${index}`;
@@ -588,6 +643,11 @@ export class PlayCanvasRenderer {
     this.#clearScene();
     this.#mapRoot = new this.#pc.Entity("Voxel map");
     this.#app.root.addChild(this.#mapRoot);
+    this.#floatingIslandMotion = new FloatingIslandMotion({
+      app: this.#app,
+      entity: this.#mapRoot,
+      zoom: this.#zoom,
+    });
 
     const scenery = new SkyIslandScenery(this.#mapData);
     const cubeBatches = new Map();
@@ -604,7 +664,7 @@ export class PlayCanvasRenderer {
       mapData: this.#mapData,
       layerId: this.#cloudLayer.id,
     });
-    this.#mapRoot.addChild(this.#cloudField.entity);
+    this.#app.root.addChild(this.#cloudField.entity);
     this.#buildCastle();
     this.#buildGateways();
     this.#buildVegetation();
@@ -627,6 +687,18 @@ export class PlayCanvasRenderer {
       modelLibrary: this.#modelLibrary,
     });
     this.#mapRoot.addChild(this.#hero.entity);
+    this.#heroVisibility = new HeroVisibilityController({
+      pc: this.#pc,
+      app: this.#app,
+      canvas: this.canvas,
+      camera: this.#camera.camera,
+      hero: this.#hero.entity,
+      getRotation: () => this.#rotation,
+      setRotation: (rotation) => {
+        this.#rotation = rotation;
+        this.#updateCamera();
+      },
+    });
     this.#castle?.updateHeroPosition(this.#hero.position);
     this.#updateInteractionTarget();
   }
@@ -779,9 +851,7 @@ export class PlayCanvasRenderer {
       const x = col - (cols - 1) / 2;
       const z = row - (rows - 1) / 2;
       const topMaterial = rocky ? "islandRock" : "earth";
-      const sideMaterial = rocky
-        ? this.#sideVariant("islandRockSide", col, row, level)
-        : this.#sideVariant("earthSide", col, row, level);
+      const sideMaterial = this.#earthSideMaterial(col, row, level, rocky);
       this.#addCubeMatrix(
         batches,
         topMaterial,
@@ -804,20 +874,20 @@ export class PlayCanvasRenderer {
       if (!topCube) {
         return {
           top: "earth",
-          sides: this.#sideVariant("earthSide", col, row, level),
+          sides: this.#earthSideMaterial(col, row, level),
           underlay: "earth",
         };
       }
       return {
         top: `grass-${this.#variantIndex(col, row, level, 11, GRASS_TOP_VARIANTS.length)}`,
-        sides: this.#sideVariant("grassSide", col, row, level),
+        sides: this.#earthSideMaterial(col, row, level),
         underlay: "earth",
       };
     }
     if (!topCube) {
       return {
         top: "earth",
-        sides: this.#sideVariant("earthSide", col, row, level),
+        sides: this.#earthSideMaterial(col, row, level),
         underlay: "earth",
       };
     }
@@ -826,9 +896,33 @@ export class PlayCanvasRenderer {
         type === TileType.GRASS
           ? `grass-${this.#variantIndex(col, row, level, 11, GRASS_TOP_VARIANTS.length)}`
           : SURFACE_MATERIALS[type],
-      sides: this.#sideVariant(SIDE_MATERIALS[type], col, row, level),
+      sides: this.#earthSideMaterial(col, row, level),
       underlay: type === TileType.WATER ? "water" : "earth",
     };
+  }
+
+  #earthSideMaterial(col, row, level, allowDetail = false) {
+    const shadeIndex = Math.max(
+      0,
+      Math.min(
+        EARTH_SIDE_DEPTH_SHADES.length - 1,
+        EARTH_SIDE_HIGHEST_LEVEL - Math.floor(level),
+      ),
+    );
+    const showDetail =
+      allowDetail && this.#variantIndex(col, row, level, 109, 9) === 0;
+    const transforms = showDetail
+      ? EARTH_DETAIL_TEXTURE_TRANSFORMS
+      : EARTH_SIDE_TEXTURE_TRANSFORMS;
+    const variant = this.#variantIndex(
+      col,
+      row,
+      level,
+      71,
+      transforms.length,
+    );
+    const material = showDetail ? "earthDetailSide" : "earthSide";
+    return `${material}-depth-${shadeIndex}-${variant}`;
   }
 
   #sideVariant(material, col, row, level) {
@@ -1194,8 +1288,13 @@ export class PlayCanvasRenderer {
       this.#hero?.movementState,
     );
     this.#updateInteractionTarget({ x, y, z });
+    const heroWorldPosition = this.#hero.entity.getPosition();
     const screenPosition = this.#camera.camera.worldToScreen(
-      new this.#pc.Vec3(x, y + HERO_CAMERA_CENTER_HEIGHT, z),
+      new this.#pc.Vec3(
+        heroWorldPosition.x,
+        heroWorldPosition.y + HERO_CAMERA_CENTER_HEIGHT,
+        heroWorldPosition.z,
+      ),
     );
     const width = Math.max(1, this.canvas.clientWidth);
     const height = Math.max(1, this.canvas.clientHeight);
@@ -1213,7 +1312,10 @@ export class PlayCanvasRenderer {
       boundedX !== screenPosition.x || boundedY !== screenPosition.y;
 
     if (this.#viewportManuallyMoved) {
-      if (!heroIsOutOfBounds) return;
+      if (!heroIsOutOfBounds) {
+        this.#heroVisibility?.schedule();
+        return;
+      }
       const correction = this.#screenDeltaToGround(
         screenPosition.x - boundedX,
         screenPosition.y - boundedY,
@@ -1222,9 +1324,10 @@ export class PlayCanvasRenderer {
       this.#panX += correction.x;
       this.#panZ += correction.z;
     } else if (this.#zoom > MAP_FIT_ZOOM) {
-      this.#panX = x;
-      this.#panZ = z;
+      this.#panX = heroWorldPosition.x;
+      this.#panZ = heroWorldPosition.z;
     } else if (!heroIsOutOfBounds) {
+      this.#heroVisibility?.schedule();
       return;
     } else {
       const correction = this.#screenDeltaToGround(
@@ -1236,6 +1339,7 @@ export class PlayCanvasRenderer {
       this.#panZ += correction.z;
     }
     this.#updateCamera();
+    this.#heroVisibility?.schedule();
   };
 
   #handleHeroFacingChange = () => {
@@ -1273,6 +1377,7 @@ export class PlayCanvasRenderer {
     );
     this.#camera.lookAt(target);
     this.#camera.camera.orthoHeight = this.#baseOrthoHeight / this.#zoom;
+    this.#floatingIslandMotion?.setZoom(this.#zoom);
     this.#cloudField?.setCameraState({
       rotation: this.#rotation,
       panX: this.#panX,
@@ -1447,6 +1552,10 @@ export class PlayCanvasRenderer {
     this.#gateways = [];
     this.#castle?.destroy();
     this.#castle = null;
+    this.#heroVisibility?.destroy();
+    this.#heroVisibility = null;
+    this.#floatingIslandMotion?.destroy();
+    this.#floatingIslandMotion = null;
     this.#hero?.destroy();
     this.#hero = null;
     this.#vegetation?.destroy();

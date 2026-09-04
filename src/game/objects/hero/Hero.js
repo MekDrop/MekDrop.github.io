@@ -148,7 +148,7 @@ export class Hero {
     this.#entity = new pc.Entity("Hero");
     this.#spawn = this.#findSpawn();
     this.#position = { ...this.#spawn };
-    this.#entity.setPosition(
+    this.#entity.setLocalPosition(
       this.#position.x,
       this.#position.y,
       this.#position.z,
@@ -337,7 +337,7 @@ export class Hero {
     this.#moveVertically(deltaTime);
 
     if (this.#position.y < RESPAWN_HEIGHT) this.#respawn();
-    this.#entity.setPosition(
+    this.#entity.setLocalPosition(
       this.#position.x,
       this.#position.y,
       this.#position.z,

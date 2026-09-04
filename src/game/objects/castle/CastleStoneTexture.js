@@ -38,8 +38,9 @@ export class CastleStoneTexture {
       addressU: pc.ADDRESS_CLAMP_TO_EDGE,
       addressV: pc.ADDRESS_CLAMP_TO_EDGE,
       magFilter: pc.FILTER_NEAREST,
-      minFilter: pc.FILTER_NEAREST,
-      mipmaps: false,
+      minFilter: pc.FILTER_LINEAR_MIPMAP_LINEAR,
+      anisotropy: 4,
+      mipmaps: true,
     });
     texture.lock().set(pixels);
     texture.unlock();
