@@ -20,13 +20,16 @@ export class GrassSurface {
   }
 
   applyHeroInteraction({ x, y, z }, movement) {
-    if (!movement || movement.speed <= 0.08) return;
+    if (!movement) return;
 
     this.#heroPosition[0] = x;
     this.#heroPosition[1] = y;
     this.#heroPosition[2] = z;
     this.#heroDirection[0] = movement.direction.x;
     this.#heroDirection[1] = movement.direction.z;
+
+    if (movement.speed <= 0.08) return;
+
     this.#heroInfluence = Math.min(
       1,
       0.42 +

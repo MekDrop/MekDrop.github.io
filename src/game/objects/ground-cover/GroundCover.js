@@ -66,8 +66,11 @@ const VARIANTS = Object.freeze({
 const GPU_CATEGORIES = Object.freeze({
   [FLOWER_CATEGORY]: {
     bendHeight: 0.14,
+    bloomHeight: 0.105,
+    bloomSinkDepth: 0.065,
+    bloomTiltAngle: 6,
     flexibility: 0.82,
-    flattening: 0.075,
+    trampleAngle: 84,
     colorBoost: [1.08, 1.04, 1.08],
   },
 });
@@ -108,7 +111,7 @@ export class GroundCover {
   }
 
   applyHeroInteraction({ x, y, z }, movement) {
-    if (!movement || movement.speed <= 0.08) return;
+    if (!movement) return;
 
     this.#heroPosition[0] = x;
     this.#heroPosition[1] = y;
@@ -122,6 +125,8 @@ export class GroundCover {
         (movement.running ? 0.12 : 0),
     );
     this.#lastHeroMotionAt = this.#elapsed;
+
+    if (movement.speed <= 0.08) return;
 
     const speedStrength = Math.max(
       0,
@@ -193,8 +198,14 @@ export class GroundCover {
       material.setParameter("uHeroDirection", this.#heroDirection);
       material.setParameter("uHeroInfluence", 0);
       material.setParameter("uBendHeight", definition.bendHeight);
+      material.setParameter("uBloomHeight", definition.bloomHeight);
+      material.setParameter("uBloomSinkDepth", definition.bloomSinkDepth);
+      material.setParameter(
+        "uBloomTiltAngle",
+        definition.bloomTiltAngle,
+      );
       material.setParameter("uFlexibility", definition.flexibility);
-      material.setParameter("uFlattening", definition.flattening);
+      material.setParameter("uTrampleAngle", definition.trampleAngle);
       material.setParameter("uColorBoost", definition.colorBoost);
       material.setParameter("uLightDirection", [0.42, 0.82, 0.38]);
       material.update();

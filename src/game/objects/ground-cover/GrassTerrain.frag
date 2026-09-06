@@ -37,6 +37,7 @@ void getAlbedo() {
     vec2 heroOffset = grassPosition - uGrassHeroPosition.xz;
     vec2 heroDirection = normalize(uGrassHeroDirection);
     vec2 heroCrossDirection = vec2(-heroDirection.y, heroDirection.x);
+    vec2 heroRightDirection = vec2(heroDirection.y, -heroDirection.x);
     float alongHeroMotion = dot(heroOffset, heroDirection);
     float acrossHeroMotion = dot(heroOffset, heroCrossDirection);
     float heroTrailDistance = length(vec2(
@@ -48,6 +49,39 @@ void getAlbedo() {
       0.78,
       abs(vPositionW.y - uGrassHeroPosition.y)
     );
+    vec2 feetCenter = uGrassHeroPosition.xz + heroDirection * 0.1;
+    vec2 footOffset = grassPosition - feetCenter;
+    float alongFeet = dot(footOffset, heroDirection);
+    float acrossFeet = dot(footOffset, heroRightDirection);
+    float leftFootDistance = length(vec2(
+      (acrossFeet + 0.13) / 0.16,
+      alongFeet / 0.24
+    ));
+    float rightFootDistance = length(vec2(
+      (acrossFeet - 0.13) / 0.16,
+      alongFeet / 0.24
+    ));
+    float nearestFootDistance = min(
+      leftFootDistance,
+      rightFootDistance
+    );
+    vec2 leftFootCenter = feetCenter - heroRightDirection * 0.13;
+    vec2 rightFootCenter = feetCenter + heroRightDirection * 0.13;
+    vec2 nearestFootCenter =
+      leftFootDistance <= rightFootDistance
+        ? leftFootCenter
+        : rightFootCenter;
+    vec2 footBrushDirection = grassPosition - nearestFootCenter;
+    footBrushDirection =
+      length(footBrushDirection) > 0.001
+        ? normalize(footBrushDirection)
+        : -heroDirection;
+    float bootPress =
+      (1.0 - smoothstep(0.72, 1.08, nearestFootDistance)) * sameLevel;
+    float bootFringe =
+      smoothstep(0.68, 0.96, nearestFootDistance) *
+      (1.0 - smoothstep(1.0, 1.38, nearestFootDistance)) *
+      sameLevel;
     float heroFalloff =
       (1.0 - smoothstep(0.16, 1.0, heroTrailDistance)) *
       sameLevel *
@@ -63,7 +97,8 @@ void getAlbedo() {
       windDirection *
         (broadBend * 0.034 + fineBend * 0.012) *
         uGrassMotionInfluence -
-      heroDirection * heroFalloff * unevenPress * 0.12;
+      heroDirection * heroFalloff * unevenPress * 0.12 +
+      footBrushDirection * bootFringe * unevenPress * 0.045;
     vec2 derivativeX = dFdx(grassPosition);
     vec2 derivativeY = dFdy(grassPosition);
     float worldUnitsPerPixel = max(
@@ -134,6 +169,9 @@ void getAlbedo() {
       mix(0.65, 1.0, grassNoise(grassPosition * 1.35)) *
       uGrassMotionInfluence;
     float brushedRelief = (brushedFibres - 0.5) * heroFalloff;
+    float bootFibres = grassNoise(
+      vec2(acrossFeet * 52.0, alongFeet * 41.0) + vec2(29.0, 7.0)
+    );
     grassTexture *=
       1.0 + bladeRelief * 0.21 + windSheen + brushedRelief * 0.1;
     grassTexture +=
@@ -143,6 +181,16 @@ void getAlbedo() {
       vec3(0.86, 0.94, 0.82),
       heroFalloff * 0.2
     );
+    grassTexture *= mix(
+      vec3(1.0),
+      vec3(0.73, 0.84, 0.69),
+      bootPress * mix(0.16, 0.28, bootFibres)
+    );
+    grassTexture *=
+      1.0 + bootFringe * (bootFibres - 0.42) * 0.18;
+    grassTexture +=
+      vec3(0.012, 0.055, 0.006) *
+      bootFringe * smoothstep(0.5, 0.92, bootFibres);
     dAlbedo *= grassTexture;
   #endif
 

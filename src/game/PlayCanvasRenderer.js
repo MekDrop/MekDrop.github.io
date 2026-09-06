@@ -880,6 +880,14 @@ export class PlayCanvasRenderer {
       },
     });
     this.#castle?.updateHeroPosition(this.#hero.position);
+    this.#groundCover?.applyHeroInteraction(
+      this.#hero.position,
+      this.#hero.movementState,
+    );
+    this.#grassSurface?.applyHeroInteraction(
+      this.#hero.position,
+      this.#hero.movementState,
+    );
     this.#updateInteractionTarget();
   }
 
