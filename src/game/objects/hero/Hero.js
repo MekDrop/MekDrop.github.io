@@ -2,6 +2,7 @@ import { TileType } from "../../MapGenerator.js";
 import { GRASS_SURFACE_LIFT } from "../../config/terrain.js";
 import heroModelUrl from "../../models/hero/hero.glb?url";
 import { HeroRespawnEffect } from "./HeroRespawnEffect.js";
+import { OCCUPANCY } from "../../enum/Occupancy.js";
 
 const FIXED_STEP = 1 / 120;
 const MAX_FRAME_TIME = 0.1;
@@ -31,11 +32,6 @@ const ANIMATION_BLEND_TIME = 0.14;
 const BORED_IDLE_DELAY = 5;
 const BORED_BREAK_MIN = 2.5;
 const BORED_BREAK_VARIANCE = 2;
-const OCCUPANCY = Object.freeze({
-  open: "open",
-  blocked: "blocked",
-  edge: "edge",
-});
 const HERO_ANIMATION = Object.freeze({
   idle: "Idle",
   walk: "Walk",

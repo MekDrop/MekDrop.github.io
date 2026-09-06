@@ -1,3 +1,10 @@
+const MOVEMENT_VECTORS = Object.freeze({
+  up: { x: 0, y: 1 },
+  down: { x: 0, y: -1 },
+  left: { x: -1, y: 0 },
+  right: { x: 1, y: 0 },
+});
+
 export class HeroMovementAction {
   #renderer;
   #directions = {
@@ -30,12 +37,7 @@ export class HeroMovementAction {
   }
 
   dodge(direction) {
-    const input = {
-      up: { x: 0, y: 1 },
-      down: { x: 0, y: -1 },
-      left: { x: -1, y: 0 },
-      right: { x: 1, y: 0 },
-    }[direction];
+    const input = MOVEMENT_VECTORS[direction];
     if (!input) {
       return false;
     }

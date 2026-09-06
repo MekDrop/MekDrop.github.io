@@ -116,47 +116,38 @@ module.exports = configure(function (ctx) {
         }
 
         if (isClient) {
-          viteConf.plugins.push(
-            SiteMap({
-              hostname: `https://` + getHostname(),
-              readable: false,
-              outDir: viteConf.build.outDir,
-              changefreq: "monthly",
-              dynamicRoutes: getRoutes(),
-              generateRobotsTxt: true,
-              priority: 0.8,
-              lastmod: getMaxModificationDate([
-                __dirname + "/src/**/*",
-                __dirname + "/quasar.config.js",
-                __dirname + "/public/**/*",
-              ]),
-              robots: [
-                {
-                  userAgent: "*",
-                  allow: "/",
-                },
-              ],
-            }),
-          );
+          const sitemapPlugin = SiteMap({
+            hostname: `https://` + getHostname(),
+            readable: false,
+            outDir: viteConf.build.outDir,
+            changefreq: "monthly",
+            dynamicRoutes: getRoutes(),
+            generateRobotsTxt: true,
+            priority: 0.8,
+            lastmod: getMaxModificationDate([
+              __dirname + "/src/**/*",
+              __dirname + "/quasar.config.js",
+              __dirname + "/public/**/*",
+            ]),
+            robots: [
+              {
+                userAgent: "*",
+                allow: "/",
+              },
+            ],
+          });
+          const generateSitemap = sitemapPlugin.closeBundle;
+
+          sitemapPlugin.closeBundle = function () {
+            fs.mkdirSync(viteConf.build.outDir, { recursive: true });
+            return generateSitemap.call(this);
+          };
+          viteConf.plugins.push(sitemapPlugin);
         }
       },
       // viteVuePluginOptions: {},
 
       vitePlugins: [
-        [
-          "@intlify/vite-plugin-vue-i18n",
-          {
-            // if you want to use Vue I18n Legacy API, you need to set `compositionOnly: false`
-            // compositionOnly: false,
-
-            // if you want to use named tokens in your Vue I18n messages, such as 'Hello {name}',
-            // you need to set `runtimeOnly: false`
-            // runtimeOnly: false,
-
-            // you need to set i18n resource including paths !
-            include: path.resolve(__dirname, "./src/i18n/**"),
-          },
-        ],
         [
           "@modyfi/vite-plugin-yaml",
           {

@@ -1,6 +1,11 @@
+import {
+  DEFAULT_CONTROLS,
+  MOVEMENT_DIRECTIONS,
+} from "src/game/config/controls.js";
+
 export class GameControls {
   #element;
-  #config;
+  #bindings = DEFAULT_CONTROLS;
   #actions;
   #dragPointerId = null;
   #dragMode = null;
@@ -10,10 +15,13 @@ export class GameControls {
   #movementDirections = new Set();
   #lastMovementTapAt = new Map();
 
-  constructor(element, config, actions) {
+  constructor(element, actions) {
     this.#element = element;
-    this.#config = config;
     this.#actions = actions;
+  }
+
+  #config() {
+    return this.#bindings;
   }
 
   connect() {
@@ -48,19 +56,23 @@ export class GameControls {
   }
 
   #handleKeydown = (event) => {
+    if (this.#isEditable(event.target)) {
+      return;
+    }
+
     if (!event.repeat && this.#actions.restartGame?.restart()) {
       event.preventDefault();
       event.stopImmediatePropagation();
       return;
     }
 
-    if (this.#matchesKey(event, this.#config.copyScreenshot)) {
+    if (this.#matchesKey(event, this.#config().copyScreenshot)) {
       event.preventDefault();
       this.#copyScreenshot();
       return;
     }
 
-    if (this.#matchesKey(event, this.#config.regenerateMap)) {
+    if (this.#matchesKey(event, this.#config().regenerateMap)) {
       event.preventDefault();
       event.returnValue = false;
       event.stopImmediatePropagation();
@@ -72,7 +84,7 @@ export class GameControls {
       return;
     }
 
-    if (this.#matchesKey(event, this.#config.run)) {
+    if (this.#matchesKey(event, this.#config().run)) {
       this.#actions.heroMovement.setRunning(true);
       return;
     }
@@ -96,13 +108,13 @@ export class GameControls {
       return;
     }
 
-    if (this.#matchesKey(event, this.#config.jump)) {
+    if (this.#matchesKey(event, this.#config().jump)) {
       event.preventDefault();
       this.#actions.heroMovement.jump();
       return;
     }
 
-    if (this.#matchesKey(event, this.#config.interact)) {
+    if (this.#matchesKey(event, this.#config().interact)) {
       event.preventDefault();
       this.#actions.vegetationInteraction.interact();
       return;
@@ -119,7 +131,7 @@ export class GameControls {
     ];
 
     for (const [name, invoke] of bindings) {
-      if (!this.#matchesKey(event, this.#config[name])) continue;
+      if (!this.#matchesKey(event, this.#config()[name])) continue;
       event.preventDefault();
       invoke();
       return;
@@ -127,14 +139,18 @@ export class GameControls {
   };
 
   #handleKeyup = (event) => {
-    if (this.#matchesKey(event, this.#config.regenerateMap)) {
+    if (this.#isEditable(event.target)) {
+      return;
+    }
+
+    if (this.#matchesKey(event, this.#config().regenerateMap)) {
       event.preventDefault();
       event.returnValue = false;
       event.stopImmediatePropagation();
       return;
     }
 
-    if (this.#matchesKey(event, this.#config.run)) {
+    if (this.#matchesKey(event, this.#config().run)) {
       this.#actions.heroMovement.setRunning(event.shiftKey);
       return;
     }
@@ -167,9 +183,9 @@ export class GameControls {
     };
     const direction = event.deltaY < 0 ? "up" : "down";
 
-    if (this.#config.zoomIn.wheelDirection === direction) {
+    if (this.#config().zoomIn.wheelDirection === direction) {
       this.#actions.zoom.zoomIn(pivot);
-    } else if (this.#config.zoomOut.wheelDirection === direction) {
+    } else if (this.#config().zoomOut.wheelDirection === direction) {
       this.#actions.zoom.zoomOut(pivot);
     }
   };
@@ -185,10 +201,10 @@ export class GameControls {
     }
     const isPan =
       event.pointerType === "mouse" &&
-      this.#config.dragCamera.mouseButtons.includes(event.button);
+      this.#config().dragCamera.mouseButtons.includes(event.button);
     const isRotate =
       event.pointerType === "mouse" &&
-      event.button === this.#config.rotateCamera.mouseButton;
+      event.button === this.#config().rotateCamera.mouseButton;
     if (!isPan && !isRotate) {
       return;
     }
@@ -215,8 +231,8 @@ export class GameControls {
     this.#dragDistance += Math.hypot(deltaX, deltaY);
     const dragConfig =
       this.#dragMode === "rotate"
-        ? this.#config.rotateCamera
-        : this.#config.dragCamera;
+        ? this.#config().rotateCamera
+        : this.#config().dragCamera;
     if (this.#dragDistance < (dragConfig.activationDistance ?? 0)) {
       return;
     }
@@ -224,7 +240,7 @@ export class GameControls {
     event.preventDefault();
     if (this.#dragMode === "rotate") {
       this.#actions.rotateView.rotateBy(
-        deltaX * this.#config.rotateCamera.quarterTurnsPerPixel,
+        deltaX * this.#config().rotateCamera.quarterTurnsPerPixel,
       );
       return;
     }
@@ -254,6 +270,10 @@ export class GameControls {
   }
 
   #matchesKey(event, binding) {
+    if (!binding?.keys?.length) {
+      return false;
+    }
+
     if (
       !binding?.keys.includes(event.code) &&
       !binding?.keys.includes(event.key)
@@ -267,8 +287,9 @@ export class GameControls {
   }
 
   #movementDirection(event) {
-    for (const direction of ["up", "down", "left", "right"]) {
-      if (this.#matchesKey(event, this.#config[`move${direction[0].toUpperCase()}${direction.slice(1)}`])) {
+    for (const direction of MOVEMENT_DIRECTIONS) {
+      const keyName = `move${direction[0].toUpperCase()}${direction.slice(1)}`;
+      if (this.#matchesKey(event, this.#config()[keyName])) {
         return direction;
       }
     }
@@ -279,7 +300,7 @@ export class GameControls {
     const now = performance.now();
     const previousTapAt = this.#lastMovementTapAt.get(direction);
     const windowMilliseconds =
-      (this.#config.dodge?.doubleTapWindow ?? 0) * 1000;
+      (this.#config().dodge?.doubleTapWindow ?? 0) * 1000;
     this.#lastMovementTapAt.set(direction, now);
     if (
       previousTapAt === undefined ||
@@ -293,15 +314,13 @@ export class GameControls {
   }
 
   #copyScreenshot() {
-    console.log("[GameControls] Ctrl+S received; capturing screenshot...");
-    void this.#actions.copyScreenshot
-      .copyScreenshot()
-      .then(() => {
-        console.log("[GameControls] Screenshot copied to clipboard.");
-      })
-      .catch((error) => {
-        console.error("[GameControls] Screenshot failed.", error);
-      });
+    if (!this.#actions.copyScreenshot?.copyScreenshot) {
+      return;
+    }
+
+    void this.#actions.copyScreenshot.copyScreenshot().catch((error) => {
+      console.error("[GameControls] Screenshot failed.", error);
+    });
   }
 
   #isEditable(target) {

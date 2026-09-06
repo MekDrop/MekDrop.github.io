@@ -130,7 +130,7 @@ export class Castle {
   #position;
   #doors;
   #styleId;
-  #occupant;
+  #occupantSeed;
   #modelLibrary;
   #entity;
   #materials = new Map();
@@ -159,7 +159,7 @@ export class Castle {
     position,
     doors = [],
     style = null,
-    occupant = "king",
+    occupantSeed = 0,
     modelLibrary,
   }) {
     this.#pc = pc;
@@ -167,7 +167,7 @@ export class Castle {
     this.#position = position;
     this.#doors = doors;
     this.#styleId = style;
-    this.#occupant = occupant;
+    this.#occupantSeed = occupantSeed;
     this.#modelLibrary = modelLibrary;
     this.#entity = new pc.Entity("Castle");
 
@@ -391,12 +391,16 @@ export class Castle {
     if (!door) {
       return;
     }
+    const occupant = CastleAudienceRoom.createOccupant({
+      seed: this.#occupantSeed,
+      modelLibrary: this.#modelLibrary,
+    });
     this.#audienceRoom = new CastleAudienceRoom({
       pc: this.#pc,
       app: this.#app,
       position: this.#position,
       door,
-      occupant: this.#occupant,
+      occupant,
       materials: this.#materials,
       availableDepth: this.#interiorDepth,
       availableWidth: this.#interiorWidth,

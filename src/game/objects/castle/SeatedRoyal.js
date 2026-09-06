@@ -2,11 +2,11 @@ import kingModelUrl from "../../models/castle/royals/king.glb?url";
 import princessModelUrl from "../../models/castle/royals/princess.glb?url";
 import queenModelUrl from "../../models/castle/royals/queen.glb?url";
 
-const MODEL_BY_ROLE = Object.freeze({
-  king: kingModelUrl,
-  queen: queenModelUrl,
-  princess: princessModelUrl,
-});
+const MODEL_URLS = Object.freeze([
+  kingModelUrl,
+  queenModelUrl,
+  princessModelUrl,
+]);
 const WALK_OUT_ANIMATION = "WalkOut";
 const CRY_ANIMATION = "Cry";
 const WALK_OUT_ANIMATION_SPEED = 1.8;
@@ -17,17 +17,15 @@ const FALLBACK_VISUAL_SIZE = Object.freeze({ x: 1.2, y: 2.2, z: 1.2 });
 /** An imported seated royal whose local +Z axis faces the visitor. */
 export class SeatedRoyal {
   static get modelUrls() {
-    return Object.values(MODEL_BY_ROLE);
+    return MODEL_URLS;
   }
 
   #entity;
   #performance = null;
 
-  constructor({ role = "king", modelLibrary }) {
-    const normalizedRole = MODEL_BY_ROLE[role] ? role : "king";
-    const modelUrl = MODEL_BY_ROLE[normalizedRole];
+  constructor({ modelUrl = kingModelUrl, modelLibrary }) {
     this.#entity = modelLibrary.instantiate(modelUrl);
-    this.#entity.name = `Seated ${normalizedRole}`;
+    this.#entity.name = "Seated royal";
     const tracks = modelLibrary.getAnimationTracks(modelUrl, [
       WALK_OUT_ANIMATION,
       CRY_ANIMATION,

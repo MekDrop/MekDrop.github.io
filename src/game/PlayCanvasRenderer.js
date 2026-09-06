@@ -14,10 +14,7 @@ import {
 } from "./objects/gateway/index.js";
 import { PathArrows } from "./objects/path/index.js";
 import { Hero } from "./objects/hero/index.js";
-import {
-  GrassSurface,
-  GroundCover,
-} from "./objects/ground-cover/index.js";
+import { GrassSurface, GroundCover } from "./objects/ground-cover/index.js";
 import {
   CubeCloudField,
   FloatingIslandMotion,
@@ -26,6 +23,8 @@ import {
 import { VoxelVegetation } from "./objects/vegetation/index.js";
 import { TileType } from "./MapGenerator.js";
 import { GRASS_SURFACE_LIFT } from "./config/terrain.js";
+import { GRAPHICS_DRIVER } from "./enum/GraphicsDriver.js";
+import { POWER_PREFERENCE } from "./enum/PowerPreference.js";
 import { GroundCollisionWorld } from "./collision/index.js";
 import { GameModelLibrary } from "./models/index.js";
 import { HeroVisibilityController } from "./camera/index.js";
@@ -199,6 +198,9 @@ export class PlayCanvasRenderer {
   #grassSurface = null;
   #vegetation = null;
   #cloudField = null;
+  #pathArrowsVisible = false;
+  #debugAxesHudVisible = false;
+  #debugFpsHudVisible = false;
   #collisionWorld = new GroundCollisionWorld();
   #modelLibrary = null;
   #gatewayColors = [...GATEWAY_COLORS];
@@ -214,6 +216,7 @@ export class PlayCanvasRenderer {
   #gameOverCameraTransition = null;
   #gameOverCameraLocked = false;
   #gameOverReturnViewport = null;
+  #graphics = null;
 
   constructor(
     canvas,
@@ -223,6 +226,7 @@ export class PlayCanvasRenderer {
       onHeroStateChange = null,
       gameOverTitle = "Game over",
       restartPrompt = "Press any key or click to restart",
+      graphics = {},
     } = {},
   ) {
     this.canvas = canvas;
@@ -231,6 +235,27 @@ export class PlayCanvasRenderer {
     this.#onHeroStateChange = onHeroStateChange;
     this.#gameOverTitle = gameOverTitle;
     this.#restartPrompt = restartPrompt;
+    this.#graphics = {
+      driver: GRAPHICS_DRIVER.AUTO,
+      antialias: true,
+      powerPreference: POWER_PREFERENCE.HIGH_PERFORMANCE,
+      maxPixelRatio: 2,
+      mipmaps: true,
+      anisotropy: 8,
+      shadows: true,
+      shadowResolution: SHADOW_RESOLUTION,
+      ...graphics,
+    };
+  }
+
+  #resolveDeviceTypes(pc) {
+    if (this.#graphics.driver === GRAPHICS_DRIVER.WEBGPU) {
+      return [pc.DEVICETYPE_WEBGPU];
+    }
+    if (this.#graphics.driver === GRAPHICS_DRIVER.WEBGL2) {
+      return [pc.DEVICETYPE_WEBGL2];
+    }
+    return [pc.DEVICETYPE_WEBGPU, pc.DEVICETYPE_WEBGL2];
   }
 
   async init() {
@@ -241,20 +266,20 @@ export class PlayCanvasRenderer {
     const pc = this.#pc;
 
     const graphicsDevice = await pc.createGraphicsDevice(this.canvas, {
-      deviceTypes: [pc.DEVICETYPE_WEBGPU, pc.DEVICETYPE_WEBGL2],
+      deviceTypes: this.#resolveDeviceTypes(pc),
       glslangUrl: GLSLANG_URL,
       twgslUrl: TWGSL_URL,
-      antialias: true,
+      antialias: this.#graphics.antialias,
       alpha: false,
       preserveDrawingBuffer: true,
-      powerPreference: "high-performance",
+      powerPreference: this.#graphics.powerPreference,
     });
     this.#app = new pc.Application(this.canvas, { graphicsDevice });
     this.#app.setCanvasFillMode(pc.FILLMODE_NONE);
     this.#app.setCanvasResolution(pc.RESOLUTION_AUTO);
     this.#app.graphicsDevice.maxPixelRatio = Math.min(
       window.devicePixelRatio || 1,
-      2,
+      this.#graphics.maxPixelRatio,
     );
 
     this.#app.scene.ambientLight = new pc.Color(0.5, 0.57, 0.64);
@@ -304,10 +329,10 @@ export class PlayCanvasRenderer {
       type: "directional",
       color: new pc.Color(1, 0.93, 0.8),
       intensity: 2.1,
-      castShadows: true,
+      castShadows: this.#graphics.shadows,
       shadowType: pc.SHADOW_PCF5,
       shadowDistance: SHADOW_DISTANCE,
-      shadowResolution: SHADOW_RESOLUTION,
+      shadowResolution: this.#graphics.shadowResolution,
       shadowIntensity: 0.72,
       shadowBias: 0.18,
       normalOffsetBias: 0.035,
@@ -351,16 +376,52 @@ export class PlayCanvasRenderer {
     this.#heroVisibility?.schedule();
   }
 
-  set arrowsVisible(visible) {
+  set pathArrowsVisible(visible) {
+    this.#pathArrowsVisible = Boolean(visible);
     if (this.#pathArrows) {
-      this.#pathArrows.visible = visible;
+      this.#pathArrows.visible = this.#pathArrowsVisible;
     }
+  }
+
+  get pathArrowsVisible() {
+    return this.#pathArrowsVisible;
+  }
+
+  set debugAxesHudVisible(visible) {
+    this.#debugAxesHudVisible = Boolean(visible);
     if (this.#debugAxesHud) {
-      this.#debugAxesHud.visible = visible;
+      this.#debugAxesHud.visible = this.#debugAxesHudVisible;
     }
+  }
+
+  get debugAxesHudVisible() {
+    return this.#debugAxesHudVisible;
+  }
+
+  set debugFpsHudVisible(visible) {
+    this.#debugFpsHudVisible = Boolean(visible);
     if (this.#debugFpsHud) {
-      this.#debugFpsHud.visible = visible;
+      this.#debugFpsHud.visible = this.#debugFpsHudVisible;
     }
+  }
+
+  get debugFpsHudVisible() {
+    return this.#debugFpsHudVisible;
+  }
+
+  set arrowsVisible(visible) {
+    const nextVisible = Boolean(visible);
+    this.pathArrowsVisible = nextVisible;
+    this.debugAxesHudVisible = nextVisible;
+    this.debugFpsHudVisible = nextVisible;
+  }
+
+  get arrowsVisible() {
+    return (
+      this.#pathArrowsVisible ||
+      this.#debugAxesHudVisible ||
+      this.#debugFpsHudVisible
+    );
   }
 
   get zoom() {
@@ -522,11 +583,7 @@ export class PlayCanvasRenderer {
     const previousZoom = this.#zoom;
     const constrainedZoom = Math.max(MAP_FIT_ZOOM, newZoom);
     const before = this.#screenOffsetToGround(pivotX, pivotY, this.#zoom);
-    const after = this.#screenOffsetToGround(
-      pivotX,
-      pivotY,
-      constrainedZoom,
-    );
+    const after = this.#screenOffsetToGround(pivotX, pivotY, constrainedZoom);
     this.#panX += before.x - after.x;
     this.#panZ += before.z - after.z;
     this.#zoom = constrainedZoom;
@@ -537,11 +594,9 @@ export class PlayCanvasRenderer {
       const centerRetention =
         previousDistance > 0 ? nextDistance / previousDistance : 0;
       this.#panX =
-        this.#fitCenterX +
-        (this.#panX - this.#fitCenterX) * centerRetention;
+        this.#fitCenterX + (this.#panX - this.#fitCenterX) * centerRetention;
       this.#panZ =
-        this.#fitCenterZ +
-        (this.#panZ - this.#fitCenterZ) * centerRetention;
+        this.#fitCenterZ + (this.#panZ - this.#fitCenterZ) * centerRetention;
     }
     if (constrainedZoom === MAP_FIT_ZOOM) {
       this.#panX = this.#fitCenterX;
@@ -784,10 +839,7 @@ export class PlayCanvasRenderer {
       material.depthWrite = false;
     }
     if (definition.continuousTexture) {
-      material.shaderChunks.glsl.set(
-        "diffusePS",
-        grassTerrainFragmentShader,
-      );
+      material.shaderChunks.glsl.set("diffusePS", grassTerrainFragmentShader);
       material.setParameter("uGrassHeroPosition", [0, -1000, 0]);
       material.setParameter("uGrassHeroDirection", [0, 1]);
       material.setParameter("uGrassHeroInfluence", 0);
@@ -805,10 +857,12 @@ export class PlayCanvasRenderer {
 
     return new Promise((resolve, reject) => {
       asset.ready((loadedAsset) => {
-        loadedAsset.resource.mipmaps = true;
-        loadedAsset.resource.minFilter = pc.FILTER_LINEAR_MIPMAP_LINEAR;
+        loadedAsset.resource.mipmaps = this.#graphics.mipmaps;
+        loadedAsset.resource.minFilter = this.#graphics.mipmaps
+          ? pc.FILTER_LINEAR_MIPMAP_LINEAR
+          : pc.FILTER_LINEAR;
         loadedAsset.resource.magFilter = pc.FILTER_LINEAR;
-        loadedAsset.resource.anisotropy = 8;
+        loadedAsset.resource.anisotropy = this.#graphics.anisotropy;
         const addressMode =
           name === "grass"
             ? pc.ADDRESS_MIRRORED_REPEAT
@@ -996,7 +1050,7 @@ export class PlayCanvasRenderer {
         };
       }),
       style: castle.style,
-      occupant: castle.occupant,
+      occupantSeed: castle.occupantSeed,
       modelLibrary: this.#modelLibrary,
     });
     this.#collisionWorld.add(this.#castle);
@@ -1048,9 +1102,7 @@ export class PlayCanvasRenderer {
             z,
             this.#surfaceCoverage(topCube),
             level === 0 ? underlay : "none",
-            topCube && GRASS_SURFACE_TILES.has(type)
-              ? GRASS_SURFACE_LIFT
-              : 0,
+            topCube && GRASS_SURFACE_TILES.has(type) ? GRASS_SURFACE_LIFT : 0,
           );
         }
       }
@@ -1091,11 +1143,11 @@ export class PlayCanvasRenderer {
           underlay: "earth",
         };
       }
-        return {
-          top: `grass-${this.#variantIndex(col, row, level, 11, GRASS_TOP_VARIANTS.length)}`,
-          sides: this.#grassTopSideMaterial(col, row, level),
-          underlay: "earth",
-        };
+      return {
+        top: `grass-${this.#variantIndex(col, row, level, 11, GRASS_TOP_VARIANTS.length)}`,
+        sides: this.#grassTopSideMaterial(col, row, level),
+        underlay: "earth",
+      };
     }
     if (!topCube) {
       return {
@@ -1130,13 +1182,7 @@ export class PlayCanvasRenderer {
     const transforms = showDetail
       ? EARTH_DETAIL_TEXTURE_TRANSFORMS
       : EARTH_SIDE_TEXTURE_TRANSFORMS;
-    const variant = this.#variantIndex(
-      col,
-      row,
-      level,
-      71,
-      transforms.length,
-    );
+    const variant = this.#variantIndex(col, row, level, 71, transforms.length);
     const material = showDetail ? "earthDetailSide" : "earthSide";
     return `${material}-depth-${shadeIndex}-${variant}`;
   }
@@ -1936,10 +1982,10 @@ export class PlayCanvasRenderer {
 
   #updateInteractionTarget(position = this.#hero?.position) {
     const target = position
-      ? this.#vegetation?.findNearestTarget(
+      ? (this.#vegetation?.findNearestTarget(
           position,
           this.#hero.facingDirection,
-        ) ?? null
+        ) ?? null)
       : null;
     this.#setInteractionTarget(target);
   }

@@ -42,7 +42,6 @@ export class MapGenerator {
   static #WATER_HEIGHT = 0;
   static #CASTLE_GROUND_CLEARANCE = 3;
   static #CASTLE_REAR_GROUND_CLEARANCE = 1;
-  static #CASTLE_OCCUPANTS = ['king', 'queen', 'princess'];
   static #TREE_VARIANTS = ['oak', 'pine', 'tall-tree', 'sapling'];
   static #BUSH_VARIANTS = ['round-bush', 'wide-bush'];
   static #GROUND_COVER_VARIANTS = [
@@ -826,10 +825,7 @@ export class MapGenerator {
       },
       style: layout.castleFootprint.style,
       doors,
-      occupant:
-        this.#CASTLE_OCCUPANTS[
-          this.#rng(0, this.#CASTLE_OCCUPANTS.length - 1)
-        ],
+      occupantSeed: this.#rng(0, 0xffffffff),
     };
   }
 

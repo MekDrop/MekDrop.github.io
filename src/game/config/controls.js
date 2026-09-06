@@ -1,68 +1,9 @@
-export const CONTROLS = {
-  zoomIn: {
-    keys: ["PageUp"],
-    wheelDirection: "up",
-  },
-  zoomOut: {
-    keys: ["PageDown"],
-    wheelDirection: "down",
-  },
-  moveUp: {
-    keys: ["ArrowUp"],
-  },
-  moveDown: {
-    keys: ["ArrowDown"],
-  },
-  moveLeft: {
-    keys: ["ArrowLeft"],
-  },
-  moveRight: {
-    keys: ["ArrowRight"],
-  },
-  run: {
-    keys: ["ShiftLeft", "ShiftRight"],
-  },
-  jump: {
-    keys: ["Space"],
-    allowRepeat: false,
-  },
-  dodge: {
-    doubleTapWindow: 0.28,
-  },
-  interact: {
-    keys: ["KeyE"],
-    allowRepeat: false,
-  },
-  rotateAnticlockwise: {
-    keys: ["KeyQ"],
-  },
-  copyScreenshot: {
-    keys: ["KeyS"],
-    ctrlKey: true,
-    allowRepeat: false,
-  },
-  regenerateMap: {
-    keys: ["F5"],
-    allowRepeat: false,
-  },
-  dragCamera: {
-    mouseButtons: [0, 2],
-    activationDistance: 4,
-  },
-  rotateCamera: {
-    mouseButton: 1,
-    activationDistance: 4,
-    quarterTurnsPerPixel: 1 / 240,
-  },
-  toggleArrows: {
-    keys: ["Pause"],
-  },
-  zoom: {
-    factor: 1.1,
-    min: 1.0,
-    max: 6.0,
-  },
-  move: {
-    step: 32,
-  },
-};
+import { DEFAULT_CONTROLS as BASE_CONTROLS } from "src/config/controls.js";
+
+export const CONTROLS = Object.freeze(
+  BASE_CONTROLS && typeof BASE_CONTROLS === "object" ? BASE_CONTROLS : {},
+);
+
+export const DEFAULT_CONTROLS = CONTROLS;
+
+export const MOVEMENT_DIRECTIONS = Object.freeze(["up", "down", "left", "right"]);

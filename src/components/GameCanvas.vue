@@ -81,7 +81,9 @@
   gap: 9px;
   padding: 8px 12px;
   color: #f7fff6;
-  font: 700 13px/1.2 system-ui, sans-serif;
+  font:
+    700 13px/1.2 system-ui,
+    sans-serif;
   letter-spacing: 0.025em;
   background: rgba(6, 18, 13, 0.86);
   border: 1px solid rgba(184, 236, 195, 0.42);
@@ -114,7 +116,9 @@
   height: 13px;
   background: #80d27d;
   border-radius: 2px;
-  transition: background 160ms ease, opacity 160ms ease;
+  transition:
+    background 160ms ease,
+    opacity 160ms ease;
 }
 
 .interaction-prompt__health .interaction-prompt__pip--lost {
@@ -124,7 +128,9 @@
 
 .interaction-prompt-enter-active,
 .interaction-prompt-leave-active {
-  transition: opacity 140ms ease, transform 140ms ease;
+  transition:
+    opacity 140ms ease,
+    transform 140ms ease;
 }
 
 .interaction-prompt-enter-from,
@@ -137,11 +143,10 @@ html.game-viewport--dragging,
 html.game-viewport--dragging * {
   cursor: grabbing !important;
 }
-
 </style>
 
 <script setup>
-import { computed, ref, onMounted, onBeforeUnmount } from "vue";
+import { computed, ref, watch, onMounted, onBeforeUnmount } from "vue";
 import { Notify } from "quasar";
 import { useI18n } from "vue-i18n";
 import SiteNoticeDialog from "components/SiteNoticeDialog.vue";
@@ -157,7 +162,9 @@ import { RotateViewAction } from "src/game/actions/RotateViewAction.js";
 import { ToggleArrowsAction } from "src/game/actions/ToggleArrowsAction.js";
 import { VegetationInteractionAction } from "src/game/actions/VegetationInteractionAction.js";
 import { ZoomAction } from "src/game/actions/ZoomAction.js";
-import { CONTROLS } from "src/game/config/controls.js";
+import { DEFAULT_CONTROLS } from "src/game/config/controls.js";
+import { useDebugStore } from "src/stores/debug-store.js";
+import { useGraphicsSettingsStore } from "src/stores/graphics-settings-store.js";
 
 const container = ref(null);
 const canvas = ref(null);
@@ -171,6 +178,8 @@ const heroLives = ref(3);
 const maxHeroLives = ref(3);
 const gameOver = ref(false);
 const { t } = useI18n();
+const graphicsStore = useGraphicsSettingsStore();
+const debugStore = useDebugStore();
 const interactionLabel = computed(() => {
   if (interactionTarget.value?.cutting) {
     return t("game.interaction.stop_cutting");
@@ -184,13 +193,27 @@ let mapData = null;
 let controls = null;
 let resizeObserver = null;
 let debugStatsTimer = null;
+let stopGraphicsWatch = null;
 let restartGameAction = null;
 
 function updateDebugStats() {
   debugFramesPerSecond.value = renderer?.framesPerSecond ?? 0;
 }
 
+function applyGraphicsSettings() {
+  if (!renderer) {
+    return;
+  }
+
+  renderer.pathArrowsVisible = debugStore.pathArrows;
+  renderer.debugAxesHudVisible = debugStore.debugAxesHud;
+  renderer.debugFpsHudVisible = debugStore.debugFpsHud;
+  debugVisible.value = debugStore.hasAny;
+}
+
 async function init() {
+  const bindings = DEFAULT_CONTROLS;
+
   renderer = new PlayCanvasRenderer(canvas.value, container.value, {
     onInteractionChange: (target) => {
       interactionTarget.value = target;
@@ -202,12 +225,13 @@ async function init() {
     },
     gameOverTitle: t("game.game_over"),
     restartPrompt: t("game.restart_prompt"),
+    graphics: graphicsStore.rendererOptions,
   });
   await renderer.init();
   graphicsBackend.value = renderer.graphicsBackend;
   mapData = generateMap();
   renderer.render(mapData);
-  debugVisible.value = renderer.arrowsVisible;
+  applyGraphicsSettings();
   updateDebugStats();
 
   const regenerateMapAction = new RegenerateMapAction(
@@ -216,13 +240,13 @@ async function init() {
     (generatedMap) => {
       mapData = generatedMap;
       interactionTarget.value = null;
-      debugVisible.value = renderer.arrowsVisible;
+      applyGraphicsSettings();
     },
   );
   restartGameAction = new RestartGameAction(renderer, regenerateMapAction);
   const actions = {
-    zoom: new ZoomAction(renderer, container.value, CONTROLS.zoom),
-    moveCamera: new MoveCameraAction(renderer, CONTROLS.move),
+    zoom: new ZoomAction(renderer, container.value, bindings.zoom),
+    moveCamera: new MoveCameraAction(renderer, bindings.move),
     regenerateMap: regenerateMapAction,
     restartGame: restartGameAction,
     heroMovement: new HeroMovementAction(renderer),
@@ -236,17 +260,22 @@ async function init() {
         timeout: 2000,
       });
     }),
-    toggleArrows: new ToggleArrowsAction(renderer, (visible) => {
-      debugVisible.value = visible;
-      if (visible) updateDebugStats();
-    }),
+    toggleArrows: new ToggleArrowsAction(debugStore),
   };
 
-  controls = new GameControls(container.value, CONTROLS, actions);
+  controls = new GameControls(container.value, actions);
   controls.connect();
 
   resizeObserver = new ResizeObserver(() => renderer.resize());
   resizeObserver.observe(container.value);
+  stopGraphicsWatch = watch(
+    () => [
+      debugStore.pathArrows,
+      debugStore.debugAxesHud,
+      debugStore.debugFpsHud,
+    ],
+    applyGraphicsSettings,
+  );
   debugStatsTimer = window.setInterval(() => {
     if (debugVisible.value) updateDebugStats();
   }, 100);
@@ -258,6 +287,7 @@ onMounted(init);
 
 onBeforeUnmount(() => {
   controls?.disconnect();
+  stopGraphicsWatch?.();
   resizeObserver?.disconnect();
   if (debugStatsTimer !== null) window.clearInterval(debugStatsTimer);
   renderer?.destroy();

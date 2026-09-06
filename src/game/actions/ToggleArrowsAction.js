@@ -1,15 +1,14 @@
 export class ToggleArrowsAction {
-  #renderer;
+  #debugStore;
   #onChange;
 
-  constructor(renderer, onChange = () => {}) {
-    this.#renderer = renderer;
+  constructor(debugStore, onChange = () => {}) {
+    this.#debugStore = debugStore;
     this.#onChange = onChange;
   }
 
   toggleArrows() {
-    const visible = !this.#renderer.arrowsVisible;
-    this.#renderer.arrowsVisible = visible;
+    const visible = this.#debugStore.toggleAll();
     this.#onChange(visible);
   }
 }

@@ -4,7 +4,7 @@ export class MoveCameraAction {
 
   constructor(renderer, { step }) {
     this.#renderer = renderer;
-    this.#step = step;
+    this.#step = Number.isFinite(step) ? step : 0;
   }
 
   moveUp() {

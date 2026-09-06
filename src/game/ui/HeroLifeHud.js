@@ -13,12 +13,7 @@ const NUMBER_WIDTH = 15;
 const NUMBER_HEIGHT = 20;
 const TEXTURE_SIZE = 64;
 
-const COLORS = Object.freeze({
-  panelShadow: 0x061827,
-  panelBorder: 0x0b4e76,
-  panelHighlight: 0x52bce9,
-  panel: 0x123a56,
-  panelInset: 0x0a263b,
+const DEFAULT_COLORS = Object.freeze({
   iconActive: 0xffffff,
   iconInactive: 0x71808b,
 });
@@ -41,6 +36,7 @@ export class HeroLifeHud {
   #maxLives = 3;
   #castleLives = 3;
   #maxCastleLives = 3;
+  #colors;
 
   constructor({
     pc,
@@ -49,10 +45,12 @@ export class HeroLifeHud {
     maxLives = 3,
     castleLives = 3,
     maxCastleLives = 3,
+    colors = DEFAULT_COLORS,
   }) {
     this.#pc = pc;
     this.#app = app;
     this.#entity = new pc.Entity("Game lives HUD");
+    this.#colors = colors;
     this.#entity.addComponent("screen", {
       screenSpace: true,
       referenceResolution: new pc.Vec2(REFERENCE_WIDTH, REFERENCE_HEIGHT),
@@ -256,7 +254,7 @@ export class HeroLifeHud {
       pivot: new this.#pc.Vec2(0, 1),
       width,
       height,
-      color: this.#color(COLORS.iconActive),
+      color: this.#color(this.#colors.iconActive),
       useInput: false,
     });
     entity.element.texture = texture;
@@ -270,7 +268,7 @@ export class HeroLifeHud {
       return;
     }
     icon.element.color = this.#color(
-      value > 0 ? COLORS.iconActive : COLORS.iconInactive,
+      value > 0 ? this.#colors.iconActive : this.#colors.iconInactive,
     );
     this.#drawNumber(numberTexture, value);
     number.element.texture = numberTexture.texture;
