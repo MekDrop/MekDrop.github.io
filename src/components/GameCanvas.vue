@@ -1,6 +1,17 @@
 <template>
   <div ref="container" class="background-canvas fit" @contextmenu.prevent>
-    <canvas ref="canvas" class="background-canvas__surface" />
+    <canvas
+      ref="canvas"
+      class="background-canvas__surface"
+      :aria-label="
+        gameOver
+          ? `${t('game.game_over')}. ${t('game.restart_prompt')}`
+          : t('game.lives_remaining', {
+              current: heroLives,
+              total: maxHeroLives,
+            })
+      "
+    />
     <Transition name="interaction-prompt">
       <div
         v-if="interactionTarget"
@@ -366,6 +377,7 @@ import { CopyScreenshotAction } from "src/game/actions/CopyScreenshotAction.js";
 import { HeroMovementAction } from "src/game/actions/HeroMovementAction.js";
 import { MoveCameraAction } from "src/game/actions/MoveCameraAction.js";
 import { RegenerateMapAction } from "src/game/actions/RegenerateMapAction.js";
+import { RestartGameAction } from "src/game/actions/RestartGameAction.js";
 import { RotateViewAction } from "src/game/actions/RotateViewAction.js";
 import { ToggleArrowsAction } from "src/game/actions/ToggleArrowsAction.js";
 import { VegetationInteractionAction } from "src/game/actions/VegetationInteractionAction.js";
@@ -391,6 +403,9 @@ const debugDirections = ref(DEFAULT_DEBUG_DIRECTIONS);
 const windSpeed = ref(0);
 const windDirection = ref({ ...AMBIENT_WIND_DIRECTION });
 const interactionTarget = ref(null);
+const heroLives = ref(3);
+const maxHeroLives = ref(3);
+const gameOver = ref(false);
 const { t } = useI18n();
 const interactionLabel = computed(() => {
   if (interactionTarget.value?.cutting) {
@@ -449,6 +464,7 @@ let mapData = null;
 let controls = null;
 let resizeObserver = null;
 let windSpeedTimer = null;
+let restartGameAction = null;
 
 function updateWindDebug() {
   const wind = renderer?.getWind();
@@ -464,6 +480,13 @@ async function init() {
     onInteractionChange: (target) => {
       interactionTarget.value = target;
     },
+    onHeroStateChange: (state) => {
+      heroLives.value = state.lives;
+      maxHeroLives.value = state.maxLives;
+      gameOver.value = state.gameOver;
+    },
+    gameOverTitle: t("game.game_over"),
+    restartPrompt: t("game.restart_prompt"),
   });
   await renderer.init();
   mapData = generateMap();
@@ -471,19 +494,22 @@ async function init() {
   debugVisible.value = renderer.getArrowsVisible();
   updateWindDebug();
 
+  const regenerateMapAction = new RegenerateMapAction(
+    renderer,
+    generateMap,
+    (generatedMap) => {
+      mapData = generatedMap;
+      interactionTarget.value = null;
+      debugVisible.value = renderer.getArrowsVisible();
+      updateWindDebug();
+    },
+  );
+  restartGameAction = new RestartGameAction(renderer, regenerateMapAction);
   const actions = {
     zoom: new ZoomAction(renderer, container.value, CONTROLS.zoom),
     moveCamera: new MoveCameraAction(renderer, CONTROLS.move),
-    regenerateMap: new RegenerateMapAction(
-      renderer,
-      generateMap,
-      (generatedMap) => {
-        mapData = generatedMap;
-        interactionTarget.value = null;
-        debugVisible.value = renderer.getArrowsVisible();
-        updateWindDebug();
-      },
-    ),
+    regenerateMap: regenerateMapAction,
+    restartGame: restartGameAction,
     heroMovement: new HeroMovementAction(renderer),
     vegetationInteraction: new VegetationInteractionAction(renderer),
     rotateView: new RotateViewAction(renderer, () => {

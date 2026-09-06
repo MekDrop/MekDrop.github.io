@@ -42,6 +42,9 @@ form:
   no_found: Nerasta
   close: Uždaryti
 game:
+  game_over: Žaidimas baigtas
+  lives_remaining: "Liko gyvybių: {current} iš {total}"
+  restart_prompt: Paspauskite bet kurį klavišą arba spustelėkite, kad pradėtumėte iš naujo
   interaction:
     chop_tree: Kirsti medį
     clear_bush: Pašalinti krūmą

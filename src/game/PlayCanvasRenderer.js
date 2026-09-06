@@ -29,6 +29,7 @@ import { GRASS_SURFACE_LIFT } from "./config/terrain.js";
 import { GroundCollisionWorld } from "./collision/index.js";
 import { GameModelLibrary } from "./models/index.js";
 import { HeroVisibilityController } from "./camera/index.js";
+import { GameOverHud, HeroLifeHud } from "./ui/index.js";
 
 const FIXED_HEIGHTS = {
   [TileType.WATER]: 0,
@@ -136,6 +137,11 @@ const SHADOW_RESOLUTION = 2048;
 const MAP_FIT_ZOOM = 1;
 const HERO_VIEWPORT_MARGIN = 32;
 const HERO_CAMERA_CENTER_HEIGHT = 0.85;
+const CAMERA_TARGET_HEIGHT = 3.2;
+const GAME_OVER_FALLBACK_ZOOM = 1.75;
+const GAME_OVER_CAMERA_DURATION = 0.8;
+const GAME_OVER_ROYAL_VIEWPORT_HEIGHT = 0.6;
+const MAX_CASTLE_LIVES = 3;
 
 function colorFromHex(pc, value) {
   return new pc.Color(
@@ -171,10 +177,13 @@ export class PlayCanvasRenderer {
   #fitCenterZ = 0;
   #viewportManuallyMoved = false;
   #baseOrthoHeight = 24;
+  #cameraTargetY = CAMERA_TARGET_HEIGHT;
   #pathArrows = null;
   #gateways = [];
   #castle = null;
   #hero = null;
+  #lifeHud = null;
+  #gameOverHud = null;
   #heroVisibility = null;
   #floatingIslandMotion = null;
   #groundCover = null;
@@ -190,11 +199,29 @@ export class PlayCanvasRenderer {
   #bannerInteractionConnected = false;
   #interactionTarget = null;
   #onInteractionChange = null;
+  #onHeroStateChange = null;
+  #gameOverTitle = "Game over";
+  #restartPrompt = "Press any key or click to restart";
+  #gameOverCameraTransition = null;
+  #gameOverCameraLocked = false;
+  #gameOverReturnViewport = null;
 
-  constructor(canvas, container, { onInteractionChange = null } = {}) {
+  constructor(
+    canvas,
+    container,
+    {
+      onInteractionChange = null,
+      onHeroStateChange = null,
+      gameOverTitle = "Game over",
+      restartPrompt = "Press any key or click to restart",
+    } = {},
+  ) {
     this.canvas = canvas;
     this.container = container;
     this.#onInteractionChange = onInteractionChange;
+    this.#onHeroStateChange = onHeroStateChange;
+    this.#gameOverTitle = gameOverTitle;
+    this.#restartPrompt = restartPrompt;
   }
 
   async init() {
@@ -219,7 +246,7 @@ export class PlayCanvasRenderer {
     this.#app.scene.ambientLight = new pc.Color(0.5, 0.57, 0.64);
     this.#cloudLayer = new pc.Layer({ name: "Cloud backdrop" });
     this.#app.scene.layers.insert(this.#cloudLayer, 0);
-    this.#app.on("update", this.#updateClouds);
+    this.#app.on("update", this.#updateFrame);
     this.#modelLibrary = new GameModelLibrary({ pc, app: this.#app });
     this.#cubeMeshes = this.#createCubeMeshes();
     this.#pathArrows = new PathArrows({
@@ -227,6 +254,15 @@ export class PlayCanvasRenderer {
       app: this.#app,
       colors: this.#gatewayColors,
     });
+    this.#lifeHud = new HeroLifeHud({ pc, app: this.#app });
+    this.#lifeHud.attach();
+    this.#gameOverHud = new GameOverHud({
+      pc,
+      app: this.#app,
+      title: this.#gameOverTitle,
+      prompt: this.#restartPrompt,
+    });
+    this.#gameOverHud.attach();
 
     this.#camera = new pc.Entity("Isometric camera");
     this.#camera.addComponent("camera", {
@@ -275,11 +311,15 @@ export class PlayCanvasRenderer {
 
   render(mapData) {
     this.#mapData = mapData;
+    this.#gameOverReturnViewport = null;
     this.#zoom = 1;
     this.#rotation = 0;
     this.#panX = 0;
     this.#panZ = 0;
+    this.#cameraTargetY = CAMERA_TARGET_HEIGHT;
     this.#viewportManuallyMoved = false;
+    this.#gameOverCameraTransition = null;
+    this.#gameOverCameraLocked = false;
     this.#updateFitCenter();
     this.#panX = this.#fitCenterX;
     this.#panZ = this.#fitCenterZ;
@@ -376,6 +416,20 @@ export class PlayCanvasRenderer {
     this.#hero?.jump();
   }
 
+  isGameOver() {
+    return this.#hero?.isGameOver ?? false;
+  }
+
+  getGameOverReturnViewport() {
+    return this.#gameOverReturnViewport
+      ? { ...this.#gameOverReturnViewport }
+      : this.getViewport();
+  }
+
+  dodgeHero(inputX, inputY, direction) {
+    return this.#hero?.dodge(inputX, inputY, direction) ?? false;
+  }
+
   interactWithVegetation() {
     if (this.#hero?.isCutting) {
       this.#setInteractionTarget(null);
@@ -408,6 +462,7 @@ export class PlayCanvasRenderer {
     panZ = 0,
     manuallyMoved = false,
   }) {
+    if (this.#gameOverCameraLocked) return;
     this.#zoom = Math.max(MAP_FIT_ZOOM, zoom);
     this.#rotation = rotation;
     this.#updateFitCenter();
@@ -419,6 +474,7 @@ export class PlayCanvasRenderer {
   }
 
   zoomTo(newZoom, pivotX, pivotY) {
+    if (this.#gameOverCameraLocked) return;
     const previousZoom = this.#zoom;
     const constrainedZoom = Math.max(MAP_FIT_ZOOM, newZoom);
     const before = this.#screenOffsetToGround(pivotX, pivotY, this.#zoom);
@@ -452,6 +508,7 @@ export class PlayCanvasRenderer {
   }
 
   panBy(deltaX, deltaY) {
+    if (this.#gameOverCameraLocked) return;
     this.#grassSurface?.applyViewInteraction(deltaX, deltaY);
     if (this.#zoom <= MAP_FIT_ZOOM) {
       this.#panX = this.#fitCenterX;
@@ -468,6 +525,7 @@ export class PlayCanvasRenderer {
   }
 
   rotateBy(quarterTurns) {
+    if (this.#gameOverCameraLocked) return this.#rotation;
     this.#grassSurface?.applyViewInteraction(quarterTurns * 18, 0);
     this.#rotation = (((this.#rotation + quarterTurns) % 4) + 4) % 4;
     this.#updateCamera();
@@ -482,7 +540,7 @@ export class PlayCanvasRenderer {
     this.#app.resizeCanvas(width, height);
     this.#fitCamera();
     this.#updateCamera();
-    this.#heroVisibility?.schedule();
+    if (!this.#gameOverCameraLocked) this.#heroVisibility?.schedule();
   }
 
   getCanvas() {
@@ -491,10 +549,14 @@ export class PlayCanvasRenderer {
 
   destroy() {
     this.#disconnectBannerInteraction();
-    this.#app?.off("update", this.#updateClouds);
+    this.#app?.off("update", this.#updateFrame);
     this.#clearScene();
     this.#pathArrows?.destroy();
     this.#pathArrows = null;
+    this.#lifeHud?.destroy();
+    this.#lifeHud = null;
+    this.#gameOverHud?.destroy();
+    this.#gameOverHud = null;
     for (const material of this.#materials.values()) material.destroy();
     this.#materials.clear();
     for (const asset of this.#textureAssets) {
@@ -735,6 +797,10 @@ export class PlayCanvasRenderer {
     });
     this.#app.root.addChild(this.#cloudField.entity);
     this.#buildCastle();
+    this.#lifeHud?.setCastleLives(
+      this.#castle ? MAX_CASTLE_LIVES : 0,
+      MAX_CASTLE_LIVES,
+    );
     this.#buildGateways();
     this.#buildVegetation();
     this.#buildGroundCover();
@@ -752,6 +818,7 @@ export class PlayCanvasRenderer {
       getViewRotation: () => this.#rotation,
       onPositionChange: this.#handleHeroPositionChange,
       onFacingChange: this.#handleHeroFacingChange,
+      onStateChange: this.#handleHeroStateChange,
       getGatewayRepulsion: this.#getGatewayRepulsion,
       collisionWorld: this.#collisionWorld,
       modelLibrary: this.#modelLibrary,
@@ -765,6 +832,7 @@ export class PlayCanvasRenderer {
       hero: this.#hero.entity,
       getRotation: () => this.#rotation,
       setRotation: (rotation) => {
+        if (this.#gameOverCameraLocked || this.#hero?.isInDeathSequence) return;
         this.#rotation = rotation;
         this.#updateCamera();
       },
@@ -938,8 +1006,9 @@ export class PlayCanvasRenderer {
     }
   }
 
-  #updateClouds = (deltaTime) => {
+  #updateFrame = (deltaTime) => {
     this.#cloudField?.update(deltaTime);
+    this.#updateGameOverCamera(deltaTime);
   };
 
   #cubeMaterials(type, topCube, col, row, level) {
@@ -1426,6 +1495,7 @@ export class PlayCanvasRenderer {
       this.#hero?.movementState,
     );
     this.#updateInteractionTarget({ x, y, z });
+    if (this.#gameOverCameraLocked || this.#hero?.isInDeathSequence) return;
     const heroWorldPosition = this.#hero.entity.getPosition();
     const screenPosition = this.#camera.camera.worldToScreen(
       new this.#pc.Vec3(
@@ -1484,6 +1554,91 @@ export class PlayCanvasRenderer {
     if (!this.#hero?.isCutting) this.#updateInteractionTarget();
   };
 
+  #handleHeroStateChange = (state) => {
+    this.#lifeHud?.setLives(state.lives, state.maxLives);
+    this.#gameOverHud?.setVisible(state.gameOver);
+    this.#onHeroStateChange?.(state);
+    if (!state.gameOver || !this.#castle || !this.#camera) return;
+    const presentation = this.#castle.beginGameOver(() =>
+      this.#camera?.getPosition(),
+    );
+    if (!presentation) return;
+    this.#gameOverReturnViewport = this.getViewport();
+    this.#gameOverCameraLocked = true;
+    const { focus, visualSize, viewRotation } = presentation;
+    const rotationDelta =
+      ((((viewRotation - this.#rotation + 2) % 4) + 4) % 4) - 2;
+    this.#gameOverCameraTransition = {
+      elapsed: 0,
+      startRotation: this.#rotation,
+      rotationDelta,
+      startPanX: this.#panX,
+      startPanZ: this.#panZ,
+      endPanX: focus.x,
+      endPanZ: focus.z,
+      startTargetY: this.#cameraTargetY,
+      endTargetY: focus.y,
+      startZoom: this.#zoom,
+      endZoom: this.#getGameOverZoom(visualSize, viewRotation),
+    };
+    this.#viewportManuallyMoved = true;
+    this.#castle.startGameOverPerformance();
+  };
+
+  #updateGameOverCamera(deltaTime) {
+    const transition = this.#gameOverCameraTransition;
+    if (!transition) return;
+    transition.elapsed += Math.max(0, deltaTime);
+    const progress = Math.min(
+      1,
+      transition.elapsed / GAME_OVER_CAMERA_DURATION,
+    );
+    const easedProgress = progress * progress * (3 - 2 * progress);
+    this.#rotation =
+      transition.startRotation + transition.rotationDelta * easedProgress;
+    this.#panX =
+      transition.startPanX +
+      (transition.endPanX - transition.startPanX) * easedProgress;
+    this.#panZ =
+      transition.startPanZ +
+      (transition.endPanZ - transition.startPanZ) * easedProgress;
+    this.#cameraTargetY =
+      transition.startTargetY +
+      (transition.endTargetY - transition.startTargetY) * easedProgress;
+    this.#zoom =
+      transition.startZoom +
+      (transition.endZoom - transition.startZoom) * easedProgress;
+    this.#updateCamera();
+    if (progress < 1) return;
+    this.#rotation = ((this.#rotation % 4) + 4) % 4;
+    this.#gameOverCameraTransition = null;
+    this.#updateCamera();
+  }
+
+  #getGameOverZoom(visualSize, viewRotation) {
+    if (
+      !visualSize ||
+      !Number.isFinite(visualSize.x) ||
+      !Number.isFinite(visualSize.y) ||
+      !Number.isFinite(visualSize.z)
+    ) {
+      return GAME_OVER_FALLBACK_ZOOM;
+    }
+    const yaw = Math.PI / 4 + viewRotation * (Math.PI / 2);
+    const horizontalDepth =
+      Math.abs(Math.sin(yaw)) * visualSize.x +
+      Math.abs(Math.cos(yaw)) * visualSize.z;
+    const projectedHeight =
+      visualSize.y * Math.cos(CAMERA_PITCH) +
+      horizontalDepth * Math.sin(CAMERA_PITCH);
+    if (projectedHeight <= 0.001) return GAME_OVER_FALLBACK_ZOOM;
+    return Math.max(
+      MAP_FIT_ZOOM,
+      (2 * this.#baseOrthoHeight * GAME_OVER_ROYAL_VIEWPORT_HEIGHT) /
+        projectedHeight,
+    );
+  }
+
   #getGatewayRepulsion = (fromX, fromZ, toX, toZ, radius) => {
     for (const gateway of this.#gateways) {
       const direction = gateway.repulsionForMovement(
@@ -1507,7 +1662,11 @@ export class PlayCanvasRenderer {
     }
     const yaw = Math.PI / 4 + this.#rotation * (Math.PI / 2);
     const horizontalDistance = CAMERA_DISTANCE * Math.cos(CAMERA_PITCH);
-    const target = new this.#pc.Vec3(this.#panX, 3.2, this.#panZ);
+    const target = new this.#pc.Vec3(
+      this.#panX,
+      this.#cameraTargetY,
+      this.#panZ,
+    );
     this.#camera.setPosition(
       target.x + Math.sin(yaw) * horizontalDistance,
       target.y + Math.sin(CAMERA_PITCH) * CAMERA_DISTANCE,

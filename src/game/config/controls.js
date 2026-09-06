@@ -26,6 +26,9 @@ export const CONTROLS = {
     keys: ["Space"],
     allowRepeat: false,
   },
+  dodge: {
+    doubleTapWindow: 0.28,
+  },
   interact: {
     keys: ["KeyE"],
     allowRepeat: false,

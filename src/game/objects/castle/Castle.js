@@ -250,6 +250,15 @@ export class Castle {
     return true;
   }
 
+  beginGameOver(getCameraPosition) {
+    for (const door of this.#animatedDoors) door.openTemporarily(10);
+    return this.#audienceRoom?.beginGameOver(getCameraPosition) ?? null;
+  }
+
+  startGameOverPerformance() {
+    this.#audienceRoom?.startGameOverPerformance();
+  }
+
   beginWindGesture(hit) {
     this.#activeWindTarget = hit?.flag ? this.#flags : this.#banners;
     this.#activeWindTarget?.beginWindGesture(hit);
@@ -303,6 +312,7 @@ export class Castle {
 
   #update = (deltaTime) => {
     for (const door of this.#animatedDoors) door.update(deltaTime);
+    this.#audienceRoom?.update(deltaTime);
     this.#syncAudienceRoomVisibility();
   };
 

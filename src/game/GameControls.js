@@ -8,6 +8,7 @@ export class GameControls {
   #dragY = 0;
   #dragDistance = 0;
   #movementDirections = new Set();
+  #lastMovementTapAt = new Map();
 
   constructor(element, config, actions) {
     this.#element = element;
@@ -47,6 +48,12 @@ export class GameControls {
   }
 
   #handleKeydown = (event) => {
+    if (!event.repeat && this.#actions.restartGame?.restart()) {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      return;
+    }
+
     if (this.#matchesKey(event, this.#config.copyScreenshot)) {
       event.preventDefault();
       this.#copyScreenshot();
@@ -71,6 +78,14 @@ export class GameControls {
     const movementDirection = this.#movementDirection(event);
     if (movementDirection) {
       event.preventDefault();
+      const wasPressed = this.#movementDirections.has(movementDirection);
+      if (
+        !wasPressed &&
+        !event.repeat &&
+        this.#isMovementDoubleTap(movementDirection)
+      ) {
+        if (this.#actions.heroMovement.dodge(movementDirection)) return;
+      }
       this.#movementDirections.add(movementDirection);
       this.#actions.heroMovement.setRunning(event.shiftKey);
       this.#actions.heroMovement.setDirection(movementDirection, true);
@@ -135,6 +150,7 @@ export class GameControls {
 
   #clearMovement = () => {
     this.#movementDirections.clear();
+    this.#lastMovementTapAt.clear();
     this.#actions.heroMovement?.clear();
   };
 
@@ -156,6 +172,11 @@ export class GameControls {
 
   #handlePointerDown = (event) => {
     if (event.defaultPrevented) return;
+    if (this.#actions.restartGame?.restart()) {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      return;
+    }
     const isPan =
       event.pointerType === "mouse" &&
       this.#config.dragCamera.mouseButtons.includes(event.button);
@@ -240,6 +261,23 @@ export class GameControls {
       }
     }
     return null;
+  }
+
+  #isMovementDoubleTap(direction) {
+    const now = performance.now();
+    const previousTapAt = this.#lastMovementTapAt.get(direction);
+    const windowMilliseconds =
+      (this.#config.dodge?.doubleTapWindow ?? 0) * 1000;
+    this.#lastMovementTapAt.set(direction, now);
+    if (
+      previousTapAt === undefined ||
+      now - previousTapAt > windowMilliseconds
+    ) {
+      return false;
+    }
+
+    this.#lastMovementTapAt.delete(direction);
+    return true;
   }
 
   #copyScreenshot() {

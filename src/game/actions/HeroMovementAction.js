@@ -27,6 +27,17 @@ export class HeroMovementAction {
     this.#renderer.jumpHero();
   }
 
+  dodge(direction) {
+    const input = {
+      up: { x: 0, y: 1 },
+      down: { x: 0, y: -1 },
+      left: { x: -1, y: 0 },
+      right: { x: 1, y: 0 },
+    }[direction];
+    if (!input) return false;
+    return this.#renderer.dodgeHero(input.x, input.y, direction);
+  }
+
   clear() {
     for (const direction of Object.keys(this.#directions)) {
       this.#directions[direction] = false;

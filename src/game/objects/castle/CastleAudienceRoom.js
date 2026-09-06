@@ -19,6 +19,12 @@ const MAX_ROOM_DEPTH = 4.1;
 const VISIBILITY_MARGIN = 0.85;
 const CARPET_ENTRANCE_INSET = 0.32;
 const CARPET_REAR_CLEARANCE = 0.36;
+const GAME_OVER_VIEW_ROTATION_BY_SIDE = Object.freeze({
+  NORTH: 1.5,
+  EAST: 0.5,
+  SOUTH: 3.5,
+  WEST: 2.5,
+});
 
 /**
  * Visitor-facing castle audience chamber.
@@ -42,6 +48,7 @@ export class CastleAudienceRoom {
   #materials = new Map();
   #fire = null;
   #royal = null;
+  #royalPosition = null;
   #throne = null;
   #center;
   #inward;
@@ -54,6 +61,10 @@ export class CastleAudienceRoom {
   #obstacles = [];
   #heroWithinVisibility = false;
   #entranceVisible = false;
+  #gameOverPerformance = false;
+  #gameOverPerformanceStarted = false;
+  #gameOverEndPosition = null;
+  #getGameOverCameraPosition = null;
 
   constructor({
     pc,
@@ -104,6 +115,55 @@ export class CastleAudienceRoom {
   setEntranceVisible(visible) {
     this.#entranceVisible = visible;
     this.#syncVisibility();
+  }
+
+  beginGameOver(getCameraPosition) {
+    if (this.#gameOverPerformance || !this.#royal || !this.#royalPosition) {
+      return null;
+    }
+    this.#gameOverPerformance = true;
+    const endPosition = this.#point(0, -1.15, 0.05);
+    this.#gameOverEndPosition = endPosition;
+    this.#getGameOverCameraPosition = getCameraPosition;
+    this.#syncVisibility();
+    const visualBounds = this.#royal.getVisualBounds();
+    const currentPosition = this.#royal.entity.getPosition();
+    const endWorldPosition = this.#entity
+      .getWorldTransform()
+      .transformPoint(
+        new this.#pc.Vec3(endPosition.x, endPosition.y, endPosition.z),
+      );
+    return {
+      focus: {
+        x: endWorldPosition.x + visualBounds.center.x - currentPosition.x,
+        y: endWorldPosition.y + visualBounds.center.y - currentPosition.y,
+        z: endWorldPosition.z + visualBounds.center.z - currentPosition.z,
+      },
+      visualSize: visualBounds.size,
+      viewRotation: GAME_OVER_VIEW_ROTATION_BY_SIDE[this.#door.side] ?? 0,
+    };
+  }
+
+  startGameOverPerformance() {
+    if (
+      !this.#gameOverPerformance ||
+      this.#gameOverPerformanceStarted ||
+      !this.#royal ||
+      !this.#royalPosition ||
+      !this.#gameOverEndPosition
+    ) {
+      return;
+    }
+    this.#gameOverPerformanceStarted = true;
+    this.#royal.beginGameOver({
+      startPosition: this.#royalPosition,
+      endPosition: this.#gameOverEndPosition,
+      getCameraPosition: this.#getGameOverCameraPosition,
+    });
+  }
+
+  update(deltaTime) {
+    this.#royal?.update(deltaTime);
   }
 
   surfaceHeightAt(x, z) {
@@ -337,6 +397,7 @@ export class CastleAudienceRoom {
       modelLibrary: this.#modelLibrary,
     });
     const royalPosition = this.#point(0, throneForward - 0.07, 0.37);
+    this.#royalPosition = royalPosition;
     this.#royal.entity.setLocalPosition(
       royalPosition.x,
       royalPosition.y,
@@ -533,7 +594,9 @@ export class CastleAudienceRoom {
 
   #syncVisibility() {
     this.#entity.enabled =
-      this.#heroWithinVisibility || this.#entranceVisible;
+      this.#gameOverPerformance ||
+      this.#heroWithinVisibility ||
+      this.#entranceVisible;
   }
 
   #material(name) {

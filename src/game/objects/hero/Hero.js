@@ -1,6 +1,7 @@
 import { TileType } from "../../MapGenerator.js";
 import { GRASS_SURFACE_LIFT } from "../../config/terrain.js";
 import heroModelUrl from "../../models/hero/hero.glb?url";
+import { HeroRespawnEffect } from "./HeroRespawnEffect.js";
 
 const FIXED_STEP = 1 / 120;
 const MAX_FRAME_TIME = 0.1;
@@ -12,9 +13,19 @@ const BRAKING = 30;
 const GRAVITY = -22;
 const MAX_JUMP_HEIGHT = 1.21;
 const JUMP_VELOCITY = Math.sqrt(-2 * GRAVITY * MAX_JUMP_HEIGHT);
+const DODGE_DISTANCE = 3;
+const DODGE_JUMP_HEIGHT = 0.68;
+const DODGE_JUMP_VELOCITY = Math.sqrt(-2 * GRAVITY * DODGE_JUMP_HEIGHT);
+const DODGE_DURATION = (2 * DODGE_JUMP_VELOCITY) / -GRAVITY;
+const DODGE_SPEED = DODGE_DISTANCE / DODGE_DURATION;
+const DODGE_ANIMATION_DURATION = 0.6;
+const DODGE_REQUIRED_RUNWAY = 1;
 const MAX_JUMPS = 2;
 const COYOTE_TIME = 0.12;
 const JUMP_BUFFER_TIME = 0.12;
+const MAX_LIVES = 3;
+const RESPAWN_ANIMATION_DURATION = 1.55;
+const RESPAWN_START_HEIGHT = 1;
 const STEP_CLEARANCE = 0.22;
 const ANIMATION_BLEND_TIME = 0.14;
 const BORED_IDLE_DELAY = 5;
@@ -30,6 +41,14 @@ const HERO_ANIMATION = Object.freeze({
   walk: "Walk",
   run: "Run",
   jump: "Jump",
+  fallDeath: "FallDeath",
+  respawn: "Respawn",
+  dodge: Object.freeze({
+    up: "DodgeForward",
+    down: "DodgeBackward",
+    left: "DodgeLeft",
+    right: "DodgeRight",
+  }),
   blocked: "BlockedPush",
   edge: "EdgeRefuse",
   repelled: "Repelled",
@@ -47,6 +66,9 @@ const HERO_ANIMATION_NAMES = Object.freeze([
   HERO_ANIMATION.walk,
   HERO_ANIMATION.run,
   HERO_ANIMATION.jump,
+  HERO_ANIMATION.fallDeath,
+  HERO_ANIMATION.respawn,
+  ...Object.values(HERO_ANIMATION.dodge),
   HERO_ANIMATION.blocked,
   HERO_ANIMATION.edge,
   HERO_ANIMATION.repelled,
@@ -72,7 +94,7 @@ const HERO_RADIUS = 0.46;
 // Ledge checks follow the hero's planted feet instead of the widest parts of
 // the model. This lets the hero approach a drop before refusing to step off.
 const LEDGE_RADIUS = 0.27;
-const RESPAWN_HEIGHT = -4;
+const FALL_EXIT_HEIGHT = -14;
 // Keeps the widest pose, including the pauldron and its outline, within one
 // 1x1 terrain/path cube.
 const HERO_MODEL_SCALE = 0.65;
@@ -110,6 +132,7 @@ export class Hero {
   #getViewRotation;
   #onPositionChange;
   #onFacingChange;
+  #onStateChange;
   #getGatewayRepulsion;
   #collisionWorld;
   #modelLibrary;
@@ -139,6 +162,12 @@ export class Hero {
   #updateHandle = null;
   #cutAction = null;
   #repelAction = null;
+  #dodgeAction = null;
+  #respawnAction = null;
+  #respawnEffect = null;
+  #fallingToDeath = false;
+  #lives = MAX_LIVES;
+  #gameOver = false;
   #gatewayRepelCooldown = 0;
 
   constructor({
@@ -149,6 +178,7 @@ export class Hero {
     getViewRotation,
     onPositionChange,
     onFacingChange,
+    onStateChange,
     getGatewayRepulsion,
     collisionWorld,
     modelLibrary,
@@ -159,6 +189,7 @@ export class Hero {
     this.#getViewRotation = getViewRotation;
     this.#onPositionChange = onPositionChange;
     this.#onFacingChange = onFacingChange;
+    this.#onStateChange = onStateChange;
     this.#getGatewayRepulsion = getGatewayRepulsion;
     this.#collisionWorld = collisionWorld;
     this.#modelLibrary = modelLibrary;
@@ -174,6 +205,7 @@ export class Hero {
 
     this.#createModel();
     this.#updateHandle = app.on("update", this.#update);
+    this.#emitState();
   }
 
   get entity() {
@@ -186,6 +218,14 @@ export class Hero {
 
   get isCutting() {
     return this.#cutAction !== null;
+  }
+
+  get isGameOver() {
+    return this.#gameOver;
+  }
+
+  get isInDeathSequence() {
+    return this.#fallingToDeath || this.#respawnAction !== null;
   }
 
   get facingDirection() {
@@ -209,18 +249,76 @@ export class Hero {
     this.#input.x = Math.max(-1, Math.min(1, inputX));
     this.#input.y = Math.max(-1, Math.min(1, inputY));
     this.#running = running;
-    if (this.#input.x !== 0 || this.#input.y !== 0) {
+    if (
+      !this.#gameOver &&
+      (this.#input.x !== 0 || this.#input.y !== 0)
+    ) {
       this.stopCutting({ dismiss: false });
     }
   }
 
   jump() {
-    if (this.#cutAction || this.#repelAction) return;
+    if (
+      this.#gameOver ||
+      this.#respawnAction ||
+      this.#fallingToDeath ||
+      this.#cutAction ||
+      this.#repelAction
+    ) {
+      return;
+    }
     this.#jumpBufferRemaining = JUMP_BUFFER_TIME;
   }
 
+  dodge(inputX, inputY, direction) {
+    if (
+      this.#gameOver ||
+      this.#respawnAction ||
+      this.#fallingToDeath ||
+      !this.#grounded ||
+      this.#cutAction ||
+      this.#repelAction
+    ) {
+      return false;
+    }
+    const projected = this.#projectInput(inputX, inputY);
+    if (!projected) return false;
+    const runwaySurface = this.#surfaceAt(
+      this.#position.x + projected.x * DODGE_REQUIRED_RUNWAY,
+      this.#position.z + projected.z * DODGE_REQUIRED_RUNWAY,
+    );
+    if (runwaySurface === null) return false;
+
+    this.#velocity.x = projected.x * DODGE_SPEED;
+    this.#velocity.y = DODGE_JUMP_VELOCITY;
+    this.#velocity.z = projected.z * DODGE_SPEED;
+    this.#grounded = false;
+    this.#coyoteRemaining = 0;
+    this.#jumpBufferRemaining = 0;
+    this.#jumpsUsed = 1;
+    this.#dodgeAction = {
+      direction,
+      x: projected.x,
+      z: projected.z,
+      elapsed: 0,
+      crossedLedge: false,
+    };
+    this.#restartAnimation = true;
+    this.#resetBoredom();
+    return true;
+  }
+
   cut({ targetPosition, heightClass, onImpact, onComplete }) {
-    if (!this.#grounded || this.#cutAction || this.#repelAction) return false;
+    if (
+      this.#gameOver ||
+      this.#respawnAction ||
+      this.#fallingToDeath ||
+      !this.#grounded ||
+      this.#cutAction ||
+      this.#repelAction
+    ) {
+      return false;
+    }
     const animation = HERO_ANIMATION.cut[heightClass];
     if (!animation) return false;
 
@@ -262,12 +360,16 @@ export class Hero {
   destroy() {
     this.#updateHandle?.off();
     this.#updateHandle = null;
+    this.#respawnEffect?.destroy();
+    this.#respawnEffect = null;
     this.#entity?.destroy();
     this.#entity = null;
     this.#axeEntity = null;
     this.#animationState = null;
     this.#cutAction = null;
     this.#repelAction = null;
+    this.#dodgeAction = null;
+    this.#respawnAction = null;
   }
 
   #update = (deltaTime) => {
@@ -283,8 +385,11 @@ export class Hero {
   };
 
   #step(deltaTime) {
+    if (this.#gameOver) return;
     this.#advanceCutAction(deltaTime);
     this.#advanceRepelAction(deltaTime);
+    this.#advanceDodgeAction(deltaTime);
+    this.#advanceRespawnAction(deltaTime);
     this.#gatewayRepelCooldown = Math.max(
       0,
       this.#gatewayRepelCooldown - deltaTime,
@@ -308,14 +413,23 @@ export class Hero {
       this.#jumpsUsed = 1;
     }
 
-    const desired = this.#cutAction
+    const desired = this.#respawnAction
       ? { x: 0, z: 0 }
-      : this.#repelAction
-        ? {
-            x: this.#repelAction.x * GATEWAY_REPEL_SPEED,
-            z: this.#repelAction.z * GATEWAY_REPEL_SPEED,
-          }
-        : this.#desiredVelocity();
+      : this.#fallingToDeath
+        ? { x: this.#velocity.x, z: this.#velocity.z }
+        : this.#cutAction
+          ? { x: 0, z: 0 }
+          : this.#repelAction
+            ? {
+                x: this.#repelAction.x * GATEWAY_REPEL_SPEED,
+                z: this.#repelAction.z * GATEWAY_REPEL_SPEED,
+              }
+            : this.#dodgeAction
+              ? {
+                  x: this.#dodgeAction.x * DODGE_SPEED,
+                  z: this.#dodgeAction.z * DODGE_SPEED,
+                }
+              : this.#desiredVelocity();
     const moving = Math.hypot(desired.x, desired.z) > 0.001;
     const acceleration = moving
       ? this.#grounded
@@ -336,6 +450,8 @@ export class Hero {
     const canGroundJump = this.#coyoteRemaining > 0;
     const canAirJump = !this.#grounded && this.#jumpsUsed < MAX_JUMPS;
     if (
+      !this.#respawnAction &&
+      !this.#fallingToDeath &&
       !this.#cutAction &&
       !this.#repelAction &&
       this.#jumpBufferRemaining > 0 &&
@@ -354,7 +470,7 @@ export class Hero {
     this.#moveHorizontally(deltaTime);
     this.#moveVertically(deltaTime);
 
-    if (this.#position.y < RESPAWN_HEIGHT) this.#respawn();
+    if (this.#position.y < FALL_EXIT_HEIGHT) this.#handleFallDeath();
     this.#entity.setLocalPosition(
       this.#position.x,
       this.#position.y,
@@ -370,24 +486,35 @@ export class Hero {
   }
 
   #desiredVelocity() {
-    const length = Math.hypot(this.#input.x, this.#input.y);
-    if (length < 0.001) return { x: 0, z: 0 };
+    const projected = this.#projectInput(this.#input.x, this.#input.y);
+    if (!projected) return { x: 0, z: 0 };
+    const speed = this.#running ? RUN_SPEED : MOVE_SPEED;
+    return {
+      x: projected.x * speed,
+      z: projected.z * speed,
+    };
+  }
 
-    const inputX = this.#input.x / Math.max(1, length);
-    const inputY = this.#input.y / Math.max(1, length);
+  #projectInput(inputX, inputY) {
+    const length = Math.hypot(inputX, inputY);
+    if (length < 0.001) return null;
+
+    const normalizedX = inputX / Math.max(1, length);
+    const normalizedY = inputY / Math.max(1, length);
     const yaw = Math.PI / 4 + (this.#getViewRotation?.() ?? 0) * (Math.PI / 2);
-    const projectedX = Math.cos(yaw) * inputX - Math.sin(yaw) * inputY;
-    const projectedZ = -Math.sin(yaw) * inputX - Math.cos(yaw) * inputY;
+    const projectedX =
+      Math.cos(yaw) * normalizedX - Math.sin(yaw) * normalizedY;
+    const projectedZ =
+      -Math.sin(yaw) * normalizedX - Math.cos(yaw) * normalizedY;
     const axisDifference = Math.abs(projectedX) - Math.abs(projectedZ);
-    const preferXOnTie = Math.abs(inputY) >= Math.abs(inputX);
+    const preferXOnTie = Math.abs(normalizedY) >= Math.abs(normalizedX);
     const useXAxis =
       Math.abs(axisDifference) < 0.000001
         ? preferXOnTie
         : axisDifference > 0;
-    const speed = this.#running ? RUN_SPEED : MOVE_SPEED;
     return {
-      x: useXAxis ? Math.sign(projectedX) * speed : 0,
-      z: useXAxis ? 0 : Math.sign(projectedZ) * speed,
+      x: useXAxis ? Math.sign(projectedX) : 0,
+      z: useXAxis ? 0 : Math.sign(projectedZ),
     };
   }
 
@@ -418,7 +545,21 @@ export class Hero {
   }
 
   #moveVertically(deltaTime) {
-    const ground = this.#surfaceAt(this.#position.x, this.#position.z);
+    const ground = this.#fallingToDeath
+      ? null
+      : this.#surfaceAt(this.#position.x, this.#position.z);
+    if (ground === null && this.#dodgeAction) {
+      this.#dodgeAction.crossedLedge = true;
+    }
+    if (
+      ground === null &&
+      !this.#fallingToDeath &&
+      !this.#dodgeAction &&
+      (this.#isBeyondMapEdge(this.#position.x, this.#position.z) ||
+        (!this.#grounded && this.#velocity.y <= 0))
+    ) {
+      this.#beginFallDeath();
+    }
     if (
       this.#grounded &&
       ground !== null &&
@@ -465,6 +606,7 @@ export class Hero {
           col >= this.#mapData.cols ||
           row >= this.#mapData.rows
         ) {
+          if (this.#dodgeAction || this.#fallingToDeath) continue;
           if (!this.#circleOverlapsTile(x, z, col, row, LEDGE_RADIUS)) {
             continue;
           }
@@ -502,7 +644,9 @@ export class Hero {
             continue;
           }
           return type === TileType.WATER
-            ? OCCUPANCY.edge
+            ? this.#dodgeAction
+              ? OCCUPANCY.open
+              : OCCUPANCY.edge
             : OCCUPANCY.blocked;
         }
       }
@@ -562,6 +706,17 @@ export class Hero {
         this.#mapData.heightmap[row][col] +
         (GRASS_SURFACE_TILES.has(type) ? GRASS_SURFACE_LIFT : 0),
     };
+  }
+
+  #isBeyondMapEdge(x, z) {
+    const gridX = x + (this.#mapData.cols - 1) / 2;
+    const gridZ = z + (this.#mapData.rows - 1) / 2;
+    return (
+      gridX < -0.5 ||
+      gridZ < -0.5 ||
+      gridX > this.#mapData.cols - 0.5 ||
+      gridZ > this.#mapData.rows - 0.5
+    );
   }
 
   #findSpawn() {
@@ -696,7 +851,27 @@ export class Hero {
     return (Math.atan2(directionX, directionZ) * 180) / Math.PI;
   }
 
-  #respawn() {
+  #beginFallDeath() {
+    if (this.#fallingToDeath || this.#gameOver) return;
+    this.stopCutting({ dismiss: false });
+    this.#fallingToDeath = true;
+    this.#repelAction = null;
+    this.#dodgeAction = null;
+    this.#jumpBufferRemaining = 0;
+    this.#restartAnimation = true;
+    this.#resetBoredom();
+  }
+
+  #handleFallDeath() {
+    this.#beginFallDeath();
+    this.#lives = Math.max(0, this.#lives - 1);
+    if (this.#lives === 0) {
+      this.#gameOver = true;
+      this.#velocity = { x: 0, y: 0, z: 0 };
+      this.#emitState();
+      return;
+    }
+
     this.#position = { ...this.#spawn };
     this.#velocity = { x: 0, y: 0, z: 0 };
     this.#grounded = true;
@@ -706,9 +881,15 @@ export class Hero {
     this.#movementBlocked = false;
     this.#edgeRefusal = false;
     this.#repelAction = null;
+    this.#dodgeAction = null;
+    this.#fallingToDeath = false;
+    this.#respawnAction = { elapsed: 0 };
+    this.#respawnEffect.begin(this.#facingYaw, this.#position.y);
+    this.#updateRespawnPresentation();
     this.#gatewayRepelCooldown = 0;
-    this.#restartAnimation = false;
+    this.#restartAnimation = true;
     this.#resetBoredom();
+    this.#emitState();
   }
 
   #animate(deltaTime) {
@@ -721,6 +902,8 @@ export class Hero {
       : { x: this.#velocity.x, z: this.#velocity.z };
     const previousFacingYaw = this.#facingYaw;
     if (
+      !this.#fallingToDeath &&
+      !this.#respawnAction &&
       !this.#repelAction &&
       Math.hypot(facingVelocity.x, facingVelocity.z) > 0.08
     ) {
@@ -733,17 +916,29 @@ export class Hero {
       );
     }
     this.#modelRoot.setLocalEulerAngles(0, this.#facingYaw, 0);
+    this.#respawnEffect?.setFacingYaw(this.#facingYaw);
+    if (this.#respawnAction) this.#updateRespawnPresentation();
     if (Math.abs(this.#facingYaw - previousFacingYaw) > 0.001) {
       this.#onFacingChange?.(this.facingDirection);
     }
 
     let animation;
     let animationSpeed = 1;
-    if (this.#cutAction) {
+    if (this.#fallingToDeath) {
+      animation = HERO_ANIMATION.fallDeath;
+      this.#resetBoredom();
+    } else if (this.#respawnAction) {
+      animation = HERO_ANIMATION.respawn;
+      this.#resetBoredom();
+    } else if (this.#cutAction) {
       animation = this.#cutAnimationName();
       this.#resetBoredom();
     } else if (this.#repelAction) {
       animation = HERO_ANIMATION.repelled;
+      this.#resetBoredom();
+    } else if (this.#dodgeAction) {
+      animation = HERO_ANIMATION.dodge[this.#dodgeAction.direction];
+      animationSpeed = DODGE_ANIMATION_DURATION / DODGE_DURATION;
       this.#resetBoredom();
     } else if (!this.#grounded) {
       animation = HERO_ANIMATION.jump;
@@ -841,6 +1036,16 @@ export class Hero {
     }
     this.#modelRoot.anim.baseLayer.play(HERO_ANIMATION.idle);
     this.#animationState = HERO_ANIMATION.idle;
+    this.#respawnEffect = new HeroRespawnEffect({
+      pc: this.#pc,
+      parent: this.#entity,
+      modelRoot: this.#modelRoot,
+      modelLibrary: this.#modelLibrary,
+      modelUrl: Hero.modelUrl,
+      modelScale: HERO_MODEL_SCALE,
+      startHeight: RESPAWN_START_HEIGHT,
+      respawnAnimation: animationTracks.get(HERO_ANIMATION.respawn),
+    });
   }
 
   #advanceCutAction(deltaTime) {
@@ -907,6 +1112,7 @@ export class Hero {
     if (!direction) return false;
     this.stopCutting({ dismiss: false });
     this.#repelAction = { ...direction, elapsed: 0 };
+    this.#dodgeAction = null;
     this.#velocity.x = direction.x * GATEWAY_REPEL_SPEED;
     this.#velocity.z = direction.z * GATEWAY_REPEL_SPEED;
     this.#restartAnimation = true;
@@ -921,6 +1127,57 @@ export class Hero {
     this.#repelAction = null;
     this.#gatewayRepelCooldown = GATEWAY_REPEL_COOLDOWN;
     this.#restartAnimation = true;
+  }
+
+  #advanceDodgeAction(deltaTime) {
+    if (!this.#dodgeAction) return;
+    this.#dodgeAction.elapsed = Math.min(
+      DODGE_DURATION,
+      this.#dodgeAction.elapsed + deltaTime,
+    );
+    if (this.#dodgeAction.elapsed < DODGE_DURATION) return;
+    const crossedLedge = this.#dodgeAction.crossedLedge;
+    this.#dodgeAction = null;
+    if (crossedLedge) this.#beginFallDeath();
+  }
+
+  #advanceRespawnAction(deltaTime) {
+    if (!this.#respawnAction) return;
+    this.#respawnAction.elapsed = Math.min(
+      RESPAWN_ANIMATION_DURATION,
+      this.#respawnAction.elapsed + deltaTime,
+    );
+    if (this.#respawnAction.elapsed >= RESPAWN_ANIMATION_DURATION) {
+      this.#respawnAction = null;
+      this.#resetRespawnPresentation();
+      this.#restartAnimation = true;
+    }
+  }
+
+  #updateRespawnPresentation() {
+    if (!this.#modelRoot || !this.#respawnAction) return;
+
+    const progress = Math.min(
+      1,
+      this.#respawnAction.elapsed / RESPAWN_ANIMATION_DURATION,
+    );
+    this.#respawnEffect?.update(
+      progress,
+      this.#respawnAction.elapsed,
+      this.#position.y,
+    );
+  }
+
+  #resetRespawnPresentation() {
+    this.#respawnEffect?.reset();
+  }
+
+  #emitState() {
+    this.#onStateChange?.({
+      lives: this.#lives,
+      maxLives: MAX_LIVES,
+      gameOver: this.#gameOver,
+    });
   }
 
   #setAxeVisible(visible) {

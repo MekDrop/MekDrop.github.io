@@ -42,6 +42,9 @@ form:
   no_found: No links found
   close: Close
 game:
+  game_over: Game over
+  lives_remaining: "{current} of {total} lives remaining"
+  restart_prompt: Press any key or click to restart
   interaction:
     chop_tree: Chop tree
     clear_bush: Clear bush

@@ -9,8 +9,7 @@ export class RegenerateMapAction {
     this.#onGenerated = onGenerated;
   }
 
-  regenerateMap() {
-    const viewport = this.#renderer.getViewport();
+  regenerateMap(viewport = this.#renderer.getViewport()) {
     const mapData = this.#generateMap();
 
     this.#renderer.render(mapData);
