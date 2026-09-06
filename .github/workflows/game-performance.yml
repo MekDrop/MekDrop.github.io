@@ -1,0 +1,54 @@
+name: Game performance
+
+on:
+  pull_request:
+    paths:
+      - "src/game/**"
+      - "src/components/GameCanvas.vue"
+      - "src/assets/game/**"
+      - "public/game/wasm/**"
+      - "scripts/run-game-performance-test.cjs"
+      - "test/cypress/performance/**"
+      - "cypress.performance.config.cjs"
+      - "package.json"
+      - "package-lock.json"
+      - ".github/workflows/game-performance.yml"
+  push:
+    branches:
+      - master
+    paths:
+      - "src/game/**"
+      - "src/components/GameCanvas.vue"
+      - "src/assets/game/**"
+      - "public/game/wasm/**"
+      - "scripts/run-game-performance-test.cjs"
+      - "test/cypress/performance/**"
+      - "cypress.performance.config.cjs"
+      - "package.json"
+      - "package-lock.json"
+      - ".github/workflows/game-performance.yml"
+
+concurrency:
+  group: "game-performance-${{ github.ref }}"
+  cancel-in-progress: true
+
+jobs:
+  game-performance:
+    name: Game performance budget
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: package.json
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run game performance test
+        run: npm run test:game:performance

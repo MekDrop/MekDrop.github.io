@@ -41,10 +41,13 @@ form:
   filter: Search...
   no_found: No links found
   close: Close
+  ok: OK
 game:
   game_over: Game over
   lives_remaining: "{current} of {total} lives remaining"
   restart_prompt: Press any key or click to restart
+  graphics:
+    webgl_fallback: WebGPU is unavailable. Using WebGL 2 compatibility rendering.
   interaction:
     chop_tree: Chop tree
     clear_bush: Clear bush

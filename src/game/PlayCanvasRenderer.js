@@ -29,7 +29,12 @@ import { GRASS_SURFACE_LIFT } from "./config/terrain.js";
 import { GroundCollisionWorld } from "./collision/index.js";
 import { GameModelLibrary } from "./models/index.js";
 import { HeroVisibilityController } from "./camera/index.js";
-import { GameOverHud, HeroLifeHud } from "./ui/index.js";
+import {
+  DebugAxesHud,
+  DebugFpsHud,
+  GameOverHud,
+  HeroLifeHud,
+} from "./ui/index.js";
 
 const FIXED_HEIGHTS = {
   [TileType.WATER]: 0,
@@ -134,6 +139,8 @@ const CAMERA_PITCH = Math.atan(1 / Math.sqrt(2));
 const CAMERA_DISTANCE = 80;
 const SHADOW_DISTANCE = 150;
 const SHADOW_RESOLUTION = 2048;
+const GLSLANG_URL = "/game/wasm/glslang/glslang.js";
+const TWGSL_URL = "/game/wasm/twgsl/twgsl.js";
 const MAP_FIT_ZOOM = 1;
 const HERO_VIEWPORT_MARGIN = 32;
 const HERO_CAMERA_CENTER_HEIGHT = 0.85;
@@ -182,6 +189,8 @@ export class PlayCanvasRenderer {
   #gateways = [];
   #castle = null;
   #hero = null;
+  #debugAxesHud = null;
+  #debugFpsHud = null;
   #lifeHud = null;
   #gameOverHud = null;
   #heroVisibility = null;
@@ -225,17 +234,22 @@ export class PlayCanvasRenderer {
   }
 
   async init() {
-    this.#pc = await import("playcanvas");
+    // Keep WebGPU validation scopes out of the render loop. The package's
+    // development export is intentionally diagnostic and is far too costly
+    // for this continuously rendered game, even when Quasar runs in dev mode.
+    this.#pc = await import("playcanvas/build/playcanvas/src/index.js");
     const pc = this.#pc;
 
-    this.#app = new pc.Application(this.canvas, {
-      graphicsDeviceOptions: {
-        antialias: true,
-        alpha: false,
-        preserveDrawingBuffer: true,
-        powerPreference: "high-performance",
-      },
+    const graphicsDevice = await pc.createGraphicsDevice(this.canvas, {
+      deviceTypes: [pc.DEVICETYPE_WEBGPU, pc.DEVICETYPE_WEBGL2],
+      glslangUrl: GLSLANG_URL,
+      twgslUrl: TWGSL_URL,
+      antialias: true,
+      alpha: false,
+      preserveDrawingBuffer: true,
+      powerPreference: "high-performance",
     });
+    this.#app = new pc.Application(this.canvas, { graphicsDevice });
     this.#app.setCanvasFillMode(pc.FILLMODE_NONE);
     this.#app.setCanvasResolution(pc.RESOLUTION_AUTO);
     this.#app.graphicsDevice.maxPixelRatio = Math.min(
@@ -254,6 +268,15 @@ export class PlayCanvasRenderer {
       app: this.#app,
       colors: this.#gatewayColors,
     });
+    this.#debugFpsHud = new DebugFpsHud({ pc, app: this.#app });
+    this.#debugFpsHud.attach();
+    this.#debugAxesHud = new DebugAxesHud({
+      pc,
+      app: this.#app,
+      getDirections: () => this.getDebugDirections(),
+      getWind: () => this.getWind(),
+    });
+    this.#debugAxesHud.attach();
     this.#lifeHud = new HeroLifeHud({ pc, app: this.#app });
     this.#lifeHud.attach();
     this.#gameOverHud = new GameOverHud({
@@ -331,6 +354,8 @@ export class PlayCanvasRenderer {
 
   setArrowsVisible(visible) {
     this.#pathArrows?.setVisible(visible);
+    this.#debugAxesHud?.setVisible(visible);
+    this.#debugFpsHud?.setVisible(visible);
   }
 
   getArrowsVisible() {
@@ -347,6 +372,14 @@ export class PlayCanvasRenderer {
 
   getWindSpeed() {
     return this.#cloudField?.windSpeed ?? 0;
+  }
+
+  getGraphicsBackend() {
+    return this.#app?.graphicsDevice?.deviceType ?? null;
+  }
+
+  getFramesPerSecond() {
+    return this.#debugFpsHud?.framesPerSecond ?? 0;
   }
 
   getWind() {
@@ -538,6 +571,8 @@ export class PlayCanvasRenderer {
     const width = Math.max(1, this.container.clientWidth);
     const height = Math.max(1, this.container.clientHeight);
     this.#app.resizeCanvas(width, height);
+    this.#debugAxesHud?.resize(width, height);
+    this.#debugFpsHud?.resize(width, height);
     this.#fitCamera();
     this.#updateCamera();
     if (!this.#gameOverCameraLocked) this.#heroVisibility?.schedule();
@@ -553,6 +588,10 @@ export class PlayCanvasRenderer {
     this.#clearScene();
     this.#pathArrows?.destroy();
     this.#pathArrows = null;
+    this.#debugAxesHud?.destroy();
+    this.#debugAxesHud = null;
+    this.#debugFpsHud?.destroy();
+    this.#debugFpsHud = null;
     this.#lifeHud?.destroy();
     this.#lifeHud = null;
     this.#gameOverHud?.destroy();
@@ -749,6 +788,9 @@ export class PlayCanvasRenderer {
 
     return new Promise((resolve, reject) => {
       asset.ready((loadedAsset) => {
+        loadedAsset.resource.mipmaps = true;
+        loadedAsset.resource.minFilter = pc.FILTER_LINEAR_MIPMAP_LINEAR;
+        loadedAsset.resource.magFilter = pc.FILTER_LINEAR;
         loadedAsset.resource.anisotropy = 8;
         const addressMode =
           name === "grass"

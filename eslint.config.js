@@ -10,6 +10,7 @@ module.exports = [
       "src-cordova/**",
       ".quasar/**",
       "node_modules/**",
+      "public/game/wasm/**",
       ".eslintrc.js",
       ".eslintrc.cjs",
       "quasar.config.*.temporary.compiled*",

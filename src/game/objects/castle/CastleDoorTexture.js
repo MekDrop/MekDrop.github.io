@@ -41,9 +41,10 @@ export class CastleDoorTexture {
       format: pc.PIXELFORMAT_RGBA8,
       addressU: pc.ADDRESS_CLAMP_TO_EDGE,
       addressV: pc.ADDRESS_CLAMP_TO_EDGE,
-      magFilter: pc.FILTER_NEAREST,
-      minFilter: pc.FILTER_NEAREST,
-      mipmaps: false,
+      magFilter: pc.FILTER_LINEAR,
+      minFilter: pc.FILTER_LINEAR_MIPMAP_LINEAR,
+      anisotropy: 4,
+      mipmaps: true,
     });
     texture.lock().set(pixels);
     texture.unlock();

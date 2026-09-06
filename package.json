@@ -7,7 +7,7 @@
   "private": true,
   "scripts": {
     "lint": "eslint --ext .js,.vue ./",
-    "format": "prettier --write \"**/*.{js,vue,scss}\" --ignore-path .gitignore",
+    "format": "prettier --write \"**/*.{js,vue,scss}\" --ignore-path .gitignore --ignore-path .prettierignore",
     "test": "echo \"See package.json => scripts for available tests.\" && exit 0",
     "dev:spa": "quasar dev -m spa",
     "build:spa": "quasar build -m spa",
@@ -17,7 +17,8 @@
     "dev:ssg": "quasar ssg dev",
     "serve:ssg": "quasar ssg serve dist/ssg",
     "test:e2e": "cross-env NODE_ENV=test start-test \"quasar dev\" http-get://127.0.0.1:8080 \"cypress open --e2e\"",
-    "test:e2e:ci": "cross-env NODE_ENV=test start-test \"quasar dev\" http-get://127.0.0.1:8080 \"cypress run --e2e\""
+    "test:e2e:ci": "cross-env NODE_ENV=test start-test \"quasar dev\" http-get://127.0.0.1:8080 \"cypress run --e2e\"",
+    "test:game:performance": "node scripts/run-game-performance-test.cjs"
   },
   "dependencies": {
     "@pixi/ui": "^2.3.2",

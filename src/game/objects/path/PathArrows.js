@@ -204,11 +204,11 @@ export class PathArrows {
       name: `Arrow colors ${key}`,
       width: canvas.width,
       height: canvas.height,
-      minFilter: this.#pc.FILTER_LINEAR,
+      minFilter: this.#pc.FILTER_LINEAR_MIPMAP_LINEAR,
       magFilter: this.#pc.FILTER_LINEAR,
       addressU: this.#pc.ADDRESS_CLAMP_TO_EDGE,
       addressV: this.#pc.ADDRESS_REPEAT,
-      mipmaps: false,
+      mipmaps: true,
     });
     this.#paintScrollTexture(canvas, colorIndexes);
     texture.setSource(canvas);
@@ -555,11 +555,11 @@ export class PathArrows {
       name: "Arrow aura",
       width: size,
       height: size,
-      minFilter: this.#pc.FILTER_LINEAR,
+      minFilter: this.#pc.FILTER_LINEAR_MIPMAP_LINEAR,
       magFilter: this.#pc.FILTER_LINEAR,
       addressU: this.#pc.ADDRESS_CLAMP_TO_EDGE,
       addressV: this.#pc.ADDRESS_CLAMP_TO_EDGE,
-      mipmaps: false,
+      mipmaps: true,
     });
     texture.setSource(canvas);
     return texture;

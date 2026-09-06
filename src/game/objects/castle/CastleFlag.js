@@ -172,9 +172,10 @@ export class CastleFlag {
       height: FLAG_TEXTURE_HEIGHT,
       addressU: this.#pc.ADDRESS_CLAMP_TO_EDGE,
       addressV: this.#pc.ADDRESS_CLAMP_TO_EDGE,
-      minFilter: this.#pc.FILTER_NEAREST,
-      magFilter: this.#pc.FILTER_NEAREST,
-      mipmaps: false,
+      minFilter: this.#pc.FILTER_LINEAR_MIPMAP_LINEAR,
+      magFilter: this.#pc.FILTER_LINEAR,
+      anisotropy: 4,
+      mipmaps: true,
     });
     texture.setSource(canvas);
     return texture;

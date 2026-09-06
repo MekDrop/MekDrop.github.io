@@ -71,16 +71,21 @@ void getAlbedo() {
       length(derivativeY)
     );
     float bladeVisibility = 1.0 - smoothstep(
-      0.018,
-      0.06,
+      0.012,
+      0.045,
       worldUnitsPerPixel
     );
+    float distantTextureBias = smoothstep(
+      0.018,
+      0.055,
+      worldUnitsPerPixel
+    ) * 1.25;
     vec2 continuousGrassUv = distortedGrassPosition * 0.32;
     vec3 grassTexture = {STD_DIFFUSE_TEXTURE_DECODE}(
       texture2DBias(
         {STD_DIFFUSE_TEXTURE_NAME},
         continuousGrassUv,
-        textureBias
+        textureBias + distantTextureBias
       )
     ).{STD_DIFFUSE_TEXTURE_CHANNEL};
 
@@ -94,7 +99,7 @@ void getAlbedo() {
       texture2DBias(
         {STD_DIFFUSE_TEXTURE_NAME},
         directionalGrassUv,
-        textureBias
+        textureBias + distantTextureBias
       )
     ).{STD_DIFFUSE_TEXTURE_CHANNEL};
     grassTexture = mix(
