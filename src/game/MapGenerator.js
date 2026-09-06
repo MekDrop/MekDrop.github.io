@@ -187,7 +187,9 @@ export class MapGenerator {
   }
 
   static #normalizeOptions(options) {
-    if (typeof options === 'number') return { numPaths: options };
+    if (typeof options === 'number') {
+      return { numPaths: options };
+    }
     return options ?? {};
   }
 
@@ -290,7 +292,9 @@ export class MapGenerator {
   }
 
   static #setTile(grid, tileMeta, col, row, type, overrides = {}) {
-    if (!this.#inBounds(col, row)) return;
+    if (!this.#inBounds(col, row)) {
+      return;
+    }
     grid[row][col] = type;
     tileMeta[row][col] = {
       ...tileMeta[row][col],
@@ -476,11 +480,15 @@ export class MapGenerator {
         ? this.#collectSafeCurveBandStarts(trunkBottom + 3, topRow - 2, occupiedBandStarts, pathRows[0], -1)
         : [];
 
-    if (!safeBands.length) return null;
+    if (!safeBands.length) {
+      return null;
+    }
 
     const bandStarts = this.#selectCurveBandStarts(safeBands);
     const turnCols = this.#pickCurveTurnCols(entry.side, entry.gateCol, mergeCol, bandStarts.length);
-    if (!turnCols.length) return null;
+    if (!turnCols.length) {
+      return null;
+    }
 
     return {
       turnCols,
@@ -489,7 +497,9 @@ export class MapGenerator {
   }
 
   static #collectSafeCurveBandStarts(min, max, occupiedBandStarts, trunkTop, direction) {
-    if (min > max) return [];
+    if (min > max) {
+      return [];
+    }
 
     const blocked = occupiedBandStarts.concat(trunkTop);
     const candidates = [];
@@ -730,11 +740,15 @@ export class MapGenerator {
   static #buildCastleData(grid, layout) {
     const doors = [];
     const collectGate = (side, cells, inwardDirection, outsideColOffset, outsideRowOffset) => {
-      if (!cells.length) return;
+      if (!cells.length) {
+        return;
+      }
 
       let run = [];
       const flushRun = () => {
-        if (!run.length) return;
+        if (!run.length) {
+          return;
+        }
         const verticalSide = side === 'WEST' || side === 'EAST';
         doors.push({
           side,
@@ -974,7 +988,9 @@ export class MapGenerator {
     const direction = tileMeta[row][col].direction;
     if (direction === this.#DIRECTIONS.EAST || direction === this.#DIRECTIONS.WEST) {
       const mateRow = this.#findLaneMateRow(grid, tileMeta, col, row, direction);
-      if (mateRow === null) return 'SOLID';
+      if (mateRow === null) {
+        return 'SOLID';
+      }
       const topOuterRow = Math.min(row, mateRow) - 1;
       const bottomOuterRow = Math.max(row, mateRow) + 1;
       if (!this.#inBounds(col, topOuterRow) || !this.#inBounds(col, bottomOuterRow)) {
@@ -988,7 +1004,9 @@ export class MapGenerator {
 
     if (direction === this.#DIRECTIONS.NORTH || direction === this.#DIRECTIONS.SOUTH) {
       const mateCol = this.#findLaneMateCol(grid, tileMeta, col, row, direction);
-      if (mateCol === null) return 'SOLID';
+      if (mateCol === null) {
+        return 'SOLID';
+      }
       const leftOuterCol = Math.min(col, mateCol) - 1;
       const rightOuterCol = Math.max(col, mateCol) + 1;
       if (!this.#inBounds(leftOuterCol, row) || !this.#inBounds(rightOuterCol, row)) {
@@ -1034,7 +1052,9 @@ export class MapGenerator {
 
   static #appendRouteWaypoint(waypoints, col2, row2) {
     const previous = waypoints[waypoints.length - 1];
-    if (previous?.col2 === col2 && previous?.row2 === row2) return;
+    if (previous?.col2 === col2 && previous?.row2 === row2) {
+      return;
+    }
     waypoints.push({ col2, row2 });
   }
 
@@ -1138,7 +1158,9 @@ export class MapGenerator {
     while (true) {
       const [col2, row2] = key.split(',').map(Number);
       route.push({ col: col2 / 2, row: row2 / 2 });
-      if (key === targetKey) return route;
+      if (key === targetKey) {
+        return route;
+      }
 
       const distance = distances.get(key);
       const nextKey = [...(graph.get(key) ?? [])]
@@ -1258,10 +1280,18 @@ export class MapGenerator {
     col,
     row,
   ) {
-    if (!this.#inBounds(col, row)) return false;
-    if (grid[row][col] !== TileType.GRASS) return false;
-    if (tileMeta[row][col].shape !== this.#TILE_SHAPE.FLAT) return false;
-    if (!Number.isFinite(heightmap[row][col])) return false;
+    if (!this.#inBounds(col, row)) {
+      return false;
+    }
+    if (grid[row][col] !== TileType.GRASS) {
+      return false;
+    }
+    if (tileMeta[row][col].shape !== this.#TILE_SHAPE.FLAT) {
+      return false;
+    }
+    if (!Number.isFinite(heightmap[row][col])) {
+      return false;
+    }
 
     if (
       col >= layout.castleLeft - 2 &&
@@ -1277,7 +1307,9 @@ export class MapGenerator {
         const neighborCol = col + deltaCol;
         const neighborRow = row + deltaRow;
         if (!this.#inBounds(neighborCol, neighborRow)) continue;
-        if (this.#isRouteTile(grid[neighborRow][neighborCol])) return false;
+        if (this.#isRouteTile(grid[neighborRow][neighborCol])) {
+          return false;
+        }
       }
     }
     return true;
@@ -1302,7 +1334,9 @@ export class MapGenerator {
       }
     }
 
-    if (!candidates.length) return [];
+    if (!candidates.length) {
+      return [];
+    }
 
     const sparseTargetCount = this.#clamp(
       Math.round(candidates.length / 35),
@@ -1333,7 +1367,9 @@ export class MapGenerator {
     const occupied = new Set();
     const addCandidate = candidate => {
       const key = this.#tileKey(candidate.col, candidate.row);
-      if (occupied.has(key) || selected.length >= targetCount) return;
+      if (occupied.has(key) || selected.length >= targetCount) {
+        return;
+      }
       occupied.add(key);
       selected.push(candidate);
     };
@@ -1388,10 +1424,18 @@ export class MapGenerator {
     col,
     row,
   ) {
-    if (!this.#inBounds(col, row)) return false;
-    if (grid[row][col] !== TileType.GRASS) return false;
-    if (tileMeta[row][col].shape !== this.#TILE_SHAPE.FLAT) return false;
-    if (!Number.isFinite(heightmap[row][col])) return false;
+    if (!this.#inBounds(col, row)) {
+      return false;
+    }
+    if (grid[row][col] !== TileType.GRASS) {
+      return false;
+    }
+    if (tileMeta[row][col].shape !== this.#TILE_SHAPE.FLAT) {
+      return false;
+    }
+    if (!Number.isFinite(heightmap[row][col])) {
+      return false;
+    }
     return true;
   }
 
@@ -1513,7 +1557,9 @@ export class MapGenerator {
 
   static #isWithinMergeZone(layout, col, row) {
     const mergeCol = layout.entries[0]?.mergeCol;
-    if (!Number.isFinite(mergeCol)) return false;
+    if (!Number.isFinite(mergeCol)) {
+      return false;
+    }
     return col >= mergeCol && col <= mergeCol + 1 && row >= layout.pathRows[0] && row <= layout.pathRows[1];
   }
 

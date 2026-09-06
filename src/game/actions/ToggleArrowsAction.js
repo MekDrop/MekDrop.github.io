@@ -8,8 +8,8 @@ export class ToggleArrowsAction {
   }
 
   toggleArrows() {
-    const visible = !this.#renderer.getArrowsVisible();
-    this.#renderer.setArrowsVisible(visible);
+    const visible = !this.#renderer.arrowsVisible;
+    this.#renderer.arrowsVisible = visible;
     this.#onChange(visible);
   }
 }

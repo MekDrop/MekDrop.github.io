@@ -96,20 +96,26 @@ export class CastleBanner {
   }
 
   beginWindGesture(hit) {
-    if (!hit?.banner) return;
+    if (!hit?.banner) {
+      return;
+    }
     this.#activeBanner = hit.banner;
     this.#activeBanner.wind.begin(hit.point);
   }
 
   applyMouseWind(rayStart, rayEnd, deltaTime) {
-    if (!this.#activeBanner) return;
+    if (!this.#activeBanner) {
+      return;
+    }
     const hit = this.#intersectBannerRay(
       this.#activeBanner,
       rayStart,
       rayEnd,
       false,
     );
-    if (!hit) return;
+    if (!hit) {
+      return;
+    }
     this.#activeBanner.wind.applyPointer(hit.point, deltaTime);
   }
 
@@ -272,15 +278,21 @@ export class CastleBanner {
   }
 
   #intersectBannerRay(banner, rayStart, rayEnd, bounded) {
-    if (!banner?.root) return null;
+    if (!banner?.root) {
+      return null;
+    }
     const inverse = banner.root.getWorldTransform().clone().invert();
     const localStart = inverse.transformPoint(rayStart, new this.#pc.Vec3());
     const localEnd = inverse.transformPoint(rayEnd, new this.#pc.Vec3());
     const directionZ = localEnd.z - localStart.z;
-    if (Math.abs(directionZ) < 0.000001) return null;
+    if (Math.abs(directionZ) < 0.000001) {
+      return null;
+    }
 
     const distance = -localStart.z / directionZ;
-    if (distance < 0 || distance > 1) return null;
+    if (distance < 0 || distance > 1) {
+      return null;
+    }
     const localX = localStart.x + (localEnd.x - localStart.x) * distance;
     const localY = localStart.y + (localEnd.y - localStart.y) * distance;
     if (

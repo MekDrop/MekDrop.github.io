@@ -228,8 +228,12 @@ export class Castle {
   getBannerHit(rayStart, rayEnd) {
     const bannerHit = this.#banners?.getBannerHit(rayStart, rayEnd) ?? null;
     const flagHit = this.#flags?.getFlagHit(rayStart, rayEnd) ?? null;
-    if (!bannerHit) return flagHit;
-    if (!flagHit) return bannerHit;
+    if (!bannerHit) {
+      return flagHit;
+    }
+    if (!flagHit) {
+      return bannerHit;
+    }
     return flagHit.distance < bannerHit.distance ? flagHit : bannerHit;
   }
 
@@ -244,7 +248,9 @@ export class Castle {
   }
 
   openDoor(hit) {
-    if (!hit?.door) return false;
+    if (!hit?.door) {
+      return false;
+    }
     hit.door.openTemporarily();
     this.#syncAudienceRoomVisibility();
     return true;
@@ -317,9 +323,10 @@ export class Castle {
   };
 
   #syncAudienceRoomVisibility() {
-    this.#audienceRoom?.setEntranceVisible(
-      this.#animatedDoors[0]?.revealsInterior ?? false,
-    );
+    if (this.#audienceRoom) {
+      this.#audienceRoom.entranceVisible =
+        this.#animatedDoors[0]?.revealsInterior ?? false;
+    }
   }
 
   #createStructureResources() {
@@ -381,7 +388,9 @@ export class Castle {
 
   #createAudienceRoom() {
     const door = this.#doors[0];
-    if (!door) return;
+    if (!door) {
+      return;
+    }
     this.#audienceRoom = new CastleAudienceRoom({
       pc: this.#pc,
       app: this.#app,
@@ -464,7 +473,9 @@ export class Castle {
     const style = styles.find((candidate) =>
       this.#styleFits(candidate, openings, facadeSpan, inwardCapacity),
     );
-    if (style) return style;
+    if (style) {
+      return style;
+    }
 
     throw new CastlePlacementError();
   }
@@ -486,7 +497,9 @@ export class Castle {
 
     const requiredDoorWidth = CASTLE_DOOR_WIDTH_TILES * CASTLE_BLOCKS_PER_TILE;
     return openings.every((opening) => {
-      if (opening.end - opening.start !== requiredDoorWidth) return false;
+      if (opening.end - opening.start !== requiredDoorWidth) {
+        return false;
+      }
       const horizontalLimit = ["FRONT", "BACK"].includes(opening.boundary)
         ? facadeSpan
         : castleDepth;
@@ -527,7 +540,9 @@ export class Castle {
   #render() {
     const position = this.#position;
     const doors = this.#doors;
-    if (!position || !doors.length) return;
+    if (!position || !doors.length) {
+      return;
+    }
 
     const widthBlocks = position.width * CASTLE_BLOCKS_PER_TILE;
     const depthBlocks = position.depth * CASTLE_BLOCKS_PER_TILE;
@@ -624,7 +639,9 @@ export class Castle {
         trim: "castleStoneLight",
         arch: "castleArchStone",
       };
-      if (roleMaterials[role]) return roleMaterials[role];
+      if (roleMaterials[role]) {
+        return roleMaterials[role];
+      }
       const hash =
         Math.imul(blockU + 11, 73856093) ^
         Math.imul(blockY + 17, 19349663) ^
@@ -796,7 +813,9 @@ export class Castle {
         return;
       }
       const key = blockU + "," + blockY + "," + blockV;
-      if (occupied.has(key)) return;
+      if (occupied.has(key)) {
+        return;
+      }
       occupied.add(key);
       if (blockY === 0) {
         const collisionKey = `${blockX},${blockZ}`;
@@ -857,7 +876,9 @@ export class Castle {
           horizontalBlock >= candidate.start &&
           horizontalBlock < candidate.end,
       );
-      if (!opening) return false;
+      if (!opening) {
+        return false;
+      }
 
       const width = opening.end - opening.start;
       const localBlock = horizontalBlock - opening.start;
@@ -1334,7 +1355,9 @@ export class Castle {
       const horizontalLimit = ["FRONT", "BACK"].includes(opening.boundary)
         ? facadeSpan
         : castleDepth;
-      if (horizontal < 0 || horizontal >= horizontalLimit) return;
+      if (horizontal < 0 || horizontal >= horizontalLimit) {
+        return;
+      }
       if (opening.boundary === "BACK") {
         addFlame(castleDepth - 1 - depth, blockY, horizontal, scale);
       } else if (opening.boundary === "LEFT") {
@@ -1413,7 +1436,9 @@ export class Castle {
       const horizontalLimit = ["FRONT", "BACK"].includes(opening.boundary)
         ? facadeSpan
         : castleDepth;
-      if (horizontal < 0 || horizontal >= horizontalLimit) return;
+      if (horizontal < 0 || horizontal >= horizontalLimit) {
+        return;
+      }
       if (opening.boundary === "BACK") {
         addBanner(
           castleDepth - 1 - depth,
@@ -1660,7 +1685,9 @@ export class Castle {
       ? facadeSpan
       : castleDepth;
 
-    if (!primaryStyle) return;
+    if (!primaryStyle) {
+      return;
+    }
 
     const crownShoulder = primaryStyle.gateShoulderSpanBlocks ?? 3;
     const crownHeight = Math.max(

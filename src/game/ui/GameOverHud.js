@@ -28,11 +28,13 @@ export class GameOverHud {
   }
 
   attach(parent = this.#app.root) {
-    if (!this.#entity || this.#entity.parent === parent) return;
+    if (!this.#entity || this.#entity.parent === parent) {
+      return;
+    }
     parent.addChild(this.#entity);
   }
 
-  setVisible(visible) {
+  set visible(visible) {
     if (this.#entity) this.#entity.enabled = Boolean(visible);
   }
 

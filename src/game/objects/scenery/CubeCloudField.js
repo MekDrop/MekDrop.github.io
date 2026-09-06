@@ -54,7 +54,9 @@ const CLOUD_DEPTH_LAYERS = Object.freeze([
 
 function addVoxel(voxels, occupied, x, y, z) {
   const key = `${x}:${y}:${z}`;
-  if (occupied.has(key)) return;
+  if (occupied.has(key)) {
+    return;
+  }
   occupied.add(key);
   voxels.push([x, y, z]);
 }
@@ -184,7 +186,9 @@ export class CubeCloudField {
   }
 
   #setViewRotation(rotation) {
-    if (rotation === this.#viewRotation && this.#clusters.length) return;
+    if (rotation === this.#viewRotation && this.#clusters.length) {
+      return;
+    }
     this.#viewRotation = rotation;
     const cameraFacingYaw = ((45 + rotation * 90) * Math.PI) / 180;
     const yaw = [Math.cos(cameraFacingYaw), Math.sin(cameraFacingYaw)];

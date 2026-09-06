@@ -92,7 +92,9 @@ export class HeroLifeHud {
   }
 
   attach(parent = this.#app.root) {
-    if (!this.#entity || this.#entity.parent === parent) return;
+    if (!this.#entity || this.#entity.parent === parent) {
+      return;
+    }
     parent.addChild(this.#entity);
   }
 
@@ -126,7 +128,7 @@ export class HeroLifeHud {
     );
   }
 
-  setVisible(visible) {
+  set visible(visible) {
     if (this.#entity) this.#entity.enabled = Boolean(visible);
   }
 
@@ -264,7 +266,9 @@ export class HeroLifeHud {
   }
 
   #syncIndicator(icon, number, numberTexture, value) {
-    if (!icon || !number || !numberTexture) return;
+    if (!icon || !number || !numberTexture) {
+      return;
+    }
     icon.element.color = this.#color(
       value > 0 ? COLORS.iconActive : COLORS.iconInactive,
     );

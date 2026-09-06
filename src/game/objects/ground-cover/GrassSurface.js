@@ -20,7 +20,9 @@ export class GrassSurface {
   }
 
   applyHeroInteraction({ x, y, z }, movement) {
-    if (!movement) return;
+    if (!movement) {
+      return;
+    }
 
     this.#heroPosition[0] = x;
     this.#heroPosition[1] = y;
@@ -28,7 +30,9 @@ export class GrassSurface {
     this.#heroDirection[0] = movement.direction.x;
     this.#heroDirection[1] = movement.direction.z;
 
-    if (movement.speed <= 0.08) return;
+    if (movement.speed <= 0.08) {
+      return;
+    }
 
     this.#heroInfluence = Math.min(
       1,
@@ -41,7 +45,9 @@ export class GrassSurface {
 
   applyViewInteraction(deltaX, deltaY) {
     const distance = Math.hypot(deltaX, deltaY);
-    if (distance <= 0.01) return;
+    if (distance <= 0.01) {
+      return;
+    }
 
     this.#viewInfluence = Math.min(1, 0.25 + distance / 18);
     this.#lastViewMotionAt = this.#elapsed;

@@ -60,7 +60,7 @@ export class PathArrows {
     return this.#visible;
   }
 
-  setVisible(visible) {
+  set visible(visible) {
     this.#visible = visible;
     if (this.#entity) this.#entity.enabled = visible;
   }
@@ -73,7 +73,9 @@ export class PathArrows {
   }
 
   setColors(colors) {
-    if (!Array.isArray(colors) || colors.length === 0) return;
+    if (!Array.isArray(colors) || colors.length === 0) {
+      return;
+    }
     this.#colors = [...colors];
     for (let index = 0; index < colors.length; index += 1) {
       const color = colors[index % colors.length];
@@ -192,7 +194,9 @@ export class PathArrows {
   #getAnimatedMaterials(colorIndexes) {
     const key = colorIndexes.join("-");
     const existing = this.#animatedPalettes.get(key);
-    if (existing) return existing;
+    if (existing) {
+      return existing;
+    }
 
     const color = this.#averageColor(colorIndexes);
     const coreName = `arrow-scroll-${key}`;
@@ -318,7 +322,9 @@ export class PathArrows {
 
   #buildMatrices(batches) {
     const { arrowData, cols, rows } = this.#mapData;
-    if (!arrowData) return;
+    if (!arrowData) {
+      return;
+    }
 
     for (const group of this.#groupNearby(arrowData)) {
       const col =
@@ -460,7 +466,9 @@ export class PathArrows {
       }
     }
 
-    if (pathHeights.length) return Math.max(...pathHeights);
+    if (pathHeights.length) {
+      return Math.max(...pathHeights);
+    }
     const nearestCol = Math.max(0, Math.min(cols - 1, Math.round(col)));
     const nearestRow = Math.max(0, Math.min(rows - 1, Math.round(row)));
     return this.#tileHeight(nearestCol, nearestRow);
@@ -505,10 +513,16 @@ export class PathArrows {
   }
 
   #getMesh(meshKey) {
-    if (meshKey === "full") return this.#arrowMesh;
-    if (meshKey === "aura") return this.#auraMesh;
+    if (meshKey === "full") {
+      return this.#arrowMesh;
+    }
+    if (meshKey === "aura") {
+      return this.#auraMesh;
+    }
     const cached = this.#sliceMeshes.get(meshKey);
-    if (cached) return cached;
+    if (cached) {
+      return cached;
+    }
     const match = /^slice-(\d+)-(\d+)$/.exec(meshKey);
     if (!match) throw new UnknownArrowMeshError(meshKey);
     const mesh = this.#createArrowSliceMesh(Number(match[2]), Number(match[1]));
@@ -643,7 +657,9 @@ export class PathArrows {
   }
 
   #destroyMesh(mesh) {
-    if (!mesh) return;
+    if (!mesh) {
+      return;
+    }
     mesh.decRefCount();
     if (mesh.refCount < 1) mesh.destroy();
   }

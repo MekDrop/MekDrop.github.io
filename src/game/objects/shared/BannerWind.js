@@ -55,7 +55,9 @@ export class BannerWind {
   }
 
   begin(point) {
-    if (!point) return;
+    if (!point) {
+      return;
+    }
     this.#pointer.active = true;
     this.#pointer.lastPoint = point.clone();
     this.#pointer.strength = Math.max(this.#pointer.strength, 0.042);
@@ -66,7 +68,9 @@ export class BannerWind {
   }
 
   applyPointer(point, deltaTime) {
-    if (!point || !this.#pointer.active || !this.#pointer.lastPoint) return;
+    if (!point || !this.#pointer.active || !this.#pointer.lastPoint) {
+      return;
+    }
     const elapsed = Math.max(1 / 120, Math.min(0.08, deltaTime));
     const movementY = point.y - this.#pointer.lastPoint.y;
     const movementZ = point.z - this.#pointer.lastPoint.z;

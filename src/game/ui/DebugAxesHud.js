@@ -24,8 +24,7 @@ const DEFAULT_WIND = Object.freeze({
 export class DebugAxesHud {
   #pc;
   #app;
-  #getDirections;
-  #getWind;
+  #gameCanvas;
   #entity;
   #texture;
   #canvas;
@@ -34,11 +33,10 @@ export class DebugAxesHud {
   #elapsed = 0;
   #signature = "";
 
-  constructor({ pc, app, getDirections, getWind }) {
+  constructor({ pc, app, gameCanvas }) {
     this.#pc = pc;
     this.#app = app;
-    this.#getDirections = getDirections;
-    this.#getWind = getWind;
+    this.#gameCanvas = gameCanvas;
     this.#entity = new pc.Entity("Debug axes HUD");
     this.#entity.addComponent("screen", {
       screenSpace: true,
@@ -85,24 +83,32 @@ export class DebugAxesHud {
   }
 
   attach(parent = this.#app.root) {
-    if (!this.#entity || this.#entity.parent === parent) return;
+    if (!this.#entity || this.#entity.parent === parent) {
+      return;
+    }
     parent.addChild(this.#entity);
   }
 
   resize(width, height) {
-    if (!this.#entity?.screen) return;
+    if (!this.#entity?.screen) {
+      return;
+    }
     this.#entity.screen.referenceResolution = new this.#pc.Vec2(
       Math.max(1, width),
       Math.max(1, height),
     );
   }
 
-  setVisible(visible) {
-    if (!this.#entity) return;
+  set visible(visible) {
+    if (!this.#entity) {
+      return;
+    }
     const nextVisible = Boolean(visible);
     const beginsUpdate = nextVisible && !this.#entity.enabled;
     this.#entity.enabled = nextVisible;
-    if (!beginsUpdate) return;
+    if (!beginsUpdate) {
+      return;
+    }
     this.#elapsed = 0;
     this.#sync(true);
   }
@@ -116,23 +122,26 @@ export class DebugAxesHud {
     this.#texture = null;
     this.#canvas = null;
     this.#context = null;
-    this.#getDirections = null;
-    this.#getWind = null;
+    this.#gameCanvas = null;
     this.#app = null;
     this.#pc = null;
   }
 
   #update = (deltaTime) => {
-    if (!this.#entity?.enabled) return;
+    if (!this.#entity?.enabled) {
+      return;
+    }
     this.#elapsed += Math.max(0, deltaTime);
-    if (this.#elapsed < UPDATE_INTERVAL) return;
+    if (this.#elapsed < UPDATE_INTERVAL) {
+      return;
+    }
     this.#elapsed %= UPDATE_INTERVAL;
     this.#sync();
   };
 
   #sync(force = false) {
-    const directions = this.#getDirections?.() ?? DEFAULT_DIRECTIONS;
-    const wind = this.#getWind?.() ?? DEFAULT_WIND;
+    const directions = this.#gameCanvas?.debugDirections ?? DEFAULT_DIRECTIONS;
+    const wind = this.#gameCanvas?.wind ?? DEFAULT_WIND;
     const values = [
       directions.x.x,
       directions.x.y,
@@ -146,7 +155,9 @@ export class DebugAxesHud {
       wind.speed,
     ];
     const signature = values.map((value) => value.toFixed(3)).join(":");
-    if (!force && signature === this.#signature) return;
+    if (!force && signature === this.#signature) {
+      return;
+    }
     this.#signature = signature;
     this.#draw(directions, wind);
   }

@@ -118,7 +118,9 @@ export class HeroRespawnEffect {
   }
 
   reset() {
-    if (!this.#modelRoot) return;
+    if (!this.#modelRoot) {
+      return;
+    }
     this.#modelRoot.setLocalPosition(0, 0, 0);
     this.#modelRoot.setLocalScale(
       this.#modelScale,

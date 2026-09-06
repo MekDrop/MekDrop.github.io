@@ -111,7 +111,9 @@ export class GroundCover {
   }
 
   applyHeroInteraction({ x, y, z }, movement) {
-    if (!movement) return;
+    if (!movement) {
+      return;
+    }
 
     this.#heroPosition[0] = x;
     this.#heroPosition[1] = y;
@@ -126,7 +128,9 @@ export class GroundCover {
     );
     this.#lastHeroMotionAt = this.#elapsed;
 
-    if (movement.speed <= 0.08) return;
+    if (movement.speed <= 0.08) {
+      return;
+    }
 
     const speedStrength = Math.max(
       0,

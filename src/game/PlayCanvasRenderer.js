@@ -273,8 +273,7 @@ export class PlayCanvasRenderer {
     this.#debugAxesHud = new DebugAxesHud({
       pc,
       app: this.#app,
-      getDirections: () => this.getDebugDirections(),
-      getWind: () => this.getWind(),
+      gameCanvas: this,
     });
     this.#debugAxesHud.attach();
     this.#lifeHud = new HeroLifeHud({ pc, app: this.#app });
@@ -352,37 +351,39 @@ export class PlayCanvasRenderer {
     this.#heroVisibility?.schedule();
   }
 
-  setArrowsVisible(visible) {
-    this.#pathArrows?.setVisible(visible);
-    this.#debugAxesHud?.setVisible(visible);
-    this.#debugFpsHud?.setVisible(visible);
+  set arrowsVisible(visible) {
+    if (this.#pathArrows) {
+      this.#pathArrows.visible = visible;
+    }
+    if (this.#debugAxesHud) {
+      this.#debugAxesHud.visible = visible;
+    }
+    if (this.#debugFpsHud) {
+      this.#debugFpsHud.visible = visible;
+    }
   }
 
-  getArrowsVisible() {
-    return this.#pathArrows?.visible ?? false;
-  }
-
-  getZoom() {
+  get zoom() {
     return this.#zoom;
   }
 
-  getRotation() {
+  get rotation() {
     return this.#rotation;
   }
 
-  getWindSpeed() {
+  get windSpeed() {
     return this.#cloudField?.windSpeed ?? 0;
   }
 
-  getGraphicsBackend() {
+  get graphicsBackend() {
     return this.#app?.graphicsDevice?.deviceType ?? null;
   }
 
-  getFramesPerSecond() {
+  get framesPerSecond() {
     return this.#debugFpsHud?.framesPerSecond ?? 0;
   }
 
-  getWind() {
+  get wind() {
     return (
       this.#cloudField?.wind ?? {
         direction: { x: 0, y: 0, z: 0 },
@@ -391,8 +392,10 @@ export class PlayCanvasRenderer {
     );
   }
 
-  getDebugDirections() {
-    if (!this.#pc || !this.#camera?.camera) return null;
+  get debugDirections() {
+    if (!this.#pc || !this.#camera?.camera) {
+      return null;
+    }
     const pc = this.#pc;
     const origin = this.#camera.camera.worldToScreen(new pc.Vec3(0, 0, 0));
     const projectDirection = (point) => {
@@ -422,7 +425,9 @@ export class PlayCanvasRenderer {
   }
 
   setGatewayColors(colors) {
-    if (!Array.isArray(colors) || colors.length === 0) return;
+    if (!Array.isArray(colors) || colors.length === 0) {
+      return;
+    }
     this.#gatewayColors = [...colors];
     this.#gateways.forEach((gateway, index) => {
       const color = colors[index % colors.length];
@@ -431,7 +436,7 @@ export class PlayCanvasRenderer {
     this.#pathArrows?.setColors(colors);
   }
 
-  getViewport() {
+  get viewport() {
     return {
       zoom: this.#zoom,
       rotation: this.#rotation,
@@ -453,10 +458,10 @@ export class PlayCanvasRenderer {
     return this.#hero?.isGameOver ?? false;
   }
 
-  getGameOverReturnViewport() {
+  get gameOverReturnViewport() {
     return this.#gameOverReturnViewport
       ? { ...this.#gameOverReturnViewport }
-      : this.getViewport();
+      : this.viewport;
   }
 
   dodgeHero(inputX, inputY, direction) {
@@ -470,7 +475,9 @@ export class PlayCanvasRenderer {
       return true;
     }
     const target = this.#interactionTarget;
-    if (!target || !this.#hero) return false;
+    if (!target || !this.#hero) {
+      return false;
+    }
 
     const accepted = this.#hero.cut({
       targetPosition: target,
@@ -495,7 +502,9 @@ export class PlayCanvasRenderer {
     panZ = 0,
     manuallyMoved = false,
   }) {
-    if (this.#gameOverCameraLocked) return;
+    if (this.#gameOverCameraLocked) {
+      return;
+    }
     this.#zoom = Math.max(MAP_FIT_ZOOM, zoom);
     this.#rotation = rotation;
     this.#updateFitCenter();
@@ -507,7 +516,9 @@ export class PlayCanvasRenderer {
   }
 
   zoomTo(newZoom, pivotX, pivotY) {
-    if (this.#gameOverCameraLocked) return;
+    if (this.#gameOverCameraLocked) {
+      return;
+    }
     const previousZoom = this.#zoom;
     const constrainedZoom = Math.max(MAP_FIT_ZOOM, newZoom);
     const before = this.#screenOffsetToGround(pivotX, pivotY, this.#zoom);
@@ -541,7 +552,9 @@ export class PlayCanvasRenderer {
   }
 
   panBy(deltaX, deltaY) {
-    if (this.#gameOverCameraLocked) return;
+    if (this.#gameOverCameraLocked) {
+      return;
+    }
     this.#grassSurface?.applyViewInteraction(deltaX, deltaY);
     if (this.#zoom <= MAP_FIT_ZOOM) {
       this.#panX = this.#fitCenterX;
@@ -558,7 +571,9 @@ export class PlayCanvasRenderer {
   }
 
   rotateBy(quarterTurns) {
-    if (this.#gameOverCameraLocked) return this.#rotation;
+    if (this.#gameOverCameraLocked) {
+      return this.#rotation;
+    }
     this.#grassSurface?.applyViewInteraction(quarterTurns * 18, 0);
     this.#rotation = (((this.#rotation + quarterTurns) % 4) + 4) % 4;
     this.#updateCamera();
@@ -567,7 +582,9 @@ export class PlayCanvasRenderer {
   }
 
   resize() {
-    if (!this.#app || !this.container) return;
+    if (!this.#app || !this.container) {
+      return;
+    }
     const width = Math.max(1, this.container.clientWidth);
     const height = Math.max(1, this.container.clientHeight);
     this.#app.resizeCanvas(width, height);
@@ -578,7 +595,7 @@ export class PlayCanvasRenderer {
     if (!this.#gameOverCameraLocked) this.#heroVisibility?.schedule();
   }
 
-  getCanvas() {
+  get canvasElement() {
     return this.canvas;
   }
 
@@ -874,7 +891,9 @@ export class PlayCanvasRenderer {
       hero: this.#hero.entity,
       getRotation: () => this.#rotation,
       setRotation: (rotation) => {
-        if (this.#gameOverCameraLocked || this.#hero?.isInDeathSequence) return;
+        if (this.#gameOverCameraLocked || this.#hero?.isInDeathSequence) {
+          return;
+        }
         this.#rotation = rotation;
         this.#updateCamera();
       },
@@ -949,7 +968,9 @@ export class PlayCanvasRenderer {
 
   #buildCastle() {
     const { castle, cols, rows, heightmap } = this.#mapData;
-    if (!castle?.position || !castle.doors?.length) return;
+    if (!castle?.position || !castle.doors?.length) {
+      return;
+    }
 
     this.#castle = new Castle({
       pc: this.#pc,
@@ -1173,7 +1194,9 @@ export class PlayCanvasRenderer {
   }
 
   #surfaceCoverage(topCube) {
-    if (!topCube) return "none";
+    if (!topCube) {
+      return "none";
+    }
     return "full";
   }
 
@@ -1486,7 +1509,9 @@ export class PlayCanvasRenderer {
   }
 
   #fitCamera() {
-    if (!this.#mapData || !this.#camera) return;
+    if (!this.#mapData || !this.#camera) {
+      return;
+    }
     const aspect = Math.max(0.35, this.canvas.width / this.canvas.height);
     const { cols, rows } = this.#mapData;
     const maxHeight = 9;
@@ -1504,7 +1529,9 @@ export class PlayCanvasRenderer {
   }
 
   #updateFitCenter() {
-    if (!this.#mapData) return;
+    if (!this.#mapData) {
+      return;
+    }
     const { grid, cols, rows } = this.#mapData;
     const yaw = Math.PI / 4 + this.#rotation * (Math.PI / 2);
     const rightX = Math.cos(yaw);
@@ -1545,7 +1572,9 @@ export class PlayCanvasRenderer {
       this.#hero?.movementState,
     );
     this.#updateInteractionTarget({ x, y, z });
-    if (this.#gameOverCameraLocked || this.#hero?.isInDeathSequence) return;
+    if (this.#gameOverCameraLocked || this.#hero?.isInDeathSequence) {
+      return;
+    }
     const heroWorldPosition = this.#hero.entity.getPosition();
     const screenPosition = this.#camera.camera.worldToScreen(
       new this.#pc.Vec3(
@@ -1606,14 +1635,20 @@ export class PlayCanvasRenderer {
 
   #handleHeroStateChange = (state) => {
     this.#lifeHud?.setLives(state.lives, state.maxLives);
-    this.#gameOverHud?.setVisible(state.gameOver);
+    if (this.#gameOverHud) {
+      this.#gameOverHud.visible = state.gameOver;
+    }
     this.#onHeroStateChange?.(state);
-    if (!state.gameOver || !this.#castle || !this.#camera) return;
+    if (!state.gameOver || !this.#castle || !this.#camera) {
+      return;
+    }
     const presentation = this.#castle.beginGameOver(() =>
       this.#camera?.getPosition(),
     );
-    if (!presentation) return;
-    this.#gameOverReturnViewport = this.getViewport();
+    if (!presentation) {
+      return;
+    }
+    this.#gameOverReturnViewport = this.viewport;
     this.#gameOverCameraLocked = true;
     const { focus, visualSize, viewRotation } = presentation;
     const rotationDelta =
@@ -1637,7 +1672,9 @@ export class PlayCanvasRenderer {
 
   #updateGameOverCamera(deltaTime) {
     const transition = this.#gameOverCameraTransition;
-    if (!transition) return;
+    if (!transition) {
+      return;
+    }
     transition.elapsed += Math.max(0, deltaTime);
     const progress = Math.min(
       1,
@@ -1659,7 +1696,9 @@ export class PlayCanvasRenderer {
       transition.startZoom +
       (transition.endZoom - transition.startZoom) * easedProgress;
     this.#updateCamera();
-    if (progress < 1) return;
+    if (progress < 1) {
+      return;
+    }
     this.#rotation = ((this.#rotation % 4) + 4) % 4;
     this.#gameOverCameraTransition = null;
     this.#updateCamera();
@@ -1681,7 +1720,9 @@ export class PlayCanvasRenderer {
     const projectedHeight =
       visualSize.y * Math.cos(CAMERA_PITCH) +
       horizontalDepth * Math.sin(CAMERA_PITCH);
-    if (projectedHeight <= 0.001) return GAME_OVER_FALLBACK_ZOOM;
+    if (projectedHeight <= 0.001) {
+      return GAME_OVER_FALLBACK_ZOOM;
+    }
     return Math.max(
       MAP_FIT_ZOOM,
       (2 * this.#baseOrthoHeight * GAME_OVER_ROYAL_VIEWPORT_HEIGHT) /
@@ -1698,13 +1739,17 @@ export class PlayCanvasRenderer {
         toZ,
         radius,
       );
-      if (direction) return direction;
+      if (direction) {
+        return direction;
+      }
     }
     return null;
   };
 
   #updateCamera() {
-    if (!this.#camera || !this.#mapData) return;
+    if (!this.#camera || !this.#mapData) {
+      return;
+    }
     if (this.#zoom === MAP_FIT_ZOOM) {
       this.#updateFitCenter();
       this.#panX = this.#fitCenterX;
@@ -1759,7 +1804,9 @@ export class PlayCanvasRenderer {
   }
 
   #connectBannerInteraction() {
-    if (this.#bannerInteractionConnected || !this.canvas) return;
+    if (this.#bannerInteractionConnected || !this.canvas) {
+      return;
+    }
     this.canvas.addEventListener("pointerdown", this.#handleBannerPointerDown);
     this.canvas.addEventListener("pointermove", this.#handleBannerPointerMove);
     this.canvas.addEventListener("pointerup", this.#handleBannerPointerUp);
@@ -1768,7 +1815,9 @@ export class PlayCanvasRenderer {
   }
 
   #disconnectBannerInteraction() {
-    if (!this.#bannerInteractionConnected || !this.canvas) return;
+    if (!this.#bannerInteractionConnected || !this.canvas) {
+      return;
+    }
     this.canvas.removeEventListener(
       "pointerdown",
       this.#handleBannerPointerDown,
@@ -1787,7 +1836,9 @@ export class PlayCanvasRenderer {
   }
 
   #pointerRay(event) {
-    if (!this.#camera?.camera || !this.canvas) return null;
+    if (!this.#camera?.camera || !this.canvas) {
+      return null;
+    }
     const rect = this.canvas.getBoundingClientRect();
     const screenX = event.clientX - rect.left;
     const screenY = event.clientY - rect.top;
@@ -1806,9 +1857,13 @@ export class PlayCanvasRenderer {
   }
 
   #handleBannerPointerDown = (event) => {
-    if (event.button !== 0 || this.#bannerWindTarget) return;
+    if (event.button !== 0 || this.#bannerWindTarget) {
+      return;
+    }
     const ray = this.#pointerRay(event);
-    if (!ray) return;
+    if (!ray) {
+      return;
+    }
 
     let closest = null;
     for (const gateway of this.#gateways) {
@@ -1824,7 +1879,9 @@ export class PlayCanvasRenderer {
     if (doorHit && (!closest || doorHit.distance < closest.hit.distance)) {
       closest = { kind: "door", target: this.#castle, hit: doorHit };
     }
-    if (!closest) return;
+    if (!closest) {
+      return;
+    }
 
     event.preventDefault();
     if (closest.kind === "door") {
@@ -1839,12 +1896,16 @@ export class PlayCanvasRenderer {
   };
 
   #handleBannerPointerMove = (event) => {
-    if (!this.#bannerWindTarget) return;
+    if (!this.#bannerWindTarget) {
+      return;
+    }
     if (event.pointerId !== this.#bannerWindPointerId) {
       return;
     }
     const ray = this.#pointerRay(event);
-    if (!ray) return;
+    if (!ray) {
+      return;
+    }
 
     event.preventDefault();
     const deltaTime = (event.timeStamp - this.#bannerWindLastTime) / 1000;
@@ -1853,7 +1914,9 @@ export class PlayCanvasRenderer {
   };
 
   #handleBannerPointerUp = (event) => {
-    if (event.pointerId !== this.#bannerWindPointerId) return;
+    if (event.pointerId !== this.#bannerWindPointerId) {
+      return;
+    }
     event.preventDefault();
     this.#finishBannerWindGesture();
   };

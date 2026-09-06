@@ -82,7 +82,9 @@ export class CastleStairs {
   }
 
   #render() {
-    if (!this.#position || !this.#doors.length || !this.#cubeSize) return;
+    if (!this.#position || !this.#doors.length || !this.#cubeSize) {
+      return;
+    }
 
     const batches = new Map();
     const baseY = Math.max(0, this.#position.elevation ?? 0);
@@ -134,7 +136,9 @@ export class CastleStairs {
   }
 
   #addSurface(door, approachElevation, riseBlocks, rise) {
-    if (riseBlocks <= 0) return;
+    if (riseBlocks <= 0) {
+      return;
+    }
     const run = riseBlocks * STAIR_MODULE_RUN_BLOCKS * this.#cubeSize;
     const left = this.#position.x;
     const right = left + this.#position.width;
@@ -150,7 +154,9 @@ export class CastleStairs {
     }[door.side];
     const outwardSign =
       door.side === "WEST" || door.side === "NORTH" ? -1 : 1;
-    if (!Number.isFinite(boundaryEdge)) return;
+    if (!Number.isFinite(boundaryEdge)) {
+      return;
+    }
 
     this.#surfaces.push({
       side: door.side,

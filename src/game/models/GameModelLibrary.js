@@ -59,7 +59,9 @@ export class GameModelLibrary {
     } = {},
   ) {
     const mergedModel = this.#mergedModelFor(url);
-    if (!matrices.length) return null;
+    if (!matrices.length) {
+      return null;
+    }
 
     const vertexBuffer = new this.#pc.VertexBuffer(
       this.#app.graphicsDevice,

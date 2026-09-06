@@ -32,7 +32,9 @@ export class GroundCollisionWorld {
       elevation,
       stepClearance,
     );
-    if (destinationDepth <= 0) return false;
+    if (destinationDepth <= 0) {
+      return false;
+    }
 
     const currentDepth = this.#blockingDepthAt(
       fromX,
@@ -86,7 +88,9 @@ export class GroundCollisionWorld {
         stepClearance,
       );
     }
-    if (!collider.intersectsGroundFootprint?.(x, z, radius)) return false;
+    if (!collider.intersectsGroundFootprint?.(x, z, radius)) {
+      return false;
+    }
     const surfaceHeight = collider.surfaceHeightAt?.(x, z, radius);
     return !(
       Number.isFinite(surfaceHeight) &&

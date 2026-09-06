@@ -59,7 +59,9 @@ export class GroundCoverItem {
   }
 
   applyWind(directionX, directionZ, strength) {
-    if (this.#disappearAmount > 0) return;
+    if (this.#disappearAmount > 0) {
+      return;
+    }
     const tilt = WIND_TILT_DEGREES * strength * this.#flexibility;
     const targetX = directionZ * tilt;
     const targetZ = -directionX * tilt;
@@ -76,7 +78,9 @@ export class GroundCoverItem {
       this.#disappearAmount = Math.max(this.#disappearAmount, 0.001);
       return;
     }
-    if (this.#stepReaction !== "recover") return;
+    if (this.#stepReaction !== "recover") {
+      return;
+    }
 
     const directionLength = Math.hypot(directionX, directionZ) || 1;
     this.#trampleTiltX =

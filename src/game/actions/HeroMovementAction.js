@@ -13,7 +13,9 @@ export class HeroMovementAction {
   }
 
   setDirection(direction, pressed) {
-    if (!(direction in this.#directions)) return;
+    if (!(direction in this.#directions)) {
+      return;
+    }
     this.#directions[direction] = pressed;
     this.#applyMovement();
   }
@@ -34,7 +36,9 @@ export class HeroMovementAction {
       left: { x: -1, y: 0 },
       right: { x: 1, y: 0 },
     }[direction];
-    if (!input) return false;
+    if (!input) {
+      return false;
+    }
     return this.#renderer.dodgeHero(input.x, input.y, direction);
   }
 

@@ -52,7 +52,9 @@ export class FloatingIslandMotion {
   }
 
   #update = (deltaTime) => {
-    if (!this.#entity) return;
+    if (!this.#entity) {
+      return;
+    }
     this.#elapsed += deltaTime;
     const fade = 1 - Math.exp(-FADE_RESPONSE * deltaTime);
     this.#strength += (this.#targetStrength - this.#strength) * fade;

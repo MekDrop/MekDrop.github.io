@@ -12,7 +12,7 @@ export class ZoomAction {
   zoomIn(pivot = this.#viewportCenter()) {
     const zoom = Math.min(
       this.#settings.max,
-      this.#renderer.getZoom() * this.#settings.factor,
+      this.#renderer.zoom * this.#settings.factor,
     );
     this.#renderer.zoomTo(zoom, pivot.x, pivot.y);
   }
@@ -20,7 +20,7 @@ export class ZoomAction {
   zoomOut(pivot = this.#viewportCenter()) {
     const zoom = Math.max(
       this.#settings.min,
-      this.#renderer.getZoom() / this.#settings.factor,
+      this.#renderer.zoom / this.#settings.factor,
     );
     this.#renderer.zoomTo(zoom, pivot.x, pivot.y);
   }

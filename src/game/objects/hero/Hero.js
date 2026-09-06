@@ -282,12 +282,16 @@ export class Hero {
       return false;
     }
     const projected = this.#projectInput(inputX, inputY);
-    if (!projected) return false;
+    if (!projected) {
+      return false;
+    }
     const runwaySurface = this.#surfaceAt(
       this.#position.x + projected.x * DODGE_REQUIRED_RUNWAY,
       this.#position.z + projected.z * DODGE_REQUIRED_RUNWAY,
     );
-    if (runwaySurface === null) return false;
+    if (runwaySurface === null) {
+      return false;
+    }
 
     this.#velocity.x = projected.x * DODGE_SPEED;
     this.#velocity.y = DODGE_JUMP_VELOCITY;
@@ -320,7 +324,9 @@ export class Hero {
       return false;
     }
     const animation = HERO_ANIMATION.cut[heightClass];
-    if (!animation) return false;
+    if (!animation) {
+      return false;
+    }
 
     const targetX = targetPosition.x - this.#position.x;
     const targetZ = targetPosition.z - this.#position.z;
@@ -345,7 +351,9 @@ export class Hero {
   }
 
   stopCutting({ dismiss = true } = {}) {
-    if (!this.#cutAction) return false;
+    if (!this.#cutAction) {
+      return false;
+    }
     if (dismiss && this.#cutAction.phase !== "dismiss") {
       this.#cutAction.phase = "dismiss";
       this.#cutAction.elapsed = 0;
@@ -385,7 +393,9 @@ export class Hero {
   };
 
   #step(deltaTime) {
-    if (this.#gameOver) return;
+    if (this.#gameOver) {
+      return;
+    }
     this.#advanceCutAction(deltaTime);
     this.#advanceRepelAction(deltaTime);
     this.#advanceDodgeAction(deltaTime);
@@ -487,7 +497,9 @@ export class Hero {
 
   #desiredVelocity() {
     const projected = this.#projectInput(this.#input.x, this.#input.y);
-    if (!projected) return { x: 0, z: 0 };
+    if (!projected) {
+      return { x: 0, z: 0 };
+    }
     const speed = this.#running ? RUN_SPEED : MOVE_SPEED;
     return {
       x: projected.x * speed,
@@ -497,7 +509,9 @@ export class Hero {
 
   #projectInput(inputX, inputY) {
     const length = Math.hypot(inputX, inputY);
-    if (length < 0.001) return null;
+    if (length < 0.001) {
+      return null;
+    }
 
     const normalizedX = inputX / Math.max(1, length);
     const normalizedY = inputY / Math.max(1, length);
@@ -681,10 +695,16 @@ export class Hero {
 
   #surfaceAt(x, z) {
     const collisionSurface = this.#collisionWorld?.surfaceHeightAt(x, z);
-    if (Number.isFinite(collisionSurface)) return collisionSurface;
+    if (Number.isFinite(collisionSurface)) {
+      return collisionSurface;
+    }
     const tile = this.#tileAt(x, z);
-    if (!tile) return null;
-    if (WALKABLE_TILES.has(tile.type)) return tile.height;
+    if (!tile) {
+      return null;
+    }
+    if (WALKABLE_TILES.has(tile.type)) {
+      return tile.height;
+    }
     return null;
   }
 
@@ -765,7 +785,9 @@ export class Hero {
       const centerCol = this.#spawnCenter.x + (cols - 1) / 2;
       const centerRow = this.#spawnCenter.z + (rows - 1) / 2;
       const tile = candidates.reduce((closest, candidate) => {
-        if (!closest) return candidate;
+        if (!closest) {
+          return candidate;
+        }
         const candidateDistance =
           (candidate.col - centerCol) ** 2 +
           (candidate.row - centerRow) ** 2;
@@ -834,7 +856,9 @@ export class Hero {
   #initialFacingYaw() {
     const { castle, cols, rows } = this.#mapData;
     const castlePosition = castle?.position;
-    if (!castlePosition) return 0;
+    if (!castlePosition) {
+      return 0;
+    }
 
     const castleCenterX =
       castlePosition.col +
@@ -846,13 +870,17 @@ export class Hero {
       (rows - 1) / 2;
     const directionX = castleCenterX - this.#position.x;
     const directionZ = castleCenterZ - this.#position.z;
-    if (Math.hypot(directionX, directionZ) <= 0.001) return 0;
+    if (Math.hypot(directionX, directionZ) <= 0.001) {
+      return 0;
+    }
 
     return (Math.atan2(directionX, directionZ) * 180) / Math.PI;
   }
 
   #beginFallDeath() {
-    if (this.#fallingToDeath || this.#gameOver) return;
+    if (this.#fallingToDeath || this.#gameOver) {
+      return;
+    }
     this.stopCutting({ dismiss: false });
     this.#fallingToDeath = true;
     this.#repelAction = null;
@@ -893,7 +921,9 @@ export class Hero {
   }
 
   #animate(deltaTime) {
-    if (!this.#entity || !this.#modelRoot) return;
+    if (!this.#entity || !this.#modelRoot) {
+      return;
+    }
     const horizontalSpeed = Math.hypot(this.#velocity.x, this.#velocity.z);
     const blocked = this.#movementBlocked && horizontalSpeed <= 0.08;
     const refusingEdge = blocked && this.#edgeRefusal;
@@ -968,7 +998,9 @@ export class Hero {
     this.#idleElapsed += deltaTime;
     if (this.#boredAnimation) {
       this.#boredRemaining = Math.max(0, this.#boredRemaining - deltaTime);
-      if (this.#boredRemaining > 0) return this.#boredAnimation;
+      if (this.#boredRemaining > 0) {
+        return this.#boredAnimation;
+      }
 
       this.#boredAnimation = null;
       this.#nextBoredAt =
@@ -978,7 +1010,9 @@ export class Hero {
       return HERO_ANIMATION.idle;
     }
 
-    if (this.#idleElapsed < this.#nextBoredAt) return HERO_ANIMATION.idle;
+    if (this.#idleElapsed < this.#nextBoredAt) {
+      return HERO_ANIMATION.idle;
+    }
 
     this.#boredAnimation = HERO_ANIMATION.bored[this.#boredIndex];
     this.#boredIndex = (this.#boredIndex + 1) % HERO_ANIMATION.bored.length;
@@ -995,14 +1029,18 @@ export class Hero {
 
   #playAnimation(name, speed, restart) {
     const animation = this.#modelRoot.anim;
-    if (!animation) return;
+    if (!animation) {
+      return;
+    }
     animation.speed = speed;
     if (restart) {
       animation.baseLayer.play(name);
       this.#animationState = name;
       return;
     }
-    if (this.#animationState === name) return;
+    if (this.#animationState === name) {
+      return;
+    }
     animation.baseLayer.transition(name, ANIMATION_BLEND_TIME);
     this.#animationState = name;
   }
@@ -1049,7 +1087,9 @@ export class Hero {
   }
 
   #advanceCutAction(deltaTime) {
-    if (!this.#cutAction) return;
+    if (!this.#cutAction) {
+      return;
+    }
     const action = this.#cutAction;
     action.elapsed += deltaTime;
     if (action.phase === "summon") {
@@ -1068,7 +1108,9 @@ export class Hero {
       action.impacted = true;
       action.stopAfterCycle = action.onImpact?.() === true;
     }
-    if (action.elapsed < CUT_DURATION) return;
+    if (action.elapsed < CUT_DURATION) {
+      return;
+    }
 
     if (!action.stopAfterCycle) {
       action.elapsed = 0;
@@ -1084,7 +1126,9 @@ export class Hero {
   }
 
   #cutAnimationName() {
-    if (this.#cutAction.phase === "summon") return HERO_ANIMATION.summonAxe;
+    if (this.#cutAction.phase === "summon") {
+      return HERO_ANIMATION.summonAxe;
+    }
     if (this.#cutAction.phase === "dismiss") {
       return HERO_ANIMATION.dismissAxe;
     }
@@ -1093,7 +1137,9 @@ export class Hero {
 
   #finishCutAction() {
     const action = this.#cutAction;
-    if (!action) return;
+    if (!action) {
+      return;
+    }
     this.#cutAction = null;
     this.#setAxeVisible(false);
     this.#restartAnimation = true;
@@ -1101,7 +1147,9 @@ export class Hero {
   }
 
   #tryGatewayRepulsion(toX, toZ) {
-    if (this.#repelAction || this.#gatewayRepelCooldown > 0) return false;
+    if (this.#repelAction || this.#gatewayRepelCooldown > 0) {
+      return false;
+    }
     const direction = this.#getGatewayRepulsion?.(
       this.#position.x,
       this.#position.z,
@@ -1109,7 +1157,9 @@ export class Hero {
       toZ,
       HERO_RADIUS,
     );
-    if (!direction) return false;
+    if (!direction) {
+      return false;
+    }
     this.stopCutting({ dismiss: false });
     this.#repelAction = { ...direction, elapsed: 0 };
     this.#dodgeAction = null;
@@ -1121,28 +1171,38 @@ export class Hero {
   }
 
   #advanceRepelAction(deltaTime) {
-    if (!this.#repelAction) return;
+    if (!this.#repelAction) {
+      return;
+    }
     this.#repelAction.elapsed += deltaTime;
-    if (this.#repelAction.elapsed < GATEWAY_REPEL_DURATION) return;
+    if (this.#repelAction.elapsed < GATEWAY_REPEL_DURATION) {
+      return;
+    }
     this.#repelAction = null;
     this.#gatewayRepelCooldown = GATEWAY_REPEL_COOLDOWN;
     this.#restartAnimation = true;
   }
 
   #advanceDodgeAction(deltaTime) {
-    if (!this.#dodgeAction) return;
+    if (!this.#dodgeAction) {
+      return;
+    }
     this.#dodgeAction.elapsed = Math.min(
       DODGE_DURATION,
       this.#dodgeAction.elapsed + deltaTime,
     );
-    if (this.#dodgeAction.elapsed < DODGE_DURATION) return;
+    if (this.#dodgeAction.elapsed < DODGE_DURATION) {
+      return;
+    }
     const crossedLedge = this.#dodgeAction.crossedLedge;
     this.#dodgeAction = null;
     if (crossedLedge) this.#beginFallDeath();
   }
 
   #advanceRespawnAction(deltaTime) {
-    if (!this.#respawnAction) return;
+    if (!this.#respawnAction) {
+      return;
+    }
     this.#respawnAction.elapsed = Math.min(
       RESPAWN_ANIMATION_DURATION,
       this.#respawnAction.elapsed + deltaTime,
@@ -1155,7 +1215,9 @@ export class Hero {
   }
 
   #updateRespawnPresentation() {
-    if (!this.#modelRoot || !this.#respawnAction) return;
+    if (!this.#modelRoot || !this.#respawnAction) {
+      return;
+    }
 
     const progress = Math.min(
       1,
@@ -1188,14 +1250,18 @@ export class Hero {
     const pending = [this.#modelRoot];
     while (pending.length) {
       const entity = pending.pop();
-      if (entity.name === name) return entity;
+      if (entity.name === name) {
+        return entity;
+      }
       pending.push(...entity.children);
     }
     return null;
   }
 
   #approach(value, target, amount) {
-    if (value < target) return Math.min(value + amount, target);
+    if (value < target) {
+      return Math.min(value + amount, target);
+    }
     return Math.max(value - amount, target);
   }
 

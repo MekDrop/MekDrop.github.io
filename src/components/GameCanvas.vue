@@ -187,7 +187,7 @@ let debugStatsTimer = null;
 let restartGameAction = null;
 
 function updateDebugStats() {
-  debugFramesPerSecond.value = renderer?.getFramesPerSecond() ?? 0;
+  debugFramesPerSecond.value = renderer?.framesPerSecond ?? 0;
 }
 
 async function init() {
@@ -204,10 +204,10 @@ async function init() {
     restartPrompt: t("game.restart_prompt"),
   });
   await renderer.init();
-  graphicsBackend.value = renderer.getGraphicsBackend();
+  graphicsBackend.value = renderer.graphicsBackend;
   mapData = generateMap();
   renderer.render(mapData);
-  debugVisible.value = renderer.getArrowsVisible();
+  debugVisible.value = renderer.arrowsVisible;
   updateDebugStats();
 
   const regenerateMapAction = new RegenerateMapAction(
@@ -216,7 +216,7 @@ async function init() {
     (generatedMap) => {
       mapData = generatedMap;
       interactionTarget.value = null;
-      debugVisible.value = renderer.getArrowsVisible();
+      debugVisible.value = renderer.arrowsVisible;
     },
   );
   restartGameAction = new RestartGameAction(renderer, regenerateMapAction);

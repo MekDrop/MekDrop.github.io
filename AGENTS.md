@@ -19,6 +19,15 @@ Before running a build command or a Prettier check/format command, check whether
 ## Coding Style & Naming Conventions
 
 Follow `.editorconfig`: UTF-8, LF endings, two-space indentation, final newlines, and no trailing whitespace. ESLint uses Vue's essential rules plus `eslint-config-prettier`; production builds reject `debugger` statements. Run Prettier rather than hand-aligning code. Vue component filenames and component names use PascalCase. Prefer configured aliases such as `src/*`, `components/*`, and `stores/*` over deep relative imports.
+For class methods that are zero-argument, read-only accessors, prefer ES6 getter syntax (`get value()`) over `getValue()` methods when the method is called like property access.
+For class mutators that are simple one-argument property writes (for example `setVisible`, `setEntranceVisible`, `setArrowsVisible`) and are naturally used as properties, prefer ES6 setter syntax (`set value(...)`) over explicit methods.
+Prefer explicit brace blocks for guard-style conditionals, even for single statements; avoid `if (cond) return ...;` and use:
+
+```js
+if (cond) {
+  return ...;
+}
+```
 For JavaScript class internals, use modern ES private class syntax (#privateField, #privateMethod()) instead of underscore-prefixed pseudo-private fields or methods.
 Prefer one primary class per JavaScript file when the code models a distinct system or component. Avoid large utility-style files that accumulate many unrelated constants, variables, and free functions when that logic belongs inside a cohesive class.
 Never throw or reject with the built-in `Error` directly (`new Error(...)`). Define a named custom class that extends `Error`; the class must own its predefined message or message template, while call sites pass only structured context needed by that template. Use a separate error class for each distinct failure condition: call sites must not provide an error message or select one through an error code.

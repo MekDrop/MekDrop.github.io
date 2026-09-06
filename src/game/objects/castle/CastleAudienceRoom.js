@@ -112,7 +112,7 @@ export class CastleAudienceRoom {
     this.#syncVisibility();
   }
 
-  setEntranceVisible(visible) {
+  set entranceVisible(visible) {
     this.#entranceVisible = visible;
     this.#syncVisibility();
   }
@@ -126,7 +126,7 @@ export class CastleAudienceRoom {
     this.#gameOverEndPosition = endPosition;
     this.#getGameOverCameraPosition = getCameraPosition;
     this.#syncVisibility();
-    const visualBounds = this.#royal.getVisualBounds();
+    const visualBounds = this.#royal.visualBounds;
     const currentPosition = this.#royal.entity.getPosition();
     const endWorldPosition = this.#entity
       .getWorldTransform()
@@ -579,16 +579,28 @@ export class CastleAudienceRoom {
   }
 
   #roomYaw() {
-    if (this.#inward.x > 0) return 90;
-    if (this.#inward.x < 0) return -90;
-    if (this.#inward.z < 0) return 180;
+    if (this.#inward.x > 0) {
+      return 90;
+    }
+    if (this.#inward.x < 0) {
+      return -90;
+    }
+    if (this.#inward.z < 0) {
+      return 180;
+    }
     return 0;
   }
 
   #visitorFacingYaw() {
-    if (this.#inward.x > 0) return -90;
-    if (this.#inward.x < 0) return 90;
-    if (this.#inward.z > 0) return 180;
+    if (this.#inward.x > 0) {
+      return -90;
+    }
+    if (this.#inward.x < 0) {
+      return 90;
+    }
+    if (this.#inward.z > 0) {
+      return 180;
+    }
     return 0;
   }
 

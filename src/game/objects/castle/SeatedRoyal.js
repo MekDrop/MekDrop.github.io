@@ -51,7 +51,7 @@ export class SeatedRoyal {
     return this.#entity;
   }
 
-  getVisualBounds() {
+  get visualBounds() {
     let minimumX = Number.POSITIVE_INFINITY;
     let minimumY = Number.POSITIVE_INFINITY;
     let minimumZ = Number.POSITIVE_INFINITY;
@@ -98,7 +98,9 @@ export class SeatedRoyal {
   }
 
   beginGameOver({ startPosition, endPosition, getCameraPosition }) {
-    if (this.#performance) return;
+    if (this.#performance) {
+      return;
+    }
     this.#performance = {
       elapsed: 0,
       phase: "walking",
@@ -114,7 +116,9 @@ export class SeatedRoyal {
   }
 
   update(deltaTime) {
-    if (this.#performance?.phase !== "walking") return;
+    if (this.#performance?.phase !== "walking") {
+      return;
+    }
     const performance = this.#performance;
     performance.elapsed += deltaTime;
     const travelProgress = Math.max(
@@ -134,7 +138,9 @@ export class SeatedRoyal {
       start.y + (end.y - start.y) * easedProgress,
       start.z + (end.z - start.z) * easedProgress,
     );
-    if (travelProgress < 1) return;
+    if (travelProgress < 1) {
+      return;
+    }
 
     performance.phase = "crying";
     const cameraPosition = performance.getCameraPosition?.();
@@ -151,7 +157,9 @@ export class SeatedRoyal {
   }
 
   #face(x, z) {
-    if (Math.hypot(x, z) <= 0.001) return;
+    if (Math.hypot(x, z) <= 0.001) {
+      return;
+    }
     this.#entity.setLocalEulerAngles(
       0,
       (Math.atan2(x, z) * 180) / Math.PI,

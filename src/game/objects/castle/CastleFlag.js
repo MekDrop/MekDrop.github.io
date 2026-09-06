@@ -102,20 +102,26 @@ export class CastleFlag {
   }
 
   beginWindGesture(hit) {
-    if (!hit?.flag) return;
+    if (!hit?.flag) {
+      return;
+    }
     this.#activeFlag = hit.flag;
     this.#activeFlag.wind.begin(hit.point);
   }
 
   applyMouseWind(rayStart, rayEnd, deltaTime) {
-    if (!this.#activeFlag) return;
+    if (!this.#activeFlag) {
+      return;
+    }
     const hit = this.#intersectFlagRay(
       this.#activeFlag,
       rayStart,
       rayEnd,
       false,
     );
-    if (!hit) return;
+    if (!hit) {
+      return;
+    }
     this.#activeFlag.wind.applyPointer(hit.point, deltaTime);
   }
 
@@ -269,15 +275,21 @@ export class CastleFlag {
   }
 
   #intersectFlagRay(flag, rayStart, rayEnd, bounded) {
-    if (!flag?.root) return null;
+    if (!flag?.root) {
+      return null;
+    }
     const inverse = flag.root.getWorldTransform().clone().invert();
     const localStart = inverse.transformPoint(rayStart, new this.#pc.Vec3());
     const localEnd = inverse.transformPoint(rayEnd, new this.#pc.Vec3());
     const directionZ = localEnd.z - localStart.z;
-    if (Math.abs(directionZ) < 0.000001) return null;
+    if (Math.abs(directionZ) < 0.000001) {
+      return null;
+    }
 
     const distance = -localStart.z / directionZ;
-    if (distance < 0 || distance > 1) return null;
+    if (distance < 0 || distance > 1) {
+      return null;
+    }
     const localX = localStart.x + (localEnd.x - localStart.x) * distance;
     const localY = localStart.y + (localEnd.y - localStart.y) * distance;
     const centerY = flag.poleHeight - flag.height / 2 - 0.12;

@@ -86,7 +86,9 @@ export class DestructibleVegetation {
   }
 
   cut() {
-    if (this.#destroyed) return null;
+    if (this.#destroyed) {
+      return null;
+    }
 
     this.#health -= 1;
     if (this.#health <= 0) {
@@ -124,7 +126,9 @@ export class DestructibleVegetation {
   }
 
   intersectsGroundFootprint(x, z, radius = 0) {
-    if (this.#destroyed) return false;
+    if (this.#destroyed) {
+      return false;
+    }
     const local = this.#toLocalCoordinates(x, z);
     return this.#collisionFootprints.some(
       (footprint) =>
@@ -139,7 +143,9 @@ export class DestructibleVegetation {
     elevation = -Infinity,
     stepClearance = 0,
   ) {
-    if (this.#destroyed) return 0;
+    if (this.#destroyed) {
+      return 0;
+    }
     const local = this.#toLocalCoordinates(x, z);
     let deepestCollision = 0;
     for (const footprint of this.#collisionFootprints) {
@@ -159,7 +165,9 @@ export class DestructibleVegetation {
   }
 
   surfaceHeightAt(x, z, radius = 0) {
-    if (this.#destroyed) return null;
+    if (this.#destroyed) {
+      return null;
+    }
     const local = this.#toLocalCoordinates(x, z);
     let highestSurface = null;
     for (const footprint of this.#collisionFootprints) {
@@ -175,8 +183,12 @@ export class DestructibleVegetation {
   }
 
   #heightClass() {
-    if (this.#interactionHeight < 0.9) return "low";
-    if (this.#interactionHeight >= 1.4) return "high";
+    if (this.#interactionHeight < 0.9) {
+      return "low";
+    }
+    if (this.#interactionHeight >= 1.4) {
+      return "high";
+    }
     return "middle";
   }
 

@@ -8,8 +8,10 @@ export class RestartGameAction {
   }
 
   restart() {
-    if (!this.#renderer.isGameOver()) return false;
-    const viewport = this.#renderer.getGameOverReturnViewport();
+    if (!this.#renderer.isGameOver()) {
+      return false;
+    }
+    const viewport = this.#renderer.gameOverReturnViewport;
     this.#regenerateMap.regenerateMap(viewport);
     return true;
   }

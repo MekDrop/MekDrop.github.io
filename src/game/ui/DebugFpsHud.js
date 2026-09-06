@@ -79,12 +79,16 @@ export class DebugFpsHud {
   }
 
   attach(parent = this.#app.root) {
-    if (!this.#entity || this.#entity.parent === parent) return;
+    if (!this.#entity || this.#entity.parent === parent) {
+      return;
+    }
     parent.addChild(this.#entity);
   }
 
   resize(width, height) {
-    if (!this.#entity?.screen) return;
+    if (!this.#entity?.screen) {
+      return;
+    }
     this.#entity.screen.referenceResolution = new this.#pc.Vec2(
       Math.max(1, width),
       Math.max(1, height),
@@ -95,12 +99,16 @@ export class DebugFpsHud {
     return this.#framesPerSecond;
   }
 
-  setVisible(visible) {
-    if (!this.#entity) return;
+  set visible(visible) {
+    if (!this.#entity) {
+      return;
+    }
     const nextVisible = Boolean(visible);
     const beginsMeasurement = nextVisible && !this.#entity.enabled;
     this.#entity.enabled = nextVisible;
-    if (!beginsMeasurement) return;
+    if (!beginsMeasurement) {
+      return;
+    }
     this.#framesPerSecond = 0;
     this.#minimumFramesPerSecond = Number.POSITIVE_INFINITY;
     this.#maximumFramesPerSecond = 0;
@@ -188,7 +196,9 @@ export class DebugFpsHud {
 
   #readUsedMemory() {
     const usedBytes = performance.memory?.usedJSHeapSize;
-    if (!Number.isFinite(usedBytes)) return null;
+    if (!Number.isFinite(usedBytes)) {
+      return null;
+    }
     return Math.round((usedBytes / BYTES_PER_MEGABYTE) * 10) / 10;
   }
 

@@ -33,9 +33,13 @@ export class HeroVisibilityController {
   }
 
   schedule() {
-    if (!this.#picker || !this.#hero) return;
+    if (!this.#picker || !this.#hero) {
+      return;
+    }
     this.#checkPending = true;
-    if (this.#timer !== null || this.#inProgress) return;
+    if (this.#timer !== null || this.#inProgress) {
+      return;
+    }
 
     const elapsed = performance.now() - this.#lastCheckTime;
     const delay = Math.max(0, CHECK_INTERVAL - elapsed);
@@ -60,7 +64,9 @@ export class HeroVisibilityController {
   }
 
   async #keepVisible() {
-    if (!this.#picker || !this.#hero) return;
+    if (!this.#picker || !this.#hero) {
+      return;
+    }
     const generation = this.#generation;
     this.#inProgress = true;
     this.#lastCheckTime = performance.now();
@@ -71,7 +77,9 @@ export class HeroVisibilityController {
         currentRotation,
         generation,
       );
-      if (visible !== false || generation !== this.#generation) return;
+      if (visible !== false || generation !== this.#generation) {
+        return;
+      }
 
       for (const offset of ALTERNATE_ROTATIONS) {
         const rotation = this.#normalizeRotation(currentRotation + offset);
@@ -79,7 +87,9 @@ export class HeroVisibilityController {
           rotation,
           generation,
         );
-        if (generation !== this.#generation) return;
+        if (generation !== this.#generation) {
+          return;
+        }
         if (!candidateIsVisible) continue;
         this.#setRotation(rotation);
         return;
@@ -93,7 +103,9 @@ export class HeroVisibilityController {
   }
 
   async #isVisibleAtRotation(rotation, generation) {
-    if (!this.#picker || !this.#hero || !this.#camera) return null;
+    if (!this.#picker || !this.#hero || !this.#camera) {
+      return null;
+    }
 
     const previousRotation = this.#getRotation();
     let selectionPromise;
@@ -136,7 +148,9 @@ export class HeroVisibilityController {
 
     try {
       const selection = await selectionPromise;
-      if (generation !== this.#generation) return null;
+      if (generation !== this.#generation) {
+        return null;
+      }
       return selection.some((item) => this.#belongsToHero(item?.node));
     } catch {
       return null;
@@ -145,7 +159,9 @@ export class HeroVisibilityController {
 
   #belongsToHero(node) {
     for (let current = node; current; current = current.parent) {
-      if (current === this.#hero) return true;
+      if (current === this.#hero) {
+        return true;
+      }
     }
     return false;
   }

@@ -94,7 +94,9 @@ export class Gateway {
   }
 
   intersectsGroundFootprint(x, z, radius = 0) {
-    if (!this.#entity) return false;
+    if (!this.#entity) {
+      return false;
+    }
     this.#inverseWorldTransform ??= this.#entity
       .getWorldTransform()
       .clone()
@@ -113,7 +115,9 @@ export class Gateway {
   }
 
   repulsionForMovement(fromX, fromZ, toX, toZ, radius = 0) {
-    if (!this.#entity) return null;
+    if (!this.#entity) {
+      return null;
+    }
     this.#inverseWorldTransform ??= this.#entity
       .getWorldTransform()
       .clone()
@@ -151,7 +155,9 @@ export class Gateway {
       this.#repulsionDirection.x,
       this.#repulsionDirection.z,
     );
-    if (length <= 0.001) return null;
+    if (length <= 0.001) {
+      return null;
+    }
     return {
       x: this.#repulsionDirection.x / length,
       z: this.#repulsionDirection.z / length,
@@ -186,7 +192,9 @@ export class Gateway {
 
   applyMouseWind(rayStart, rayEnd, deltaTime) {
     const hit = this.#intersectBannerRay(rayStart, rayEnd, false);
-    if (!hit) return;
+    if (!hit) {
+      return;
+    }
     this.#bannerWind.applyPointer(hit.point, deltaTime);
   }
 
@@ -405,7 +413,9 @@ export class Gateway {
   }
 
   #intersectBannerRay(rayStart, rayEnd, bounded) {
-    if (!this.#entity || !this.#bannerInteraction) return null;
+    if (!this.#entity || !this.#bannerInteraction) {
+      return null;
+    }
 
     const pc = this.#pc;
     const inverse = this.#entity.getWorldTransform().clone().invert();
@@ -414,10 +424,14 @@ export class Gateway {
     const directionX = localEnd.x - localStart.x;
     const { planeX, width, height, yTop, centerZ } = this.#bannerInteraction;
 
-    if (Math.abs(directionX) < 0.000001) return null;
+    if (Math.abs(directionX) < 0.000001) {
+      return null;
+    }
 
     const distance = (planeX - localStart.x) / directionX;
-    if (distance < 0 || distance > 1) return null;
+    if (distance < 0 || distance > 1) {
+      return null;
+    }
 
     const point = new pc.Vec3(
       planeX,
@@ -553,7 +567,9 @@ export class Gateway {
   }
 
   #colorFrom(value) {
-    if (value instanceof this.#pc.Color) return value.clone();
+    if (value instanceof this.#pc.Color) {
+      return value.clone();
+    }
     if (Array.isArray(value)) {
       return new this.#pc.Color(value[0] ?? 1, value[1] ?? 1, value[2] ?? 1);
     }

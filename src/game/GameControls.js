@@ -68,7 +68,9 @@ export class GameControls {
       return;
     }
 
-    if (this.#isEditable(event.target)) return;
+    if (this.#isEditable(event.target)) {
+      return;
+    }
 
     if (this.#matchesKey(event, this.#config.run)) {
       this.#actions.heroMovement.setRunning(true);
@@ -84,7 +86,9 @@ export class GameControls {
         !event.repeat &&
         this.#isMovementDoubleTap(movementDirection)
       ) {
-        if (this.#actions.heroMovement.dodge(movementDirection)) return;
+        if (this.#actions.heroMovement.dodge(movementDirection)) {
+          return;
+        }
       }
       this.#movementDirections.add(movementDirection);
       this.#actions.heroMovement.setRunning(event.shiftKey);
@@ -171,7 +175,9 @@ export class GameControls {
   };
 
   #handlePointerDown = (event) => {
-    if (event.defaultPrevented) return;
+    if (event.defaultPrevented) {
+      return;
+    }
     if (this.#actions.restartGame?.restart()) {
       event.preventDefault();
       event.stopImmediatePropagation();
@@ -183,7 +189,9 @@ export class GameControls {
     const isRotate =
       event.pointerType === "mouse" &&
       event.button === this.#config.rotateCamera.mouseButton;
-    if (!isPan && !isRotate) return;
+    if (!isPan && !isRotate) {
+      return;
+    }
 
     event.preventDefault();
     this.#dragPointerId = event.pointerId;
@@ -196,7 +204,9 @@ export class GameControls {
   };
 
   #handlePointerMove = (event) => {
-    if (event.pointerId !== this.#dragPointerId) return;
+    if (event.pointerId !== this.#dragPointerId) {
+      return;
+    }
 
     const deltaX = event.clientX - this.#dragX;
     const deltaY = event.clientY - this.#dragY;
@@ -222,7 +232,9 @@ export class GameControls {
   };
 
   #handlePointerUp = (event) => {
-    if (event.pointerId !== this.#dragPointerId) return;
+    if (event.pointerId !== this.#dragPointerId) {
+      return;
+    }
 
     this.#dragPointerId = null;
     this.#dragMode = null;

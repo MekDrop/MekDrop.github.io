@@ -24,15 +24,33 @@ export class AssetsManager {
   #inFlightAnimations = new Map();
 
   #isCanvasImageSource(value) {
-    if (!value) return false;
-    if (typeof ImageBitmap !== "undefined" && value instanceof ImageBitmap) return true;
-    if (typeof OffscreenCanvas !== "undefined" && value instanceof OffscreenCanvas) return true;
-    if (typeof HTMLCanvasElement !== "undefined" && value instanceof HTMLCanvasElement) return true;
-    if (typeof HTMLImageElement !== "undefined" && value instanceof HTMLImageElement) return true;
-    if (typeof SVGImageElement !== "undefined" && value instanceof SVGImageElement) return true;
-    if (typeof HTMLVideoElement !== "undefined" && value instanceof HTMLVideoElement) return true;
-    if (typeof VideoFrame !== "undefined" && value instanceof VideoFrame) return true;
-    if (typeof CSSImageValue !== "undefined" && value instanceof CSSImageValue) return true;
+    if (!value) {
+      return false;
+    }
+    if (typeof ImageBitmap !== "undefined" && value instanceof ImageBitmap) {
+      return true;
+    }
+    if (typeof OffscreenCanvas !== "undefined" && value instanceof OffscreenCanvas) {
+      return true;
+    }
+    if (typeof HTMLCanvasElement !== "undefined" && value instanceof HTMLCanvasElement) {
+      return true;
+    }
+    if (typeof HTMLImageElement !== "undefined" && value instanceof HTMLImageElement) {
+      return true;
+    }
+    if (typeof SVGImageElement !== "undefined" && value instanceof SVGImageElement) {
+      return true;
+    }
+    if (typeof HTMLVideoElement !== "undefined" && value instanceof HTMLVideoElement) {
+      return true;
+    }
+    if (typeof VideoFrame !== "undefined" && value instanceof VideoFrame) {
+      return true;
+    }
+    if (typeof CSSImageValue !== "undefined" && value instanceof CSSImageValue) {
+      return true;
+    }
     return false;
   }
 
@@ -95,9 +113,15 @@ export class AssetsManager {
    * @returns {Promise<import("pixi.js").Texture | null>}
    */
   async addTextureFromUrl(key, url) {
-    if (!key || !url) return null;
-    if (this.#textures.has(key)) return this.#textures.get(key);
-    if (this.#inFlightLoads.has(key)) return this.#inFlightLoads.get(key);
+    if (!key || !url) {
+      return null;
+    }
+    if (this.#textures.has(key)) {
+      return this.#textures.get(key);
+    }
+    if (this.#inFlightLoads.has(key)) {
+      return this.#inFlightLoads.get(key);
+    }
 
     const loadPromise = Assets.load(url)
       .then((texture) => {
@@ -121,7 +145,9 @@ export class AssetsManager {
    * @returns {Promise<void>}
    */
   async unloadTexture(key) {
-    if (!key) return;
+    if (!key) {
+      return;
+    }
     const texture = this.#textures.get(key) ?? null;
     this.#textures.delete(key);
     this.#inFlightLoads.delete(key);
@@ -148,7 +174,9 @@ export class AssetsManager {
    * @returns {void}
    */
   addAnimationFromTextures(key, textureKeys = []) {
-    if (!key || !Array.isArray(textureKeys)) return;
+    if (!key || !Array.isArray(textureKeys)) {
+      return;
+    }
 
     const textures = [];
 
@@ -171,9 +199,15 @@ export class AssetsManager {
    * @returns {Promise<void>}
    */
   async addAnimationFromSpritesheet(key, url, options = {}) {
-    if (!key || !url) return;
-    if (this.#animations.has(key)) return;
-    if (this.#inFlightAnimations.has(key)) return this.#inFlightAnimations.get(key);
+    if (!key || !url) {
+      return;
+    }
+    if (this.#animations.has(key)) {
+      return;
+    }
+    if (this.#inFlightAnimations.has(key)) {
+      return this.#inFlightAnimations.get(key);
+    }
 
     const loadPromise = (async () => {
       const spritesheetTexture = await Assets.load(url);
@@ -240,25 +274,37 @@ export class AssetsManager {
    * @returns {import("pixi.js").Texture | null}
    */
   addFlippedTexture(originalKey, newKey) {
-    if (!originalKey || !newKey) return null;
-    if (this.#textures.has(newKey)) return this.#textures.get(newKey);
+    if (!originalKey || !newKey) {
+      return null;
+    }
+    if (this.#textures.has(newKey)) {
+      return this.#textures.get(newKey);
+    }
 
     const originalTexture = this.#textures.get(originalKey);
-    if (!originalTexture) return null;
+    if (!originalTexture) {
+      return null;
+    }
 
     const sourceElement = this.#getTextureSourceElement(originalTexture);
-    if (!sourceElement) return null;
+    if (!sourceElement) {
+      return null;
+    }
     let drawableSource = sourceElement;
 
     if (typeof ImageData !== "undefined" && sourceElement instanceof ImageData) {
       const imageDataCanvas = this.#createCanvas(sourceElement.width, sourceElement.height);
       const imageDataContext = imageDataCanvas?.getContext?.("2d") ?? null;
-      if (!imageDataCanvas || !imageDataContext) return null;
+      if (!imageDataCanvas || !imageDataContext) {
+        return null;
+      }
       imageDataContext.putImageData(sourceElement, 0, 0);
       drawableSource = imageDataCanvas;
     }
 
-    if (!this.#isCanvasImageSource(drawableSource)) return null;
+    if (!this.#isCanvasImageSource(drawableSource)) {
+      return null;
+    }
 
     const sourceFrame = originalTexture.frame;
     const frameX = Math.round(sourceFrame?.x ?? 0);
@@ -266,10 +312,14 @@ export class AssetsManager {
     const frameWidth = Math.max(1, Math.round(sourceFrame?.width ?? originalTexture.width));
     const frameHeight = Math.max(1, Math.round(sourceFrame?.height ?? originalTexture.height));
     const canvas = this.#createCanvas(frameWidth, frameHeight);
-    if (!canvas) return null;
+    if (!canvas) {
+      return null;
+    }
 
     const context = canvas.getContext("2d");
-    if (!context) return null;
+    if (!context) {
+      return null;
+    }
 
     context.save();
     context.translate(frameWidth, 0);
@@ -303,15 +353,21 @@ export class AssetsManager {
    * @returns {Promise<import("pixi.js").Texture | null>}
    */
   async addCroppedTexture(originalKey, newKey, crop) {
-    if (!originalKey || !newKey || !crop) return null;
-    if (this.#textures.has(newKey)) return this.#textures.get(newKey);
+    if (!originalKey || !newKey || !crop) {
+      return null;
+    }
+    if (this.#textures.has(newKey)) {
+      return this.#textures.get(newKey);
+    }
     const inFlightOriginal = this.#inFlightLoads.get(originalKey);
     if (inFlightOriginal) {
       await inFlightOriginal;
     }
 
     const originalTexture = this.#textures.get(originalKey);
-    if (!originalTexture) return null;
+    if (!originalTexture) {
+      return null;
+    }
 
     const frame = new Rectangle(
       Math.round(originalTexture.width * crop.x),
@@ -338,15 +394,21 @@ export class AssetsManager {
    * @returns {Promise<import("pixi.js").Texture[] | void>}
    */
   async addFlippedAnimation(originalKey, newKey) {
-    if (!originalKey || !newKey) return;
-    if (this.#animations.has(newKey)) return this.#animations.get(newKey);
+    if (!originalKey || !newKey) {
+      return;
+    }
+    if (this.#animations.has(newKey)) {
+      return this.#animations.get(newKey);
+    }
     const inFlightOriginal = this.#inFlightAnimations.get(originalKey);
     if (inFlightOriginal) {
       await inFlightOriginal;
     }
 
     const originalAnimation = this.#animations.get(originalKey);
-    if (!Array.isArray(originalAnimation)) return;
+    if (!Array.isArray(originalAnimation)) {
+      return;
+    }
 
     const flippedTextures = [];
     for (let index = 0; index < originalAnimation.length; index += 1) {

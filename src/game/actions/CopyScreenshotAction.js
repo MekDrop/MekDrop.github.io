@@ -14,7 +14,7 @@ export class CopyScreenshotAction {
   }
 
   async copyScreenshot() {
-    const canvas = this.#renderer.getCanvas();
+    const canvas = this.#renderer.canvasElement;
     const blob = await new Promise((resolve, reject) => {
       canvas.toBlob((result) => {
         if (result) resolve(result);
@@ -50,7 +50,9 @@ export class CopyScreenshotAction {
   }
 
   async #copyImageLegacy(canvas) {
-    if (typeof document.execCommand !== "function") return false;
+    if (typeof document.execCommand !== "function") {
+      return false;
+    }
 
     const image = new Image();
     image.src = canvas.toDataURL("image/png");

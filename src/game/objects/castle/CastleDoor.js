@@ -76,15 +76,21 @@ export class CastleDoor {
   }
 
   getHit(rayStart, rayEnd) {
-    if (!this.#entity) return null;
+    if (!this.#entity) {
+      return null;
+    }
     const inverse = this.#entity.getWorldTransform().clone().invert();
     const localStart = inverse.transformPoint(rayStart, new this.#pc.Vec3());
     const localEnd = inverse.transformPoint(rayEnd, new this.#pc.Vec3());
     const directionZ = localEnd.z - localStart.z;
-    if (Math.abs(directionZ) < 0.000001) return null;
+    if (Math.abs(directionZ) < 0.000001) {
+      return null;
+    }
 
     const distance = -localStart.z / directionZ;
-    if (distance < 0 || distance > 1) return null;
+    if (distance < 0 || distance > 1) {
+      return null;
+    }
     const localX = localStart.x + (localEnd.x - localStart.x) * distance;
     const localY = localStart.y + (localEnd.y - localStart.y) * distance;
     if (
@@ -131,7 +137,9 @@ export class CastleDoor {
   }
 
   intersectsFootprint(x, z, radius) {
-    if (this.#openAmount >= PASSABLE_OPEN_AMOUNT) return false;
+    if (this.#openAmount >= PASSABLE_OPEN_AMOUNT) {
+      return false;
+    }
     const deltaX = x - this.#center.x;
     const deltaZ = z - this.#center.z;
     const normalDistance = Math.abs(
