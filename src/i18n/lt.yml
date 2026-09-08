@@ -52,6 +52,11 @@ game:
     chop_tree: Kirsti medį
     clear_bush: Pašalinti krūmą
     stop_cutting: Baigti kirsti
+    dig: Kasti lobį
+    stop_digging: Baigti kasti
+    open_treasure: Atidaryti lobių skrynią
+    fill_hole: Užpilti duobę
+    stop_filling: Baigti užpilti
 language:
   en-US: Anglų (JAV)
   lt: Lietuvių

@@ -54,7 +54,6 @@ export class HeroRespawnEffect {
     this.#outlineRoot = modelLibrary.instantiate(modelUrl);
     this.#outlineRoot.name = "Hero respawn contour";
     this.#configureOutlineMeshes();
-    this.#hideNamedEntity(this.#outlineRoot, "Hero axe");
     this.#outlineRoot.addComponent("anim", { activate: true });
     this.#outlineRoot.anim.addAnimationState(
       HERO_ANIMATION.RESPAWN,
@@ -199,18 +198,6 @@ export class HeroRespawnEffect {
       const entity = pending.pop();
       for (const meshInstance of entity.render?.meshInstances ?? []) {
         callback(meshInstance);
-      }
-      pending.push(...entity.children);
-    }
-  }
-
-  #hideNamedEntity(root, name) {
-    const pending = [root];
-    while (pending.length) {
-      const entity = pending.pop();
-      if (entity.name === name) {
-        entity.enabled = false;
-        return;
       }
       pending.push(...entity.children);
     }

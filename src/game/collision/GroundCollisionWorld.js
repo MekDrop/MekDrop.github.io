@@ -46,6 +46,21 @@ export class GroundCollisionWorld {
     return currentDepth <= 0 || destinationDepth >= currentDepth - 0.000001;
   }
 
+  movementRefusalAt(x, z, radius = 0, elevation = -Infinity) {
+    for (const collider of this.#colliders) {
+      const refusal = collider.movementRefusalAt?.(
+        x,
+        z,
+        radius,
+        elevation,
+      );
+      if (refusal) {
+        return refusal;
+      }
+    }
+    return null;
+  }
+
   #blockingDepthAt(x, z, radius, elevation, stepClearance) {
     let depth = 0;
     for (const collider of this.#colliders) {

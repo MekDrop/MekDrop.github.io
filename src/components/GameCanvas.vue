@@ -34,7 +34,11 @@
       >
         <kbd>E</kbd>
         <span>{{ interactionLabel }}</span>
-        <span class="interaction-prompt__health" aria-hidden="true">
+        <span
+          v-if="interactionTarget.showHealth"
+          class="interaction-prompt__health"
+          aria-hidden="true"
+        >
           <i
             v-for="hitPoint in interactionTarget.maxHealth"
             :key="hitPoint"
@@ -160,7 +164,7 @@ import { RegenerateMapAction } from "src/game/actions/RegenerateMapAction.js";
 import { RestartGameAction } from "src/game/actions/RestartGameAction.js";
 import { RotateViewAction } from "src/game/actions/RotateViewAction.js";
 import { ToggleArrowsAction } from "src/game/actions/ToggleArrowsAction.js";
-import { VegetationInteractionAction } from "src/game/actions/VegetationInteractionAction.js";
+import { InteractionAction } from "src/game/actions/InteractionAction.js";
 import { ZoomAction } from "src/game/actions/ZoomAction.js";
 import { DEFAULT_CONTROLS } from "src/game/config/controls.js";
 import { useDebugStore } from "src/stores/debug-store.js";
@@ -182,14 +186,11 @@ const { t } = useI18n();
 const graphicsStore = useGraphicsSettingsStore();
 const debugStore = useDebugStore();
 const gameViewStore = useGameViewStore();
-const interactionLabel = computed(() => {
-  if (interactionTarget.value?.cutting) {
-    return t("game.interaction.stop_cutting");
-  }
-  return interactionTarget.value?.kind === "bush"
-    ? t("game.interaction.clear_bush")
-    : t("game.interaction.chop_tree");
-});
+const interactionLabel = computed(() =>
+  interactionTarget.value?.labelKey
+    ? t(interactionTarget.value.labelKey)
+    : "",
+);
 let renderer = null;
 let mapData = null;
 let controls = null;
@@ -360,7 +361,7 @@ async function init() {
     regenerateMap: regenerateMapAction,
     restartGame: restartGameAction,
     heroMovement: new HeroMovementAction(renderer),
-    vegetationInteraction: new VegetationInteractionAction(renderer),
+    interaction: new InteractionAction(renderer),
     rotateView: new RotateViewAction(renderer),
     copyScreenshot: new CopyScreenshotAction(renderer, () => {
       Notify.create({

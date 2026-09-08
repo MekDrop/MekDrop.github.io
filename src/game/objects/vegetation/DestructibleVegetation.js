@@ -70,6 +70,14 @@ export class DestructibleVegetation {
     return this.#id;
   }
 
+  get canInteract() {
+    return !this.#destroyed;
+  }
+
+  interact() {
+    return this.cut();
+  }
+
   describe() {
     return {
       id: this.#id,

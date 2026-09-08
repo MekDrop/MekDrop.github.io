@@ -14,6 +14,7 @@ import {
 } from "./objects/gateway/index.js";
 import { PathArrows } from "./objects/path/index.js";
 import { Hero } from "./objects/hero/index.js";
+import { AxeTool, ShovelTool } from "./objects/hero/tools/index.js";
 import { GrassSurface, GroundCover } from "./objects/ground-cover/index.js";
 import {
   CubeCloudField,
@@ -21,6 +22,7 @@ import {
   SkyIslandScenery,
 } from "./objects/scenery/index.js";
 import { VoxelVegetation } from "./objects/vegetation/index.js";
+import { BuriedTreasureField } from "./objects/treasure/index.js";
 import { TileType } from "./MapGenerator.js";
 import { GRASS_SURFACE_LIFT } from "./config/terrain.js";
 import { GRAPHICS_DRIVER } from "./enum/GraphicsDriver.js";
@@ -33,6 +35,7 @@ import {
   DebugFpsHud,
   GameOverHud,
   HeroLifeHud,
+  CoinHud,
 } from "./ui/index.js";
 
 const FIXED_HEIGHTS = {
@@ -193,12 +196,17 @@ export class PlayCanvasRenderer {
   #debugAxesHud = null;
   #debugFpsHud = null;
   #lifeHud = null;
+  #coinHud = null;
   #gameOverHud = null;
   #heroVisibility = null;
   #floatingIslandMotion = null;
   #groundCover = null;
   #grassSurface = null;
   #vegetation = null;
+  #buriedTreasure = null;
+  #axeTool = null;
+  #shovelTool = null;
+  #interactionProviders = [];
   #cloudField = null;
   #pathArrowsVisible = false;
   #debugAxesHudVisible = false;
@@ -212,6 +220,7 @@ export class PlayCanvasRenderer {
   #bannerInteractionConnected = false;
   #heroLookPointer = null;
   #interactionTarget = null;
+  #interactionSignature = null;
   #onInteractionChange = null;
   #onHeroStateChange = null;
   #onViewportChange = null;
@@ -311,6 +320,8 @@ export class PlayCanvasRenderer {
     this.#debugAxesHud.attach();
     this.#lifeHud = new HeroLifeHud({ pc, app: this.#app });
     this.#lifeHud.attach();
+    this.#coinHud = new CoinHud({ pc, app: this.#app });
+    this.#coinHud.attach();
     this.#gameOverHud = new GameOverHud({
       pc,
       app: this.#app,
@@ -353,10 +364,13 @@ export class PlayCanvasRenderer {
       this.#createMaterials(),
       this.#modelLibrary.load([
         Hero.modelUrl,
+        AxeTool.modelUrl,
+        ShovelTool.modelUrl,
         Gateway.modelUrl,
         ...Castle.modelUrls,
         ...GroundCover.modelUrls,
         ...VoxelVegetation.modelUrls,
+        ...BuriedTreasureField.modelUrls,
       ]),
     ]);
     this.resize();
@@ -465,6 +479,7 @@ export class PlayCanvasRenderer {
       grounded: this.#hero.grounded,
       facing: this.#hero.facingDirection,
       headLookYaw: this.#hero.headLookYaw,
+      wallet: this.#hero.wallet,
     };
   }
 
@@ -576,31 +591,11 @@ export class PlayCanvasRenderer {
     return this.#hero?.dodge(inputX, inputY, direction) ?? false;
   }
 
-  interactWithVegetation() {
-    if (this.#hero?.isCutting) {
-      this.#setInteractionTarget(null);
-      this.#hero.stopCutting();
-      return true;
-    }
-    const target = this.#interactionTarget;
-    if (!target || !this.#hero) {
+  interact() {
+    if (!this.#interactionTarget?.canInteract) {
       return false;
     }
-
-    const accepted = this.#hero.cut({
-      targetPosition: target,
-      heightClass: target.heightClass,
-      onImpact: () => {
-        const result = this.#vegetation?.damage(target.id);
-        this.#setInteractionTarget(
-          result && !result.destroyed ? { ...result, cutting: true } : null,
-        );
-        return result?.destroyed ?? true;
-      },
-      onComplete: () => this.#updateInteractionTarget(),
-    });
-    if (accepted) this.#setInteractionTarget({ ...target, cutting: true });
-    return true;
+    return this.#interactionTarget.interact();
   }
 
   setViewport({
@@ -718,6 +713,8 @@ export class PlayCanvasRenderer {
     this.#debugFpsHud = null;
     this.#lifeHud?.destroy();
     this.#lifeHud = null;
+    this.#coinHud?.destroy();
+    this.#coinHud = null;
     this.#gameOverHud?.destroy();
     this.#gameOverHud = null;
     for (const material of this.#materials.values()) material.destroy();
@@ -969,7 +966,10 @@ export class PlayCanvasRenderer {
     this.#buildGateways();
     this.#buildVegetation();
     this.#buildGroundCover();
+    this.#buildBuriedTreasure();
     this.#buildHero();
+    this.#buildTools();
+    this.#updateInteractionTarget();
 
     this.#mapRoot.addChild(this.#pathArrows.render(this.#mapData));
     this.#captureCameraVisualBounds();
@@ -1050,7 +1050,18 @@ export class PlayCanvasRenderer {
       this.#hero.position,
       this.#hero.movementState,
     );
-    this.#updateInteractionTarget();
+    this.#buriedTreasure?.applyHeroPosition(this.#hero.position);
+  }
+
+  #buildTools() {
+    this.#axeTool = new AxeTool({ modelLibrary: this.#modelLibrary });
+    this.#shovelTool = new ShovelTool({ modelLibrary: this.#modelLibrary });
+    this.#vegetation.tool = this.#axeTool;
+    this.#buriedTreasure.tool = this.#shovelTool;
+    this.#interactionProviders = [
+      this.#vegetation,
+      this.#buriedTreasure,
+    ];
   }
 
   #buildVegetation() {
@@ -1071,6 +1082,20 @@ export class PlayCanvasRenderer {
       modelLibrary: this.#modelLibrary,
     });
     this.#mapRoot.addChild(this.#groundCover.entity);
+  }
+
+  #buildBuriedTreasure() {
+    this.#buriedTreasure = new BuriedTreasureField({
+      pc: this.#pc,
+      app: this.#app,
+      mapData: this.#mapData,
+      modelLibrary: this.#modelLibrary,
+      onCollectCoin: (type, amount) =>
+        this.#hero?.collectCoin(type, amount),
+      onInteractionChange: () => this.#updateInteractionTarget(),
+    });
+    this.#collisionWorld.add(this.#buriedTreasure);
+    this.#mapRoot.addChild(this.#buriedTreasure.entity);
   }
 
   #buildGateways() {
@@ -1708,6 +1733,7 @@ export class PlayCanvasRenderer {
       { x, y, z },
       this.#hero?.movementState,
     );
+    this.#buriedTreasure?.applyHeroPosition({ x, y, z });
     this.#updateInteractionTarget({ x, y, z });
     if (this.#gameOverCameraLocked || this.#hero?.isInDeathSequence) {
       return;
@@ -1832,11 +1858,12 @@ export class PlayCanvasRenderer {
   }
 
   #handleHeroFacingChange = () => {
-    if (!this.#hero?.isCutting) this.#updateInteractionTarget();
+    if (!this.#hero?.isUsingTool) this.#updateInteractionTarget();
   };
 
   #handleHeroStateChange = (state) => {
     this.#lifeHud?.setLives(state.lives, state.maxLives);
+    this.#coinHud?.setWallet(state.wallet);
     if (this.#gameOverHud) {
       this.#gameOverHud.visible = state.gameOver;
     }
@@ -2240,26 +2267,46 @@ export class PlayCanvasRenderer {
     this.#bannerWindLastTime = 0;
   }
 
-  #updateInteractionTarget(position = this.#hero?.position) {
-    const target = position
-      ? (this.#vegetation?.findNearestTarget(
-          position,
-          this.#hero.facingDirection,
-        ) ?? null)
-      : null;
+  #updateInteractionTarget() {
+    if (this.#hero?.isUsingTool) {
+      return;
+    }
+    let target = null;
+    for (const provider of this.#interactionProviders) {
+      const candidate = provider.findInteraction({
+        hero: this.#hero,
+        onChange: this.#refreshInteractionTarget,
+        onComplete: this.#completeInteraction,
+      });
+      if (candidate?.canInteract) {
+        target = candidate;
+        break;
+      }
+    }
     this.#setInteractionTarget(target);
   }
 
   #setInteractionTarget(target) {
-    const previousKey = this.#interactionTarget
-      ? `${this.#interactionTarget.id}:${this.#interactionTarget.health}:${Boolean(this.#interactionTarget.cutting)}`
+    const interaction = target?.canInteract ? target : null;
+    const description = interaction?.description ?? null;
+    const nextSignature = description
+      ? `${description.id}:${description.labelKey}:${description.health ?? ""}`
       : null;
-    const nextKey = target
-      ? `${target.id}:${target.health}:${Boolean(target.cutting)}`
-      : null;
-    this.#interactionTarget = target;
-    if (previousKey !== nextKey) this.#onInteractionChange?.(target);
+    this.#interactionTarget = interaction;
+    if (this.#interactionSignature !== nextSignature) {
+      this.#interactionSignature = nextSignature;
+      this.#onInteractionChange?.(description);
+    }
   }
+
+  #refreshInteractionTarget = () => {
+    this.#setInteractionTarget(this.#interactionTarget);
+  };
+
+  #completeInteraction = () => {
+    this.#setInteractionTarget(null);
+    this.#updateInteractionTarget();
+  };
 
   #clearScene() {
     this.#finishBannerWindGesture();
@@ -2272,10 +2319,17 @@ export class PlayCanvasRenderer {
     this.#heroVisibility = null;
     this.#floatingIslandMotion?.destroy();
     this.#floatingIslandMotion = null;
+    this.#axeTool?.destroy();
+    this.#axeTool = null;
+    this.#shovelTool?.destroy();
+    this.#shovelTool = null;
+    this.#interactionProviders = [];
     this.#hero?.destroy();
     this.#hero = null;
     this.#vegetation?.destroy();
     this.#vegetation = null;
+    this.#buriedTreasure?.destroy();
+    this.#buriedTreasure = null;
     this.#groundCover?.destroy();
     this.#groundCover = null;
     this.#grassSurface?.destroy();

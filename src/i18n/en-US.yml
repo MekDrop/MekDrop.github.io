@@ -52,6 +52,11 @@ game:
     chop_tree: Chop tree
     clear_bush: Clear bush
     stop_cutting: Stop cutting
+    dig: Dig for treasure
+    stop_digging: Stop digging
+    open_treasure: Open treasure chest
+    fill_hole: Fill hole
+    stop_filling: Stop filling
 language:
   en-US: English (USA)
   lt: Lithuanian

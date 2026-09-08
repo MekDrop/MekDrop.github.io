@@ -5,6 +5,8 @@ import { HeroRespawnEffect } from "./HeroRespawnEffect.js";
 import { FOOT_SIDE } from "../../enum/FootSide.js";
 import { HERO_ANIMATION } from "../../enum/HeroAnimation.js";
 import { OCCUPANCY } from "../../enum/Occupancy.js";
+import { COIN_TYPE } from "../../enum/CoinType.js";
+import { MOVEMENT_REFUSAL } from "../../enum/MovementRefusal.js";
 
 const FIXED_STEP = 1 / 120;
 const MAX_FRAME_TIME = 0.1;
@@ -85,6 +87,9 @@ const FOOT_HALF_LENGTH = 0.18;
 const FOOT_HALF_WIDTH = 0.11;
 const FOOT_REQUIRED_PERIMETER_SUPPORTS = 5;
 const EDGE_REFUSAL_DURATION = 0.8;
+const HOLE_REFUSAL_DURATION = 1.45;
+const HOLE_LOOK_DOWN_ANGLE = 27;
+const HOLE_HEAD_SHAKE_ANGLE = 18;
 const LANDING_BACKTRACK_STEP = 0.025;
 const LANDING_BACKTRACK_DISTANCE = 0.75;
 const LANDING_FORWARD_SETTLE_DISTANCE =
@@ -115,10 +120,6 @@ const STRUCTURE_SURFACE_TILES = new Set([
   TileType.CASTLE_WALL,
   TileType.CASTLE_TOWER,
 ]);
-const CUT_DURATION = 0.8;
-const CUT_IMPACT_TIME = 0.44;
-const SUMMON_AXE_DURATION = 0.57;
-const DISMISS_AXE_DURATION = 0.57;
 const GATEWAY_REPEL_DURATION = 0.5;
 const GATEWAY_REPEL_SPEED = 2.2;
 const GATEWAY_REPEL_COOLDOWN = 0.2;
@@ -141,7 +142,7 @@ export class Hero {
   #entity;
   #modelRoot;
   #headEntity;
-  #axeEntity;
+  #toolAttachmentEntity;
   #spawn;
   #position;
   #velocity = { x: 0, y: 0, z: 0 };
@@ -151,6 +152,9 @@ export class Hero {
   #blockedPushElapsed = 0;
   #blockedPushFinished = false;
   #edgeRefusalAction = null;
+  #holeRefusalAction = null;
+  #holeRefusalAcknowledged = false;
+  #holeMovementBlocked = false;
   #lastEdgeRefusalFoot = FOOT_SIDE.RIGHT;
   #stableGroundPosition;
   #grounded = true;
@@ -169,7 +173,8 @@ export class Hero {
   #idleLookTarget = null;
   #headLookYaw = 0;
   #updateHandle = null;
-  #cutAction = null;
+  #toolAction = null;
+  #tool = null;
   #repelAction = null;
   #dodgeAction = null;
   #respawnAction = null;
@@ -178,6 +183,11 @@ export class Hero {
   #lives = MAX_LIVES;
   #gameOver = false;
   #gatewayRepelCooldown = 0;
+  #wallet = {
+    [COIN_TYPE.GOLD]: 0,
+    [COIN_TYPE.SILVER]: 0,
+    [COIN_TYPE.COPPER]: 0,
+  };
 
   constructor({
     pc,
@@ -226,8 +236,16 @@ export class Hero {
     return { ...this.#position };
   }
 
-  get isCutting() {
-    return this.#cutAction !== null;
+  get isUsingTool() {
+    return this.#toolAction !== null;
+  }
+
+  get tool() {
+    return this.#tool;
+  }
+
+  get wallet() {
+    return { ...this.#wallet };
   }
 
   get isGameOver() {
@@ -288,11 +306,14 @@ export class Hero {
       this.#playAnimation(HERO_ANIMATION.IDLE, 1, true);
       this.#restartAnimation = false;
     }
+    if (!this.#hasMovementInput) {
+      this.#holeRefusalAcknowledged = false;
+    }
     if (
       !this.#gameOver &&
       this.#hasMovementInput
     ) {
-      this.stopCutting({ dismiss: false });
+      this.stopUsingTool({ dismiss: false });
     }
   }
 
@@ -301,8 +322,9 @@ export class Hero {
       this.#gameOver ||
       this.#respawnAction ||
       this.#fallingToDeath ||
-      this.#cutAction ||
-      this.#repelAction
+      this.#toolAction ||
+      this.#repelAction ||
+      this.#holeRefusalAction
     ) {
       return;
     }
@@ -323,9 +345,10 @@ export class Hero {
       this.#respawnAction ||
       this.#fallingToDeath ||
       !this.#grounded ||
-      this.#cutAction ||
+      this.#toolAction ||
       this.#repelAction ||
-      this.#edgeRefusalAction
+      this.#edgeRefusalAction ||
+      this.#holeRefusalAction
     ) {
       return false;
     }
@@ -352,6 +375,7 @@ export class Hero {
       direction,
       x: projected.x,
       z: projected.z,
+      facing: this.#dodgeFacingDirection(direction, projected),
       elapsed: 0,
       crossedLedge: false,
     };
@@ -360,20 +384,28 @@ export class Hero {
     return true;
   }
 
-  cut({ targetPosition, heightClass, onImpact, onComplete }) {
+  useTool(
+    tool,
+    {
+      targetPosition,
+      context = {},
+      onImpact,
+      onComplete,
+    },
+  ) {
+    const useAnimation = tool?.useAnimation(context);
     if (
+      !tool ||
+      !useAnimation ||
       this.#gameOver ||
       this.#respawnAction ||
       this.#fallingToDeath ||
       !this.#grounded ||
-      this.#cutAction ||
+      this.#toolAction ||
       this.#repelAction ||
-      this.#edgeRefusalAction
+      this.#edgeRefusalAction ||
+      this.#holeRefusalAction
     ) {
-      return false;
-    }
-    const animation = this.#cutAnimationForHeight(heightClass);
-    if (!animation) {
       return false;
     }
 
@@ -384,9 +416,11 @@ export class Hero {
     }
     this.#velocity.x = 0;
     this.#velocity.z = 0;
-    this.#setAxeVisible(true);
-    this.#cutAction = {
-      cutAnimation: animation,
+    tool.mount(this.#toolAttachmentEntity);
+    tool.visible = true;
+    this.#tool = tool;
+    this.#toolAction = {
+      useAnimation,
       phase: "summon",
       elapsed: 0,
       impacted: false,
@@ -399,17 +433,13 @@ export class Hero {
     return true;
   }
 
-  #cutAnimationForHeight(heightClass) {
-    switch (heightClass) {
-      case "low":
-        return HERO_ANIMATION.CHOP_LOW;
-      case "middle":
-        return HERO_ANIMATION.CHOP_MIDDLE;
-      case "high":
-        return HERO_ANIMATION.CHOP_HIGH;
-      default:
-        return null;
+  collectCoin(type, amount = 1) {
+    if (!Object.hasOwn(this.#wallet, type)) {
+      return false;
     }
+    this.#wallet[type] += Math.max(0, Math.floor(amount));
+    this.#emitState();
+    return true;
   }
 
   #dodgeAnimationName(direction) {
@@ -427,23 +457,30 @@ export class Hero {
     }
   }
 
+  #dodgeFacingDirection(direction, movementDirection) {
+    if (direction !== "left" && direction !== "right") {
+      return movementDirection;
+    }
+    return this.#projectInput(0, 1) ?? movementDirection;
+  }
+
   #edgeRefusalAnimationName(foot) {
     return foot === FOOT_SIDE.RIGHT
       ? HERO_ANIMATION.EDGE_REFUSE_RIGHT
       : HERO_ANIMATION.EDGE_REFUSE_LEFT;
   }
 
-  stopCutting({ dismiss = true } = {}) {
-    if (!this.#cutAction) {
+  stopUsingTool({ dismiss = true } = {}) {
+    if (!this.#toolAction) {
       return false;
     }
-    if (dismiss && this.#cutAction.phase !== "dismiss") {
-      this.#cutAction.phase = "dismiss";
-      this.#cutAction.elapsed = 0;
-      this.#cutAction.impacted = false;
+    if (dismiss && this.#toolAction.phase !== "dismiss") {
+      this.#toolAction.phase = "dismiss";
+      this.#toolAction.elapsed = 0;
+      this.#toolAction.impacted = false;
       this.#restartAnimation = true;
     } else {
-      this.#finishCutAction();
+      this.#finishToolAction();
     }
     return true;
   }
@@ -456,13 +493,15 @@ export class Hero {
     this.#entity?.destroy();
     this.#entity = null;
     this.#headEntity = null;
-    this.#axeEntity = null;
+    this.#toolAttachmentEntity = null;
     this.#animationState = null;
-    this.#cutAction = null;
+    this.#toolAction = null;
+    this.#tool = null;
     this.#repelAction = null;
     this.#dodgeAction = null;
     this.#respawnAction = null;
     this.#edgeRefusalAction = null;
+    this.#holeRefusalAction = null;
     this.#stableGroundPosition = null;
   }
 
@@ -482,11 +521,12 @@ export class Hero {
     if (this.#gameOver) {
       return;
     }
-    this.#advanceCutAction(deltaTime);
+    this.#advanceToolAction(deltaTime);
     this.#advanceRepelAction(deltaTime);
     this.#advanceDodgeAction(deltaTime);
     this.#advanceRespawnAction(deltaTime);
     this.#advanceEdgeRefusalAction(deltaTime);
+    this.#advanceHoleRefusalAction(deltaTime);
     this.#gatewayRepelCooldown = Math.max(
       0,
       this.#gatewayRepelCooldown - deltaTime,
@@ -514,9 +554,9 @@ export class Hero {
       ? { x: 0, z: 0 }
       : this.#fallingToDeath
         ? { x: this.#velocity.x, z: this.#velocity.z }
-        : this.#edgeRefusalAction
+        : this.#edgeRefusalAction || this.#holeRefusalAction
           ? { x: 0, z: 0 }
-          : this.#cutAction
+          : this.#toolAction
             ? { x: 0, z: 0 }
             : this.#repelAction
               ? {
@@ -551,7 +591,7 @@ export class Hero {
     if (
       !this.#respawnAction &&
       !this.#fallingToDeath &&
-      !this.#cutAction &&
+      !this.#toolAction &&
       !this.#repelAction &&
       this.#jumpBufferRemaining > 0 &&
       (canGroundJump || canAirJump)
@@ -569,6 +609,7 @@ export class Hero {
     }
 
     this.#movementBlocked = false;
+    this.#holeMovementBlocked = false;
     this.#moveHorizontally(deltaTime);
     this.#moveVertically(deltaTime);
     this.#advanceBlockedPush(deltaTime);
@@ -633,6 +674,9 @@ export class Hero {
       this.#position.x = nextX;
     } else {
       this.#movementBlocked ||= attemptedX;
+      if (attemptedX) {
+        this.#tryMovementRefusal(nextX, this.#position.z);
+      }
       if (attemptedX && occupancyX === OCCUPANCY.edge) {
         const direction = this.#movementDirection;
         this.#beginEdgeRefusal(
@@ -658,6 +702,9 @@ export class Hero {
       this.#position.z = nextZ;
     } else {
       this.#movementBlocked ||= attemptedZ;
+      if (attemptedZ) {
+        this.#tryMovementRefusal(this.#position.x, nextZ);
+      }
       if (attemptedZ && occupancyZ === OCCUPANCY.edge) {
         const direction = this.#movementDirection;
         this.#beginEdgeRefusal(
@@ -742,6 +789,7 @@ export class Hero {
     const blocked =
       this.#hasMovementInput &&
       this.#movementBlocked &&
+      !this.#holeMovementBlocked &&
       Math.hypot(this.#velocity.x, this.#velocity.z) <= 0.08;
     if (!blocked) {
       this.#blockedPushElapsed = 0;
@@ -1373,6 +1421,57 @@ export class Hero {
     this.#restartAnimation = true;
   }
 
+  #tryMovementRefusal(x, z) {
+    const direction = this.#movementDirection;
+    const refusal =
+      this.#collisionWorld?.movementRefusalAt(
+        x,
+        z,
+        MOVEMENT_COLLISION_RADIUS,
+        this.#position.y,
+      ) ??
+      this.#collisionWorld?.movementRefusalAt(
+        x + direction.x * MOVEMENT_FORWARD_COLLISION_OFFSET,
+        z + direction.z * MOVEMENT_FORWARD_COLLISION_OFFSET,
+        MOVEMENT_COLLISION_RADIUS,
+        this.#position.y,
+      );
+    if (refusal !== MOVEMENT_REFUSAL.HOLE) {
+      return false;
+    }
+    this.#holeMovementBlocked = true;
+    if (this.#holeRefusalAction || this.#holeRefusalAcknowledged) {
+      return true;
+    }
+    this.stopUsingTool({ dismiss: false });
+    this.#edgeRefusalAction = null;
+    this.#holeRefusalAction = {
+      direction: { ...direction },
+      elapsed: 0,
+    };
+    this.#holeRefusalAcknowledged = true;
+    this.#velocity.x = 0;
+    this.#velocity.z = 0;
+    this.#restartAnimation = true;
+    this.#resetBoredom();
+    return true;
+  }
+
+  #advanceHoleRefusalAction(deltaTime) {
+    if (!this.#holeRefusalAction) {
+      return;
+    }
+    this.#holeRefusalAction.elapsed = Math.min(
+      HOLE_REFUSAL_DURATION,
+      this.#holeRefusalAction.elapsed + deltaTime,
+    );
+    if (this.#holeRefusalAction.elapsed < HOLE_REFUSAL_DURATION) {
+      return;
+    }
+    this.#holeRefusalAction = null;
+    this.#restartAnimation = true;
+  }
+
   #isBeyondMapEdge(x, z) {
     const gridX = x + (this.#mapData.cols - 1) / 2;
     const gridZ = z + (this.#mapData.rows - 1) / 2;
@@ -1535,9 +1634,10 @@ export class Hero {
     if (this.#fallingToDeath || this.#gameOver) {
       return;
     }
-    this.stopCutting({ dismiss: false });
+    this.stopUsingTool({ dismiss: false });
     this.#fallingToDeath = true;
     this.#edgeRefusalAction = null;
+    this.#holeRefusalAction = null;
     this.#repelAction = null;
     this.#dodgeAction = null;
     this.#jumpBufferRemaining = 0;
@@ -1563,6 +1663,8 @@ export class Hero {
     this.#jumpsUsed = 0;
     this.#movementBlocked = false;
     this.#edgeRefusalAction = null;
+    this.#holeRefusalAction = null;
+    this.#holeRefusalAcknowledged = false;
     this.#stableGroundPosition = { ...this.#spawn };
     this.#repelAction = null;
     this.#dodgeAction = null;
@@ -1584,14 +1686,23 @@ export class Hero {
     const blocked =
       this.#hasMovementInput &&
       this.#movementBlocked &&
+      !this.#holeMovementBlocked &&
       horizontalSpeed <= 0.08;
     const showingBlockedPush = blocked && !this.#blockedPushFinished;
     const refusingEdge = this.#edgeRefusalAction !== null;
-    const facingVelocity = refusingEdge
-      ? this.#edgeRefusalAction.direction
-      : blocked
-        ? this.#desiredVelocity()
-        : { x: this.#velocity.x, z: this.#velocity.z };
+    const refusingHole = this.#holeRefusalAction !== null;
+    const facingVelocity = this.#dodgeAction
+      ? this.#dodgeAction.facing
+      : refusingEdge
+        ? this.#edgeRefusalAction.direction
+        : refusingHole
+          ? this.#holeRefusalAction.direction
+          : blocked
+            ? this.#desiredVelocity()
+            : { x: this.#velocity.x, z: this.#velocity.z };
+    const locksDodgeFacing =
+      this.#dodgeAction?.direction === "left" ||
+      this.#dodgeAction?.direction === "right";
     const previousFacingYaw = this.#facingYaw;
     if (
       !this.#fallingToDeath &&
@@ -1601,11 +1712,13 @@ export class Hero {
     ) {
       const targetYaw =
         (Math.atan2(facingVelocity.x, facingVelocity.z) * 180) / Math.PI;
-      this.#facingYaw = this.#lerpAngle(
-        this.#facingYaw,
-        targetYaw,
-        Math.min(1, deltaTime * 14),
-      );
+      this.#facingYaw = locksDodgeFacing
+        ? targetYaw
+        : this.#lerpAngle(
+            this.#facingYaw,
+            targetYaw,
+            Math.min(1, deltaTime * 14),
+          );
     }
     this.#modelRoot.setLocalEulerAngles(0, this.#facingYaw, 0);
     this.#respawnEffect?.setFacingYaw(this.#facingYaw);
@@ -1622,8 +1735,11 @@ export class Hero {
     } else if (this.#respawnAction) {
       animation = HERO_ANIMATION.RESPAWN;
       this.#resetBoredom();
-    } else if (this.#cutAction) {
-      animation = this.#cutAnimationName();
+    } else if (refusingHole) {
+      animation = HERO_ANIMATION.HOLE_REFUSAL;
+      this.#resetBoredom();
+    } else if (this.#toolAction) {
+      animation = this.#toolAnimationName();
       this.#resetBoredom();
     } else if (this.#repelAction) {
       animation = HERO_ANIMATION.REPELLED;
@@ -1717,9 +1833,10 @@ export class Hero {
       !this.#idleLookTarget ||
       this.#hasMovementInput ||
       !this.#grounded ||
-      this.#cutAction ||
+      this.#toolAction ||
       this.#repelAction ||
       this.#dodgeAction ||
+      this.#holeRefusalAction ||
       this.#respawnAction ||
       this.#fallingToDeath
     ) {
@@ -1740,6 +1857,25 @@ export class Hero {
   }
 
   #updateHeadLook(deltaTime) {
+    if (this.#holeRefusalAction) {
+      const progress = Math.min(
+        1,
+        this.#holeRefusalAction.elapsed / HOLE_REFUSAL_DURATION,
+      );
+      const lookDown = Math.sin(Math.PI * progress);
+      const shakeProgress = Math.max(0, (progress - 0.32) / 0.68);
+      const shake =
+        Math.sin(shakeProgress * Math.PI * 4) *
+        Math.sin(shakeProgress * Math.PI) *
+        HOLE_HEAD_SHAKE_ANGLE;
+      this.#headLookYaw = shake;
+      this.#headEntity?.setLocalEulerAngles(
+        HOLE_LOOK_DOWN_ANGLE * lookDown,
+        shake,
+        0,
+      );
+      return;
+    }
     this.#headLookYaw = this.#lerpAngle(
       this.#headLookYaw,
       this.#headLookTargetYaw,
@@ -1772,8 +1908,7 @@ export class Hero {
     );
     this.#entity.addChild(this.#modelRoot);
     this.#headEntity = this.#findModelEntity("Hero head");
-    this.#axeEntity = this.#findModelEntity("Hero axe");
-    this.#setAxeVisible(false);
+    this.#toolAttachmentEntity = this.#findModelEntity("Right arm");
 
     const animationTracks = this.#modelLibrary.getAnimationTracks(
       Hero.modelUrl,
@@ -1803,29 +1938,32 @@ export class Hero {
     });
   }
 
-  #advanceCutAction(deltaTime) {
-    if (!this.#cutAction) {
+  #advanceToolAction(deltaTime) {
+    if (!this.#toolAction) {
       return;
     }
-    const action = this.#cutAction;
+    const action = this.#toolAction;
+    const tool = this.#tool;
     action.elapsed += deltaTime;
     if (action.phase === "summon") {
-      if (action.elapsed >= SUMMON_AXE_DURATION) {
-        action.phase = "cut";
+      if (action.elapsed >= tool.summonDuration) {
+        action.phase = "use";
         action.elapsed = 0;
         this.#restartAnimation = true;
       }
       return;
     }
     if (action.phase === "dismiss") {
-      if (action.elapsed >= DISMISS_AXE_DURATION) this.#finishCutAction();
+      if (action.elapsed >= tool.dismissDuration) {
+        this.#finishToolAction();
+      }
       return;
     }
-    if (!action.impacted && action.elapsed >= CUT_IMPACT_TIME) {
+    if (!action.impacted && action.elapsed >= tool.impactTime) {
       action.impacted = true;
       action.stopAfterCycle = action.onImpact?.() === true;
     }
-    if (action.elapsed < CUT_DURATION) {
+    if (action.elapsed < tool.useDuration) {
       return;
     }
 
@@ -1842,23 +1980,24 @@ export class Hero {
     this.#restartAnimation = true;
   }
 
-  #cutAnimationName() {
-    if (this.#cutAction.phase === "summon") {
-      return HERO_ANIMATION.SUMMON_AXE;
+  #toolAnimationName() {
+    if (this.#toolAction.phase === "summon") {
+      return this.#tool.summonAnimation;
     }
-    if (this.#cutAction.phase === "dismiss") {
-      return HERO_ANIMATION.DISMISS_AXE;
+    if (this.#toolAction.phase === "dismiss") {
+      return this.#tool.dismissAnimation;
     }
-    return this.#cutAction.cutAnimation;
+    return this.#toolAction.useAnimation;
   }
 
-  #finishCutAction() {
-    const action = this.#cutAction;
+  #finishToolAction() {
+    const action = this.#toolAction;
     if (!action) {
       return;
     }
-    this.#cutAction = null;
-    this.#setAxeVisible(false);
+    this.#tool.visible = false;
+    this.#toolAction = null;
+    this.#tool = null;
     this.#restartAnimation = true;
     action.onComplete?.();
   }
@@ -1877,8 +2016,9 @@ export class Hero {
     if (!direction) {
       return false;
     }
-    this.stopCutting({ dismiss: false });
+    this.stopUsingTool({ dismiss: false });
     this.#edgeRefusalAction = null;
+    this.#holeRefusalAction = null;
     this.#repelAction = { ...direction, elapsed: 0 };
     this.#dodgeAction = null;
     this.#velocity.x = direction.x * GATEWAY_REPEL_SPEED;
@@ -1957,11 +2097,8 @@ export class Hero {
       lives: this.#lives,
       maxLives: MAX_LIVES,
       gameOver: this.#gameOver,
+      wallet: this.wallet,
     });
-  }
-
-  #setAxeVisible(visible) {
-    if (this.#axeEntity) this.#axeEntity.enabled = visible;
   }
 
   #findModelEntity(name) {

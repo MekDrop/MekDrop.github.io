@@ -116,7 +116,7 @@ export class GameControls {
 
     if (this.#matchesKey(event, this.#config().interact)) {
       event.preventDefault();
-      this.#actions.vegetationInteraction.interact();
+      this.#actions.interaction.interact();
       return;
     }
 

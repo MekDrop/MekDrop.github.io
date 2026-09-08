@@ -6,6 +6,7 @@ import {
   SaplingTree,
   TallTree,
 } from "./trees/index.js";
+import { VegetationInteraction } from "./VegetationInteraction.js";
 
 const VEGETATION_TYPES = Object.freeze({
   oak: OakTree,
@@ -26,6 +27,7 @@ export class VoxelVegetation {
 
   #entity;
   #items = [];
+  #tool = null;
 
   constructor({ pc, mapData, modelLibrary }) {
     this.#entity = new pc.Entity("Voxel vegetation");
@@ -56,14 +58,27 @@ export class VoxelVegetation {
     return this.#entity;
   }
 
-  findNearestTarget(
-    position,
-    facingDirection = { x: 0, z: 1 },
+  set tool(tool) {
+    this.#tool = tool;
+  }
+
+  findInteraction({
+    hero,
+    onChange = null,
+    onComplete = null,
     reach = 0.78,
     heightTolerance = 0.6,
-  ) {
+  }) {
+    if (!hero || !this.#tool) {
+      return null;
+    }
+    const position = hero.position;
+    const facingDirection = hero.facingDirection;
     let closest = null;
     for (const item of this.#items) {
+      if (!item.canInteract) {
+        continue;
+      }
       const description = item.describe();
       const offsetX = description.x - position.x;
       const offsetZ = description.z - position.z;
@@ -82,13 +97,17 @@ export class VoxelVegetation {
       if (distance > reach || (closest && distance >= closest.distance)) {
         continue;
       }
-      closest = { description, distance };
+      closest = { item, distance };
     }
-    return closest?.description ?? null;
-  }
-
-  damage(id) {
-    return this.#items.find((item) => item.id === id)?.cut() ?? null;
+    return closest
+      ? new VegetationInteraction({
+          item: closest.item,
+          hero,
+          tool: this.#tool,
+          onChange,
+          onComplete,
+        })
+      : null;
   }
 
   intersectsGroundFootprint(x, z, radius = 0) {

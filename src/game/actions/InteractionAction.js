@@ -1,4 +1,4 @@
-export class VegetationInteractionAction {
+export class InteractionAction {
   #renderer;
 
   constructor(renderer) {
@@ -6,6 +6,6 @@ export class VegetationInteractionAction {
   }
 
   interact() {
-    return this.#renderer.interactWithVegetation();
+    return this.#renderer.interact();
   }
 }
