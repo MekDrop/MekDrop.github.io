@@ -1020,6 +1020,7 @@ export class PlayCanvasRenderer {
         app: this.#app,
         color: entry.color ?? this.getGatewayColor(index),
         cubeSize: CUBE_SCALE / 4,
+        surfaceLift: GRASS_SURFACE_LIFT,
         symbol: signs[index % signs.length],
         modelLibrary: this.#modelLibrary,
       });

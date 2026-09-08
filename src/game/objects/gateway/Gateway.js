@@ -64,6 +64,7 @@ export class Gateway {
     app,
     color = DEFAULT_GATEWAY_COLOR,
     cubeSize = 0.25,
+    surfaceLift = 0,
     symbol = "✧",
     modelLibrary,
   }) {
@@ -78,7 +79,7 @@ export class Gateway {
     this.#repulsionFromLocalPoint = new pc.Vec3();
     this.#repulsionDirection = new pc.Vec3();
 
-    this.#createFrame();
+    this.#createFrame(surfaceLift);
     this.#createPortal();
     this.setColor(color);
 
@@ -236,19 +237,21 @@ export class Gateway {
     this.endWindGesture();
   }
 
-  #createFrame() {
+  #createFrame(surfaceLift) {
     const frame = this.#modelLibrary.instantiate(Gateway.modelUrl);
     frame.name = "Gateway frame instance";
+    frame.setLocalPosition(0, surfaceLift, 0);
     this.#entity.addChild(frame);
-    this.#createBanner();
+    this.#createBanner(surfaceLift);
   }
-  #createBanner() {
+
+  #createBanner(surfaceLift) {
     const pc = this.#pc;
     const width = this.#cubeSize * 6;
     const height = this.#cubeSize * 5;
-    const yTop =
-      (FRAME_OPENING_HEIGHT_BLOCKS + FRAME_LINTEL_HEIGHT_BLOCKS - 0.2) *
-      this.#cubeSize;
+    const yTopBlocks =
+      FRAME_OPENING_HEIGHT_BLOCKS + FRAME_LINTEL_HEIGHT_BLOCKS - 0.2;
+    const yTop = yTopBlocks * this.#cubeSize + surfaceLift;
     const centerZ = 0;
     const faceX = (FRAME_DEPTH_BLOCKS * this.#cubeSize) / 2 + 0.012;
     const columnSegments = 12;
