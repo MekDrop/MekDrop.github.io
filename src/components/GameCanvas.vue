@@ -165,6 +165,7 @@ import { ZoomAction } from "src/game/actions/ZoomAction.js";
 import { DEFAULT_CONTROLS } from "src/game/config/controls.js";
 import { useDebugStore } from "src/stores/debug-store.js";
 import { useGraphicsSettingsStore } from "src/stores/graphics-settings-store.js";
+import { useGameViewStore } from "src/stores/game-view-store.js";
 
 const container = ref(null);
 const canvas = ref(null);
@@ -180,6 +181,7 @@ const gameOver = ref(false);
 const { t } = useI18n();
 const graphicsStore = useGraphicsSettingsStore();
 const debugStore = useDebugStore();
+const gameViewStore = useGameViewStore();
 const interactionLabel = computed(() => {
   if (interactionTarget.value?.cutting) {
     return t("game.interaction.stop_cutting");
@@ -196,6 +198,32 @@ let debugStatsTimer = null;
 let stopGraphicsWatch = null;
 let restartGameAction = null;
 let movementTestMapFactory = null;
+let viewportSaveTimer = null;
+let viewportPersistenceEnabled = false;
+
+function saveViewport() {
+  viewportSaveTimer = null;
+  if (renderer) {
+    gameViewStore.updateViewport(renderer.viewport);
+  }
+}
+
+function scheduleViewportSave() {
+  if (!viewportPersistenceEnabled) {
+    return;
+  }
+  if (viewportSaveTimer !== null) {
+    window.clearTimeout(viewportSaveTimer);
+  }
+  viewportSaveTimer = window.setTimeout(saveViewport, 150);
+}
+
+function cameraTestRequested() {
+  if (!import.meta.env.DEV || typeof window === "undefined") {
+    return false;
+  }
+  return new URLSearchParams(window.location.search).has("camera-test");
+}
 
 function requestedMovementTestScenario() {
   if (!import.meta.env.DEV || typeof window === "undefined") {
@@ -241,6 +269,37 @@ function installMovementTestDriver() {
   };
 }
 
+function installCameraTestDriver() {
+  if (!cameraTestRequested()) {
+    return;
+  }
+  window.gameCameraTest = {
+    setZoom(zoom) {
+      renderer.setViewport({ zoom: 1 });
+      renderer.zoomTo(
+        zoom,
+        container.value.clientWidth / 2,
+        container.value.clientHeight / 2,
+      );
+      return this.state();
+    },
+    moveHero(inputX, inputY, running = false) {
+      return renderer.setHeroMovement(inputX, inputY, running);
+    },
+    returnToHero() {
+      return renderer.returnCameraToHero();
+    },
+    state() {
+      return {
+        cameraReturningToHero: renderer.cameraReturningToHero,
+        hero: renderer.heroState,
+        viewport: renderer.viewport,
+        visibility: renderer.mapVisibility,
+      };
+    },
+  };
+}
+
 function updateDebugStats() {
   debugFramesPerSecond.value = renderer?.framesPerSecond ?? 0;
 }
@@ -268,6 +327,7 @@ async function init() {
       maxHeroLives.value = state.maxLives;
       gameOver.value = state.gameOver;
     },
+    onViewportChange: scheduleViewportSave,
     gameOverTitle: t("game.game_over"),
     restartPrompt: t("game.restart_prompt"),
     graphics: graphicsStore.rendererOptions,
@@ -276,7 +336,11 @@ async function init() {
   graphicsBackend.value = renderer.graphicsBackend;
   mapData = await createInitialMap();
   renderer.render(mapData);
+  renderer.setViewport(gameViewStore.viewport);
+  gameViewStore.updateViewport(renderer.viewport);
+  viewportPersistenceEnabled = true;
   installMovementTestDriver();
+  installCameraTestDriver();
   applyGraphicsSettings();
   updateDebugStats();
 
@@ -334,8 +398,13 @@ onMounted(init);
 onBeforeUnmount(() => {
   if (typeof window !== "undefined") {
     delete window.gameMovementTest;
+    delete window.gameCameraTest;
   }
   controls?.disconnect();
+  if (viewportSaveTimer !== null) {
+    window.clearTimeout(viewportSaveTimer);
+    saveViewport();
+  }
   stopGraphicsWatch?.();
   resizeObserver?.disconnect();
   if (debugStatsTimer !== null) window.clearInterval(debugStatsTimer);

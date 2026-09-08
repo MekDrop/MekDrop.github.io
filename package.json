@@ -29,6 +29,7 @@
     "country-locale-map": "^1.9.12",
     "lunr": "^2.3.9",
     "pinia": "^3.0.4",
+    "pinia-plugin-persistedstate": "^4.7.1",
     "pixi.js": "^8.17.1",
     "playcanvas": "^2.21.4",
     "quasar": "^2.19.2",

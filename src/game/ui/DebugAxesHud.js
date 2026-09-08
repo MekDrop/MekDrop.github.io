@@ -79,7 +79,7 @@ export class DebugAxesHud {
     this.#entity.screen.syncDrawOrder();
     this.#entity.enabled = false;
     this.#updateHandle = app.on("update", this.#update);
-    this.#draw(DEFAULT_DIRECTIONS, DEFAULT_WIND);
+    this.#draw(DEFAULT_DIRECTIONS, DEFAULT_WIND, 1);
   }
 
   attach(parent = this.#app.root) {
@@ -142,6 +142,7 @@ export class DebugAxesHud {
   #sync(force = false) {
     const directions = this.#gameCanvas?.debugDirections ?? DEFAULT_DIRECTIONS;
     const wind = this.#gameCanvas?.wind ?? DEFAULT_WIND;
+    const zoom = this.#gameCanvas?.zoom ?? 1;
     const values = [
       directions.x.x,
       directions.x.y,
@@ -153,16 +154,17 @@ export class DebugAxesHud {
       wind.direction.y,
       wind.direction.z,
       wind.speed,
+      zoom,
     ];
     const signature = values.map((value) => value.toFixed(3)).join(":");
     if (!force && signature === this.#signature) {
       return;
     }
     this.#signature = signature;
-    this.#draw(directions, wind);
+    this.#draw(directions, wind, zoom);
   }
 
-  #draw(directions, wind) {
+  #draw(directions, wind, zoom) {
     const context = this.#context;
     context.clearRect(0, 0, PANEL_WIDTH, PANEL_HEIGHT);
     context.beginPath();
@@ -217,6 +219,10 @@ export class DebugAxesHud {
     this.#drawText(`${wind.speed.toFixed(2)} u/s`, 167, 40, {
       color: "#fff3ca",
       font: "700 8px monospace",
+    });
+    this.#drawText(`ZOOM ${zoom.toFixed(2)}x`, 167, 122, {
+      color: "#9feaff",
+      font: "700 9px monospace",
     });
     this.#texture.setSource(this.#canvas);
   }
