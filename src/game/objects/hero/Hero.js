@@ -36,8 +36,11 @@ const BLOCKED_PUSH_DURATION = 1;
 const BORED_IDLE_DELAY = 5;
 const BORED_BREAK_MIN = 2.5;
 const BORED_BREAK_VARIANCE = 2;
+const HEAD_LOOK_MAX_YAW = 55;
+const HEAD_LOOK_RESPONSE = 7;
 const HERO_ANIMATION_NAMES = Object.freeze(Object.values(HERO_ANIMATION));
 const HERO_BORED_ANIMATIONS = Object.freeze([
+  HERO_ANIMATION.BORED_CURSOR_LOOK,
   HERO_ANIMATION.BORED_LOOK,
   HERO_ANIMATION.BORED_STRETCH,
   HERO_ANIMATION.BORED_TAP,
@@ -49,6 +52,7 @@ const LOOPING_ANIMATIONS = new Set([
   HERO_ANIMATION.BLOCKED_PUSH,
 ]);
 const BORED_ANIMATION_DURATIONS = new Map([
+  [HERO_ANIMATION.BORED_CURSOR_LOOK, 3],
   [HERO_ANIMATION.BORED_LOOK, 3],
   [HERO_ANIMATION.BORED_STRETCH, 3.5],
   [HERO_ANIMATION.BORED_TAP, 3],
@@ -136,6 +140,7 @@ export class Hero {
   #modelLibrary;
   #entity;
   #modelRoot;
+  #headEntity;
   #axeEntity;
   #spawn;
   #position;
@@ -161,6 +166,8 @@ export class Hero {
   #boredAnimation = null;
   #boredRemaining = 0;
   #boredIndex = 0;
+  #idleLookTarget = null;
+  #headLookYaw = 0;
   #updateHandle = null;
   #cutAction = null;
   #repelAction = null;
@@ -235,6 +242,10 @@ export class Hero {
     return this.#modelRoot?.anim?.baseLayer.transitioning ?? false;
   }
 
+  get headLookYaw() {
+    return this.#headLookYaw;
+  }
+
   get grounded() {
     return this.#grounded;
   }
@@ -300,6 +311,10 @@ export class Hero {
       this.#restartAnimation = true;
     }
     this.#jumpBufferRemaining = JUMP_BUFFER_TIME;
+  }
+
+  set idleLookTarget(target) {
+    this.#idleLookTarget = target ? { x: target.x, z: target.z } : null;
   }
 
   dodge(inputX, inputY, direction) {
@@ -440,6 +455,7 @@ export class Hero {
     this.#respawnEffect = null;
     this.#entity?.destroy();
     this.#entity = null;
+    this.#headEntity = null;
     this.#axeEntity = null;
     this.#animationState = null;
     this.#cutAction = null;
@@ -1640,6 +1656,7 @@ export class Hero {
     }
     this.#playAnimation(animation, animationSpeed, this.#restartAnimation);
     this.#restartAnimation = false;
+    this.#updateHeadLook(deltaTime);
   }
 
   #selectIdleAnimation(deltaTime) {
@@ -1662,9 +1679,7 @@ export class Hero {
       return HERO_ANIMATION.IDLE;
     }
 
-    this.#boredAnimation = HERO_BORED_ANIMATIONS[this.#boredIndex];
-    this.#boredIndex =
-      (this.#boredIndex + 1) % HERO_BORED_ANIMATIONS.length;
+    this.#boredAnimation = this.#nextBoredAnimation;
     this.#boredRemaining = BORED_ANIMATION_DURATIONS.get(
       this.#boredAnimation,
     );
@@ -1696,6 +1711,56 @@ export class Hero {
     this.#animationState = name;
   }
 
+  get #headLookTargetYaw() {
+    if (
+      this.#animationState !== HERO_ANIMATION.BORED_CURSOR_LOOK ||
+      !this.#idleLookTarget ||
+      this.#hasMovementInput ||
+      !this.#grounded ||
+      this.#cutAction ||
+      this.#repelAction ||
+      this.#dodgeAction ||
+      this.#respawnAction ||
+      this.#fallingToDeath
+    ) {
+      return 0;
+    }
+    const targetYaw =
+      (Math.atan2(
+        this.#idleLookTarget.x - this.#position.x,
+        this.#idleLookTarget.z - this.#position.z,
+      ) *
+        180) /
+      Math.PI;
+    const relativeYaw = ((targetYaw - this.#facingYaw + 540) % 360) - 180;
+    return Math.max(
+      -HEAD_LOOK_MAX_YAW,
+      Math.min(HEAD_LOOK_MAX_YAW, relativeYaw),
+    );
+  }
+
+  #updateHeadLook(deltaTime) {
+    this.#headLookYaw = this.#lerpAngle(
+      this.#headLookYaw,
+      this.#headLookTargetYaw,
+      Math.min(1, deltaTime * HEAD_LOOK_RESPONSE),
+    );
+    this.#headEntity?.setLocalEulerAngles(0, this.#headLookYaw, 0);
+  }
+
+  get #nextBoredAnimation() {
+    let animation;
+    do {
+      animation = HERO_BORED_ANIMATIONS[this.#boredIndex];
+      this.#boredIndex =
+        (this.#boredIndex + 1) % HERO_BORED_ANIMATIONS.length;
+    } while (
+      animation === HERO_ANIMATION.BORED_CURSOR_LOOK &&
+      !this.#idleLookTarget
+    );
+    return animation;
+  }
+
   #createModel() {
     this.#modelRoot = this.#modelLibrary.instantiate(Hero.modelUrl);
     this.#modelRoot.name = "Hero model instance";
@@ -1706,6 +1771,7 @@ export class Hero {
       HERO_MODEL_SCALE,
     );
     this.#entity.addChild(this.#modelRoot);
+    this.#headEntity = this.#findModelEntity("Hero head");
     this.#axeEntity = this.#findModelEntity("Hero axe");
     this.#setAxeVisible(false);
 

@@ -19,6 +19,7 @@ export const HERO_ANIMATION = Object.freeze({
   CHOP_MIDDLE: "ChopMiddle",
   CHOP_HIGH: "ChopHigh",
   BORED_LOOK: "BoredLook",
+  BORED_CURSOR_LOOK: "BoredCursorLook",
   BORED_STRETCH: "BoredStretch",
   BORED_TAP: "BoredTap",
 });

@@ -208,6 +208,7 @@ export class PlayCanvasRenderer {
   #bannerWindPointerId = null;
   #bannerWindLastTime = 0;
   #bannerInteractionConnected = false;
+  #heroLookPointer = null;
   #interactionTarget = null;
   #onInteractionChange = null;
   #onHeroStateChange = null;
@@ -453,6 +454,8 @@ export class PlayCanvasRenderer {
       animation: this.#hero.animationState,
       animationTransitioning: this.#hero.animationTransitioning,
       grounded: this.#hero.grounded,
+      facing: this.#hero.facingDirection,
+      headLookYaw: this.#hero.headLookYaw,
     };
   }
 
@@ -1834,6 +1837,7 @@ export class PlayCanvasRenderer {
       panZ: this.#panZ,
       zoom: this.#zoom,
     });
+    this.#updateHeroIdleLookTarget();
   }
 
   #screenOffsetToGround(x, y, zoom) {
@@ -1869,6 +1873,7 @@ export class PlayCanvasRenderer {
     this.canvas.addEventListener("pointermove", this.#handleBannerPointerMove);
     this.canvas.addEventListener("pointerup", this.#handleBannerPointerUp);
     this.canvas.addEventListener("pointercancel", this.#handleBannerPointerUp);
+    this.canvas.addEventListener("pointerleave", this.#handlePointerLeave);
     this.#bannerInteractionConnected = true;
   }
 
@@ -1889,7 +1894,9 @@ export class PlayCanvasRenderer {
       "pointercancel",
       this.#handleBannerPointerUp,
     );
+    this.canvas.removeEventListener("pointerleave", this.#handlePointerLeave);
     this.#finishBannerWindGesture();
+    this.#clearHeroIdleLookTarget();
     this.#bannerInteractionConnected = false;
   }
 
@@ -1954,6 +1961,13 @@ export class PlayCanvasRenderer {
   };
 
   #handleBannerPointerMove = (event) => {
+    if (event.pointerType === "mouse") {
+      this.#heroLookPointer = {
+        clientX: event.clientX,
+        clientY: event.clientY,
+      };
+      this.#updateHeroIdleLookTarget();
+    }
     if (!this.#bannerWindTarget) {
       return;
     }
@@ -1970,6 +1984,51 @@ export class PlayCanvasRenderer {
     this.#bannerWindLastTime = event.timeStamp;
     this.#bannerWindTarget.applyMouseWind(ray.start, ray.end, deltaTime);
   };
+
+  #handlePointerLeave = (event) => {
+    if (event.pointerType === "mouse") {
+      this.#clearHeroIdleLookTarget();
+    }
+  };
+
+  #updateHeroIdleLookTarget() {
+    if (!this.#heroLookPointer || !this.#hero) {
+      return;
+    }
+    const rect = this.canvas.getBoundingClientRect();
+    if (
+      this.#heroLookPointer.clientX < rect.left ||
+      this.#heroLookPointer.clientX > rect.right ||
+      this.#heroLookPointer.clientY < rect.top ||
+      this.#heroLookPointer.clientY > rect.bottom
+    ) {
+      this.#clearHeroIdleLookTarget();
+      return;
+    }
+    const ray = this.#pointerRay(this.#heroLookPointer);
+    if (!ray) {
+      return;
+    }
+    const rayY = ray.end.y - ray.start.y;
+    if (Math.abs(rayY) <= 0.000001) {
+      return;
+    }
+    const distance = (this.#hero.position.y - ray.start.y) / rayY;
+    if (distance < 0 || distance > 1) {
+      return;
+    }
+    this.#hero.idleLookTarget = {
+      x: ray.start.x + (ray.end.x - ray.start.x) * distance,
+      z: ray.start.z + (ray.end.z - ray.start.z) * distance,
+    };
+  }
+
+  #clearHeroIdleLookTarget() {
+    this.#heroLookPointer = null;
+    if (this.#hero) {
+      this.#hero.idleLookTarget = null;
+    }
+  }
 
   #handleBannerPointerUp = (event) => {
     if (event.pointerId !== this.#bannerWindPointerId) {
