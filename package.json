@@ -18,6 +18,7 @@
     "serve:ssg": "quasar ssg serve dist/ssg",
     "test:e2e": "cross-env NODE_ENV=test start-test \"quasar dev\" http-get://127.0.0.1:8080 \"cypress open --e2e\"",
     "test:e2e:ci": "cross-env NODE_ENV=test start-test \"quasar dev\" http-get://127.0.0.1:8080 \"cypress run --e2e\"",
+    "test:game:movement": "npm run test:e2e:ci -- --spec test/cypress/e2e/HeroMovement.cy.js",
     "test:game:performance": "node scripts/run-game-performance-test.cjs"
   },
   "dependencies": {

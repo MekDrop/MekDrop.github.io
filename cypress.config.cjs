@@ -6,6 +6,7 @@ module.exports = defineConfig({
   fixturesFolder: 'test/cypress/fixtures',
   screenshotsFolder: 'test/cypress/screenshots',
   videosFolder: 'test/cypress/videos',
+  trashAssetsBeforeRuns: false,
   video: true,
   e2e: {
     setupNodeEvents(on, config) {

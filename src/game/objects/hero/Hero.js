@@ -2,6 +2,8 @@ import { TileType } from "../../MapGenerator.js";
 import { GRASS_SURFACE_LIFT } from "../../config/terrain.js";
 import heroModelUrl from "../../models/hero/hero.glb?url";
 import { HeroRespawnEffect } from "./HeroRespawnEffect.js";
+import { FOOT_SIDE } from "../../enum/FootSide.js";
+import { HERO_ANIMATION } from "../../enum/HeroAnimation.js";
 import { OCCUPANCY } from "../../enum/Occupancy.js";
 
 const FIXED_STEP = 1 / 120;
@@ -14,6 +16,7 @@ const BRAKING = 30;
 const GRAVITY = -22;
 const MAX_JUMP_HEIGHT = 1.21;
 const JUMP_VELOCITY = Math.sqrt(-2 * GRAVITY * MAX_JUMP_HEIGHT);
+const MAX_SAFE_STEP_DOWN = 1 + GRASS_SURFACE_LIFT;
 const DODGE_DISTANCE = 3;
 const DODGE_JUMP_HEIGHT = 0.68;
 const DODGE_JUMP_VELOCITY = Math.sqrt(-2 * GRAVITY * DODGE_JUMP_HEIGHT);
@@ -29,67 +32,59 @@ const RESPAWN_ANIMATION_DURATION = 1.55;
 const RESPAWN_START_HEIGHT = 1;
 const STEP_CLEARANCE = 0.22;
 const ANIMATION_BLEND_TIME = 0.14;
+const BLOCKED_PUSH_DURATION = 1;
 const BORED_IDLE_DELAY = 5;
 const BORED_BREAK_MIN = 2.5;
 const BORED_BREAK_VARIANCE = 2;
-const HERO_ANIMATION = Object.freeze({
-  idle: "Idle",
-  walk: "Walk",
-  run: "Run",
-  jump: "Jump",
-  fallDeath: "FallDeath",
-  respawn: "Respawn",
-  dodge: Object.freeze({
-    up: "DodgeForward",
-    down: "DodgeBackward",
-    left: "DodgeLeft",
-    right: "DodgeRight",
-  }),
-  blocked: "BlockedPush",
-  edge: "EdgeRefuse",
-  repelled: "Repelled",
-  summonAxe: "SummonAxe",
-  dismissAxe: "DismissAxe",
-  cut: Object.freeze({
-    low: "ChopLow",
-    middle: "ChopMiddle",
-    high: "ChopHigh",
-  }),
-  bored: Object.freeze(["BoredLook", "BoredStretch", "BoredTap"]),
-});
-const HERO_ANIMATION_NAMES = Object.freeze([
-  HERO_ANIMATION.idle,
-  HERO_ANIMATION.walk,
-  HERO_ANIMATION.run,
-  HERO_ANIMATION.jump,
-  HERO_ANIMATION.fallDeath,
-  HERO_ANIMATION.respawn,
-  ...Object.values(HERO_ANIMATION.dodge),
-  HERO_ANIMATION.blocked,
-  HERO_ANIMATION.edge,
-  HERO_ANIMATION.repelled,
-  HERO_ANIMATION.summonAxe,
-  HERO_ANIMATION.dismissAxe,
-  ...Object.values(HERO_ANIMATION.cut),
-  ...HERO_ANIMATION.bored,
+const HERO_ANIMATION_NAMES = Object.freeze(Object.values(HERO_ANIMATION));
+const HERO_BORED_ANIMATIONS = Object.freeze([
+  HERO_ANIMATION.BORED_LOOK,
+  HERO_ANIMATION.BORED_STRETCH,
+  HERO_ANIMATION.BORED_TAP,
 ]);
 const LOOPING_ANIMATIONS = new Set([
-  HERO_ANIMATION.idle,
-  HERO_ANIMATION.walk,
-  HERO_ANIMATION.run,
-  HERO_ANIMATION.blocked,
+  HERO_ANIMATION.IDLE,
+  HERO_ANIMATION.WALK,
+  HERO_ANIMATION.RUN,
+  HERO_ANIMATION.BLOCKED_PUSH,
 ]);
-const BORED_ANIMATION_DURATIONS = Object.freeze({
-  BoredLook: 3,
-  BoredStretch: 3.5,
-  BoredTap: 3,
-});
+const BORED_ANIMATION_DURATIONS = new Map([
+  [HERO_ANIMATION.BORED_LOOK, 3],
+  [HERO_ANIMATION.BORED_STRETCH, 3.5],
+  [HERO_ANIMATION.BORED_TAP, 3],
+]);
 // Matches the widest part of the hero below one terrain level. The circle is
 // still slightly narrower than a tile, leaving room to slide along ledges.
 const HERO_RADIUS = 0.46;
+// Terrain and scenery clearance follows the hero's planted lower body. Wider
+// arm and shoulder poses are visual only and must not close valid footpaths.
+const MOVEMENT_COLLISION_RADIUS = 0.18;
+// Raised terrain must also clear the torso around exposed corners. This stays
+// below half a tile so a one-tile corridor remains traversable.
+const TERRAIN_BODY_COLLISION_RADIUS = 0.4;
+const MOVEMENT_FORWARD_COLLISION_OFFSET =
+  HERO_RADIUS - MOVEMENT_COLLISION_RADIUS;
+// BlockedPush leans the upper body forward beyond the standing footprint.
+// Reserve that depth and head width only in front of raised terrain; keeping
+// the probe below half a tile leaves one-tile corridors open.
+const TERRAIN_FORWARD_COLLISION_OFFSET = 0.48;
+const TERRAIN_FORWARD_COLLISION_RADIUS = 0.36;
+const COLLISION_DISTANCE_EPSILON = 0.000001;
 // Ledge checks follow the hero's planted feet instead of the widest parts of
 // the model. This lets the hero approach a drop before refusing to step off.
 const LEDGE_RADIUS = 0.27;
+const FOOT_FORWARD_OFFSET = 0.1;
+const FOOT_LATERAL_OFFSET = 0.13;
+// Slightly inset from the authored boot sole (0.19 x 0.12 at game scale) so
+// tiny visual corner overhangs remain usable while half-sole overhangs do not.
+const FOOT_HALF_LENGTH = 0.18;
+const FOOT_HALF_WIDTH = 0.11;
+const FOOT_REQUIRED_PERIMETER_SUPPORTS = 5;
+const EDGE_REFUSAL_DURATION = 0.8;
+const LANDING_BACKTRACK_STEP = 0.025;
+const LANDING_BACKTRACK_DISTANCE = 0.75;
+const LANDING_FORWARD_SETTLE_DISTANCE =
+  FOOT_FORWARD_OFFSET + FOOT_HALF_LENGTH;
 const FALL_EXIT_HEIGHT = -14;
 // Keeps the widest pose, including the pauldron and its outline, within one
 // 1x1 terrain/path cube.
@@ -106,6 +101,13 @@ const WALKABLE_TILES = new Set([
 ]);
 const GRASS_SURFACE_TILES = new Set([
   TileType.GRASS,
+  TileType.CASTLE_WALL,
+  TileType.CASTLE_TOWER,
+]);
+// Only castle floor and stair surfaces may replace the terrain height beneath
+// their footprint. Vegetation surfaces can overlap a neighbouring terrain
+// tile, but must never make that tile's cliff face traversable.
+const STRUCTURE_SURFACE_TILES = new Set([
   TileType.CASTLE_WALL,
   TileType.CASTLE_TOWER,
 ]);
@@ -141,7 +143,11 @@ export class Hero {
   #input = { x: 0, y: 0 };
   #running = false;
   #movementBlocked = false;
-  #edgeRefusal = false;
+  #blockedPushElapsed = 0;
+  #blockedPushFinished = false;
+  #edgeRefusalAction = null;
+  #lastEdgeRefusalFoot = FOOT_SIDE.RIGHT;
+  #stableGroundPosition;
   #grounded = true;
   #coyoteRemaining = COYOTE_TIME;
   #jumpBufferRemaining = 0;
@@ -192,6 +198,7 @@ export class Hero {
     this.#entity = new pc.Entity("Hero");
     this.#spawn = this.#findSpawn();
     this.#position = { ...this.#spawn };
+    this.#stableGroundPosition = { ...this.#spawn };
     this.#facingYaw = this.#initialFacingYaw();
     this.#entity.setLocalPosition(
       this.#position.x,
@@ -220,6 +227,18 @@ export class Hero {
     return this.#gameOver;
   }
 
+  get animationState() {
+    return this.#animationState;
+  }
+
+  get animationTransitioning() {
+    return this.#modelRoot?.anim?.baseLayer.transitioning ?? false;
+  }
+
+  get grounded() {
+    return this.#grounded;
+  }
+
   get isInDeathSequence() {
     return this.#fallingToDeath || this.#respawnAction !== null;
   }
@@ -246,8 +265,21 @@ export class Hero {
     this.#input.y = Math.max(-1, Math.min(1, inputY));
     this.#running = running;
     if (
+      !this.#hasMovementInput &&
+      this.#animationState === HERO_ANIMATION.BLOCKED_PUSH
+    ) {
+      this.#movementBlocked = false;
+      this.#blockedPushElapsed = 0;
+      this.#blockedPushFinished = false;
+      this.#velocity.x = 0;
+      this.#velocity.z = 0;
+      this.#resetBoredom();
+      this.#playAnimation(HERO_ANIMATION.IDLE, 1, true);
+      this.#restartAnimation = false;
+    }
+    if (
       !this.#gameOver &&
-      (this.#input.x !== 0 || this.#input.y !== 0)
+      this.#hasMovementInput
     ) {
       this.stopCutting({ dismiss: false });
     }
@@ -263,6 +295,10 @@ export class Hero {
     ) {
       return;
     }
+    if (this.#edgeRefusalAction) {
+      this.#edgeRefusalAction = null;
+      this.#restartAnimation = true;
+    }
     this.#jumpBufferRemaining = JUMP_BUFFER_TIME;
   }
 
@@ -273,7 +309,8 @@ export class Hero {
       this.#fallingToDeath ||
       !this.#grounded ||
       this.#cutAction ||
-      this.#repelAction
+      this.#repelAction ||
+      this.#edgeRefusalAction
     ) {
       return false;
     }
@@ -315,11 +352,12 @@ export class Hero {
       this.#fallingToDeath ||
       !this.#grounded ||
       this.#cutAction ||
-      this.#repelAction
+      this.#repelAction ||
+      this.#edgeRefusalAction
     ) {
       return false;
     }
-    const animation = HERO_ANIMATION.cut[heightClass];
+    const animation = this.#cutAnimationForHeight(heightClass);
     if (!animation) {
       return false;
     }
@@ -344,6 +382,40 @@ export class Hero {
     this.#restartAnimation = true;
     this.#resetBoredom();
     return true;
+  }
+
+  #cutAnimationForHeight(heightClass) {
+    switch (heightClass) {
+      case "low":
+        return HERO_ANIMATION.CHOP_LOW;
+      case "middle":
+        return HERO_ANIMATION.CHOP_MIDDLE;
+      case "high":
+        return HERO_ANIMATION.CHOP_HIGH;
+      default:
+        return null;
+    }
+  }
+
+  #dodgeAnimationName(direction) {
+    switch (direction) {
+      case "up":
+        return HERO_ANIMATION.DODGE_FORWARD;
+      case "down":
+        return HERO_ANIMATION.DODGE_BACKWARD;
+      case "left":
+        return HERO_ANIMATION.DODGE_LEFT;
+      case "right":
+        return HERO_ANIMATION.DODGE_RIGHT;
+      default:
+        return HERO_ANIMATION.DODGE_FORWARD;
+    }
+  }
+
+  #edgeRefusalAnimationName(foot) {
+    return foot === FOOT_SIDE.RIGHT
+      ? HERO_ANIMATION.EDGE_REFUSE_RIGHT
+      : HERO_ANIMATION.EDGE_REFUSE_LEFT;
   }
 
   stopCutting({ dismiss = true } = {}) {
@@ -374,6 +446,8 @@ export class Hero {
     this.#repelAction = null;
     this.#dodgeAction = null;
     this.#respawnAction = null;
+    this.#edgeRefusalAction = null;
+    this.#stableGroundPosition = null;
   }
 
   #update = (deltaTime) => {
@@ -396,6 +470,7 @@ export class Hero {
     this.#advanceRepelAction(deltaTime);
     this.#advanceDodgeAction(deltaTime);
     this.#advanceRespawnAction(deltaTime);
+    this.#advanceEdgeRefusalAction(deltaTime);
     this.#gatewayRepelCooldown = Math.max(
       0,
       this.#gatewayRepelCooldown - deltaTime,
@@ -423,19 +498,21 @@ export class Hero {
       ? { x: 0, z: 0 }
       : this.#fallingToDeath
         ? { x: this.#velocity.x, z: this.#velocity.z }
-        : this.#cutAction
+        : this.#edgeRefusalAction
           ? { x: 0, z: 0 }
-          : this.#repelAction
-            ? {
-                x: this.#repelAction.x * GATEWAY_REPEL_SPEED,
-                z: this.#repelAction.z * GATEWAY_REPEL_SPEED,
-              }
-            : this.#dodgeAction
+          : this.#cutAction
+            ? { x: 0, z: 0 }
+            : this.#repelAction
               ? {
-                  x: this.#dodgeAction.x * DODGE_SPEED,
-                  z: this.#dodgeAction.z * DODGE_SPEED,
+                  x: this.#repelAction.x * GATEWAY_REPEL_SPEED,
+                  z: this.#repelAction.z * GATEWAY_REPEL_SPEED,
                 }
-              : this.#desiredVelocity();
+              : this.#dodgeAction
+                ? {
+                    x: this.#dodgeAction.x * DODGE_SPEED,
+                    z: this.#dodgeAction.z * DODGE_SPEED,
+                  }
+                : this.#desiredVelocity();
     const moving = Math.hypot(desired.x, desired.z) > 0.001;
     const acceleration = moving
       ? this.#grounded
@@ -463,6 +540,10 @@ export class Hero {
       this.#jumpBufferRemaining > 0 &&
       (canGroundJump || canAirJump)
     ) {
+      if (canGroundJump && moving) {
+        this.#velocity.x = desired.x;
+        this.#velocity.z = desired.z;
+      }
       this.#velocity.y = JUMP_VELOCITY;
       this.#grounded = false;
       this.#coyoteRemaining = 0;
@@ -472,9 +553,9 @@ export class Hero {
     }
 
     this.#movementBlocked = false;
-    this.#edgeRefusal = false;
     this.#moveHorizontally(deltaTime);
     this.#moveVertically(deltaTime);
+    this.#advanceBlockedPush(deltaTime);
 
     if (this.#position.y < FALL_EXIT_HEIGHT) this.#handleFallDeath();
     this.#entity.setLocalPosition(
@@ -536,8 +617,21 @@ export class Hero {
       this.#position.x = nextX;
     } else {
       this.#movementBlocked ||= attemptedX;
-      this.#edgeRefusal ||= attemptedX && occupancyX === OCCUPANCY.edge;
-      this.#velocity.x = 0;
+      if (attemptedX && occupancyX === OCCUPANCY.edge) {
+        const direction = this.#movementDirection;
+        this.#beginEdgeRefusal(
+          this.#unsupportedFootAt(
+            nextX,
+            this.#position.z,
+            this.#position.y,
+            direction,
+          ) ?? this.#alternateEdgeFoot,
+          direction,
+        );
+      }
+      if (!this.#preservesRisingMomentum(occupancyX)) {
+        this.#velocity.x = 0;
+      }
       if (attemptedX) this.#tryGatewayRepulsion(nextX, this.#position.z);
     }
 
@@ -548,8 +642,21 @@ export class Hero {
       this.#position.z = nextZ;
     } else {
       this.#movementBlocked ||= attemptedZ;
-      this.#edgeRefusal ||= attemptedZ && occupancyZ === OCCUPANCY.edge;
-      this.#velocity.z = 0;
+      if (attemptedZ && occupancyZ === OCCUPANCY.edge) {
+        const direction = this.#movementDirection;
+        this.#beginEdgeRefusal(
+          this.#unsupportedFootAt(
+            this.#position.x,
+            nextZ,
+            this.#position.y,
+            direction,
+          ) ?? this.#alternateEdgeFoot,
+          direction,
+        );
+      }
+      if (!this.#preservesRisingMomentum(occupancyZ)) {
+        this.#velocity.z = 0;
+      }
       if (attemptedZ) this.#tryGatewayRepulsion(this.#position.x, nextZ);
     }
   }
@@ -557,7 +664,7 @@ export class Hero {
   #moveVertically(deltaTime) {
     const ground = this.#fallingToDeath
       ? null
-      : this.#surfaceAt(this.#position.x, this.#position.z);
+      : this.#landingSurfaceAt(this.#position.x, this.#position.z);
     if (ground === null && this.#dodgeAction) {
       this.#dodgeAction.crossedLedge = true;
     }
@@ -566,7 +673,11 @@ export class Hero {
       !this.#fallingToDeath &&
       !this.#dodgeAction &&
       (this.#isBeyondMapEdge(this.#position.x, this.#position.z) ||
-        (!this.#grounded && this.#velocity.y <= 0))
+        (!this.#grounded &&
+          this.#velocity.y <= 0 &&
+          this.#position.y <
+            (this.#stableGroundPosition?.y ?? this.#spawn.y) -
+              STEP_CLEARANCE))
     ) {
       this.#beginFallDeath();
     }
@@ -577,6 +688,7 @@ export class Hero {
     ) {
       this.#position.y = ground;
       this.#velocity.y = 0;
+      this.#rememberStableGroundPosition();
       return;
     }
 
@@ -591,90 +703,263 @@ export class Hero {
       previousY >= ground - STEP_CLEARANCE &&
       this.#position.y <= ground
     ) {
+      if (this.#rejectUnsupportedLanding(ground)) {
+        return;
+      }
       this.#position.y = ground;
       this.#velocity.y = 0;
       this.#grounded = true;
       this.#jumpsUsed = 0;
+      this.#rememberStableGroundPosition();
     }
   }
 
-  #occupancyAt(x, z) {
-    const collisionSurface = this.#collisionWorld?.surfaceHeightAt(x, z) ?? null;
-    const gridX = x + (this.#mapData.cols - 1) / 2;
-    const gridZ = z + (this.#mapData.rows - 1) / 2;
-    const firstCol = Math.floor(gridX - HERO_RADIUS + 0.5);
-    const lastCol = Math.floor(gridX + HERO_RADIUS + 0.5);
-    const firstRow = Math.floor(gridZ - HERO_RADIUS + 0.5);
-    const lastRow = Math.floor(gridZ + HERO_RADIUS + 0.5);
+  #preservesRisingMomentum(occupancy) {
+    return (
+      occupancy === OCCUPANCY.blocked &&
+      !this.#grounded &&
+      this.#velocity.y > 0
+    );
+  }
 
-    for (let row = firstRow; row <= lastRow; row += 1) {
-      for (let col = firstCol; col <= lastCol; col += 1) {
-        if (!this.#circleOverlapsTile(x, z, col, row)) continue;
-        if (
-          col < 0 ||
-          row < 0 ||
-          col >= this.#mapData.cols ||
-          row >= this.#mapData.rows
-        ) {
-          if (this.#dodgeAction || this.#fallingToDeath) continue;
-          if (!this.#circleOverlapsTile(x, z, col, row, LEDGE_RADIUS)) {
-            continue;
-          }
-          return OCCUPANCY.edge;
-        }
-
-        const type = this.#mapData.grid[row][col];
-        const height = this.#mapData.heightmap[row][col];
-        const isCollisionSurface = collisionSurface !== null;
-        if (
-          (!WALKABLE_TILES.has(type) && !isCollisionSurface) ||
-          (!isCollisionSurface && height > this.#position.y + STEP_CLEARANCE)
-        ) {
-          const collisionRadius =
-            type === TileType.WATER ? LEDGE_RADIUS : HERO_RADIUS;
-          if (!this.#circleOverlapsTile(x, z, col, row, collisionRadius)) {
-            continue;
-          }
-          const currentDistance = this.#circleDistanceSquaredToTile(
-            this.#position.x,
-            this.#position.z,
-            col,
-            row,
-          );
-          const nextDistance = this.#circleDistanceSquaredToTile(
-            x,
-            z,
-            col,
-            row,
-          );
-          if (
-            currentDistance < collisionRadius ** 2 &&
-            nextDistance > currentDistance
-          ) {
-            continue;
-          }
-          return type === TileType.WATER
-            ? this.#dodgeAction
-              ? OCCUPANCY.open
-              : OCCUPANCY.edge
-            : OCCUPANCY.blocked;
-        }
-      }
+  #advanceBlockedPush(deltaTime) {
+    const blocked =
+      this.#hasMovementInput &&
+      this.#movementBlocked &&
+      Math.hypot(this.#velocity.x, this.#velocity.z) <= 0.08;
+    if (!blocked) {
+      this.#blockedPushElapsed = 0;
+      this.#blockedPushFinished = false;
+      return;
     }
+    if (this.#blockedPushFinished) {
+      return;
+    }
+    this.#blockedPushElapsed = Math.min(
+      BLOCKED_PUSH_DURATION,
+      this.#blockedPushElapsed + deltaTime,
+    );
+    this.#blockedPushFinished =
+      this.#blockedPushElapsed >= BLOCKED_PUSH_DURATION;
+  }
+
+  #occupancyAt(x, z) {
+    const movementLength = Math.hypot(this.#velocity.x, this.#velocity.z);
+    const facing =
+      movementLength > 0.001
+        ? {
+            x: this.#velocity.x / movementLength,
+            z: this.#velocity.z / movementLength,
+          }
+        : this.facingDirection;
+    const terrainOccupancy = this.#terrainOccupancyAt(
+      this.#position.x,
+      this.#position.z,
+      x,
+      z,
+      this.#grounded,
+      TERRAIN_BODY_COLLISION_RADIUS,
+    );
+    if (terrainOccupancy !== OCCUPANCY.open) {
+      return terrainOccupancy;
+    }
+    const terrainForwardFromX =
+      this.#position.x + facing.x * TERRAIN_FORWARD_COLLISION_OFFSET;
+    const terrainForwardFromZ =
+      this.#position.z + facing.z * TERRAIN_FORWARD_COLLISION_OFFSET;
+    const terrainForwardToX =
+      x + facing.x * TERRAIN_FORWARD_COLLISION_OFFSET;
+    const terrainForwardToZ =
+      z + facing.z * TERRAIN_FORWARD_COLLISION_OFFSET;
+    const forwardTerrainOccupancy = this.#terrainOccupancyAt(
+      terrainForwardFromX,
+      terrainForwardFromZ,
+      terrainForwardToX,
+      terrainForwardToZ,
+      false,
+      TERRAIN_FORWARD_COLLISION_RADIUS,
+    );
+    if (forwardTerrainOccupancy !== OCCUPANCY.open) {
+      return OCCUPANCY.blocked;
+    }
+    const movementForwardFromX =
+      this.#position.x + facing.x * MOVEMENT_FORWARD_COLLISION_OFFSET;
+    const movementForwardFromZ =
+      this.#position.z + facing.z * MOVEMENT_FORWARD_COLLISION_OFFSET;
+    const movementForwardToX =
+      x + facing.x * MOVEMENT_FORWARD_COLLISION_OFFSET;
+    const movementForwardToZ =
+      z + facing.z * MOVEMENT_FORWARD_COLLISION_OFFSET;
     if (
       this.#collisionWorld?.isMovementBlocked(
         this.#position.x,
         this.#position.z,
         x,
         z,
-        HERO_RADIUS,
+        MOVEMENT_COLLISION_RADIUS,
         this.#position.y,
         STEP_CLEARANCE,
       )
     ) {
       return OCCUPANCY.blocked;
     }
+    if (
+      this.#collisionWorld?.isMovementBlocked(
+        movementForwardFromX,
+        movementForwardFromZ,
+        movementForwardToX,
+        movementForwardToZ,
+        MOVEMENT_COLLISION_RADIUS,
+        this.#position.y,
+        STEP_CLEARANCE,
+      )
+    ) {
+      return OCCUPANCY.blocked;
+    }
+    if (
+      this.#grounded &&
+      !this.#dodgeAction &&
+      !this.#repelAction &&
+      this.#unsupportedFootAt(
+        x,
+        z,
+        this.#position.y,
+        facing,
+      ) &&
+      !this.#isSafeDescentAt(x, z, this.#position.y, facing) &&
+      !this.#fullySupportedPositionAhead(
+        x,
+        z,
+        this.#position.y,
+        facing,
+      )
+    ) {
+      return OCCUPANCY.edge;
+    }
     return OCCUPANCY.open;
+  }
+
+  #terrainOccupancyAt(
+    fromX,
+    fromZ,
+    toX,
+    toZ,
+    checksEdges,
+    solidRadius,
+  ) {
+    const collisionSurface =
+      this.#collisionWorld?.surfaceHeightAt(toX, toZ) ?? null;
+    const gridX = toX + (this.#mapData.cols - 1) / 2;
+    const gridZ = toZ + (this.#mapData.rows - 1) / 2;
+    const searchRadius = Math.max(LEDGE_RADIUS, solidRadius);
+    const firstCol = Math.floor(gridX - searchRadius + 0.5);
+    const lastCol = Math.floor(gridX + searchRadius + 0.5);
+    const firstRow = Math.floor(gridZ - searchRadius + 0.5);
+    const lastRow = Math.floor(gridZ + searchRadius + 0.5);
+    let currentSolidDistance = Number.POSITIVE_INFINITY;
+    let nextSolidDistance = Number.POSITIVE_INFINITY;
+    let currentEdgeDistance = Number.POSITIVE_INFINITY;
+    let nextEdgeDistance = Number.POSITIVE_INFINITY;
+
+    for (let row = firstRow; row <= lastRow; row += 1) {
+      for (let col = firstCol; col <= lastCol; col += 1) {
+        if (
+          col < 0 ||
+          row < 0 ||
+          col >= this.#mapData.cols ||
+          row >= this.#mapData.rows
+        ) {
+          if (
+            !checksEdges ||
+            this.#dodgeAction ||
+            this.#fallingToDeath
+          ) {
+            continue;
+          }
+          currentEdgeDistance = Math.min(
+            currentEdgeDistance,
+            this.#circleDistanceSquaredToTile(fromX, fromZ, col, row),
+          );
+          nextEdgeDistance = Math.min(
+            nextEdgeDistance,
+            this.#circleDistanceSquaredToTile(toX, toZ, col, row),
+          );
+          continue;
+        }
+
+        const type = this.#mapData.grid[row][col];
+        if (!checksEdges && type === TileType.WATER) {
+          continue;
+        }
+        const height = this.#mapData.heightmap[row][col];
+        const isStructureSurface =
+          collisionSurface !== null && STRUCTURE_SURFACE_TILES.has(type);
+        if (
+          !WALKABLE_TILES.has(type) ||
+          (!isStructureSurface &&
+            height > this.#position.y + STEP_CLEARANCE)
+        ) {
+          const isEdge = type === TileType.WATER;
+          if (isEdge && this.#dodgeAction) {
+            continue;
+          }
+          const currentDistance = this.#circleDistanceSquaredToTile(
+            fromX,
+            fromZ,
+            col,
+            row,
+          );
+          const nextDistance = this.#circleDistanceSquaredToTile(
+            toX,
+            toZ,
+            col,
+            row,
+          );
+          if (isEdge) {
+            currentEdgeDistance = Math.min(
+              currentEdgeDistance,
+              currentDistance,
+            );
+            nextEdgeDistance = Math.min(nextEdgeDistance, nextDistance);
+          } else {
+            currentSolidDistance = Math.min(
+              currentSolidDistance,
+              currentDistance,
+            );
+            nextSolidDistance = Math.min(nextSolidDistance, nextDistance);
+          }
+        }
+      }
+    }
+    if (
+      this.#blocksTerrainMovement(
+        currentSolidDistance,
+        nextSolidDistance,
+        solidRadius,
+      )
+    ) {
+      return OCCUPANCY.blocked;
+    }
+    if (
+      this.#blocksTerrainMovement(
+        currentEdgeDistance,
+        nextEdgeDistance,
+        LEDGE_RADIUS,
+      )
+    ) {
+      return OCCUPANCY.edge;
+    }
+    return OCCUPANCY.open;
+  }
+
+  #blocksTerrainMovement(currentDistance, nextDistance, radius) {
+    if (nextDistance >= radius ** 2) {
+      return false;
+    }
+    return !(
+      currentDistance < radius ** 2 &&
+      nextDistance >= currentDistance - COLLISION_DISTANCE_EPSILON
+    );
   }
 
   #circleOverlapsTile(x, z, col, row, radius = HERO_RADIUS) {
@@ -690,21 +975,251 @@ export class Hero {
   }
 
   #surfaceAt(x, z) {
-    const collisionSurface = this.#collisionWorld?.surfaceHeightAt(x, z);
-    if (Number.isFinite(collisionSurface)) {
-      return collisionSurface;
+    const maximumSupportHeight = this.#position.y + STEP_CLEARANCE;
+    const collisionSurface = this.#collisionWorld?.surfaceHeightAt(
+      x,
+      z,
+      LEDGE_RADIUS,
+    );
+    let highestSurface =
+      Number.isFinite(collisionSurface) &&
+      collisionSurface <= maximumSupportHeight
+        ? collisionSurface
+        : null;
+    const gridX = x + (this.#mapData.cols - 1) / 2;
+    const gridZ = z + (this.#mapData.rows - 1) / 2;
+    const firstCol = Math.floor(gridX - LEDGE_RADIUS + 0.5);
+    const lastCol = Math.floor(gridX + LEDGE_RADIUS + 0.5);
+    const firstRow = Math.floor(gridZ - LEDGE_RADIUS + 0.5);
+    const lastRow = Math.floor(gridZ + LEDGE_RADIUS + 0.5);
+
+    for (let row = firstRow; row <= lastRow; row += 1) {
+      for (let col = firstCol; col <= lastCol; col += 1) {
+        if (
+          col < 0 ||
+          row < 0 ||
+          col >= this.#mapData.cols ||
+          row >= this.#mapData.rows ||
+          !this.#circleOverlapsTile(x, z, col, row, LEDGE_RADIUS)
+        ) {
+          continue;
+        }
+        const type = this.#mapData.grid[row][col];
+        if (!WALKABLE_TILES.has(type)) {
+          continue;
+        }
+        const surfaceHeight =
+          this.#mapData.heightmap[row][col] +
+          (GRASS_SURFACE_TILES.has(type) ? GRASS_SURFACE_LIFT : 0);
+        if (
+          surfaceHeight > maximumSupportHeight ||
+          (highestSurface !== null && surfaceHeight <= highestSurface)
+        ) {
+          continue;
+        }
+        highestSurface = surfaceHeight;
+      }
     }
-    const tile = this.#tileAt(x, z);
-    if (!tile) {
+    return highestSurface;
+  }
+
+  #landingSurfaceAt(x, z) {
+    return this.#supportHeightAtPoint(
+      x,
+      z,
+      this.#position.y + STEP_CLEARANCE,
+    );
+  }
+
+  get #movementDirection() {
+    const speed = Math.hypot(this.#velocity.x, this.#velocity.z);
+    if (speed > 0.001) {
+      return {
+        x: this.#velocity.x / speed,
+        z: this.#velocity.z / speed,
+      };
+    }
+    return this.facingDirection;
+  }
+
+  get #hasMovementInput() {
+    return Math.hypot(this.#input.x, this.#input.y) > 0.001;
+  }
+
+  get #alternateEdgeFoot() {
+    return this.#lastEdgeRefusalFoot === FOOT_SIDE.LEFT
+      ? FOOT_SIDE.RIGHT
+      : FOOT_SIDE.LEFT;
+  }
+
+  #unsupportedFootAt(x, z, elevation, direction) {
+    const support = this.#feetSupportAt(x, z, elevation, direction);
+    if (support.left && support.right) {
       return null;
     }
-    if (WALKABLE_TILES.has(tile.type)) {
-      return tile.height;
+    if (!support.left && support.right) {
+      return FOOT_SIDE.LEFT;
+    }
+    if (support.left && !support.right) {
+      return FOOT_SIDE.RIGHT;
+    }
+    return this.#alternateEdgeFoot;
+  }
+
+  #feetSupportAt(x, z, elevation, direction) {
+    const rightX = direction.z;
+    const rightZ = -direction.x;
+    const forwardX = direction.x * FOOT_FORWARD_OFFSET;
+    const forwardZ = direction.z * FOOT_FORWARD_OFFSET;
+    return {
+      left: this.#footHasSupport(
+        x + forwardX - rightX * FOOT_LATERAL_OFFSET,
+        z + forwardZ - rightZ * FOOT_LATERAL_OFFSET,
+        elevation,
+        direction,
+        rightX,
+        rightZ,
+      ),
+      right: this.#footHasSupport(
+        x + forwardX + rightX * FOOT_LATERAL_OFFSET,
+        z + forwardZ + rightZ * FOOT_LATERAL_OFFSET,
+        elevation,
+        direction,
+        rightX,
+        rightZ,
+      ),
+    };
+  }
+
+  #bothFootCentersSupportedAt(x, z, elevation, direction) {
+    const rightX = direction.z;
+    const rightZ = -direction.x;
+    const forwardX = direction.x * FOOT_FORWARD_OFFSET;
+    const forwardZ = direction.z * FOOT_FORWARD_OFFSET;
+    return (
+      this.#supportMatchesElevation(
+        x + forwardX - rightX * FOOT_LATERAL_OFFSET,
+        z + forwardZ - rightZ * FOOT_LATERAL_OFFSET,
+        elevation,
+      ) &&
+      this.#supportMatchesElevation(
+        x + forwardX + rightX * FOOT_LATERAL_OFFSET,
+        z + forwardZ + rightZ * FOOT_LATERAL_OFFSET,
+        elevation,
+      )
+    );
+  }
+
+  #fullySupportedPositionAhead(x, z, elevation, direction) {
+    if (!this.#bothFootCentersSupportedAt(x, z, elevation, direction)) {
+      return null;
+    }
+    for (
+      let distance = LANDING_BACKTRACK_STEP;
+      distance <= LANDING_FORWARD_SETTLE_DISTANCE;
+      distance += LANDING_BACKTRACK_STEP
+    ) {
+      const candidate = {
+        x: x + direction.x * distance,
+        z: z + direction.z * distance,
+      };
+      if (
+        !this.#unsupportedFootAt(
+          candidate.x,
+          candidate.z,
+          elevation,
+          direction,
+        )
+      ) {
+        return candidate;
+      }
     }
     return null;
   }
 
-  #tileAt(x, z) {
+  #footHasSupport(
+    centerX,
+    centerZ,
+    elevation,
+    direction,
+    rightX,
+    rightZ,
+  ) {
+    if (
+      !this.#supportMatchesElevation(
+        centerX,
+        centerZ,
+        elevation,
+      )
+    ) {
+      return false;
+    }
+
+    const supportAtOffset = (forward, right) =>
+      this.#supportMatchesElevation(
+        centerX +
+          direction.x * forward +
+          rightX * right,
+        centerZ +
+          direction.z * forward +
+          rightZ * right,
+        elevation,
+      );
+    const supportedPerimeterPoints = [
+      supportAtOffset(FOOT_HALF_LENGTH, -FOOT_HALF_WIDTH),
+      supportAtOffset(FOOT_HALF_LENGTH, FOOT_HALF_WIDTH),
+      supportAtOffset(0, -FOOT_HALF_WIDTH),
+      supportAtOffset(0, FOOT_HALF_WIDTH),
+      supportAtOffset(-FOOT_HALF_LENGTH, -FOOT_HALF_WIDTH),
+      supportAtOffset(-FOOT_HALF_LENGTH, FOOT_HALF_WIDTH),
+    ].filter(Boolean).length;
+    return (
+      supportedPerimeterPoints >= FOOT_REQUIRED_PERIMETER_SUPPORTS
+    );
+  }
+
+  #supportMatchesElevation(x, z, elevation) {
+    const supportHeight = this.#supportHeightAtPoint(
+      x,
+      z,
+      elevation + STEP_CLEARANCE,
+    );
+    return (
+      supportHeight !== null &&
+      Math.abs(supportHeight - elevation) <= STEP_CLEARANCE
+    );
+  }
+
+  #isSafeDescentAt(x, z, elevation, direction) {
+    const rightX = direction.z;
+    const rightZ = -direction.x;
+    const frontOffset = FOOT_FORWARD_OFFSET + FOOT_HALF_LENGTH;
+    const frontX = x + direction.x * frontOffset;
+    const frontZ = z + direction.z * frontOffset;
+    const maximumHeight = elevation + STEP_CLEARANCE;
+    const leftHeight = this.#supportHeightAtPoint(
+      frontX - rightX * FOOT_LATERAL_OFFSET,
+      frontZ - rightZ * FOOT_LATERAL_OFFSET,
+      maximumHeight,
+    );
+    const rightHeight = this.#supportHeightAtPoint(
+      frontX + rightX * FOOT_LATERAL_OFFSET,
+      frontZ + rightZ * FOOT_LATERAL_OFFSET,
+      maximumHeight,
+    );
+    if (leftHeight === null || rightHeight === null) {
+      return false;
+    }
+    return (
+      leftHeight < elevation - STEP_CLEARANCE &&
+      rightHeight < elevation - STEP_CLEARANCE &&
+      elevation - leftHeight <= MAX_SAFE_STEP_DOWN &&
+      elevation - rightHeight <= MAX_SAFE_STEP_DOWN &&
+      Math.abs(leftHeight - rightHeight) <= STEP_CLEARANCE
+    );
+  }
+
+  #supportHeightAtPoint(x, z, maximumHeight) {
     const col = Math.round(x + (this.#mapData.cols - 1) / 2);
     const row = Math.round(z + (this.#mapData.rows - 1) / 2);
     if (
@@ -716,12 +1231,130 @@ export class Hero {
       return null;
     }
     const type = this.#mapData.grid[row][col];
-    return {
-      type,
-      height:
-        this.#mapData.heightmap[row][col] +
-        (GRASS_SURFACE_TILES.has(type) ? GRASS_SURFACE_LIFT : 0),
+    if (!WALKABLE_TILES.has(type)) {
+      return null;
+    }
+    const collisionSurface = STRUCTURE_SURFACE_TILES.has(type)
+      ? this.#collisionWorld?.surfaceHeightAt(x, z)
+      : null;
+    let highestSurface =
+      Number.isFinite(collisionSurface) && collisionSurface <= maximumHeight
+        ? collisionSurface
+        : null;
+    const terrainSurface =
+      this.#mapData.heightmap[row][col] +
+      (GRASS_SURFACE_TILES.has(type) ? GRASS_SURFACE_LIFT : 0);
+    if (
+      terrainSurface <= maximumHeight &&
+      (highestSurface === null || terrainSurface > highestSurface)
+    ) {
+      highestSurface = terrainSurface;
+    }
+    return highestSurface;
+  }
+
+  #rememberStableGroundPosition() {
+    if (
+      this.#unsupportedFootAt(
+        this.#position.x,
+        this.#position.z,
+        this.#position.y,
+        this.#movementDirection,
+      )
+    ) {
+      return;
+    }
+    this.#stableGroundPosition = { ...this.#position };
+  }
+
+  #rejectUnsupportedLanding(ground) {
+    const direction = this.#movementDirection;
+    const unsupportedFoot = this.#unsupportedFootAt(
+      this.#position.x,
+      this.#position.z,
+      ground,
+      direction,
+    );
+    if (!unsupportedFoot) {
+      return false;
+    }
+
+    const supportedPosition = this.#fullySupportedPositionAhead(
+      this.#position.x,
+      this.#position.z,
+      ground,
+      direction,
+    );
+    if (supportedPosition) {
+      this.#position.x = supportedPosition.x;
+      this.#position.z = supportedPosition.z;
+      return false;
+    }
+
+    let safePosition = null;
+    for (
+      let distance = LANDING_BACKTRACK_STEP;
+      distance <= LANDING_BACKTRACK_DISTANCE;
+      distance += LANDING_BACKTRACK_STEP
+    ) {
+      const candidate = {
+        x: this.#position.x - direction.x * distance,
+        y: ground,
+        z: this.#position.z - direction.z * distance,
+      };
+      if (
+        !this.#unsupportedFootAt(
+          candidate.x,
+          candidate.z,
+          candidate.y,
+          direction,
+        )
+      ) {
+        safePosition = candidate;
+        break;
+      }
+    }
+    safePosition ??= this.#stableGroundPosition;
+    if (safePosition) {
+      this.#position = { ...safePosition };
+    } else {
+      this.#position.y = ground;
+    }
+    this.#velocity = { x: 0, y: 0, z: 0 };
+    this.#grounded = true;
+    this.#jumpsUsed = 0;
+    this.#movementBlocked = true;
+    this.#beginEdgeRefusal(unsupportedFoot, direction);
+    this.#rememberStableGroundPosition();
+    return true;
+  }
+
+  #beginEdgeRefusal(foot, direction) {
+    if (this.#edgeRefusalAction) {
+      return;
+    }
+    this.#lastEdgeRefusalFoot = foot;
+    this.#edgeRefusalAction = {
+      foot,
+      direction: { ...direction },
+      elapsed: 0,
     };
+    this.#velocity.x = 0;
+    this.#velocity.z = 0;
+    this.#restartAnimation = true;
+    this.#resetBoredom();
+  }
+
+  #advanceEdgeRefusalAction(deltaTime) {
+    if (!this.#edgeRefusalAction) {
+      return;
+    }
+    this.#edgeRefusalAction.elapsed += deltaTime;
+    if (this.#edgeRefusalAction.elapsed < EDGE_REFUSAL_DURATION) {
+      return;
+    }
+    this.#edgeRefusalAction = null;
+    this.#restartAnimation = true;
   }
 
   #isBeyondMapEdge(x, z) {
@@ -736,6 +1369,15 @@ export class Hero {
   }
 
   #findSpawn() {
+    const explicitSpawn = this.#mapData.heroSpawn;
+    if (
+      Number.isFinite(explicitSpawn?.x) &&
+      Number.isFinite(explicitSpawn?.y) &&
+      Number.isFinite(explicitSpawn?.z)
+    ) {
+      return { ...explicitSpawn };
+    }
+
     const { castle, cols, rows } = this.#mapData;
     const grassTiles = [];
     const safeGrassTiles = [];
@@ -879,6 +1521,7 @@ export class Hero {
     }
     this.stopCutting({ dismiss: false });
     this.#fallingToDeath = true;
+    this.#edgeRefusalAction = null;
     this.#repelAction = null;
     this.#dodgeAction = null;
     this.#jumpBufferRemaining = 0;
@@ -903,7 +1546,8 @@ export class Hero {
     this.#jumpBufferRemaining = 0;
     this.#jumpsUsed = 0;
     this.#movementBlocked = false;
-    this.#edgeRefusal = false;
+    this.#edgeRefusalAction = null;
+    this.#stableGroundPosition = { ...this.#spawn };
     this.#repelAction = null;
     this.#dodgeAction = null;
     this.#fallingToDeath = false;
@@ -921,11 +1565,17 @@ export class Hero {
       return;
     }
     const horizontalSpeed = Math.hypot(this.#velocity.x, this.#velocity.z);
-    const blocked = this.#movementBlocked && horizontalSpeed <= 0.08;
-    const refusingEdge = blocked && this.#edgeRefusal;
-    const facingVelocity = blocked
-      ? this.#desiredVelocity()
-      : { x: this.#velocity.x, z: this.#velocity.z };
+    const blocked =
+      this.#hasMovementInput &&
+      this.#movementBlocked &&
+      horizontalSpeed <= 0.08;
+    const showingBlockedPush = blocked && !this.#blockedPushFinished;
+    const refusingEdge = this.#edgeRefusalAction !== null;
+    const facingVelocity = refusingEdge
+      ? this.#edgeRefusalAction.direction
+      : blocked
+        ? this.#desiredVelocity()
+        : { x: this.#velocity.x, z: this.#velocity.z };
     const previousFacingYaw = this.#facingYaw;
     if (
       !this.#fallingToDeath &&
@@ -951,32 +1601,34 @@ export class Hero {
     let animation;
     let animationSpeed = 1;
     if (this.#fallingToDeath) {
-      animation = HERO_ANIMATION.fallDeath;
+      animation = HERO_ANIMATION.FALL_DEATH;
       this.#resetBoredom();
     } else if (this.#respawnAction) {
-      animation = HERO_ANIMATION.respawn;
+      animation = HERO_ANIMATION.RESPAWN;
       this.#resetBoredom();
     } else if (this.#cutAction) {
       animation = this.#cutAnimationName();
       this.#resetBoredom();
     } else if (this.#repelAction) {
-      animation = HERO_ANIMATION.repelled;
+      animation = HERO_ANIMATION.REPELLED;
       this.#resetBoredom();
     } else if (this.#dodgeAction) {
-      animation = HERO_ANIMATION.dodge[this.#dodgeAction.direction];
+      animation = this.#dodgeAnimationName(this.#dodgeAction.direction);
       animationSpeed = DODGE_ANIMATION_DURATION / DODGE_DURATION;
       this.#resetBoredom();
     } else if (!this.#grounded) {
-      animation = HERO_ANIMATION.jump;
+      animation = HERO_ANIMATION.JUMP;
       this.#resetBoredom();
     } else if (refusingEdge) {
-      animation = HERO_ANIMATION.edge;
+      animation = this.#edgeRefusalAnimationName(
+        this.#edgeRefusalAction.foot,
+      );
       this.#resetBoredom();
-    } else if (blocked) {
-      animation = HERO_ANIMATION.blocked;
+    } else if (showingBlockedPush) {
+      animation = HERO_ANIMATION.BLOCKED_PUSH;
       this.#resetBoredom();
     } else if (horizontalSpeed > 0.08) {
-      animation = this.#running ? HERO_ANIMATION.run : HERO_ANIMATION.walk;
+      animation = this.#running ? HERO_ANIMATION.RUN : HERO_ANIMATION.WALK;
       const expectedSpeed = this.#running ? RUN_SPEED : MOVE_SPEED;
       animationSpeed = Math.max(
         0.75,
@@ -1003,16 +1655,19 @@ export class Hero {
         this.#idleElapsed +
         BORED_BREAK_MIN +
         Math.random() * BORED_BREAK_VARIANCE;
-      return HERO_ANIMATION.idle;
+      return HERO_ANIMATION.IDLE;
     }
 
     if (this.#idleElapsed < this.#nextBoredAt) {
-      return HERO_ANIMATION.idle;
+      return HERO_ANIMATION.IDLE;
     }
 
-    this.#boredAnimation = HERO_ANIMATION.bored[this.#boredIndex];
-    this.#boredIndex = (this.#boredIndex + 1) % HERO_ANIMATION.bored.length;
-    this.#boredRemaining = BORED_ANIMATION_DURATIONS[this.#boredAnimation];
+    this.#boredAnimation = HERO_BORED_ANIMATIONS[this.#boredIndex];
+    this.#boredIndex =
+      (this.#boredIndex + 1) % HERO_BORED_ANIMATIONS.length;
+    this.#boredRemaining = BORED_ANIMATION_DURATIONS.get(
+      this.#boredAnimation,
+    );
     return this.#boredAnimation;
   }
 
@@ -1068,8 +1723,8 @@ export class Hero {
         LOOPING_ANIMATIONS.has(name),
       );
     }
-    this.#modelRoot.anim.baseLayer.play(HERO_ANIMATION.idle);
-    this.#animationState = HERO_ANIMATION.idle;
+    this.#modelRoot.anim.baseLayer.play(HERO_ANIMATION.IDLE);
+    this.#animationState = HERO_ANIMATION.IDLE;
     this.#respawnEffect = new HeroRespawnEffect({
       pc: this.#pc,
       parent: this.#entity,
@@ -1078,7 +1733,7 @@ export class Hero {
       modelUrl: Hero.modelUrl,
       modelScale: HERO_MODEL_SCALE,
       startHeight: RESPAWN_START_HEIGHT,
-      respawnAnimation: animationTracks.get(HERO_ANIMATION.respawn),
+      respawnAnimation: animationTracks.get(HERO_ANIMATION.RESPAWN),
     });
   }
 
@@ -1123,10 +1778,10 @@ export class Hero {
 
   #cutAnimationName() {
     if (this.#cutAction.phase === "summon") {
-      return HERO_ANIMATION.summonAxe;
+      return HERO_ANIMATION.SUMMON_AXE;
     }
     if (this.#cutAction.phase === "dismiss") {
-      return HERO_ANIMATION.dismissAxe;
+      return HERO_ANIMATION.DISMISS_AXE;
     }
     return this.#cutAction.cutAnimation;
   }
@@ -1157,6 +1812,7 @@ export class Hero {
       return false;
     }
     this.stopCutting({ dismiss: false });
+    this.#edgeRefusalAction = null;
     this.#repelAction = { ...direction, elapsed: 0 };
     this.#dodgeAction = null;
     this.#velocity.x = direction.x * GATEWAY_REPEL_SPEED;

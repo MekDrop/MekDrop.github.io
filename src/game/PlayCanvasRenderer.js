@@ -444,6 +444,18 @@ export class PlayCanvasRenderer {
     return this.#debugFpsHud?.framesPerSecond ?? 0;
   }
 
+  get heroState() {
+    if (!this.#hero) {
+      return null;
+    }
+    return {
+      position: this.#hero.position,
+      animation: this.#hero.animationState,
+      animationTransitioning: this.#hero.animationTransitioning,
+      grounded: this.#hero.grounded,
+    };
+  }
+
   get wind() {
     return (
       this.#cloudField?.wind ?? {

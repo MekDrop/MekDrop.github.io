@@ -1,0 +1,10 @@
+
+C:\Users\mekdr\Documents\Projects\MekDrop.github.io\coverage\lcov-report\block-navigation.js
+  1:1  warning  Unused eslint-disable directive (no problems were reported)
+
+C:\Users\mekdr\Documents\Projects\MekDrop.github.io\coverage\lcov-report\sorter.js
+  1:1  warning  Unused eslint-disable directive (no problems were reported)
+
+Γ£û 2 problems (0 errors, 2 warnings)
+  0 errors and 2 warnings potentially fixable with the `--fix` option.
+

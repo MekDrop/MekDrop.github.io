@@ -1,5 +1,6 @@
 import contourFragmentShader from "./HeroRespawnContour.frag?raw";
 import contourVertexShader from "./HeroRespawnContour.vert?raw";
+import { HERO_ANIMATION } from "../../enum/HeroAnimation.js";
 
 const CONTOUR_SCALE = 1.018;
 const RECONSTRUCTION_HEIGHT = 1.65;
@@ -56,7 +57,7 @@ export class HeroRespawnEffect {
     this.#hideNamedEntity(this.#outlineRoot, "Hero axe");
     this.#outlineRoot.addComponent("anim", { activate: true });
     this.#outlineRoot.anim.addAnimationState(
-      "Respawn",
+      HERO_ANIMATION.RESPAWN,
       respawnAnimation,
       1,
       false,
@@ -68,7 +69,7 @@ export class HeroRespawnEffect {
   begin(facingYaw, baseHeight) {
     this.#outlineRoot.enabled = true;
     this.#outlineRoot.setLocalEulerAngles(0, facingYaw, 0);
-    this.#outlineRoot.anim.baseLayer.play("Respawn");
+    this.#outlineRoot.anim.baseLayer.play(HERO_ANIMATION.RESPAWN);
     this.update(0, 0, baseHeight);
   }
 

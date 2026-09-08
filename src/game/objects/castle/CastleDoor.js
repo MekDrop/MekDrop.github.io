@@ -1,4 +1,5 @@
 import castleDoorsModelUrl from "../../models/castle/doors/castle-doors.glb?url";
+import { CASTLE_DOOR_ANIMATION } from "../../enum/CastleDoorAnimation.js";
 
 const DOOR_THICKNESS = 0.16;
 const DOOR_INSET = 0.28;
@@ -8,7 +9,6 @@ const CLOSE_INSIDE_DISTANCE = 0.9;
 const PASSABLE_OPEN_AMOUNT = 0.72;
 const CLICK_OPEN_SECONDS = 1;
 const DOOR_HEIGHT = 2.3;
-const OPEN_ANIMATION = "Open";
 
 export class CastleDoor {
   static get modelUrl() {
@@ -44,18 +44,20 @@ export class CastleDoor {
     );
     this.#entity.setLocalEulerAngles(0, geometry.baseYaw, 0);
     const animationTrack = modelLibrary
-      .getAnimationTracks(CastleDoor.modelUrl, [OPEN_ANIMATION])
-      .get(OPEN_ANIMATION);
+      .getAnimationTracks(CastleDoor.modelUrl, [
+        CASTLE_DOOR_ANIMATION.OPEN,
+      ])
+      .get(CASTLE_DOOR_ANIMATION.OPEN);
     this.#entity.addComponent("anim", { activate: true });
     this.#entity.anim.addAnimationState(
-      OPEN_ANIMATION,
+      CASTLE_DOOR_ANIMATION.OPEN,
       animationTrack,
       1,
       false,
     );
     this.#animationLayer = this.#entity.anim.baseLayer;
     this.#animationDuration = animationTrack.duration;
-    this.#animationLayer.play(OPEN_ANIMATION);
+    this.#animationLayer.play(CASTLE_DOOR_ANIMATION.OPEN);
     this.#entity.anim.speed = 0;
     this.#syncAnimation();
   }

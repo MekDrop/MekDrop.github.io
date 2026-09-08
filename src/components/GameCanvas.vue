@@ -195,6 +195,51 @@ let resizeObserver = null;
 let debugStatsTimer = null;
 let stopGraphicsWatch = null;
 let restartGameAction = null;
+let movementTestMapFactory = null;
+
+function requestedMovementTestScenario() {
+  if (!import.meta.env.DEV || typeof window === "undefined") {
+    return null;
+  }
+  return new URLSearchParams(window.location.search).get("movement-test");
+}
+
+async function createInitialMap() {
+  const scenario = requestedMovementTestScenario();
+  if (!scenario) {
+    return generateMap();
+  }
+  const { MovementTestMap } = await import(
+    "src/game/testing/MovementTestMap.js"
+  );
+  movementTestMapFactory = MovementTestMap;
+  return MovementTestMap.create(scenario);
+}
+
+function installMovementTestDriver() {
+  if (!movementTestMapFactory) {
+    return;
+  }
+  window.gameMovementTest = {
+    loadScenario(scenario) {
+      mapData = movementTestMapFactory.create(scenario);
+      renderer.render(mapData);
+      return renderer.heroState;
+    },
+    moveForward(active = true) {
+      renderer.setHeroMovement(0, active ? -1 : 0);
+    },
+    move(inputX, inputY, running = false) {
+      renderer.setHeroMovement(inputX, inputY, running);
+    },
+    jump() {
+      renderer.jumpHero();
+    },
+    state() {
+      return renderer.heroState;
+    },
+  };
+}
 
 function updateDebugStats() {
   debugFramesPerSecond.value = renderer?.framesPerSecond ?? 0;
@@ -229,8 +274,9 @@ async function init() {
   });
   await renderer.init();
   graphicsBackend.value = renderer.graphicsBackend;
-  mapData = generateMap();
+  mapData = await createInitialMap();
   renderer.render(mapData);
+  installMovementTestDriver();
   applyGraphicsSettings();
   updateDebugStats();
 
@@ -286,6 +332,9 @@ async function init() {
 onMounted(init);
 
 onBeforeUnmount(() => {
+  if (typeof window !== "undefined") {
+    delete window.gameMovementTest;
+  }
   controls?.disconnect();
   stopGraphicsWatch?.();
   resizeObserver?.disconnect();

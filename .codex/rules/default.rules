@@ -1,0 +1,9 @@
+prefix_rule(
+    pattern = ["npx", "cypress"],
+    decision = "allow",
+    justification = "Allow Cypress commands for this project.",
+    match = [
+        "npx cypress run",
+        "npx cypress open",
+    ],
+)

@@ -1,14 +1,13 @@
 import kingModelUrl from "../../models/castle/royals/king.glb?url";
 import princessModelUrl from "../../models/castle/royals/princess.glb?url";
 import queenModelUrl from "../../models/castle/royals/queen.glb?url";
+import { ROYAL_ANIMATION } from "../../enum/RoyalAnimation.js";
 
 const MODEL_URLS = Object.freeze([
   kingModelUrl,
   queenModelUrl,
   princessModelUrl,
 ]);
-const WALK_OUT_ANIMATION = "WalkOut";
-const CRY_ANIMATION = "Cry";
 const WALK_OUT_ANIMATION_SPEED = 1.8;
 const WALK_OUT_DURATION = 3.2 / WALK_OUT_ANIMATION_SPEED;
 const WALK_START_DELAY = 0.08;
@@ -27,19 +26,19 @@ export class SeatedRoyal {
     this.#entity = modelLibrary.instantiate(modelUrl);
     this.#entity.name = "Seated royal";
     const tracks = modelLibrary.getAnimationTracks(modelUrl, [
-      WALK_OUT_ANIMATION,
-      CRY_ANIMATION,
+      ROYAL_ANIMATION.WALK_OUT,
+      ROYAL_ANIMATION.CRY,
     ]);
     this.#entity.addComponent("anim", { activate: true });
     this.#entity.anim.addAnimationState(
-      WALK_OUT_ANIMATION,
-      tracks.get(WALK_OUT_ANIMATION),
+      ROYAL_ANIMATION.WALK_OUT,
+      tracks.get(ROYAL_ANIMATION.WALK_OUT),
       WALK_OUT_ANIMATION_SPEED,
       false,
     );
     this.#entity.anim.addAnimationState(
-      CRY_ANIMATION,
-      tracks.get(CRY_ANIMATION),
+      ROYAL_ANIMATION.CRY,
+      tracks.get(ROYAL_ANIMATION.CRY),
       1,
       true,
     );
@@ -110,7 +109,7 @@ export class SeatedRoyal {
       endPosition.x - startPosition.x,
       endPosition.z - startPosition.z,
     );
-    this.#entity.anim.baseLayer.play(WALK_OUT_ANIMATION);
+    this.#entity.anim.baseLayer.play(ROYAL_ANIMATION.WALK_OUT);
   }
 
   update(deltaTime) {
@@ -145,7 +144,7 @@ export class SeatedRoyal {
     if (cameraPosition) {
       this.#face(cameraPosition.x - end.x, cameraPosition.z - end.z);
     }
-    this.#entity.anim.baseLayer.transition(CRY_ANIMATION, 0.18);
+    this.#entity.anim.baseLayer.transition(ROYAL_ANIMATION.CRY, 0.18);
   }
 
   destroy() {
