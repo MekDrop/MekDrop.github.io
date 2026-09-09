@@ -33,18 +33,29 @@ export class GameModelLibrary {
     return entity;
   }
 
-  instantiateMerged(url) {
+  instantiateMerged(
+    url,
+    {
+      material = null,
+      castShadows = true,
+      receiveShadows = castShadows,
+    } = {},
+  ) {
     const mergedModel = this.#mergedModelFor(url);
 
     const entity = new this.#pc.Entity("Merged game model");
     const meshInstance = new this.#pc.MeshInstance(
       mergedModel.mesh,
-      mergedModel.material,
+      material ?? mergedModel.material,
       entity,
     );
-    meshInstance.castShadow = true;
-    meshInstance.receiveShadow = true;
-    entity.addComponent("render", { meshInstances: [meshInstance] });
+    meshInstance.castShadow = castShadows;
+    meshInstance.receiveShadow = receiveShadows;
+    entity.addComponent("render", {
+      meshInstances: [meshInstance],
+      castShadows,
+      receiveShadows,
+    });
     return entity;
   }
 
@@ -56,6 +67,7 @@ export class GameModelLibrary {
       material = null,
       castShadows = true,
       receiveShadows = castShadows,
+      dynamic = false,
     } = {},
   ) {
     const mergedModel = this.#mergedModelFor(url);
@@ -69,7 +81,10 @@ export class GameModelLibrary {
         this.#app.graphicsDevice,
       ),
       matrices.length / 16,
-      { data: new Float32Array(matrices) },
+      {
+        data: new Float32Array(matrices),
+        usage: dynamic ? this.#pc.BUFFER_DYNAMIC : this.#pc.BUFFER_STATIC,
+      },
     );
     const entity = new this.#pc.Entity(name);
     const meshInstance = new this.#pc.MeshInstance(

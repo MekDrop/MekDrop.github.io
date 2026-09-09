@@ -4,7 +4,6 @@ const WIND_RESPONSE = 18;
 const FLOWER_TRAMPLE_ANGLE = 68;
 const FLOWER_TRAMPLE_HOLD = 0.38;
 const FLOWER_RECOVERY_TIME = 1.35;
-const MUSHROOM_DISAPPEAR_TIME = 0.22;
 
 export class GroundCoverItem {
   #entity;
@@ -21,7 +20,6 @@ export class GroundCoverItem {
   #trampleHold = 0;
   #trampleTiltX = 0;
   #trampleTiltZ = 0;
-  #disappearAmount = 0;
 
   constructor({
     pc,
@@ -59,7 +57,7 @@ export class GroundCoverItem {
   }
 
   applyWind(directionX, directionZ, strength) {
-    if (this.#disappearAmount > 0) {
+    if (!this.#entity.enabled) {
       return;
     }
     const tilt = WIND_TILT_DEGREES * strength * this.#flexibility;
@@ -75,7 +73,7 @@ export class GroundCoverItem {
 
   stepOn(directionX, directionZ) {
     if (this.#stepReaction === "disappear") {
-      this.#disappearAmount = Math.max(this.#disappearAmount, 0.001);
+      this.#entity.enabled = false;
       return;
     }
     if (this.#stepReaction !== "recover") {
@@ -91,9 +89,15 @@ export class GroundCoverItem {
     this.#trampleHold = FLOWER_TRAMPLE_HOLD;
   }
 
+  collect() {
+    if (!this.#entity.enabled) {
+      return;
+    }
+    this.#entity.enabled = false;
+  }
+
   advance(deltaTime) {
-    if (this.#disappearAmount > 0) {
-      this.#advanceDisappearance(deltaTime);
+    if (!this.#entity.enabled) {
       return;
     }
     this.#elapsed += deltaTime;
@@ -124,17 +128,5 @@ export class GroundCoverItem {
       this.#tiltZ + ambientZ + this.#trampleTiltZ * trampleEase,
     );
     this.#entity.setLocalScale(1, 1 - trampleEase * 0.22, 1);
-  }
-
-  #advanceDisappearance(deltaTime) {
-    this.#disappearAmount = Math.min(
-      1,
-      this.#disappearAmount + deltaTime / MUSHROOM_DISAPPEAR_TIME,
-    );
-    const progress = this.#disappearAmount;
-    const width = 1 + Math.sin(progress * Math.PI) * 0.22;
-    this.#entity.setLocalScale(width, Math.max(0.02, 1 - progress), width);
-    this.#entity.setLocalEulerAngles(progress * 12, 0, progress * -18);
-    if (progress >= 1) this.#entity.enabled = false;
   }
 }

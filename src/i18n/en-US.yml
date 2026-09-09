@@ -49,6 +49,8 @@ game:
   graphics:
     webgl_fallback: WebGPU is unavailable. Using WebGL 2 compatibility rendering.
   interaction:
+    collect_flower: Collect flowers
+    collect_mushroom: Collect mushrooms
     chop_tree: Chop tree
     clear_bush: Clear bush
     stop_cutting: Stop cutting
@@ -57,6 +59,21 @@ game:
     open_treasure: Open treasure chest
     fill_hole: Fill hole
     stop_filling: Stop filling
+  inventory:
+    backpack: Adventurer's backpack
+    title: Inventory
+    capacity: "{current}/{total} slots"
+    empty_slot: Empty slot
+    full: Your inventory is full.
+    items:
+      daisy_patch: Daisies
+      buttercup_patch: Buttercups
+      pink_flower_patch: Pink flowers
+      blue_flower_patch: Blue flowers
+      clover_patch: Clover
+      red_mushroom: Red mushroom
+      golden_mushroom_pair: Golden mushrooms
+      forest_mushroom_cluster: Forest mushrooms
 language:
   en-US: English (USA)
   lt: Lithuanian

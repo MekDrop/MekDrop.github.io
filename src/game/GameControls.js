@@ -12,6 +12,7 @@ export class GameControls {
   #dragX = 0;
   #dragY = 0;
   #dragDistance = 0;
+  #inventoryPointerId = null;
   #movementDirections = new Set();
   #lastMovementTapAt = new Map();
 
@@ -36,6 +37,7 @@ export class GameControls {
     this.#element.addEventListener("pointermove", this.#handlePointerMove);
     this.#element.addEventListener("pointerup", this.#handlePointerUp);
     this.#element.addEventListener("pointercancel", this.#handlePointerUp);
+    this.#element.addEventListener("pointerleave", this.#handlePointerLeave);
   }
 
   disconnect() {
@@ -51,6 +53,10 @@ export class GameControls {
     this.#element.removeEventListener("pointermove", this.#handlePointerMove);
     this.#element.removeEventListener("pointerup", this.#handlePointerUp);
     this.#element.removeEventListener("pointercancel", this.#handlePointerUp);
+    this.#element.removeEventListener(
+      "pointerleave",
+      this.#handlePointerLeave,
+    );
     this.#setDragging(false);
     this.#clearMovement();
   }
@@ -80,7 +86,18 @@ export class GameControls {
       return;
     }
 
-    if (this.#isEditable(event.target)) {
+    if (this.#matchesKey(event, this.#config().toggleInventory)) {
+      event.preventDefault();
+      this.#clearMovement();
+      this.#actions.toggleInventory.toggleInventory();
+      return;
+    }
+
+    if (this.#actions.toggleInventory?.visible) {
+      event.preventDefault();
+      if (this.#matchesKey(event, this.#config().closeInventory)) {
+        this.#actions.toggleInventory.closeInventory();
+      }
       return;
     }
 
@@ -176,6 +193,9 @@ export class GameControls {
 
   #handleWheel = (event) => {
     event.preventDefault();
+    if (this.#actions.toggleInventory?.visible) {
+      return;
+    }
     const rect = this.#element.getBoundingClientRect();
     const pivot = {
       x: event.clientX - rect.left,
@@ -192,6 +212,18 @@ export class GameControls {
 
   #handlePointerDown = (event) => {
     if (event.defaultPrevented) {
+      return;
+    }
+    if (this.#actions.toggleInventory?.visible) {
+      event.preventDefault();
+      const pressed = this.#actions.toggleInventory.pressPointer(
+        event.clientX,
+        event.clientY,
+      );
+      if (pressed) {
+        this.#inventoryPointerId = event.pointerId;
+        this.#element.setPointerCapture(event.pointerId);
+      }
       return;
     }
     if (this.#actions.restartGame?.restart()) {
@@ -220,6 +252,14 @@ export class GameControls {
   };
 
   #handlePointerMove = (event) => {
+    if (this.#actions.toggleInventory?.visible) {
+      event.preventDefault();
+      this.#actions.toggleInventory.movePointer(
+        event.clientX,
+        event.clientY,
+      );
+      return;
+    }
     if (event.pointerId !== this.#dragPointerId) {
       return;
     }
@@ -248,6 +288,22 @@ export class GameControls {
   };
 
   #handlePointerUp = (event) => {
+    if (event.pointerId === this.#inventoryPointerId) {
+      event.preventDefault();
+      this.#inventoryPointerId = null;
+      if (event.type === "pointercancel") {
+        this.#actions.toggleInventory.cancelPointer();
+      } else {
+        this.#actions.toggleInventory.releasePointer(
+          event.clientX,
+          event.clientY,
+        );
+      }
+      if (this.#element.hasPointerCapture(event.pointerId)) {
+        this.#element.releasePointerCapture(event.pointerId);
+      }
+      return;
+    }
     if (event.pointerId !== this.#dragPointerId) {
       return;
     }
@@ -258,6 +314,12 @@ export class GameControls {
     this.#setDragging(false);
     if (this.#element.hasPointerCapture(event.pointerId)) {
       this.#element.releasePointerCapture(event.pointerId);
+    }
+  };
+
+  #handlePointerLeave = () => {
+    if (this.#actions.toggleInventory?.visible) {
+      this.#actions.toggleInventory.leavePointer();
     }
   };
 

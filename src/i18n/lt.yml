@@ -49,6 +49,8 @@ game:
   graphics:
     webgl_fallback: WebGPU nepasiekiamas. Naudojamas suderinamumo WebGL 2 atvaizdavimas.
   interaction:
+    collect_flower: Skinti gėles
+    collect_mushroom: Rinkti grybus
     chop_tree: Kirsti medį
     clear_bush: Pašalinti krūmą
     stop_cutting: Baigti kirsti
@@ -57,6 +59,21 @@ game:
     open_treasure: Atidaryti lobių skrynią
     fill_hole: Užpilti duobę
     stop_filling: Baigti užpilti
+  inventory:
+    backpack: Nuotykių kuprinė
+    title: Inventorius
+    capacity: "{current}/{total} vietų"
+    empty_slot: Tuščia vieta
+    full: Inventorius pilnas.
+    items:
+      daisy_patch: Ramunės
+      buttercup_patch: Vėdrynai
+      pink_flower_patch: Rožinės gėlės
+      blue_flower_patch: Mėlynos gėlės
+      clover_patch: Dobilas
+      red_mushroom: Raudonas grybas
+      golden_mushroom_pair: Auksiniai grybai
+      forest_mushroom_cluster: Miško grybai
 language:
   en-US: Anglų (JAV)
   lt: Lietuvių

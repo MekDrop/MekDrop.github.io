@@ -164,12 +164,14 @@ import { RegenerateMapAction } from "src/game/actions/RegenerateMapAction.js";
 import { RestartGameAction } from "src/game/actions/RestartGameAction.js";
 import { RotateViewAction } from "src/game/actions/RotateViewAction.js";
 import { ToggleArrowsAction } from "src/game/actions/ToggleArrowsAction.js";
+import { ToggleInventoryAction } from "src/game/actions/ToggleInventoryAction.js";
 import { InteractionAction } from "src/game/actions/InteractionAction.js";
 import { ZoomAction } from "src/game/actions/ZoomAction.js";
 import { DEFAULT_CONTROLS } from "src/game/config/controls.js";
 import { useDebugStore } from "src/stores/debug-store.js";
 import { useGraphicsSettingsStore } from "src/stores/graphics-settings-store.js";
 import { useGameViewStore } from "src/stores/game-view-store.js";
+import { useHeroConfigurationStore } from "src/stores/hero-configuration-store.js";
 
 const container = ref(null);
 const canvas = ref(null);
@@ -186,6 +188,7 @@ const { t } = useI18n();
 const graphicsStore = useGraphicsSettingsStore();
 const debugStore = useDebugStore();
 const gameViewStore = useGameViewStore();
+const heroConfigurationStore = useHeroConfigurationStore();
 const interactionLabel = computed(() =>
   interactionTarget.value?.labelKey
     ? t(interactionTarget.value.labelKey)
@@ -264,6 +267,9 @@ function installMovementTestDriver() {
     jump() {
       renderer.jumpHero();
     },
+    interact() {
+      return renderer.interact();
+    },
     state() {
       return renderer.heroState;
     },
@@ -328,10 +334,20 @@ async function init() {
       maxHeroLives.value = state.maxLives;
       gameOver.value = state.gameOver;
     },
+    onInventoryFull: () => {
+      Notify.create({
+        type: "warning",
+        position: "bottom-right",
+        message: t("game.inventory.full"),
+        timeout: 1800,
+      });
+    },
     onViewportChange: scheduleViewportSave,
+    translate: (key, values) => t(key, values),
     gameOverTitle: t("game.game_over"),
     restartPrompt: t("game.restart_prompt"),
     graphics: graphicsStore.rendererOptions,
+    heroConfiguration: heroConfigurationStore,
   });
   await renderer.init();
   graphicsBackend.value = renderer.graphicsBackend;
@@ -362,6 +378,7 @@ async function init() {
     restartGame: restartGameAction,
     heroMovement: new HeroMovementAction(renderer),
     interaction: new InteractionAction(renderer),
+    toggleInventory: new ToggleInventoryAction(renderer),
     rotateView: new RotateViewAction(renderer),
     copyScreenshot: new CopyScreenshotAction(renderer, () => {
       Notify.create({

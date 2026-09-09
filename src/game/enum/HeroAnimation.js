@@ -20,6 +20,8 @@ export const HERO_ANIMATION = Object.freeze({
   FILL_HOLE: "FillHole",
   CHOP_MIDDLE: "ChopMiddle",
   CHOP_HIGH: "ChopHigh",
+  PICK_FLOWER: "PickFlower",
+  PICK_MUSHROOM: "PickMushroom",
   BORED_LOOK: "BoredLook",
   BORED_CURSOR_LOOK: "BoredCursorLook",
   BORED_STRETCH: "BoredStretch",

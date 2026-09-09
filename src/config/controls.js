@@ -33,6 +33,14 @@ export const DEFAULT_CONTROLS = Object.freeze({
     keys: ["KeyE"],
     allowRepeat: false,
   },
+  toggleInventory: {
+    keys: ["KeyI"],
+    allowRepeat: false,
+  },
+  closeInventory: {
+    keys: ["Escape"],
+    allowRepeat: false,
+  },
   rotateAnticlockwise: {
     keys: ["KeyQ"],
   },

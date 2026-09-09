@@ -8,7 +8,11 @@ import pinkFlowerPatchModelUrl from "../../models/ground-cover/pink-flower-patch
 import redMushroomModelUrl from "../../models/ground-cover/red-mushroom.glb?url";
 import { GRASS_SURFACE_LIFT } from "../../config/terrain.js";
 import groundCoverFragmentShader from "./GroundCover.frag?raw";
+import groundCoverHeldVertexShader from "./GroundCoverHeld.vert?raw";
 import groundCoverVertexShader from "./GroundCover.vert?raw";
+import { GroundCoverCollectible } from "./GroundCoverCollectible.js";
+import { GroundCoverHeldItem } from "./GroundCoverHeldItem.js";
+import { GroundCoverInteraction } from "./GroundCoverInteraction.js";
 import { GroundCoverItem } from "./GroundCoverItem.js";
 
 const FLOWER_CATEGORY = "flower";
@@ -17,50 +21,82 @@ const VARIANTS = Object.freeze({
   "daisy-patch": {
     modelUrl: daisyPatchModelUrl,
     category: FLOWER_CATEGORY,
+    labelKey: "game.inventory.items.daisy_patch",
+    icon: "🌼",
+    interactionRadius: 0.38,
     horizontalScale: 1.5,
     verticalScale: 2,
+    gripPoint: { x: 0, y: 0.055, z: 0 },
   },
   "buttercup-patch": {
     modelUrl: buttercupPatchModelUrl,
     category: FLOWER_CATEGORY,
+    labelKey: "game.inventory.items.buttercup_patch",
+    icon: "🌻",
+    interactionRadius: 0.4,
     horizontalScale: 1.55,
     verticalScale: 2.05,
+    gripPoint: { x: 0, y: 0.05, z: 0 },
   },
   "pink-flower-patch": {
     modelUrl: pinkFlowerPatchModelUrl,
     category: FLOWER_CATEGORY,
+    labelKey: "game.inventory.items.pink_flower_patch",
+    icon: "🌸",
+    interactionRadius: 0.38,
     horizontalScale: 1.5,
     verticalScale: 2,
+    gripPoint: { x: 0, y: 0.0525, z: 0 },
   },
   "blue-flower-patch": {
     modelUrl: blueFlowerPatchModelUrl,
     category: FLOWER_CATEGORY,
+    labelKey: "game.inventory.items.blue_flower_patch",
+    icon: "🪻",
+    interactionRadius: 0.38,
     horizontalScale: 1.5,
     verticalScale: 2,
+    gripPoint: { x: 0, y: 0.0575, z: 0 },
   },
   "clover-patch": {
     modelUrl: cloverPatchModelUrl,
     category: FLOWER_CATEGORY,
+    labelKey: "game.inventory.items.clover_patch",
+    icon: "☘️",
+    interactionRadius: 0.34,
     horizontalScale: 1.15,
     verticalScale: 0.9,
+    gripPoint: { x: 0.03, y: 0.09, z: -0.07 },
   },
   "red-mushroom": {
     modelUrl: redMushroomModelUrl,
     category: MUSHROOM_CATEGORY,
+    labelKey: "game.inventory.items.red_mushroom",
+    icon: "🍄",
+    interactionRadius: 0.22,
     scale: 0.82,
     flexibility: 0.35,
+    gripPoint: { x: 0, y: 0.075, z: 0 },
   },
   "golden-mushroom-pair": {
     modelUrl: goldenMushroomPairModelUrl,
     category: MUSHROOM_CATEGORY,
+    labelKey: "game.inventory.items.golden_mushroom_pair",
+    icon: "🍄",
+    interactionRadius: 0.24,
     scale: 0.82,
     flexibility: 0.38,
+    gripPoint: { x: -0.08, y: 0.0765, z: -0.01 },
   },
   "forest-mushroom-cluster": {
     modelUrl: forestMushroomClusterModelUrl,
     category: MUSHROOM_CATEGORY,
+    labelKey: "game.inventory.items.forest_mushroom_cluster",
+    icon: "🍄",
+    interactionRadius: 0.26,
     scale: 0.82,
     flexibility: 0.32,
+    gripPoint: { x: -0.12, y: 0.065, z: 0.03 },
   },
 });
 const GPU_CATEGORIES = Object.freeze({
@@ -80,6 +116,7 @@ const MINIMUM_RUNNING_SPEED = 4.7;
 const MAXIMUM_RUNNING_SPEED = 6.3;
 const HEIGHT_TOLERANCE = 0.8;
 const HERO_RECOVERY_TIME = 0.42;
+const MINIMUM_FACING_DOT = Math.cos((50 * Math.PI) / 180);
 
 export class GroundCover {
   static get modelUrls() {
@@ -89,7 +126,10 @@ export class GroundCover {
   #pc;
   #entity;
   #items = [];
+  #collectibles = [];
+  #flowerBatches = new Map();
   #materials = new Map();
+  #heldMaterials = new Map();
   #vertexBuffers = [];
   #updateHandle = null;
   #elapsed = 0;
@@ -98,8 +138,12 @@ export class GroundCover {
   #heroDirection = [0, 1];
   #heroInfluence = 0;
 
-  constructor({ pc, app, mapData, modelLibrary }) {
+  #onCollect;
+  #tool = null;
+
+  constructor({ pc, app, mapData, modelLibrary, onCollect = () => false }) {
     this.#pc = pc;
+    this.#onCollect = onCollect;
     this.#entity = new pc.Entity("GPU-instanced interactive ground cover");
     this.#createMaterials();
     this.#buildGroundCover(mapData, modelLibrary);
@@ -108,6 +152,10 @@ export class GroundCover {
 
   get entity() {
     return this.#entity;
+  }
+
+  set tool(tool) {
+    this.#tool = tool;
   }
 
   applyHeroInteraction({ x, y, z }, movement) {
@@ -167,6 +215,62 @@ export class GroundCover {
     }
   }
 
+  findInteraction({
+    hero,
+    onChange = null,
+    onComplete = null,
+    reach = 0.62,
+    heightTolerance = 0.6,
+  }) {
+    if (!hero) {
+      return null;
+    }
+
+    const heroPosition = hero.position;
+    const facingDirection = hero.facingDirection;
+    let closest = null;
+    for (const collectible of this.#collectibles) {
+      if (!collectible.canInteract) {
+        continue;
+      }
+      const position = collectible.position;
+      if (Math.abs(position.y - heroPosition.y) > heightTolerance) {
+        continue;
+      }
+      const centerDistance = Math.hypot(
+        position.x - heroPosition.x,
+        position.z - heroPosition.z,
+      );
+      const facingDot =
+        centerDistance > 0.001
+          ? ((position.x - heroPosition.x) * facingDirection.x +
+              (position.z - heroPosition.z) * facingDirection.z) /
+            centerDistance
+          : 1;
+      if (facingDot < MINIMUM_FACING_DOT) {
+        continue;
+      }
+      const distance = Math.max(
+        0,
+        centerDistance - collectible.interactionRadius,
+      );
+      if (distance > reach || (closest && distance >= closest.distance)) {
+        continue;
+      }
+      closest = { collectible, distance };
+    }
+
+    return closest
+      ? new GroundCoverInteraction({
+          collectible: closest.collectible,
+          hero,
+          tool: this.#tool,
+          onChange,
+          onComplete,
+        })
+      : null;
+  }
+
   destroy() {
     this.#updateHandle?.off();
     this.#updateHandle = null;
@@ -176,7 +280,11 @@ export class GroundCover {
     this.#vertexBuffers = [];
     for (const material of this.#materials.values()) material.destroy();
     this.#materials.clear();
+    for (const material of this.#heldMaterials.values()) material.destroy();
+    this.#heldMaterials.clear();
     this.#items = [];
+    this.#collectibles = [];
+    this.#flowerBatches.clear();
   }
 
   #createMaterials() {
@@ -214,12 +322,32 @@ export class GroundCover {
       material.setParameter("uLightDirection", [0.42, 0.82, 0.38]);
       material.update();
       this.#materials.set(category, material);
+
+      const heldMaterial = new this.#pc.ShaderMaterial({
+        uniqueName: `held-ground-cover-${category}`,
+        vertexGLSL: groundCoverHeldVertexShader,
+        fragmentGLSL: groundCoverFragmentShader,
+        attributes: {
+          vertex_position: this.#pc.SEMANTIC_POSITION,
+          vertex_normal: this.#pc.SEMANTIC_NORMAL,
+          vertex_color: this.#pc.SEMANTIC_COLOR,
+        },
+      });
+      heldMaterial.name = `Held ${category} ground cover`;
+      heldMaterial.cull = this.#pc.CULLFACE_NONE;
+      heldMaterial.setParameter("uBendHeight", definition.bendHeight);
+      heldMaterial.setParameter("uColorBoost", definition.colorBoost);
+      heldMaterial.setParameter("uLightDirection", [0.42, 0.82, 0.38]);
+      heldMaterial.update();
+      this.#heldMaterials.set(category, heldMaterial);
     }
   }
 
   #buildGroundCover(mapData, modelLibrary) {
     const matricesByVariant = new Map();
-    for (const decoration of mapData.groundCoverData ?? []) {
+    for (const [decorationIndex, decoration] of (
+      mapData.groundCoverData ?? []
+    ).entries()) {
       const definition = VARIANTS[decoration.variant];
       if (!definition) continue;
       const x =
@@ -242,11 +370,21 @@ export class GroundCover {
           rotation: decoration.rotation,
           scale: decoration.scale * definition.scale,
           flexibility: definition.flexibility,
-          stepReaction: "disappear",
+          stepReaction: "none",
           phase: decoration.phase,
         });
         this.#entity.addChild(item.entity);
         this.#items.push(item);
+        this.#collectibles.push(
+          this.#createCollectible({
+            decoration,
+            decorationIndex,
+            definition,
+            modelLibrary,
+            position: { x, y, z },
+            onHide: () => item.collect(),
+          }),
+        );
         continue;
       }
 
@@ -264,12 +402,26 @@ export class GroundCover {
         rotation,
         new this.#pc.Vec3(horizontalScale, verticalScale, horizontalScale),
       );
-      const matrices = matricesByVariant.get(decoration.variant) ?? [];
-      matrices.push(...matrix.data);
-      matricesByVariant.set(decoration.variant, matrices);
+      const batch = matricesByVariant.get(decoration.variant) ?? {
+        matrices: [],
+      };
+      const matrixIndex = batch.matrices.length / 16;
+      batch.matrices.push(...matrix.data);
+      matricesByVariant.set(decoration.variant, batch);
+      this.#collectibles.push(
+        this.#createCollectible({
+          decoration,
+          decorationIndex,
+          definition,
+          modelLibrary,
+          position: { x, y, z },
+          onHide: () =>
+            this.#hideFlower(decoration.variant, matrixIndex, { x, y, z }),
+        }),
+      );
     }
 
-    for (const [variant, matrices] of matricesByVariant) {
+    for (const [variant, { matrices }] of matricesByVariant) {
       const definition = VARIANTS[variant];
       const batch = modelLibrary.instantiateMergedBatch(
         definition.modelUrl,
@@ -279,12 +431,81 @@ export class GroundCover {
           material: this.#materials.get(definition.category),
           castShadows: false,
           receiveShadows: false,
+          dynamic: true,
         },
       );
       if (!batch) continue;
       this.#vertexBuffers.push(batch.vertexBuffer);
+      this.#flowerBatches.set(variant, batch);
       this.#entity.addChild(batch.entity);
     }
+  }
+
+  #createCollectible({
+    decoration,
+    decorationIndex,
+    definition,
+    modelLibrary,
+    position,
+    onHide,
+  }) {
+    return new GroundCoverCollectible({
+      id: `${decoration.row}:${decoration.col}:${decorationIndex}`,
+      variant: decoration.variant,
+      category: definition.category,
+      labelKey: definition.labelKey,
+      icon: definition.icon,
+      modelUrl: definition.modelUrl,
+      interactionRadius:
+        definition.interactionRadius * decoration.scale,
+      position,
+      onCollect: this.#onCollect,
+      onHide,
+      createHeldItem: () =>
+        new GroundCoverHeldItem({
+          pc: this.#pc,
+          modelLibrary,
+          modelUrl: definition.modelUrl,
+          name: decoration.variant,
+          scale:
+            definition.category === FLOWER_CATEGORY
+              ? {
+                  x: decoration.scale * definition.horizontalScale,
+                  y: decoration.scale * definition.verticalScale,
+                  z: decoration.scale * definition.horizontalScale,
+                }
+              : decoration.scale * definition.scale,
+          material:
+            definition.category === FLOWER_CATEGORY
+              ? this.#heldMaterials.get(definition.category)
+              : null,
+          castShadows: definition.category !== FLOWER_CATEGORY,
+          receiveShadows: definition.category !== FLOWER_CATEGORY,
+          sourceParent: this.#entity,
+          sourcePosition: position,
+          sourceRotation: decoration.rotation,
+          gripPoint: definition.gripPoint,
+        }),
+    });
+  }
+
+  #hideFlower(variant, matrixIndex, position) {
+    const batch = this.#flowerBatches.get(variant);
+    if (!batch) {
+      return;
+    }
+
+    const hiddenMatrix = new this.#pc.Mat4();
+    hiddenMatrix.setTRS(
+      new this.#pc.Vec3(position.x, position.y, position.z),
+      new this.#pc.Quat(),
+      new this.#pc.Vec3(0, 0, 0),
+    );
+    const storage = batch.vertexBuffer.lock();
+    const matrices =
+      storage instanceof Float32Array ? storage : new Float32Array(storage);
+    matrices.set(hiddenMatrix.data, matrixIndex * 16);
+    batch.vertexBuffer.unlock();
   }
 
   #update = (deltaTime) => {

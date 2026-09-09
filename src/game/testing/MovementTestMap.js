@@ -11,6 +11,65 @@ export class MovementTestMap {
     const mapData = this.#emptyMap(scenario);
 
     switch (scenario) {
+      case "inventory":
+        this.#paint(mapData, 1, 2, 7, 4, 2);
+        this.#addInventoryGroundCover(mapData);
+        break;
+      case "inventory-overlap":
+        this.#paint(mapData, 1, 2, 7, 4, 2);
+        mapData.groundCoverData = [
+          {
+            col: this.#SPAWN_COL,
+            row: this.#SPAWN_ROW + 1,
+            variant: "daisy-patch",
+            offsetX: 0,
+            offsetZ: -0.02,
+            rotation: 0,
+            scale: 1,
+            phase: 0,
+          },
+        ];
+        break;
+      case "inventory-mushroom":
+        this.#paint(mapData, 1, 2, 7, 4, 2);
+        mapData.groundCoverData = [
+          {
+            col: this.#SPAWN_COL,
+            row: this.#SPAWN_ROW,
+            variant: "red-mushroom",
+            offsetX: 0,
+            offsetZ: 0.58,
+            rotation: 0,
+            scale: 1,
+            phase: 0,
+          },
+        ];
+        break;
+      case "inventory-direction":
+        this.#paint(mapData, 1, 2, 7, 4, 2);
+        mapData.groundCoverData = [
+          {
+            col: this.#SPAWN_COL,
+            row: this.#SPAWN_ROW - 1,
+            variant: "pink-flower-patch",
+            offsetX: 0,
+            offsetZ: 0.1,
+            rotation: 0,
+            scale: 1,
+            phase: 0,
+          },
+          {
+            col: this.#SPAWN_COL,
+            row: this.#SPAWN_ROW + 1,
+            variant: "daisy-patch",
+            offsetX: 0,
+            offsetZ: -0.1,
+            rotation: 0,
+            scale: 1,
+            phase: 0,
+          },
+        ];
+        break;
       case "safe-descent":
       case "jump-descent":
         this.#paint(mapData, 1, 2, 3, 4, 2);
@@ -145,5 +204,33 @@ export class MovementTestMap {
         };
       }
     }
+  }
+
+  static #addInventoryGroundCover(mapData) {
+    const variants = [
+      "daisy-patch",
+      "red-mushroom",
+      "buttercup-patch",
+      "golden-mushroom-pair",
+      "pink-flower-patch",
+      "forest-mushroom-cluster",
+      "blue-flower-patch",
+      "red-mushroom",
+      "clover-patch",
+      "golden-mushroom-pair",
+      "daisy-patch",
+      "forest-mushroom-cluster",
+      "pink-flower-patch",
+    ];
+    mapData.groundCoverData = variants.map((variant, index) => ({
+      col: this.#SPAWN_COL,
+      row: this.#SPAWN_ROW,
+      variant,
+      offsetX: ((index % 5) - 2) * 0.025,
+      offsetZ: 0.34 + (index % 3) * 0.03,
+      rotation: (index * 45) % 360,
+      scale: 1,
+      phase: index * 0.4,
+    }));
   }
 }

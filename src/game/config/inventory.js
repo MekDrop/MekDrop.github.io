@@ -1,0 +1,1 @@
+export const HERO_INVENTORY_CAPACITY = 12;

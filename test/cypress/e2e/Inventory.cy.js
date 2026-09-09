@@ -1,0 +1,247 @@
+import { HERO_ANIMATION } from "../../../src/game/enum/HeroAnimation.js";
+
+function pressKey(code) {
+  cy.window().trigger("keydown", { code, key: code });
+}
+
+function collectItem(expectedCount, animation) {
+  pressKey("KeyE");
+  cy.window({ timeout: 3000 }).should((window) => {
+    expect(window.gameMovementTest.state().animation).to.equal(animation);
+  });
+  cy.window({ timeout: 3000 }).should((window) => {
+    expect(window.gameMovementTest.state().inventory.items).to.have.length(
+      expectedCount,
+    );
+  });
+  cy.window({ timeout: 3000 }).should((window) => {
+    expect(window.gameMovementTest.state().animation).not.to.equal(animation);
+  });
+}
+
+function clickInventoryCloseButton() {
+  cy.get(".background-canvas__surface").then(($canvas) => {
+    const bounds = $canvas[0].getBoundingClientRect();
+    const scale = Math.sqrt(
+      (bounds.width / 1280) * (bounds.height / 720),
+    );
+    const x = bounds.width / 2 + 181 * scale;
+    const y = bounds.height / 2 - 176 * scale;
+    cy.wrap($canvas).trigger("pointermove", {
+      pointerId: 1,
+      clientX: bounds.left + x,
+      clientY: bounds.top + y,
+    });
+    cy.wrap($canvas).should(($element) => {
+      expect($element[0].style.cursor).to.equal("pointer");
+    });
+    cy.wrap($canvas).click(x, y);
+  });
+}
+
+describe("Collectible inventory", () => {
+  beforeEach(() => {
+    cy.visit("/?movement-test=inventory", {
+      onBeforeLoad(window) {
+        window.sessionStorage.removeItem("hero-configuration");
+      },
+    });
+    cy.get('.background-canvas[data-game-ready="true"]', {
+      timeout: 30000,
+    }).should("be.visible");
+  });
+
+  it("restores an open inventory on the normal game route", () => {
+    cy.visit("/", {
+      onBeforeLoad(window) {
+        window.sessionStorage.removeItem("hero-configuration");
+      },
+    });
+    cy.get('.background-canvas[data-game-ready="true"]', {
+      timeout: 30000,
+    }).should("be.visible");
+    pressKey("KeyI");
+    cy.window().should((window) => {
+      const state = JSON.parse(
+        window.sessionStorage.getItem("hero-configuration"),
+      );
+      expect(state.inventory.visible).to.equal(true);
+    });
+    cy.reload();
+    cy.get('.background-canvas[data-game-ready="true"]', {
+      timeout: 30000,
+    }).should("be.visible");
+    cy.window().should((window) => {
+      const state = JSON.parse(
+        window.sessionStorage.getItem("hero-configuration"),
+      );
+      expect(state.inventory.visible).to.equal(true);
+    });
+    clickInventoryCloseButton();
+    cy.window().should((window) => {
+      const state = JSON.parse(
+        window.sessionStorage.getItem("hero-configuration"),
+      );
+      expect(state.inventory.visible).to.equal(false);
+    });
+  });
+
+  it("collects flowers and mushrooms into a twelve-slot inventory", () => {
+    cy.get(".interaction-prompt").should("contain.text", "Collect flowers");
+
+    collectItem(1, HERO_ANIMATION.PICK_FLOWER);
+    cy.window().should((window) => {
+      const [flower] = window.gameMovementTest.state().inventory.items;
+      expect(flower.modelUrl).to.include(`${flower.variant}.glb`);
+      expect(window.gameMovementTest.state().position.z).to.be.lessThan(-0.1);
+    });
+    cy.get(".interaction-prompt").should("contain.text", "Collect");
+
+    pressKey("KeyI");
+    cy.get(".interaction-prompt").should("not.exist");
+    cy.window().should((window) => {
+      expect(window.gameMovementTest.state().inventory).to.deep.include({
+        capacity: 12,
+        visible: true,
+      });
+      expect(window.gameMovementTest.state().inventory.items).to.have.length(1);
+    });
+    pressKey("KeyE");
+    cy.window().should((window) => {
+      expect(window.gameMovementTest.state().inventory.items).to.have.length(1);
+    });
+    pressKey("Escape");
+    cy.get(".interaction-prompt")
+      .invoke("text")
+      .then((label) => {
+        const animation = label.includes("mushroom")
+          ? HERO_ANIMATION.PICK_MUSHROOM
+          : HERO_ANIMATION.PICK_FLOWER;
+        collectItem(2, animation);
+      });
+    for (let expectedCount = 3; expectedCount <= 12; expectedCount += 1) {
+      cy.get(".interaction-prompt")
+        .invoke("text")
+        .then((label) => {
+          const animation = label.includes("mushroom")
+            ? HERO_ANIMATION.PICK_MUSHROOM
+            : HERO_ANIMATION.PICK_FLOWER;
+          collectItem(expectedCount, animation);
+        });
+    }
+
+    pressKey("KeyI");
+    cy.window().should((window) => {
+      expect(window.gameMovementTest.state().inventory).to.deep.include({
+        capacity: 12,
+        visible: true,
+      });
+      expect(window.gameMovementTest.state().inventory.items).to.have.length(12);
+    });
+    clickInventoryCloseButton();
+
+    cy.get(".interaction-prompt")
+      .invoke("text")
+      .then((label) => {
+        const animation = label.includes("mushroom")
+          ? HERO_ANIMATION.PICK_MUSHROOM
+          : HERO_ANIMATION.PICK_FLOWER;
+        pressKey("KeyE");
+        cy.window({ timeout: 3000 }).should((window) => {
+          expect(window.gameMovementTest.state().animation).to.equal(animation);
+        });
+      });
+    cy.contains(".q-notification", "Your inventory is full.", {
+      timeout: 3000,
+    }).should(
+      "be.visible",
+    );
+    cy.window().should((window) => {
+      expect(window.gameMovementTest.state().inventory.items).to.have.length(12);
+      expect(window.gameMovementTest.state().inventory.visible).to.equal(false);
+    });
+  });
+
+  it("collects a flower when the hero overlaps its visible footprint", () => {
+    cy.window().then((window) => {
+      window.gameMovementTest.loadScenario("inventory-overlap");
+    });
+    cy.window().should((window) => {
+      expect(window.gameMovementTest.state().grounded).to.equal(true);
+    });
+    cy.get(".interaction-prompt").should("contain.text", "Collect flowers");
+    cy.window().then((window) => {
+      expect(window.gameMovementTest.interact()).to.equal(true);
+    });
+    cy.window({ timeout: 3000 }).should((window) => {
+      expect(window.gameMovementTest.state().inventory.items).to.have.length(1);
+      expect(window.gameMovementTest.state().position.z).to.be.greaterThan(
+        0.1,
+      );
+    });
+  });
+
+  it("collects only the overlapping flower in front of the hero", () => {
+    cy.window().then((window) => {
+      window.gameMovementTest.loadScenario("inventory-direction");
+    });
+    cy.window().should((window) => {
+      expect(window.gameMovementTest.state().grounded).to.equal(true);
+    });
+    cy.get(".interaction-prompt").should("contain.text", "Collect flowers");
+    cy.window().then((window) => {
+      expect(window.gameMovementTest.interact()).to.equal(true);
+    });
+    cy.window({ timeout: 3000 }).should((window) => {
+      const [flower] = window.gameMovementTest.state().inventory.items;
+      expect(flower.variant).to.equal("daisy-patch");
+    });
+  });
+
+  it("steps into knife range before collecting a mushroom", () => {
+    cy.window().then((window) => {
+      window.gameMovementTest.loadScenario("inventory-mushroom");
+    });
+    cy.get(".interaction-prompt").should("contain.text", "Collect mushroom");
+    cy.window().then((window) => {
+      expect(window.gameMovementTest.interact()).to.equal(true);
+    });
+    cy.window({ timeout: 3000 }).should((window) => {
+      const state = window.gameMovementTest.state();
+      expect(state.inventory.items).to.have.length(1);
+      expect(state.position.z).to.be.greaterThan(0.2);
+    });
+  });
+
+  it("keeps collected items when the hero is recreated and the page reloads", () => {
+    collectItem(1, HERO_ANIMATION.PICK_FLOWER);
+    cy.window().then((window) => {
+      window.gameMovementTest.loadScenario("inventory-overlap");
+    });
+    cy.window().should((window) => {
+      expect(window.gameMovementTest.state().inventory.items).to.have.length(1);
+    });
+    pressKey("KeyI");
+    cy.window().should((window) => {
+      expect(window.gameMovementTest.state().inventory.visible).to.equal(true);
+      const persistedState = JSON.parse(
+        window.sessionStorage.getItem("hero-configuration"),
+      );
+      expect(persistedState.inventory.visible).to.equal(true);
+    });
+
+    cy.reload();
+    cy.get('.background-canvas[data-game-ready="true"]', {
+      timeout: 30000,
+    }).should("be.visible");
+    cy.window().should((window) => {
+      const [flower] = window.gameMovementTest.state().inventory.items;
+      expect(flower.variant).to.equal("daisy-patch");
+      expect(window.gameMovementTest.state().inventory).to.deep.include({
+        capacity: 12,
+        visible: true,
+      });
+    });
+    cy.get(".interaction-prompt").should("not.exist");
+  });
+});
