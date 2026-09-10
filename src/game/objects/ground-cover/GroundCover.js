@@ -139,11 +139,20 @@ export class GroundCover {
   #heroInfluence = 0;
 
   #onCollect;
+  #onCollectibleRemoved;
   #tool = null;
 
-  constructor({ pc, app, mapData, modelLibrary, onCollect = () => false }) {
+  constructor({
+    pc,
+    app,
+    mapData,
+    modelLibrary,
+    onCollect = () => false,
+    onCollectibleRemoved = () => {},
+  }) {
     this.#pc = pc;
     this.#onCollect = onCollect;
+    this.#onCollectibleRemoved = onCollectibleRemoved;
     this.#entity = new pc.Entity("GPU-instanced interactive ground cover");
     this.#createMaterials();
     this.#buildGroundCover(mapData, modelLibrary);
@@ -460,7 +469,14 @@ export class GroundCover {
         definition.interactionRadius * decoration.scale,
       position,
       onCollect: this.#onCollect,
-      onHide,
+      onHide: () => {
+        onHide();
+        this.#onCollectibleRemoved({
+          col: decoration.col,
+          row: decoration.row,
+          category: definition.category,
+        });
+      },
       createHeldItem: () =>
         new GroundCoverHeldItem({
           pc: this.#pc,

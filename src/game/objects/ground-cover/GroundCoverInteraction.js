@@ -14,7 +14,11 @@ export class GroundCoverInteraction {
   }
 
   get canInteract() {
-    return this.#collectible.canInteract && !this.#hero.isCollecting;
+    return (
+      this.#collectible.canInteract &&
+      !this.#hero.isCollecting &&
+      !this.#hero.isRefusingInventoryPickup
+    );
   }
 
   get description() {
@@ -24,6 +28,21 @@ export class GroundCoverInteraction {
   interact() {
     if (!this.canInteract) {
       return false;
+    }
+
+    if (this.#hero.inventoryFull) {
+      const started = this.#hero.refuseInventoryPickup(
+        this.#collectible.category,
+        {
+          targetPosition: this.#collectible.position,
+          targetRadius: this.#collectible.interactionRadius,
+          onComplete: this.#onComplete,
+        },
+      );
+      if (started) {
+        this.#onChange?.();
+      }
+      return started;
     }
 
     const started = this.#hero.collectGroundCover(

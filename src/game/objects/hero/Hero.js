@@ -89,6 +89,9 @@ const FOOT_HALF_WIDTH = 0.11;
 const FOOT_REQUIRED_PERIMETER_SUPPORTS = 5;
 const EDGE_REFUSAL_DURATION = 0.8;
 const HOLE_REFUSAL_DURATION = 1.45;
+const INVENTORY_FULL_COLLAPSE_DURATION = 52 / 24;
+const INVENTORY_FULL_EFFECT_TIME = 14 / 24;
+const INVENTORY_FULL_INDICATOR_CLEARANCE = 0.82;
 const HOLE_LOOK_DOWN_ANGLE = 27;
 const HOLE_HEAD_SHAKE_ANGLE = 18;
 const LANDING_BACKTRACK_STEP = 0.025;
@@ -132,7 +135,7 @@ const PICK_FLOWER_MINIMUM_DISTANCE = 0.52;
 const PICK_FLOWER_MAXIMUM_DISTANCE = 0.68;
 const PICK_FLOWER_RADIUS_CLEARANCE = 0.28;
 const PICK_FLOWER_MAXIMUM_FORWARD_STEP = 0.22;
-const PICK_FLOWER_MAXIMUM_BACKWARD_STEP = 0.18;
+const PICK_FLOWER_MAXIMUM_BACKWARD_STEP = PICK_FLOWER_MAXIMUM_DISTANCE;
 const PICK_MUSHROOM_DURATION = 40 / 24;
 const PICK_MUSHROOM_IMPACT_TIME = 18 / 24;
 const PICK_MUSHROOM_HIDE_TIME = 35 / 24;
@@ -196,6 +199,7 @@ export class Hero {
   #updateHandle = null;
   #toolAction = null;
   #collectAction = null;
+  #inventoryFullAction = null;
   #tool = null;
   #repelAction = null;
   #dodgeAction = null;
@@ -272,6 +276,10 @@ export class Hero {
     return this.#collectAction !== null;
   }
 
+  get isRefusingInventoryPickup() {
+    return this.#inventoryFullAction !== null;
+  }
+
   get tool() {
     return this.#tool;
   }
@@ -284,6 +292,22 @@ export class Hero {
     return {
       capacity: this.#inventory.inventory.capacity,
       items: this.#inventory.inventory.items.map((item) => ({ ...item })),
+    };
+  }
+
+  get inventoryFull() {
+    return (
+      this.#inventory.inventory.items.length >=
+      this.#inventory.inventory.capacity
+    );
+  }
+
+  get inventoryFullIndicatorPosition() {
+    const anchor = this.#headEntity?.getPosition() ?? this.#entity.getPosition();
+    return {
+      x: anchor.x,
+      y: anchor.y + INVENTORY_FULL_INDICATOR_CLEARANCE,
+      z: anchor.z,
     };
   }
 
@@ -363,6 +387,7 @@ export class Hero {
       this.#fallingToDeath ||
       this.#toolAction ||
       this.#collectAction ||
+      this.#inventoryFullAction ||
       this.#repelAction ||
       this.#holeRefusalAction
     ) {
@@ -387,6 +412,7 @@ export class Hero {
       !this.#grounded ||
       this.#toolAction ||
       this.#collectAction ||
+      this.#inventoryFullAction ||
       this.#repelAction ||
       this.#edgeRefusalAction ||
       this.#holeRefusalAction
@@ -444,6 +470,7 @@ export class Hero {
       !this.#grounded ||
       this.#toolAction ||
       this.#collectAction ||
+      this.#inventoryFullAction ||
       this.#repelAction ||
       this.#edgeRefusalAction ||
       this.#holeRefusalAction
@@ -493,6 +520,7 @@ export class Hero {
       !this.#grounded ||
       this.#toolAction ||
       this.#collectAction ||
+      this.#inventoryFullAction ||
       this.#repelAction ||
       this.#dodgeAction ||
       this.#edgeRefusalAction ||
@@ -537,6 +565,7 @@ export class Hero {
       elapsed: 0,
       impacted: false,
       positioning,
+      positioningElapsed: 0,
       tool: collectionTool,
       heldItem,
       heldItemAttachmentEntity: picksMushroom
@@ -569,6 +598,59 @@ export class Hero {
     }
 
     this.#emitState();
+    return true;
+  }
+
+  refuseInventoryPickup(
+    category,
+    {
+      targetPosition = null,
+      targetRadius = 0,
+      onComplete = null,
+    } = {},
+  ) {
+    if (
+      !this.inventoryFull ||
+      this.#gameOver ||
+      this.#respawnAction ||
+      this.#fallingToDeath ||
+      !this.#grounded ||
+      this.#toolAction ||
+      this.#collectAction ||
+      this.#inventoryFullAction ||
+      this.#repelAction ||
+      this.#dodgeAction ||
+      this.#edgeRefusalAction ||
+      this.#holeRefusalAction
+    ) {
+      return false;
+    }
+    let positioning = null;
+    if (targetPosition) {
+      const targetX = targetPosition.x - this.#position.x;
+      const targetZ = targetPosition.z - this.#position.z;
+      const targetDistance = Math.hypot(targetX, targetZ);
+      if (targetDistance > 0.001) {
+        this.#facingYaw = (Math.atan2(targetX, targetZ) * 180) / Math.PI;
+      }
+      positioning = this.#collectionPositioning({
+        picksMushroom: category === "mushroom",
+        targetPosition,
+        targetRadius,
+        targetDistance,
+      });
+    }
+    this.#inventoryFullAction = {
+      elapsed: 0,
+      notified: false,
+      positioning,
+      positioningElapsed: 0,
+      onComplete,
+    };
+    this.#velocity.x = 0;
+    this.#velocity.z = 0;
+    this.#restartAnimation = true;
+    this.#resetBoredom();
     return true;
   }
 
@@ -633,6 +715,7 @@ export class Hero {
     this.#animationState = null;
     this.#toolAction = null;
     this.#collectAction = null;
+    this.#inventoryFullAction = null;
     this.#tool = null;
     this.#repelAction = null;
     this.#dodgeAction = null;
@@ -663,6 +746,7 @@ export class Hero {
     const previousZ = this.#position.z;
     this.#advanceToolAction(deltaTime);
     this.#advanceCollectAction(deltaTime);
+    this.#advanceInventoryFullAction(deltaTime);
     this.#advanceRepelAction(deltaTime);
     this.#advanceDodgeAction(deltaTime);
     this.#advanceRespawnAction(deltaTime);
@@ -694,7 +778,9 @@ export class Hero {
         ? { x: this.#velocity.x, z: this.#velocity.z }
         : this.#edgeRefusalAction || this.#holeRefusalAction
           ? { x: 0, z: 0 }
-          : this.#toolAction || this.#collectAction
+          : this.#toolAction ||
+              this.#collectAction ||
+              this.#inventoryFullAction
             ? { x: 0, z: 0 }
             : this.#repelAction
               ? {
@@ -731,6 +817,7 @@ export class Hero {
       !this.#fallingToDeath &&
       !this.#toolAction &&
       !this.#collectAction &&
+      !this.#inventoryFullAction &&
       !this.#repelAction &&
       this.#jumpBufferRemaining > 0 &&
       (canGroundJump || canAirJump)
@@ -1779,6 +1866,7 @@ export class Hero {
     }
     this.#collectAction?.heldItem?.destroy();
     this.#collectAction = null;
+    this.#inventoryFullAction = null;
     this.#fallingToDeath = true;
     this.#edgeRefusalAction = null;
     this.#holeRefusalAction = null;
@@ -1882,11 +1970,21 @@ export class Hero {
     } else if (refusingHole) {
       animation = HERO_ANIMATION.HOLE_REFUSAL;
       this.#resetBoredom();
+    } else if (this.#inventoryFullAction) {
+      animation = this.#inventoryFullAction.positioning
+        ? HERO_ANIMATION.WALK
+        : HERO_ANIMATION.INVENTORY_FULL_COLLAPSE;
+      animationSpeed =
+        this.#inventoryFullAction.positioning?.animationSpeed ?? 1;
+      this.#resetBoredom();
     } else if (this.#toolAction) {
       animation = this.#toolAnimationName();
       this.#resetBoredom();
     } else if (this.#collectAction) {
-      animation = this.#collectAction.animation;
+      animation = this.#collectAction.positioning
+        ? HERO_ANIMATION.WALK
+        : this.#collectAction.animation;
+      animationSpeed = this.#collectAction.positioning?.animationSpeed ?? 1;
       this.#resetBoredom();
     } else if (this.#repelAction) {
       animation = HERO_ANIMATION.REPELLED;
@@ -1982,6 +2080,7 @@ export class Hero {
       !this.#grounded ||
       this.#toolAction ||
       this.#collectAction ||
+      this.#inventoryFullAction ||
       this.#repelAction ||
       this.#dodgeAction ||
       this.#holeRefusalAction ||
@@ -2137,8 +2236,10 @@ export class Hero {
       return;
     }
     const action = this.#collectAction;
+    if (this.#advanceCollectionPositioning(action, deltaTime)) {
+      return;
+    }
     action.elapsed += deltaTime;
-    this.#advanceCollectionPositioning(action);
     if (!action.impacted && action.elapsed >= action.impactTime) {
       action.impacted = true;
       const collected = action.onImpact?.() === true;
@@ -2167,6 +2268,27 @@ export class Hero {
     }
     action.heldItem?.destroy();
     this.#collectAction = null;
+    this.#restartAnimation = true;
+    action.onComplete?.();
+  }
+
+  #advanceInventoryFullAction(deltaTime) {
+    if (!this.#inventoryFullAction) {
+      return;
+    }
+    const action = this.#inventoryFullAction;
+    if (this.#advanceCollectionPositioning(action, deltaTime)) {
+      return;
+    }
+    action.elapsed += deltaTime;
+    if (!action.notified && action.elapsed >= INVENTORY_FULL_EFFECT_TIME) {
+      action.notified = true;
+      this.#onInventoryFull?.(this.inventory);
+    }
+    if (action.elapsed < INVENTORY_FULL_COLLAPSE_DURATION) {
+      return;
+    }
+    this.#inventoryFullAction = null;
     this.#restartAnimation = true;
     action.onComplete?.();
   }
@@ -2208,6 +2330,7 @@ export class Hero {
           }
         : this.facingDirection;
     return {
+      animationSpeed: 0.8,
       startX: this.#position.x,
       startZ: this.#position.z,
       targetX: this.#position.x + direction.x * stepDistance,
@@ -2215,13 +2338,14 @@ export class Hero {
     };
   }
 
-  #advanceCollectionPositioning(action) {
+  #advanceCollectionPositioning(action, deltaTime) {
     if (!action.positioning) {
-      return;
+      return false;
     }
+    action.positioningElapsed += deltaTime;
     const progress = Math.min(
       1,
-      action.elapsed / PICKUP_POSITIONING_DURATION,
+      action.positioningElapsed / PICKUP_POSITIONING_DURATION,
     );
     const easedProgress = progress * progress * (3 - 2 * progress);
     const nextX =
@@ -2234,13 +2358,18 @@ export class Hero {
         easedProgress;
     if (this.#occupancyAt(nextX, nextZ) !== OCCUPANCY.open) {
       action.positioning = null;
-      return;
+      action.positioningElapsed = 0;
+      this.#restartAnimation = true;
+      return true;
     }
     this.#position.x = nextX;
     this.#position.z = nextZ;
     if (progress >= 1) {
       action.positioning = null;
+      action.positioningElapsed = 0;
+      this.#restartAnimation = true;
     }
+    return true;
   }
 
   #toolAnimationName() {

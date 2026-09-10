@@ -420,6 +420,7 @@ export class PlayCanvasRenderer {
         AxeTool.modelUrl,
         KnifeTool.modelUrl,
         ShovelTool.modelUrl,
+        InventoryHud.modelUrl,
         Gateway.modelUrl,
         ...Castle.modelUrls,
         ...GroundCover.modelUrls,
@@ -557,6 +558,10 @@ export class PlayCanvasRenderer {
 
   get inventoryVisible() {
     return this.#inventoryHud?.visible ?? false;
+  }
+
+  get inventoryFullReactionVisible() {
+    return this.#inventoryHud?.fullReactionVisible ?? false;
   }
 
   get thrownInventoryItemCount() {
@@ -1199,7 +1204,7 @@ export class PlayCanvasRenderer {
       onPositionChange: this.#handleHeroPositionChange,
       onFacingChange: this.#handleHeroFacingChange,
       onStateChange: this.#handleHeroStateChange,
-      onInventoryFull: this.#onInventoryFull,
+      onInventoryFull: this.#handleInventoryFull,
       inventory: this.#heroConfiguration,
       getGatewayRepulsion: this.#getGatewayRepulsion,
       collisionWorld: this.#collisionWorld,
@@ -1252,6 +1257,8 @@ export class PlayCanvasRenderer {
       pc: this.#pc,
       mapData: this.#mapData,
       modelLibrary: this.#modelLibrary,
+      onVegetationRemoved: (vegetation) =>
+        this.#buriedTreasure?.removeVegetation(vegetation),
     });
     this.#collisionWorld.add(this.#vegetation);
     this.#mapRoot.addChild(this.#vegetation.entity);
@@ -1265,6 +1272,8 @@ export class PlayCanvasRenderer {
       modelLibrary: this.#modelLibrary,
       onCollect: (item) =>
         this.#hero?.collectInventoryItem(item) ?? false,
+      onCollectibleRemoved: (groundCover) =>
+        this.#buriedTreasure?.removeGroundCover(groundCover),
     });
     this.#mapRoot.addChild(this.#groundCover.entity);
   }
@@ -1431,11 +1440,32 @@ export class PlayCanvasRenderer {
 
   #updateFrame = (deltaTime) => {
     this.#syncInventoryVisibility();
+    this.#inventoryHud?.update(
+      deltaTime,
+      this.#inventoryFullIndicatorScreenPosition(),
+    );
     this.#updateThrownInventoryItems(deltaTime);
     this.#cloudField?.update(deltaTime);
     this.#updateHeroCameraReturn(deltaTime);
     this.#updateGameOverCamera(deltaTime);
   };
+
+  #handleInventoryFull = (inventory) => {
+    this.#inventoryHud?.showFullReaction(
+      this.#inventoryFullIndicatorScreenPosition(),
+    );
+    this.#onInventoryFull?.(inventory);
+  };
+
+  #inventoryFullIndicatorScreenPosition() {
+    if (!this.#hero || !this.#camera?.camera) {
+      return null;
+    }
+    const position = this.#hero.inventoryFullIndicatorPosition;
+    return this.#camera.camera.worldToScreen(
+      new this.#pc.Vec3(position.x, position.y, position.z),
+    );
+  }
 
   #updateThrownInventoryItems(deltaTime) {
     const remainingItems = [];

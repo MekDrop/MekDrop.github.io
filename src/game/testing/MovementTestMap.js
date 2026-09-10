@@ -30,6 +30,21 @@ export class MovementTestMap {
           },
         ];
         break;
+      case "inventory-on-flower":
+        this.#paint(mapData, 1, 2, 7, 4, 2);
+        mapData.groundCoverData = [
+          {
+            col: this.#SPAWN_COL,
+            row: this.#SPAWN_ROW,
+            variant: "daisy-patch",
+            offsetX: 0,
+            offsetZ: 0,
+            rotation: 0,
+            scale: 1,
+            phase: 0,
+          },
+        ];
+        break;
       case "inventory-mushroom":
         this.#paint(mapData, 1, 2, 7, 4, 2);
         mapData.groundCoverData = [
@@ -42,6 +57,32 @@ export class MovementTestMap {
             rotation: 0,
             scale: 1,
             phase: 0,
+          },
+        ];
+        break;
+      case "inventory-mushroom-dig":
+        this.#paint(mapData, 1, 2, 7, 4, 2);
+        mapData.groundCoverData = [
+          {
+            col: this.#SPAWN_COL,
+            row: this.#SPAWN_ROW + 1,
+            variant: "red-mushroom",
+            offsetX: 0,
+            offsetZ: -0.2,
+            rotation: 0,
+            scale: 1,
+            phase: 0,
+          },
+        ];
+        break;
+      case "tree-dig":
+        this.#paint(mapData, 1, 2, 7, 4, 2);
+        mapData.vegetationData = [
+          {
+            col: this.#SPAWN_COL,
+            row: this.#SPAWN_ROW + 1,
+            variant: "oak",
+            rotation: 0,
           },
         ];
         break;

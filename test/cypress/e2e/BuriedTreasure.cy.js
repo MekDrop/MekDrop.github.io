@@ -12,6 +12,18 @@ describe("Buried treasure", () => {
     }).should("be.visible");
   });
 
+  it("allows digging after chopping down a tree", () => {
+    cy.window().then((window) => {
+      window.gameMovementTest.loadScenario("tree-dig");
+    });
+    cy.get(".interaction-prompt").should("contain.text", "Chop tree");
+    pressKey("KeyE");
+    cy.get(".interaction-prompt", { timeout: 10000 }).should(
+      "contain.text",
+      "Dig for treasure",
+    );
+  });
+
   it("digs up a chest, opens it, and collects medieval coins", () => {
     cy.window().should((window) => {
       expect(window.gameMovementTest.state().wallet).to.deep.equal({

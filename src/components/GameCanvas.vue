@@ -292,6 +292,9 @@ function installMovementTestDriver() {
     droppedInventoryItemCount() {
       return renderer.thrownInventoryItemCount;
     },
+    inventoryFullReactionVisible() {
+      return renderer.inventoryFullReactionVisible;
+    },
     state() {
       return renderer.heroState;
     },
@@ -355,14 +358,6 @@ async function init() {
       heroLives.value = state.lives;
       maxHeroLives.value = state.maxLives;
       gameOver.value = state.gameOver;
-    },
-    onInventoryFull: () => {
-      Notify.create({
-        type: "warning",
-        position: "bottom-right",
-        message: t("game.inventory.full"),
-        timeout: 1800,
-      });
     },
     onViewportChange: scheduleViewportSave,
     translate: (key, values) => t(key, values),

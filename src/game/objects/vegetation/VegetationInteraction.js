@@ -4,13 +4,15 @@ export class VegetationInteraction {
   #tool;
   #onChange;
   #onComplete;
+  #onDestroyed;
 
-  constructor({ item, hero, tool, onChange, onComplete }) {
+  constructor({ item, hero, tool, onChange, onComplete, onDestroyed }) {
     this.#item = item;
     this.#hero = hero;
     this.#tool = tool;
     this.#onChange = onChange;
     this.#onComplete = onComplete;
+    this.#onDestroyed = onDestroyed;
   }
 
   get canInteract() {
@@ -47,6 +49,9 @@ export class VegetationInteraction {
       context: { heightClass: target.heightClass },
       onImpact: () => {
         const result = this.#item.interact();
+        if (result?.destroyed) {
+          this.#onDestroyed?.(result);
+        }
         this.#onChange?.();
         return result?.destroyed ?? true;
       },

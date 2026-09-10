@@ -28,9 +28,16 @@ export class VoxelVegetation {
   #entity;
   #items = [];
   #tool = null;
+  #onVegetationRemoved;
 
-  constructor({ pc, mapData, modelLibrary }) {
+  constructor({
+    pc,
+    mapData,
+    modelLibrary,
+    onVegetationRemoved = () => {},
+  }) {
     this.#entity = new pc.Entity("Voxel vegetation");
+    this.#onVegetationRemoved = onVegetationRemoved;
 
     for (const vegetation of mapData.vegetationData ?? []) {
       const VegetationType = VEGETATION_TYPES[vegetation.variant];
@@ -50,7 +57,11 @@ export class VoxelVegetation {
         rotation: vegetation.rotation ?? 0,
       });
       this.#entity.addChild(item.entity);
-      this.#items.push(item);
+      this.#items.push({
+        item,
+        col: vegetation.col,
+        row: vegetation.row,
+      });
     }
   }
 
@@ -75,7 +86,7 @@ export class VoxelVegetation {
     const position = hero.position;
     const facingDirection = hero.facingDirection;
     let closest = null;
-    for (const item of this.#items) {
+    for (const { item, col, row } of this.#items) {
       if (!item.canInteract) {
         continue;
       }
@@ -97,7 +108,7 @@ export class VoxelVegetation {
       if (distance > reach || (closest && distance >= closest.distance)) {
         continue;
       }
-      closest = { item, distance };
+      closest = { item, col, row, distance };
     }
     return closest
       ? new VegetationInteraction({
@@ -106,12 +117,18 @@ export class VoxelVegetation {
           tool: this.#tool,
           onChange,
           onComplete,
+          onDestroyed: ({ kind }) =>
+            this.#onVegetationRemoved({
+              col: closest.col,
+              row: closest.row,
+              kind,
+            }),
         })
       : null;
   }
 
   intersectsGroundFootprint(x, z, radius = 0) {
-    return this.#items.some((item) =>
+    return this.#items.some(({ item }) =>
       item.intersectsGroundFootprint(x, z, radius),
     );
   }
@@ -142,7 +159,7 @@ export class VoxelVegetation {
     stepClearance = 0,
   ) {
     return this.#items.reduce(
-      (total, item) =>
+      (total, { item }) =>
         total +
         item.collisionDepthAt(
           x,
@@ -157,7 +174,7 @@ export class VoxelVegetation {
 
   surfaceHeightAt(x, z, radius = 0) {
     let highestSurface = null;
-    for (const item of this.#items) {
+    for (const { item } of this.#items) {
       const surfaceHeight = item.surfaceHeightAt(x, z, radius);
       if (!Number.isFinite(surfaceHeight)) continue;
       highestSurface =

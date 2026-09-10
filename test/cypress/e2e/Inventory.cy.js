@@ -178,22 +178,45 @@ describe("Collectible inventory", () => {
     });
     clickInventoryCloseButton();
 
-    cy.get(".interaction-prompt")
-      .invoke("text")
-      .then((label) => {
-        const animation = label.includes("mushroom")
-          ? HERO_ANIMATION.PICK_MUSHROOM
-          : HERO_ANIMATION.PICK_FLOWER;
-        pressKey("KeyE");
-        cy.window({ timeout: 3000 }).should((window) => {
-          expect(window.gameMovementTest.state().animation).to.equal(animation);
-        });
-      });
-    cy.contains(".q-notification", "Your inventory is full.", {
-      timeout: 3000,
-    }).should(
-      "be.visible",
-    );
+    cy.window().then((window) => {
+      window.gameMovementTest.loadScenario("inventory-on-flower");
+    });
+    cy.get(".interaction-prompt").should("contain.text", "Collect flowers");
+
+    pressKey("KeyE");
+    cy.window({ timeout: 3000 }).should((window) => {
+      expect(window.gameMovementTest.state().animation).to.equal(
+        HERO_ANIMATION.WALK,
+      );
+      expect(window.gameMovementTest.inventoryFullReactionVisible()).to.equal(
+        false,
+      );
+    });
+    cy.window({ timeout: 3000 }).should((window) => {
+      expect(window.gameMovementTest.state().animation).to.equal(
+        HERO_ANIMATION.INVENTORY_FULL_COLLAPSE,
+      );
+    });
+    cy.window({ timeout: 1500 }).should((window) => {
+      expect(window.gameMovementTest.inventoryFullReactionVisible()).to.equal(
+        true,
+      );
+      const { position } = window.gameMovementTest.state();
+      expect(Math.hypot(position.x, position.z)).to.be.greaterThan(0.5);
+    });
+    cy.window({ timeout: 3500 }).should((window) => {
+      expect(window.gameMovementTest.state().animation).to.equal(
+        HERO_ANIMATION.IDLE,
+      );
+    });
+    cy.get(".interaction-prompt").should("contain.text", "Collect");
+    pressKey("KeyE");
+    cy.window({ timeout: 3000 }).should((window) => {
+      expect(window.gameMovementTest.state().animation).to.equal(
+        HERO_ANIMATION.INVENTORY_FULL_COLLAPSE,
+      );
+    });
+    cy.get(".q-notification").should("not.exist");
     cy.window().should((window) => {
       expect(window.gameMovementTest.state().inventory.items).to.have.length(12);
       expect(window.gameMovementTest.state().inventory.visible).to.equal(false);
@@ -278,6 +301,27 @@ describe("Collectible inventory", () => {
         0.1,
       );
     });
+    cy.get(".interaction-prompt", { timeout: 3000 }).should(
+      "contain.text",
+      "Dig for treasure",
+    );
+  });
+
+  it("steps fully back before collecting a flower beneath the hero", () => {
+    cy.window().then((window) => {
+      window.gameMovementTest.loadScenario("inventory-on-flower");
+    });
+    cy.get(".interaction-prompt").should("contain.text", "Collect flowers");
+    cy.window().then((window) => {
+      expect(window.gameMovementTest.interact()).to.equal(true);
+    });
+    cy.window({ timeout: 3000 }).should((window) => {
+      const state = window.gameMovementTest.state();
+      expect(state.inventory.items).to.have.length(1);
+      expect(Math.hypot(state.position.x, state.position.z)).to.be.greaterThan(
+        0.5,
+      );
+    });
   });
 
   it("collects only the overlapping flower in front of the hero", () => {
@@ -310,6 +354,18 @@ describe("Collectible inventory", () => {
       expect(state.inventory.items).to.have.length(1);
       expect(state.position.z).to.be.greaterThan(0.2);
     });
+  });
+
+  it("allows digging after collecting a mushroom", () => {
+    cy.window().then((window) => {
+      window.gameMovementTest.loadScenario("inventory-mushroom-dig");
+    });
+    cy.get(".interaction-prompt").should("contain.text", "Collect mushroom");
+    collectItem(1, HERO_ANIMATION.PICK_MUSHROOM);
+    cy.get(".interaction-prompt", { timeout: 3000 }).should(
+      "contain.text",
+      "Dig for treasure",
+    );
   });
 
   it("keeps collected items when the hero is recreated and the page reloads", () => {

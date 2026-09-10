@@ -12,6 +12,10 @@ import { FillHoleInteraction } from "./FillHoleInteraction.js";
 import { TreasureChestInteraction } from "./TreasureChestInteraction.js";
 
 const TREASURE_CHANCE = 0.6;
+const HARVESTED_FLOWER_REWARD_MULTIPLIER = 5;
+const HARVESTED_MUSHROOM_REWARD_MULTIPLIER = 0.8;
+const FELLED_TREE_TREASURE_CHANCE = 0.02;
+const FELLED_TREE_REWARD_MULTIPLIER = 3.5;
 const MINIMUM_FACING_DOT = Math.cos((50 * Math.PI) / 180);
 const INTERACTION_REACH = 1.18;
 const HOLE_INITIAL_SCALE = 0.42;
@@ -21,11 +25,10 @@ const CHEST_OPEN_DURATION = 0.62;
 const CHEST_FADE_DURATION = 0.82;
 const CHEST_COLLISION_RADIUS = 0.3;
 const HOLE_COLLISION_RADIUS = 0.3;
-const COIN_COLLECTION_RADIUS = 0.72;
 const COIN_COLLECTION_DURATION = 0.68;
-const COIN_MAGNET_DELAY = 0.42;
-const COIN_MAGNET_STAGGER = 0.065;
-const COIN_GRAVITY = -4.8;
+const COIN_SKY_FLIGHT_DURATION = 0.72;
+const COIN_SKY_STAGGER = 0.035;
+const COIN_SKY_HEIGHT = 1.75;
 const FILL_CLOD_COUNT = 9;
 const FILL_CLOD_DURATION = 0.52;
 const FILL_CLOD_STAGGER = 0.035;
@@ -52,8 +55,11 @@ export class BuriedTreasureField {
   #entity;
   #tool = null;
   #dugTiles = new Set();
-  #vegetationTiles;
-  #groundCoverTiles;
+  #vegetationTileCounts = new Map();
+  #groundCoverTileCounts = new Map();
+  #harvestedFlowerTiles = new Set();
+  #harvestedMushroomTiles = new Set();
+  #felledTreeTiles = new Set();
   #sites = [];
   #coins = [];
   #fillClods = [];
@@ -78,16 +84,20 @@ export class BuriedTreasureField {
     this.#onCollectCoin = onCollectCoin;
     this.#onInteractionChange = onInteractionChange;
     this.#entity = new pc.Entity("Buried treasure field");
-    this.#vegetationTiles = new Set(
-      (mapData.vegetationData ?? []).map(({ col, row }) =>
-        this.#tileKey(col, row),
-      ),
-    );
-    this.#groundCoverTiles = new Set(
-      (mapData.groundCoverData ?? []).map(({ col, row }) =>
-        this.#tileKey(col, row),
-      ),
-    );
+    for (const { col, row } of mapData.vegetationData ?? []) {
+      const key = this.#tileKey(col, row);
+      this.#vegetationTileCounts.set(
+        key,
+        (this.#vegetationTileCounts.get(key) ?? 0) + 1,
+      );
+    }
+    for (const { col, row } of mapData.groundCoverData ?? []) {
+      const key = this.#tileKey(col, row);
+      this.#groundCoverTileCounts.set(
+        key,
+        (this.#groundCoverTileCounts.get(key) ?? 0) + 1,
+      );
+    }
     this.#createMaterials();
     this.#updateHandle = app.on("update", this.#update);
   }
@@ -193,7 +203,8 @@ export class BuriedTreasureField {
       }
       existingSite.state = "expanding";
       existingSite.elapsed = 0;
-      existingSite.hasTreasure = Math.random() < TREASURE_CHANCE;
+      existingSite.hasTreasure =
+        Math.random() < existingSite.treasureChance;
       return true;
     }
     if (this.#dugTiles.has(target.id)) {
@@ -201,6 +212,7 @@ export class BuriedTreasureField {
     }
 
     this.#dugTiles.add(target.id);
+    const rewardProfile = this.#rewardProfileFor(target.id);
     const site = {
       id: target.id,
       col: target.col,
@@ -220,6 +232,8 @@ export class BuriedTreasureField {
       hasTreasure: false,
       coinsRemaining: 0,
       fillProgress: 0,
+      treasureChance: rewardProfile.treasureChance,
+      rewardMultiplier: rewardProfile.rewardMultiplier,
     };
     this.#createHole(site);
     this.#sites.push(site);
@@ -261,8 +275,33 @@ export class BuriedTreasureField {
 
   applyHeroPosition(position) {
     this.#heroPosition = { ...position };
-    for (const coin of this.#coins) {
-      this.#beginCoinCollection(coin);
+  }
+
+  removeGroundCover({ col, row, category }) {
+    const key = this.#tileKey(col, row);
+    const remaining = this.#groundCoverTileCounts.get(key) ?? 0;
+    if (remaining <= 1) {
+      this.#groundCoverTileCounts.delete(key);
+    } else {
+      this.#groundCoverTileCounts.set(key, remaining - 1);
+    }
+    if (category === "flower") {
+      this.#harvestedFlowerTiles.add(key);
+    } else if (category === "mushroom") {
+      this.#harvestedMushroomTiles.add(key);
+    }
+  }
+
+  removeVegetation({ col, row, kind }) {
+    const key = this.#tileKey(col, row);
+    const remaining = this.#vegetationTileCounts.get(key) ?? 0;
+    if (remaining <= 1) {
+      this.#vegetationTileCounts.delete(key);
+    } else {
+      this.#vegetationTileCounts.set(key, remaining - 1);
+    }
+    if (kind === "tree") {
+      this.#felledTreeTiles.add(key);
     }
   }
 
@@ -472,9 +511,35 @@ export class BuriedTreasureField {
       (this.#mapData.tileMeta?.[row]?.[col]?.shape ?? "FLAT") === "FLAT" &&
       Number.isFinite(this.#mapData.heightmap[row][col]) &&
       (unfinished || !this.#dugTiles.has(key)) &&
-      !this.#vegetationTiles.has(key) &&
-      !this.#groundCoverTiles.has(key)
+      !this.#vegetationTileCounts.has(key) &&
+      !this.#groundCoverTileCounts.has(key)
     );
+  }
+
+  #rewardProfileFor(key) {
+    if (this.#felledTreeTiles.has(key)) {
+      return {
+        treasureChance: FELLED_TREE_TREASURE_CHANCE,
+        rewardMultiplier: FELLED_TREE_REWARD_MULTIPLIER,
+      };
+    }
+    if (this.#harvestedFlowerTiles.has(key)) {
+      return {
+        treasureChance:
+          TREASURE_CHANCE / HARVESTED_FLOWER_REWARD_MULTIPLIER,
+        rewardMultiplier: HARVESTED_FLOWER_REWARD_MULTIPLIER,
+      };
+    }
+    if (this.#harvestedMushroomTiles.has(key)) {
+      return {
+        treasureChance: TREASURE_CHANCE,
+        rewardMultiplier: HARVESTED_MUSHROOM_REWARD_MULTIPLIER,
+      };
+    }
+    return {
+      treasureChance: TREASURE_CHANCE,
+      rewardMultiplier: 1,
+    };
   }
 
   #createHole(site) {
@@ -584,7 +649,9 @@ export class BuriedTreasureField {
   }
 
   #spawnCoins(site) {
-    const amount = 5 + Math.floor(Math.random() * 8);
+    const amount = Math.round(
+      (5 + Math.floor(Math.random() * 8)) * site.rewardMultiplier,
+    );
     site.coinsRemaining = amount;
     for (let index = 0; index < amount; index += 1) {
       const type = this.#rollCoinType();
@@ -598,6 +665,7 @@ export class BuriedTreasureField {
         y: site.y + 0.48,
         z: site.z,
       };
+      const skyRadius = 0.14 + (index % 4) * 0.055;
       coinEntity.setLocalPosition(position.x, position.y, position.z);
       this.#applyCoinMaterial(coinEntity, type);
       this.#entity.addChild(coinEntity);
@@ -605,16 +673,21 @@ export class BuriedTreasureField {
         entity: coinEntity,
         site,
         type,
-        state: "airborne",
+        state: "skyborne",
         position,
-        velocity: {
-          x: Math.cos(angle) * (0.45 + Math.random() * 0.35),
-          y: 1.65 + Math.random() * 0.7,
-          z: Math.sin(angle) * (0.45 + Math.random() * 0.35),
+        skyStart: { ...position },
+        skyControlA: {
+          x: site.x + Math.cos(angle) * 0.12,
+          y: site.y + 1.45 + Math.random() * 0.25,
+          z: site.z + Math.sin(angle) * 0.12,
         },
-        groundY: site.y + 0.09,
+        skyOffset: {
+          x: Math.cos(angle) * skyRadius,
+          y: COIN_SKY_HEIGHT + (index % 3) * 0.08,
+          z: Math.sin(angle) * skyRadius,
+        },
+        skyDelay: index * COIN_SKY_STAGGER,
         elapsed: 0,
-        magnetDelay: COIN_MAGNET_DELAY + index * COIN_MAGNET_STAGGER,
         collectStart: null,
         collectControlA: null,
         collectControlBOffset: null,
@@ -790,22 +863,35 @@ export class BuriedTreasureField {
   #advanceCoin(coin, deltaTime) {
     coin.elapsed += deltaTime;
     coin.rotation += deltaTime * 720;
-    if (coin.state === "airborne") {
-      coin.velocity.y += COIN_GRAVITY * deltaTime;
-      coin.position.x += coin.velocity.x * deltaTime;
-      coin.position.y += coin.velocity.y * deltaTime;
-      coin.position.z += coin.velocity.z * deltaTime;
-      if (coin.elapsed >= coin.magnetDelay) {
-        this.#beginCoinCollection(coin, true);
-      } else if (coin.position.y <= coin.groundY) {
-        coin.position.y = coin.groundY;
-        coin.state = "landed";
-      }
-    } else if (coin.state === "landed") {
-      if (coin.elapsed >= coin.magnetDelay) {
-        this.#beginCoinCollection(coin, true);
-      } else {
-        coin.position.y = coin.groundY + Math.sin(coin.elapsed * 3.4) * 0.035;
+    if (coin.state === "skyborne") {
+      const flightElapsed = coin.elapsed - coin.skyDelay;
+      if (flightElapsed >= 0) {
+        const progress = Math.min(
+          1,
+          flightElapsed / COIN_SKY_FLIGHT_DURATION,
+        );
+        const flightProgress = 1 - (1 - progress) ** 3;
+        const heroPosition = this.#heroPosition ?? coin.skyStart;
+        const target = {
+          x: heroPosition.x + coin.skyOffset.x,
+          y: heroPosition.y + coin.skyOffset.y,
+          z: heroPosition.z + coin.skyOffset.z,
+        };
+        const controlB = {
+          x: target.x + coin.skyOffset.x * 0.35,
+          y: target.y + 0.32,
+          z: target.z + coin.skyOffset.z * 0.35,
+        };
+        coin.position = this.#cubicBezier(
+          coin.skyStart,
+          coin.skyControlA,
+          controlB,
+          target,
+          flightProgress,
+        );
+        if (progress >= 1) {
+          this.#beginCoinCollection(coin);
+        }
       }
     } else if (coin.state === "collecting") {
       const progress = Math.min(1, coin.elapsed / COIN_COLLECTION_DURATION);
@@ -846,7 +932,6 @@ export class BuriedTreasureField {
       }
       return true;
     }
-    this.#beginCoinCollection(coin);
     coin.entity.setLocalPosition(
       coin.position.x,
       coin.position.y,
@@ -856,22 +941,8 @@ export class BuriedTreasureField {
     return false;
   }
 
-  #beginCoinCollection(coin, force = false) {
-    if (
-      !this.#heroPosition ||
-      (!force && coin.state !== "landed") ||
-      (force && !["airborne", "landed"].includes(coin.state))
-    ) {
-      return;
-    }
-    if (
-      !force &&
-      (Math.hypot(
-        coin.position.x - this.#heroPosition.x,
-        coin.position.z - this.#heroPosition.z,
-      ) > COIN_COLLECTION_RADIUS ||
-        Math.abs(coin.groundY - this.#heroPosition.y) > 0.85)
-    ) {
+  #beginCoinCollection(coin) {
+    if (!this.#heroPosition || coin.state !== "skyborne") {
       return;
     }
     coin.state = "collecting";
@@ -883,9 +954,9 @@ export class BuriedTreasureField {
     const perpendicularX = -targetZ / distance;
     const perpendicularZ = targetX / distance;
     coin.collectControlA = {
-      x: coin.position.x + coin.velocity.x * 0.2,
-      y: coin.position.y + 0.72,
-      z: coin.position.z + coin.velocity.z * 0.2,
+      x: coin.position.x + coin.skyOffset.x * 0.2,
+      y: coin.position.y + 0.28,
+      z: coin.position.z + coin.skyOffset.z * 0.2,
     };
     coin.collectControlBOffset = {
       x: perpendicularX * coin.flightSide,
