@@ -1,3 +1,5 @@
+import { POINTER_TYPE } from "../../../src/game/enum/PointerType.js";
+
 const MIN_ZOOM = 1;
 const MAX_ZOOM = 6;
 const ZOOM_FACTOR = 1.1;
@@ -33,7 +35,7 @@ function dragCamera(deltaX, deltaY) {
     cy.wrap($viewport)
       .trigger("pointerdown", {
         pointerId,
-        pointerType: "mouse",
+        pointerType: POINTER_TYPE.MOUSE,
         button: 0,
         buttons: 1,
         clientX,
@@ -41,7 +43,7 @@ function dragCamera(deltaX, deltaY) {
       })
       .trigger("pointermove", {
         pointerId,
-        pointerType: "mouse",
+        pointerType: POINTER_TYPE.MOUSE,
         button: 0,
         buttons: 1,
         clientX: clientX + deltaX,
@@ -49,7 +51,7 @@ function dragCamera(deltaX, deltaY) {
       })
       .trigger("pointerup", {
         pointerId,
-        pointerType: "mouse",
+        pointerType: POINTER_TYPE.MOUSE,
         button: 0,
         buttons: 0,
         clientX: clientX + deltaX,
@@ -67,7 +69,7 @@ function dragCameraInSteps(deltaX, deltaY, steps) {
     const clientY = rect.top + rect.height / 2;
     let drag = cy.wrap($viewport).trigger("pointerdown", {
       pointerId,
-      pointerType: "mouse",
+      pointerType: POINTER_TYPE.MOUSE,
       button: 0,
       buttons: 1,
       clientX,
@@ -76,7 +78,7 @@ function dragCameraInSteps(deltaX, deltaY, steps) {
     for (let step = 1; step <= steps; step += 1) {
       drag = drag.trigger("pointermove", {
         pointerId,
-        pointerType: "mouse",
+        pointerType: POINTER_TYPE.MOUSE,
         button: 0,
         buttons: 1,
         clientX: clientX + (deltaX * step) / steps,
@@ -85,7 +87,7 @@ function dragCameraInSteps(deltaX, deltaY, steps) {
     }
     return drag.trigger("pointerup", {
       pointerId,
-      pointerType: "mouse",
+      pointerType: POINTER_TYPE.MOUSE,
       button: 0,
       buttons: 0,
       clientX: clientX + deltaX,

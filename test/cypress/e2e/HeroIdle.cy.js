@@ -1,4 +1,5 @@
 import { HERO_ANIMATION } from "../../../src/game/enum/HeroAnimation.js";
+import { POINTER_TYPE } from "../../../src/game/enum/PointerType.js";
 
 function expectState(assertion, timeout = 8000) {
   cy.window().then({ timeout: timeout + 1000 }, (window) => {
@@ -25,7 +26,7 @@ function moveCursorToHorizontalEdge(edge) {
   cy.get(".background-canvas__surface").then(($canvas) => {
     const rect = $canvas[0].getBoundingClientRect();
     cy.wrap($canvas).trigger("pointermove", {
-      pointerType: "mouse",
+      pointerType: POINTER_TYPE.MOUSE,
       clientX: edge === "right" ? rect.right - 10 : rect.left + 10,
       clientY: rect.top + rect.height / 2,
     });

@@ -24,6 +24,7 @@ const DEFAULT_WIND = Object.freeze({
 export class DebugAxesHud {
   #pc;
   #app;
+  #theme;
   #gameCanvas;
   #entity;
   #texture;
@@ -33,9 +34,10 @@ export class DebugAxesHud {
   #elapsed = 0;
   #signature = "";
 
-  constructor({ pc, app, gameCanvas }) {
+  constructor({ pc, app, gameCanvas, theme }) {
     this.#pc = pc;
     this.#app = app;
+    this.#theme = theme;
     this.#gameCanvas = gameCanvas;
     this.#entity = new pc.Entity("Debug axes HUD");
     this.#entity.addComponent("screen", {
@@ -56,6 +58,7 @@ export class DebugAxesHud {
       width: this.#canvas.width,
       height: this.#canvas.height,
       format: pc.PIXELFORMAT_RGBA8,
+      srgb: true,
       mipmaps: false,
       minFilter: pc.FILTER_LINEAR,
       magFilter: pc.FILTER_LINEAR,
@@ -123,6 +126,7 @@ export class DebugAxesHud {
     this.#canvas = null;
     this.#context = null;
     this.#gameCanvas = null;
+    this.#theme = null;
     this.#app = null;
     this.#pc = null;
   }
@@ -169,9 +173,12 @@ export class DebugAxesHud {
     context.clearRect(0, 0, PANEL_WIDTH, PANEL_HEIGHT);
     context.beginPath();
     context.roundRect(0.5, 0.5, PANEL_WIDTH - 1, PANEL_HEIGHT - 1, 12);
-    context.fillStyle = "rgba(3, 10, 8, 0.72)";
+    context.fillStyle = this.#theme.withAlpha(
+      this.#theme.surfaceBottom,
+      0.84,
+    );
     context.fill();
-    context.strokeStyle = "rgba(210, 244, 228, 0.22)";
+    context.strokeStyle = this.#theme.withAlpha(this.#theme.outline, 0.34);
     context.lineWidth = 1;
     context.stroke();
 
@@ -197,7 +204,7 @@ export class DebugAxesHud {
     context.arc(WIND_ORIGIN.x, WIND_ORIGIN.y, 3, 0, Math.PI * 2);
     context.fillStyle = "#fff3ca";
     context.fill();
-    context.strokeStyle = "rgba(3, 10, 8, 0.88)";
+    context.strokeStyle = this.#theme.withAlpha(this.#theme.shadow, 0.88);
     context.lineWidth = 1.5;
     context.stroke();
 
@@ -208,7 +215,7 @@ export class DebugAxesHud {
     context.beginPath();
     context.moveTo(132, 28);
     context.lineTo(132, 104);
-    context.strokeStyle = "rgba(210, 244, 228, 0.18)";
+    context.strokeStyle = this.#theme.withAlpha(this.#theme.outline, 0.28);
     context.lineWidth = 1;
     context.stroke();
 
@@ -221,7 +228,7 @@ export class DebugAxesHud {
       font: "700 8px monospace",
     });
     this.#drawText(`ZOOM ${zoom.toFixed(2)}x`, 167, 122, {
-      color: "#9feaff",
+      color: this.#theme.info,
       font: "700 9px monospace",
     });
     this.#texture.setSource(this.#canvas);
@@ -299,7 +306,7 @@ export class DebugAxesHud {
     context.textBaseline = "middle";
     context.font = font;
     context.lineJoin = "round";
-    context.strokeStyle = "rgba(3, 10, 8, 0.9)";
+    context.strokeStyle = this.#theme.withAlpha(this.#theme.shadow, 0.9);
     context.lineWidth = 3;
     context.strokeText(text, x, y);
     context.fillStyle = color;

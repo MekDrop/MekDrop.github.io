@@ -1,5 +1,5 @@
-const REFERENCE_WIDTH = 1280;
-const REFERENCE_HEIGHT = 720;
+import { GamePanelHud } from "./GamePanelHud.js";
+
 const SCREEN_MARGIN = 16;
 const PANEL_PADDING_X = 6;
 const PANEL_PADDING_Y = 4;
@@ -18,10 +18,7 @@ const DEFAULT_COLORS = Object.freeze({
   iconInactive: 0x71808b,
 });
 
-export class HeroLifeHud {
-  #pc;
-  #app;
-  #entity;
+export class HeroLifeHud extends GamePanelHud {
   #panelRoot = null;
   #heartEntity = null;
   #shieldEntity = null;
@@ -46,18 +43,10 @@ export class HeroLifeHud {
     castleLives = 3,
     maxCastleLives = 3,
     colors = DEFAULT_COLORS,
+    theme,
   }) {
-    this.#pc = pc;
-    this.#app = app;
-    this.#entity = new pc.Entity("Game lives HUD");
+    super({ pc, app, theme, name: "Game lives HUD", priority: 100 });
     this.#colors = colors;
-    this.#entity.addComponent("screen", {
-      screenSpace: true,
-      referenceResolution: new pc.Vec2(REFERENCE_WIDTH, REFERENCE_HEIGHT),
-      scaleMode: pc.SCALEMODE_BLEND,
-      scaleBlend: 0.5,
-      priority: 100,
-    });
 
     this.#heartTexture = this.#createHeartTexture();
     this.#shieldTexture = this.#createShieldTexture();
@@ -73,27 +62,12 @@ export class HeroLifeHud {
     this.setLives(lives, maxLives);
   }
 
-  get entity() {
-    return this.#entity;
-  }
-
-  get root() {
-    return this.#entity;
-  }
-
   get lives() {
     return this.#lives;
   }
 
   get maxLives() {
     return this.#maxLives;
-  }
-
-  attach(parent = this.#app.root) {
-    if (!this.#entity || this.#entity.parent === parent) {
-      return;
-    }
-    parent.addChild(this.#entity);
   }
 
   setLives(current, maximum = this.#maxLives) {
@@ -126,18 +100,7 @@ export class HeroLifeHud {
     );
   }
 
-  set visible(visible) {
-    if (this.#entity) this.#entity.enabled = Boolean(visible);
-  }
-
   destroy() {
-    this.#entity?.destroy();
-    this.#heartTexture?.destroy();
-    this.#shieldTexture?.destroy();
-    this.#heroNumberTexture?.texture.destroy();
-    this.#castleNumberTexture?.texture.destroy();
-    this.#panelTexture?.destroy();
-    this.#entity = null;
     this.#panelRoot = null;
     this.#heartEntity = null;
     this.#shieldEntity = null;
@@ -148,13 +111,12 @@ export class HeroLifeHud {
     this.#heroNumberTexture = null;
     this.#castleNumberTexture = null;
     this.#panelTexture = null;
-    this.#app = null;
-    this.#pc = null;
+    super.destroy();
   }
 
   #build() {
     this.#panelRoot?.destroy();
-    this.#panelTexture?.destroy();
+    this.releaseTexture(this.#panelTexture);
     const heroNumberWidth = this.#numberWidth(this.#maxLives);
     const castleNumberWidth = this.#numberWidth(this.#maxCastleLives);
     const contentWidth =
@@ -173,19 +135,20 @@ export class HeroLifeHud {
     const panelWidth = contentWidth + PANEL_PADDING_X * 2;
     const panelHeight = contentHeight + PANEL_PADDING_Y * 2;
 
-    this.#panelRoot = new this.#pc.Entity("Game lives panel");
-    this.#panelRoot.addComponent("element", {
-      type: this.#pc.ELEMENTTYPE_GROUP,
-      anchor: new this.#pc.Vec4(0, 1, 0, 1),
-      pivot: new this.#pc.Vec2(0, 1),
+    this.#panelRoot = this.createPanel({
+      name: "Game lives panel",
+      x: SCREEN_MARGIN,
+      y: SCREEN_MARGIN,
       width: panelWidth,
       height: panelHeight,
-      useInput: false,
     });
-    this.#panelRoot.setLocalPosition(SCREEN_MARGIN, -SCREEN_MARGIN, 0);
-    this.#entity.addChild(this.#panelRoot);
-    this.#panelTexture = this.#createPanelTexture(panelWidth, panelHeight);
-    this.#createImage({
+    this.#panelTexture = this.createPanelTexture(
+      "Lives panel texture",
+      panelWidth,
+      panelHeight,
+    );
+    this.createImage({
+      parent: this.#panelRoot,
       name: "Lives panel background",
       x: 0,
       y: 0,
@@ -196,7 +159,8 @@ export class HeroLifeHud {
 
     const centeredY = (height) =>
       PANEL_PADDING_Y + (contentHeight - height) / 2;
-    this.#heartEntity = this.#createImage({
+    this.#heartEntity = this.createImage({
+      parent: this.#panelRoot,
       name: "Hero life icon",
       x: PANEL_PADDING_X,
       y: centeredY(HEART_HEIGHT),
@@ -205,7 +169,8 @@ export class HeroLifeHud {
       texture: this.#heartTexture,
     });
     const heroNumberX = PANEL_PADDING_X + HEART_WIDTH + CONTENT_GAP;
-    this.#heroNumberEntity = this.#createImage({
+    this.#heroNumberEntity = this.createImage({
+      parent: this.#panelRoot,
       name: "Hero life count",
       x: heroNumberX,
       y: centeredY(NUMBER_HEIGHT),
@@ -214,7 +179,8 @@ export class HeroLifeHud {
       texture: this.#heroNumberTexture.texture,
     });
     const shieldX = heroNumberX + heroNumberWidth + INDICATOR_GAP;
-    this.#shieldEntity = this.#createImage({
+    this.#shieldEntity = this.createImage({
+      parent: this.#panelRoot,
       name: "Castle life icon",
       x: shieldX,
       y: centeredY(SHIELD_HEIGHT),
@@ -222,7 +188,8 @@ export class HeroLifeHud {
       height: SHIELD_HEIGHT,
       texture: this.#shieldTexture,
     });
-    this.#castleNumberEntity = this.#createImage({
+    this.#castleNumberEntity = this.createImage({
+      parent: this.#panelRoot,
       name: "Castle life count",
       x: shieldX + SHIELD_WIDTH + CONTENT_GAP,
       y: centeredY(NUMBER_HEIGHT),
@@ -243,31 +210,15 @@ export class HeroLifeHud {
       this.#castleNumberTexture,
       this.#castleLives,
     );
-    this.#entity.screen.syncDrawOrder();
-  }
-
-  #createImage({ name, x, y, width, height, texture }) {
-    const entity = new this.#pc.Entity(name);
-    entity.addComponent("element", {
-      type: this.#pc.ELEMENTTYPE_IMAGE,
-      anchor: new this.#pc.Vec4(0, 1, 0, 1),
-      pivot: new this.#pc.Vec2(0, 1),
-      width,
-      height,
-      color: this.#color(this.#colors.iconActive),
-      useInput: false,
-    });
-    entity.element.texture = texture;
-    entity.setLocalPosition(x, -y, 0);
-    this.#panelRoot.addChild(entity);
-    return entity;
+    this.syncDrawOrder();
   }
 
   #syncIndicator(icon, number, numberTexture, value) {
     if (!icon || !number || !numberTexture) {
       return;
     }
-    icon.element.color = this.#color(
+    icon.element.color = this.theme.playCanvasColor(
+      this.pc,
       value > 0 ? this.#colors.iconActive : this.#colors.iconInactive,
     );
     this.#drawNumber(numberTexture, value);
@@ -275,69 +226,32 @@ export class HeroLifeHud {
   }
 
   #createHeartTexture() {
-    return this.#createTexture("Hero heart icon", (context) => {
-      const gradient = context.createLinearGradient(0, 10, 0, 58);
-      gradient.addColorStop(0, "#ff5866");
-      gradient.addColorStop(0.48, "#ec273b");
-      gradient.addColorStop(1, "#a90825");
-      this.#heartPath(context);
-      context.fillStyle = gradient;
-      context.fill();
-      context.lineJoin = "round";
-      context.strokeStyle = "#651022";
-      context.lineWidth = 6;
-      context.stroke();
+    return this.createDrawnTexture(
+      "Hero heart icon",
+      TEXTURE_SIZE,
+      TEXTURE_SIZE,
+      (context) => {
+        const gradient = context.createLinearGradient(0, 10, 0, 58);
+        gradient.addColorStop(0, "#ff5866");
+        gradient.addColorStop(0.48, "#ec273b");
+        gradient.addColorStop(1, "#a90825");
+        this.#heartPath(context);
+        context.fillStyle = gradient;
+        context.fill();
+        context.lineJoin = "round";
+        context.strokeStyle = "#651022";
+        context.lineWidth = 6;
+        context.stroke();
 
-      context.beginPath();
-      context.moveTo(18, 20);
-      context.bezierCurveTo(20, 13, 27, 11, 31, 16);
-      context.strokeStyle = "rgba(255, 226, 226, 0.8)";
-      context.lineCap = "round";
-      context.lineWidth = 4;
-      context.stroke();
-    });
-  }
-
-  #createPanelTexture(width, height) {
-    const scale = 4;
-    const canvas = document.createElement("canvas");
-    canvas.width = width * scale;
-    canvas.height = height * scale;
-    const context = canvas.getContext("2d");
-    context.scale(scale, scale);
-    const gradient = context.createLinearGradient(0, 0, 0, height);
-    gradient.addColorStop(0, "#174e70");
-    gradient.addColorStop(1, "#0b2d49");
-    this.#roundedRect(context, 1.5, 1.5, width - 3, height - 3, 9);
-    context.fillStyle = gradient;
-    context.fill();
-    context.strokeStyle = "#061d31";
-    context.lineWidth = 3;
-    context.stroke();
-    this.#roundedRect(context, 3.5, 3.5, width - 7, height - 7, 7);
-    context.strokeStyle = "rgba(51, 145, 190, 0.72)";
-    context.lineWidth = 1;
-    context.stroke();
-    return this.#createPlayCanvasTexture("Lives panel texture", canvas);
-  }
-
-  #roundedRect(context, x, y, width, height, radius) {
-    context.beginPath();
-    context.moveTo(x + radius, y);
-    context.lineTo(x + width - radius, y);
-    context.quadraticCurveTo(x + width, y, x + width, y + radius);
-    context.lineTo(x + width, y + height - radius);
-    context.quadraticCurveTo(
-      x + width,
-      y + height,
-      x + width - radius,
-      y + height,
+        context.beginPath();
+        context.moveTo(18, 20);
+        context.bezierCurveTo(20, 13, 27, 11, 31, 16);
+        context.strokeStyle = "rgba(255, 226, 226, 0.8)";
+        context.lineCap = "round";
+        context.lineWidth = 4;
+        context.stroke();
+      },
     );
-    context.lineTo(x + radius, y + height);
-    context.quadraticCurveTo(x, y + height, x, y + height - radius);
-    context.lineTo(x, y + radius);
-    context.quadraticCurveTo(x, y, x + radius, y);
-    context.closePath();
   }
 
   #heartPath(context) {
@@ -351,32 +265,37 @@ export class HeroLifeHud {
   }
 
   #createShieldTexture() {
-    return this.#createTexture("Castle shield icon", (context) => {
-      const gradient = context.createLinearGradient(0, 7, 0, 58);
-      gradient.addColorStop(0, "#35c7ff");
-      gradient.addColorStop(0.5, "#078dde");
-      gradient.addColorStop(1, "#0750a8");
-      this.#shieldPath(context);
-      context.fillStyle = gradient;
-      context.fill();
-      context.lineJoin = "round";
-      context.strokeStyle = "#06355d";
-      context.lineWidth = 9;
-      context.stroke();
-      this.#shieldPath(context);
-      context.strokeStyle = "#9deaff";
-      context.lineWidth = 4;
-      context.stroke();
+    return this.createDrawnTexture(
+      "Castle shield icon",
+      TEXTURE_SIZE,
+      TEXTURE_SIZE,
+      (context) => {
+        const gradient = context.createLinearGradient(0, 7, 0, 58);
+        gradient.addColorStop(0, "#35c7ff");
+        gradient.addColorStop(0.5, "#078dde");
+        gradient.addColorStop(1, "#0750a8");
+        this.#shieldPath(context);
+        context.fillStyle = gradient;
+        context.fill();
+        context.lineJoin = "round";
+        context.strokeStyle = "#06355d";
+        context.lineWidth = 9;
+        context.stroke();
+        this.#shieldPath(context);
+        context.strokeStyle = "#9deaff";
+        context.lineWidth = 4;
+        context.stroke();
 
-      context.beginPath();
-      context.moveTo(23, 17);
-      context.lineTo(23, 38);
-      context.bezierCurveTo(23, 44, 27, 48, 31, 51);
-      context.strokeStyle = "rgba(224, 250, 255, 0.66)";
-      context.lineCap = "round";
-      context.lineWidth = 3;
-      context.stroke();
-    });
+        context.beginPath();
+        context.moveTo(23, 17);
+        context.lineTo(23, 38);
+        context.bezierCurveTo(23, 44, 27, 48, 31, 51);
+        context.strokeStyle = "rgba(224, 250, 255, 0.66)";
+        context.lineCap = "round";
+        context.lineWidth = 3;
+        context.stroke();
+      },
+    );
   }
 
   #shieldPath(context) {
@@ -391,11 +310,7 @@ export class HeroLifeHud {
   }
 
   #createNumberTexture(name) {
-    const canvas = document.createElement("canvas");
-    canvas.width = TEXTURE_SIZE;
-    canvas.height = TEXTURE_SIZE;
-    const texture = this.#createPlayCanvasTexture(name, canvas);
-    return { canvas, context: canvas.getContext("2d"), texture };
+    return this.createTextureRecord(name, TEXTURE_SIZE, TEXTURE_SIZE);
   }
 
   #drawNumber(record, value) {
@@ -405,36 +320,12 @@ export class HeroLifeHud {
     context.textAlign = "center";
     context.textBaseline = "middle";
     context.lineJoin = "round";
-    context.strokeStyle = "#071522";
+    context.strokeStyle = this.theme.shadow;
     context.lineWidth = 7;
     context.strokeText(String(Math.max(0, value)), 32, 34);
-    context.fillStyle = "#ffffff";
+    context.fillStyle = this.theme.text;
     context.fillText(String(Math.max(0, value)), 32, 34);
     texture.setSource(canvas);
-  }
-
-  #createTexture(name, draw) {
-    const canvas = document.createElement("canvas");
-    canvas.width = TEXTURE_SIZE;
-    canvas.height = TEXTURE_SIZE;
-    draw(canvas.getContext("2d"));
-    return this.#createPlayCanvasTexture(name, canvas);
-  }
-
-  #createPlayCanvasTexture(name, canvas) {
-    const texture = new this.#pc.Texture(this.#app.graphicsDevice, {
-      width: canvas.width,
-      height: canvas.height,
-      format: this.#pc.PIXELFORMAT_RGBA8,
-      mipmaps: true,
-      minFilter: this.#pc.FILTER_LINEAR_MIPMAP_LINEAR,
-      magFilter: this.#pc.FILTER_LINEAR,
-      addressU: this.#pc.ADDRESS_CLAMP_TO_EDGE,
-      addressV: this.#pc.ADDRESS_CLAMP_TO_EDGE,
-    });
-    texture.name = name;
-    texture.setSource(canvas);
-    return texture;
   }
 
   #numberWidth(maximum) {
@@ -447,13 +338,5 @@ export class HeroLifeHud {
 
   #normalizeLives(value, maximum) {
     return Math.min(maximum, Math.max(0, Math.floor(Number(value) || 0)));
-  }
-
-  #color(value) {
-    return new this.#pc.Color(
-      ((value >> 16) & 0xff) / 255,
-      ((value >> 8) & 0xff) / 255,
-      (value & 0xff) / 255,
-    );
   }
 }

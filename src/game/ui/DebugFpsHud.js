@@ -27,6 +27,7 @@ const DEQUE_COMPACTION_THRESHOLD = 1024;
 export class DebugFpsHud {
   #pc;
   #app;
+  #theme;
   #entity;
   #texture;
   #canvas;
@@ -48,9 +49,10 @@ export class DebugFpsHud {
   #graphSamples = [];
   #graphSampleHead = 0;
 
-  constructor({ pc, app }) {
+  constructor({ pc, app, theme }) {
     this.#pc = pc;
     this.#app = app;
+    this.#theme = theme;
     this.#entity = new pc.Entity("Debug FPS HUD");
     this.#entity.addComponent("screen", {
       screenSpace: true,
@@ -70,6 +72,7 @@ export class DebugFpsHud {
       width: this.#canvas.width,
       height: this.#canvas.height,
       format: pc.PIXELFORMAT_RGBA8,
+      srgb: true,
       mipmaps: false,
       minFilter: pc.FILTER_LINEAR,
       magFilter: pc.FILTER_LINEAR,
@@ -153,6 +156,7 @@ export class DebugFpsHud {
     this.#texture = null;
     this.#canvas = null;
     this.#context = null;
+    this.#theme = null;
     this.#app = null;
     this.#pc = null;
   }
@@ -318,40 +322,43 @@ export class DebugFpsHud {
 
     context.beginPath();
     context.roundRect(0.5, 0.5, COUNTER_WIDTH - 1, COUNTER_HEIGHT - 1, 12);
-    context.fillStyle = "rgba(3, 10, 8, 0.72)";
+    context.fillStyle = this.#theme.withAlpha(
+      this.#theme.surfaceBottom,
+      0.84,
+    );
     context.fill();
-    context.strokeStyle = "rgba(210, 244, 228, 0.22)";
+    context.strokeStyle = this.#theme.withAlpha(this.#theme.outline, 0.34);
     context.lineWidth = 1;
     context.stroke();
 
     context.textBaseline = "middle";
     context.lineJoin = "round";
-    context.strokeStyle = "#071522";
+    context.strokeStyle = this.#theme.shadow;
     context.lineWidth = 3.5;
 
     context.textAlign = "right";
     context.font = "800 10px Arial, sans-serif";
-    context.fillStyle = "#ffffff";
+    context.fillStyle = this.#theme.text;
     context.strokeText("FPS 5M", FPS_COLUMN_X, HEADER_BASELINE);
     context.fillText("FPS 5M", FPS_COLUMN_X, HEADER_BASELINE);
     context.strokeText("MEMORY", MEMORY_COLUMN_X, HEADER_BASELINE);
     context.fillText("MEMORY", MEMORY_COLUMN_X, HEADER_BASELINE);
 
     const rows = [
-      ["CURRENT", this.#framesPerSecond, this.#usedMemory, "#ffffff"],
+      ["CURRENT", this.#framesPerSecond, this.#usedMemory, this.#theme.text],
       [
         "MIN",
         Number.isFinite(this.#minimumFramesPerSecond)
           ? this.#minimumFramesPerSecond
           : "--",
         this.#minimumUsedMemory,
-        "#9feaff",
+        this.#theme.info,
       ],
       [
         "MAX",
         this.#maximumFramesPerSecond || "--",
         this.#maximumUsedMemory,
-        "#ffd37e",
+        this.#theme.warning,
       ],
     ];
     rows.forEach(([label, framesPerSecond, usedMemory, color], index) => {
@@ -384,7 +391,10 @@ export class DebugFpsHud {
     const axisValues = [axisMaximum, Math.round(axisMaximum / 2), 0];
     const axisPositions = [GRAPH_TOP, (GRAPH_TOP + GRAPH_BOTTOM) / 2, GRAPH_BOTTOM];
 
-    context.fillStyle = "rgba(1, 8, 6, 0.42)";
+    context.fillStyle = this.#theme.withAlpha(
+      this.#theme.surfaceInsetTop,
+      0.64,
+    );
     context.fillRect(
       GRAPH_LEFT,
       GRAPH_TOP,
@@ -399,10 +409,10 @@ export class DebugFpsHud {
       context.beginPath();
       context.moveTo(GRAPH_LEFT, y);
       context.lineTo(GRAPH_RIGHT, y);
-      context.strokeStyle = "rgba(210, 244, 228, 0.15)";
+      context.strokeStyle = this.#theme.withAlpha(this.#theme.outline, 0.2);
       context.lineWidth = 1;
       context.stroke();
-      context.fillStyle = "rgba(220, 242, 230, 0.72)";
+      context.fillStyle = this.#theme.withAlpha(this.#theme.textSubtle, 0.82);
       context.fillText(String(value), GRAPH_LEFT - 4, y);
     });
 
@@ -447,7 +457,7 @@ export class DebugFpsHud {
       }
       previousSample = sample;
     }
-    context.strokeStyle = "#9feaff";
+    context.strokeStyle = this.#theme.info;
     context.lineWidth = 1.25;
     context.lineJoin = "round";
     context.stroke();
@@ -455,7 +465,7 @@ export class DebugFpsHud {
 
     context.font = "700 7px monospace";
     context.textBaseline = "middle";
-    context.fillStyle = "rgba(220, 242, 230, 0.68)";
+    context.fillStyle = this.#theme.withAlpha(this.#theme.textSubtle, 0.78);
     context.textAlign = "left";
     context.fillText(
       `-${this.#formatGraphDuration(FPS_WINDOW_DURATION)}`,

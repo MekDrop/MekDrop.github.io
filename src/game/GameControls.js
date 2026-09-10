@@ -2,6 +2,8 @@ import {
   DEFAULT_CONTROLS,
   MOVEMENT_DIRECTIONS,
 } from "src/game/config/controls.js";
+import { CAMERA_DRAG_MODE } from "src/game/enum/CameraDragMode.js";
+import { POINTER_TYPE } from "src/game/enum/PointerType.js";
 
 export class GameControls {
   #element;
@@ -232,10 +234,10 @@ export class GameControls {
       return;
     }
     const isPan =
-      event.pointerType === "mouse" &&
+      event.pointerType === POINTER_TYPE.MOUSE &&
       this.#config().dragCamera.mouseButtons.includes(event.button);
     const isRotate =
-      event.pointerType === "mouse" &&
+      event.pointerType === POINTER_TYPE.MOUSE &&
       event.button === this.#config().rotateCamera.mouseButton;
     if (!isPan && !isRotate) {
       return;
@@ -243,7 +245,9 @@ export class GameControls {
 
     event.preventDefault();
     this.#dragPointerId = event.pointerId;
-    this.#dragMode = isRotate ? "rotate" : "pan";
+    this.#dragMode = isRotate
+      ? CAMERA_DRAG_MODE.ROTATE
+      : CAMERA_DRAG_MODE.PAN;
     this.#dragX = event.clientX;
     this.#dragY = event.clientY;
     this.#dragDistance = 0;
@@ -270,7 +274,7 @@ export class GameControls {
     this.#dragY = event.clientY;
     this.#dragDistance += Math.hypot(deltaX, deltaY);
     const dragConfig =
-      this.#dragMode === "rotate"
+      this.#dragMode === CAMERA_DRAG_MODE.ROTATE
         ? this.#config().rotateCamera
         : this.#config().dragCamera;
     if (this.#dragDistance < (dragConfig.activationDistance ?? 0)) {
@@ -278,7 +282,7 @@ export class GameControls {
     }
 
     event.preventDefault();
-    if (this.#dragMode === "rotate") {
+    if (this.#dragMode === CAMERA_DRAG_MODE.ROTATE) {
       this.#actions.rotateView.rotateBy(
         deltaX * this.#config().rotateCamera.quarterTurnsPerPixel,
       );

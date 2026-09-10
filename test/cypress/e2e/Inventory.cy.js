@@ -1,4 +1,5 @@
 import { HERO_ANIMATION } from "../../../src/game/enum/HeroAnimation.js";
+import { POINTER_TYPE } from "../../../src/game/enum/PointerType.js";
 
 function pressKey(code) {
   cy.window().trigger("keydown", { code, key: code });
@@ -36,6 +37,43 @@ function clickInventoryCloseButton() {
       expect($element[0].style.cursor).to.equal("pointer");
     });
     cy.wrap($canvas).click(x, y);
+  });
+}
+
+function inventorySlotPoint(bounds, slot) {
+  const scale = Math.sqrt(
+    (bounds.width / 1280) * (bounds.height / 720),
+  );
+  const column = slot % 4;
+  const row = Math.floor(slot / 4);
+  return {
+    clientX:
+      bounds.left + bounds.width / 2 + (-147 + column * 98) * scale,
+    clientY:
+      bounds.top + bounds.height / 2 + (-67 + row * 98) * scale,
+  };
+}
+
+function dragInventoryItem(fromSlot, target) {
+  cy.get(".background-canvas__surface").then(($canvas) => {
+    const viewport = $canvas[0].closest(".background-canvas");
+    viewport.setPointerCapture = () => {};
+    viewport.hasPointerCapture = () => false;
+    const bounds = $canvas[0].getBoundingClientRect();
+    const start = inventorySlotPoint(bounds, fromSlot);
+    const end =
+      typeof target === "number"
+        ? inventorySlotPoint(bounds, target)
+        : target(bounds);
+    const pointer = {
+      button: 0,
+      pointerId: 7,
+      pointerType: POINTER_TYPE.MOUSE,
+    };
+    cy.wrap($canvas)
+      .trigger("pointerdown", { ...pointer, ...start, buttons: 1 })
+      .trigger("pointermove", { ...pointer, ...end, buttons: 1 })
+      .trigger("pointerup", { ...pointer, ...end, buttons: 0 });
   });
 }
 
@@ -159,6 +197,67 @@ describe("Collectible inventory", () => {
     cy.window().should((window) => {
       expect(window.gameMovementTest.state().inventory.items).to.have.length(12);
       expect(window.gameMovementTest.state().inventory.visible).to.equal(false);
+    });
+  });
+
+  it("moves items to empty cells and drops them beyond the inventory", () => {
+    collectItem(1, HERO_ANIMATION.PICK_FLOWER);
+    cy.get(".interaction-prompt")
+      .invoke("text")
+      .then((label) => {
+        const animation = label.includes("mushroom")
+          ? HERO_ANIMATION.PICK_MUSHROOM
+          : HERO_ANIMATION.PICK_FLOWER;
+        collectItem(2, animation);
+      });
+    cy.window().then((window) => {
+      const [firstItem, secondItem] =
+        window.gameMovementTest.state().inventory.items;
+      expect(firstItem.slot).to.equal(0);
+      expect(secondItem.slot).to.equal(1);
+    });
+
+    pressKey("KeyI");
+    dragInventoryItem(0, 5);
+    cy.window().should((window) => {
+      const [firstItem, secondItem] =
+        window.gameMovementTest.state().inventory.items;
+      expect(firstItem.slot).to.equal(5);
+      expect(secondItem.slot).to.equal(1);
+      const persistedState = JSON.parse(
+        window.sessionStorage.getItem("hero-configuration"),
+      );
+      expect(persistedState.inventory.items[0].slot).to.equal(5);
+    });
+
+    dragInventoryItem(1, 5);
+    cy.window().should((window) => {
+      const [, secondItem] = window.gameMovementTest.state().inventory.items;
+      expect(secondItem.slot).to.equal(1);
+    });
+
+    dragInventoryItem(1, (bounds) => ({
+      clientX: bounds.right - 8,
+      clientY: bounds.top + bounds.height / 2,
+    }));
+    cy.window().should((window) => {
+      const inventory = window.gameMovementTest.state().inventory;
+      expect(inventory.items).to.have.length(1);
+      expect(inventory.items[0].slot).to.equal(5);
+      const persistedState = JSON.parse(
+        window.sessionStorage.getItem("hero-configuration"),
+      );
+      expect(persistedState.inventory.items).to.have.length(1);
+      expect(window.gameMovementTest.droppedInventoryItemCount()).to.equal(1);
+    });
+
+    pressKey("Escape");
+    cy.window().should((window) => {
+      expect(window.gameMovementTest.state().inventory.visible).to.equal(false);
+    });
+    cy.wait(350);
+    cy.window().should((window) => {
+      expect(window.gameMovementTest.droppedInventoryItemCount()).to.equal(0);
     });
   });
 

@@ -4,7 +4,7 @@ const REFERENCE_WIDTH = 1280;
 const REFERENCE_HEIGHT = 720;
 const PANEL_WIDTH = 430;
 const PANEL_HEIGHT = 420;
-const PANEL_TEXTURE_SCALE = 2;
+const PANEL_TEXTURE_SCALE = 3;
 const SLOT_COLUMNS = 4;
 const SLOT_ROWS = 3;
 const SLOT_GAP = 8;
@@ -21,6 +21,9 @@ export class InventoryHud {
   #pc;
   #app;
   #translate;
+  #theme;
+  #onMoveItem;
+  #onDropItem;
   #entity;
   #modalRoot;
   #panel;
@@ -34,13 +37,27 @@ export class InventoryHud {
   #closeHovered = false;
   #closePressed = false;
   #closeArmed = false;
-  #hoveredItemIndex = null;
+  #hoveredItemSlot = null;
+  #draggedItemSlot = null;
+  #dragHoveredSlot = null;
+  #dragVisual = null;
   #state = { capacity: SLOT_COLUMNS * SLOT_ROWS, items: [] };
 
-  constructor({ pc, app, modelLibrary, translate = (key) => key }) {
+  constructor({
+    pc,
+    app,
+    modelLibrary,
+    translate = (key) => key,
+    theme,
+    onMoveItem = null,
+    onDropItem = null,
+  }) {
     this.#pc = pc;
     this.#app = app;
     this.#translate = translate;
+    this.#theme = theme;
+    this.#onMoveItem = onMoveItem;
+    this.#onDropItem = onDropItem;
     this.#itemProjector = new InventoryItemProjector({
       pc,
       app,
@@ -67,7 +84,7 @@ export class InventoryHud {
       this.#modalRoot.enabled = nextVisible;
     }
     if (nextVisible) {
-      this.#setCursor("default");
+      this.#updateCursor();
     } else {
       this.cancelPointer();
       this.#setCursor("");
@@ -109,23 +126,46 @@ export class InventoryHud {
   }
 
   pointerDown(clientX, clientY) {
-    const hovered = this.closeButtonContains(clientX, clientY);
-    this.#closeArmed = hovered;
-    this.#setCloseButtonState(hovered, hovered);
-    return hovered;
+    const closeHovered = this.closeButtonContains(clientX, clientY);
+    this.#closeArmed = closeHovered;
+    this.#setCloseButtonState(closeHovered, closeHovered);
+    if (closeHovered) {
+      return true;
+    }
+
+    const itemSlot = this.#slotIndexAt(clientX, clientY, true);
+    if (itemSlot === null) {
+      return false;
+    }
+    this.#beginItemDrag(itemSlot, clientX, clientY);
+    return true;
   }
 
   pointerMove(clientX, clientY) {
+    if (this.#draggedItemSlot !== null) {
+      this.#dragHoveredSlot = this.#slotIndexAt(clientX, clientY);
+      this.#positionItemVisual(this.#dragVisual, clientX, clientY);
+      this.#setHoveredItem(null);
+      this.#setCloseButtonState(false, false);
+      this.#drawPanel();
+      this.#updateCursor();
+      return true;
+    }
+
     const hovered = this.closeButtonContains(clientX, clientY);
-    this.#setHoveredItem(this.#itemIndexAt(clientX, clientY));
+    this.#setHoveredItem(this.#slotIndexAt(clientX, clientY, true));
     this.#setCloseButtonState(
       hovered,
       this.#closeArmed && hovered,
     );
-    return hovered || this.#hoveredItemIndex !== null;
+    return hovered || this.#hoveredItemSlot !== null;
   }
 
   pointerUp(clientX, clientY) {
+    if (this.#draggedItemSlot !== null) {
+      this.#finishItemDrag(clientX, clientY);
+      return false;
+    }
     const activate =
       this.#closeArmed && this.closeButtonContains(clientX, clientY);
     this.#closeArmed = false;
@@ -134,26 +174,55 @@ export class InventoryHud {
   }
 
   pointerLeave() {
+    if (this.#draggedItemSlot !== null) {
+      this.#dragHoveredSlot = null;
+      this.#drawPanel();
+      return;
+    }
     this.#setHoveredItem(null);
     this.#setCloseButtonState(false, false);
   }
 
   cancelPointer() {
     this.#closeArmed = false;
+    this.#cancelItemDrag();
     this.#setHoveredItem(null);
     this.#setCloseButtonState(false, false);
   }
 
   setInventory(state) {
+    const occupiedSlots = new Set();
     this.#state = {
       capacity: state.capacity,
-      items: state.items.map((item) => ({ ...item })),
+      items: state.items.map((item) => {
+        let slot = item.slot;
+        if (
+          !Number.isInteger(slot) ||
+          slot < 0 ||
+          slot >= state.capacity ||
+          occupiedSlots.has(slot)
+        ) {
+          slot = 0;
+          while (occupiedSlots.has(slot) && slot < state.capacity) {
+            slot += 1;
+          }
+        }
+        occupiedSlots.add(slot);
+        return { ...item, slot };
+      }),
     };
+    if (
+      this.#draggedItemSlot !== null &&
+      !this.#itemAtSlot(this.#draggedItemSlot)
+    ) {
+      this.#cancelItemDrag();
+    }
     this.#syncItemProjections();
     this.#drawPanel();
   }
 
   destroy() {
+    this.#destroyItemVisual(this.#dragVisual);
     this.#entity?.destroy();
     this.#panelTexture?.texture.destroy();
     this.#tooltipTexture?.texture.destroy();
@@ -170,7 +239,11 @@ export class InventoryHud {
     this.#tooltipTexture = null;
     this.#closeTexture = null;
     this.#closeButton = null;
-    this.#hoveredItemIndex = null;
+    this.#hoveredItemSlot = null;
+    this.#dragVisual = null;
+    this.#onMoveItem = null;
+    this.#onDropItem = null;
+    this.#theme = null;
     this.#app = null;
     this.#pc = null;
   }
@@ -198,7 +271,7 @@ export class InventoryHud {
       anchor: new this.#pc.Vec4(0, 0, 1, 1),
       pivot: new this.#pc.Vec2(0.5, 0.5),
       margin: new this.#pc.Vec4(0, 0, 0, 0),
-      color: new this.#pc.Color(0.025, 0.08, 0.13),
+      color: this.#theme.playCanvasColor(this.#pc, this.#theme.backdrop),
       opacity: 0.7,
       useInput: false,
     });
@@ -320,7 +393,7 @@ export class InventoryHud {
     }
     this.#closeHovered = nextHovered;
     this.#closePressed = nextPressed;
-    this.#setCursor(nextHovered ? "pointer" : "default");
+    this.#updateCursor();
     this.#drawCloseButton();
   }
 
@@ -334,7 +407,10 @@ export class InventoryHud {
     context.scale(PANEL_TEXTURE_SCALE, PANEL_TEXTURE_SCALE);
     const inset = this.#closePressed ? 2 : 1;
     if (this.#closeHovered && !this.#closePressed) {
-      context.shadowColor = "rgba(92, 203, 248, 0.65)";
+      context.shadowColor = this.#theme.withAlpha(
+        this.#theme.outlineStrong,
+        0.65,
+      );
       context.shadowBlur = 5;
     }
     this.#roundedRect(
@@ -347,19 +423,21 @@ export class InventoryHud {
     );
     const gradient = context.createLinearGradient(0, 0, 0, CLOSE_BUTTON_SIZE);
     if (this.#closePressed) {
-      gradient.addColorStop(0, "#08233a");
-      gradient.addColorStop(1, "#0f3b59");
+      gradient.addColorStop(0, this.#theme.surfaceInsetTop);
+      gradient.addColorStop(1, this.#theme.surfaceInsetBottom);
     } else if (this.#closeHovered) {
-      gradient.addColorStop(0, "#3198c5");
-      gradient.addColorStop(1, "#14618a");
+      gradient.addColorStop(0, this.#theme.outlineStrong);
+      gradient.addColorStop(1, this.#theme.surfaceRaisedTop);
     } else {
-      gradient.addColorStop(0, "#1e668e");
-      gradient.addColorStop(1, "#0b2d49");
+      gradient.addColorStop(0, this.#theme.surfaceRaisedTop);
+      gradient.addColorStop(1, this.#theme.surfaceRaisedBottom);
     }
     context.fillStyle = gradient;
     context.fill();
     context.shadowColor = "transparent";
-    context.strokeStyle = this.#closeHovered ? "#b9efff" : "#72c4e8";
+    context.strokeStyle = this.#closeHovered
+      ? this.#theme.textMuted
+      : this.#theme.outline;
     context.lineWidth = this.#closePressed ? 1.5 : 1;
     context.stroke();
     const offset = this.#closePressed ? 1 : 0;
@@ -368,7 +446,7 @@ export class InventoryHud {
     context.lineTo(21 + offset, 21 + offset);
     context.moveTo(21 + offset, 11 + offset);
     context.lineTo(11 + offset, 21 + offset);
-    context.strokeStyle = "#f2fbff";
+    context.strokeStyle = this.#theme.text;
     context.lineWidth = 2;
     context.lineCap = "round";
     context.stroke();
@@ -382,6 +460,22 @@ export class InventoryHud {
     if (canvas) {
       canvas.style.cursor = cursor;
     }
+  }
+
+  #updateCursor() {
+    if (!this.visible) {
+      this.#setCursor("");
+      return;
+    }
+    if (this.#draggedItemSlot !== null) {
+      this.#setCursor("grabbing");
+      return;
+    }
+    if (this.#closeHovered) {
+      this.#setCursor("pointer");
+      return;
+    }
+    this.#setCursor(this.#hoveredItemSlot === null ? "default" : "grab");
   }
 
   #drawPanel() {
@@ -400,7 +494,7 @@ export class InventoryHud {
   }
 
   #drawPanelBackground(context) {
-    context.shadowColor = "rgba(0, 0, 0, 0.58)";
+    context.shadowColor = this.#theme.withAlpha(this.#theme.shadow, 0.58);
     context.shadowBlur = 18;
     context.shadowOffsetY = 10;
     this.#roundedRect(context, 8, 8, PANEL_WIDTH - 16, PANEL_HEIGHT - 20, 14);
@@ -410,16 +504,16 @@ export class InventoryHud {
       PANEL_WIDTH,
       PANEL_HEIGHT,
     );
-    gradient.addColorStop(0, "#174e70");
-    gradient.addColorStop(1, "#0b2d49");
+    gradient.addColorStop(0, this.#theme.surfaceTop);
+    gradient.addColorStop(1, this.#theme.surfaceBottom);
     context.fillStyle = gradient;
     context.fill();
     context.shadowColor = "transparent";
-    context.strokeStyle = "#061d31";
+    context.strokeStyle = this.#theme.shadow;
     context.lineWidth = 2;
     context.stroke();
     this.#roundedRect(context, 12, 12, PANEL_WIDTH - 24, PANEL_HEIGHT - 28, 11);
-    context.strokeStyle = "rgba(82, 179, 222, 0.72)";
+    context.strokeStyle = this.#theme.withAlpha(this.#theme.outline, 0.72);
     context.lineWidth = 1;
     context.stroke();
   }
@@ -427,18 +521,18 @@ export class InventoryHud {
   #drawHeader(context) {
     context.textAlign = "left";
     context.textBaseline = "alphabetic";
-    context.fillStyle = "#8edcff";
+    context.fillStyle = this.#theme.info;
     context.font = "700 10px Arial, sans-serif";
     context.fillText(
       this.#translate("game.inventory.backpack").toUpperCase(),
       24,
       36,
     );
-    context.fillStyle = "#ffffff";
+    context.fillStyle = this.#theme.text;
     context.font = "700 27px Georgia, serif";
     context.fillText(this.#translate("game.inventory.title"), 24, 68);
     context.textAlign = "right";
-    context.fillStyle = "#b7e7ff";
+    context.fillStyle = this.#theme.textMuted;
     context.font = "600 12px Arial, sans-serif";
     context.fillText(
       this.#translate("game.inventory.capacity", {
@@ -451,7 +545,7 @@ export class InventoryHud {
     context.beginPath();
     context.moveTo(24, 82);
     context.lineTo(PANEL_WIDTH - 24, 82);
-    context.strokeStyle = "rgba(51, 145, 190, 0.65)";
+    context.strokeStyle = this.#theme.withAlpha(this.#theme.outline, 0.65);
     context.lineWidth = 1;
     context.stroke();
   }
@@ -468,11 +562,15 @@ export class InventoryHud {
       const row = Math.floor(index / SLOT_COLUMNS);
       const x = left + column * (SLOT_SIZE + SLOT_GAP);
       const y = top + row * (SLOT_SIZE + SLOT_GAP);
-      this.#drawSlot(context, x, y, this.#state.items[index] ?? null);
+      this.#drawSlot(context, x, y, this.#itemAtSlot(index), index);
     }
   }
 
-  #drawSlot(context, x, y, item) {
+  #drawSlot(context, x, y, item, slot) {
+    const isDragSource = slot === this.#draggedItemSlot;
+    const isHoveredDropSlot = slot === this.#dragHoveredSlot;
+    const isValidDropSlot =
+      isHoveredDropSlot && !item && this.#draggedItemSlot !== null;
     this.#roundedRect(context, x, y, SLOT_SIZE, SLOT_SIZE, 8);
     const gradient = context.createLinearGradient(
       x,
@@ -480,20 +578,32 @@ export class InventoryHud {
       x + SLOT_SIZE,
       y + SLOT_SIZE,
     );
-    gradient.addColorStop(0, item ? "#103a59" : "#0a2136");
-    gradient.addColorStop(1, item ? "#0b263f" : "#102d47");
+    gradient.addColorStop(
+      0,
+      item ? this.#theme.surfaceRaisedTop : this.#theme.surfaceInsetTop,
+    );
+    gradient.addColorStop(
+      1,
+      item ? this.#theme.surfaceRaisedBottom : this.#theme.surfaceInsetBottom,
+    );
     context.fillStyle = gradient;
     context.fill();
-    context.strokeStyle = item
-      ? "rgba(94, 196, 235, 0.9)"
-      : "rgba(51, 145, 190, 0.42)";
-    context.lineWidth = 1;
+    context.strokeStyle = isValidDropSlot
+      ? this.#theme.withAlpha(this.#theme.positive, 0.98)
+      : isHoveredDropSlot && item && !isDragSource
+        ? this.#theme.withAlpha(this.#theme.negative, 0.94)
+        : item
+          ? this.#theme.withAlpha(this.#theme.outlineStrong, 0.9)
+          : this.#theme.withAlpha(this.#theme.outline, 0.42);
+    context.lineWidth = isHoveredDropSlot ? 3 : 1;
     context.stroke();
 
-    if (!item) {
+    if (!item || isDragSource) {
       context.beginPath();
       context.arc(x + SLOT_SIZE / 2, y + SLOT_SIZE / 2, 12, 0, Math.PI * 2);
-      context.strokeStyle = "rgba(142, 220, 255, 0.18)";
+      context.strokeStyle = isValidDropSlot
+        ? this.#theme.withAlpha(this.#theme.positive, 0.72)
+        : this.#theme.withAlpha(this.#theme.outlineStrong, 0.18);
       context.setLineDash([3, 3]);
       context.stroke();
       context.setLineDash([]);
@@ -504,12 +614,12 @@ export class InventoryHud {
       context.textAlign = "center";
       context.textBaseline = "middle";
       context.font = '38px "Segoe UI Emoji", sans-serif';
-      context.fillStyle = "#ffffff";
+      context.fillStyle = this.#theme.text;
       context.fillText(item.icon, x + SLOT_SIZE / 2, y + 38);
     }
     context.textAlign = "center";
     context.textBaseline = "middle";
-    context.fillStyle = "#eaf8ff";
+    context.fillStyle = this.#theme.text;
     context.font = ITEM_LABEL_FONT;
     context.fillText(
       this.#fitText(
@@ -523,7 +633,7 @@ export class InventoryHud {
   }
 
   #drawItemTooltip() {
-    const item = this.#state.items[this.#hoveredItemIndex];
+    const item = this.#itemAtSlot(this.#hoveredItemSlot);
     if (!item || !this.#tooltipTexture || !this.#tooltip) {
       if (this.#tooltip) {
         this.#tooltip.enabled = false;
@@ -538,8 +648,8 @@ export class InventoryHud {
       return;
     }
 
-    const column = this.#hoveredItemIndex % SLOT_COLUMNS;
-    const row = Math.floor(this.#hoveredItemIndex / SLOT_COLUMNS);
+    const column = this.#hoveredItemSlot % SLOT_COLUMNS;
+    const row = Math.floor(this.#hoveredItemSlot / SLOT_COLUMNS);
     const slotLeft = this.#slotLeft + column * (SLOT_SIZE + SLOT_GAP);
     const slotTop = 98 + row * (SLOT_SIZE + SLOT_GAP);
     const centerX = Math.max(
@@ -557,7 +667,7 @@ export class InventoryHud {
     context.clearRect(0, 0, canvas.width, canvas.height);
     context.save();
     context.scale(PANEL_TEXTURE_SCALE, PANEL_TEXTURE_SCALE);
-    context.shadowColor = "rgba(0, 0, 0, 0.55)";
+    context.shadowColor = this.#theme.withAlpha(this.#theme.shadow, 0.55);
     context.shadowBlur = 7;
     context.shadowOffsetY = 3;
     this.#roundedRect(
@@ -569,17 +679,17 @@ export class InventoryHud {
       6,
     );
     const gradient = context.createLinearGradient(0, 0, 0, TOOLTIP_HEIGHT);
-    gradient.addColorStop(0, "#174e70");
-    gradient.addColorStop(1, "#08263f");
+    gradient.addColorStop(0, this.#theme.surfaceTop);
+    gradient.addColorStop(1, this.#theme.surfaceBottom);
     context.fillStyle = gradient;
     context.fill();
     context.shadowColor = "transparent";
-    context.strokeStyle = "#72c4e8";
+    context.strokeStyle = this.#theme.outlineStrong;
     context.lineWidth = 1;
     context.stroke();
     context.textAlign = "center";
     context.textBaseline = "middle";
-    context.fillStyle = "#f4fbff";
+    context.fillStyle = this.#theme.text;
     context.font = TOOLTIP_FONT;
     context.fillText(
       label,
@@ -596,23 +706,12 @@ export class InventoryHud {
     this.#tooltip.enabled = true;
   }
 
-  #itemIndexAt(clientX, clientY) {
+  #slotIndexAt(clientX, clientY, occupiedOnly = false) {
     if (!this.visible || !this.#panelTexture) {
       return null;
     }
-    const canvas = this.#app.graphicsDevice.canvas;
-    const bounds = canvas.getBoundingClientRect();
-    const scale = Math.sqrt(
-      (bounds.width / REFERENCE_WIDTH) *
-        (bounds.height / REFERENCE_HEIGHT),
-    );
-    const panelX =
-      (clientX - (bounds.left + bounds.width / 2)) / scale +
-      PANEL_WIDTH / 2;
-    const panelY =
-      (clientY - (bounds.top + bounds.height / 2)) / scale +
-      PANEL_HEIGHT / 2;
-    for (let index = 0; index < this.#state.items.length; index += 1) {
+    const { x: panelX, y: panelY } = this.#clientToPanel(clientX, clientY);
+    for (let index = 0; index < this.#state.capacity; index += 1) {
       const column = index % SLOT_COLUMNS;
       const row = Math.floor(index / SLOT_COLUMNS);
       const x = this.#slotLeft + column * (SLOT_SIZE + SLOT_GAP);
@@ -625,35 +724,182 @@ export class InventoryHud {
       ) {
         continue;
       }
-      const context = this.#panelTexture.context;
-      context.save();
-      context.font = ITEM_LABEL_FONT;
-      const labelWidth = context.measureText(
-        this.#translate(this.#state.items[index].labelKey),
-      ).width;
-      context.restore();
-      return labelWidth > ITEM_LABEL_MAXIMUM_WIDTH ? index : null;
+      return occupiedOnly && !this.#itemAtSlot(index) ? null : index;
     }
     return null;
   }
 
-  #setHoveredItem(index) {
-    if (index === this.#hoveredItemIndex) {
+  #setHoveredItem(slot) {
+    if (slot === this.#hoveredItemSlot) {
       return;
     }
-    this.#hoveredItemIndex = index;
+    this.#hoveredItemSlot = slot;
     this.#drawItemTooltip();
+    this.#updateCursor();
   }
 
   #syncItemProjections() {
-    for (const [index, projection] of this.#itemProjectionEntities.entries()) {
-      const item = this.#state.items[index];
+    for (const [slot, projection] of this.#itemProjectionEntities.entries()) {
+      const item = this.#itemAtSlot(slot);
       const texture = item
         ? this.#itemProjector.textureFor(item.modelUrl)
         : null;
       projection.element.texture = texture;
-      projection.enabled = Boolean(texture);
+      projection.enabled =
+        Boolean(texture) && slot !== this.#draggedItemSlot;
     }
+  }
+
+  #beginItemDrag(slot, clientX, clientY) {
+    const item = this.#itemAtSlot(slot);
+    if (!item) {
+      return;
+    }
+    this.#draggedItemSlot = slot;
+    this.#dragHoveredSlot = slot;
+    this.#setHoveredItem(null);
+    this.#dragVisual = this.#createItemVisual(item, "Dragged inventory item");
+    this.#modalRoot.addChild(this.#dragVisual.entity);
+    this.#positionItemVisual(this.#dragVisual, clientX, clientY);
+    this.#syncItemProjections();
+    this.#drawPanel();
+    this.#entity.screen.syncDrawOrder();
+    this.#updateCursor();
+  }
+
+  #finishItemDrag(clientX, clientY) {
+    const sourceSlot = this.#draggedItemSlot;
+    const targetSlot = this.#slotIndexAt(clientX, clientY);
+    const validTarget =
+      targetSlot !== null &&
+      targetSlot !== sourceSlot &&
+      !this.#itemAtSlot(targetSlot);
+    const droppedOutside = !this.#panelContains(clientX, clientY);
+    const visual = this.#dragVisual;
+
+    this.#dragVisual = null;
+    this.#draggedItemSlot = null;
+    this.#dragHoveredSlot = null;
+
+    if (validTarget && this.#onMoveItem?.(sourceSlot, targetSlot)) {
+      this.#destroyItemVisual(visual);
+    } else if (
+      droppedOutside &&
+      this.#onDropItem?.(sourceSlot, clientX, clientY)
+    ) {
+      this.#destroyItemVisual(visual);
+    } else {
+      this.#destroyItemVisual(visual);
+    }
+
+    this.#syncItemProjections();
+    this.#drawPanel();
+    this.#updateCursor();
+  }
+
+  #cancelItemDrag() {
+    if (this.#draggedItemSlot === null && !this.#dragVisual) {
+      return;
+    }
+    this.#destroyItemVisual(this.#dragVisual);
+    this.#dragVisual = null;
+    this.#draggedItemSlot = null;
+    this.#dragHoveredSlot = null;
+    this.#syncItemProjections();
+    this.#drawPanel();
+    this.#updateCursor();
+  }
+
+  #createItemVisual(item, name) {
+    let texture = this.#itemProjector.textureFor(item.modelUrl);
+    let ownedTexture = null;
+    if (!texture) {
+      const canvas = document.createElement("canvas");
+      canvas.width = ITEM_PROJECTION_SIZE * PANEL_TEXTURE_SCALE;
+      canvas.height = ITEM_PROJECTION_SIZE * PANEL_TEXTURE_SCALE;
+      const context = canvas.getContext("2d");
+      context.scale(PANEL_TEXTURE_SCALE, PANEL_TEXTURE_SCALE);
+      context.textAlign = "center";
+      context.textBaseline = "middle";
+      context.font = '44px "Segoe UI Emoji", sans-serif';
+      context.fillStyle = this.#theme.text;
+      context.fillText(
+        item.icon ?? "?",
+        ITEM_PROJECTION_SIZE / 2,
+        ITEM_PROJECTION_SIZE / 2,
+      );
+      texture = this.#createTexture(`${name} texture`, canvas);
+      ownedTexture = texture;
+    }
+
+    const entity = new this.#pc.Entity(name);
+    entity.addComponent("element", {
+      type: this.#pc.ELEMENTTYPE_IMAGE,
+      anchor: new this.#pc.Vec4(0.5, 0.5, 0.5, 0.5),
+      pivot: new this.#pc.Vec2(0.5, 0.5),
+      width: ITEM_PROJECTION_SIZE,
+      height: ITEM_PROJECTION_SIZE,
+      opacity: 0.92,
+      useInput: false,
+    });
+    entity.element.texture = texture;
+    return { entity, ownedTexture };
+  }
+
+  #positionItemVisual(visual, clientX, clientY) {
+    if (!visual) {
+      return;
+    }
+    const { bounds, scale } = this.#canvasMetrics;
+    visual.entity.setLocalPosition(
+      (clientX - (bounds.left + bounds.width / 2)) / scale,
+      (bounds.top + bounds.height / 2 - clientY) / scale,
+      0,
+    );
+  }
+
+  #destroyItemVisual(visual) {
+    if (!visual) {
+      return;
+    }
+    visual.entity.destroy();
+    visual.ownedTexture?.destroy();
+  }
+
+  #panelContains(clientX, clientY) {
+    const { x, y } = this.#clientToPanel(clientX, clientY);
+    return x >= 0 && x <= PANEL_WIDTH && y >= 0 && y <= PANEL_HEIGHT;
+  }
+
+  #clientToPanel(clientX, clientY) {
+    const { bounds, scale } = this.#canvasMetrics;
+    return {
+      x:
+        (clientX - (bounds.left + bounds.width / 2)) / scale +
+        PANEL_WIDTH / 2,
+      y:
+        (clientY - (bounds.top + bounds.height / 2)) / scale +
+        PANEL_HEIGHT / 2,
+    };
+  }
+
+  get #canvasMetrics() {
+    const canvas = this.#app.graphicsDevice.canvas;
+    const bounds = canvas.getBoundingClientRect();
+    return {
+      bounds,
+      scale: Math.sqrt(
+        (bounds.width / REFERENCE_WIDTH) *
+          (bounds.height / REFERENCE_HEIGHT),
+      ),
+    };
+  }
+
+  #itemAtSlot(slot) {
+    if (!Number.isInteger(slot)) {
+      return null;
+    }
+    return this.#state.items.find((item) => item.slot === slot) ?? null;
   }
 
   get #slotLeft() {
@@ -685,8 +931,9 @@ export class InventoryHud {
       width: canvas.width,
       height: canvas.height,
       format: this.#pc.PIXELFORMAT_RGBA8,
-      mipmaps: true,
-      minFilter: this.#pc.FILTER_LINEAR_MIPMAP_LINEAR,
+      srgb: true,
+      mipmaps: false,
+      minFilter: this.#pc.FILTER_LINEAR,
       magFilter: this.#pc.FILTER_LINEAR,
       addressU: this.#pc.ADDRESS_CLAMP_TO_EDGE,
       addressV: this.#pc.ADDRESS_CLAMP_TO_EDGE,

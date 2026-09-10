@@ -151,7 +151,7 @@ html.game-viewport--dragging * {
 
 <script setup>
 import { computed, ref, watch, onMounted, onBeforeUnmount } from "vue";
-import { Notify } from "quasar";
+import { getCssVar, Notify } from "quasar";
 import { useI18n } from "vue-i18n";
 import SiteNoticeDialog from "components/SiteNoticeDialog.vue";
 import { generateMap } from "src/game/MapGenerator.js";
@@ -204,6 +204,20 @@ let restartGameAction = null;
 let movementTestMapFactory = null;
 let viewportSaveTimer = null;
 let viewportPersistenceEnabled = false;
+
+function gameUiPalette() {
+  return {
+    primary: getCssVar("primary"),
+    secondary: getCssVar("secondary"),
+    accent: getCssVar("accent"),
+    positive: getCssVar("positive"),
+    negative: getCssVar("negative"),
+    info: getCssVar("info"),
+    warning: getCssVar("warning"),
+    dark: getCssVar("dark"),
+    darkPage: getCssVar("dark-page"),
+  };
+}
 
 function saveViewport() {
   viewportSaveTimer = null;
@@ -269,6 +283,9 @@ function installMovementTestDriver() {
     },
     interact() {
       return renderer.interact();
+    },
+    droppedInventoryItemCount() {
+      return renderer.thrownInventoryItemCount;
     },
     state() {
       return renderer.heroState;
@@ -348,6 +365,7 @@ async function init() {
     restartPrompt: t("game.restart_prompt"),
     graphics: graphicsStore.rendererOptions,
     heroConfiguration: heroConfigurationStore,
+    uiPalette: gameUiPalette(),
   });
   await renderer.init();
   graphicsBackend.value = renderer.graphicsBackend;

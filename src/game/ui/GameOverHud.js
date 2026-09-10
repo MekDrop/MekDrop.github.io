@@ -7,12 +7,14 @@ const PANEL_BOTTOM_MARGIN = 36;
 export class GameOverHud {
   #pc;
   #app;
+  #theme;
   #entity;
   #panelTexture;
 
-  constructor({ pc, app, title, prompt }) {
+  constructor({ pc, app, title, prompt, theme }) {
     this.#pc = pc;
     this.#app = app;
+    this.#theme = theme;
     this.#entity = new pc.Entity("Game over HUD");
     this.#entity.addComponent("screen", {
       screenSpace: true,
@@ -43,6 +45,7 @@ export class GameOverHud {
     this.#panelTexture?.destroy();
     this.#entity = null;
     this.#panelTexture = null;
+    this.#theme = null;
     this.#app = null;
     this.#pc = null;
   }
@@ -54,7 +57,7 @@ export class GameOverHud {
       anchor: new this.#pc.Vec4(0, 0, 1, 1),
       pivot: new this.#pc.Vec2(0.5, 0.5),
       margin: new this.#pc.Vec4(0, 0, 0, 0),
-      color: new this.#pc.Color(0.025, 0.035, 0.045),
+      color: this.#theme.playCanvasColor(this.#pc, this.#theme.backdrop),
       opacity: 0.62,
       useInput: false,
     });
@@ -88,43 +91,44 @@ export class GameOverHud {
     const width = canvas.width - 36;
     const height = canvas.height - 36;
 
-    context.shadowColor = "rgba(0, 0, 0, 0.52)";
+    context.shadowColor = this.#theme.withAlpha(this.#theme.shadow, 0.52);
     context.shadowBlur = 18;
     context.shadowOffsetY = 10;
     this.#roundedRect(context, x, y, width, height, 28);
-    context.fillStyle = "rgba(24, 8, 18, 0.96)";
+    context.fillStyle = this.#theme.withAlpha(this.#theme.surfaceBottom, 0.96);
     context.fill();
     context.shadowColor = "transparent";
-    context.strokeStyle = "#ff6477";
+    context.strokeStyle = this.#theme.negative;
     context.lineWidth = 3;
     context.stroke();
 
     const titleGradient = context.createLinearGradient(0, 52, 0, 140);
-    titleGradient.addColorStop(0, "#ff91a0");
-    titleGradient.addColorStop(1, "#ff405b");
+    titleGradient.addColorStop(0, this.#theme.negativeBright);
+    titleGradient.addColorStop(1, this.#theme.negative);
     context.font = "900 64px Arial, sans-serif";
     context.textAlign = "center";
     context.textBaseline = "middle";
     context.lineJoin = "round";
-    context.strokeStyle = "#590a18";
+    context.strokeStyle = this.#theme.negativeDark;
     context.lineWidth = 10;
     context.strokeText(String(title).toUpperCase(), canvas.width / 2, 94);
     context.fillStyle = titleGradient;
     context.fillText(String(title).toUpperCase(), canvas.width / 2, 94);
 
     context.font = "800 22px Arial, sans-serif";
-    context.strokeStyle = "#160910";
+    context.strokeStyle = this.#theme.shadow;
     context.lineWidth = 6;
     context.strokeText(String(prompt).toUpperCase(), canvas.width / 2, 169);
-    context.fillStyle = "#f9e9ed";
+    context.fillStyle = this.#theme.text;
     context.fillText(String(prompt).toUpperCase(), canvas.width / 2, 169);
 
     const texture = new this.#pc.Texture(this.#app.graphicsDevice, {
       width: canvas.width,
       height: canvas.height,
       format: this.#pc.PIXELFORMAT_RGBA8,
-      mipmaps: true,
-      minFilter: this.#pc.FILTER_LINEAR_MIPMAP_LINEAR,
+      srgb: true,
+      mipmaps: false,
+      minFilter: this.#pc.FILTER_LINEAR,
       magFilter: this.#pc.FILTER_LINEAR,
       addressU: this.#pc.ADDRESS_CLAMP_TO_EDGE,
       addressV: this.#pc.ADDRESS_CLAMP_TO_EDGE,

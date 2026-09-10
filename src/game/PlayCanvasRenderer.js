@@ -27,10 +27,12 @@ import {
 } from "./objects/scenery/index.js";
 import { VoxelVegetation } from "./objects/vegetation/index.js";
 import { BuriedTreasureField } from "./objects/treasure/index.js";
+import { ThrownInventoryItem } from "./objects/inventory/index.js";
 import { TileType } from "./MapGenerator.js";
 import { GRASS_SURFACE_LIFT } from "./config/terrain.js";
 import { GRAPHICS_DRIVER } from "./enum/GraphicsDriver.js";
 import { POWER_PREFERENCE } from "./enum/PowerPreference.js";
+import { POINTER_TYPE } from "./enum/PointerType.js";
 import { GroundCollisionWorld } from "./collision/index.js";
 import { GameModelLibrary } from "./models/index.js";
 import { CameraPanBounds, HeroVisibilityController } from "./camera/index.js";
@@ -38,6 +40,7 @@ import {
   DebugAxesHud,
   DebugFpsHud,
   GameOverHud,
+  GameUiTheme,
   HeroLifeHud,
   CoinHud,
   InventoryHud,
@@ -203,6 +206,7 @@ export class PlayCanvasRenderer {
   #lifeHud = null;
   #coinHud = null;
   #inventoryHud = null;
+  #thrownInventoryItems = [];
   #gameOverHud = null;
   #heroVisibility = null;
   #floatingIslandMotion = null;
@@ -242,6 +246,7 @@ export class PlayCanvasRenderer {
   #graphics = null;
   #translate = (key) => key;
   #heroConfiguration = null;
+  #uiTheme = null;
 
   constructor(
     canvas,
@@ -256,6 +261,7 @@ export class PlayCanvasRenderer {
       restartPrompt = "Press any key or click to restart",
       graphics = {},
       heroConfiguration,
+      uiPalette,
     } = {},
   ) {
     this.canvas = canvas;
@@ -264,6 +270,8 @@ export class PlayCanvasRenderer {
     this.#onHeroStateChange = onHeroStateChange;
     this.#onInventoryFull = onInventoryFull;
     this.#heroConfiguration = heroConfiguration;
+    this.#uiTheme = new GameUiTheme(uiPalette);
+    this.#heroConfiguration?.normalizeInventorySlots?.();
     this.#translate = translate;
     this.#onViewportChange = onViewportChange;
     this.#gameOverTitle = gameOverTitle;
@@ -326,23 +334,41 @@ export class PlayCanvasRenderer {
       app: this.#app,
       colors: this.#gatewayColors,
     });
-    this.#debugFpsHud = new DebugFpsHud({ pc, app: this.#app });
+    this.#debugFpsHud = new DebugFpsHud({
+      pc,
+      app: this.#app,
+      theme: this.#uiTheme,
+    });
     this.#debugFpsHud.attach();
     this.#debugAxesHud = new DebugAxesHud({
       pc,
       app: this.#app,
       gameCanvas: this,
+      theme: this.#uiTheme,
     });
     this.#debugAxesHud.attach();
-    this.#lifeHud = new HeroLifeHud({ pc, app: this.#app });
+    this.#lifeHud = new HeroLifeHud({
+      pc,
+      app: this.#app,
+      theme: this.#uiTheme,
+    });
     this.#lifeHud.attach();
-    this.#coinHud = new CoinHud({ pc, app: this.#app });
+    this.#coinHud = new CoinHud({
+      pc,
+      app: this.#app,
+      theme: this.#uiTheme,
+    });
     this.#coinHud.attach();
     this.#inventoryHud = new InventoryHud({
       pc,
       app: this.#app,
       modelLibrary: this.#modelLibrary,
       translate: this.#translate,
+      theme: this.#uiTheme,
+      onMoveItem: (fromSlot, toSlot) =>
+        this.#moveInventoryItem(fromSlot, toSlot),
+      onDropItem: (slot, clientX, clientY) =>
+        this.#dropInventoryItem(slot, clientX, clientY),
     });
     this.#inventoryHud.attach();
     this.#inventoryHud.visible = Boolean(
@@ -353,6 +379,7 @@ export class PlayCanvasRenderer {
       app: this.#app,
       title: this.#gameOverTitle,
       prompt: this.#restartPrompt,
+      theme: this.#uiTheme,
     });
     this.#gameOverHud.attach();
 
@@ -528,6 +555,10 @@ export class PlayCanvasRenderer {
     return this.#inventoryHud?.visible ?? false;
   }
 
+  get thrownInventoryItemCount() {
+    return this.#thrownInventoryItems.length;
+  }
+
   get wind() {
     return (
       this.#cloudField?.wind ?? {
@@ -668,6 +699,50 @@ export class PlayCanvasRenderer {
     const nextVisible = Boolean(visible);
     this.#inventoryHud.visible = nextVisible;
     this.#heroConfiguration?.setInventoryVisible(nextVisible);
+    if (!nextVisible) {
+      this.#fadeThrownInventoryItems();
+    }
+  }
+
+  #moveInventoryItem(fromSlot, toSlot) {
+    const moved =
+      this.#heroConfiguration?.moveInventoryItem(fromSlot, toSlot) ?? false;
+    if (moved) {
+      this.#inventoryHud?.setInventory(this.inventoryState);
+    }
+    return moved;
+  }
+
+  #dropInventoryItem(slot) {
+    const inventoryItem = this.#heroConfiguration?.inventory.items.find(
+      (item) => item.slot === slot,
+    );
+    if (!inventoryItem?.modelUrl || !this.#hero || !this.#mapRoot) {
+      return null;
+    }
+    const thrownItem = new ThrownInventoryItem({
+      pc: this.#pc,
+      modelLibrary: this.#modelLibrary,
+      item: inventoryItem,
+      position: this.#hero.position,
+      direction: this.#hero.facingDirection,
+    });
+    const droppedItem =
+      this.#heroConfiguration?.dropInventoryItem(slot) ?? null;
+    if (!droppedItem) {
+      thrownItem.destroy();
+      return null;
+    }
+    this.#mapRoot.addChild(thrownItem.entity);
+    this.#thrownInventoryItems.push(thrownItem);
+    this.#inventoryHud?.setInventory(this.inventoryState);
+    return droppedItem;
+  }
+
+  #fadeThrownInventoryItems() {
+    for (const thrownItem of this.#thrownInventoryItems) {
+      thrownItem.beginFade();
+    }
   }
 
   pressInventoryPointer(clientX, clientY) {
@@ -815,6 +890,7 @@ export class PlayCanvasRenderer {
     this.#inventoryHud = null;
     this.#gameOverHud?.destroy();
     this.#gameOverHud = null;
+    this.#uiTheme = null;
     for (const material of this.#materials.values()) material.destroy();
     this.#materials.clear();
     for (const asset of this.#textureAssets) {
@@ -1351,10 +1427,24 @@ export class PlayCanvasRenderer {
 
   #updateFrame = (deltaTime) => {
     this.#syncInventoryVisibility();
+    this.#updateThrownInventoryItems(deltaTime);
     this.#cloudField?.update(deltaTime);
     this.#updateHeroCameraReturn(deltaTime);
     this.#updateGameOverCamera(deltaTime);
   };
+
+  #updateThrownInventoryItems(deltaTime) {
+    const remainingItems = [];
+    for (const thrownItem of this.#thrownInventoryItems) {
+      thrownItem.advance(deltaTime);
+      if (thrownItem.expired) {
+        thrownItem.destroy();
+      } else {
+        remainingItems.push(thrownItem);
+      }
+    }
+    this.#thrownInventoryItems = remainingItems;
+  }
 
   #syncInventoryVisibility() {
     if (!this.#inventoryHud || !this.#heroConfiguration) {
@@ -1370,6 +1460,7 @@ export class PlayCanvasRenderer {
     if (configuredVisibility) {
       this.#setInteractionTarget(null);
     } else {
+      this.#fadeThrownInventoryItems();
       this.#updateInteractionTarget();
     }
   }
@@ -2304,7 +2395,7 @@ export class PlayCanvasRenderer {
   };
 
   #handleBannerPointerMove = (event) => {
-    if (event.pointerType === "mouse") {
+    if (event.pointerType === POINTER_TYPE.MOUSE) {
       this.#heroLookPointer = {
         clientX: event.clientX,
         clientY: event.clientY,
@@ -2329,7 +2420,7 @@ export class PlayCanvasRenderer {
   };
 
   #handlePointerLeave = (event) => {
-    if (event.pointerType === "mouse") {
+    if (event.pointerType === POINTER_TYPE.MOUSE) {
       this.#clearHeroIdleLookTarget();
     }
   };
@@ -2457,6 +2548,10 @@ export class PlayCanvasRenderer {
     this.#shovelTool?.destroy();
     this.#shovelTool = null;
     this.#interactionProviders = [];
+    for (const thrownItem of this.#thrownInventoryItems) {
+      thrownItem.destroy();
+    }
+    this.#thrownInventoryItems = [];
     this.#hero?.destroy();
     this.#hero = null;
     this.#vegetation?.destroy();
