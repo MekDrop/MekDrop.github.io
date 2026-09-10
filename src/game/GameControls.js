@@ -235,7 +235,8 @@ export class GameControls {
     }
     const isPan =
       event.pointerType === POINTER_TYPE.MOUSE &&
-      this.#config().dragCamera.mouseButtons.includes(event.button);
+      this.#config().dragCamera.mouseButtons.includes(event.button) &&
+      this.#actions.moveCamera.available;
     const isRotate =
       event.pointerType === POINTER_TYPE.MOUSE &&
       event.button === this.#config().rotateCamera.mouseButton;
@@ -251,7 +252,7 @@ export class GameControls {
     this.#dragX = event.clientX;
     this.#dragY = event.clientY;
     this.#dragDistance = 0;
-    this.#setDragging(true);
+    this.#setDragging(this.#dragMode === CAMERA_DRAG_MODE.PAN);
     this.#element.setPointerCapture(event.pointerId);
   };
 

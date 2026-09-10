@@ -275,6 +275,94 @@ describe("Camera dragging", () => {
     cy.window().its("gameCameraTest").should("exist");
   });
 
+  it("shows the dragging hand only while available pan is pressed", () => {
+    cy.get(".background-canvas__surface").should(
+      "have.css",
+      "cursor",
+      "auto",
+    );
+    cy.get(".background-canvas").then(($viewport) => {
+      const viewport = $viewport[0];
+      const rect = viewport.getBoundingClientRect();
+      const pointerId = 1;
+      const clientX = rect.left + rect.width / 2;
+      const clientY = rect.top + rect.height / 2;
+
+      setZoom(MIN_ZOOM);
+      cy.wrap($viewport)
+        .trigger("pointerdown", {
+          pointerId,
+          pointerType: POINTER_TYPE.MOUSE,
+          button: 0,
+          buttons: 1,
+          clientX,
+          clientY,
+        })
+        .should("not.have.class", "background-canvas--dragging")
+        .trigger("pointerup", {
+          pointerId,
+          pointerType: POINTER_TYPE.MOUSE,
+          button: 0,
+          buttons: 0,
+          clientX,
+          clientY,
+        });
+
+      setZoom(MIN_ZOOM * 2);
+      cy.wrap($viewport)
+        .trigger("pointerdown", {
+          pointerId,
+          pointerType: POINTER_TYPE.MOUSE,
+          button: 0,
+          buttons: 1,
+          clientX,
+          clientY,
+        })
+        .should("have.class", "background-canvas--dragging")
+        .find(".background-canvas__surface")
+        .should("have.css", "cursor", "grabbing");
+
+      cy.wrap($viewport)
+        .trigger("pointerup", {
+          pointerId,
+          pointerType: POINTER_TYPE.MOUSE,
+          button: 0,
+          buttons: 0,
+          clientX,
+          clientY,
+        })
+        .should("not.have.class", "background-canvas--dragging");
+
+      cy.get(".background-canvas__surface").then(($canvas) => {
+        $canvas[0].addEventListener(
+          "pointerdown",
+          (event) => event.preventDefault(),
+          { once: true },
+        );
+        cy.wrap($canvas).trigger("pointerdown", {
+          pointerId: 2,
+          pointerType: POINTER_TYPE.MOUSE,
+          button: 0,
+          buttons: 1,
+          clientX,
+          clientY,
+        });
+        cy.wrap($viewport).should(
+          "not.have.class",
+          "background-canvas--dragging",
+        );
+        cy.wrap($canvas).trigger("pointerup", {
+          pointerId: 2,
+          pointerType: POINTER_TYPE.MOUSE,
+          button: 0,
+          buttons: 0,
+          clientX,
+          clientY,
+        });
+      });
+    });
+  });
+
   it("keeps the island on screen after extreme drags at every zoom level", () => {
     const directions = [
       [DRAG_DISTANCE, 0],

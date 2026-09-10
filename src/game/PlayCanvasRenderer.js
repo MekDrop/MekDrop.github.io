@@ -509,6 +509,10 @@ export class PlayCanvasRenderer {
     return this.#zoom;
   }
 
+  get canPan() {
+    return !this.#gameOverCameraLocked && this.#zoom > MAP_FIT_ZOOM;
+  }
+
   get rotation() {
     return this.#rotation;
   }

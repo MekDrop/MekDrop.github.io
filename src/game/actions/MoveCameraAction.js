@@ -7,6 +7,10 @@ export class MoveCameraAction {
     this.#step = Number.isFinite(step) ? step : 0;
   }
 
+  get available() {
+    return this.#renderer.canPan;
+  }
+
   moveUp() {
     this.moveBy(0, this.#step);
   }

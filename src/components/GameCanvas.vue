@@ -69,7 +69,6 @@
   width: 100%;
   height: 100%;
   touch-action: none;
-  cursor: grab;
 }
 
 .background-canvas--dragging .background-canvas__surface {
