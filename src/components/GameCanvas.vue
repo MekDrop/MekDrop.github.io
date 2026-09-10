@@ -78,19 +78,17 @@
 .interaction-prompt {
   position: absolute;
   left: 50%;
-  bottom: clamp(28px, 8vh, 84px);
+  bottom: clamp(var(--app-ui-space-lg), 8vh, calc(var(--app-ui-space-xl) * 2));
   display: flex;
   align-items: center;
-  gap: 9px;
-  padding: 8px 12px;
+  gap: var(--app-ui-space-sm);
+  padding: var(--app-ui-space-sm) var(--app-ui-space-md);
   color: #f7fff6;
-  font:
-    700 13px/1.2 system-ui,
-    sans-serif;
+  font: 700 13px/1.2 var(--app-ui-font-family);
   letter-spacing: 0.025em;
   background: rgba(6, 18, 13, 0.86);
   border: 1px solid rgba(184, 236, 195, 0.42);
-  border-radius: 10px;
+  border-radius: var(--app-ui-border-radius);
   box-shadow: 0 6px 22px rgba(0, 0, 0, 0.28);
   transform: translateX(-50%);
   pointer-events: none;
@@ -99,26 +97,26 @@
 
 .interaction-prompt kbd {
   min-width: 25px;
-  padding: 4px 6px;
+  padding: var(--app-ui-space-xs) var(--app-ui-space-sm);
   color: #17331f;
   text-align: center;
   background: #d9f6d8;
   border: 0;
-  border-radius: 5px;
+  border-radius: var(--app-ui-border-radius);
   box-shadow: 0 2px 0 #79a77e;
 }
 
 .interaction-prompt__health {
   display: flex;
-  gap: 3px;
-  margin-left: 3px;
+  gap: var(--app-ui-space-xs);
+  margin-left: var(--app-ui-space-xs);
 }
 
 .interaction-prompt__health i {
   width: 7px;
   height: 13px;
   background: #80d27d;
-  border-radius: 2px;
+  border-radius: var(--app-ui-border-radius);
   transition:
     background 160ms ease,
     opacity 160ms ease;
@@ -204,7 +202,8 @@ let movementTestMapFactory = null;
 let viewportSaveTimer = null;
 let viewportPersistenceEnabled = false;
 
-function gameUiPalette() {
+function gameUiTheme() {
+  const styles = window.getComputedStyle(document.documentElement);
   return {
     primary: getCssVar("primary"),
     secondary: getCssVar("secondary"),
@@ -215,6 +214,13 @@ function gameUiPalette() {
     warning: getCssVar("warning"),
     dark: getCssVar("dark"),
     darkPage: getCssVar("dark-page"),
+    fontFamily: styles.getPropertyValue("--app-ui-font-family").trim(),
+    borderRadius: styles.getPropertyValue("--app-ui-border-radius").trim(),
+    spaceXs: styles.getPropertyValue("--app-ui-space-xs").trim(),
+    spaceSm: styles.getPropertyValue("--app-ui-space-sm").trim(),
+    spaceMd: styles.getPropertyValue("--app-ui-space-md").trim(),
+    spaceLg: styles.getPropertyValue("--app-ui-space-lg").trim(),
+    spaceXl: styles.getPropertyValue("--app-ui-space-xl").trim(),
   };
 }
 
@@ -364,7 +370,7 @@ async function init() {
     restartPrompt: t("game.restart_prompt"),
     graphics: graphicsStore.rendererOptions,
     heroConfiguration: heroConfigurationStore,
-    uiPalette: gameUiPalette(),
+    uiTheme: gameUiTheme(),
   });
   await renderer.init();
   graphicsBackend.value = renderer.graphicsBackend;

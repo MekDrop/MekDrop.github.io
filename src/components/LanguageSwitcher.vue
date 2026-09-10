@@ -8,13 +8,12 @@
           'language-switcher__btn--active': lang.value === i18n.locale.value,
         }"
         dense
-        square
         flat
         :title="lang.label"
         :aria-label="lang.label"
         :to="{ name: 'index', params: { lang: lang.value } }"
       >
-        <q-avatar v-html="lang.iconHTML" size="1.5em" square />
+        <q-avatar v-html="lang.iconHTML" size="1.5em" />
       </q-btn>
     </template>
   </div>
@@ -26,13 +25,14 @@
   flex-direction: row;
   justify-content: flex-start;
   flex-wrap: nowrap;
-  gap: 0.75rem;
+  gap: var(--app-ui-space-sm);
 }
 
 .language-switcher__btn {
   min-width: 3rem;
   min-height: 3rem;
   border: 1px solid rgba(150, 255, 224, 0.42);
+  border-radius: var(--app-ui-border-radius);
   background: transparent;
   color: #d9ffe8;
 }
@@ -42,6 +42,7 @@
 }
 
 .language-switcher__btn .q-avatar {
+  border-radius: var(--app-ui-border-radius);
   filter: grayscale(1) contrast(1.1) brightness(1.15);
   opacity: 0.9;
 }

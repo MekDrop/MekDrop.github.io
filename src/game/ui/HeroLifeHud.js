@@ -1,16 +1,5 @@
 import { GamePanelHud } from "./GamePanelHud.js";
 
-const SCREEN_MARGIN = 16;
-const PANEL_PADDING_X = 6;
-const PANEL_PADDING_Y = 4;
-const CONTENT_GAP = 4;
-const INDICATOR_GAP = 6;
-const HEART_WIDTH = 22;
-const HEART_HEIGHT = 22;
-const SHIELD_WIDTH = 20;
-const SHIELD_HEIGHT = 23;
-const NUMBER_WIDTH = 15;
-const NUMBER_HEIGHT = 20;
 const TEXTURE_SIZE = 64;
 
 const DEFAULT_COLORS = Object.freeze({
@@ -50,8 +39,10 @@ export class HeroLifeHud extends GamePanelHud {
 
     this.#heartTexture = this.#createHeartTexture();
     this.#shieldTexture = this.#createShieldTexture();
-    this.#heroNumberTexture = this.#createNumberTexture("Hero life number");
-    this.#castleNumberTexture = this.#createNumberTexture(
+    this.#heroNumberTexture = this.createCounterNumberTexture(
+      "Hero life number",
+    );
+    this.#castleNumberTexture = this.createCounterNumberTexture(
       "Castle life number",
     );
     this.#maxCastleLives = this.#normalizeMaximum(maxCastleLives);
@@ -117,28 +108,30 @@ export class HeroLifeHud extends GamePanelHud {
   #build() {
     this.#panelRoot?.destroy();
     this.releaseTexture(this.#panelTexture);
+    const panelPaddingX = this.theme.spaceSm;
+    const panelPaddingY = this.theme.spaceXs;
+    const contentGap = this.theme.spaceXs;
+    const indicatorGap = this.theme.spaceSm;
+    const iconSize = this.counterIconSize;
+    const numberHeight = this.counterNumberHeight;
     const heroNumberWidth = this.#numberWidth(this.#maxLives);
     const castleNumberWidth = this.#numberWidth(this.#maxCastleLives);
     const contentWidth =
-      HEART_WIDTH +
-      CONTENT_GAP +
+      iconSize +
+      contentGap +
       heroNumberWidth +
-      INDICATOR_GAP +
-      SHIELD_WIDTH +
-      CONTENT_GAP +
+      indicatorGap +
+      iconSize +
+      contentGap +
       castleNumberWidth;
-    const contentHeight = Math.max(
-      HEART_HEIGHT,
-      SHIELD_HEIGHT,
-      NUMBER_HEIGHT,
-    );
-    const panelWidth = contentWidth + PANEL_PADDING_X * 2;
-    const panelHeight = contentHeight + PANEL_PADDING_Y * 2;
+    const contentHeight = Math.max(iconSize, numberHeight);
+    const panelWidth = contentWidth + panelPaddingX * 2;
+    const panelHeight = contentHeight + panelPaddingY * 2;
 
     this.#panelRoot = this.createPanel({
       name: "Game lives panel",
-      x: SCREEN_MARGIN,
-      y: SCREEN_MARGIN,
+      x: this.theme.spaceMd,
+      y: this.theme.spaceMd,
       width: panelWidth,
       height: panelHeight,
     });
@@ -158,43 +151,43 @@ export class HeroLifeHud extends GamePanelHud {
     });
 
     const centeredY = (height) =>
-      PANEL_PADDING_Y + (contentHeight - height) / 2;
+      panelPaddingY + (contentHeight - height) / 2;
     this.#heartEntity = this.createImage({
       parent: this.#panelRoot,
       name: "Hero life icon",
-      x: PANEL_PADDING_X,
-      y: centeredY(HEART_HEIGHT),
-      width: HEART_WIDTH,
-      height: HEART_HEIGHT,
+      x: panelPaddingX,
+      y: centeredY(iconSize),
+      width: iconSize,
+      height: iconSize,
       texture: this.#heartTexture,
     });
-    const heroNumberX = PANEL_PADDING_X + HEART_WIDTH + CONTENT_GAP;
+    const heroNumberX = panelPaddingX + iconSize + contentGap;
     this.#heroNumberEntity = this.createImage({
       parent: this.#panelRoot,
       name: "Hero life count",
       x: heroNumberX,
-      y: centeredY(NUMBER_HEIGHT),
+      y: centeredY(numberHeight),
       width: heroNumberWidth,
-      height: NUMBER_HEIGHT,
+      height: numberHeight,
       texture: this.#heroNumberTexture.texture,
     });
-    const shieldX = heroNumberX + heroNumberWidth + INDICATOR_GAP;
+    const shieldX = heroNumberX + heroNumberWidth + indicatorGap;
     this.#shieldEntity = this.createImage({
       parent: this.#panelRoot,
       name: "Castle life icon",
       x: shieldX,
-      y: centeredY(SHIELD_HEIGHT),
-      width: SHIELD_WIDTH,
-      height: SHIELD_HEIGHT,
+      y: centeredY(iconSize),
+      width: iconSize,
+      height: iconSize,
       texture: this.#shieldTexture,
     });
     this.#castleNumberEntity = this.createImage({
       parent: this.#panelRoot,
       name: "Castle life count",
-      x: shieldX + SHIELD_WIDTH + CONTENT_GAP,
-      y: centeredY(NUMBER_HEIGHT),
+      x: shieldX + iconSize + contentGap,
+      y: centeredY(numberHeight),
       width: castleNumberWidth,
-      height: NUMBER_HEIGHT,
+      height: numberHeight,
       texture: this.#castleNumberTexture.texture,
     });
 
@@ -221,7 +214,7 @@ export class HeroLifeHud extends GamePanelHud {
       this.pc,
       value > 0 ? this.#colors.iconActive : this.#colors.iconInactive,
     );
-    this.#drawNumber(numberTexture, value);
+    this.drawNumber(numberTexture, value);
     number.element.texture = numberTexture.texture;
   }
 
@@ -309,27 +302,8 @@ export class HeroLifeHud extends GamePanelHud {
     context.closePath();
   }
 
-  #createNumberTexture(name) {
-    return this.createTextureRecord(name, TEXTURE_SIZE, TEXTURE_SIZE);
-  }
-
-  #drawNumber(record, value) {
-    const { canvas, context, texture } = record;
-    context.clearRect(0, 0, canvas.width, canvas.height);
-    context.font = "900 48px Arial, sans-serif";
-    context.textAlign = "center";
-    context.textBaseline = "middle";
-    context.lineJoin = "round";
-    context.strokeStyle = this.theme.shadow;
-    context.lineWidth = 7;
-    context.strokeText(String(Math.max(0, value)), 32, 34);
-    context.fillStyle = this.theme.text;
-    context.fillText(String(Math.max(0, value)), 32, 34);
-    texture.setSource(canvas);
-  }
-
   #numberWidth(maximum) {
-    return NUMBER_WIDTH * Math.max(1, String(maximum).length);
+    return this.counterNumberWidth * Math.max(1, String(maximum).length);
   }
 
   #normalizeMaximum(value) {

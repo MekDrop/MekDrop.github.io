@@ -1,14 +1,6 @@
 import { COIN_TYPE } from "../enum/CoinType.js";
 import { GamePanelHud } from "./GamePanelHud.js";
 
-const SCREEN_MARGIN = 16;
-const PANEL_TOP = 52;
-const PANEL_WIDTH = 190;
-const PANEL_HEIGHT = 34;
-const ITEM_WIDTH = 60;
-const COIN_SIZE = 22;
-const NUMBER_WIDTH = 34;
-const NUMBER_HEIGHT = 20;
 const TEXTURE_SIZE = 64;
 
 const COINS = [
@@ -55,50 +47,65 @@ export class CoinHud extends GamePanelHud {
   }
 
   #build() {
+    const panelPaddingX = this.theme.spaceSm;
+    const panelPaddingY = this.theme.spaceXs;
+    const contentGap = this.theme.spaceXs;
+    const indicatorGap = this.theme.spaceSm;
+    const iconSize = this.counterIconSize;
+    const numberWidth = this.counterNumberWidth;
+    const numberHeight = this.counterNumberHeight;
+    const itemWidth = iconSize + contentGap + numberWidth;
+    const contentWidth =
+      COINS.length * itemWidth + (COINS.length - 1) * indicatorGap;
+    const panelWidth = contentWidth + panelPaddingX * 2;
+    const panelHeight = iconSize + panelPaddingY * 2;
+
     this.#panel = this.createPanel({
       name: "Coin wallet panel",
-      x: SCREEN_MARGIN,
-      y: PANEL_TOP,
-      width: PANEL_WIDTH,
-      height: PANEL_HEIGHT,
+      x: this.theme.spaceMd,
+      y: this.theme.spaceXl + this.theme.spaceXs,
+      width: panelWidth,
+      height: panelHeight,
     });
     this.#panelTexture = this.createPanelTexture(
       "Coin wallet panel texture",
-      PANEL_WIDTH,
-      PANEL_HEIGHT,
+      panelWidth,
+      panelHeight,
     );
     this.createImage({
       parent: this.#panel,
       name: "Coin wallet background",
       x: 0,
       y: 0,
-      width: PANEL_WIDTH,
-      height: PANEL_HEIGHT,
+      width: panelWidth,
+      height: panelHeight,
       texture: this.#panelTexture,
     });
 
     COINS.forEach((coin, index) => {
       const coinTexture = this.#createCoinTexture(coin);
       this.#coinTextures.set(coin.type, coinTexture);
-      const numberTexture = this.#createNumberTexture(coin.type);
+      const numberTexture = this.createCounterNumberTexture(
+        `${coin.type} coin number texture`,
+      );
       this.#numberTextures.set(coin.type, numberTexture);
-      const itemX = 6 + index * ITEM_WIDTH;
+      const itemX = panelPaddingX + index * (itemWidth + indicatorGap);
       this.createImage({
         parent: this.#panel,
         name: `${coin.type} coin icon`,
         x: itemX,
-        y: 6,
-        width: COIN_SIZE,
-        height: COIN_SIZE,
+        y: panelPaddingY,
+        width: iconSize,
+        height: iconSize,
         texture: coinTexture,
       });
       this.createImage({
         parent: this.#panel,
         name: `${coin.type} coin count`,
-        x: itemX + COIN_SIZE,
-        y: 7,
-        width: NUMBER_WIDTH,
-        height: NUMBER_HEIGHT,
+        x: itemX + iconSize + contentGap,
+        y: panelPaddingY + (iconSize - numberHeight) / 2,
+        width: numberWidth,
+        height: numberHeight,
         texture: numberTexture.texture,
       });
       this.#drawNumber(coin.type);
@@ -141,31 +148,11 @@ export class CoinHud extends GamePanelHud {
     );
   }
 
-  #createNumberTexture(type) {
-    return this.createTextureRecord(
-      `${type} coin number texture`,
-      TEXTURE_SIZE * 2,
-      TEXTURE_SIZE,
-    );
-  }
-
   #drawNumber(type) {
     const record = this.#numberTextures.get(type);
     if (!record) {
       return;
     }
-    const { canvas, context, texture } = record;
-    context.clearRect(0, 0, canvas.width, canvas.height);
-    context.font = "900 42px Arial, sans-serif";
-    context.textAlign = "left";
-    context.textBaseline = "middle";
-    context.lineJoin = "round";
-    context.strokeStyle = this.theme.shadow;
-    context.lineWidth = 7;
-    const value = String(this.#wallet[type]);
-    context.strokeText(value, 4, 34);
-    context.fillStyle = this.theme.text;
-    context.fillText(value, 4, 34);
-    texture.setSource(canvas);
+    this.drawNumber(record, this.#wallet[type]);
   }
 }

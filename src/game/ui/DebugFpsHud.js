@@ -321,7 +321,13 @@ export class DebugFpsHud {
     context.clearRect(0, 0, COUNTER_WIDTH, COUNTER_HEIGHT);
 
     context.beginPath();
-    context.roundRect(0.5, 0.5, COUNTER_WIDTH - 1, COUNTER_HEIGHT - 1, 12);
+    context.roundRect(
+      0.5,
+      0.5,
+      COUNTER_WIDTH - 1,
+      COUNTER_HEIGHT - 1,
+      this.#theme.borderRadius,
+    );
     context.fillStyle = this.#theme.withAlpha(
       this.#theme.surfaceBottom,
       0.84,
@@ -337,7 +343,7 @@ export class DebugFpsHud {
     context.lineWidth = 3.5;
 
     context.textAlign = "right";
-    context.font = "800 10px Arial, sans-serif";
+    context.font = this.#theme.font(800, 10);
     context.fillStyle = this.#theme.text;
     context.strokeText("FPS 5M", FPS_COLUMN_X, HEADER_BASELINE);
     context.fillText("FPS 5M", FPS_COLUMN_X, HEADER_BASELINE);
@@ -364,13 +370,13 @@ export class DebugFpsHud {
     rows.forEach(([label, framesPerSecond, usedMemory, color], index) => {
       const y = ROW_BASELINES[index];
       context.textAlign = "left";
-      context.font = "800 10px Arial, sans-serif";
+      context.font = this.#theme.font(800, 10);
       context.strokeText(label, TEXT_PADDING_X, y);
       context.fillStyle = color;
       context.fillText(label, TEXT_PADDING_X, y);
 
       context.textAlign = "right";
-      context.font = "900 16px Arial, sans-serif";
+      context.font = this.#theme.font(900, 16);
       context.strokeText(framesPerSecond, FPS_COLUMN_X, y);
       context.fillText(framesPerSecond, FPS_COLUMN_X, y);
 
@@ -401,7 +407,7 @@ export class DebugFpsHud {
       GRAPH_RIGHT - GRAPH_LEFT,
       GRAPH_BOTTOM - GRAPH_TOP,
     );
-    context.font = "700 7px monospace";
+    context.font = this.#theme.font(700, 7);
     context.textAlign = "right";
     context.textBaseline = "middle";
     axisValues.forEach((value, index) => {
@@ -463,7 +469,7 @@ export class DebugFpsHud {
     context.stroke();
     context.restore();
 
-    context.font = "700 7px monospace";
+    context.font = this.#theme.font(700, 7);
     context.textBaseline = "middle";
     context.fillStyle = this.#theme.withAlpha(this.#theme.textSubtle, 0.78);
     context.textAlign = "left";

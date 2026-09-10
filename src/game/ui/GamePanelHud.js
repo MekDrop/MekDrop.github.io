@@ -1,6 +1,12 @@
 const REFERENCE_WIDTH = 1280;
 const REFERENCE_HEIGHT = 720;
 const PANEL_TEXTURE_SCALE = 4;
+const COUNTER_ICON_SIZE = 22;
+const COUNTER_NUMBER_WIDTH = 34;
+const COUNTER_NUMBER_HEIGHT = 20;
+const COUNTER_NUMBER_TEXTURE_WIDTH = 128;
+const COUNTER_NUMBER_TEXTURE_HEIGHT = 64;
+const COUNTER_FONT_SIZE = 48;
 
 export class GamePanelHud {
   #pc;
@@ -33,6 +39,18 @@ export class GamePanelHud {
 
   get theme() {
     return this.#theme;
+  }
+
+  get counterIconSize() {
+    return COUNTER_ICON_SIZE;
+  }
+
+  get counterNumberWidth() {
+    return COUNTER_NUMBER_WIDTH;
+  }
+
+  get counterNumberHeight() {
+    return COUNTER_NUMBER_HEIGHT;
   }
 
   get entity() {
@@ -103,6 +121,14 @@ export class GamePanelHud {
     };
   }
 
+  createCounterNumberTexture(name) {
+    return this.createTextureRecord(
+      name,
+      COUNTER_NUMBER_TEXTURE_WIDTH,
+      COUNTER_NUMBER_TEXTURE_HEIGHT,
+    );
+  }
+
   createDrawnTexture(name, width, height, draw) {
     const record = this.createTextureRecord(name, width, height);
     draw(record.context);
@@ -151,16 +177,48 @@ export class GamePanelHud {
     const gradient = context.createLinearGradient(0, 0, 0, height);
     gradient.addColorStop(0, this.#theme.surfaceTop);
     gradient.addColorStop(1, this.#theme.surfaceBottom);
-    this.roundedRect(context, 1.5, 1.5, width - 3, height - 3, 9);
+    this.roundedRect(
+      context,
+      1.5,
+      1.5,
+      width - 3,
+      height - 3,
+      this.#theme.borderRadius,
+    );
     context.fillStyle = gradient;
     context.fill();
     context.strokeStyle = this.#theme.shadow;
     context.lineWidth = 3;
     context.stroke();
-    this.roundedRect(context, 3.5, 3.5, width - 7, height - 7, 7);
+    this.roundedRect(
+      context,
+      3.5,
+      3.5,
+      width - 7,
+      height - 7,
+      this.#theme.borderRadius,
+    );
     context.strokeStyle = this.#theme.withAlpha(this.#theme.outline, 0.72);
     context.lineWidth = 1;
     context.stroke();
+  }
+
+  drawNumber(record, value) {
+    const { canvas, context, texture } = record;
+    context.clearRect(0, 0, canvas.width, canvas.height);
+    context.font = this.#theme.font(900, COUNTER_FONT_SIZE);
+    context.textAlign = "center";
+    context.textBaseline = "middle";
+    context.lineJoin = "round";
+    context.strokeStyle = this.#theme.shadow;
+    context.lineWidth = 7;
+    const text = String(Math.max(0, value));
+    const x = canvas.width / 2;
+    const y = canvas.height / 2 + 2;
+    context.strokeText(text, x, y);
+    context.fillStyle = this.#theme.text;
+    context.fillText(text, x, y);
+    texture.setSource(canvas);
   }
 
   roundedRect(context, x, y, width, height, radius) {

@@ -261,7 +261,7 @@ export class PlayCanvasRenderer {
       restartPrompt = "Press any key or click to restart",
       graphics = {},
       heroConfiguration,
-      uiPalette,
+      uiTheme,
     } = {},
   ) {
     this.canvas = canvas;
@@ -270,7 +270,7 @@ export class PlayCanvasRenderer {
     this.#onHeroStateChange = onHeroStateChange;
     this.#onInventoryFull = onInventoryFull;
     this.#heroConfiguration = heroConfiguration;
-    this.#uiTheme = new GameUiTheme(uiPalette);
+    this.#uiTheme = new GameUiTheme(uiTheme);
     this.#heroConfiguration?.normalizeInventorySlots?.();
     this.#translate = translate;
     this.#onViewportChange = onViewportChange;

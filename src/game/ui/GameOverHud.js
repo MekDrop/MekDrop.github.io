@@ -2,7 +2,6 @@ const REFERENCE_WIDTH = 1280;
 const REFERENCE_HEIGHT = 720;
 const PANEL_WIDTH = 340;
 const PANEL_HEIGHT = 122;
-const PANEL_BOTTOM_MARGIN = 36;
 
 export class GameOverHud {
   #pc;
@@ -76,7 +75,11 @@ export class GameOverHud {
       useInput: false,
     });
     panel.element.texture = this.#panelTexture;
-    panel.setLocalPosition(0, PANEL_BOTTOM_MARGIN, 0);
+    panel.setLocalPosition(
+      0,
+      this.#theme.spaceLg + this.#theme.spaceSm + this.#theme.spaceXs,
+      0,
+    );
     this.#entity.addChild(panel);
     this.#entity.screen.syncDrawOrder();
   }
@@ -94,7 +97,14 @@ export class GameOverHud {
     context.shadowColor = this.#theme.withAlpha(this.#theme.shadow, 0.52);
     context.shadowBlur = 18;
     context.shadowOffsetY = 10;
-    this.#roundedRect(context, x, y, width, height, 28);
+    this.#roundedRect(
+      context,
+      x,
+      y,
+      width,
+      height,
+      this.#theme.borderRadius,
+    );
     context.fillStyle = this.#theme.withAlpha(this.#theme.surfaceBottom, 0.96);
     context.fill();
     context.shadowColor = "transparent";
@@ -105,7 +115,7 @@ export class GameOverHud {
     const titleGradient = context.createLinearGradient(0, 52, 0, 140);
     titleGradient.addColorStop(0, this.#theme.negativeBright);
     titleGradient.addColorStop(1, this.#theme.negative);
-    context.font = "900 64px Arial, sans-serif";
+    context.font = this.#theme.font(900, 64);
     context.textAlign = "center";
     context.textBaseline = "middle";
     context.lineJoin = "round";
@@ -115,7 +125,7 @@ export class GameOverHud {
     context.fillStyle = titleGradient;
     context.fillText(String(title).toUpperCase(), canvas.width / 2, 94);
 
-    context.font = "800 22px Arial, sans-serif";
+    context.font = this.#theme.font(800, 22);
     context.strokeStyle = this.#theme.shadow;
     context.lineWidth = 6;
     context.strokeText(String(prompt).toUpperCase(), canvas.width / 2, 169);

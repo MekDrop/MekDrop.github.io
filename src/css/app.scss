@@ -1,4 +1,14 @@
 // app global css in SCSS form
+:root {
+  --app-ui-font-family: #{$typography-font-family};
+  --app-ui-border-radius: #{$generic-border-radius};
+  --app-ui-space-xs: #{$space-base * 0.25};
+  --app-ui-space-sm: #{$space-base * 0.5};
+  --app-ui-space-md: #{$space-base};
+  --app-ui-space-lg: #{$space-base * 1.5};
+  --app-ui-space-xl: #{$space-base * 3};
+}
+
 html,
 body,
 #q-app {
@@ -12,7 +22,7 @@ body {
   overscroll-behavior: none;
   margin: 0;
   color: #d9ffe8;
-  font-family: "Courier New", monospace;
+  font-family: var(--app-ui-font-family);
 }
 
 * {

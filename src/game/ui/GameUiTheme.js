@@ -1,6 +1,8 @@
 import {
   InvalidGameUiThemeColorError,
+  InvalidGameUiThemeTokenError,
   MissingGameUiThemeColorRoleError,
+  MissingGameUiThemeTokenError,
 } from "../errors/ui/index.js";
 
 const QUASAR_COLOR_ROLES = [
@@ -17,10 +19,19 @@ const QUASAR_COLOR_ROLES = [
 
 export class GameUiTheme {
   #colors = new Map();
+  #fontFamily;
+  #borderRadius;
+  #spacing = new Map();
 
-  constructor(palette) {
+  constructor(theme) {
     for (const role of QUASAR_COLOR_ROLES) {
-      this.#colors.set(role, this.#parsePaletteRole(palette, role));
+      this.#colors.set(role, this.#parsePaletteRole(theme, role));
+    }
+    this.#fontFamily = this.#parseFontFamily(theme);
+    this.#borderRadius = this.#parseBorderRadius(theme);
+    for (const size of ["Xs", "Sm", "Md", "Lg", "Xl"]) {
+      const property = `space${size}`;
+      this.#spacing.set(size.toLowerCase(), this.#parsePixelToken(theme, property));
     }
 
     const primary = this.#get("primary");
@@ -133,6 +144,38 @@ export class GameUiTheme {
     return this.#hex("warning");
   }
 
+  get fontFamily() {
+    return this.#fontFamily;
+  }
+
+  get borderRadius() {
+    return this.#borderRadius;
+  }
+
+  get spaceXs() {
+    return this.#spacing.get("xs");
+  }
+
+  get spaceSm() {
+    return this.#spacing.get("sm");
+  }
+
+  get spaceMd() {
+    return this.#spacing.get("md");
+  }
+
+  get spaceLg() {
+    return this.#spacing.get("lg");
+  }
+
+  get spaceXl() {
+    return this.#spacing.get("xl");
+  }
+
+  font(weight, size) {
+    return `${weight} ${size}px ${this.#fontFamily}`;
+  }
+
   withAlpha(color, alpha) {
     const { red, green, blue } = this.#parseColor(color, "runtime color");
     return `rgba(${red}, ${green}, ${blue}, ${this.#clamp(alpha, 0, 1)})`;
@@ -194,6 +237,35 @@ export class GameUiTheme {
       throw new MissingGameUiThemeColorRoleError({ role });
     }
     return this.#parseColor(value, role);
+  }
+
+  #parseFontFamily(theme) {
+    const value = theme?.fontFamily;
+    if (value === null || value === undefined || String(value).trim() === "") {
+      throw new MissingGameUiThemeTokenError({ token: "font-family" });
+    }
+    return String(value).trim();
+  }
+
+  #parseBorderRadius(theme) {
+    return this.#parsePixelToken(theme, "borderRadius", "border-radius");
+  }
+
+  #parsePixelToken(theme, property, token = property) {
+    const value = theme?.[property];
+    if (value === null || value === undefined || String(value).trim() === "") {
+      throw new MissingGameUiThemeTokenError({ token });
+    }
+    const text = String(value).trim();
+    const pixels = text.match(/^(0|[\d.]+px)$/)?.[1];
+    const length = Number.parseFloat(pixels);
+    if (!Number.isFinite(length) || length < 0) {
+      throw new InvalidGameUiThemeTokenError({
+        token,
+        value,
+      });
+    }
+    return length;
   }
 
   #parseColor(value, role) {

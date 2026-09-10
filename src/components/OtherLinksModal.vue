@@ -1,7 +1,6 @@
 <template>
   <q-dialog
     v-model="show"
-    square
     class="other-links-modal"
     :class="{ 'full-width': $q.screen.lt.sm }"
     id="extra_links_modal"
@@ -14,7 +13,6 @@
           dense
           filled
           flat
-          square
           v-model="searchQuery"
           :placeholder="$t('form.filter')"
           clearable
@@ -69,7 +67,7 @@
       </q-scroll-area>
 
       <q-card-actions align="right" class="other-links-modal__actions">
-        <q-btn dark square :label="$t('form.close')" outline @click="close" />
+        <q-btn dark :label="$t('form.close')" outline @click="close" />
       </q-card-actions>
     </q-card>
   </q-dialog>
@@ -104,7 +102,7 @@
 }
 
 .other-links-modal .q-dialog__inner {
-  padding: 1em;
+  padding: var(--app-ui-space-md);
   min-height: 200px;
 }
 </style>

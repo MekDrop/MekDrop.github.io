@@ -5,7 +5,7 @@
     class="site-notice-dialog"
     @update:model-value="emit('update:modelValue', $event)"
   >
-    <q-card dark square class="site-notice-dialog__card">
+    <q-card dark class="site-notice-dialog__card">
       <q-card-section class="site-notice-dialog__content">
         <div class="site-notice-dialog__icon" aria-hidden="true">
           <q-icon :name="icon" />
@@ -19,7 +19,6 @@
 
       <q-card-actions align="right" class="site-notice-dialog__actions">
         <q-btn
-          square
           outline
           no-caps
           class="site-notice-dialog__confirm"
@@ -33,7 +32,7 @@
 
 <style lang="scss">
 .site-notice-dialog .q-dialog__inner {
-  padding: 1rem;
+  padding: var(--app-ui-space-md);
 }
 
 .site-notice-dialog__card {
@@ -46,19 +45,19 @@
     radial-gradient(circle at top, rgba(110, 255, 230, 0.08), transparent 55%),
     rgba(5, 10, 8, 0.96) !important;
   border: 1px solid rgba(150, 255, 224, 0.52);
-  border-radius: 0 !important;
+  border-radius: var(--app-ui-border-radius) !important;
   box-shadow:
     0 24px 70px rgba(0, 0, 0, 0.58),
     inset 0 0 32px rgba(110, 255, 230, 0.025);
-  font-family: "Courier New", monospace;
+  font-family: var(--app-ui-font-family);
   backdrop-filter: blur(14px);
 }
 
 .site-notice-dialog__content {
   display: flex;
   align-items: center;
-  gap: 1.1rem;
-  padding: 1.5rem;
+  gap: var(--app-ui-space-md);
+  padding: var(--app-ui-space-lg);
 }
 
 .site-notice-dialog__icon {
@@ -86,7 +85,8 @@
 }
 
 .site-notice-dialog__actions {
-  padding: 1rem 1.5rem 1.4rem;
+  padding: var(--app-ui-space-md) var(--app-ui-space-lg)
+    var(--app-ui-space-lg);
 }
 
 .site-notice-dialog__confirm {
@@ -96,7 +96,7 @@
 }
 
 .site-notice-dialog__confirm .q-btn__content {
-  font-family: "Courier New", monospace;
+  font-family: var(--app-ui-font-family);
   font-size: 0.78rem;
   font-weight: 700;
   letter-spacing: 0.18em;

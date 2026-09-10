@@ -18,7 +18,6 @@
                   target="_blank"
                   :href="item.url"
                   class="side-toolbar__btn side-toolbar__btn--game"
-                  square
                   no-caps
                   flat
                 >
@@ -31,7 +30,6 @@
                   v-model="otherLinksSearchQuery"
                   dense
                   outlined
-                  square
                   clearable
                   :placeholder="i18n.t('form.filter')"
                   name="search"
@@ -104,10 +102,14 @@
 }
 
 .layout-shell {
-  --shell-pad: clamp(1rem, 2vw, 2rem);
+  --shell-pad: clamp(
+    var(--app-ui-space-md),
+    2vw,
+    calc(var(--app-ui-space-md) * 2)
+  );
   display: grid;
   grid-template-columns: minmax(17rem, 20rem) minmax(0, 1fr);
-  gap: clamp(1.25rem, 3vw, 3rem);
+  gap: clamp(var(--app-ui-space-lg), 3vw, var(--app-ui-space-xl));
   height: 100dvh;
   min-height: 100dvh;
   width: 100%;
@@ -128,6 +130,7 @@
   min-height: 0;
   height: calc(100dvh - (2 * var(--shell-pad)));
   border: 1px solid rgba(150, 255, 224, 0.42);
+  border-radius: var(--app-ui-border-radius);
   overflow: hidden;
 }
 
@@ -140,7 +143,7 @@
   opacity: 1;
   background: transparent !important;
   border: 1px solid rgba(150, 255, 224, 0.42);
-  border-radius: 0;
+  border-radius: var(--app-ui-border-radius);
   display: flex;
   flex-direction: column;
   margin: 0;
@@ -148,18 +151,18 @@
 }
 
 .side-toolbar__section {
-  padding: 1.3rem 1.35rem;
+  padding: var(--app-ui-space-lg);
 }
 
 .side-toolbar__logo {
-  padding-top: 1.6rem;
-  padding-bottom: 1.35rem;
+  padding-top: var(--app-ui-space-lg);
+  padding-bottom: var(--app-ui-space-lg);
 }
 
 .side-toolbar__menu {
   display: flex;
   flex-direction: column;
-  gap: 0.85rem;
+  gap: var(--app-ui-space-md);
   flex: 1;
   overflow: hidden;
   min-height: 0;
@@ -172,6 +175,7 @@
 
 .side-toolbar__btn--game {
   border: 1px solid rgba(150, 255, 224, 0.52);
+  border-radius: var(--app-ui-border-radius);
   background: transparent;
   transition:
     color 0.12s ease,
@@ -182,7 +186,7 @@
 .side-toolbar__btn--game .q-btn__content {
   justify-content: space-between;
   color: #d9ffe8;
-  font-family: "Courier New", monospace;
+  font-family: var(--app-ui-font-family);
   font-weight: 700;
   letter-spacing: 0.18em;
   font-size: 0.8rem;
@@ -215,11 +219,11 @@
 }
 
 .side-toolbar__section-separator {
-  margin: 0.35rem 0 0.55rem;
+  margin: var(--app-ui-space-xs) 0 var(--app-ui-space-sm);
 }
 
 .side-toolbar__other-links-search {
-  margin-bottom: 0.75rem;
+  margin-bottom: var(--app-ui-space-sm);
 }
 
 .side-toolbar__other-links-results {
@@ -240,7 +244,7 @@
 
 .side-toolbar__other-links-results::-webkit-scrollbar-thumb {
   background: rgba(150, 255, 224, 0.75);
-  border-radius: 0;
+  border-radius: var(--app-ui-border-radius);
   border: 0;
 }
 
@@ -256,12 +260,12 @@
 
 .side-toolbar__other-links-loader {
   display: block;
-  margin: 1rem auto 0.5rem;
+  margin: var(--app-ui-space-md) auto var(--app-ui-space-sm);
   color: #d9ffe8;
 }
 
 .side-toolbar__other-links-search .q-field__control {
-  border-radius: 0;
+  border-radius: var(--app-ui-border-radius);
   color: #d9ffe8;
   background: transparent !important;
 }
@@ -272,7 +276,7 @@
 .side-toolbar__other-links-search .q-icon,
 .side-toolbar__other-links-search input::placeholder {
   color: rgba(217, 255, 232, 0.78) !important;
-  font-family: "Courier New", monospace;
+  font-family: var(--app-ui-font-family);
   letter-spacing: 0.14em;
 }
 
@@ -290,7 +294,7 @@
   color: #d9ffe8;
   text-decoration: none;
   letter-spacing: 0.12em;
-  font-family: "Courier New", monospace;
+  font-family: var(--app-ui-font-family);
 }
 
 .side-toolbar__other-links-item a:hover {
@@ -300,14 +304,14 @@
 .side-toolbar__other-links-results .text-accent {
   color: rgba(217, 255, 232, 0.72) !important;
   letter-spacing: 0.12em;
-  font-family: "Courier New", monospace;
+  font-family: var(--app-ui-font-family);
 }
 
 @media (max-width: 900px) {
   .layout-shell {
     --shell-pad: 0.85rem;
     grid-template-columns: 1fr;
-    gap: 1rem;
+    gap: var(--app-ui-space-md);
   }
 
   .side-toolbar,
@@ -322,7 +326,7 @@
 
 @media (max-width: 600px) {
   .side-toolbar__section {
-    padding: 1rem;
+    padding: var(--app-ui-space-md);
   }
 
   .side-toolbar__btn--game .q-btn__content {

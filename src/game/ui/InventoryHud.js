@@ -7,13 +7,10 @@ const PANEL_HEIGHT = 420;
 const PANEL_TEXTURE_SCALE = 3;
 const SLOT_COLUMNS = 4;
 const SLOT_ROWS = 3;
-const SLOT_GAP = 8;
 const SLOT_SIZE = 90;
 const CLOSE_BUTTON_SIZE = 32;
 const ITEM_PROJECTION_SIZE = 64;
-const ITEM_LABEL_FONT = "600 10px Arial, sans-serif";
 const ITEM_LABEL_MAXIMUM_WIDTH = SLOT_SIZE - 12;
-const TOOLTIP_FONT = "600 11px Arial, sans-serif";
 const TOOLTIP_WIDTH = 164;
 const TOOLTIP_HEIGHT = 25;
 
@@ -310,8 +307,9 @@ export class InventoryHud {
     for (let index = 0; index < SLOT_COLUMNS * SLOT_ROWS; index += 1) {
       const column = index % SLOT_COLUMNS;
       const row = Math.floor(index / SLOT_COLUMNS);
-      const slotX = this.#slotLeft + column * (SLOT_SIZE + SLOT_GAP);
-      const slotY = 98 + row * (SLOT_SIZE + SLOT_GAP);
+      const slotX =
+        this.#slotLeft + column * (SLOT_SIZE + this.#theme.spaceSm);
+      const slotY = 98 + row * (SLOT_SIZE + this.#theme.spaceSm);
       const projection = new this.#pc.Entity(
         `Inventory item projection ${index + 1}`,
       );
@@ -419,7 +417,7 @@ export class InventoryHud {
       inset,
       CLOSE_BUTTON_SIZE - inset * 2,
       CLOSE_BUTTON_SIZE - inset * 2,
-      6,
+      this.#theme.borderRadius,
     );
     const gradient = context.createLinearGradient(0, 0, 0, CLOSE_BUTTON_SIZE);
     if (this.#closePressed) {
@@ -497,7 +495,14 @@ export class InventoryHud {
     context.shadowColor = this.#theme.withAlpha(this.#theme.shadow, 0.58);
     context.shadowBlur = 18;
     context.shadowOffsetY = 10;
-    this.#roundedRect(context, 8, 8, PANEL_WIDTH - 16, PANEL_HEIGHT - 20, 14);
+    this.#roundedRect(
+      context,
+      8,
+      8,
+      PANEL_WIDTH - 16,
+      PANEL_HEIGHT - 20,
+      this.#theme.borderRadius,
+    );
     const gradient = context.createLinearGradient(
       0,
       8,
@@ -512,7 +517,14 @@ export class InventoryHud {
     context.strokeStyle = this.#theme.shadow;
     context.lineWidth = 2;
     context.stroke();
-    this.#roundedRect(context, 12, 12, PANEL_WIDTH - 24, PANEL_HEIGHT - 28, 11);
+    this.#roundedRect(
+      context,
+      12,
+      12,
+      PANEL_WIDTH - 24,
+      PANEL_HEIGHT - 28,
+      this.#theme.borderRadius,
+    );
     context.strokeStyle = this.#theme.withAlpha(this.#theme.outline, 0.72);
     context.lineWidth = 1;
     context.stroke();
@@ -522,18 +534,18 @@ export class InventoryHud {
     context.textAlign = "left";
     context.textBaseline = "alphabetic";
     context.fillStyle = this.#theme.info;
-    context.font = "700 10px Arial, sans-serif";
+    context.font = this.#theme.font(700, 10);
     context.fillText(
       this.#translate("game.inventory.backpack").toUpperCase(),
       24,
       36,
     );
     context.fillStyle = this.#theme.text;
-    context.font = "700 27px Georgia, serif";
+    context.font = this.#theme.font(700, 27);
     context.fillText(this.#translate("game.inventory.title"), 24, 68);
     context.textAlign = "right";
     context.fillStyle = this.#theme.textMuted;
-    context.font = "600 12px Arial, sans-serif";
+    context.font = this.#theme.font(600, 12);
     context.fillText(
       this.#translate("game.inventory.capacity", {
         current: this.#state.items.length,
@@ -554,14 +566,14 @@ export class InventoryHud {
     const left =
       (PANEL_WIDTH -
         SLOT_COLUMNS * SLOT_SIZE -
-        (SLOT_COLUMNS - 1) * SLOT_GAP) /
+        (SLOT_COLUMNS - 1) * this.#theme.spaceSm) /
       2;
     const top = 98;
     for (let index = 0; index < SLOT_COLUMNS * SLOT_ROWS; index += 1) {
       const column = index % SLOT_COLUMNS;
       const row = Math.floor(index / SLOT_COLUMNS);
-      const x = left + column * (SLOT_SIZE + SLOT_GAP);
-      const y = top + row * (SLOT_SIZE + SLOT_GAP);
+      const x = left + column * (SLOT_SIZE + this.#theme.spaceSm);
+      const y = top + row * (SLOT_SIZE + this.#theme.spaceSm);
       this.#drawSlot(context, x, y, this.#itemAtSlot(index), index);
     }
   }
@@ -571,7 +583,14 @@ export class InventoryHud {
     const isHoveredDropSlot = slot === this.#dragHoveredSlot;
     const isValidDropSlot =
       isHoveredDropSlot && !item && this.#draggedItemSlot !== null;
-    this.#roundedRect(context, x, y, SLOT_SIZE, SLOT_SIZE, 8);
+    this.#roundedRect(
+      context,
+      x,
+      y,
+      SLOT_SIZE,
+      SLOT_SIZE,
+      this.#theme.borderRadius,
+    );
     const gradient = context.createLinearGradient(
       x,
       y,
@@ -620,7 +639,7 @@ export class InventoryHud {
     context.textAlign = "center";
     context.textBaseline = "middle";
     context.fillStyle = this.#theme.text;
-    context.font = ITEM_LABEL_FONT;
+    context.font = this.#theme.font(600, 10);
     context.fillText(
       this.#fitText(
         context,
@@ -642,7 +661,7 @@ export class InventoryHud {
     }
     const label = this.#translate(item.labelKey);
     const { canvas, context, texture } = this.#tooltipTexture;
-    context.font = ITEM_LABEL_FONT;
+    context.font = this.#theme.font(600, 10);
     if (context.measureText(label).width <= ITEM_LABEL_MAXIMUM_WIDTH) {
       this.#tooltip.enabled = false;
       return;
@@ -650,19 +669,20 @@ export class InventoryHud {
 
     const column = this.#hoveredItemSlot % SLOT_COLUMNS;
     const row = Math.floor(this.#hoveredItemSlot / SLOT_COLUMNS);
-    const slotLeft = this.#slotLeft + column * (SLOT_SIZE + SLOT_GAP);
-    const slotTop = 98 + row * (SLOT_SIZE + SLOT_GAP);
+    const slotLeft =
+      this.#slotLeft + column * (SLOT_SIZE + this.#theme.spaceSm);
+    const slotTop = 98 + row * (SLOT_SIZE + this.#theme.spaceSm);
     const centerX = Math.max(
-      TOOLTIP_WIDTH / 2 + 8,
+      TOOLTIP_WIDTH / 2 + this.#theme.spaceSm,
       Math.min(
-        PANEL_WIDTH - TOOLTIP_WIDTH / 2 - 8,
+        PANEL_WIDTH - TOOLTIP_WIDTH / 2 - this.#theme.spaceSm,
         slotLeft + SLOT_SIZE / 2,
       ),
     );
     const centerY =
       row === 0
-        ? slotTop + SLOT_SIZE + 4 + TOOLTIP_HEIGHT / 2
-        : slotTop - 4 - TOOLTIP_HEIGHT / 2;
+        ? slotTop + SLOT_SIZE + this.#theme.spaceXs + TOOLTIP_HEIGHT / 2
+        : slotTop - this.#theme.spaceXs - TOOLTIP_HEIGHT / 2;
 
     context.clearRect(0, 0, canvas.width, canvas.height);
     context.save();
@@ -676,7 +696,7 @@ export class InventoryHud {
       1,
       TOOLTIP_WIDTH - 2,
       TOOLTIP_HEIGHT - 3,
-      6,
+      this.#theme.borderRadius,
     );
     const gradient = context.createLinearGradient(0, 0, 0, TOOLTIP_HEIGHT);
     gradient.addColorStop(0, this.#theme.surfaceTop);
@@ -690,7 +710,7 @@ export class InventoryHud {
     context.textAlign = "center";
     context.textBaseline = "middle";
     context.fillStyle = this.#theme.text;
-    context.font = TOOLTIP_FONT;
+    context.font = this.#theme.font(600, 11);
     context.fillText(
       label,
       TOOLTIP_WIDTH / 2,
@@ -714,8 +734,9 @@ export class InventoryHud {
     for (let index = 0; index < this.#state.capacity; index += 1) {
       const column = index % SLOT_COLUMNS;
       const row = Math.floor(index / SLOT_COLUMNS);
-      const x = this.#slotLeft + column * (SLOT_SIZE + SLOT_GAP);
-      const y = 98 + row * (SLOT_SIZE + SLOT_GAP);
+      const x =
+        this.#slotLeft + column * (SLOT_SIZE + this.#theme.spaceSm);
+      const y = 98 + row * (SLOT_SIZE + this.#theme.spaceSm);
       if (
         panelX < x ||
         panelX > x + SLOT_SIZE ||
@@ -906,7 +927,7 @@ export class InventoryHud {
     return (
       (PANEL_WIDTH -
         SLOT_COLUMNS * SLOT_SIZE -
-        (SLOT_COLUMNS - 1) * SLOT_GAP) /
+        (SLOT_COLUMNS - 1) * this.#theme.spaceSm) /
       2
     );
   }

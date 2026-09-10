@@ -1,7 +1,5 @@
 const REFERENCE_WIDTH = 1280;
 const REFERENCE_HEIGHT = 720;
-const LEFT_MARGIN = 14;
-const BOTTOM_MARGIN = 14;
 const PANEL_WIDTH = 214;
 const PANEL_HEIGHT = 134;
 const TEXTURE_SCALE = 2;
@@ -77,7 +75,7 @@ export class DebugAxesHud {
       useInput: false,
     });
     panel.element.texture = this.#texture;
-    panel.setLocalPosition(LEFT_MARGIN, BOTTOM_MARGIN, 0);
+    panel.setLocalPosition(this.#theme.spaceMd, this.#theme.spaceMd, 0);
     this.#entity.addChild(panel);
     this.#entity.screen.syncDrawOrder();
     this.#entity.enabled = false;
@@ -172,7 +170,13 @@ export class DebugAxesHud {
     const context = this.#context;
     context.clearRect(0, 0, PANEL_WIDTH, PANEL_HEIGHT);
     context.beginPath();
-    context.roundRect(0.5, 0.5, PANEL_WIDTH - 1, PANEL_HEIGHT - 1, 12);
+    context.roundRect(
+      0.5,
+      0.5,
+      PANEL_WIDTH - 1,
+      PANEL_HEIGHT - 1,
+      this.#theme.borderRadius,
+    );
     context.fillStyle = this.#theme.withAlpha(
       this.#theme.surfaceBottom,
       0.84,
@@ -221,15 +225,15 @@ export class DebugAxesHud {
 
     this.#drawText("WIND", 167, 26, {
       color: "#ffe29a",
-      font: "700 9px monospace",
+      font: this.#theme.font(700, 9),
     });
     this.#drawText(`${wind.speed.toFixed(2)} u/s`, 167, 40, {
       color: "#fff3ca",
-      font: "700 8px monospace",
+      font: this.#theme.font(700, 8),
     });
     this.#drawText(`ZOOM ${zoom.toFixed(2)}x`, 167, 122, {
       color: this.#theme.info,
-      font: "700 9px monospace",
+      font: this.#theme.font(700, 9),
     });
     this.#texture.setSource(this.#canvas);
   }
@@ -268,7 +272,7 @@ export class DebugAxesHud {
     );
     this.#drawText(label, labelX, labelY, {
       color,
-      font: "700 14px monospace",
+      font: this.#theme.font(700, 14),
     });
   }
 
