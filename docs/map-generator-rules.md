@@ -156,6 +156,23 @@ slope tiles = absolute elevation difference
 slope -> flat tile(s) -> slope
 ```
 
+### 9a. Path lateral support and bridges
+
+* At each longitudinal path position, the two-lane path must inspect the terrain immediately outside both lateral edges.
+* A lateral side supports a solid path only when an in-bounds, non-water terrain column reaches at least the path deck elevation.
+* A straight path position becomes a bridge only when both lateral sides are missing, water, or lower than the path deck.
+* If exactly one lateral side has a supporting block, the path remains solid. The generator must materialize or raise an in-bounds grass support block on the unsupported side when doing so does not overwrite a river.
+* Both lanes must switch to bridge rendering together; a half-solid, half-bridge path position is forbidden.
+* A bridge must be a straight span. Bridge decks must never turn 90 degrees, merge, branch, or form an intersection.
+* Every turn, merge, and intersection must be a normal solid path landing. The generator must add or raise adjacent grass support blocks where needed; bridge spans must end before entering the landing and may resume only as a separate straight span after it.
+* Higher adjacent terrain may border a solid path because its column still reaches the path elevation.
+* Every bridge not crossing water or lava must preserve a complete grass-topped terrain block one level below each deck tile; bare earth must not be exposed beneath the span.
+* Grass beneath a bridge is reserved, non-buildable terrain. Trees, bushes, flowers, mushrooms, loot crates, and other generated objects must never spawn on it.
+* Water and lava bridges keep their validated flowing surface beneath the deck instead of adding grass.
+* Each straight bridge span must use continuous outer fascia and continuous rail runs. Per-tile border seams, coincident internal faces, and overlapping border geometry are forbidden.
+* Bridge borders must remain visually stable without crawling, flickering, or noisy seams at fractional supported zoom levels, including `1.08`.
+* Gate structure tiles are exempt from automatic bridge conversion.
+
 ## 10. Grass terrain
 
 * Grass may be flat, sloped, terraced, or cliff-shaped.
@@ -364,6 +381,10 @@ These notes describe the generator behavior currently implemented in `src/game/M
   * gate placement at the first playable boundary tiles
   * two-tile path width
   * flat equal-height path lanes
+  * automatic two-lane bridge conversion only where neither lateral side reaches path-deck elevation
+  * added or raised grass support cubes where a solid path has only one supported side
+  * solid turn and merge landings that prevent 90-degree or branching bridge decks
+  * reserved grass-topped ground beneath non-river bridge decks without vegetation or ground-cover placement
   * minimum spacing between parallel path bands outside merge zones
   * route reachability from every gate to the castle
   * castle entrance connection
@@ -381,6 +402,11 @@ Reject the map when:
 * a path is not exactly two tiles wide
 * a turn, junction, castle approach, or pipe interface widens the road to three, four, or more tiles
 * paired lanes differ in direction, height, or slope
+* a straight path position with no lateral support remains solid, or only one of its two lanes renders as a bridge
+* a path becomes a bridge even though at least one lateral side has a supporting block
+* a bridge turns 90 degrees, merges, branches, or forms an intersection
+* a non-water bridge exposes bare earth beneath its deck or allows an object to spawn on its covered grass
+* bridge fascia or rail borders show internal seams, overlapping faces, flicker, or fractional-zoom visual noise
 * two parallel paths are separated by fewer than two grass tiles outside a merge zone
 * a turn cuts diagonally through a tile
 * a road boundary is rounded, chamfered, or bevelled into a non-orthogonal turn

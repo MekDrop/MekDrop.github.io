@@ -1,4 +1,6 @@
 import {
+  BridgeGroundHeightMismatchError,
+  BridgeTurnError,
   CastleEntrancePathMissingError,
   DisconnectedTerrainError,
   EntryPathUnreachableError,
@@ -24,6 +26,7 @@ import {
   NonOrthogonalRouteSegmentError,
   PathHeightMismatchError,
   PathOutsideGateError,
+  PathRenderModeMismatchError,
 } from './errors/map/index.js';
 import { RIVER_KIND } from './enum/RiverKind.js';
 
@@ -150,7 +153,7 @@ export class MapGenerator {
       islandMask,
       riverData,
     );
-    this.#applyHeightsToMetadata(grid, tileMeta, heightmap);
+    this.#applyHeightsToMetadata(grid, tileMeta, heightmap, riverData);
     const vegetationData = this.#placeVegetation(
       grid,
       heightmap,
@@ -251,6 +254,7 @@ export class MapGenerator {
         shape: this.#TILE_SHAPE.FLAT,
         direction: this.#DIRECTIONS.NONE,
         renderMode: 'SOLID',
+        bridgeGroundHeight: null,
       }))
     );
   }
@@ -1747,13 +1751,14 @@ export class MapGenerator {
     }
   }
 
-  static #applyHeightsToMetadata(grid, tileMeta, heightmap) {
+  static #applyHeightsToMetadata(grid, tileMeta, heightmap, riverData) {
+    this.#materializePathSupports(grid, heightmap, tileMeta, riverData);
     for (let row = 0; row < this.#MAP_ROWS; row++) {
       for (let col = 0; col < this.#MAP_COLS; col++) {
         tileMeta[row][col] = {
           ...tileMeta[row][col],
           baseHeight: heightmap[row][col],
-          renderMode: this.#classifyRenderMode(grid, tileMeta, col, row),
+          renderMode: 'SOLID',
         };
 
         const tile = grid[row][col];
@@ -1768,47 +1773,194 @@ export class MapGenerator {
         }
       }
     }
+
+    this.#applyPathRenderModes(grid, heightmap, tileMeta);
+    this.#assignBridgeGround(tileMeta, heightmap, riverData);
   }
 
-  static #classifyRenderMode(grid, tileMeta, col, row) {
+  static #materializePathSupports(grid, heightmap, tileMeta, riverData) {
+    const riverCells = new Set(
+      riverData.flatMap((river) =>
+        river.cells.map((cell) => this.#tileKey(cell.col, cell.row)),
+      ),
+    );
+    const processedStations = new Set();
+    for (let row = 0; row < this.#MAP_ROWS; row++) {
+      for (let col = 0; col < this.#MAP_COLS; col++) {
+        if (grid[row][col] !== TileType.PATH) {
+          continue;
+        }
+        const lateralCells = this.#pathLateralCells(
+          grid,
+          tileMeta,
+          col,
+          row,
+        );
+        if (!lateralCells) {
+          continue;
+        }
+        const direction = tileMeta[row][col].direction;
+        const axis =
+          direction === this.#DIRECTIONS.EAST ||
+          direction === this.#DIRECTIONS.WEST
+            ? 'H'
+            : 'V';
+        const stationKey = `${axis}:${lateralCells
+          .map((cell) => this.#tileKey(cell.col, cell.row))
+          .sort()
+          .join('|')}`;
+        if (processedStations.has(stationKey)) {
+          continue;
+        }
+        processedStations.add(stationKey);
+
+        const pathHeight = heightmap[row][col];
+        const supportedSides = lateralCells.filter(({ col: sideCol, row: sideRow }) =>
+          this.#hasPathSideBlock(
+            grid,
+            heightmap,
+            sideCol,
+            sideRow,
+            pathHeight,
+          )
+        );
+        if (
+          supportedSides.length !== 1 &&
+          !this.#isPathTurnPosition(grid, lateralCells)
+        ) {
+          continue;
+        }
+
+        for (const { col: sideCol, row: sideRow } of lateralCells) {
+          if (
+            this.#hasPathSideBlock(
+              grid,
+              heightmap,
+              sideCol,
+              sideRow,
+              pathHeight,
+            ) ||
+            !this.#inBounds(sideCol, sideRow) ||
+            riverCells.has(this.#tileKey(sideCol, sideRow))
+          ) {
+            continue;
+          }
+          this.#setTile(grid, tileMeta, sideCol, sideRow, TileType.GRASS, {
+            surfaceType: 'GRASS',
+            baseHeight: pathHeight,
+          });
+          heightmap[sideRow][sideCol] = pathHeight;
+        }
+      }
+    }
+  }
+
+  static #applyPathRenderModes(grid, heightmap, tileMeta) {
+    for (let row = 0; row < this.#MAP_ROWS; row++) {
+      for (let col = 0; col < this.#MAP_COLS; col++) {
+        if (grid[row][col] !== TileType.PATH) {
+          continue;
+        }
+        tileMeta[row][col].renderMode = this.#classifyRenderMode(
+          grid,
+          heightmap,
+          tileMeta,
+          col,
+          row,
+        );
+      }
+    }
+  }
+
+  static #assignBridgeGround(tileMeta, heightmap, riverData) {
+    const riverBridgeCells = new Set(
+      riverData.flatMap((river) =>
+        river.cells
+          .filter((cell) => cell.underBridge)
+          .map((cell) => this.#tileKey(cell.col, cell.row)),
+      ),
+    );
+    for (let row = 0; row < this.#MAP_ROWS; row++) {
+      for (let col = 0; col < this.#MAP_COLS; col++) {
+        if (tileMeta[row][col].renderMode !== 'BRIDGE') {
+          continue;
+        }
+        tileMeta[row][col].bridgeGroundHeight = riverBridgeCells.has(
+          this.#tileKey(col, row),
+        )
+          ? null
+          : Math.max(1, heightmap[row][col] - 1);
+      }
+    }
+  }
+
+  static #classifyRenderMode(grid, heightmap, tileMeta, col, row) {
     const tile = grid[row][col];
-    if (tile !== TileType.PATH && tile !== TileType.ENTRY) {
+    if (tile !== TileType.PATH) {
       return 'SOLID';
     }
 
+    const lateralCells = this.#pathLateralCells(grid, tileMeta, col, row);
+    if (!lateralCells) {
+      return 'SOLID';
+    }
+    if (this.#isPathTurnPosition(grid, lateralCells)) {
+      return 'SOLID';
+    }
+
+    const pathHeight = heightmap[row][col];
+    const hasLateralSupport = lateralCells.some(
+      ({ col: sideCol, row: sideRow }) =>
+        this.#hasPathSideBlock(
+          grid,
+          heightmap,
+          sideCol,
+          sideRow,
+          pathHeight,
+        ),
+    );
+    return hasLateralSupport ? 'SOLID' : 'BRIDGE';
+  }
+
+  static #isPathTurnPosition(grid, lateralCells) {
+    return lateralCells.some(
+      ({ col, row }) =>
+        this.#inBounds(col, row) && this.#isRouteTile(grid[row][col]),
+    );
+  }
+
+  static #hasPathSideBlock(grid, heightmap, col, row, pathHeight) {
+    if (!this.#inBounds(col, row) || grid[row][col] === TileType.WATER) {
+      return false;
+    }
+    return heightmap[row][col] >= pathHeight;
+  }
+
+  static #pathLateralCells(grid, tileMeta, col, row) {
     const direction = tileMeta[row][col].direction;
     if (direction === this.#DIRECTIONS.EAST || direction === this.#DIRECTIONS.WEST) {
       const mateRow = this.#findLaneMateRow(grid, tileMeta, col, row, direction);
       if (mateRow === null) {
-        return 'SOLID';
+        return null;
       }
-      const topOuterRow = Math.min(row, mateRow) - 1;
-      const bottomOuterRow = Math.max(row, mateRow) + 1;
-      if (!this.#inBounds(col, topOuterRow) || !this.#inBounds(col, bottomOuterRow)) {
-        return 'SOLID';
-      }
-      if (grid[topOuterRow][col] === TileType.WATER && grid[bottomOuterRow][col] === TileType.WATER) {
-        return 'BRIDGE';
-      }
-      return 'SOLID';
+      return [
+        { col, row: Math.min(row, mateRow) - 1 },
+        { col, row: Math.max(row, mateRow) + 1 },
+      ];
     }
 
     if (direction === this.#DIRECTIONS.NORTH || direction === this.#DIRECTIONS.SOUTH) {
       const mateCol = this.#findLaneMateCol(grid, tileMeta, col, row, direction);
       if (mateCol === null) {
-        return 'SOLID';
+        return null;
       }
-      const leftOuterCol = Math.min(col, mateCol) - 1;
-      const rightOuterCol = Math.max(col, mateCol) + 1;
-      if (!this.#inBounds(leftOuterCol, row) || !this.#inBounds(rightOuterCol, row)) {
-        return 'SOLID';
-      }
-      if (grid[row][leftOuterCol] === TileType.WATER && grid[row][rightOuterCol] === TileType.WATER) {
-        return 'BRIDGE';
-      }
+      return [
+        { col: Math.min(col, mateCol) - 1, row },
+        { col: Math.max(col, mateCol) + 1, row },
+      ];
     }
 
-    return 'SOLID';
+    return null;
   }
 
   static #findLaneMateRow(grid, tileMeta, col, row, direction) {
@@ -2466,6 +2618,103 @@ export class MapGenerator {
     }
   }
 
+  static #validatePathRenderModes(grid, heightmap, tileMeta) {
+    for (let row = 0; row < this.#MAP_ROWS; row++) {
+      for (let col = 0; col < this.#MAP_COLS; col++) {
+        if (grid[row][col] !== TileType.PATH) {
+          continue;
+        }
+        const expected = this.#classifyRenderMode(
+          grid,
+          heightmap,
+          tileMeta,
+          col,
+          row,
+        );
+        const actual = tileMeta[row][col].renderMode;
+        if (actual !== expected) {
+          throw new PathRenderModeMismatchError({
+            col,
+            row,
+            expected,
+            actual,
+          });
+        }
+      }
+    }
+  }
+
+  static #validateBridgeGroundHeights(
+    heightmap,
+    tileMeta,
+    riverData,
+  ) {
+    const riverBridgeCells = new Set(
+      riverData.flatMap((river) =>
+        river.cells
+          .filter((cell) => cell.underBridge)
+          .map((cell) => this.#tileKey(cell.col, cell.row)),
+      ),
+    );
+    for (let row = 0; row < this.#MAP_ROWS; row++) {
+      for (let col = 0; col < this.#MAP_COLS; col++) {
+        if (
+          tileMeta[row][col].renderMode !== 'BRIDGE' ||
+          riverBridgeCells.has(this.#tileKey(col, row))
+        ) {
+          continue;
+        }
+        const expectedHeight = Math.max(1, heightmap[row][col] - 1);
+        const actualHeight = tileMeta[row][col].bridgeGroundHeight;
+        if (actualHeight !== expectedHeight) {
+          throw new BridgeGroundHeightMismatchError({
+            col,
+            row,
+            expectedHeight,
+            actualHeight,
+          });
+        }
+      }
+    }
+  }
+
+  static #validateBridgeTurns(tileMeta) {
+    for (let row = 0; row < this.#MAP_ROWS; row++) {
+      for (let col = 0; col < this.#MAP_COLS; col++) {
+        if (tileMeta[row][col].renderMode !== 'BRIDGE') {
+          continue;
+        }
+        const direction = tileMeta[row][col].direction;
+        const horizontal =
+          direction === this.#DIRECTIONS.EAST ||
+          direction === this.#DIRECTIONS.WEST;
+        for (const [deltaCol, deltaRow] of [
+          [1, 0],
+          [-1, 0],
+          [0, 1],
+          [0, -1],
+        ]) {
+          const neighborCol = col + deltaCol;
+          const neighborRow = row + deltaRow;
+          if (
+            !this.#inBounds(neighborCol, neighborRow) ||
+            tileMeta[neighborRow][neighborCol].renderMode !== 'BRIDGE'
+          ) {
+            continue;
+          }
+          const neighborDirection =
+            tileMeta[neighborRow][neighborCol].direction;
+          const neighborHorizontal =
+            neighborDirection === this.#DIRECTIONS.EAST ||
+            neighborDirection === this.#DIRECTIONS.WEST;
+          if (horizontal !== neighborHorizontal) {
+            throw new BridgeTurnError({ col, row });
+          }
+        }
+      }
+    }
+  }
+
   static #validateGrassNoise(grid, heightmap, riverData) {
     const intentionalRiverBanks = new Set();
     for (const river of riverData) {
@@ -2939,6 +3188,9 @@ export class MapGenerator {
     this.#validateCastleEntrance(grid, layout);
     this.#validateCastleGroundClearance(grid, layout);
     this.#validateHeightDiscipline(grid, heightmap);
+    this.#validatePathRenderModes(grid, heightmap, tileMeta);
+    this.#validateBridgeTurns(tileMeta);
+    this.#validateBridgeGroundHeights(heightmap, tileMeta, riverData);
     this.#validateGrassNoise(grid, heightmap, riverData);
     this.#validateLayoutVariety(layout);
     this.#validateVegetation(

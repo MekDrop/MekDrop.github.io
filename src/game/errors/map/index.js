@@ -1,3 +1,5 @@
+export { BridgeGroundHeightMismatchError } from "./BridgeGroundHeightMismatchError.js";
+export { BridgeTurnError } from "./BridgeTurnError.js";
 export { CastleEntrancePathMissingError } from "./CastleEntrancePathMissingError.js";
 export { DisconnectedTerrainError } from "./DisconnectedTerrainError.js";
 export { EntryPathUnreachableError } from "./EntryPathUnreachableError.js";
@@ -23,3 +25,4 @@ export { NoPlayableTerrainError } from "./NoPlayableTerrainError.js";
 export { NonOrthogonalRouteSegmentError } from "./NonOrthogonalRouteSegmentError.js";
 export { PathHeightMismatchError } from "./PathHeightMismatchError.js";
 export { PathOutsideGateError } from "./PathOutsideGateError.js";
+export { PathRenderModeMismatchError } from "./PathRenderModeMismatchError.js";

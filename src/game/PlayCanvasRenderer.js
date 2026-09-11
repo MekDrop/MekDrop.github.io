@@ -1434,8 +1434,9 @@ export class PlayCanvasRenderer {
             continue;
           }
           const direction = tileMeta[row][col].direction;
-          const mate = this.#bridgeMateCell(
+          const span = this.#collectBridgeSpan(
             grid,
+            heightmap,
             tileMeta,
             col,
             row,
@@ -1447,40 +1448,64 @@ export class PlayCanvasRenderer {
             row,
             height - 1,
           );
-          const bridgeCells = mate ? [{ col, row }, mate] : [{ col, row }];
-          for (const cell of bridgeCells) {
+          for (const cell of span.cells) {
             processedBridgeCells.add(`${cell.col},${cell.row}`);
+            const groundHeight = tileMeta[cell.row][cell.col].bridgeGroundHeight;
+            if (Number.isFinite(groundHeight)) {
+              this.#addBridgeGrassGround(
+                batches,
+                cell.col,
+                cell.row,
+                groundHeight,
+                cols,
+                rows,
+              );
+            }
           }
-          const horizontal = direction === "EAST" || direction === "WEST";
-          const deckCenterCol = mate ? (col + mate.col) / 2 : col;
-          const deckCenterRow = mate ? (row + mate.row) / 2 : row;
+          for (let position = span.start; position <= span.end; position += 1) {
+            const deckCenterCol = span.horizontal ? position : span.crossCenter;
+            const deckCenterRow = span.horizontal ? span.crossCenter : position;
+            this.#addBoxMatrix(
+              batches,
+              SURFACE_MATERIALS[type],
+              sideMaterial,
+              deckCenterCol - (cols - 1) / 2,
+              height - 0.12,
+              deckCenterRow - (rows - 1) / 2,
+              0,
+              span.horizontal ? CUBE_SCALE : 2,
+              0.24,
+              span.horizontal ? 2 : CUBE_SCALE,
+              "surfaceOnly",
+              "none",
+            );
+          }
           this.#addBoxMatrix(
             batches,
             SURFACE_MATERIALS[type],
             sideMaterial,
-            deckCenterCol - (cols - 1) / 2,
+            (span.horizontal ? span.center : span.crossCenter) -
+              (cols - 1) / 2,
             height - 0.12,
-            deckCenterRow - (rows - 1) / 2,
+            (span.horizontal ? span.crossCenter : span.center) -
+              (rows - 1) / 2,
             0,
-            horizontal ? CUBE_SCALE : bridgeCells.length,
+            span.horizontal ? span.length : 2,
             0.24,
-            horizontal ? bridgeCells.length : CUBE_SCALE,
-            horizontal ? "bridgeHorizontal" : "bridgeVertical",
+            span.horizontal ? 2 : span.length,
+            span.horizontal
+              ? "bridgeHorizontalSidesOnly"
+              : "bridgeVerticalSidesOnly",
             "none",
           );
-          for (const cell of bridgeCells) {
-            this.#addBridgeRailings(
-              batches,
-              grid,
-              tileMeta,
-              cell.col,
-              cell.row,
-              cell.col - (cols - 1) / 2,
-              cell.row - (rows - 1) / 2,
-              height,
-              sideMaterial,
-            );
-          }
+          this.#addBridgeSpanRailings(
+            batches,
+            span,
+            height,
+            sideMaterial,
+            cols,
+            rows,
+          );
           continue;
         }
 
@@ -1510,6 +1535,32 @@ export class PlayCanvasRenderer {
 
     for (const river of this.#mapData.riverData ?? []) {
       this.#addRiverSourceCap(batches, river.cells[0], cols, rows);
+    }
+  }
+
+  #addBridgeGrassGround(batches, col, row, height, cols, rows) {
+    const x = col - (cols - 1) / 2;
+    const z = row - (rows - 1) / 2;
+    for (let level = 0; level < height; level += 1) {
+      const topCube = level === height - 1;
+      const { top, sides, underlay } = this.#cubeMaterials(
+        TileType.GRASS,
+        topCube,
+        col,
+        row,
+        level,
+      );
+      this.#addCubeMatrix(
+        batches,
+        top,
+        sides,
+        x,
+        level + 0.5,
+        z,
+        this.#surfaceCoverage(topCube),
+        level === 0 ? underlay : "none",
+        topCube ? GRASS_SURFACE_LIFT : 0,
+      );
     }
   }
 
@@ -1564,74 +1615,103 @@ export class PlayCanvasRenderer {
     );
   }
 
-  #addBridgeRailings(
-    batches,
-    grid,
-    tileMeta,
-    col,
-    row,
-    x,
-    z,
-    height,
-    sideMaterial,
-  ) {
-    const direction = tileMeta[row][col].direction;
+  #collectBridgeSpan(grid, heightmap, tileMeta, col, row, direction) {
     const horizontal = direction === "EAST" || direction === "WEST";
-    let outerOffset = 0;
-    if (horizontal) {
-      const mateRows = [row - 1, row + 1].filter(
-        (candidateRow) =>
-          grid[candidateRow]?.[col] === TileType.PATH &&
-          tileMeta[candidateRow]?.[col]?.renderMode === "BRIDGE",
-      );
-      if (!mateRows.length) {
-        return;
+    const mate = this.#bridgeMateCell(grid, tileMeta, col, row, direction);
+    const crossStart = mate
+      ? Math.min(horizontal ? row : col, horizontal ? mate.row : mate.col)
+      : horizontal
+        ? row
+        : col;
+    const crossEnd = mate ? crossStart + 1 : crossStart;
+    const height = heightmap[row][col];
+    const isStation = (position) => {
+      for (let cross = crossStart; cross <= crossEnd; cross += 1) {
+        const stationCol = horizontal ? position : cross;
+        const stationRow = horizontal ? cross : position;
+        if (
+          grid[stationRow]?.[stationCol] !== TileType.PATH ||
+          tileMeta[stationRow]?.[stationCol]?.renderMode !== "BRIDGE" ||
+          tileMeta[stationRow][stationCol].direction !== direction ||
+          heightmap[stationRow]?.[stationCol] !== height
+        ) {
+          return false;
+        }
       }
-      outerOffset = row < mateRows[0] ? -0.43 : 0.43;
-    } else {
-      const mateCols = [col - 1, col + 1].filter(
-        (candidateCol) =>
-          grid[row]?.[candidateCol] === TileType.PATH &&
-          tileMeta[row]?.[candidateCol]?.renderMode === "BRIDGE",
-      );
-      if (!mateCols.length) {
-        return;
+      return true;
+    };
+    let start = horizontal ? col : row;
+    let end = start;
+    while (isStation(start - 1)) {
+      start -= 1;
+    }
+    while (isStation(end + 1)) {
+      end += 1;
+    }
+    const cells = [];
+    for (let position = start; position <= end; position += 1) {
+      for (let cross = crossStart; cross <= crossEnd; cross += 1) {
+        cells.push({
+          col: horizontal ? position : cross,
+          row: horizontal ? cross : position,
+        });
       }
-      outerOffset = col < mateCols[0] ? -0.43 : 0.43;
+    }
+    return {
+      cells,
+      horizontal,
+      start,
+      end,
+      center: (start + end) / 2,
+      crossCenter: (crossStart + crossEnd) / 2,
+      length: end - start + 1,
+    };
+  }
+
+  #addBridgeSpanRailings(batches, span, height, sideMaterial, cols, rows) {
+    const centerX =
+      (span.horizontal ? span.center : span.crossCenter) - (cols - 1) / 2;
+    const centerZ =
+      (span.horizontal ? span.crossCenter : span.center) - (rows - 1) / 2;
+    const railLength = Math.max(0.1, span.length - 0.08);
+    const postPositions = [span.start - 0.34, span.end + 0.34];
+    for (let position = span.start + 0.5; position < span.end; position += 1) {
+      postPositions.push(position);
     }
 
-    const railX = horizontal ? x : x + outerOffset;
-    const railZ = horizontal ? z + outerOffset : z;
-    this.#addBoxMatrix(
-      batches,
-      "path",
-      sideMaterial,
-      railX,
-      height + 0.34,
-      railZ,
-      0,
-      horizontal ? 0.92 : 0.1,
-      0.1,
-      horizontal ? 0.1 : 0.92,
-      "full",
-      sideMaterial,
-    );
-
-    for (const offset of [-0.34, 0.34]) {
+    for (const side of [-1, 1]) {
+      const railX = span.horizontal ? centerX : centerX + side * 0.93;
+      const railZ = span.horizontal ? centerZ + side * 0.93 : centerZ;
       this.#addBoxMatrix(
         batches,
         "path",
         sideMaterial,
-        horizontal ? x + offset : railX,
-        height + 0.17,
-        horizontal ? railZ : z + offset,
+        railX,
+        height + 0.34,
+        railZ,
         0,
+        span.horizontal ? railLength : 0.1,
         0.1,
-        0.38,
-        0.1,
+        span.horizontal ? 0.1 : railLength,
         "full",
         sideMaterial,
       );
+      for (const position of new Set(postPositions)) {
+        this.#addBoxMatrix(
+          batches,
+          "path",
+          sideMaterial,
+          span.horizontal ? position - (cols - 1) / 2 : railX,
+          height + 0.17,
+          span.horizontal ? railZ : position - (rows - 1) / 2,
+          0,
+          0.1,
+          0.38,
+          0.1,
+          "full",
+          sideMaterial,
+        );
+      }
     }
   }
 
@@ -1906,17 +1986,27 @@ export class PlayCanvasRenderer {
 
       const entity = new pc.Entity(`${topMaterial}/${sideMaterial} cubes`);
       const bridgeSideMesh =
-        coverage === "bridgeHorizontal"
+        coverage === "bridgeHorizontal" ||
+        coverage === "bridgeHorizontalSidesOnly"
           ? this.#cubeMeshes.bridgeHorizontalSides
-          : coverage === "bridgeVertical"
+          : coverage === "bridgeVertical" ||
+              coverage === "bridgeVerticalSidesOnly"
             ? this.#cubeMeshes.bridgeVerticalSides
             : null;
-      const sideMeshInstance = new pc.MeshInstance(
-        bridgeSideMesh ?? this.#cubeMeshes.wallSides,
-        this.#materials.get(sideMaterial),
-      );
-      const surfaceMesh = this.#cubeMeshes.surfaces[coverage] ??
-        (bridgeSideMesh ? this.#cubeMeshes.surfaces.full : null);
+      const sidesOnly = coverage.endsWith("SidesOnly");
+      const surfaceOnly = coverage === "surfaceOnly";
+      const sideMeshInstance = surfaceOnly
+        ? null
+        : new pc.MeshInstance(
+            bridgeSideMesh ?? this.#cubeMeshes.wallSides,
+            this.#materials.get(sideMaterial),
+          );
+      const surfaceMesh = surfaceOnly
+        ? this.#cubeMeshes.surfaces.full
+        : sidesOnly
+          ? null
+          : this.#cubeMeshes.surfaces[coverage] ??
+            (bridgeSideMesh ? this.#cubeMeshes.surfaces.full : null);
       const topMeshInstance = surfaceMesh
         ? new pc.MeshInstance(surfaceMesh, this.#materials.get(topMaterial))
         : null;
