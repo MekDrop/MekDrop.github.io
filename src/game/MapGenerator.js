@@ -1168,6 +1168,18 @@ export class MapGenerator {
     ) {
       return null;
     }
+    const crossCol = -deltaRow;
+    const crossRow = deltaCol;
+    for (const side of [-1, 1]) {
+      if (
+        !this.#inBounds(
+          outsideCol + crossCol * side,
+          outsideRow + crossRow * side,
+        )
+      ) {
+        return null;
+      }
+    }
     return this.#directionFromStep(previous, terminal);
   }
 
@@ -1604,6 +1616,43 @@ export class MapGenerator {
           islandMask[row][col] = true;
           heightmap[row][col] = Math.max(heightmap[row][col], bankHeight);
         }
+      }
+
+      const terminal = river.cells.at(-1);
+      const [waterfallCol, waterfallRow] =
+        directionOffsets[river.waterfall.direction] ?? [0, 0];
+      const waterfallCrossCol = -waterfallRow;
+      const waterfallCrossRow = waterfallCol;
+      const waterfallBankHeight = Math.ceil(
+        terminal.elevation + this.#riverSurfaceInset(river),
+      );
+      for (const side of [-1, 1]) {
+        const col =
+          terminal.col + waterfallCol + waterfallCrossCol * side;
+        const row =
+          terminal.row + waterfallRow + waterfallCrossRow * side;
+        const key = this.#tileKey(col, row);
+        if (
+          !this.#inBounds(col, row) ||
+          riverCellKeys.has(key) ||
+          (grid[row][col] !== TileType.GRASS &&
+            grid[row][col] !== TileType.WATER)
+        ) {
+          continue;
+        }
+        if (grid[row][col] === TileType.WATER) {
+          this.#setTile(grid, tileMeta, col, row, TileType.GRASS, {
+            surfaceType: 'GRASS',
+            baseHeight: waterfallBankHeight,
+            shape: this.#TILE_SHAPE.FLAT,
+            direction: this.#DIRECTIONS.NONE,
+          });
+        }
+        islandMask[row][col] = true;
+        heightmap[row][col] = Math.max(
+          heightmap[row][col],
+          waterfallBankHeight,
+        );
       }
 
       const source = river.cells[0];
@@ -2824,6 +2873,41 @@ export class MapGenerator {
           riverId: river.id,
           reason: 'does not end in a clear, outward-facing edge waterfall',
         });
+      }
+
+      const crossCol = -deltaRow;
+      const crossRow = deltaCol;
+      const requiredShoulderHeight = Math.ceil(
+        terminal.elevation + this.#riverSurfaceInset(river),
+      );
+      for (const side of [-1, 1]) {
+        const shoulderCol = outsideCol + crossCol * side;
+        const shoulderRow = outsideRow + crossRow * side;
+        if (!this.#inBounds(shoulderCol, shoulderRow)) {
+          throw new InvalidRiverFlowError({
+            riverId: river.id,
+            reason: `places a waterfall shoulder outside the map at (${shoulderCol}, ${shoulderRow})`,
+          });
+        }
+        if (allRiverCells.has(this.#tileKey(shoulderCol, shoulderRow))) {
+          continue;
+        }
+        const shoulderTile = grid[shoulderRow][shoulderCol];
+        if (shoulderTile === TileType.WATER) {
+          throw new InvalidRiverFlowError({
+            riverId: river.id,
+            reason: `has a missing waterfall shoulder at (${shoulderCol}, ${shoulderRow})`,
+          });
+        }
+        if (
+          shoulderTile === TileType.GRASS &&
+          heightmap[shoulderRow][shoulderCol] < requiredShoulderHeight
+        ) {
+          throw new InvalidRiverFlowError({
+            riverId: river.id,
+            reason: `has a low waterfall shoulder at (${shoulderCol}, ${shoulderRow})`,
+          });
+        }
       }
     }
   }
