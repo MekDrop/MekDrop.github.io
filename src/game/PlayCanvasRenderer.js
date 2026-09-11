@@ -1,3 +1,4 @@
+import castleFireParticleUrl from "src/assets/game/effects/castle-fire-particle.png?url";
 import earthSideUrl from "src/assets/game/tiles/earth-side.png";
 import grassSideUrl from "src/assets/game/tiles/grass-side.png";
 import grassTopUrl from "src/assets/game/tiles/grass-top.png";
@@ -64,6 +65,7 @@ const TEXTURE_URLS = {
   grassSide: grassSideUrl,
   pathSide: pathSideUrl,
   waterSide: waterSideUrl,
+  castleFireParticle: castleFireParticleUrl,
 };
 
 const MATERIAL_DEFINITIONS = {
@@ -187,6 +189,7 @@ export class PlayCanvasRenderer {
   #cubeMeshes = null;
   #materials = new Map();
   #textureAssets = [];
+  #castleFireParticleTexture = null;
   #vertexBuffers = [];
   #zoom = 1;
   #rotation = 0;
@@ -913,6 +916,7 @@ export class PlayCanvasRenderer {
       this.#app?.assets.remove(asset);
     }
     this.#textureAssets = [];
+    this.#castleFireParticleTexture = null;
     if (this.#cubeMeshes) {
       this.#destroyMesh(this.#cubeMeshes.sides);
       this.#destroyMesh(this.#cubeMeshes.wallSides);
@@ -941,6 +945,7 @@ export class PlayCanvasRenderer {
         textures.set(name, await this.#loadTexture(name, url));
       }),
     );
+    this.#castleFireParticleTexture = textures.get("castleFireParticle");
     for (const [name, definition] of Object.entries(MATERIAL_DEFINITIONS)) {
       this.#materials.set(
         name,
@@ -1376,6 +1381,7 @@ export class PlayCanvasRenderer {
       style: castle.style,
       occupantSeed: castle.occupantSeed,
       modelLibrary: this.#modelLibrary,
+      fireParticleTexture: this.#castleFireParticleTexture,
     });
     this.#collisionWorld.add(this.#castle);
     this.#mapRoot.addChild(this.#castle.entity);

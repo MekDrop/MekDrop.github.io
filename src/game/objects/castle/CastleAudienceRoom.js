@@ -76,6 +76,7 @@ export class CastleAudienceRoom {
     availableDepth = MAX_ROOM_DEPTH,
     availableWidth = Number.POSITIVE_INFINITY,
     modelLibrary,
+    fireParticleTexture,
   }) {
     this.#pc = pc;
     this.#position = position;
@@ -87,7 +88,11 @@ export class CastleAudienceRoom {
     this.#availableWidth = availableWidth;
     this.#entity = new pc.Entity("Castle audience chamber");
     this.#baseY = position.elevation ?? 0;
-    this.#fire = new CastleFire({ pc, app });
+    this.#fire = new CastleFire({
+      pc,
+      app,
+      particleTexture: fireParticleTexture,
+    });
     this.#entity.addChild(this.#fire.entity);
 
     this.#resolveLayout();

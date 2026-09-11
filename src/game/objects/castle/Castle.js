@@ -132,6 +132,7 @@ export class Castle {
   #styleId;
   #occupantSeed;
   #modelLibrary;
+  #fireParticleTexture;
   #entity;
   #materials = new Map();
   #stoneTexture = null;
@@ -161,6 +162,7 @@ export class Castle {
     style = null,
     occupantSeed = 0,
     modelLibrary,
+    fireParticleTexture,
   }) {
     this.#pc = pc;
     this.#app = app;
@@ -169,6 +171,7 @@ export class Castle {
     this.#styleId = style;
     this.#occupantSeed = occupantSeed;
     this.#modelLibrary = modelLibrary;
+    this.#fireParticleTexture = fireParticleTexture;
     this.#entity = new pc.Entity("Castle");
 
     this.#createStructureResources();
@@ -312,6 +315,7 @@ export class Castle {
     this.#stoneTexture = null;
     this.#doorTexture?.destroy();
     this.#doorTexture = null;
+    this.#fireParticleTexture = null;
     this.#groundCollisionColumns = [];
     this.#groundCollisionKeys.clear();
   }
@@ -364,7 +368,11 @@ export class Castle {
   }
 
   #createDecorations() {
-    this.#fire = new CastleFire({ pc: this.#pc, app: this.#app });
+    this.#fire = new CastleFire({
+      pc: this.#pc,
+      app: this.#app,
+      particleTexture: this.#fireParticleTexture,
+    });
     this.#entity.addChild(this.#fire.entity);
     this.#banners = new CastleBanner({ pc: this.#pc, app: this.#app });
     this.#entity.addChild(this.#banners.entity);
@@ -405,6 +413,7 @@ export class Castle {
       availableDepth: this.#interiorDepth,
       availableWidth: this.#interiorWidth,
       modelLibrary: this.#modelLibrary,
+      fireParticleTexture: this.#fireParticleTexture,
     });
     this.#entity.addChild(this.#audienceRoom.entity);
   }

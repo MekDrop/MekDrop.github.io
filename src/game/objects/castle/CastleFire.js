@@ -8,12 +8,12 @@ export class CastleFire {
   #elapsed = 0;
   #updateHandle = null;
 
-  constructor({ pc, app }) {
+  constructor({ pc, app, particleTexture }) {
     this.#pc = pc;
     this.#app = app;
     this.#entity = new pc.Entity("Castle fires");
     this.#brazierMaterial = this.#createBrazierMaterial();
-    this.#particleTexture = this.#createParticleTexture();
+    this.#particleTexture = particleTexture;
 
     this.#updateHandle = app.on("update", (deltaTime) => {
       this.#elapsed += deltaTime;
@@ -60,7 +60,6 @@ export class CastleFire {
     this.#lights = [];
     this.#brazierMaterial?.destroy();
     this.#brazierMaterial = null;
-    this.#particleTexture?.destroy();
     this.#particleTexture = null;
   }
 
@@ -149,7 +148,9 @@ export class CastleFire {
       rotationSpeedGraph: this.#curve([0, -16, 1, 22]),
       rotationSpeedGraph2: this.#curve([0, 18, 1, -24]),
     });
-    emitter.setLocalPosition(0, scale * 0.24, 0);
+    // Screen-facing particles are centered on their origin. Keep that origin
+    // high enough for the brazier rim to occlude every visible flame base.
+    emitter.setLocalPosition(0, scale * 0.62, 0);
     parent.addChild(emitter);
   }
 
@@ -228,39 +229,6 @@ export class CastleFire {
     material.gloss = 0.14;
     material.update();
     return material;
-  }
-
-  #createParticleTexture() {
-    const size = 16;
-    const canvas = document.createElement("canvas");
-    canvas.width = size;
-    canvas.height = size;
-    const context = canvas.getContext("2d");
-    context.imageSmoothingEnabled = false;
-    context.fillStyle = "rgba(255,255,255,1)";
-    context.beginPath();
-    context.moveTo(8, 0);
-    context.lineTo(12, 5);
-    context.lineTo(13, 10);
-    context.lineTo(10, 15);
-    context.lineTo(5, 15);
-    context.lineTo(2, 10);
-    context.lineTo(4, 5);
-    context.closePath();
-    context.fill();
-
-    const texture = new this.#pc.Texture(this.#app.graphicsDevice, {
-      name: "Castle fire particle",
-      width: size,
-      height: size,
-      minFilter: this.#pc.FILTER_LINEAR_MIPMAP_LINEAR,
-      magFilter: this.#pc.FILTER_LINEAR,
-      addressU: this.#pc.ADDRESS_CLAMP_TO_EDGE,
-      addressV: this.#pc.ADDRESS_CLAMP_TO_EDGE,
-      mipmaps: true,
-    });
-    texture.setSource(canvas);
-    return texture;
   }
 
   #animateLights() {
