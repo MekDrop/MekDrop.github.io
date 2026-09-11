@@ -1,5 +1,6 @@
 import { TileType } from "../MapGenerator.js";
 import { GRASS_SURFACE_LIFT } from "../config/terrain.js";
+import { RIVER_KIND } from "../enum/RiverKind.js";
 
 export class MovementTestMap {
   static #COLS = 9;
@@ -205,6 +206,48 @@ export class MovementTestMap {
       case "river-waterfall":
         this.#addRiver(mapData, false);
         break;
+      case "river-turn":
+        this.#addTurningRiver(mapData);
+        break;
+      case "lava-river":
+        this.#addRiver(mapData, false, 1.5, RIVER_KIND.LAVA);
+        mapData.heroSpawn.x = 1 - (this.#COLS - 1) / 2;
+        break;
+      case "lava-source-dig":
+        this.#addRiver(mapData, false, 1.5, RIVER_KIND.LAVA);
+        mapData.heroSpawn.x = 2 - (this.#COLS - 1) / 2;
+        mapData.heroSpawn.z = 2 - (this.#ROWS - 1) / 2;
+        break;
+      case "lava-source-bank":
+        this.#addRiver(mapData, false, 1.5, RIVER_KIND.LAVA);
+        this.#paint(mapData, 2, 1, 2, 1, 2);
+        mapData.heroSpawn.x = 2 - (this.#COLS - 1) / 2;
+        mapData.heroSpawn.z = 1 - (this.#ROWS - 1) / 2;
+        break;
+      case "lava-source-diagonal-dig":
+        this.#addRiver(mapData, false, 1.5, RIVER_KIND.LAVA);
+        this.#paint(mapData, 1, 1, 1, 1, 2);
+        mapData.heroSpawn.x = 1 - (this.#COLS - 1) / 2;
+        mapData.heroSpawn.z = 1 - (this.#ROWS - 1) / 2;
+        break;
+      case "river-bank-flower-dig":
+        this.#addRiver(mapData, false);
+        this.#paint(mapData, 5, 1, 5, 1, 2);
+        mapData.heroSpawn.x = 5 - (this.#COLS - 1) / 2;
+        mapData.heroSpawn.z = 1 - (this.#ROWS - 1) / 2;
+        mapData.groundCoverData = [
+          {
+            col: 5,
+            row: 2,
+            variant: "daisy-patch",
+            offsetX: 0,
+            offsetZ: 0,
+            rotation: 0,
+            scale: 1,
+            phase: 0,
+          },
+        ];
+        break;
       default:
         this.#paint(mapData, 1, 2, 7, 4, 2);
         break;
@@ -263,7 +306,12 @@ export class MovementTestMap {
     }
   }
 
-  static #addRiver(mapData, includesBridge, waterElevation = 1.5) {
+  static #addRiver(
+    mapData,
+    includesBridge,
+    waterElevation = 1.5,
+    riverKind = RIVER_KIND.WATER,
+  ) {
     this.#paint(mapData, 0, 2, 8, 4, 2);
     mapData.heroSpawn.x = -(this.#COLS - 1) / 2;
     const cells = [];
@@ -302,6 +350,7 @@ export class MovementTestMap {
     mapData.riverData = [
       {
         id: "movement-test-river",
+        kind: riverKind,
         source: { col: 2, row: 3, terrainHeight: 2 },
         cells,
         cascades: [],
@@ -315,6 +364,56 @@ export class MovementTestMap {
         },
       },
     ];
+  }
+
+  static #addTurningRiver(mapData) {
+    this.#paint(mapData, 0, 1, 8, 6, 2);
+    const route = [
+      { col: 2, row: 3, direction: "EAST" },
+      { col: 3, row: 3, direction: "EAST" },
+      { col: 4, row: 3, direction: "SOUTH" },
+      { col: 4, row: 4, direction: "SOUTH" },
+      { col: 4, row: 5, direction: "SOUTH" },
+      { col: 4, row: 6, direction: "SOUTH" },
+    ];
+    const elevation = 1.5;
+    const cells = route.map((cell, index) => {
+      mapData.grid[cell.row][cell.col] = TileType.WATER;
+      mapData.heightmap[cell.row][cell.col] = elevation;
+      mapData.tileMeta[cell.row][cell.col] = {
+        baseHeight: elevation,
+        direction: cell.direction,
+        renderMode: "SOLID",
+        riverSourceCover: index === 0,
+        surfaceType: "WATER",
+      };
+      return {
+        ...cell,
+        elevation,
+        bedElevation: elevation - 0.5,
+        terrainHeight: 2,
+        underBridge: false,
+      };
+    });
+    mapData.riverData = [
+      {
+        id: "movement-test-turning-river",
+        kind: RIVER_KIND.WATER,
+        source: { col: 2, row: 3, terrainHeight: 2 },
+        cells,
+        cascades: [],
+        upstreamLength: cells.length - 2,
+        waterfall: {
+          col: 4,
+          row: 6,
+          direction: "SOUTH",
+          topElevation: elevation,
+          bottomElevation: -10,
+        },
+      },
+    ];
+    mapData.heroSpawn.x = 1 - (this.#COLS - 1) / 2;
+    mapData.heroSpawn.z = 2 - (this.#ROWS - 1) / 2;
   }
 
   static #addInventoryGroundCover(mapData) {

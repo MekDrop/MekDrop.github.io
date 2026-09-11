@@ -340,4 +340,26 @@ describe("Hero movement on a predefined terrain map", { testIsolation: false }, 
       expect(state.position.y).to.be.closeTo(1 + GRASS_SURFACE_LIFT, 0.03);
     });
   });
+
+  it("burns the hero to ashes after jumping into lava", () => {
+    loadScenario("lava-river");
+    cy.window().then((window) => {
+      window.gameMovementTest.jump();
+      window.gameMovementTest.move(1, -1);
+    });
+    expectState((state) => {
+      expect(state.burning).to.equal(true);
+      expect(state.drowning).to.equal(false);
+    });
+    expectState((state) => {
+      expect(state.ashes).to.equal(true);
+      expect(state.position.y).to.be.lessThan(1.1);
+    });
+    expectState((state) => {
+      expect(state.burning).to.equal(false);
+      expect(state.ashes).to.equal(false);
+      expect(state.position.x).to.be.closeTo(-3, 0.08);
+      expect(state.position.y).to.be.closeTo(2 + GRASS_SURFACE_LIFT, 0.03);
+    });
+  });
 });

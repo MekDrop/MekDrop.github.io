@@ -24,6 +24,45 @@ describe("Buried treasure", () => {
     );
   });
 
+  it("reveals embedded stones when digging at a lava source", () => {
+    cy.window().then((window) => {
+      window.gameMovementTest.loadScenario("lava-source-dig");
+    });
+    cy.get(".interaction-prompt").should("contain.text", "Dig for treasure");
+    pressKey("KeyE");
+    cy.window({ timeout: 7000 }).should((window) => {
+      expect(window.gameMovementTest.state().animation).to.equal(
+        HERO_ANIMATION.DIG_BLOCKED_ANNOYED,
+      );
+    });
+  });
+
+  it("allows digging on grass beside a lava source", () => {
+    cy.window().then((window) => {
+      window.gameMovementTest.loadScenario("lava-source-bank");
+    });
+    cy.get(".interaction-prompt").should("contain.text", "Dig for treasure");
+  });
+
+  it("allows digging on grass diagonally outside the lava bank", () => {
+    cy.window().then((window) => {
+      window.gameMovementTest.loadScenario("lava-source-diagonal-dig");
+    });
+    cy.get(".interaction-prompt").should("contain.text", "Dig for treasure");
+  });
+
+  it("allows digging on an ordinary river bank after collecting its flower", () => {
+    cy.window().then((window) => {
+      window.gameMovementTest.loadScenario("river-bank-flower-dig");
+    });
+    cy.get(".interaction-prompt").should("contain.text", "Collect flowers");
+    pressKey("KeyE");
+    cy.get(".interaction-prompt", { timeout: 5000 }).should(
+      "contain.text",
+      "Dig for treasure",
+    );
+  });
+
   it("digs up a chest, opens it, and collects medieval coins", () => {
     cy.window().should((window) => {
       expect(window.gameMovementTest.state().wallet).to.deep.equal({

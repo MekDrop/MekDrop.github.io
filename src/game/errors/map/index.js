@@ -11,6 +11,7 @@ export { InsufficientVegetationVarietyError } from "./InsufficientVegetationVari
 export { InvalidCastleEntranceWidthError } from "./InvalidCastleEntranceWidthError.js";
 export { InvalidGatePositionError } from "./InvalidGatePositionError.js";
 export { InvalidGroundCoverPlacementError } from "./InvalidGroundCoverPlacementError.js";
+export { InvalidLavaRiverCountError } from "./InvalidLavaRiverCountError.js";
 export { InvalidRiverCountError } from "./InvalidRiverCountError.js";
 export { InvalidRiverFlowError } from "./InvalidRiverFlowError.js";
 export { InvalidRiverPathError } from "./InvalidRiverPathError.js";

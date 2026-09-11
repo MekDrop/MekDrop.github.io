@@ -8,9 +8,11 @@ uniform float projectionFlipY;
 uniform vec2 uRiverFlowDirection;
 uniform float uRiverTime;
 uniform float uRiverVertical;
+uniform float uRiverLava;
 
 vec3 riverWaterPosition(vec3 localPosition) {
   #ifdef VERTEX_COLOR
+    vec3 baseLocalPosition = localPosition;
     float vertexMarker = vertex_color.a;
     float horizontalDepth = clamp(vertex_color.r, 0.0, 1.0);
     float surfaceMask =
@@ -36,12 +38,37 @@ vec3 riverWaterPosition(vec3 localPosition) {
       ) * 0.018 +
       sin(alongFlow * 6.2 - uRiverTime * 2.45 + acrossFlow * 2.1) *
       0.009;
+    float flowInterior = smoothstep(0.015, 0.3, vertex_color.b);
+    float waterSurfaceWave =
+      surfaceWave + directionalFlowWave * flowInterior;
+    float lavaBaseWave =
+      sin(
+        dot(localPosition.xz, vec2(0.58, 0.81)) * 4.4 -
+        uRiverTime * 0.31
+      ) * 0.006;
+    float lavaDirectionalWave =
+      sin(
+        alongFlow * 4.2 -
+        uRiverTime * 0.72 +
+        sin(acrossFlow * 3.0) * 0.5
+      ) * 0.012 +
+      sin(
+        dot(localPosition.xz, vec2(-0.52, 0.85)) * 5.3 +
+        uRiverTime * 0.46
+      ) * 0.008;
+    float lavaSurfaceWave =
+      lavaBaseWave + lavaDirectionalWave * flowInterior;
+    float liquidSurfaceWave = mix(
+      waterSurfaceWave,
+      lavaSurfaceWave,
+      uRiverLava
+    );
     float waterfallLipSurfaceMask =
       uRiverVertical *
       step(0.9, vertexMarker) *
       (1.0 - smoothstep(0.0, 0.32, vertex_color.b));
     localPosition.y +=
-      (surfaceWave + directionalFlowWave) *
+      liquidSurfaceWave *
       (surfaceMask + waterfallLipSurfaceMask);
 
     float springSource =
@@ -61,28 +88,36 @@ vec3 riverWaterPosition(vec3 localPosition) {
     float springCenterHeave =
       0.022 + sin(uRiverTime * 3.15) * 0.018;
     localPosition.y +=
-      springSource * springUpwelling + springCore * springCenterHeave;
+      (springSource * springUpwelling + springCore * springCenterHeave) *
+      (1.0 - uRiverLava);
 
     float waterfallMask =
       uRiverVertical *
       vertexMarker *
       smoothstep(0.28, 0.92, vertex_color.b);
     float flowAge = vertex_color.g + vertex_color.b * 0.075;
+    float fallTime = mix(uRiverTime, uRiverTime * 0.34, uRiverLava);
     float forwardSwell =
       sin(
         flowAge * 15.0 -
-        uRiverTime * 3.1 +
+        fallTime * 3.1 +
         vertex_color.r * 7.0
       ) * 0.032 +
-      sin(flowAge * 6.0 - uRiverTime * 1.35) * 0.017;
+      sin(flowAge * 6.0 - fallTime * 1.35) * 0.017;
     float sidewaysSway = sin(
       flowAge * 9.0 -
-      uRiverTime * 1.6 +
+      fallTime * 1.6 +
       vertex_color.r * 13.0
     ) * 0.02;
+    float fallDisplacement = mix(1.0, 0.42, uRiverLava);
     localPosition.xz +=
       flowDirection * forwardSwell * waterfallMask +
       crossDirection * sidewaysSway * waterfallMask;
+    localPosition.xz = mix(
+      baseLocalPosition.xz,
+      localPosition.xz,
+      mix(1.0, fallDisplacement, waterfallMask)
+    );
   #endif
   return localPosition;
 }

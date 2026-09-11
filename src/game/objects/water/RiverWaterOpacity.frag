@@ -1,4 +1,5 @@
 uniform float uRiverVertical;
+uniform float uRiverLava;
 
 void getOpacity() {
   float waterDepth = clamp(vVertexColor.r, 0.0, 1.0);
@@ -27,4 +28,5 @@ void getOpacity() {
     (1.0 - waterDepth) *
     smoothstep(0.35, 0.92, vVertexColor.g);
   dAlpha = mix(dAlpha, 0.88, springSource);
+  dAlpha = mix(dAlpha, 1.0, uRiverLava);
 }

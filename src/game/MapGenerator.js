@@ -12,6 +12,7 @@ import {
   InvalidCastleEntranceWidthError,
   InvalidGatePositionError,
   InvalidGroundCoverPlacementError,
+  InvalidLavaRiverCountError,
   InvalidRiverCountError,
   InvalidRiverFlowError,
   InvalidRiverPathError,
@@ -24,6 +25,7 @@ import {
   PathHeightMismatchError,
   PathOutsideGateError,
 } from './errors/map/index.js';
+import { RIVER_KIND } from './enum/RiverKind.js';
 
 export const TileType = {
   WATER: 0,
@@ -47,11 +49,14 @@ export class MapGenerator {
   static #MAX_RIVERS = 6;
   static #MIN_RIVER_TILES = 7;
   static #RIVER_SURFACE_INSET = 0.5;
+  static #LAVA_SURFACE_INSET = 0.22;
   static #RIVER_WATER_DEPTH = 0.5;
   static #BRIDGE_WATER_CLEARANCE = 0.52;
   static #RIVER_CASTLE_SETBACK = 6;
   static #TERMINAL_WATERFALL_BOTTOM = -10.5;
   static #RIVER_COUNT_WEIGHTS = [15, 35, 22, 13, 8, 5, 2];
+  static #LAVA_ISLAND_CHANCE = 10;
+  static #MAX_LAVA_ELIGIBLE_RIVERS = 2;
   static #CASTLE_GROUND_CLEARANCE = 3;
   static #CASTLE_REAR_GROUND_CLEARANCE = 1;
   static #TREE_VARIANTS = ['oak', 'pine', 'tall-tree', 'sapling'];
@@ -135,6 +140,8 @@ export class MapGenerator {
       islandMask,
       requestedNumRivers,
     );
+    this.#assignRiverKinds(riverData);
+    this.#raiseLavaSurfaces(heightmap, tileMeta, riverData);
     this.#smoothGrassHeights(grid, heightmap);
     this.#materializeRiverBanks(
       grid,
@@ -1376,6 +1383,7 @@ export class MapGenerator {
     const terminal = cells[cells.length - 1];
     return {
       id: `river-${riverIndex + 1}`,
+      kind: RIVER_KIND.WATER,
       source: {
         col: cells[0].col,
         row: cells[0].row,
@@ -1471,6 +1479,76 @@ export class MapGenerator {
     return rivers;
   }
 
+  static #assignRiverKinds(rivers) {
+    if (
+      rivers.length === 0 ||
+      rivers.length > this.#MAX_LAVA_ELIGIBLE_RIVERS ||
+      this.#rng(1, this.#LAVA_ISLAND_CHANCE) !== 1
+    ) {
+      return;
+    }
+
+    const lavaRiverCount = this.#rng(
+      1,
+      Math.min(this.#MAX_LAVA_ELIGIBLE_RIVERS, rivers.length),
+    );
+    for (const river of this.#shuffle([...rivers]).slice(0, lavaRiverCount)) {
+      river.kind = RIVER_KIND.LAVA;
+    }
+  }
+
+  static #raiseLavaSurfaces(heightmap, tileMeta, rivers) {
+    for (const river of rivers) {
+      if (river.kind !== RIVER_KIND.LAVA) {
+        continue;
+      }
+
+      let previousElevation = Number.POSITIVE_INFINITY;
+      const cascades = [];
+      for (const [index, cell] of river.cells.entries()) {
+        const heightLimit = cell.underBridge
+          ? this.#PATH_HEIGHT - this.#BRIDGE_WATER_CLEARANCE
+          : Math.max(
+              this.#RIVER_WATER_DEPTH,
+              cell.terrainHeight - this.#LAVA_SURFACE_INSET,
+            );
+        const elevation = Math.min(previousElevation, heightLimit);
+        cell.elevation = elevation;
+        cell.bedElevation = Math.max(
+          0,
+          elevation - this.#RIVER_WATER_DEPTH,
+        );
+
+        if (!cell.underBridge) {
+          heightmap[cell.row][cell.col] = elevation;
+          tileMeta[cell.row][cell.col].baseHeight = elevation;
+          tileMeta[cell.row][cell.col].riverSourceCover = index === 0;
+        }
+
+        if (index > 0 && previousElevation - elevation > 0.04) {
+          const previous = river.cells[index - 1];
+          cascades.push({
+            from: { col: previous.col, row: previous.row },
+            to: { col: cell.col, row: cell.row },
+            direction: this.#directionFromStep(previous, cell),
+            topElevation: previousElevation,
+            bottomElevation: elevation,
+          });
+        }
+        previousElevation = elevation;
+      }
+
+      river.cascades = cascades;
+      river.waterfall.topElevation = river.cells.at(-1).elevation;
+    }
+  }
+
+  static #riverSurfaceInset(river) {
+    return river.kind === RIVER_KIND.LAVA
+      ? this.#LAVA_SURFACE_INSET
+      : this.#RIVER_SURFACE_INSET;
+  }
+
   static #materializeRiverBanks(
     grid,
     heightmap,
@@ -1500,7 +1578,7 @@ export class MapGenerator {
         const crossCol = -deltaRow;
         const crossRow = deltaCol;
         const bankHeight = Math.ceil(
-          cell.elevation + this.#RIVER_SURFACE_INSET,
+          cell.elevation + this.#riverSurfaceInset(river),
         );
 
         for (const side of [-1, 1]) {
@@ -1530,7 +1608,7 @@ export class MapGenerator {
 
       const source = river.cells[0];
       const sourceBankHeight = Math.ceil(
-        source.elevation + this.#RIVER_SURFACE_INSET,
+        source.elevation + this.#riverSurfaceInset(river),
       );
       for (let deltaRow = -1; deltaRow <= 1; deltaRow++) {
         for (let deltaCol = -1; deltaCol <= 1; deltaCol++) {
@@ -2527,6 +2605,20 @@ export class MapGenerator {
         maximum: this.#MAX_RIVERS,
       });
     }
+    const lavaRiverCount = riverData.filter(
+      (river) => river.kind === RIVER_KIND.LAVA,
+    ).length;
+    if (
+      lavaRiverCount > this.#MAX_LAVA_ELIGIBLE_RIVERS ||
+      (riverData.length > this.#MAX_LAVA_ELIGIBLE_RIVERS &&
+        lavaRiverCount > 0)
+    ) {
+      throw new InvalidLavaRiverCountError({
+        lavaCount: lavaRiverCount,
+        riverCount: riverData.length,
+        maximum: this.#MAX_LAVA_ELIGIBLE_RIVERS,
+      });
+    }
 
     const occupied = new Set();
     const allRiverCells = new Set(
@@ -2567,7 +2659,7 @@ export class MapGenerator {
 
       const source = river.cells[0];
       const requiredSourceBankHeight = Math.ceil(
-        source.elevation + this.#RIVER_SURFACE_INSET,
+        source.elevation + this.#riverSurfaceInset(river),
       );
       const riverCellKeys = new Set(
         river.cells.map((cell) => this.#tileKey(cell.col, cell.row)),
@@ -2638,7 +2730,7 @@ export class MapGenerator {
           const crossCol = -flowRow;
           const crossRow = flowCol;
           const requiredBankHeight = Math.ceil(
-            cell.elevation + this.#RIVER_SURFACE_INSET,
+            cell.elevation + this.#riverSurfaceInset(river),
           );
           for (const side of [-1, 1]) {
             const bankCol = cell.col + crossCol * side;

@@ -543,6 +543,8 @@ export class PlayCanvasRenderer {
       animationTransitioning: this.#hero.animationTransitioning,
       grounded: this.#hero.grounded,
       drowning: this.#hero.drowning,
+      burning: this.#hero.burning,
+      ashes: this.#hero.ashes,
       facing: this.#hero.facingDirection,
       headLookYaw: this.#hero.headLookYaw,
       wallet: this.#hero.wallet,

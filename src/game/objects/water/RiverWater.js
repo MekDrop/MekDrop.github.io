@@ -5,6 +5,7 @@ import riverWaterFragmentShader from './RiverWater.frag?raw';
 import riverWaterNormalShader from './RiverWaterNormal.frag?raw';
 import riverWaterOpacityShader from './RiverWaterOpacity.frag?raw';
 import riverWaterVertexShader from './RiverWater.vert?raw';
+import { RIVER_KIND } from '../../enum/RiverKind.js';
 
 export class RiverWater {
   static get modelUrls() {
@@ -63,6 +64,7 @@ export class RiverWater {
     const groups = new Map();
     const { cols, rows, riverData = [] } = this.#mapData;
     for (const river of riverData) {
+      const riverKind = river.kind ?? RIVER_KIND.WATER;
       const riverCellKeys = new Set(
         river.cells.map((cell) => `${cell.col},${cell.row}`),
       );
@@ -79,7 +81,7 @@ export class RiverWater {
       for (const [cellIndex, cell] of river.cells.entries()) {
         const surfaceGroup = this.#group(
           groups,
-          `surface-${cell.direction}-${river.id}`,
+          `surface|${riverKind}|${cell.direction}|${river.id}`,
         );
         this.#addWaterVolume(
           surfaceGroup,
@@ -95,7 +97,7 @@ export class RiverWater {
       }
       for (const cascade of river.cascades) {
         this.#addCurvedWaterfall(
-          this.#group(groups, `fall-${cascade.direction}`),
+          this.#group(groups, `fall|${riverKind}|${cascade.direction}`),
           {
             col: cascade.from.col,
             row: cascade.from.row,
@@ -107,11 +109,17 @@ export class RiverWater {
           rows,
           false,
         );
-        this.#addWaterfallMist(cascade, cols, rows, false);
+        this.#addWaterfallMist(
+          cascade,
+          cols,
+          rows,
+          false,
+          riverKind,
+        );
         this.#addCascadeImpact(
           this.#group(
             groups,
-            `surface-${cascade.direction}-${river.id}`,
+            `surface|${riverKind}|${cascade.direction}|${river.id}`,
           ),
           cascade,
           cols,
@@ -119,13 +127,22 @@ export class RiverWater {
         );
       }
       this.#addCurvedWaterfall(
-        this.#group(groups, `fall-${river.waterfall.direction}`),
+        this.#group(
+          groups,
+          `fall|${riverKind}|${river.waterfall.direction}`,
+        ),
         river.waterfall,
         cols,
         rows,
         true,
       );
-      this.#addWaterfallMist(river.waterfall, cols, rows, true);
+      this.#addWaterfallMist(
+        river.waterfall,
+        cols,
+        rows,
+        true,
+        riverKind,
+      );
     }
 
     for (const [key, geometryData] of groups.entries()) {
@@ -144,12 +161,14 @@ export class RiverWater {
       );
       this.#meshes.push(mesh);
 
-      const [kind, direction] = key.split('-');
+      const [kind, riverKind, direction] = key.split('|');
       const meshInstance = new this.#pc.MeshInstance(
         mesh,
-        this.#material(direction, kind === 'fall'),
+        this.#material(direction, kind === 'fall', riverKind),
       );
-      const entity = new this.#pc.Entity(`River water ${key}`);
+      const entity = new this.#pc.Entity(
+        `River ${riverKind.toLowerCase()} ${key}`,
+      );
       entity.addComponent('render', {
         meshInstances: [meshInstance],
         castShadows: false,
@@ -269,8 +288,9 @@ export class RiverWater {
     return groups.get(key);
   }
 
-  #material(direction, vertical) {
-    const key = `${vertical ? 'fall' : 'surface'}-${direction}`;
+  #material(direction, vertical, riverKind) {
+    const lava = riverKind === RIVER_KIND.LAVA;
+    const key = `${riverKind}-${vertical ? 'fall' : 'surface'}-${direction}`;
     if (this.#materials.has(key)) {
       return this.#materials.get(key);
     }
@@ -278,18 +298,26 @@ export class RiverWater {
     const flow = this.#directionVector(direction);
     const material = new this.#pc.StandardMaterial();
     material.name = `Cel-shaded river ${key}`;
-    material.diffuse = new this.#pc.Color(0.08, 0.62, 0.84);
+    material.diffuse = lava
+      ? new this.#pc.Color(1, 0.2, 0.015)
+      : new this.#pc.Color(0.08, 0.62, 0.84);
+    if (lava) {
+      material.emissive = new this.#pc.Color(0.72, 0.12, 0.006);
+      material.emissiveIntensity = 0.9;
+    }
     material.diffuseVertexColor = true;
     material.opacityVertexColor = true;
     material.opacityVertexColorChannel = 'a';
     material.useLighting = false;
     material.blendType = this.#pc.BLEND_NORMAL;
     material.depthWrite = true;
-    material.useDynamicRefraction = true;
+    material.useDynamicRefraction = !lava;
     material.refraction = 0.3;
     material.refractionIndex = 1 / 1.333;
     material.thickness = 0.46;
-    material.attenuation = new this.#pc.Color(0.18, 0.64, 0.82);
+    material.attenuation = lava
+      ? new this.#pc.Color(0.8, 0.08, 0.01)
+      : new this.#pc.Color(0.18, 0.64, 0.82);
     material.attenuationDistance = 1.15;
     material.cull = this.#pc.CULLFACE_NONE;
     material.shaderChunks.glsl.set('transformVS', riverWaterVertexShader);
@@ -298,6 +326,7 @@ export class RiverWater {
     material.shaderChunks.glsl.set('opacityPS', riverWaterOpacityShader);
     material.setParameter('uRiverFlowDirection', [flow.col, flow.row]);
     material.setParameter('uRiverVertical', vertical ? 1 : 0);
+    material.setParameter('uRiverLava', lava ? 1 : 0);
     material.setParameter('uRiverTime', this.#time);
     material.update();
     this.#materials.set(key, material);
@@ -377,6 +406,15 @@ export class RiverWater {
       const radialProgress = Math.max(0, 1 - distance / 0.49);
       return radialProgress * radialProgress * (3 - 2 * radialProgress);
     };
+    const flowInteriorStrengthAt = (row, column) => {
+      const edgeDistance = Math.min(
+        row,
+        column,
+        surfaceSegments - row,
+        surfaceSegments - column,
+      );
+      return Math.min(1, edgeDistance / 2);
+    };
     this.#addGrid(
       group,
       surfaceSegments,
@@ -392,7 +430,7 @@ export class RiverWater {
       (row, column) => [
         0,
         Math.round(sourceStrengthAt(row, column) * 255),
-        0,
+        Math.round(flowInteriorStrengthAt(row, column) * 96),
         255,
       ],
       false,
@@ -790,7 +828,8 @@ export class RiverWater {
     }
   }
 
-  #addWaterfallMist(waterfall, cols, rows, terminal) {
+  #addWaterfallMist(waterfall, cols, rows, terminal, riverKind) {
+    const lava = riverKind === RIVER_KIND.LAVA;
     const direction = this.#directionVector(waterfall.direction);
     const cross = { col: -direction.row, row: direction.col };
     const col = waterfall.col ?? waterfall.from.col;
@@ -803,7 +842,9 @@ export class RiverWater {
       ? waterfall.bottomElevation +
         (waterfall.topElevation - waterfall.bottomElevation) * 0.17
       : waterfall.bottomElevation + 0.12;
-    const root = new this.#pc.Entity('Waterfall impact spray');
+    const root = new this.#pc.Entity(
+      lava ? 'Lavafall impact smoke' : 'Waterfall impact spray',
+    );
     root.setLocalPosition(
       centerX + direction.col * forward,
       mistElevation,
@@ -811,7 +852,9 @@ export class RiverWater {
     );
     this.entity.addChild(root);
 
-    const mist = new this.#pc.Entity('Waterfall mist');
+    const mist = new this.#pc.Entity(
+      lava ? 'Lavafall smoke' : 'Waterfall mist',
+    );
     mist.addComponent('particlesystem', {
       numParticles: terminal ? 32 : 12,
       lifetime: 1.7,
@@ -887,11 +930,17 @@ export class RiverWater {
         1,
         0.66 * scale,
       ]),
-      colorGraph: this.#curveSet(
-        [0, 0.78, 0.45, 0.9, 1, 0.7],
-        [0, 0.94, 0.45, 0.99, 1, 0.88],
-        [0, 1, 0.45, 1, 1, 0.98],
-      ),
+      colorGraph: lava
+        ? this.#curveSet(
+            [0, 0.35, 0.45, 0.18, 1, 0.08],
+            [0, 0.08, 0.45, 0.055, 1, 0.045],
+            [0, 0.015, 0.45, 0.02, 1, 0.025],
+          )
+        : this.#curveSet(
+            [0, 0.78, 0.45, 0.9, 1, 0.7],
+            [0, 0.94, 0.45, 0.99, 1, 0.88],
+            [0, 1, 0.45, 1, 1, 0.98],
+          ),
       alphaGraph: this.#curve([
         0,
         0,
@@ -909,7 +958,9 @@ export class RiverWater {
     });
     root.addChild(mist);
 
-    const spray = new this.#pc.Entity('Waterfall spray droplets');
+    const spray = new this.#pc.Entity(
+      lava ? 'Lavafall sparks' : 'Waterfall spray droplets',
+    );
     spray.addComponent('particlesystem', {
       numParticles: terminal ? 14 : 8,
       lifetime: 0.52,
@@ -947,11 +998,17 @@ export class RiverWater {
       ),
       scaleGraph: this.#curve([0, 0.035 * scale, 0.6, 0.025, 1, 0]),
       scaleGraph2: this.#curve([0, 0.055 * scale, 0.6, 0.04, 1, 0]),
-      colorGraph: this.#curveSet(
-        [0, 0.72, 1, 0.92],
-        [0, 0.93, 1, 1],
-        [0, 1, 1, 1],
-      ),
+      colorGraph: lava
+        ? this.#curveSet(
+            [0, 1, 0.5, 1, 1, 0.52],
+            [0, 0.58, 0.5, 0.16, 1, 0.025],
+            [0, 0.04, 0.5, 0.005, 1, 0],
+          )
+        : this.#curveSet(
+            [0, 0.72, 1, 0.92],
+            [0, 0.93, 1, 1],
+            [0, 1, 1, 1],
+          ),
       alphaGraph: this.#curve([0, 0, 0.08, 0.85, 0.7, 0.55, 1, 0]),
     });
     root.addChild(spray);

@@ -8,6 +8,8 @@ import { OCCUPANCY } from "../../enum/Occupancy.js";
 import { COIN_TYPE } from "../../enum/CoinType.js";
 import { MOVEMENT_REFUSAL } from "../../enum/MovementRefusal.js";
 import { HERO_INVENTORY_CAPACITY } from "../../config/inventory.js";
+import { RIVER_KIND } from "../../enum/RiverKind.js";
+import { HeroLavaDeathEffect } from "./HeroLavaDeathEffect.js";
 
 const FIXED_STEP = 1 / 120;
 const MAX_FRAME_TIME = 0.1;
@@ -106,11 +108,15 @@ const RIVER_CURRENT_SPEED = 1.45;
 const RIVER_WAYPOINT_EPSILON = 0.035;
 const RIVER_EXIT_DISTANCE = 0.72;
 const DROWNING_ENTRY_CLEARANCE = 0.32;
+const LAVA_ENTRY_CLEARANCE = 0.12;
 const DROWNING_SUBMERGE_DEPTH = 0.68;
 const DROWNING_SINK_SPEED = 2.8;
 const DROWNING_BOB_HEIGHT = 0.018;
 const DROWNING_BOB_SPEED = 7;
 const DROWNING_HEAD_YAW_LIMIT = 46;
+const LAVA_BURN_DURATION = 1.35;
+const LAVA_ASH_START = 0.68;
+const LAVA_SUBMERGE_DEPTH = 0.82;
 const RIVER_BRIDGE_MAX_CLIMB_HEIGHT = 1;
 const RIVER_BRIDGE_APPROACH_OFFSET = 0.94;
 const RIVER_BRIDGE_RAIL_OFFSET = 0.43;
@@ -237,6 +243,9 @@ export class Hero {
   #drowningAction = null;
   #bridgeClimbAction = null;
   #drowningRenderStates = new Map();
+  #lavaDeathAction = null;
+  #lavaDeathEffect = null;
+  #lavaAshes = false;
   #lives = MAX_LIVES;
   #gameOver = false;
   #gatewayRepelCooldown = 0;
@@ -288,6 +297,8 @@ export class Hero {
     );
 
     this.#createModel();
+    this.#lavaDeathEffect = new HeroLavaDeathEffect({ pc, app });
+    this.#entity.addChild(this.#lavaDeathEffect.entity);
     this.#updateHandle = app.on("update", this.#update);
     this.#emitState();
   }
@@ -367,6 +378,7 @@ export class Hero {
     return (
       this.#drowningAction !== null ||
       this.#bridgeClimbAction !== null ||
+      this.#lavaDeathAction !== null ||
       this.#fallingToDeath ||
       this.#respawnAction !== null
     );
@@ -374,6 +386,14 @@ export class Hero {
 
   get drowning() {
     return this.#drowningAction !== null;
+  }
+
+  get burning() {
+    return this.#lavaDeathAction !== null && !this.#lavaAshes;
+  }
+
+  get ashes() {
+    return this.#lavaAshes;
   }
 
   get isReacting() {
@@ -430,6 +450,7 @@ export class Hero {
       this.#gameOver ||
       this.#respawnAction ||
       this.#fallingToDeath ||
+      this.#lavaDeathAction ||
       this.#drowningAction ||
       this.#bridgeClimbAction ||
       this.#toolAction ||
@@ -457,6 +478,7 @@ export class Hero {
       this.#gameOver ||
       this.#respawnAction ||
       this.#fallingToDeath ||
+      this.#lavaDeathAction ||
       !this.#grounded ||
       this.#toolAction ||
       this.#collectAction ||
@@ -516,6 +538,7 @@ export class Hero {
       this.#gameOver ||
       this.#respawnAction ||
       this.#fallingToDeath ||
+      this.#lavaDeathAction ||
       !this.#grounded ||
       this.#toolAction ||
       this.#collectAction ||
@@ -567,6 +590,7 @@ export class Hero {
       this.#gameOver ||
       this.#respawnAction ||
       this.#fallingToDeath ||
+      this.#lavaDeathAction ||
       this.#drowningAction ||
       this.#bridgeClimbAction ||
       !this.#grounded ||
@@ -649,6 +673,7 @@ export class Hero {
       this.#gameOver ||
       this.#respawnAction ||
       this.#fallingToDeath ||
+      this.#lavaDeathAction ||
       this.#drowningAction ||
       this.#bridgeClimbAction ||
       this.#toolAction ||
@@ -687,6 +712,7 @@ export class Hero {
       this.#gameOver ||
       this.#respawnAction ||
       this.#fallingToDeath ||
+      this.#lavaDeathAction ||
       !this.#grounded ||
       this.#toolAction ||
       this.#collectAction ||
@@ -776,6 +802,8 @@ export class Hero {
     this.#updateHandle = null;
     this.#respawnEffect?.destroy();
     this.#respawnEffect = null;
+    this.#lavaDeathEffect?.destroy();
+    this.#lavaDeathEffect = null;
     if (this.#collectAction?.tool) {
       this.#collectAction.tool.visible = false;
     }
@@ -799,6 +827,8 @@ export class Hero {
     this.#repelAction = null;
     this.#dodgeAction = null;
     this.#respawnAction = null;
+    this.#lavaDeathAction = null;
+    this.#lavaAshes = false;
     this.#edgeRefusalAction = null;
     this.#holeRefusalAction = null;
     this.#blockedDigReactionAction = null;
@@ -824,6 +854,11 @@ export class Hero {
     const previousX = this.#position.x;
     const previousY = this.#position.y;
     const previousZ = this.#position.z;
+    if (this.#lavaDeathAction) {
+      this.#advanceLavaDeath(deltaTime);
+      this.#applyPosition(previousX, previousY, previousZ);
+      return;
+    }
     if (this.#bridgeClimbAction) {
       this.#advanceRiverBridgeExit(deltaTime);
       this.#applyPosition(previousX, previousY, previousZ);
@@ -1110,7 +1145,10 @@ export class Hero {
       } else if (source?.direction === "NORTH") {
         flowZ = -1;
       }
-      if (source && (flowX !== 0 || flowZ !== 0)) {
+      if (
+        source &&
+        (flowX !== 0 || flowZ !== 0)
+      ) {
         this.#riverSourceCovers.push({
           col: source.col,
           row: source.row,
@@ -1188,16 +1226,84 @@ export class Hero {
       this.#position.x,
       this.#position.z,
     );
+    const entryClearance =
+      routeEntry?.river.kind === RIVER_KIND.LAVA
+        ? LAVA_ENTRY_CLEARANCE
+        : DROWNING_ENTRY_CLEARANCE;
     if (
       !routeEntry ||
       routeEntry.cell.underBridge ||
-      this.#position.y >
-        routeEntry.cell.elevation + DROWNING_ENTRY_CLEARANCE
+      this.#position.y > routeEntry.cell.elevation + entryClearance
     ) {
       return false;
     }
+    if (routeEntry.river.kind === RIVER_KIND.LAVA) {
+      this.#beginLavaDeath(routeEntry);
+      return true;
+    }
     this.#beginDrowning(routeEntry);
     return true;
+  }
+
+  #beginLavaDeath(routeEntry) {
+    this.stopUsingTool({ dismiss: false });
+    if (this.#collectAction?.tool) {
+      this.#collectAction.tool.visible = false;
+    }
+    this.#collectAction?.heldItem?.destroy();
+    this.#collectAction = null;
+    this.#inventoryFullAction = null;
+    this.#edgeRefusalAction = null;
+    this.#holeRefusalAction = null;
+    this.#blockedDigReactionAction = null;
+    this.#repelAction = null;
+    this.#dodgeAction = null;
+    this.#jumpBufferRemaining = 0;
+    this.#grounded = false;
+    this.#coyoteRemaining = 0;
+    this.#velocity = { x: 0, y: 0, z: 0 };
+    this.#position.y = routeEntry.cell.elevation + 0.02;
+    this.#lavaDeathAction = {
+      elapsed: 0,
+      surfaceY: this.#position.y,
+    };
+    this.#lavaAshes = false;
+    this.#lavaDeathEffect?.begin();
+    this.#restartAnimation = true;
+    this.#resetBoredom();
+    this.#emitState();
+  }
+
+  #advanceLavaDeath(deltaTime) {
+    const action = this.#lavaDeathAction;
+    if (!action) {
+      return;
+    }
+    action.elapsed = Math.min(LAVA_BURN_DURATION, action.elapsed + deltaTime);
+    const progress = action.elapsed / LAVA_BURN_DURATION;
+    const sinkProgress = Math.max(0, Math.min(1, (progress - 0.08) / 0.72));
+    const easedSink = sinkProgress * sinkProgress * (3 - 2 * sinkProgress);
+    this.#position.y =
+      action.surfaceY - LAVA_SUBMERGE_DEPTH * easedSink;
+    this.#lavaDeathEffect?.update(progress);
+    const collapseProgress = Math.max(0, Math.min(1, (progress - 0.28) / 0.48));
+    const modelScale = HERO_MODEL_SCALE * (1 - collapseProgress);
+    this.#modelRoot?.setLocalScale(
+      modelScale,
+      modelScale * (1 - collapseProgress * 0.35),
+      modelScale,
+    );
+    if (!this.#lavaAshes && progress >= LAVA_ASH_START) {
+      this.#lavaAshes = true;
+      this.#emitState();
+    }
+    if (action.elapsed < LAVA_BURN_DURATION) {
+      return;
+    }
+    this.#lavaDeathAction = null;
+    this.#lavaDeathEffect?.complete();
+    this.#modelRoot?.setLocalScale(0, 0, 0);
+    this.#loseLifeAndRespawn();
   }
 
   #beginDrowning(routeEntry) {
@@ -2411,6 +2517,10 @@ export class Hero {
 
   #handleFallDeath() {
     this.#beginFallDeath();
+    this.#loseLifeAndRespawn();
+  }
+
+  #loseLifeAndRespawn() {
     this.#lives = Math.max(0, this.#lives - 1);
     if (this.#lives === 0) {
       this.#gameOver = true;
@@ -2419,6 +2529,7 @@ export class Hero {
       return;
     }
 
+    this.#resetLavaDeathPresentation();
     this.#position = { ...this.#spawn };
     this.#velocity = { x: 0, y: 0, z: 0 };
     this.#grounded = true;
@@ -2443,6 +2554,17 @@ export class Hero {
     this.#emitState();
   }
 
+  #resetLavaDeathPresentation() {
+    this.#lavaDeathAction = null;
+    this.#lavaAshes = false;
+    this.#lavaDeathEffect?.reset();
+    this.#modelRoot?.setLocalScale(
+      HERO_MODEL_SCALE,
+      HERO_MODEL_SCALE,
+      HERO_MODEL_SCALE,
+    );
+  }
+
   #animate(deltaTime) {
     if (!this.#entity || !this.#modelRoot) {
       return;
@@ -2459,6 +2581,7 @@ export class Hero {
     const reactingToBlockedDig = this.#blockedDigReactionAction !== null;
     const drowning = this.#drowningAction !== null;
     const bridgeClimbing = this.#bridgeClimbAction !== null;
+    const burning = this.#lavaDeathAction !== null;
     const facingVelocity = this.#dodgeAction
       ? this.#dodgeAction.facing
       : refusingEdge
@@ -2474,6 +2597,7 @@ export class Hero {
     const previousFacingYaw = this.#facingYaw;
     if (
       !this.#fallingToDeath &&
+      !burning &&
       !this.#respawnAction &&
       !this.#repelAction &&
       Math.hypot(facingVelocity.x, facingVelocity.z) > 0.08
@@ -2497,7 +2621,7 @@ export class Hero {
 
     let animation;
     let animationSpeed = 1;
-    if (this.#fallingToDeath) {
+    if (burning || this.#fallingToDeath) {
       animation = HERO_ANIMATION.FALL_DEATH;
       this.#resetBoredom();
     } else if (bridgeClimbing) {
@@ -3175,6 +3299,8 @@ export class Hero {
       maxLives: MAX_LIVES,
       gameOver: this.#gameOver,
       drowning: this.#drowningAction !== null,
+      burning: this.burning,
+      ashes: this.#lavaAshes,
       wallet: this.wallet,
       inventory: this.inventory,
     });
