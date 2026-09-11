@@ -190,6 +190,21 @@ export class MovementTestMap {
         this.#paint(mapData, 1, 4, 7, 4, 2);
         mapData.heroSpawn.y = 1 + GRASS_SURFACE_LIFT;
         break;
+      case "river-current":
+        this.#addRiver(mapData, true);
+        break;
+      case "river-source-cover":
+        this.#addRiver(mapData, false);
+        mapData.heroSpawn.x =
+          2 - (this.#COLS - 1) / 2 - 0.25;
+        mapData.heroSpawn.y = 2 + GRASS_SURFACE_LIFT;
+        break;
+      case "river-high-bridge":
+        this.#addRiver(mapData, true, 0.5);
+        break;
+      case "river-waterfall":
+        this.#addRiver(mapData, false);
+        break;
       default:
         this.#paint(mapData, 1, 2, 7, 4, 2);
         break;
@@ -221,6 +236,7 @@ export class MovementTestMap {
       arrowData: [],
       vegetationData: [],
       groundCoverData: [],
+      riverData: [],
       pipeData: new Map(),
       mergeZones: [],
       trunkStart: null,
@@ -245,6 +261,60 @@ export class MovementTestMap {
         };
       }
     }
+  }
+
+  static #addRiver(mapData, includesBridge, waterElevation = 1.5) {
+    this.#paint(mapData, 0, 2, 8, 4, 2);
+    mapData.heroSpawn.x = -(this.#COLS - 1) / 2;
+    const cells = [];
+    for (let col = 2; col <= 8; col += 1) {
+      const underBridge = includesBridge && (col === 6 || col === 7);
+      if (underBridge) {
+        mapData.grid[3][col] = TileType.PATH;
+        mapData.heightmap[3][col] = 2;
+        mapData.tileMeta[3][col] = {
+          baseHeight: 2,
+          direction: "SOUTH",
+          renderMode: "BRIDGE",
+          surfaceType: "PATH",
+        };
+      } else {
+        mapData.grid[3][col] = TileType.WATER;
+        mapData.heightmap[3][col] = waterElevation;
+        mapData.tileMeta[3][col] = {
+          baseHeight: waterElevation,
+          direction: "EAST",
+          renderMode: "SOLID",
+          riverSourceCover: col === 2,
+          surfaceType: "WATER",
+        };
+      }
+      cells.push({
+        col,
+        row: 3,
+        direction: "EAST",
+        elevation: waterElevation,
+        bedElevation: Math.max(0, waterElevation - 0.5),
+        terrainHeight: 2,
+        underBridge,
+      });
+    }
+    mapData.riverData = [
+      {
+        id: "movement-test-river",
+        source: { col: 2, row: 3, terrainHeight: 2 },
+        cells,
+        cascades: [],
+        upstreamLength: cells.length - 2,
+        waterfall: {
+          col: 8,
+          row: 3,
+          direction: "EAST",
+          topElevation: waterElevation,
+          bottomElevation: -10,
+        },
+      },
+    ];
   }
 
   static #addInventoryGroundCover(mapData) {

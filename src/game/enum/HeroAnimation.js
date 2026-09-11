@@ -12,6 +12,7 @@ export const HERO_ANIMATION = Object.freeze({
   DODGE_RIGHT: "DodgeRight",
   BLOCKED_PUSH: "BlockedPush",
   HOLE_REFUSAL: "HoleRefusal",
+  DIG_BLOCKED_ANNOYED: "DigBlockedAnnoyed",
   EDGE_REFUSE_LEFT: "EdgeRefuseLeft",
   EDGE_REFUSE_RIGHT: "EdgeRefuseRight",
   REPELLED: "Repelled",

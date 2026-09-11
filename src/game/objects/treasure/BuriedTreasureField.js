@@ -7,6 +7,9 @@ import chestModelUrl from "../../models/treasure/treasure-chest.glb?url";
 import earthModelUrl from "../../models/treasure/excavated-earth.glb?url";
 import filledEarthModelUrl from "../../models/treasure/filled-earth.glb?url";
 import holeModelUrl from "../../models/treasure/hole.glb?url";
+import riverStoneAngularModelUrl from "../../models/water/river-stone-angular.glb?url";
+import riverStoneFlatModelUrl from "../../models/water/river-stone-flat.glb?url";
+import riverStoneModelUrl from "../../models/water/river-stone.glb?url";
 import { DigInteraction } from "./DigInteraction.js";
 import { FillHoleInteraction } from "./FillHoleInteraction.js";
 import { TreasureChestInteraction } from "./TreasureChestInteraction.js";
@@ -19,6 +22,7 @@ const FELLED_TREE_REWARD_MULTIPLIER = 3.5;
 const MINIMUM_FACING_DOT = Math.cos((50 * Math.PI) / 180);
 const INTERACTION_REACH = 1.18;
 const HOLE_INITIAL_SCALE = 0.42;
+const BLOCKED_DIG_HOLE_SCALE = 0.36;
 const HOLE_EXPAND_DURATION = 0.36;
 const CHEST_EMERGE_DURATION = 0.72;
 const CHEST_OPEN_DURATION = 0.62;
@@ -37,6 +41,32 @@ const COIN_DEFINITIONS = new Map([
   [COIN_TYPE.SILVER, { color: 0xd8e2ea, weight: 30 }],
   [COIN_TYPE.COPPER, { color: 0xd7793d, weight: 58 }],
 ]);
+const BLOCKED_DIG_ROCKS = [
+  {
+    modelUrl: riverStoneFlatModelUrl,
+    burialDepth: 0,
+    offsetX: -0.055,
+    offsetZ: -0.025,
+    rotation: 18,
+    scale: 0.3,
+  },
+  {
+    modelUrl: riverStoneAngularModelUrl,
+    burialDepth: 0.012,
+    offsetX: 0.05,
+    offsetZ: 0.035,
+    rotation: 112,
+    scale: 0.25,
+  },
+  {
+    modelUrl: riverStoneModelUrl,
+    burialDepth: 0.003,
+    offsetX: 0.01,
+    offsetZ: -0.06,
+    rotation: 236,
+    scale: 0.21,
+  },
+];
 
 export class BuriedTreasureField {
   static get modelUrls() {
@@ -46,6 +76,9 @@ export class BuriedTreasureField {
       holeModelUrl,
       earthModelUrl,
       filledEarthModelUrl,
+      riverStoneModelUrl,
+      riverStoneFlatModelUrl,
+      riverStoneAngularModelUrl,
     ];
   }
 
@@ -60,6 +93,7 @@ export class BuriedTreasureField {
   #harvestedFlowerTiles = new Set();
   #harvestedMushroomTiles = new Set();
   #felledTreeTiles = new Set();
+  #riverSourceCovers = new Map();
   #sites = [];
   #coins = [];
   #fillClods = [];
@@ -84,6 +118,7 @@ export class BuriedTreasureField {
     this.#onCollectCoin = onCollectCoin;
     this.#onInteractionChange = onInteractionChange;
     this.#entity = new pc.Entity("Buried treasure field");
+    this.#registerRiverSourceCovers();
     for (const { col, row } of mapData.vegetationData ?? []) {
       const key = this.#tileKey(col, row);
       this.#vegetationTileCounts.set(
@@ -193,6 +228,9 @@ export class BuriedTreasureField {
   }
 
   dig(target) {
+    if (target?.kind === "blocked-dig") {
+      return this.#revealBlockedDig(target);
+    }
     if (target?.kind !== "dig") {
       return true;
     }
@@ -457,8 +495,12 @@ export class BuriedTreasureField {
       if (!this.#isDiggable(candidate.col, candidate.row)) {
         continue;
       }
-      const x = candidate.col - (this.#mapData.cols - 1) / 2;
-      const z = candidate.row - (this.#mapData.rows - 1) / 2;
+      const key = this.#tileKey(candidate.col, candidate.row);
+      const sourceCover = this.#riverSourceCovers.get(key);
+      const x =
+        sourceCover?.x ?? candidate.col - (this.#mapData.cols - 1) / 2;
+      const z =
+        sourceCover?.z ?? candidate.row - (this.#mapData.rows - 1) / 2;
       const distance = Math.hypot(x - position.x, z - position.z);
       if (distance > INTERACTION_REACH || distance <= 0.001) {
         continue;
@@ -468,8 +510,9 @@ export class BuriedTreasureField {
           (z - position.z) * facingDirection.z) /
         distance;
       const y =
+        sourceCover?.y ??
         this.#mapData.heightmap[candidate.row][candidate.col] +
-        GRASS_SURFACE_LIFT;
+          GRASS_SURFACE_LIFT;
       if (
         facingDot < MINIMUM_FACING_DOT ||
         Math.abs(position.y - y) > 0.6 ||
@@ -484,7 +527,9 @@ export class BuriedTreasureField {
     }
     return {
       id: this.#tileKey(nearest.col, nearest.row),
-      kind: "dig",
+      kind: this.#riverSourceCovers.has(this.#tileKey(nearest.col, nearest.row))
+        ? "blocked-dig"
+        : "dig",
       col: nearest.col,
       row: nearest.row,
       x: nearest.x,
@@ -503,6 +548,9 @@ export class BuriedTreasureField {
       return false;
     }
     const key = this.#tileKey(col, row);
+    if (this.#riverSourceCovers.has(key)) {
+      return !this.#dugTiles.has(key);
+    }
     const unfinished = this.#sites.some(
       (site) => site.id === key && site.state === "digging",
     );
@@ -540,6 +588,72 @@ export class BuriedTreasureField {
       treasureChance: TREASURE_CHANCE,
       rewardMultiplier: 1,
     };
+  }
+
+  #registerRiverSourceCovers() {
+    for (const river of this.#mapData.riverData ?? []) {
+      const source = river.cells[0];
+      if (!source) {
+        continue;
+      }
+      this.#riverSourceCovers.set(this.#tileKey(source.col, source.row), {
+        x: source.col - (this.#mapData.cols - 1) / 2,
+        y: source.terrainHeight + GRASS_SURFACE_LIFT,
+        z: source.row - (this.#mapData.rows - 1) / 2,
+      });
+    }
+  }
+
+  #revealBlockedDig(target) {
+    if (this.#dugTiles.has(target.id)) {
+      return true;
+    }
+    this.#dugTiles.add(target.id);
+    const site = {
+      id: target.id,
+      col: target.col,
+      row: target.row,
+      x: target.x,
+      y: target.y,
+      z: target.z,
+      state: "blocked",
+      elapsed: 0,
+      hole: this.#modelLibrary.instantiate(holeModelUrl),
+      earthPile: null,
+      filledPatch: null,
+      chest: null,
+      lid: null,
+      chestMaterials: [],
+      rocks: [],
+    };
+    site.hole.name = `Rock-blocked shallow hole ${site.id}`;
+    site.hole.setLocalScale(
+      BLOCKED_DIG_HOLE_SCALE,
+      BLOCKED_DIG_HOLE_SCALE,
+      BLOCKED_DIG_HOLE_SCALE,
+    );
+    site.hole.setLocalPosition(site.x, site.y + 0.008, site.z);
+    this.#entity.addChild(site.hole);
+    for (const definition of BLOCKED_DIG_ROCKS) {
+      const rock = this.#modelLibrary.instantiate(definition.modelUrl);
+      rock.name = `Embedded source rock ${site.id}`;
+      rock.setLocalPosition(
+        site.x + definition.offsetX,
+        site.y - definition.burialDepth,
+        site.z + definition.offsetZ,
+      );
+      rock.setLocalEulerAngles(0, definition.rotation, 0);
+      rock.setLocalScale(
+        definition.scale,
+        definition.scale * 0.72,
+        definition.scale,
+      );
+      this.#entity.addChild(rock);
+      site.rocks.push(rock);
+    }
+    this.#sites.push(site);
+    this.#onInteractionChange?.();
+    return true;
   }
 
   #createHole(site) {
@@ -1001,7 +1115,11 @@ export class BuriedTreasureField {
   }
 
   #holeBlocks(site) {
-    return site.hole?.enabled && site.state !== "filled";
+    return (
+      site.hole?.enabled &&
+      site.state !== "filled" &&
+      site.state !== "blocked"
+    );
   }
 
   #beginChestVanish(site) {

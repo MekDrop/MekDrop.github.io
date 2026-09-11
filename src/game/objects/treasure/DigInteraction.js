@@ -40,14 +40,22 @@ export class DigInteraction {
     if (this.#hero.isUsingTool) {
       return this.#hero.stopUsingTool();
     }
+    let revealedBlockedDig = false;
     const accepted = this.#hero.useTool(this.#tool, {
       targetPosition: this.#target,
       onImpact: () => {
         const finished = this.#field.dig(this.#target);
+        revealedBlockedDig =
+          this.#target.kind === "blocked-dig" && finished;
         this.#onChange?.();
         return finished;
       },
-      onComplete: this.#onComplete,
+      onComplete: () => {
+        if (revealedBlockedDig) {
+          this.#hero.reactToBlockedDig();
+        }
+        this.#onComplete?.();
+      },
     });
     if (accepted) {
       this.#onChange?.();

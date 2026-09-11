@@ -12,9 +12,13 @@ import {
   InvalidCastleEntranceWidthError,
   InvalidGatePositionError,
   InvalidGroundCoverPlacementError,
+  InvalidRiverCountError,
+  InvalidRiverFlowError,
+  InvalidRiverPathError,
   InvalidRouteWaypointError,
   InvalidVegetationPlacementError,
   IsolatedGrassElevationError,
+  IsolatedTerrainHoleError,
   NoPlayableTerrainError,
   NonOrthogonalRouteSegmentError,
   PathHeightMismatchError,
@@ -40,6 +44,14 @@ export class MapGenerator {
   static #PATH_HEIGHT = 2;
   static #FOUNDATION_HEIGHT = 3;
   static #WATER_HEIGHT = 0;
+  static #MAX_RIVERS = 6;
+  static #MIN_RIVER_TILES = 7;
+  static #RIVER_SURFACE_INSET = 0.5;
+  static #RIVER_WATER_DEPTH = 0.5;
+  static #BRIDGE_WATER_CLEARANCE = 0.52;
+  static #RIVER_CASTLE_SETBACK = 6;
+  static #TERMINAL_WATERFALL_BOTTOM = -10.5;
+  static #RIVER_COUNT_WEIGHTS = [15, 35, 22, 13, 8, 5, 2];
   static #CASTLE_GROUND_CLEARANCE = 3;
   static #CASTLE_REAR_GROUND_CLEARANCE = 1;
   static #TREE_VARIANTS = ['oak', 'pine', 'tall-tree', 'sapling'];
@@ -94,7 +106,10 @@ export class MapGenerator {
   ];
 
   static generate(options) {
-    const { numPaths: requestedNumPaths } = this.#normalizeOptions(options);
+    const {
+      numPaths: requestedNumPaths,
+      numRivers: requestedNumRivers,
+    } = this.#normalizeOptions(options);
     const numPaths = this.#clamp(
       Number.isFinite(requestedNumPaths)
         ? Math.round(requestedNumPaths)
@@ -112,6 +127,22 @@ export class MapGenerator {
     this.#placeCastle(grid, tileMeta, layout);
 
     const heightmap = this.#buildHeightmap(grid, layout);
+    const riverData = this.#generateRivers(
+      grid,
+      heightmap,
+      tileMeta,
+      layout,
+      islandMask,
+      requestedNumRivers,
+    );
+    this.#smoothGrassHeights(grid, heightmap);
+    this.#materializeRiverBanks(
+      grid,
+      heightmap,
+      tileMeta,
+      islandMask,
+      riverData,
+    );
     this.#applyHeightsToMetadata(grid, tileMeta, heightmap);
     const vegetationData = this.#placeVegetation(
       grid,
@@ -130,8 +161,10 @@ export class MapGenerator {
       heightmap,
       tileMeta,
       layout,
+      islandMask,
       vegetationData,
       groundCoverData,
+      riverData,
     );
     const { routes, arrowData } = this.#buildRouteData(layout);
     const castle = this.#buildCastleData(grid, layout);
@@ -158,6 +191,7 @@ export class MapGenerator {
       arrowData,
       vegetationData,
       groundCoverData,
+      riverData,
       pipeData: new Map(),
       mergeZones,
       trunkStart,
@@ -406,7 +440,31 @@ export class MapGenerator {
       }
     }
 
+    this.#fillSingleCellTerrainHoles(mask);
     return mask;
+  }
+
+  static #fillSingleCellTerrainHoles(mask) {
+    const holes = [];
+    for (let row = 1; row < this.#MAP_ROWS - 1; row++) {
+      for (let col = 1; col < this.#MAP_COLS - 1; col++) {
+        if (mask[row][col]) {
+          continue;
+        }
+        const enclosed = [
+          mask[row - 1][col],
+          mask[row + 1][col],
+          mask[row][col - 1],
+          mask[row][col + 1],
+        ].every(Boolean);
+        if (enclosed) {
+          holes.push({ col, row });
+        }
+      }
+    }
+    for (const { col, row } of holes) {
+      mask[row][col] = true;
+    }
   }
 
   static #materializeIsland(grid, tileMeta, islandMask) {
@@ -829,6 +887,30 @@ export class MapGenerator {
     };
   }
 
+  static #selectRiverCount(requestedNumRivers) {
+    if (Number.isFinite(requestedNumRivers)) {
+      return this.#clamp(
+        Math.round(requestedNumRivers),
+        0,
+        this.#MAX_RIVERS,
+      );
+    }
+
+    const roll = this.#rng(1, 100);
+    let cumulativeWeight = 0;
+    for (
+      let count = 0;
+      count < this.#RIVER_COUNT_WEIGHTS.length;
+      count++
+    ) {
+      cumulativeWeight += this.#RIVER_COUNT_WEIGHTS[count];
+      if (roll <= cumulativeWeight) {
+        return count;
+      }
+    }
+    return this.#MAX_RIVERS;
+  }
+
   static #insideEllipse(col, row, centerCol, centerRow, radiusX, radiusY) {
     const dx = (col - centerCol) / radiusX;
     const dy = (row - centerRow) / radiusY;
@@ -924,6 +1006,592 @@ export class MapGenerator {
     this.#blendGrassNearPaths(grid, heightmap);
     this.#flattenBuildableZones(grid, heightmap, layout);
     return heightmap;
+  }
+
+  static #hasRiverSourceSetback(islandMask, col, row) {
+    for (let deltaRow = -5; deltaRow <= 5; deltaRow++) {
+      for (let deltaCol = -5; deltaCol <= 5; deltaCol++) {
+        if (Math.abs(deltaCol) + Math.abs(deltaRow) > 5) {
+          continue;
+        }
+        const neighborCol = col + deltaCol;
+        const neighborRow = row + deltaRow;
+        if (
+          !this.#inBounds(neighborCol, neighborRow) ||
+          !islandMask[neighborRow][neighborCol]
+        ) {
+          return false;
+        }
+      }
+    }
+    return true;
+  }
+
+  static #isNearCastle(layout, col, row) {
+    return (
+      col >= layout.castleLeft - this.#CASTLE_GROUND_CLEARANCE &&
+      col <= layout.castleRight + this.#CASTLE_REAR_GROUND_CLEARANCE &&
+      row >= layout.castleTop - this.#CASTLE_GROUND_CLEARANCE &&
+      row <= layout.castleBottom + this.#CASTLE_GROUND_CLEARANCE
+    );
+  }
+
+  static #isNearCastleForRiver(layout, col, row) {
+    return (
+      col >= layout.castleLeft - this.#RIVER_CASTLE_SETBACK &&
+      col <= layout.castleRight + this.#RIVER_CASTLE_SETBACK &&
+      row >= layout.castleTop - this.#RIVER_CASTLE_SETBACK &&
+      row <= layout.castleBottom + this.#RIVER_CASTLE_SETBACK
+    );
+  }
+
+  static #isNearGate(layout, col, row) {
+    return layout.entries.some(entry =>
+      entry.gateRows.some(
+        gateRow =>
+          Math.max(
+            Math.abs(entry.gateCol - col),
+            Math.abs(gateRow - row),
+          ) <= 1,
+      ),
+    );
+  }
+
+  static #isRiverTraversalCell(
+    grid,
+    layout,
+    occupiedRiverCells,
+    col,
+    row,
+  ) {
+    if (!this.#inBounds(col, row)) {
+      return false;
+    }
+    if (this.#touchesOccupiedRiver(occupiedRiverCells, col, row)) {
+      return false;
+    }
+    if (this.#isNearCastleForRiver(layout, col, row)) {
+      return false;
+    }
+
+    const tile = grid[row][col];
+    return tile === TileType.GRASS || tile === TileType.PATH;
+  }
+
+  static #touchesOccupiedRiver(occupiedRiverCells, col, row) {
+    for (let deltaRow = -1; deltaRow <= 1; deltaRow++) {
+      for (let deltaCol = -1; deltaCol <= 1; deltaCol++) {
+        if (
+          occupiedRiverCells.has(
+            this.#tileKey(col + deltaCol, row + deltaRow),
+          )
+        ) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  static #directionFromStep(from, to) {
+    const deltaCol = to.col - from.col;
+    const deltaRow = to.row - from.row;
+    if (deltaCol === 1 && deltaRow === 0) {
+      return this.#DIRECTIONS.EAST;
+    }
+    if (deltaCol === -1 && deltaRow === 0) {
+      return this.#DIRECTIONS.WEST;
+    }
+    if (deltaCol === 0 && deltaRow === 1) {
+      return this.#DIRECTIONS.SOUTH;
+    }
+    if (deltaCol === 0 && deltaRow === -1) {
+      return this.#DIRECTIONS.NORTH;
+    }
+    return this.#DIRECTIONS.NONE;
+  }
+
+  static #riverSourceHasEarthEnclosure(grid, route) {
+    if (route.length < 2) {
+      return false;
+    }
+    const source = route[0];
+    const routeCells = new Set(
+      route.map((cell) => this.#tileKey(cell.col, cell.row)),
+    );
+    for (let deltaRow = -1; deltaRow <= 1; deltaRow++) {
+      for (let deltaCol = -1; deltaCol <= 1; deltaCol++) {
+        if (deltaCol === 0 && deltaRow === 0) {
+          continue;
+        }
+        const col = source.col + deltaCol;
+        const row = source.row + deltaRow;
+        if (routeCells.has(this.#tileKey(col, row))) {
+          continue;
+        }
+        if (!this.#inBounds(col, row) || grid[row][col] !== TileType.GRASS) {
+          return false;
+        }
+      }
+    }
+    return true;
+  }
+
+  static #riverTerminalDirection(grid, islandMask, layout, route) {
+    if (route.length < this.#MIN_RIVER_TILES) {
+      return null;
+    }
+    const terminal = route[route.length - 1];
+    const previous = route[route.length - 2];
+    if (
+      grid[terminal.row][terminal.col] !== TileType.GRASS ||
+      this.#isNearGate(layout, terminal.col, terminal.row) ||
+      this.#isNearCastleForRiver(layout, terminal.col, terminal.row)
+    ) {
+      return null;
+    }
+
+    const deltaCol = terminal.col - previous.col;
+    const deltaRow = terminal.row - previous.row;
+    const outsideCol = terminal.col + deltaCol;
+    const outsideRow = terminal.row + deltaRow;
+    if (
+      this.#inBounds(outsideCol, outsideRow) &&
+      islandMask[outsideRow][outsideCol]
+    ) {
+      return null;
+    }
+    return this.#directionFromStep(previous, terminal);
+  }
+
+  static #reconstructRiverRoute(parents, terminalKey) {
+    const route = [];
+    let key = terminalKey;
+    while (key) {
+      const [col, row] = key.split(',').map(Number);
+      route.push({ col, row });
+      key = parents.get(key) ?? null;
+    }
+    route.reverse();
+    return route;
+  }
+
+  static #findRiverRoute(
+    grid,
+    tileMeta,
+    islandMask,
+    layout,
+    source,
+    occupiedRiverCells,
+  ) {
+    const sourceKey = this.#tileKey(source.col, source.row);
+    const parents = new Map([[sourceKey, null]]);
+    const queue = [{ ...source }];
+    let queueIndex = 0;
+
+    while (queueIndex < queue.length) {
+      const current = queue[queueIndex++];
+      const currentKey = this.#tileKey(current.col, current.row);
+      const route = this.#reconstructRiverRoute(parents, currentKey);
+      const terminalDirection = this.#riverTerminalDirection(
+        grid,
+        islandMask,
+        layout,
+        route,
+      );
+      if (
+        terminalDirection &&
+        this.#validateRiverPathCrossings(grid, tileMeta, route) &&
+        this.#riverRouteKeepsIslandConnected(grid, route)
+      ) {
+        return { route, terminalDirection };
+      }
+
+      const neighbors = this.#shuffle([
+        { col: current.col - 1, row: current.row },
+        { col: current.col + 1, row: current.row },
+        { col: current.col, row: current.row - 1 },
+        { col: current.col, row: current.row + 1 },
+      ]);
+      for (const neighbor of neighbors) {
+        const neighborKey = this.#tileKey(neighbor.col, neighbor.row);
+        if (parents.has(neighborKey)) {
+          continue;
+        }
+        if (
+          !this.#isRiverTraversalCell(
+            grid,
+            layout,
+            occupiedRiverCells,
+            neighbor.col,
+            neighbor.row,
+          )
+        ) {
+          continue;
+        }
+        parents.set(neighborKey, currentKey);
+        queue.push(neighbor);
+      }
+    }
+    return null;
+  }
+
+  static #riverRouteKeepsIslandConnected(grid, route) {
+    const trialGrid = grid.map(row => [...row]);
+    for (const cell of route) {
+      if (trialGrid[cell.row][cell.col] === TileType.GRASS) {
+        trialGrid[cell.row][cell.col] = TileType.WATER;
+      }
+    }
+
+    const land = [];
+    for (let row = 0; row < this.#MAP_ROWS; row++) {
+      for (let col = 0; col < this.#MAP_COLS; col++) {
+        if (trialGrid[row][col] !== TileType.WATER) {
+          land.push({ col, row });
+        }
+      }
+    }
+    return (
+      land.length > 0 &&
+      this.#findConnectedComponent(trialGrid, [land[0]]).size === land.length
+    );
+  }
+
+  static #validateRiverPathCrossings(grid, tileMeta, route) {
+    for (let index = 0; index < route.length; index++) {
+      const cell = route[index];
+      if (grid[cell.row][cell.col] !== TileType.PATH) {
+        continue;
+      }
+
+      const start = index;
+      while (
+        index + 1 < route.length &&
+        grid[route[index + 1].row][route[index + 1].col] === TileType.PATH
+      ) {
+        index++;
+      }
+      const end = index;
+      if (end - start + 1 !== 2 || start === 0 || end >= route.length - 1) {
+        return false;
+      }
+
+      const before = route[start - 1];
+      const first = route[start];
+      const last = route[end];
+      const after = route[end + 1];
+      const riverDirection = this.#directionFromStep(before, first);
+      if (
+        riverDirection === this.#DIRECTIONS.NONE ||
+        this.#directionFromStep(first, last) !== riverDirection ||
+        this.#directionFromStep(last, after) !== riverDirection
+      ) {
+        return false;
+      }
+
+      const pathDirection = tileMeta[first.row][first.col].direction;
+      if (tileMeta[last.row][last.col].direction !== pathDirection) {
+        return false;
+      }
+      const riverIsHorizontal =
+        riverDirection === this.#DIRECTIONS.EAST ||
+        riverDirection === this.#DIRECTIONS.WEST;
+      const pathIsHorizontal =
+        pathDirection === this.#DIRECTIONS.EAST ||
+        pathDirection === this.#DIRECTIONS.WEST;
+      if (riverIsHorizontal === pathIsHorizontal) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  static #materializeRiver(
+    grid,
+    heightmap,
+    tileMeta,
+    route,
+    terminalDirection,
+    riverIndex,
+  ) {
+    const cells = [];
+    const cascades = [];
+    let waterElevation = Math.max(
+      this.#RIVER_WATER_DEPTH,
+      heightmap[route[0].row][route[0].col] - this.#RIVER_SURFACE_INSET,
+    );
+
+    for (let index = 0; index < route.length; index++) {
+      const cell = route[index];
+      const tile = grid[cell.row][cell.col];
+      const underBridge = tile === TileType.PATH;
+      const terrainHeight = heightmap[cell.row][cell.col];
+      const heightLimit = underBridge
+        ? this.#PATH_HEIGHT - this.#BRIDGE_WATER_CLEARANCE
+        : Math.max(
+            this.#RIVER_WATER_DEPTH,
+            terrainHeight - this.#RIVER_SURFACE_INSET,
+          );
+      const previousElevation = waterElevation;
+      waterElevation = Math.min(waterElevation, heightLimit);
+      const direction =
+        index < route.length - 1
+          ? this.#directionFromStep(cell, route[index + 1])
+          : terminalDirection;
+
+      cells.push({
+        ...cell,
+        direction,
+        elevation: waterElevation,
+        bedElevation: Math.max(
+          0,
+          waterElevation - this.#RIVER_WATER_DEPTH,
+        ),
+        terrainHeight,
+        underBridge,
+      });
+
+      if (index > 0 && previousElevation - waterElevation > 0.04) {
+        cascades.push({
+          from: { ...route[index - 1] },
+          to: { ...cell },
+          direction: this.#directionFromStep(route[index - 1], cell),
+          topElevation: previousElevation,
+          bottomElevation: waterElevation,
+        });
+      }
+
+      if (!underBridge) {
+        this.#setTile(grid, tileMeta, cell.col, cell.row, TileType.WATER, {
+          surfaceType: 'WATER',
+          baseHeight: waterElevation,
+          direction,
+          riverSourceCover: index === 0,
+        });
+        heightmap[cell.row][cell.col] = waterElevation;
+      }
+    }
+
+    const terminal = cells[cells.length - 1];
+    return {
+      id: `river-${riverIndex + 1}`,
+      source: {
+        col: cells[0].col,
+        row: cells[0].row,
+        terrainHeight: cells[0].terrainHeight,
+      },
+      cells,
+      cascades,
+      upstreamLength: cells.length - 2,
+      waterfall: {
+        col: terminal.col,
+        row: terminal.row,
+        direction: terminalDirection,
+        topElevation: terminal.elevation,
+        bottomElevation: Math.min(
+          this.#TERMINAL_WATERFALL_BOTTOM,
+          terminal.elevation - 11.5,
+        ),
+      },
+    };
+  }
+
+  static #generateRivers(
+    grid,
+    heightmap,
+    tileMeta,
+    layout,
+    islandMask,
+    requestedNumRivers,
+  ) {
+    const riverCount = this.#selectRiverCount(requestedNumRivers);
+    if (riverCount === 0) {
+      return [];
+    }
+
+    const sourceCandidates = [];
+    for (let row = 0; row < this.#MAP_ROWS; row++) {
+      for (let col = 0; col < this.#MAP_COLS; col++) {
+        if (
+          grid[row][col] === TileType.GRASS &&
+          heightmap[row][col] >= 2 &&
+          this.#hasRiverSourceSetback(islandMask, col, row) &&
+          !this.#isNearCastleForRiver(layout, col, row)
+        ) {
+          sourceCandidates.push({ col, row, height: heightmap[row][col] });
+        }
+      }
+    }
+    this.#shuffle(sourceCandidates);
+    sourceCandidates.sort((left, right) => right.height - left.height);
+
+    const rivers = [];
+    const occupiedRiverCells = new Set();
+    for (const source of sourceCandidates) {
+      if (rivers.length >= riverCount) {
+        break;
+      }
+      if (
+        this.#touchesOccupiedRiver(
+          occupiedRiverCells,
+          source.col,
+          source.row,
+        )
+      ) {
+        continue;
+      }
+      const result = this.#findRiverRoute(
+        grid,
+        tileMeta,
+        islandMask,
+        layout,
+        source,
+        occupiedRiverCells,
+      );
+      if (!result) {
+        continue;
+      }
+      if (!this.#riverSourceHasEarthEnclosure(grid, result.route)) {
+        continue;
+      }
+      const river = this.#materializeRiver(
+        grid,
+        heightmap,
+        tileMeta,
+        result.route,
+        result.terminalDirection,
+        rivers.length,
+      );
+      rivers.push(river);
+      for (const cell of result.route) {
+        occupiedRiverCells.add(this.#tileKey(cell.col, cell.row));
+      }
+    }
+    return rivers;
+  }
+
+  static #materializeRiverBanks(
+    grid,
+    heightmap,
+    tileMeta,
+    islandMask,
+    riverData,
+  ) {
+    const directionOffsets = {
+      [this.#DIRECTIONS.NORTH]: [0, -1],
+      [this.#DIRECTIONS.EAST]: [1, 0],
+      [this.#DIRECTIONS.SOUTH]: [0, 1],
+      [this.#DIRECTIONS.WEST]: [-1, 0],
+    };
+    const riverCellKeys = new Set(
+      riverData.flatMap((river) =>
+        river.cells.map((cell) => this.#tileKey(cell.col, cell.row)),
+      ),
+    );
+
+    for (const river of riverData) {
+      for (const cell of river.cells) {
+        if (cell.underBridge) {
+          continue;
+        }
+        const [deltaCol, deltaRow] =
+          directionOffsets[cell.direction] ?? [0, 0];
+        const crossCol = -deltaRow;
+        const crossRow = deltaCol;
+        const bankHeight = Math.ceil(
+          cell.elevation + this.#RIVER_SURFACE_INSET,
+        );
+
+        for (const side of [-1, 1]) {
+          const col = cell.col + crossCol * side;
+          const row = cell.row + crossRow * side;
+          const key = this.#tileKey(col, row);
+          if (
+            !this.#inBounds(col, row) ||
+            riverCellKeys.has(key) ||
+            (grid[row][col] !== TileType.GRASS &&
+              grid[row][col] !== TileType.WATER)
+          ) {
+            continue;
+          }
+          if (grid[row][col] === TileType.WATER) {
+            this.#setTile(grid, tileMeta, col, row, TileType.GRASS, {
+              surfaceType: 'GRASS',
+              baseHeight: bankHeight,
+              shape: this.#TILE_SHAPE.FLAT,
+              direction: this.#DIRECTIONS.NONE,
+            });
+          }
+          islandMask[row][col] = true;
+          heightmap[row][col] = Math.max(heightmap[row][col], bankHeight);
+        }
+      }
+
+      const source = river.cells[0];
+      const sourceBankHeight = Math.ceil(
+        source.elevation + this.#RIVER_SURFACE_INSET,
+      );
+      for (let deltaRow = -1; deltaRow <= 1; deltaRow++) {
+        for (let deltaCol = -1; deltaCol <= 1; deltaCol++) {
+          if (deltaCol === 0 && deltaRow === 0) {
+            continue;
+          }
+          const bankCol = source.col + deltaCol;
+          const bankRow = source.row + deltaRow;
+          const bankKey = this.#tileKey(bankCol, bankRow);
+          if (
+            !this.#inBounds(bankCol, bankRow) ||
+            riverCellKeys.has(bankKey) ||
+            (grid[bankRow][bankCol] !== TileType.GRASS &&
+              grid[bankRow][bankCol] !== TileType.WATER)
+          ) {
+            continue;
+          }
+          if (grid[bankRow][bankCol] === TileType.WATER) {
+            this.#setTile(
+              grid,
+              tileMeta,
+              bankCol,
+              bankRow,
+              TileType.GRASS,
+              {
+                surfaceType: 'GRASS',
+                baseHeight: sourceBankHeight,
+                shape: this.#TILE_SHAPE.FLAT,
+                direction: this.#DIRECTIONS.NONE,
+              },
+            );
+          }
+          islandMask[bankRow][bankCol] = true;
+          heightmap[bankRow][bankCol] = Math.max(
+            heightmap[bankRow][bankCol],
+            sourceBankHeight,
+          );
+        }
+      }
+
+      for (const cascade of river.cascades) {
+        const [deltaCol, deltaRow] =
+          directionOffsets[cascade.direction] ?? [0, 0];
+        const crossCol = -deltaRow;
+        const crossRow = deltaCol;
+        const bankHeight = Math.ceil(cascade.topElevation);
+        for (const anchor of [cascade.from, cascade.to]) {
+          for (const side of [-1, 1]) {
+            const col = anchor.col + crossCol * side;
+            const row = anchor.row + crossRow * side;
+            if (
+              !this.#inBounds(col, row) ||
+              grid[row][col] !== TileType.GRASS
+            ) {
+              continue;
+            }
+            heightmap[row][col] = Math.max(heightmap[row][col], bankHeight);
+          }
+        }
+      }
+    }
   }
 
   static #smoothGrassHeights(grid, heightmap) {
@@ -1671,7 +2339,20 @@ export class MapGenerator {
     }
   }
 
-  static #validateGrassNoise(grid, heightmap) {
+  static #validateGrassNoise(grid, heightmap, riverData) {
+    const intentionalRiverBanks = new Set();
+    for (const river of riverData) {
+      for (const cell of river.cells) {
+        for (let deltaRow = -1; deltaRow <= 1; deltaRow++) {
+          for (let deltaCol = -1; deltaCol <= 1; deltaCol++) {
+            intentionalRiverBanks.add(
+              this.#tileKey(cell.col + deltaCol, cell.row + deltaRow),
+            );
+          }
+        }
+      }
+    }
+
     for (let row = 1; row < this.#MAP_ROWS - 1; row++) {
       for (let col = 1; col < this.#MAP_COLS - 1; col++) {
         if (grid[row][col] !== TileType.GRASS) continue;
@@ -1685,7 +2366,10 @@ export class MapGenerator {
           }
         }
 
-        if (relatedNeighbors === 0) {
+        if (
+          relatedNeighbors === 0 &&
+          !intentionalRiverBanks.has(this.#tileKey(col, row))
+        ) {
           throw new IsolatedGrassElevationError();
         }
       }
@@ -1810,14 +2494,267 @@ export class MapGenerator {
     }
   }
 
+  static #validateNoSingleCellTerrainHoles(grid) {
+    for (let row = 1; row < this.#MAP_ROWS - 1; row++) {
+      for (let col = 1; col < this.#MAP_COLS - 1; col++) {
+        if (grid[row][col] !== TileType.WATER) {
+          continue;
+        }
+        const enclosed = [
+          grid[row - 1][col],
+          grid[row + 1][col],
+          grid[row][col - 1],
+          grid[row][col + 1],
+        ].every((tile) => tile !== TileType.WATER);
+        if (enclosed) {
+          throw new IsolatedTerrainHoleError({ col, row });
+        }
+      }
+    }
+  }
+
+  static #validateRivers(
+    grid,
+    heightmap,
+    tileMeta,
+    islandMask,
+    layout,
+    riverData,
+  ) {
+    if (riverData.length > this.#MAX_RIVERS) {
+      throw new InvalidRiverCountError({
+        count: riverData.length,
+        maximum: this.#MAX_RIVERS,
+      });
+    }
+
+    const occupied = new Set();
+    const allRiverCells = new Set(
+      riverData.flatMap((river) =>
+        river.cells.map((cell) => this.#tileKey(cell.col, cell.row)),
+      ),
+    );
+    const directionOffsets = {
+      [this.#DIRECTIONS.NORTH]: [0, -1],
+      [this.#DIRECTIONS.EAST]: [1, 0],
+      [this.#DIRECTIONS.SOUTH]: [0, 1],
+      [this.#DIRECTIONS.WEST]: [-1, 0],
+    };
+    for (const river of riverData) {
+      const riverCells = new Set();
+      if (
+        river.cells.length < this.#MIN_RIVER_TILES ||
+        river.upstreamLength < 5
+      ) {
+        throw new InvalidRiverPathError({
+          riverId: river.id,
+          reason: 'does not provide five inland flow tiles before its waterfall',
+        });
+      }
+      if (
+        river.source.terrainHeight < 2 ||
+        !this.#hasRiverSourceSetback(
+          islandMask,
+          river.source.col,
+          river.source.row,
+        )
+      ) {
+        throw new InvalidRiverPathError({
+          riverId: river.id,
+          reason: 'does not begin on elevated terrain at least five tiles inland',
+        });
+      }
+
+      const source = river.cells[0];
+      const requiredSourceBankHeight = Math.ceil(
+        source.elevation + this.#RIVER_SURFACE_INSET,
+      );
+      const riverCellKeys = new Set(
+        river.cells.map((cell) => this.#tileKey(cell.col, cell.row)),
+      );
+      for (let deltaRow = -1; deltaRow <= 1; deltaRow++) {
+        for (let deltaCol = -1; deltaCol <= 1; deltaCol++) {
+          if (deltaCol === 0 && deltaRow === 0) {
+            continue;
+          }
+          const bankCol = source.col + deltaCol;
+          const bankRow = source.row + deltaRow;
+          if (riverCellKeys.has(this.#tileKey(bankCol, bankRow))) {
+            continue;
+          }
+          if (
+            !this.#inBounds(bankCol, bankRow) ||
+            grid[bankRow][bankCol] !== TileType.GRASS ||
+            heightmap[bankRow][bankCol] < requiredSourceBankHeight
+          ) {
+            throw new InvalidRiverFlowError({
+              riverId: river.id,
+              reason: 'does not have a complete raised-earth source enclosure',
+            });
+          }
+        }
+      }
+
+      for (let index = 0; index < river.cells.length; index++) {
+        const cell = river.cells[index];
+        const key = this.#tileKey(cell.col, cell.row);
+        if (riverCells.has(key)) {
+          throw new InvalidRiverPathError({
+            riverId: river.id,
+            reason: `reuses its own flow tile at (${cell.col}, ${cell.row})`,
+          });
+        }
+        if (this.#touchesOccupiedRiver(occupied, cell.col, cell.row)) {
+          throw new InvalidRiverPathError({
+            riverId: river.id,
+            reason: `does not leave an earth-cell buffer around (${cell.col}, ${cell.row})`,
+          });
+        }
+        riverCells.add(key);
+
+        if (cell.underBridge) {
+          if (
+            grid[cell.row][cell.col] !== TileType.PATH ||
+            tileMeta[cell.row][cell.col].renderMode !== 'BRIDGE'
+          ) {
+            throw new InvalidRiverPathError({
+              riverId: river.id,
+              reason: `crosses a path without a bridge at (${cell.col}, ${cell.row})`,
+            });
+          }
+        } else if (
+          grid[cell.row][cell.col] !== TileType.WATER ||
+          tileMeta[cell.row][cell.col].surfaceType !== 'WATER'
+        ) {
+          throw new InvalidRiverPathError({
+            riverId: river.id,
+            reason: `contains a non-water flow tile at (${cell.col}, ${cell.row})`,
+          });
+        }
+
+        if (!cell.underBridge) {
+          const [flowCol, flowRow] =
+            directionOffsets[cell.direction] ?? [0, 0];
+          const crossCol = -flowRow;
+          const crossRow = flowCol;
+          const requiredBankHeight = Math.ceil(
+            cell.elevation + this.#RIVER_SURFACE_INSET,
+          );
+          for (const side of [-1, 1]) {
+            const bankCol = cell.col + crossCol * side;
+            const bankRow = cell.row + crossRow * side;
+            if (
+              !this.#inBounds(bankCol, bankRow) ||
+              allRiverCells.has(this.#tileKey(bankCol, bankRow))
+            ) {
+              continue;
+            }
+            const bankTile = grid[bankRow][bankCol];
+            if (bankTile !== TileType.GRASS) {
+              if (bankTile !== TileType.WATER) {
+                continue;
+              }
+              throw new InvalidRiverFlowError({
+                riverId: river.id,
+                reason: `has a missing earth bank at (${bankCol}, ${bankRow})`,
+              });
+            }
+            if (heightmap[bankRow][bankCol] < requiredBankHeight) {
+              throw new InvalidRiverFlowError({
+                riverId: river.id,
+                reason: `has a low earth bank at (${bankCol}, ${bankRow})`,
+              });
+            }
+          }
+        }
+
+        if (index === river.cells.length - 1) {
+          continue;
+        }
+        const next = river.cells[index + 1];
+        if (
+          this.#directionFromStep(cell, next) !== cell.direction ||
+          next.elevation > cell.elevation
+        ) {
+          throw new InvalidRiverFlowError({
+            riverId: river.id,
+            reason: `flows uphill or loses direction at (${cell.col}, ${cell.row})`,
+          });
+        }
+      }
+
+      for (const key of riverCells) {
+        occupied.add(key);
+      }
+
+      for (const cascade of river.cascades) {
+        const [deltaCol, deltaRow] =
+          directionOffsets[cascade.direction] ?? [0, 0];
+        const crossCol = -deltaRow;
+        const crossRow = deltaCol;
+        const requiredBankHeight = Math.ceil(cascade.topElevation);
+        for (const anchor of [cascade.from, cascade.to]) {
+          for (const side of [-1, 1]) {
+            const bankCol = anchor.col + crossCol * side;
+            const bankRow = anchor.row + crossRow * side;
+            if (
+              !this.#inBounds(bankCol, bankRow) ||
+              grid[bankRow][bankCol] !== TileType.GRASS
+            ) {
+              continue;
+            }
+            if (heightmap[bankRow][bankCol] < requiredBankHeight) {
+              throw new InvalidRiverFlowError({
+                riverId: river.id,
+                reason: `exposes the side of a cascade at (${bankCol}, ${bankRow})`,
+              });
+            }
+          }
+        }
+      }
+
+      const terminal = river.cells[river.cells.length - 1];
+      const waterfall = river.waterfall;
+      const [deltaCol, deltaRow] = directionOffsets[waterfall.direction] ?? [0, 0];
+      const outsideCol = terminal.col + deltaCol;
+      const outsideRow = terminal.row + deltaRow;
+      if (
+        terminal.direction !== waterfall.direction ||
+        waterfall.col !== terminal.col ||
+        waterfall.row !== terminal.row ||
+        waterfall.bottomElevation >= waterfall.topElevation ||
+        (this.#inBounds(outsideCol, outsideRow) &&
+          islandMask[outsideRow][outsideCol]) ||
+        this.#isNearGate(layout, terminal.col, terminal.row) ||
+        this.#isNearCastleForRiver(layout, terminal.col, terminal.row)
+      ) {
+        throw new InvalidRiverFlowError({
+          riverId: river.id,
+          reason: 'does not end in a clear, outward-facing edge waterfall',
+        });
+      }
+    }
+  }
+
   static #validateMap(
     grid,
     heightmap,
     tileMeta,
     layout,
+    islandMask,
     vegetationData,
     groundCoverData,
+    riverData,
   ) {
+    this.#validateRivers(
+      grid,
+      heightmap,
+      tileMeta,
+      islandMask,
+      layout,
+      riverData,
+    );
+    this.#validateNoSingleCellTerrainHoles(grid);
     this.#validateIslandConnectivity(grid);
     this.#validateGatePlacement(grid, layout);
     this.#validatePathSpacing(layout);
@@ -1826,7 +2763,7 @@ export class MapGenerator {
     this.#validateCastleEntrance(grid, layout);
     this.#validateCastleGroundClearance(grid, layout);
     this.#validateHeightDiscipline(grid, heightmap);
-    this.#validateGrassNoise(grid, heightmap);
+    this.#validateGrassNoise(grid, heightmap, riverData);
     this.#validateLayoutVariety(layout);
     this.#validateVegetation(
       grid,

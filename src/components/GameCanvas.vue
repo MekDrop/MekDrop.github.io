@@ -286,6 +286,9 @@ function installMovementTestDriver() {
     jump() {
       renderer.jumpHero();
     },
+    dodge(inputX, inputY, direction = "forward") {
+      return renderer.dodgeHero(inputX, inputY, direction);
+    },
     interact() {
       return renderer.interact();
     },

@@ -5,10 +5,18 @@ const MAX_UNDERSIDE_DEPTH = 9;
 export class SkyIslandScenery {
   #mapData;
   #seed;
+  #riverCells;
 
   constructor(mapData) {
     this.#mapData = mapData;
     this.#seed = this.#hashString(mapData.layoutSignature ?? "sky-island");
+    this.#riverCells = new Set(
+      (mapData.riverData ?? []).flatMap((river) =>
+        river.cells
+          .filter((cell) => !cell.underBridge)
+          .map((cell) => `${cell.col},${cell.row}`),
+      ),
+    );
   }
 
   createUndersideVoxels() {
@@ -18,7 +26,7 @@ export class SkyIslandScenery {
 
     for (let row = 0; row < rows; row += 1) {
       for (let col = 0; col < cols; col += 1) {
-        if (grid[row][col] === TileType.WATER) continue;
+        if (!this.#isIslandCell(grid, col, row)) continue;
 
         const edgeDistance = edgeDistances[row][col];
         const ridgeNoise = this.#hash(
@@ -60,7 +68,7 @@ export class SkyIslandScenery {
 
     for (let row = 0; row < rows; row += 1) {
       for (let col = 0; col < cols; col += 1) {
-        if (grid[row][col] === TileType.WATER) continue;
+        if (!this.#isIslandCell(grid, col, row)) continue;
         const touchesVoid = [
           [col - 1, row],
           [col + 1, row],
@@ -72,7 +80,7 @@ export class SkyIslandScenery {
             neighborCol >= cols ||
             neighborRow < 0 ||
             neighborRow >= rows ||
-            grid[neighborRow][neighborCol] === TileType.WATER,
+            !this.#isIslandCell(grid, neighborCol, neighborRow),
         );
         if (!touchesVoid) continue;
         distances[row][col] = 1;
@@ -94,7 +102,7 @@ export class SkyIslandScenery {
           neighborCol >= cols ||
           neighborRow < 0 ||
           neighborRow >= rows ||
-          grid[neighborRow][neighborCol] === TileType.WATER ||
+          !this.#isIslandCell(grid, neighborCol, neighborRow) ||
           distances[neighborRow][neighborCol] <= nextDistance
         ) {
           continue;
@@ -105,6 +113,14 @@ export class SkyIslandScenery {
     }
 
     return distances;
+  }
+
+  #isIslandCell(grid, col, row) {
+    return (
+      grid[row]?.[col] !== undefined &&
+      (grid[row][col] !== TileType.WATER ||
+        this.#riverCells.has(`${col},${row}`))
+    );
   }
 
   #hash(first, second, salt) {

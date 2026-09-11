@@ -13,6 +13,7 @@ import {
   Gateway,
 } from "./objects/gateway/index.js";
 import { PathArrows } from "./objects/path/index.js";
+import { RiverWater } from "./objects/water/index.js";
 import { Hero } from "./objects/hero/index.js";
 import {
   AxeTool,
@@ -212,6 +213,7 @@ export class PlayCanvasRenderer {
   #floatingIslandMotion = null;
   #groundCover = null;
   #grassSurface = null;
+  #riverWater = null;
   #vegetation = null;
   #buriedTreasure = null;
   #axeTool = null;
@@ -426,6 +428,7 @@ export class PlayCanvasRenderer {
         ...GroundCover.modelUrls,
         ...VoxelVegetation.modelUrls,
         ...BuriedTreasureField.modelUrls,
+        ...RiverWater.modelUrls,
       ]),
     ]);
     this.resize();
@@ -539,6 +542,7 @@ export class PlayCanvasRenderer {
       animation: this.#hero.animationState,
       animationTransitioning: this.#hero.animationTransitioning,
       grounded: this.#hero.grounded,
+      drowning: this.#hero.drowning,
       facing: this.#hero.facingDirection,
       headLookYaw: this.#hero.headLookYaw,
       wallet: this.#hero.wallet,
@@ -910,6 +914,8 @@ export class PlayCanvasRenderer {
     if (this.#cubeMeshes) {
       this.#destroyMesh(this.#cubeMeshes.sides);
       this.#destroyMesh(this.#cubeMeshes.wallSides);
+      this.#destroyMesh(this.#cubeMeshes.bridgeHorizontalSides);
+      this.#destroyMesh(this.#cubeMeshes.bridgeVerticalSides);
       this.#destroyMesh(this.#cubeMeshes.underlay);
       for (const mesh of Object.values(this.#cubeMeshes.surfaces)) {
         this.#destroyMesh(mesh);
@@ -1126,6 +1132,13 @@ export class PlayCanvasRenderer {
     );
     this.#buildTerrainMatrices(cubeBatches);
     this.#createInstancedBatches(cubeBatches, this.#mapRoot, true);
+    this.#riverWater = new RiverWater({
+      pc: this.#pc,
+      app: this.#app,
+      mapData: this.#mapData,
+      modelLibrary: this.#modelLibrary,
+    });
+    this.#mapRoot.addChild(this.#riverWater.entity);
     this.#grassSurface = new GrassSurface({
       app: this.#app,
       terrainMaterials: [
@@ -1368,6 +1381,12 @@ export class PlayCanvasRenderer {
 
   #buildTerrainMatrices(batches) {
     const { grid, heightmap, tileMeta, cols, rows } = this.#mapData;
+    const processedBridgeCells = new Set();
+    const riverCells = new Map(
+      (this.#mapData.riverData ?? []).flatMap((river) =>
+        river.cells.map((cell) => [`${cell.col},${cell.row}`, cell]),
+      ),
+    );
     for (let row = 0; row < rows; row += 1) {
       for (let col = 0; col < cols; col += 1) {
         const type = grid[row][col];
@@ -1377,19 +1396,83 @@ export class PlayCanvasRenderer {
         const height =
           type in FIXED_HEIGHTS ? FIXED_HEIGHTS[type] : heightmap[row][col];
 
-        if (type === TileType.WATER) continue;
+        if (type === TileType.WATER) {
+          const riverCell = riverCells.get(`${col},${row}`);
+          if (riverCell && !riverCell.underBridge) {
+            const riverbedHeight = riverCell.bedElevation;
+            if (riverbedHeight > 0.01) {
+              this.#addBoxMatrix(
+                batches,
+                "earth",
+                this.#earthSideMaterial(col, row, riverbedHeight - 1),
+                x,
+                riverbedHeight / 2,
+                z,
+                0,
+                CUBE_SCALE,
+                riverbedHeight,
+                CUBE_SCALE,
+                "full",
+                "earth",
+              );
+            }
+          }
+          continue;
+        }
 
         if (renderMode === "BRIDGE") {
-          this.#addCubeMatrix(
+          const bridgeKey = `${col},${row}`;
+          if (processedBridgeCells.has(bridgeKey)) {
+            continue;
+          }
+          const direction = tileMeta[row][col].direction;
+          const mate = this.#bridgeMateCell(
+            grid,
+            tileMeta,
+            col,
+            row,
+            direction,
+          );
+          const sideMaterial = this.#sideVariant(
+            SIDE_MATERIALS[type],
+            col,
+            row,
+            height - 1,
+          );
+          const bridgeCells = mate ? [{ col, row }, mate] : [{ col, row }];
+          for (const cell of bridgeCells) {
+            processedBridgeCells.add(`${cell.col},${cell.row}`);
+          }
+          const horizontal = direction === "EAST" || direction === "WEST";
+          const deckCenterCol = mate ? (col + mate.col) / 2 : col;
+          const deckCenterRow = mate ? (row + mate.row) / 2 : row;
+          this.#addBoxMatrix(
             batches,
             SURFACE_MATERIALS[type],
-            this.#sideVariant(SIDE_MATERIALS[type], col, row, height - 1),
-            x,
-            height - 0.5,
-            z,
-            "full",
-            "earth",
+            sideMaterial,
+            deckCenterCol - (cols - 1) / 2,
+            height - 0.12,
+            deckCenterRow - (rows - 1) / 2,
+            0,
+            horizontal ? CUBE_SCALE : bridgeCells.length,
+            0.24,
+            horizontal ? bridgeCells.length : CUBE_SCALE,
+            horizontal ? "bridgeHorizontal" : "bridgeVertical",
+            "none",
           );
+          for (const cell of bridgeCells) {
+            this.#addBridgeRailings(
+              batches,
+              grid,
+              tileMeta,
+              cell.col,
+              cell.row,
+              cell.col - (cols - 1) / 2,
+              cell.row - (rows - 1) / 2,
+              height,
+              sideMaterial,
+            );
+          }
           continue;
         }
 
@@ -1416,6 +1499,132 @@ export class PlayCanvasRenderer {
         }
       }
     }
+
+    for (const river of this.#mapData.riverData ?? []) {
+      this.#addRiverSourceCap(batches, river.cells[0], cols, rows);
+    }
+  }
+
+  #addRiverSourceCap(batches, source, cols, rows) {
+    if (!source) {
+      return;
+    }
+
+    const capHeight = 1 / 3;
+    const level = source.terrainHeight - 1;
+    const { top, sides } = this.#cubeMaterials(
+      TileType.GRASS,
+      true,
+      source.col,
+      source.row,
+      level,
+    );
+    this.#addBoxMatrix(
+      batches,
+      top,
+      sides,
+      source.col - (cols - 1) / 2,
+      source.terrainHeight - capHeight / 2 + GRASS_SURFACE_LIFT / 2,
+      source.row - (rows - 1) / 2,
+      0,
+      CUBE_SCALE,
+      capHeight + GRASS_SURFACE_LIFT,
+      CUBE_SCALE,
+      "full",
+      "earth",
+    );
+  }
+
+  #bridgeMateCell(grid, tileMeta, col, row, direction) {
+    const horizontal = direction === "EAST" || direction === "WEST";
+    const candidates = horizontal
+      ? [
+          { col, row: row - 1 },
+          { col, row: row + 1 },
+        ]
+      : [
+          { col: col - 1, row },
+          { col: col + 1, row },
+        ];
+    return (
+      candidates.find(
+        (candidate) =>
+          grid[candidate.row]?.[candidate.col] === TileType.PATH &&
+          tileMeta[candidate.row]?.[candidate.col]?.renderMode === "BRIDGE" &&
+          tileMeta[candidate.row][candidate.col].direction === direction,
+      ) ?? null
+    );
+  }
+
+  #addBridgeRailings(
+    batches,
+    grid,
+    tileMeta,
+    col,
+    row,
+    x,
+    z,
+    height,
+    sideMaterial,
+  ) {
+    const direction = tileMeta[row][col].direction;
+    const horizontal = direction === "EAST" || direction === "WEST";
+    let outerOffset = 0;
+    if (horizontal) {
+      const mateRows = [row - 1, row + 1].filter(
+        (candidateRow) =>
+          grid[candidateRow]?.[col] === TileType.PATH &&
+          tileMeta[candidateRow]?.[col]?.renderMode === "BRIDGE",
+      );
+      if (!mateRows.length) {
+        return;
+      }
+      outerOffset = row < mateRows[0] ? -0.43 : 0.43;
+    } else {
+      const mateCols = [col - 1, col + 1].filter(
+        (candidateCol) =>
+          grid[row]?.[candidateCol] === TileType.PATH &&
+          tileMeta[row]?.[candidateCol]?.renderMode === "BRIDGE",
+      );
+      if (!mateCols.length) {
+        return;
+      }
+      outerOffset = col < mateCols[0] ? -0.43 : 0.43;
+    }
+
+    const railX = horizontal ? x : x + outerOffset;
+    const railZ = horizontal ? z + outerOffset : z;
+    this.#addBoxMatrix(
+      batches,
+      "path",
+      sideMaterial,
+      railX,
+      height + 0.34,
+      railZ,
+      0,
+      horizontal ? 0.92 : 0.1,
+      0.1,
+      horizontal ? 0.1 : 0.92,
+      "full",
+      sideMaterial,
+    );
+
+    for (const offset of [-0.34, 0.34]) {
+      this.#addBoxMatrix(
+        batches,
+        "path",
+        sideMaterial,
+        horizontal ? x + offset : railX,
+        height + 0.17,
+        horizontal ? railZ : z + offset,
+        0,
+        0.1,
+        0.38,
+        0.1,
+        "full",
+        sideMaterial,
+      );
+    }
   }
 
   #buildIslandUndersideMatrices(batches, voxels) {
@@ -1439,6 +1648,7 @@ export class PlayCanvasRenderer {
   }
 
   #updateFrame = (deltaTime) => {
+    this.#riverWater?.update(deltaTime);
     this.#syncInventoryVisibility();
     this.#inventoryHud?.update(
       deltaTime,
@@ -1687,11 +1897,18 @@ export class PlayCanvasRenderer {
       this.#vertexBuffers.push(vertexBuffer);
 
       const entity = new pc.Entity(`${topMaterial}/${sideMaterial} cubes`);
+      const bridgeSideMesh =
+        coverage === "bridgeHorizontal"
+          ? this.#cubeMeshes.bridgeHorizontalSides
+          : coverage === "bridgeVertical"
+            ? this.#cubeMeshes.bridgeVerticalSides
+            : null;
       const sideMeshInstance = new pc.MeshInstance(
-        this.#cubeMeshes.wallSides,
+        bridgeSideMesh ?? this.#cubeMeshes.wallSides,
         this.#materials.get(sideMaterial),
       );
-      const surfaceMesh = this.#cubeMeshes.surfaces[coverage];
+      const surfaceMesh = this.#cubeMeshes.surfaces[coverage] ??
+        (bridgeSideMesh ? this.#cubeMeshes.surfaces.full : null);
       const topMeshInstance = surfaceMesh
         ? new pc.MeshInstance(surfaceMesh, this.#materials.get(topMaterial))
         : null;
@@ -1728,6 +1945,18 @@ export class PlayCanvasRenderer {
       underlay: { positions: [], normals: [], uvs: [], indices: [] },
       sides: { positions: [], normals: [], uvs: [], indices: [] },
       wallSides: { positions: [], normals: [], uvs: [], indices: [] },
+      bridgeHorizontalSides: {
+        positions: [],
+        normals: [],
+        uvs: [],
+        indices: [],
+      },
+      bridgeVerticalSides: {
+        positions: [],
+        normals: [],
+        uvs: [],
+        indices: [],
+      },
       full: { positions: [], normals: [], uvs: [], indices: [] },
       block: { positions: [], normals: [], uvs: [], indices: [] },
     };
@@ -1772,7 +2001,7 @@ export class PlayCanvasRenderer {
       points.forEach((point) => {
         group.positions.push(...point);
         group.normals.push(...normal);
-        if (groupName !== "sides" && groupName !== "wallSides") {
+        if (!groupName.toLowerCase().endsWith("sides")) {
           group.uvs.push(
             (point[0] - minX) / Math.max(0.001, maxX - minX),
             (point[2] - minZ) / Math.max(0.001, maxZ - minZ),
@@ -1849,6 +2078,21 @@ export class PlayCanvasRenderer {
       }
     }
 
+    for (const sign of [-1, 1]) {
+      addFace("bridgeHorizontalSides", [
+        [-half, -half, sign * half],
+        [half, -half, sign * half],
+        [half, half, sign * half],
+        [-half, half, sign * half],
+      ]);
+      addFace("bridgeVerticalSides", [
+        [sign * half, -half, -half],
+        [sign * half, half, -half],
+        [sign * half, half, half],
+        [sign * half, -half, half],
+      ]);
+    }
+
     // Terrain cubes are stacked into cliffs. Their visible walls must meet on
     // the same vertical plane; beveling each cube's horizontal boundary makes
     // every internal level read as a recessed stripe.
@@ -1906,6 +2150,8 @@ export class PlayCanvasRenderer {
     return {
       sides: createMesh(groups.sides),
       wallSides: createMesh(groups.wallSides),
+      bridgeHorizontalSides: createMesh(groups.bridgeHorizontalSides),
+      bridgeVerticalSides: createMesh(groups.bridgeVerticalSides),
       underlay: createMesh(groups.underlay),
       surfaces: {
         full: createMesh(groups.full),
@@ -2520,7 +2766,11 @@ export class PlayCanvasRenderer {
   }
 
   #updateInteractionTarget() {
-    if (this.inventoryVisible || this.#hero?.isCollecting) {
+    if (
+      this.inventoryVisible ||
+      this.#hero?.isCollecting ||
+      this.#hero?.isReacting
+    ) {
       this.#setInteractionTarget(null);
       return;
     }
@@ -2596,6 +2846,8 @@ export class PlayCanvasRenderer {
     this.#groundCover = null;
     this.#grassSurface?.destroy();
     this.#grassSurface = null;
+    this.#riverWater?.destroy();
+    this.#riverWater = null;
     this.#cloudField?.destroy();
     this.#cloudField = null;
     this.#setInteractionTarget(null);

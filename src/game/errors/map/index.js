@@ -11,9 +11,13 @@ export { InsufficientVegetationVarietyError } from "./InsufficientVegetationVari
 export { InvalidCastleEntranceWidthError } from "./InvalidCastleEntranceWidthError.js";
 export { InvalidGatePositionError } from "./InvalidGatePositionError.js";
 export { InvalidGroundCoverPlacementError } from "./InvalidGroundCoverPlacementError.js";
+export { InvalidRiverCountError } from "./InvalidRiverCountError.js";
+export { InvalidRiverFlowError } from "./InvalidRiverFlowError.js";
+export { InvalidRiverPathError } from "./InvalidRiverPathError.js";
 export { InvalidRouteWaypointError } from "./InvalidRouteWaypointError.js";
 export { InvalidVegetationPlacementError } from "./InvalidVegetationPlacementError.js";
 export { IsolatedGrassElevationError } from "./IsolatedGrassElevationError.js";
+export { IsolatedTerrainHoleError } from "./IsolatedTerrainHoleError.js";
 export { NoPlayableTerrainError } from "./NoPlayableTerrainError.js";
 export { NonOrthogonalRouteSegmentError } from "./NonOrthogonalRouteSegmentError.js";
 export { PathHeightMismatchError } from "./PathHeightMismatchError.js";
