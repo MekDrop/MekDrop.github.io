@@ -5,5 +5,3 @@ export const CONTROLS = Object.freeze(
 );
 
 export const DEFAULT_CONTROLS = CONTROLS;
-
-export const MOVEMENT_DIRECTIONS = Object.freeze(["up", "down", "left", "right"]);
