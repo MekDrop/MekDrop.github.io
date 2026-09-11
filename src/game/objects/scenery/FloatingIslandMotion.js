@@ -1,3 +1,5 @@
+const HIDDEN_MOTION_MAX_ZOOM = 1;
+const FULL_MOTION_MIN_ZOOM = 1.1;
 const FULL_MOTION_MAX_ZOOM = 1.1;
 const HIDDEN_MOTION_MIN_ZOOM = 1.7;
 const HIDDEN_TILT_MAX_ZOOM = 1.05;
@@ -27,13 +29,21 @@ export class FloatingIslandMotion {
   }
 
   setZoom(zoom) {
+    const revealRange = FULL_MOTION_MIN_ZOOM - HIDDEN_MOTION_MAX_ZOOM;
+    const revealProgress = Math.max(
+      0,
+      Math.min(1, (zoom - HIDDEN_MOTION_MAX_ZOOM) / revealRange),
+    );
+    const easedRevealProgress =
+      revealProgress * revealProgress * (3 - 2 * revealProgress);
+
     const fadeRange = HIDDEN_MOTION_MIN_ZOOM - FULL_MOTION_MAX_ZOOM;
     const progress = Math.max(
       0,
       Math.min(1, (zoom - FULL_MOTION_MAX_ZOOM) / fadeRange),
     );
     const easedProgress = progress * progress * (3 - 2 * progress);
-    this.#targetStrength = 1 - easedProgress;
+    this.#targetStrength = easedRevealProgress * (1 - easedProgress);
 
     const tiltRange = FULL_TILT_MIN_ZOOM - HIDDEN_TILT_MAX_ZOOM;
     const tiltProgress = Math.max(
