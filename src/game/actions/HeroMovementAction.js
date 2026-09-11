@@ -14,9 +14,42 @@ export class HeroMovementAction {
     right: false,
   };
   #running = false;
+  #lastDirectionTapAt = new Map();
 
   constructor(renderer) {
     this.#renderer = renderer;
+  }
+
+  invoke(event) {
+    if (this.#renderer.inventoryVisible) {
+      return;
+    }
+    this.setRunning(event.type === "keydown" || event.shiftKey);
+  }
+
+  pressDirection(direction, event, doubleTapWindow) {
+    if (this.#renderer.inventoryVisible) {
+      return;
+    }
+    const wasPressed = this.#directions[direction];
+    if (
+      !wasPressed &&
+      !event.repeat &&
+      this.#isDirectionDoubleTap(direction, doubleTapWindow) &&
+      this.dodge(direction)
+    ) {
+      return;
+    }
+
+    this.setRunning(event.shiftKey);
+    this.setDirection(direction, true);
+  }
+
+  releaseDirection(direction) {
+    if (!this.#directions[direction]) {
+      return;
+    }
+    this.setDirection(direction, false);
   }
 
   setDirection(direction, pressed) {
@@ -33,6 +66,9 @@ export class HeroMovementAction {
   }
 
   jump() {
+    if (this.#renderer.inventoryVisible) {
+      return;
+    }
     this.#renderer.jumpHero();
   }
 
@@ -49,7 +85,24 @@ export class HeroMovementAction {
       this.#directions[direction] = false;
     }
     this.#running = false;
+    this.#lastDirectionTapAt.clear();
     this.#applyMovement();
+  }
+
+  #isDirectionDoubleTap(direction, doubleTapWindow) {
+    const now = performance.now();
+    const previousTapAt = this.#lastDirectionTapAt.get(direction);
+    const windowMilliseconds = (doubleTapWindow ?? 0) * 1000;
+    this.#lastDirectionTapAt.set(direction, now);
+    if (
+      previousTapAt === undefined ||
+      now - previousTapAt > windowMilliseconds
+    ) {
+      return false;
+    }
+
+    this.#lastDirectionTapAt.delete(direction);
+    return true;
   }
 
   #applyMovement() {

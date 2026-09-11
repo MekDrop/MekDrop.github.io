@@ -1,3 +1,5 @@
+import { colorFromHex } from "../../helpers/colors.js";
+
 export class CastleFire {
   #pc;
   #app;
@@ -225,7 +227,7 @@ export class CastleFire {
   #createBrazierMaterial() {
     const material = new this.#pc.StandardMaterial();
     material.name = "Castle fire brazier";
-    material.diffuse = this.#colorFromHex(0x202528);
+    material.diffuse = colorFromHex(this.#pc, 0x202528);
     material.gloss = 0.14;
     material.update();
     return material;
@@ -240,11 +242,4 @@ export class CastleFire {
     }
   }
 
-  #colorFromHex(value) {
-    return new this.#pc.Color(
-      ((value >> 16) & 0xff) / 255,
-      ((value >> 8) & 0xff) / 255,
-      (value & 0xff) / 255,
-    );
-  }
 }

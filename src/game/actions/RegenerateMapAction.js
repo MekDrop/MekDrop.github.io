@@ -16,6 +16,13 @@ export class RegenerateMapAction {
     this.#onGenerationError = onGenerationError;
   }
 
+  invoke(event) {
+    if (event.type === "keyup") {
+      return null;
+    }
+    return this.regenerateMap();
+  }
+
   regenerateMap(viewport = this.#renderer.viewport) {
     let mapData;
     try {

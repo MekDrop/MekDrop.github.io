@@ -41,7 +41,7 @@ export const DEFAULT_CONTROLS = Object.freeze({
     keys: ["KeyI"],
     allowRepeat: false,
   },
-  closeInventory: {
+  closeModal: {
     keys: ["Escape"],
     allowRepeat: false,
   },

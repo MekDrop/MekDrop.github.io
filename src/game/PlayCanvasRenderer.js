@@ -47,6 +47,7 @@ import {
   CoinHud,
   InventoryHud,
 } from "./ui/index.js";
+import { colorFromHex, shadeHexColor } from "./helpers/colors.js";
 
 const FIXED_HEIGHTS = {
   [TileType.WATER]: 0,
@@ -163,21 +164,6 @@ const GAME_OVER_FALLBACK_ZOOM = 1.75;
 const GAME_OVER_CAMERA_DURATION = 0.8;
 const GAME_OVER_ROYAL_VIEWPORT_HEIGHT = 0.6;
 const MAX_CASTLE_LIVES = 3;
-
-function colorFromHex(pc, value) {
-  return new pc.Color(
-    ((value >> 16) & 0xff) / 255,
-    ((value >> 8) & 0xff) / 255,
-    (value & 0xff) / 255,
-  );
-}
-
-function shadeHexColor(value, shade) {
-  const red = Math.round(((value >> 16) & 0xff) * shade);
-  const green = Math.round(((value >> 8) & 0xff) * shade);
-  const blue = Math.round((value & 0xff) * shade);
-  return (red << 16) | (green << 8) | blue;
-}
 
 export class PlayCanvasRenderer {
   #pc = null;

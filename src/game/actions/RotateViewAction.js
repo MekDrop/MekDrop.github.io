@@ -7,6 +7,13 @@ export class RotateViewAction {
     this.#onChange = onChange;
   }
 
+  invoke() {
+    if (this.#renderer.inventoryVisible) {
+      return this.#renderer.rotation;
+    }
+    return this.rotateAnticlockwise();
+  }
+
   rotateAnticlockwise() {
     return this.rotateBy(-1);
   }

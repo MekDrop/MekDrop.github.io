@@ -2,17 +2,15 @@ export class ZoomAction {
   #renderer;
   #element;
   #settings;
+  #factor;
 
-  constructor(renderer, element, settings) {
+  constructor(renderer, element, settings, factor = settings?.factor) {
     this.#renderer = renderer;
     this.#element = element;
-    const configuredFactor = settings?.factor;
     const configuredMin = settings?.min;
     const configuredMax = settings?.max;
 
-    const factor = Number.isFinite(configuredFactor)
-      ? configuredFactor
-      : 1.1;
+    const resolvedFactor = Number.isFinite(factor) ? factor : 1.1;
     const min = Number.isFinite(configuredMin)
       ? configuredMin
       : 1;
@@ -21,19 +19,17 @@ export class ZoomAction {
       : 6;
 
     this.#settings = {
-      factor,
       min: Math.min(min, max),
       max: Math.max(min, max),
     };
+    this.#factor = resolvedFactor > 0 ? resolvedFactor : 1;
   }
 
-  zoomIn(pivot = this.#viewportCenter()) {
-    const zoom = this.#clampZoom(this.#renderer.zoom * this.#settings.factor);
-    this.#renderer.zoomTo(zoom, pivot.x, pivot.y);
-  }
-
-  zoomOut(pivot = this.#viewportCenter()) {
-    const zoom = this.#clampZoom(this.#renderer.zoom / this.#settings.factor);
+  invoke(pivot = this.#viewportCenter()) {
+    if (this.#renderer.inventoryVisible) {
+      return;
+    }
+    const zoom = this.#clampZoom(this.#renderer.zoom * this.#factor);
     this.#renderer.zoomTo(zoom, pivot.x, pivot.y);
   }
 

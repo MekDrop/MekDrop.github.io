@@ -154,7 +154,10 @@ import SiteNoticeDialog from "components/SiteNoticeDialog.vue";
 import { generateMap } from "src/game/MapGenerator.js";
 import { PlayCanvasRenderer } from "src/game/PlayCanvasRenderer.js";
 import { GameControls } from "src/game/GameControls.js";
+import { CloseModalAction } from "src/actions/CloseModalAction.js";
 import { CopyScreenshotAction } from "src/game/actions/CopyScreenshotAction.js";
+import { HeroDirectionAction } from "src/game/actions/HeroDirectionAction.js";
+import { HeroJumpAction } from "src/game/actions/HeroJumpAction.js";
 import { HeroMovementAction } from "src/game/actions/HeroMovementAction.js";
 import { MoveCameraAction } from "src/game/actions/MoveCameraAction.js";
 import { RegenerateMapAction } from "src/game/actions/RegenerateMapAction.js";
@@ -165,6 +168,7 @@ import { ToggleInventoryAction } from "src/game/actions/ToggleInventoryAction.js
 import { InteractionAction } from "src/game/actions/InteractionAction.js";
 import { ZoomAction } from "src/game/actions/ZoomAction.js";
 import { DEFAULT_CONTROLS } from "src/game/config/controls.js";
+import { InteractionSuggestion } from "src/game/interaction/InteractionSuggestion.js";
 import { useDebugStore } from "src/stores/debug-store.js";
 import { useGraphicsSettingsStore } from "src/stores/graphics-settings-store.js";
 import { useGameViewStore } from "src/stores/game-view-store.js";
@@ -201,6 +205,7 @@ let restartGameAction = null;
 let movementTestMapFactory = null;
 let viewportSaveTimer = null;
 let viewportPersistenceEnabled = false;
+let interactionSuggestion = null;
 
 function gameUiTheme() {
   const styles = window.getComputedStyle(document.documentElement);
@@ -352,10 +357,13 @@ function applyGraphicsSettings() {
 
 async function init() {
   const bindings = DEFAULT_CONTROLS;
+  interactionSuggestion = new InteractionSuggestion((target) => {
+    interactionTarget.value = target;
+  });
 
   renderer = new PlayCanvasRenderer(canvas.value, container.value, {
     onInteractionChange: (target) => {
-      interactionTarget.value = target;
+      interactionSuggestion.update(target);
     },
     onHeroStateChange: (state) => {
       heroLives.value = state.lives;
@@ -387,20 +395,63 @@ async function init() {
     generateMap,
     (generatedMap) => {
       mapData = generatedMap;
-      interactionTarget.value = null;
+      interactionSuggestion.clear();
       applyGraphicsSettings();
     },
   );
   restartGameAction = new RestartGameAction(renderer, regenerateMapAction);
+  const heroMovementAction = new HeroMovementAction(renderer);
+  const toggleInventoryAction = new ToggleInventoryAction(
+    renderer,
+    heroMovementAction,
+  );
+  const rotateViewAction = new RotateViewAction(renderer);
+  const zoomInAction = new ZoomAction(
+    renderer,
+    container.value,
+    bindings.zoom,
+    bindings.zoom.factor,
+  );
+  const zoomOutAction = new ZoomAction(
+    renderer,
+    container.value,
+    bindings.zoom,
+    1 / bindings.zoom.factor,
+  );
   const actions = {
-    zoom: new ZoomAction(renderer, container.value, bindings.zoom),
+    zoomIn: zoomInAction,
+    zoomOut: zoomOutAction,
     moveCamera: new MoveCameraAction(renderer, bindings.move),
     regenerateMap: regenerateMapAction,
     restartGame: restartGameAction,
-    heroMovement: new HeroMovementAction(renderer),
-    interaction: new InteractionAction(renderer),
-    toggleInventory: new ToggleInventoryAction(renderer),
-    rotateView: new RotateViewAction(renderer),
+    heroMovement: heroMovementAction,
+    run: heroMovementAction,
+    moveUp: new HeroDirectionAction(
+      heroMovementAction,
+      "up",
+      bindings.dodge.doubleTapWindow,
+    ),
+    moveDown: new HeroDirectionAction(
+      heroMovementAction,
+      "down",
+      bindings.dodge.doubleTapWindow,
+    ),
+    moveLeft: new HeroDirectionAction(
+      heroMovementAction,
+      "left",
+      bindings.dodge.doubleTapWindow,
+    ),
+    moveRight: new HeroDirectionAction(
+      heroMovementAction,
+      "right",
+      bindings.dodge.doubleTapWindow,
+    ),
+    jump: new HeroJumpAction(heroMovementAction),
+    interact: new InteractionAction(renderer),
+    toggleInventory: toggleInventoryAction,
+    closeModal: new CloseModalAction([toggleInventoryAction]),
+    rotateView: rotateViewAction,
+    rotateAnticlockwise: rotateViewAction,
     copyScreenshot: new CopyScreenshotAction(renderer, () => {
       Notify.create({
         type: "positive",
@@ -409,7 +460,11 @@ async function init() {
         timeout: 2000,
       });
     }),
-    toggleArrows: new ToggleArrowsAction(debugStore),
+    toggleArrows: new ToggleArrowsAction(
+      debugStore,
+      undefined,
+      () => !renderer.inventoryVisible,
+    ),
   };
 
   controls = new GameControls(container.value, actions);
@@ -435,6 +490,8 @@ async function init() {
 onMounted(init);
 
 onBeforeUnmount(() => {
+  interactionSuggestion?.destroy();
+  interactionSuggestion = null;
   if (typeof window !== "undefined") {
     delete window.gameMovementTest;
     delete window.gameCameraTest;

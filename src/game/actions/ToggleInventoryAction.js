@@ -1,8 +1,15 @@
 export class ToggleInventoryAction {
   #renderer;
+  #heroMovement;
 
-  constructor(renderer) {
+  constructor(renderer, heroMovement) {
     this.#renderer = renderer;
+    this.#heroMovement = heroMovement;
+  }
+
+  invoke() {
+    this.#heroMovement?.clear();
+    return this.toggleInventory();
   }
 
   get visible() {
@@ -13,7 +20,7 @@ export class ToggleInventoryAction {
     return this.#renderer.toggleInventory();
   }
 
-  closeInventory() {
+  close() {
     return this.#renderer.closeInventory();
   }
 

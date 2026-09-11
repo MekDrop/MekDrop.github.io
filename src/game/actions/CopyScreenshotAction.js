@@ -13,6 +13,12 @@ export class CopyScreenshotAction {
     this.#onCopied = onCopied;
   }
 
+  invoke() {
+    void this.copyScreenshot().catch((error) => {
+      console.error("[CopyScreenshotAction] Screenshot failed.", error);
+    });
+  }
+
   async copyScreenshot() {
     const canvas = this.#renderer.canvasElement;
     const blob = await new Promise((resolve, reject) => {

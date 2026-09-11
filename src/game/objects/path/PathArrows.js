@@ -1,5 +1,6 @@
 import { TileType } from "../../MapGenerator.js";
 import { UnknownArrowMeshError } from "../../errors/path/index.js";
+import { colorFromHex } from "../../helpers/colors.js";
 
 const ARROW_POINTS = [
   [-0.1, -0.32],
@@ -166,8 +167,8 @@ export class PathArrows {
   #createMaterial(name, definition) {
     const material = new this.#pc.StandardMaterial();
     material.name = name;
-    material.diffuse = this.#colorFromHex(definition.color);
-    material.emissive = this.#colorFromHex(definition.emissive);
+    material.diffuse = colorFromHex(this.#pc, definition.color);
+    material.emissive = colorFromHex(this.#pc, definition.emissive);
     material.emissiveIntensity = definition.emissiveIntensity;
     material.gloss = definition.gloss;
     material.metalness = 0;
@@ -181,7 +182,7 @@ export class PathArrows {
     for (const name of [`arrow-${index}`, `arrow-aura-${index}`]) {
       const material = this.#materials.get(name);
       if (!material) continue;
-      this.#applyMaterialColor(material, this.#colorFromHex(color));
+      this.#applyMaterialColor(material, colorFromHex(this.#pc, color));
     }
   }
 
@@ -290,7 +291,10 @@ export class PathArrows {
       if (aura) {
         this.#applyMaterialColor(
           aura,
-          this.#colorFromHex(this.#averageColor(palette.colorIndexes)),
+          colorFromHex(
+            this.#pc,
+            this.#averageColor(palette.colorIndexes),
+          ),
         );
       }
     }
@@ -646,14 +650,6 @@ export class PathArrows {
       if (currentInside) clipped.push(current);
     }
     return clipped;
-  }
-
-  #colorFromHex(value) {
-    return new this.#pc.Color(
-      ((value >> 16) & 0xff) / 255,
-      ((value >> 8) & 0xff) / 255,
-      (value & 0xff) / 255,
-    );
   }
 
   #destroyMesh(mesh) {

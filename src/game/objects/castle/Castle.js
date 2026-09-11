@@ -9,6 +9,7 @@ import { CastleRoof } from "./CastleRoof.js";
 import { CastleStairs } from "./CastleStairs.js";
 import { CastleStoneTexture } from "./CastleStoneTexture.js";
 import { CastlePlacementError } from "../../errors/castle/index.js";
+import { colorFromHex } from "../../helpers/colors.js";
 
 const CASTLE_MATERIAL_DEFINITIONS = {
   castleStoneDark: {
@@ -347,7 +348,7 @@ export class Castle {
     )) {
       const material = new this.#pc.StandardMaterial();
       material.name = name;
-      material.diffuse = this.#colorFromHex(definition.color);
+      material.diffuse = colorFromHex(this.#pc, definition.color);
       material.gloss = definition.gloss ?? 0.08;
       material.metalness = 0;
       material.useMetalness = true;
@@ -416,14 +417,6 @@ export class Castle {
       fireParticleTexture: this.#fireParticleTexture,
     });
     this.#entity.addChild(this.#audienceRoom.entity);
-  }
-
-  #colorFromHex(value) {
-    return new this.#pc.Color(
-      ((value >> 16) & 0xff) / 255,
-      ((value >> 8) & 0xff) / 255,
-      (value & 0xff) / 255,
-    );
   }
 
   #addBoxMatrix(batches, material, x, y, z, yaw, sx, sy, sz) {

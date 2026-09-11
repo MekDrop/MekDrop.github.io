@@ -1,30 +1,56 @@
-import {
-  DEFAULT_CONTROLS,
-  MOVEMENT_DIRECTIONS,
-} from "src/game/config/controls.js";
-import { CAMERA_DRAG_MODE } from "src/game/enum/CameraDragMode.js";
-import { POINTER_TYPE } from "src/game/enum/PointerType.js";
+import { DEFAULT_CONTROLS } from "src/game/config/controls.js";
+import { CameraDrag } from "src/game/controls/CameraDrag.js";
 
 export class GameControls {
   #element;
   #bindings = DEFAULT_CONTROLS;
   #actions;
-  #dragPointerId = null;
-  #dragMode = null;
-  #dragX = 0;
-  #dragY = 0;
-  #dragDistance = 0;
+  #cameraDrag;
   #inventoryPointerId = null;
-  #movementDirections = new Set();
-  #lastMovementTapAt = new Map();
+  #keydownActions;
+  #keyupActions;
 
   constructor(element, actions) {
     this.#element = element;
     this.#actions = actions;
+    this.#cameraDrag = new CameraDrag(element, actions, this.#config());
+    this.#keydownActions = new Map(
+      this.#entriesFor([
+        "copyScreenshot",
+        "regenerateMap",
+        "toggleInventory",
+        "closeModal",
+        "run",
+        "moveUp",
+        "moveDown",
+        "moveLeft",
+        "moveRight",
+        "jump",
+        "interact",
+        "zoomIn",
+        "zoomOut",
+        "rotateAnticlockwise",
+        "toggleArrows",
+      ]),
+    );
+    this.#keyupActions = new Map(
+      this.#entriesFor([
+        "regenerateMap",
+        "run",
+        "moveUp",
+        "moveDown",
+        "moveLeft",
+        "moveRight",
+      ]),
+    );
   }
 
   #config() {
     return this.#bindings;
+  }
+
+  #entriesFor(names) {
+    return names.map((name) => [this.#config()[name], this.#actions[name]]);
   }
 
   connect() {
@@ -59,7 +85,7 @@ export class GameControls {
       "pointerleave",
       this.#handlePointerLeave,
     );
-    this.#setDragging(false);
+    this.#cameraDrag.cancel();
     this.#clearMovement();
   }
 
@@ -74,86 +100,12 @@ export class GameControls {
       return;
     }
 
-    if (this.#matchesKey(event, this.#config().copyScreenshot)) {
-      event.preventDefault();
-      this.#copyScreenshot();
-      return;
-    }
-
-    if (this.#matchesKey(event, this.#config().regenerateMap)) {
-      event.preventDefault();
-      event.returnValue = false;
-      event.stopImmediatePropagation();
-      this.#actions.regenerateMap.regenerateMap();
-      return;
-    }
-
-    if (this.#matchesKey(event, this.#config().toggleInventory)) {
-      event.preventDefault();
-      this.#clearMovement();
-      this.#actions.toggleInventory.toggleInventory();
+    if (this.#invokeKeyboardAction(event, this.#keydownActions)) {
       return;
     }
 
     if (this.#actions.toggleInventory?.visible) {
-      event.preventDefault();
-      if (this.#matchesKey(event, this.#config().closeInventory)) {
-        this.#actions.toggleInventory.closeInventory();
-      }
-      return;
-    }
-
-    if (this.#matchesKey(event, this.#config().run)) {
-      this.#actions.heroMovement.setRunning(true);
-      return;
-    }
-
-    const movementDirection = this.#movementDirection(event);
-    if (movementDirection) {
-      event.preventDefault();
-      const wasPressed = this.#movementDirections.has(movementDirection);
-      if (
-        !wasPressed &&
-        !event.repeat &&
-        this.#isMovementDoubleTap(movementDirection)
-      ) {
-        if (this.#actions.heroMovement.dodge(movementDirection)) {
-          return;
-        }
-      }
-      this.#movementDirections.add(movementDirection);
-      this.#actions.heroMovement.setRunning(event.shiftKey);
-      this.#actions.heroMovement.setDirection(movementDirection, true);
-      return;
-    }
-
-    if (this.#matchesKey(event, this.#config().jump)) {
-      event.preventDefault();
-      this.#actions.heroMovement.jump();
-      return;
-    }
-
-    if (this.#matchesKey(event, this.#config().interact)) {
-      event.preventDefault();
-      this.#actions.interaction.interact();
-      return;
-    }
-
-    const bindings = [
-      ["zoomIn", () => this.#actions.zoom.zoomIn()],
-      ["zoomOut", () => this.#actions.zoom.zoomOut()],
-      [
-        "rotateAnticlockwise",
-        () => this.#actions.rotateView.rotateAnticlockwise(),
-      ],
-      ["toggleArrows", () => this.#actions.toggleArrows.toggleArrows()],
-    ];
-
-    for (const [name, invoke] of bindings) {
-      if (!this.#matchesKey(event, this.#config()[name])) continue;
-      event.preventDefault();
-      invoke();
-      return;
+      this.#cancelKeyboardEvent(event);
     }
   };
 
@@ -162,25 +114,7 @@ export class GameControls {
       return;
     }
 
-    if (this.#matchesKey(event, this.#config().regenerateMap)) {
-      event.preventDefault();
-      event.returnValue = false;
-      event.stopImmediatePropagation();
-      return;
-    }
-
-    if (this.#matchesKey(event, this.#config().run)) {
-      this.#actions.heroMovement.setRunning(event.shiftKey);
-      return;
-    }
-
-    const movementDirection = this.#movementDirection(event);
-    if (!movementDirection || !this.#movementDirections.has(movementDirection)) {
-      return;
-    }
-    event.preventDefault();
-    this.#movementDirections.delete(movementDirection);
-    this.#actions.heroMovement.setDirection(movementDirection, false);
+    this.#invokeKeyboardAction(event, this.#keyupActions);
   };
 
   #handleVisibilityChange = () => {
@@ -188,8 +122,6 @@ export class GameControls {
   };
 
   #clearMovement = () => {
-    this.#movementDirections.clear();
-    this.#lastMovementTapAt.clear();
     this.#actions.heroMovement?.clear();
   };
 
@@ -206,9 +138,9 @@ export class GameControls {
     const direction = event.deltaY < 0 ? "up" : "down";
 
     if (this.#config().zoomIn.wheelDirection === direction) {
-      this.#actions.zoom.zoomIn(pivot);
+      this.#actions.zoomIn.invoke(pivot);
     } else if (this.#config().zoomOut.wheelDirection === direction) {
-      this.#actions.zoom.zoomOut(pivot);
+      this.#actions.zoomOut.invoke(pivot);
     }
   };
 
@@ -233,27 +165,7 @@ export class GameControls {
       event.stopImmediatePropagation();
       return;
     }
-    const isPan =
-      event.pointerType === POINTER_TYPE.MOUSE &&
-      this.#config().dragCamera.mouseButtons.includes(event.button) &&
-      this.#actions.moveCamera.available;
-    const isRotate =
-      event.pointerType === POINTER_TYPE.MOUSE &&
-      event.button === this.#config().rotateCamera.mouseButton;
-    if (!isPan && !isRotate) {
-      return;
-    }
-
-    event.preventDefault();
-    this.#dragPointerId = event.pointerId;
-    this.#dragMode = isRotate
-      ? CAMERA_DRAG_MODE.ROTATE
-      : CAMERA_DRAG_MODE.PAN;
-    this.#dragX = event.clientX;
-    this.#dragY = event.clientY;
-    this.#dragDistance = 0;
-    this.#setDragging(this.#dragMode === CAMERA_DRAG_MODE.PAN);
-    this.#element.setPointerCapture(event.pointerId);
+    this.#cameraDrag.start(event);
   };
 
   #handlePointerMove = (event) => {
@@ -265,31 +177,7 @@ export class GameControls {
       );
       return;
     }
-    if (event.pointerId !== this.#dragPointerId) {
-      return;
-    }
-
-    const deltaX = event.clientX - this.#dragX;
-    const deltaY = event.clientY - this.#dragY;
-    this.#dragX = event.clientX;
-    this.#dragY = event.clientY;
-    this.#dragDistance += Math.hypot(deltaX, deltaY);
-    const dragConfig =
-      this.#dragMode === CAMERA_DRAG_MODE.ROTATE
-        ? this.#config().rotateCamera
-        : this.#config().dragCamera;
-    if (this.#dragDistance < (dragConfig.activationDistance ?? 0)) {
-      return;
-    }
-
-    event.preventDefault();
-    if (this.#dragMode === CAMERA_DRAG_MODE.ROTATE) {
-      this.#actions.rotateView.rotateBy(
-        deltaX * this.#config().rotateCamera.quarterTurnsPerPixel,
-      );
-      return;
-    }
-    this.#actions.moveCamera.moveBy(deltaX, deltaY);
+    this.#cameraDrag.move(event);
   };
 
   #handlePointerUp = (event) => {
@@ -309,17 +197,7 @@ export class GameControls {
       }
       return;
     }
-    if (event.pointerId !== this.#dragPointerId) {
-      return;
-    }
-
-    this.#dragPointerId = null;
-    this.#dragMode = null;
-    this.#dragDistance = 0;
-    this.#setDragging(false);
-    if (this.#element.hasPointerCapture(event.pointerId)) {
-      this.#element.releasePointerCapture(event.pointerId);
-    }
+    this.#cameraDrag.end(event);
   };
 
   #handlePointerLeave = () => {
@@ -328,12 +206,23 @@ export class GameControls {
     }
   };
 
-  #setDragging(isDragging) {
-    this.#element.classList.toggle("background-canvas--dragging", isDragging);
-    document.documentElement.classList.toggle(
-      "game-viewport--dragging",
-      isDragging,
-    );
+  #invokeKeyboardAction(event, actions) {
+    for (const [binding, action] of actions) {
+      if (!this.#matchesKey(event, binding)) {
+        continue;
+      }
+
+      this.#cancelKeyboardEvent(event);
+      action.invoke(event);
+      return true;
+    }
+    return false;
+  }
+
+  #cancelKeyboardEvent(event) {
+    event.preventDefault();
+    event.returnValue = false;
+    event.stopImmediatePropagation();
   }
 
   #matchesKey(event, binding) {
@@ -342,8 +231,8 @@ export class GameControls {
     }
 
     if (
-      !binding?.keys.includes(event.code) &&
-      !binding?.keys.includes(event.key)
+      !binding.keys.includes(event.code) &&
+      !binding.keys.includes(event.key)
     ) {
       return false;
     }
@@ -378,43 +267,6 @@ export class GameControls {
       return "shiftKey";
     }
     return null;
-  }
-
-  #movementDirection(event) {
-    for (const direction of MOVEMENT_DIRECTIONS) {
-      const keyName = `move${direction[0].toUpperCase()}${direction.slice(1)}`;
-      if (this.#matchesKey(event, this.#config()[keyName])) {
-        return direction;
-      }
-    }
-    return null;
-  }
-
-  #isMovementDoubleTap(direction) {
-    const now = performance.now();
-    const previousTapAt = this.#lastMovementTapAt.get(direction);
-    const windowMilliseconds =
-      (this.#config().dodge?.doubleTapWindow ?? 0) * 1000;
-    this.#lastMovementTapAt.set(direction, now);
-    if (
-      previousTapAt === undefined ||
-      now - previousTapAt > windowMilliseconds
-    ) {
-      return false;
-    }
-
-    this.#lastMovementTapAt.delete(direction);
-    return true;
-  }
-
-  #copyScreenshot() {
-    if (!this.#actions.copyScreenshot?.copyScreenshot) {
-      return;
-    }
-
-    void this.#actions.copyScreenshot.copyScreenshot().catch((error) => {
-      console.error("[GameControls] Screenshot failed.", error);
-    });
   }
 
   #isEditable(target) {
