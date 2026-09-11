@@ -1,8 +1,8 @@
 import { HERO_ANIMATION } from "../../../src/game/enum/HeroAnimation.js";
 import { POINTER_TYPE } from "../../../src/game/enum/PointerType.js";
 
-function pressKey(code) {
-  cy.window().trigger("keydown", { code, key: code });
+function pressKey(code, modifiers = {}) {
+  cy.window().trigger("keydown", { code, key: code, ...modifiers });
 }
 
 function collectItem(expectedCount, animation) {
@@ -121,6 +121,31 @@ describe("Collectible inventory", () => {
         window.sessionStorage.getItem("hero-configuration"),
       );
       expect(state.inventory.visible).to.equal(false);
+    });
+  });
+
+  it("ignores inventory and interaction keys with keyboard modifiers", () => {
+    const modifiers = [
+      { altKey: true },
+      { ctrlKey: true },
+      { metaKey: true },
+      { shiftKey: true },
+    ];
+
+    for (const modifier of modifiers) {
+      pressKey("KeyI", modifier);
+      pressKey("KeyE", modifier);
+    }
+
+    cy.window().should((window) => {
+      const { inventory } = window.gameMovementTest.state();
+      expect(inventory.visible).to.equal(false);
+      expect(inventory.items).to.have.length(0);
+    });
+
+    pressKey("KeyI");
+    cy.window().should((window) => {
+      expect(window.gameMovementTest.state().inventory.visible).to.equal(true);
     });
   });
 

@@ -347,10 +347,37 @@ export class GameControls {
     ) {
       return false;
     }
-    if (binding.ctrlKey !== undefined && binding.ctrlKey !== event.ctrlKey) {
-      return false;
+
+    const modifierKeys = ["altKey", "ctrlKey", "metaKey", "shiftKey"];
+    const eventModifierKey = this.#eventModifierKey(event);
+    for (const modifierKey of modifierKeys) {
+      if (
+        modifierKey === eventModifierKey ||
+        binding.allowedModifiers?.includes(modifierKey)
+      ) {
+        continue;
+      }
+      if (Boolean(binding[modifierKey]) !== Boolean(event[modifierKey])) {
+        return false;
+      }
     }
     return binding.allowRepeat !== false || !event.repeat;
+  }
+
+  #eventModifierKey(event) {
+    if (["Alt", "AltLeft", "AltRight"].includes(event.code)) {
+      return "altKey";
+    }
+    if (["Control", "ControlLeft", "ControlRight"].includes(event.code)) {
+      return "ctrlKey";
+    }
+    if (["Meta", "MetaLeft", "MetaRight"].includes(event.code)) {
+      return "metaKey";
+    }
+    if (["Shift", "ShiftLeft", "ShiftRight"].includes(event.code)) {
+      return "shiftKey";
+    }
+    return null;
   }
 
   #movementDirection(event) {

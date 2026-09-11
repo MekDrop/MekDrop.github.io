@@ -9,15 +9,19 @@ export const DEFAULT_CONTROLS = Object.freeze({
   },
   moveUp: {
     keys: ["ArrowUp"],
+    allowedModifiers: ["shiftKey"],
   },
   moveDown: {
     keys: ["ArrowDown"],
+    allowedModifiers: ["shiftKey"],
   },
   moveLeft: {
     keys: ["ArrowLeft"],
+    allowedModifiers: ["shiftKey"],
   },
   moveRight: {
     keys: ["ArrowRight"],
+    allowedModifiers: ["shiftKey"],
   },
   run: {
     keys: ["ShiftLeft", "ShiftRight"],
