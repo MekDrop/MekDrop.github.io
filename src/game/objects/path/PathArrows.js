@@ -1,6 +1,7 @@
 import { TileType } from "../../MapGenerator.js";
 import { UnknownArrowMeshError } from "../../errors/path/index.js";
 import { colorFromHex } from "../../helpers/colors.js";
+import { isArray } from "../../helpers/types.js";
 
 const ARROW_POINTS = [
   [-0.1, -0.32],
@@ -74,7 +75,7 @@ export class PathArrows {
   }
 
   setColors(colors) {
-    if (!Array.isArray(colors) || colors.length === 0) {
+    if (!isArray(colors) || colors.length === 0) {
       return;
     }
     this.#colors = [...colors];

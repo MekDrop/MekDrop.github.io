@@ -9,6 +9,7 @@ import { COIN_TYPE } from "../../enum/CoinType.js";
 import { MOVEMENT_REFUSAL } from "../../enum/MovementRefusal.js";
 import { HERO_INVENTORY_CAPACITY } from "../../config/inventory.js";
 import { RIVER_KIND } from "../../enum/RiverKind.js";
+import { SLOPE_DIRECTION } from "../../enum/SlopeDirection.js";
 import { TILE_SHAPE } from "../../enum/TileShape.js";
 import { HeroLavaDeathEffect } from "./HeroLavaDeathEffect.js";
 import { HeroFootPlacement } from "./HeroFootPlacement.js";
@@ -2201,11 +2202,11 @@ export class Hero {
       const localX = Math.max(0, Math.min(1, gridX - col + 0.5));
       const localZ = Math.max(0, Math.min(1, gridZ - row + 0.5));
       const progress =
-        slope.riseDirection === "NORTH"
+        slope.riseDirection === SLOPE_DIRECTION.NORTH
           ? 1 - localZ
-          : slope.riseDirection === "SOUTH"
+          : slope.riseDirection === SLOPE_DIRECTION.SOUTH
             ? localZ
-            : slope.riseDirection === "WEST"
+            : slope.riseDirection === SLOPE_DIRECTION.WEST
               ? 1 - localX
               : localX;
       return slope.lowHeight +

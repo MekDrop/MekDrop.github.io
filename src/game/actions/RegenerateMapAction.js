@@ -1,3 +1,5 @@
+import { INPUT_EVENT_TYPE } from "../enum/InputEventType.js";
+
 export class RegenerateMapAction {
   #renderer;
   #generateMap;
@@ -17,7 +19,7 @@ export class RegenerateMapAction {
   }
 
   invoke(event) {
-    if (event.type === "keyup") {
+    if (event.type === INPUT_EVENT_TYPE.KEY_UP) {
       return null;
     }
     return this.regenerateMap();

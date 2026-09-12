@@ -4,6 +4,7 @@ import {
   ScreenshotEncodingError,
   ScreenshotImagePreparationError,
 } from "../errors/screenshot/index.js";
+import { isFunction } from "../helpers/types.js";
 
 export class CopyScreenshotAction {
   #renderer;
@@ -39,11 +40,11 @@ export class CopyScreenshotAction {
 
   async #copyImage(canvas, blob) {
     if (
-      typeof ClipboardItem !== "undefined" &&
-      typeof navigator.clipboard?.write === "function"
+      isFunction(globalThis.ClipboardItem) &&
+      isFunction(globalThis.navigator?.clipboard?.write)
     ) {
-      await navigator.clipboard.write([
-        new ClipboardItem({
+      await globalThis.navigator.clipboard.write([
+        new globalThis.ClipboardItem({
           [blob.type]: blob,
         }),
       ]);
@@ -60,7 +61,7 @@ export class CopyScreenshotAction {
   }
 
   async #copyImageLegacy(canvas) {
-    if (typeof document.execCommand !== "function") {
+    if (!isFunction(document.execCommand)) {
       return false;
     }
 

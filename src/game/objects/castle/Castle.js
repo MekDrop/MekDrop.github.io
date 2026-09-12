@@ -8,6 +8,7 @@ import { CastleFlag } from "./CastleFlag.js";
 import { CastleRoof } from "./CastleRoof.js";
 import { CastleStairs } from "./CastleStairs.js";
 import { CastleStoneTexture } from "./CastleStoneTexture.js";
+import { CASTLE_BOUNDARY } from "../../enum/CastleBoundary.js";
 import { CastlePlacementError } from "../../errors/castle/index.js";
 import { colorFromHex } from "../../helpers/colors.js";
 
@@ -64,7 +65,7 @@ const CASTLE_STYLES = [
     id: "right-angle",
     layout: "L",
     towerPlacements: ["FRONT_RIGHT", "BACK_RIGHT"],
-    wallWings: ["RIGHT"],
+    wallWings: [CASTLE_BOUNDARY.RIGHT],
     wallHeightBlocks: 10,
     towerSpanBlocks: 9,
     towerHeightBlocks: 18,
@@ -90,7 +91,7 @@ const CASTLE_STYLES = [
     id: "left-angle",
     layout: "L",
     towerPlacements: ["FRONT_LEFT", "BACK_LEFT"],
-    wallWings: ["LEFT"],
+    wallWings: [CASTLE_BOUNDARY.LEFT],
     wallHeightBlocks: 11,
     towerSpanBlocks: 8,
     towerHeightBlocks: 20,
@@ -506,7 +507,10 @@ export class Castle {
       if (opening.end - opening.start !== requiredDoorWidth) {
         return false;
       }
-      const horizontalLimit = ["FRONT", "BACK"].includes(opening.boundary)
+      const horizontalLimit = [
+        CASTLE_BOUNDARY.FRONT,
+        CASTLE_BOUNDARY.BACK,
+      ].includes(opening.boundary)
         ? facadeSpan
         : castleDepth;
       if (
@@ -519,18 +523,21 @@ export class Castle {
       const towerRanges = [];
       for (const placement of style.towerPlacements ?? []) {
         const boundaryRanges = {
-          FRONT_LEFT: { FRONT: [0, towerSpan], LEFT: [0, towerSpan] },
+          FRONT_LEFT: {
+            [CASTLE_BOUNDARY.FRONT]: [0, towerSpan],
+            [CASTLE_BOUNDARY.LEFT]: [0, towerSpan],
+          },
           FRONT_RIGHT: {
-            FRONT: [facadeSpan - towerSpan, facadeSpan],
-            RIGHT: [0, towerSpan],
+            [CASTLE_BOUNDARY.FRONT]: [facadeSpan - towerSpan, facadeSpan],
+            [CASTLE_BOUNDARY.RIGHT]: [0, towerSpan],
           },
           BACK_LEFT: {
-            BACK: [0, towerSpan],
-            LEFT: [castleDepth - towerSpan, castleDepth],
+            [CASTLE_BOUNDARY.BACK]: [0, towerSpan],
+            [CASTLE_BOUNDARY.LEFT]: [castleDepth - towerSpan, castleDepth],
           },
           BACK_RIGHT: {
-            BACK: [facadeSpan - towerSpan, facadeSpan],
-            RIGHT: [castleDepth - towerSpan, castleDepth],
+            [CASTLE_BOUNDARY.BACK]: [facadeSpan - towerSpan, facadeSpan],
+            [CASTLE_BOUNDARY.RIGHT]: [castleDepth - towerSpan, castleDepth],
           },
         };
         const range = boundaryRanges[placement]?.[opening.boundary];
@@ -574,37 +581,39 @@ export class Castle {
     const localBoundary = (side) => {
       const boundaries = {
         WEST: {
-          WEST: "FRONT",
-          EAST: "BACK",
-          NORTH: "LEFT",
-          SOUTH: "RIGHT",
+          WEST: CASTLE_BOUNDARY.FRONT,
+          EAST: CASTLE_BOUNDARY.BACK,
+          NORTH: CASTLE_BOUNDARY.LEFT,
+          SOUTH: CASTLE_BOUNDARY.RIGHT,
         },
         EAST: {
-          EAST: "FRONT",
-          WEST: "BACK",
-          NORTH: "LEFT",
-          SOUTH: "RIGHT",
+          EAST: CASTLE_BOUNDARY.FRONT,
+          WEST: CASTLE_BOUNDARY.BACK,
+          NORTH: CASTLE_BOUNDARY.LEFT,
+          SOUTH: CASTLE_BOUNDARY.RIGHT,
         },
         NORTH: {
-          NORTH: "FRONT",
-          SOUTH: "BACK",
-          WEST: "LEFT",
-          EAST: "RIGHT",
+          NORTH: CASTLE_BOUNDARY.FRONT,
+          SOUTH: CASTLE_BOUNDARY.BACK,
+          WEST: CASTLE_BOUNDARY.LEFT,
+          EAST: CASTLE_BOUNDARY.RIGHT,
         },
         SOUTH: {
-          SOUTH: "FRONT",
-          NORTH: "BACK",
-          WEST: "LEFT",
-          EAST: "RIGHT",
+          SOUTH: CASTLE_BOUNDARY.FRONT,
+          NORTH: CASTLE_BOUNDARY.BACK,
+          WEST: CASTLE_BOUNDARY.LEFT,
+          EAST: CASTLE_BOUNDARY.RIGHT,
         },
       };
-      return boundaries[primarySide]?.[side] ?? "FRONT";
+      return boundaries[primarySide]?.[side] ?? CASTLE_BOUNDARY.FRONT;
     };
     const openings = rawOpenings.map((opening) => {
       const boundary = localBoundary(opening.side);
       const reverse =
-        (primarySide === "EAST" && ["LEFT", "RIGHT"].includes(boundary)) ||
-        (primarySide === "SOUTH" && ["LEFT", "RIGHT"].includes(boundary));
+        (primarySide === "EAST" &&
+          [CASTLE_BOUNDARY.LEFT, CASTLE_BOUNDARY.RIGHT].includes(boundary)) ||
+        (primarySide === "SOUTH" &&
+          [CASTLE_BOUNDARY.LEFT, CASTLE_BOUNDARY.RIGHT].includes(boundary));
       const axisLength =
         opening.side === "WEST" || opening.side === "EAST"
           ? depthBlocks
@@ -621,7 +630,7 @@ export class Castle {
     const towerHeight = style.towerHeightBlocks ?? CASTLE_TOWER_HEIGHT_BLOCKS;
     const battlementPeriod = style.battlementPeriod ?? 2;
     const hasSecondarySide = openings.some(
-      (opening) => opening.boundary !== "FRONT",
+      (opening) => opening.boundary !== CASTLE_BOUNDARY.FRONT,
     );
     const castleDepth = hasSecondarySide
       ? inwardCapacity
@@ -700,28 +709,28 @@ export class Castle {
     const boundaryNormal = (boundary) => {
       const normals = {
         WEST: {
-          FRONT: { x: -1, z: 0 },
-          BACK: { x: 1, z: 0 },
-          LEFT: { x: 0, z: -1 },
-          RIGHT: { x: 0, z: 1 },
+          [CASTLE_BOUNDARY.FRONT]: { x: -1, z: 0 },
+          [CASTLE_BOUNDARY.BACK]: { x: 1, z: 0 },
+          [CASTLE_BOUNDARY.LEFT]: { x: 0, z: -1 },
+          [CASTLE_BOUNDARY.RIGHT]: { x: 0, z: 1 },
         },
         EAST: {
-          FRONT: { x: 1, z: 0 },
-          BACK: { x: -1, z: 0 },
-          LEFT: { x: 0, z: -1 },
-          RIGHT: { x: 0, z: 1 },
+          [CASTLE_BOUNDARY.FRONT]: { x: 1, z: 0 },
+          [CASTLE_BOUNDARY.BACK]: { x: -1, z: 0 },
+          [CASTLE_BOUNDARY.LEFT]: { x: 0, z: -1 },
+          [CASTLE_BOUNDARY.RIGHT]: { x: 0, z: 1 },
         },
         NORTH: {
-          FRONT: { x: 0, z: -1 },
-          BACK: { x: 0, z: 1 },
-          LEFT: { x: -1, z: 0 },
-          RIGHT: { x: 1, z: 0 },
+          [CASTLE_BOUNDARY.FRONT]: { x: 0, z: -1 },
+          [CASTLE_BOUNDARY.BACK]: { x: 0, z: 1 },
+          [CASTLE_BOUNDARY.LEFT]: { x: -1, z: 0 },
+          [CASTLE_BOUNDARY.RIGHT]: { x: 1, z: 0 },
         },
         SOUTH: {
-          FRONT: { x: 0, z: 1 },
-          BACK: { x: 0, z: -1 },
-          LEFT: { x: -1, z: 0 },
-          RIGHT: { x: 1, z: 0 },
+          [CASTLE_BOUNDARY.FRONT]: { x: 0, z: 1 },
+          [CASTLE_BOUNDARY.BACK]: { x: 0, z: -1 },
+          [CASTLE_BOUNDARY.LEFT]: { x: -1, z: 0 },
+          [CASTLE_BOUNDARY.RIGHT]: { x: 1, z: 0 },
         },
       };
       return normals[primarySide][boundary];
@@ -732,7 +741,7 @@ export class Castle {
       blockV,
       widthBlocks,
       heightBlocks,
-      boundary = "FRONT",
+      boundary = CASTLE_BOUNDARY.FRONT,
     ) => {
       const position = localToWorld(blockU, blockV);
       const normal = boundaryNormal(boundary);
@@ -745,7 +754,12 @@ export class Castle {
         height: heightBlocks * CASTLE_BLOCK_SIZE,
       });
     };
-    const addFlag = (blockU, blockY, blockV, boundary = "FRONT") => {
+    const addFlag = (
+      blockU,
+      blockY,
+      blockV,
+      boundary = CASTLE_BOUNDARY.FRONT,
+    ) => {
       const position = localToWorld(blockU, blockV);
       const normal = boundaryNormal(boundary);
       this.#flags.add({
@@ -765,7 +779,7 @@ export class Castle {
       widthBlocks,
       depthBlocks,
       heightBlocks,
-      boundary = "FRONT",
+      boundary = CASTLE_BOUNDARY.FRONT,
     ) => {
       const position = localToWorld(blockU, blockV);
       const normal = boundaryNormal(boundary);
@@ -917,7 +931,7 @@ export class Castle {
       style.wallWings,
     );
     const audienceOpening = openings.find(
-      (opening) => opening.boundary === "FRONT",
+      (opening) => opening.boundary === CASTLE_BOUNDARY.FRONT,
     );
     if (audienceOpening) {
       this.#interiorWidth = this.#buildCastleAudienceWing(
@@ -992,7 +1006,7 @@ export class Castle {
         towerSpan,
         towerHeight,
         battlementPeriod,
-        opening.boundary === "FRONT" ? style : null,
+        opening.boundary === CASTLE_BOUNDARY.FRONT ? style : null,
       );
     }
     this.#createInstancedBatches(batches);
@@ -1030,8 +1044,8 @@ export class Castle {
     wallWings = [],
   ) {
     const wallDepth = Math.min(castleDepth, towerSpan);
-    const hasLeftWing = wallWings.includes("LEFT");
-    const hasRightWing = wallWings.includes("RIGHT");
+    const hasLeftWing = wallWings.includes(CASTLE_BOUNDARY.LEFT);
+    const hasRightWing = wallWings.includes(CASTLE_BOUNDARY.RIGHT);
     const facadeInset =
       hasLeftWing || hasRightWing ? 0 : Math.min(1, wallDepth - 1);
     for (let blockU = 0; blockU < castleDepth; blockU += 1) {
@@ -1041,14 +1055,14 @@ export class Castle {
             blockY === 2 || blockY === wallHeight - 3 ? "trim" : "stone";
           const crossesLeftGate =
             blockV < CASTLE_WALL_THICKNESS_BLOCKS &&
-            openingAt("LEFT", blockU, blockY);
+            openingAt(CASTLE_BOUNDARY.LEFT, blockU, blockY);
           const crossesRightGate =
             blockV >= facadeSpan - CASTLE_WALL_THICKNESS_BLOCKS &&
-            openingAt("RIGHT", blockU, blockY);
+            openingAt(CASTLE_BOUNDARY.RIGHT, blockU, blockY);
           if (
             blockU >= facadeInset &&
             blockU < wallDepth &&
-            !openingAt("FRONT", blockV, blockY) &&
+            !openingAt(CASTLE_BOUNDARY.FRONT, blockV, blockY) &&
             !crossesLeftGate &&
             !crossesRightGate
           ) {
@@ -1058,7 +1072,7 @@ export class Castle {
             hasLeftWing &&
             blockU < castleDepth &&
             blockV < towerSpan &&
-            !openingAt("LEFT", blockU, blockY)
+            !openingAt(CASTLE_BOUNDARY.LEFT, blockU, blockY)
           ) {
             addBlock(blockU, blockY, blockV, role);
           }
@@ -1066,7 +1080,7 @@ export class Castle {
             hasRightWing &&
             blockU < castleDepth &&
             blockV >= facadeSpan - towerSpan &&
-            !openingAt("RIGHT", blockU, blockY)
+            !openingAt(CASTLE_BOUNDARY.RIGHT, blockU, blockY)
           ) {
             addBlock(blockU, blockY, blockV, role);
           }
@@ -1296,11 +1310,11 @@ export class Castle {
       blockY >= roofDoorBase &&
       blockY < roofDoorBase + roofDoorHeight;
     const placeBoundaryBlock = (depth, horizontal, blockY, role) => {
-      if (opening.boundary === "BACK") {
+      if (opening.boundary === CASTLE_BOUNDARY.BACK) {
         addBlock(castleDepth - 1 - depth, blockY, horizontal, role);
-      } else if (opening.boundary === "LEFT") {
+      } else if (opening.boundary === CASTLE_BOUNDARY.LEFT) {
         addBlock(horizontal, blockY, depth, role);
-      } else if (opening.boundary === "RIGHT") {
+      } else if (opening.boundary === CASTLE_BOUNDARY.RIGHT) {
         addBlock(horizontal, blockY, facadeSpan - 1 - depth, role);
       } else {
         addBlock(depth, blockY, horizontal, role);
@@ -1315,7 +1329,7 @@ export class Castle {
       scaleHorizontal,
       role,
     ) => {
-      if (opening.boundary === "BACK") {
+      if (opening.boundary === CASTLE_BOUNDARY.BACK) {
         addLocalBox(
           castleDepth - 1 - depth,
           blockY,
@@ -1325,7 +1339,7 @@ export class Castle {
           scaleHorizontal,
           role,
         );
-      } else if (opening.boundary === "LEFT") {
+      } else if (opening.boundary === CASTLE_BOUNDARY.LEFT) {
         addLocalBox(
           horizontal,
           blockY,
@@ -1335,7 +1349,7 @@ export class Castle {
           scaleDepth,
           role,
         );
-      } else if (opening.boundary === "RIGHT") {
+      } else if (opening.boundary === CASTLE_BOUNDARY.RIGHT) {
         addLocalBox(
           horizontal,
           blockY,
@@ -1358,17 +1372,20 @@ export class Castle {
       }
     };
     const placeBoundaryFlame = (depth, horizontal, blockY, scale = 1) => {
-      const horizontalLimit = ["FRONT", "BACK"].includes(opening.boundary)
+      const horizontalLimit = [
+        CASTLE_BOUNDARY.FRONT,
+        CASTLE_BOUNDARY.BACK,
+      ].includes(opening.boundary)
         ? facadeSpan
         : castleDepth;
       if (horizontal < 0 || horizontal >= horizontalLimit) {
         return;
       }
-      if (opening.boundary === "BACK") {
+      if (opening.boundary === CASTLE_BOUNDARY.BACK) {
         addFlame(castleDepth - 1 - depth, blockY, horizontal, scale);
-      } else if (opening.boundary === "LEFT") {
+      } else if (opening.boundary === CASTLE_BOUNDARY.LEFT) {
         addFlame(horizontal, blockY, depth, scale);
-      } else if (opening.boundary === "RIGHT") {
+      } else if (opening.boundary === CASTLE_BOUNDARY.RIGHT) {
         addFlame(horizontal, blockY, facadeSpan - 1 - depth, scale);
       } else {
         addFlame(depth, blockY, horizontal, scale);
@@ -1382,7 +1399,10 @@ export class Castle {
       const turretDepth = Math.round(centerDepth);
       const turretHorizontal = Math.round(centerHorizontal);
       const turretHeight = 3;
-      const horizontalLimit = ["FRONT", "BACK"].includes(opening.boundary)
+      const horizontalLimit = [
+        CASTLE_BOUNDARY.FRONT,
+        CASTLE_BOUNDARY.BACK,
+      ].includes(opening.boundary)
         ? facadeSpan
         : castleDepth;
       if (
@@ -1439,13 +1459,16 @@ export class Castle {
       );
     };
     const placeBoundaryBanner = (depth, horizontal, blockY, width, height) => {
-      const horizontalLimit = ["FRONT", "BACK"].includes(opening.boundary)
+      const horizontalLimit = [
+        CASTLE_BOUNDARY.FRONT,
+        CASTLE_BOUNDARY.BACK,
+      ].includes(opening.boundary)
         ? facadeSpan
         : castleDepth;
       if (horizontal < 0 || horizontal >= horizontalLimit) {
         return;
       }
-      if (opening.boundary === "BACK") {
+      if (opening.boundary === CASTLE_BOUNDARY.BACK) {
         addBanner(
           castleDepth - 1 - depth,
           blockY,
@@ -1454,9 +1477,9 @@ export class Castle {
           height,
           opening.boundary,
         );
-      } else if (opening.boundary === "LEFT") {
+      } else if (opening.boundary === CASTLE_BOUNDARY.LEFT) {
         addBanner(horizontal, blockY, depth, width, height, opening.boundary);
-      } else if (opening.boundary === "RIGHT") {
+      } else if (opening.boundary === CASTLE_BOUNDARY.RIGHT) {
         addBanner(
           horizontal,
           blockY,
@@ -1470,11 +1493,11 @@ export class Castle {
       }
     };
     const placeBoundaryFlag = (depth, horizontal, blockY) => {
-      if (opening.boundary === "BACK") {
+      if (opening.boundary === CASTLE_BOUNDARY.BACK) {
         addFlag(castleDepth - 1 - depth, blockY, horizontal, opening.boundary);
-      } else if (opening.boundary === "LEFT") {
+      } else if (opening.boundary === CASTLE_BOUNDARY.LEFT) {
         addFlag(horizontal, blockY, depth, opening.boundary);
-      } else if (opening.boundary === "RIGHT") {
+      } else if (opening.boundary === CASTLE_BOUNDARY.RIGHT) {
         addFlag(horizontal, blockY, facadeSpan - 1 - depth, opening.boundary);
       } else {
         addFlag(depth, blockY, horizontal, opening.boundary);
@@ -1488,7 +1511,7 @@ export class Castle {
       roofDepth,
       height,
     ) => {
-      if (opening.boundary === "BACK") {
+      if (opening.boundary === CASTLE_BOUNDARY.BACK) {
         addRoof(
           castleDepth - 1 - depth,
           blockY,
@@ -1498,7 +1521,7 @@ export class Castle {
           height,
           opening.boundary,
         );
-      } else if (opening.boundary === "LEFT") {
+      } else if (opening.boundary === CASTLE_BOUNDARY.LEFT) {
         addRoof(
           horizontal,
           blockY,
@@ -1508,7 +1531,7 @@ export class Castle {
           height,
           opening.boundary,
         );
-      } else if (opening.boundary === "RIGHT") {
+      } else if (opening.boundary === CASTLE_BOUNDARY.RIGHT) {
         addRoof(
           horizontal,
           blockY,
@@ -1544,7 +1567,10 @@ export class Castle {
         for (let depth = 0; depth < gatehouseDepth; depth += 1) {
           for (let blockY = 0; blockY < gatehouseHeight; blockY += 1) {
             const topInset = blockY >= gatehouseHeight - 3 ? 1 : 0;
-            const horizontalLimit = ["FRONT", "BACK"].includes(opening.boundary)
+            const horizontalLimit = [
+              CASTLE_BOUNDARY.FRONT,
+              CASTLE_BOUNDARY.BACK,
+            ].includes(opening.boundary)
               ? facadeSpan
               : castleDepth;
             const withinSteppedCrown =
@@ -1687,7 +1713,10 @@ export class Castle {
       placeBoundaryFlame(-0.62, horizontal, torchHeight, 0.72);
     }
 
-    const horizontalLimit = ["FRONT", "BACK"].includes(opening.boundary)
+    const horizontalLimit = [
+      CASTLE_BOUNDARY.FRONT,
+      CASTLE_BOUNDARY.BACK,
+    ].includes(opening.boundary)
       ? facadeSpan
       : castleDepth;
 

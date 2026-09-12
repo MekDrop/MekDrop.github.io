@@ -1,4 +1,5 @@
 import { BannerWind } from "../shared/BannerWind.js";
+import { colorFromValue } from "../../helpers/colors.js";
 import gatewayFrameModelUrl from "../../models/gateway/gateway-frame.glb?url";
 import { GatewayBannerSign } from "./GatewayBannerSign.js";
 import portalFragmentShader from "./GatewayPortal.frag?raw";
@@ -166,7 +167,7 @@ export class Gateway {
   }
 
   setColor(value) {
-    const color = this.#colorFrom(value);
+    const color = colorFromValue(this.#pc, value, DEFAULT_GATEWAY_COLOR);
     this.#portalMaterial?.setParameter("uColor", [color.r, color.g, color.b]);
     if (this.#bannerMaterial) {
       this.#bannerMaterial.diffuse = new this.#pc.Color(
@@ -382,9 +383,9 @@ export class Gateway {
     this.#textures.push(signTexture);
     this.#emblemMaterial = new pc.StandardMaterial();
     this.#emblemMaterial.name = `Gateway cloth sign ${this.#symbol}`;
-    this.#emblemMaterial.diffuse = this.#colorFrom(0xeaf8ff);
+    this.#emblemMaterial.diffuse = colorFromValue(this.#pc, 0xeaf8ff);
     this.#emblemMaterial.diffuseMap = signTexture;
-    this.#emblemMaterial.emissive = this.#colorFrom(0xeaf8ff);
+    this.#emblemMaterial.emissive = colorFromValue(this.#pc, 0xeaf8ff);
     this.#emblemMaterial.emissiveMap = signTexture;
     this.#emblemMaterial.emissiveIntensity = 0.55;
     this.#emblemMaterial.opacityMap = signTexture;
@@ -547,7 +548,7 @@ export class Gateway {
     this.#portalMaterial.depthWrite = false;
     this.#portalMaterial.cull = pc.CULLFACE_NONE;
     this.#portalMaterial.setParameter("uTime", 0);
-    const portalColor = this.#colorFrom(DEFAULT_GATEWAY_COLOR);
+    const portalColor = colorFromValue(this.#pc, DEFAULT_GATEWAY_COLOR);
     this.#portalMaterial.setParameter("uColor", [
       portalColor.r,
       portalColor.g,
@@ -569,22 +570,4 @@ export class Gateway {
     this.#entity.addChild(portal);
   }
 
-  #colorFrom(value) {
-    if (value instanceof this.#pc.Color) {
-      return value.clone();
-    }
-    if (Array.isArray(value)) {
-      return new this.#pc.Color(value[0] ?? 1, value[1] ?? 1, value[2] ?? 1);
-    }
-    const parsed =
-      typeof value === "string"
-        ? Number.parseInt(value.replace(/^#/, ""), 16)
-        : value;
-    const color = Number.isFinite(parsed) ? parsed : DEFAULT_GATEWAY_COLOR;
-    return new this.#pc.Color(
-      ((color >> 16) & 0xff) / 255,
-      ((color >> 8) & 0xff) / 255,
-      (color & 0xff) / 255,
-    );
-  }
 }

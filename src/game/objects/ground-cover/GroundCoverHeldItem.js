@@ -1,3 +1,5 @@
+import { isNumber } from "../../helpers/types.js";
+
 export class GroundCoverHeldItem {
   static #GRIP_TRANSITION_DURATION = 0.18;
 
@@ -39,7 +41,7 @@ export class GroundCoverHeldItem {
     this.#modelUrl = modelUrl;
     this.#name = name;
     this.#scale =
-      typeof scale === "number"
+      isNumber(scale)
         ? { x: scale, y: scale, z: scale }
         : { ...scale };
     this.#material = material;

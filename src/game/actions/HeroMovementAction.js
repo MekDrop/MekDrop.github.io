@@ -1,3 +1,5 @@
+import { INPUT_EVENT_TYPE } from "../enum/InputEventType.js";
+
 const MOVEMENT_VECTORS = Object.freeze({
   up: { x: 0, y: 1 },
   down: { x: 0, y: -1 },
@@ -24,7 +26,9 @@ export class HeroMovementAction {
     if (this.#renderer.inventoryVisible) {
       return;
     }
-    this.setRunning(event.type === "keydown" || event.shiftKey);
+    this.setRunning(
+      event.type === INPUT_EVENT_TYPE.KEY_DOWN || event.shiftKey,
+    );
   }
 
   pressDirection(direction, event, doubleTapWindow) {

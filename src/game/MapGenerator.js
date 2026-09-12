@@ -33,6 +33,8 @@ import {
   UnexpectedPathCrossingError,
 } from './errors/map/index.js';
 import { RIVER_KIND } from './enum/RiverKind.js';
+import { isNumber } from './helpers/types.js';
+import { SLOPE_DIRECTION } from './enum/SlopeDirection.js';
 import { TILE_SHAPE } from './enum/TileShape.js';
 
 export const TileType = {
@@ -326,7 +328,7 @@ export class MapGenerator {
   }
 
   static #normalizeOptions(options) {
-    if (typeof options === 'number') {
+    if (isNumber(options)) {
       return { numPaths: options };
     }
     return options ?? {};
@@ -903,7 +905,7 @@ export class MapGenerator {
           lowHeight: this.#PATH_HEIGHT + step * this.#OVERPASS_HALF_STEP,
           highHeight:
             this.#PATH_HEIGHT + (step + 1) * this.#OVERPASS_HALF_STEP,
-          riseDirection: this.#DIRECTIONS.SOUTH,
+          riseDirection: SLOPE_DIRECTION.SOUTH,
         });
         slopeCells.push({
           col: col + lane,
@@ -916,7 +918,7 @@ export class MapGenerator {
             this.#PATH_HEIGHT +
             (this.#OVERPASS_RAMP_TILES - step) *
               this.#OVERPASS_HALF_STEP,
-          riseDirection: this.#DIRECTIONS.NORTH,
+          riseDirection: SLOPE_DIRECTION.NORTH,
         });
       }
 
@@ -2477,12 +2479,12 @@ export class MapGenerator {
   static #buildTerrainBridgeDipPlan(span, index) {
     const firstRiseDirection =
       span.axis === 'HORIZONTAL'
-        ? this.#DIRECTIONS.WEST
-        : this.#DIRECTIONS.NORTH;
+        ? SLOPE_DIRECTION.WEST
+        : SLOPE_DIRECTION.NORTH;
     const lastRiseDirection =
       span.axis === 'HORIZONTAL'
-        ? this.#DIRECTIONS.EAST
-        : this.#DIRECTIONS.SOUTH;
+        ? SLOPE_DIRECTION.EAST
+        : SLOPE_DIRECTION.SOUTH;
     const rampTiles = this.#TERRAIN_BRIDGE_DIP_RAMP_TILES;
     const rampStep =
       (this.#PATH_HEIGHT - this.#TERRAIN_BRIDGE_DIP_ELEVATION) /

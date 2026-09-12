@@ -13,7 +13,7 @@ import {
   GATEWAY_COLORS,
   Gateway,
 } from "./objects/gateway/index.js";
-import { PathArrows } from "./objects/path/index.js";
+import { BridgeRailingKit, PathArrows } from "./objects/path/index.js";
 import { RiverWater } from "./objects/water/index.js";
 import { Hero } from "./objects/hero/index.js";
 import {
@@ -22,14 +22,21 @@ import {
   ShovelTool,
 } from "./objects/hero/tools/index.js";
 import { GrassSurface, GroundCover } from "./objects/ground-cover/index.js";
-import { CubeCloudField, SkyIslandScenery } from "./objects/scenery/index.js";
+import {
+  CubeCloudField,
+  FloatingIslandMotion,
+  SkyIslandScenery,
+} from "./objects/scenery/index.js";
 import { VoxelVegetation } from "./objects/vegetation/index.js";
 import { BuriedTreasureField } from "./objects/treasure/index.js";
 import { ThrownInventoryItem } from "./objects/inventory/index.js";
 import { TileType } from "./MapGenerator.js";
 import { GRASS_SURFACE_LIFT } from "./config/terrain.js";
+import { isArray } from "./helpers/types.js";
 import { GRAPHICS_DRIVER } from "./enum/GraphicsDriver.js";
+import { INPUT_EVENT_TYPE } from "./enum/InputEventType.js";
 import { POINTER_TYPE } from "./enum/PointerType.js";
+import { SLOPE_DIRECTION } from "./enum/SlopeDirection.js";
 import { TILE_SHAPE } from "./enum/TileShape.js";
 import {
   GroundCollisionWorld,
@@ -194,6 +201,7 @@ export class PlayCanvasRenderer {
   #cameraTargetY = CAMERA_TARGET_HEIGHT;
   #cameraPanBounds = null;
   #pathArrows = null;
+  #bridgeRailingKit = null;
   #gateways = [];
   #castle = null;
   #hero = null;
@@ -205,6 +213,12 @@ export class PlayCanvasRenderer {
   #thrownInventoryItems = [];
   #gameOverHud = null;
   #heroVisibility = null;
+  #floatingIslandMotion = null;
+  #floatingCameraLocalOffset = null;
+  #floatingCloudOffset = null;
+  #floatingCameraOffsetX = 0;
+  #floatingCameraOffsetY = 0;
+  #floatingCameraOffsetApplied = false;
   #groundCover = null;
   #grassSurface = null;
   #riverWater = null;
@@ -296,6 +310,8 @@ export class PlayCanvasRenderer {
     // for this continuously rendered game, even when Quasar runs in dev mode.
     this.#pc = await import("playcanvas/build/playcanvas/src/index.js");
     const pc = this.#pc;
+    this.#floatingCameraLocalOffset = new pc.Vec3();
+    this.#floatingCloudOffset = new pc.Vec3();
 
     const graphicsDevice = await pc.createGraphicsDevice(this.canvas, {
       deviceTypes: this.#resolveDeviceTypes(pc),
@@ -412,6 +428,7 @@ export class PlayCanvasRenderer {
         ShovelTool.modelUrl,
         InventoryHud.modelUrl,
         Gateway.modelUrl,
+        ...BridgeRailingKit.modelUrls,
         ...Castle.modelUrls,
         ...GroundCover.modelUrls,
         ...VoxelVegetation.modelUrls,
@@ -623,7 +640,7 @@ export class PlayCanvasRenderer {
   }
 
   setGatewayColors(colors) {
-    if (!Array.isArray(colors) || colors.length === 0) {
+    if (!isArray(colors) || colors.length === 0) {
       return;
     }
     this.#gatewayColors = [...colors];
@@ -1156,15 +1173,25 @@ export class PlayCanvasRenderer {
     this.#clearScene();
     this.#mapRoot = new this.#pc.Entity("Voxel map");
     this.#app.root.addChild(this.#mapRoot);
+    this.#floatingIslandMotion = new FloatingIslandMotion({
+      zoom: this.#zoom,
+    });
 
     const scenery = new SkyIslandScenery(this.#mapData);
     const cubeBatches = new Map();
+    this.#bridgeRailingKit = new BridgeRailingKit({
+      pc: this.#pc,
+      modelLibrary: this.#modelLibrary,
+      materials: this.#materials,
+      root: this.#mapRoot,
+    });
     this.#buildIslandUndersideMatrices(
       cubeBatches,
       scenery.createUndersideVoxels(),
     );
     this.#buildTerrainMatrices(cubeBatches);
     this.#createInstancedBatches(cubeBatches, this.#mapRoot, true);
+    this.#vertexBuffers.push(...this.#bridgeRailingKit.build());
     if (this.#mapData.overpassData) {
       this.#pathOverpassCollider = new PathOverpassCollider({
         overpass: this.#mapData.overpassData,
@@ -1191,6 +1218,7 @@ export class PlayCanvasRenderer {
     this.#cloudField = new CubeCloudField({
       pc: this.#pc,
       app: this.#app,
+      camera: this.#camera.camera,
       mapData: this.#mapData,
       layerId: this.#cloudLayer.id,
     });
@@ -1588,7 +1616,6 @@ export class PlayCanvasRenderer {
             "none",
           );
           this.#addBridgeSpanRailings(
-            batches,
             span,
             height,
             railingMaterial,
@@ -1689,8 +1716,7 @@ export class PlayCanvasRenderer {
       "bridgeVerticalSidesOnly",
       "none",
     );
-    this.#addOverpassRailings(
-      batches,
+    this.#bridgeRailingKit.addOverpass(
       overpass,
       railingMaterial,
       cols,
@@ -1828,156 +1854,14 @@ export class PlayCanvasRenderer {
     };
   }
 
-  #addBridgeSpanRailings(batches, span, height, sideMaterial, cols, rows) {
-    const centerX =
-      (span.horizontal ? span.center : span.crossCenter) - (cols - 1) / 2;
-    const centerZ =
-      (span.horizontal ? span.crossCenter : span.center) - (rows - 1) / 2;
-    const postPositions = [span.start - 0.34, span.end + 0.34];
-    for (let position = span.start + 0.5; position < span.end; position += 1) {
-      postPositions.push(position);
-    }
-
-    for (const side of [-1, 1]) {
-      const railX = span.horizontal ? centerX : centerX + side * 0.93;
-      const railZ = span.horizontal ? centerZ + side * 0.93 : centerZ;
-      const uniquePostPositions = [...new Set(postPositions)].sort(
-        (left, right) => left - right,
-      );
-      for (let index = 1; index < uniquePostPositions.length; index += 1) {
-        const segmentStart = uniquePostPositions[index - 1];
-        const segmentEnd = uniquePostPositions[index];
-        const railGap = 0.012;
-        const postHalfWidth = 0.05;
-        const segmentLength = Math.max(
-          0.01,
-          segmentEnd - segmentStart - postHalfWidth * 2 - railGap * 2,
-        );
-        const segmentCenter = (segmentStart + segmentEnd) / 2;
-        this.#addBoxMatrix(
-          batches,
-          "path",
-          sideMaterial,
-          span.horizontal
-            ? segmentCenter - (cols - 1) / 2
-            : railX,
-          height + 0.34,
-          span.horizontal
-            ? railZ
-            : segmentCenter - (rows - 1) / 2,
-          0,
-          span.horizontal ? segmentLength : 0.1,
-          0.1,
-          span.horizontal ? 0.1 : segmentLength,
-          "full",
-          sideMaterial,
-        );
-      }
-      for (const position of uniquePostPositions) {
-        this.#addBoxMatrix(
-          batches,
-          "path",
-          sideMaterial,
-          span.horizontal ? position - (cols - 1) / 2 : railX,
-          height + 0.17,
-          span.horizontal ? railZ : position - (rows - 1) / 2,
-          0,
-          0.1,
-          0.38,
-          0.1,
-          "full",
-          sideMaterial,
-        );
-      }
-    }
-  }
-
-  #addOverpassRailings(batches, overpass, sideMaterial, cols, rows) {
-    const pathCells = [
-      ...overpass.slopeCells,
-      ...overpass.approachCells,
-      ...overpass.crossingCells,
-    ];
-    const start = Math.min(...pathCells.map((cell) => cell.row));
-    const end = Math.max(...pathCells.map((cell) => cell.row));
-    const postPositions = [start - 0.34, end + 0.34];
-    for (let position = start + 0.5; position < end; position += 1) {
-      postPositions.push(position);
-    }
-    postPositions.sort((left, right) => left - right);
-
-    const centerX =
-      overpass.crossing.col +
-      (overpass.crossing.width - 1) / 2 -
-      (cols - 1) / 2;
-    for (const side of [-1, 1]) {
-      const railX = centerX + side * 0.93;
-      for (let index = 1; index < postPositions.length; index += 1) {
-        const segmentStart = postPositions[index - 1];
-        const segmentEnd = postPositions[index];
-        const startHeight = this.#overpassRailHeightAt(
-          overpass,
-          segmentStart,
-        );
-        const endHeight = this.#overpassRailHeightAt(overpass, segmentEnd);
-        const run = segmentEnd - segmentStart;
-        const rise = endHeight - startHeight;
-        const fullLength = Math.hypot(run, rise);
-        const segmentLength = Math.max(0.01, fullLength - 0.124);
-        const pitch = (Math.atan2(rise, run) * 180) / Math.PI;
-        this.#addBoxMatrix(
-          batches,
-          "path",
-          sideMaterial,
-          railX,
-          (startHeight + endHeight) / 2 + 0.34,
-          (segmentStart + segmentEnd) / 2 - (rows - 1) / 2,
-          0,
-          0.1,
-          0.1,
-          segmentLength,
-          "full",
-          sideMaterial,
-          -pitch,
-        );
-      }
-
-      for (const position of postPositions) {
-        const height = this.#overpassRailHeightAt(overpass, position);
-        this.#addBoxMatrix(
-          batches,
-          "path",
-          sideMaterial,
-          railX,
-          height + 0.17,
-          position - (rows - 1) / 2,
-          0,
-          0.1,
-          0.38,
-          0.1,
-          "full",
-          sideMaterial,
-        );
-      }
-    }
-  }
-
-  #overpassRailHeightAt(overpass, position) {
-    for (const slope of overpass.slopeCells) {
-      if (position < slope.row - 0.5 || position > slope.row + 0.5) {
-        continue;
-      }
-      const localPosition = position - slope.row + 0.5;
-      const progress =
-        slope.riseDirection === "NORTH"
-          ? 1 - localPosition
-          : localPosition;
-      return (
-        slope.lowHeight +
-        (slope.highHeight - slope.lowHeight) * progress
-      );
-    }
-    return overpass.deckElevation;
+  #addBridgeSpanRailings(span, height, sideMaterial, cols, rows) {
+    this.#bridgeRailingKit.addSpan(
+      span,
+      height,
+      sideMaterial,
+      cols,
+      rows,
+    );
   }
 
   #buildIslandUndersideMatrices(batches, voxels) {
@@ -2011,7 +1895,63 @@ export class PlayCanvasRenderer {
     this.#cloudField?.update(deltaTime);
     this.#updateHeroCameraReturn(deltaTime);
     this.#updateGameOverCamera(deltaTime);
+    this.#updateFloatingIslandMotion(deltaTime);
   };
+
+  #updateFloatingIslandMotion(deltaTime) {
+    if (
+      !this.#floatingIslandMotion ||
+      !this.#camera?.camera ||
+      !this.#cloudField?.entity
+    ) {
+      return;
+    }
+    const offset = this.#floatingIslandMotion.update(deltaTime);
+    // Express the motion in screen pixels so the hover remains consistent
+    // without adding a full-screen filter over thin geometry.
+    const worldUnitsPerPixel =
+      (2 * this.#camera.camera.orthoHeight) /
+      Math.max(1, this.canvas.clientHeight);
+    this.#setFloatingCameraOffset(
+      -offset.x * worldUnitsPerPixel,
+      -offset.y * worldUnitsPerPixel,
+    );
+  }
+
+  #setFloatingCameraOffset(x, y) {
+    if (!this.#camera) {
+      return;
+    }
+    if (this.#floatingCameraOffsetApplied) {
+      this.#camera.translateLocal(
+        -this.#floatingCameraOffsetX,
+        -this.#floatingCameraOffsetY,
+        0,
+      );
+    }
+    this.#floatingCameraOffsetX = x;
+    this.#floatingCameraOffsetY = y;
+    this.#floatingCameraLocalOffset.set(
+      this.#floatingCameraOffsetX,
+      this.#floatingCameraOffsetY,
+      0,
+    );
+    this.#camera
+      .getRotation()
+      .transformVector(
+        this.#floatingCameraLocalOffset,
+        this.#floatingCloudOffset,
+      );
+    this.#camera.translateLocal(
+      this.#floatingCameraOffsetX,
+      this.#floatingCameraOffsetY,
+      0,
+    );
+    this.#floatingCameraOffsetApplied = true;
+    if (this.#cloudField) {
+      this.#cloudField.floatingOffset = this.#floatingCloudOffset;
+    }
+  }
 
   #handleInventoryFull = (inventory) => {
     this.#inventoryHud?.showFullReaction(
@@ -2333,7 +2273,7 @@ export class PlayCanvasRenderer {
       block: { positions: [], normals: [], uvs: [], indices: [] },
     };
     const slopeGroupNames = {};
-    for (const direction of ["NORTH", "SOUTH", "EAST", "WEST"]) {
+    for (const direction of Object.values(SLOPE_DIRECTION)) {
       for (const stage of ["Lower", "Upper"]) {
         const coverage = `slope${direction}${stage}`;
         const surface = `${coverage}Surface`;
@@ -2525,9 +2465,15 @@ export class PlayCanvasRenderer {
       const low = isUpper ? 0.5 : 0;
       const high = isUpper ? 1 : 0.5;
       const cornerHeight = (x, z) => {
-        if (direction === "NORTH") return z < 0 ? high : low;
-        if (direction === "SOUTH") return z > 0 ? high : low;
-        if (direction === "EAST") return x > 0 ? high : low;
+        if (direction === SLOPE_DIRECTION.NORTH) {
+          return z < 0 ? high : low;
+        }
+        if (direction === SLOPE_DIRECTION.SOUTH) {
+          return z > 0 ? high : low;
+        }
+        if (direction === SLOPE_DIRECTION.EAST) {
+          return x > 0 ? high : low;
+        }
         return x < 0 ? high : low;
       };
       const northWest = [-half, cornerHeight(-half, -half), -half];
@@ -2947,6 +2893,7 @@ export class PlayCanvasRenderer {
       this.#cameraTargetY,
       this.#panZ,
     );
+    this.#floatingCameraOffsetApplied = false;
     this.#camera.setPosition(
       target.x + Math.sin(yaw) * horizontalDistance,
       target.y + Math.sin(CAMERA_PITCH) * CAMERA_DISTANCE,
@@ -2954,12 +2901,19 @@ export class PlayCanvasRenderer {
     );
     this.#camera.lookAt(target);
     this.#camera.camera.orthoHeight = this.#baseOrthoHeight / this.#zoom;
+    if (this.#floatingIslandMotion) {
+      this.#floatingIslandMotion.zoom = this.#zoom;
+    }
     this.#cloudField?.setCameraState({
       rotation: this.#rotation,
       panX: this.#panX,
       panZ: this.#panZ,
       zoom: this.#zoom,
     });
+    this.#setFloatingCameraOffset(
+      this.#floatingCameraOffsetX,
+      this.#floatingCameraOffsetY,
+    );
     this.#updateHeroIdleLookTarget();
     this.#notifyViewportChange();
   }
@@ -3042,11 +2996,26 @@ export class PlayCanvasRenderer {
     if (this.#bannerInteractionConnected || !this.canvas) {
       return;
     }
-    this.canvas.addEventListener("pointerdown", this.#handleBannerPointerDown);
-    this.canvas.addEventListener("pointermove", this.#handleBannerPointerMove);
-    this.canvas.addEventListener("pointerup", this.#handleBannerPointerUp);
-    this.canvas.addEventListener("pointercancel", this.#handleBannerPointerUp);
-    this.canvas.addEventListener("pointerleave", this.#handlePointerLeave);
+    this.canvas.addEventListener(
+      INPUT_EVENT_TYPE.POINTER_DOWN,
+      this.#handleBannerPointerDown,
+    );
+    this.canvas.addEventListener(
+      INPUT_EVENT_TYPE.POINTER_MOVE,
+      this.#handleBannerPointerMove,
+    );
+    this.canvas.addEventListener(
+      INPUT_EVENT_TYPE.POINTER_UP,
+      this.#handleBannerPointerUp,
+    );
+    this.canvas.addEventListener(
+      INPUT_EVENT_TYPE.POINTER_CANCEL,
+      this.#handleBannerPointerUp,
+    );
+    this.canvas.addEventListener(
+      INPUT_EVENT_TYPE.POINTER_LEAVE,
+      this.#handlePointerLeave,
+    );
     this.#bannerInteractionConnected = true;
   }
 
@@ -3055,19 +3024,25 @@ export class PlayCanvasRenderer {
       return;
     }
     this.canvas.removeEventListener(
-      "pointerdown",
+      INPUT_EVENT_TYPE.POINTER_DOWN,
       this.#handleBannerPointerDown,
     );
     this.canvas.removeEventListener(
-      "pointermove",
+      INPUT_EVENT_TYPE.POINTER_MOVE,
       this.#handleBannerPointerMove,
     );
-    this.canvas.removeEventListener("pointerup", this.#handleBannerPointerUp);
     this.canvas.removeEventListener(
-      "pointercancel",
+      INPUT_EVENT_TYPE.POINTER_UP,
       this.#handleBannerPointerUp,
     );
-    this.canvas.removeEventListener("pointerleave", this.#handlePointerLeave);
+    this.canvas.removeEventListener(
+      INPUT_EVENT_TYPE.POINTER_CANCEL,
+      this.#handleBannerPointerUp,
+    );
+    this.canvas.removeEventListener(
+      INPUT_EVENT_TYPE.POINTER_LEAVE,
+      this.#handlePointerLeave,
+    );
     this.#finishBannerWindGesture();
     this.#clearHeroIdleLookTarget();
     this.#bannerInteractionConnected = false;
@@ -3282,6 +3257,10 @@ export class PlayCanvasRenderer {
     this.#castle = null;
     this.#heroVisibility?.destroy();
     this.#heroVisibility = null;
+    this.#floatingIslandMotion = null;
+    this.#floatingCameraOffsetX = 0;
+    this.#floatingCameraOffsetY = 0;
+    this.#floatingCameraOffsetApplied = false;
     this.#axeTool?.destroy();
     this.#axeTool = null;
     this.#knifeTool?.destroy();
@@ -3310,6 +3289,7 @@ export class PlayCanvasRenderer {
     this.#setInteractionTarget(null);
     this.#mapRoot?.destroy();
     this.#mapRoot = null;
+    this.#bridgeRailingKit = null;
     this.#collisionWorld.clear();
     this.#pathOverpassCollider = null;
     for (const buffer of this.#vertexBuffers) buffer.destroy();

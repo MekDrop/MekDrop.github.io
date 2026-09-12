@@ -12,6 +12,7 @@ const CUBE_SIZE = 1.08;
 const CUBE_STEP = 0.9;
 const WIND_FIELD_SCALE = 1.05;
 const BLUE_NOISE_CANDIDATES = 48;
+const CLOUD_RECYCLE_PADDING_PIXELS = 32;
 const FAR_CLOUD_BANK_COUNT = 3;
 const FAR_CLOUD_BANK_OFFSETS = Object.freeze([
   { x: 0, y: 0, z: 0 },
@@ -115,6 +116,8 @@ const CLOUD_VARIANTS = Object.freeze(
 export class CubeCloudField {
   #pc;
   #app;
+  #camera;
+  #canvas;
   #mapData;
   #layerId;
   #entity;
@@ -127,11 +130,14 @@ export class CubeCloudField {
   #windDirection = { ...AMBIENT_WIND_DIRECTION };
   #viewRotation = null;
   #cameraState = { panX: 0, panZ: 0, zoom: 1 };
+  #floatingOffset = { x: 0, y: 0, z: 0 };
   #seed;
 
-  constructor({ pc, app, mapData, layerId }) {
+  constructor({ pc, app, camera, mapData, layerId }) {
     this.#pc = pc;
     this.#app = app;
+    this.#camera = camera;
+    this.#canvas = app.graphicsDevice.canvas;
     this.#mapData = mapData;
     this.#layerId = layerId;
     this.#seed = this.#hashString(mapData.layoutSignature ?? "cube-clouds");
@@ -165,16 +171,29 @@ export class CubeCloudField {
     this.#windDirection = wind.direction;
     for (const cluster of this.#clusters) {
       const travel = this.#windSpeed * cluster.speedScale * frameTime;
-      cluster.x = this.#wrapFieldPosition(
-        cluster.x + this.#windDirection.x * travel,
+      const nextX = cluster.x + this.#windDirection.x * travel;
+      const nextZ = cluster.z + this.#windDirection.z * travel;
+      const wrappedX = this.#wrapFieldPosition(
+        nextX,
         cluster.fieldMinimum,
         cluster.fieldSpan,
       );
-      cluster.z = this.#wrapFieldPosition(
-        cluster.z + this.#windDirection.z * travel,
+      const wrappedZ = this.#wrapFieldPosition(
+        nextZ,
         cluster.fieldMinimum,
         cluster.fieldSpan,
       );
+      const outsideField =
+        nextX < cluster.fieldMinimum ||
+        nextX >= cluster.fieldMinimum + cluster.fieldSpan ||
+        nextZ < cluster.fieldMinimum ||
+        nextZ >= cluster.fieldMinimum + cluster.fieldSpan;
+      const safelyRecyclable =
+        outsideField &&
+        this.#isSafelyOffscreen(cluster, nextX, nextZ) &&
+        this.#isSafelyOffscreen(cluster, wrappedX, wrappedZ);
+      cluster.x = safelyRecyclable ? wrappedX : nextX;
+      cluster.z = safelyRecyclable ? wrappedZ : nextZ;
       this.#positionCluster(cluster);
     }
   }
@@ -182,6 +201,15 @@ export class CubeCloudField {
   setCameraState({ rotation, panX, panZ, zoom }) {
     this.#cameraState = { panX, panZ, zoom };
     this.#setViewRotation(rotation);
+    for (const cluster of this.#clusters) this.#positionCluster(cluster);
+  }
+
+  set floatingOffset(value) {
+    this.#floatingOffset = {
+      x: value.x,
+      y: value.y,
+      z: value.z,
+    };
     for (const cluster of this.#clusters) this.#positionCluster(cluster);
   }
 
@@ -345,6 +373,11 @@ export class CubeCloudField {
         x: initialPosition.x,
         z: initialPosition.z,
         baseScale: scale,
+        baseRadius:
+          (Math.max(...variant.map(([x, y, z]) => Math.hypot(x, y, z))) *
+            CUBE_STEP +
+            (CUBE_SIZE * Math.sqrt(3)) / 2) *
+          scale,
         depthLayerIndex,
         fieldMinimum,
         fieldSpan,
@@ -363,10 +396,48 @@ export class CubeCloudField {
     const displayScale =
       cluster.baseScale * Math.pow(zoom, depthLayer.zoomResponse - 1);
     cluster.entity.setLocalScale(displayScale, displayScale, displayScale);
+    // Offset every depth layer together with the floating camera so the
+    // original wind speed and camera-parallax relationships stay unchanged.
     cluster.entity.setLocalPosition(
-      cluster.x + panX * depthLayer.cameraFollow,
-      cluster.originY,
-      cluster.z + panZ * depthLayer.cameraFollow,
+      cluster.x +
+        panX * depthLayer.cameraFollow +
+        this.#floatingOffset.x,
+      cluster.originY + this.#floatingOffset.y,
+      cluster.z +
+        panZ * depthLayer.cameraFollow +
+        this.#floatingOffset.z,
+    );
+  }
+
+  #isSafelyOffscreen(cluster, x, z) {
+    const position = this.#clusterPosition(cluster, x, z);
+    const screenPosition = this.#camera.worldToScreen(position);
+    const width = Math.max(1, this.#canvas.clientWidth);
+    const height = Math.max(1, this.#canvas.clientHeight);
+    const pixelsPerWorldUnit =
+      height / Math.max(Number.EPSILON, this.#camera.orthoHeight * 2);
+    const displayScale = Math.pow(
+      this.#cameraState.zoom,
+      CLOUD_DEPTH_LAYERS[cluster.depthLayerIndex].zoomResponse - 1,
+    );
+    const margin =
+      cluster.baseRadius * displayScale * pixelsPerWorldUnit +
+      CLOUD_RECYCLE_PADDING_PIXELS;
+    return (
+      screenPosition.x < -margin ||
+      screenPosition.x > width + margin ||
+      screenPosition.y < -margin ||
+      screenPosition.y > height + margin
+    );
+  }
+
+  #clusterPosition(cluster, x, z) {
+    const depthLayer = CLOUD_DEPTH_LAYERS[cluster.depthLayerIndex];
+    const { panX, panZ } = this.#cameraState;
+    return new this.#pc.Vec3(
+      x + panX * depthLayer.cameraFollow + this.#floatingOffset.x,
+      cluster.originY + this.#floatingOffset.y,
+      z + panZ * depthLayer.cameraFollow + this.#floatingOffset.z,
     );
   }
 

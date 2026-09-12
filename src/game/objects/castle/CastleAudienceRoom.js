@@ -2,6 +2,7 @@ import { SeatedRoyal } from "./SeatedRoyal.js";
 import { CastleThrone } from "./CastleThrone.js";
 import { CastleFire } from "./CastleFire.js";
 import { GAME_OVER_VIEW_ROTATION_BY_SIDE } from "../../enum/GameOverViewRotation.js";
+import { colorFromHex } from "../../helpers/colors.js";
 
 const ROOM_MATERIALS = {
   carpetDark: { color: 0x751f34, gloss: 0.05 },
@@ -285,12 +286,12 @@ export class CastleAudienceRoom {
 
       const material = new this.#pc.StandardMaterial();
       material.name = `Audience room ${name}`;
-      material.diffuse = this.#color(definition.color);
+      material.diffuse = colorFromHex(this.#pc, definition.color);
       material.gloss = definition.gloss ?? 0.08;
       material.metalness = definition.metalness ?? 0;
       material.useMetalness = true;
       if (definition.emissive) {
-        material.emissive = this.#color(definition.emissive);
+        material.emissive = colorFromHex(this.#pc, definition.emissive);
         material.emissiveIntensity = 1.5;
       }
       material.update();
@@ -623,11 +624,4 @@ export class CastleAudienceRoom {
     return this.#materials.get(name) ?? this.#sharedMaterials.get(sharedName);
   }
 
-  #color(value) {
-    return new this.#pc.Color(
-      ((value >> 16) & 0xff) / 255,
-      ((value >> 8) & 0xff) / 255,
-      (value & 0xff) / 255,
-    );
-  }
 }

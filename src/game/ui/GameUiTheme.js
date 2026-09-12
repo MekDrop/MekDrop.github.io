@@ -4,6 +4,7 @@ import {
   MissingGameUiThemeColorRoleError,
   MissingGameUiThemeTokenError,
 } from "../errors/ui/index.js";
+import { isNumber } from "../helpers/types.js";
 
 const QUASAR_COLOR_ROLES = [
   "primary",
@@ -269,7 +270,7 @@ export class GameUiTheme {
   }
 
   #parseColor(value, role) {
-    if (typeof value === "number") {
+    if (isNumber(value)) {
       return {
         red: (value >> 16) & 0xff,
         green: (value >> 8) & 0xff,

@@ -1,5 +1,6 @@
 import { DEFAULT_CONTROLS } from "src/game/config/controls.js";
 import { CameraDrag } from "src/game/controls/CameraDrag.js";
+import { INPUT_EVENT_TYPE } from "src/game/enum/InputEventType.js";
 
 export class GameControls {
   #element;
@@ -54,35 +55,65 @@ export class GameControls {
   }
 
   connect() {
-    window.addEventListener("keydown", this.#handleKeydown, true);
-    window.addEventListener("keyup", this.#handleKeyup, true);
-    window.addEventListener("blur", this.#clearMovement);
-    document.addEventListener("visibilitychange", this.#handleVisibilityChange);
-    this.#element.addEventListener("wheel", this.#handleWheel, {
+    window.addEventListener(INPUT_EVENT_TYPE.KEY_DOWN, this.#handleKeydown, true);
+    window.addEventListener(INPUT_EVENT_TYPE.KEY_UP, this.#handleKeyup, true);
+    window.addEventListener(INPUT_EVENT_TYPE.BLUR, this.#clearMovement);
+    document.addEventListener(
+      INPUT_EVENT_TYPE.VISIBILITY_CHANGE,
+      this.#handleVisibilityChange,
+    );
+    this.#element.addEventListener(INPUT_EVENT_TYPE.WHEEL, this.#handleWheel, {
       passive: false,
     });
-    this.#element.addEventListener("pointerdown", this.#handlePointerDown);
-    this.#element.addEventListener("pointermove", this.#handlePointerMove);
-    this.#element.addEventListener("pointerup", this.#handlePointerUp);
-    this.#element.addEventListener("pointercancel", this.#handlePointerUp);
-    this.#element.addEventListener("pointerleave", this.#handlePointerLeave);
+    this.#element.addEventListener(
+      INPUT_EVENT_TYPE.POINTER_DOWN,
+      this.#handlePointerDown,
+    );
+    this.#element.addEventListener(
+      INPUT_EVENT_TYPE.POINTER_MOVE,
+      this.#handlePointerMove,
+    );
+    this.#element.addEventListener(
+      INPUT_EVENT_TYPE.POINTER_UP,
+      this.#handlePointerUp,
+    );
+    this.#element.addEventListener(
+      INPUT_EVENT_TYPE.POINTER_CANCEL,
+      this.#handlePointerUp,
+    );
+    this.#element.addEventListener(
+      INPUT_EVENT_TYPE.POINTER_LEAVE,
+      this.#handlePointerLeave,
+    );
   }
 
   disconnect() {
-    window.removeEventListener("keydown", this.#handleKeydown, true);
-    window.removeEventListener("keyup", this.#handleKeyup, true);
-    window.removeEventListener("blur", this.#clearMovement);
+    window.removeEventListener(INPUT_EVENT_TYPE.KEY_DOWN, this.#handleKeydown, true);
+    window.removeEventListener(INPUT_EVENT_TYPE.KEY_UP, this.#handleKeyup, true);
+    window.removeEventListener(INPUT_EVENT_TYPE.BLUR, this.#clearMovement);
     document.removeEventListener(
-      "visibilitychange",
+      INPUT_EVENT_TYPE.VISIBILITY_CHANGE,
       this.#handleVisibilityChange,
     );
-    this.#element.removeEventListener("wheel", this.#handleWheel);
-    this.#element.removeEventListener("pointerdown", this.#handlePointerDown);
-    this.#element.removeEventListener("pointermove", this.#handlePointerMove);
-    this.#element.removeEventListener("pointerup", this.#handlePointerUp);
-    this.#element.removeEventListener("pointercancel", this.#handlePointerUp);
+    this.#element.removeEventListener(INPUT_EVENT_TYPE.WHEEL, this.#handleWheel);
     this.#element.removeEventListener(
-      "pointerleave",
+      INPUT_EVENT_TYPE.POINTER_DOWN,
+      this.#handlePointerDown,
+    );
+    this.#element.removeEventListener(
+      INPUT_EVENT_TYPE.POINTER_MOVE,
+      this.#handlePointerMove,
+    );
+    this.#element.removeEventListener(
+      INPUT_EVENT_TYPE.POINTER_UP,
+      this.#handlePointerUp,
+    );
+    this.#element.removeEventListener(
+      INPUT_EVENT_TYPE.POINTER_CANCEL,
+      this.#handlePointerUp,
+    );
+    this.#element.removeEventListener(
+      INPUT_EVENT_TYPE.POINTER_LEAVE,
       this.#handlePointerLeave,
     );
     this.#cameraDrag.cancel();
@@ -184,7 +215,7 @@ export class GameControls {
     if (event.pointerId === this.#inventoryPointerId) {
       event.preventDefault();
       this.#inventoryPointerId = null;
-      if (event.type === "pointercancel") {
+      if (event.type === INPUT_EVENT_TYPE.POINTER_CANCEL) {
         this.#actions.toggleInventory.cancelPointer();
       } else {
         this.#actions.toggleInventory.releasePointer(

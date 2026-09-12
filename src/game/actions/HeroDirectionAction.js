@@ -1,3 +1,5 @@
+import { INPUT_EVENT_TYPE } from "../enum/InputEventType.js";
+
 export class HeroDirectionAction {
   #heroMovement;
   #direction;
@@ -10,7 +12,7 @@ export class HeroDirectionAction {
   }
 
   invoke(event) {
-    if (event.type === "keyup") {
+    if (event.type === INPUT_EVENT_TYPE.KEY_UP) {
       this.#heroMovement.releaseDirection(this.#direction);
       return;
     }

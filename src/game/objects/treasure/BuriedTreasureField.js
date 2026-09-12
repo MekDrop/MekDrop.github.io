@@ -2,6 +2,7 @@ import { TileType } from "../../MapGenerator.js";
 import { GRASS_SURFACE_LIFT } from "../../config/terrain.js";
 import { COIN_TYPE } from "../../enum/CoinType.js";
 import { MOVEMENT_REFUSAL } from "../../enum/MovementRefusal.js";
+import { colorFromHex } from "../../helpers/colors.js";
 import coinModelUrl from "../../models/treasure/coin.glb?url";
 import chestModelUrl from "../../models/treasure/treasure-chest.glb?url";
 import earthModelUrl from "../../models/treasure/excavated-earth.glb?url";
@@ -851,11 +852,7 @@ export class BuriedTreasureField {
   #createMaterial(name, color, metalness) {
     const material = new this.#pc.StandardMaterial();
     material.name = name;
-    material.diffuse = new this.#pc.Color(
-      ((color >> 16) & 0xff) / 255,
-      ((color >> 8) & 0xff) / 255,
-      (color & 0xff) / 255,
-    );
+    material.diffuse = colorFromHex(this.#pc, color);
     material.metalness = metalness;
     material.useMetalness = true;
     material.gloss = metalness > 0.5 ? 0.7 : 0.05;

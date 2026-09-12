@@ -1,3 +1,5 @@
+import { colorFromHex } from "../../helpers/colors.js";
+
 const ROOF_TILE_COLORS = [0x168bea, 0x117ddd, 0x0d70cf, 0x0a62bd];
 
 const ROOF_TILE_SIZE = 0.46;
@@ -119,11 +121,7 @@ export class CastleRoof {
   #createMaterial(color, name, gloss = 0.08) {
     const material = new this.#pc.StandardMaterial();
     material.name = name;
-    material.diffuse = new this.#pc.Color(
-      ((color >> 16) & 0xff) / 255,
-      ((color >> 8) & 0xff) / 255,
-      (color & 0xff) / 255,
-    );
+    material.diffuse = colorFromHex(this.#pc, color);
     material.gloss = gloss;
     material.cull = this.#pc.CULLFACE_NONE;
     material.useLighting = false;
