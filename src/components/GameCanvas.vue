@@ -189,7 +189,6 @@ const canvas = ref(null);
 const gameReady = ref(false);
 const graphicsBackend = ref("initializing");
 const showGraphicsFallbackDialog = ref(false);
-const debugVisible = ref(false);
 const debugFramesPerSecond = ref(0);
 const interactionTarget = ref(null);
 const heroLives = ref(3);
@@ -200,10 +199,11 @@ const currentMapSignature = computed(() => currentMapName.value);
 const { t } = useI18n();
 const route = useRoute();
 const router = useRouter();
-const graphicsStore = useGraphicsSettingsStore();
+const graphicsSettingsStore = useGraphicsSettingsStore();
 const debugStore = useDebugStore();
 const gameViewStore = useGameViewStore();
 const heroConfigurationStore = useHeroConfigurationStore();
+const debugVisible = computed(() => debugStore.hasAny);
 const interactionLabel = computed(() =>
   interactionTarget.value?.labelKey
     ? t(interactionTarget.value.labelKey)
@@ -214,14 +214,11 @@ let mapData = null;
 let controls = null;
 let resizeObserver = null;
 let debugStatsTimer = null;
-let stopGraphicsWatch = null;
 let stopMapRouteWatch = null;
 let restartGameAction = null;
 let mapFileLoader = null;
 let mapNavigationId = 0;
 let mapRouteLoadPromise = Promise.resolve();
-let viewportSaveTimer = null;
-let viewportPersistenceEnabled = false;
 let interactionSuggestion = null;
 
 function gameUiTheme() {
@@ -244,23 +241,6 @@ function gameUiTheme() {
     spaceLg: styles.getPropertyValue("--app-ui-space-lg").trim(),
     spaceXl: styles.getPropertyValue("--app-ui-space-xl").trim(),
   };
-}
-
-function saveViewport() {
-  viewportSaveTimer = null;
-  if (renderer) {
-    gameViewStore.updateViewport(renderer.viewport);
-  }
-}
-
-function scheduleViewportSave() {
-  if (!viewportPersistenceEnabled) {
-    return;
-  }
-  if (viewportSaveTimer !== null) {
-    window.clearTimeout(viewportSaveTimer);
-  }
-  viewportSaveTimer = window.setTimeout(saveViewport, 150);
 }
 
 function cameraTestRequested() {
@@ -302,7 +282,6 @@ function mapRouteLocation(mapName) {
 function updateCurrentMap(generatedMap) {
   mapData = generatedMap;
   currentMapName.value = generatedMap.mapName;
-  applyGraphicsSettings();
   installMovementTestDriver();
 }
 
@@ -412,17 +391,6 @@ function updateDebugStats() {
   debugFramesPerSecond.value = renderer?.framesPerSecond ?? 0;
 }
 
-function applyGraphicsSettings() {
-  if (!renderer) {
-    return;
-  }
-
-  renderer.pathArrowsVisible = debugStore.pathArrows;
-  renderer.debugAxesHudVisible = debugStore.debugAxesHud;
-  renderer.debugFpsHudVisible = debugStore.debugFpsHud;
-  debugVisible.value = debugStore.hasAny;
-}
-
 async function init() {
   const bindings = DEFAULT_CONTROLS;
   interactionSuggestion = new InteractionSuggestion((target) => {
@@ -438,25 +406,22 @@ async function init() {
       maxHeroLives.value = state.maxLives;
       gameOver.value = state.gameOver;
     },
-    onViewportChange: scheduleViewportSave,
     t,
-    graphics: graphicsStore.rendererOptions,
-    heroConfiguration: heroConfigurationStore,
+    debugStore,
+    gameViewStore,
+    graphicsSettingsStore,
+    heroConfigurationStore,
     uiTheme: gameUiTheme(),
   });
   await renderer.init();
   graphicsBackend.value = renderer.graphicsBackend;
   mapData = await createMap(requestedMapName());
   renderer.render(mapData);
-  renderer.setViewport(gameViewStore.viewport);
   updateCurrentMap(mapData);
   if (!requestedMapName()) {
     await router.replace(mapRouteLocation(mapData.mapName));
   }
-  gameViewStore.updateViewport(renderer.viewport);
-  viewportPersistenceEnabled = true;
   installCameraTestDriver();
-  applyGraphicsSettings();
   updateDebugStats();
 
   const regenerateMapAction = new RegenerateMapAction(
@@ -533,14 +498,6 @@ async function init() {
 
   resizeObserver = new ResizeObserver(() => renderer.resize());
   resizeObserver.observe(container.value);
-  stopGraphicsWatch = watch(
-    () => [
-      debugStore.pathArrows,
-      debugStore.debugAxesHud,
-      debugStore.debugFpsHud,
-    ],
-    applyGraphicsSettings,
-  );
   stopMapRouteWatch = watch(
     () => route.params.mapName,
     (mapName) => {
@@ -569,11 +526,6 @@ onBeforeUnmount(() => {
     delete window.gameCameraTest;
   }
   controls?.disconnect();
-  if (viewportSaveTimer !== null) {
-    window.clearTimeout(viewportSaveTimer);
-    saveViewport();
-  }
-  stopGraphicsWatch?.();
   stopMapRouteWatch?.();
   resizeObserver?.disconnect();
   if (debugStatsTimer !== null) window.clearInterval(debugStatsTimer);

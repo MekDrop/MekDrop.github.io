@@ -33,7 +33,6 @@ import { ThrownInventoryItem } from "./objects/inventory/index.js";
 import { TileType } from "./MapGenerator.js";
 import { GRASS_SURFACE_LIFT } from "./config/terrain.js";
 import { GRAPHICS_DRIVER } from "./enum/GraphicsDriver.js";
-import { POWER_PREFERENCE } from "./enum/PowerPreference.js";
 import { POINTER_TYPE } from "./enum/PointerType.js";
 import { TILE_SHAPE } from "./enum/TileShape.js";
 import {
@@ -163,7 +162,6 @@ const CUBE_SCALE = 1;
 const CAMERA_PITCH = Math.atan(1 / Math.sqrt(2));
 const CAMERA_DISTANCE = 80;
 const SHADOW_DISTANCE = 150;
-const SHADOW_RESOLUTION = 2048;
 const GLSLANG_URL = "/game/wasm/glslang/glslang.js";
 const TWGSL_URL = "/game/wasm/twgsl/twgsl.js";
 const MAP_FIT_ZOOM = 1;
@@ -239,15 +237,19 @@ export class PlayCanvasRenderer {
   #onInteractionChange = null;
   #onHeroStateChange = null;
   #onInventoryFull = null;
-  #onViewportChange = null;
   #viewportSignature = "";
+  #viewportPersistenceEnabled = false;
+  #viewportSaveTimer = null;
   #heroCameraReturnTransition = null;
   #gameOverCameraTransition = null;
   #gameOverCameraLocked = false;
   #gameOverReturnViewport = null;
-  #graphics = null;
+  #debugStore = null;
+  #gameViewStore = null;
+  #graphicsSettingsStore = null;
+  #heroConfigurationStore = null;
+  #stopDebugStoreSubscription = null;
   #translate = (key) => key;
-  #heroConfiguration = null;
   #uiTheme = null;
 
   constructor(
@@ -257,10 +259,11 @@ export class PlayCanvasRenderer {
       onInteractionChange = null,
       onHeroStateChange = null,
       onInventoryFull = null,
-      onViewportChange = null,
       t = (key) => key,
-      graphics = {},
-      heroConfiguration,
+      debugStore,
+      gameViewStore,
+      graphicsSettingsStore,
+      heroConfigurationStore,
       uiTheme,
     } = {},
   ) {
@@ -269,22 +272,13 @@ export class PlayCanvasRenderer {
     this.#onInteractionChange = onInteractionChange;
     this.#onHeroStateChange = onHeroStateChange;
     this.#onInventoryFull = onInventoryFull;
-    this.#heroConfiguration = heroConfiguration;
+    this.#debugStore = debugStore;
+    this.#gameViewStore = gameViewStore;
+    this.#graphicsSettingsStore = graphicsSettingsStore;
+    this.#heroConfigurationStore = heroConfigurationStore;
     this.#uiTheme = new GameUiTheme(uiTheme);
-    this.#heroConfiguration?.normalizeInventorySlots?.();
+    this.#heroConfigurationStore.normalizeInventorySlots();
     this.#translate = t;
-    this.#onViewportChange = onViewportChange;
-    this.#graphics = {
-      driver: GRAPHICS_DRIVER.AUTO,
-      antialias: true,
-      powerPreference: POWER_PREFERENCE.HIGH_PERFORMANCE,
-      maxPixelRatio: 2,
-      mipmaps: true,
-      anisotropy: 8,
-      shadows: true,
-      shadowResolution: SHADOW_RESOLUTION,
-      ...graphics,
-    };
   }
 
   t(key, values) {
@@ -292,10 +286,10 @@ export class PlayCanvasRenderer {
   }
 
   #resolveDeviceTypes(pc) {
-    if (this.#graphics.driver === GRAPHICS_DRIVER.WEBGPU) {
+    if (this.#graphicsSettingsStore.driver === GRAPHICS_DRIVER.WEBGPU) {
       return [pc.DEVICETYPE_WEBGPU];
     }
-    if (this.#graphics.driver === GRAPHICS_DRIVER.WEBGL2) {
+    if (this.#graphicsSettingsStore.driver === GRAPHICS_DRIVER.WEBGL2) {
       return [pc.DEVICETYPE_WEBGL2];
     }
     return [pc.DEVICETYPE_WEBGPU, pc.DEVICETYPE_WEBGL2];
@@ -312,17 +306,17 @@ export class PlayCanvasRenderer {
       deviceTypes: this.#resolveDeviceTypes(pc),
       glslangUrl: GLSLANG_URL,
       twgslUrl: TWGSL_URL,
-      antialias: this.#graphics.antialias,
+      antialias: this.#graphicsSettingsStore.antialias,
       alpha: false,
       preserveDrawingBuffer: true,
-      powerPreference: this.#graphics.powerPreference,
+      powerPreference: this.#graphicsSettingsStore.powerPreference,
     });
     this.#app = new pc.Application(this.canvas, { graphicsDevice });
     this.#app.setCanvasFillMode(pc.FILLMODE_NONE);
     this.#app.setCanvasResolution(pc.RESOLUTION_AUTO);
     this.#app.graphicsDevice.maxPixelRatio = Math.min(
       window.devicePixelRatio || 1,
-      this.#graphics.maxPixelRatio,
+      this.#graphicsSettingsStore.maxPixelRatio,
     );
 
     this.#app.scene.ambientLight = new pc.Color(0.5, 0.57, 0.64);
@@ -374,7 +368,7 @@ export class PlayCanvasRenderer {
     });
     this.#inventoryHud.attach();
     this.#inventoryHud.visible = Boolean(
-      this.#heroConfiguration?.inventory.visible,
+      this.#heroConfigurationStore.inventory.visible,
     );
     this.#gameOverHud = new GameOverHud({
       pc,
@@ -402,10 +396,10 @@ export class PlayCanvasRenderer {
       type: "directional",
       color: new pc.Color(1, 0.93, 0.8),
       intensity: 2.1,
-      castShadows: this.#graphics.shadows,
+      castShadows: this.#graphicsSettingsStore.shadows,
       shadowType: pc.SHADOW_PCF5,
       shadowDistance: SHADOW_DISTANCE,
-      shadowResolution: this.#graphics.shadowResolution,
+      shadowResolution: this.#graphicsSettingsStore.shadowResolution,
       shadowIntensity: 0.72,
       shadowBias: 0.18,
       normalOffsetBias: 0.035,
@@ -431,13 +425,20 @@ export class PlayCanvasRenderer {
       ]),
     ]);
     this.resize();
+    this.#applyDebugSettings();
+    this.#stopDebugStoreSubscription = this.#debugStore.$subscribe(() => {
+      this.#applyDebugSettings();
+    });
     this.#app.start();
     this.#connectBannerInteraction();
   }
 
   render(mapData) {
+    const initialViewport = this.#mapData
+      ? null
+      : { ...this.#gameViewStore.viewport };
     this.#inventoryHud.visible = Boolean(
-      this.#heroConfiguration?.inventory.visible,
+      this.#heroConfigurationStore.inventory.visible,
     );
     this.#mapData = mapData;
     this.#cameraPanBounds = new CameraPanBounds(mapData);
@@ -458,6 +459,17 @@ export class PlayCanvasRenderer {
     this.#fitCamera();
     this.#updateCamera();
     this.#heroVisibility?.schedule();
+    if (initialViewport) {
+      this.setViewport(initialViewport);
+      this.#viewportPersistenceEnabled = true;
+      this.#saveViewport();
+    }
+  }
+
+  #applyDebugSettings() {
+    this.pathArrowsVisible = this.#debugStore.pathArrows;
+    this.debugAxesHudVisible = this.#debugStore.debugAxesHud;
+    this.debugFpsHudVisible = this.#debugStore.debugFpsHud;
   }
 
   set pathArrowsVisible(visible) {
@@ -713,7 +725,7 @@ export class PlayCanvasRenderer {
   #setInventoryVisible(visible) {
     const nextVisible = Boolean(visible);
     this.#inventoryHud.visible = nextVisible;
-    this.#heroConfiguration?.setInventoryVisible(nextVisible);
+    this.#heroConfigurationStore.setInventoryVisible(nextVisible);
     if (!nextVisible) {
       this.#fadeThrownInventoryItems();
     }
@@ -721,7 +733,7 @@ export class PlayCanvasRenderer {
 
   #moveInventoryItem(fromSlot, toSlot) {
     const moved =
-      this.#heroConfiguration?.moveInventoryItem(fromSlot, toSlot) ?? false;
+      this.#heroConfigurationStore.moveInventoryItem(fromSlot, toSlot);
     if (moved) {
       this.#inventoryHud?.setInventory(this.inventoryState);
     }
@@ -729,7 +741,7 @@ export class PlayCanvasRenderer {
   }
 
   #dropInventoryItem(slot) {
-    const inventoryItem = this.#heroConfiguration?.inventory.items.find(
+    const inventoryItem = this.#heroConfigurationStore.inventory.items.find(
       (item) => item.slot === slot,
     );
     if (!inventoryItem?.modelUrl || !this.#hero || !this.#mapRoot) {
@@ -743,7 +755,7 @@ export class PlayCanvasRenderer {
       direction: this.#hero.facingDirection,
     });
     const droppedItem =
-      this.#heroConfiguration?.dropInventoryItem(slot) ?? null;
+      this.#heroConfigurationStore.dropInventoryItem(slot);
     if (!droppedItem) {
       thrownItem.destroy();
       return null;
@@ -888,6 +900,12 @@ export class PlayCanvasRenderer {
   }
 
   destroy() {
+    this.#stopDebugStoreSubscription?.();
+    this.#stopDebugStoreSubscription = null;
+    if (this.#viewportSaveTimer !== null) {
+      window.clearTimeout(this.#viewportSaveTimer);
+      this.#saveViewport();
+    }
     this.#disconnectBannerInteraction();
     this.#app?.off("update", this.#updateFrame);
     this.#clearScene();
@@ -1119,12 +1137,13 @@ export class PlayCanvasRenderer {
 
     return new Promise((resolve, reject) => {
       asset.ready((loadedAsset) => {
-        loadedAsset.resource.mipmaps = this.#graphics.mipmaps;
-        loadedAsset.resource.minFilter = this.#graphics.mipmaps
+        loadedAsset.resource.mipmaps = this.#graphicsSettingsStore.mipmaps;
+        loadedAsset.resource.minFilter = this.#graphicsSettingsStore.mipmaps
           ? pc.FILTER_LINEAR_MIPMAP_LINEAR
           : pc.FILTER_LINEAR;
         loadedAsset.resource.magFilter = pc.FILTER_LINEAR;
-        loadedAsset.resource.anisotropy = this.#graphics.anisotropy;
+        loadedAsset.resource.anisotropy =
+          this.#graphicsSettingsStore.anisotropy;
         const addressMode =
           name === "grass"
             ? pc.ADDRESS_MIRRORED_REPEAT
@@ -1250,7 +1269,7 @@ export class PlayCanvasRenderer {
       onFacingChange: this.#handleHeroFacingChange,
       onStateChange: this.#handleHeroStateChange,
       onInventoryFull: this.#handleInventoryFull,
-      inventory: this.#heroConfiguration,
+      heroConfigurationStore: this.#heroConfigurationStore,
       getGatewayRepulsion: this.#getGatewayRepulsion,
       collisionWorld: this.#collisionWorld,
       modelLibrary: this.#modelLibrary,
@@ -2035,11 +2054,11 @@ export class PlayCanvasRenderer {
   }
 
   #syncInventoryVisibility() {
-    if (!this.#inventoryHud || !this.#heroConfiguration) {
+    if (!this.#inventoryHud || !this.#heroConfigurationStore) {
       return;
     }
     const configuredVisibility = Boolean(
-      this.#heroConfiguration.inventory.visible,
+      this.#heroConfigurationStore.inventory.visible,
     );
     if (this.#inventoryHud.visible === configuredVisibility) {
       return;
@@ -2972,7 +2991,20 @@ export class PlayCanvasRenderer {
       return;
     }
     this.#viewportSignature = signature;
-    this.#onViewportChange?.(viewport);
+    if (!this.#viewportPersistenceEnabled) {
+      return;
+    }
+    if (this.#viewportSaveTimer !== null) {
+      window.clearTimeout(this.#viewportSaveTimer);
+    }
+    this.#viewportSaveTimer = window.setTimeout(() => {
+      this.#saveViewport();
+    }, 150);
+  }
+
+  #saveViewport() {
+    this.#viewportSaveTimer = null;
+    this.#gameViewStore.updateViewport(this.viewport);
   }
 
   get #cameraView() {

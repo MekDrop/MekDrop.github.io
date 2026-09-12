@@ -258,7 +258,7 @@ export class Hero {
     [COIN_TYPE.SILVER]: 0,
     [COIN_TYPE.COPPER]: 0,
   };
-  #inventory;
+  #heroConfigurationStore;
   #onInventoryFull;
 
   constructor({
@@ -271,7 +271,7 @@ export class Hero {
     onFacingChange,
     onStateChange,
     onInventoryFull,
-    inventory,
+    heroConfigurationStore,
     getGatewayRepulsion,
     collisionWorld,
     modelLibrary,
@@ -284,7 +284,7 @@ export class Hero {
     this.#onPositionChange = onPositionChange;
     this.#onFacingChange = onFacingChange;
     this.#onStateChange = onStateChange;
-    this.#inventory = inventory;
+    this.#heroConfigurationStore = heroConfigurationStore;
     this.#onInventoryFull = onInventoryFull;
     this.#getGatewayRepulsion = getGatewayRepulsion;
     this.#collisionWorld = collisionWorld;
@@ -337,15 +337,17 @@ export class Hero {
 
   get inventory() {
     return {
-      capacity: this.#inventory.inventory.capacity,
-      items: this.#inventory.inventory.items.map((item) => ({ ...item })),
+      capacity: this.#heroConfigurationStore.inventory.capacity,
+      items: this.#heroConfigurationStore.inventory.items.map((item) => ({
+        ...item,
+      })),
     };
   }
 
   get inventoryFull() {
     return (
-      this.#inventory.inventory.items.length >=
-      this.#inventory.inventory.capacity
+      this.#heroConfigurationStore.inventory.items.length >=
+      this.#heroConfigurationStore.inventory.capacity
     );
   }
 
@@ -698,7 +700,7 @@ export class Hero {
   }
 
   collectInventoryItem(item) {
-    if (!this.#inventory.addInventoryItem(item)) {
+    if (!this.#heroConfigurationStore.addInventoryItem(item)) {
       this.#onInventoryFull?.(this.inventory);
       return false;
     }

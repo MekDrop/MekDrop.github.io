@@ -1,5 +1,5 @@
 import { defineStore } from "pinia";
-import { computed, ref } from "vue";
+import { ref } from "vue";
 import { GRAPHICS_DRIVER } from "src/game/enum/GraphicsDriver.js";
 import { POWER_PREFERENCE } from "src/game/enum/PowerPreference.js";
 
@@ -18,17 +18,6 @@ export const useGraphicsSettingsStore = defineStore("graphics-settings", () => {
   const shadows = ref(true);
   const shadowResolution = ref(2048);
 
-  const rendererOptions = computed(() => ({
-    driver: driver.value,
-    antialias: antialias.value,
-    powerPreference: powerPreference.value,
-    maxPixelRatio: maxPixelRatio.value,
-    mipmaps: mipmaps.value,
-    anisotropy: anisotropy.value,
-    shadows: shadows.value,
-    shadowResolution: shadowResolution.value,
-  }));
-
   return {
     driver,
     antialias,
@@ -38,6 +27,5 @@ export const useGraphicsSettingsStore = defineStore("graphics-settings", () => {
     anisotropy,
     shadows,
     shadowResolution,
-    rendererOptions,
   };
 });
