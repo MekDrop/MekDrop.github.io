@@ -80,7 +80,7 @@ function expectStateContinually(assertion, duration = 250) {
 
 describe("Hero movement on a predefined terrain map", { testIsolation: false }, () => {
   before(() => {
-    cy.visit("/?movement-test=flat");
+    cy.visit("/?movement-test=flat&camera-test");
     cy.get('.background-canvas[data-game-ready="true"]', {
       timeout: 30000,
     }).should("be.visible");
@@ -338,6 +338,63 @@ describe("Hero movement on a predefined terrain map", { testIsolation: false }, 
       expect(state.animation).to.equal(HERO_ANIMATION.WALK);
       expect(state.position.x).to.be.greaterThan(-0.75);
       expect(state.position.y).to.be.closeTo(1 + GRASS_SURFACE_LIFT, 0.03);
+    });
+  });
+
+  it("walks beneath a grade-separated path without colliding with its deck", () => {
+    loadScenario("overpass-clearance");
+    move(0, -1);
+    expectState((state) => {
+      expect(state.position.x).to.be.greaterThan(1.7);
+      expect(state.position.y).to.be.closeTo(2, 0.03);
+      expect(state.grounded).to.equal(true);
+    });
+  });
+
+  it("keeps the camera rotation while walking beneath a grade-separated path", () => {
+    loadScenario("overpass-camera-entry");
+    cy.window().then((window) => {
+      window.gameCameraTest.setZoom(3);
+      window.gameCameraTest.setRotation(0);
+    });
+    setMovementKey("ArrowDown", true);
+    cy.window().then({ timeout: 9000 }, (window) => {
+      const rotations = [];
+      const deadline = Date.now() + 8000;
+      return new Cypress.Promise((resolve) => {
+        const inspect = () => {
+          const position = window.gameMovementTest.state().position;
+          rotations.push(window.gameCameraTest.state().viewport.rotation);
+          if (position.x > 1.7 || Date.now() >= deadline) {
+            resolve({ position, rotations });
+            return;
+          }
+          window.setTimeout(inspect, 10);
+        };
+        inspect();
+      }).then(({ position, rotations: observedRotations }) => {
+        expect(position.x).to.be.greaterThan(1.7);
+        expect([...new Set(observedRotations)]).to.deep.equal([0]);
+      });
+    });
+    setMovementKey("ArrowDown", false);
+    cy.wait(300);
+    cy.window().then((window) => {
+      expect(window.gameCameraTest.state().viewport.rotation).to.equal(0);
+    });
+  });
+
+  it("hits the underside when jumping beneath a grade-separated path", () => {
+    loadScenario("overpass-clearance");
+    cy.window().then((window) => {
+      window.gameMovementTest.jump();
+    });
+    expectStateContinually((state) => {
+      expect(state.position.y).to.be.at.most(2.32);
+    }, 500);
+    expectState((state) => {
+      expect(state.grounded).to.equal(true);
+      expect(state.position.y).to.be.closeTo(2, 0.03);
     });
   });
 

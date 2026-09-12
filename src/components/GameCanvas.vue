@@ -323,6 +323,13 @@ function installCameraTestDriver() {
       );
       return this.state();
     },
+    setRotation(rotation) {
+      renderer.setViewport({
+        ...renderer.viewport,
+        rotation,
+      });
+      return this.state();
+    },
     moveHero(inputX, inputY, running = false) {
       return renderer.setHeroMovement(inputX, inputY, running);
     },

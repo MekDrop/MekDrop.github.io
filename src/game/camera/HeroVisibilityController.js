@@ -14,6 +14,7 @@ export class HeroVisibilityController {
   #hero;
   #getRotation;
   #setRotation;
+  #shouldPreserveRotation;
   #picker;
   #timer = null;
   #inProgress = false;
@@ -21,7 +22,16 @@ export class HeroVisibilityController {
   #lastCheckTime = 0;
   #generation = 0;
 
-  constructor({ pc, app, canvas, camera, hero, getRotation, setRotation }) {
+  constructor({
+    pc,
+    app,
+    canvas,
+    camera,
+    hero,
+    getRotation,
+    setRotation,
+    shouldPreserveRotation = null,
+  }) {
     this.#pc = pc;
     this.#app = app;
     this.#canvas = canvas;
@@ -29,11 +39,20 @@ export class HeroVisibilityController {
     this.#hero = hero;
     this.#getRotation = getRotation;
     this.#setRotation = setRotation;
+    this.#shouldPreserveRotation = shouldPreserveRotation;
     this.#picker = new pc.Picker(app, 1, 1);
   }
 
   schedule() {
     if (!this.#picker || !this.#hero) {
+      return;
+    }
+    if (this.#rotationShouldBePreserved()) {
+      this.#checkPending = false;
+      if (this.#timer !== null) {
+        window.clearTimeout(this.#timer);
+        this.#timer = null;
+      }
       return;
     }
     this.#checkPending = true;
@@ -64,7 +83,11 @@ export class HeroVisibilityController {
   }
 
   async #keepVisible() {
-    if (!this.#picker || !this.#hero) {
+    if (
+      !this.#picker ||
+      !this.#hero ||
+      this.#rotationShouldBePreserved()
+    ) {
       return;
     }
     const generation = this.#generation;
@@ -77,17 +100,27 @@ export class HeroVisibilityController {
         currentRotation,
         generation,
       );
-      if (visible !== false || generation !== this.#generation) {
+      if (
+        visible !== false ||
+        generation !== this.#generation ||
+        this.#rotationShouldBePreserved()
+      ) {
         return;
       }
 
       for (const offset of ALTERNATE_ROTATIONS) {
+        if (this.#rotationShouldBePreserved()) {
+          return;
+        }
         const rotation = this.#normalizeRotation(currentRotation + offset);
         const candidateIsVisible = await this.#isVisibleAtRotation(
           rotation,
           generation,
         );
         if (generation !== this.#generation) {
+          return;
+        }
+        if (this.#rotationShouldBePreserved()) {
           return;
         }
         if (!candidateIsVisible) continue;
@@ -103,7 +136,12 @@ export class HeroVisibilityController {
   }
 
   async #isVisibleAtRotation(rotation, generation) {
-    if (!this.#picker || !this.#hero || !this.#camera) {
+    if (
+      !this.#picker ||
+      !this.#hero ||
+      !this.#camera ||
+      this.#rotationShouldBePreserved()
+    ) {
       return null;
     }
 
@@ -168,5 +206,13 @@ export class HeroVisibilityController {
 
   #normalizeRotation(rotation) {
     return ((rotation % ROTATION_COUNT) + ROTATION_COUNT) % ROTATION_COUNT;
+  }
+
+  #rotationShouldBePreserved() {
+    try {
+      return Boolean(this.#shouldPreserveRotation?.());
+    } catch {
+      return false;
+    }
   }
 }

@@ -13,6 +13,7 @@ export { InsufficientVegetationVarietyError } from "./InsufficientVegetationVari
 export { InvalidCastleEntranceWidthError } from "./InvalidCastleEntranceWidthError.js";
 export { InvalidGatePositionError } from "./InvalidGatePositionError.js";
 export { InvalidGroundCoverPlacementError } from "./InvalidGroundCoverPlacementError.js";
+export { InvalidOverpassError } from "./InvalidOverpassError.js";
 export { InvalidLavaRiverCountError } from "./InvalidLavaRiverCountError.js";
 export { InvalidRiverCountError } from "./InvalidRiverCountError.js";
 export { InvalidRiverFlowError } from "./InvalidRiverFlowError.js";
@@ -26,3 +27,4 @@ export { NonOrthogonalRouteSegmentError } from "./NonOrthogonalRouteSegmentError
 export { PathHeightMismatchError } from "./PathHeightMismatchError.js";
 export { PathOutsideGateError } from "./PathOutsideGateError.js";
 export { PathRenderModeMismatchError } from "./PathRenderModeMismatchError.js";
+export { UnexpectedPathCrossingError } from "./UnexpectedPathCrossingError.js";

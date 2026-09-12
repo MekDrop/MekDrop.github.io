@@ -248,6 +248,24 @@ export class MovementTestMap {
           },
         ];
         break;
+      case "overpass-camera-entry":
+      case "overpass-clearance":
+        this.#paint(mapData, 1, 2, 7, 5, 2);
+        this.#paintPath(mapData, 1, 3, 7, 4, 2, "EAST");
+        mapData.overpassData = {
+          id: "movement-test-overpass",
+          crossing: { col: 4, row: 3, width: 2, depth: 2 },
+          baseElevation: 2,
+          deckElevation: 4,
+          deckThickness: 0.24,
+          clearance: 1.76,
+        };
+        mapData.heroSpawn.x =
+          (scenario === "overpass-camera-entry" ? 2 : 4) -
+          (this.#COLS - 1) / 2;
+        mapData.heroSpawn.y = 2;
+        mapData.heroSpawn.z = 3 - (this.#ROWS - 1) / 2;
+        break;
       default:
         this.#paint(mapData, 1, 2, 7, 4, 2);
         break;
@@ -281,6 +299,7 @@ export class MovementTestMap {
       groundCoverData: [],
       riverData: [],
       pipeData: new Map(),
+      overpassData: null,
       mergeZones: [],
       trunkStart: null,
       layoutSignature: `movement-test-${scenario}`,
@@ -301,6 +320,21 @@ export class MovementTestMap {
           baseHeight: height,
           renderMode: "SOLID",
           surfaceType: "GRASS",
+        };
+      }
+    }
+  }
+
+  static #paintPath(mapData, left, top, right, bottom, height, direction) {
+    for (let row = top; row <= bottom; row += 1) {
+      for (let col = left; col <= right; col += 1) {
+        mapData.grid[row][col] = TileType.PATH;
+        mapData.heightmap[row][col] = height;
+        mapData.tileMeta[row][col] = {
+          baseHeight: height,
+          direction,
+          renderMode: "SOLID",
+          surfaceType: "PATH",
         };
       }
     }

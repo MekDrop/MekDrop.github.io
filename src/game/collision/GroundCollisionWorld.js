@@ -123,4 +123,17 @@ export class GroundCollisionWorld {
     }
     return highestSurface;
   }
+
+  ceilingHeightAt(x, z, radius = 0, minimumHeight = -Infinity) {
+    let lowestCeiling = null;
+    for (const collider of this.#colliders) {
+      const height = collider.ceilingHeightAt?.(x, z, radius);
+      if (!Number.isFinite(height) || height <= minimumHeight) {
+        continue;
+      }
+      lowestCeiling =
+        lowestCeiling === null ? height : Math.min(lowestCeiling, height);
+    }
+    return lowestCeiling;
+  }
 }

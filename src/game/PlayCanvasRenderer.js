@@ -35,7 +35,11 @@ import { GRASS_SURFACE_LIFT } from "./config/terrain.js";
 import { GRAPHICS_DRIVER } from "./enum/GraphicsDriver.js";
 import { POWER_PREFERENCE } from "./enum/PowerPreference.js";
 import { POINTER_TYPE } from "./enum/PointerType.js";
-import { GroundCollisionWorld } from "./collision/index.js";
+import { TILE_SHAPE } from "./enum/TileShape.js";
+import {
+  GroundCollisionWorld,
+  PathOverpassCollider,
+} from "./collision/index.js";
 import { GameModelLibrary } from "./models/index.js";
 import { CameraPanBounds, HeroVisibilityController } from "./camera/index.js";
 import {
@@ -131,6 +135,13 @@ const GRASS_EARTH_SIDE_TRANSFORMS = SIDE_VARIANT_TRANSFORMS.map(
     scaleV: 0.82,
   }),
 );
+const OVERPASS_EARTH_SIDE_TRANSFORMS = SIDE_VARIANT_TRANSFORMS.map(
+  (transform) => ({
+    ...transform,
+    startV: 0.4,
+    scaleV: 0.6,
+  }),
+);
 
 const GRASS_TOP_VARIANTS = [{ color: 0xffffff }];
 
@@ -158,6 +169,7 @@ const TWGSL_URL = "/game/wasm/twgsl/twgsl.js";
 const MAP_FIT_ZOOM = 1;
 const HERO_VIEWPORT_MARGIN = 32;
 const HERO_CAMERA_CENTER_HEIGHT = 0.85;
+const HERO_BRIDGE_VISIBILITY_RADIUS = 0.5;
 const HERO_CAMERA_RETURN_DURATION = 0.45;
 const CAMERA_TARGET_HEIGHT = 3.2;
 const GAME_OVER_FALLBACK_ZOOM = 1.75;
@@ -214,6 +226,7 @@ export class PlayCanvasRenderer {
   #debugAxesHudVisible = false;
   #debugFpsHudVisible = false;
   #collisionWorld = new GroundCollisionWorld();
+  #pathOverpassCollider = null;
   #modelLibrary = null;
   #gatewayColors = [...GATEWAY_COLORS];
   #bannerWindTarget = null;
@@ -909,6 +922,10 @@ export class PlayCanvasRenderer {
       this.#destroyMesh(this.#cubeMeshes.bridgeHorizontalSides);
       this.#destroyMesh(this.#cubeMeshes.bridgeVerticalSides);
       this.#destroyMesh(this.#cubeMeshes.underlay);
+      for (const slope of Object.values(this.#cubeMeshes.slopes)) {
+        this.#destroyMesh(slope.sides);
+        this.#destroyMesh(slope.surface);
+      }
       for (const mesh of Object.values(this.#cubeMeshes.surfaces)) {
         this.#destroyMesh(mesh);
       }
@@ -1020,6 +1037,22 @@ export class PlayCanvasRenderer {
           ),
         );
       });
+      OVERPASS_EARTH_SIDE_TRANSFORMS.forEach((transform, variant) => {
+        const name = `overpassEarthSide-depth-${depth}-${variant}`;
+        this.#materials.set(
+          name,
+          this.#createMaterial(
+            name,
+            {
+              color: shadeHexColor(0xffffff, shade),
+              texture: "grassSide",
+              gloss: 0.05,
+              ...transform,
+            },
+            textures,
+          ),
+        );
+      });
     });
 
     GRASS_TOP_VARIANTS.forEach((variant, index) => {
@@ -1125,6 +1158,14 @@ export class PlayCanvasRenderer {
     );
     this.#buildTerrainMatrices(cubeBatches);
     this.#createInstancedBatches(cubeBatches, this.#mapRoot, true);
+    if (this.#mapData.overpassData) {
+      this.#pathOverpassCollider = new PathOverpassCollider({
+        overpass: this.#mapData.overpassData,
+        cols: this.#mapData.cols,
+        rows: this.#mapData.rows,
+      });
+      this.#collisionWorld.add(this.#pathOverpassCollider);
+    }
     this.#riverWater = new RiverWater({
       pc: this.#pc,
       app: this.#app,
@@ -1230,6 +1271,18 @@ export class PlayCanvasRenderer {
         }
         this.#rotation = rotation;
         this.#updateCamera();
+      },
+      shouldPreserveRotation: () => {
+        const position = this.#hero?.position;
+        if (!position || !this.#pathOverpassCollider) {
+          return false;
+        }
+        return this.#pathOverpassCollider.isBelowDeckAt(
+          position.x,
+          position.z,
+          position.y,
+          HERO_BRIDGE_VISIBILITY_RADIUS,
+        );
       },
     });
     this.#castle?.updateHeroPosition(this.#hero.position);
@@ -1414,6 +1467,45 @@ export class PlayCanvasRenderer {
           continue;
         }
 
+        const slope = tileMeta?.[row]?.[col]?.slope;
+        if (tileMeta?.[row]?.[col]?.shape === TILE_SHAPE.SLOPE && slope) {
+          const baseHeight = Math.floor(
+            Math.min(slope.lowHeight, slope.highHeight),
+          );
+          for (let level = 0; level < baseHeight; level += 1) {
+            this.#addCubeMatrix(
+              batches,
+              "earth",
+              this.#overpassEarthSideMaterial(col, row, level),
+              x,
+              level + 0.5,
+              z,
+              "wallSidesOnly",
+              level === 0 ? "earth" : "none",
+            );
+          }
+          const stage =
+            Math.min(slope.lowHeight, slope.highHeight) - baseHeight < 0.25
+              ? "Lower"
+              : "Upper";
+          const coverage = `slope${slope.riseDirection}${stage}`;
+          this.#addBoxMatrix(
+            batches,
+            SURFACE_MATERIALS[type],
+            this.#overpassEarthSideMaterial(col, row, baseHeight),
+            x,
+            baseHeight,
+            z,
+            0,
+            CUBE_SCALE,
+            CUBE_SCALE,
+            CUBE_SCALE,
+            coverage,
+            "none",
+          );
+          continue;
+        }
+
         if (renderMode === "BRIDGE") {
           const bridgeKey = `${col},${row}`;
           if (processedBridgeCells.has(bridgeKey)) {
@@ -1428,23 +1520,27 @@ export class PlayCanvasRenderer {
             row,
             direction,
           );
-          const sideMaterial = this.#sideVariant(
+          const railingMaterial = this.#sideVariant(
             SIDE_MATERIALS[type],
             col,
             row,
             height - 1,
           );
+          const fasciaMaterial = tileMeta[row][col].overpassId
+            ? this.#overpassEarthSideMaterial(col, row, height - 1)
+            : railingMaterial;
           for (const cell of span.cells) {
             processedBridgeCells.add(`${cell.col},${cell.row}`);
             const groundHeight = tileMeta[cell.row][cell.col].bridgeGroundHeight;
             if (Number.isFinite(groundHeight)) {
-              this.#addBridgeGrassGround(
+              this.#addBridgeGround(
                 batches,
                 cell.col,
                 cell.row,
                 groundHeight,
                 cols,
                 rows,
+                Boolean(tileMeta[cell.row][cell.col].overpassId),
               );
             }
           }
@@ -1454,7 +1550,7 @@ export class PlayCanvasRenderer {
             this.#addBoxMatrix(
               batches,
               SURFACE_MATERIALS[type],
-              sideMaterial,
+              fasciaMaterial,
               deckCenterCol - (cols - 1) / 2,
               height - 0.12,
               deckCenterRow - (rows - 1) / 2,
@@ -1469,7 +1565,7 @@ export class PlayCanvasRenderer {
           this.#addBoxMatrix(
             batches,
             SURFACE_MATERIALS[type],
-            sideMaterial,
+            fasciaMaterial,
             (span.horizontal ? span.center : span.crossCenter) -
               (cols - 1) / 2,
             height - 0.12,
@@ -1488,7 +1584,7 @@ export class PlayCanvasRenderer {
             batches,
             span,
             height,
-            sideMaterial,
+            railingMaterial,
             cols,
             rows,
           );
@@ -1497,13 +1593,17 @@ export class PlayCanvasRenderer {
 
         for (let level = 0; level < height; level += 1) {
           const topCube = level === height - 1;
-          const { top, sides, underlay } = this.#cubeMaterials(
-            type,
-            topCube,
-            col,
-            row,
-            level,
+          const overpassFill = Boolean(
+            tileMeta?.[row]?.[col]?.overpassId &&
+              !tileMeta[row][col].overpass,
           );
+          const { top, sides, underlay } = overpassFill
+            ? {
+                top: topCube ? SURFACE_MATERIALS[type] : "earth",
+                sides: this.#overpassEarthSideMaterial(col, row, level),
+                underlay: "earth",
+              }
+            : this.#cubeMaterials(type, topCube, col, row, level);
           this.#addCubeMatrix(
             batches,
             top,
@@ -1522,20 +1622,87 @@ export class PlayCanvasRenderer {
     for (const river of this.#mapData.riverData ?? []) {
       this.#addRiverSourceCap(batches, river.cells[0], cols, rows);
     }
+    this.#addOverpassDeck(batches, cols, rows);
   }
 
-  #addBridgeGrassGround(batches, col, row, height, cols, rows) {
+  #addOverpassDeck(batches, cols, rows) {
+    const overpass = this.#mapData.overpassData;
+    if (!overpass) {
+      return;
+    }
+
+    const { col, row } = overpass.crossing;
+    const deckThickness = overpass.deckThickness ?? 0.24;
+    const railingMaterial = this.#sideVariant(
+      SIDE_MATERIALS[TileType.PATH],
+      col,
+      row,
+      overpass.deckElevation - 1,
+    );
+    const fasciaMaterial = this.#overpassEarthSideMaterial(
+      col,
+      row,
+      overpass.deckElevation - 1,
+    );
+    for (let deckRow = row; deckRow <= row + 1; deckRow += 1) {
+      this.#addBoxMatrix(
+        batches,
+        SURFACE_MATERIALS[TileType.PATH],
+        fasciaMaterial,
+        col + 0.5 - (cols - 1) / 2,
+        overpass.deckElevation - deckThickness / 2,
+        deckRow - (rows - 1) / 2,
+        0,
+        2,
+        deckThickness,
+        CUBE_SCALE,
+        "surfaceOnly",
+        "none",
+      );
+    }
+    const span = {
+      horizontal: false,
+      start: row,
+      end: row + 1,
+      center: row + 0.5,
+      crossCenter: col + 0.5,
+      length: 2,
+    };
+    this.#addBoxMatrix(
+      batches,
+      SURFACE_MATERIALS[TileType.PATH],
+      fasciaMaterial,
+      span.crossCenter - (cols - 1) / 2,
+      overpass.deckElevation - deckThickness / 2,
+      span.center - (rows - 1) / 2,
+      0,
+      2,
+      deckThickness,
+      span.length,
+      "bridgeVerticalSidesOnly",
+      "none",
+    );
+    this.#addOverpassRailings(
+      batches,
+      overpass,
+      railingMaterial,
+      cols,
+      rows,
+    );
+  }
+
+  #addBridgeGround(batches, col, row, height, cols, rows, dirtOnly = false) {
     const x = col - (cols - 1) / 2;
     const z = row - (rows - 1) / 2;
     for (let level = 0; level < height; level += 1) {
       const topCube = level === height - 1;
-      const { top, sides, underlay } = this.#cubeMaterials(
-        TileType.GRASS,
-        topCube,
-        col,
-        row,
-        level,
-      );
+      const { top, sides, underlay } = dirtOnly
+        ? {
+            top: "earth",
+            sides: this.#overpassEarthSideMaterial(col, row, level),
+            underlay: "earth",
+          }
+        : this.#cubeMaterials(TileType.GRASS, topCube, col, row, level);
       this.#addCubeMatrix(
         batches,
         top,
@@ -1545,7 +1712,7 @@ export class PlayCanvasRenderer {
         z,
         this.#surfaceCoverage(topCube),
         level === 0 ? underlay : "none",
-        topCube ? GRASS_SURFACE_LIFT : 0,
+        topCube && !dirtOnly ? GRASS_SURFACE_LIFT : 0,
       );
     }
   }
@@ -1659,7 +1826,6 @@ export class PlayCanvasRenderer {
       (span.horizontal ? span.center : span.crossCenter) - (cols - 1) / 2;
     const centerZ =
       (span.horizontal ? span.crossCenter : span.center) - (rows - 1) / 2;
-    const railLength = Math.max(0.1, span.length - 0.08);
     const postPositions = [span.start - 0.34, span.end + 0.34];
     for (let position = span.start + 0.5; position < span.end; position += 1) {
       postPositions.push(position);
@@ -1668,21 +1834,39 @@ export class PlayCanvasRenderer {
     for (const side of [-1, 1]) {
       const railX = span.horizontal ? centerX : centerX + side * 0.93;
       const railZ = span.horizontal ? centerZ + side * 0.93 : centerZ;
-      this.#addBoxMatrix(
-        batches,
-        "path",
-        sideMaterial,
-        railX,
-        height + 0.34,
-        railZ,
-        0,
-        span.horizontal ? railLength : 0.1,
-        0.1,
-        span.horizontal ? 0.1 : railLength,
-        "full",
-        sideMaterial,
+      const uniquePostPositions = [...new Set(postPositions)].sort(
+        (left, right) => left - right,
       );
-      for (const position of new Set(postPositions)) {
+      for (let index = 1; index < uniquePostPositions.length; index += 1) {
+        const segmentStart = uniquePostPositions[index - 1];
+        const segmentEnd = uniquePostPositions[index];
+        const railGap = 0.012;
+        const postHalfWidth = 0.05;
+        const segmentLength = Math.max(
+          0.01,
+          segmentEnd - segmentStart - postHalfWidth * 2 - railGap * 2,
+        );
+        const segmentCenter = (segmentStart + segmentEnd) / 2;
+        this.#addBoxMatrix(
+          batches,
+          "path",
+          sideMaterial,
+          span.horizontal
+            ? segmentCenter - (cols - 1) / 2
+            : railX,
+          height + 0.34,
+          span.horizontal
+            ? railZ
+            : segmentCenter - (rows - 1) / 2,
+          0,
+          span.horizontal ? segmentLength : 0.1,
+          0.1,
+          span.horizontal ? 0.1 : segmentLength,
+          "full",
+          sideMaterial,
+        );
+      }
+      for (const position of uniquePostPositions) {
         this.#addBoxMatrix(
           batches,
           "path",
@@ -1699,6 +1883,94 @@ export class PlayCanvasRenderer {
         );
       }
     }
+  }
+
+  #addOverpassRailings(batches, overpass, sideMaterial, cols, rows) {
+    const pathCells = [
+      ...overpass.slopeCells,
+      ...overpass.approachCells,
+      ...overpass.crossingCells,
+    ];
+    const start = Math.min(...pathCells.map((cell) => cell.row));
+    const end = Math.max(...pathCells.map((cell) => cell.row));
+    const postPositions = [start - 0.34, end + 0.34];
+    for (let position = start + 0.5; position < end; position += 1) {
+      postPositions.push(position);
+    }
+    postPositions.sort((left, right) => left - right);
+
+    const centerX =
+      overpass.crossing.col +
+      (overpass.crossing.width - 1) / 2 -
+      (cols - 1) / 2;
+    for (const side of [-1, 1]) {
+      const railX = centerX + side * 0.93;
+      for (let index = 1; index < postPositions.length; index += 1) {
+        const segmentStart = postPositions[index - 1];
+        const segmentEnd = postPositions[index];
+        const startHeight = this.#overpassRailHeightAt(
+          overpass,
+          segmentStart,
+        );
+        const endHeight = this.#overpassRailHeightAt(overpass, segmentEnd);
+        const run = segmentEnd - segmentStart;
+        const rise = endHeight - startHeight;
+        const fullLength = Math.hypot(run, rise);
+        const segmentLength = Math.max(0.01, fullLength - 0.124);
+        const pitch = (Math.atan2(rise, run) * 180) / Math.PI;
+        this.#addBoxMatrix(
+          batches,
+          "path",
+          sideMaterial,
+          railX,
+          (startHeight + endHeight) / 2 + 0.34,
+          (segmentStart + segmentEnd) / 2 - (rows - 1) / 2,
+          0,
+          0.1,
+          0.1,
+          segmentLength,
+          "full",
+          sideMaterial,
+          -pitch,
+        );
+      }
+
+      for (const position of postPositions) {
+        const height = this.#overpassRailHeightAt(overpass, position);
+        this.#addBoxMatrix(
+          batches,
+          "path",
+          sideMaterial,
+          railX,
+          height + 0.17,
+          position - (rows - 1) / 2,
+          0,
+          0.1,
+          0.38,
+          0.1,
+          "full",
+          sideMaterial,
+        );
+      }
+    }
+  }
+
+  #overpassRailHeightAt(overpass, position) {
+    for (const slope of overpass.slopeCells) {
+      if (position < slope.row - 0.5 || position > slope.row + 0.5) {
+        continue;
+      }
+      const localPosition = position - slope.row + 0.5;
+      const progress =
+        slope.riseDirection === "NORTH"
+          ? 1 - localPosition
+          : localPosition;
+      return (
+        slope.lowHeight +
+        (slope.highHeight - slope.lowHeight) * progress
+      );
+    }
+    return overpass.deckElevation;
   }
 
   #buildIslandUndersideMatrices(batches, voxels) {
@@ -1840,6 +2112,10 @@ export class PlayCanvasRenderer {
     return `grassEarthSide-depth-${this.#grassSideDepth(level)}-${this.#grassSideVariant(col, row)}`;
   }
 
+  #overpassEarthSideMaterial(col, row, level) {
+    return `overpassEarthSide-depth-${this.#grassSideDepth(level)}-${this.#grassSideVariant(col, row)}`;
+  }
+
   #grassTopSideMaterial(col, row, level) {
     return `grassTopSide-depth-${this.#grassSideDepth(level)}-${this.#grassSideVariant(col, row)}`;
   }
@@ -1942,11 +2218,12 @@ export class PlayCanvasRenderer {
     sz,
     coverage = "full",
     underlayMaterial = sideMaterial,
+    pitch = 0,
   ) {
     const pc = this.#pc;
     const matrix = new pc.Mat4();
     const rotation = new pc.Quat();
-    rotation.setFromEulerAngles(0, yaw, 0);
+    rotation.setFromEulerAngles(pitch, yaw, 0);
     matrix.setTRS(new pc.Vec3(x, y, z), rotation, new pc.Vec3(sx, sy, sz));
     const materialBatch = `${topMaterial}|${sideMaterial}|${underlayMaterial}|${coverage}`;
     const data = batches.get(materialBatch) ?? [];
@@ -1979,19 +2256,23 @@ export class PlayCanvasRenderer {
               coverage === "bridgeVerticalSidesOnly"
             ? this.#cubeMeshes.bridgeVerticalSides
             : null;
+      const slopeMeshes = this.#cubeMeshes.slopes[coverage] ?? null;
       const sidesOnly = coverage.endsWith("SidesOnly");
       const surfaceOnly = coverage === "surfaceOnly";
       const sideMeshInstance = surfaceOnly
         ? null
         : new pc.MeshInstance(
-            bridgeSideMesh ?? this.#cubeMeshes.wallSides,
+            slopeMeshes?.sides ??
+              bridgeSideMesh ??
+              this.#cubeMeshes.wallSides,
             this.#materials.get(sideMaterial),
           );
       const surfaceMesh = surfaceOnly
         ? this.#cubeMeshes.surfaces.full
         : sidesOnly
           ? null
-          : this.#cubeMeshes.surfaces[coverage] ??
+          : slopeMeshes?.surface ??
+            this.#cubeMeshes.surfaces[coverage] ??
             (bridgeSideMesh ? this.#cubeMeshes.surfaces.full : null);
       const topMeshInstance = surfaceMesh
         ? new pc.MeshInstance(surfaceMesh, this.#materials.get(topMaterial))
@@ -2044,6 +2325,17 @@ export class PlayCanvasRenderer {
       full: { positions: [], normals: [], uvs: [], indices: [] },
       block: { positions: [], normals: [], uvs: [], indices: [] },
     };
+    const slopeGroupNames = {};
+    for (const direction of ["NORTH", "SOUTH", "EAST", "WEST"]) {
+      for (const stage of ["Lower", "Upper"]) {
+        const coverage = `slope${direction}${stage}`;
+        const surface = `${coverage}Surface`;
+        const sides = `${coverage}Sides`;
+        groups[surface] = { positions: [], normals: [], uvs: [], indices: [] };
+        groups[sides] = { positions: [], normals: [], uvs: [], indices: [] };
+        slopeGroupNames[coverage] = { surface, sides };
+      }
+    }
     const half = 0.5;
     const inner = 0.49;
 
@@ -2220,6 +2512,59 @@ export class PlayCanvasRenderer {
       [inner, surfaceY, -inner],
     ]);
 
+    for (const [coverage, groupNames] of Object.entries(slopeGroupNames)) {
+      const direction = coverage.match(/^slope(NORTH|SOUTH|EAST|WEST)/)?.[1];
+      const isUpper = coverage.endsWith("Upper");
+      const low = isUpper ? 0.5 : 0;
+      const high = isUpper ? 1 : 0.5;
+      const cornerHeight = (x, z) => {
+        if (direction === "NORTH") return z < 0 ? high : low;
+        if (direction === "SOUTH") return z > 0 ? high : low;
+        if (direction === "EAST") return x > 0 ? high : low;
+        return x < 0 ? high : low;
+      };
+      const northWest = [-half, cornerHeight(-half, -half), -half];
+      const southWest = [-half, cornerHeight(-half, half), half];
+      const southEast = [half, cornerHeight(half, half), half];
+      const northEast = [half, cornerHeight(half, -half), -half];
+      addFace(groupNames.surface, [
+        northWest,
+        southWest,
+        southEast,
+        northEast,
+      ]);
+      const addSlopeSide = (bottomA, bottomB, topB, topA) => {
+        if (topA[1] <= 0 && topB[1] <= 0) {
+          return;
+        }
+        addFace(groupNames.sides, [bottomA, bottomB, topB, topA]);
+      };
+      addSlopeSide(
+        [-half, 0, -half],
+        [-half, 0, half],
+        southWest,
+        northWest,
+      );
+      addSlopeSide(
+        [half, 0, half],
+        [half, 0, -half],
+        northEast,
+        southEast,
+      );
+      addSlopeSide(
+        [half, 0, -half],
+        [-half, 0, -half],
+        northWest,
+        northEast,
+      );
+      addSlopeSide(
+        [-half, 0, half],
+        [half, 0, half],
+        southEast,
+        southWest,
+      );
+    }
+
     const createMesh = (group) => {
       const geometry = new pc.Geometry();
       geometry.positions = group.positions;
@@ -2237,6 +2582,17 @@ export class PlayCanvasRenderer {
       bridgeHorizontalSides: createMesh(groups.bridgeHorizontalSides),
       bridgeVerticalSides: createMesh(groups.bridgeVerticalSides),
       underlay: createMesh(groups.underlay),
+      slopes: Object.fromEntries(
+        Object.entries(slopeGroupNames).map(
+          ([coverage, groupNames]) => [
+            coverage,
+            {
+              surface: createMesh(groups[groupNames.surface]),
+              sides: createMesh(groups[groupNames.sides]),
+            },
+          ],
+        ),
+      ),
       surfaces: {
         full: createMesh(groups.full),
         block: createMesh(groups.block),
@@ -2938,6 +3294,7 @@ export class PlayCanvasRenderer {
     this.#mapRoot?.destroy();
     this.#mapRoot = null;
     this.#collisionWorld.clear();
+    this.#pathOverpassCollider = null;
     for (const buffer of this.#vertexBuffers) buffer.destroy();
     this.#vertexBuffers = [];
   }

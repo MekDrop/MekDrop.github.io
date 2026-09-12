@@ -22,6 +22,7 @@ The words **must**, **must not**, **always**, **never**, and **exactly** are acc
   * water
   * structure
 * One cell cannot contain both grass and path.
+* Two routes may cross in plan view only at a validated grade-separated crossing. An unplanned flat four-way path crossing is forbidden.
 * Every path tile occupies the entire cell.
 * Half-path/half-grass tiles are forbidden.
 * Diagonal yellow wedges, narrow road strips, and floating path overlays are forbidden.
@@ -122,6 +123,7 @@ path | grass | grass | path
 * Direction arrows must be derived from the same quickest-route data used by enemies.
 * Every arrow must point from a gate toward a neighbour with strictly lower remaining travel cost to the castle.
 * Random, backward, decorative, or castle-to-gate arrows are forbidden.
+* Debug arrows on ramps must be centered within a slope tile and rotated flush with that tile's walkable plane. They must not float above, clip through, or remain horizontal on a sloped path.
 
 ## 8b. Pipe teleports
 
@@ -137,8 +139,8 @@ path | grass | grass | path
 ## 9. Path elevation
 
 * Flat path sections stay at one elevation.
-* Elevation changes use continuous 45-degree ramps, not stairs.
-* One slope tile changes elevation by exactly one block height.
+* Elevation changes use continuous planar ramps, not stairs.
+* Ordinary slopes change elevation by one block per tile. A grade-separated path crossing uses two consecutive half-block ramp tiles per block of elevation so the approach remains gentle.
 * Both lanes must rise or descend together.
 * A slope cannot turn, twist, or change direction midway.
 * A slope cannot incline sideways across the path.
@@ -149,6 +151,19 @@ slope tiles = absolute elevation difference
 ```
 
 * A rise of two blocks requires two consecutive slope tiles in each lane.
+* For a grade-separated crossing, required ramp length is:
+
+```text
+ramp tiles = 2 * absolute elevation difference
+```
+
+* Every grade-separated ramp cell keeps a full square grid footprint and its exposed sides are filled with earth; the ramp is never a floating sheet.
+* Every elevated flat approach cell is a solid earth-filled column up to its path surface. It must never be reclassified as an ordinary thin bridge or expose a lower ledge beneath its deck.
+* Every exposed side and fascia belonging to a grade-separated ramp, flat approach, or crossing deck uses a dedicated dirt-only crop of the normal terrain-wall texture. Green grass pixels, dangling grass roots, grass fringes, and path-surface textures are forbidden on those fill faces. Path-surface material is restricted to the walkable top; railings may retain their structural path material.
+* A grade-separated approach must not raise or add lateral support cubes beside the path. Adjacent terrain keeps its generated elevation; only the two path lanes form the filled ramp and approach.
+* A grade-separated deck must leave enough clearance beneath its fascia for the complete collision height of a walking actor.
+* The deck top and underside are separate collision surfaces: actors may walk on top or pass underneath, but jumping actors must collide with the underside.
+* Both outer edges of a grade-separated path must have continuous railings across its complete ramp, elevated approach, and crossing deck. Rail segments on slopes must follow the walkable plane rather than stepping or floating horizontally.
 * After a slope, the path must remain flat for at least one tile before turning.
 * Terraces are allowed as:
 
@@ -166,7 +181,7 @@ slope -> flat tile(s) -> slope
 * A bridge must be a straight span. Bridge decks must never turn 90 degrees, merge, branch, or form an intersection.
 * Every turn, merge, and intersection must be a normal solid path landing. The generator must add or raise adjacent grass support blocks where needed; bridge spans must end before entering the landing and may resume only as a separate straight span after it.
 * Higher adjacent terrain may border a solid path because its column still reaches the path elevation.
-* Every bridge not crossing water or lava must preserve a complete grass-topped terrain block one level below each deck tile; bare earth must not be exposed beneath the span.
+* Every bridge not crossing water or lava must preserve a complete grass-topped terrain block one level below each deck tile, except for grade-separated approach fill, which is dirt-only as defined above. Bare earth must not be exposed beneath ordinary spans.
 * Grass beneath a bridge is reserved, non-buildable terrain. Trees, bushes, flowers, mushrooms, loot crates, and other generated objects must never spawn on it.
 * Water and lava bridges keep their validated flowing surface beneath the deck instead of adding grass.
 * Each straight bridge span must use continuous outer fascia and continuous rail runs. Per-tile border seams, coincident internal faces, and overlapping border geometry are forbidden.
@@ -350,6 +365,8 @@ These notes describe the generator behavior currently implemented in `src/game/M
 * Castle placement still determines which entry rows are allowed to use the right side safely.
 * The castle entrance currently remains on the left face of the castle footprint.
 * Entry paths currently use a route family with a shared final trunk to the castle.
+* Multi-route maps place that shared trunk on an outer route band so its merge corridor cannot continue through the trunk as an unplanned four-way crossing.
+* Multi-path maps may contain one grade-separated crossing before their final merge. The crossing is uncommon with two paths and progressively more likely with three or four paths. The upper branch rises two blocks over four half-block ramp cells per side, crosses on a two-tile-wide deck with sufficient actor clearance, descends the same way, and remains disconnected from the lower route at the crossing.
 * When spacing allows, a non-bridge entry branch may use one extra orthogonal bend before it joins the shared trunk.
 * Those bends remain fully grid-aligned and two tiles wide.
 * Bridge crossings should stay as simple straight spans rather than curved bridge turns.
@@ -380,7 +397,11 @@ These notes describe the generator behavior currently implemented in `src/game/M
   * one connected island
   * gate placement at the first playable boundary tiles
   * two-tile path width
-  * flat equal-height path lanes
+  * equal-height path lanes, including matched half-block ramp profiles at grade-separated crossings
+  * separate upper and lower route graph nodes where paths overlap in plan view
+  * rejection of every four-way flat crossing outside the designated grade-separated crossing
+  * dirt-filled ramp sides and full-width elevated approaches
+  * walkable deck-top collision plus underside head collision without blocking the lower route
   * automatic two-lane bridge conversion only where neither lateral side reaches path-deck elevation
   * added or raised grass support cubes where a solid path has only one supported side
   * solid turn and merge landings that prevent 90-degree or branching bridge decks
@@ -412,6 +433,15 @@ Reject the map when:
 * a road boundary is rounded, chamfered, or bevelled into a non-orthogonal turn
 * a slope uses stairs
 * a slope uses too few tiles for its height difference
+* a grade-separated ramp rises or descends more than half a block per tile
+* an approach or exit narrows below two complete path tiles at a turn
+* an elevated flat approach is hollow, rendered as a thin bridge, or is not filled to its path surface
+* a grade-separated approach adds or raises a lateral support cube beside the two path lanes
+* paths at different crossing elevations become connected in the route graph
+* two routes form a four-way flat crossing outside the designated grade-separated crossing
+* an actor intersects the deck while walking or jumping beneath a grade-separated crossing
+* walking beneath a grade-separated crossing changes the camera rotation
+* a grade-separated ramp, elevated approach, or crossing deck is missing either outer railing, or a sloped railing does not follow the ramp plane
 * a gate is not on the first boundary path tiles
 * a gate or gate-like structure appears in the middle of a path
 * a path splits after merging
@@ -419,6 +449,7 @@ Reject the map when:
 * an ordinary path cell does not belong to a gate-to-castle traversal
 * a path branch is disconnected, decorative, orphaned, dead-ended, or an unrelated loop
 * an enemy route or direction arrow does not follow the quickest valid path-and-pipe graph toward lower remaining castle cost
+* a debug direction arrow floats above, clips through, or fails to follow the plane of a sloped path tile
 * a pipe is unpaired, occupies a path cell, does not face and connect to its two-lane path interface, or creates a widened route
 * a pipe is represented as a half-pipe, cutaway tunnel, arch, cubist body, incomplete cylinder, or non-circular opening
 * water has no valid source
@@ -474,4 +505,10 @@ Required:
 
 ```text
 tileCount = abs(endHeight - startHeight)
+```
+
+Grade-separated crossing ramps instead require:
+
+```text
+tileCount = 2 * abs(endHeight - startHeight)
 ```

@@ -338,7 +338,11 @@ export class PathArrows {
       const baseX = col - (cols - 1) / 2;
       const baseZ = row - (rows - 1) / 2;
       const top = Math.max(
-        ...group.map((marker) => this.#height(marker.col, marker.row)),
+        ...group.map((marker) =>
+          Number.isFinite(marker.elevation)
+            ? marker.elevation
+            : this.#height(marker.col, marker.row),
+        ),
       );
       const arrows = group.flatMap((marker) => marker.arrows);
       const directions = arrows
@@ -364,6 +368,11 @@ export class PathArrows {
         ...new Set(arrows.map((arrow) => arrow.pathIdx % this.#colors.length)),
       ];
       const yaw = (Math.atan2(dx, dz) * 180) / Math.PI;
+      const surfacePitch =
+        arrows.reduce(
+          (sum, arrow) => sum + (arrow.surfacePitch ?? 0),
+          0,
+        ) / arrows.length;
       const materialNames =
         colorIndexes.length === 1
           ? {
@@ -379,6 +388,7 @@ export class PathArrows {
         top + 0.018,
         baseZ,
         yaw,
+        surfacePitch,
         0.86 * 1.2,
         0.9 * 1.08,
       );
@@ -390,6 +400,7 @@ export class PathArrows {
         top + 0.034,
         baseZ,
         yaw,
+        surfacePitch,
         0.86,
         0.9,
       );
@@ -398,8 +409,8 @@ export class PathArrows {
 
   #groupNearby(arrowData) {
     const markers = [...arrowData.entries()].map(([key, arrows]) => {
-      const [col, row] = key.split(",").map(Number);
-      return { col, row, arrows };
+      const [col, row, elevation] = key.split(",").map(Number);
+      return { col, row, elevation, arrows };
     });
     const remaining = new Set(markers.map((_, index) => index));
     const groups = [];
@@ -418,7 +429,10 @@ export class PathArrows {
             Math.hypot(
               candidate.col - current.col,
               candidate.row - current.row,
-            ) > ARROW_MERGE_DISTANCE
+            ) > ARROW_MERGE_DISTANCE ||
+            (Number.isFinite(candidate.elevation) &&
+              Number.isFinite(current.elevation) &&
+              Math.abs(candidate.elevation - current.elevation) > 0.1)
           ) {
             continue;
           }
@@ -433,10 +447,21 @@ export class PathArrows {
     return groups;
   }
 
-  #addMatrix(batches, material, meshKey, x, y, z, yaw, scaleX, scaleZ) {
+  #addMatrix(
+    batches,
+    material,
+    meshKey,
+    x,
+    y,
+    z,
+    yaw,
+    surfacePitch,
+    scaleX,
+    scaleZ,
+  ) {
     const matrix = new this.#pc.Mat4();
     const rotation = new this.#pc.Quat();
-    rotation.setFromEulerAngles(0, yaw, 0);
+    rotation.setFromEulerAngles(-surfacePitch, yaw, 0);
     matrix.setTRS(
       new this.#pc.Vec3(x, y, z),
       rotation,

@@ -9,6 +9,7 @@ import { COIN_TYPE } from "../../enum/CoinType.js";
 import { MOVEMENT_REFUSAL } from "../../enum/MovementRefusal.js";
 import { HERO_INVENTORY_CAPACITY } from "../../config/inventory.js";
 import { RIVER_KIND } from "../../enum/RiverKind.js";
+import { TILE_SHAPE } from "../../enum/TileShape.js";
 import { HeroLavaDeathEffect } from "./HeroLavaDeathEffect.js";
 
 const FIXED_STEP = 1 / 120;
@@ -65,6 +66,7 @@ const BORED_ANIMATION_DURATIONS = new Map([
 // Matches the widest part of the hero below one terrain level. The circle is
 // still slightly narrower than a tile, leaving room to slide along ledges.
 const HERO_RADIUS = 0.46;
+const HERO_COLLISION_HEIGHT = 1.45;
 // Terrain and scenery clearance follows the hero's planted lower body. Wider
 // arm and shoulder poses are visual only and must not close valid footpaths.
 const MOVEMENT_COLLISION_RADIUS = 0.18;
@@ -1113,6 +1115,21 @@ export class Hero {
     const previousY = this.#position.y;
     this.#velocity.y += GRAVITY * deltaTime;
     this.#position.y += this.#velocity.y * deltaTime;
+    const ceiling = this.#collisionWorld?.ceilingHeightAt(
+      this.#position.x,
+      this.#position.z,
+      MOVEMENT_COLLISION_RADIUS,
+      previousY,
+    );
+    if (
+      this.#velocity.y > 0 &&
+      Number.isFinite(ceiling) &&
+      previousY + HERO_COLLISION_HEIGHT <= ceiling + STEP_CLEARANCE &&
+      this.#position.y + HERO_COLLISION_HEIGHT >= ceiling
+    ) {
+      this.#position.y = ceiling - HERO_COLLISION_HEIGHT;
+      this.#velocity.y = 0;
+    }
 
     if (
       ground !== null &&
@@ -1623,6 +1640,9 @@ export class Hero {
   }
 
   #occupancyAt(x, z) {
+    if (this.#overheadClearanceBlockedAt(x, z)) {
+      return OCCUPANCY.blocked;
+    }
     const movementLength = Math.hypot(this.#velocity.x, this.#velocity.z);
     const facing =
       movementLength > 0.001
@@ -1777,7 +1797,7 @@ export class Hero {
         if (!checksEdges && type === TileType.WATER) {
           continue;
         }
-        const height = this.#mapData.heightmap[row][col];
+        const height = this.#terrainSurfaceHeightAt(col, row, toX, toZ);
         const isStructureSurface =
           collisionSurface !== null && STRUCTURE_SURFACE_TILES.has(type);
         if (
@@ -1904,16 +1924,19 @@ export class Hero {
         if (!WALKABLE_TILES.has(type)) {
           continue;
         }
-        const surfaceHeight =
-          this.#mapData.heightmap[row][col] +
-          (GRASS_SURFACE_TILES.has(type) ? GRASS_SURFACE_LIFT : 0);
-        if (
-          surfaceHeight > maximumSupportHeight ||
-          (highestSurface !== null && surfaceHeight <= highestSurface)
-        ) {
-          continue;
+        const terrainSurface = this.#terrainSurfaceHeightAt(col, row, x, z);
+        const overpassSurface =
+          this.#mapData.tileMeta?.[row]?.[col]?.overpass?.elevation;
+        for (const surfaceHeight of [terrainSurface, overpassSurface]) {
+          if (
+            !Number.isFinite(surfaceHeight) ||
+            surfaceHeight > maximumSupportHeight ||
+            (highestSurface !== null && surfaceHeight <= highestSurface)
+          ) {
+            continue;
+          }
+          highestSurface = surfaceHeight;
         }
-        highestSurface = surfaceHeight;
       }
     }
     return highestSurface;
@@ -2143,16 +2166,58 @@ export class Hero {
       Number.isFinite(collisionSurface) && collisionSurface <= maximumHeight
         ? collisionSurface
         : null;
-    const terrainSurface =
-      this.#mapData.heightmap[row][col] +
-      (GRASS_SURFACE_TILES.has(type) ? GRASS_SURFACE_LIFT : 0);
-    if (
-      terrainSurface <= maximumHeight &&
-      (highestSurface === null || terrainSurface > highestSurface)
-    ) {
-      highestSurface = terrainSurface;
+    const terrainSurface = this.#terrainSurfaceHeightAt(col, row, x, z);
+    const overpassSurface =
+      this.#mapData.tileMeta?.[row]?.[col]?.overpass?.elevation;
+    for (const surfaceHeight of [terrainSurface, overpassSurface]) {
+      if (
+        Number.isFinite(surfaceHeight) &&
+        surfaceHeight <= maximumHeight &&
+        (highestSurface === null || surfaceHeight > highestSurface)
+      ) {
+        highestSurface = surfaceHeight;
+      }
     }
     return highestSurface;
+  }
+
+  #terrainSurfaceHeightAt(col, row, x, z) {
+    const type = this.#mapData.grid[row][col];
+    const metadata = this.#mapData.tileMeta?.[row]?.[col];
+    const slope = metadata?.slope;
+    if (metadata?.shape === TILE_SHAPE.SLOPE && slope) {
+      const gridX = x + (this.#mapData.cols - 1) / 2;
+      const gridZ = z + (this.#mapData.rows - 1) / 2;
+      const localX = Math.max(0, Math.min(1, gridX - col + 0.5));
+      const localZ = Math.max(0, Math.min(1, gridZ - row + 0.5));
+      const progress =
+        slope.riseDirection === "NORTH"
+          ? 1 - localZ
+          : slope.riseDirection === "SOUTH"
+            ? localZ
+            : slope.riseDirection === "WEST"
+              ? 1 - localX
+              : localX;
+      return slope.lowHeight +
+        (slope.highHeight - slope.lowHeight) * progress;
+    }
+    return (
+      this.#mapData.heightmap[row][col] +
+      (GRASS_SURFACE_TILES.has(type) ? GRASS_SURFACE_LIFT : 0)
+    );
+  }
+
+  #overheadClearanceBlockedAt(x, z) {
+    const ceiling = this.#collisionWorld?.ceilingHeightAt(
+      x,
+      z,
+      MOVEMENT_COLLISION_RADIUS,
+      this.#position.y,
+    );
+    return (
+      Number.isFinite(ceiling) &&
+      this.#position.y + HERO_COLLISION_HEIGHT > ceiling
+    );
   }
 
   #rememberStableGroundPosition() {
