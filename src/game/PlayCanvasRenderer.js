@@ -22,11 +22,7 @@ import {
   ShovelTool,
 } from "./objects/hero/tools/index.js";
 import { GrassSurface, GroundCover } from "./objects/ground-cover/index.js";
-import {
-  CubeCloudField,
-  FloatingIslandMotion,
-  SkyIslandScenery,
-} from "./objects/scenery/index.js";
+import { CubeCloudField, SkyIslandScenery } from "./objects/scenery/index.js";
 import { VoxelVegetation } from "./objects/vegetation/index.js";
 import { BuriedTreasureField } from "./objects/treasure/index.js";
 import { ThrownInventoryItem } from "./objects/inventory/index.js";
@@ -209,7 +205,6 @@ export class PlayCanvasRenderer {
   #thrownInventoryItems = [];
   #gameOverHud = null;
   #heroVisibility = null;
-  #floatingIslandMotion = null;
   #groundCover = null;
   #grassSurface = null;
   #riverWater = null;
@@ -1161,11 +1156,6 @@ export class PlayCanvasRenderer {
     this.#clearScene();
     this.#mapRoot = new this.#pc.Entity("Voxel map");
     this.#app.root.addChild(this.#mapRoot);
-    this.#floatingIslandMotion = new FloatingIslandMotion({
-      app: this.#app,
-      entity: this.#mapRoot,
-      zoom: this.#zoom,
-    });
 
     const scenery = new SkyIslandScenery(this.#mapData);
     const cubeBatches = new Map();
@@ -2964,7 +2954,6 @@ export class PlayCanvasRenderer {
     );
     this.#camera.lookAt(target);
     this.#camera.camera.orthoHeight = this.#baseOrthoHeight / this.#zoom;
-    this.#floatingIslandMotion?.setZoom(this.#zoom);
     this.#cloudField?.setCameraState({
       rotation: this.#rotation,
       panX: this.#panX,
@@ -3293,8 +3282,6 @@ export class PlayCanvasRenderer {
     this.#castle = null;
     this.#heroVisibility?.destroy();
     this.#heroVisibility = null;
-    this.#floatingIslandMotion?.destroy();
-    this.#floatingIslandMotion = null;
     this.#axeTool?.destroy();
     this.#axeTool = null;
     this.#knifeTool?.destroy();
