@@ -1,6 +1,5 @@
 import { defineStore } from "pinia";
 import { HERO_INVENTORY_CAPACITY } from "src/game/config/inventory.js";
-import { sessionStorageDriver } from "src/stores/drivers/SessionStorageDriver.js";
 
 function normalizeInventorySlots(inventory) {
   const occupiedSlots = new Set();
@@ -103,7 +102,7 @@ export const useHeroConfigurationStore = defineStore(
     persist: {
       key: "hero-configuration",
       pick: ["inventory"],
-      storage: sessionStorageDriver,
+      storage: process.env.CLIENT ? sessionStorage : undefined,
     },
   },
 );
