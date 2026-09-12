@@ -1,6 +1,6 @@
 import { TileType } from "../../MapGenerator.js";
 import { UnknownArrowMeshError } from "../../errors/path/index.js";
-import { colorFromHex } from "../../helpers/colors.js";
+import { colorFromHex, colorToCss } from "../../helpers/colors.js";
 import { isArray } from "../../helpers/types.js";
 
 const ARROW_POINTS = [
@@ -252,17 +252,13 @@ export class PathArrows {
       const holdEnd = start + (end - start) * 0.72;
       const color = this.#colors[colorIndexes[index]];
       const nextColor = this.#colors[colorIndexes[(index + 1) % count]];
-      gradient.addColorStop(start, this.#colorToCss(color));
-      gradient.addColorStop(holdEnd, this.#colorToCss(color));
-      gradient.addColorStop(end, this.#colorToCss(nextColor));
+      gradient.addColorStop(start, colorToCss(color));
+      gradient.addColorStop(holdEnd, colorToCss(color));
+      gradient.addColorStop(end, colorToCss(nextColor));
     }
     context.clearRect(0, 0, canvas.width, canvas.height);
     context.fillStyle = gradient;
     context.fillRect(0, 0, canvas.width, canvas.height);
-  }
-
-  #colorToCss(color) {
-    return `#${(color >>> 0).toString(16).padStart(6, "0").slice(-6)}`;
   }
 
   #averageColor(colorIndexes) {

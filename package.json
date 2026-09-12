@@ -9,6 +9,7 @@
     "lint": "eslint --ext .js,.vue ./",
     "format": "prettier --write \"**/*.{js,vue,scss}\" --ignore-path .gitignore --ignore-path .prettierignore",
     "test": "echo \"See package.json => scripts for available tests.\" && exit 0",
+    "test:unit": "node --test --test-isolation=none \"test/unit/**/*.test.js\"",
     "dev:spa": "quasar dev -m spa",
     "build:spa": "quasar build -m spa",
     "dev:ssr": "quasar dev -m ssr",

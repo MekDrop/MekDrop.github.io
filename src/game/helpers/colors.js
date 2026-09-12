@@ -8,6 +8,10 @@ export function colorFromHex(pc, value) {
   );
 }
 
+export function colorToCss(value) {
+  return `#${(value >>> 0).toString(16).padStart(6, "0").slice(-6)}`;
+}
+
 export function colorFromValue(pc, value, fallback = 0xffffff) {
   if (value instanceof pc.Color) {
     return value.clone();
