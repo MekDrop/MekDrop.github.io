@@ -29,6 +29,7 @@ import {
   PathHeightMismatchError,
   PathOutsideGateError,
   PathRenderModeMismatchError,
+  UnexpectedPathConnectionError,
   UnexpectedPathCrossingError,
 } from './errors/map/index.js';
 import { RIVER_KIND } from './enum/RiverKind.js';
@@ -161,6 +162,9 @@ export class MapGenerator {
       layout,
       requestedOverpass,
     );
+    if (!layout.overpassPlan) {
+      this.#retainSeparatedCurvePlans(layout);
+    }
     layout.signature = mapName;
     const grid = this.#createGrid(TileType.WATER);
     const tileMeta = this.#createTileMetadata();
@@ -235,6 +239,7 @@ export class MapGenerator {
       vegetationData,
       groundCoverData,
       riverData,
+      routeCellsByPath,
     );
     const { routes, arrowData } = this.#buildRouteData(layout);
     const castle = this.#buildCastleData(grid, layout);
@@ -818,8 +823,19 @@ export class MapGenerator {
         layout.entries[selected.lowerPathIdx].gateRows[0] * 2 + 1,
       );
       const previewGrid = this.#createGrid(TileType.WATER);
-      this.#carvePaths(previewGrid, this.#createTileMetadata(), layout);
-      if (!this.#findUnexpectedFlatPathCrossing(previewGrid, plan)) {
+      const { routeCellsByPath } = this.#carvePaths(
+        previewGrid,
+        this.#createTileMetadata(),
+        layout,
+      );
+      if (
+        !this.#findUnexpectedFlatPathCrossing(previewGrid, plan) &&
+        !this.#findUnexpectedRouteConnection(
+          routeCellsByPath,
+          layout,
+          plan,
+        )
+      ) {
         return plan;
       }
     }
@@ -828,6 +844,39 @@ export class MapGenerator {
       entry.curvePlan = originalCurvePlans[index];
     });
     return null;
+  }
+
+  static #retainSeparatedCurvePlans(layout) {
+    const curvePlans = layout.entries.map((entry) => entry.curvePlan);
+    for (const entry of layout.entries) {
+      entry.curvePlan = null;
+    }
+
+    for (let index = 0; index < layout.entries.length; index++) {
+      const curvePlan = curvePlans[index];
+      if (!curvePlan) {
+        continue;
+      }
+
+      layout.entries[index].curvePlan = curvePlan;
+      const previewGrid = this.#createGrid(TileType.WATER);
+      const { routeCellsByPath } = this.#carvePaths(
+        previewGrid,
+        this.#createTileMetadata(),
+        layout,
+      );
+      if (
+        this.#findUnexpectedFlatPathCrossing(previewGrid, null) ||
+        this.#hasInsufficientParallelPathClearance(previewGrid, layout) ||
+        this.#findUnexpectedRouteConnection(
+          routeCellsByPath,
+          layout,
+          null,
+        )
+      ) {
+        layout.entries[index].curvePlan = null;
+      }
+    }
   }
 
   static #buildVerticalOverpassPlan(
@@ -3393,7 +3442,136 @@ export class MapGenerator {
     return col >= mergeCol && col <= mergeCol + 1 && row >= layout.pathRows[0] && row <= layout.pathRows[1];
   }
 
-  static #validateParallelPathClearance(grid, layout) {
+  static #isWithinMergeCorridor(layout, col) {
+    const mergeCol = layout.entries[0]?.mergeCol;
+    return Number.isFinite(mergeCol) && col >= mergeCol && col <= mergeCol + 1;
+  }
+
+  static #routesShareMergeCellAtRow(
+    firstCells,
+    secondCells,
+    layout,
+    row,
+  ) {
+    const mergeCol = layout.entries[0]?.mergeCol;
+    if (!Number.isFinite(mergeCol)) {
+      return false;
+    }
+    return [mergeCol, mergeCol + 1].some((col) => {
+      const key = this.#tileKey(col, row);
+      return firstCells.has(key) && secondCells.has(key);
+    });
+  }
+
+  static #isPlannedMergeContact(
+    firstCells,
+    secondCells,
+    layout,
+    firstCell,
+    secondCell,
+  ) {
+    if (
+      !this.#isWithinMergeCorridor(layout, firstCell.col) &&
+      !this.#isWithinMergeCorridor(layout, secondCell.col)
+    ) {
+      return false;
+    }
+    return [firstCell.row, secondCell.row].some((row) =>
+      this.#routesShareMergeCellAtRow(
+        firstCells,
+        secondCells,
+        layout,
+        row,
+      ),
+    );
+  }
+
+  static #isWithinOverpassCrossing(overpassPlan, col, row) {
+    if (!overpassPlan) {
+      return false;
+    }
+    const { crossing } = overpassPlan;
+    return (
+      col >= crossing.col &&
+      col < crossing.col + crossing.width &&
+      row >= crossing.row &&
+      row < crossing.row + crossing.depth
+    );
+  }
+
+  static #findUnexpectedRouteConnection(
+    routeCellsByPath,
+    layout,
+    overpassPlan,
+  ) {
+    const neighborOffsets = [
+      [0, 0],
+      [1, 0],
+      [-1, 0],
+      [0, 1],
+      [0, -1],
+    ];
+
+    for (let firstIndex = 0; firstIndex < routeCellsByPath.length; firstIndex++) {
+      const firstCells = routeCellsByPath[firstIndex].routeCells;
+      for (
+        let secondIndex = firstIndex + 1;
+        secondIndex < routeCellsByPath.length;
+        secondIndex++
+      ) {
+        const secondCells = routeCellsByPath[secondIndex].routeCells;
+        for (const key of firstCells) {
+          const [col, row] = key.split(',').map(Number);
+          for (const [deltaCol, deltaRow] of neighborOffsets) {
+            const neighborCol = col + deltaCol;
+            const neighborRow = row + deltaRow;
+            if (
+              !secondCells.has(this.#tileKey(neighborCol, neighborRow))
+            ) {
+              continue;
+            }
+            if (
+              this.#isPlannedMergeContact(
+                firstCells,
+                secondCells,
+                layout,
+                { col, row },
+                { col: neighborCol, row: neighborRow },
+              ) ||
+              this.#isWithinOverpassCrossing(overpassPlan, col, row) ||
+              this.#isWithinOverpassCrossing(
+                overpassPlan,
+                neighborCol,
+                neighborRow,
+              )
+            ) {
+              continue;
+            }
+            return {
+              firstPathIndex: firstIndex,
+              secondPathIndex: secondIndex,
+              col,
+              row,
+            };
+          }
+        }
+      }
+    }
+    return null;
+  }
+
+  static #validateRouteSeparation(routeCellsByPath, layout) {
+    const connection = this.#findUnexpectedRouteConnection(
+      routeCellsByPath,
+      layout,
+      layout.overpassPlan,
+    );
+    if (connection) {
+      throw new UnexpectedPathConnectionError(connection);
+    }
+  }
+
+  static #hasInsufficientParallelPathClearance(grid, layout) {
     for (let col = 0; col < this.#MAP_COLS; col++) {
       const horizontalBands = [];
       for (let row = 0; row < this.#MAP_ROWS - 1; row++) {
@@ -3410,7 +3588,7 @@ export class MapGenerator {
           const topInMerge = this.#isWithinMergeZone(layout, col, topStart) || this.#isWithinMergeZone(layout, col, topStart + 1);
           const bottomInMerge = this.#isWithinMergeZone(layout, col, bottomStart) || this.#isWithinMergeZone(layout, col, bottomStart + 1);
           if (topInMerge && bottomInMerge) continue;
-          throw new InsufficientParallelPathSpacingError();
+          return true;
         }
       }
     }
@@ -3431,9 +3609,16 @@ export class MapGenerator {
           const leftInMerge = this.#isWithinMergeZone(layout, leftStart, row) || this.#isWithinMergeZone(layout, leftStart + 1, row);
           const rightInMerge = this.#isWithinMergeZone(layout, rightStart, row) || this.#isWithinMergeZone(layout, rightStart + 1, row);
           if (leftInMerge && rightInMerge) continue;
-          throw new InsufficientParallelPathSpacingError();
+          return true;
         }
       }
+    }
+    return false;
+  }
+
+  static #validateParallelPathClearance(grid, layout) {
+    if (this.#hasInsufficientParallelPathClearance(grid, layout)) {
+      throw new InsufficientParallelPathSpacingError();
     }
   }
 
@@ -4370,6 +4555,7 @@ export class MapGenerator {
     vegetationData,
     groundCoverData,
     riverData,
+    routeCellsByPath,
   ) {
     this.#validateRivers(
       grid,
@@ -4383,6 +4569,7 @@ export class MapGenerator {
     this.#validateIslandConnectivity(grid);
     this.#validateGatePlacement(grid, layout);
     this.#validatePathSpacing(layout);
+    this.#validateRouteSeparation(routeCellsByPath, layout);
     this.#validateParallelPathClearance(grid, layout);
     this.#validateFlatPathCrossings(grid, layout.overpassPlan);
     this.#validateRouteReachability(grid, layout);

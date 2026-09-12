@@ -29,4 +29,5 @@ export { PathHeightMismatchError } from "./PathHeightMismatchError.js";
 export { PathOutsideGateError } from "./PathOutsideGateError.js";
 export { PathRenderModeMismatchError } from "./PathRenderModeMismatchError.js";
 export { StoredMapNotFoundError } from "./StoredMapNotFoundError.js";
+export { UnexpectedPathConnectionError } from "./UnexpectedPathConnectionError.js";
 export { UnexpectedPathCrossingError } from "./UnexpectedPathCrossingError.js";

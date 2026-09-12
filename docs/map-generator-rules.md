@@ -55,6 +55,8 @@ The words **must**, **must not**, **always**, **never**, and **exactly** are acc
   * pipe interfaces
 * Turns, merges, intersections, castle approaches, and pipe interfaces must not create widened road plazas.
 * Every yellow tile must belong to the validated path graph.
+* Path sections that are not connected in the route graph must have at least one complete grass tile between their footprints.
+* Unconnected path sections must never overlap or share a tile edge. Parallel sections still use the stricter two-grass-tile spacing below.
 * If two path sections run in parallel, they must be separated by at least two full grass tiles.
 * The minimum parallel spacing is:
 
@@ -411,6 +413,7 @@ These notes describe the generator behavior currently implemented in `src/game/M
   * added or raised grass support cubes where a solid path has only one supported side
   * solid turn and merge landings that prevent 90-degree or branching bridge decks
   * reserved grass-topped ground beneath non-river bridge decks without vegetation or ground-cover placement
+  * rejection of unplanned contacts between route branches outside the shared merge corridor and designated grade-separated crossing
   * minimum spacing between parallel path bands outside merge zones
   * route reachability from every gate to the castle
   * castle entrance connection
@@ -433,6 +436,7 @@ Reject the map when:
 * a bridge turns 90 degrees, merges, branches, or forms an intersection
 * a non-water bridge exposes bare earth beneath its deck or allows an object to spawn on its covered grass
 * bridge fascia or rail borders show internal seams, overlapping faces, flicker, or fractional-zoom visual noise
+* two route branches overlap or share a tile edge outside their planned merge or grade-separated crossing
 * two parallel paths are separated by fewer than two grass tiles outside a merge zone
 * a turn cuts diagonally through a tile
 * a road boundary is rounded, chamfered, or bevelled into a non-orthogonal turn
