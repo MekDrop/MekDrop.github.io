@@ -194,6 +194,7 @@ export class PlayCanvasRenderer {
   #rotation = 0;
   #panX = 0;
   #panZ = 0;
+  #panLimitsEnabled = true;
   #fitCenterX = 0;
   #fitCenterZ = 0;
   #viewportManuallyMoved = false;
@@ -482,6 +483,7 @@ export class PlayCanvasRenderer {
     this.pathArrowsVisible = this.#debugStore.pathArrows;
     this.debugAxesHudVisible = this.#debugStore.debugAxesHud;
     this.debugFpsHudVisible = this.#debugStore.debugFpsHud;
+    this.panLimitsEnabled = !this.#debugStore.hasAny;
   }
 
   set pathArrowsVisible(visible) {
@@ -537,7 +539,10 @@ export class PlayCanvasRenderer {
   }
 
   get canPan() {
-    return !this.#gameOverCameraLocked && this.#zoom > MAP_FIT_ZOOM;
+    return (
+      !this.#gameOverCameraLocked &&
+      (!this.#panLimitsEnabled || this.#zoom > MAP_FIT_ZOOM)
+    );
   }
 
   get rotation() {
@@ -659,6 +664,19 @@ export class PlayCanvasRenderer {
       panZ: this.#panZ,
       manuallyMoved: this.#viewportManuallyMoved,
     };
+  }
+
+  get panLimitsEnabled() {
+    return this.#panLimitsEnabled;
+  }
+
+  set panLimitsEnabled(enabled) {
+    const nextEnabled = Boolean(enabled);
+    if (this.#panLimitsEnabled === nextEnabled) {
+      return;
+    }
+    this.#panLimitsEnabled = nextEnabled;
+    this.#updateCamera();
   }
 
   get mapVisibility() {
@@ -822,7 +840,7 @@ export class PlayCanvasRenderer {
     this.#zoom = Math.max(MAP_FIT_ZOOM, zoom);
     this.#rotation = rotation;
     this.#updateFitCenter();
-    const fitted = this.#zoom === MAP_FIT_ZOOM;
+    const fitted = this.#panLimitsEnabled && this.#zoom === MAP_FIT_ZOOM;
     this.#panX = fitted ? this.#fitCenterX : panX;
     this.#panZ = fitted ? this.#fitCenterZ : panZ;
     this.#viewportManuallyMoved = fitted ? false : manuallyMoved;
@@ -842,7 +860,7 @@ export class PlayCanvasRenderer {
     this.#panZ += before.z - after.z;
     this.#zoom = constrainedZoom;
 
-    if (constrainedZoom < previousZoom) {
+    if (this.#panLimitsEnabled && constrainedZoom < previousZoom) {
       const previousDistance = previousZoom - MAP_FIT_ZOOM;
       const nextDistance = constrainedZoom - MAP_FIT_ZOOM;
       const centerRetention =
@@ -852,7 +870,7 @@ export class PlayCanvasRenderer {
       this.#panZ =
         this.#fitCenterZ + (this.#panZ - this.#fitCenterZ) * centerRetention;
     }
-    if (constrainedZoom === MAP_FIT_ZOOM) {
+    if (this.#panLimitsEnabled && constrainedZoom === MAP_FIT_ZOOM) {
       this.#panX = this.#fitCenterX;
       this.#panZ = this.#fitCenterZ;
       this.#viewportManuallyMoved = false;
@@ -866,7 +884,7 @@ export class PlayCanvasRenderer {
     }
     this.#heroCameraReturnTransition = null;
     this.#grassSurface?.applyViewInteraction(deltaX, deltaY);
-    if (this.#zoom <= MAP_FIT_ZOOM) {
+    if (this.#panLimitsEnabled && this.#zoom <= MAP_FIT_ZOOM) {
       this.#panX = this.#fitCenterX;
       this.#panZ = this.#fitCenterZ;
       this.#viewportManuallyMoved = false;
@@ -2572,7 +2590,7 @@ export class PlayCanvasRenderer {
       1;
     this.#baseOrthoHeight = Math.max(halfHeight, halfWidth / aspect) * 0.84;
     this.#updateFitCenter();
-    if (this.#zoom === MAP_FIT_ZOOM) {
+    if (this.#panLimitsEnabled && this.#zoom === MAP_FIT_ZOOM) {
       this.#panX = this.#fitCenterX;
       this.#panZ = this.#fitCenterZ;
     }
@@ -2871,12 +2889,12 @@ export class PlayCanvasRenderer {
     if (!this.#camera || !this.#mapData) {
       return;
     }
-    if (this.#zoom === MAP_FIT_ZOOM) {
+    if (this.#panLimitsEnabled && this.#zoom === MAP_FIT_ZOOM) {
       this.#updateFitCenter();
       this.#panX = this.#fitCenterX;
       this.#panZ = this.#fitCenterZ;
     }
-    if (!this.#gameOverCameraLocked) {
+    if (this.#panLimitsEnabled && !this.#gameOverCameraLocked) {
       const constrainedPan = this.#cameraPanBounds?.constrain(
         this.#cameraView,
         panOrigin,

@@ -384,6 +384,50 @@ describe("Camera dragging", () => {
     }
   });
 
+  it("disables pan limits while Pause/Break developer mode is active", () => {
+    let initialViewport;
+    cy.window().then((window) => {
+      const state = window.gameCameraTest.state();
+      initialViewport = state.viewport;
+      expect(state.panLimitsEnabled).to.equal(true);
+      window.dispatchEvent(new KeyboardEvent("keydown", { code: "Pause" }));
+      window.dispatchEvent(new KeyboardEvent("keyup", { code: "Pause" }));
+    });
+    cy.window().then((window) => {
+      const state = window.gameCameraTest.state();
+      expect(state.panLimitsEnabled).to.equal(false);
+    });
+
+    dragCamera(DRAG_DISTANCE, DRAG_DISTANCE);
+
+    cy.window().then((window) => {
+      const unboundedState = window.gameCameraTest.state();
+      const distance = Math.hypot(
+        unboundedState.viewport.panX - initialViewport.panX,
+        unboundedState.viewport.panZ - initialViewport.panZ,
+      );
+      expect(distance).to.be.greaterThan(100);
+      expect(unboundedState.visibility.safeVisibleTileCenters).to.equal(0);
+
+      window.dispatchEvent(new KeyboardEvent("keydown", { code: "Pause" }));
+      window.dispatchEvent(new KeyboardEvent("keyup", { code: "Pause" }));
+    });
+    cy.window().should((window) => {
+      const boundedState = window.gameCameraTest.state();
+      expect(boundedState.panLimitsEnabled).to.equal(true);
+      expect(boundedState.visibility.panWithinBounds).to.equal(true);
+      expect(boundedState.visibility.safeVisibleTileCenters).to.be.greaterThan(
+        0,
+      );
+      expect(
+        Math.hypot(
+          boundedState.viewport.panX - unboundedState.viewport.panX,
+          boundedState.viewport.panZ - unboundedState.viewport.panZ,
+        ),
+      ).to.be.greaterThan(100);
+    });
+  });
+
   it("can reverse from the bottom pan limit to the top at maximum zoom", () => {
     setZoom(MAX_ZOOM);
     dragCamera(0, DRAG_DISTANCE);

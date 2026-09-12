@@ -380,6 +380,7 @@ function installCameraTestDriver() {
       return {
         cameraReturningToHero: renderer.cameraReturningToHero,
         hero: renderer.heroState,
+        panLimitsEnabled: renderer.panLimitsEnabled,
         viewport: renderer.viewport,
         visibility: renderer.mapVisibility,
       };
