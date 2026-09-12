@@ -46,6 +46,8 @@ game:
   game_over: Žaidimas baigtas
   lives_remaining: "Liko gyvybių: {current} iš {total}"
   restart_prompt: Paspauskite bet kurį klavišą arba spustelėkite, kad pradėtumėte iš naujo
+  notification:
+    screenshot_copied: Ekrano nuotrauka padaryta ir nukopijuota į iškarpinę.
   graphics:
     webgl_fallback: WebGPU nepasiekiamas. Naudojamas suderinamumo WebGL 2 atvaizdavimas.
   interaction:

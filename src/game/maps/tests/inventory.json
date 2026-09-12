@@ -1,0 +1,475 @@
+{
+  "grid": [
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      0
+    ],
+    [
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      0
+    ],
+    [
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  ],
+  "heightmap": [
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      0
+    ],
+    [
+      0,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      0
+    ],
+    [
+      0,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  ],
+  "tileMeta": [
+    [
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {}
+    ],
+    [
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {}
+    ],
+    [
+      {},
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {}
+    ],
+    [
+      {},
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {}
+    ],
+    [
+      {},
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {}
+    ],
+    [
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {}
+    ],
+    [
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {}
+    ]
+  ],
+  "cols": 9,
+  "rows": 7,
+  "entries": [],
+  "castle": null,
+  "numPaths": 0,
+  "paths": [],
+  "arrowData": [],
+  "vegetationData": [],
+  "groundCoverData": [
+    {
+      "col": 2,
+      "row": 3,
+      "variant": "daisy-patch",
+      "offsetX": -0.05,
+      "offsetZ": 0.34,
+      "rotation": 0,
+      "scale": 1,
+      "phase": 0
+    },
+    {
+      "col": 2,
+      "row": 3,
+      "variant": "red-mushroom",
+      "offsetX": -0.025,
+      "offsetZ": 0.37,
+      "rotation": 45,
+      "scale": 1,
+      "phase": 0.4
+    },
+    {
+      "col": 2,
+      "row": 3,
+      "variant": "buttercup-patch",
+      "offsetX": 0,
+      "offsetZ": 0.4,
+      "rotation": 90,
+      "scale": 1,
+      "phase": 0.8
+    },
+    {
+      "col": 2,
+      "row": 3,
+      "variant": "golden-mushroom-pair",
+      "offsetX": 0.025,
+      "offsetZ": 0.34,
+      "rotation": 135,
+      "scale": 1,
+      "phase": 1.2000000000000002
+    },
+    {
+      "col": 2,
+      "row": 3,
+      "variant": "pink-flower-patch",
+      "offsetX": 0.05,
+      "offsetZ": 0.37,
+      "rotation": 180,
+      "scale": 1,
+      "phase": 1.6
+    },
+    {
+      "col": 2,
+      "row": 3,
+      "variant": "forest-mushroom-cluster",
+      "offsetX": -0.05,
+      "offsetZ": 0.4,
+      "rotation": 225,
+      "scale": 1,
+      "phase": 2
+    },
+    {
+      "col": 2,
+      "row": 3,
+      "variant": "blue-flower-patch",
+      "offsetX": -0.025,
+      "offsetZ": 0.34,
+      "rotation": 270,
+      "scale": 1,
+      "phase": 2.4000000000000004
+    },
+    {
+      "col": 2,
+      "row": 3,
+      "variant": "red-mushroom",
+      "offsetX": 0,
+      "offsetZ": 0.37,
+      "rotation": 315,
+      "scale": 1,
+      "phase": 2.8000000000000003
+    },
+    {
+      "col": 2,
+      "row": 3,
+      "variant": "clover-patch",
+      "offsetX": 0.025,
+      "offsetZ": 0.4,
+      "rotation": 0,
+      "scale": 1,
+      "phase": 3.2
+    },
+    {
+      "col": 2,
+      "row": 3,
+      "variant": "golden-mushroom-pair",
+      "offsetX": 0.05,
+      "offsetZ": 0.34,
+      "rotation": 45,
+      "scale": 1,
+      "phase": 3.6
+    },
+    {
+      "col": 2,
+      "row": 3,
+      "variant": "daisy-patch",
+      "offsetX": -0.05,
+      "offsetZ": 0.37,
+      "rotation": 90,
+      "scale": 1,
+      "phase": 4
+    },
+    {
+      "col": 2,
+      "row": 3,
+      "variant": "forest-mushroom-cluster",
+      "offsetX": -0.025,
+      "offsetZ": 0.4,
+      "rotation": 135,
+      "scale": 1,
+      "phase": 4.4
+    },
+    {
+      "col": 2,
+      "row": 3,
+      "variant": "pink-flower-patch",
+      "offsetX": 0,
+      "offsetZ": 0.34,
+      "rotation": 180,
+      "scale": 1,
+      "phase": 4.800000000000001
+    }
+  ],
+  "riverData": [],
+  "pipeData": [],
+  "overpassData": null,
+  "mergeZones": [],
+  "trunkStart": null,
+  "mapName": "test_inventory",
+  "layoutSignature": "test_inventory",
+  "heroSpawn": {
+    "x": -2,
+    "y": 2.14,
+    "z": 0
+  }
+}

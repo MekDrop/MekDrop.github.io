@@ -14,6 +14,7 @@ export { InvalidCastleEntranceWidthError } from "./InvalidCastleEntranceWidthErr
 export { InvalidGatePositionError } from "./InvalidGatePositionError.js";
 export { InvalidGroundCoverPlacementError } from "./InvalidGroundCoverPlacementError.js";
 export { InvalidOverpassError } from "./InvalidOverpassError.js";
+export { InvalidPathDipError } from "./InvalidPathDipError.js";
 export { InvalidLavaRiverCountError } from "./InvalidLavaRiverCountError.js";
 export { InvalidRiverCountError } from "./InvalidRiverCountError.js";
 export { InvalidRiverFlowError } from "./InvalidRiverFlowError.js";
@@ -27,4 +28,5 @@ export { NonOrthogonalRouteSegmentError } from "./NonOrthogonalRouteSegmentError
 export { PathHeightMismatchError } from "./PathHeightMismatchError.js";
 export { PathOutsideGateError } from "./PathOutsideGateError.js";
 export { PathRenderModeMismatchError } from "./PathRenderModeMismatchError.js";
+export { StoredMapNotFoundError } from "./StoredMapNotFoundError.js";
 export { UnexpectedPathCrossingError } from "./UnexpectedPathCrossingError.js";

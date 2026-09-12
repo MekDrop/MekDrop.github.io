@@ -11,6 +11,7 @@ import { HERO_INVENTORY_CAPACITY } from "../../config/inventory.js";
 import { RIVER_KIND } from "../../enum/RiverKind.js";
 import { TILE_SHAPE } from "../../enum/TileShape.js";
 import { HeroLavaDeathEffect } from "./HeroLavaDeathEffect.js";
+import { HeroFootPlacement } from "./HeroFootPlacement.js";
 
 const FIXED_STEP = 1 / 120;
 const MAX_FRAME_TIME = 0.1;
@@ -239,6 +240,7 @@ export class Hero {
   #dodgeAction = null;
   #respawnAction = null;
   #respawnEffect = null;
+  #footPlacement = null;
   #fallingToDeath = false;
   #riverRoutesByCell = new Map();
   #riverSourceCovers = [];
@@ -374,6 +376,10 @@ export class Hero {
 
   get grounded() {
     return this.#grounded;
+  }
+
+  get footPlacementState() {
+    return this.#footPlacement?.state ?? null;
   }
 
   get isInDeathSequence() {
@@ -802,6 +808,8 @@ export class Hero {
   destroy() {
     this.#updateHandle?.off();
     this.#updateHandle = null;
+    this.#footPlacement?.destroy();
+    this.#footPlacement = null;
     this.#respawnEffect?.destroy();
     this.#respawnEffect = null;
     this.#lavaDeathEffect?.destroy();
@@ -2763,6 +2771,17 @@ export class Hero {
     if (bridgeClimbing) {
       this.#updateRiverBridgeExitPose();
     }
+    this.#footPlacement?.update(
+      deltaTime,
+      this.#grounded &&
+        !this.#gameOver &&
+        !this.#dodgeAction &&
+        !this.#fallingToDeath &&
+        !this.#respawnAction &&
+        !drowning &&
+        !bridgeClimbing &&
+        !burning,
+    );
   }
 
   #selectIdleAnimation(deltaTime) {
@@ -3039,6 +3058,40 @@ export class Hero {
     }
     this.#modelRoot.anim.baseLayer.play(HERO_ANIMATION.IDLE);
     this.#animationState = HERO_ANIMATION.IDLE;
+    this.#footPlacement = new HeroFootPlacement({
+      pc: this.#pc,
+      surfaceHeightAt: (x, z, maximumHeight) =>
+        this.#supportHeightAtPoint(x, z, maximumHeight),
+      getHeroPosition: () => this.#position,
+      left: {
+        side: "left",
+        leg: this.#findModelEntity("Left leg"),
+        sole: this.#findModelEntity("Boot sole"),
+        cuff: this.#findModelEntity("Boot cuff"),
+        tiltingParts: [
+          "Boot shaft",
+          "Boot front strap",
+          "Boot foot",
+          "Boot heel",
+          "Boot sole",
+          "Boot toe",
+        ].map((name) => this.#findModelEntity(name)),
+      },
+      right: {
+        side: "right",
+        leg: this.#findModelEntity("Right leg"),
+        sole: this.#findModelEntity("Boot sole.001"),
+        cuff: this.#findModelEntity("Boot cuff.001"),
+        tiltingParts: [
+          "Boot shaft.001",
+          "Boot front strap.001",
+          "Boot foot.001",
+          "Boot heel.001",
+          "Boot sole.001",
+          "Boot toe.001",
+        ].map((name) => this.#findModelEntity(name)),
+      },
+    });
     this.#respawnEffect = new HeroRespawnEffect({
       pc: this.#pc,
       parent: this.#entity,

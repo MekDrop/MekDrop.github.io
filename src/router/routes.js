@@ -11,6 +11,11 @@ const routes = [
         component: () => import("pages/IndexPage.vue"),
         name: "index",
       },
+      {
+        path: "map/:mapName",
+        component: () => import("pages/IndexPage.vue"),
+        name: "map",
+      },
     ],
   },
 

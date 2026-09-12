@@ -6,6 +6,8 @@
     :data-graphics-backend="graphicsBackend"
     :data-game-fps="debugVisible ? debugFramesPerSecond : undefined"
     :data-debug-visible="debugVisible"
+    :data-map-name="currentMapName"
+    :data-map-signature="currentMapSignature"
     @contextmenu.prevent
   >
     <site-notice-dialog
@@ -147,9 +149,17 @@ html.game-viewport--dragging * {
 </style>
 
 <script setup>
-import { computed, ref, watch, onMounted, onBeforeUnmount } from "vue";
-import { getCssVar, Notify } from "quasar";
+import {
+  computed,
+  nextTick,
+  ref,
+  watch,
+  onMounted,
+  onBeforeUnmount,
+} from "vue";
+import { getCssVar } from "quasar";
 import { useI18n } from "vue-i18n";
+import { useRoute, useRouter } from "vue-router";
 import SiteNoticeDialog from "components/SiteNoticeDialog.vue";
 import { generateMap } from "src/game/MapGenerator.js";
 import { PlayCanvasRenderer } from "src/game/PlayCanvasRenderer.js";
@@ -185,7 +195,11 @@ const interactionTarget = ref(null);
 const heroLives = ref(3);
 const maxHeroLives = ref(3);
 const gameOver = ref(false);
+const currentMapName = ref("");
+const currentMapSignature = computed(() => currentMapName.value);
 const { t } = useI18n();
+const route = useRoute();
+const router = useRouter();
 const graphicsStore = useGraphicsSettingsStore();
 const debugStore = useDebugStore();
 const gameViewStore = useGameViewStore();
@@ -201,8 +215,11 @@ let controls = null;
 let resizeObserver = null;
 let debugStatsTimer = null;
 let stopGraphicsWatch = null;
+let stopMapRouteWatch = null;
 let restartGameAction = null;
-let movementTestMapFactory = null;
+let mapFileLoader = null;
+let mapNavigationId = 0;
+let mapRouteLoadPromise = Promise.resolve();
 let viewportSaveTimer = null;
 let viewportPersistenceEnabled = false;
 let interactionSuggestion = null;
@@ -253,33 +270,77 @@ function cameraTestRequested() {
   return new URLSearchParams(window.location.search).has("camera-test");
 }
 
-function requestedMovementTestScenario() {
-  if (!import.meta.env.DEV || typeof window === "undefined") {
-    return null;
-  }
-  return new URLSearchParams(window.location.search).get("movement-test");
+function requestedMapName() {
+  return typeof route.params.mapName === "string"
+    ? route.params.mapName
+    : null;
 }
 
-async function createInitialMap() {
-  const scenario = requestedMovementTestScenario();
-  if (!scenario) {
-    return generateMap();
+async function createMap(mapName = null) {
+  if (!import.meta.env.DEV || !mapName?.startsWith("test_")) {
+    mapFileLoader = null;
+    return generateMap(mapName ? { mapName } : undefined);
   }
-  const { MovementTestMap } = await import(
-    "src/game/testing/MovementTestMap.js"
-  );
-  movementTestMapFactory = MovementTestMap;
-  return MovementTestMap.create(scenario);
+  const { MapFileLoader } = await import("src/game/MapFileLoader.js");
+  mapFileLoader = MapFileLoader;
+  return MapFileLoader.load(mapName);
+}
+
+function mapRouteLocation(mapName) {
+  const params = { mapName };
+  if (route.params.lang) {
+    params.lang = route.params.lang;
+  }
+  return {
+    name: "map",
+    params,
+    query: route.query,
+    hash: route.hash,
+  };
+}
+
+function updateCurrentMap(generatedMap) {
+  mapData = generatedMap;
+  currentMapName.value = generatedMap.mapName;
+  applyGraphicsSettings();
+  installMovementTestDriver();
+}
+
+async function loadMapRoute(mapName) {
+  const navigationId = ++mapNavigationId;
+  const generatedMap = await createMap(mapName);
+  if (navigationId !== mapNavigationId || !renderer) {
+    return;
+  }
+
+  const viewport = renderer.viewport;
+  renderer.render(generatedMap);
+  renderer.setViewport(viewport);
+  updateCurrentMap(generatedMap);
+
+  if (!mapName) {
+    await router.replace(mapRouteLocation(generatedMap.mapName));
+  }
 }
 
 function installMovementTestDriver() {
-  if (!movementTestMapFactory) {
+  if (!mapFileLoader) {
+    delete window.gameMovementTest;
     return;
   }
   window.gameMovementTest = {
-    loadScenario(scenario) {
-      mapData = movementTestMapFactory.create(scenario);
-      renderer.render(mapData);
+    async loadScenario(scenario) {
+      const mapName = scenario.startsWith("test_")
+        ? scenario
+        : `test_${scenario}`;
+      const reloadCurrentRoute =
+        route.name === "map" && route.params.mapName === mapName;
+      await router.push(mapRouteLocation(mapName));
+      await nextTick();
+      if (reloadCurrentRoute) {
+        mapRouteLoadPromise = loadMapRoute(mapName);
+      }
+      await mapRouteLoadPromise;
       return renderer.heroState;
     },
     moveForward(active = true) {
@@ -378,21 +439,22 @@ async function init() {
       gameOver.value = state.gameOver;
     },
     onViewportChange: scheduleViewportSave,
-    translate: (key, values) => t(key, values),
-    gameOverTitle: t("game.game_over"),
-    restartPrompt: t("game.restart_prompt"),
+    t,
     graphics: graphicsStore.rendererOptions,
     heroConfiguration: heroConfigurationStore,
     uiTheme: gameUiTheme(),
   });
   await renderer.init();
   graphicsBackend.value = renderer.graphicsBackend;
-  mapData = await createInitialMap();
+  mapData = await createMap(requestedMapName());
   renderer.render(mapData);
   renderer.setViewport(gameViewStore.viewport);
+  updateCurrentMap(mapData);
+  if (!requestedMapName()) {
+    await router.replace(mapRouteLocation(mapData.mapName));
+  }
   gameViewStore.updateViewport(renderer.viewport);
   viewportPersistenceEnabled = true;
-  installMovementTestDriver();
   installCameraTestDriver();
   applyGraphicsSettings();
   updateDebugStats();
@@ -401,9 +463,8 @@ async function init() {
     renderer,
     generateMap,
     (generatedMap) => {
-      mapData = generatedMap;
-      interactionSuggestion.clear();
-      applyGraphicsSettings();
+      updateCurrentMap(generatedMap);
+      void router.push(mapRouteLocation(generatedMap.mapName));
     },
   );
   restartGameAction = new RestartGameAction(renderer, regenerateMapAction);
@@ -459,14 +520,7 @@ async function init() {
     closeModal: new CloseModalAction([toggleInventoryAction]),
     rotateView: rotateViewAction,
     rotateAnticlockwise: rotateViewAction,
-    copyScreenshot: new CopyScreenshotAction(renderer, () => {
-      Notify.create({
-        type: "positive",
-        position: "bottom-right",
-        message: "Screenshot taken and copied to clipboard.",
-        timeout: 2000,
-      });
-    }),
+    copyScreenshot: new CopyScreenshotAction(renderer),
     toggleArrows: new ToggleArrowsAction(
       debugStore,
       undefined,
@@ -486,6 +540,17 @@ async function init() {
       debugStore.debugFpsHud,
     ],
     applyGraphicsSettings,
+  );
+  stopMapRouteWatch = watch(
+    () => route.params.mapName,
+    (mapName) => {
+      if (mapName === mapData?.mapName) {
+        return;
+      }
+      mapRouteLoadPromise = loadMapRoute(
+        typeof mapName === "string" ? mapName : null,
+      );
+    },
   );
   debugStatsTimer = window.setInterval(() => {
     if (debugVisible.value) updateDebugStats();
@@ -509,6 +574,7 @@ onBeforeUnmount(() => {
     saveViewport();
   }
   stopGraphicsWatch?.();
+  stopMapRouteWatch?.();
   resizeObserver?.disconnect();
   if (debugStatsTimer !== null) window.clearInterval(debugStatsTimer);
   renderer?.destroy();

@@ -16,6 +16,7 @@ import {
   InvalidGroundCoverPlacementError,
   InvalidLavaRiverCountError,
   InvalidOverpassError,
+  InvalidPathDipError,
   InvalidRiverCountError,
   InvalidRiverFlowError,
   InvalidRiverPathError,
@@ -43,6 +44,7 @@ export const TileType = {
 };
 
 export class MapGenerator {
+  static #random = Math.random;
   static #MAP_COLS = 42;
   static #MAP_ROWS = 42;
   static #DEFAULT_MIN_PATHS = 2;
@@ -71,6 +73,11 @@ export class MapGenerator {
   static #OVERPASS_HALF_STEP = 0.5;
   static #OVERPASS_DECK_THICKNESS = 0.24;
   static #OVERPASS_MIN_CLEARANCE = 1.6;
+  static #TERRAIN_BRIDGE_DIP_CHANCE = 60;
+  static #TERRAIN_BRIDGE_DIP_ELEVATION = this.#PATH_HEIGHT - 1;
+  static #TERRAIN_BRIDGE_DIP_RAMP_TILES = 2;
+  static #TERRAIN_BRIDGE_DIP_MIN_SPAN =
+    this.#TERRAIN_BRIDGE_DIP_RAMP_TILES * 2 + 1;
   static #TREE_VARIANTS = ['oak', 'pine', 'tall-tree', 'sapling'];
   static #BUSH_VARIANTS = ['round-bush', 'wide-bush'];
   static #GROUND_COVER_VARIANTS = [
@@ -120,10 +127,27 @@ export class MapGenerator {
   ];
 
   static generate(options) {
+    const normalizedOptions = this.#normalizeOptions(options);
+    const mapName = String(normalizedOptions.mapName ?? this.#createMapName());
+    const previousRandom = this.#random;
+    this.#random = this.#createSeededRandom(mapName);
+
+    try {
+      return {
+        ...this.#generate({ ...normalizedOptions, mapName }),
+        mapName,
+      };
+    } finally {
+      this.#random = previousRandom;
+    }
+  }
+
+  static #generate(options) {
     const {
       numPaths: requestedNumPaths,
       numRivers: requestedNumRivers,
       overpass: requestedOverpass,
+      mapName,
     } = this.#normalizeOptions(options);
     const numPaths = this.#clamp(
       Number.isFinite(requestedNumPaths)
@@ -137,7 +161,7 @@ export class MapGenerator {
       layout,
       requestedOverpass,
     );
-    layout.signature = this.#buildLayoutSignature(layout);
+    layout.signature = mapName;
     const grid = this.#createGrid(TileType.WATER);
     const tileMeta = this.#createTileMetadata();
     const islandMask = this.#buildIslandMask(layout);
@@ -174,6 +198,14 @@ export class MapGenerator {
       tileMeta,
       islandMask,
       riverData,
+    );
+    this.#materializePathSupports(grid, heightmap, tileMeta, riverData);
+    layout.pathDipPlans = this.#applyTerrainBridgeDips(
+      grid,
+      heightmap,
+      tileMeta,
+      riverData,
+      mergeZones,
     );
     this.#applyHeightsToMetadata(grid, tileMeta, heightmap, riverData);
     this.#materializeSingleCellTerrainHoles(
@@ -232,6 +264,7 @@ export class MapGenerator {
       riverData,
       pipeData: new Map(),
       overpassData: layout.overpassPlan,
+      pathDipData: layout.pathDipPlans,
       mergeZones,
       trunkStart,
       layoutSignature: layout.signature,
@@ -239,7 +272,36 @@ export class MapGenerator {
   }
 
   static #rng(min, max) {
-    return Math.floor(Math.random() * (max - min + 1)) + min;
+    return Math.floor(this.#random() * (max - min + 1)) + min;
+  }
+
+  static #createMapName() {
+    const timestamp = Date.now().toString(36);
+    const randomPart = Math.floor(Math.random() * 0x100000000)
+      .toString(36)
+      .padStart(7, "0");
+    return `${timestamp}_${randomPart}`;
+  }
+
+  static #createSeededRandom(mapName) {
+    let state = this.#hashMapName(mapName);
+
+    return () => {
+      state = (state + 0x6d2b79f5) >>> 0;
+      let value = state;
+      value = Math.imul(value ^ (value >>> 15), value | 1);
+      value ^= value + Math.imul(value ^ (value >>> 7), value | 61);
+      return ((value ^ (value >>> 14)) >>> 0) / 0x100000000;
+    };
+  }
+
+  static #hashMapName(mapName) {
+    let hash = 0x811c9dc5;
+    for (const character of mapName) {
+      hash ^= character.codePointAt(0);
+      hash = Math.imul(hash, 0x01000193);
+    }
+    return hash >>> 0;
   }
 
   static #clamp(value, min, max) {
@@ -353,29 +415,6 @@ export class MapGenerator {
       islandEllipses,
       hillEllipses,
     };
-  }
-
-  static #buildLayoutSignature(layout) {
-    return JSON.stringify({
-      castleLeft: layout.castleLeft,
-      castleCenterRow: layout.castleCenterRow,
-      castleFootprint: layout.castleFootprint,
-      entries: layout.entries.map(entry => ({
-        id: entry.id,
-        side: entry.side,
-        mergeCol: entry.mergeCol,
-      })),
-      trunkStart: Math.min(...layout.entries.map(entry => entry.mergeCol)),
-      ellipses: layout.islandEllipses,
-      overpass: layout.overpassPlan
-        ? {
-            upperPathIdx: layout.overpassPlan.upperPathIdx,
-            lowerPathIdx: layout.overpassPlan.lowerPathIdx,
-            col: layout.overpassPlan.crossing.col,
-            row: layout.overpassPlan.crossing.row,
-          }
-        : null,
-    });
   }
 
   static #inBounds(col, row) {
@@ -588,7 +627,7 @@ export class MapGenerator {
       ? Math.round(numPaths)
       : this.#rng(this.#DEFAULT_MIN_PATHS, this.#DEFAULT_MAX_PATHS);
     const count = this.#clamp(requested, 1, this.#ENTRY_TEMPLATES.length);
-    const shuffled = [...this.#ENTRY_TEMPLATES].sort(() => Math.random() - 0.5);
+    const shuffled = this.#shuffle([...this.#ENTRY_TEMPLATES]);
     const selected = shuffled.slice(0, count).sort((a, b) => a.gateRows[0] - b.gateRows[0]);
     const sharedMinMerge = Math.max(...selected.map(template => template.mergeRange[0]));
     const sharedMaxMerge = Math.min(castleLeft - 6, ...selected.map(template => template.mergeRange[1]));
@@ -755,7 +794,7 @@ export class MapGenerator {
       return null;
     }
     const originalCurvePlans = layout.entries.map((entry) => entry.curvePlan);
-    const shuffledCandidates = [...candidates].sort(() => Math.random() - 0.5);
+    const shuffledCandidates = this.#shuffle([...candidates]);
     for (const selected of shuffledCandidates) {
       for (const entry of layout.entries) {
         entry.curvePlan = null;
@@ -831,6 +870,7 @@ export class MapGenerator {
           riseDirection: this.#DIRECTIONS.NORTH,
         });
       }
+
     }
     return {
       id: 'path-overpass-0',
@@ -2135,8 +2175,348 @@ export class MapGenerator {
     }
   }
 
+  static #applyTerrainBridgeDips(
+    grid,
+    heightmap,
+    tileMeta,
+    riverData,
+    mergeZones,
+  ) {
+    const riverBridgeCells = new Set(
+      riverData.flatMap((river) =>
+        river.cells
+          .filter((cell) => cell.underBridge)
+          .map((cell) => this.#tileKey(cell.col, cell.row)),
+      ),
+    );
+    const stations = [];
+    const seenStations = new Set();
+
+    for (let row = 0; row < this.#MAP_ROWS; row++) {
+      for (let col = 0; col < this.#MAP_COLS; col++) {
+        if (grid[row][col] !== TileType.PATH) {
+          continue;
+        }
+        const metadata = tileMeta[row][col];
+        if (
+          metadata.shape !== TILE_SHAPE.FLAT ||
+          metadata.overpassId ||
+          heightmap[row][col] !== this.#PATH_HEIGHT
+        ) {
+          continue;
+        }
+
+        const horizontal =
+          metadata.direction === this.#DIRECTIONS.EAST ||
+          metadata.direction === this.#DIRECTIONS.WEST;
+        const vertical =
+          metadata.direction === this.#DIRECTIONS.NORTH ||
+          metadata.direction === this.#DIRECTIONS.SOUTH;
+        if (!horizontal && !vertical) {
+          continue;
+        }
+
+        const mate = horizontal
+          ? this.#findLaneMateRow(
+              grid,
+              tileMeta,
+              col,
+              row,
+              metadata.direction,
+            )
+          : this.#findLaneMateCol(
+              grid,
+              tileMeta,
+              col,
+              row,
+              metadata.direction,
+            );
+        if (mate === null) {
+          continue;
+        }
+
+        const axis = horizontal ? 'HORIZONTAL' : 'VERTICAL';
+        const cross = Math.min(horizontal ? row : col, mate);
+        const coordinate = horizontal ? col : row;
+        const stationKey = `${axis}:${cross}:${coordinate}`;
+        if (seenStations.has(stationKey)) {
+          continue;
+        }
+        seenStations.add(stationKey);
+
+        const cells = this.#pathStationCells(axis, cross, coordinate);
+        if (
+          cells.some(
+            (cell) =>
+              mergeZones.has(this.#tileKey(cell.col, cell.row)) ||
+              riverBridgeCells.has(this.#tileKey(cell.col, cell.row)) ||
+              tileMeta[cell.row][cell.col].overpassId ||
+              tileMeta[cell.row][cell.col].shape !== TILE_SHAPE.FLAT ||
+              heightmap[cell.row][cell.col] !== this.#PATH_HEIGHT ||
+              this.#classifyRenderMode(
+                grid,
+                heightmap,
+                tileMeta,
+                cell.col,
+                cell.row,
+              ) !== 'BRIDGE',
+          )
+        ) {
+          continue;
+        }
+
+        const lateralCells = this.#pathLateralCells(
+          grid,
+          tileMeta,
+          cells[0].col,
+          cells[0].row,
+        );
+        if (
+          !lateralCells ||
+          lateralCells.some(
+            (cell) =>
+              !this.#inBounds(cell.col, cell.row) ||
+              grid[cell.row][cell.col] !== TileType.GRASS ||
+              heightmap[cell.row][cell.col] !==
+                this.#TERRAIN_BRIDGE_DIP_ELEVATION,
+          )
+        ) {
+          continue;
+        }
+
+        stations.push({
+          axis,
+          cross,
+          coordinate,
+          direction: metadata.direction,
+        });
+      }
+    }
+
+    const groupedStations = new Map();
+    for (const station of stations) {
+      const key = `${station.axis}:${station.cross}:${station.direction}`;
+      const group = groupedStations.get(key) ?? [];
+      group.push(station);
+      groupedStations.set(key, group);
+    }
+
+    const eligibleSpans = [];
+    for (const group of groupedStations.values()) {
+      group.sort((left, right) => left.coordinate - right.coordinate);
+      let run = [];
+      const finishRun = () => {
+        if (run.length >= this.#TERRAIN_BRIDGE_DIP_MIN_SPAN) {
+          const span = {
+            axis: run[0].axis,
+            cross: run[0].cross,
+            direction: run[0].direction,
+            start: run[0].coordinate,
+            end: run[run.length - 1].coordinate,
+          };
+          if (
+            this.#pathDipLandingFits(
+              grid,
+              heightmap,
+              tileMeta,
+              riverBridgeCells,
+              mergeZones,
+              span,
+              span.start - 1,
+            ) &&
+            this.#pathDipLandingFits(
+              grid,
+              heightmap,
+              tileMeta,
+              riverBridgeCells,
+              mergeZones,
+              span,
+              span.end + 1,
+            )
+          ) {
+            eligibleSpans.push(span);
+          }
+        }
+        run = [];
+      };
+
+      for (const station of group) {
+        if (
+          run.length &&
+          station.coordinate !== run[run.length - 1].coordinate + 1
+        ) {
+          finishRun();
+        }
+        run.push(station);
+      }
+      finishRun();
+    }
+
+    eligibleSpans.sort(
+      (left, right) =>
+        left.axis.localeCompare(right.axis) ||
+        left.cross - right.cross ||
+        left.start - right.start,
+    );
+    const plans = [];
+    for (const span of eligibleSpans) {
+      if (this.#rng(1, 100) > this.#TERRAIN_BRIDGE_DIP_CHANCE) {
+        continue;
+      }
+      const plan = this.#buildTerrainBridgeDipPlan(span, plans.length);
+      this.#applyTerrainBridgeDipPlan(heightmap, tileMeta, plan);
+      plans.push(plan);
+    }
+    return plans;
+  }
+
+  static #pathStationCells(axis, cross, coordinate) {
+    return axis === 'HORIZONTAL'
+      ? [
+          { col: coordinate, row: cross },
+          { col: coordinate, row: cross + 1 },
+        ]
+      : [
+          { col: cross, row: coordinate },
+          { col: cross + 1, row: coordinate },
+        ];
+  }
+
+  static #pathDipLandingFits(
+    grid,
+    heightmap,
+    tileMeta,
+    riverBridgeCells,
+    mergeZones,
+    span,
+    coordinate,
+  ) {
+    const cells = this.#pathStationCells(span.axis, span.cross, coordinate);
+    if (
+      cells.some(
+        (cell) =>
+          !this.#inBounds(cell.col, cell.row) ||
+          grid[cell.row][cell.col] !== TileType.PATH ||
+          mergeZones.has(this.#tileKey(cell.col, cell.row)) ||
+          riverBridgeCells.has(this.#tileKey(cell.col, cell.row)) ||
+          tileMeta[cell.row][cell.col].overpassId ||
+          tileMeta[cell.row][cell.col].shape !== TILE_SHAPE.FLAT ||
+          tileMeta[cell.row][cell.col].direction !== span.direction ||
+          heightmap[cell.row][cell.col] !== this.#PATH_HEIGHT ||
+          this.#classifyRenderMode(
+            grid,
+            heightmap,
+            tileMeta,
+            cell.col,
+            cell.row,
+          ) !== 'SOLID',
+      )
+    ) {
+      return false;
+    }
+    const lateralCells = this.#pathLateralCells(
+      grid,
+      tileMeta,
+      cells[0].col,
+      cells[0].row,
+    );
+    return Boolean(
+      lateralCells && !this.#isPathTurnPosition(grid, lateralCells),
+    );
+  }
+
+  static #buildTerrainBridgeDipPlan(span, index) {
+    const firstRiseDirection =
+      span.axis === 'HORIZONTAL'
+        ? this.#DIRECTIONS.WEST
+        : this.#DIRECTIONS.NORTH;
+    const lastRiseDirection =
+      span.axis === 'HORIZONTAL'
+        ? this.#DIRECTIONS.EAST
+        : this.#DIRECTIONS.SOUTH;
+    const rampTiles = this.#TERRAIN_BRIDGE_DIP_RAMP_TILES;
+    const rampStep =
+      (this.#PATH_HEIGHT - this.#TERRAIN_BRIDGE_DIP_ELEVATION) /
+      rampTiles;
+    const slopeCells = [];
+    for (let offset = 0; offset < rampTiles; offset += 1) {
+      const highHeight = this.#PATH_HEIGHT - offset * rampStep;
+      const lowHeight = highHeight - rampStep;
+      slopeCells.push(
+        ...this.#pathStationCells(
+          span.axis,
+          span.cross,
+          span.start + offset,
+        ).map((cell) => ({
+          ...cell,
+          lowHeight,
+          highHeight,
+          riseDirection: firstRiseDirection,
+        })),
+        ...this.#pathStationCells(
+          span.axis,
+          span.cross,
+          span.end - offset,
+        ).map((cell) => ({
+          ...cell,
+          lowHeight,
+          highHeight,
+          riseDirection: lastRiseDirection,
+        })),
+      );
+    }
+    const flatCells = [];
+    for (
+      let coordinate = span.start + rampTiles;
+      coordinate <= span.end - rampTiles;
+      coordinate += 1
+    ) {
+      flatCells.push(
+        ...this.#pathStationCells(span.axis, span.cross, coordinate),
+      );
+    }
+    return {
+      id: `terrain-path-dip-${index}`,
+      ...span,
+      elevation: this.#TERRAIN_BRIDGE_DIP_ELEVATION,
+      rampTiles,
+      slopeCells,
+      flatCells,
+      landingCells: [
+        ...this.#pathStationCells(span.axis, span.cross, span.start - 1),
+        ...this.#pathStationCells(span.axis, span.cross, span.end + 1),
+      ],
+    };
+  }
+
+  static #applyTerrainBridgeDipPlan(heightmap, tileMeta, plan) {
+    for (const cell of plan.flatCells) {
+      heightmap[cell.row][cell.col] = plan.elevation;
+      tileMeta[cell.row][cell.col] = {
+        ...tileMeta[cell.row][cell.col],
+        baseHeight: plan.elevation,
+        shape: TILE_SHAPE.FLAT,
+        pathDipId: plan.id,
+      };
+    }
+    for (const cell of plan.slopeCells) {
+      const centerHeight = (cell.lowHeight + cell.highHeight) / 2;
+      heightmap[cell.row][cell.col] = centerHeight;
+      tileMeta[cell.row][cell.col] = {
+        ...tileMeta[cell.row][cell.col],
+        baseHeight: centerHeight,
+        shape: TILE_SHAPE.SLOPE,
+        slope: {
+          lowHeight: cell.lowHeight,
+          highHeight: cell.highHeight,
+          riseDirection: cell.riseDirection,
+        },
+        pathDipId: plan.id,
+      };
+    }
+  }
+
   static #applyHeightsToMetadata(grid, tileMeta, heightmap, riverData) {
-    this.#materializePathSupports(grid, heightmap, tileMeta, riverData);
     for (let row = 0; row < this.#MAP_ROWS; row++) {
       for (let col = 0; col < this.#MAP_COLS; col++) {
         tileMeta[row][col] = {
@@ -2610,6 +2990,7 @@ export class MapGenerator {
         ),
         pathIdx,
         layout.overpassPlan,
+        layout.pathDipPlans,
       );
       for (let index = 1; index < route.length; index++) {
         this.#connectRouteNodes(graph, route[index - 1], route[index]);
@@ -2638,30 +3019,67 @@ export class MapGenerator {
     return { routes, arrowData: this.#buildArrowData(routes) };
   }
 
-  static #applyRouteElevations(route, pathIdx, plan) {
-    if (!plan || pathIdx !== plan.upperPathIdx) {
-      return route.map(point => ({
-        ...point,
-        elevation: this.#PATH_HEIGHT,
-      }));
-    }
-
-    const crossingCol2 = plan.crossing.col * 2 + 1;
-    const crossingRow2 = plan.crossing.row * 2 + 1;
+  static #applyRouteElevations(route, pathIdx, overpassPlan, pathDipPlans) {
+    const crossingCol2 = overpassPlan?.crossing.col * 2 + 1;
+    const crossingRow2 = overpassPlan?.crossing.row * 2 + 1;
     return route.map(point => {
-      let elevation = this.#PATH_HEIGHT;
-      if (point.col2 === crossingCol2) {
+      let elevation = this.#terrainPathDipElevation(point, pathDipPlans);
+      if (
+        overpassPlan &&
+        pathIdx === overpassPlan.upperPathIdx &&
+        point.col2 === crossingCol2
+      ) {
         const distance = Math.abs(point.row2 - crossingRow2) / 2;
         if (distance <= 2) {
-          elevation = plan.deckElevation;
+          elevation = overpassPlan.deckElevation;
         } else if (distance <= 2 + this.#OVERPASS_RAMP_TILES) {
           elevation =
-            plan.deckElevation -
+            overpassPlan.deckElevation -
             (distance - 2) * this.#OVERPASS_HALF_STEP;
         }
       }
       return { ...point, elevation };
     });
+  }
+
+  static #terrainPathDipElevation(point, plans = []) {
+    for (const plan of plans) {
+      const crossCoordinate2 = plan.cross * 2 + 1;
+      const pointCrossCoordinate2 =
+        plan.axis === 'HORIZONTAL' ? point.row2 : point.col2;
+      if (pointCrossCoordinate2 !== crossCoordinate2) {
+        continue;
+      }
+
+      const pointCoordinate2 =
+        plan.axis === 'HORIZONTAL' ? point.col2 : point.row2;
+      const rampTiles = plan.rampTiles ?? 1;
+      const startEdge2 = plan.start * 2 - 1;
+      const startLowEdge2 = (plan.start + rampTiles) * 2 - 1;
+      const endLowEdge2 = (plan.end - rampTiles) * 2 + 1;
+      const endEdge2 = plan.end * 2 + 1;
+      if (pointCoordinate2 < startEdge2 || pointCoordinate2 > endEdge2) {
+        continue;
+      }
+      if (pointCoordinate2 <= startLowEdge2) {
+        return (
+          this.#PATH_HEIGHT -
+          ((pointCoordinate2 - startEdge2) /
+            (2 * rampTiles)) *
+            (this.#PATH_HEIGHT - plan.elevation)
+        );
+      }
+      if (pointCoordinate2 <= endLowEdge2) {
+        return plan.elevation;
+      }
+      return (
+        plan.elevation +
+        ((pointCoordinate2 - endLowEdge2) /
+          (2 * rampTiles)) *
+          (this.#PATH_HEIGHT - plan.elevation)
+      );
+    }
+    return this.#PATH_HEIGHT;
   }
 
   static #findConnectedComponent(grid, startTiles) {
@@ -3162,9 +3580,22 @@ export class MapGenerator {
                 (metadata.slope.lowHeight + metadata.slope.highHeight) / 2
             : heightmap[row][col] === this.#OVERPASS_ELEVATION ||
               heightmap[row][col] === this.#PATH_HEIGHT);
+        const validPathDipHeight =
+          metadata.pathDipId &&
+          (metadata.shape === TILE_SHAPE.SLOPE
+            ? Number.isFinite(metadata.slope?.lowHeight) &&
+              Number.isFinite(metadata.slope?.highHeight) &&
+              metadata.slope.highHeight - metadata.slope.lowHeight ===
+                1 / this.#TERRAIN_BRIDGE_DIP_RAMP_TILES &&
+              heightmap[row][col] ===
+                (metadata.slope.lowHeight + metadata.slope.highHeight) / 2
+            : metadata.shape === TILE_SHAPE.FLAT &&
+              heightmap[row][col] ===
+                this.#TERRAIN_BRIDGE_DIP_ELEVATION);
         if (
           heightmap[row][col] !== this.#PATH_HEIGHT &&
-          !validOverpassHeight
+          !validOverpassHeight &&
+          !validPathDipHeight
         ) {
           throw new PathHeightMismatchError();
         }
@@ -3193,11 +3624,7 @@ export class MapGenerator {
       }
     };
 
-    validatePathCells(
-      plan.crossingCells,
-      plan.baseElevation,
-      TILE_SHAPE.FLAT,
-    );
+    validatePathCells(plan.crossingCells, plan.baseElevation, TILE_SHAPE.FLAT);
     validatePathCells(
       plan.approachCells,
       plan.deckElevation,
@@ -3263,6 +3690,130 @@ export class MapGenerator {
         throw new InvalidOverpassError({
           reason: `does not preserve two separate routes at (${cell.col}, ${cell.row})`,
         });
+      }
+    }
+  }
+
+  static #validatePathDips(
+    grid,
+    heightmap,
+    tileMeta,
+    plans,
+    riverData,
+  ) {
+    const riverCells = new Set(
+      riverData.flatMap((river) =>
+        river.cells.map((cell) => this.#tileKey(cell.col, cell.row)),
+      ),
+    );
+    const planIds = new Set();
+    const plannedCells = new Set();
+
+    for (const plan of plans) {
+      if (planIds.has(plan.id)) {
+        throw new InvalidPathDipError({
+          id: plan.id,
+          reason: 'has a duplicate identifier',
+        });
+      }
+      planIds.add(plan.id);
+      if (
+        plan.rampTiles !== this.#TERRAIN_BRIDGE_DIP_RAMP_TILES ||
+        plan.slopeCells.length !== plan.rampTiles * 4 ||
+        plan.flatCells.length < 2 ||
+        plan.landingCells.length !== 4
+      ) {
+        throw new InvalidPathDipError({
+          id: plan.id,
+          reason: 'does not preserve a two-tile-wide descent and landing',
+        });
+      }
+
+      for (const cell of [...plan.slopeCells, ...plan.flatCells]) {
+        const key = this.#tileKey(cell.col, cell.row);
+        const metadata = tileMeta[cell.row]?.[cell.col];
+        if (
+          plannedCells.has(key) ||
+          !metadata ||
+          grid[cell.row][cell.col] !== TileType.PATH ||
+          metadata.pathDipId !== plan.id ||
+          metadata.overpassId ||
+          riverCells.has(key) ||
+          metadata.renderMode !== 'SOLID' ||
+          metadata.bridgeGroundHeight !== null
+        ) {
+          throw new InvalidPathDipError({
+            id: plan.id,
+            reason: `has invalid terrain at (${cell.col}, ${cell.row})`,
+          });
+        }
+        plannedCells.add(key);
+      }
+
+      for (const cell of plan.flatCells) {
+        if (
+          tileMeta[cell.row][cell.col].shape !== TILE_SHAPE.FLAT ||
+          heightmap[cell.row][cell.col] !== plan.elevation
+        ) {
+          throw new InvalidPathDipError({
+            id: plan.id,
+            reason: `has an invalid low section at (${cell.col}, ${cell.row})`,
+          });
+        }
+      }
+
+      for (const cell of plan.slopeCells) {
+        const metadata = tileMeta[cell.row][cell.col];
+        const slope = metadata.slope;
+        if (
+          metadata.shape !== TILE_SHAPE.SLOPE ||
+          heightmap[cell.row][cell.col] !==
+            (cell.lowHeight + cell.highHeight) / 2 ||
+          slope?.lowHeight !== cell.lowHeight ||
+          slope.highHeight !== cell.highHeight ||
+          slope.riseDirection !== cell.riseDirection ||
+          slope.highHeight - slope.lowHeight !== 1 / plan.rampTiles
+        ) {
+          throw new InvalidPathDipError({
+            id: plan.id,
+            reason: `has an invalid ramp at (${cell.col}, ${cell.row})`,
+          });
+        }
+      }
+
+      for (const cell of plan.landingCells) {
+        const metadata = tileMeta[cell.row]?.[cell.col];
+        if (
+          !metadata ||
+          grid[cell.row][cell.col] !== TileType.PATH ||
+          heightmap[cell.row][cell.col] !== this.#PATH_HEIGHT ||
+          metadata.shape !== TILE_SHAPE.FLAT ||
+          metadata.direction !== plan.direction ||
+          metadata.overpassId ||
+          riverCells.has(this.#tileKey(cell.col, cell.row)) ||
+          metadata.renderMode !== 'SOLID'
+        ) {
+          throw new InvalidPathDipError({
+            id: plan.id,
+            reason: `has an invalid landing at (${cell.col}, ${cell.row})`,
+          });
+        }
+      }
+    }
+
+    for (let row = 0; row < this.#MAP_ROWS; row++) {
+      for (let col = 0; col < this.#MAP_COLS; col++) {
+        const pathDipId = tileMeta[row][col].pathDipId;
+        if (
+          pathDipId &&
+          (!planIds.has(pathDipId) ||
+            !plannedCells.has(this.#tileKey(col, row)))
+        ) {
+          throw new InvalidPathDipError({
+            id: pathDipId,
+            reason: `has undeclared terrain at (${col}, ${row})`,
+          });
+        }
       }
     }
   }
@@ -3845,6 +4396,13 @@ export class MapGenerator {
       layout.overpassPlan,
     );
     this.#validatePathRenderModes(grid, heightmap, tileMeta);
+    this.#validatePathDips(
+      grid,
+      heightmap,
+      tileMeta,
+      layout.pathDipPlans,
+      riverData,
+    );
     this.#validateBridgeTurns(tileMeta);
     this.#validateBridgeGroundHeights(heightmap, tileMeta, riverData);
     this.#validateGrassNoise(grid, heightmap, tileMeta, riverData);

@@ -5,7 +5,7 @@ const GRASS_SURFACE_LIFT = 0.14;
 function loadScenario(scenario) {
   cy.window().then((window) => {
     window.gameMovementTest.moveForward(false);
-    window.gameMovementTest.loadScenario(scenario);
+    return window.gameMovementTest.loadScenario(scenario);
   });
 }
 
@@ -80,7 +80,7 @@ function expectStateContinually(assertion, duration = 250) {
 
 describe("Hero movement on a predefined terrain map", { testIsolation: false }, () => {
   before(() => {
-    cy.visit("/?movement-test=flat&camera-test");
+    cy.visit("/map/test_flat?camera-test");
     cy.get('.background-canvas[data-game-ready="true"]', {
       timeout: 30000,
     }).should("be.visible");
@@ -98,6 +98,36 @@ describe("Hero movement on a predefined terrain map", { testIsolation: false }, 
       expect(state.animation).to.equal(HERO_ANIMATION.WALK);
       expect(state.position.x).to.be.greaterThan(-0.75);
       expect(state.position.y).to.be.closeTo(2 + GRASS_SURFACE_LIFT, 0.03);
+    });
+  });
+
+  it("keeps both animated boots above the path while climbing a slope", () => {
+    loadScenario("path-slope-walk");
+    moveForward();
+    let maximumAppliedLift = 0;
+    let maximumTilt = 0;
+    let minimumClearance = Number.POSITIVE_INFINITY;
+    expectState((state) => {
+      const feet = Object.values(state.footPlacement ?? {});
+      for (const foot of feet) {
+        maximumAppliedLift = Math.max(
+          maximumAppliedLift,
+          foot.appliedLift,
+        );
+        maximumTilt = Math.max(maximumTilt, foot.tiltDegrees);
+        if (foot.minimumClearance !== null) {
+          minimumClearance = Math.min(
+            minimumClearance,
+            foot.minimumClearance,
+          );
+        }
+      }
+      expect(state.position.x).to.be.greaterThan(1.2);
+      expect(state.position.y).to.be.closeTo(2, 0.03);
+      expect(state.grounded).to.equal(true);
+      expect(maximumAppliedLift).to.be.greaterThan(0.02);
+      expect(maximumTilt).to.be.greaterThan(10);
+      expect(minimumClearance).to.be.at.least(-0.001);
     });
   });
 

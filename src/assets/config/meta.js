@@ -6,9 +6,13 @@ export default function (route, i18n, router, ssrContext) {
 
   switch (route.name) {
     case "index":
+    case "map": {
+      const mapParams = route.params.mapName
+        ? { mapName: route.params.mapName }
+        : {};
       const baseUrl = getRouteUrl(
         {
-          name: route.name,
+          name: "index",
         },
         router,
         ssrContext,
@@ -18,6 +22,7 @@ export default function (route, i18n, router, ssrContext) {
         {
           name: route.name,
           params: {
+            ...mapParams,
             lang: unref(i18n.locale),
           },
         },
@@ -121,6 +126,7 @@ export default function (route, i18n, router, ssrContext) {
                   {
                     name: route.name,
                     params: {
+                      ...mapParams,
                       lang: i18n.availableLocales[i],
                     },
                   },
@@ -130,6 +136,7 @@ export default function (route, i18n, router, ssrContext) {
               };
       }
       break;
+    }
   }
 
   return ret;

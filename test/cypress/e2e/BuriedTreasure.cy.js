@@ -6,7 +6,7 @@ function pressKey(code) {
 
 describe("Buried treasure", () => {
   beforeEach(() => {
-    cy.visit("/?movement-test=flat");
+    cy.visit("/map/test_flat");
     cy.get('.background-canvas[data-game-ready="true"]', {
       timeout: 30000,
     }).should("be.visible");
@@ -14,7 +14,7 @@ describe("Buried treasure", () => {
 
   it("allows digging after chopping down a tree", () => {
     cy.window().then((window) => {
-      window.gameMovementTest.loadScenario("tree-dig");
+      return window.gameMovementTest.loadScenario("tree-dig");
     });
     cy.get(".interaction-prompt").should("contain.text", "Chop tree");
     pressKey("KeyE");
@@ -26,7 +26,7 @@ describe("Buried treasure", () => {
 
   it("reveals embedded stones when digging at a lava source", () => {
     cy.window().then((window) => {
-      window.gameMovementTest.loadScenario("lava-source-dig");
+      return window.gameMovementTest.loadScenario("lava-source-dig");
     });
     cy.get(".interaction-prompt").should("contain.text", "Dig for treasure");
     pressKey("KeyE");
@@ -39,21 +39,21 @@ describe("Buried treasure", () => {
 
   it("allows digging on grass beside a lava source", () => {
     cy.window().then((window) => {
-      window.gameMovementTest.loadScenario("lava-source-bank");
+      return window.gameMovementTest.loadScenario("lava-source-bank");
     });
     cy.get(".interaction-prompt").should("contain.text", "Dig for treasure");
   });
 
   it("allows digging on grass diagonally outside the lava bank", () => {
     cy.window().then((window) => {
-      window.gameMovementTest.loadScenario("lava-source-diagonal-dig");
+      return window.gameMovementTest.loadScenario("lava-source-diagonal-dig");
     });
     cy.get(".interaction-prompt").should("contain.text", "Dig for treasure");
   });
 
   it("allows digging on an ordinary river bank after collecting its flower", () => {
     cy.window().then((window) => {
-      window.gameMovementTest.loadScenario("river-bank-flower-dig");
+      return window.gameMovementTest.loadScenario("river-bank-flower-dig");
     });
     cy.get(".interaction-prompt").should("contain.text", "Collect flowers");
     pressKey("KeyE");

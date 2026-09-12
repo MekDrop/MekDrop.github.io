@@ -141,6 +141,7 @@ path | grass | grass | path
 * Flat path sections stay at one elevation.
 * Elevation changes use continuous planar ramps, not stairs.
 * Ordinary slopes change elevation by one block per tile. A grade-separated path crossing uses two consecutive half-block ramp tiles per block of elevation so the approach remains gentle.
+* The optional terrain-dip bridge alternative in section 9a also uses two consecutive half-block ramp tiles per block so its descent and climb remain visually gentle.
 * Both lanes must rise or descend together.
 * A slope cannot turn, twist, or change direction midway.
 * A slope cannot incline sideways across the path.
@@ -176,6 +177,8 @@ slope -> flat tile(s) -> slope
 * At each longitudinal path position, the two-lane path must inspect the terrain immediately outside both lateral edges.
 * A lateral side supports a solid path only when an in-bounds, non-water terrain column reaches at least the path deck elevation.
 * A straight path position becomes a bridge only when both lateral sides are missing, water, or lower than the path deck.
+* Before bridge classification, an eligible ordinary span over grass one block below the path may instead become solid terrain: both lanes descend together across two half-block slope tiles, remain flat across the low span, and rise together across two half-block slope tiles. The choice must be deterministic for the map seed.
+* This terrain-dip alternative is forbidden for water or lava crossings, grade-separated crossings, gates, turns, merges, intersections, and castle approaches. Those retain their normal bridge or solid-path behavior.
 * If exactly one lateral side has a supporting block, the path remains solid. The generator must materialize or raise an in-bounds grass support block on the unsupported side when doing so does not overwrite a river.
 * Both lanes must switch to bridge rendering together; a half-solid, half-bridge path position is forbidden.
 * A bridge must be a straight span. Bridge decks must never turn 90 degrees, merge, branch, or form an intersection.
@@ -370,6 +373,7 @@ These notes describe the generator behavior currently implemented in `src/game/M
 * When spacing allows, a non-bridge entry branch may use one extra orthogonal bend before it joins the shared trunk.
 * Those bends remain fully grid-aligned and two tiles wide.
 * Bridge crossings should stay as simple straight spans rather than curved bridge turns.
+* For each eligible ordinary grass-backed bridge span, the current generator deterministically chooses the terrain-dip alternative 60% of the time. Each selected path descends exactly one block over two half-block slope tiles per lane, crosses on solid low terrain, and climbs one block over two half-block slope tiles per lane. River, lava, and grade-separated bridge spans are excluded.
 * True multi-turn path templates beyond a single extra bend are not implemented yet.
 * The current merge model still uses one shared merge column for all selected entry paths.
 * The current generator does not yet support branch-specific merge zones or re-splitting after merge.
@@ -403,6 +407,7 @@ These notes describe the generator behavior currently implemented in `src/game/M
   * dirt-filled ramp sides and full-width elevated approaches
   * walkable deck-top collision plus underside head collision without blocking the lower route
   * automatic two-lane bridge conversion only where neither lateral side reaches path-deck elevation
+  * deterministic two-lane terrain dips for selected ordinary grass-backed bridge spans, including gentle half-block slope profiles, solid render modes, and bridge/river/overpass exclusion
   * added or raised grass support cubes where a solid path has only one supported side
   * solid turn and merge landings that prevent 90-degree or branching bridge decks
   * reserved grass-topped ground beneath non-river bridge decks without vegetation or ground-cover placement

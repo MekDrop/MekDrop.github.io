@@ -1,0 +1,406 @@
+{
+  "grid": [
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      0
+    ],
+    [
+      0,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      0
+    ],
+    [
+      0,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      0
+    ],
+    [
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  ],
+  "heightmap": [
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      0
+    ],
+    [
+      0,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      0
+    ],
+    [
+      0,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      0
+    ],
+    [
+      0,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  ],
+  "tileMeta": [
+    [
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {}
+    ],
+    [
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {}
+    ],
+    [
+      {},
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {}
+    ],
+    [
+      {},
+      {
+        "baseHeight": 2,
+        "direction": "EAST",
+        "renderMode": "SOLID",
+        "surfaceType": "PATH"
+      },
+      {
+        "baseHeight": 2,
+        "direction": "EAST",
+        "renderMode": "SOLID",
+        "surfaceType": "PATH"
+      },
+      {
+        "baseHeight": 2,
+        "direction": "EAST",
+        "renderMode": "SOLID",
+        "surfaceType": "PATH"
+      },
+      {
+        "baseHeight": 2,
+        "direction": "EAST",
+        "renderMode": "SOLID",
+        "surfaceType": "PATH"
+      },
+      {
+        "baseHeight": 2,
+        "direction": "EAST",
+        "renderMode": "SOLID",
+        "surfaceType": "PATH"
+      },
+      {
+        "baseHeight": 2,
+        "direction": "EAST",
+        "renderMode": "SOLID",
+        "surfaceType": "PATH"
+      },
+      {
+        "baseHeight": 2,
+        "direction": "EAST",
+        "renderMode": "SOLID",
+        "surfaceType": "PATH"
+      },
+      {}
+    ],
+    [
+      {},
+      {
+        "baseHeight": 2,
+        "direction": "EAST",
+        "renderMode": "SOLID",
+        "surfaceType": "PATH"
+      },
+      {
+        "baseHeight": 2,
+        "direction": "EAST",
+        "renderMode": "SOLID",
+        "surfaceType": "PATH"
+      },
+      {
+        "baseHeight": 2,
+        "direction": "EAST",
+        "renderMode": "SOLID",
+        "surfaceType": "PATH"
+      },
+      {
+        "baseHeight": 2,
+        "direction": "EAST",
+        "renderMode": "SOLID",
+        "surfaceType": "PATH"
+      },
+      {
+        "baseHeight": 2,
+        "direction": "EAST",
+        "renderMode": "SOLID",
+        "surfaceType": "PATH"
+      },
+      {
+        "baseHeight": 2,
+        "direction": "EAST",
+        "renderMode": "SOLID",
+        "surfaceType": "PATH"
+      },
+      {
+        "baseHeight": 2,
+        "direction": "EAST",
+        "renderMode": "SOLID",
+        "surfaceType": "PATH"
+      },
+      {}
+    ],
+    [
+      {},
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {}
+    ],
+    [
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {}
+    ]
+  ],
+  "cols": 9,
+  "rows": 7,
+  "entries": [],
+  "castle": null,
+  "numPaths": 0,
+  "paths": [],
+  "arrowData": [],
+  "vegetationData": [],
+  "groundCoverData": [],
+  "riverData": [],
+  "pipeData": [],
+  "overpassData": {
+    "id": "movement-test-overpass",
+    "crossing": {
+      "col": 4,
+      "row": 3,
+      "width": 2,
+      "depth": 2
+    },
+    "baseElevation": 2,
+    "deckElevation": 4,
+    "deckThickness": 0.24,
+    "clearance": 1.76,
+    "crossingCells": [
+      { "col": 4, "row": 3 },
+      { "col": 5, "row": 3 },
+      { "col": 4, "row": 4 },
+      { "col": 5, "row": 4 }
+    ],
+    "approachCells": [],
+    "slopeCells": []
+  },
+  "mergeZones": [],
+  "trunkStart": null,
+  "mapName": "test_overpass-clearance",
+  "layoutSignature": "test_overpass-clearance",
+  "heroSpawn": {
+    "x": 0,
+    "y": 2,
+    "z": 0
+  }
+}

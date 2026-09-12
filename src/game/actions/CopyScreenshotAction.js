@@ -1,3 +1,4 @@
+import { Notify } from "quasar";
 import {
   ClipboardCopyBlockedError,
   ScreenshotEncodingError,
@@ -6,11 +7,9 @@ import {
 
 export class CopyScreenshotAction {
   #renderer;
-  #onCopied;
 
-  constructor(renderer, onCopied = () => {}) {
+  constructor(renderer) {
     this.#renderer = renderer;
-    this.#onCopied = onCopied;
   }
 
   invoke() {
@@ -29,7 +28,12 @@ export class CopyScreenshotAction {
     });
 
     await this.#copyImage(canvas, blob);
-    this.#onCopied(blob);
+    Notify.create({
+      type: "positive",
+      position: "bottom-right",
+      message: this.#renderer.t("game.notification.screenshot_copied"),
+      timeout: 2000,
+    });
     return blob;
   }
 

@@ -1,0 +1,112 @@
+{
+  "grid": [
+    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 2, 2, 2, 2, 2, 2, 2, 0],
+    [0, 2, 2, 2, 2, 2, 2, 2, 0],
+    [0, 2, 2, 2, 2, 2, 2, 2, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0]
+  ],
+  "heightmap": [
+    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 1, 1, 1.25, 1.75, 2, 2, 2, 0],
+    [0, 1, 1, 1.25, 1.75, 2, 2, 2, 0],
+    [0, 1, 1, 1.25, 1.75, 2, 2, 2, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0]
+  ],
+  "tileMeta": [
+    [{}, {}, {}, {}, {}, {}, {}, {}, {}],
+    [{}, {}, {}, {}, {}, {}, {}, {}, {}],
+    [
+      {},
+      { "baseHeight": 1, "renderMode": "SOLID" },
+      { "baseHeight": 1, "renderMode": "SOLID" },
+      {
+        "baseHeight": 1.25,
+        "renderMode": "SOLID",
+        "shape": "SLOPE",
+        "slope": { "lowHeight": 1, "highHeight": 1.5, "riseDirection": "EAST" },
+        "pathDipId": "test-path-slope"
+      },
+      {
+        "baseHeight": 1.75,
+        "renderMode": "SOLID",
+        "shape": "SLOPE",
+        "slope": { "lowHeight": 1.5, "highHeight": 2, "riseDirection": "EAST" },
+        "pathDipId": "test-path-slope"
+      },
+      { "baseHeight": 2, "renderMode": "SOLID" },
+      { "baseHeight": 2, "renderMode": "SOLID" },
+      { "baseHeight": 2, "renderMode": "SOLID" },
+      {}
+    ],
+    [
+      {},
+      { "baseHeight": 1, "renderMode": "SOLID" },
+      { "baseHeight": 1, "renderMode": "SOLID" },
+      {
+        "baseHeight": 1.25,
+        "renderMode": "SOLID",
+        "shape": "SLOPE",
+        "slope": { "lowHeight": 1, "highHeight": 1.5, "riseDirection": "EAST" },
+        "pathDipId": "test-path-slope"
+      },
+      {
+        "baseHeight": 1.75,
+        "renderMode": "SOLID",
+        "shape": "SLOPE",
+        "slope": { "lowHeight": 1.5, "highHeight": 2, "riseDirection": "EAST" },
+        "pathDipId": "test-path-slope"
+      },
+      { "baseHeight": 2, "renderMode": "SOLID" },
+      { "baseHeight": 2, "renderMode": "SOLID" },
+      { "baseHeight": 2, "renderMode": "SOLID" },
+      {}
+    ],
+    [
+      {},
+      { "baseHeight": 1, "renderMode": "SOLID" },
+      { "baseHeight": 1, "renderMode": "SOLID" },
+      {
+        "baseHeight": 1.25,
+        "renderMode": "SOLID",
+        "shape": "SLOPE",
+        "slope": { "lowHeight": 1, "highHeight": 1.5, "riseDirection": "EAST" },
+        "pathDipId": "test-path-slope"
+      },
+      {
+        "baseHeight": 1.75,
+        "renderMode": "SOLID",
+        "shape": "SLOPE",
+        "slope": { "lowHeight": 1.5, "highHeight": 2, "riseDirection": "EAST" },
+        "pathDipId": "test-path-slope"
+      },
+      { "baseHeight": 2, "renderMode": "SOLID" },
+      { "baseHeight": 2, "renderMode": "SOLID" },
+      { "baseHeight": 2, "renderMode": "SOLID" },
+      {}
+    ],
+    [{}, {}, {}, {}, {}, {}, {}, {}, {}],
+    [{}, {}, {}, {}, {}, {}, {}, {}, {}]
+  ],
+  "cols": 9,
+  "rows": 7,
+  "entries": [],
+  "castle": null,
+  "numPaths": 0,
+  "paths": [],
+  "arrowData": [],
+  "vegetationData": [],
+  "groundCoverData": [],
+  "riverData": [],
+  "pipeData": [],
+  "overpassData": null,
+  "mergeZones": [],
+  "trunkStart": null,
+  "mapName": "test_path-slope-walk",
+  "layoutSignature": "test_path-slope-walk",
+  "heroSpawn": { "x": -3, "y": 1, "z": 0 }
+}

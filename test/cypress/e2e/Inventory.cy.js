@@ -79,7 +79,7 @@ function dragInventoryItem(fromSlot, target) {
 
 describe("Collectible inventory", () => {
   beforeEach(() => {
-    cy.visit("/?movement-test=inventory", {
+    cy.visit("/map/test_inventory", {
       onBeforeLoad(window) {
         window.sessionStorage.removeItem("hero-configuration");
       },
@@ -204,7 +204,7 @@ describe("Collectible inventory", () => {
     clickInventoryCloseButton();
 
     cy.window().then((window) => {
-      window.gameMovementTest.loadScenario("inventory-on-flower");
+      return window.gameMovementTest.loadScenario("inventory-on-flower");
     });
     cy.get(".interaction-prompt").should("contain.text", "Collect flowers");
 
@@ -311,7 +311,7 @@ describe("Collectible inventory", () => {
 
   it("collects a flower when the hero overlaps its visible footprint", () => {
     cy.window().then((window) => {
-      window.gameMovementTest.loadScenario("inventory-overlap");
+      return window.gameMovementTest.loadScenario("inventory-overlap");
     });
     cy.window().should((window) => {
       expect(window.gameMovementTest.state().grounded).to.equal(true);
@@ -334,7 +334,7 @@ describe("Collectible inventory", () => {
 
   it("steps fully back before collecting a flower beneath the hero", () => {
     cy.window().then((window) => {
-      window.gameMovementTest.loadScenario("inventory-on-flower");
+      return window.gameMovementTest.loadScenario("inventory-on-flower");
     });
     cy.get(".interaction-prompt").should("contain.text", "Collect flowers");
     cy.window().then((window) => {
@@ -351,7 +351,7 @@ describe("Collectible inventory", () => {
 
   it("collects only the overlapping flower in front of the hero", () => {
     cy.window().then((window) => {
-      window.gameMovementTest.loadScenario("inventory-direction");
+      return window.gameMovementTest.loadScenario("inventory-direction");
     });
     cy.window().should((window) => {
       expect(window.gameMovementTest.state().grounded).to.equal(true);
@@ -368,7 +368,7 @@ describe("Collectible inventory", () => {
 
   it("steps into knife range before collecting a mushroom", () => {
     cy.window().then((window) => {
-      window.gameMovementTest.loadScenario("inventory-mushroom");
+      return window.gameMovementTest.loadScenario("inventory-mushroom");
     });
     cy.get(".interaction-prompt").should("contain.text", "Collect mushroom");
     cy.window().then((window) => {
@@ -383,7 +383,7 @@ describe("Collectible inventory", () => {
 
   it("allows digging after collecting a mushroom", () => {
     cy.window().then((window) => {
-      window.gameMovementTest.loadScenario("inventory-mushroom-dig");
+      return window.gameMovementTest.loadScenario("inventory-mushroom-dig");
     });
     cy.get(".interaction-prompt").should("contain.text", "Collect mushroom");
     collectItem(1, HERO_ANIMATION.PICK_MUSHROOM);
@@ -396,7 +396,7 @@ describe("Collectible inventory", () => {
   it("keeps collected items when the hero is recreated and the page reloads", () => {
     collectItem(1, HERO_ANIMATION.PICK_FLOWER);
     cy.window().then((window) => {
-      window.gameMovementTest.loadScenario("inventory-overlap");
+      return window.gameMovementTest.loadScenario("inventory-overlap");
     });
     cy.window().should((window) => {
       expect(window.gameMovementTest.state().inventory.items).to.have.length(1);

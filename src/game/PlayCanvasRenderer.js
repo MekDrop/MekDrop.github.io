@@ -242,8 +242,6 @@ export class PlayCanvasRenderer {
   #onViewportChange = null;
   #viewportSignature = "";
   #heroCameraReturnTransition = null;
-  #gameOverTitle = "Game over";
-  #restartPrompt = "Press any key or click to restart";
   #gameOverCameraTransition = null;
   #gameOverCameraLocked = false;
   #gameOverReturnViewport = null;
@@ -260,9 +258,7 @@ export class PlayCanvasRenderer {
       onHeroStateChange = null,
       onInventoryFull = null,
       onViewportChange = null,
-      translate = (key) => key,
-      gameOverTitle = "Game over",
-      restartPrompt = "Press any key or click to restart",
+      t = (key) => key,
       graphics = {},
       heroConfiguration,
       uiTheme,
@@ -276,10 +272,8 @@ export class PlayCanvasRenderer {
     this.#heroConfiguration = heroConfiguration;
     this.#uiTheme = new GameUiTheme(uiTheme);
     this.#heroConfiguration?.normalizeInventorySlots?.();
-    this.#translate = translate;
+    this.#translate = t;
     this.#onViewportChange = onViewportChange;
-    this.#gameOverTitle = gameOverTitle;
-    this.#restartPrompt = restartPrompt;
     this.#graphics = {
       driver: GRAPHICS_DRIVER.AUTO,
       antialias: true,
@@ -291,6 +285,10 @@ export class PlayCanvasRenderer {
       shadowResolution: SHADOW_RESOLUTION,
       ...graphics,
     };
+  }
+
+  t(key, values) {
+    return this.#translate(key, values);
   }
 
   #resolveDeviceTypes(pc) {
@@ -381,8 +379,7 @@ export class PlayCanvasRenderer {
     this.#gameOverHud = new GameOverHud({
       pc,
       app: this.#app,
-      title: this.#gameOverTitle,
-      prompt: this.#restartPrompt,
+      translate: this.#translate,
       theme: this.#uiTheme,
     });
     this.#gameOverHud.attach();
@@ -549,6 +546,7 @@ export class PlayCanvasRenderer {
       ashes: this.#hero.ashes,
       facing: this.#hero.facingDirection,
       headLookYaw: this.#hero.headLookYaw,
+      footPlacement: this.#hero.footPlacementState,
       wallet: this.#hero.wallet,
       inventory: this.inventoryState,
     };
@@ -1476,7 +1474,7 @@ export class PlayCanvasRenderer {
             this.#addCubeMatrix(
               batches,
               "earth",
-              this.#overpassEarthSideMaterial(col, row, level),
+              this.#pathEarthSideMaterial(col, row, level),
               x,
               level + 0.5,
               z,
@@ -1492,7 +1490,7 @@ export class PlayCanvasRenderer {
           this.#addBoxMatrix(
             batches,
             SURFACE_MATERIALS[type],
-            this.#overpassEarthSideMaterial(col, row, baseHeight),
+            this.#pathEarthSideMaterial(col, row, baseHeight),
             x,
             baseHeight,
             z,
@@ -1527,7 +1525,7 @@ export class PlayCanvasRenderer {
             height - 1,
           );
           const fasciaMaterial = tileMeta[row][col].overpassId
-            ? this.#overpassEarthSideMaterial(col, row, height - 1)
+            ? this.#pathEarthSideMaterial(col, row, height - 1)
             : railingMaterial;
           for (const cell of span.cells) {
             processedBridgeCells.add(`${cell.col},${cell.row}`);
@@ -1600,7 +1598,7 @@ export class PlayCanvasRenderer {
           const { top, sides, underlay } = overpassFill
             ? {
                 top: topCube ? SURFACE_MATERIALS[type] : "earth",
-                sides: this.#overpassEarthSideMaterial(col, row, level),
+                sides: this.#pathEarthSideMaterial(col, row, level),
                 underlay: "earth",
               }
             : this.#cubeMaterials(type, topCube, col, row, level);
@@ -1639,7 +1637,7 @@ export class PlayCanvasRenderer {
       row,
       overpass.deckElevation - 1,
     );
-    const fasciaMaterial = this.#overpassEarthSideMaterial(
+    const fasciaMaterial = this.#pathEarthSideMaterial(
       col,
       row,
       overpass.deckElevation - 1,
@@ -1699,7 +1697,7 @@ export class PlayCanvasRenderer {
       const { top, sides, underlay } = dirtOnly
         ? {
             top: "earth",
-            sides: this.#overpassEarthSideMaterial(col, row, level),
+            sides: this.#pathEarthSideMaterial(col, row, level),
             underlay: "earth",
           }
         : this.#cubeMaterials(TileType.GRASS, topCube, col, row, level);
@@ -2112,7 +2110,7 @@ export class PlayCanvasRenderer {
     return `grassEarthSide-depth-${this.#grassSideDepth(level)}-${this.#grassSideVariant(col, row)}`;
   }
 
-  #overpassEarthSideMaterial(col, row, level) {
+  #pathEarthSideMaterial(col, row, level) {
     return `overpassEarthSide-depth-${this.#grassSideDepth(level)}-${this.#grassSideVariant(col, row)}`;
   }
 

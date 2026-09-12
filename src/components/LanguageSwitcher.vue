@@ -11,7 +11,7 @@
         flat
         :title="lang.label"
         :aria-label="lang.label"
-        :to="{ name: 'index', params: { lang: lang.value } }"
+        :to="languageRoute(lang.value)"
       >
         <q-avatar v-html="lang.iconHTML" size="1.5em" />
       </q-btn>
@@ -51,10 +51,21 @@
 <script setup>
 import { useI18n } from "vue-i18n";
 import { computed } from "vue";
+import { useRoute } from "vue-router";
 import { getCountryByAlpha2 } from "country-locale-map";
 import twemoji from "twemoji";
 
 const i18n = useI18n({ useScope: "global" });
+const route = useRoute();
+const languageRoute = (lang) => ({
+  name: route.params.mapName ? "map" : "index",
+  params: {
+    lang,
+    ...(route.params.mapName ? { mapName: route.params.mapName } : {}),
+  },
+  query: route.query,
+  hash: route.hash,
+});
 const getLanguageEmoji = (lang) => {
   let country = (lang.includes("-") ? lang.split("-")[1] : lang).toUpperCase();
   let data = getCountryByAlpha2(country);

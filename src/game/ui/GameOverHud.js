@@ -10,7 +10,7 @@ export class GameOverHud {
   #entity;
   #panelTexture;
 
-  constructor({ pc, app, title, prompt, theme }) {
+  constructor({ pc, app, translate, theme }) {
     this.#pc = pc;
     this.#app = app;
     this.#theme = theme;
@@ -23,7 +23,10 @@ export class GameOverHud {
       priority: 110,
     });
     this.#createDimmer();
-    this.#panelTexture = this.#createPanelTexture(title, prompt);
+    this.#panelTexture = this.#createPanelTexture(
+      translate("game.game_over"),
+      translate("game.restart_prompt"),
+    );
     this.#createPanel();
     this.#entity.enabled = false;
   }

@@ -46,6 +46,8 @@ game:
   game_over: Game over
   lives_remaining: "{current} of {total} lives remaining"
   restart_prompt: Press any key or click to restart
+  notification:
+    screenshot_copied: Screenshot taken and copied to clipboard.
   graphics:
     webgl_fallback: WebGPU is unavailable. Using WebGL 2 compatibility rendering.
   interaction:

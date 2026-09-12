@@ -35,7 +35,7 @@ function moveCursorToHorizontalEdge(edge) {
 
 describe("Hero idle animation", () => {
   beforeEach(() => {
-    cy.visit("/?movement-test=flat");
+    cy.visit("/map/test_flat");
     cy.get('.background-canvas[data-game-ready="true"]', {
       timeout: 30000,
     }).should("be.visible");
