@@ -26,7 +26,10 @@ vec3 riverWaterPosition(vec3 p) {
     p.y += sharedWave * (horizontalVolume + lipJoin);
     float fall = vertical * smoothstep(0.05, 0.9, vertex_color.b);
     float age = vertex_color.g;
-    float acrossInterior = sin(vertex_texCoord0.x * 3.14159265);
+    // UV0 is omitted from picking variants. Waterfall metadata has magnitude
+    // 2..3, preserving the normalized flow direction while carrying this value.
+    float across = clamp(metadataLength - 2.0, 0.0, 1.0);
+    float acrossInterior = sin(across * 3.14159265);
     float wave = sin(-p.y * 3.2 - uRiverTime * 5.4 + vertex_color.r * 9.0);
     p.xz += flow * wave * 0.018 * fall +
       crossFlow * sin(age * 8.0 - uRiverTime * 1.8) * 0.012 * fall * age * acrossInterior;

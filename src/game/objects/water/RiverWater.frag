@@ -125,14 +125,25 @@ void getAlbedo() {
     tornPosition * vec2(2.3, 1.8) + vec2(21.4, 5.9)
   );
   float channels = broadPaint * 0.72 + tornPaint * 0.28;
-  float aquaChannel = paintedEdge(0.49, channels);
-  float fallFoam = 1.0 - aquaChannel * 0.94;
+  // Trace narrow channel boundaries instead of whitening one whole side of a
+  // binary noise threshold. At 1x that old mask collapsed into broad flashing
+  // bands because the fall is only a few pixels wide.
+  float channelBoundary = 1.0 - abs(channels - 0.5) * 2.0;
+  float boundaryFoam = paintedEdge(0.74, channelBoundary) * 0.58;
+  float ribbonWarp =
+    (broadPaint - 0.5) * 0.13 + sin(downstream * 1.7) * 0.025;
+  float ribbon = sin((across + ribbonWarp) * 18.0);
+  float ribbonBreaks = paintedEdge(0.43, tornPaint);
+  float fallFoam = max(
+    0.12,
+    max(boundaryFoam, paintedEdge(0.82, ribbon) * ribbonBreaks * 0.82)
+  );
   float fleckPaint = paintedNoise(
     tornPosition * vec2(3.3, 3.8) + vec2(4.9, 11.2)
   );
-  float foamChips = paintedEdge(0.77, fleckPaint);
+  float foamChips = paintedEdge(0.77, fleckPaint) * 0.42;
   float edgeSurge = (1.0 - paintedEdge(0.045 + tornPaint * 0.09, bank)) *
-    paintedEdge(0.53, broadPaint);
+    paintedEdge(0.53, broadPaint) * 0.86;
   fallFoam = max(fallFoam, max(foamChips, edgeSurge));
   foam = mix(foam, fallFoam, lip);
   vec3 fallWater = mix(mint, aqua, paintedEdge(0.43, tornPaint) * 0.72);

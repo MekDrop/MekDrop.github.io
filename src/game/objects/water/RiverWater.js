@@ -151,14 +151,14 @@ export class RiverWater {
           "all",
           spillJoins.get(`${cascade.from.col},${cascade.from.row}`),
         );
-        this.#addWaterfallMist(
-          cascade,
-          cols,
-          rows,
-          false,
-          riverKind,
-        );
         if (riverKind === RIVER_KIND.LAVA) {
+          this.#addWaterfallMist(
+            cascade,
+            cols,
+            rows,
+            false,
+            riverKind,
+          );
           this.#addCascadeImpact(
             riverGroup,
             cascade,
@@ -196,13 +196,15 @@ export class RiverWater {
           river.cells.length,
         );
       }
-      this.#addWaterfallMist(
-        river.waterfall,
-        cols,
-        rows,
-        true,
-        riverKind,
-      );
+      if (riverKind === RIVER_KIND.LAVA) {
+        this.#addWaterfallMist(
+          river.waterfall,
+          cols,
+          rows,
+          true,
+          riverKind,
+        );
+      }
     }
 
     for (const [key, geometryData] of groups.entries()) {

@@ -83,14 +83,13 @@ describe('waterfall geometry', () => {
         assert.equal(a[0], b[0]);
         assert.equal(a[2], b[2]);
         assert.deepEqual(front.uvAt(0, column), [column / front.columns, 7]);
-        assert.deepEqual(front.metadataAt(0, column), [
-          direction.col * 2,
-          direction.row * 2,
-        ]);
-        assert.deepEqual(front.metadataAt(1, column), [
-          direction.col * 2,
-          direction.row * 2,
-        ]);
+        const metadataMagnitude = 2 + column / front.columns;
+        const expectedMetadata = [
+          direction.col * metadataMagnitude,
+          direction.row * metadataMagnitude,
+        ];
+        assert.deepEqual(front.metadataAt(0, column), expectedMetadata);
+        assert.deepEqual(front.metadataAt(1, column), expectedMetadata);
       }
     });
   }
@@ -127,11 +126,25 @@ describe('waterfall geometry', () => {
       assert.strictEqual(rear.pointAt(0, column), join.rear[column]);
       assert.strictEqual(front.uvAt(0, column), join.uvs[column]);
       assert.strictEqual(rear.uvAt(0, column), join.uvs[column]);
-      assert.deepEqual(front.metadataAt(0, column), [0, 2]);
-      assert.deepEqual(rear.metadataAt(0, column), [0, 2]);
+      const metadataMagnitude = 2 + column / front.columns;
+      assert.deepEqual(front.metadataAt(0, column), [0, metadataMagnitude]);
+      assert.deepEqual(rear.metadataAt(0, column), [0, metadataMagnitude]);
       assert.equal(front.colorAt(0, column)[0], 0);
       assert.equal(rear.colorAt(0, column)[0], 255);
     }
+  });
+
+  it('keeps edge sway pinned without relying on optional UV0 attributes', () => {
+    const [front, rear, left, right] = patchesFor(
+      { col: -1, row: 0 },
+      true,
+    );
+    const middleColumn = front.columns / 2;
+    assert.equal(Math.hypot(...front.metadataAt(0, 0)), 2);
+    assert.equal(Math.hypot(...front.metadataAt(0, middleColumn)), 2.5);
+    assert.equal(Math.hypot(...rear.metadataAt(0, front.columns)), 3);
+    assert.equal(Math.hypot(...left.metadataAt(0, 0)), 2);
+    assert.equal(Math.hypot(...right.metadataAt(0, 0)), 3);
   });
 
   it('splits a terminal fall at one exact opaque-to-transparent boundary', () => {

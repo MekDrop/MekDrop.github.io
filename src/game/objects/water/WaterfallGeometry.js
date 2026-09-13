@@ -1,5 +1,6 @@
 // A continuous spillway, thinning curtain, and open tail. Vertex colors encode
-// across / falling progress / lip progress / tail opacity for the water shader.
+// front/rear depth, falling progress, lip progress, and tail opacity. The flow
+// metadata magnitude carries the across-curtain coordinate for every shader pass.
 const BANK_SEAM_OVERLAP = 0.012;
 
 export class WaterfallGeometry {
@@ -106,19 +107,23 @@ export class WaterfallGeometry {
           Math.max(0, (row - lipRows) / fallRows) * (drop - radius),
       ];
     };
+    const metadataAt = (column) => {
+      const magnitude = 2 + column / width;
+      return [direction.col * magnitude, direction.row * magnitude];
+    };
     grid(
       sectionRows, width, (r, c) => pointAt(r + startRow, c),
       [direction.col, 0, direction.row],
       (r) => colorAt(r + startRow), false, false,
       (r, c) => uvAt(r + startRow, c),
-      () => [direction.col * 2, direction.row * 2],
+      (r, c) => metadataAt(c),
     );
     grid(
       sectionRows, width, (r, c) => pointAt(r + startRow, c, true),
       [-direction.col, 0, -direction.row],
       (r) => colorAt(r + startRow, true), true, false,
       (r, c) => uvAt(r + startRow, c),
-      () => [direction.col * 2, direction.row * 2],
+      (r, c) => metadataAt(c),
     );
     // Side faces share exactly the front/back boundary positions; no extra shells.
     for (const column of [0, width]) {
@@ -129,7 +134,7 @@ export class WaterfallGeometry {
         [cross.col * side, 0, cross.row * side],
         (r, c) => colorAt(r + startRow, c === 1), column === 0, false,
         (r) => uvAt(r + startRow, column),
-        () => [direction.col * 2, direction.row * 2],
+        () => metadataAt(column),
       );
     }
   }
