@@ -1,9 +1,14 @@
-import { computed, ref } from "vue";
+import { ref } from "vue";
 import { defineStore } from "pinia";
-import { DEFAULT_CONTROLS } from "src/game/config/controls.js";
+import {
+  DEFAULT_CONTROLS,
+  DEVELOPMENT_MAX_ZOOM,
+} from "src/game/config/controls.js";
 
 const DEFAULT_ZOOM = DEFAULT_CONTROLS.zoom.min;
-const MAX_ZOOM = DEFAULT_CONTROLS.zoom.max;
+const MAX_ZOOM = import.meta.env.DEV
+  ? DEVELOPMENT_MAX_ZOOM
+  : DEFAULT_CONTROLS.zoom.max;
 
 function finiteValue(value, fallback) {
   return Number.isFinite(value) ? value : fallback;
@@ -17,18 +22,6 @@ export const useGameViewStore = defineStore(
     const panX = ref(0);
     const panZ = ref(0);
     const manuallyMoved = ref(false);
-
-    const viewport = computed(() => ({
-      zoom: Math.max(
-        DEFAULT_ZOOM,
-        Math.min(MAX_ZOOM, finiteValue(zoom.value, DEFAULT_ZOOM)),
-      ),
-      rotation:
-        ((Math.round(finiteValue(rotation.value, 0)) % 4) + 4) % 4,
-      panX: finiteValue(panX.value, 0),
-      panZ: finiteValue(panZ.value, 0),
-      manuallyMoved: Boolean(manuallyMoved.value),
-    }));
 
     const updateViewport = (nextViewport) => {
       const normalized = {
@@ -58,7 +51,6 @@ export const useGameViewStore = defineStore(
       panX,
       panZ,
       manuallyMoved,
-      viewport,
       updateViewport,
     };
   },

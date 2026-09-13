@@ -20,9 +20,10 @@ describe('waterfall geometry', () => {
       for (let row = 0; row <= front.rows; row++) {
         const width = front.pointAt(row, front.columns)[2] - front.pointAt(row, 0)[2];
         if (drop <= 4) {
-          assert.equal(width, 1);
+          assert.ok(width >= 1);
+          assert.ok(width <= 1.024);
         } else {
-          assert.ok(width <= 1);
+          assert.ok(width <= 1.024);
         }
       }
       if (drop > 4) {
@@ -43,10 +44,13 @@ describe('waterfall geometry', () => {
         const a = front.pointAt(0, column);
         const b = rear.pointAt(0, column);
         const across = column / front.columns - 0.5;
+        const edgeSide = column === 0 ? -1 : column === front.columns ? 1 : 0;
+        const joinedAcross = across + edgeSide * 0.012;
+        const joinedForward = 0.5 - Math.abs(edgeSide) * 0.012;
         assert.deepEqual(a, [
-          direction.col * 0.5 - direction.row * across,
+          direction.col * joinedForward - direction.row * joinedAcross,
           2.512,
-          direction.row * 0.5 + direction.col * across,
+          direction.row * joinedForward + direction.col * joinedAcross,
         ]);
         assert.ok(Math.abs(a[1] - b[1] - 0.5) < 1e-10);
         assert.equal(a[0], b[0]);
@@ -55,6 +59,15 @@ describe('waterfall geometry', () => {
       }
     });
   }
+
+  it('returns the hidden bank overlap to the exact channel width through the lip', () => {
+    const [front] = patchesFor({ col: 1, row: 0 }, true);
+    const topWidth = front.pointAt(0, front.columns)[2] - front.pointAt(0, 0)[2];
+    const lipWidth = front.pointAt(12, front.columns)[2] -
+      front.pointAt(12, 0)[2];
+    assert.equal(topWidth, 1.024);
+    assert.equal(lipWidth, 1);
+  });
 
   for (const terminal of [false, true]) {
     it(`keeps side faces sealed and flow downhill (${terminal ? 'terminal' : 'landing'})`, () => {

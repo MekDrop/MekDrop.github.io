@@ -1,4 +1,5 @@
 import { POINTER_TYPE } from "../../../src/game/enum/PointerType.js";
+import { DEVELOPMENT_MAX_ZOOM } from "../../../src/game/config/controls.js";
 
 const MIN_ZOOM = 1;
 const MAX_ZOOM = 6;
@@ -428,6 +429,25 @@ describe("Camera dragging", () => {
     });
   });
 
+  it("keeps developer mode in session storage across reloads", () => {
+    cy.window().then((window) => {
+      window.dispatchEvent(new KeyboardEvent("keydown", { code: "Pause" }));
+      window.dispatchEvent(new KeyboardEvent("keyup", { code: "Pause" }));
+      const stored = JSON.parse(window.sessionStorage.getItem("debug"));
+      expect(stored.pathArrows).to.equal(true);
+      expect(stored.debugAxesHud).to.equal(true);
+      expect(stored.debugFpsHud).to.equal(true);
+    });
+
+    cy.reload();
+    cy.get('.background-canvas[data-game-ready="true"]', {
+      timeout: 30000,
+    }).should("be.visible");
+    cy.window().then((window) => {
+      expect(window.gameCameraTest.state().panLimitsEnabled).to.equal(false);
+    });
+  });
+
   it("can reverse from the bottom pan limit to the top at maximum zoom", () => {
     setZoom(MAX_ZOOM);
     dragCamera(0, DRAG_DISTANCE);
@@ -586,6 +606,20 @@ describe("Camera dragging", () => {
         expect(rehydrated.panX).to.be.closeTo(restored.panX, 0.000001);
         expect(rehydrated.panZ).to.be.closeTo(restored.panZ, 0.000001);
       });
+    });
+  });
+
+  it("allows the extended development zoom maximum", () => {
+    cy.window().then((window) => {
+      for (let step = 0; step < 40; step += 1) {
+        window.dispatchEvent(
+          new KeyboardEvent("keydown", { code: "PageUp", key: "PageUp" }),
+        );
+      }
+      expect(window.gameCameraTest.state().viewport.zoom).to.be.closeTo(
+        DEVELOPMENT_MAX_ZOOM,
+        0.000001,
+      );
     });
   });
 });

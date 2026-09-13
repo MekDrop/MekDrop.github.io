@@ -1,5 +1,7 @@
 // A continuous spillway, thinning curtain, and open tail. Vertex colors encode
 // across / falling progress / lip progress / tail opacity for the water shader.
+const BANK_SEAM_OVERLAP = 0.012;
+
 export class WaterfallGeometry {
   #waterfall;
   #direction;
@@ -31,6 +33,9 @@ export class WaterfallGeometry {
     const pointAt = (row, column, rear = false) => {
       const across = column / width - 0.5;
       const lip = Math.min(1, row / lipRows);
+      const edgeSide = column === 0 ? -1 : column === width ? 1 : 0;
+      const bankJoin = BANK_SEAM_OVERLAP * (1 - lip) * (1 - lip);
+      const joinedAcross = across + edgeSide * bankJoin;
       const fall = Math.max(0, (row - lipRows) / fallRows);
       const angle = lip * Math.PI / 2;
       const arc = Math.sin(angle);
@@ -43,16 +48,23 @@ export class WaterfallGeometry {
         (this.#terminal ? 0.18 + scallop * 0.22 : -0.025);
       const belly = Math.sin((across + 0.5) * Math.PI) * 0.055 * arc;
       const drift = fall * fall * (this.#terminal ? 0.18 : 0.08);
-      const forward = 0.5 + radius * arc + belly + drift;
+      // Bury only the two lip-edge columns just inside the lateral banks. The
+      // overlap closes fractional-zoom raster cracks without changing draw order.
+      const forward =
+        0.5 - Math.abs(edgeSide) * bankJoin + radius * arc + belly + drift;
       const top = this.#waterfall.topElevation + 0.012;
       const y = top - radius * (1 - Math.cos(angle));
       const thickness = 0.5 * (1 - arc) + 0.115 * arc * (1 - fall * 0.3);
       const surfaceForward = forward - (rear ? thickness * arc : 0);
       return [
-        this.#center[0] + direction.col * surfaceForward + cross.col * across * taper,
+        this.#center[0] +
+          direction.col * surfaceForward +
+          cross.col * joinedAcross * taper,
         y + (bottom - (top - radius)) * fall -
           (rear ? thickness * Math.cos(angle) : 0),
-        this.#center[1] + direction.row * surfaceForward + cross.row * across * taper,
+        this.#center[1] +
+          direction.row * surfaceForward +
+          cross.row * joinedAcross * taper,
       ];
     };
     const colorAt = (row, column) => {

@@ -177,7 +177,10 @@ import { ToggleArrowsAction } from "src/game/actions/ToggleArrowsAction.js";
 import { ToggleInventoryAction } from "src/game/actions/ToggleInventoryAction.js";
 import { InteractionAction } from "src/game/actions/InteractionAction.js";
 import { ZoomAction } from "src/game/actions/ZoomAction.js";
-import { DEFAULT_CONTROLS } from "src/game/config/controls.js";
+import {
+  DEFAULT_CONTROLS,
+  DEVELOPMENT_MAX_ZOOM,
+} from "src/game/config/controls.js";
 import { InteractionSuggestion } from "src/game/interaction/InteractionSuggestion.js";
 import { useDebugStore } from "src/stores/debug-store.js";
 import { useGraphicsSettingsStore } from "src/stores/graphics-settings-store.js";
@@ -394,6 +397,9 @@ function updateDebugStats() {
 
 async function init() {
   const bindings = DEFAULT_CONTROLS;
+  const zoomSettings = import.meta.env.DEV
+    ? { ...bindings.zoom, max: DEVELOPMENT_MAX_ZOOM }
+    : bindings.zoom;
   interactionSuggestion = new InteractionSuggestion((target) => {
     interactionTarget.value = target;
   });
@@ -443,14 +449,14 @@ async function init() {
   const zoomInAction = new ZoomAction(
     renderer,
     container.value,
-    bindings.zoom,
-    bindings.zoom.factor,
+    zoomSettings,
+    zoomSettings.factor,
   );
   const zoomOutAction = new ZoomAction(
     renderer,
     container.value,
-    bindings.zoom,
-    1 / bindings.zoom.factor,
+    zoomSettings,
+    1 / zoomSettings.factor,
   );
   const actions = {
     zoomIn: zoomInAction,

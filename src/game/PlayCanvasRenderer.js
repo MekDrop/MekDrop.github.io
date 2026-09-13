@@ -447,9 +447,11 @@ export class PlayCanvasRenderer {
   }
 
   render(mapData) {
-    const initialViewport = this.#mapData
-      ? null
-      : { ...this.#gameViewStore.viewport };
+    let initialViewport = null;
+    if (!this.#mapData) {
+      this.#gameViewStore.updateViewport(this.#gameViewStore.$state);
+      initialViewport = { ...this.#gameViewStore.$state };
+    }
     this.#inventoryHud.visible = Boolean(
       this.#heroConfigurationStore.inventory.visible,
     );
