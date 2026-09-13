@@ -10,116 +10,26 @@ uniform float uRiverTime;
 uniform float uRiverVertical;
 uniform float uRiverLava;
 
-vec3 riverWaterPosition(vec3 localPosition) {
+vec3 riverWaterPosition(vec3 p) {
   #ifdef VERTEX_COLOR
-    vec3 baseLocalPosition = localPosition;
-    float vertexMarker = vertex_color.a;
-    float horizontalDepth = clamp(vertex_color.r, 0.0, 1.0);
-    float surfaceMask =
-      (1.0 - uRiverVertical) * (1.0 - horizontalDepth);
-    vec2 flowDirection = normalize(uRiverFlowDirection);
-    vec2 crossDirection = vec2(-flowDirection.y, flowDirection.x);
-    float alongFlow = dot(localPosition.xz, flowDirection);
-    float acrossFlow = dot(localPosition.xz, crossDirection);
-    float surfaceWave =
-      sin(
-        dot(localPosition.xz, vec2(0.78, 0.63)) * 10.5 +
-        uRiverTime * 1.65
-      ) * 0.025 +
-      sin(
-        dot(localPosition.xz, vec2(-0.44, 0.9)) * 16.0 -
-        uRiverTime * 1.2
-      ) * 0.014;
-    float directionalFlowWave =
-      sin(
-        alongFlow * 12.0 -
-        uRiverTime * 4.1 +
-        sin(acrossFlow * 8.5) * 0.72
-      ) * 0.018 +
-      sin(alongFlow * 6.2 - uRiverTime * 2.45 + acrossFlow * 2.1) *
-      0.009;
-    float flowInterior = smoothstep(0.015, 0.3, vertex_color.b);
-    float waterSurfaceWave =
-      surfaceWave + directionalFlowWave * flowInterior;
-    float lavaBaseWave =
-      sin(
-        dot(localPosition.xz, vec2(0.58, 0.81)) * 4.4 -
-        uRiverTime * 0.31
-      ) * 0.006;
-    float lavaDirectionalWave =
-      sin(
-        alongFlow * 4.2 -
-        uRiverTime * 0.72 +
-        sin(acrossFlow * 3.0) * 0.5
-      ) * 0.012 +
-      sin(
-        dot(localPosition.xz, vec2(-0.52, 0.85)) * 5.3 +
-        uRiverTime * 0.46
-      ) * 0.008;
-    float lavaSurfaceWave =
-      lavaBaseWave + lavaDirectionalWave * flowInterior;
-    float liquidSurfaceWave = mix(
-      waterSurfaceWave,
-      lavaSurfaceWave,
-      uRiverLava
-    );
-    float waterfallLipSurfaceMask =
-      uRiverVertical *
-      step(0.9, vertexMarker) *
-      (1.0 - smoothstep(0.0, 0.32, vertex_color.b));
-    localPosition.y +=
-      liquidSurfaceWave *
-      (surfaceMask + waterfallLipSurfaceMask);
-
-    float springSource =
-      surfaceMask *
-      smoothstep(0.015, 0.68, vertex_color.g);
-    float springCore =
-      surfaceMask *
-      smoothstep(0.42, 0.94, vertex_color.g);
-    float springRingPhase = (1.0 - vertex_color.g) * 13.0;
-    float springUpwelling =
-      sin(springRingPhase - uRiverTime * 3.6) * 0.032 +
-      sin(
-        dot(localPosition.xz, vec2(11.0, -8.0)) +
-        uRiverTime * 2.2
-      ) * 0.016 +
-      sin(uRiverTime * 4.8 + vertex_color.g * 6.0) * 0.01;
-    float springCenterHeave =
-      0.022 + sin(uRiverTime * 3.15) * 0.018;
-    localPosition.y +=
-      (springSource * springUpwelling + springCore * springCenterHeave) *
-      (1.0 - uRiverLava);
-
-    float waterfallMask =
-      uRiverVertical *
-      vertexMarker *
-      smoothstep(0.28, 0.92, vertex_color.b);
-    float flowAge = vertex_color.g + vertex_color.b * 0.075;
-    float fallTime = mix(uRiverTime, uRiverTime * 0.34, uRiverLava);
-    float forwardSwell =
-      sin(
-        flowAge * 15.0 -
-        fallTime * 3.1 +
-        vertex_color.r * 7.0
-      ) * 0.032 +
-      sin(flowAge * 6.0 - fallTime * 1.35) * 0.017;
-    float sidewaysSway = sin(
-      flowAge * 9.0 -
-      fallTime * 1.6 +
-      vertex_color.r * 13.0
-    ) * 0.02;
-    float fallDisplacement = mix(1.0, 0.42, uRiverLava);
-    localPosition.xz +=
-      flowDirection * forwardSwell * waterfallMask +
-      crossDirection * sidewaysSway * waterfallMask;
-    localPosition.xz = mix(
-      baseLocalPosition.xz,
-      localPosition.xz,
-      mix(1.0, fallDisplacement, waterfallMask)
-    );
+    vec2 flow = normalize(uRiverFlowDirection);
+    vec2 crossFlow = vec2(-flow.y, flow.x);
+    // Shared motion at every cell edge and the lip prevents cracks.
+    float sharedWave = sin(dot(p.xz, vec2(4.3, 3.1)) - uRiverTime * 1.7) * 0.009;
+    float interior = (1.0 - uRiverVertical) * (1.0 - vertex_color.r);
+    float lipJoin = uRiverVertical * (1.0 - smoothstep(0.0, 0.32, vertex_color.b));
+    // One wave field across the whole river: per-cell wave envelopes create
+    // little ridges in reflected light where the flow turns through 90 degrees.
+    sharedWave += sin(dot(p.xz, vec2(-2.7, 4.8)) - uRiverTime * 2.1) * 0.006;
+    p.y += sharedWave * (interior + lipJoin);
+    float fall = uRiverVertical * smoothstep(0.05, 0.9, vertex_color.b);
+    float age = vertex_color.g;
+    float acrossInterior = sin(vertex_color.r * 3.14159265);
+    float wave = sin(-p.y * 3.2 - uRiverTime * 5.4 + vertex_color.r * 9.0);
+    p.xz += flow * wave * 0.018 * fall +
+      crossFlow * sin(age * 8.0 - uRiverTime * 1.8) * 0.012 * fall * age * acrossInterior;
   #endif
-  return localPosition;
+  return p;
 }
 
 vec4 evalWorldPosition(vec3 vertexPosition, mat4 modelMatrix) {

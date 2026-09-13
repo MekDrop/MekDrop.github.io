@@ -13,6 +13,7 @@ import { SLOPE_DIRECTION } from "../../enum/SlopeDirection.js";
 import { TILE_SHAPE } from "../../enum/TileShape.js";
 import { HeroLavaDeathEffect } from "./HeroLavaDeathEffect.js";
 import { HeroFootPlacement } from "./HeroFootPlacement.js";
+import { HeroWaterMotion } from "./HeroWaterMotion.js";
 
 const FIXED_STEP = 1 / 120;
 const MAX_FRAME_TIME = 0.1;
@@ -115,8 +116,6 @@ const DROWNING_ENTRY_CLEARANCE = 0.32;
 const LAVA_ENTRY_CLEARANCE = 0.12;
 const DROWNING_SUBMERGE_DEPTH = 0.68;
 const DROWNING_SINK_SPEED = 2.8;
-const DROWNING_BOB_HEIGHT = 0.018;
-const DROWNING_BOB_SPEED = 7;
 const DROWNING_HEAD_YAW_LIMIT = 46;
 const LAVA_BURN_DURATION = 1.35;
 const LAVA_ASH_START = 0.68;
@@ -397,6 +396,22 @@ export class Hero {
 
   get drowning() {
     return this.#drowningAction !== null;
+  }
+
+  get waterPresentation() {
+    if (!this.#drowningAction || !this.#headEntity) {
+      return null;
+    }
+    const entry = this.#riverRouteEntryAt(this.#position.x, this.#position.z);
+    if (!entry || entry.cell.underBridge) {
+      return null;
+    }
+    return {
+      head: this.#headEntity,
+      x: this.#position.x,
+      z: this.#position.z,
+      surfaceY: entry.cell.elevation + 0.012,
+    };
   }
 
   get burning() {
@@ -1436,7 +1451,7 @@ export class Hero {
     const targetY =
       waterElevation -
       DROWNING_SUBMERGE_DEPTH +
-      Math.sin(action.elapsed * DROWNING_BOB_SPEED) * DROWNING_BOB_HEIGHT;
+      HeroWaterMotion.offsetAt(action.elapsed);
     const previousY = this.#position.y;
     this.#position.y = this.#approach(
       this.#position.y,

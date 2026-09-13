@@ -1903,7 +1903,7 @@ export class PlayCanvasRenderer {
   }
 
   #updateFrame = (deltaTime) => {
-    this.#riverWater?.update(deltaTime);
+    this.#riverWater?.update(deltaTime, this.#hero, this.#camera?.camera);
     this.#syncInventoryVisibility();
     this.#inventoryHud?.update(
       deltaTime,

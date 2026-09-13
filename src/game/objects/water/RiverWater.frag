@@ -1,414 +1,177 @@
 uniform vec3 material_diffuse;
-uniform vec2 uRiverFlowDirection;
 uniform float uRiverTime;
 uniform float uRiverVertical;
-uniform float uRiverLava;
+uniform sampler2D uHeroReflection;
+uniform mat4 uHeroReflectionMatrix;
+uniform vec4 uHeroWater;
+uniform vec2 uRiverFlowDirection;
+uniform vec4 uRiverRocks[18];
+uniform int uRiverRockCount;
+uniform sampler2D uRiverFlowMap;
+uniform vec2 uRiverMapSize;
 
-float riverHash(vec2 position) {
-  return fract(sin(dot(position, vec2(127.1, 311.7))) * 43758.5453);
+float paintedHash(vec2 p) {
+  return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
 }
 
-float riverNoise(vec2 position) {
-  vec2 cell = floor(position);
-  vec2 blend = fract(position);
-  blend = blend * blend * (3.0 - 2.0 * blend);
-  float bottom = mix(
-    riverHash(cell),
-    riverHash(cell + vec2(1.0, 0.0)),
-    blend.x
-  );
-  float top = mix(
-    riverHash(cell + vec2(0.0, 1.0)),
-    riverHash(cell + vec2(1.0, 1.0)),
-    blend.x
-  );
-  return mix(bottom, top, blend.y);
+float paintedNoise(vec2 p) {
+  vec2 i = floor(p);
+  vec2 f = fract(p);
+  f = f * f * (3.0 - 2.0 * f);
+  return mix(mix(paintedHash(i), paintedHash(i + vec2(1.0, 0.0)), f.x),
+    mix(paintedHash(i + vec2(0.0, 1.0)), paintedHash(i + 1.0), f.x), f.y);
 }
 
-float riverFbm(vec2 position) {
-  float noiseValue = riverNoise(position) * 0.58;
-  noiseValue += riverNoise(position * 2.03 + 7.9) * 0.28;
-  noiseValue += riverNoise(position * 4.07 + 19.3) * 0.14;
-  return noiseValue;
-}
-
-float riverSurfaceWave(vec2 position) {
-  float firstWave = sin(
-    dot(position, vec2(0.82, 0.57)) * 10.2 + uRiverTime * 1.7
-  );
-  float secondWave = sin(
-    dot(position, vec2(-0.38, 0.93)) * 16.4 - uRiverTime * 1.25
-  ) * 0.42;
-  vec2 rippleCenter = vec2(
-    sin(uRiverTime * 0.31),
-    cos(uRiverTime * 0.27)
-  );
-  float crossingRipple = sin(
-    length(position * vec2(0.85, 1.1) + rippleCenter) * 7.2 -
-    uRiverTime
-  ) * 0.18;
-  return firstWave + secondWave + crossingRipple;
+// Broad, antialiased paint shapes stay readable at the normal game zoom.
+float paintedEdge(float edge, float value) {
+  float aa = max(0.015, fwidth(value));
+  return smoothstep(edge - aa, edge + aa, value);
 }
 
 void getAlbedo() {
-  vec3 surfaceDerivativeX = dFdx(vPositionW);
-  vec3 surfaceDerivativeY = dFdy(vPositionW);
-  vec3 geometricNormal = normalize(
-    cross(surfaceDerivativeX, surfaceDerivativeY)
-  );
-  float waterDepth = clamp(vVertexColor.r, 0.0, 1.0);
-  float waterVolumeSide =
-    (1.0 - uRiverVertical) *
-    smoothstep(0.02, 0.18, waterDepth);
-  float verticality = smoothstep(
-    0.08,
-    0.92,
-    1.0 - abs(geometricNormal.y)
-  );
-  verticality *= uRiverVertical;
+  vec2 uv = vUv0;
+  if (uRiverVertical < 0.5) {
+    vec2 gridPosition = vPositionW.xz + uRiverMapSize * 0.5;
+    vec2 cell = floor(gridPosition);
+    vec2 local = gridPosition - cell - 0.5;
+    vec4 route = texture2D(uRiverFlowMap, (cell + 0.5) / uRiverMapSize);
+    vec2 outgoing = route.yz;
+    uv = vec2(0.5 + dot(local, vec2(-outgoing.y, outgoing.x)),
+      route.x + 0.5 + dot(local, outgoing));
+    if (abs(route.w) > 0.5) {
+      vec2 incoming = vec2(outgoing.y, -outgoing.x) * route.w;
+      vec2 offset = local - (outgoing - incoming) * 0.5;
+      float along = max(0.0, dot(offset, incoming));
+      float before = max(0.0, -dot(offset, outgoing));
+      float progress = atan(along, max(0.000001, before)) / 1.57079632679;
+      uv = vec2(0.5 + route.w * (0.5 - length(offset)), route.x + progress);
+    }
+  }
+  float across = uv.x;
+  float downstream = uv.y - uRiverTime * 0.72;
+  float depth = (1.0 - uRiverVertical) * vVertexColor.r;
+  float lip = uRiverVertical * smoothstep(0.0, 0.75, vVertexColor.b);
+  float falling = uRiverVertical * vVertexColor.g;
 
-  vec2 flowDirection = normalize(uRiverFlowDirection);
-  vec2 crossDirection = vec2(-flowDirection.y, flowDirection.x);
-  float alongFall = -vPositionW.y;
-  float acrossFall = dot(vPositionW.xz, crossDirection);
-  float waterfallLipSurface =
-    uRiverVertical *
-    (1.0 - verticality) *
-    (1.0 - smoothstep(0.08, 0.72, vVertexColor.b));
-  float waterfallFace =
-    uRiverVertical * vVertexColor.a * (1.0 - waterfallLipSurface);
-  float riverSurface = max(
-    (1.0 - uRiverVertical) * (1.0 - waterVolumeSide),
-    waterfallLipSurface
-  );
-  float waterfallAcross = vVertexColor.r;
-  float fallProgress = vVertexColor.g;
-  float lipProgress = vVertexColor.b;
+  // A gouache palette: shaded teal, mint, pale aqua, warm white.
+  vec3 teal = vec3(0.15, 0.39, 0.38);
+  vec3 mint = vec3(0.28, 0.58, 0.55);
+  vec3 aqua = vec3(0.44, 0.69, 0.65);
+  vec3 white = vec3(0.77, 0.85, 0.81);
+  float wash = paintedNoise(vec2(across * 3.6, downstream * 1.5));
+  float patches = paintedEdge(0.47, wash);
+  vec3 water = mix(mint, aqua, patches * 0.55);
+  water = mix(water, teal, (1.0 - paintedEdge(0.28, wash)) * 0.55);
 
-  float fallingTwist = sin(
-    alongFall * 1.7 - uRiverTime * 4.2
-  );
-  float geometricFallingWave = sin(
-    acrossFall * 15.0 + fallingTwist * 1.25
-  );
-  geometricFallingWave += sin(
-    acrossFall * 7.0 - alongFall * 0.55 + uRiverTime * 2.1
-  ) * 0.38;
+  // Broken ribbons follow route coordinates through every corner.
+  float warp = sin(downstream * 4.2 + across * 3.0) * 0.035 +
+    (paintedNoise(vec2(across * 4.0, downstream * 2.1)) - 0.5) * 0.085;
+  float bank = min(across, 1.0 - across);
+  float bankFoam = 1.0 - paintedEdge(0.055 + warp, bank);
+  float streak = sin((across + warp) * 23.0 + sin(downstream * 2.1) * 0.7);
+  float breaks = paintedNoise(vec2(across * 8.0 + 13.0, downstream * 3.0));
+  float streamFoam = paintedEdge(0.82, streak) * paintedEdge(0.47, breaks);
+  float flecks = paintedEdge(0.78, paintedNoise(vec2(across * 13.0, downstream * 8.0)));
+  float foam = max(bankFoam * 0.94, max(streamFoam, flecks * 0.75));
+  if (uRiverVertical < 0.5 && depth < 0.01) {
+    vec2 flow = normalize(uRiverFlowDirection);
+    vec2 crossFlow = vec2(-flow.y, flow.x);
+    for (int rockIndex = 0; rockIndex < 18; rockIndex++) {
+      if (rockIndex >= uRiverRockCount) {
+        break;
+      }
+      vec4 rock = uRiverRocks[rockIndex];
+      vec2 offset = vPositionW.xz - rock.xz;
+      float distanceToRock = length(offset);
+      if (distanceToRock > 0.8 || abs(vPositionW.y - rock.y) > 0.08) {
+        continue;
+      }
+      float along = dot(offset, flow);
+      float lateral = abs(dot(offset, crossFlow));
+      float churn = sin(distanceToRock * 38.0 - uRiverTime * 7.0 + across * 8.0);
+      float contact = 1.0 - smoothstep(0.035, 0.11, abs(distanceToRock - rock.w));
+      float wake = smoothstep(0.0, 0.12, along) * (1.0 - smoothstep(0.32, 0.7, along));
+      wake *= 1.0 - smoothstep(rock.w * 0.65, rock.w + along * 0.25, lateral);
+      float wakeBreak = smoothstep(0.06, 0.18,
+        sin(along * 29.0 - uRiverTime * 7.0 + lateral * 16.0));
+      foam = max(foam, max(contact * (0.76 + churn * 0.14), wake * wakeBreak * 0.82));
+    }
+  }
 
-  vec2 broadFlowPosition = vec2(
-    waterfallAcross * 3.8 + sin(fallProgress * 7.0) * 0.12,
-    fallProgress * 4.2 - uRiverTime * 1.7
-  );
-  float broadChannel = riverFbm(broadFlowPosition);
-  float foldedChannel = sin(
-    waterfallAcross * 30.0 +
-    broadChannel * 8.5 +
-    fallProgress * 5.0 -
-    uRiverTime * 2.6
-  );
-  float fineChannel = sin(
-    waterfallAcross * 63.0 -
-    fallProgress * 10.0 +
-    uRiverTime * 3.4 +
-    riverNoise(broadFlowPosition * 1.7) * 6.0
-  );
-  float stylizedFallingWave =
-    (broadChannel - 0.5) * 2.1 +
-    foldedChannel * 0.55 +
-    fineChannel * 0.18;
-  float fallingWave = mix(
-    geometricFallingWave,
-    stylizedFallingWave,
-    waterfallFace
-  );
+  if (uRiverVertical > 0.5) {
+    // Warped, elongated paint patches split, join, and end at different heights.
+    // There are no periodic lanes across the curtain to form parallel stripes.
+    vec2 fallPosition = vec2(across * 5.2, downstream * 0.85);
+    vec2 drift = vec2(
+      paintedNoise(fallPosition * vec2(0.56, 0.73) + vec2(8.3, 2.7)),
+      paintedNoise(fallPosition * vec2(0.81, 0.49) + vec2(3.1, 19.4))
+    ) - 0.5;
+    vec2 tornPosition = fallPosition + drift * vec2(1.65, 0.75);
+    float broadPaint = paintedNoise(tornPosition * vec2(1.0, 0.65));
+    float tornPaint = paintedNoise(tornPosition * vec2(2.3, 1.8) + vec2(21.4, 5.9));
+    float channels = broadPaint * 0.72 + tornPaint * 0.28;
+    float aquaChannel = paintedEdge(0.49, channels);
+    float fallFoam = 1.0 - aquaChannel * 0.94;
 
-  float surfaceWave = riverSurfaceWave(vPositionW.xz);
-  float alongSurfaceFlow = dot(vPositionW.xz, flowDirection);
-  float acrossSurfaceFlow = dot(vPositionW.xz, crossDirection);
-  float directionalFlowWave =
-    sin(
-      alongSurfaceFlow * 7.4 -
-      uRiverTime * 4.0 +
-      sin(acrossSurfaceFlow * 5.2) * 0.58
-    ) * 0.68 +
-    sin(
-      alongSurfaceFlow * 13.6 -
-      uRiverTime * 6.1 -
-      acrossSurfaceFlow * 2.4
-    ) * 0.32;
-  float directionalFlowTone = clamp(
-    directionalFlowWave * 0.5 + 0.5,
-    0.0,
-    1.0
-  );
-  directionalFlowTone =
-    floor(directionalFlowTone * 3.999) / 3.0;
-  float brokenWave = mix(surfaceWave, fallingWave, verticality);
-  brokenWave +=
-    (riverHash(floor(vPositionW.xz * 8.0)) - 0.5) *
-    mix(0.05, 0.2, verticality);
+    // Short detached white flecks and uneven edge surges break up broad strokes.
+    float fleckPaint = paintedNoise(tornPosition * vec2(3.3, 3.8) + vec2(4.9, 11.2));
+    float foamChips = paintedEdge(0.77, fleckPaint);
+    float edgeSurge = (1.0 - paintedEdge(0.045 + tornPaint * 0.09, bank)) *
+      paintedEdge(0.53, broadPaint);
+    fallFoam = max(fallFoam, max(foamChips, edgeSurge));
+    foam = mix(foam, fallFoam, lip);
+    vec3 fallWater = mix(mint, aqua, paintedEdge(0.43, tornPaint) * 0.72);
+    water = mix(water, fallWater, lip * 0.85);
+  }
 
-  vec3 deepWater = vec3(0.025, 0.3, 0.58);
-  vec3 clearWater = vec3(0.035, 0.53, 0.8);
-  vec3 brightWater = vec3(0.2, 0.74, 0.94);
-  float fallingWaterTone = clamp(brokenWave * 0.24 + 0.5, 0.0, 1.0);
-  float surfaceWaterTone = clamp(
-    0.52 + surfaceWave * 0.055,
-    0.34,
-    0.7
-  );
-  float waterTone = mix(
-    fallingWaterTone,
-    surfaceWaterTone,
-    riverSurface
-  );
-  float celTone = mix(
-    waterTone,
-    floor(waterTone * 5.0) / 4.0,
-    0.34
-  );
-  vec3 waterColor = mix(deepWater, clearWater, celTone);
-  waterColor = mix(
-    waterColor,
-    brightWater,
-    smoothstep(0.74, 0.94, waterTone)
-  );
-
-  float horizontalFlowMask =
-    (1.0 - uRiverVertical) *
-    (1.0 - waterVolumeSide);
-  float movingFlowColor = riverFbm(vec2(
-    acrossSurfaceFlow * 2.8 + 8.4,
-    alongSurfaceFlow * 1.45 - uRiverTime * 1.15
-  ));
-  float horizontalFlowColor = clamp(
-    directionalFlowTone * 0.52 + movingFlowColor * 0.58 - 0.05,
-    0.0,
-    1.0
-  );
-  horizontalFlowColor =
-    floor(horizontalFlowColor * 3.999) / 3.0;
-  float surfaceFoam = 0.0;
-  float springSource =
-    horizontalFlowMask *
-    smoothstep(0.015, 0.22, vVertexColor.g);
-  float springSwell =
-    horizontalFlowMask *
-    smoothstep(0.32, 0.9, vVertexColor.g);
-  vec2 sourceFoamPosition =
-    vPositionW.xz * 8.2 - flowDirection * uRiverTime * 1.7;
-  float sourceFoamCells = riverFbm(sourceFoamPosition);
-  float sourceFoamBreak = riverNoise(
-    sourceFoamPosition * 2.65 + vec2(13.7, 4.9)
-  );
-  float sourceFoamFlecks = riverNoise(
-    sourceFoamPosition * 4.8 - vec2(7.1, 19.3)
-  );
-  float springFoam =
-    smoothstep(0.56, 0.74, sourceFoamCells) *
-    (0.12 + smoothstep(0.35, 0.62, sourceFoamBreak) * 0.16);
-  springFoam +=
-    smoothstep(0.74, 0.91, sourceFoamFlecks) * 0.07;
-  springFoam = min(0.25, springFoam);
-  springFoam *= springSource * (0.58 + springSwell * 0.42);
-  float cascadeImpact =
-    (1.0 - uRiverVertical) *
-    smoothstep(0.65, 0.95, vVertexColor.b);
-  float cascadePulse = 0.86 + sin(
-    dot(vPositionW.xz, vec2(9.0, -7.0)) - uRiverTime * 2.4
-  ) * 0.08;
-
-  float broadStreak = smoothstep(0.58, 0.78, broadChannel);
-  float foldedStreak = smoothstep(0.63, 0.91, foldedChannel);
-  float fineStreak = smoothstep(0.84, 0.97, fineChannel);
-  float crestFoam =
-    smoothstep(0.58, 0.96, lipProgress) *
-    (1.0 - smoothstep(0.04, 0.19, fallProgress));
-  float bottomChurn =
-    smoothstep(0.7, 1.0, fallProgress) *
-    smoothstep(
-      0.36,
-      0.72,
-      riverFbm(vec2(
-        waterfallAcross * 6.0,
-        fallProgress * 5.0 - uRiverTime * 2.2
-      ))
-    );
-  float waterfallFoam = clamp(
-    broadStreak * 0.38 +
-    foldedStreak * 0.28 +
-    fineStreak * 0.18 +
-    crestFoam * 0.5 +
-    bottomChurn * 0.42,
-    0.0,
-    0.72
-  );
-  waterfallFoam *= waterfallFace;
-
-  float geometricFoam = step(
-    0.68,
-    sin(acrossFall * 22.0 + fallingTwist)
-  ) * 0.52;
-  float fallingFoam = mix(
-    geometricFoam,
-    waterfallFoam,
-    waterfallFace
-  );
-  float foam = max(
-    mix(surfaceFoam, fallingFoam, verticality),
-    cascadeImpact * cascadePulse
-  );
-  float curvedShade = mix(
-    1.0,
-    0.78 +
-      max(dot(geometricNormal, normalize(vec3(-0.45, 0.72, 0.36))), 0.0) *
-      0.22,
-    verticality
-  );
-  waterColor *= curvedShade;
-  waterColor = mix(
-    waterColor * 0.76,
-    mix(waterColor, brightWater, 0.16),
-    riverSurface
-  );
-  waterColor = mix(
-    waterColor,
-    clearWater,
-    uRiverVertical * 0.12
-  );
-  waterColor = mix(
-    waterColor,
-    mix(
-      mix(deepWater, clearWater, 0.35),
-      brightWater,
-      horizontalFlowColor * 0.9
-    ),
-    horizontalFlowMask * 0.68
-  );
-  float sideVariation = riverFbm(vec2(
-    dot(vPositionW.xz, flowDirection) * 2.4 - uRiverTime * 0.22,
-    vPositionW.y * 3.2
-  ));
-  vec3 volumeColor = mix(clearWater, deepWater, waterDepth * 0.82);
-  float bedPattern = riverFbm(vPositionW.xz * 5.2 + vec2(3.7, 11.4));
-  vec3 darkRiverBed = vec3(0.12, 0.16, 0.14);
-  vec3 lightRiverBed = vec3(0.27, 0.24, 0.16);
-  vec3 riverBedColor = mix(darkRiverBed, lightRiverBed, bedPattern);
-  volumeColor = mix(
-    volumeColor,
-    riverBedColor,
-    smoothstep(0.68, 1.0, waterDepth) * 0.48
-  );
-  float sourceBedMarker =
-    (1.0 - uRiverVertical) *
-    waterDepth *
-    smoothstep(0.04, 0.88, vVertexColor.g);
-  float sourceBedNoise = riverFbm(
-    vPositionW.xz * 7.1 +
-    vec2(uRiverTime * 0.16, -uRiverTime * 0.12)
-  );
-  float sourceBedPulse =
-    0.72 + sin(uRiverTime * 3.4 + sourceBedNoise * 5.0) * 0.12;
-  vec3 sourceUpwellingColor = vec3(0.025, 0.62, 0.75);
-  volumeColor = mix(
-    volumeColor,
-    sourceUpwellingColor,
-    sourceBedMarker * sourceBedPulse * (0.64 + sourceBedNoise * 0.22)
-  );
-  volumeColor = mix(
-    volumeColor,
-    brightWater,
-    smoothstep(0.82, 0.98, sideVariation) * 0.12
-  );
-  waterColor = mix(waterColor, volumeColor, waterVolumeSide * 0.9);
-  float sourceSurfaceNoise = riverFbm(
-    vPositionW.xz * 8.3 +
-    vec2(-uRiverTime * 0.2, uRiverTime * 0.17)
-  );
-  float springPulse =
-    0.62 +
-    sourceSurfaceNoise * 0.18 +
-    sin(uRiverTime * 2.7 + sourceSurfaceNoise * 4.5) * 0.1;
-  vec3 sourceSurfaceColor = mix(
-    vec3(0.025, 0.56, 0.7),
-    vec3(0.055, 0.76, 0.85),
-    sourceSurfaceNoise
-  );
-  waterColor = mix(
-    waterColor,
-    sourceSurfaceColor,
-    springSwell * springPulse
-  );
-  vec3 viewDirection = normalize(view_position - vPositionW);
-  float fresnel = pow(
-    1.0 - abs(dot(geometricNormal, viewDirection)),
-    2.0
-  );
-  waterColor = mix(
-    waterColor,
-    vec3(0.25, 0.7, 0.9),
-    fresnel * mix(0.24, 0.12, verticality)
-  );
-  dAlbedo = mix(waterColor, vec3(0.62, 0.88, 0.98), foam);
-  dAlbedo = mix(
-    dAlbedo,
-    sourceSurfaceColor,
-    springSwell * (0.48 + sourceSurfaceNoise * 0.12)
-  );
-  dAlbedo = mix(
-    dAlbedo,
-    vec3(0.62, 0.9, 0.95),
-    springFoam * 1.1
-  );
-  vec2 lavaFlowPosition = vec2(
-    acrossSurfaceFlow * 1.45,
-    alongSurfaceFlow * 0.62 - uRiverTime * 0.14
-  );
-  float lavaBroad = riverFbm(lavaFlowPosition + vec2(17.3, 4.1));
-  float lavaVein = smoothstep(
-    0.56,
-    0.88,
-    sin(
-      alongSurfaceFlow * 2.8 -
-      uRiverTime * 0.54 +
-      lavaBroad * 4.2
-    ) * 0.5 + 0.5
-  );
-  float lavaSurfaceTone = clamp(
-    0.28 + lavaBroad * 0.48 + lavaVein * 0.28,
-    0.0,
-    1.0
-  );
-  vec2 lavaFallPosition = vec2(
-    waterfallAcross * 1.8,
-    fallProgress * 1.35 - uRiverTime * 0.12
-  );
-  float lavaFallBroad = riverFbm(lavaFallPosition + vec2(8.7, 21.4));
-  float lavaFallRibbon = smoothstep(
-    0.58,
-    0.86,
-    sin(
-      waterfallAcross * 6.0 -
-      fallProgress * 1.4 +
-      lavaFallBroad * 3.2
-    ) * 0.5 + 0.5
-  );
-  float lavaFallTone = clamp(
-    0.28 + lavaFallBroad * 0.5 + lavaFallRibbon * 0.26,
-    0.0,
-    1.0
-  );
-  float lavaFlow = mix(lavaSurfaceTone, lavaFallTone, uRiverVertical);
-  lavaFlow = floor(lavaFlow * 3.999) / 3.0;
-  vec3 lavaDark = vec3(0.48, 0.032, 0.002);
-  vec3 lavaOrange = vec3(1.16, 0.3, 0.01);
-  vec3 lavaYellow = vec3(1.35, 0.96, 0.22);
-  vec3 lavaColor = mix(lavaDark, lavaOrange, lavaFlow);
-  lavaColor = mix(
-    lavaColor,
-    lavaYellow,
-    smoothstep(0.58, 0.9, lavaFlow)
-  );
-  lavaColor = mix(lavaColor, lavaDark, waterVolumeSide * waterDepth * 0.78);
-  dAlbedo = mix(dAlbedo, lavaColor, uRiverLava);
+  // Impact foam belongs to the receiving surface; it cannot hover or flicker.
+  float impact = (1.0 - uRiverVertical) * smoothstep(0.4, 0.86, vVertexColor.b);
+  foam = max(foam, paintedEdge(0.35, impact + (wash - 0.5) * 0.42) * impact);
+  foam *= 1.0 - depth;
+  water = mix(water, teal * 0.64, depth);
+  // A restrained reflected sky and sun glint, following the animated surface normal.
+  vec3 normal = normalize(cross(dFdx(vPositionW), dFdy(vPositionW)));
+  vec3 view = normalize(view_position - vPositionW);
+  if (dot(normal, view) < 0.0) {
+    normal = -normal;
+  }
+  vec3 reflected = reflect(-view, normal);
+  float fresnel = pow(1.0 - max(dot(normal, view), 0.0), 3.0);
+  float horizon = 1.0 - smoothstep(0.0, 0.85, abs(reflected.y));
+  vec3 sky = mix(vec3(0.32, 0.55, 0.65), vec3(0.67, 0.79, 0.80), horizon);
+  float reflection = (0.045 + fresnel * 0.12) * (1.0 - depth) * mix(1.0, 0.4, lip);
+  water = mix(water, sky, reflection);
+  vec3 sun = normalize(vec3(-0.45, 0.82, 0.35));
+  float glint = pow(max(dot(reflected, sun), 0.0), 64.0);
+  water = mix(water, vec3(0.86, 0.91, 0.85), glint * 0.16 * (1.0 - depth));
+  float tail = smoothstep(0.72, 1.0, falling);
+  // Palette values are display colors; convert once for the renderer's linear output.
+  dAlbedo = pow(mix(water, white, clamp(foam + tail * 0.08, 0.0, 1.0)), vec3(2.2));
+  // Texture derivatives must stay under uniform control flow on WebGPU.
+  // Mask the submerged volume in the result instead of branching on vertex depth.
+  if (uHeroWater.w > 0.5 && uRiverVertical < 0.5) {
+    vec2 fromHero = vPositionW.xz - uHeroWater.xz;
+    // uHeroWater stores x, surface elevation, z, active.
+    float distanceToHead = length(fromHero);
+    float sameSurface = 1.0 - smoothstep(0.04, 0.12, abs(vPositionW.y - uHeroWater.y));
+    sameSurface *= 1.0 - smoothstep(0.01, 0.08, depth);
+    float nearby = (1.0 - smoothstep(0.4, 0.95, distanceToHead)) * sameSurface;
+    vec4 projected = uHeroReflectionMatrix * vec4(vPositionW, 1.0);
+    vec2 reflectedUv = projected.xy / projected.w * 0.5 + 0.5;
+    reflectedUv += vec2(
+      sin(vPositionW.z * 32.0 - uRiverTime * 5.0),
+      sin(vPositionW.x * 26.0 - uRiverTime * 3.7)
+    ) * 0.007;
+    float inFrame = step(0.0, reflectedUv.x) * step(reflectedUv.x, 1.0) *
+      step(0.0, reflectedUv.y) * step(reflectedUv.y, 1.0);
+    vec4 face = texture2D(uHeroReflection, reflectedUv);
+    vec3 reflectedFace = pow(face.rgb, vec3(2.2)) * vec3(0.62, 0.82, 0.80);
+    dAlbedo = mix(dAlbedo, reflectedFace,
+      face.a * nearby * inFrame * 0.3 * (1.0 - foam * 0.6));
+    float ripple = sin(distanceToHead * 37.0 - uRiverTime * 6.0);
+    float collar = smoothstep(0.18, 0.26, distanceToHead) *
+      (1.0 - smoothstep(0.32, 0.55, distanceToHead));
+    dAlbedo = mix(dAlbedo, pow(white, vec3(2.2)),
+      paintedEdge(0.78, ripple) * collar * sameSurface * 0.22);
+  }
 }
