@@ -119,7 +119,9 @@ export class RiverWater {
           rows,
           spillDirection,
           riverCellKeys,
-          cellIndex === 0,
+          riverKind === RIVER_KIND.WATER
+            ? cellIndex < 2
+            : cellIndex === 0,
           river.cells[cellIndex - 1]?.direction ?? cell.direction,
           cellIndex,
           riverKind !== RIVER_KIND.LAVA && river.cascades.some(
@@ -584,12 +586,26 @@ export class RiverWater {
       if (!springSource) {
         return 0;
       }
-      const distance = Math.hypot(
-        column / surfaceSegments - 0.5,
-        row / surfaceSegments - 0.5,
+      const progress = Math.max(
+        0,
+        Math.min(1, flowUvAt(row, column)[1] - cellIndex),
       );
-      const radialProgress = Math.max(0, 1 - distance / 0.49);
-      return radialProgress * radialProgress * (3 - 2 * radialProgress);
+      const normalized = cellIndex === 0
+        ? progress
+        : 1 - Math.max(0, Math.min(1, progress / 0.86));
+      return normalized * normalized * (3 - 2 * normalized);
+    };
+    const sourceProgressAt = (row, column) => {
+      if (!springSource) {
+        return 0;
+      }
+      const progress = Math.max(
+        0,
+        Math.min(1, flowUvAt(row, column)[1] - cellIndex),
+      );
+      return cellIndex === 0
+        ? progress * 0.42
+        : 0.42 + progress * 0.58;
     };
     const flowInteriorStrengthAt = (row, column) => {
       const edgeDistance = Math.min(
@@ -623,9 +639,10 @@ export class RiverWater {
       (row, column) => [
         0,
         Math.round(sourceStrengthAt(row, column) * 255),
-        Math.round(
-          flowInteriorStrengthAt(row, column) * 96 + impactAt(row, column) * 159,
-        ),
+        Math.round(springSource
+          ? sourceProgressAt(row, column) * 96
+          : flowInteriorStrengthAt(row, column) * 96 +
+            impactAt(row, column) * 159),
         255,
       ],
       false,

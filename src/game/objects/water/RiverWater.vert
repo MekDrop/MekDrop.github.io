@@ -24,6 +24,31 @@ vec3 riverWaterPosition(vec3 p) {
     // little ridges in reflected light where the flow turns through 90 degrees.
     sharedWave += sin(dot(p.xz, vec2(-2.7, 4.8)) - uRiverTime * 2.1) * 0.006;
     p.y += sharedWave * (horizontalVolume + lipJoin);
+    float sourceEnvelope =
+      horizontalVolume *
+      (1.0 - step(0.01, vertex_color.r)) *
+      smoothstep(0.01, 0.98, vertex_color.g);
+    float sourceProgress = clamp(vertex_color.b / 0.3764706, 0.0, 1.0);
+    float sourceFlowPhase = sourceProgress * 14.0 - uRiverTime * 7.4;
+    float sourcePressure = 0.52 + sin(sourceFlowPhase) * 0.29;
+    sourcePressure += sin(
+      sourceProgress * 25.0 -
+      uRiverTime * 10.7 +
+      dot(p.xz, crossFlow) * 2.2
+    ) * 0.14;
+    sourcePressure += sin(
+      sourceProgress * 7.0 - uRiverTime * 4.3 + 1.9
+    ) * 0.09;
+    sourcePressure = clamp(sourcePressure, 0.0, 1.0);
+    float sourceEnergy = 1.0 - smoothstep(0.34, 0.96, sourceProgress);
+    float sourceLift = sourceEnvelope *
+      (0.018 + sourcePressure * mix(0.115, 0.032, 1.0 - sourceEnergy));
+    float acrossCrown = 0.88 +
+      sin(dot(p.xz, crossFlow) * 6.2831853) * 0.12;
+    // Several overlapping pressure waves continuously disturb the concealed
+    // source water. Their physical lift flows through the opening and loses
+    // energy across the first exposed cell instead of firing one lone crest.
+    p.y += sourceLift * acrossCrown;
     float fall = vertical * smoothstep(0.05, 0.9, vertex_color.b);
     float age = vertex_color.g;
     // UV0 is omitted from picking variants. Waterfall metadata has magnitude

@@ -87,6 +87,38 @@ void getAlbedo() {
   float streamFoam = paintedEdge(0.82, streak) * paintedEdge(0.47, breaks);
   float flecks = paintedEdge(0.78, paintedNoise(vec2(across * 13.0, downstream * 8.0)));
   float foam = max(bankFoam * 0.94, max(streamFoam, flecks * 0.75));
+  float sourceEnvelope =
+    (1.0 - vertical) *
+    (1.0 - step(0.01, vVertexColor.r)) *
+    clamp(vVertexColor.g, 0.0, 1.0);
+  float sourceProgress = clamp(vVertexColor.b / 0.3764706, 0.0, 1.0);
+  float sourceFlowPhase = sourceProgress * 14.0 - uRiverTime * 7.4;
+  float sourcePressure = 0.52 + sin(sourceFlowPhase) * 0.29;
+  sourcePressure += sin(
+    sourceProgress * 25.0 - uRiverTime * 10.7 + across * 2.2
+  ) * 0.14;
+  sourcePressure += sin(
+    sourceProgress * 7.0 - uRiverTime * 4.3 + 1.9
+  ) * 0.09;
+  sourcePressure = clamp(sourcePressure, 0.0, 1.0);
+  float sourceEnergy = 1.0 - smoothstep(0.34, 0.96, sourceProgress);
+  float sourceCrests = paintedEdge(0.67, sourcePressure);
+  float outletBand = smoothstep(0.72, 0.97, sourceEnvelope);
+  float fixedAcrossNoise = paintedNoise(vec2(across * 7.0 + 31.0, 4.7));
+  float foamFlicker = sin(
+    uRiverTime * 5.8 + across * 8.5 + fixedAcrossNoise * 2.8
+  ) * 0.5 + 0.5;
+  float brokenAcross = 0.72 + paintedEdge(0.48, foamFlicker) * 0.28;
+  float sourceFoam = max(
+    outletBand * (0.28 + brokenAcross * 0.18),
+    sourceEnvelope * sourceEnergy * sourceCrests * brokenAcross * 0.88
+  );
+  foam = max(foam, sourceFoam);
+  water = mix(
+    water,
+    aqua,
+    outletBand * 0.08 + sourceEnvelope * sourceCrests * 0.16
+  );
   if (vertical < 0.5 && depth < 0.01) {
     vec2 flow = flowDirection;
     vec2 crossFlow = vec2(-flow.y, flow.x);
