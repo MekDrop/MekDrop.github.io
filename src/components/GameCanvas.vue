@@ -157,7 +157,7 @@ import {
   onMounted,
   onBeforeUnmount,
 } from "vue";
-import { getCssVar } from "quasar";
+import { getCssVar, Notify } from "quasar";
 import { useI18n } from "vue-i18n";
 import { useRoute, useRouter } from "vue-router";
 import SiteNoticeDialog from "components/SiteNoticeDialog.vue";
@@ -223,6 +223,32 @@ let mapFileLoader = null;
 let mapNavigationId = 0;
 let mapRouteLoadPromise = Promise.resolve();
 let interactionSuggestion = null;
+
+function runtimeErrorDescription(error) {
+  if (error instanceof Error && error.message) {
+    return error.message;
+  }
+  if (typeof error === "string" && error.trim()) {
+    return error;
+  }
+  return t("game.notification.runtime_error_unknown");
+}
+
+function reportRuntimeError(error) {
+  console.error("[GameCanvas] Game rendering failed.", error);
+  Notify.create({
+    type: "negative",
+    position: "top",
+    message: t("game.notification.runtime_error", {
+      message: runtimeErrorDescription(error),
+    }),
+    timeout: 6000,
+    multiLine: true,
+    attrs: {
+      role: "alert",
+    },
+  });
+}
 
 function gameUiTheme() {
   const styles = window.getComputedStyle(document.documentElement);
@@ -404,9 +430,9 @@ async function init() {
     interactionTarget.value = target;
   });
 
-  renderer = new PlayCanvasRenderer(canvas.value, container.value, {
+  const activeRenderer = new PlayCanvasRenderer(canvas.value, container.value, {
     onInteractionChange: (target) => {
-      interactionSuggestion.update(target);
+      interactionSuggestion?.update(target);
     },
     onHeroStateChange: (state) => {
       heroLives.value = state.lives;
@@ -421,13 +447,23 @@ async function init() {
     uiTheme: gameUiTheme(),
     enableDevWireframeInspector: import.meta.env.DEV,
   });
-  await renderer.init();
-  graphicsBackend.value = renderer.graphicsBackend;
+  renderer = activeRenderer;
+  await activeRenderer.init();
+  if (renderer !== activeRenderer) {
+    return;
+  }
+  graphicsBackend.value = activeRenderer.graphicsBackend;
   mapData = await createMap(requestedMapName());
-  renderer.render(mapData);
+  if (renderer !== activeRenderer) {
+    return;
+  }
+  activeRenderer.render(mapData);
   updateCurrentMap(mapData);
   if (!requestedMapName()) {
     await router.replace(mapRouteLocation(mapData.mapName));
+  }
+  if (renderer !== activeRenderer) {
+    return;
   }
   installCameraTestDriver();
   updateDebugStats();
@@ -504,7 +540,7 @@ async function init() {
   controls = new GameControls(container.value, actions);
   controls.connect();
 
-  resizeObserver = new ResizeObserver(() => renderer.resize());
+  resizeObserver = new ResizeObserver(() => renderer?.resize());
   resizeObserver.observe(container.value);
   stopMapRouteWatch = watch(
     () => route.params.mapName,
@@ -515,6 +551,7 @@ async function init() {
       mapRouteLoadPromise = loadMapRoute(
         typeof mapName === "string" ? mapName : null,
       );
+      void mapRouteLoadPromise.catch(reportRuntimeError);
     },
   );
   debugStatsTimer = window.setInterval(() => {
@@ -524,11 +561,13 @@ async function init() {
   gameReady.value = true;
 }
 
-onMounted(init);
+onMounted(() => {
+  void init().catch(reportRuntimeError);
+});
 
 onBeforeUnmount(() => {
-  interactionSuggestion?.destroy();
-  interactionSuggestion = null;
+  mapNavigationId += 1;
+  gameReady.value = false;
   if (typeof window !== "undefined") {
     delete window.gameMovementTest;
     delete window.gameCameraTest;
@@ -537,6 +576,14 @@ onBeforeUnmount(() => {
   stopMapRouteWatch?.();
   resizeObserver?.disconnect();
   if (debugStatsTimer !== null) window.clearInterval(debugStatsTimer);
-  renderer?.destroy();
+  const rendererToDestroy = renderer;
+  renderer = null;
+  try {
+    rendererToDestroy?.destroy();
+  } catch (error) {
+    reportRuntimeError(error);
+  }
+  interactionSuggestion?.destroy();
+  interactionSuggestion = null;
 });
 </script>

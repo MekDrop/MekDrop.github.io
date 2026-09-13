@@ -16,8 +16,9 @@ vec3 riverWaterPosition(vec3 localPosition) {
     float vertical = clamp(metadataLength - 1.0, 0.0, 1.0);
     float vertexMarker = vertex_color.a;
     float horizontalDepth = clamp(vertex_color.r, 0.0, 1.0);
+    float horizontalVolume = 1.0 - vertical;
     float surfaceMask =
-      (1.0 - vertical) * (1.0 - horizontalDepth);
+      horizontalVolume * (1.0 - horizontalDepth);
     vec2 crossDirection = vec2(-flowDirection.y, flowDirection.x);
     float alongFlow = dot(localPosition.xz, flowDirection);
     float acrossFlow = dot(localPosition.xz, crossDirection);
@@ -69,7 +70,7 @@ vec3 riverWaterPosition(vec3 localPosition) {
       (1.0 - smoothstep(0.0, 0.32, vertex_color.b));
     localPosition.y +=
       liquidSurfaceWave *
-      (surfaceMask + waterfallLipSurfaceMask);
+      (horizontalVolume + waterfallLipSurfaceMask);
 
     float springSource =
       surfaceMask *

@@ -90,6 +90,10 @@ export class RiverWater {
         groups,
         `river|${riverKind}|${river.id ?? riverIndex}`,
       );
+      const terminalGroup = this.#group(
+        groups,
+        `terminal|${riverKind}|${river.id ?? riverIndex}`,
+      );
       const surfaceHeights = new RiverSurfaceHeights(river.cells);
       const riverCellKeys = new Set(
         river.cells.map((cell) => `${cell.col},${cell.row}`),
@@ -119,7 +123,6 @@ export class RiverWater {
             (cascade) => cascade.to.col === cell.col && cascade.to.row === cell.row,
           ),
           riverKind === RIVER_KIND.LAVA ? null : surfaceHeights.cornersFor(cell),
-          riverKind === RIVER_KIND.LAVA ? null : surfaceHeights.joinsFor(cell),
         );
       }
       for (const cascade of river.cascades) {
@@ -156,15 +159,33 @@ export class RiverWater {
           );
         }
       }
-      this.#addCurvedWaterfall(
-        riverGroup,
-        river.waterfall,
-        cols,
-        rows,
-        true,
-        riverKind,
-        river.cells.length,
-      );
+      if (riverKind === RIVER_KIND.WATER) {
+        this.#addCurvedWaterfall(
+          riverGroup,
+          river.waterfall,
+          cols,
+          rows,
+          true,
+          riverKind,
+          river.cells.length,
+          "body",
+        );
+        this.#addCurvedWaterfall(
+          terminalGroup,
+          river.waterfall,
+          cols,
+          rows,
+          true,
+          riverKind,
+          river.cells.length,
+          "tail",
+        );
+      } else {
+        this.#addCurvedWaterfall(
+          terminalGroup, river.waterfall, cols, rows, true, riverKind,
+          river.cells.length,
+        );
+      }
       this.#addWaterfallMist(
         river.waterfall,
         cols,
@@ -191,10 +212,10 @@ export class RiverWater {
       );
       this.#meshes.push(mesh);
 
-      const [, riverKind] = key.split('|');
+      const [surfaceType, riverKind] = key.split("|");
       const meshInstance = new this.#pc.MeshInstance(
         mesh,
-        this.#material(riverKind),
+        this.#material(riverKind, surfaceType === "terminal"),
       );
       const entity = new this.#pc.Entity(
         `River ${riverKind.toLowerCase()} ${key}`,
@@ -367,9 +388,9 @@ export class RiverWater {
     this.entity.addChild(spray);
   }
 
-  #material(riverKind) {
+  #material(riverKind, translucent = false) {
     const lava = riverKind === RIVER_KIND.LAVA;
-    const key = riverKind;
+    const key = `${riverKind}|${translucent ? "translucent" : "opaque"}`;
     if (this.#materials.has(key)) {
       return this.#materials.get(key);
     }
@@ -394,10 +415,10 @@ export class RiverWater {
     material.diffuseMap = lava ? null : this.#mistTexture;
     material.forceUv1 = true;
     material.diffuseVertexColor = true;
-    material.opacityVertexColor = true;
-    material.opacityVertexColorChannel = 'a';
     material.useLighting = false;
-    material.blendType = this.#pc.BLEND_NORMAL;
+    material.blendType = translucent
+      ? this.#pc.BLEND_NORMAL
+      : this.#pc.BLEND_NONE;
     material.depthWrite = true;
     material.useDynamicRefraction = false;
     material.refraction = 0;
@@ -406,12 +427,18 @@ export class RiverWater {
       'transformVS', lava ? lavaWaterVertexShader : riverWaterVertexShader,
     );
     material.shaderChunks.glsl.set(
-      'diffusePS', lava ? lavaWaterFragmentShader : riverWaterFragmentShader,
+      "diffusePS",
+      lava ? lavaWaterFragmentShader : riverWaterFragmentShader,
     );
-    material.shaderChunks.glsl.set('normalMapPS', riverWaterNormalShader);
-    material.shaderChunks.glsl.set(
-      'opacityPS', lava ? lavaWaterOpacityShader : riverWaterOpacityShader,
-    );
+    material.shaderChunks.glsl.set("normalMapPS", riverWaterNormalShader);
+    if (translucent) {
+      material.opacityVertexColor = true;
+      material.opacityVertexColorChannel = 'a';
+      material.shaderChunks.glsl.set(
+        "opacityPS",
+        lava ? lavaWaterOpacityShader : riverWaterOpacityShader,
+      );
+    }
     material.setParameter('uRiverLava', lava ? 1 : 0);
     material.setParameter('uRiverTime', this.#time);
     this.#heroReflection.apply(material);
@@ -487,20 +514,21 @@ export class RiverWater {
     cellIndex,
     cascadeLanding,
     surfaceCorners,
-    surfaceJoins,
   ) {
     const x = cell.col - (cols - 1) / 2;
     const z = cell.row - (rows - 1) / 2;
     const top = cell.elevation + 0.012;
     const bottom = top - 0.5;
     const half = 0.5;
-    // A tiny overlap stays inside adjacent water cells and prevents the bed
-    // from peeking through a subpixel rasterization seam at high zoom.
-    const overlap = 0.012;
-    const minimumX = x - half - (surfaceJoins?.[0] ? overlap : 0);
-    const maximumX = x + half + (surfaceJoins?.[1] ? overlap : 0);
-    const minimumZ = z - half - (surfaceJoins?.[2] ? overlap : 0);
-    const maximumZ = z + half + (surfaceJoins?.[3] ? overlap : 0);
+    // Adjacent grids have the same subdivision count and their shared corner
+    // heights are reconciled by RiverSurfaceHeights. Keep their boundaries
+    // coincident: extending both patches through the join makes their planes
+    // cross at bends and small bridge-clearance height changes, which causes
+    // depth flicker and apparent holes.
+    const minimumX = x - half;
+    const maximumX = x + half;
+    const minimumZ = z - half;
+    const maximumZ = z + half;
     const surfaceSegments = 12;
     const surfaceHeightAt = (row, column) => {
       if (!surfaceCorners) {
@@ -605,7 +633,7 @@ export class RiverWater {
       ],
       true,
       true,
-      null,
+      flowUvAt,
       () => surfaceMetadata,
     );
 
@@ -719,6 +747,7 @@ export class RiverWater {
 
   #addCurvedWaterfall(
     group, waterfall, cols, rows, terminal, riverKind, routeDistance,
+    section = "all",
   ) {
     if (riverKind === RIVER_KIND.LAVA) {
       this.#addLavafall(
@@ -736,7 +765,7 @@ export class RiverWater {
       this.#directionVector(waterfall.direction),
       cols, rows, terminal, routeDistance,
     );
-    geometry.append((...args) => this.#addGrid(group, ...args));
+    geometry.append((...args) => this.#addGrid(group, ...args), section);
   }
 
   #addLavafall(group, waterfall, cols, rows, terminal, routeDistance) {

@@ -263,6 +263,7 @@ export class PlayCanvasRenderer {
   #devWireframeInspector = null;
   #translate = (key) => key;
   #uiTheme = null;
+  #destroyed = false;
 
   constructor(
     canvas,
@@ -314,6 +315,9 @@ export class PlayCanvasRenderer {
     // development export is intentionally diagnostic and is far too costly
     // for this continuously rendered game, even when Quasar runs in dev mode.
     this.#pc = await import("playcanvas/build/playcanvas/src/index.js");
+    if (this.#destroyed) {
+      return;
+    }
     const pc = this.#pc;
     this.#floatingCameraLocalOffset = new pc.Vec3();
     this.#floatingCloudOffset = new pc.Vec3();
@@ -327,6 +331,10 @@ export class PlayCanvasRenderer {
       preserveDrawingBuffer: true,
       powerPreference: this.#graphicsSettingsStore.powerPreference,
     });
+    if (this.#destroyed) {
+      graphicsDevice.destroy();
+      return;
+    }
     this.#app = new pc.Application(this.canvas, { graphicsDevice });
     this.#app.setCanvasFillMode(pc.FILLMODE_NONE);
     this.#app.setCanvasResolution(pc.RESOLUTION_AUTO);
@@ -441,6 +449,9 @@ export class PlayCanvasRenderer {
         ...RiverWater.modelUrls,
       ]),
     ]);
+    if (this.#destroyed) {
+      return;
+    }
     this.resize();
     this.#applyDebugSettings();
     this.#stopDebugStoreSubscription = this.#debugStore.$subscribe(() => {
@@ -452,6 +463,9 @@ export class PlayCanvasRenderer {
       const { DevWireframeInspector } = await import(
         "./debug/DevWireframeInspector.js"
       );
+      if (this.#destroyed) {
+        return;
+      }
       this.#devWireframeInspector = new DevWireframeInspector({
         pc,
         app: this.#app,
@@ -949,6 +963,7 @@ export class PlayCanvasRenderer {
   }
 
   destroy() {
+    this.#destroyed = true;
     this.#stopDebugStoreSubscription?.();
     this.#stopDebugStoreSubscription = null;
     if (this.#viewportSaveTimer !== null) {

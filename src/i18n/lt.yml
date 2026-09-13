@@ -48,6 +48,8 @@ game:
   restart_prompt: Paspauskite bet kurį klavišą arba spustelėkite, kad pradėtumėte iš naujo
   notification:
     screenshot_copied: Ekrano nuotrauka padaryta ir nukopijuota į iškarpinę.
+    runtime_error: "Žaidimo atvaizdavimo klaida: {message}"
+    runtime_error_unknown: Įvyko nežinoma atvaizdavimo klaida.
   graphics:
     webgl_fallback: WebGPU nepasiekiamas. Naudojamas suderinamumo WebGL 2 atvaizdavimas.
   interaction:

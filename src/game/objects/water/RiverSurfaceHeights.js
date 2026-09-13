@@ -21,11 +21,4 @@ export class RiverSurfaceHeights {
       return heights.reduce((sum, elevation) => sum + elevation, 0) / heights.length + 0.012;
     });
   }
-
-  joinsFor(cell) {
-    return [[-1, 0], [1, 0], [0, -1], [0, 1]].map(([dx, dz]) => {
-      const neighbor = this.#cells.get(`${cell.col + dx},${cell.row + dz}`);
-      return Boolean(neighbor && Math.abs(neighbor.elevation - cell.elevation) <= 0.04);
-    });
-  }
 }

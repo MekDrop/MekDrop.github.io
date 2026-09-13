@@ -16,12 +16,14 @@ vec3 riverWaterPosition(vec3 p) {
     vec2 crossFlow = vec2(-flow.y, flow.x);
     // Shared motion at every cell edge and the lip prevents cracks.
     float sharedWave = sin(dot(p.xz, vec2(4.3, 3.1)) - uRiverTime * 1.7) * 0.009;
-    float interior = (1.0 - vertical) * (1.0 - vertex_color.r);
+    // Move the complete horizontal volume with the lip. Moving only its top
+    // tears the waterfall's rear edge away from the stationary bottom edge.
+    float horizontalVolume = 1.0 - vertical;
     float lipJoin = vertical * (1.0 - smoothstep(0.0, 0.32, vertex_color.b));
     // One wave field across the whole river: per-cell wave envelopes create
     // little ridges in reflected light where the flow turns through 90 degrees.
     sharedWave += sin(dot(p.xz, vec2(-2.7, 4.8)) - uRiverTime * 2.1) * 0.006;
-    p.y += sharedWave * (interior + lipJoin);
+    p.y += sharedWave * (horizontalVolume + lipJoin);
     float fall = vertical * smoothstep(0.05, 0.9, vertex_color.b);
     float age = vertex_color.g;
     float acrossInterior = sin(vertex_color.r * 3.14159265);

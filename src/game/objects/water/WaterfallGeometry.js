@@ -20,13 +20,17 @@ export class WaterfallGeometry {
     this.#routeDistance = routeDistance;
   }
 
-  append(grid) {
+  append(grid, section = "all") {
     const lipRows = 12;
     const width = 12;
     const drop = this.#waterfall.topElevation - this.#waterfall.bottomElevation;
     const taperStrength = Math.min(1, Math.max(0, (drop - 4) / 2)) * 0.18;
     const fallRows = Math.max(12, Math.ceil(drop * 5));
     const rows = lipRows + fallRows;
+    const fadeStartRow = lipRows + Math.floor(fallRows * 0.78);
+    const startRow = section === "tail" ? fadeStartRow : 0;
+    const endRow = section === "body" ? fadeStartRow : rows;
+    const sectionRows = endRow - startRow;
     const radius = Math.min(0.32, drop * 0.32);
     const direction = this.#direction;
     const cross = { col: -direction.row, row: direction.col };
@@ -85,22 +89,28 @@ export class WaterfallGeometry {
         Math.max(0, (row - lipRows) / fallRows) * (drop - radius),
     ];
     grid(
-      rows, width, (r, c) => pointAt(r, c),
-      [direction.col, 0, direction.row], colorAt, false, false, uvAt,
+      sectionRows, width, (r, c) => pointAt(r + startRow, c),
+      [direction.col, 0, direction.row],
+      (r, c) => colorAt(r + startRow, c), false, false,
+      (r, c) => uvAt(r + startRow, c),
       () => [direction.col * 2, direction.row * 2],
     );
     grid(
-      rows, width, (r, c) => pointAt(r, c, true),
-      [-direction.col, 0, -direction.row], colorAt, true, false, uvAt,
+      sectionRows, width, (r, c) => pointAt(r + startRow, c, true),
+      [-direction.col, 0, -direction.row],
+      (r, c) => colorAt(r + startRow, c), true, false,
+      (r, c) => uvAt(r + startRow, c),
       () => [direction.col * 2, direction.row * 2],
     );
     // Side faces share exactly the front/back boundary positions; no extra shells.
     for (const column of [0, width]) {
       const side = column === 0 ? -1 : 1;
       grid(
-        rows, 1, (r, c) => pointAt(r, column, c === 1),
+        sectionRows, 1,
+        (r, c) => pointAt(r + startRow, column, c === 1),
         [cross.col * side, 0, cross.row * side],
-        (r) => colorAt(r, column), column === 0, false, (r) => uvAt(r, column),
+        (r) => colorAt(r + startRow, column), column === 0, false,
+        (r) => uvAt(r + startRow, column),
         () => [direction.col * 2, direction.row * 2],
       );
     }

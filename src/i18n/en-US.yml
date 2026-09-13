@@ -48,6 +48,8 @@ game:
   restart_prompt: Press any key or click to restart
   notification:
     screenshot_copied: Screenshot taken and copied to clipboard.
+    runtime_error: "Game rendering problem: {message}"
+    runtime_error_unknown: An unknown rendering error occurred.
   graphics:
     webgl_fallback: WebGPU is unavailable. Using WebGL 2 compatibility rendering.
   interaction:

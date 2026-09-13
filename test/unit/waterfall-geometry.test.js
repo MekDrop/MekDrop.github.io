@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import { WaterfallGeometry } from '../../src/game/objects/water/WaterfallGeometry.js';
 
-function patchesFor(direction, terminal, drop = terminal ? 13.5 : 1) {
+function patchesFor(direction, terminal, drop = terminal ? 13.5 : 1, section = 'all') {
   const patches = [];
   new WaterfallGeometry(
     { col: 5, row: 4, topElevation: 2.5, bottomElevation: 2.5 - drop },
@@ -31,6 +31,7 @@ function patchesFor(direction, terminal, drop = terminal ? 13.5 : 1) {
         metadataAt,
       });
     },
+    section,
   );
   return patches;
 }
@@ -98,6 +99,24 @@ describe('waterfall geometry', () => {
     assert.equal(topWidth, 1);
     assert.equal(middleWidth, 1.024);
     assert.equal(lipWidth, 1);
+  });
+
+  it('splits a terminal fall at one exact opaque-to-transparent boundary', () => {
+    const [body] = patchesFor({ col: 0, row: 1 }, true, 13.5, 'body');
+    const [tail] = patchesFor({ col: 0, row: 1 }, true, 13.5, 'tail');
+    assert.ok(body.rows > tail.rows);
+    for (let column = 0; column <= body.columns; column++) {
+      assert.deepEqual(
+        body.pointAt(body.rows, column),
+        tail.pointAt(0, column),
+      );
+      assert.deepEqual(
+        body.uvAt(body.rows, column),
+        tail.uvAt(0, column),
+      );
+      assert.equal(body.colorAt(body.rows, column)[3], 255);
+      assert.equal(tail.colorAt(0, column)[3], 255);
+    }
   });
 
   for (const terminal of [false, true]) {
