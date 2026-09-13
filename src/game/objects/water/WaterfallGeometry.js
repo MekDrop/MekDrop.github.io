@@ -8,8 +8,17 @@ export class WaterfallGeometry {
   #center;
   #terminal;
   #routeDistance;
+  #join;
 
-  constructor(waterfall, direction, cols, rows, terminal, routeDistance) {
+  constructor(
+    waterfall,
+    direction,
+    cols,
+    rows,
+    terminal,
+    routeDistance,
+    join = null,
+  ) {
     this.#waterfall = waterfall;
     this.#direction = direction;
     this.#center = [
@@ -18,6 +27,7 @@ export class WaterfallGeometry {
     ];
     this.#terminal = terminal;
     this.#routeDistance = routeDistance;
+    this.#join = join;
   }
 
   append(grid, section = "all") {
@@ -35,6 +45,9 @@ export class WaterfallGeometry {
     const direction = this.#direction;
     const cross = { col: -direction.row, row: direction.col };
     const pointAt = (row, column, rear = false) => {
+      if (row === 0 && this.#join) {
+        return (rear ? this.#join.rear : this.#join.front)[column];
+      }
       const across = column / width - 0.5;
       const lip = Math.min(1, row / lipRows);
       const edgeSide = column === 0 ? -1 : column === width ? 1 : 0;
@@ -73,32 +86,37 @@ export class WaterfallGeometry {
           cross.row * joinedAcross * taper,
       ];
     };
-    const colorAt = (row, column) => {
+    const colorAt = (row, rear = false) => {
       const fall = Math.max(0, (row - lipRows) / fallRows);
       const fade = this.#terminal ? Math.max(0, (fall - 0.78) / 0.22) : 0;
       return [
-        Math.round(column / width * 255),
+        rear ? 255 : 0,
         Math.round(fall * 255),
         Math.round(Math.min(1, row / lipRows) * 255),
         Math.round((1 - fade * fade * (3 - 2 * fade)) * 255),
       ];
     };
-    const uvAt = (row, column) => [
-      column / width,
-      this.#routeDistance + Math.min(1, row / lipRows) * radius * Math.PI / 2 +
-        Math.max(0, (row - lipRows) / fallRows) * (drop - radius),
-    ];
+    const uvAt = (row, column) => {
+      if (row === 0 && this.#join) {
+        return this.#join.uvs[column];
+      }
+      return [
+        column / width,
+        this.#routeDistance + Math.min(1, row / lipRows) * radius * Math.PI / 2 +
+          Math.max(0, (row - lipRows) / fallRows) * (drop - radius),
+      ];
+    };
     grid(
       sectionRows, width, (r, c) => pointAt(r + startRow, c),
       [direction.col, 0, direction.row],
-      (r, c) => colorAt(r + startRow, c), false, false,
+      (r) => colorAt(r + startRow), false, false,
       (r, c) => uvAt(r + startRow, c),
       () => [direction.col * 2, direction.row * 2],
     );
     grid(
       sectionRows, width, (r, c) => pointAt(r + startRow, c, true),
       [-direction.col, 0, -direction.row],
-      (r, c) => colorAt(r + startRow, c), true, false,
+      (r) => colorAt(r + startRow, true), true, false,
       (r, c) => uvAt(r + startRow, c),
       () => [direction.col * 2, direction.row * 2],
     );
@@ -109,7 +127,7 @@ export class WaterfallGeometry {
         sectionRows, 1,
         (r, c) => pointAt(r + startRow, column, c === 1),
         [cross.col * side, 0, cross.row * side],
-        (r) => colorAt(r + startRow, column), column === 0, false,
+        (r, c) => colorAt(r + startRow, c === 1), column === 0, false,
         (r) => uvAt(r + startRow, column),
         () => [direction.col * 2, direction.row * 2],
       );

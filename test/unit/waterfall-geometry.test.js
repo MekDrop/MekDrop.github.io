@@ -2,11 +2,17 @@ import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import { WaterfallGeometry } from '../../src/game/objects/water/WaterfallGeometry.js';
 
-function patchesFor(direction, terminal, drop = terminal ? 13.5 : 1, section = 'all') {
+function patchesFor(
+  direction,
+  terminal,
+  drop = terminal ? 13.5 : 1,
+  section = 'all',
+  join = null,
+) {
   const patches = [];
   new WaterfallGeometry(
     { col: 5, row: 4, topElevation: 2.5, bottomElevation: 2.5 - drop },
-    direction, 11, 9, terminal, 7,
+    direction, 11, 9, terminal, 7, join,
   ).append(
     (
       rows,
@@ -99,6 +105,33 @@ describe('waterfall geometry', () => {
     assert.equal(topWidth, 1);
     assert.equal(middleWidth, 1.024);
     assert.equal(lipWidth, 1);
+  });
+
+  it('uses the river boundary points verbatim at both lip endings', () => {
+    const join = {
+      front: Array.from({ length: 13 }, (_, index) => [index, 3 + index, 4]),
+      rear: Array.from({ length: 13 }, (_, index) => [index, 2 + index, 4]),
+      uvs: Array.from({ length: 13 }, (_, index) => [index / 12, 9]),
+    };
+    const [front, rear] = patchesFor(
+      { col: 0, row: 1 },
+      true,
+      13.5,
+      'all',
+      join,
+    );
+    assert.equal(front.weld, false);
+    assert.equal(rear.weld, false);
+    for (let column = 0; column <= front.columns; column += 1) {
+      assert.strictEqual(front.pointAt(0, column), join.front[column]);
+      assert.strictEqual(rear.pointAt(0, column), join.rear[column]);
+      assert.strictEqual(front.uvAt(0, column), join.uvs[column]);
+      assert.strictEqual(rear.uvAt(0, column), join.uvs[column]);
+      assert.deepEqual(front.metadataAt(0, column), [0, 2]);
+      assert.deepEqual(rear.metadataAt(0, column), [0, 2]);
+      assert.equal(front.colorAt(0, column)[0], 0);
+      assert.equal(rear.colorAt(0, column)[0], 255);
+    }
   });
 
   it('splits a terminal fall at one exact opaque-to-transparent boundary', () => {

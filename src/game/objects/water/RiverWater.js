@@ -108,13 +108,16 @@ export class RiverWater {
         `${river.waterfall.col},${river.waterfall.row}`,
         river.waterfall.direction,
       );
+      const spillJoins = new Map();
       for (const [cellIndex, cell] of river.cells.entries()) {
-        this.#addWaterVolume(
+        const cellKey = `${cell.col},${cell.row}`;
+        const spillDirection = spillDirections.get(cellKey) ?? null;
+        const spillJoin = this.#addWaterVolume(
           riverGroup,
           cell,
           cols,
           rows,
-          spillDirections.get(`${cell.col},${cell.row}`) ?? null,
+          spillDirection,
           riverCellKeys,
           cellIndex === 0,
           river.cells[cellIndex - 1]?.direction ?? cell.direction,
@@ -124,6 +127,9 @@ export class RiverWater {
           ),
           riverKind === RIVER_KIND.LAVA ? null : surfaceHeights.cornersFor(cell),
         );
+        if (spillJoin) {
+          spillJoins.set(cellKey, spillJoin);
+        }
       }
       for (const cascade of river.cascades) {
         this.#addCurvedWaterfall(
@@ -142,6 +148,8 @@ export class RiverWater {
           river.cells.findIndex(
             (cell) => cell.col === cascade.from.col && cell.row === cascade.from.row,
           ) + 1,
+          "all",
+          spillJoins.get(`${cascade.from.col},${cascade.from.row}`),
         );
         this.#addWaterfallMist(
           cascade,
@@ -169,6 +177,7 @@ export class RiverWater {
           riverKind,
           river.cells.length,
           "body",
+          spillJoins.get(`${river.waterfall.col},${river.waterfall.row}`),
         );
         this.#addCurvedWaterfall(
           terminalGroup,
@@ -179,6 +188,7 @@ export class RiverWater {
           riverKind,
           river.cells.length,
           "tail",
+          spillJoins.get(`${river.waterfall.col},${river.waterfall.row}`),
         );
       } else {
         this.#addCurvedWaterfall(
@@ -588,17 +598,25 @@ export class RiverWater {
       );
       return Math.min(1, edgeDistance / 2);
     };
+    const surfacePointAt = (row, column) => [
+      minimumX +
+        (maximumX - minimumX) * (column / surfaceSegments),
+      surfaceHeightAt(row, column),
+      minimumZ +
+        (maximumZ - minimumZ) * (row / surfaceSegments),
+    ];
+    const bottomPointAt = (row, column) => [
+      minimumX +
+        (maximumX - minimumX) * (column / surfaceSegments),
+      bottom,
+      minimumZ +
+        (maximumZ - minimumZ) * (row / surfaceSegments),
+    ];
     this.#addGrid(
       group,
       surfaceSegments,
       surfaceSegments,
-      (row, column) => [
-        minimumX +
-          (maximumX - minimumX) * (column / surfaceSegments),
-        surfaceHeightAt(row, column),
-        minimumZ +
-          (maximumZ - minimumZ) * (row / surfaceSegments),
-      ],
+      surfacePointAt,
       [0, 1, 0],
       (row, column) => [
         0,
@@ -617,13 +635,7 @@ export class RiverWater {
       group,
       surfaceSegments,
       surfaceSegments,
-      (row, column) => [
-        minimumX +
-          (maximumX - minimumX) * (column / surfaceSegments),
-        bottom,
-        minimumZ +
-          (maximumZ - minimumZ) * (row / surfaceSegments),
-      ],
+      bottomPointAt,
       [0, -1, 0],
       (row, column) => [
         255,
@@ -743,11 +755,43 @@ export class RiverWater {
         surfaceMetadata,
       );
     }
+    if (!waterfallDirection) {
+      return null;
+    }
+    return this.#spillJoin(
+      waterfallDirection,
+      surfaceSegments,
+      surfacePointAt,
+      bottomPointAt,
+      flowUvAt,
+    );
+  }
+
+  #spillJoin(directionName, segments, surfacePointAt, bottomPointAt, uvAt) {
+    const direction = this.#directionVector(directionName);
+    const front = [];
+    const rear = [];
+    const uvs = [];
+    for (let index = 0; index <= segments; index += 1) {
+      let row;
+      let column;
+      if (direction.col !== 0) {
+        column = direction.col < 0 ? 0 : segments;
+        row = direction.col < 0 ? segments - index : index;
+      } else {
+        row = direction.row < 0 ? 0 : segments;
+        column = direction.row < 0 ? index : segments - index;
+      }
+      front.push(surfacePointAt(row, column));
+      rear.push(bottomPointAt(row, column));
+      uvs.push(uvAt(row, column));
+    }
+    return { front, rear, uvs };
   }
 
   #addCurvedWaterfall(
     group, waterfall, cols, rows, terminal, riverKind, routeDistance,
-    section = "all",
+    section = "all", join = null,
   ) {
     if (riverKind === RIVER_KIND.LAVA) {
       this.#addLavafall(
@@ -763,7 +807,7 @@ export class RiverWater {
     const geometry = new WaterfallGeometry(
       waterfall,
       this.#directionVector(waterfall.direction),
-      cols, rows, terminal, routeDistance,
+      cols, rows, terminal, routeDistance, join,
     );
     geometry.append((...args) => this.#addGrid(group, ...args), section);
   }

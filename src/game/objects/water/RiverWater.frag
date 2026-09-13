@@ -58,7 +58,9 @@ void getAlbedo() {
     );
   }
   vec2 flowDirection = normalize(mix(outgoing, fallFlow, vertical));
-  vec2 uv = mix(surfaceUv, vUv0, vertical);
+  float horizontalTop = (1.0 - vertical) *
+    (1.0 - step(0.01, vVertexColor.r));
+  vec2 uv = mix(surfaceUv, vUv0, max(vertical, horizontalTop));
   float across = uv.x;
   float downstream = uv.y - uRiverTime * 0.72;
   float depth = (1.0 - vertical) * vVertexColor.r;
