@@ -84,8 +84,12 @@ export class RiverWater {
   #build() {
     const groups = new Map();
     const { cols, rows, riverData = [] } = this.#mapData;
-    for (const river of riverData) {
+    for (const [riverIndex, river] of riverData.entries()) {
       const riverKind = river.kind ?? RIVER_KIND.WATER;
+      const riverGroup = this.#group(
+        groups,
+        `river|${riverKind}|${river.id ?? riverIndex}`,
+      );
       const surfaceHeights = new RiverSurfaceHeights(river.cells);
       const riverCellKeys = new Set(
         river.cells.map((cell) => `${cell.col},${cell.row}`),
@@ -101,12 +105,8 @@ export class RiverWater {
         river.waterfall.direction,
       );
       for (const [cellIndex, cell] of river.cells.entries()) {
-        const surfaceGroup = this.#group(
-          groups,
-          `surface|${riverKind}|${cell.direction}|${river.id}`,
-        );
         this.#addWaterVolume(
-          surfaceGroup,
+          riverGroup,
           cell,
           cols,
           rows,
@@ -124,7 +124,7 @@ export class RiverWater {
       }
       for (const cascade of river.cascades) {
         this.#addCurvedWaterfall(
-          this.#group(groups, `fall|${riverKind}|${cascade.direction}`),
+          riverGroup,
           {
             col: cascade.from.col,
             row: cascade.from.row,
@@ -149,10 +149,7 @@ export class RiverWater {
         );
         if (riverKind === RIVER_KIND.LAVA) {
           this.#addCascadeImpact(
-            this.#group(
-              groups,
-              `surface|${riverKind}|${cascade.direction}|${river.id}`,
-            ),
+            riverGroup,
             cascade,
             cols,
             rows,
@@ -160,10 +157,7 @@ export class RiverWater {
         }
       }
       this.#addCurvedWaterfall(
-        this.#group(
-          groups,
-          `fall|${riverKind}|${river.waterfall.direction}`,
-        ),
+        riverGroup,
         river.waterfall,
         cols,
         rows,
@@ -189,6 +183,7 @@ export class RiverWater {
       geometry.normals = geometryData.normals;
       geometry.colors = geometryData.colors;
       geometry.uvs = geometryData.uvs;
+      geometry.uvs1 = geometryData.uvs1;
       geometry.indices = geometryData.indices;
       const mesh = this.#pc.Mesh.fromGeometry(
         this.#app.graphicsDevice,
@@ -196,10 +191,10 @@ export class RiverWater {
       );
       this.#meshes.push(mesh);
 
-      const [kind, riverKind, direction] = key.split('|');
+      const [, riverKind] = key.split('|');
       const meshInstance = new this.#pc.MeshInstance(
         mesh,
-        this.#material(direction, kind === 'fall', riverKind),
+        this.#material(riverKind),
       );
       const entity = new this.#pc.Entity(
         `River ${riverKind.toLowerCase()} ${key}`,
@@ -331,6 +326,7 @@ export class RiverWater {
         normals: [],
         colors: [],
         uvs: [],
+        uvs1: [],
         indices: [],
         weldedVertices: new Map(),
       });
@@ -371,14 +367,13 @@ export class RiverWater {
     this.entity.addChild(spray);
   }
 
-  #material(direction, vertical, riverKind) {
+  #material(riverKind) {
     const lava = riverKind === RIVER_KIND.LAVA;
-    const key = `${riverKind}-${vertical ? 'fall' : 'surface'}-${direction}`;
+    const key = riverKind;
     if (this.#materials.has(key)) {
       return this.#materials.get(key);
     }
 
-    const flow = this.#directionVector(direction);
     const material = new this.#pc.StandardMaterial();
     material.name = `${lava ? 'Molten' : 'Painted'} river ${key}`;
     material.diffuse = lava
@@ -397,6 +392,7 @@ export class RiverWater {
     }
     // Enable the standard material's UV varying; the painted shader supplies its own color.
     material.diffuseMap = lava ? null : this.#mistTexture;
+    material.forceUv1 = true;
     material.diffuseVertexColor = true;
     material.opacityVertexColor = true;
     material.opacityVertexColorChannel = 'a';
@@ -416,8 +412,6 @@ export class RiverWater {
     material.shaderChunks.glsl.set(
       'opacityPS', lava ? lavaWaterOpacityShader : riverWaterOpacityShader,
     );
-    material.setParameter('uRiverFlowDirection', [flow.col, flow.row]);
-    material.setParameter('uRiverVertical', vertical ? 1 : 0);
     material.setParameter('uRiverLava', lava ? 1 : 0);
     material.setParameter('uRiverTime', this.#time);
     this.#heroReflection.apply(material);
@@ -427,11 +421,11 @@ export class RiverWater {
     return material;
   }
 
-  #addVertex(group, point, normal, color, uv, weld) {
+  #addVertex(group, point, normal, color, uv, weld, metadata = [0, 0]) {
     // A bend's inside corner belongs to both ends of its route interval.
     // Keep distinct UVs there instead of stretching one tile's paint into the next.
     const key = weld
-      ? `${point[0].toFixed(6)},${point[1].toFixed(6)},${point[2].toFixed(6)}|${uv[0].toFixed(6)},${uv[1].toFixed(6)}`
+      ? `${point[0].toFixed(6)},${point[1].toFixed(6)},${point[2].toFixed(6)}|${uv[0].toFixed(6)},${uv[1].toFixed(6)}|${metadata[0].toFixed(6)},${metadata[1].toFixed(6)}`
       : null;
     if (key && group.weldedVertices.has(key)) {
       return group.weldedVertices.get(key);
@@ -442,13 +436,21 @@ export class RiverWater {
     group.normals.push(...normal);
     group.colors.push(...color);
     group.uvs.push(...uv);
+    group.uvs1.push(...metadata);
     if (key) {
       group.weldedVertices.set(key, index);
     }
     return index;
   }
 
-  #addQuad(group, points, normal, colors = null, weld = false) {
+  #addQuad(
+    group,
+    points,
+    normal,
+    colors = null,
+    weld = false,
+    metadata = [0, 0],
+  ) {
     const indices = [];
     for (let index = 0; index < points.length; index++) {
       indices.push(
@@ -459,6 +461,7 @@ export class RiverWater {
           colors?.[index] ?? [0, 0, 0, 0],
           [index === 1 || index === 2 ? 1 : 0, index >= 2 ? 1 : 0],
           weld,
+          metadata,
         ),
       );
     }
@@ -510,6 +513,7 @@ export class RiverWater {
       return north * (1 - v) + south * v;
     };
     const outgoing = this.#directionVector(cell.direction);
+    const surfaceMetadata = [outgoing.col, outgoing.row];
     const incoming = this.#directionVector(incomingDirection);
     const flowUvAt = (row, column) => {
       const px = column / surfaceSegments - 0.5;
@@ -579,6 +583,7 @@ export class RiverWater {
       false,
       true,
       flowUvAt,
+      () => surfaceMetadata,
     );
     this.#addGrid(
       group,
@@ -600,6 +605,8 @@ export class RiverWater {
       ],
       true,
       true,
+      null,
+      () => surfaceMetadata,
     );
 
     const topColor = [0, 0, 0, 255];
@@ -645,6 +652,7 @@ export class RiverWater {
         [-1, 0, 0],
         [bottomColor, topColor, topColor, bottomColor],
         true,
+        surfaceMetadata,
       );
     }
     const eastBottom = exposedBottomAt(cell.col + 1, cell.row);
@@ -664,6 +672,7 @@ export class RiverWater {
         [1, 0, 0],
         [bottomColor, topColor, topColor, bottomColor],
         true,
+        surfaceMetadata,
       );
     }
     const northBottom = exposedBottomAt(cell.col, cell.row - 1);
@@ -683,6 +692,7 @@ export class RiverWater {
         [0, 0, -1],
         [bottomColor, topColor, topColor, bottomColor],
         true,
+        surfaceMetadata,
       );
     }
     const southBottom = exposedBottomAt(cell.col, cell.row + 1);
@@ -702,6 +712,7 @@ export class RiverWater {
         [0, 0, 1],
         [bottomColor, topColor, topColor, bottomColor],
         true,
+        surfaceMetadata,
       );
     }
   }
@@ -710,7 +721,14 @@ export class RiverWater {
     group, waterfall, cols, rows, terminal, riverKind, routeDistance,
   ) {
     if (riverKind === RIVER_KIND.LAVA) {
-      this.#addLavafall(group, waterfall, cols, rows, terminal);
+      this.#addLavafall(
+        group,
+        waterfall,
+        cols,
+        rows,
+        terminal,
+        routeDistance,
+      );
       return;
     }
     const geometry = new WaterfallGeometry(
@@ -721,7 +739,7 @@ export class RiverWater {
     geometry.append((...args) => this.#addGrid(group, ...args));
   }
 
-  #addLavafall(group, waterfall, cols, rows, terminal) {
+  #addLavafall(group, waterfall, cols, rows, terminal, routeDistance) {
     const direction = this.#directionVector(waterfall.direction);
     const cross = { col: -direction.row, row: direction.col };
     const centerX = waterfall.col - (cols - 1) / 2;
@@ -831,6 +849,14 @@ export class RiverWater {
       );
       return color;
     };
+    const uvAt = (row, widthIndex) => [
+      widthIndex / widthSegments,
+      routeDistance +
+        Math.min(1, row / lipSlices) * lipRadius * Math.PI * 0.5 +
+        Math.max(0, (row - lipSlices) / curtainSegments) *
+          (waterfall.topElevation - waterfall.bottomElevation - lipRadius),
+    ];
+    const waterfallMetadata = [direction.col * 2, direction.row * 2];
 
     this.#addGrid(
       group,
@@ -840,6 +866,10 @@ export class RiverWater {
         pointAt(row, widthIndex, depthOffsetAt(widthIndex)),
       [direction.col, 0, direction.row],
       colorAt,
+      false,
+      false,
+      uvAt,
+      () => waterfallMetadata,
     );
     const curtainThickness = 0.32;
     const innerPointAt = (row, widthIndex) => {
@@ -863,6 +893,9 @@ export class RiverWater {
       [-direction.col, -0.2, -direction.row],
       innerColorAt,
       true,
+      false,
+      uvAt,
+      () => waterfallMetadata,
     );
     for (const widthIndex of [0, widthSegments]) {
       const sideNormal =
@@ -885,6 +918,8 @@ export class RiverWater {
             innerColorAt(row + 1, widthIndex),
             innerColorAt(row, widthIndex),
           ],
+          false,
+          waterfallMetadata,
         );
       }
     }
@@ -942,6 +977,8 @@ export class RiverWater {
           ],
           [0, 1, 0],
           [impactColor, impactColor, impactColor, impactColor],
+          false,
+          [direction.col, direction.row],
         );
       }
     }
@@ -983,6 +1020,7 @@ export class RiverWater {
         ],
         radius,
         height,
+        [direction.col * 2, direction.row * 2],
       );
     }
   }
@@ -1236,7 +1274,7 @@ export class RiverWater {
     return curves;
   }
 
-  #addDroplet(group, center, radius, height) {
+  #addDroplet(group, center, radius, height, metadata) {
     const top = [center[0], center[1] + height / 2, center[2]];
     const bottom = [center[0], center[1] - height / 2, center[2]];
     const ring = [
@@ -1247,18 +1285,31 @@ export class RiverWater {
     ];
     for (let index = 0; index < ring.length; index++) {
       const next = ring[(index + 1) % ring.length];
-      this.#addTriangle(group, [top, ring[index], next], [0, 1, 0]);
-      this.#addTriangle(group, [bottom, next, ring[index]], [0, -1, 0]);
+      this.#addTriangle(
+        group,
+        [top, ring[index], next],
+        [0, 1, 0],
+        null,
+        metadata,
+      );
+      this.#addTriangle(
+        group,
+        [bottom, next, ring[index]],
+        [0, -1, 0],
+        null,
+        metadata,
+      );
     }
   }
 
-  #addTriangle(group, points, normal, colors = null) {
+  #addTriangle(group, points, normal, colors = null, metadata = [0, 0]) {
     const start = group.positions.length / 3;
     for (let index = 0; index < points.length; index++) {
       group.positions.push(...points[index]);
       group.normals.push(...normal);
       group.colors.push(...(colors?.[index] ?? [0, 0, 0, 0]));
       group.uvs.push(index === 1 ? 1 : 0, index === 2 ? 1 : 0);
+      group.uvs1.push(...metadata);
     }
     group.indices.push(start, start + 1, start + 2);
   }
@@ -1273,6 +1324,7 @@ export class RiverWater {
     reverseWinding = false,
     weld = false,
     uvAt = null,
+    metadataAt = null,
   ) {
     const vertices = [];
     for (let row = 0; row <= rowSegments; row++) {
@@ -1285,6 +1337,7 @@ export class RiverWater {
             colorAt?.(row, column) ?? [0, 0, 0, 0],
             uvAt?.(row, column) ?? [column / columnSegments, row / rowSegments],
             weld,
+            metadataAt?.(row, column) ?? [0, 0],
           ),
         );
       }

@@ -1,10 +1,8 @@
 uniform vec3 material_diffuse;
 uniform float uRiverTime;
-uniform float uRiverVertical;
 uniform sampler2D uHeroReflection;
 uniform mat4 uHeroReflectionMatrix;
 uniform vec4 uHeroWater;
-uniform vec2 uRiverFlowDirection;
 uniform vec4 uRiverRocks[18];
 uniform int uRiverRockCount;
 uniform sampler2D uRiverFlowMap;
@@ -29,36 +27,43 @@ float paintedEdge(float edge, float value) {
 }
 
 void getAlbedo() {
-  vec2 uv = vUv0;
-  if (uRiverVertical < 0.5) {
-    vec2 gridPosition = vPositionW.xz + uRiverMapSize * 0.5;
-    // Keep the terminal edge in its final cell. Letting floor() step outside
-    // the flow map resets the local coordinate while the texture stays clamped,
-    // producing a one-pixel paint seam where the surface meets the waterfall.
-    vec2 cell = clamp(
-      floor(gridPosition),
-      vec2(0.0),
-      uRiverMapSize - vec2(1.0)
+  float metadataLength = length(vUv1);
+  float vertical = clamp(metadataLength - 1.0, 0.0, 1.0);
+  vec2 fallFlow = vUv1 / max(metadataLength, 0.0001);
+  vec2 gridPosition = vPositionW.xz + uRiverMapSize * 0.5;
+  // Keep the terminal edge in its final cell. Letting floor() step outside
+  // the flow map resets the local coordinate while the texture stays clamped,
+  // producing a one-pixel paint seam where the surface meets the waterfall.
+  vec2 cell = clamp(
+    floor(gridPosition),
+    vec2(0.0),
+    uRiverMapSize - vec2(1.0)
+  );
+  vec2 local = gridPosition - cell - 0.5;
+  vec4 route = texture2D(uRiverFlowMap, (cell + 0.5) / uRiverMapSize);
+  vec2 outgoing = route.yz;
+  vec2 surfaceUv = vec2(
+    0.5 + dot(local, vec2(-outgoing.y, outgoing.x)),
+    route.x + 0.5 + dot(local, outgoing)
+  );
+  if (abs(route.w) > 0.5) {
+    vec2 incoming = vec2(outgoing.y, -outgoing.x) * route.w;
+    vec2 offset = local - (outgoing - incoming) * 0.5;
+    float along = max(0.0, dot(offset, incoming));
+    float before = max(0.0, -dot(offset, outgoing));
+    float progress = atan(along, max(0.000001, before)) / 1.57079632679;
+    surfaceUv = vec2(
+      0.5 + route.w * (0.5 - length(offset)),
+      route.x + progress
     );
-    vec2 local = gridPosition - cell - 0.5;
-    vec4 route = texture2D(uRiverFlowMap, (cell + 0.5) / uRiverMapSize);
-    vec2 outgoing = route.yz;
-    uv = vec2(0.5 + dot(local, vec2(-outgoing.y, outgoing.x)),
-      route.x + 0.5 + dot(local, outgoing));
-    if (abs(route.w) > 0.5) {
-      vec2 incoming = vec2(outgoing.y, -outgoing.x) * route.w;
-      vec2 offset = local - (outgoing - incoming) * 0.5;
-      float along = max(0.0, dot(offset, incoming));
-      float before = max(0.0, -dot(offset, outgoing));
-      float progress = atan(along, max(0.000001, before)) / 1.57079632679;
-      uv = vec2(0.5 + route.w * (0.5 - length(offset)), route.x + progress);
-    }
   }
+  vec2 flowDirection = normalize(mix(outgoing, fallFlow, vertical));
+  vec2 uv = mix(surfaceUv, vUv0, vertical);
   float across = uv.x;
   float downstream = uv.y - uRiverTime * 0.72;
-  float depth = (1.0 - uRiverVertical) * vVertexColor.r;
-  float lip = uRiverVertical * smoothstep(0.0, 0.75, vVertexColor.b);
-  float falling = uRiverVertical * vVertexColor.g;
+  float depth = (1.0 - vertical) * vVertexColor.r;
+  float lip = vertical * smoothstep(0.0, 0.75, vVertexColor.b);
+  float falling = vertical * vVertexColor.g;
 
   // A gouache palette: shaded teal, mint, pale aqua, warm white.
   vec3 teal = vec3(0.15, 0.39, 0.38);
@@ -80,8 +85,8 @@ void getAlbedo() {
   float streamFoam = paintedEdge(0.82, streak) * paintedEdge(0.47, breaks);
   float flecks = paintedEdge(0.78, paintedNoise(vec2(across * 13.0, downstream * 8.0)));
   float foam = max(bankFoam * 0.94, max(streamFoam, flecks * 0.75));
-  if (uRiverVertical < 0.5 && depth < 0.01) {
-    vec2 flow = normalize(uRiverFlowDirection);
+  if (vertical < 0.5 && depth < 0.01) {
+    vec2 flow = flowDirection;
     vec2 crossFlow = vec2(-flow.y, flow.x);
     for (int rockIndex = 0; rockIndex < 18; rockIndex++) {
       if (rockIndex >= uRiverRockCount) {
@@ -105,34 +110,34 @@ void getAlbedo() {
     }
   }
 
-  if (uRiverVertical > 0.5) {
-    // Warped, elongated paint patches split, join, and end at different heights.
-    // There are no periodic lanes across the curtain to form parallel stripes.
-    vec2 fallPosition = vec2(across * 5.2, downstream * 0.85);
-    vec2 drift = vec2(
-      paintedNoise(fallPosition * vec2(0.56, 0.73) + vec2(8.3, 2.7)),
-      paintedNoise(fallPosition * vec2(0.81, 0.49) + vec2(3.1, 19.4))
-    ) - 0.5;
-    vec2 tornPosition = fallPosition + drift * vec2(1.65, 0.75);
-    float broadPaint = paintedNoise(tornPosition * vec2(1.0, 0.65));
-    float tornPaint = paintedNoise(tornPosition * vec2(2.3, 1.8) + vec2(21.4, 5.9));
-    float channels = broadPaint * 0.72 + tornPaint * 0.28;
-    float aquaChannel = paintedEdge(0.49, channels);
-    float fallFoam = 1.0 - aquaChannel * 0.94;
-
-    // Short detached white flecks and uneven edge surges break up broad strokes.
-    float fleckPaint = paintedNoise(tornPosition * vec2(3.3, 3.8) + vec2(4.9, 11.2));
-    float foamChips = paintedEdge(0.77, fleckPaint);
-    float edgeSurge = (1.0 - paintedEdge(0.045 + tornPaint * 0.09, bank)) *
-      paintedEdge(0.53, broadPaint);
-    fallFoam = max(fallFoam, max(foamChips, edgeSurge));
-    foam = mix(foam, fallFoam, lip);
-    vec3 fallWater = mix(mint, aqua, paintedEdge(0.43, tornPaint) * 0.72);
-    water = mix(water, fallWater, lip * 0.85);
-  }
+  // Warped, elongated paint patches split, join, and end at different heights.
+  // Evaluate derivatives for every fragment; WebGPU requires uniform control flow.
+  vec2 fallPosition = vec2(across * 5.2, downstream * 0.85);
+  vec2 drift = vec2(
+    paintedNoise(fallPosition * vec2(0.56, 0.73) + vec2(8.3, 2.7)),
+    paintedNoise(fallPosition * vec2(0.81, 0.49) + vec2(3.1, 19.4))
+  ) - 0.5;
+  vec2 tornPosition = fallPosition + drift * vec2(1.65, 0.75);
+  float broadPaint = paintedNoise(tornPosition * vec2(1.0, 0.65));
+  float tornPaint = paintedNoise(
+    tornPosition * vec2(2.3, 1.8) + vec2(21.4, 5.9)
+  );
+  float channels = broadPaint * 0.72 + tornPaint * 0.28;
+  float aquaChannel = paintedEdge(0.49, channels);
+  float fallFoam = 1.0 - aquaChannel * 0.94;
+  float fleckPaint = paintedNoise(
+    tornPosition * vec2(3.3, 3.8) + vec2(4.9, 11.2)
+  );
+  float foamChips = paintedEdge(0.77, fleckPaint);
+  float edgeSurge = (1.0 - paintedEdge(0.045 + tornPaint * 0.09, bank)) *
+    paintedEdge(0.53, broadPaint);
+  fallFoam = max(fallFoam, max(foamChips, edgeSurge));
+  foam = mix(foam, fallFoam, lip);
+  vec3 fallWater = mix(mint, aqua, paintedEdge(0.43, tornPaint) * 0.72);
+  water = mix(water, fallWater, lip * 0.85);
 
   // Impact foam belongs to the receiving surface; it cannot hover or flicker.
-  float impact = (1.0 - uRiverVertical) * smoothstep(0.4, 0.86, vVertexColor.b);
+  float impact = (1.0 - vertical) * smoothstep(0.4, 0.86, vVertexColor.b);
   foam = max(foam, paintedEdge(0.35, impact + (wash - 0.5) * 0.42) * impact);
   foam *= 1.0 - depth;
   water = mix(water, teal * 0.64, depth);
@@ -156,11 +161,12 @@ void getAlbedo() {
   dAlbedo = pow(mix(water, white, clamp(foam + tail * 0.08, 0.0, 1.0)), vec3(2.2));
   // Texture derivatives must stay under uniform control flow on WebGPU.
   // Mask the submerged volume in the result instead of branching on vertex depth.
-  if (uHeroWater.w > 0.5 && uRiverVertical < 0.5) {
+  if (uHeroWater.w > 0.5) {
     vec2 fromHero = vPositionW.xz - uHeroWater.xz;
     // uHeroWater stores x, surface elevation, z, active.
     float distanceToHead = length(fromHero);
     float sameSurface = 1.0 - smoothstep(0.04, 0.12, abs(vPositionW.y - uHeroWater.y));
+    sameSurface *= 1.0 - vertical;
     sameSurface *= 1.0 - smoothstep(0.01, 0.08, depth);
     float nearby = (1.0 - smoothstep(0.4, 0.95, distanceToHead)) * sameSurface;
     vec4 projected = uHeroReflectionMatrix * vec4(vPositionW, 1.0);

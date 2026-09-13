@@ -5,24 +5,24 @@ uniform vec4 uScreenSize;
 uniform float projectionFlipY;
 #endif
 
-uniform vec2 uRiverFlowDirection;
 uniform float uRiverTime;
-uniform float uRiverVertical;
 uniform float uRiverLava;
 
 vec3 riverWaterPosition(vec3 p) {
   #ifdef VERTEX_COLOR
-    vec2 flow = normalize(uRiverFlowDirection);
+    float metadataLength = length(vertex_texCoord1);
+    vec2 flow = vertex_texCoord1 / max(metadataLength, 0.0001);
+    float vertical = clamp(metadataLength - 1.0, 0.0, 1.0);
     vec2 crossFlow = vec2(-flow.y, flow.x);
     // Shared motion at every cell edge and the lip prevents cracks.
     float sharedWave = sin(dot(p.xz, vec2(4.3, 3.1)) - uRiverTime * 1.7) * 0.009;
-    float interior = (1.0 - uRiverVertical) * (1.0 - vertex_color.r);
-    float lipJoin = uRiverVertical * (1.0 - smoothstep(0.0, 0.32, vertex_color.b));
+    float interior = (1.0 - vertical) * (1.0 - vertex_color.r);
+    float lipJoin = vertical * (1.0 - smoothstep(0.0, 0.32, vertex_color.b));
     // One wave field across the whole river: per-cell wave envelopes create
     // little ridges in reflected light where the flow turns through 90 degrees.
     sharedWave += sin(dot(p.xz, vec2(-2.7, 4.8)) - uRiverTime * 2.1) * 0.006;
     p.y += sharedWave * (interior + lipJoin);
-    float fall = uRiverVertical * smoothstep(0.05, 0.9, vertex_color.b);
+    float fall = vertical * smoothstep(0.05, 0.9, vertex_color.b);
     float age = vertex_color.g;
     float acrossInterior = sin(vertex_color.r * 3.14159265);
     float wave = sin(-p.y * 3.2 - uRiverTime * 5.4 + vertex_color.r * 9.0);

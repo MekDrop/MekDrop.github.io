@@ -1,7 +1,5 @@
 uniform vec3 material_diffuse;
-uniform vec2 uRiverFlowDirection;
 uniform float uRiverTime;
-uniform float uRiverVertical;
 uniform float uRiverLava;
 
 float riverHash(vec2 position) {
@@ -33,14 +31,16 @@ float riverFbm(vec2 position) {
 }
 
 void getAlbedo() {
-  vec2 flowDirection = normalize(uRiverFlowDirection);
+  float metadataLength = length(vUv1);
+  vec2 flowDirection = vUv1 / max(metadataLength, 0.0001);
+  float vertical = clamp(metadataLength - 1.0, 0.0, 1.0);
   vec2 crossDirection = vec2(-flowDirection.y, flowDirection.x);
   float alongSurfaceFlow = dot(vPositionW.xz, flowDirection);
   float acrossSurfaceFlow = dot(vPositionW.xz, crossDirection);
   float waterfallAcross = vVertexColor.r;
   float fallProgress = vVertexColor.g;
   float waterDepth = clamp(vVertexColor.r, 0.0, 1.0);
-  float waterVolumeSide = (1.0 - uRiverVertical) * smoothstep(0.02, 0.18, waterDepth);
+  float waterVolumeSide = (1.0 - vertical) * smoothstep(0.02, 0.18, waterDepth);
   vec2 lavaFlowPosition = vec2(
     acrossSurfaceFlow * 1.45,
     alongSurfaceFlow * 0.62 - uRiverTime * 0.14
@@ -79,7 +79,7 @@ void getAlbedo() {
     0.0,
     1.0
   );
-  float lavaFlow = mix(lavaSurfaceTone, lavaFallTone, uRiverVertical);
+  float lavaFlow = mix(lavaSurfaceTone, lavaFallTone, vertical);
   lavaFlow = floor(lavaFlow * 3.999) / 3.0;
   vec3 lavaDark = vec3(0.48, 0.032, 0.002);
   vec3 lavaOrange = vec3(1.16, 0.3, 0.01);

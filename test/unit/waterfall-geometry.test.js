@@ -7,9 +7,31 @@ function patchesFor(direction, terminal, drop = terminal ? 13.5 : 1) {
   new WaterfallGeometry(
     { col: 5, row: 4, topElevation: 2.5, bottomElevation: 2.5 - drop },
     direction, 11, 9, terminal, 7,
-  ).append((rows, columns, pointAt, normal, colorAt, reverse, weld, uvAt) => {
-    patches.push({ rows, columns, pointAt, normal, colorAt, reverse, weld, uvAt });
-  });
+  ).append(
+    (
+      rows,
+      columns,
+      pointAt,
+      normal,
+      colorAt,
+      reverse,
+      weld,
+      uvAt,
+      metadataAt,
+    ) => {
+      patches.push({
+        rows,
+        columns,
+        pointAt,
+        normal,
+        colorAt,
+        reverse,
+        weld,
+        uvAt,
+        metadataAt,
+      });
+    },
+  );
   return patches;
 }
 
@@ -40,32 +62,41 @@ describe('waterfall geometry', () => {
   ]) {
     it(`joins the full channel width and depth for ${JSON.stringify(direction)}`, () => {
       const [front, rear] = patchesFor(direction, true);
+      assert.equal(front.weld, false);
       for (let column = 0; column <= front.columns; column++) {
         const a = front.pointAt(0, column);
         const b = rear.pointAt(0, column);
         const across = column / front.columns - 0.5;
-        const edgeSide = column === 0 ? -1 : column === front.columns ? 1 : 0;
-        const joinedAcross = across + edgeSide * 0.012;
-        const joinedForward = 0.5 - Math.abs(edgeSide) * 0.012;
         assert.deepEqual(a, [
-          direction.col * joinedForward - direction.row * joinedAcross,
+          direction.col * 0.5 - direction.row * across,
           2.512,
-          direction.row * joinedForward + direction.col * joinedAcross,
+          direction.row * 0.5 + direction.col * across,
         ]);
         assert.ok(Math.abs(a[1] - b[1] - 0.5) < 1e-10);
         assert.equal(a[0], b[0]);
         assert.equal(a[2], b[2]);
         assert.deepEqual(front.uvAt(0, column), [column / front.columns, 7]);
+        assert.deepEqual(front.metadataAt(0, column), [
+          direction.col * 2,
+          direction.row * 2,
+        ]);
+        assert.deepEqual(front.metadataAt(1, column), [
+          direction.col * 2,
+          direction.row * 2,
+        ]);
       }
     });
   }
 
-  it('returns the hidden bank overlap to the exact channel width through the lip', () => {
+  it('keeps the shared lip exact while hiding overlap inside the bend', () => {
     const [front] = patchesFor({ col: 1, row: 0 }, true);
     const topWidth = front.pointAt(0, front.columns)[2] - front.pointAt(0, 0)[2];
+    const middleWidth = front.pointAt(6, front.columns)[2] -
+      front.pointAt(6, 0)[2];
     const lipWidth = front.pointAt(12, front.columns)[2] -
       front.pointAt(12, 0)[2];
-    assert.equal(topWidth, 1.024);
+    assert.equal(topWidth, 1);
+    assert.equal(middleWidth, 1.024);
     assert.equal(lipWidth, 1);
   });
 

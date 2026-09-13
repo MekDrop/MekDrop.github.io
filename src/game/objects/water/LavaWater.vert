@@ -5,19 +5,19 @@ uniform vec4 uScreenSize;
 uniform float projectionFlipY;
 #endif
 
-uniform vec2 uRiverFlowDirection;
 uniform float uRiverTime;
-uniform float uRiverVertical;
 uniform float uRiverLava;
 
 vec3 riverWaterPosition(vec3 localPosition) {
   #ifdef VERTEX_COLOR
     vec3 baseLocalPosition = localPosition;
+    float metadataLength = length(vertex_texCoord1);
+    vec2 flowDirection = vertex_texCoord1 / max(metadataLength, 0.0001);
+    float vertical = clamp(metadataLength - 1.0, 0.0, 1.0);
     float vertexMarker = vertex_color.a;
     float horizontalDepth = clamp(vertex_color.r, 0.0, 1.0);
     float surfaceMask =
-      (1.0 - uRiverVertical) * (1.0 - horizontalDepth);
-    vec2 flowDirection = normalize(uRiverFlowDirection);
+      (1.0 - vertical) * (1.0 - horizontalDepth);
     vec2 crossDirection = vec2(-flowDirection.y, flowDirection.x);
     float alongFlow = dot(localPosition.xz, flowDirection);
     float acrossFlow = dot(localPosition.xz, crossDirection);
@@ -64,7 +64,7 @@ vec3 riverWaterPosition(vec3 localPosition) {
       uRiverLava
     );
     float waterfallLipSurfaceMask =
-      uRiverVertical *
+      vertical *
       step(0.9, vertexMarker) *
       (1.0 - smoothstep(0.0, 0.32, vertex_color.b));
     localPosition.y +=
@@ -92,7 +92,7 @@ vec3 riverWaterPosition(vec3 localPosition) {
       (1.0 - uRiverLava);
 
     float waterfallMask =
-      uRiverVertical *
+      vertical *
       vertexMarker *
       smoothstep(0.28, 0.92, vertex_color.b);
     float flowAge = vertex_color.g + vertex_color.b * 0.075;

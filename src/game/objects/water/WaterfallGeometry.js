@@ -34,7 +34,9 @@ export class WaterfallGeometry {
       const across = column / width - 0.5;
       const lip = Math.min(1, row / lipRows);
       const edgeSide = column === 0 ? -1 : column === width ? 1 : 0;
-      const bankJoin = BANK_SEAM_OVERLAP * (1 - lip) * (1 - lip);
+      // Row zero is the river's downstream edge, so it remains exact and can
+      // reuse those vertices. The hidden bank overlap begins inside the curve.
+      const bankJoin = BANK_SEAM_OVERLAP * Math.sin(lip * Math.PI);
       const joinedAcross = across + edgeSide * bankJoin;
       const fall = Math.max(0, (row - lipRows) / fallRows);
       const angle = lip * Math.PI / 2;
@@ -85,10 +87,12 @@ export class WaterfallGeometry {
     grid(
       rows, width, (r, c) => pointAt(r, c),
       [direction.col, 0, direction.row], colorAt, false, false, uvAt,
+      () => [direction.col * 2, direction.row * 2],
     );
     grid(
       rows, width, (r, c) => pointAt(r, c, true),
       [-direction.col, 0, -direction.row], colorAt, true, false, uvAt,
+      () => [direction.col * 2, direction.row * 2],
     );
     // Side faces share exactly the front/back boundary positions; no extra shells.
     for (const column of [0, width]) {
@@ -97,6 +101,7 @@ export class WaterfallGeometry {
         rows, 1, (r, c) => pointAt(r, column, c === 1),
         [cross.col * side, 0, cross.row * side],
         (r) => colorAt(r, column), column === 0, false, (r) => uvAt(r, column),
+        () => [direction.col * 2, direction.row * 2],
       );
     }
   }
