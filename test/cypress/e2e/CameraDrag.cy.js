@@ -25,6 +25,42 @@ function setZoom(zoom) {
   });
 }
 
+function rotateCamera(deltaX) {
+  cy.get(".background-canvas").then(($viewport) => {
+    const viewport = $viewport[0];
+    const rect = viewport.getBoundingClientRect();
+    const pointerId = 2;
+    const clientX = rect.left + rect.width / 2;
+    const clientY = rect.top + rect.height / 2;
+
+    cy.wrap($viewport)
+      .trigger("pointerdown", {
+        pointerId,
+        pointerType: POINTER_TYPE.MOUSE,
+        button: 1,
+        buttons: 4,
+        clientX,
+        clientY,
+      })
+      .trigger("pointermove", {
+        pointerId,
+        pointerType: POINTER_TYPE.MOUSE,
+        button: 1,
+        buttons: 4,
+        clientX: clientX + deltaX,
+        clientY,
+      })
+      .trigger("pointerup", {
+        pointerId,
+        pointerType: POINTER_TYPE.MOUSE,
+        button: 1,
+        buttons: 0,
+        clientX: clientX + deltaX,
+        clientY,
+      });
+  });
+}
+
 function dragCamera(deltaX, deltaY) {
   cy.get(".background-canvas").then(($viewport) => {
     const viewport = $viewport[0];
@@ -581,14 +617,16 @@ describe("Camera dragging", () => {
     });
   });
 
-  it("persists zoom and pan through the Pinia view store", () => {
+  it("persists zoom, rotation, and pan through the Pinia view store", () => {
     setZoom(3);
+    rotateCamera(90);
     dragCamera(120, -80);
     cy.wait(200);
     cy.window().then((window) => {
       const viewport = window.gameCameraTest.state().viewport;
       const stored = JSON.parse(window.localStorage.getItem(VIEW_STORE_KEY));
       expect(stored.zoom).to.be.closeTo(viewport.zoom, 0.000001);
+      expect(stored.rotation).to.be.closeTo(viewport.rotation, 0.000001);
       expect(stored.panX).to.be.closeTo(viewport.panX, 0.000001);
       expect(stored.panZ).to.be.closeTo(viewport.panZ, 0.000001);
 
@@ -602,6 +640,7 @@ describe("Camera dragging", () => {
           reloadedWindow.localStorage.getItem(VIEW_STORE_KEY),
         );
         expect(restored.zoom).to.be.closeTo(stored.zoom, 0.000001);
+        expect(restored.rotation).to.be.closeTo(stored.rotation, 0.000001);
         expect(restored.manuallyMoved).to.equal(stored.manuallyMoved);
         expect(rehydrated.panX).to.be.closeTo(restored.panX, 0.000001);
         expect(rehydrated.panZ).to.be.closeTo(restored.panZ, 0.000001);

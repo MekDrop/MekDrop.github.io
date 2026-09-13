@@ -2436,33 +2436,22 @@ export class PlayCanvasRenderer {
       ]);
     }
 
-    // Terrain cubes are stacked into cliffs. Their visible walls must meet on
-    // the same vertical plane; beveling each cube's horizontal boundary makes
-    // every internal level read as a recessed stripe.
+    // Terrain cubes are stacked into cliffs. Their visible wall faces span the
+    // complete tile so adjacent cubes meet coplanarly; per-cube edge bevels
+    // otherwise form dark horizontal and vertical grooves through one wall.
     for (const sign of [-1, 1]) {
       addFace("wallSides", [
-        [sign * half, -half, -inner],
-        [sign * half, half, -inner],
-        [sign * half, half, inner],
-        [sign * half, -half, inner],
+        [sign * half, -half, -half],
+        [sign * half, half, -half],
+        [sign * half, half, half],
+        [sign * half, -half, half],
       ]);
       addFace("wallSides", [
-        [-inner, -half, sign * half],
-        [inner, -half, sign * half],
-        [inner, half, sign * half],
-        [-inner, half, sign * half],
+        [-half, -half, sign * half],
+        [half, -half, sign * half],
+        [half, half, sign * half],
+        [-half, half, sign * half],
       ]);
-    }
-
-    for (const signX of [-1, 1]) {
-      for (const signZ of [-1, 1]) {
-        addFace("wallSides", [
-          [signX * half, -half, signZ * inner],
-          [signX * half, half, signZ * inner],
-          [signX * inner, half, signZ * half],
-          [signX * inner, -half, signZ * half],
-        ]);
-      }
     }
 
     const surfaceY = half + 0.0002;

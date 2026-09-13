@@ -32,8 +32,7 @@ export const useGameViewStore = defineStore(
             finiteValue(nextViewport?.zoom, DEFAULT_ZOOM),
           ),
         ),
-        rotation:
-          ((Math.round(finiteValue(nextViewport?.rotation, 0)) % 4) + 4) % 4,
+        rotation: ((finiteValue(nextViewport?.rotation, 0) % 4) + 4) % 4,
         panX: finiteValue(nextViewport?.panX, 0),
         panZ: finiteValue(nextViewport?.panZ, 0),
         manuallyMoved: Boolean(nextViewport?.manuallyMoved),
