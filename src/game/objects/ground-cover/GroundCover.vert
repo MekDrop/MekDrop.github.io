@@ -18,6 +18,7 @@ uniform float uBloomSinkDepth;
 uniform float uBloomTiltAngle;
 uniform float uFlexibility;
 uniform float uTrampleAngle;
+uniform float uAmbientMotion;
 
 varying vec3 vWorldNormal;
 varying vec4 vVertexColor;
@@ -54,7 +55,8 @@ void main(void) {
       windDirection *
       (broadWind * 0.09 + fineWind * 0.04) *
       uBendHeight *
-      flexibleTip;
+      flexibleTip *
+      uAmbientMotion;
 
   vec2 heroOffset = instanceOrigin.xz - uHeroPosition.xz;
   float heroDistance = length(heroOffset);

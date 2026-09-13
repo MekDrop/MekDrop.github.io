@@ -1,6 +1,8 @@
 const HERO_RECOVERY_TIME = 0.65;
 const VIEW_RECOVERY_TIME = 0.5;
 const MAXIMUM_RUNNING_SPEED = 6.3;
+const STILL_ZOOM = 1;
+const FULL_VIEW_MOTION_ZOOM = 1.1;
 
 export class GrassSurface {
   #terrainMaterials;
@@ -12,11 +14,30 @@ export class GrassSurface {
   #heroDirection = [0, 1];
   #heroInfluence = 0;
   #viewInfluence = 0;
+  #viewMotionScale = 0;
 
-  constructor({ app, terrainMaterials = [] }) {
+  constructor({ app, terrainMaterials = [], zoom = 1 }) {
     this.#terrainMaterials = terrainMaterials;
     this.#setShaderParameters(0, 0);
+    this.zoom = zoom;
     this.#updateHandle = app.on("update", this.#update);
+  }
+
+  set zoom(value) {
+    const progress = Math.max(
+      0,
+      Math.min(
+        1,
+        (value - STILL_ZOOM) / (FULL_VIEW_MOTION_ZOOM - STILL_ZOOM),
+      ),
+    );
+    this.#viewMotionScale = progress * progress * (3 - 2 * progress);
+    if (this.#viewMotionScale === 0) {
+      this.#viewInfluence = 0;
+      for (const material of this.#terrainMaterials) {
+        material.setParameter("uGrassMotionInfluence", 0);
+      }
+    }
   }
 
   applyHeroInteraction({ x, y, z }, movement) {
@@ -81,7 +102,11 @@ export class GrassSurface {
       1 - viewMotionAge / VIEW_RECOVERY_TIME,
     );
     const heroInfluence = this.#heroInfluence * heroRecovery * heroRecovery;
-    const viewInfluence = this.#viewInfluence * viewRecovery * viewRecovery;
+    const viewInfluence =
+      this.#viewInfluence *
+      viewRecovery *
+      viewRecovery *
+      this.#viewMotionScale;
     this.#setShaderParameters(heroInfluence, viewInfluence);
   };
 }

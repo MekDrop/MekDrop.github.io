@@ -20,6 +20,7 @@ export class GroundCoverItem {
   #trampleHold = 0;
   #trampleTiltX = 0;
   #trampleTiltZ = 0;
+  #ambientMotion = 1;
 
   constructor({
     pc,
@@ -34,6 +35,7 @@ export class GroundCoverItem {
     flexibility,
     stepReaction,
     phase,
+    ambientMotion = 1,
   }) {
     this.#position = { x, y, z };
     this.#flexibility = flexibility;
@@ -46,6 +48,7 @@ export class GroundCoverItem {
     model.setLocalEulerAngles(0, rotation, 0);
     model.setLocalScale(scale, scale, scale);
     this.#entity.addChild(model);
+    this.ambientMotion = ambientMotion;
   }
 
   get entity() {
@@ -54,6 +57,11 @@ export class GroundCoverItem {
 
   get position() {
     return this.#position;
+  }
+
+  set ambientMotion(value) {
+    this.#ambientMotion = Math.max(0, Math.min(1, value));
+    this.advance(0);
   }
 
   applyWind(directionX, directionZ, strength) {
@@ -108,7 +116,7 @@ export class GroundCoverItem {
     this.#tiltX += (this.#targetTiltX - this.#tiltX) * response;
     this.#tiltZ += (this.#targetTiltZ - this.#tiltZ) * response;
 
-    const ambient = this.#flexibility * 0.45;
+    const ambient = this.#flexibility * 0.45 * this.#ambientMotion;
     const ambientX = Math.sin(this.#elapsed * 1.35 + this.#phase) * ambient;
     const ambientZ =
       Math.sin(this.#elapsed * 1.08 + this.#phase * 1.7) * ambient * 0.7;

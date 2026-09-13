@@ -162,6 +162,7 @@ const SIDE_MATERIALS = {
 };
 
 const CUBE_SCALE = 1;
+const SURFACE_ELEVATION_BIAS = 0.0002;
 const CAMERA_PITCH = Math.atan(1 / Math.sqrt(2));
 const CAMERA_DISTANCE = 80;
 const SHADOW_DISTANCE = 150;
@@ -1259,6 +1260,7 @@ export class PlayCanvasRenderer {
       app: this.#app,
       mapData: this.#mapData,
       modelLibrary: this.#modelLibrary,
+      zoom: this.#zoom,
     });
     this.#mapRoot.addChild(this.#riverWater.entity);
     this.#grassSurface = new GrassSurface({
@@ -1267,6 +1269,7 @@ export class PlayCanvasRenderer {
         this.#materials.get("grass"),
         this.#materials.get("grass-0"),
       ].filter(Boolean),
+      zoom: this.#zoom,
     });
 
     this.#cloudField = new CubeCloudField({
@@ -1818,19 +1821,40 @@ export class PlayCanvasRenderer {
       source.row,
       level,
     );
+    const x = source.col - (cols - 1) / 2;
+    const z = source.row - (rows - 1) / 2;
+    const bodyHeight = capHeight + GRASS_SURFACE_LIFT;
     this.#addBoxMatrix(
       batches,
       top,
       sides,
-      source.col - (cols - 1) / 2,
+      x,
       source.terrainHeight - capHeight / 2 + GRASS_SURFACE_LIFT / 2,
-      source.row - (rows - 1) / 2,
+      z,
       0,
       CUBE_SCALE,
-      capHeight + GRASS_SURFACE_LIFT,
+      bodyHeight,
       CUBE_SCALE,
-      "full",
+      "wallSidesOnly",
       "earth",
+    );
+    const adjacentSurfaceHeight =
+      source.terrainHeight +
+      GRASS_SURFACE_LIFT +
+      SURFACE_ELEVATION_BIAS * (CUBE_SCALE + GRASS_SURFACE_LIFT);
+    this.#addBoxMatrix(
+      batches,
+      top,
+      sides,
+      x,
+      adjacentSurfaceHeight - (0.5 + SURFACE_ELEVATION_BIAS),
+      z,
+      0,
+      CUBE_SCALE,
+      CUBE_SCALE,
+      CUBE_SCALE,
+      "surfaceOnly",
+      "none",
     );
   }
 
@@ -2488,7 +2512,7 @@ export class PlayCanvasRenderer {
       ]);
     }
 
-    const surfaceY = half + 0.0002;
+    const surfaceY = half + SURFACE_ELEVATION_BIAS;
     addFace("full", [
       [-half, surfaceY, -half],
       [-half, surfaceY, half],
@@ -2946,6 +2970,12 @@ export class PlayCanvasRenderer {
     this.#camera.camera.orthoHeight = this.#baseOrthoHeight / this.#zoom;
     if (this.#floatingIslandMotion) {
       this.#floatingIslandMotion.zoom = this.#zoom;
+    }
+    if (this.#groundCover) {
+      this.#groundCover.zoom = this.#zoom;
+    }
+    if (this.#grassSurface) {
+      this.#grassSurface.zoom = this.#zoom;
     }
     this.#cloudField?.setCameraState({
       rotation: this.#rotation,

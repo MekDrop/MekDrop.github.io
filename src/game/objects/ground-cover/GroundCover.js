@@ -117,6 +117,8 @@ const MAXIMUM_RUNNING_SPEED = 6.3;
 const HEIGHT_TOLERANCE = 0.8;
 const HERO_RECOVERY_TIME = 0.42;
 const MINIMUM_FACING_DOT = Math.cos((50 * Math.PI) / 180);
+const STILL_ZOOM = 1;
+const FULL_AMBIENT_MOTION_ZOOM = 1.1;
 
 export class GroundCover {
   static get modelUrls() {
@@ -137,6 +139,7 @@ export class GroundCover {
   #heroPosition = [0, -1000, 0];
   #heroDirection = [0, 1];
   #heroInfluence = 0;
+  #ambientMotion = 0;
 
   #onCollect;
   #onCollectibleRemoved;
@@ -147,6 +150,7 @@ export class GroundCover {
     app,
     mapData,
     modelLibrary,
+    zoom = 1,
     onCollect = () => false,
     onCollectibleRemoved = () => {},
   }) {
@@ -155,6 +159,7 @@ export class GroundCover {
     this.#onCollectibleRemoved = onCollectibleRemoved;
     this.#entity = new pc.Entity("GPU-instanced interactive ground cover");
     this.#createMaterials();
+    this.zoom = zoom;
     this.#buildGroundCover(mapData, modelLibrary);
     this.#updateHandle = app.on("update", this.#update);
   }
@@ -165,6 +170,25 @@ export class GroundCover {
 
   set tool(tool) {
     this.#tool = tool;
+  }
+
+  set zoom(value) {
+    const progress = Math.max(
+      0,
+      Math.min(
+        1,
+        (value - STILL_ZOOM) /
+          (FULL_AMBIENT_MOTION_ZOOM - STILL_ZOOM),
+      ),
+    );
+    const ambientMotion = progress * progress * (3 - 2 * progress);
+    this.#ambientMotion = ambientMotion;
+    for (const material of this.#materials.values()) {
+      material.setParameter("uAmbientMotion", ambientMotion);
+    }
+    for (const item of this.#items) {
+      item.ambientMotion = ambientMotion;
+    }
   }
 
   applyHeroInteraction({ x, y, z }, movement) {
@@ -327,6 +351,7 @@ export class GroundCover {
       );
       material.setParameter("uFlexibility", definition.flexibility);
       material.setParameter("uTrampleAngle", definition.trampleAngle);
+      material.setParameter("uAmbientMotion", 0);
       material.setParameter("uColorBoost", definition.colorBoost);
       material.setParameter("uLightDirection", [0.42, 0.82, 0.38]);
       material.update();
@@ -381,6 +406,7 @@ export class GroundCover {
           flexibility: definition.flexibility,
           stepReaction: "none",
           phase: decoration.phase,
+          ambientMotion: this.#ambientMotion,
         });
         this.#entity.addChild(item.entity);
         this.#items.push(item);
