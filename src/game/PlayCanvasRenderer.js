@@ -259,6 +259,8 @@ export class PlayCanvasRenderer {
   #graphicsSettingsStore = null;
   #heroConfigurationStore = null;
   #stopDebugStoreSubscription = null;
+  #devWireframeInspectorEnabled = false;
+  #devWireframeInspector = null;
   #translate = (key) => key;
   #uiTheme = null;
 
@@ -275,6 +277,7 @@ export class PlayCanvasRenderer {
       graphicsSettingsStore,
       heroConfigurationStore,
       uiTheme,
+      enableDevWireframeInspector = false,
     } = {},
   ) {
     this.canvas = canvas;
@@ -286,6 +289,7 @@ export class PlayCanvasRenderer {
     this.#gameViewStore = gameViewStore;
     this.#graphicsSettingsStore = graphicsSettingsStore;
     this.#heroConfigurationStore = heroConfigurationStore;
+    this.#devWireframeInspectorEnabled = enableDevWireframeInspector;
     this.#uiTheme = new GameUiTheme(uiTheme);
     this.#heroConfigurationStore.normalizeInventorySlots();
     this.#translate = t;
@@ -444,9 +448,22 @@ export class PlayCanvasRenderer {
     });
     this.#app.start();
     this.#connectBannerInteraction();
+    if (this.#devWireframeInspectorEnabled) {
+      const { DevWireframeInspector } = await import(
+        "./debug/DevWireframeInspector.js"
+      );
+      this.#devWireframeInspector = new DevWireframeInspector({
+        pc,
+        app: this.#app,
+        canvas: this.canvas,
+        camera: this.#camera.camera,
+      });
+      this.#devWireframeInspector.connect();
+    }
   }
 
   render(mapData) {
+    this.#devWireframeInspector?.refresh();
     let initialViewport = null;
     if (!this.#mapData) {
       this.#gameViewStore.updateViewport(this.#gameViewStore.$state);
@@ -939,6 +956,8 @@ export class PlayCanvasRenderer {
       this.#saveViewport();
     }
     this.#disconnectBannerInteraction();
+    this.#devWireframeInspector?.destroy();
+    this.#devWireframeInspector = null;
     this.#app?.off("update", this.#updateFrame);
     this.#clearScene();
     this.#pathArrows?.destroy();

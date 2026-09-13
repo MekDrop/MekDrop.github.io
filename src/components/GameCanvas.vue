@@ -419,6 +419,7 @@ async function init() {
     graphicsSettingsStore,
     heroConfigurationStore,
     uiTheme: gameUiTheme(),
+    enableDevWireframeInspector: import.meta.env.DEV,
   });
   await renderer.init();
   graphicsBackend.value = renderer.graphicsBackend;
