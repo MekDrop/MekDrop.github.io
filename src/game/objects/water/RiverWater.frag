@@ -32,7 +32,14 @@ void getAlbedo() {
   vec2 uv = vUv0;
   if (uRiverVertical < 0.5) {
     vec2 gridPosition = vPositionW.xz + uRiverMapSize * 0.5;
-    vec2 cell = floor(gridPosition);
+    // Keep the terminal edge in its final cell. Letting floor() step outside
+    // the flow map resets the local coordinate while the texture stays clamped,
+    // producing a one-pixel paint seam where the surface meets the waterfall.
+    vec2 cell = clamp(
+      floor(gridPosition),
+      vec2(0.0),
+      uRiverMapSize - vec2(1.0)
+    );
     vec2 local = gridPosition - cell - 0.5;
     vec4 route = texture2D(uRiverFlowMap, (cell + 0.5) / uRiverMapSize);
     vec2 outgoing = route.yz;
