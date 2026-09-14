@@ -12,6 +12,7 @@ export class DevWireframeInspector {
   #solidMaterial;
   #wireframeMaterial;
   #pointer = null;
+  #coordinatePrintPointer = null;
   #altPressed = false;
   #selection = null;
   #frameRequest = null;
@@ -48,6 +49,10 @@ export class DevWireframeInspector {
       return;
     }
     this.#canvas.addEventListener(
+      INPUT_EVENT_TYPE.POINTER_DOWN,
+      this.#handlePointerDown,
+    );
+    this.#canvas.addEventListener(
       INPUT_EVENT_TYPE.POINTER_MOVE,
       this.#handlePointerMove,
     );
@@ -69,6 +74,7 @@ export class DevWireframeInspector {
     this.#generation += 1;
     this.#cancelScheduledPick();
     this.#pickPending = false;
+    this.#coordinatePrintPointer = null;
     this.#clearSelection();
     this.#schedulePick();
   }
@@ -95,6 +101,10 @@ export class DevWireframeInspector {
       return;
     }
     this.#canvas.removeEventListener(
+      INPUT_EVENT_TYPE.POINTER_DOWN,
+      this.#handlePointerDown,
+    );
+    this.#canvas.removeEventListener(
       INPUT_EVENT_TYPE.POINTER_MOVE,
       this.#handlePointerMove,
     );
@@ -111,6 +121,21 @@ export class DevWireframeInspector {
     );
     this.#connected = false;
   }
+
+  #handlePointerDown = (event) => {
+    if (
+      event.pointerType !== POINTER_TYPE.MOUSE ||
+      event.button !== 0 ||
+      !event.altKey
+    ) {
+      return;
+    }
+    event.preventDefault();
+    this.#altPressed = true;
+    this.#pointer = { clientX: event.clientX, clientY: event.clientY };
+    this.#coordinatePrintPointer = this.#pointer;
+    this.#schedulePick();
+  };
 
   #handlePointerMove = (event) => {
     if (event.pointerType !== POINTER_TYPE.MOUSE) {
@@ -134,7 +159,9 @@ export class DevWireframeInspector {
     this.#pointer = null;
     this.#generation += 1;
     this.#pickPending = false;
-    this.#cancelScheduledPick();
+    if (!this.#coordinatePrintPointer) {
+      this.#cancelScheduledPick();
+    }
     this.#clearSelection();
   };
 
@@ -178,7 +205,10 @@ export class DevWireframeInspector {
   }
 
   #schedulePick() {
-    if (!this.#picker || !this.#altPressed || !this.#pointer) {
+    if (
+      !this.#picker ||
+      (!this.#coordinatePrintPointer && (!this.#altPressed || !this.#pointer))
+    ) {
       return;
     }
     this.#pickPending = true;
@@ -200,13 +230,19 @@ export class DevWireframeInspector {
   }
 
   async #pickHoveredMesh() {
-    if (!this.#picker || !this.#altPressed || !this.#pointer) {
+    const coordinatePrintPointer = this.#coordinatePrintPointer;
+    const pointer = coordinatePrintPointer ?? this.#pointer;
+    if (
+      !this.#picker ||
+      (!coordinatePrintPointer && !this.#altPressed) ||
+      !pointer
+    ) {
       return;
     }
+    this.#coordinatePrintPointer = null;
     this.#pickInProgress = true;
     this.#pickPending = false;
     const generation = this.#generation;
-    const pointer = this.#pointer;
     const previousSelection = this.#temporarilyRestoreSelection();
     let pickPromise;
 
@@ -230,17 +266,24 @@ export class DevWireframeInspector {
 
     try {
       const [selection, worldPoint] = await pickPromise;
+      if (!this.#connected) {
+        return;
+      }
+      const meshInstance = selection[0] ?? null;
+      if (coordinatePrintPointer) {
+        this.#printObjectCoordinates(meshInstance, worldPoint);
+      }
       if (generation !== this.#generation || !this.#altPressed) {
         return;
       }
-      this.#setSelection(selection[0] ?? null, worldPoint);
+      this.#setSelection(meshInstance, worldPoint);
     } catch {
       if (generation === this.#generation) {
         this.#setSelection(null);
       }
     } finally {
       this.#pickInProgress = false;
-      if (this.#pickPending) {
+      if (this.#pickPending || this.#coordinatePrintPointer) {
         this.#schedulePick();
       }
     }
@@ -275,6 +318,44 @@ export class DevWireframeInspector {
       renderStyle: meshInstance.renderStyle,
     };
     this.#applySelection(this.#selection);
+  }
+
+  #printObjectCoordinates(meshInstance, worldPoint) {
+    if (!meshInstance) {
+      console.info("[DevWireframeInspector] No object selected.");
+      return;
+    }
+    const instanceIndex = this.#findInstanceIndex(meshInstance, worldPoint);
+    const position = this.#objectPosition(meshInstance, instanceIndex);
+    console.info("[DevWireframeInspector] Object coordinates", {
+      name: meshInstance.node?.name ?? null,
+      instanceIndex,
+      position: this.#coordinates(position),
+      hitPosition: this.#coordinates(worldPoint),
+    });
+  }
+
+  #objectPosition(meshInstance, instanceIndex) {
+    if (instanceIndex === null) {
+      return meshInstance.node?.getPosition?.() ?? null;
+    }
+    const values = this.#floatValues(
+      meshInstance.instancingData.vertexBuffer.storage,
+    );
+    const instanceMatrix = new this.#pc.Mat4();
+    const worldMatrix = new this.#pc.Mat4();
+    instanceMatrix.data.set(
+      values.subarray(instanceIndex * 16, instanceIndex * 16 + 16),
+    );
+    worldMatrix.mul2(meshInstance.node.getWorldTransform(), instanceMatrix);
+    return worldMatrix.getTranslation();
+  }
+
+  #coordinates(point) {
+    if (!point) {
+      return null;
+    }
+    return { x: point.x, y: point.y, z: point.z };
   }
 
   #applySelection(selection) {

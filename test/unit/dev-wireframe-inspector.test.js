@@ -58,6 +58,7 @@ class FakeMaterial {
 
 class FakePicker {
   static selection = [];
+  static worldPoint = null;
 
   prepareCount = 0;
   destroyed = false;
@@ -77,7 +78,7 @@ class FakePicker {
   }
 
   getWorldPointAsync() {
-    return Promise.resolve(null);
+    return Promise.resolve(FakePicker.worldPoint);
   }
 
   destroy() {
@@ -105,6 +106,7 @@ let originalDocument;
 let fakeWindow;
 let fakeDocument;
 let canvas;
+let originalConsoleInfo;
 
 beforeEach(() => {
   originalWindow = globalThis.window;
@@ -114,6 +116,7 @@ beforeEach(() => {
   fakeDocument.hidden = false;
   globalThis.window = fakeWindow;
   globalThis.document = fakeDocument;
+  originalConsoleInfo = console.info;
   canvas = new FakeEventTarget();
   canvas.clientWidth = 800;
   canvas.clientHeight = 600;
@@ -124,11 +127,13 @@ beforeEach(() => {
     height: 600,
   });
   FakePicker.selection = [];
+  FakePicker.worldPoint = null;
 });
 
 afterEach(() => {
   globalThis.window = originalWindow;
   globalThis.document = originalDocument;
+  console.info = originalConsoleInfo;
 });
 
 test("shows only the hovered mesh as untextured wireframe while Alt is held", async () => {
@@ -208,6 +213,59 @@ test("restores the mesh when the pointer leaves the canvas", async () => {
 
   assert.equal(meshInstance.renderStyle, 0);
   assert.equal(meshInstance.material, originalMaterial);
+
+  inspector.destroy();
+});
+
+test("prints object coordinates on an Alt+primary mouse click", async () => {
+  const messages = [];
+  console.info = (...args) => messages.push(args);
+  const meshInstance = {
+    material: new FakeMaterial(),
+    mesh: {},
+    node: {
+      name: "Castle door",
+      getPosition: () => ({ x: 12.5, y: 3, z: -7.25 }),
+    },
+    renderStyle: 0,
+  };
+  FakePicker.selection = [meshInstance];
+  FakePicker.worldPoint = { x: 12.75, y: 3.5, z: -7 };
+  const inspector = new DevWireframeInspector({
+    pc,
+    app: { scene: {} },
+    canvas,
+    camera: {},
+  });
+  inspector.connect();
+  let prevented = false;
+
+  canvas.dispatch("pointerdown", {
+    altKey: true,
+    button: 0,
+    clientX: 120,
+    clientY: 140,
+    pointerType: "mouse",
+    preventDefault() {
+      prevented = true;
+    },
+  });
+  fakeWindow.flushAnimationFrames();
+  await Promise.resolve();
+  await Promise.resolve();
+
+  assert.equal(prevented, true);
+  assert.deepEqual(messages, [
+    [
+      "[DevWireframeInspector] Object coordinates",
+      {
+        name: "Castle door",
+        instanceIndex: null,
+        position: { x: 12.5, y: 3, z: -7.25 },
+        hitPosition: { x: 12.75, y: 3.5, z: -7 },
+      },
+    ],
+  ]);
 
   inspector.destroy();
 });
