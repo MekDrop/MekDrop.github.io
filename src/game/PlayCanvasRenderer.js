@@ -7,6 +7,7 @@ import pathTopUrl from "src/assets/game/tiles/path-sandstone-top.png";
 import waterSideUrl from "src/assets/game/tiles/water-side.png";
 import waterTopUrl from "src/assets/game/tiles/water-top.png";
 import grassTerrainFragmentShader from "./objects/ground-cover/GrassTerrain.frag?raw";
+import grassSideFragmentShader from "./objects/ground-cover/GrassSide.frag?raw";
 import { Castle } from "./objects/castle/index.js";
 import {
   GATEWAY_BANNER_SIGNS,
@@ -24,6 +25,7 @@ import {
   ShovelTool,
 } from "./objects/hero/tools/index.js";
 import { GrassSurface, GroundCover } from "./objects/ground-cover/index.js";
+import { GrassCarpet } from "./objects/ground-cover/GrassCarpet.js";
 import {
   CubeCloudField,
   FloatingIslandMotion,
@@ -232,6 +234,7 @@ export class PlayCanvasRenderer {
   #floatingCameraOffsetApplied = false;
   #groundCover = null;
   #grassSurface = null;
+  #grassCarpet = null;
   #riverWater = null;
   #vegetation = null;
   #buriedTreasure = null;
@@ -456,6 +459,7 @@ export class PlayCanvasRenderer {
         ...BridgeRailingKit.modelUrls,
         ...Castle.modelUrls,
         ...GroundCover.modelUrls,
+        ...GrassCarpet.modelUrls,
         ...VoxelVegetation.modelUrls,
         ...BuriedTreasureField.modelUrls,
         ...RiverWater.modelUrls,
@@ -958,7 +962,6 @@ export class PlayCanvasRenderer {
     }
     this.#heroCameraReturnTransition = null;
     this.#orbitPivot = null;
-    this.#grassSurface?.applyViewInteraction(deltaX, deltaY);
     if (this.#panLimitsEnabled && this.#zoom <= MAP_FIT_ZOOM) {
       this.#panX = this.#fitCenterX;
       this.#panZ = this.#fitCenterZ;
@@ -989,7 +992,6 @@ export class PlayCanvasRenderer {
         this.container.clientHeight,
       );
     }
-    this.#grassSurface?.applyViewInteraction(quarterTurns * 18, 0);
     this.#rotation = (((this.#rotation + quarterTurns) % 4) + 4) % 4;
     if (preserveFocus && this.#orbitPivot) {
       const yaw = Math.PI / 4 + this.#rotation * (Math.PI / 2);
@@ -1246,10 +1248,9 @@ export class PlayCanvasRenderer {
     }
     if (definition.continuousTexture) {
       material.shaderChunks.glsl.set("diffusePS", grassTerrainFragmentShader);
-      material.setParameter("uGrassHeroPosition", [0, -1000, 0]);
-      material.setParameter("uGrassHeroDirection", [0, 1]);
-      material.setParameter("uGrassHeroInfluence", 0);
-      material.setParameter("uGrassMotionInfluence", 0);
+    }
+    if (name.startsWith("grassTopSide-") || name.startsWith("grassEarthSide-")) {
+      material.shaderChunks.glsl.set("diffusePS", grassSideFragmentShader);
     }
     material.update();
     return material;
@@ -1322,13 +1323,20 @@ export class PlayCanvasRenderer {
       zoom: this.#zoom,
     });
     this.#mapRoot.addChild(this.#riverWater.entity);
+    this.#grassCarpet = new GrassCarpet({
+      pc: this.#pc,
+      mapData: this.#mapData,
+      modelLibrary: this.#modelLibrary,
+      zoom: this.#zoom,
+    });
+    this.#mapRoot.addChild(this.#grassCarpet.entity);
     this.#grassSurface = new GrassSurface({
       app: this.#app,
       terrainMaterials: [
-        this.#materials.get("grass"),
-        this.#materials.get("grass-0"),
+        this.#grassCarpet.material,
       ].filter(Boolean),
       zoom: this.#zoom,
+      getFootContacts: () => this.#hero?.grassFootContacts ?? [],
     });
 
     this.#cloudField = new CubeCloudField({
@@ -1459,10 +1467,6 @@ export class PlayCanvasRenderer {
       this.#hero.position,
       this.#hero.movementState,
     );
-    this.#grassSurface?.applyHeroInteraction(
-      this.#hero.position,
-      this.#hero.movementState,
-    );
     this.#buriedTreasure?.applyHeroPosition(this.#hero.position);
   }
 
@@ -1515,6 +1519,8 @@ export class PlayCanvasRenderer {
       onCollectCoin: (type, amount) =>
         this.#hero?.collectCoin(type, amount),
       onInteractionChange: () => this.#updateInteractionTarget(),
+      onTerrainExcavated: (position, radius) =>
+        this.#grassCarpet?.clearAt(position, radius),
     });
     this.#collisionWorld.add(this.#buriedTreasure);
     this.#mapRoot.addChild(this.#buriedTreasure.entity);
@@ -2799,10 +2805,6 @@ export class PlayCanvasRenderer {
       { x, y, z },
       this.#hero?.movementState,
     );
-    this.#grassSurface?.applyHeroInteraction(
-      { x, y, z },
-      this.#hero?.movementState,
-    );
     this.#buriedTreasure?.applyHeroPosition({ x, y, z });
     this.#updateInteractionTarget({ x, y, z });
     if (this.#gameOverCameraLocked || this.#hero?.isInDeathSequence) {
@@ -3092,6 +3094,7 @@ export class PlayCanvasRenderer {
     }
     if (this.#grassSurface) {
       this.#grassSurface.zoom = this.#zoom;
+      this.#grassCarpet.zoom = this.#zoom;
     }
     this.#cloudField?.setCameraState({
       rotation: this.#rotation,
@@ -3478,6 +3481,8 @@ export class PlayCanvasRenderer {
     this.#groundCover = null;
     this.#grassSurface?.destroy();
     this.#grassSurface = null;
+    this.#grassCarpet?.destroy();
+    this.#grassCarpet = null;
     this.#riverWater?.destroy();
     this.#riverWater = null;
     this.#cloudField?.destroy();

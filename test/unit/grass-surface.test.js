@@ -10,10 +10,15 @@ function createSubject(zoom) {
     },
   };
   let update = null;
+  let render = null;
   const app = {
     on(event, callback) {
-      assert.equal(event, "update");
-      update = callback;
+      if (event === "update") {
+        update = callback;
+      } else {
+        assert.equal(event, "prerender");
+        render = callback;
+      }
       return { off() {} };
     },
   };
@@ -22,35 +27,32 @@ function createSubject(zoom) {
     terrainMaterials: [material],
     zoom,
   });
-  return { grass, parameters, update: (deltaTime) => update(deltaTime) };
+  return { grass, parameters, update: (deltaTime) => { update(deltaTime); render(); } };
 }
 
-describe("grass surface view motion", () => {
-  it("keeps procedural grass still while rotating at fitted zoom", () => {
-    const { grass, parameters, update } = createSubject(1);
+describe("grass canopy wind", () => {
+  it("keeps ambient grass still at fitted zoom", () => {
+    const { parameters, update } = createSubject(1);
 
-    grass.applyViewInteraction(18, 0);
     update(1 / 60);
 
-    assert.equal(parameters.get("uGrassMotionInfluence"), 0);
+    assert.equal(parameters.get("uGrassAmbientMotion"), 0);
   });
 
-  it("retains view brushing once the camera is zoomed in", () => {
-    const { grass, parameters, update } = createSubject(1.1);
+  it("allows gentle wind once the camera is zoomed in", () => {
+    const { parameters, update } = createSubject(1.1);
 
-    grass.applyViewInteraction(18, 0);
     update(1 / 60);
 
-    assert.ok(parameters.get("uGrassMotionInfluence") > 0);
+    assert.ok(parameters.get("uGrassAmbientMotion") > 0);
   });
 
-  it("clears an active view brush immediately at fitted zoom", () => {
+  it("stops ambient wind immediately at fitted zoom", () => {
     const { grass, parameters, update } = createSubject(1.1);
-    grass.applyViewInteraction(18, 0);
     update(1 / 60);
 
     grass.zoom = 1;
 
-    assert.equal(parameters.get("uGrassMotionInfluence"), 0);
+    assert.equal(parameters.get("uGrassAmbientMotion"), 0);
   });
 });

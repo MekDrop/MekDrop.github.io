@@ -196,6 +196,10 @@ slope -> flat tile(s) -> slope
 ## 10. Grass terrain
 
 * Grass may be flat, sloped, terraced, or cliff-shaped.
+* Flat grass surfaces use a very dense carpet of tiny, instanced blades and small clover leaves from authored models, with natural green cel-shaded tones that remain readable at 6× zoom. Placement is randomly scattered using the map seed, without rows or a regular planting grid. Top blades stay below ankle height, bend around the hero's feet, and remain inside their owning grass cell even when bent.
+* Grass compression follows each animated boot sole's position, orientation, footprint, and ground clearance. Planted soles part and flatten the 3D canopy; released impressions recover smoothly within about one second. Airborne feet must not create new impressions, and contact must not affect grass at another elevation. The underlying terrain texture stays still, without painted footprints, brushing, or wind effects.
+* Exposed grass edges have an irregular, short hanging fringe over the soil lip, extending at most 0.055 units beyond the cell and 0.1 units below its roots. This fringe must not appear between equal-height tiles or extend toward path, gate, or castle cells. It changes only the grass silhouette; terrain blocks retain their grid-aligned shape and collision.
+* The grass carpet is visual terrain detail: it does not change tile ownership, elevation, collision, buildability, or collectible placement. Solid river source covers may carry it, but exposed water, paths, bridge-reserved ground, gates, and castle foundations must remain clear. Excavation clears blades around the hole and keeps filled soil exposed.
 * Grass elevation may vary more freely than path elevation.
 * Terrain transitions must form readable hills, valleys, plateaus, terraces, or cliff bands.
 * A single void tile may never be completely enclosed by terrain on all four cardinal sides. The island mask fills such holes before terrain materialization, and final validation rejects any introduced later.

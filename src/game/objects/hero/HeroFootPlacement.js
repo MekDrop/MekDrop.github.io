@@ -12,6 +12,7 @@ export class HeroFootPlacement {
   #surfaceHeightAt;
   #getHeroPosition;
   #feet;
+  #enabled = false;
 
   constructor({ pc, surfaceHeightAt, getHeroPosition, left, right }) {
     this.#pc = pc;
@@ -36,7 +37,37 @@ export class HeroFootPlacement {
     );
   }
 
+  get grassContacts() {
+    if (!this.#enabled) {
+      return [];
+    }
+    return this.#feet.flatMap((foot) => {
+      const bounds = foot.sole.render?.meshInstances?.[0]?.mesh?.aabb;
+      if (!bounds || foot.minimumClearance === null) {
+        return [];
+      }
+      const transform = foot.sole.getWorldTransform();
+      const center = transform.transformPoint(new this.#pc.Vec3(
+        bounds.center.x, bounds.center.y - bounds.halfExtents.y, bounds.center.z,
+      ));
+      const across = transform.transformVector(new this.#pc.Vec3(bounds.halfExtents.x, 0, 0));
+      const along = transform.transformVector(new this.#pc.Vec3(0, 0, bounds.halfExtents.z));
+      const length = Math.hypot(along.x, along.z);
+      const pressure = Math.max(0, 1 - Math.max(0, foot.minimumClearance - CONTACT_EPSILON) / 0.075);
+      return [{
+        side: foot.side,
+        x: center.x, y: center.y, z: center.z,
+        directionX: along.x / Math.max(length, 0.001),
+        directionZ: along.z / Math.max(length, 0.001),
+        halfWidth: Math.hypot(across.x, across.z) + 0.025,
+        halfLength: length + 0.035,
+        pressure,
+      }];
+    });
+  }
+
   update(deltaTime, enabled) {
+    this.#enabled = enabled;
     const maximumSurfaceHeight =
       this.#getHeroPosition().y + MAXIMUM_FOOT_LIFT;
     for (const foot of this.#feet) {

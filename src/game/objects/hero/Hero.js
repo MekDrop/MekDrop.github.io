@@ -514,6 +514,10 @@ export class Hero {
     return this.#footPlacement?.state ?? null;
   }
 
+  get grassFootContacts() {
+    return this.#footPlacement?.grassContacts ?? [];
+  }
+
   get isInDeathSequence() {
     return (
       this.#drowningAction !== null ||

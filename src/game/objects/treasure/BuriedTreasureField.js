@@ -103,6 +103,7 @@ export class BuriedTreasureField {
   #heroPosition = null;
   #onCollectCoin;
   #onInteractionChange;
+  #onTerrainExcavated;
   #updateHandle = null;
 
   constructor({
@@ -112,12 +113,14 @@ export class BuriedTreasureField {
     modelLibrary,
     onCollectCoin = null,
     onInteractionChange = null,
+    onTerrainExcavated = null,
   }) {
     this.#pc = pc;
     this.#mapData = mapData;
     this.#modelLibrary = modelLibrary;
     this.#onCollectCoin = onCollectCoin;
     this.#onInteractionChange = onInteractionChange;
+    this.#onTerrainExcavated = onTerrainExcavated;
     this.#entity = new pc.Entity("Buried treasure field");
     this.#registerRiverSourceCovers();
     for (const { col, row } of mapData.vegetationData ?? []) {
@@ -275,6 +278,7 @@ export class BuriedTreasureField {
       rewardMultiplier: rewardProfile.rewardMultiplier,
     };
     this.#createHole(site);
+    this.#onTerrainExcavated?.(site, 0.65);
     this.#sites.push(site);
     return false;
   }
@@ -628,6 +632,7 @@ export class BuriedTreasureField {
       rocks: [],
     };
     site.hole.name = `Rock-blocked shallow hole ${site.id}`;
+    this.#onTerrainExcavated?.(site, 0.3);
     site.hole.setLocalScale(
       BLOCKED_DIG_HOLE_SCALE,
       BLOCKED_DIG_HOLE_SCALE,
