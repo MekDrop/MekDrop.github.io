@@ -76,6 +76,8 @@ export class MapGenerator {
   static #OVERPASS_HALF_STEP = 0.5;
   static #OVERPASS_DECK_THICKNESS = 0.24;
   static #OVERPASS_MIN_CLEARANCE = 1.6;
+  static #MIN_ARROW_GATE_CLEARANCE = 2;
+  static #MIN_ARROW_CASTLE_CLEARANCE = 4;
   static #TERRAIN_BRIDGE_DIP_CHANCE = 60;
   static #TERRAIN_BRIDGE_DIP_ELEVATION = this.#PATH_HEIGHT - 1;
   static #TERRAIN_BRIDGE_DIP_RAMP_TILES = 2;
@@ -2960,6 +2962,7 @@ export class MapGenerator {
 
     routes.forEach((route, pathIdx) => {
       const turnIndices = new Set();
+      const distancesToCastle = new Array(route.length).fill(0);
       for (let index = 1; index < route.length - 1; index++) {
         const previous = route[index - 1];
         const current = route[index];
@@ -2972,11 +2975,30 @@ export class MapGenerator {
           turnIndices.add(index);
         }
       }
+      for (let index = route.length - 2; index >= 0; index--) {
+        distancesToCastle[index] =
+          distancesToCastle[index + 1] +
+          Math.hypot(
+            route[index + 1].col - route[index].col,
+            route[index + 1].row - route[index].row,
+          );
+      }
 
-      for (let index = 2; index < route.length - 1; index++) {
+      let distanceFromGate = 0;
+      for (let index = 1; index < route.length - 1; index++) {
         const current = route[index];
         const next = route[index + 1];
         const previous = route[index - 1];
+        distanceFromGate += Math.hypot(
+          current.col - previous.col,
+          current.row - previous.row,
+        );
+        if (
+          distanceFromGate <= this.#MIN_ARROW_GATE_CLEARANCE ||
+          distancesToCastle[index] <= this.#MIN_ARROW_CASTLE_CLEARANCE
+        ) {
+          continue;
+        }
         let dc = next.col - current.col;
         let dr = next.row - current.row;
         const previousDc = current.col - previous.col;
