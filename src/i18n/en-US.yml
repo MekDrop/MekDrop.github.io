@@ -43,6 +43,16 @@ form:
   close: Close
   ok: OK
 game:
+  buffs:
+    affection: Affection
+    overstimulated: Overstimulated
+  patting:
+    happy: Happy · +{bonus}% speed
+    happy_hint: Each gentle pat adds 5% speed, up to 25%. The boost lasts six seconds after the last pat.
+    agitated: Irritated · ease off!
+    agitated_hint: Too many pats! Give him space before he snaps.
+    angry: Angry · hands off!
+    angry_hint: He's had enough and is running away. Let him cool down.
   game_over: Game over
   lives_remaining: "{current} of {total} lives remaining"
   restart_prompt: Press any key or click to restart

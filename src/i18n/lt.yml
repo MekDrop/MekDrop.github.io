@@ -43,6 +43,16 @@ form:
   close: Uždaryti
   ok: Gerai
 game:
+  buffs:
+    affection: Švelnumas
+    overstimulated: Per daug dėmesio
+  patting:
+    happy: Laimingas · +{bonus}% greičio
+    happy_hint: Kiekvienas švelnus paglostymas prideda 5% greičio, iki 25%. Premija trunka šešias sekundes po paskutinio paglostymo.
+    agitated: Susierzinęs · užteks!
+    agitated_hint: Per daug glostymo! Duok jam erdvės, kol nesupyko.
+    angry: Piktas · neliesk!
+    angry_hint: Jam jau gana, todėl jis bėga šalin. Leisk nusiraminti.
   game_over: Žaidimas baigtas
   lives_remaining: "Liko gyvybių: {current} iš {total}"
   restart_prompt: Paspauskite bet kurį klavišą arba spustelėkite, kad pradėtumėte iš naujo

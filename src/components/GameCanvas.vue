@@ -27,6 +27,7 @@
             })
       "
     />
+    <hero-mood-status :mood="heroMood" />
     <Transition name="interaction-prompt">
       <div
         v-if="interactionTarget"
@@ -74,6 +75,13 @@
 }
 
 .background-canvas--dragging .background-canvas__surface {
+  cursor: grabbing;
+}
+
+.background-canvas__surface.hero-pat-hover {
+  cursor: grab;
+}
+.background-canvas__surface.hero-pat-hover:active {
   cursor: grabbing;
 }
 
@@ -161,6 +169,7 @@ import { getCssVar, Notify } from "quasar";
 import { useI18n } from "vue-i18n";
 import { useRoute, useRouter } from "vue-router";
 import SiteNoticeDialog from "components/SiteNoticeDialog.vue";
+import HeroMoodStatus from "components/HeroMoodStatus.vue";
 import { generateMap } from "src/game/MapGenerator.js";
 import { PlayCanvasRenderer } from "src/game/PlayCanvasRenderer.js";
 import { GameControls } from "src/game/GameControls.js";
@@ -195,6 +204,7 @@ const showGraphicsFallbackDialog = ref(false);
 const debugFramesPerSecond = ref(0);
 const interactionTarget = ref(null);
 const heroLives = ref(3);
+const heroMood = ref(null);
 const maxHeroLives = ref(3);
 const gameOver = ref(false);
 const currentMapName = ref("");
@@ -438,6 +448,9 @@ async function init() {
       heroLives.value = state.lives;
       maxHeroLives.value = state.maxLives;
       gameOver.value = state.gameOver;
+    },
+    onHeroMoodChange: (mood) => {
+      heroMood.value = mood;
     },
     t,
     debugStore,

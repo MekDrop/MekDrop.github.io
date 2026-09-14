@@ -1,5 +1,6 @@
 export const HERO_ANIMATION = Object.freeze({
   IDLE: "Idle",
+  PAT_ANNOYED: "PatAnnoyed",
   WALK: "Walk",
   RUN: "Run",
   JUMP: "Jump",

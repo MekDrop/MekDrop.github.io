@@ -16,6 +16,8 @@ import {
 import { BridgeRailingKit, PathArrows } from "./objects/path/index.js";
 import { RiverWater } from "./objects/water/index.js";
 import { Hero } from "./objects/hero/index.js";
+import { HeroPatGesture } from "./controls/HeroPatGesture.js";
+import { HERO_MOOD } from "./enum/HeroMood.js";
 import {
   AxeTool,
   KnifeTool,
@@ -207,6 +209,9 @@ export class PlayCanvasRenderer {
   #gateways = [];
   #castle = null;
   #hero = null;
+  #heroPatGesture = null;
+  #onHeroMoodChange = null;
+  #heroMoodVisible = false;
   #debugAxesHud = null;
   #debugFpsHud = null;
   #lifeHud = null;
@@ -272,6 +277,7 @@ export class PlayCanvasRenderer {
     {
       onInteractionChange = null,
       onHeroStateChange = null,
+      onHeroMoodChange = null,
       onInventoryFull = null,
       t = (key) => key,
       debugStore,
@@ -286,6 +292,7 @@ export class PlayCanvasRenderer {
     this.container = container;
     this.#onInteractionChange = onInteractionChange;
     this.#onHeroStateChange = onHeroStateChange;
+    this.#onHeroMoodChange = onHeroMoodChange;
     this.#onInventoryFull = onInventoryFull;
     this.#debugStore = debugStore;
     this.#gameViewStore = gameViewStore;
@@ -616,6 +623,11 @@ export class PlayCanvasRenderer {
       ashes: this.#hero.ashes,
       facing: this.#hero.facingDirection,
       headLookYaw: this.#hero.headLookYaw,
+      mood: this.#hero.mood,
+      buffs: this.#hero.buffs,
+      stats: this.#hero.stats,
+      movement: this.#hero.movementState,
+      patScreenPosition: this.#heroPatScreenPosition(),
       footPlacement: this.#hero.footPlacementState,
       wallet: this.#hero.wallet,
       inventory: this.inventoryState,
@@ -1363,6 +1375,10 @@ export class PlayCanvasRenderer {
       modelLibrary: this.#modelLibrary,
     });
     this.#mapRoot.addChild(this.#hero.entity);
+    this.#heroPatGesture = new HeroPatGesture(this.canvas, {
+      hitTest: (event) => this.#isHeroPatHit(event),
+      pat: () => this.#hero?.pat(),
+    });
     this.#heroVisibility = new HeroVisibilityController({
       pc: this.#pc,
       app: this.#app,
@@ -1976,6 +1992,17 @@ export class PlayCanvasRenderer {
   }
 
   #updateFrame = (deltaTime) => {
+    const mood = this.#hero?.mood;
+    if (mood && mood.kind !== HERO_MOOD.CALM) {
+      this.#heroMoodVisible = true;
+      this.#onHeroMoodChange?.({
+        ...mood,
+        screen: this.#heroPatScreenPosition(),
+      });
+    } else if (this.#heroMoodVisible) {
+      this.#heroMoodVisible = false;
+      this.#onHeroMoodChange?.(null);
+    }
     this.#riverWater?.update(deltaTime, this.#hero, this.#camera?.camera);
     this.#syncInventoryVisibility();
     this.#inventoryHud?.update(
@@ -2059,6 +2086,32 @@ export class PlayCanvasRenderer {
     return this.#camera.camera.worldToScreen(
       new this.#pc.Vec3(position.x, position.y, position.z),
     );
+  }
+
+  #heroPatScreenPosition() {
+    const position = this.#hero?.patPosition;
+    if (!position || !this.#camera?.camera) {
+      return null;
+    }
+    const center = this.#camera.camera.worldToScreen(position);
+    const edge = this.#camera.camera.worldToScreen(
+      position.clone().add(this.#camera.right.clone().mulScalar(0.42)),
+    );
+    return { x: center.x, y: center.y, radius: Math.max(5, Math.abs(edge.x - center.x)) };
+  }
+
+  #isHeroPatHit(event) {
+    if (this.inventoryVisible || !this.#hero?.canBePatted) {
+      return false;
+    }
+    const head = this.#heroPatScreenPosition();
+    const rect = this.canvas.getBoundingClientRect();
+    if (!head || event.clientX < rect.left || event.clientX > rect.right
+      || event.clientY < rect.top || event.clientY > rect.bottom) {
+      return false;
+    }
+    return Math.hypot(event.clientX - rect.left - head.x,
+      (event.clientY - rect.top - head.y) / 0.85) <= head.radius;
   }
 
   #updateThrownInventoryItems(deltaTime) {
@@ -3335,6 +3388,10 @@ export class PlayCanvasRenderer {
   };
 
   #clearScene() {
+    this.#heroPatGesture?.destroy();
+    this.#heroPatGesture = null;
+    this.#heroMoodVisible = false;
+    this.#onHeroMoodChange?.(null);
     this.#finishBannerWindGesture();
     this.#pathArrows?.clear();
     for (const gateway of this.#gateways) gateway.destroy();
