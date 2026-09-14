@@ -2,7 +2,7 @@ import castleDoorsModelUrl from "../../models/castle/doors/castle-doors.glb?url"
 import { CASTLE_DOOR_ANIMATION } from "../../enum/CastleDoorAnimation.js";
 
 const DOOR_THICKNESS = 0.16;
-const DOOR_INSET = 0.28;
+const DOOR_INSET = -0.18;
 const OPEN_SPEED = 3.4;
 const OPEN_DISTANCE = 1.8;
 const CLOSE_INSIDE_DISTANCE = 0.9;
