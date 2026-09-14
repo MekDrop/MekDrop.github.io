@@ -2,6 +2,7 @@ import kingModelUrl from "../../models/castle/royals/king.glb?url";
 import princessModelUrl from "../../models/castle/royals/princess.glb?url";
 import queenModelUrl from "../../models/castle/royals/queen.glb?url";
 import { ROYAL_ANIMATION } from "../../enum/RoyalAnimation.js";
+import { RoyalTears } from "./RoyalTears.js";
 
 const MODEL_URLS = Object.freeze([
   kingModelUrl,
@@ -21,8 +22,9 @@ export class SeatedRoyal {
 
   #entity;
   #performance = null;
+  #tears;
 
-  constructor({ modelUrl = kingModelUrl, modelLibrary }) {
+  constructor({ pc, app, modelUrl = kingModelUrl, modelLibrary }) {
     this.#entity = modelLibrary.instantiate(modelUrl);
     this.#entity.name = "Seated royal";
     const tracks = modelLibrary.getAnimationTracks(modelUrl, [
@@ -42,6 +44,7 @@ export class SeatedRoyal {
       1,
       true,
     );
+    this.#tears = new RoyalTears({ pc, app, royal: this.#entity });
   }
 
   get entity() {
@@ -112,6 +115,15 @@ export class SeatedRoyal {
     this.#entity.anim.baseLayer.play(ROYAL_ANIMATION.WALK_OUT);
   }
 
+  beginCrying({ blendDuration = 0 } = {}) {
+    this.#performance = { phase: "crying" };
+    if (blendDuration > 0) {
+      this.#entity.anim.baseLayer.transition(ROYAL_ANIMATION.CRY, blendDuration);
+    } else {
+      this.#entity.anim.baseLayer.play(ROYAL_ANIMATION.CRY);
+    }
+  }
+
   update(deltaTime) {
     if (this.#performance?.phase !== "walking") {
       return;
@@ -139,15 +151,15 @@ export class SeatedRoyal {
       return;
     }
 
-    performance.phase = "crying";
     const cameraPosition = performance.getCameraPosition?.();
     if (cameraPosition) {
       this.#face(cameraPosition.x - end.x, cameraPosition.z - end.z);
     }
-    this.#entity.anim.baseLayer.transition(ROYAL_ANIMATION.CRY, 0.18);
+    this.beginCrying({ blendDuration: 0.18 });
   }
 
   destroy() {
+    this.#tears?.destroy();
     this.#entity?.destroy();
     this.#entity = null;
     this.#performance = null;

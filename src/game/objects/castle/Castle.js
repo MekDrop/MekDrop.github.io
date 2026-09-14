@@ -402,6 +402,8 @@ export class Castle {
       return;
     }
     const occupant = CastleAudienceRoom.createOccupant({
+      pc: this.#pc,
+      app: this.#app,
       seed: this.#occupantSeed,
       modelLibrary: this.#modelLibrary,
     });

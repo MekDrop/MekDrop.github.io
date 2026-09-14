@@ -34,10 +34,10 @@ export class CastleAudienceRoom {
     return [CastleThrone.modelUrl, ...SeatedRoyal.modelUrls];
   }
 
-  static createOccupant({ seed, modelLibrary }) {
+  static createOccupant({ pc, app, seed, modelLibrary }) {
     const modelUrls = SeatedRoyal.modelUrls;
     const modelUrl = modelUrls[(Number(seed) >>> 0) % modelUrls.length];
-    return new SeatedRoyal({ modelUrl, modelLibrary });
+    return new SeatedRoyal({ pc, app, modelUrl, modelLibrary });
   }
 
   #pc;

@@ -46,6 +46,7 @@ import {
 } from "./collision/index.js";
 import { GameModelLibrary } from "./models/index.js";
 import { CameraPanBounds, HeroVisibilityController } from "./camera/index.js";
+import { CameraOrbitPivot } from "./camera/CameraOrbitPivot.js";
 import {
   DebugAxesHud,
   DebugFpsHud,
@@ -56,6 +57,7 @@ import {
   InventoryHud,
 } from "./ui/index.js";
 import { colorFromHex, shadeHexColor } from "./helpers/colors.js";
+import { RoyalAnimationPreview } from "./debug/RoyalAnimationPreview.js";
 
 const FIXED_HEIGHTS = {
   [TileType.WATER]: 0,
@@ -197,6 +199,7 @@ export class PlayCanvasRenderer {
   #rotation = 0;
   #panX = 0;
   #panZ = 0;
+  #orbitPivot = null;
   #panLimitsEnabled = true;
   #fitCenterX = 0;
   #fitCenterZ = 0;
@@ -208,6 +211,7 @@ export class PlayCanvasRenderer {
   #bridgeRailingKit = null;
   #gateways = [];
   #castle = null;
+  #royalAnimationPreview = null;
   #hero = null;
   #heroPatGesture = null;
   #onHeroMoodChange = null;
@@ -515,6 +519,15 @@ export class PlayCanvasRenderer {
     this.#fitCamera();
     this.#updateCamera();
     this.#heroVisibility?.schedule();
+    if (this.#royalAnimationPreview) {
+      initialViewport = {
+        zoom: 2.5,
+        rotation: 0,
+        panX: 0,
+        panZ: 0,
+        manuallyMoved: true,
+      };
+    }
     if (initialViewport) {
       this.setViewport(initialViewport);
       this.#viewportPersistenceEnabled = true;
@@ -896,6 +909,7 @@ export class PlayCanvasRenderer {
       return;
     }
     this.#heroCameraReturnTransition = null;
+    this.#orbitPivot = null;
     this.#zoom = Math.max(MAP_FIT_ZOOM, zoom);
     this.#rotation = rotation;
     this.#updateFitCenter();
@@ -911,6 +925,7 @@ export class PlayCanvasRenderer {
       return;
     }
     this.#heroCameraReturnTransition = null;
+    this.#orbitPivot = null;
     const previousZoom = this.#zoom;
     const constrainedZoom = Math.max(MAP_FIT_ZOOM, newZoom);
     const before = this.#screenOffsetToGround(pivotX, pivotY, this.#zoom);
@@ -942,6 +957,7 @@ export class PlayCanvasRenderer {
       return;
     }
     this.#heroCameraReturnTransition = null;
+    this.#orbitPivot = null;
     this.#grassSurface?.applyViewInteraction(deltaX, deltaY);
     if (this.#panLimitsEnabled && this.#zoom <= MAP_FIT_ZOOM) {
       this.#panX = this.#fitCenterX;
@@ -963,14 +979,32 @@ export class PlayCanvasRenderer {
       return this.#rotation;
     }
     this.#heroCameraReturnTransition = null;
+    const preserveFocus = this.#zoom > MAP_FIT_ZOOM;
+    if (preserveFocus && !this.#orbitPivot && this.#camera && this.#mapRoot) {
+      this.#orbitPivot = new CameraOrbitPivot(this.#pc).find(
+        this.#camera.camera,
+        this.#mapRoot,
+        this.#mapData,
+        this.container.clientWidth,
+        this.container.clientHeight,
+      );
+    }
     this.#grassSurface?.applyViewInteraction(quarterTurns * 18, 0);
     this.#rotation = (((this.#rotation + quarterTurns) % 4) + 4) % 4;
-    this.#updateCamera();
+    if (preserveFocus && this.#orbitPivot) {
+      const yaw = Math.PI / 4 + this.#rotation * (Math.PI / 2);
+      const offset = (this.#cameraTargetY - this.#orbitPivot.y) / Math.tan(CAMERA_PITCH);
+      this.#panX = this.#orbitPivot.x + Math.sin(yaw) * offset;
+      this.#panZ = this.#orbitPivot.z + Math.cos(yaw) * offset;
+      this.#viewportManuallyMoved = true;
+    }
+    this.#updateCamera(null, preserveFocus);
     this.#heroVisibility?.schedule();
     return this.#rotation;
   }
 
   resize() {
+    this.#orbitPivot = null;
     if (!this.#app || !this.container) {
       return;
     }
@@ -1306,6 +1340,14 @@ export class PlayCanvasRenderer {
     });
     this.#app.root.addChild(this.#cloudField.entity);
     this.#buildCastle();
+    if (import.meta.env.DEV && this.#mapData.royalAnimationPreview) {
+      this.#royalAnimationPreview = new RoyalAnimationPreview({
+        pc: this.#pc,
+        app: this.#app,
+        modelLibrary: this.#modelLibrary,
+      });
+      this.#mapRoot.addChild(this.#royalAnimationPreview.entity);
+    }
     this.#lifeHud?.setCastleLives(
       this.#castle ? MAX_CASTLE_LIVES : 0,
       MAX_CASTLE_LIVES,
@@ -1387,13 +1429,19 @@ export class PlayCanvasRenderer {
       hero: this.#hero.entity,
       getRotation: () => this.#rotation,
       setRotation: (rotation) => {
-        if (this.#gameOverCameraLocked || this.#hero?.isInDeathSequence) {
+        if (
+          this.#gameOverCameraLocked || this.#hero?.isInDeathSequence ||
+          (this.#orbitPivot && this.#viewportManuallyMoved)
+        ) {
           return;
         }
         this.#rotation = rotation;
         this.#updateCamera();
       },
       shouldPreserveRotation: () => {
+        if (this.#orbitPivot && this.#viewportManuallyMoved) {
+          return true;
+        }
         const position = this.#hero?.position;
         if (!position || !this.#pathOverpassCollider) {
           return false;
@@ -2745,6 +2793,7 @@ export class PlayCanvasRenderer {
   }
 
   #handleHeroPositionChange = ({ x, y, z }) => {
+    this.#orbitPivot = null;
     this.#castle?.updateHeroPosition({ x, y, z });
     this.#groundCover?.applyHeroInteraction(
       { x, y, z },
@@ -2844,6 +2893,7 @@ export class PlayCanvasRenderer {
       startPanX: this.#panX,
       startPanZ: this.#panZ,
     };
+    this.#orbitPivot = null;
     return true;
   }
 
@@ -3000,7 +3050,7 @@ export class PlayCanvasRenderer {
     return null;
   };
 
-  #updateCamera(panOrigin = null) {
+  #updateCamera(panOrigin = null, preserveFocus = false) {
     if (!this.#camera || !this.#mapData) {
       return;
     }
@@ -3009,7 +3059,7 @@ export class PlayCanvasRenderer {
       this.#panX = this.#fitCenterX;
       this.#panZ = this.#fitCenterZ;
     }
-    if (this.#panLimitsEnabled && !this.#gameOverCameraLocked) {
+    if (this.#panLimitsEnabled && !this.#gameOverCameraLocked && !preserveFocus) {
       const constrainedPan = this.#cameraPanBounds?.constrain(
         this.#cameraView,
         panOrigin,
@@ -3388,6 +3438,7 @@ export class PlayCanvasRenderer {
   };
 
   #clearScene() {
+    this.#orbitPivot = null;
     this.#heroPatGesture?.destroy();
     this.#heroPatGesture = null;
     this.#heroMoodVisible = false;
@@ -3398,6 +3449,8 @@ export class PlayCanvasRenderer {
     this.#gateways = [];
     this.#castle?.destroy();
     this.#castle = null;
+    this.#royalAnimationPreview?.destroy();
+    this.#royalAnimationPreview = null;
     this.#heroVisibility?.destroy();
     this.#heroVisibility = null;
     this.#floatingIslandMotion = null;
