@@ -17,6 +17,7 @@ export class HeroMovementAction {
   };
   #running = false;
   #lastDirectionTapAt = new Map();
+  #consumedDodgeDirections = new Set();
 
   constructor(renderer) {
     this.#renderer = renderer;
@@ -35,6 +36,9 @@ export class HeroMovementAction {
     if (this.#renderer.inventoryVisible) {
       return;
     }
+    if (this.#consumedDodgeDirections.has(direction)) {
+      return;
+    }
     const wasPressed = this.#directions[direction];
     if (
       !wasPressed &&
@@ -42,14 +46,21 @@ export class HeroMovementAction {
       this.#isDirectionDoubleTap(direction, doubleTapWindow) &&
       this.dodge(direction)
     ) {
+      this.#consumedDodgeDirections.add(direction);
       return;
     }
 
+    if (!wasPressed && !event.repeat) {
+      // Let a backward double-tap resolve before turning toward a normal walk.
+      this.#renderer.heroFacingHoldDuration =
+        direction === "down" ? doubleTapWindow : 0;
+    }
     this.setRunning(event.shiftKey);
     this.setDirection(direction, true);
   }
 
   releaseDirection(direction) {
+    this.#consumedDodgeDirections.delete(direction);
     if (!this.#directions[direction]) {
       return;
     }
@@ -90,6 +101,8 @@ export class HeroMovementAction {
     }
     this.#running = false;
     this.#lastDirectionTapAt.clear();
+    this.#consumedDodgeDirections.clear();
+    this.#renderer.heroFacingHoldDuration = 0;
     this.#applyMovement();
   }
 

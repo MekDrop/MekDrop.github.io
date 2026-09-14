@@ -743,6 +743,12 @@ export class PlayCanvasRenderer {
     return this.#startHeroCameraReturn();
   }
 
+  set heroFacingHoldDuration(duration) {
+    if (this.#hero) {
+      this.#hero.facingHoldDuration = duration;
+    }
+  }
+
   returnCameraToHero() {
     return this.#startHeroCameraReturn(true);
   }

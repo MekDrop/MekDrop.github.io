@@ -238,6 +238,7 @@ export class Hero {
   #tool = null;
   #repelAction = null;
   #dodgeAction = null;
+  #facingHoldRemaining = 0;
   #respawnAction = null;
   #respawnEffect = null;
   #footPlacement = null;
@@ -441,6 +442,10 @@ export class Hero {
       speed,
       running: this.#running && this.#grounded && speed > 0.08,
     };
+  }
+
+  set facingHoldDuration(duration) {
+    this.#facingHoldRemaining = Math.max(0, duration ?? 0);
   }
 
   setMovement(inputX, inputY, running = false) {
@@ -796,6 +801,9 @@ export class Hero {
   }
 
   #dodgeFacingDirection(direction, movementDirection) {
+    if (direction === "down") {
+      return this.facingDirection;
+    }
     if (direction !== "left" && direction !== "right") {
       return movementDirection;
     }
@@ -2660,6 +2668,10 @@ export class Hero {
     if (!this.#entity || !this.#modelRoot) {
       return;
     }
+    this.#facingHoldRemaining = Math.max(
+      0,
+      this.#facingHoldRemaining - deltaTime,
+    );
     const horizontalSpeed = Math.hypot(this.#velocity.x, this.#velocity.z);
     const blocked =
       this.#hasMovementInput &&
@@ -2681,7 +2693,9 @@ export class Hero {
           ? this.#holeRefusalAction.direction
           : blocked
             ? this.#desiredVelocity()
-            : { x: this.#velocity.x, z: this.#velocity.z };
+            : this.#hasMovementInput
+              ? { x: this.#velocity.x, z: this.#velocity.z }
+              : this.facingDirection;
     const locksDodgeFacing =
       this.#dodgeAction?.direction === "left" ||
       this.#dodgeAction?.direction === "right";
@@ -2691,6 +2705,7 @@ export class Hero {
       !burning &&
       !this.#respawnAction &&
       !this.#repelAction &&
+      this.#facingHoldRemaining === 0 &&
       Math.hypot(facingVelocity.x, facingVelocity.z) > 0.08
     ) {
       const targetYaw =
