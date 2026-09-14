@@ -79,24 +79,7 @@ export class DevWireframeInspector {
     this.#schedulePick();
   }
 
-  destroy() {
-    this.#disconnect();
-    this.#generation += 1;
-    this.#cancelScheduledPick();
-    this.#pickPending = false;
-    this.#clearSelection();
-    this.#picker?.destroy();
-    this.#picker = null;
-    this.#solidMaterial?.destroy();
-    this.#solidMaterial = null;
-    this.#wireframeMaterial?.destroy();
-    this.#wireframeMaterial = null;
-    this.#camera = null;
-    this.#app = null;
-    this.#canvas = null;
-  }
-
-  #disconnect() {
+  disconnect() {
     if (!this.#connected) {
       return;
     }
@@ -120,6 +103,26 @@ export class DevWireframeInspector {
       this.#handleVisibilityChange,
     );
     this.#connected = false;
+    this.#pointer = null;
+    this.#coordinatePrintPointer = null;
+    this.#deactivate();
+  }
+
+  destroy() {
+    this.disconnect();
+    this.#generation += 1;
+    this.#cancelScheduledPick();
+    this.#pickPending = false;
+    this.#clearSelection();
+    this.#picker?.destroy();
+    this.#picker = null;
+    this.#solidMaterial?.destroy();
+    this.#solidMaterial = null;
+    this.#wireframeMaterial?.destroy();
+    this.#wireframeMaterial = null;
+    this.#camera = null;
+    this.#app = null;
+    this.#canvas = null;
   }
 
   #handlePointerDown = (event) => {

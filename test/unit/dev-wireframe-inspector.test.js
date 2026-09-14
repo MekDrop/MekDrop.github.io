@@ -217,6 +217,50 @@ test("restores the mesh when the pointer leaves the canvas", async () => {
   inspector.destroy();
 });
 
+test("restores the mesh and ignores Alt input after disconnecting", async () => {
+  const originalMaterial = new FakeMaterial();
+  const meshInstance = {
+    material: originalMaterial,
+    mesh: {},
+    renderStyle: 0,
+  };
+  FakePicker.selection = [meshInstance];
+  const inspector = new DevWireframeInspector({
+    pc,
+    app: { scene: {} },
+    canvas,
+    camera: {},
+  });
+  inspector.connect();
+
+  canvas.dispatch("pointermove", {
+    altKey: true,
+    clientX: 120,
+    clientY: 140,
+    pointerType: "mouse",
+  });
+  fakeWindow.flushAnimationFrames();
+  await Promise.resolve();
+  await Promise.resolve();
+
+  assert.equal(meshInstance.renderStyle, pc.RENDERSTYLE_WIREFRAME);
+
+  inspector.disconnect();
+  fakeWindow.dispatch("keydown", {
+    code: "AltLeft",
+    key: "Alt",
+    preventDefault() {},
+  });
+  fakeWindow.flushAnimationFrames();
+  await Promise.resolve();
+  await Promise.resolve();
+
+  assert.equal(meshInstance.renderStyle, 0);
+  assert.equal(meshInstance.material, originalMaterial);
+
+  inspector.destroy();
+});
+
 test("prints object coordinates on an Alt+primary mouse click", async () => {
   const messages = [];
   console.info = (...args) => messages.push(args);

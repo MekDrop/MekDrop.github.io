@@ -473,7 +473,9 @@ export class PlayCanvasRenderer {
         canvas: this.canvas,
         camera: this.#camera.camera,
       });
-      this.#devWireframeInspector.connect();
+      if (this.#debugStore.hasAny) {
+        this.#devWireframeInspector.connect();
+      }
     }
   }
 
@@ -518,6 +520,11 @@ export class PlayCanvasRenderer {
     this.debugAxesHudVisible = this.#debugStore.debugAxesHud;
     this.debugFpsHudVisible = this.#debugStore.debugFpsHud;
     this.panLimitsEnabled = !this.#debugStore.hasAny;
+    if (this.#debugStore.hasAny) {
+      this.#devWireframeInspector?.connect();
+    } else {
+      this.#devWireframeInspector?.disconnect();
+    }
   }
 
   set pathArrowsVisible(visible) {
