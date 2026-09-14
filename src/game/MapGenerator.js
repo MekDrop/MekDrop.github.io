@@ -76,7 +76,7 @@ export class MapGenerator {
   static #OVERPASS_HALF_STEP = 0.5;
   static #OVERPASS_DECK_THICKNESS = 0.24;
   static #OVERPASS_MIN_CLEARANCE = 1.6;
-  static #MIN_ARROW_GATE_CLEARANCE = 2;
+  static #MIN_ARROW_GATE_CLEARANCE = 0.5;
   static #MIN_ARROW_CASTLE_CLEARANCE = 4;
   static #TERRAIN_BRIDGE_DIP_CHANCE = 60;
   static #TERRAIN_BRIDGE_DIP_ELEVATION = this.#PATH_HEIGHT - 1;
