@@ -36,6 +36,7 @@ export class GameControls {
     );
     this.#keyupActions = new Map(
       this.#entriesFor([
+        "toggleRecording",
         "regenerateMap",
         "run",
         "moveUp",
@@ -122,6 +123,12 @@ export class GameControls {
 
   #handleKeydown = (event) => {
     if (this.#isEditable(event.target)) {
+      return;
+    }
+
+    // Print Screen may only emit keyup on Windows. Toggle on release once.
+    if (this.#matchesKey(event, this.#config().toggleRecording)) {
+      this.#cancelKeyboardEvent(event);
       return;
     }
 

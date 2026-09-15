@@ -43,6 +43,10 @@ form:
   close: Close
   ok: OK
 game:
+  recording:
+    active: Recording game. Press Ctrl + Print Screen to stop and save.
+    unsupported: MP4 recording is not supported by this browser. Please try another browser.
+    failed: Could not record the game. Please try again.
   buffs:
     affection: Affection
     overstimulated: Overstimulated

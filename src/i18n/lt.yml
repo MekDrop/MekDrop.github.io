@@ -43,6 +43,10 @@ form:
   close: Uždaryti
   ok: Gerai
 game:
+  recording:
+    active: Įrašomas žaidimas. Paspauskite Ctrl + Print Screen, kad sustabdytumėte ir išsaugotumėte.
+    unsupported: Ši naršyklė nepalaiko MP4 įrašymo. Pabandykite kitą naršyklę.
+    failed: Nepavyko įrašyti žaidimo. Bandykite dar kartą.
   buffs:
     affection: Švelnumas
     overstimulated: Per daug dėmesio

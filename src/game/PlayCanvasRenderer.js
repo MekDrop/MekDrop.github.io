@@ -1,3 +1,4 @@
+import { GameRecorder } from "./recording/GameRecorder.js";
 import castleFireParticleUrl from "src/assets/game/effects/castle-fire-particle.png?url";
 import earthSideUrl from "src/assets/game/tiles/earth-side.png";
 import grassSideUrl from "src/assets/game/tiles/grass-side.png";
@@ -281,11 +282,16 @@ export class PlayCanvasRenderer {
   #translate = (key) => key;
   #uiTheme = null;
   #destroyed = false;
+  #recorder = null;
+  #onRecordingStateChange;
+  #onRecordingError;
 
   constructor(
     canvas,
     container,
     {
+      onRecordingStateChange = null,
+      onRecordingError = null,
       onInteractionChange = null,
       onHeroStateChange = null,
       onHeroMoodChange = null,
@@ -299,6 +305,8 @@ export class PlayCanvasRenderer {
       enableDevWireframeInspector = false,
     } = {},
   ) {
+    this.#onRecordingStateChange = onRecordingStateChange;
+    this.#onRecordingError = onRecordingError;
     this.canvas = canvas;
     this.container = container;
     this.#onInteractionChange = onInteractionChange;
@@ -366,6 +374,12 @@ export class PlayCanvasRenderer {
     this.#cloudLayer = new pc.Layer({ name: "Cloud backdrop" });
     this.#app.scene.layers.insert(this.#cloudLayer, 0);
     this.#app.on("update", this.#updateFrame);
+    this.#recorder = new GameRecorder({
+      app: this.#app,
+      canvas: this.canvas,
+      onStateChange: this.#onRecordingStateChange,
+      onError: this.#onRecordingError,
+    });
     this.#modelLibrary = new GameModelLibrary({ pc, app: this.#app });
     this.#cubeMeshes = this.#createCubeMeshes();
     this.#pathArrows = new PathArrows({
@@ -1035,12 +1049,18 @@ export class PlayCanvasRenderer {
     if (!this.#gameOverCameraLocked) this.#heroVisibility?.schedule();
   }
 
+  async toggleRecording() {
+    await this.#recorder?.toggle();
+  }
+
   get canvasElement() {
     return this.canvas;
   }
 
   destroy() {
     this.#destroyed = true;
+    this.#recorder?.destroy();
+    this.#recorder = null;
     this.#stopDebugStoreSubscription?.();
     this.#stopDebugStoreSubscription = null;
     if (this.#viewportSaveTimer !== null) {

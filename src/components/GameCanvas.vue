@@ -2,6 +2,8 @@
   <div
     ref="container"
     class="background-canvas fit"
+    :class="{ 'background-canvas--recording': recordingState === GAME_RECORDING_STATE.RECORDING }"
+    :data-recording-state="recordingState"
     :data-game-ready="gameReady"
     :data-graphics-backend="graphicsBackend"
     :data-game-fps="debugVisible ? debugFramesPerSecond : undefined"
@@ -27,6 +29,9 @@
             })
       "
     />
+    <span class="q-sr-only" role="status" aria-live="polite">
+      {{ recordingState === GAME_RECORDING_STATE.RECORDING ? t("game.recording.active") : "" }}
+    </span>
     <hero-mood-status :mood="heroMood" />
     <Transition name="interaction-prompt">
       <div
@@ -65,6 +70,31 @@
   z-index: 0;
   background: #030604;
   pointer-events: auto;
+}
+
+.background-canvas--recording::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  box-shadow: inset 0 0 0 3px var(--q-negative);
+  animation: recording-border-pulse 1.8s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes recording-border-pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.25;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .background-canvas--recording::after {
+    animation: none;
+  }
 }
 
 .background-canvas__surface {
@@ -174,6 +204,9 @@ import { generateMap } from "src/game/MapGenerator.js";
 import { PlayCanvasRenderer } from "src/game/PlayCanvasRenderer.js";
 import { GameControls } from "src/game/GameControls.js";
 import { CloseModalAction } from "src/actions/CloseModalAction.js";
+import { ToggleRecordingAction } from "src/game/actions/ToggleRecordingAction.js";
+import { GAME_RECORDING_STATE } from "src/game/enum/GameRecordingState.js";
+import { RecordingVideoEncoderUnavailableError } from "src/game/errors/recording/index.js";
 import { CopyScreenshotAction } from "src/game/actions/CopyScreenshotAction.js";
 import { HeroDirectionAction } from "src/game/actions/HeroDirectionAction.js";
 import { HeroJumpAction } from "src/game/actions/HeroJumpAction.js";
@@ -199,6 +232,7 @@ import { useHeroConfigurationStore } from "src/stores/hero-configuration-store.j
 const container = ref(null);
 const canvas = ref(null);
 const gameReady = ref(false);
+const recordingState = ref(GAME_RECORDING_STATE.IDLE);
 const graphicsBackend = ref("initializing");
 const showGraphicsFallbackDialog = ref(false);
 const debugFramesPerSecond = ref(0);
@@ -258,6 +292,17 @@ function reportRuntimeError(error) {
     attrs: {
       role: "alert",
     },
+  });
+}
+
+function reportRecordingError(error) {
+  console.error("[GameCanvas] Recording failed.", error);
+  Notify.create({
+    type: "negative",
+    position: "bottom-right",
+    message: t(error instanceof RecordingVideoEncoderUnavailableError
+      ? "game.recording.unsupported" : "game.recording.failed"),
+    timeout: 6000,
   });
 }
 
@@ -444,6 +489,10 @@ async function init() {
   });
 
   const activeRenderer = new PlayCanvasRenderer(canvas.value, container.value, {
+    onRecordingStateChange: (state) => {
+      recordingState.value = state;
+    },
+    onRecordingError: reportRecordingError,
     onInteractionChange: (target) => {
       interactionSuggestion?.update(target);
     },
@@ -546,6 +595,7 @@ async function init() {
     rotateView: rotateViewAction,
     rotateAnticlockwise: rotateViewAction,
     copyScreenshot: new CopyScreenshotAction(renderer),
+    toggleRecording: new ToggleRecordingAction(renderer, reportRecordingError),
     toggleArrows: new ToggleArrowsAction(
       debugStore,
       undefined,
