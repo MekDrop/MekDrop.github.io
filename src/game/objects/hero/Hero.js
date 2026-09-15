@@ -528,6 +528,10 @@ export class Hero {
     );
   }
 
+  get isRespawning() {
+    return this.#respawnAction !== null;
+  }
+
   get drowning() {
     return this.#drowningAction !== null;
   }

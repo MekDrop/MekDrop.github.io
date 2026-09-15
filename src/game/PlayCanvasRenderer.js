@@ -179,6 +179,7 @@ const HERO_VIEWPORT_MARGIN = 32;
 const HERO_CAMERA_CENTER_HEIGHT = 0.85;
 const HERO_BRIDGE_VISIBILITY_RADIUS = 0.5;
 const HERO_CAMERA_RETURN_DURATION = 0.45;
+const HERO_RESPAWN_CAMERA_RETURN_DURATION = 0.32;
 const CAMERA_TARGET_HEIGHT = 3.2;
 const GAME_OVER_FALLBACK_ZOOM = 1.75;
 const GAME_OVER_CAMERA_DURATION = 0.8;
@@ -638,6 +639,7 @@ export class PlayCanvasRenderer {
       drowning: this.#hero.drowning,
       burning: this.#hero.burning,
       ashes: this.#hero.ashes,
+      respawning: this.#hero.isRespawning,
       facing: this.#hero.facingDirection,
       headLookYaw: this.#hero.headLookYaw,
       mood: this.#hero.mood,
@@ -2807,7 +2809,7 @@ export class PlayCanvasRenderer {
     );
     this.#buriedTreasure?.applyHeroPosition({ x, y, z });
     this.#updateInteractionTarget({ x, y, z });
-    if (this.#gameOverCameraLocked || this.#hero?.isInDeathSequence) {
+    if (this.#gameOverCameraLocked) {
       return;
     }
     const heroWorldPosition = this.#hero.entity.getPosition();
@@ -2832,6 +2834,22 @@ export class PlayCanvasRenderer {
     );
     const heroIsOutOfBounds =
       boundedX !== screenPosition.x || boundedY !== screenPosition.y;
+
+    if (this.#hero?.isRespawning) {
+      if (heroIsOutOfBounds) {
+        this.#startHeroCameraReturn(false, {
+          allowAutomatic: true,
+          duration: HERO_RESPAWN_CAMERA_RETURN_DURATION,
+          preserveFocus: true,
+        });
+      }
+      this.#heroVisibility?.schedule();
+      return;
+    }
+
+    if (this.#hero?.isInDeathSequence) {
+      return;
+    }
 
     if (this.#viewportManuallyMoved) {
       if (!heroIsOutOfBounds) {
@@ -2860,11 +2878,18 @@ export class PlayCanvasRenderer {
     this.#heroVisibility?.schedule();
   };
 
-  #startHeroCameraReturn(force = false) {
+  #startHeroCameraReturn(
+    force = false,
+    {
+      allowAutomatic = false,
+      duration = HERO_CAMERA_RETURN_DURATION,
+      preserveFocus = false,
+    } = {},
+  ) {
     if (
       this.#heroCameraReturnTransition ||
       this.#gameOverCameraLocked ||
-      !this.#viewportManuallyMoved ||
+      (!allowAutomatic && !this.#viewportManuallyMoved) ||
       !this.#hero ||
       !this.#camera
     ) {
@@ -2894,6 +2919,8 @@ export class PlayCanvasRenderer {
       elapsed: 0,
       startPanX: this.#panX,
       startPanZ: this.#panZ,
+      duration,
+      preserveFocus,
     };
     this.#orbitPivot = null;
     return true;
@@ -2912,7 +2939,7 @@ export class PlayCanvasRenderer {
     transition.elapsed += Math.max(0, deltaTime);
     const progress = Math.min(
       1,
-      transition.elapsed / HERO_CAMERA_RETURN_DURATION,
+      transition.elapsed / transition.duration,
     );
     const easedProgress = progress * progress * (3 - 2 * progress);
     const heroWorldPosition = this.#hero.entity.getPosition();
@@ -2926,7 +2953,7 @@ export class PlayCanvasRenderer {
       this.#heroCameraReturnTransition = null;
       this.#viewportManuallyMoved = false;
     }
-    this.#updateCamera();
+    this.#updateCamera(null, transition.preserveFocus);
     this.#heroVisibility?.schedule();
   }
 

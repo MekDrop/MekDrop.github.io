@@ -1,6 +1,8 @@
 import { HERO_ANIMATION } from "../../../src/game/enum/HeroAnimation.js";
+import { POINTER_TYPE } from "../../../src/game/enum/PointerType.js";
 
 const GRASS_SURFACE_LIFT = 0.14;
+const RESPAWN_CAMERA_DRAG_DISTANCE = 100000;
 
 function loadScenario(scenario) {
   cy.window().then((window) => {
@@ -24,6 +26,42 @@ function stopMoving() {
 function move(inputX, inputY) {
   cy.window().then((window) => {
     window.gameMovementTest.move(inputX, inputY);
+  });
+}
+
+function dragCamera(deltaX, deltaY) {
+  cy.get(".background-canvas").then(($viewport) => {
+    const viewport = $viewport[0];
+    const rect = viewport.getBoundingClientRect();
+    const pointerId = 1;
+    const clientX = rect.left + rect.width / 2;
+    const clientY = rect.top + rect.height / 2;
+
+    cy.wrap($viewport)
+      .trigger("pointerdown", {
+        pointerId,
+        pointerType: POINTER_TYPE.MOUSE,
+        button: 0,
+        buttons: 1,
+        clientX,
+        clientY,
+      })
+      .trigger("pointermove", {
+        pointerId,
+        pointerType: POINTER_TYPE.MOUSE,
+        button: 0,
+        buttons: 1,
+        clientX: clientX + deltaX,
+        clientY: clientY + deltaY,
+      })
+      .trigger("pointerup", {
+        pointerId,
+        pointerType: POINTER_TYPE.MOUSE,
+        button: 0,
+        buttons: 0,
+        clientX: clientX + deltaX,
+        clientY: clientY + deltaY,
+      });
   });
 }
 
@@ -447,6 +485,63 @@ describe("Hero movement on a predefined terrain map", { testIsolation: false }, 
       expect(state.ashes).to.equal(false);
       expect(state.position.x).to.be.closeTo(-3, 0.08);
       expect(state.position.y).to.be.closeTo(2 + GRASS_SURFACE_LIFT, 0.03);
+    });
+  });
+
+  it("animates the camera to the respawn point after dying off-screen", () => {
+    loadScenario("lava-river");
+    cy.window().then((window) => {
+      window.gameCameraTest.setZoom(6);
+      window.gameMovementTest.jump();
+      window.gameMovementTest.move(1, -1);
+    });
+    expectState((state) => {
+      expect(state.ashes).to.equal(true);
+    });
+    cy.window().then((window) => {
+      window.gameMovementTest.move(0, 0);
+    });
+    dragCamera(RESPAWN_CAMERA_DRAG_DISTANCE, RESPAWN_CAMERA_DRAG_DISTANCE);
+
+    let startViewport;
+    cy.window().then((window) => {
+      startViewport = window.gameCameraTest.state().viewport;
+    });
+
+    cy.window({ timeout: 8000 }).should((window) => {
+      const state = window.gameCameraTest.state();
+      expect(state.hero.respawning, JSON.stringify(state)).to.equal(true);
+      expect(state.cameraReturningToHero, JSON.stringify(state)).to.equal(true);
+    });
+    cy.window().then((window) => {
+      const state = window.gameCameraTest.state();
+      const currentViewport = state.viewport;
+      const currentDistance = Math.hypot(
+        state.hero.position.x - currentViewport.panX,
+        state.hero.position.z - currentViewport.panZ,
+      );
+      expect(currentDistance).to.be.greaterThan(0.1);
+    });
+    cy.window({ timeout: 10000 }).should((window) => {
+      const state = window.gameCameraTest.state();
+      const heroScreenPosition = state.hero.patScreenPosition;
+      expect(state.cameraReturningToHero, JSON.stringify(state)).to.equal(false);
+      expect(state.viewport.manuallyMoved, JSON.stringify(state)).to.equal(false);
+      expect(
+        Math.hypot(
+          state.viewport.panX - startViewport.panX,
+          state.viewport.panZ - startViewport.panZ,
+        ),
+      ).to.be.greaterThan(0.1);
+      expect(heroScreenPosition, JSON.stringify(state)).to.not.equal(null);
+      expect(heroScreenPosition.x, JSON.stringify(state)).to.be.within(
+        heroScreenPosition.radius,
+        state.visibility.viewportWidth - heroScreenPosition.radius,
+      );
+      expect(heroScreenPosition.y, JSON.stringify(state)).to.be.within(
+        heroScreenPosition.radius,
+        state.visibility.viewportHeight - heroScreenPosition.radius,
+      );
     });
   });
 });
