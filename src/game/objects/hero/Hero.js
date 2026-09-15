@@ -2998,6 +2998,8 @@ export class Hero {
       for (const morph of this.#faceMorphs) {
         morph.setWeight("HappyPat", 0);
         morph.setWeight("AngryPat", 0);
+        morph.setWeight("AnnoyedPat", 0);
+        morph.setWeight("Blink", 0);
       }
     }
     if (drowning) {
@@ -3176,6 +3178,10 @@ export class Hero {
         }
         this.#leftEyeEntity?.setLocalScale(1, 1, 1);
         this.#rightEyeEntity?.setLocalScale(1, 1, 1);
+        // Authored morphs already follow the faceted face. Rotating the fitted
+        // eye meshes would pull their edges away from that surface.
+        this.#leftEyeEntity?.setLocalEulerAngles(0, 0, 0);
+        this.#rightEyeEntity?.setLocalEulerAngles(0, 0, 0);
         this.#mouthEntity?.setLocalScale(1, 1, 1);
       }
       this.#headEntity?.setLocalEulerAngles(
@@ -3321,7 +3327,11 @@ export class Hero {
     this.#mouthEntity = this.#findModelEntity("Mouth");
     this.#leftEyeEntity = this.#findModelEntity("Eye");
     this.#rightEyeEntity = this.#findModelEntity("Eye.001");
-    this.#faceMorphs = [this.#mouthEntity, this.#leftEyeEntity, this.#rightEyeEntity]
+    this.#faceMorphs = [
+      this.#mouthEntity, this.#leftEyeEntity, this.#rightEyeEntity,
+      this.#findModelEntity("Left cyan eyebrow"),
+      this.#findModelEntity("Right cyan eyebrow"),
+    ]
       .flatMap((entity) => entity?.render?.meshInstances ?? [])
       .map((mesh) => mesh.morphInstance)
       .filter((morph) => morph?.morph.targets.some((target) => target.name === "HappyPat"));

@@ -60,6 +60,8 @@ import {
 } from "./ui/index.js";
 import { colorFromHex, shadeHexColor } from "./helpers/colors.js";
 import { RoyalAnimationPreview } from "./debug/RoyalAnimationPreview.js";
+import { HeroAnimationPreview } from "./debug/HeroAnimationPreview.js";
+import { HeroAnimationSign } from "./debug/HeroAnimationSign.js";
 
 const FIXED_HEIGHTS = {
   [TileType.WATER]: 0,
@@ -215,6 +217,7 @@ export class PlayCanvasRenderer {
   #gateways = [];
   #castle = null;
   #royalAnimationPreview = null;
+  #heroAnimationPreview = null;
   #hero = null;
   #heroPatGesture = null;
   #onHeroMoodChange = null;
@@ -452,6 +455,7 @@ export class PlayCanvasRenderer {
       this.#createMaterials(),
       this.#modelLibrary.load([
         Hero.modelUrl,
+        ...(import.meta.env.DEV ? [HeroAnimationSign.modelUrl] : []),
         AxeTool.modelUrl,
         KnifeTool.modelUrl,
         ShovelTool.modelUrl,
@@ -527,6 +531,15 @@ export class PlayCanvasRenderer {
     if (this.#royalAnimationPreview) {
       initialViewport = {
         zoom: 2.5,
+        rotation: 0,
+        panX: 0,
+        panZ: 0,
+        manuallyMoved: true,
+      };
+    }
+    if (this.#heroAnimationPreview) {
+      initialViewport = {
+        zoom: 1.5,
         rotation: 0,
         panX: 0,
         panZ: 0,
@@ -1357,6 +1370,15 @@ export class PlayCanvasRenderer {
         modelLibrary: this.#modelLibrary,
       });
       this.#mapRoot.addChild(this.#royalAnimationPreview.entity);
+    }
+    if (import.meta.env.DEV && this.#mapData.heroAnimationPreview) {
+      this.#heroAnimationPreview = new HeroAnimationPreview({
+        pc: this.#pc,
+        app: this.#app,
+        modelLibrary: this.#modelLibrary,
+        canvas: this.canvas,
+      });
+      this.#mapRoot.addChild(this.#heroAnimationPreview.entity);
     }
     this.#lifeHud?.setCastleLives(
       this.#castle ? MAX_CASTLE_LIVES : 0,
@@ -3481,6 +3503,8 @@ export class PlayCanvasRenderer {
     this.#castle = null;
     this.#royalAnimationPreview?.destroy();
     this.#royalAnimationPreview = null;
+    this.#heroAnimationPreview?.destroy();
+    this.#heroAnimationPreview = null;
     this.#heroVisibility?.destroy();
     this.#heroVisibility = null;
     this.#floatingIslandMotion = null;
