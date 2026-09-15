@@ -1430,6 +1430,14 @@ export class PlayCanvasRenderer {
         protectAtPanLimit: true,
         root: gateway.entity,
       })),
+      ...[this.#heroAnimationPreview, this.#royalAnimationPreview].flatMap(
+        (preview) => (preview?.entity.children ?? []).map((root) => ({
+          name: `animation-preview-${root.name}`,
+          protectAtPanLimit: true,
+          centerReachableAtEveryZoom: true,
+          root,
+        })),
+      ),
       { name: "vegetation", root: this.#vegetation?.entity },
       { name: "ground-cover", root: this.#groundCover?.entity },
     ].filter(({ root }) => root);
