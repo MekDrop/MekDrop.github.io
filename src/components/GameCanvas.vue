@@ -30,7 +30,7 @@
     <hero-mood-status :mood="heroMood" />
     <Transition name="interaction-prompt">
       <div
-        v-if="interactionTarget"
+        v-if="interactionTarget && interactionPromptsVisible"
         class="interaction-prompt"
         role="status"
         aria-live="polite"
@@ -203,6 +203,7 @@ const graphicsBackend = ref("initializing");
 const showGraphicsFallbackDialog = ref(false);
 const debugFramesPerSecond = ref(0);
 const interactionTarget = ref(null);
+const interactionPromptsVisible = ref(true);
 const heroLives = ref(3);
 const heroMood = ref(null);
 const maxHeroLives = ref(3);
@@ -321,6 +322,8 @@ function mapRouteLocation(mapName) {
 function updateCurrentMap(generatedMap) {
   mapData = generatedMap;
   currentMapName.value = generatedMap.mapName;
+  interactionPromptsVisible.value =
+    !generatedMap.heroAnimationPreview && !generatedMap.royalAnimationPreview;
   installMovementTestDriver();
 }
 

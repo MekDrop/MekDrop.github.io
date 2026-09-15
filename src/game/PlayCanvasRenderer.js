@@ -1433,6 +1433,9 @@ export class PlayCanvasRenderer {
   }
 
   #buildHero() {
+    if (this.#mapData.heroAnimationPreview || this.#mapData.royalAnimationPreview) {
+      return;
+    }
     this.#hero = new Hero({
       pc: this.#pc,
       app: this.#app,
@@ -3442,6 +3445,7 @@ export class PlayCanvasRenderer {
 
   #updateInteractionTarget() {
     if (
+      !this.#hero ||
       this.inventoryVisible ||
       this.#hero?.isCollecting ||
       this.#hero?.isReacting
