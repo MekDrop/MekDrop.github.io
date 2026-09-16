@@ -58,12 +58,10 @@ export class CastleStairs {
         continue;
       }
 
-      let inward;
-      if (surface.side === "WEST") inward = x - surface.outerEdge;
-      else if (surface.side === "EAST") inward = surface.outerEdge - x;
-      else if (surface.side === "NORTH") inward = z - surface.outerEdge;
-      else inward = surface.outerEdge - z;
-      if (inward < 0 || inward > surface.run) continue;
+      const inward = this.#inwardAt(surface, x, z);
+      if (inward < 0 || inward > surface.run) {
+        continue;
+      }
 
       return (
         surface.approachElevation +
@@ -71,6 +69,44 @@ export class CastleStairs {
       );
     }
     return null;
+  }
+
+  blocksMovementAt(x, z, radius = 0, elevation = -Infinity, stepClearance = 0) {
+    for (const surface of this.#surfaces) {
+      const across = surface.vertical ? z : x;
+      const inward = this.#inwardAt(surface, x, z);
+      const nearestAcross = Math.max(
+        surface.acrossStart,
+        Math.min(surface.acrossEnd, across),
+      );
+      const nearestInward = Math.max(0, Math.min(surface.run, inward));
+      const distanceSquared =
+        (across - nearestAcross) ** 2 + (inward - nearestInward) ** 2;
+      if (distanceSquared > radius * radius) {
+        continue;
+      }
+      // Sample the nearest ramp point. Sampling the far edge of the body radius
+      // would turn an ordinary ascending footstep into a collision with a wall.
+      const height = surface.approachElevation +
+        (nearestInward / surface.run) * surface.rise;
+      if (height > elevation + stepClearance + 0.000001) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  #inwardAt(surface, x, z) {
+    if (surface.side === "WEST") {
+      return x - surface.outerEdge;
+    }
+    if (surface.side === "EAST") {
+      return surface.outerEdge - x;
+    }
+    if (surface.side === "NORTH") {
+      return z - surface.outerEdge;
+    }
+    return surface.outerEdge - z;
   }
 
   destroy() {

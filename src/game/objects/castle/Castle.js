@@ -1,5 +1,6 @@
 import { CastleBanner } from "./CastleBanner.js";
 import { CastleAudienceRoom } from "./CastleAudienceRoom.js";
+import { CastleLeisureScene } from "./CastleLeisureScene.js";
 import { CastleDoor } from "./CastleDoor.js";
 import { CastleDoorArch } from "./CastleDoorArch.js";
 import { CastleDoorTexture } from "./CastleDoorTexture.js";
@@ -124,6 +125,7 @@ export class Castle {
       CastleDoorArch.modelUrl,
       CastleStairs.modelUrl,
       ...CastleAudienceRoom.modelUrls,
+      ...CastleLeisureScene.modelUrls,
     ];
   }
 
@@ -148,6 +150,7 @@ export class Castle {
   #roofs = null;
   #stairs = null;
   #audienceRoom = null;
+  #leisureScene = null;
   #groundCollisionColumns = [];
   #groundCollisionKeys = new Set();
   #animatedDoors = [];
@@ -214,6 +217,21 @@ export class Castle {
     return false;
   }
 
+  blocksMovementAt(x, z, radius = 0, elevation = -Infinity, stepClearance = 0) {
+    // The room floor supports walking; it must not cancel its solid furniture,
+    // walls, or closed doors when the collision world queries this aggregate.
+    if (this.intersectsGroundFootprint(x, z, radius)) {
+      return true;
+    }
+    return this.#stairs?.blocksMovementAt(
+      x,
+      z,
+      radius,
+      elevation,
+      stepClearance,
+    ) ?? false;
+  }
+
   surfaceHeightAt(x, z) {
     return (
       this.#stairs?.surfaceHeightAt(x, z) ??
@@ -226,6 +244,7 @@ export class Castle {
     for (const door of this.#animatedDoors) {
       door.updateHeroPosition(position);
     }
+    this.#leisureScene?.updateHeroPosition(position);
     this.#syncAudienceRoomVisibility();
     this.#audienceRoom?.updateHeroPosition(position);
   }
@@ -262,6 +281,8 @@ export class Castle {
   }
 
   beginGameOver(getCameraPosition) {
+    this.#leisureScene?.stop();
+    this.#syncAudienceRoomVisibility();
     for (const door of this.#animatedDoors) door.openTemporarily(10);
     return this.#audienceRoom?.beginGameOver(getCameraPosition) ?? null;
   }
@@ -294,6 +315,8 @@ export class Castle {
     this.#doorArches = [];
     this.#audienceRoom?.destroy();
     this.#audienceRoom = null;
+    this.#leisureScene?.destroy();
+    this.#leisureScene = null;
     this.#fire?.destroy();
     this.#fire = null;
     this.#banners?.destroy();
@@ -323,6 +346,7 @@ export class Castle {
   }
 
   #update = (deltaTime) => {
+    this.#leisureScene?.update(deltaTime);
     for (const door of this.#animatedDoors) door.update(deltaTime);
     this.#audienceRoom?.update(deltaTime);
     this.#syncAudienceRoomVisibility();
@@ -330,6 +354,7 @@ export class Castle {
 
   #syncAudienceRoomVisibility() {
     if (this.#audienceRoom) {
+      this.#audienceRoom.royalVisible = !this.#leisureScene?.active;
       this.#audienceRoom.entranceVisible =
         this.#animatedDoors[0]?.revealsInterior ?? false;
     }
@@ -1013,6 +1038,28 @@ export class Castle {
     }
     this.#createInstancedBatches(batches);
     this.#createAnimatedDoors();
+    if (audienceOpening) {
+      const gatehouseDepth = Math.min(towerSpan, castleDepth);
+      const doorStart = Math.floor(
+        (audienceOpening.start + audienceOpening.end - 4) / 2,
+      );
+      const terracePosition = localToWorld(gatehouseDepth - 0.68, doorStart + 1.5);
+      this.#leisureScene = new CastleLeisureScene({
+        pc: this.#pc,
+        modelLibrary: this.#modelLibrary,
+        seed: this.#occupantSeed,
+        position: this.#position,
+        doors: this.#doors,
+        layout: {
+          ...terracePosition,
+          y: baseY + (wallHeight + 1) * CASTLE_BLOCK_SIZE,
+          yaw: { WEST: 90, EAST: -90, NORTH: 0, SOUTH: 180 }[primarySide],
+          depth: (castleDepth - gatehouseDepth - 1) * CASTLE_BLOCK_SIZE,
+          width: this.#interiorWidth,
+        },
+      });
+      this.#entity.addChild(this.#leisureScene.entity);
+    }
   }
 
   #createAnimatedDoors() {
@@ -1656,7 +1703,7 @@ export class Castle {
           blockY += 1
         ) {
           placeBoundaryBlock(depth, horizontal, blockY, "accent");
-          if (depth === 0) {
+          if (depth === 0 && !isRoofDoorOpening(gatehouseDepth - 1, horizontal, blockY)) {
             placeBoundaryBlock(
               gatehouseDepth - 1,
               horizontal,
@@ -1773,40 +1820,6 @@ export class Castle {
         }
       }
     }
-
-    const roofDoorDepth = gatehouseDepth - 0.68;
-    const roofDoorCenterY = roofDoorBase + (roofDoorHeight - 1) / 2;
-    for (let leaf = 0; leaf < 2; leaf += 1) {
-      placeBoundaryDecoration(
-        roofDoorDepth,
-        roofDoorStart + 0.5 + leaf * 2,
-        roofDoorCenterY,
-        0.18,
-        roofDoorHeight,
-        1.94,
-        leaf === 0 ? "door" : "doorLight",
-      );
-    }
-    for (const bandY of [roofDoorBase + 1, roofDoorBase + 3]) {
-      placeBoundaryDecoration(
-        gatehouseDepth - 0.56,
-        roofDoorStart + 1.5,
-        bandY,
-        0.08,
-        0.22,
-        roofDoorWidth,
-        "iron",
-      );
-    }
-    placeBoundaryDecoration(
-      gatehouseDepth - 0.54,
-      roofDoorStart + 1.5,
-      roofDoorCenterY,
-      0.08,
-      roofDoorHeight,
-      0.12,
-      "iron",
-    );
 
     const crownCenter = Math.round((crownStart + crownEnd) / 2);
     const roofRadius = Math.min(

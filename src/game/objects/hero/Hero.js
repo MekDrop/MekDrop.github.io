@@ -2379,9 +2379,9 @@ export class Hero {
         ? sourceCoverHeight
         : null;
     }
-    const collisionSurface = STRUCTURE_SURFACE_TILES.has(type)
-      ? this.#collisionWorld?.surfaceHeightAt(x, z)
-      : null;
+    // Authored stairs extend onto approach PATH/GRASS cells, not just the
+    // castle's foundation tiles. Sample their support for feet and landing too.
+    const collisionSurface = this.#collisionWorld?.surfaceHeightAt(x, z);
     let highestSurface =
       Number.isFinite(collisionSurface) && collisionSurface <= maximumHeight
         ? collisionSurface

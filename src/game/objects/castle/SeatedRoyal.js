@@ -1,6 +1,7 @@
 import kingModelUrl from "../../models/castle/royals/king.glb?url";
 import princessModelUrl from "../../models/castle/royals/princess.glb?url";
 import queenModelUrl from "../../models/castle/royals/queen.glb?url";
+import { ROYAL_WALK_SPEED } from "../../enum/RoyalWalkSpeed.js";
 import { ROYAL_ANIMATION } from "../../enum/RoyalAnimation.js";
 import { RoyalTears } from "./RoyalTears.js";
 
@@ -10,7 +11,6 @@ const MODEL_URLS = Object.freeze([
   princessModelUrl,
 ]);
 const WALK_OUT_ANIMATION_SPEED = 1.8;
-const WALK_OUT_DURATION = 3.2 / WALK_OUT_ANIMATION_SPEED;
 const WALK_START_DELAY = 0.08;
 const FALLBACK_VISUAL_SIZE = Object.freeze({ x: 1.2, y: 2.2, z: 1.2 });
 
@@ -23,8 +23,12 @@ export class SeatedRoyal {
   #entity;
   #performance = null;
   #tears;
+  #walkOutDuration;
 
   constructor({ pc, app, modelUrl = kingModelUrl, modelLibrary }) {
+    const kind = ["KING", "QUEEN", "PRINCESS"][MODEL_URLS.indexOf(modelUrl)] ?? "KING";
+    const walkAnimationSpeed = WALK_OUT_ANIMATION_SPEED * ROYAL_WALK_SPEED[kind];
+    this.#walkOutDuration = 3.2 / walkAnimationSpeed;
     this.#entity = modelLibrary.instantiate(modelUrl);
     this.#entity.name = "Seated royal";
     const tracks = modelLibrary.getAnimationTracks(modelUrl, [
@@ -35,7 +39,7 @@ export class SeatedRoyal {
     this.#entity.anim.addAnimationState(
       ROYAL_ANIMATION.WALK_OUT,
       tracks.get(ROYAL_ANIMATION.WALK_OUT),
-      WALK_OUT_ANIMATION_SPEED,
+      walkAnimationSpeed,
       false,
     );
     this.#entity.anim.addAnimationState(
@@ -135,7 +139,7 @@ export class SeatedRoyal {
       Math.min(
         1,
         (performance.elapsed - WALK_START_DELAY) /
-          (WALK_OUT_DURATION - WALK_START_DELAY),
+          (this.#walkOutDuration - WALK_START_DELAY),
       ),
     );
     const easedProgress =

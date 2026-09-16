@@ -1,0 +1,16 @@
+export const CASTLE_LEISURE_PHASE = Object.freeze({
+  DORMANT: "dormant",
+  SERVANT_ENTER: "servant-enter",
+  FURNISH: "furnish",
+  POUR: "pour",
+  SERVANT_EXIT: "servant-exit",
+  ROYAL_ENTER: "royal-enter",
+  SETTLE: "settle",
+  LEISURE: "leisure",
+  RISE: "rise",
+  ROYAL_EXIT: "royal-exit",
+  CLEANUP_DELAY: "cleanup-delay",
+  SERVANT_RETURN: "servant-return",
+  PACK: "pack",
+  SERVANT_LEAVE: "servant-leave",
+});

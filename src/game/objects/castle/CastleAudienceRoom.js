@@ -60,6 +60,7 @@ export class CastleAudienceRoom {
   #availableDepth;
   #availableWidth;
   #obstacles = [];
+  #floorSurfaces = [];
   #heroWithinVisibility = false;
   #entranceVisible = false;
   #gameOverPerformance = false;
@@ -123,6 +124,10 @@ export class CastleAudienceRoom {
     this.#syncVisibility();
   }
 
+  set royalVisible(visible) {
+    this.#occupant.entity.enabled = visible || this.#gameOverPerformance;
+  }
+
   beginGameOver(getCameraPosition) {
     if (this.#gameOverPerformance || !this.#occupant || !this.#royalPosition) {
       return null;
@@ -181,7 +186,17 @@ export class CastleAudienceRoom {
       Math.abs(lateral) <= this.#roomWidth / 2 &&
       forward >= -0.08 &&
       forward <= this.#forwardCapacity;
-    return insideFloor ? this.#baseY : null;
+    if (!insideFloor) {
+      return null;
+    }
+    let height = this.#baseY;
+    for (const surface of this.#floorSurfaces) {
+      if (Math.abs(lateral - surface.lateral) <= surface.width / 2 &&
+        Math.abs(forward - surface.forward) <= surface.depth / 2) {
+        height = Math.max(height, surface.height);
+      }
+    }
+    return height;
   }
 
   intersectsFootprint(x, z, radius = 0) {
@@ -217,6 +232,7 @@ export class CastleAudienceRoom {
     for (const material of this.#materials.values()) material.destroy();
     this.#materials.clear();
     this.#obstacles = [];
+    this.#floorSurfaces = [];
   }
 
   #resolveLayout() {
@@ -313,6 +329,7 @@ export class CastleAudienceRoom {
   }
 
   #buildFloor(throneForward) {
+    const firstFloorPart = this.#entity.children.length;
     this.#boxAt(
       "Audience wooden floor",
       "woodLight",
@@ -377,6 +394,21 @@ export class CastleAudienceRoom {
         0.1,
         [0.08, 0.02, runnerLength],
       );
+    }
+    // The same authored floor boxes define foot support, including raised
+    // carpet strips and plank borders, so boots cannot sink into the visuals.
+    for (const part of this.#entity.children.slice(firstFloorPart)) {
+      const position = part.getLocalPosition();
+      const scale = part.getLocalScale();
+      const dx = position.x - this.#center.x;
+      const dz = position.z - this.#center.z;
+      this.#floorSurfaces.push({
+        lateral: dx * this.#tangent.x + dz * this.#tangent.z,
+        forward: dx * this.#inward.x + dz * this.#inward.z,
+        width: scale.x,
+        depth: scale.z,
+        height: position.y + scale.y / 2,
+      });
     }
   }
 
