@@ -24,7 +24,7 @@ export class GrassCarpet {
     this.#material.cull = pc.CULLFACE_NONE;
     this.#material.twoSidedLighting = true;
     this.#material.setParameter("uGrassBroadleaf", 0);
-    this.#material.setParameter("uGrassEdgeDirection", [0, 0]);
+    this.#material.setParameter("uGrassBoundaryExtension", [0, 0, 0, 0]);
     this.#material.setParameter("uGrassGridOffset", [(mapData.cols - 1) / 2, (mapData.rows - 1) / 2]);
     this.#material.shaderChunks.glsl.set("transformVS", vertexShader);
     this.#material.shaderChunks.glsl.set("diffusePS", fragmentShader);
@@ -35,19 +35,15 @@ export class GrassCarpet {
     const matrix = new pc.Mat4();
     const position = new pc.Vec3();
     const rotation = new pc.Quat();
-    const lean = new pc.Quat();
     const scale = new pc.Vec3();
     for (const placement of GrassCarpetLayout.create(mapData)) {
-      const key = `${placement.chunk}:${placement.detail}:${placement.broadleaf}:${placement.edgeX},${placement.edgeZ}`;
+      const key = `${placement.chunk}:${placement.detail}:${placement.broadleaf}:${placement.boundaryExtension}`;
       const chunk = chunks.get(key) ?? {
         matrices: [], placements: [], detail: placement.detail,
-        broadleaf: placement.broadleaf, edge: [placement.edgeX, placement.edgeZ],
+        broadleaf: placement.broadleaf,
+        boundaryExtension: placement.boundaryExtension,
       };
       rotation.setFromEulerAngles(0, placement.rotation, 0);
-      if (placement.edgeX || placement.edgeZ) {
-        lean.setFromEulerAngles(placement.edgeZ * 105, 0, -placement.edgeX * 105);
-        rotation.mul2(lean, rotation);
-      }
       matrix.setTRS(
         position.set(placement.x, placement.y, placement.z),
         rotation,
@@ -78,7 +74,7 @@ export class GrassCarpet {
       bounds.setMinMax(minimum, maximum);
       for (const instance of batch.entity.render.meshInstances) {
         instance.setParameter("uGrassBroadleaf", chunk.broadleaf ? 1 : 0);
-        instance.setParameter("uGrassEdgeDirection", chunk.edge);
+        instance.setParameter("uGrassBoundaryExtension", chunk.boundaryExtension);
         instance.cull = true;
         instance.setCustomAabb(bounds);
       }

@@ -9,6 +9,7 @@ import waterSideUrl from "src/assets/game/tiles/water-side.png";
 import waterTopUrl from "src/assets/game/tiles/water-top.png";
 import grassTerrainFragmentShader from "./objects/ground-cover/GrassTerrain.frag?raw";
 import grassSideFragmentShader from "./objects/ground-cover/GrassSide.frag?raw";
+import grassTurfSideFragmentShader from "./objects/ground-cover/GrassTurfSide.frag?raw";
 import { Castle } from "./objects/castle/index.js";
 import {
   GATEWAY_BANNER_SIGNS,
@@ -1284,7 +1285,10 @@ export class PlayCanvasRenderer {
     if (definition.continuousTexture) {
       material.shaderChunks.glsl.set("diffusePS", grassTerrainFragmentShader);
     }
-    if (name.startsWith("grassTopSide-") || name.startsWith("grassEarthSide-")) {
+    if (name.startsWith("grassTopSide-")) {
+      material.shaderChunks.glsl.set("diffusePS", grassTurfSideFragmentShader);
+      material.setParameter("uGrassSurfaceLift", GRASS_SURFACE_LIFT);
+    } else if (name.startsWith("grassEarthSide-")) {
       material.shaderChunks.glsl.set("diffusePS", grassSideFragmentShader);
     }
     material.update();

@@ -32,11 +32,10 @@ describe("short grass carpet placement", () => {
     const placements = GrassCarpetLayout.create(input);
     assert.deepEqual(placements, GrassCarpetLayout.create(input));
     assert.ok(new Set(placements.map(({ rotation }) => rotation)).size > 20);
-    const topPlacements = placements.filter(({ edgeX, edgeZ }) => !edgeX && !edgeZ);
-    assert.ok(topPlacements.every(({ height, broadleaf }) => height * (broadleaf ? 0.19 : 0.34) < 0.075));
+    assert.ok(placements.every(({ height, broadleaf }) => height * (broadleaf ? 0.19 : 0.34) < 0.075));
     assert.ok(placements.some(({ broadleaf }) => broadleaf));
     assert.ok(placements.some(({ broadleaf }) => !broadleaf));
-    assert.ok(topPlacements.filter(({ x }) => x > 0).every(({ y }) => y === 4 + GRASS_SURFACE_LIFT - 0.012));
+    assert.ok(placements.filter(({ x }) => x > 0).every(({ y }) => y === 4 + GRASS_SURFACE_LIFT - 0.002));
   });
 
   it("does not put floating clumps on slopes, voids or bridge-reserved ground", () => {
@@ -61,10 +60,8 @@ describe("short grass carpet placement", () => {
 
   it("scatters freely across the tile and changes the arrangement with the map seed", () => {
     const input = map([[TileType.GRASS]]);
-    const placements = GrassCarpetLayout.create({ ...input, mapName: "lawn-a" })
-      .filter(({ edgeX, edgeZ }) => !edgeX && !edgeZ);
-    const otherSeed = GrassCarpetLayout.create({ ...input, mapName: "lawn-b" })
-      .filter(({ edgeX, edgeZ }) => !edgeX && !edgeZ);
+    const placements = GrassCarpetLayout.create({ ...input, mapName: "lawn-a" });
+    const otherSeed = GrassCarpetLayout.create({ ...input, mapName: "lawn-b" });
     assert.notDeepEqual(placements, otherSeed);
     assert.equal(new Set(placements.map(({ x }) => x)).size, placements.length);
     assert.equal(new Set(placements.map(({ z }) => z)).size, placements.length);
@@ -75,12 +72,38 @@ describe("short grass carpet placement", () => {
     }
   });
 
-  it("adds a hanging fringe only on exposed edges and never toward paths", () => {
-    const input = map([[TileType.GRASS, TileType.GRASS, TileType.PATH]]);
-    input.heightmap[0] = [2, 3, 1];
-    const fringe = GrassCarpetLayout.create(input).filter(({ edgeX, edgeZ }) => edgeX || edgeZ);
-    assert.ok(fringe.some(({ x, edgeX }) => x > -0.5 && x < 0.5 && edgeX === -1));
-    assert.ok(!fringe.some(({ x, edgeX }) => x > -0.5 && x < 0.5 && edgeX === 1));
-    assert.ok(!fringe.some(({ x, edgeX }) => x < -0.5 && edgeX === 1));
+  it("keeps the same scatter and density at a cliff as inside the lawn", () => {
+    const input = map(Array.from({ length: 3 }, () => Array(3).fill(TileType.GRASS)));
+    const center = (placements) => placements.filter(({ x, z }) => Math.abs(x) < 0.5 && Math.abs(z) < 0.5);
+    const inside = center(GrassCarpetLayout.create(input));
+    input.heightmap[1][1] = 3;
+    const cliff = center(GrassCarpetLayout.create(input));
+    assert.equal(cliff.length, inside.length);
+    assert.deepEqual(cliff.map(({ x, z, rotation, width, height }) => [x, z, rotation, width, height]),
+      inside.map(({ x, z, rotation, width, height }) => [x, z, rotation, width, height]));
+    assert.ok(cliff.every(({ exposedSides }) => exposedSides === 15));
+  });
+
+  it("uses the neighboring height on every corner without adding edge rows", () => {
+    for (const [closedX, closedZ, closedSide] of [[-1, 0, 0], [0, -1, 1], [1, 0, 2], [0, 1, 3]]) {
+      const input = map(Array.from({ length: 3 }, () => Array(3).fill(TileType.GRASS)));
+      input.heightmap[1][1] = 3;
+      input.heightmap[1 + closedZ][1 + closedX] = 4;
+      const center = GrassCarpetLayout.create(input)
+        .filter(({ x, z }) => Math.abs(x) < 0.5 && Math.abs(z) < 0.5);
+      assert.equal(center.length, 144);
+      assert.ok(center.every(({ exposedSides, boundaryExtension }) =>
+        exposedSides === (15 & ~(1 << closedSide)) && boundaryExtension[closedSide] === 0));
+    }
+  });
+
+  it("limits paving overhang to four centimeters without shrinking the lawn", () => {
+    const input = map([[TileType.GRASS, TileType.PATH, TileType.GRASS]]);
+    input.heightmap[0] = [2, 2, 3];
+    const left = GrassCarpetLayout.create(input).filter(({ x }) => x < -0.5);
+    assert.ok(left.every(({ exposedSides }) => (exposedSides & 4) === 0));
+    assert.ok(left.every(({ boundaryExtension }) => boundaryExtension[2] <= 0.04));
+    const right = GrassCarpetLayout.create(input).filter(({ x }) => x > 0.5);
+    assert.ok(right.every(({ exposedSides }) => (exposedSides & 1) === 1));
   });
 });

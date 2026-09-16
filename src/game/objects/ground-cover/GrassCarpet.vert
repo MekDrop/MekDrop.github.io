@@ -1,7 +1,7 @@
 uniform float uGrassTime;
 uniform float uGrassAmbientMotion;
 uniform vec2 uGrassGridOffset;
-uniform vec2 uGrassEdgeDirection;
+uniform vec4 uGrassBoundaryExtension;
 uniform vec4 uGrassFeet[8];
 uniform vec4 uGrassFootShapes[8];
 
@@ -45,11 +45,24 @@ vec4 getPosition() {
   vGrassCompression = contact;
   dPositionW = root + offset;
   vec2 cellCenter = floor(root.xz + uGrassGridOffset + 0.5) - uGrassGridOffset;
-  dPositionW.xz = clamp(dPositionW.xz,
-    cellCenter - 0.495 + min(uGrassEdgeDirection, vec2(0.0)) * 0.055,
-    cellCenter + 0.495 + max(uGrassEdgeDirection, vec2(0.0)) * 0.055);
-  float edge = step(0.5, length(uGrassEdgeDirection));
-  dPositionW.y = mix(dPositionW.y, clamp(dPositionW.y, root.y - 0.1, root.y + 0.04), edge);
+  // Smoothly curl outward vertices back toward the edge. Unlike clamp(),
+  // this retains each tapered tip instead of piling them onto a flat plane.
+  // Slightly different reach per clump prevents a ruler-straight silhouette.
+  float reachVariation = mix(0.45, 1.0, vGrassVariation);
+  vec4 edgeReach = uGrassBoundaryExtension * mix(vec4(reachVariation), vec4(1.0),
+    step(vec4(0.2), uGrassBoundaryExtension));
+  vec2 lower = cellCenter - 0.5 - edgeReach.xy;
+  vec2 upper = cellCenter + 0.5 + edgeReach.zw;
+  vec2 lowBend = max(vec2(0.0), lower + 0.025 - dPositionW.xz);
+  vec2 highBend = max(vec2(0.0), dPositionW.xz - upper + 0.025);
+  dPositionW.xz += lowBend - 0.025 * (1.0 - exp(-lowBend / 0.025));
+  dPositionW.xz -= highBend - 0.025 * (1.0 - exp(-highBend / 0.025));
+  // A little droop only beyond exposed terrain, never at internal lawn seams.
+  vec2 relative = dPositionW.xz - cellCenter;
+  vec2 overhang = abs(relative) - 0.5;
+  vec2 reach = mix(edgeReach.xy, edgeReach.zw, step(vec2(0.0), relative));
+  vec2 edgeDroop = smoothstep(vec2(0.0), vec2(0.06), overhang) * (1.0 - step(vec2(0.2), reach));
+  dPositionW.y -= max(edgeDroop.x, edgeDroop.y) * tip * 0.018;
   return matrix_viewProjection * vec4(dPositionW, 1.0);
 }
 
