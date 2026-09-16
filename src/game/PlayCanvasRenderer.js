@@ -16,7 +16,11 @@ import {
   GATEWAY_COLORS,
   Gateway,
 } from "./objects/gateway/index.js";
-import { BridgeRailingKit, PathArrows } from "./objects/path/index.js";
+import {
+  BridgeRailingKit,
+  OverpassStairs,
+  PathArrows,
+} from "./objects/path/index.js";
 import { RiverWater } from "./objects/water/index.js";
 import { Hero } from "./objects/hero/index.js";
 import { HeroPatGesture } from "./controls/HeroPatGesture.js";
@@ -477,6 +481,7 @@ export class PlayCanvasRenderer {
         InventoryHud.modelUrl,
         Gateway.modelUrl,
         ...BridgeRailingKit.modelUrls,
+        OverpassStairs.modelUrl,
         ...Castle.modelUrls,
         ...GroundCover.modelUrls,
         ...GrassCarpet.modelUrls,
@@ -1346,6 +1351,17 @@ export class PlayCanvasRenderer {
     this.#buildTerrainMatrices(cubeBatches);
     this.#createInstancedBatches(cubeBatches, this.#mapRoot, true);
     this.#vertexBuffers.push(...this.#bridgeRailingKit.build());
+    this.#vertexBuffers.push(
+      ...new OverpassStairs({
+        pc: this.#pc,
+        overpass: this.#mapData.overpassData,
+        cols: this.#mapData.cols,
+        rows: this.#mapData.rows,
+        modelLibrary: this.#modelLibrary,
+        materials: this.#materials,
+        root: this.#mapRoot,
+      }).build(),
+    );
     if (this.#mapData.overpassData) {
       this.#pathOverpassCollider = new PathOverpassCollider({
         overpass: this.#mapData.overpassData,
@@ -1703,9 +1719,14 @@ export class PlayCanvasRenderer {
 
         const slope = tileMeta?.[row]?.[col]?.slope;
         if (tileMeta?.[row]?.[col]?.shape === TILE_SHAPE.SLOPE && slope) {
-          const baseHeight = Math.floor(
-            Math.min(slope.lowHeight, slope.highHeight),
+          const usesOverpassStairs = Boolean(
+            this.#mapData.overpassData?.stairApproach &&
+              tileMeta[row][col].overpassId ===
+                this.#mapData.overpassData.id,
           );
+          const baseHeight = usesOverpassStairs
+            ? this.#mapData.overpassData.baseElevation
+            : Math.floor(Math.min(slope.lowHeight, slope.highHeight));
           for (let level = 0; level < baseHeight; level += 1) {
             this.#addCubeMatrix(
               batches,
@@ -1717,6 +1738,9 @@ export class PlayCanvasRenderer {
               "wallSidesOnly",
               level === 0 ? "earth" : "none",
             );
+          }
+          if (usesOverpassStairs) {
+            continue;
           }
           const stage =
             Math.min(slope.lowHeight, slope.highHeight) - baseHeight < 0.25

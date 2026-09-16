@@ -141,7 +141,7 @@ path | grass | grass | path
 ## 9. Path elevation
 
 * Flat path sections stay at one elevation.
-* Elevation changes use continuous planar ramps, not stairs.
+* Elevation changes normally use continuous planar ramps. A generated grade-separated crossing may use the authored castle-style stair modules on its approach flights, while retaining the same two-lane footprint and validated elevation profile for movement and routing.
 * Ordinary slopes change elevation by one block per tile. A grade-separated path crossing uses two consecutive half-block ramp tiles per block of elevation so the approach remains gentle.
 * The optional terrain-dip bridge alternative in section 9a also uses two consecutive half-block ramp tiles per block so its descent and climb remain visually gentle.
 * Both lanes must rise or descend together.
@@ -164,6 +164,8 @@ ramp tiles = 2 * absolute elevation difference
 * Every elevated flat approach cell is a solid earth-filled column up to its path surface. It must never be reclassified as an ordinary thin bridge or expose a lower ledge beneath its deck.
 * Every exposed side and fascia belonging to a grade-separated ramp, flat approach, or crossing deck uses a dedicated dirt-only crop of the normal terrain-wall texture. Green grass pixels, dangling grass roots, grass fringes, and path-surface textures are forbidden on those fill faces. Path-surface material is restricted to the walkable top; railings may retain their structural path material.
 * A grade-separated approach must not raise or add lateral support cubes beside the path. Adjacent terrain keeps its generated elevation; only the two path lanes form the filled ramp and approach.
+* Sixty percent of generated grade-separated crossings raise the complete gate-side route and a connected grass plateau to deck elevation. This variant has no ascending flight before the bridge; travel from that gate stays level through the deck and only descends on the castle side.
+* Forty percent of generated grade-separated crossings render their remaining approach flights as castle-style sandstone stairs. Both lanes must use the same stair treatment, and the logical movement surface retains the validated half-block-per-tile elevation profile.
 * A grade-separated deck must leave enough clearance beneath its fascia for the complete collision height of a walking actor.
 * The deck top and underside are separate collision surfaces: actors may walk on top or pass underneath, but jumping actors must collide with the underside.
 * Both outer edges of a grade-separated path must have continuous railings across its complete ramp, elevated approach, and crossing deck. Rail segments on slopes must follow the walkable plane rather than stepping or floating horizontally.
@@ -376,6 +378,8 @@ These notes describe the generator behavior currently implemented in `src/game/M
 * Entry paths currently use a route family with a shared final trunk to the castle.
 * Multi-route maps place that shared trunk on an outer route band so its merge corridor cannot continue through the trunk as an unplanned four-way crossing.
 * Multi-path maps may contain one grade-separated crossing before their final merge. The crossing is uncommon with two paths and progressively more likely with three or four paths. The upper branch rises two blocks over four half-block ramp cells per side, crosses on a two-tile-wide deck with sufficient actor clearance, descends the same way, and remains disconnected from the lower route at the crossing.
+* Each grade-separated crossing independently has a 60% chance to place its incoming gate route on a raised deck-height plateau, eliminating the inbound climb so the upper route only descends after the bridge.
+* Each grade-separated crossing independently has a 40% chance to render its active approach flights with the reusable castle stair module instead of a planar path surface. Routing and collision continue to use the same validated elevation profile.
 * When spacing allows, a non-bridge entry branch may use one extra orthogonal bend before it joins the shared trunk.
 * Those bends remain fully grid-aligned and two tiles wide.
 * Bridge crossings should stay as simple straight spans rather than curved bridge turns.
@@ -446,7 +450,7 @@ Reject the map when:
 * two parallel paths are separated by fewer than two grass tiles outside a merge zone
 * a turn cuts diagonally through a tile
 * a road boundary is rounded, chamfered, or bevelled into a non-orthogonal turn
-* a slope uses stairs
+* a slope uses stairs outside the optional grade-separated-crossing stair treatment
 * a slope uses too few tiles for its height difference
 * a grade-separated ramp rises or descends more than half a block per tile
 * an approach or exit narrows below two complete path tiles at a turn

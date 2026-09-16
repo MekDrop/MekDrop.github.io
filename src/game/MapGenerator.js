@@ -76,6 +76,9 @@ export class MapGenerator {
   static #OVERPASS_HALF_STEP = 0.5;
   static #OVERPASS_DECK_THICKNESS = 0.24;
   static #OVERPASS_MIN_CLEARANCE = 1.6;
+  static #OVERPASS_RAISED_ENTRY_CHANCE = 60;
+  static #OVERPASS_STAIR_APPROACH_CHANCE = 40;
+  static #OVERPASS_PLATEAU_RADIUS = 3;
   static #MIN_ARROW_GATE_CLEARANCE = 0.5;
   static #MIN_ARROW_CASTLE_CLEARANCE = 4;
   static #TERRAIN_BRIDGE_DIP_CHANCE = 60;
@@ -162,6 +165,7 @@ export class MapGenerator {
       this.#ENTRY_TEMPLATES.length,
     );
     const layout = this.#createLayoutConfig(numPaths);
+    layout.signature = mapName;
     layout.overpassPlan = this.#selectOverpassPlan(
       layout,
       requestedOverpass,
@@ -169,13 +173,17 @@ export class MapGenerator {
     if (!layout.overpassPlan) {
       this.#retainSeparatedCurvePlans(layout);
     }
-    layout.signature = mapName;
     const grid = this.#createGrid(TileType.WATER);
     const tileMeta = this.#createTileMetadata();
     const islandMask = this.#buildIslandMask(layout);
 
     this.#materializeIsland(grid, tileMeta, islandMask);
     const { mergeZones, routeCellsByPath, trunkStart } = this.#carvePaths(grid, tileMeta, layout);
+    this.#configureOverpassEntryPlateau(
+      grid,
+      layout.overpassPlan,
+      routeCellsByPath,
+    );
     this.#materializeSingleCellTerrainHoles(grid, tileMeta, islandMask);
     if (
       layout.overpassPlan &&
@@ -311,6 +319,10 @@ export class MapGenerator {
       hash = Math.imul(hash, 0x01000193);
     }
     return hash >>> 0;
+  }
+
+  static #deterministicChance(mapName, salt, chance) {
+    return this.#hashMapName(`${mapName}:${salt}`) % 100 < chance;
   }
 
   static #clamp(value, min, max) {
@@ -840,7 +852,21 @@ export class MapGenerator {
           plan,
         )
       ) {
-        return plan;
+        return {
+          ...plan,
+          raisedEntryApproach:
+            this.#deterministicChance(
+              layout.signature,
+              'overpass-raised-entry',
+              this.#OVERPASS_RAISED_ENTRY_CHANCE,
+            ),
+          stairApproach:
+            this.#deterministicChance(
+              layout.signature,
+              'overpass-stair-approach',
+              this.#OVERPASS_STAIR_APPROACH_CHANCE,
+            ),
+        };
       }
     }
 
@@ -956,17 +982,92 @@ export class MapGenerator {
       ...plan.crossingCells,
       ...plan.approachCells,
       ...plan.slopeCells,
+      ...(plan.raisedApproachCells ?? []),
     ];
     for (const { col, row } of pathCells) {
+      const tile = grid[row]?.[col];
       if (
         !this.#inBounds(col, row) ||
         !islandMask[row][col] ||
-        grid[row][col] !== TileType.PATH
+        (tile !== TileType.PATH && tile !== TileType.ENTRY)
       ) {
         return false;
       }
     }
     return true;
+  }
+
+  static #configureOverpassEntryPlateau(
+    grid,
+    plan,
+    routeCellsByPath,
+  ) {
+    if (!plan) {
+      return;
+    }
+
+    plan.raisedApproachCells = [];
+    plan.raisedTerrainCells = [];
+    if (!plan.raisedEntryApproach) {
+      return;
+    }
+
+    const entrySideContains = ({ row }) =>
+      plan.upperDirection === this.#DIRECTIONS.SOUTH
+        ? row < plan.crossing.row
+        : row > plan.crossing.row + plan.crossing.depth - 1;
+    const routeCells = routeCellsByPath[plan.upperPathIdx]?.routeCells ?? [];
+    const raisedApproachKeys = new Set();
+    for (const key of routeCells) {
+      const [col, row] = key.split(',').map(Number);
+      if (!entrySideContains({ row })) {
+        continue;
+      }
+      const tile = grid[row]?.[col];
+      if (tile !== TileType.PATH && tile !== TileType.ENTRY) {
+        continue;
+      }
+      raisedApproachKeys.add(key);
+    }
+
+    plan.raisedApproachCells = [...raisedApproachKeys]
+      .map((key) => {
+        const [col, row] = key.split(',').map(Number);
+        return { col, row };
+      })
+      .sort((left, right) => left.row - right.row || left.col - right.col);
+    plan.slopeCells = plan.slopeCells.filter(
+      (cell) => !entrySideContains(cell),
+    );
+
+    const raisedTerrainKeys = new Set();
+    for (const cell of plan.raisedApproachCells) {
+      for (
+        let row = cell.row - this.#OVERPASS_PLATEAU_RADIUS;
+        row <= cell.row + this.#OVERPASS_PLATEAU_RADIUS;
+        row += 1
+      ) {
+        for (
+          let col = cell.col - this.#OVERPASS_PLATEAU_RADIUS;
+          col <= cell.col + this.#OVERPASS_PLATEAU_RADIUS;
+          col += 1
+        ) {
+          if (
+            !this.#inBounds(col, row) ||
+            grid[row][col] !== TileType.GRASS
+          ) {
+            continue;
+          }
+          raisedTerrainKeys.add(this.#tileKey(col, row));
+        }
+      }
+    }
+    plan.raisedTerrainCells = [...raisedTerrainKeys]
+      .map((key) => {
+        const [col, row] = key.split(',').map(Number);
+        return { col, row };
+      })
+      .sort((left, right) => left.row - right.row || left.col - right.col);
   }
 
   static #collectSafeCurveBandStarts(min, max, occupiedBandStarts, trunkTop, direction) {
@@ -1432,6 +1533,28 @@ export class MapGenerator {
       return;
     }
 
+    for (const cell of plan.raisedTerrainCells ?? []) {
+      if (grid[cell.row][cell.col] !== TileType.GRASS) {
+        continue;
+      }
+      heightmap[cell.row][cell.col] = plan.deckElevation;
+      tileMeta[cell.row][cell.col] = {
+        ...tileMeta[cell.row][cell.col],
+        baseHeight: plan.deckElevation,
+        overpassPlateauId: plan.id,
+      };
+    }
+
+    for (const cell of plan.raisedApproachCells ?? []) {
+      heightmap[cell.row][cell.col] = plan.deckElevation;
+      tileMeta[cell.row][cell.col] = {
+        ...tileMeta[cell.row][cell.col],
+        baseHeight: plan.deckElevation,
+        shape: TILE_SHAPE.FLAT,
+        overpassId: plan.id,
+      };
+    }
+
     for (const cell of plan.crossingCells) {
       heightmap[cell.row][cell.col] = plan.baseElevation;
       tileMeta[cell.row][cell.col] = {
@@ -1547,7 +1670,10 @@ export class MapGenerator {
     if (this.#isNearCastleForRiver(layout, col, row)) {
       return false;
     }
-    if (tileMeta[row][col].overpassId) {
+    if (
+      tileMeta[row][col].overpassId ||
+      tileMeta[row][col].overpassPlateauId
+    ) {
       return false;
     }
 
@@ -1916,6 +2042,7 @@ export class MapGenerator {
       for (let col = 0; col < this.#MAP_COLS; col++) {
         if (
           grid[row][col] === TileType.GRASS &&
+          !tileMeta[row][col].overpassPlateauId &&
           heightmap[row][col] >= 2 &&
           this.#hasRiverSourceSetback(islandMask, col, row) &&
           !this.#isNearCastleForRiver(layout, col, row)
@@ -3095,8 +3222,22 @@ export class MapGenerator {
   static #applyRouteElevations(route, pathIdx, overpassPlan, pathDipPlans) {
     const crossingCol2 = overpassPlan?.crossing.col * 2 + 1;
     const crossingRow2 = overpassPlan?.crossing.row * 2 + 1;
-    return route.map(point => {
+    const raisedEntryEndIndex = overpassPlan?.raisedEntryApproach
+      ? route.findIndex(
+          (point) =>
+            point.col2 === crossingCol2 && point.row2 === crossingRow2,
+        )
+      : -1;
+    return route.map((point, pointIndex) => {
       let elevation = this.#terrainPathDipElevation(point, pathDipPlans);
+      if (
+        overpassPlan &&
+        pathIdx === overpassPlan.upperPathIdx &&
+        raisedEntryEndIndex >= 0 &&
+        pointIndex <= raisedEntryEndIndex
+      ) {
+        return { ...point, elevation: overpassPlan.deckElevation };
+      }
       if (
         overpassPlan &&
         pathIdx === overpassPlan.upperPathIdx &&
@@ -3848,6 +3989,39 @@ export class MapGenerator {
           reason: `does not fill its elevated approach at (${cell.col}, ${cell.row})`,
         });
       }
+    }
+    for (const cell of plan.raisedApproachCells ?? []) {
+      const tile = grid[cell.row]?.[cell.col];
+      if (
+        !this.#inBounds(cell.col, cell.row) ||
+        (tile !== TileType.PATH && tile !== TileType.ENTRY) ||
+        tileMeta[cell.row][cell.col].overpassId !== plan.id ||
+        tileMeta[cell.row][cell.col].shape !== TILE_SHAPE.FLAT ||
+        heightmap[cell.row][cell.col] !== plan.deckElevation
+      ) {
+        throw new InvalidOverpassError({
+          reason: `has invalid raised entry path at (${cell.col}, ${cell.row})`,
+        });
+      }
+    }
+    for (const cell of plan.raisedTerrainCells ?? []) {
+      if (
+        grid[cell.row][cell.col] !== TileType.GRASS ||
+        heightmap[cell.row][cell.col] !== plan.deckElevation ||
+        tileMeta[cell.row][cell.col].overpassPlateauId !== plan.id
+      ) {
+        throw new InvalidOverpassError({
+          reason: `has invalid raised entry terrain at (${cell.col}, ${cell.row})`,
+        });
+      }
+    }
+    const expectedSlopeCellCount =
+      this.#OVERPASS_RAMP_TILES *
+      (plan.raisedEntryApproach ? 2 : 4);
+    if (plan.slopeCells.length !== expectedSlopeCellCount) {
+      throw new InvalidOverpassError({
+        reason: 'does not preserve its required two-tile-wide approach flights',
+      });
     }
     for (const cell of plan.slopeCells) {
       validatePathCells(
