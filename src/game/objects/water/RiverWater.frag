@@ -5,7 +5,12 @@ uniform mat4 uHeroReflectionMatrix;
 uniform vec4 uHeroWater;
 uniform vec4 uRiverRocks[18];
 uniform int uRiverRockCount;
+uniform vec4 uCascadeImpacts[32];
+uniform vec4 uCascadeFlows[32];
+uniform int uCascadeImpactCount;
 uniform sampler2D uRiverFlowMap;
+uniform sampler2D uCascadeCurrentMap;
+uniform sampler2D uRiverBankMap;
 uniform vec2 uRiverMapSize;
 
 float paintedHash(vec2 p) {
@@ -18,6 +23,16 @@ float paintedNoise(vec2 p) {
   f = f * f * (3.0 - 2.0 * f);
   return mix(mix(paintedHash(i), paintedHash(i + vec2(1.0, 0.0)), f.x),
     mix(paintedHash(i + vec2(0.0, 1.0)), paintedHash(i + 1.0), f.x), f.y);
+}
+
+// Two overlapping advection phases hide the reset while the texture follows
+// the spatial current, including backward spread and bank-driven turns.
+float currentNoise(vec2 position, vec2 velocity, float frequency) {
+  float phase = fract(uRiverTime * 2.0);
+  float nextPhase = fract(uRiverTime * 2.0 + 0.5);
+  float first = paintedNoise((position - velocity * phase * 0.5) * frequency);
+  float second = paintedNoise((position - velocity * nextPhase * 0.5) * frequency);
+  return mix(first, second, abs(phase - 0.5) * 2.0);
 }
 
 // Broad, antialiased paint shapes stay readable at the normal game zoom.
@@ -42,6 +57,7 @@ void getAlbedo() {
   vec2 local = gridPosition - cell - 0.5;
   vec4 route = texture2D(uRiverFlowMap, (cell + 0.5) / uRiverMapSize);
   vec2 outgoing = route.yz;
+  vec2 surfaceFlow = outgoing;
   vec2 surfaceUv = vec2(
     0.5 + dot(local, vec2(-outgoing.y, outgoing.x)),
     route.x + 0.5 + dot(local, outgoing)
@@ -52,15 +68,74 @@ void getAlbedo() {
     float along = max(0.0, dot(offset, incoming));
     float before = max(0.0, -dot(offset, outgoing));
     float progress = atan(along, max(0.000001, before)) / 1.57079632679;
+    vec2 tangent = vec2(-offset.y, offset.x) * route.w;
+    surfaceFlow = length(tangent) > 0.0001 ? normalize(tangent) : outgoing;
     surfaceUv = vec2(
       0.5 + route.w * (0.5 - length(offset)),
       route.x + progress
     );
   }
-  vec2 flowDirection = normalize(mix(outgoing, fallFlow, vertical));
+  vec2 flowDirection = normalize(mix(surfaceFlow, fallFlow, vertical));
   float horizontalTop = (1.0 - vertical) *
     (1.0 - step(0.01, vVertexColor.r));
   vec2 uv = mix(surfaceUv, vUv0, max(vertical, horizontalTop));
+  // Bend the moving paint around exposed stones, using a local stream
+  // function. Flow divides upstream, accelerates along the flanks, and
+  // converges again downstream instead of sliding straight through the rock.
+  float bankAcross = uv.x;
+  vec2 obstacleOffset = vec2(0.0);
+  vec2 acrossFlow = vec2(-flowDirection.y, flowDirection.x);
+  for (int rockIndex = 0; rockIndex < 18; rockIndex++) {
+    if (rockIndex >= uRiverRockCount) {
+      break;
+    }
+    vec4 rock = uRiverRocks[rockIndex];
+    vec2 offset = vPositionW.xz - rock.xz;
+    float radius = rock.w * 1.08;
+    float distanceSquared = dot(offset, offset);
+    float influence = radius * radius / max(distanceSquared, radius * radius);
+    influence *= 1.0 - smoothstep(radius * 1.6, radius + 0.65, sqrt(distanceSquared));
+    influence *= 1.0 - smoothstep(0.04, 0.12, abs(vPositionW.y - rock.y));
+    obstacleOffset += vec2(dot(offset, acrossFlow), dot(offset, flowDirection) * 0.18) * influence;
+  }
+  // Only the moving ribbons bend: warping the broad color wash made a lens.
+  vec2 foamUv = uv - obstacleOffset * horizontalTop;
+  vec4 currentSample = texture2D(uCascadeCurrentMap, gridPosition / uRiverMapSize);
+  float wetCoverage = max(currentSample.a, 0.001);
+  vec2 impactVelocity = (currentSample.rg * 255.0 - 128.0) / (127.0 * wetCoverage);
+  float cascadeChurn = clamp(currentSample.b / wetCoverage, 0.0, 1.0) * horizontalTop;
+  float impactWash = currentNoise(vPositionW.xz, impactVelocity, 5.2);
+  float impactBubbles = currentNoise(vPositionW.xz + 17.3, impactVelocity, 12.0);
+  float cascadeFoam = paintedEdge(0.58, impactBubbles) * 0.76;
+  // Backwash reaches every closed landing edge, including the far wall of
+  // an L turn. Broken crests roll back from the wall into the local current.
+  vec4 closedBanks = texture2D(uRiverBankMap, (cell + 0.5) / uRiverMapSize);
+  vec4 bankDistances = vec4(0.5 + local.x, 0.5 - local.x, 0.5 + local.y, 0.5 - local.y);
+  vec4 wallDistances = mix(vec4(2.0), bankDistances, closedBanks);
+  float wallDistance = min(min(wallDistances.x, wallDistances.y),
+    min(wallDistances.z, wallDistances.w));
+  float wallEnvelope = 1.0 - smoothstep(0.035, 0.2, wallDistance);
+  float wallCrest = sin(wallDistance * 42.0 - uRiverTime * 7.0 + impactBubbles * 3.0);
+  float brokenCrest = paintedEdge(0.35, impactBubbles);
+  float backwashFoam = wallEnvelope * brokenCrest *
+    (0.35 + paintedEdge(0.45, wallCrest) * 0.5);
+  cascadeFoam = max(cascadeFoam, backwashFoam);
+  for (int impactIndex = 0; impactIndex < 32; impactIndex++) {
+    if (impactIndex >= uCascadeImpactCount) {
+      break;
+    }
+    vec4 impact = uCascadeImpacts[impactIndex];
+    vec4 impactFlow = uCascadeFlows[impactIndex];
+    vec2 offset = vPositionW.xz - impact.xz;
+    float sameSurface = horizontalTop *
+      (1.0 - smoothstep(0.04, 0.12, abs(vPositionW.y - impact.y)));
+    float alongJet = dot(offset, impactFlow.xy);
+    float acrossJet = dot(offset, vec2(-impactFlow.y, impactFlow.x));
+    float core = (1.0 - smoothstep(0.06, 0.26, abs(alongJet))) *
+      (1.0 - smoothstep(0.38, 0.54, abs(acrossJet)));
+    cascadeFoam = max(cascadeFoam,
+      core * (0.3 + impactBubbles * 0.55) * sameSurface * impact.w);
+  }
   float across = uv.x;
   float downstream = uv.y - uRiverTime * 0.72;
   float depth = (1.0 - vertical) * vVertexColor.r;
@@ -78,14 +153,16 @@ void getAlbedo() {
   water = mix(water, teal, (1.0 - paintedEdge(0.28, wash)) * 0.55);
 
   // Broken ribbons follow route coordinates through every corner.
-  float warp = sin(downstream * 4.2 + across * 3.0) * 0.035 +
-    (paintedNoise(vec2(across * 4.0, downstream * 2.1)) - 0.5) * 0.085;
-  float bank = min(across, 1.0 - across);
+  float foamAcross = foamUv.x;
+  float foamDownstream = foamUv.y - uRiverTime * 0.72;
+  float warp = sin(foamDownstream * 4.2 + foamAcross * 3.0) * 0.035 +
+    (paintedNoise(vec2(foamAcross * 4.0, foamDownstream * 2.1)) - 0.5) * 0.085;
+  float bank = min(bankAcross, 1.0 - bankAcross);
   float bankFoam = 1.0 - paintedEdge(0.055 + warp, bank);
-  float streak = sin((across + warp) * 23.0 + sin(downstream * 2.1) * 0.7);
-  float breaks = paintedNoise(vec2(across * 8.0 + 13.0, downstream * 3.0));
+  float streak = sin((foamAcross + warp) * 23.0 + sin(foamDownstream * 2.1) * 0.7);
+  float breaks = paintedNoise(vec2(foamAcross * 8.0 + 13.0, foamDownstream * 3.0));
   float streamFoam = paintedEdge(0.82, streak) * paintedEdge(0.47, breaks);
-  float flecks = paintedEdge(0.78, paintedNoise(vec2(across * 13.0, downstream * 8.0)));
+  float flecks = paintedEdge(0.78, paintedNoise(vec2(foamAcross * 13.0, foamDownstream * 8.0)));
   float foam = max(bankFoam * 0.94, max(streamFoam, flecks * 0.75));
   float sourceEnvelope =
     (1.0 - vertical) *
@@ -133,14 +210,23 @@ void getAlbedo() {
         continue;
       }
       float along = dot(offset, flow);
-      float lateral = abs(dot(offset, crossFlow));
-      float churn = sin(distanceToRock * 38.0 - uRiverTime * 7.0 + across * 8.0);
-      float contact = 1.0 - smoothstep(0.035, 0.11, abs(distanceToRock - rock.w));
-      float wake = smoothstep(0.0, 0.12, along) * (1.0 - smoothstep(0.32, 0.7, along));
-      wake *= 1.0 - smoothstep(rock.w * 0.65, rock.w + along * 0.25, lateral);
-      float wakeBreak = smoothstep(0.06, 0.18,
-        sin(along * 29.0 - uRiverTime * 7.0 + lateral * 16.0));
-      foam = max(foam, max(contact * (0.76 + churn * 0.14), wake * wakeBreak * 0.82));
+      float lateral = dot(offset, crossFlow);
+      vec2 foamPosition = vec2(lateral * 23.0, (along - uRiverTime * 0.72) * 9.0);
+      float churn = paintedNoise(foamPosition + rock.xz * 17.0);
+      // Water piles up only against the upstream face, never in a full ring.
+      float contact = 1.0 - smoothstep(0.02, 0.065, abs(distanceToRock - rock.w));
+      contact *= 1.0 - smoothstep(-rock.w * 0.65, 0.0, along);
+      contact *= 0.42 + churn * 0.28;
+
+      // Separate, uneven trails peel off the sides and drift downstream.
+      // Signed lateral noise avoids mirrored chevrons and transverse wave bands.
+      float wake = smoothstep(-rock.w * 0.25, rock.w * 0.5, along) *
+        (1.0 - smoothstep(0.22, 0.65, along));
+      float trailOffset = rock.w * (0.8 - smoothstep(0.0, 0.65, along) * 0.3);
+      float drift = (paintedNoise(foamPosition * vec2(0.45, 0.55) + 7.3) - 0.5) * 0.055;
+      float trail = 1.0 - smoothstep(0.015, 0.055, abs(abs(lateral + drift) - trailOffset));
+      float wakeBreak = smoothstep(0.42, 0.7, churn);
+      foam = max(foam, max(contact, wake * trail * wakeBreak * 0.68));
     }
   }
 
@@ -181,9 +267,11 @@ void getAlbedo() {
   vec3 fallWater = mix(mint, aqua, paintedEdge(0.43, tornPaint) * 0.72);
   water = mix(water, fallWater, lip * 0.85);
 
-  // Impact foam belongs to the receiving surface; it cannot hover or flicker.
-  float impact = (1.0 - vertical) * smoothstep(0.4, 0.86, vVertexColor.b);
-  foam = max(foam, paintedEdge(0.35, impact + (wash - 0.5) * 0.42) * impact);
+  // Replace both color and foam motion near the landing. Merely distorting
+  // route UVs still makes water enter from the cliff instead of the impact.
+  foam = mix(foam, cascadeFoam, cascadeChurn);
+  vec3 impactWater = mix(teal, aqua, 0.2 + paintedEdge(0.46, impactWash) * 0.65);
+  water = mix(water, impactWater, cascadeChurn);
   foam *= 1.0 - depth;
   water = mix(water, teal * 0.64, depth);
   // A restrained reflected sky and sun glint, following the animated surface normal.
@@ -192,6 +280,25 @@ void getAlbedo() {
   if (dot(normal, view) < 0.0) {
     normal = -normal;
   }
+  // Side streamlines keep their depth through the spillway. Advect along
+  // the mesh arc so they first travel forward, then bend downward with it.
+  float sheetFacing = abs(dot(normal, vec3(fallFlow.x, 0.0, fallFlow.y)));
+  float sheetSide = vertical * (1.0 - smoothstep(0.15, 0.65, sheetFacing)) *
+    (1.0 - abs(normal.y));
+  vec2 sidePosition = vec2(
+    vVertexColor.r * 3.2,
+    (vUv0.y - uRiverTime * 0.72) * 4.0
+  );
+  float sideWarp = paintedNoise(sidePosition * vec2(0.7, 0.55) + 12.4);
+  vec2 sideFlow = sidePosition + vec2((sideWarp - 0.5) * 0.8, 0.0);
+  float sideChannels = paintedNoise(sideFlow);
+  float sideBreaks = paintedNoise(sideFlow * vec2(1.8, 2.5) + 4.7);
+  float sideFoam = paintedEdge(0.59, sideChannels) *
+    paintedEdge(0.36, sideBreaks) * 0.76;
+  sideFoam = max(sideFoam, paintedEdge(0.8, sideBreaks) * 0.45);
+  vec3 sideWater = mix(teal, aqua, 0.35 + sideChannels * 0.55);
+  foam = mix(foam, sideFoam, sheetSide);
+  water = mix(water, sideWater, sheetSide);
   vec3 reflected = reflect(-view, normal);
   float fresnel = pow(1.0 - max(dot(normal, view), 0.0), 3.0);
   float horizon = 1.0 - smoothstep(0.0, 0.85, abs(reflected.y));

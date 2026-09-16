@@ -24,6 +24,7 @@ function patchesFor(
       weld,
       uvAt,
       metadataAt,
+      sourceAt = () => [0, 0],
     ) => {
       patches.push({
         rows,
@@ -35,6 +36,7 @@ function patchesFor(
         weld,
         uvAt,
         metadataAt,
+        sourceAt,
       });
     },
     section,
@@ -94,6 +96,24 @@ describe('waterfall geometry', () => {
     });
   }
 
+  it('carries side paint forward around the bend before it descends', () => {
+    const [, , ...sides] = patchesFor({ col: 1, row: 0 }, false);
+    for (const side of sides) {
+      for (const depth of [0, 1]) {
+        const start = side.pointAt(0, depth);
+        const next = side.pointAt(1, depth);
+        assert.ok(next[0] - start[0] > Math.abs(next[1] - start[1]) * 3);
+        const beforeBottom = side.pointAt(side.rows - 1, depth);
+        const bottom = side.pointAt(side.rows, depth);
+        assert.ok(beforeBottom[1] - bottom[1] > Math.abs(bottom[0] - beforeBottom[0]) * 3);
+        for (let row = 1; row <= side.rows; row++) {
+          assert.ok(side.uvAt(row, depth)[1] > side.uvAt(row - 1, depth)[1]);
+          assert.equal(side.colorAt(row, depth)[0], depth * 255);
+        }
+      }
+    }
+  });
+
   it('keeps the shared lip exact while hiding overlap inside the bend', () => {
     const [front] = patchesFor({ col: 1, row: 0 }, true);
     const topWidth = front.pointAt(0, front.columns)[2] - front.pointAt(0, 0)[2];
@@ -134,6 +154,41 @@ describe('waterfall geometry', () => {
     }
   });
 
+  it('carries source pressure through the lip and seals both side faces', () => {
+    const join = {
+      front: Array.from({ length: 13 }, (_, index) => [index, 2.512, 4]),
+      rear: Array.from({ length: 13 }, (_, index) => [index, 2.012, 4]),
+      uvs: Array.from({ length: 13 }, (_, index) => [index / 12, 1]),
+      sources: Array.from({ length: 13 }, () => [1, 0.42]),
+    };
+    const [front, rear, left, right] = patchesFor(
+      { col: 0, row: 1 }, false, 1, 'all', join,
+    );
+    for (let column = 0; column <= front.columns; column++) {
+      assert.deepEqual(front.sourceAt(0, column), join.sources[column]);
+      assert.deepEqual(rear.sourceAt(0, column), [0, 0]);
+      assert.equal(front.colorAt(0, column)[1], 0);
+      let previousStrength = 1;
+      for (let row = 0; row <= front.rows; row++) {
+        const [strength, progress] = front.sourceAt(row, column);
+        assert.ok(strength <= previousStrength);
+        assert.equal(progress, 0.42);
+        if (row >= 12) {
+          assert.equal(strength, 0);
+        }
+        previousStrength = strength;
+      }
+    }
+    for (let row = 0; row <= front.rows; row++) {
+      assert.deepEqual(left.sourceAt(row, 0), front.sourceAt(row, 0));
+      assert.deepEqual(right.sourceAt(row, 0), front.sourceAt(row, front.columns));
+      assert.deepEqual(left.sourceAt(row, 1), rear.sourceAt(row, 0));
+      assert.deepEqual(right.sourceAt(row, 1), rear.sourceAt(row, front.columns));
+    }
+    const [ordinary] = patchesFor({ col: 1, row: 0 }, false);
+    assert.deepEqual(ordinary.sourceAt(0, 6), [0, 0]);
+  });
+
   it('keeps edge sway pinned without relying on optional UV0 attributes', () => {
     const [front, rear, left, right] = patchesFor(
       { col: -1, row: 0 },
@@ -145,6 +200,20 @@ describe('waterfall geometry', () => {
     assert.equal(Math.hypot(...rear.metadataAt(0, front.columns)), 3);
     assert.equal(Math.hypot(...left.metadataAt(0, 0)), 2);
     assert.equal(Math.hypot(...right.metadataAt(0, 0)), 3);
+  });
+
+  it('keeps the lower side thin once the curtain clears the upstream riverbed', () => {
+    for (const drop of [1, 4, 13.5]) {
+      const [front, rear] = patchesFor({ col: 1, row: 0 }, drop > 4, drop);
+      for (let row = 0; row <= front.rows; row++) {
+        for (let column = 0; column <= front.columns; column++) {
+          const frontHeight = front.pointAt(row, column)[1];
+          if (frontHeight < 1.97) {
+            assert.ok(Math.abs(frontHeight - rear.pointAt(row, column)[1] - 0.025) < 1e-10);
+          }
+        }
+      }
+    }
   });
 
   it('splits a terminal fall at one exact opaque-to-transparent boundary', () => {
@@ -177,11 +246,17 @@ describe('waterfall geometry', () => {
           assert.ok(front.pointAt(row, col).every(Number.isFinite));
           if (row > 0) {
             assert.ok(front.pointAt(row, col)[1] <= front.pointAt(row - 1, col)[1]);
+            assert.ok(rear.pointAt(row, col)[1] <= rear.pointAt(row - 1, col)[1]);
+            assert.ok(rear.pointAt(row, col)[1] <= front.pointAt(row, col)[1]);
+            const faceSeparation = Math.abs(
+              front.pointAt(row, col)[0] - rear.pointAt(row, col)[0],
+            );
+            assert.ok(faceSeparation <= 0.055 + 1e-10);
             assert.ok(front.uvAt(row, col)[1] > front.uvAt(row - 1, col)[1]);
           }
           if (!terminal) {
             assert.equal(front.colorAt(row, col)[3], 255);
-            assert.ok(front.pointAt(row, col)[1] >= 1.487 - 1e-10);
+            assert.ok(front.pointAt(row, col)[1] >= 1.452 - 1e-10);
           }
         }
       }
@@ -189,7 +264,7 @@ describe('waterfall geometry', () => {
         assert.equal(front.colorAt(front.rows, 6)[3], 0);
         assert.ok(front.pointAt(front.rows, 6)[1] < -10.5);
       } else {
-        assert.ok(Math.abs(front.pointAt(front.rows, 6)[1] - 1.487) < 1e-10);
+        assert.ok(Math.abs(front.pointAt(front.rows, 6)[1] - 1.452) < 1e-10);
       }
     });
   }

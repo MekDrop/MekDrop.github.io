@@ -7,6 +7,7 @@ uniform float projectionFlipY;
 
 uniform float uRiverTime;
 uniform float uRiverLava;
+attribute vec2 vertex_riverSource;
 
 vec3 riverWaterPosition(vec3 p) {
   #ifdef VERTEX_COLOR
@@ -25,16 +26,16 @@ vec3 riverWaterPosition(vec3 p) {
     sharedWave += sin(dot(p.xz, vec2(-2.7, 4.8)) - uRiverTime * 2.1) * 0.006;
     p.y += sharedWave * (horizontalVolume + lipJoin);
     float sourceEnvelope =
-      horizontalVolume *
+      (horizontalVolume + lipJoin) *
       (1.0 - step(0.01, vertex_color.r)) *
-      smoothstep(0.01, 0.98, vertex_color.g);
-    float sourceProgress = clamp(vertex_color.b / 0.3764706, 0.0, 1.0);
+      smoothstep(0.01, 0.98, vertex_riverSource.x);
+    float sourceProgress = clamp(vertex_riverSource.y, 0.0, 1.0);
     float sourceFlowPhase = sourceProgress * 14.0 - uRiverTime * 7.4;
     float sourcePressure = 0.52 + sin(sourceFlowPhase) * 0.29;
     sourcePressure += sin(
       sourceProgress * 25.0 -
       uRiverTime * 10.7 +
-      dot(p.xz, crossFlow) * 2.2
+      dot(p.xz, vec2(0.8, 0.6)) * 2.2
     ) * 0.14;
     sourcePressure += sin(
       sourceProgress * 7.0 - uRiverTime * 4.3 + 1.9
@@ -44,7 +45,7 @@ vec3 riverWaterPosition(vec3 p) {
     float sourceLift = sourceEnvelope *
       (0.018 + sourcePressure * mix(0.115, 0.032, 1.0 - sourceEnergy));
     float acrossCrown = 0.88 +
-      sin(dot(p.xz, crossFlow) * 6.2831853) * 0.12;
+      sin(dot(p.xz, vec2(0.8, 0.6)) * 6.2831853) * 0.12;
     // Several overlapping pressure waves continuously disturb the concealed
     // source water. Their physical lift flows through the opening and loses
     // energy across the first exposed cell instead of firing one lone crest.
@@ -55,7 +56,8 @@ vec3 riverWaterPosition(vec3 p) {
     // 2..3, preserving the normalized flow direction while carrying this value.
     float across = clamp(metadataLength - 2.0, 0.0, 1.0);
     float acrossInterior = sin(across * 3.14159265);
-    float wave = sin(-p.y * 3.2 - uRiverTime * 5.4 + vertex_color.r * 9.0);
+    // The two faces share a wave phase so the thin curtain cannot fold through itself.
+    float wave = sin(-p.y * 3.2 - uRiverTime * 5.4);
     p.xz += flow * wave * 0.018 * fall +
       crossFlow * sin(age * 8.0 - uRiverTime * 1.8) * 0.012 * fall * age * acrossInterior;
   #endif

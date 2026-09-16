@@ -1693,27 +1693,11 @@ export class PlayCanvasRenderer {
         const height =
           type in FIXED_HEIGHTS ? FIXED_HEIGHTS[type] : heightmap[row][col];
 
+        const riverCell = riverCells.get(`${col},${row}`);
+        if (riverCell) {
+          this.#addRiverbed(batches, riverCell, cols, rows);
+        }
         if (type === TileType.WATER) {
-          const riverCell = riverCells.get(`${col},${row}`);
-          if (riverCell && !riverCell.underBridge) {
-            const riverbedHeight = riverCell.bedElevation;
-            if (riverbedHeight > 0.01) {
-              this.#addBoxMatrix(
-                batches,
-                "earth",
-                this.#earthSideMaterial(col, row, riverbedHeight - 1),
-                x,
-                riverbedHeight / 2,
-                z,
-                0,
-                CUBE_SCALE,
-                riverbedHeight,
-                CUBE_SCALE,
-                "full",
-                "earth",
-              );
-            }
-          }
           continue;
         }
 
@@ -1944,6 +1928,29 @@ export class PlayCanvasRenderer {
       railingMaterial,
       cols,
       rows,
+    );
+  }
+
+  #addRiverbed(batches, cell, cols, rows) {
+    const { col, row, bedElevation } = cell;
+    const x = col - (cols - 1) / 2;
+    const z = row - (rows - 1) / 2;
+    // Exposed cascade cliffs keep the neighboring bank's stone pattern and scale.
+    for (let level = 0; level < bedElevation - 0.01; level += 1) {
+      const layerHeight = Math.min(1, bedElevation - level);
+      const stone = this.#grassEarthSideMaterial(col, row, level);
+      this.#addBoxMatrix(
+        batches, stone, stone, x, level + layerHeight / 2, z, 0,
+        CUBE_SCALE, layerHeight, CUBE_SCALE, "wallSidesOnly",
+        level === 0 ? "earth" : "none",
+      );
+    }
+    // One stone floor for every river cell, including zero-height beds and
+    // cells beneath bridges. The same material covers exposed cascade ledges.
+    const stone = this.#grassEarthSideMaterial(col, row, Math.max(0, bedElevation - 1));
+    this.#addBoxMatrix(
+      batches, stone, stone, x, bedElevation - 0.5, z, 0,
+      CUBE_SCALE, 1, CUBE_SCALE, "surfaceOnly", "none",
     );
   }
 

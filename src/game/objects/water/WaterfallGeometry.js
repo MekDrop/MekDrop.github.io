@@ -42,7 +42,7 @@ export class WaterfallGeometry {
     const startRow = section === "tail" ? fadeStartRow : 0;
     const endRow = section === "body" ? fadeStartRow : rows;
     const sectionRows = endRow - startRow;
-    const radius = Math.min(0.32, drop * 0.32);
+    const radius = Math.min(0.22, drop * 0.22);
     const direction = this.#direction;
     const cross = { col: -direction.row, row: direction.col };
     const pointAt = (row, column, rear = false) => {
@@ -65,23 +65,33 @@ export class WaterfallGeometry {
         Math.sin(across * 19 + 0.7) * 0.5 + Math.sin(across * 31) * 0.25;
       const bottom =
         this.#waterfall.bottomElevation + 0.012 +
-        (this.#terminal ? 0.18 + scallop * 0.22 : -0.025);
-      const belly = Math.sin((across + 0.5) * Math.PI) * 0.055 * arc;
-      const drift = fall * fall * (this.#terminal ? 0.18 : 0.08);
+        (this.#terminal ? 0.18 + scallop * 0.22 : -0.06);
+      const belly = Math.sin((across + 0.5) * Math.PI) * 0.025 * arc;
+      const drift = fall * fall * (this.#terminal ? 0.12 : 0.04);
       // Bury only the two lip-edge columns just inside the lateral banks. The
       // overlap closes fractional-zoom raster cracks without changing draw order.
       const forward =
         0.5 - Math.abs(edgeSide) * bankJoin + radius * arc + belly + drift;
       const top = this.#waterfall.topElevation + 0.012;
-      const y = top - radius * (1 - Math.cos(angle));
-      const thickness = 0.5 * (1 - arc) + 0.115 * arc * (1 - fall * 0.3);
-      const surfaceForward = forward - (rear ? thickness * arc : 0);
+      const boundaryHeight = this.#join?.front[column]?.[1] ?? top;
+      const y = top - radius * (1 - Math.cos(angle)) +
+        (boundaryHeight - top) * (1 - lip);
+      const frontHeight = y + (bottom - (top - radius)) * fall;
+      // The rear leaves the riverbed and descends. Rotating a half-cell depth
+      // around the front arc made this surface climb upward into a folded lip.
+      const rearStart = this.#join?.rear[column]?.[1] ?? top - 0.5;
+      const rearLip = rearStart - 0.04 * (1 - Math.cos(angle));
+      // Let the back meet the falling front as soon as it clears the riverbed.
+      // Spreading that height difference over the whole fall creates a broad,
+      // flat side panel even though the horizontal sheet thickness is small.
+      const rearHeight = Math.min(rearLip, frontHeight - 0.025);
+      const thickness = 0.055 * arc * (1 - fall * 0.25);
+      const surfaceForward = forward - (rear ? thickness : 0);
       return [
         this.#center[0] +
           direction.col * surfaceForward +
           cross.col * joinedAcross * taper,
-        y + (bottom - (top - radius)) * fall -
-          (rear ? thickness * Math.cos(angle) : 0),
+        rear ? rearHeight : frontHeight,
         this.#center[1] +
           direction.row * surfaceForward +
           cross.row * joinedAcross * taper,
@@ -107,6 +117,17 @@ export class WaterfallGeometry {
           Math.max(0, (row - lipRows) / fallRows) * (drop - radius),
       ];
     };
+    // Carry the source pressure across the exact lip vertices, then let it
+    // dissipate down the rounded spillway. Fall/depth color metadata stays intact.
+    const sourceAt = (row, column, rear = false) => {
+      const source = this.#join?.sources?.[column];
+      if (!source || rear) {
+        return [0, 0];
+      }
+      const progress = Math.min(1, row / lipRows);
+      const fade = 1 - progress * progress * (3 - 2 * progress);
+      return [source[0] * fade, source[1]];
+    };
     const metadataAt = (column) => {
       const magnitude = 2 + column / width;
       return [direction.col * magnitude, direction.row * magnitude];
@@ -117,6 +138,7 @@ export class WaterfallGeometry {
       (r) => colorAt(r + startRow), false, false,
       (r, c) => uvAt(r + startRow, c),
       (r, c) => metadataAt(c),
+      (r, c) => sourceAt(r + startRow, c),
     );
     grid(
       sectionRows, width, (r, c) => pointAt(r + startRow, c, true),
@@ -135,6 +157,7 @@ export class WaterfallGeometry {
         (r, c) => colorAt(r + startRow, c === 1), column === 0, false,
         (r) => uvAt(r + startRow, column),
         () => metadataAt(column),
+        (r, c) => sourceAt(r + startRow, column, c === 1),
       );
     }
   }
