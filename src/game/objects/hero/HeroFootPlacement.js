@@ -2,21 +2,19 @@ const CONTACT_EPSILON = 0.006;
 const CONTACT_REACH = 0.14;
 const MAXIMUM_FOOT_LIFT = 0.32;
 const MAXIMUM_FOOT_TILT = 30;
-const NORMAL_SAMPLE_DISTANCE = 0.08;
-const MAXIMUM_NORMAL_SAMPLE_RISE = 0.2;
 const RELEASE_RESPONSE = 18;
 const TILT_RESPONSE = 20;
 
 export class HeroFootPlacement {
   #pc;
-  #surfaceHeightAt;
+  #surfaceAt;
   #getHeroPosition;
   #feet;
   #enabled = false;
 
-  constructor({ pc, surfaceHeightAt, getHeroPosition, left, right }) {
+  constructor({ pc, surfaceAt, getHeroPosition, left, right }) {
     this.#pc = pc;
-    this.#surfaceHeightAt = surfaceHeightAt;
+    this.#surfaceAt = surfaceAt;
     this.#getHeroPosition = getHeroPosition;
     this.#feet = [
       this.#createFoot("Left leg surface adjustment", left),
@@ -88,7 +86,6 @@ export class HeroFootPlacement {
       this.#alignBootToSurface(
         foot,
         unadjustedContacts,
-        maximumSurfaceHeight,
         deltaTime,
       );
       const contacts = this.#contacts(foot, maximumSurfaceHeight);
@@ -97,8 +94,8 @@ export class HeroFootPlacement {
         Math.max(
           0,
           ...contacts.map(
-            ({ point, surfaceHeight }) =>
-              surfaceHeight - point.y + CONTACT_EPSILON,
+            ({ solePoint, surface }) =>
+              surface.height - solePoint.y + CONTACT_EPSILON,
           ),
         ),
       );
@@ -119,8 +116,8 @@ export class HeroFootPlacement {
       foot.minimumClearance = contacts.length
         ? Math.min(
             ...contacts.map(
-              ({ point, surfaceHeight }) =>
-                point.y + foot.appliedLift - surfaceHeight,
+              ({ solePoint, surface }) =>
+                solePoint.y + foot.appliedLift - surface.height,
             ),
           )
         : null;
@@ -179,22 +176,10 @@ export class HeroFootPlacement {
   #alignBootToSurface(
     foot,
     contacts,
-    maximumSurfaceHeight,
     deltaTime,
   ) {
-    const closestContactDistance = contacts.length
-      ? Math.min(
-          ...contacts.map(({ point, surfaceHeight }) =>
-            Math.abs(point.y - surfaceHeight),
-          ),
-        )
-      : Number.POSITIVE_INFINITY;
-    const normal = this.#surfaceNormalAt(
-      foot.sole.getPosition(),
-      maximumSurfaceHeight,
-    );
-    const targetWeight =
-      normal && closestContactDistance < CONTACT_REACH ? 1 : 0;
+    const normal = this.#contactNormal(contacts);
+    const targetWeight = normal ? 1 : 0;
     if (normal) {
       foot.surfaceNormal.copy(normal);
     }
@@ -233,50 +218,48 @@ export class HeroFootPlacement {
       Math.PI;
   }
 
-  #surfaceNormalAt(position, maximumSurfaceHeight) {
-    const distance = NORMAL_SAMPLE_DISTANCE;
-    const west = this.#surfaceHeightAt(
-      position.x - distance,
-      position.z,
-      maximumSurfaceHeight,
-    );
-    const east = this.#surfaceHeightAt(
-      position.x + distance,
-      position.z,
-      maximumSurfaceHeight,
-    );
-    const north = this.#surfaceHeightAt(
-      position.x,
-      position.z - distance,
-      maximumSurfaceHeight,
-    );
-    const south = this.#surfaceHeightAt(
-      position.x,
-      position.z + distance,
-      maximumSurfaceHeight,
-    );
-    if (![west, east, north, south].every(Number.isFinite)) {
-      return null;
+  #contactNormal(contacts) {
+    let x = 0;
+    let y = 0;
+    let z = 0;
+    let totalWeight = 0;
+    for (const { solePoint, surface } of contacts) {
+      const distance = Math.abs(solePoint.y - surface.height);
+      const weight = Math.max(0, 1 - distance / CONTACT_REACH);
+      const normal = surface.normal;
+      if (
+        weight <= 0 ||
+        !normal ||
+        ![normal.x, normal.y, normal.z].every(Number.isFinite) ||
+        normal.y <= 0
+      ) {
+        continue;
+      }
+      x += normal.x * weight;
+      y += normal.y * weight;
+      z += normal.z * weight;
+      totalWeight += weight;
     }
-    if (
-      Math.abs(east - west) > MAXIMUM_NORMAL_SAMPLE_RISE ||
-      Math.abs(south - north) > MAXIMUM_NORMAL_SAMPLE_RISE
-    ) {
+    if (totalWeight <= 0) {
       return null;
     }
 
-    let gradientX = (east - west) / (distance * 2);
-    let gradientZ = (south - north) / (distance * 2);
-    const gradientLength = Math.hypot(gradientX, gradientZ);
-    const maximumGradient = Math.tan(
-      (MAXIMUM_FOOT_TILT * Math.PI) / 180,
-    );
-    if (gradientLength > maximumGradient) {
-      const scale = maximumGradient / gradientLength;
-      gradientX *= scale;
-      gradientZ *= scale;
+    const normal = new this.#pc.Vec3(
+      x / totalWeight,
+      y / totalWeight,
+      z / totalWeight,
+    ).normalize();
+    const horizontalLength = Math.hypot(normal.x, normal.z);
+    const maximumTilt = (MAXIMUM_FOOT_TILT * Math.PI) / 180;
+    if (horizontalLength <= Math.sin(maximumTilt)) {
+      return normal;
     }
-    return new this.#pc.Vec3(-gradientX, 1, -gradientZ).normalize();
+    const horizontalScale = Math.sin(maximumTilt) / horizontalLength;
+    return new this.#pc.Vec3(
+      normal.x * horizontalScale,
+      Math.cos(maximumTilt),
+      normal.z * horizontalScale,
+    );
   }
 
   #contacts(foot, maximumSurfaceHeight) {
@@ -299,14 +282,17 @@ export class HeroFootPlacement {
     ];
     const transform = foot.sole.getWorldTransform();
     return contactCoordinates.flatMap(([x, y, z]) => {
-      const point = transform.transformPoint(new this.#pc.Vec3(x, y, z));
-      const surfaceHeight = this.#surfaceHeightAt(
-        point.x,
-        point.z,
+      const solePoint = transform.transformPoint(new this.#pc.Vec3(x, y, z));
+      const surface = this.#surfaceAt(
+        solePoint.x,
+        solePoint.z,
         maximumSurfaceHeight,
       );
-      return Number.isFinite(surfaceHeight)
-        ? [{ point, surfaceHeight }]
+      return surface &&
+        Number.isFinite(surface.height) &&
+        surface.normal &&
+        surface.point
+        ? [{ solePoint, surface }]
         : [];
     });
   }

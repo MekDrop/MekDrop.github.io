@@ -421,6 +421,36 @@ describe("Camera dragging", () => {
     }
   });
 
+  it("keeps a manually panned camera away from a stationary hero", () => {
+    setZoom(MAX_ZOOM);
+    cy.window().then((window) => {
+      window.gameCameraTest.panBy(0, DRAG_DISTANCE);
+    });
+
+    let pannedViewport;
+    cy.window().then((window) => {
+      const state = window.gameCameraTest.state();
+      pannedViewport = state.viewport;
+      expect(state.viewport.manuallyMoved).to.equal(true);
+      expect(state.cameraReturningToHero).to.equal(false);
+      expect(
+        Math.hypot(
+          state.viewport.panX - state.hero.position.x,
+          state.viewport.panZ - state.hero.position.z,
+        ),
+      ).to.be.greaterThan(0.5);
+    });
+
+    cy.wait(500);
+    cy.window().then((window) => {
+      const state = window.gameCameraTest.state();
+      expect(state.cameraReturningToHero).to.equal(false);
+      expect(state.viewport.manuallyMoved).to.equal(true);
+      expect(state.viewport.panX).to.be.closeTo(pannedViewport.panX, 0.000001);
+      expect(state.viewport.panZ).to.be.closeTo(pannedViewport.panZ, 0.000001);
+    });
+  });
+
   it("disables pan limits while Pause/Break developer mode is active", () => {
     let initialViewport;
     cy.window().then((window) => {

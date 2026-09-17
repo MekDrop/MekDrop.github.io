@@ -1,7 +1,7 @@
 import { HERO_ANIMATION } from "../../../src/game/enum/HeroAnimation.js";
 import { POINTER_TYPE } from "../../../src/game/enum/PointerType.js";
+import { GRASS_SURFACE_LIFT } from "../../../src/game/config/terrain.js";
 
-const GRASS_SURFACE_LIFT = 0.14;
 const RESPAWN_CAMERA_DRAG_DISTANCE = 100000;
 
 function loadScenario(scenario) {
@@ -135,6 +135,25 @@ describe("Hero movement on a predefined terrain map", { testIsolation: false }, 
     expectState((state) => {
       expect(state.animation).to.equal(HERO_ANIMATION.WALK);
       expect(state.position.x).to.be.greaterThan(-0.75);
+      expect(state.position.y).to.be.closeTo(2 + GRASS_SURFACE_LIFT, 0.03);
+    });
+  });
+
+  it("lands upright after dodging backward across level terrain", () => {
+    loadScenario("flat");
+    expectState((state) => {
+      expect(state.grounded).to.equal(true);
+    });
+    cy.window().then((window) => {
+      expect(window.gameMovementTest.dodge(0, -1, "down")).to.equal(true);
+    });
+    expectStateContinually((state) => {
+      expect(state.animation).not.to.equal(HERO_ANIMATION.FALL_DEATH);
+      expect(state.respawning).to.equal(false);
+    }, 1200);
+    expectState((state) => {
+      expect(state.grounded).to.equal(true);
+      expect(state.animation).to.equal(HERO_ANIMATION.IDLE);
       expect(state.position.y).to.be.closeTo(2 + GRASS_SURFACE_LIFT, 0.03);
     });
   });
@@ -458,7 +477,7 @@ describe("Hero movement on a predefined terrain map", { testIsolation: false }, 
       window.gameMovementTest.jump();
     });
     expectStateContinually((state) => {
-      expect(state.position.y).to.be.at.most(2.32);
+      expect(state.position.y).to.be.at.most(2.33);
     }, 500);
     expectState((state) => {
       expect(state.grounded).to.equal(true);

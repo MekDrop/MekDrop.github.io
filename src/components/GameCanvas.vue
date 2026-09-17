@@ -442,6 +442,10 @@ function installCameraTestDriver() {
       });
       return this.state();
     },
+    panBy(deltaX, deltaY) {
+      renderer.panBy(deltaX, deltaY);
+      return this.state();
+    },
     moveHero(inputX, inputY, running = false) {
       return renderer.setHeroMovement(inputX, inputY, running);
     },

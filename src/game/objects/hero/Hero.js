@@ -12,6 +12,7 @@ import { RIVER_KIND } from "../../enum/RiverKind.js";
 import { SLOPE_DIRECTION } from "../../enum/SlopeDirection.js";
 import { TILE_SHAPE } from "../../enum/TileShape.js";
 import { HeroLavaDeathEffect } from "./HeroLavaDeathEffect.js";
+import { HeroPhysicsController } from "./HeroPhysicsController.js";
 import { HeroFootPlacement } from "./HeroFootPlacement.js";
 import { HeroWaterMotion } from "./HeroWaterMotion.js";
 import { HeroPatMood } from "./HeroPatMood.js";
@@ -20,7 +21,6 @@ import { HERO_MOOD } from "../../enum/HeroMood.js";
 import { HERO_STAT } from "../../enum/HeroStat.js";
 import { BuffSystem } from "../../buffs/BuffSystem.js";
 
-const FIXED_STEP = 1 / 120;
 const MAX_FRAME_TIME = 0.1;
 const MOVE_SPEED = 4.2;
 const RUN_SPEED = 6.3;
@@ -32,10 +32,8 @@ const MAX_JUMP_HEIGHT = 1.21;
 const JUMP_VELOCITY = Math.sqrt(-2 * GRAVITY * MAX_JUMP_HEIGHT);
 const MAX_SAFE_STEP_DOWN = 1 + GRASS_SURFACE_LIFT;
 const DODGE_DISTANCE = 3;
-const DODGE_JUMP_HEIGHT = 0.68;
-const DODGE_JUMP_VELOCITY = Math.sqrt(-2 * GRAVITY * DODGE_JUMP_HEIGHT);
-const DODGE_DURATION = (2 * DODGE_JUMP_VELOCITY) / -GRAVITY;
-const DODGE_SPEED = DODGE_DISTANCE / DODGE_DURATION;
+const SIDE_DODGE_JUMP_HEIGHT = 0.68;
+const FORWARD_BACK_DODGE_JUMP_HEIGHT = 1;
 const DODGE_ANIMATION_DURATION = 0.6;
 const DODGE_REQUIRED_RUNWAY = 1;
 const MAX_JUMPS = 2;
@@ -133,9 +131,9 @@ const RIVER_BRIDGE_HOP_HEIGHT = 0.24;
 // Keeps the widest pose, including the pauldron and its outline, within one
 // 1x1 terrain/path cube.
 const HERO_MODEL_SCALE = 0.65;
-// Castle foundation cells render as grass. The castle collision world owns the
-// exact wall, door, stair, and furniture footprints, so open foundation ground
-// must remain traversable instead of treating the whole rectangle as a wall.
+// Castle foundation cells remain traversable dirt. The castle collision world
+// owns the exact wall, door, stair, and furniture footprints, so the whole
+// foundation rectangle must not behave like one solid wall.
 const WALKABLE_TILES = new Set([
   TileType.GRASS,
   TileType.PATH,
@@ -143,11 +141,7 @@ const WALKABLE_TILES = new Set([
   TileType.CASTLE_WALL,
   TileType.CASTLE_TOWER,
 ]);
-const GRASS_SURFACE_TILES = new Set([
-  TileType.GRASS,
-  TileType.CASTLE_WALL,
-  TileType.CASTLE_TOWER,
-]);
+const GRASS_SURFACE_TILES = new Set([TileType.GRASS]);
 // Only castle floor and stair surfaces may replace the terrain height beneath
 // their footprint. Vegetation surfaces can overlap a neighbouring terrain
 // tile, but must never make that tile's cliff face traversable.
@@ -317,6 +311,7 @@ export class Hero {
   #collisionWorld;
   #modelLibrary;
   #entity;
+  #physics;
   #modelRoot;
   #headEntity;
   #mouthEntity;
@@ -346,7 +341,6 @@ export class Hero {
   #coyoteRemaining = COYOTE_TIME;
   #jumpBufferRemaining = 0;
   #jumpsUsed = 0;
-  #accumulator = 0;
   #facingYaw = 0;
   #animationState = null;
   #restartAnimation = false;
@@ -426,6 +420,14 @@ export class Hero {
       this.#position.y,
       this.#position.z,
     );
+    this.#physics = new HeroPhysicsController({
+      pc,
+      app,
+      entity: this.#entity,
+      radius: MOVEMENT_COLLISION_RADIUS,
+      height: HERO_COLLISION_HEIGHT,
+      gravity: GRAVITY,
+    });
 
     this.#createModel();
     this.#lavaDeathEffect = new HeroLavaDeathEffect({ pc, app });
@@ -683,9 +685,17 @@ export class Hero {
       return false;
     }
 
-    this.#velocity.x = projected.x * DODGE_SPEED;
-    this.#velocity.y = DODGE_JUMP_VELOCITY;
-    this.#velocity.z = projected.z * DODGE_SPEED;
+    const jumpHeight =
+      direction === "up" || direction === "down"
+        ? FORWARD_BACK_DODGE_JUMP_HEIGHT
+        : SIDE_DODGE_JUMP_HEIGHT;
+    const jumpVelocity = Math.sqrt(-2 * GRAVITY * jumpHeight);
+    const duration = (2 * jumpVelocity) / -GRAVITY;
+    const speed = DODGE_DISTANCE / duration;
+    this.#velocity.x = projected.x * speed;
+    this.#velocity.y = jumpVelocity;
+    this.#velocity.z = projected.z * speed;
+    this.#physics.velocity = this.#velocity;
     this.#grounded = false;
     this.#coyoteRemaining = 0;
     this.#jumpBufferRemaining = 0;
@@ -695,6 +705,8 @@ export class Hero {
       x: projected.x,
       z: projected.z,
       facing: this.#dodgeFacingDirection(direction, projected),
+      duration,
+      speed,
       elapsed: 0,
       crossedLedge: false,
     };
@@ -999,6 +1011,8 @@ export class Hero {
       this.#collectAction.tool.visible = false;
     }
     this.#collectAction?.heldItem?.destroy();
+    this.#physics?.destroy();
+    this.#physics = null;
     this.#entity?.destroy();
     this.#entity = null;
     this.#headEntity = null;
@@ -1029,18 +1043,26 @@ export class Hero {
   }
 
   #update = (deltaTime) => {
-    this.#accumulator = Math.min(
-      this.#accumulator + Math.min(deltaTime, MAX_FRAME_TIME),
-      MAX_FRAME_TIME,
-    );
-    while (this.#accumulator >= FIXED_STEP) {
-      this.#step(FIXED_STEP);
-      this.#accumulator -= FIXED_STEP;
-    }
+    this.#step(Math.min(deltaTime, MAX_FRAME_TIME));
     this.#animate(deltaTime);
   };
 
   #step(deltaTime) {
+    const previousX = this.#position.x;
+    const previousY = this.#position.y;
+    const previousZ = this.#position.z;
+    let rigidBodyWasBlocked = false;
+    if (!this.#physics.scripted) {
+      this.#position = this.#physics.position;
+      this.#velocity = this.#physics.velocity;
+      this.#grounded =
+        this.#velocity.y <= 0.2 &&
+        this.#physics.groundContact(this.#position) !== null;
+      rigidBodyWasBlocked =
+        this.#hasMovementInput &&
+        this.#grounded &&
+        Math.hypot(this.#velocity.x, this.#velocity.z) <= 0.08;
+    }
     const buffRevision = this.#buffs.revision;
     if (this.isInDeathSequence || this.#gameOver) {
       this.#buffs.clear();
@@ -1060,9 +1082,6 @@ export class Hero {
     if (this.#gameOver) {
       return;
     }
-    const previousX = this.#position.x;
-    const previousY = this.#position.y;
-    const previousZ = this.#position.z;
     if (this.#lavaDeathAction) {
       this.#advanceLavaDeath(deltaTime);
       this.#applyPosition(previousX, previousY, previousZ);
@@ -1126,8 +1145,8 @@ export class Hero {
                 }
               : this.#dodgeAction
                 ? {
-                    x: this.#dodgeAction.x * DODGE_SPEED,
-                    z: this.#dodgeAction.z * DODGE_SPEED,
+                    x: this.#dodgeAction.x * this.#dodgeAction.speed,
+                    z: this.#dodgeAction.z * this.#dodgeAction.speed,
                   }
                 : this.#desiredVelocity();
     const moving = Math.hypot(desired.x, desired.z) > 0.001;
@@ -1172,13 +1191,15 @@ export class Hero {
       this.#restartAnimation = true;
     }
 
-    this.#movementBlocked = false;
+    this.#movementBlocked = rigidBodyWasBlocked;
     this.#holeMovementBlocked = false;
     this.#moveHorizontally(deltaTime);
     this.#moveVertically(deltaTime);
     this.#advanceBlockedPush(deltaTime);
 
-    if (this.#position.y < FALL_EXIT_HEIGHT) this.#handleFallDeath();
+    if (this.#position.y < FALL_EXIT_HEIGHT) {
+      this.#handleFallDeath();
+    }
     this.#applyPosition(previousX, previousY, previousZ);
   }
 
@@ -1232,9 +1253,7 @@ export class Hero {
     const attemptedX = Math.abs(this.#velocity.x) > 0.001;
     const nextX = this.#position.x + this.#velocity.x * deltaTime;
     const occupancyX = this.#occupancyAt(nextX, this.#position.z);
-    if (occupancyX === OCCUPANCY.open) {
-      this.#position.x = nextX;
-    } else {
+    if (occupancyX !== OCCUPANCY.open) {
       this.#movementBlocked ||= attemptedX;
       if (attemptedX) {
         this.#tryMovementRefusal(nextX, this.#position.z);
@@ -1254,15 +1273,15 @@ export class Hero {
       if (!this.#preservesRisingMomentum(occupancyX)) {
         this.#velocity.x = 0;
       }
-      if (attemptedX) this.#tryGatewayRepulsion(nextX, this.#position.z);
+      if (attemptedX) {
+        this.#tryGatewayRepulsion(nextX, this.#position.z);
+      }
     }
 
     const attemptedZ = Math.abs(this.#velocity.z) > 0.001;
     const nextZ = this.#position.z + this.#velocity.z * deltaTime;
     const occupancyZ = this.#occupancyAt(this.#position.x, nextZ);
-    if (occupancyZ === OCCUPANCY.open) {
-      this.#position.z = nextZ;
-    } else {
+    if (occupancyZ !== OCCUPANCY.open) {
       this.#movementBlocked ||= attemptedZ;
       if (attemptedZ) {
         this.#tryMovementRefusal(this.#position.x, nextZ);
@@ -1282,11 +1301,12 @@ export class Hero {
       if (!this.#preservesRisingMomentum(occupancyZ)) {
         this.#velocity.z = 0;
       }
-      if (attemptedZ) this.#tryGatewayRepulsion(this.#position.x, nextZ);
+      if (attemptedZ) {
+        this.#tryGatewayRepulsion(this.#position.x, nextZ);
+      }
     }
   }
-
-  #moveVertically(deltaTime) {
+  #moveVertically() {
     if (this.#tryBeginDrowning()) {
       return;
     }
@@ -1296,19 +1316,28 @@ export class Hero {
     );
     const aboveExposedRiver =
       riverRouteEntry !== null && !riverRouteEntry.cell.underBridge;
-    const ground = this.#fallingToDeath
+    const contact = this.#fallingToDeath
       ? null
-      : this.#landingSurfaceAt(this.#position.x, this.#position.z);
-    if (ground === null && this.#dodgeAction) {
+      : this.#physics.groundContact(this.#position);
+    const safeLanding = this.#fallingToDeath
+      ? null
+      : this.#physics.surfaceAt(
+          this.#position.x,
+          this.#position.z,
+          this.#position.y + STEP_CLEARANCE,
+          this.#position.y - MAX_SAFE_STEP_DOWN - STEP_CLEARANCE,
+        );
+    if (safeLanding === null && this.#dodgeAction) {
       this.#dodgeAction.crossedLedge = true;
     }
     if (
-      ground === null &&
+      !contact &&
       !this.#fallingToDeath &&
       !this.#dodgeAction &&
       !aboveExposedRiver &&
       (this.#isBeyondMapEdge(this.#position.x, this.#position.z) ||
-        (!this.#grounded &&
+        (!safeLanding &&
+          !this.#grounded &&
           this.#velocity.y <= 0 &&
           this.#position.y <
             (this.#stableGroundPosition?.y ?? this.#spawn.y) -
@@ -1316,54 +1345,12 @@ export class Hero {
     ) {
       this.#beginFallDeath();
     }
-    if (
-      this.#grounded &&
-      ground !== null &&
-      Math.abs(ground - this.#position.y) <= STEP_CLEARANCE
-    ) {
-      this.#position.y = ground;
-      this.#velocity.y = 0;
-      this.#rememberStableGroundPosition();
-      return;
-    }
-
-    this.#grounded = false;
-    const previousY = this.#position.y;
-    this.#velocity.y += GRAVITY * deltaTime;
-    this.#position.y += this.#velocity.y * deltaTime;
-    const ceiling = this.#collisionWorld?.ceilingHeightAt(
-      this.#position.x,
-      this.#position.z,
-      MOVEMENT_COLLISION_RADIUS,
-      previousY,
-    );
-    if (
-      this.#velocity.y > 0 &&
-      Number.isFinite(ceiling) &&
-      previousY + HERO_COLLISION_HEIGHT <= ceiling + STEP_CLEARANCE &&
-      this.#position.y + HERO_COLLISION_HEIGHT >= ceiling
-    ) {
-      this.#position.y = ceiling - HERO_COLLISION_HEIGHT;
-      this.#velocity.y = 0;
-    }
-
-    if (
-      ground !== null &&
-      this.#velocity.y <= 0 &&
-      previousY >= ground - STEP_CLEARANCE &&
-      this.#position.y <= ground
-    ) {
-      if (this.#rejectUnsupportedLanding(ground)) {
-        return;
-      }
-      this.#position.y = ground;
-      this.#velocity.y = 0;
-      this.#grounded = true;
+    this.#grounded = Boolean(contact) && this.#velocity.y <= 0.2;
+    if (this.#grounded) {
       this.#jumpsUsed = 0;
       this.#rememberStableGroundPosition();
     }
   }
-
   #buildRiverRouteLookup() {
     for (const river of this.#mapData.riverData ?? []) {
       const source = river.cells[0];
@@ -1501,6 +1488,7 @@ export class Hero {
       surfaceY: this.#position.y,
     };
     this.#lavaAshes = false;
+    this.#physics.setScripted(this.#position, this.#velocity);
     this.#lavaDeathEffect?.begin();
     this.#restartAnimation = true;
     this.#resetBoredom();
@@ -1572,6 +1560,8 @@ export class Hero {
     };
     this.#position.y =
       routeEntry.cell.elevation - DROWNING_SUBMERGE_DEPTH;
+    this.#physics.gravity = 0;
+    this.#physics.teleport(this.#position, this.#velocity);
     this.#setDrowningPresentation(true);
     this.#restartAnimation = true;
     this.#resetBoredom();
@@ -1608,15 +1598,7 @@ export class Hero {
     const deltaX = targetX - this.#position.x;
     const deltaZ = targetZ - this.#position.z;
     const distance = Math.hypot(deltaX, deltaZ);
-    const movement = Math.min(distance, RIVER_CURRENT_SPEED * deltaTime);
-    if (distance > RIVER_WAYPOINT_EPSILON) {
-      this.#velocity.x = (deltaX / distance) * RIVER_CURRENT_SPEED;
-      this.#velocity.z = (deltaZ / distance) * RIVER_CURRENT_SPEED;
-      this.#position.x += (deltaX / distance) * movement;
-      this.#position.z += (deltaZ / distance) * movement;
-    } else {
-      this.#position.x = targetX;
-      this.#position.z = targetZ;
+    if (distance <= RIVER_WAYPOINT_EPSILON) {
       if (action.exiting) {
         this.#finishDrowningAtWaterfall(direction);
         return;
@@ -1642,15 +1624,22 @@ export class Hero {
       waterElevation -
       DROWNING_SUBMERGE_DEPTH +
       HeroWaterMotion.offsetAt(action.elapsed);
-    const previousY = this.#position.y;
-    this.#position.y = this.#approach(
-      this.#position.y,
-      targetY,
-      DROWNING_SINK_SPEED * deltaTime,
+    const verticalVelocity = Math.max(
+      -DROWNING_SINK_SPEED,
+      Math.min(
+        DROWNING_SINK_SPEED,
+        (targetY - this.#position.y) * DROWNING_SINK_SPEED,
+      ),
     );
-    this.#velocity.y = (this.#position.y - previousY) / deltaTime;
+    if (distance > RIVER_WAYPOINT_EPSILON) {
+      this.#velocity.x = (deltaX / distance) * RIVER_CURRENT_SPEED;
+      this.#velocity.z = (deltaZ / distance) * RIVER_CURRENT_SPEED;
+    } else {
+      this.#velocity.x = 0;
+      this.#velocity.z = 0;
+    }
+    this.#velocity.y = verticalVelocity;
   }
-
   #beginRiverBridgeExit(bridgeCell) {
     this.#setDrowningPresentation(false);
     this.#velocity = { x: 0, y: 0, z: 0 };
@@ -1658,6 +1647,8 @@ export class Hero {
     const bridgeX = bridgeCell.col - (this.#mapData.cols - 1) / 2;
     const bridgeZ = bridgeCell.row - (this.#mapData.rows - 1) / 2;
     this.#drowningAction = null;
+    this.#physics.gravity = GRAVITY;
+    this.#physics.setScripted(this.#position, this.#velocity);
     this.#bridgeClimbAction = {
       cell: bridgeCell,
       direction,
@@ -1746,6 +1737,7 @@ export class Hero {
     this.#coyoteRemaining = COYOTE_TIME;
     this.#jumpsUsed = 0;
     this.#stableGroundPosition = { ...this.#position };
+    this.#physics.resume(this.#position, this.#velocity);
     this.#restartAnimation = true;
   }
 
@@ -1757,6 +1749,7 @@ export class Hero {
       y: -1.2,
       z: direction.z * RIVER_CURRENT_SPEED,
     };
+    this.#physics.gravity = GRAVITY;
     this.#beginFallDeath();
   }
 
@@ -1811,11 +1804,20 @@ export class Hero {
   }
 
   #applyPosition(previousX, previousY, previousZ) {
-    this.#entity.setLocalPosition(
-      this.#position.x,
-      this.#position.y,
-      this.#position.z,
-    );
+    const bodyPosition = this.#physics.position;
+    const positionWasScripted =
+      Math.abs(bodyPosition.x - this.#position.x) > 0.000001 ||
+      Math.abs(bodyPosition.y - this.#position.y) > 0.000001 ||
+      Math.abs(bodyPosition.z - this.#position.z) > 0.000001;
+    if (this.#physics.scripted) {
+      this.#physics.setScripted(this.#position, this.#velocity);
+    } else if (positionWasScripted) {
+      this.#physics.teleport(this.#position, this.#velocity);
+    } else {
+      this.#physics.velocity = this.#velocity;
+    }
+    this.#position = this.#physics.position;
+    this.#velocity = this.#physics.velocity;
     if (
       previousX !== this.#position.x ||
       previousY !== this.#position.y ||
@@ -2771,6 +2773,7 @@ export class Hero {
     if (this.#fallingToDeath || this.#gameOver) {
       return;
     }
+    this.#physics.gravity = GRAVITY;
     if (this.#drowningAction) {
       this.#drowningAction = null;
       this.#setDrowningPresentation(false);
@@ -2807,6 +2810,7 @@ export class Hero {
     if (this.#lives === 0) {
       this.#gameOver = true;
       this.#velocity = { x: 0, y: 0, z: 0 };
+      this.#physics.setScripted(this.#position, this.#velocity);
       this.#emitState();
       return;
     }
@@ -2828,6 +2832,8 @@ export class Hero {
     this.#dodgeAction = null;
     this.#fallingToDeath = false;
     this.#respawnAction = { elapsed: 0 };
+    this.#physics.gravity = GRAVITY;
+    this.#physics.resume(this.#position, this.#velocity);
     this.#respawnEffect.begin(this.#facingYaw, this.#position.y);
     this.#updateRespawnPresentation();
     this.#gatewayRepelCooldown = 0;
@@ -2958,9 +2964,10 @@ export class Hero {
       this.#resetBoredom();
     } else if (this.#dodgeAction) {
       animation = this.#dodgeAnimationName(this.#dodgeAction.direction);
-      animationSpeed = DODGE_ANIMATION_DURATION / DODGE_DURATION;
+      animationSpeed =
+        DODGE_ANIMATION_DURATION / this.#dodgeAction.duration;
       this.#resetBoredom();
-    } else if (!this.#grounded) {
+    } else if (!this.#grounded && this.#coyoteRemaining === 0) {
       animation = HERO_ANIMATION.JUMP;
       this.#resetBoredom();
     } else if (refusingEdge) {
@@ -3331,8 +3338,8 @@ export class Hero {
     this.#animationState = HERO_ANIMATION.IDLE;
     this.#footPlacement = new HeroFootPlacement({
       pc: this.#pc,
-      surfaceHeightAt: (x, z, maximumHeight) =>
-        this.#supportHeightAtPoint(x, z, maximumHeight),
+      surfaceAt: (x, z, maximumHeight) =>
+        this.#physics.surfaceAt(x, z, maximumHeight),
       getHeroPosition: () => this.#position,
       left: {
         side: "left",
@@ -3627,11 +3634,12 @@ export class Hero {
     if (!this.#dodgeAction) {
       return;
     }
+    const { duration } = this.#dodgeAction;
     this.#dodgeAction.elapsed = Math.min(
-      DODGE_DURATION,
+      duration,
       this.#dodgeAction.elapsed + deltaTime,
     );
-    if (this.#dodgeAction.elapsed < DODGE_DURATION) {
+    if (this.#dodgeAction.elapsed < duration) {
       return;
     }
     const crossedLedge = this.#dodgeAction.crossedLedge;

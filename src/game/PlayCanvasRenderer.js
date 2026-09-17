@@ -50,6 +50,7 @@ import { SLOPE_DIRECTION } from "./enum/SlopeDirection.js";
 import { TILE_SHAPE } from "./enum/TileShape.js";
 import {
   GroundCollisionWorld,
+  HeroPhysicsTerrain,
   PathOverpassCollider,
 } from "./collision/index.js";
 import { GameModelLibrary } from "./models/index.js";
@@ -260,6 +261,7 @@ export class PlayCanvasRenderer {
   #debugAxesHudVisible = false;
   #debugFpsHudVisible = false;
   #collisionWorld = new GroundCollisionWorld();
+  #heroPhysicsTerrain = null;
   #pathOverpassCollider = null;
   #modelLibrary = null;
   #gatewayColors = [...GATEWAY_COLORS];
@@ -1460,6 +1462,7 @@ export class PlayCanvasRenderer {
     this.#buildVegetation();
     this.#buildGroundCover();
     this.#buildBuriedTreasure();
+    this.#buildHeroPhysicsTerrain();
     this.#buildHero();
     this.#buildTools();
     this.#grassSurface.refreshObstacles();
@@ -1578,6 +1581,16 @@ export class PlayCanvasRenderer {
     this.#buriedTreasure?.applyHeroPosition(this.#hero.position);
   }
 
+  #buildHeroPhysicsTerrain() {
+    this.#heroPhysicsTerrain = new HeroPhysicsTerrain({
+      pc: this.#pc,
+      app: this.#app,
+      mapData: this.#mapData,
+      collisionWorld: this.#collisionWorld,
+    });
+    this.#mapRoot.addChild(this.#heroPhysicsTerrain.entity);
+  }
+
   #buildTools() {
     this.#axeTool = new AxeTool({ modelLibrary: this.#modelLibrary });
     this.#knifeTool = new KnifeTool({ modelLibrary: this.#modelLibrary });
@@ -1600,6 +1613,7 @@ export class PlayCanvasRenderer {
       onVegetationRemoved: (vegetation) => {
         this.#buriedTreasure?.removeVegetation(vegetation);
         this.#grassSurface?.refreshObstacles();
+        this.#heroPhysicsTerrain?.refresh();
       },
     });
     this.#collisionWorld.add(this.#vegetation);
@@ -3035,11 +3049,6 @@ export class PlayCanvasRenderer {
     }
 
     if (this.#viewportManuallyMoved) {
-      if (!heroIsOutOfBounds) {
-        this.#heroVisibility?.schedule();
-        return;
-      }
-      this.#startHeroCameraReturn();
       this.#heroVisibility?.schedule();
       return;
     } else if (this.#zoom > MAP_FIT_ZOOM) {
@@ -3693,6 +3702,8 @@ export class PlayCanvasRenderer {
     this.#thrownInventoryItems = [];
     this.#hero?.destroy();
     this.#hero = null;
+    this.#heroPhysicsTerrain?.destroy();
+    this.#heroPhysicsTerrain = null;
     this.#vegetation?.destroy();
     this.#vegetation = null;
     this.#buriedTreasure?.destroy();
