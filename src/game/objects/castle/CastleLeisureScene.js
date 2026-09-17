@@ -13,6 +13,7 @@ import { TerraceKing } from "./TerraceKing.js";
 import { TerracePrincess } from "./TerracePrincess.js";
 import { TerraceQueen } from "./TerraceQueen.js";
 import { CASTLE_LEISURE_PHASE as PHASE } from "../../enum/CastleLeisurePhase.js";
+import { BOOK_ANIMATION } from "../../enum/BookAnimation.js";
 
 const PROP_URLS = { table: tableUrl, chair: chairUrl, pot: potUrl,
   cup: cupUrl, sunbed: sunbedUrl, book: bookUrl };
@@ -73,6 +74,8 @@ export class CastleLeisureScene {
   #teaMaterial;
   #tray;
   #bookOpenAmount = 0;
+  #bookAnimationLayer;
+  #bookAnimationDuration = 0;
   #activityTime = 0;
 
   constructor({ pc, modelLibrary, seed, position, doors, layout }) {
@@ -115,6 +118,9 @@ export class CastleLeisureScene {
         prop.name = `Terrace ${name}`;
         this.#stage.addChild(prop);
         this.#props[name] = prop;
+      }
+      if (this.#kind === "queen") {
+        this.#setupBookAnimation(modelLibrary);
       }
     }
     if (this.#kind === "princess") {
@@ -556,7 +562,7 @@ export class CastleLeisureScene {
     book.enabled = visible;
     if (!visible) {
       this.#bookOpenAmount = 0;
-      this.#setBookOpen(0);
+      this.#setBookOpenAmount(0);
       return;
     }
     const mountProgress = phase === PHASE.SETTLE
@@ -580,15 +586,26 @@ export class CastleLeisureScene {
       .transformPoint(world);
     book.setLocalPosition(local.x, local.y + 0.035, local.z);
     book.setLocalEulerAngles(-25 * raise, 0, 0);
-    this.#setBookOpen(this.#bookOpenAmount);
+    this.#setBookOpenAmount(this.#bookOpenAmount);
   }
 
-  #setBookOpen(amount) {
-    const angle = 84 - 72 * amount;
-    this.#props.book.findByName("Book left cover")
-      .setLocalEulerAngles(0, 0, -angle);
-    this.#props.book.findByName("Book right cover")
-      .setLocalEulerAngles(0, 0, angle);
+  #setupBookAnimation(modelLibrary) {
+    const track = modelLibrary
+      .getAnimationTracks(bookUrl, [BOOK_ANIMATION.OPEN])
+      .get(BOOK_ANIMATION.OPEN);
+    const book = this.#props.book;
+    book.addComponent("anim", { activate: true });
+    book.anim.addAnimationState(BOOK_ANIMATION.OPEN, track, 1, false);
+    book.anim.baseLayer.play(BOOK_ANIMATION.OPEN);
+    book.anim.speed = 0;
+    this.#bookAnimationLayer = book.anim.baseLayer;
+    this.#bookAnimationDuration = track.duration;
+    this.#setBookOpenAmount(0);
+  }
+
+  #setBookOpenAmount(amount) {
+    this.#bookAnimationLayer.activeStateCurrentTime =
+      this.#bookAnimationDuration * amount;
   }
 
   #syncTray(cargo) {

@@ -102,13 +102,10 @@ const FOOT_REQUIRED_PERIMETER_SUPPORTS = 5;
 const EDGE_REFUSAL_DURATION = 0.8;
 const HOLE_REFUSAL_DURATION = 1.45;
 const BLOCKED_DIG_REACTION_DURATION = 42 / 24;
-const BLOCKED_DIG_LOOK_DOWN_ANGLE = 10;
 const BLOCKED_DIG_EYE_ANGLE = 20;
 const INVENTORY_FULL_COLLAPSE_DURATION = 52 / 24;
 const INVENTORY_FULL_EFFECT_TIME = 14 / 24;
 const INVENTORY_FULL_INDICATOR_CLEARANCE = 0.82;
-const HOLE_LOOK_DOWN_ANGLE = 27;
-const HOLE_HEAD_SHAKE_ANGLE = 18;
 const LANDING_BACKTRACK_STEP = 0.025;
 const LANDING_BACKTRACK_DISTANCE = 0.75;
 const LANDING_FORWARD_SETTLE_DISTANCE =
@@ -2994,7 +2991,10 @@ export class Hero {
     }
     this.#playAnimation(animation, animationSpeed, this.#restartAnimation);
     this.#restartAnimation = false;
-    if (animation !== HERO_ANIMATION.PAT_ANNOYED) {
+    if (
+      animation !== HERO_ANIMATION.PAT_ANNOYED &&
+      animation !== HERO_ANIMATION.DIG_BLOCKED_ANNOYED
+    ) {
       for (const morph of this.#faceMorphs) {
         morph.setWeight("HappyPat", 0);
         morph.setWeight("AngryPat", 0);
@@ -3108,45 +3108,15 @@ export class Hero {
   }
 
   #updateHeadLook(deltaTime) {
-    this.#setAngryFace(0);
     if (this.#blockedDigReactionAction) {
-      const progress = Math.min(
-        1,
-        this.#blockedDigReactionAction.elapsed /
-          BLOCKED_DIG_REACTION_DURATION,
-      );
-      const fadeIn = this.#smoothProgress(progress / 0.18);
-      const fadeOut =
-        1 - this.#smoothProgress((progress - 0.82) / 0.18);
-      const anger = Math.min(fadeIn, fadeOut);
       this.#headLookYaw = 0;
-      this.#headEntity?.setLocalEulerAngles(
-        BLOCKED_DIG_LOOK_DOWN_ANGLE * anger,
-        0,
-        0,
-      );
-      this.#setAngryFace(anger);
       return;
     }
     if (this.#holeRefusalAction) {
-      const progress = Math.min(
-        1,
-        this.#holeRefusalAction.elapsed / HOLE_REFUSAL_DURATION,
-      );
-      const lookDown = Math.sin(Math.PI * progress);
-      const shakeProgress = Math.max(0, (progress - 0.32) / 0.68);
-      const shake =
-        Math.sin(shakeProgress * Math.PI * 4) *
-        Math.sin(shakeProgress * Math.PI) *
-        HOLE_HEAD_SHAKE_ANGLE;
-      this.#headLookYaw = shake;
-      this.#headEntity?.setLocalEulerAngles(
-        HOLE_LOOK_DOWN_ANGLE * lookDown,
-        shake,
-        0,
-      );
+      this.#headLookYaw = 0;
       return;
     }
+    this.#setAngryFace(0);
     this.#headLookYaw = this.#lerpAngle(
       this.#headLookYaw,
       this.#headLookTargetYaw,

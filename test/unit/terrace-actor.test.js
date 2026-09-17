@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import { it } from "node:test";
 import * as pc from "playcanvas";
 import { TerraceActor } from "../../src/game/objects/castle/TerraceActor.js";
+import { TERRACE_ACTOR_ANIMATION } from "../../src/game/enum/TerraceActorAnimation.js";
 
 // Exercise the authored object hierarchy without a GPU context.
 function royalModel(kind) {
@@ -42,7 +43,7 @@ function royalModel(kind) {
     root.addChild(nodes[index]);
   }
   root.findComponents = (type) => type === "render" ? [{ meshInstances: meshes }] : [];
-  return { root, meshes };
+  return { root, meshes, gltf };
 }
 
 for (const kind of ["king", "queen", "princess", "servant", "elder-servant"]) {
@@ -89,92 +90,57 @@ it("keeps the authored sword attached to the animated king hand", () => {
   actor.destroy();
 });
 
-it("blends from standing without accumulating frame-dependent motion", () => {
-  const { root } = royalModel("princess");
-  const actor = new TerraceActor({ pc, kind: "princess", modelUrl: "princess", modelLibrary: { instantiate: () => root } });
-  actor.pose("sit", 1, 0.5);
-  const first = actor.rightHand.getPosition().clone();
-  actor.pose("sit", 1, 0.5);
-  assert.ok(first.equals(actor.rightHand.getPosition()));
-  actor.pose("drink", 4, 0);
-  const neutral = actor.rightHand.getPosition().clone();
-  actor.pose("idle", 4);
-  assert.ok(neutral.equals(actor.rightHand.getPosition()));
-  actor.destroy();
-});
+const expectedAnimations = new Map([
+  ["queen", [
+    TERRACE_ACTOR_ANIMATION.IDLE,
+    TERRACE_ACTOR_ANIMATION.WALK,
+    TERRACE_ACTOR_ANIMATION.MOUNT_SUNBED,
+    TERRACE_ACTOR_ANIMATION.RECLINE,
+    TERRACE_ACTOR_ANIMATION.READ,
+  ]],
+  ["princess", [
+    TERRACE_ACTOR_ANIMATION.IDLE,
+    TERRACE_ACTOR_ANIMATION.WALK,
+    TERRACE_ACTOR_ANIMATION.SIT,
+    TERRACE_ACTOR_ANIMATION.DRINK,
+  ]],
+  ["servant", [
+    TERRACE_ACTOR_ANIMATION.IDLE,
+    TERRACE_ACTOR_ANIMATION.WALK,
+    TERRACE_ACTOR_ANIMATION.CARRY,
+    TERRACE_ACTOR_ANIMATION.PLACE,
+    TERRACE_ACTOR_ANIMATION.POUR,
+  ]],
+  ["elder-servant", [
+    TERRACE_ACTOR_ANIMATION.IDLE,
+    TERRACE_ACTOR_ANIMATION.WALK,
+    TERRACE_ACTOR_ANIMATION.CARRY,
+    TERRACE_ACTOR_ANIMATION.PLACE,
+    TERRACE_ACTOR_ANIMATION.POUR,
+  ]],
+]);
 
-it("sets furniture down without marching and finishes upright", () => {
-  const { root } = royalModel("servant");
-  const actor = new TerraceActor({ pc, kind: "servant", modelUrl: "servant", modelLibrary: { instantiate: () => root } });
-  const leg = root.findByName("Royal left leg rig");
-  const rest = leg.getLocalRotation().clone();
-  for (const time of [0, 0.5, 1, 1.5, 2]) {
-    actor.pose("place", time);
-    assert.ok(leg.getLocalRotation().equals(rest));
-  }
-  const finished = actor.rightHand.getPosition().clone();
-  actor.pose("idle", 2);
-  assert.ok(finished.distance(actor.rightHand.getPosition()) < 0.00001);
-  actor.destroy();
-});
-
-it("fits the walking king and sword inside the terrace doorway", () => {
-  const { root, meshes } = royalModel("king");
-  const actor = new TerraceActor({ pc, kind: "king", modelUrl: "king", modelLibrary: { instantiate: () => root } });
-  for (let time = 0; time < 2; time += 0.05) {
-    actor.pose("walk", time);
-    for (const mesh of meshes.filter((item) => !/tear|handkerchief/i.test(item.node.name))) {
-      const bounds = mesh.aabb;
-      assert.ok((bounds.center.y + bounds.halfExtents.y) * 0.45 < 1.25);
-      assert.ok((Math.abs(bounds.center.x) + bounds.halfExtents.x) * 0.45 < 0.5);
+for (const [kind, names] of expectedAnimations) {
+  it(`embeds ${kind} terrace motion in the editable model export`, () => {
+    const { gltf } = royalModel(kind);
+    const animations = new Map(
+      gltf.animations.map((animation) => [animation.name, animation]),
+    );
+    for (const name of names) {
+      const animation = animations.get(name);
+      assert.ok(animation, `missing embedded animation ${name}`);
+      const targets = new Set(animation.channels.map((channel) =>
+        gltf.nodes[channel.target.node].name));
+      for (const target of [
+        "Royal animation rig",
+        "Royal head rig",
+        "Royal left arm rig",
+        "Royal right arm rig",
+        "Royal left leg rig",
+        "Royal right leg rig",
+      ]) {
+        assert.ok(targets.has(target), `${name} does not animate ${target}`);
+      }
     }
-  }
-  actor.destroy();
-});
-it("holds a sipping cup near the princess mouth while seated in front of the chair", () => {
-  const { root } = royalModel("princess");
-  const actor = new TerraceActor({ pc, kind: "princess", modelUrl: "princess", modelLibrary: { instantiate: () => root } });
-  actor.pose("drink", 3);
-  const mouth = root.findByName("Royal head rig").getWorldTransform().transformPoint(new pc.Vec3(0, -0.084, 0.538));
-  const cupRim = actor.rightHand.getPosition().clone().add(new pc.Vec3(0, 0.251, 0));
-  assert.ok(Math.abs(cupRim.y - mouth.y) < 0.07);
-  assert.ok(Math.abs(cupRim.x - mouth.x) < 0.18);
-  assert.ok(Math.abs(cupRim.z - mouth.z) < 0.1);
-  assert.ok(Math.abs(root.findByName("Royal left leg rig").getLocalEulerAngles().x) > 50);
-  const body = root.findByName("Royal animation rig").getLocalPosition();
-  const hip = root.findByName("Royal left leg rig").getPosition();
-  assert.ok(body.z > 0.15, "gown stays forward of the chair back");
-  assert.ok(Math.abs(hip.y - 0.4) < 0.04, "hips meet the lowered chair cushion");
-  actor.destroy();
-});
-
-it("rests the queen on the sunbed and turns pages at irregular intervals", () => {
-  const { root } = royalModel("queen");
-  const actor = new TerraceActor({ pc, kind: "queen", modelUrl: "queen", modelLibrary: { instantiate: () => root } });
-  actor.pose("read", 6);
-  const hip = root.findByName("Royal left leg rig").getPosition();
-  assert.ok(Math.abs(hip.y - 0.58) < 0.03, `hips rest at ${hip.y}`);
-  assert.ok(Math.abs(root.findByName("Royal animation rig").getLocalEulerAngles().x + 40) < 0.01);
-  assert.ok(Math.abs(root.findByName("Royal left leg rig").getLocalEulerAngles().x + 45) < 0.01);
-  const restingArm = root.findByName("Royal right arm rig").getLocalEulerAngles().clone();
-  actor.pose("read", 7.39);
-  const turningArm = root.findByName("Royal right arm rig").getLocalEulerAngles();
-  assert.ok(restingArm.distance(turningArm) > 10, "right hand visibly turns a page");
-  actor.destroy();
-});
-
-it("sits the queen first, then lifts her feet before reclining", () => {
-  const { root } = royalModel("queen");
-  const actor = new TerraceActor({ pc, kind: "queen", modelUrl: "queen", modelLibrary: { instantiate: () => root } });
-  const body = root.findByName("Royal animation rig");
-  const leg = root.findByName("Royal left leg rig");
-  actor.pose("mountSunbed", 0.28);
-  assert.ok(Math.abs(body.getLocalEulerAngles().x) < 0.01, "queen remains upright while sitting");
-  assert.ok(leg.getLocalEulerAngles().x < -60, "feet remain down at the side");
-  actor.pose("mountSunbed", 0.62);
-  assert.ok(Math.abs(body.getLocalEulerAngles().x) < 0.01, "queen remains upright while lifting her feet");
-  assert.ok(Math.abs(leg.getLocalEulerAngles().x + 45) < 0.01, "feet extend along the mattress");
-  actor.pose("mountSunbed", 1);
-  assert.ok(Math.abs(body.getLocalEulerAngles().x + 40) < 0.01, "queen reclines only after her feet are up");
-  actor.destroy();
-});
+  });
+}

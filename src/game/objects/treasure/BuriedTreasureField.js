@@ -2,6 +2,7 @@ import { TileType } from "../../MapGenerator.js";
 import { GRASS_SURFACE_LIFT } from "../../config/terrain.js";
 import { COIN_TYPE } from "../../enum/CoinType.js";
 import { MOVEMENT_REFUSAL } from "../../enum/MovementRefusal.js";
+import { TREASURE_CHEST_ANIMATION } from "../../enum/TreasureChestAnimation.js";
 import { colorFromHex } from "../../helpers/colors.js";
 import coinModelUrl from "../../models/treasure/coin.glb?url";
 import chestModelUrl from "../../models/treasure/treasure-chest.glb?url";
@@ -268,7 +269,8 @@ export class BuriedTreasureField {
       earthPile: null,
       filledPatch: null,
       chest: null,
-      lid: null,
+      chestAnimationLayer: null,
+      chestAnimationDuration: 0,
       chestMaterials: [],
       lootSpawned: false,
       hasTreasure: false,
@@ -627,7 +629,8 @@ export class BuriedTreasureField {
       earthPile: null,
       filledPatch: null,
       chest: null,
-      lid: null,
+      chestAnimationLayer: null,
+      chestAnimationDuration: 0,
       chestMaterials: [],
       rocks: [],
     };
@@ -747,7 +750,21 @@ export class BuriedTreasureField {
     site.chest.name = `Buried treasure chest ${site.id}`;
     site.chest.setLocalScale(0.86, 0.86, 0.86);
     site.chest.setLocalPosition(site.x, site.y - 0.58, site.z);
-    site.lid = this.#findNamedEntity(site.chest, "Treasure chest lid");
+    const openTrack = this.#modelLibrary
+      .getAnimationTracks(chestModelUrl, [TREASURE_CHEST_ANIMATION.OPEN])
+      .get(TREASURE_CHEST_ANIMATION.OPEN);
+    site.chest.addComponent("anim", { activate: true });
+    site.chest.anim.addAnimationState(
+      TREASURE_CHEST_ANIMATION.OPEN,
+      openTrack,
+      1,
+      false,
+    );
+    site.chest.anim.baseLayer.play(TREASURE_CHEST_ANIMATION.OPEN);
+    site.chest.anim.speed = 0;
+    site.chestAnimationLayer = site.chest.anim.baseLayer;
+    site.chestAnimationDuration = openTrack.duration;
+    site.chestAnimationLayer.activeStateCurrentTime = 0;
     this.#createChestMaterialCopies(site);
     this.#entity.addChild(site.chest);
   }
@@ -966,7 +983,8 @@ export class BuriedTreasureField {
     site.elapsed = Math.min(CHEST_OPEN_DURATION, site.elapsed + deltaTime);
     const progress = site.elapsed / CHEST_OPEN_DURATION;
     const eased = progress * progress * (3 - 2 * progress);
-    site.lid?.setLocalEulerAngles(-105 * eased, 0, 0);
+    site.chestAnimationLayer.activeStateCurrentTime =
+      site.chestAnimationDuration * eased;
     if (!site.lootSpawned && progress >= 0.38) {
       site.lootSpawned = true;
       this.#spawnCoins(site);
@@ -1149,21 +1167,9 @@ export class BuriedTreasureField {
       return;
     }
     site.chest.enabled = false;
-    site.lid = null;
+    site.chestAnimationLayer = null;
     site.state = "vanished";
     this.#onInteractionChange?.();
-  }
-
-  #findNamedEntity(root, name) {
-    const pending = [root];
-    while (pending.length) {
-      const entity = pending.pop();
-      if (entity.name === name) {
-        return entity;
-      }
-      pending.push(...entity.children);
-    }
-    return null;
   }
 
   #tileKey(col, row) {
