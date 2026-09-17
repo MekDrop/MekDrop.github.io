@@ -1,4 +1,4 @@
-/** A small terrace performer, with +Z forward and its standing feet at Y=0. */
+/** Low-level model/rig adapter; role objects own choreography and sequences. */
 export class TerraceActor {
   #entity;
   #body;
@@ -21,7 +21,6 @@ export class TerraceActor {
     this.#body.addChild(this.#model);
     this.#rotation = new pc.Quat();
     this.#blendedRotation = new pc.Quat();
-
     // These clones deliberately do not play the throne's WalkOut/Cry tracks.
     for (const component of this.#model.findComponents("anim")) {
       component.enabled = false;
@@ -73,6 +72,10 @@ export class TerraceActor {
     return this.#entity;
   }
 
+  get model() {
+    return this.#model;
+  }
+
   get rightHand() {
     return this.#rightHand;
   }
@@ -108,10 +111,6 @@ export class TerraceActor {
     this.#rotate("leftElbow", -14, 0, 0);
     this.#rotate("rightElbow", -14, 0, 0);
     this.#rotate("head", 0, Math.sin(time * 0.6) * 3, 0);
-    if (this.#kind === "king") {
-      this.#rotate("leftHand", 180, 0, 0);
-    }
-
     if (weight < 1) {
       for (const [key, node] of this.#joints) {
         previous.set(key, {
@@ -210,10 +209,6 @@ export class TerraceActor {
       }
     }
 
-    if (action === "sword") {
-      this.#swordPose(time);
-    }
-
     if (weight < 1) {
       for (const [key, node] of this.#joints) {
         const start = previous.get(key);
@@ -262,23 +257,6 @@ export class TerraceActor {
     this.#rotate("leftElbow", -14 - 21 * raiseBook, 0, 0);
     this.#rotate("rightElbow", -14 - 21 * raiseBook, 0, 0);
     this.#rotate("head", 18 * recline, 0, 0);
-  }
-
-  #swordPose(time) {
-    // Deliberately theatrical: low sweeping lunge, crane balance, overhead arc.
-    // The authored sword is already parented to the king's left hand.
-    const phase = time * 0.52;
-    const sweep = Math.sin(phase);
-    const crane = this.#smooth((Math.sin(phase - 0.8) - 0.25) / 0.65);
-    this.#rotate("body", 8 - crane * 10, sweep * 29, Math.cos(phase) * 8);
-    this.#offset("body", sweep * 0.07, -0.06 * (1 - crane), 0);
-    this.#rotate("leftArm", -45 + Math.sin(phase + 0.7) * 25, sweep * 10, -85 + Math.cos(phase) * 12);
-    // An outward grip keeps the blade beyond the cape throughout the sweep.
-    this.#rotate("leftHand", 0, 0, 0);
-    this.#rotate("rightArm", -30 - crane * 73, -sweep * 24, 53 + sweep * 32);
-    this.#rotate("leftLeg", -10 + sweep * 16, 0, -15 * (1 - crane));
-    this.#rotate("rightLeg", -12 - crane * 79, 0, 15 + crane * 18);
-    this.#rotate("head", -4, -sweep * 23, -Math.cos(phase) * 6);
   }
 
   #rotate(key, x, y, z) {

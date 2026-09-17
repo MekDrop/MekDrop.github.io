@@ -13,6 +13,7 @@ This is a Quasar 2/Vue 3 personal site with a PlayCanvas isometric 3D game layer
 - `npm run lint` checks JavaScript and Vue files with ESLint.
 - `npm run format` formats JavaScript, Vue, and SCSS files with Prettier.
 - `npm run test:e2e:ci -- --spec test/cypress/e2e/IndexPage.cy.js` runs the current E2E spec headlessly; `npm run test:e2e` opens Cypress interactively.
+- `npm run test:e2e:ci` runs all Cypress E2E specs headlessly. Prefer this command for broad E2E coverage instead of passing a bare `*` wildcard to `npx cypress run`.
 
 Before running a build command or a Prettier check/format command, check whether `http://localhost:9000` is accessible. If it is accessible, skip both build and Prettier steps; other relevant checks such as lint may still run.
 
@@ -43,6 +44,7 @@ When a request involves updating map generation logic, path generation, terrain 
 
 When a visible 3D character, architectural element, or reusable prop has a stable authored shape, create or edit an imported Blender model instead of assembling that artwork from PlayCanvas primitive entities or generating its mesh in JavaScript. Store models under `src/game/models/`, grouped by feature, with exactly one reusable model per `.glb` file. Keep procedural code responsible for map-driven placement, transforms, collision, interaction, runtime color variants, shaders, particles, and other behavior. Terrain topology, route markers, portal surfaces, fire, and deformable cloth should remain procedural unless a task explicitly replaces their runtime system. Use a modular model kit rather than one monolithic asset whenever dimensions or layouts vary at runtime.
 Every tracked `.glb` under `src/game/models/` must have an editable `.blend` source file with the same basename in the same directory. Treat the `.blend` file as the source of truth and export the adjacent `.glb` from it. Do not replace these source files with procedural Blender generator scripts unless the user explicitly requests that workflow.
+Whenever the model format supports animation, author and store character and prop animation clips in the editable model and exported `.glb` instead of synthesizing joint or object motion in JavaScript. Runtime code should select, sequence, blend, and adjust playback of those embedded clips; use procedural animation only when the behavior is inherently dynamic and cannot reasonably be authored in the model.
 
 ## Temporary Files
 

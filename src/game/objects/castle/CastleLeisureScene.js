@@ -7,10 +7,11 @@ import cupUrl from "../../models/castle/leisure/teacup.glb?url";
 import sunbedUrl from "../../models/castle/leisure/sunbed.glb?url";
 import bookUrl from "../../models/castle/leisure/open-book.glb?url";
 import trayUrl from "../../models/castle/leisure/serving-tray.glb?url";
-import { SeatedRoyal } from "./SeatedRoyal.js";
 import { TerraceActor } from "./TerraceActor.js";
 import { TerraceDoor } from "./TerraceDoor.js";
-import { CastleLeisureSequence } from "./CastleLeisureSequence.js";
+import { TerraceKing } from "./TerraceKing.js";
+import { TerracePrincess } from "./TerracePrincess.js";
+import { TerraceQueen } from "./TerraceQueen.js";
 import { CASTLE_LEISURE_PHASE as PHASE } from "../../enum/CastleLeisurePhase.js";
 
 const PROP_URLS = { table: tableUrl, chair: chairUrl, pot: potUrl,
@@ -43,11 +44,13 @@ const DOORWAY_POSITION_Z = -0.25;
 const DOORWAY_START_Z = -1.4;
 const DOORWAY_VISIBLE_Z = 0.2;
 const DOORWAY_CLEAR_Z = 1.1;
+const ROYAL_TYPES = [TerraceKing, TerraceQueen, TerracePrincess];
 
 /** A small, door-scaled performance on the audience chamber roof. */
 export class CastleLeisureScene {
   static get modelUrls() {
     return [servantUrl, elderServantUrl, trayUrl,
+      ...ROYAL_TYPES.map((RoyalType) => RoyalType.modelUrl),
       ...TerraceDoor.modelUrls, ...Object.values(PROP_URLS)];
   }
 
@@ -76,9 +79,8 @@ export class CastleLeisureScene {
     this.#pc = pc;
     this.#position = position;
     this.#doors = doors;
-    const royalIndex = (Number(seed) >>> 0) % SeatedRoyal.modelUrls.length;
-    this.#kind = ["king", "queen", "princess"][royalIndex];
-    this.#sequence = new CastleLeisureSequence(this.#kind);
+    const RoyalType = ROYAL_TYPES[(Number(seed) >>> 0) % ROYAL_TYPES.length];
+    this.#kind = RoyalType.kind;
     this.#entity = new pc.Entity("Castle terrace leisure");
     this.#entity.setLocalPosition(layout.x, layout.y, layout.z);
     this.#entity.setLocalEulerAngles(0, layout.yaw, 0);
@@ -90,8 +92,12 @@ export class CastleLeisureScene {
     const scale = Math.min(0.45, layout.depth / 5.5, layout.width / 4.2);
     this.#stage.setLocalScale(scale, scale, scale);
     this.#entity.addChild(this.#stage);
-    this.#royal = new TerraceActor({ pc, modelLibrary,
-      modelUrl: SeatedRoyal.modelUrls[royalIndex], kind: this.#kind });
+    this.#royal = new RoyalType({
+      pc,
+      modelLibrary,
+      performanceSeed: seed,
+    });
+    this.#sequence = this.#royal.sequence;
     this.#stage.addChild(this.#royal.entity);
     if (this.#kind !== "king") {
       for (const modelUrl of [servantUrl, elderServantUrl]) {

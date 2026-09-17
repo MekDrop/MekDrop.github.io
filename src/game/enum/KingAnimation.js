@@ -1,0 +1,18 @@
+export const KING_ANIMATION = Object.freeze({
+  TERRACE_IDLE: "TerraceIdle",
+  TERRACE_WALK: "TerraceWalk",
+  SWORD_READY: "SwordReady",
+  SWORD_OVERHEAD_STRIKE: "SwordOverheadStrike",
+  SWORD_SIDE_SLASH: "SwordSideSlash",
+  SWORD_THRUST: "SwordThrust",
+  SWORD_PARRY: "SwordParry",
+  SWORD_GUARDED: "SwordGuarded",
+  SWORD_LUNGE: "SwordLunge",
+  SWORD_RAISED: "SwordRaised",
+  SWORD_LOW_DEFENSE: "SwordLowDefense",
+  SWORD_TWO_HANDED_SWING: "SwordTwoHandedSwing",
+  SWORD_RECOVERY: "SwordRecovery",
+  SWORD_FINISH: "SwordFinish",
+  SWORD_FAILURE_LEFT: "SwordFailureLeft",
+  SWORD_FAILURE_RIGHT: "SwordFailureRight",
+});
