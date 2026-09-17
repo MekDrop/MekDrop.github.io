@@ -16,6 +16,7 @@ export class DestructibleVegetation {
   #damageStageByRow;
   #voxelSize;
   #collisionFootprints = [];
+  #grassFootprints = [];
   #rotationRadians;
 
   constructor({
@@ -144,6 +145,22 @@ export class DestructibleVegetation {
     );
   }
 
+  grassWeightAt(x, z, elevation) {
+    if (
+      this.#destroyed ||
+      Math.abs(elevation - this.#origin.baseHeight) > 0.08
+    ) {
+      return 0;
+    }
+    const local = this.#toLocalCoordinates(x, z);
+    return this.#grassFootprints.some(
+      (footprint) =>
+        this.#distanceFromFootprint(local.x, local.z, footprint) <= 0,
+    )
+      ? 1
+      : 0;
+  }
+
   collisionDepthAt(
     x,
     z,
@@ -207,8 +224,18 @@ export class DestructibleVegetation {
     );
     if (!remainingVoxels.length) {
       this.#collisionFootprints = [];
+      this.#grassFootprints = [];
       return;
     }
+
+    this.#grassFootprints = remainingVoxels
+      .filter(({ y }) => y === 0)
+      .map(({ x, z }) => ({
+        x: x * this.#voxelSize,
+        z: z * this.#voxelSize,
+        width: this.#voxelSize,
+        depth: this.#voxelSize,
+      }));
 
     const xValues = remainingVoxels.map(({ x }) => x);
     const yValues = remainingVoxels.map(({ y }) => y);

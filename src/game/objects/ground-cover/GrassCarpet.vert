@@ -1,5 +1,7 @@
 uniform float uGrassTime;
 uniform float uGrassAmbientMotion;
+uniform vec2 uGrassWindDirection;
+uniform float uGrassWindStrength;
 uniform vec2 uGrassGridOffset;
 uniform vec4 uGrassBoundaryExtension;
 uniform vec4 uGrassImpressions[8];
@@ -7,7 +9,9 @@ uniform vec4 uGrassImpressionShapes[8];
 uniform vec4 uGrassSurfaces[4];
 uniform vec4 uGrassSurfaceLoads[4];
 uniform sampler2D uGrassObstacleMap;
+uniform sampler2D uGrassWindMap;
 uniform vec2 uGrassObstacleMapSize;
+uniform vec2 uGrassWindMapSize;
 
 varying float vGrassTip;
 varying float vGrassVariation;
@@ -64,28 +68,49 @@ vec4 getPosition() {
     bladePosition + uGrassGridOffset + vec2(0.5)
   ) / uGrassObstacleMapSize;
   vec4 obstacle = texture2D(uGrassObstacleMap, obstacleUv);
+  vec2 windUv = (
+    bladePosition + uGrassGridOffset + vec2(0.5)
+  ) / uGrassWindMapSize;
+  float windExposure = texture2D(uGrassWindMap, windUv).r;
   float obstaclePressure = obstacle.b;
   float obstacleWeight = obstacle.a;
+  // Keep the complete scatter and sink only vertices that enter a solid
+  // ground-contact voxel. This lets grass reach irregular vegetation edges
+  // without showing through trunks or leaving a rectangular empty halo.
+  float solidFootprint = step(0.5, obstacleWeight);
+  float obstacleContact = obstaclePressure * solidFootprint;
   vec2 obstacleDirection = obstacle.rg * 2.0 - 1.0;
   if (dot(obstacleDirection, obstacleDirection) > 0.0025) {
     obstacleDirection = normalize(obstacleDirection);
     brushDirection = mix(
       brushDirection,
       obstacleDirection,
-      step(contact, obstaclePressure)
+      step(contact, obstacleContact)
     );
   }
-  contact = max(contact, obstaclePressure);
-  obstruction = max(obstruction, obstacleWeight);
-  // Press the canopy below contacts while spreading edge tips sideways. Static
-  // surfaces bend farther than a boot, so their boundary stays grass-free.
+  contact = max(contact, obstacleContact);
+  obstruction = max(obstruction, obstacleWeight * solidFootprint);
+  // Press the canopy below direct contacts. Static vegetation clips only its
+  // occupied ground voxels, leaving the surrounding grass upright and dense.
   float flexible = smoothstep(0.002, 0.025, height);
   offset.xz += brushDirection * contact * flexible *
     mix(0.06, 0.11, obstruction);
   offset.y *= 1.0 - contact * flexible * 0.96;
-  float wind = sin(uGrassTime * 1.4 + root.x * 1.8 + root.z * 1.1);
-  offset.xz += vec2(0.8, 0.4) * wind * height * tip * 0.1 *
-    uGrassAmbientMotion * (1.0 - contact);
+  offset.y -= solidFootprint * 0.25;
+  vec2 windDirection = normalize(uGrassWindDirection + vec2(0.0001, 0.0));
+  vec2 crossWind = vec2(-windDirection.y, windDirection.x);
+  float broadWind = sin(
+    dot(root.xz, windDirection) * 1.35 -
+    uGrassTime * (0.65 + uGrassWindStrength * 1.4)
+  );
+  float fineWind = sin(
+    dot(root.xz, crossWind) * 3.7 + uGrassTime * 2.2
+  );
+  float windPulse = max(0.0, 0.58 + broadWind * 0.28 + fineWind * 0.14);
+  float windBend = height * tip * 0.14 * uGrassWindStrength *
+    uGrassAmbientMotion * windPulse * windExposure * (1.0 - contact);
+  offset.xz += windDirection * windBend;
+  offset.xz += crossWind * fineWind * windBend * 0.18;
   vGrassTip = clamp(height / 0.06, 0.0, 1.0);
   vGrassVariation = fract(sin(dot(root.xz, vec2(12.9898, 78.233))) * 43758.5453);
   vGrassCompression = contact;

@@ -56,7 +56,7 @@ describe("grass obstacle field", () => {
     const data = obstacleMap.texture.data;
     const occupied = [];
     for (let offset = 0; offset < data.length; offset += 4) {
-      if (data[offset + 2] > 100) {
+      if (data[offset + 3] > 0) {
         occupied.push(data.slice(offset, offset + 4));
       }
     }
@@ -80,7 +80,11 @@ describe("grass obstacle field", () => {
     const data = obstacleMap.texture.data;
     let bentOutside = null;
     for (let offset = 0; offset < data.length; offset += 4) {
-      if (data[offset + 2] > 0 && data[offset + 3] > 0 && data[offset + 2] < 255) {
+      if (
+        data[offset + 2] > 0 &&
+        data[offset + 3] === 0 &&
+        data[offset + 2] < 255
+      ) {
         bentOutside = data.slice(offset, offset + 4);
         break;
       }

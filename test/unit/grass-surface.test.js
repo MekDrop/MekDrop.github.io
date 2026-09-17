@@ -1,6 +1,10 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { GrassSurface } from "../../src/game/objects/ground-cover/GrassSurface.js";
+import {
+  resetAmbientWindSpeed,
+  setAmbientWindSpeed,
+} from "../../src/game/objects/shared/AmbientWind.js";
 
 function createSubject(
   zoom,
@@ -37,29 +41,58 @@ function createSubject(
 }
 
 describe("grass canopy wind", () => {
-  it("keeps ambient grass still at fitted zoom", () => {
+  it("keeps ambient grass movement restrained at fitted zoom", () => {
     const { parameters, update } = createSubject(1);
 
     update(1 / 60);
 
-    assert.equal(parameters.get("uGrassAmbientMotion"), 0);
+    assert.ok(parameters.get("uGrassAmbientMotion") > 0);
+    assert.ok(parameters.get("uGrassAmbientMotion") < 0.5);
   });
 
-  it("allows gentle wind once the camera is zoomed in", () => {
+  it("shows the full wind response once the camera is zoomed in", () => {
     const { parameters, update } = createSubject(1.1);
 
     update(1 / 60);
 
-    assert.ok(parameters.get("uGrassAmbientMotion") > 0);
+    assert.equal(parameters.get("uGrassAmbientMotion"), 1);
   });
 
-  it("stops ambient wind immediately at fitted zoom", () => {
+  it("reduces ambient wind immediately at fitted zoom", () => {
     const { grass, parameters, update } = createSubject(1.1);
     update(1 / 60);
 
     grass.zoom = 1;
 
-    assert.equal(parameters.get("uGrassAmbientMotion"), 0);
+    assert.ok(parameters.get("uGrassAmbientMotion") < 0.5);
+  });
+
+  it("responds much more strongly to an occasional large gust", () => {
+    const { parameters, update } = createSubject(1.1);
+    update(0);
+    const ordinaryStrength = parameters.get("uGrassWindStrength");
+
+    for (let index = 0; index < 242; index += 1) {
+      update(0.1);
+    }
+
+    assert.ok(ordinaryStrength < 0.15);
+    assert.ok(parameters.get("uGrassWindStrength") > 0.85);
+    const direction = parameters.get("uGrassWindDirection");
+    assert.ok(Math.abs(Math.hypot(...direction) - 1) < 0.000001);
+  });
+
+  it("keeps increasing grass movement above natural gust speeds", () => {
+    setAmbientWindSpeed(10);
+    try {
+      const { parameters, update } = createSubject(1.1);
+
+      update(1 / 60);
+
+      assert.ok(parameters.get("uGrassWindStrength") > 4);
+    } finally {
+      resetAmbientWindSpeed();
+    }
   });
 
   it("sends distributed surface loads to the grass shader", () => {

@@ -1,9 +1,25 @@
+import { getAmbientWind } from "../shared/AmbientWind.js";
 import { GrassImpressions } from "./GrassImpressions.js";
 import { GrassObstacleMap } from "./GrassObstacleMap.js";
 import { GrassSurfaceLoads } from "./GrassSurfaceLoads.js";
+import { GrassWindMap } from "./GrassWindMap.js";
 
 const STILL_ZOOM = 1;
 const FULL_WIND_ZOOM = 1.1;
+const FITTED_VIEW_WIND_VISIBILITY = 0.35;
+const CALM_WIND_SPEED = 0.1;
+const STRONG_WIND_SPEED = 0.28;
+
+function getWindStrength(speed) {
+  const progress = Math.max(
+    0,
+    (speed - CALM_WIND_SPEED) / (STRONG_WIND_SPEED - CALM_WIND_SPEED),
+  );
+  if (progress > 1) {
+    return 1 + Math.log2(progress) * 0.75;
+  }
+  return Math.pow(progress, 2.3);
+}
 
 export class GrassSurface {
   #terrainMaterials;
@@ -15,8 +31,10 @@ export class GrassSurface {
   #impressions = new GrassImpressions();
   #surfaceLoads = new GrassSurfaceLoads();
   #obstacleMap = null;
+  #windMap = null;
   #deltaTime = 0;
   #elapsed = 0;
+  #windVisibility = FITTED_VIEW_WIND_VISIBILITY;
 
   constructor({
     app,
@@ -38,8 +56,14 @@ export class GrassSurface {
         device: app.graphicsDevice,
         mapData,
       });
+      this.#windMap = new GrassWindMap({
+        pc,
+        device: app.graphicsDevice,
+        mapData,
+      });
       for (const material of this.#terrainMaterials) {
         this.#obstacleMap.apply(material);
+        this.#windMap.apply(material);
       }
       this.refreshObstacles();
     }
@@ -52,10 +76,19 @@ export class GrassSurface {
   }
 
   set zoom(value) {
-    const progress = Math.max(0, Math.min(1, (value - STILL_ZOOM) / (FULL_WIND_ZOOM - STILL_ZOOM)));
+    const progress = Math.max(
+      0,
+      Math.min(
+        1,
+        (value - STILL_ZOOM) / (FULL_WIND_ZOOM - STILL_ZOOM),
+      ),
+    );
     const influence = progress * progress * (3 - 2 * progress);
+    this.#windVisibility =
+      FITTED_VIEW_WIND_VISIBILITY +
+      (1 - FITTED_VIEW_WIND_VISIBILITY) * influence;
     for (const material of this.#terrainMaterials) {
-      material.setParameter("uGrassAmbientMotion", influence);
+      material.setParameter("uGrassAmbientMotion", this.#windVisibility);
     }
   }
 
@@ -66,6 +99,8 @@ export class GrassSurface {
     this.#renderHandle = null;
     this.#obstacleMap?.destroy();
     this.#obstacleMap = null;
+    this.#windMap?.destroy();
+    this.#windMap = null;
     this.#terrainMaterials = [];
   }
 
@@ -76,8 +111,16 @@ export class GrassSurface {
   #update = (deltaTime) => {
     this.#deltaTime = Math.min(deltaTime, 0.1);
     this.#elapsed += this.#deltaTime;
+    const wind = getAmbientWind(this.#elapsed);
+    this.#windMap?.refresh(wind.direction);
+    const windStrength = getWindStrength(wind.speed);
     for (const material of this.#terrainMaterials) {
       material.setParameter("uGrassTime", this.#elapsed);
+      material.setParameter("uGrassWindDirection", [
+        wind.direction.x,
+        wind.direction.z,
+      ]);
+      material.setParameter("uGrassWindStrength", windStrength);
     }
   };
 

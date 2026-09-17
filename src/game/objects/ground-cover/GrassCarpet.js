@@ -26,6 +26,8 @@ export class GrassCarpet {
     this.#material.setParameter("uGrassBroadleaf", 0);
     this.#material.setParameter("uGrassBoundaryExtension", [0, 0, 0, 0]);
     this.#material.setParameter("uGrassGridOffset", [(mapData.cols - 1) / 2, (mapData.rows - 1) / 2]);
+    this.#material.setParameter("uGrassWindDirection", [1, 0]);
+    this.#material.setParameter("uGrassWindStrength", 0);
     this.#material.shaderChunks.glsl.set("transformVS", vertexShader);
     this.#material.shaderChunks.glsl.set("diffusePS", fragmentShader);
     this.#material.shaderChunks.glsl.set("normalMapPS", normalShader);

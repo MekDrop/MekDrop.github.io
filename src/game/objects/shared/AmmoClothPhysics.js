@@ -6,6 +6,10 @@ const MAXIMUM_SUB_STEPS = 4;
 const VERTEX_MASS = 0.002;
 const WIND_ACCELERATION = 3.2;
 const TURBULENCE_ACCELERATION = 0.2;
+const STRONG_WIND_SPEED = 0.28;
+const STRONG_WIND_TURBULENCE_ACCELERATION = 2;
+const TURBULENCE_BASE_FREQUENCY = 2.7;
+const TURBULENCE_WIND_FREQUENCY = 2.4;
 const MAXIMUM_LINK_STRETCH = 1.08;
 const MINIMUM_LINK_LENGTH_RATIO = 0.8;
 const STRETCH_LIMIT_ITERATIONS = 3;
@@ -65,6 +69,7 @@ export class AmmoClothPhysics {
     normalAxis = 2,
     seed = 0,
     wallPlane = null,
+    wallOpeningWindExposure = null,
     roofCollider = null,
     bendingStiffness = 0.86,
     selfCollision = false,
@@ -124,6 +129,7 @@ export class AmmoClothPhysics {
       stretchConstraints,
       vertexUv,
       wallPlane,
+      wallOpeningWindExposure,
       worldWind: this.#pc && root ? new this.#pc.Vec3() : null,
     };
     this.#cloths.push(cloth);
@@ -277,25 +283,71 @@ export class AmmoClothPhysics {
       windZ = cloth.localWind.z;
     }
 
+    const openWindX = windX;
+    const openWindZ = windZ;
     let exposure = 1;
     if (cloth.wallPlane !== null) {
-      if (cloth.normalAxis === 0) {
-        windX = 0;
-      } else {
-        windZ = 0;
-      }
-      exposure = Math.hypot(windX, windZ);
+      const normalWind = cloth.normalAxis === 0 ? windX : windZ;
+      const unobstructedWind = Math.min(0, normalWind);
+      windX = cloth.normalAxis === 0 ? unobstructedWind : 0;
+      windZ = cloth.normalAxis === 2 ? unobstructedWind : 0;
+      exposure = Math.abs(unobstructedWind);
     }
 
     // btSoftBody.addForce applies this force to every dynamic node, so this
     // must be a per-vertex force rather than the cloth's total force.
     const forceScale = VERTEX_MASS * wind.speed * WIND_ACCELERATION;
     const force = [windX * forceScale, 0, windZ * forceScale];
-    force[cloth.normalAxis] +=
-      Math.sin(this.#elapsed * 2.7 + cloth.phase) *
+    const turbulenceFrequency =
+      TURBULENCE_BASE_FREQUENCY +
+      Math.sqrt(Math.max(0, wind.speed - STRONG_WIND_SPEED)) *
+        TURBULENCE_WIND_FREQUENCY;
+    const primaryFlutter = Math.sin(
+      this.#elapsed * turbulenceFrequency + cloth.phase,
+    );
+    const secondaryFlutter = Math.sin(
+      this.#elapsed * turbulenceFrequency * 1.73 + cloth.phase * 1.37,
+    );
+    const turbulenceAcceleration =
+      TURBULENCE_ACCELERATION +
+      Math.max(0, wind.speed - STRONG_WIND_SPEED) *
+        STRONG_WIND_TURBULENCE_ACCELERATION;
+    const flutterForce =
+      (primaryFlutter * 0.72 + secondaryFlutter * 0.28) *
       VERTEX_MASS *
-      TURBULENCE_ACCELERATION *
-      exposure;
+      turbulenceAcceleration;
+    force[cloth.normalAxis] += flutterForce * exposure;
+    if (
+      cloth.wallPlane !== null &&
+      cloth.wallOpeningWindExposure?.length
+    ) {
+      for (
+        let index = 0;
+        index < cloth.positions.length / 3;
+        index += 1
+      ) {
+        const openingExposure = Math.max(
+          0,
+          Math.min(1, cloth.wallOpeningWindExposure[index] ?? 0),
+        );
+        const openingForce = [
+          (windX + (openWindX - windX) * openingExposure) * forceScale,
+          0,
+          (windZ + (openWindZ - windZ) * openingExposure) * forceScale,
+        ];
+        const nodeExposure =
+          exposure + (1 - exposure) * openingExposure;
+        openingForce[cloth.normalAxis] += flutterForce * nodeExposure;
+        this.#force.setValue(
+          openingForce[0],
+          openingForce[1],
+          openingForce[2],
+        );
+        cloth.body.addForce(this.#force, index);
+      }
+      cloth.body.activate();
+      return;
+    }
     this.#force.setValue(force[0], force[1], force[2]);
     cloth.body.addForce(this.#force);
     cloth.body.activate();

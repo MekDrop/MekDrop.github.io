@@ -1,5 +1,9 @@
 export const AMBIENT_WIND_BASE_SPEED = 0.15;
 const AMBIENT_WIND_BASE_ANGLE = 0.55;
+const AMBIENT_WIND_GUST_RATE = 0.13;
+const AMBIENT_WIND_GUST_SPEED = 0.13;
+let ambientWindSpeedOverride = null;
+let currentAmbientWindSpeed = AMBIENT_WIND_BASE_SPEED;
 
 export const AMBIENT_WIND_DIRECTION = Object.freeze({
   x: Math.cos(AMBIENT_WIND_BASE_ANGLE),
@@ -8,9 +12,38 @@ export const AMBIENT_WIND_DIRECTION = Object.freeze({
 });
 
 export function getAmbientWindSpeed(elapsedSeconds) {
-  const broadGust = Math.sin(elapsedSeconds * 0.31) * 0.014;
-  const slowGust = Math.sin(elapsedSeconds * 0.09 + 1.8) * 0.007;
-  return Math.max(0.11, AMBIENT_WIND_BASE_SPEED + broadGust + slowGust);
+  if (ambientWindSpeedOverride !== null) {
+    currentAmbientWindSpeed = ambientWindSpeedOverride;
+    return currentAmbientWindSpeed;
+  }
+  const broadVariation = Math.sin(elapsedSeconds * 0.31) * 0.014;
+  const slowVariation = Math.sin(elapsedSeconds * 0.09 + 1.8) * 0.007;
+  const gustCycle =
+    Math.sin(elapsedSeconds * AMBIENT_WIND_GUST_RATE - Math.PI / 2) *
+      0.5 +
+    0.5;
+  // A narrow, smooth peak makes strong gusts occasional instead of giving the
+  // whole scene a permanently windy look.
+  const gust = Math.pow(gustCycle, 8) * AMBIENT_WIND_GUST_SPEED;
+  currentAmbientWindSpeed = Math.max(
+    0.11,
+    AMBIENT_WIND_BASE_SPEED + broadVariation + slowVariation + gust,
+  );
+  return currentAmbientWindSpeed;
+}
+
+export function getCurrentAmbientWindSpeed() {
+  return currentAmbientWindSpeed;
+}
+
+export function setAmbientWindSpeed(speed) {
+  ambientWindSpeedOverride = speed;
+  currentAmbientWindSpeed = speed;
+}
+
+export function resetAmbientWindSpeed() {
+  ambientWindSpeedOverride = null;
+  currentAmbientWindSpeed = AMBIENT_WIND_BASE_SPEED;
 }
 
 export function getAmbientWind(elapsedSeconds) {

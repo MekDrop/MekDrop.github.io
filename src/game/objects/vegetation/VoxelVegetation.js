@@ -133,6 +133,14 @@ export class VoxelVegetation {
     );
   }
 
+  grassWeightAt(x, z, elevation) {
+    return this.#items.reduce(
+      (weight, { item }) =>
+        Math.max(weight, item.grassWeightAt(x, z, elevation)),
+      0,
+    );
+  }
+
   blocksMovementAt(
     x,
     z,

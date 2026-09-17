@@ -5,3 +5,4 @@ export { GroundCoverHeldItem } from "./GroundCoverHeldItem.js";
 export { GroundCoverItem } from "./GroundCoverItem.js";
 export { GrassSurface } from "./GrassSurface.js";
 export { GrassObstacleMap } from "./GrassObstacleMap.js";
+export { GrassWindMap } from "./GrassWindMap.js";

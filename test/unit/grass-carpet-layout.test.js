@@ -46,6 +46,32 @@ describe("short grass carpet placement", () => {
     assert.deepEqual(GrassCarpetLayout.create(input), []);
   });
 
+  it("keeps full grass scatter beneath vegetation for footprint clipping", () => {
+    const input = map([[TileType.GRASS, TileType.GRASS]]);
+    input.vegetationData = [
+      { col: 0, row: 0, kind: "tree" },
+      { col: 1, row: 0, kind: "bush" },
+    ];
+
+    const placements = GrassCarpetLayout.create(input);
+    const treeGrass = placements.filter(({ x }) => x < 0);
+    const bushGrass = placements.filter(({ x }) => x > 0);
+
+    assert.equal(treeGrass.length, 144);
+    assert.equal(bushGrass.length, 144);
+    assert.ok(
+      treeGrass.some(
+        ({ x, z }) =>
+          Math.abs(x + 0.5) <= 0.125 && Math.abs(z) <= 0.125,
+      ),
+    );
+    assert.ok(
+      bushGrass.some(
+        ({ x, z }) => Math.abs(x - 0.5) < 0.16 && Math.abs(z) < 0.16,
+      ),
+    );
+  });
+
   it("grows on the solid source cover at its terrain height, keeping the downstream water clear", () => {
     const input = map([[TileType.WATER, TileType.WATER]]);
     input.heightmap[0] = [0, 0];

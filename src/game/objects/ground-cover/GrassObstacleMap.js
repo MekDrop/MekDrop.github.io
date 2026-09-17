@@ -126,7 +126,10 @@ export class GrassObstacleMap {
         field[fieldOffset + 2] = Math.round(
           Math.max(0, Math.min(1, pressure)) * 255,
         );
-        field[fieldOffset + 3] = Math.round(weight * 255);
+        // Alpha is exact occupancy, while blue may extend beyond the object
+        // to bend neighboring blades. Keeping these separate prevents the
+        // renderer from clipping a halo around a solid footprint.
+        field[fieldOffset + 3] = weights[sourceOffset];
         if (!nearest || nearest.distance <= 0) {
           continue;
         }

@@ -18,8 +18,11 @@ export class GroundCollisionWorld {
     let weight = 0;
     for (const collider of this.#colliders) {
       const explicitWeight = collider.grassWeightAt?.(x, z, elevation);
-      if (Number.isFinite(explicitWeight) && explicitWeight > 0) {
-        weight = Math.max(weight, Math.min(1, explicitWeight));
+      if (Number.isFinite(explicitWeight)) {
+        weight = Math.max(
+          weight,
+          Math.max(0, Math.min(1, explicitWeight)),
+        );
         continue;
       }
       const objectWeight = Number.isFinite(collider.grassWeight)

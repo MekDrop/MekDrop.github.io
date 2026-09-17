@@ -20,6 +20,7 @@ const FRAME_DEPTH_BLOCKS = 3;
 const FRAME_TOWER_WIDTH_BLOCKS = 4;
 const FRAME_TOWER_HEIGHT_BLOCKS = 13;
 const PORTAL_COLLISION_HALF_DEPTH = 0.08;
+const PORTAL_WIND_FEATHER_BLOCKS = 1;
 
 /**
  * A two-lane voxel gateway with an animated, shader-driven portal surface.
@@ -42,7 +43,6 @@ export class Gateway {
   #textures = [];
   #portalMaterial = null;
   #bannerMaterial = null;
-  #emblemMaterial = null;
   #bannerMesh = null;
   #bannerPositions = null;
   #bannerVertexUv = null;
@@ -50,8 +50,6 @@ export class Gateway {
   #bannerCloth = null;
   #bannerPhysics = null;
   #bannerInteraction = null;
-  #emblemEntity = null;
-  #emblemBasePosition = null;
   #updateHandle = null;
   #elapsed = 0;
   #inverseWorldTransform = null;
@@ -176,11 +174,6 @@ export class Gateway {
         color.g * 0.35,
         color.b * 0.35,
       );
-      this.#bannerMaterial.emissive = new this.#pc.Color(
-        color.r * 0.02,
-        color.g * 0.02,
-        color.b * 0.02,
-      );
       this.#bannerMaterial.update();
     }
   }
@@ -226,14 +219,11 @@ export class Gateway {
     this.#meshes = [];
     this.#portalMaterial = null;
     this.#bannerMaterial = null;
-    this.#emblemMaterial = null;
     this.#bannerMesh = null;
     this.#bannerPositions = null;
     this.#bannerVertexUv = null;
     this.#bannerIndices = null;
     this.#bannerInteraction = null;
-    this.#emblemEntity = null;
-    this.#emblemBasePosition = null;
     this.#inverseWorldTransform = null;
     this.#collisionWorldPoint = null;
     this.#collisionLocalPoint = null;
@@ -271,6 +261,11 @@ export class Gateway {
     geometry.positions = [];
     geometry.indices = [];
     const vertexUv = [];
+    const textureUvs = [];
+    const wallOpeningWindExposure = [];
+    const portalOpeningTop =
+      FRAME_OPENING_HEIGHT_BLOCKS * this.#cubeSize + surfaceLift;
+    const windFeather = PORTAL_WIND_FEATHER_BLOCKS * this.#cubeSize;
 
     // Local +X is the enemy-facing side. Right gates rotate the whole gateway
     // 180 degrees, keeping this cloth on the approach side only.
@@ -285,12 +280,21 @@ export class Gateway {
           Math.cos(u * Math.PI * 3) * (0.014 + Math.sin(v * Math.PI) * 0.014) +
           Math.sin(v * Math.PI) * 0.018;
 
+        const vertexY = yTop - v * height - bottomSag;
         geometry.positions.push(
           faceX + foldedDepth,
-          yTop - v * height - bottomSag,
+          vertexY,
           centerZ + u * (width / 2) * taper,
         );
         vertexUv.push(u, v);
+        textureUvs.push(column / columnSegments, v);
+        const openingProgress = Math.max(
+          0,
+          Math.min(1, (portalOpeningTop - vertexY) / windFeather),
+        );
+        wallOpeningWindExposure.push(
+          openingProgress * openingProgress * (3 - 2 * openingProgress),
+        );
       }
     }
     const rowLength = columnSegments + 1;
@@ -325,6 +329,9 @@ export class Gateway {
       normalAxis: 0,
       seed: Math.abs(Math.sin(this.#symbol.codePointAt(0) * 0.017)),
       wallPlane: faceX,
+      wallOpeningWindExposure: Float32Array.from(
+        wallOpeningWindExposure,
+      ),
     });
 
     const mesh = new pc.Mesh(this.#app.graphicsDevice);
@@ -338,16 +345,25 @@ export class Gateway {
     mesh.setNormals(
       pc.calculateNormals(this.#bannerPositions, this.#bannerIndices),
     );
+    mesh.setUvs(0, textureUvs);
     mesh.setIndices(this.#bannerIndices);
     mesh.update();
     mesh.incRefCount();
     this.#meshes.push(mesh);
     this.#bannerMesh = mesh;
+    const signTexture = GatewayBannerSign.createTexture(
+      pc,
+      this.#app.graphicsDevice,
+      this.#symbol,
+    );
+    this.#textures.push(signTexture);
     this.#bannerMaterial = new pc.StandardMaterial();
     this.#bannerMaterial.name = "Gateway hanging cloth";
     this.#bannerMaterial.gloss = 0.05;
-    this.#bannerMaterial.emissiveIntensity = 0.22;
-    this.#bannerMaterial.cull = pc.CULLFACE_BACK;
+    this.#bannerMaterial.emissive = colorFromValue(this.#pc, 0xeaf8ff);
+    this.#bannerMaterial.emissiveMap = signTexture;
+    this.#bannerMaterial.emissiveIntensity = 0.55;
+    this.#bannerMaterial.cull = pc.CULLFACE_NONE;
     this.#bannerMaterial.update();
     this.#materials.push(this.#bannerMaterial);
 
@@ -361,74 +377,6 @@ export class Gateway {
       receiveShadows: true,
     });
     this.#entity.addChild(banner);
-
-    const centerY = yTop - height * 0.48;
-    const signHalfWidth = width * 0.3;
-    const signHalfHeight = width * 0.3;
-    const emblemGeometry = new pc.Geometry();
-    emblemGeometry.positions = [
-      0,
-      signHalfHeight,
-      -signHalfWidth,
-      0,
-      signHalfHeight,
-      signHalfWidth,
-      0,
-      -signHalfHeight,
-      signHalfWidth,
-      0,
-      -signHalfHeight,
-      -signHalfWidth,
-    ];
-    emblemGeometry.normals = [1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0];
-    emblemGeometry.uvs = [0, 0, 1, 0, 1, 1, 0, 1];
-    emblemGeometry.indices = [0, 1, 2, 0, 2, 3];
-
-    const emblemMesh = pc.Mesh.fromGeometry(
-      this.#app.graphicsDevice,
-      emblemGeometry,
-    );
-    emblemMesh.incRefCount();
-    this.#meshes.push(emblemMesh);
-    const signTexture = GatewayBannerSign.createTexture(
-      pc,
-      this.#app.graphicsDevice,
-      this.#symbol,
-    );
-    this.#textures.push(signTexture);
-    this.#emblemMaterial = new pc.StandardMaterial();
-    this.#emblemMaterial.name = `Gateway cloth sign ${this.#symbol}`;
-    this.#emblemMaterial.diffuse = colorFromValue(this.#pc, 0xeaf8ff);
-    this.#emblemMaterial.diffuseMap = signTexture;
-    this.#emblemMaterial.emissive = colorFromValue(this.#pc, 0xeaf8ff);
-    this.#emblemMaterial.emissiveMap = signTexture;
-    this.#emblemMaterial.emissiveIntensity = 0.55;
-    this.#emblemMaterial.opacityMap = signTexture;
-    this.#emblemMaterial.opacityMapChannel = "a";
-    this.#emblemMaterial.alphaTest = 0.08;
-    this.#emblemMaterial.blendType = pc.BLEND_NONE;
-    this.#emblemMaterial.depthWrite = true;
-    this.#emblemMaterial.useLighting = false;
-    this.#emblemMaterial.cull = pc.CULLFACE_BACK;
-    this.#emblemMaterial.update();
-    this.#materials.push(this.#emblemMaterial);
-
-    const emblemMeshInstance = new pc.MeshInstance(
-      emblemMesh,
-      this.#emblemMaterial,
-    );
-    emblemMeshInstance.castShadow = false;
-    emblemMeshInstance.receiveShadow = false;
-    const emblem = new pc.Entity(`Gateway cloth sign ${this.#symbol}`);
-    this.#emblemBasePosition = [faceX + 0.082, centerY, centerZ];
-    emblem.setLocalPosition(...this.#emblemBasePosition);
-    emblem.addComponent("render", {
-      meshInstances: [emblemMeshInstance],
-      castShadows: false,
-      receiveShadows: false,
-    });
-    this.#entity.addChild(emblem);
-    this.#emblemEntity = emblem;
   }
 
   #intersectBannerRay(rayStart, rayEnd, bounded) {
@@ -490,30 +438,6 @@ export class Gateway {
       this.#pc.calculateNormals(this.#bannerPositions, this.#bannerIndices),
     );
     this.#bannerMesh.update(this.#pc.PRIMITIVE_TRIANGLES, false);
-
-    if (this.#emblemEntity && this.#emblemBasePosition) {
-      const sample = this.#bannerPhysics.sample(this.#bannerCloth, 0, 0.48);
-      if (!sample) {
-        return;
-      }
-      const normalLength =
-        Math.hypot(sample.normal.x, sample.normal.y, sample.normal.z) || 1;
-      const normal = {
-        x: sample.normal.x / normalLength,
-        y: sample.normal.y / normalLength,
-        z: sample.normal.z / normalLength,
-      };
-      this.#emblemEntity.setLocalPosition(
-        sample.position.x + normal.x * 0.055,
-        sample.position.y + normal.y * 0.055,
-        sample.position.z + normal.z * 0.055,
-      );
-      this.#emblemEntity.setLocalEulerAngles(
-        0,
-        (-Math.atan2(normal.z, normal.x) * 180) / Math.PI,
-        (Math.atan2(normal.y, Math.hypot(normal.x, normal.z)) * 180) / Math.PI,
-      );
-    }
   }
 
   #createPortal() {

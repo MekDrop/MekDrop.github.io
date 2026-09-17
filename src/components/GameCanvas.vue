@@ -203,6 +203,7 @@ import HeroMoodStatus from "components/HeroMoodStatus.vue";
 import { generateMap } from "src/game/MapGenerator.js";
 import { PlayCanvasRenderer } from "src/game/PlayCanvasRenderer.js";
 import { GameControls } from "src/game/GameControls.js";
+import { createGameCommandRegistry } from "src/game/commands/index.js";
 import { CloseModalAction } from "src/actions/CloseModalAction.js";
 import { ToggleRecordingAction } from "src/game/actions/ToggleRecordingAction.js";
 import { GAME_RECORDING_STATE } from "src/game/enum/GameRecordingState.js";
@@ -269,6 +270,7 @@ let mapFileLoader = null;
 let mapNavigationId = 0;
 let mapRouteLoadPromise = Promise.resolve();
 let interactionSuggestion = null;
+let gameCommandRegistry = null;
 
 function reportRuntimeError(error) {
   reportGlobalException(error, { context: "Game" });
@@ -615,6 +617,8 @@ async function init() {
     if (debugVisible.value) updateDebugStats();
   }, 100);
   showGraphicsFallbackDialog.value = graphicsBackend.value === "webgl2";
+  gameCommandRegistry = createGameCommandRegistry({ target: window });
+  gameCommandRegistry.install();
   gameReady.value = true;
 }
 
@@ -629,6 +633,8 @@ onBeforeUnmount(() => {
     delete window.gameMovementTest;
     delete window.gameCameraTest;
   }
+  gameCommandRegistry?.destroy();
+  gameCommandRegistry = null;
   controls?.disconnect();
   stopMapRouteWatch?.();
   resizeObserver?.disconnect();

@@ -13,6 +13,16 @@ describe("ground collision grass weight", () => {
     assert.equal(world.grassWeightAt(0, 2, 3), 0);
   });
 
+  it("lets an explicit zero weight preserve grass inside broader collision bounds", () => {
+    const world = new GroundCollisionWorld();
+    world.add({
+      grassWeightAt: () => 0,
+      intersectsGroundFootprint: () => true,
+    });
+
+    assert.equal(world.grassWeightAt(0, 0, 2), 0);
+  });
+
   it("treats an ordinary solid collider as fully weighted", () => {
     const world = new GroundCollisionWorld();
     world.add({ intersectsGroundFootprint: () => true });

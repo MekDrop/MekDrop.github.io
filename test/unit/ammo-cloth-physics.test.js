@@ -2,6 +2,10 @@ import assert from "node:assert/strict";
 import { after, before, describe, it } from "node:test";
 import Ammo from "sync-ammo/dist/ammo.module.js";
 import { AmmoClothPhysics } from "../../src/game/objects/shared/AmmoClothPhysics.js";
+import {
+  resetAmbientWindSpeed,
+  setAmbientWindSpeed,
+} from "../../src/game/objects/shared/AmbientWind.js";
 
 const previousAmmo = globalThis.Ammo;
 
@@ -93,6 +97,38 @@ describe("AmmoClothPhysics", () => {
     physics.destroy();
   });
 
+  it("keeps a flag fluttering under sustained strong wind", () => {
+    setAmbientWindSpeed(10);
+    const physics = new AmmoClothPhysics();
+    try {
+      const positions = new Float32Array([
+        -0.5, 0, 0, 0.5, 0, 0, -0.5, -1, 0, 0.5, -1, 0,
+      ]);
+      const cloth = physics.createCloth({
+        positions,
+        indices: new Uint16Array([0, 2, 1, 1, 2, 3]),
+        pinnedIndices: [0, 1],
+      });
+      const trailingPositions = [];
+
+      for (let frame = 0; frame < 360; frame += 1) {
+        physics.step(1 / 60);
+        if (frame >= 180) {
+          physics.writePositions(cloth, positions);
+          trailingPositions.push(positions[11]);
+        }
+      }
+
+      assert.ok(
+        Math.max(...trailingPositions) - Math.min(...trailingPositions) >
+          0.02,
+      );
+    } finally {
+      physics.destroy();
+      resetAmbientWindSpeed();
+    }
+  });
+
   it("turns pointer movement into a physical cloth impulse", () => {
     const physics = new AmmoClothPhysics();
     const positions = new Float32Array([
@@ -166,6 +202,140 @@ describe("AmmoClothPhysics", () => {
       assert.ok(positions[index] >= 0);
     }
     physics.destroy();
+  });
+
+  it("blocks wind emerging through a wall and discards along-wall drag", () => {
+    setAmbientWindSpeed(10);
+    const physics = new AmmoClothPhysics();
+    try {
+      const positions = new Float32Array([
+        -0.5, 0, 0, 0.5, 0, 0, -0.5, -1, 0, 0.5, -1, 0,
+      ]);
+      const cloth = physics.createCloth({
+        positions,
+        indices: new Uint16Array([0, 2, 1, 1, 2, 3]),
+        pinnedIndices: [0, 1],
+        wallPlane: 0,
+      });
+
+      for (let frame = 0; frame < 240; frame += 1) {
+        physics.step(1 / 60);
+      }
+      physics.writePositions(cloth, positions);
+
+      const freeEdgeCenterX = (positions[6] + positions[9]) / 2;
+      const freeEdgeCenterZ = (positions[8] + positions[11]) / 2;
+      assert.ok(Math.abs(freeEdgeCenterX) < 0.05);
+      assert.ok(Math.abs(freeEdgeCenterZ) < 0.05);
+    } finally {
+      physics.destroy();
+      resetAmbientWindSpeed();
+    }
+  });
+
+  it("lets wind emerging through an opening catch the exposed cloth", () => {
+    setAmbientWindSpeed(10);
+    const physics = new AmmoClothPhysics();
+    try {
+      const positions = new Float32Array([
+        0, 0, -0.5, 0, 0, 0.5,
+        0, -0.5, -0.5, 0, -0.5, 0.5,
+        0, -1, -0.5, 0, -1, 0.5,
+      ]);
+      const cloth = physics.createCloth({
+        positions,
+        indices: new Uint16Array([
+          0, 2, 1, 1, 2, 3,
+          2, 4, 3, 3, 4, 5,
+        ]),
+        pinnedIndices: [0, 1],
+        normalAxis: 0,
+        wallPlane: 0,
+        wallOpeningWindExposure: new Float32Array([0, 0, 0, 0, 1, 1]),
+      });
+
+      for (let frame = 0; frame < 240; frame += 1) {
+        physics.step(1 / 60);
+      }
+      physics.writePositions(cloth, positions);
+
+      const shelteredCenterX = (positions[6] + positions[9]) / 2;
+      const exposedCenterX = (positions[12] + positions[15]) / 2;
+      const shelteredCenterZ = (positions[8] + positions[11]) / 2;
+      const exposedCenterZ = (positions[14] + positions[17]) / 2;
+      assert.ok(exposedCenterX > shelteredCenterX + 0.03);
+      assert.ok(exposedCenterZ > shelteredCenterZ + 0.03);
+    } finally {
+      physics.destroy();
+      resetAmbientWindSpeed();
+    }
+  });
+
+  it("keeps portal-exposed cloth on the visible side of its wall", () => {
+    setAmbientWindSpeed(10);
+    class Vector {
+      constructor(x = 0, y = 0, z = 0) {
+        this.set(x, y, z);
+      }
+
+      set(x, y, z) {
+        this.x = x;
+        this.y = y;
+        this.z = z;
+        return this;
+      }
+    }
+    class InverseTransform {
+      copy() {
+        return this;
+      }
+
+      invert() {
+        return this;
+      }
+
+      transformVector(source, target) {
+        return target.set(-source.x, source.y, -source.z);
+      }
+    }
+    const physics = new AmmoClothPhysics({
+      pc: { Mat4: InverseTransform, Vec3: Vector },
+    });
+    try {
+      const positions = new Float32Array([
+        0, 0, -0.5, 0, 0, 0.5,
+        0, -0.5, -0.5, 0, -0.5, 0.5,
+        0, -1, -0.5, 0, -1, 0.5,
+      ]);
+      const cloth = physics.createCloth({
+        positions,
+        indices: new Uint16Array([
+          0, 2, 1, 1, 2, 3,
+          2, 4, 3, 3, 4, 5,
+        ]),
+        pinnedIndices: [0, 1],
+        root: { getWorldTransform: () => ({}) },
+        normalAxis: 0,
+        wallPlane: 0,
+        wallOpeningWindExposure: new Float32Array([0, 0, 0, 0, 1, 1]),
+      });
+
+      for (let frame = 0; frame < 240; frame += 1) {
+        physics.step(1 / 60);
+      }
+      physics.writePositions(cloth, positions);
+
+      const shelteredCenterX = (positions[6] + positions[9]) / 2;
+      const exposedCenterX = (positions[12] + positions[15]) / 2;
+      const shelteredCenterZ = (positions[8] + positions[11]) / 2;
+      const exposedCenterZ = (positions[14] + positions[17]) / 2;
+      assert.ok(shelteredCenterX >= -0.0001);
+      assert.ok(exposedCenterX >= -0.0001);
+      assert.ok(exposedCenterZ < shelteredCenterZ - 0.03);
+    } finally {
+      physics.destroy();
+      resetAmbientWindSpeed();
+    }
   });
 
   it("deflects tower flags along the sloped roof surface", () => {
