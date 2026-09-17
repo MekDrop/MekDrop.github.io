@@ -10,6 +10,49 @@ export class GroundCollisionWorld {
     this.#colliders.clear();
   }
 
+  /**
+   * Registered ground objects are solid to grass by default. They may expose a
+   * normalized grassWeight or grassWeightAt() to tune the surrounding bend.
+   */
+  grassWeightAt(x, z, elevation) {
+    let weight = 0;
+    for (const collider of this.#colliders) {
+      const explicitWeight = collider.grassWeightAt?.(x, z, elevation);
+      if (Number.isFinite(explicitWeight) && explicitWeight > 0) {
+        weight = Math.max(weight, Math.min(1, explicitWeight));
+        continue;
+      }
+      const objectWeight = Number.isFinite(collider.grassWeight)
+        ? Math.max(0, Math.min(1, collider.grassWeight))
+        : 1;
+      const surfaceHeight = collider.surfaceHeightAt?.(x, z, 0);
+      const lowSurface =
+        Number.isFinite(surfaceHeight) &&
+        surfaceHeight >= elevation + 0.004 &&
+        surfaceHeight <= elevation + 0.3;
+      const collisionDepth = collider.collisionDepthAt?.(
+        x,
+        z,
+        0,
+        elevation,
+        0.05,
+      ) ?? 0;
+      const blocks = collider.blocksMovementAt?.(
+        x,
+        z,
+        0,
+        elevation,
+        0.05,
+      ) ?? false;
+      const intersects =
+        collider.intersectsGroundFootprint?.(x, z, 0) ?? false;
+      if (lowSurface || collisionDepth > 0 || blocks || intersects) {
+        weight = Math.max(weight, objectWeight);
+      }
+    }
+    return weight;
+  }
+
   isBlocked(x, z, radius = 0, elevation = -Infinity, stepClearance = 0) {
     return (
       this.#blockingDepthAt(x, z, radius, elevation, stepClearance) > 0

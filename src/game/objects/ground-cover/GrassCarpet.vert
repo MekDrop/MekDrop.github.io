@@ -4,6 +4,10 @@ uniform vec2 uGrassGridOffset;
 uniform vec4 uGrassBoundaryExtension;
 uniform vec4 uGrassFeet[8];
 uniform vec4 uGrassFootShapes[8];
+uniform vec4 uGrassSurfaces[4];
+uniform vec4 uGrassSurfaceLoads[4];
+uniform sampler2D uGrassObstacleMap;
+uniform vec2 uGrassObstacleMapSize;
 
 varying float vGrassTip;
 varying float vGrassVariation;
@@ -16,6 +20,7 @@ vec4 getPosition() {
   float height = max(vertex_position.y, 0.0) * length(dModelMatrix[1].xyz);
   float tip = smoothstep(0.0, 0.06, height);
   float contact = 0.0;
+  float obstruction = 0.0;
   vec2 brushDirection = vec2(0.0);
   vec2 bladePosition = root.xz + offset.xz;
   for (int index = 0; index < 8; index++) {
@@ -32,10 +37,47 @@ vec4 getPosition() {
     brushDirection = mix(brushDirection, away, step(contact, pressure));
     contact = max(contact, pressure);
   }
-  // Press the canopy to the sole, spreading the tips while keeping roots fixed.
-  // The retained footprints release over time instead of snapping upright.
+  for (int index = 0; index < 4; index++) {
+    vec4 surface = uGrassSurfaces[index];
+    vec4 load = uGrassSurfaceLoads[index];
+    vec2 delta = bladePosition - surface.xz;
+    float radius = max(surface.w, 0.001);
+    float within = 1.0 - smoothstep(
+      max(radius - 0.03, 0.0),
+      radius,
+      length(delta)
+    );
+    float sameLevel = 1.0 - smoothstep(0.075, 0.22, abs(root.y - surface.y));
+    float compression = max(0.0, load.x + dot(delta, load.yz));
+    float pressure = clamp(compression / 0.075, 0.0, 1.0) *
+      within * sameLevel * load.w;
+    vec2 away = delta / max(length(delta), 0.001);
+    brushDirection = mix(brushDirection, away, step(contact, pressure));
+    contact = max(contact, pressure);
+    obstruction = max(obstruction, pressure);
+  }
+  vec2 obstacleUv = (
+    bladePosition + uGrassGridOffset + vec2(0.5)
+  ) / uGrassObstacleMapSize;
+  vec4 obstacle = texture2D(uGrassObstacleMap, obstacleUv);
+  float obstaclePressure = obstacle.b;
+  float obstacleWeight = obstacle.a;
+  vec2 obstacleDirection = obstacle.rg * 2.0 - 1.0;
+  if (dot(obstacleDirection, obstacleDirection) > 0.0025) {
+    obstacleDirection = normalize(obstacleDirection);
+    brushDirection = mix(
+      brushDirection,
+      obstacleDirection,
+      step(contact, obstaclePressure)
+    );
+  }
+  contact = max(contact, obstaclePressure);
+  obstruction = max(obstruction, obstacleWeight);
+  // Press the canopy below contacts while spreading edge tips sideways. Static
+  // surfaces bend farther than a boot, so their boundary stays grass-free.
   float flexible = smoothstep(0.002, 0.025, height);
-  offset.xz += brushDirection * contact * flexible * 0.055;
+  offset.xz += brushDirection * contact * flexible *
+    mix(0.06, 0.11, obstruction);
   offset.y *= 1.0 - contact * flexible * 0.96;
   float wind = sin(uGrassTime * 1.4 + root.x * 1.8 + root.z * 1.1);
   offset.xz += vec2(0.8, 0.4) * wind * height * tip * 0.1 *

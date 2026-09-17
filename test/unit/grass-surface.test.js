@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { GrassSurface } from "../../src/game/objects/ground-cover/GrassSurface.js";
 
-function createSubject(zoom) {
+function createSubject(zoom, getSurfaceContacts = () => []) {
   const parameters = new Map();
   const material = {
     setParameter(name, value) {
@@ -26,6 +26,7 @@ function createSubject(zoom) {
     app,
     terrainMaterials: [material],
     zoom,
+    getSurfaceContacts,
   });
   return { grass, parameters, update: (deltaTime) => { update(deltaTime); render(); } };
 }
@@ -54,5 +55,29 @@ describe("grass canopy wind", () => {
     grass.zoom = 1;
 
     assert.equal(parameters.get("uGrassAmbientMotion"), 0);
+  });
+
+  it("sends distributed surface loads to the grass shader", () => {
+    const contact = {
+      x: 1,
+      y: 2,
+      z: 3,
+      radius: 0.36,
+      compression: 0.025,
+      slopeX: 0.08,
+      slopeZ: -0.02,
+    };
+    const { parameters, update } = createSubject(1, () => [contact]);
+
+    update(1 / 60);
+
+    const surfaces = parameters.get("uGrassSurfaces[0]");
+    const loads = parameters.get("uGrassSurfaceLoads[0]");
+    [1, 2, 3, 0.36].forEach((value, index) => {
+      assert.ok(Math.abs(surfaces[index] - value) < 0.000001);
+    });
+    [0.025, 0.08, -0.02, 1].forEach((value, index) => {
+      assert.ok(Math.abs(loads[index] - value) < 0.000001);
+    });
   });
 });

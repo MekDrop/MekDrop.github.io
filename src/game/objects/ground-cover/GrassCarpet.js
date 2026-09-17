@@ -121,6 +121,21 @@ export class GrassCarpet {
     }
   }
 
+  supportPointsWithin({ x, y, z }, radius) {
+    const points = [];
+    for (const { placements } of this.#batches) {
+      for (const placement of placements) {
+        if (
+          Math.abs(placement.y - y) <= 0.08 &&
+          Math.hypot(placement.x - x, placement.z - z) <= radius
+        ) {
+          points.push({ x: placement.x, y: placement.y, z: placement.z });
+        }
+      }
+    }
+    return points;
+  }
+
   destroy() {
     this.#entity.destroy();
     for (const { vertexBuffer } of this.#batches) {

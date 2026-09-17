@@ -427,6 +427,9 @@ function installMovementTestDriver() {
     royalCastles() {
       return renderer.royalCastleStates;
     },
+    royalTriggerPhysics() {
+      return renderer.royalTriggerPhysicsState;
+    },
     droppedInventoryItemCount() {
       return renderer.thrownInventoryItemCount;
     },

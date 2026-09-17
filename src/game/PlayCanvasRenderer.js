@@ -349,7 +349,12 @@ export class PlayCanvasRenderer {
     // Keep WebGPU validation scopes out of the render loop. The package's
     // development export is intentionally diagnostic and is far too costly
     // for this continuously rendered game, even when Quasar runs in dev mode.
-    this.#pc = await import("playcanvas/build/playcanvas/src/index.js");
+    const [{ default: Ammo }, playCanvas] = await Promise.all([
+      import("sync-ammo"),
+      import("playcanvas/build/playcanvas/src/index.js"),
+    ]);
+    globalThis.Ammo ??= Ammo;
+    this.#pc = playCanvas;
     if (this.#destroyed) {
       return;
     }
@@ -691,6 +696,10 @@ export class PlayCanvasRenderer {
 
   get royalCastleStates() {
     return this.#castles.map((castle) => castle.leisureState);
+  }
+
+  get royalTriggerPhysicsState() {
+    return this.#royalCastleTriggerField?.physicsState ?? [];
   }
 
   get inventoryState() {
@@ -1394,11 +1403,17 @@ export class PlayCanvasRenderer {
     this.#mapRoot.addChild(this.#grassCarpet.entity);
     this.#grassSurface = new GrassSurface({
       app: this.#app,
+      pc: this.#pc,
+      mapData: this.#mapData,
       terrainMaterials: [
         this.#grassCarpet.material,
       ].filter(Boolean),
       zoom: this.#zoom,
       getFootContacts: () => this.#hero?.grassFootContacts ?? [],
+      getSurfaceContacts: () =>
+        this.#royalCastleTriggerField?.grassSurfaceContacts ?? [],
+      getWeightAt: (x, y, z) =>
+        this.#collisionWorld.grassWeightAt(x, z, y),
     });
 
     this.#cloudField = new CubeCloudField({
@@ -1438,6 +1453,7 @@ export class PlayCanvasRenderer {
     this.#buildBuriedTreasure();
     this.#buildHero();
     this.#buildTools();
+    this.#grassSurface.refreshObstacles();
     this.#updateInteractionTarget();
 
     this.#mapRoot.addChild(this.#pathArrows.render(this.#mapData));
@@ -1572,8 +1588,10 @@ export class PlayCanvasRenderer {
       pc: this.#pc,
       mapData: this.#mapData,
       modelLibrary: this.#modelLibrary,
-      onVegetationRemoved: (vegetation) =>
-        this.#buriedTreasure?.removeVegetation(vegetation),
+      onVegetationRemoved: (vegetation) => {
+        this.#buriedTreasure?.removeVegetation(vegetation);
+        this.#grassSurface?.refreshObstacles();
+      },
     });
     this.#collisionWorld.add(this.#vegetation);
     this.#mapRoot.addChild(this.#vegetation.entity);
@@ -1695,15 +1713,20 @@ export class PlayCanvasRenderer {
     }
     this.#royalCastleTriggerField = new RoyalCastleTriggerField({
       pc: this.#pc,
+      app: this.#app,
       triggers,
       cols: this.#mapData.cols,
       rows: this.#mapData.rows,
       tileHeightAt: (col, row) => this.#tileHeight(col, row),
+      getGrassSupportPoints: (position, radius) =>
+        this.#grassCarpet.supportPointsWithin(position, radius),
     });
+    this.#collisionWorld.add(this.#royalCastleTriggerField);
     this.#mapRoot.addChild(this.#royalCastleTriggerField.entity);
   }
 
   #updateCastlesForHero(position) {
+    this.#royalCastleTriggerField?.updateHeroPosition(position);
     const triggers = this.#mapData.royalCastleTriggers ?? [];
     for (const [index, castle] of this.#castles.entries()) {
       castle.updateHeroPosition(position);
