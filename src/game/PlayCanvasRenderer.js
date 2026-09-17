@@ -1608,11 +1608,10 @@ export class PlayCanvasRenderer {
       modelLibrary: this.#modelLibrary,
       onVegetationRemoved: (vegetation) => {
         this.#buriedTreasure?.removeVegetation(vegetation);
-        this.#grassSurface?.refreshObstacles();
-        this.#heroPhysicsTerrain?.refresh();
+        this.#grassSurface?.refreshObstacles(vegetation);
       },
     });
-    this.#collisionWorld.add(this.#vegetation);
+    this.#collisionWorld.add(this.#vegetation, { physicsSurface: false });
     this.#mapRoot.addChild(this.#vegetation.entity);
   }
 

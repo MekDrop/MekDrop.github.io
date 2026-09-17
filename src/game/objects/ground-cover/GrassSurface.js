@@ -104,8 +104,8 @@ export class GrassSurface {
     this.#terrainMaterials = [];
   }
 
-  refreshObstacles() {
-    this.#obstacleMap?.refresh(this.#getWeightAt);
+  refreshObstacles(tile = null) {
+    this.#obstacleMap?.refresh(this.#getWeightAt, tile);
   }
 
   #update = (deltaTime) => {

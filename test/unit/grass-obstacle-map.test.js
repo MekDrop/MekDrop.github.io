@@ -29,18 +29,26 @@ const pc = {
   ADDRESS_CLAMP_TO_EDGE: "clamp",
 };
 
-function createSubject() {
+function createMapData(cols = 1, rows = 1) {
+  return {
+    cols,
+    rows,
+    grid: Array.from({ length: rows }, () =>
+      Array(cols).fill(TileType.GRASS),
+    ),
+    heightmap: Array.from({ length: rows }, () => Array(cols).fill(2)),
+    tileMeta: Array.from({ length: rows }, () =>
+      Array.from({ length: cols }, () => ({})),
+    ),
+    riverData: [],
+  };
+}
+
+function createSubject(mapData = createMapData()) {
   return new GrassObstacleMap({
     pc,
     device: {},
-    mapData: {
-      cols: 1,
-      rows: 1,
-      grid: [[TileType.GRASS]],
-      heightmap: [[2]],
-      tileMeta: [[{}]],
-      riverData: [],
-    },
+    mapData,
   });
 }
 
@@ -138,5 +146,38 @@ describe("grass obstacle field", () => {
     assert.equal(parameters.get("uGrassObstacleMap"), obstacleMap.texture);
     assert.deepEqual(parameters.get("uGrassObstacleMapSize"), [1, 1]);
     obstacleMap.destroy();
+  });
+
+  it("updates only the removed obstacle neighborhood", () => {
+    const mapData = createMapData(5, 5);
+    const localMap = createSubject(mapData);
+    const fullMap = createSubject(mapData);
+    const initialWeight = (x, _y, z) =>
+      Math.hypot(x, z) < 0.18 || Math.hypot(x + 2, z + 2) < 0.18
+        ? 1
+        : 0;
+    localMap.refresh(initialWeight);
+    fullMap.refresh(initialWeight);
+
+    let localSamples = 0;
+    let fullSamples = 0;
+    const remainingWeight = (x, _y, z) =>
+      Math.hypot(x + 2, z + 2) < 0.18 ? 1 : 0;
+    localMap.refresh(
+      (x, y, z) => {
+        localSamples += 1;
+        return remainingWeight(x, y, z);
+      },
+      { col: 2, row: 2 },
+    );
+    fullMap.refresh((x, y, z) => {
+      fullSamples += 1;
+      return remainingWeight(x, y, z);
+    });
+
+    assert.ok(localSamples < fullSamples / 2);
+    assert.deepEqual(localMap.texture.data, fullMap.texture.data);
+    localMap.destroy();
+    fullMap.destroy();
   });
 });

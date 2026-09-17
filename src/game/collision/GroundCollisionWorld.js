@@ -1,13 +1,22 @@
 export class GroundCollisionWorld {
   #colliders = new Set();
+  #physicsSurfaceColliders = new Set();
 
-  add(collider) {
-    if (collider) this.#colliders.add(collider);
+  add(collider, { physicsSurface = true } = {}) {
+    if (collider) {
+      this.#colliders.add(collider);
+      if (physicsSurface) {
+        this.#physicsSurfaceColliders.add(collider);
+      } else {
+        this.#physicsSurfaceColliders.delete(collider);
+      }
+    }
     return collider;
   }
 
   clear() {
     this.#colliders.clear();
+    this.#physicsSurfaceColliders.clear();
   }
 
   /**
@@ -160,8 +169,21 @@ export class GroundCollisionWorld {
   }
 
   surfaceHeightAt(x, z, radius = 0) {
+    return this.#surfaceHeightAt(this.#colliders, x, z, radius);
+  }
+
+  physicsSurfaceHeightAt(x, z, radius = 0) {
+    return this.#surfaceHeightAt(
+      this.#physicsSurfaceColliders,
+      x,
+      z,
+      radius,
+    );
+  }
+
+  #surfaceHeightAt(colliders, x, z, radius) {
     let highestSurface = null;
-    for (const collider of this.#colliders) {
+    for (const collider of colliders) {
       const height = collider.surfaceHeightAt?.(x, z, radius);
       if (!Number.isFinite(height)) continue;
       highestSurface =

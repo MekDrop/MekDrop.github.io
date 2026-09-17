@@ -253,7 +253,11 @@ export class HeroPhysicsTerrain {
         x < maximumX;
         x += SUPPLEMENTAL_SAMPLE_SIZE
       ) {
-        const height = this.#collisionWorld.surfaceHeightAt(x, z, half);
+        const height = this.#collisionWorld.physicsSurfaceHeightAt(
+          x,
+          z,
+          half,
+        );
         if (!Number.isFinite(height)) {
           continue;
         }
