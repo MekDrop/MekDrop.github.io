@@ -36,6 +36,10 @@ Store every error owned or thrown by code under `src/game/` in `src/game/errors/
 Within each error root, group classes into subfolders by their owning feature or area (for example `map/`, `castle/`, `path/`, `screenshot/`, or `assets/`) and import them through that area's index file.
 Model enums as frozen plain objects (`export const GRAPHICS_DRIVER = Object.freeze({ ... })`) whose values are primitive literals; name the export in SCREAMING_SNAKE_CASE and the keys in SCREAMING_SNAKE_CASE. Define exactly one enum per file, in a PascalCase file named after the enum (for example `GraphicsDriver.js`). Store enums owned by code under `src/game/` in `src/game/enum/`; store enums for code outside the game subsystem in `src/enum/`. Do not declare enum-like frozen literal objects anywhere else, and do not put anything other than the single enum into an enum file. ESLint enforces these rules via `no-restricted-syntax` overrides in `eslint.config.js`.
 
+## Runtime Error Recovery
+
+Handle unexpected application errors through `src/boot/runtime-errors.js`. The error notification must remain visible and provide two localized actions: **Refresh**, showing a 30-second countdown and reloading immediately when selected, and **Dismiss**, closing the notification without reloading. The page must reload automatically when the countdown expires. Dismissing the notification must cancel both the countdown interval and the pending automatic reload timer. Keep the action labels synchronized across every locale in `src/i18n/` and cover manual refresh, automatic refresh, and timer cancellation in `test/unit/runtime-errors.test.js`.
+
 ## Map Generation Rules
 
 When a request involves updating map generation logic, path generation, terrain shaping, water placement, tile rendering, or validation for the isometric game layer, read `docs/map-generator-rules.md` first and treat it as the canonical specification. Do not implement shortcuts that violate the two-tile path width, grid-aligned ownership, projection consistency, slope-length validation, gate placement, waterfall upstream-length rules, or final validation requirements defined there.

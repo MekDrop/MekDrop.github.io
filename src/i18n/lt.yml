@@ -65,6 +65,7 @@ game:
     runtime_error: "Žaidimo atvaizdavimo klaida: {message}"
     runtime_error_unknown: Įvyko nežinoma atvaizdavimo klaida.
     unhandled_error: Netikėta programos klaida
+    refresh_countdown: "Atnaujinti ({seconds}s)"
     dismiss: Uždaryti
   graphics:
     webgl_fallback: WebGPU nepasiekiamas. Naudojamas suderinamumo WebGL 2 atvaizdavimas.

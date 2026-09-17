@@ -65,6 +65,7 @@ game:
     runtime_error: "Game rendering problem: {message}"
     runtime_error_unknown: An unknown rendering error occurred.
     unhandled_error: Unexpected application error
+    refresh_countdown: "Refresh ({seconds}s)"
     dismiss: Dismiss
   graphics:
     webgl_fallback: WebGPU is unavailable. Using WebGL 2 compatibility rendering.
