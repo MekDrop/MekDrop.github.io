@@ -2,7 +2,7 @@ import {
   AMBIENT_WIND_BASE_SPEED,
   AMBIENT_WIND_DIRECTION,
   getAmbientWind,
-} from "../shared/BannerWind.js";
+} from "../shared/AmbientWind.js";
 import cloudFragmentShader from "./CubeCloud.frag?raw";
 import cloudVertexShader from "./CubeCloud.vert?raw";
 

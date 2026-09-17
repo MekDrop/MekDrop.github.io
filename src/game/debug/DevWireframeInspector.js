@@ -256,7 +256,14 @@ export class DevWireframeInspector {
       const x = ((pointer.clientX - rect.left) / Math.max(1, rect.width)) * width;
       const y = ((pointer.clientY - rect.top) / Math.max(1, rect.height)) * height;
       this.#picker.resize(width, height);
-      this.#picker.prepare(this.#camera, this.#app.scene);
+      const debugPickInstances = this.#temporarilyEnableDebugPicking();
+      try {
+        this.#picker.prepare(this.#camera, this.#app.scene);
+      } finally {
+        for (const meshInstance of debugPickInstances) {
+          meshInstance.pick = false;
+        }
+      }
       pickPromise = Promise.all([
         this.#picker.getSelectionAsync(x, y),
         this.#picker.getWorldPointAsync(x, y),
@@ -290,6 +297,21 @@ export class DevWireframeInspector {
         this.#schedulePick();
       }
     }
+  }
+
+  #temporarilyEnableDebugPicking() {
+    const meshInstances =
+      this.#app.root
+        ?.findComponents("render")
+        .flatMap((render) => render.meshInstances ?? []) ?? [];
+    const debugPickInstances = meshInstances.filter(
+      (meshInstance) =>
+        meshInstance.devWireframeInspectable && meshInstance.pick === false,
+    );
+    for (const meshInstance of debugPickInstances) {
+      meshInstance.pick = true;
+    }
+    return debugPickInstances;
   }
 
   #setSelection(meshInstance, worldPoint) {

@@ -1,4 +1,4 @@
-import { BannerWind } from "../shared/BannerWind.js";
+import { AmmoClothPhysics } from "../shared/AmmoClothPhysics.js";
 
 const BANNER_TEXTURE_WIDTH = 64;
 const BANNER_TEXTURE_HEIGHT = 96;
@@ -15,6 +15,7 @@ export class CastleBanner {
   #texture;
   #banners = [];
   #activeBanner = null;
+  #physics;
   #updateHandle = null;
 
   constructor({ pc, app }) {
@@ -24,6 +25,7 @@ export class CastleBanner {
     this.#texture = this.#createTexture();
     this.#material = this.#createMaterial();
     this.#railMaterial = this.#createRailMaterial();
+    this.#physics = new AmmoClothPhysics({ pc });
     this.#updateHandle = app.on("update", (deltaTime) => {
       this.#animate(deltaTime);
     });
@@ -39,7 +41,7 @@ export class CastleBanner {
     root.setEulerAngles(0, yaw, 0);
     this.#entity.addChild(root);
 
-    const geometry = this.#createMesh();
+    const geometry = this.#createMesh(width, height);
     const meshInstance = new this.#pc.MeshInstance(
       geometry.mesh,
       this.#material,
@@ -53,7 +55,6 @@ export class CastleBanner {
       castShadows: true,
       receiveShadows: true,
     });
-    cloth.setLocalScale(width, height, 1);
     root.addChild(cloth);
 
     const rail = new this.#pc.Entity("Castle banner rail");
@@ -75,13 +76,26 @@ export class CastleBanner {
     const seed = Math.abs(
       Math.sin((this.#banners.length + 1) * 1.91 + x * 0.23 + z * 0.31),
     );
-    this.#banners.push({
+    const banner = {
       ...geometry,
       root,
       width,
       height,
-      wind: new BannerWind(seed),
+    };
+    banner.cloth = this.#physics.createCloth({
+      positions: banner.positions,
+      indices: banner.indices,
+      pinnedIndices: Array.from(
+        { length: BANNER_COLUMNS + 1 },
+        (_, index) => index,
+      ),
+      vertexUv: banner.vertexUv,
+      root,
+      normalAxis: 2,
+      seed,
+      wallPlane: 0,
     });
+    this.#banners.push(banner);
     return true;
   }
 
@@ -100,7 +114,7 @@ export class CastleBanner {
       return;
     }
     this.#activeBanner = hit.banner;
-    this.#activeBanner.wind.begin(hit.point);
+    this.#physics.beginPointer(this.#activeBanner.cloth, hit.point);
   }
 
   applyMouseWind(rayStart, rayEnd, deltaTime) {
@@ -116,20 +130,22 @@ export class CastleBanner {
     if (!hit) {
       return;
     }
-    this.#activeBanner.wind.applyPointer(hit.point, deltaTime);
+    this.#physics.applyPointer(this.#activeBanner.cloth, hit.point, deltaTime);
   }
 
   endWindGesture() {
-    this.#activeBanner?.wind.end();
+    this.#physics.endPointer(this.#activeBanner?.cloth);
     this.#activeBanner = null;
   }
 
   destroy() {
     this.#updateHandle?.off();
     this.#updateHandle = null;
+    this.endWindGesture();
+    this.#physics?.destroy();
+    this.#physics = null;
     this.#entity?.destroy();
     this.#entity = null;
-    this.endWindGesture();
     for (const { mesh } of this.#banners) {
       mesh.decRefCount();
       if (mesh.refCount < 1) mesh.destroy();
@@ -206,7 +222,7 @@ export class CastleBanner {
     return material;
   }
 
-  #createMesh() {
+  #createMesh(width, height) {
     const positions = [];
     const textureUvs = [];
     const vertexUv = [];
@@ -219,7 +235,11 @@ export class CastleBanner {
         const u = textureU * 2 - 1;
         const foldedDepth =
           Math.cos(u * Math.PI * 3) * (0.009 + Math.sin(v * Math.PI) * 0.011);
-        positions.push(u * 0.5, -v * BANNER_POINT_START, foldedDepth);
+        positions.push(
+          u * (width / 2),
+          -v * BANNER_POINT_START * height,
+          foldedDepth,
+        );
         textureUvs.push(textureU, 1 - v * BANNER_POINT_START);
         vertexUv.push(u, v * BANNER_POINT_START);
       }
@@ -244,7 +264,7 @@ export class CastleBanner {
     }
 
     const pointIndex = positions.length / 3;
-    positions.push(0, -1, 0);
+    positions.push(0, -height, 0);
     textureUvs.push(0.5, 0);
     vertexUv.push(0, 1);
     const bottomRowStart = BANNER_ROWS * rowLength;
@@ -256,8 +276,7 @@ export class CastleBanner {
       );
     }
 
-    const basePositions = Float32Array.from(positions);
-    const animatedPositions = new Float32Array(basePositions);
+    const animatedPositions = Float32Array.from(positions);
     const meshIndices = Uint16Array.from(indices);
     const mesh = new this.#pc.Mesh(this.#app.graphicsDevice);
     mesh.clear(true, false, animatedPositions.length / 3, meshIndices.length);
@@ -270,7 +289,6 @@ export class CastleBanner {
 
     return {
       mesh,
-      basePositions,
       positions: animatedPositions,
       vertexUv: Float32Array.from(vertexUv),
       indices: meshIndices,
@@ -306,22 +324,15 @@ export class CastleBanner {
 
     return {
       distance,
-      point: new this.#pc.Vec3(0, localY, localX),
+      point: new this.#pc.Vec3(localX, localY, 0),
       banner,
     };
   }
 
   #animate(deltaTime) {
+    this.#physics.step(deltaTime);
     for (const banner of this.#banners) {
-      banner.wind.advance(deltaTime);
-      banner.wind.deform({
-        basePositions: banner.basePositions,
-        positions: banner.positions,
-        vertexUv: banner.vertexUv,
-        normalAxis: 2,
-        verticalAxis: 1,
-        horizontalAxis: 0,
-      });
+      this.#physics.writePositions(banner.cloth, banner.positions);
       banner.mesh.setPositions(banner.positions);
       banner.mesh.setNormals(
         this.#pc.calculateNormals(banner.positions, banner.indices),

@@ -836,6 +836,7 @@ export class Castle {
       blockY,
       blockV,
       boundary = CASTLE_BOUNDARY.FRONT,
+      roofCollider = null,
     ) => {
       const position = localToWorld(blockU, blockV);
       const normal = boundaryNormal(boundary);
@@ -847,6 +848,7 @@ export class Castle {
         width: 5 * CASTLE_BLOCK_SIZE,
         height: 2.5 * CASTLE_BLOCK_SIZE,
         poleHeight: 5 * CASTLE_BLOCK_SIZE,
+        roofCollider,
       });
     };
     const addRoof = (
@@ -1610,15 +1612,32 @@ export class Castle {
         addBanner(depth, blockY, horizontal, width, height, opening.boundary);
       }
     };
-    const placeBoundaryFlag = (depth, horizontal, blockY) => {
+    const placeBoundaryFlag = (
+      depth,
+      horizontal,
+      blockY,
+      roofCollider = null,
+    ) => {
       if (opening.boundary === CASTLE_BOUNDARY.BACK) {
-        addFlag(castleDepth - 1 - depth, blockY, horizontal, opening.boundary);
+        addFlag(
+          castleDepth - 1 - depth,
+          blockY,
+          horizontal,
+          opening.boundary,
+          roofCollider,
+        );
       } else if (opening.boundary === CASTLE_BOUNDARY.LEFT) {
-        addFlag(horizontal, blockY, depth, opening.boundary);
+        addFlag(horizontal, blockY, depth, opening.boundary, roofCollider);
       } else if (opening.boundary === CASTLE_BOUNDARY.RIGHT) {
-        addFlag(horizontal, blockY, facadeSpan - 1 - depth, opening.boundary);
+        addFlag(
+          horizontal,
+          blockY,
+          facadeSpan - 1 - depth,
+          opening.boundary,
+          roofCollider,
+        );
       } else {
-        addFlag(depth, blockY, horizontal, opening.boundary);
+        addFlag(depth, blockY, horizontal, opening.boundary, roofCollider);
       }
     };
     const placeBoundaryRoof = (
@@ -1991,6 +2010,12 @@ export class Castle {
       roofDepthCenter,
       roofHorizontalCenter,
       roofBaseBlockY + roofHeight - 1,
+      {
+        baseY: -(roofHeight - 1) * CASTLE_BLOCK_SIZE,
+        halfWidth: ((roofSpan + 0.6) * CASTLE_BLOCK_SIZE) / 2,
+        halfDepth: ((roofSpan + 0.6) * CASTLE_BLOCK_SIZE) / 2,
+        height: roofHeight * CASTLE_BLOCK_SIZE,
+      },
     );
   }
 }

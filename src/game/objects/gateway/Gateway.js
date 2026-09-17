@@ -1,4 +1,4 @@
-import { BannerWind } from "../shared/BannerWind.js";
+import { AmmoClothPhysics } from "../shared/AmmoClothPhysics.js";
 import { colorFromValue } from "../../helpers/colors.js";
 import gatewayFrameModelUrl from "../../models/gateway/gateway-frame.glb?url";
 import { GatewayBannerSign } from "./GatewayBannerSign.js";
@@ -44,14 +44,14 @@ export class Gateway {
   #bannerMaterial = null;
   #emblemMaterial = null;
   #bannerMesh = null;
-  #bannerBasePositions = null;
   #bannerPositions = null;
   #bannerVertexUv = null;
   #bannerIndices = null;
+  #bannerCloth = null;
+  #bannerPhysics = null;
   #bannerInteraction = null;
   #emblemEntity = null;
   #emblemBasePosition = null;
-  #bannerWind = new BannerWind();
   #updateHandle = null;
   #elapsed = 0;
   #inverseWorldTransform = null;
@@ -75,6 +75,7 @@ export class Gateway {
     this.#symbol = symbol;
     this.#modelLibrary = modelLibrary;
     this.#entity = new pc.Entity("Voxel gateway");
+    this.#bannerPhysics = new AmmoClothPhysics({ pc });
     this.#collisionWorldPoint = new pc.Vec3();
     this.#collisionLocalPoint = new pc.Vec3();
     this.#repulsionFromLocalPoint = new pc.Vec3();
@@ -189,7 +190,7 @@ export class Gateway {
   }
 
   beginWindGesture(hit) {
-    this.#bannerWind.begin(hit?.point ?? hit);
+    this.#bannerPhysics.beginPointer(this.#bannerCloth, hit?.point ?? hit);
   }
 
   applyMouseWind(rayStart, rayEnd, deltaTime) {
@@ -197,16 +198,20 @@ export class Gateway {
     if (!hit) {
       return;
     }
-    this.#bannerWind.applyPointer(hit.point, deltaTime);
+    this.#bannerPhysics.applyPointer(this.#bannerCloth, hit.point, deltaTime);
   }
 
   endWindGesture() {
-    this.#bannerWind.end();
+    this.#bannerPhysics?.endPointer(this.#bannerCloth);
   }
 
   destroy() {
     this.#updateHandle?.off();
     this.#updateHandle = null;
+    this.endWindGesture();
+    this.#bannerPhysics?.destroy();
+    this.#bannerPhysics = null;
+    this.#bannerCloth = null;
     this.#entity?.destroy();
     this.#entity = null;
 
@@ -223,7 +228,6 @@ export class Gateway {
     this.#bannerMaterial = null;
     this.#emblemMaterial = null;
     this.#bannerMesh = null;
-    this.#bannerBasePositions = null;
     this.#bannerPositions = null;
     this.#bannerVertexUv = null;
     this.#bannerIndices = null;
@@ -235,7 +239,6 @@ export class Gateway {
     this.#collisionLocalPoint = null;
     this.#repulsionFromLocalPoint = null;
     this.#repulsionDirection = null;
-    this.endWindGesture();
   }
 
   #createFrame(surfaceLift) {
@@ -307,10 +310,22 @@ export class Gateway {
         );
       }
     }
-    this.#bannerBasePositions = Float32Array.from(geometry.positions);
-    this.#bannerPositions = new Float32Array(this.#bannerBasePositions);
+    this.#bannerPositions = Float32Array.from(geometry.positions);
     this.#bannerVertexUv = Float32Array.from(vertexUv);
     this.#bannerIndices = Uint16Array.from(geometry.indices);
+    this.#bannerCloth = this.#bannerPhysics.createCloth({
+      positions: this.#bannerPositions,
+      indices: this.#bannerIndices,
+      pinnedIndices: Array.from(
+        { length: columnSegments + 1 },
+        (_, index) => index,
+      ),
+      vertexUv: this.#bannerVertexUv,
+      root: this.#entity,
+      normalAxis: 0,
+      seed: Math.abs(Math.sin(this.#symbol.codePointAt(0) * 0.017)),
+      wallPlane: faceX,
+    });
 
     const mesh = new pc.Mesh(this.#app.graphicsDevice);
     mesh.clear(
@@ -457,7 +472,6 @@ export class Gateway {
   #animateBanner(deltaTime) {
     if (
       !this.#bannerMesh ||
-      !this.#bannerBasePositions ||
       !this.#bannerPositions ||
       !this.#bannerVertexUv ||
       !this.#bannerIndices
@@ -465,12 +479,11 @@ export class Gateway {
       return;
     }
 
-    this.#bannerWind.advance(deltaTime);
-    this.#bannerWind.deform({
-      basePositions: this.#bannerBasePositions,
-      positions: this.#bannerPositions,
-      vertexUv: this.#bannerVertexUv,
-    });
+    this.#bannerPhysics.step(deltaTime);
+    this.#bannerPhysics.writePositions(
+      this.#bannerCloth,
+      this.#bannerPositions,
+    );
 
     this.#bannerMesh.setPositions(this.#bannerPositions);
     this.#bannerMesh.setNormals(
@@ -479,16 +492,26 @@ export class Gateway {
     this.#bannerMesh.update(this.#pc.PRIMITIVE_TRIANGLES, false);
 
     if (this.#emblemEntity && this.#emblemBasePosition) {
-      const emblemOffset = this.#bannerWind.sample(0, 0.48);
+      const sample = this.#bannerPhysics.sample(this.#bannerCloth, 0, 0.48);
+      if (!sample) {
+        return;
+      }
+      const normalLength =
+        Math.hypot(sample.normal.x, sample.normal.y, sample.normal.z) || 1;
+      const normal = {
+        x: sample.normal.x / normalLength,
+        y: sample.normal.y / normalLength,
+        z: sample.normal.z / normalLength,
+      };
       this.#emblemEntity.setLocalPosition(
-        this.#emblemBasePosition[0] + emblemOffset.normal,
-        this.#emblemBasePosition[1] + emblemOffset.vertical,
-        this.#emblemBasePosition[2] + emblemOffset.horizontal,
+        sample.position.x + normal.x * 0.055,
+        sample.position.y + normal.y * 0.055,
+        sample.position.z + normal.z * 0.055,
       );
       this.#emblemEntity.setLocalEulerAngles(
         0,
-        emblemOffset.rotationY,
-        emblemOffset.rotationZ,
+        (-Math.atan2(normal.z, normal.x) * 180) / Math.PI,
+        (Math.atan2(normal.y, Math.hypot(normal.x, normal.z)) * 180) / Math.PI,
       );
     }
   }
@@ -569,5 +592,4 @@ export class Gateway {
     });
     this.#entity.addChild(portal);
   }
-
 }

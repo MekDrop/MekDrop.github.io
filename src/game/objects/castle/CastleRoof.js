@@ -72,6 +72,7 @@ export class CastleRoof {
       instance.castShadow = true;
       instance.receiveShadow = true;
       instance.pick = false;
+      instance.devWireframeInspectable = true;
     }
     root.addChild(roof);
 
@@ -124,7 +125,7 @@ export class CastleRoof {
     material.diffuse = colorFromHex(this.#pc, color);
     material.gloss = gloss;
     material.cull = this.#pc.CULLFACE_NONE;
-    material.useLighting = false;
+    material.useLighting = true;
     material.update();
     return material;
   }

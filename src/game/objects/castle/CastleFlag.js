@@ -1,7 +1,8 @@
-import { BannerWind } from "../shared/BannerWind.js";
+import { AmmoClothPhysics } from "../shared/AmmoClothPhysics.js";
 
 const FLAG_COLUMNS = 6;
 const FLAG_ROWS = 5;
+const FLAG_TRAILING_EDGE_HEIGHT_RATIO = 0.2;
 const FLAG_TEXTURE_WIDTH = 64;
 const FLAG_TEXTURE_HEIGHT = 40;
 
@@ -14,6 +15,7 @@ export class CastleFlag {
   #texture;
   #flags = [];
   #activeFlag = null;
+  #physics;
   #updateHandle = null;
 
   constructor({ pc, app }) {
@@ -23,6 +25,7 @@ export class CastleFlag {
     this.#texture = this.#createTexture();
     this.#flagMaterial = this.#createFlagMaterial();
     this.#poleMaterial = this.#createPoleMaterial();
+    this.#physics = new AmmoClothPhysics({ pc });
     this.#updateHandle = app.on("update", (deltaTime) => {
       this.#animate(deltaTime);
     });
@@ -32,7 +35,16 @@ export class CastleFlag {
     return this.#entity;
   }
 
-  add({ x, y, z, yaw = 0, width = 1.25, height = 0.625, poleHeight = 1.25 }) {
+  add({
+    x,
+    y,
+    z,
+    yaw = 0,
+    width = 1.25,
+    height = 0.625,
+    poleHeight = 1.25,
+    roofCollider = null,
+  }) {
     const root = new this.#pc.Entity("Castle roof flag");
     root.setPosition(x, y, z);
     root.setEulerAngles(0, yaw, 0);
@@ -72,7 +84,8 @@ export class CastleFlag {
     meshInstance.castShadow = true;
     meshInstance.receiveShadow = true;
     meshInstance.pick = false;
-    const cloth = new this.#pc.Entity("Triangular castle flag");
+    meshInstance.devWireframeInspectable = true;
+    const cloth = new this.#pc.Entity("Tapered castle flag");
     cloth.addComponent("render", {
       meshInstances: [meshInstance],
       castShadows: true,
@@ -81,20 +94,32 @@ export class CastleFlag {
     root.addChild(cloth);
 
     const seed = Math.abs(Math.sin(x * 0.31 + z * 0.47 + y * 0.19));
-    this.#flags.push({
+    const flag = {
       ...geometry,
       root,
       width,
       height,
       poleHeight,
-      wind: new BannerWind(seed),
+    };
+    flag.cloth = this.#physics.createCloth({
+      positions: flag.positions,
+      indices: flag.indices,
+      pinnedIndices: Array.from({ length: FLAG_ROWS + 1 }, (_, index) => index),
+      vertexUv: flag.vertexUv,
+      root,
+      normalAxis: 2,
+      seed,
+      roofCollider,
+      bendingStiffness: 0.18,
+      selfCollision: true,
     });
+    this.#flags.push(flag);
   }
 
   getFlagHit(rayStart, rayEnd) {
     let closest = null;
     for (const flag of this.#flags) {
-      const hit = this.#intersectFlagRay(flag, rayStart, rayEnd, true);
+      const hit = this.#intersectFlagRay(flag, rayStart, rayEnd);
       if (!hit || (closest && hit.distance >= closest.distance)) continue;
       closest = hit;
     }
@@ -106,27 +131,22 @@ export class CastleFlag {
       return;
     }
     this.#activeFlag = hit.flag;
-    this.#activeFlag.wind.begin(hit.point);
+    this.#physics.beginPointer(this.#activeFlag.cloth, hit.point);
   }
 
   applyMouseWind(rayStart, rayEnd, deltaTime) {
     if (!this.#activeFlag) {
       return;
     }
-    const hit = this.#intersectFlagRay(
-      this.#activeFlag,
-      rayStart,
-      rayEnd,
-      false,
-    );
+    const hit = this.#intersectFlagRay(this.#activeFlag, rayStart, rayEnd);
     if (!hit) {
       return;
     }
-    this.#activeFlag.wind.applyPointer(hit.point, deltaTime);
+    this.#physics.applyPointer(this.#activeFlag.cloth, hit.point, deltaTime);
   }
 
   endWindGesture() {
-    this.#activeFlag?.wind.end();
+    this.#physics.endPointer(this.#activeFlag?.cloth);
     this.#activeFlag = null;
   }
 
@@ -134,6 +154,8 @@ export class CastleFlag {
     this.#updateHandle?.off();
     this.#updateHandle = null;
     this.endWindGesture();
+    this.#physics?.destroy();
+    this.#physics = null;
     this.#entity?.destroy();
     this.#entity = null;
     for (const { mesh } of this.#flags) {
@@ -173,7 +195,7 @@ export class CastleFlag {
     context.fillRect(28, 18, 6, 8);
 
     const texture = new this.#pc.Texture(this.#app.graphicsDevice, {
-      name: "Triangular castle flag",
+      name: "Tapered castle flag",
       width: FLAG_TEXTURE_WIDTH,
       height: FLAG_TEXTURE_HEIGHT,
       addressU: this.#pc.ADDRESS_CLAMP_TO_EDGE,
@@ -193,6 +215,7 @@ export class CastleFlag {
     material.diffuse = new this.#pc.Color(1, 1, 1);
     material.diffuseMap = this.#texture;
     material.cull = this.#pc.CULLFACE_NONE;
+    material.twoSidedLighting = true;
     material.gloss = 0.02;
     material.update();
     return material;
@@ -215,8 +238,10 @@ export class CastleFlag {
     const centerY = poleHeight - height / 2 - 0.12;
 
     for (let column = 0; column < FLAG_COLUMNS; column += 1) {
-      const freedom = column / FLAG_COLUMNS;
-      const halfHeight = (height / 2) * (1 - freedom);
+      const freedom = column / (FLAG_COLUMNS - 1);
+      const halfHeight =
+        (height / 2) *
+        (1 - freedom * (1 - FLAG_TRAILING_EDGE_HEIGHT_RATIO));
       for (let row = 0; row <= FLAG_ROWS; row += 1) {
         const rowRatio = row / FLAG_ROWS;
         const vertical = 1 - rowRatio * 2;
@@ -244,17 +269,7 @@ export class CastleFlag {
       }
     }
 
-    const tipIndex = positions.length / 3;
-    positions.push(width, centerY, 0);
-    textureUvs.push(1, 0.5);
-    vertexUv.push(0, 1);
-    const finalColumn = (FLAG_COLUMNS - 1) * rowLength;
-    for (let row = 0; row < FLAG_ROWS; row += 1) {
-      indices.push(finalColumn + row, finalColumn + row + 1, tipIndex);
-    }
-
-    const basePositions = Float32Array.from(positions);
-    const animatedPositions = new Float32Array(basePositions);
+    const animatedPositions = Float32Array.from(positions);
     const meshIndices = Uint16Array.from(indices);
     const mesh = new this.#pc.Mesh(this.#app.graphicsDevice);
     mesh.clear(true, false, animatedPositions.length / 3, meshIndices.length);
@@ -267,67 +282,134 @@ export class CastleFlag {
 
     return {
       mesh,
-      basePositions,
       positions: animatedPositions,
       vertexUv: Float32Array.from(vertexUv),
       indices: meshIndices,
     };
   }
 
-  #intersectFlagRay(flag, rayStart, rayEnd, bounded) {
+  #intersectFlagRay(flag, rayStart, rayEnd) {
     if (!flag?.root) {
       return null;
     }
     const inverse = flag.root.getWorldTransform().clone().invert();
     const localStart = inverse.transformPoint(rayStart, new this.#pc.Vec3());
     const localEnd = inverse.transformPoint(rayEnd, new this.#pc.Vec3());
-    const directionZ = localEnd.z - localStart.z;
-    if (Math.abs(directionZ) < 0.000001) {
+    const direction = [
+      localEnd.x - localStart.x,
+      localEnd.y - localStart.y,
+      localEnd.z - localStart.z,
+    ];
+    let closest = null;
+    for (let index = 0; index < flag.indices.length; index += 3) {
+      const hit = this.#intersectTriangle(
+        localStart,
+        direction,
+        flag.positions,
+        flag.indices[index],
+        flag.indices[index + 1],
+        flag.indices[index + 2],
+      );
+      if (!hit || (closest && hit.distance >= closest.distance)) {
+        continue;
+      }
+      closest = hit;
+    }
+    if (!closest) {
       return null;
     }
-
-    const distance = -localStart.z / directionZ;
-    if (distance < 0 || distance > 1) {
-      return null;
-    }
-    const localX = localStart.x + (localEnd.x - localStart.x) * distance;
-    const localY = localStart.y + (localEnd.y - localStart.y) * distance;
-    const centerY = flag.poleHeight - flag.height / 2 - 0.12;
-    const freedom = Math.max(0, Math.min(1, localX / flag.width));
-    const halfHeight = (flag.height / 2) * (1 - freedom);
-    if (
-      bounded &&
-      (localX < -0.05 ||
-        localX > flag.width + 0.05 ||
-        localY < centerY - halfHeight - 0.05 ||
-        localY > centerY + halfHeight + 0.05)
-    ) {
-      return null;
-    }
-
     return {
-      distance,
-      point: new this.#pc.Vec3(0, localY, localX),
+      distance: closest.distance,
+      point: new this.#pc.Vec3(...closest.point),
       flag,
     };
   }
 
+  #intersectTriangle(origin, direction, positions, first, second, third) {
+    const firstOffset = first * 3;
+    const secondOffset = second * 3;
+    const thirdOffset = third * 3;
+    const edgeOne = [
+      positions[secondOffset] - positions[firstOffset],
+      positions[secondOffset + 1] - positions[firstOffset + 1],
+      positions[secondOffset + 2] - positions[firstOffset + 2],
+    ];
+    const edgeTwo = [
+      positions[thirdOffset] - positions[firstOffset],
+      positions[thirdOffset + 1] - positions[firstOffset + 1],
+      positions[thirdOffset + 2] - positions[firstOffset + 2],
+    ];
+    const cross = [
+      direction[1] * edgeTwo[2] - direction[2] * edgeTwo[1],
+      direction[2] * edgeTwo[0] - direction[0] * edgeTwo[2],
+      direction[0] * edgeTwo[1] - direction[1] * edgeTwo[0],
+    ];
+    const determinant =
+      edgeOne[0] * cross[0] +
+      edgeOne[1] * cross[1] +
+      edgeOne[2] * cross[2];
+    if (Math.abs(determinant) < 0.000001) {
+      return null;
+    }
+
+    const inverseDeterminant = 1 / determinant;
+    const fromFirst = [
+      origin.x - positions[firstOffset],
+      origin.y - positions[firstOffset + 1],
+      origin.z - positions[firstOffset + 2],
+    ];
+    const firstWeight =
+      (fromFirst[0] * cross[0] +
+        fromFirst[1] * cross[1] +
+        fromFirst[2] * cross[2]) *
+      inverseDeterminant;
+    if (firstWeight < 0 || firstWeight > 1) {
+      return null;
+    }
+
+    const perpendicular = [
+      fromFirst[1] * edgeOne[2] - fromFirst[2] * edgeOne[1],
+      fromFirst[2] * edgeOne[0] - fromFirst[0] * edgeOne[2],
+      fromFirst[0] * edgeOne[1] - fromFirst[1] * edgeOne[0],
+    ];
+    const secondWeight =
+      (direction[0] * perpendicular[0] +
+        direction[1] * perpendicular[1] +
+        direction[2] * perpendicular[2]) *
+      inverseDeterminant;
+    if (secondWeight < 0 || firstWeight + secondWeight > 1) {
+      return null;
+    }
+
+    const distance =
+      (edgeTwo[0] * perpendicular[0] +
+        edgeTwo[1] * perpendicular[1] +
+        edgeTwo[2] * perpendicular[2]) *
+      inverseDeterminant;
+    if (distance < 0 || distance > 1) {
+      return null;
+    }
+    return {
+      distance,
+      point: [
+        origin.x + direction[0] * distance,
+        origin.y + direction[1] * distance,
+        origin.z + direction[2] * distance,
+      ],
+    };
+  }
+
   #animate(deltaTime) {
+    this.#physics.step(deltaTime);
     for (const flag of this.#flags) {
-      flag.wind.advance(deltaTime);
-      flag.wind.deform({
-        basePositions: flag.basePositions,
-        positions: flag.positions,
-        vertexUv: flag.vertexUv,
-        normalAxis: 2,
-        verticalAxis: 1,
-        horizontalAxis: 0,
-      });
+      this.#physics.writePositions(flag.cloth, flag.positions);
       flag.mesh.setPositions(flag.positions);
       flag.mesh.setNormals(
         this.#pc.calculateNormals(flag.positions, flag.indices),
       );
-      flag.mesh.update(this.#pc.PRIMITIVE_TRIANGLES, false);
+      // Rebuild the animated mesh bounds so shadow-map culling follows the
+      // deformed cloth instead of the flag's original flat silhouette.
+      flag.mesh.update(this.#pc.PRIMITIVE_TRIANGLES, true);
     }
   }
 }

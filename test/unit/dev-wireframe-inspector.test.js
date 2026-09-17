@@ -184,6 +184,51 @@ test("shows only the hovered mesh as untextured wireframe while Alt is held", as
   inspector.destroy();
 });
 
+test("temporarily enables developer-only picking for cloth and roof meshes", async () => {
+  const originalMaterial = new FakeMaterial();
+  const meshInstance = {
+    devWireframeInspectable: true,
+    material: originalMaterial,
+    mesh: {},
+    pick: false,
+    renderStyle: 0,
+  };
+  FakePicker.selection = [meshInstance];
+  const inspector = new DevWireframeInspector({
+    pc,
+    app: {
+      root: {
+        findComponents() {
+          return [{ meshInstances: [meshInstance] }];
+        },
+      },
+      scene: {},
+    },
+    canvas,
+    camera: {},
+  });
+  let pickEnabledDuringPrepare = false;
+  FakePicker.instance.prepare = () => {
+    pickEnabledDuringPrepare = meshInstance.pick;
+  };
+  inspector.connect();
+
+  canvas.dispatch("pointermove", {
+    altKey: true,
+    clientX: 120,
+    clientY: 140,
+    pointerType: "mouse",
+  });
+  fakeWindow.flushAnimationFrames();
+  await Promise.resolve();
+  await Promise.resolve();
+
+  assert.equal(pickEnabledDuringPrepare, true);
+  assert.equal(meshInstance.pick, false);
+  assert.equal(meshInstance.renderStyle, pc.RENDERSTYLE_WIREFRAME);
+  inspector.destroy();
+});
+
 test("restores the mesh when the pointer leaves the canvas", async () => {
   const originalMaterial = new FakeMaterial();
   const meshInstance = {
