@@ -1,4 +1,4 @@
-import { GrassFootprints } from "./GrassFootprints.js";
+import { GrassImpressions } from "./GrassImpressions.js";
 import { GrassObstacleMap } from "./GrassObstacleMap.js";
 import { GrassSurfaceLoads } from "./GrassSurfaceLoads.js";
 
@@ -9,10 +9,10 @@ export class GrassSurface {
   #terrainMaterials;
   #updateHandle;
   #renderHandle;
-  #getFootContacts;
+  #getImpressionContacts;
   #getSurfaceContacts;
   #getWeightAt;
-  #footprints = new GrassFootprints();
+  #impressions = new GrassImpressions();
   #surfaceLoads = new GrassSurfaceLoads();
   #obstacleMap = null;
   #deltaTime = 0;
@@ -24,12 +24,12 @@ export class GrassSurface {
     mapData = null,
     terrainMaterials = [],
     zoom = 1,
-    getFootContacts = () => [],
+    getImpressionContacts = () => [],
     getSurfaceContacts = () => [],
     getWeightAt = () => 0,
   }) {
     this.#terrainMaterials = terrainMaterials;
-    this.#getFootContacts = getFootContacts;
+    this.#getImpressionContacts = getImpressionContacts;
     this.#getSurfaceContacts = getSurfaceContacts;
     this.#getWeightAt = getWeightAt;
     if (pc && mapData) {
@@ -45,10 +45,10 @@ export class GrassSurface {
     }
     this.zoom = zoom;
     this.#update(0);
-    this.#updateFootprints();
+    this.#updateImpressions();
     this.#updateHandle = app.on("update", this.#update);
     // Sample after the hero has applied animation and sole-to-ground alignment.
-    this.#renderHandle = app.on("prerender", this.#updateFootprints);
+    this.#renderHandle = app.on("prerender", this.#updateImpressions);
   }
 
   set zoom(value) {
@@ -81,12 +81,21 @@ export class GrassSurface {
     }
   };
 
-  #updateFootprints = () => {
-    this.#footprints.update(this.#deltaTime, this.#getFootContacts());
+  #updateImpressions = () => {
+    this.#impressions.update(
+      this.#deltaTime,
+      this.#getImpressionContacts(),
+    );
     this.#surfaceLoads.update(this.#getSurfaceContacts());
     for (const material of this.#terrainMaterials) {
-      material.setParameter("uGrassFeet[0]", this.#footprints.positions);
-      material.setParameter("uGrassFootShapes[0]", this.#footprints.shapes);
+      material.setParameter(
+        "uGrassImpressions[0]",
+        this.#impressions.positions,
+      );
+      material.setParameter(
+        "uGrassImpressionShapes[0]",
+        this.#impressions.shapes,
+      );
       material.setParameter(
         "uGrassSurfaces[0]",
         this.#surfaceLoads.positions,

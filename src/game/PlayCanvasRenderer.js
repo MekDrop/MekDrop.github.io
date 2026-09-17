@@ -1413,7 +1413,12 @@ export class PlayCanvasRenderer {
         this.#grassCarpet.material,
       ].filter(Boolean),
       zoom: this.#zoom,
-      getFootContacts: () => this.#hero?.grassFootContacts ?? [],
+      getImpressionContacts: () => [
+        ...(this.#hero?.grassFootContacts ?? []),
+        ...this.#thrownInventoryItems.flatMap(
+          (item) => item.grassImpressionContacts,
+        ),
+      ],
       getSurfaceContacts: () =>
         this.#royalCastleTriggerField?.grassSurfaceContacts ?? [],
       getWeightAt: (x, y, z) =>

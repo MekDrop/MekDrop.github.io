@@ -1,44 +1,108 @@
-const GRAVITY = 6.8;
+import { GRASS_SURFACE_LIFT } from "../../config/terrain.js";
+
 const THROW_SPEED = 1.45;
-const THROW_LIFT = 2.35;
+const THROW_LIFT = 3.15;
 const FLOOR_OFFSET = 0.04;
+const FLOOR_HALF_SIZE = 3;
+const FLOOR_HALF_HEIGHT = 0.025;
+const BODY_HALF_EXTENTS = Object.freeze({ x: 0.12, y: 0.1, z: 0.12 });
+const BODY_MASS = 0.08;
+const LINEAR_DAMPING = 0.08;
+const ANGULAR_DAMPING = 0.48;
+const ANGULAR_VELOCITY = Object.freeze({
+  x: (310 * Math.PI) / 180,
+  y: (220 * Math.PI) / 180,
+  z: (-270 * Math.PI) / 180,
+});
 const FADE_SECONDS = 0.24;
+const GRASS_CONTACT_RADIUS = 0.16;
 
 export class ThrownInventoryItem {
   #pc;
   #entity;
+  #body;
+  #floor;
+  #grassSurfaceY;
+  #touchingGrass = false;
+  #forward;
+  #worldForward;
   #materials = [];
-  #groundY;
-  #position;
-  #velocity;
-  #rotation = { x: -18, y: 24, z: 12 };
-  #angularVelocity = { x: 310, y: 220, z: -270 };
-  #settled = false;
   #fading = false;
   #fadeElapsed = 0;
   #expired = false;
 
   constructor({ pc, modelLibrary, item, position, direction }) {
     this.#pc = pc;
-    this.#groundY = position.y + FLOOR_OFFSET;
-    this.#position = new pc.Vec3(
-      position.x,
-      position.y + 0.86,
-      position.z,
-    );
+    this.#grassSurfaceY = position.y + GRASS_SURFACE_LIFT;
+    this.#forward = new pc.Vec3(0, 0, 1);
+    this.#worldForward = new pc.Vec3();
     const horizontalLength = Math.hypot(direction.x, direction.z) || 1;
-    this.#velocity = new pc.Vec3(
+
+    this.#entity = new pc.Entity(`Thrown inventory item ${item.variant}`);
+    const body = new pc.Entity(`Thrown inventory item body ${item.variant}`);
+    body.setLocalPosition(position.x, position.y + 0.86, position.z);
+    body.setLocalEulerAngles(-18, 24, 12);
+    const model = modelLibrary.instantiate(item.modelUrl);
+    this.#cloneMaterials(model);
+    body.addChild(model);
+    body.addComponent("collision", {
+      type: "box",
+      halfExtents: new pc.Vec3(
+        BODY_HALF_EXTENTS.x,
+        BODY_HALF_EXTENTS.y,
+        BODY_HALF_EXTENTS.z,
+      ),
+      linearOffset: new pc.Vec3(0, BODY_HALF_EXTENTS.y, 0),
+    });
+    body.addComponent("rigidbody", {
+      type: pc.BODYTYPE_DYNAMIC,
+      mass: BODY_MASS,
+      friction: 0.74,
+      rollingFriction: 0.3,
+      restitution: 0.28,
+      linearDamping: LINEAR_DAMPING,
+      angularDamping: ANGULAR_DAMPING,
+      group: pc.BODYGROUP_USER_3,
+      mask: pc.BODYGROUP_USER_4,
+    });
+    body.rigidbody.linearVelocity = new pc.Vec3(
       (direction.x / horizontalLength) * THROW_SPEED,
       THROW_LIFT,
       (direction.z / horizontalLength) * THROW_SPEED,
     );
+    body.rigidbody.angularVelocity = new pc.Vec3(
+      ANGULAR_VELOCITY.x,
+      ANGULAR_VELOCITY.y,
+      ANGULAR_VELOCITY.z,
+    );
+    this.#body = body;
+    this.#entity.addChild(body);
 
-    this.#entity = new pc.Entity(`Thrown inventory item ${item.variant}`);
-    this.#entity.setLocalPosition(this.#position);
-    const model = modelLibrary.instantiate(item.modelUrl);
-    this.#cloneMaterials(model);
-    this.#entity.addChild(model);
-    this.#applyRotation();
+    const floor = new pc.Entity(`Thrown inventory item floor ${item.variant}`);
+    floor.setLocalPosition(
+      position.x,
+      position.y + FLOOR_OFFSET - FLOOR_HALF_HEIGHT,
+      position.z,
+    );
+    floor.addComponent("collision", {
+      type: "box",
+      halfExtents: new pc.Vec3(
+        FLOOR_HALF_SIZE,
+        FLOOR_HALF_HEIGHT,
+        FLOOR_HALF_SIZE,
+      ),
+    });
+    floor.addComponent("rigidbody", {
+      type: pc.BODYTYPE_STATIC,
+      friction: 0.86,
+      restitution: 0.28,
+      group: pc.BODYGROUP_USER_4,
+      mask: pc.BODYGROUP_USER_3,
+    });
+    this.#floor = floor;
+    body.rigidbody.on("collisionstart", this.#handleCollisionStart);
+    body.rigidbody.on("collisionend", this.#handleCollisionEnd);
+    this.#entity.addChild(floor);
   }
 
   get entity() {
@@ -47,6 +111,29 @@ export class ThrownInventoryItem {
 
   get expired() {
     return this.#expired;
+  }
+
+  get grassImpressionContacts() {
+    if (!this.#touchingGrass) {
+      return [];
+    }
+    const position = this.#body.getPosition();
+    this.#body
+      .getRotation()
+      .transformVector(this.#forward, this.#worldForward);
+    const directionLength =
+      Math.hypot(this.#worldForward.x, this.#worldForward.z) || 1;
+    return [{
+      id: this,
+      x: position.x,
+      y: this.#grassSurfaceY,
+      z: position.z,
+      directionX: this.#worldForward.x / directionLength,
+      directionZ: this.#worldForward.z / directionLength,
+      halfWidth: GRASS_CONTACT_RADIUS,
+      halfLength: GRASS_CONTACT_RADIUS,
+      strength: 1,
+    }];
   }
 
   beginFade() {
@@ -63,19 +150,19 @@ export class ThrownInventoryItem {
   }
 
   advance(deltaTime) {
-    if (this.#expired) {
+    if (this.#expired || !this.#fading) {
       return;
     }
-    const frameTime = Math.min(deltaTime, 0.1);
-    this.#advanceThrow(frameTime);
-    if (this.#fading) {
-      this.#advanceFade(frameTime);
-    }
+    this.#advanceFade(Math.min(deltaTime, 0.1));
   }
 
   destroy() {
+    this.#body?.rigidbody.off("collisionstart", this.#handleCollisionStart);
+    this.#body?.rigidbody.off("collisionend", this.#handleCollisionEnd);
     this.#entity?.destroy();
     this.#entity = null;
+    this.#body = null;
+    this.#floor = null;
     for (const material of this.#materials) {
       material.destroy();
     }
@@ -101,38 +188,17 @@ export class ThrownInventoryItem {
     }
   }
 
-  #advanceThrow(deltaTime) {
-    if (!this.#settled) {
-      this.#velocity.y -= GRAVITY * deltaTime;
-      this.#position.x += this.#velocity.x * deltaTime;
-      this.#position.y += this.#velocity.y * deltaTime;
-      this.#position.z += this.#velocity.z * deltaTime;
-      if (this.#position.y <= this.#groundY) {
-        this.#position.y = this.#groundY;
-        if (Math.abs(this.#velocity.y) > 0.55) {
-          this.#velocity.y = Math.abs(this.#velocity.y) * 0.28;
-          this.#velocity.x *= 0.62;
-          this.#velocity.z *= 0.62;
-          this.#angularVelocity.x *= 0.7;
-          this.#angularVelocity.y *= 0.7;
-          this.#angularVelocity.z *= 0.7;
-        } else {
-          this.#settled = true;
-          this.#velocity.set(0, 0, 0);
-        }
-      }
-      this.#entity.setLocalPosition(this.#position);
+  #handleCollisionStart = (result) => {
+    if (result.other === this.#floor) {
+      this.#touchingGrass = true;
     }
+  };
 
-    const angularDecay = Math.exp(-deltaTime * (this.#settled ? 8 : 0.65));
-    this.#rotation.x += this.#angularVelocity.x * deltaTime;
-    this.#rotation.y += this.#angularVelocity.y * deltaTime;
-    this.#rotation.z += this.#angularVelocity.z * deltaTime;
-    this.#angularVelocity.x *= angularDecay;
-    this.#angularVelocity.y *= angularDecay;
-    this.#angularVelocity.z *= angularDecay;
-    this.#applyRotation();
-  }
+  #handleCollisionEnd = (other) => {
+    if (other === this.#floor) {
+      this.#touchingGrass = false;
+    }
+  };
 
   #advanceFade(deltaTime) {
     this.#fadeElapsed = Math.min(
@@ -146,13 +212,5 @@ export class ThrownInventoryItem {
       material.update();
     }
     this.#expired = progress >= 1;
-  }
-
-  #applyRotation() {
-    this.#entity.setLocalEulerAngles(
-      this.#rotation.x,
-      this.#rotation.y,
-      this.#rotation.z,
-    );
   }
 }

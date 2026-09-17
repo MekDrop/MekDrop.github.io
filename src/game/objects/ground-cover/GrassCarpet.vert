@@ -2,8 +2,8 @@ uniform float uGrassTime;
 uniform float uGrassAmbientMotion;
 uniform vec2 uGrassGridOffset;
 uniform vec4 uGrassBoundaryExtension;
-uniform vec4 uGrassFeet[8];
-uniform vec4 uGrassFootShapes[8];
+uniform vec4 uGrassImpressions[8];
+uniform vec4 uGrassImpressionShapes[8];
 uniform vec4 uGrassSurfaces[4];
 uniform vec4 uGrassSurfaceLoads[4];
 uniform sampler2D uGrassObstacleMap;
@@ -24,15 +24,19 @@ vec4 getPosition() {
   vec2 brushDirection = vec2(0.0);
   vec2 bladePosition = root.xz + offset.xz;
   for (int index = 0; index < 8; index++) {
-    vec4 foot = uGrassFeet[index];
-    vec4 shape = uGrassFootShapes[index];
-    vec2 delta = bladePosition - foot.xz;
+    vec4 impression = uGrassImpressions[index];
+    vec4 shape = uGrassImpressionShapes[index];
+    vec2 delta = bladePosition - impression.xz;
     vec2 across = vec2(shape.y, -shape.x);
     vec2 footprint = vec2(dot(delta, across), dot(delta, shape.xy)) /
       max(shape.zw, vec2(0.001));
-    float sameLevel = 1.0 - smoothstep(0.075, 0.22, abs(root.y - foot.y));
+    float sameLevel = 1.0 - smoothstep(
+      0.075,
+      0.22,
+      abs(root.y - impression.y)
+    );
     float pressure = (1.0 - smoothstep(0.65, 1.5, length(footprint))) *
-      sameLevel * foot.w;
+      sameLevel * impression.w;
     vec2 away = delta / max(length(delta), 0.001);
     brushDirection = mix(brushDirection, away, step(contact, pressure));
     contact = max(contact, pressure);

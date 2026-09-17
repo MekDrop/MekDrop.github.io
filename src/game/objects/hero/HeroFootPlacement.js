@@ -55,6 +55,7 @@ export class HeroFootPlacement {
       const length = Math.hypot(along.x, along.z);
       const pressure = Math.max(0, 1 - Math.max(0, foot.minimumClearance - CONTACT_EPSILON) / 0.075);
       return [{
+        id: `hero-${foot.side}`,
         side: foot.side,
         x: center.x, y: center.y, z: center.z,
         directionX: along.x / Math.max(length, 0.001),

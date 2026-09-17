@@ -2,7 +2,11 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { GrassSurface } from "../../src/game/objects/ground-cover/GrassSurface.js";
 
-function createSubject(zoom, getSurfaceContacts = () => []) {
+function createSubject(
+  zoom,
+  getSurfaceContacts = () => [],
+  getImpressionContacts = () => [],
+) {
   const parameters = new Map();
   const material = {
     setParameter(name, value) {
@@ -27,6 +31,7 @@ function createSubject(zoom, getSurfaceContacts = () => []) {
     terrainMaterials: [material],
     zoom,
     getSurfaceContacts,
+    getImpressionContacts,
   });
   return { grass, parameters, update: (deltaTime) => { update(deltaTime); render(); } };
 }
@@ -79,5 +84,31 @@ describe("grass canopy wind", () => {
     [0.025, 0.08, -0.02, 1].forEach((value, index) => {
       assert.ok(Math.abs(loads[index] - value) < 0.000001);
     });
+  });
+
+  it("sends source-agnostic moving impressions to the grass shader", () => {
+    const contact = {
+      id: "physics-body",
+      x: 1,
+      y: 2,
+      z: 3,
+      radius: 0.2,
+      strength: 0.6,
+    };
+    const { parameters, update } = createSubject(
+      1,
+      () => [],
+      () => [contact],
+    );
+
+    update(1 / 60);
+
+    const impressions = parameters.get("uGrassImpressions[0]");
+    const shapes = parameters.get("uGrassImpressionShapes[0]");
+    [1, 2, 3, 0.6].forEach((value, index) => {
+      assert.ok(Math.abs(impressions[index] - value) < 0.000001);
+    });
+    assert.ok(Math.abs(shapes[2] - 0.2) < 0.000001);
+    assert.ok(Math.abs(shapes[3] - 0.2) < 0.000001);
   });
 });

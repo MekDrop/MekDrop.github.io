@@ -1,14 +1,14 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { GrassFootprints } from "../../src/game/objects/ground-cover/GrassFootprints.js";
+import { GrassImpressions } from "../../src/game/objects/ground-cover/GrassImpressions.js";
 
 function foot(side, x, pressure = 1) {
   return { side, x, y: 2.15, z: 0, pressure, directionX: 0, directionZ: 1, halfWidth: 0.12, halfLength: 0.2 };
 }
 
-describe("grass foot impressions", () => {
+describe("grass contact impressions", () => {
   it("keeps separate planted soles pressed without accumulating stationary trails", () => {
-    const impressions = new GrassFootprints();
+    const impressions = new GrassImpressions();
     for (let frame = 0; frame < 180; frame++) {
       impressions.update(1 / 60, [foot("left", -0.15), foot("right", 0.15)]);
     }
@@ -18,7 +18,7 @@ describe("grass foot impressions", () => {
   });
 
   it("leaves a fading depression at the old foot position after a step", () => {
-    const impressions = new GrassFootprints();
+    const impressions = new GrassImpressions();
     impressions.update(0, [foot("left", 0)]);
     impressions.update(0.1, [foot("left", 0.25)]);
     assert.equal(impressions.positions[0], 0.25);
@@ -31,7 +31,7 @@ describe("grass foot impressions", () => {
   });
 
   it("releases lifted feet and never stamps an airborne sole", () => {
-    const impressions = new GrassFootprints();
+    const impressions = new GrassImpressions();
     impressions.update(0, [foot("left", 0)]);
     impressions.update(0.1, [foot("left", 2, 0)]);
     assert.equal(impressions.positions[0], 0);
@@ -41,7 +41,7 @@ describe("grass foot impressions", () => {
   });
 
   it("bounds history during running and retains sole orientation and elevation", () => {
-    const impressions = new GrassFootprints();
+    const impressions = new GrassImpressions();
     for (let step = 0; step < 50; step++) {
       impressions.update(0.01, [foot("left", step * 0.2), foot("right", step * 0.2 + 0.15)]);
     }
@@ -50,5 +50,31 @@ describe("grass foot impressions", () => {
     assert.ok(Math.abs(impressions.positions[1] - 2.15) < 0.00001);
     assert.equal(impressions.shapes[1], 1);
     assert.ok(impressions.positions.every(Number.isFinite));
+  });
+
+  it("treats non-foot physics contacts like any other moving impression", () => {
+    const impressions = new GrassImpressions();
+    impressions.update(0, [{
+      id: "rolling-prop",
+      x: 0,
+      y: 2,
+      z: 0,
+      radius: 0.16,
+      strength: 0.7,
+    }]);
+    impressions.update(0.1, [{
+      id: "rolling-prop",
+      x: 0.3,
+      y: 2,
+      z: 0,
+      radius: 0.16,
+      strength: 0.7,
+    }]);
+
+    assert.ok(Math.abs(impressions.positions[0] - 0.3) < 0.00001);
+    assert.ok(Math.abs(impressions.positions[3] - 0.7) < 0.00001);
+    assert.equal(impressions.positions[4], 0);
+    assert.ok(Math.abs(impressions.positions[7] - 0.7) < 0.00001);
+    assert.ok(Math.abs(impressions.shapes[2] - 0.16) < 0.00001);
   });
 });
