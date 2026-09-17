@@ -14,9 +14,10 @@ export class TerraceDoor {
   #duration;
   #amount = 0;
 
-  constructor({ modelLibrary }) {
+  constructor({ modelLibrary, wallMaterial }) {
     this.#entity = modelLibrary.instantiate(terraceStairheadUrl);
     this.#entity.name = "Terrace stairhead";
+    this.#applyWallMaterial(wallMaterial);
     this.#door = modelLibrary.instantiate(terraceDoorUrl);
     this.#door.name = "Terrace outward-opening door";
     this.#entity.addChild(this.#door);
@@ -47,5 +48,27 @@ export class TerraceDoor {
   destroy() {
     this.#entity.destroy();
     this.#door = null;
+  }
+
+  #applyWallMaterial(wallMaterial) {
+    if (!wallMaterial) {
+      return;
+    }
+
+    const pending = [this.#entity];
+    while (pending.length) {
+      const entity = pending.pop();
+      const isFramePiece =
+        entity.name.startsWith("Terrace stairhead side wall") ||
+        entity.name.startsWith("Terrace jamb block") ||
+        entity.name === "Terrace lintel face" ||
+        entity.name === "Terrace rectangular lintel";
+      if (isFramePiece) {
+        for (const meshInstance of entity.render?.meshInstances ?? []) {
+          meshInstance.material = wallMaterial;
+        }
+      }
+      pending.push(...entity.children);
+    }
   }
 }

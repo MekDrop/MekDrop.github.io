@@ -1100,6 +1100,7 @@ export class Castle {
       this.#leisureScene = new CastleLeisureScene({
         pc: this.#pc,
         modelLibrary: this.#modelLibrary,
+        wallMaterial: this.#materials.get("castleStoneMid"),
         seed: this.#occupantSeed,
         position: this.#position,
         doors: this.#doors,

@@ -78,7 +78,7 @@ export class CastleLeisureScene {
   #bookAnimationDuration = 0;
   #activityTime = 0;
 
-  constructor({ pc, modelLibrary, seed, position, doors, layout }) {
+  constructor({ pc, modelLibrary, wallMaterial, seed, position, doors, layout }) {
     this.#pc = pc;
     this.#position = position;
     this.#doors = doors;
@@ -87,7 +87,7 @@ export class CastleLeisureScene {
     this.#entity = new pc.Entity("Castle terrace leisure");
     this.#entity.setLocalPosition(layout.x, layout.y, layout.z);
     this.#entity.setLocalEulerAngles(0, layout.yaw, 0);
-    this.#door = new TerraceDoor({ modelLibrary });
+    this.#door = new TerraceDoor({ modelLibrary, wallMaterial });
     this.#door.entity.setLocalPosition(0, 0, DOORWAY_POSITION_Z);
     this.#entity.addChild(this.#door.entity);
     this.#stage = new pc.Entity("Terrace performance");
