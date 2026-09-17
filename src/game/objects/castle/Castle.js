@@ -449,6 +449,8 @@ export class Castle {
       materials: this.#materials,
       availableDepth: this.#interiorDepth,
       availableWidth: this.#interiorWidth,
+      frontWallDepth:
+        CASTLE_WALL_THICKNESS_BLOCKS * CASTLE_BLOCK_SIZE,
       modelLibrary: this.#modelLibrary,
       fireParticleTexture: this.#fireParticleTexture,
     });

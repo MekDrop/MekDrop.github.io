@@ -18,6 +18,7 @@ const ROOM_MATERIALS = {
 
 const EDGE_MARGIN = 0.82;
 const MAX_ROOM_DEPTH = 4.1;
+const DEFAULT_FRONT_WALL_DEPTH = 0.5;
 const VISIBILITY_MARGIN = 0.85;
 const CARPET_ENTRANCE_INSET = 0.32;
 const CARPET_REAR_CLEARANCE = 0.36;
@@ -59,6 +60,7 @@ export class CastleAudienceRoom {
   #baseY;
   #availableDepth;
   #availableWidth;
+  #frontWallDepth;
   #obstacles = [];
   #floorSurfaces = [];
   #heroWithinVisibility = false;
@@ -77,6 +79,7 @@ export class CastleAudienceRoom {
     materials = new Map(),
     availableDepth = MAX_ROOM_DEPTH,
     availableWidth = Number.POSITIVE_INFINITY,
+    frontWallDepth = DEFAULT_FRONT_WALL_DEPTH,
     modelLibrary,
     fireParticleTexture,
   }) {
@@ -88,6 +91,7 @@ export class CastleAudienceRoom {
     this.#modelLibrary = modelLibrary;
     this.#availableDepth = availableDepth;
     this.#availableWidth = availableWidth;
+    this.#frontWallDepth = frontWallDepth;
     this.#entity = new pc.Entity("Castle audience chamber");
     this.#baseY = position.elevation ?? 0;
     this.#fire = new CastleFire({
@@ -330,25 +334,53 @@ export class CastleAudienceRoom {
 
   #buildFloor(throneForward) {
     const firstFloorPart = this.#entity.children.length;
-    this.#boxAt(
-      "Audience wooden floor",
-      "woodLight",
-      0,
-      this.#forwardCapacity / 2,
-      0.025,
-      [this.#roomWidth, 0.05, this.#forwardCapacity],
+    // Keep the wide room slab behind the facade. Only the doorway-width
+    // threshold may cross the front wall, otherwise opening the doors exposes
+    // the slab through the masonry on oblique castle views.
+    const floorInset = Math.min(
+      Math.max(0, this.#frontWallDepth),
+      this.#forwardCapacity,
     );
+    const roomFloorDepth = this.#forwardCapacity - floorInset;
+    const roomFloorCenter = floorInset + roomFloorDepth / 2;
+    const entranceFloorWidth = Math.min(
+      this.#roomWidth,
+      Math.max(0, this.#door.width ?? 2),
+    );
+    if (roomFloorDepth > 0) {
+      this.#boxAt(
+        "Audience wooden floor",
+        "woodLight",
+        0,
+        roomFloorCenter,
+        0.025,
+        [this.#roomWidth, 0.05, roomFloorDepth],
+      );
+    }
+    if (floorInset > 0 && entranceFloorWidth > 0) {
+      this.#boxAt(
+        "Audience entrance floor",
+        "woodLight",
+        0,
+        floorInset / 2,
+        0.025,
+        [entranceFloorWidth, 0.05, floorInset],
+      );
+    }
     for (const lateral of [
       -this.#roomWidth / 2 + 0.05,
       this.#roomWidth / 2 - 0.05,
     ]) {
+      if (roomFloorDepth <= 0) {
+        continue;
+      }
       this.#boxAt(
         "Audience floor border",
         "wood",
         lateral,
-        this.#forwardCapacity / 2,
+        roomFloorCenter,
         0.057,
-        [0.1, 0.025, this.#forwardCapacity],
+        [0.1, 0.025, roomFloorDepth],
       );
     }
     for (let forward = 0.75; forward < this.#forwardCapacity; forward += 0.75) {
