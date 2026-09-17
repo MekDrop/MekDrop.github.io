@@ -44,6 +44,8 @@ export class TerraceActor {
       ["rightArm", "Royal right arm rig"],
       ["leftLeg", "Royal left leg rig"],
       ["rightLeg", "Royal right leg rig"],
+      ["gown", "Panelled bell gown"],
+      ["gownTrim", "Royal animation rig - Dynasty antique gold"],
       ["leftHand", "Royal left hand"],
       ["leftElbow", "Princess left elbow", "Servant left elbow"],
       ["rightElbow", "Princess right elbow", "Servant right elbow"],
@@ -77,6 +79,10 @@ export class TerraceActor {
 
   get leftHand() {
     return this.#leftHand;
+  }
+
+  get head() {
+    return this.#joints.get("head");
   }
 
   get height() {
@@ -155,9 +161,15 @@ export class TerraceActor {
     }
 
     if (action === "sit" || action === "drink") {
-      this.#offset("body", 0, 0.18, 0);
-      this.#rotate("leftLeg", -16, 0, -5);
-      this.#rotate("rightLeg", -16, 0, 5);
+      // Fold the bell gown around its waist as the knees move forward. Without
+      // this, lowering the hips merely makes the standing dress clip the chair.
+      this.#offset("body", 0, -0.075, 0.2);
+      this.#rotateAround("gown", -58, 0.75);
+      this.#rotateAround("gownTrim", -58, 0.75);
+      this.#rotate("leftLeg", -68, 0, -5);
+      this.#rotate("rightLeg", -68, 0, 5);
+      this.#offset("leftLeg", 0, -0.22, 0.06);
+      this.#offset("rightLeg", 0, -0.22, 0.06);
       this.#rotate("leftArm", -32, 0, -9);
       this.#rotate("leftElbow", -50, 0, 0);
       this.#rotate("rightArm", -34, 0, 8);
@@ -173,21 +185,28 @@ export class TerraceActor {
       }
     }
 
+    if (action === "mountSunbed") {
+      this.#sunbedMountPose(time);
+    }
+
     if (action === "recline" || action === "read") {
-      // Tilt around the hip, keeping the seat near its standing hip height.
-      this.#rotate("body", -62, 0, 0);
-      this.#offset("body", 0, 0.41, 0.57);
-      this.#rotate("leftLeg", -20, 0, -3);
-      this.#rotate("rightLeg", -20, 0, 3);
-      this.#rotate("head", 23, Math.sin(time * 0.4) * 3, 0);
-      this.#rotate("leftArm", -66, 0, -17);
-      this.#rotate("rightArm", -66, 0, 17);
-      this.#rotate("leftElbow", -20, 0, 0);
-      this.#rotate("rightElbow", -20, 0, 0);
+      // Match the chaise's forty-degree back while the hips rest on its
+      // cushion. Fold the legs farther so they extend along the mattress.
+      this.#rotate("body", -40, 0, 0);
+      this.#offset("body", 0, -0.1, 0.2);
+      this.#rotateAround("gown", -35, 0.75);
+      this.#rotateAround("gownTrim", -35, 0.75);
+      this.#rotate("leftLeg", -45, 0, -3);
+      this.#rotate("rightLeg", -45, 0, 3);
+      this.#rotate("head", 18, Math.sin(time * 0.4) * 3, 0);
+      this.#rotate("leftArm", -55, 0, -17);
+      this.#rotate("rightArm", -55, 0, 17);
+      this.#rotate("leftElbow", -35, 0, 0);
+      this.#rotate("rightElbow", -35, 0, 0);
       if (action === "read") {
-        const page = Math.max(0, Math.sin(time * 0.45)) ** 12;
-        this.#rotate("rightArm", -66 - page * 12, -page * 18, 17 - page * 13);
-        this.#rotate("head", 23 + Math.sin(time * 0.8) * 2, 0, 0);
+        const page = this.#pageTurn(time);
+        this.#rotate("rightArm", -55 - page * 12, -page * 18, 17 - page * 13);
+        this.#rotate("head", 18 + Math.sin(time * 0.8) * 2, 0, 0);
       }
     }
 
@@ -214,6 +233,35 @@ export class TerraceActor {
     this.#entity.destroy();
     this.#joints.clear();
     this.#rest.clear();
+  }
+
+  #sunbedMountPose(progress) {
+    const phase = Math.max(0, Math.min(1, progress));
+    const sit = this.#smooth(phase / 0.28);
+    const feetUp = this.#smooth((phase - 0.28) / 0.34);
+    const recline = this.#smooth((phase - 0.62) / 0.38);
+    const raiseBook = this.#smooth((phase - 0.58) / 0.32);
+    const seatedBodyY = -0.075 + (-0.1 + 0.075) * feetUp;
+    const gownAngle = -58 + 23 * feetUp;
+    const legAngle = -68 + 23 * feetUp;
+
+    this.#rotate("body", -40 * recline, 0, 0);
+    this.#offset("body", 0, seatedBodyY * sit, 0.2 * sit);
+    this.#rotateAround("gown", gownAngle * sit, 0.75);
+    this.#rotateAround("gownTrim", gownAngle * sit, 0.75);
+    this.#rotate("leftLeg", legAngle * sit, 0, -3 * sit);
+    this.#rotate("rightLeg", legAngle * sit, 0, 3 * sit);
+    this.#offset("leftLeg", 0, -0.22 * sit * (1 - feetUp),
+      0.06 * sit * (1 - feetUp));
+    this.#offset("rightLeg", 0, -0.22 * sit * (1 - feetUp),
+      0.06 * sit * (1 - feetUp));
+    this.#rotate("leftArm", -8 - 47 * raiseBook, 0,
+      -7 - 10 * raiseBook);
+    this.#rotate("rightArm", -8 - 47 * raiseBook, 0,
+      7 + 10 * raiseBook);
+    this.#rotate("leftElbow", -14 - 21 * raiseBook, 0, 0);
+    this.#rotate("rightElbow", -14 - 21 * raiseBook, 0, 0);
+    this.#rotate("head", 18 * recline, 0, 0);
   }
 
   #swordPose(time) {
@@ -249,9 +297,44 @@ export class TerraceActor {
     }
   }
 
+  #rotateAround(key, angle, pivotY) {
+    const node = this.#joints.get(key);
+    const rest = this.#rest.get(key);
+    if (!node || !rest) {
+      return;
+    }
+    const radians = angle * Math.PI / 180;
+    const cosine = Math.cos(radians);
+    const sine = Math.sin(radians);
+    const relativeY = rest.position.y - pivotY;
+    const relativeZ = rest.position.z;
+    node.setLocalPosition(
+      rest.position.x,
+      pivotY + relativeY * cosine - relativeZ * sine,
+      relativeY * sine + relativeZ * cosine,
+    );
+    this.#rotation.setFromEulerAngles(angle, 0, 0);
+    node.setLocalRotation(this.#rotation);
+  }
+
   #smooth(value) {
     const clamped = Math.max(0, Math.min(1, value));
     return clamped * clamped * (3 - 2 * clamped);
+  }
+
+  #pageTurn(time) {
+    let start = 0;
+    for (let index = 0; index < 1000; index += 1) {
+      const noise = Math.sin((index + 1) * 12.9898) * 43758.5453;
+      start += 5 + 2 * (noise - Math.floor(noise));
+      if (time < start) {
+        return 0;
+      }
+      if (time < start + 1.1) {
+        return Math.sin(((time - start) / 1.1) * Math.PI) ** 2;
+      }
+    }
+    return 0;
   }
 
   #normalize() {

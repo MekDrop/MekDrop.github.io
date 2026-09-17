@@ -191,6 +191,14 @@ export class Castle {
     return this.#entity;
   }
 
+  get leisureState() {
+    return this.#leisureScene?.state ?? null;
+  }
+
+  setLeisurePresent(present) {
+    this.#leisureScene?.setVisitorPresent(present);
+  }
+
   intersectsGroundFootprint(x, z, radius = 0) {
     if (this.#audienceRoom?.intersectsFootprint(x, z, radius)) {
       return true;
@@ -670,6 +678,29 @@ export class Castle {
         );
     this.#interiorDepth =
       (castleDepth - CASTLE_WALL_THICKNESS_BLOCKS) * CASTLE_BLOCK_SIZE;
+    const audienceOpening = openings.find(
+      (opening) => opening.boundary === CASTLE_BOUNDARY.FRONT,
+    );
+    const gatehouseDepth = Math.min(towerSpan, castleDepth);
+    const roofDoorWidth = 4;
+    const roofDoorStart = audienceOpening
+      ? Math.floor(
+          (audienceOpening.start + audienceOpening.end - roofDoorWidth) / 2,
+        )
+      : 0;
+    const roofDoorBase = wallHeight + 1;
+    const stairwellStart = Math.max(1, gatehouseDepth - 5);
+    const isTerraceAccessVoid = (blockU, blockY, blockV) =>
+      Boolean(audienceOpening) &&
+      blockV >= roofDoorStart &&
+      blockV < roofDoorStart + roofDoorWidth &&
+      ((blockU >= 1 &&
+        blockU < gatehouseDepth &&
+        blockY >= roofDoorBase &&
+        blockY < roofDoorBase + 5) ||
+        (blockU >= stairwellStart &&
+          blockU < gatehouseDepth &&
+          blockY === wallHeight));
     const batches = new Map();
     const occupied = new Set();
     const materialFor = (blockU, blockY, blockV, role) => {
@@ -850,6 +881,9 @@ export class Castle {
       );
     };
     const addBlock = (blockU, blockY, blockV, role = "stone") => {
+      if (isTerraceAccessVoid(blockU, blockY, blockV)) {
+        return;
+      }
       const { blockX, blockZ } = localToBlock(blockU, blockV);
       if (
         blockX < 0 ||
@@ -957,15 +991,13 @@ export class Castle {
       battlementPeriod,
       style.wallWings,
     );
-    const audienceOpening = openings.find(
-      (opening) => opening.boundary === CASTLE_BOUNDARY.FRONT,
-    );
     if (audienceOpening) {
       this.#interiorWidth = this.#buildCastleAudienceWing(
         addBlock,
         audienceOpening,
         castleDepth,
         facadeSpan,
+        towerSpan,
         wallHeight,
         battlementPeriod,
       );
@@ -1161,6 +1193,7 @@ export class Castle {
     opening,
     castleDepth,
     facadeSpan,
+    towerSpan,
     wallHeight,
     battlementPeriod,
   ) {
@@ -1183,6 +1216,17 @@ export class Castle {
       (roomEnd - CASTLE_WALL_THICKNESS_BLOCKS) * CASTLE_BLOCK_SIZE;
     const interiorWidth =
       Math.min(openingCenter - interiorStart, interiorEnd - openingCenter) * 2;
+    const gatehouseDepth = Math.min(towerSpan, castleDepth);
+    const roofDoorWidth = 4;
+    const roofDoorStart = Math.floor(
+      (opening.start + opening.end - roofDoorWidth) / 2,
+    );
+    const stairwellStart = Math.max(0, gatehouseDepth - 5);
+    const isStairwellOpening = (blockU, blockV) =>
+      blockU >= stairwellStart &&
+      blockU < gatehouseDepth &&
+      blockV >= roofDoorStart &&
+      blockV < roofDoorStart + roofDoorWidth;
 
     for (const wallV of sideWallStarts) {
       for (let blockU = 0; blockU < castleDepth; blockU += 1) {
@@ -1227,6 +1271,7 @@ export class Castle {
       castleDepth,
       wallHeight,
       battlementPeriod,
+      isStairwellOpening,
     );
     return interiorWidth;
   }
@@ -1238,9 +1283,13 @@ export class Castle {
     castleDepth,
     wallHeight,
     battlementPeriod,
+    isStairwellOpening,
   ) {
     for (let blockU = 0; blockU < castleDepth; blockU += 1) {
       for (let blockV = roomStart; blockV < roomEnd; blockV += 1) {
+        if (isStairwellOpening(blockU, blockV)) {
+          continue;
+        }
         const isEdge =
           blockU === 0 ||
           blockU === castleDepth - 1 ||
@@ -1353,7 +1402,8 @@ export class Castle {
       (primaryStyle?.wallHeightBlocks ?? CASTLE_WALL_HEIGHT_BLOCKS) + 1;
     const isRoofDoorOpening = (depth, horizontal, blockY) =>
       Boolean(primaryStyle) &&
-      depth === gatehouseDepth - 1 &&
+      depth >= gateFaceDepth &&
+      depth < gatehouseDepth &&
       horizontal >= roofDoorStart &&
       horizontal < roofDoorStart + roofDoorWidth &&
       blockY >= roofDoorBase &&

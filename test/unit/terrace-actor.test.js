@@ -60,7 +60,8 @@ for (const kind of ["king", "queen", "princess", "servant", "elder-servant"]) {
     actor.entity.setLocalPosition(8, 3, 5);
     actor.entity.setLocalEulerAngles(0, 45, 0);
     actor.entity.setLocalScale(0.3, 0.3, 0.3);
-    for (const action of ["walk", "carry", "place", "pour", "sit", "drink", "recline", "read", "sword", "idle"]) {
+    for (const action of ["walk", "carry", "place", "pour", "sit", "drink",
+      "mountSunbed", "recline", "read", "sword", "idle"]) {
       for (const time of [0, 1.5, 4.5, 7.5]) {
         actor.pose(action, time, 0.5);
         if (eye) {
@@ -144,7 +145,7 @@ it("fits the walking king and sword inside the terrace doorway", () => {
   }
   actor.destroy();
 });
-it("holds a sipping cup rim near the princess mouth with boots below the skirt", () => {
+it("holds a sipping cup near the princess mouth while seated in front of the chair", () => {
   const { root } = royalModel("princess");
   const actor = new TerraceActor({ pc, kind: "princess", modelUrl: "princess", modelLibrary: { instantiate: () => root } });
   actor.pose("drink", 3);
@@ -153,6 +154,41 @@ it("holds a sipping cup rim near the princess mouth with boots below the skirt",
   assert.ok(Math.abs(cupRim.y - mouth.y) < 0.07);
   assert.ok(Math.abs(cupRim.x - mouth.x) < 0.18);
   assert.ok(Math.abs(cupRim.z - mouth.z) < 0.1);
-  assert.ok(Math.abs(root.findByName("Royal left leg rig").getLocalEulerAngles().x) < 20);
+  assert.ok(Math.abs(root.findByName("Royal left leg rig").getLocalEulerAngles().x) > 50);
+  const body = root.findByName("Royal animation rig").getLocalPosition();
+  const hip = root.findByName("Royal left leg rig").getPosition();
+  assert.ok(body.z > 0.15, "gown stays forward of the chair back");
+  assert.ok(Math.abs(hip.y - 0.4) < 0.04, "hips meet the lowered chair cushion");
+  actor.destroy();
+});
+
+it("rests the queen on the sunbed and turns pages at irregular intervals", () => {
+  const { root } = royalModel("queen");
+  const actor = new TerraceActor({ pc, kind: "queen", modelUrl: "queen", modelLibrary: { instantiate: () => root } });
+  actor.pose("read", 6);
+  const hip = root.findByName("Royal left leg rig").getPosition();
+  assert.ok(Math.abs(hip.y - 0.58) < 0.03, `hips rest at ${hip.y}`);
+  assert.ok(Math.abs(root.findByName("Royal animation rig").getLocalEulerAngles().x + 40) < 0.01);
+  assert.ok(Math.abs(root.findByName("Royal left leg rig").getLocalEulerAngles().x + 45) < 0.01);
+  const restingArm = root.findByName("Royal right arm rig").getLocalEulerAngles().clone();
+  actor.pose("read", 7.39);
+  const turningArm = root.findByName("Royal right arm rig").getLocalEulerAngles();
+  assert.ok(restingArm.distance(turningArm) > 10, "right hand visibly turns a page");
+  actor.destroy();
+});
+
+it("sits the queen first, then lifts her feet before reclining", () => {
+  const { root } = royalModel("queen");
+  const actor = new TerraceActor({ pc, kind: "queen", modelUrl: "queen", modelLibrary: { instantiate: () => root } });
+  const body = root.findByName("Royal animation rig");
+  const leg = root.findByName("Royal left leg rig");
+  actor.pose("mountSunbed", 0.28);
+  assert.ok(Math.abs(body.getLocalEulerAngles().x) < 0.01, "queen remains upright while sitting");
+  assert.ok(leg.getLocalEulerAngles().x < -60, "feet remain down at the side");
+  actor.pose("mountSunbed", 0.62);
+  assert.ok(Math.abs(body.getLocalEulerAngles().x) < 0.01, "queen remains upright while lifting her feet");
+  assert.ok(Math.abs(leg.getLocalEulerAngles().x + 45) < 0.01, "feet extend along the mattress");
+  actor.pose("mountSunbed", 1);
+  assert.ok(Math.abs(body.getLocalEulerAngles().x + 40) < 0.01, "queen reclines only after her feet are up");
   actor.destroy();
 });

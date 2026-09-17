@@ -1,25 +1,33 @@
-import { CastleDoor } from "./CastleDoor.js";
+import terraceDoorUrl from "../../models/castle/leisure/terrace-door.glb?url";
+import terraceStairheadUrl from "../../models/castle/leisure/terrace-stairhead.glb?url";
 import { CASTLE_DOOR_ANIMATION } from "../../enum/CastleDoorAnimation.js";
 
-/** A miniature instance of the authored doors, independent of the ground entrance. */
+/** A roof stairhead with a single rectangular door opening onto the terrace. */
 export class TerraceDoor {
+  static get modelUrls() {
+    return [terraceDoorUrl, terraceStairheadUrl];
+  }
+
   #entity;
+  #door;
   #layer;
   #duration;
   #amount = 0;
 
   constructor({ modelLibrary }) {
-    this.#entity = modelLibrary.instantiate(CastleDoor.modelUrl);
-    this.#entity.name = "Terrace doors";
-    this.#entity.setLocalScale(0.5, 1.25 / 2.3, 0.5);
-    const track = modelLibrary.getAnimationTracks(CastleDoor.modelUrl, [
+    this.#entity = modelLibrary.instantiate(terraceStairheadUrl);
+    this.#entity.name = "Terrace stairhead";
+    this.#door = modelLibrary.instantiate(terraceDoorUrl);
+    this.#door.name = "Terrace outward-opening door";
+    this.#entity.addChild(this.#door);
+    const track = modelLibrary.getAnimationTracks(terraceDoorUrl, [
       CASTLE_DOOR_ANIMATION.OPEN,
     ]).get(CASTLE_DOOR_ANIMATION.OPEN);
-    this.#entity.addComponent("anim", { activate: true });
-    this.#entity.anim.addAnimationState(CASTLE_DOOR_ANIMATION.OPEN, track, 1, false);
-    this.#layer = this.#entity.anim.baseLayer;
+    this.#door.addComponent("anim", { activate: true });
+    this.#door.anim.addAnimationState(CASTLE_DOOR_ANIMATION.OPEN, track, 1, false);
+    this.#layer = this.#door.anim.baseLayer;
     this.#layer.play(CASTLE_DOOR_ANIMATION.OPEN);
-    this.#entity.anim.speed = 0;
+    this.#door.anim.speed = 0;
     this.#duration = track.duration;
     this.#layer.activeStateCurrentTime = 0;
   }
@@ -38,5 +46,6 @@ export class TerraceDoor {
 
   destroy() {
     this.#entity.destroy();
+    this.#door = null;
   }
 }

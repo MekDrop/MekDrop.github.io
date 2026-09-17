@@ -424,6 +424,9 @@ function installMovementTestDriver() {
     interact() {
       return renderer.interact();
     },
+    royalCastles() {
+      return renderer.royalCastleStates;
+    },
     droppedInventoryItemCount() {
       return renderer.thrownInventoryItemCount;
     },
@@ -467,6 +470,7 @@ function installCameraTestDriver() {
       return {
         cameraReturningToHero: renderer.cameraReturningToHero,
         hero: renderer.heroState,
+        royalCastles: renderer.royalCastleStates,
         panLimitsEnabled: renderer.panLimitsEnabled,
         viewport: renderer.viewport,
         visibility: renderer.mapVisibility,

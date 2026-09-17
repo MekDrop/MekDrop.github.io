@@ -128,7 +128,11 @@ for (const kind of ["princess", "queen"]) {
     sequence.present = true;
     sequence.update(100);
     sequence.present = false;
-    sequence.update(4.6 + 2.5 + 3.2 + 0.5);
+    finishPhase(sequence, PHASE.ROYAL_EXIT);
+    finishPhase(sequence, PHASE.CLEANUP_DELAY);
+    finishPhase(sequence, PHASE.SERVANT_RETURN);
+    finishPhase(sequence, PHASE.PACK);
+    sequence.update(0.5);
     assert.equal(sequence.phase, PHASE.PACK);
     sequence.present = true;
     assert.equal(sequence.phase, PHASE.PACK);

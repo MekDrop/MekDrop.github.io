@@ -68,6 +68,7 @@ import { colorFromHex, shadeHexColor } from "./helpers/colors.js";
 import { RoyalAnimationPreview } from "./debug/RoyalAnimationPreview.js";
 import { HeroAnimationPreview } from "./debug/HeroAnimationPreview.js";
 import { HeroAnimationSign } from "./debug/HeroAnimationSign.js";
+import { RoyalCastleTriggerField } from "./debug/RoyalCastleTriggerField.js";
 
 const FIXED_HEIGHTS = {
   [TileType.WATER]: 0,
@@ -222,6 +223,8 @@ export class PlayCanvasRenderer {
   #bridgeRailingKit = null;
   #gateways = [];
   #castle = null;
+  #castles = [];
+  #royalCastleTriggerField = null;
   #royalAnimationPreview = null;
   #heroAnimationPreview = null;
   #hero = null;
@@ -684,6 +687,10 @@ export class PlayCanvasRenderer {
       wallet: this.#hero.wallet,
       inventory: this.inventoryState,
     };
+  }
+
+  get royalCastleStates() {
+    return this.#castles.map((castle) => castle.leisureState);
   }
 
   get inventoryState() {
@@ -1403,6 +1410,7 @@ export class PlayCanvasRenderer {
     });
     this.#app.root.addChild(this.#cloudField.entity);
     this.#buildCastle();
+    this.#buildRoyalCastleTriggerField();
     if (import.meta.env.DEV && this.#mapData.royalAnimationPreview) {
       this.#royalAnimationPreview = new RoyalAnimationPreview({
         pc: this.#pc,
@@ -1439,12 +1447,12 @@ export class PlayCanvasRenderer {
   #captureCameraVisualBounds() {
     this.#mapRoot?.syncHierarchy();
     const roots = [
-      {
-        name: "castle",
+      ...this.#castles.map((castle, index) => ({
+        name: `castle-${index}`,
         protectAtPanLimit: true,
         centerReachableAtEveryZoom: true,
-        root: this.#castle?.entity,
-      },
+        root: castle.entity,
+      })),
       ...this.#gateways.map((gateway, index) => ({
         name: `gateway-${index}`,
         protectAtPanLimit: true,
@@ -1537,7 +1545,7 @@ export class PlayCanvasRenderer {
         );
       },
     });
-    this.#castle?.updateHeroPosition(this.#hero.position);
+    this.#updateCastlesForHero(this.#hero.position);
     this.#groundCover?.applyHeroInteraction(
       this.#hero.position,
       this.#hero.movementState,
@@ -1639,41 +1647,79 @@ export class PlayCanvasRenderer {
   }
 
   #buildCastle() {
-    const { castle, cols, rows, heightmap } = this.#mapData;
-    if (!castle?.position || !castle.doors?.length) {
+    const { castle, castles, cols, rows, heightmap } = this.#mapData;
+    const definitions = castles?.length ? castles : castle ? [castle] : [];
+    for (const definition of definitions) {
+      if (!definition?.position || !definition.doors?.length) {
+        continue;
+      }
+      const builtCastle = new Castle({
+        pc: this.#pc,
+        app: this.#app,
+        position: {
+          x: definition.position.col - (cols - 1) / 2 - CUBE_SCALE / 2,
+          z: definition.position.row - (rows - 1) / 2 - CUBE_SCALE / 2,
+          width: definition.position.width,
+          depth: definition.position.depth,
+          elevation: definition.position.elevation + GRASS_SURFACE_LIFT,
+        },
+        doors: definition.doors.map(({ side, offset, width, cells = [] }) => {
+          const approachElevations = cells
+            .map(({ col, row }) => heightmap?.[row]?.[col])
+            .filter(Number.isFinite);
+          return {
+            side,
+            offset,
+            width,
+            approachElevation: approachElevations.length
+              ? Math.max(...approachElevations)
+              : definition.position.elevation + GRASS_SURFACE_LIFT,
+          };
+        }),
+        style: definition.style,
+        occupantSeed: definition.occupantSeed,
+        modelLibrary: this.#modelLibrary,
+        fireParticleTexture: this.#castleFireParticleTexture,
+      });
+      this.#castles.push(builtCastle);
+      this.#castle ??= builtCastle;
+      this.#collisionWorld.add(builtCastle);
+      this.#mapRoot.addChild(builtCastle.entity);
+    }
+  }
+
+  #buildRoyalCastleTriggerField() {
+    const triggers = this.#mapData.royalCastleTriggers ?? [];
+    if (!import.meta.env.DEV || !triggers.length) {
       return;
     }
-
-    this.#castle = new Castle({
+    this.#royalCastleTriggerField = new RoyalCastleTriggerField({
       pc: this.#pc,
-      app: this.#app,
-      position: {
-        x: castle.position.col - (cols - 1) / 2 - CUBE_SCALE / 2,
-        z: castle.position.row - (rows - 1) / 2 - CUBE_SCALE / 2,
-        width: castle.position.width,
-        depth: castle.position.depth,
-        elevation: castle.position.elevation + GRASS_SURFACE_LIFT,
-      },
-      doors: castle.doors.map(({ side, offset, width, cells = [] }) => {
-        const approachElevations = cells
-          .map(({ col, row }) => heightmap?.[row]?.[col])
-          .filter(Number.isFinite);
-        return {
-          side,
-          offset,
-          width,
-          approachElevation: approachElevations.length
-            ? Math.max(...approachElevations)
-            : castle.position.elevation + GRASS_SURFACE_LIFT,
-        };
-      }),
-      style: castle.style,
-      occupantSeed: castle.occupantSeed,
-      modelLibrary: this.#modelLibrary,
-      fireParticleTexture: this.#castleFireParticleTexture,
+      triggers,
+      cols: this.#mapData.cols,
+      rows: this.#mapData.rows,
+      tileHeightAt: (col, row) => this.#tileHeight(col, row),
     });
-    this.#collisionWorld.add(this.#castle);
-    this.#mapRoot.addChild(this.#castle.entity);
+    this.#mapRoot.addChild(this.#royalCastleTriggerField.entity);
+  }
+
+  #updateCastlesForHero(position) {
+    const triggers = this.#mapData.royalCastleTriggers ?? [];
+    for (const [index, castle] of this.#castles.entries()) {
+      castle.updateHeroPosition(position);
+      const trigger = triggers.find((entry) =>
+        entry.castleIndex === index || entry.castleIndexes?.includes(index));
+      if (!trigger) {
+        continue;
+      }
+      const triggerX = trigger.col - (this.#mapData.cols - 1) / 2;
+      const triggerZ = trigger.row - (this.#mapData.rows - 1) / 2;
+      const standingOnTrigger =
+        Math.abs(position.x - triggerX) <= 0.48 &&
+        Math.abs(position.z - triggerZ) <= 0.48 &&
+        Math.abs(position.y - this.#tileHeight(trigger.col, trigger.row)) < 2;
+      castle.setLeisurePresent(standingOnTrigger);
+    }
   }
 
   #buildTerrainMatrices(batches) {
@@ -2890,7 +2936,7 @@ export class PlayCanvasRenderer {
 
   #handleHeroPositionChange = ({ x, y, z }) => {
     this.#orbitPivot = null;
-    this.#castle?.updateHeroPosition({ x, y, z });
+    this.#updateCastlesForHero({ x, y, z });
     this.#groundCover?.applyHeroInteraction(
       { x, y, z },
       this.#hero?.movementState,
@@ -3391,13 +3437,15 @@ export class PlayCanvasRenderer {
       if (!hit || (closest && hit.distance >= closest.hit.distance)) continue;
       closest = { kind: "wind", target: gateway, hit };
     }
-    const castleHit = this.#castle?.getBannerHit(ray.start, ray.end);
-    if (castleHit && (!closest || castleHit.distance < closest.hit.distance)) {
-      closest = { kind: "wind", target: this.#castle, hit: castleHit };
-    }
-    const doorHit = this.#castle?.getDoorHit(ray.start, ray.end);
-    if (doorHit && (!closest || doorHit.distance < closest.hit.distance)) {
-      closest = { kind: "door", target: this.#castle, hit: doorHit };
+    for (const castle of this.#castles) {
+      const castleHit = castle.getBannerHit(ray.start, ray.end);
+      if (castleHit && (!closest || castleHit.distance < closest.hit.distance)) {
+        closest = { kind: "wind", target: castle, hit: castleHit };
+      }
+      const doorHit = castle.getDoorHit(ray.start, ray.end);
+      if (doorHit && (!closest || doorHit.distance < closest.hit.distance)) {
+        closest = { kind: "door", target: castle, hit: doorHit };
+      }
     }
     if (!closest) {
       return;
@@ -3566,8 +3614,13 @@ export class PlayCanvasRenderer {
     this.#pathArrows?.clear();
     for (const gateway of this.#gateways) gateway.destroy();
     this.#gateways = [];
-    this.#castle?.destroy();
+    for (const castle of this.#castles) {
+      castle.destroy();
+    }
+    this.#castles = [];
     this.#castle = null;
+    this.#royalCastleTriggerField?.destroy();
+    this.#royalCastleTriggerField = null;
     this.#royalAnimationPreview?.destroy();
     this.#royalAnimationPreview = null;
     this.#heroAnimationPreview?.destroy();

@@ -63,8 +63,9 @@ export class CastleLeisureSequence {
       case PHASE.POUR:
         return 3;
       case PHASE.SETTLE:
+        return this.#kind === "queen" ? 4.5 : 1.4;
       case PHASE.RISE:
-        return 1.4;
+        return this.#kind === "queen" ? 3.8 : 1.4;
       case PHASE.CLEANUP_DELAY:
         return 2.5;
       default:
