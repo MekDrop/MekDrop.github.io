@@ -14,6 +14,7 @@ import { GroundCoverCollectible } from "./GroundCoverCollectible.js";
 import { GroundCoverHeldItem } from "./GroundCoverHeldItem.js";
 import { GroundCoverInteraction } from "./GroundCoverInteraction.js";
 import { GroundCoverItem } from "./GroundCoverItem.js";
+import { FlowerPhysics } from "./FlowerPhysics.js";
 
 const FLOWER_CATEGORY = "flower";
 const MUSHROOM_CATEGORY = "mushroom";
@@ -102,20 +103,10 @@ const VARIANTS = Object.freeze({
 const GPU_CATEGORIES = Object.freeze({
   [FLOWER_CATEGORY]: {
     bendHeight: 0.14,
-    bloomHeight: 0.105,
-    bloomSinkDepth: 0.065,
-    bloomTiltAngle: 6,
     flexibility: 0.82,
-    trampleAngle: 84,
     colorBoost: [1.08, 1.04, 1.08],
   },
 });
-const STEP_RADIUS = 0.38;
-const WIND_RADIUS = 1.8;
-const MINIMUM_RUNNING_SPEED = 4.7;
-const MAXIMUM_RUNNING_SPEED = 6.3;
-const HEIGHT_TOLERANCE = 0.8;
-const HERO_RECOVERY_TIME = 0.42;
 const MINIMUM_FACING_DOT = Math.cos((50 * Math.PI) / 180);
 const STILL_ZOOM = 1;
 const FULL_AMBIENT_MOTION_ZOOM = 1.1;
@@ -129,16 +120,12 @@ export class GroundCover {
   #entity;
   #items = [];
   #collectibles = [];
-  #flowerBatches = new Map();
+  #flowerPhysics;
   #materials = new Map();
   #heldMaterials = new Map();
   #vertexBuffers = [];
   #updateHandle = null;
   #elapsed = 0;
-  #lastHeroMotionAt = Number.NEGATIVE_INFINITY;
-  #heroPosition = [0, -1000, 0];
-  #heroDirection = [0, 1];
-  #heroInfluence = 0;
   #ambientMotion = 0;
 
   #onCollect;
@@ -158,6 +145,8 @@ export class GroundCover {
     this.#onCollect = onCollect;
     this.#onCollectibleRemoved = onCollectibleRemoved;
     this.#entity = new pc.Entity("GPU-instanced interactive ground cover");
+    this.#flowerPhysics = new FlowerPhysics({ pc });
+    this.#entity.addChild(this.#flowerPhysics.entity);
     this.#createMaterials();
     this.zoom = zoom;
     this.#buildGroundCover(mapData, modelLibrary);
@@ -192,60 +181,10 @@ export class GroundCover {
   }
 
   applyHeroInteraction({ x, y, z }, movement) {
-    if (!movement) {
-      return;
-    }
-
-    this.#heroPosition[0] = x;
-    this.#heroPosition[1] = y;
-    this.#heroPosition[2] = z;
-    this.#heroDirection[0] = movement.direction.x;
-    this.#heroDirection[1] = movement.direction.z;
-    this.#heroInfluence = Math.min(
-      1,
-      0.28 +
-        movement.speed / MAXIMUM_RUNNING_SPEED +
-        (movement.running ? 0.12 : 0),
+    this.#flowerPhysics.updateHeroPosition(
+      { x, y, z },
+      movement?.direction,
     );
-    this.#lastHeroMotionAt = this.#elapsed;
-
-    if (movement.speed <= 0.08) {
-      return;
-    }
-
-    const speedStrength = Math.max(
-      0,
-      Math.min(
-        1,
-        (movement.speed - MINIMUM_RUNNING_SPEED) /
-          (MAXIMUM_RUNNING_SPEED - MINIMUM_RUNNING_SPEED),
-      ),
-    );
-    for (const item of this.#items) {
-      const position = item.position;
-      if (Math.abs(position.y - y) > HEIGHT_TOLERANCE) continue;
-      const offsetX = position.x - x;
-      const offsetZ = position.z - z;
-      const distance = Math.hypot(offsetX, offsetZ);
-      if (distance <= STEP_RADIUS) {
-        item.stepOn(movement.direction.x, movement.direction.z);
-      }
-      if (
-        !movement.running ||
-        movement.speed < MINIMUM_RUNNING_SPEED ||
-        distance >= WIND_RADIUS
-      ) {
-        continue;
-      }
-
-      const directionLength = Math.hypot(offsetX, offsetZ) || 1;
-      const falloff = 1 - distance / WIND_RADIUS;
-      item.applyWind(
-        offsetX / directionLength,
-        offsetZ / directionLength,
-        falloff * falloff * (0.35 + speedStrength * 0.65),
-      );
-    }
   }
 
   findInteraction({
@@ -307,6 +246,8 @@ export class GroundCover {
   destroy() {
     this.#updateHandle?.off();
     this.#updateHandle = null;
+    this.#flowerPhysics?.destroy();
+    this.#flowerPhysics = null;
     this.#entity?.destroy();
     this.#entity = null;
     for (const vertexBuffer of this.#vertexBuffers) vertexBuffer.destroy();
@@ -317,7 +258,6 @@ export class GroundCover {
     this.#heldMaterials.clear();
     this.#items = [];
     this.#collectibles = [];
-    this.#flowerBatches.clear();
   }
 
   #createMaterials() {
@@ -339,18 +279,8 @@ export class GroundCover {
       material.name = `GPU ${category} ground cover`;
       material.cull = this.#pc.CULLFACE_NONE;
       material.setParameter("uTime", 0);
-      material.setParameter("uHeroPosition", this.#heroPosition);
-      material.setParameter("uHeroDirection", this.#heroDirection);
-      material.setParameter("uHeroInfluence", 0);
       material.setParameter("uBendHeight", definition.bendHeight);
-      material.setParameter("uBloomHeight", definition.bloomHeight);
-      material.setParameter("uBloomSinkDepth", definition.bloomSinkDepth);
-      material.setParameter(
-        "uBloomTiltAngle",
-        definition.bloomTiltAngle,
-      );
       material.setParameter("uFlexibility", definition.flexibility);
-      material.setParameter("uTrampleAngle", definition.trampleAngle);
       material.setParameter("uAmbientMotion", 0);
       material.setParameter("uColorBoost", definition.colorBoost);
       material.setParameter("uLightDirection", [0.42, 0.82, 0.38]);
@@ -442,6 +372,16 @@ export class GroundCover {
       };
       const matrixIndex = batch.matrices.length / 16;
       batch.matrices.push(...matrix.data);
+      const flower = this.#flowerPhysics.addFlower({
+        variant: decoration.variant,
+        matrixIndex,
+        position: { x, y, z },
+        rotation: decoration.rotation,
+        horizontalScale,
+        verticalScale,
+        interactionRadius:
+          definition.interactionRadius * decoration.scale,
+      });
       matricesByVariant.set(decoration.variant, batch);
       this.#collectibles.push(
         this.#createCollectible({
@@ -450,8 +390,7 @@ export class GroundCover {
           definition,
           modelLibrary,
           position: { x, y, z },
-          onHide: () =>
-            this.#hideFlower(decoration.variant, matrixIndex, { x, y, z }),
+          onHide: () => this.#flowerPhysics.hide(flower),
         }),
       );
     }
@@ -471,7 +410,7 @@ export class GroundCover {
       );
       if (!batch) continue;
       this.#vertexBuffers.push(batch.vertexBuffer);
-      this.#flowerBatches.set(variant, batch);
+      this.#flowerPhysics.setBatch(variant, batch.vertexBuffer);
       this.#entity.addChild(batch.entity);
     }
   }
@@ -531,38 +470,14 @@ export class GroundCover {
     });
   }
 
-  #hideFlower(variant, matrixIndex, position) {
-    const batch = this.#flowerBatches.get(variant);
-    if (!batch) {
-      return;
-    }
-
-    const hiddenMatrix = new this.#pc.Mat4();
-    hiddenMatrix.setTRS(
-      new this.#pc.Vec3(position.x, position.y, position.z),
-      new this.#pc.Quat(),
-      new this.#pc.Vec3(0, 0, 0),
-    );
-    const storage = batch.vertexBuffer.lock();
-    const matrices =
-      storage instanceof Float32Array ? storage : new Float32Array(storage);
-    matrices.set(hiddenMatrix.data, matrixIndex * 16);
-    batch.vertexBuffer.unlock();
-  }
-
   #update = (deltaTime) => {
     const frameTime = Math.min(deltaTime, 0.1);
     this.#elapsed += frameTime;
-    const motionAge = this.#elapsed - this.#lastHeroMotionAt;
-    const recovery = Math.max(0, 1 - motionAge / HERO_RECOVERY_TIME);
-    const heroInfluence = this.#heroInfluence * recovery * recovery;
 
     for (const material of this.#materials.values()) {
       material.setParameter("uTime", this.#elapsed);
-      material.setParameter("uHeroPosition", this.#heroPosition);
-      material.setParameter("uHeroDirection", this.#heroDirection);
-      material.setParameter("uHeroInfluence", heroInfluence);
     }
+    this.#flowerPhysics.updateMatrices();
     for (const item of this.#items) item.advance(frameTime);
   };
 }
