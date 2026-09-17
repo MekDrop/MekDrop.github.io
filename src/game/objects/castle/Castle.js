@@ -156,6 +156,8 @@ export class Castle {
   #animatedDoors = [];
   #doorArches = [];
   #updateHandle = null;
+  #onRuntimeError;
+  #updateFailed = false;
   #interiorDepth = 0;
   #interiorWidth = 0;
 
@@ -168,6 +170,7 @@ export class Castle {
     occupantSeed = 0,
     modelLibrary,
     fireParticleTexture,
+    onRuntimeError = null,
   }) {
     this.#pc = pc;
     this.#app = app;
@@ -177,6 +180,7 @@ export class Castle {
     this.#occupantSeed = occupantSeed;
     this.#modelLibrary = modelLibrary;
     this.#fireParticleTexture = fireParticleTexture;
+    this.#onRuntimeError = onRuntimeError;
     this.#entity = new pc.Entity("Castle");
 
     this.#createStructureResources();
@@ -354,10 +358,23 @@ export class Castle {
   }
 
   #update = (deltaTime) => {
-    this.#leisureScene?.update(deltaTime);
-    for (const door of this.#animatedDoors) door.update(deltaTime);
-    this.#audienceRoom?.update(deltaTime);
-    this.#syncAudienceRoomVisibility();
+    if (this.#updateFailed) {
+      return;
+    }
+    try {
+      this.#leisureScene?.update(deltaTime);
+      for (const door of this.#animatedDoors) door.update(deltaTime);
+      this.#audienceRoom?.update(deltaTime);
+      this.#syncAudienceRoomVisibility();
+    } catch (error) {
+      this.#updateFailed = true;
+      this.#leisureScene?.stop();
+      if (this.#onRuntimeError) {
+        this.#onRuntimeError(error);
+        return;
+      }
+      throw error;
+    }
   };
 
   #syncAudienceRoomVisibility() {

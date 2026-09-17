@@ -293,6 +293,8 @@ export class PlayCanvasRenderer {
   #recorder = null;
   #onRecordingStateChange;
   #onRecordingError;
+  #onRuntimeError;
+  #frameUpdateFailed = false;
 
   constructor(
     canvas,
@@ -300,6 +302,7 @@ export class PlayCanvasRenderer {
     {
       onRecordingStateChange = null,
       onRecordingError = null,
+      onRuntimeError = null,
       onInteractionChange = null,
       onHeroStateChange = null,
       onHeroMoodChange = null,
@@ -315,6 +318,7 @@ export class PlayCanvasRenderer {
   ) {
     this.#onRecordingStateChange = onRecordingStateChange;
     this.#onRecordingError = onRecordingError;
+    this.#onRuntimeError = onRuntimeError;
     this.canvas = canvas;
     this.container = container;
     this.#onInteractionChange = onInteractionChange;
@@ -1698,6 +1702,7 @@ export class PlayCanvasRenderer {
         occupantSeed: definition.occupantSeed,
         modelLibrary: this.#modelLibrary,
         fireParticleTexture: this.#castleFireParticleTexture,
+        onRuntimeError: this.#onRuntimeError,
       });
       this.#castles.push(builtCastle);
       this.#castle ??= builtCastle;
@@ -2205,6 +2210,22 @@ export class PlayCanvasRenderer {
   }
 
   #updateFrame = (deltaTime) => {
+    if (this.#frameUpdateFailed) {
+      return;
+    }
+    try {
+      this.#updateRuntimeSystems(deltaTime);
+    } catch (error) {
+      this.#frameUpdateFailed = true;
+      if (this.#onRuntimeError) {
+        this.#onRuntimeError(error);
+        return;
+      }
+      throw error;
+    }
+  };
+
+  #updateRuntimeSystems(deltaTime) {
     const mood = this.#hero?.mood;
     if (mood && mood.kind !== HERO_MOOD.CALM) {
       this.#heroMoodVisible = true;
@@ -2227,7 +2248,7 @@ export class PlayCanvasRenderer {
     this.#updateHeroCameraReturn(deltaTime);
     this.#updateGameOverCamera(deltaTime);
     this.#updateFloatingIslandMotion(deltaTime);
-  };
+  }
 
   #updateFloatingIslandMotion(deltaTime) {
     if (

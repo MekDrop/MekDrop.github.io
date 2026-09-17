@@ -224,6 +224,7 @@ import {
   DEVELOPMENT_MAX_ZOOM,
 } from "src/game/config/controls.js";
 import { InteractionSuggestion } from "src/game/interaction/InteractionSuggestion.js";
+import { reportGlobalException } from "src/boot/runtime-errors.js";
 import { useDebugStore } from "src/stores/debug-store.js";
 import { useGraphicsSettingsStore } from "src/stores/graphics-settings-store.js";
 import { useGameViewStore } from "src/stores/game-view-store.js";
@@ -269,30 +270,8 @@ let mapNavigationId = 0;
 let mapRouteLoadPromise = Promise.resolve();
 let interactionSuggestion = null;
 
-function runtimeErrorDescription(error) {
-  if (error instanceof Error && error.message) {
-    return error.message;
-  }
-  if (typeof error === "string" && error.trim()) {
-    return error;
-  }
-  return t("game.notification.runtime_error_unknown");
-}
-
 function reportRuntimeError(error) {
-  console.error("[GameCanvas] Game rendering failed.", error);
-  Notify.create({
-    type: "negative",
-    position: "top",
-    message: t("game.notification.runtime_error", {
-      message: runtimeErrorDescription(error),
-    }),
-    timeout: 6000,
-    multiLine: true,
-    attrs: {
-      role: "alert",
-    },
-  });
+  reportGlobalException(error, { context: "Game" });
 }
 
 function reportRecordingError(error) {
@@ -500,6 +479,7 @@ async function init() {
       recordingState.value = state;
     },
     onRecordingError: reportRecordingError,
+    onRuntimeError: reportRuntimeError,
     onInteractionChange: (target) => {
       interactionSuggestion?.update(target);
     },
