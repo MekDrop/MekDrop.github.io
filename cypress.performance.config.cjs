@@ -16,7 +16,7 @@ module.exports = defineConfig({
         },
       });
     },
-    baseUrl: "http://localhost:8080/",
+    baseUrl: "http://localhost:9000/",
     supportFile: "test/cypress/support/e2e.js",
     specPattern: "test/cypress/performance/**/*.cy.js",
   },

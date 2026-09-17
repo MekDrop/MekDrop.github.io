@@ -4,6 +4,9 @@ import { RecordingCanvas } from "./RecordingCanvas.js";
 import { RecordingAudio } from "./RecordingAudio.js";
 import { AvcRecordingConfiguration } from "./AvcRecordingConfiguration.js";
 
+const FRAME_RATE = 60;
+const FRAME_DURATION = 1 / FRAME_RATE;
+
 /** Local MP4 recording. Encoder packages are loaded only when recording starts. */
 export class GameRecorder {
   #app;
@@ -40,7 +43,13 @@ export class GameRecorder {
 
   async #start() {
     this.#setState(GAME_RECORDING_STATE.STARTING);
-    const session = { output: null, compositor: null, audio: null, stream: null };
+    const session = {
+      output: null,
+      compositor: null,
+      audio: null,
+      videoFramePromise: Promise.resolve(),
+      videoFramePending: false,
+    };
     this.#session = session;
     try {
       // Resume game audio within the shortcut's user activation, before imports.
@@ -52,9 +61,8 @@ export class GameRecorder {
       }
       session.compositor = new RecordingCanvas(this.#canvas);
       const { width, height } = session.compositor.canvas;
-      const frameRate = 60;
       // Preserve fine grass/model detail, with more bits for larger canvases.
-      const bitrate = Math.round(Math.max(30_000_000, width * height * frameRate * 0.25));
+      const bitrate = Math.round(Math.max(30_000_000, width * height * FRAME_RATE * 0.25));
       const codec = await media.getFirstEncodableVideoCodec(["avc", "vp9", "av1"], {
         width, height, bitrate,
       });
@@ -80,31 +88,31 @@ export class GameRecorder {
         target: session.target,
       });
       session.compositor.draw();
-      session.stream = session.compositor.canvas.captureStream(frameRate);
-      session.videoSource = new media.MediaStreamVideoTrackSource(
-        session.stream.getVideoTracks()[0],
-        {
-          codec, quality, latencyMode: "quality", keyFrameInterval: 2,
-          onEncodedPacket: (_packet, metadata) => AvcRecordingConfiguration.repair(metadata),
-        },
-        { frameRate },
-      );
+      // Feed the canvas directly to the encoder. The MediaStreamTrackProcessor
+      // path can leave queued VideoFrames unclosed when recording is stopped.
+      session.videoSource = new media.CanvasSource(session.compositor.canvas, {
+        codec, quality, latencyMode: "quality", keyFrameInterval: 2,
+        onEncodedPacket: (_packet, metadata) => AvcRecordingConfiguration.repair(metadata),
+      });
       session.audioSource = new media.MediaStreamAudioTrackSource(
         session.audio.stream.getAudioTracks()[0],
         { codec: "aac", bitrate: 128_000, transform: { numberOfChannels: 2, sampleRate: 48000 } },
       );
-      session.output.addVideoTrack(session.videoSource, { frameRate });
+      session.output.addVideoTrack(session.videoSource, { frameRate: FRAME_RATE });
       session.output.addAudioTrack(session.audioSource);
-      session.videoSource.errorPromise.catch((error) => this.#fail(session, error));
       session.audioSource.errorPromise.catch((error) => this.#fail(session, error));
       await session.output.start();
       if (this.#destroyed || this.#session !== session) {
         return;
       }
+      session.recordingStartedAt = performance.now();
+      session.lastVideoFrame = -1;
+      this.#captureVideoFrame(session, session.recordingStartedAt);
       session.frameHandle = this.#app.on("frameend", () => {
         try {
           session.compositor.draw();
           session.audio.sync();
+          this.#captureVideoFrame(session);
         } catch (error) {
           void this.#fail(session, error);
         }
@@ -125,6 +133,7 @@ export class GameRecorder {
     this.#setState(GAME_RECORDING_STATE.STOPPING);
     session.frameHandle?.off();
     try {
+      await session.videoFramePromise;
       await session.output.finalize();
       if (!this.#destroyed) {
         const blob = new Blob([session.target.buffer], { type: "video/mp4" });
@@ -140,6 +149,24 @@ export class GameRecorder {
     } finally {
       await this.#release(session, session.output.state !== "finalized");
     }
+  }
+
+  #captureVideoFrame(session, now = performance.now()) {
+    const frame = Math.floor((now - session.recordingStartedAt) * FRAME_RATE / 1000);
+    if (frame <= session.lastVideoFrame || session.videoFramePending) {
+      return;
+    }
+    session.lastVideoFrame = frame;
+    const promise = session.videoSource.add(frame * FRAME_DURATION, FRAME_DURATION);
+    session.videoFramePromise = promise;
+    session.videoFramePending = true;
+    void promise
+      .catch((error) => this.#fail(session, error))
+      .finally(() => {
+        if (session.videoFramePromise === promise) {
+          session.videoFramePending = false;
+        }
+      });
   }
 
   async #fail(session, error) {
@@ -162,9 +189,6 @@ export class GameRecorder {
     // Disconnect synchronously while the PlayCanvas audio context still exists.
     if (!session.released) {
       session.released = true;
-      for (const track of session.stream?.getTracks() ?? []) {
-        track.stop();
-      }
       session.audio?.destroy();
       session.compositor?.destroy();
     }

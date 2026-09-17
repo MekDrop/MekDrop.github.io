@@ -56,7 +56,7 @@ Store every temporary helper, conversion, migration, or diagnostic script under 
 
 ## Testing Guidelines
 
-Cypress E2E specs live in `test/cypress/e2e/` and use `*.cy.js`. The configured base URL is `http://localhost:8080/`; the npm scripts start Quasar automatically. Component specs, when added, belong beside source files as `src/**/*.cy.js`. Coverage artifacts are written to `coverage/` and `.nyc_output/` and are ignored.
+Cypress E2E specs live in `test/cypress/e2e/` and use `*.cy.js`. The configured base URL is `http://localhost:9000/`; the npm scripts start Quasar automatically. Component specs, when added, belong beside source files as `src/**/*.cy.js`. Coverage artifacts are written to `coverage/` and `.nyc_output/` and are ignored.
 
 ## Commit & Pull Request Guidelines
 

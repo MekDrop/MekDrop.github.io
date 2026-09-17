@@ -13,7 +13,7 @@ module.exports = defineConfig({
       registerCodeCoverageTasks(on, config);
       return config;
     },
-    baseUrl: 'http://localhost:8080/',
+    baseUrl: 'http://localhost:9000/',
     supportFile: 'test/cypress/support/e2e.js',
     specPattern: 'test/cypress/e2e/**/*.cy.{js,jsx,ts,tsx}',
   },

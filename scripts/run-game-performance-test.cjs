@@ -2,7 +2,7 @@ const { spawn } = require("node:child_process");
 const path = require("node:path");
 
 const projectRoot = path.resolve(__dirname, "..");
-const serverUrl = "http://127.0.0.1:8080";
+const serverUrl = "http://127.0.0.1:9000";
 const isWindows = process.platform === "win32";
 const quasarCli = path.join(
   projectRoot,
