@@ -108,13 +108,6 @@
   cursor: grabbing;
 }
 
-.background-canvas__surface.hero-pat-hover {
-  cursor: grab;
-}
-.background-canvas__surface.hero-pat-hover:active {
-  cursor: grabbing;
-}
-
 .interaction-prompt {
   position: absolute;
   left: 50%;

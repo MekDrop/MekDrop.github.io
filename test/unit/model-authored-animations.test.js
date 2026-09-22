@@ -73,3 +73,13 @@ it("stores fixed hero refusal and blocked-dig reactions in hero.glb", () => {
       target.node === node && target.path === "weights"));
   }
 });
+
+it("stores the patting hand motion in its editable model", () => {
+  const { json, url } = readGlb(
+    "src/game/models/hero/patting-hand.glb",
+  );
+  accessSync(new URL(url.href.replace(/\.glb$/, ".blend")));
+  const targets = animationTargets(json, "Pat");
+  assert.ok(targets.some(({ node, path }) =>
+    node === "Patting hand animation rig" && path === "translation"));
+});

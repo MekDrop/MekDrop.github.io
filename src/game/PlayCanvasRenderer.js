@@ -22,7 +22,7 @@ import {
   PathArrows,
 } from "./objects/path/index.js";
 import { RiverWater } from "./objects/water/index.js";
-import { Hero } from "./objects/hero/index.js";
+import { Hero, HeroPatHand } from "./objects/hero/index.js";
 import { HeroPatGesture } from "./controls/HeroPatGesture.js";
 import { HERO_MOOD } from "./enum/HeroMood.js";
 import {
@@ -226,6 +226,7 @@ export class PlayCanvasRenderer {
   #heroAnimationPreview = null;
   #hero = null;
   #heroPatGesture = null;
+  #heroPatHand = null;
   #onHeroMoodChange = null;
   #heroMoodVisible = false;
   #debugAxesHud = null;
@@ -484,6 +485,7 @@ export class PlayCanvasRenderer {
       this.#createMaterials(),
       this.#modelLibrary.load([
         Hero.modelUrl,
+        HeroPatHand.modelUrl,
         ...(import.meta.env.DEV ? [HeroAnimationSign.modelUrl] : []),
         AxeTool.modelUrl,
         KnifeTool.modelUrl,
@@ -1532,9 +1534,21 @@ export class PlayCanvasRenderer {
       modelLibrary: this.#modelLibrary,
     });
     this.#mapRoot.addChild(this.#hero.entity);
+    this.#heroPatHand = new HeroPatHand({
+      pc: this.#pc,
+      modelLibrary: this.#modelLibrary,
+      getPatPosition: () => this.#hero?.patPosition,
+      getViewRotation: () => this.#rotation,
+      onContact: () => this.#hero?.pat(),
+    });
+    this.#mapRoot.addChild(this.#heroPatHand.entity);
     this.#heroPatGesture = new HeroPatGesture(this.canvas, {
       hitTest: (event) => this.#isHeroPatHit(event),
-      pat: () => this.#hero?.pat(),
+      pat: () => {
+        if (this.#hero?.canBePatted) {
+          this.#heroPatHand?.pat();
+        }
+      },
     });
     this.#heroVisibility = new HeroVisibilityController({
       pc: this.#pc,
@@ -2254,6 +2268,7 @@ export class PlayCanvasRenderer {
       this.#onHeroMoodChange?.(null);
     }
     this.#riverWater?.update(deltaTime, this.#hero, this.#camera?.camera);
+    this.#heroPatHand?.update(deltaTime);
     this.#syncInventoryVisibility();
     this.#inventoryHud?.update(
       deltaTime,
@@ -3666,6 +3681,8 @@ export class PlayCanvasRenderer {
     this.#orbitPivot = null;
     this.#heroPatGesture?.destroy();
     this.#heroPatGesture = null;
+    this.#heroPatHand?.destroy();
+    this.#heroPatHand = null;
     this.#heroMoodVisible = false;
     this.#onHeroMoodChange?.(null);
     this.#finishBannerWindGesture();

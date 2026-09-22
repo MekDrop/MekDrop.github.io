@@ -17,6 +17,7 @@ import { HeroFootPlacement } from "./HeroFootPlacement.js";
 import { HeroWaterMotion } from "./HeroWaterMotion.js";
 import { HeroPatMood } from "./HeroPatMood.js";
 import { HeroPatEscape } from "./HeroPatEscape.js";
+import { HeroHairPhysics } from "./HeroHairPhysics.js";
 import { HERO_MOOD } from "../../enum/HeroMood.js";
 import { HERO_STAT } from "../../enum/HeroStat.js";
 import { BuffSystem } from "../../buffs/BuffSystem.js";
@@ -167,6 +168,8 @@ const PICK_MUSHROOM_HIDE_TIME = 35 / 24;
 const PICK_MUSHROOM_TARGET_DISTANCE = 0.34;
 const PICK_MUSHROOM_MAXIMUM_STEP = 0.24;
 const PAT_ANNOYED_DURATION = 1.25;
+const PAT_HAIR_CONTACT_HEIGHT = 0.78;
+const HAIR_ENTITY_NAME = /(?:hair|nape lock|swept fringe|layered lock)/i;
 
 export class Hero {
   #buffs = new BuffSystem();
@@ -223,7 +226,7 @@ export class Hero {
 
   get patPosition() {
     return this.#headEntity?.getWorldTransform().transformPoint(
-      new this.#pc.Vec3(0, 0.45, 0),
+      new this.#pc.Vec3(0, PAT_HAIR_CONTACT_HEIGHT, 0),
     ) ?? null;
   }
 
@@ -301,6 +304,7 @@ export class Hero {
   }
 
   #pc;
+  #app;
   #mapData;
   #spawnCenter;
   #getViewRotation;
@@ -362,6 +366,7 @@ export class Hero {
   #respawnAction = null;
   #respawnEffect = null;
   #footPlacement = null;
+  #hairPhysics = null;
   #fallingToDeath = false;
   #riverRoutesByCell = new Map();
   #riverSourceCovers = [];
@@ -398,6 +403,7 @@ export class Hero {
     modelLibrary,
   }) {
     this.#pc = pc;
+    this.#app = app;
     this.#mapData = mapData;
     this.#buildRiverRouteLookup();
     this.#spawnCenter = spawnCenter;
@@ -1003,6 +1009,8 @@ export class Hero {
     this.#updateHandle = null;
     this.#footPlacement?.destroy();
     this.#footPlacement = null;
+    this.#hairPhysics?.destroy();
+    this.#hairPhysics = null;
     this.#respawnEffect?.destroy();
     this.#respawnEffect = null;
     this.#lavaDeathEffect?.destroy();
@@ -1015,6 +1023,7 @@ export class Hero {
     this.#physics = null;
     this.#entity?.destroy();
     this.#entity = null;
+    this.#app = null;
     this.#headEntity = null;
     this.#mouthEntity = null;
     this.#leftEyeEntity = null;
@@ -1045,6 +1054,7 @@ export class Hero {
   #update = (deltaTime) => {
     this.#step(Math.min(deltaTime, MAX_FRAME_TIME));
     this.#animate(deltaTime);
+    this.#hairPhysics?.update();
   };
 
   #step(deltaTime) {
@@ -3301,6 +3311,16 @@ export class Hero {
     );
     this.#entity.addChild(this.#modelRoot);
     this.#headEntity = this.#findModelEntity("Hero head");
+    this.#hairPhysics = new HeroHairPhysics({
+      pc: this.#pc,
+      app: this.#app,
+      headEntity: this.#headEntity,
+      hairEntities:
+        this.#headEntity?.children.filter((entity) =>
+          HAIR_ENTITY_NAME.test(entity.name),
+        ) ?? [],
+      modelScale: HERO_MODEL_SCALE,
+    });
     this.#mouthEntity = this.#findModelEntity("Mouth");
     this.#leftEyeEntity = this.#findModelEntity("Eye");
     this.#rightEyeEntity = this.#findModelEntity("Eye.001");

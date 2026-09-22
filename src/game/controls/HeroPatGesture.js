@@ -16,7 +16,6 @@ export class HeroPatGesture {
     canvas.addEventListener("pointerup", this.#up, { capture: true });
     canvas.addEventListener("pointercancel", this.#up, { capture: true });
     canvas.addEventListener("lostpointercapture", this.#up, { capture: true });
-    canvas.addEventListener("pointerleave", this.#leave);
     this.#window.addEventListener("blur", this.cancel);
   }
 
@@ -43,7 +42,6 @@ export class HeroPatGesture {
       return;
     }
     const overHead = this.#hitTest(event);
-    this.#canvas.classList.toggle("hero-pat-hover", overHead);
     if (event.pointerId !== this.#pointerId) {
       return;
     }
@@ -73,16 +71,11 @@ export class HeroPatGesture {
     }
   };
 
-  #leave = () => {
-    this.#canvas.classList.remove("hero-pat-hover");
-  };
-
   cancel = () => {
     const pointerId = this.#pointerId;
     this.#pointerId = null;
     this.#previous = null;
     this.#distance = 0;
-    this.#leave();
     if (pointerId !== null && this.#canvas.hasPointerCapture(pointerId)) {
       this.#canvas.releasePointerCapture(pointerId);
     }
@@ -95,7 +88,6 @@ export class HeroPatGesture {
     this.#canvas.removeEventListener("pointerup", this.#up, { capture: true });
     this.#canvas.removeEventListener("pointercancel", this.#up, { capture: true });
     this.#canvas.removeEventListener("lostpointercapture", this.#up, { capture: true });
-    this.#canvas.removeEventListener("pointerleave", this.#leave);
     this.#window.removeEventListener("blur", this.cancel);
   }
 }

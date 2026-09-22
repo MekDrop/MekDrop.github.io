@@ -50,6 +50,10 @@ When a visible 3D character, architectural element, or reusable prop has a stabl
 Every tracked `.glb` under `src/game/models/` must have an editable `.blend` source file with the same basename in the same directory. Treat the `.blend` file as the source of truth and export the adjacent `.glb` from it. Do not replace these source files with procedural Blender generator scripts unless the user explicitly requests that workflow.
 Whenever the model format supports animation, author and store character and prop animation clips in the editable model and exported `.glb` instead of synthesizing joint or object motion in JavaScript. Runtime code should select, sequence, blend, and adjust playback of those embedded clips; use procedural animation only when the behavior is inherently dynamic and cannot reasonably be authored in the model.
 
+## Game Physics Rules
+
+Use the project's configured PlayCanvas physics engine (currently Ammo) by default for every new or modified game behavior that represents physical contact, collision, forces, gravity, inertia, spring motion, joints, raycasts, rigid bodies, or soft bodies. Drive visual deformation and animation from engine state where needed, but do not replace engine simulation with custom frame-by-frame physics integrators. Use custom physics math only when the engine cannot reasonably represent the behavior; document that limitation beside the implementation and keep the custom portion narrowly bounded.
+
 ## Temporary Files
 
 Store every temporary helper, conversion, migration, or diagnostic script under the project-root `tmp/` directory. Never place temporary scripts elsewhere in the repository. Keep `/tmp/` ignored by Git, and never stage or commit its contents.
