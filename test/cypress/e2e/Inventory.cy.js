@@ -23,9 +23,7 @@ function collectItem(expectedCount, animation) {
 function clickInventoryCloseButton() {
   cy.get(".background-canvas__surface").then(($canvas) => {
     const bounds = $canvas[0].getBoundingClientRect();
-    const scale = Math.sqrt(
-      (bounds.width / 1280) * (bounds.height / 720),
-    );
+    const scale = Math.sqrt((bounds.width / 1280) * (bounds.height / 720));
     const x = bounds.width / 2 + 181 * scale;
     const y = bounds.height / 2 - 176 * scale;
     cy.wrap($canvas).trigger("pointermove", {
@@ -41,16 +39,12 @@ function clickInventoryCloseButton() {
 }
 
 function inventorySlotPoint(bounds, slot) {
-  const scale = Math.sqrt(
-    (bounds.width / 1280) * (bounds.height / 720),
-  );
+  const scale = Math.sqrt((bounds.width / 1280) * (bounds.height / 720));
   const column = slot % 4;
   const row = Math.floor(slot / 4);
   return {
-    clientX:
-      bounds.left + bounds.width / 2 + (-147 + column * 98) * scale,
-    clientY:
-      bounds.top + bounds.height / 2 + (-67 + row * 98) * scale,
+    clientX: bounds.left + bounds.width / 2 + (-147 + column * 98) * scale,
+    clientY: bounds.top + bounds.height / 2 + (-67 + row * 98) * scale,
   };
 }
 
@@ -199,7 +193,9 @@ describe("Collectible inventory", () => {
         capacity: 12,
         visible: true,
       });
-      expect(window.gameMovementTest.state().inventory.items).to.have.length(12);
+      expect(window.gameMovementTest.state().inventory.items).to.have.length(
+        12,
+      );
     });
     clickInventoryCloseButton();
 
@@ -243,7 +239,9 @@ describe("Collectible inventory", () => {
     });
     cy.get(".q-notification").should("not.exist");
     cy.window().should((window) => {
-      expect(window.gameMovementTest.state().inventory.items).to.have.length(12);
+      expect(window.gameMovementTest.state().inventory.items).to.have.length(
+        12,
+      );
       expect(window.gameMovementTest.state().inventory.visible).to.equal(false);
     });
   });
@@ -322,9 +320,7 @@ describe("Collectible inventory", () => {
     });
     cy.window({ timeout: 3000 }).should((window) => {
       expect(window.gameMovementTest.state().inventory.items).to.have.length(1);
-      expect(window.gameMovementTest.state().position.z).to.be.greaterThan(
-        0.1,
-      );
+      expect(window.gameMovementTest.state().position.z).to.be.greaterThan(0.1);
     });
     cy.get(".interaction-prompt", { timeout: 3000 }).should(
       "contain.text",
@@ -378,6 +374,45 @@ describe("Collectible inventory", () => {
       const state = window.gameMovementTest.state();
       expect(state.inventory.items).to.have.length(1);
       expect(state.position.z).to.be.greaterThan(0.2);
+    });
+  });
+
+  it("destroys a mushroom when the hero walks over it", () => {
+    cy.window().then((window) => {
+      return window.gameMovementTest.loadScenario("inventory-mushroom");
+    });
+    cy.get(".interaction-prompt").should("contain.text", "Collect mushroom");
+
+    cy.window().then((window) => {
+      window.gameMovementTest.move(-1, 0);
+    });
+    cy.get(".interaction-prompt", { timeout: 3000 }).should("not.exist");
+    cy.window().then((window) => {
+      window.gameMovementTest.move(1, 0);
+    });
+    cy.wait(600);
+    cy.window().then((window) => {
+      window.gameMovementTest.move(0, 0);
+    });
+    let maximumFootLift = 0;
+    for (let sample = 0; sample < 12; sample += 1) {
+      cy.wait(50);
+      cy.window().then((window) => {
+        const feet = Object.values(
+          window.gameMovementTest.state().footPlacement ?? {},
+        );
+        maximumFootLift = Math.max(
+          maximumFootLift,
+          ...feet.map((foot) => foot.appliedLift),
+        );
+      });
+    }
+    cy.then(() => {
+      expect(maximumFootLift).to.be.lessThan(0.03);
+    });
+    cy.wait(2800);
+    cy.window().then((window) => {
+      expect(window.gameMovementTest.state().inventory.items).to.have.length(0);
     });
   });
 

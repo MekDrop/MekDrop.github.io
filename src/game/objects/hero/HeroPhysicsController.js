@@ -3,6 +3,7 @@ const DEFAULT_MAX_SUB_STEPS = 12;
 const GROUND_PROBE_UP = 0.08;
 const GROUND_PROBE_DOWN = 0.16;
 const GROUND_NORMAL_MINIMUM = 0.35;
+const HERO_SURFACE_IGNORE_TAG = "hero-surface-ignore";
 
 /** Owns the hero rigid body and all reads/writes to PlayCanvas physics. */
 export class HeroPhysicsController {
@@ -115,7 +116,8 @@ export class HeroPhysicsController {
     const end = new this.#pc.Vec3(x, minimumHeight, z);
     const hits = this.#app.systems.rigidbody.raycastAll(start, end, {
       sort: true,
-      filterCallback: (entity) => entity !== this.#entity,
+      filterCallback: (entity) =>
+        entity !== this.#entity && !entity.tags?.has(HERO_SURFACE_IGNORE_TAG),
     });
     const hit = hits.find(({ normal }) => normal?.y >= GROUND_NORMAL_MINIMUM);
     if (!hit) {
@@ -124,16 +126,12 @@ export class HeroPhysicsController {
     return {
       entity: hit.entity,
       height: hit.point.y,
-      normal: hit.normal.clone?.() ?? new this.#pc.Vec3(
-        hit.normal.x,
-        hit.normal.y,
-        hit.normal.z,
-      ),
-      point: hit.point.clone?.() ?? new this.#pc.Vec3(
-        hit.point.x,
-        hit.point.y,
-        hit.point.z,
-      ),
+      normal:
+        hit.normal.clone?.() ??
+        new this.#pc.Vec3(hit.normal.x, hit.normal.y, hit.normal.z),
+      point:
+        hit.point.clone?.() ??
+        new this.#pc.Vec3(hit.point.x, hit.point.y, hit.point.z),
     };
   }
 

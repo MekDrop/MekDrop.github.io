@@ -1418,6 +1418,7 @@ export class PlayCanvasRenderer {
         ...this.#thrownInventoryItems.flatMap(
           (item) => item.grassImpressionContacts,
         ),
+        ...(this.#groundCover?.grassImpressionContacts ?? []),
       ],
       getSurfaceContacts: () =>
         this.#royalCastleTriggerField?.grassSurfaceContacts ?? [],

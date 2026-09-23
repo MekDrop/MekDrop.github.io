@@ -15,6 +15,7 @@ import { GroundCoverHeldItem } from "./GroundCoverHeldItem.js";
 import { GroundCoverInteraction } from "./GroundCoverInteraction.js";
 import { GroundCoverItem } from "./GroundCoverItem.js";
 import { FlowerPhysics } from "./FlowerPhysics.js";
+import { MushroomPhysics } from "./MushroomPhysics.js";
 
 const FLOWER_CATEGORY = "flower";
 const MUSHROOM_CATEGORY = "mushroom";
@@ -117,10 +118,12 @@ export class GroundCover {
   }
 
   #pc;
+  #app;
   #entity;
   #items = [];
   #collectibles = [];
   #flowerPhysics;
+  #mushroomPhysics;
   #materials = new Map();
   #heldMaterials = new Map();
   #vertexBuffers = [];
@@ -142,11 +145,14 @@ export class GroundCover {
     onCollectibleRemoved = () => {},
   }) {
     this.#pc = pc;
+    this.#app = app;
     this.#onCollect = onCollect;
     this.#onCollectibleRemoved = onCollectibleRemoved;
     this.#entity = new pc.Entity("GPU-instanced interactive ground cover");
     this.#flowerPhysics = new FlowerPhysics({ pc });
     this.#entity.addChild(this.#flowerPhysics.entity);
+    this.#mushroomPhysics = new MushroomPhysics({ pc, app });
+    this.#entity.addChild(this.#mushroomPhysics.entity);
     this.#createMaterials();
     this.zoom = zoom;
     this.#buildGroundCover(mapData, modelLibrary);
@@ -155,6 +161,10 @@ export class GroundCover {
 
   get entity() {
     return this.#entity;
+  }
+
+  get grassImpressionContacts() {
+    return this.#items.flatMap((item) => item.grassImpressionContacts);
   }
 
   set tool(tool) {
@@ -166,8 +176,7 @@ export class GroundCover {
       0,
       Math.min(
         1,
-        (value - STILL_ZOOM) /
-          (FULL_AMBIENT_MOTION_ZOOM - STILL_ZOOM),
+        (value - STILL_ZOOM) / (FULL_AMBIENT_MOTION_ZOOM - STILL_ZOOM),
       ),
     );
     const ambientMotion = progress * progress * (3 - 2 * progress);
@@ -181,10 +190,8 @@ export class GroundCover {
   }
 
   applyHeroInteraction({ x, y, z }, movement) {
-    this.#flowerPhysics.updateHeroPosition(
-      { x, y, z },
-      movement?.direction,
-    );
+    this.#flowerPhysics.updateHeroPosition({ x, y, z }, movement?.direction);
+    this.#mushroomPhysics.updateHeroPosition({ x, y, z }, movement);
   }
 
   findInteraction({
@@ -248,6 +255,12 @@ export class GroundCover {
     this.#updateHandle = null;
     this.#flowerPhysics?.destroy();
     this.#flowerPhysics = null;
+    this.#mushroomPhysics?.destroy();
+    this.#mushroomPhysics = null;
+    for (const item of this.#items) {
+      item.destroy();
+    }
+    this.#items = [];
     this.#entity?.destroy();
     this.#entity = null;
     for (const vertexBuffer of this.#vertexBuffers) vertexBuffer.destroy();
@@ -256,7 +269,6 @@ export class GroundCover {
     this.#materials.clear();
     for (const material of this.#heldMaterials.values()) material.destroy();
     this.#heldMaterials.clear();
-    this.#items = [];
     this.#collectibles = [];
   }
 
@@ -314,17 +326,16 @@ export class GroundCover {
     ).entries()) {
       const definition = VARIANTS[decoration.variant];
       if (!definition) continue;
-      const x =
-        decoration.col - (mapData.cols - 1) / 2 + decoration.offsetX;
-      const z =
-        decoration.row - (mapData.rows - 1) / 2 + decoration.offsetZ;
+      const x = decoration.col - (mapData.cols - 1) / 2 + decoration.offsetX;
+      const z = decoration.row - (mapData.rows - 1) / 2 + decoration.offsetZ;
       const y =
-        mapData.heightmap[decoration.row][decoration.col] +
-        GRASS_SURFACE_LIFT;
+        mapData.heightmap[decoration.row][decoration.col] + GRASS_SURFACE_LIFT;
 
       if (definition.category === MUSHROOM_CATEGORY) {
+        const scale = decoration.scale * definition.scale;
         const item = new GroundCoverItem({
           pc: this.#pc,
+          app: this.#app,
           modelLibrary,
           modelUrl: definition.modelUrl,
           variant: decoration.variant,
@@ -332,7 +343,7 @@ export class GroundCover {
           y,
           z,
           rotation: decoration.rotation,
-          scale: decoration.scale * definition.scale,
+          scale,
           flexibility: definition.flexibility,
           stepReaction: "none",
           phase: decoration.phase,
@@ -340,22 +351,35 @@ export class GroundCover {
         });
         this.#entity.addChild(item.entity);
         this.#items.push(item);
-        this.#collectibles.push(
-          this.#createCollectible({
-            decoration,
-            decorationIndex,
-            definition,
-            modelLibrary,
-            position: { x, y, z },
-            onHide: () => item.collect(),
-          }),
-        );
+        let collectible = null;
+        const mushroom = this.#mushroomPhysics.addMushroom({
+          variant: decoration.variant,
+          position: { x, y, z },
+          interactionRadius: definition.interactionRadius * decoration.scale,
+          scale,
+          onDestroy: (impact) => collectible?.destroy(impact),
+        });
+        collectible = this.#createCollectible({
+          decoration,
+          decorationIndex,
+          definition,
+          modelLibrary,
+          position: { x, y, z },
+          onHide: () => {
+            item.collect();
+            this.#mushroomPhysics.hide(mushroom);
+          },
+          onDestroy: (impact) => {
+            item.crush(impact);
+            this.#mushroomPhysics.hide(mushroom);
+          },
+        });
+        this.#collectibles.push(collectible);
         continue;
       }
 
       const matrix = new this.#pc.Mat4();
-      const horizontalScale =
-        decoration.scale * definition.horizontalScale;
+      const horizontalScale = decoration.scale * definition.horizontalScale;
       const verticalScale = decoration.scale * definition.verticalScale;
       const rotation = new this.#pc.Quat().setFromEulerAngles(
         0,
@@ -379,8 +403,7 @@ export class GroundCover {
         rotation: decoration.rotation,
         horizontalScale,
         verticalScale,
-        interactionRadius:
-          definition.interactionRadius * decoration.scale,
+        interactionRadius: definition.interactionRadius * decoration.scale,
       });
       matricesByVariant.set(decoration.variant, batch);
       this.#collectibles.push(
@@ -422,6 +445,7 @@ export class GroundCover {
     modelLibrary,
     position,
     onHide,
+    onDestroy = onHide,
   }) {
     return new GroundCoverCollectible({
       id: `${decoration.row}:${decoration.col}:${decorationIndex}`,
@@ -430,12 +454,19 @@ export class GroundCover {
       labelKey: definition.labelKey,
       icon: definition.icon,
       modelUrl: definition.modelUrl,
-      interactionRadius:
-        definition.interactionRadius * decoration.scale,
+      interactionRadius: definition.interactionRadius * decoration.scale,
       position,
       onCollect: this.#onCollect,
       onHide: () => {
         onHide();
+        this.#onCollectibleRemoved({
+          col: decoration.col,
+          row: decoration.row,
+          category: definition.category,
+        });
+      },
+      onDestroy: (impact) => {
+        onDestroy(impact);
         this.#onCollectibleRemoved({
           col: decoration.col,
           row: decoration.row,

@@ -9,6 +9,7 @@ export class GroundCoverCollectible {
   #position;
   #onCollect;
   #onHide;
+  #onDestroy;
   #createHeldItem;
   #collected = false;
 
@@ -23,6 +24,7 @@ export class GroundCoverCollectible {
     position,
     onCollect,
     onHide,
+    onDestroy = onHide,
     createHeldItem = () => null,
   }) {
     this.#id = id;
@@ -35,6 +37,7 @@ export class GroundCoverCollectible {
     this.#position = position;
     this.#onCollect = onCollect;
     this.#onHide = onHide;
+    this.#onDestroy = onDestroy;
     this.#createHeldItem = createHeldItem;
   }
 
@@ -92,5 +95,13 @@ export class GroundCoverCollectible {
     this.#collected = true;
     this.#onHide();
     return true;
+  }
+
+  destroy(impact) {
+    if (!this.canInteract) {
+      return;
+    }
+    this.#collected = true;
+    this.#onDestroy(impact);
   }
 }

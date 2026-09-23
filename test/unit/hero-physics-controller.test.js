@@ -1,7 +1,6 @@
 import assert from "node:assert/strict";
 import { afterEach, describe, it } from "node:test";
-import { HeroPhysicsController } from
-  "../../src/game/objects/hero/HeroPhysicsController.js";
+import { HeroPhysicsController } from "../../src/game/objects/hero/HeroPhysicsController.js";
 
 const previousAmmo = globalThis.Ammo;
 
@@ -160,19 +159,13 @@ describe("HeroPhysicsController", () => {
     assert.deepEqual(rigidbody.teleportCalls, [new FakeVec3(8, 9, 10)]);
     assert.deepEqual(controller.velocity, { x: 5, y: 6, z: 7 });
 
-    controller.setScripted(
-      { x: 11, y: 12, z: 13 },
-      { x: -1, y: -2, z: -3 },
-    );
+    controller.setScripted({ x: 11, y: 12, z: 13 }, { x: -1, y: -2, z: -3 });
     assert.equal(controller.scripted, true);
     assert.equal(rigidbody.type, "kinematic");
     assert.deepEqual(controller.position, { x: 11, y: 12, z: 13 });
     assert.deepEqual(controller.velocity, { x: -1, y: -2, z: -3 });
 
-    controller.resume(
-      { x: 14, y: 15, z: 16 },
-      { x: 1, y: 2, z: 3 },
-    );
+    controller.resume({ x: 14, y: 15, z: 16 }, { x: 1, y: 2, z: 3 });
     assert.equal(controller.scripted, false);
     assert.equal(rigidbody.type, "dynamic");
     assert.deepEqual(rigidbody.teleportCalls.at(-1), new FakeVec3(14, 15, 16));
@@ -207,6 +200,12 @@ describe("HeroPhysicsController", () => {
     assert.equal(options.sort, true);
     assert.equal(options.filterCallback(entity), false);
     assert.equal(options.filterCallback(floor.entity), true);
+    assert.equal(
+      options.filterCallback({
+        tags: { has: (tag) => tag === "hero-surface-ignore" },
+      }),
+      false,
+    );
     assert.deepEqual(surface, {
       entity: floor.entity,
       height: 5.5,
