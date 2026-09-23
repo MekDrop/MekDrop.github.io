@@ -53,7 +53,6 @@ import { GameModelLibrary } from "./models/index.js";
 import { CameraPanBounds, HeroVisibilityController } from "./camera/index.js";
 import { CameraOrbitPivot } from "./camera/CameraOrbitPivot.js";
 import {
-  GameOverHud,
   GameUiTheme,
   HeroLifeHud,
   CoinHud,
@@ -64,6 +63,7 @@ import { RoyalAnimationPreview } from "./debug/RoyalAnimationPreview.js";
 import { HeroAnimationPreview } from "./debug/HeroAnimationPreview.js";
 import { HeroAnimationSign } from "./debug/HeroAnimationSign.js";
 import { RoyalCastleTriggerField } from "./debug/RoyalCastleTriggerField.js";
+import { GameOverScene } from "./rendering/scene/GameOverScene.js";
 import { SceneObjectRegistry } from "./rendering/scene/SceneObjectRegistry.js";
 
 const FIXED_HEIGHTS = {
@@ -182,9 +182,6 @@ const HERO_BRIDGE_VISIBILITY_RADIUS = 0.5;
 const HERO_CAMERA_RETURN_DURATION = 0.45;
 const HERO_RESPAWN_CAMERA_RETURN_DURATION = 0.32;
 const CAMERA_TARGET_HEIGHT = 3.2;
-const GAME_OVER_FALLBACK_ZOOM = 1.75;
-const GAME_OVER_CAMERA_DURATION = 0.8;
-const GAME_OVER_ROYAL_VIEWPORT_HEIGHT = 0.6;
 const MAX_CASTLE_LIVES = 3;
 
 export class PlayCanvasRenderer {
@@ -225,7 +222,7 @@ export class PlayCanvasRenderer {
   #coinHud = null;
   #inventoryHud = null;
   #thrownInventoryItems = [];
-  #gameOverHud = null;
+  #scene = null;
   #heroVisibility = null;
   #floatingIslandMotion = null;
   #floatingCameraLocalOffset = null;
@@ -258,9 +255,6 @@ export class PlayCanvasRenderer {
   #viewportPersistenceEnabled = false;
   #saveViewportDebounced = null;
   #heroCameraReturnTransition = null;
-  #gameOverCameraTransition = null;
-  #gameOverCameraLocked = false;
-  #gameOverReturnViewport = null;
   #debugStore = null;
   #gameViewStore = null;
   #graphicsSettingsStore = null;
@@ -409,13 +403,24 @@ export class PlayCanvasRenderer {
     this.#inventoryHud.visible = Boolean(
       this.#heroConfigurationStore.inventory.visible,
     );
-    this.#gameOverHud = new GameOverHud({
+    this.#scene = new GameOverScene({
       pc,
       app: this.#app,
       translate: this.#translate,
       theme: this.#uiTheme,
+      sceneObjects: this.#sceneObjects,
+      getViewport: () => this.viewport,
+      getCameraPosition: () => this.#camera?.getPosition() ?? null,
+      getCameraState: () => this.#cameraState,
+      setCameraState: (state) => this.#setCameraState(state),
+      clearCameraReturn: () => {
+        this.#heroCameraReturnTransition = null;
+        this.#orbitPivot = null;
+      },
+      updateCamera: () => this.#updateCamera(),
+      cameraPitch: CAMERA_PITCH,
+      mapFitZoom: MAP_FIT_ZOOM,
     });
-    this.#gameOverHud.attach();
 
     this.#camera = new pc.Entity("Isometric camera");
     this.#camera.addComponent("camera", {
@@ -506,7 +511,7 @@ export class PlayCanvasRenderer {
     );
     this.#mapData = mapData;
     this.#cameraPanBounds = new CameraPanBounds(mapData);
-    this.#gameOverReturnViewport = null;
+    this.#scene?.reset();
     this.#zoom = 1;
     this.#rotation = 0;
     this.#panX = 0;
@@ -514,8 +519,6 @@ export class PlayCanvasRenderer {
     this.#cameraTargetY = CAMERA_TARGET_HEIGHT;
     this.#viewportManuallyMoved = false;
     this.#heroCameraReturnTransition = null;
-    this.#gameOverCameraTransition = null;
-    this.#gameOverCameraLocked = false;
     this.#updateFitCenter();
     this.#panX = this.#fitCenterX;
     this.#panZ = this.#fitCenterZ;
@@ -583,7 +586,7 @@ export class PlayCanvasRenderer {
 
   get canPan() {
     return (
-      !this.#gameOverCameraLocked &&
+      !this.#cameraLocked &&
       (!this.#panLimitsEnabled || this.#zoom > MAP_FIT_ZOOM)
     );
   }
@@ -782,9 +785,7 @@ export class PlayCanvasRenderer {
   }
 
   get gameOverReturnViewport() {
-    return this.#gameOverReturnViewport
-      ? { ...this.#gameOverReturnViewport }
-      : this.viewport;
+    return this.#scene?.returnViewport ?? this.viewport;
   }
 
   dodgeHero(inputX, inputY, direction) {
@@ -902,7 +903,7 @@ export class PlayCanvasRenderer {
     panZ = 0,
     manuallyMoved = false,
   }) {
-    if (this.#gameOverCameraLocked) {
+    if (this.#cameraLocked) {
       return;
     }
     this.#heroCameraReturnTransition = null;
@@ -918,7 +919,7 @@ export class PlayCanvasRenderer {
   }
 
   zoomTo(newZoom, pivotX, pivotY) {
-    if (this.#gameOverCameraLocked) {
+    if (this.#cameraLocked) {
       return;
     }
     this.#heroCameraReturnTransition = null;
@@ -950,7 +951,7 @@ export class PlayCanvasRenderer {
   }
 
   panBy(deltaX, deltaY) {
-    if (this.#gameOverCameraLocked) {
+    if (this.#cameraLocked) {
       return;
     }
     this.#heroCameraReturnTransition = null;
@@ -971,7 +972,7 @@ export class PlayCanvasRenderer {
   }
 
   rotateBy(quarterTurns) {
-    if (this.#gameOverCameraLocked) {
+    if (this.#cameraLocked) {
       return this.#rotation;
     }
     this.#heroCameraReturnTransition = null;
@@ -1008,7 +1009,9 @@ export class PlayCanvasRenderer {
     this.#app.resizeCanvas(width, height);
     this.#fitCamera();
     this.#updateCamera();
-    if (!this.#gameOverCameraLocked) this.#heroVisibility?.schedule();
+    if (!this.#cameraLocked) {
+      this.#heroVisibility?.schedule();
+    }
   }
 
   get app() {
@@ -1041,8 +1044,8 @@ export class PlayCanvasRenderer {
     this.#coinHud = null;
     this.#inventoryHud?.destroy();
     this.#inventoryHud = null;
-    this.#gameOverHud?.destroy();
-    this.#gameOverHud = null;
+    this.#scene?.destroy();
+    this.#scene = null;
     this.#uiTheme = null;
     for (const material of this.#materials.values()) material.destroy();
     this.#materials.clear();
@@ -1498,7 +1501,7 @@ export class PlayCanvasRenderer {
       getRotation: () => this.#rotation,
       setRotation: (rotation) => {
         if (
-          this.#gameOverCameraLocked ||
+          this.#cameraLocked ||
           hero.isInDeathSequence ||
           (this.#orbitPivot && this.#viewportManuallyMoved)
         ) {
@@ -2217,7 +2220,7 @@ export class PlayCanvasRenderer {
     this.#updateThrownInventoryItems(deltaTime);
     this.#cloudField?.update(deltaTime);
     this.#updateHeroCameraReturn(deltaTime);
-    this.#updateGameOverCamera(deltaTime);
+    this.#scene?.update(deltaTime);
     this.#updateFloatingIslandMotion(deltaTime);
   }
 
@@ -2978,7 +2981,7 @@ export class PlayCanvasRenderer {
     );
     this.#buriedTreasure?.applyHeroPosition({ x, y, z });
     this.#updateInteractionTarget({ x, y, z });
-    if (this.#gameOverCameraLocked) {
+    if (this.#cameraLocked) {
       return;
     }
     const heroWorldPosition = hero.entity.getPosition();
@@ -3053,7 +3056,7 @@ export class PlayCanvasRenderer {
     const hero = this.#sceneObjects.getOne(SCENE_OBJECT_TYPE.HERO);
     if (
       this.#heroCameraReturnTransition ||
-      this.#gameOverCameraLocked ||
+      this.#cameraLocked ||
       (!allowAutomatic && !this.#viewportManuallyMoved) ||
       !hero ||
       !this.#camera
@@ -3096,7 +3099,7 @@ export class PlayCanvasRenderer {
     const hero = this.#sceneObjects.getOne(SCENE_OBJECT_TYPE.HERO);
     if (
       !transition ||
-      this.#gameOverCameraLocked ||
+      this.#cameraLocked ||
       !hero ||
       !this.#camera
     ) {
@@ -3134,101 +3137,44 @@ export class PlayCanvasRenderer {
     this.#lifeHud?.setLives(state.lives, state.maxLives);
     this.#coinHud?.setWallet(state.wallet);
     this.#inventoryHud?.setInventory(state.inventory);
-    if (this.#gameOverHud) {
-      this.#gameOverHud.visible = state.gameOver;
-    }
+    this.#scene?.syncHeroState?.(state);
     this.#onHeroStateChange?.(state);
-    const castle = this.#sceneObjects.getFirst(SCENE_OBJECT_TYPE.CASTLE);
-    if (!state.gameOver || !castle || !this.#camera) {
-      return;
-    }
-    const presentation = castle.beginGameOver(() =>
-      this.#camera?.getPosition(),
-    );
-    if (!presentation) {
-      return;
-    }
-    this.#gameOverReturnViewport = this.viewport;
-    this.#gameOverCameraLocked = true;
-    this.#heroCameraReturnTransition = null;
-    const { focus, visualSize, viewRotation } = presentation;
-    const rotationDelta =
-      ((((viewRotation - this.#rotation + 2) % 4) + 4) % 4) - 2;
-    this.#gameOverCameraTransition = {
-      elapsed: 0,
-      startRotation: this.#rotation,
-      rotationDelta,
-      startPanX: this.#panX,
-      startPanZ: this.#panZ,
-      endPanX: focus.x,
-      endPanZ: focus.z,
-      startTargetY: this.#cameraTargetY,
-      endTargetY: focus.y,
-      startZoom: this.#zoom,
-      endZoom: this.#getGameOverZoom(visualSize, viewRotation),
-    };
-    this.#viewportManuallyMoved = true;
-    castle.startGameOverPerformance();
   };
 
-  #updateGameOverCamera(deltaTime) {
-    const transition = this.#gameOverCameraTransition;
-    if (!transition) {
-      return;
-    }
-    transition.elapsed += Math.max(0, deltaTime);
-    const progress = Math.min(
-      1,
-      transition.elapsed / GAME_OVER_CAMERA_DURATION,
-    );
-    const easedProgress = progress * progress * (3 - 2 * progress);
-    this.#rotation =
-      transition.startRotation + transition.rotationDelta * easedProgress;
-    this.#panX =
-      transition.startPanX +
-      (transition.endPanX - transition.startPanX) * easedProgress;
-    this.#panZ =
-      transition.startPanZ +
-      (transition.endPanZ - transition.startPanZ) * easedProgress;
-    this.#cameraTargetY =
-      transition.startTargetY +
-      (transition.endTargetY - transition.startTargetY) * easedProgress;
-    this.#zoom =
-      transition.startZoom +
-      (transition.endZoom - transition.startZoom) * easedProgress;
-    this.#updateCamera();
-    if (progress < 1) {
-      return;
-    }
-    this.#rotation = ((this.#rotation % 4) + 4) % 4;
-    this.#gameOverCameraTransition = null;
-    this.#updateCamera();
+  get #cameraLocked() {
+    return this.#scene?.cameraLocked ?? false;
   }
 
-  #getGameOverZoom(visualSize, viewRotation) {
-    if (
-      !visualSize ||
-      !Number.isFinite(visualSize.x) ||
-      !Number.isFinite(visualSize.y) ||
-      !Number.isFinite(visualSize.z)
-    ) {
-      return GAME_OVER_FALLBACK_ZOOM;
+  get #cameraState() {
+    return {
+      rotation: this.#rotation,
+      panX: this.#panX,
+      panZ: this.#panZ,
+      targetY: this.#cameraTargetY,
+      zoom: this.#zoom,
+      baseOrthoHeight: this.#baseOrthoHeight,
+    };
+  }
+
+  #setCameraState(state) {
+    if (Number.isFinite(state.rotation)) {
+      this.#rotation = state.rotation;
     }
-    const yaw = Math.PI / 4 + viewRotation * (Math.PI / 2);
-    const horizontalDepth =
-      Math.abs(Math.sin(yaw)) * visualSize.x +
-      Math.abs(Math.cos(yaw)) * visualSize.z;
-    const projectedHeight =
-      visualSize.y * Math.cos(CAMERA_PITCH) +
-      horizontalDepth * Math.sin(CAMERA_PITCH);
-    if (projectedHeight <= 0.001) {
-      return GAME_OVER_FALLBACK_ZOOM;
+    if (Number.isFinite(state.panX)) {
+      this.#panX = state.panX;
     }
-    return Math.max(
-      MAP_FIT_ZOOM,
-      (2 * this.#baseOrthoHeight * GAME_OVER_ROYAL_VIEWPORT_HEIGHT) /
-        projectedHeight,
-    );
+    if (Number.isFinite(state.panZ)) {
+      this.#panZ = state.panZ;
+    }
+    if (Number.isFinite(state.targetY)) {
+      this.#cameraTargetY = state.targetY;
+    }
+    if (Number.isFinite(state.zoom)) {
+      this.#zoom = state.zoom;
+    }
+    if (Object.hasOwn(state, "viewportManuallyMoved")) {
+      this.#viewportManuallyMoved = Boolean(state.viewportManuallyMoved);
+    }
   }
 
   #updateCamera(panOrigin = null, preserveFocus = false) {
@@ -3240,7 +3186,11 @@ export class PlayCanvasRenderer {
       this.#panX = this.#fitCenterX;
       this.#panZ = this.#fitCenterZ;
     }
-    if (this.#panLimitsEnabled && !this.#gameOverCameraLocked && !preserveFocus) {
+    if (
+      this.#panLimitsEnabled &&
+      !this.#cameraLocked &&
+      !preserveFocus
+    ) {
       const constrainedPan = this.#cameraPanBounds?.constrain(
         this.#cameraView,
         panOrigin,
@@ -3290,7 +3240,7 @@ export class PlayCanvasRenderer {
   }
 
   #notifyViewportChange() {
-    if (this.#gameOverCameraLocked) {
+    if (this.#cameraLocked) {
       return;
     }
     const viewport = this.viewport;
