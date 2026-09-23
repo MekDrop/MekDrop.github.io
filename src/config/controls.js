@@ -48,11 +48,6 @@ export const DEFAULT_CONTROLS = Object.freeze({
   rotateAnticlockwise: {
     keys: ["KeyQ"],
   },
-  toggleRecording: {
-    keys: ["PrintScreen"],
-    ctrlKey: true,
-    allowRepeat: false,
-  },
   copyScreenshot: {
     keys: ["KeyS"],
     ctrlKey: true,

@@ -8,42 +8,57 @@ export class GameControls {
   #actions;
   #cameraDrag;
   #inventoryPointerId = null;
+  #keydownConsumeBindings;
   #keydownActions;
   #keyupActions;
 
-  constructor(element, actions) {
+  constructor(
+    element,
+    actions,
+    {
+      keydownActions = [],
+      keyupActions = [],
+      keydownConsumeBindings = [],
+    } = {},
+  ) {
     this.#element = element;
     this.#actions = actions;
     this.#cameraDrag = new CameraDrag(element, actions, this.#config());
+    this.#keydownConsumeBindings = keydownConsumeBindings;
     this.#keydownActions = new Map(
-      this.#entriesFor([
-        "copyScreenshot",
-        "regenerateMap",
-        "toggleInventory",
-        "closeModal",
-        "run",
-        "moveUp",
-        "moveDown",
-        "moveLeft",
-        "moveRight",
-        "jump",
-        "interact",
-        "zoomIn",
-        "zoomOut",
-        "rotateAnticlockwise",
-        "toggleArrows",
-      ]),
+      [
+        ...this.#entriesFor([
+          "copyScreenshot",
+          "regenerateMap",
+          "toggleInventory",
+          "closeModal",
+          "run",
+          "moveUp",
+          "moveDown",
+          "moveLeft",
+          "moveRight",
+          "jump",
+          "interact",
+          "zoomIn",
+          "zoomOut",
+          "rotateAnticlockwise",
+          "toggleArrows",
+        ]),
+        ...keydownActions.map(({ binding, action }) => [binding, action]),
+      ],
     );
     this.#keyupActions = new Map(
-      this.#entriesFor([
-        "toggleRecording",
-        "regenerateMap",
-        "run",
-        "moveUp",
-        "moveDown",
-        "moveLeft",
-        "moveRight",
-      ]),
+      [
+        ...this.#entriesFor([
+          "regenerateMap",
+          "run",
+          "moveUp",
+          "moveDown",
+          "moveLeft",
+          "moveRight",
+        ]),
+        ...keyupActions.map(({ binding, action }) => [binding, action]),
+      ],
     );
   }
 
@@ -126,8 +141,7 @@ export class GameControls {
       return;
     }
 
-    // Print Screen may only emit keyup on Windows. Toggle on release once.
-    if (this.#matchesKey(event, this.#config().toggleRecording)) {
+    if (this.#matchesAnyKey(event, this.#keydownConsumeBindings)) {
       this.#cancelKeyboardEvent(event);
       return;
     }
@@ -289,6 +303,10 @@ export class GameControls {
       }
     }
     return binding.allowRepeat !== false || !event.repeat;
+  }
+
+  #matchesAnyKey(event, bindings) {
+    return bindings.some((binding) => this.#matchesKey(event, binding));
   }
 
   #eventModifierKey(event) {

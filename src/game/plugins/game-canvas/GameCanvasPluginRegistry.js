@@ -13,6 +13,7 @@ export class GameCanvasPluginRegistry {
     loadMapRoute,
     mapRouteLoadPromise,
     setMapRouteLoadPromise,
+    registerControlAction,
   }) {
     this.#context = {
       target,
@@ -25,6 +26,7 @@ export class GameCanvasPluginRegistry {
       loadMapRoute,
       mapRouteLoadPromise,
       setMapRouteLoadPromise,
+      registerControlAction,
     };
   }
 

@@ -116,6 +116,22 @@ export class GroundCollisionWorld {
     return null;
   }
 
+  movementRepulsionFor(fromX, fromZ, toX, toZ, radius = 0) {
+    for (const collider of this.#colliders) {
+      const direction = collider.repulsionForMovement?.(
+        fromX,
+        fromZ,
+        toX,
+        toZ,
+        radius,
+      );
+      if (direction) {
+        return direction;
+      }
+    }
+    return null;
+  }
+
   #blockingDepthAt(x, z, radius, elevation, stepClearance) {
     let depth = 0;
     for (const collider of this.#colliders) {

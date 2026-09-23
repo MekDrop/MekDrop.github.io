@@ -1,13 +1,13 @@
 export class ToggleRecordingAction {
-  #renderer;
+  #recording;
   #onError;
 
-  constructor(renderer, onError) {
-    this.#renderer = renderer;
+  constructor(recording, onError) {
+    this.#recording = recording;
     this.#onError = onError;
   }
 
   invoke() {
-    void this.#renderer.toggleRecording().catch(this.#onError);
+    void this.#recording.toggleRecording().catch(this.#onError);
   }
 }

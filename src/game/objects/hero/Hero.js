@@ -311,7 +311,6 @@ export class Hero {
   #onPositionChange;
   #onFacingChange;
   #onStateChange;
-  #getGatewayRepulsion;
   #collisionWorld;
   #modelLibrary;
   #entity;
@@ -398,7 +397,6 @@ export class Hero {
     onStateChange,
     onInventoryFull,
     heroConfigurationStore,
-    getGatewayRepulsion,
     collisionWorld,
     modelLibrary,
   }) {
@@ -413,7 +411,6 @@ export class Hero {
     this.#onStateChange = onStateChange;
     this.#heroConfigurationStore = heroConfigurationStore;
     this.#onInventoryFull = onInventoryFull;
-    this.#getGatewayRepulsion = getGatewayRepulsion;
     this.#collisionWorld = collisionWorld;
     this.#modelLibrary = modelLibrary;
     this.#entity = new pc.Entity("Hero");
@@ -3615,7 +3612,7 @@ export class Hero {
     ) {
       return false;
     }
-    const direction = this.#getGatewayRepulsion?.(
+    const direction = this.#collisionWorld?.movementRepulsionFor(
       this.#position.x,
       this.#position.z,
       toX,

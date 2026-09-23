@@ -24,4 +24,20 @@ describe("ground collision world physics surfaces", () => {
     assert.equal(world.surfaceHeightAt(0, 0), null);
     assert.equal(world.physicsSurfaceHeightAt(0, 0), null);
   });
+
+  it("delegates movement repulsion to registered colliders", () => {
+    const world = new GroundCollisionWorld();
+    world.add({ repulsionForMovement: () => null });
+    world.add({
+      repulsionForMovement: (fromX, fromZ, toX, toZ, radius) => ({
+        x: toX - fromX + radius,
+        z: toZ - fromZ,
+      }),
+    });
+
+    assert.deepEqual(world.movementRepulsionFor(1, 2, 4, 6, 0.5), {
+      x: 3.5,
+      z: 4,
+    });
+  });
 });

@@ -1,4 +1,3 @@
-import { GameRecorder } from "./recording/GameRecorder.js";
 import castleFireParticleUrl from "src/assets/game/effects/castle-fire-particle.png?url";
 import earthSideUrl from "src/assets/game/tiles/earth-side.png";
 import grassSideUrl from "src/assets/game/tiles/grass-side.png";
@@ -46,6 +45,7 @@ import { isArray } from "./helpers/types.js";
 import { GRAPHICS_DRIVER } from "./enum/GraphicsDriver.js";
 import { INPUT_EVENT_TYPE } from "./enum/InputEventType.js";
 import { POINTER_TYPE } from "./enum/PointerType.js";
+import { SCENE_OBJECT_TYPE } from "./enum/SceneObjectType.js";
 import { SLOPE_DIRECTION } from "./enum/SlopeDirection.js";
 import { TILE_SHAPE } from "./enum/TileShape.js";
 import {
@@ -70,6 +70,7 @@ import { RoyalAnimationPreview } from "./debug/RoyalAnimationPreview.js";
 import { HeroAnimationPreview } from "./debug/HeroAnimationPreview.js";
 import { HeroAnimationSign } from "./debug/HeroAnimationSign.js";
 import { RoyalCastleTriggerField } from "./debug/RoyalCastleTriggerField.js";
+import { SceneObjectRegistry } from "./rendering/scene/SceneObjectRegistry.js";
 
 const FIXED_HEIGHTS = {
   [TileType.WATER]: 0,
@@ -218,13 +219,10 @@ export class PlayCanvasRenderer {
   #cameraPanBounds = null;
   #pathArrows = null;
   #bridgeRailingKit = null;
-  #gateways = [];
-  #castle = null;
-  #castles = [];
+  #sceneObjects = new SceneObjectRegistry();
   #royalCastleTriggerField = null;
   #royalAnimationPreview = null;
   #heroAnimationPreview = null;
-  #hero = null;
   #heroPatGesture = null;
   #heroPatHand = null;
   #onHeroMoodChange = null;
@@ -289,9 +287,6 @@ export class PlayCanvasRenderer {
   #translate = (key) => key;
   #uiTheme = null;
   #destroyed = false;
-  #recorder = null;
-  #onRecordingStateChange;
-  #onRecordingError;
   #onRuntimeError;
   #frameUpdateFailed = false;
 
@@ -299,8 +294,6 @@ export class PlayCanvasRenderer {
     canvas,
     container,
     {
-      onRecordingStateChange = null,
-      onRecordingError = null,
       onRuntimeError = null,
       onInteractionChange = null,
       onHeroStateChange = null,
@@ -315,8 +308,6 @@ export class PlayCanvasRenderer {
       enableDevWireframeInspector = false,
     } = {},
   ) {
-    this.#onRecordingStateChange = onRecordingStateChange;
-    this.#onRecordingError = onRecordingError;
     this.#onRuntimeError = onRuntimeError;
     this.canvas = canvas;
     this.container = container;
@@ -390,12 +381,6 @@ export class PlayCanvasRenderer {
     this.#cloudLayer = new pc.Layer({ name: "Cloud backdrop" });
     this.#app.scene.layers.insert(this.#cloudLayer, 0);
     this.#app.on("update", this.#updateFrame);
-    this.#recorder = new GameRecorder({
-      app: this.#app,
-      canvas: this.canvas,
-      onStateChange: this.#onRecordingStateChange,
-      onError: this.#onRecordingError,
-    });
     this.#modelLibrary = new GameModelLibrary({ pc, app: this.#app });
     this.#cubeMeshes = this.#createCubeMeshes();
     this.#pathArrows = new PathArrows({
@@ -673,33 +658,36 @@ export class PlayCanvasRenderer {
   }
 
   get heroState() {
-    if (!this.#hero) {
+    const hero = this.#sceneObjects.getOne(SCENE_OBJECT_TYPE.HERO);
+    if (!hero) {
       return null;
     }
     return {
-      position: this.#hero.position,
-      animation: this.#hero.animationState,
-      animationTransitioning: this.#hero.animationTransitioning,
-      grounded: this.#hero.grounded,
-      drowning: this.#hero.drowning,
-      burning: this.#hero.burning,
-      ashes: this.#hero.ashes,
-      respawning: this.#hero.isRespawning,
-      facing: this.#hero.facingDirection,
-      headLookYaw: this.#hero.headLookYaw,
-      mood: this.#hero.mood,
-      buffs: this.#hero.buffs,
-      stats: this.#hero.stats,
-      movement: this.#hero.movementState,
+      position: hero.position,
+      animation: hero.animationState,
+      animationTransitioning: hero.animationTransitioning,
+      grounded: hero.grounded,
+      drowning: hero.drowning,
+      burning: hero.burning,
+      ashes: hero.ashes,
+      respawning: hero.isRespawning,
+      facing: hero.facingDirection,
+      headLookYaw: hero.headLookYaw,
+      mood: hero.mood,
+      buffs: hero.buffs,
+      stats: hero.stats,
+      movement: hero.movementState,
       patScreenPosition: this.#heroPatScreenPosition(),
-      footPlacement: this.#hero.footPlacementState,
-      wallet: this.#hero.wallet,
+      footPlacement: hero.footPlacementState,
+      wallet: hero.wallet,
       inventory: this.inventoryState,
     };
   }
 
   get royalCastleStates() {
-    return this.#castles.map((castle) => castle.leisureState);
+    return this.#sceneObjects
+      .getAll(SCENE_OBJECT_TYPE.CASTLE)
+      .map((castle) => castle.leisureState);
   }
 
   get royalTriggerPhysicsState() {
@@ -707,8 +695,9 @@ export class PlayCanvasRenderer {
   }
 
   get inventoryState() {
+    const hero = this.#sceneObjects.getOne(SCENE_OBJECT_TYPE.HERO);
     return {
-      ...(this.#hero?.inventory ?? {
+      ...(hero?.inventory ?? {
         capacity: Hero.inventoryCapacity,
         items: [],
       }),
@@ -765,7 +754,8 @@ export class PlayCanvasRenderer {
   setGatewayColor(color, index = 0) {
     const paletteIndex = index % this.#gatewayColors.length;
     this.#gatewayColors[paletteIndex] = color;
-    this.#gateways[index]?.setColor(color);
+    const gateways = this.#sceneObjects.getAll(SCENE_OBJECT_TYPE.GATEWAY);
+    gateways[index]?.setColor(color);
     this.#pathArrows?.setColor(paletteIndex, color);
   }
 
@@ -774,7 +764,8 @@ export class PlayCanvasRenderer {
       return;
     }
     this.#gatewayColors = [...colors];
-    this.#gateways.forEach((gateway, index) => {
+    const gateways = this.#sceneObjects.getAll(SCENE_OBJECT_TYPE.GATEWAY);
+    gateways.forEach((gateway, index) => {
       const color = colors[index % colors.length];
       gateway.setColor(color);
     });
@@ -820,7 +811,8 @@ export class PlayCanvasRenderer {
   }
 
   setHeroMovement(inputX, inputY, running = false) {
-    this.#hero?.setMovement(inputX, inputY, running);
+    const hero = this.#sceneObjects.getOne(SCENE_OBJECT_TYPE.HERO);
+    hero?.setMovement(inputX, inputY, running);
     if (inputX === 0 && inputY === 0) {
       return false;
     }
@@ -828,8 +820,9 @@ export class PlayCanvasRenderer {
   }
 
   set heroFacingHoldDuration(duration) {
-    if (this.#hero) {
-      this.#hero.facingHoldDuration = duration;
+    const hero = this.#sceneObjects.getOne(SCENE_OBJECT_TYPE.HERO);
+    if (hero) {
+      hero.facingHoldDuration = duration;
     }
   }
 
@@ -838,11 +831,11 @@ export class PlayCanvasRenderer {
   }
 
   jumpHero() {
-    this.#hero?.jump();
+    this.#sceneObjects.getOne(SCENE_OBJECT_TYPE.HERO)?.jump();
   }
 
   isGameOver() {
-    return this.#hero?.isGameOver ?? false;
+    return this.#sceneObjects.getOne(SCENE_OBJECT_TYPE.HERO)?.isGameOver ?? false;
   }
 
   get gameOverReturnViewport() {
@@ -852,7 +845,8 @@ export class PlayCanvasRenderer {
   }
 
   dodgeHero(inputX, inputY, direction) {
-    return this.#hero?.dodge(inputX, inputY, direction) ?? false;
+    const hero = this.#sceneObjects.getOne(SCENE_OBJECT_TYPE.HERO);
+    return hero?.dodge(inputX, inputY, direction) ?? false;
   }
 
   interact() {
@@ -905,15 +899,16 @@ export class PlayCanvasRenderer {
     const inventoryItem = this.#heroConfigurationStore.inventory.items.find(
       (item) => item.slot === slot,
     );
-    if (!inventoryItem?.modelUrl || !this.#hero || !this.#mapRoot) {
+    const hero = this.#sceneObjects.getOne(SCENE_OBJECT_TYPE.HERO);
+    if (!inventoryItem?.modelUrl || !hero || !this.#mapRoot) {
       return null;
     }
     const thrownItem = new ThrownInventoryItem({
       pc: this.#pc,
       modelLibrary: this.#modelLibrary,
       item: inventoryItem,
-      position: this.#hero.position,
-      direction: this.#hero.facingDirection,
+      position: hero.position,
+      direction: hero.facingDirection,
     });
     const droppedItem =
       this.#heroConfigurationStore.dropInventoryItem(slot);
@@ -1075,8 +1070,8 @@ export class PlayCanvasRenderer {
     if (!this.#gameOverCameraLocked) this.#heroVisibility?.schedule();
   }
 
-  async toggleRecording() {
-    await this.#recorder?.toggle();
+  get app() {
+    return this.#app;
   }
 
   get canvasElement() {
@@ -1085,8 +1080,6 @@ export class PlayCanvasRenderer {
 
   destroy() {
     this.#destroyed = true;
-    this.#recorder?.destroy();
-    this.#recorder = null;
     this.#stopDebugStoreSubscription?.();
     this.#stopDebugStoreSubscription = null;
     if (this.#viewportSaveTimer !== null) {
@@ -1414,7 +1407,10 @@ export class PlayCanvasRenderer {
       ].filter(Boolean),
       zoom: this.#zoom,
       getImpressionContacts: () => [
-        ...(this.#hero?.grassFootContacts ?? []),
+        ...(
+          this.#sceneObjects.getOne(SCENE_OBJECT_TYPE.HERO)
+            ?.grassFootContacts ?? []
+        ),
         ...this.#thrownInventoryItems.flatMap(
           (item) => item.grassImpressionContacts,
         ),
@@ -1454,7 +1450,9 @@ export class PlayCanvasRenderer {
       this.#mapRoot.addChild(this.#heroAnimationPreview.entity);
     }
     this.#lifeHud?.setCastleLives(
-      this.#castle ? MAX_CASTLE_LIVES : 0,
+      this.#sceneObjects.getFirst(SCENE_OBJECT_TYPE.CASTLE)
+        ? MAX_CASTLE_LIVES
+        : 0,
       MAX_CASTLE_LIVES,
     );
     this.#buildGateways();
@@ -1473,14 +1471,16 @@ export class PlayCanvasRenderer {
 
   #captureCameraVisualBounds() {
     this.#mapRoot?.syncHierarchy();
+    const castles = this.#sceneObjects.getAll(SCENE_OBJECT_TYPE.CASTLE);
+    const gateways = this.#sceneObjects.getAll(SCENE_OBJECT_TYPE.GATEWAY);
     const roots = [
-      ...this.#castles.map((castle, index) => ({
+      ...castles.map((castle, index) => ({
         name: `castle-${index}`,
         protectAtPanLimit: true,
         centerReachableAtEveryZoom: true,
         root: castle.entity,
       })),
-      ...this.#gateways.map((gateway, index) => ({
+      ...gateways.map((gateway, index) => ({
         name: `gateway-${index}`,
         protectAtPanLimit: true,
         root: gateway.entity,
@@ -1519,7 +1519,7 @@ export class PlayCanvasRenderer {
     if (this.#mapData.heroAnimationPreview || this.#mapData.royalAnimationPreview) {
       return;
     }
-    this.#hero = new Hero({
+    const hero = new Hero({
       pc: this.#pc,
       app: this.#app,
       mapData: this.#mapData,
@@ -1530,23 +1530,23 @@ export class PlayCanvasRenderer {
       onStateChange: this.#handleHeroStateChange,
       onInventoryFull: this.#handleInventoryFull,
       heroConfigurationStore: this.#heroConfigurationStore,
-      getGatewayRepulsion: this.#getGatewayRepulsion,
       collisionWorld: this.#collisionWorld,
       modelLibrary: this.#modelLibrary,
     });
-    this.#mapRoot.addChild(this.#hero.entity);
+    this.#sceneObjects.setOne(SCENE_OBJECT_TYPE.HERO, hero);
+    this.#mapRoot.addChild(hero.entity);
     this.#heroPatHand = new HeroPatHand({
       pc: this.#pc,
       modelLibrary: this.#modelLibrary,
-      getPatPosition: () => this.#hero?.patPosition,
+      getPatPosition: () => hero.patPosition,
       getViewRotation: () => this.#rotation,
-      onContact: () => this.#hero?.pat(),
+      onContact: () => hero.pat(),
     });
     this.#mapRoot.addChild(this.#heroPatHand.entity);
     this.#heroPatGesture = new HeroPatGesture(this.canvas, {
       hitTest: (event) => this.#isHeroPatHit(event),
       pat: () => {
-        if (this.#hero?.canBePatted) {
+        if (hero.canBePatted) {
           this.#heroPatHand?.pat();
         }
       },
@@ -1556,11 +1556,12 @@ export class PlayCanvasRenderer {
       app: this.#app,
       canvas: this.canvas,
       camera: this.#camera.camera,
-      hero: this.#hero.entity,
+      hero: hero.entity,
       getRotation: () => this.#rotation,
       setRotation: (rotation) => {
         if (
-          this.#gameOverCameraLocked || this.#hero?.isInDeathSequence ||
+          this.#gameOverCameraLocked ||
+          hero.isInDeathSequence ||
           (this.#orbitPivot && this.#viewportManuallyMoved)
         ) {
           return;
@@ -1572,7 +1573,7 @@ export class PlayCanvasRenderer {
         if (this.#orbitPivot && this.#viewportManuallyMoved) {
           return true;
         }
-        const position = this.#hero?.position;
+        const position = hero.position;
         if (!position || !this.#pathOverpassCollider) {
           return false;
         }
@@ -1584,12 +1585,12 @@ export class PlayCanvasRenderer {
         );
       },
     });
-    this.#updateCastlesForHero(this.#hero.position);
+    this.#updateCastlesForHero(hero.position);
     this.#groundCover?.applyHeroInteraction(
-      this.#hero.position,
-      this.#hero.movementState,
+      hero.position,
+      hero.movementState,
     );
-    this.#buriedTreasure?.applyHeroPosition(this.#hero.position);
+    this.#buriedTreasure?.applyHeroPosition(hero.position);
   }
 
   #buildHeroPhysicsTerrain() {
@@ -1637,7 +1638,7 @@ export class PlayCanvasRenderer {
       mapData: this.#mapData,
       modelLibrary: this.#modelLibrary,
       onCollect: (item) =>
-        this.#hero?.collectInventoryItem(item) ?? false,
+        this.#sceneObjects.getOne(SCENE_OBJECT_TYPE.HERO)?.collectInventoryItem(item) ?? false,
       onCollectibleRemoved: (groundCover) =>
         this.#buriedTreasure?.removeGroundCover(groundCover),
     });
@@ -1651,7 +1652,7 @@ export class PlayCanvasRenderer {
       mapData: this.#mapData,
       modelLibrary: this.#modelLibrary,
       onCollectCoin: (type, amount) =>
-        this.#hero?.collectCoin(type, amount),
+        this.#sceneObjects.getOne(SCENE_OBJECT_TYPE.HERO)?.collectCoin(type, amount),
       onInteractionChange: () => this.#updateInteractionTarget(),
       onTerrainExcavated: (position, radius) =>
         this.#grassCarpet?.clearAt(position, radius),
@@ -1693,7 +1694,7 @@ export class PlayCanvasRenderer {
       gateway.entity.setPosition(x, groundHeight, z);
       if (entry.side === "RIGHT") gateway.entity.setEulerAngles(0, 180, 0);
       this.#mapRoot.addChild(gateway.entity);
-      this.#gateways.push(gateway);
+      this.#sceneObjects.add(SCENE_OBJECT_TYPE.GATEWAY, gateway);
     });
   }
 
@@ -1733,8 +1734,7 @@ export class PlayCanvasRenderer {
         fireParticleTexture: this.#castleFireParticleTexture,
         onRuntimeError: this.#onRuntimeError,
       });
-      this.#castles.push(builtCastle);
-      this.#castle ??= builtCastle;
+      this.#sceneObjects.add(SCENE_OBJECT_TYPE.CASTLE, builtCastle);
       this.#collisionWorld.add(builtCastle);
       this.#mapRoot.addChild(builtCastle.entity);
     }
@@ -1762,7 +1762,7 @@ export class PlayCanvasRenderer {
   #updateCastlesForHero(position) {
     this.#royalCastleTriggerField?.updateHeroPosition(position);
     const triggers = this.#mapData.royalCastleTriggers ?? [];
-    for (const [index, castle] of this.#castles.entries()) {
+    for (const [index, castle] of this.#sceneObjects.getAll(SCENE_OBJECT_TYPE.CASTLE).entries()) {
       castle.updateHeroPosition(position);
       const trigger = triggers.find((entry) =>
         entry.castleIndex === index || entry.castleIndexes?.includes(index));
@@ -2257,7 +2257,8 @@ export class PlayCanvasRenderer {
   };
 
   #updateRuntimeSystems(deltaTime) {
-    const mood = this.#hero?.mood;
+    const hero = this.#sceneObjects.getOne(SCENE_OBJECT_TYPE.HERO);
+    const mood = hero?.mood;
     if (mood && mood.kind !== HERO_MOOD.CALM) {
       this.#heroMoodVisible = true;
       this.#onHeroMoodChange?.({
@@ -2268,7 +2269,7 @@ export class PlayCanvasRenderer {
       this.#heroMoodVisible = false;
       this.#onHeroMoodChange?.(null);
     }
-    this.#riverWater?.update(deltaTime, this.#hero, this.#camera?.camera);
+    this.#riverWater?.update(deltaTime, hero, this.#camera?.camera);
     this.#heroPatHand?.update(deltaTime);
     this.#syncInventoryVisibility();
     this.#inventoryHud?.update(
@@ -2345,17 +2346,19 @@ export class PlayCanvasRenderer {
   };
 
   #inventoryFullIndicatorScreenPosition() {
-    if (!this.#hero || !this.#camera?.camera) {
+    const hero = this.#sceneObjects.getOne(SCENE_OBJECT_TYPE.HERO);
+    if (!hero || !this.#camera?.camera) {
       return null;
     }
-    const position = this.#hero.inventoryFullIndicatorPosition;
+    const position = hero.inventoryFullIndicatorPosition;
     return this.#camera.camera.worldToScreen(
       new this.#pc.Vec3(position.x, position.y, position.z),
     );
   }
 
   #heroPatScreenPosition() {
-    const position = this.#hero?.patPosition;
+    const hero = this.#sceneObjects.getOne(SCENE_OBJECT_TYPE.HERO);
+    const position = hero?.patPosition;
     if (!position || !this.#camera?.camera) {
       return null;
     }
@@ -2363,21 +2366,35 @@ export class PlayCanvasRenderer {
     const edge = this.#camera.camera.worldToScreen(
       position.clone().add(this.#camera.right.clone().mulScalar(0.42)),
     );
-    return { x: center.x, y: center.y, radius: Math.max(5, Math.abs(edge.x - center.x)) };
+    return {
+      x: center.x,
+      y: center.y,
+      radius: Math.max(5, Math.abs(edge.x - center.x)),
+    };
   }
 
   #isHeroPatHit(event) {
-    if (this.inventoryVisible || !this.#hero?.canBePatted) {
+    const hero = this.#sceneObjects.getOne(SCENE_OBJECT_TYPE.HERO);
+    if (this.inventoryVisible || !hero?.canBePatted) {
       return false;
     }
     const head = this.#heroPatScreenPosition();
     const rect = this.canvas.getBoundingClientRect();
-    if (!head || event.clientX < rect.left || event.clientX > rect.right
-      || event.clientY < rect.top || event.clientY > rect.bottom) {
+    if (
+      !head ||
+      event.clientX < rect.left ||
+      event.clientX > rect.right ||
+      event.clientY < rect.top ||
+      event.clientY > rect.bottom
+    ) {
       return false;
     }
-    return Math.hypot(event.clientX - rect.left - head.x,
-      (event.clientY - rect.top - head.y) / 0.85) <= head.radius;
+    return (
+      Math.hypot(
+        event.clientX - rect.left - head.x,
+        (event.clientY - rect.top - head.y) / 0.85,
+      ) <= head.radius
+    );
   }
 
   #updateThrownInventoryItems(deltaTime) {
@@ -3014,18 +3031,19 @@ export class PlayCanvasRenderer {
   }
 
   #handleHeroPositionChange = ({ x, y, z }) => {
+    const hero = this.#sceneObjects.getOne(SCENE_OBJECT_TYPE.HERO);
     this.#orbitPivot = null;
     this.#updateCastlesForHero({ x, y, z });
     this.#groundCover?.applyHeroInteraction(
       { x, y, z },
-      this.#hero?.movementState,
+      hero?.movementState,
     );
     this.#buriedTreasure?.applyHeroPosition({ x, y, z });
     this.#updateInteractionTarget({ x, y, z });
     if (this.#gameOverCameraLocked) {
       return;
     }
-    const heroWorldPosition = this.#hero.entity.getPosition();
+    const heroWorldPosition = hero.entity.getPosition();
     const screenPosition = this.#camera.camera.worldToScreen(
       new this.#pc.Vec3(
         heroWorldPosition.x,
@@ -3048,7 +3066,7 @@ export class PlayCanvasRenderer {
     const heroIsOutOfBounds =
       boundedX !== screenPosition.x || boundedY !== screenPosition.y;
 
-    if (this.#hero?.isRespawning) {
+    if (hero?.isRespawning) {
       if (heroIsOutOfBounds) {
         this.#startHeroCameraReturn(false, {
           allowAutomatic: true,
@@ -3060,7 +3078,7 @@ export class PlayCanvasRenderer {
       return;
     }
 
-    if (this.#hero?.isInDeathSequence) {
+    if (hero?.isInDeathSequence) {
       return;
     }
 
@@ -3094,16 +3112,17 @@ export class PlayCanvasRenderer {
       preserveFocus = false,
     } = {},
   ) {
+    const hero = this.#sceneObjects.getOne(SCENE_OBJECT_TYPE.HERO);
     if (
       this.#heroCameraReturnTransition ||
       this.#gameOverCameraLocked ||
       (!allowAutomatic && !this.#viewportManuallyMoved) ||
-      !this.#hero ||
+      !hero ||
       !this.#camera
     ) {
       return Boolean(this.#heroCameraReturnTransition);
     }
-    const heroWorldPosition = this.#hero.entity.getPosition();
+    const heroWorldPosition = hero.entity.getPosition();
     const screenPosition = this.#camera.camera.worldToScreen(
       new this.#pc.Vec3(
         heroWorldPosition.x,
@@ -3136,10 +3155,11 @@ export class PlayCanvasRenderer {
 
   #updateHeroCameraReturn(deltaTime) {
     const transition = this.#heroCameraReturnTransition;
+    const hero = this.#sceneObjects.getOne(SCENE_OBJECT_TYPE.HERO);
     if (
       !transition ||
       this.#gameOverCameraLocked ||
-      !this.#hero ||
+      !hero ||
       !this.#camera
     ) {
       return;
@@ -3150,7 +3170,7 @@ export class PlayCanvasRenderer {
       transition.elapsed / transition.duration,
     );
     const easedProgress = progress * progress * (3 - 2 * progress);
-    const heroWorldPosition = this.#hero.entity.getPosition();
+    const heroWorldPosition = hero.entity.getPosition();
     this.#panX =
       transition.startPanX +
       (heroWorldPosition.x - transition.startPanX) * easedProgress;
@@ -3166,7 +3186,8 @@ export class PlayCanvasRenderer {
   }
 
   #handleHeroFacingChange = () => {
-    if (!this.#hero?.isUsingTool && !this.#hero?.isCollecting) {
+    const hero = this.#sceneObjects.getOne(SCENE_OBJECT_TYPE.HERO);
+    if (!hero?.isUsingTool && !hero?.isCollecting) {
       this.#updateInteractionTarget();
     }
   };
@@ -3179,10 +3200,11 @@ export class PlayCanvasRenderer {
       this.#gameOverHud.visible = state.gameOver;
     }
     this.#onHeroStateChange?.(state);
-    if (!state.gameOver || !this.#castle || !this.#camera) {
+    const castle = this.#sceneObjects.getFirst(SCENE_OBJECT_TYPE.CASTLE);
+    if (!state.gameOver || !castle || !this.#camera) {
       return;
     }
-    const presentation = this.#castle.beginGameOver(() =>
+    const presentation = castle.beginGameOver(() =>
       this.#camera?.getPosition(),
     );
     if (!presentation) {
@@ -3208,7 +3230,7 @@ export class PlayCanvasRenderer {
       endZoom: this.#getGameOverZoom(visualSize, viewRotation),
     };
     this.#viewportManuallyMoved = true;
-    this.#castle.startGameOverPerformance();
+    castle.startGameOverPerformance();
   };
 
   #updateGameOverCamera(deltaTime) {
@@ -3270,22 +3292,6 @@ export class PlayCanvasRenderer {
         projectedHeight,
     );
   }
-
-  #getGatewayRepulsion = (fromX, fromZ, toX, toZ, radius) => {
-    for (const gateway of this.#gateways) {
-      const direction = gateway.repulsionForMovement(
-        fromX,
-        fromZ,
-        toX,
-        toZ,
-        radius,
-      );
-      if (direction) {
-        return direction;
-      }
-    }
-    return null;
-  };
 
   #updateCamera(panOrigin = null, preserveFocus = false) {
     if (!this.#camera || !this.#mapData) {
@@ -3506,12 +3512,12 @@ export class PlayCanvasRenderer {
     }
 
     let closest = null;
-    for (const gateway of this.#gateways) {
+    for (const gateway of this.#sceneObjects.getAll(SCENE_OBJECT_TYPE.GATEWAY)) {
       const hit = gateway.getBannerHit(ray.start, ray.end);
       if (!hit || (closest && hit.distance >= closest.hit.distance)) continue;
       closest = { kind: "wind", target: gateway, hit };
     }
-    for (const castle of this.#castles) {
+    for (const castle of this.#sceneObjects.getAll(SCENE_OBJECT_TYPE.CASTLE)) {
       const castleHit = castle.getBannerHit(ray.start, ray.end);
       if (castleHit && (!closest || castleHit.distance < closest.hit.distance)) {
         closest = { kind: "wind", target: castle, hit: castleHit };
@@ -3569,7 +3575,8 @@ export class PlayCanvasRenderer {
   };
 
   #updateHeroIdleLookTarget() {
-    if (!this.#heroLookPointer || !this.#hero) {
+    const hero = this.#sceneObjects.getOne(SCENE_OBJECT_TYPE.HERO);
+    if (!this.#heroLookPointer || !hero) {
       return;
     }
     const rect = this.canvas.getBoundingClientRect();
@@ -3590,11 +3597,11 @@ export class PlayCanvasRenderer {
     if (Math.abs(rayY) <= 0.000001) {
       return;
     }
-    const distance = (this.#hero.position.y - ray.start.y) / rayY;
+    const distance = (hero.position.y - ray.start.y) / rayY;
     if (distance < 0 || distance > 1) {
       return;
     }
-    this.#hero.idleLookTarget = {
+    hero.idleLookTarget = {
       x: ray.start.x + (ray.end.x - ray.start.x) * distance,
       z: ray.start.z + (ray.end.z - ray.start.z) * distance,
     };
@@ -3602,8 +3609,9 @@ export class PlayCanvasRenderer {
 
   #clearHeroIdleLookTarget() {
     this.#heroLookPointer = null;
-    if (this.#hero) {
-      this.#hero.idleLookTarget = null;
+    const hero = this.#sceneObjects.getOne(SCENE_OBJECT_TYPE.HERO);
+    if (hero) {
+      hero.idleLookTarget = null;
     }
   }
 
@@ -3629,22 +3637,23 @@ export class PlayCanvasRenderer {
   }
 
   #updateInteractionTarget() {
+    const hero = this.#sceneObjects.getOne(SCENE_OBJECT_TYPE.HERO);
     if (
-      !this.#hero ||
+      !hero ||
       this.inventoryVisible ||
-      this.#hero?.isCollecting ||
-      this.#hero?.isReacting
+      hero.isCollecting ||
+      hero.isReacting
     ) {
       this.#setInteractionTarget(null);
       return;
     }
-    if (this.#hero?.isUsingTool) {
+    if (hero.isUsingTool) {
       return;
     }
     let target = null;
     for (const provider of this.#interactionProviders) {
       const candidate = provider.findInteraction({
-        hero: this.#hero,
+        hero,
         onChange: this.#refreshInteractionTarget,
         onComplete: this.#completeInteraction,
       });
@@ -3688,13 +3697,8 @@ export class PlayCanvasRenderer {
     this.#onHeroMoodChange?.(null);
     this.#finishBannerWindGesture();
     this.#pathArrows?.clear();
-    for (const gateway of this.#gateways) gateway.destroy();
-    this.#gateways = [];
-    for (const castle of this.#castles) {
-      castle.destroy();
-    }
-    this.#castles = [];
-    this.#castle = null;
+    this.#sceneObjects.destroyType(SCENE_OBJECT_TYPE.GATEWAY);
+    this.#sceneObjects.destroyType(SCENE_OBJECT_TYPE.CASTLE);
     this.#royalCastleTriggerField?.destroy();
     this.#royalCastleTriggerField = null;
     this.#royalAnimationPreview?.destroy();
@@ -3718,8 +3722,7 @@ export class PlayCanvasRenderer {
       thrownItem.destroy();
     }
     this.#thrownInventoryItems = [];
-    this.#hero?.destroy();
-    this.#hero = null;
+    this.#sceneObjects.destroyType(SCENE_OBJECT_TYPE.HERO);
     this.#heroPhysicsTerrain?.destroy();
     this.#heroPhysicsTerrain = null;
     this.#vegetation?.destroy();

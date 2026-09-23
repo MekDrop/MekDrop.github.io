@@ -188,7 +188,7 @@ import {
   onMounted,
   onBeforeUnmount,
 } from "vue";
-import { getCssVar, Notify } from "quasar";
+import { getCssVar } from "quasar";
 import { useI18n } from "vue-i18n";
 import { useRoute, useRouter } from "vue-router";
 import SiteNoticeDialog from "components/SiteNoticeDialog.vue";
@@ -198,9 +198,7 @@ import { PlayCanvasRenderer } from "src/game/PlayCanvasRenderer.js";
 import { GameControls } from "src/game/GameControls.js";
 import { createGameCommandRegistry } from "src/game/commands/index.js";
 import { CloseModalAction } from "src/actions/CloseModalAction.js";
-import { ToggleRecordingAction } from "src/game/actions/ToggleRecordingAction.js";
 import { GAME_RECORDING_STATE } from "src/game/enum/GameRecordingState.js";
-import { RecordingVideoEncoderUnavailableError } from "src/game/errors/recording/index.js";
 import { CopyScreenshotAction } from "src/game/actions/CopyScreenshotAction.js";
 import { HeroDirectionAction } from "src/game/actions/HeroDirectionAction.js";
 import { HeroJumpAction } from "src/game/actions/HeroJumpAction.js";
@@ -218,7 +216,10 @@ import {
   DEVELOPMENT_MAX_ZOOM,
 } from "src/game/config/controls.js";
 import { InteractionSuggestion } from "src/game/interaction/InteractionSuggestion.js";
-import { GameCanvasPluginRegistry } from "src/game/plugins/game-canvas/index.js";
+import {
+  GameCanvasPluginRegistry,
+  GameCanvasRecordingPlugin,
+} from "src/game/plugins/game-canvas/index.js";
 import { reportGlobalException } from "src/boot/runtime-errors.js";
 import { useDebugStore } from "src/stores/debug-store.js";
 import { useGraphicsSettingsStore } from "src/stores/graphics-settings-store.js";
@@ -266,6 +267,13 @@ let mapRouteLoadPromise = Promise.resolve();
 let interactionSuggestion = null;
 let gameCommandRegistry = null;
 let movementTestDriverPluginLoaded = false;
+let stopRecordingStateWatch = null;
+const pluginControlActions = {};
+const pluginControlKeyboard = {
+  keydownActions: [],
+  keyupActions: [],
+  keydownConsumeBindings: [],
+};
 const gameCanvasPluginRegistry = new GameCanvasPluginRegistry({
   target: globalThis,
   container: () => container.value,
@@ -279,21 +287,49 @@ const gameCanvasPluginRegistry = new GameCanvasPluginRegistry({
   setMapRouteLoadPromise: (promise) => {
     mapRouteLoadPromise = promise;
   },
+  registerControlAction,
 });
 
 function reportRuntimeError(error) {
   reportGlobalException(error, { context: "Game" });
 }
 
-function reportRecordingError(error) {
-  console.error("[GameCanvas] Recording failed.", error);
-  Notify.create({
-    type: "negative",
-    position: "bottom-right",
-    message: t(error instanceof RecordingVideoEncoderUnavailableError
-      ? "game.recording.unsupported" : "game.recording.failed"),
-    timeout: 6000,
-  });
+function addPluginControlEntry(listName, entry) {
+  if (!pluginControlKeyboard[listName].includes(entry)) {
+    pluginControlKeyboard[listName].push(entry);
+  }
+}
+
+function removePluginControlEntry(listName, entry) {
+  pluginControlKeyboard[listName] = pluginControlKeyboard[listName].filter(
+    (registeredEntry) => registeredEntry !== entry,
+  );
+}
+
+function registerControlAction(
+  name,
+  action,
+  { binding, keydown = false, keyup = false, consumeKeydown = false } = {},
+) {
+  pluginControlActions[name] = action;
+  const entry = { binding, action };
+  if (keydown) {
+    addPluginControlEntry("keydownActions", entry);
+  }
+  if (keyup) {
+    addPluginControlEntry("keyupActions", entry);
+  }
+  if (consumeKeydown) {
+    addPluginControlEntry("keydownConsumeBindings", binding);
+  }
+  return () => {
+    if (pluginControlActions[name] === action) {
+      delete pluginControlActions[name];
+    }
+    removePluginControlEntry("keydownActions", entry);
+    removePluginControlEntry("keyupActions", entry);
+    removePluginControlEntry("keydownConsumeBindings", binding);
+  };
 }
 
 function gameUiTheme() {
@@ -425,10 +461,6 @@ async function init() {
   });
 
   const activeRenderer = new PlayCanvasRenderer(canvas.value, container.value, {
-    onRecordingStateChange: (state) => {
-      recordingState.value = state;
-    },
-    onRecordingError: reportRecordingError,
     onRuntimeError: reportRuntimeError,
     onInteractionChange: (target) => {
       interactionSuggestion?.update(target);
@@ -468,6 +500,12 @@ async function init() {
     return;
   }
   await updateCameraTestDriverPlugin();
+  const recordingPlugin = gameCanvasPluginRegistry.load(
+    GameCanvasRecordingPlugin,
+  );
+  stopRecordingStateWatch = recordingPlugin.onStateChange((state) => {
+    recordingState.value = state;
+  });
   updateDebugStats();
 
   const regenerateMapAction = new RegenerateMapAction(
@@ -532,15 +570,15 @@ async function init() {
     rotateView: rotateViewAction,
     rotateAnticlockwise: rotateViewAction,
     copyScreenshot: new CopyScreenshotAction(renderer),
-    toggleRecording: new ToggleRecordingAction(renderer, reportRecordingError),
     toggleArrows: new ToggleArrowsAction(
       debugStore,
       undefined,
       () => !renderer.inventoryVisible,
     ),
+    ...pluginControlActions,
   };
 
-  controls = new GameControls(container.value, actions);
+  controls = new GameControls(container.value, actions, pluginControlKeyboard);
   controls.connect();
 
   resizeObserver = new ResizeObserver(() => renderer?.resize());
@@ -573,6 +611,8 @@ onMounted(() => {
 onBeforeUnmount(() => {
   mapNavigationId += 1;
   gameReady.value = false;
+  stopRecordingStateWatch?.();
+  stopRecordingStateWatch = null;
   gameCanvasPluginRegistry.destroy();
   movementTestDriverPluginLoaded = false;
   gameCommandRegistry?.destroy();
