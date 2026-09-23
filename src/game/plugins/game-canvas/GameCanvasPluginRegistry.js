@@ -14,6 +14,9 @@ export class GameCanvasPluginRegistry {
     mapRouteLoadPromise,
     setMapRouteLoadPromise,
     registerControlAction,
+    debugStore,
+    uiTheme,
+    setDebugFramesPerSecond,
   }) {
     this.#context = {
       target,
@@ -27,6 +30,9 @@ export class GameCanvasPluginRegistry {
       mapRouteLoadPromise,
       setMapRouteLoadPromise,
       registerControlAction,
+      debugStore,
+      uiTheme,
+      setDebugFramesPerSecond,
     };
   }
 
@@ -60,6 +66,12 @@ export class GameCanvasPluginRegistry {
   destroy() {
     for (const PluginClass of [...this.#plugins.keys()]) {
       this.unload(PluginClass);
+    }
+  }
+
+  resize() {
+    for (const plugin of this.#plugins.values()) {
+      plugin.resize?.();
     }
   }
 }

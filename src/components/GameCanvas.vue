@@ -217,6 +217,7 @@ import {
 } from "src/game/config/controls.js";
 import { InteractionSuggestion } from "src/game/interaction/InteractionSuggestion.js";
 import {
+  GameCanvasDebugUiPlugin,
   GameCanvasPluginRegistry,
   GameCanvasRecordingPlugin,
 } from "src/game/plugins/game-canvas/index.js";
@@ -258,7 +259,6 @@ let renderer = null;
 let mapData = null;
 let controls = null;
 let resizeObserver = null;
-let debugStatsTimer = null;
 let stopMapRouteWatch = null;
 let restartGameAction = null;
 let mapFileLoader = null;
@@ -288,6 +288,11 @@ const gameCanvasPluginRegistry = new GameCanvasPluginRegistry({
     mapRouteLoadPromise = promise;
   },
   registerControlAction,
+  debugStore,
+  uiTheme: gameUiTheme,
+  setDebugFramesPerSecond: (framesPerSecond) => {
+    debugFramesPerSecond.value = framesPerSecond;
+  },
 });
 
 function reportRuntimeError(error) {
@@ -447,10 +452,6 @@ async function loadMapRoute(mapName) {
   }
 }
 
-function updateDebugStats() {
-  debugFramesPerSecond.value = renderer?.framesPerSecond ?? 0;
-}
-
 async function init() {
   const bindings = DEFAULT_CONTROLS;
   const zoomSettings = import.meta.env.DEV
@@ -500,13 +501,13 @@ async function init() {
     return;
   }
   await updateCameraTestDriverPlugin();
+  gameCanvasPluginRegistry.load(GameCanvasDebugUiPlugin);
   const recordingPlugin = gameCanvasPluginRegistry.load(
     GameCanvasRecordingPlugin,
   );
   stopRecordingStateWatch = recordingPlugin.onStateChange((state) => {
     recordingState.value = state;
   });
-  updateDebugStats();
 
   const regenerateMapAction = new RegenerateMapAction(
     renderer,
@@ -581,7 +582,10 @@ async function init() {
   controls = new GameControls(container.value, actions, pluginControlKeyboard);
   controls.connect();
 
-  resizeObserver = new ResizeObserver(() => renderer?.resize());
+  resizeObserver = new ResizeObserver(() => {
+    renderer?.resize();
+    gameCanvasPluginRegistry.resize();
+  });
   resizeObserver.observe(container.value);
   stopMapRouteWatch = watch(
     () => route.params.mapName,
@@ -595,9 +599,6 @@ async function init() {
       void mapRouteLoadPromise.catch(reportRuntimeError);
     },
   );
-  debugStatsTimer = window.setInterval(() => {
-    if (debugVisible.value) updateDebugStats();
-  }, 100);
   showGraphicsFallbackDialog.value = graphicsBackend.value === "webgl2";
   gameCommandRegistry = createGameCommandRegistry({ target: window });
   gameCommandRegistry.install();
@@ -620,7 +621,6 @@ onBeforeUnmount(() => {
   controls?.disconnect();
   stopMapRouteWatch?.();
   resizeObserver?.disconnect();
-  if (debugStatsTimer !== null) window.clearInterval(debugStatsTimer);
   const rendererToDestroy = renderer;
   renderer = null;
   try {

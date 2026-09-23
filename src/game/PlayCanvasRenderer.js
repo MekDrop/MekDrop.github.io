@@ -56,8 +56,6 @@ import { GameModelLibrary } from "./models/index.js";
 import { CameraPanBounds, HeroVisibilityController } from "./camera/index.js";
 import { CameraOrbitPivot } from "./camera/CameraOrbitPivot.js";
 import {
-  DebugAxesHud,
-  DebugFpsHud,
   GameOverHud,
   GameUiTheme,
   HeroLifeHud,
@@ -226,8 +224,6 @@ export class PlayCanvasRenderer {
   #heroPatHand = null;
   #onHeroMoodChange = null;
   #heroMoodVisible = false;
-  #debugAxesHud = null;
-  #debugFpsHud = null;
   #lifeHud = null;
   #coinHud = null;
   #inventoryHud = null;
@@ -252,8 +248,6 @@ export class PlayCanvasRenderer {
   #interactionProviders = [];
   #cloudField = null;
   #pathArrowsVisible = false;
-  #debugAxesHudVisible = false;
-  #debugFpsHudVisible = false;
   #collisionWorld = new GroundCollisionWorld();
   #heroPhysicsTerrain = null;
   #pathOverpassCollider = null;
@@ -391,19 +385,6 @@ export class PlayCanvasRenderer {
       app: this.#app,
       colors: this.#gatewayColors,
     });
-    this.#debugFpsHud = new DebugFpsHud({
-      pc,
-      app: this.#app,
-      theme: this.#uiTheme,
-    });
-    this.#debugFpsHud.attach();
-    this.#debugAxesHud = new DebugAxesHud({
-      pc,
-      app: this.#app,
-      gameCanvas: this,
-      theme: this.#uiTheme,
-    });
-    this.#debugAxesHud.attach();
     this.#lifeHud = new HeroLifeHud({
       pc,
       app: this.#app,
@@ -575,8 +556,6 @@ export class PlayCanvasRenderer {
 
   #applyDebugSettings() {
     this.pathArrowsVisible = this.#debugStore.pathArrows;
-    this.debugAxesHudVisible = this.#debugStore.debugAxesHud;
-    this.debugFpsHudVisible = this.#debugStore.debugFpsHud;
     this.panLimitsEnabled = !this.#debugStore.hasAny;
     if (this.#debugStore.hasAny) {
       this.#devWireframeInspector?.connect();
@@ -596,41 +575,12 @@ export class PlayCanvasRenderer {
     return this.#pathArrowsVisible;
   }
 
-  set debugAxesHudVisible(visible) {
-    this.#debugAxesHudVisible = Boolean(visible);
-    if (this.#debugAxesHud) {
-      this.#debugAxesHud.visible = this.#debugAxesHudVisible;
-    }
-  }
-
-  get debugAxesHudVisible() {
-    return this.#debugAxesHudVisible;
-  }
-
-  set debugFpsHudVisible(visible) {
-    this.#debugFpsHudVisible = Boolean(visible);
-    if (this.#debugFpsHud) {
-      this.#debugFpsHud.visible = this.#debugFpsHudVisible;
-    }
-  }
-
-  get debugFpsHudVisible() {
-    return this.#debugFpsHudVisible;
-  }
-
   set arrowsVisible(visible) {
-    const nextVisible = Boolean(visible);
-    this.pathArrowsVisible = nextVisible;
-    this.debugAxesHudVisible = nextVisible;
-    this.debugFpsHudVisible = nextVisible;
+    this.pathArrowsVisible = visible;
   }
 
   get arrowsVisible() {
-    return (
-      this.#pathArrowsVisible ||
-      this.#debugAxesHudVisible ||
-      this.#debugFpsHudVisible
-    );
+    return this.#pathArrowsVisible;
   }
 
   get zoom() {
@@ -654,10 +604,6 @@ export class PlayCanvasRenderer {
 
   get graphicsBackend() {
     return this.#app?.graphicsDevice?.deviceType ?? null;
-  }
-
-  get framesPerSecond() {
-    return this.#debugFpsHud?.framesPerSecond ?? 0;
   }
 
   get heroState() {
@@ -1066,8 +1012,6 @@ export class PlayCanvasRenderer {
     const width = Math.max(1, this.container.clientWidth);
     const height = Math.max(1, this.container.clientHeight);
     this.#app.resizeCanvas(width, height);
-    this.#debugAxesHud?.resize(width, height);
-    this.#debugFpsHud?.resize(width, height);
     this.#fitCamera();
     this.#updateCamera();
     if (!this.#gameOverCameraLocked) this.#heroVisibility?.schedule();
@@ -1075,6 +1019,10 @@ export class PlayCanvasRenderer {
 
   get app() {
     return this.#app;
+  }
+
+  get playCanvas() {
+    return this.#pc;
   }
 
   get canvasElement() {
@@ -1096,10 +1044,6 @@ export class PlayCanvasRenderer {
     this.#clearScene();
     this.#pathArrows?.destroy();
     this.#pathArrows = null;
-    this.#debugAxesHud?.destroy();
-    this.#debugAxesHud = null;
-    this.#debugFpsHud?.destroy();
-    this.#debugFpsHud = null;
     this.#lifeHud?.destroy();
     this.#lifeHud = null;
     this.#coinHud?.destroy();
