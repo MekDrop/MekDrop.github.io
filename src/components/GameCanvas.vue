@@ -218,6 +218,7 @@ import {
   DEVELOPMENT_MAX_ZOOM,
 } from "src/game/config/controls.js";
 import { InteractionSuggestion } from "src/game/interaction/InteractionSuggestion.js";
+import { GameCanvasPluginRegistry } from "src/game/plugins/game-canvas/index.js";
 import { reportGlobalException } from "src/boot/runtime-errors.js";
 import { useDebugStore } from "src/stores/debug-store.js";
 import { useGraphicsSettingsStore } from "src/stores/graphics-settings-store.js";
@@ -264,6 +265,21 @@ let mapNavigationId = 0;
 let mapRouteLoadPromise = Promise.resolve();
 let interactionSuggestion = null;
 let gameCommandRegistry = null;
+let movementTestDriverPluginLoaded = false;
+const gameCanvasPluginRegistry = new GameCanvasPluginRegistry({
+  target: globalThis,
+  container: () => container.value,
+  renderer: () => renderer,
+  route: () => route,
+  router,
+  nextTick,
+  mapRouteLocation,
+  loadMapRoute,
+  mapRouteLoadPromise: () => mapRouteLoadPromise,
+  setMapRouteLoadPromise: (promise) => {
+    mapRouteLoadPromise = promise;
+  },
+});
 
 function reportRuntimeError(error) {
   reportGlobalException(error, { context: "Game" });
@@ -338,12 +354,44 @@ function mapRouteLocation(mapName) {
   };
 }
 
-function updateCurrentMap(generatedMap) {
+async function updateMovementTestDriverPlugin() {
+  if (!import.meta.env.DEV || typeof window === "undefined") {
+    return;
+  }
+  if (!mapFileLoader && !movementTestDriverPluginLoaded) {
+    return;
+  }
+
+  const { GameCanvasMovementTestDriverPlugin } = await import(
+    "src/game/plugins/game-canvas/GameCanvasMovementTestDriverPlugin.js"
+  );
+  if (!mapFileLoader) {
+    gameCanvasPluginRegistry.unload(GameCanvasMovementTestDriverPlugin);
+    movementTestDriverPluginLoaded = false;
+    return;
+  }
+
+  gameCanvasPluginRegistry.load(GameCanvasMovementTestDriverPlugin);
+  movementTestDriverPluginLoaded = true;
+}
+
+async function updateCameraTestDriverPlugin() {
+  if (!cameraTestRequested()) {
+    return;
+  }
+
+  const { GameCanvasCameraTestDriverPlugin } = await import(
+    "src/game/plugins/game-canvas/GameCanvasCameraTestDriverPlugin.js"
+  );
+  gameCanvasPluginRegistry.load(GameCanvasCameraTestDriverPlugin);
+}
+
+async function updateCurrentMap(generatedMap) {
   mapData = generatedMap;
   currentMapName.value = generatedMap.mapName;
   interactionPromptsVisible.value =
     !generatedMap.heroAnimationPreview && !generatedMap.royalAnimationPreview;
-  installMovementTestDriver();
+  await updateMovementTestDriverPlugin();
 }
 
 async function loadMapRoute(mapName) {
@@ -356,108 +404,11 @@ async function loadMapRoute(mapName) {
   const viewport = renderer.viewport;
   renderer.render(generatedMap);
   renderer.setViewport(viewport);
-  updateCurrentMap(generatedMap);
+  await updateCurrentMap(generatedMap);
 
   if (!mapName) {
     await router.replace(mapRouteLocation(generatedMap.mapName));
   }
-}
-
-function installMovementTestDriver() {
-  if (!mapFileLoader) {
-    delete window.gameMovementTest;
-    return;
-  }
-  window.gameMovementTest = {
-    async loadScenario(scenario) {
-      const mapName = scenario.startsWith("test_")
-        ? scenario
-        : `test_${scenario}`;
-      const reloadCurrentRoute =
-        route.name === "map" && route.params.mapName === mapName;
-      await router.push(mapRouteLocation(mapName));
-      await nextTick();
-      if (reloadCurrentRoute) {
-        mapRouteLoadPromise = loadMapRoute(mapName);
-      }
-      await mapRouteLoadPromise;
-      return renderer.heroState;
-    },
-    moveForward(active = true) {
-      renderer.setHeroMovement(0, active ? -1 : 0);
-    },
-    move(inputX, inputY, running = false) {
-      renderer.setHeroMovement(inputX, inputY, running);
-    },
-    jump() {
-      renderer.jumpHero();
-    },
-    dodge(inputX, inputY, direction = "forward") {
-      return renderer.dodgeHero(inputX, inputY, direction);
-    },
-    interact() {
-      return renderer.interact();
-    },
-    royalCastles() {
-      return renderer.royalCastleStates;
-    },
-    royalTriggerPhysics() {
-      return renderer.royalTriggerPhysicsState;
-    },
-    droppedInventoryItemCount() {
-      return renderer.thrownInventoryItemCount;
-    },
-    inventoryFullReactionVisible() {
-      return renderer.inventoryFullReactionVisible;
-    },
-    state() {
-      return renderer.heroState;
-    },
-  };
-}
-
-function installCameraTestDriver() {
-  if (!cameraTestRequested()) {
-    return;
-  }
-  window.gameCameraTest = {
-    setZoom(zoom) {
-      renderer.setViewport({ zoom: 1 });
-      renderer.zoomTo(
-        zoom,
-        container.value.clientWidth / 2,
-        container.value.clientHeight / 2,
-      );
-      return this.state();
-    },
-    setRotation(rotation) {
-      renderer.setViewport({
-        ...renderer.viewport,
-        rotation,
-      });
-      return this.state();
-    },
-    panBy(deltaX, deltaY) {
-      renderer.panBy(deltaX, deltaY);
-      return this.state();
-    },
-    moveHero(inputX, inputY, running = false) {
-      return renderer.setHeroMovement(inputX, inputY, running);
-    },
-    returnToHero() {
-      return renderer.returnCameraToHero();
-    },
-    state() {
-      return {
-        cameraReturningToHero: renderer.cameraReturningToHero,
-        hero: renderer.heroState,
-        royalCastles: renderer.royalCastleStates,
-        panLimitsEnabled: renderer.panLimitsEnabled,
-        viewport: renderer.viewport,
-        visibility: renderer.mapVisibility,
-      };
-    },
-  };
 }
 
 function updateDebugStats() {
@@ -509,21 +460,21 @@ async function init() {
     return;
   }
   activeRenderer.render(mapData);
-  updateCurrentMap(mapData);
+  await updateCurrentMap(mapData);
   if (!requestedMapName()) {
     await router.replace(mapRouteLocation(mapData.mapName));
   }
   if (renderer !== activeRenderer) {
     return;
   }
-  installCameraTestDriver();
+  await updateCameraTestDriverPlugin();
   updateDebugStats();
 
   const regenerateMapAction = new RegenerateMapAction(
     renderer,
     generateMap,
     (generatedMap) => {
-      updateCurrentMap(generatedMap);
+      void updateCurrentMap(generatedMap).catch(reportRuntimeError);
       void router.push(mapRouteLocation(generatedMap.mapName));
     },
   );
@@ -622,10 +573,8 @@ onMounted(() => {
 onBeforeUnmount(() => {
   mapNavigationId += 1;
   gameReady.value = false;
-  if (typeof window !== "undefined") {
-    delete window.gameMovementTest;
-    delete window.gameCameraTest;
-  }
+  gameCanvasPluginRegistry.destroy();
+  movementTestDriverPluginLoaded = false;
   gameCommandRegistry?.destroy();
   gameCommandRegistry = null;
   controls?.disconnect();
