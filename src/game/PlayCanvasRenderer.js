@@ -43,10 +43,8 @@ import { isArray } from "./helpers/types.js";
 import { GRAPHICS_DRIVER } from "./enum/GraphicsDriver.js";
 import { SCENE_OBJECT_TYPE } from "./enum/SceneObjectType.js";
 import { SLOPE_DIRECTION } from "./enum/SlopeDirection.js";
-import { TILE_SHAPE } from "./enum/TileShape.js";
 import {
   GroundCollisionWorld,
-  HeroPhysicsTerrain,
   PathOverpassCollider,
 } from "./collision/index.js";
 import { GameModelLibrary } from "./models/index.js";
@@ -65,11 +63,13 @@ import { HeroAnimationSign } from "./debug/HeroAnimationSign.js";
 import { RoyalCastleTriggerField } from "./debug/RoyalCastleTriggerField.js";
 import { GameOverScene } from "./rendering/scene/GameOverScene.js";
 import { SceneObjectRegistry } from "./rendering/scene/SceneObjectRegistry.js";
-
-const FIXED_HEIGHTS = {
-  [TileType.WATER]: 0,
-};
-const GRASS_SURFACE_TILES = new Set([TileType.GRASS]);
+import { TerrainRenderer } from "./rendering/terrain/TerrainRenderer.js";
+import {
+  CUBE_SCALE,
+  FIXED_HEIGHTS,
+  SURFACE_ELEVATION_BIAS,
+  SURFACE_MATERIALS,
+} from "./rendering/terrain/TerrainMaterialMaps.js";
 
 const TEXTURE_URLS = {
   grass: grassTopUrl,
@@ -154,22 +154,6 @@ const OVERPASS_EARTH_SIDE_TRANSFORMS = SIDE_VARIANT_TRANSFORMS.map(
 
 const GRASS_TOP_VARIANTS = [{ color: 0xffffff }];
 
-const SURFACE_MATERIALS = {
-  [TileType.GRASS]: "grass",
-  [TileType.PATH]: "path",
-  [TileType.WATER]: "water",
-  [TileType.ENTRY]: "path",
-};
-
-const SIDE_MATERIALS = {
-  [TileType.GRASS]: "grassSide",
-  [TileType.PATH]: "pathSide",
-  [TileType.WATER]: "waterSide",
-  [TileType.ENTRY]: "pathSide",
-};
-
-const CUBE_SCALE = 1;
-const SURFACE_ELEVATION_BIAS = 0.0002;
 const CAMERA_PITCH = Math.atan(1 / Math.sqrt(2));
 const CAMERA_DISTANCE = 80;
 const SHADOW_DISTANCE = 150;
@@ -240,7 +224,7 @@ export class PlayCanvasRenderer {
   #cloudField = null;
   #pathArrowsVisible = false;
   #collisionWorld = new GroundCollisionWorld();
-  #heroPhysicsTerrain = null;
+  #terrainRenderer = null;
   #pathOverpassCollider = null;
   #modelLibrary = null;
   #gatewayColors = [...GATEWAY_COLORS];
@@ -1298,11 +1282,28 @@ export class PlayCanvasRenderer {
       materials: this.#materials,
       root: this.#mapRoot,
     });
+    this.#terrainRenderer = new TerrainRenderer({
+      pc: this.#pc,
+      app: this.#app,
+      mapData: this.#mapData,
+      root: this.#mapRoot,
+      bridgeRailingKit: this.#bridgeRailingKit,
+      cubeMaterials: (type, topCube, col, row, level) =>
+        this.#cubeMaterials(type, topCube, col, row, level),
+      pathEarthSideMaterial: (col, row, level) =>
+        this.#pathEarthSideMaterial(col, row, level),
+      grassEarthSideMaterial: (col, row, level) =>
+        this.#grassEarthSideMaterial(col, row, level),
+      sideVariant: (material, col, row, level) =>
+        this.#sideVariant(material, col, row, level),
+      addCubeMatrix: (...args) => this.#addCubeMatrix(...args),
+      addBoxMatrix: (...args) => this.#addBoxMatrix(...args),
+    });
     this.#buildIslandUndersideMatrices(
       cubeBatches,
       scenery.createUndersideVoxels(),
     );
-    this.#buildTerrainMatrices(cubeBatches);
+    this.#terrainRenderer.buildBatches(cubeBatches);
     this.#createInstancedBatches(cubeBatches, this.#mapRoot, true);
     this.#vertexBuffers.push(...this.#bridgeRailingKit.build());
     this.#vertexBuffers.push(
@@ -1400,7 +1401,7 @@ export class PlayCanvasRenderer {
     this.#buildVegetation();
     this.#buildGroundCover();
     this.#buildBuriedTreasure();
-    this.#buildHeroPhysicsTerrain();
+    this.#terrainRenderer.buildPhysicsSurface(this.#collisionWorld);
     this.#buildHero();
     this.#connectHeroTools();
     this.#grassSurface.refreshObstacles();
@@ -1532,16 +1533,6 @@ export class PlayCanvasRenderer {
       hero.movementState,
     );
     this.#buriedTreasure?.applyHeroPosition(hero.position);
-  }
-
-  #buildHeroPhysicsTerrain() {
-    this.#heroPhysicsTerrain = new HeroPhysicsTerrain({
-      pc: this.#pc,
-      app: this.#app,
-      mapData: this.#mapData,
-      collisionWorld: this.#collisionWorld,
-    });
-    this.#mapRoot.addChild(this.#heroPhysicsTerrain.entity);
   }
 
   #connectHeroTools() {
@@ -1718,447 +1709,6 @@ export class PlayCanvasRenderer {
         Math.abs(position.y - this.#tileHeight(trigger.col, trigger.row)) < 2;
       castle.setLeisurePresent(standingOnTrigger);
     }
-  }
-
-  #buildTerrainMatrices(batches) {
-    const { grid, heightmap, tileMeta, cols, rows } = this.#mapData;
-    const processedBridgeCells = new Set();
-    const riverCells = new Map(
-      (this.#mapData.riverData ?? []).flatMap((river) =>
-        river.cells.map((cell) => [`${cell.col},${cell.row}`, cell]),
-      ),
-    );
-    for (let row = 0; row < rows; row += 1) {
-      for (let col = 0; col < cols; col += 1) {
-        const type = grid[row][col];
-        const x = col - (cols - 1) / 2;
-        const z = row - (rows - 1) / 2;
-        const renderMode = tileMeta?.[row]?.[col]?.renderMode ?? "SOLID";
-        const height =
-          type in FIXED_HEIGHTS ? FIXED_HEIGHTS[type] : heightmap[row][col];
-
-        const riverCell = riverCells.get(`${col},${row}`);
-        if (riverCell) {
-          this.#addRiverbed(batches, riverCell, cols, rows);
-        }
-        if (type === TileType.WATER) {
-          continue;
-        }
-
-        const slope = tileMeta?.[row]?.[col]?.slope;
-        if (tileMeta?.[row]?.[col]?.shape === TILE_SHAPE.SLOPE && slope) {
-          const usesOverpassStairs = Boolean(
-            this.#mapData.overpassData?.stairApproach &&
-              tileMeta[row][col].overpassId ===
-                this.#mapData.overpassData.id,
-          );
-          const baseHeight = usesOverpassStairs
-            ? this.#mapData.overpassData.baseElevation
-            : Math.floor(Math.min(slope.lowHeight, slope.highHeight));
-          for (let level = 0; level < baseHeight; level += 1) {
-            this.#addCubeMatrix(
-              batches,
-              "earth",
-              this.#pathEarthSideMaterial(col, row, level),
-              x,
-              level + 0.5,
-              z,
-              "wallSidesOnly",
-              level === 0 ? "earth" : "none",
-            );
-          }
-          if (usesOverpassStairs) {
-            continue;
-          }
-          const stage =
-            Math.min(slope.lowHeight, slope.highHeight) - baseHeight < 0.25
-              ? "Lower"
-              : "Upper";
-          const coverage = `slope${slope.riseDirection}${stage}`;
-          this.#addBoxMatrix(
-            batches,
-            SURFACE_MATERIALS[type],
-            this.#pathEarthSideMaterial(col, row, baseHeight),
-            x,
-            baseHeight,
-            z,
-            0,
-            CUBE_SCALE,
-            CUBE_SCALE,
-            CUBE_SCALE,
-            coverage,
-            "none",
-          );
-          continue;
-        }
-
-        if (renderMode === "BRIDGE") {
-          const bridgeKey = `${col},${row}`;
-          if (processedBridgeCells.has(bridgeKey)) {
-            continue;
-          }
-          const direction = tileMeta[row][col].direction;
-          const span = this.#collectBridgeSpan(
-            grid,
-            heightmap,
-            tileMeta,
-            col,
-            row,
-            direction,
-          );
-          const railingMaterial = this.#sideVariant(
-            SIDE_MATERIALS[type],
-            col,
-            row,
-            height - 1,
-          );
-          const fasciaMaterial = tileMeta[row][col].overpassId
-            ? this.#pathEarthSideMaterial(col, row, height - 1)
-            : railingMaterial;
-          for (const cell of span.cells) {
-            processedBridgeCells.add(`${cell.col},${cell.row}`);
-            const groundHeight = tileMeta[cell.row][cell.col].bridgeGroundHeight;
-            if (Number.isFinite(groundHeight)) {
-              this.#addBridgeGround(
-                batches,
-                cell.col,
-                cell.row,
-                groundHeight,
-                cols,
-                rows,
-                Boolean(tileMeta[cell.row][cell.col].overpassId),
-              );
-            }
-          }
-          for (let position = span.start; position <= span.end; position += 1) {
-            const deckCenterCol = span.horizontal ? position : span.crossCenter;
-            const deckCenterRow = span.horizontal ? span.crossCenter : position;
-            this.#addBoxMatrix(
-              batches,
-              SURFACE_MATERIALS[type],
-              fasciaMaterial,
-              deckCenterCol - (cols - 1) / 2,
-              height - 0.12,
-              deckCenterRow - (rows - 1) / 2,
-              0,
-              span.horizontal ? CUBE_SCALE : 2,
-              0.24,
-              span.horizontal ? 2 : CUBE_SCALE,
-              "surfaceOnly",
-              "none",
-            );
-          }
-          this.#addBoxMatrix(
-            batches,
-            SURFACE_MATERIALS[type],
-            fasciaMaterial,
-            (span.horizontal ? span.center : span.crossCenter) -
-              (cols - 1) / 2,
-            height - 0.12,
-            (span.horizontal ? span.crossCenter : span.center) -
-              (rows - 1) / 2,
-            0,
-            span.horizontal ? span.length : 2,
-            0.24,
-            span.horizontal ? 2 : span.length,
-            span.horizontal
-              ? "bridgeHorizontalSidesOnly"
-              : "bridgeVerticalSidesOnly",
-            "none",
-          );
-          this.#addBridgeSpanRailings(
-            span,
-            height,
-            railingMaterial,
-            cols,
-            rows,
-          );
-          continue;
-        }
-
-        for (let level = 0; level < height; level += 1) {
-          const topCube = level === height - 1;
-          const overpassFill = Boolean(
-            tileMeta?.[row]?.[col]?.overpassId &&
-              !tileMeta[row][col].overpass,
-          );
-          const { top, sides, underlay } = overpassFill
-            ? {
-                top: topCube ? SURFACE_MATERIALS[type] : "earth",
-                sides: this.#pathEarthSideMaterial(col, row, level),
-                underlay: "earth",
-              }
-            : this.#cubeMaterials(type, topCube, col, row, level);
-          this.#addCubeMatrix(
-            batches,
-            top,
-            sides,
-            x,
-            level + 0.5,
-            z,
-            this.#surfaceCoverage(topCube),
-            level === 0 ? underlay : "none",
-            topCube && GRASS_SURFACE_TILES.has(type)
-              ? GRASS_SURFACE_LIFT
-              : 0,
-          );
-        }
-      }
-    }
-
-    for (const river of this.#mapData.riverData ?? []) {
-      this.#addRiverSourceCap(batches, river.cells[0], cols, rows);
-    }
-    this.#addOverpassDeck(batches, cols, rows);
-  }
-
-  #addOverpassDeck(batches, cols, rows) {
-    const overpass = this.#mapData.overpassData;
-    if (!overpass) {
-      return;
-    }
-
-    const { col, row } = overpass.crossing;
-    const deckThickness = overpass.deckThickness ?? 0.24;
-    const railingMaterial = this.#sideVariant(
-      SIDE_MATERIALS[TileType.PATH],
-      col,
-      row,
-      overpass.deckElevation - 1,
-    );
-    const fasciaMaterial = this.#pathEarthSideMaterial(
-      col,
-      row,
-      overpass.deckElevation - 1,
-    );
-    for (let deckRow = row; deckRow <= row + 1; deckRow += 1) {
-      this.#addBoxMatrix(
-        batches,
-        SURFACE_MATERIALS[TileType.PATH],
-        fasciaMaterial,
-        col + 0.5 - (cols - 1) / 2,
-        overpass.deckElevation - deckThickness / 2,
-        deckRow - (rows - 1) / 2,
-        0,
-        2,
-        deckThickness,
-        CUBE_SCALE,
-        "surfaceOnly",
-        "none",
-      );
-    }
-    const span = {
-      horizontal: false,
-      start: row,
-      end: row + 1,
-      center: row + 0.5,
-      crossCenter: col + 0.5,
-      length: 2,
-    };
-    this.#addBoxMatrix(
-      batches,
-      SURFACE_MATERIALS[TileType.PATH],
-      fasciaMaterial,
-      span.crossCenter - (cols - 1) / 2,
-      overpass.deckElevation - deckThickness / 2,
-      span.center - (rows - 1) / 2,
-      0,
-      2,
-      deckThickness,
-      span.length,
-      "bridgeVerticalSidesOnly",
-      "none",
-    );
-    this.#bridgeRailingKit.addOverpass(
-      overpass,
-      railingMaterial,
-      cols,
-      rows,
-    );
-  }
-
-  #addRiverbed(batches, cell, cols, rows) {
-    const { col, row, bedElevation } = cell;
-    const x = col - (cols - 1) / 2;
-    const z = row - (rows - 1) / 2;
-    // Exposed cascade cliffs keep the neighboring bank's stone pattern and scale.
-    for (let level = 0; level < bedElevation - 0.01; level += 1) {
-      const layerHeight = Math.min(1, bedElevation - level);
-      const stone = this.#grassEarthSideMaterial(col, row, level);
-      this.#addBoxMatrix(
-        batches, stone, stone, x, level + layerHeight / 2, z, 0,
-        CUBE_SCALE, layerHeight, CUBE_SCALE, "wallSidesOnly",
-        level === 0 ? "earth" : "none",
-      );
-    }
-    // One stone floor for every river cell, including zero-height beds and
-    // cells beneath bridges. The same material covers exposed cascade ledges.
-    const stone = this.#grassEarthSideMaterial(col, row, Math.max(0, bedElevation - 1));
-    this.#addBoxMatrix(
-      batches, stone, stone, x, bedElevation - 0.5, z, 0,
-      CUBE_SCALE, 1, CUBE_SCALE, "surfaceOnly", "none",
-    );
-  }
-
-  #addBridgeGround(batches, col, row, height, cols, rows, dirtOnly = false) {
-    const x = col - (cols - 1) / 2;
-    const z = row - (rows - 1) / 2;
-    for (let level = 0; level < height; level += 1) {
-      const topCube = level === height - 1;
-      const { top, sides, underlay } = dirtOnly
-        ? {
-            top: "earth",
-            sides: this.#pathEarthSideMaterial(col, row, level),
-            underlay: "earth",
-          }
-        : this.#cubeMaterials(TileType.GRASS, topCube, col, row, level);
-      this.#addCubeMatrix(
-        batches,
-        top,
-        sides,
-        x,
-        level + 0.5,
-        z,
-        this.#surfaceCoverage(topCube),
-        level === 0 ? underlay : "none",
-        topCube && !dirtOnly ? GRASS_SURFACE_LIFT : 0,
-      );
-    }
-  }
-
-  #addRiverSourceCap(batches, source, cols, rows) {
-    if (!source) {
-      return;
-    }
-
-    const capHeight = 1 / 3;
-    const level = source.terrainHeight - 1;
-    const { top, sides } = this.#cubeMaterials(
-      TileType.GRASS,
-      true,
-      source.col,
-      source.row,
-      level,
-    );
-    const x = source.col - (cols - 1) / 2;
-    const z = source.row - (rows - 1) / 2;
-    const bodyHeight = capHeight + GRASS_SURFACE_LIFT;
-    this.#addBoxMatrix(
-      batches,
-      top,
-      sides,
-      x,
-      source.terrainHeight - capHeight / 2 + GRASS_SURFACE_LIFT / 2,
-      z,
-      0,
-      CUBE_SCALE,
-      bodyHeight,
-      CUBE_SCALE,
-      "wallSidesOnly",
-      "earth",
-    );
-    const adjacentSurfaceHeight =
-      source.terrainHeight +
-      GRASS_SURFACE_LIFT +
-      SURFACE_ELEVATION_BIAS * (CUBE_SCALE + GRASS_SURFACE_LIFT);
-    this.#addBoxMatrix(
-      batches,
-      top,
-      sides,
-      x,
-      adjacentSurfaceHeight - (0.5 + SURFACE_ELEVATION_BIAS),
-      z,
-      0,
-      CUBE_SCALE,
-      CUBE_SCALE,
-      CUBE_SCALE,
-      "surfaceOnly",
-      "none",
-    );
-  }
-
-  #bridgeMateCell(grid, tileMeta, col, row, direction) {
-    const horizontal = direction === "EAST" || direction === "WEST";
-    const candidates = horizontal
-      ? [
-          { col, row: row - 1 },
-          { col, row: row + 1 },
-        ]
-      : [
-          { col: col - 1, row },
-          { col: col + 1, row },
-        ];
-    return (
-      candidates.find(
-        (candidate) =>
-          grid[candidate.row]?.[candidate.col] === TileType.PATH &&
-          tileMeta[candidate.row]?.[candidate.col]?.renderMode === "BRIDGE" &&
-          tileMeta[candidate.row][candidate.col].direction === direction,
-      ) ?? null
-    );
-  }
-
-  #collectBridgeSpan(grid, heightmap, tileMeta, col, row, direction) {
-    const horizontal = direction === "EAST" || direction === "WEST";
-    const mate = this.#bridgeMateCell(grid, tileMeta, col, row, direction);
-    const crossStart = mate
-      ? Math.min(horizontal ? row : col, horizontal ? mate.row : mate.col)
-      : horizontal
-        ? row
-        : col;
-    const crossEnd = mate ? crossStart + 1 : crossStart;
-    const height = heightmap[row][col];
-    const isStation = (position) => {
-      for (let cross = crossStart; cross <= crossEnd; cross += 1) {
-        const stationCol = horizontal ? position : cross;
-        const stationRow = horizontal ? cross : position;
-        if (
-          grid[stationRow]?.[stationCol] !== TileType.PATH ||
-          tileMeta[stationRow]?.[stationCol]?.renderMode !== "BRIDGE" ||
-          tileMeta[stationRow][stationCol].direction !== direction ||
-          heightmap[stationRow]?.[stationCol] !== height
-        ) {
-          return false;
-        }
-      }
-      return true;
-    };
-    let start = horizontal ? col : row;
-    let end = start;
-    while (isStation(start - 1)) {
-      start -= 1;
-    }
-    while (isStation(end + 1)) {
-      end += 1;
-    }
-    const cells = [];
-    for (let position = start; position <= end; position += 1) {
-      for (let cross = crossStart; cross <= crossEnd; cross += 1) {
-        cells.push({
-          col: horizontal ? position : cross,
-          row: horizontal ? cross : position,
-        });
-      }
-    }
-    return {
-      cells,
-      horizontal,
-      start,
-      end,
-      center: (start + end) / 2,
-      crossCenter: (crossStart + crossEnd) / 2,
-      length: end - start + 1,
-    };
-  }
-
-  #addBridgeSpanRailings(span, height, sideMaterial, cols, rows) {
-    this.#bridgeRailingKit.addSpan(
-      span,
-      height,
-      sideMaterial,
-      cols,
-      rows,
-    );
   }
 
   #buildIslandUndersideMatrices(batches, voxels) {
@@ -2408,24 +1958,6 @@ export class PlayCanvasRenderer {
     };
   }
 
-  #earthSideMaterial(col, row, level, allowDetail = false) {
-    const shadeIndex = Math.max(
-      0,
-      Math.min(
-        EARTH_SIDE_DEPTH_SHADES.length - 1,
-        EARTH_SIDE_HIGHEST_LEVEL - Math.floor(level),
-      ),
-    );
-    const showDetail =
-      allowDetail && this.#variantIndex(col, row, level, 109, 9) === 0;
-    const transforms = showDetail
-      ? EARTH_DETAIL_TEXTURE_TRANSFORMS
-      : EARTH_SIDE_TEXTURE_TRANSFORMS;
-    const variant = this.#variantIndex(col, row, level, 71, transforms.length);
-    const material = showDetail ? "earthDetailSide" : "earthSide";
-    return `${material}-depth-${shadeIndex}-${variant}`;
-  }
-
   #grassEarthSideMaterial(col, row, level) {
     return `grassEarthSide-depth-${this.#grassSideDepth(level)}-${this.#grassSideVariant(col, row)}`;
   }
@@ -2480,13 +2012,6 @@ export class PlayCanvasRenderer {
       Math.imul(level + 7, 83492791) ^
       salt;
     return (hash >>> 0) % count;
-  }
-
-  #surfaceCoverage(topCube) {
-    if (!topCube) {
-      return "none";
-    }
-    return "full";
   }
 
   #tileHeight(col, row) {
@@ -3467,8 +2992,8 @@ export class PlayCanvasRenderer {
     }
     this.#thrownInventoryItems = [];
     this.#sceneObjects.destroyType(SCENE_OBJECT_TYPE.HERO);
-    this.#heroPhysicsTerrain?.destroy();
-    this.#heroPhysicsTerrain = null;
+    this.#terrainRenderer?.destroy();
+    this.#terrainRenderer = null;
     this.#vegetation?.destroy();
     this.#vegetation = null;
     this.#buriedTreasure?.destroy();

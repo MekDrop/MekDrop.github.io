@@ -442,7 +442,7 @@ describe("ground cover item ambient motion", () => {
       ...fragment.position,
     }));
     const terrain = {
-      tags: { has: (tag) => tag === "hero-physics-surface" },
+      tags: { has: (tag) => tag === "terrain-physics-surface" },
     };
     fragments[0].rigidbody.fire("collisionstart", {
       other: terrain,

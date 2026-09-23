@@ -16,7 +16,7 @@ const WALKABLE_TILES = new Set([
 const GRASS_SURFACE_TILES = new Set([TileType.GRASS]);
 
 /** Builds the static walkable world consumed by PlayCanvas' physics backend. */
-export class HeroPhysicsTerrain {
+export class TerrainPhysicsSurface {
   #pc;
   #app;
   #mapData;
@@ -32,8 +32,8 @@ export class HeroPhysicsTerrain {
     this.#app = app;
     this.#mapData = mapData;
     this.#collisionWorld = collisionWorld;
-    this.#entity = new pc.Entity("Hero physics terrain");
-    this.#entity.tags.add("hero-physics-surface");
+    this.#entity = new pc.Entity("Terrain physics surface");
+    this.#entity.tags.add("terrain-physics-surface");
     this.#indexSourceCovers();
     this.refresh();
   }
@@ -62,9 +62,9 @@ export class HeroPhysicsTerrain {
     this.#mesh.update();
 
     this.#material = new this.#pc.StandardMaterial();
-    this.#material.name = "Hero physics terrain material";
+    this.#material.name = "Terrain physics surface material";
     this.#material.update();
-    const node = new this.#pc.GraphNode("Hero physics terrain mesh");
+    const node = new this.#pc.GraphNode("Terrain physics surface mesh");
     const meshInstance = new this.#pc.MeshInstance(
       this.#mesh,
       this.#material,
