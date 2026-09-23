@@ -21,6 +21,7 @@ import { HeroHairPhysics } from "./HeroHairPhysics.js";
 import { HERO_MOOD } from "../../enum/HeroMood.js";
 import { HERO_STAT } from "../../enum/HeroStat.js";
 import { BuffSystem } from "../../buffs/BuffSystem.js";
+import { AxeTool, KnifeTool, ShovelTool } from "./tools/index.js";
 
 const MAX_FRAME_TIME = 0.1;
 const MOVE_SPEED = 4.2;
@@ -299,6 +300,15 @@ export class Hero {
     return heroModelUrl;
   }
 
+  static get modelUrls() {
+    return [
+      Hero.modelUrl,
+      AxeTool.modelUrl,
+      KnifeTool.modelUrl,
+      ShovelTool.modelUrl,
+    ];
+  }
+
   static get inventoryCapacity() {
     return HERO_INVENTORY_CAPACITY;
   }
@@ -359,6 +369,7 @@ export class Hero {
   #collectAction = null;
   #inventoryFullAction = null;
   #tool = null;
+  #tools = new Map();
   #repelAction = null;
   #dodgeAction = null;
   #facingHoldRemaining = 0;
@@ -413,6 +424,9 @@ export class Hero {
     this.#onInventoryFull = onInventoryFull;
     this.#collisionWorld = collisionWorld;
     this.#modelLibrary = modelLibrary;
+    this.#tools.set(AxeTool.name, new AxeTool({ modelLibrary }));
+    this.#tools.set(KnifeTool.name, new KnifeTool({ modelLibrary }));
+    this.#tools.set(ShovelTool.name, new ShovelTool({ modelLibrary }));
     this.#entity = new pc.Entity("Hero");
     this.#spawn = this.#findSpawn();
     this.#position = { ...this.#spawn };
@@ -461,6 +475,10 @@ export class Hero {
 
   get tool() {
     return this.#tool;
+  }
+
+  get tools() {
+    return this.#tools;
   }
 
   get wallet() {
@@ -1016,6 +1034,10 @@ export class Hero {
       this.#collectAction.tool.visible = false;
     }
     this.#collectAction?.heldItem?.destroy();
+    for (const tool of this.#tools.values()) {
+      tool.destroy();
+    }
+    this.#tools.clear();
     this.#physics?.destroy();
     this.#physics = null;
     this.#entity?.destroy();

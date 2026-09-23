@@ -24,11 +24,7 @@ import { RiverWater } from "./objects/water/index.js";
 import { Hero, HeroPatHand } from "./objects/hero/index.js";
 import { HeroPatGesture } from "./controls/HeroPatGesture.js";
 import { HERO_MOOD } from "./enum/HeroMood.js";
-import {
-  AxeTool,
-  KnifeTool,
-  ShovelTool,
-} from "./objects/hero/tools/index.js";
+import { AxeTool, KnifeTool, ShovelTool } from "./objects/hero/tools/index.js";
 import { GrassSurface, GroundCover } from "./objects/ground-cover/index.js";
 import { GrassCarpet } from "./objects/ground-cover/GrassCarpet.js";
 import {
@@ -242,9 +238,6 @@ export class PlayCanvasRenderer {
   #riverWater = null;
   #vegetation = null;
   #buriedTreasure = null;
-  #axeTool = null;
-  #knifeTool = null;
-  #shovelTool = null;
   #interactionProviders = [];
   #cloudField = null;
   #pathArrowsVisible = false;
@@ -453,12 +446,9 @@ export class PlayCanvasRenderer {
     await Promise.all([
       this.#createMaterials(),
       this.#modelLibrary.load([
-        Hero.modelUrl,
+        ...Hero.modelUrls,
         HeroPatHand.modelUrl,
         ...(import.meta.env.DEV ? [HeroAnimationSign.modelUrl] : []),
-        AxeTool.modelUrl,
-        KnifeTool.modelUrl,
-        ShovelTool.modelUrl,
         InventoryHud.modelUrl,
         Gateway.modelUrl,
         ...BridgeRailingKit.modelUrls,
@@ -1408,7 +1398,7 @@ export class PlayCanvasRenderer {
     this.#buildBuriedTreasure();
     this.#buildHeroPhysicsTerrain();
     this.#buildHero();
-    this.#buildTools();
+    this.#connectHeroTools();
     this.#grassSurface.refreshObstacles();
     this.#updateInteractionTarget();
 
@@ -1550,13 +1540,13 @@ export class PlayCanvasRenderer {
     this.#mapRoot.addChild(this.#heroPhysicsTerrain.entity);
   }
 
-  #buildTools() {
-    this.#axeTool = new AxeTool({ modelLibrary: this.#modelLibrary });
-    this.#knifeTool = new KnifeTool({ modelLibrary: this.#modelLibrary });
-    this.#shovelTool = new ShovelTool({ modelLibrary: this.#modelLibrary });
-    this.#groundCover.tool = this.#knifeTool;
-    this.#vegetation.tool = this.#axeTool;
-    this.#buriedTreasure.tool = this.#shovelTool;
+  #connectHeroTools() {
+    const hero = this.#sceneObjects.getOne(SCENE_OBJECT_TYPE.HERO);
+    if (hero?.tools) {
+      this.#groundCover.tool = hero.tools.get(KnifeTool.name);
+      this.#vegetation.tool = hero.tools.get(AxeTool.name);
+      this.#buriedTreasure.tool = hero.tools.get(ShovelTool.name);
+    }
     this.#interactionProviders = [
       this.#groundCover,
       this.#vegetation,
@@ -3526,12 +3516,6 @@ export class PlayCanvasRenderer {
     this.#floatingCameraOffsetX = 0;
     this.#floatingCameraOffsetY = 0;
     this.#floatingCameraOffsetApplied = false;
-    this.#axeTool?.destroy();
-    this.#axeTool = null;
-    this.#knifeTool?.destroy();
-    this.#knifeTool = null;
-    this.#shovelTool?.destroy();
-    this.#shovelTool = null;
     this.#interactionProviders = [];
     for (const thrownItem of this.#thrownInventoryItems) {
       thrownItem.destroy();

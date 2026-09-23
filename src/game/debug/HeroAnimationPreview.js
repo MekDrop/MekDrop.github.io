@@ -1,6 +1,5 @@
 import { Hero } from "../objects/hero/Hero.js";
-import { AxeTool } from "../objects/hero/tools/AxeTool.js";
-import { ShovelTool } from "../objects/hero/tools/ShovelTool.js";
+import { AxeTool, ShovelTool } from "../objects/hero/tools/index.js";
 import { HERO_ANIMATION } from "../enum/HeroAnimation.js";
 import { GRASS_SURFACE_LIFT } from "../config/terrain.js";
 import { HeroAnimationSign } from "./HeroAnimationSign.js";
