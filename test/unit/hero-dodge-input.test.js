@@ -7,17 +7,30 @@ function controls(context, dodgeAccepted = true) {
   context.mock.method(performance, "now", () => now);
   const movements = [];
   const dodges = [];
+  const queuedFacingInputs = [];
   let facingHoldDuration = 0;
+  let movementAnimationHoldDuration = 0;
+  let facingDirection = { x: 0, z: 1 };
   const renderer = {
     inventoryVisible: false,
     hero: {
+      get facingDirection() {
+        return facingDirection;
+      },
       get facingHoldDuration() {
         return facingHoldDuration;
       },
       set facingHoldDuration(duration) {
         facingHoldDuration = duration;
       },
+      get movementAnimationHoldDuration() {
+        return movementAnimationHoldDuration;
+      },
+      set movementAnimationHoldDuration(duration) {
+        movementAnimationHoldDuration = duration;
+      },
       setMovement: (...args) => movements.push(args),
+      queueFacingInput: (...args) => queuedFacingInputs.push(args),
       dodge: (...args) => {
         dodges.push(args);
         return dodgeAccepted;
@@ -30,21 +43,30 @@ function controls(context, dodgeAccepted = true) {
     renderer,
     movements,
     dodges,
+    queuedFacingInputs,
     press(time, repeat = false) {
       now = time;
       action.pressDirection("down", { repeat, shiftKey: false }, 0.28);
     },
+    setFacing(direction) {
+      facingDirection = direction;
+    },
   };
 }
 
-it("turns immediately on backward press while preserving double-tap dodge", (context) => {
+it("holds backward facing through the dodge window and preserves dodge facing", (context) => {
   const input = controls(context);
   input.press(0);
-  assert.equal(input.renderer.hero.facingHoldDuration, 0);
+  assert.equal(input.renderer.hero.facingHoldDuration, 0.28);
+  assert.equal(input.renderer.hero.movementAnimationHoldDuration, 0.28);
+  assert.deepEqual(input.queuedFacingInputs, [[0, -1]]);
   assert.deepEqual(input.movements.at(-1), [0, -1, false]);
   input.action.releaseDirection("down");
+  input.setFacing({ x: 1, z: 0 });
   input.press(210);
-  assert.deepEqual(input.dodges, [[0, -1, "down"]]);
+  assert.deepEqual(input.dodges, [
+    [0, -1, "down", { facing: { x: 0, z: 1 } }],
+  ]);
 });
 
 it("consumes dodge key repeats until release, then accepts fresh movement", (context) => {

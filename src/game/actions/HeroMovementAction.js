@@ -17,6 +17,7 @@ export class HeroMovementAction {
   };
   #running = false;
   #lastDirectionTapAt = new Map();
+  #dodgeFacingAtFirstTap = new Map();
   #consumedDodgeDirections = new Set();
 
   constructor(renderer) {
@@ -44,14 +45,28 @@ export class HeroMovementAction {
       return;
     }
     const wasPressed = this.#directions[direction];
-    if (
-      !wasPressed &&
-      !event.repeat &&
-      this.#isDirectionDoubleTap(direction, doubleTapWindow) &&
-      this.dodge(direction)
-    ) {
-      this.#consumedDodgeDirections.add(direction);
-      return;
+    const hero = this.#hero;
+    const firstTapFacing = this.#dodgeFacingAtFirstTap.get(direction);
+    if (!wasPressed && !event.repeat) {
+      const isDoubleTap = this.#isDirectionDoubleTap(
+        direction,
+        doubleTapWindow,
+      );
+      if (isDoubleTap && this.dodge(direction, firstTapFacing)) {
+        this.#dodgeFacingAtFirstTap.delete(direction);
+        this.#consumedDodgeDirections.add(direction);
+        return;
+      }
+      this.#dodgeFacingAtFirstTap.set(direction, hero?.facingDirection ?? null);
+      if (direction === "down" && hero) {
+        const input = MOVEMENT_VECTORS[direction];
+        hero.facingHoldDuration = doubleTapWindow;
+        hero.movementAnimationHoldDuration = doubleTapWindow;
+        hero.queueFacingInput?.(input.x, input.y);
+      } else if (hero) {
+        hero.facingHoldDuration = 0;
+        hero.movementAnimationHoldDuration = 0;
+      }
     }
 
     this.setRunning(event.shiftKey);
@@ -86,12 +101,12 @@ export class HeroMovementAction {
     this.#hero?.jump();
   }
 
-  dodge(direction) {
+  dodge(direction, facing = null) {
     const input = MOVEMENT_VECTORS[direction];
     if (!input) {
       return false;
     }
-    return this.#hero?.dodge(input.x, input.y, direction) ?? false;
+    return this.#hero?.dodge(input.x, input.y, direction, { facing }) ?? false;
   }
 
   clear() {
@@ -100,10 +115,13 @@ export class HeroMovementAction {
     }
     this.#running = false;
     this.#lastDirectionTapAt.clear();
+    this.#dodgeFacingAtFirstTap.clear();
     this.#consumedDodgeDirections.clear();
     const hero = this.#hero;
     if (hero) {
       hero.facingHoldDuration = 0;
+      hero.movementAnimationHoldDuration = 0;
+      hero.clearQueuedFacingInput?.();
     }
     this.#applyMovement();
   }

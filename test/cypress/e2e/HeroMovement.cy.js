@@ -155,6 +155,8 @@ describe("Hero movement on a predefined terrain map", { testIsolation: false }, 
       expect(state.grounded).to.equal(true);
       expect(state.animation).to.equal(HERO_ANIMATION.IDLE);
       expect(state.position.y).to.be.closeTo(2 + GRASS_SURFACE_LIFT, 0.03);
+      expect(Math.abs(state.facing.x)).to.be.lessThan(0.3);
+      expect(state.facing.z).to.be.greaterThan(0.8);
     });
   });
 

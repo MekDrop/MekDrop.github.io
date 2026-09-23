@@ -55,6 +55,10 @@ Whenever the model format supports animation, author and store character and pro
 
 Use the project's configured PlayCanvas physics engine (currently Ammo) by default for every new or modified game behavior that represents physical contact, collision, forces, gravity, inertia, spring motion, joints, raycasts, rigid bodies, or soft bodies. Drive visual deformation and animation from engine state where needed, but do not replace engine simulation with custom frame-by-frame physics integrators. Use custom physics math only when the engine cannot reasonably represent the behavior; document that limitation beside the implementation and keep the custom portion narrowly bounded.
 
+## Dodge Movement Rules
+
+Hero dodge behavior should follow Unreal Tournament '99 movement rules as closely as the isometric controller allows: tap versus double-tap is resolved by the configured input time window, directional double-tap input produces an immediate dodge impulse in that input direction, and backward/side dodges preserve the hero's facing direction so the move reads as a dodge instead of a jump or turn unless the user explicitly asks for different behavior.
+
 ## Temporary Files
 
 Store every temporary helper, conversion, migration, or diagnostic script under the project-root `tmp/` directory. Never place temporary scripts elsewhere in the repository. Keep `/tmp/` ignored by Git, and never stage or commit its contents.

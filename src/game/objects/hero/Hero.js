@@ -363,6 +363,7 @@ export class Hero {
   #boredRemaining = 0;
   #boredIndex = 0;
   #idleLookTarget = null;
+  #queuedFacingDirection = null;
   #headLookYaw = 0;
   #updateHandle = null;
   #toolAction = null;
@@ -373,6 +374,7 @@ export class Hero {
   #repelAction = null;
   #dodgeAction = null;
   #facingHoldRemaining = 0;
+  #movementAnimationHoldRemaining = 0;
   #respawnAction = null;
   #respawnEffect = null;
   #footPlacement = null;
@@ -618,6 +620,18 @@ export class Hero {
     this.#facingHoldRemaining = Math.max(0, duration ?? 0);
   }
 
+  set movementAnimationHoldDuration(duration) {
+    this.#movementAnimationHoldRemaining = Math.max(0, duration ?? 0);
+  }
+
+  queueFacingInput(inputX, inputY) {
+    this.#queuedFacingDirection = this.#projectInput(inputX, inputY);
+  }
+
+  clearQueuedFacingInput() {
+    this.#queuedFacingDirection = null;
+  }
+
   setMovement(inputX, inputY, running = false) {
     this.#input.x = Math.max(-1, Math.min(1, inputX));
     this.#input.y = Math.max(-1, Math.min(1, inputY));
@@ -678,7 +692,7 @@ export class Hero {
     this.#idleLookTarget = target ? { x: target.x, z: target.z } : null;
   }
 
-  dodge(inputX, inputY, direction) {
+  dodge(inputX, inputY, direction, { facing = null } = {}) {
     if (this.#patControlsLocked) {
       return false;
     }
@@ -710,6 +724,24 @@ export class Hero {
       return false;
     }
 
+    this.#queuedFacingDirection = null;
+    this.#movementAnimationHoldRemaining = 0;
+    const dodgeFacing = this.#dodgeFacingDirection(
+      direction,
+      projected,
+      facing,
+    );
+    if (direction === "down") {
+      const previousFacingYaw = this.#facingYaw;
+      this.#facingYaw =
+        (Math.atan2(dodgeFacing.x, dodgeFacing.z) * 180) / Math.PI;
+      this.#modelRoot?.setLocalEulerAngles(0, this.#facingYaw, 0);
+      this.#respawnEffect?.setFacingYaw(this.#facingYaw);
+      if (Math.abs(this.#facingYaw - previousFacingYaw) > 0.001) {
+        this.#onFacingChange?.(this.facingDirection);
+      }
+    }
+
     const jumpHeight =
       direction === "up" || direction === "down"
         ? FORWARD_BACK_DODGE_JUMP_HEIGHT
@@ -729,7 +761,7 @@ export class Hero {
       direction,
       x: projected.x,
       z: projected.z,
-      facing: this.#dodgeFacingDirection(direction, projected),
+      facing: dodgeFacing,
       duration,
       speed,
       elapsed: 0,
@@ -991,9 +1023,9 @@ export class Hero {
     }
   }
 
-  #dodgeFacingDirection(direction, movementDirection) {
+  #dodgeFacingDirection(direction, movementDirection, facing = null) {
     if (direction === "down") {
-      return this.facingDirection;
+      return facing ?? this.facingDirection;
     }
     if (direction !== "left" && direction !== "right") {
       return movementDirection;
@@ -2894,6 +2926,12 @@ export class Hero {
       0,
       this.#facingHoldRemaining - deltaTime,
     );
+    this.#movementAnimationHoldRemaining = Math.max(
+      0,
+      this.#movementAnimationHoldRemaining - deltaTime,
+    );
+    const queuedFacingDirection =
+      this.#facingHoldRemaining === 0 ? this.#queuedFacingDirection : null;
     const horizontalSpeed = Math.hypot(this.#velocity.x, this.#velocity.z);
     const moodKind = this.#patMood.state.kind;
     this.#patReactionRemaining = this.canBePatted && !this.#patEscape.active
@@ -2920,6 +2958,8 @@ export class Hero {
           ? this.#holeRefusalAction.direction
           : blocked
             ? this.#desiredVelocity()
+            : queuedFacingDirection
+            ? queuedFacingDirection
             : this.#hasMovementInput
               ? this.#grounded
                 ? this.#desiredVelocity()
@@ -2946,6 +2986,15 @@ export class Hero {
             targetYaw,
             Math.min(1, deltaTime * 14),
           );
+      if (queuedFacingDirection) {
+        const yawDelta = Math.abs(
+          ((targetYaw - this.#facingYaw + 540) % 360) - 180,
+        );
+        if (yawDelta <= 1) {
+          this.#facingYaw = targetYaw;
+          this.#queuedFacingDirection = null;
+        }
+      }
     }
     this.#modelRoot.setLocalEulerAngles(0, this.#facingYaw, 0);
     this.#respawnEffect?.setFacingYaw(this.#facingYaw);
@@ -3012,6 +3061,12 @@ export class Hero {
       this.#resetBoredom();
     } else if (showingBlockedPush) {
       animation = HERO_ANIMATION.BLOCKED_PUSH;
+      this.#resetBoredom();
+    } else if (
+      horizontalSpeed > 0.08 &&
+      this.#movementAnimationHoldRemaining > 0
+    ) {
+      animation = HERO_ANIMATION.IDLE;
       this.#resetBoredom();
     } else if (horizontalSpeed > 0.08) {
       const running = this.#running || this.#patEscape.active;
@@ -3694,7 +3749,16 @@ export class Hero {
         this.#position.x,
         this.#position.z,
       );
-      if (!riverRouteEntry || riverRouteEntry.cell.underBridge) {
+      const landingSurface = this.#physics.surfaceAt(
+        this.#position.x,
+        this.#position.z,
+        this.#position.y + STEP_CLEARANCE,
+        FALL_EXIT_HEIGHT,
+      );
+      if (
+        (!riverRouteEntry || riverRouteEntry.cell.underBridge) &&
+        landingSurface === null
+      ) {
         this.#beginFallDeath();
       }
     }
