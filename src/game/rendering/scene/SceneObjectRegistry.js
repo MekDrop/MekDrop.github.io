@@ -39,6 +39,10 @@ export class SceneObjectRegistry {
       .filter(Boolean);
   }
 
+  *[Symbol.iterator]() {
+    yield* this.#objects.values();
+  }
+
   destroyType(type) {
     for (const object of this.getAll(type)) {
       object.destroy?.();

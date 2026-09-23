@@ -106,6 +106,16 @@ export class CastleDoor {
     return { distance, door: this };
   }
 
+  getPointerHit(rayStart, rayEnd) {
+    const hit = this.getHit(rayStart, rayEnd);
+    return hit ? { ...hit, pointerTarget: this } : null;
+  }
+
+  handlePointerDown() {
+    this.openTemporarily();
+    return true;
+  }
+
   updateHeroPosition({ x, z }) {
     const deltaX = x - this.#center.x;
     const deltaZ = z - this.#center.z;

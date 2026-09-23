@@ -182,6 +182,30 @@ export class Gateway {
     return this.#intersectBannerRay(rayStart, rayEnd, true);
   }
 
+  getPointerHit(rayStart, rayEnd) {
+    const hit = this.getBannerHit(rayStart, rayEnd);
+    return hit ? { ...hit, pointerTarget: this } : null;
+  }
+
+  handlePointerDown({ hit }) {
+    this.beginWindGesture(hit);
+    return { capturePointer: true };
+  }
+
+  handlePointerMove({ ray, deltaTime }) {
+    this.applyMouseWind(ray.start, ray.end, deltaTime);
+    return true;
+  }
+
+  handlePointerUp() {
+    this.endWindGesture();
+    return true;
+  }
+
+  handlePointerCancel() {
+    this.endWindGesture();
+  }
+
   beginWindGesture(hit) {
     this.#bannerPhysics.beginPointer(this.#bannerCloth, hit?.point ?? hit);
   }

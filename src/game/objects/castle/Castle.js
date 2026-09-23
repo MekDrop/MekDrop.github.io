@@ -273,23 +273,21 @@ export class Castle {
     return flagHit.distance < bannerHit.distance ? flagHit : bannerHit;
   }
 
-  getDoorHit(rayStart, rayEnd) {
-    let closest = null;
-    for (const door of this.#animatedDoors) {
-      const hit = door.getHit(rayStart, rayEnd);
-      if (!hit || (closest && hit.distance >= closest.distance)) continue;
-      closest = hit;
+  getPointerHit(rayStart, rayEnd) {
+    const bannerHit = this.getBannerHit(rayStart, rayEnd);
+    const pointerBannerHit = bannerHit
+      ? { ...bannerHit, pointerTarget: this }
+      : null;
+    const doorHit = this.#getDoorHit(rayStart, rayEnd);
+    if (!pointerBannerHit) {
+      return doorHit;
     }
-    return closest;
-  }
-
-  openDoor(hit) {
-    if (!hit?.door) {
-      return false;
+    if (!doorHit) {
+      return pointerBannerHit;
     }
-    hit.door.openTemporarily();
-    this.#syncAudienceRoomVisibility();
-    return true;
+    return doorHit.distance < pointerBannerHit.distance
+      ? doorHit
+      : pointerBannerHit;
   }
 
   beginGameOver(getCameraPosition) {
@@ -306,6 +304,25 @@ export class Castle {
   beginWindGesture(hit) {
     this.#activeWindTarget = hit?.flag ? this.#flags : this.#banners;
     this.#activeWindTarget?.beginWindGesture(hit);
+  }
+
+  handlePointerDown({ hit }) {
+    this.beginWindGesture(hit);
+    return { capturePointer: true };
+  }
+
+  handlePointerMove({ ray, deltaTime }) {
+    this.applyMouseWind(ray.start, ray.end, deltaTime);
+    return true;
+  }
+
+  handlePointerUp() {
+    this.endWindGesture();
+    return true;
+  }
+
+  handlePointerCancel() {
+    this.endWindGesture();
   }
 
   applyMouseWind(rayStart, rayEnd, deltaTime) {
@@ -383,6 +400,18 @@ export class Castle {
       this.#audienceRoom.entranceVisible =
         this.#animatedDoors[0]?.revealsInterior ?? false;
     }
+  }
+
+  #getDoorHit(rayStart, rayEnd) {
+    let closest = null;
+    for (const door of this.#animatedDoors) {
+      const hit = door.getPointerHit(rayStart, rayEnd);
+      if (!hit || (closest && hit.distance >= closest.distance)) {
+        continue;
+      }
+      closest = hit;
+    }
+    return closest;
   }
 
   #createStructureResources() {

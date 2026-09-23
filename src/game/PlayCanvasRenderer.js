@@ -39,12 +39,11 @@ import {
 import { VoxelVegetation } from "./objects/vegetation/index.js";
 import { BuriedTreasureField } from "./objects/treasure/index.js";
 import { ThrownInventoryItem } from "./objects/inventory/index.js";
+import { ScenePointerInteraction } from "./objects/shared/ScenePointerInteraction.js";
 import { TileType } from "./MapGenerator.js";
 import { GRASS_SURFACE_LIFT } from "./config/terrain.js";
 import { isArray } from "./helpers/types.js";
 import { GRAPHICS_DRIVER } from "./enum/GraphicsDriver.js";
-import { INPUT_EVENT_TYPE } from "./enum/InputEventType.js";
-import { POINTER_TYPE } from "./enum/PointerType.js";
 import { SCENE_OBJECT_TYPE } from "./enum/SceneObjectType.js";
 import { SLOPE_DIRECTION } from "./enum/SlopeDirection.js";
 import { TILE_SHAPE } from "./enum/TileShape.js";
@@ -260,10 +259,7 @@ export class PlayCanvasRenderer {
   #pathOverpassCollider = null;
   #modelLibrary = null;
   #gatewayColors = [...GATEWAY_COLORS];
-  #bannerWindTarget = null;
-  #bannerWindPointerId = null;
-  #bannerWindLastTime = 0;
-  #bannerInteractionConnected = false;
+  #pointerInteraction = null;
   #heroLookPointer = null;
   #interactionTarget = null;
   #interactionSignature = null;
@@ -323,6 +319,13 @@ export class PlayCanvasRenderer {
     this.#uiTheme = new GameUiTheme(uiTheme);
     this.#heroConfigurationStore.normalizeInventorySlots();
     this.#translate = t;
+    this.#pointerInteraction = new ScenePointerInteraction({
+      canvas,
+      sceneObjects: this.#sceneObjects,
+      pointerRay: (event) => this.#pointerRay(event),
+      onMousePointerMove: this.#trackHeroLookPointer,
+      onMousePointerLeave: () => this.#clearHeroIdleLookTarget(),
+    });
   }
 
   t(key, values) {
@@ -496,7 +499,7 @@ export class PlayCanvasRenderer {
       this.#applyDebugSettings();
     });
     this.#app.start();
-    this.#connectBannerInteraction();
+    this.#connectPointerInteractions();
     if (this.#devWireframeInspectorEnabled) {
       const { DevWireframeInspector } = await import(
         "./debug/DevWireframeInspector.js"
@@ -1086,7 +1089,7 @@ export class PlayCanvasRenderer {
       window.clearTimeout(this.#viewportSaveTimer);
       this.#saveViewport();
     }
-    this.#disconnectBannerInteraction();
+    this.#disconnectPointerInteractions();
     this.#devWireframeInspector?.destroy();
     this.#devWireframeInspector = null;
     this.#app?.off("update", this.#updateFrame);
@@ -3425,60 +3428,13 @@ export class PlayCanvasRenderer {
     };
   }
 
-  #connectBannerInteraction() {
-    if (this.#bannerInteractionConnected || !this.canvas) {
-      return;
-    }
-    this.canvas.addEventListener(
-      INPUT_EVENT_TYPE.POINTER_DOWN,
-      this.#handleBannerPointerDown,
-    );
-    this.canvas.addEventListener(
-      INPUT_EVENT_TYPE.POINTER_MOVE,
-      this.#handleBannerPointerMove,
-    );
-    this.canvas.addEventListener(
-      INPUT_EVENT_TYPE.POINTER_UP,
-      this.#handleBannerPointerUp,
-    );
-    this.canvas.addEventListener(
-      INPUT_EVENT_TYPE.POINTER_CANCEL,
-      this.#handleBannerPointerUp,
-    );
-    this.canvas.addEventListener(
-      INPUT_EVENT_TYPE.POINTER_LEAVE,
-      this.#handlePointerLeave,
-    );
-    this.#bannerInteractionConnected = true;
+  #connectPointerInteractions() {
+    this.#pointerInteraction?.connect();
   }
 
-  #disconnectBannerInteraction() {
-    if (!this.#bannerInteractionConnected || !this.canvas) {
-      return;
-    }
-    this.canvas.removeEventListener(
-      INPUT_EVENT_TYPE.POINTER_DOWN,
-      this.#handleBannerPointerDown,
-    );
-    this.canvas.removeEventListener(
-      INPUT_EVENT_TYPE.POINTER_MOVE,
-      this.#handleBannerPointerMove,
-    );
-    this.canvas.removeEventListener(
-      INPUT_EVENT_TYPE.POINTER_UP,
-      this.#handleBannerPointerUp,
-    );
-    this.canvas.removeEventListener(
-      INPUT_EVENT_TYPE.POINTER_CANCEL,
-      this.#handleBannerPointerUp,
-    );
-    this.canvas.removeEventListener(
-      INPUT_EVENT_TYPE.POINTER_LEAVE,
-      this.#handlePointerLeave,
-    );
-    this.#finishBannerWindGesture();
+  #disconnectPointerInteractions() {
+    this.#pointerInteraction?.disconnect();
     this.#clearHeroIdleLookTarget();
-    this.#bannerInteractionConnected = false;
   }
 
   #pointerRay(event) {
@@ -3502,76 +3458,12 @@ export class PlayCanvasRenderer {
     };
   }
 
-  #handleBannerPointerDown = (event) => {
-    if (event.button !== 0 || this.#bannerWindTarget) {
-      return;
-    }
-    const ray = this.#pointerRay(event);
-    if (!ray) {
-      return;
-    }
-
-    let closest = null;
-    for (const gateway of this.#sceneObjects.getAll(SCENE_OBJECT_TYPE.GATEWAY)) {
-      const hit = gateway.getBannerHit(ray.start, ray.end);
-      if (!hit || (closest && hit.distance >= closest.hit.distance)) continue;
-      closest = { kind: "wind", target: gateway, hit };
-    }
-    for (const castle of this.#sceneObjects.getAll(SCENE_OBJECT_TYPE.CASTLE)) {
-      const castleHit = castle.getBannerHit(ray.start, ray.end);
-      if (castleHit && (!closest || castleHit.distance < closest.hit.distance)) {
-        closest = { kind: "wind", target: castle, hit: castleHit };
-      }
-      const doorHit = castle.getDoorHit(ray.start, ray.end);
-      if (doorHit && (!closest || doorHit.distance < closest.hit.distance)) {
-        closest = { kind: "door", target: castle, hit: doorHit };
-      }
-    }
-    if (!closest) {
-      return;
-    }
-
-    event.preventDefault();
-    if (closest.kind === "door") {
-      closest.target.openDoor(closest.hit);
-      return;
-    }
-    this.#bannerWindTarget = closest.target;
-    this.#bannerWindPointerId = event.pointerId;
-    this.#bannerWindLastTime = event.timeStamp;
-    closest.target.beginWindGesture(closest.hit);
-    this.canvas.setPointerCapture(event.pointerId);
-  };
-
-  #handleBannerPointerMove = (event) => {
-    if (event.pointerType === POINTER_TYPE.MOUSE) {
-      this.#heroLookPointer = {
-        clientX: event.clientX,
-        clientY: event.clientY,
-      };
-      this.#updateHeroIdleLookTarget();
-    }
-    if (!this.#bannerWindTarget) {
-      return;
-    }
-    if (event.pointerId !== this.#bannerWindPointerId) {
-      return;
-    }
-    const ray = this.#pointerRay(event);
-    if (!ray) {
-      return;
-    }
-
-    event.preventDefault();
-    const deltaTime = (event.timeStamp - this.#bannerWindLastTime) / 1000;
-    this.#bannerWindLastTime = event.timeStamp;
-    this.#bannerWindTarget.applyMouseWind(ray.start, ray.end, deltaTime);
-  };
-
-  #handlePointerLeave = (event) => {
-    if (event.pointerType === POINTER_TYPE.MOUSE) {
-      this.#clearHeroIdleLookTarget();
-    }
+  #trackHeroLookPointer = (event) => {
+    this.#heroLookPointer = {
+      clientX: event.clientX,
+      clientY: event.clientY,
+    };
+    this.#updateHeroIdleLookTarget();
   };
 
   #updateHeroIdleLookTarget() {
@@ -3613,27 +3505,6 @@ export class PlayCanvasRenderer {
     if (hero) {
       hero.idleLookTarget = null;
     }
-  }
-
-  #handleBannerPointerUp = (event) => {
-    if (event.pointerId !== this.#bannerWindPointerId) {
-      return;
-    }
-    event.preventDefault();
-    this.#finishBannerWindGesture();
-  };
-
-  #finishBannerWindGesture() {
-    this.#bannerWindTarget?.endWindGesture();
-    if (
-      this.#bannerWindPointerId !== null &&
-      this.canvas?.hasPointerCapture(this.#bannerWindPointerId)
-    ) {
-      this.canvas.releasePointerCapture(this.#bannerWindPointerId);
-    }
-    this.#bannerWindTarget = null;
-    this.#bannerWindPointerId = null;
-    this.#bannerWindLastTime = 0;
   }
 
   #updateInteractionTarget() {
@@ -3695,7 +3566,7 @@ export class PlayCanvasRenderer {
     this.#heroPatHand = null;
     this.#heroMoodVisible = false;
     this.#onHeroMoodChange?.(null);
-    this.#finishBannerWindGesture();
+    this.#pointerInteraction?.cancelActivePointer();
     this.#pathArrows?.clear();
     this.#sceneObjects.destroyType(SCENE_OBJECT_TYPE.GATEWAY);
     this.#sceneObjects.destroyType(SCENE_OBJECT_TYPE.CASTLE);
