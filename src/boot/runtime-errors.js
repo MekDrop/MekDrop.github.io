@@ -1,5 +1,6 @@
 import { Notify } from "quasar";
 import { boot } from "quasar/wrappers";
+import { useCountdown } from "@vueuse/core";
 
 const INSTALLATION_KEY = Symbol.for("mekdrop.runtime-error-handler");
 const DUPLICATE_WINDOW_MS = 1000;
@@ -19,14 +20,10 @@ function refreshLabel(seconds) {
 }
 
 function schedulePageReload(notificationOptions) {
-  const reloadAt = Date.now() + RELOAD_DELAY_MS;
-  let intervalId;
-  let timeoutId;
   let updateNotification;
 
   const stopReloadTimer = () => {
-    window.clearInterval(intervalId);
-    window.clearTimeout(timeoutId);
+    countdown.stop();
   };
   const reloadPage = () => {
     stopReloadTimer();
@@ -53,11 +50,13 @@ function schedulePageReload(notificationOptions) {
   });
   updateNotification = Notify.create(optionsFor(RELOAD_DELAY_MS / 1000));
 
-  intervalId = window.setInterval(() => {
-    const seconds = Math.max(0, Math.ceil((reloadAt - Date.now()) / 1000));
-    updateNotification(optionsFor(seconds));
-  }, 1000);
-  timeoutId = window.setTimeout(reloadPage, RELOAD_DELAY_MS);
+  const countdown = useCountdown(RELOAD_DELAY_MS / 1000, {
+    onTick: () => {
+      updateNotification(optionsFor(countdown.remaining.value));
+    },
+    onComplete: reloadPage,
+  });
+  countdown.start();
 }
 
 export function runtimeErrorDescription(error) {

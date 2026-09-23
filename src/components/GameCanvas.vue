@@ -188,6 +188,7 @@ import {
   onMounted,
   onBeforeUnmount,
 } from "vue";
+import { useResizeObserver } from "@vueuse/core";
 import { getCssVar } from "quasar";
 import { useI18n } from "vue-i18n";
 import { useRoute, useRouter } from "vue-router";
@@ -233,7 +234,6 @@ const gameReady = ref(false);
 const recordingState = ref(GAME_RECORDING_STATE.IDLE);
 const graphicsBackend = ref("initializing");
 const showGraphicsFallbackDialog = ref(false);
-const debugFramesPerSecond = ref(0);
 const interactionTarget = ref(null);
 const interactionPromptsVisible = ref(true);
 const heroLives = ref(3);
@@ -250,6 +250,7 @@ const debugStore = useDebugStore();
 const gameViewStore = useGameViewStore();
 const heroConfigurationStore = useHeroConfigurationStore();
 const debugVisible = computed(() => debugStore.hasAny);
+const debugFramesPerSecond = computed(() => debugStore.framesPerSecond);
 const interactionLabel = computed(() =>
   interactionTarget.value?.labelKey
     ? t(interactionTarget.value.labelKey)
@@ -258,7 +259,6 @@ const interactionLabel = computed(() =>
 let renderer = null;
 let mapData = null;
 let controls = null;
-let resizeObserver = null;
 let stopMapRouteWatch = null;
 let restartGameAction = null;
 let mapFileLoader = null;
@@ -290,9 +290,10 @@ const gameCanvasPluginRegistry = new GameCanvasPluginRegistry({
   registerControlAction,
   debugStore,
   uiTheme: gameUiTheme,
-  setDebugFramesPerSecond: (framesPerSecond) => {
-    debugFramesPerSecond.value = framesPerSecond;
-  },
+});
+const { stop: stopResizeObserver } = useResizeObserver(container, () => {
+  renderer?.resize();
+  gameCanvasPluginRegistry.resize();
 });
 
 function reportRuntimeError(error) {
@@ -582,11 +583,6 @@ async function init() {
   controls = new GameControls(container.value, actions, pluginControlKeyboard);
   controls.connect();
 
-  resizeObserver = new ResizeObserver(() => {
-    renderer?.resize();
-    gameCanvasPluginRegistry.resize();
-  });
-  resizeObserver.observe(container.value);
   stopMapRouteWatch = watch(
     () => route.params.mapName,
     (mapName) => {
@@ -620,7 +616,7 @@ onBeforeUnmount(() => {
   gameCommandRegistry = null;
   controls?.disconnect();
   stopMapRouteWatch?.();
-  resizeObserver?.disconnect();
+  stopResizeObserver();
   const rendererToDestroy = renderer;
   renderer = null;
   try {

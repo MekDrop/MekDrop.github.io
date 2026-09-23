@@ -1,10 +1,10 @@
+import { useIntervalFn } from "@vueuse/core";
+
 import {
   DebugAxesHud,
   DebugFpsHud,
   GameUiTheme,
 } from "../../ui/index.js";
-
-const DEBUG_STATS_UPDATE_INTERVAL = 100;
 
 export class GameCanvasDebugUiPlugin {
   #context;
@@ -16,6 +16,10 @@ export class GameCanvasDebugUiPlugin {
 
   constructor(context) {
     this.#context = context;
+  }
+
+  static get #DEBUG_STATS_UPDATE_INTERVAL() {
+    return 100;
   }
 
   install() {
@@ -39,11 +43,11 @@ export class GameCanvasDebugUiPlugin {
     this.resize();
     this.#applyDebugSettings();
     this.#syncDebugFramesPerSecond();
-    this.#debugStatsTimer = window.setInterval(() => {
+    this.#debugStatsTimer = useIntervalFn(() => {
       if (this.#context.debugStore.hasAny) {
         this.#syncDebugFramesPerSecond();
       }
-    }, DEBUG_STATS_UPDATE_INTERVAL);
+    }, GameCanvasDebugUiPlugin.#DEBUG_STATS_UPDATE_INTERVAL);
     this.#stopDebugStoreSubscription = this.#context.debugStore.$subscribe(
       () => {
         this.#applyDebugSettings();
@@ -65,12 +69,12 @@ export class GameCanvasDebugUiPlugin {
 
   destroy() {
     if (this.#debugStatsTimer !== null) {
-      window.clearInterval(this.#debugStatsTimer);
+      this.#debugStatsTimer.pause();
       this.#debugStatsTimer = null;
     }
     this.#stopDebugStoreSubscription?.();
     this.#stopDebugStoreSubscription = null;
-    this.#context.setDebugFramesPerSecond(0);
+    this.#context.debugStore.framesPerSecond = 0;
     this.#debugAxesHud?.destroy();
     this.#debugAxesHud = null;
     this.#debugFpsHud?.destroy();
@@ -84,8 +88,7 @@ export class GameCanvasDebugUiPlugin {
   }
 
   #syncDebugFramesPerSecond() {
-    this.#context.setDebugFramesPerSecond(
-      this.#debugFpsHud?.framesPerSecond ?? 0,
-    );
+    this.#context.debugStore.framesPerSecond =
+      this.#debugFpsHud?.framesPerSecond ?? 0;
   }
 }

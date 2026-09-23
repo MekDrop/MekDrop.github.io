@@ -8,6 +8,7 @@ export const useDebugStore = defineStore(
     const pathArrows = ref(false);
     const debugAxesHud = ref(false);
     const debugFpsHud = ref(false);
+    const framesPerSecond = ref(0);
 
     const hasAny = computed(
       () => pathArrows.value || debugAxesHud.value || debugFpsHud.value,
@@ -26,6 +27,7 @@ export const useDebugStore = defineStore(
       pathArrows,
       debugAxesHud,
       debugFpsHud,
+      framesPerSecond,
       hasAny,
       toggleAll,
     };

@@ -1,3 +1,4 @@
+import { useDebounceFn } from "@vueuse/core";
 import castleFireParticleUrl from "src/assets/game/effects/castle-fire-particle.png?url";
 import earthSideUrl from "src/assets/game/tiles/earth-side.png";
 import grassSideUrl from "src/assets/game/tiles/grass-side.png";
@@ -255,7 +256,7 @@ export class PlayCanvasRenderer {
   #onInventoryFull = null;
   #viewportSignature = "";
   #viewportPersistenceEnabled = false;
-  #viewportSaveTimer = null;
+  #saveViewportDebounced = null;
   #heroCameraReturnTransition = null;
   #gameOverCameraTransition = null;
   #gameOverCameraLocked = false;
@@ -306,6 +307,9 @@ export class PlayCanvasRenderer {
     this.#uiTheme = new GameUiTheme(uiTheme);
     this.#heroConfigurationStore.normalizeInventorySlots();
     this.#translate = t;
+    this.#saveViewportDebounced = useDebounceFn(() => {
+      this.#saveViewport();
+    }, 150);
     this.#pointerInteraction = new ScenePointerInteraction({
       canvas,
       sceneObjects: this.#sceneObjects,
@@ -1023,10 +1027,7 @@ export class PlayCanvasRenderer {
     this.#destroyed = true;
     this.#stopDebugStoreSubscription?.();
     this.#stopDebugStoreSubscription = null;
-    if (this.#viewportSaveTimer !== null) {
-      window.clearTimeout(this.#viewportSaveTimer);
-      this.#saveViewport();
-    }
+    this.#saveViewportDebounced?.flush();
     this.#disconnectPointerInteractions();
     this.#devWireframeInspector?.destroy();
     this.#devWireframeInspector = null;
@@ -3307,16 +3308,10 @@ export class PlayCanvasRenderer {
     if (!this.#viewportPersistenceEnabled) {
       return;
     }
-    if (this.#viewportSaveTimer !== null) {
-      window.clearTimeout(this.#viewportSaveTimer);
-    }
-    this.#viewportSaveTimer = window.setTimeout(() => {
-      this.#saveViewport();
-    }, 150);
+    void this.#saveViewportDebounced();
   }
 
   #saveViewport() {
-    this.#viewportSaveTimer = null;
     this.#gameViewStore.updateViewport(this.viewport);
   }
 

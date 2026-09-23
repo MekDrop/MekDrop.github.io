@@ -205,7 +205,7 @@ export class DebugFpsHud {
 
     const sample = {
       time: now,
-      framesPerSecond: Math.max(0, Math.round(1000 / elapsed)),
+      framesPerSecond: Math.max(1, Math.round(1000 / elapsed)),
     };
     this.#framesPerSecond = sample.framesPerSecond;
     this.#appendMinimumSample(sample);

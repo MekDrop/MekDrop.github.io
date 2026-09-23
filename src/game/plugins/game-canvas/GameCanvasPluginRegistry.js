@@ -16,7 +16,6 @@ export class GameCanvasPluginRegistry {
     registerControlAction,
     debugStore,
     uiTheme,
-    setDebugFramesPerSecond,
   }) {
     this.#context = {
       target,
@@ -32,7 +31,6 @@ export class GameCanvasPluginRegistry {
       registerControlAction,
       debugStore,
       uiTheme,
-      setDebugFramesPerSecond,
     };
   }
 
