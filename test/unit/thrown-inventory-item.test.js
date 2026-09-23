@@ -117,6 +117,22 @@ function createThrownItem(direction = { x: 3, z: 4 }) {
   return { thrownItem, material: renders[0].meshInstances[0].material, model };
 }
 
+function createDroppedItem(direction = { x: 3, z: 4 }) {
+  const material = createMaterial();
+  const renders = [{ meshInstances: [{ material }, { material }] }];
+  const model = new FakeEntity("inventory model");
+  model.findComponents = () => renders;
+  const thrownItem = new ThrownInventoryItem({
+    pc,
+    modelLibrary: { instantiate: () => model },
+    item: { modelUrl: "item.glb", variant: "red-mushroom" },
+    position: { x: 2, y: 3, z: 5 },
+    direction,
+    dropped: true,
+  });
+  return { thrownItem, material: renders[0].meshInstances[0].material, model };
+}
+
 describe("thrown inventory item", () => {
   it("delegates ballistic movement, bouncing, damping, and settling to Ammo", () => {
     const { thrownItem, model } = createThrownItem();
@@ -184,6 +200,26 @@ describe("thrown inventory item", () => {
     thrownItem.advance(0.12);
     assert.equal(thrownItem.expired, true);
     assert.equal(material.opacity, 0);
+  });
+
+  it("can drop downward without a launch impulse", () => {
+    const { thrownItem } = createDroppedItem();
+    const [body] = thrownItem.entity.children;
+
+    assert.deepEqual(body.position, new FakeVec3(2, 3.85, 5));
+    assert.deepEqual(body.rigidbody.linearVelocity, new FakeVec3(0, 0, 0));
+    assert.deepEqual(body.rigidbody.angularVelocity, new FakeVec3(0, 0, 0));
+
+    assert.deepEqual(thrownItem.grassImpressionContacts, []);
+
+    body.position = new FakeVec3(2, 3.04, 5);
+    body.rigidbody.fire("collisionstart", {
+      other: thrownItem.entity.children[1],
+    });
+    const [contact] = thrownItem.grassImpressionContacts;
+    assert.equal(contact.x, 2);
+    assert.equal(contact.y, 3.004);
+    assert.equal(contact.z, 5);
   });
 
   it("exposes a grass impression driven by the Ammo body transform", () => {

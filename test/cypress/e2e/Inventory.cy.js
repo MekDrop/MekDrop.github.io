@@ -48,6 +48,14 @@ function inventorySlotPoint(bounds, slot) {
   };
 }
 
+function inventoryDialogPoint(bounds, panelX, panelY) {
+  const scale = Math.sqrt((bounds.width / 1280) * (bounds.height / 720));
+  return {
+    clientX: bounds.left + bounds.width / 2 + (panelX - 215) * scale,
+    clientY: bounds.top + bounds.height / 2 + (panelY - 210) * scale,
+  };
+}
+
 function dragInventoryItem(fromSlot, target) {
   cy.get(".background-canvas__surface").then(($canvas) => {
     const viewport = $canvas[0].closest(".background-canvas");
@@ -246,7 +254,7 @@ describe("Collectible inventory", () => {
     });
   });
 
-  it("moves items to empty cells and drops them beyond the inventory", () => {
+  it("moves items to empty cells and only drops outside the dialog", () => {
     collectItem(1, HERO_ANIMATION.PICK_FLOWER);
     cy.get(".interaction-prompt")
       .invoke("text")
@@ -282,10 +290,15 @@ describe("Collectible inventory", () => {
       expect(secondItem.slot).to.equal(1);
     });
 
-    dragInventoryItem(1, (bounds) => ({
-      clientX: bounds.right - 8,
-      clientY: bounds.top + bounds.height / 2,
-    }));
+    dragInventoryItem(1, (bounds) => inventoryDialogPoint(bounds, 48, 48));
+    cy.window().should((window) => {
+      const inventory = window.gameMovementTest.state().inventory;
+      expect(inventory.items).to.have.length(2);
+      expect(inventory.items[1].slot).to.equal(1);
+      expect(window.gameMovementTest.droppedInventoryItemCount()).to.equal(0);
+    });
+
+    dragInventoryItem(1, (bounds) => inventoryDialogPoint(bounds, -40, 210));
     cy.window().should((window) => {
       const inventory = window.gameMovementTest.state().inventory;
       expect(inventory.items).to.have.length(1);
@@ -295,6 +308,15 @@ describe("Collectible inventory", () => {
       );
       expect(persistedState.inventory.items).to.have.length(1);
       expect(window.gameMovementTest.droppedInventoryItemCount()).to.equal(1);
+      const [droppedItem] = window.gameMovementTest.droppedInventoryItems();
+      const heroPosition = window.gameMovementTest.state().position;
+      expect(
+        Math.hypot(
+          droppedItem.position.x - heroPosition.x,
+          droppedItem.position.z - heroPosition.z,
+        ),
+      ).to.be.greaterThan(2);
+      expect(droppedItem.position.y).to.be.lessThan(heroPosition.y + 13);
     });
 
     pressKey("Escape");

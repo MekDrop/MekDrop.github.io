@@ -3,6 +3,7 @@ import { GRASS_SURFACE_LIFT } from "../../config/terrain.js";
 const THROW_SPEED = 1.45;
 const THROW_LIFT = 3.15;
 const FLOOR_OFFSET = 0.04;
+const DROP_FALL_HEIGHT = 0.85;
 const FLOOR_HALF_SIZE = 3;
 const FLOOR_HALF_HEIGHT = 0.025;
 const BODY_HALF_EXTENTS = Object.freeze({ x: 0.12, y: 0.1, z: 0.12 });
@@ -31,16 +32,33 @@ export class ThrownInventoryItem {
   #fadeElapsed = 0;
   #expired = false;
 
-  constructor({ pc, modelLibrary, item, position, direction }) {
+  constructor({
+    pc,
+    modelLibrary,
+    item,
+    position,
+    direction,
+    dropped = false,
+    dropStartY = null,
+  }) {
     this.#pc = pc;
-    this.#grassSurfaceY = position.y + GRASS_SURFACE_LIFT;
+    const floorSurfaceY = position.y;
+    this.#grassSurfaceY = floorSurfaceY + GRASS_SURFACE_LIFT;
     this.#forward = new pc.Vec3(0, 0, 1);
     this.#worldForward = new pc.Vec3();
     const horizontalLength = Math.hypot(direction.x, direction.z) || 1;
+    const bodyY = dropped
+      ? Math.max(
+          floorSurfaceY + FLOOR_OFFSET,
+          Number.isFinite(dropStartY)
+            ? dropStartY
+            : floorSurfaceY + DROP_FALL_HEIGHT,
+        )
+      : position.y + 0.86;
 
     this.#entity = new pc.Entity(`Thrown inventory item ${item.variant}`);
     const body = new pc.Entity(`Thrown inventory item body ${item.variant}`);
-    body.setLocalPosition(position.x, position.y + 0.86, position.z);
+    body.setLocalPosition(position.x, bodyY, position.z);
     body.setLocalEulerAngles(-18, 24, 12);
     const model = modelLibrary.instantiate(item.modelUrl);
     this.#cloneMaterials(model);
@@ -65,23 +83,27 @@ export class ThrownInventoryItem {
       group: pc.BODYGROUP_USER_3,
       mask: pc.BODYGROUP_USER_4,
     });
-    body.rigidbody.linearVelocity = new pc.Vec3(
-      (direction.x / horizontalLength) * THROW_SPEED,
-      THROW_LIFT,
-      (direction.z / horizontalLength) * THROW_SPEED,
-    );
-    body.rigidbody.angularVelocity = new pc.Vec3(
-      ANGULAR_VELOCITY.x,
-      ANGULAR_VELOCITY.y,
-      ANGULAR_VELOCITY.z,
-    );
+    body.rigidbody.linearVelocity = dropped
+      ? new pc.Vec3(0, 0, 0)
+      : new pc.Vec3(
+          (direction.x / horizontalLength) * THROW_SPEED,
+          THROW_LIFT,
+          (direction.z / horizontalLength) * THROW_SPEED,
+        );
+    body.rigidbody.angularVelocity = dropped
+      ? new pc.Vec3(0, 0, 0)
+      : new pc.Vec3(
+          ANGULAR_VELOCITY.x,
+          ANGULAR_VELOCITY.y,
+          ANGULAR_VELOCITY.z,
+        );
     this.#body = body;
     this.#entity.addChild(body);
 
     const floor = new pc.Entity(`Thrown inventory item floor ${item.variant}`);
     floor.setLocalPosition(
       position.x,
-      position.y + FLOOR_OFFSET - FLOOR_HALF_HEIGHT,
+      floorSurfaceY + FLOOR_OFFSET - FLOOR_HALF_HEIGHT,
       position.z,
     );
     floor.addComponent("collision", {
@@ -111,6 +133,15 @@ export class ThrownInventoryItem {
 
   get expired() {
     return this.#expired;
+  }
+
+  get state() {
+    const position = this.#body?.getPosition();
+    return {
+      position: position
+        ? { x: position.x, y: position.y, z: position.z }
+        : null,
+    };
   }
 
   get grassImpressionContacts() {

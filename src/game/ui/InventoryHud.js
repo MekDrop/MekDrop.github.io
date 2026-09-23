@@ -11,6 +11,7 @@ const SLOT_ROWS = 3;
 const SLOT_SIZE = 90;
 const CLOSE_BUTTON_SIZE = 32;
 const ITEM_PROJECTION_SIZE = 64;
+const DROP_EDGE_MARGIN = 24;
 const ITEM_LABEL_MAXIMUM_WIDTH = SLOT_SIZE - 12;
 const TOOLTIP_WIDTH = 164;
 const TOOLTIP_HEIGHT = 25;
@@ -50,6 +51,7 @@ export class InventoryHud {
   #draggedItemSlot = null;
   #dragHoveredSlot = null;
   #dragVisual = null;
+  #dragStartClient = null;
   #state = { capacity: SLOT_COLUMNS * SLOT_ROWS, items: [] };
 
   constructor({
@@ -335,6 +337,7 @@ export class InventoryHud {
     this.#fullReactionAnchor = { x: 0, y: 0 };
     this.#hoveredItemSlot = null;
     this.#dragVisual = null;
+    this.#dragStartClient = null;
     this.#onMoveItem = null;
     this.#onDropItem = null;
     this.#theme = null;
@@ -992,6 +995,7 @@ export class InventoryHud {
     }
     this.#draggedItemSlot = slot;
     this.#dragHoveredSlot = slot;
+    this.#dragStartClient = { x: clientX, y: clientY };
     this.#setHoveredItem(null);
     this.#dragVisual = this.#createItemVisual(item, "Dragged inventory item");
     this.#modalRoot.addChild(this.#dragVisual.entity);
@@ -1009,18 +1013,28 @@ export class InventoryHud {
       targetSlot !== null &&
       targetSlot !== sourceSlot &&
       !this.#itemAtSlot(targetSlot);
-    const droppedOutside = !this.#panelContains(clientX, clientY);
+    const droppedOutside = !this.#dialogContains(clientX, clientY);
+    const dropPoint = droppedOutside
+      ? this.#dialogBottomDropPoint(clientX)
+      : { clientX, clientY };
     const visual = this.#dragVisual;
 
     this.#dragVisual = null;
     this.#draggedItemSlot = null;
     this.#dragHoveredSlot = null;
+    this.#dragStartClient = null;
 
     if (validTarget && this.#onMoveItem?.(sourceSlot, targetSlot)) {
       this.#destroyItemVisual(visual);
     } else if (
       droppedOutside &&
-      this.#onDropItem?.(sourceSlot, clientX, clientY)
+      this.#onDropItem?.(
+        sourceSlot,
+        dropPoint.clientX,
+        dropPoint.clientY,
+        clientX,
+        clientY,
+      )
     ) {
       this.#destroyItemVisual(visual);
     } else {
@@ -1040,6 +1054,7 @@ export class InventoryHud {
     this.#dragVisual = null;
     this.#draggedItemSlot = null;
     this.#dragHoveredSlot = null;
+    this.#dragStartClient = null;
     this.#syncItemProjections();
     this.#drawPanel();
     this.#updateCursor();
@@ -1101,9 +1116,17 @@ export class InventoryHud {
     visual.ownedTexture?.destroy();
   }
 
-  #panelContains(clientX, clientY) {
+  #dialogContains(clientX, clientY) {
     const { x, y } = this.#clientToPanel(clientX, clientY);
     return x >= 0 && x <= PANEL_WIDTH && y >= 0 && y <= PANEL_HEIGHT;
+  }
+
+  #dialogBottomDropPoint(clientX) {
+    const { clientY } = this.#panelToClient(
+      PANEL_WIDTH / 2,
+      PANEL_HEIGHT + DROP_EDGE_MARGIN,
+    );
+    return { clientX, clientY };
   }
 
   #clientToPanel(clientX, clientY) {
@@ -1115,6 +1138,14 @@ export class InventoryHud {
       y:
         (clientY - (bounds.top + bounds.height / 2)) / scale +
         PANEL_HEIGHT / 2,
+    };
+  }
+
+  #panelToClient(x, y) {
+    const { bounds, scale } = this.#canvasMetrics;
+    return {
+      clientX: bounds.left + bounds.width / 2 + (x - PANEL_WIDTH / 2) * scale,
+      clientY: bounds.top + bounds.height / 2 + (y - PANEL_HEIGHT / 2) * scale,
     };
   }
 

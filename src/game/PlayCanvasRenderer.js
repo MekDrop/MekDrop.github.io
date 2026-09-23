@@ -35,7 +35,6 @@ import {
 } from "./objects/scenery/index.js";
 import { VoxelVegetation } from "./objects/vegetation/index.js";
 import { BuriedTreasureField } from "./objects/treasure/index.js";
-import { ThrownInventoryItem } from "./objects/inventory/index.js";
 import { ScenePointerInteraction } from "./objects/shared/ScenePointerInteraction.js";
 import { TileType } from "./MapGenerator.js";
 import { GRASS_SURFACE_LIFT } from "./config/terrain.js";
@@ -50,18 +49,14 @@ import {
 import { GameModelLibrary } from "./models/index.js";
 import { CameraPanBounds, HeroVisibilityController } from "./camera/index.js";
 import { CameraOrbitPivot } from "./camera/CameraOrbitPivot.js";
-import {
-  GameUiTheme,
-  HeroLifeHud,
-  CoinHud,
-  InventoryHud,
-} from "./ui/index.js";
+import { GameUiTheme, HeroLifeHud, CoinHud } from "./ui/index.js";
 import { colorFromHex, shadeHexColor } from "./helpers/colors.js";
 import { RoyalAnimationPreview } from "./debug/RoyalAnimationPreview.js";
 import { HeroAnimationPreview } from "./debug/HeroAnimationPreview.js";
 import { HeroAnimationSign } from "./debug/HeroAnimationSign.js";
 import { RoyalCastleTriggerField } from "./debug/RoyalCastleTriggerField.js";
 import { GameOverScene } from "./rendering/scene/GameOverScene.js";
+import { InventoryScene } from "./rendering/scene/InventoryScene.js";
 import { SceneObjectRegistry } from "./rendering/scene/SceneObjectRegistry.js";
 import { TerrainRenderer } from "./rendering/terrain/TerrainRenderer.js";
 import {
@@ -167,6 +162,8 @@ const HERO_CAMERA_RETURN_DURATION = 0.45;
 const HERO_RESPAWN_CAMERA_RETURN_DURATION = 0.32;
 const CAMERA_TARGET_HEIGHT = 3.2;
 const MAX_CASTLE_LIVES = 3;
+const INVENTORY_DROP_MIN_FALL_HEIGHT = 0.35;
+const INVENTORY_DROP_MAX_FALL_HEIGHT = 12;
 
 export class PlayCanvasRenderer {
   #pc = null;
@@ -204,8 +201,7 @@ export class PlayCanvasRenderer {
   #heroMoodVisible = false;
   #lifeHud = null;
   #coinHud = null;
-  #inventoryHud = null;
-  #thrownInventoryItems = [];
+  #inventoryScene = null;
   #scene = null;
   #heroVisibility = null;
   #floatingIslandMotion = null;
@@ -372,21 +368,23 @@ export class PlayCanvasRenderer {
       theme: this.#uiTheme,
     });
     this.#coinHud.attach();
-    this.#inventoryHud = new InventoryHud({
+    this.#inventoryScene = new InventoryScene({
       pc,
       app: this.#app,
       modelLibrary: this.#modelLibrary,
+      heroConfigurationStore: this.#heroConfigurationStore,
       translate: this.#translate,
       theme: this.#uiTheme,
-      onMoveItem: (fromSlot, toSlot) =>
-        this.#moveInventoryItem(fromSlot, toSlot),
-      onDropItem: (slot, clientX, clientY) =>
-        this.#dropInventoryItem(slot, clientX, clientY),
+      getHero: () => this.#sceneObjects.getOne(SCENE_OBJECT_TYPE.HERO),
+      getMapRoot: () => this.#mapRoot,
+      getDropPlacement: (clientX, clientY, heightClientX, heightClientY) =>
+        this.#inventoryDropPlacement(
+          clientX,
+          clientY,
+          heightClientX,
+          heightClientY,
+        ),
     });
-    this.#inventoryHud.attach();
-    this.#inventoryHud.visible = Boolean(
-      this.#heroConfigurationStore.inventory.visible,
-    );
     this.#scene = new GameOverScene({
       pc,
       app: this.#app,
@@ -442,7 +440,7 @@ export class PlayCanvasRenderer {
         ...Hero.modelUrls,
         HeroPatHand.modelUrl,
         ...(import.meta.env.DEV ? [HeroAnimationSign.modelUrl] : []),
-        InventoryHud.modelUrl,
+        ...InventoryScene.modelUrls,
         Gateway.modelUrl,
         ...BridgeRailingKit.modelUrls,
         OverpassStairs.modelUrl,
@@ -490,7 +488,7 @@ export class PlayCanvasRenderer {
       this.#gameViewStore.updateViewport(this.#gameViewStore.$state);
       initialViewport = { ...this.#gameViewStore.$state };
     }
-    this.#inventoryHud.visible = Boolean(
+    this.#inventoryScene.visible = Boolean(
       this.#heroConfigurationStore.inventory.visible,
     );
     this.#mapData = mapData;
@@ -625,26 +623,27 @@ export class PlayCanvasRenderer {
   }
 
   get inventoryState() {
-    const hero = this.#sceneObjects.getOne(SCENE_OBJECT_TYPE.HERO);
-    return {
-      ...(hero?.inventory ?? {
-        capacity: Hero.inventoryCapacity,
-        items: [],
-      }),
-      visible: this.#inventoryHud?.visible ?? false,
+    return this.#inventoryScene?.state ?? {
+      capacity: Hero.inventoryCapacity,
+      items: [],
+      visible: false,
     };
   }
 
   get inventoryVisible() {
-    return this.#inventoryHud?.visible ?? false;
+    return this.#inventoryScene?.visible ?? false;
   }
 
   get inventoryFullReactionVisible() {
-    return this.#inventoryHud?.fullReactionVisible ?? false;
+    return this.#inventoryScene?.fullReactionVisible ?? false;
   }
 
   get thrownInventoryItemCount() {
-    return this.#thrownInventoryItems.length;
+    return this.#inventoryScene?.thrownItemCount ?? 0;
+  }
+
+  get thrownInventoryItemStates() {
+    return this.#inventoryScene?.thrownItemStates ?? [];
   }
 
   get wind() {
@@ -786,77 +785,31 @@ export class PlayCanvasRenderer {
 
   #setInventoryVisible(visible) {
     const nextVisible = Boolean(visible);
-    this.#inventoryHud.visible = nextVisible;
-    this.#heroConfigurationStore.setInventoryVisible(nextVisible);
-    if (!nextVisible) {
-      this.#fadeThrownInventoryItems();
-    }
-  }
-
-  #moveInventoryItem(fromSlot, toSlot) {
-    const moved =
-      this.#heroConfigurationStore.moveInventoryItem(fromSlot, toSlot);
-    if (moved) {
-      this.#inventoryHud?.setInventory(this.inventoryState);
-    }
-    return moved;
-  }
-
-  #dropInventoryItem(slot) {
-    const inventoryItem = this.#heroConfigurationStore.inventory.items.find(
-      (item) => item.slot === slot,
-    );
-    const hero = this.#sceneObjects.getOne(SCENE_OBJECT_TYPE.HERO);
-    if (!inventoryItem?.modelUrl || !hero || !this.#mapRoot) {
-      return null;
-    }
-    const thrownItem = new ThrownInventoryItem({
-      pc: this.#pc,
-      modelLibrary: this.#modelLibrary,
-      item: inventoryItem,
-      position: hero.position,
-      direction: hero.facingDirection,
-    });
-    const droppedItem =
-      this.#heroConfigurationStore.dropInventoryItem(slot);
-    if (!droppedItem) {
-      thrownItem.destroy();
-      return null;
-    }
-    this.#mapRoot.addChild(thrownItem.entity);
-    this.#thrownInventoryItems.push(thrownItem);
-    this.#inventoryHud?.setInventory(this.inventoryState);
-    return droppedItem;
-  }
-
-  #fadeThrownInventoryItems() {
-    for (const thrownItem of this.#thrownInventoryItems) {
-      thrownItem.beginFade();
-    }
+    this.#inventoryScene?.setVisible(nextVisible);
   }
 
   pressInventoryPointer(clientX, clientY) {
-    return this.#inventoryHud?.pointerDown(clientX, clientY) ?? false;
+    return this.#inventoryScene?.pointerDown(clientX, clientY) ?? false;
   }
 
   moveInventoryPointer(clientX, clientY) {
-    return this.#inventoryHud?.pointerMove(clientX, clientY) ?? false;
+    return this.#inventoryScene?.pointerMove(clientX, clientY) ?? false;
   }
 
   releaseInventoryPointer(clientX, clientY) {
     if (!this.inventoryVisible) {
       return false;
     }
-    const shouldClose = this.#inventoryHud.pointerUp(clientX, clientY);
+    const shouldClose = this.#inventoryScene.pointerUp(clientX, clientY);
     return shouldClose ? this.closeInventory() : false;
   }
 
   leaveInventoryPointer() {
-    this.#inventoryHud?.pointerLeave();
+    this.#inventoryScene?.pointerLeave();
   }
 
   cancelInventoryPointer() {
-    this.#inventoryHud?.cancelPointer();
+    this.#inventoryScene?.cancelPointer();
   }
 
   setViewport({
@@ -1005,8 +958,8 @@ export class PlayCanvasRenderer {
     this.#lifeHud = null;
     this.#coinHud?.destroy();
     this.#coinHud = null;
-    this.#inventoryHud?.destroy();
-    this.#inventoryHud = null;
+    this.#inventoryScene?.destroy();
+    this.#inventoryScene = null;
     this.#scene?.destroy();
     this.#scene = null;
     this.#uiTheme = null;
@@ -1332,9 +1285,7 @@ export class PlayCanvasRenderer {
           this.#sceneObjects.getOne(SCENE_OBJECT_TYPE.HERO)
             ?.grassFootContacts ?? []
         ),
-        ...this.#thrownInventoryItems.flatMap(
-          (item) => item.grassImpressionContacts,
-        ),
+        ...(this.#inventoryScene?.grassImpressionContacts ?? []),
         ...(this.#groundCover?.grassImpressionContacts ?? []),
       ],
       getSurfaceContacts: () =>
@@ -1742,12 +1693,17 @@ export class PlayCanvasRenderer {
     }
     this.#riverWater?.update(deltaTime, hero, this.#camera?.camera);
     this.#heroPatHand?.update(deltaTime);
-    this.#syncInventoryVisibility();
-    this.#inventoryHud?.update(
+    const inventoryVisibilityChange =
+      this.#inventoryScene?.syncConfiguredVisibility();
+    if (inventoryVisibilityChange === true) {
+      this.#setInteractionTarget(null);
+    } else if (inventoryVisibilityChange === false) {
+      this.#updateInteractionTarget();
+    }
+    this.#inventoryScene?.update(
       deltaTime,
       this.#inventoryFullIndicatorScreenPosition(),
     );
-    this.#updateThrownInventoryItems(deltaTime);
     this.#cloudField?.update(deltaTime);
     this.#updateHeroCameraReturn(deltaTime);
     this.#scene?.update(deltaTime);
@@ -1810,7 +1766,7 @@ export class PlayCanvasRenderer {
   }
 
   #handleInventoryFull = (inventory) => {
-    this.#inventoryHud?.showFullReaction(
+    this.#inventoryScene?.showFullReaction(
       this.#inventoryFullIndicatorScreenPosition(),
     );
     this.#onInventoryFull?.(inventory);
@@ -1866,38 +1822,6 @@ export class PlayCanvasRenderer {
         (event.clientY - rect.top - head.y) / 0.85,
       ) <= head.radius
     );
-  }
-
-  #updateThrownInventoryItems(deltaTime) {
-    const remainingItems = [];
-    for (const thrownItem of this.#thrownInventoryItems) {
-      thrownItem.advance(deltaTime);
-      if (thrownItem.expired) {
-        thrownItem.destroy();
-      } else {
-        remainingItems.push(thrownItem);
-      }
-    }
-    this.#thrownInventoryItems = remainingItems;
-  }
-
-  #syncInventoryVisibility() {
-    if (!this.#inventoryHud || !this.#heroConfigurationStore) {
-      return;
-    }
-    const configuredVisibility = Boolean(
-      this.#heroConfigurationStore.inventory.visible,
-    );
-    if (this.#inventoryHud.visible === configuredVisibility) {
-      return;
-    }
-    this.#inventoryHud.visible = configuredVisibility;
-    if (configuredVisibility) {
-      this.#setInteractionTarget(null);
-    } else {
-      this.#fadeThrownInventoryItems();
-      this.#updateInteractionTarget();
-    }
   }
 
   #cubeMaterials(type, topCube, col, row, level) {
@@ -2641,7 +2565,7 @@ export class PlayCanvasRenderer {
   #handleHeroStateChange = (state) => {
     this.#lifeHud?.setLives(state.lives, state.maxLives);
     this.#coinHud?.setWallet(state.wallet);
-    this.#inventoryHud?.setInventory(state.inventory);
+    this.#inventoryScene?.setInventory(state.inventory);
     this.#scene?.syncHeroState?.(state);
     this.#onHeroStateChange?.(state);
   };
@@ -2842,6 +2766,114 @@ export class PlayCanvasRenderer {
     };
   }
 
+  #inventoryDropPlacement(clientX, clientY, heightClientX, heightClientY) {
+    const ray = this.#pointerRay({ clientX, clientY });
+    const heightRay = this.#pointerRay({
+      clientX: heightClientX ?? clientX,
+      clientY: heightClientY ?? clientY,
+    });
+    const hero = this.#sceneObjects.getOne(SCENE_OBJECT_TYPE.HERO);
+    if (!ray || !heightRay || !hero) {
+      return null;
+    }
+    const hit = this.#inventoryDropRaycast(heightRay);
+    const position = this.#inventoryDropScreenPosition(
+      hit?.point?.y ?? hero.position.y,
+      clientX,
+      clientY,
+    );
+    if (!position) {
+      return null;
+    }
+    const direction = {
+      x: position.x - hero.position.x,
+      z: position.z - hero.position.z,
+    };
+    if (Math.hypot(direction.x, direction.z) <= 0.000001) {
+      return {
+        position,
+        direction: hero.facingDirection,
+        dropStartY: this.#inventoryDropStartY(
+          position,
+          heightClientY ?? clientY,
+        ),
+      };
+    }
+    return {
+      position,
+      direction,
+      dropStartY: this.#inventoryDropStartY(position, heightClientY ?? clientY),
+    };
+  }
+
+  #inventoryDropRaycast(ray) {
+    const hits = this.#app?.systems.rigidbody?.raycastAll?.(
+      ray.start,
+      ray.end,
+      { sort: true },
+    ) ?? [];
+    return hits.find((hit) => hit.normal?.y >= 0.35) ?? null;
+  }
+
+  #inventoryDropScreenPosition(height, clientX, clientY) {
+    if (!this.#camera?.camera || !this.canvas) {
+      return null;
+    }
+    const rect = this.canvas.getBoundingClientRect();
+    const center = this.#camera.camera.worldToScreen(
+      new this.#pc.Vec3(this.#panX, height, this.#panZ),
+    );
+    const correction = this.#screenDeltaToGround(
+      clientX - rect.left - center.x,
+      clientY - rect.top - center.y,
+      this.#zoom,
+    );
+    return new this.#pc.Vec3(
+      this.#panX + correction.x,
+      height,
+      this.#panZ + correction.z,
+    );
+  }
+
+  #inventoryDropStartY(position, clientY) {
+    if (!this.#camera?.camera || !this.canvas) {
+      return null;
+    }
+    const rect = this.canvas.getBoundingClientRect();
+    const screenPosition = this.#camera.camera.worldToScreen(position);
+    const worldPerPixel =
+      (2 * this.#baseOrthoHeight) /
+      Math.max(1, this.canvas.clientHeight) /
+      this.#zoom;
+    const cursorY = clientY - rect.top;
+    const upwardScreenDistance = screenPosition.y - cursorY;
+    if (upwardScreenDistance <= 0) {
+      return null;
+    }
+    const fallHeight =
+      (upwardScreenDistance * worldPerPixel) / Math.cos(CAMERA_PITCH);
+    return position.y + Math.max(
+      INVENTORY_DROP_MIN_FALL_HEIGHT,
+      Math.min(INVENTORY_DROP_MAX_FALL_HEIGHT, fallHeight),
+    );
+  }
+
+  #inventoryDropPlanePosition(ray, height) {
+    const rayY = ray.end.y - ray.start.y;
+    if (Math.abs(rayY) <= 0.000001) {
+      return null;
+    }
+    const distance = (height - ray.start.y) / rayY;
+    if (distance < 0 || distance > 1) {
+      return null;
+    }
+    return new this.#pc.Vec3(
+      ray.start.x + (ray.end.x - ray.start.x) * distance,
+      height,
+      ray.start.z + (ray.end.z - ray.start.z) * distance,
+    );
+  }
+
   #trackHeroLookPointer = (event) => {
     this.#heroLookPointer = {
       clientX: event.clientX,
@@ -2967,10 +2999,7 @@ export class PlayCanvasRenderer {
     this.#floatingCameraOffsetY = 0;
     this.#floatingCameraOffsetApplied = false;
     this.#interactionProviders = [];
-    for (const thrownItem of this.#thrownInventoryItems) {
-      thrownItem.destroy();
-    }
-    this.#thrownInventoryItems = [];
+    this.#inventoryScene?.clearWorldItems();
     this.#sceneObjects.destroyType(SCENE_OBJECT_TYPE.HERO);
     this.#terrainRenderer?.destroy();
     this.#terrainRenderer = null;

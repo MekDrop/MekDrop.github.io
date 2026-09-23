@@ -26,6 +26,8 @@ export class GameCanvasMovementTestDriverPlugin {
         this.#context.renderer().royalTriggerPhysicsState,
       droppedInventoryItemCount: () =>
         this.#context.renderer().thrownInventoryItemCount,
+      droppedInventoryItems: () =>
+        this.#context.renderer().thrownInventoryItemStates,
       inventoryFullReactionVisible: () =>
         this.#context.renderer().inventoryFullReactionVisible,
       state: () => this.#context.renderer().heroState,
