@@ -10,16 +10,16 @@ export class GameCanvasMovementTestDriverPlugin {
     this.#driver = {
       loadScenario: (scenario) => this.#loadScenario(scenario),
       moveForward: (active = true) => {
-        this.#context.renderer().setHeroMovement(0, active ? -1 : 0);
+        this.#context.renderer().hero?.setMovement(0, active ? -1 : 0);
       },
       move: (inputX, inputY, running = false) => {
-        this.#context.renderer().setHeroMovement(inputX, inputY, running);
+        this.#context.renderer().hero?.setMovement(inputX, inputY, running);
       },
       jump: () => {
-        this.#context.renderer().jumpHero();
+        this.#context.renderer().hero?.jump();
       },
       dodge: (inputX, inputY, direction = "forward") =>
-        this.#context.renderer().dodgeHero(inputX, inputY, direction),
+        this.#context.renderer().hero?.dodge(inputX, inputY, direction) ?? false,
       interact: () => this.#context.renderer().interact(),
       royalCastles: () => this.#context.renderer().royalCastleStates,
       royalTriggerPhysics: () =>

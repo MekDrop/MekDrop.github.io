@@ -32,7 +32,7 @@ export class GameCanvasCameraTestDriverPlugin {
         return this.#state();
       },
       moveHero: (inputX, inputY, running = false) =>
-        this.#context.renderer().setHeroMovement(inputX, inputY, running),
+        this.#context.renderer().hero?.setMovement(inputX, inputY, running),
       returnToHero: () => this.#context.renderer().returnCameraToHero(),
       state: () => this.#state(),
     };

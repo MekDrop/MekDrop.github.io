@@ -23,6 +23,10 @@ export class HeroMovementAction {
     this.#renderer = renderer;
   }
 
+  get #hero() {
+    return this.#renderer.hero;
+  }
+
   invoke(event) {
     if (this.#renderer.inventoryVisible) {
       return;
@@ -52,8 +56,10 @@ export class HeroMovementAction {
 
     if (!wasPressed && !event.repeat) {
       // Let a backward double-tap resolve before turning toward a normal walk.
-      this.#renderer.heroFacingHoldDuration =
-        direction === "down" ? doubleTapWindow : 0;
+      const hero = this.#hero;
+      if (hero) {
+        hero.facingHoldDuration = direction === "down" ? doubleTapWindow : 0;
+      }
     }
     this.setRunning(event.shiftKey);
     this.setDirection(direction, true);
@@ -84,7 +90,7 @@ export class HeroMovementAction {
     if (this.#renderer.inventoryVisible) {
       return;
     }
-    this.#renderer.jumpHero();
+    this.#hero?.jump();
   }
 
   dodge(direction) {
@@ -92,7 +98,7 @@ export class HeroMovementAction {
     if (!input) {
       return false;
     }
-    return this.#renderer.dodgeHero(input.x, input.y, direction);
+    return this.#hero?.dodge(input.x, input.y, direction) ?? false;
   }
 
   clear() {
@@ -102,7 +108,10 @@ export class HeroMovementAction {
     this.#running = false;
     this.#lastDirectionTapAt.clear();
     this.#consumedDodgeDirections.clear();
-    this.#renderer.heroFacingHoldDuration = 0;
+    const hero = this.#hero;
+    if (hero) {
+      hero.facingHoldDuration = 0;
+    }
     this.#applyMovement();
   }
 
@@ -126,7 +135,7 @@ export class HeroMovementAction {
     const x =
       Number(this.#directions.right) - Number(this.#directions.left);
     const y = Number(this.#directions.up) - Number(this.#directions.down);
-    this.#renderer.setHeroMovement(
+    this.#hero?.setMovement(
       x,
       y,
       this.#running && (x !== 0 || y !== 0),

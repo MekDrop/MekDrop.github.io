@@ -7,13 +7,21 @@ function controls(context, dodgeAccepted = true) {
   context.mock.method(performance, "now", () => now);
   const movements = [];
   const dodges = [];
+  let facingHoldDuration = 0;
   const renderer = {
     inventoryVisible: false,
-    heroFacingHoldDuration: 0,
-    setHeroMovement: (...args) => movements.push(args),
-    dodgeHero: (...args) => {
-      dodges.push(args);
-      return dodgeAccepted;
+    hero: {
+      get facingHoldDuration() {
+        return facingHoldDuration;
+      },
+      set facingHoldDuration(duration) {
+        facingHoldDuration = duration;
+      },
+      setMovement: (...args) => movements.push(args),
+      dodge: (...args) => {
+        dodges.push(args);
+        return dodgeAccepted;
+      },
     },
   };
   const action = new HeroMovementAction(renderer);
@@ -32,7 +40,7 @@ function controls(context, dodgeAccepted = true) {
 it("holds backward facing during double-tap detection without delaying movement", (context) => {
   const input = controls(context);
   input.press(0);
-  assert.equal(input.renderer.heroFacingHoldDuration, 0.28);
+  assert.equal(input.renderer.hero.facingHoldDuration, 0.28);
   assert.deepEqual(input.movements.at(-1), [0, -1, false]);
   input.action.releaseDirection("down");
   input.press(210);
@@ -71,7 +79,7 @@ it("clears consumed keys and pending facing holds when controls are reset", (con
   input.action.releaseDirection("down");
   input.press(210);
   input.action.clear();
-  assert.equal(input.renderer.heroFacingHoldDuration, 0);
+  assert.equal(input.renderer.hero.facingHoldDuration, 0);
   input.press(300);
   assert.equal(input.dodges.length, 1);
   assert.deepEqual(input.movements.at(-1), [0, -1, false]);

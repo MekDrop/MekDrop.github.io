@@ -740,28 +740,12 @@ export class PlayCanvasRenderer {
     return this.#heroCameraReturnTransition !== null;
   }
 
-  setHeroMovement(inputX, inputY, running = false) {
-    const hero = this.#sceneObjects.getOne(SCENE_OBJECT_TYPE.HERO);
-    hero?.setMovement(inputX, inputY, running);
-    if (inputX === 0 && inputY === 0) {
-      return false;
-    }
-    return this.#startHeroCameraReturn();
-  }
-
-  set heroFacingHoldDuration(duration) {
-    const hero = this.#sceneObjects.getOne(SCENE_OBJECT_TYPE.HERO);
-    if (hero) {
-      hero.facingHoldDuration = duration;
-    }
+  get hero() {
+    return this.#sceneObjects.getOne(SCENE_OBJECT_TYPE.HERO) ?? null;
   }
 
   returnCameraToHero() {
     return this.#startHeroCameraReturn(true);
-  }
-
-  jumpHero() {
-    this.#sceneObjects.getOne(SCENE_OBJECT_TYPE.HERO)?.jump();
   }
 
   isGameOver() {
@@ -770,11 +754,6 @@ export class PlayCanvasRenderer {
 
   get gameOverReturnViewport() {
     return this.#scene?.returnViewport ?? this.viewport;
-  }
-
-  dodgeHero(inputX, inputY, direction) {
-    const hero = this.#sceneObjects.getOne(SCENE_OBJECT_TYPE.HERO);
-    return hero?.dodge(inputX, inputY, direction) ?? false;
   }
 
   interact() {
@@ -1471,6 +1450,7 @@ export class PlayCanvasRenderer {
       onFacingChange: this.#handleHeroFacingChange,
       onStateChange: this.#handleHeroStateChange,
       onInventoryFull: this.#handleInventoryFull,
+      onMovementInput: () => this.#startHeroCameraReturn(),
       heroConfigurationStore: this.#heroConfigurationStore,
       collisionWorld: this.#collisionWorld,
       modelLibrary: this.#modelLibrary,

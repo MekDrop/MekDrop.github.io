@@ -396,6 +396,7 @@ export class Hero {
   };
   #heroConfigurationStore;
   #onInventoryFull;
+  #onMovementInput;
 
   constructor({
     pc,
@@ -407,6 +408,7 @@ export class Hero {
     onFacingChange,
     onStateChange,
     onInventoryFull,
+    onMovementInput,
     heroConfigurationStore,
     collisionWorld,
     modelLibrary,
@@ -422,6 +424,7 @@ export class Hero {
     this.#onStateChange = onStateChange;
     this.#heroConfigurationStore = heroConfigurationStore;
     this.#onInventoryFull = onInventoryFull;
+    this.#onMovementInput = onMovementInput;
     this.#collisionWorld = collisionWorld;
     this.#modelLibrary = modelLibrary;
     this.#tools.set(AxeTool.name, new AxeTool({ modelLibrary }));
@@ -640,6 +643,7 @@ export class Hero {
       this.#hasMovementInput
     ) {
       this.stopUsingTool({ dismiss: false });
+      this.#onMovementInput?.();
     }
   }
 
