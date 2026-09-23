@@ -148,8 +148,7 @@ export class MushroomDebris {
       modelUrl: this.#modelUrl,
       scale: this.#scale,
       seed: this.#seed,
-      shardCountForMesh: ({ name }) =>
-        name.toLowerCase().includes("spot") ? 0 : 2,
+      shardCountForMesh: () => 2,
     });
     if (!pieces.length) {
       return false;

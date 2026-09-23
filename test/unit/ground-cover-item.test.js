@@ -278,13 +278,21 @@ function createSubject(ambientMotion) {
     }
   }
 
-  const materials = [new FakeMaterial("cap"), new FakeMaterial("stalk")];
+  const materials = [
+    new FakeMaterial("cap"),
+    new FakeMaterial("stalk"),
+    new FakeMaterial("spot"),
+  ];
   const modelLibrary = {
     instantiateMerged: () => new Entity("Merged ground cover"),
     instantiate() {
       const root = new Entity("Mushroom model");
-      [0.12, 0].forEach((yOffset, index) => {
-        const part = new Entity(index ? "Stalk" : "Cap");
+      [
+        { name: "Cap", yOffset: 0.12 },
+        { name: "Stalk", yOffset: 0 },
+        { name: "Spot", yOffset: 0.2 },
+      ].forEach(({ name, yOffset }, index) => {
+        const part = new Entity(name);
         part.render = {
           meshInstances: [
             {
@@ -358,7 +366,7 @@ describe("ground cover item ambient motion", () => {
     assert.deepEqual(item.entity.angles, [0, 0, 0]);
   });
 
-  it("splits both mushroom meshes into fading lightweight physics shards", () => {
+  it("splits every mushroom mesh into fading lightweight physics shards", () => {
     const { generatedMeshes, item, materials, model } = createSubject(0);
 
     item.crush({ directionX: 3, directionZ: 4 });
@@ -377,19 +385,27 @@ describe("ground cover item ambient motion", () => {
     const fragments = debris.children.filter(
       (child) => child.rigidbody?.type === "dynamic",
     );
-    assert.equal(fragments.length, 4);
-    assert.equal(generatedMeshes.length, 4);
+    assert.equal(fragments.length, 6);
+    assert.equal(generatedMeshes.length, 6);
     assert.equal(
       generatedMeshes.reduce(
         (count, mesh) => count + mesh.positions.length / 9,
         0,
       ),
-      8,
+      48,
+    );
+    assert.equal(
+      generatedMeshes.every(
+        (mesh) =>
+          mesh.positions.length === mesh.normals.length &&
+          mesh.positions.length / 3 === mesh.uvs.length / 2,
+      ),
+      true,
     );
     const shardMaterials = new Set(
       fragments.map((fragment) => fragment.render.meshInstances[0].material),
     );
-    assert.equal(shardMaterials.size, 2);
+    assert.equal(shardMaterials.size, 3);
     assert.equal(
       [...shardMaterials].every((material) => !materials.includes(material)),
       true,
@@ -412,7 +428,7 @@ describe("ground cover item ambient motion", () => {
         ].join(":"),
       );
     }
-    assert.equal(velocities.size, 4);
+    assert.equal(velocities.size, 6);
 
     const initialPositions = fragments.map((fragment) => ({
       ...fragment.position,
@@ -466,7 +482,7 @@ describe("ground cover item ambient motion", () => {
       ),
       true,
     );
-    assert.equal(item.grassImpressionContacts.length, 4);
+    assert.equal(item.grassImpressionContacts.length, 6);
     assert.equal(
       item.grassImpressionContacts.every(
         (contact) => contact.strength === 0.22 && contact.radius >= 0.025,

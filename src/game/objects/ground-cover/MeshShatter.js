@@ -1,6 +1,8 @@
 const MIN_SHARDS_PER_MESH = 2;
 const MAX_SHARDS_PER_MESH = 6;
 const TRIANGLES_PER_SHARD = 10;
+const FILL_DEPTH_SCALE = 0.45;
+const MIN_FILL_DEPTH = 0.01;
 
 export class MeshShatter {
   #pc;
@@ -248,25 +250,49 @@ export class MeshShatter {
     const positions = [];
     const normals = [];
     const uvs = [];
+    const fillAnchor = this.#createFillAnchor({
+      geometry,
+      triangleIndices,
+      centroid,
+      scale,
+    });
     let radiusSquared = 0;
     for (const triangleIndex of triangleIndices) {
+      const vertices = [];
       for (let corner = 0; corner < 3; corner += 1) {
         const sourceVertex = geometry.indices[triangleIndex * 3 + corner];
         const positionOffset = sourceVertex * 3;
         const x = (geometry.positions[positionOffset] - centroid.x) * scale;
         const y = (geometry.positions[positionOffset + 1] - centroid.y) * scale;
         const z = (geometry.positions[positionOffset + 2] - centroid.z) * scale;
-        positions.push(x, y, z);
-        normals.push(
-          geometry.normals[positionOffset],
-          geometry.normals[positionOffset + 1],
-          geometry.normals[positionOffset + 2],
-        );
+        const normal = {
+          x: geometry.normals[positionOffset],
+          y: geometry.normals[positionOffset + 1],
+          z: geometry.normals[positionOffset + 2],
+        };
         const uvOffset = sourceVertex * 2;
-        uvs.push(geometry.uvs[uvOffset], geometry.uvs[uvOffset + 1]);
+        const uv = {
+          u: geometry.uvs[uvOffset],
+          v: geometry.uvs[uvOffset + 1],
+        };
+        vertices.push({ x, y, z, normal, uv });
+        this.#pushVertex({ positions, normals, uvs, vertex: vertices[corner] });
         radiusSquared = Math.max(radiusSquared, x * x + y * y + z * z);
       }
+      this.#appendFillFaces({
+        positions,
+        normals,
+        uvs,
+        vertices,
+        fillAnchor,
+      });
     }
+    radiusSquared = Math.max(
+      radiusSquared,
+      fillAnchor.x * fillAnchor.x +
+        fillAnchor.y * fillAnchor.y +
+        fillAnchor.z * fillAnchor.z,
+    );
 
     const mesh = new this.#pc.Mesh(this.#app.graphicsDevice);
     mesh.setPositions(positions);
@@ -284,6 +310,90 @@ export class MeshShatter {
       },
       radius: Math.sqrt(radiusSquared),
       triangleCount: triangleIndices.length,
+    };
+  }
+
+  #createFillAnchor({ geometry, triangleIndices, centroid, scale }) {
+    const normal = { x: 0, y: 0, z: 0 };
+    let farthestVertexDistanceSquared = 0;
+    for (const triangleIndex of triangleIndices) {
+      for (let corner = 0; corner < 3; corner += 1) {
+        const sourceVertex = geometry.indices[triangleIndex * 3 + corner];
+        const positionOffset = sourceVertex * 3;
+        normal.x += geometry.normals[positionOffset];
+        normal.y += geometry.normals[positionOffset + 1];
+        normal.z += geometry.normals[positionOffset + 2];
+        const x = (geometry.positions[positionOffset] - centroid.x) * scale;
+        const y = (geometry.positions[positionOffset + 1] - centroid.y) * scale;
+        const z = (geometry.positions[positionOffset + 2] - centroid.z) * scale;
+        farthestVertexDistanceSquared = Math.max(
+          farthestVertexDistanceSquared,
+          x * x + y * y + z * z,
+        );
+      }
+    }
+    const normalLength = Math.hypot(normal.x, normal.y, normal.z) || 1;
+    const depth = Math.max(
+      MIN_FILL_DEPTH,
+      Math.sqrt(farthestVertexDistanceSquared) * FILL_DEPTH_SCALE,
+    );
+    return {
+      x: -(normal.x / normalLength) * depth,
+      y: -(normal.y / normalLength) * depth,
+      z: -(normal.z / normalLength) * depth,
+      uv: { u: 0.5, v: 0.5 },
+    };
+  }
+
+  #appendFillFaces({ positions, normals, uvs, vertices, fillAnchor }) {
+    for (let index = 0; index < vertices.length; index += 1) {
+      const first = vertices[index];
+      const second = vertices[(index + 1) % vertices.length];
+      const normal = this.#faceNormal(second, first, fillAnchor);
+      this.#pushVertex({
+        positions,
+        normals,
+        uvs,
+        vertex: { ...second, normal },
+      });
+      this.#pushVertex({
+        positions,
+        normals,
+        uvs,
+        vertex: { ...first, normal },
+      });
+      this.#pushVertex({
+        positions,
+        normals,
+        uvs,
+        vertex: { ...fillAnchor, normal },
+      });
+    }
+  }
+
+  #pushVertex({ positions, normals, uvs, vertex }) {
+    positions.push(vertex.x, vertex.y, vertex.z);
+    normals.push(vertex.normal.x, vertex.normal.y, vertex.normal.z);
+    uvs.push(vertex.uv.u, vertex.uv.v);
+  }
+
+  #faceNormal(first, second, third) {
+    const edgeAx = second.x - first.x;
+    const edgeAy = second.y - first.y;
+    const edgeAz = second.z - first.z;
+    const edgeBx = third.x - first.x;
+    const edgeBy = third.y - first.y;
+    const edgeBz = third.z - first.z;
+    const normal = {
+      x: edgeAy * edgeBz - edgeAz * edgeBy,
+      y: edgeAz * edgeBx - edgeAx * edgeBz,
+      z: edgeAx * edgeBy - edgeAy * edgeBx,
+    };
+    const length = Math.hypot(normal.x, normal.y, normal.z) || 1;
+    return {
+      x: normal.x / length,
+      y: normal.y / length,
+      z: normal.z / length,
     };
   }
 
