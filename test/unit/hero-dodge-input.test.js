@@ -37,10 +37,10 @@ function controls(context, dodgeAccepted = true) {
   };
 }
 
-it("holds backward facing during double-tap detection without delaying movement", (context) => {
+it("turns immediately on backward press while preserving double-tap dodge", (context) => {
   const input = controls(context);
   input.press(0);
-  assert.equal(input.renderer.hero.facingHoldDuration, 0.28);
+  assert.equal(input.renderer.hero.facingHoldDuration, 0);
   assert.deepEqual(input.movements.at(-1), [0, -1, false]);
   input.action.releaseDirection("down");
   input.press(210);

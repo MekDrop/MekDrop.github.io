@@ -54,13 +54,6 @@ export class HeroMovementAction {
       return;
     }
 
-    if (!wasPressed && !event.repeat) {
-      // Let a backward double-tap resolve before turning toward a normal walk.
-      const hero = this.#hero;
-      if (hero) {
-        hero.facingHoldDuration = direction === "down" ? doubleTapWindow : 0;
-      }
-    }
     this.setRunning(event.shiftKey);
     this.setDirection(direction, true);
   }

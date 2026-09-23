@@ -2921,7 +2921,9 @@ export class Hero {
           : blocked
             ? this.#desiredVelocity()
             : this.#hasMovementInput
-              ? { x: this.#velocity.x, z: this.#velocity.z }
+              ? this.#grounded
+                ? this.#desiredVelocity()
+                : { x: this.#velocity.x, z: this.#velocity.z }
               : this.facingDirection;
     const locksDodgeFacing =
       this.#dodgeAction?.direction === "left" ||
