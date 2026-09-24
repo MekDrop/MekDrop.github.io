@@ -93,39 +93,6 @@ function heldItemScale(definition) {
     : definition.scale;
 }
 
-function heldItemPhysics(definition) {
-  if (definition.category === "flower") {
-    const radius = Math.max(
-      0.045,
-      definition.interactionRadius * definition.horizontalScale * 0.5,
-    );
-    return {
-      bendAngle: 86,
-      compression: 0.07 * definition.verticalScale,
-      contactRadius: Math.max(0.035, radius * 0.82),
-      height: Math.max(0.025, 0.035 * definition.verticalScale),
-      mass: 0.007,
-      pivotHeight: 0.09 * definition.verticalScale,
-      radius,
-    };
-  }
-  const radius = Math.max(
-    0.045,
-    definition.interactionRadius * definition.scale * 0.48,
-  );
-  return {
-    angularDamping: 0.86,
-    angularStiffness: 0.12,
-    bendAngle: 42,
-    compression: 0.045 * definition.scale,
-    contactRadius: Math.max(0.032, radius * 0.78),
-    height: Math.max(0.035, 0.085 * definition.scale),
-    mass: 0.011,
-    pivotHeight: 0.075 * definition.scale,
-    radius,
-  };
-}
-
 function heldMaterialSettings(category) {
   return category === "flower"
     ? { bendHeight: 0.14, colorBoost: [1.08, 1.04, 1.08] }
@@ -147,10 +114,6 @@ function createHeldMaterial(pc, category) {
   material.name = `Preview held ${category} ground cover`;
   material.cull = pc.CULLFACE_NONE;
   material.setParameter("uBendHeight", settings.bendHeight);
-  material.setParameter("uContactLocal", [0, -1000, 0]);
-  material.setParameter("uContactDirectionLocal", [0, 0, 1]);
-  material.setParameter("uContactRadius", 0.001);
-  material.setParameter("uContactAmount", 0);
   material.setParameter("uColorBoost", settings.colorBoost);
   material.setParameter("uLightDirection", [0.42, 0.82, 0.38]);
   material.update();
@@ -218,7 +181,12 @@ export class HeroPickupItemPreview {
       model.anim.speed = 0;
 
       const source = new pc.Entity(`${name} pickup source`);
-      source.setLocalPosition(0, 0, pickupSourceDistance(pickupAction));
+      const sourceDistance = pickupSourceDistance(pickupAction);
+      source.setLocalPosition(
+        sourceDistance / Math.SQRT2,
+        0,
+        sourceDistance / Math.SQRT2,
+      );
       anchor.addChild(source);
       const sourceItem = createPreviewItem({
         pc,
@@ -272,6 +240,10 @@ export class HeroPickupItemPreview {
       entry.sign.destroy();
     }
     this.#entries = [];
+    for (const material of this.#heldMaterials.values()) {
+      material.destroy();
+    }
+    this.#heldMaterials.clear();
     this.#entity.destroy();
   }
 
@@ -282,11 +254,9 @@ export class HeroPickupItemPreview {
       modelUrl: entry.definition.modelUrl,
       name: entry.name,
       scale: heldItemScale(entry.definition),
-      sourceParent: entry.source,
-      sourcePosition: { x: 0, y: 0, z: 0 },
-      sourceRotation: 0,
+      material: this.#heldMaterials.get(entry.definition.category),
       gripPoint: entry.definition.gripPoint,
-      physics: heldItemPhysics(entry.definition),
+      pickupTilt: entry.definition.category === "flower" ? -68 : 68,
     });
   }
 
