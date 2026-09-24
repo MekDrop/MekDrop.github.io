@@ -21,7 +21,8 @@ describe("short grass carpet placement", () => {
       TileType.ENTRY, TileType.CASTLE_WALL, TileType.CASTLE_TOWER]]);
     const before = structuredClone(input);
     const placements = GrassCarpetLayout.create(input);
-    assert.ok(placements.length >= 100);
+    assert.equal(placements.length, 72);
+    assert.equal(placements.filter(({ detail }) => !detail).length, 24);
     assert.ok(placements.every(({ x, z }) => Math.abs(x + 2.5) < 0.5 && Math.abs(z) < 0.5));
     assert.deepEqual(input, before);
   });
@@ -57,8 +58,8 @@ describe("short grass carpet placement", () => {
     const treeGrass = placements.filter(({ x }) => x < 0);
     const bushGrass = placements.filter(({ x }) => x > 0);
 
-    assert.equal(treeGrass.length, 144);
-    assert.equal(bushGrass.length, 144);
+    assert.equal(treeGrass.length, 72);
+    assert.equal(bushGrass.length, 72);
     assert.ok(
       treeGrass.some(
         ({ x, z }) =>
@@ -80,7 +81,7 @@ describe("short grass carpet placement", () => {
       { col: 1, row: 0, terrainHeight: 2 },
     ] }];
     const placements = GrassCarpetLayout.create(input);
-    assert.ok(placements.length >= 100);
+    assert.equal(placements.length, 72);
     assert.ok(placements.every(({ x, y }) => x < 0 && y > 3 && y < 3 + GRASS_SURFACE_LIFT));
   });
 
@@ -93,7 +94,7 @@ describe("short grass carpet placement", () => {
     assert.equal(new Set(placements.map(({ z }) => z)).size, placements.length);
     for (const signX of [-1, 1]) {
       for (const signZ of [-1, 1]) {
-        assert.ok(placements.filter(({ x, z }) => x * signX > 0 && z * signZ > 0).length > 15);
+        assert.ok(placements.filter(({ x, z }) => x * signX > 0 && z * signZ > 0).length > 8);
       }
     }
   });
@@ -117,7 +118,7 @@ describe("short grass carpet placement", () => {
       input.heightmap[1 + closedZ][1 + closedX] = 4;
       const center = GrassCarpetLayout.create(input)
         .filter(({ x, z }) => Math.abs(x) < 0.5 && Math.abs(z) < 0.5);
-      assert.equal(center.length, 144);
+      assert.equal(center.length, 72);
       assert.ok(center.every(({ exposedSides, boundaryExtension }) =>
         exposedSides === (15 & ~(1 << closedSide)) && boundaryExtension[closedSide] === 0));
     }

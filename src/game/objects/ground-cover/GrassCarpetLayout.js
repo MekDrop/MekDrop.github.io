@@ -2,7 +2,7 @@ import { TileType } from "../../MapGenerator.js";
 import { GRASS_SURFACE_LIFT } from "../../config/terrain.js";
 import { TILE_SHAPE } from "../../enum/TileShape.js";
 
-const CLUMPS_PER_TILE = 144;
+const CLUMPS_PER_TILE = 72;
 
 export class GrassCarpetLayout {
   static create(mapData) {
@@ -78,7 +78,7 @@ export class GrassCarpetLayout {
             exposedSides,
             boundaryExtension,
             chunk: `${Math.floor(col / 6)},${Math.floor(row / 6)}`,
-            detail: index % 2 === 1,
+            detail: index % 3 !== 0,
           });
         }
       }

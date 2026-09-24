@@ -1,5 +1,6 @@
 uniform float uGrassTime;
 uniform float uGrassAmbientMotion;
+uniform float uGrassLodReveal;
 uniform vec2 uGrassWindDirection;
 uniform float uGrassWindStrength;
 uniform vec2 uGrassGridOffset;
@@ -140,6 +141,10 @@ vec4 getPosition() {
   vec2 reach = mix(edgeReach.xy, edgeReach.zw, step(vec2(0.0), relative));
   vec2 edgeDroop = smoothstep(vec2(0.0), vec2(0.06), overhang) * (1.0 - step(vec2(0.2), reach));
   dPositionW.y -= max(edgeDroop.x, edgeDroop.y) * tip * 0.018;
+  // Grow grass clumps from beneath the terrain instead of switching them
+  // on together at one zoom value.
+  float reveal = smoothstep(vGrassVariation * 0.2, 1.0, uGrassLodReveal);
+  dPositionW = mix(vec3(root.x, root.y - 0.03, root.z), dPositionW, reveal);
   return matrix_viewProjection * vec4(dPositionW, 1.0);
 }
 

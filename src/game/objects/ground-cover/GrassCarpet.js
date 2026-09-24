@@ -5,6 +5,16 @@ import vertexShader from "./GrassCarpet.vert?raw";
 import fragmentShader from "./GrassCarpet.frag?raw";
 import normalShader from "./GrassCarpetNormal.frag?raw";
 
+const BASE_FADE_START_ZOOM = 1;
+const BASE_FADE_END_ZOOM = 1.22;
+const DETAIL_FADE_START_ZOOM = 1.5;
+const DETAIL_FADE_END_ZOOM = 2.25;
+
+function revealAtZoom(zoom, start, end) {
+  const progress = Math.max(0, Math.min(1, (zoom - start) / (end - start)));
+  return progress * progress * (3 - 2 * progress);
+}
+
 export class GrassCarpet {
   static get modelUrls() {
     return [meadowGrassModelUrl, cloverModelUrl];
@@ -73,6 +83,7 @@ export class GrassCarpet {
 
     const chunks = new Map();
     const matrix = new pc.Mat4();
+    this.#material.setParameter("uGrassLodReveal", 1);
     const position = new pc.Vec3();
     const rotation = new pc.Quat();
     const scale = new pc.Vec3();
@@ -125,8 +136,24 @@ export class GrassCarpet {
   }
 
   set zoom(value) {
+    const baseReveal = revealAtZoom(
+      value,
+      BASE_FADE_START_ZOOM,
+      BASE_FADE_END_ZOOM,
+    );
+    const detailReveal = revealAtZoom(
+      value,
+      DETAIL_FADE_START_ZOOM,
+      DETAIL_FADE_END_ZOOM,
+    );
     for (const batch of this.#batches) {
-      batch.entity.enabled = !batch.detail || value >= 2;
+      const reveal = batch.detail ? detailReveal : baseReveal;
+      batch.entity.enabled = reveal > 0;
+      if (reveal > 0) {
+        for (const instance of batch.entity.render.meshInstances) {
+          instance.setParameter("uGrassLodReveal", reveal);
+        }
+      }
     }
   }
 

@@ -54,7 +54,7 @@ export class GrassSurfaceMaterials {
     }
     texture.mipmaps = topTexture && mipmaps;
     texture.minFilter = texture.mipmaps
-      ? pc.FILTER_NEAREST_MIPMAP_LINEAR
+      ? pc.FILTER_LINEAR_MIPMAP_LINEAR
       : pc.FILTER_NEAREST;
     texture.magFilter = pc.FILTER_NEAREST;
     texture.addressU = topTexture
