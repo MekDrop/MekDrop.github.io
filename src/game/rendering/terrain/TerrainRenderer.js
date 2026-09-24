@@ -17,7 +17,7 @@ export class TerrainRenderer {
     bridgeRailingKit,
     cubeMaterials,
     pathEarthSideMaterial,
-    grassEarthSideMaterial,
+    earthSideMaterial,
     sideVariant,
     addCubeMatrix,
     addBoxMatrix,
@@ -31,15 +31,15 @@ export class TerrainRenderer {
       bridgeRailingKit,
       cubeMaterials,
       pathEarthSideMaterial,
-      grassEarthSideMaterial,
+      earthSideMaterial,
       sideVariant,
       addCubeMatrix,
       addBoxMatrix,
     });
   }
 
-  buildBatches(batches) {
-    this.#batchBuilder.build(batches);
+  buildBatches(batches, undersideVoxels) {
+    this.#batchBuilder.build(batches, undersideVoxels);
   }
 
   buildPhysicsSurface(collisionWorld) {

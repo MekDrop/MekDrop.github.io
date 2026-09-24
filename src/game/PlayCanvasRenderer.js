@@ -1,6 +1,5 @@
 import { useDebounceFn } from "@vueuse/core";
 import castleFireParticleUrl from "src/assets/game/effects/castle-fire-particle.png?url";
-import earthSideUrl from "src/assets/game/tiles/earth-side.png";
 import waterSideUrl from "src/assets/game/tiles/water-side.png";
 import waterTopUrl from "src/assets/game/tiles/water-top.png";
 import { Castle } from "./objects/castle/index.js";
@@ -38,7 +37,7 @@ import { GameModelLibrary } from "./models/index.js";
 import { CameraPanBounds, HeroVisibilityController } from "./camera/index.js";
 import { CameraOrbitPivot } from "./camera/CameraOrbitPivot.js";
 import { GameUiTheme, HeroLifeHud, CoinHud } from "./ui/index.js";
-import { colorFromHex, shadeHexColor } from "./helpers/colors.js";
+import { colorFromHex } from "./helpers/colors.js";
 import { RoyalAnimationPreview } from "./debug/RoyalAnimationPreview.js";
 import { HeroAnimationPreview } from "./debug/HeroAnimationPreview.js";
 import { HeroPickupItemPreview } from "./debug/HeroPickupItemPreview.js";
@@ -49,29 +48,27 @@ import { InventoryScene } from "./rendering/scene/InventoryScene.js";
 import { SceneObjectRegistry } from "./rendering/scene/SceneObjectRegistry.js";
 import { TerrainRenderer } from "./rendering/terrain/TerrainRenderer.js";
 import { GrassSurfaceMaterials } from "./rendering/terrain/GrassSurfaceMaterials.js";
-import { tileVariantIndex } from "./rendering/terrain/TileVariantIndex.js";
+import { EarthSurfaceMaterials } from "./rendering/terrain/EarthSurfaceMaterials.js";
+import { TerrainMaterialSelector } from "./rendering/terrain/TerrainMaterialSelector.js";
 import { PathSurfaceMaterials } from "./rendering/terrain/PathSurfaceMaterials.js";
 import {
   CUBE_SCALE,
   FIXED_HEIGHTS,
   SURFACE_ELEVATION_BIAS,
   SURFACE_MATERIALS,
-  surfaceMaterialForTile,
 } from "./rendering/terrain/TerrainMaterialMaps.js";
 
 const TEXTURE_URLS = {
   ...GrassSurfaceMaterials.textureUrls,
+  ...EarthSurfaceMaterials.textureUrls,
   ...PathSurfaceMaterials.textureUrls,
   water: waterTopUrl,
-  earthSide: earthSideUrl,
   waterSide: waterSideUrl,
   castleFireParticle: castleFireParticleUrl,
 };
 
 const MATERIAL_DEFINITIONS = {
-  earth: { color: 0xe8c4a0, texture: "earthSide", gloss: 0.08 },
   water: { color: 0xd8f2ff, texture: "water", gloss: 0.22 },
-  islandRock: { color: 0x667482, texture: "earthSide", gloss: 0.03 },
 };
 
 const SIDE_VARIANT_DEFINITIONS = {
@@ -81,21 +78,6 @@ const SIDE_VARIANT_DEFINITIONS = {
     gloss: 0.18,
   },
 };
-
-const EARTH_SIDE_TEXTURE_TRANSFORMS = [
-  { startU: 0.01, startV: 0.01, scaleU: 0.32, scaleV: 0.32, flipU: false },
-  { startU: 0.67, startV: 0.01, scaleU: 0.32, scaleV: 0.32, flipU: true },
-  { startU: 0.01, startV: 0.67, scaleU: 0.32, scaleV: 0.32, flipU: true },
-  { startU: 0.67, startV: 0.67, scaleU: 0.32, scaleV: 0.32, flipU: false },
-];
-const EARTH_DETAIL_TEXTURE_TRANSFORMS = [
-  { startU: 0.34, startV: 0.02, scaleU: 0.32, scaleV: 0.32, flipU: false },
-  { startU: 0.34, startV: 0.34, scaleU: 0.32, scaleV: 0.32, flipU: true },
-  { startU: 0.34, startV: 0.66, scaleU: 0.32, scaleV: 0.32, flipU: false },
-];
-const EARTH_SIDE_DEPTH_SHADES = [
-  1, 0.92, 0.84, 0.76, 0.68, 0.6, 0.53, 0.47, 0.42, 0.38,
-];
 
 const SIDE_VARIANT_TRANSFORMS = [
   { startU: 0, scaleU: 0.72, flipU: false },
@@ -171,6 +153,8 @@ export class PlayCanvasRenderer {
   #grassSurface = null;
   #grassCarpet = null;
   #grassMaterials = null;
+  #earthMaterials = null;
+  #terrainMaterialSelector = null;
   #riverWater = null;
   #vegetation = null;
   #buriedTreasure = null;
@@ -448,12 +432,13 @@ export class PlayCanvasRenderer {
       this.#heroConfigurationStore.inventory.visible,
     );
     this.#mapData = mapData;
-    this.#grassMaterials = new GrassSurfaceMaterials(
-      mapData,
-      EARTH_SIDE_DEPTH_SHADES.length,
+    this.#grassMaterials = new GrassSurfaceMaterials(mapData);
+    this.#earthMaterials = new EarthSurfaceMaterials(mapData);
+    this.#terrainMaterialSelector = new TerrainMaterialSelector(
+      this.#grassMaterials,
+      this.#earthMaterials,
       SIDE_VARIANT_TRANSFORMS.length,
     );
-    GrassSurfaceMaterials.setGridOffset(this.#materials, mapData);
     this.#cameraPanBounds = new CameraPanBounds(mapData);
     this.#scene?.reset();
     this.#zoom = 1;
@@ -975,46 +960,15 @@ export class PlayCanvasRenderer {
       });
     }
 
-    EARTH_SIDE_DEPTH_SHADES.forEach((shade, depth) => {
-      EARTH_SIDE_TEXTURE_TRANSFORMS.forEach((transform, variant) => {
-        const name = `earthSide-depth-${depth}-${variant}`;
-        this.#materials.set(
-          name,
-          this.#createMaterial(
-            name,
-            {
-              color: shadeHexColor(0xffffff, shade),
-              texture: "earthSide",
-              gloss: 0.08,
-              ...transform,
-            },
-            textures,
-          ),
-        );
-      });
-      EARTH_DETAIL_TEXTURE_TRANSFORMS.forEach((transform, variant) => {
-        const name = `earthDetailSide-depth-${depth}-${variant}`;
-        this.#materials.set(
-          name,
-          this.#createMaterial(
-            name,
-            {
-              color: shadeHexColor(0xffffff, shade),
-              texture: "earthSide",
-              gloss: 0.08,
-              ...transform,
-            },
-            textures,
-          ),
-        );
-      });
-    });
-
     GrassSurfaceMaterials.register(
       this.#materials,
       (name, definition) => this.#createMaterial(name, definition, textures),
       SIDE_VARIANT_TRANSFORMS,
-      EARTH_SIDE_DEPTH_SHADES,
+    );
+    EarthSurfaceMaterials.register(
+      this.#materials,
+      (name, definition) => this.#createMaterial(name, definition, textures),
+      SIDE_VARIANT_TRANSFORMS,
     );
     PathSurfaceMaterials.register(
       this.#materials,
@@ -1116,21 +1070,20 @@ export class PlayCanvasRenderer {
       root: this.#mapRoot,
       bridgeRailingKit: this.#bridgeRailingKit,
       cubeMaterials: (type, topCube, col, row, level) =>
-        this.#cubeMaterials(type, topCube, col, row, level),
+        this.#terrainMaterialSelector.cubeMaterials(type, topCube, col, row, level),
       pathEarthSideMaterial: (col, row, level) =>
-        this.#grassMaterials.overpassSideForTile(col, row, level),
-      grassEarthSideMaterial: (col, row, level) =>
-        this.#grassMaterials.earthSideForTile(col, row, level),
+        this.#earthMaterials.overpassSideForTile(col, row, level),
+      earthSideMaterial: (col, row, level) =>
+        this.#earthMaterials.sideForTile(col, row, level),
       sideVariant: (material, col, row, level) =>
-        this.#sideVariant(material, col, row, level),
+        this.#terrainMaterialSelector.sideVariant(material, col, row, level),
       addCubeMatrix: (...args) => this.#addCubeMatrix(...args),
       addBoxMatrix: (...args) => this.#addBoxMatrix(...args),
     });
-    this.#buildIslandUndersideMatrices(
+    this.#terrainRenderer.buildBatches(
       cubeBatches,
       scenery.createUndersideVoxels(),
     );
-    this.#terrainRenderer.buildBatches(cubeBatches);
     this.#createInstancedBatches(cubeBatches, this.#mapRoot, true);
     this.#vertexBuffers.push(...this.#bridgeRailingKit.build());
     this.#vertexBuffers.push(
@@ -1553,26 +1506,6 @@ export class PlayCanvasRenderer {
     }
   }
 
-  #buildIslandUndersideMatrices(batches, voxels) {
-    const { cols, rows } = this.#mapData;
-    for (const { col, row, level, rocky } of voxels) {
-      const x = col - (cols - 1) / 2;
-      const z = row - (rows - 1) / 2;
-      const topMaterial = rocky ? "islandRock" : "earth";
-      const sideMaterial = this.#grassMaterials.earthSideForTile(col, row, level);
-      this.#addCubeMatrix(
-        batches,
-        topMaterial,
-        sideMaterial,
-        x,
-        level + 0.5,
-        z,
-        "full",
-        topMaterial,
-      );
-    }
-  }
-
   #updateFrame = (deltaTime) => {
     if (this.#frameUpdateFailed) {
       return;
@@ -1733,58 +1666,6 @@ export class PlayCanvasRenderer {
         (event.clientY - rect.top - head.y) / 0.85,
       ) <= head.radius
     );
-  }
-
-  #cubeMaterials(type, topCube, col, row, level) {
-    if (type === TileType.CASTLE_WALL || type === TileType.CASTLE_TOWER) {
-      // The castle hides the terrain directly beneath it. Any foundation top
-      // that remains visible at an outer edge should still read as landscape;
-      // the grass carpet separately excludes these structure-owned cells.
-      if (!topCube) {
-        return {
-          top: "earth",
-          sides: this.#grassMaterials.earthSideForTile(col, row, level),
-          underlay: "earth",
-        };
-      }
-      return {
-        top: this.#grassMaterials.topForTile(col, row, level),
-        sides: this.#grassMaterials.topSideForTile(col, row, level),
-        underlay: "earth",
-      };
-    }
-    if (!topCube) {
-      return {
-        top: "earth",
-        sides: this.#grassMaterials.earthSideForTile(col, row, level),
-        underlay: "earth",
-      };
-    }
-    return {
-      top:
-        type === TileType.GRASS
-          ? this.#grassMaterials.topForTile(col, row, level)
-          : surfaceMaterialForTile(type, col, row, level),
-      sides:
-        type === TileType.GRASS
-          ? this.#grassMaterials.topSideForTile(col, row, level)
-          : this.#grassMaterials.earthSideForTile(col, row, level),
-      underlay: type === TileType.WATER ? "water" : "earth",
-    };
-  }
-
-  #sideVariant(material, col, row, level) {
-    if (material === "castleWall" || material === "castleTower") {
-      return material;
-    }
-    const index = tileVariantIndex(
-      col,
-      row,
-      level,
-      37,
-      SIDE_VARIANT_TRANSFORMS.length,
-    );
-    return `${material}-${index}`;
   }
 
   #tileHeight(col, row) {

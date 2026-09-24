@@ -15,7 +15,7 @@ export class TerrainBatchBuilder {
   #bridgeRailingKit;
   #cubeMaterials;
   #pathEarthSideMaterial;
-  #grassEarthSideMaterial;
+  #earthSideMaterial;
   #sideVariant;
   #addCubeMatrix;
   #addBoxMatrix;
@@ -25,7 +25,7 @@ export class TerrainBatchBuilder {
     bridgeRailingKit,
     cubeMaterials,
     pathEarthSideMaterial,
-    grassEarthSideMaterial,
+    earthSideMaterial,
     sideVariant,
     addCubeMatrix,
     addBoxMatrix,
@@ -34,14 +34,27 @@ export class TerrainBatchBuilder {
     this.#bridgeRailingKit = bridgeRailingKit;
     this.#cubeMaterials = cubeMaterials;
     this.#pathEarthSideMaterial = pathEarthSideMaterial;
-    this.#grassEarthSideMaterial = grassEarthSideMaterial;
+    this.#earthSideMaterial = earthSideMaterial;
     this.#sideVariant = sideVariant;
     this.#addCubeMatrix = addCubeMatrix;
     this.#addBoxMatrix = addBoxMatrix;
   }
 
-  build(batches) {
+  build(batches, undersideVoxels = []) {
     const { grid, heightmap, tileMeta, cols, rows } = this.#mapData;
+    for (const { col, row, level, rocky } of undersideVoxels) {
+      const topMaterial = rocky ? "islandRock" : "earth";
+      this.#addCubeMatrix(
+        batches,
+        topMaterial,
+        this.#earthSideMaterial(col, row, level),
+        col - (cols - 1) / 2,
+        level + 0.5,
+        row - (rows - 1) / 2,
+        "full",
+        topMaterial,
+      );
+    }
     const processedBridgeCells = new Set();
     const riverCells = new Map(
       (this.#mapData.riverData ?? []).flatMap((river) =>
@@ -295,7 +308,7 @@ export class TerrainBatchBuilder {
     // Exposed cascade cliffs keep the neighboring bank's stone pattern and scale.
     for (let level = 0; level < bedElevation - 0.01; level += 1) {
       const layerHeight = Math.min(1, bedElevation - level);
-      const stone = this.#grassEarthSideMaterial(col, row, level);
+      const stone = this.#earthSideMaterial(col, row, level);
       this.#addBoxMatrix(
         batches,
         stone,
@@ -313,7 +326,7 @@ export class TerrainBatchBuilder {
     }
     // One stone floor for every river cell, including zero-height beds and
     // cells beneath bridges. The same material covers exposed cascade ledges.
-    const stone = this.#grassEarthSideMaterial(
+    const stone = this.#earthSideMaterial(
       col,
       row,
       Math.max(0, bedElevation - 1),

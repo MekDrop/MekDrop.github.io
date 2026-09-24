@@ -6,13 +6,9 @@ import grassTop4Url from "src/assets/game/tiles/grass-top-4.png";
 import grassTop5Url from "src/assets/game/tiles/grass-top-5.png";
 import grassTop6Url from "src/assets/game/tiles/grass-top-6.png";
 import grassTerrainShader from "../../objects/ground-cover/GrassTerrain.frag?raw";
-import grassSideShader from "../../objects/ground-cover/GrassSide.frag?raw";
-import grassTurfSideShader from "../../objects/ground-cover/GrassTurfSide.frag?raw";
-import { GRASS_SURFACE_LIFT } from "../../config/terrain.js";
 import { TileType } from "../../MapGenerator.js";
-import { shadeHexColor } from "../../helpers/colors.js";
 import { FIXED_HEIGHTS } from "./TerrainMaterialMaps.js";
-import { tilePatchValue, tileVariantIndex } from "./TileVariantIndex.js";
+import { tilePatchValue } from "./TileVariantIndex.js";
 
 const TOP_TEXTURES = ["grass", "grass2", "grass3", "grass4", "grass5", "grass6"];
 const TILE_COLORS = [0x69a92f, 0x75b638, 0x568d29, 0x7ead35, 0x69a92f, 0x568d29];
@@ -28,17 +24,11 @@ const LINEAR_COLORS = TILE_COLORS.map((color) =>
 const OPEN_VARIANT_THRESHOLDS = [0.53, 0.622, 0.697, 0.738, 0.825];
 const SHADED_VARIANT_THRESHOLDS = [0.465, 0.525, 0.639, 0.67, 0.73];
 const SIDE_COLORS = [0xffffff, 0xf9f5ee, 0xf2f7ed, 0xf8fbf5, 0xf5f1e9, 0xfbf8f2];
-const EARTH_SIDE_HIGHEST_LEVEL = 1;
 
 export class GrassSurfaceMaterials {
   #mapData;
-  #depthCount;
-  #sideVariantCount;
-
-  constructor(mapData, depthCount, sideVariantCount) {
+  constructor(mapData) {
     this.#mapData = mapData;
-    this.#depthCount = depthCount;
-    this.#sideVariantCount = sideVariantCount;
   }
 
   static get textureUrls() {
@@ -73,7 +63,7 @@ export class GrassSurfaceMaterials {
     texture.addressV = texture.addressU;
   }
 
-  static register(materials, createMaterial, sideTransforms, depthShades) {
+  static register(materials, createMaterial, sideTransforms) {
     const createTop = (name, texture, index) => {
       const material = createMaterial(name, {
         color: 0xffffff,
@@ -104,52 +94,6 @@ export class GrassSurfaceMaterials {
       );
     });
 
-    depthShades.forEach((shade, depth) => {
-      sideTransforms.forEach((transform, variant) => {
-        const base = {
-          color: shadeHexColor(0xffffff, shade),
-          texture: "grassSide",
-          gloss: 0.05,
-        };
-        const earthName = `grassEarthSide-depth-${depth}-${variant}`;
-        const earth = createMaterial(earthName, {
-          ...base,
-          ...transform,
-          startV: 0.18,
-          scaleV: 0.82,
-        });
-        earth.shaderChunks.glsl.set("diffusePS", grassSideShader);
-        earth.update();
-        materials.set(earthName, earth);
-
-        const topName = `grassTopSide-depth-${depth}-${variant}`;
-        const top = createMaterial(topName, { ...base, ...transform });
-        top.shaderChunks.glsl.set("diffusePS", grassTurfSideShader);
-        top.setParameter("uGrassSurfaceLift", GRASS_SURFACE_LIFT);
-        top.update();
-        materials.set(topName, top);
-
-        const overpassName = `overpassEarthSide-depth-${depth}-${variant}`;
-        materials.set(
-          overpassName,
-          createMaterial(overpassName, {
-            ...base,
-            ...transform,
-            startV: 0.4,
-            scaleV: 0.6,
-          }),
-        );
-      });
-    });
-  }
-
-  static setGridOffset(materials, mapData) {
-    const offset = [(mapData.cols - 1) / 2, (mapData.rows - 1) / 2];
-    for (const [name, material] of materials) {
-      if (name.startsWith("grassTopSide-") || name.startsWith("grassEarthSide-")) {
-        material.setParameter("uEarthGridOffset", offset);
-      }
-    }
   }
 
   topForTile(col, row, level) {
@@ -167,30 +111,6 @@ export class GrassSurfaceMaterials {
       }
     }
     return thresholds.length;
-  }
-
-  earthSideForTile(col, row, level) {
-    return `grassEarthSide-depth-${this.#sideDepth(level)}-${this.#sideVariant(col, row)}`;
-  }
-
-  topSideForTile(col, row, level) {
-    return `grassTopSide-depth-${this.#sideDepth(level)}-${this.#sideVariant(col, row)}`;
-  }
-
-  overpassSideForTile(col, row, level) {
-    return `overpassEarthSide-depth-${this.#sideDepth(level)}-${this.#sideVariant(col, row)}`;
-  }
-
-  #sideDepth(level) {
-    return Math.max(
-      0,
-      Math.min(this.#depthCount - 1, EARTH_SIDE_HIGHEST_LEVEL - Math.floor(level)),
-    );
-  }
-
-  #sideVariant(col, row) {
-    const surfaceLevel = this.#tileHeight(col, row) - 1;
-    return tileVariantIndex(col, row, surfaceLevel, 83, this.#sideVariantCount);
   }
 
   #tileHeight(col, row) {

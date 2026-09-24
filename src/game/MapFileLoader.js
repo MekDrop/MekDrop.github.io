@@ -1,3 +1,4 @@
+import { createEarthTextureVariants } from "./EarthTextureSelection.js";
 import { StoredMapNotFoundError } from "./errors/map/index.js";
 
 export class MapFileLoader {
@@ -22,6 +23,8 @@ export class MapFileLoader {
     const storedMap = await loader();
     const mapData = JSON.parse(JSON.stringify(storedMap));
     mapData.pipeData = new Map(mapData.pipeData ?? []);
+    mapData.mapName = mapName;
+    mapData.earthTextureVariants ??= createEarthTextureVariants(mapData);
     return mapData;
   }
 }

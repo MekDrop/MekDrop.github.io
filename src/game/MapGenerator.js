@@ -1,3 +1,4 @@
+import { createEarthTextureVariants } from "./EarthTextureSelection.js";
 import {
   BridgeGroundHeightMismatchError,
   BridgeTurnError,
@@ -142,10 +143,12 @@ export class MapGenerator {
     this.#random = this.#createSeededRandom(mapName);
 
     try {
-      return {
+      const mapData = {
         ...this.#generate({ ...normalizedOptions, mapName }),
         mapName,
       };
+      mapData.earthTextureVariants = createEarthTextureVariants(mapData);
+      return mapData;
     } finally {
       this.#random = previousRandom;
     }
