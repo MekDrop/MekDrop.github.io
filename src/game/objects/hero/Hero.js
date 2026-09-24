@@ -3432,10 +3432,7 @@ export class Hero {
         tiltingParts: [
           "Boot shaft",
           "Boot front strap",
-          "Boot foot",
-          "Boot heel",
-          "Boot sole",
-          "Boot toe",
+          "Left ankle",
         ].map((name) => this.#findModelEntity(name)),
       },
       right: {
@@ -3446,10 +3443,7 @@ export class Hero {
         tiltingParts: [
           "Boot shaft.001",
           "Boot front strap.001",
-          "Boot foot.001",
-          "Boot heel.001",
-          "Boot sole.001",
-          "Boot toe.001",
+          "Right ankle",
         ].map((name) => this.#findModelEntity(name)),
       },
     });

@@ -24,6 +24,7 @@ vec4 getPosition() {
   float height = max(vertex_position.y, 0.0) * length(dModelMatrix[1].xyz);
   float tip = smoothstep(0.0, 0.06, height);
   float contact = 0.0;
+  float movingContact = 0.0;
   float obstruction = 0.0;
   vec2 brushDirection = vec2(0.0);
   vec2 bladePosition = root.xz + offset.xz;
@@ -44,6 +45,7 @@ vec4 getPosition() {
     vec2 away = delta / max(length(delta), 0.001);
     brushDirection = mix(brushDirection, away, step(contact, pressure));
     contact = max(contact, pressure);
+    movingContact = max(movingContact, pressure);
   }
   for (int index = 0; index < 4; index++) {
     vec4 surface = uGrassSurfaces[index];
@@ -93,9 +95,13 @@ vec4 getPosition() {
   // Press the canopy below direct contacts. Static vegetation clips only its
   // occupied ground voxels, leaving the surrounding grass upright and dense.
   float flexible = smoothstep(0.002, 0.025, height);
-  offset.xz += brushDirection * contact * flexible *
-    mix(0.06, 0.11, obstruction);
-  offset.y *= 1.0 - contact * flexible * 0.96;
+  // Moving contacts part the standing blades. Keep some height under
+  // the contact so the response reads as bent grass rather than a flat decal.
+  float sidewaysBend = mix(0.06, 0.11, obstruction) +
+    movingContact * (1.0 - obstruction) * 0.075;
+  offset.xz += brushDirection * contact * flexible * sidewaysBend;
+  offset.y *= 1.0 - contact * flexible *
+    mix(0.8, 0.96, obstruction);
   offset.y -= solidFootprint * 0.25;
   vec2 windDirection = normalize(uGrassWindDirection + vec2(0.0001, 0.0));
   vec2 crossWind = vec2(-windDirection.y, windDirection.x);

@@ -1,13 +1,8 @@
 import { useDebounceFn } from "@vueuse/core";
 import castleFireParticleUrl from "src/assets/game/effects/castle-fire-particle.png?url";
 import earthSideUrl from "src/assets/game/tiles/earth-side.png";
-import grassSideUrl from "src/assets/game/tiles/grass-side.png";
-import grassTopUrl from "src/assets/game/tiles/grass-top.png";
 import waterSideUrl from "src/assets/game/tiles/water-side.png";
 import waterTopUrl from "src/assets/game/tiles/water-top.png";
-import grassTerrainFragmentShader from "./objects/ground-cover/GrassTerrain.frag?raw";
-import grassSideFragmentShader from "./objects/ground-cover/GrassSide.frag?raw";
-import grassTurfSideFragmentShader from "./objects/ground-cover/GrassTurfSide.frag?raw";
 import { Castle } from "./objects/castle/index.js";
 import { GATEWAY_BANNER_SIGNS, Gateway } from "./objects/gateway/index.js";
 import {
@@ -53,6 +48,8 @@ import { GameOverScene } from "./rendering/scene/GameOverScene.js";
 import { InventoryScene } from "./rendering/scene/InventoryScene.js";
 import { SceneObjectRegistry } from "./rendering/scene/SceneObjectRegistry.js";
 import { TerrainRenderer } from "./rendering/terrain/TerrainRenderer.js";
+import { GrassSurfaceMaterials } from "./rendering/terrain/GrassSurfaceMaterials.js";
+import { tileVariantIndex } from "./rendering/terrain/TileVariantIndex.js";
 import { PathSurfaceMaterials } from "./rendering/terrain/PathSurfaceMaterials.js";
 import {
   CUBE_SCALE,
@@ -63,33 +60,21 @@ import {
 } from "./rendering/terrain/TerrainMaterialMaps.js";
 
 const TEXTURE_URLS = {
-  grass: grassTopUrl,
+  ...GrassSurfaceMaterials.textureUrls,
   ...PathSurfaceMaterials.textureUrls,
   water: waterTopUrl,
   earthSide: earthSideUrl,
-  grassSide: grassSideUrl,
   waterSide: waterSideUrl,
   castleFireParticle: castleFireParticleUrl,
 };
 
 const MATERIAL_DEFINITIONS = {
   earth: { color: 0xe8c4a0, texture: "earthSide", gloss: 0.08 },
-  grass: {
-    color: 0xffffff,
-    texture: "grass",
-    gloss: 0.05,
-    continuousTexture: true,
-  },
   water: { color: 0xd8f2ff, texture: "water", gloss: 0.22 },
   islandRock: { color: 0x667482, texture: "earthSide", gloss: 0.03 },
 };
 
 const SIDE_VARIANT_DEFINITIONS = {
-  grassSide: {
-    texture: "grassSide",
-    colors: [0xffffff, 0xf9f5ee, 0xf2f7ed, 0xf8fbf5, 0xf5f1e9, 0xfbf8f2],
-    gloss: 0.05,
-  },
   waterSide: {
     texture: "waterSide",
     colors: [0xd8f2ff, 0xcfeaff, 0xe0f5ff, 0xc9e7ff, 0xd5efff, 0xdff7ff],
@@ -108,7 +93,6 @@ const EARTH_DETAIL_TEXTURE_TRANSFORMS = [
   { startU: 0.34, startV: 0.34, scaleU: 0.32, scaleV: 0.32, flipU: true },
   { startU: 0.34, startV: 0.66, scaleU: 0.32, scaleV: 0.32, flipU: false },
 ];
-const EARTH_SIDE_HIGHEST_LEVEL = 1;
 const EARTH_SIDE_DEPTH_SHADES = [
   1, 0.92, 0.84, 0.76, 0.68, 0.6, 0.53, 0.47, 0.42, 0.38,
 ];
@@ -121,23 +105,6 @@ const SIDE_VARIANT_TRANSFORMS = [
   { startU: 0.14, scaleU: 0.72, flipU: false },
   { startU: 0.28, scaleU: 0.72, flipU: true },
 ];
-const GRASS_EARTH_SIDE_TRANSFORMS = SIDE_VARIANT_TRANSFORMS.map(
-  (transform) => ({
-    ...transform,
-    startV: 0.18,
-    scaleV: 0.82,
-  }),
-);
-const OVERPASS_EARTH_SIDE_TRANSFORMS = SIDE_VARIANT_TRANSFORMS.map(
-  (transform) => ({
-    ...transform,
-    startV: 0.4,
-    scaleV: 0.6,
-  }),
-);
-
-const GRASS_TOP_VARIANTS = [{ color: 0xffffff }];
-
 const CAMERA_PITCH = Math.atan(1 / Math.sqrt(2));
 const CAMERA_DISTANCE = 80;
 const SHADOW_DISTANCE = 150;
@@ -203,6 +170,7 @@ export class PlayCanvasRenderer {
   #groundCover = null;
   #grassSurface = null;
   #grassCarpet = null;
+  #grassMaterials = null;
   #riverWater = null;
   #vegetation = null;
   #buriedTreasure = null;
@@ -480,6 +448,12 @@ export class PlayCanvasRenderer {
       this.#heroConfigurationStore.inventory.visible,
     );
     this.#mapData = mapData;
+    this.#grassMaterials = new GrassSurfaceMaterials(
+      mapData,
+      EARTH_SIDE_DEPTH_SHADES.length,
+      SIDE_VARIANT_TRANSFORMS.length,
+    );
+    GrassSurfaceMaterials.setGridOffset(this.#materials, mapData);
     this.#cameraPanBounds = new CameraPanBounds(mapData);
     this.#scene?.reset();
     this.#zoom = 1;
@@ -1034,65 +1008,14 @@ export class PlayCanvasRenderer {
           ),
         );
       });
-      GRASS_EARTH_SIDE_TRANSFORMS.forEach((transform, variant) => {
-        const earthName = `grassEarthSide-depth-${depth}-${variant}`;
-        this.#materials.set(
-          earthName,
-          this.#createMaterial(
-            earthName,
-            {
-              color: shadeHexColor(0xffffff, shade),
-              texture: "grassSide",
-              gloss: 0.05,
-              ...transform,
-            },
-            textures,
-          ),
-        );
-        const topName = `grassTopSide-depth-${depth}-${variant}`;
-        this.#materials.set(
-          topName,
-          this.#createMaterial(
-            topName,
-            {
-              color: shadeHexColor(0xffffff, shade),
-              texture: "grassSide",
-              gloss: 0.05,
-              ...SIDE_VARIANT_TRANSFORMS[variant],
-            },
-            textures,
-          ),
-        );
-      });
-      OVERPASS_EARTH_SIDE_TRANSFORMS.forEach((transform, variant) => {
-        const name = `overpassEarthSide-depth-${depth}-${variant}`;
-        this.#materials.set(
-          name,
-          this.#createMaterial(
-            name,
-            {
-              color: shadeHexColor(0xffffff, shade),
-              texture: "grassSide",
-              gloss: 0.05,
-              ...transform,
-            },
-            textures,
-          ),
-        );
-      });
     });
 
-    GRASS_TOP_VARIANTS.forEach((variant, index) => {
-      const name = `grass-${index}`;
-      this.#materials.set(
-        name,
-        this.#createMaterial(
-          name,
-          { ...MATERIAL_DEFINITIONS.grass, ...variant },
-          textures,
-        ),
-      );
-    });
+    GrassSurfaceMaterials.register(
+      this.#materials,
+      (name, definition) => this.#createMaterial(name, definition, textures),
+      SIDE_VARIANT_TRANSFORMS,
+      EARTH_SIDE_DEPTH_SHADES,
+    );
     PathSurfaceMaterials.register(
       this.#materials,
       (name, definition) => this.#createMaterial(name, definition, textures),
@@ -1139,15 +1062,6 @@ export class PlayCanvasRenderer {
       material.blendType = pc.BLEND_NORMAL;
       material.depthWrite = false;
     }
-    if (definition.continuousTexture) {
-      material.shaderChunks.glsl.set("diffusePS", grassTerrainFragmentShader);
-    }
-    if (name.startsWith("grassTopSide-")) {
-      material.shaderChunks.glsl.set("diffusePS", grassTurfSideFragmentShader);
-      material.setParameter("uGrassSurfaceLift", GRASS_SURFACE_LIFT);
-    } else if (name.startsWith("grassEarthSide-")) {
-      material.shaderChunks.glsl.set("diffusePS", grassSideFragmentShader);
-    }
     material.update();
     return material;
   }
@@ -1160,19 +1074,18 @@ export class PlayCanvasRenderer {
 
     return new Promise((resolve, reject) => {
       asset.ready((loadedAsset) => {
-        loadedAsset.resource.mipmaps = this.#graphicsSettingsStore.mipmaps;
-        loadedAsset.resource.minFilter = this.#graphicsSettingsStore.mipmaps
+        const texture = loadedAsset.resource;
+        texture.mipmaps = this.#graphicsSettingsStore.mipmaps;
+        texture.minFilter = texture.mipmaps
           ? pc.FILTER_LINEAR_MIPMAP_LINEAR
           : pc.FILTER_LINEAR;
-        loadedAsset.resource.magFilter = pc.FILTER_LINEAR;
-        loadedAsset.resource.anisotropy =
-          this.#graphicsSettingsStore.anisotropy;
-        const addressMode =
-          name === "grass"
-            ? pc.ADDRESS_MIRRORED_REPEAT
-            : pc.ADDRESS_CLAMP_TO_EDGE;
-        loadedAsset.resource.addressU = addressMode;
-        loadedAsset.resource.addressV = addressMode;
+        texture.magFilter = pc.FILTER_LINEAR;
+        texture.anisotropy = this.#graphicsSettingsStore.anisotropy;
+        texture.addressU = pc.ADDRESS_CLAMP_TO_EDGE;
+        texture.addressV = pc.ADDRESS_CLAMP_TO_EDGE;
+        GrassSurfaceMaterials.configureTexture(
+          pc, name, texture, this.#graphicsSettingsStore.mipmaps,
+        );
         resolve(loadedAsset.resource);
       });
       asset.once("error", reject);
@@ -1205,9 +1118,9 @@ export class PlayCanvasRenderer {
       cubeMaterials: (type, topCube, col, row, level) =>
         this.#cubeMaterials(type, topCube, col, row, level),
       pathEarthSideMaterial: (col, row, level) =>
-        this.#pathEarthSideMaterial(col, row, level),
+        this.#grassMaterials.overpassSideForTile(col, row, level),
       grassEarthSideMaterial: (col, row, level) =>
-        this.#grassEarthSideMaterial(col, row, level),
+        this.#grassMaterials.earthSideForTile(col, row, level),
       sideVariant: (material, col, row, level) =>
         this.#sideVariant(material, col, row, level),
       addCubeMatrix: (...args) => this.#addCubeMatrix(...args),
@@ -1249,8 +1162,12 @@ export class PlayCanvasRenderer {
     this.#mapRoot.addChild(this.#riverWater.entity);
     this.#grassCarpet = new GrassCarpet({
       pc: this.#pc,
+      device: this.#app.graphicsDevice,
       mapData: this.#mapData,
       modelLibrary: this.#modelLibrary,
+      tileColors: GrassSurfaceMaterials.tileColors,
+      variantForTile: (col, row, level) =>
+        this.#grassMaterials.variantForTile(col, row, level),
       zoom: this.#zoom,
     });
     this.#mapRoot.addChild(this.#grassCarpet.entity);
@@ -1642,7 +1559,7 @@ export class PlayCanvasRenderer {
       const x = col - (cols - 1) / 2;
       const z = row - (rows - 1) / 2;
       const topMaterial = rocky ? "islandRock" : "earth";
-      const sideMaterial = this.#grassEarthSideMaterial(col, row, level);
+      const sideMaterial = this.#grassMaterials.earthSideForTile(col, row, level);
       this.#addCubeMatrix(
         batches,
         topMaterial,
@@ -1826,74 +1743,41 @@ export class PlayCanvasRenderer {
       if (!topCube) {
         return {
           top: "earth",
-          sides: this.#grassEarthSideMaterial(col, row, level),
+          sides: this.#grassMaterials.earthSideForTile(col, row, level),
           underlay: "earth",
         };
       }
       return {
-        top: `grass-${this.#variantIndex(col, row, level, 11, GRASS_TOP_VARIANTS.length)}`,
-        sides: this.#grassTopSideMaterial(col, row, level),
+        top: this.#grassMaterials.topForTile(col, row, level),
+        sides: this.#grassMaterials.topSideForTile(col, row, level),
         underlay: "earth",
       };
     }
     if (!topCube) {
       return {
         top: "earth",
-        sides: this.#grassEarthSideMaterial(col, row, level),
+        sides: this.#grassMaterials.earthSideForTile(col, row, level),
         underlay: "earth",
       };
     }
     return {
       top:
         type === TileType.GRASS
-          ? `grass-${this.#variantIndex(col, row, level, 11, GRASS_TOP_VARIANTS.length)}`
+          ? this.#grassMaterials.topForTile(col, row, level)
           : surfaceMaterialForTile(type, col, row, level),
       sides:
         type === TileType.GRASS
-          ? this.#grassTopSideMaterial(col, row, level)
-          : this.#grassEarthSideMaterial(col, row, level),
+          ? this.#grassMaterials.topSideForTile(col, row, level)
+          : this.#grassMaterials.earthSideForTile(col, row, level),
       underlay: type === TileType.WATER ? "water" : "earth",
     };
-  }
-
-  #grassEarthSideMaterial(col, row, level) {
-    return `grassEarthSide-depth-${this.#grassSideDepth(level)}-${this.#grassSideVariant(col, row)}`;
-  }
-
-  #pathEarthSideMaterial(col, row, level) {
-    return `overpassEarthSide-depth-${this.#grassSideDepth(level)}-${this.#grassSideVariant(col, row)}`;
-  }
-
-  #grassTopSideMaterial(col, row, level) {
-    return `grassTopSide-depth-${this.#grassSideDepth(level)}-${this.#grassSideVariant(col, row)}`;
-  }
-
-  #grassSideDepth(level) {
-    return Math.max(
-      0,
-      Math.min(
-        EARTH_SIDE_DEPTH_SHADES.length - 1,
-        EARTH_SIDE_HIGHEST_LEVEL - Math.floor(level),
-      ),
-    );
-  }
-
-  #grassSideVariant(col, row) {
-    const surfaceLevel = this.#tileHeight(col, row) - 1;
-    return this.#variantIndex(
-      col,
-      row,
-      surfaceLevel,
-      83,
-      GRASS_EARTH_SIDE_TRANSFORMS.length,
-    );
   }
 
   #sideVariant(material, col, row, level) {
     if (material === "castleWall" || material === "castleTower") {
       return material;
     }
-    const index = this.#variantIndex(
+    const index = tileVariantIndex(
       col,
       row,
       level,
@@ -1901,15 +1785,6 @@ export class PlayCanvasRenderer {
       SIDE_VARIANT_TRANSFORMS.length,
     );
     return `${material}-${index}`;
-  }
-
-  #variantIndex(col, row, level, salt, count) {
-    const hash =
-      Math.imul(col + 17, 73856093) ^
-      Math.imul(row + 31, 19349663) ^
-      Math.imul(level + 7, 83492791) ^
-      salt;
-    return (hash >>> 0) % count;
   }
 
   #tileHeight(col, row) {

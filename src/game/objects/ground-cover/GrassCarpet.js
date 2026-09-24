@@ -12,9 +12,40 @@ export class GrassCarpet {
 
   #entity;
   #material;
+  #variantMap;
   #batches = [];
 
-  constructor({ pc, mapData, modelLibrary, zoom = 1 }) {
+  constructor({
+    pc,
+    device,
+    mapData,
+    modelLibrary,
+    tileColors,
+    variantForTile,
+    zoom = 1,
+  }) {
+    this.#variantMap = new pc.Texture(device, {
+      name: "Grass tile variants",
+      width: mapData.cols,
+      height: mapData.rows,
+      format: pc.PIXELFORMAT_R8_G8_B8_A8,
+      mipmaps: false,
+      minFilter: pc.FILTER_NEAREST,
+      magFilter: pc.FILTER_NEAREST,
+      addressU: pc.ADDRESS_CLAMP_TO_EDGE,
+      addressV: pc.ADDRESS_CLAMP_TO_EDGE,
+    });
+    const variants = this.#variantMap.lock();
+    for (let row = 0; row < mapData.rows; row += 1) {
+      for (let col = 0; col < mapData.cols; col += 1) {
+        const offset = (row * mapData.cols + col) * 4;
+        variants[offset] = variantForTile(
+          col, row, mapData.heightmap[row][col] - 1,
+        );
+        variants[offset + 3] = 255;
+      }
+    }
+    this.#variantMap.unlock();
     this.#entity = new pc.Entity("Short grass carpet");
     this.#material = new pc.StandardMaterial();
     this.#material.name = "Short living grass";
@@ -24,6 +55,13 @@ export class GrassCarpet {
     this.#material.cull = pc.CULLFACE_NONE;
     this.#material.twoSidedLighting = true;
     this.#material.setParameter("uGrassBroadleaf", 0);
+    this.#material.setParameter("uGrassVariantMap", this.#variantMap);
+    this.#material.setParameter(
+      "uGrassVariantColors[0]", new Float32Array(tileColors.flat()),
+    );
+    this.#material.setParameter("uGrassVariantMapSize", [
+      mapData.cols, mapData.rows,
+    ]);
     this.#material.setParameter("uGrassBoundaryExtension", [0, 0, 0, 0]);
     this.#material.setParameter("uGrassGridOffset", [(mapData.cols - 1) / 2, (mapData.rows - 1) / 2]);
     this.#material.setParameter("uGrassWindDirection", [1, 0]);
@@ -145,5 +183,6 @@ export class GrassCarpet {
     }
     this.#batches = [];
     this.#material.destroy();
+    this.#variantMap.destroy();
   }
 }

@@ -141,7 +141,8 @@ export class HeroFootPlacement {
     const cuffPosition = cuff.getLocalPosition().clone();
     const tilt = new this.#pc.Entity(`${side} boot surface tilt`);
     tilt.setLocalPosition(cuffPosition);
-    wrapper.addChild(tilt);
+    // Pivot under the knee so the boot keeps its ankle offset and pose.
+    cuff.parent.addChild(tilt);
     for (const part of tiltingParts) {
       const position = part.getLocalPosition().clone();
       const rotation = part.getLocalRotation().clone();
