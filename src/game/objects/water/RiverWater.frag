@@ -142,15 +142,17 @@ void getAlbedo() {
   float lip = vertical * smoothstep(0.0, 0.75, vVertexColor.b);
   float falling = vertical * vVertexColor.g;
 
-  // A gouache palette: shaded teal, mint, pale aqua, warm white.
-  vec3 teal = vec3(0.15, 0.39, 0.38);
-  vec3 mint = vec3(0.28, 0.58, 0.55);
-  vec3 aqua = vec3(0.44, 0.69, 0.65);
-  vec3 white = vec3(0.77, 0.85, 0.81);
+  // Display-space river colors; foam is the only near-white part of the sheet.
+  vec3 deepBlue = vec3(23.0, 107.0, 156.0) / 255.0;
+  vec3 waterBlue = vec3(35.0, 143.0, 196.0) / 255.0;
+  vec3 lightCyan = vec3(98.0, 200.0, 232.0) / 255.0;
+  vec3 highlight = vec3(183.0, 234.0, 244.0) / 255.0;
+  vec3 foamTint = vec3(232.0, 248.0, 247.0) / 255.0;
+  vec3 strongFoam = vec3(247.0, 255.0, 255.0) / 255.0;
   float wash = paintedNoise(vec2(across * 3.6, downstream * 1.5));
   float patches = paintedEdge(0.47, wash);
-  vec3 water = mix(mint, aqua, patches * 0.55);
-  water = mix(water, teal, (1.0 - paintedEdge(0.28, wash)) * 0.55);
+  vec3 water = mix(waterBlue, lightCyan, patches * 0.18);
+  water = mix(water, deepBlue, (1.0 - paintedEdge(0.38, wash)) * 0.72);
 
   // Broken ribbons follow route coordinates through every corner.
   float foamAcross = foamUv.x;
@@ -193,7 +195,7 @@ void getAlbedo() {
   foam = max(foam, sourceFoam);
   water = mix(
     water,
-    aqua,
+    lightCyan,
     outletBand * 0.08 + sourceEnvelope * sourceCrests * 0.16
   );
   if (vertical < 0.5 && depth < 0.01) {
@@ -264,16 +266,20 @@ void getAlbedo() {
     paintedEdge(0.53, broadPaint) * 0.86;
   fallFoam = max(fallFoam, max(foamChips, edgeSurge));
   foam = mix(foam, fallFoam, lip);
-  vec3 fallWater = mix(mint, aqua, paintedEdge(0.43, tornPaint) * 0.72);
-  water = mix(water, fallWater, lip * 0.85);
+  vec3 fallWater = mix(deepBlue, waterBlue,
+    0.52 + paintedEdge(0.43, tornPaint) * 0.48);
+  fallWater = mix(fallWater, lightCyan,
+    paintedEdge(0.72, tornPaint) * 0.28);
+  water = mix(water, fallWater, lip);
 
   // Replace both color and foam motion near the landing. Merely distorting
   // route UVs still makes water enter from the cliff instead of the impact.
   foam = mix(foam, cascadeFoam, cascadeChurn);
-  vec3 impactWater = mix(teal, aqua, 0.2 + paintedEdge(0.46, impactWash) * 0.65);
+  vec3 impactWater = mix(deepBlue, waterBlue,
+    0.35 + paintedEdge(0.46, impactWash) * 0.55);
   water = mix(water, impactWater, cascadeChurn);
   foam *= 1.0 - depth;
-  water = mix(water, teal * 0.64, depth);
+  water = mix(water, deepBlue, depth);
   // A restrained reflected sky and sun glint, following the animated surface normal.
   vec3 normal = normalize(cross(dFdx(vPositionW), dFdy(vPositionW)));
   vec3 view = normalize(view_position - vPositionW);
@@ -296,21 +302,22 @@ void getAlbedo() {
   float sideFoam = paintedEdge(0.59, sideChannels) *
     paintedEdge(0.36, sideBreaks) * 0.76;
   sideFoam = max(sideFoam, paintedEdge(0.8, sideBreaks) * 0.45);
-  vec3 sideWater = mix(teal, aqua, 0.35 + sideChannels * 0.55);
+  vec3 sideWater = mix(deepBlue, waterBlue, 0.4 + sideChannels * 0.5);
   foam = mix(foam, sideFoam, sheetSide);
   water = mix(water, sideWater, sheetSide);
   vec3 reflected = reflect(-view, normal);
   float fresnel = pow(1.0 - max(dot(normal, view), 0.0), 3.0);
   float horizon = 1.0 - smoothstep(0.0, 0.85, abs(reflected.y));
-  vec3 sky = mix(vec3(0.32, 0.55, 0.65), vec3(0.67, 0.79, 0.80), horizon);
-  float reflection = (0.045 + fresnel * 0.12) * (1.0 - depth) * mix(1.0, 0.4, lip);
+  vec3 sky = mix(waterBlue, lightCyan, horizon);
+  float reflection = (0.035 + fresnel * 0.08) * (1.0 - depth) * mix(1.0, 0.4, lip);
   water = mix(water, sky, reflection);
   vec3 sun = normalize(vec3(-0.45, 0.82, 0.35));
-  float glint = pow(max(dot(reflected, sun), 0.0), 64.0);
-  water = mix(water, vec3(0.86, 0.91, 0.85), glint * 0.16 * (1.0 - depth));
+  float glint = pow(max(dot(reflected, sun), 0.0), 96.0);
+  water = mix(water, highlight, glint * 0.12 * (1.0 - depth));
   float tail = smoothstep(0.72, 1.0, falling);
+  vec3 foamColor = mix(foamTint, strongFoam, smoothstep(0.78, 1.0, foam));
   // Palette values are display colors; convert once for the renderer's linear output.
-  dAlbedo = pow(mix(water, white, clamp(foam + tail * 0.08, 0.0, 1.0)), vec3(2.2));
+  dAlbedo = pow(mix(water, foamColor, clamp(foam + tail * 0.08, 0.0, 1.0)), vec3(2.2));
   // Texture derivatives must stay under uniform control flow on WebGPU.
   // Mask the submerged volume in the result instead of branching on vertex depth.
   if (uHeroWater.w > 0.5) {
@@ -336,7 +343,7 @@ void getAlbedo() {
     float ripple = sin(distanceToHead * 37.0 - uRiverTime * 6.0);
     float collar = smoothstep(0.18, 0.26, distanceToHead) *
       (1.0 - smoothstep(0.32, 0.55, distanceToHead));
-    dAlbedo = mix(dAlbedo, pow(white, vec3(2.2)),
+    dAlbedo = mix(dAlbedo, pow(foamTint, vec3(2.2)),
       paintedEdge(0.78, ripple) * collar * sameSurface * 0.22);
   }
 }
