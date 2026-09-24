@@ -50,7 +50,9 @@ export class GrassCarpet {
       for (let col = 0; col < mapData.cols; col += 1) {
         const offset = (row * mapData.cols + col) * 4;
         variants[offset] = variantForTile(
-          col, row, mapData.heightmap[row][col] - 1,
+          col,
+          row,
+          mapData.heightmap[row][col] - 1,
         );
         variants[offset + 3] = 255;
       }
@@ -67,15 +69,21 @@ export class GrassCarpet {
     this.#material.setParameter("uGrassBroadleaf", 0);
     this.#material.setParameter("uGrassVariantMap", this.#variantMap);
     this.#material.setParameter(
-      "uGrassVariantColors[0]", new Float32Array(tileColors.flat()),
+      "uGrassVariantColors[0]",
+      new Float32Array(tileColors.flat()),
     );
     this.#material.setParameter("uGrassVariantMapSize", [
-      mapData.cols, mapData.rows,
+      mapData.cols,
+      mapData.rows,
     ]);
     this.#material.setParameter("uGrassBoundaryExtension", [0, 0, 0, 0]);
-    this.#material.setParameter("uGrassGridOffset", [(mapData.cols - 1) / 2, (mapData.rows - 1) / 2]);
+    this.#material.setParameter("uGrassGridOffset", [
+      (mapData.cols - 1) / 2,
+      (mapData.rows - 1) / 2,
+    ]);
     this.#material.setParameter("uGrassWindDirection", [1, 0]);
     this.#material.setParameter("uGrassWindStrength", 0);
+    this.#material.setParameter("uGrassLodReveal", 1);
     this.#material.shaderChunks.glsl.set("transformVS", vertexShader);
     this.#material.shaderChunks.glsl.set("diffusePS", fragmentShader);
     this.#material.shaderChunks.glsl.set("normalMapPS", normalShader);
@@ -83,14 +91,15 @@ export class GrassCarpet {
 
     const chunks = new Map();
     const matrix = new pc.Mat4();
-    this.#material.setParameter("uGrassLodReveal", 1);
     const position = new pc.Vec3();
     const rotation = new pc.Quat();
     const scale = new pc.Vec3();
     for (const placement of GrassCarpetLayout.create(mapData)) {
       const key = `${placement.chunk}:${placement.detail}:${placement.broadleaf}:${placement.boundaryExtension}`;
       const chunk = chunks.get(key) ?? {
-        matrices: [], placements: [], detail: placement.detail,
+        matrices: [],
+        placements: [],
+        detail: placement.detail,
         broadleaf: placement.broadleaf,
         boundaryExtension: placement.boundaryExtension,
       };
@@ -106,31 +115,54 @@ export class GrassCarpet {
     }
     for (const [key, chunk] of chunks) {
       const modelUrl = chunk.broadleaf ? cloverModelUrl : meadowGrassModelUrl;
-      const batch = modelLibrary.instantiateMergedBatch(modelUrl, chunk.matrices, {
-        name: `Short grass ${key}`,
-        material: this.#material,
-        castShadows: false,
-        receiveShadows: true,
-        dynamic: true,
-      });
+      const batch = modelLibrary.instantiateMergedBatch(
+        modelUrl,
+        chunk.matrices,
+        {
+          name: `Short grass ${key}`,
+          material: this.#material,
+          castShadows: false,
+          receiveShadows: true,
+          dynamic: true,
+        },
+      );
       // Instanced models otherwise have only the source clump's bounds. Bound
       // each terrain patch so offscreen grass can be culled as one draw call.
       const minimum = new pc.Vec3(Infinity, Infinity, Infinity);
       const maximum = new pc.Vec3(-Infinity, -Infinity, -Infinity);
       for (const placement of chunk.placements) {
-        minimum.min(position.set(placement.x - 0.25, placement.y - 0.15, placement.z - 0.25));
-        maximum.max(position.set(placement.x + 0.25, placement.y + 0.2, placement.z + 0.25));
+        minimum.min(
+          position.set(
+            placement.x - 0.25,
+            placement.y - 0.15,
+            placement.z - 0.25,
+          ),
+        );
+        maximum.max(
+          position.set(
+            placement.x + 0.25,
+            placement.y + Math.max(0.2, placement.height + 0.05),
+            placement.z + 0.25,
+          ),
+        );
       }
       const bounds = new pc.BoundingBox();
       bounds.setMinMax(minimum, maximum);
       for (const instance of batch.entity.render.meshInstances) {
         instance.setParameter("uGrassBroadleaf", chunk.broadleaf ? 1 : 0);
-        instance.setParameter("uGrassBoundaryExtension", chunk.boundaryExtension);
+        instance.setParameter(
+          "uGrassBoundaryExtension",
+          chunk.boundaryExtension,
+        );
         instance.cull = true;
         instance.setCustomAabb(bounds);
       }
       this.#entity.addChild(batch.entity);
-      this.#batches.push({ ...batch, placements: chunk.placements, detail: chunk.detail });
+      this.#batches.push({
+        ...batch,
+        placements: chunk.placements,
+        detail: chunk.detail,
+      });
     }
     this.zoom = zoom;
   }
@@ -180,7 +212,8 @@ export class GrassCarpet {
         continue;
       }
       const storage = vertexBuffer.lock();
-      const data = storage instanceof Float32Array ? storage : new Float32Array(storage);
+      const data =
+        storage instanceof Float32Array ? storage : new Float32Array(storage);
       for (const index of indices) {
         data[index * 16 + 13] = -10000;
       }

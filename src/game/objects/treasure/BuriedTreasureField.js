@@ -92,6 +92,7 @@ export class BuriedTreasureField {
   #dugTiles = new Set();
   #vegetationTileCounts = new Map();
   #groundCoverTileCounts = new Map();
+  #stoneTiles = new Set();
   #harvestedFlowerTiles = new Set();
   #harvestedMushroomTiles = new Set();
   #felledTreeTiles = new Set();
@@ -130,6 +131,9 @@ export class BuriedTreasureField {
         key,
         (this.#vegetationTileCounts.get(key) ?? 0) + 1,
       );
+    }
+    for (const { col, row } of mapData.stoneData ?? []) {
+      this.#stoneTiles.add(this.#tileKey(col, row));
     }
     for (const { col, row } of mapData.groundCoverData ?? []) {
       const key = this.#tileKey(col, row);
@@ -227,8 +231,7 @@ export class BuriedTreasureField {
   canFill(id) {
     return this.#sites.some(
       (site) =>
-        site.id === id &&
-        ["empty", "vanished", "filling"].includes(site.state),
+        site.id === id && ["empty", "vanished", "filling"].includes(site.state),
     );
   }
 
@@ -246,8 +249,7 @@ export class BuriedTreasureField {
       }
       existingSite.state = "expanding";
       existingSite.elapsed = 0;
-      existingSite.hasTreasure =
-        Math.random() < existingSite.treasureChance;
+      existingSite.hasTreasure = Math.random() < existingSite.treasureChance;
       return true;
     }
     if (this.#dugTiles.has(target.id)) {
@@ -350,24 +352,13 @@ export class BuriedTreasureField {
     }
   }
 
-  collisionDepthAt(
-    x,
-    z,
-    radius = 0,
-    elevation = -Infinity,
-    stepClearance = 0,
-  ) {
+  collisionDepthAt(x, z, radius = 0, elevation = -Infinity, stepClearance = 0) {
     let depth = 0;
     for (const site of this.#sites) {
-      if (
-        this.#holeBlocks(site) &&
-        Math.abs(site.y - elevation) <= 0.85
-      ) {
+      if (this.#holeBlocks(site) && Math.abs(site.y - elevation) <= 0.85) {
         depth = Math.max(
           depth,
-          HOLE_COLLISION_RADIUS +
-            radius -
-            Math.hypot(x - site.x, z - site.z),
+          HOLE_COLLISION_RADIUS + radius - Math.hypot(x - site.x, z - site.z),
         );
       }
       if (!this.#chestBlocks(site)) {
@@ -389,8 +380,7 @@ export class BuriedTreasureField {
       (site) =>
         this.#holeBlocks(site) &&
         Math.abs(site.y - elevation) <= 0.85 &&
-        Math.hypot(x - site.x, z - site.z) <
-          HOLE_COLLISION_RADIUS + radius,
+        Math.hypot(x - site.x, z - site.z) < HOLE_COLLISION_RADIUS + radius,
     );
     return blocksHole ? MOVEMENT_REFUSAL.HOLE : null;
   }
@@ -504,10 +494,8 @@ export class BuriedTreasureField {
       }
       const key = this.#tileKey(candidate.col, candidate.row);
       const sourceCover = this.#riverSourceCovers.get(key);
-      const x =
-        sourceCover?.x ?? candidate.col - (this.#mapData.cols - 1) / 2;
-      const z =
-        sourceCover?.z ?? candidate.row - (this.#mapData.rows - 1) / 2;
+      const x = sourceCover?.x ?? candidate.col - (this.#mapData.cols - 1) / 2;
+      const z = sourceCover?.z ?? candidate.row - (this.#mapData.rows - 1) / 2;
       const distance = Math.hypot(x - position.x, z - position.z);
       if (distance > INTERACTION_REACH || distance <= 0.001) {
         continue;
@@ -567,7 +555,8 @@ export class BuriedTreasureField {
       Number.isFinite(this.#mapData.heightmap[row][col]) &&
       (unfinished || !this.#dugTiles.has(key)) &&
       !this.#vegetationTileCounts.has(key) &&
-      !this.#groundCoverTileCounts.has(key)
+      !this.#groundCoverTileCounts.has(key) &&
+      !this.#stoneTiles.has(key)
     );
   }
 
@@ -580,8 +569,7 @@ export class BuriedTreasureField {
     }
     if (this.#harvestedFlowerTiles.has(key)) {
       return {
-        treasureChance:
-          TREASURE_CHANCE / HARVESTED_FLOWER_REWARD_MULTIPLIER,
+        treasureChance: TREASURE_CHANCE / HARVESTED_FLOWER_REWARD_MULTIPLIER,
         rewardMultiplier: HARVESTED_FLOWER_REWARD_MULTIPLIER,
       };
     }
@@ -677,7 +665,11 @@ export class BuriedTreasureField {
     this.#entity.addChild(site.hole);
     site.earthPile = this.#modelLibrary.instantiate(earthModelUrl);
     site.earthPile.name = `Excavated earth pile ${site.id}`;
-    site.earthPile.setLocalPosition(site.x + 0.42, site.y + 0.012, site.z + 0.3);
+    site.earthPile.setLocalPosition(
+      site.x + 0.42,
+      site.y + 0.012,
+      site.z + 0.3,
+    );
     this.#entity.addChild(site.earthPile);
     site.filledPatch = this.#modelLibrary.instantiate(filledEarthModelUrl);
     site.filledPatch.name = `Filled earth patch ${site.id}`;
@@ -694,8 +686,7 @@ export class BuriedTreasureField {
 
   #applyFillProgress(site) {
     const remaining = 1 - site.fillProgress;
-    const holeScale = HOLE_INITIAL_SCALE +
-      (1 - HOLE_INITIAL_SCALE) * remaining;
+    const holeScale = HOLE_INITIAL_SCALE + (1 - HOLE_INITIAL_SCALE) * remaining;
     const pileScale = Math.max(0.12, remaining);
     const patchScale = 0.45 + site.fillProgress * 0.55;
     site.hole.setLocalScale(holeScale, holeScale, holeScale);
@@ -828,8 +819,7 @@ export class BuriedTreasureField {
         collectStart: null,
         collectControlA: null,
         collectControlBOffset: null,
-        flightSide:
-          (index % 2 === 0 ? 1 : -1) * (0.16 + (index % 3) * 0.05),
+        flightSide: (index % 2 === 0 ? 1 : -1) * (0.16 + (index % 3) * 0.05),
         rotation: Math.random() * 360,
       });
     }
@@ -856,11 +846,7 @@ export class BuriedTreasureField {
   }
 
   #createMaterials() {
-    this.#soilMaterial = this.#createMaterial(
-      "Flying fill soil",
-      0x6f3214,
-      0,
-    );
+    this.#soilMaterial = this.#createMaterial("Flying fill soil", 0x6f3214, 0);
     for (const [type, definition] of COIN_DEFINITIONS) {
       const material = this.#createMaterial(
         `${type} treasure coin`,
@@ -965,11 +951,7 @@ export class BuriedTreasureField {
       site.elapsed = Math.min(CHEST_EMERGE_DURATION, site.elapsed + deltaTime);
       const progress = site.elapsed / CHEST_EMERGE_DURATION;
       const eased = 1 - (1 - progress) ** 3;
-      site.chest.setLocalPosition(
-        site.x,
-        site.y - 0.58 + eased * 0.58,
-        site.z,
-      );
+      site.chest.setLocalPosition(site.x, site.y - 0.58 + eased * 0.58, site.z);
       if (progress >= 1) {
         site.state = "closed";
         site.elapsed = 0;
@@ -1000,10 +982,7 @@ export class BuriedTreasureField {
     if (coin.state === "skyborne") {
       const flightElapsed = coin.elapsed - coin.skyDelay;
       if (flightElapsed >= 0) {
-        const progress = Math.min(
-          1,
-          flightElapsed / COIN_SKY_FLIGHT_DURATION,
-        );
+        const progress = Math.min(1, flightElapsed / COIN_SKY_FLIGHT_DURATION);
         const flightProgress = 1 - (1 - progress) ** 3;
         const heroPosition = this.#heroPosition ?? coin.skyStart;
         const target = {
@@ -1055,10 +1034,7 @@ export class BuriedTreasureField {
         coin.elapsed = 0;
       }
     } else if (coin.state === "arrived") {
-      coin.site.coinsRemaining = Math.max(
-        0,
-        coin.site.coinsRemaining - 1,
-      );
+      coin.site.coinsRemaining = Math.max(0, coin.site.coinsRemaining - 1);
       this.#onCollectCoin?.(coin.type, 1);
       coin.entity.destroy();
       if (coin.site.coinsRemaining === 0) {
@@ -1125,25 +1101,23 @@ export class BuriedTreasureField {
   }
 
   #chestBlocks(site) {
-    return [
-      "emerging",
-      "closed",
-      "opening",
-      "opened",
-      "vanishing",
-    ].includes(site.state);
+    return ["emerging", "closed", "opening", "opened", "vanishing"].includes(
+      site.state,
+    );
   }
 
   #holeBlocks(site) {
     return (
-      site.hole?.enabled &&
-      site.state !== "filled" &&
-      site.state !== "blocked"
+      site.hole?.enabled && site.state !== "filled" && site.state !== "blocked"
     );
   }
 
   #beginChestVanish(site) {
-    if (!site.chest || site.state === "vanishing" || site.state === "vanished") {
+    if (
+      !site.chest ||
+      site.state === "vanishing" ||
+      site.state === "vanished"
+    ) {
       return;
     }
     site.state = "vanishing";

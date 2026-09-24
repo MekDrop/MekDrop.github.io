@@ -10,6 +10,7 @@ import {
   PathArrows,
 } from "./objects/path/index.js";
 import { RiverWater } from "./objects/water/index.js";
+import { StoneField } from "./objects/scenery/StoneField.js";
 import { Hero, HeroPatHand } from "./objects/hero/index.js";
 import { HeroPatGesture } from "./controls/HeroPatGesture.js";
 import { HERO_MOOD } from "./enum/HeroMood.js";
@@ -156,6 +157,7 @@ export class PlayCanvasRenderer {
   #earthMaterials = null;
   #terrainMaterialSelector = null;
   #riverWater = null;
+  #stoneField = null;
   #vegetation = null;
   #buriedTreasure = null;
   #interactionProviders = [];
@@ -403,9 +405,8 @@ export class PlayCanvasRenderer {
     this.#app.start();
     this.#connectPointerInteractions();
     if (this.#devWireframeInspectorEnabled) {
-      const { DevWireframeInspector } = await import(
-        "./debug/DevWireframeInspector.js"
-      );
+      const { DevWireframeInspector } =
+        await import("./debug/DevWireframeInspector.js");
       if (this.#destroyed) {
         return;
       }
@@ -579,11 +580,13 @@ export class PlayCanvasRenderer {
   }
 
   get inventoryState() {
-    return this.#inventoryScene?.state ?? {
-      capacity: Hero.inventoryCapacity,
-      items: [],
-      visible: false,
-    };
+    return (
+      this.#inventoryScene?.state ?? {
+        capacity: Hero.inventoryCapacity,
+        items: [],
+        visible: false,
+      }
+    );
   }
 
   get inventoryVisible() {
@@ -679,7 +682,9 @@ export class PlayCanvasRenderer {
   }
 
   isGameOver() {
-    return this.#sceneObjects.getOne(SCENE_OBJECT_TYPE.HERO)?.isGameOver ?? false;
+    return (
+      this.#sceneObjects.getOne(SCENE_OBJECT_TYPE.HERO)?.isGameOver ?? false
+    );
   }
 
   get gameOverReturnViewport() {
@@ -836,7 +841,8 @@ export class PlayCanvasRenderer {
     this.#rotation = (((this.#rotation + quarterTurns) % 4) + 4) % 4;
     if (preserveFocus && this.#orbitPivot) {
       const yaw = Math.PI / 4 + this.#rotation * (Math.PI / 2);
-      const offset = (this.#cameraTargetY - this.#orbitPivot.y) / Math.tan(CAMERA_PITCH);
+      const offset =
+        (this.#cameraTargetY - this.#orbitPivot.y) / Math.tan(CAMERA_PITCH);
       this.#panX = this.#orbitPivot.x + Math.sin(yaw) * offset;
       this.#panZ = this.#orbitPivot.z + Math.cos(yaw) * offset;
       this.#viewportManuallyMoved = true;
@@ -994,7 +1000,7 @@ export class PlayCanvasRenderer {
         const tilingU = definition.flipU ? -scaleU : scaleU;
         const offsetU = definition.flipU
           ? (definition.startU ?? 0) + scaleU
-          : definition.startU ?? 0;
+          : (definition.startU ?? 0);
         const tilingV = definition.flipV ? -scaleV : scaleV;
         material.diffuseMapTiling = new pc.Vec2(tilingU, tilingV);
         material.diffuseMapOffset = new pc.Vec2(
@@ -1038,7 +1044,10 @@ export class PlayCanvasRenderer {
         texture.addressU = pc.ADDRESS_CLAMP_TO_EDGE;
         texture.addressV = pc.ADDRESS_CLAMP_TO_EDGE;
         GrassSurfaceMaterials.configureTexture(
-          pc, name, texture, this.#graphicsSettingsStore.mipmaps,
+          pc,
+          name,
+          texture,
+          this.#graphicsSettingsStore.mipmaps,
         );
         resolve(loadedAsset.resource);
       });
@@ -1070,7 +1079,13 @@ export class PlayCanvasRenderer {
       root: this.#mapRoot,
       bridgeRailingKit: this.#bridgeRailingKit,
       cubeMaterials: (type, topCube, col, row, level) =>
-        this.#terrainMaterialSelector.cubeMaterials(type, topCube, col, row, level),
+        this.#terrainMaterialSelector.cubeMaterials(
+          type,
+          topCube,
+          col,
+          row,
+          level,
+        ),
       pathEarthSideMaterial: (col, row, level) =>
         this.#earthMaterials.overpassSideForTile(col, row, level),
       earthSideMaterial: (col, row, level) =>
@@ -1128,22 +1143,17 @@ export class PlayCanvasRenderer {
       app: this.#app,
       pc: this.#pc,
       mapData: this.#mapData,
-      terrainMaterials: [
-        this.#grassCarpet.material,
-      ].filter(Boolean),
+      terrainMaterials: [this.#grassCarpet.material].filter(Boolean),
       zoom: this.#zoom,
       getImpressionContacts: () => [
-        ...(
-          this.#sceneObjects.getOne(SCENE_OBJECT_TYPE.HERO)
-            ?.grassFootContacts ?? []
-        ),
+        ...(this.#sceneObjects.getOne(SCENE_OBJECT_TYPE.HERO)
+          ?.grassFootContacts ?? []),
         ...(this.#inventoryScene?.grassImpressionContacts ?? []),
         ...(this.#groundCover?.grassImpressionContacts ?? []),
       ],
       getSurfaceContacts: () =>
         this.#royalCastleTriggerField?.grassSurfaceContacts ?? [],
-      getWeightAt: (x, y, z) =>
-        this.#collisionWorld.grassWeightAt(x, z, y),
+      getWeightAt: (x, y, z) => this.#collisionWorld.grassWeightAt(x, z, y),
     });
 
     this.#cloudField = new CubeCloudField({
@@ -1189,6 +1199,7 @@ export class PlayCanvasRenderer {
     );
     this.#buildGateways();
     this.#buildVegetation();
+    this.#buildStones();
     this.#buildGroundCover();
     this.#buildBuriedTreasure();
     this.#terrainRenderer.buildPhysicsSurface(this.#collisionWorld);
@@ -1221,8 +1232,8 @@ export class PlayCanvasRenderer {
         this.#heroAnimationPreview,
         this.#heroPickupItemPreview,
         this.#royalAnimationPreview,
-      ].flatMap(
-        (preview) => (preview?.entity.children ?? []).map((root) => ({
+      ].flatMap((preview) =>
+        (preview?.entity.children ?? []).map((root) => ({
           name: `animation-preview-${root.name}`,
           protectAtPanLimit: true,
           centerReachableAtEveryZoom: true,
@@ -1327,10 +1338,7 @@ export class PlayCanvasRenderer {
       },
     });
     this.#updateCastlesForHero(hero.position);
-    this.#groundCover?.applyHeroInteraction(
-      hero.position,
-      hero.movementState,
-    );
+    this.#groundCover?.applyHeroInteraction(hero.position, hero.movementState);
     this.#buriedTreasure?.applyHeroPosition(hero.position);
   }
 
@@ -1362,6 +1370,16 @@ export class PlayCanvasRenderer {
     this.#mapRoot.addChild(this.#vegetation.entity);
   }
 
+  #buildStones() {
+    this.#stoneField = new StoneField({
+      pc: this.#pc,
+      app: this.#app,
+      mapData: this.#mapData,
+    });
+    this.#mapRoot.addChild(this.#stoneField.entity);
+    this.#collisionWorld.add(this.#stoneField, { physicsSurface: false });
+  }
+
   #buildGroundCover() {
     this.#groundCover = new GroundCover({
       pc: this.#pc,
@@ -1369,7 +1387,9 @@ export class PlayCanvasRenderer {
       mapData: this.#mapData,
       modelLibrary: this.#modelLibrary,
       onCollect: (item) =>
-        this.#sceneObjects.getOne(SCENE_OBJECT_TYPE.HERO)?.collectInventoryItem(item) ?? false,
+        this.#sceneObjects
+          .getOne(SCENE_OBJECT_TYPE.HERO)
+          ?.collectInventoryItem(item) ?? false,
       onCollectibleRemoved: (groundCover) =>
         this.#buriedTreasure?.removeGroundCover(groundCover),
     });
@@ -1383,7 +1403,9 @@ export class PlayCanvasRenderer {
       mapData: this.#mapData,
       modelLibrary: this.#modelLibrary,
       onCollectCoin: (type, amount) =>
-        this.#sceneObjects.getOne(SCENE_OBJECT_TYPE.HERO)?.collectCoin(type, amount),
+        this.#sceneObjects
+          .getOne(SCENE_OBJECT_TYPE.HERO)
+          ?.collectCoin(type, amount),
       onInteractionChange: () => this.#updateInteractionTarget(),
       onTerrainExcavated: (position, radius) =>
         this.#grassCarpet?.clearAt(position, radius),
@@ -1489,10 +1511,14 @@ export class PlayCanvasRenderer {
   #updateCastlesForHero(position) {
     this.#royalCastleTriggerField?.updateHeroPosition(position);
     const triggers = this.#mapData.royalCastleTriggers ?? [];
-    for (const [index, castle] of this.#sceneObjects.getAll(SCENE_OBJECT_TYPE.CASTLE).entries()) {
+    for (const [index, castle] of this.#sceneObjects
+      .getAll(SCENE_OBJECT_TYPE.CASTLE)
+      .entries()) {
       castle.updateHeroPosition(position);
-      const trigger = triggers.find((entry) =>
-        entry.castleIndex === index || entry.castleIndexes?.includes(index));
+      const trigger = triggers.find(
+        (entry) =>
+          entry.castleIndex === index || entry.castleIndexes?.includes(index),
+      );
       if (!trigger) {
         continue;
       }
@@ -1759,18 +1785,16 @@ export class PlayCanvasRenderer {
       const sideMeshInstance = surfaceOnly
         ? null
         : new pc.MeshInstance(
-            slopeMeshes?.sides ??
-              bridgeSideMesh ??
-              this.#cubeMeshes.wallSides,
+            slopeMeshes?.sides ?? bridgeSideMesh ?? this.#cubeMeshes.wallSides,
             this.#materials.get(sideMaterial),
           );
       const surfaceMesh = surfaceOnly
         ? this.#cubeMeshes.surfaces.full
         : sidesOnly
           ? null
-          : slopeMeshes?.surface ??
+          : (slopeMeshes?.surface ??
             this.#cubeMeshes.surfaces[coverage] ??
-            (bridgeSideMesh ? this.#cubeMeshes.surfaces.full : null);
+            (bridgeSideMesh ? this.#cubeMeshes.surfaces.full : null));
       const topMeshInstance = surfaceMesh
         ? new pc.MeshInstance(surfaceMesh, this.#materials.get(topMaterial))
         : null;
@@ -2019,42 +2043,17 @@ export class PlayCanvasRenderer {
       const southWest = [-half, cornerHeight(-half, half), half];
       const southEast = [half, cornerHeight(half, half), half];
       const northEast = [half, cornerHeight(half, -half), -half];
-      addFace(groupNames.surface, [
-        northWest,
-        southWest,
-        southEast,
-        northEast,
-      ]);
+      addFace(groupNames.surface, [northWest, southWest, southEast, northEast]);
       const addSlopeSide = (bottomA, bottomB, topB, topA) => {
         if (topA[1] <= 0 && topB[1] <= 0) {
           return;
         }
         addFace(groupNames.sides, [bottomA, bottomB, topB, topA]);
       };
-      addSlopeSide(
-        [-half, 0, -half],
-        [-half, 0, half],
-        southWest,
-        northWest,
-      );
-      addSlopeSide(
-        [half, 0, half],
-        [half, 0, -half],
-        northEast,
-        southEast,
-      );
-      addSlopeSide(
-        [half, 0, -half],
-        [-half, 0, -half],
-        northWest,
-        northEast,
-      );
-      addSlopeSide(
-        [-half, 0, half],
-        [half, 0, half],
-        southEast,
-        southWest,
-      );
+      addSlopeSide([-half, 0, -half], [-half, 0, half], southWest, northWest);
+      addSlopeSide([half, 0, half], [half, 0, -half], northEast, southEast);
+      addSlopeSide([half, 0, -half], [-half, 0, -half], northWest, northEast);
+      addSlopeSide([-half, 0, half], [half, 0, half], southEast, southWest);
     }
 
     const createMesh = (group) => {
@@ -2075,15 +2074,13 @@ export class PlayCanvasRenderer {
       bridgeVerticalSides: createMesh(groups.bridgeVerticalSides),
       underlay: createMesh(groups.underlay),
       slopes: Object.fromEntries(
-        Object.entries(slopeGroupNames).map(
-          ([coverage, groupNames]) => [
-            coverage,
-            {
-              surface: createMesh(groups[groupNames.surface]),
-              sides: createMesh(groups[groupNames.sides]),
-            },
-          ],
-        ),
+        Object.entries(slopeGroupNames).map(([coverage, groupNames]) => [
+          coverage,
+          {
+            surface: createMesh(groups[groupNames.surface]),
+            sides: createMesh(groups[groupNames.sides]),
+          },
+        ]),
       ),
       surfaces: {
         full: createMesh(groups.full),
@@ -2154,10 +2151,7 @@ export class PlayCanvasRenderer {
     const hero = this.#sceneObjects.getOne(SCENE_OBJECT_TYPE.HERO);
     this.#orbitPivot = null;
     this.#updateCastlesForHero({ x, y, z });
-    this.#groundCover?.applyHeroInteraction(
-      { x, y, z },
-      hero?.movementState,
-    );
+    this.#groundCover?.applyHeroInteraction({ x, y, z }, hero?.movementState);
     this.#buriedTreasure?.applyHeroPosition({ x, y, z });
     this.#updateInteractionTarget({ x, y, z });
     if (this.#cameraLocked) {
@@ -2276,19 +2270,11 @@ export class PlayCanvasRenderer {
   #updateHeroCameraReturn(deltaTime) {
     const transition = this.#heroCameraReturnTransition;
     const hero = this.#sceneObjects.getOne(SCENE_OBJECT_TYPE.HERO);
-    if (
-      !transition ||
-      this.#cameraLocked ||
-      !hero ||
-      !this.#camera
-    ) {
+    if (!transition || this.#cameraLocked || !hero || !this.#camera) {
       return;
     }
     transition.elapsed += Math.max(0, deltaTime);
-    const progress = Math.min(
-      1,
-      transition.elapsed / transition.duration,
-    );
+    const progress = Math.min(1, transition.elapsed / transition.duration);
     const easedProgress = progress * progress * (3 - 2 * progress);
     const heroWorldPosition = hero.entity.getPosition();
     this.#panX =
@@ -2365,11 +2351,7 @@ export class PlayCanvasRenderer {
       this.#panX = this.#fitCenterX;
       this.#panZ = this.#fitCenterZ;
     }
-    if (
-      this.#panLimitsEnabled &&
-      !this.#cameraLocked &&
-      !preserveFocus
-    ) {
+    if (this.#panLimitsEnabled && !this.#cameraLocked && !preserveFocus) {
       const constrainedPan = this.#cameraPanBounds?.constrain(
         this.#cameraView,
         panOrigin,
@@ -2557,11 +2539,10 @@ export class PlayCanvasRenderer {
   }
 
   #inventoryDropRaycast(ray) {
-    const hits = this.#app?.systems.rigidbody?.raycastAll?.(
-      ray.start,
-      ray.end,
-      { sort: true },
-    ) ?? [];
+    const hits =
+      this.#app?.systems.rigidbody?.raycastAll?.(ray.start, ray.end, {
+        sort: true,
+      }) ?? [];
     return hits.find((hit) => hit.normal?.y >= 0.35) ?? null;
   }
 
@@ -2602,9 +2583,12 @@ export class PlayCanvasRenderer {
     }
     const fallHeight =
       (upwardScreenDistance * worldPerPixel) / Math.cos(CAMERA_PITCH);
-    return position.y + Math.max(
-      INVENTORY_DROP_MIN_FALL_HEIGHT,
-      Math.min(INVENTORY_DROP_MAX_FALL_HEIGHT, fallHeight),
+    return (
+      position.y +
+      Math.max(
+        INVENTORY_DROP_MIN_FALL_HEIGHT,
+        Math.min(INVENTORY_DROP_MAX_FALL_HEIGHT, fallHeight),
+      )
     );
   }
 
@@ -2767,6 +2751,8 @@ export class PlayCanvasRenderer {
     this.#grassCarpet = null;
     this.#riverWater?.destroy();
     this.#riverWater = null;
+    this.#stoneField?.destroy();
+    this.#stoneField = null;
     this.#cloudField?.destroy();
     this.#cloudField = null;
     this.#setInteractionTarget(null);

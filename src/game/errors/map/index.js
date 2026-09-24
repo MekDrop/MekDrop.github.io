@@ -20,6 +20,7 @@ export { InvalidRiverCountError } from "./InvalidRiverCountError.js";
 export { InvalidRiverFlowError } from "./InvalidRiverFlowError.js";
 export { InvalidRiverPathError } from "./InvalidRiverPathError.js";
 export { InvalidRouteWaypointError } from "./InvalidRouteWaypointError.js";
+export { InvalidStonePlacementError } from "./InvalidStonePlacementError.js";
 export { InvalidVegetationPlacementError } from "./InvalidVegetationPlacementError.js";
 export { IsolatedGrassElevationError } from "./IsolatedGrassElevationError.js";
 export { IsolatedTerrainHoleError } from "./IsolatedTerrainHoleError.js";
