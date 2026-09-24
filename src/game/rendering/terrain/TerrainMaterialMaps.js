@@ -1,4 +1,5 @@
 import { TileType } from "../../MapGenerator.js";
+import { PathSurfaceMaterials } from "./PathSurfaceMaterials.js";
 
 export const FIXED_HEIGHTS = {
   [TileType.WATER]: 0,
@@ -12,6 +13,13 @@ export const SURFACE_MATERIALS = {
   [TileType.WATER]: "water",
   [TileType.ENTRY]: "path",
 };
+
+export function surfaceMaterialForTile(type, col, row, level) {
+  if (type === TileType.PATH || type === TileType.ENTRY) {
+    return PathSurfaceMaterials.topForTile(col, row, level);
+  }
+  return SURFACE_MATERIALS[type];
+}
 
 export const SIDE_MATERIALS = {
   [TileType.GRASS]: "grassSide",

@@ -3,8 +3,6 @@ import castleFireParticleUrl from "src/assets/game/effects/castle-fire-particle.
 import earthSideUrl from "src/assets/game/tiles/earth-side.png";
 import grassSideUrl from "src/assets/game/tiles/grass-side.png";
 import grassTopUrl from "src/assets/game/tiles/grass-top.png";
-import pathSideUrl from "src/assets/game/tiles/path-sandstone-side.png";
-import pathTopUrl from "src/assets/game/tiles/path-sandstone-top.png";
 import waterSideUrl from "src/assets/game/tiles/water-side.png";
 import waterTopUrl from "src/assets/game/tiles/water-top.png";
 import grassTerrainFragmentShader from "./objects/ground-cover/GrassTerrain.frag?raw";
@@ -60,20 +58,21 @@ import { GameOverScene } from "./rendering/scene/GameOverScene.js";
 import { InventoryScene } from "./rendering/scene/InventoryScene.js";
 import { SceneObjectRegistry } from "./rendering/scene/SceneObjectRegistry.js";
 import { TerrainRenderer } from "./rendering/terrain/TerrainRenderer.js";
+import { PathSurfaceMaterials } from "./rendering/terrain/PathSurfaceMaterials.js";
 import {
   CUBE_SCALE,
   FIXED_HEIGHTS,
   SURFACE_ELEVATION_BIAS,
   SURFACE_MATERIALS,
+  surfaceMaterialForTile,
 } from "./rendering/terrain/TerrainMaterialMaps.js";
 
 const TEXTURE_URLS = {
   grass: grassTopUrl,
-  path: pathTopUrl,
+  ...PathSurfaceMaterials.textureUrls,
   water: waterTopUrl,
   earthSide: earthSideUrl,
   grassSide: grassSideUrl,
-  pathSide: pathSideUrl,
   waterSide: waterSideUrl,
   castleFireParticle: castleFireParticleUrl,
 };
@@ -86,7 +85,6 @@ const MATERIAL_DEFINITIONS = {
     gloss: 0.05,
     continuousTexture: true,
   },
-  path: { color: 0xe8d6b5, texture: "path", gloss: 0.05 },
   water: { color: 0xd8f2ff, texture: "water", gloss: 0.22 },
   islandRock: { color: 0x667482, texture: "earthSide", gloss: 0.03 },
 };
@@ -96,11 +94,6 @@ const SIDE_VARIANT_DEFINITIONS = {
     texture: "grassSide",
     colors: [0xffffff, 0xf9f5ee, 0xf2f7ed, 0xf8fbf5, 0xf5f1e9, 0xfbf8f2],
     gloss: 0.05,
-  },
-  pathSide: {
-    texture: "pathSide",
-    colors: [0xead8b9, 0xe2ceb0, 0xecd5b4, 0xdcc6a7, 0xe8d1b0, 0xdfc9a9],
-    gloss: 0.04,
   },
   waterSide: {
     texture: "waterSide",
@@ -1132,6 +1125,11 @@ export class PlayCanvasRenderer {
         ),
       );
     });
+    PathSurfaceMaterials.register(
+      this.#materials,
+      (name, definition) => this.#createMaterial(name, definition, textures),
+      SIDE_VARIANT_TRANSFORMS,
+    );
   }
 
   #createMaterial(name, definition, textures = new Map()) {
@@ -1150,12 +1148,17 @@ export class PlayCanvasRenderer {
         const scaleV = definition.scaleV ?? 1;
         const tilingU = definition.flipU ? -scaleU : scaleU;
         const offsetU = definition.flipU
-          ? definition.startU + scaleU
-          : definition.startU;
-        material.diffuseMapTiling = new pc.Vec2(tilingU, scaleV);
+          ? (definition.startU ?? 0) + scaleU
+          : definition.startU ?? 0;
+        const tilingV = definition.flipV ? -scaleV : scaleV;
+        material.diffuseMapTiling = new pc.Vec2(tilingU, tilingV);
         material.diffuseMapOffset = new pc.Vec2(
           offsetU,
-          definition.startV === undefined ? 0 : 1 - scaleV - definition.startV,
+          definition.flipV
+            ? 1 - (definition.startV ?? 0)
+            : definition.startV === undefined
+              ? 0
+              : 1 - scaleV - definition.startV,
         );
       }
     }
@@ -1880,7 +1883,7 @@ export class PlayCanvasRenderer {
       top:
         type === TileType.GRASS
           ? `grass-${this.#variantIndex(col, row, level, 11, GRASS_TOP_VARIANTS.length)}`
-          : SURFACE_MATERIALS[type],
+          : surfaceMaterialForTile(type, col, row, level),
       sides:
         type === TileType.GRASS
           ? this.#grassTopSideMaterial(col, row, level)
