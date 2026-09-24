@@ -111,8 +111,7 @@ const CASTLE_WALL_HEIGHT_BLOCKS = 15;
 const CASTLE_TOWER_SPAN_BLOCKS = 6;
 const CASTLE_TOWER_HEIGHT_BLOCKS = 18;
 const CASTLE_GATE_CROWN_HEIGHT_BLOCKS = 22;
-const CASTLE_GATE_OPENING_HEIGHT_BLOCKS = 9;
-const CASTLE_GATE_ARCH_SPRING_BLOCKS = 5;
+const CASTLE_GATE_OPENING_HEIGHT_BLOCKS = 10;
 const CASTLE_GATE_PYLON_SPAN_BLOCKS = 5;
 const CASTLE_DOOR_WIDTH_TILES = 2;
 const CASTLE_AUDIENCE_ROOM_DEPTH_BLOCKS = 18;
@@ -1011,24 +1010,9 @@ export class Castle {
         return false;
       }
 
-      const width = opening.end - opening.start;
-      const localBlock = horizontalBlock - opening.start;
-      const distanceFromEdge = Math.min(localBlock, width - 1 - localBlock);
-      const halfWidth = width / 2;
-      const normalizedRadius = Math.min(
-        1,
-        distanceFromEdge / Math.max(1, halfWidth - 1),
-      );
-      const archHeight = Math.min(
-        CASTLE_GATE_OPENING_HEIGHT_BLOCKS,
-        Math.round(
-          CASTLE_GATE_ARCH_SPRING_BLOCKS +
-            (CASTLE_GATE_OPENING_HEIGHT_BLOCKS -
-              CASTLE_GATE_ARCH_SPRING_BLOCKS) *
-              Math.sqrt(1 - (1 - normalizedRadius) ** 2),
-        ),
-      );
-      return blockY < archHeight;
+      // The imported arch frames the opening. Keep the generated wall blocks
+      // clear of the full door width and height when the doors swing open.
+      return blockY < CASTLE_GATE_OPENING_HEIGHT_BLOCKS;
     };
 
     this.#buildCastleWallShell(
