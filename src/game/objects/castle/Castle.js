@@ -115,7 +115,6 @@ const CASTLE_GATE_OPENING_HEIGHT_BLOCKS = 10;
 const CASTLE_GATE_PYLON_SPAN_BLOCKS = 5;
 const CASTLE_DOOR_WIDTH_TILES = 2;
 const CASTLE_AUDIENCE_ROOM_DEPTH_BLOCKS = 18;
-const CASTLE_AUDIENCE_ROOM_SIDE_INSET_BLOCKS = 3;
 
 export class Castle {
   static get modelUrls() {
@@ -234,13 +233,10 @@ export class Castle {
     if (this.intersectsGroundFootprint(x, z, radius)) {
       return true;
     }
-    return this.#stairs?.blocksMovementAt(
-      x,
-      z,
-      radius,
-      elevation,
-      stepClearance,
-    ) ?? false;
+    return (
+      this.#stairs?.blocksMovementAt(x, z, radius, elevation, stepClearance) ??
+      false
+    );
   }
 
   surfaceHeightAt(x, z) {
@@ -494,8 +490,7 @@ export class Castle {
       materials: this.#materials,
       availableDepth: this.#interiorDepth,
       availableWidth: this.#interiorWidth,
-      frontWallDepth:
-        CASTLE_WALL_THICKNESS_BLOCKS * CASTLE_BLOCK_SIZE,
+      frontWallDepth: CASTLE_WALL_THICKNESS_BLOCKS * CASTLE_BLOCK_SIZE,
       modelLibrary: this.#modelLibrary,
       fireParticleTexture: this.#fireParticleTexture,
     });
@@ -554,9 +549,7 @@ export class Castle {
     const styles = preferredStyle
       ? [
           preferredStyle,
-          ...CASTLE_STYLES.filter(
-            (candidate) => candidate !== preferredStyle,
-          ),
+          ...CASTLE_STYLES.filter((candidate) => candidate !== preferredStyle),
         ]
       : [...CASTLE_STYLES];
     const style = styles.find((candidate) =>
@@ -1034,6 +1027,7 @@ export class Castle {
         towerSpan,
         wallHeight,
         battlementPeriod,
+        openingAt,
       );
     }
 
@@ -1109,7 +1103,10 @@ export class Castle {
       const doorStart = Math.floor(
         (audienceOpening.start + audienceOpening.end - 4) / 2,
       );
-      const terracePosition = localToWorld(gatehouseDepth - 0.68, doorStart + 1.5);
+      const terracePosition = localToWorld(
+        gatehouseDepth - 0.68,
+        doorStart + 1.5,
+      );
       this.#leisureScene = new CastleLeisureScene({
         pc: this.#pc,
         modelLibrary: this.#modelLibrary,
@@ -1162,8 +1159,9 @@ export class Castle {
     const wallDepth = Math.min(castleDepth, towerSpan);
     const hasLeftWing = wallWings.includes(CASTLE_BOUNDARY.LEFT);
     const hasRightWing = wallWings.includes(CASTLE_BOUNDARY.RIGHT);
-    const facadeInset =
-      hasLeftWing || hasRightWing ? 0 : Math.min(1, wallDepth - 1);
+    // The audience room reaches both side walls, so the front face must start
+    // at the same block to avoid a recessed corner seam.
+    const facadeInset = 0;
     for (let blockU = 0; blockU < castleDepth; blockU += 1) {
       for (let blockV = 0; blockV < facadeSpan; blockV += 1) {
         for (let blockY = 0; blockY < wallHeight; blockY += 1) {
@@ -1231,19 +1229,15 @@ export class Castle {
     towerSpan,
     wallHeight,
     battlementPeriod,
+    openingAt,
   ) {
     const roomCenter = (opening.start + opening.end) / 2;
-    const roomStart = Math.max(
-      CASTLE_WALL_THICKNESS_BLOCKS,
-      Math.floor(roomCenter - facadeSpan / 2) +
-        CASTLE_AUDIENCE_ROOM_SIDE_INSET_BLOCKS,
-    );
-    const roomEnd = Math.min(
-      facadeSpan - CASTLE_WALL_THICKNESS_BLOCKS,
-      Math.ceil(roomCenter + facadeSpan / 2) -
-        CASTLE_AUDIENCE_ROOM_SIDE_INSET_BLOCKS,
-    );
-    const sideWallStarts = [roomStart, roomEnd - CASTLE_WALL_THICKNESS_BLOCKS];
+    const roomStart = 0;
+    const roomEnd = facadeSpan;
+    const sideWalls = [
+      [roomStart, CASTLE_BOUNDARY.LEFT],
+      [roomEnd - CASTLE_WALL_THICKNESS_BLOCKS, CASTLE_BOUNDARY.RIGHT],
+    ];
     const openingCenter = roomCenter * CASTLE_BLOCK_SIZE;
     const interiorStart =
       (roomStart + CASTLE_WALL_THICKNESS_BLOCKS) * CASTLE_BLOCK_SIZE;
@@ -1263,7 +1257,7 @@ export class Castle {
       blockV >= roofDoorStart &&
       blockV < roofDoorStart + roofDoorWidth;
 
-    for (const wallV of sideWallStarts) {
+    for (const [wallV, boundary] of sideWalls) {
       for (let blockU = 0; blockU < castleDepth; blockU += 1) {
         for (
           let offsetV = 0;
@@ -1273,7 +1267,9 @@ export class Castle {
           for (let blockY = 0; blockY < wallHeight; blockY += 1) {
             const role =
               blockY === 2 || blockY === wallHeight - 3 ? "trim" : "stone";
-            addBlock(blockU, blockY, wallV + offsetV, role);
+            if (!openingAt(boundary, blockU, blockY)) {
+              addBlock(blockU, blockY, wallV + offsetV, role);
+            }
           }
           if (blockU % battlementPeriod === 0) {
             addBlock(blockU, wallHeight, wallV + offsetV, "trim");
@@ -1291,7 +1287,9 @@ export class Castle {
         for (let blockY = 0; blockY < wallHeight; blockY += 1) {
           const role =
             blockY === 2 || blockY === wallHeight - 3 ? "trim" : "stone";
-          addBlock(blockU, blockY, blockV, role);
+          if (!openingAt(CASTLE_BOUNDARY.BACK, blockV, blockY)) {
+            addBlock(blockU, blockY, blockV, role);
+          }
         }
         if ((blockV - roomStart) % battlementPeriod === 0) {
           addBlock(blockU, wallHeight, blockV, "trim");
@@ -1805,7 +1803,10 @@ export class Castle {
           blockY += 1
         ) {
           placeBoundaryBlock(depth, horizontal, blockY, "accent");
-          if (depth === 0 && !isRoofDoorOpening(gatehouseDepth - 1, horizontal, blockY)) {
+          if (
+            depth === 0 &&
+            !isRoofDoorOpening(gatehouseDepth - 1, horizontal, blockY)
+          ) {
             placeBoundaryBlock(
               gatehouseDepth - 1,
               horizontal,

@@ -8,6 +8,7 @@ export class GrassCarpetLayout {
   static create(mapData) {
     const placements = [];
     const { grid, heightmap, tileMeta, cols, rows } = mapData;
+    const castlePosition = mapData.castle?.position;
     let mapSeed = 0;
     for (const character of mapData.mapName ?? "") {
       mapSeed = (Math.imul(mapSeed, 31) + character.charCodeAt(0)) | 0;
@@ -45,6 +46,11 @@ export class GrassCarpetLayout {
             Math.abs(x - (col - (cols - 1) / 2)) < 1.5 &&
             Math.abs(z - (row - (rows - 1) / 2)) < 1.5,
         );
+        const castleRearGrass =
+          castlePosition &&
+          col === castlePosition.col + castlePosition.width &&
+          row >= castlePosition.row &&
+          row < castlePosition.row + castlePosition.depth;
         let exposedSides = 0;
         // West, north, east, south. Continuous lawn can cross internal seams;
         // cliffs allow short tips, while paving gets only a tiny soft overlap.
@@ -131,6 +137,7 @@ export class GrassCarpetLayout {
             boundaryExtension,
             chunk: `${Math.floor(col / 6)},${Math.floor(row / 6)}`,
             detail: index % 3 !== 0,
+            castleRearGrass: Boolean(castleRearGrass),
           });
         }
       }

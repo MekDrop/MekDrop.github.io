@@ -95,11 +95,12 @@ export class GrassCarpet {
     const rotation = new pc.Quat();
     const scale = new pc.Vec3();
     for (const placement of GrassCarpetLayout.create(mapData)) {
-      const key = `${placement.chunk}:${placement.detail}:${placement.broadleaf}:${placement.boundaryExtension}`;
+      const key = `${placement.chunk}:${placement.detail}:${placement.broadleaf}:${placement.castleRearGrass}:${placement.boundaryExtension}`;
       const chunk = chunks.get(key) ?? {
         matrices: [],
         placements: [],
         detail: placement.detail,
+        castleRearGrass: placement.castleRearGrass,
         broadleaf: placement.broadleaf,
         boundaryExtension: placement.boundaryExtension,
       };
@@ -162,6 +163,7 @@ export class GrassCarpet {
         ...batch,
         placements: chunk.placements,
         detail: chunk.detail,
+        castleRearGrass: chunk.castleRearGrass,
       });
     }
     this.zoom = zoom;
@@ -179,7 +181,11 @@ export class GrassCarpet {
       DETAIL_FADE_END_ZOOM,
     );
     for (const batch of this.#batches) {
-      const reveal = batch.detail ? detailReveal : baseReveal;
+      const reveal = batch.detail
+        ? detailReveal
+        : batch.castleRearGrass
+          ? 1
+          : baseReveal;
       batch.entity.enabled = reveal > 0;
       if (reveal > 0) {
         for (const instance of batch.entity.render.meshInstances) {

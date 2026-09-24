@@ -1817,7 +1817,7 @@ export class MapGenerator {
       heightmap,
       layout.castleLeft - 2,
       layout.castleTop - 1,
-      layout.castleRight,
+      layout.castleRight + this.#CASTLE_REAR_GROUND_CLEARANCE,
       layout.castleBottom + 1,
       this.#FOUNDATION_HEIGHT,
       (tile) =>
