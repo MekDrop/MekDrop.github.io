@@ -36,6 +36,7 @@ import { RIVER_KIND } from './enum/RiverKind.js';
 import { isNumber } from './helpers/types.js';
 import { SLOPE_DIRECTION } from './enum/SlopeDirection.js';
 import { TILE_SHAPE } from './enum/TileShape.js';
+import { GATEWAY_COLORS } from './config/gateway.js';
 
 export const TileType = {
   WATER: 0,
@@ -262,11 +263,12 @@ export class MapGenerator {
       tileMeta,
       cols: this.#MAP_COLS,
       rows: this.#MAP_ROWS,
-      entries: layout.entries.map(entry => ({
+      entries: layout.entries.map((entry, index) => ({
         col: entry.gateCol,
         row: entry.gateRows[0],
         rows: [...entry.gateRows],
         side: entry.side,
+        color: GATEWAY_COLORS[index % GATEWAY_COLORS.length],
       })),
       castlePos: { col: layout.castleLeft, row: layout.pathRows[0] },
       castle,

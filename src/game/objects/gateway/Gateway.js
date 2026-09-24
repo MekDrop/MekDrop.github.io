@@ -5,13 +5,7 @@ import { GatewayBannerSign } from "./GatewayBannerSign.js";
 import portalFragmentShader from "./GatewayPortal.frag?raw";
 import portalVertexShader from "./GatewayPortal.vert?raw";
 
-export const DEFAULT_GATEWAY_COLOR = 0x269cff;
-export const GATEWAY_COLORS = [
-  DEFAULT_GATEWAY_COLOR,
-  0xf24edb,
-  0xff8a2a,
-  0x2ad66f,
-];
+import { DEFAULT_GATEWAY_COLOR } from "../../config/gateway.js";
 
 const FRAME_WIDTH_BLOCKS = 16;
 const FRAME_OPENING_HEIGHT_BLOCKS = 8;

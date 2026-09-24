@@ -9,11 +9,7 @@ import grassTerrainFragmentShader from "./objects/ground-cover/GrassTerrain.frag
 import grassSideFragmentShader from "./objects/ground-cover/GrassSide.frag?raw";
 import grassTurfSideFragmentShader from "./objects/ground-cover/GrassTurfSide.frag?raw";
 import { Castle } from "./objects/castle/index.js";
-import {
-  GATEWAY_BANNER_SIGNS,
-  GATEWAY_COLORS,
-  Gateway,
-} from "./objects/gateway/index.js";
+import { GATEWAY_BANNER_SIGNS, Gateway } from "./objects/gateway/index.js";
 import {
   BridgeRailingKit,
   OverpassStairs,
@@ -36,7 +32,6 @@ import { BuriedTreasureField } from "./objects/treasure/index.js";
 import { ScenePointerInteraction } from "./objects/shared/ScenePointerInteraction.js";
 import { TileType } from "./MapGenerator.js";
 import { GRASS_SURFACE_LIFT } from "./config/terrain.js";
-import { isArray } from "./helpers/types.js";
 import { GRAPHICS_DRIVER } from "./enum/GraphicsDriver.js";
 import { SCENE_OBJECT_TYPE } from "./enum/SceneObjectType.js";
 import { SLOPE_DIRECTION } from "./enum/SlopeDirection.js";
@@ -218,7 +213,6 @@ export class PlayCanvasRenderer {
   #terrainRenderer = null;
   #pathOverpassCollider = null;
   #modelLibrary = null;
-  #gatewayColors = [...GATEWAY_COLORS];
   #pointerInteraction = null;
   #heroLookPointer = null;
   #interactionTarget = null;
@@ -349,7 +343,6 @@ export class PlayCanvasRenderer {
     this.#pathArrows = new PathArrows({
       pc,
       app: this.#app,
-      colors: this.#gatewayColors,
     });
     this.#lifeHud = new HeroLifeHud({
       pc,
@@ -678,31 +671,6 @@ export class PlayCanvasRenderer {
       y: projectDirection(new pc.Vec3(0, 0, 1)),
       z: projectDirection(new pc.Vec3(0, 1, 0)),
     };
-  }
-
-  getGatewayColor(index = 0) {
-    return this.#gatewayColors[index % this.#gatewayColors.length];
-  }
-
-  setGatewayColor(color, index = 0) {
-    const paletteIndex = index % this.#gatewayColors.length;
-    this.#gatewayColors[paletteIndex] = color;
-    const gateways = this.#sceneObjects.getAll(SCENE_OBJECT_TYPE.GATEWAY);
-    gateways[index]?.setColor(color);
-    this.#pathArrows?.setColor(paletteIndex, color);
-  }
-
-  setGatewayColors(colors) {
-    if (!isArray(colors) || colors.length === 0) {
-      return;
-    }
-    this.#gatewayColors = [...colors];
-    const gateways = this.#sceneObjects.getAll(SCENE_OBJECT_TYPE.GATEWAY);
-    gateways.forEach((gateway, index) => {
-      const color = colors[index % colors.length];
-      gateway.setColor(color);
-    });
-    this.#pathArrows?.setColors(colors);
   }
 
   get viewport() {
@@ -1573,17 +1541,13 @@ export class PlayCanvasRenderer {
       const gateway = new Gateway({
         pc: this.#pc,
         app: this.#app,
-        color: entry.color ?? this.getGatewayColor(index),
+        color: entry.color,
         cubeSize: CUBE_SCALE / 4,
         surfaceLift: GRASS_SURFACE_LIFT,
         symbol: signs[index % signs.length],
         modelLibrary: this.#modelLibrary,
       });
       this.#collisionWorld.add(gateway);
-      this.#pathArrows.setColor(
-        index,
-        entry.color ?? this.getGatewayColor(index),
-      );
       gateway.entity.setPosition(x, groundHeight, z);
       if (entry.side === "RIGHT") gateway.entity.setEulerAngles(0, 180, 0);
       this.#mapRoot.addChild(gateway.entity);

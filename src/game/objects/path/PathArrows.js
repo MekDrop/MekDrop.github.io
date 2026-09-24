@@ -1,7 +1,6 @@
 import { TileType } from "../../MapGenerator.js";
 import { UnknownArrowMeshError } from "../../errors/path/index.js";
 import { colorFromHex, colorToCss } from "../../helpers/colors.js";
-import { isArray } from "../../helpers/types.js";
 
 const ARROW_POINTS = [
   [-0.1, -0.32],
@@ -26,7 +25,7 @@ const ARROW_GLOW_PULSE_SPEED = 4.2;
 export class PathArrows {
   #pc;
   #app;
-  #colors;
+  #colors = [];
   #entity = null;
   #visible = false;
   #materials = new Map();
@@ -41,14 +40,12 @@ export class PathArrows {
   #updateHandle = null;
   #mapData = null;
 
-  constructor({ pc, app, colors }) {
+  constructor({ pc, app }) {
     this.#pc = pc;
     this.#app = app;
-    this.#colors = [...colors];
     this.#arrowMesh = this.#createArrowSliceMesh(0, 1);
     this.#auraMesh = this.#createAuraMesh();
     this.#auraTexture = this.#createAuraTexture();
-    this.#createMaterials();
     this.#updateHandle = app.on("update", (deltaTime) => {
       this.#updateAnimation(deltaTime);
     });
@@ -67,27 +64,10 @@ export class PathArrows {
     if (this.#entity) this.#entity.enabled = visible;
   }
 
-  setColor(index, color) {
-    const paletteIndex = index % this.#colors.length;
-    this.#colors[paletteIndex] = color;
-    this.#setMaterialColor(paletteIndex, color);
-    this.#refreshAnimatedTextures();
-  }
-
-  setColors(colors) {
-    if (!isArray(colors) || colors.length === 0) {
-      return;
-    }
-    this.#colors = [...colors];
-    for (let index = 0; index < colors.length; index += 1) {
-      const color = colors[index % colors.length];
-      this.#setMaterialColor(index, color);
-    }
-    this.#refreshAnimatedTextures();
-  }
-
   render(mapData) {
     this.clear();
+    this.#colors = mapData.entries.map((entry) => entry.color);
+    this.#createMaterials();
     this.#mapData = mapData;
     this.#entity = new this.#pc.Entity("Path arrows");
     this.#entity.enabled = this.#visible;
@@ -103,16 +83,17 @@ export class PathArrows {
     this.#mapData = null;
     for (const buffer of this.#vertexBuffers) buffer.destroy();
     this.#vertexBuffers = [];
+    for (const material of this.#materials.values()) material.destroy();
+    this.#materials.clear();
+    for (const texture of this.#generatedTextures) texture.destroy();
+    this.#generatedTextures = [];
+    this.#animatedPalettes.clear();
   }
 
   destroy() {
     this.clear();
     this.#updateHandle?.off();
     this.#updateHandle = null;
-    for (const material of this.#materials.values()) material.destroy();
-    this.#materials.clear();
-    for (const texture of this.#generatedTextures) texture.destroy();
-    this.#generatedTextures = [];
     this.#auraTexture?.destroy();
     this.#auraTexture = null;
     this.#destroyMesh(this.#arrowMesh);
@@ -121,7 +102,6 @@ export class PathArrows {
     this.#auraMesh = null;
     for (const mesh of this.#sliceMeshes.values()) this.#destroyMesh(mesh);
     this.#sliceMeshes.clear();
-    this.#animatedPalettes.clear();
   }
 
   #createMaterials() {
@@ -177,20 +157,6 @@ export class PathArrows {
     material.useLighting = false;
     material.update();
     return material;
-  }
-
-  #setMaterialColor(index, color) {
-    for (const name of [`arrow-${index}`, `arrow-aura-${index}`]) {
-      const material = this.#materials.get(name);
-      if (!material) continue;
-      this.#applyMaterialColor(material, colorFromHex(this.#pc, color));
-    }
-  }
-
-  #applyMaterialColor(material, color) {
-    material.diffuse = color.clone();
-    material.emissive = color.clone();
-    material.update();
   }
 
   #getAnimatedMaterials(colorIndexes) {
@@ -278,23 +244,6 @@ export class PathArrows {
       (Math.round(channels.g / count) << 8) |
       Math.round(channels.b / count)
     );
-  }
-
-  #refreshAnimatedTextures() {
-    for (const palette of this.#animatedPalettes.values()) {
-      this.#paintScrollTexture(palette.canvas, palette.colorIndexes);
-      palette.texture.upload();
-      const aura = this.#materials.get(palette.auraName);
-      if (aura) {
-        this.#applyMaterialColor(
-          aura,
-          colorFromHex(
-            this.#pc,
-            this.#averageColor(palette.colorIndexes),
-          ),
-        );
-      }
-    }
   }
 
   #updateAnimation(deltaTime) {
