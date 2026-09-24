@@ -77,7 +77,7 @@ function createPreviewItem({
     rotation: 0,
     scale: heldItemScale(definition),
     flexibility: definition.flexibility ?? 0.82,
-    stepReaction: "recover",
+    stepReaction: "none",
     phase,
     ambientMotion: 0.35,
   });
@@ -254,9 +254,15 @@ export class HeroPickupItemPreview {
       modelUrl: entry.definition.modelUrl,
       name: entry.name,
       scale: heldItemScale(entry.definition),
-      material: this.#heldMaterials.get(entry.definition.category),
+      material:
+        entry.definition.category === "flower"
+          ? this.#heldMaterials.get("flower")
+          : null,
       gripPoint: entry.definition.gripPoint,
-      pickupTilt: entry.definition.category === "flower" ? -68 : 68,
+      pickupTilt: entry.definition.category === "flower" ? -68 : 25,
+      pickupPitch: entry.definition.category === "mushroom" ? 60 : 0,
+      pickupYaw: entry.definition.category === "mushroom" ? 20 : 0,
+      keepCapUpright: entry.definition.category === "mushroom",
     });
   }
 
@@ -276,13 +282,6 @@ export class HeroPickupItemPreview {
       entry.sourceItem.entity.enabled =
         animationTime < entry.pickupAction.impactTime;
       if (entry.sourceItem.entity.enabled) {
-        const contactLeadTime = Math.max(
-          0,
-          entry.pickupAction.impactTime - 0.35,
-        );
-        if (animationTime >= contactLeadTime) {
-          entry.sourceItem.stepOn(0, 1);
-        }
         entry.sourceItem.advance(deltaTime);
       }
       if (

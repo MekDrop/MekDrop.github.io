@@ -28,7 +28,7 @@ export const GROUND_COVER_VARIANTS = Object.freeze({
     interactionRadius: 0.38,
     horizontalScale: 1.5,
     verticalScale: 2,
-    gripPoint: { x: 0, y: -0.055, z: 0 },
+    gripPoint: { x: 0, y: 0.02, z: 0 },
   },
   "buttercup-patch": {
     modelUrl: buttercupPatchModelUrl,
@@ -38,7 +38,7 @@ export const GROUND_COVER_VARIANTS = Object.freeze({
     interactionRadius: 0.4,
     horizontalScale: 1.55,
     verticalScale: 2.05,
-    gripPoint: { x: 0, y: -0.05, z: 0 },
+    gripPoint: { x: 0, y: 0.02, z: 0 },
   },
   "pink-flower-patch": {
     modelUrl: pinkFlowerPatchModelUrl,
@@ -48,7 +48,7 @@ export const GROUND_COVER_VARIANTS = Object.freeze({
     interactionRadius: 0.38,
     horizontalScale: 1.5,
     verticalScale: 2,
-    gripPoint: { x: 0, y: -0.0525, z: 0 },
+    gripPoint: { x: 0, y: 0.02, z: 0 },
   },
   "blue-flower-patch": {
     modelUrl: blueFlowerPatchModelUrl,
@@ -58,7 +58,7 @@ export const GROUND_COVER_VARIANTS = Object.freeze({
     interactionRadius: 0.38,
     horizontalScale: 1.5,
     verticalScale: 2,
-    gripPoint: { x: 0, y: -0.0575, z: 0 },
+    gripPoint: { x: 0, y: 0.02, z: 0 },
   },
   "clover-patch": {
     modelUrl: cloverPatchModelUrl,
@@ -68,7 +68,7 @@ export const GROUND_COVER_VARIANTS = Object.freeze({
     interactionRadius: 0.34,
     horizontalScale: 1.15,
     verticalScale: 0.9,
-    gripPoint: { x: 0.03, y: -0.09, z: -0.07 },
+    gripPoint: { x: 0.03, y: 0.02, z: -0.07 },
   },
   "red-mushroom": {
     modelUrl: redMushroomModelUrl,
@@ -78,7 +78,7 @@ export const GROUND_COVER_VARIANTS = Object.freeze({
     interactionRadius: 0.22,
     scale: 0.82,
     flexibility: 0.35,
-    gripPoint: { x: 0, y: -0.082, z: 0 },
+    gripPoint: { x: 0.1, y: -0.08, z: 0 },
   },
   "golden-mushroom-pair": {
     modelUrl: goldenMushroomPairModelUrl,
@@ -88,7 +88,7 @@ export const GROUND_COVER_VARIANTS = Object.freeze({
     interactionRadius: 0.24,
     scale: 0.82,
     flexibility: 0.38,
-    gripPoint: { x: -0.08, y: -0.0765, z: -0.01 },
+    gripPoint: { x: -0.02, y: -0.08, z: -0.01 },
   },
   "forest-mushroom-cluster": {
     modelUrl: forestMushroomClusterModelUrl,
@@ -98,7 +98,7 @@ export const GROUND_COVER_VARIANTS = Object.freeze({
     interactionRadius: 0.26,
     scale: 0.82,
     flexibility: 0.32,
-    gripPoint: { x: -0.12, y: -0.06525, z: 0.03 },
+    gripPoint: { x: -0.06, y: -0.08, z: 0.03 },
   },
 });
 const GPU_CATEGORIES = Object.freeze({
@@ -500,11 +500,17 @@ export class GroundCover {
                   z: decoration.scale * definition.horizontalScale,
                 }
               : decoration.scale * definition.scale,
-          material: this.#heldMaterials.get(definition.category) ?? null,
+          material:
+            definition.category === FLOWER_CATEGORY
+              ? this.#heldMaterials.get(FLOWER_CATEGORY) ?? null
+              : null,
           castShadows: definition.category !== FLOWER_CATEGORY,
           receiveShadows: definition.category !== FLOWER_CATEGORY,
           gripPoint: definition.gripPoint,
-          pickupTilt: definition.category === FLOWER_CATEGORY ? -68 : 68,
+          pickupTilt: definition.category === FLOWER_CATEGORY ? -68 : 25,
+          pickupPitch: definition.category === MUSHROOM_CATEGORY ? 60 : 0,
+          pickupYaw: definition.category === MUSHROOM_CATEGORY ? 20 : 0,
+          keepCapUpright: definition.category === MUSHROOM_CATEGORY,
         }),
     });
   }
