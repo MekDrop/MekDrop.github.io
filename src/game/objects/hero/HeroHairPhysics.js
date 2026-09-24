@@ -66,6 +66,7 @@ export class HeroHairPhysics {
   #joint;
   #anchorPosition;
   #previousAnchorPosition;
+  #anchorHeight;
   #gravityVector = null;
   #compression = 0;
 
@@ -73,6 +74,7 @@ export class HeroHairPhysics {
     this.#pc = pc;
     this.#headEntity = headEntity;
     this.#modelScale = modelScale;
+    this.#anchorHeight = DRIVER_LOCAL_HEIGHT * modelScale;
     this.#parts = hairEntities.filter(Boolean).map((entity) => ({
       entity,
       position: copyVector(entity.getLocalPosition()),
@@ -158,16 +160,10 @@ export class HeroHairPhysics {
     }
 
     const driverPosition = this.#driver.getPosition();
-    const offsetX = this.#anchorPosition.x - driverPosition.x;
     const offsetY = this.#anchorPosition.y - driverPosition.y;
-    const offsetZ = this.#anchorPosition.z - driverPosition.z;
-    const up = this.#headEntity.up;
     const worldCompression = Math.max(
       -MAXIMUM_LIFT,
-      Math.min(
-        MAXIMUM_COMPRESSION,
-        offsetX * up.x + offsetY * up.y + offsetZ * up.z,
-      ),
+      Math.min(MAXIMUM_COMPRESSION, offsetY),
     );
     this.#compression = worldCompression / this.#modelScale;
     this.#applyPose();
@@ -191,9 +187,11 @@ export class HeroHairPhysics {
   }
 
   #syncAnchor(initial = false) {
-    this.#headEntity.getWorldTransform().transformPoint(
-      new this.#pc.Vec3(0, DRIVER_LOCAL_HEIGHT, 0),
-      this.#anchorPosition,
+    const headPosition = this.#headEntity.getPosition();
+    this.#anchorPosition.set(
+      headPosition.x,
+      headPosition.y + this.#anchorHeight,
+      headPosition.z,
     );
     const distance = initial
       ? 0
@@ -203,7 +201,6 @@ export class HeroHairPhysics {
           this.#anchorPosition.z - this.#previousAnchorPosition.z,
         );
     this.#anchor.setPosition(this.#anchorPosition);
-    this.#anchor.setRotation(this.#headEntity.getRotation());
     this.#previousAnchorPosition.set(
       this.#anchorPosition.x,
       this.#anchorPosition.y,

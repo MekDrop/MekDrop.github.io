@@ -216,6 +216,23 @@ describe("HeroHairPhysics", () => {
     assert.ok(cap.scale.x > 1);
   });
 
+  it("ignores cosmetic head rotation when anchoring the hair spring", () => {
+    const cap = new FakeHairEntity("Bright cyan hair cap", {
+      x: 0,
+      y: 0.67,
+      z: -0.035,
+    });
+    const { head, physics } = createPhysics([cap]);
+
+    head.up = new FakeVec3(0, 0.7, 0.7);
+    head.setRotation({ pitch: -14, yaw: 6, roll: 5 });
+    physics.update();
+
+    assert.equal(physics.state.compression, 0);
+    assert.deepEqual(cap.position, { x: 0, y: 0.67, z: -0.035 });
+    assert.deepEqual(cap.scale, { x: 1, y: 1, z: 1 });
+  });
+
   it("teleports the driver on a large hero relocation and restores authored hair", () => {
     const lock = new FakeHairEntity("Left cyan layered lock 0", {
       x: -0.385,
@@ -229,10 +246,11 @@ describe("HeroHairPhysics", () => {
     driver.position.y -= 0.04;
     physics.update();
 
+    const activationsBeforeRelocation = driver.rigidbody.activated;
     head.position.x += 2;
     physics.update();
     assert.equal(driver.position.x, head.position.x);
-    assert.equal(driver.rigidbody.activated, 2);
+    assert.equal(driver.rigidbody.activated, activationsBeforeRelocation + 1);
 
     physics.destroy();
     assert.deepEqual(lock.position, { x: -0.385, y: 0.4, z: 0.2 });
