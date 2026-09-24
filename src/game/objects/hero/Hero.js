@@ -8,6 +8,7 @@ import { OCCUPANCY } from "../../enum/Occupancy.js";
 import { COIN_TYPE } from "../../enum/CoinType.js";
 import { MOVEMENT_REFUSAL } from "../../enum/MovementRefusal.js";
 import { HERO_INVENTORY_CAPACITY } from "../../config/inventory.js";
+import { pickupActionForCategory } from "../../config/hero-pickup-actions.js";
 import { RIVER_KIND } from "../../enum/RiverKind.js";
 import { SLOPE_DIRECTION } from "../../enum/SlopeDirection.js";
 import { TILE_SHAPE } from "../../enum/TileShape.js";
@@ -154,20 +155,7 @@ const STRUCTURE_SURFACE_TILES = new Set([
 const GATEWAY_REPEL_DURATION = 0.5;
 const GATEWAY_REPEL_SPEED = 2.2;
 const GATEWAY_REPEL_COOLDOWN = 0.2;
-const PICK_FLOWER_DURATION = 36 / 24;
-const PICK_FLOWER_IMPACT_TIME = 14 / 24;
-const PICK_FLOWER_HIDE_TIME = 31 / 24;
 const PICKUP_POSITIONING_DURATION = 0.24;
-const PICK_FLOWER_MINIMUM_DISTANCE = 0.52;
-const PICK_FLOWER_MAXIMUM_DISTANCE = 0.68;
-const PICK_FLOWER_RADIUS_CLEARANCE = 0.28;
-const PICK_FLOWER_MAXIMUM_FORWARD_STEP = 0.22;
-const PICK_FLOWER_MAXIMUM_BACKWARD_STEP = PICK_FLOWER_MAXIMUM_DISTANCE;
-const PICK_MUSHROOM_DURATION = 40 / 24;
-const PICK_MUSHROOM_IMPACT_TIME = 18 / 24;
-const PICK_MUSHROOM_HIDE_TIME = 35 / 24;
-const PICK_MUSHROOM_TARGET_DISTANCE = 0.34;
-const PICK_MUSHROOM_MAXIMUM_STEP = 0.24;
 const PAT_ANNOYED_DURATION = 1.25;
 const PAT_HAIR_CONTACT_HEIGHT = 0.78;
 const HAIR_ENTITY_NAME = /(?:hair|nape lock|swept fringe|layered lock)/i;
@@ -864,9 +852,12 @@ export class Hero {
     if (targetDistance > 0.001) {
       this.#facingYaw = (Math.atan2(targetX, targetZ) * 180) / Math.PI;
     }
-    const picksMushroom = category === "mushroom";
-    const collectionTool = picksMushroom ? tool : null;
-    if (picksMushroom && !collectionTool) {
+    const pickupAction = pickupActionForCategory(category);
+    if (!pickupAction) {
+      return false;
+    }
+    const collectionTool = pickupAction.requiresTool ? tool : null;
+    if (pickupAction.requiresTool && !collectionTool) {
       return false;
     }
     this.#velocity.x = 0;
@@ -876,33 +867,25 @@ export class Hero {
       collectionTool.visible = true;
     }
     const positioning = this.#collectionPositioning({
-      picksMushroom,
+      pickupAction,
       targetPosition,
       targetRadius,
       targetDistance,
     });
     this.#collectAction = {
-      animation: picksMushroom
-        ? HERO_ANIMATION.PICK_MUSHROOM
-        : HERO_ANIMATION.PICK_FLOWER,
-      duration: picksMushroom
-        ? PICK_MUSHROOM_DURATION
-        : PICK_FLOWER_DURATION,
-      impactTime: picksMushroom
-        ? PICK_MUSHROOM_IMPACT_TIME
-        : PICK_FLOWER_IMPACT_TIME,
+      animation: pickupAction.animation,
+      duration: pickupAction.duration,
+      impactTime: pickupAction.impactTime,
       elapsed: 0,
       impacted: false,
       positioning,
       positioningElapsed: 0,
       tool: collectionTool,
       heldItem,
-      heldItemAttachmentEntity: picksMushroom
+      heldItemAttachmentEntity: pickupAction.heldItemAttachment === "left"
         ? this.#leftHeldItemAttachmentEntity
         : this.#rightHeldItemAttachmentEntity,
-      heldItemHideTime: picksMushroom
-        ? PICK_MUSHROOM_HIDE_TIME
-        : PICK_FLOWER_HIDE_TIME,
+      heldItemHideTime: pickupAction.heldItemHideTime,
       onImpact,
       onComplete,
     };
@@ -3587,27 +3570,23 @@ export class Hero {
   }
 
   #collectionPositioning({
-    picksMushroom,
+    pickupAction,
     targetPosition,
     targetRadius,
     targetDistance,
   }) {
-    const preferredDistance = picksMushroom
-      ? PICK_MUSHROOM_TARGET_DISTANCE
-      : Math.max(
-          PICK_FLOWER_MINIMUM_DISTANCE,
-          Math.min(
-            PICK_FLOWER_MAXIMUM_DISTANCE,
-            targetRadius + PICK_FLOWER_RADIUS_CLEARANCE,
-          ),
-        );
+    const preferredDistance = pickupAction.targetDistance ?? Math.max(
+      pickupAction.minimumDistance,
+      Math.min(
+        pickupAction.maximumDistance,
+        targetRadius + pickupAction.radiusClearance,
+      ),
+    );
     const distanceAdjustment = targetDistance - preferredDistance;
-    const maximumForwardStep = picksMushroom
-      ? PICK_MUSHROOM_MAXIMUM_STEP
-      : PICK_FLOWER_MAXIMUM_FORWARD_STEP;
-    const maximumBackwardStep = picksMushroom
-      ? PICK_MUSHROOM_MAXIMUM_STEP
-      : PICK_FLOWER_MAXIMUM_BACKWARD_STEP;
+    const maximumForwardStep =
+      pickupAction.maximumStep ?? pickupAction.maximumForwardStep;
+    const maximumBackwardStep =
+      pickupAction.maximumStep ?? pickupAction.maximumBackwardStep;
     const stepDistance = Math.max(
       -maximumBackwardStep,
       Math.min(maximumForwardStep, distanceAdjustment),

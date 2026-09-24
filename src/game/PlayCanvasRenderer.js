@@ -53,6 +53,7 @@ import { GameUiTheme, HeroLifeHud, CoinHud } from "./ui/index.js";
 import { colorFromHex, shadeHexColor } from "./helpers/colors.js";
 import { RoyalAnimationPreview } from "./debug/RoyalAnimationPreview.js";
 import { HeroAnimationPreview } from "./debug/HeroAnimationPreview.js";
+import { HeroPickupItemPreview } from "./debug/HeroPickupItemPreview.js";
 import { HeroAnimationSign } from "./debug/HeroAnimationSign.js";
 import { RoyalCastleTriggerField } from "./debug/RoyalCastleTriggerField.js";
 import { GameOverScene } from "./rendering/scene/GameOverScene.js";
@@ -195,6 +196,7 @@ export class PlayCanvasRenderer {
   #royalCastleTriggerField = null;
   #royalAnimationPreview = null;
   #heroAnimationPreview = null;
+  #heroPickupItemPreview = null;
   #heroPatGesture = null;
   #heroPatHand = null;
   #onHeroMoodChange = null;
@@ -520,6 +522,15 @@ export class PlayCanvasRenderer {
     if (this.#heroAnimationPreview) {
       initialViewport = {
         zoom: 1.5,
+        rotation: 0,
+        panX: 0,
+        panZ: 0,
+        manuallyMoved: true,
+      };
+    }
+    if (this.#heroPickupItemPreview) {
+      initialViewport = {
+        zoom: 2,
         rotation: 0,
         panX: 0,
         panZ: 0,
@@ -1321,6 +1332,14 @@ export class PlayCanvasRenderer {
       });
       this.#mapRoot.addChild(this.#heroAnimationPreview.entity);
     }
+    if (import.meta.env.DEV && this.#mapData.heroPickupItemPreview) {
+      this.#heroPickupItemPreview = new HeroPickupItemPreview({
+        pc: this.#pc,
+        app: this.#app,
+        modelLibrary: this.#modelLibrary,
+      });
+      this.#mapRoot.addChild(this.#heroPickupItemPreview.entity);
+    }
     this.#lifeHud?.setCastleLives(
       this.#sceneObjects.getFirst(SCENE_OBJECT_TYPE.CASTLE)
         ? MAX_CASTLE_LIVES
@@ -1357,7 +1376,11 @@ export class PlayCanvasRenderer {
         protectAtPanLimit: true,
         root: gateway.entity,
       })),
-      ...[this.#heroAnimationPreview, this.#royalAnimationPreview].flatMap(
+      ...[
+        this.#heroAnimationPreview,
+        this.#heroPickupItemPreview,
+        this.#royalAnimationPreview,
+      ].flatMap(
         (preview) => (preview?.entity.children ?? []).map((root) => ({
           name: `animation-preview-${root.name}`,
           protectAtPanLimit: true,
@@ -1388,7 +1411,11 @@ export class PlayCanvasRenderer {
   }
 
   #buildHero() {
-    if (this.#mapData.heroAnimationPreview || this.#mapData.royalAnimationPreview) {
+    if (
+      this.#mapData.heroAnimationPreview ||
+      this.#mapData.heroPickupItemPreview ||
+      this.#mapData.royalAnimationPreview
+    ) {
       return;
     }
     const hero = new Hero({
@@ -2992,6 +3019,8 @@ export class PlayCanvasRenderer {
     this.#royalAnimationPreview = null;
     this.#heroAnimationPreview?.destroy();
     this.#heroAnimationPreview = null;
+    this.#heroPickupItemPreview?.destroy();
+    this.#heroPickupItemPreview = null;
     this.#heroVisibility?.destroy();
     this.#heroVisibility = null;
     this.#floatingIslandMotion = null;

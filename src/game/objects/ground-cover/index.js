@@ -1,4 +1,9 @@
-export { GroundCover } from "./GroundCover.js";
+export {
+  FLOWER_CATEGORY,
+  GROUND_COVER_VARIANTS,
+  GroundCover,
+  MUSHROOM_CATEGORY,
+} from "./GroundCover.js";
 export { GroundCoverCollectible } from "./GroundCoverCollectible.js";
 export { GroundCoverInteraction } from "./GroundCoverInteraction.js";
 export { GroundCoverHeldItem } from "./GroundCoverHeldItem.js";

@@ -11,6 +11,13 @@ const MUSHROOM_CRUSH_TILT = 34;
 const MUSHROOM_CRUSH_COMPRESSION = 0.32;
 const MUSHROOM_CRUSH_SPREAD = 0.04;
 
+function normalizedScale(scale) {
+  if (typeof scale === "number") {
+    return { x: scale, y: scale, z: scale };
+  }
+  return scale;
+}
+
 export class GroundCoverItem {
   #pc;
   #app;
@@ -73,7 +80,8 @@ export class GroundCoverItem {
 
     this.#model = modelLibrary.instantiateMerged(modelUrl);
     this.#model.setLocalEulerAngles(0, rotation, 0);
-    this.#model.setLocalScale(scale, scale, scale);
+    const modelScale = normalizedScale(scale);
+    this.#model.setLocalScale(modelScale.x, modelScale.y, modelScale.z);
     this.#entity.addChild(this.#model);
     this.ambientMotion = ambientMotion;
   }

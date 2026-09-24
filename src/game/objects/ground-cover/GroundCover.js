@@ -17,9 +17,9 @@ import { GroundCoverItem } from "./GroundCoverItem.js";
 import { FlowerPhysics } from "./FlowerPhysics.js";
 import { MushroomPhysics } from "./MushroomPhysics.js";
 
-const FLOWER_CATEGORY = "flower";
-const MUSHROOM_CATEGORY = "mushroom";
-const VARIANTS = Object.freeze({
+export const FLOWER_CATEGORY = "flower";
+export const MUSHROOM_CATEGORY = "mushroom";
+export const GROUND_COVER_VARIANTS = Object.freeze({
   "daisy-patch": {
     modelUrl: daisyPatchModelUrl,
     category: FLOWER_CATEGORY,
@@ -108,13 +108,59 @@ const GPU_CATEGORIES = Object.freeze({
     colorBoost: [1.08, 1.04, 1.08],
   },
 });
+const HELD_CATEGORIES = Object.freeze({
+  [FLOWER_CATEGORY]: {
+    bendHeight: 0.14,
+    colorBoost: [1.08, 1.04, 1.08],
+  },
+  [MUSHROOM_CATEGORY]: {
+    bendHeight: 0.12,
+    colorBoost: [1, 1, 1],
+  },
+});
 const MINIMUM_FACING_DOT = Math.cos((50 * Math.PI) / 180);
 const STILL_ZOOM = 1;
 const FULL_AMBIENT_MOTION_ZOOM = 1.1;
 
+function heldItemPhysics(definition, decorationScale) {
+  if (definition.category === FLOWER_CATEGORY) {
+    const horizontalScale = decorationScale * definition.horizontalScale;
+    const verticalScale = decorationScale * definition.verticalScale;
+    const radius = Math.max(
+      0.045,
+      definition.interactionRadius * horizontalScale * 0.5,
+    );
+    return {
+      bendAngle: 86,
+      compression: 0.07 * verticalScale,
+      contactRadius: Math.max(0.035, radius * 0.82),
+      height: Math.max(0.025, 0.035 * verticalScale),
+      mass: 0.007,
+      pivotHeight: 0.09 * verticalScale,
+      radius,
+    };
+  }
+  const itemScale = decorationScale * definition.scale;
+  const radius = Math.max(
+    0.045,
+    definition.interactionRadius * itemScale * 0.48,
+  );
+  return {
+    angularDamping: 0.86,
+    angularStiffness: 0.12,
+    bendAngle: 42,
+    compression: 0.045 * itemScale,
+    contactRadius: Math.max(0.032, radius * 0.78),
+    height: Math.max(0.035, 0.085 * itemScale),
+    mass: 0.011,
+    pivotHeight: 0.075 * itemScale,
+    radius,
+  };
+}
+
 export class GroundCover {
   static get modelUrls() {
-    return Object.values(VARIANTS).map(({ modelUrl }) => modelUrl);
+    return Object.values(GROUND_COVER_VARIANTS).map(({ modelUrl }) => modelUrl);
   }
 
   #pc;
@@ -299,6 +345,9 @@ export class GroundCover {
       material.update();
       this.#materials.set(category, material);
 
+    }
+
+    for (const [category, definition] of Object.entries(HELD_CATEGORIES)) {
       const heldMaterial = new this.#pc.ShaderMaterial({
         uniqueName: `held-ground-cover-${category}`,
         vertexGLSL: groundCoverHeldVertexShader,
@@ -312,6 +361,10 @@ export class GroundCover {
       heldMaterial.name = `Held ${category} ground cover`;
       heldMaterial.cull = this.#pc.CULLFACE_NONE;
       heldMaterial.setParameter("uBendHeight", definition.bendHeight);
+      heldMaterial.setParameter("uContactLocal", [0, -1000, 0]);
+      heldMaterial.setParameter("uContactDirectionLocal", [0, 0, 1]);
+      heldMaterial.setParameter("uContactRadius", 0.001);
+      heldMaterial.setParameter("uContactAmount", 0);
       heldMaterial.setParameter("uColorBoost", definition.colorBoost);
       heldMaterial.setParameter("uLightDirection", [0.42, 0.82, 0.38]);
       heldMaterial.update();
@@ -324,7 +377,7 @@ export class GroundCover {
     for (const [decorationIndex, decoration] of (
       mapData.groundCoverData ?? []
     ).entries()) {
-      const definition = VARIANTS[decoration.variant];
+      const definition = GROUND_COVER_VARIANTS[decoration.variant];
       if (!definition) continue;
       const x = decoration.col - (mapData.cols - 1) / 2 + decoration.offsetX;
       const z = decoration.row - (mapData.rows - 1) / 2 + decoration.offsetZ;
@@ -419,7 +472,7 @@ export class GroundCover {
     }
 
     for (const [variant, { matrices }] of matricesByVariant) {
-      const definition = VARIANTS[variant];
+      const definition = GROUND_COVER_VARIANTS[variant];
       const batch = modelLibrary.instantiateMergedBatch(
         definition.modelUrl,
         matrices,
@@ -487,16 +540,14 @@ export class GroundCover {
                   z: decoration.scale * definition.horizontalScale,
                 }
               : decoration.scale * definition.scale,
-          material:
-            definition.category === FLOWER_CATEGORY
-              ? this.#heldMaterials.get(definition.category)
-              : null,
+          material: this.#heldMaterials.get(definition.category) ?? null,
           castShadows: definition.category !== FLOWER_CATEGORY,
           receiveShadows: definition.category !== FLOWER_CATEGORY,
           sourceParent: this.#entity,
           sourcePosition: position,
           sourceRotation: decoration.rotation,
           gripPoint: definition.gripPoint,
+          physics: heldItemPhysics(definition, decoration.scale),
         }),
     });
   }

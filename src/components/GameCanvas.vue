@@ -432,7 +432,9 @@ async function updateCurrentMap(generatedMap) {
   mapData = generatedMap;
   currentMapName.value = generatedMap.mapName;
   interactionPromptsVisible.value =
-    !generatedMap.heroAnimationPreview && !generatedMap.royalAnimationPreview;
+    !generatedMap.heroAnimationPreview &&
+    !generatedMap.heroPickupItemPreview &&
+    !generatedMap.royalAnimationPreview;
   await updateMovementTestDriverPlugin();
 }
 
