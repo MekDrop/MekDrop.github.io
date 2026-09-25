@@ -32,12 +32,17 @@ export class GrassCarpetLayout {
       for (let col = 0; col < cols; col += 1) {
         const metadata = tileMeta?.[row]?.[col];
         const sourceHeight = sourceCovers.get(`${col},${row}`);
-        const surfaceHeight = sourceHeight ?? heightmap[row][col];
+        const bridgeGroundHeight = metadata?.overpassId
+          ? undefined
+          : metadata?.bridgeGroundHeight;
+        const surfaceHeight =
+          sourceHeight ?? bridgeGroundHeight ?? heightmap[row][col];
         if (
-          (grid[row][col] !== TileType.GRASS && sourceHeight === undefined) ||
+          (grid[row][col] !== TileType.GRASS &&
+            sourceHeight === undefined &&
+            !Number.isFinite(bridgeGroundHeight)) ||
           surfaceHeight <= 0 ||
-          metadata?.shape === TILE_SHAPE.SLOPE ||
-          metadata?.renderMode === "BRIDGE"
+          metadata?.shape === TILE_SHAPE.SLOPE
         ) {
           continue;
         }
@@ -66,9 +71,15 @@ export class GrassCarpetLayout {
           const neighborSource = sourceCovers.get(
             `${neighborCol},${neighborRow}`,
           );
-          const neighborHeight =
-            neighborSource ?? heightmap[neighborRow]?.[neighborCol] ?? 0;
           const neighborMeta = tileMeta?.[neighborRow]?.[neighborCol];
+          const neighborBridgeGround = neighborMeta?.overpassId
+            ? undefined
+            : neighborMeta?.bridgeGroundHeight;
+          const neighborHeight =
+            neighborSource ??
+            neighborBridgeGround ??
+            heightmap[neighborRow]?.[neighborCol] ??
+            0;
           if (neighborHeight < surfaceHeight - 0.25) {
             exposedSides |= 1 << side;
             return 0.06;
@@ -80,7 +91,11 @@ export class GrassCarpetLayout {
           ) {
             return 0;
           }
-          if (neighborType === TileType.GRASS || neighborSource !== undefined) {
+          if (
+            neighborType === TileType.GRASS ||
+            neighborSource !== undefined ||
+            Number.isFinite(neighborBridgeGround)
+          ) {
             return 0.24;
           }
           return neighborType === TileType.PATH ||

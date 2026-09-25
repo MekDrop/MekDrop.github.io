@@ -39,12 +39,38 @@ describe("short grass carpet placement", () => {
     assert.ok(placements.filter(({ x }) => x > 0).every(({ y }) => y === 4 + GRASS_SURFACE_LIFT - 0.002));
   });
 
-  it("does not put floating clumps on slopes, voids or bridge-reserved ground", () => {
-    const input = map([[TileType.GRASS, TileType.GRASS, TileType.GRASS]]);
+  it("does not put floating clumps on slopes, voids or river bridges", () => {
+    const input = map([[TileType.GRASS, TileType.GRASS, TileType.PATH]]);
     input.tileMeta[0][0].shape = TILE_SHAPE.SLOPE;
     input.heightmap[0][1] = 0;
     input.tileMeta[0][2].renderMode = "BRIDGE";
+    input.tileMeta[0][2].bridgeGroundHeight = null;
     assert.deepEqual(GrassCarpetLayout.create(input), []);
+  });
+
+  it("covers grass-topped ground beneath ordinary bridges", () => {
+    const input = map([[TileType.PATH, TileType.PATH]]);
+    input.tileMeta[0][0] = {
+      renderMode: "BRIDGE",
+      bridgeGroundHeight: 1,
+    };
+    input.tileMeta[0][1] = {
+      renderMode: "BRIDGE",
+      bridgeGroundHeight: 1,
+    };
+
+    const placements = GrassCarpetLayout.create(input);
+    assert.equal(placements.length, 144);
+    assert.ok(
+      placements.every(
+        ({ y }) => y === 1 + GRASS_SURFACE_LIFT - 0.002,
+      ),
+    );
+    assert.ok(
+      placements.every(({ x, exposedSides }) =>
+        x < 0 ? exposedSides === 11 : exposedSides === 14,
+      ),
+    );
   });
 
   it("keeps full grass scatter beneath vegetation for footprint clipping", () => {
