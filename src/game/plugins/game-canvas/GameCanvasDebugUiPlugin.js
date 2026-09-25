@@ -1,5 +1,6 @@
 import { useIntervalFn } from "@vueuse/core";
 
+import { DevWireframeInspector } from "../../debug/DevWireframeInspector.js";
 import {
   DebugAxesHud,
   DebugFpsHud,
@@ -10,6 +11,7 @@ export class GameCanvasDebugUiPlugin {
   #context;
   #debugAxesHud = null;
   #debugFpsHud = null;
+  #devWireframeInspector = null;
   #debugStatsTimer = null;
   #stopDebugStoreSubscription = null;
   #theme = null;
@@ -40,6 +42,14 @@ export class GameCanvasDebugUiPlugin {
       theme: this.#theme,
     });
     this.#debugAxesHud.attach();
+    if (import.meta.env.DEV) {
+      this.#devWireframeInspector = new DevWireframeInspector({
+        pc,
+        app,
+        canvas: renderer.canvasElement,
+        camera: renderer.camera.camera,
+      });
+    }
     this.resize();
     this.#applyDebugSettings();
     this.#syncDebugFramesPerSecond();
@@ -54,6 +64,10 @@ export class GameCanvasDebugUiPlugin {
         this.#syncDebugFramesPerSecond();
       },
     );
+  }
+
+  beforeRender() {
+    this.#devWireframeInspector?.refresh();
   }
 
   resize() {
@@ -75,6 +89,8 @@ export class GameCanvasDebugUiPlugin {
     this.#stopDebugStoreSubscription?.();
     this.#stopDebugStoreSubscription = null;
     this.#context.debugStore.framesPerSecond = 0;
+    this.#devWireframeInspector?.destroy();
+    this.#devWireframeInspector = null;
     this.#debugAxesHud?.destroy();
     this.#debugAxesHud = null;
     this.#debugFpsHud?.destroy();
@@ -85,6 +101,11 @@ export class GameCanvasDebugUiPlugin {
   #applyDebugSettings() {
     this.#debugAxesHud.visible = this.#context.debugStore.debugAxesHud;
     this.#debugFpsHud.visible = this.#context.debugStore.debugFpsHud;
+    if (this.#context.debugStore.hasAny) {
+      this.#devWireframeInspector?.connect();
+    } else {
+      this.#devWireframeInspector?.disconnect();
+    }
   }
 
   #syncDebugFramesPerSecond() {

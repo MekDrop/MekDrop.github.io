@@ -438,6 +438,11 @@ async function updateCurrentMap(generatedMap) {
   await updateMovementTestDriverPlugin();
 }
 
+function renderMap(mapDataToRender) {
+  gameCanvasPluginRegistry.beforeRender();
+  renderer.render(mapDataToRender);
+}
+
 async function loadMapRoute(mapName) {
   const navigationId = ++mapNavigationId;
   const generatedMap = await createMap(mapName);
@@ -446,7 +451,7 @@ async function loadMapRoute(mapName) {
   }
 
   const viewport = renderer.viewport;
-  renderer.render(generatedMap);
+  renderMap(generatedMap);
   renderer.setViewport(viewport);
   await updateCurrentMap(generatedMap);
 
@@ -483,7 +488,6 @@ async function init() {
     graphicsSettingsStore,
     heroConfigurationStore,
     uiTheme: gameUiTheme(),
-    enableDevWireframeInspector: import.meta.env.DEV,
   });
   renderer = activeRenderer;
   await activeRenderer.init();
@@ -512,14 +516,13 @@ async function init() {
     recordingState.value = state;
   });
 
-  const regenerateMapAction = new RegenerateMapAction(
-    renderer,
-    generateMap,
-    (generatedMap) => {
+  const regenerateMapAction = new RegenerateMapAction(renderer, generateMap, {
+    onGenerated: (generatedMap) => {
       void updateCurrentMap(generatedMap).catch(reportRuntimeError);
       void router.push(mapRouteLocation(generatedMap.mapName));
     },
-  );
+    beforeRender: () => gameCanvasPluginRegistry.beforeRender(),
+  });
   restartGameAction = new RestartGameAction(renderer, regenerateMapAction);
   const heroMovementAction = new HeroMovementAction(renderer);
   const toggleInventoryAction = new ToggleInventoryAction(

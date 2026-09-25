@@ -72,4 +72,10 @@ export class GameCanvasPluginRegistry {
       plugin.resize?.();
     }
   }
+
+  beforeRender() {
+    for (const plugin of this.#plugins.values()) {
+      plugin.beforeRender?.();
+    }
+  }
 }
