@@ -3837,6 +3837,20 @@ export class MapGenerator {
       const singlePartChance = primaryLevels === 1 ? 95 : 60;
       const partCount =
         this.#rng(1, 100) <= singlePartChance ? 1 : this.#rng(2, 3);
+      const partPositions =
+        partCount === 3
+          ? [
+              [-0.25, -0.25],
+              [0.25, -0.25],
+              [0, 0.25],
+            ]
+          : partCount === 2
+            ? [
+                [-0.25, 0],
+                [0.25, 0],
+              ]
+            : [[0, 0]];
+      const clusterRotation = partCount === 1 ? 0 : this.#rng(0, 3);
       const parts = Array.from({ length: partCount }, (_, index) => {
         const variant = variants[index];
         const color =
@@ -3847,16 +3861,22 @@ export class MapGenerator {
         const levels = index === 0 ? primaryLevels : this.#rollStoneLevels();
         // Bush cubes use 0.25-unit voxels; stones vary only slightly around that.
         const voxelSize = this.#rng(24, 26) / 100;
+        const [slotX, slotZ] = partPositions[index];
+        const rotatedPositions = [
+          [slotX, slotZ],
+          [-slotZ, slotX],
+          [-slotX, -slotZ],
+          [slotZ, -slotX],
+        ];
+        const [offsetX, offsetZ] = rotatedPositions[clusterRotation];
         return {
           variant,
           style: variant * STONE_COLORS.length + STONE_COLORS.indexOf(color),
           color,
           levels,
-          offsetX:
-            this.#rng(index === 0 ? -6 : -10, index === 0 ? 6 : 10) / 100,
-          offsetZ:
-            this.#rng(index === 0 ? -6 : -10, index === 0 ? 6 : 10) / 100,
-          diameter: voxelSize * 3,
+          offsetX: partCount === 1 ? this.#rng(-6, 6) / 100 : offsetX,
+          offsetZ: partCount === 1 ? this.#rng(-6, 6) / 100 : offsetZ,
+          diameter: partCount === 1 ? voxelSize * 3 : 0.4,
           height: voxelSize * levels,
           rotation: this.#rng(0, 3) * 90,
         };

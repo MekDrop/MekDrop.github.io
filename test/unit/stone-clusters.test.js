@@ -41,6 +41,17 @@ describe("generated stone clusters", () => {
         assert.ok(Math.abs(offsetZ) + diameter / 2 <= 0.5);
         assert.ok(height > 0 && height <= 0.8);
       }
+      for (let first = 0; first < parts.length; first++) {
+        for (let second = first + 1; second < parts.length; second++) {
+          const a = parts[first];
+          const b = parts[second];
+          const requiredGap = (a.diameter + b.diameter) / 2;
+          assert.ok(
+            Math.abs(a.offsetX - b.offsetX) > requiredGap ||
+              Math.abs(a.offsetZ - b.offsetZ) > requiredGap,
+          );
+        }
+      }
     }
   });
 
@@ -78,12 +89,11 @@ describe("generated stone clusters", () => {
         counts[levels]++;
         if (levels === 1) {
           assert.ok(height >= 0.24 && height <= 0.26);
-          assert.equal(diameter, height * 3);
         }
         if (levels === 3) {
           assert.ok(height >= 0.72 && height <= 0.78);
-          assert.equal(diameter, (height / levels) * 3);
         }
+        assert.ok(diameter === 0.4 || diameter === (height / levels) * 3);
       }
     }
     const total = counts[1] + counts[2] + counts[3];
