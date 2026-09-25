@@ -37,9 +37,18 @@ it("packages the roof stairhead and serving tray with editable sources", () => {
   }
   const stairhead = glb("terrace-stairhead").json.nodes.map(({ name }) => name);
   assert.equal(stairhead.filter((name) => /Descending terrace stair/.test(name)).length, 5);
-  assert.ok(stairhead.includes("Terrace rectangular lintel"));
-  assert.ok(stairhead.includes("Deep terrace stairwell shadow"));
+  assert.ok(stairhead.includes("Terrace stairhead frame"));
+  for (const part of [
+    "Terrace stairhead side wall -1",
+    "Terrace stairhead side wall 1",
+    "Terrace rectangular lintel",
+    "Terrace lintel face",
+  ]) {
+    assert.ok(!stairhead.includes(part));
+  }
+  assert.ok(!stairhead.includes("Deep terrace stairwell shadow"));
   assert.ok(!stairhead.includes("Terrace dark stairwell"));
+  assert.ok(!stairhead.includes("Terrace stairhead roof"));
   const tray = glb("serving-tray").json.nodes.map(({ name }) => name);
   assert.ok(tray.includes("Raised oval tray rim"));
   assert.equal(tray.filter((name) => /^Tray handle/.test(name)).length, 2);

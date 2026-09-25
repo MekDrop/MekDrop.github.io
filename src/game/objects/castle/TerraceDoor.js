@@ -106,10 +106,8 @@ export class TerraceDoor {
     while (pending.length) {
       const entity = pending.pop();
       const isFramePiece =
-        entity.name.startsWith("Terrace stairhead side wall") ||
-        entity.name.startsWith("Terrace jamb block") ||
-        entity.name === "Terrace lintel face" ||
-        entity.name === "Terrace rectangular lintel";
+        entity.name === "Terrace stairhead frame" ||
+        entity.name.startsWith("Terrace jamb block");
       if (isFramePiece) {
         for (const meshInstance of entity.render?.meshInstances ?? []) {
           meshInstance.material = wallMaterial;

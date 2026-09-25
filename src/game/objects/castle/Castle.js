@@ -112,9 +112,35 @@ const CASTLE_TOWER_SPAN_BLOCKS = 6;
 const CASTLE_TOWER_HEIGHT_BLOCKS = 18;
 const CASTLE_GATE_CROWN_HEIGHT_BLOCKS = 22;
 const CASTLE_GATE_OPENING_HEIGHT_BLOCKS = 10;
+const CASTLE_GATE_ARCH_SPRING_BLOCKS = 5;
 const CASTLE_GATE_PYLON_SPAN_BLOCKS = 5;
 const CASTLE_DOOR_WIDTH_TILES = 2;
 const CASTLE_AUDIENCE_ROOM_DEPTH_BLOCKS = 18;
+const CASTLE_ARCH_BACKING_DEPTH_BLOCKS = 0.16;
+const CASTLE_ARCH_BACKING_CENTER_DEPTH_BLOCKS = -0.42;
+
+const castleGateArchHeight = (opening, horizontalBlock) => {
+  const width = opening.end - opening.start;
+  const localBlock = horizontalBlock - opening.start;
+  const distanceFromEdge = Math.min(localBlock, width - 1 - localBlock);
+  const halfWidth = width / 2;
+  const normalizedRadius = Math.min(
+    1,
+    distanceFromEdge / Math.max(1, halfWidth - 1),
+  );
+  const curvedHeight = Math.min(
+    CASTLE_GATE_OPENING_HEIGHT_BLOCKS,
+    Math.round(
+      CASTLE_GATE_ARCH_SPRING_BLOCKS +
+        (CASTLE_GATE_OPENING_HEIGHT_BLOCKS -
+          CASTLE_GATE_ARCH_SPRING_BLOCKS) *
+          Math.sqrt(1 - (1 - normalizedRadius) ** 2),
+    ),
+  );
+  return distanceFromEdge === halfWidth - 2
+    ? Math.min(curvedHeight, CASTLE_GATE_OPENING_HEIGHT_BLOCKS - 1)
+    : curvedHeight;
+};
 
 export class Castle {
   static get modelUrls() {
@@ -730,17 +756,48 @@ export class Castle {
       : 0;
     const roofDoorBase = wallHeight + 1;
     const stairwellStart = Math.max(1, gatehouseDepth - 5);
-    const isTerraceAccessVoid = (blockU, blockY, blockV) =>
-      Boolean(audienceOpening) &&
-      blockV >= roofDoorStart &&
-      blockV < roofDoorStart + roofDoorWidth &&
-      ((blockU >= 1 &&
+    const isTerraceAccessVoid = (blockU, blockY, blockV) => {
+      if (!audienceOpening) {
+        return false;
+      }
+      const isDoorwayVoid =
+        blockV >= roofDoorStart &&
+        blockV < roofDoorStart + roofDoorWidth &&
+        blockU >= 1 &&
         blockU < gatehouseDepth &&
         blockY >= roofDoorBase &&
-        blockY < roofDoorBase + 5) ||
-        (blockU >= stairwellStart &&
-          blockU < gatehouseDepth &&
-          blockY === wallHeight));
+        blockY < roofDoorBase + 5;
+      const isStairheadSideWallVoid =
+        blockU === gatehouseDepth - 1 &&
+        (blockV === roofDoorStart - 1 ||
+          blockV === roofDoorStart + roofDoorWidth) &&
+        blockY >= roofDoorBase &&
+        blockY < roofDoorBase + 6;
+      const isBelowStairheadVoid =
+        blockU === gatehouseDepth - 1 &&
+        blockV >= roofDoorStart - 1 &&
+        blockV <= roofDoorStart + roofDoorWidth &&
+        blockY === wallHeight;
+      const isLintelVoid =
+        blockU >= gatehouseDepth - 2 &&
+        blockU < gatehouseDepth &&
+        blockV >= roofDoorStart - 1 &&
+        blockV <= roofDoorStart + roofDoorWidth &&
+        blockY === roofDoorBase + 5;
+      const isStairwellVoid =
+        blockV >= roofDoorStart &&
+        blockV < roofDoorStart + roofDoorWidth &&
+        blockU >= stairwellStart &&
+        blockU < gatehouseDepth &&
+        blockY === wallHeight;
+      return (
+        isDoorwayVoid ||
+        isStairheadSideWallVoid ||
+        isBelowStairheadVoid ||
+        isLintelVoid ||
+        isStairwellVoid
+      );
+    };
     const batches = new Map();
     const occupied = new Set();
     const materialFor = (blockU, blockY, blockV, role) => {
@@ -1003,8 +1060,8 @@ export class Castle {
         return false;
       }
 
-      // The imported arch frames the opening. Keep the generated wall blocks
-      // clear of the full door width and height when the doors swing open.
+      // Full-depth wall cubes must stay clear of the animated door leaves.
+      // The gatehouse adds shallow facade backing around the curved arch.
       return blockY < CASTLE_GATE_OPENING_HEIGHT_BLOCKS;
     };
 
@@ -1702,6 +1759,30 @@ export class Castle {
         );
       }
     };
+    // Thin backing seals the curved arch without entering the door swing.
+    for (
+      let horizontal = opening.start;
+      horizontal < opening.end;
+      horizontal += 1
+    ) {
+      const archHeight = castleGateArchHeight(opening, horizontal);
+      for (
+        let blockY = archHeight;
+        blockY < CASTLE_GATE_OPENING_HEIGHT_BLOCKS;
+        blockY += 1
+      ) {
+        placeBoundaryDecoration(
+          CASTLE_ARCH_BACKING_CENTER_DEPTH_BLOCKS,
+          horizontal,
+          blockY,
+          CASTLE_ARCH_BACKING_DEPTH_BLOCKS,
+          1,
+          1,
+          "stone",
+        );
+      }
+    }
+
     const pylonRanges = [
       [opening.start - pylonSpan, opening.start - 1],
       [opening.end, opening.end + pylonSpan - 1],
