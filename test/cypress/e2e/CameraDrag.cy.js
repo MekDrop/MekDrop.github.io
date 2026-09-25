@@ -451,6 +451,51 @@ describe("Camera dragging", () => {
     });
   });
 
+  it("uses Scroll Lock for unbounded keyboard camera movement in development", () => {
+    let initialState;
+    cy.window().then((window) => {
+      initialState = window.gameCameraTest.state();
+      expect(initialState.freeCameraEnabled).to.equal(false);
+      window.dispatchEvent(
+        new KeyboardEvent("keydown", { code: "ScrollLock" }),
+      );
+      window.dispatchEvent(new KeyboardEvent("keyup", { code: "ScrollLock" }));
+      window.dispatchEvent(new KeyboardEvent("keydown", { code: "ArrowUp" }));
+      window.dispatchEvent(new KeyboardEvent("keyup", { code: "ArrowUp" }));
+    });
+
+    cy.get(".free-camera-status").should(
+      "contain.text",
+      "Scroll Lock enabled — free camera",
+    );
+    cy.window().then((window) => {
+      const freeCameraState = window.gameCameraTest.state();
+      expect(freeCameraState.freeCameraEnabled).to.equal(true);
+      expect(freeCameraState.panLimitsEnabled).to.equal(false);
+      expect(freeCameraState.viewport.manuallyMoved).to.equal(true);
+      expect(
+        Math.hypot(
+          freeCameraState.viewport.panX - initialState.viewport.panX,
+          freeCameraState.viewport.panZ - initialState.viewport.panZ,
+        ),
+      ).to.be.greaterThan(0);
+      expect(freeCameraState.hero.position).to.deep.equal(
+        initialState.hero.position,
+      );
+
+      window.dispatchEvent(
+        new KeyboardEvent("keydown", { code: "ScrollLock" }),
+      );
+      window.dispatchEvent(new KeyboardEvent("keyup", { code: "ScrollLock" }));
+    });
+    cy.get(".free-camera-status").should("not.exist");
+    cy.window().then((window) => {
+      const normalState = window.gameCameraTest.state();
+      expect(normalState.freeCameraEnabled).to.equal(false);
+      expect(normalState.panLimitsEnabled).to.equal(true);
+    });
+  });
+
   it("disables pan limits while Pause/Break developer mode is active", () => {
     let initialViewport;
     cy.window().then((window) => {

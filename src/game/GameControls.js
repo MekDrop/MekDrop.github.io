@@ -25,25 +25,29 @@ export class GameControls {
     this.#actions = actions;
     this.#cameraDrag = new CameraDrag(element, actions, this.#config());
     this.#keydownConsumeBindings = keydownConsumeBindings;
+    const keydownActionNames = [
+      "copyScreenshot",
+      "regenerateMap",
+      "toggleInventory",
+      "closeModal",
+      "run",
+      "moveUp",
+      "moveDown",
+      "moveLeft",
+      "moveRight",
+      "jump",
+      "interact",
+      "zoomIn",
+      "zoomOut",
+      "rotateAnticlockwise",
+      "toggleArrows",
+    ];
+    if (this.#actions.toggleFreeCamera) {
+      keydownActionNames.push("toggleFreeCamera");
+    }
     this.#keydownActions = new Map(
       [
-        ...this.#entriesFor([
-          "copyScreenshot",
-          "regenerateMap",
-          "toggleInventory",
-          "closeModal",
-          "run",
-          "moveUp",
-          "moveDown",
-          "moveLeft",
-          "moveRight",
-          "jump",
-          "interact",
-          "zoomIn",
-          "zoomOut",
-          "rotateAnticlockwise",
-          "toggleArrows",
-        ]),
+        ...this.#entriesFor(keydownActionNames),
         ...keydownActions.map(({ binding, action }) => [binding, action]),
       ],
     );

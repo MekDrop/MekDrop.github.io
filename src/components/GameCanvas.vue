@@ -32,6 +32,14 @@
     <span class="q-sr-only" role="status" aria-live="polite">
       {{ recordingState === GAME_RECORDING_STATE.RECORDING ? t("game.recording.active") : "" }}
     </span>
+    <div
+      v-if="freeCameraEnabled"
+      class="free-camera-status"
+      role="status"
+      aria-live="polite"
+    >
+      Scroll Lock enabled — free camera
+    </div>
     <hero-mood-status :mood="heroMood" />
     <Transition name="interaction-prompt">
       <div
@@ -106,6 +114,25 @@
 
 .background-canvas--dragging .background-canvas__surface {
   cursor: grabbing;
+}
+
+.free-camera-status {
+  position: absolute;
+  top: var(--app-ui-space-md);
+  left: 50%;
+  z-index: 20;
+  padding: var(--app-ui-space-xs) var(--app-ui-space-md);
+  color: #eaffea;
+  font: 700 12px/1.4 var(--app-ui-font-family);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  background: rgba(6, 18, 13, 0.86);
+  border: 1px solid rgba(184, 236, 195, 0.42);
+  border-radius: var(--app-ui-border-radius);
+  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.28);
+  transform: translateX(-50%);
+  pointer-events: none;
+  backdrop-filter: blur(5px);
 }
 
 .interaction-prompt {
@@ -201,6 +228,8 @@ import { createGameCommandRegistry } from "src/game/commands/index.js";
 import { CloseModalAction } from "src/actions/CloseModalAction.js";
 import { GAME_RECORDING_STATE } from "src/game/enum/GameRecordingState.js";
 import { CopyScreenshotAction } from "src/game/actions/CopyScreenshotAction.js";
+import { FreeCameraAction } from "src/game/actions/FreeCameraAction.js";
+import { FreeCameraDirectionAction } from "src/game/actions/FreeCameraDirectionAction.js";
 import { HeroDirectionAction } from "src/game/actions/HeroDirectionAction.js";
 import { HeroJumpAction } from "src/game/actions/HeroJumpAction.js";
 import { HeroMovementAction } from "src/game/actions/HeroMovementAction.js";
@@ -240,6 +269,7 @@ const heroLives = ref(3);
 const heroMood = ref(null);
 const maxHeroLives = ref(3);
 const gameOver = ref(false);
+const freeCameraEnabled = ref(false);
 const currentMapName = ref("");
 const currentMapSignature = computed(() => currentMapName.value);
 const { t } = useI18n();
@@ -529,6 +559,40 @@ async function init() {
     renderer,
     heroMovementAction,
   );
+  const moveCameraAction = new MoveCameraAction(renderer, bindings.move);
+  const heroDirectionActions = {
+    up: new HeroDirectionAction(
+      heroMovementAction,
+      "up",
+      bindings.dodge.doubleTapWindow,
+    ),
+    down: new HeroDirectionAction(
+      heroMovementAction,
+      "down",
+      bindings.dodge.doubleTapWindow,
+    ),
+    left: new HeroDirectionAction(
+      heroMovementAction,
+      "left",
+      bindings.dodge.doubleTapWindow,
+    ),
+    right: new HeroDirectionAction(
+      heroMovementAction,
+      "right",
+      bindings.dodge.doubleTapWindow,
+    ),
+  };
+  const directionAction = (direction) => {
+    if (!import.meta.env.DEV) {
+      return heroDirectionActions[direction];
+    }
+    const method = `move${direction[0].toUpperCase()}${direction.slice(1)}`;
+    return new FreeCameraDirectionAction(
+      heroDirectionActions[direction],
+      () => moveCameraAction[method](),
+      () => freeCameraEnabled.value,
+    );
+  };
   const rotateViewAction = new RotateViewAction(renderer);
   const zoomInAction = new ZoomAction(
     renderer,
@@ -545,31 +609,15 @@ async function init() {
   const actions = {
     zoomIn: zoomInAction,
     zoomOut: zoomOutAction,
-    moveCamera: new MoveCameraAction(renderer, bindings.move),
+    moveCamera: moveCameraAction,
     regenerateMap: regenerateMapAction,
     restartGame: restartGameAction,
     heroMovement: heroMovementAction,
     run: heroMovementAction,
-    moveUp: new HeroDirectionAction(
-      heroMovementAction,
-      "up",
-      bindings.dodge.doubleTapWindow,
-    ),
-    moveDown: new HeroDirectionAction(
-      heroMovementAction,
-      "down",
-      bindings.dodge.doubleTapWindow,
-    ),
-    moveLeft: new HeroDirectionAction(
-      heroMovementAction,
-      "left",
-      bindings.dodge.doubleTapWindow,
-    ),
-    moveRight: new HeroDirectionAction(
-      heroMovementAction,
-      "right",
-      bindings.dodge.doubleTapWindow,
-    ),
+    moveUp: directionAction("up"),
+    moveDown: directionAction("down"),
+    moveLeft: directionAction("left"),
+    moveRight: directionAction("right"),
     jump: new HeroJumpAction(heroMovementAction),
     interact: new InteractionAction(renderer),
     toggleInventory: toggleInventoryAction,
@@ -582,6 +630,17 @@ async function init() {
       undefined,
       () => !renderer.inventoryVisible,
     ),
+    ...(import.meta.env.DEV
+      ? {
+          toggleFreeCamera: new FreeCameraAction(
+            renderer,
+            heroMovementAction,
+            (enabled) => {
+              freeCameraEnabled.value = enabled;
+            },
+          ),
+        }
+      : {}),
     ...pluginControlActions,
   };
 
@@ -613,6 +672,7 @@ onMounted(() => {
 onBeforeUnmount(() => {
   mapNavigationId += 1;
   gameReady.value = false;
+  freeCameraEnabled.value = false;
   stopRecordingStateWatch?.();
   stopRecordingStateWatch = null;
   gameCanvasPluginRegistry.destroy();

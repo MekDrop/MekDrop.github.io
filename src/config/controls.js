@@ -69,6 +69,10 @@ export const DEFAULT_CONTROLS = Object.freeze({
   toggleArrows: {
     keys: ["Pause"],
   },
+  toggleFreeCamera: {
+    keys: ["ScrollLock"],
+    allowRepeat: false,
+  },
   zoom: {
     factor: 1.1,
     min: 1.0,

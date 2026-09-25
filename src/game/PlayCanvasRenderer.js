@@ -122,6 +122,7 @@ export class PlayCanvasRenderer {
   #panZ = 0;
   #orbitPivot = null;
   #panLimitsEnabled = true;
+  #freeCameraEnabled = false;
   #fitCenterX = 0;
   #fitCenterZ = 0;
   #viewportManuallyMoved = false;
@@ -471,7 +472,8 @@ export class PlayCanvasRenderer {
 
   #applyDebugSettings() {
     this.pathArrowsVisible = this.#debugStore.pathArrows;
-    this.panLimitsEnabled = !this.#debugStore.hasAny;
+    this.panLimitsEnabled =
+      !this.#debugStore.hasAny && !this.#freeCameraEnabled;
   }
 
   set pathArrowsVisible(visible) {
@@ -621,6 +623,30 @@ export class PlayCanvasRenderer {
 
   get panLimitsEnabled() {
     return this.#panLimitsEnabled;
+  }
+
+  get freeCameraEnabled() {
+    return this.#freeCameraEnabled;
+  }
+
+  set freeCameraEnabled(enabled) {
+    const nextEnabled = Boolean(enabled);
+    if (this.#freeCameraEnabled === nextEnabled) {
+      return;
+    }
+    this.#freeCameraEnabled = nextEnabled;
+    this.#heroCameraReturnTransition = null;
+    this.#orbitPivot = null;
+    this.#viewportManuallyMoved = nextEnabled;
+    if (!nextEnabled && this.#zoom > MAP_FIT_ZOOM) {
+      const heroPosition = this.hero?.position;
+      if (heroPosition) {
+        this.#panX = heroPosition.x;
+        this.#panZ = heroPosition.z;
+      }
+    }
+    this.#applyDebugSettings();
+    this.#updateCamera();
   }
 
   set panLimitsEnabled(enabled) {
