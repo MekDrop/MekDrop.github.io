@@ -13,8 +13,12 @@ export class TerraceDoor {
   #layer;
   #duration;
   #amount = 0;
+  #pc;
+  #onOpen;
 
-  constructor({ modelLibrary, wallMaterial }) {
+  constructor({ pc, modelLibrary, wallMaterial, onOpen }) {
+    this.#pc = pc;
+    this.#onOpen = onOpen;
     this.#entity = modelLibrary.instantiate(terraceStairheadUrl);
     this.#entity.name = "Terrace stairhead";
     this.#applyWallMaterial(wallMaterial);
@@ -37,8 +41,51 @@ export class TerraceDoor {
     return this.#entity;
   }
 
-  update(deltaTime, open) {
-    const step = Math.max(0, deltaTime) * 3;
+  get openAmount() {
+    return this.#amount;
+  }
+
+  set openAmount(value) {
+    this.#amount = Math.max(0, Math.min(1, value));
+    this.#layer.activeStateCurrentTime = this.#amount * this.#duration;
+    this.#door.anim.update(0);
+  }
+
+  get insideHandle() {
+    return this.#door.findByName("Terrace door inside ring handle");
+  }
+
+  get hingeRotation() {
+    return this.#door.findByName("Terrace door hinge").getRotation();
+  }
+
+  getPointerHit(rayStart, rayEnd) {
+    const hinge = this.#door?.findByName("Terrace door hinge");
+    if (!hinge) {
+      return null;
+    }
+    const inverse = hinge.getWorldTransform().clone().invert();
+    const start = inverse.transformPoint(rayStart, new this.#pc.Vec3());
+    const end = inverse.transformPoint(rayEnd, new this.#pc.Vec3());
+    const dz = end.z - start.z;
+    if (Math.abs(dz) < 0.000001) {
+      return null;
+    }
+    const distance = -start.z / dz;
+    const x = start.x + (end.x - start.x) * distance;
+    const y = start.y + (end.y - start.y) * distance;
+    if (distance < 0 || distance > 1 || x < 0 || x > 1 || y < 0 || y > 1.25) {
+      return null;
+    }
+    return { distance, pointerTarget: this };
+  }
+
+  handlePointerDown() {
+    return this.#onOpen?.() ?? false;
+  }
+
+  update(deltaTime, open, speed = 3) {
+    const step = Math.max(0, deltaTime) * speed;
     this.#amount = open
       ? Math.min(1, this.#amount + step)
       : Math.max(0, this.#amount - step);

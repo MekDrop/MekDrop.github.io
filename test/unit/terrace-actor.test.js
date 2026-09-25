@@ -105,6 +105,7 @@ const expectedAnimations = new Map([
     TERRACE_ACTOR_ANIMATION.DRINK,
   ]],
   ["servant", [
+    TERRACE_ACTOR_ANIMATION.CLOSE_DOOR,
     TERRACE_ACTOR_ANIMATION.IDLE,
     TERRACE_ACTOR_ANIMATION.WALK,
     TERRACE_ACTOR_ANIMATION.CARRY,
@@ -141,6 +142,45 @@ for (const [kind, names] of expectedAnimations) {
       ]) {
         assert.ok(targets.has(target), `${name} does not animate ${target}`);
       }
+    }
+  });
+}
+
+it("articulates the servant's boots below knee joints and embeds knee bends", () => {
+  const { gltf } = royalModel("servant");
+  for (const side of ["left", "right"]) {
+    const index = gltf.nodes.findIndex(({ name }) => name === `Servant ${side} knee`);
+    assert.ok(index >= 0);
+    const descendants = gltf.nodes[index].children.map((child) => gltf.nodes[child].name);
+    assert.ok(descendants.includes(`${side} boot`));
+    assert.ok(descendants.includes(`${side} lower trouser`));
+    for (const name of ["TerraceWalk", "TerraceCarry", "TerraceTurn", "TerraceCloseDoor"]) {
+      const clip = gltf.animations.find((animation) => animation.name === name);
+      const channel = clip.channels.find(({ target }) => target.node === index && target.path === "rotation");
+      assert.ok(channel, `${name} must animate the ${side} knee`);
+      assert.ok(gltf.accessors[clip.samplers[channel.sampler].output].count > 2);
+    }
+  }
+});
+
+for (const kind of ["servant", "elder-servant"]) {
+  it(`${kind} keeps forearms and cuffs centered on the elbow and wrist`, () => {
+    const { root, meshes } = royalModel(kind);
+    for (const side of ["left", "right"]) {
+      const elbow = root.findByName(`Servant ${side} elbow`);
+      const forearm = root.findByName(`${side} forearm`);
+      const cuff = root.findByName(`${side} rolled linen cuff`);
+      const joint = root.findByName(`${side} covered elbow joint`);
+      const hand = root.findByName(`Royal ${side} hand`);
+      assert.equal(forearm.parent, elbow);
+      assert.equal(cuff.parent, elbow);
+      assert.equal(joint.parent, elbow);
+      assert.equal(hand.parent, elbow);
+      assert.ok(Math.abs(forearm.getLocalPosition().x) < 0.001);
+      assert.ok(Math.abs(cuff.getLocalPosition().x) < 0.001);
+      // The forearm reaches the elbow pivot, rather than floating beside it.
+      const bounds = meshes.find((mesh) => mesh.node === forearm).aabb;
+      assert.ok(bounds.containsPoint(elbow.getPosition()));
     }
   });
 }

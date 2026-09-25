@@ -398,7 +398,7 @@ export class Castle {
   }
 
   #getDoorHit(rayStart, rayEnd) {
-    let closest = null;
+    let closest = this.#leisureScene?.getPointerHit(rayStart, rayEnd) ?? null;
     for (const door of this.#animatedDoors) {
       const hit = door.getPointerHit(rayStart, rayEnd);
       if (!hit || (closest && hit.distance >= closest.distance)) {

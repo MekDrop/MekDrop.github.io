@@ -108,6 +108,9 @@ export class TerraceActor {
     }
     const weight = Math.max(0, Math.min(1, blend));
     switch (action) {
+      case "turn":
+        this.#sampleProgress(TERRACE_ACTOR_ANIMATION.TURN, time);
+        break;
       case "walk":
         this.#sampleLoop(TERRACE_ACTOR_ANIMATION.WALK, time);
         break;
@@ -116,6 +119,9 @@ export class TerraceActor {
         break;
       case "place":
         this.#sampleTime(TERRACE_ACTOR_ANIMATION.PLACE, time);
+        break;
+      case "closeDoor":
+        this.#sampleTime(TERRACE_ACTOR_ANIMATION.CLOSE_DOOR, time);
         break;
       case "pour":
         this.#sampleTime(TERRACE_ACTOR_ANIMATION.POUR, time);
@@ -144,6 +150,10 @@ export class TerraceActor {
     }
   }
 
+  evaluatePose() {
+    this.#model.anim?.update(0);
+  }
+
   destroy() {
     this.#entity.destroy();
     this.#joints.clear();
@@ -154,6 +164,11 @@ export class TerraceActor {
   #setupAnimations(modelLibrary, modelUrl) {
     const names = this.#animationNames;
     const tracks = modelLibrary.getAnimationTracks(modelUrl, names);
+    for (const name of [TERRACE_ACTOR_ANIMATION.CLOSE_DOOR, TERRACE_ACTOR_ANIMATION.TURN]) {
+      if (tracks.has(name)) {
+        names.push(name);
+      }
+    }
     this.#model.addComponent("anim", { activate: true });
     for (const name of names) {
       const track = tracks.get(name);

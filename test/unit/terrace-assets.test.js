@@ -44,3 +44,19 @@ it("packages the roof stairhead and serving tray with editable sources", () => {
   assert.ok(tray.includes("Raised oval tray rim"));
   assert.equal(tray.filter((name) => /^Tray handle/.test(name)).length, 2);
 });
+
+it("mounts matching ring handles on opposite faces of the animated leaf", () => {
+  const { json } = glb("terrace-door");
+  const outside = json.nodes.find((node) => node.name === "Terrace door outside ring handle");
+  const inside = json.nodes.find((node) => node.name === "Terrace door inside ring handle");
+  const hinge = json.nodes.find((node) => node.name === "Terrace door hinge");
+  assert.ok(outside && inside);
+  assert.ok(hinge.children.includes(json.nodes.indexOf(outside)));
+  assert.ok(hinge.children.includes(json.nodes.indexOf(inside)));
+  assert.equal(outside.translation[0], inside.translation[0]);
+  assert.equal(outside.translation[1], inside.translation[1]);
+  assert.ok(outside.translation[2] > 0.05);
+  assert.ok(inside.translation[2] < -0.05);
+  assert.ok(Math.abs(outside.rotation[0]) > 0.7);
+  assert.ok(Math.abs(inside.rotation[0]) > 0.7);
+});
