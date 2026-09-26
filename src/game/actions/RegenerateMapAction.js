@@ -6,6 +6,7 @@ export class RegenerateMapAction {
   #onGenerated;
   #onGenerationError;
   #beforeRender;
+  #afterRender;
 
   constructor(
     renderer,
@@ -14,6 +15,7 @@ export class RegenerateMapAction {
       onGenerated = () => {},
       onGenerationError = () => {},
       beforeRender = null,
+      afterRender = null,
     } = {},
   ) {
     this.#renderer = renderer;
@@ -21,6 +23,7 @@ export class RegenerateMapAction {
     this.#onGenerated = onGenerated;
     this.#onGenerationError = onGenerationError;
     this.#beforeRender = beforeRender;
+    this.#afterRender = afterRender;
   }
 
   invoke(event) {
@@ -44,6 +47,7 @@ export class RegenerateMapAction {
 
     this.#beforeRender?.();
     this.#renderer.render(mapData);
+    this.#afterRender?.(mapData);
     this.#renderer.setViewport(viewport);
     this.#onGenerated(mapData);
 

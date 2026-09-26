@@ -9,7 +9,6 @@ import { GATEWAY_BANNER_SIGNS, Gateway } from "./objects/gateway/index.js";
 import {
   BridgeRailingKit,
   OverpassStairs,
-  PathArrows,
 } from "./objects/path/index.js";
 import { RiverWater } from "./objects/water/index.js";
 import { StoneField } from "./objects/scenery/StoneField.js";
@@ -117,7 +116,6 @@ export class PlayCanvasRenderer {
   #materials = new Map();
   #textureAssets = new Map();
   #vertexBuffers = [];
-  #pathArrows = null;
   #bridgeRailingKit = null;
   #sceneObjects = new SceneObjectRegistry();
   #royalCastleTriggerField = null;
@@ -147,7 +145,6 @@ export class PlayCanvasRenderer {
   #buriedTreasure = null;
   #interactionProviders = [];
   #cloudField = null;
-  #pathArrowsVisible = false;
   #collisionWorld = new GroundCollisionWorld();
   #terrainRenderer = null;
   #pathOverpassCollider = null;
@@ -268,10 +265,6 @@ export class PlayCanvasRenderer {
     this.#app.scene.layers.insert(this.#cloudLayer, 0);
     this.#app.on("update", this.#updateFrame);
     this.#modelLibrary = new GameModelLibrary({ pc, app: this.#app });
-    this.#pathArrows = new PathArrows({
-      pc,
-      app: this.#app,
-    });
     this.#lifeHud = new HeroLifeHud({
       pc,
       app: this.#app,
@@ -436,28 +429,8 @@ export class PlayCanvasRenderer {
   }
 
   #applyDebugSettings() {
-    this.pathArrowsVisible = this.#debugStore.pathArrows;
     this.panLimitsEnabled =
       !this.#debugStore.hasAny && !this.#camera.freeEnabled;
-  }
-
-  set pathArrowsVisible(visible) {
-    this.#pathArrowsVisible = Boolean(visible);
-    if (this.#pathArrows) {
-      this.#pathArrows.visible = this.#pathArrowsVisible;
-    }
-  }
-
-  get pathArrowsVisible() {
-    return this.#pathArrowsVisible;
-  }
-
-  set arrowsVisible(visible) {
-    this.pathArrowsVisible = visible;
-  }
-
-  get arrowsVisible() {
-    return this.#pathArrowsVisible;
   }
 
   get zoom() {
@@ -894,6 +867,10 @@ export class PlayCanvasRenderer {
     return this.canvas;
   }
 
+  get mapRoot() {
+    return this.#mapRoot;
+  }
+
   destroy() {
     this.#destroyed = true;
     this.#stopDebugStoreSubscription?.();
@@ -902,8 +879,6 @@ export class PlayCanvasRenderer {
     this.#disconnectPointerInteractions();
     this.#app?.off("update", this.#updateFrame);
     this.#clearScene();
-    this.#pathArrows?.destroy();
-    this.#pathArrows = null;
     this.#lifeHud?.destroy();
     this.#lifeHud = null;
     this.#coinHud?.destroy();
@@ -1203,7 +1178,6 @@ export class PlayCanvasRenderer {
     this.#grassSurface.refreshObstacles();
     this.#updateInteractionTarget();
 
-    this.#mapRoot.addChild(this.#pathArrows.render(this.#mapData));
     this.#captureCameraVisualBounds();
   }
 
@@ -2367,7 +2341,6 @@ export class PlayCanvasRenderer {
     this.#heroPatHand?.destroy();
     this.#heroPatHand = null;
     this.#pointerInteraction?.cancelActivePointer();
-    this.#pathArrows?.clear();
     this.#sceneObjects.destroyType(SCENE_OBJECT_TYPE.GATEWAY);
     this.#sceneObjects.destroyType(SCENE_OBJECT_TYPE.CASTLE);
     this.#royalCastleTriggerField?.destroy();

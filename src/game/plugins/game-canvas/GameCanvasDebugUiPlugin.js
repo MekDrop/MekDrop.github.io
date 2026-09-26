@@ -1,6 +1,7 @@
 import { useIntervalFn } from "@vueuse/core";
 
 import { DevWireframeInspector } from "../../debug/DevWireframeInspector.js";
+import { PathArrows } from "../../objects/path/index.js";
 import {
   DebugAxesHud,
   DebugFpsHud,
@@ -12,6 +13,7 @@ export class GameCanvasDebugUiPlugin {
   #debugAxesHud = null;
   #debugFpsHud = null;
   #devWireframeInspector = null;
+  #pathArrows = null;
   #debugStatsTimer = null;
   #stopDebugStoreSubscription = null;
   #theme = null;
@@ -42,6 +44,7 @@ export class GameCanvasDebugUiPlugin {
       theme: this.#theme,
     });
     this.#debugAxesHud.attach();
+    this.#pathArrows = new PathArrows({ pc, app });
     if (import.meta.env.DEV) {
       this.#devWireframeInspector = new DevWireframeInspector({
         pc,
@@ -67,7 +70,16 @@ export class GameCanvasDebugUiPlugin {
   }
 
   beforeRender() {
+    this.#pathArrows?.clear();
     this.#devWireframeInspector?.refresh();
+  }
+
+  afterRender(mapData) {
+    const mapRoot = this.#context.renderer().mapRoot;
+    if (!mapRoot) {
+      return;
+    }
+    mapRoot.addChild(this.#pathArrows.render(mapData));
   }
 
   resize() {
@@ -91,6 +103,8 @@ export class GameCanvasDebugUiPlugin {
     this.#context.debugStore.framesPerSecond = 0;
     this.#devWireframeInspector?.destroy();
     this.#devWireframeInspector = null;
+    this.#pathArrows?.destroy();
+    this.#pathArrows = null;
     this.#debugAxesHud?.destroy();
     this.#debugAxesHud = null;
     this.#debugFpsHud?.destroy();
@@ -99,6 +113,7 @@ export class GameCanvasDebugUiPlugin {
   }
 
   #applyDebugSettings() {
+    this.#pathArrows.visible = this.#context.debugStore.pathArrows;
     this.#debugAxesHud.visible = this.#context.debugStore.debugAxesHud;
     this.#debugFpsHud.visible = this.#context.debugStore.debugFpsHud;
     if (this.#context.debugStore.hasAny) {

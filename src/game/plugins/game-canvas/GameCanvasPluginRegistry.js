@@ -78,4 +78,10 @@ export class GameCanvasPluginRegistry {
       plugin.beforeRender?.();
     }
   }
+
+  afterRender(mapData) {
+    for (const plugin of this.#plugins.values()) {
+      plugin.afterRender?.(mapData);
+    }
+  }
 }

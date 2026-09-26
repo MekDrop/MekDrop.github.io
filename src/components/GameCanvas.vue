@@ -476,6 +476,7 @@ async function updateCurrentMap(generatedMap) {
 function renderMap(mapDataToRender) {
   gameCanvasPluginRegistry.beforeRender();
   renderer.render(mapDataToRender);
+  gameCanvasPluginRegistry.afterRender(mapDataToRender);
 }
 
 async function loadMapRoute(mapName) {
@@ -522,12 +523,13 @@ async function init() {
   if (renderer !== activeRenderer) {
     return;
   }
+  gameCanvasPluginRegistry.load(GameCanvasDebugUiPlugin);
   graphicsBackend.value = activeRenderer.graphicsBackend;
   mapData = await createMap(requestedMapName());
   if (renderer !== activeRenderer) {
     return;
   }
-  activeRenderer.render(mapData);
+  renderMap(mapData);
   await updateCurrentMap(mapData);
   if (!requestedMapName()) {
     await router.replace(mapRouteLocation(mapData.mapName));
@@ -536,7 +538,6 @@ async function init() {
     return;
   }
   await updateCameraTestDriverPlugin();
-  gameCanvasPluginRegistry.load(GameCanvasDebugUiPlugin);
   const recordingPlugin = gameCanvasPluginRegistry.load(
     GameCanvasRecordingPlugin,
   );
@@ -550,6 +551,8 @@ async function init() {
       void router.push(mapRouteLocation(generatedMap.mapName));
     },
     beforeRender: () => gameCanvasPluginRegistry.beforeRender(),
+    afterRender: (generatedMap) =>
+      gameCanvasPluginRegistry.afterRender(generatedMap),
   });
   restartGameAction = new RestartGameAction(renderer, regenerateMapAction);
   const heroMovementAction = new HeroMovementAction(renderer);
