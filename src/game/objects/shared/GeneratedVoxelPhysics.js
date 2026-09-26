@@ -1,4 +1,6 @@
-/** Builds one static compound body directly from generated voxel dimensions. */
+/**
+ * Builds one static compound body directly from generated voxel dimensions.
+ */
 export function addGeneratedVoxelPhysics({
   pc,
   parent,

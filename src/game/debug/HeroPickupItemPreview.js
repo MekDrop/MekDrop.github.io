@@ -119,7 +119,9 @@ function createHeldMaterial(pc, category) {
   material.update();
   return material;
 }
-/** Looping hero pickup previews for every collectible ground-cover inventory item. */
+/**
+ * Looping hero pickup previews for every collectible ground-cover inventory item.
+ */
 export class HeroPickupItemPreview {
   #pc;
   #modelLibrary;

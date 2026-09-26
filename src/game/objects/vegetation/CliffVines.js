@@ -1,7 +1,9 @@
 import cliffVineModelUrl from "../../models/vegetation/cliff-vine.glb?url";
 import { createCliffVineLayout } from "./CliffVineLayout.js";
 
-/** Repeated authored vine modules fitted to generated exposed cliff faces. */
+/**
+ * Repeated authored vine modules fitted to generated exposed cliff faces.
+ */
 export class CliffVines {
   static modelUrls = [cliffVineModelUrl];
 

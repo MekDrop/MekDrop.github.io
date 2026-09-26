@@ -12,7 +12,9 @@ const STONE_MATERIAL_NAMES = [
 ];
 const STAIR_MODULE_RUN_BLOCKS = 2;
 
-/** Builds variable-size flights from a reusable imported stone stair module. */
+/**
+ * Builds variable-size flights from a reusable imported stone stair module.
+ */
 export class CastleStairs {
   static get modelUrl() {
     return stairModuleModelUrl;

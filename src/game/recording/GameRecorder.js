@@ -7,7 +7,9 @@ import { AvcRecordingConfiguration } from "./AvcRecordingConfiguration.js";
 const FRAME_RATE = 60;
 const FRAME_DURATION = 1 / FRAME_RATE;
 
-/** Local MP4 recording. Encoder packages are loaded only when recording starts. */
+/**
+ * Local MP4 recording. Encoder packages are loaded only when recording starts.
+ */
 export class GameRecorder {
   #app;
   #canvas;

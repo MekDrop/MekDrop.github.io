@@ -2,7 +2,9 @@ import bridgeRailingPostModelUrl from "../../models/bridge/bridge-railing-post.g
 import bridgeRailingSegmentModelUrl from "../../models/bridge/bridge-railing-segment.glb?url";
 import { SLOPE_DIRECTION } from "../../enum/SlopeDirection.js";
 
-/** Builds flat bridge rails from reusable authored modules. */
+/**
+ * Builds flat bridge rails from reusable authored modules.
+ */
 export class BridgeRailingKit {
   static get modelUrls() {
     return [bridgeRailingSegmentModelUrl, bridgeRailingPostModelUrl];

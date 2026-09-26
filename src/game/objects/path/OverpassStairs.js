@@ -4,7 +4,9 @@ import { SLOPE_DIRECTION } from "../../enum/SlopeDirection.js";
 const STAIR_BLOCK_SIZE = 0.25;
 const STAIR_MODULE_RUN_BLOCKS = 2;
 
-/** Replaces an overpass ramp surface with castle-style sandstone steps. */
+/**
+ * Replaces an overpass ramp surface with castle-style sandstone steps.
+ */
 export class OverpassStairs {
   static get modelUrl() {
     return stairModuleModelUrl;

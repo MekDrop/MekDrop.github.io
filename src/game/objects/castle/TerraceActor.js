@@ -9,7 +9,9 @@ const LOOPING_ANIMATIONS = new Set([
   TERRACE_ACTOR_ANIMATION.READ,
 ]);
 
-/** Low-level model/animation adapter; role objects own choreography and sequences. */
+/**
+ * Low-level model/animation adapter; role objects own choreography and sequences.
+ */
 export class TerraceActor {
   #entity;
   #body;
@@ -101,7 +103,9 @@ export class TerraceActor {
     return this.#height;
   }
 
-  /** Plays model-authored local animation while the scene owns world placement. */
+  /**
+ * Plays model-authored local animation while the scene owns world placement.
+ */
   pose(action, time = 0, blend = 1) {
     if (!this.#animationLayer) {
       return;

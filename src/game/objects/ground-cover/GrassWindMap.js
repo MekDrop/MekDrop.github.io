@@ -13,7 +13,9 @@ const SHADOW_SPREAD = 0.12;
 const MINIMUM_EXPOSURE = 0.04;
 const DIRECTION_REFRESH_DOT = 0.9999;
 
-/** Builds a smooth, direction-aware shelter field for the grass shader. */
+/**
+ * Builds a smooth, direction-aware shelter field for the grass shader.
+ */
 export class GrassWindMap {
   #texture;
   #mapData;

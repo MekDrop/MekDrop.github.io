@@ -30,7 +30,9 @@ const MAXIMUM_SUPPORT_COMPRESSION = 0.1;
 const MAXIMUM_TOTAL_SUPPORT_FORCE = 0.02;
 const MINIMUM_NORMAL_Y = 0.2;
 
-/** Development-only floor markers that activate one royal castle apiece. */
+/**
+ * Development-only floor markers that activate one royal castle apiece.
+ */
 export class RoyalCastleTriggerField {
   #entity;
   #materials = [];

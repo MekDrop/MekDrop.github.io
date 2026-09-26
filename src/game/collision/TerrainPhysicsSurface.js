@@ -15,7 +15,9 @@ const WALKABLE_TILES = new Set([
 ]);
 const GRASS_SURFACE_TILES = new Set([TileType.GRASS]);
 
-/** Builds the static walkable world consumed by PlayCanvas' physics backend. */
+/**
+ * Builds the static walkable world consumed by PlayCanvas' physics backend.
+ */
 export class TerrainPhysicsSurface {
   #pc;
   #app;

@@ -7,7 +7,9 @@ const SUPPORT_NORMAL_MINIMUM = 0.65;
 const SUPPORT_CONTACT_HEIGHT = 0.3;
 const HERO_SURFACE_IGNORE_TAG = "hero-surface-ignore";
 
-/** Owns the hero rigid body and all reads/writes to PlayCanvas physics. */
+/**
+ * Owns the hero rigid body and all reads/writes to PlayCanvas physics.
+ */
 export class HeroPhysicsController {
   #pc;
   #app;

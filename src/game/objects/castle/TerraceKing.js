@@ -4,7 +4,9 @@ import { CastleLeisureSequence } from "./CastleLeisureSequence.js";
 import { KingTerracePerformance } from "./KingTerracePerformance.js";
 import { TerraceActor } from "./TerraceActor.js";
 
-/** Owns the king model, its embedded animation player, and roof routine. */
+/**
+ * Owns the king model, its embedded animation player, and roof routine.
+ */
 export class TerraceKing {
   static get kind() {
     return "king";

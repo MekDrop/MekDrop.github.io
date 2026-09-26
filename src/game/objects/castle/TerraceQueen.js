@@ -2,7 +2,9 @@ import queenModelUrl from "../../models/castle/royals/queen.glb?url";
 import { CastleLeisureSequence } from "./CastleLeisureSequence.js";
 import { TerraceActor } from "./TerraceActor.js";
 
-/** Owns the queen model and her terrace-specific pose entry points. */
+/**
+ * Owns the queen model and her terrace-specific pose entry points.
+ */
 export class TerraceQueen {
   static get kind() {
     return "queen";

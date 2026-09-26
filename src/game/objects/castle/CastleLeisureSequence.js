@@ -1,7 +1,9 @@
 import { ROYAL_WALK_SPEED } from "../../enum/RoyalWalkSpeed.js";
 import { CASTLE_LEISURE_PHASE as PHASE } from "../../enum/CastleLeisurePhase.js";
 
-/** The visit choreography uses game time, so pausing and disposal leave no timers. */
+/**
+ * The visit choreography uses game time, so pausing and disposal leave no timers.
+ */
 export class CastleLeisureSequence {
   #kind;
   #present = false;

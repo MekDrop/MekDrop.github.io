@@ -26,7 +26,9 @@ const HERO_BODY_PART_NAMES = new Set([
   "Boot foot.001",
 ]);
 
-/** Adds fitted compound-collider children to every solid hero body part. */
+/**
+ * Adds fitted compound-collider children to every solid hero body part.
+ */
 export function addHeroPartColliders({ pc, modelRoot }) {
   const pending = [modelRoot];
   const colliders = [];

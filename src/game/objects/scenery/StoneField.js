@@ -5,7 +5,9 @@ import {
   buildStoneVoxels,
 } from "./StoneVoxelGeometry.js";
 
-/** Runtime-built cubic stone clusters with solid tops the hero can land on. */
+/**
+ * Runtime-built cubic stone clusters with solid tops the hero can land on.
+ */
 export class StoneField {
   #entity;
   #parts = [];

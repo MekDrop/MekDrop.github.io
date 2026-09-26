@@ -1,4 +1,6 @@
-/** Finds a stable orbit focus on the scene beneath the viewport center. */
+/**
+ * Finds a stable orbit focus on the scene beneath the viewport center.
+ */
 export class CameraOrbitPivot {
   #pc;
 

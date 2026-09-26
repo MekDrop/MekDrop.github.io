@@ -50,7 +50,9 @@ const DOORWAY_VISIBLE_Z = 0.2;
 const DOORWAY_CLEAR_Z = 1.1;
 const ROYAL_TYPES = [TerraceKing, TerraceQueen, TerracePrincess];
 
-/** A small, door-scaled performance on the audience chamber roof. */
+/**
+ * A small, door-scaled performance on the audience chamber roof.
+ */
 export class CastleLeisureScene {
   static get modelUrls() {
     return [servantUrl, elderServantUrl, trayUrl,

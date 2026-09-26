@@ -1,6 +1,8 @@
 import signModelUrl from "../models/scenery/arrow-signpost.glb?url";
 
-/** An authored wooden direction sign with an instance-specific inscription. */
+/**
+ * An authored wooden direction sign with an instance-specific inscription.
+ */
 export class HeroAnimationSign {
   #entity;
   #texture;

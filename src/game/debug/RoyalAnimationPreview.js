@@ -1,6 +1,8 @@
 import { SeatedRoyal } from "../objects/castle/SeatedRoyal.js";
 
-/** Side-by-side playback of the same Cry clips used by the game-over scene. */
+/**
+ * Side-by-side playback of the same Cry clips used by the game-over scene.
+ */
 export class RoyalAnimationPreview {
   #entity;
   #royals = [];

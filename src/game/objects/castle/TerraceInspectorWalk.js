@@ -1,4 +1,6 @@
-/** Places authored steps along a route, with turns made before/after walking. */
+/**
+ * Places authored steps along a route, with turns made before/after walking.
+ */
 export class TerraceInspectorWalk {
   static sample({ start, end, startYaw, endYaw, elapsed, duration, scale }) {
     const dx = end.x - start.x;

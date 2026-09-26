@@ -14,7 +14,9 @@ const hideMortarBacking = (entity) => {
   }
 };
 
-/** Imported chunky stone frame around one castle entrance. */
+/**
+ * Imported chunky stone frame around one castle entrance.
+ */
 export class CastleDoorArch {
   static get modelUrl() {
     return entranceArchModelUrl;

@@ -1,5 +1,6 @@
 const globals = require("globals");
 const prettier = require("eslint-config-prettier/flat");
+const jsdoc = require("eslint-plugin-jsdoc");
 const vue = require("eslint-plugin-vue");
 
 const baseRestrictedSyntax = [
@@ -42,6 +43,7 @@ module.exports = [
       "src-cordova/**",
       ".quasar/**",
       "node_modules/**",
+      "tmp/**",
       "public/game/wasm/**",
       ".eslintrc.js",
       ".eslintrc.cjs",
@@ -68,11 +70,19 @@ module.exports = [
       },
     },
     plugins: {
+      jsdoc,
       vue,
     },
     rules: {
       "prefer-promise-reject-errors": "off",
       curly: "error",
+      "jsdoc/multiline-blocks": [
+        "error",
+        {
+          noSingleLineBlocks: true,
+          singleLineTags: [],
+        },
+      ],
       "no-restricted-syntax": [
         "error",
         ...baseRestrictedSyntax,

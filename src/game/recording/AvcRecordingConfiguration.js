@@ -1,4 +1,5 @@
-/** Repairs the specific malformed AVCC header from Mozilla bug 2031056.
+/**
+ * Repairs the specific malformed AVCC header from Mozilla bug 2031056.
  * https://bugzilla.mozilla.org/show_bug.cgi?id=2031056
  */
 export class AvcRecordingConfiguration {

@@ -13,7 +13,9 @@ const STEPS = [
   [PHASE.LEAVE, 1.8],
 ];
 
-/** Game-time choreography: no timeout survives a pause or a destroyed castle. */
+/**
+ * Game-time choreography: no timeout survives a pause or a destroyed castle.
+ */
 export class TerraceDoorInspection {
   #step = -1;
   #elapsed = 0;

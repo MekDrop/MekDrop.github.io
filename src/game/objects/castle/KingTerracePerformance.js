@@ -57,7 +57,9 @@ const YAW_BY_CLIP = new Map([
 ]);
 const ZERO_POSITION = { x: 0, y: 0, z: 0 };
 
-/** Chooses model-authored clips; it never manufactures joint transforms. */
+/**
+ * Chooses model-authored clips; it never manufactures joint transforms.
+ */
 export class KingTerracePerformance {
   #seed;
   #schedule;

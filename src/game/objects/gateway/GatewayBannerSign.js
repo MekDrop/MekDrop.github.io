@@ -13,7 +13,9 @@ export const GATEWAY_BANNER_SIGNS = [
   "⟁",
 ];
 
-/** Creates a transparent texture containing one decorative Unicode glyph. */
+/**
+ * Creates a transparent texture containing one decorative Unicode glyph.
+ */
 export class GatewayBannerSign {
   static createTexture(pc, graphicsDevice, symbol) {
     const size = 128;

@@ -1,7 +1,9 @@
 const TEXTURE_SIZE = 64;
 const PLANK_COUNT = 4;
 
-/** Creates hand-painted vertical timber planks for the castle's arched doors. */
+/**
+ * Creates hand-painted vertical timber planks for the castle's arched doors.
+ */
 export class CastleDoorTexture {
   static create(pc, graphicsDevice) {
     const pixels = new Uint8Array(TEXTURE_SIZE * TEXTURE_SIZE * 4);

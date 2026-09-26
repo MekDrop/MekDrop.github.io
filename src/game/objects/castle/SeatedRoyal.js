@@ -14,7 +14,9 @@ const WALK_OUT_ANIMATION_SPEED = 1.8;
 const WALK_START_DELAY = 0.08;
 const FALLBACK_VISUAL_SIZE = Object.freeze({ x: 1.2, y: 2.2, z: 1.2 });
 
-/** An imported seated royal whose local +Z axis faces the visitor. */
+/**
+ * An imported seated royal whose local +Z axis faces the visitor.
+ */
 export class SeatedRoyal {
   static get modelUrls() {
     return MODEL_URLS;

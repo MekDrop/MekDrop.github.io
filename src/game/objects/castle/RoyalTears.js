@@ -2,7 +2,9 @@ import vertexShader from "./RoyalTears.vert?raw";
 import fragmentShader from "./RoyalTears.frag?raw";
 import { ROYAL_ANIMATION } from "../../enum/RoyalAnimation.js";
 
-/** Small procedural tear particles following the imported character's face. */
+/**
+ * Small procedural tear particles following the imported character's face.
+ */
 export class RoyalTears {
   #royal;
   #mesh;

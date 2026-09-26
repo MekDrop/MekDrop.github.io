@@ -21,7 +21,9 @@ const ROOF_CONTACT_EPSILON = 0.000001;
 const POINTER_RADIUS_SCALE = 0.28;
 const MINIMUM_POINTER_RADIUS = 0.16;
 
-/** Runs deformable cloth meshes in an isolated Ammo soft-body world. */
+/**
+ * Runs deformable cloth meshes in an isolated Ammo soft-body world.
+ */
 export class AmmoClothPhysics {
   #pc;
   #ammo;

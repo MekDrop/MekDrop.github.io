@@ -4,7 +4,9 @@ import { HERO_ANIMATION } from "../enum/HeroAnimation.js";
 import { GRASS_SURFACE_LIFT } from "../config/terrain.js";
 import { HeroAnimationSign } from "./HeroAnimationSign.js";
 
-/** Independent, looping copies of every clip in the currently loaded hero. */
+/**
+ * Independent, looping copies of every clip in the currently loaded hero.
+ */
 export class HeroAnimationPreview {
   #entity;
   #overlay;

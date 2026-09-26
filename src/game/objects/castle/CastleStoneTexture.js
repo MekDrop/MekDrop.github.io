@@ -1,6 +1,8 @@
 const TEXTURE_SIZE = 32;
 
-/** Creates a hard-edged stone face matching the game's chunky voxel style. */
+/**
+ * Creates a hard-edged stone face matching the game's chunky voxel style.
+ */
 export class CastleStoneTexture {
   static create(pc, graphicsDevice) {
     const pixels = new Uint8Array(TEXTURE_SIZE * TEXTURE_SIZE * 4);

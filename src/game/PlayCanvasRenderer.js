@@ -35,7 +35,7 @@ import {
   PathOverpassCollider,
 } from "./collision/index.js";
 import { GameModelLibrary } from "./models/index.js";
-import { CameraPanBounds, HeroVisibilityController } from "./camera/index.js";
+import { GameCamera, HeroVisibilityController } from "./camera/index.js";
 import { CameraOrbitPivot } from "./camera/CameraOrbitPivot.js";
 import { GameUiTheme, HeroLifeHud, CoinHud } from "./ui/index.js";
 import { colorFromHex } from "./helpers/colors.js";
@@ -101,13 +101,7 @@ const HERO_BRIDGE_VISIBILITY_RADIUS = 0.5;
 const HERO_CAMERA_RETURN_DURATION = 0.45;
 const HERO_RESPAWN_CAMERA_RETURN_DURATION = 0.32;
 const CAMERA_TARGET_HEIGHT = 3.2;
-const FREE_CAMERA_FOV = 60;
-const FREE_CAMERA_MOVE_PER_PIXEL = 0.035;
-const FREE_CAMERA_VERTICAL_STEP = 0.8;
 const FREE_CAMERA_COLLISION_RADIUS = 0.14;
-const FREE_CAMERA_SWEEP_STEP = 0.08;
-const FREE_CAMERA_MIN_PITCH = -85;
-const FREE_CAMERA_MAX_PITCH = 85;
 const MAX_CASTLE_LIVES = 3;
 const INVENTORY_DROP_MIN_FALL_HEIGHT = 0.35;
 const INVENTORY_DROP_MAX_FALL_HEIGHT = 12;
@@ -124,21 +118,6 @@ export class PlayCanvasRenderer {
   #textureAssets = [];
   #castleFireParticleTexture = null;
   #vertexBuffers = [];
-  #zoom = 1;
-  #rotation = 0;
-  #panX = 0;
-  #panZ = 0;
-  #orbitPivot = null;
-  #panLimitsEnabled = true;
-  #freeCameraEnabled = false;
-  #freeCameraPosition = null;
-  #freeCameraEuler = null;
-  #fitCenterX = 0;
-  #fitCenterZ = 0;
-  #viewportManuallyMoved = false;
-  #baseOrthoHeight = 24;
-  #cameraTargetY = CAMERA_TARGET_HEIGHT;
-  #cameraPanBounds = null;
   #pathArrows = null;
   #bridgeRailingKit = null;
   #sceneObjects = new SceneObjectRegistry();
@@ -186,7 +165,6 @@ export class PlayCanvasRenderer {
   #viewportSignature = "";
   #viewportPersistenceEnabled = false;
   #saveViewportDebounced = null;
-  #heroCameraReturnTransition = null;
   #debugStore = null;
   #gameViewStore = null;
   #graphicsSettingsStore = null;
@@ -343,26 +321,20 @@ export class PlayCanvasRenderer {
       getCameraState: () => this.#cameraState,
       setCameraState: (state) => this.#setCameraState(state),
       clearCameraReturn: () => {
-        this.#heroCameraReturnTransition = null;
-        this.#orbitPivot = null;
+        this.#camera.returnTransition = null;
+        this.#camera.orbitPivot = null;
       },
       updateCamera: () => this.#updateCamera(),
       cameraPitch: CAMERA_PITCH,
       mapFitZoom: MAP_FIT_ZOOM,
     });
 
-    this.#camera = new pc.Entity("Isometric camera");
-    this.#camera.addComponent("camera", {
-      clearColor: new pc.Color(0.055, 0.45, 0.72),
-      projection: pc.PROJECTION_ORTHOGRAPHIC,
-      nearClip: 0.1,
-      farClip: 250,
+    this.#camera = new GameCamera({
+      pc,
+      app: this.#app,
+      cloudLayerId: this.#cloudLayer.id,
+      targetY: CAMERA_TARGET_HEIGHT,
     });
-    this.#camera.camera.layers = [
-      this.#cloudLayer.id,
-      ...this.#camera.camera.layers,
-    ];
-    this.#app.root.addChild(this.#camera);
 
     const sunlight = new pc.Entity("Sunlight");
     sunlight.addComponent("light", {
@@ -429,18 +401,11 @@ export class PlayCanvasRenderer {
       this.#earthMaterials,
       SIDE_VARIANT_TRANSFORMS.length,
     );
-    this.#cameraPanBounds = new CameraPanBounds(mapData);
+    this.#camera.reset(mapData, CAMERA_TARGET_HEIGHT);
     this.#scene?.reset();
-    this.#zoom = 1;
-    this.#rotation = 0;
-    this.#panX = 0;
-    this.#panZ = 0;
-    this.#cameraTargetY = CAMERA_TARGET_HEIGHT;
-    this.#viewportManuallyMoved = false;
-    this.#heroCameraReturnTransition = null;
     this.#updateFitCenter();
-    this.#panX = this.#fitCenterX;
-    this.#panZ = this.#fitCenterZ;
+    this.#camera.panX = this.#camera.fitCenterX;
+    this.#camera.panZ = this.#camera.fitCenterZ;
     this.#rebuildScene();
     this.#fitCamera();
     this.#updateCamera();
@@ -482,7 +447,7 @@ export class PlayCanvasRenderer {
   #applyDebugSettings() {
     this.pathArrowsVisible = this.#debugStore.pathArrows;
     this.panLimitsEnabled =
-      !this.#debugStore.hasAny && !this.#freeCameraEnabled;
+      !this.#debugStore.hasAny && !this.#camera.freeEnabled;
   }
 
   set pathArrowsVisible(visible) {
@@ -505,18 +470,18 @@ export class PlayCanvasRenderer {
   }
 
   get zoom() {
-    return this.#zoom;
+    return this.#camera.zoom;
   }
 
   get canPan() {
     return (
       !this.#cameraLocked &&
-      (!this.#panLimitsEnabled || this.#zoom > MAP_FIT_ZOOM)
+      (!this.#camera.panLimitsEnabled || this.#camera.zoom > MAP_FIT_ZOOM)
     );
   }
 
   get rotation() {
-    return this.#rotation;
+    return this.#camera.rotation;
   }
 
   get windSpeed() {
@@ -621,57 +586,44 @@ export class PlayCanvasRenderer {
   }
 
   get viewport() {
-    return {
-      zoom: this.#zoom,
-      rotation: this.#rotation,
-      panX: this.#panX,
-      panZ: this.#panZ,
-      manuallyMoved: this.#viewportManuallyMoved,
-    };
+    return this.#camera.viewport;
   }
 
   get panLimitsEnabled() {
-    return this.#panLimitsEnabled;
+    return this.#camera.panLimitsEnabled;
   }
 
   get freeCameraEnabled() {
-    return this.#freeCameraEnabled;
+    return this.#camera.freeEnabled;
   }
 
   get freeCameraState() {
-    if (!this.#freeCameraEnabled || !this.#freeCameraPosition) {
-      return null;
-    }
-    return {
-      position: {
-        x: this.#freeCameraPosition.x,
-        y: this.#freeCameraPosition.y,
-        z: this.#freeCameraPosition.z,
-      },
-      perspective:
-        this.#camera?.camera?.projection === this.#pc?.PROJECTION_PERSPECTIVE,
-    };
+    return this.#camera.freeState;
   }
 
   set freeCameraEnabled(enabled) {
     const nextEnabled = Boolean(enabled);
-    if (this.#freeCameraEnabled === nextEnabled) {
+    if (
+      !this.#camera.setFreeEnabled(nextEnabled, {
+        cameraPitch: CAMERA_PITCH,
+        isPositionBlocked: (position) => this.#freeCameraBlockedAt(position),
+        mapData: this.#mapData,
+      })
+    ) {
       return;
     }
-    if (nextEnabled) {
-      this.#beginFreeCamera();
-    } else {
-      this.#endFreeCamera();
+    this.#camera.returnTransition = null;
+    this.#camera.orbitPivot = null;
+    this.#camera.manuallyMoved = nextEnabled;
+    if (!nextEnabled) {
+      this.#captureCameraVisualBounds();
     }
-    this.#freeCameraEnabled = nextEnabled;
-    this.#heroCameraReturnTransition = null;
-    this.#orbitPivot = null;
-    this.#viewportManuallyMoved = nextEnabled;
-    if (!nextEnabled && this.#zoom > MAP_FIT_ZOOM) {
+    if (!nextEnabled && this.#camera.zoom > MAP_FIT_ZOOM) {
       const heroPosition = this.hero?.position;
       if (heroPosition) {
-        this.#panX = heroPosition.x;
-        this.#panZ = heroPosition.z;
+        this.#camera.panX = heroPosition.x;
+        this.#camera.panZ = heroPosition.z;
+        this.#updateCastlesForHero(heroPosition);
       }
     }
     this.#applyDebugSettings();
@@ -680,16 +632,16 @@ export class PlayCanvasRenderer {
 
   set panLimitsEnabled(enabled) {
     const nextEnabled = Boolean(enabled);
-    if (this.#panLimitsEnabled === nextEnabled) {
+    if (this.#camera.panLimitsEnabled === nextEnabled) {
       return;
     }
-    this.#panLimitsEnabled = nextEnabled;
+    this.#camera.panLimitsEnabled = nextEnabled;
     this.#updateCamera();
   }
 
   get mapVisibility() {
     return (
-      this.#cameraPanBounds?.visibility(this.#cameraView) ?? {
+      this.#camera.panBounds?.visibility(this.#cameraView) ?? {
         safeVisibleTileCenters: 0,
         totalTileCenters: 0,
         insetPixels: 0,
@@ -699,7 +651,7 @@ export class PlayCanvasRenderer {
   }
 
   get cameraReturningToHero() {
-    return this.#heroCameraReturnTransition !== null;
+    return this.#camera.returnTransition !== null;
   }
 
   get hero() {
@@ -787,15 +739,16 @@ export class PlayCanvasRenderer {
     if (this.#cameraLocked) {
       return;
     }
-    this.#heroCameraReturnTransition = null;
-    this.#orbitPivot = null;
-    this.#zoom = Math.max(MAP_FIT_ZOOM, zoom);
-    this.#rotation = rotation;
+    this.#camera.returnTransition = null;
+    this.#camera.orbitPivot = null;
+    this.#camera.zoom = Math.max(MAP_FIT_ZOOM, zoom);
+    this.#camera.rotation = rotation;
     this.#updateFitCenter();
-    const fitted = this.#panLimitsEnabled && this.#zoom === MAP_FIT_ZOOM;
-    this.#panX = fitted ? this.#fitCenterX : panX;
-    this.#panZ = fitted ? this.#fitCenterZ : panZ;
-    this.#viewportManuallyMoved = fitted ? false : manuallyMoved;
+    const fitted =
+      this.#camera.panLimitsEnabled && this.#camera.zoom === MAP_FIT_ZOOM;
+    this.#camera.panX = fitted ? this.#camera.fitCenterX : panX;
+    this.#camera.panZ = fitted ? this.#camera.fitCenterZ : panZ;
+    this.#camera.manuallyMoved = fitted ? false : manuallyMoved;
     this.#updateCamera();
   }
 
@@ -803,30 +756,32 @@ export class PlayCanvasRenderer {
     if (this.#cameraLocked) {
       return;
     }
-    this.#heroCameraReturnTransition = null;
-    this.#orbitPivot = null;
-    const previousZoom = this.#zoom;
+    this.#camera.returnTransition = null;
+    this.#camera.orbitPivot = null;
+    const previousZoom = this.#camera.zoom;
     const constrainedZoom = Math.max(MAP_FIT_ZOOM, newZoom);
-    const before = this.#screenOffsetToGround(pivotX, pivotY, this.#zoom);
+    const before = this.#screenOffsetToGround(pivotX, pivotY, this.#camera.zoom);
     const after = this.#screenOffsetToGround(pivotX, pivotY, constrainedZoom);
-    this.#panX += before.x - after.x;
-    this.#panZ += before.z - after.z;
-    this.#zoom = constrainedZoom;
+    this.#camera.panX += before.x - after.x;
+    this.#camera.panZ += before.z - after.z;
+    this.#camera.zoom = constrainedZoom;
 
-    if (this.#panLimitsEnabled && constrainedZoom < previousZoom) {
+    if (this.#camera.panLimitsEnabled && constrainedZoom < previousZoom) {
       const previousDistance = previousZoom - MAP_FIT_ZOOM;
       const nextDistance = constrainedZoom - MAP_FIT_ZOOM;
       const centerRetention =
         previousDistance > 0 ? nextDistance / previousDistance : 0;
-      this.#panX =
-        this.#fitCenterX + (this.#panX - this.#fitCenterX) * centerRetention;
-      this.#panZ =
-        this.#fitCenterZ + (this.#panZ - this.#fitCenterZ) * centerRetention;
+      this.#camera.panX =
+        this.#camera.fitCenterX +
+        (this.#camera.panX - this.#camera.fitCenterX) * centerRetention;
+      this.#camera.panZ =
+        this.#camera.fitCenterZ +
+        (this.#camera.panZ - this.#camera.fitCenterZ) * centerRetention;
     }
-    if (this.#panLimitsEnabled && constrainedZoom === MAP_FIT_ZOOM) {
-      this.#panX = this.#fitCenterX;
-      this.#panZ = this.#fitCenterZ;
-      this.#viewportManuallyMoved = false;
+    if (this.#camera.panLimitsEnabled && constrainedZoom === MAP_FIT_ZOOM) {
+      this.#camera.panX = this.#camera.fitCenterX;
+      this.#camera.panZ = this.#camera.fitCenterZ;
+      this.#camera.manuallyMoved = false;
     }
     this.#updateCamera();
   }
@@ -835,39 +790,53 @@ export class PlayCanvasRenderer {
     if (this.#cameraLocked) {
       return;
     }
-    if (this.#freeCameraEnabled) {
-      this.#moveFreeCamera(deltaX, deltaY);
-      return;
-    }
-    this.#heroCameraReturnTransition = null;
-    this.#orbitPivot = null;
-    if (this.#panLimitsEnabled && this.#zoom <= MAP_FIT_ZOOM) {
-      this.#panX = this.#fitCenterX;
-      this.#panZ = this.#fitCenterZ;
-      this.#viewportManuallyMoved = false;
+    if (this.#camera.freeEnabled) {
+      this.#camera.panFree(deltaX, deltaY);
       this.#updateCamera();
       return;
     }
-    const panOrigin = { x: this.#panX, z: this.#panZ };
-    const offset = this.#screenDeltaToGround(deltaX, deltaY, this.#zoom);
-    this.#panX -= offset.x;
-    this.#panZ -= offset.z;
-    this.#viewportManuallyMoved = true;
+    this.#camera.returnTransition = null;
+    this.#camera.orbitPivot = null;
+    if (
+      this.#camera.panLimitsEnabled &&
+      this.#camera.zoom <= MAP_FIT_ZOOM
+    ) {
+      this.#camera.panX = this.#camera.fitCenterX;
+      this.#camera.panZ = this.#camera.fitCenterZ;
+      this.#camera.manuallyMoved = false;
+      this.#updateCamera();
+      return;
+    }
+    const panOrigin = { x: this.#camera.panX, z: this.#camera.panZ };
+    const offset = this.#screenDeltaToGround(
+      deltaX,
+      deltaY,
+      this.#camera.zoom,
+    );
+    this.#camera.panX -= offset.x;
+    this.#camera.panZ -= offset.z;
+    this.#camera.manuallyMoved = true;
     this.#updateCamera(panOrigin);
   }
 
   rotateBy(quarterTurns, verticalQuarterTurns = 0) {
     if (this.#cameraLocked) {
-      return this.#rotation;
+      return this.#camera.rotation;
     }
-    if (this.#freeCameraEnabled) {
-      this.#rotateFreeCamera(quarterTurns, verticalQuarterTurns);
-      return this.#rotation;
+    if (this.#camera.freeEnabled) {
+      this.#camera.rotateFree(quarterTurns, verticalQuarterTurns);
+      this.#updateCamera();
+      return this.#camera.rotation;
     }
-    this.#heroCameraReturnTransition = null;
-    const preserveFocus = this.#zoom > MAP_FIT_ZOOM;
-    if (preserveFocus && !this.#orbitPivot && this.#camera && this.#mapRoot) {
-      this.#orbitPivot = new CameraOrbitPivot(this.#pc).find(
+    this.#camera.returnTransition = null;
+    const preserveFocus = this.#camera.zoom > MAP_FIT_ZOOM;
+    if (
+      preserveFocus &&
+      !this.#camera.orbitPivot &&
+      this.#camera &&
+      this.#mapRoot
+    ) {
+      this.#camera.orbitPivot = new CameraOrbitPivot(this.#pc).find(
         this.#camera.camera,
         this.#mapRoot,
         this.#mapData,
@@ -875,33 +844,36 @@ export class PlayCanvasRenderer {
         this.container.clientHeight,
       );
     }
-    this.#rotation = (((this.#rotation + quarterTurns) % 4) + 4) % 4;
-    if (preserveFocus && this.#orbitPivot) {
-      const yaw = Math.PI / 4 + this.#rotation * (Math.PI / 2);
+    this.#camera.rotation =
+      (((this.#camera.rotation + quarterTurns) % 4) + 4) % 4;
+    if (preserveFocus && this.#camera.orbitPivot) {
+      const yaw = Math.PI / 4 + this.#camera.rotation * (Math.PI / 2);
       const offset =
-        (this.#cameraTargetY - this.#orbitPivot.y) / Math.tan(CAMERA_PITCH);
-      this.#panX = this.#orbitPivot.x + Math.sin(yaw) * offset;
-      this.#panZ = this.#orbitPivot.z + Math.cos(yaw) * offset;
-      this.#viewportManuallyMoved = true;
+        (this.#camera.targetY - this.#camera.orbitPivot.y) /
+        Math.tan(CAMERA_PITCH);
+      this.#camera.panX =
+        this.#camera.orbitPivot.x + Math.sin(yaw) * offset;
+      this.#camera.panZ =
+        this.#camera.orbitPivot.z + Math.cos(yaw) * offset;
+      this.#camera.manuallyMoved = true;
     }
     this.#updateCamera(null, preserveFocus);
     this.#heroVisibility?.schedule();
-    return this.#rotation;
+    return this.#camera.rotation;
   }
 
   moveFreeCameraVertically(direction) {
-    if (
-      !this.#freeCameraEnabled ||
-      !this.#freeCameraPosition ||
-      !Number.isFinite(direction)
-    ) {
+    if (!this.#camera.freeEnabled || !Number.isFinite(direction)) {
       return;
     }
-    this.#moveFreeCameraBy(0, direction * FREE_CAMERA_VERTICAL_STEP, 0);
+    this.#camera.moveFreeVertically(direction);
+    this.#updateCamera();
   }
 
   resize() {
-    this.#orbitPivot = null;
+    if (this.#camera) {
+      this.#camera.orbitPivot = null;
+    }
     if (!this.#app || !this.container) {
       return;
     }
@@ -924,7 +896,7 @@ export class PlayCanvasRenderer {
   }
 
   get camera() {
-    return this.#camera;
+    return this.#camera.entity;
   }
 
   get canvasElement() {
@@ -1111,7 +1083,7 @@ export class PlayCanvasRenderer {
     this.#mapRoot = new this.#pc.Entity("Voxel map");
     this.#app.root.addChild(this.#mapRoot);
     this.#floatingIslandMotion = new FloatingIslandMotion({
-      zoom: this.#zoom,
+      zoom: this.#camera.zoom,
     });
 
     const scenery = new SkyIslandScenery(this.#mapData);
@@ -1175,7 +1147,7 @@ export class PlayCanvasRenderer {
       app: this.#app,
       mapData: this.#mapData,
       modelLibrary: this.#modelLibrary,
-      zoom: this.#zoom,
+      zoom: this.#camera.zoom,
     });
     this.#mapRoot.addChild(this.#riverWater.entity);
     this.#grassCarpet = new GrassCarpet({
@@ -1186,7 +1158,7 @@ export class PlayCanvasRenderer {
       tileColors: GrassSurfaceMaterials.tileColors,
       variantForTile: (col, row, level) =>
         this.#grassMaterials.variantForTile(col, row, level),
-      zoom: this.#zoom,
+      zoom: this.#camera.zoom,
     });
     this.#mapRoot.addChild(this.#grassCarpet.entity);
     this.#grassSurface = new GrassSurface({
@@ -1194,7 +1166,7 @@ export class PlayCanvasRenderer {
       pc: this.#pc,
       mapData: this.#mapData,
       terrainMaterials: [this.#grassCarpet.material].filter(Boolean),
-      zoom: this.#zoom,
+      zoom: this.#camera.zoom,
       getImpressionContacts: () => [
         ...(this.#sceneObjects.getOne(SCENE_OBJECT_TYPE.HERO)
           ?.grassFootContacts ?? []),
@@ -1306,7 +1278,7 @@ export class PlayCanvasRenderer {
       for (const render of root.findComponents("render")) {
         for (const meshInstance of render.meshInstances) {
           const { center, halfExtents } = meshInstance.aabb;
-          this.#cameraPanBounds?.addVisualBounds(center, halfExtents, {
+          this.#camera.panBounds?.addVisualBounds(center, halfExtents, {
             group: name,
             protectAtPanLimit,
             centerReachableAtEveryZoom,
@@ -1328,8 +1300,11 @@ export class PlayCanvasRenderer {
       pc: this.#pc,
       app: this.#app,
       mapData: this.#mapData,
-      spawnCenter: { x: this.#fitCenterX, z: this.#fitCenterZ },
-      getViewRotation: () => this.#rotation,
+      spawnCenter: {
+        x: this.#camera.fitCenterX,
+        z: this.#camera.fitCenterZ,
+      },
+      getViewRotation: () => this.#camera.rotation,
       onPositionChange: this.#handleHeroPositionChange,
       onFacingChange: this.#handleHeroFacingChange,
       onStateChange: this.#handleHeroStateChange,
@@ -1345,7 +1320,7 @@ export class PlayCanvasRenderer {
       pc: this.#pc,
       modelLibrary: this.#modelLibrary,
       getPatPosition: () => hero.patPosition,
-      getViewRotation: () => this.#rotation,
+      getViewRotation: () => this.#camera.rotation,
       onContact: () => hero.pat(),
     });
     this.#mapRoot.addChild(this.#heroPatHand.entity);
@@ -1363,20 +1338,20 @@ export class PlayCanvasRenderer {
       canvas: this.canvas,
       camera: this.#camera.camera,
       hero: hero.entity,
-      getRotation: () => this.#rotation,
+      getRotation: () => this.#camera.rotation,
       setRotation: (rotation) => {
         if (
           this.#cameraLocked ||
           hero.isInDeathSequence ||
-          (this.#orbitPivot && this.#viewportManuallyMoved)
+          (this.#camera.orbitPivot && this.#camera.manuallyMoved)
         ) {
           return;
         }
-        this.#rotation = rotation;
+        this.#camera.rotation = rotation;
         this.#updateCamera();
       },
       shouldPreserveRotation: () => {
-        if (this.#orbitPivot && this.#viewportManuallyMoved) {
+        if (this.#camera.orbitPivot && this.#camera.manuallyMoved) {
           return true;
         }
         const position = hero.position;
@@ -1661,7 +1636,7 @@ export class PlayCanvasRenderer {
     ) {
       return;
     }
-    if (this.#freeCameraEnabled) {
+    if (this.#camera.freeEnabled) {
       this.#setFloatingCameraOffset(0, 0);
       return;
     }
@@ -2183,11 +2158,15 @@ export class PlayCanvasRenderer {
       ((cols + rows) * Math.sin(CAMERA_PITCH)) / (2 * Math.sqrt(2)) +
       maxHeight * Math.cos(CAMERA_PITCH) +
       1;
-    this.#baseOrthoHeight = Math.max(halfHeight, halfWidth / aspect) * 0.84;
+    this.#camera.baseOrthoHeight =
+      Math.max(halfHeight, halfWidth / aspect) * 0.84;
     this.#updateFitCenter();
-    if (this.#panLimitsEnabled && this.#zoom === MAP_FIT_ZOOM) {
-      this.#panX = this.#fitCenterX;
-      this.#panZ = this.#fitCenterZ;
+    if (
+      this.#camera.panLimitsEnabled &&
+      this.#camera.zoom === MAP_FIT_ZOOM
+    ) {
+      this.#camera.panX = this.#camera.fitCenterX;
+      this.#camera.panZ = this.#camera.fitCenterZ;
     }
   }
 
@@ -2196,7 +2175,7 @@ export class PlayCanvasRenderer {
       return;
     }
     const { grid, cols, rows } = this.#mapData;
-    const yaw = Math.PI / 4 + this.#rotation * (Math.PI / 2);
+    const yaw = Math.PI / 4 + this.#camera.rotation * (Math.PI / 2);
     const rightX = Math.cos(yaw);
     const rightZ = -Math.sin(yaw);
     let minimumProjection = Number.POSITIVE_INFINITY;
@@ -2214,19 +2193,19 @@ export class PlayCanvasRenderer {
     }
 
     if (!Number.isFinite(minimumProjection)) {
-      this.#fitCenterX = 0;
-      this.#fitCenterZ = 0;
+      this.#camera.fitCenterX = 0;
+      this.#camera.fitCenterZ = 0;
       return;
     }
 
     const centerProjection = (minimumProjection + maximumProjection) / 2;
-    this.#fitCenterX = rightX * centerProjection;
-    this.#fitCenterZ = rightZ * centerProjection;
+    this.#camera.fitCenterX = rightX * centerProjection;
+    this.#camera.fitCenterZ = rightZ * centerProjection;
   }
 
   #handleHeroPositionChange = ({ x, y, z }) => {
     const hero = this.#sceneObjects.getOne(SCENE_OBJECT_TYPE.HERO);
-    this.#orbitPivot = null;
+    this.#camera.orbitPivot = null;
     this.#updateCastlesForHero({ x, y, z });
     this.#groundCover?.applyHeroInteraction({ x, y, z }, hero?.movementState);
     this.#buriedTreasure?.applyHeroPosition({ x, y, z });
@@ -2273,12 +2252,12 @@ export class PlayCanvasRenderer {
       return;
     }
 
-    if (this.#viewportManuallyMoved) {
+    if (this.#camera.manuallyMoved) {
       this.#heroVisibility?.schedule();
       return;
-    } else if (this.#zoom > MAP_FIT_ZOOM) {
-      this.#panX = heroWorldPosition.x;
-      this.#panZ = heroWorldPosition.z;
+    } else if (this.#camera.zoom > MAP_FIT_ZOOM) {
+      this.#camera.panX = heroWorldPosition.x;
+      this.#camera.panZ = heroWorldPosition.z;
     } else if (!heroIsOutOfBounds) {
       this.#heroVisibility?.schedule();
       return;
@@ -2286,10 +2265,10 @@ export class PlayCanvasRenderer {
       const correction = this.#screenDeltaToGround(
         screenPosition.x - boundedX,
         screenPosition.y - boundedY,
-        this.#zoom,
+        this.#camera.zoom,
       );
-      this.#panX += correction.x;
-      this.#panZ += correction.z;
+      this.#camera.panX += correction.x;
+      this.#camera.panZ += correction.z;
     }
     this.#updateCamera();
     this.#heroVisibility?.schedule();
@@ -2305,13 +2284,13 @@ export class PlayCanvasRenderer {
   ) {
     const hero = this.#sceneObjects.getOne(SCENE_OBJECT_TYPE.HERO);
     if (
-      this.#heroCameraReturnTransition ||
+      this.#camera.returnTransition ||
       this.#cameraLocked ||
-      (!allowAutomatic && !this.#viewportManuallyMoved) ||
+      (!allowAutomatic && !this.#camera.manuallyMoved) ||
       !hero ||
       !this.#camera
     ) {
-      return Boolean(this.#heroCameraReturnTransition);
+      return Boolean(this.#camera.returnTransition);
     }
     const heroWorldPosition = hero.entity.getPosition();
     const screenPosition = this.#camera.camera.worldToScreen(
@@ -2333,19 +2312,19 @@ export class PlayCanvasRenderer {
     if (!force && !heroIsOutOfBounds) {
       return false;
     }
-    this.#heroCameraReturnTransition = {
+    this.#camera.returnTransition = {
       elapsed: 0,
-      startPanX: this.#panX,
-      startPanZ: this.#panZ,
+      startPanX: this.#camera.panX,
+      startPanZ: this.#camera.panZ,
       duration,
       preserveFocus,
     };
-    this.#orbitPivot = null;
+    this.#camera.orbitPivot = null;
     return true;
   }
 
   #updateHeroCameraReturn(deltaTime) {
-    const transition = this.#heroCameraReturnTransition;
+    const transition = this.#camera.returnTransition;
     const hero = this.#sceneObjects.getOne(SCENE_OBJECT_TYPE.HERO);
     if (!transition || this.#cameraLocked || !hero || !this.#camera) {
       return;
@@ -2354,15 +2333,15 @@ export class PlayCanvasRenderer {
     const progress = Math.min(1, transition.elapsed / transition.duration);
     const easedProgress = progress * progress * (3 - 2 * progress);
     const heroWorldPosition = hero.entity.getPosition();
-    this.#panX =
+    this.#camera.panX =
       transition.startPanX +
       (heroWorldPosition.x - transition.startPanX) * easedProgress;
-    this.#panZ =
+    this.#camera.panZ =
       transition.startPanZ +
       (heroWorldPosition.z - transition.startPanZ) * easedProgress;
     if (progress >= 1) {
-      this.#heroCameraReturnTransition = null;
-      this.#viewportManuallyMoved = false;
+      this.#camera.returnTransition = null;
+      this.#camera.manuallyMoved = false;
     }
     this.#updateCamera(null, transition.preserveFocus);
     this.#heroVisibility?.schedule();
@@ -2388,208 +2367,74 @@ export class PlayCanvasRenderer {
   }
 
   get #cameraState() {
-    return {
-      rotation: this.#rotation,
-      panX: this.#panX,
-      panZ: this.#panZ,
-      targetY: this.#cameraTargetY,
-      zoom: this.#zoom,
-      baseOrthoHeight: this.#baseOrthoHeight,
-    };
+    return this.#camera.state;
   }
 
   #setCameraState(state) {
-    if (Number.isFinite(state.rotation)) {
-      this.#rotation = state.rotation;
-    }
-    if (Number.isFinite(state.panX)) {
-      this.#panX = state.panX;
-    }
-    if (Number.isFinite(state.panZ)) {
-      this.#panZ = state.panZ;
-    }
-    if (Number.isFinite(state.targetY)) {
-      this.#cameraTargetY = state.targetY;
-    }
-    if (Number.isFinite(state.zoom)) {
-      this.#zoom = state.zoom;
-    }
-    if (Object.hasOwn(state, "viewportManuallyMoved")) {
-      this.#viewportManuallyMoved = Boolean(state.viewportManuallyMoved);
-    }
+    this.#camera.setState(state);
   }
 
   #updateCamera(panOrigin = null, preserveFocus = false) {
     if (!this.#camera || !this.#mapData) {
       return;
     }
-    if (this.#freeCameraEnabled) {
-      this.#updateFreeCamera();
-      return;
-    }
-    if (this.#panLimitsEnabled && this.#zoom === MAP_FIT_ZOOM) {
+    if (
+      !this.#camera.freeEnabled &&
+      this.#camera.panLimitsEnabled &&
+      this.#camera.zoom === MAP_FIT_ZOOM
+    ) {
       this.#updateFitCenter();
-      this.#panX = this.#fitCenterX;
-      this.#panZ = this.#fitCenterZ;
+      this.#camera.panX = this.#camera.fitCenterX;
+      this.#camera.panZ = this.#camera.fitCenterZ;
     }
-    if (this.#panLimitsEnabled && !this.#cameraLocked && !preserveFocus) {
-      const constrainedPan = this.#cameraPanBounds?.constrain(
+    if (
+      !this.#camera.freeEnabled &&
+      this.#camera.panLimitsEnabled &&
+      !this.#cameraLocked &&
+      !preserveFocus
+    ) {
+      const constrainedPan = this.#camera.panBounds?.constrain(
         this.#cameraView,
         panOrigin,
       );
       if (constrainedPan) {
-        this.#panX = constrainedPan.x;
-        this.#panZ = constrainedPan.z;
+        this.#camera.panX = constrainedPan.x;
+        this.#camera.panZ = constrainedPan.z;
       }
     }
-    const yaw = Math.PI / 4 + this.#rotation * (Math.PI / 2);
-    const horizontalDistance = CAMERA_DISTANCE * Math.cos(CAMERA_PITCH);
-    const target = new this.#pc.Vec3(
-      this.#panX,
-      this.#cameraTargetY,
-      this.#panZ,
-    );
     this.#floatingCameraOffsetApplied = false;
-    this.#camera.setPosition(
-      target.x + Math.sin(yaw) * horizontalDistance,
-      target.y + Math.sin(CAMERA_PITCH) * CAMERA_DISTANCE,
-      target.z + Math.cos(yaw) * horizontalDistance,
-    );
-    this.#camera.lookAt(target);
-    this.#camera.camera.orthoHeight = this.#baseOrthoHeight / this.#zoom;
-    if (this.#floatingIslandMotion) {
-      this.#floatingIslandMotion.zoom = this.#zoom;
-    }
-    if (this.#groundCover) {
-      this.#groundCover.zoom = this.#zoom;
-    }
-    if (this.#grassSurface) {
-      this.#grassSurface.zoom = this.#zoom;
-      this.#grassCarpet.zoom = this.#zoom;
-    }
-    this.#cloudField?.setCameraState({
-      rotation: this.#rotation,
-      panX: this.#panX,
-      panZ: this.#panZ,
-      zoom: this.#zoom,
+    const update = this.#camera.update({
+      cameraDistance: CAMERA_DISTANCE,
+      cameraPitch: CAMERA_PITCH,
     });
+    if (update.free) {
+      if (update.position) {
+        this.#updateCastlesForHero(update.position);
+      }
+    } else {
+      if (this.#floatingIslandMotion) {
+        this.#floatingIslandMotion.zoom = this.#camera.zoom;
+      }
+      if (this.#groundCover) {
+        this.#groundCover.zoom = this.#camera.zoom;
+      }
+      if (this.#grassSurface) {
+        this.#grassSurface.zoom = this.#camera.zoom;
+        this.#grassCarpet.zoom = this.#camera.zoom;
+      }
+      this.#cloudField?.setCameraState({
+        rotation: this.#camera.rotation,
+        panX: this.#camera.panX,
+        panZ: this.#camera.panZ,
+        zoom: this.#camera.zoom,
+      });
+    }
     this.#setFloatingCameraOffset(
       this.#floatingCameraOffsetX,
       this.#floatingCameraOffsetY,
     );
     this.#updateHeroIdleLookTarget();
     this.#notifyViewportChange();
-  }
-
-  #beginFreeCamera() {
-    if (!this.#camera || !this.#pc) {
-      return;
-    }
-    const yaw = Math.PI / 4 + this.#rotation * (Math.PI / 2);
-    const forward = new this.#pc.Vec3(
-      -Math.sin(yaw) * Math.cos(CAMERA_PITCH),
-      -Math.sin(CAMERA_PITCH),
-      -Math.cos(yaw) * Math.cos(CAMERA_PITCH),
-    );
-    const target = new this.#pc.Vec3(
-      this.#panX,
-      this.#cameraTargetY,
-      this.#panZ,
-    );
-    const visibleHeight = this.#baseOrthoHeight / Math.max(1, this.#zoom);
-    const perspectiveDistance = Math.max(
-      4,
-      Math.min(
-        24,
-        visibleHeight /
-          (2 * Math.tan((FREE_CAMERA_FOV * Math.PI) / 360)),
-      ),
-    );
-    this.#freeCameraPosition = target.clone().sub(
-      forward.clone().mulScalar(perspectiveDistance),
-    );
-    this.#freeCameraEuler = new this.#pc.Vec3(
-      -CAMERA_PITCH * (180 / Math.PI),
-      45 + this.#rotation * 90,
-      0,
-    );
-    this.#camera.camera.projection = this.#pc.PROJECTION_PERSPECTIVE;
-    this.#camera.camera.fov = FREE_CAMERA_FOV;
-  }
-
-  #endFreeCamera() {
-    if (this.#camera?.camera) {
-      this.#camera.camera.projection = this.#pc.PROJECTION_ORTHOGRAPHIC;
-    }
-    this.#freeCameraPosition = null;
-    this.#freeCameraEuler = null;
-    const heroPosition = this.hero?.position;
-    if (heroPosition) {
-      this.#updateCastlesForHero(heroPosition);
-    }
-  }
-
-  #moveFreeCamera(deltaX, deltaY) {
-    if (!this.#freeCameraPosition || !this.#freeCameraEuler) {
-      return;
-    }
-    const yaw = this.#freeCameraEuler.y * (Math.PI / 180);
-    const forwardX = -Math.sin(yaw);
-    const forwardZ = -Math.cos(yaw);
-    const rightX = Math.cos(yaw);
-    const rightZ = -Math.sin(yaw);
-    const scale = FREE_CAMERA_MOVE_PER_PIXEL;
-    this.#moveFreeCameraBy(
-      (forwardX * deltaY - rightX * deltaX) * scale,
-      0,
-      (forwardZ * deltaY - rightZ * deltaX) * scale,
-    );
-  }
-
-  #moveFreeCameraBy(deltaX, deltaY, deltaZ) {
-    if (!this.#freeCameraPosition) {
-      return;
-    }
-    const distance = Math.hypot(deltaX, deltaY, deltaZ);
-    const steps = Math.max(1, Math.ceil(distance / FREE_CAMERA_SWEEP_STEP));
-    const stepX = deltaX / steps;
-    const stepY = deltaY / steps;
-    const stepZ = deltaZ / steps;
-    for (let step = 0; step < steps; step += 1) {
-      const position = this.#freeCameraPosition;
-      const candidate = new this.#pc.Vec3(
-        position.x + stepX,
-        position.y + stepY,
-        position.z + stepZ,
-      );
-      if (!this.#freeCameraBlockedAt(candidate)) {
-        position.copy(candidate);
-        continue;
-      }
-      if (stepY !== 0) {
-        break;
-      }
-      const candidateX = new this.#pc.Vec3(
-        position.x + stepX,
-        position.y,
-        position.z,
-      );
-      if (!this.#freeCameraBlockedAt(candidateX)) {
-        position.copy(candidateX);
-      }
-      const candidateZ = new this.#pc.Vec3(
-        position.x,
-        position.y,
-        position.z + stepZ,
-      );
-      if (!this.#freeCameraBlockedAt(candidateZ)) {
-        position.copy(candidateZ);
-      }
-    }
-    this.#panX = this.#freeCameraPosition.x;
-    this.#panZ = this.#freeCameraPosition.z;
-    this.#viewportManuallyMoved = true;
-    this.#updateCamera();
   }
 
   #freeCameraBlockedAt(position) {
@@ -2643,38 +2488,6 @@ export class PlayCanvasRenderer {
     );
   }
 
-  #rotateFreeCamera(horizontalQuarterTurns, verticalQuarterTurns) {
-    if (!this.#freeCameraEuler) {
-      return;
-    }
-    this.#freeCameraEuler.y += horizontalQuarterTurns * 90;
-    this.#freeCameraEuler.x = Math.max(
-      FREE_CAMERA_MIN_PITCH,
-      Math.min(
-        FREE_CAMERA_MAX_PITCH,
-        this.#freeCameraEuler.x + verticalQuarterTurns * 90,
-      ),
-    );
-    this.#viewportManuallyMoved = true;
-    this.#updateCamera();
-  }
-
-  #updateFreeCamera() {
-    if (!this.#camera || !this.#freeCameraPosition || !this.#freeCameraEuler) {
-      return;
-    }
-    this.#floatingCameraOffsetApplied = false;
-    this.#camera.setPosition(this.#freeCameraPosition);
-    this.#camera.setEulerAngles(this.#freeCameraEuler);
-    this.#updateCastlesForHero(this.#freeCameraPosition);
-    this.#setFloatingCameraOffset(
-      this.#floatingCameraOffsetX,
-      this.#floatingCameraOffsetY,
-    );
-    this.#updateHeroIdleLookTarget();
-    this.#notifyViewportChange();
-  }
-
   #notifyViewportChange() {
     if (this.#cameraLocked) {
       return;
@@ -2703,16 +2516,16 @@ export class PlayCanvasRenderer {
 
   get #cameraView() {
     return {
-      panX: this.#panX,
-      panZ: this.#panZ,
-      centerX: this.#fitCenterX,
-      centerZ: this.#fitCenterZ,
-      targetY: this.#cameraTargetY,
-      rotation: this.#rotation,
+      panX: this.#camera.panX,
+      panZ: this.#camera.panZ,
+      centerX: this.#camera.fitCenterX,
+      centerZ: this.#camera.fitCenterZ,
+      targetY: this.#camera.targetY,
+      rotation: this.#camera.rotation,
       pitch: CAMERA_PITCH,
-      zoom: this.#zoom,
-      baseOrthoHeight: this.#baseOrthoHeight,
-      orthoHeight: this.#baseOrthoHeight / this.#zoom,
+      zoom: this.#camera.zoom,
+      baseOrthoHeight: this.#camera.baseOrthoHeight,
+      orthoHeight: this.#camera.baseOrthoHeight / this.#camera.zoom,
       viewportWidth: this.container.clientWidth,
       viewportHeight: this.container.clientHeight,
     };
@@ -2727,9 +2540,9 @@ export class PlayCanvasRenderer {
   }
 
   #screenDeltaToGround(deltaX, deltaY, zoom) {
-    const yaw = Math.PI / 4 + this.#rotation * (Math.PI / 2);
+    const yaw = Math.PI / 4 + this.#camera.rotation * (Math.PI / 2);
     const worldPerPixel =
-      (2 * this.#baseOrthoHeight) /
+      (2 * this.#camera.baseOrthoHeight) /
       Math.max(1, this.container.clientHeight) /
       zoom;
     const rightX = Math.cos(yaw);
@@ -2827,17 +2640,17 @@ export class PlayCanvasRenderer {
     }
     const rect = this.canvas.getBoundingClientRect();
     const center = this.#camera.camera.worldToScreen(
-      new this.#pc.Vec3(this.#panX, height, this.#panZ),
+      new this.#pc.Vec3(this.#camera.panX, height, this.#camera.panZ),
     );
     const correction = this.#screenDeltaToGround(
       clientX - rect.left - center.x,
       clientY - rect.top - center.y,
-      this.#zoom,
+      this.#camera.zoom,
     );
     return new this.#pc.Vec3(
-      this.#panX + correction.x,
+      this.#camera.panX + correction.x,
       height,
-      this.#panZ + correction.z,
+      this.#camera.panZ + correction.z,
     );
   }
 
@@ -2848,9 +2661,9 @@ export class PlayCanvasRenderer {
     const rect = this.canvas.getBoundingClientRect();
     const screenPosition = this.#camera.camera.worldToScreen(position);
     const worldPerPixel =
-      (2 * this.#baseOrthoHeight) /
+      (2 * this.#camera.baseOrthoHeight) /
       Math.max(1, this.canvas.clientHeight) /
-      this.#zoom;
+      this.#camera.zoom;
     const cursorY = clientY - rect.top;
     const upwardScreenDistance = screenPosition.y - cursorY;
     if (upwardScreenDistance <= 0) {
@@ -2984,7 +2797,7 @@ export class PlayCanvasRenderer {
   };
 
   #clearScene() {
-    this.#orbitPivot = null;
+    this.#camera.orbitPivot = null;
     this.#heroPatGesture?.destroy();
     this.#heroPatGesture = null;
     this.#heroPatHand?.destroy();
