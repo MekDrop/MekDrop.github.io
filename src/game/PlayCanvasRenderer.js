@@ -15,7 +15,6 @@ import { RiverWater } from "./objects/water/index.js";
 import { StoneField } from "./objects/scenery/StoneField.js";
 import { Hero, HeroPatHand } from "./objects/hero/index.js";
 import { HeroPatGesture } from "./controls/HeroPatGesture.js";
-import { HERO_MOOD } from "./enum/HeroMood.js";
 import { AxeTool, KnifeTool, ShovelTool } from "./objects/hero/tools/index.js";
 import { GrassSurface, GroundCover } from "./objects/ground-cover/index.js";
 import { GrassCarpet } from "./objects/ground-cover/GrassCarpet.js";
@@ -130,8 +129,6 @@ export class PlayCanvasRenderer {
   #heroPickupItemPreview = null;
   #heroPatGesture = null;
   #heroPatHand = null;
-  #onHeroMoodChange = null;
-  #heroMoodVisible = false;
   #lifeHud = null;
   #coinHud = null;
   #inventoryScene = null;
@@ -163,8 +160,6 @@ export class PlayCanvasRenderer {
   #interactionTarget = null;
   #interactionSignature = null;
   #onInteractionChange = null;
-  #onHeroStateChange = null;
-  #onInventoryFull = null;
   #viewportSignature = "";
   #viewportPersistenceEnabled = false;
   #saveViewportDebounced = null;
@@ -172,6 +167,7 @@ export class PlayCanvasRenderer {
   #gameViewStore = null;
   #graphicsSettingsStore = null;
   #heroConfigurationStore = null;
+  #heroStateStore = null;
   #stopDebugStoreSubscription = null;
   #translate = (key) => key;
   #uiTheme = null;
@@ -185,14 +181,12 @@ export class PlayCanvasRenderer {
     {
       onRuntimeError = null,
       onInteractionChange = null,
-      onHeroStateChange = null,
-      onHeroMoodChange = null,
-      onInventoryFull = null,
       t = (key) => key,
       debugStore,
       gameViewStore,
       graphicsSettingsStore,
       heroConfigurationStore,
+      heroStateStore,
       uiTheme,
     } = {},
   ) {
@@ -200,13 +194,11 @@ export class PlayCanvasRenderer {
     this.canvas = canvas;
     this.container = container;
     this.#onInteractionChange = onInteractionChange;
-    this.#onHeroStateChange = onHeroStateChange;
-    this.#onHeroMoodChange = onHeroMoodChange;
-    this.#onInventoryFull = onInventoryFull;
     this.#debugStore = debugStore;
     this.#gameViewStore = gameViewStore;
     this.#graphicsSettingsStore = graphicsSettingsStore;
     this.#heroConfigurationStore = heroConfigurationStore;
+    this.#heroStateStore = heroStateStore;
     this.#uiTheme = new GameUiTheme(uiTheme);
     this.#heroConfigurationStore.normalizeInventorySlots();
     this.#translate = t;
@@ -1312,10 +1304,18 @@ export class PlayCanvasRenderer {
       getViewRotation: () => this.#camera.rotation,
       onPositionChange: this.#handleHeroPositionChange,
       onFacingChange: this.#handleHeroFacingChange,
-      onStateChange: this.#handleHeroStateChange,
-      onInventoryFull: this.#handleInventoryFull,
       onMovementInput: () => this.#startHeroCameraReturn(),
       heroConfigurationStore: this.#heroConfigurationStore,
+      presentation: {
+        lifeHud: this.#lifeHud,
+        coinHud: this.#coinHud,
+        inventoryScene: this.#inventoryScene,
+        gameOverScene: this.#scene,
+        stateStore: this.#heroStateStore,
+        getMoodScreenPosition: () => this.#heroPatScreenPosition(),
+        getInventoryFullScreenPosition: () =>
+          this.#inventoryFullIndicatorScreenPosition(),
+      },
       collisionWorld: this.#collisionWorld,
       modelLibrary: this.#modelLibrary,
     });
@@ -1605,17 +1605,6 @@ export class PlayCanvasRenderer {
 
   #updateRuntimeSystems(deltaTime) {
     const hero = this.#sceneObjects.getOne(SCENE_OBJECT_TYPE.HERO);
-    const mood = hero?.mood;
-    if (mood && mood.kind !== HERO_MOOD.CALM) {
-      this.#heroMoodVisible = true;
-      this.#onHeroMoodChange?.({
-        ...mood,
-        screen: this.#heroPatScreenPosition(),
-      });
-    } else if (this.#heroMoodVisible) {
-      this.#heroMoodVisible = false;
-      this.#onHeroMoodChange?.(null);
-    }
     this.#riverWater?.update(deltaTime, hero, this.#camera?.camera);
     this.#heroPatHand?.update(deltaTime);
     this.#lifeHud?.update(deltaTime);
@@ -1694,13 +1683,6 @@ export class PlayCanvasRenderer {
       this.#cloudField.floatingOffset = this.#floatingCloudOffset;
     }
   }
-
-  #handleInventoryFull = (inventory) => {
-    this.#inventoryScene?.showFullReaction(
-      this.#inventoryFullIndicatorScreenPosition(),
-    );
-    this.#onInventoryFull?.(inventory);
-  };
 
   #inventoryFullIndicatorScreenPosition() {
     const hero = this.#sceneObjects.getOne(SCENE_OBJECT_TYPE.HERO);
@@ -2362,14 +2344,6 @@ export class PlayCanvasRenderer {
     }
   };
 
-  #handleHeroStateChange = (state) => {
-    this.#lifeHud?.setLives(state.lives, state.maxLives);
-    this.#coinHud?.setWallet(state.wallet);
-    this.#inventoryScene?.setInventory(state.inventory);
-    this.#scene?.syncHeroState?.(state);
-    this.#onHeroStateChange?.(state);
-  };
-
   get #cameraLocked() {
     return this.#scene?.cameraLocked ?? false;
   }
@@ -2810,8 +2784,6 @@ export class PlayCanvasRenderer {
     this.#heroPatGesture = null;
     this.#heroPatHand?.destroy();
     this.#heroPatHand = null;
-    this.#heroMoodVisible = false;
-    this.#onHeroMoodChange?.(null);
     this.#pointerInteraction?.cancelActivePointer();
     this.#pathArrows?.clear();
     this.#sceneObjects.destroyType(SCENE_OBJECT_TYPE.GATEWAY);

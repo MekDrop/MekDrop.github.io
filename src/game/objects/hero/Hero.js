@@ -197,7 +197,7 @@ export class Hero {
     if (this.#gameOver || this.isInDeathSequence || !this.#buffs.apply(id, options)) {
       return false;
     }
-    this.#emitState();
+    this.#syncState();
     return true;
   }
 
@@ -205,7 +205,7 @@ export class Hero {
     if (!this.#buffs.remove(id)) {
       return false;
     }
-    this.#emitState();
+    this.#syncState();
     return true;
   }
 
@@ -246,7 +246,7 @@ export class Hero {
       this.#jumpBufferRemaining = 0;
       this.#facingHoldRemaining = 0;
       this.#resetBoredom();
-      this.#emitState();
+      this.#syncState();
       return true;
     }
     const irritated = kind === HERO_MOOD.AGITATED;
@@ -259,7 +259,7 @@ export class Hero {
       return false;
     }
     this.#resetBoredom();
-    this.#emitState();
+    this.#syncState();
     return true;
   }
 
@@ -312,7 +312,6 @@ export class Hero {
   #getViewRotation;
   #onPositionChange;
   #onFacingChange;
-  #onStateChange;
   #collisionWorld;
   #modelLibrary;
   #entity;
@@ -393,8 +392,9 @@ export class Hero {
     [COIN_TYPE.COPPER]: 0,
   };
   #heroConfigurationStore;
-  #onInventoryFull;
   #onMovementInput;
+  #presentation;
+  #moodVisible = false;
 
   constructor({
     pc,
@@ -404,10 +404,9 @@ export class Hero {
     getViewRotation,
     onPositionChange,
     onFacingChange,
-    onStateChange,
-    onInventoryFull,
     onMovementInput,
     heroConfigurationStore,
+    presentation,
     collisionWorld,
     modelLibrary,
   }) {
@@ -419,10 +418,9 @@ export class Hero {
     this.#getViewRotation = getViewRotation;
     this.#onPositionChange = onPositionChange;
     this.#onFacingChange = onFacingChange;
-    this.#onStateChange = onStateChange;
     this.#heroConfigurationStore = heroConfigurationStore;
-    this.#onInventoryFull = onInventoryFull;
     this.#onMovementInput = onMovementInput;
+    this.#presentation = presentation;
     this.#collisionWorld = collisionWorld;
     this.#modelLibrary = modelLibrary;
     this.#tools.set(AxeTool.name, new AxeTool({ modelLibrary }));
@@ -451,7 +449,8 @@ export class Hero {
     this.#lavaDeathEffect = new HeroLavaDeathEffect({ pc, app });
     this.#entity.addChild(this.#lavaDeathEffect.entity);
     this.#updateHandle = app.on("update", this.#update);
-    this.#emitState();
+    this.#syncState();
+    this.#presentation?.stateStore?.setMood(null);
   }
 
   get entity() {
@@ -907,7 +906,7 @@ export class Hero {
       return false;
     }
     this.#wallet[type] += Math.max(0, Math.floor(amount));
-    this.#emitState();
+    this.#syncState();
     return true;
   }
 
@@ -935,11 +934,11 @@ export class Hero {
 
   collectInventoryItem(item) {
     if (!this.#heroConfigurationStore.addInventoryItem(item)) {
-      this.#onInventoryFull?.(this.inventory);
+      this.#showInventoryFull();
       return false;
     }
 
-    this.#emitState();
+    this.#syncState();
     return true;
   }
 
@@ -1047,6 +1046,7 @@ export class Hero {
 
   destroy() {
     this.#buffs.clear();
+    this.#presentation?.stateStore?.$reset();
     this.#updateHandle?.off();
     this.#updateHandle = null;
     this.#footPlacement?.destroy();
@@ -1102,6 +1102,7 @@ export class Hero {
     this.#step(Math.min(deltaTime, MAX_FRAME_TIME));
     this.#animate(deltaTime);
     this.#hairPhysics?.update();
+    this.#syncMood();
   };
 
   #step(deltaTime) {
@@ -1131,7 +1132,7 @@ export class Hero {
       this.#patEscape.advance(deltaTime, this.#position);
     }
     if (this.#buffs.revision !== buffRevision) {
-      this.#emitState();
+      this.#syncState();
     }
     if (this.#gameOver) {
       return;
@@ -1557,7 +1558,7 @@ export class Hero {
     this.#lavaDeathEffect?.begin();
     this.#restartAnimation = true;
     this.#resetBoredom();
-    this.#emitState();
+    this.#syncState();
   }
 
   #advanceLavaDeath(deltaTime) {
@@ -1581,7 +1582,7 @@ export class Hero {
     );
     if (!this.#lavaAshes && progress >= LAVA_ASH_START) {
       this.#lavaAshes = true;
-      this.#emitState();
+      this.#syncState();
     }
     if (action.elapsed < LAVA_BURN_DURATION) {
       return;
@@ -2931,7 +2932,7 @@ export class Hero {
       this.#gameOver = true;
       this.#velocity = { x: 0, y: 0, z: 0 };
       this.#physics.setScripted(this.#position, this.#velocity);
-      this.#emitState();
+      this.#syncState();
       return;
     }
 
@@ -2959,7 +2960,7 @@ export class Hero {
     this.#gatewayRepelCooldown = 0;
     this.#restartAnimation = true;
     this.#resetBoredom();
-    this.#emitState();
+    this.#syncState();
   }
 
   #resetLavaDeathPresentation() {
@@ -3629,7 +3630,7 @@ export class Hero {
     action.elapsed += deltaTime;
     if (!action.notified && action.elapsed >= INVENTORY_FULL_EFFECT_TIME) {
       action.notified = true;
-      this.#onInventoryFull?.(this.inventory);
+      this.#showInventoryFull();
     }
     if (action.elapsed < INVENTORY_FULL_COLLAPSE_DURATION) {
       return;
@@ -3848,8 +3849,8 @@ export class Hero {
     this.#respawnEffect?.reset();
   }
 
-  #emitState() {
-    this.#onStateChange?.({
+  #syncState() {
+    const state = {
       lives: this.#lives,
       maxLives: MAX_LIVES,
       gameOver: this.#gameOver,
@@ -3861,7 +3862,32 @@ export class Hero {
       mood: this.mood,
       buffs: this.buffs,
       stats: this.stats,
-    });
+    };
+    this.#presentation?.lifeHud?.setLives(state.lives, state.maxLives);
+    this.#presentation?.coinHud?.setWallet(state.wallet);
+    this.#presentation?.inventoryScene?.setInventory(state.inventory);
+    this.#presentation?.gameOverScene?.syncHeroState(state);
+    this.#presentation?.stateStore?.sync(state);
+  }
+
+  #showInventoryFull() {
+    this.#presentation?.inventoryScene?.showFullReaction(
+      this.#presentation?.getInventoryFullScreenPosition?.() ?? null,
+    );
+  }
+
+  #syncMood() {
+    const mood = this.mood;
+    if (mood.kind !== HERO_MOOD.CALM) {
+      this.#moodVisible = true;
+      this.#presentation?.stateStore?.setMood({
+        ...mood,
+        screen: this.#presentation?.getMoodScreenPosition?.() ?? null,
+      });
+    } else if (this.#moodVisible) {
+      this.#moodVisible = false;
+      this.#presentation?.stateStore?.setMood(null);
+    }
   }
 
   #findModelEntity(name) {

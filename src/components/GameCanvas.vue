@@ -216,6 +216,7 @@ import {
   onBeforeUnmount,
 } from "vue";
 import { useResizeObserver } from "@vueuse/core";
+import { storeToRefs } from "pinia";
 import { getCssVar } from "quasar";
 import { useI18n } from "vue-i18n";
 import { useRoute, useRouter } from "vue-router";
@@ -256,6 +257,7 @@ import { useDebugStore } from "src/stores/debug-store.js";
 import { useGraphicsSettingsStore } from "src/stores/graphics-settings-store.js";
 import { useGameViewStore } from "src/stores/game-view-store.js";
 import { useHeroConfigurationStore } from "src/stores/hero-configuration-store.js";
+import { useHeroStateStore } from "src/stores/hero-state-store.js";
 
 const container = ref(null);
 const canvas = ref(null);
@@ -265,10 +267,6 @@ const graphicsBackend = ref("initializing");
 const showGraphicsFallbackDialog = ref(false);
 const interactionTarget = ref(null);
 const interactionPromptsVisible = ref(true);
-const heroLives = ref(3);
-const heroMood = ref(null);
-const maxHeroLives = ref(3);
-const gameOver = ref(false);
 const freeCameraEnabled = ref(false);
 const currentMapName = ref("");
 const currentMapSignature = computed(() => currentMapName.value);
@@ -279,6 +277,13 @@ const graphicsSettingsStore = useGraphicsSettingsStore();
 const debugStore = useDebugStore();
 const gameViewStore = useGameViewStore();
 const heroConfigurationStore = useHeroConfigurationStore();
+const heroStateStore = useHeroStateStore();
+const {
+  lives: heroLives,
+  maxLives: maxHeroLives,
+  gameOver,
+  mood: heroMood,
+} = storeToRefs(heroStateStore);
 const debugVisible = computed(() => debugStore.hasAny);
 const debugFramesPerSecond = computed(() => debugStore.framesPerSecond);
 const interactionLabel = computed(() =>
@@ -504,19 +509,12 @@ async function init() {
     onInteractionChange: (target) => {
       interactionSuggestion?.update(target);
     },
-    onHeroStateChange: (state) => {
-      heroLives.value = state.lives;
-      maxHeroLives.value = state.maxLives;
-      gameOver.value = state.gameOver;
-    },
-    onHeroMoodChange: (mood) => {
-      heroMood.value = mood;
-    },
     t,
     debugStore,
     gameViewStore,
     graphicsSettingsStore,
     heroConfigurationStore,
+    heroStateStore,
     uiTheme: gameUiTheme(),
   });
   renderer = activeRenderer;
