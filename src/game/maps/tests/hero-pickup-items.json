@@ -34,7 +34,6 @@
   "numPaths": 0,
   "paths": [],
   "arrowData": [],
-  "vegetationData": [],
   "groundCoverData": [],
   "riverData": [],
   "pipeData": [],
@@ -43,5 +42,36 @@
   "trunkStart": null,
   "mapName": "test_hero-pickup-items",
   "layoutSignature": "test_hero-pickup-items",
-  "heroPickupItemPreview": true
+  "animationViewport": {
+    "zoom": 2,
+    "rotation": 0,
+    "panX": 0,
+    "panZ": 0
+  },
+  "objects": [
+    {"id":"daisy-patch-source","object":"GroundCoverItem","variant":"daisy-patch","position":{"x":-4.8437,"y":2.004,"z":2.3688}},
+    {"id":"buttercup-patch-source","object":"GroundCoverItem","variant":"buttercup-patch","position":{"x":-2.4395,"y":2.004,"z":-0.0353}},
+    {"id":"pink-flower-patch-source","object":"GroundCoverItem","variant":"pink-flower-patch","position":{"x":-0.0353,"y":2.004,"z":-2.4395}},
+    {"id":"blue-flower-patch-source","object":"GroundCoverItem","variant":"blue-flower-patch","position":{"x":2.3688,"y":2.004,"z":-4.8437}},
+    {"id":"clover-patch-source","object":"GroundCoverItem","variant":"clover-patch","position":{"x":-2.0152,"y":2.004,"z":5.1973}},
+    {"id":"red-mushroom-source","object":"GroundCoverItem","variant":"red-mushroom","position":{"x":0.3677,"y":2.004,"z":2.7719}},
+    {"id":"golden-mushroom-pair-source","object":"GroundCoverItem","variant":"golden-mushroom-pair","position":{"x":2.7719,"y":2.004,"z":0.3677}},
+    {"id":"forest-mushroom-cluster-source","object":"GroundCoverItem","variant":"forest-mushroom-cluster","position":{"x":5.1761,"y":2.004,"z":-2.0364}},
+    {"id":"daisy-patch-pickup","object":"Hero","animation":"PickFlower","position":{"x":-5.0205,"y":2.004,"z":2.192},"sequence":{"type":"pickup","item":"daisy-patch-source"}},
+    {"id":"buttercup-patch-pickup","object":"Hero","animation":"PickFlower","position":{"x":-2.6163,"y":2.004,"z":-0.2121},"sequence":{"type":"pickup","item":"buttercup-patch-source"}},
+    {"id":"pink-flower-patch-pickup","object":"Hero","animation":"PickFlower","position":{"x":-0.2121,"y":2.004,"z":-2.6163},"sequence":{"type":"pickup","item":"pink-flower-patch-source"}},
+    {"id":"blue-flower-patch-pickup","object":"Hero","animation":"PickFlower","position":{"x":2.192,"y":2.004,"z":-5.0205},"sequence":{"type":"pickup","item":"blue-flower-patch-source"}},
+    {"id":"clover-patch-pickup","object":"Hero","animation":"PickFlower","position":{"x":-2.192,"y":2.004,"z":5.0205},"sequence":{"type":"pickup","item":"clover-patch-source"}},
+    {"id":"red-mushroom-pickup","object":"Hero","animation":"PickMushroom","position":{"x":0.2121,"y":2.004,"z":2.6163},"sequence":{"type":"pickup","item":"red-mushroom-source"}},
+    {"id":"golden-mushroom-pair-pickup","object":"Hero","animation":"PickMushroom","position":{"x":2.6163,"y":2.004,"z":0.2121},"sequence":{"type":"pickup","item":"golden-mushroom-pair-source"}},
+    {"id":"forest-mushroom-cluster-pickup","object":"Hero","animation":"PickMushroom","position":{"x":5.0205,"y":2.004,"z":-2.192},"sequence":{"type":"pickup","item":"forest-mushroom-cluster-source"}},
+    {"id":"daisy-patch-pickup-sign","object":"WoodenSign","text":"Daisy Patch","position":{"x":-4.1366,"y":2.004,"z":3.0759}},
+    {"id":"buttercup-patch-pickup-sign","object":"WoodenSign","text":"Buttercup Patch","position":{"x":-1.7324,"y":2.004,"z":0.6718}},
+    {"id":"pink-flower-patch-pickup-sign","object":"WoodenSign","text":"Pink Flower Patch","position":{"x":0.6718,"y":2.004,"z":-1.7324}},
+    {"id":"blue-flower-patch-pickup-sign","object":"WoodenSign","text":"Blue Flower Patch","position":{"x":3.0759,"y":2.004,"z":-4.1366}},
+    {"id":"clover-patch-pickup-sign","object":"WoodenSign","text":"Clover Patch","position":{"x":-1.3081,"y":2.004,"z":5.9044}},
+    {"id":"red-mushroom-pickup-sign","object":"WoodenSign","text":"Red Mushroom","position":{"x":1.096,"y":2.004,"z":3.5002}},
+    {"id":"golden-mushroom-pair-pickup-sign","object":"WoodenSign","text":"Golden Mushroom Pair","position":{"x":3.5002,"y":2.004,"z":1.096}},
+    {"id":"forest-mushroom-cluster-pickup-sign","object":"WoodenSign","text":"Forest Mushroom Cluster","position":{"x":5.9044,"y":2.004,"z":-1.3081}}
+  ]
 }

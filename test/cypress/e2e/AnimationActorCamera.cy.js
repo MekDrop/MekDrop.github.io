@@ -1,6 +1,6 @@
-// Gallery models at the island's edges must remain reachable with normal limits.
-describe("Animation preview camera", () => {
-  it("reaches the top and bottom preview rows at 2.42x zoom in every rotation", () => {
+// Gallery actors at the island's edges must remain reachable with normal limits.
+describe("Animation actor camera", () => {
+  it("reaches the top and bottom actor rows at 2.42x zoom in every rotation", () => {
     cy.visit("/map/test_hero-animations?camera-test");
     cy.get('.background-canvas[data-game-ready="true"]', { timeout: 60000 })
       .should("be.visible");
@@ -15,8 +15,8 @@ describe("Animation preview camera", () => {
           const initial = driver.state();
           expect(initial.panLimitsEnabled).to.equal(true);
           const stations = Object.entries(initial.visibility.visualGroups)
-            .filter(([name]) => name.startsWith("animation-preview-"));
-          expect(stations.length).to.equal(33);
+            .filter(([name]) => name.startsWith("map-object-"));
+          expect(stations.length).to.equal(66);
           stations.sort((a, b) => direction * (a[1].top - b[1].top));
           const target = stations[0][0];
           cy.get(".background-canvas").then(($viewport) => {

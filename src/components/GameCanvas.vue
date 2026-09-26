@@ -466,10 +466,9 @@ async function updateCameraTestDriverPlugin() {
 async function updateCurrentMap(generatedMap) {
   mapData = generatedMap;
   currentMapName.value = generatedMap.mapName;
-  interactionPromptsVisible.value =
-    !generatedMap.heroAnimationPreview &&
-    !generatedMap.heroPickupItemPreview &&
-    !generatedMap.royalAnimationPreview;
+  interactionPromptsVisible.value = !generatedMap.objects?.some(
+    ({ object }) => object === "Hero",
+  );
   await updateMovementTestDriverPlugin();
 }
 

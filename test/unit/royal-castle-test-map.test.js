@@ -10,21 +10,20 @@ const map = JSON.parse(readFileSync(new URL(
 it("gives the king, queen, and princess independent castles and one shared trigger", () => {
   assert.equal(map.castles.length, 3);
   assert.deepEqual(map.castles.map(({ occupantSeed }) => occupantSeed), [0, 1, 2]);
-  assert.equal(map.royalCastleTriggers.length, 1);
-  const [trigger] = map.royalCastleTriggers;
-  assert.equal(trigger.royal, "All royals");
-  assert.deepEqual(trigger.castleIndexes, [0, 1, 2]);
+  const triggers = map.objects.filter(({ object }) => object === "TriggerArea");
+  assert.equal(triggers.length, 1);
+  const [trigger] = triggers;
+  assert.equal(trigger.color, "#d8aa3d");
+  assert.match(trigger.script, /setLeisurePresent/);
   const middleCastle = map.castles[1];
   const southEdge = middleCastle.position.row + middleCastle.position.depth - 1;
-  assert.equal(trigger.row - southEdge, 2);
-  assert.ok(trigger.col >= middleCastle.position.col);
-  assert.ok(trigger.col < middleCastle.position.col + middleCastle.position.width);
+  assert.equal(trigger.position.z, 4);
+  assert.equal(southEdge, 10);
+  assert.equal(trigger.position.x, 0);
 });
 
 it("starts the hero two tiles away from the middle activation tile", () => {
-  const [trigger] = map.royalCastleTriggers;
-  const triggerX = trigger.col - (map.cols - 1) / 2;
-  const triggerZ = trigger.row - (map.rows - 1) / 2;
-  assert.equal(map.heroSpawn.x, triggerX);
-  assert.equal(map.heroSpawn.z - triggerZ, 2);
+  const trigger = map.objects.find(({ object }) => object === "TriggerArea");
+  assert.equal(map.heroSpawn.x, trigger.position.x);
+  assert.equal(map.heroSpawn.z - trigger.position.z, 2);
 });

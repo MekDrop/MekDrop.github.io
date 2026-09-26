@@ -327,10 +327,13 @@
   "numPaths": 0,
   "paths": [],
   "arrowData": [],
-  "vegetationData": [
+  "objects": [
     {
-      "col": 2,
-      "row": 4,
+      "id": "oak-0",
+      "object": "Vegetation",
+      "kind": "tree",
+      "tile": { "col": 2, "row": 4 },
+      "position": { "x": -2, "y": 2.002, "z": 1 },
       "variant": "oak",
       "rotation": 0
     }

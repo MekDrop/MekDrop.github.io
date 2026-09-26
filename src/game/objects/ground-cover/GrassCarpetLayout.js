@@ -13,14 +13,15 @@ export class GrassCarpetLayout {
     for (const character of mapData.mapName ?? "") {
       mapSeed = (Math.imul(mapSeed, 31) + character.charCodeAt(0)) | 0;
     }
-    const stoneParts = (mapData.stoneData ?? []).flatMap(
-      ({ col, row, parts }) =>
+    const stoneParts = (mapData.objects ?? [])
+      .filter(({ object }) => object === "StoneCluster")
+      .flatMap(({ position, parts }) =>
         parts.map(({ offsetX, offsetZ, diameter }) => ({
-          x: col - (cols - 1) / 2 + offsetX,
-          z: row - (rows - 1) / 2 + offsetZ,
+          x: position.x + offsetX,
+          z: position.z + offsetZ,
           radius: diameter / 2,
         })),
-    );
+      );
     const sourceCovers = new Map(
       (mapData.riverData ?? []).flatMap(({ cells }) =>
         cells[0]

@@ -37,7 +37,7 @@ function createMap() {
     grid: Array.from({ length: rows }, () =>
       Array(cols).fill(TileType.GRASS),
     ),
-    vegetationData: [],
+    objects: [],
   };
 }
 
@@ -59,9 +59,9 @@ describe("grass wind shelter", () => {
 
   it("lets trees and bushes shelter nearby grass", () => {
     const map = createMap();
-    map.vegetationData = [
-      { col: 3, row: 2, kind: "tree" },
-      { col: 6, row: 1, kind: "bush" },
+    map.objects = [
+      { object: "Vegetation", tile: { col: 3, row: 2 }, kind: "tree" },
+      { object: "Vegetation", tile: { col: 6, row: 1 }, kind: "bush" },
     ];
     const windMap = new GrassWindMap({ pc, device: {}, mapData: map });
     windMap.refresh({ x: 1, z: 0 });

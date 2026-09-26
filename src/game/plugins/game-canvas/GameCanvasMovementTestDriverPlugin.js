@@ -22,8 +22,6 @@ export class GameCanvasMovementTestDriverPlugin {
         this.#context.renderer().hero?.dodge(inputX, inputY, direction) ?? false,
       interact: () => this.#context.renderer().interact(),
       royalCastles: () => this.#context.renderer().royalCastleStates,
-      royalTriggerPhysics: () =>
-        this.#context.renderer().royalTriggerPhysicsState,
       droppedInventoryItemCount: () =>
         this.#context.renderer().thrownInventoryItemCount,
       droppedInventoryItems: () =>

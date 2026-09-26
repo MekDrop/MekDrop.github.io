@@ -125,14 +125,16 @@ export class BuriedTreasureField {
     this.#onTerrainExcavated = onTerrainExcavated;
     this.#entity = new pc.Entity("Buried treasure field");
     this.#registerRiverSourceCovers();
-    for (const { col, row } of mapData.vegetationData ?? []) {
+    for (const { tile: { col, row } } of (mapData.objects ?? [])
+      .filter(({ object }) => object === "Vegetation")) {
       const key = this.#tileKey(col, row);
       this.#vegetationTileCounts.set(
         key,
         (this.#vegetationTileCounts.get(key) ?? 0) + 1,
       );
     }
-    for (const { col, row } of mapData.stoneData ?? []) {
+    for (const { tile: { col, row } } of (mapData.objects ?? [])
+      .filter(({ object }) => object === "StoneCluster")) {
       this.#stoneTiles.add(this.#tileKey(col, row));
     }
     for (const { col, row } of mapData.groundCoverData ?? []) {
@@ -349,6 +351,12 @@ export class BuriedTreasureField {
     }
     if (kind === "tree") {
       this.#felledTreeTiles.add(key);
+    }
+  }
+
+  removeMapObject({ object, tile, kind }) {
+    if (object === "Vegetation") {
+      this.removeVegetation({ ...tile, kind });
     }
   }
 

@@ -1,10 +1,11 @@
-import signModelUrl from "../models/scenery/arrow-signpost.glb?url";
+import signModelUrl from "../../models/scenery/arrow-signpost.glb?url";
 
 /**
  * An authored wooden direction sign with an instance-specific inscription.
  */
-export class HeroAnimationSign {
+export class WoodenSign {
   #entity;
+  #definition;
   #texture;
   #material;
 
@@ -12,18 +13,27 @@ export class HeroAnimationSign {
     return signModelUrl;
   }
 
-  constructor({ pc, app, modelLibrary, name }) {
+  constructor({ pc, app, modelLibrary, definition }) {
+    const {
+      id,
+      text,
+      position,
+      rotation = { x: 0, y: 45, z: 0 },
+      scale = 1,
+    } = definition;
+    this.#definition = definition;
     this.#entity = modelLibrary.instantiate(signModelUrl);
-    this.#entity.name = `${name} arrow sign`;
-    this.#entity.tags.add("hero-animation-sign", name);
-    this.#entity.setLocalEulerAngles(0, 45, 0);
-    this.#entity.setLocalPosition(1.25 / Math.SQRT2, 0, 1.25 / Math.SQRT2);
+    this.#entity.name = `${id} wooden sign`;
+    this.#entity.tags.add("map-object", id, this.constructor.name);
+    this.#entity.setLocalEulerAngles(rotation.x, rotation.y, rotation.z);
+    this.#entity.setLocalPosition(position.x, position.y, position.z);
+    this.#entity.setLocalScale(scale, scale, scale);
 
     const canvas = document.createElement("canvas");
     canvas.width = 512;
     canvas.height = 160;
     const context = canvas.getContext("2d");
-    const words = name.replace(/([a-z])([A-Z])/g, "$1 $2").split(" ");
+    const words = text.replace(/([a-z])([A-Z])/g, "$1 $2").split(" ");
     const lines = words.length > 2
       ? [words.slice(0, -1).join(" "), words.at(-1)]
       : [words.join(" ")];
@@ -59,7 +69,7 @@ export class HeroAnimationSign {
       }
     }
     this.#texture = new pc.Texture(app.graphicsDevice, {
-      name: `${name} sign lettering`,
+      name: `${text} sign lettering`,
       width: canvas.width,
       height: canvas.height,
       format: pc.PIXELFORMAT_RGBA8,
@@ -73,7 +83,7 @@ export class HeroAnimationSign {
     });
     this.#texture.setSource(canvas);
     this.#material = new pc.StandardMaterial();
-    this.#material.name = `${name} painted inscription`;
+    this.#material.name = `${text} painted inscription`;
     this.#material.diffuse = new pc.Color(1, 1, 1);
     this.#material.diffuseMap = this.#texture;
     this.#material.opacityMap = this.#texture;
@@ -94,6 +104,14 @@ export class HeroAnimationSign {
 
   get entity() {
     return this.#entity;
+  }
+
+  get definition() {
+    return this.#definition;
+  }
+
+  get visualRoots() {
+    return [this.#entity];
   }
 
   destroy() {

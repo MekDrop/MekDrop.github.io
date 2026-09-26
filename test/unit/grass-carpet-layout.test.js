@@ -75,9 +75,9 @@ describe("short grass carpet placement", () => {
 
   it("keeps full grass scatter beneath vegetation for footprint clipping", () => {
     const input = map([[TileType.GRASS, TileType.GRASS]]);
-    input.vegetationData = [
-      { col: 0, row: 0, kind: "tree" },
-      { col: 1, row: 0, kind: "bush" },
+    input.objects = [
+      { object: "Vegetation", tile: { col: 0, row: 0 }, kind: "tree" },
+      { object: "Vegetation", tile: { col: 1, row: 0 }, kind: "bush" },
     ];
 
     const placements = GrassCarpetLayout.create(input);

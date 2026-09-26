@@ -765,7 +765,6 @@
   "numPaths": 0,
   "paths": [],
   "arrowData": [],
-  "vegetationData": [],
   "groundCoverData": [],
   "riverData": [],
   "pipeData": [],
@@ -774,10 +773,15 @@
   "trunkStart": null,
   "mapName": "test_royals-crying",
   "layoutSignature": "test_royals-crying",
-  "heroSpawn": {
-    "x": 3,
-    "y": 2.14,
-    "z": 3
+  "animationViewport": {
+    "zoom": 2.5,
+    "rotation": 0,
+    "panX": 0,
+    "panZ": 0
   },
-  "royalAnimationPreview": true
+  "objects": [
+    {"id":"king-crying","object":"SeatedRoyal","variant":"king","animation":"Cry","position":{"x":-1.8,"y":2.05,"z":1.8},"scale":0.72},
+    {"id":"queen-crying","object":"SeatedRoyal","variant":"queen","animation":"Cry","position":{"x":0,"y":2.05,"z":0},"scale":0.72},
+    {"id":"princess-crying","object":"SeatedRoyal","variant":"princess","animation":"Cry","position":{"x":1.8,"y":2.05,"z":-1.8},"scale":0.72}
+  ]
 }

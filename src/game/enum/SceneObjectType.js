@@ -3,6 +3,5 @@ export const SCENE_OBJECT_TYPE = Object.freeze({
   CLIFF_VINES: "cliffVines",
   GATEWAY: "gateway",
   HERO: "hero",
-  STONE_FIELD: "stoneField",
-  VEGETATION: "vegetation",
+  MAP_OBJECT: "mapObject",
 });

@@ -116,11 +116,13 @@ export class GrassWindMap {
       }
     }
 
-    for (const vegetation of this.#mapData.vegetationData ?? []) {
+    for (const vegetation of (this.#mapData.objects ?? []).filter(
+      ({ object }) => object === "Vegetation",
+    )) {
       const tree = vegetation.kind === "tree";
       this.#blockers.push({
-        col: vegetation.col,
-        row: vegetation.row,
+        col: vegetation.tile.col,
+        row: vegetation.tile.row,
         radius: tree ? TREE_SHADOW_RADIUS : BUSH_SHADOW_RADIUS,
         shadowLength: tree ? TREE_SHADOW_LENGTH : BUSH_SHADOW_LENGTH,
         blockage: tree ? TREE_BLOCKAGE : BUSH_BLOCKAGE,

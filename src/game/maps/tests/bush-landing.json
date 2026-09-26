@@ -327,10 +327,13 @@
   "numPaths": 0,
   "paths": [],
   "arrowData": [],
-  "vegetationData": [
+  "objects": [
     {
-      "col": 2,
-      "row": 4,
+      "id": "round-bush-0",
+      "object": "Vegetation",
+      "kind": "bush",
+      "tile": { "col": 2, "row": 4 },
+      "position": { "x": -2, "y": 2.002, "z": 1 },
       "variant": "round-bush",
       "rotation": 0
     }

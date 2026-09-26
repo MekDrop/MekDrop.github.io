@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { RoyalCastleTriggerField } from "../../src/game/debug/RoyalCastleTriggerField.js";
+import { TriggerArea } from "../../src/game/objects/shared/TriggerArea.js";
 
 class FakeColor {
   fromString() {}
@@ -54,6 +54,7 @@ class FakeEntity {
   constructor() {
     this.render = null;
     this.rigidbody = null;
+    this.tags = { add() {} };
   }
 
   addComponent(type, options) {
@@ -101,14 +102,16 @@ const pc = {
   Vec3: FakeVec3,
 };
 
-describe("royal castle trigger grass physics", () => {
+describe("trigger area grass physics", () => {
   it("contributes a light weight over the marker footprint", () => {
-    const field = new RoyalCastleTriggerField({
+    const field = new TriggerArea({
       pc,
-      triggers: [{ col: 2, row: 1 }],
-      cols: 5,
-      rows: 5,
-      tileHeightAt: () => 2,
+      definition: {
+        id: "test-trigger",
+        color: "#d8aa3d",
+        position: { x: 0, y: 2, z: -1 },
+        script: "",
+      },
     });
 
     assert.equal(field.grassWeightAt(0, -1, 2.002), 0.01);
@@ -119,6 +122,7 @@ describe("royal castle trigger grass physics", () => {
 
   it("uses a dynamic cylinder and applies the hero load at the contact point", () => {
     let update = null;
+    const objects = { calls: [] };
     const app = {
       on(event, callback) {
         assert.equal(event, "update");
@@ -126,19 +130,24 @@ describe("royal castle trigger grass physics", () => {
         return { off() {} };
       },
     };
-    const field = new RoyalCastleTriggerField({
+    const field = new TriggerArea({
       pc,
       app,
-      triggers: [{ col: 2, row: 1 }],
-      cols: 5,
-      rows: 5,
-      tileHeightAt: () => 2,
-      getGrassSupportPoints: () => [
-        { x: -0.2, y: 2.002, z: -1 },
-        { x: 0.2, y: 2.002, z: -1 },
-      ],
+      definition: {
+        id: "test-trigger",
+        color: "#d8aa3d",
+        position: { x: 0, y: 2, z: -1 },
+        script: "objects.calls.push(active);",
+      },
+      runtime: {
+        objects,
+        getGrassSupportPoints: () => [
+          { x: -0.2, y: 2.002, z: -1 },
+          { x: 0.2, y: 2.002, z: -1 },
+        ],
+      },
     });
-    const marker = field.entity.children[0];
+    const marker = field.entity;
 
     assert.deepEqual(marker.components.get("collision"), {
       type: "cylinder",
@@ -150,6 +159,7 @@ describe("royal castle trigger grass physics", () => {
     assert.equal(marker.components.get("rigidbody").mass, 0.01);
 
     field.updateHeroPosition({ x: 0.3, y: 2, z: -1 });
+    assert.deepEqual(objects.calls, [true]);
     update();
     const heroForce = marker.rigidbody.forces.at(-1);
     assert.deepEqual(heroForce.slice(0, 3), [0, -0.005, 0]);
@@ -174,6 +184,8 @@ describe("royal castle trigger grass physics", () => {
         field.surfaceHeightAt(-0.3, -1),
     );
     assert.equal(field.surfaceHeightAt(1, -1), null);
+    field.updateHeroPosition({ x: 1, y: 2, z: -1 });
+    assert.deepEqual(objects.calls, [true, false]);
     field.destroy();
   });
 });

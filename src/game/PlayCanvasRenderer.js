@@ -8,10 +8,9 @@ import { Castle } from "./objects/castle/index.js";
 import { GATEWAY_BANNER_SIGNS, Gateway } from "./objects/gateway/index.js";
 import { BridgeRailingKit, OverpassStairs } from "./objects/path/index.js";
 import { RiverWater } from "./objects/water/index.js";
-import { StoneField } from "./objects/scenery/StoneField.js";
 import { Hero, HeroPatHand } from "./objects/hero/index.js";
 import { HeroPatGesture } from "./controls/HeroPatGesture.js";
-import { AxeTool, KnifeTool, ShovelTool } from "./objects/hero/tools/index.js";
+import { KnifeTool, ShovelTool } from "./objects/hero/tools/index.js";
 import { GrassSurface, GroundCover } from "./objects/ground-cover/index.js";
 import { GrassCarpet } from "./objects/ground-cover/GrassCarpet.js";
 import {
@@ -19,7 +18,7 @@ import {
   FloatingIslandMotion,
   SkyIslandScenery,
 } from "./objects/scenery/index.js";
-import { CliffVines, VoxelVegetation } from "./objects/vegetation/index.js";
+import { CliffVines } from "./objects/vegetation/index.js";
 import { BuriedTreasureField } from "./objects/treasure/index.js";
 import { ScenePointerInteraction } from "./objects/shared/ScenePointerInteraction.js";
 import { TileType } from "./MapGenerator.js";
@@ -40,11 +39,7 @@ import {
   HudCollection,
 } from "./ui/index.js";
 import { colorFromHex } from "./helpers/colors.js";
-import { RoyalAnimationPreview } from "./debug/RoyalAnimationPreview.js";
-import { HeroAnimationPreview } from "./debug/HeroAnimationPreview.js";
-import { HeroPickupItemPreview } from "./debug/HeroPickupItemPreview.js";
-import { HeroAnimationSign } from "./debug/HeroAnimationSign.js";
-import { RoyalCastleTriggerField } from "./debug/RoyalCastleTriggerField.js";
+import { MapObjectFactory } from "./objects/MapObjectFactory.js";
 import { GameOverScene } from "./rendering/scene/GameOverScene.js";
 import { InventoryScene } from "./rendering/scene/InventoryScene.js";
 import { SceneObjectRegistry } from "./rendering/scene/SceneObjectRegistry.js";
@@ -120,10 +115,6 @@ export class PlayCanvasRenderer {
   #vertexBuffers = [];
   #bridgeRailingKit = null;
   #sceneObjects = new SceneObjectRegistry();
-  #royalCastleTriggerField = null;
-  #royalAnimationPreview = null;
-  #heroAnimationPreview = null;
-  #heroPickupItemPreview = null;
   #heroPatGesture = null;
   #heroPatHand = null;
   #huds = null;
@@ -338,7 +329,7 @@ export class PlayCanvasRenderer {
       this.#modelLibrary.load([
         ...Hero.modelUrls,
         HeroPatHand.modelUrl,
-        ...(import.meta.env.DEV ? [HeroAnimationSign.modelUrl] : []),
+        ...MapObjectFactory.modelUrls,
         ...InventoryScene.modelUrls,
         Gateway.modelUrl,
         ...BridgeRailingKit.modelUrls,
@@ -346,7 +337,6 @@ export class PlayCanvasRenderer {
         ...Castle.modelUrls,
         ...GroundCover.modelUrls,
         ...GrassCarpet.modelUrls,
-        ...VoxelVegetation.modelUrls,
         ...CliffVines.modelUrls,
         ...BuriedTreasureField.modelUrls,
         ...RiverWater.modelUrls,
@@ -390,30 +380,13 @@ export class PlayCanvasRenderer {
     this.#fitCamera();
     this.#updateCamera();
     this.#heroVisibility?.schedule();
-    if (this.#royalAnimationPreview) {
-      initialViewport = {
-        zoom: 2.5,
-        rotation: 0,
-        panX: 0,
-        panZ: 0,
-        manuallyMoved: true,
-      };
-    }
-    if (this.#heroAnimationPreview) {
+    if (this.#mapData.animationViewport) {
       initialViewport = {
         zoom: 1.5,
         rotation: 0,
         panX: 0,
         panZ: 0,
-        manuallyMoved: true,
-      };
-    }
-    if (this.#heroPickupItemPreview) {
-      initialViewport = {
-        zoom: 2,
-        rotation: 0,
-        panX: 0,
-        panZ: 0,
+        ...this.#mapData.animationViewport,
         manuallyMoved: true,
       };
     }
@@ -483,10 +456,6 @@ export class PlayCanvasRenderer {
     return this.#sceneObjects
       .getAll(SCENE_OBJECT_TYPE.CASTLE)
       .map((castle) => castle.leisureState);
-  }
-
-  get royalTriggerPhysicsState() {
-    return this.#royalCastleTriggerField?.physicsState ?? [];
   }
 
   get inventoryState() {
@@ -1120,7 +1089,9 @@ export class PlayCanvasRenderer {
         ...(this.#groundCover?.grassImpressionContacts ?? []),
       ],
       getSurfaceContacts: () =>
-        this.#royalCastleTriggerField?.grassSurfaceContacts ?? [],
+        this.#sceneObjects
+          .getAll(SCENE_OBJECT_TYPE.MAP_OBJECT)
+          .flatMap(({ grassSurfaceContacts = [] }) => grassSurfaceContacts),
       getWeightAt: (x, y, z) => this.#collisionWorld.grassWeightAt(x, z, y),
     });
 
@@ -1133,32 +1104,7 @@ export class PlayCanvasRenderer {
     });
     this.#app.root.addChild(this.#cloudField.entity);
     this.#buildCastle();
-    this.#buildRoyalCastleTriggerField();
-    if (import.meta.env.DEV && this.#mapData.royalAnimationPreview) {
-      this.#royalAnimationPreview = new RoyalAnimationPreview({
-        pc: this.#pc,
-        app: this.#app,
-        modelLibrary: this.#modelLibrary,
-      });
-      this.#mapRoot.addChild(this.#royalAnimationPreview.entity);
-    }
-    if (import.meta.env.DEV && this.#mapData.heroAnimationPreview) {
-      this.#heroAnimationPreview = new HeroAnimationPreview({
-        pc: this.#pc,
-        app: this.#app,
-        modelLibrary: this.#modelLibrary,
-        canvas: this.canvas,
-      });
-      this.#mapRoot.addChild(this.#heroAnimationPreview.entity);
-    }
-    if (import.meta.env.DEV && this.#mapData.heroPickupItemPreview) {
-      this.#heroPickupItemPreview = new HeroPickupItemPreview({
-        pc: this.#pc,
-        app: this.#app,
-        modelLibrary: this.#modelLibrary,
-      });
-      this.#mapRoot.addChild(this.#heroPickupItemPreview.entity);
-    }
+    this.#buildMapObjects();
     this.getHud(HeroLifeHud)?.setCastleLives(
       this.#sceneObjects.getFirst(SCENE_OBJECT_TYPE.CASTLE)
         ? MAX_CASTLE_LIVES
@@ -1166,8 +1112,6 @@ export class PlayCanvasRenderer {
       MAX_CASTLE_LIVES,
     );
     this.#buildGateways();
-    this.#buildVegetation();
-    this.#buildStones();
     this.#buildCliffVines();
     this.#buildGroundCover();
     this.#buildBuriedTreasure();
@@ -1178,6 +1122,33 @@ export class PlayCanvasRenderer {
     this.#updateInteractionTarget();
 
     this.#captureCameraVisualBounds();
+  }
+
+  #buildMapObjects() {
+    for (const object of MapObjectFactory.createAll({
+      pc: this.#pc,
+      app: this.#app,
+      modelLibrary: this.#modelLibrary,
+      definitions: this.#mapData.objects ?? [],
+      runtime: {
+        objects: this.#sceneObjects,
+        getGrassSupportPoints: (position, radius) =>
+          this.#grassCarpet.supportPointsWithin(position, radius),
+        onObjectRemoved: (removedObject) => {
+          this.#buriedTreasure?.removeMapObject(removedObject);
+          this.#grassSurface?.refreshObstacles(removedObject);
+        },
+        onRuntimeError: this.#onRuntimeError,
+      },
+    })) {
+      this.#sceneObjects.add(SCENE_OBJECT_TYPE.MAP_OBJECT, object);
+      this.#mapRoot.addChild(object.entity);
+      if (object.isGroundCollider) {
+        this.#collisionWorld.add(object, {
+          physicsSurface: object.physicsSurface !== false,
+        });
+      }
+    }
   }
 
   #captureCameraVisualBounds() {
@@ -1196,22 +1167,16 @@ export class PlayCanvasRenderer {
         protectAtPanLimit: true,
         root: gateway.entity,
       })),
-      ...[
-        this.#heroAnimationPreview,
-        this.#heroPickupItemPreview,
-        this.#royalAnimationPreview,
-      ].flatMap((preview) =>
-        (preview?.entity.children ?? []).map((root) => ({
-          name: `animation-preview-${root.name}`,
-          protectAtPanLimit: true,
-          centerReachableAtEveryZoom: true,
-          root,
-        })),
-      ),
-      {
-        name: "vegetation",
-        root: this.#sceneObjects.getOne(SCENE_OBJECT_TYPE.VEGETATION)?.entity,
-      },
+      ...this.#sceneObjects
+        .getAll(SCENE_OBJECT_TYPE.MAP_OBJECT)
+        .flatMap((object) =>
+          object.visualRoots.map((root) => ({
+            name: `map-object-${root.name}`,
+            protectAtPanLimit: true,
+            centerReachableAtEveryZoom: true,
+            root,
+          })),
+        ),
       { name: "ground-cover", root: this.#groundCover?.entity },
     ].filter(({ root }) => root);
     for (const {
@@ -1234,11 +1199,7 @@ export class PlayCanvasRenderer {
   }
 
   #buildHero() {
-    if (
-      this.#mapData.heroAnimationPreview ||
-      this.#mapData.heroPickupItemPreview ||
-      this.#mapData.royalAnimationPreview
-    ) {
+    if (this.#mapData.objects?.some(({ object }) => object === Hero.name)) {
       return;
     }
     const getHud = (HudClass) => this.getHud(HudClass);
@@ -1331,43 +1292,21 @@ export class PlayCanvasRenderer {
 
   #connectHeroTools() {
     const hero = this.#sceneObjects.getOne(SCENE_OBJECT_TYPE.HERO);
-    const vegetation = this.#sceneObjects.getOne(SCENE_OBJECT_TYPE.VEGETATION);
+    const mapObjects = this.#sceneObjects.getAll(SCENE_OBJECT_TYPE.MAP_OBJECT);
     if (hero?.tools) {
       this.#groundCover.tool = hero.tools.get(KnifeTool.name);
-      vegetation.tool = hero.tools.get(AxeTool.name);
+      for (const object of mapObjects) {
+        if (object.toolName) {
+          object.tool = hero.tools.get(object.toolName);
+        }
+      }
       this.#buriedTreasure.tool = hero.tools.get(ShovelTool.name);
     }
     this.#interactionProviders = [
       this.#groundCover,
-      vegetation,
+      ...mapObjects.filter(({ findInteraction }) => findInteraction),
       this.#buriedTreasure,
     ];
-  }
-
-  #buildVegetation() {
-    const vegetation = new VoxelVegetation({
-      pc: this.#pc,
-      mapData: this.#mapData,
-      modelLibrary: this.#modelLibrary,
-      onVegetationRemoved: (vegetation) => {
-        this.#buriedTreasure?.removeVegetation(vegetation);
-        this.#grassSurface?.refreshObstacles(vegetation);
-      },
-    });
-    this.#sceneObjects.setOne(SCENE_OBJECT_TYPE.VEGETATION, vegetation);
-    this.#collisionWorld.add(vegetation, { physicsSurface: false });
-    this.#mapRoot.addChild(vegetation.entity);
-  }
-
-  #buildStones() {
-    const stoneField = new StoneField({
-      pc: this.#pc,
-      app: this.#app,
-      mapData: this.#mapData,
-    });
-    this.#sceneObjects.setOne(SCENE_OBJECT_TYPE.STONE_FIELD, stoneField);
-    this.#mapRoot.addChild(stoneField.entity);
-    this.#collisionWorld.add(stoneField, { physicsSurface: false });
   }
 
   #buildCliffVines() {
@@ -1495,46 +1434,14 @@ export class PlayCanvasRenderer {
     }
   }
 
-  #buildRoyalCastleTriggerField() {
-    const triggers = this.#mapData.royalCastleTriggers ?? [];
-    if (!import.meta.env.DEV || !triggers.length) {
-      return;
-    }
-    this.#royalCastleTriggerField = new RoyalCastleTriggerField({
-      pc: this.#pc,
-      app: this.#app,
-      triggers,
-      cols: this.#mapData.cols,
-      rows: this.#mapData.rows,
-      tileHeightAt: (col, row) => this.#tileHeight(col, row),
-      getGrassSupportPoints: (position, radius) =>
-        this.#grassCarpet.supportPointsWithin(position, radius),
-    });
-    this.#collisionWorld.add(this.#royalCastleTriggerField);
-    this.#mapRoot.addChild(this.#royalCastleTriggerField.entity);
-  }
-
   #updateCastlesForHero(position) {
-    this.#royalCastleTriggerField?.updateHeroPosition(position);
-    const triggers = this.#mapData.royalCastleTriggers ?? [];
-    for (const [index, castle] of this.#sceneObjects
-      .getAll(SCENE_OBJECT_TYPE.CASTLE)
-      .entries()) {
+    for (const castle of this.#sceneObjects.getAll(SCENE_OBJECT_TYPE.CASTLE)) {
       castle.updateHeroPosition(position);
-      const trigger = triggers.find(
-        (entry) =>
-          entry.castleIndex === index || entry.castleIndexes?.includes(index),
-      );
-      if (!trigger) {
-        continue;
-      }
-      const triggerX = trigger.col - (this.#mapData.cols - 1) / 2;
-      const triggerZ = trigger.row - (this.#mapData.rows - 1) / 2;
-      const standingOnTrigger =
-        Math.abs(position.x - triggerX) <= 0.48 &&
-        Math.abs(position.z - triggerZ) <= 0.48 &&
-        Math.abs(position.y - this.#tileHeight(trigger.col, trigger.row)) < 2;
-      castle.setLeisurePresent(standingOnTrigger);
+    }
+    for (const object of this.#sceneObjects.getAll(
+      SCENE_OBJECT_TYPE.MAP_OBJECT,
+    )) {
+      object.updateHeroPosition?.(position);
     }
   }
 
@@ -2341,14 +2248,7 @@ export class PlayCanvasRenderer {
     this.#pointerInteraction?.cancelActivePointer();
     this.#sceneObjects.destroyType(SCENE_OBJECT_TYPE.GATEWAY);
     this.#sceneObjects.destroyType(SCENE_OBJECT_TYPE.CASTLE);
-    this.#royalCastleTriggerField?.destroy();
-    this.#royalCastleTriggerField = null;
-    this.#royalAnimationPreview?.destroy();
-    this.#royalAnimationPreview = null;
-    this.#heroAnimationPreview?.destroy();
-    this.#heroAnimationPreview = null;
-    this.#heroPickupItemPreview?.destroy();
-    this.#heroPickupItemPreview = null;
+    this.#sceneObjects.destroyType(SCENE_OBJECT_TYPE.MAP_OBJECT);
     this.#heroVisibility?.destroy();
     this.#heroVisibility = null;
     this.#floatingIslandMotion = null;
@@ -2358,8 +2258,6 @@ export class PlayCanvasRenderer {
     this.#interactionProviders = [];
     this.#inventoryScene?.clearWorldItems();
     this.#sceneObjects.destroyType(SCENE_OBJECT_TYPE.HERO);
-    this.#sceneObjects.destroyType(SCENE_OBJECT_TYPE.VEGETATION);
-    this.#sceneObjects.destroyType(SCENE_OBJECT_TYPE.STONE_FIELD);
     this.#sceneObjects.destroyType(SCENE_OBJECT_TYPE.CLIFF_VINES);
     this.#terrainRenderer?.destroy();
     this.#terrainRenderer = null;

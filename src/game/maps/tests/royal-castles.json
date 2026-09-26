@@ -4667,22 +4667,9 @@
       "occupantSeed": 2
     }
   ],
-  "royalCastleTriggers": [
-    {
-      "castleIndexes": [
-        0,
-        1,
-        2
-      ],
-      "royal": "All royals",
-      "col": 20,
-      "row": 12
-    }
-  ],
   "numPaths": 0,
   "paths": [],
   "arrowData": [],
-  "vegetationData": [],
   "groundCoverData": [],
   "riverData": [],
   "pipeData": [],
@@ -4695,5 +4682,14 @@
     "x": 0,
     "y": 2.14,
     "z": 6
-  }
+  },
+  "objects": [
+    {
+      "id": "all-royals-trigger",
+      "object": "TriggerArea",
+      "color": "#d8aa3d",
+      "position": { "x": 0, "y": 2, "z": 4 },
+      "script": "for (const castle of objects.getAll('castle')) { castle.setLeisurePresent(active); }"
+    }
+  ]
 }

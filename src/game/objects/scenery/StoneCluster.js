@@ -1,4 +1,3 @@
-import { GRASS_SURFACE_LIFT } from "../../config/terrain.js";
 import { addGeneratedVoxelPhysics } from "../shared/GeneratedVoxelPhysics.js";
 import {
   buildStoneVoxelGeometry,
@@ -6,29 +5,29 @@ import {
 } from "./StoneVoxelGeometry.js";
 
 /**
- * Runtime-built cubic stone clusters with solid tops the hero can land on.
+ * A map-authored cubic stone cluster with solid tops the hero can land on.
  */
-export class StoneField {
+export class StoneCluster {
   #entity;
+  #definition;
   #parts = [];
   #mesh = null;
   #material = null;
   #physicsCollider = null;
 
-  constructor({ pc, app, mapData }) {
-    this.#entity = new pc.Entity("Stone clusters");
+  constructor({ pc, app, definition }) {
+    this.#definition = definition;
+    this.#entity = new pc.Entity(`${definition.id} stone cluster`);
+    this.#entity.tags.add("map-object", definition.id, this.constructor.name);
     const stones = [];
-    for (const cluster of mapData.stoneData ?? []) {
-      const ground =
-        mapData.heightmap[cluster.row][cluster.col] + GRASS_SURFACE_LIFT;
-      for (const stone of cluster.parts) {
-        const x = cluster.col - (mapData.cols - 1) / 2 + stone.offsetX;
-        const z = cluster.row - (mapData.rows - 1) / 2 + stone.offsetZ;
-        const halfWidth = stone.diameter / 2;
-        const top = ground + stone.height;
-        stones.push({ ...stone, x, z, ground });
-        this.#parts.push({ x, z, ground, top, halfWidth });
-      }
+    const { position, parts } = definition;
+    for (const stone of parts) {
+      const x = position.x + stone.offsetX;
+      const z = position.z + stone.offsetZ;
+      const halfWidth = stone.diameter / 2;
+      const top = position.y + stone.height;
+      stones.push({ ...stone, x, z, ground: position.y });
+      this.#parts.push({ x, z, ground: position.y, top, halfWidth });
     }
     if (!stones.length) {
       return;
@@ -68,6 +67,22 @@ export class StoneField {
 
   get entity() {
     return this.#entity;
+  }
+
+  get definition() {
+    return this.#definition;
+  }
+
+  get isGroundCollider() {
+    return true;
+  }
+
+  get physicsSurface() {
+    return false;
+  }
+
+  get visualRoots() {
+    return [this.#entity];
   }
 
   surfaceHeightAt(x, z, radius = 0) {

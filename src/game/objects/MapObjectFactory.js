@@ -1,0 +1,87 @@
+import { SeatedRoyal } from "./castle/SeatedRoyal.js";
+import { MapObjectClassNotFoundError } from "../errors/debug/index.js";
+import { GroundCoverItem } from "./ground-cover/GroundCoverItem.js";
+import { Hero } from "./hero/Hero.js";
+import { StoneCluster } from "./scenery/StoneCluster.js";
+import { WoodenSign } from "./scenery/WoodenSign.js";
+import { TriggerArea } from "./shared/TriggerArea.js";
+import { VoxelVegetation } from "./vegetation/VoxelVegetation.js";
+import { MapAnimationActor } from "../debug/MapAnimationActor.js";
+import { MapPickupAnimationActors } from "../debug/MapPickupAnimationActors.js";
+import { MapVirtualItem } from "../debug/MapVirtualItem.js";
+
+const OBJECT_CLASSES = new Map([
+  [GroundCoverItem.name, MapVirtualItem],
+  [Hero.name, MapAnimationActor],
+  [StoneCluster.name, StoneCluster],
+  [TriggerArea.name, TriggerArea],
+  ["Vegetation", VoxelVegetation],
+  [WoodenSign.name, WoodenSign],
+  [SeatedRoyal.name, MapAnimationActor],
+]);
+
+/**
+ * Creates map objects through the class registered for each object name.
+ */
+export class MapObjectFactory {
+  static get modelUrls() {
+    return [
+      ...new Set(
+        [...OBJECT_CLASSES.values()].flatMap((ObjectClass) =>
+          ObjectClass.modelUrls ??
+          (ObjectClass.modelUrl ? [ObjectClass.modelUrl] : []),
+        ),
+      ),
+    ];
+  }
+
+  static createAll({ pc, app, modelLibrary, definitions, runtime = {} }) {
+    const objects = [];
+    const pickupDefinitions = [];
+    const vegetationDefinitions = [];
+    for (const definition of definitions) {
+      if (definition.object === "Vegetation") {
+        vegetationDefinitions.push(definition);
+        continue;
+      }
+      if (definition.sequence?.type === "pickup") {
+        pickupDefinitions.push(definition);
+        continue;
+      }
+      const MapObjectClass = OBJECT_CLASSES.get(definition.object);
+      if (!MapObjectClass) {
+        throw new MapObjectClassNotFoundError({ object: definition.object });
+      }
+      const object = new MapObjectClass({
+        pc,
+        app,
+        modelLibrary,
+        definition,
+        runtime,
+      });
+      objects.push(object);
+    }
+    if (vegetationDefinitions.length) {
+      objects.push(
+        new VoxelVegetation({
+          pc,
+          modelLibrary,
+          definitions: vegetationDefinitions,
+          runtime,
+        }),
+      );
+    }
+    if (pickupDefinitions.length) {
+      objects.push(
+        new MapPickupAnimationActors({
+          pc,
+          app,
+          modelLibrary,
+          definitions: pickupDefinitions,
+          items: objects.filter(({ definition }) => definition),
+        }),
+      );
+    }
+    return objects;
+  }
+}

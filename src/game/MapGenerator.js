@@ -40,6 +40,7 @@ import { SLOPE_DIRECTION } from "./enum/SlopeDirection.js";
 import { TILE_SHAPE } from "./enum/TileShape.js";
 import { GATEWAY_COLORS } from "./config/gateway.js";
 import { STONE_COLORS } from "./config/stoneStyles.js";
+import { GRASS_SURFACE_LIFT } from "./config/terrain.js";
 
 export const TileType = {
   WATER: 0,
@@ -241,25 +242,25 @@ export class MapGenerator {
       islandMask,
       heightmap,
     );
-    const vegetationData = this.#placeVegetation(
+    const vegetationPlacements = this.#placeVegetation(
       grid,
       heightmap,
       tileMeta,
       layout,
     );
-    const stoneData = this.#placeStones(
+    const stonePlacements = this.#placeStones(
       grid,
       heightmap,
       tileMeta,
-      vegetationData,
+      vegetationPlacements,
       mapName,
     );
     const groundCoverData = this.#placeGroundCover(
       grid,
       heightmap,
       tileMeta,
-      vegetationData,
-      stoneData,
+      vegetationPlacements,
+      stonePlacements,
     );
     const cliffVineData = this.#placeCliffVines(
       grid,
@@ -273,14 +274,40 @@ export class MapGenerator {
       tileMeta,
       layout,
       islandMask,
-      vegetationData,
-      stoneData,
+      vegetationPlacements,
+      stonePlacements,
       groundCoverData,
       riverData,
       routeCellsByPath,
     );
     const { routes, arrowData } = this.#buildRouteData(layout);
     const castle = this.#buildCastleData(grid, layout);
+    const objects = [
+      ...vegetationPlacements.map((vegetation, index) => ({
+        id: `vegetation-${index}`,
+        object: "Vegetation",
+        variant: vegetation.variant,
+        kind: vegetation.kind,
+        rotation: vegetation.rotation ?? 0,
+        tile: { col: vegetation.col, row: vegetation.row },
+        position: {
+          x: vegetation.col - (this.#MAP_COLS - 1) / 2,
+          y: heightmap[vegetation.row][vegetation.col] + GRASS_SURFACE_LIFT,
+          z: vegetation.row - (this.#MAP_ROWS - 1) / 2,
+        },
+      })),
+      ...stonePlacements.map((stone, index) => ({
+        id: `stone-cluster-${index}`,
+        object: "StoneCluster",
+        tile: { col: stone.col, row: stone.row },
+        position: {
+          x: stone.col - (this.#MAP_COLS - 1) / 2,
+          y: heightmap[stone.row][stone.col] + GRASS_SURFACE_LIFT,
+          z: stone.row - (this.#MAP_ROWS - 1) / 2,
+        },
+        parts: stone.parts,
+      })),
+    ];
 
     return {
       grid,
@@ -303,8 +330,7 @@ export class MapGenerator {
         route: routes[pathIdx],
       })),
       arrowData,
-      vegetationData,
-      stoneData,
+      objects,
       groundCoverData,
       cliffVineData,
       riverData,
@@ -3805,12 +3831,12 @@ export class MapGenerator {
     return 3;
   }
 
-  static #placeStones(grid, heightmap, tileMeta, vegetationData, mapName) {
+  static #placeStones(grid, heightmap, tileMeta, vegetationPlacements, mapName) {
     if (this.#hashMapName(`${mapName}:stone-presence`) % 10000 < 2827) {
       return [];
     }
     const occupied = new Set(
-      vegetationData.map(({ col, row }) => this.#tileKey(col, row)),
+      vegetationPlacements.map(({ col, row }) => this.#tileKey(col, row)),
     );
     const candidates = [];
     for (let row = 0; row < this.#MAP_ROWS; row++) {
@@ -3900,11 +3926,11 @@ export class MapGenerator {
     grid,
     heightmap,
     tileMeta,
-    vegetationData,
-    stoneData,
+    vegetationPlacements,
+    stonePlacements,
   ) {
     const occupied = new Set(
-      [...vegetationData, ...stoneData].map(({ col, row }) =>
+      [...vegetationPlacements, ...stonePlacements].map(({ col, row }) =>
         this.#tileKey(col, row),
       ),
     );
@@ -4853,11 +4879,11 @@ export class MapGenerator {
     heightmap,
     tileMeta,
     layout,
-    vegetationData,
+    vegetationPlacements,
   ) {
     const occupied = new Set();
     const variants = new Set();
-    for (const vegetation of vegetationData) {
+    for (const vegetation of vegetationPlacements) {
       const { col, row, variant } = vegetation;
       const key = this.#tileKey(col, row);
       if (occupied.has(key)) {
@@ -4894,7 +4920,7 @@ export class MapGenerator {
       variants.add(variant);
     }
 
-    const expectedVariety = Math.min(5, vegetationData.length);
+    const expectedVariety = Math.min(5, vegetationPlacements.length);
     if (variants.size < expectedVariety) {
       throw new InsufficientVegetationVarietyError({
         expected: expectedVariety,
@@ -4903,12 +4929,12 @@ export class MapGenerator {
     }
   }
 
-  static #validateStones(grid, heightmap, tileMeta, vegetationData, stoneData) {
+  static #validateStones(grid, heightmap, tileMeta, vegetationPlacements, stonePlacements) {
     const occupied = new Set(
-      vegetationData.map(({ col, row }) => this.#tileKey(col, row)),
+      vegetationPlacements.map(({ col, row }) => this.#tileKey(col, row)),
     );
     const styles = new Set();
-    for (const { col, row, parts } of stoneData) {
+    for (const { col, row, parts } of stonePlacements) {
       const key = this.#tileKey(col, row);
       if (
         occupied.has(key) ||
@@ -4963,12 +4989,12 @@ export class MapGenerator {
     grid,
     heightmap,
     tileMeta,
-    vegetationData,
-    stoneData,
+    vegetationPlacements,
+    stonePlacements,
     groundCoverData,
   ) {
     const vegetationTiles = new Set(
-      [...vegetationData, ...stoneData].map(({ col, row }) =>
+      [...vegetationPlacements, ...stonePlacements].map(({ col, row }) =>
         this.#tileKey(col, row),
       ),
     );
@@ -5299,8 +5325,8 @@ export class MapGenerator {
     tileMeta,
     layout,
     islandMask,
-    vegetationData,
-    stoneData,
+    vegetationPlacements,
+    stonePlacements,
     groundCoverData,
     riverData,
     routeCellsByPath,
@@ -5337,14 +5363,14 @@ export class MapGenerator {
     this.#validateBridgeGroundHeights(heightmap, tileMeta, riverData);
     this.#validateGrassNoise(grid, heightmap, tileMeta, riverData);
     this.#validateLayoutVariety(layout);
-    this.#validateVegetation(grid, heightmap, tileMeta, layout, vegetationData);
-    this.#validateStones(grid, heightmap, tileMeta, vegetationData, stoneData);
+    this.#validateVegetation(grid, heightmap, tileMeta, layout, vegetationPlacements);
+    this.#validateStones(grid, heightmap, tileMeta, vegetationPlacements, stonePlacements);
     this.#validateGroundCover(
       grid,
       heightmap,
       tileMeta,
-      vegetationData,
-      stoneData,
+      vegetationPlacements,
+      stonePlacements,
       groundCoverData,
     );
   }

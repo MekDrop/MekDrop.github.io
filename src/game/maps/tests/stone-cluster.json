@@ -327,7 +327,6 @@
   "numPaths": 0,
   "paths": [],
   "arrowData": [],
-  "vegetationData": [],
   "groundCoverData": [],
   "riverData": [],
   "pipeData": [],
@@ -341,10 +340,12 @@
     "y": 2.14,
     "z": 0
   },
-  "stoneData": [
+  "objects": [
     {
-      "col": 3,
-      "row": 3,
+      "id": "stone-cluster-0",
+      "object": "StoneCluster",
+      "tile": { "col": 3, "row": 3 },
+      "position": { "x": -1, "y": 2.002, "z": 0 },
       "parts": [
         {
           "variant": 2,

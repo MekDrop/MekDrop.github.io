@@ -1,28 +1,14 @@
 import { GRASS_SURFACE_LIFT } from "../config/terrain.js";
 import { pickupActionForCategory } from "../config/hero-pickup-actions.js";
+import { PickupSequenceItemNotFoundError } from "../errors/debug/index.js";
 import { Hero } from "../objects/hero/Hero.js";
 import groundCoverFragmentShader from "../objects/ground-cover/GroundCover.frag?raw";
 import groundCoverHeldVertexShader from "../objects/ground-cover/GroundCoverHeld.vert?raw";
 import { KnifeTool } from "../objects/hero/tools/index.js";
-import {
-  GROUND_COVER_VARIANTS,
-  GroundCoverHeldItem,
-  GroundCoverItem,
-} from "../objects/ground-cover/index.js";
-import { HeroAnimationSign } from "./HeroAnimationSign.js";
+import { GroundCoverHeldItem } from "../objects/ground-cover/index.js";
 
-const HERO_PREVIEW_SCALE = 0.65;
+const HERO_ACTOR_SCALE = 0.65;
 const PICKUP_LOOP_PAUSE = 0.32;
-const PICKUP_ITEMS = Object.freeze([
-  ["Daisy Patch", "daisy-patch"],
-  ["Buttercup Patch", "buttercup-patch"],
-  ["Pink Flower Patch", "pink-flower-patch"],
-  ["Blue Flower Patch", "blue-flower-patch"],
-  ["Clover Patch", "clover-patch"],
-  ["Red Mushroom", "red-mushroom"],
-  ["Golden Mushroom Pair", "golden-mushroom-pair"],
-  ["Forest Mushroom Cluster", "forest-mushroom-cluster"],
-]);
 
 function findChildByName(root, name) {
   const pending = [root];
@@ -34,53 +20,6 @@ function findChildByName(root, name) {
     pending.push(...entity.children);
   }
   return null;
-}
-
-function pickupSourceDistance(pickupAction) {
-  return pickupAction.targetDistance ?? pickupAction.maximumDistance;
-}
-
-function alignBottomToSurface(entity, surfaceY) {
-  entity.syncHierarchy();
-  let bottomY = Number.POSITIVE_INFINITY;
-  for (const render of entity.findComponents("render")) {
-    for (const meshInstance of render.meshInstances) {
-      const { center, halfExtents } = meshInstance.aabb;
-      bottomY = Math.min(bottomY, center.y - halfExtents.y);
-    }
-  }
-  if (!Number.isFinite(bottomY)) {
-    return;
-  }
-  const position = entity.getLocalPosition().clone();
-  position.y += surfaceY - bottomY;
-  entity.setLocalPosition(position);
-}
-
-function createPreviewItem({
-  pc,
-  app,
-  modelLibrary,
-  variant,
-  definition,
-  phase,
-}) {
-  return new GroundCoverItem({
-    pc,
-    app,
-    modelLibrary,
-    modelUrl: definition.modelUrl,
-    variant,
-    x: 0,
-    y: 0,
-    z: 0,
-    rotation: 0,
-    scale: heldItemScale(definition),
-    flexibility: definition.flexibility ?? 0.82,
-    stepReaction: "none",
-    phase,
-    ambientMotion: 0.35,
-  });
 }
 
 function heldItemScale(definition) {
@@ -102,7 +41,7 @@ function heldMaterialSettings(category) {
 function createHeldMaterial(pc, category) {
   const settings = heldMaterialSettings(category);
   const material = new pc.ShaderMaterial({
-    uniqueName: `preview-held-ground-cover-${category}`,
+    uniqueName: `animation-actor-held-ground-cover-${category}`,
     vertexGLSL: groundCoverHeldVertexShader,
     fragmentGLSL: groundCoverFragmentShader,
     attributes: {
@@ -111,7 +50,7 @@ function createHeldMaterial(pc, category) {
       vertex_color: pc.SEMANTIC_COLOR,
     },
   });
-  material.name = `Preview held ${category} ground cover`;
+  material.name = `Animation actor held ${category} ground cover`;
   material.cull = pc.CULLFACE_NONE;
   material.setParameter("uBendHeight", settings.bendHeight);
   material.setParameter("uColorBoost", settings.colorBoost);
@@ -120,9 +59,9 @@ function createHeldMaterial(pc, category) {
   return material;
 }
 /**
- * Looping hero pickup previews for every collectible ground-cover inventory item.
+ * Map-positioned hero pickup animation actors.
  */
-export class HeroPickupItemPreview {
+export class MapPickupAnimationActors {
   #pc;
   #modelLibrary;
   #entity;
@@ -130,47 +69,57 @@ export class HeroPickupItemPreview {
   #entries = [];
   #updateHandle = null;
 
-  constructor({ pc, modelLibrary, app, columns = 4 }) {
+  constructor({ pc, modelLibrary, app, definitions, items }) {
     this.#pc = pc;
     this.#modelLibrary = modelLibrary;
-    this.#entity = new pc.Entity("Hero pickup item preview");
-    for (const category of new Set(
-      Object.values(GROUND_COVER_VARIANTS).map(({ category }) => category),
-    )) {
-      this.#heldMaterials.set(category, createHeldMaterial(pc, category));
-    }
+    this.#entity = new pc.Entity("Map pickup animation actors");
     const tracks = modelLibrary.getAnimationTracks(
       Hero.modelUrl,
-      [...new Set(
-        Object.values(GROUND_COVER_VARIANTS)
-          .map(({ category }) => pickupActionForCategory(category)?.animation)
-          .filter(Boolean),
-      )],
+      [...new Set(definitions.map(({ animation }) => animation))],
     );
-    const rows = Math.ceil(PICKUP_ITEMS.length / columns);
 
-    for (const [index, [name, variant]] of PICKUP_ITEMS.entries()) {
-      const definition = GROUND_COVER_VARIANTS[variant];
-      const pickupAction = pickupActionForCategory(definition.category);
-      const anchor = new pc.Entity(`${name} pickup station`);
-      const across = ((index % columns) - (columns - 1) / 2) * 3.4;
-      const back = (Math.floor(index / columns) - (rows - 1) / 2) * 4;
+    for (const [index, actor] of definitions.entries()) {
+      const {
+        id,
+        animation,
+        sequence,
+        position,
+        rotation = { x: 0, y: 45, z: 0 },
+        scale = HERO_ACTOR_SCALE,
+      } = actor;
+      const sourceItem = items.find(
+        ({ definition }) => definition.id === sequence.item,
+      );
+      if (!sourceItem) {
+        throw new PickupSequenceItemNotFoundError({
+          actorId: id,
+          itemId: sequence.item,
+        });
+      }
+      const definition = sourceItem.variantDefinition;
+      if (!this.#heldMaterials.has(definition.category)) {
+        this.#heldMaterials.set(
+          definition.category,
+          createHeldMaterial(pc, definition.category),
+        );
+      }
+      const pickupAction = {
+        ...pickupActionForCategory(definition.category),
+        animation,
+      };
+      const anchor = new pc.Entity(`${id} pickup actor`);
       anchor.setLocalPosition(
-        (across + back) / Math.SQRT2,
-        2 + GRASS_SURFACE_LIFT,
-        (back - across) / Math.SQRT2,
+        position.x,
+        position.y ?? GRASS_SURFACE_LIFT,
+        position.z,
       );
       this.#entity.addChild(anchor);
 
       const model = modelLibrary.instantiate(Hero.modelUrl);
-      model.name = `${name} pickup hero preview`;
-      model.tags.add("hero-pickup-item-preview", name);
-      model.setLocalScale(
-        HERO_PREVIEW_SCALE,
-        HERO_PREVIEW_SCALE,
-        HERO_PREVIEW_SCALE,
-      );
-      model.setLocalEulerAngles(0, 45, 0);
+      model.name = `${id} pickup animated model`;
+      model.tags.add("map-animation-actor", id, Hero.name, animation);
+      model.setLocalScale(scale, scale, scale);
+      model.setLocalEulerAngles(rotation.x, rotation.y, rotation.z);
       anchor.addChild(model);
       model.addComponent("anim", { activate: true });
       model.anim.addAnimationState(
@@ -182,25 +131,6 @@ export class HeroPickupItemPreview {
       model.anim.baseLayer.play(pickupAction.animation);
       model.anim.speed = 0;
 
-      const source = new pc.Entity(`${name} pickup source`);
-      const sourceDistance = pickupSourceDistance(pickupAction);
-      source.setLocalPosition(
-        sourceDistance / Math.SQRT2,
-        0,
-        sourceDistance / Math.SQRT2,
-      );
-      anchor.addChild(source);
-      const sourceItem = createPreviewItem({
-        pc,
-        app,
-        modelLibrary,
-        variant,
-        definition,
-        phase: index * 0.73,
-      });
-      sourceItem.entity.name = `${name} source pickup item`;
-      source.addChild(sourceItem.entity);
-
       let tool = null;
       if (pickupAction.requiresTool) {
         tool = new KnifeTool({ modelLibrary });
@@ -208,17 +138,13 @@ export class HeroPickupItemPreview {
         tool.visible = true;
       }
 
-      const sign = new HeroAnimationSign({ pc, app, modelLibrary, name });
-      anchor.addChild(sign.entity);
       this.#entries.push({
-        name,
+        name: id,
         anchor,
         model,
-        source,
         sourceItem,
         definition,
         pickupAction,
-        sign,
         tool,
         elapsed: index * 0.11,
         heldItem: null,
@@ -232,14 +158,16 @@ export class HeroPickupItemPreview {
     return this.#entity;
   }
 
+  get visualRoots() {
+    return this.#entity.children;
+  }
+
   destroy() {
     this.#updateHandle?.off();
     this.#updateHandle = null;
     for (const entry of this.#entries) {
       entry.heldItem?.destroy();
-      entry.sourceItem?.destroy();
       entry.tool?.destroy();
-      entry.sign.destroy();
     }
     this.#entries = [];
     for (const material of this.#heldMaterials.values()) {
@@ -276,15 +204,16 @@ export class HeroPickupItemPreview {
       if (entry.elapsed < previousElapsed) {
         entry.heldItem?.destroy();
         entry.heldItem = null;
-        entry.sourceItem.entity.enabled = true;
+        entry.sourceItem.reset();
         entry.model.anim.baseLayer.play(entry.pickupAction.animation);
       }
       const animationTime = Math.min(entry.elapsed, entry.pickupAction.duration);
       entry.model.anim.baseLayer.activeStateCurrentTime = animationTime;
-      entry.sourceItem.entity.enabled =
-        animationTime < entry.pickupAction.impactTime;
-      if (entry.sourceItem.entity.enabled) {
+      if (animationTime < entry.pickupAction.impactTime) {
+        entry.sourceItem.reset();
         entry.sourceItem.advance(deltaTime);
+      } else {
+        entry.sourceItem.hide();
       }
       if (
         animationTime >= entry.pickupAction.impactTime &&

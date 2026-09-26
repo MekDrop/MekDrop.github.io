@@ -121,7 +121,7 @@ export class GrassSurfaceMaterials {
   }
 
   #isShaded(col, row, level) {
-    const { grid, vegetationData, castle, castles } = this.#mapData;
+    const { grid, objects, castle, castles } = this.#mapData;
     const nearStructure = (
       castles?.length ? castles : castle ? [castle] : []
     ).some(
@@ -135,11 +135,15 @@ export class GrassSurfaceMaterials {
       return true;
     }
     if (
-      (vegetationData ?? []).some(
-        ({ col: plantCol, row: plantRow, kind }) =>
-          Math.max(Math.abs(col - plantCol), Math.abs(row - plantRow)) <=
-          (kind === "tree" ? 2 : 1),
-      )
+      (objects ?? []).some(({ object, tile, kind }) => {
+        if (object !== "Vegetation" || !tile) {
+          return false;
+        }
+        return (
+          Math.max(Math.abs(col - tile.col), Math.abs(row - tile.row)) <=
+          (kind === "tree" ? 2 : 1)
+        );
+      })
     ) {
       return true;
     }

@@ -1,4 +1,3 @@
-import { GRASS_SURFACE_LIFT } from "../../config/terrain.js";
 import { RoundBush, WideBush } from "./bushes/index.js";
 import {
   OakTree,
@@ -32,26 +31,27 @@ export class VoxelVegetation {
 
   constructor({
     pc,
-    mapData,
+    definitions,
     modelLibrary,
-    onVegetationRemoved = () => {},
+    runtime = {},
   }) {
     this.#entity = new pc.Entity("Voxel vegetation");
-    this.#onVegetationRemoved = onVegetationRemoved;
+    this.#onVegetationRemoved = ({ col, row, kind }) =>
+      runtime.onObjectRemoved?.({
+        object: "Vegetation",
+        tile: { col, row },
+        kind,
+      });
 
-    for (const vegetation of mapData.vegetationData ?? []) {
+    for (const vegetation of definitions) {
       const VegetationType = VEGETATION_TYPES[vegetation.variant];
       if (!VegetationType) continue;
 
-      const x = vegetation.col - (mapData.cols - 1) / 2;
-      const z = vegetation.row - (mapData.rows - 1) / 2;
-      const y =
-        mapData.heightmap[vegetation.row][vegetation.col] +
-        GRASS_SURFACE_LIFT;
+      const { x, y, z } = vegetation.position;
       const item = new VegetationType({
         pc,
         modelLibrary,
-        id: `${vegetation.row}:${vegetation.col}`,
+        id: vegetation.id,
         x,
         y,
         z,
@@ -60,14 +60,30 @@ export class VoxelVegetation {
       this.#entity.addChild(item.entity);
       this.#items.push({
         item,
-        col: vegetation.col,
-        row: vegetation.row,
+        col: vegetation.tile.col,
+        row: vegetation.tile.row,
       });
     }
   }
 
   get entity() {
     return this.#entity;
+  }
+
+  get isGroundCollider() {
+    return true;
+  }
+
+  get physicsSurface() {
+    return false;
+  }
+
+  get toolName() {
+    return "AxeTool";
+  }
+
+  get visualRoots() {
+    return [this.#entity];
   }
 
   set tool(tool) {

@@ -9,27 +9,35 @@ import {
   buildStoneVoxels,
 } from "../../src/game/objects/scenery/StoneVoxelGeometry.js";
 
+const stoneClusters = (map) =>
+  (map.objects ?? []).filter(({ object }) => object === "StoneCluster");
+
 describe("generated stone clusters", () => {
   it("has seed-stable empty maps and no more than ten clusters on populated maps", () => {
     const empty = generateMap({ mapName: "stone-audit-4" });
     const populated = generateMap({ mapName: "stone-audit-0" });
-    assert.equal(empty.stoneData.length, 0);
-    assert.ok(populated.stoneData.length > 0);
-    assert.ok(populated.stoneData.length <= 10);
+    assert.equal(stoneClusters(empty).length, 0);
+    assert.ok(stoneClusters(populated).length > 0);
+    assert.ok(stoneClusters(populated).length <= 10);
     assert.deepEqual(
-      populated.stoneData,
-      generateMap({ mapName: "stone-audit-0" }).stoneData,
+      stoneClusters(populated),
+      stoneClusters(generateMap({ mapName: "stone-audit-0" })),
     );
   });
 
   it("places each cluster on free flat grass with room for all of its parts", () => {
     const map = generateMap({ mapName: "stone-audit-0" });
     const occupied = new Set(
-      [...map.vegetationData, ...map.groundCoverData].map(
+      [
+        ...(map.objects ?? [])
+          .filter(({ object }) => object === "Vegetation")
+          .map(({ tile }) => tile),
+        ...map.groundCoverData,
+      ].map(
         ({ col, row }) => `${col},${row}`,
       ),
     );
-    for (const { col, row, parts } of map.stoneData) {
+    for (const { tile: { col, row }, parts } of stoneClusters(map)) {
       assert.equal(map.grid[row][col], TileType.GRASS);
       assert.equal(map.tileMeta[row][col].shape, TILE_SHAPE.FLAT);
       assert.ok(!occupied.has(`${col},${row}`));
@@ -63,7 +71,7 @@ describe("generated stone clusters", () => {
     assert.equal(new Set(STONE_COLORS).size, STONE_COLORS.length);
     for (let seed = 0; seed < 24; seed++) {
       const map = generateMap({ mapName: `stone-style-${seed}` });
-      const parts = map.stoneData.flatMap((cluster) => cluster.parts);
+      const parts = stoneClusters(map).flatMap((cluster) => cluster.parts);
       const styles = parts.map(({ style }) => style);
       assert.equal(new Set(styles).size, styles.length);
       for (const { variant, style, color } of parts) {
@@ -73,7 +81,7 @@ describe("generated stone clusters", () => {
           variant * STONE_COLORS.length + STONE_COLORS.indexOf(color),
         );
       }
-      for (const cluster of map.stoneData) {
+      for (const cluster of stoneClusters(map)) {
         assert.equal(
           new Set(cluster.parts.map(({ color }) => color)).size,
           cluster.parts.length,
@@ -86,7 +94,7 @@ describe("generated stone clusters", () => {
     const counts = [0, 0, 0, 0];
     for (let seed = 0; seed < 24; seed++) {
       const map = generateMap({ mapName: `stone-style-${seed}` });
-      for (const { levels, diameter, height } of map.stoneData.flatMap(
+      for (const { levels, diameter, height } of stoneClusters(map).flatMap(
         (cluster) => cluster.parts,
       )) {
         counts[levels]++;
@@ -112,7 +120,7 @@ describe("generated stone clusters", () => {
     let tallMultiPartCount = 0;
     for (let seed = 0; seed < 24; seed++) {
       const map = generateMap({ mapName: "stone-style-" + seed });
-      for (const { parts } of map.stoneData) {
+      for (const { parts } of stoneClusters(map)) {
         if (parts[0].levels === 1) {
           oneLevelCount++;
           if (parts.length > 1) {
@@ -196,8 +204,12 @@ describe("generated stone clusters", () => {
     const ordinary = GrassCarpetLayout.create(map);
     const withStones = GrassCarpetLayout.create({
       ...map,
-      stoneData: [
-        { col: 1, row: 1, parts: [{ offsetX: 0, offsetZ: 0, diameter: 0.75 }] },
+      objects: [
+        {
+          object: "StoneCluster",
+          position: { x: 0, y: 2.002, z: 0 },
+          parts: [{ offsetX: 0, offsetZ: 0, diameter: 0.75 }],
+        },
       ],
     });
     assert.equal(ordinary.length, withStones.length);
