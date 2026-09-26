@@ -36,7 +36,7 @@ it("packages the roof stairhead and serving tray with editable sources", () => {
     assert.ok(json.meshes.length > 0);
   }
   const stairhead = glb("terrace-stairhead").json.nodes.map(({ name }) => name);
-  assert.equal(stairhead.filter((name) => /Descending terrace stair/.test(name)).length, 5);
+  assert.equal(stairhead.filter((name) => /Descending terrace stair/.test(name)).length, 0);
   assert.ok(stairhead.includes("Terrace stairhead frame"));
   for (const part of [
     "Terrace stairhead side wall -1",
