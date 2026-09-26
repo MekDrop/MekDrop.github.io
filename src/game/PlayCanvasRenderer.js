@@ -2240,7 +2240,9 @@ export class PlayCanvasRenderer {
   };
 
   #clearScene() {
-    this.#camera.orbitPivot = null;
+    if (this.#camera) {
+      this.#camera.orbitPivot = null;
+    }
     this.#heroPatGesture?.destroy();
     this.#heroPatGesture = null;
     this.#heroPatHand?.destroy();
