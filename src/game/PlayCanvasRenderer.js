@@ -1614,6 +1614,7 @@ export class PlayCanvasRenderer {
     }
     this.#riverWater?.update(deltaTime, hero, this.#camera?.camera);
     this.#heroPatHand?.update(deltaTime);
+    this.#lifeHud?.update(deltaTime);
     const inventoryVisibilityChange =
       this.#inventoryScene?.syncConfiguredVisibility();
     if (inventoryVisibilityChange === true) {

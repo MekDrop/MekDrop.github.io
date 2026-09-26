@@ -1,6 +1,8 @@
 import { GamePanelHud } from "./GamePanelHud.js";
 
 const TEXTURE_SIZE = 64;
+const DEATH_ANIMATION_DURATION = 0.82;
+const DEATH_FADE_START = 0.55;
 
 const DEFAULT_COLORS = Object.freeze({
   iconActive: 0xffffff,
@@ -10,10 +12,14 @@ const DEFAULT_COLORS = Object.freeze({
 export class HeroLifeHud extends GamePanelHud {
   #panelRoot = null;
   #heartEntity = null;
+  #heartLeftFragmentEntity = null;
+  #heartRightFragmentEntity = null;
   #shieldEntity = null;
   #heroNumberEntity = null;
   #castleNumberEntity = null;
   #heartTexture;
+  #heartLeftFragmentTexture;
+  #heartRightFragmentTexture;
   #shieldTexture;
   #heroNumberTexture;
   #castleNumberTexture;
@@ -22,6 +28,10 @@ export class HeroLifeHud extends GamePanelHud {
   #maxLives = 3;
   #castleLives = 3;
   #maxCastleLives = 3;
+  #hasDisplayedLives = false;
+  #deathAnimationElapsed = null;
+  #heartX = 0;
+  #heartY = 0;
   #colors;
 
   constructor({
@@ -38,6 +48,9 @@ export class HeroLifeHud extends GamePanelHud {
     this.#colors = colors;
 
     this.#heartTexture = this.#createHeartTexture();
+    this.#heartLeftFragmentTexture = this.#createHeartFragmentTexture("left");
+    this.#heartRightFragmentTexture =
+      this.#createHeartFragmentTexture("right");
     this.#shieldTexture = this.#createShieldTexture();
     this.#heroNumberTexture = this.createCounterNumberTexture(
       "Hero life number",
@@ -64,15 +77,71 @@ export class HeroLifeHud extends GamePanelHud {
   setLives(current, maximum = this.#maxLives) {
     const nextMaximum = this.#normalizeMaximum(maximum);
     const nextLives = this.#normalizeLives(current, nextMaximum);
+    const previousLives = this.#lives;
+    const shouldAnimate =
+      this.#hasDisplayedLives && nextLives < previousLives;
     const shouldRebuild = nextMaximum !== this.#maxLives || !this.#panelRoot;
     this.#maxLives = nextMaximum;
     this.#lives = nextLives;
-    if (shouldRebuild) this.#build();
+    if (shouldRebuild) {
+      this.#build();
+    }
     this.#syncIndicator(
       this.#heartEntity,
       this.#heroNumberEntity,
       this.#heroNumberTexture,
       nextLives,
+    );
+    this.#hasDisplayedLives = true;
+    if (shouldAnimate) {
+      this.#startDeathAnimation();
+    } else if (nextLives !== previousLives) {
+      this.#finishDeathAnimation();
+    }
+  }
+
+  update(deltaTime) {
+    if (this.#deathAnimationElapsed === null) {
+      return;
+    }
+
+    const numericDelta = Number(deltaTime);
+    const safeDelta =
+      Number.isFinite(numericDelta) && numericDelta > 0 ? numericDelta : 0;
+    this.#deathAnimationElapsed = Math.min(
+      DEATH_ANIMATION_DURATION,
+      this.#deathAnimationElapsed + safeDelta,
+    );
+    if (this.#deathAnimationElapsed >= DEATH_ANIMATION_DURATION) {
+      this.#finishDeathAnimation();
+      return;
+    }
+
+    const progress = this.#deathAnimationElapsed / DEATH_ANIMATION_DURATION;
+    const time = this.#deathAnimationElapsed;
+    const separationKick = 4 * (1 - Math.exp(-time * 24));
+    const horizontalOffset = separationKick + 23 * time;
+    const verticalOffset = -5 * (1 - Math.exp(-time * 20)) + 72 * time ** 2;
+    const rotation = 10 + 130 * progress;
+    const fadeProgress = Math.max(
+      0,
+      (progress - DEATH_FADE_START) / (1 - DEATH_FADE_START),
+    );
+    const opacity = 1 - fadeProgress ** 2 * (3 - 2 * fadeProgress);
+
+    this.#positionHeartFragment(
+      this.#heartLeftFragmentEntity,
+      -horizontalOffset,
+      verticalOffset,
+      -rotation,
+      opacity,
+    );
+    this.#positionHeartFragment(
+      this.#heartRightFragmentEntity,
+      horizontalOffset,
+      verticalOffset,
+      rotation,
+      opacity,
     );
   }
 
@@ -82,7 +151,9 @@ export class HeroLifeHud extends GamePanelHud {
     const shouldRebuild = nextMaximum !== this.#maxCastleLives;
     this.#maxCastleLives = nextMaximum;
     this.#castleLives = nextLives;
-    if (shouldRebuild) this.#build();
+    if (shouldRebuild) {
+      this.#build();
+    }
     this.#syncIndicator(
       this.#shieldEntity,
       this.#castleNumberEntity,
@@ -92,12 +163,17 @@ export class HeroLifeHud extends GamePanelHud {
   }
 
   destroy() {
+    this.#finishDeathAnimation();
     this.#panelRoot = null;
     this.#heartEntity = null;
+    this.#heartLeftFragmentEntity = null;
+    this.#heartRightFragmentEntity = null;
     this.#shieldEntity = null;
     this.#heroNumberEntity = null;
     this.#castleNumberEntity = null;
     this.#heartTexture = null;
+    this.#heartLeftFragmentTexture = null;
+    this.#heartRightFragmentTexture = null;
     this.#shieldTexture = null;
     this.#heroNumberTexture = null;
     this.#castleNumberTexture = null;
@@ -106,6 +182,7 @@ export class HeroLifeHud extends GamePanelHud {
   }
 
   #build() {
+    this.#finishDeathAnimation();
     this.#panelRoot?.destroy();
     this.releaseTexture(this.#panelTexture);
     const panelPaddingX = this.theme.spaceSm;
@@ -161,6 +238,16 @@ export class HeroLifeHud extends GamePanelHud {
       height: iconSize,
       texture: this.#heartTexture,
     });
+    this.#heartX = panelPaddingX;
+    this.#heartY = centeredY(iconSize);
+    this.#heartLeftFragmentEntity = this.#createHeartFragmentEntity(
+      "Hero life icon left fragment",
+      this.#heartLeftFragmentTexture,
+    );
+    this.#heartRightFragmentEntity = this.#createHeartFragmentEntity(
+      "Hero life icon right fragment",
+      this.#heartRightFragmentTexture,
+    );
     const heroNumberX = panelPaddingX + iconSize + contentGap;
     this.#heroNumberEntity = this.createImage({
       parent: this.#panelRoot,
@@ -224,27 +311,167 @@ export class HeroLifeHud extends GamePanelHud {
       TEXTURE_SIZE,
       TEXTURE_SIZE,
       (context) => {
-        const gradient = context.createLinearGradient(0, 10, 0, 58);
-        gradient.addColorStop(0, "#ff5866");
-        gradient.addColorStop(0.48, "#ec273b");
-        gradient.addColorStop(1, "#a90825");
-        this.#heartPath(context);
-        context.fillStyle = gradient;
-        context.fill();
-        context.lineJoin = "round";
-        context.strokeStyle = "#651022";
-        context.lineWidth = 6;
-        context.stroke();
-
-        context.beginPath();
-        context.moveTo(18, 20);
-        context.bezierCurveTo(20, 13, 27, 11, 31, 16);
-        context.strokeStyle = "rgba(255, 226, 226, 0.8)";
-        context.lineCap = "round";
-        context.lineWidth = 4;
-        context.stroke();
+        this.#drawHeart(context);
       },
     );
+  }
+
+  #createHeartFragmentTexture(side) {
+    return this.createDrawnTexture(
+      `Hero heart ${side} fragment`,
+      TEXTURE_SIZE,
+      TEXTURE_SIZE,
+      (context) => {
+        context.save();
+        this.#heartFragmentPath(context, side);
+        context.clip();
+        this.#drawHeart(context);
+        context.restore();
+      },
+    );
+  }
+
+  #drawHeart(context) {
+    const gradient = context.createLinearGradient(0, 10, 0, 58);
+    gradient.addColorStop(0, "#ff5866");
+    gradient.addColorStop(0.48, "#ec273b");
+    gradient.addColorStop(1, "#a90825");
+    this.#heartPath(context);
+    context.fillStyle = gradient;
+    context.fill();
+    context.lineJoin = "round";
+    context.strokeStyle = "#651022";
+    context.lineWidth = 6;
+    context.stroke();
+
+    context.beginPath();
+    context.moveTo(18, 20);
+    context.bezierCurveTo(20, 13, 27, 11, 31, 16);
+    context.strokeStyle = "rgba(255, 226, 226, 0.8)";
+    context.lineCap = "round";
+    context.lineWidth = 4;
+    context.stroke();
+  }
+
+  #heartFragmentPath(context, side) {
+    const crack = [
+      [33, -2],
+      [32, 14],
+      [27, 22],
+      [35, 29],
+      [29, 37],
+      [34, 45],
+      [31, 66],
+    ];
+    context.beginPath();
+    if (side === "left") {
+      context.moveTo(-2, -2);
+      context.lineTo(crack[0][0], crack[0][1]);
+      for (const [x, y] of crack.slice(1)) {
+        context.lineTo(x, y);
+      }
+      context.lineTo(-2, 66);
+    } else {
+      context.moveTo(crack[0][0], crack[0][1]);
+      context.lineTo(66, -2);
+      context.lineTo(66, 66);
+      context.lineTo(crack.at(-1)[0], crack.at(-1)[1]);
+      for (const [x, y] of crack.slice(0, -1).reverse()) {
+        context.lineTo(x, y);
+      }
+    }
+    context.closePath();
+  }
+
+  #createHeartFragmentEntity(name, texture) {
+    const iconSize = this.counterIconSize;
+    const entity = this.createImage({
+      parent: this.#panelRoot,
+      name,
+      x: this.#heartX,
+      y: this.#heartY,
+      width: iconSize,
+      height: iconSize,
+      texture,
+    });
+    entity.element.pivot = new this.pc.Vec2(0.5, 0.5);
+    entity.enabled = false;
+    return entity;
+  }
+
+  #startDeathAnimation() {
+    if (
+      !this.#heartEntity ||
+      !this.#heartLeftFragmentEntity ||
+      !this.#heartRightFragmentEntity
+    ) {
+      return;
+    }
+    if (
+      globalThis.matchMedia?.("(prefers-reduced-motion: reduce)").matches
+    ) {
+      this.#finishDeathAnimation();
+      return;
+    }
+
+    const activeColor = this.theme.playCanvasColor(
+      this.pc,
+      this.#colors.iconActive,
+    );
+    this.#deathAnimationElapsed = 0;
+    this.#heartEntity.enabled = false;
+    for (const fragment of [
+      this.#heartLeftFragmentEntity,
+      this.#heartRightFragmentEntity,
+    ]) {
+      fragment.enabled = true;
+      fragment.element.color = activeColor;
+      fragment.element.opacity = 1;
+    }
+    this.#positionHeartFragment(
+      this.#heartLeftFragmentEntity,
+      0,
+      0,
+      0,
+      1,
+    );
+    this.#positionHeartFragment(
+      this.#heartRightFragmentEntity,
+      0,
+      0,
+      0,
+      1,
+    );
+  }
+
+  #positionHeartFragment(entity, offsetX, offsetY, rotation, opacity) {
+    if (!entity) {
+      return;
+    }
+    const halfSize = this.counterIconSize / 2;
+    entity.setLocalPosition(
+      this.#heartX + halfSize + offsetX,
+      -(this.#heartY + halfSize + offsetY),
+      0,
+    );
+    entity.setLocalEulerAngles(0, 0, rotation);
+    entity.element.opacity = opacity;
+  }
+
+  #finishDeathAnimation() {
+    this.#deathAnimationElapsed = null;
+    if (this.#heartEntity) {
+      this.#heartEntity.enabled = true;
+    }
+    for (const fragment of [
+      this.#heartLeftFragmentEntity,
+      this.#heartRightFragmentEntity,
+    ]) {
+      if (fragment) {
+        fragment.enabled = false;
+        fragment.element.opacity = 1;
+      }
+    }
   }
 
   #heartPath(context) {
