@@ -116,6 +116,24 @@ module.exports = configure(function (ctx) {
         }
 
         if (isClient) {
+          viteConf.build.rollupOptions ??= {};
+          viteConf.build.rollupOptions.output ??= {};
+          const rollupOutput = viteConf.build.rollupOptions.output;
+          const assetFileNames = rollupOutput.assetFileNames;
+          rollupOutput.assetFileNames = (assetInfo) => {
+            if (/(glslang|twgsl)\.(js|wasm)$/.test(assetInfo.name)) {
+              return "assets/webgpu/[name][extname]";
+            }
+            if (typeof assetFileNames === "function") {
+              return assetFileNames(assetInfo);
+            }
+            return assetFileNames || "assets/[name].[hash][extname]";
+          };
+          rollupOutput.manualChunks = {
+            ammo: ["sync-ammo"],
+            playcanvas: ["playcanvas/build/playcanvas/src/index.js"],
+          };
+
           const sitemapPlugin = SiteMap({
             hostname: `https://` + getHostname(),
             readable: false,

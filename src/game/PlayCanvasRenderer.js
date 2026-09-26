@@ -1,7 +1,13 @@
 import { useDebounceFn } from "@vueuse/core";
+import Ammo from "sync-ammo";
+import * as playCanvas from "playcanvas/build/playcanvas/src/index.js";
 import castleDoorUrl from "src/assets/game/textures/castle-door.png";
 import castleStoneUrl from "src/assets/game/textures/castle-stone.png";
 import castleFireParticleUrl from "src/assets/game/effects/castle-fire-particle.png?url";
+import glslangScriptUrl from "src/assets/game/wasm/glslang/glslang.js?url";
+import glslangWasmUrl from "src/assets/game/wasm/glslang/glslang.wasm?url";
+import twgslScriptUrl from "src/assets/game/wasm/twgsl/twgsl.js?url";
+import twgslWasmUrl from "src/assets/game/wasm/twgsl/twgsl.wasm?url";
 import waterSideUrl from "src/assets/game/tiles/water-side.png";
 import waterTopUrl from "src/assets/game/tiles/water-top.png";
 import { Castle } from "./objects/castle/index.js";
@@ -25,6 +31,7 @@ import { TileType } from "./MapGenerator.js";
 import { GRASS_SURFACE_LIFT } from "./config/terrain.js";
 import { GRAPHICS_DRIVER } from "./enum/GraphicsDriver.js";
 import { SCENE_OBJECT_TYPE } from "./enum/SceneObjectType.js";
+import { ShaderTranspilerAssetsNotColocatedError } from "./errors/assets/index.js";
 import {
   GroundCollisionWorld,
   PathOverpassCollider,
@@ -89,8 +96,6 @@ const SIDE_VARIANT_TRANSFORMS = [
 const CAMERA_PITCH = Math.atan(1 / Math.sqrt(2));
 const CAMERA_DISTANCE = 80;
 const SHADOW_DISTANCE = 150;
-const GLSLANG_URL = "/game/wasm/glslang/glslang.js";
-const TWGSL_URL = "/game/wasm/twgsl/twgsl.js";
 const MAP_FIT_ZOOM = 1;
 const HERO_VIEWPORT_MARGIN = 32;
 const HERO_CAMERA_CENTER_HEIGHT = 0.85;
@@ -101,6 +106,20 @@ const CAMERA_TARGET_HEIGHT = 3.2;
 const MAX_CASTLE_LIVES = 3;
 const INVENTORY_DROP_MIN_FALL_HEIGHT = 0.35;
 const INVENTORY_DROP_MAX_FALL_HEIGHT = 12;
+
+function getShaderTranspilerScriptUrl(scriptUrl, wasmUrl) {
+  const expectedWasmUrl = scriptUrl.replace(/\.js$/, ".wasm");
+  if (expectedWasmUrl !== wasmUrl) {
+    throw new ShaderTranspilerAssetsNotColocatedError(scriptUrl, wasmUrl);
+  }
+  return scriptUrl;
+}
+
+const GLSLANG_URL = getShaderTranspilerScriptUrl(
+  glslangScriptUrl,
+  glslangWasmUrl,
+);
+const TWGSL_URL = getShaderTranspilerScriptUrl(twgslScriptUrl, twgslWasmUrl);
 
 export class PlayCanvasRenderer {
   #pc = null;
@@ -214,13 +233,6 @@ export class PlayCanvasRenderer {
   }
 
   async init() {
-    // Keep WebGPU validation scopes out of the render loop. The package's
-    // development export is intentionally diagnostic and is far too costly
-    // for this continuously rendered game, even when Quasar runs in dev mode.
-    const [{ default: Ammo }, playCanvas] = await Promise.all([
-      import("sync-ammo"),
-      import("playcanvas/build/playcanvas/src/index.js"),
-    ]);
     globalThis.Ammo ??= Ammo;
     this.#pc = playCanvas;
     if (this.#destroyed) {
@@ -604,6 +616,14 @@ export class PlayCanvasRenderer {
       return false;
     }
     return this.#interactionTarget.interact();
+  }
+
+  patHero() {
+    const hero = this.#sceneObjects.getOne(SCENE_OBJECT_TYPE.HERO);
+    if (!hero?.canBePatted) {
+      return false;
+    }
+    return this.#heroPatHand?.pat() ?? false;
   }
 
   toggleInventory() {
@@ -1206,7 +1226,12 @@ export class PlayCanvasRenderer {
         z: this.#camera.fitCenterZ,
       },
       getViewRotation: () => this.#camera.rotation,
-      getViewDirection: () => this.#camera.firstPersonState?.direction ?? null,
+      getViewDirection: () => {
+        const state = this.#camera.firstPersonState;
+        return state
+          ? { ...state.direction, right: state.right }
+          : null;
+      },
       onPositionChange: this.#handleHeroPositionChange,
       onFacingChange: this.#handleHeroFacingChange,
       onMovementInput: () => this.#startHeroCameraReturn(),
@@ -1567,7 +1592,11 @@ export class PlayCanvasRenderer {
 
   #isHeroPatHit(event) {
     const hero = this.#sceneObjects.getOne(SCENE_OBJECT_TYPE.HERO);
-    if (this.inventoryVisible || !hero?.canBePatted) {
+    if (
+      this.inventoryVisible ||
+      this.#camera.firstPersonEnabled ||
+      !hero?.canBePatted
+    ) {
       return false;
     }
     const head = this.#heroPatScreenPosition();

@@ -44,7 +44,7 @@ module.exports = [
       ".quasar/**",
       "node_modules/**",
       "tmp/**",
-      "public/game/wasm/**",
+      "src/assets/game/wasm/**",
       ".eslintrc.js",
       ".eslintrc.cjs",
       "quasar.config.*.temporary.compiled*",
