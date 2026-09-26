@@ -85,7 +85,16 @@ export class CastleLeisureScene {
   #inspection = new TerraceDoorInspection();
   #inspector;
 
-  constructor({ pc, modelLibrary, wallMaterial, seed, position, doors, layout }) {
+  constructor({
+    pc,
+    modelLibrary,
+    wallMaterial,
+    woodMaterial,
+    seed,
+    position,
+    doors,
+    layout,
+  }) {
     this.#pc = pc;
     this.#position = position;
     this.#doors = doors;
@@ -95,7 +104,10 @@ export class CastleLeisureScene {
     this.#entity.setLocalPosition(layout.x, layout.y, layout.z);
     this.#entity.setLocalEulerAngles(0, layout.yaw, 0);
     this.#door = new TerraceDoor({
-      pc, modelLibrary, wallMaterial,
+      pc,
+      modelLibrary,
+      wallMaterial,
+      woodMaterial,
       onOpen: () => !this.#stopped && this.#inspection.start(),
     });
     this.#door.entity.setLocalPosition(0, 0, DOORWAY_POSITION_Z);

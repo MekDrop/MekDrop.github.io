@@ -1,4 +1,6 @@
 import { useDebounceFn } from "@vueuse/core";
+import castleDoorUrl from "src/assets/game/textures/castle-door.png";
+import castleStoneUrl from "src/assets/game/textures/castle-stone.png";
 import castleFireParticleUrl from "src/assets/game/effects/castle-fire-particle.png?url";
 import waterSideUrl from "src/assets/game/tiles/water-side.png";
 import waterTopUrl from "src/assets/game/tiles/water-top.png";
@@ -66,6 +68,8 @@ const TEXTURE_URLS = {
   ...PathSurfaceMaterials.textureUrls,
   water: waterTopUrl,
   waterSide: waterSideUrl,
+  castleDoor: castleDoorUrl,
+  castleStone: castleStoneUrl,
   castleFireParticle: castleFireParticleUrl,
 };
 
@@ -115,8 +119,7 @@ export class PlayCanvasRenderer {
   #mapData = null;
   #cubeMeshes = null;
   #materials = new Map();
-  #textureAssets = [];
-  #castleFireParticleTexture = null;
+  #textureAssets = new Map();
   #vertexBuffers = [];
   #pathArrows = null;
   #bridgeRailingKit = null;
@@ -924,12 +927,11 @@ export class PlayCanvasRenderer {
     this.#uiTheme = null;
     for (const material of this.#materials.values()) material.destroy();
     this.#materials.clear();
-    for (const asset of this.#textureAssets) {
+    for (const asset of this.#textureAssets.values()) {
       asset.unload();
       this.#app?.assets.remove(asset);
     }
-    this.#textureAssets = [];
-    this.#castleFireParticleTexture = null;
+    this.#textureAssets.clear();
     if (this.#cubeMeshes) {
       this.#destroyMesh(this.#cubeMeshes.sides);
       this.#destroyMesh(this.#cubeMeshes.wallSides);
@@ -962,7 +964,6 @@ export class PlayCanvasRenderer {
         textures.set(name, await this.#loadTexture(name, url));
       }),
     );
-    this.#castleFireParticleTexture = textures.get("castleFireParticle");
     for (const [name, definition] of Object.entries(MATERIAL_DEFINITIONS)) {
       this.#materials.set(
         name,
@@ -1051,7 +1052,7 @@ export class PlayCanvasRenderer {
   #loadTexture(name, url) {
     const pc = this.#pc;
     const asset = new pc.Asset(name, "texture", { url });
-    this.#textureAssets.push(asset);
+    this.#textureAssets.set(name, asset);
     this.#app.assets.add(asset);
 
     return new Promise((resolve, reject) => {
@@ -1061,10 +1062,14 @@ export class PlayCanvasRenderer {
         texture.minFilter = texture.mipmaps
           ? pc.FILTER_LINEAR_MIPMAP_LINEAR
           : pc.FILTER_LINEAR;
-        texture.magFilter = pc.FILTER_LINEAR;
+        texture.magFilter =
+          name === "castleStone" ? pc.FILTER_NEAREST : pc.FILTER_LINEAR;
         texture.anisotropy = this.#graphicsSettingsStore.anisotropy;
         texture.addressU = pc.ADDRESS_CLAMP_TO_EDGE;
-        texture.addressV = pc.ADDRESS_CLAMP_TO_EDGE;
+        texture.addressV =
+          name === "castleDoor"
+            ? pc.ADDRESS_REPEAT
+            : pc.ADDRESS_CLAMP_TO_EDGE;
         GrassSurfaceMaterials.configureTexture(
           pc,
           name,
@@ -1527,7 +1532,10 @@ export class PlayCanvasRenderer {
         style: definition.style,
         occupantSeed: definition.occupantSeed,
         modelLibrary: this.#modelLibrary,
-        fireParticleTexture: this.#castleFireParticleTexture,
+        doorTexture: this.#textureAssets.get("castleDoor").resource,
+        stoneTexture: this.#textureAssets.get("castleStone").resource,
+        fireParticleTexture:
+          this.#textureAssets.get("castleFireParticle").resource,
         onRuntimeError: this.#onRuntimeError,
       });
       this.#sceneObjects.add(SCENE_OBJECT_TYPE.CASTLE, builtCastle);

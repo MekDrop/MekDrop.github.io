@@ -3,12 +3,10 @@ import { CastleAudienceRoom } from "./CastleAudienceRoom.js";
 import { CastleLeisureScene } from "./CastleLeisureScene.js";
 import { CastleDoor } from "./CastleDoor.js";
 import { CastleDoorArch } from "./CastleDoorArch.js";
-import { CastleDoorTexture } from "./CastleDoorTexture.js";
 import { CastleFire } from "./CastleFire.js";
 import { CastleFlag } from "./CastleFlag.js";
 import { CastleRoof } from "./CastleRoof.js";
 import { CastleStairs } from "./CastleStairs.js";
-import { CastleStoneTexture } from "./CastleStoneTexture.js";
 import { CASTLE_BOUNDARY } from "../../enum/CastleBoundary.js";
 import { CastlePlacementError } from "../../errors/castle/index.js";
 import { colorFromHex } from "../../helpers/colors.js";
@@ -215,6 +213,8 @@ export class Castle {
     style = null,
     occupantSeed = 0,
     modelLibrary,
+    doorTexture,
+    stoneTexture,
     fireParticleTexture,
     onRuntimeError = null,
   }) {
@@ -225,6 +225,8 @@ export class Castle {
     this.#styleId = style;
     this.#occupantSeed = occupantSeed;
     this.#modelLibrary = modelLibrary;
+    this.#doorTexture = doorTexture;
+    this.#stoneTexture = stoneTexture;
     this.#fireParticleTexture = fireParticleTexture;
     this.#onRuntimeError = onRuntimeError;
     this.#entity = new pc.Entity("Castle");
@@ -430,9 +432,7 @@ export class Castle {
     this.#blockMesh = null;
     for (const material of this.#materials.values()) material.destroy();
     this.#materials.clear();
-    this.#stoneTexture?.destroy();
     this.#stoneTexture = null;
-    this.#doorTexture?.destroy();
     this.#doorTexture = null;
     this.#fireParticleTexture = null;
     this.#groundCollisionColumns = [];
@@ -479,14 +479,6 @@ export class Castle {
   }
 
   #createStructureResources() {
-    this.#stoneTexture = CastleStoneTexture.create(
-      this.#pc,
-      this.#app.graphicsDevice,
-    );
-    this.#doorTexture = CastleDoorTexture.create(
-      this.#pc,
-      this.#app.graphicsDevice,
-    );
     for (const [name, definition] of Object.entries(
       CASTLE_MATERIAL_DEFINITIONS,
     )) {
@@ -500,6 +492,8 @@ export class Castle {
         material.diffuseMap = this.#stoneTexture;
       } else if (definition.texture === "castleDoor") {
         material.diffuseMap = this.#doorTexture;
+        material.cull = this.#pc.CULLFACE_NONE;
+        material.twoSidedLighting = true;
       }
       material.update();
       this.#materials.set(name, material);
@@ -1213,6 +1207,7 @@ export class Castle {
         pc: this.#pc,
         modelLibrary: this.#modelLibrary,
         wallMaterial: this.#materials.get("castleStoneMid"),
+        woodMaterial: this.#materials.get("castleDoor"),
         seed: this.#occupantSeed,
         position: this.#position,
         doors: this.#doors,
@@ -1242,6 +1237,7 @@ export class Castle {
         castlePosition: this.#position,
         door: doorData,
         modelLibrary: this.#modelLibrary,
+        woodMaterial: this.#materials.get("castleDoor"),
       });
       this.#entity.addChild(door.entity);
       this.#animatedDoors.push(door);

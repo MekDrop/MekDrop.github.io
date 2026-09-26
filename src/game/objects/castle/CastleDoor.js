@@ -9,6 +9,7 @@ const CLOSE_INSIDE_DISTANCE = 0.9;
 const PASSABLE_OPEN_AMOUNT = 0.72;
 const CLICK_OPEN_SECONDS = 1;
 const DOOR_HEIGHT = 2.3;
+const WOOD_PLANK_NAME = "castle door plank";
 
 export class CastleDoor {
   static get modelUrl() {
@@ -27,7 +28,7 @@ export class CastleDoor {
   #openAmount = 0;
   #manualOpenRemaining = 0;
 
-  constructor({ pc, castlePosition, door, modelLibrary }) {
+  constructor({ pc, castlePosition, door, modelLibrary, woodMaterial }) {
     this.#pc = pc;
     this.#width = door.width;
     const geometry = this.#doorGeometry(castlePosition, door);
@@ -37,6 +38,7 @@ export class CastleDoor {
 
     this.#entity = modelLibrary.instantiate(CastleDoor.modelUrl);
     this.#entity.name = `Castle ${door.side.toLowerCase()} doors`;
+    this.#applyWoodMaterial(woodMaterial);
     this.#entity.setLocalPosition(
       this.#center.x,
       this.#center.y,
@@ -236,6 +238,26 @@ export class CastleDoor {
       },
     };
     return geometryBySide[door.side];
+  }
+
+  #applyWoodMaterial(material) {
+    const pending = [this.#entity];
+    while (pending.length) {
+      const entity = pending.pop();
+      for (const meshInstance of entity.render?.meshInstances ?? []) {
+        const nodeName = meshInstance.node?.name?.toLowerCase() ?? "";
+        const materialName = meshInstance.material?.name?.toLowerCase() ?? "";
+        const isWood =
+          entity.name.toLowerCase().includes(WOOD_PLANK_NAME) ||
+          nodeName.includes(WOOD_PLANK_NAME) ||
+          materialName === "castle door wood" ||
+          materialName === "castle door shadowed wood";
+        if (isWood) {
+          meshInstance.material = material;
+        }
+      }
+      pending.push(...entity.children);
+    }
   }
 
   #syncAnimation() {

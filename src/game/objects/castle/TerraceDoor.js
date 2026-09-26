@@ -18,7 +18,13 @@ export class TerraceDoor {
   #pc;
   #onOpen;
 
-  constructor({ pc, modelLibrary, wallMaterial, onOpen }) {
+  constructor({
+    pc,
+    modelLibrary,
+    wallMaterial,
+    woodMaterial,
+    onOpen,
+  }) {
     this.#pc = pc;
     this.#onOpen = onOpen;
     this.#entity = modelLibrary.instantiate(terraceStairheadUrl);
@@ -26,6 +32,7 @@ export class TerraceDoor {
     this.#applyWallMaterial(wallMaterial);
     this.#door = modelLibrary.instantiate(terraceDoorUrl);
     this.#door.name = "Terrace outward-opening door";
+    this.#applyWoodMaterial(woodMaterial);
     this.#entity.addChild(this.#door);
     const track = modelLibrary.getAnimationTracks(terraceDoorUrl, [
       CASTLE_DOOR_ANIMATION.OPEN,
@@ -132,6 +139,23 @@ export class TerraceDoor {
       if (isFramePiece) {
         for (const meshInstance of entity.render?.meshInstances ?? []) {
           meshInstance.material = wallMaterial;
+        }
+      }
+      pending.push(...entity.children);
+    }
+  }
+
+  #applyWoodMaterial(woodMaterial) {
+    const pending = [this.#door];
+    while (pending.length) {
+      const entity = pending.pop();
+      for (const meshInstance of entity.render?.meshInstances ?? []) {
+        const nodeName = meshInstance.node?.name ?? "";
+        const isWood =
+          entity.name.startsWith("Terrace door plank") ||
+          nodeName.startsWith("Terrace door plank");
+        if (isWood) {
+          meshInstance.material = woodMaterial;
         }
       }
       pending.push(...entity.children);
