@@ -51,6 +51,7 @@ export class GameCanvasCameraTestDriverPlugin {
     return {
       cameraReturningToHero: renderer.cameraReturningToHero,
       freeCameraEnabled: renderer.freeCameraEnabled,
+      freeCamera: renderer.freeCameraState,
       hero: renderer.heroState,
       royalCastles: renderer.royalCastleStates,
       panLimitsEnabled: renderer.panLimitsEnabled,

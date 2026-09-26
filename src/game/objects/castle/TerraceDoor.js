@@ -84,6 +84,25 @@ export class TerraceDoor {
     return this.#onOpen?.() ?? false;
   }
 
+  blocksCameraAt(x, y, z, radius = 0) {
+    const hinge = this.#door?.findByName("Terrace door hinge");
+    if (!hinge) {
+      return false;
+    }
+    const inverse = hinge.getWorldTransform().clone().invert();
+    const point = inverse.transformPoint(
+      new this.#pc.Vec3(x, y, z),
+      new this.#pc.Vec3(),
+    );
+    return (
+      point.x >= -radius &&
+      point.x <= 1 + radius &&
+      point.y >= -radius &&
+      point.y <= 1.25 + radius &&
+      Math.abs(point.z) <= 0.08 + radius
+    );
+  }
+
   update(deltaTime, open, speed = 3) {
     const step = Math.max(0, deltaTime) * speed;
     this.#amount = open

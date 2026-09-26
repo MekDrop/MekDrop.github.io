@@ -466,11 +466,12 @@ describe("Camera dragging", () => {
 
     cy.get(".free-camera-status").should(
       "contain.text",
-      "Scroll Lock enabled — free camera",
+      "Free camera — arrows move",
     );
     cy.window().then((window) => {
       const freeCameraState = window.gameCameraTest.state();
       expect(freeCameraState.freeCameraEnabled).to.equal(true);
+      expect(freeCameraState.freeCamera.perspective).to.equal(true);
       expect(freeCameraState.panLimitsEnabled).to.equal(false);
       expect(freeCameraState.viewport.manuallyMoved).to.equal(true);
       expect(
@@ -479,9 +480,19 @@ describe("Camera dragging", () => {
           freeCameraState.viewport.panZ - initialState.viewport.panZ,
         ),
       ).to.be.greaterThan(0);
-      expect(freeCameraState.hero.position).to.deep.equal(
-        initialState.hero.position,
-      );
+      for (const axis of ["x", "y", "z"]) {
+        expect(freeCameraState.hero.position[axis]).to.be.closeTo(
+          initialState.hero.position[axis],
+          0.000001,
+        );
+      }
+
+      const initialCameraHeight = freeCameraState.freeCamera.position.y;
+      window.dispatchEvent(new KeyboardEvent("keydown", { code: "PageUp" }));
+      window.dispatchEvent(new KeyboardEvent("keyup", { code: "PageUp" }));
+      expect(
+        window.gameCameraTest.state().freeCamera.position.y,
+      ).to.be.greaterThan(initialCameraHeight);
 
       window.dispatchEvent(
         new KeyboardEvent("keydown", { code: "ScrollLock" }),

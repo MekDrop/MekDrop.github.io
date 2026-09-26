@@ -177,6 +177,7 @@ export class Castle {
   #leisureScene = null;
   #groundCollisionColumns = [];
   #groundCollisionKeys = new Set();
+  #cameraCollisionBlocks = [];
   #animatedDoors = [];
   #doorArches = [];
   #updateHandle = null;
@@ -263,6 +264,28 @@ export class Castle {
       this.#stairs?.blocksMovementAt(x, z, radius, elevation, stepClearance) ??
       false
     );
+  }
+
+  blocksCameraAt(x, y, z, radius = 0) {
+    if (
+      this.#animatedDoors.some((door) =>
+        door.blocksCameraAt(x, y, z, radius),
+      ) ||
+      this.#leisureScene?.blocksCameraAt(x, y, z, radius)
+    ) {
+      return true;
+    }
+    return this.#cameraCollisionBlocks.some((block) => {
+      const distanceX = Math.max(Math.abs(x - block.x) - block.halfX, 0);
+      const distanceY = Math.max(Math.abs(y - block.y) - block.halfY, 0);
+      const distanceZ = Math.max(Math.abs(z - block.z) - block.halfZ, 0);
+      return (
+        distanceX * distanceX +
+          distanceY * distanceY +
+          distanceZ * distanceZ <=
+        radius * radius
+      );
+    });
   }
 
   surfaceHeightAt(x, z) {
@@ -393,6 +416,7 @@ export class Castle {
     this.#fireParticleTexture = null;
     this.#groundCollisionColumns = [];
     this.#groundCollisionKeys.clear();
+    this.#cameraCollisionBlocks = [];
   }
 
   #update = (deltaTime) => {
@@ -997,10 +1021,18 @@ export class Castle {
         return;
       }
       occupied.add(key);
+      const position = localToWorld(blockU, blockV);
+      this.#cameraCollisionBlocks.push({
+        x: position.x,
+        y: baseY + (blockY + 0.5) * CASTLE_BLOCK_SIZE,
+        z: position.z,
+        halfX: CASTLE_BLOCK_SIZE / 2,
+        halfY: CASTLE_BLOCK_SIZE / 2,
+        halfZ: CASTLE_BLOCK_SIZE / 2,
+      });
       if (blockY === 0) {
         const collisionKey = `${blockX},${blockZ}`;
         if (!this.#groundCollisionKeys.has(collisionKey)) {
-          const position = localToWorld(blockU, blockV);
           this.#groundCollisionKeys.add(collisionKey);
           this.#groundCollisionColumns.push(position);
         }

@@ -22,8 +22,11 @@ export class RotateViewAction {
     return this.rotateBy(1);
   }
 
-  rotateBy(quarterTurns) {
-    const rotation = this.#renderer.rotateBy(quarterTurns);
+  rotateBy(quarterTurns, verticalQuarterTurns = 0) {
+    const rotation = this.#renderer.rotateBy(
+      quarterTurns,
+      verticalQuarterTurns,
+    );
     this.#onChange(rotation);
     return rotation;
   }

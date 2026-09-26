@@ -40,4 +40,22 @@ describe("ground collision world physics surfaces", () => {
       z: 4,
     });
   });
+
+  it("delegates free-camera collision to registered colliders", () => {
+    const world = new GroundCollisionWorld();
+    const calls = [];
+    world.add({
+      blocksCameraAt: (x, y, z, radius) => {
+        calls.push({ x, y, z, radius });
+        return x + radius >= 2;
+      },
+    });
+
+    assert.equal(world.isCameraBlocked(1, 3, 4, 0.25), false);
+    assert.equal(world.isCameraBlocked(1.8, 3, 4, 0.25), true);
+    assert.deepEqual(calls, [
+      { x: 1, y: 3, z: 4, radius: 0.25 },
+      { x: 1.8, y: 3, z: 4, radius: 0.25 },
+    ]);
+  });
 });

@@ -218,6 +218,10 @@ export class CastleLeisureScene {
     return this.#stopped ? null : this.#door.getPointerHit(rayStart, rayEnd);
   }
 
+  blocksCameraAt(x, y, z, radius = 0) {
+    return this.#door?.blocksCameraAt(x, y, z, radius) ?? false;
+  }
+
   updateHeroPosition({ x, y, z }) {
     if (this.#stopped) {
       return;

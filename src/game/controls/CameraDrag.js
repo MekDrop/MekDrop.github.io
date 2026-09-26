@@ -70,6 +70,7 @@ export class CameraDrag {
     if (this.#mode === CAMERA_DRAG_MODE.ROTATE) {
       this.#rotateView.rotateBy(
         deltaX * this.#rotateConfig.quarterTurnsPerPixel,
+        deltaY * this.#rotateConfig.quarterTurnsPerPixel,
       );
       return true;
     }

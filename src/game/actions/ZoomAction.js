@@ -29,6 +29,10 @@ export class ZoomAction {
     if (this.#renderer.inventoryVisible) {
       return;
     }
+    if (this.#renderer.freeCameraEnabled) {
+      this.#renderer.moveFreeCameraVertically(this.#factor >= 1 ? 1 : -1);
+      return;
+    }
     const zoom = this.#clampZoom(this.#renderer.zoom * this.#factor);
     this.#renderer.zoomTo(zoom, pivot.x, pivot.y);
   }

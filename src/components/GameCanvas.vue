@@ -38,7 +38,7 @@
       role="status"
       aria-live="polite"
     >
-      Scroll Lock enabled — free camera
+      Free camera — arrows move, Page Up/Down changes floor, middle-drag looks
     </div>
     <hero-mood-status :mood="heroMood" />
     <Transition name="interaction-prompt">

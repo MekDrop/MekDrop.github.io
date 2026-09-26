@@ -71,6 +71,15 @@ export class GroundCollisionWorld {
     );
   }
 
+  isCameraBlocked(x, y, z, radius = 0) {
+    for (const collider of this.#colliders) {
+      if (collider.blocksCameraAt?.(x, y, z, radius)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   isMovementBlocked(
     fromX,
     fromZ,

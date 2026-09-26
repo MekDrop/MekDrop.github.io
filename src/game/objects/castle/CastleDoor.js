@@ -166,6 +166,26 @@ export class CastleDoor {
     );
   }
 
+  blocksCameraAt(x, y, z, radius = 0) {
+    if (this.#openAmount >= PASSABLE_OPEN_AMOUNT) {
+      return false;
+    }
+    const deltaX = x - this.#center.x;
+    const deltaZ = z - this.#center.z;
+    const normalDistance = Math.abs(
+      deltaX * this.#inward.x + deltaZ * this.#inward.z,
+    );
+    const lateralDistance = Math.abs(
+      deltaX * this.#tangent.x + deltaZ * this.#tangent.z,
+    );
+    return (
+      y >= this.#center.y - radius &&
+      y <= this.#center.y + DOOR_HEIGHT + radius &&
+      normalDistance <= DOOR_THICKNESS / 2 + radius &&
+      lateralDistance <= this.#width / 2 + radius
+    );
+  }
+
   destroy() {
     this.#entity?.destroy();
     this.#entity = null;

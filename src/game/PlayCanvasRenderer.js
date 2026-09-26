@@ -55,6 +55,7 @@ import { PathSurfaceMaterials } from "./rendering/terrain/PathSurfaceMaterials.j
 import {
   CUBE_SCALE,
   FIXED_HEIGHTS,
+  GRASS_SURFACE_TILES,
   SURFACE_ELEVATION_BIAS,
   SURFACE_MATERIALS,
 } from "./rendering/terrain/TerrainMaterialMaps.js";
@@ -100,6 +101,13 @@ const HERO_BRIDGE_VISIBILITY_RADIUS = 0.5;
 const HERO_CAMERA_RETURN_DURATION = 0.45;
 const HERO_RESPAWN_CAMERA_RETURN_DURATION = 0.32;
 const CAMERA_TARGET_HEIGHT = 3.2;
+const FREE_CAMERA_FOV = 60;
+const FREE_CAMERA_MOVE_PER_PIXEL = 0.035;
+const FREE_CAMERA_VERTICAL_STEP = 0.8;
+const FREE_CAMERA_COLLISION_RADIUS = 0.14;
+const FREE_CAMERA_SWEEP_STEP = 0.08;
+const FREE_CAMERA_MIN_PITCH = -85;
+const FREE_CAMERA_MAX_PITCH = 85;
 const MAX_CASTLE_LIVES = 3;
 const INVENTORY_DROP_MIN_FALL_HEIGHT = 0.35;
 const INVENTORY_DROP_MAX_FALL_HEIGHT = 12;
@@ -123,6 +131,8 @@ export class PlayCanvasRenderer {
   #orbitPivot = null;
   #panLimitsEnabled = true;
   #freeCameraEnabled = false;
+  #freeCameraPosition = null;
+  #freeCameraEuler = null;
   #fitCenterX = 0;
   #fitCenterZ = 0;
   #viewportManuallyMoved = false;
@@ -629,10 +639,30 @@ export class PlayCanvasRenderer {
     return this.#freeCameraEnabled;
   }
 
+  get freeCameraState() {
+    if (!this.#freeCameraEnabled || !this.#freeCameraPosition) {
+      return null;
+    }
+    return {
+      position: {
+        x: this.#freeCameraPosition.x,
+        y: this.#freeCameraPosition.y,
+        z: this.#freeCameraPosition.z,
+      },
+      perspective:
+        this.#camera?.camera?.projection === this.#pc?.PROJECTION_PERSPECTIVE,
+    };
+  }
+
   set freeCameraEnabled(enabled) {
     const nextEnabled = Boolean(enabled);
     if (this.#freeCameraEnabled === nextEnabled) {
       return;
+    }
+    if (nextEnabled) {
+      this.#beginFreeCamera();
+    } else {
+      this.#endFreeCamera();
     }
     this.#freeCameraEnabled = nextEnabled;
     this.#heroCameraReturnTransition = null;
@@ -806,6 +836,10 @@ export class PlayCanvasRenderer {
     if (this.#cameraLocked) {
       return;
     }
+    if (this.#freeCameraEnabled) {
+      this.#moveFreeCamera(deltaX, deltaY);
+      return;
+    }
     this.#heroCameraReturnTransition = null;
     this.#orbitPivot = null;
     if (this.#panLimitsEnabled && this.#zoom <= MAP_FIT_ZOOM) {
@@ -823,8 +857,12 @@ export class PlayCanvasRenderer {
     this.#updateCamera(panOrigin);
   }
 
-  rotateBy(quarterTurns) {
+  rotateBy(quarterTurns, verticalQuarterTurns = 0) {
     if (this.#cameraLocked) {
+      return this.#rotation;
+    }
+    if (this.#freeCameraEnabled) {
+      this.#rotateFreeCamera(quarterTurns, verticalQuarterTurns);
       return this.#rotation;
     }
     this.#heroCameraReturnTransition = null;
@@ -850,6 +888,17 @@ export class PlayCanvasRenderer {
     this.#updateCamera(null, preserveFocus);
     this.#heroVisibility?.schedule();
     return this.#rotation;
+  }
+
+  moveFreeCameraVertically(direction) {
+    if (
+      !this.#freeCameraEnabled ||
+      !this.#freeCameraPosition ||
+      !Number.isFinite(direction)
+    ) {
+      return;
+    }
+    this.#moveFreeCameraBy(0, direction * FREE_CAMERA_VERTICAL_STEP, 0);
   }
 
   resize() {
@@ -1588,6 +1637,10 @@ export class PlayCanvasRenderer {
       !this.#camera?.camera ||
       !this.#cloudField?.entity
     ) {
+      return;
+    }
+    if (this.#freeCameraEnabled) {
+      this.#setFloatingCameraOffset(0, 0);
       return;
     }
     const offset = this.#floatingIslandMotion.update(deltaTime);
@@ -2348,6 +2401,10 @@ export class PlayCanvasRenderer {
     if (!this.#camera || !this.#mapData) {
       return;
     }
+    if (this.#freeCameraEnabled) {
+      this.#updateFreeCamera();
+      return;
+    }
     if (this.#panLimitsEnabled && this.#zoom === MAP_FIT_ZOOM) {
       this.#updateFitCenter();
       this.#panX = this.#fitCenterX;
@@ -2394,6 +2451,200 @@ export class PlayCanvasRenderer {
       panZ: this.#panZ,
       zoom: this.#zoom,
     });
+    this.#setFloatingCameraOffset(
+      this.#floatingCameraOffsetX,
+      this.#floatingCameraOffsetY,
+    );
+    this.#updateHeroIdleLookTarget();
+    this.#notifyViewportChange();
+  }
+
+  #beginFreeCamera() {
+    if (!this.#camera || !this.#pc) {
+      return;
+    }
+    const yaw = Math.PI / 4 + this.#rotation * (Math.PI / 2);
+    const forward = new this.#pc.Vec3(
+      -Math.sin(yaw) * Math.cos(CAMERA_PITCH),
+      -Math.sin(CAMERA_PITCH),
+      -Math.cos(yaw) * Math.cos(CAMERA_PITCH),
+    );
+    const target = new this.#pc.Vec3(
+      this.#panX,
+      this.#cameraTargetY,
+      this.#panZ,
+    );
+    const visibleHeight = this.#baseOrthoHeight / Math.max(1, this.#zoom);
+    const perspectiveDistance = Math.max(
+      4,
+      Math.min(
+        24,
+        visibleHeight /
+          (2 * Math.tan((FREE_CAMERA_FOV * Math.PI) / 360)),
+      ),
+    );
+    this.#freeCameraPosition = target.clone().sub(
+      forward.clone().mulScalar(perspectiveDistance),
+    );
+    this.#freeCameraEuler = new this.#pc.Vec3(
+      -CAMERA_PITCH * (180 / Math.PI),
+      45 + this.#rotation * 90,
+      0,
+    );
+    this.#camera.camera.projection = this.#pc.PROJECTION_PERSPECTIVE;
+    this.#camera.camera.fov = FREE_CAMERA_FOV;
+  }
+
+  #endFreeCamera() {
+    if (this.#camera?.camera) {
+      this.#camera.camera.projection = this.#pc.PROJECTION_ORTHOGRAPHIC;
+    }
+    this.#freeCameraPosition = null;
+    this.#freeCameraEuler = null;
+    const heroPosition = this.hero?.position;
+    if (heroPosition) {
+      this.#updateCastlesForHero(heroPosition);
+    }
+  }
+
+  #moveFreeCamera(deltaX, deltaY) {
+    if (!this.#freeCameraPosition || !this.#freeCameraEuler) {
+      return;
+    }
+    const yaw = this.#freeCameraEuler.y * (Math.PI / 180);
+    const forwardX = -Math.sin(yaw);
+    const forwardZ = -Math.cos(yaw);
+    const rightX = Math.cos(yaw);
+    const rightZ = -Math.sin(yaw);
+    const scale = FREE_CAMERA_MOVE_PER_PIXEL;
+    this.#moveFreeCameraBy(
+      (forwardX * deltaY - rightX * deltaX) * scale,
+      0,
+      (forwardZ * deltaY - rightZ * deltaX) * scale,
+    );
+  }
+
+  #moveFreeCameraBy(deltaX, deltaY, deltaZ) {
+    if (!this.#freeCameraPosition) {
+      return;
+    }
+    const distance = Math.hypot(deltaX, deltaY, deltaZ);
+    const steps = Math.max(1, Math.ceil(distance / FREE_CAMERA_SWEEP_STEP));
+    const stepX = deltaX / steps;
+    const stepY = deltaY / steps;
+    const stepZ = deltaZ / steps;
+    for (let step = 0; step < steps; step += 1) {
+      const position = this.#freeCameraPosition;
+      const candidate = new this.#pc.Vec3(
+        position.x + stepX,
+        position.y + stepY,
+        position.z + stepZ,
+      );
+      if (!this.#freeCameraBlockedAt(candidate)) {
+        position.copy(candidate);
+        continue;
+      }
+      if (stepY !== 0) {
+        break;
+      }
+      const candidateX = new this.#pc.Vec3(
+        position.x + stepX,
+        position.y,
+        position.z,
+      );
+      if (!this.#freeCameraBlockedAt(candidateX)) {
+        position.copy(candidateX);
+      }
+      const candidateZ = new this.#pc.Vec3(
+        position.x,
+        position.y,
+        position.z + stepZ,
+      );
+      if (!this.#freeCameraBlockedAt(candidateZ)) {
+        position.copy(candidateZ);
+      }
+    }
+    this.#panX = this.#freeCameraPosition.x;
+    this.#panZ = this.#freeCameraPosition.z;
+    this.#viewportManuallyMoved = true;
+    this.#updateCamera();
+  }
+
+  #freeCameraBlockedAt(position) {
+    const radius = FREE_CAMERA_COLLISION_RADIUS;
+    if (
+      this.#collisionWorld.isCameraBlocked(
+        position.x,
+        position.y,
+        position.z,
+        radius,
+      )
+    ) {
+      return true;
+    }
+    const sampleOffsets = [
+      [0, 0],
+      [-radius, 0],
+      [radius, 0],
+      [0, -radius],
+      [0, radius],
+    ];
+    return sampleOffsets.some(([offsetX, offsetZ]) => {
+      const surfaceHeight = this.#terrainHeightAtWorldPosition(
+        position.x + offsetX,
+        position.z + offsetZ,
+      );
+      return (
+        Number.isFinite(surfaceHeight) &&
+        position.y - radius < surfaceHeight
+      );
+    });
+  }
+
+  #terrainHeightAtWorldPosition(x, z) {
+    if (!this.#mapData) {
+      return null;
+    }
+    const { cols, rows, grid } = this.#mapData;
+    const col = Math.round(x + (cols - 1) / 2);
+    const row = Math.round(z + (rows - 1) / 2);
+    if (col < 0 || col >= cols || row < 0 || row >= rows) {
+      return null;
+    }
+    const type = grid[row][col];
+    if (type === TileType.WATER) {
+      return null;
+    }
+    return (
+      this.#tileHeight(col, row) +
+      (GRASS_SURFACE_TILES.has(type) ? GRASS_SURFACE_LIFT : 0)
+    );
+  }
+
+  #rotateFreeCamera(horizontalQuarterTurns, verticalQuarterTurns) {
+    if (!this.#freeCameraEuler) {
+      return;
+    }
+    this.#freeCameraEuler.y += horizontalQuarterTurns * 90;
+    this.#freeCameraEuler.x = Math.max(
+      FREE_CAMERA_MIN_PITCH,
+      Math.min(
+        FREE_CAMERA_MAX_PITCH,
+        this.#freeCameraEuler.x + verticalQuarterTurns * 90,
+      ),
+    );
+    this.#viewportManuallyMoved = true;
+    this.#updateCamera();
+  }
+
+  #updateFreeCamera() {
+    if (!this.#camera || !this.#freeCameraPosition || !this.#freeCameraEuler) {
+      return;
+    }
+    this.#floatingCameraOffsetApplied = false;
+    this.#camera.setPosition(this.#freeCameraPosition);
+    this.#camera.setEulerAngles(this.#freeCameraEuler);
+    this.#updateCastlesForHero(this.#freeCameraPosition);
     this.#setFloatingCameraOffset(
       this.#floatingCameraOffsetX,
       this.#floatingCameraOffsetY,
