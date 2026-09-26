@@ -171,3 +171,13 @@ for (const side of Object.keys(layouts)) {
     room.destroy();
   });
 }
+
+it("keeps the throne room rendered while its entrance is closed", () => {
+  const room = createRoom("NORTH");
+
+  room.entranceVisible = false;
+  room.updateHeroPosition({ x: -100, z: -100 });
+
+  assert.equal(room.entity.enabled, true);
+  room.destroy();
+});

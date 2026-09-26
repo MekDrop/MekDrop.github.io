@@ -1,5 +1,19 @@
 import entranceArchModelUrl from "../../models/castle/doors/entrance-arch.glb?url";
 
+const HIDDEN_MORTAR_PREFIXES = [
+  "Castle arch solid wedge",
+  "Castle arch solid jamb",
+];
+
+const hideMortarBacking = (entity) => {
+  if (HIDDEN_MORTAR_PREFIXES.some((prefix) => entity.name.startsWith(prefix))) {
+    entity.enabled = false;
+  }
+  for (const child of entity.children) {
+    hideMortarBacking(child);
+  }
+};
+
 /** Imported chunky stone frame around one castle entrance. */
 export class CastleDoorArch {
   static get modelUrl() {
@@ -11,6 +25,7 @@ export class CastleDoorArch {
   constructor({ castlePosition, door, modelLibrary }) {
     this.#entity = modelLibrary.instantiate(CastleDoorArch.modelUrl);
     this.#entity.name = "Castle door stone arch";
+    hideMortarBacking(this.#entity);
 
     const placement = this.#placement(castlePosition, door);
     this.#entity.setLocalPosition(

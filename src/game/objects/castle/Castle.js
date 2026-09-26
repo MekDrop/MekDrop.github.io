@@ -112,12 +112,12 @@ const CASTLE_TOWER_SPAN_BLOCKS = 6;
 const CASTLE_TOWER_HEIGHT_BLOCKS = 18;
 const CASTLE_GATE_CROWN_HEIGHT_BLOCKS = 22;
 const CASTLE_GATE_OPENING_HEIGHT_BLOCKS = 10;
-const CASTLE_GATE_ARCH_SPRING_BLOCKS = 5;
+const CASTLE_GATE_ARCH_SPRING_BLOCKS = 8;
 const CASTLE_GATE_PYLON_SPAN_BLOCKS = 5;
 const CASTLE_DOOR_WIDTH_TILES = 2;
 const CASTLE_AUDIENCE_ROOM_DEPTH_BLOCKS = 18;
-const CASTLE_ARCH_BACKING_DEPTH_BLOCKS = 0.16;
-const CASTLE_ARCH_BACKING_CENTER_DEPTH_BLOCKS = -0.42;
+const CASTLE_GATE_ARCH_TILE_DEPTH_BLOCKS = 0.5;
+const CASTLE_GATE_ARCH_TILE_CENTER_DEPTH_BLOCKS = -0.25;
 
 const castleGateArchHeight = (opening, horizontalBlock) => {
   const width = opening.end - opening.start;
@@ -130,16 +130,14 @@ const castleGateArchHeight = (opening, horizontalBlock) => {
   );
   const curvedHeight = Math.min(
     CASTLE_GATE_OPENING_HEIGHT_BLOCKS,
-    Math.round(
+    Math.floor(
       CASTLE_GATE_ARCH_SPRING_BLOCKS +
         (CASTLE_GATE_OPENING_HEIGHT_BLOCKS -
           CASTLE_GATE_ARCH_SPRING_BLOCKS) *
           Math.sqrt(1 - (1 - normalizedRadius) ** 2),
     ),
   );
-  return distanceFromEdge === halfWidth - 2
-    ? Math.min(curvedHeight, CASTLE_GATE_OPENING_HEIGHT_BLOCKS - 1)
-    : curvedHeight;
+  return curvedHeight;
 };
 
 export class Castle {
@@ -441,9 +439,7 @@ export class Castle {
 
   #syncAudienceRoomVisibility() {
     if (this.#audienceRoom) {
-      this.#audienceRoom.royalVisible = !this.#leisureScene?.active;
-      this.#audienceRoom.entranceVisible =
-        this.#animatedDoors[0]?.revealsInterior ?? false;
+      this.#audienceRoom.royalVisible = true;
     }
   }
 
@@ -1092,8 +1088,8 @@ export class Castle {
         return false;
       }
 
-      // Full-depth wall cubes must stay clear of the animated door leaves.
-      // The gatehouse adds shallow facade backing around the curved arch.
+      // The facade stays clear of the animated leaves. The gatehouse restores
+      // ordinary masonry above the curved opening.
       return blockY < CASTLE_GATE_OPENING_HEIGHT_BLOCKS;
     };
 
@@ -1791,7 +1787,9 @@ export class Castle {
         );
       }
     };
-    // Thin backing seals the curved arch without entering the door swing.
+    // Complete the masonry above the doorway with normal castle tiles. Their
+    // exterior faces stay flush with the facade, but their hidden depth is cut
+    // in half so the curved door tips can sweep behind them without clipping.
     for (
       let horizontal = opening.start;
       horizontal < opening.end;
@@ -1804,17 +1802,16 @@ export class Castle {
         blockY += 1
       ) {
         placeBoundaryDecoration(
-          CASTLE_ARCH_BACKING_CENTER_DEPTH_BLOCKS,
+          CASTLE_GATE_ARCH_TILE_CENTER_DEPTH_BLOCKS,
           horizontal,
           blockY,
-          CASTLE_ARCH_BACKING_DEPTH_BLOCKS,
+          CASTLE_GATE_ARCH_TILE_DEPTH_BLOCKS,
           1,
           1,
           "stone",
         );
       }
     }
-
     const pylonRanges = [
       [opening.start - pylonSpan, opening.start - 1],
       [opening.end, opening.end + pylonSpan - 1],

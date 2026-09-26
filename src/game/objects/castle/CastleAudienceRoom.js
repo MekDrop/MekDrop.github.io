@@ -64,7 +64,7 @@ export class CastleAudienceRoom {
   #obstacles = [];
   #floorSurfaces = [];
   #heroWithinVisibility = false;
-  #entranceVisible = false;
+  #entranceVisible = true;
   #gameOverPerformance = false;
   #gameOverPerformanceStarted = false;
   #gameOverEndPosition = null;
@@ -104,7 +104,7 @@ export class CastleAudienceRoom {
     this.#resolveLayout();
     this.#createMaterials();
     this.#build();
-    this.#entity.enabled = false;
+    this.#entity.enabled = true;
   }
 
   get entity() {
@@ -671,10 +671,7 @@ export class CastleAudienceRoom {
   }
 
   #syncVisibility() {
-    this.#entity.enabled =
-      this.#gameOverPerformance ||
-      this.#heroWithinVisibility ||
-      this.#entranceVisible;
+    this.#entity.enabled = true;
   }
 
   #material(name) {
