@@ -31,6 +31,14 @@ export class GameCanvasCameraTestDriverPlugin {
         this.#context.renderer().panBy(deltaX, deltaY);
         return this.#state();
       },
+      lookFirstPersonBy: (yawDegrees, pitchDegrees) => {
+        this.#context.renderer().lookFirstPersonBy(yawDegrees, pitchDegrees);
+        return this.#state();
+      },
+      lookFirstPersonBy: (yawDegrees, pitchDegrees) => {
+        this.#context.renderer().lookFirstPersonBy(yawDegrees, pitchDegrees);
+        return this.#state();
+      },
       moveHero: (inputX, inputY, running = false) =>
         this.#context.renderer().hero?.setMovement(inputX, inputY, running),
       returnToHero: () => this.#context.renderer().returnCameraToHero(),
@@ -50,8 +58,8 @@ export class GameCanvasCameraTestDriverPlugin {
     const renderer = this.#context.renderer();
     return {
       cameraReturningToHero: renderer.cameraReturningToHero,
-      freeCameraEnabled: renderer.freeCameraEnabled,
-      freeCamera: renderer.freeCameraState,
+      firstPersonCameraEnabled: renderer.firstPersonCameraEnabled,
+      firstPersonCamera: renderer.firstPersonCameraState,
       hero: renderer.heroState,
       royalCastles: renderer.royalCastleStates,
       panLimitsEnabled: renderer.panLimitsEnabled,

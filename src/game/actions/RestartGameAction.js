@@ -12,7 +12,7 @@ export class RestartGameAction {
       return false;
     }
     const viewport = this.#renderer.gameOverReturnViewport;
-    this.#regenerateMap.regenerateMap(viewport);
+    void this.#regenerateMap.regenerateMap(viewport);
     return true;
   }
 }

@@ -451,58 +451,75 @@ describe("Camera dragging", () => {
     });
   });
 
-  it("uses Scroll Lock for unbounded keyboard camera movement in development", () => {
+  it("uses Scroll Lock for a first-person camera tied to the hero in development", () => {
     let initialState;
     cy.window().then((window) => {
       initialState = window.gameCameraTest.state();
-      expect(initialState.freeCameraEnabled).to.equal(false);
+      expect(initialState.firstPersonCameraEnabled).to.equal(false);
       window.dispatchEvent(
         new KeyboardEvent("keydown", { code: "ScrollLock" }),
       );
       window.dispatchEvent(new KeyboardEvent("keyup", { code: "ScrollLock" }));
-      window.dispatchEvent(new KeyboardEvent("keydown", { code: "ArrowUp" }));
-      window.dispatchEvent(new KeyboardEvent("keyup", { code: "ArrowUp" }));
     });
 
-    cy.get(".free-camera-status").should(
+    cy.get(".first-person-camera-status").should(
       "contain.text",
-      "Free camera — arrows move",
+      "First-person camera — arrows move the hero",
     );
     cy.window().then((window) => {
-      const freeCameraState = window.gameCameraTest.state();
-      expect(freeCameraState.freeCameraEnabled).to.equal(true);
-      expect(freeCameraState.freeCamera.perspective).to.equal(true);
-      expect(freeCameraState.panLimitsEnabled).to.equal(false);
-      expect(freeCameraState.viewport.manuallyMoved).to.equal(true);
+      const firstPersonState = window.gameCameraTest.state();
+      expect(firstPersonState.firstPersonCameraEnabled).to.equal(true);
+      expect(firstPersonState.firstPersonCamera.perspective).to.equal(true);
+      expect(firstPersonState.panLimitsEnabled).to.equal(false);
+      expect(firstPersonState.viewport.manuallyMoved).to.equal(true);
+      expect(firstPersonState.firstPersonCamera.direction.x).to.be.closeTo(
+        firstPersonState.hero.facing.x,
+        0.000001,
+      );
+      expect(firstPersonState.firstPersonCamera.direction.z).to.be.closeTo(
+        firstPersonState.hero.facing.z,
+        0.000001,
+      );
+
+      const lookedState = window.gameCameraTest.lookFirstPersonBy(35, -20);
+      expect(lookedState.firstPersonCamera.direction.y).to.be.greaterThan(0);
+      expect(lookedState.firstPersonCamera.direction.x).not.to.be.closeTo(
+        firstPersonState.firstPersonCamera.direction.x,
+        0.01,
+      );
+
+      window.dispatchEvent(new KeyboardEvent("keydown", { code: "KeyW" }));
+    });
+    cy.wait(250);
+    cy.window().then((window) => {
+      window.dispatchEvent(new KeyboardEvent("keyup", { code: "KeyW" }));
+    });
+    cy.window().then((window) => {
+      const movedState = window.gameCameraTest.state();
       expect(
         Math.hypot(
-          freeCameraState.viewport.panX - initialState.viewport.panX,
-          freeCameraState.viewport.panZ - initialState.viewport.panZ,
+          movedState.hero.position.x - initialState.hero.position.x,
+          movedState.hero.position.z - initialState.hero.position.z,
         ),
       ).to.be.greaterThan(0);
-      for (const axis of ["x", "y", "z"]) {
-        expect(freeCameraState.hero.position[axis]).to.be.closeTo(
-          initialState.hero.position[axis],
-          0.000001,
-        );
-      }
-
-      const initialCameraHeight = freeCameraState.freeCamera.position.y;
-      window.dispatchEvent(new KeyboardEvent("keydown", { code: "PageUp" }));
-      window.dispatchEvent(new KeyboardEvent("keyup", { code: "PageUp" }));
-      expect(
-        window.gameCameraTest.state().freeCamera.position.y,
-      ).to.be.greaterThan(initialCameraHeight);
+      expect(movedState.firstPersonCamera.position.x).to.be.closeTo(
+        movedState.hero.position.x,
+        0.15,
+      );
+      expect(movedState.firstPersonCamera.position.z).to.be.closeTo(
+        movedState.hero.position.z,
+        0.15,
+      );
 
       window.dispatchEvent(
         new KeyboardEvent("keydown", { code: "ScrollLock" }),
       );
       window.dispatchEvent(new KeyboardEvent("keyup", { code: "ScrollLock" }));
     });
-    cy.get(".free-camera-status").should("not.exist");
+    cy.get(".first-person-camera-status").should("not.exist");
     cy.window().then((window) => {
       const normalState = window.gameCameraTest.state();
-      expect(normalState.freeCameraEnabled).to.equal(false);
+      expect(normalState.firstPersonCameraEnabled).to.equal(false);
       expect(normalState.panLimitsEnabled).to.equal(true);
     });
   });

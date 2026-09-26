@@ -98,7 +98,6 @@ const HERO_BRIDGE_VISIBILITY_RADIUS = 0.5;
 const HERO_CAMERA_RETURN_DURATION = 0.45;
 const HERO_RESPAWN_CAMERA_RETURN_DURATION = 0.32;
 const CAMERA_TARGET_HEIGHT = 3.2;
-const FREE_CAMERA_COLLISION_RADIUS = 0.14;
 const MAX_CASTLE_LIVES = 3;
 const INVENTORY_DROP_MIN_FALL_HEIGHT = 0.35;
 const INVENTORY_DROP_MAX_FALL_HEIGHT = 12;
@@ -399,7 +398,7 @@ export class PlayCanvasRenderer {
 
   #applyDebugSettings() {
     this.panLimitsEnabled =
-      !this.#debugStore.hasAny && !this.#camera.freeEnabled;
+      !this.#debugStore.hasAny && !this.#camera.firstPersonEnabled;
   }
 
   get zoom() {
@@ -409,6 +408,7 @@ export class PlayCanvasRenderer {
   get canPan() {
     return (
       !this.#cameraLocked &&
+      !this.#camera.firstPersonEnabled &&
       (!this.#camera.panLimitsEnabled || this.#camera.zoom > MAP_FIT_ZOOM)
     );
   }
@@ -522,20 +522,18 @@ export class PlayCanvasRenderer {
     return this.#camera.panLimitsEnabled;
   }
 
-  get freeCameraEnabled() {
-    return this.#camera.freeEnabled;
+  get firstPersonCameraEnabled() {
+    return this.#camera.firstPersonEnabled;
   }
 
-  get freeCameraState() {
-    return this.#camera.freeState;
+  get firstPersonCameraState() {
+    return this.#camera.firstPersonState;
   }
 
-  set freeCameraEnabled(enabled) {
+  set firstPersonCameraEnabled(enabled) {
     const nextEnabled = Boolean(enabled);
     if (
-      !this.#camera.setFreeEnabled(nextEnabled, {
-        cameraPitch: CAMERA_PITCH,
-        isPositionBlocked: (position) => this.#freeCameraBlockedAt(position),
+      !this.#camera.setFirstPersonEnabled(nextEnabled, {
         mapData: this.#mapData,
       })
     ) {
@@ -723,9 +721,7 @@ export class PlayCanvasRenderer {
     if (this.#cameraLocked) {
       return;
     }
-    if (this.#camera.freeEnabled) {
-      this.#camera.panFree(deltaX, deltaY);
-      this.#updateCamera();
+    if (this.#camera.firstPersonEnabled) {
       return;
     }
     this.#camera.returnTransition = null;
@@ -749,9 +745,7 @@ export class PlayCanvasRenderer {
     if (this.#cameraLocked) {
       return this.#camera.rotation;
     }
-    if (this.#camera.freeEnabled) {
-      this.#camera.rotateFree(quarterTurns, verticalQuarterTurns);
-      this.#updateCamera();
+    if (this.#camera.firstPersonEnabled) {
       return this.#camera.rotation;
     }
     this.#camera.returnTransition = null;
@@ -786,11 +780,11 @@ export class PlayCanvasRenderer {
     return this.#camera.rotation;
   }
 
-  moveFreeCameraVertically(direction) {
-    if (!this.#camera.freeEnabled || !Number.isFinite(direction)) {
+  lookFirstPersonBy(yawDegrees, pitchDegrees) {
+    if (!this.#camera.firstPersonEnabled) {
       return;
     }
-    this.#camera.moveFreeVertically(direction);
+    this.#camera.lookFirstPersonBy(yawDegrees, pitchDegrees);
     this.#updateCamera();
   }
 
@@ -1212,6 +1206,7 @@ export class PlayCanvasRenderer {
         z: this.#camera.fitCenterZ,
       },
       getViewRotation: () => this.#camera.rotation,
+      getViewDirection: () => this.#camera.firstPersonState?.direction ?? null,
       onPositionChange: this.#handleHeroPositionChange,
       onFacingChange: this.#handleHeroFacingChange,
       onMovementInput: () => this.#startHeroCameraReturn(),
@@ -1491,7 +1486,7 @@ export class PlayCanvasRenderer {
     ) {
       return;
     }
-    if (this.#camera.freeEnabled) {
+    if (this.#camera.firstPersonEnabled) {
       this.#setFloatingCameraOffset(0, 0);
       return;
     }
@@ -1665,6 +1660,10 @@ export class PlayCanvasRenderer {
     if (this.#cameraLocked) {
       return;
     }
+    if (this.#camera.firstPersonEnabled) {
+      this.#updateCamera();
+      return;
+    }
     const heroWorldPosition = hero.entity.getPosition();
     const screenPosition = this.#camera.camera.worldToScreen(
       new this.#pc.Vec3(
@@ -1801,6 +1800,9 @@ export class PlayCanvasRenderer {
 
   #handleHeroFacingChange = () => {
     const hero = this.#sceneObjects.getOne(SCENE_OBJECT_TYPE.HERO);
+    if (this.#camera.firstPersonEnabled) {
+      this.#updateCamera();
+    }
     if (!hero?.isUsingTool && !hero?.isCollecting) {
       this.#updateInteractionTarget();
     }
@@ -1823,7 +1825,7 @@ export class PlayCanvasRenderer {
       return;
     }
     if (
-      !this.#camera.freeEnabled &&
+      !this.#camera.firstPersonEnabled &&
       this.#camera.panLimitsEnabled &&
       this.#camera.zoom === MAP_FIT_ZOOM
     ) {
@@ -1832,7 +1834,7 @@ export class PlayCanvasRenderer {
       this.#camera.panZ = this.#camera.fitCenterZ;
     }
     if (
-      !this.#camera.freeEnabled &&
+      !this.#camera.firstPersonEnabled &&
       this.#camera.panLimitsEnabled &&
       !this.#cameraLocked &&
       !preserveFocus
@@ -1847,11 +1849,16 @@ export class PlayCanvasRenderer {
       }
     }
     this.#floatingCameraOffsetApplied = false;
+    const hero = this.hero;
+    if (hero) {
+      hero.firstPersonCameraEnabled = this.#camera.firstPersonEnabled;
+    }
     const update = this.#camera.update({
       cameraDistance: CAMERA_DISTANCE,
       cameraPitch: CAMERA_PITCH,
+      hero,
     });
-    if (update.free) {
+    if (update.firstPerson) {
       if (update.position) {
         this.#updateCastlesForHero(update.position);
       }
@@ -1879,36 +1886,6 @@ export class PlayCanvasRenderer {
     );
     this.#updateHeroIdleLookTarget();
     this.#notifyViewportChange();
-  }
-
-  #freeCameraBlockedAt(position) {
-    const radius = FREE_CAMERA_COLLISION_RADIUS;
-    if (
-      this.#collisionWorld.isCameraBlocked(
-        position.x,
-        position.y,
-        position.z,
-        radius,
-      )
-    ) {
-      return true;
-    }
-    const sampleOffsets = [
-      [0, 0],
-      [-radius, 0],
-      [radius, 0],
-      [0, -radius],
-      [0, radius],
-    ];
-    return sampleOffsets.some(([offsetX, offsetZ]) => {
-      const surfaceHeight = this.#terrainHeightAtWorldPosition(
-        position.x + offsetX,
-        position.z + offsetZ,
-      );
-      return (
-        Number.isFinite(surfaceHeight) && position.y - radius < surfaceHeight
-      );
-    });
   }
 
   #terrainHeightAtWorldPosition(x, z) {

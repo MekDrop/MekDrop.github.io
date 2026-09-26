@@ -43,6 +43,11 @@ form:
   close: Close
   ok: OK
 game:
+  loading:
+    cartography: Terrain survey
+    initializing: Preparing the expedition…
+    generating: Charting a new world…
+    rendering: Raising the terrain…
   recording:
     active: Recording game. Press Ctrl + Print Screen to stop and save.
     unsupported: MP4 recording is not supported by this browser. Please try another browser.

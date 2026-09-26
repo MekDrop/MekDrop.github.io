@@ -138,6 +138,7 @@ const RIVER_BRIDGE_HOP_HEIGHT = 0.24;
 // Keeps the widest pose, including the pauldron and its outline, within one
 // 1x1 terrain/path cube.
 const HERO_MODEL_SCALE = 0.65;
+const FIRST_PERSON_EYE_HEIGHT = 0.2;
 // Castle foundation cells remain traversable dirt. The castle collision world
 // owns the exact wall, door, stair, and furniture footprints, so the whole
 // foundation rectangle must not behave like one solid wall.
@@ -310,6 +311,7 @@ export class Hero {
   #mapData;
   #spawnCenter;
   #getViewRotation;
+  #getViewDirection;
   #onPositionChange;
   #onFacingChange;
   #collisionWorld;
@@ -395,6 +397,7 @@ export class Hero {
   #onMovementInput;
   #presentation;
   #moodVisible = false;
+  #firstPersonCameraEnabled = false;
 
   constructor({
     pc,
@@ -402,6 +405,7 @@ export class Hero {
     mapData,
     spawnCenter = { x: 0, z: 0 },
     getViewRotation,
+    getViewDirection,
     onPositionChange,
     onFacingChange,
     onMovementInput,
@@ -416,6 +420,7 @@ export class Hero {
     this.#buildRiverRouteLookup();
     this.#spawnCenter = spawnCenter;
     this.#getViewRotation = getViewRotation;
+    this.#getViewDirection = getViewDirection;
     this.#onPositionChange = onPositionChange;
     this.#onFacingChange = onFacingChange;
     this.#heroConfigurationStore = heroConfigurationStore;
@@ -597,6 +602,30 @@ export class Hero {
   get facingDirection() {
     const yaw = (this.#facingYaw * Math.PI) / 180;
     return { x: Math.sin(yaw), z: Math.cos(yaw) };
+  }
+
+  get firstPersonCameraPose() {
+    const direction = this.facingDirection;
+    const anchor = this.#headEntity?.getPosition() ?? {
+      x: this.#position.x,
+      y: this.#position.y + HERO_COLLISION_HEIGHT * 0.8,
+      z: this.#position.z,
+    };
+    return {
+      position: {
+        x: anchor.x,
+        y: anchor.y + FIRST_PERSON_EYE_HEIGHT,
+        z: anchor.z,
+      },
+      direction: { x: direction.x, y: 0, z: direction.z },
+    };
+  }
+
+  set firstPersonCameraEnabled(enabled) {
+    this.#firstPersonCameraEnabled = Boolean(enabled);
+    if (this.#headEntity) {
+      this.#headEntity.enabled = !this.#firstPersonCameraEnabled;
+    }
   }
 
   get movementState() {
@@ -1296,6 +1325,19 @@ export class Hero {
 
     const normalizedX = inputX / Math.max(1, length);
     const normalizedY = inputY / Math.max(1, length);
+    const viewDirection = this.#getViewDirection?.();
+    const viewLength = Math.hypot(
+      viewDirection?.x ?? 0,
+      viewDirection?.z ?? 0,
+    );
+    if (viewLength > 0.001) {
+      const forwardX = viewDirection.x / viewLength;
+      const forwardZ = viewDirection.z / viewLength;
+      return {
+        x: forwardZ * normalizedX + forwardX * normalizedY,
+        z: -forwardX * normalizedX + forwardZ * normalizedY,
+      };
+    }
     const yaw = Math.PI / 4 + (this.#getViewRotation?.() ?? 0) * (Math.PI / 2);
     const projectedX =
       Math.cos(yaw) * normalizedX - Math.sin(yaw) * normalizedY;
@@ -3447,6 +3489,9 @@ export class Hero {
     );
     this.#entity.addChild(this.#modelRoot);
     this.#headEntity = this.#findModelEntity("Hero head");
+    if (this.#headEntity) {
+      this.#headEntity.enabled = !this.#firstPersonCameraEnabled;
+    }
     this.#hairPhysics = new HeroHairPhysics({
       pc: this.#pc,
       app: this.#app,

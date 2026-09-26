@@ -8,19 +8,19 @@ export const DEFAULT_CONTROLS = Object.freeze({
     wheelDirection: "down",
   },
   moveUp: {
-    keys: ["ArrowUp"],
+    keys: ["ArrowUp", "KeyW"],
     allowedModifiers: ["shiftKey"],
   },
   moveDown: {
-    keys: ["ArrowDown"],
+    keys: ["ArrowDown", "KeyS"],
     allowedModifiers: ["shiftKey"],
   },
   moveLeft: {
-    keys: ["ArrowLeft"],
+    keys: ["ArrowLeft", "KeyA"],
     allowedModifiers: ["shiftKey"],
   },
   moveRight: {
-    keys: ["ArrowRight"],
+    keys: ["ArrowRight", "KeyD"],
     allowedModifiers: ["shiftKey"],
   },
   run: {
@@ -69,9 +69,12 @@ export const DEFAULT_CONTROLS = Object.freeze({
   toggleArrows: {
     keys: ["Pause"],
   },
-  toggleFreeCamera: {
+  toggleFirstPersonCamera: {
     keys: ["ScrollLock"],
     allowRepeat: false,
+  },
+  firstPersonLook: {
+    degreesPerPixel: 0.12,
   },
   zoom: {
     factor: 1.1,

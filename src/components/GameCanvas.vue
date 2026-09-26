@@ -4,12 +4,14 @@
     class="background-canvas fit"
     :class="{ 'background-canvas--recording': recordingState === GAME_RECORDING_STATE.RECORDING }"
     :data-recording-state="recordingState"
-    :data-game-ready="gameReady"
+    :data-game-ready="gameReady && !isLoading"
     :data-graphics-backend="graphicsBackend"
     :data-game-fps="debugVisible ? debugFramesPerSecond : undefined"
     :data-debug-visible="debugVisible"
     :data-map-name="currentMapName"
     :data-map-signature="currentMapSignature"
+    :data-game-loading="isLoading"
+    :aria-busy="isLoading"
     @contextmenu.prevent
   >
     <site-notice-dialog
@@ -29,21 +31,22 @@
             })
       "
     />
+    <game-loading-scene :active="isLoading" :phase="loadingPhase" />
     <span class="q-sr-only" role="status" aria-live="polite">
       {{ recordingState === GAME_RECORDING_STATE.RECORDING ? t("game.recording.active") : "" }}
     </span>
     <div
-      v-if="freeCameraEnabled"
-      class="free-camera-status"
+      v-if="firstPersonCameraEnabled"
+      class="first-person-camera-status"
       role="status"
       aria-live="polite"
     >
-      Free camera — arrows move, Page Up/Down changes floor, middle-drag looks
+      First-person camera — click for mouse look, WASD/arrows move, Esc releases
     </div>
     <hero-mood-status :mood="heroMood" />
     <Transition name="interaction-prompt">
       <div
-        v-if="interactionTarget && interactionPromptsVisible"
+        v-if="!isLoading && interactionTarget && interactionPromptsVisible"
         class="interaction-prompt"
         role="status"
         aria-live="polite"
@@ -116,7 +119,7 @@
   cursor: grabbing;
 }
 
-.free-camera-status {
+.first-person-camera-status {
   position: absolute;
   top: var(--app-ui-space-md);
   left: 50%;
@@ -221,6 +224,7 @@ import { getCssVar } from "quasar";
 import { useI18n } from "vue-i18n";
 import { useRoute, useRouter } from "vue-router";
 import SiteNoticeDialog from "components/SiteNoticeDialog.vue";
+import GameLoadingScene from "components/GameLoadingScene.vue";
 import HeroMoodStatus from "components/HeroMoodStatus.vue";
 import { generateMap } from "src/game/MapGenerator.js";
 import { PlayCanvasRenderer } from "src/game/PlayCanvasRenderer.js";
@@ -229,8 +233,8 @@ import { createGameCommandRegistry } from "src/game/commands/index.js";
 import { CloseModalAction } from "src/actions/CloseModalAction.js";
 import { GAME_RECORDING_STATE } from "src/game/enum/GameRecordingState.js";
 import { CopyScreenshotAction } from "src/game/actions/CopyScreenshotAction.js";
-import { FreeCameraAction } from "src/game/actions/FreeCameraAction.js";
-import { FreeCameraDirectionAction } from "src/game/actions/FreeCameraDirectionAction.js";
+import { FirstPersonCameraAction } from "src/game/actions/FirstPersonCameraAction.js";
+import { FirstPersonLookAction } from "src/game/actions/FirstPersonLookAction.js";
 import { HeroDirectionAction } from "src/game/actions/HeroDirectionAction.js";
 import { HeroJumpAction } from "src/game/actions/HeroJumpAction.js";
 import { HeroMovementAction } from "src/game/actions/HeroMovementAction.js";
@@ -262,12 +266,14 @@ import { useHeroStateStore } from "src/stores/hero-state-store.js";
 const container = ref(null);
 const canvas = ref(null);
 const gameReady = ref(false);
+const loadingPhase = ref("initializing");
+const isLoading = ref(true);
 const recordingState = ref(GAME_RECORDING_STATE.IDLE);
 const graphicsBackend = ref("initializing");
 const showGraphicsFallbackDialog = ref(false);
 const interactionTarget = ref(null);
 const interactionPromptsVisible = ref(true);
-const freeCameraEnabled = ref(false);
+const firstPersonCameraEnabled = ref(false);
 const currentMapName = ref("");
 const currentMapSignature = computed(() => currentMapName.value);
 const { t } = useI18n();
@@ -303,6 +309,8 @@ let interactionSuggestion = null;
 let gameCommandRegistry = null;
 let movementTestDriverPluginLoaded = false;
 let stopRecordingStateWatch = null;
+let loadingOperationId = 0;
+let controlsConnected = false;
 const pluginControlActions = {};
 const pluginControlKeyboard = {
   keydownActions: [],
@@ -478,31 +486,95 @@ function renderMap(mapDataToRender) {
   gameCanvasPluginRegistry.afterRender(mapDataToRender);
 }
 
-async function loadMapRoute(mapName) {
-  const navigationId = ++mapNavigationId;
-  const generatedMap = await createMap(mapName);
-  if (navigationId !== mapNavigationId || !renderer) {
+function connectControls() {
+  if (!controls || controlsConnected || isLoading.value) {
     return;
   }
+  controls.connect();
+  controlsConnected = true;
+}
 
-  const viewport = renderer.viewport;
-  renderMap(generatedMap);
-  renderer.setViewport(viewport);
-  await updateCurrentMap(generatedMap);
+function disconnectControls() {
+  if (!controls || !controlsConnected) {
+    return;
+  }
+  controls.disconnect();
+  controlsConnected = false;
+}
 
-  if (!mapName) {
-    await router.replace(mapRouteLocation(generatedMap.mapName));
+function waitForAnimationFrame() {
+  return new Promise((resolve) => {
+    if (typeof requestAnimationFrame === "function") {
+      requestAnimationFrame(() => setTimeout(resolve, 0));
+      return;
+    }
+    setTimeout(resolve, 0);
+  });
+}
+
+async function showLoadingPhase(phase, operationId = null) {
+  const nextOperationId = operationId ?? ++loadingOperationId;
+  if (operationId !== null && operationId !== loadingOperationId) {
+    return nextOperationId;
+  }
+  loadingPhase.value = phase;
+  isLoading.value = true;
+  interactionTarget.value = null;
+  disconnectControls();
+  await nextTick();
+  await waitForAnimationFrame();
+  return nextOperationId;
+}
+
+function finishLoading(operationId) {
+  if (operationId !== loadingOperationId) {
+    return;
+  }
+  isLoading.value = false;
+  if (gameReady.value) {
+    connectControls();
+  }
+}
+
+async function loadMapRoute(mapName) {
+  const navigationId = ++mapNavigationId;
+  const operationId = await showLoadingPhase("generating");
+  try {
+    if (navigationId !== mapNavigationId || !renderer) {
+      return;
+    }
+    const generatedMap = await createMap(mapName);
+    if (navigationId !== mapNavigationId || !renderer) {
+      return;
+    }
+
+    await showLoadingPhase("rendering", operationId);
+    if (navigationId !== mapNavigationId || !renderer) {
+      return;
+    }
+    const viewport = renderer.viewport;
+    renderMap(generatedMap);
+    renderer.setViewport(viewport);
+    await updateCurrentMap(generatedMap);
+
+    if (!mapName) {
+      await router.replace(mapRouteLocation(generatedMap.mapName));
+    }
+  } finally {
+    finishLoading(operationId);
   }
 }
 
 async function init() {
-  const bindings = DEFAULT_CONTROLS;
-  const zoomSettings = import.meta.env.DEV
-    ? { ...bindings.zoom, max: DEVELOPMENT_MAX_ZOOM }
-    : bindings.zoom;
-  interactionSuggestion = new InteractionSuggestion((target) => {
-    interactionTarget.value = target;
-  });
+  const loadingId = await showLoadingPhase("initializing");
+  try {
+    const bindings = DEFAULT_CONTROLS;
+    const zoomSettings = import.meta.env.DEV
+      ? { ...bindings.zoom, max: DEVELOPMENT_MAX_ZOOM }
+      : bindings.zoom;
+    interactionSuggestion = new InteractionSuggestion((target) => {
+      interactionTarget.value = target;
+    });
 
   const activeRenderer = new PlayCanvasRenderer(canvas.value, container.value, {
     onRuntimeError: reportRuntimeError,
@@ -524,10 +596,12 @@ async function init() {
   }
   gameCanvasPluginRegistry.load(GameCanvasDebugUiPlugin);
   graphicsBackend.value = activeRenderer.graphicsBackend;
+  await showLoadingPhase("generating", loadingId);
   mapData = await createMap(requestedMapName());
   if (renderer !== activeRenderer) {
     return;
   }
+  await showLoadingPhase("rendering", loadingId);
   renderMap(mapData);
   await updateCurrentMap(mapData);
   if (!requestedMapName()) {
@@ -545,13 +619,22 @@ async function init() {
   });
 
   const regenerateMapAction = new RegenerateMapAction(renderer, generateMap, {
-    onGenerated: (generatedMap) => {
-      void updateCurrentMap(generatedMap).catch(reportRuntimeError);
-      void router.push(mapRouteLocation(generatedMap.mapName));
+    beforeGeneration: () => showLoadingPhase("generating"),
+    beforeRender: async (_generatedMap, operationId) => {
+      await showLoadingPhase("rendering", operationId);
+      gameCanvasPluginRegistry.beforeRender();
     },
-    beforeRender: () => gameCanvasPluginRegistry.beforeRender(),
+    onGenerated: async (generatedMap) => {
+      await updateCurrentMap(generatedMap);
+      await router.push(mapRouteLocation(generatedMap.mapName));
+    },
+    onGenerationError: reportRuntimeError,
     afterRender: (generatedMap) =>
       gameCanvasPluginRegistry.afterRender(generatedMap),
+    onComplete: finishLoading,
+    onLifecycle: (promise) => {
+      mapRouteLoadPromise = promise;
+    },
   });
   restartGameAction = new RestartGameAction(renderer, regenerateMapAction);
   const heroMovementAction = new HeroMovementAction(renderer);
@@ -582,17 +665,6 @@ async function init() {
       bindings.dodge.doubleTapWindow,
     ),
   };
-  const directionAction = (direction) => {
-    if (!import.meta.env.DEV) {
-      return heroDirectionActions[direction];
-    }
-    const method = `move${direction[0].toUpperCase()}${direction.slice(1)}`;
-    return new FreeCameraDirectionAction(
-      heroDirectionActions[direction],
-      () => moveCameraAction[method](),
-      () => freeCameraEnabled.value,
-    );
-  };
   const rotateViewAction = new RotateViewAction(renderer);
   const zoomInAction = new ZoomAction(
     renderer,
@@ -610,14 +682,18 @@ async function init() {
     zoomIn: zoomInAction,
     zoomOut: zoomOutAction,
     moveCamera: moveCameraAction,
+    firstPersonLook: new FirstPersonLookAction(
+      renderer,
+      bindings.firstPersonLook,
+    ),
     regenerateMap: regenerateMapAction,
     restartGame: restartGameAction,
     heroMovement: heroMovementAction,
     run: heroMovementAction,
-    moveUp: directionAction("up"),
-    moveDown: directionAction("down"),
-    moveLeft: directionAction("left"),
-    moveRight: directionAction("right"),
+    moveUp: heroDirectionActions.up,
+    moveDown: heroDirectionActions.down,
+    moveLeft: heroDirectionActions.left,
+    moveRight: heroDirectionActions.right,
     jump: new HeroJumpAction(heroMovementAction),
     interact: new InteractionAction(renderer),
     toggleInventory: toggleInventoryAction,
@@ -632,11 +708,11 @@ async function init() {
     ),
     ...(import.meta.env.DEV
       ? {
-          toggleFreeCamera: new FreeCameraAction(
+          toggleFirstPersonCamera: new FirstPersonCameraAction(
             renderer,
             heroMovementAction,
             (enabled) => {
-              freeCameraEnabled.value = enabled;
+              firstPersonCameraEnabled.value = enabled;
             },
           ),
         }
@@ -645,7 +721,6 @@ async function init() {
   };
 
   controls = new GameControls(container.value, actions, pluginControlKeyboard);
-  controls.connect();
 
   stopMapRouteWatch = watch(
     () => route.params.mapName,
@@ -663,23 +738,27 @@ async function init() {
   gameCommandRegistry = createGameCommandRegistry({ target: window });
   gameCommandRegistry.install();
   gameReady.value = true;
+  } finally {
+    finishLoading(loadingId);
+  }
 }
 
 onMounted(() => {
-  void init().catch(reportRuntimeError);
+  mapRouteLoadPromise = init();
+  void mapRouteLoadPromise.catch(reportRuntimeError);
 });
 
 onBeforeUnmount(() => {
   mapNavigationId += 1;
   gameReady.value = false;
-  freeCameraEnabled.value = false;
+  firstPersonCameraEnabled.value = false;
   stopRecordingStateWatch?.();
   stopRecordingStateWatch = null;
   gameCanvasPluginRegistry.destroy();
   movementTestDriverPluginLoaded = false;
   gameCommandRegistry?.destroy();
   gameCommandRegistry = null;
-  controls?.disconnect();
+  disconnectControls();
   stopMapRouteWatch?.();
   stopResizeObserver();
   const rendererToDestroy = renderer;

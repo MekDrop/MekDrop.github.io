@@ -2,6 +2,7 @@ export const INPUT_EVENT_TYPE = Object.freeze({
   BLUR: "blur",
   KEY_DOWN: "keydown",
   KEY_UP: "keyup",
+  MOUSE_MOVE: "mousemove",
   POINTER_CANCEL: "pointercancel",
   POINTER_DOWN: "pointerdown",
   POINTER_LEAVE: "pointerleave",

@@ -65,7 +65,10 @@ describe("Map routing", () => {
     cy.visit("/map/test_flat");
     cy.get('.background-canvas[data-game-ready="true"]', {
       timeout: 30000,
-    }).should("have.attr", "data-map-name", "test_flat");
+    })
+      .should("have.attr", "data-map-name", "test_flat")
+      .and("have.attr", "data-game-loading", "false");
+    cy.get("[data-game-loading-scene]").should("not.exist");
   });
 
   it("lazy-loads another stored map through the game router", () => {

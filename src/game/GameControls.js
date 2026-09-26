@@ -42,8 +42,8 @@ export class GameControls {
       "rotateAnticlockwise",
       "toggleArrows",
     ];
-    if (this.#actions.toggleFreeCamera) {
-      keydownActionNames.push("toggleFreeCamera");
+    if (this.#actions.toggleFirstPersonCamera) {
+      keydownActionNames.push("toggleFirstPersonCamera");
     }
     this.#keydownActions = new Map(
       [
@@ -82,6 +82,10 @@ export class GameControls {
       INPUT_EVENT_TYPE.VISIBILITY_CHANGE,
       this.#handleVisibilityChange,
     );
+    document.addEventListener(
+      INPUT_EVENT_TYPE.MOUSE_MOVE,
+      this.#handleFirstPersonMouseMove,
+    );
     this.#element.addEventListener(INPUT_EVENT_TYPE.WHEEL, this.#handleWheel, {
       passive: false,
     });
@@ -115,6 +119,13 @@ export class GameControls {
       INPUT_EVENT_TYPE.VISIBILITY_CHANGE,
       this.#handleVisibilityChange,
     );
+    document.removeEventListener(
+      INPUT_EVENT_TYPE.MOUSE_MOVE,
+      this.#handleFirstPersonMouseMove,
+    );
+    if (document.pointerLockElement === this.#element) {
+      document.exitPointerLock?.();
+    }
     this.#element.removeEventListener(INPUT_EVENT_TYPE.WHEEL, this.#handleWheel);
     this.#element.removeEventListener(
       INPUT_EVENT_TYPE.POINTER_DOWN,
@@ -221,7 +232,25 @@ export class GameControls {
       event.stopImmediatePropagation();
       return;
     }
+    if (event.button === 0 && this.#actions.firstPersonLook?.available) {
+      event.preventDefault();
+      const request = this.#element.requestPointerLock?.();
+      if (request?.catch) {
+        void request.catch(() => {});
+      }
+      return;
+    }
     this.#cameraDrag.start(event);
+  };
+
+  #handleFirstPersonMouseMove = (event) => {
+    if (
+      document.pointerLockElement !== this.#element ||
+      !this.#actions.firstPersonLook?.available
+    ) {
+      return;
+    }
+    this.#actions.firstPersonLook.invoke(event);
   };
 
   #handlePointerMove = (event) => {

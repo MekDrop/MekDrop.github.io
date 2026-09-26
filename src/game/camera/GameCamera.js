@@ -1,4 +1,4 @@
-import { FreeCameraMode } from "../strategies/camera/FreeCameraMode.js";
+import { FirstPersonCameraMode } from "../strategies/camera/FirstPersonCameraMode.js";
 import { IsometricCameraMode } from "../strategies/camera/IsometricCameraMode.js";
 
 export class GameCamera {
@@ -154,12 +154,12 @@ export class GameCamera {
     this.#returnTransition = value;
   }
 
-  get freeEnabled() {
-    return this.#mode instanceof FreeCameraMode;
+  get firstPersonEnabled() {
+    return this.#mode instanceof FirstPersonCameraMode;
   }
 
-  get freeState() {
-    return this.freeEnabled ? this.#mode.state : null;
+  get firstPersonState() {
+    return this.firstPersonEnabled ? this.#mode.state : null;
   }
 
   get viewport() {
@@ -216,18 +216,16 @@ export class GameCamera {
     }
   }
 
-  setFreeEnabled(enabled, { cameraPitch, isPositionBlocked, mapData }) {
+  setFirstPersonEnabled(enabled, { mapData }) {
     const nextEnabled = Boolean(enabled);
-    if (this.freeEnabled === nextEnabled) {
+    if (this.firstPersonEnabled === nextEnabled) {
       return false;
     }
     this.#mode.exit();
     this.#mode = nextEnabled
-      ? new FreeCameraMode(this, {
-          isPositionBlocked,
-        })
+      ? new FirstPersonCameraMode(this)
       : new IsometricCameraMode(this, { mapData });
-    this.#mode.enter({ cameraPitch });
+    this.#mode.enter();
     return true;
   }
 
@@ -235,16 +233,8 @@ export class GameCamera {
     return this.#mode.update(options);
   }
 
-  panFree(deltaX, deltaY) {
-    this.#mode.panBy?.(deltaX, deltaY);
-  }
-
-  moveFreeVertically(direction) {
-    this.#mode.moveVertically?.(direction);
-  }
-
-  rotateFree(horizontalQuarterTurns, verticalQuarterTurns) {
-    this.#mode.rotateBy?.(horizontalQuarterTurns, verticalQuarterTurns);
+  lookFirstPersonBy(yawDegrees, pitchDegrees) {
+    this.#mode.lookBy?.(yawDegrees, pitchDegrees);
   }
 
   translateLocal(...args) {
