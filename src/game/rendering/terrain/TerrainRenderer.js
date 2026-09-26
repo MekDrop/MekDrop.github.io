@@ -1,5 +1,6 @@
 import { TerrainPhysicsSurface } from "../../collision/index.js";
 import { TerrainBatchBuilder } from "./TerrainBatchBuilder.js";
+import { TerrainInstanceRenderer } from "./TerrainInstanceRenderer.js";
 
 export class TerrainRenderer {
   #pc;
@@ -7,6 +8,7 @@ export class TerrainRenderer {
   #mapData;
   #root;
   #batchBuilder;
+  #instanceRenderer;
   #physicsSurface = null;
 
   constructor({
@@ -14,18 +16,23 @@ export class TerrainRenderer {
     app,
     mapData,
     root,
+    materials,
     bridgeRailingKit,
     cubeMaterials,
     pathEarthSideMaterial,
     earthSideMaterial,
     sideVariant,
-    addCubeMatrix,
-    addBoxMatrix,
   }) {
     this.#pc = pc;
     this.#app = app;
     this.#mapData = mapData;
     this.#root = root;
+    this.#instanceRenderer = new TerrainInstanceRenderer({
+      pc,
+      app,
+      root,
+      materials,
+    });
     this.#batchBuilder = new TerrainBatchBuilder({
       mapData,
       bridgeRailingKit,
@@ -33,13 +40,13 @@ export class TerrainRenderer {
       pathEarthSideMaterial,
       earthSideMaterial,
       sideVariant,
-      addCubeMatrix,
-      addBoxMatrix,
+      instanceRenderer: this.#instanceRenderer,
     });
   }
 
-  buildBatches(batches, undersideVoxels) {
-    this.#batchBuilder.build(batches, undersideVoxels);
+  build(undersideVoxels) {
+    this.#batchBuilder.build(undersideVoxels);
+    this.#instanceRenderer.build();
   }
 
   buildPhysicsSurface(collisionWorld) {
@@ -56,5 +63,6 @@ export class TerrainRenderer {
   destroy() {
     this.#physicsSurface?.destroy();
     this.#physicsSurface = null;
+    this.#instanceRenderer.destroy();
   }
 }

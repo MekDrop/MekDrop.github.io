@@ -17,8 +17,7 @@ export class TerrainBatchBuilder {
   #pathEarthSideMaterial;
   #earthSideMaterial;
   #sideVariant;
-  #addCubeMatrix;
-  #addBoxMatrix;
+  #instanceRenderer;
 
   constructor({
     mapData,
@@ -27,8 +26,7 @@ export class TerrainBatchBuilder {
     pathEarthSideMaterial,
     earthSideMaterial,
     sideVariant,
-    addCubeMatrix,
-    addBoxMatrix,
+    instanceRenderer,
   }) {
     this.#mapData = mapData;
     this.#bridgeRailingKit = bridgeRailingKit;
@@ -36,16 +34,14 @@ export class TerrainBatchBuilder {
     this.#pathEarthSideMaterial = pathEarthSideMaterial;
     this.#earthSideMaterial = earthSideMaterial;
     this.#sideVariant = sideVariant;
-    this.#addCubeMatrix = addCubeMatrix;
-    this.#addBoxMatrix = addBoxMatrix;
+    this.#instanceRenderer = instanceRenderer;
   }
 
-  build(batches, undersideVoxels = []) {
+  build(undersideVoxels = []) {
     const { grid, heightmap, tileMeta, cols, rows } = this.#mapData;
     for (const { col, row, level, rocky } of undersideVoxels) {
       const topMaterial = rocky ? "islandRock" : "earth";
-      this.#addCubeMatrix(
-        batches,
+      this.#instanceRenderer.addCubeMatrix(
         topMaterial,
         this.#earthSideMaterial(col, row, level),
         col - (cols - 1) / 2,
@@ -72,7 +68,7 @@ export class TerrainBatchBuilder {
 
         const riverCell = riverCells.get(`${col},${row}`);
         if (riverCell) {
-          this.#addRiverbed(batches, riverCell, cols, rows);
+          this.#addRiverbed(riverCell, cols, rows);
         }
         if (type === TileType.WATER) {
           continue;
@@ -88,8 +84,7 @@ export class TerrainBatchBuilder {
             ? this.#mapData.overpassData.baseElevation
             : Math.floor(Math.min(slope.lowHeight, slope.highHeight));
           for (let level = 0; level < baseHeight; level += 1) {
-            this.#addCubeMatrix(
-              batches,
+            this.#instanceRenderer.addCubeMatrix(
               "earth",
               this.#pathEarthSideMaterial(col, row, level),
               x,
@@ -107,8 +102,7 @@ export class TerrainBatchBuilder {
               ? "Lower"
               : "Upper";
           const coverage = `slope${slope.riseDirection}${stage}`;
-          this.#addBoxMatrix(
-            batches,
+          this.#instanceRenderer.addBoxMatrix(
             SURFACE_MATERIALS[type],
             this.#pathEarthSideMaterial(col, row, baseHeight),
             x,
@@ -152,7 +146,6 @@ export class TerrainBatchBuilder {
             const groundHeight = tileMeta[cell.row][cell.col].bridgeGroundHeight;
             if (Number.isFinite(groundHeight)) {
               this.#addBridgeGround(
-                batches,
                 cell.col,
                 cell.row,
                 groundHeight,
@@ -165,8 +158,7 @@ export class TerrainBatchBuilder {
           for (let position = span.start; position <= span.end; position += 1) {
             const deckCenterCol = span.horizontal ? position : span.crossCenter;
             const deckCenterRow = span.horizontal ? span.crossCenter : position;
-            this.#addBoxMatrix(
-              batches,
+            this.#instanceRenderer.addBoxMatrix(
               SURFACE_MATERIALS[type],
               fasciaMaterial,
               deckCenterCol - (cols - 1) / 2,
@@ -180,8 +172,7 @@ export class TerrainBatchBuilder {
               "none",
             );
           }
-          this.#addBoxMatrix(
-            batches,
+          this.#instanceRenderer.addBoxMatrix(
             SURFACE_MATERIALS[type],
             fasciaMaterial,
             (span.horizontal ? span.center : span.crossCenter) -
@@ -220,8 +211,7 @@ export class TerrainBatchBuilder {
                 underlay: "earth",
               }
             : this.#cubeMaterials(type, topCube, col, row, level);
-          this.#addCubeMatrix(
-            batches,
+          this.#instanceRenderer.addCubeMatrix(
             top,
             sides,
             x,
@@ -236,12 +226,12 @@ export class TerrainBatchBuilder {
     }
 
     for (const river of this.#mapData.riverData ?? []) {
-      this.#addRiverSourceCap(batches, river.cells[0], cols, rows);
+      this.#addRiverSourceCap(river.cells[0], cols, rows);
     }
-    this.#addOverpassDeck(batches, cols, rows);
+    this.#addOverpassDeck(cols, rows);
   }
 
-  #addOverpassDeck(batches, cols, rows) {
+  #addOverpassDeck(cols, rows) {
     const overpass = this.#mapData.overpassData;
     if (!overpass) {
       return;
@@ -261,8 +251,7 @@ export class TerrainBatchBuilder {
       overpass.deckElevation - 1,
     );
     for (let deckRow = row; deckRow <= row + 1; deckRow += 1) {
-      this.#addBoxMatrix(
-        batches,
+      this.#instanceRenderer.addBoxMatrix(
         SURFACE_MATERIALS[TileType.PATH],
         fasciaMaterial,
         col + 0.5 - (cols - 1) / 2,
@@ -284,8 +273,7 @@ export class TerrainBatchBuilder {
       crossCenter: col + 0.5,
       length: 2,
     };
-    this.#addBoxMatrix(
-      batches,
+    this.#instanceRenderer.addBoxMatrix(
       SURFACE_MATERIALS[TileType.PATH],
       fasciaMaterial,
       span.crossCenter - (cols - 1) / 2,
@@ -301,7 +289,7 @@ export class TerrainBatchBuilder {
     this.#bridgeRailingKit.addOverpass(overpass, railingMaterial, cols, rows);
   }
 
-  #addRiverbed(batches, cell, cols, rows) {
+  #addRiverbed(cell, cols, rows) {
     const { col, row, bedElevation } = cell;
     const x = col - (cols - 1) / 2;
     const z = row - (rows - 1) / 2;
@@ -309,8 +297,7 @@ export class TerrainBatchBuilder {
     for (let level = 0; level < bedElevation - 0.01; level += 1) {
       const layerHeight = Math.min(1, bedElevation - level);
       const stone = this.#earthSideMaterial(col, row, level);
-      this.#addBoxMatrix(
-        batches,
+      this.#instanceRenderer.addBoxMatrix(
         stone,
         stone,
         x,
@@ -331,8 +318,7 @@ export class TerrainBatchBuilder {
       row,
       Math.max(0, bedElevation - 1),
     );
-    this.#addBoxMatrix(
-      batches,
+    this.#instanceRenderer.addBoxMatrix(
       stone,
       stone,
       x,
@@ -347,7 +333,7 @@ export class TerrainBatchBuilder {
     );
   }
 
-  #addBridgeGround(batches, col, row, height, cols, rows, dirtOnly = false) {
+  #addBridgeGround(col, row, height, cols, rows, dirtOnly = false) {
     const x = col - (cols - 1) / 2;
     const z = row - (rows - 1) / 2;
     for (let level = 0; level < height; level += 1) {
@@ -359,8 +345,7 @@ export class TerrainBatchBuilder {
             underlay: "earth",
           }
         : this.#cubeMaterials(TileType.GRASS, topCube, col, row, level);
-      this.#addCubeMatrix(
-        batches,
+      this.#instanceRenderer.addCubeMatrix(
         top,
         sides,
         x,
@@ -373,7 +358,7 @@ export class TerrainBatchBuilder {
     }
   }
 
-  #addRiverSourceCap(batches, source, cols, rows) {
+  #addRiverSourceCap(source, cols, rows) {
     if (!source) {
       return;
     }
@@ -390,8 +375,7 @@ export class TerrainBatchBuilder {
     const x = source.col - (cols - 1) / 2;
     const z = source.row - (rows - 1) / 2;
     const bodyHeight = capHeight + GRASS_SURFACE_LIFT;
-    this.#addBoxMatrix(
-      batches,
+    this.#instanceRenderer.addBoxMatrix(
       top,
       sides,
       x,
@@ -408,8 +392,7 @@ export class TerrainBatchBuilder {
       source.terrainHeight +
       GRASS_SURFACE_LIFT +
       SURFACE_ELEVATION_BIAS * (CUBE_SCALE + GRASS_SURFACE_LIFT);
-    this.#addBoxMatrix(
-      batches,
+    this.#instanceRenderer.addBoxMatrix(
       top,
       sides,
       x,
