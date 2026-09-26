@@ -1,4 +1,5 @@
 export { Bush } from "./Bush.js";
+export { CliffVines } from "./CliffVines.js";
 export { DestructibleVegetation } from "./DestructibleVegetation.js";
 export { Tree } from "./Tree.js";
 export { VoxelVegetation } from "./VoxelVegetation.js";

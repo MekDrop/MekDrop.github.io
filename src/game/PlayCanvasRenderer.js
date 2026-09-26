@@ -22,7 +22,7 @@ import {
   FloatingIslandMotion,
   SkyIslandScenery,
 } from "./objects/scenery/index.js";
-import { VoxelVegetation } from "./objects/vegetation/index.js";
+import { CliffVines, VoxelVegetation } from "./objects/vegetation/index.js";
 import { BuriedTreasureField } from "./objects/treasure/index.js";
 import { ScenePointerInteraction } from "./objects/shared/ScenePointerInteraction.js";
 import { TileType } from "./MapGenerator.js";
@@ -168,8 +168,6 @@ export class PlayCanvasRenderer {
   #earthMaterials = null;
   #terrainMaterialSelector = null;
   #riverWater = null;
-  #stoneField = null;
-  #vegetation = null;
   #buriedTreasure = null;
   #interactionProviders = [];
   #cloudField = null;
@@ -397,6 +395,7 @@ export class PlayCanvasRenderer {
         ...GroundCover.modelUrls,
         ...GrassCarpet.modelUrls,
         ...VoxelVegetation.modelUrls,
+        ...CliffVines.modelUrls,
         ...BuriedTreasureField.modelUrls,
         ...RiverWater.modelUrls,
       ]),
@@ -1251,6 +1250,7 @@ export class PlayCanvasRenderer {
     this.#buildGateways();
     this.#buildVegetation();
     this.#buildStones();
+    this.#buildCliffVines();
     this.#buildGroundCover();
     this.#buildBuriedTreasure();
     this.#terrainRenderer.buildPhysicsSurface(this.#collisionWorld);
@@ -1291,7 +1291,10 @@ export class PlayCanvasRenderer {
           root,
         })),
       ),
-      { name: "vegetation", root: this.#vegetation?.entity },
+      {
+        name: "vegetation",
+        root: this.#sceneObjects.getOne(SCENE_OBJECT_TYPE.VEGETATION)?.entity,
+      },
       { name: "ground-cover", root: this.#groundCover?.entity },
     ].filter(({ root }) => root);
     for (const {
@@ -1395,20 +1398,23 @@ export class PlayCanvasRenderer {
 
   #connectHeroTools() {
     const hero = this.#sceneObjects.getOne(SCENE_OBJECT_TYPE.HERO);
+    const vegetation = this.#sceneObjects.getOne(
+      SCENE_OBJECT_TYPE.VEGETATION,
+    );
     if (hero?.tools) {
       this.#groundCover.tool = hero.tools.get(KnifeTool.name);
-      this.#vegetation.tool = hero.tools.get(AxeTool.name);
+      vegetation.tool = hero.tools.get(AxeTool.name);
       this.#buriedTreasure.tool = hero.tools.get(ShovelTool.name);
     }
     this.#interactionProviders = [
       this.#groundCover,
-      this.#vegetation,
+      vegetation,
       this.#buriedTreasure,
     ];
   }
 
   #buildVegetation() {
-    this.#vegetation = new VoxelVegetation({
+    const vegetation = new VoxelVegetation({
       pc: this.#pc,
       mapData: this.#mapData,
       modelLibrary: this.#modelLibrary,
@@ -1417,18 +1423,30 @@ export class PlayCanvasRenderer {
         this.#grassSurface?.refreshObstacles(vegetation);
       },
     });
-    this.#collisionWorld.add(this.#vegetation, { physicsSurface: false });
-    this.#mapRoot.addChild(this.#vegetation.entity);
+    this.#sceneObjects.setOne(SCENE_OBJECT_TYPE.VEGETATION, vegetation);
+    this.#collisionWorld.add(vegetation, { physicsSurface: false });
+    this.#mapRoot.addChild(vegetation.entity);
   }
 
   #buildStones() {
-    this.#stoneField = new StoneField({
+    const stoneField = new StoneField({
       pc: this.#pc,
       app: this.#app,
       mapData: this.#mapData,
     });
-    this.#mapRoot.addChild(this.#stoneField.entity);
-    this.#collisionWorld.add(this.#stoneField, { physicsSurface: false });
+    this.#sceneObjects.setOne(SCENE_OBJECT_TYPE.STONE_FIELD, stoneField);
+    this.#mapRoot.addChild(stoneField.entity);
+    this.#collisionWorld.add(stoneField, { physicsSurface: false });
+  }
+
+  #buildCliffVines() {
+    const cliffVines = new CliffVines({
+      pc: this.#pc,
+      mapData: this.#mapData,
+      modelLibrary: this.#modelLibrary,
+    });
+    this.#sceneObjects.setOne(SCENE_OBJECT_TYPE.CLIFF_VINES, cliffVines);
+    this.#mapRoot.addChild(cliffVines.entity);
   }
 
   #buildGroundCover() {
@@ -1437,6 +1455,9 @@ export class PlayCanvasRenderer {
       app: this.#app,
       mapData: this.#mapData,
       modelLibrary: this.#modelLibrary,
+      getHeroFootContacts: () =>
+        this.#sceneObjects.getOne(SCENE_OBJECT_TYPE.HERO)?.grassFootContacts ??
+        [],
       onCollect: (item) =>
         this.#sceneObjects
           .getOne(SCENE_OBJECT_TYPE.HERO)
@@ -2991,10 +3012,11 @@ export class PlayCanvasRenderer {
     this.#interactionProviders = [];
     this.#inventoryScene?.clearWorldItems();
     this.#sceneObjects.destroyType(SCENE_OBJECT_TYPE.HERO);
+    this.#sceneObjects.destroyType(SCENE_OBJECT_TYPE.VEGETATION);
+    this.#sceneObjects.destroyType(SCENE_OBJECT_TYPE.STONE_FIELD);
+    this.#sceneObjects.destroyType(SCENE_OBJECT_TYPE.CLIFF_VINES);
     this.#terrainRenderer?.destroy();
     this.#terrainRenderer = null;
-    this.#vegetation?.destroy();
-    this.#vegetation = null;
     this.#buriedTreasure?.destroy();
     this.#buriedTreasure = null;
     this.#groundCover?.destroy();
@@ -3005,8 +3027,6 @@ export class PlayCanvasRenderer {
     this.#grassCarpet = null;
     this.#riverWater?.destroy();
     this.#riverWater = null;
-    this.#stoneField?.destroy();
-    this.#stoneField = null;
     this.#cloudField?.destroy();
     this.#cloudField = null;
     this.#setInteractionTarget(null);

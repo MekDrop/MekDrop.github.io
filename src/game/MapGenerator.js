@@ -261,6 +261,12 @@ export class MapGenerator {
       vegetationData,
       stoneData,
     );
+    const cliffVineData = this.#placeCliffVines(
+      grid,
+      heightmap,
+      islandMask,
+      riverData,
+    );
     this.#validateMap(
       grid,
       heightmap,
@@ -300,6 +306,7 @@ export class MapGenerator {
       vegetationData,
       stoneData,
       groundCoverData,
+      cliffVineData,
       riverData,
       pipeData: new Map(),
       overpassData: layout.overpassPlan,
@@ -3946,6 +3953,89 @@ export class MapGenerator {
       scale: this.#rng(88, 112) / 100,
       phase: this.#rng(0, 628) / 100,
     };
+  }
+
+  static #placeCliffVines(grid, heightmap, islandMask, riverData) {
+    const riverTiles = new Set(
+      riverData.flatMap((river) =>
+        river.cells.map(({ col, row }) => this.#tileKey(col, row)),
+      ),
+    );
+    const directions = [
+      { direction: this.#DIRECTIONS.NORTH, deltaCol: 0, deltaRow: -1 },
+      { direction: this.#DIRECTIONS.EAST, deltaCol: 1, deltaRow: 0 },
+      { direction: this.#DIRECTIONS.SOUTH, deltaCol: 0, deltaRow: 1 },
+      { direction: this.#DIRECTIONS.WEST, deltaCol: -1, deltaRow: 0 },
+    ];
+    const candidates = [];
+
+    for (let row = 0; row < this.#MAP_ROWS; row += 1) {
+      for (let col = 0; col < this.#MAP_COLS; col += 1) {
+        if (
+          grid[row][col] !== TileType.GRASS ||
+          !Number.isFinite(heightmap[row][col]) ||
+          riverTiles.has(this.#tileKey(col, row))
+        ) {
+          continue;
+        }
+        const topY = heightmap[row][col];
+        for (const { direction, deltaCol, deltaRow } of directions) {
+          const neighborCol = col + deltaCol;
+          const neighborRow = row + deltaRow;
+          const neighborIsIsland =
+            this.#inBounds(neighborCol, neighborRow) &&
+            islandMask[neighborRow][neighborCol];
+          if (
+            neighborIsIsland &&
+            (grid[neighborRow][neighborCol] === TileType.WATER ||
+              riverTiles.has(this.#tileKey(neighborCol, neighborRow)))
+          ) {
+            continue;
+          }
+          const bottomY = neighborIsIsland
+            ? heightmap[neighborRow][neighborCol]
+            : 0;
+          if (!Number.isFinite(bottomY) || topY - bottomY < 0.9) {
+            continue;
+          }
+          candidates.push({ col, row, direction, topY, bottomY });
+        }
+      }
+    }
+
+    const targetCount = Math.min(
+      candidates.length,
+      this.#clamp(Math.round(candidates.length / 50), 1, 4),
+    );
+    const selected = [];
+    const occupiedTiles = new Set();
+    for (const candidate of this.#shuffle(candidates)) {
+      const tileKey = this.#tileKey(candidate.col, candidate.row);
+      if (occupiedTiles.has(tileKey)) {
+        continue;
+      }
+      const heightDifference = candidate.topY - candidate.bottomY;
+      const topInset = this.#rng(4, 12) / 100;
+      const maximumLength = heightDifference - topInset - 0.08;
+      const length = Math.min(
+        maximumLength,
+        Math.max(0.46, (heightDifference * this.#rng(58, 88)) / 100),
+      );
+      selected.push({
+        ...candidate,
+        topY: candidate.topY - topInset,
+        bottomY: candidate.topY - topInset - length,
+        offset: this.#rng(-22, 22) / 100,
+        width: this.#rng(13, 19) / 100,
+        strandCount: this.#rng(2, 4),
+        phase: this.#rng(0, 628) / 100,
+      });
+      occupiedTiles.add(tileKey);
+      if (selected.length >= targetCount) {
+        break;
+      }
+    }
+    return selected;
   }
 
   static #validateIslandConnectivity(grid) {
