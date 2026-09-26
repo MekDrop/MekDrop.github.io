@@ -3,6 +3,7 @@ export { DebugFpsHud } from "./DebugFpsHud.js";
 export { GameOverHud } from "./GameOverHud.js";
 export { GamePanelHud } from "./GamePanelHud.js";
 export { GameUiTheme } from "./GameUiTheme.js";
+export { HudCollection } from "./HudCollection.js";
 export { HeroLifeHud } from "./HeroLifeHud.js";
 export { CoinHud } from "./CoinHud.js";
 export { InventoryHud } from "./InventoryHud.js";

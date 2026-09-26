@@ -6,10 +6,7 @@ import waterSideUrl from "src/assets/game/tiles/water-side.png";
 import waterTopUrl from "src/assets/game/tiles/water-top.png";
 import { Castle } from "./objects/castle/index.js";
 import { GATEWAY_BANNER_SIGNS, Gateway } from "./objects/gateway/index.js";
-import {
-  BridgeRailingKit,
-  OverpassStairs,
-} from "./objects/path/index.js";
+import { BridgeRailingKit, OverpassStairs } from "./objects/path/index.js";
 import { RiverWater } from "./objects/water/index.js";
 import { StoneField } from "./objects/scenery/StoneField.js";
 import { Hero, HeroPatHand } from "./objects/hero/index.js";
@@ -36,7 +33,12 @@ import {
 import { GameModelLibrary } from "./models/index.js";
 import { GameCamera, HeroVisibilityController } from "./camera/index.js";
 import { CameraOrbitPivot } from "./camera/CameraOrbitPivot.js";
-import { GameUiTheme, HeroLifeHud, CoinHud } from "./ui/index.js";
+import {
+  CoinHud,
+  GameUiTheme,
+  HeroLifeHud,
+  HudCollection,
+} from "./ui/index.js";
 import { colorFromHex } from "./helpers/colors.js";
 import { RoyalAnimationPreview } from "./debug/RoyalAnimationPreview.js";
 import { HeroAnimationPreview } from "./debug/HeroAnimationPreview.js";
@@ -124,8 +126,7 @@ export class PlayCanvasRenderer {
   #heroPickupItemPreview = null;
   #heroPatGesture = null;
   #heroPatHand = null;
-  #lifeHud = null;
-  #coinHud = null;
+  #huds = null;
   #inventoryScene = null;
   #scene = null;
   #heroVisibility = null;
@@ -265,18 +266,13 @@ export class PlayCanvasRenderer {
     this.#app.scene.layers.insert(this.#cloudLayer, 0);
     this.#app.on("update", this.#updateFrame);
     this.#modelLibrary = new GameModelLibrary({ pc, app: this.#app });
-    this.#lifeHud = new HeroLifeHud({
+    this.#huds = new HudCollection({
       pc,
       app: this.#app,
       theme: this.#uiTheme,
     });
-    this.#lifeHud.attach();
-    this.#coinHud = new CoinHud({
-      pc,
-      app: this.#app,
-      theme: this.#uiTheme,
-    });
-    this.#coinHud.attach();
+    this.addHud(HeroLifeHud);
+    this.addHud(CoinHud);
     this.#inventoryScene = new InventoryScene({
       pc,
       app: this.#app,
@@ -724,7 +720,11 @@ export class PlayCanvasRenderer {
     this.#camera.orbitPivot = null;
     const previousZoom = this.#camera.zoom;
     const constrainedZoom = Math.max(MAP_FIT_ZOOM, newZoom);
-    const before = this.#screenOffsetToGround(pivotX, pivotY, this.#camera.zoom);
+    const before = this.#screenOffsetToGround(
+      pivotX,
+      pivotY,
+      this.#camera.zoom,
+    );
     const after = this.#screenOffsetToGround(pivotX, pivotY, constrainedZoom);
     this.#camera.panX += before.x - after.x;
     this.#camera.panZ += before.z - after.z;
@@ -761,10 +761,7 @@ export class PlayCanvasRenderer {
     }
     this.#camera.returnTransition = null;
     this.#camera.orbitPivot = null;
-    if (
-      this.#camera.panLimitsEnabled &&
-      this.#camera.zoom <= MAP_FIT_ZOOM
-    ) {
+    if (this.#camera.panLimitsEnabled && this.#camera.zoom <= MAP_FIT_ZOOM) {
       this.#camera.panX = this.#camera.fitCenterX;
       this.#camera.panZ = this.#camera.fitCenterZ;
       this.#camera.manuallyMoved = false;
@@ -772,11 +769,7 @@ export class PlayCanvasRenderer {
       return;
     }
     const panOrigin = { x: this.#camera.panX, z: this.#camera.panZ };
-    const offset = this.#screenDeltaToGround(
-      deltaX,
-      deltaY,
-      this.#camera.zoom,
-    );
+    const offset = this.#screenDeltaToGround(deltaX, deltaY, this.#camera.zoom);
     this.#camera.panX -= offset.x;
     this.#camera.panZ -= offset.z;
     this.#camera.manuallyMoved = true;
@@ -815,10 +808,8 @@ export class PlayCanvasRenderer {
       const offset =
         (this.#camera.targetY - this.#camera.orbitPivot.y) /
         Math.tan(CAMERA_PITCH);
-      this.#camera.panX =
-        this.#camera.orbitPivot.x + Math.sin(yaw) * offset;
-      this.#camera.panZ =
-        this.#camera.orbitPivot.z + Math.cos(yaw) * offset;
+      this.#camera.panX = this.#camera.orbitPivot.x + Math.sin(yaw) * offset;
+      this.#camera.panZ = this.#camera.orbitPivot.z + Math.cos(yaw) * offset;
       this.#camera.manuallyMoved = true;
     }
     this.#updateCamera(null, preserveFocus);
@@ -871,6 +862,18 @@ export class PlayCanvasRenderer {
     return this.#mapRoot;
   }
 
+  addHud(HudClass, options = {}) {
+    return this.#huds?.add(HudClass, options) ?? null;
+  }
+
+  getHud(HudClass) {
+    return this.#huds?.getHud(HudClass) ?? null;
+  }
+
+  removeHud(HudClass) {
+    return this.#huds?.remove(HudClass) ?? false;
+  }
+
   destroy() {
     this.#destroyed = true;
     this.#stopDebugStoreSubscription?.();
@@ -879,10 +882,8 @@ export class PlayCanvasRenderer {
     this.#disconnectPointerInteractions();
     this.#app?.off("update", this.#updateFrame);
     this.#clearScene();
-    this.#lifeHud?.destroy();
-    this.#lifeHud = null;
-    this.#coinHud?.destroy();
-    this.#coinHud = null;
+    this.#huds?.destroy();
+    this.#huds = null;
     this.#inventoryScene?.destroy();
     this.#inventoryScene = null;
     this.#scene?.destroy();
@@ -1015,9 +1016,7 @@ export class PlayCanvasRenderer {
         texture.anisotropy = this.#graphicsSettingsStore.anisotropy;
         texture.addressU = pc.ADDRESS_CLAMP_TO_EDGE;
         texture.addressV =
-          name === "castleDoor"
-            ? pc.ADDRESS_REPEAT
-            : pc.ADDRESS_CLAMP_TO_EDGE;
+          name === "castleDoor" ? pc.ADDRESS_REPEAT : pc.ADDRESS_CLAMP_TO_EDGE;
         GrassSurfaceMaterials.configureTexture(
           pc,
           name,
@@ -1160,7 +1159,7 @@ export class PlayCanvasRenderer {
       });
       this.#mapRoot.addChild(this.#heroPickupItemPreview.entity);
     }
-    this.#lifeHud?.setCastleLives(
+    this.getHud(HeroLifeHud)?.setCastleLives(
       this.#sceneObjects.getFirst(SCENE_OBJECT_TYPE.CASTLE)
         ? MAX_CASTLE_LIVES
         : 0,
@@ -1242,6 +1241,7 @@ export class PlayCanvasRenderer {
     ) {
       return;
     }
+    const getHud = (HudClass) => this.getHud(HudClass);
     const hero = new Hero({
       pc: this.#pc,
       app: this.#app,
@@ -1256,8 +1256,12 @@ export class PlayCanvasRenderer {
       onMovementInput: () => this.#startHeroCameraReturn(),
       heroConfigurationStore: this.#heroConfigurationStore,
       presentation: {
-        lifeHud: this.#lifeHud,
-        coinHud: this.#coinHud,
+        get lifeHud() {
+          return getHud(HeroLifeHud);
+        },
+        get coinHud() {
+          return getHud(CoinHud);
+        },
         inventoryScene: this.#inventoryScene,
         gameOverScene: this.#scene,
         stateStore: this.#heroStateStore,
@@ -1327,9 +1331,7 @@ export class PlayCanvasRenderer {
 
   #connectHeroTools() {
     const hero = this.#sceneObjects.getOne(SCENE_OBJECT_TYPE.HERO);
-    const vegetation = this.#sceneObjects.getOne(
-      SCENE_OBJECT_TYPE.VEGETATION,
-    );
+    const vegetation = this.#sceneObjects.getOne(SCENE_OBJECT_TYPE.VEGETATION);
     if (hero?.tools) {
       this.#groundCover.tool = hero.tools.get(KnifeTool.name);
       vegetation.tool = hero.tools.get(AxeTool.name);
@@ -1556,7 +1558,7 @@ export class PlayCanvasRenderer {
     const hero = this.#sceneObjects.getOne(SCENE_OBJECT_TYPE.HERO);
     this.#riverWater?.update(deltaTime, hero, this.#camera?.camera);
     this.#heroPatHand?.update(deltaTime);
-    this.#lifeHud?.update(deltaTime);
+    this.#huds?.update(deltaTime);
     const inventoryVisibilityChange =
       this.#inventoryScene?.syncConfiguredVisibility();
     if (inventoryVisibilityChange === true) {
@@ -1707,10 +1709,7 @@ export class PlayCanvasRenderer {
     this.#camera.baseOrthoHeight =
       Math.max(halfHeight, halfWidth / aspect) * 0.84;
     this.#updateFitCenter();
-    if (
-      this.#camera.panLimitsEnabled &&
-      this.#camera.zoom === MAP_FIT_ZOOM
-    ) {
+    if (this.#camera.panLimitsEnabled && this.#camera.zoom === MAP_FIT_ZOOM) {
       this.#camera.panX = this.#camera.fitCenterX;
       this.#camera.panZ = this.#camera.fitCenterZ;
     }
@@ -2000,8 +1999,7 @@ export class PlayCanvasRenderer {
         position.z + offsetZ,
       );
       return (
-        Number.isFinite(surfaceHeight) &&
-        position.y - radius < surfaceHeight
+        Number.isFinite(surfaceHeight) && position.y - radius < surfaceHeight
       );
     });
   }
