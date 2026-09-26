@@ -49,6 +49,7 @@ export class VoxelVegetation {
         mapData.heightmap[vegetation.row][vegetation.col] +
         GRASS_SURFACE_LIFT;
       const item = new VegetationType({
+        pc,
         modelLibrary,
         id: `${vegetation.row}:${vegetation.col}`,
         x,
@@ -170,6 +171,27 @@ export class VoxelVegetation {
       (total, { item }) =>
         total +
         item.collisionDepthAt(
+          x,
+          z,
+          radius,
+          elevation,
+          stepClearance,
+        ),
+      0,
+    );
+  }
+
+  movementCollisionDepthAt(
+    x,
+    z,
+    radius = 0,
+    elevation = -Infinity,
+    stepClearance = 0,
+  ) {
+    return this.#items.reduce(
+      (total, { item }) =>
+        total +
+        item.movementCollisionDepthAt(
           x,
           z,
           radius,

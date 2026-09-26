@@ -1,5 +1,9 @@
 import { GRASS_SURFACE_LIFT } from "../../config/terrain.js";
-import { buildStoneVoxelGeometry } from "./StoneVoxelGeometry.js";
+import { addGeneratedVoxelPhysics } from "../shared/GeneratedVoxelPhysics.js";
+import {
+  buildStoneVoxelGeometry,
+  buildStoneVoxels,
+} from "./StoneVoxelGeometry.js";
 
 /** Runtime-built cubic stone clusters with solid tops the hero can land on. */
 export class StoneField {
@@ -7,6 +11,7 @@ export class StoneField {
   #parts = [];
   #mesh = null;
   #material = null;
+  #physicsCollider = null;
 
   constructor({ pc, app, mapData }) {
     this.#entity = new pc.Entity("Stone clusters");
@@ -21,24 +26,19 @@ export class StoneField {
         const top = ground + stone.height;
         stones.push({ ...stone, x, z, ground });
         this.#parts.push({ x, z, ground, top, halfWidth });
-
-        const collider = new pc.Entity("Stone landing surface");
-        collider.setLocalPosition(x, ground + stone.height / 2, z);
-        collider.addComponent("collision", {
-          type: "box",
-          halfExtents: new pc.Vec3(halfWidth, stone.height / 2, halfWidth),
-        });
-        collider.addComponent("rigidbody", {
-          type: "static",
-          friction: 0.7,
-          restitution: 0,
-        });
-        this.#entity.addChild(collider);
       }
     }
     if (!stones.length) {
       return;
     }
+
+    this.#physicsCollider = addGeneratedVoxelPhysics({
+      pc,
+      parent: this.#entity,
+      name: "Stone",
+      voxels: buildStoneVoxels(stones),
+      friction: 0.7,
+    });
 
     const geometry = buildStoneVoxelGeometry(stones);
     this.#mesh = new pc.Mesh(app.graphicsDevice);
@@ -102,6 +102,25 @@ export class StoneField {
     return Math.max(0, depth);
   }
 
+  movementCollisionDepthAt(
+    x,
+    z,
+    radius = 0,
+    elevation = -Infinity,
+    stepClearance = 0,
+  ) {
+    if (this.#physicsCollider) {
+      return 0;
+    }
+    return this.collisionDepthAt(
+      x,
+      z,
+      radius,
+      elevation,
+      stepClearance,
+    );
+  }
+
   grassWeightAt(x, z, elevation) {
     return this.#parts.some(
       (part) =>
@@ -120,6 +139,7 @@ export class StoneField {
     this.#mesh = null;
     this.#material?.destroy();
     this.#material = null;
+    this.#physicsCollider = null;
     this.#parts = [];
   }
 }

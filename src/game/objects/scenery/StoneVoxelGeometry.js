@@ -167,8 +167,8 @@ function addVoxel(geometry, center, size, color) {
   }
 }
 
-export function buildStoneVoxelGeometry(stones) {
-  const geometry = { positions: [], normals: [], colors: [], indices: [] };
+export function buildStoneVoxels(stones) {
+  const voxels = [];
   for (const stone of stones) {
     const rows = STONE_ROWS[stone.variant];
     const width = stone.diameter / 3;
@@ -192,9 +192,30 @@ export function buildStoneVoxelGeometry(stones) {
         const x = stone.x + (col * cosine - depth * sine) * width;
         const z = stone.z + (col * sine + depth * cosine) * width;
         const y = stone.ground + (row + 0.5) * height;
-        addVoxel(geometry, [x, y, z], [width, height, width], color);
+        voxels.push({
+          x,
+          y,
+          z,
+          width,
+          height,
+          depth: width,
+          color,
+        });
       }
     }
+  }
+  return voxels;
+}
+
+export function buildStoneVoxelGeometry(stones) {
+  const geometry = { positions: [], normals: [], colors: [], indices: [] };
+  for (const voxel of buildStoneVoxels(stones)) {
+    addVoxel(
+      geometry,
+      [voxel.x, voxel.y, voxel.z],
+      [voxel.width, voxel.height, voxel.depth],
+      voxel.color,
+    );
   }
   return geometry;
 }

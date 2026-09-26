@@ -3,6 +3,8 @@ const DEFAULT_MAX_SUB_STEPS = 12;
 const GROUND_PROBE_UP = 0.08;
 const GROUND_PROBE_DOWN = 0.16;
 const GROUND_NORMAL_MINIMUM = 0.35;
+const SUPPORT_NORMAL_MINIMUM = 0.65;
+const SUPPORT_CONTACT_HEIGHT = 0.3;
 const HERO_SURFACE_IGNORE_TAG = "hero-surface-ignore";
 
 /** Owns the hero rigid body and all reads/writes to PlayCanvas physics. */
@@ -13,6 +15,7 @@ export class HeroPhysicsController {
   #gravity;
   #gravityVector = null;
   #scripted = false;
+  #supportContact = false;
 
   constructor({
     pc,
@@ -31,13 +34,16 @@ export class HeroPhysicsController {
     system.fixedTimeStep = fixedTimeStep;
     system.maxSubSteps = Math.max(system.maxSubSteps, DEFAULT_MAX_SUB_STEPS);
     system.gravity?.set(0, gravity, 0);
-    entity.addComponent("collision", {
+    entity.addComponent("collision", { type: "compound" });
+    const bodyCollider = new pc.Entity("Hero body collider");
+    bodyCollider.setLocalPosition(0, height / 2, 0);
+    bodyCollider.addComponent("collision", {
       type: "capsule",
       axis: 1,
       radius,
       height,
-      linearOffset: new pc.Vec3(0, height / 2, 0),
     });
+    entity.addChild(bodyCollider);
     entity.addComponent("rigidbody", {
       type: "dynamic",
       mass: 1,
@@ -48,6 +54,7 @@ export class HeroPhysicsController {
       linearFactor: new pc.Vec3(1, 1, 1),
       angularFactor: new pc.Vec3(0, 0, 0),
     });
+    entity.rigidbody.on?.("contact", this.#handleContact);
     this.#applyGravity();
   }
 
@@ -150,7 +157,14 @@ export class HeroPhysicsController {
       : null;
   }
 
+  consumeSupportContact() {
+    const supported = this.#supportContact;
+    this.#supportContact = false;
+    return supported;
+  }
+
   destroy() {
+    this.#entity?.rigidbody?.off?.("contact", this.#handleContact);
     const ammo = globalThis.Ammo;
     if (this.#gravityVector && ammo?.destroy) {
       ammo.destroy(this.#gravityVector);
@@ -159,6 +173,18 @@ export class HeroPhysicsController {
     this.#entity = null;
     this.#app = null;
   }
+
+  #handleContact = (result) => {
+    const position = this.#entity?.getLocalPosition?.();
+    if (!position) {
+      return;
+    }
+    this.#supportContact ||= result.contacts?.some(
+      (contact) =>
+        contact.normal?.y >= SUPPORT_NORMAL_MINIMUM &&
+        contact.point?.y <= position.y + SUPPORT_CONTACT_HEIGHT,
+    );
+  };
 
   #applyGravity() {
     const body = this.#entity?.rigidbody?.body;

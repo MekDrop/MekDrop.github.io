@@ -4,7 +4,10 @@ import { generateMap, TileType } from "../../src/game/MapGenerator.js";
 import { GrassCarpetLayout } from "../../src/game/objects/ground-cover/GrassCarpetLayout.js";
 import { TILE_SHAPE } from "../../src/game/enum/TileShape.js";
 import { STONE_COLORS } from "../../src/game/config/stoneStyles.js";
-import { buildStoneVoxelGeometry } from "../../src/game/objects/scenery/StoneVoxelGeometry.js";
+import {
+  buildStoneVoxelGeometry,
+  buildStoneVoxels,
+} from "../../src/game/objects/scenery/StoneVoxelGeometry.js";
 
 describe("generated stone clusters", () => {
   it("has seed-stable empty maps and no more than ten clusters on populated maps", () => {
@@ -151,6 +154,32 @@ describe("generated stone clusters", () => {
       assert.ok(Math.abs(Math.max(...heights) - (2 + levels * 0.25)) < 0.001);
       previousVertices = vertexCount;
     }
+  });
+
+  it("exposes the same generated voxels to rendering and physics", () => {
+    const voxels = buildStoneVoxels([
+      {
+        x: 1,
+        z: -2,
+        ground: 2,
+        diameter: 0.75,
+        height: 0.75,
+        levels: 3,
+        variant: 0,
+        rotation: 0,
+        color: 0x808080,
+      },
+    ]);
+
+    assert.equal(voxels.length, 13);
+    assert.ok(
+      voxels.every(
+        ({ width, height, depth }) =>
+          width === 0.25 && height === 0.25 && depth === 0.25,
+      ),
+    );
+    assert.equal(Math.min(...voxels.map(({ y }) => y)), 2.125);
+    assert.equal(Math.max(...voxels.map(({ y }) => y)), 2.625);
   });
 
   it("grows taller grass around stones while leaving distant clumps unchanged", () => {

@@ -1,3 +1,5 @@
+import { addGeneratedVoxelPhysics } from "../shared/GeneratedVoxelPhysics.js";
+
 const DAMAGE_ROW_PATTERN = /^Voxel damage row (\d+)/;
 
 export class DestructibleVegetation {
@@ -15,11 +17,14 @@ export class DestructibleVegetation {
   #collisionVoxels;
   #damageStageByRow;
   #voxelSize;
+  #pc;
+  #physicsCollider = null;
   #collisionFootprints = [];
   #grassFootprints = [];
   #rotationRadians;
 
   constructor({
+    pc,
     modelLibrary,
     modelUrl,
     id,
@@ -33,12 +38,17 @@ export class DestructibleVegetation {
     z,
     rotation = 0,
   }) {
+    this.#pc = pc;
     this.#id = id;
     this.#variant = variant;
     this.#kind = kind;
     this.#health = cutsRequired;
     this.#maxHealth = cutsRequired;
-    this.#entity = modelLibrary.instantiate(modelUrl);
+    const model = modelLibrary.instantiate(modelUrl);
+    this.#entity = pc ? new pc.Entity(`Voxel ${variant}`) : model;
+    if (pc) {
+      this.#entity.addChild(model);
+    }
     this.#entity.name = `Voxel ${variant}`;
     this.#entity.setLocalPosition(x, y, z);
     this.#entity.setLocalEulerAngles(0, rotation, 0);
@@ -103,6 +113,7 @@ export class DestructibleVegetation {
     if (this.#health <= 0) {
       const description = this.describe();
       this.#destroyed = true;
+      this.#physicsCollider = null;
       this.#entity.destroy();
       return { ...description, destroyed: true };
     }
@@ -189,6 +200,25 @@ export class DestructibleVegetation {
     return Math.max(0, deepestCollision);
   }
 
+  movementCollisionDepthAt(
+    x,
+    z,
+    radius = 0,
+    elevation = -Infinity,
+    stepClearance = 0,
+  ) {
+    if (this.#physicsCollider) {
+      return 0;
+    }
+    return this.collisionDepthAt(
+      x,
+      z,
+      radius,
+      elevation,
+      stepClearance,
+    );
+  }
+
   surfaceHeightAt(x, z, radius = 0) {
     if (this.#destroyed) {
       return null;
@@ -223,6 +253,7 @@ export class DestructibleVegetation {
         this.#damageStageByRow.get(voxel.y) > this.#damageStage,
     );
     if (!remainingVoxels.length) {
+      this.#destroyPhysicsCollider();
       this.#collisionFootprints = [];
       this.#grassFootprints = [];
       return;
@@ -256,6 +287,34 @@ export class DestructibleVegetation {
           this.#origin.baseHeight + (maximumY + 1) * this.#voxelSize,
       },
     ];
+    this.#rebuildPhysicsCollider(remainingVoxels);
+  }
+
+  #rebuildPhysicsCollider(voxels) {
+    this.#destroyPhysicsCollider();
+    if (!this.#pc || (this.#kind !== "tree" && this.#kind !== "bush")) {
+      return;
+    }
+    const physicsName = this.#kind === "tree" ? "Tree" : "Bush";
+    const physicsVoxels = voxels.map((voxel) => ({
+      x: voxel.x * this.#voxelSize,
+      y: (voxel.y + 0.5) * this.#voxelSize,
+      z: voxel.z * this.#voxelSize,
+      width: this.#voxelSize,
+      height: this.#voxelSize,
+      depth: this.#voxelSize,
+    }));
+    this.#physicsCollider = addGeneratedVoxelPhysics({
+      pc: this.#pc,
+      parent: this.#entity,
+      name: physicsName,
+      voxels: physicsVoxels,
+    });
+  }
+
+  #destroyPhysicsCollider() {
+    this.#physicsCollider?.destroy();
+    this.#physicsCollider = null;
   }
 
   #toLocalCoordinates(x, z) {

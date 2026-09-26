@@ -14,6 +14,7 @@ import { SLOPE_DIRECTION } from "../../enum/SlopeDirection.js";
 import { TILE_SHAPE } from "../../enum/TileShape.js";
 import { HeroLavaDeathEffect } from "./HeroLavaDeathEffect.js";
 import { HeroPhysicsController } from "./HeroPhysicsController.js";
+import { addHeroPartColliders } from "./HeroPartColliders.js";
 import { HeroFootPlacement } from "./HeroFootPlacement.js";
 import { HeroWaterMotion } from "./HeroWaterMotion.js";
 import { HeroPatMood } from "./HeroPatMood.js";
@@ -31,7 +32,7 @@ const GROUND_ACCELERATION = 24;
 const AIR_ACCELERATION = 10;
 const BRAKING = 30;
 const GRAVITY = -22;
-const MAX_JUMP_HEIGHT = 1.21;
+const MAX_JUMP_HEIGHT = 2;
 const JUMP_VELOCITY = Math.sqrt(-2 * GRAVITY * MAX_JUMP_HEIGHT);
 const MAX_SAFE_STEP_DOWN = 1 + GRASS_SURFACE_LIFT;
 const DODGE_DISTANCE = 3;
@@ -42,6 +43,9 @@ const DODGE_REQUIRED_RUNWAY = 1;
 const MAX_JUMPS = 2;
 const COYOTE_TIME = 0.12;
 const JUMP_BUFFER_TIME = 0.12;
+const AIRBORNE_STALL_RELEASE_DELAY = 0.08;
+const AIRBORNE_STALL_POSITION_EPSILON = 0.0005;
+const AIRBORNE_STALL_FALL_SPEED = 0.6;
 const MAX_LIVES = 3;
 const RESPAWN_ANIMATION_DURATION = 1.55;
 const RESPAWN_START_HEIGHT = 1;
@@ -329,6 +333,9 @@ export class Hero {
   #input = { x: 0, y: 0 };
   #running = false;
   #movementBlocked = false;
+  #heroPartColliders = [];
+  #airborneStallElapsed = 0;
+  #partCollidersSuspended = false;
   #blockedPushElapsed = 0;
   #blockedPushFinished = false;
   #edgeRefusalAction = null;
@@ -339,6 +346,7 @@ export class Hero {
   #lastEdgeRefusalFoot = FOOT_SIDE.RIGHT;
   #stableGroundPosition;
   #grounded = true;
+  #physicsSupportContact = false;
   #coyoteRemaining = COYOTE_TIME;
   #jumpBufferRemaining = 0;
   #jumpsUsed = 0;
@@ -1073,6 +1081,7 @@ export class Hero {
     this.#toolAttachmentEntity = null;
     this.#rightHeldItemAttachmentEntity = null;
     this.#leftHeldItemAttachmentEntity = null;
+    this.#heroPartColliders = [];
     this.#animationState = null;
     this.#toolAction = null;
     this.#collectAction = null;
@@ -1099,17 +1108,14 @@ export class Hero {
     const previousX = this.#position.x;
     const previousY = this.#position.y;
     const previousZ = this.#position.z;
-    let rigidBodyWasBlocked = false;
     if (!this.#physics.scripted) {
       this.#position = this.#physics.position;
       this.#velocity = this.#physics.velocity;
+      this.#physicsSupportContact = this.#physics.consumeSupportContact();
       this.#grounded =
         this.#velocity.y <= 0.2 &&
-        this.#physics.groundContact(this.#position) !== null;
-      rigidBodyWasBlocked =
-        this.#hasMovementInput &&
-        this.#grounded &&
-        Math.hypot(this.#velocity.x, this.#velocity.z) <= 0.08;
+        (this.#physics.groundContact(this.#position) !== null ||
+          this.#physicsSupportContact);
     }
     const buffRevision = this.#buffs.revision;
     if (this.isInDeathSequence || this.#gameOver) {
@@ -1166,6 +1172,7 @@ export class Hero {
     this.#coyoteRemaining = this.#grounded
       ? COYOTE_TIME
       : Math.max(0, this.#coyoteRemaining - deltaTime);
+    this.#updateAirborneColliderRecovery(deltaTime, previousY);
     if (
       !this.#grounded &&
       this.#coyoteRemaining === 0 &&
@@ -1213,6 +1220,14 @@ export class Hero {
       desired.z,
       acceleration * deltaTime,
     );
+    if (this.#partCollidersSuspended) {
+      this.#velocity.x = 0;
+      this.#velocity.z = 0;
+      this.#velocity.y = Math.min(
+        this.#velocity.y,
+        -AIRBORNE_STALL_FALL_SPEED,
+      );
+    }
 
     const canGroundJump = this.#coyoteRemaining > 0;
     const canAirJump = !this.#grounded && this.#jumpsUsed < MAX_JUMPS;
@@ -1239,7 +1254,7 @@ export class Hero {
       this.#restartAnimation = true;
     }
 
-    this.#movementBlocked = rigidBodyWasBlocked;
+    this.#movementBlocked = false;
     this.#holeMovementBlocked = false;
     this.#moveHorizontally(deltaTime);
     this.#moveVertically(deltaTime);
@@ -1366,7 +1381,8 @@ export class Hero {
       riverRouteEntry !== null && !riverRouteEntry.cell.underBridge;
     const contact = this.#fallingToDeath
       ? null
-      : this.#physics.groundContact(this.#position);
+      : (this.#physics.groundContact(this.#position) ??
+        (this.#physicsSupportContact ? { entity: null } : null));
     const safeLanding = this.#fallingToDeath
       ? null
       : this.#physics.surfaceAt(
@@ -1389,6 +1405,7 @@ export class Hero {
           this.#velocity.y <= 0 &&
           this.#position.y <
             (this.#stableGroundPosition?.y ?? this.#spawn.y) -
+              MAX_SAFE_STEP_DOWN -
               STEP_CLEARANCE))
     ) {
       this.#beginFallDeath();
@@ -1875,6 +1892,38 @@ export class Hero {
     }
   }
 
+  #updateAirborneColliderRecovery(deltaTime, previousY) {
+    if (this.#grounded || this.#physics.scripted) {
+      this.#airborneStallElapsed = 0;
+      this.#setHeroPartCollidersEnabled(true);
+      return;
+    }
+    const verticallyStalled =
+      Math.abs(this.#position.y - previousY) <=
+        AIRBORNE_STALL_POSITION_EPSILON &&
+      Math.abs(this.#velocity.y) <= 0.02;
+    this.#airborneStallElapsed = verticallyStalled
+      ? this.#airborneStallElapsed + deltaTime
+      : 0;
+    if (this.#airborneStallElapsed < AIRBORNE_STALL_RELEASE_DELAY) {
+      return;
+    }
+    this.#setHeroPartCollidersEnabled(false);
+  }
+
+  #setHeroPartCollidersEnabled(enabled) {
+    if (this.#partCollidersSuspended === !enabled) {
+      return;
+    }
+    this.#partCollidersSuspended = !enabled;
+    for (const collider of this.#heroPartColliders) {
+      if (collider.collision) {
+        collider.collision.enabled = enabled;
+      }
+    }
+    this.#entity?.rigidbody?.activate();
+  }
+
   #preservesRisingMomentum(occupancy) {
     return (
       occupancy === OCCUPANCY.blocked &&
@@ -1985,6 +2034,7 @@ export class Hero {
       this.#grounded &&
       !this.#dodgeAction &&
       !this.#repelAction &&
+      !this.#isStandingOnPhysicsManagedSurface() &&
       this.#unsupportedFootAt(
         x,
         z,
@@ -2002,6 +2052,28 @@ export class Hero {
       return OCCUPANCY.edge;
     }
     return OCCUPANCY.open;
+  }
+
+  #isStandingOnPhysicsManagedSurface() {
+    const surfaceHeight = this.#collisionWorld?.surfaceHeightAt(
+      this.#position.x,
+      this.#position.z,
+    );
+    if (
+      !Number.isFinite(surfaceHeight) ||
+      Math.abs(surfaceHeight - this.#position.y) > STEP_CLEARANCE
+    ) {
+      return false;
+    }
+    const authoredSurfaceHeight =
+      this.#collisionWorld?.physicsSurfaceHeightAt(
+        this.#position.x,
+        this.#position.z,
+      );
+    return (
+      !Number.isFinite(authoredSurfaceHeight) ||
+      authoredSurfaceHeight < surfaceHeight - STEP_CLEARANCE
+    );
   }
 
   #terrainOccupancyAt(
@@ -3402,6 +3474,10 @@ export class Hero {
       this.#findModelEntity("Right white glove");
     this.#leftHeldItemAttachmentEntity =
       this.#findModelEntity("Left white glove");
+    this.#heroPartColliders = addHeroPartColliders({
+      pc: this.#pc,
+      modelRoot: this.#modelRoot,
+    });
 
     const animationTracks = this.#modelLibrary.getAnimationTracks(
       Hero.modelUrl,

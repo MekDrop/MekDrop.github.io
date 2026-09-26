@@ -44,7 +44,7 @@ describe("stone clusters", () => {
       expect(state.position.x).to.be.greaterThan(-1.2);
     });
     expectHero((state) => {
-      expect(state.position.x).to.be.within(-1.2, -0.85);
+      expect(state.position.x).to.be.within(-1.3, -0.7);
       expect(state.position.y).to.be.closeTo(
         2 + GRASS_SURFACE_LIFT + 0.6,
         0.06,

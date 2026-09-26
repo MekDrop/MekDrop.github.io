@@ -95,6 +95,7 @@ export class GroundCollisionWorld {
       radius,
       elevation,
       stepClearance,
+      true,
     );
     if (destinationDepth <= 0) {
       return false;
@@ -106,6 +107,7 @@ export class GroundCollisionWorld {
       radius,
       elevation,
       stepClearance,
+      true,
     );
     return currentDepth <= 0 || destinationDepth >= currentDepth - 0.000001;
   }
@@ -141,13 +143,24 @@ export class GroundCollisionWorld {
     return null;
   }
 
-  #blockingDepthAt(x, z, radius, elevation, stepClearance) {
+  #blockingDepthAt(
+    x,
+    z,
+    radius,
+    elevation,
+    stepClearance,
+    movement = false,
+  ) {
     let depth = 0;
     for (const collider of this.#colliders) {
-      if (collider.collisionDepthAt) {
+      const collisionDepthAt = movement
+        ? collider.movementCollisionDepthAt ?? collider.collisionDepthAt
+        : collider.collisionDepthAt;
+      if (collisionDepthAt) {
         depth += Math.max(
           0,
-          collider.collisionDepthAt(
+          collisionDepthAt.call(
+            collider,
             x,
             z,
             radius,

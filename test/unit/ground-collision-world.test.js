@@ -41,6 +41,20 @@ describe("ground collision world physics surfaces", () => {
     });
   });
 
+  it("uses movement-specific collision depth only while moving", () => {
+    const world = new GroundCollisionWorld();
+    world.add({
+      collisionDepthAt: () => 0,
+      movementCollisionDepthAt: () => 0.2,
+    });
+
+    assert.equal(world.isBlocked(0, 0, 0.18, 0, 0.22), false);
+    assert.equal(
+      world.isMovementBlocked(-1, 0, 0, 0, 0.18, 0, 0.22),
+      true,
+    );
+  });
+
   it("delegates free-camera collision to registered colliders", () => {
     const world = new GroundCollisionWorld();
     const calls = [];

@@ -35,6 +35,7 @@ class FakeAmmoVector {
 class FakeRigidBody {
   activateCount = 0;
   gravityCalls = [];
+  handlers = new Map();
   linearVelocity = new FakeVec3();
   teleportCalls = [];
 
@@ -48,15 +49,38 @@ class FakeRigidBody {
     this.activateCount += 1;
   }
 
+  on(event, handler) {
+    this.handlers.set(event, handler);
+  }
+
+  off(event, handler) {
+    if (this.handlers.get(event) === handler) {
+      this.handlers.delete(event);
+    }
+  }
+
+  fire(event, value) {
+    this.handlers.get(event)?.(value);
+  }
+
   teleport(x, y, z) {
     this.teleportCalls.push(new FakeVec3(x, y, z));
   }
 }
 
 class FakeEntity {
+  children = [];
   components = new Map();
   position = new FakeVec3(2, 3, 4);
   rigidbody = null;
+
+  constructor(name = "Hero") {
+    this.name = name;
+  }
+
+  addChild(child) {
+    this.children.push(child);
+  }
 
   addComponent(type, options) {
     this.components.set(type, options);
@@ -95,7 +119,7 @@ function createFixture({ maxSubSteps = 4, fixedTimeStep } = {}) {
   const app = { systems: { rigidbody } };
   const entity = new FakeEntity();
   const controller = new HeroPhysicsController({
-    pc: { Vec3: FakeVec3 },
+    pc: { Entity: FakeEntity, Vec3: FakeVec3 },
     app,
     entity,
     radius: 0.31,
@@ -107,17 +131,22 @@ function createFixture({ maxSubSteps = 4, fixedTimeStep } = {}) {
 }
 
 describe("HeroPhysicsController", () => {
-  it("configures the fixed step and creates an upright dynamic capsule", () => {
+  it("creates a compound body ready for fitted animated part colliders", () => {
     const { app, controller, entity } = createFixture();
 
     assert.equal(app.systems.rigidbody.fixedTimeStep, 1 / 120);
     assert.equal(app.systems.rigidbody.maxSubSteps, 12);
     assert.deepEqual(entity.components.get("collision"), {
+      type: "compound",
+    });
+    assert.equal(entity.children.length, 1);
+    assert.equal(entity.children[0].name, "Hero body collider");
+    assert.deepEqual(entity.children[0].position, new FakeVec3(0, 0.72, 0));
+    assert.deepEqual(entity.children[0].components.get("collision"), {
       type: "capsule",
       axis: 1,
       radius: 0.31,
       height: 1.44,
-      linearOffset: new FakeVec3(0, 0.72, 0),
     });
     assert.deepEqual(entity.components.get("rigidbody"), {
       type: "dynamic",
@@ -231,6 +260,29 @@ describe("HeroPhysicsController", () => {
     assert.equal(controller.groundContact(), null);
 
     controller.destroy();
+  });
+
+  it("retains low upward contacts as exact physical support", () => {
+    const { controller, entity } = createFixture();
+
+    entity.rigidbody.fire("contact", {
+      contacts: [
+        { normal: new FakeVec3(1, 0, 0), point: new FakeVec3(2, 3, 4) },
+        { normal: new FakeVec3(0, 1, 0), point: new FakeVec3(2, 3.31, 4) },
+      ],
+    });
+    assert.equal(controller.consumeSupportContact(), false);
+
+    entity.rigidbody.fire("contact", {
+      contacts: [
+        { normal: new FakeVec3(0, 1, 0), point: new FakeVec3(2, 3.2, 4) },
+      ],
+    });
+    assert.equal(controller.consumeSupportContact(), true);
+    assert.equal(controller.consumeSupportContact(), false);
+
+    controller.destroy();
+    assert.equal(entity.rigidbody.handlers.has("contact"), false);
   });
 
   it("reuses and destroys its per-body Ammo gravity vector", () => {
