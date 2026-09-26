@@ -116,8 +116,31 @@ const CASTLE_GATE_ARCH_SPRING_BLOCKS = 8;
 const CASTLE_GATE_PYLON_SPAN_BLOCKS = 5;
 const CASTLE_DOOR_WIDTH_TILES = 2;
 const CASTLE_AUDIENCE_ROOM_DEPTH_BLOCKS = 18;
+const CASTLE_UPPER_FLOOR_ROOM_HEIGHT_BLOCKS = 5;
 const CASTLE_GATE_ARCH_TILE_DEPTH_BLOCKS = 0.5;
 const CASTLE_GATE_ARCH_TILE_CENTER_DEPTH_BLOCKS = -0.25;
+
+export const isCastleUpperFloorRoomVoid = ({
+  blockU,
+  blockY,
+  blockV,
+  opening,
+  gatehouseDepth,
+  wallHeight,
+}) => {
+  const roomStartV = opening.start - CASTLE_GATE_PYLON_SPAN_BLOCKS + 1;
+  const roomEndV = opening.end + CASTLE_GATE_PYLON_SPAN_BLOCKS - 1;
+  const roomBaseY = wallHeight + 1;
+
+  return (
+    blockU >= 1 &&
+    blockU < gatehouseDepth - 1 &&
+    blockV >= roomStartV &&
+    blockV < roomEndV &&
+    blockY >= roomBaseY &&
+    blockY < roomBaseY + CASTLE_UPPER_FLOOR_ROOM_HEIGHT_BLOCKS
+  );
+};
 
 const castleGateArchHeight = (opening, horizontalBlock) => {
   const width = opening.end - opening.start;
@@ -775,7 +798,6 @@ export class Castle {
         )
       : 0;
     const roofDoorBase = wallHeight + 1;
-    const stairwellStart = Math.max(1, gatehouseDepth - 5);
     const isTerraceAccessVoid = (blockU, blockY, blockV) => {
       if (!audienceOpening) {
         return false;
@@ -793,29 +815,25 @@ export class Castle {
           blockV === roofDoorStart + roofDoorWidth) &&
         blockY >= roofDoorBase &&
         blockY < roofDoorBase + 6;
-      const isBelowStairheadVoid =
-        blockU === gatehouseDepth - 1 &&
-        blockV >= roofDoorStart - 1 &&
-        blockV <= roofDoorStart + roofDoorWidth &&
-        blockY === wallHeight;
       const isLintelVoid =
         blockU >= gatehouseDepth - 2 &&
         blockU < gatehouseDepth &&
         blockV >= roofDoorStart - 1 &&
         blockV <= roofDoorStart + roofDoorWidth &&
         blockY === roofDoorBase + 5;
-      const isStairwellVoid =
-        blockV >= roofDoorStart &&
-        blockV < roofDoorStart + roofDoorWidth &&
-        blockU >= stairwellStart &&
-        blockU < gatehouseDepth &&
-        blockY === wallHeight;
+      const isUpperFloorRoomVoid = isCastleUpperFloorRoomVoid({
+        blockU,
+        blockY,
+        blockV,
+        opening: audienceOpening,
+        gatehouseDepth,
+        wallHeight,
+      });
       return (
         isDoorwayVoid ||
         isStairheadSideWallVoid ||
-        isBelowStairheadVoid ||
         isLintelVoid ||
-        isStairwellVoid
+        isUpperFloorRoomVoid
       );
     };
     const batches = new Map();
@@ -1109,7 +1127,6 @@ export class Castle {
         audienceOpening,
         castleDepth,
         facadeSpan,
-        towerSpan,
         wallHeight,
         battlementPeriod,
         openingAt,
@@ -1311,7 +1328,6 @@ export class Castle {
     opening,
     castleDepth,
     facadeSpan,
-    towerSpan,
     wallHeight,
     battlementPeriod,
     openingAt,
@@ -1330,18 +1346,6 @@ export class Castle {
       (roomEnd - CASTLE_WALL_THICKNESS_BLOCKS) * CASTLE_BLOCK_SIZE;
     const interiorWidth =
       Math.min(openingCenter - interiorStart, interiorEnd - openingCenter) * 2;
-    const gatehouseDepth = Math.min(towerSpan, castleDepth);
-    const roofDoorWidth = 4;
-    const roofDoorStart = Math.floor(
-      (opening.start + opening.end - roofDoorWidth) / 2,
-    );
-    const stairwellStart = Math.max(0, gatehouseDepth - 5);
-    const isStairwellOpening = (blockU, blockV) =>
-      blockU >= stairwellStart &&
-      blockU < gatehouseDepth &&
-      blockV >= roofDoorStart &&
-      blockV < roofDoorStart + roofDoorWidth;
-
     for (const [wallV, boundary] of sideWalls) {
       for (let blockU = 0; blockU < castleDepth; blockU += 1) {
         for (
@@ -1389,7 +1393,6 @@ export class Castle {
       castleDepth,
       wallHeight,
       battlementPeriod,
-      isStairwellOpening,
     );
     return interiorWidth;
   }
@@ -1401,13 +1404,9 @@ export class Castle {
     castleDepth,
     wallHeight,
     battlementPeriod,
-    isStairwellOpening,
   ) {
     for (let blockU = 0; blockU < castleDepth; blockU += 1) {
       for (let blockV = roomStart; blockV < roomEnd; blockV += 1) {
-        if (isStairwellOpening(blockU, blockV)) {
-          continue;
-        }
         const isEdge =
           blockU === 0 ||
           blockU === castleDepth - 1 ||
@@ -1512,7 +1511,7 @@ export class Castle {
     const gatehouseHeight = towerHeight;
     const gateFaceDepth = Math.min(1, gatehouseDepth - 1);
     const roofDoorWidth = 4;
-    const roofDoorHeight = 5;
+    const roofDoorHeight = CASTLE_UPPER_FLOOR_ROOM_HEIGHT_BLOCKS;
     const roofDoorStart = Math.floor(
       (opening.start + opening.end - roofDoorWidth) / 2,
     );
