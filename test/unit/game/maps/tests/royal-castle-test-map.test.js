@@ -14,7 +14,7 @@ it("gives the king, queen, and princess independent castles and one shared trigg
   assert.equal(triggers.length, 1);
   const [trigger] = triggers;
   assert.equal(trigger.color, "#d8aa3d");
-  assert.match(trigger.script, /setLeisurePresent/);
+  assert.match(trigger.script, /setRoyalActivityTriggered/);
   const middleCastle = map.castles[1];
   const southEdge = middleCastle.position.row + middleCastle.position.depth - 1;
   assert.equal(trigger.position.z, 4);

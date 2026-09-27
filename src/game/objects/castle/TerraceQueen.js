@@ -1,5 +1,4 @@
 import queenModelUrl from "../../models/castle/royals/queen.glb?url";
-import { CastleLeisureSequence } from "./CastleLeisureSequence.js";
 import { TerraceActor } from "./TerraceActor.js";
 
 /**
@@ -15,7 +14,6 @@ export class TerraceQueen {
   }
 
   #actor;
-  #sequence;
 
   constructor({ pc, modelLibrary }) {
     this.#actor = new TerraceActor({
@@ -24,15 +22,10 @@ export class TerraceQueen {
       modelUrl: queenModelUrl,
       kind: TerraceQueen.kind,
     });
-    this.#sequence = new CastleLeisureSequence(TerraceQueen.kind);
   }
 
   get entity() {
     return this.#actor.entity;
-  }
-
-  get sequence() {
-    return this.#sequence;
   }
 
   get rightHand() {
@@ -58,6 +51,5 @@ export class TerraceQueen {
   destroy() {
     this.#actor.destroy();
     this.#actor = null;
-    this.#sequence = null;
   }
 }

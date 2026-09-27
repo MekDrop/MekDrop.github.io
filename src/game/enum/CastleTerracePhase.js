@@ -1,4 +1,4 @@
-export const CASTLE_LEISURE_PHASE = Object.freeze({
+export const CASTLE_TERRACE_PHASE = Object.freeze({
   DORMANT: "dormant",
   SERVANT_ENTER: "servant-enter",
   FURNISH: "furnish",
@@ -6,7 +6,7 @@ export const CASTLE_LEISURE_PHASE = Object.freeze({
   SERVANT_EXIT: "servant-exit",
   ROYAL_ENTER: "royal-enter",
   SETTLE: "settle",
-  LEISURE: "leisure",
+  ACTIVITY: "activity",
   RISE: "rise",
   ROYAL_EXIT: "royal-exit",
   CLEANUP_DELAY: "cleanup-delay",

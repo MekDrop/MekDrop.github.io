@@ -1,6 +1,5 @@
 import kingModelUrl from "../../models/castle/royals/king.glb?url";
 import { KING_ANIMATION } from "../../enum/KingAnimation.js";
-import { CastleLeisureSequence } from "./CastleLeisureSequence.js";
 import { KingTerracePerformance } from "./KingTerracePerformance.js";
 import { TerraceActor } from "./TerraceActor.js";
 
@@ -17,7 +16,6 @@ export class TerraceKing {
   }
 
   #actor;
-  #sequence;
   #performance;
   #animationLayer;
   #animationName;
@@ -36,16 +34,11 @@ export class TerraceKing {
       kind: TerraceKing.kind,
     });
     this.#performance = new KingTerracePerformance(performanceSeed);
-    this.#sequence = new CastleLeisureSequence(TerraceKing.kind);
     this.#setupAnimations(modelLibrary);
   }
 
   get entity() {
     return this.#actor.entity;
-  }
-
-  get sequence() {
-    return this.#sequence;
   }
 
   get rightHand() {
@@ -113,7 +106,6 @@ export class TerraceKing {
     this.#actor.destroy();
     this.#actor = null;
     this.#performance = null;
-    this.#sequence = null;
     this.#animationLayer = null;
     this.#performanceOrigin = null;
     this.#performanceRotation = null;

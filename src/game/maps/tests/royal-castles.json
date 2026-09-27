@@ -4689,7 +4689,7 @@
       "object": "TriggerArea",
       "color": "#d8aa3d",
       "position": { "x": 0, "y": 2, "z": 4 },
-      "script": "for (const castle of objects.getAll('castle')) { castle.setLeisurePresent(active); }"
+      "script": "for (const castle of objects.getAll('castle')) { castle.setRoyalActivityTriggered(active); }"
     }
   ]
 }

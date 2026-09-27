@@ -20,6 +20,7 @@ import { HeroWaterMotion } from "./HeroWaterMotion.js";
 import { HeroEmotionBehavior } from "./behaviors/emotion/HeroEmotionBehavior.js";
 import { HeroAngryEscapeBehavior } from "./behaviors/action/HeroAngryEscapeBehavior.js";
 import { HeroIdleBehavior } from "./behaviors/action/HeroIdleBehavior.js";
+import { HeroActivityBehavior } from "./behaviors/action/HeroActivityBehavior.js";
 import { HeroHairPhysics } from "./HeroHairPhysics.js";
 import { HERO_MOOD } from "../../enum/HeroMood.js";
 import { HERO_STAT } from "../../enum/HeroStat.js";
@@ -161,6 +162,7 @@ export class Hero {
   #emotionBehavior = new HeroEmotionBehavior(this.#buffs);
   #angryEscapeBehavior = new HeroAngryEscapeBehavior();
   #idleBehavior = new HeroIdleBehavior();
+  #activityBehavior = new HeroActivityBehavior();
   #faceMorphs = [];
   #patReactionRemaining = 0;
   #lastAngryPatTime = -Infinity;
@@ -573,6 +575,20 @@ export class Hero {
 
   get isReacting() {
     return this.#blockedDigReactionAction !== null || this.#actionsLocked;
+  }
+
+  get actionState() {
+    return this.#activityBehavior.state;
+  }
+
+  set boostingCountryFinances(value) {
+    const wasBoosting = this.#activityBehavior.boostingCountryFinances;
+    this.#activityBehavior.boostingCountryFinances = value;
+    if (wasBoosting === this.#activityBehavior.boostingCountryFinances) {
+      return;
+    }
+    this.#resetBoredom();
+    this.#syncState();
   }
 
   get #actionsLocked() {
@@ -3342,6 +3358,9 @@ export class Hero {
     } else if (this.#emotionBehavior.state.kind !== HERO_MOOD.CALM) {
       animation = HERO_ANIMATION.IDLE;
       this.#resetBoredom();
+    } else if (this.#activityBehavior.boostingCountryFinances) {
+      animation = this.#activityBehavior.animation;
+      this.#resetBoredom();
     } else if (this.#firstPersonCameraEnabled) {
       animation = HERO_ANIMATION.IDLE;
       animationSpeed = 0;
@@ -4052,6 +4071,7 @@ export class Hero {
       wallet: this.wallet,
       inventory: this.inventory,
       mood: this.mood,
+      action: this.actionState,
       buffs: this.buffs,
       stats: this.stats,
     };

@@ -452,6 +452,7 @@ export class PlayCanvasRenderer {
       facing: hero.facingDirection,
       headLookYaw: hero.headLookYaw,
       mood: hero.mood,
+      action: hero.actionState,
       buffs: hero.buffs,
       stats: hero.stats,
       movement: hero.movementState,
@@ -465,7 +466,7 @@ export class PlayCanvasRenderer {
   get royalCastleStates() {
     return this.#sceneObjects
       .getAll(SCENE_OBJECT_TYPE.CASTLE)
-      .map((castle) => castle.leisureState);
+      .map((castle) => castle.royalActivityState);
   }
 
   get inventoryState() {
@@ -1462,7 +1463,18 @@ export class PlayCanvasRenderer {
   }
 
   #updateCastlesForHero(position) {
-    for (const castle of this.#sceneObjects.getAll(SCENE_OBJECT_TYPE.CASTLE)) {
+    const castles = this.#sceneObjects.getAll(SCENE_OBJECT_TYPE.CASTLE);
+    const hero = this.#sceneObjects.getOne(SCENE_OBJECT_TYPE.HERO);
+    const heroPosition = hero?.position ?? position;
+    const activeCastle = castles.find((castle) =>
+      castle.isRoyalActivityTriggerAt(heroPosition));
+    if (hero) {
+      hero.boostingCountryFinances = Boolean(activeCastle);
+    }
+    for (const castle of castles) {
+      castle.setRoyalActivityTriggered(
+        hero?.actionState.boostingCountryFinances && castle === activeCastle,
+      );
       castle.updateHeroPosition(position);
     }
     for (const object of this.#sceneObjects.getAll(
