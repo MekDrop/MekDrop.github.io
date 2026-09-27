@@ -1,5 +1,5 @@
-import { GAME_RECORDING_STATE } from "../enum/GameRecordingState.js";
-import { RecordingVideoEncoderUnavailableError } from "../errors/recording/index.js";
+import { GAME_RECORDING_STATE } from "../../../../enum/GameRecordingState.js";
+import { RecordingVideoEncoderUnavailableError } from "../../../../errors/recording/index.js";
 import { RecordingCanvas } from "./RecordingCanvas.js";
 import { RecordingAudio } from "./RecordingAudio.js";
 import { AvcRecordingConfiguration } from "./AvcRecordingConfiguration.js";

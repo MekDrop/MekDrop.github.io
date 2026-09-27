@@ -1,5 +1,5 @@
-import { INPUT_EVENT_TYPE } from "../enum/InputEventType.js";
-import { POINTER_TYPE } from "../enum/PointerType.js";
+import { INPUT_EVENT_TYPE } from "../../../../enum/InputEventType.js";
+import { POINTER_TYPE } from "../../../../enum/PointerType.js";
 
 const ALT_KEYS = new Set(["Alt", "AltLeft", "AltRight"]);
 

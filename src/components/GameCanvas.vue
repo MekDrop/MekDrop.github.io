@@ -449,7 +449,7 @@ async function updateMovementTestDriverPlugin() {
   }
 
   const { GameCanvasMovementTestDriverPlugin } = await import(
-    "src/game/plugins/game-canvas/GameCanvasMovementTestDriverPlugin.js"
+    "src/game/plugins/game-canvas/movement-test-driver/GameCanvasMovementTestDriverPlugin.js"
   );
   if (!mapFileLoader) {
     gameCanvasPluginRegistry.unload(GameCanvasMovementTestDriverPlugin);
@@ -467,7 +467,7 @@ async function updateCameraTestDriverPlugin() {
   }
 
   const { GameCanvasCameraTestDriverPlugin } = await import(
-    "src/game/plugins/game-canvas/GameCanvasCameraTestDriverPlugin.js"
+    "src/game/plugins/game-canvas/camera-test-driver/GameCanvasCameraTestDriverPlugin.js"
   );
   gameCanvasPluginRegistry.load(GameCanvasCameraTestDriverPlugin);
 }

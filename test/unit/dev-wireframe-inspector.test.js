@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { afterEach, beforeEach, test } from "node:test";
-import { DevWireframeInspector } from "../../src/game/debug/DevWireframeInspector.js";
+import { DevWireframeInspector } from "../../src/game/plugins/game-canvas/debug-ui/debug/DevWireframeInspector.js";
 
 class FakeEventTarget {
   listeners = new Map();

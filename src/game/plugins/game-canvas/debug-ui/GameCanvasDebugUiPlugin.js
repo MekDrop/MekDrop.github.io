@@ -1,12 +1,10 @@
 import { useIntervalFn } from "@vueuse/core";
 
-import { DevWireframeInspector } from "../../debug/DevWireframeInspector.js";
-import { PathArrows } from "../../objects/path/index.js";
-import {
-  DebugAxesHud,
-  DebugFpsHud,
-  GameUiTheme,
-} from "../../ui/index.js";
+import { GameUiTheme } from "../../../ui/index.js";
+import { DevWireframeInspector } from "./debug/DevWireframeInspector.js";
+import { PathArrows } from "./objects/path/PathArrows.js";
+import { DebugAxesHud } from "./ui/DebugAxesHud.js";
+import { DebugFpsHud } from "./ui/DebugFpsHud.js";
 
 export class GameCanvasDebugUiPlugin {
   #context;

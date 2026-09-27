@@ -1,7 +1,7 @@
-import { ToggleRecordingAction } from "../../actions/ToggleRecordingAction.js";
-import { GAME_RECORDING_STATE } from "../../enum/GameRecordingState.js";
-import { GameRecorder } from "../../recording/GameRecorder.js";
-import { reportGlobalException } from "../../../boot/runtime-errors.js";
+import { reportGlobalException } from "../../../../boot/runtime-errors.js";
+import { GAME_RECORDING_STATE } from "../../../enum/GameRecordingState.js";
+import { ToggleRecordingAction } from "./actions/ToggleRecordingAction.js";
+import { GameRecorder } from "./recording/GameRecorder.js";
 
 const TOGGLE_RECORDING_BINDING = Object.freeze({
   keys: ["PrintScreen"],

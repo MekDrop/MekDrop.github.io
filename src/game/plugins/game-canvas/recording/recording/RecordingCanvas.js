@@ -1,4 +1,4 @@
-import { RecordingCanvasUnavailableError } from "../errors/recording/index.js";
+import { RecordingCanvasUnavailableError } from "../../../../errors/recording/index.js";
 
 /**
  * Composes game pixels and a software cursor; keeps UI borders out of the video.

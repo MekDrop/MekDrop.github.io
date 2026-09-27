@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { it } from "node:test";
-import { RecordingAudio } from "../../src/game/recording/RecordingAudio.js";
+import { RecordingAudio } from "../../src/game/plugins/game-canvas/recording/recording/RecordingAudio.js";
 
 function setup() {
   const destination = { stream: { getTracks: () => [track] } };

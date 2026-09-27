@@ -1,4 +1,4 @@
-import { RecordingAudioUnavailableError } from "../errors/recording/index.js";
+import { RecordingAudioUnavailableError } from "../../../../errors/recording/index.js";
 
 /**
  * Taps PlayCanvas sound instances after their effects without muting playback.

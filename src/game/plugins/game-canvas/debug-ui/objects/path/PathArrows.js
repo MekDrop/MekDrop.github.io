@@ -1,6 +1,6 @@
-import { TileType } from "../../MapGenerator.js";
-import { UnknownArrowMeshError } from "../../errors/path/index.js";
-import { colorFromHex, colorToCss } from "../../helpers/colors.js";
+import { TileType } from "../../../../../MapGenerator.js";
+import { UnknownArrowMeshError } from "../../../../../errors/path/index.js";
+import { colorFromHex, colorToCss } from "../../../../../helpers/colors.js";
 
 const ARROW_POINTS = [
   [-0.1, -0.32],

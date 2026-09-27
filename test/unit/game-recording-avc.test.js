@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { it } from "node:test";
-import { AvcRecordingConfiguration } from "../../src/game/recording/AvcRecordingConfiguration.js";
+import { AvcRecordingConfiguration } from "../../src/game/plugins/game-canvas/recording/recording/AvcRecordingConfiguration.js";
 
 // Actual encoder output from the Mozilla bug report.
 const broken = Uint8Array.from(Buffer.from(
