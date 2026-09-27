@@ -260,21 +260,7 @@ export class Castle {
     ) {
       return true;
     }
-    const radiusSquared = radius * radius;
-    for (const column of this.#groundCollisionColumns) {
-      const distanceX = Math.max(
-        Math.abs(x - column.x) - CASTLE_BLOCK_SIZE / 2,
-        0,
-      );
-      const distanceZ = Math.max(
-        Math.abs(z - column.z) - CASTLE_BLOCK_SIZE / 2,
-        0,
-      );
-      if (distanceX * distanceX + distanceZ * distanceZ <= radiusSquared) {
-        return true;
-      }
-    }
-    return false;
+    return this.#intersectsGroundColumns(x, z, radius);
   }
 
   blocksMovementAt(x, z, radius = 0, elevation = -Infinity, stepClearance = 0) {
@@ -361,7 +347,10 @@ export class Castle {
     this.#leisureScene?.stop();
     this.#syncAudienceRoomVisibility();
     for (const door of this.#animatedDoors) door.openTemporarily(10);
-    return this.#audienceRoom?.beginGameOver(getCameraPosition) ?? null;
+    return this.#audienceRoom?.beginGameOver(
+      getCameraPosition,
+      (x, z, radius) => this.#intersectsGroundColumns(x, z, radius),
+    ) ?? null;
   }
 
   startGameOverPerformance() {
@@ -438,6 +427,24 @@ export class Castle {
     this.#groundCollisionColumns = [];
     this.#groundCollisionKeys.clear();
     this.#cameraCollisionBlocks = [];
+  }
+
+  #intersectsGroundColumns(x, z, radius) {
+    const radiusSquared = radius * radius;
+    for (const column of this.#groundCollisionColumns) {
+      const distanceX = Math.max(
+        Math.abs(x - column.x) - CASTLE_BLOCK_SIZE / 2,
+        0,
+      );
+      const distanceZ = Math.max(
+        Math.abs(z - column.z) - CASTLE_BLOCK_SIZE / 2,
+        0,
+      );
+      if (distanceX * distanceX + distanceZ * distanceZ <= radiusSquared) {
+        return true;
+      }
+    }
+    return false;
   }
 
   #update = (deltaTime) => {

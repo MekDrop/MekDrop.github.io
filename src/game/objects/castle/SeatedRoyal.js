@@ -3,12 +3,20 @@ import princessModelUrl from "../../models/castle/royals/princess.glb?url";
 import queenModelUrl from "../../models/castle/royals/queen.glb?url";
 import { ROYAL_WALK_SPEED } from "../../enum/RoyalWalkSpeed.js";
 import { ROYAL_ANIMATION } from "../../enum/RoyalAnimation.js";
+import { KingGameOverBehavior } from "./KingGameOverBehavior.js";
+import { PrincessGameOverBehavior } from "./PrincessGameOverBehavior.js";
+import { QueenGameOverBehavior } from "./QueenGameOverBehavior.js";
 import { RoyalTears } from "./RoyalTears.js";
 
 const MODEL_URLS = Object.freeze([
   kingModelUrl,
   queenModelUrl,
   princessModelUrl,
+]);
+const GAME_OVER_BEHAVIOR_TYPES = Object.freeze([
+  KingGameOverBehavior,
+  QueenGameOverBehavior,
+  PrincessGameOverBehavior,
 ]);
 const WALK_OUT_ANIMATION_SPEED = 1.8;
 const WALK_START_DELAY = 0.08;
@@ -23,14 +31,16 @@ export class SeatedRoyal {
   }
 
   #entity;
-  #performance = null;
+  #gameOverBehavior;
+  #gameOverRoute = null;
   #tears;
-  #walkOutDuration;
 
   constructor({ pc, app, modelUrl = kingModelUrl, modelLibrary }) {
-    const kind = ["KING", "QUEEN", "PRINCESS"][MODEL_URLS.indexOf(modelUrl)] ?? "KING";
+    const modelIndex = MODEL_URLS.indexOf(modelUrl);
+    const kind = ["KING", "QUEEN", "PRINCESS"][modelIndex] ?? "KING";
+    const GameOverBehaviorType =
+      GAME_OVER_BEHAVIOR_TYPES[modelIndex] ?? KingGameOverBehavior;
     const walkAnimationSpeed = WALK_OUT_ANIMATION_SPEED * ROYAL_WALK_SPEED[kind];
-    this.#walkOutDuration = 3.2 / walkAnimationSpeed;
     this.#entity = modelLibrary.instantiate(modelUrl);
     this.#entity.name = "Seated royal";
     const tracks = modelLibrary.getAnimationTracks(modelUrl, [
@@ -51,10 +61,22 @@ export class SeatedRoyal {
       true,
     );
     this.#tears = new RoyalTears({ pc, app, royal: this.#entity });
+    this.#gameOverBehavior = new GameOverBehaviorType({
+      walkDuration: 3.2 / walkAnimationSpeed,
+      walkStartDelay: WALK_START_DELAY,
+      beginWalk: () => this.#beginGameOverWalk(),
+      move: (progress) => this.#moveGameOverWalk(progress),
+      playAnimation: (animation, blendDuration) =>
+        this.#playAnimation(animation, blendDuration),
+    });
   }
 
   get entity() {
     return this.#entity;
+  }
+
+  get gameOverDestination() {
+    return this.#gameOverBehavior.destination;
   }
 
   get visualBounds() {
@@ -103,72 +125,116 @@ export class SeatedRoyal {
     };
   }
 
-  beginGameOver({ startPosition, endPosition, getCameraPosition }) {
-    if (this.#performance) {
+  beginGameOver({ route, getCameraPosition }) {
+    if (this.#gameOverBehavior.active) {
       return;
     }
-    this.#performance = {
-      elapsed: 0,
-      phase: "walking",
-      startPosition: { ...startPosition },
-      endPosition: { ...endPosition },
+    const waypoints = route.waypoints.map((waypoint) => ({ ...waypoint }));
+    const segmentLengths = [];
+    let totalLength = 0;
+    for (let index = 1; index < waypoints.length; index += 1) {
+      const start = waypoints[index - 1];
+      const end = waypoints[index];
+      const length = Math.hypot(end.x - start.x, end.z - start.z);
+      segmentLengths.push(length);
+      totalLength += length;
+    }
+    this.#gameOverRoute = {
+      waypoints,
+      segmentLengths,
+      totalLength,
+      collisionRadius: route.collisionRadius,
+      isBlocked: route.isBlocked,
       getCameraPosition,
     };
-    this.#face(
-      endPosition.x - startPosition.x,
-      endPosition.z - startPosition.z,
-    );
-    this.#entity.anim.baseLayer.play(ROYAL_ANIMATION.WALK_OUT);
+    this.#gameOverBehavior.start();
   }
 
   beginCrying({ blendDuration = 0 } = {}) {
-    this.#performance = { phase: "crying" };
+    this.#playAnimation(ROYAL_ANIMATION.CRY, blendDuration);
+  }
+
+  #playAnimation(animation, blendDuration = 0) {
     if (blendDuration > 0) {
-      this.#entity.anim.baseLayer.transition(ROYAL_ANIMATION.CRY, blendDuration);
+      this.#entity.anim.baseLayer.transition(animation, blendDuration);
     } else {
-      this.#entity.anim.baseLayer.play(ROYAL_ANIMATION.CRY);
+      this.#entity.anim.baseLayer.play(animation);
     }
   }
 
   update(deltaTime) {
-    if (this.#performance?.phase !== "walking") {
-      return;
-    }
-    const performance = this.#performance;
-    performance.elapsed += deltaTime;
-    const travelProgress = Math.max(
-      0,
-      Math.min(
-        1,
-        (performance.elapsed - WALK_START_DELAY) /
-          (this.#walkOutDuration - WALK_START_DELAY),
-      ),
-    );
-    const easedProgress =
-      travelProgress * travelProgress * (3 - 2 * travelProgress);
-    const start = performance.startPosition;
-    const end = performance.endPosition;
-    this.#entity.setLocalPosition(
-      start.x + (end.x - start.x) * easedProgress,
-      start.y + (end.y - start.y) * easedProgress,
-      start.z + (end.z - start.z) * easedProgress,
-    );
-    if (travelProgress < 1) {
-      return;
-    }
-
-    const cameraPosition = performance.getCameraPosition?.();
-    if (cameraPosition) {
-      this.#face(cameraPosition.x - end.x, cameraPosition.z - end.z);
-    }
-    this.beginCrying({ blendDuration: 0.18 });
+    this.#gameOverBehavior.update(deltaTime);
   }
 
   destroy() {
     this.#tears?.destroy();
     this.#entity?.destroy();
     this.#entity = null;
-    this.#performance = null;
+    this.#gameOverBehavior = null;
+    this.#gameOverRoute = null;
+  }
+
+  #beginGameOverWalk() {
+    const [startPosition, endPosition] = this.#gameOverRoute.waypoints;
+    this.#face(
+      endPosition.x - startPosition.x,
+      endPosition.z - startPosition.z,
+    );
+  }
+
+  #moveGameOverWalk(progress) {
+    const position = this.#gameOverRoutePoint(progress);
+    if (
+      progress > 0 &&
+      this.#gameOverRoute.isBlocked?.(
+        position.x,
+        position.z,
+        this.#gameOverRoute.collisionRadius,
+      )
+    ) {
+      this.#faceGameOverCamera(this.#entity.getLocalPosition());
+      return false;
+    }
+    this.#entity.setLocalPosition(position.x, position.y, position.z);
+    if (progress === 1) {
+      this.#faceGameOverCamera(position);
+    }
+    return true;
+  }
+
+  #faceGameOverCamera(position) {
+    const cameraPosition = this.#gameOverRoute.getCameraPosition?.();
+    if (cameraPosition) {
+      this.#face(
+        cameraPosition.x - position.x,
+        cameraPosition.z - position.z,
+      );
+    }
+  }
+
+  #gameOverRoutePoint(progress) {
+    const route = this.#gameOverRoute;
+    const lastWaypoint = route.waypoints.at(-1);
+    if (route.totalLength <= 0.001 || progress >= 1) {
+      return { ...lastWaypoint };
+    }
+    let remaining = route.totalLength * progress;
+    for (let index = 0; index < route.segmentLengths.length; index += 1) {
+      const length = route.segmentLengths[index];
+      if (remaining > length) {
+        remaining -= length;
+        continue;
+      }
+      const start = route.waypoints[index];
+      const end = route.waypoints[index + 1];
+      const segmentProgress = length > 0 ? remaining / length : 1;
+      return {
+        x: start.x + (end.x - start.x) * segmentProgress,
+        y: start.y + (end.y - start.y) * segmentProgress,
+        z: start.z + (end.z - start.z) * segmentProgress,
+      };
+    }
+    return { ...lastWaypoint };
   }
 
   #face(x, z) {

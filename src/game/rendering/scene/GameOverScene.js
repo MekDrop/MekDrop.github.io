@@ -83,21 +83,24 @@ export class GameOverScene {
     if (!state.gameOver || this.#active) {
       return;
     }
-    const castle = this.#sceneObjects.getFirst(SCENE_OBJECT_TYPE.CASTLE);
-    if (!castle || !this.#getCameraPosition()) {
+    const castles = this.#sceneObjects.getAll(SCENE_OBJECT_TYPE.CASTLE);
+    if (castles.length === 0 || !this.#getCameraPosition()) {
       return;
     }
-    const presentation = castle.beginGameOver(() =>
-      this.#getCameraPosition(),
-    );
-    if (!presentation) {
+    const performances = castles
+      .map((castle) => ({
+        castle,
+        presentation: castle.beginGameOver(() => this.#getCameraPosition()),
+      }))
+      .filter(({ presentation }) => presentation);
+    if (performances.length === 0) {
       return;
     }
     this.#returnViewport = this.#getViewport();
     this.#active = true;
     this.#clearCameraReturn();
     const cameraState = this.#getCameraState();
-    const { focus, visualSize, viewRotation } = presentation;
+    const { focus, visualSize, viewRotation } = performances[0].presentation;
     const rotationDelta =
       ((((viewRotation - cameraState.rotation + 2) % 4) + 4) % 4) - 2;
     this.#transition = {
@@ -114,7 +117,9 @@ export class GameOverScene {
       endZoom: this.#getZoom(visualSize, viewRotation, cameraState),
     };
     this.#setCameraState({ viewportManuallyMoved: true });
-    castle.startGameOverPerformance();
+    for (const { castle } of performances) {
+      castle.startGameOverPerformance();
+    }
   }
 
   update(deltaTime) {

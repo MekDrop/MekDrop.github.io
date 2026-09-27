@@ -21,6 +21,9 @@ const DEFAULT_FRONT_WALL_DEPTH = 0.5;
 const VISIBILITY_MARGIN = 0.85;
 const CARPET_ENTRANCE_INSET = 0.32;
 const CARPET_REAR_CLEARANCE = 0.36;
+const ROYAL_COLLISION_RADIUS = 0.22;
+const ROYAL_DOORWAY_INSIDE = 0.35;
+const ROYAL_DOORWAY_OUTSIDE = -0.35;
 
 /**
  * Visitor-facing castle audience chamber.
@@ -69,6 +72,7 @@ export class CastleAudienceRoom {
   #gameOverPerformance = false;
   #gameOverPerformanceStarted = false;
   #gameOverEndPosition = null;
+  #gameOverRoute = null;
   #getGameOverCameraPosition = null;
 
   constructor({
@@ -135,13 +139,35 @@ export class CastleAudienceRoom {
     this.#occupant.entity.enabled = visible || this.#gameOverPerformance;
   }
 
-  beginGameOver(getCameraPosition) {
+  beginGameOver(getCameraPosition, isBlocked = () => false) {
     if (this.#gameOverPerformance || !this.#occupant || !this.#royalPosition) {
       return null;
     }
     this.#gameOverPerformance = true;
-    const endPosition = this.#point(0, -1.15, 0.05);
+    const destination = this.#occupant.gameOverDestination ?? {
+      lateral: 0,
+      forward: -1.15,
+      elevation: 0.05,
+    };
+    const endPosition = this.#point(
+      destination.lateral,
+      destination.forward,
+      destination.elevation,
+    );
     this.#gameOverEndPosition = endPosition;
+    // The presentation is scripted rather than rigid-body driven, so route it
+    // through the known doorway corridor and query the castle's real wall
+    // collision columns before accepting each animated step.
+    this.#gameOverRoute = {
+      waypoints: [
+        { ...this.#royalPosition },
+        this.#point(0, ROYAL_DOORWAY_INSIDE, destination.elevation),
+        this.#point(0, ROYAL_DOORWAY_OUTSIDE, destination.elevation),
+        { ...endPosition },
+      ],
+      collisionRadius: ROYAL_COLLISION_RADIUS,
+      isBlocked,
+    };
     this.#getGameOverCameraPosition = getCameraPosition;
     this.#syncVisibility();
     const visualBounds = this.#occupant.visualBounds;
@@ -168,14 +194,14 @@ export class CastleAudienceRoom {
       this.#gameOverPerformanceStarted ||
       !this.#occupant ||
       !this.#royalPosition ||
-      !this.#gameOverEndPosition
+      !this.#gameOverEndPosition ||
+      !this.#gameOverRoute
     ) {
       return;
     }
     this.#gameOverPerformanceStarted = true;
     this.#occupant.beginGameOver({
-      startPosition: this.#royalPosition,
-      endPosition: this.#gameOverEndPosition,
+      route: this.#gameOverRoute,
       getCameraPosition: this.#getGameOverCameraPosition,
     });
   }

@@ -39,6 +39,16 @@ class FakeEntity {
     return this.scale;
   }
 
+  getPosition() {
+    return this.position;
+  }
+
+  getWorldTransform() {
+    return {
+      transformPoint: (point) => point,
+    };
+  }
+
   destroy() {}
 }
 
@@ -51,6 +61,13 @@ class FakeMaterial {
 const pc = {
   Entity: FakeEntity,
   StandardMaterial: FakeMaterial,
+  Vec3: class Vec3 {
+    constructor(x, y, z) {
+      this.x = x;
+      this.y = y;
+      this.z = z;
+    }
+  },
 };
 globalThis.__castleAudienceTestPc = pc;
 
@@ -110,13 +127,13 @@ const layouts = {
   },
 };
 
-function createRoom(side) {
+function createRoom(side, occupant = null) {
   return new CastleAudienceRoom({
     pc,
     app,
     position: { x: 0, z: 0, width: 8, depth: 8, elevation: 2 },
     door: { side, offset: 3, width: 2 },
-    occupant: {
+    occupant: occupant ?? {
       entity: new FakeEntity("Royal"),
       update() {},
       destroy() {},
@@ -186,5 +203,39 @@ it("keeps the throne room rendered while its entrance is closed", () => {
   room.updateHeroPosition({ x: -100, z: -100 });
 
   assert.equal(room.entity.enabled, true);
+  room.destroy();
+});
+
+it("routes a royal through the doorway with castle collision knowledge", () => {
+  let gameOverOptions = null;
+  const occupant = {
+    entity: new FakeEntity("Royal"),
+    gameOverDestination: { lateral: 1.15, forward: -1, elevation: 0.05 },
+    visualBounds: {
+      center: { x: 4, y: 3, z: 3 },
+      size: { x: 1, y: 2, z: 1 },
+    },
+    beginGameOver(options) {
+      gameOverOptions = options;
+    },
+    update() {},
+    destroy() {},
+  };
+  const isBlocked = () => false;
+  const room = createRoom("NORTH", occupant);
+
+  room.beginGameOver(() => ({ x: 0, y: 0, z: 0 }), isBlocked);
+  room.startGameOverPerformance();
+
+  assert.equal(gameOverOptions.route.isBlocked, isBlocked);
+  assert.equal(gameOverOptions.route.collisionRadius, 0.22);
+  assert.deepEqual(
+    gameOverOptions.route.waypoints.slice(1).map(({ x, z }) => ({ x, z })),
+    [
+      { x: 4, z: 0.35 },
+      { x: 4, z: -0.35 },
+      { x: 5.15, z: -1 },
+    ],
+  );
   room.destroy();
 });
