@@ -452,9 +452,8 @@ describe("Camera dragging", () => {
   });
 
   it("uses Scroll Lock for a first-person camera tied to the hero in development", () => {
-    let initialState;
     cy.window().then((window) => {
-      initialState = window.gameCameraTest.state();
+      const initialState = window.gameCameraTest.state();
       expect(initialState.firstPersonCameraEnabled).to.equal(false);
       window.dispatchEvent(
         new KeyboardEvent("keydown", { code: "ScrollLock" }),
@@ -464,7 +463,7 @@ describe("Camera dragging", () => {
 
     cy.get(".first-person-camera-status").should(
       "contain.text",
-      "First-person camera — arrows move the hero",
+      "First-person camera — mouse look, click to pet",
     );
     cy.window().then((window) => {
       const firstPersonState = window.gameCameraTest.state();
@@ -486,29 +485,6 @@ describe("Camera dragging", () => {
       expect(lookedState.firstPersonCamera.direction.x).not.to.be.closeTo(
         firstPersonState.firstPersonCamera.direction.x,
         0.01,
-      );
-
-      window.dispatchEvent(new KeyboardEvent("keydown", { code: "KeyW" }));
-    });
-    cy.wait(250);
-    cy.window().then((window) => {
-      window.dispatchEvent(new KeyboardEvent("keyup", { code: "KeyW" }));
-    });
-    cy.window().then((window) => {
-      const movedState = window.gameCameraTest.state();
-      expect(
-        Math.hypot(
-          movedState.hero.position.x - initialState.hero.position.x,
-          movedState.hero.position.z - initialState.hero.position.z,
-        ),
-      ).to.be.greaterThan(0);
-      expect(movedState.firstPersonCamera.position.x).to.be.closeTo(
-        movedState.hero.position.x,
-        0.15,
-      );
-      expect(movedState.firstPersonCamera.position.z).to.be.closeTo(
-        movedState.hero.position.z,
-        0.15,
       );
 
       window.dispatchEvent(

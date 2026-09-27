@@ -22,6 +22,18 @@ export class AbstractCameraMode {
    */
   exit() {}
 
+  get pointerInputActive() {
+    return false;
+  }
+
+  pointerDown() {
+    return null;
+  }
+
+  pointerMove() {
+    return false;
+  }
+
   /**
    * Apply the mode transform and report its resulting position.
    *

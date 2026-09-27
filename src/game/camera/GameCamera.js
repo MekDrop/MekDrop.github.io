@@ -162,6 +162,10 @@ export class GameCamera {
     return this.firstPersonEnabled ? this.#mode.state : null;
   }
 
+  get pointerInputActive() {
+    return this.#mode.pointerInputActive;
+  }
+
   get viewport() {
     return {
       zoom: this.#zoom,
@@ -235,6 +239,14 @@ export class GameCamera {
 
   lookFirstPersonBy(yawDegrees, pitchDegrees) {
     this.#mode.lookBy?.(yawDegrees, pitchDegrees);
+  }
+
+  pointerDown(input) {
+    return this.#mode.pointerDown(input);
+  }
+
+  pointerMove(input) {
+    return this.#mode.pointerMove(input);
   }
 
   translateLocal(...args) {

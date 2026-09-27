@@ -542,6 +542,10 @@ export class PlayCanvasRenderer {
     return this.#camera.firstPersonState;
   }
 
+  get cameraPointerInputActive() {
+    return this.#camera.pointerInputActive;
+  }
+
   set firstPersonCameraEnabled(enabled) {
     const nextEnabled = Boolean(enabled);
     if (
@@ -806,6 +810,18 @@ export class PlayCanvasRenderer {
     }
     this.#camera.lookFirstPersonBy(yawDegrees, pitchDegrees);
     this.#updateCamera();
+  }
+
+  cameraPointerDown(input) {
+    return this.#camera.pointerDown(input);
+  }
+
+  cameraPointerMove(input) {
+    if (!this.#camera.pointerMove(input)) {
+      return false;
+    }
+    this.#updateCamera();
+    return true;
   }
 
   resize() {

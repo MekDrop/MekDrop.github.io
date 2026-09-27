@@ -73,7 +73,7 @@ export const DEFAULT_CONTROLS = Object.freeze({
     keys: ["ScrollLock"],
     allowRepeat: false,
   },
-  firstPersonLook: {
+  cameraPointer: {
     degreesPerPixel: 0.12,
   },
   zoom: {

@@ -1,11 +1,13 @@
 export class FirstPersonCameraAction {
   #renderer;
   #heroMovement;
+  #cameraPointer;
   #onChange;
 
-  constructor(renderer, heroMovement, onChange = () => {}) {
+  constructor(renderer, heroMovement, cameraPointer, onChange = () => {}) {
     this.#renderer = renderer;
     this.#heroMovement = heroMovement;
+    this.#cameraPointer = cameraPointer;
     this.#onChange = onChange;
   }
 
@@ -13,8 +15,10 @@ export class FirstPersonCameraAction {
     const enabled = !this.#renderer.firstPersonCameraEnabled;
     this.#heroMovement.clear();
     this.#renderer.firstPersonCameraEnabled = enabled;
-    if (!enabled && document.pointerLockElement) {
-      document.exitPointerLock?.();
+    if (enabled) {
+      this.#cameraPointer.capture();
+    } else {
+      this.#cameraPointer.release();
     }
     this.#onChange(enabled);
   }

@@ -41,7 +41,7 @@
       role="status"
       aria-live="polite"
     >
-      First-person camera — click for mouse look, WASD/arrows move, Esc releases
+      First-person camera — mouse look, click to pet, WASD/arrows move, Esc releases
     </div>
     <hero-mood-status :mood="heroMood" />
     <Transition name="interaction-prompt">
@@ -233,11 +233,12 @@ import { createGameCommandRegistry } from "src/game/commands/index.js";
 import { CloseModalAction } from "src/actions/CloseModalAction.js";
 import { GAME_RECORDING_STATE } from "src/game/enum/GameRecordingState.js";
 import { CopyScreenshotAction } from "src/game/actions/CopyScreenshotAction.js";
+import { CameraPointerAction } from "src/game/actions/CameraPointerAction.js";
 import { FirstPersonCameraAction } from "src/game/actions/FirstPersonCameraAction.js";
-import { FirstPersonLookAction } from "src/game/actions/FirstPersonLookAction.js";
 import { HeroDirectionAction } from "src/game/actions/HeroDirectionAction.js";
 import { HeroJumpAction } from "src/game/actions/HeroJumpAction.js";
 import { HeroMovementAction } from "src/game/actions/HeroMovementAction.js";
+import { HeroPatAction } from "src/game/actions/HeroPatAction.js";
 import { MoveCameraAction } from "src/game/actions/MoveCameraAction.js";
 import { RegenerateMapAction } from "src/game/actions/RegenerateMapAction.js";
 import { RestartGameAction } from "src/game/actions/RestartGameAction.js";
@@ -678,14 +679,18 @@ async function init() {
     zoomSettings,
     1 / zoomSettings.factor,
   );
+  const patHeroAction = new HeroPatAction(renderer);
+  const cameraPointerAction = new CameraPointerAction(
+    renderer,
+    container.value,
+    patHeroAction,
+    bindings.cameraPointer,
+  );
   const actions = {
     zoomIn: zoomInAction,
     zoomOut: zoomOutAction,
     moveCamera: moveCameraAction,
-    firstPersonLook: new FirstPersonLookAction(
-      renderer,
-      bindings.firstPersonLook,
-    ),
+    cameraPointer: cameraPointerAction,
     regenerateMap: regenerateMapAction,
     restartGame: restartGameAction,
     heroMovement: heroMovementAction,
@@ -711,6 +716,7 @@ async function init() {
           toggleFirstPersonCamera: new FirstPersonCameraAction(
             renderer,
             heroMovementAction,
+            cameraPointerAction,
             (enabled) => {
               firstPersonCameraEnabled.value = enabled;
             },

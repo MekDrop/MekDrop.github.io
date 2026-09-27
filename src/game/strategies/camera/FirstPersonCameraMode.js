@@ -1,13 +1,46 @@
 import { AbstractCameraMode } from "./AbstractCameraMode.js";
 
 const FIELD_OF_VIEW = 70;
-const MAXIMUM_PITCH = 85;
+const MAXIMUM_DOWNWARD_PITCH = 80;
+const MAXIMUM_UPWARD_PITCH = 60;
+const MAXIMUM_YAW = 80;
+
+function normalizeDegrees(degrees) {
+  return ((degrees + 540) % 360) - 180;
+}
 
 export class FirstPersonCameraMode extends AbstractCameraMode {
   #position = null;
   #direction = null;
+  #right = null;
   #yaw = null;
+  #centerYaw = null;
   #pitch = 0;
+
+  get pointerInputActive() {
+    return true;
+  }
+
+  pointerDown({ button, captured }) {
+    if (button !== 0) {
+      return null;
+    }
+    return {
+      capture: !captured,
+      primary: captured,
+    };
+  }
+
+  pointerMove({ captured, movementX, movementY, degreesPerPixel }) {
+    if (!captured) {
+      return false;
+    }
+    this.lookBy(
+      -movementX * degreesPerPixel,
+      movementY * degreesPerPixel,
+    );
+    return true;
+  }
 
   get state() {
     if (!this.#position || !this.#direction) {
@@ -20,6 +53,7 @@ export class FirstPersonCameraMode extends AbstractCameraMode {
         z: this.#position.z,
       },
       direction: { ...this.#direction },
+      right: { ...this.#right },
       perspective:
         this.gameCamera.component.projection ===
         this.gameCamera.playCanvas.PROJECTION_PERSPECTIVE,
@@ -35,7 +69,9 @@ export class FirstPersonCameraMode extends AbstractCameraMode {
   exit() {
     this.#position = null;
     this.#direction = null;
+    this.#right = null;
     this.#yaw = null;
+    this.#centerYaw = null;
     this.#pitch = 0;
   }
 
@@ -43,10 +79,17 @@ export class FirstPersonCameraMode extends AbstractCameraMode {
     if (!Number.isFinite(yawDegrees) || !Number.isFinite(pitchDegrees)) {
       return;
     }
-    this.#yaw = (this.#yaw ?? 0) + yawDegrees;
+    const centerYaw = this.#centerYaw ?? this.#yaw ?? 0;
+    const nextYaw = (this.#yaw ?? centerYaw) + yawDegrees;
+    this.#yaw =
+      centerYaw +
+      Math.max(
+        -MAXIMUM_YAW,
+        Math.min(MAXIMUM_YAW, normalizeDegrees(nextYaw - centerYaw)),
+      );
     this.#pitch = Math.max(
-      -MAXIMUM_PITCH,
-      Math.min(MAXIMUM_PITCH, this.#pitch - pitchDegrees),
+      -MAXIMUM_DOWNWARD_PITCH,
+      Math.min(MAXIMUM_UPWARD_PITCH, this.#pitch - pitchDegrees),
     );
   }
 
@@ -61,10 +104,16 @@ export class FirstPersonCameraMode extends AbstractCameraMode {
       pose.position.y,
       pose.position.z,
     );
-    if (this.#yaw === null) {
-      this.#yaw =
-        (Math.atan2(pose.direction.x, pose.direction.z) * 180) / Math.PI;
-    }
+    const centerYaw =
+      (Math.atan2(pose.direction.x, pose.direction.z) * 180) / Math.PI;
+    this.#centerYaw = centerYaw;
+    this.#yaw ??= centerYaw;
+    this.#yaw =
+      centerYaw +
+      Math.max(
+        -MAXIMUM_YAW,
+        Math.min(MAXIMUM_YAW, normalizeDegrees(this.#yaw - centerYaw)),
+      );
     const yaw = (this.#yaw * Math.PI) / 180;
     const pitch = (this.#pitch * Math.PI) / 180;
     const horizontal = Math.cos(pitch);
@@ -79,6 +128,11 @@ export class FirstPersonCameraMode extends AbstractCameraMode {
       this.#position.y + this.#direction.y,
       this.#position.z + this.#direction.z,
     );
+    this.#right = {
+      x: gameCamera.right.x,
+      y: gameCamera.right.y,
+      z: gameCamera.right.z,
+    };
     return { firstPerson: true, position: this.#position };
   }
 }

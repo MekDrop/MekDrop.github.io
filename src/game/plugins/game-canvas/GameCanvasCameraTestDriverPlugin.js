@@ -35,10 +35,6 @@ export class GameCanvasCameraTestDriverPlugin {
         this.#context.renderer().lookFirstPersonBy(yawDegrees, pitchDegrees);
         return this.#state();
       },
-      lookFirstPersonBy: (yawDegrees, pitchDegrees) => {
-        this.#context.renderer().lookFirstPersonBy(yawDegrees, pitchDegrees);
-        return this.#state();
-      },
       moveHero: (inputX, inputY, running = false) =>
         this.#context.renderer().hero?.setMovement(inputX, inputY, running),
       returnToHero: () => this.#context.renderer().returnCameraToHero(),

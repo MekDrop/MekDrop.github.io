@@ -24,6 +24,7 @@ import { HERO_MOOD } from "../../enum/HeroMood.js";
 import { HERO_STAT } from "../../enum/HeroStat.js";
 import { BuffSystem } from "../../buffs/BuffSystem.js";
 import { AxeTool, KnifeTool, ShovelTool } from "./tools/index.js";
+import { projectFirstPersonMovement } from "./projectFirstPersonMovement.js";
 
 const MAX_FRAME_TIME = 0.1;
 const MOVE_SPEED = 4.2;
@@ -138,7 +139,6 @@ const RIVER_BRIDGE_HOP_HEIGHT = 0.24;
 // Keeps the widest pose, including the pauldron and its outline, within one
 // 1x1 terrain/path cube.
 const HERO_MODEL_SCALE = 0.65;
-const FIRST_PERSON_EYE_HEIGHT = 0.2;
 // Castle foundation cells remain traversable dirt. The castle collision world
 // owns the exact wall, door, stair, and furniture footprints, so the whole
 // foundation rectangle must not behave like one solid wall.
@@ -606,15 +606,24 @@ export class Hero {
 
   get firstPersonCameraPose() {
     const direction = this.facingDirection;
-    const anchor = this.#headEntity?.getPosition() ?? {
-      x: this.#position.x,
-      y: this.#position.y + HERO_COLLISION_HEIGHT * 0.8,
-      z: this.#position.z,
-    };
+    const leftEye = this.#leftEyeEntity?.getPosition();
+    const rightEye = this.#rightEyeEntity?.getPosition();
+    const anchor =
+      leftEye && rightEye
+        ? {
+            x: (leftEye.x + rightEye.x) / 2,
+            y: (leftEye.y + rightEye.y) / 2,
+            z: (leftEye.z + rightEye.z) / 2,
+          }
+        : (this.#headEntity?.getPosition() ?? {
+            x: this.#position.x,
+            y: this.#position.y + HERO_COLLISION_HEIGHT * 0.8,
+            z: this.#position.z,
+          });
     return {
       position: {
         x: anchor.x,
-        y: anchor.y + FIRST_PERSON_EYE_HEIGHT,
+        y: anchor.y,
         z: anchor.z,
       },
       direction: { x: direction.x, y: 0, z: direction.z },
@@ -623,6 +632,9 @@ export class Hero {
 
   set firstPersonCameraEnabled(enabled) {
     this.#firstPersonCameraEnabled = Boolean(enabled);
+    if (this.#firstPersonCameraEnabled) {
+      this.#resetBoredom();
+    }
     if (this.#headEntity) {
       this.#headEntity.enabled = !this.#firstPersonCameraEnabled;
     }
@@ -1326,17 +1338,13 @@ export class Hero {
     const normalizedX = inputX / Math.max(1, length);
     const normalizedY = inputY / Math.max(1, length);
     const viewDirection = this.#getViewDirection?.();
-    const viewLength = Math.hypot(
-      viewDirection?.x ?? 0,
-      viewDirection?.z ?? 0,
+    const firstPersonMovement = projectFirstPersonMovement(
+      normalizedX,
+      normalizedY,
+      viewDirection,
     );
-    if (viewLength > 0.001) {
-      const forwardX = viewDirection.x / viewLength;
-      const forwardZ = viewDirection.z / viewLength;
-      return {
-        x: forwardZ * normalizedX + forwardX * normalizedY,
-        z: -forwardX * normalizedX + forwardZ * normalizedY,
-      };
+    if (firstPersonMovement) {
+      return firstPersonMovement;
     }
     const yaw = Math.PI / 4 + (this.#getViewRotation?.() ?? 0) * (Math.PI / 2);
     const projectedX =
@@ -3181,6 +3189,10 @@ export class Hero {
     } else if (this.#patMood.state.kind !== HERO_MOOD.CALM) {
       animation = HERO_ANIMATION.IDLE;
       this.#resetBoredom();
+    } else if (this.#firstPersonCameraEnabled) {
+      animation = HERO_ANIMATION.IDLE;
+      animationSpeed = 0;
+      this.#resetBoredom();
     } else {
       animation = this.#selectIdleAnimation(deltaTime);
     }
@@ -3312,6 +3324,24 @@ export class Hero {
       return;
     }
     this.#setAngryFace(0);
+    if (this.#firstPersonCameraEnabled) {
+      const direction = this.#getViewDirection?.();
+      const horizontal = Math.hypot(direction?.x ?? 0, direction?.z ?? 0);
+      if (direction && horizontal > 0.001) {
+        const viewYaw =
+          (Math.atan2(direction.x, direction.z) * 180) / Math.PI;
+        const relativeYaw = ((viewYaw - this.#facingYaw + 540) % 360) - 180;
+        const viewPitch =
+          (Math.atan2(direction.y ?? 0, horizontal) * 180) / Math.PI;
+        this.#headLookYaw = relativeYaw;
+        this.#headEntity?.setLocalEulerAngles(
+          -viewPitch,
+          relativeYaw,
+          0,
+        );
+        return;
+      }
+    }
     this.#headLookYaw = this.#lerpAngle(
       this.#headLookYaw,
       this.#headLookTargetYaw,
