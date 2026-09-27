@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { it } from "node:test";
-import { HeroPatMood } from "../../../../../src/game/objects/hero/HeroPatMood.js";
-import { HeroPatEscape } from "../../../../../src/game/objects/hero/HeroPatEscape.js";
+import { HeroEmotionBehavior } from "../../../../../src/game/objects/hero/behaviors/emotion/HeroEmotionBehavior.js";
+import { HeroAngryEscapeBehavior } from "../../../../../src/game/objects/hero/behaviors/action/HeroAngryEscapeBehavior.js";
 import { BuffSystem } from "../../../../../src/game/buffs/BuffSystem.js";
 import { HERO_STAT } from "../../../../../src/game/enum/HeroStat.js";
 import { HERO_BUFF } from "../../../../../src/game/enum/HeroBuff.js";
@@ -9,7 +9,7 @@ import { HERO_BUFF } from "../../../../../src/game/enum/HeroBuff.js";
 // Run mood and buff updates in the same order as the hero's fixed step.
 function createMood() {
   const buffs = new BuffSystem();
-  const mood = new HeroPatMood(buffs);
+  const mood = new HeroEmotionBehavior(buffs);
   return {
     buffs,
     get state() {
@@ -19,6 +19,7 @@ function createMood() {
       };
     },
     pat: () => mood.pat(),
+    attemptAction: () => mood.attemptAction(),
     reset: () => mood.reset(),
     advance(deltaTime, options) {
       buffs.advance(deltaTime, options);
@@ -68,10 +69,15 @@ it("warns before snapping and rejects pats throughout the angry cooldown", () =>
     assert.equal(mood.pat(), true);
     if (i === 4) {
       assert.equal(mood.state.kind, "agitated");
+      assert.equal(mood.state.level, 1);
       assert.equal(mood.state.speedMultiplier, 1);
+    }
+    if (i === 7) {
+      assert.equal(mood.state.level, 4);
     }
   }
   assert.equal(mood.state.kind, "angry");
+  assert.equal(mood.state.level, 1);
   assert.equal(mood.buffs.has(HERO_BUFF.AFFECTION), false);
   assert.equal(mood.buffs.get(HERO_BUFF.OVERSTIMULATED).duration, 8);
   assert.equal(mood.pat(), false);
@@ -81,6 +87,33 @@ it("warns before snapping and rejects pats throughout the angry cooldown", () =>
   assert.equal(mood.state.kind, "calm");
   assert.equal(mood.state.agitation, 0);
   assert.equal(mood.pat(), true);
+});
+
+it("lets the angry state reject actions, raise its level, and refresh anger", () => {
+  const mood = createMood();
+  for (let i = 0; i < 9; i += 1) {
+    mood.advance(0.25);
+    mood.pat();
+  }
+  mood.advance(1, { resting: true });
+  assert.equal(mood.state.level, 1);
+  const initialAgitation = mood.state.agitation;
+  assert.equal(mood.attemptAction(), false);
+  assert.equal(mood.state.level, 2);
+  assert.ok(mood.state.agitation > initialAgitation);
+  assert.equal(mood.state.remaining, 10);
+  assert.equal(mood.attemptAction(), false);
+  assert.equal(mood.state.level, 2);
+  mood.advance(0.23, { resting: true });
+  assert.equal(mood.attemptAction(), false);
+  assert.equal(mood.state.level, 3);
+  assert.equal(mood.state.remaining, 12);
+  mood.advance(0.23, { resting: true });
+  assert.equal(mood.attemptAction(), false);
+  assert.equal(mood.state.level, 3);
+  assert.equal(mood.state.remaining, 14);
+  mood.advance(4.01, { resting: true });
+  assert.equal(mood.state.level, 2);
 });
 
 it("leaving an irritated hero alone cools pressure consistently across frame rates", () => {
@@ -111,7 +144,7 @@ it("anger fades directly to calm without entering another reaction stage", () =>
       mood.pat();
     }
   }
-  let previousPressure = 1;
+  let previousPressure = moods[0].state.agitation;
   for (let i = 0; i < 1440; i += 1) {
     moods[0].advance(1 / 120);
     const state = moods[0].state;
@@ -133,7 +166,7 @@ it("anger fades directly to calm without entering another reaction stage", () =>
 });
 
 it("chooses a reachable random destination and follows a route around a wall", () => {
-  const escape = new HeroPatEscape();
+  const escape = new HeroAngryEscapeBehavior();
   const position = { x: 0, z: 0 };
   const canTraverse = (from, to) => {
     const steps = Math.ceil(Math.hypot(to.x - from.x, to.z - from.z) / 0.05);
@@ -164,7 +197,7 @@ it("chooses a reachable random destination and follows a route around a wall", (
 });
 
 it("never escapes into disconnected ground and releases control if the route becomes blocked", () => {
-  const escape = new HeroPatEscape();
+  const escape = new HeroAngryEscapeBehavior();
   const position = { x: 0, z: 0 };
   escape.begin(position, () => false);
   assert.equal(escape.active, false);
@@ -178,7 +211,7 @@ it("never escapes into disconnected ground and releases control if the route bec
 });
 
 it("randomizes the initial escape heading through the full circle instead of grid axes", () => {
-  const escape = new HeroPatEscape();
+  const escape = new HeroAngryEscapeBehavior();
   const position = { x: 1, z: -2 };
   const headings = new Set();
   for (let i = 0; i < 32; i += 1) {
@@ -233,7 +266,7 @@ it("irritation expiry clears its pressure so a new pat starts fresh", () => {
 });
 
 it("successive escape distances grow regardless of random direction and stop at a safe cap", () => {
-  const escape = new HeroPatEscape();
+  const escape = new HeroAngryEscapeBehavior();
   const position = { x: 0, z: 0 };
   let previous = 0;
   for (let distance = 3; distance <= 12; distance += 1.5) {
@@ -250,7 +283,7 @@ it("successive escape distances grow regardless of random direction and stop at 
 });
 
 it("long escapes stay in the connected enclosure and reach the available farthest band", () => {
-  const escape = new HeroPatEscape();
+  const escape = new HeroAngryEscapeBehavior();
   const position = { x: 0, z: 0 };
   const canTraverse = (from, to) => Math.abs(to.x) <= 1.5 && Math.abs(to.z) <= 1.5;
   escape.begin(position, canTraverse, () => 0.5, 12);

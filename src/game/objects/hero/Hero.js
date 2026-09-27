@@ -17,8 +17,9 @@ import { HeroPhysicsController } from "./HeroPhysicsController.js";
 import { addHeroPartColliders } from "./HeroPartColliders.js";
 import { HeroFootPlacement } from "./HeroFootPlacement.js";
 import { HeroWaterMotion } from "./HeroWaterMotion.js";
-import { HeroPatMood } from "./HeroPatMood.js";
-import { HeroPatEscape } from "./HeroPatEscape.js";
+import { HeroEmotionBehavior } from "./behaviors/emotion/HeroEmotionBehavior.js";
+import { HeroAngryEscapeBehavior } from "./behaviors/action/HeroAngryEscapeBehavior.js";
+import { HeroIdleBehavior } from "./behaviors/action/HeroIdleBehavior.js";
 import { HeroHairPhysics } from "./HeroHairPhysics.js";
 import { HERO_MOOD } from "../../enum/HeroMood.js";
 import { HERO_STAT } from "../../enum/HeroStat.js";
@@ -58,29 +59,14 @@ const AUTOMATIC_STEP_GROUNDING_GRACE = 0.2;
 const AUTOMATIC_STEP_VISUAL_RESPONSE = 14;
 const ANIMATION_BLEND_TIME = 0.14;
 const BLOCKED_PUSH_DURATION = 1;
-const BORED_IDLE_DELAY = 5;
-const BORED_BREAK_MIN = 2.5;
-const BORED_BREAK_VARIANCE = 2;
 const HEAD_LOOK_MAX_YAW = 55;
 const HEAD_LOOK_RESPONSE = 7;
 const HERO_ANIMATION_NAMES = Object.freeze(Object.values(HERO_ANIMATION));
-const HERO_BORED_ANIMATIONS = Object.freeze([
-  HERO_ANIMATION.BORED_CURSOR_LOOK,
-  HERO_ANIMATION.BORED_LOOK,
-  HERO_ANIMATION.BORED_STRETCH,
-  HERO_ANIMATION.BORED_TAP,
-]);
 const LOOPING_ANIMATIONS = new Set([
   HERO_ANIMATION.IDLE,
   HERO_ANIMATION.WALK,
   HERO_ANIMATION.RUN,
   HERO_ANIMATION.BLOCKED_PUSH,
-]);
-const BORED_ANIMATION_DURATIONS = new Map([
-  [HERO_ANIMATION.BORED_CURSOR_LOOK, 3],
-  [HERO_ANIMATION.BORED_LOOK, 3],
-  [HERO_ANIMATION.BORED_STRETCH, 3.5],
-  [HERO_ANIMATION.BORED_TAP, 3],
 ]);
 // Matches the widest part of the hero below one terrain level. The circle is
 // still slightly narrower than a tile, leaving room to slide along ledges.
@@ -172,19 +158,19 @@ const HAIR_ENTITY_NAME = /(?:hair|nape lock|swept fringe|layered lock)/i;
 
 export class Hero {
   #buffs = new BuffSystem();
-  #patMood = new HeroPatMood(this.#buffs);
-  #patEscape = new HeroPatEscape();
+  #emotionBehavior = new HeroEmotionBehavior(this.#buffs);
+  #angryEscapeBehavior = new HeroAngryEscapeBehavior();
+  #idleBehavior = new HeroIdleBehavior();
   #faceMorphs = [];
   #patReactionRemaining = 0;
   #lastAngryPatTime = -Infinity;
-  #angryPatDistance = 3;
 
   get mood() {
     return {
-      ...this.#patMood.state,
+      ...this.#emotionBehavior.state,
       speedMultiplier: this.#buffs.modifyStat(HERO_STAT.MOVEMENT_SPEED, 1),
-      escaping: this.#patEscape.active,
-      target: this.#patEscape.target,
+      escaping: this.#angryEscapeBehavior.active,
+      target: this.#angryEscapeBehavior.target,
     };
   }
 
@@ -233,30 +219,27 @@ export class Hero {
     if (!this.canBePatted) {
       return false;
     }
-    const accepted = this.#patMood.pat();
-    const { kind, elapsed } = this.#patMood.state;
+    const wasAngry = !this.#emotionBehavior.acceptsActions;
+    const accepted = this.#emotionBehavior.pat();
+    const { kind, elapsed } = this.#emotionBehavior.state;
     if (kind === HERO_MOOD.ANGRY) {
-      // Limit stroke events just like normal pats, without refreshing anger.
+      // Limit repeated stroke events without spawning overlapping escapes.
       if (elapsed - this.#lastAngryPatTime < 0.22) {
         return false;
       }
+      if (wasAngry) {
+        const { reacted } = this.#attemptEmotionAction();
+        if (!reacted) {
+          return false;
+        }
+      } else {
+        this.#startAngryEscape();
+      }
       this.#lastAngryPatTime = elapsed;
-      this.#angryPatDistance = accepted ? 3 : Math.min(12, this.#angryPatDistance + 1.5);
-      this.#patReactionRemaining = 0;
-      this.#patEscape.begin(
-        this.#position,
-        (from, to) => this.#canEscapeAcross(from, to),
-        Math.random,
-        this.#angryPatDistance,
-      );
-      this.#jumpBufferRemaining = 0;
-      this.#facingHoldRemaining = 0;
-      this.#resetBoredom();
-      this.#syncState();
       return true;
     }
     const irritated = kind === HERO_MOOD.AGITATED;
-    if (irritated && !this.#patEscape.active && !this.#hasMovementInput
+    if (irritated && !this.#angryEscapeBehavior.active && !this.#hasMovementInput
       && this.#patReactionRemaining === 0) {
       this.#patReactionRemaining = PAT_ANNOYED_DURATION;
       this.#setAngryFace(0);
@@ -362,11 +345,6 @@ export class Hero {
   #facingYaw = 0;
   #animationState = null;
   #restartAnimation = false;
-  #idleElapsed = 0;
-  #nextBoredAt = BORED_IDLE_DELAY;
-  #boredAnimation = null;
-  #boredRemaining = 0;
-  #boredIndex = 0;
   #idleLookTarget = null;
   #queuedFacingDirection = null;
   #headLookYaw = 0;
@@ -594,15 +572,65 @@ export class Hero {
   }
 
   get isReacting() {
-    return this.#blockedDigReactionAction !== null || this.#patControlsLocked;
+    return this.#blockedDigReactionAction !== null || this.#actionsLocked;
   }
 
-  get #patControlsLocked() {
-    return this.#patEscape.active || this.#patMood.state.kind === HERO_MOOD.ANGRY;
+  get #actionsLocked() {
+    return this.#angryEscapeBehavior.active || !this.#emotionBehavior.acceptsActions;
+  }
+
+  #acceptAction(attempt = true) {
+    const acceptsEmotion = attempt
+      ? this.#attemptEmotionAction().accepted
+      : this.#emotionBehavior.acceptsActions;
+    return acceptsEmotion && !this.#angryEscapeBehavior.active;
+  }
+
+  #attemptEmotionAction() {
+    const buffRevision = this.#buffs.revision;
+    const reactionRevision = this.#emotionBehavior.reactionRevision;
+    const accepted = this.#emotionBehavior.attemptAction();
+    const reacted = this.#emotionBehavior.reactionRevision !== reactionRevision;
+    if (reacted) {
+      this.#startAngryEscape();
+    } else if (this.#buffs.revision !== buffRevision) {
+      this.#syncState();
+    }
+    return {
+      accepted,
+      reacted,
+    };
+  }
+
+  #startAngryEscape() {
+    const distance = 3 + (this.#emotionBehavior.state.level - 1) * 1.5;
+    this.#patReactionRemaining = 0;
+    this.#clearActionInput();
+    this.#angryEscapeBehavior.begin(
+      this.#position,
+      (from, to) => this.#canEscapeAcross(from, to),
+      Math.random,
+      distance,
+    );
+    this.#jumpBufferRemaining = 0;
+    this.#facingHoldRemaining = 0;
+    this.#resetBoredom();
+    this.#syncState();
+  }
+
+  #clearActionInput() {
+    this.#input.x = 0;
+    this.#input.y = 0;
+    this.#running = false;
+    this.#queuedFacingDirection = null;
+    this.#facingHoldRemaining = 0;
+    this.#movementAnimationHoldRemaining = 0;
+    this.#jumpBufferRemaining = 0;
   }
 
   get #restingForMood() {
-    return this.canBePatted && !this.#patEscape.active && !this.#hasMovementInput
+    return this.canBePatted && !this.#angryEscapeBehavior.active
+      && !this.#hasMovementInput
       && !this.#bridgeClimbAction && this.#patReactionRemaining === 0
       && Math.hypot(this.#velocity.x, this.#velocity.y, this.#velocity.z) <= 0.08;
   }
@@ -656,19 +684,29 @@ export class Hero {
           ? { x: this.#velocity.x / speed, z: this.#velocity.z / speed }
           : this.facingDirection,
       speed,
-      running: (this.#running || this.#patEscape.active) && this.#grounded && speed > 0.08,
+      running: (this.#running || this.#angryEscapeBehavior.active)
+        && this.#grounded && speed > 0.08,
     };
   }
 
   set facingHoldDuration(duration) {
+    if (this.#actionsLocked) {
+      return;
+    }
     this.#facingHoldRemaining = Math.max(0, duration ?? 0);
   }
 
   set movementAnimationHoldDuration(duration) {
+    if (this.#actionsLocked) {
+      return;
+    }
     this.#movementAnimationHoldRemaining = Math.max(0, duration ?? 0);
   }
 
   queueFacingInput(inputX, inputY) {
+    if (this.#actionsLocked) {
+      return;
+    }
     this.#queuedFacingDirection = this.#projectInput(inputX, inputY);
   }
 
@@ -677,6 +715,11 @@ export class Hero {
   }
 
   setMovement(inputX, inputY, running = false) {
+    const hasInput = Math.hypot(inputX, inputY) > 0.001;
+    if (!this.#acceptAction(hasInput)) {
+      this.#clearActionInput();
+      return;
+    }
     this.#input.x = Math.max(-1, Math.min(1, inputX));
     this.#input.y = Math.max(-1, Math.min(1, inputY));
     this.#running = running;
@@ -706,7 +749,7 @@ export class Hero {
   }
 
   jump() {
-    if (this.#patControlsLocked) {
+    if (!this.#acceptAction()) {
       return;
     }
     if (
@@ -737,7 +780,7 @@ export class Hero {
   }
 
   dodge(inputX, inputY, direction, { facing = null } = {}) {
-    if (this.#patControlsLocked) {
+    if (!this.#acceptAction()) {
       return false;
     }
     if (
@@ -829,7 +872,7 @@ export class Hero {
     if (
       !tool ||
       !useAnimation ||
-      this.#patControlsLocked ||
+      !this.#acceptAction() ||
       this.#gameOver ||
       this.#respawnAction ||
       this.#fallingToDeath ||
@@ -882,7 +925,7 @@ export class Hero {
     },
   ) {
     if (
-      this.#patControlsLocked ||
+      !this.#acceptAction() ||
       this.#gameOver ||
       this.#respawnAction ||
       this.#fallingToDeath ||
@@ -961,7 +1004,7 @@ export class Hero {
 
   reactToBlockedDig() {
     if (
-      this.#patControlsLocked ||
+      !this.#acceptAction() ||
       this.#gameOver ||
       this.#respawnAction ||
       this.#fallingToDeath ||
@@ -1001,7 +1044,7 @@ export class Hero {
   ) {
     if (
       !this.inventoryFull ||
-      this.#patControlsLocked ||
+      !this.#acceptAction() ||
       this.#gameOver ||
       this.#respawnAction ||
       this.#fallingToDeath ||
@@ -1182,15 +1225,12 @@ export class Hero {
     const buffRevision = this.#buffs.revision;
     if (this.isInDeathSequence || this.#gameOver) {
       this.#buffs.clear();
-      this.#patMood.reset();
-      this.#patEscape.reset();
+      this.#emotionBehavior.reset();
+      this.#angryEscapeBehavior.reset();
     } else {
       this.#buffs.advance(deltaTime, { resting: this.#restingForMood });
-      this.#patMood.advance(deltaTime);
-      if (this.#patMood.state.kind !== HERO_MOOD.ANGRY) {
-        this.#angryPatDistance = 3;
-      }
-      this.#patEscape.advance(deltaTime, this.#position);
+      this.#emotionBehavior.advance(deltaTime);
+      this.#angryEscapeBehavior.advance(deltaTime, this.#position);
     }
     if (this.#buffs.revision !== buffRevision) {
       this.#syncState();
@@ -1329,10 +1369,10 @@ export class Hero {
   }
 
   #desiredVelocity() {
-    if (this.#patEscape.active) {
-      return this.#patEscape.velocity(this.#position, RUN_SPEED);
+    if (this.#angryEscapeBehavior.active) {
+      return this.#angryEscapeBehavior.velocity(this.#position, RUN_SPEED);
     }
-    if (this.#patControlsLocked) {
+    if (this.#actionsLocked) {
       return { x: 0, z: 0 };
     }
     const projected = this.#projectInput(this.#input.x, this.#input.y);
@@ -2455,7 +2495,7 @@ export class Hero {
   }
 
   get #hasMovementInput() {
-    return this.#patEscape.active || (!this.#patControlsLocked
+    return this.#angryEscapeBehavior.active || (!this.#actionsLocked
       && Math.hypot(this.#input.x, this.#input.y) > 0.001);
   }
 
@@ -3151,8 +3191,9 @@ export class Hero {
     const queuedFacingDirection =
       this.#facingHoldRemaining === 0 ? this.#queuedFacingDirection : null;
     const horizontalSpeed = Math.hypot(this.#velocity.x, this.#velocity.z);
-    const moodKind = this.#patMood.state.kind;
-    this.#patReactionRemaining = this.canBePatted && !this.#patEscape.active
+    const moodKind = this.#emotionBehavior.state.kind;
+    this.#patReactionRemaining = this.canBePatted
+      && !this.#angryEscapeBehavior.active
       && !this.#hasMovementInput && horizontalSpeed <= 0.08
       && (moodKind === HERO_MOOD.AGITATED || moodKind === HERO_MOOD.ANGRY)
       ? Math.max(0, this.#patReactionRemaining - deltaTime) : 0;
@@ -3287,7 +3328,7 @@ export class Hero {
       animation = HERO_ANIMATION.IDLE;
       this.#resetBoredom();
     } else if (horizontalSpeed > 0.08) {
-      const running = this.#running || this.#patEscape.active;
+      const running = this.#running || this.#angryEscapeBehavior.active;
       animation = running ? HERO_ANIMATION.RUN : HERO_ANIMATION.WALK;
       const expectedSpeed = running ? RUN_SPEED : MOVE_SPEED;
       animationSpeed = Math.max(
@@ -3298,7 +3339,7 @@ export class Hero {
     } else if (this.#patReactionRemaining > 0) {
       animation = HERO_ANIMATION.PAT_ANNOYED;
       this.#resetBoredom();
-    } else if (this.#patMood.state.kind !== HERO_MOOD.CALM) {
+    } else if (this.#emotionBehavior.state.kind !== HERO_MOOD.CALM) {
       animation = HERO_ANIMATION.IDLE;
       this.#resetBoredom();
     } else if (this.#firstPersonCameraEnabled) {
@@ -3343,37 +3384,13 @@ export class Hero {
   }
 
   #selectIdleAnimation(deltaTime) {
-    this.#idleElapsed += deltaTime;
-    if (this.#boredAnimation) {
-      this.#boredRemaining = Math.max(0, this.#boredRemaining - deltaTime);
-      if (this.#boredRemaining > 0) {
-        return this.#boredAnimation;
-      }
-
-      this.#boredAnimation = null;
-      this.#nextBoredAt =
-        this.#idleElapsed +
-        BORED_BREAK_MIN +
-        Math.random() * BORED_BREAK_VARIANCE;
-      return HERO_ANIMATION.IDLE;
-    }
-
-    if (this.#idleElapsed < this.#nextBoredAt) {
-      return HERO_ANIMATION.IDLE;
-    }
-
-    this.#boredAnimation = this.#nextBoredAnimation;
-    this.#boredRemaining = BORED_ANIMATION_DURATIONS.get(
-      this.#boredAnimation,
-    );
-    return this.#boredAnimation;
+    return this.#idleBehavior.advance(deltaTime, {
+      hasLookTarget: Boolean(this.#idleLookTarget),
+    });
   }
 
   #resetBoredom() {
-    this.#idleElapsed = 0;
-    this.#nextBoredAt = BORED_IDLE_DELAY;
-    this.#boredAnimation = null;
-    this.#boredRemaining = 0;
+    this.#idleBehavior.reset();
   }
 
   #playAnimation(name, speed, restart) {
@@ -3466,7 +3483,8 @@ export class Hero {
   }
 
   #updatePatFace() {
-    const { kind, elapsed, patPulse, agitation, remaining } = this.#patMood.state;
+    const { kind, elapsed, patPulse, agitation, remaining } =
+      this.#emotionBehavior.state;
     if (kind === HERO_MOOD.CALM) {
       return;
     }
@@ -3605,19 +3623,6 @@ export class Hero {
   #resetRiverBridgeExitPose() {
     this.#leftArmEntity?.setLocalEulerAngles(0, 0, 0);
     this.#rightArmEntity?.setLocalEulerAngles(0, 0, 0);
-  }
-
-  get #nextBoredAnimation() {
-    let animation;
-    do {
-      animation = HERO_BORED_ANIMATIONS[this.#boredIndex];
-      this.#boredIndex =
-        (this.#boredIndex + 1) % HERO_BORED_ANIMATIONS.length;
-    } while (
-      animation === HERO_ANIMATION.BORED_CURSOR_LOOK &&
-      !this.#idleLookTarget
-    );
-    return animation;
   }
 
   #createModel() {

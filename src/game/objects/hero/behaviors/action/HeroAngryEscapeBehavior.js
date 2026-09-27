@@ -1,6 +1,6 @@
 // A bounded search of connected safe ground. The hero's collision checks still
 // own every movement step, including obstacles that change after planning.
-export class HeroPatEscape {
+export class HeroAngryEscapeBehavior {
   #route = [];
   #target = null;
   #remaining = 0;

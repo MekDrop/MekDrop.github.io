@@ -37,11 +37,14 @@ export class BuffSystem {
     return this.#active.get(id)?.remaining ?? 0;
   }
 
-  apply(id, { stacks = 1 } = {}) {
+  apply(id, { stacks = 1, duration } = {}) {
     const definition = this.#definitions.get(id);
     if (!definition || !Number.isInteger(stacks) || stacks <= 0) {
       return false;
     }
+    const remaining = Number.isFinite(duration) && duration > 0
+      ? duration
+      : definition.duration;
     if (definition.blockedBy?.some((blocker) => this.has(blocker))) {
       return false;
     }
@@ -50,7 +53,7 @@ export class BuffSystem {
     }
     this.#active.set(id, {
       stacks: Math.min(definition.maxStacks, (this.#active.get(id)?.stacks ?? 0) + stacks),
-      remaining: definition.duration,
+      remaining,
     });
     this.#revision += 1;
     return true;
