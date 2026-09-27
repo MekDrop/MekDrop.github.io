@@ -200,6 +200,7 @@ export class CastleLeisureScene {
       present: this.#present,
       doorOpenAmount: this.#door.openAmount,
       doorInspectionPhase: this.#inspection.phase,
+      doorInspectionAnimation: this.#inspection.animation,
       doorInspectorVisible: this.#inspector.entity.enabled,
       doorHandleGripDistance: this.#inspection.phase === INSPECTION.CLOSE
         ? this.#inspector.rightHand.getPosition().distance(this.#door.insideHandle.getPosition())
@@ -365,7 +366,7 @@ export class CastleLeisureScene {
     const turn = this.#ease(Math.min(1, t * 2));
     let z = 1.6;
     let yaw = 0;
-    let action = "idle";
+    let animation = this.#inspection.animation ?? "idle";
     let animationTime = this.#inspection.elapsed;
     if (phase === INSPECTION.NOTICE) {
       z = DOORWAY_START_Z;
@@ -376,15 +377,15 @@ export class CastleLeisureScene {
         elapsed: this.#inspection.elapsed, duration: 3, scale: 1,
       });
       z = motion.z;
-      action = motion.action;
+      animation = motion.action === "walk" ? animation : motion.action;
       animationTime = motion.animationTime;
     } else if (phase === INSPECTION.LOOK_LEFT) {
       yaw = -90 * turn;
-      action = t < 0.5 ? "turn" : "idle";
+      animation = t < 0.5 ? animation : "idle";
       animationTime = Math.min(1, t * 2);
     } else if (phase === INSPECTION.LOOK_RIGHT) {
       yaw = -90 + 180 * turn;
-      action = t < 0.5 ? "turn" : "idle";
+      animation = t < 0.5 ? animation : "idle";
       animationTime = Math.min(1, t * 2);
     } else if ([INSPECTION.RETURN, INSPECTION.GRASP, INSPECTION.CLOSE,
       INSPECTION.RELEASE, INSPECTION.LEAVE].includes(phase)) {
@@ -397,7 +398,7 @@ export class CastleLeisureScene {
     this.#inspector.entity.setLocalPosition(0, -1.05 * (1 - stairProgress) * scale, z * scale);
     this.#inspector.entity.setLocalEulerAngles(0, yaw, 0);
     this.#inspector.entity.enabled = this.#inspection.inspecting && z > DOORWAY_VISIBLE_Z;
-    this.#inspector.pose(action, animationTime);
+    this.#inspector.pose(animation, animationTime);
   }
 
   #syncInspectorClosing() {
@@ -409,7 +410,7 @@ export class CastleLeisureScene {
     // articulated Ammo bodies. Align the authored grip to the moving model
     // handle so contact also holds for different terrace scales and rotations.
     const time = phase === INSPECTION.CLOSE ? 0.7 + 2 * t : 0.7;
-    actor.pose("closeDoor", time);
+    actor.pose(this.#inspection.alignmentAnimation, time);
     actor.evaluatePose();
     actor.entity.setRotation(this.#door.hingeRotation);
     const offset = this.#door.insideHandle.getPosition().clone()
@@ -427,11 +428,12 @@ export class CastleLeisureScene {
       });
       actor.entity.setLocalPosition(motion.x, motion.y, motion.z);
       actor.entity.setLocalEulerAngles(0, motion.yaw, 0);
-      actor.pose(motion.action, motion.animationTime);
+      actor.pose(motion.action === "walk" ? this.#inspection.animation : motion.action,
+        motion.animationTime);
     } else if (phase === INSPECTION.GRASP) {
-      actor.pose("closeDoor", 0.7 * t);
+      actor.pose(this.#inspection.animation, 0.7 * t);
     } else if (phase === INSPECTION.RELEASE) {
-      actor.pose("closeDoor", 2.7 + 0.5 * t);
+      actor.pose(this.#inspection.animation, 2.7 + 0.5 * t);
     } else if (phase === INSPECTION.LEAVE) {
       const motion = TerraceInspectorWalk.sample({
         start: gripPosition, end: { x: 0, y: -1.05 * scale, z: DOORWAY_START_Z * scale },
@@ -439,7 +441,8 @@ export class CastleLeisureScene {
       });
       actor.entity.setLocalPosition(motion.x, motion.y, motion.z);
       actor.entity.setLocalEulerAngles(0, motion.yaw, 0);
-      actor.pose(motion.action, motion.animationTime);
+      actor.pose(motion.action === "walk" ? this.#inspection.animation : motion.action,
+        motion.animationTime);
     }
     actor.entity.enabled = phase !== INSPECTION.LEAVE || t < 0.95;
     actor.evaluatePose();
