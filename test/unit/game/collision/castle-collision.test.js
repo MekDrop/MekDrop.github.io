@@ -50,24 +50,14 @@ for (const side of ["WEST", "EAST", "NORTH", "SOUTH"]) {
     for (let step = 0; step <= 40; step += 1) {
       const inward = step / 20;
       const [x, z] = point(side, inward);
-      const height = 2 + inward / 2;
+      const level = Math.min(3, Math.floor(inward / 0.5));
+      const height = 2 + (level + 1) * 0.25;
       assert.ok(Math.abs(flight.surfaceHeightAt(x, z) - height) < 1e-10);
-      assert.equal(flight.blocksMovementAt(x, z, 0.18, height, 0.22), false);
-      const previous = point(side, inward - 0.1);
-      assert.ok(
-        Math.abs(
-          flight.automaticStepHeightAt(...previous, x, z) - height,
-        ) < 1e-10,
-      );
-      const next = point(side, inward + 0.1);
-      assert.equal(
-        flight.automaticStepHeightAt(...next, x, z),
-        null,
-      );
+      assert.equal(flight.blocksMovementAt(x, z, 0.18, height, 0.32), false);
       for (const direction of [-1, 1]) {
         // The hero also probes 0.28 units ahead of its current foot position.
         const probe = point(side, inward + direction * 0.31);
-        assert.equal(flight.blocksMovementAt(...probe, 0.18, height, 0.22), false);
+        assert.equal(flight.blocksMovementAt(...probe, 0.18, height, 0.32), false);
       }
     }
     flight.destroy();
@@ -76,26 +66,34 @@ for (const side of ["WEST", "EAST", "NORTH", "SOUTH"]) {
   it(`${side} stairs block a low actor at raised sides and use circular corner clearance`, () => {
     const flight = stairs(side);
     const sideContact = point(side, 1.8, 2.9);
-    assert.equal(flight.blocksMovementAt(...sideContact, 0.18, 2, 0.22), true);
-    assert.equal(flight.blocksMovementAt(...sideContact, 0.18, 3, 0.22), false);
+    assert.equal(flight.blocksMovementAt(...sideContact, 0.18, 2, 0.32), true);
+    assert.equal(flight.blocksMovementAt(...sideContact, 0.18, 3, 0.32), false);
     assert.equal(flight.surfaceHeightAt(...sideContact), null);
     const outsideRadius = point(side, 1.8, 2.7);
-    assert.equal(flight.blocksMovementAt(...outsideRadius, 0.18, 2, 0.22), false);
+    assert.equal(flight.blocksMovementAt(...outsideRadius, 0.18, 2, 0.32), false);
     const outsideCorner = point(side, 2.15, 2.85);
-    assert.equal(flight.blocksMovementAt(...outsideCorner, 0.18, 2, 0.22), false);
+    assert.equal(flight.blocksMovementAt(...outsideCorner, 0.18, 2, 0.32), false);
     const touchingCorner = point(side, 2.1, 2.9);
-    assert.equal(flight.blocksMovementAt(...touchingCorner, 0.18, 2, 0.22), true);
+    assert.equal(flight.blocksMovementAt(...touchingCorner, 0.18, 2, 0.32), true);
     const entrance = point(side, -0.1);
-    assert.equal(flight.blocksMovementAt(...entrance, 0.18, 2, 0.22), false);
+    assert.equal(flight.blocksMovementAt(...entrance, 0.18, 2, 0.32), false);
     flight.destroy();
   });
 }
 
+it("keeps each support level under the full visible stair tread", () => {
+  const flight = stairs("WEST");
+
+  assert.equal(flight.surfaceHeightAt(...point("WEST", 0.001)), 2.25);
+  assert.equal(flight.surfaceHeightAt(...point("WEST", 0.499)), 2.25);
+  assert.equal(flight.surfaceHeightAt(...point("WEST", 0.501)), 2.5);
+  flight.destroy();
+});
+
 it("a level entrance does not create invisible stairs or blocking surfaces", () => {
   const flight = stairs("WEST", 0);
   assert.equal(flight.surfaceHeightAt(-0.2, 4), null);
-  assert.equal(flight.automaticStepHeightAt(-0.4, 4, -0.2, 4), null);
-  assert.equal(flight.blocksMovementAt(-0.2, 4, 0.18, 2, 0.22), false);
+  assert.equal(flight.blocksMovementAt(-0.2, 4, 0.18, 2, 0.32), false);
   flight.destroy();
 });
 

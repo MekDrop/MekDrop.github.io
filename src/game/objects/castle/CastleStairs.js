@@ -65,10 +65,7 @@ export class CastleStairs {
         continue;
       }
 
-      return (
-        surface.approachElevation +
-        (inward / surface.run) * surface.rise
-      );
+      return this.#heightAt(surface, inward);
     }
     return null;
   }
@@ -87,10 +84,9 @@ export class CastleStairs {
       if (distanceSquared > radius * radius) {
         continue;
       }
-      // Sample the nearest ramp point. Sampling the far edge of the body radius
+      // Sample the nearest tread. Sampling the far edge of the body radius
       // would turn an ordinary ascending footstep into a collision with a wall.
-      const height = surface.approachElevation +
-        (nearestInward / surface.run) * surface.rise;
+      const height = this.#heightAt(surface, nearestInward);
       if (height > elevation + stepClearance + 0.000001) {
         return true;
       }
@@ -109,6 +105,14 @@ export class CastleStairs {
       return z - surface.outerEdge;
     }
     return surface.outerEdge - z;
+  }
+
+  #heightAt(surface, inward) {
+    const level = Math.min(
+      surface.riseBlocks - 1,
+      Math.floor(Math.max(0, inward) / surface.stepRun),
+    );
+    return surface.approachElevation + (level + 1) * surface.stepHeight;
   }
 
   destroy() {
@@ -205,6 +209,9 @@ export class CastleStairs {
       approachElevation,
       rise,
       run,
+      riseBlocks,
+      stepRun: STAIR_MODULE_RUN_BLOCKS * this.#cubeSize,
+      stepHeight: rise / riseBlocks,
     });
   }
 

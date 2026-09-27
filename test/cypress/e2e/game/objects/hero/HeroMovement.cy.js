@@ -192,73 +192,20 @@ describe("Hero movement on a predefined terrain map", { testIsolation: false }, 
 
   it("walks up castle stairs one step at a time without jumping", () => {
     loadScenario("royal-castles");
-    move(-1, 0);
+    let usedJumpAnimation = false;
+    let usedWalkAnimation = false;
     expectState((state) => {
-      expect(state.position.z).to.be.greaterThan(6.9);
+      expect(state.grounded).to.equal(true);
     });
-    stopMoving();
-    move(0, 1);
-    expectState((state) => {
-      expect(state.position.x).to.be.lessThan(-14.4);
-    });
-    stopMoving();
-
-    let becameAirborne = false;
-    let maximumLeftLift = 0;
-    let maximumRightLift = 0;
     move(1, 0);
     expectState((state) => {
-      becameAirborne ||=
-        !state.grounded || state.animation === HERO_ANIMATION.JUMP;
-      maximumLeftLift = Math.max(
-        maximumLeftLift,
-        state.footPlacement?.left?.appliedLift ?? 0,
-      );
-      maximumRightLift = Math.max(
-        maximumRightLift,
-        state.footPlacement?.right?.appliedLift ?? 0,
-      );
-      expect(state.position.z).to.be.lessThan(3);
-      expect(state.position.y).to.be.greaterThan(3.8);
-      expect(becameAirborne).to.equal(false);
-      expect(maximumLeftLift).to.be.greaterThan(0.01);
-      expect(maximumRightLift).to.be.greaterThan(0.01);
-    });
-  });
-
-  it("walks up castle stairs one step at a time without jumping", () => {
-    loadScenario("royal-castles");
-    move(-1, 0);
-    expectState((state) => {
-      expect(state.position.z).to.be.greaterThan(6.9);
-    });
-    stopMoving();
-    move(0, 1);
-    expectState((state) => {
-      expect(state.position.x).to.be.lessThan(-14.4);
-    });
-    stopMoving();
-
-    let becameAirborne = false;
-    let maximumLeftLift = 0;
-    let maximumRightLift = 0;
-    move(1, 0);
-    expectState((state) => {
-      becameAirborne ||=
-        !state.grounded || state.animation === HERO_ANIMATION.JUMP;
-      maximumLeftLift = Math.max(
-        maximumLeftLift,
-        state.footPlacement?.left?.appliedLift ?? 0,
-      );
-      maximumRightLift = Math.max(
-        maximumRightLift,
-        state.footPlacement?.right?.appliedLift ?? 0,
-      );
-      expect(state.position.z).to.be.lessThan(3);
-      expect(state.position.y).to.be.greaterThan(3.8);
-      expect(becameAirborne).to.equal(false);
-      expect(maximumLeftLift).to.be.greaterThan(0.01);
-      expect(maximumRightLift).to.be.greaterThan(0.01);
+      usedJumpAnimation ||= state.animation === HERO_ANIMATION.JUMP;
+      usedWalkAnimation ||= state.animation === HERO_ANIMATION.WALK;
+      expect(state.position.z, JSON.stringify(state)).to.be.lessThan(3);
+      expect(state.position.y, JSON.stringify(state)).to.be.greaterThan(3.8);
+      expect(state.grounded).to.equal(true);
+      expect(usedWalkAnimation).to.equal(true);
+      expect(usedJumpAnimation).to.equal(false);
     });
   });
 

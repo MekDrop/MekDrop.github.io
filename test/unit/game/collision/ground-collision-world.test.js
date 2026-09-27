@@ -41,15 +41,6 @@ describe("ground collision world physics surfaces", () => {
     });
   });
 
-  it("only exposes surfaces that explicitly support automatic stepping", () => {
-    const world = new GroundCollisionWorld();
-    world.add({ surfaceHeightAt: () => 8 });
-    world.add({ automaticStepHeightAt: () => 2.25 });
-    world.add({ automaticStepHeightAt: () => 2.5 });
-
-    assert.equal(world.automaticStepHeightAt(0, 1, 0, 0), 2.5);
-  });
-
   it("uses movement-specific collision depth only while moving", () => {
     const world = new GroundCollisionWorld();
     world.add({

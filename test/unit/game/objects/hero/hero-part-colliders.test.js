@@ -39,7 +39,7 @@ function addMesh(part, center, halfExtents) {
 }
 
 describe("addHeroPartColliders", () => {
-  it("fits a separate box to every solid hero body object", () => {
+  it("fits upper-body boxes without adding stair-catching boot colliders", () => {
     const root = new FakeEntity("Hero model");
     const glove = new FakeEntity("Left white glove");
     const boot = new FakeEntity("Boot foot");
@@ -55,22 +55,18 @@ describe("addHeroPartColliders", () => {
       modelRoot: root,
     });
 
-    assert.equal(colliders.length, 2);
+    assert.equal(colliders.length, 1);
     assert.deepEqual(
       colliders.map(({ name }) => name).sort(),
-      ["Hero Boot foot collider 1", "Hero Left white glove collider 1"],
+      ["Hero Left white glove collider 1"],
     );
     assert.equal(glove.children.length, 1);
-    assert.equal(boot.children.length, 1);
+    assert.equal(boot.children.length, 0);
     assert.equal(emptyJoint.children.length, 1);
     assert.deepEqual(glove.children[0].position, new FakeVec3(0.2, 0.1, -0.1));
     assert.deepEqual(glove.children[0].components.get("collision"), {
       type: "box",
       halfExtents: new FakeVec3(0.3, 0.2, 0.1),
-    });
-    assert.deepEqual(boot.children[0].components.get("collision"), {
-      type: "box",
-      halfExtents: new FakeVec3(0.4, 0.08, 0.25),
     });
   });
 

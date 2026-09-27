@@ -18,12 +18,6 @@ const HERO_BODY_PART_NAMES = new Set([
   "Right Short blue sleeve",
   "Right Blue forearm cuff",
   "Right white glove",
-  "Thick trouser leg",
-  "Thick trouser leg.001",
-  "Boot shaft",
-  "Boot shaft.001",
-  "Boot foot",
-  "Boot foot.001",
 ]);
 
 /**

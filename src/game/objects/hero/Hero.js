@@ -50,7 +50,12 @@ const AIRBORNE_STALL_FALL_SPEED = 0.6;
 const MAX_LIVES = 3;
 const RESPAWN_ANIMATION_DURATION = 1.55;
 const RESPAWN_START_HEIGHT = 1;
-const STEP_CLEARANCE = 0.22;
+const STEP_CLEARANCE = 0.32;
+const MIN_AUTOMATIC_STEP_HEIGHT = 0.04;
+const MAX_AUTOMATIC_STEP_HEIGHT = 0.32;
+const AUTOMATIC_STEP_SURFACE_CLEARANCE = 0.015;
+const AUTOMATIC_STEP_GROUNDING_GRACE = 0.2;
+const AUTOMATIC_STEP_VISUAL_RESPONSE = 14;
 const ANIMATION_BLEND_TIME = 0.14;
 const BLOCKED_PUSH_DURATION = 1;
 const BORED_IDLE_DELAY = 5;
@@ -334,6 +339,9 @@ export class Hero {
   #input = { x: 0, y: 0 };
   #running = false;
   #movementBlocked = false;
+  #automaticStepGroundingRemaining = 0;
+  #automaticStepTargetHeight = null;
+  #automaticStepVisualOffset = 0;
   #heroPartColliders = [];
   #airborneStallElapsed = 0;
   #partCollidersSuspended = false;
@@ -1159,6 +1167,18 @@ export class Hero {
         (this.#physics.groundContact(this.#position) !== null ||
           this.#physicsSupportContact);
     }
+    this.#automaticStepGroundingRemaining = Math.max(
+      0,
+      this.#automaticStepGroundingRemaining - deltaTime,
+    );
+    if (
+      this.#automaticStepGroundingRemaining > 0 &&
+      this.#velocity.y <= 0.2
+    ) {
+      this.#grounded = true;
+    } else if (this.#automaticStepGroundingRemaining === 0) {
+      this.#automaticStepTargetHeight = null;
+    }
     const buffRevision = this.#buffs.revision;
     if (this.isInDeathSequence || this.#gameOver) {
       this.#buffs.clear();
@@ -1366,6 +1386,8 @@ export class Hero {
   #moveHorizontally(deltaTime) {
     const attemptedX = Math.abs(this.#velocity.x) > 0.001;
     const nextX = this.#position.x + this.#velocity.x * deltaTime;
+    const nextZ = this.#position.z + this.#velocity.z * deltaTime;
+    this.#tryAutomaticStepUp(nextX, nextZ);
     const occupancyX = this.#occupancyAt(nextX, this.#position.z);
     if (occupancyX !== OCCUPANCY.open) {
       this.#movementBlocked ||= attemptedX;
@@ -1393,7 +1415,6 @@ export class Hero {
     }
 
     const attemptedZ = Math.abs(this.#velocity.z) > 0.001;
-    const nextZ = this.#position.z + this.#velocity.z * deltaTime;
     const occupancyZ = this.#occupancyAt(this.#position.x, nextZ);
     if (occupancyZ !== OCCUPANCY.open) {
       this.#movementBlocked ||= attemptedZ;
@@ -1420,6 +1441,87 @@ export class Hero {
       }
     }
   }
+
+  #tryAutomaticStepUp(nextX, nextZ) {
+    if (
+      !this.#grounded ||
+      this.#dodgeAction ||
+      this.#repelAction ||
+      this.#physics.scripted
+    ) {
+      return false;
+    }
+    if (
+      this.#automaticStepGroundingRemaining > 0 &&
+      Number.isFinite(this.#automaticStepTargetHeight)
+    ) {
+      this.#position.y = Math.max(
+        this.#position.y,
+        this.#automaticStepTargetHeight,
+      );
+      this.#velocity.y = Math.max(0, this.#velocity.y);
+    }
+    const movementX = nextX - this.#position.x;
+    const movementZ = nextZ - this.#position.z;
+    const movementLength = Math.hypot(movementX, movementZ);
+    if (movementLength <= 0.000001) {
+      return false;
+    }
+    const probeX =
+      nextX +
+      (movementX / movementLength) * MOVEMENT_FORWARD_COLLISION_OFFSET;
+    const probeZ =
+      nextZ +
+      (movementZ / movementLength) * MOVEMENT_FORWARD_COLLISION_OFFSET;
+    // Ammo's dynamic capsule has no configurable step offset. Apply a bounded
+    // lift only when the support ahead is within a normal walking step.
+    const physicsHeight = this.#physics.surfaceAt(
+      probeX,
+      probeZ,
+      this.#position.y + MAX_AUTOMATIC_STEP_HEIGHT,
+      this.#position.y - STEP_CLEARANCE,
+    )?.height;
+    const stepHeight = [physicsHeight]
+      .filter(
+        (height) =>
+          Number.isFinite(height) &&
+          height - this.#position.y >= MIN_AUTOMATIC_STEP_HEIGHT &&
+          height - this.#position.y <= MAX_AUTOMATIC_STEP_HEIGHT,
+      )
+      .reduce(
+        (highest, height) => Math.max(highest, height),
+        -Infinity,
+      );
+    if (!Number.isFinite(stepHeight)) {
+      return false;
+    }
+    const targetHeight = stepHeight + AUTOMATIC_STEP_SURFACE_CLEARANCE;
+    const ceiling = this.#collisionWorld?.ceilingHeightAt(
+      nextX,
+      nextZ,
+      MOVEMENT_COLLISION_RADIUS,
+      this.#position.y,
+    );
+    if (
+      Number.isFinite(ceiling) &&
+      targetHeight + HERO_COLLISION_HEIGHT > ceiling
+    ) {
+      return false;
+    }
+
+    const stepRise = targetHeight - this.#position.y;
+    this.#position.y = targetHeight;
+    this.#automaticStepTargetHeight = targetHeight;
+    this.#automaticStepVisualOffset = Math.max(
+      -MAX_AUTOMATIC_STEP_HEIGHT,
+      this.#automaticStepVisualOffset - stepRise,
+    );
+    this.#velocity.y = Math.max(0, this.#velocity.y);
+    this.#grounded = true;
+    this.#automaticStepGroundingRemaining = AUTOMATIC_STEP_GROUNDING_GRACE;
+    return true;
+  }
+
   #moveVertically() {
     if (this.#tryBeginDrowning()) {
       return;
@@ -1461,7 +1563,9 @@ export class Hero {
     ) {
       this.#beginFallDeath();
     }
-    this.#grounded = Boolean(contact) && this.#velocity.y <= 0.2;
+    this.#grounded =
+      (Boolean(contact) || this.#automaticStepGroundingRemaining > 0) &&
+      this.#velocity.y <= 0.2;
     if (this.#grounded) {
       this.#jumpsUsed = 0;
       this.#rememberStableGroundPosition();
@@ -3028,6 +3132,14 @@ export class Hero {
     if (!this.#entity || !this.#modelRoot) {
       return;
     }
+    const stepVisualBlend =
+      1 - Math.exp(-AUTOMATIC_STEP_VISUAL_RESPONSE * deltaTime);
+    this.#automaticStepVisualOffset +=
+      (0 - this.#automaticStepVisualOffset) * stepVisualBlend;
+    if (Math.abs(this.#automaticStepVisualOffset) < 0.0001) {
+      this.#automaticStepVisualOffset = 0;
+    }
+    this.#modelRoot.setLocalPosition(0, this.#automaticStepVisualOffset, 0);
     this.#facingHoldRemaining = Math.max(
       0,
       this.#facingHoldRemaining - deltaTime,
