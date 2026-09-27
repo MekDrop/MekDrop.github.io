@@ -5,8 +5,8 @@ import { MapGenerator, TileType } from "../../../src/game/MapGenerator.js";
 import { GrassCarpetLayout } from "../../../src/game/objects/ground-cover/GrassCarpetLayout.js";
 
 describe("MapGenerator castle foundation", () => {
-  it("keeps grass outside the castle footprint", () => {
-    const map = MapGenerator.generate({
+  it("keeps grass outside the castle footprint", async () => {
+    const map = await MapGenerator.generate({
       mapName: "dirt-foundation",
       numPaths: 3,
       numRivers: 0,
@@ -52,8 +52,8 @@ describe("MapGenerator castle foundation", () => {
     }
   });
 
-  it("keeps the enlarged single-tower castle inside its full foundation", () => {
-    const map = MapGenerator.generate({ mapName: "mug3qf6a_0z7fnua" });
+  it("keeps the enlarged single-tower castle inside its full foundation", async () => {
+    const map = await MapGenerator.generate({ mapName: "mug3qf6a_0z7fnua" });
     const { col, row, width, depth } = map.castle.position;
     const grass = GrassCarpetLayout.create(map);
 

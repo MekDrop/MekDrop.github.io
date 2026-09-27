@@ -4,8 +4,8 @@ import { describe, it } from "node:test";
 import { MapGenerator } from "../../../src/game/MapGenerator.js";
 
 describe("MapGenerator overpass variants", () => {
-  it("raises the entry route and plateau without making the route climb", () => {
-    const map = MapGenerator.generate({
+  it("raises the entry route and plateau without making the route climb", async () => {
+    const map = await MapGenerator.generate({
       mapName: "variant-4",
       numPaths: 4,
       numRivers: 0,
@@ -37,8 +37,8 @@ describe("MapGenerator overpass variants", () => {
     }
   });
 
-  it("selects castle-style stair approaches deterministically", () => {
-    const map = MapGenerator.generate({
+  it("selects castle-style stair approaches deterministically", async () => {
+    const map = await MapGenerator.generate({
       mapName: "variant-2",
       numPaths: 4,
       numRivers: 0,

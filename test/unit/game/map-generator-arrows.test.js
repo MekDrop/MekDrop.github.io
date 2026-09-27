@@ -3,8 +3,8 @@ import { describe, it } from "node:test";
 import { generateMap } from "../../../src/game/MapGenerator.js";
 
 describe("map direction arrows", () => {
-  it("shows inward arrows near both gate sides while clearing the gate tile and castle", () => {
-    const mapData = generateMap({
+  it("shows inward arrows near both gate sides while clearing the gate tile and castle", async () => {
+    const mapData = await generateMap({
       mapName: "mu00wyn4_0ysheeu",
     });
     const arrowsTooCloseToGateways = mapData.entries.flatMap(

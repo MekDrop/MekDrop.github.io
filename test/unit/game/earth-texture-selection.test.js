@@ -9,8 +9,8 @@ import {
 } from "../../../src/game/config/terrain.js";
 
 describe("earth texture selection", () => {
-  it("assigns a stable texture to every dirt block during generation", () => {
-    const map = MapGenerator.generate({
+  it("assigns a stable texture to every dirt block during generation", async () => {
+    const map = await MapGenerator.generate({
       mapName: "dirt-foundation",
       numPaths: 3,
       numRivers: 0,

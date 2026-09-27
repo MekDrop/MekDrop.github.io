@@ -4,8 +4,8 @@ import { it } from "node:test";
 import { GATEWAY_COLORS } from "../../../src/game/config/gateway.js";
 import { MapGenerator } from "../../../src/game/MapGenerator.js";
 
-it("stores each gateway color in the generated map", () => {
-  const map = MapGenerator.generate({
+it("stores each gateway color in the generated map", async () => {
+  const map = await MapGenerator.generate({
     mapName: "variant-4",
     numPaths: 4,
     numRivers: 0,

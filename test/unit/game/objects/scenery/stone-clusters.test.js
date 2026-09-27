@@ -13,20 +13,20 @@ const stoneClusters = (map) =>
   (map.objects ?? []).filter(({ object }) => object === "StoneCluster");
 
 describe("generated stone clusters", () => {
-  it("has seed-stable empty maps and no more than ten clusters on populated maps", () => {
-    const empty = generateMap({ mapName: "stone-audit-4" });
-    const populated = generateMap({ mapName: "stone-audit-0" });
+  it("has seed-stable empty maps and no more than ten clusters on populated maps", async () => {
+    const empty = await generateMap({ mapName: "stone-audit-4" });
+    const populated = await generateMap({ mapName: "stone-audit-0" });
     assert.equal(stoneClusters(empty).length, 0);
     assert.ok(stoneClusters(populated).length > 0);
     assert.ok(stoneClusters(populated).length <= 10);
     assert.deepEqual(
       stoneClusters(populated),
-      stoneClusters(generateMap({ mapName: "stone-audit-0" })),
+      stoneClusters(await generateMap({ mapName: "stone-audit-0" })),
     );
   });
 
-  it("places each cluster on free flat grass with room for all of its parts", () => {
-    const map = generateMap({ mapName: "stone-audit-0" });
+  it("places each cluster on free flat grass with room for all of its parts", async () => {
+    const map = await generateMap({ mapName: "stone-audit-0" });
     const occupied = new Set(
       [
         ...(map.objects ?? [])
@@ -66,11 +66,11 @@ describe("generated stone clusters", () => {
     }
   });
 
-  it("assigns unique shape and color styles to every stone part on each map", () => {
+  it("assigns unique shape and color styles to every stone part on each map", async () => {
     assert.ok(STONE_COLORS.length * 3 >= 30);
     assert.equal(new Set(STONE_COLORS).size, STONE_COLORS.length);
     for (let seed = 0; seed < 24; seed++) {
-      const map = generateMap({ mapName: `stone-style-${seed}` });
+      const map = await generateMap({ mapName: `stone-style-${seed}` });
       const parts = stoneClusters(map).flatMap((cluster) => cluster.parts);
       const styles = parts.map(({ style }) => style);
       assert.equal(new Set(styles).size, styles.length);
@@ -90,10 +90,10 @@ describe("generated stone clusters", () => {
     }
   });
 
-  it("makes one-level stones common and three-level stones rare", () => {
+  it("makes one-level stones common and three-level stones rare", async () => {
     const counts = [0, 0, 0, 0];
     for (let seed = 0; seed < 24; seed++) {
-      const map = generateMap({ mapName: `stone-style-${seed}` });
+      const map = await generateMap({ mapName: `stone-style-${seed}` });
       for (const { levels, diameter, height } of stoneClusters(map).flatMap(
         (cluster) => cluster.parts,
       )) {
@@ -114,12 +114,12 @@ describe("generated stone clusters", () => {
     assert.ok(counts[3] < total * 0.1);
   });
 
-  it("rarely gives one-level stones multiple parts", () => {
+  it("rarely gives one-level stones multiple parts", async () => {
     let oneLevelCount = 0;
     let oneLevelMultiPartCount = 0;
     let tallMultiPartCount = 0;
     for (let seed = 0; seed < 24; seed++) {
-      const map = generateMap({ mapName: "stone-style-" + seed });
+      const map = await generateMap({ mapName: "stone-style-" + seed });
       for (const { parts } of stoneClusters(map)) {
         if (parts[0].levels === 1) {
           oneLevelCount++;

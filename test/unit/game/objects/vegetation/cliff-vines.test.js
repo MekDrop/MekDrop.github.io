@@ -5,13 +5,13 @@ import { generateMap, TileType } from "../../../../../src/game/MapGenerator.js";
 import { createCliffVineLayout } from "../../../../../src/game/objects/vegetation/CliffVineLayout.js";
 
 describe("generated cliff vines", () => {
-  it("places seed-stable vines only on exposed grass faces", () => {
-    const map = generateMap({ mapName: "cliff-vine-audit" });
+  it("places seed-stable vines only on exposed grass faces", async () => {
+    const map = await generateMap({ mapName: "cliff-vine-audit" });
     assert.ok(map.cliffVineData.length >= 1);
     assert.ok(map.cliffVineData.length <= 4);
     assert.deepEqual(
       map.cliffVineData,
-      generateMap({ mapName: "cliff-vine-audit" }).cliffVineData,
+      (await generateMap({ mapName: "cliff-vine-audit" })).cliffVineData,
     );
 
     for (const vine of map.cliffVineData) {

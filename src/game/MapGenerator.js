@@ -53,6 +53,8 @@ export const TileType = {
 
 export class MapGenerator {
   static #random = Math.random;
+  static #generationQueue = Promise.resolve();
+  static #YIELD_INTERVAL_MS = 8;
   static #MAP_COLS = 42;
   static #MAP_ROWS = 42;
   static #DEFAULT_MIN_PATHS = 2;
@@ -142,14 +144,28 @@ export class MapGenerator {
   ];
 
   static generate(options) {
+    const generation = this.#generationQueue.then(() =>
+      this.#generateMap(options),
+    );
+    this.#generationQueue = generation.catch(() => {});
+    return generation;
+  }
+
+  static async #generateMap(options) {
     const normalizedOptions = this.#normalizeOptions(options);
     const mapName = String(normalizedOptions.mapName ?? this.#createMapName());
     const previousRandom = this.#random;
     this.#random = this.#createSeededRandom(mapName);
 
     try {
+      await this.#yieldToMainThread();
+      const generatedMap = await this.#generate({
+        ...normalizedOptions,
+        mapName,
+      });
+      await this.#yieldToMainThread();
       const mapData = {
-        ...this.#generate({ ...normalizedOptions, mapName }),
+        ...generatedMap,
         mapName,
       };
       mapData.earthTextureVariants = createEarthTextureVariants(mapData);
@@ -159,7 +175,8 @@ export class MapGenerator {
     }
   }
 
-  static #generate(options) {
+  static async #generate(options) {
+    const yieldState = { lastYield: this.#now() };
     const {
       numPaths: requestedNumPaths,
       numRivers: requestedNumRivers,
@@ -184,6 +201,7 @@ export class MapGenerator {
     const islandMask = this.#buildIslandMask(layout);
 
     this.#materializeIsland(grid, tileMeta, islandMask);
+    await this.#yieldIfNeeded(yieldState);
     const { mergeZones, routeCellsByPath, trunkStart } = this.#carvePaths(
       grid,
       tileMeta,
@@ -205,16 +223,19 @@ export class MapGenerator {
     }
     this.#placeCastle(grid, tileMeta, layout);
     this.#materializeSingleCellTerrainHoles(grid, tileMeta, islandMask);
+    await this.#yieldIfNeeded(yieldState);
 
     const heightmap = this.#buildHeightmap(grid, layout);
     this.#applyOverpassTerrain(grid, heightmap, tileMeta, layout.overpassPlan);
-    const riverData = this.#generateRivers(
+    await this.#yieldIfNeeded(yieldState);
+    const riverData = await this.#generateRivers(
       grid,
       heightmap,
       tileMeta,
       layout,
       islandMask,
       requestedNumRivers,
+      yieldState,
     );
     this.#assignRiverKinds(riverData);
     this.#raiseLavaSurfaces(heightmap, tileMeta, riverData);
@@ -228,6 +249,7 @@ export class MapGenerator {
       riverData,
     );
     this.#materializePathSupports(grid, heightmap, tileMeta, riverData);
+    await this.#yieldIfNeeded(yieldState);
     layout.pathDipPlans = this.#applyTerrainBridgeDips(
       grid,
       heightmap,
@@ -248,6 +270,7 @@ export class MapGenerator {
       tileMeta,
       layout,
     );
+    await this.#yieldIfNeeded(yieldState);
     const stonePlacements = this.#placeStones(
       grid,
       heightmap,
@@ -255,6 +278,7 @@ export class MapGenerator {
       vegetationPlacements,
       mapName,
     );
+    await this.#yieldIfNeeded(yieldState);
     const groundCoverData = this.#placeGroundCover(
       grid,
       heightmap,
@@ -262,13 +286,15 @@ export class MapGenerator {
       vegetationPlacements,
       stonePlacements,
     );
+    await this.#yieldIfNeeded(yieldState);
     const cliffVineData = this.#placeCliffVines(
       grid,
       heightmap,
       islandMask,
       riverData,
     );
-    this.#validateMap(
+    await this.#yieldIfNeeded(yieldState);
+    await this.#validateMap(
       grid,
       heightmap,
       tileMeta,
@@ -279,7 +305,9 @@ export class MapGenerator {
       groundCoverData,
       riverData,
       routeCellsByPath,
+      yieldState,
     );
+    await this.#yieldIfNeeded(yieldState);
     const { routes, arrowData } = this.#buildRouteData(layout);
     const castle = this.#buildCastleData(grid, layout);
     const objects = [
@@ -341,6 +369,22 @@ export class MapGenerator {
       trunkStart,
       layoutSignature: layout.signature,
     };
+  }
+
+  static #now() {
+    return globalThis.performance?.now?.() ?? Date.now();
+  }
+
+  static async #yieldIfNeeded(state) {
+    if (this.#now() - state.lastYield < this.#YIELD_INTERVAL_MS) {
+      return;
+    }
+    await this.#yieldToMainThread();
+    state.lastYield = this.#now();
+  }
+
+  static #yieldToMainThread() {
+    return new Promise((resolve) => globalThis.setTimeout(resolve, 0));
   }
 
   static #rng(min, max) {
@@ -2166,13 +2210,14 @@ export class MapGenerator {
     return route;
   }
 
-  static #findRiverRoute(
+  static async #findRiverRoute(
     grid,
     tileMeta,
     islandMask,
     layout,
     source,
     occupiedRiverCells,
+    yieldState,
   ) {
     const sourceKey = this.#tileKey(source.col, source.row);
     const parents = new Map([[sourceKey, null]]);
@@ -2180,6 +2225,7 @@ export class MapGenerator {
     let queueIndex = 0;
 
     while (queueIndex < queue.length) {
+      await this.#yieldIfNeeded(yieldState);
       const current = queue[queueIndex++];
       const currentKey = this.#tileKey(current.col, current.row);
       const route = this.#reconstructRiverRoute(parents, currentKey);
@@ -2393,13 +2439,14 @@ export class MapGenerator {
     };
   }
 
-  static #generateRivers(
+  static async #generateRivers(
     grid,
     heightmap,
     tileMeta,
     layout,
     islandMask,
     requestedNumRivers,
+    yieldState,
   ) {
     const riverCount = this.#selectRiverCount(requestedNumRivers);
     if (riverCount === 0) {
@@ -2426,6 +2473,7 @@ export class MapGenerator {
     const rivers = [];
     const occupiedRiverCells = new Set();
     for (const source of sourceCandidates) {
+      await this.#yieldIfNeeded(yieldState);
       if (rivers.length >= riverCount) {
         break;
       }
@@ -2434,13 +2482,14 @@ export class MapGenerator {
       ) {
         continue;
       }
-      const result = this.#findRiverRoute(
+      const result = await this.#findRiverRoute(
         grid,
         tileMeta,
         islandMask,
         layout,
         source,
         occupiedRiverCells,
+        yieldState,
       );
       if (!result) {
         continue;
@@ -5319,7 +5368,7 @@ export class MapGenerator {
     }
   }
 
-  static #validateMap(
+  static async #validateMap(
     grid,
     heightmap,
     tileMeta,
@@ -5330,6 +5379,7 @@ export class MapGenerator {
     groundCoverData,
     riverData,
     routeCellsByPath,
+    yieldState,
   ) {
     this.#validateRivers(
       grid,
@@ -5343,12 +5393,14 @@ export class MapGenerator {
     this.#validateIslandConnectivity(grid);
     this.#validateGatePlacement(grid, layout);
     this.#validatePathSpacing(layout);
+    await this.#yieldIfNeeded(yieldState);
     this.#validateRouteSeparation(routeCellsByPath, layout);
     this.#validateParallelPathClearance(grid, layout);
     this.#validateFlatPathCrossings(grid, layout.overpassPlan);
     this.#validateRouteReachability(grid, layout);
     this.#validateCastleEntrance(grid, layout);
     this.#validateCastleGroundClearance(grid, layout);
+    await this.#yieldIfNeeded(yieldState);
     this.#validateHeightDiscipline(grid, heightmap, tileMeta);
     this.#validateOverpass(grid, heightmap, tileMeta, layout.overpassPlan);
     this.#validatePathRenderModes(grid, heightmap, tileMeta);
@@ -5362,6 +5414,7 @@ export class MapGenerator {
     this.#validateBridgeTurns(tileMeta);
     this.#validateBridgeGroundHeights(heightmap, tileMeta, riverData);
     this.#validateGrassNoise(grid, heightmap, tileMeta, riverData);
+    await this.#yieldIfNeeded(yieldState);
     this.#validateLayoutVariety(layout);
     this.#validateVegetation(grid, heightmap, tileMeta, layout, vegetationPlacements);
     this.#validateStones(grid, heightmap, tileMeta, vegetationPlacements, stonePlacements);
