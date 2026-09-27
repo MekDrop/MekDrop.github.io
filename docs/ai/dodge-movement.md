@@ -13,4 +13,4 @@ Likely entry points:
 - `src/game/GameControls.js`
 - `src/game/actions/`
 - `src/game/config/controls.js`
-- `test/cypress/e2e/HeroMovement.cy.js`
+- `test/cypress/e2e/game/objects/hero/HeroMovement.cy.js`

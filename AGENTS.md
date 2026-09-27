@@ -28,7 +28,7 @@ For faster AI-assisted work, start with [docs/ai/task-map.md](docs/ai/task-map.m
 - `npm run lint` checks JavaScript and Vue files with ESLint.
 - `npm run format` formats JavaScript, Vue, and SCSS files with Prettier.
 - `npm run test:unit` runs Node unit tests.
-- `npm run test:e2e:ci -- --spec test/cypress/e2e/IndexPage.cy.js` runs the current index E2E spec headlessly.
+- `npm run test:e2e:ci -- --spec test/cypress/e2e/pages/IndexPage.cy.js` runs the current index E2E spec headlessly.
 - `npm run test:e2e:ci` runs all Cypress E2E specs headlessly.
 - `npm run test:game:movement` runs the hero movement E2E spec.
 - `npm run test:game:performance` runs the sealed game performance check.
@@ -67,4 +67,4 @@ Recent commits use short, imperative summaries, optionally with Conventional Com
 - Physical contact, collision, forces, gravity, inertia, springs, joints, raycasts, rigid bodies, or soft bodies: read [docs/ai/game-physics.md](docs/ai/game-physics.md).
 - Hero dodge movement: read [docs/ai/dodge-movement.md](docs/ai/dodge-movement.md).
 - Game errors and enums: read [docs/ai/game-code-style.md](docs/ai/game-code-style.md).
-- Test selection: read [docs/ai/testing.md](docs/ai/testing.md).
+- Test creation, organization, and selection: read [docs/ai/testing.md](docs/ai/testing.md).

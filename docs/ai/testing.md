@@ -2,9 +2,20 @@
 
 Read this when selecting or updating tests.
 
-Cypress E2E specs live in `test/cypress/e2e/` and use `*.cy.js`. The configured base URL is `http://localhost:9000/`; the npm scripts start Quasar automatically.
+## Test organization
 
-Component specs, when added, belong beside source files as `src/**/*.cy.js`.
+Keep test paths aligned with the production code they primarily exercise. Do not add tests directly to the `test/unit/` or `test/cypress/e2e/` roots.
+
+- Unit tests mirror the path below `src/`. For example, tests for `src/game/objects/water/WaterfallGeometry.js` belong at `test/unit/game/objects/water/waterfall-geometry.test.js`.
+- Choose the directory of the primary class or function under test when a test imports several modules. Shared dependencies do not determine its location.
+- Cross-module tests belong to the narrowest feature directory that owns the behavior. If no single module owns it, use the nearest shared production directory rather than creating a miscellaneous test folder.
+- Cypress E2E specs mirror the owning feature below `test/cypress/e2e/`; page-level journeys belong in `test/cypress/e2e/pages/`.
+- Component specs remain beside their source files as `src/**/*.cy.js`.
+- When production code moves between directories, move its tests in the same change and update scripts and documentation that name their paths.
+
+Cypress E2E specs use `*.cy.js`. The configured base URL is `http://localhost:9000/`; the npm scripts start Quasar automatically.
+
+Unit tests use `*.test.js` and are discovered recursively below `test/unit/`.
 
 Coverage artifacts are written to `coverage/` and `.nyc_output/` and are ignored.
 
@@ -12,7 +23,7 @@ Prefer the smallest meaningful check first:
 
 - `npm run test:unit` for Node unit tests.
 - `npm run test:game:movement` for hero movement behavior.
-- `npm run test:e2e:ci -- --spec test/cypress/e2e/IndexPage.cy.js` for the current index page E2E spec.
+- `npm run test:e2e:ci -- --spec test/cypress/e2e/pages/IndexPage.cy.js` for the current index page E2E spec.
 - `npm run test:e2e:ci -- --spec <path>` for a targeted Cypress spec.
 - `npm run test:e2e:ci` for broad E2E coverage.
 - `npm run lint` for JavaScript and Vue style and restricted-syntax rules.

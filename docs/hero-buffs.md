@@ -95,5 +95,5 @@ a direct run at that angle. Otherwise, connected-ground search picks a target
 near that heading and removes route corners only when the whole shortcut is
 traversable. This keeps initial movement from favoring the grid axes.
 
-Validation: `test/unit/buff-system.test.js` covers generic effect behavior, while
-`test/unit/hero-patting.test.js` covers petting with the shared buff clock.
+Validation: `test/unit/game/buffs/buff-system.test.js` covers generic effect behavior, while
+`test/unit/game/objects/hero/hero-patting.test.js` covers petting with the shared buff clock.
