@@ -1,3 +1,4 @@
+import carpetTextureUrl from "src/assets/game/textures/castle-carpet.png";
 import { SeatedRoyal } from "./SeatedRoyal.js";
 import { CastleThrone } from "./CastleThrone.js";
 import { CastleFire } from "./CastleFire.js";
@@ -5,9 +6,7 @@ import { GAME_OVER_VIEW_ROTATION_BY_SIDE } from "../../enum/GameOverViewRotation
 import { colorFromHex } from "../../helpers/colors.js";
 
 const ROOM_MATERIALS = {
-  carpetDark: { color: 0x751f34, gloss: 0.05 },
-  carpetLight: { color: 0xb5364c, gloss: 0.06 },
-  carpetGold: { color: 0xd7a936, gloss: 0.22 },
+  carpet: { color: 0xffffff, gloss: 0.04 },
   wood: { color: 0x4a281a, gloss: 0.05 },
   woodLight: { color: 0x6b3a22, gloss: 0.06 },
   gold: { color: 0xd8a936, gloss: 0.36, metalness: 0.28 },
@@ -42,6 +41,7 @@ export class CastleAudienceRoom {
   }
 
   #pc;
+  #app;
   #position;
   #door;
   #occupant;
@@ -49,6 +49,7 @@ export class CastleAudienceRoom {
   #modelLibrary;
   #entity;
   #materials = new Map();
+  #carpetAsset = null;
   #fire = null;
   #royalPosition = null;
   #throne = null;
@@ -84,6 +85,7 @@ export class CastleAudienceRoom {
     fireParticleTexture,
   }) {
     this.#pc = pc;
+    this.#app = app;
     this.#position = position;
     this.#door = door;
     this.#occupant = occupant;
@@ -103,6 +105,7 @@ export class CastleAudienceRoom {
 
     this.#resolveLayout();
     this.#createMaterials();
+    this.#loadCarpetTexture();
     this.#build();
     this.#entity.enabled = true;
   }
@@ -235,6 +238,11 @@ export class CastleAudienceRoom {
     this.#entity = null;
     for (const material of this.#materials.values()) material.destroy();
     this.#materials.clear();
+    if (this.#carpetAsset) {
+      this.#carpetAsset.unload();
+      this.#app.assets.remove(this.#carpetAsset);
+      this.#carpetAsset = null;
+    }
     this.#obstacles = [];
     this.#floorSurfaces = [];
   }
@@ -319,6 +327,40 @@ export class CastleAudienceRoom {
     }
   }
 
+  #loadCarpetTexture() {
+    if (!this.#pc.Asset || !this.#app.assets) {
+      return;
+    }
+    const asset = new this.#pc.Asset("Castle carpet", "texture", {
+      url: carpetTextureUrl,
+    });
+    this.#carpetAsset = asset;
+    this.#app.assets.add(asset);
+    asset.ready((loadedAsset) => {
+      if (this.#carpetAsset !== loadedAsset) {
+        return;
+      }
+      const texture = loadedAsset.resource;
+      texture.mipmaps = true;
+      texture.minFilter = this.#pc.FILTER_LINEAR_MIPMAP_LINEAR;
+      texture.magFilter = this.#pc.FILTER_LINEAR;
+      texture.anisotropy = 4;
+      texture.addressU = this.#pc.ADDRESS_CLAMP_TO_EDGE;
+      texture.addressV = this.#pc.ADDRESS_CLAMP_TO_EDGE;
+      const material = this.#materials.get("carpet");
+      material.diffuseMap = texture;
+      material.update();
+    });
+    asset.once("error", () => {
+      if (this.#carpetAsset !== asset) {
+        return;
+      }
+      this.#app.assets.remove(asset);
+      this.#carpetAsset = null;
+    });
+    this.#app.assets.load(asset);
+  }
+
   #build() {
     const throneForward = Math.min(
       this.#forwardCapacity - 0.76,
@@ -399,36 +441,16 @@ export class CastleAudienceRoom {
     const runnerLength = Math.max(0, runnerEnd - runnerStart);
     const runnerCenter = runnerStart + runnerLength / 2;
     const runnerWidth = Math.min(1.2, this.#roomWidth - 0.36);
-    const runnerInnerWidth = Math.max(0, runnerWidth - 0.34);
-    const runnerEdge = runnerWidth / 2 - 0.08;
     this.#boxAt(
       "Audience carpet runner",
-      "carpetDark",
+      "carpet",
       0,
       runnerCenter,
-      0.045,
-      [runnerWidth, 0.07, runnerLength],
+      0.055,
+      [runnerWidth, 0.06, runnerLength],
     );
-    this.#boxAt(
-      "Audience carpet center",
-      "carpetLight",
-      0,
-      runnerCenter,
-      0.085,
-      [runnerInnerWidth, 0.025, Math.max(0, runnerLength - 0.12)],
-    );
-    for (const lateral of [-runnerEdge, runnerEdge]) {
-      this.#boxAt(
-        "Audience carpet gold edge",
-        "carpetGold",
-        lateral,
-        runnerCenter,
-        0.1,
-        [0.08, 0.02, runnerLength],
-      );
-    }
-    // The same authored floor boxes define foot support, including raised
-    // carpet strips and plank borders, so boots cannot sink into the visuals.
+    // The same authored floor boxes define foot support, including the carpet
+    // and plank borders, so boots cannot sink into the visuals.
     for (const part of this.#entity.children.slice(firstFloorPart)) {
       const position = part.getLocalPosition();
       const scale = part.getLocalScale();

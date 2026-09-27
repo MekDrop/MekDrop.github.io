@@ -148,10 +148,17 @@ for (const side of Object.keys(layouts)) {
     const borders = room.entity.children.filter(
       ({ name }) => name === "Audience floor border",
     );
+    const carpetParts = room.entity.children.filter(({ name }) =>
+      name.startsWith("Audience carpet"),
+    );
 
     assert.ok(woodenFloor);
     assert.ok(entranceFloor);
     assert.equal(borders.length, 2);
+    assert.deepEqual(
+      carpetParts.map(({ name }) => name),
+      ["Audience carpet runner"],
+    );
     assert.equal(
       forwardPosition(woodenFloor, side) - woodenFloor.scale.z / 2,
       0.5,
