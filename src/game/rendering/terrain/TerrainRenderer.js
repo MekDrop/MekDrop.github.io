@@ -1,8 +1,13 @@
 import { TerrainPhysicsSurface } from "../../collision/index.js";
+import { Rivers } from "../../objects/water/index.js";
 import { TerrainBatchBuilder } from "./TerrainBatchBuilder.js";
 import { TerrainInstanceRenderer } from "./TerrainInstanceRenderer.js";
 
 export class TerrainRenderer {
+  static get modelUrls() {
+    return Rivers.modelUrls;
+  }
+
   #pc;
   #app;
   #mapData;
@@ -10,6 +15,8 @@ export class TerrainRenderer {
   #batchBuilder;
   #instanceRenderer;
   #physicsSurface = null;
+  #rivers = null;
+  #modelLibrary;
 
   constructor({
     pc,
@@ -22,11 +29,13 @@ export class TerrainRenderer {
     pathEarthSideMaterial,
     earthSideMaterial,
     sideVariant,
+    modelLibrary,
   }) {
     this.#pc = pc;
     this.#app = app;
     this.#mapData = mapData;
     this.#root = root;
+    this.#modelLibrary = modelLibrary;
     this.#instanceRenderer = new TerrainInstanceRenderer({
       pc,
       app,
@@ -47,6 +56,17 @@ export class TerrainRenderer {
   build(undersideVoxels) {
     this.#batchBuilder.build(undersideVoxels);
     this.#instanceRenderer.build();
+    this.#rivers = new Rivers({
+      pc: this.#pc,
+      app: this.#app,
+      mapData: this.#mapData,
+      modelLibrary: this.#modelLibrary,
+    });
+    this.#root.addChild(this.#rivers.entity);
+  }
+
+  update(deltaTime, hero = null, camera = null) {
+    this.#rivers?.update(deltaTime, hero, camera);
   }
 
   buildPhysicsSurface(collisionWorld) {
@@ -64,5 +84,7 @@ export class TerrainRenderer {
     this.#physicsSurface?.destroy();
     this.#physicsSurface = null;
     this.#instanceRenderer.destroy();
+    this.#rivers?.destroy();
+    this.#rivers = null;
   }
 }

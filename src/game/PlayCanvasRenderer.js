@@ -13,7 +13,6 @@ import waterTopUrl from "src/assets/game/tiles/water-top.png";
 import { Castle } from "./objects/castle/index.js";
 import { GATEWAY_BANNER_SIGNS, Gateway } from "./objects/gateway/index.js";
 import { BridgeRailingKit, OverpassStairs } from "./objects/path/index.js";
-import { RiverWater } from "./objects/water/index.js";
 import { Hero, HeroPatHand } from "./objects/hero/index.js";
 import { HeroPatGesture } from "./controls/HeroPatGesture.js";
 import { KnifeTool, ShovelTool } from "./objects/hero/tools/index.js";
@@ -151,7 +150,6 @@ export class PlayCanvasRenderer {
   #grassMaterials = null;
   #earthMaterials = null;
   #terrainMaterialSelector = null;
-  #riverWater = null;
   #buriedTreasure = null;
   #interactionProviders = [];
   #cloudField = null;
@@ -350,7 +348,7 @@ export class PlayCanvasRenderer {
         ...GrassCarpet.modelUrls,
         ...CliffVines.modelUrls,
         ...BuriedTreasureField.modelUrls,
-        ...RiverWater.modelUrls,
+        ...TerrainRenderer.modelUrls,
       ]),
     ]);
     if (this.#destroyed) {
@@ -1065,6 +1063,7 @@ export class PlayCanvasRenderer {
         this.#earthMaterials.sideForTile(col, row, level),
       sideVariant: (material, col, row, level) =>
         this.#terrainMaterialSelector.sideVariant(material, col, row, level),
+      modelLibrary: this.#modelLibrary,
     });
     this.#terrainRenderer.build(scenery.createUndersideVoxels());
     this.#vertexBuffers.push(...this.#bridgeRailingKit.build());
@@ -1087,14 +1086,6 @@ export class PlayCanvasRenderer {
       });
       this.#collisionWorld.add(this.#pathOverpassCollider);
     }
-    this.#riverWater = new RiverWater({
-      pc: this.#pc,
-      app: this.#app,
-      mapData: this.#mapData,
-      modelLibrary: this.#modelLibrary,
-      zoom: this.#camera.zoom,
-    });
-    this.#mapRoot.addChild(this.#riverWater.entity);
     this.#grassCarpet = new GrassCarpet({
       pc: this.#pc,
       device: this.#app.graphicsDevice,
@@ -1499,7 +1490,7 @@ export class PlayCanvasRenderer {
 
   #updateRuntimeSystems(deltaTime) {
     const hero = this.#sceneObjects.getOne(SCENE_OBJECT_TYPE.HERO);
-    this.#riverWater?.update(deltaTime, hero, this.#camera?.camera);
+    this.#terrainRenderer?.update(deltaTime, hero, this.#camera?.camera);
     this.#heroPatHand?.update(deltaTime);
     this.#huds?.update(deltaTime);
     const inventoryVisibilityChange =
@@ -2293,8 +2284,6 @@ export class PlayCanvasRenderer {
     this.#grassSurface = null;
     this.#grassCarpet?.destroy();
     this.#grassCarpet = null;
-    this.#riverWater?.destroy();
-    this.#riverWater = null;
     this.#cloudField?.destroy();
     this.#cloudField = null;
     this.#setInteractionTarget(null);
