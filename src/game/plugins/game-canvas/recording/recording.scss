@@ -1,0 +1,26 @@
+.background-canvas--recording::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  box-shadow: inset 0 0 0 3px var(--q-negative);
+  animation: recording-border-pulse 1.8s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes recording-border-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.25;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .background-canvas--recording::after {
+    animation: none;
+  }
+}

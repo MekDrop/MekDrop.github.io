@@ -2,6 +2,7 @@ import { reportGlobalException } from "../../../../boot/runtime-errors.js";
 import { GAME_RECORDING_STATE } from "../../../enum/GameRecordingState.js";
 import { ToggleRecordingAction } from "./actions/ToggleRecordingAction.js";
 import { GameRecorder } from "./recording/GameRecorder.js";
+import "./recording.scss";
 
 const TOGGLE_RECORDING_BINDING = Object.freeze({
   keys: ["PrintScreen"],
@@ -11,17 +12,25 @@ const TOGGLE_RECORDING_BINDING = Object.freeze({
 
 export class GameCanvasRecordingPlugin {
   #context;
+  #messages;
   #recorder = null;
   #state = GAME_RECORDING_STATE.IDLE;
-  #stateListeners = new Set();
+  #statusElement = null;
   #unregisterControlAction = null;
 
-  constructor(context) {
+  constructor(context, { messages }) {
     this.#context = context;
+    this.#messages = messages;
   }
 
   install() {
     const renderer = this.#context.renderer();
+    this.#statusElement = this.#context.target.document.createElement("span");
+    this.#statusElement.className = "q-sr-only";
+    this.#statusElement.setAttribute("role", "status");
+    this.#statusElement.setAttribute("aria-live", "polite");
+    this.#context.container().append(this.#statusElement);
+    this.#syncPresentation();
     this.#recorder = new GameRecorder({
       app: renderer.app,
       canvas: renderer.canvasElement,
@@ -47,27 +56,41 @@ export class GameCanvasRecordingPlugin {
     return this.#state;
   }
 
-  onStateChange(listener) {
-    this.#stateListeners.add(listener);
-    listener(this.#state);
-    return () => {
-      this.#stateListeners.delete(listener);
-    };
-  }
-
   destroy() {
     this.#unregisterControlAction?.();
     this.#unregisterControlAction = null;
     this.#recorder?.destroy();
     this.#recorder = null;
     this.#setState(GAME_RECORDING_STATE.IDLE);
-    this.#stateListeners.clear();
+    this.#statusElement?.remove();
+    this.#statusElement = null;
+    const container = this.#context.container();
+    container?.classList.remove("background-canvas--recording");
+    if (container) {
+      delete container.dataset.recordingState;
+    }
   }
 
   #setState(state) {
     this.#state = state;
-    for (const listener of this.#stateListeners) {
-      listener(state);
+    this.#syncPresentation();
+  }
+
+  #syncPresentation() {
+    const container = this.#context.container();
+    if (!container) {
+      return;
+    }
+    container.dataset.recordingState = this.#state;
+    container.classList.toggle(
+      "background-canvas--recording",
+      this.#state === GAME_RECORDING_STATE.RECORDING,
+    );
+    if (this.#statusElement) {
+      this.#statusElement.textContent =
+        this.#state === GAME_RECORDING_STATE.RECORDING
+          ? this.#messages.active
+          : "";
     }
   }
 

@@ -2,8 +2,6 @@
   <div
     ref="container"
     class="background-canvas fit"
-    :class="{ 'background-canvas--recording': recordingState === GAME_RECORDING_STATE.RECORDING }"
-    :data-recording-state="recordingState"
     :data-game-ready="gameReady && !isLoading"
     :data-graphics-backend="graphicsBackend"
     :data-game-fps="debugVisible ? debugFramesPerSecond : undefined"
@@ -32,9 +30,6 @@
       "
     />
     <game-loading-scene :active="isLoading" :phase="loadingPhase" />
-    <span class="q-sr-only" role="status" aria-live="polite">
-      {{ recordingState === GAME_RECORDING_STATE.RECORDING ? t("game.recording.active") : "" }}
-    </span>
     <div
       v-if="firstPersonCameraEnabled"
       class="first-person-camera-status"
@@ -81,31 +76,6 @@
   z-index: 0;
   background: #030604;
   pointer-events: auto;
-}
-
-.background-canvas--recording::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: 20;
-  box-shadow: inset 0 0 0 3px var(--q-negative);
-  animation: recording-border-pulse 1.8s ease-in-out infinite;
-  pointer-events: none;
-}
-
-@keyframes recording-border-pulse {
-  0%, 100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.25;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .background-canvas--recording::after {
-    animation: none;
-  }
 }
 
 .background-canvas__surface {
@@ -231,7 +201,6 @@ import { PlayCanvasRenderer } from "src/game/PlayCanvasRenderer.js";
 import { GameControls } from "src/game/GameControls.js";
 import { createGameCommandRegistry } from "src/game/commands/index.js";
 import { CloseModalAction } from "src/actions/CloseModalAction.js";
-import { GAME_RECORDING_STATE } from "src/game/enum/GameRecordingState.js";
 import { CopyScreenshotAction } from "src/game/actions/CopyScreenshotAction.js";
 import { CameraPointerAction } from "src/game/actions/CameraPointerAction.js";
 import { FirstPersonCameraAction } from "src/game/actions/FirstPersonCameraAction.js";
@@ -251,12 +220,9 @@ import {
   DEFAULT_CONTROLS,
   DEVELOPMENT_MAX_ZOOM,
 } from "src/game/config/controls.js";
+import { loadGameCanvasPluginConfig } from "src/game/config/game-canvas-plugins/index.js";
 import { InteractionSuggestion } from "src/game/interaction/InteractionSuggestion.js";
-import {
-  GameCanvasDebugUiPlugin,
-  GameCanvasPluginRegistry,
-  GameCanvasRecordingPlugin,
-} from "src/game/plugins/game-canvas/index.js";
+import { GameCanvasPluginRegistry } from "src/game/plugins/game-canvas/index.js";
 import { reportGlobalException } from "src/boot/runtime-errors.js";
 import { useDebugStore } from "src/stores/debug-store.js";
 import { useGraphicsSettingsStore } from "src/stores/graphics-settings-store.js";
@@ -269,7 +235,6 @@ const canvas = ref(null);
 const gameReady = ref(false);
 const loadingPhase = ref("initializing");
 const isLoading = ref(true);
-const recordingState = ref(GAME_RECORDING_STATE.IDLE);
 const graphicsBackend = ref("initializing");
 const showGraphicsFallbackDialog = ref(false);
 const interactionTarget = ref(null);
@@ -308,8 +273,6 @@ let mapNavigationId = 0;
 let mapRouteLoadPromise = Promise.resolve();
 let interactionSuggestion = null;
 let gameCommandRegistry = null;
-let movementTestDriverPluginLoaded = false;
-let stopRecordingStateWatch = null;
 let loadingOperationId = 0;
 let controlsConnected = false;
 const pluginControlActions = {};
@@ -404,13 +367,6 @@ function gameUiTheme() {
   };
 }
 
-function cameraTestRequested() {
-  if (!import.meta.env.DEV || typeof window === "undefined") {
-    return false;
-  }
-  return new URLSearchParams(window.location.search).has("camera-test");
-}
-
 function requestedMapName() {
   return typeof route.params.mapName === "string"
     ? route.params.mapName
@@ -440,45 +396,16 @@ function mapRouteLocation(mapName) {
   };
 }
 
-async function updateMovementTestDriverPlugin() {
-  if (!import.meta.env.DEV || typeof window === "undefined") {
-    return;
-  }
-  if (!mapFileLoader && !movementTestDriverPluginLoaded) {
-    return;
-  }
-
-  const { GameCanvasMovementTestDriverPlugin } = await import(
-    "src/game/plugins/game-canvas/movement-test-driver/GameCanvasMovementTestDriverPlugin.js"
-  );
-  if (!mapFileLoader) {
-    gameCanvasPluginRegistry.unload(GameCanvasMovementTestDriverPlugin);
-    movementTestDriverPluginLoaded = false;
-    return;
-  }
-
-  gameCanvasPluginRegistry.load(GameCanvasMovementTestDriverPlugin);
-  movementTestDriverPluginLoaded = true;
-}
-
-async function updateCameraTestDriverPlugin() {
-  if (!cameraTestRequested()) {
-    return;
-  }
-
-  const { GameCanvasCameraTestDriverPlugin } = await import(
-    "src/game/plugins/game-canvas/camera-test-driver/GameCanvasCameraTestDriverPlugin.js"
-  );
-  gameCanvasPluginRegistry.load(GameCanvasCameraTestDriverPlugin);
-}
-
 async function updateCurrentMap(generatedMap) {
   mapData = generatedMap;
   currentMapName.value = generatedMap.mapName;
   interactionPromptsVisible.value = !generatedMap.objects?.some(
     ({ object }) => object === "Hero",
   );
-  await updateMovementTestDriverPlugin();
+  gameCanvasPluginRegistry.setState({
+    testMapLoaded: mapFileLoader !== null,
+  });
+  await gameCanvasPluginRegistry.refresh();
 }
 
 function renderMap(mapDataToRender) {
@@ -569,6 +496,12 @@ async function loadMapRoute(mapName) {
 async function init() {
   const loadingId = await showLoadingPhase("initializing");
   try {
+    gameCanvasPluginRegistry.configure(
+      await loadGameCanvasPluginConfig({
+        development: import.meta.env.DEV,
+        translate: t,
+      }),
+    );
     const bindings = DEFAULT_CONTROLS;
     const zoomSettings = import.meta.env.DEV
       ? { ...bindings.zoom, max: DEVELOPMENT_MAX_ZOOM }
@@ -595,7 +528,7 @@ async function init() {
   if (renderer !== activeRenderer) {
     return;
   }
-  gameCanvasPluginRegistry.load(GameCanvasDebugUiPlugin);
+  await gameCanvasPluginRegistry.refresh();
   graphicsBackend.value = activeRenderer.graphicsBackend;
   await showLoadingPhase("generating", loadingId);
   mapData = await createMap(requestedMapName());
@@ -611,14 +544,6 @@ async function init() {
   if (renderer !== activeRenderer) {
     return;
   }
-  await updateCameraTestDriverPlugin();
-  const recordingPlugin = gameCanvasPluginRegistry.load(
-    GameCanvasRecordingPlugin,
-  );
-  stopRecordingStateWatch = recordingPlugin.onStateChange((state) => {
-    recordingState.value = state;
-  });
-
   const regenerateMapAction = new RegenerateMapAction(renderer, generateMap, {
     beforeGeneration: () => showLoadingPhase("generating"),
     beforeRender: async (_generatedMap, operationId) => {
@@ -758,10 +683,7 @@ onBeforeUnmount(() => {
   mapNavigationId += 1;
   gameReady.value = false;
   firstPersonCameraEnabled.value = false;
-  stopRecordingStateWatch?.();
-  stopRecordingStateWatch = null;
   gameCanvasPluginRegistry.destroy();
-  movementTestDriverPluginLoaded = false;
   gameCommandRegistry?.destroy();
   gameCommandRegistry = null;
   disconnectControls();
