@@ -22,6 +22,7 @@ export { InvalidRiverPathError } from "./InvalidRiverPathError.js";
 export { InvalidRouteWaypointError } from "./InvalidRouteWaypointError.js";
 export { InvalidStonePlacementError } from "./InvalidStonePlacementError.js";
 export { InvalidVegetationPlacementError } from "./InvalidVegetationPlacementError.js";
+export { MapGenerationStageRunNotImplementedError } from "./MapGenerationStageRunNotImplementedError.js";
 export { IsolatedGrassElevationError } from "./IsolatedGrassElevationError.js";
 export { IsolatedTerrainHoleError } from "./IsolatedTerrainHoleError.js";
 export { NoPlayableTerrainError } from "./NoPlayableTerrainError.js";

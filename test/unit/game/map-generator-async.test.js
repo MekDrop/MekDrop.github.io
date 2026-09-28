@@ -34,4 +34,19 @@ describe("async map generation", () => {
     assert.deepEqual(first, repeatedFirst);
     assert.deepEqual(second, repeatedSecond);
   });
+
+  it("preserves deterministic output across representative pipeline paths", async () => {
+    const options = [
+      { mapName: "pipeline-baseline-default" },
+      { mapName: "pipeline-baseline-rivers", numPaths: 4, numRivers: 6 },
+      { mapName: "pipeline-baseline-no-rivers", numPaths: 1, numRivers: 0 },
+      { mapName: "pipeline-baseline-overpass", numPaths: 4, overpass: true },
+    ];
+
+    for (const generationOptions of options) {
+      const first = await generateMap(generationOptions);
+      const second = await generateMap(generationOptions);
+      assert.deepEqual(second, first);
+    }
+  });
 });

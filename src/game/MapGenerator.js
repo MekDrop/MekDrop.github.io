@@ -41,6 +41,18 @@ import { TILE_SHAPE } from "./enum/TileShape.js";
 import { GATEWAY_COLORS } from "./config/gateway.js";
 import { STONE_COLORS } from "./config/stoneStyles.js";
 import { GRASS_SURFACE_LIFT } from "./config/terrain.js";
+import { GenerationContext } from "./map-generation/GenerationContext.js";
+import { createMapGenerationPipeline } from "./map-generation/createMapGenerationPipeline.js";
+import { CastleStage } from "./map-generation/stages/CastleStage.js";
+import { DecorationStage } from "./map-generation/stages/DecorationStage.js";
+import { FinalizationStage } from "./map-generation/stages/FinalizationStage.js";
+import { IslandStage } from "./map-generation/stages/IslandStage.js";
+import { LayoutStage } from "./map-generation/stages/LayoutStage.js";
+import { PathStage } from "./map-generation/stages/PathStage.js";
+import { RiverStage } from "./map-generation/stages/RiverStage.js";
+import { RouteDataStage } from "./map-generation/stages/RouteDataStage.js";
+import { TerrainStage } from "./map-generation/stages/TerrainStage.js";
+import { ValidationStage } from "./map-generation/stages/ValidationStage.js";
 
 export const TileType = {
   WATER: 0,
@@ -52,52 +64,52 @@ export const TileType = {
 };
 
 export class MapGenerator {
-  static #random = Math.random;
+  #random = Math.random;
   static #generationQueue = Promise.resolve();
-  static #YIELD_INTERVAL_MS = 8;
-  static #MAP_COLS = 42;
-  static #MAP_ROWS = 42;
-  static #DEFAULT_MIN_PATHS = 2;
-  static #DEFAULT_MAX_PATHS = 4;
-  static #LEFT_GATE_COL = 4;
-  static #RIGHT_GATE_COL = this.#MAP_COLS - 1 - this.#LEFT_GATE_COL;
-  static #PATH_HEIGHT = 2;
-  static #FOUNDATION_HEIGHT = 3;
-  static #WATER_HEIGHT = 0;
-  static #MAX_RIVERS = 6;
-  static #MIN_RIVER_TILES = 7;
-  static #RIVER_SURFACE_INSET = 0.5;
-  static #LAVA_SURFACE_INSET = 0.22;
-  static #RIVER_WATER_DEPTH = 0.5;
-  static #BRIDGE_WATER_CLEARANCE = 0.52;
-  static #RIVER_CASTLE_SETBACK = 6;
-  static #TERMINAL_WATERFALL_BOTTOM = -10.5;
-  static #RIVER_COUNT_WEIGHTS = [15, 35, 22, 13, 8, 5, 2];
-  static #LAVA_ISLAND_CHANCE = 10;
-  static #MAX_LAVA_ELIGIBLE_RIVERS = 2;
-  static #CASTLE_GROUND_CLEARANCE = 3;
-  static #CASTLE_REAR_GROUND_CLEARANCE = 1;
-  static #OVERPASS_CHANCE_BY_PATH_COUNT = [0, 0, 10, 28, 46];
-  static #OVERPASS_ELEVATION = this.#PATH_HEIGHT + 2;
-  static #OVERPASS_RAMP_TILES = 4;
-  static #OVERPASS_HALF_STEP = 0.5;
-  static #OVERPASS_DECK_THICKNESS = 0.24;
-  static #OVERPASS_MIN_CLEARANCE = 1.6;
-  static #OVERPASS_RAISED_ENTRY_CHANCE = 60;
-  static #OVERPASS_STAIR_APPROACH_CHANCE = 40;
-  static #OVERPASS_PLATEAU_RADIUS = 3;
-  static #MIN_ARROW_GATE_CLEARANCE = 0.5;
-  static #MIN_ARROW_CASTLE_CLEARANCE = 4;
-  static #TERRAIN_BRIDGE_DIP_CHANCE = 60;
-  static #TERRAIN_BRIDGE_DIP_ELEVATION = this.#PATH_HEIGHT - 1;
-  static #TERRAIN_BRIDGE_DIP_RAMP_TILES = 2;
-  static #TERRAIN_BRIDGE_DIP_MIN_SPAN =
+  #YIELD_INTERVAL_MS = 8;
+  #MAP_COLS = 42;
+  #MAP_ROWS = 42;
+  #DEFAULT_MIN_PATHS = 2;
+  #DEFAULT_MAX_PATHS = 4;
+  #LEFT_GATE_COL = 4;
+  #RIGHT_GATE_COL = this.#MAP_COLS - 1 - this.#LEFT_GATE_COL;
+  #PATH_HEIGHT = 2;
+  #FOUNDATION_HEIGHT = 3;
+  #WATER_HEIGHT = 0;
+  #MAX_RIVERS = 6;
+  #MIN_RIVER_TILES = 7;
+  #RIVER_SURFACE_INSET = 0.5;
+  #LAVA_SURFACE_INSET = 0.22;
+  #RIVER_WATER_DEPTH = 0.5;
+  #BRIDGE_WATER_CLEARANCE = 0.52;
+  #RIVER_CASTLE_SETBACK = 6;
+  #TERMINAL_WATERFALL_BOTTOM = -10.5;
+  #RIVER_COUNT_WEIGHTS = [15, 35, 22, 13, 8, 5, 2];
+  #LAVA_ISLAND_CHANCE = 10;
+  #MAX_LAVA_ELIGIBLE_RIVERS = 2;
+  #CASTLE_GROUND_CLEARANCE = 3;
+  #CASTLE_REAR_GROUND_CLEARANCE = 1;
+  #OVERPASS_CHANCE_BY_PATH_COUNT = [0, 0, 10, 28, 46];
+  #OVERPASS_ELEVATION = this.#PATH_HEIGHT + 2;
+  #OVERPASS_RAMP_TILES = 4;
+  #OVERPASS_HALF_STEP = 0.5;
+  #OVERPASS_DECK_THICKNESS = 0.24;
+  #OVERPASS_MIN_CLEARANCE = 1.6;
+  #OVERPASS_RAISED_ENTRY_CHANCE = 60;
+  #OVERPASS_STAIR_APPROACH_CHANCE = 40;
+  #OVERPASS_PLATEAU_RADIUS = 3;
+  #MIN_ARROW_GATE_CLEARANCE = 0.5;
+  #MIN_ARROW_CASTLE_CLEARANCE = 4;
+  #TERRAIN_BRIDGE_DIP_CHANCE = 60;
+  #TERRAIN_BRIDGE_DIP_ELEVATION = this.#PATH_HEIGHT - 1;
+  #TERRAIN_BRIDGE_DIP_RAMP_TILES = 2;
+  #TERRAIN_BRIDGE_DIP_MIN_SPAN =
     this.#TERRAIN_BRIDGE_DIP_RAMP_TILES * 2 + 1;
-  static #STONE_LEVEL_WEIGHTS = [72, 23, 5];
+  #STONE_LEVEL_WEIGHTS = [72, 23, 5];
 
-  static #TREE_VARIANTS = ["oak", "pine", "tall-tree", "sapling"];
-  static #BUSH_VARIANTS = ["round-bush", "wide-bush"];
-  static #GROUND_COVER_VARIANTS = [
+  #TREE_VARIANTS = ["oak", "pine", "tall-tree", "sapling"];
+  #BUSH_VARIANTS = ["round-bush", "wide-bush"];
+  #GROUND_COVER_VARIANTS = [
     "daisy-patch",
     "buttercup-patch",
     "pink-flower-patch",
@@ -107,36 +119,36 @@ export class MapGenerator {
     "golden-mushroom-pair",
     "forest-mushroom-cluster",
   ];
-  static #FLOWER_PATCH_VARIANTS = [
+  #FLOWER_PATCH_VARIANTS = [
     "daisy-patch",
     "buttercup-patch",
     "pink-flower-patch",
     "blue-flower-patch",
     "clover-patch",
   ];
-  static #MUSHROOM_PATCH_VARIANTS = [
+  #MUSHROOM_PATCH_VARIANTS = [
     "red-mushroom",
     "golden-mushroom-pair",
     "forest-mushroom-cluster",
   ];
-  static #VEGETATION_VARIANTS = [
+  #VEGETATION_VARIANTS = [
     ...this.#TREE_VARIANTS,
     ...this.#BUSH_VARIANTS,
   ];
-  static #CASTLE_FOOTPRINTS = [
+  #CASTLE_FOOTPRINTS = [
     { width: 5, depth: 7, style: "twin-tower" },
     { width: 6, depth: 7, style: "right-angle" },
     { width: 5, depth: 7, style: "single-tower" },
     { width: 6, depth: 7, style: "left-angle" },
   ];
-  static #DIRECTIONS = {
+  #DIRECTIONS = {
     NORTH: "NORTH",
     EAST: "EAST",
     SOUTH: "SOUTH",
     WEST: "WEST",
     NONE: "NONE",
   };
-  static #ENTRY_TEMPLATES = [
+  #ENTRY_TEMPLATES = [
     { id: "north", gateRows: [5, 6], mergeRange: [18, 24] },
     { id: "upper", gateRows: [10, 11], mergeRange: [14, 20] },
     { id: "lower", gateRows: [19, 20], mergeRange: [11, 18] },
@@ -144,260 +156,181 @@ export class MapGenerator {
   ];
 
   static generate(options) {
+    const generator = new MapGenerator();
     const generation = this.#generationQueue.then(() =>
-      this.#generateMap(options),
+      generator.#generateMap(options),
     );
     this.#generationQueue = generation.catch(() => {});
     return generation;
   }
 
-  static async #generateMap(options) {
+  async #generateMap(options) {
     const normalizedOptions = this.#normalizeOptions(options);
     const mapName = String(normalizedOptions.mapName ?? this.#createMapName());
     const previousRandom = this.#random;
     this.#random = this.#createSeededRandom(mapName);
 
     try {
-      await this.#yieldToMainThread();
-      const generatedMap = await this.#generate({
-        ...normalizedOptions,
-        mapName,
+      const generate = createMapGenerationPipeline({
+        createContext: (pipelineOptions) =>
+          new GenerationContext(pipelineOptions, {
+            now: () => this.#now(),
+            yieldIfNeeded: (state) => this.#yieldIfNeeded(state),
+            yieldToMainThread: () => this.#yieldToMainThread(),
+          }),
+        createStages: () => this.#createGenerationStages(),
       });
-      await this.#yieldToMainThread();
-      const mapData = {
-        ...generatedMap,
-        mapName,
-      };
-      mapData.earthTextureVariants = createEarthTextureVariants(mapData);
-      return mapData;
+      return await generate({ ...normalizedOptions, mapName });
     } finally {
       this.#random = previousRandom;
     }
   }
 
-  static async #generate(options) {
-    const yieldState = { lastYield: this.#now() };
-    const {
-      numPaths: requestedNumPaths,
-      numRivers: requestedNumRivers,
-      overpass: requestedOverpass,
-      mapName,
-    } = this.#normalizeOptions(options);
-    const numPaths = this.#clamp(
-      Number.isFinite(requestedNumPaths)
-        ? Math.round(requestedNumPaths)
-        : this.#rng(this.#DEFAULT_MIN_PATHS, this.#DEFAULT_MAX_PATHS),
-      1,
-      this.#ENTRY_TEMPLATES.length,
-    );
-    const layout = this.#createLayoutConfig(numPaths);
-    layout.signature = mapName;
-    layout.overpassPlan = this.#selectOverpassPlan(layout, requestedOverpass);
-    if (!layout.overpassPlan) {
-      this.#retainSeparatedCurvePlans(layout);
-    }
-    const grid = this.#createGrid(TileType.WATER);
-    const tileMeta = this.#createTileMetadata();
-    const islandMask = this.#buildIslandMask(layout);
-
-    this.#materializeIsland(grid, tileMeta, islandMask);
-    await this.#yieldIfNeeded(yieldState);
-    const { mergeZones, routeCellsByPath, trunkStart } = this.#carvePaths(
-      grid,
-      tileMeta,
-      layout,
-    );
-    this.#configureOverpassEntryPlateau(
-      grid,
-      layout.overpassPlan,
-      routeCellsByPath,
-    );
-    this.#materializeSingleCellTerrainHoles(grid, tileMeta, islandMask);
-    if (
-      layout.overpassPlan &&
-      !this.#overpassPlanFits(layout.overpassPlan, islandMask, grid)
-    ) {
-      throw new InvalidOverpassError({
-        reason: "does not fit its reserved terrain",
-      });
-    }
-    this.#placeCastle(grid, tileMeta, layout);
-    this.#materializeSingleCellTerrainHoles(grid, tileMeta, islandMask);
-    await this.#yieldIfNeeded(yieldState);
-
-    const heightmap = this.#buildHeightmap(grid, layout);
-    this.#applyOverpassTerrain(grid, heightmap, tileMeta, layout.overpassPlan);
-    await this.#yieldIfNeeded(yieldState);
-    const riverData = await this.#generateRivers(
-      grid,
-      heightmap,
-      tileMeta,
-      layout,
-      islandMask,
-      requestedNumRivers,
-      yieldState,
-    );
-    this.#assignRiverKinds(riverData);
-    this.#raiseLavaSurfaces(heightmap, tileMeta, riverData);
-    this.#smoothGrassHeights(grid, heightmap);
-    this.#applyOverpassTerrain(grid, heightmap, tileMeta, layout.overpassPlan);
-    this.#materializeRiverBanks(
-      grid,
-      heightmap,
-      tileMeta,
-      islandMask,
-      riverData,
-    );
-    this.#materializePathSupports(grid, heightmap, tileMeta, riverData);
-    await this.#yieldIfNeeded(yieldState);
-    layout.pathDipPlans = this.#applyTerrainBridgeDips(
-      grid,
-      heightmap,
-      tileMeta,
-      riverData,
-      mergeZones,
-    );
-    this.#applyHeightsToMetadata(grid, tileMeta, heightmap, riverData);
-    this.#materializeSingleCellTerrainHoles(
-      grid,
-      tileMeta,
-      islandMask,
-      heightmap,
-    );
-    const vegetationPlacements = this.#placeVegetation(
-      grid,
-      heightmap,
-      tileMeta,
-      layout,
-    );
-    await this.#yieldIfNeeded(yieldState);
-    const stonePlacements = this.#placeStones(
-      grid,
-      heightmap,
-      tileMeta,
-      vegetationPlacements,
-      mapName,
-    );
-    await this.#yieldIfNeeded(yieldState);
-    const groundCoverData = this.#placeGroundCover(
-      grid,
-      heightmap,
-      tileMeta,
-      vegetationPlacements,
-      stonePlacements,
-    );
-    await this.#yieldIfNeeded(yieldState);
-    const cliffVineData = this.#placeCliffVines(
-      grid,
-      heightmap,
-      islandMask,
-      riverData,
-    );
-    await this.#yieldIfNeeded(yieldState);
-    await this.#validateMap(
-      grid,
-      heightmap,
-      tileMeta,
-      layout,
-      islandMask,
-      vegetationPlacements,
-      stonePlacements,
-      groundCoverData,
-      riverData,
-      routeCellsByPath,
-      yieldState,
-    );
-    await this.#yieldIfNeeded(yieldState);
-    const { routes, arrowData } = this.#buildRouteData(layout);
-    const castle = this.#buildCastleData(grid, layout);
-    const royalSeed = this.#rng(0, 0xffffffff);
-    const royalType = ["King", "Queen", "Princess"][
-      (Number(royalSeed) >>> 0) % 3
+  #createGenerationStages() {
+    const operations = this.#createStageOperations();
+    return [
+      new LayoutStage(operations.layout),
+      new IslandStage(operations.island),
+      new PathStage(operations.path),
+      new CastleStage(operations.castle),
+      new RiverStage(operations.river),
+      new TerrainStage(operations.terrain),
+      new DecorationStage(operations.decoration),
+      new ValidationStage(operations.validation),
+      new RouteDataStage(operations.routeData),
+      new FinalizationStage(operations.finalization),
     ];
-    const residentPosition = {
-      x: castle.position.col + castle.position.width / 2 - this.#MAP_COLS / 2,
-      y: castle.position.elevation,
-      z: castle.position.row + castle.position.depth / 2 - this.#MAP_ROWS / 2,
-    };
-    const objects = [
-      {
-        id: `castle-${royalType.toLowerCase()}`,
-        object: royalType,
-        castleIndex: 0,
-        seed: royalSeed,
-        position: residentPosition,
-      },
-      {
-        id: "castle-servant",
-        object: "Servant",
-        castleIndex: 0,
-        position: residentPosition,
-      },
-      ...vegetationPlacements.map((vegetation, index) => ({
-        id: `vegetation-${index}`,
-        object: "Vegetation",
-        variant: vegetation.variant,
-        kind: vegetation.kind,
-        rotation: vegetation.rotation ?? 0,
-        tile: { col: vegetation.col, row: vegetation.row },
-        position: {
-          x: vegetation.col - (this.#MAP_COLS - 1) / 2,
-          y: heightmap[vegetation.row][vegetation.col] + GRASS_SURFACE_LIFT,
-          z: vegetation.row - (this.#MAP_ROWS - 1) / 2,
-        },
-      })),
-      ...stonePlacements.map((stone, index) => ({
-        id: `stone-cluster-${index}`,
-        object: "StoneCluster",
-        tile: { col: stone.col, row: stone.row },
-        position: {
-          x: stone.col - (this.#MAP_COLS - 1) / 2,
-          y: heightmap[stone.row][stone.col] + GRASS_SURFACE_LIFT,
-          z: stone.row - (this.#MAP_ROWS - 1) / 2,
-        },
-        parts: stone.parts,
-      })),
-    ];
+  }
+
+  #createStageOperations() {
+    const materializeSingleCellTerrainHoles = (...args) =>
+      this.#materializeSingleCellTerrainHoles(...args);
+    const applyOverpassTerrain = (...args) =>
+      this.#applyOverpassTerrain(...args);
 
     return {
-      grid,
-      heightmap,
-      tileMeta,
-      cols: this.#MAP_COLS,
-      rows: this.#MAP_ROWS,
-      entries: layout.entries.map((entry, index) => ({
-        col: entry.gateCol,
-        row: entry.gateRows[0],
-        rows: [...entry.gateRows],
-        side: entry.side,
-        color: GATEWAY_COLORS[index % GATEWAY_COLORS.length],
-      })),
-      castlePos: { col: layout.castleLeft, row: layout.pathRows[0] },
-      castle,
-      numPaths: layout.entries.length,
-      paths: routeCellsByPath.map((path, pathIdx) => ({
-        ...path,
-        route: routes[pathIdx],
-      })),
-      arrowData,
-      objects,
-      groundCoverData,
-      cliffVineData,
-      riverData,
-      pipeData: new Map(),
-      overpassData: layout.overpassPlan,
-      pathDipData: layout.pathDipPlans,
-      mergeZones,
-      trunkStart,
-      layoutSignature: layout.signature,
+      layout: {
+        selectPathCount: (requestedNumPaths) =>
+          this.#clamp(
+            Number.isFinite(requestedNumPaths)
+              ? Math.round(requestedNumPaths)
+              : this.#rng(this.#DEFAULT_MIN_PATHS, this.#DEFAULT_MAX_PATHS),
+            1,
+            this.#ENTRY_TEMPLATES.length,
+          ),
+        createLayoutConfig: (numPaths) => this.#createLayoutConfig(numPaths),
+        selectOverpassPlan: (...args) => this.#selectOverpassPlan(...args),
+        retainSeparatedCurvePlans: (layout) =>
+          this.#retainSeparatedCurvePlans(layout),
+      },
+      island: {
+        createGrid: () => this.#createGrid(TileType.WATER),
+        createTileMetadata: () => this.#createTileMetadata(),
+        buildIslandMask: (layout) => this.#buildIslandMask(layout),
+        materializeIsland: (...args) => this.#materializeIsland(...args),
+      },
+      path: {
+        carvePaths: (...args) => this.#carvePaths(...args),
+        configureOverpassEntryPlateau: (...args) =>
+          this.#configureOverpassEntryPlateau(...args),
+        materializeSingleCellTerrainHoles,
+        assertOverpassFits: (layout, islandMask, grid) => {
+          if (
+            layout.overpassPlan &&
+            !this.#overpassPlanFits(layout.overpassPlan, islandMask, grid)
+          ) {
+            throw new InvalidOverpassError({
+              reason: "does not fit its reserved terrain",
+            });
+          }
+        },
+      },
+      castle: {
+        placeCastle: (...args) => this.#placeCastle(...args),
+        materializeSingleCellTerrainHoles,
+      },
+      river: {
+        buildHeightmap: (...args) => this.#buildHeightmap(...args),
+        applyOverpassTerrain,
+        generateRivers: (...args) => this.#generateRivers(...args),
+        assignRiverKinds: (riverData) => this.#assignRiverKinds(riverData),
+        raiseLavaSurfaces: (...args) => this.#raiseLavaSurfaces(...args),
+      },
+      terrain: {
+        smoothGrassHeights: (...args) => this.#smoothGrassHeights(...args),
+        applyOverpassTerrain,
+        materializeRiverBanks: (...args) =>
+          this.#materializeRiverBanks(...args),
+        materializePathSupports: (...args) =>
+          this.#materializePathSupports(...args),
+        applyTerrainBridgeDips: (...args) =>
+          this.#applyTerrainBridgeDips(...args),
+        applyHeightsToMetadata: (...args) =>
+          this.#applyHeightsToMetadata(...args),
+        materializeSingleCellTerrainHoles,
+      },
+      decoration: {
+        placeVegetation: (...args) => this.#placeVegetation(...args),
+        placeStones: (...args) => this.#placeStones(...args),
+        placeGroundCover: (...args) => this.#placeGroundCover(...args),
+        placeCliffVines: (...args) => this.#placeCliffVines(...args),
+      },
+      validation: {
+        validateRivers: (...args) => this.#validateRivers(...args),
+        validateNoSingleCellTerrainHoles: (...args) =>
+          this.#validateNoSingleCellTerrainHoles(...args),
+        validateIslandConnectivity: (...args) =>
+          this.#validateIslandConnectivity(...args),
+        validateGatePlacement: (...args) =>
+          this.#validateGatePlacement(...args),
+        validatePathSpacing: (...args) => this.#validatePathSpacing(...args),
+        validateRouteSeparation: (...args) =>
+          this.#validateRouteSeparation(...args),
+        validateParallelPathClearance: (...args) =>
+          this.#validateParallelPathClearance(...args),
+        validateFlatPathCrossings: (...args) =>
+          this.#validateFlatPathCrossings(...args),
+        validateRouteReachability: (...args) =>
+          this.#validateRouteReachability(...args),
+        validateCastleEntrance: (...args) =>
+          this.#validateCastleEntrance(...args),
+        validateCastleGroundClearance: (...args) =>
+          this.#validateCastleGroundClearance(...args),
+        validateHeightDiscipline: (...args) =>
+          this.#validateHeightDiscipline(...args),
+        validateOverpass: (...args) => this.#validateOverpass(...args),
+        validatePathRenderModes: (...args) =>
+          this.#validatePathRenderModes(...args),
+        validatePathDips: (...args) => this.#validatePathDips(...args),
+        validateBridgeTurns: (...args) => this.#validateBridgeTurns(...args),
+        validateBridgeGroundHeights: (...args) =>
+          this.#validateBridgeGroundHeights(...args),
+        validateGrassNoise: (...args) => this.#validateGrassNoise(...args),
+        validateLayoutVariety: (...args) =>
+          this.#validateLayoutVariety(...args),
+        validateVegetation: (...args) => this.#validateVegetation(...args),
+        validateStones: (...args) => this.#validateStones(...args),
+        validateGroundCover: (...args) => this.#validateGroundCover(...args),
+      },
+      routeData: {
+        buildRouteData: (layout) => this.#buildRouteData(layout),
+        buildCastleData: (...args) => this.#buildCastleData(...args),
+      },
+      finalization: {
+        mapDimensions: { cols: this.#MAP_COLS, rows: this.#MAP_ROWS },
+        gatewayColors: GATEWAY_COLORS,
+        grassSurfaceLift: GRASS_SURFACE_LIFT,
+        randomUint32: () => Number(this.#rng(0, 0xffffffff)) >>> 0,
+        createEarthTextureVariants,
+      },
     };
   }
 
-  static #now() {
+  #now() {
     return globalThis.performance?.now?.() ?? Date.now();
   }
 
-  static async #yieldIfNeeded(state) {
+  async #yieldIfNeeded(state) {
     if (this.#now() - state.lastYield < this.#YIELD_INTERVAL_MS) {
       return;
     }
@@ -405,15 +338,15 @@ export class MapGenerator {
     state.lastYield = this.#now();
   }
 
-  static #yieldToMainThread() {
+  #yieldToMainThread() {
     return new Promise((resolve) => globalThis.setTimeout(resolve, 0));
   }
 
-  static #rng(min, max) {
+  #rng(min, max) {
     return Math.floor(this.#random() * (max - min + 1)) + min;
   }
 
-  static #createMapName() {
+  #createMapName() {
     const timestamp = Date.now().toString(36);
     const randomPart = Math.floor(Math.random() * 0x100000000)
       .toString(36)
@@ -421,7 +354,7 @@ export class MapGenerator {
     return `${timestamp}_${randomPart}`;
   }
 
-  static #createSeededRandom(mapName) {
+  #createSeededRandom(mapName) {
     let state = this.#hashMapName(mapName);
 
     return () => {
@@ -433,7 +366,7 @@ export class MapGenerator {
     };
   }
 
-  static #hashMapName(mapName) {
+  #hashMapName(mapName) {
     let hash = 0x811c9dc5;
     for (const character of mapName) {
       hash ^= character.codePointAt(0);
@@ -442,19 +375,19 @@ export class MapGenerator {
     return hash >>> 0;
   }
 
-  static #deterministicChance(mapName, salt, chance) {
+  #deterministicChance(mapName, salt, chance) {
     return this.#hashMapName(`${mapName}:${salt}`) % 100 < chance;
   }
 
-  static #clamp(value, min, max) {
+  #clamp(value, min, max) {
     return Math.max(min, Math.min(max, value));
   }
 
-  static #randomItem(items) {
+  #randomItem(items) {
     return items[this.#rng(0, items.length - 1)];
   }
 
-  static #shuffle(items) {
+  #shuffle(items) {
     for (let index = items.length - 1; index > 0; index--) {
       const swapIndex = this.#rng(0, index);
       [items[index], items[swapIndex]] = [items[swapIndex], items[index]];
@@ -462,24 +395,24 @@ export class MapGenerator {
     return items;
   }
 
-  static #normalizeOptions(options) {
+  #normalizeOptions(options) {
     if (isNumber(options)) {
       return { numPaths: options };
     }
     return options ?? {};
   }
 
-  static #tileKey(col, row) {
+  #tileKey(col, row) {
     return `${col},${row}`;
   }
 
-  static #createGrid(fillValue) {
+  #createGrid(fillValue) {
     return Array.from({ length: this.#MAP_ROWS }, () =>
       new Array(this.#MAP_COLS).fill(fillValue),
     );
   }
 
-  static #createTileMetadata() {
+  #createTileMetadata() {
     return Array.from({ length: this.#MAP_ROWS }, (_, row) =>
       Array.from({ length: this.#MAP_COLS }, (_, col) => ({
         x: col,
@@ -494,7 +427,7 @@ export class MapGenerator {
     );
   }
 
-  static #createLayoutConfig(numPaths) {
+  #createLayoutConfig(numPaths) {
     const anchorRows = this.#ENTRY_TEMPLATES.map((template) => [
       ...template.gateRows,
     ]);
@@ -593,11 +526,11 @@ export class MapGenerator {
     };
   }
 
-  static #inBounds(col, row) {
+  #inBounds(col, row) {
     return col >= 0 && col < this.#MAP_COLS && row >= 0 && row < this.#MAP_ROWS;
   }
 
-  static #setTile(grid, tileMeta, col, row, type, overrides = {}) {
+  #setTile(grid, tileMeta, col, row, type, overrides = {}) {
     if (!this.#inBounds(col, row)) {
       return;
     }
@@ -611,7 +544,7 @@ export class MapGenerator {
     };
   }
 
-  static #fillRect(
+  #fillRect(
     grid,
     tileMeta,
     left,
@@ -628,7 +561,7 @@ export class MapGenerator {
     }
   }
 
-  static #addEllipse(mask, centerCol, centerRow, radiusX, radiusY) {
+  #addEllipse(mask, centerCol, centerRow, radiusX, radiusY) {
     for (let row = 0; row < this.#MAP_ROWS; row++) {
       for (let col = 0; col < this.#MAP_COLS; col++) {
         const dx = (col - centerCol) / radiusX;
@@ -640,7 +573,7 @@ export class MapGenerator {
     }
   }
 
-  static #fillMaskRect(mask, left, top, right, bottom) {
+  #fillMaskRect(mask, left, top, right, bottom) {
     for (
       let row = Math.max(0, top);
       row <= Math.min(this.#MAP_ROWS - 1, bottom);
@@ -656,7 +589,7 @@ export class MapGenerator {
     }
   }
 
-  static #buildIslandMask(layout) {
+  #buildIslandMask(layout) {
     const mask = Array.from({ length: this.#MAP_ROWS }, () =>
       new Array(this.#MAP_COLS).fill(false),
     );
@@ -770,7 +703,7 @@ export class MapGenerator {
     return mask;
   }
 
-  static #fillSingleCellTerrainHoles(mask) {
+  #fillSingleCellTerrainHoles(mask) {
     const holes = [];
     for (let row = 1; row < this.#MAP_ROWS - 1; row++) {
       for (let col = 1; col < this.#MAP_COLS - 1; col++) {
@@ -793,7 +726,7 @@ export class MapGenerator {
     }
   }
 
-  static #materializeSingleCellTerrainHoles(
+  #materializeSingleCellTerrainHoles(
     grid,
     tileMeta,
     islandMask,
@@ -828,7 +761,7 @@ export class MapGenerator {
     }
   }
 
-  static #materializeIsland(grid, tileMeta, islandMask) {
+  #materializeIsland(grid, tileMeta, islandMask) {
     for (let row = 0; row < this.#MAP_ROWS; row++) {
       for (let col = 0; col < this.#MAP_COLS; col++) {
         if (!islandMask[row][col]) continue;
@@ -840,11 +773,11 @@ export class MapGenerator {
     }
   }
 
-  static #rowsOverlap(rows, top, bottom) {
+  #rowsOverlap(rows, top, bottom) {
     return rows[0] <= bottom && rows[1] >= top;
   }
 
-  static #selectEntries(
+  #selectEntries(
     numPaths,
     castleLeft,
     castleTop,
@@ -918,7 +851,7 @@ export class MapGenerator {
     });
   }
 
-  static #buildCurvePlan(entry, pathRows, mergeCol, occupiedBandStarts) {
+  #buildCurvePlan(entry, pathRows, mergeCol, occupiedBandStarts) {
     const [topRow, bottomRow] = entry.gateRows;
     const [trunkTop, trunkBottom] = pathRows;
     const safeBands =
@@ -963,7 +896,7 @@ export class MapGenerator {
     };
   }
 
-  static #selectOverpassPlan(layout, requestedOverpass) {
+  #selectOverpassPlan(layout, requestedOverpass) {
     if (requestedOverpass === false || layout.entries.length < 2) {
       return null;
     }
@@ -1125,7 +1058,7 @@ export class MapGenerator {
     return null;
   }
 
-  static #retainSeparatedCurvePlans(layout) {
+  #retainSeparatedCurvePlans(layout) {
     const curvePlans = layout.entries.map((entry) => entry.curvePlan);
     for (const entry of layout.entries) {
       entry.curvePlan = null;
@@ -1154,7 +1087,7 @@ export class MapGenerator {
     }
   }
 
-  static #buildVerticalOverpassPlan(
+  #buildVerticalOverpassPlan(
     vertical,
     horizontal,
     crossingCol2,
@@ -1218,7 +1151,7 @@ export class MapGenerator {
     };
   }
 
-  static #overpassPlanFits(plan, islandMask, grid) {
+  #overpassPlanFits(plan, islandMask, grid) {
     const pathCells = [
       ...plan.crossingCells,
       ...plan.approachCells,
@@ -1238,7 +1171,7 @@ export class MapGenerator {
     return true;
   }
 
-  static #configureOverpassEntryPlateau(grid, plan, routeCellsByPath) {
+  #configureOverpassEntryPlateau(grid, plan, routeCellsByPath) {
     if (!plan) {
       return;
     }
@@ -1304,7 +1237,7 @@ export class MapGenerator {
       .sort((left, right) => left.row - right.row || left.col - right.col);
   }
 
-  static #collectSafeCurveBandStarts(
+  #collectSafeCurveBandStarts(
     min,
     max,
     occupiedBandStarts,
@@ -1337,7 +1270,7 @@ export class MapGenerator {
     return safe;
   }
 
-  static #selectCurveBandStarts(safeBands) {
+  #selectCurveBandStarts(safeBands) {
     if (safeBands.length >= 3) {
       const midIndex = Math.floor(safeBands.length / 2);
       return [
@@ -1352,7 +1285,7 @@ export class MapGenerator {
     return safeBands.slice(0, 1);
   }
 
-  static #pickCurveTurnCols(side, gateCol, mergeCol, requestedCount) {
+  #pickCurveTurnCols(side, gateCol, mergeCol, requestedCount) {
     if (side === "LEFT") {
       const width = mergeCol - gateCol;
       const outerNearGate = gateCol + 3;
@@ -1400,7 +1333,7 @@ export class MapGenerator {
     return outerNearGate >= mergeCol + 3 ? [outerNearGate] : [];
   }
 
-  static #drawHorizontalPath(
+  #drawHorizontalPath(
     grid,
     tileMeta,
     startCol,
@@ -1424,7 +1357,7 @@ export class MapGenerator {
     }
   }
 
-  static #drawVerticalPath(grid, tileMeta, colLeft, top, bottom) {
+  #drawVerticalPath(grid, tileMeta, colLeft, top, bottom) {
     const low = Math.min(top, bottom);
     const high = Math.max(top, bottom);
     this.#fillRect(
@@ -1444,7 +1377,7 @@ export class MapGenerator {
     );
   }
 
-  static #addHorizontalRoute(
+  #addHorizontalRoute(
     grid,
     tileMeta,
     cells,
@@ -1463,7 +1396,7 @@ export class MapGenerator {
     }
   }
 
-  static #addVerticalRoute(grid, tileMeta, cells, colLeft, top, bottom) {
+  #addVerticalRoute(grid, tileMeta, cells, colLeft, top, bottom) {
     this.#drawVerticalPath(grid, tileMeta, colLeft, top, bottom);
     const low = Math.min(top, bottom);
     const high = Math.max(top, bottom);
@@ -1473,7 +1406,7 @@ export class MapGenerator {
     }
   }
 
-  static #addVerticalRouteBetweenBands(
+  #addVerticalRouteBetweenBands(
     grid,
     tileMeta,
     cells,
@@ -1486,7 +1419,7 @@ export class MapGenerator {
     this.#addVerticalRoute(grid, tileMeta, cells, colLeft, top, bottom);
   }
 
-  static #carvePaths(grid, tileMeta, layout) {
+  #carvePaths(grid, tileMeta, layout) {
     const mergeZones = new Set();
     const routeCellsByPath = [];
     const trunkStart = Math.min(
@@ -1659,7 +1592,7 @@ export class MapGenerator {
     return { mergeZones, routeCellsByPath, trunkStart };
   }
 
-  static #placeCastle(grid, tileMeta, layout) {
+  #placeCastle(grid, tileMeta, layout) {
     for (let row = layout.castleTop; row <= layout.castleBottom; row++) {
       for (let col = layout.castleLeft; col <= layout.castleRight; col++) {
         const isCorner =
@@ -1693,7 +1626,7 @@ export class MapGenerator {
     }
   }
 
-  static #buildCastleData(grid, layout) {
+  #buildCastleData(grid, layout) {
     const doors = [];
     const collectGate = (
       side,
@@ -1810,7 +1743,7 @@ export class MapGenerator {
     };
   }
 
-  static #selectRiverCount(requestedNumRivers) {
+  #selectRiverCount(requestedNumRivers) {
     if (Number.isFinite(requestedNumRivers)) {
       return this.#clamp(Math.round(requestedNumRivers), 0, this.#MAX_RIVERS);
     }
@@ -1826,13 +1759,13 @@ export class MapGenerator {
     return this.#MAX_RIVERS;
   }
 
-  static #insideEllipse(col, row, centerCol, centerRow, radiusX, radiusY) {
+  #insideEllipse(col, row, centerCol, centerRow, radiusX, radiusY) {
     const dx = (col - centerCol) / radiusX;
     const dy = (row - centerRow) / radiusY;
     return dx * dx + dy * dy <= 1;
   }
 
-  static #fillHeightRect(
+  #fillHeightRect(
     grid,
     heightmap,
     left,
@@ -1852,7 +1785,7 @@ export class MapGenerator {
     }
   }
 
-  static #blendGrassNearPaths(grid, heightmap) {
+  #blendGrassNearPaths(grid, heightmap) {
     for (let row = 1; row < this.#MAP_ROWS - 1; row++) {
       for (let col = 1; col < this.#MAP_COLS - 1; col++) {
         if (grid[row][col] !== TileType.GRASS) continue;
@@ -1878,7 +1811,7 @@ export class MapGenerator {
     }
   }
 
-  static #flattenBuildableZones(grid, heightmap, layout) {
+  #flattenBuildableZones(grid, heightmap, layout) {
     const topPadRight = this.#clamp(layout.castleLeft - 10, 10, 15);
     this.#fillHeightRect(
       grid,
@@ -1935,7 +1868,7 @@ export class MapGenerator {
     );
   }
 
-  static #buildHeightmap(grid, layout) {
+  #buildHeightmap(grid, layout) {
     const heightmap = this.#createGrid(this.#WATER_HEIGHT);
 
     for (let row = 0; row < this.#MAP_ROWS; row++) {
@@ -1976,7 +1909,7 @@ export class MapGenerator {
     return heightmap;
   }
 
-  static #applyOverpassTerrain(grid, heightmap, tileMeta, plan) {
+  #applyOverpassTerrain(grid, heightmap, tileMeta, plan) {
     if (!plan) {
       return;
     }
@@ -2052,7 +1985,7 @@ export class MapGenerator {
     }
   }
 
-  static #hasRiverSourceSetback(islandMask, col, row) {
+  #hasRiverSourceSetback(islandMask, col, row) {
     for (let deltaRow = -5; deltaRow <= 5; deltaRow++) {
       for (let deltaCol = -5; deltaCol <= 5; deltaCol++) {
         if (Math.abs(deltaCol) + Math.abs(deltaRow) > 5) {
@@ -2071,7 +2004,7 @@ export class MapGenerator {
     return true;
   }
 
-  static #isNearCastle(layout, col, row) {
+  #isNearCastle(layout, col, row) {
     return (
       col >= layout.castleLeft - this.#CASTLE_GROUND_CLEARANCE &&
       col <= layout.castleRight + this.#CASTLE_REAR_GROUND_CLEARANCE &&
@@ -2080,7 +2013,7 @@ export class MapGenerator {
     );
   }
 
-  static #isNearCastleForRiver(layout, col, row) {
+  #isNearCastleForRiver(layout, col, row) {
     return (
       col >= layout.castleLeft - this.#RIVER_CASTLE_SETBACK &&
       col <= layout.castleRight + this.#RIVER_CASTLE_SETBACK &&
@@ -2089,7 +2022,7 @@ export class MapGenerator {
     );
   }
 
-  static #isNearGate(layout, col, row) {
+  #isNearGate(layout, col, row) {
     return layout.entries.some((entry) =>
       entry.gateRows.some(
         (gateRow) =>
@@ -2098,7 +2031,7 @@ export class MapGenerator {
     );
   }
 
-  static #isRiverTraversalCell(
+  #isRiverTraversalCell(
     grid,
     tileMeta,
     layout,
@@ -2123,7 +2056,7 @@ export class MapGenerator {
     return tile === TileType.GRASS || tile === TileType.PATH;
   }
 
-  static #touchesOccupiedRiver(occupiedRiverCells, col, row) {
+  #touchesOccupiedRiver(occupiedRiverCells, col, row) {
     for (let deltaRow = -1; deltaRow <= 1; deltaRow++) {
       for (let deltaCol = -1; deltaCol <= 1; deltaCol++) {
         if (
@@ -2136,7 +2069,7 @@ export class MapGenerator {
     return false;
   }
 
-  static #directionFromStep(from, to) {
+  #directionFromStep(from, to) {
     const deltaCol = to.col - from.col;
     const deltaRow = to.row - from.row;
     if (deltaCol === 1 && deltaRow === 0) {
@@ -2154,7 +2087,7 @@ export class MapGenerator {
     return this.#DIRECTIONS.NONE;
   }
 
-  static #riverSourceHasEarthEnclosure(grid, route) {
+  #riverSourceHasEarthEnclosure(grid, route) {
     if (route.length < 2) {
       return false;
     }
@@ -2180,7 +2113,7 @@ export class MapGenerator {
     return true;
   }
 
-  static #riverTerminalDirection(grid, islandMask, layout, route) {
+  #riverTerminalDirection(grid, islandMask, layout, route) {
     if (route.length < this.#MIN_RIVER_TILES) {
       return null;
     }
@@ -2219,7 +2152,7 @@ export class MapGenerator {
     return this.#directionFromStep(previous, terminal);
   }
 
-  static #reconstructRiverRoute(parents, terminalKey) {
+  #reconstructRiverRoute(parents, terminalKey) {
     const route = [];
     let key = terminalKey;
     while (key) {
@@ -2231,7 +2164,7 @@ export class MapGenerator {
     return route;
   }
 
-  static async #findRiverRoute(
+  async #findRiverRoute(
     grid,
     tileMeta,
     islandMask,
@@ -2294,7 +2227,7 @@ export class MapGenerator {
     return null;
   }
 
-  static #riverRouteKeepsIslandConnected(grid, route) {
+  #riverRouteKeepsIslandConnected(grid, route) {
     const trialGrid = grid.map((row) => [...row]);
     for (const cell of route) {
       if (trialGrid[cell.row][cell.col] === TileType.GRASS) {
@@ -2316,7 +2249,7 @@ export class MapGenerator {
     );
   }
 
-  static #validateRiverPathCrossings(grid, tileMeta, route) {
+  #validateRiverPathCrossings(grid, tileMeta, route) {
     for (let index = 0; index < route.length; index++) {
       const cell = route[index];
       if (grid[cell.row][cell.col] !== TileType.PATH) {
@@ -2372,7 +2305,7 @@ export class MapGenerator {
     return true;
   }
 
-  static #materializeRiver(
+  #materializeRiver(
     grid,
     heightmap,
     tileMeta,
@@ -2460,7 +2393,7 @@ export class MapGenerator {
     };
   }
 
-  static async #generateRivers(
+  async #generateRivers(
     grid,
     heightmap,
     tileMeta,
@@ -2534,7 +2467,7 @@ export class MapGenerator {
     return rivers;
   }
 
-  static #assignRiverKinds(rivers) {
+  #assignRiverKinds(rivers) {
     if (
       rivers.length === 0 ||
       rivers.length > this.#MAX_LAVA_ELIGIBLE_RIVERS ||
@@ -2552,7 +2485,7 @@ export class MapGenerator {
     }
   }
 
-  static #raiseLavaSurfaces(heightmap, tileMeta, rivers) {
+  #raiseLavaSurfaces(heightmap, tileMeta, rivers) {
     for (const river of rivers) {
       if (river.kind !== RIVER_KIND.LAVA) {
         continue;
@@ -2595,13 +2528,13 @@ export class MapGenerator {
     }
   }
 
-  static #riverSurfaceInset(river) {
+  #riverSurfaceInset(river) {
     return river.kind === RIVER_KIND.LAVA
       ? this.#LAVA_SURFACE_INSET
       : this.#RIVER_SURFACE_INSET;
   }
 
-  static #materializeRiverBanks(
+  #materializeRiverBanks(
     grid,
     heightmap,
     tileMeta,
@@ -2753,7 +2686,7 @@ export class MapGenerator {
     }
   }
 
-  static #smoothGrassHeights(grid, heightmap) {
+  #smoothGrassHeights(grid, heightmap) {
     let changed = true;
 
     while (changed) {
@@ -2787,7 +2720,7 @@ export class MapGenerator {
     }
   }
 
-  static #applyTerrainBridgeDips(
+  #applyTerrainBridgeDips(
     grid,
     heightmap,
     tileMeta,
@@ -2970,7 +2903,7 @@ export class MapGenerator {
     return plans;
   }
 
-  static #pathStationCells(axis, cross, coordinate) {
+  #pathStationCells(axis, cross, coordinate) {
     return axis === "HORIZONTAL"
       ? [
           { col: coordinate, row: cross },
@@ -2982,7 +2915,7 @@ export class MapGenerator {
         ];
   }
 
-  static #pathDipLandingFits(
+  #pathDipLandingFits(
     grid,
     heightmap,
     tileMeta,
@@ -3025,7 +2958,7 @@ export class MapGenerator {
     );
   }
 
-  static #buildTerrainBridgeDipPlan(span, index) {
+  #buildTerrainBridgeDipPlan(span, index) {
     const firstRiseDirection =
       span.axis === "HORIZONTAL" ? SLOPE_DIRECTION.WEST : SLOPE_DIRECTION.NORTH;
     const lastRiseDirection =
@@ -3082,7 +3015,7 @@ export class MapGenerator {
     };
   }
 
-  static #applyTerrainBridgeDipPlan(heightmap, tileMeta, plan) {
+  #applyTerrainBridgeDipPlan(heightmap, tileMeta, plan) {
     for (const cell of plan.flatCells) {
       heightmap[cell.row][cell.col] = plan.elevation;
       tileMeta[cell.row][cell.col] = {
@@ -3109,7 +3042,7 @@ export class MapGenerator {
     }
   }
 
-  static #applyHeightsToMetadata(grid, tileMeta, heightmap, riverData) {
+  #applyHeightsToMetadata(grid, tileMeta, heightmap, riverData) {
     for (let row = 0; row < this.#MAP_ROWS; row++) {
       for (let col = 0; col < this.#MAP_COLS; col++) {
         tileMeta[row][col] = {
@@ -3135,7 +3068,7 @@ export class MapGenerator {
     this.#assignBridgeGround(tileMeta, heightmap, riverData);
   }
 
-  static #materializePathSupports(grid, heightmap, tileMeta, riverData) {
+  #materializePathSupports(grid, heightmap, tileMeta, riverData) {
     const riverCells = new Set(
       riverData.flatMap((river) =>
         river.cells.map((cell) => this.#tileKey(cell.col, cell.row)),
@@ -3214,7 +3147,7 @@ export class MapGenerator {
     }
   }
 
-  static #applyPathRenderModes(grid, heightmap, tileMeta) {
+  #applyPathRenderModes(grid, heightmap, tileMeta) {
     for (let row = 0; row < this.#MAP_ROWS; row++) {
       for (let col = 0; col < this.#MAP_COLS; col++) {
         if (grid[row][col] !== TileType.PATH) {
@@ -3231,7 +3164,7 @@ export class MapGenerator {
     }
   }
 
-  static #assignBridgeGround(tileMeta, heightmap, riverData) {
+  #assignBridgeGround(tileMeta, heightmap, riverData) {
     const riverBridgeCells = new Set(
       riverData.flatMap((river) =>
         river.cells
@@ -3253,7 +3186,7 @@ export class MapGenerator {
     }
   }
 
-  static #classifyRenderMode(grid, heightmap, tileMeta, col, row) {
+  #classifyRenderMode(grid, heightmap, tileMeta, col, row) {
     const tile = grid[row][col];
     if (tile !== TileType.PATH) {
       return "SOLID";
@@ -3281,21 +3214,21 @@ export class MapGenerator {
     return hasLateralSupport ? "SOLID" : "BRIDGE";
   }
 
-  static #isPathTurnPosition(grid, lateralCells) {
+  #isPathTurnPosition(grid, lateralCells) {
     return lateralCells.some(
       ({ col, row }) =>
         this.#inBounds(col, row) && this.#isRouteTile(grid[row][col]),
     );
   }
 
-  static #hasPathSideBlock(grid, heightmap, col, row, pathHeight) {
+  #hasPathSideBlock(grid, heightmap, col, row, pathHeight) {
     if (!this.#inBounds(col, row) || grid[row][col] === TileType.WATER) {
       return false;
     }
     return heightmap[row][col] >= pathHeight;
   }
 
-  static #pathLateralCells(grid, tileMeta, col, row) {
+  #pathLateralCells(grid, tileMeta, col, row) {
     const direction = tileMeta[row][col].direction;
     if (
       direction === this.#DIRECTIONS.EAST ||
@@ -3340,7 +3273,7 @@ export class MapGenerator {
     return null;
   }
 
-  static #findLaneMateRow(grid, tileMeta, col, row, direction) {
+  #findLaneMateRow(grid, tileMeta, col, row, direction) {
     const candidates = [row - 1, row + 1];
     for (const candidateRow of candidates) {
       if (!this.#inBounds(col, candidateRow)) continue;
@@ -3354,7 +3287,7 @@ export class MapGenerator {
     return null;
   }
 
-  static #findLaneMateCol(grid, tileMeta, col, row, direction) {
+  #findLaneMateCol(grid, tileMeta, col, row, direction) {
     const candidates = [col - 1, col + 1];
     for (const candidateCol of candidates) {
       if (!this.#inBounds(candidateCol, row)) continue;
@@ -3368,11 +3301,11 @@ export class MapGenerator {
     return null;
   }
 
-  static #routeNodeKey(col2, row2, elevation = this.#PATH_HEIGHT) {
+  #routeNodeKey(col2, row2, elevation = this.#PATH_HEIGHT) {
     return `${col2},${row2},${Math.round(elevation * 1000) / 1000}`;
   }
 
-  static #appendRouteWaypoint(waypoints, col2, row2) {
+  #appendRouteWaypoint(waypoints, col2, row2) {
     const previous = waypoints[waypoints.length - 1];
     if (previous?.col2 === col2 && previous?.row2 === row2) {
       return;
@@ -3380,7 +3313,7 @@ export class MapGenerator {
     waypoints.push({ col2, row2 });
   }
 
-  static #buildRouteWaypoints(layout, entry) {
+  #buildRouteWaypoints(layout, entry) {
     const waypoints = [];
     const gateCenterRow2 = entry.gateRows[0] + entry.gateRows[1];
     const trunkCenterRow2 = layout.pathRows[0] + layout.pathRows[1];
@@ -3417,7 +3350,7 @@ export class MapGenerator {
     return waypoints;
   }
 
-  static #expandRouteWaypoints(waypoints) {
+  #expandRouteWaypoints(waypoints) {
     const points = [{ ...waypoints[0] }];
 
     for (let index = 1; index < waypoints.length; index++) {
@@ -3450,7 +3383,7 @@ export class MapGenerator {
     return points;
   }
 
-  static #connectRouteNodes(graph, first, second) {
+  #connectRouteNodes(graph, first, second) {
     const firstKey = this.#routeNodeKey(
       first.col2,
       first.row2,
@@ -3467,7 +3400,7 @@ export class MapGenerator {
     graph.get(secondKey).add(firstKey);
   }
 
-  static #buildRouteDistances(graph, targetKey) {
+  #buildRouteDistances(graph, targetKey) {
     const distances = new Map([[targetKey, 0]]);
     const queue = [targetKey];
     let queueIndex = 0;
@@ -3485,7 +3418,7 @@ export class MapGenerator {
     return distances;
   }
 
-  static #followQuickestRoute(graph, distances, startKey, targetKey) {
+  #followQuickestRoute(graph, distances, startKey, targetKey) {
     const route = [];
     let key = startKey;
 
@@ -3508,7 +3441,7 @@ export class MapGenerator {
     }
   }
 
-  static #buildArrowData(routes) {
+  #buildArrowData(routes) {
     const arrowData = new Map();
 
     routes.forEach((route, pathIdx) => {
@@ -3605,7 +3538,7 @@ export class MapGenerator {
     return arrowData;
   }
 
-  static #buildRouteData(layout) {
+  #buildRouteData(layout) {
     const graph = new Map();
     const rawRoutes = layout.entries.map((entry, pathIdx) => {
       const route = this.#applyRouteElevations(
@@ -3637,7 +3570,7 @@ export class MapGenerator {
     return { routes, arrowData: this.#buildArrowData(routes) };
   }
 
-  static #applyRouteElevations(route, pathIdx, overpassPlan, pathDipPlans) {
+  #applyRouteElevations(route, pathIdx, overpassPlan, pathDipPlans) {
     const crossingCol2 = overpassPlan?.crossing.col * 2 + 1;
     const crossingRow2 = overpassPlan?.crossing.row * 2 + 1;
     const raisedEntryEndIndex = overpassPlan?.raisedEntryApproach
@@ -3673,7 +3606,7 @@ export class MapGenerator {
     });
   }
 
-  static #terrainPathDipElevation(point, plans = []) {
+  #terrainPathDipElevation(point, plans = []) {
     for (const plan of plans) {
       const crossCoordinate2 = plan.cross * 2 + 1;
       const pointCrossCoordinate2 =
@@ -3711,7 +3644,7 @@ export class MapGenerator {
     return this.#PATH_HEIGHT;
   }
 
-  static #findConnectedComponent(grid, startTiles) {
+  #findConnectedComponent(grid, startTiles) {
     const seen = new Set();
     const queue = [...startTiles];
 
@@ -3736,7 +3669,7 @@ export class MapGenerator {
     return seen;
   }
 
-  static #isVegetationCandidate(grid, heightmap, tileMeta, layout, col, row) {
+  #isVegetationCandidate(grid, heightmap, tileMeta, layout, col, row) {
     if (!this.#inBounds(col, row)) {
       return false;
     }
@@ -3772,7 +3705,7 @@ export class MapGenerator {
     return true;
   }
 
-  static #placeVegetation(grid, heightmap, tileMeta, layout) {
+  #placeVegetation(grid, heightmap, tileMeta, layout) {
     const candidates = [];
     for (let row = 0; row < this.#MAP_ROWS; row++) {
       for (let col = 0; col < this.#MAP_COLS; col++) {
@@ -3874,7 +3807,7 @@ export class MapGenerator {
     });
   }
 
-  static #isGroundCoverCandidate(grid, heightmap, tileMeta, col, row) {
+  #isGroundCoverCandidate(grid, heightmap, tileMeta, col, row) {
     if (!this.#inBounds(col, row)) {
       return false;
     }
@@ -3890,7 +3823,7 @@ export class MapGenerator {
     return true;
   }
 
-  static #rollStoneLevels() {
+  #rollStoneLevels() {
     const roll = this.#rng(1, 100);
     if (roll <= this.#STONE_LEVEL_WEIGHTS[0]) {
       return 1;
@@ -3901,7 +3834,7 @@ export class MapGenerator {
     return 3;
   }
 
-  static #placeStones(
+  #placeStones(
     grid,
     heightmap,
     tileMeta,
@@ -3998,7 +3931,7 @@ export class MapGenerator {
     return stones;
   }
 
-  static #placeGroundCover(
+  #placeGroundCover(
     grid,
     heightmap,
     tileMeta,
@@ -4045,7 +3978,7 @@ export class MapGenerator {
     return groundCover;
   }
 
-  static #createGroundCoverDecoration(candidate, variant, offsetX, offsetZ) {
+  #createGroundCoverDecoration(candidate, variant, offsetX, offsetZ) {
     return {
       ...candidate,
       variant,
@@ -4057,7 +3990,7 @@ export class MapGenerator {
     };
   }
 
-  static #placeCliffVines(grid, heightmap, islandMask, riverData) {
+  #placeCliffVines(grid, heightmap, islandMask, riverData) {
     const riverTiles = new Set(
       riverData.flatMap((river) =>
         river.cells.map(({ col, row }) => this.#tileKey(col, row)),
@@ -4140,7 +4073,7 @@ export class MapGenerator {
     return selected;
   }
 
-  static #validateIslandConnectivity(grid) {
+  #validateIslandConnectivity(grid) {
     const allLand = [];
     for (let row = 0; row < this.#MAP_ROWS; row++) {
       for (let col = 0; col < this.#MAP_COLS; col++) {
@@ -4160,7 +4093,7 @@ export class MapGenerator {
     }
   }
 
-  static #validateGatePlacement(grid, layout) {
+  #validateGatePlacement(grid, layout) {
     for (const entry of layout.entries) {
       const outsideCol =
         entry.inwardDirection === this.#DIRECTIONS.WEST
@@ -4191,7 +4124,7 @@ export class MapGenerator {
     }
   }
 
-  static #validatePathSpacing(layout) {
+  #validatePathSpacing(layout) {
     for (let i = 0; i < layout.entries.length; i++) {
       for (let j = i + 1; j < layout.entries.length; j++) {
         const aBottom = layout.entries[i].gateRows[1];
@@ -4203,11 +4136,11 @@ export class MapGenerator {
     }
   }
 
-  static #isRouteTile(tile) {
+  #isRouteTile(tile) {
     return tile === TileType.PATH || tile === TileType.ENTRY;
   }
 
-  static #isWithinMergeZone(layout, col, row) {
+  #isWithinMergeZone(layout, col, row) {
     const mergeCol = layout.entries[0]?.mergeCol;
     if (!Number.isFinite(mergeCol)) {
       return false;
@@ -4220,12 +4153,12 @@ export class MapGenerator {
     );
   }
 
-  static #isWithinMergeCorridor(layout, col) {
+  #isWithinMergeCorridor(layout, col) {
     const mergeCol = layout.entries[0]?.mergeCol;
     return Number.isFinite(mergeCol) && col >= mergeCol && col <= mergeCol + 1;
   }
 
-  static #routesShareMergeCellAtRow(firstCells, secondCells, layout, row) {
+  #routesShareMergeCellAtRow(firstCells, secondCells, layout, row) {
     const mergeCol = layout.entries[0]?.mergeCol;
     if (!Number.isFinite(mergeCol)) {
       return false;
@@ -4236,7 +4169,7 @@ export class MapGenerator {
     });
   }
 
-  static #isPlannedMergeContact(
+  #isPlannedMergeContact(
     firstCells,
     secondCells,
     layout,
@@ -4254,7 +4187,7 @@ export class MapGenerator {
     );
   }
 
-  static #isWithinOverpassCrossing(overpassPlan, col, row) {
+  #isWithinOverpassCrossing(overpassPlan, col, row) {
     if (!overpassPlan) {
       return false;
     }
@@ -4267,7 +4200,7 @@ export class MapGenerator {
     );
   }
 
-  static #findUnexpectedRouteConnection(
+  #findUnexpectedRouteConnection(
     routeCellsByPath,
     layout,
     overpassPlan,
@@ -4330,7 +4263,7 @@ export class MapGenerator {
     return null;
   }
 
-  static #validateRouteSeparation(routeCellsByPath, layout) {
+  #validateRouteSeparation(routeCellsByPath, layout) {
     const connection = this.#findUnexpectedRouteConnection(
       routeCellsByPath,
       layout,
@@ -4341,7 +4274,7 @@ export class MapGenerator {
     }
   }
 
-  static #hasInsufficientParallelPathClearance(grid, layout) {
+  #hasInsufficientParallelPathClearance(grid, layout) {
     for (let col = 0; col < this.#MAP_COLS; col++) {
       const horizontalBands = [];
       for (let row = 0; row < this.#MAP_ROWS - 1; row++) {
@@ -4402,13 +4335,13 @@ export class MapGenerator {
     return false;
   }
 
-  static #validateParallelPathClearance(grid, layout) {
+  #validateParallelPathClearance(grid, layout) {
     if (this.#hasInsufficientParallelPathClearance(grid, layout)) {
       throw new InsufficientParallelPathSpacingError();
     }
   }
 
-  static #findUnexpectedFlatPathCrossing(grid, overpassPlan) {
+  #findUnexpectedFlatPathCrossing(grid, overpassPlan) {
     const isRoutePair = (firstCol, firstRow, secondCol, secondRow) =>
       this.#inBounds(firstCol, firstRow) &&
       this.#inBounds(secondCol, secondRow) &&
@@ -4447,14 +4380,14 @@ export class MapGenerator {
     return null;
   }
 
-  static #validateFlatPathCrossings(grid, overpassPlan) {
+  #validateFlatPathCrossings(grid, overpassPlan) {
     const crossing = this.#findUnexpectedFlatPathCrossing(grid, overpassPlan);
     if (crossing) {
       throw new UnexpectedPathCrossingError(crossing);
     }
   }
 
-  static #validateRouteReachability(grid, layout) {
+  #validateRouteReachability(grid, layout) {
     const entranceTargets = layout.castleEntranceRows.map((row) =>
       this.#tileKey(layout.castleEntranceCol, row),
     );
@@ -4487,7 +4420,7 @@ export class MapGenerator {
     }
   }
 
-  static #validateCastleEntrance(grid, layout) {
+  #validateCastleEntrance(grid, layout) {
     const entranceRows = [...layout.castleEntranceRows].sort(
       (left, right) => left - right,
     );
@@ -4502,7 +4435,7 @@ export class MapGenerator {
     }
   }
 
-  static #validateCastleGroundClearance(grid, layout) {
+  #validateCastleGroundClearance(grid, layout) {
     for (
       let row = layout.castleTop - this.#CASTLE_GROUND_CLEARANCE;
       row <= layout.castleBottom + this.#CASTLE_GROUND_CLEARANCE;
@@ -4520,7 +4453,7 @@ export class MapGenerator {
     }
   }
 
-  static #validateHeightDiscipline(grid, heightmap, tileMeta) {
+  #validateHeightDiscipline(grid, heightmap, tileMeta) {
     for (let row = 0; row < this.#MAP_ROWS; row++) {
       for (let col = 0; col < this.#MAP_COLS; col++) {
         const tile = grid[row][col];
@@ -4559,7 +4492,7 @@ export class MapGenerator {
     }
   }
 
-  static #validateOverpass(grid, heightmap, tileMeta, plan) {
+  #validateOverpass(grid, heightmap, tileMeta, plan) {
     if (!plan) {
       return;
     }
@@ -4675,7 +4608,7 @@ export class MapGenerator {
     }
   }
 
-  static #validatePathDips(grid, heightmap, tileMeta, plans, riverData) {
+  #validatePathDips(grid, heightmap, tileMeta, plans, riverData) {
     const riverCells = new Set(
       riverData.flatMap((river) =>
         river.cells.map((cell) => this.#tileKey(cell.col, cell.row)),
@@ -4793,7 +4726,7 @@ export class MapGenerator {
     }
   }
 
-  static #validatePathRenderModes(grid, heightmap, tileMeta) {
+  #validatePathRenderModes(grid, heightmap, tileMeta) {
     for (let row = 0; row < this.#MAP_ROWS; row++) {
       for (let col = 0; col < this.#MAP_COLS; col++) {
         if (grid[row][col] !== TileType.PATH) {
@@ -4819,7 +4752,7 @@ export class MapGenerator {
     }
   }
 
-  static #validateBridgeGroundHeights(heightmap, tileMeta, riverData) {
+  #validateBridgeGroundHeights(heightmap, tileMeta, riverData) {
     const riverBridgeCells = new Set(
       riverData.flatMap((river) =>
         river.cells
@@ -4849,7 +4782,7 @@ export class MapGenerator {
     }
   }
 
-  static #validateBridgeTurns(tileMeta) {
+  #validateBridgeTurns(tileMeta) {
     for (let row = 0; row < this.#MAP_ROWS; row++) {
       for (let col = 0; col < this.#MAP_COLS; col++) {
         if (tileMeta[row][col].renderMode !== "BRIDGE") {
@@ -4886,7 +4819,7 @@ export class MapGenerator {
     }
   }
 
-  static #validateGrassNoise(grid, heightmap, tileMeta, riverData) {
+  #validateGrassNoise(grid, heightmap, tileMeta, riverData) {
     const intentionalRiverBanks = new Set();
     for (const river of riverData) {
       for (const cell of river.cells) {
@@ -4928,7 +4861,7 @@ export class MapGenerator {
     }
   }
 
-  static #validateLayoutVariety(layout) {
+  #validateLayoutVariety(layout) {
     if (
       layout.islandEllipses.every((ellipse, index) => {
         const base = [
@@ -4950,7 +4883,7 @@ export class MapGenerator {
     }
   }
 
-  static #validateVegetation(
+  #validateVegetation(
     grid,
     heightmap,
     tileMeta,
@@ -5005,7 +4938,7 @@ export class MapGenerator {
     }
   }
 
-  static #validateStones(
+  #validateStones(
     grid,
     heightmap,
     tileMeta,
@@ -5067,7 +5000,7 @@ export class MapGenerator {
     }
   }
 
-  static #validateGroundCover(
+  #validateGroundCover(
     grid,
     heightmap,
     tileMeta,
@@ -5107,7 +5040,7 @@ export class MapGenerator {
     }
   }
 
-  static #validateNoSingleCellTerrainHoles(grid) {
+  #validateNoSingleCellTerrainHoles(grid) {
     for (let row = 1; row < this.#MAP_ROWS - 1; row++) {
       for (let col = 1; col < this.#MAP_COLS - 1; col++) {
         if (grid[row][col] !== TileType.WATER) {
@@ -5126,7 +5059,7 @@ export class MapGenerator {
     }
   }
 
-  static #validateRivers(
+  #validateRivers(
     grid,
     heightmap,
     tileMeta,
@@ -5401,77 +5334,6 @@ export class MapGenerator {
     }
   }
 
-  static async #validateMap(
-    grid,
-    heightmap,
-    tileMeta,
-    layout,
-    islandMask,
-    vegetationPlacements,
-    stonePlacements,
-    groundCoverData,
-    riverData,
-    routeCellsByPath,
-    yieldState,
-  ) {
-    this.#validateRivers(
-      grid,
-      heightmap,
-      tileMeta,
-      islandMask,
-      layout,
-      riverData,
-    );
-    this.#validateNoSingleCellTerrainHoles(grid);
-    this.#validateIslandConnectivity(grid);
-    this.#validateGatePlacement(grid, layout);
-    this.#validatePathSpacing(layout);
-    await this.#yieldIfNeeded(yieldState);
-    this.#validateRouteSeparation(routeCellsByPath, layout);
-    this.#validateParallelPathClearance(grid, layout);
-    this.#validateFlatPathCrossings(grid, layout.overpassPlan);
-    this.#validateRouteReachability(grid, layout);
-    this.#validateCastleEntrance(grid, layout);
-    this.#validateCastleGroundClearance(grid, layout);
-    await this.#yieldIfNeeded(yieldState);
-    this.#validateHeightDiscipline(grid, heightmap, tileMeta);
-    this.#validateOverpass(grid, heightmap, tileMeta, layout.overpassPlan);
-    this.#validatePathRenderModes(grid, heightmap, tileMeta);
-    this.#validatePathDips(
-      grid,
-      heightmap,
-      tileMeta,
-      layout.pathDipPlans,
-      riverData,
-    );
-    this.#validateBridgeTurns(tileMeta);
-    this.#validateBridgeGroundHeights(heightmap, tileMeta, riverData);
-    this.#validateGrassNoise(grid, heightmap, tileMeta, riverData);
-    await this.#yieldIfNeeded(yieldState);
-    this.#validateLayoutVariety(layout);
-    this.#validateVegetation(
-      grid,
-      heightmap,
-      tileMeta,
-      layout,
-      vegetationPlacements,
-    );
-    this.#validateStones(
-      grid,
-      heightmap,
-      tileMeta,
-      vegetationPlacements,
-      stonePlacements,
-    );
-    this.#validateGroundCover(
-      grid,
-      heightmap,
-      tileMeta,
-      vegetationPlacements,
-      stonePlacements,
-      groundCoverData,
-    );
-  }
 }
 
 export function generateMap(options) {

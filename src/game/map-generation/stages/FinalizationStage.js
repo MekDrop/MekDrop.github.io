@@ -1,0 +1,117 @@
+import { AbstractMapGenerationStage } from "../AbstractMapGenerationStage.js";
+
+/**
+ * Assembles the stable public map contract and generated object records.
+ */
+export class FinalizationStage extends AbstractMapGenerationStage {
+  #operations;
+
+  constructor(operations) {
+    super();
+    this.#operations = operations;
+  }
+
+  async run(context) {
+    const { grid, heightmap, tileMeta } = context.world;
+    const { layout, routeCellsByPath, mergeZones, trunkStart } =
+      context.routing;
+    const {
+      riverData,
+      vegetationPlacements,
+      stonePlacements,
+      groundCoverData,
+      cliffVineData,
+    } = context.features;
+    const { routes, arrowData, castle } = context.output;
+    const { cols, rows } = this.#operations.mapDimensions;
+    const royalSeed = this.#operations.randomUint32();
+    const royalType = ["King", "Queen", "Princess"][royalSeed % 3];
+    const residentPosition = {
+      x: castle.position.col + castle.position.width / 2 - cols / 2,
+      y: castle.position.elevation,
+      z: castle.position.row + castle.position.depth / 2 - rows / 2,
+    };
+    const objects = [
+      {
+        id: `castle-${royalType.toLowerCase()}`,
+        object: royalType,
+        castleIndex: 0,
+        seed: royalSeed,
+        position: residentPosition,
+      },
+      {
+        id: "castle-servant",
+        object: "Servant",
+        castleIndex: 0,
+        position: residentPosition,
+      },
+      ...vegetationPlacements.map((vegetation, index) => ({
+        id: `vegetation-${index}`,
+        object: "Vegetation",
+        variant: vegetation.variant,
+        kind: vegetation.kind,
+        rotation: vegetation.rotation ?? 0,
+        tile: { col: vegetation.col, row: vegetation.row },
+        position: {
+          x: vegetation.col - (cols - 1) / 2,
+          y:
+            heightmap[vegetation.row][vegetation.col] +
+            this.#operations.grassSurfaceLift,
+          z: vegetation.row - (rows - 1) / 2,
+        },
+      })),
+      ...stonePlacements.map((stone, index) => ({
+        id: `stone-cluster-${index}`,
+        object: "StoneCluster",
+        tile: { col: stone.col, row: stone.row },
+        position: {
+          x: stone.col - (cols - 1) / 2,
+          y:
+            heightmap[stone.row][stone.col] +
+            this.#operations.grassSurfaceLift,
+          z: stone.row - (rows - 1) / 2,
+        },
+        parts: stone.parts,
+      })),
+    ];
+    const mapData = {
+      grid,
+      heightmap,
+      tileMeta,
+      cols,
+      rows,
+      entries: layout.entries.map((entry, index) => ({
+        col: entry.gateCol,
+        row: entry.gateRows[0],
+        rows: [...entry.gateRows],
+        side: entry.side,
+        color:
+          this.#operations.gatewayColors[
+            index % this.#operations.gatewayColors.length
+          ],
+      })),
+      castlePos: { col: layout.castleLeft, row: layout.pathRows[0] },
+      castle,
+      numPaths: layout.entries.length,
+      paths: routeCellsByPath.map((path, pathIdx) => ({
+        ...path,
+        route: routes[pathIdx],
+      })),
+      arrowData,
+      objects,
+      groundCoverData,
+      cliffVineData,
+      riverData,
+      pipeData: new Map(),
+      overpassData: layout.overpassPlan,
+      pathDipData: layout.pathDipPlans,
+      mergeZones,
+      trunkStart,
+      layoutSignature: layout.signature,
+      mapName: context.input.mapName,
+    };
+    mapData.earthTextureVariants =
+      this.#operations.createEarthTextureVariants(mapData);
+    context.output.mapData = mapData;
+  }
+}
