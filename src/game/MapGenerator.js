@@ -310,7 +310,29 @@ export class MapGenerator {
     await this.#yieldIfNeeded(yieldState);
     const { routes, arrowData } = this.#buildRouteData(layout);
     const castle = this.#buildCastleData(grid, layout);
+    const royalSeed = this.#rng(0, 0xffffffff);
+    const royalType = ["King", "Queen", "Princess"][
+      (Number(royalSeed) >>> 0) % 3
+    ];
+    const residentPosition = {
+      x: castle.position.col + castle.position.width / 2 - this.#MAP_COLS / 2,
+      y: castle.position.elevation,
+      z: castle.position.row + castle.position.depth / 2 - this.#MAP_ROWS / 2,
+    };
     const objects = [
+      {
+        id: `castle-${royalType.toLowerCase()}`,
+        object: royalType,
+        castleIndex: 0,
+        seed: royalSeed,
+        position: residentPosition,
+      },
+      {
+        id: "castle-servant",
+        object: "Servant",
+        castleIndex: 0,
+        position: residentPosition,
+      },
       ...vegetationPlacements.map((vegetation, index) => ({
         id: `vegetation-${index}`,
         object: "Vegetation",
@@ -1785,7 +1807,6 @@ export class MapGenerator {
       },
       style: layout.castleFootprint.style,
       doors,
-      occupantSeed: this.#rng(0, 0xffffffff),
     };
   }
 
@@ -3880,7 +3901,13 @@ export class MapGenerator {
     return 3;
   }
 
-  static #placeStones(grid, heightmap, tileMeta, vegetationPlacements, mapName) {
+  static #placeStones(
+    grid,
+    heightmap,
+    tileMeta,
+    vegetationPlacements,
+    mapName,
+  ) {
     if (this.#hashMapName(`${mapName}:stone-presence`) % 10000 < 2827) {
       return [];
     }
@@ -4978,7 +5005,13 @@ export class MapGenerator {
     }
   }
 
-  static #validateStones(grid, heightmap, tileMeta, vegetationPlacements, stonePlacements) {
+  static #validateStones(
+    grid,
+    heightmap,
+    tileMeta,
+    vegetationPlacements,
+    stonePlacements,
+  ) {
     const occupied = new Set(
       vegetationPlacements.map(({ col, row }) => this.#tileKey(col, row)),
     );
@@ -5416,8 +5449,20 @@ export class MapGenerator {
     this.#validateGrassNoise(grid, heightmap, tileMeta, riverData);
     await this.#yieldIfNeeded(yieldState);
     this.#validateLayoutVariety(layout);
-    this.#validateVegetation(grid, heightmap, tileMeta, layout, vegetationPlacements);
-    this.#validateStones(grid, heightmap, tileMeta, vegetationPlacements, stonePlacements);
+    this.#validateVegetation(
+      grid,
+      heightmap,
+      tileMeta,
+      layout,
+      vegetationPlacements,
+    );
+    this.#validateStones(
+      grid,
+      heightmap,
+      tileMeta,
+      vegetationPlacements,
+      stonePlacements,
+    );
     this.#validateGroundCover(
       grid,
       heightmap,

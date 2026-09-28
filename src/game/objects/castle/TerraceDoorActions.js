@@ -1,7 +1,5 @@
-import servantUrl from "../../models/castle/leisure/servant.glb?url";
 import { CASTLE_TERRACE_PHASE as PHASE } from "../../enum/CastleTerracePhase.js";
 import { TERRACE_DOOR_INSPECTION_PHASE as INSPECTION } from "../../enum/TerraceDoorInspectionPhase.js";
-import { TerraceActor } from "./TerraceActor.js";
 import { TerraceDoor } from "./TerraceDoor.js";
 import { TerraceDoorInspection } from "./TerraceDoorInspection.js";
 import { TerraceInspectorWalk } from "./TerraceInspectorWalk.js";
@@ -16,7 +14,7 @@ const ease = (value) => value * value * (3 - 2 * value);
  */
 export class TerraceDoorActions {
   static get modelUrls() {
-    return [servantUrl, ...TerraceDoor.modelUrls];
+    return TerraceDoor.modelUrls;
   }
 
   #pc;
@@ -35,6 +33,7 @@ export class TerraceDoorActions {
     root,
     stage,
     scale,
+    inspector,
     canInspect,
   }) {
     this.#pc = pc;
@@ -50,16 +49,10 @@ export class TerraceDoorActions {
     });
     this.#door.entity.setLocalPosition(0, 0, DOORWAY_POSITION_Z);
     root.addChild(this.#door.entity);
-    this.#inspector = new TerraceActor({
-      pc,
-      modelLibrary,
-      modelUrl: servantUrl,
-      kind: "servant",
-    });
+    this.#inspector = inspector;
     this.#inspector.entity.name = "Terrace door inspecting servant";
     this.#inspector.entity.setLocalScale(scale, scale, scale);
     this.#inspector.entity.enabled = false;
-    root.addChild(this.#inspector.entity);
   }
 
   get inspecting() {
@@ -72,17 +65,24 @@ export class TerraceDoorActions {
       inspectionPhase: this.#inspection.phase,
       inspectionAnimation: this.#inspection.animation,
       inspectorVisible: this.#inspector.entity.enabled,
-      handleGripDistance: this.#inspection.phase === INSPECTION.CLOSE
-        ? this.#inspector.rightHand.getPosition().distance(
-          this.#door.insideHandle.getPosition(),
-        ) : null,
+      handleGripDistance:
+        this.#inspection.phase === INSPECTION.CLOSE
+          ? this.#inspector.rightHand
+              .getPosition()
+              .distance(this.#door.insideHandle.getPosition())
+          : null,
     };
   }
 
   update(deltaTime, participantPhase) {
-    const traffic = [PHASE.SERVANT_ENTER, PHASE.SERVANT_EXIT,
-      PHASE.ROYAL_ENTER, PHASE.ROYAL_EXIT, PHASE.SERVANT_RETURN,
-      PHASE.SERVANT_LEAVE].includes(participantPhase);
+    const traffic = [
+      PHASE.SERVANT_ENTER,
+      PHASE.SERVANT_EXIT,
+      PHASE.ROYAL_ENTER,
+      PHASE.ROYAL_EXIT,
+      PHASE.SERVANT_RETURN,
+      PHASE.SERVANT_LEAVE,
+    ].includes(participantPhase);
     this.#inspection.update(
       deltaTime,
       ![PHASE.DORMANT, PHASE.ACTIVITY].includes(participantPhase),
@@ -115,7 +115,8 @@ export class TerraceDoorActions {
 
   destroy() {
     this.#inspection.reset();
-    this.#inspector.destroy();
+    this.#inspector.entity.enabled = false;
+    this.#inspector = null;
     this.#door.destroy();
   }
 
@@ -150,15 +151,21 @@ export class TerraceDoorActions {
       yaw = -90 + 180 * turn;
       animation = progress < 0.5 ? animation : "idle";
       animationTime = Math.min(1, progress * 2);
-    } else if ([INSPECTION.RETURN, INSPECTION.GRASP, INSPECTION.CLOSE,
-      INSPECTION.RELEASE, INSPECTION.LEAVE].includes(phase)) {
+    } else if (
+      [
+        INSPECTION.RETURN,
+        INSPECTION.GRASP,
+        INSPECTION.CLOSE,
+        INSPECTION.RELEASE,
+        INSPECTION.LEAVE,
+      ].includes(phase)
+    ) {
       this.#syncInspectorClosing();
       return;
     }
-    const stairProgress = ease(Math.max(
-      0,
-      Math.min(1, (z - DOORWAY_START_Z) / 1.5),
-    ));
+    const stairProgress = ease(
+      Math.max(0, Math.min(1, (z - DOORWAY_START_Z) / 1.5)),
+    );
     const scale = this.#stage.getLocalScale().x;
     this.#inspector.entity.setLocalPosition(
       0,
@@ -180,7 +187,9 @@ export class TerraceDoorActions {
     actor.pose(this.#inspection.alignmentAnimation, time);
     actor.evaluatePose();
     actor.entity.setRotation(this.#door.hingeRotation);
-    const offset = this.#door.insideHandle.getPosition().clone()
+    const offset = this.#door.insideHandle
+      .getPosition()
+      .clone()
       .sub(actor.rightHand.getPosition());
     actor.entity.setPosition(actor.entity.getPosition().clone().add(offset));
     const gripPosition = actor.entity.getLocalPosition().clone();
@@ -188,13 +197,16 @@ export class TerraceDoorActions {
       const forward = this.#door.hingeRotation.transformVector(
         new this.#pc.Vec3(0, 0, 1),
       );
-      this.#root.getWorldTransform().clone().invert()
+      this.#root
+        .getWorldTransform()
+        .clone()
+        .invert()
         .transformVector(forward, forward);
       const motion = TerraceInspectorWalk.sample({
         start: { x: 0, y: 0, z: 1.6 * scale },
         end: gripPosition,
         startYaw: 90,
-        endYaw: Math.atan2(forward.x, forward.z) * 180 / Math.PI,
+        endYaw: (Math.atan2(forward.x, forward.z) * 180) / Math.PI,
         elapsed: this.#inspection.elapsed,
         duration: 2,
         scale,

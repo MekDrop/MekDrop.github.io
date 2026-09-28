@@ -1,6 +1,5 @@
 import { CastleBanner } from "./CastleBanner.js";
 import { CastleAudienceRoom } from "./CastleAudienceRoom.js";
-import { CastleTerraceActivity } from "./CastleTerraceActivity.js";
 import { CastleDoor } from "./CastleDoor.js";
 import { CastleDoorArch } from "./CastleDoorArch.js";
 import { CastleFire } from "./CastleFire.js";
@@ -153,8 +152,7 @@ const castleGateArchHeight = (opening, horizontalBlock) => {
     CASTLE_GATE_OPENING_HEIGHT_BLOCKS,
     Math.floor(
       CASTLE_GATE_ARCH_SPRING_BLOCKS +
-        (CASTLE_GATE_OPENING_HEIGHT_BLOCKS -
-          CASTLE_GATE_ARCH_SPRING_BLOCKS) *
+        (CASTLE_GATE_OPENING_HEIGHT_BLOCKS - CASTLE_GATE_ARCH_SPRING_BLOCKS) *
           Math.sqrt(1 - (1 - normalizedRadius) ** 2),
     ),
   );
@@ -168,7 +166,6 @@ export class Castle {
       CastleDoorArch.modelUrl,
       CastleStairs.modelUrl,
       ...CastleAudienceRoom.modelUrls,
-      ...CastleTerraceActivity.modelUrls,
     ];
   }
 
@@ -177,7 +174,6 @@ export class Castle {
   #position;
   #doors;
   #styleId;
-  #occupantSeed;
   #modelLibrary;
   #fireParticleTexture;
   #entity;
@@ -194,6 +190,9 @@ export class Castle {
   #stairs = null;
   #audienceRoom = null;
   #terraceActivity = null;
+  #terraceContext = null;
+  #royal = null;
+  #servant = null;
   #groundCollisionColumns = [];
   #groundCollisionKeys = new Set();
   #cameraCollisionBlocks = [];
@@ -211,7 +210,6 @@ export class Castle {
     position,
     doors = [],
     style = null,
-    occupantSeed = 0,
     modelLibrary,
     doorTexture,
     stoneTexture,
@@ -223,7 +221,6 @@ export class Castle {
     this.#position = position;
     this.#doors = doors;
     this.#styleId = style;
-    this.#occupantSeed = occupantSeed;
     this.#modelLibrary = modelLibrary;
     this.#doorTexture = doorTexture;
     this.#stoneTexture = stoneTexture;
@@ -241,6 +238,17 @@ export class Castle {
 
   get entity() {
     return this.#entity;
+  }
+
+  attachRoyal(royal) {
+    this.#royal = royal;
+    this.#audienceRoom.occupant = royal.audienceActor;
+    this.#connectResidents();
+  }
+
+  attachServant(servant) {
+    this.#servant = servant;
+    this.#connectResidents();
   }
 
   get royalActivityState() {
@@ -293,9 +301,7 @@ export class Castle {
       const distanceY = Math.max(Math.abs(y - block.y) - block.halfY, 0);
       const distanceZ = Math.max(Math.abs(z - block.z) - block.halfZ, 0);
       return (
-        distanceX * distanceX +
-          distanceY * distanceY +
-          distanceZ * distanceZ <=
+        distanceX * distanceX + distanceY * distanceY + distanceZ * distanceZ <=
         radius * radius
       );
     });
@@ -346,20 +352,6 @@ export class Castle {
       : pointerBannerHit;
   }
 
-  beginGameOver(getCameraPosition) {
-    this.#terraceActivity?.stop();
-    this.#syncAudienceRoomVisibility();
-    for (const door of this.#animatedDoors) door.openTemporarily(10);
-    return this.#audienceRoom?.beginGameOver(
-      getCameraPosition,
-      (x, z, radius) => this.#intersectsGroundColumns(x, z, radius),
-    ) ?? null;
-  }
-
-  startGameOverPerformance() {
-    this.#audienceRoom?.startGameOverPerformance();
-  }
-
   beginWindGesture(hit) {
     this.#activeWindTarget = hit?.flag ? this.#flags : this.#banners;
     this.#activeWindTarget?.beginWindGesture(hit);
@@ -403,8 +395,10 @@ export class Castle {
     this.#doorArches = [];
     this.#audienceRoom?.destroy();
     this.#audienceRoom = null;
-    this.#terraceActivity?.destroy();
     this.#terraceActivity = null;
+    this.#terraceContext = null;
+    this.#royal = null;
+    this.#servant = null;
     this.#fire?.destroy();
     this.#fire = null;
     this.#banners?.destroy();
@@ -455,9 +449,7 @@ export class Castle {
       return;
     }
     try {
-      this.#terraceActivity?.update(deltaTime);
       for (const door of this.#animatedDoors) door.update(deltaTime);
-      this.#audienceRoom?.update(deltaTime);
       this.#syncAudienceRoomVisibility();
     } catch (error) {
       this.#updateFailed = true;
@@ -549,18 +541,12 @@ export class Castle {
     if (!door) {
       return;
     }
-    const occupant = CastleAudienceRoom.createOccupant({
-      pc: this.#pc,
-      app: this.#app,
-      seed: this.#occupantSeed,
-      modelLibrary: this.#modelLibrary,
-    });
     this.#audienceRoom = new CastleAudienceRoom({
       pc: this.#pc,
       app: this.#app,
       position: this.#position,
       door,
-      occupant,
+      occupant: null,
       materials: this.#materials,
       availableDepth: this.#interiorDepth,
       availableWidth: this.#interiorWidth,
@@ -1214,12 +1200,11 @@ export class Castle {
         gatehouseDepth - 0.68,
         doorStart + 1.5,
       );
-      this.#terraceActivity = new CastleTerraceActivity({
+      this.#terraceContext = {
         pc: this.#pc,
         modelLibrary: this.#modelLibrary,
         wallMaterial: this.#materials.get("castleStoneMid"),
         woodMaterial: this.#materials.get("castleDoor"),
-        seed: this.#occupantSeed,
         position: this.#position,
         doors: this.#doors,
         layout: {
@@ -1232,9 +1217,33 @@ export class Castle {
         onRoyalAtThroneChange: (atThrone) => {
           this.#audienceRoom.royalVisible = atThrone;
         },
-      });
-      this.#entity.addChild(this.#terraceActivity.entity);
+      };
+      this.#connectResidents();
     }
+  }
+
+  #connectResidents() {
+    if (
+      this.#terraceActivity ||
+      !this.#terraceContext ||
+      !this.#royal ||
+      !this.#servant
+    ) {
+      return;
+    }
+    this.#terraceActivity = this.#royal.connectToCastle({
+      ...this.#terraceContext,
+      servant: this.#servant,
+      audienceRoom: this.#audienceRoom,
+      isBlocked: (x, z, radius) => this.#intersectsGroundColumns(x, z, radius),
+      prepareGameOver: () => {
+        this.#terraceActivity?.stop();
+        this.#syncAudienceRoomVisibility();
+        for (const door of this.#animatedDoors) {
+          door.openTemporarily(10);
+        }
+      },
+    });
   }
 
   #createAnimatedDoors() {

@@ -83,14 +83,16 @@ export class GameOverScene {
     if (!state.gameOver || this.#active) {
       return;
     }
-    const castles = this.#sceneObjects.getAll(SCENE_OBJECT_TYPE.CASTLE);
-    if (castles.length === 0 || !this.#getCameraPosition()) {
+    const royals = this.#sceneObjects
+      .getAll(SCENE_OBJECT_TYPE.MAP_OBJECT)
+      .filter((object) => typeof object.beginGameOver === "function");
+    if (royals.length === 0 || !this.#getCameraPosition()) {
       return;
     }
-    const performances = castles
-      .map((castle) => ({
-        castle,
-        presentation: castle.beginGameOver(() => this.#getCameraPosition()),
+    const performances = royals
+      .map((royal) => ({
+        royal,
+        presentation: royal.beginGameOver(() => this.#getCameraPosition()),
       }))
       .filter(({ presentation }) => presentation);
     if (performances.length === 0) {
@@ -117,8 +119,8 @@ export class GameOverScene {
       endZoom: this.#getZoom(visualSize, viewRotation, cameraState),
     };
     this.#setCameraState({ viewportManuallyMoved: true });
-    for (const { castle } of performances) {
-      castle.startGameOverPerformance();
+    for (const { royal } of performances) {
+      royal.startGameOverPerformance();
     }
   }
 
@@ -132,8 +134,7 @@ export class GameOverScene {
     const easedProgress = progress * progress * (3 - 2 * progress);
     this.#setCameraState({
       rotation:
-        transition.startRotation +
-        transition.rotationDelta * easedProgress,
+        transition.startRotation + transition.rotationDelta * easedProgress,
       panX:
         transition.startPanX +
         (transition.endPanX - transition.startPanX) * easedProgress,

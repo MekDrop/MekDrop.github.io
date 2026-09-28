@@ -2,7 +2,11 @@ import { SeatedRoyal } from "./castle/SeatedRoyal.js";
 import { MapObjectClassNotFoundError } from "../errors/debug/index.js";
 import { GroundCoverItem } from "./ground-cover/GroundCoverItem.js";
 import { Hero } from "./hero/Hero.js";
+import { King } from "./royal/king/King.js";
+import { Princess } from "./royal/princess/Princess.js";
+import { Queen } from "./royal/queen/Queen.js";
 import { StoneCluster } from "./scenery/StoneCluster.js";
+import { Servant } from "./servant/Servant.js";
 import { WoodenSign } from "./scenery/WoodenSign.js";
 import { TriggerArea } from "./shared/TriggerArea.js";
 import { VoxelVegetation } from "./vegetation/VoxelVegetation.js";
@@ -13,11 +17,15 @@ import { MapVirtualItem } from "../debug/MapVirtualItem.js";
 const OBJECT_CLASSES = new Map([
   [GroundCoverItem.name, MapVirtualItem],
   [Hero.name, MapAnimationActor],
+  [King.name, King],
+  [Princess.name, Princess],
+  [Queen.name, Queen],
   [StoneCluster.name, StoneCluster],
   [TriggerArea.name, TriggerArea],
   ["Vegetation", VoxelVegetation],
   [WoodenSign.name, WoodenSign],
   [SeatedRoyal.name, MapAnimationActor],
+  [Servant.name, Servant],
 ]);
 
 /**
@@ -27,9 +35,10 @@ export class MapObjectFactory {
   static get modelUrls() {
     return [
       ...new Set(
-        [...OBJECT_CLASSES.values()].flatMap((ObjectClass) =>
-          ObjectClass.modelUrls ??
-          (ObjectClass.modelUrl ? [ObjectClass.modelUrl] : []),
+        [...OBJECT_CLASSES.values()].flatMap(
+          (ObjectClass) =>
+            ObjectClass.modelUrls ??
+            (ObjectClass.modelUrl ? [ObjectClass.modelUrl] : []),
         ),
       ),
     ];

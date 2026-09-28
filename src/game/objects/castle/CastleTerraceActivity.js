@@ -1,21 +1,6 @@
-import { TerraceKing } from "./TerraceKing.js";
-import { TerracePrincess } from "./TerracePrincess.js";
-import { TerraceQueen } from "./TerraceQueen.js";
-import { KingTrainingBehavior } from "./KingTrainingBehavior.js";
-import { QueenLeisureBehavior } from "./QueenLeisureBehavior.js";
-import { PrincessLeisureBehavior } from "./PrincessLeisureBehavior.js";
-import { TerraceServantBehavior } from "./TerraceServantBehavior.js";
 import { RoyalWishFulfillment } from "./RoyalWishFulfillment.js";
 import { TerraceDoorActions } from "./TerraceDoorActions.js";
-import { TerraceRoyalActions } from "./TerraceRoyalActions.js";
 import { TerraceServiceActions } from "./TerraceServiceActions.js";
-
-const ROYAL_TYPES = [TerraceKing, TerraceQueen, TerracePrincess];
-const ROYAL_BEHAVIOR_TYPES = [
-  KingTrainingBehavior,
-  QueenLeisureBehavior,
-  PrincessLeisureBehavior,
-];
 
 /**
  * Connects the hero trigger, royal wishes, and participant-owned actions.
@@ -23,7 +8,6 @@ const ROYAL_BEHAVIOR_TYPES = [
 export class CastleTerraceActivity {
   static get modelUrls() {
     return [
-      ...ROYAL_TYPES.map((RoyalType) => RoyalType.modelUrl),
       ...TerraceDoorActions.modelUrls,
       ...TerraceServiceActions.modelUrls,
     ];
@@ -48,7 +32,8 @@ export class CastleTerraceActivity {
     modelLibrary,
     wallMaterial,
     woodMaterial,
-    seed,
+    royal,
+    servant,
     position,
     doors,
     layout,
@@ -56,17 +41,6 @@ export class CastleTerraceActivity {
   }) {
     this.#position = position;
     this.#doors = doors;
-    const royalIndex = (Number(seed) >>> 0) % ROYAL_TYPES.length;
-    const RoyalType = ROYAL_TYPES[royalIndex];
-    const RoyalBehaviorType = ROYAL_BEHAVIOR_TYPES[royalIndex];
-    this.#kind = RoyalType.kind;
-    this.#royalBehavior = new RoyalBehaviorType(onRoyalAtThroneChange);
-    this.#servantBehavior = this.#kind === "king"
-      ? null : new TerraceServantBehavior();
-    this.#wishFulfillment = new RoyalWishFulfillment(
-      this.#royalBehavior,
-      this.#servantBehavior,
-    );
     this.#entity = new pc.Entity("Castle terrace activity");
     this.#entity.setLocalPosition(layout.x, layout.y, layout.z);
     this.#entity.setLocalEulerAngles(0, layout.yaw, 0);
@@ -74,21 +48,31 @@ export class CastleTerraceActivity {
     const scale = Math.min(0.45, layout.depth / 5.5, layout.width / 4.2);
     this.#stage.setLocalScale(scale, scale, scale);
     this.#entity.addChild(this.#stage);
-    this.#royalActions = new TerraceRoyalActions({
-      RoyalType,
+    const royalParticipant = royal.createTerraceParticipant({
       pc,
       modelLibrary,
-      performanceSeed: seed,
+      onRoyalAtThroneChange,
       stage: this.#stage,
     });
-    this.#serviceActions = this.#servantBehavior
-      ? new TerraceServiceActions({
-        pc,
-        modelLibrary,
-        stage: this.#stage,
-        kind: this.#kind,
-        royal: this.#royalActions.actor,
-      }) : null;
+    this.#kind = royalParticipant.kind;
+    this.#royalBehavior = royalParticipant.behavior;
+    this.#royalActions = royalParticipant.actions;
+    const servantParticipant = servant.createTerraceParticipant({
+      pc,
+      modelLibrary,
+      layout,
+      scale,
+      kind: this.#kind,
+      royal: this.#royalActions.actor,
+    });
+    this.#servantBehavior =
+      this.#kind === "king" ? null : servantParticipant.behavior;
+    this.#serviceActions =
+      this.#kind === "king" ? null : servantParticipant.serviceActions;
+    this.#wishFulfillment = new RoyalWishFulfillment(
+      this.#royalBehavior,
+      this.#servantBehavior,
+    );
     this.#doorActions = new TerraceDoorActions({
       pc,
       modelLibrary,
@@ -97,6 +81,7 @@ export class CastleTerraceActivity {
       root: this.#entity,
       stage: this.#stage,
       scale,
+      inspector: servantParticipant.inspector,
       canInspect: () => !this.#stopped,
     });
     const actionHandler = {
@@ -116,8 +101,11 @@ export class CastleTerraceActivity {
   }
 
   get active() {
-    return this.#royalBehavior.active || this.#servantBehavior?.active ||
-      (this.#servantBehavior?.installedCount ?? 0) > 0;
+    return (
+      this.#royalBehavior.active ||
+      this.#servantBehavior?.active ||
+      (this.#servantBehavior?.installedCount ?? 0) > 0
+    );
   }
 
   get state() {
@@ -160,7 +148,8 @@ export class CastleTerraceActivity {
 
   getPointerHit(rayStart, rayEnd) {
     return this.#stopped
-      ? null : this.#doorActions.getPointerHit(rayStart, rayEnd);
+      ? null
+      : this.#doorActions.getPointerHit(rayStart, rayEnd);
   }
 
   blocksCameraAt(x, y, z, radius = 0) {
@@ -169,21 +158,34 @@ export class CastleTerraceActivity {
 
   isTriggerAt({ x, y, z }) {
     const position = this.#position;
-    const inside = x >= position.x && x <= position.x + position.width &&
-      z >= position.z && z <= position.z + position.depth;
+    const inside =
+      x >= position.x &&
+      x <= position.x + position.width &&
+      z >= position.z &&
+      z <= position.z + position.depth;
     const distance = this.#triggered ? 2.4 : 1.7;
     const nearDoor = this.#doors.some((door) => {
       const vertical = door.side === "WEST" || door.side === "EAST";
       const lateral = vertical ? z - position.z : x - position.x;
-      const boundary = door.side === "WEST" ? position.x
-        : door.side === "EAST" ? position.x + position.width
-          : door.side === "NORTH" ? position.z : position.z + position.depth;
-      return Math.abs((vertical ? x : z) - boundary) <= distance &&
+      const boundary =
+        door.side === "WEST"
+          ? position.x
+          : door.side === "EAST"
+            ? position.x + position.width
+            : door.side === "NORTH"
+              ? position.z
+              : position.z + position.depth;
+      return (
+        Math.abs((vertical ? x : z) - boundary) <= distance &&
         lateral >= door.offset - 0.55 &&
-        lateral <= door.offset + door.width + 0.55;
+        lateral <= door.offset + door.width + 0.55
+      );
     });
-    return !this.#stopped && (inside || nearDoor) &&
-      Math.abs((y ?? position.elevation) - position.elevation) < 2;
+    return (
+      !this.#stopped &&
+      (inside || nearDoor) &&
+      Math.abs((y ?? position.elevation) - position.elevation) < 2
+    );
   }
 
   update(deltaTime) {
@@ -214,8 +216,6 @@ export class CastleTerraceActivity {
     if (this.#servantBehavior) {
       this.#servantBehavior.actionHandler = null;
     }
-    this.#royalActions.destroy();
-    this.#serviceActions?.destroy();
     this.#doorActions.destroy();
     this.#entity.destroy();
   }
@@ -225,17 +225,15 @@ export class CastleTerraceActivity {
       return this.#royalBehavior;
     }
     return this.#servantBehavior?.active
-      ? this.#servantBehavior : this.#royalBehavior;
+      ? this.#servantBehavior
+      : this.#royalBehavior;
   }
 
   #syncParticipantActions() {
     this.#stage.enabled = this.active;
     this.#royalActions.sync(this.#royalBehavior);
     if (this.#serviceActions) {
-      this.#serviceActions.sync(
-        this.#servantBehavior,
-        this.#royalBehavior,
-      );
+      this.#serviceActions.sync(this.#servantBehavior, this.#royalBehavior);
     }
   }
 }

@@ -18,7 +18,7 @@ const source = readFileSync(
   "utf8",
 ).replace(/^import[^;]+;\r?\n/gm, "");
 const dependencies = `
-  const SCENE_OBJECT_TYPE = { CASTLE: "castle" };
+  const SCENE_OBJECT_TYPE = { MAP_OBJECT: "mapObject" };
   const GameOverHud = globalThis.__gameOverSceneTestHud;
 `;
 globalThis.__gameOverSceneTestHud = FakeGameOverHud;
@@ -29,7 +29,7 @@ const { GameOverScene } = await import(
 );
 delete globalThis.__gameOverSceneTestHud;
 
-function createCastle(id, calls) {
+function createRoyal(id, calls) {
   return {
     beginGameOver() {
       calls.push(`${id}:begin`);
@@ -45,14 +45,14 @@ function createCastle(id, calls) {
   };
 }
 
-function createScene(castles, calls) {
+function createScene(royals, calls) {
   return new GameOverScene({
     pc: {},
     app: {},
     translate: (key) => key,
     theme: {},
     sceneObjects: {
-      getAll: () => castles,
+      getAll: () => royals,
     },
     getViewport: () => ({ panX: 0, panZ: 0, zoom: 1 }),
     getCameraPosition: () => ({ x: 0, y: 0, z: 0 }),
@@ -74,7 +74,7 @@ function createScene(castles, calls) {
 
 it("starts no royal reaction before the hero's last life is gone", () => {
   const calls = [];
-  const scene = createScene([createCastle("king", calls)], calls);
+  const scene = createScene([createRoyal("king", calls)], calls);
 
   scene.syncHeroState({ lives: 2, gameOver: false });
   scene.syncHeroState({ lives: 1, gameOver: false });
@@ -84,10 +84,10 @@ it("starts no royal reaction before the hero's last life is gone", () => {
 
 it("starts every royal's own final-death performance once", () => {
   const calls = [];
-  const castles = ["king", "queen", "princess"].map((id) =>
-    createCastle(id, calls),
+  const royals = ["king", "queen", "princess"].map((id) =>
+    createRoyal(id, calls),
   );
-  const scene = createScene(castles, calls);
+  const scene = createScene(royals, calls);
 
   scene.syncHeroState({ lives: 0, gameOver: true });
   scene.syncHeroState({ lives: 0, gameOver: true });

@@ -84,4 +84,21 @@ describe("MapGenerator castle foundation", () => {
       ),
     );
   });
+
+  it("authors the royal and servant as independent map objects", async () => {
+    const map = await MapGenerator.generate({
+      mapName: "castle-resident-objects",
+      numPaths: 3,
+      numRivers: 0,
+    });
+    const residents = map.objects.filter(({ object }) =>
+      ["King", "Queen", "Princess", "Servant"].includes(object),
+    );
+
+    assert.equal(residents.length, 2);
+    assert.ok(["King", "Queen", "Princess"].includes(residents[0].object));
+    assert.equal(residents[0].castleIndex, 0);
+    assert.equal(residents[1].object, "Servant");
+    assert.equal(residents[1].castleIndex, 0);
+  });
 });

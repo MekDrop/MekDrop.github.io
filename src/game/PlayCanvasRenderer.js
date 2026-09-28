@@ -1236,9 +1236,7 @@ export class PlayCanvasRenderer {
       getViewRotation: () => this.#camera.rotation,
       getViewDirection: () => {
         const state = this.#camera.firstPersonState;
-        return state
-          ? { ...state.direction, right: state.right }
-          : null;
+        return state ? { ...state.direction, right: state.right } : null;
       },
       onPositionChange: this.#handleHeroPositionChange,
       onFacingChange: this.#handleHeroFacingChange,
@@ -1448,7 +1446,6 @@ export class PlayCanvasRenderer {
           };
         }),
         style: definition.style,
-        occupantSeed: definition.occupantSeed,
         modelLibrary: this.#modelLibrary,
         doorTexture: this.#textureAssets.get("castleDoor").resource,
         stoneTexture: this.#textureAssets.get("castleStone").resource,
@@ -1467,7 +1464,8 @@ export class PlayCanvasRenderer {
     const hero = this.#sceneObjects.getOne(SCENE_OBJECT_TYPE.HERO);
     const heroPosition = hero?.position ?? position;
     const activeCastle = castles.find((castle) =>
-      castle.isRoyalActivityTriggerAt(heroPosition));
+      castle.isRoyalActivityTriggerAt(heroPosition),
+    );
     if (hero) {
       hero.boostingCountryFinances = Boolean(activeCastle);
     }

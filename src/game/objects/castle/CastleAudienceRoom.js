@@ -1,5 +1,4 @@
 import carpetTextureUrl from "src/assets/game/textures/castle-carpet.png";
-import { SeatedRoyal } from "./SeatedRoyal.js";
 import { CastleThrone } from "./CastleThrone.js";
 import { CastleFire } from "./CastleFire.js";
 import { GAME_OVER_VIEW_ROTATION_BY_SIDE } from "../../enum/GameOverViewRotation.js";
@@ -34,13 +33,7 @@ const ROYAL_DOORWAY_OUTSIDE = -0.35;
  */
 export class CastleAudienceRoom {
   static get modelUrls() {
-    return [CastleThrone.modelUrl, ...SeatedRoyal.modelUrls];
-  }
-
-  static createOccupant({ pc, app, seed, modelLibrary }) {
-    const modelUrls = SeatedRoyal.modelUrls;
-    const modelUrl = modelUrls[(Number(seed) >>> 0) % modelUrls.length];
-    return new SeatedRoyal({ pc, app, modelUrl, modelLibrary });
+    return [CastleThrone.modelUrl];
   }
 
   #pc;
@@ -118,6 +111,13 @@ export class CastleAudienceRoom {
     return this.#entity;
   }
 
+  set occupant(occupant) {
+    this.#occupant = occupant;
+    if (this.#occupant && this.#royalPosition) {
+      this.#placeOccupant();
+    }
+  }
+
   updateHeroPosition({ x, z }) {
     const deltaX = x - this.#center.x;
     const deltaZ = z - this.#center.z;
@@ -136,7 +136,9 @@ export class CastleAudienceRoom {
   }
 
   set royalVisible(visible) {
-    this.#occupant.entity.enabled = visible || this.#gameOverPerformance;
+    if (this.#occupant) {
+      this.#occupant.entity.enabled = visible || this.#gameOverPerformance;
+    }
   }
 
   beginGameOver(getCameraPosition, isBlocked = () => false) {
@@ -206,10 +208,6 @@ export class CastleAudienceRoom {
     });
   }
 
-  update(deltaTime) {
-    this.#occupant?.update(deltaTime);
-  }
-
   surfaceHeightAt(x, z) {
     const deltaX = x - this.#center.x;
     const deltaZ = z - this.#center.z;
@@ -224,8 +222,10 @@ export class CastleAudienceRoom {
     }
     let height = this.#baseY;
     for (const surface of this.#floorSurfaces) {
-      if (Math.abs(lateral - surface.lateral) <= surface.width / 2 &&
-        Math.abs(forward - surface.forward) <= surface.depth / 2) {
+      if (
+        Math.abs(lateral - surface.lateral) <= surface.width / 2 &&
+        Math.abs(forward - surface.forward) <= surface.depth / 2
+      ) {
         height = Math.max(height, surface.height);
       }
     }
@@ -256,7 +256,6 @@ export class CastleAudienceRoom {
   destroy() {
     this.#fire?.destroy();
     this.#fire = null;
-    this.#occupant?.destroy();
     this.#occupant = null;
     this.#throne?.destroy();
     this.#throne = null;
@@ -320,11 +319,7 @@ export class CastleAudienceRoom {
     );
     this.#roomWidth = Math.max(
       0,
-      Math.min(
-        layout.span - EDGE_MARGIN * 2,
-        this.#availableWidth,
-        6.4,
-      ),
+      Math.min(layout.span - EDGE_MARGIN * 2, this.#availableWidth, 6.4),
     );
   }
 
@@ -467,14 +462,11 @@ export class CastleAudienceRoom {
     const runnerLength = Math.max(0, runnerEnd - runnerStart);
     const runnerCenter = runnerStart + runnerLength / 2;
     const runnerWidth = Math.min(1.2, this.#roomWidth - 0.36);
-    this.#boxAt(
-      "Audience carpet runner",
-      "carpet",
-      0,
-      runnerCenter,
-      0.055,
-      [runnerWidth, 0.06, runnerLength],
-    );
+    this.#boxAt("Audience carpet runner", "carpet", 0, runnerCenter, 0.055, [
+      runnerWidth,
+      0.06,
+      runnerLength,
+    ]);
     // The same authored floor boxes define foot support, including the carpet
     // and plank borders, so boots cannot sink into the visuals.
     for (const part of this.#entity.children.slice(firstFloorPart)) {
@@ -512,6 +504,14 @@ export class CastleAudienceRoom {
 
     const royalPosition = this.#point(0, throneForward - 0.07, 0.37);
     this.#royalPosition = royalPosition;
+    this.#placeOccupant();
+  }
+
+  #placeOccupant() {
+    if (!this.#occupant || !this.#royalPosition) {
+      return;
+    }
+    const royalPosition = this.#royalPosition;
     this.#occupant.entity.setLocalPosition(
       royalPosition.x,
       royalPosition.y,
@@ -519,7 +519,6 @@ export class CastleAudienceRoom {
     );
     this.#occupant.entity.setLocalEulerAngles(0, this.#visitorFacingYaw(), 0);
     this.#occupant.entity.setLocalScale(0.72, 0.72, 0.72);
-    this.#entity.addChild(this.#occupant.entity);
   }
   #buildColumns(throneForward) {
     const lateral = Math.max(1.35, this.#roomWidth / 2 - 0.76);
@@ -603,11 +602,7 @@ export class CastleAudienceRoom {
           1.01,
           [0.58, 0.18, 0.58],
         );
-        const flamePosition = this.#point(
-          side * lateral,
-          forward,
-          1.12,
-        );
+        const flamePosition = this.#point(side * lateral, forward, 1.12);
         this.#fire.add({
           x: flamePosition.x,
           y: flamePosition.y,
@@ -732,5 +727,4 @@ export class CastleAudienceRoom {
     }[name];
     return this.#materials.get(name) ?? this.#sharedMaterials.get(sharedName);
   }
-
 }
