@@ -1,3 +1,8 @@
+import { TerrainValidator } from "../TerrainValidator.js";
+import { RouteValidator } from "../RouteValidator.js";
+import { PathSurfaceValidator } from "../PathSurfaceValidator.js";
+import { DecorationValidator } from "../DecorationValidator.js";
+import { RiverValidator } from "../RiverValidator.js";
 import { AbstractMapGenerationStage } from "../AbstractMapGenerationStage.js";
 
 /**
@@ -5,27 +10,33 @@ import { AbstractMapGenerationStage } from "../AbstractMapGenerationStage.js";
  */
 export class ValidationStage extends AbstractMapGenerationStage {
   /**
-   *
-   * @type {Array}
+   * @type {TerrainValidator}
    */
-  #operations;
+  #terrain = new TerrainValidator();
+
+  /**
+   * @type {RouteValidator}
+   */
+  #routes = new RouteValidator();
+
+  /**
+   * @type {PathSurfaceValidator}
+   */
+  #surfaces = new PathSurfaceValidator();
+
+  /**
+   * @type {DecorationValidator}
+   */
+  #decorations = new DecorationValidator();
+
+  /**
+   * @type {RiverValidator}
+   */
+  #rivers = new RiverValidator();
 
   /**
    *
-   * @param {Array<() => void>} operations
-   */
-  constructor(operations) {
-    super();
-    /**
-     *
-     * @type {Array}
-     */
-    this.#operations = operations;
-  }
-
-  /**
-   *
-   * @param {GenerationContext} context
+   * @param {import("../GenerationContext.js").GenerationContext} context
    */
   async run(context) {
     const { grid, heightmap, tileMeta, islandMask } = context.world;
@@ -36,7 +47,7 @@ export class ValidationStage extends AbstractMapGenerationStage {
       groundCoverData,
       riverData,
     } = context.features;
-    this.#operations.validateRivers(
+    this.#rivers.validateRivers(
       grid,
       heightmap,
       tileMeta,
@@ -44,62 +55,62 @@ export class ValidationStage extends AbstractMapGenerationStage {
       layout,
       riverData,
     );
-    this.#operations.validateNoSingleCellTerrainHoles(grid);
-    this.#operations.validateIslandConnectivity(grid);
-    this.#operations.validateGatePlacement(grid, layout);
-    this.#operations.validatePathSpacing(layout);
+    this.#terrain.validateNoSingleCellTerrainHoles(grid);
+    this.#terrain.validateIslandConnectivity(grid);
+    this.#routes.validateGatePlacement(grid, layout);
+    this.#routes.validatePathSpacing(layout);
     await context.scheduler.yieldIfNeeded(context.yieldState);
-    this.#operations.validateRouteSeparation(routeCellsByPath, layout);
-    this.#operations.validateParallelPathClearance(grid, layout);
-    this.#operations.validateFlatPathCrossings(grid, layout.overpassPlan);
-    this.#operations.validateRouteReachability(grid, layout);
-    this.#operations.validateCastleEntrance(grid, layout);
-    this.#operations.validateCastleGroundClearance(grid, layout);
+    this.#routes.validateRouteSeparation(routeCellsByPath, layout);
+    this.#routes.validateParallelPathClearance(grid, layout);
+    this.#routes.validateFlatPathCrossings(grid, layout.overpassPlan);
+    this.#routes.validateRouteReachability(grid, layout);
+    this.#routes.validateCastleEntrance(grid, layout);
+    this.#routes.validateCastleGroundClearance(grid, layout);
     await context.scheduler.yieldIfNeeded(context.yieldState);
-    this.#operations.validateHeightDiscipline(grid, heightmap, tileMeta);
-    this.#operations.validateOverpass(
+    this.#surfaces.validateHeightDiscipline(grid, heightmap, tileMeta);
+    this.#surfaces.validateOverpass(
       grid,
       heightmap,
       tileMeta,
       layout.overpassPlan,
     );
-    this.#operations.validatePathRenderModes(grid, heightmap, tileMeta);
-    this.#operations.validatePathDips(
+    this.#surfaces.validatePathRenderModes(grid, heightmap, tileMeta);
+    this.#surfaces.validatePathDips(
       grid,
       heightmap,
       tileMeta,
       layout.pathDipPlans,
       riverData,
     );
-    this.#operations.validateBridgeTurns(tileMeta);
-    this.#operations.validateBridgeGroundHeights(
+    this.#surfaces.validateBridgeTurns(tileMeta);
+    this.#surfaces.validateBridgeGroundHeights(
       heightmap,
       tileMeta,
       riverData,
     );
-    this.#operations.validateGrassNoise(
+    this.#terrain.validateGrassNoise(
       grid,
       heightmap,
       tileMeta,
       riverData,
     );
     await context.scheduler.yieldIfNeeded(context.yieldState);
-    this.#operations.validateLayoutVariety(layout);
-    this.#operations.validateVegetation(
+    this.#terrain.validateLayoutVariety(layout);
+    this.#decorations.validateVegetation(
       grid,
       heightmap,
       tileMeta,
       layout,
       vegetationPlacements,
     );
-    this.#operations.validateStones(
+    this.#decorations.validateStones(
       grid,
       heightmap,
       tileMeta,
       vegetationPlacements,
       stonePlacements,
     );
-    this.#operations.validateGroundCover(
+    this.#decorations.validateGroundCover(
       grid,
       heightmap,
       tileMeta,

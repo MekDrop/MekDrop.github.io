@@ -1,0 +1,283 @@
+[
+  {
+    "options": {
+      "mapName": "pipeline-baseline-default"
+    },
+    "sha256": "b65a63dec7657267728146dab47f00df6267cae68dff9183fe4bc1e8c4923881",
+    "features": {
+      "rivers": 4,
+      "lava": 0,
+      "dips": 0,
+      "overpass": false,
+      "stones": 0
+    }
+  },
+  {
+    "options": {
+      "mapName": "pipeline-baseline-rivers",
+      "numPaths": 4,
+      "numRivers": 6
+    },
+    "sha256": "2dcdcd9ca848978865f2ef035ea5d5a60dfbd5e6918d969761bca1d1a36a49db",
+    "features": {
+      "rivers": 6,
+      "lava": 0,
+      "dips": 0,
+      "overpass": false,
+      "stones": 6
+    }
+  },
+  {
+    "options": {
+      "mapName": "pipeline-baseline-no-rivers",
+      "numPaths": 1,
+      "numRivers": 0
+    },
+    "sha256": "0263c96d13ebc6d4972ec5093beb76b39416580389f5c0874d4ddc295fb268e1",
+    "features": {
+      "rivers": 0,
+      "lava": 0,
+      "dips": 0,
+      "overpass": false,
+      "stones": 0
+    }
+  },
+  {
+    "options": {
+      "mapName": "pipeline-baseline-overpass",
+      "numPaths": 4,
+      "overpass": true
+    },
+    "sha256": "994058bd1d2bc166d55189999a7cb6a5783a264fa89ce34404f52ea861dc2498",
+    "features": {
+      "rivers": 4,
+      "lava": 0,
+      "dips": 0,
+      "overpass": true,
+      "stones": 8
+    }
+  },
+  {
+    "options": {
+      "mapName": "variant-4",
+      "numPaths": 4,
+      "numRivers": 0,
+      "overpass": true
+    },
+    "sha256": "3996e8d0581225995481f8fe2e976a1cc6e9b8c74535b7408fcc0e55c96b58c7",
+    "features": {
+      "rivers": 0,
+      "lava": 0,
+      "dips": 1,
+      "overpass": true,
+      "stones": 8
+    }
+  },
+  {
+    "options": {
+      "mapName": "variant-2",
+      "numPaths": 4,
+      "numRivers": 0,
+      "overpass": true
+    },
+    "sha256": "52f52eff184a59172c2c8ee139cf3b3f26ec5449b2afe0bd3a67164ec83abfa9",
+    "features": {
+      "rivers": 0,
+      "lava": 0,
+      "dips": 0,
+      "overpass": true,
+      "stones": 0
+    }
+  },
+  {
+    "options": {
+      "mapName": "collaborator-0",
+      "numPaths": 1,
+      "numRivers": 0
+    },
+    "sha256": "31f837efb6f3c4e90b90ec73651c12a37ba215a9d86bf8707887bc485a34b7d4",
+    "features": {
+      "rivers": 0,
+      "lava": 0,
+      "dips": 0,
+      "overpass": false,
+      "stones": 0
+    }
+  },
+  {
+    "options": {
+      "mapName": "collaborator-1",
+      "numPaths": 2,
+      "numRivers": 1
+    },
+    "sha256": "d5f59a7041a9ce3c26dc918bbf379293f345f26039dba49f74f086273569751b",
+    "features": {
+      "rivers": 1,
+      "lava": 0,
+      "dips": 0,
+      "overpass": false,
+      "stones": 5
+    }
+  },
+  {
+    "options": {
+      "mapName": "collaborator-2",
+      "numPaths": 3,
+      "numRivers": 2
+    },
+    "sha256": "7c1a4bcc6cfd8ab501ae7da8f372e87f7a383e6d228d7829861f166fb9aa71b5",
+    "features": {
+      "rivers": 2,
+      "lava": 0,
+      "dips": 0,
+      "overpass": false,
+      "stones": 4
+    }
+  },
+  {
+    "options": {
+      "mapName": "collaborator-3",
+      "numPaths": 4,
+      "numRivers": 3
+    },
+    "sha256": "d6ee9e22f3a8a9511f021207d7128ec9e92038589a9c1f054a826c5739b472eb",
+    "features": {
+      "rivers": 3,
+      "lava": 0,
+      "dips": 1,
+      "overpass": false,
+      "stones": 7
+    }
+  },
+  {
+    "options": {
+      "mapName": "collaborator-4",
+      "numPaths": 1,
+      "numRivers": 4
+    },
+    "sha256": "c0c938cdeb31ba4ed7f425d2300b53b24f5c0e44ed6f33c94f71cf8438683cde",
+    "features": {
+      "rivers": 4,
+      "lava": 0,
+      "dips": 0,
+      "overpass": false,
+      "stones": 0
+    }
+  },
+  {
+    "options": {
+      "mapName": "collaborator-5",
+      "numPaths": 2,
+      "numRivers": 5
+    },
+    "sha256": "de459fcc0f9fd18bdb70bf9d48258a0ffffb20a8893c9ce5c91e8f706c75a0a2",
+    "features": {
+      "rivers": 5,
+      "lava": 0,
+      "dips": 0,
+      "overpass": false,
+      "stones": 0
+    }
+  },
+  {
+    "options": {
+      "mapName": "collaborator-6",
+      "numPaths": 3,
+      "numRivers": 6
+    },
+    "sha256": "7be8a950852702577681c415dc74c000d2937ebc4abb1cddd6867051c14f0f19",
+    "features": {
+      "rivers": 6,
+      "lava": 0,
+      "dips": 0,
+      "overpass": false,
+      "stones": 8
+    }
+  },
+  {
+    "options": {
+      "mapName": "collaborator-7",
+      "numPaths": 4,
+      "numRivers": 0
+    },
+    "sha256": "404176452fabe0522c394952b4707fbb75d89d84945f1dab0cf1bc0ba73deee2",
+    "features": {
+      "rivers": 0,
+      "lava": 0,
+      "dips": 0,
+      "overpass": false,
+      "stones": 6
+    }
+  },
+  {
+    "options": {
+      "mapName": "collaborator-8",
+      "numPaths": 1,
+      "numRivers": 1
+    },
+    "sha256": "7eb3fbfe21be73647a3dfbb61188d38de38da3a38d79cc63b78bbccb66c7d8c2",
+    "features": {
+      "rivers": 1,
+      "lava": 0,
+      "dips": 0,
+      "overpass": false,
+      "stones": 8
+    }
+  },
+  {
+    "options": {
+      "mapName": "collaborator-9",
+      "numPaths": 2,
+      "numRivers": 2
+    },
+    "sha256": "48c7cb67f8eaaeca7ff8a7fa962d8733b84ec062c0f42e0ee61c36798a1ed7ee",
+    "features": {
+      "rivers": 2,
+      "lava": 0,
+      "dips": 0,
+      "overpass": true,
+      "stones": 6
+    }
+  },
+  {
+    "options": {
+      "mapName": "collaborator-10",
+      "numPaths": 3,
+      "numRivers": 3
+    },
+    "error": {
+      "name": "PathOutsideGateError",
+      "message": "Map validation failed: normal path tiles appear outside a gate."
+    }
+  },
+  {
+    "options": {
+      "mapName": "collaborator-11",
+      "numPaths": 4,
+      "numRivers": 4
+    },
+    "sha256": "c7be8b01827959d7939152cb14ab7600dbc41738caa4fa88f78eb678b5cc25de",
+    "features": {
+      "rivers": 4,
+      "lava": 0,
+      "dips": 1,
+      "overpass": false,
+      "stones": 9
+    }
+  },
+  {
+    "options": {
+      "mapName": "lava-extraction-2",
+      "numPaths": 2,
+      "numRivers": 2
+    },
+    "sha256": "d7091b2faf3820fd08333c9667267c2dda4bb6e6113edcd0fdfe0903e08ba400",
+    "features": {
+      "rivers": 2,
+      "lava": 1,
+      "dips": 0,
+      "overpass": false,
+      "stones": 5
+    }
+  }
+]

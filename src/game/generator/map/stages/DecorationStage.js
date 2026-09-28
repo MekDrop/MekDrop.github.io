@@ -1,3 +1,4 @@
+import { DecorationBuilder } from "../DecorationBuilder.js";
 import { AbstractMapGenerationStage } from "../AbstractMapGenerationStage.js";
 
 /**
@@ -6,39 +7,39 @@ import { AbstractMapGenerationStage } from "../AbstractMapGenerationStage.js";
 export class DecorationStage extends AbstractMapGenerationStage {
   /**
    *
-   * @type {Array}
+   * @type {DecorationBuilder}
    */
-  #operations;
+  #builder;
 
   /**
    *
-   * @param {Array<() => void>} operations
+   * @param {DecorationBuilder} builder
    */
-  constructor(operations) {
+  constructor(builder) {
     super();
     /**
      *
-     * @type {Array}
+     * @type {DecorationBuilder}
      */
-    this.#operations = operations;
+    this.#builder = builder;
   }
 
   /**
    *
-   * @param {GenerationContext} context
+   * @param {import("../GenerationContext.js").GenerationContext} context
    */
   async run(context) {
     const { grid, heightmap, tileMeta, islandMask } = context.world;
     const { layout } = context.routing;
     const { riverData } = context.features;
-    const vegetationPlacements = this.#operations.placeVegetation(
+    const vegetationPlacements = this.#builder.placeVegetation(
       grid,
       heightmap,
       tileMeta,
       layout,
     );
     await context.scheduler.yieldIfNeeded(context.yieldState);
-    const stonePlacements = this.#operations.placeStones(
+    const stonePlacements = this.#builder.placeStones(
       grid,
       heightmap,
       tileMeta,
@@ -46,7 +47,7 @@ export class DecorationStage extends AbstractMapGenerationStage {
       context.input.mapName,
     );
     await context.scheduler.yieldIfNeeded(context.yieldState);
-    const groundCoverData = this.#operations.placeGroundCover(
+    const groundCoverData = this.#builder.placeGroundCover(
       grid,
       heightmap,
       tileMeta,
@@ -54,7 +55,7 @@ export class DecorationStage extends AbstractMapGenerationStage {
       stonePlacements,
     );
     await context.scheduler.yieldIfNeeded(context.yieldState);
-    const cliffVineData = this.#operations.placeCliffVines(
+    const cliffVineData = this.#builder.placeCliffVines(
       grid,
       heightmap,
       islandMask,

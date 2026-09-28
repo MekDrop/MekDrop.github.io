@@ -1,3 +1,5 @@
+import { MapGrid } from "../MapGrid.js";
+import { MAP_TILE_TYPE as TileType } from "../../../enum/MapTileType.js";
 import { AbstractMapGenerationStage } from "../AbstractMapGenerationStage.js";
 
 /**
@@ -6,33 +8,33 @@ import { AbstractMapGenerationStage } from "../AbstractMapGenerationStage.js";
 export class IslandStage extends AbstractMapGenerationStage {
   /**
    *
-   * @type {Array}
+   * @type {import("../IslandBuilder.js").IslandBuilder}
    */
-  #operations;
+  #island;
 
   /**
    *
-   * @param {Array<() => void>} operations
+   * @param {import("../IslandBuilder.js").IslandBuilder} island
    */
-  constructor(operations) {
+  constructor(island) {
     super();
     /**
      *
-     * @type {Array}
+     * @type {import("../IslandBuilder.js").IslandBuilder}
      */
-    this.#operations = operations;
+    this.#island = island;
   }
 
   /**
    *
-   * @param {GenerationContext} context
+   * @param {import("../GenerationContext.js").GenerationContext} context
    */
   async run(context) {
     const { layout } = context.routing;
-    const grid = this.#operations.createGrid();
-    const tileMeta = this.#operations.createTileMetadata();
-    const islandMask = this.#operations.buildIslandMask(layout);
-    this.#operations.materializeIsland(grid, tileMeta, islandMask);
+    const grid = MapGrid.createGrid(TileType.WATER);
+    const tileMeta = MapGrid.createTileMetadata();
+    const islandMask = this.#island.buildIslandMask(layout);
+    this.#island.materializeIsland(grid, tileMeta, islandMask);
 
     context.world = { grid, tileMeta, islandMask };
   }
