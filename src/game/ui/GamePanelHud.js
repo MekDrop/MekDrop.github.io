@@ -1,3 +1,5 @@
+import { gameUiTheme } from "./GameUiTheme.js";
+
 const REFERENCE_WIDTH = 1280;
 const REFERENCE_HEIGHT = 720;
 const PANEL_TEXTURE_SCALE = 4;
@@ -11,14 +13,12 @@ const COUNTER_FONT_SIZE = 48;
 export class GamePanelHud {
   #pc;
   #app;
-  #theme;
   #entity;
   #textures = new Set();
 
-  constructor({ pc, app, theme, name, priority }) {
+  constructor({ pc, app, name, priority }) {
     this.#pc = pc;
     this.#app = app;
-    this.#theme = theme;
     this.#entity = new pc.Entity(name);
     this.#entity.addComponent("screen", {
       screenSpace: true,
@@ -35,10 +35,6 @@ export class GamePanelHud {
 
   get app() {
     return this.#app;
-  }
-
-  get theme() {
-    return this.#theme;
   }
 
   get counterIconSize() {
@@ -99,7 +95,7 @@ export class GamePanelHud {
       useInput: false,
     };
     if (color !== null) {
-      options.color = this.#theme.playCanvasColor(this.#pc, color);
+      options.color = gameUiTheme.playCanvasColor(this.#pc, color);
     }
 
     const entity = new this.#pc.Entity(name);
@@ -175,19 +171,19 @@ export class GamePanelHud {
 
   drawPanelFrame(context, width, height) {
     const gradient = context.createLinearGradient(0, 0, 0, height);
-    gradient.addColorStop(0, this.#theme.surfaceTop);
-    gradient.addColorStop(1, this.#theme.surfaceBottom);
+    gradient.addColorStop(0, gameUiTheme.surfaceTop);
+    gradient.addColorStop(1, gameUiTheme.surfaceBottom);
     this.roundedRect(
       context,
       1.5,
       1.5,
       width - 3,
       height - 3,
-      this.#theme.borderRadius,
+      gameUiTheme.borderRadius,
     );
     context.fillStyle = gradient;
     context.fill();
-    context.strokeStyle = this.#theme.shadow;
+    context.strokeStyle = gameUiTheme.shadow;
     context.lineWidth = 3;
     context.stroke();
     this.roundedRect(
@@ -196,9 +192,9 @@ export class GamePanelHud {
       3.5,
       width - 7,
       height - 7,
-      this.#theme.borderRadius,
+      gameUiTheme.borderRadius,
     );
-    context.strokeStyle = this.#theme.withAlpha(this.#theme.outline, 0.72);
+    context.strokeStyle = gameUiTheme.withAlpha(gameUiTheme.outline, 0.72);
     context.lineWidth = 1;
     context.stroke();
   }
@@ -206,17 +202,17 @@ export class GamePanelHud {
   drawNumber(record, value) {
     const { canvas, context, texture } = record;
     context.clearRect(0, 0, canvas.width, canvas.height);
-    context.font = this.#theme.font(900, COUNTER_FONT_SIZE);
+    context.font = gameUiTheme.font(900, COUNTER_FONT_SIZE);
     context.textAlign = "center";
     context.textBaseline = "middle";
     context.lineJoin = "round";
-    context.strokeStyle = this.#theme.shadow;
+    context.strokeStyle = gameUiTheme.shadow;
     context.lineWidth = 7;
     const text = String(Math.max(0, value));
     const x = canvas.width / 2;
     const y = canvas.height / 2 + 2;
     context.strokeText(text, x, y);
-    context.fillStyle = this.#theme.text;
+    context.fillStyle = gameUiTheme.text;
     context.fillText(text, x, y);
     texture.setSource(canvas);
   }
@@ -251,7 +247,6 @@ export class GamePanelHud {
     }
     this.#textures.clear();
     this.#entity = null;
-    this.#theme = null;
     this.#app = null;
     this.#pc = null;
   }

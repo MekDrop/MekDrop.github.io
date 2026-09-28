@@ -22,7 +22,6 @@ export class GameCanvasPluginRegistry {
     setMapRouteLoadPromise,
     registerControlAction,
     debugStore,
-    uiTheme,
   }) {
     this.#pluginModules =
       pluginModules ??
@@ -40,7 +39,6 @@ export class GameCanvasPluginRegistry {
       setMapRouteLoadPromise,
       registerControlAction,
       debugStore,
-      uiTheme,
     };
   }
 

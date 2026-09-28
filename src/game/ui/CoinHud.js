@@ -1,5 +1,6 @@
 import { COIN_TYPE } from "../enum/CoinType.js";
 import { GamePanelHud } from "./GamePanelHud.js";
+import { gameUiTheme } from "./GameUiTheme.js";
 
 const TEXTURE_SIZE = 64;
 
@@ -20,11 +21,10 @@ export class CoinHud extends GamePanelHud {
     [COIN_TYPE.COPPER]: 0,
   };
 
-  constructor({ pc, app, theme }) {
+  constructor({ pc, app }) {
     super({
       pc,
       app,
-      theme,
       name: "Coin wallet HUD",
       priority: 101,
     });
@@ -47,10 +47,10 @@ export class CoinHud extends GamePanelHud {
   }
 
   #build() {
-    const panelPaddingX = this.theme.spaceSm;
-    const panelPaddingY = this.theme.spaceXs;
-    const contentGap = this.theme.spaceXs;
-    const indicatorGap = this.theme.spaceSm;
+    const panelPaddingX = gameUiTheme.spaceSm;
+    const panelPaddingY = gameUiTheme.spaceXs;
+    const contentGap = gameUiTheme.spaceXs;
+    const indicatorGap = gameUiTheme.spaceSm;
     const iconSize = this.counterIconSize;
     const numberWidth = this.counterNumberWidth;
     const numberHeight = this.counterNumberHeight;
@@ -62,8 +62,8 @@ export class CoinHud extends GamePanelHud {
 
     this.#panel = this.createPanel({
       name: "Coin wallet panel",
-      x: this.theme.spaceMd,
-      y: this.theme.spaceXl + this.theme.spaceXs,
+      x: gameUiTheme.spaceMd,
+      y: gameUiTheme.spaceXl + gameUiTheme.spaceXs,
       width: panelWidth,
       height: panelHeight,
     });

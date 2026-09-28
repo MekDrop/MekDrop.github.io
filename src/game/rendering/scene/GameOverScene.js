@@ -24,7 +24,6 @@ export class GameOverScene {
     pc,
     app,
     translate,
-    theme,
     sceneObjects,
     getViewport,
     getCameraPosition,
@@ -48,7 +47,6 @@ export class GameOverScene {
       pc,
       app,
       translate,
-      theme,
     });
     this.#hud.attach();
   }

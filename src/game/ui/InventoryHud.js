@@ -1,4 +1,5 @@
 import { InventoryItemProjector } from "./InventoryItemProjector.js";
+import { gameUiTheme } from "./GameUiTheme.js";
 import fullInventoryEffectModelUrl from "../models/ui/full-inventory-effect.glb?url";
 
 const REFERENCE_WIDTH = 1280;
@@ -24,7 +25,6 @@ export class InventoryHud {
   #pc;
   #app;
   #translate;
-  #theme;
   #onMoveItem;
   #onDropItem;
   #entity;
@@ -59,14 +59,12 @@ export class InventoryHud {
     app,
     modelLibrary,
     translate = (key) => key,
-    theme,
     onMoveItem = null,
     onDropItem = null,
   }) {
     this.#pc = pc;
     this.#app = app;
     this.#translate = translate;
-    this.#theme = theme;
     this.#onMoveItem = onMoveItem;
     this.#onDropItem = onDropItem;
     this.#itemProjector = new InventoryItemProjector({
@@ -340,7 +338,6 @@ export class InventoryHud {
     this.#dragStartClient = null;
     this.#onMoveItem = null;
     this.#onDropItem = null;
-    this.#theme = null;
     this.#app = null;
     this.#pc = null;
   }
@@ -485,7 +482,7 @@ export class InventoryHud {
       anchor: new this.#pc.Vec4(0, 0, 1, 1),
       pivot: new this.#pc.Vec2(0.5, 0.5),
       margin: new this.#pc.Vec4(0, 0, 0, 0),
-      color: this.#theme.playCanvasColor(this.#pc, this.#theme.backdrop),
+      color: gameUiTheme.playCanvasColor(this.#pc, gameUiTheme.backdrop),
       opacity: 0.7,
       useInput: false,
     });
@@ -525,8 +522,8 @@ export class InventoryHud {
       const column = index % SLOT_COLUMNS;
       const row = Math.floor(index / SLOT_COLUMNS);
       const slotX =
-        this.#slotLeft + column * (SLOT_SIZE + this.#theme.spaceSm);
-      const slotY = 98 + row * (SLOT_SIZE + this.#theme.spaceSm);
+        this.#slotLeft + column * (SLOT_SIZE + gameUiTheme.spaceSm);
+      const slotY = 98 + row * (SLOT_SIZE + gameUiTheme.spaceSm);
       const projection = new this.#pc.Entity(
         `Inventory item projection ${index + 1}`,
       );
@@ -622,8 +619,8 @@ export class InventoryHud {
     context.scale(PANEL_TEXTURE_SCALE, PANEL_TEXTURE_SCALE);
     const inset = this.#closePressed ? 2 : 1;
     if (this.#closeHovered && !this.#closePressed) {
-      context.shadowColor = this.#theme.withAlpha(
-        this.#theme.outlineStrong,
+      context.shadowColor = gameUiTheme.withAlpha(
+        gameUiTheme.outlineStrong,
         0.65,
       );
       context.shadowBlur = 5;
@@ -634,25 +631,25 @@ export class InventoryHud {
       inset,
       CLOSE_BUTTON_SIZE - inset * 2,
       CLOSE_BUTTON_SIZE - inset * 2,
-      this.#theme.borderRadius,
+      gameUiTheme.borderRadius,
     );
     const gradient = context.createLinearGradient(0, 0, 0, CLOSE_BUTTON_SIZE);
     if (this.#closePressed) {
-      gradient.addColorStop(0, this.#theme.surfaceInsetTop);
-      gradient.addColorStop(1, this.#theme.surfaceInsetBottom);
+      gradient.addColorStop(0, gameUiTheme.surfaceInsetTop);
+      gradient.addColorStop(1, gameUiTheme.surfaceInsetBottom);
     } else if (this.#closeHovered) {
-      gradient.addColorStop(0, this.#theme.outlineStrong);
-      gradient.addColorStop(1, this.#theme.surfaceRaisedTop);
+      gradient.addColorStop(0, gameUiTheme.outlineStrong);
+      gradient.addColorStop(1, gameUiTheme.surfaceRaisedTop);
     } else {
-      gradient.addColorStop(0, this.#theme.surfaceRaisedTop);
-      gradient.addColorStop(1, this.#theme.surfaceRaisedBottom);
+      gradient.addColorStop(0, gameUiTheme.surfaceRaisedTop);
+      gradient.addColorStop(1, gameUiTheme.surfaceRaisedBottom);
     }
     context.fillStyle = gradient;
     context.fill();
     context.shadowColor = "transparent";
     context.strokeStyle = this.#closeHovered
-      ? this.#theme.textMuted
-      : this.#theme.outline;
+      ? gameUiTheme.textMuted
+      : gameUiTheme.outline;
     context.lineWidth = this.#closePressed ? 1.5 : 1;
     context.stroke();
     const offset = this.#closePressed ? 1 : 0;
@@ -661,7 +658,7 @@ export class InventoryHud {
     context.lineTo(21 + offset, 21 + offset);
     context.moveTo(21 + offset, 11 + offset);
     context.lineTo(11 + offset, 21 + offset);
-    context.strokeStyle = this.#theme.text;
+    context.strokeStyle = gameUiTheme.text;
     context.lineWidth = 2;
     context.lineCap = "round";
     context.stroke();
@@ -709,7 +706,7 @@ export class InventoryHud {
   }
 
   #drawPanelBackground(context) {
-    context.shadowColor = this.#theme.withAlpha(this.#theme.shadow, 0.58);
+    context.shadowColor = gameUiTheme.withAlpha(gameUiTheme.shadow, 0.58);
     context.shadowBlur = 18;
     context.shadowOffsetY = 10;
     this.#roundedRect(
@@ -718,7 +715,7 @@ export class InventoryHud {
       8,
       PANEL_WIDTH - 16,
       PANEL_HEIGHT - 20,
-      this.#theme.borderRadius,
+      gameUiTheme.borderRadius,
     );
     const gradient = context.createLinearGradient(
       0,
@@ -726,12 +723,12 @@ export class InventoryHud {
       PANEL_WIDTH,
       PANEL_HEIGHT,
     );
-    gradient.addColorStop(0, this.#theme.surfaceTop);
-    gradient.addColorStop(1, this.#theme.surfaceBottom);
+    gradient.addColorStop(0, gameUiTheme.surfaceTop);
+    gradient.addColorStop(1, gameUiTheme.surfaceBottom);
     context.fillStyle = gradient;
     context.fill();
     context.shadowColor = "transparent";
-    context.strokeStyle = this.#theme.shadow;
+    context.strokeStyle = gameUiTheme.shadow;
     context.lineWidth = 2;
     context.stroke();
     this.#roundedRect(
@@ -740,9 +737,9 @@ export class InventoryHud {
       12,
       PANEL_WIDTH - 24,
       PANEL_HEIGHT - 28,
-      this.#theme.borderRadius,
+      gameUiTheme.borderRadius,
     );
-    context.strokeStyle = this.#theme.withAlpha(this.#theme.outline, 0.72);
+    context.strokeStyle = gameUiTheme.withAlpha(gameUiTheme.outline, 0.72);
     context.lineWidth = 1;
     context.stroke();
   }
@@ -750,19 +747,19 @@ export class InventoryHud {
   #drawHeader(context) {
     context.textAlign = "left";
     context.textBaseline = "alphabetic";
-    context.fillStyle = this.#theme.info;
-    context.font = this.#theme.font(700, 10);
+    context.fillStyle = gameUiTheme.info;
+    context.font = gameUiTheme.font(700, 10);
     context.fillText(
       this.#translate("game.inventory.backpack").toUpperCase(),
       24,
       36,
     );
-    context.fillStyle = this.#theme.text;
-    context.font = this.#theme.font(700, 27);
+    context.fillStyle = gameUiTheme.text;
+    context.font = gameUiTheme.font(700, 27);
     context.fillText(this.#translate("game.inventory.title"), 24, 68);
     context.textAlign = "right";
-    context.fillStyle = this.#theme.textMuted;
-    context.font = this.#theme.font(600, 12);
+    context.fillStyle = gameUiTheme.textMuted;
+    context.font = gameUiTheme.font(600, 12);
     context.fillText(
       this.#translate("game.inventory.capacity", {
         current: this.#state.items.length,
@@ -774,7 +771,7 @@ export class InventoryHud {
     context.beginPath();
     context.moveTo(24, 82);
     context.lineTo(PANEL_WIDTH - 24, 82);
-    context.strokeStyle = this.#theme.withAlpha(this.#theme.outline, 0.65);
+    context.strokeStyle = gameUiTheme.withAlpha(gameUiTheme.outline, 0.65);
     context.lineWidth = 1;
     context.stroke();
   }
@@ -783,14 +780,14 @@ export class InventoryHud {
     const left =
       (PANEL_WIDTH -
         SLOT_COLUMNS * SLOT_SIZE -
-        (SLOT_COLUMNS - 1) * this.#theme.spaceSm) /
+        (SLOT_COLUMNS - 1) * gameUiTheme.spaceSm) /
       2;
     const top = 98;
     for (let index = 0; index < SLOT_COLUMNS * SLOT_ROWS; index += 1) {
       const column = index % SLOT_COLUMNS;
       const row = Math.floor(index / SLOT_COLUMNS);
-      const x = left + column * (SLOT_SIZE + this.#theme.spaceSm);
-      const y = top + row * (SLOT_SIZE + this.#theme.spaceSm);
+      const x = left + column * (SLOT_SIZE + gameUiTheme.spaceSm);
+      const y = top + row * (SLOT_SIZE + gameUiTheme.spaceSm);
       this.#drawSlot(context, x, y, this.#itemAtSlot(index), index);
     }
   }
@@ -806,7 +803,7 @@ export class InventoryHud {
       y,
       SLOT_SIZE,
       SLOT_SIZE,
-      this.#theme.borderRadius,
+      gameUiTheme.borderRadius,
     );
     const gradient = context.createLinearGradient(
       x,
@@ -816,21 +813,21 @@ export class InventoryHud {
     );
     gradient.addColorStop(
       0,
-      item ? this.#theme.surfaceRaisedTop : this.#theme.surfaceInsetTop,
+      item ? gameUiTheme.surfaceRaisedTop : gameUiTheme.surfaceInsetTop,
     );
     gradient.addColorStop(
       1,
-      item ? this.#theme.surfaceRaisedBottom : this.#theme.surfaceInsetBottom,
+      item ? gameUiTheme.surfaceRaisedBottom : gameUiTheme.surfaceInsetBottom,
     );
     context.fillStyle = gradient;
     context.fill();
     context.strokeStyle = isValidDropSlot
-      ? this.#theme.withAlpha(this.#theme.positive, 0.98)
+      ? gameUiTheme.withAlpha(gameUiTheme.positive, 0.98)
       : isHoveredDropSlot && item && !isDragSource
-        ? this.#theme.withAlpha(this.#theme.negative, 0.94)
+        ? gameUiTheme.withAlpha(gameUiTheme.negative, 0.94)
         : item
-          ? this.#theme.withAlpha(this.#theme.outlineStrong, 0.9)
-          : this.#theme.withAlpha(this.#theme.outline, 0.42);
+          ? gameUiTheme.withAlpha(gameUiTheme.outlineStrong, 0.9)
+          : gameUiTheme.withAlpha(gameUiTheme.outline, 0.42);
     context.lineWidth = isHoveredDropSlot ? 3 : 1;
     context.stroke();
 
@@ -838,8 +835,8 @@ export class InventoryHud {
       context.beginPath();
       context.arc(x + SLOT_SIZE / 2, y + SLOT_SIZE / 2, 12, 0, Math.PI * 2);
       context.strokeStyle = isValidDropSlot
-        ? this.#theme.withAlpha(this.#theme.positive, 0.72)
-        : this.#theme.withAlpha(this.#theme.outlineStrong, 0.18);
+        ? gameUiTheme.withAlpha(gameUiTheme.positive, 0.72)
+        : gameUiTheme.withAlpha(gameUiTheme.outlineStrong, 0.18);
       context.setLineDash([3, 3]);
       context.stroke();
       context.setLineDash([]);
@@ -850,13 +847,13 @@ export class InventoryHud {
       context.textAlign = "center";
       context.textBaseline = "middle";
       context.font = '38px "Segoe UI Emoji", sans-serif';
-      context.fillStyle = this.#theme.text;
+      context.fillStyle = gameUiTheme.text;
       context.fillText(item.icon, x + SLOT_SIZE / 2, y + 38);
     }
     context.textAlign = "center";
     context.textBaseline = "middle";
-    context.fillStyle = this.#theme.text;
-    context.font = this.#theme.font(600, 10);
+    context.fillStyle = gameUiTheme.text;
+    context.font = gameUiTheme.font(600, 10);
     context.fillText(
       this.#fitText(
         context,
@@ -878,7 +875,7 @@ export class InventoryHud {
     }
     const label = this.#translate(item.labelKey);
     const { canvas, context, texture } = this.#tooltipTexture;
-    context.font = this.#theme.font(600, 10);
+    context.font = gameUiTheme.font(600, 10);
     if (context.measureText(label).width <= ITEM_LABEL_MAXIMUM_WIDTH) {
       this.#tooltip.enabled = false;
       return;
@@ -887,24 +884,24 @@ export class InventoryHud {
     const column = this.#hoveredItemSlot % SLOT_COLUMNS;
     const row = Math.floor(this.#hoveredItemSlot / SLOT_COLUMNS);
     const slotLeft =
-      this.#slotLeft + column * (SLOT_SIZE + this.#theme.spaceSm);
-    const slotTop = 98 + row * (SLOT_SIZE + this.#theme.spaceSm);
+      this.#slotLeft + column * (SLOT_SIZE + gameUiTheme.spaceSm);
+    const slotTop = 98 + row * (SLOT_SIZE + gameUiTheme.spaceSm);
     const centerX = Math.max(
-      TOOLTIP_WIDTH / 2 + this.#theme.spaceSm,
+      TOOLTIP_WIDTH / 2 + gameUiTheme.spaceSm,
       Math.min(
-        PANEL_WIDTH - TOOLTIP_WIDTH / 2 - this.#theme.spaceSm,
+        PANEL_WIDTH - TOOLTIP_WIDTH / 2 - gameUiTheme.spaceSm,
         slotLeft + SLOT_SIZE / 2,
       ),
     );
     const centerY =
       row === 0
-        ? slotTop + SLOT_SIZE + this.#theme.spaceXs + TOOLTIP_HEIGHT / 2
-        : slotTop - this.#theme.spaceXs - TOOLTIP_HEIGHT / 2;
+        ? slotTop + SLOT_SIZE + gameUiTheme.spaceXs + TOOLTIP_HEIGHT / 2
+        : slotTop - gameUiTheme.spaceXs - TOOLTIP_HEIGHT / 2;
 
     context.clearRect(0, 0, canvas.width, canvas.height);
     context.save();
     context.scale(PANEL_TEXTURE_SCALE, PANEL_TEXTURE_SCALE);
-    context.shadowColor = this.#theme.withAlpha(this.#theme.shadow, 0.55);
+    context.shadowColor = gameUiTheme.withAlpha(gameUiTheme.shadow, 0.55);
     context.shadowBlur = 7;
     context.shadowOffsetY = 3;
     this.#roundedRect(
@@ -913,21 +910,21 @@ export class InventoryHud {
       1,
       TOOLTIP_WIDTH - 2,
       TOOLTIP_HEIGHT - 3,
-      this.#theme.borderRadius,
+      gameUiTheme.borderRadius,
     );
     const gradient = context.createLinearGradient(0, 0, 0, TOOLTIP_HEIGHT);
-    gradient.addColorStop(0, this.#theme.surfaceTop);
-    gradient.addColorStop(1, this.#theme.surfaceBottom);
+    gradient.addColorStop(0, gameUiTheme.surfaceTop);
+    gradient.addColorStop(1, gameUiTheme.surfaceBottom);
     context.fillStyle = gradient;
     context.fill();
     context.shadowColor = "transparent";
-    context.strokeStyle = this.#theme.outlineStrong;
+    context.strokeStyle = gameUiTheme.outlineStrong;
     context.lineWidth = 1;
     context.stroke();
     context.textAlign = "center";
     context.textBaseline = "middle";
-    context.fillStyle = this.#theme.text;
-    context.font = this.#theme.font(600, 11);
+    context.fillStyle = gameUiTheme.text;
+    context.font = gameUiTheme.font(600, 11);
     context.fillText(
       label,
       TOOLTIP_WIDTH / 2,
@@ -952,8 +949,8 @@ export class InventoryHud {
       const column = index % SLOT_COLUMNS;
       const row = Math.floor(index / SLOT_COLUMNS);
       const x =
-        this.#slotLeft + column * (SLOT_SIZE + this.#theme.spaceSm);
-      const y = 98 + row * (SLOT_SIZE + this.#theme.spaceSm);
+        this.#slotLeft + column * (SLOT_SIZE + gameUiTheme.spaceSm);
+      const y = 98 + row * (SLOT_SIZE + gameUiTheme.spaceSm);
       if (
         panelX < x ||
         panelX > x + SLOT_SIZE ||
@@ -1072,7 +1069,7 @@ export class InventoryHud {
       context.textAlign = "center";
       context.textBaseline = "middle";
       context.font = '44px "Segoe UI Emoji", sans-serif';
-      context.fillStyle = this.#theme.text;
+      context.fillStyle = gameUiTheme.text;
       context.fillText(
         item.icon ?? "?",
         ITEM_PROJECTION_SIZE / 2,
@@ -1172,7 +1169,7 @@ export class InventoryHud {
     return (
       (PANEL_WIDTH -
         SLOT_COLUMNS * SLOT_SIZE -
-        (SLOT_COLUMNS - 1) * this.#theme.spaceSm) /
+        (SLOT_COLUMNS - 1) * gameUiTheme.spaceSm) /
       2
     );
   }

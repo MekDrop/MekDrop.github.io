@@ -1,13 +1,11 @@
 export class HudCollection extends Map {
   #pc;
   #app;
-  #theme;
 
-  constructor({ pc, app, theme }) {
+  constructor({ pc, app }) {
     super();
     this.#pc = pc;
     this.#app = app;
-    this.#theme = theme;
   }
 
   add(HudClass, options = {}) {
@@ -21,7 +19,6 @@ export class HudCollection extends Map {
       ...options,
       pc: this.#pc,
       app: this.#app,
-      theme: this.#theme,
     });
     this.set(key, hud);
     try {
@@ -63,6 +60,5 @@ export class HudCollection extends Map {
     this.clear();
     this.#pc = null;
     this.#app = null;
-    this.#theme = null;
   }
 }

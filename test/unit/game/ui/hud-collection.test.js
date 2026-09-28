@@ -38,7 +38,7 @@ class StaticHud {
 
 describe("HudCollection", () => {
   it("adds each HUD class once with the shared rendering context", () => {
-    const context = { pc: {}, app: {}, theme: {} };
+    const context = { pc: {}, app: {} };
     const huds = new HudCollection(context);
 
     const hud = huds.add(TestHud, { custom: true, app: "ignored" });
@@ -50,7 +50,7 @@ describe("HudCollection", () => {
   });
 
   it("updates compatible HUDs and ignores HUDs without an update method", () => {
-    const huds = new HudCollection({ pc: {}, app: {}, theme: {} });
+    const huds = new HudCollection({ pc: {}, app: {} });
     const animatedHud = huds.add(TestHud);
     huds.add(StaticHud);
 
@@ -60,7 +60,7 @@ describe("HudCollection", () => {
   });
 
   it("removes individual HUDs and destroys the remainder as a collection", () => {
-    const huds = new HudCollection({ pc: {}, app: {}, theme: {} });
+    const huds = new HudCollection({ pc: {}, app: {} });
     const removedHud = huds.add(TestHud);
     const remainingHud = huds.add(StaticHud);
 

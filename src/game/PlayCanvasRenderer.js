@@ -40,7 +40,6 @@ import { GameCamera, HeroVisibilityController } from "./camera/index.js";
 import { CameraOrbitPivot } from "./camera/CameraOrbitPivot.js";
 import {
   CoinHud,
-  GameUiTheme,
   HeroLifeHud,
   HudCollection,
 } from "./ui/index.js";
@@ -172,7 +171,6 @@ export class PlayCanvasRenderer {
   #heroStateStore = null;
   #stopDebugStoreSubscription = null;
   #translate = (key) => key;
-  #uiTheme = null;
   #destroyed = false;
   #onRuntimeError;
   #frameUpdateFailed = false;
@@ -189,7 +187,6 @@ export class PlayCanvasRenderer {
       graphicsSettingsStore,
       heroConfigurationStore,
       heroStateStore,
-      uiTheme,
     } = {},
   ) {
     this.#onRuntimeError = onRuntimeError;
@@ -201,7 +198,6 @@ export class PlayCanvasRenderer {
     this.#graphicsSettingsStore = graphicsSettingsStore;
     this.#heroConfigurationStore = heroConfigurationStore;
     this.#heroStateStore = heroStateStore;
-    this.#uiTheme = new GameUiTheme(uiTheme);
     this.#heroConfigurationStore.normalizeInventorySlots();
     this.#translate = t;
     this.#saveViewportDebounced = useDebounceFn(() => {
@@ -266,11 +262,7 @@ export class PlayCanvasRenderer {
     this.#app.scene.layers.insert(this.#cloudLayer, 0);
     this.#app.on("update", this.#updateFrame);
     this.#modelLibrary = new GameModelLibrary({ pc, app: this.#app });
-    this.#huds = new HudCollection({
-      pc,
-      app: this.#app,
-      theme: this.#uiTheme,
-    });
+    this.#huds = new HudCollection({ pc, app: this.#app });
     this.addHud(HeroLifeHud);
     this.addHud(CoinHud);
     this.#inventoryScene = new InventoryScene({
@@ -279,7 +271,6 @@ export class PlayCanvasRenderer {
       modelLibrary: this.#modelLibrary,
       heroConfigurationStore: this.#heroConfigurationStore,
       translate: this.#translate,
-      theme: this.#uiTheme,
       getHero: () => this.#sceneObjects.getOne(SCENE_OBJECT_TYPE.HERO),
       getMapRoot: () => this.#mapRoot,
       getDropPlacement: (clientX, clientY, heightClientX, heightClientY) =>
@@ -294,7 +285,6 @@ export class PlayCanvasRenderer {
       pc,
       app: this.#app,
       translate: this.#translate,
-      theme: this.#uiTheme,
       sceneObjects: this.#sceneObjects,
       getViewport: () => this.viewport,
       getCameraPosition: () => this.#camera?.getPosition() ?? null,
@@ -886,7 +876,6 @@ export class PlayCanvasRenderer {
     this.#inventoryScene = null;
     this.#scene?.destroy();
     this.#scene = null;
-    this.#uiTheme = null;
     for (const material of this.#materials.values()) material.destroy();
     this.#materials.clear();
     for (const asset of this.#textureAssets.values()) {

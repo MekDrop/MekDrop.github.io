@@ -1,3 +1,5 @@
+import { getCssVar } from "quasar";
+
 import {
   InvalidGameUiThemeColorError,
   InvalidGameUiThemeTokenError,
@@ -18,21 +20,25 @@ const QUASAR_COLOR_ROLES = [
   "darkPage",
 ];
 
-export class GameUiTheme {
+class GameUiTheme {
   #colors = new Map();
   #fontFamily;
   #borderRadius;
   #spacing = new Map();
+  #initialized = false;
 
-  constructor(theme) {
-    for (const role of QUASAR_COLOR_ROLES) {
-      this.#colors.set(role, this.#parsePaletteRole(theme, role));
+  #initialize() {
+    if (this.#initialized) {
+      return;
     }
-    this.#fontFamily = this.#parseFontFamily(theme);
-    this.#borderRadius = this.#parseBorderRadius(theme);
+    for (const role of QUASAR_COLOR_ROLES) {
+      this.#colors.set(role, this.#parsePaletteRole(role));
+    }
+    this.#fontFamily = this.#parseFontFamily();
+    this.#borderRadius = this.#parseBorderRadius();
     for (const size of ["Xs", "Sm", "Md", "Lg", "Xl"]) {
-      const property = `space${size}`;
-      this.#spacing.set(size.toLowerCase(), this.#parsePixelToken(theme, property));
+      const name = size.toLowerCase();
+      this.#spacing.set(name, this.#parsePixelToken(`space-${name}`));
     }
 
     const primary = this.#get("primary");
@@ -67,6 +73,7 @@ export class GameUiTheme {
     this.#set("negativeDark", this.#mix(negative, this.#get("shadow"), 0.56));
     this.#set("info", this.#mix(info, accent, 0.42));
     this.#set("warning", this.#shade(this.#get("warning"), 0.18));
+    this.#initialized = true;
   }
 
   get surfaceTop() {
@@ -146,35 +153,42 @@ export class GameUiTheme {
   }
 
   get fontFamily() {
+    this.#initialize();
     return this.#fontFamily;
   }
 
   get borderRadius() {
+    this.#initialize();
     return this.#borderRadius;
   }
 
   get spaceXs() {
+    this.#initialize();
     return this.#spacing.get("xs");
   }
 
   get spaceSm() {
+    this.#initialize();
     return this.#spacing.get("sm");
   }
 
   get spaceMd() {
+    this.#initialize();
     return this.#spacing.get("md");
   }
 
   get spaceLg() {
+    this.#initialize();
     return this.#spacing.get("lg");
   }
 
   get spaceXl() {
+    this.#initialize();
     return this.#spacing.get("xl");
   }
 
   font(weight, size) {
-    return `${weight} ${size}px ${this.#fontFamily}`;
+    return `${weight} ${size}px ${this.fontFamily}`;
   }
 
   withAlpha(color, alpha) {
@@ -201,6 +215,7 @@ export class GameUiTheme {
   }
 
   #hex(name) {
+    this.#initialize();
     const { red, green, blue } = this.#get(name);
     return `#${[red, green, blue]
       .map((component) => component.toString(16).padStart(2, "0"))
@@ -229,31 +244,29 @@ export class GameUiTheme {
     };
   }
 
-  #parsePaletteRole(palette, role) {
-    if (!palette || !Object.hasOwn(palette, role)) {
-      throw new MissingGameUiThemeColorRoleError({ role });
-    }
-    const value = palette[role];
+  #parsePaletteRole(role) {
+    const variable = role === "darkPage" ? "dark-page" : role;
+    const value = getCssVar(variable);
     if (value === null || value === undefined || String(value).trim() === "") {
       throw new MissingGameUiThemeColorRoleError({ role });
     }
     return this.#parseColor(value, role);
   }
 
-  #parseFontFamily(theme) {
-    const value = theme?.fontFamily;
+  #parseFontFamily() {
+    const value = this.#token("font-family");
     if (value === null || value === undefined || String(value).trim() === "") {
       throw new MissingGameUiThemeTokenError({ token: "font-family" });
     }
     return String(value).trim();
   }
 
-  #parseBorderRadius(theme) {
-    return this.#parsePixelToken(theme, "borderRadius", "border-radius");
+  #parseBorderRadius() {
+    return this.#parsePixelToken("border-radius");
   }
 
-  #parsePixelToken(theme, property, token = property) {
-    const value = theme?.[property];
+  #parsePixelToken(token) {
+    const value = this.#token(token);
     if (value === null || value === undefined || String(value).trim() === "") {
       throw new MissingGameUiThemeTokenError({ token });
     }
@@ -267,6 +280,13 @@ export class GameUiTheme {
       });
     }
     return length;
+  }
+
+  #token(name) {
+    return window
+      .getComputedStyle(document.documentElement)
+      .getPropertyValue(`--app-ui-${name}`)
+      .trim();
   }
 
   #parseColor(value, role) {
@@ -319,3 +339,5 @@ export class GameUiTheme {
     return Math.min(maximum, Math.max(minimum, value));
   }
 }
+
+export const gameUiTheme = new GameUiTheme();

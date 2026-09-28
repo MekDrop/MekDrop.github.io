@@ -18,7 +18,6 @@ export class InventoryScene {
     modelLibrary,
     heroConfigurationStore,
     translate,
-    theme,
     getHero,
     getMapRoot,
     getDropPlacement = null,
@@ -34,7 +33,6 @@ export class InventoryScene {
       app,
       modelLibrary,
       translate,
-      theme,
       onMoveItem: (fromSlot, toSlot) => this.moveItem(fromSlot, toSlot),
       onDropItem: (slot, clientX, clientY, heightClientX, heightClientY) =>
         this.dropItem(slot, clientX, clientY, heightClientX, heightClientY),

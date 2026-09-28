@@ -50,7 +50,6 @@ function createScene(royals, calls) {
     pc: {},
     app: {},
     translate: (key) => key,
-    theme: {},
     sceneObjects: {
       getAll: () => royals,
     },

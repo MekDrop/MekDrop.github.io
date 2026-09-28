@@ -190,7 +190,6 @@ import {
 } from "vue";
 import { useResizeObserver } from "@vueuse/core";
 import { storeToRefs } from "pinia";
-import { getCssVar } from "quasar";
 import { useI18n } from "vue-i18n";
 import { useRoute, useRouter } from "vue-router";
 import SiteNoticeDialog from "components/SiteNoticeDialog.vue";
@@ -296,7 +295,6 @@ const gameCanvasPluginRegistry = new GameCanvasPluginRegistry({
   },
   registerControlAction,
   debugStore,
-  uiTheme: gameUiTheme,
 });
 const { stop: stopResizeObserver } = useResizeObserver(container, () => {
   renderer?.resize();
@@ -342,28 +340,6 @@ function registerControlAction(
     removePluginControlEntry("keydownActions", entry);
     removePluginControlEntry("keyupActions", entry);
     removePluginControlEntry("keydownConsumeBindings", binding);
-  };
-}
-
-function gameUiTheme() {
-  const styles = window.getComputedStyle(document.documentElement);
-  return {
-    primary: getCssVar("primary"),
-    secondary: getCssVar("secondary"),
-    accent: getCssVar("accent"),
-    positive: getCssVar("positive"),
-    negative: getCssVar("negative"),
-    info: getCssVar("info"),
-    warning: getCssVar("warning"),
-    dark: getCssVar("dark"),
-    darkPage: getCssVar("dark-page"),
-    fontFamily: styles.getPropertyValue("--app-ui-font-family").trim(),
-    borderRadius: styles.getPropertyValue("--app-ui-border-radius").trim(),
-    spaceXs: styles.getPropertyValue("--app-ui-space-xs").trim(),
-    spaceSm: styles.getPropertyValue("--app-ui-space-sm").trim(),
-    spaceMd: styles.getPropertyValue("--app-ui-space-md").trim(),
-    spaceLg: styles.getPropertyValue("--app-ui-space-lg").trim(),
-    spaceXl: styles.getPropertyValue("--app-ui-space-xl").trim(),
   };
 }
 
@@ -521,7 +497,6 @@ async function init() {
     graphicsSettingsStore,
     heroConfigurationStore,
     heroStateStore,
-    uiTheme: gameUiTheme(),
   });
   renderer = activeRenderer;
   await activeRenderer.init();

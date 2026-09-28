@@ -1,6 +1,5 @@
 import { useIntervalFn } from "@vueuse/core";
 
-import { GameUiTheme } from "../../../ui/index.js";
 import { DevWireframeInspector } from "./debug/DevWireframeInspector.js";
 import { PathArrows } from "./objects/path/PathArrows.js";
 import { DebugAxesHud } from "./ui/DebugAxesHud.js";
@@ -14,7 +13,6 @@ export class GameCanvasDebugUiPlugin {
   #pathArrows = null;
   #debugStatsTimer = null;
   #stopDebugStoreSubscription = null;
-  #theme = null;
 
   constructor(context) {
     this.#context = context;
@@ -28,18 +26,12 @@ export class GameCanvasDebugUiPlugin {
     const renderer = this.#context.renderer();
     const pc = renderer.playCanvas;
     const app = renderer.app;
-    this.#theme = new GameUiTheme(this.#context.uiTheme());
-    this.#debugFpsHud = new DebugFpsHud({
-      pc,
-      app,
-      theme: this.#theme,
-    });
+    this.#debugFpsHud = new DebugFpsHud({ pc, app });
     this.#debugFpsHud.attach();
     this.#debugAxesHud = new DebugAxesHud({
       pc,
       app,
       gameCanvas: renderer,
-      theme: this.#theme,
     });
     this.#debugAxesHud.attach();
     this.#pathArrows = new PathArrows({ pc, app });
@@ -107,7 +99,6 @@ export class GameCanvasDebugUiPlugin {
     this.#debugAxesHud = null;
     this.#debugFpsHud?.destroy();
     this.#debugFpsHud = null;
-    this.#theme = null;
   }
 
   #applyDebugSettings() {

@@ -1,4 +1,5 @@
 import { GamePanelHud } from "./GamePanelHud.js";
+import { gameUiTheme } from "./GameUiTheme.js";
 
 const TEXTURE_SIZE = 64;
 const DEATH_ANIMATION_DURATION = 0.82;
@@ -42,9 +43,8 @@ export class HeroLifeHud extends GamePanelHud {
     castleLives = 3,
     maxCastleLives = 3,
     colors = DEFAULT_COLORS,
-    theme,
   }) {
-    super({ pc, app, theme, name: "Game lives HUD", priority: 100 });
+    super({ pc, app, name: "Game lives HUD", priority: 100 });
     this.#colors = colors;
 
     this.#heartTexture = this.#createHeartTexture();
@@ -185,10 +185,10 @@ export class HeroLifeHud extends GamePanelHud {
     this.#finishDeathAnimation();
     this.#panelRoot?.destroy();
     this.releaseTexture(this.#panelTexture);
-    const panelPaddingX = this.theme.spaceSm;
-    const panelPaddingY = this.theme.spaceXs;
-    const contentGap = this.theme.spaceXs;
-    const indicatorGap = this.theme.spaceSm;
+    const panelPaddingX = gameUiTheme.spaceSm;
+    const panelPaddingY = gameUiTheme.spaceXs;
+    const contentGap = gameUiTheme.spaceXs;
+    const indicatorGap = gameUiTheme.spaceSm;
     const iconSize = this.counterIconSize;
     const numberHeight = this.counterNumberHeight;
     const heroNumberWidth = this.#numberWidth(this.#maxLives);
@@ -207,8 +207,8 @@ export class HeroLifeHud extends GamePanelHud {
 
     this.#panelRoot = this.createPanel({
       name: "Game lives panel",
-      x: this.theme.spaceMd,
-      y: this.theme.spaceMd,
+      x: gameUiTheme.spaceMd,
+      y: gameUiTheme.spaceMd,
       width: panelWidth,
       height: panelHeight,
     });
@@ -297,7 +297,7 @@ export class HeroLifeHud extends GamePanelHud {
     if (!icon || !number || !numberTexture) {
       return;
     }
-    icon.element.color = this.theme.playCanvasColor(
+    icon.element.color = gameUiTheme.playCanvasColor(
       this.pc,
       value > 0 ? this.#colors.iconActive : this.#colors.iconInactive,
     );
@@ -414,7 +414,7 @@ export class HeroLifeHud extends GamePanelHud {
       return;
     }
 
-    const activeColor = this.theme.playCanvasColor(
+    const activeColor = gameUiTheme.playCanvasColor(
       this.pc,
       this.#colors.iconActive,
     );

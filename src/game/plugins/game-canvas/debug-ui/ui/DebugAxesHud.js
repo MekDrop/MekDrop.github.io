@@ -1,3 +1,5 @@
+import { gameUiTheme } from "../../../../ui/GameUiTheme.js";
+
 const REFERENCE_WIDTH = 1280;
 const REFERENCE_HEIGHT = 720;
 const PANEL_WIDTH = 214;
@@ -22,7 +24,6 @@ const DEFAULT_WIND = Object.freeze({
 export class DebugAxesHud {
   #pc;
   #app;
-  #theme;
   #gameCanvas;
   #entity;
   #texture;
@@ -32,10 +33,9 @@ export class DebugAxesHud {
   #elapsed = 0;
   #signature = "";
 
-  constructor({ pc, app, gameCanvas, theme }) {
+  constructor({ pc, app, gameCanvas }) {
     this.#pc = pc;
     this.#app = app;
-    this.#theme = theme;
     this.#gameCanvas = gameCanvas;
     this.#entity = new pc.Entity("Debug axes HUD");
     this.#entity.addComponent("screen", {
@@ -75,7 +75,7 @@ export class DebugAxesHud {
       useInput: false,
     });
     panel.element.texture = this.#texture;
-    panel.setLocalPosition(this.#theme.spaceMd, this.#theme.spaceMd, 0);
+    panel.setLocalPosition(gameUiTheme.spaceMd, gameUiTheme.spaceMd, 0);
     this.#entity.addChild(panel);
     this.#entity.screen.syncDrawOrder();
     this.#entity.enabled = false;
@@ -124,7 +124,6 @@ export class DebugAxesHud {
     this.#canvas = null;
     this.#context = null;
     this.#gameCanvas = null;
-    this.#theme = null;
     this.#app = null;
     this.#pc = null;
   }
@@ -175,14 +174,14 @@ export class DebugAxesHud {
       0.5,
       PANEL_WIDTH - 1,
       PANEL_HEIGHT - 1,
-      this.#theme.borderRadius,
+      gameUiTheme.borderRadius,
     );
-    context.fillStyle = this.#theme.withAlpha(
-      this.#theme.surfaceBottom,
+    context.fillStyle = gameUiTheme.withAlpha(
+      gameUiTheme.surfaceBottom,
       0.84,
     );
     context.fill();
-    context.strokeStyle = this.#theme.withAlpha(this.#theme.outline, 0.34);
+    context.strokeStyle = gameUiTheme.withAlpha(gameUiTheme.outline, 0.34);
     context.lineWidth = 1;
     context.stroke();
 
@@ -208,7 +207,7 @@ export class DebugAxesHud {
     context.arc(WIND_ORIGIN.x, WIND_ORIGIN.y, 3, 0, Math.PI * 2);
     context.fillStyle = "#fff3ca";
     context.fill();
-    context.strokeStyle = this.#theme.withAlpha(this.#theme.shadow, 0.88);
+    context.strokeStyle = gameUiTheme.withAlpha(gameUiTheme.shadow, 0.88);
     context.lineWidth = 1.5;
     context.stroke();
 
@@ -219,21 +218,21 @@ export class DebugAxesHud {
     context.beginPath();
     context.moveTo(132, 28);
     context.lineTo(132, 104);
-    context.strokeStyle = this.#theme.withAlpha(this.#theme.outline, 0.28);
+    context.strokeStyle = gameUiTheme.withAlpha(gameUiTheme.outline, 0.28);
     context.lineWidth = 1;
     context.stroke();
 
     this.#drawText("WIND", 167, 26, {
       color: "#ffe29a",
-      font: this.#theme.font(700, 9),
+      font: gameUiTheme.font(700, 9),
     });
     this.#drawText(`${wind.speed.toFixed(2)} u/s`, 167, 40, {
       color: "#fff3ca",
-      font: this.#theme.font(700, 8),
+      font: gameUiTheme.font(700, 8),
     });
     this.#drawText(`ZOOM ${zoom.toFixed(2)}x`, 167, 122, {
-      color: this.#theme.info,
-      font: this.#theme.font(700, 9),
+      color: gameUiTheme.info,
+      font: gameUiTheme.font(700, 9),
     });
     this.#texture.setSource(this.#canvas);
   }
@@ -272,7 +271,7 @@ export class DebugAxesHud {
     );
     this.#drawText(label, labelX, labelY, {
       color,
-      font: this.#theme.font(700, 14),
+      font: gameUiTheme.font(700, 14),
     });
   }
 
@@ -310,7 +309,7 @@ export class DebugAxesHud {
     context.textBaseline = "middle";
     context.font = font;
     context.lineJoin = "round";
-    context.strokeStyle = this.#theme.withAlpha(this.#theme.shadow, 0.9);
+    context.strokeStyle = gameUiTheme.withAlpha(gameUiTheme.shadow, 0.9);
     context.lineWidth = 3;
     context.strokeText(text, x, y);
     context.fillStyle = color;

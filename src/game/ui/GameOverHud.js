@@ -1,3 +1,5 @@
+import { gameUiTheme } from "./GameUiTheme.js";
+
 const REFERENCE_WIDTH = 1280;
 const REFERENCE_HEIGHT = 720;
 const PANEL_WIDTH = 340;
@@ -6,14 +8,12 @@ const PANEL_HEIGHT = 122;
 export class GameOverHud {
   #pc;
   #app;
-  #theme;
   #entity;
   #panelTexture;
 
-  constructor({ pc, app, translate, theme }) {
+  constructor({ pc, app, translate }) {
     this.#pc = pc;
     this.#app = app;
-    this.#theme = theme;
     this.#entity = new pc.Entity("Game over HUD");
     this.#entity.addComponent("screen", {
       screenSpace: true,
@@ -47,7 +47,6 @@ export class GameOverHud {
     this.#panelTexture?.destroy();
     this.#entity = null;
     this.#panelTexture = null;
-    this.#theme = null;
     this.#app = null;
     this.#pc = null;
   }
@@ -59,7 +58,7 @@ export class GameOverHud {
       anchor: new this.#pc.Vec4(0, 0, 1, 1),
       pivot: new this.#pc.Vec2(0.5, 0.5),
       margin: new this.#pc.Vec4(0, 0, 0, 0),
-      color: this.#theme.playCanvasColor(this.#pc, this.#theme.backdrop),
+      color: gameUiTheme.playCanvasColor(this.#pc, gameUiTheme.backdrop),
       opacity: 0.62,
       useInput: false,
     });
@@ -80,7 +79,7 @@ export class GameOverHud {
     panel.element.texture = this.#panelTexture;
     panel.setLocalPosition(
       0,
-      this.#theme.spaceLg + this.#theme.spaceSm + this.#theme.spaceXs,
+      gameUiTheme.spaceLg + gameUiTheme.spaceSm + gameUiTheme.spaceXs,
       0,
     );
     this.#entity.addChild(panel);
@@ -97,7 +96,7 @@ export class GameOverHud {
     const width = canvas.width - 36;
     const height = canvas.height - 36;
 
-    context.shadowColor = this.#theme.withAlpha(this.#theme.shadow, 0.52);
+    context.shadowColor = gameUiTheme.withAlpha(gameUiTheme.shadow, 0.52);
     context.shadowBlur = 18;
     context.shadowOffsetY = 10;
     this.#roundedRect(
@@ -106,33 +105,33 @@ export class GameOverHud {
       y,
       width,
       height,
-      this.#theme.borderRadius,
+      gameUiTheme.borderRadius,
     );
-    context.fillStyle = this.#theme.withAlpha(this.#theme.surfaceBottom, 0.96);
+    context.fillStyle = gameUiTheme.withAlpha(gameUiTheme.surfaceBottom, 0.96);
     context.fill();
     context.shadowColor = "transparent";
-    context.strokeStyle = this.#theme.negative;
+    context.strokeStyle = gameUiTheme.negative;
     context.lineWidth = 3;
     context.stroke();
 
     const titleGradient = context.createLinearGradient(0, 52, 0, 140);
-    titleGradient.addColorStop(0, this.#theme.negativeBright);
-    titleGradient.addColorStop(1, this.#theme.negative);
-    context.font = this.#theme.font(900, 64);
+    titleGradient.addColorStop(0, gameUiTheme.negativeBright);
+    titleGradient.addColorStop(1, gameUiTheme.negative);
+    context.font = gameUiTheme.font(900, 64);
     context.textAlign = "center";
     context.textBaseline = "middle";
     context.lineJoin = "round";
-    context.strokeStyle = this.#theme.negativeDark;
+    context.strokeStyle = gameUiTheme.negativeDark;
     context.lineWidth = 10;
     context.strokeText(String(title).toUpperCase(), canvas.width / 2, 94);
     context.fillStyle = titleGradient;
     context.fillText(String(title).toUpperCase(), canvas.width / 2, 94);
 
-    context.font = this.#theme.font(800, 22);
-    context.strokeStyle = this.#theme.shadow;
+    context.font = gameUiTheme.font(800, 22);
+    context.strokeStyle = gameUiTheme.shadow;
     context.lineWidth = 6;
     context.strokeText(String(prompt).toUpperCase(), canvas.width / 2, 169);
-    context.fillStyle = this.#theme.text;
+    context.fillStyle = gameUiTheme.text;
     context.fillText(String(prompt).toUpperCase(), canvas.width / 2, 169);
 
     const texture = new this.#pc.Texture(this.#app.graphicsDevice, {

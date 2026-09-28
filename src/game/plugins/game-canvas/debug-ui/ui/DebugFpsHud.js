@@ -1,3 +1,5 @@
+import { gameUiTheme } from "../../../../ui/GameUiTheme.js";
+
 const REFERENCE_WIDTH = 1280;
 const REFERENCE_HEIGHT = 720;
 const LEFT_MARGIN = 14;
@@ -27,7 +29,6 @@ const DEQUE_COMPACTION_THRESHOLD = 1024;
 export class DebugFpsHud {
   #pc;
   #app;
-  #theme;
   #entity;
   #texture;
   #canvas;
@@ -49,10 +50,9 @@ export class DebugFpsHud {
   #graphSamples = [];
   #graphSampleHead = 0;
 
-  constructor({ pc, app, theme }) {
+  constructor({ pc, app }) {
     this.#pc = pc;
     this.#app = app;
-    this.#theme = theme;
     this.#entity = new pc.Entity("Debug FPS HUD");
     this.#entity.addComponent("screen", {
       screenSpace: true,
@@ -156,7 +156,6 @@ export class DebugFpsHud {
     this.#texture = null;
     this.#canvas = null;
     this.#context = null;
-    this.#theme = null;
     this.#app = null;
     this.#pc = null;
   }
@@ -326,57 +325,57 @@ export class DebugFpsHud {
       0.5,
       COUNTER_WIDTH - 1,
       COUNTER_HEIGHT - 1,
-      this.#theme.borderRadius,
+      gameUiTheme.borderRadius,
     );
-    context.fillStyle = this.#theme.withAlpha(
-      this.#theme.surfaceBottom,
+    context.fillStyle = gameUiTheme.withAlpha(
+      gameUiTheme.surfaceBottom,
       0.84,
     );
     context.fill();
-    context.strokeStyle = this.#theme.withAlpha(this.#theme.outline, 0.34);
+    context.strokeStyle = gameUiTheme.withAlpha(gameUiTheme.outline, 0.34);
     context.lineWidth = 1;
     context.stroke();
 
     context.textBaseline = "middle";
     context.lineJoin = "round";
-    context.strokeStyle = this.#theme.shadow;
+    context.strokeStyle = gameUiTheme.shadow;
     context.lineWidth = 3.5;
 
     context.textAlign = "right";
-    context.font = this.#theme.font(800, 10);
-    context.fillStyle = this.#theme.text;
+    context.font = gameUiTheme.font(800, 10);
+    context.fillStyle = gameUiTheme.text;
     context.strokeText("FPS 5M", FPS_COLUMN_X, HEADER_BASELINE);
     context.fillText("FPS 5M", FPS_COLUMN_X, HEADER_BASELINE);
     context.strokeText("MEMORY", MEMORY_COLUMN_X, HEADER_BASELINE);
     context.fillText("MEMORY", MEMORY_COLUMN_X, HEADER_BASELINE);
 
     const rows = [
-      ["CURRENT", this.#framesPerSecond, this.#usedMemory, this.#theme.text],
+      ["CURRENT", this.#framesPerSecond, this.#usedMemory, gameUiTheme.text],
       [
         "MIN",
         Number.isFinite(this.#minimumFramesPerSecond)
           ? this.#minimumFramesPerSecond
           : "--",
         this.#minimumUsedMemory,
-        this.#theme.info,
+        gameUiTheme.info,
       ],
       [
         "MAX",
         this.#maximumFramesPerSecond || "--",
         this.#maximumUsedMemory,
-        this.#theme.warning,
+        gameUiTheme.warning,
       ],
     ];
     rows.forEach(([label, framesPerSecond, usedMemory, color], index) => {
       const y = ROW_BASELINES[index];
       context.textAlign = "left";
-      context.font = this.#theme.font(800, 10);
+      context.font = gameUiTheme.font(800, 10);
       context.strokeText(label, TEXT_PADDING_X, y);
       context.fillStyle = color;
       context.fillText(label, TEXT_PADDING_X, y);
 
       context.textAlign = "right";
-      context.font = this.#theme.font(900, 16);
+      context.font = gameUiTheme.font(900, 16);
       context.strokeText(framesPerSecond, FPS_COLUMN_X, y);
       context.fillText(framesPerSecond, FPS_COLUMN_X, y);
 
@@ -397,8 +396,8 @@ export class DebugFpsHud {
     const axisValues = [axisMaximum, Math.round(axisMaximum / 2), 0];
     const axisPositions = [GRAPH_TOP, (GRAPH_TOP + GRAPH_BOTTOM) / 2, GRAPH_BOTTOM];
 
-    context.fillStyle = this.#theme.withAlpha(
-      this.#theme.surfaceInsetTop,
+    context.fillStyle = gameUiTheme.withAlpha(
+      gameUiTheme.surfaceInsetTop,
       0.64,
     );
     context.fillRect(
@@ -407,7 +406,7 @@ export class DebugFpsHud {
       GRAPH_RIGHT - GRAPH_LEFT,
       GRAPH_BOTTOM - GRAPH_TOP,
     );
-    context.font = this.#theme.font(700, 7);
+    context.font = gameUiTheme.font(700, 7);
     context.textAlign = "right";
     context.textBaseline = "middle";
     axisValues.forEach((value, index) => {
@@ -415,10 +414,10 @@ export class DebugFpsHud {
       context.beginPath();
       context.moveTo(GRAPH_LEFT, y);
       context.lineTo(GRAPH_RIGHT, y);
-      context.strokeStyle = this.#theme.withAlpha(this.#theme.outline, 0.2);
+      context.strokeStyle = gameUiTheme.withAlpha(gameUiTheme.outline, 0.2);
       context.lineWidth = 1;
       context.stroke();
-      context.fillStyle = this.#theme.withAlpha(this.#theme.textSubtle, 0.82);
+      context.fillStyle = gameUiTheme.withAlpha(gameUiTheme.textSubtle, 0.82);
       context.fillText(String(value), GRAPH_LEFT - 4, y);
     });
 
@@ -463,15 +462,15 @@ export class DebugFpsHud {
       }
       previousSample = sample;
     }
-    context.strokeStyle = this.#theme.info;
+    context.strokeStyle = gameUiTheme.info;
     context.lineWidth = 1.25;
     context.lineJoin = "round";
     context.stroke();
     context.restore();
 
-    context.font = this.#theme.font(700, 7);
+    context.font = gameUiTheme.font(700, 7);
     context.textBaseline = "middle";
-    context.fillStyle = this.#theme.withAlpha(this.#theme.textSubtle, 0.78);
+    context.fillStyle = gameUiTheme.withAlpha(gameUiTheme.textSubtle, 0.78);
     context.textAlign = "left";
     context.fillText(
       `-${this.#formatGraphDuration(FPS_WINDOW_DURATION)}`,
