@@ -45,6 +45,11 @@ export class HeroCollectingActionState extends HeroRuntimeActionState {
     });
   }
 
+  enter(owner) {
+    super.enter(owner);
+    owner.feedback.collection.begin(this.payload);
+  }
+
   execute(owner) {
     const action = this.payload;
     const feedback = owner.feedback.collection;
@@ -71,8 +76,14 @@ export class HeroCollectingActionState extends HeroRuntimeActionState {
     if (action.elapsed < action.duration) {
       return;
     }
+    action.completed = true;
     owner.finish();
-    feedback.completeCollection(action);
+  }
+
+  exit(owner) {
+    const action = this.payload;
+    owner.feedback.collection.endCollection(action);
+    super.exit(owner);
   }
 }
 
@@ -89,6 +100,11 @@ export class HeroInventoryFullActionState extends HeroRuntimeActionState {
     });
   }
 
+  enter(owner) {
+    super.enter(owner);
+    owner.feedback.collection.beginInventoryFull(this.payload);
+  }
+
   execute(owner) {
     const action = this.payload;
     const feedback = owner.feedback.collection;
@@ -101,8 +117,14 @@ export class HeroInventoryFullActionState extends HeroRuntimeActionState {
       feedback.showInventoryFull();
     }
     if (action.elapsed >= feedback.fullDuration) {
+      action.completed = true;
       owner.finish();
-      feedback.completeInventoryFull(action);
     }
+  }
+
+  exit(owner) {
+    const action = this.payload;
+    owner.feedback.collection.endInventoryFull(action);
+    super.exit(owner);
   }
 }

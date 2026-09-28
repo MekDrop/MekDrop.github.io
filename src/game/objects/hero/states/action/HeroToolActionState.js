@@ -19,6 +19,11 @@ export class HeroToolActionState extends HeroRuntimeActionState {
     });
   }
 
+  enter(owner) {
+    super.enter(owner);
+    owner.feedback.tool.begin(this.payload);
+  }
+
   execute(owner) {
     const action = this.payload;
     const feedback = owner.feedback.tool;
@@ -34,7 +39,6 @@ export class HeroToolActionState extends HeroRuntimeActionState {
     if (action.phase === "dismiss") {
       if (action.elapsed >= action.tool.dismissDuration) {
         owner.finish();
-        feedback.complete(action);
       }
       return;
     }
@@ -55,5 +59,11 @@ export class HeroToolActionState extends HeroRuntimeActionState {
     action.elapsed = 0;
     action.impacted = false;
     feedback.restartAnimation();
+  }
+
+  exit(owner) {
+    const action = this.payload;
+    owner.feedback.tool.complete(action);
+    super.exit(owner);
   }
 }

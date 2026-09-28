@@ -5,6 +5,42 @@ import { HERO_ANIMATION } from "../../../../../src/game/enum/HeroAnimation.js";
 import { RIVER_KIND } from "../../../../../src/game/enum/RiverKind.js";
 import { HeroActionBehavior } from "../../../../../src/game/objects/hero/behaviors/action/HeroActionBehavior.js";
 
+function createFeedback(overrides = {}) {
+  const feedback = {
+    tool: { begin: () => {}, restartAnimation: () => {}, complete: () => {} },
+    collection: {
+      positioningDuration: 0.2,
+      fullEffectTime: 0.1,
+      fullDuration: 0.2,
+      canOccupy: () => true,
+      moveTo: () => {},
+      mountHeldItem: () => {},
+      begin: () => {},
+      beginInventoryFull: () => {},
+      restartAnimation: () => {},
+      endCollection: () => {},
+      showInventoryFull: () => {},
+      endInventoryFull: () => {},
+    },
+    dodge: { complete: () => {} },
+    patReaction: { shouldContinue: () => true },
+    repel: { begin: () => {}, end: () => {} },
+    refusal: { beginEdge: () => {}, beginHole: () => {} },
+    blockedDig: { begin: () => {} },
+    drowning: { begin: (payload) => payload, endPresentation: () => {} },
+    bridgeClimb: { begin: (payload) => payload },
+    burning: { begin: (payload) => payload },
+    falling: { begin: () => {}, finished: () => false },
+    death: { resolve: () => HERO_ACTION.RESPAWNING },
+    respawning: { begin: () => {}, resetPresentation: () => {} },
+    gameOver: { begin: () => {} },
+  };
+  for (const [key, value] of Object.entries(overrides)) {
+    feedback[key] = { ...feedback[key], ...value };
+  }
+  return feedback;
+}
+
 function createBehavior(options = {}) {
   return new HeroActionBehavior({
     bridgeClimbEnd: 0.6,
@@ -14,7 +50,7 @@ function createBehavior(options = {}) {
     blockedDigReactionDuration: 1.75,
     repelDuration: 0.5,
     repelSpeed: 2.2,
-    feedback: options.feedback ?? { drowning: {} },
+    feedback: createFeedback(options.feedback),
     handler: options.handler,
   });
 }
@@ -80,6 +116,7 @@ it("runs the full tool sequence inside the tool action state", () => {
     feedback: {
       drowning: {},
       tool: {
+        begin: () => {},
         restartAnimation: () => {
           restarts += 1;
         },
@@ -141,7 +178,8 @@ it("completes collection from its action state and returns to rest", () => {
         moveTo: () => {},
         mountHeldItem: () => {},
         restartAnimation: () => {},
-        completeCollection: (action) => {
+        begin: () => {},
+        endCollection: (action) => {
           completedAction = action;
         },
       },
@@ -184,9 +222,9 @@ it("lets the drowning state decide whether water or lava feedback begins", () =>
       }),
       hasRiverSourceCover: () => false,
       routeEntryAt: () => routeEntry,
-      beginDrowning: () => ({ kind: "water" }),
-      beginBurning: () => ({ kind: "lava" }),
+      begin: () => ({ kind: "water" }),
     },
+    burning: { begin: () => ({ kind: "lava" }) },
   };
   const behavior = createBehavior({ feedback });
 
@@ -329,4 +367,67 @@ it("lets action states drive and clean up their presentation", () => {
   ]);
   assert.deepEqual(resets, ["drowning", "bridge", "respawn"]);
   assert(Math.abs(presentations[2][1].progress - 0.2) < Number.EPSILON);
+});
+
+it("owns refusal, repulsion, death, and recovery lifecycle effects", () => {
+  const events = [];
+  let fallFinished = false;
+  const behavior = createBehavior({
+    feedback: {
+      refusal: {
+        beginEdge: () => events.push("edge-enter"),
+        beginHole: () => events.push("hole-enter"),
+      },
+      repel: {
+        begin: () => events.push("repel-enter"),
+        end: () => events.push("repel-exit"),
+      },
+      falling: {
+        begin: () => events.push("fall-enter"),
+        finished: () => fallFinished,
+      },
+      death: {
+        resolve: () => {
+          events.push("death-resolved");
+          return HERO_ACTION.RESPAWNING;
+        },
+      },
+      respawning: {
+        begin: () => events.push("respawn-enter"),
+      },
+      gameOver: {
+        begin: () => events.push("game-over-enter"),
+      },
+    },
+  });
+
+  behavior.edgeRefusalAction = {
+    foot: "right",
+    direction: { x: 1, z: 0 },
+    elapsed: 0,
+  };
+  behavior.holeRefusalAction = {
+    direction: { x: 1, z: 0 },
+    elapsed: 0,
+  };
+  behavior.repelAction = { x: -1, z: 0, elapsed: 0 };
+  behavior.finish();
+  behavior.fallingToDeath = true;
+  behavior.update(0.1);
+  assert.equal(behavior.fallingToDeath, true);
+  fallFinished = true;
+  behavior.update(0.1);
+  assert.equal(behavior.respawning, true);
+  behavior.endGame();
+
+  assert.deepEqual(events, [
+    "edge-enter",
+    "hole-enter",
+    "repel-enter",
+    "repel-exit",
+    "fall-enter",
+    "death-resolved",
+    "respawn-enter",
+    "game-over-enter",
+  ]);
 });

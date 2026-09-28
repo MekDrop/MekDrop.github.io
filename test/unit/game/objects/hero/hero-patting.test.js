@@ -19,6 +19,7 @@ function createMood() {
       };
     },
     pat: () => mood.pat(),
+    reactToPat: () => mood.reactToPat(),
     attemptAction: () => mood.attemptAction(),
     reset: () => mood.reset(),
     advance(deltaTime, options) {
@@ -27,6 +28,28 @@ function createMood() {
     },
   };
 }
+
+it("returns semantic pat reactions for action-state orchestration", () => {
+  const mood = createMood();
+  let reaction = mood.reactToPat();
+  assert.deepEqual(reaction, {
+    accepted: true,
+    kind: "happy",
+    becameAngry: false,
+    agitated: false,
+  });
+  for (let i = 1; i < 9; i += 1) {
+    mood.advance(0.25);
+    reaction = mood.reactToPat();
+  }
+  assert.equal(reaction.becameAngry, true);
+  assert.equal(reaction.kind, "angry");
+  assert.deepEqual(mood.reactToPat(), {
+    accepted: false,
+    kind: "angry",
+    reinforceAnger: true,
+  });
+});
 
 it("gentle pats grant a bounded, temporary speed boost; holding still cannot stack it", () => {
   const mood = createMood();

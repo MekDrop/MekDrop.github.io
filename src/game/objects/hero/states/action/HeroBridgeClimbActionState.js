@@ -22,6 +22,11 @@ export class HeroBridgeClimbActionState extends HeroRuntimeActionState {
     });
   }
 
+  enter(owner) {
+    super.enter(owner);
+    this.payload = owner.feedback.bridgeClimb.begin(this.payload);
+  }
+
   execute(owner) {
     const feedback = owner.feedback.bridgeClimb;
     const action = this.payload;

@@ -43,11 +43,16 @@ export class HeroDrowningActionState extends HeroRuntimeActionState {
     }
 
     if (routeEntry.river.kind === RIVER_KIND.LAVA) {
-      owner.transition(HERO_ACTION.BURNING, feedback.beginBurning(routeEntry));
+      owner.transition(HERO_ACTION.BURNING, routeEntry);
     } else {
-      owner.transition(HERO_ACTION.DROWNING, feedback.beginDrowning(routeEntry));
+      owner.transition(HERO_ACTION.DROWNING, routeEntry);
     }
     return true;
+  }
+
+  enter(owner) {
+    super.enter(owner);
+    this.payload = owner.feedback.drowning.begin(this.payload);
   }
 
   execute(owner) {
@@ -82,7 +87,7 @@ export class HeroDrowningActionState extends HeroRuntimeActionState {
         return;
       }
       if (climbsBridge) {
-        feedback.beginBridgeClimb(targetCell);
+        owner.transition(HERO_ACTION.BRIDGE_CLIMB, targetCell);
         return;
       }
       if (action.targetIndex < cells.length - 1) {

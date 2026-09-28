@@ -101,9 +101,18 @@ export class HeroEmotionBehavior {
   }
 
   pat() {
+    return this.reactToPat().accepted;
+  }
+
+  reactToPat() {
+    const currentKind = this.state.kind;
     if (this.#stateMachine.in(HERO_MOOD.ANGRY)
       || this.#sincePat < PAT_INTERVAL) {
-      return false;
+      return {
+        accepted: false,
+        kind: currentKind,
+        reinforceAnger: currentKind === HERO_MOOD.ANGRY,
+      };
     }
     this.#sincePat = 0;
     const pressure = Math.min(SNAP_THRESHOLD, this.#pressure + 1);
@@ -117,7 +126,13 @@ export class HeroEmotionBehavior {
       this.#wasOverstimulated = true;
     }
     this.#updateState(pressure);
-    return true;
+    const kind = this.state.kind;
+    return {
+      accepted: true,
+      kind,
+      becameAngry: kind === HERO_MOOD.ANGRY,
+      agitated: kind === HERO_MOOD.AGITATED,
+    };
   }
 
   advance(deltaTime) {

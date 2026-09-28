@@ -161,7 +161,6 @@ export class Hero {
   #angryEscapeBehavior = new HeroAngryEscapeBehavior();
   #idleBehavior = new HeroIdleBehavior();
   #faceMorphs = [];
-  #lastAngryPatTime = -Infinity;
 
   get mood() {
     return {
@@ -219,15 +218,9 @@ export class Hero {
     if (!this.canBePatted) {
       return false;
     }
-    const wasAngry = !this.#emotionBehavior.acceptsActions;
-    const accepted = this.#emotionBehavior.pat();
-    const { kind, elapsed } = this.#emotionBehavior.state;
-    if (kind === HERO_MOOD.ANGRY) {
-      // Limit repeated stroke events without spawning overlapping escapes.
-      if (elapsed - this.#lastAngryPatTime < 0.22) {
-        return false;
-      }
-      if (wasAngry) {
+    const reaction = this.#emotionBehavior.reactToPat();
+    if (reaction.kind === HERO_MOOD.ANGRY) {
+      if (reaction.reinforceAnger) {
         const { reacted } = this.#attemptEmotionAction();
         if (!reacted) {
           return false;
@@ -235,16 +228,14 @@ export class Hero {
       } else {
         this.#startAngryEscape();
       }
-      this.#lastAngryPatTime = elapsed;
       return true;
     }
-    const irritated = kind === HERO_MOOD.AGITATED;
-    if (irritated && !this.#angryEscapeBehavior.active && !this.#hasMovementInput
+    if (reaction.agitated && !this.#angryEscapeBehavior.active && !this.#hasMovementInput
       && this.#actionBehavior.patReactionRemaining === 0) {
       this.#actionBehavior.patReactionRemaining = PAT_ANNOYED_DURATION;
       this.#setAngryFace(0);
     }
-    if (!accepted) {
+    if (!reaction.accepted) {
       return false;
     }
     this.#resetBoredom();
@@ -431,13 +422,19 @@ export class Hero {
       repelDuration: GATEWAY_REPEL_DURATION,
       repelSpeed: GATEWAY_REPEL_SPEED,
       feedback: {
-        actionComplete: (action) => {
-          if (action === HERO_ACTION.REPELLED) {
-            this.#gatewayRepelCooldown = GATEWAY_REPEL_COOLDOWN;
-          }
+        actionComplete: () => {
           this.#restartAnimation = true;
         },
         tool: {
+          begin: (action) => {
+            action.tool.mount(this.#toolAttachmentEntity);
+            action.tool.visible = true;
+            this.#tool = action.tool;
+            this.#velocity.x = 0;
+            this.#velocity.z = 0;
+            this.#restartAnimation = true;
+            this.#resetBoredom();
+          },
           restartAnimation: () => {
             this.#restartAnimation = true;
           },
@@ -459,21 +456,41 @@ export class Hero {
           },
           mountHeldItem: (item, attachment) =>
             item.mount(this.#entity, attachment),
+          begin: (action) => {
+            if (action.tool) {
+              action.tool.mount(this.#toolAttachmentEntity);
+              action.tool.visible = true;
+            }
+            this.#velocity.x = 0;
+            this.#velocity.z = 0;
+            this.#restartAnimation = true;
+            this.#resetBoredom();
+          },
+          beginInventoryFull: () => {
+            this.#velocity.x = 0;
+            this.#velocity.z = 0;
+            this.#restartAnimation = true;
+            this.#resetBoredom();
+          },
           restartAnimation: () => {
             this.#restartAnimation = true;
           },
-          completeCollection: (action) => {
+          endCollection: (action) => {
             if (action.tool) {
               action.tool.visible = false;
             }
             action.heldItem?.destroy();
             this.#restartAnimation = true;
-            action.onComplete?.();
+            if (action.completed) {
+              action.onComplete?.();
+            }
           },
           showInventoryFull: () => this.#showInventoryFull(),
-          completeInventoryFull: (action) => {
+          endInventoryFull: (action) => {
             this.#restartAnimation = true;
-            action.onComplete?.();
+            if (action.completed) {
+              action.onComplete?.();
+            }
           },
         },
         dodge: {
@@ -493,7 +510,7 @@ export class Hero {
                 (!riverRouteEntry || riverRouteEntry.cell.underBridge)
                 && landingSurface === null
               ) {
-                this.#beginFallDeath();
+                this.#actionBehavior.fallingToDeath = true;
               }
             }
             this.#restartAnimation = true;
@@ -507,6 +524,40 @@ export class Hero {
               && !this.#hasMovementInput
               && Math.hypot(this.#velocity.x, this.#velocity.z) <= 0.08
               && (kind === HERO_MOOD.AGITATED || kind === HERO_MOOD.ANGRY);
+          },
+        },
+        repel: {
+          begin: (direction) => {
+            this.#velocity.x = direction.x * GATEWAY_REPEL_SPEED;
+            this.#velocity.z = direction.z * GATEWAY_REPEL_SPEED;
+            this.#restartAnimation = true;
+            this.#resetBoredom();
+          },
+          end: () => {
+            this.#gatewayRepelCooldown = GATEWAY_REPEL_COOLDOWN;
+          },
+        },
+        refusal: {
+          beginEdge: ({ foot }) => {
+            this.#lastEdgeRefusalFoot = foot;
+            this.#velocity.x = 0;
+            this.#velocity.z = 0;
+            this.#restartAnimation = true;
+            this.#resetBoredom();
+          },
+          beginHole: () => {
+            this.#velocity.x = 0;
+            this.#velocity.z = 0;
+            this.#restartAnimation = true;
+            this.#resetBoredom();
+          },
+        },
+        blockedDig: {
+          begin: () => {
+            this.#velocity.x = 0;
+            this.#velocity.z = 0;
+            this.#restartAnimation = true;
+            this.#resetBoredom();
           },
         },
         drowning: {
@@ -536,11 +587,9 @@ export class Hero {
           setVelocity: (velocity) => {
             this.#velocity = velocity;
           },
-          beginBridgeClimb: (cell) => this.#beginRiverBridgeExit(cell),
           finishAtWaterfall: (direction) =>
             this.#finishDrowningAtWaterfall(direction),
-          beginBurning: (routeEntry) => this.#beginLavaDeath(routeEntry),
-          beginDrowning: (routeEntry) => this.#beginDrowning(routeEntry),
+          begin: (routeEntry) => this.#beginDrowning(routeEntry),
           endPresentation: () => this.#setDrowningPresentation(false),
           updatePresentation: ({ pitch, yaw, roll, mouthScale }) => {
             this.#headLookYaw = yaw;
@@ -555,6 +604,7 @@ export class Hero {
           catchHeightOffset: RIVER_BRIDGE_CATCH_HEIGHT_OFFSET,
           railOffset: RIVER_BRIDGE_RAIL_OFFSET,
           hopHeight: RIVER_BRIDGE_HOP_HEIGHT,
+          begin: (cell) => this.#beginRiverBridgeExit(cell),
           moveTo: (position, deltaTime) => {
             const previous = this.#position;
             this.#position = position;
@@ -588,6 +638,7 @@ export class Hero {
           ashStart: LAVA_ASH_START,
           submergeDepth: LAVA_SUBMERGE_DEPTH,
           modelScale: HERO_MODEL_SCALE,
+          begin: (routeEntry) => this.#beginLavaDeath(routeEntry),
           setHeight: (height) => {
             this.#position.y = height;
           },
@@ -598,14 +649,17 @@ export class Hero {
             this.#lavaAshes = true;
             this.#syncState();
           },
-          complete: () => {
-            this.#lavaDeathEffect?.complete();
-            this.#modelRoot?.setLocalScale(0, 0, 0);
-            this.#loseLifeAndRespawn();
-          },
+        },
+        falling: {
+          begin: () => this.#beginFallDeath(),
+          finished: () => this.#position.y < FALL_EXIT_HEIGHT,
+        },
+        death: {
+          resolve: () => this.#resolveDeath(),
         },
         respawning: {
           duration: RESPAWN_ANIMATION_DURATION,
+          begin: () => this.#beginRespawn(),
           updatePresentation: (progress, elapsed) => {
             this.#respawnEffect?.update(progress, elapsed, this.#position.y);
           },
@@ -613,6 +667,9 @@ export class Hero {
           complete: () => {
             this.#restartAnimation = true;
           },
+        },
+        gameOver: {
+          begin: () => this.#beginGameOver(),
         },
       },
     });
@@ -1057,11 +1114,6 @@ export class Hero {
     if (Math.hypot(targetX, targetZ) > 0.001) {
       this.#facingYaw = (Math.atan2(targetX, targetZ) * 180) / Math.PI;
     }
-    this.#velocity.x = 0;
-    this.#velocity.z = 0;
-    tool.mount(this.#toolAttachmentEntity);
-    tool.visible = true;
-    this.#tool = tool;
     this.#actionBehavior.toolAction = {
       tool,
       useAnimation,
@@ -1072,8 +1124,6 @@ export class Hero {
       onImpact,
       onComplete,
     };
-    this.#restartAnimation = true;
-    this.#resetBoredom();
     return true;
   }
 
@@ -1111,12 +1161,6 @@ export class Hero {
     if (pickupAction.requiresTool && !collectionTool) {
       return false;
     }
-    this.#velocity.x = 0;
-    this.#velocity.z = 0;
-    if (collectionTool) {
-      collectionTool.mount(this.#toolAttachmentEntity);
-      collectionTool.visible = true;
-    }
     const positioning = this.#collectionPositioning({
       pickupAction,
       targetPosition,
@@ -1140,8 +1184,6 @@ export class Hero {
       onImpact,
       onComplete,
     };
-    this.#restartAnimation = true;
-    this.#resetBoredom();
     return true;
   }
 
@@ -1164,10 +1206,6 @@ export class Hero {
       return false;
     }
     this.#actionBehavior.blockedDigReactionAction = { elapsed: 0 };
-    this.#velocity.x = 0;
-    this.#velocity.z = 0;
-    this.#restartAnimation = true;
-    this.#resetBoredom();
     return true;
   }
 
@@ -1220,10 +1258,6 @@ export class Hero {
       positioningElapsed: 0,
       onComplete,
     };
-    this.#velocity.x = 0;
-    this.#velocity.z = 0;
-    this.#restartAnimation = true;
-    this.#resetBoredom();
     return true;
   }
 
@@ -1247,7 +1281,7 @@ export class Hero {
       this.#actionBehavior.toolAction.impacted = false;
       this.#restartAnimation = true;
     } else {
-      this.#finishToolAction();
+      this.#actionBehavior.toolAction = null;
     }
     return true;
   }
@@ -1257,6 +1291,7 @@ export class Hero {
     this.#presentation?.stateStore?.$reset();
     this.#updateHandle?.off();
     this.#updateHandle = null;
+    this.#actionBehavior.finish();
     this.#footPlacement?.destroy();
     this.#footPlacement = null;
     this.#hairPhysics?.destroy();
@@ -1265,10 +1300,6 @@ export class Hero {
     this.#respawnEffect = null;
     this.#lavaDeathEffect?.destroy();
     this.#lavaDeathEffect = null;
-    if (this.#actionBehavior.collectAction?.tool) {
-      this.#actionBehavior.collectAction.tool.visible = false;
-    }
-    this.#actionBehavior.collectAction?.heldItem?.destroy();
     for (const tool of this.#tools.values()) {
       tool.destroy();
     }
@@ -1283,7 +1314,6 @@ export class Hero {
     this.#leftEyeEntity = null;
     this.#rightEyeEntity = null;
     this.#faceMorphs = [];
-    this.#actionBehavior.patReactionRemaining = 0;
     this.#leftArmEntity = null;
     this.#rightArmEntity = null;
     this.#toolAttachmentEntity = null;
@@ -1291,17 +1321,8 @@ export class Hero {
     this.#leftHeldItemAttachmentEntity = null;
     this.#heroPartColliders = [];
     this.#animationState = null;
-    this.#actionBehavior.toolAction = null;
-    this.#actionBehavior.collectAction = null;
-    this.#actionBehavior.inventoryFullAction = null;
     this.#tool = null;
-    this.#actionBehavior.repelAction = null;
-    this.#actionBehavior.dodgeAction = null;
-    this.#actionBehavior.finish();
     this.#lavaAshes = false;
-    this.#actionBehavior.edgeRefusalAction = null;
-    this.#actionBehavior.holeRefusalAction = null;
-    this.#actionBehavior.blockedDigReactionAction = null;
     this.#stableGroundPosition = null;
   }
 
@@ -1437,9 +1458,6 @@ export class Hero {
     this.#moveVertically(deltaTime);
     this.#advanceBlockedPush(deltaTime);
 
-    if (this.#position.y < FALL_EXIT_HEIGHT) {
-      this.#handleFallDeath();
-    }
     this.#applyPosition(previousX, previousY, previousZ);
   }
 
@@ -1676,7 +1694,7 @@ export class Hero {
               MAX_SAFE_STEP_DOWN -
               STEP_CLEARANCE))
     ) {
-      this.#beginFallDeath();
+      this.#actionBehavior.fallingToDeath = true;
     }
     this.#grounded =
       (Boolean(contact) || this.#automaticStepGroundingRemaining > 0) &&
@@ -1763,19 +1781,7 @@ export class Hero {
   }
 
   #beginLavaDeath(routeEntry) {
-    this.stopUsingTool({ dismiss: false });
-    if (this.#actionBehavior.collectAction?.tool) {
-      this.#actionBehavior.collectAction.tool.visible = false;
-    }
-    this.#actionBehavior.collectAction?.heldItem?.destroy();
-    this.#actionBehavior.collectAction = null;
-    this.#actionBehavior.inventoryFullAction = null;
-    this.#actionBehavior.edgeRefusalAction = null;
-    this.#actionBehavior.holeRefusalAction = null;
-    this.#actionBehavior.blockedDigReactionAction = null;
-    this.#actionBehavior.repelAction = null;
-    this.#actionBehavior.dodgeAction = null;
-    this.#jumpBufferRemaining = 0;
+    this.#clearActionInput();
     this.#grounded = false;
     this.#coyoteRemaining = 0;
     this.#velocity = { x: 0, y: 0, z: 0 };
@@ -1795,19 +1801,7 @@ export class Hero {
 
 
   #beginDrowning(routeEntry) {
-    this.stopUsingTool({ dismiss: false });
-    if (this.#actionBehavior.collectAction?.tool) {
-      this.#actionBehavior.collectAction.tool.visible = false;
-    }
-    this.#actionBehavior.collectAction?.heldItem?.destroy();
-    this.#actionBehavior.collectAction = null;
-    this.#actionBehavior.inventoryFullAction = null;
-    this.#actionBehavior.edgeRefusalAction = null;
-    this.#actionBehavior.holeRefusalAction = null;
-    this.#actionBehavior.blockedDigReactionAction = null;
-    this.#actionBehavior.repelAction = null;
-    this.#actionBehavior.dodgeAction = null;
-    this.#jumpBufferRemaining = 0;
+    this.#clearActionInput();
     this.#grounded = false;
     this.#coyoteRemaining = 0;
     const action = {
@@ -1840,10 +1834,10 @@ export class Hero {
     const direction = this.#riverDirectionVector(bridgeCell.direction);
     const bridgeX = bridgeCell.col - (this.#mapData.cols - 1) / 2;
     const bridgeZ = bridgeCell.row - (this.#mapData.rows - 1) / 2;
-    this.#actionBehavior.drowningAction = null;
     this.#physics.gravity = GRAVITY;
     this.#physics.setScripted(this.#position, this.#velocity);
-    this.#actionBehavior.bridgeClimbAction = {
+    this.#restartAnimation = true;
+    return {
       cell: bridgeCell,
       direction,
       elapsed: 0,
@@ -1855,7 +1849,6 @@ export class Hero {
       deckX: bridgeX,
       deckZ: bridgeZ,
     };
-    this.#restartAnimation = true;
   }
 
   #canClimbRiverBridge(bridgeCell) {
@@ -1876,14 +1869,13 @@ export class Hero {
   }
 
   #finishDrowningAtWaterfall(direction) {
-    this.#actionBehavior.drowningAction = null;
     this.#velocity = {
       x: direction.x * RIVER_CURRENT_SPEED,
       y: -1.2,
       z: direction.z * RIVER_CURRENT_SPEED,
     };
     this.#physics.gravity = GRAVITY;
-    this.#beginFallDeath();
+    this.#actionBehavior.fallingToDeath = true;
   }
 
   #setDrowningPresentation(drowning) {
@@ -2702,16 +2694,11 @@ export class Hero {
     if (this.#actionBehavior.edgeRefusalAction) {
       return;
     }
-    this.#lastEdgeRefusalFoot = foot;
     this.#actionBehavior.edgeRefusalAction = {
       foot,
       direction: { ...direction },
       elapsed: 0,
     };
-    this.#velocity.x = 0;
-    this.#velocity.z = 0;
-    this.#restartAnimation = true;
-    this.#resetBoredom();
   }
 
 
@@ -2737,17 +2724,11 @@ export class Hero {
     if (this.#actionBehavior.holeRefusalAction || this.#holeRefusalAcknowledged) {
       return true;
     }
-    this.stopUsingTool({ dismiss: false });
-    this.#actionBehavior.edgeRefusalAction = null;
     this.#actionBehavior.holeRefusalAction = {
       direction: { ...direction },
       elapsed: 0,
     };
     this.#holeRefusalAcknowledged = true;
-    this.#velocity.x = 0;
-    this.#velocity.z = 0;
-    this.#restartAnimation = true;
-    this.#resetBoredom();
     return true;
   }
 
@@ -2912,49 +2893,23 @@ export class Hero {
   }
 
   #beginFallDeath() {
-    if (this.#actionBehavior.fallingToDeath || this.#actionBehavior.gameOver) {
-      return;
-    }
     this.#physics.gravity = GRAVITY;
-    if (this.#actionBehavior.drowningAction) {
-      this.#actionBehavior.drowningAction = null;
-    }
-    if (this.#actionBehavior.bridgeClimbAction) {
-      this.#actionBehavior.bridgeClimbAction = null;
-    }
-    this.stopUsingTool({ dismiss: false });
-    if (this.#actionBehavior.collectAction?.tool) {
-      this.#actionBehavior.collectAction.tool.visible = false;
-    }
-    this.#actionBehavior.collectAction?.heldItem?.destroy();
-    this.#actionBehavior.collectAction = null;
-    this.#actionBehavior.inventoryFullAction = null;
-    this.#actionBehavior.fallingToDeath = true;
-    this.#actionBehavior.edgeRefusalAction = null;
-    this.#actionBehavior.holeRefusalAction = null;
-    this.#actionBehavior.blockedDigReactionAction = null;
-    this.#actionBehavior.repelAction = null;
-    this.#actionBehavior.dodgeAction = null;
-    this.#jumpBufferRemaining = 0;
+    this.#clearActionInput();
     this.#restartAnimation = true;
     this.#resetBoredom();
   }
 
-  #handleFallDeath() {
-    this.#beginFallDeath();
-    this.#loseLifeAndRespawn();
+  #resolveDeath() {
+    if (this.#actionBehavior.burning) {
+      this.#lavaDeathEffect?.complete();
+      this.#modelRoot?.setLocalScale(0, 0, 0);
+    }
+    this.#lives = Math.max(0, this.#lives - 1);
+    this.#syncState();
+    return this.#lives === 0 ? HERO_ACTION.GAME_OVER : HERO_ACTION.RESPAWNING;
   }
 
-  #loseLifeAndRespawn() {
-    this.#lives = Math.max(0, this.#lives - 1);
-    if (this.#lives === 0) {
-      this.#actionBehavior.endGame();
-      this.#velocity = { x: 0, y: 0, z: 0 };
-      this.#physics.setScripted(this.#position, this.#velocity);
-      this.#syncState();
-      return;
-    }
-
+  #beginRespawn() {
     this.#resetLavaDeathPresentation();
     this.#position = { ...this.#spawn };
     this.#velocity = { x: 0, y: 0, z: 0 };
@@ -2963,15 +2918,8 @@ export class Hero {
     this.#jumpBufferRemaining = 0;
     this.#jumpsUsed = 0;
     this.#movementBlocked = false;
-    this.#actionBehavior.edgeRefusalAction = null;
-    this.#actionBehavior.holeRefusalAction = null;
-    this.#actionBehavior.blockedDigReactionAction = null;
     this.#holeRefusalAcknowledged = false;
     this.#stableGroundPosition = { ...this.#spawn };
-    this.#actionBehavior.repelAction = null;
-    this.#actionBehavior.dodgeAction = null;
-    this.#actionBehavior.fallingToDeath = false;
-    this.#actionBehavior.respawnAction = { elapsed: 0 };
     this.#physics.gravity = GRAVITY;
     this.#physics.resume(this.#position, this.#velocity);
     this.#respawnEffect.begin(this.#facingYaw, this.#position.y);
@@ -2981,8 +2929,13 @@ export class Hero {
     this.#syncState();
   }
 
+  #beginGameOver() {
+    this.#velocity = { x: 0, y: 0, z: 0 };
+    this.#physics.setScripted(this.#position, this.#velocity);
+    this.#syncState();
+  }
+
   #resetLavaDeathPresentation() {
-    this.#actionBehavior.lavaDeathAction = null;
     this.#lavaAshes = false;
     this.#lavaDeathEffect?.reset();
     this.#modelRoot?.setLocalScale(
@@ -3436,18 +3389,6 @@ export class Hero {
   }
 
 
-  #finishToolAction() {
-    const action = this.#actionBehavior.toolAction;
-    if (!action) {
-      return;
-    }
-    this.#tool.visible = false;
-    this.#actionBehavior.toolAction = null;
-    this.#tool = null;
-    this.#restartAnimation = true;
-    action.onComplete?.();
-  }
-
   #tryGatewayRepulsion(toX, toZ) {
     if (
       this.#actionBehavior.collectAction ||
@@ -3466,15 +3407,7 @@ export class Hero {
     if (!direction) {
       return false;
     }
-    this.stopUsingTool({ dismiss: false });
-    this.#actionBehavior.edgeRefusalAction = null;
-    this.#actionBehavior.holeRefusalAction = null;
     this.#actionBehavior.repelAction = { ...direction, elapsed: 0 };
-    this.#actionBehavior.dodgeAction = null;
-    this.#velocity.x = direction.x * GATEWAY_REPEL_SPEED;
-    this.#velocity.z = direction.z * GATEWAY_REPEL_SPEED;
-    this.#restartAnimation = true;
-    this.#resetBoredom();
     return true;
   }
 

@@ -1,13 +1,11 @@
 import { StateMachine } from "yuka";
 import { HERO_ACTION } from "../../../../enum/HeroAction.js";
 import { HERO_ANIMATION } from "../../../../enum/HeroAnimation.js";
-import { FOOT_SIDE } from "../../../../enum/FootSide.js";
 import { HeroRuntimeActionState } from "../../states/action/HeroRuntimeActionState.js";
 import { HeroDrowningActionState } from "../../states/action/HeroDrowningActionState.js";
 import { HeroBridgeClimbActionState } from "../../states/action/HeroBridgeClimbActionState.js";
 import { HeroBurningActionState } from "../../states/action/HeroBurningActionState.js";
 import { HeroRespawningActionState } from "../../states/action/HeroRespawningActionState.js";
-import { HeroTimedActionState } from "../../states/action/HeroTimedActionState.js";
 import { HeroToolActionState } from "../../states/action/HeroToolActionState.js";
 import {
   HeroCollectingActionState,
@@ -15,6 +13,14 @@ import {
 } from "../../states/action/HeroCollectionActionState.js";
 import { HeroDodgeActionState } from "../../states/action/HeroDodgeActionState.js";
 import { HeroPatReactionActionState } from "../../states/action/HeroPatReactionActionState.js";
+import { HeroFallingToDeathActionState } from "../../states/action/HeroFallingToDeathActionState.js";
+import { HeroGameOverActionState } from "../../states/action/HeroGameOverActionState.js";
+import { HeroRepelledActionState } from "../../states/action/HeroRepelledActionState.js";
+import { HeroBlockedDigReactionActionState } from "../../states/action/HeroBlockedDigReactionActionState.js";
+import {
+  HeroEdgeRefusalActionState,
+  HeroHoleRefusalActionState,
+} from "../../states/action/HeroRefusalActionState.js";
 
 const USER_ACTIONS = [
   HERO_ACTION.DODGING,
@@ -104,79 +110,20 @@ export class HeroActionBehavior {
       new HeroCollectingActionState(),
       new HeroInventoryFullActionState(),
       new HeroDodgeActionState(),
-      new HeroTimedActionState(
-        HERO_ACTION.REPELLED,
-        this.#context.repelDuration,
-        {
-          animation: HERO_ANIMATION.REPELLED,
-          allowedTransitions: [HERO_ACTION.BLOCKED_DIG_REACTION],
-          movement: ({ owner, payload }) => ({
-            x: payload.x * owner.repelSpeed,
-            z: payload.z * owner.repelSpeed,
-          }),
-          locksFacing: true,
-          allowsIdleHeadLook: false,
-        },
-      ),
-      new HeroTimedActionState(
-        HERO_ACTION.EDGE_REFUSAL,
-        this.#context.edgeRefusalDuration,
-        {
-          animation: ({ payload }) => payload.foot === FOOT_SIDE.RIGHT
-            ? HERO_ANIMATION.EDGE_REFUSE_RIGHT
-            : HERO_ANIMATION.EDGE_REFUSE_LEFT,
-          allowedTransitions: [HERO_ACTION.BLOCKED_DIG_REACTION],
-          allowsJump: true,
-          blocksMovement: true,
-          facing: ({ payload }) => payload.direction,
-        },
-      ),
-      new HeroTimedActionState(
-        HERO_ACTION.HOLE_REFUSAL,
-        this.#context.holeRefusalDuration,
-        {
-          animation: HERO_ANIMATION.HOLE_REFUSAL,
-          allowedTransitions: [HERO_ACTION.BLOCKED_DIG_REACTION],
-          blocksMovement: true,
-          facing: ({ payload }) => payload.direction,
-          allowsIdleHeadLook: false,
-          locksHeadForward: true,
-        },
-      ),
-      new HeroTimedActionState(
-        HERO_ACTION.BLOCKED_DIG_REACTION,
+      new HeroRepelledActionState(this.#context.repelDuration),
+      new HeroEdgeRefusalActionState(this.#context.edgeRefusalDuration),
+      new HeroHoleRefusalActionState(this.#context.holeRefusalDuration),
+      new HeroBlockedDigReactionActionState(
         this.#context.blockedDigReactionDuration,
-        {
-          animation: HERO_ANIMATION.DIG_BLOCKED_ANNOYED,
-          allowedTransitions: [HERO_ACTION.BLOCKED_DIG_REACTION],
-          requiresGrounded: true,
-          blocksMovement: true,
-          allowsIdleHeadLook: false,
-          locksHeadForward: true,
-        },
       ),
       new HeroPatReactionActionState(USER_ACTIONS),
       state(HERO_ACTION.ANGRY_ESCAPE, { canBePatted: true }),
       new HeroDrowningActionState(),
       new HeroBridgeClimbActionState(),
-      state(HERO_ACTION.FALLING_TO_DEATH, {
-        animation: HERO_ANIMATION.FALL_DEATH,
-        incapacitated: true,
-        dying: true,
-        movement: ({ velocity }) => ({ x: velocity.x, z: velocity.z }),
-        locksFacing: true,
-        allowsFootPlacement: false,
-        allowsIdleHeadLook: false,
-      }),
+      new HeroFallingToDeathActionState(),
       new HeroBurningActionState(),
       new HeroRespawningActionState(),
-      state(HERO_ACTION.GAME_OVER, {
-        animation: HERO_ANIMATION.FALL_DEATH,
-        incapacitated: true,
-        locksFacing: true,
-        allowsFootPlacement: false,
-        allowsIdleHeadLook: false,
-      }),
+      new HeroGameOverActionState(),
     ];
   }
 
@@ -481,6 +428,7 @@ export class HeroActionBehavior {
   #transition(action, payload) {
     if (this.#stateMachine.in(action)) {
       this.#stateMachine.currentState.payload = payload;
+      this.#stateMachine.currentState.reenter?.(this.#context);
       return;
     }
     this.#pendingPayload = payload;

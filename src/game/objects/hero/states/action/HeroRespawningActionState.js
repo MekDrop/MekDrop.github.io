@@ -14,6 +14,11 @@ export class HeroRespawningActionState extends HeroRuntimeActionState {
     });
   }
 
+  enter(owner) {
+    super.enter(owner);
+    owner.feedback.respawning.begin();
+  }
+
   execute(owner) {
     const feedback = owner.feedback.respawning;
     this.payload.elapsed = Math.min(

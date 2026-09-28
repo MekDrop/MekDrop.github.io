@@ -15,6 +15,11 @@ export class HeroBurningActionState extends HeroRuntimeActionState {
     });
   }
 
+  enter(owner) {
+    super.enter(owner);
+    this.payload = owner.feedback.burning.begin(this.payload);
+  }
+
   execute(owner) {
     const feedback = owner.feedback.burning;
     const action = this.payload;
@@ -43,8 +48,8 @@ export class HeroBurningActionState extends HeroRuntimeActionState {
       feedback.showAshes();
     }
     if (action.elapsed >= feedback.duration) {
-      owner.finish();
-      feedback.complete();
+      const nextAction = owner.feedback.death.resolve();
+      owner.transition(nextAction, { elapsed: 0 });
     }
   }
 }
