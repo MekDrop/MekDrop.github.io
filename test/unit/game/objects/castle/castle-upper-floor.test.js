@@ -1,17 +1,6 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
 import { it } from "node:test";
-import { CASTLE_BOUNDARY } from "../../../../../src/game/enum/CastleBoundary.js";
-
-const castleSource = readFileSync(
-  new URL("../../../../../src/game/objects/castle/Castle.js", import.meta.url),
-  "utf8",
-).replace(/^import[^\n]*\n/gm, "");
-const { isCastleUpperFloorRoomVoid } = await import(
-  `data:text/javascript;base64,${Buffer.from(
-    `const CASTLE_BOUNDARY = ${JSON.stringify(CASTLE_BOUNDARY)};\n${castleSource}`,
-  ).toString("base64")}`
-);
+import { isCastleUpperFloorRoomVoid } from "../../../../../src/game/castle-generation/CastleGeometry.js";
 
 const room = {
   opening: { start: 12, end: 20 },

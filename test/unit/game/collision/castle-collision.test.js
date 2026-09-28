@@ -14,9 +14,9 @@ const { CastleStairs } = await import(
   `data:text/javascript;base64,${Buffer.from(stairSource).toString("base64")}`
 );
 const castleSource = readFileSync(new URL(
-  "../../../../src/game/objects/castle/Castle.js", import.meta.url,
-), "utf8").replace(/^import[^\n]*\n/gm, "");
-const { Castle } = await import(`data:text/javascript;base64,${Buffer.from(
+  "../../../../src/game/objects/castle/CastleEntityBuilder.js", import.meta.url,
+), "utf8").replace(/^import[\s\S]*?from "[^"]+";\r?\n/gm, "");
+const { CastleEntityBuilder } = await import(`data:text/javascript;base64,${Buffer.from(
   `const CASTLE_BOUNDARY = ${JSON.stringify(CASTLE_BOUNDARY)};\n${castleSource}`,
 ).toString("base64")}`);
 
@@ -105,7 +105,7 @@ it("a level entrance does not create invisible stairs or blocking surfaces", () 
     const collider = {
       intersectsGroundFootprint: () => true,
       surfaceHeightAt: () => 3,
-      blocksMovementAt: Castle.prototype.blocksMovementAt,
+      blocksMovementAt: CastleEntityBuilder.prototype.blocksMovementAt,
     };
     world.add(collider);
     assert.equal(world.surfaceHeightAt(0, 0), 3);

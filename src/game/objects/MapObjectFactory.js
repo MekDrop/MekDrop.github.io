@@ -1,4 +1,5 @@
 import { SeatedRoyal } from "./castle/SeatedRoyal.js";
+import { Castle } from "./castle/Castle.js";
 import { MapObjectClassNotFoundError } from "../errors/debug/index.js";
 import { GroundCoverItem } from "./ground-cover/GroundCoverItem.js";
 import { Hero } from "./hero/Hero.js";
@@ -15,6 +16,7 @@ import { MapPickupAnimationActors } from "../debug/MapPickupAnimationActors.js";
 import { MapVirtualItem } from "../debug/MapVirtualItem.js";
 
 const OBJECT_CLASSES = new Map([
+  [Castle.name, Castle],
   [GroundCoverItem.name, MapVirtualItem],
   [Hero.name, MapAnimationActor],
   [King.name, King],
@@ -44,7 +46,14 @@ export class MapObjectFactory {
     ];
   }
 
-  static createAll({ pc, app, modelLibrary, definitions, runtime = {} }) {
+  static createAll({
+    pc,
+    app,
+    modelLibrary,
+    definitions,
+    runtime = {},
+    onCreate = () => {},
+  }) {
     const objects = [];
     const pickupDefinitions = [];
     const vegetationDefinitions = [];
@@ -69,27 +78,28 @@ export class MapObjectFactory {
         runtime,
       });
       objects.push(object);
+      onCreate(object);
     }
     if (vegetationDefinitions.length) {
-      objects.push(
-        new VoxelVegetation({
-          pc,
-          modelLibrary,
-          definitions: vegetationDefinitions,
-          runtime,
-        }),
-      );
+      const vegetation = new VoxelVegetation({
+        pc,
+        modelLibrary,
+        definitions: vegetationDefinitions,
+        runtime,
+      });
+      objects.push(vegetation);
+      onCreate(vegetation);
     }
     if (pickupDefinitions.length) {
-      objects.push(
-        new MapPickupAnimationActors({
-          pc,
-          app,
-          modelLibrary,
-          definitions: pickupDefinitions,
-          items: objects.filter(({ definition }) => definition),
-        }),
-      );
+      const pickupActors = new MapPickupAnimationActors({
+        pc,
+        app,
+        modelLibrary,
+        definitions: pickupDefinitions,
+        items: objects.filter(({ definition }) => definition),
+      });
+      objects.push(pickupActors);
+      onCreate(pickupActors);
     }
     return objects;
   }

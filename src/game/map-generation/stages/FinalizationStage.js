@@ -22,7 +22,7 @@ export class FinalizationStage extends AbstractMapGenerationStage {
       groundCoverData,
       cliffVineData,
     } = context.features;
-    const { routes, arrowData, castle } = context.output;
+    const { routes, arrowData, castle, castleBuildPlan } = context.output;
     const { cols, rows } = this.#operations.mapDimensions;
     const royalSeed = this.#operations.randomUint32();
     const royalType = ["King", "Queen", "Princess"][royalSeed % 3];
@@ -32,6 +32,11 @@ export class FinalizationStage extends AbstractMapGenerationStage {
       z: castle.position.row + castle.position.depth / 2 - rows / 2,
     };
     const objects = [
+      {
+        id: "castle-0",
+        object: "Castle",
+        buildPlan: castleBuildPlan,
+      },
       {
         id: `castle-${royalType.toLowerCase()}`,
         object: royalType,

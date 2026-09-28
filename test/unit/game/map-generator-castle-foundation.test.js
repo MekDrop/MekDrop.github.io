@@ -12,6 +12,20 @@ describe("MapGenerator castle foundation", () => {
       numRivers: 0,
     });
     const { col, row, width, depth } = map.castle.position;
+    const castleObject = map.objects.find(({ object }) => object === "Castle");
+    assert.ok(castleObject);
+    assert.equal(
+      castleObject.buildPlan.input.requestedStyle,
+      map.castle.style,
+    );
+    assert.deepEqual(castleObject.buildPlan.input.position, {
+      x: col - (map.cols - 1) / 2 - 0.5,
+      z: row - (map.rows - 1) / 2 - 0.5,
+      width,
+      depth,
+      elevation: map.castle.position.elevation,
+    });
+    assert.ok(castleObject.buildPlan.geometry.boxes.length > 0);
     const surroundingGrass = [];
 
     for (let currentRow = row - 1; currentRow <= row + depth; currentRow += 1) {

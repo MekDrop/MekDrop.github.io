@@ -1,4 +1,5 @@
 import { createEarthTextureVariants } from "./EarthTextureSelection.js";
+import { CastleGenerator } from "./castle-generation/CastleGenerator.js";
 import {
   BridgeGroundHeightMismatchError,
   BridgeTurnError,
@@ -44,6 +45,7 @@ import { GRASS_SURFACE_LIFT } from "./config/terrain.js";
 import { GenerationContext } from "./map-generation/GenerationContext.js";
 import { createMapGenerationPipeline } from "./map-generation/createMapGenerationPipeline.js";
 import { CastleStage } from "./map-generation/stages/CastleStage.js";
+import { CastleBuildPlanStage } from "./map-generation/stages/CastleBuildPlanStage.js";
 import { DecorationStage } from "./map-generation/stages/DecorationStage.js";
 import { FinalizationStage } from "./map-generation/stages/FinalizationStage.js";
 import { IslandStage } from "./map-generation/stages/IslandStage.js";
@@ -198,6 +200,7 @@ export class MapGenerator {
       new DecorationStage(operations.decoration),
       new ValidationStage(operations.validation),
       new RouteDataStage(operations.routeData),
+      new CastleBuildPlanStage(operations.castleBuildPlan),
       new FinalizationStage(operations.finalization),
     ];
   }
@@ -315,6 +318,10 @@ export class MapGenerator {
       routeData: {
         buildRouteData: (layout) => this.#buildRouteData(layout),
         buildCastleData: (...args) => this.#buildCastleData(...args),
+      },
+      castleBuildPlan: {
+        mapDimensions: { cols: this.#MAP_COLS, rows: this.#MAP_ROWS },
+        generateCastleBuildPlan: (options) => CastleGenerator.generate(options),
       },
       finalization: {
         mapDimensions: { cols: this.#MAP_COLS, rows: this.#MAP_ROWS },

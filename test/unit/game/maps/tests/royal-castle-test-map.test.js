@@ -13,6 +13,24 @@ const map = JSON.parse(
 
 it("gives the king, queen, and princess independent castles and one shared trigger", () => {
   assert.equal(map.castles.length, 3);
+  assert.equal(
+    map.objects.filter(({ object }) => object === "Castle").length,
+    3,
+  );
+  for (const castle of map.objects.filter(
+    ({ object }) => object === "Castle",
+  )) {
+    assert.deepEqual(castle.buildPlan.input.position, castle.position);
+    assert.deepEqual(castle.buildPlan.input.doors, castle.doors);
+    assert.equal(castle.buildPlan.input.requestedStyle, castle.style);
+  }
+  for (const castle of map.objects.filter(
+    ({ object }) => object === "Castle",
+  )) {
+    assert.deepEqual(castle.buildPlan.input.position, castle.position);
+    assert.deepEqual(castle.buildPlan.input.doors, castle.doors);
+    assert.equal(castle.buildPlan.input.requestedStyle, castle.style);
+  }
   const residents = map.objects.filter(({ object }) =>
     ["King", "Queen", "Princess", "Servant"].includes(object),
   );

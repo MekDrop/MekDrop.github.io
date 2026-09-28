@@ -10,7 +10,6 @@ import twgslScriptUrl from "src/assets/game/wasm/twgsl/twgsl.js?url";
 import twgslWasmUrl from "src/assets/game/wasm/twgsl/twgsl.wasm?url";
 import waterSideUrl from "src/assets/game/tiles/water-side.png";
 import waterTopUrl from "src/assets/game/tiles/water-top.png";
-import { Castle } from "./objects/castle/index.js";
 import { GATEWAY_BANNER_SIGNS, Gateway } from "./objects/gateway/index.js";
 import { BridgeRailingKit, OverpassStairs } from "./objects/path/index.js";
 import { Hero, HeroPatHand } from "./objects/hero/index.js";
@@ -333,7 +332,6 @@ export class PlayCanvasRenderer {
         Gateway.modelUrl,
         ...BridgeRailingKit.modelUrls,
         OverpassStairs.modelUrl,
-        ...Castle.modelUrls,
         ...GroundCover.modelUrls,
         ...GrassCarpet.modelUrls,
         ...CliffVines.modelUrls,
@@ -1114,7 +1112,6 @@ export class PlayCanvasRenderer {
       layerId: this.#cloudLayer.id,
     });
     this.#app.root.addChild(this.#cloudField.entity);
-    this.#buildCastle();
     this.#buildMapObjects();
     this.getHud(HeroLifeHud)?.setCastleLives(
       this.#sceneObjects.getFirst(SCENE_OBJECT_TYPE.CASTLE)
@@ -1143,6 +1140,7 @@ export class PlayCanvasRenderer {
       definitions: this.#mapData.objects ?? [],
       runtime: {
         objects: this.#sceneObjects,
+        textureAssets: this.#textureAssets,
         getGrassSupportPoints: (position, radius) =>
           this.#grassCarpet.supportPointsWithin(position, radius),
         onObjectRemoved: (removedObject) => {
@@ -1151,8 +1149,12 @@ export class PlayCanvasRenderer {
         },
         onRuntimeError: this.#onRuntimeError,
       },
+      onCreate: (object) =>
+        this.#sceneObjects.add(
+          object.sceneObjectType ?? SCENE_OBJECT_TYPE.MAP_OBJECT,
+          object,
+        ),
     })) {
-      this.#sceneObjects.add(SCENE_OBJECT_TYPE.MAP_OBJECT, object);
       this.#mapRoot.addChild(object.entity);
       if (object.isGroundCollider) {
         this.#collisionWorld.add(object, {
@@ -1402,50 +1404,6 @@ export class PlayCanvasRenderer {
       this.#mapRoot.addChild(gateway.entity);
       this.#sceneObjects.add(SCENE_OBJECT_TYPE.GATEWAY, gateway);
     });
-  }
-
-  #buildCastle() {
-    const { castle, castles, cols, rows, heightmap } = this.#mapData;
-    const definitions = castles?.length ? castles : castle ? [castle] : [];
-    for (const definition of definitions) {
-      if (!definition?.position || !definition.doors?.length) {
-        continue;
-      }
-      const builtCastle = new Castle({
-        pc: this.#pc,
-        app: this.#app,
-        position: {
-          x: definition.position.col - (cols - 1) / 2 - CUBE_SCALE / 2,
-          z: definition.position.row - (rows - 1) / 2 - CUBE_SCALE / 2,
-          width: definition.position.width,
-          depth: definition.position.depth,
-          elevation: definition.position.elevation,
-        },
-        doors: definition.doors.map(({ side, offset, width, cells = [] }) => {
-          const approachElevations = cells
-            .map(({ col, row }) => heightmap?.[row]?.[col])
-            .filter(Number.isFinite);
-          return {
-            side,
-            offset,
-            width,
-            approachElevation: approachElevations.length
-              ? Math.max(...approachElevations)
-              : definition.position.elevation,
-          };
-        }),
-        style: definition.style,
-        modelLibrary: this.#modelLibrary,
-        doorTexture: this.#textureAssets.get("castleDoor").resource,
-        stoneTexture: this.#textureAssets.get("castleStone").resource,
-        fireParticleTexture:
-          this.#textureAssets.get("castleFireParticle").resource,
-        onRuntimeError: this.#onRuntimeError,
-      });
-      this.#sceneObjects.add(SCENE_OBJECT_TYPE.CASTLE, builtCastle);
-      this.#collisionWorld.add(builtCastle);
-      this.#mapRoot.addChild(builtCastle.entity);
-    }
   }
 
   #updateCastlesForHero(position) {
