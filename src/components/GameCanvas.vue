@@ -94,7 +94,7 @@ import { useRoute, useRouter } from "vue-router";
 import SiteNoticeDialog from "components/SiteNoticeDialog.vue";
 import GameLoadingScene from "components/GameLoadingScene.vue";
 import HeroMoodStatus from "components/HeroMoodStatus.vue";
-import { generateMap } from "src/game/MapGenerator.js";
+import { generateMap } from "src/game/generator/map/MapGenerator.js";
 import { PlayCanvasRenderer } from "src/game/PlayCanvasRenderer.js";
 import { GameControls } from "src/game/GameControls.js";
 import { createGameCommandRegistry } from "src/game/commands/index.js";

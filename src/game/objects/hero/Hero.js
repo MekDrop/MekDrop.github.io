@@ -1,4 +1,4 @@
-import { TileType } from "../../MapGenerator.js";
+import { TileType } from "../../generator/map/MapGenerator.js";
 import { GRASS_SURFACE_LIFT } from "../../config/terrain.js";
 import heroModelUrl from "../../models/hero/hero.glb?url";
 import { HeroRespawnEffect } from "./HeroRespawnEffect.js";

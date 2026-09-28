@@ -1,4 +1,4 @@
-import { CastleGenerationAbortedError } from "../errors/castle/index.js";
+import { CastleGenerationAbortedError } from "../../errors/castle/index.js";
 
 export class CastleGenerationScheduler {
   #signal;

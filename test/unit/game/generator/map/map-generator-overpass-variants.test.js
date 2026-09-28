@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import { MapGenerator } from "../../../src/game/MapGenerator.js";
+import { MapGenerator } from "../../../../../src/game/generator/map/MapGenerator.js";
 
 describe("MapGenerator overpass variants", () => {
   it("raises the entry route and plateau without making the route climb", async () => {

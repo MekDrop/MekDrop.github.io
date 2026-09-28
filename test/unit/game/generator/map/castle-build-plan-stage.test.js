@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import { CastleBuildPlanStage } from "../../../../src/game/map-generation/stages/CastleBuildPlanStage.js";
+import { CastleBuildPlanStage } from "../../../../../src/game/generator/map/stages/CastleBuildPlanStage.js";
 
 describe("CastleBuildPlanStage", () => {
   it("adds a generated castle plan to the map-generation output", async () => {

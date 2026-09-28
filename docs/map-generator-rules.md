@@ -361,7 +361,7 @@ slope tiles = absolute elevation difference
 * A generator that always produces the same earth shape and castle position is invalid, even if the rest of the map passes validation.
 ## 19b. Current implementation notes
 
-These notes describe the generator behavior currently implemented in `src/game/MapGenerator.js`. They are not a replacement for the canonical rules above, but they document the present constraints and shortcuts in the live generator.
+These notes describe the generator behavior currently implemented in `src/game/generator/map/MapGenerator.js`. They are not a replacement for the canonical rules above, but they document the present constraints and shortcuts in the live generator.
 
 * The current generator uses four predefined entry row bands:
   * rows `[5, 6]`

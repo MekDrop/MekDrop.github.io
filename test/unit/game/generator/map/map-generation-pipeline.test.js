@@ -1,9 +1,9 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import { MapGenerationStageRunNotImplementedError } from "../../../../src/game/errors/map/index.js";
-import { AbstractMapGenerationStage } from "../../../../src/game/map-generation/AbstractMapGenerationStage.js";
-import { createMapGenerationPipeline } from "../../../../src/game/map-generation/createMapGenerationPipeline.js";
+import { MapGenerationStageRunNotImplementedError } from "../../../../../src/game/errors/map/index.js";
+import { AbstractMapGenerationStage } from "../../../../../src/game/generator/map/AbstractMapGenerationStage.js";
+import { createMapGenerationPipeline } from "../../../../../src/game/generator/map/createMapGenerationPipeline.js";
 
 function createScheduler() {
   return {

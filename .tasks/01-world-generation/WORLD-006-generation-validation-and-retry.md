@@ -2,7 +2,7 @@
 
 - **Priority:** P0
 - **Depends on:** WORLD-002, WORLD-003, WORLD-004, WORLD-005
-- **Touches:** `src/game/MapGenerator.js`, `src/game/map/MapValidator.js`, `docs/map-generator-rules.md`
+- **Touches:** `src/game/generator/map/MapGenerator.js`, `src/game/map/MapValidator.js`, `docs/map-generator-rules.md`
 
 ## Goal
 

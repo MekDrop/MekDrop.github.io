@@ -3,7 +3,7 @@ import {
   CastleBuildPlanInteriorDepthInvalidError,
   CastleBuildPlanStyleMissingError,
   CastleBuildPlanWallMissingError,
-} from "../../errors/castle/index.js";
+} from "../../../errors/castle/index.js";
 import { AbstractCastleGenerationStage } from "../AbstractCastleGenerationStage.js";
 
 export class ValidationStage extends AbstractCastleGenerationStage {

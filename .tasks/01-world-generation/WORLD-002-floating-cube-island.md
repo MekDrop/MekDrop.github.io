@@ -2,7 +2,7 @@
 
 - **Priority:** P1
 - **Depends on:** WORLD-001
-- **Touches:** `src/game/MapGenerator.js`, `src/game/map/IslandGenerator.js`, `docs/map-generator-rules.md`
+- **Touches:** `src/game/generator/map/MapGenerator.js`, `src/game/map/IslandGenerator.js`, `docs/map-generator-rules.md`
 
 ## Goal
 

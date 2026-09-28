@@ -1,4 +1,4 @@
-import { CASTLE_BOUNDARY } from "../../enum/CastleBoundary.js";
+import { CASTLE_BOUNDARY } from "../../../enum/CastleBoundary.js";
 import {
   CASTLE_BLOCK_SIZE,
   CASTLE_WALL_THICKNESS_BLOCKS,

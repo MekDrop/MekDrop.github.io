@@ -6,7 +6,7 @@ import grassTop4Url from "src/assets/game/tiles/grass-top-4.png";
 import grassTop5Url from "src/assets/game/tiles/grass-top-5.png";
 import grassTop6Url from "src/assets/game/tiles/grass-top-6.png";
 import grassTerrainShader from "../../objects/ground-cover/GrassTerrain.frag?raw";
-import { TileType } from "../../MapGenerator.js";
+import { TileType } from "../../generator/map/MapGenerator.js";
 import { FIXED_HEIGHTS } from "./TerrainMaterialMaps.js";
 import { tilePatchValue } from "./TileVariantIndex.js";
 

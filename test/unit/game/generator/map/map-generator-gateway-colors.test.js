@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 import { it } from "node:test";
 
-import { GATEWAY_COLORS } from "../../../src/game/config/gateway.js";
-import { MapGenerator } from "../../../src/game/MapGenerator.js";
+import { GATEWAY_COLORS } from "../../../../../src/game/config/gateway.js";
+import { MapGenerator } from "../../../../../src/game/generator/map/MapGenerator.js";
 
 it("stores each gateway color in the generated map", async () => {
   const map = await MapGenerator.generate({

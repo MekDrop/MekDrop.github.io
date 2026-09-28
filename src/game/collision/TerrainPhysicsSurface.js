@@ -1,4 +1,4 @@
-import { TileType } from "../MapGenerator.js";
+import { TileType } from "../generator/map/MapGenerator.js";
 import { GRASS_SURFACE_LIFT } from "../config/terrain.js";
 import { SLOPE_DIRECTION } from "../enum/SlopeDirection.js";
 import { TILE_SHAPE } from "../enum/TileShape.js";

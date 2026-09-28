@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import { generateMap } from "../../../src/game/MapGenerator.js";
+import { generateMap } from "../../../../../src/game/generator/map/MapGenerator.js";
 
 describe("async map generation", () => {
   it("yields to the event loop before resolving", async () => {

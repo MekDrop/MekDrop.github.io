@@ -1,9 +1,9 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import { AbstractCastleGenerationStage } from "../../../../src/game/castle-generation/AbstractCastleGenerationStage.js";
-import { createCastleGenerationPipeline } from "../../../../src/game/castle-generation/createCastleGenerationPipeline.js";
-import { CastleGenerationStageRunNotImplementedError } from "../../../../src/game/errors/castle/index.js";
+import { AbstractCastleGenerationStage } from "../../../../../src/game/generator/castle/AbstractCastleGenerationStage.js";
+import { createCastleGenerationPipeline } from "../../../../../src/game/generator/castle/createCastleGenerationPipeline.js";
+import { CastleGenerationStageRunNotImplementedError } from "../../../../../src/game/errors/castle/index.js";
 
 function createScheduler() {
   return {

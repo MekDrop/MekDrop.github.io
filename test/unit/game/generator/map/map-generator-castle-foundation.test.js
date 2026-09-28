@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import { MapGenerator, TileType } from "../../../src/game/MapGenerator.js";
-import { GrassCarpetLayout } from "../../../src/game/objects/ground-cover/GrassCarpetLayout.js";
+import { MapGenerator, TileType } from "../../../../../src/game/generator/map/MapGenerator.js";
+import { GrassCarpetLayout } from "../../../../../src/game/objects/ground-cover/GrassCarpetLayout.js";
 
 describe("MapGenerator castle foundation", () => {
   it("keeps grass outside the castle footprint", async () => {

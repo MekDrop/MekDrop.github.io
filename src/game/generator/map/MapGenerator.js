@@ -1,5 +1,5 @@
-import { createEarthTextureVariants } from "./EarthTextureSelection.js";
-import { CastleGenerator } from "./castle-generation/CastleGenerator.js";
+import { createEarthTextureVariants } from "../../EarthTextureSelection.js";
+import { CastleGenerator } from "../castle/CastleGenerator.js";
 import {
   BridgeGroundHeightMismatchError,
   BridgeTurnError,
@@ -34,27 +34,27 @@ import {
   PathRenderModeMismatchError,
   UnexpectedPathConnectionError,
   UnexpectedPathCrossingError,
-} from "./errors/map/index.js";
-import { RIVER_KIND } from "./enum/RiverKind.js";
-import { isNumber } from "./helpers/types.js";
-import { SLOPE_DIRECTION } from "./enum/SlopeDirection.js";
-import { TILE_SHAPE } from "./enum/TileShape.js";
-import { GATEWAY_COLORS } from "./config/gateway.js";
-import { STONE_COLORS } from "./config/stoneStyles.js";
-import { GRASS_SURFACE_LIFT } from "./config/terrain.js";
-import { GenerationContext } from "./map-generation/GenerationContext.js";
-import { createMapGenerationPipeline } from "./map-generation/createMapGenerationPipeline.js";
-import { CastleStage } from "./map-generation/stages/CastleStage.js";
-import { CastleBuildPlanStage } from "./map-generation/stages/CastleBuildPlanStage.js";
-import { DecorationStage } from "./map-generation/stages/DecorationStage.js";
-import { FinalizationStage } from "./map-generation/stages/FinalizationStage.js";
-import { IslandStage } from "./map-generation/stages/IslandStage.js";
-import { LayoutStage } from "./map-generation/stages/LayoutStage.js";
-import { PathStage } from "./map-generation/stages/PathStage.js";
-import { RiverStage } from "./map-generation/stages/RiverStage.js";
-import { RouteDataStage } from "./map-generation/stages/RouteDataStage.js";
-import { TerrainStage } from "./map-generation/stages/TerrainStage.js";
-import { ValidationStage } from "./map-generation/stages/ValidationStage.js";
+} from "../../errors/map/index.js";
+import { RIVER_KIND } from "../../enum/RiverKind.js";
+import { isNumber } from "../../helpers/types.js";
+import { SLOPE_DIRECTION } from "../../enum/SlopeDirection.js";
+import { TILE_SHAPE } from "../../enum/TileShape.js";
+import { GATEWAY_COLORS } from "../../config/gateway.js";
+import { STONE_COLORS } from "../../config/stoneStyles.js";
+import { GRASS_SURFACE_LIFT } from "../../config/terrain.js";
+import { GenerationContext } from "./GenerationContext.js";
+import { createMapGenerationPipeline } from "./createMapGenerationPipeline.js";
+import { CastleStage } from "./stages/CastleStage.js";
+import { CastleBuildPlanStage } from "./stages/CastleBuildPlanStage.js";
+import { DecorationStage } from "./stages/DecorationStage.js";
+import { FinalizationStage } from "./stages/FinalizationStage.js";
+import { IslandStage } from "./stages/IslandStage.js";
+import { LayoutStage } from "./stages/LayoutStage.js";
+import { PathStage } from "./stages/PathStage.js";
+import { RiverStage } from "./stages/RiverStage.js";
+import { RouteDataStage } from "./stages/RouteDataStage.js";
+import { TerrainStage } from "./stages/TerrainStage.js";
+import { ValidationStage } from "./stages/ValidationStage.js";
 
 export const TileType = {
   WATER: 0,

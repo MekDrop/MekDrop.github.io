@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { accessSync, readFileSync, statSync } from "node:fs";
 import { describe, it } from "node:test";
-import { generateMap, TileType } from "../../../../../src/game/MapGenerator.js";
+import { generateMap, TileType } from "../../../../../src/game/generator/map/MapGenerator.js";
 import { createCliffVineLayout } from "../../../../../src/game/objects/vegetation/CliffVineLayout.js";
 
 describe("generated cliff vines", () => {

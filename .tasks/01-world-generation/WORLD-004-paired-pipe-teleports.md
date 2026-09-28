@@ -2,7 +2,7 @@
 
 - **Priority:** P1
 - **Depends on:** WORLD-003
-- **Touches:** `src/game/MapGenerator.js`, `src/game/map/PipeGenerator.js`, `src/game/map/RouteGraph.js`, `docs/map-generator-rules.md`
+- **Touches:** `src/game/generator/map/MapGenerator.js`, `src/game/map/PipeGenerator.js`, `src/game/map/RouteGraph.js`, `docs/map-generator-rules.md`
 
 ## Goal
 

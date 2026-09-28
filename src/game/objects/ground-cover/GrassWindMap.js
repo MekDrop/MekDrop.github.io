@@ -1,4 +1,4 @@
-import { TileType } from "../../MapGenerator.js";
+import { TileType } from "../../generator/map/MapGenerator.js";
 
 const CASTLE_SHADOW_LENGTH = 7;
 const CASTLE_SHADOW_RADIUS = 0.78;

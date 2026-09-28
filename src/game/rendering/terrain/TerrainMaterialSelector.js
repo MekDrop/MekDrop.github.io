@@ -1,4 +1,4 @@
-import { TileType } from "../../MapGenerator.js";
+import { TileType } from "../../generator/map/MapGenerator.js";
 import { surfaceMaterialForTile } from "./TerrainMaterialMaps.js";
 import { tileVariantIndex } from "./TileVariantIndex.js";
 

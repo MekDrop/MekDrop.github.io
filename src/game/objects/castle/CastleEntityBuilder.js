@@ -11,7 +11,7 @@ import {
   CASTLE_BLOCK_SIZE,
   CASTLE_MATERIAL_DEFINITIONS,
   CASTLE_WALL_THICKNESS_BLOCKS,
-} from "../../castle-generation/CastleGenerationConfig.js";
+} from "../../generator/castle/CastleGenerationConfig.js";
 
 export class CastleEntityBuilder {
   static get modelUrls() {

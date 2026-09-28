@@ -1,4 +1,4 @@
-import { TileType } from "../../../../../MapGenerator.js";
+import { TileType } from "../../../../../generator/map/MapGenerator.js";
 import { UnknownArrowMeshError } from "../../../../../errors/path/index.js";
 import { colorFromHex, colorToCss } from "../../../../../helpers/colors.js";
 

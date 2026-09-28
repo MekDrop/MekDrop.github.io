@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { it } from "node:test";
-import { isCastleUpperFloorRoomVoid } from "../../../../../src/game/castle-generation/CastleGeometry.js";
+import { isCastleUpperFloorRoomVoid } from "../../../../../src/game/generator/castle/CastleGeometry.js";
 
 const room = {
   opening: { start: 12, end: 20 },

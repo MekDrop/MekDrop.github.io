@@ -1,4 +1,4 @@
-import { TileType } from "../../MapGenerator.js";
+import { TileType } from "../../generator/map/MapGenerator.js";
 import { PathSurfaceMaterials } from "./PathSurfaceMaterials.js";
 
 export const FIXED_HEIGHTS = {

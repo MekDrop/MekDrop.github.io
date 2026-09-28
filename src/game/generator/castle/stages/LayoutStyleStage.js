@@ -1,5 +1,5 @@
-import { CASTLE_BOUNDARY } from "../../enum/CastleBoundary.js";
-import { CastlePlacementError } from "../../errors/castle/index.js";
+import { CASTLE_BOUNDARY } from "../../../enum/CastleBoundary.js";
+import { CastlePlacementError } from "../../../errors/castle/index.js";
 import {
   CASTLE_AUDIENCE_ROOM_DEPTH_BLOCKS,
   CASTLE_BLOCKS_PER_TILE,

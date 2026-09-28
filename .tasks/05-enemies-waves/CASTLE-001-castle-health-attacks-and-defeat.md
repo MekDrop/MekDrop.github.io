@@ -2,7 +2,7 @@
 
 - **Priority:** P0
 - **Depends on:** FOUNDATION-003, ENEMY-001, WAVE-001
-- **Touches:** `src/game/entities/Castle.js`, `src/game/systems/CastleCombatSystem.js`, `src/game/GameSession.js`, `src/game/MapGenerator.js`
+- **Touches:** `src/game/entities/Castle.js`, `src/game/systems/CastleCombatSystem.js`, `src/game/GameSession.js`, `src/game/generator/map/MapGenerator.js`
 
 ## Goal
 

@@ -16,7 +16,7 @@ Do not implement shortcuts that violate:
 
 Likely entry points:
 
-- `src/game/MapGenerator.js`
+- `src/game/generator/map/MapGenerator.js`
 - `src/game/PlayCanvasRenderer.js`
 - map-related objects under `src/game/objects/`
 - relevant Cypress specs under `test/cypress/e2e/`

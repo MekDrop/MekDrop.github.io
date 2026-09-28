@@ -1,4 +1,4 @@
-import { MapGenerationStageRunNotImplementedError } from "../errors/map/index.js";
+import { MapGenerationStageRunNotImplementedError } from "../../errors/map/index.js";
 
 /**
  * @abstract

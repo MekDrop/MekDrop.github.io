@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { generateMap, TileType } from "../../../../../src/game/MapGenerator.js";
+import { generateMap, TileType } from "../../../../../src/game/generator/map/MapGenerator.js";
 import { GrassCarpetLayout } from "../../../../../src/game/objects/ground-cover/GrassCarpetLayout.js";
 import { TILE_SHAPE } from "../../../../../src/game/enum/TileShape.js";
 import { STONE_COLORS } from "../../../../../src/game/config/stoneStyles.js";

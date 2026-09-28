@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import { TileType } from "../../../../../src/game/MapGenerator.js";
+import { TileType } from "../../../../../src/game/generator/map/MapGenerator.js";
 import { GrassWindMap } from "../../../../../src/game/objects/ground-cover/GrassWindMap.js";
 
 class FakeTexture {

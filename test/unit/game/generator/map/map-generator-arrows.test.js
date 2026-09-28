@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { generateMap } from "../../../src/game/MapGenerator.js";
+import { generateMap } from "../../../../../src/game/generator/map/MapGenerator.js";
 
 describe("map direction arrows", () => {
   it("shows inward arrows near both gate sides while clearing the gate tile and castle", async () => {

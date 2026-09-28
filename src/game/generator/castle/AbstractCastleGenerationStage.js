@@ -1,4 +1,4 @@
-import { CastleGenerationStageRunNotImplementedError } from "../errors/castle/index.js";
+import { CastleGenerationStageRunNotImplementedError } from "../../errors/castle/index.js";
 
 /**
  * @abstract

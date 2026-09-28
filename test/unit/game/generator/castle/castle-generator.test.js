@@ -2,8 +2,8 @@ import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import { describe, it } from "node:test";
 
-import { CastleGenerator } from "../../../../src/game/castle-generation/CastleGenerator.js";
-import { CastleGenerationAbortedError } from "../../../../src/game/errors/castle/index.js";
+import { CastleGenerator } from "../../../../../src/game/generator/castle/CastleGenerator.js";
+import { CastleGenerationAbortedError } from "../../../../../src/game/errors/castle/index.js";
 
 const options = {
   position: { x: -4, z: -4, width: 8, depth: 8, elevation: 3 },

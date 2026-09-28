@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
 import { createEarthTextureVariants } from "../../../src/game/EarthTextureSelection.js";
-import { MapGenerator } from "../../../src/game/MapGenerator.js";
+import { MapGenerator } from "../../../src/game/generator/map/MapGenerator.js";
 import {
   EARTH_TEXTURE_VARIANT_COUNT,
   MAX_UNDERSIDE_DEPTH,

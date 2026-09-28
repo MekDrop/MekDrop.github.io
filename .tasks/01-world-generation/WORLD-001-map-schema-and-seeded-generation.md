@@ -2,7 +2,7 @@
 
 - **Priority:** P0
 - **Depends on:** FOUNDATION-001, FOUNDATION-003
-- **Touches:** `src/game/MapGenerator.js`, `src/game/map/`, `docs/map-generator-rules.md`
+- **Touches:** `src/game/generator/map/MapGenerator.js`, `src/game/map/`, `docs/map-generator-rules.md`
 
 ## Goal
 

@@ -1,7 +1,7 @@
 import { CastleEntityBuilder } from "./CastleEntityBuilder.js";
 import { SCENE_OBJECT_TYPE } from "../../enum/SceneObjectType.js";
 
-export { isCastleUpperFloorRoomVoid } from "../../castle-generation/CastleGeometry.js";
+export { isCastleUpperFloorRoomVoid } from "../../generator/castle/CastleGeometry.js";
 
 export class Castle extends CastleEntityBuilder {
   #definition;
