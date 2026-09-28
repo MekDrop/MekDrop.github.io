@@ -200,7 +200,6 @@ import { PlayCanvasRenderer } from "src/game/PlayCanvasRenderer.js";
 import { GameControls } from "src/game/GameControls.js";
 import { createGameCommandRegistry } from "src/game/commands/index.js";
 import { CloseModalAction } from "src/actions/CloseModalAction.js";
-import { CopyScreenshotAction } from "src/game/actions/CopyScreenshotAction.js";
 import { CameraPointerAction } from "src/game/actions/CameraPointerAction.js";
 import { FirstPersonCameraAction } from "src/game/actions/FirstPersonCameraAction.js";
 import { HeroDirectionAction } from "src/game/actions/HeroDirectionAction.js";
@@ -605,7 +604,6 @@ async function init() {
     closeModal: new CloseModalAction([toggleInventoryAction]),
     rotateView: rotateViewAction,
     rotateAnticlockwise: rotateViewAction,
-    copyScreenshot: new CopyScreenshotAction(renderer),
     toggleArrows: new ToggleArrowsAction(
       debugStore,
       undefined,

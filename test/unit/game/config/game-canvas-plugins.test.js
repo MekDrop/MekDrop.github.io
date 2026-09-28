@@ -11,10 +11,10 @@ describe("game canvas plugin configuration", () => {
 
     assert.deepEqual(
       entries.map(({ exportName }) => exportName),
-      ["GameCanvasRecordingPlugin"],
+      ["GameCanvasScreenshotPlugin", "GameCanvasRecordingPlugin"],
     );
     assert.equal(
-      entries[0].messages.active,
+      entries[1].messages.active,
       "translated:game.recording.active",
     );
   });
@@ -24,6 +24,7 @@ describe("game canvas plugin configuration", () => {
     const byName = new Map(entries.map((entry) => [entry.exportName, entry]));
 
     assert.deepEqual([...byName.keys()], [
+      "GameCanvasScreenshotPlugin",
       "GameCanvasRecordingPlugin",
       "GameCanvasDebugUiPlugin",
       "GameCanvasMovementTestDriverPlugin",

@@ -26,7 +26,6 @@ export class GameControls {
     this.#cameraDrag = new CameraDrag(element, actions, this.#config());
     this.#keydownConsumeBindings = keydownConsumeBindings;
     const keydownActionNames = [
-      "copyScreenshot",
       "regenerateMap",
       "toggleInventory",
       "closeModal",

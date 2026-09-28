@@ -1,12 +1,14 @@
 import { Notify } from "quasar";
+import { useClipboardItems } from "@vueuse/core";
 import {
   ClipboardCopyBlockedError,
   ScreenshotEncodingError,
   ScreenshotImagePreparationError,
-} from "../errors/screenshot/index.js";
-import { isFunction } from "../helpers/types.js";
+} from "../../../../errors/screenshot/index.js";
+import { isFunction } from "../../../../helpers/types.js";
 
 export class CopyScreenshotAction {
+  #clipboard = useClipboardItems();
   #renderer;
 
   constructor(renderer) {
@@ -23,8 +25,11 @@ export class CopyScreenshotAction {
     const canvas = this.#renderer.canvasElement;
     const blob = await new Promise((resolve, reject) => {
       canvas.toBlob((result) => {
-        if (result) resolve(result);
-        else reject(new ScreenshotEncodingError());
+        if (result) {
+          resolve(result);
+        } else {
+          reject(new ScreenshotEncodingError());
+        }
       }, "image/png");
     });
 
@@ -41,9 +46,9 @@ export class CopyScreenshotAction {
   async #copyImage(canvas, blob) {
     if (
       isFunction(globalThis.ClipboardItem) &&
-      isFunction(globalThis.navigator?.clipboard?.write)
+      this.#clipboard.isSupported.value
     ) {
-      await globalThis.navigator.clipboard.write([
+      await this.#clipboard.copy([
         new globalThis.ClipboardItem({
           [blob.type]: blob,
         }),
@@ -71,8 +76,7 @@ export class CopyScreenshotAction {
       image.addEventListener("load", resolve, { once: true });
       image.addEventListener(
         "error",
-        () =>
-          reject(new ScreenshotImagePreparationError()),
+        () => reject(new ScreenshotImagePreparationError()),
         { once: true },
       );
     });
