@@ -39,6 +39,7 @@ import { GameCamera, HeroVisibilityController } from "./camera/index.js";
 import { CameraOrbitPivot } from "./camera/CameraOrbitPivot.js";
 import {
   CoinHud,
+  GameStatusHud,
   HeroLifeHud,
   HudCollection,
 } from "./ui/index.js";
@@ -264,6 +265,7 @@ export class PlayCanvasRenderer {
     this.#huds = new HudCollection({ pc, app: this.#app });
     this.addHud(HeroLifeHud);
     this.addHud(CoinHud);
+    this.addHud(GameStatusHud);
     this.#inventoryScene = new InventoryScene({
       pc,
       app: this.#app,
@@ -545,6 +547,10 @@ export class PlayCanvasRenderer {
     this.#camera.returnTransition = null;
     this.#camera.orbitPivot = null;
     this.#camera.manuallyMoved = nextEnabled;
+    const statusHud = this.getHud(GameStatusHud);
+    if (statusHud) {
+      statusHud.firstPersonVisible = nextEnabled;
+    }
     if (!nextEnabled) {
       this.#captureCameraVisualBounds();
     }
@@ -578,6 +584,23 @@ export class PlayCanvasRenderer {
         panWithinBounds: true,
       }
     );
+  }
+
+  get gameStatusHudState() {
+    return (
+      this.getHud(GameStatusHud)?.state ?? {
+        firstPersonVisible: false,
+        interaction: null,
+      }
+    );
+  }
+
+  setInteractionPrompt(target, visible = true) {
+    const prompt =
+      visible && target?.labelKey
+        ? { ...target, label: this.t(target.labelKey) }
+        : null;
+    this.getHud(GameStatusHud)?.setInteraction(prompt);
   }
 
   get cameraReturningToHero() {

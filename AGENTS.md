@@ -41,6 +41,8 @@ Follow `.editorconfig`: UTF-8, LF endings, two-space indentation, final newlines
 
 Vue component filenames and component names use PascalCase. Prefer configured aliases such as `src/*`, `components/*`, and `stores/*` over deep relative imports.
 
+Render player-facing game overlays, prompts, status messages, counters, and controls as PlayCanvas HUD elements under `src/game/ui/`, not as visible HTML layered over `GameCanvas.vue`. HTML may mirror HUD text only when it is visually hidden and needed for accessibility semantics; it must not provide the visual presentation.
+
 Treat every authored entity placed at map coordinates as a normal entry in the map's `objects` array first. Its object class must own its rendering and behavior, and generic object infrastructure may discover shared requirements such as model URLs. Do not add entity-specific fields, collections, imports, preload entries, or rendering branches to `PlayCanvasRenderer`. If the entity cannot be implemented through the normal map-object path, stop and ask the user how to proceed before introducing a special case.
 
 Name abstract base classes with an `Abstract` prefix or `Base` suffix, mark them with a JSDoc `@abstract` annotation, and do not instantiate them directly. Prefer the `Abstract` prefix when the class primarily defines a polymorphic contract. Give abstract or overridable methods concise JSDoc only for non-obvious responsibilities, inputs, outputs, or lifecycle behavior; do not restate the code. Always format JSDoc for classes and methods as multiline starred blocks; single-line JSDoc is forbidden and enforced by ESLint.

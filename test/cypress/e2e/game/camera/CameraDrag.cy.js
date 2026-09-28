@@ -468,6 +468,7 @@ describe("Camera dragging", () => {
     cy.window().then((window) => {
       const firstPersonState = window.gameCameraTest.state();
       expect(firstPersonState.firstPersonCameraEnabled).to.equal(true);
+      expect(firstPersonState.gameStatusHud.firstPersonVisible).to.equal(true);
       expect(firstPersonState.firstPersonCamera.perspective).to.equal(true);
       expect(firstPersonState.panLimitsEnabled).to.equal(false);
       expect(firstPersonState.viewport.manuallyMoved).to.equal(true);
@@ -496,6 +497,7 @@ describe("Camera dragging", () => {
     cy.window().then((window) => {
       const normalState = window.gameCameraTest.state();
       expect(normalState.firstPersonCameraEnabled).to.equal(false);
+      expect(normalState.gameStatusHud.firstPersonVisible).to.equal(false);
       expect(normalState.panLimitsEnabled).to.equal(true);
     });
   });

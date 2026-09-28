@@ -12,6 +12,11 @@ describe("Tree collision", () => {
       return window.gameMovementTest.loadScenario("tree-dig");
     });
     cy.get(".interaction-prompt").should("contain.text", "Chop tree");
+    cy.window().should((window) => {
+      expect(window.gameMovementTest.gameStatusHud().interaction.label).to.equal(
+        "Chop tree",
+      );
+    });
     cy.window().then((window) => {
       window.gameCameraTest.setRotation(0);
     });

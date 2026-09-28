@@ -28,6 +28,7 @@ export class GameCanvasMovementTestDriverPlugin {
         this.#context.renderer().thrownInventoryItemStates,
       inventoryFullReactionVisible: () =>
         this.#context.renderer().inventoryFullReactionVisible,
+      gameStatusHud: () => this.#context.renderer().gameStatusHudState,
       state: () => this.#context.renderer().heroState,
     };
     this.#context.target.gameMovementTest = this.#driver;

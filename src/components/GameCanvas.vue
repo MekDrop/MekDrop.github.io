@@ -32,38 +32,21 @@
     <game-loading-scene :active="isLoading" :phase="loadingPhase" />
     <div
       v-if="firstPersonCameraEnabled"
-      class="first-person-camera-status"
+      class="first-person-camera-status q-sr-only"
       role="status"
       aria-live="polite"
     >
       First-person camera — mouse look, click to pet, WASD/arrows move, Esc releases
     </div>
     <hero-mood-status :mood="heroMood" />
-    <Transition name="interaction-prompt">
-      <div
-        v-if="!isLoading && interactionTarget && interactionPromptsVisible"
-        class="interaction-prompt"
-        role="status"
-        aria-live="polite"
-      >
-        <kbd>E</kbd>
-        <span>{{ interactionLabel }}</span>
-        <span
-          v-if="interactionTarget.showHealth"
-          class="interaction-prompt__health"
-          aria-hidden="true"
-        >
-          <i
-            v-for="hitPoint in interactionTarget.maxHealth"
-            :key="hitPoint"
-            :class="{
-              'interaction-prompt__pip--lost':
-                hitPoint > interactionTarget.health,
-            }"
-          />
-        </span>
-      </div>
-    </Transition>
+    <div
+      v-if="!isLoading && interactionTarget && interactionPromptsVisible"
+      class="interaction-prompt q-sr-only"
+      role="status"
+      aria-live="polite"
+    >
+      E {{ interactionLabel }}
+    </div>
   </div>
 </template>
 
@@ -87,90 +70,6 @@
 
 .background-canvas--dragging .background-canvas__surface {
   cursor: grabbing;
-}
-
-.first-person-camera-status {
-  position: absolute;
-  top: var(--app-ui-space-md);
-  left: 50%;
-  z-index: 20;
-  padding: var(--app-ui-space-xs) var(--app-ui-space-md);
-  color: #eaffea;
-  font: 700 12px/1.4 var(--app-ui-font-family);
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  background: rgba(6, 18, 13, 0.86);
-  border: 1px solid rgba(184, 236, 195, 0.42);
-  border-radius: var(--app-ui-border-radius);
-  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.28);
-  transform: translateX(-50%);
-  pointer-events: none;
-  backdrop-filter: blur(5px);
-}
-
-.interaction-prompt {
-  position: absolute;
-  left: 50%;
-  bottom: clamp(var(--app-ui-space-lg), 8vh, calc(var(--app-ui-space-xl) * 2));
-  display: flex;
-  align-items: center;
-  gap: var(--app-ui-space-sm);
-  padding: var(--app-ui-space-sm) var(--app-ui-space-md);
-  color: #f7fff6;
-  font: 700 13px/1.2 var(--app-ui-font-family);
-  letter-spacing: 0.025em;
-  background: rgba(6, 18, 13, 0.86);
-  border: 1px solid rgba(184, 236, 195, 0.42);
-  border-radius: var(--app-ui-border-radius);
-  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.28);
-  transform: translateX(-50%);
-  pointer-events: none;
-  backdrop-filter: blur(5px);
-}
-
-.interaction-prompt kbd {
-  min-width: 25px;
-  padding: var(--app-ui-space-xs) var(--app-ui-space-sm);
-  color: #17331f;
-  text-align: center;
-  background: #d9f6d8;
-  border: 0;
-  border-radius: var(--app-ui-border-radius);
-  box-shadow: 0 2px 0 #79a77e;
-}
-
-.interaction-prompt__health {
-  display: flex;
-  gap: var(--app-ui-space-xs);
-  margin-left: var(--app-ui-space-xs);
-}
-
-.interaction-prompt__health i {
-  width: 7px;
-  height: 13px;
-  background: #80d27d;
-  border-radius: var(--app-ui-border-radius);
-  transition:
-    background 160ms ease,
-    opacity 160ms ease;
-}
-
-.interaction-prompt__health .interaction-prompt__pip--lost {
-  background: #667069;
-  opacity: 0.45;
-}
-
-.interaction-prompt-enter-active,
-.interaction-prompt-leave-active {
-  transition:
-    opacity 140ms ease,
-    transform 140ms ease;
-}
-
-.interaction-prompt-enter-from,
-.interaction-prompt-leave-to {
-  opacity: 0;
-  transform: translate(-50%, 7px);
 }
 
 html.game-viewport--dragging,
@@ -279,6 +178,13 @@ const pluginControlKeyboard = {
   keyupActions: [],
   keydownConsumeBindings: [],
 };
+
+function syncInteractionHud() {
+  renderer?.setInteractionPrompt(
+    interactionTarget.value,
+    !isLoading.value && interactionPromptsVisible.value,
+  );
+}
 const gameCanvasPluginRegistry = new GameCanvasPluginRegistry({
   target: globalThis,
   container: () => container.value,
@@ -377,6 +283,7 @@ async function updateCurrentMap(generatedMap) {
   interactionPromptsVisible.value = !generatedMap.objects?.some(
     ({ object }) => object === "Hero",
   );
+  syncInteractionHud();
   gameCanvasPluginRegistry.setState({
     testMapLoaded: mapFileLoader !== null,
   });
@@ -423,6 +330,7 @@ async function showLoadingPhase(phase, operationId = null) {
   loadingPhase.value = phase;
   isLoading.value = true;
   interactionTarget.value = null;
+  renderer?.setInteractionPrompt(null);
   disconnectControls();
   await nextTick();
   await waitForAnimationFrame();
@@ -483,6 +391,7 @@ async function init() {
       : bindings.zoom;
     interactionSuggestion = new InteractionSuggestion((target) => {
       interactionTarget.value = target;
+      syncInteractionHud();
     });
 
   const activeRenderer = new PlayCanvasRenderer(canvas.value, container.value, {
