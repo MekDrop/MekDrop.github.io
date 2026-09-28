@@ -1,6 +1,13 @@
 import { getRouteUrl } from "src/assets/helpers/route";
 import { unref } from "vue";
 
+/**
+ *
+ * @param {import("vue-router").RouteLocationNormalizedLoaded} route
+ * @param {import("vue-i18n").Composer} i18n
+ * @param {import("vue-router").Router} router
+ * @param {NonNullable<import("@quasar/app-vite").HasSsrParam["ssrContext"]>|null} ssrContext
+ */
 export default function (route, i18n, router, ssrContext) {
   let ret = [];
 

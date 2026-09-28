@@ -14,11 +14,19 @@ export class HeroRespawningActionState extends HeroRuntimeActionState {
     });
   }
 
+  /**
+   *
+   * @param {import("src/game/objects/ObjectTypes.js").HeroActionContext} owner
+   */
   enter(owner) {
     super.enter(owner);
     owner.feedback.respawning.begin();
   }
 
+  /**
+   *
+   * @param {import("src/game/objects/ObjectTypes.js").HeroActionContext} owner
+   */
   execute(owner) {
     const feedback = owner.feedback.respawning;
     this.payload.elapsed = Math.min(
@@ -31,11 +39,19 @@ export class HeroRespawningActionState extends HeroRuntimeActionState {
     }
   }
 
+  /**
+   *
+   * @param {import("src/game/objects/ObjectTypes.js").HeroActionContext} owner
+   */
   exit(owner) {
     owner.feedback.respawning?.resetPresentation?.();
     super.exit(owner);
   }
 
+  /**
+   *
+   * @param {import("src/game/objects/ObjectTypes.js").HeroActionContext} owner
+   */
   present(owner) {
     const feedback = owner.feedback.respawning;
     feedback.updatePresentation?.(

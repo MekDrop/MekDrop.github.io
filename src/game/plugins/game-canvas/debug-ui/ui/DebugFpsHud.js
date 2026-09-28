@@ -27,32 +27,138 @@ const GRAPH_AXIS_STEP = 15;
 const DEQUE_COMPACTION_THRESHOLD = 1024;
 
 export class DebugFpsHud {
+  /**
+   *
+   * @type {typeof pc}
+   */
   #pc;
+  /**
+   *
+   * @type {pc.Application}
+   */
   #app;
+  /**
+   *
+   * @type {pc.Entity}
+   */
   #entity;
+  /**
+   *
+   * @type {pc.Texture}
+   */
   #texture;
+  /**
+   *
+   * @type {HTMLCanvasElement}
+   */
   #canvas;
+  /**
+   *
+   * @type {import("src/game/GameContracts.js").GameCanvasPluginContext}
+   */
   #context;
+  /**
+   *
+   * @type {pc.EventHandle}
+   */
   #updateHandle;
+  /**
+   *
+   * @type {number}
+   */
   #framesPerSecond = 0;
+  /**
+   *
+   * @type {number}
+   */
   #minimumFramesPerSecond = Number.POSITIVE_INFINITY;
+  /**
+   *
+   * @type {number}
+   */
   #maximumFramesPerSecond = 0;
+  /**
+   *
+   * @type {null}
+   */
   #usedMemory = null;
+  /**
+   *
+   * @type {number}
+   */
   #minimumUsedMemory = Number.POSITIVE_INFINITY;
+  /**
+   *
+   * @type {number}
+   */
   #maximumUsedMemory = Number.NEGATIVE_INFINITY;
+  /**
+   *
+   * @type {number}
+   */
   #lastFrameTime = 0;
+  /**
+   *
+   * @type {number}
+   */
   #lastHudRefreshTime = 0;
+  /**
+   *
+   * @type {number}
+   */
   #lastMemorySampleTime = 0;
+  /**
+   *
+   * @type {Array}
+   */
   #minimumFrameSamples = [];
+  /**
+   *
+   * @type {number}
+   */
   #minimumFrameSampleHead = 0;
+  /**
+   *
+   * @type {Array}
+   */
   #maximumFrameSamples = [];
+  /**
+   *
+   * @type {number}
+   */
   #maximumFrameSampleHead = 0;
+  /**
+   *
+   * @type {Array}
+   */
   #graphSamples = [];
+  /**
+   *
+   * @type {number}
+   */
   #graphSampleHead = 0;
 
+  /**
+   *
+   * @param {{pc: typeof pc, app: pc.Application}} options
+   * @param {typeof pc} options.pc
+   * @param {pc.Application} options.app
+   */
   constructor({ pc, app }) {
+    /**
+     *
+     * @type {typeof pc}
+     */
     this.#pc = pc;
+    /**
+     *
+     * @type {pc.Application}
+     */
     this.#app = app;
+    /**
+     *
+     * @type {pc.Entity}
+     */
     this.#entity = new pc.Entity("Debug FPS HUD");
     this.#entity.addComponent("screen", {
       screenSpace: true,
@@ -62,11 +168,23 @@ export class DebugFpsHud {
       priority: 105,
     });
 
+    /**
+     *
+     * @type {HTMLCanvasElement}
+     */
     this.#canvas = document.createElement("canvas");
     this.#canvas.width = COUNTER_WIDTH * TEXTURE_SCALE;
     this.#canvas.height = COUNTER_HEIGHT * TEXTURE_SCALE;
+    /**
+     *
+     * @type {import("src/game/GameContracts.js").GameCanvasPluginContext}
+     */
     this.#context = this.#canvas.getContext("2d");
     this.#context.scale(TEXTURE_SCALE, TEXTURE_SCALE);
+    /**
+     *
+     * @type {pc.Texture}
+     */
     this.#texture = new pc.Texture(app.graphicsDevice, {
       name: "Debug FPS counter texture",
       width: this.#canvas.width,
@@ -95,9 +213,17 @@ export class DebugFpsHud {
     this.#entity.addChild(counter);
     this.#entity.screen.syncDrawOrder();
     this.#entity.enabled = false;
+    /**
+     *
+     * @type {pc.EventHandle}
+     */
     this.#updateHandle = app.on("update", this.#update);
   }
 
+  /**
+   *
+   * @param {pc.Entity} parent
+   */
   attach(parent = this.#app.root) {
     if (!this.#entity || this.#entity.parent === parent) {
       return;
@@ -105,6 +231,11 @@ export class DebugFpsHud {
     parent.addChild(this.#entity);
   }
 
+  /**
+   *
+   * @param {number} width
+   * @param {number} height
+   */
   resize(width, height) {
     if (!this.#entity?.screen) {
       return;
@@ -160,12 +291,20 @@ export class DebugFpsHud {
     this.#pc = null;
   }
 
+  /**
+   *
+   * @type {() => void}
+   */
   #update = () => {
     if (this.#entity?.enabled) {
       this.#syncMetrics();
     }
   };
 
+  /**
+   *
+   * @param {boolean} force
+   */
   #syncMetrics(force = false) {
     const now = performance.now();
     if (!force) {
@@ -195,6 +334,10 @@ export class DebugFpsHud {
     this.#draw();
   }
 
+  /**
+   *
+   * @param {number} now
+   */
   #sampleFrameRate(now) {
     const elapsed = now - this.#lastFrameTime;
     this.#lastFrameTime = now;
@@ -219,6 +362,10 @@ export class DebugFpsHud {
         ?.framesPerSecond ?? 0;
   }
 
+  /**
+   *
+   * @param {number} sample
+   */
   #appendMinimumSample(sample) {
     while (
       this.#minimumFrameSamples.length > this.#minimumFrameSampleHead &&
@@ -230,6 +377,10 @@ export class DebugFpsHud {
     this.#minimumFrameSamples.push(sample);
   }
 
+  /**
+   *
+   * @param {number} sample
+   */
   #appendMaximumSample(sample) {
     while (
       this.#maximumFrameSamples.length > this.#maximumFrameSampleHead &&
@@ -241,6 +392,10 @@ export class DebugFpsHud {
     this.#maximumFrameSamples.push(sample);
   }
 
+  /**
+   *
+   * @param {number} sample
+   */
   #appendGraphSample(sample) {
     const latestSample = this.#graphSamples[this.#graphSamples.length - 1];
     if (
@@ -262,6 +417,10 @@ export class DebugFpsHud {
     });
   }
 
+  /**
+   *
+   * @param {number} cutoff
+   */
   #expireFrameSamples(cutoff) {
     while (
       this.#minimumFrameSampleHead < this.#minimumFrameSamples.length &&
@@ -311,6 +470,10 @@ export class DebugFpsHud {
     return Math.round((usedBytes / BYTES_PER_MEGABYTE) * 10) / 10;
   }
 
+  /**
+   *
+   * @param {number} value
+   */
   #formatMemory(value) {
     return Number.isFinite(value) ? `${value.toFixed(1)} MB` : "--";
   }
@@ -366,7 +529,16 @@ export class DebugFpsHud {
         gameUiTheme.warning,
       ],
     ];
-    rows.forEach(([label, framesPerSecond, usedMemory, color], index) => {
+    rows.forEach(/**
+     *
+     * @param {{"0": Array, "1": Array, "2": Array, "3": Array}} options
+     * @param {Array} options."0"
+     * @param {Array} options."1"
+     * @param {Array} options."2"
+     * @param {Array} options."3"
+     * @param {number} index
+     */
+    ([label, framesPerSecond, usedMemory, color], index) => {
       const y = ROW_BASELINES[index];
       context.textAlign = "left";
       context.font = gameUiTheme.font(800, 10);
@@ -387,6 +559,10 @@ export class DebugFpsHud {
     this.#texture.setSource(this.#canvas);
   }
 
+  /**
+   *
+   * @param {import("src/game/GameContracts.js").GameCanvasPluginContext} context
+   */
   #drawFrameRateGraph(context) {
     const axisMaximum = Math.max(
       GRAPH_AXIS_STEP * 2,
@@ -409,7 +585,12 @@ export class DebugFpsHud {
     context.font = gameUiTheme.font(700, 7);
     context.textAlign = "right";
     context.textBaseline = "middle";
-    axisValues.forEach((value, index) => {
+    axisValues.forEach(/**
+     *
+     * @param {number} value
+     * @param {number} index
+     */
+    (value, index) => {
       const y = axisPositions[index];
       context.beginPath();
       context.moveTo(GRAPH_LEFT, y);
@@ -425,9 +606,17 @@ export class DebugFpsHud {
     const windowStartedAt = now - FPS_WINDOW_DURATION;
     const graphWidth = GRAPH_RIGHT - GRAPH_LEFT;
     const graphHeight = GRAPH_BOTTOM - GRAPH_TOP;
+    /**
+     *
+     * @param {number} time
+     */
     const getX = (time) =>
       GRAPH_LEFT +
       ((time - windowStartedAt) / FPS_WINDOW_DURATION) * graphWidth;
+    /**
+     *
+     * @param {number} framesPerSecond
+     */
     const getY = (framesPerSecond) =>
       GRAPH_BOTTOM -
       (Math.min(axisMaximum, Math.max(0, framesPerSecond)) / axisMaximum) *
@@ -487,6 +676,10 @@ export class DebugFpsHud {
     context.fillText("now", GRAPH_RIGHT, GRAPH_TIME_BASELINE);
   }
 
+  /**
+   *
+   * @param {number} duration
+   */
   #formatGraphDuration(duration) {
     if (duration >= 60 * 1000) {
       const minutes = duration / (60 * 1000);

@@ -6,10 +6,17 @@ const DOORWAY_CLEAR_Z = 1.1;
 const WAYPOINT_DISTANCE = 0.001;
 const RAD_TO_DEG = 180 / Math.PI;
 
+/**
+ *
+ * @param {number} value
+ */
 const ease = (value) => value * value * (3 - 2 * value);
 
 /**
  * Lets Yuka derive facing from an authored path without owning scene placement.
+ *
+ * @param {Array<{x: number, y?: number, z: number}>} points
+ * @param {boolean} [reverse=false]
  */
 export const terracePathYaw = (points, reverse = false) => {
   const path = new Path();
@@ -28,6 +35,15 @@ export const terracePathYaw = (points, reverse = false) => {
   return Object.is(yaw, -0) ? 0 : yaw;
 };
 
+/**
+ *
+ * @param {{actor: import("./TerraceActor.js").TerraceActor, target: {x: number, y: number, z: number}, leaving: boolean, behavior: {duration: number, elapsed: number, walkSpeed?: number}, action: string}} options
+ * @param {import("./TerraceActor.js").TerraceActor} options.actor
+ * @param {{x: number, y: number, z: number}} options.target
+ * @param {boolean} options.leaving
+ * @param {{duration: number, elapsed: number, walkSpeed?: number}} options.behavior
+ * @param {string} options.action
+ */
 export const syncTerraceWalk = ({
   actor,
   target,

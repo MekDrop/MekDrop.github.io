@@ -11,6 +11,10 @@ const MUSHROOM_CRUSH_TILT = 34;
 const MUSHROOM_CRUSH_COMPRESSION = 0.32;
 const MUSHROOM_CRUSH_SPREAD = 0.04;
 
+/**
+ *
+ * @param {number} scale
+ */
 function normalizedScale(scale) {
   if (typeof scale === "number") {
     return { x: scale, y: scale, z: scale };
@@ -19,35 +23,165 @@ function normalizedScale(scale) {
 }
 
 export class GroundCoverItem {
+  /**
+   *
+    * @type {typeof import("playcanvas")}
+   */
   #pc;
+  /**
+   *
+    * @type {import("playcanvas").Application}
+   */
   #app;
+  /**
+   *
+    * @type {import("playcanvas").Entity}
+   */
   #entity;
+  /**
+   *
+    * @type {string}
+   */
   #model;
+  /**
+   *
+    * @type {string}
+   */
   #modelLibrary;
+  /**
+   *
+    * @type {string}
+   */
   #modelUrl;
+  /**
+   *
+    * @type {string}
+   */
   #variant;
+  /**
+   *
+    * @type {{x: number, y: number, z: number}}
+   */
   #position;
+  /**
+   *
+    * @type {number}
+   */
   #scale;
+  /**
+   *
+    * @type {number}
+   */
   #rotation;
+  /**
+   *
+    * @type {number}
+   */
   #flexibility;
+  /**
+   *
+    * @type {number}
+   */
   #stepReaction;
+  /**
+   *
+    * @type {number}
+   */
   #phase;
+  /**
+   *
+    * @type {number}
+   */
   #elapsed = 0;
+  /**
+   *
+    * @type {number}
+   */
   #targetTiltX = 0;
+  /**
+   *
+    * @type {number}
+   */
   #targetTiltZ = 0;
+  /**
+   *
+    * @type {number}
+   */
   #tiltX = 0;
+  /**
+   *
+    * @type {number}
+   */
   #tiltZ = 0;
+  /**
+   *
+    * @type {number}
+   */
   #trampleAmount = 0;
+  /**
+   *
+    * @type {number}
+   */
   #trampleHold = 0;
+  /**
+   *
+    * @type {number}
+   */
   #trampleTiltX = 0;
+  /**
+   *
+    * @type {number}
+   */
   #trampleTiltZ = 0;
+  /**
+   *
+    * @type {number}
+   */
   #ambientMotion = 1;
+  /**
+   *
+    * @type {boolean}
+   */
   #destroyed = false;
+  /**
+   *
+    * @type {MushroomDebris|null}
+   */
   #debris = null;
+  /**
+   *
+    * @type {number}
+   */
   #crushElapsed = 0;
+  /**
+   *
+    * @type {number}
+   */
   #crushDirectionX = 0;
+  /**
+   *
+    * @type {number}
+   */
   #crushDirectionZ = 1;
 
+  /**
+   *
+   * @param {{pc: typeof import("playcanvas"), app: import("playcanvas").Application, modelLibrary: string, modelUrl: string, variant: string, x: number, y: number, z: number, rotation: number, scale: number, flexibility: number, stepReaction: number, phase: number, ambientMotion: number}} options
+   * @param {typeof import("playcanvas")} options.pc
+   * @param {import("playcanvas").Application} options.app
+   * @param {string} options.modelLibrary
+   * @param {string} options.modelUrl
+   * @param {string} options.variant
+   * @param {number} options.x
+   * @param {number} options.y
+   * @param {number} options.z
+   * @param {number} options.rotation
+   * @param {number} options.scale
+   * @param {number} options.flexibility
+   * @param {number} options.stepReaction
+   * @param {number} options.phase
+   * @param {number} options.ambientMotion
+   */
   constructor({
     pc,
     app,
@@ -64,25 +198,39 @@ export class GroundCoverItem {
     phase,
     ambientMotion = 1,
   }) {
+
     this.#pc = pc;
+
     this.#app = app;
+
     this.#modelLibrary = modelLibrary;
+
     this.#modelUrl = modelUrl;
+
     this.#variant = variant;
+
     this.#position = { x, y, z };
+
     this.#scale = scale;
+
     this.#rotation = rotation;
+
     this.#flexibility = flexibility;
+
     this.#stepReaction = stepReaction;
+
     this.#phase = phase;
+
     this.#entity = new pc.Entity(`Ground cover ${variant}`);
     this.#entity.setLocalPosition(x, y, z);
+
 
     this.#model = modelLibrary.instantiateMerged(modelUrl);
     this.#model.setLocalEulerAngles(0, rotation, 0);
     const modelScale = normalizedScale(scale);
     this.#model.setLocalScale(modelScale.x, modelScale.y, modelScale.z);
     this.#entity.addChild(this.#model);
+
     this.ambientMotion = ambientMotion;
   }
 
@@ -94,6 +242,10 @@ export class GroundCoverItem {
     return this.#position;
   }
 
+  /**
+   *
+    * @returns {Array<{id: import("playcanvas").Entity, x: number, y: number, z: number, radius: number, strength: number}>}
+   */
   get grassImpressionContacts() {
     return this.#debris?.grassImpressionContacts ?? [];
   }
@@ -103,6 +255,12 @@ export class GroundCoverItem {
     this.advance(0);
   }
 
+  /**
+   *
+   * @param {number} directionX
+   * @param {number} directionZ
+   * @param {number} strength
+   */
   applyWind(directionX, directionZ, strength) {
     if (!this.#entity.enabled) {
       return;
@@ -118,6 +276,11 @@ export class GroundCoverItem {
     }
   }
 
+  /**
+   *
+   * @param {number} directionX
+   * @param {number} directionZ
+   */
   stepOn(directionX, directionZ) {
     if (this.#stepReaction === "disappear") {
       this.#entity.enabled = false;
@@ -141,6 +304,12 @@ export class GroundCoverItem {
     this.#entity.enabled = false;
   }
 
+  /**
+   *
+   * @param {{directionX: number, directionZ: number}} options
+   * @param {number} options.directionX
+   * @param {number} options.directionZ
+   */
   crush({ directionX = 0, directionZ = 1 } = {}) {
     if (!this.#entity.enabled || this.#destroyed) {
       return;
@@ -179,6 +348,10 @@ export class GroundCoverItem {
     this.#entity.setLocalScale(1, 1, 1);
   }
 
+  /**
+   *
+   * @param {number} deltaTime
+   */
   advance(deltaTime) {
     if (!this.#entity.enabled) {
       return;
@@ -225,6 +398,10 @@ export class GroundCoverItem {
     this.#model = null;
   }
 
+  /**
+   *
+   * @param {number} deltaTime
+   */
   #advanceDestruction(deltaTime) {
     if (!this.#debris) {
       this.#crushElapsed = Math.min(

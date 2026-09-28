@@ -1,15 +1,62 @@
 export class HeroPatGesture {
+  /**
+   *
+   * @type {Window}
+   */
   #window = window;
+  /**
+   *
+   * @type {HTMLCanvasElement}
+   */
   #canvas;
+  /**
+   *
+   * @type {(clientX: number, clientY: number) => boolean}
+   */
   #hitTest;
+  /**
+   *
+   * @type {() => void}
+   */
   #pat;
+  /**
+   *
+   * @type {null}
+   */
   #pointerId = null;
+  /**
+   *
+   * @type {null}
+   */
   #previous = null;
+  /**
+   *
+   * @type {number}
+   */
   #distance = 0;
 
+  /**
+   *
+   * @param {HTMLCanvasElement} canvas
+   * @param {{hitTest: (clientX: number, clientY: number) => boolean, pat: () => void}} options
+   * @param {(clientX: number, clientY: number) => boolean} options.hitTest
+   * @param {() => void} options.pat
+   */
   constructor(canvas, { hitTest, pat }) {
+    /**
+     *
+     * @type {HTMLCanvasElement}
+     */
     this.#canvas = canvas;
+    /**
+     *
+     * @type {(clientX: number, clientY: number) => boolean}
+     */
     this.#hitTest = hitTest;
+    /**
+     *
+     * @type {() => void}
+     */
     this.#pat = pat;
     canvas.addEventListener("pointerdown", this.#down, { capture: true });
     canvas.addEventListener("pointermove", this.#move, { capture: true });
@@ -19,11 +66,20 @@ export class HeroPatGesture {
     this.#window.addEventListener("blur", this.cancel);
   }
 
+  /**
+   *
+   * @param {Event} event
+   */
   #consume(event) {
     event.preventDefault();
     event.stopImmediatePropagation();
   }
 
+  /**
+   *
+   * @param {Event} event
+   * @type {(event: Event) => void}
+   */
   #down = (event) => {
     if (event.defaultPrevented || event.altKey || event.ctrlKey || event.metaKey
       || event.pointerType !== "mouse" || event.button !== 0
@@ -37,6 +93,11 @@ export class HeroPatGesture {
     this.#pat();
   };
 
+  /**
+   *
+   * @param {Event} event
+   * @type {(event: Event) => void}
+   */
   #move = (event) => {
     if (event.pointerType !== "mouse") {
       return;
@@ -64,6 +125,11 @@ export class HeroPatGesture {
     this.#previous = { x: event.clientX, y: event.clientY };
   };
 
+  /**
+   *
+   * @param {Event} event
+   * @type {(event: Event) => void}
+   */
   #up = (event) => {
     if (event.pointerId === this.#pointerId) {
       this.#consume(event);
@@ -71,6 +137,10 @@ export class HeroPatGesture {
     }
   };
 
+  /**
+   *
+   * @type {() => void}
+   */
   cancel = () => {
     const pointerId = this.#pointerId;
     this.#pointerId = null;

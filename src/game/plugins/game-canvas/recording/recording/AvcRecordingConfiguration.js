@@ -3,6 +3,10 @@
  * https://bugzilla.mozilla.org/show_bug.cgi?id=2031056
  */
 export class AvcRecordingConfiguration {
+  /**
+   *
+   * @param {{name?: string, type?: string, value?: string|number|boolean}} metadata
+   */
   static repair(metadata) {
     const config = metadata?.decoderConfig;
     if (!config?.codec?.startsWith("avc1") || !config.description) {

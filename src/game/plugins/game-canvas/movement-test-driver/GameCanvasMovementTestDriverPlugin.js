@@ -1,23 +1,59 @@
 export class GameCanvasMovementTestDriverPlugin {
+  /**
+   *
+   * @type {import("src/game/GameContracts.js").GameCanvasPluginContext}
+   */
   #context;
+  /**
+   *
+   * @type {null}
+   */
   #driver = null;
 
+  /**
+   *
+   * @param {import("src/game/GameContracts.js").GameCanvasPluginContext} context
+   */
   constructor(context) {
+    /**
+     *
+     * @type {import("src/game/GameContracts.js").GameCanvasPluginContext}
+     */
     this.#context = context;
   }
 
   install() {
     this.#driver = {
+      /**
+       *
+       * @param {string} scenario
+       */
       loadScenario: (scenario) => this.#loadScenario(scenario),
+      /**
+       *
+       * @param {boolean} active
+       */
       moveForward: (active = true) => {
         this.#context.renderer().hero?.setMovement(0, active ? -1 : 0);
       },
+      /**
+       *
+       * @param {number} inputX
+       * @param {number} inputY
+       * @param {boolean} running
+       */
       move: (inputX, inputY, running = false) => {
         this.#context.renderer().hero?.setMovement(inputX, inputY, running);
       },
       jump: () => {
         this.#context.renderer().hero?.jump();
       },
+      /**
+       *
+       * @param {number} inputX
+       * @param {number} inputY
+       * @param {string} direction
+       */
       dodge: (inputX, inputY, direction = "forward") =>
         this.#context.renderer().hero?.dodge(inputX, inputY, direction) ?? false,
       interact: () => this.#context.renderer().interact(),
@@ -41,6 +77,10 @@ export class GameCanvasMovementTestDriverPlugin {
     this.#driver = null;
   }
 
+  /**
+   *
+   * @param {string} scenario
+   */
   async #loadScenario(scenario) {
     const mapName = scenario.startsWith("test_")
       ? scenario

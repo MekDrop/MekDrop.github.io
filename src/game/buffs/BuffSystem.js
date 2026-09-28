@@ -3,13 +3,37 @@ import { HERO_BUFF_DEFINITIONS } from "../config/hero-buffs.js";
 // Definitions describe effects; this class owns their clocks and stacks.
 // Reapplying adds stacks up to the cap and refreshes the whole effect's timer.
 export class BuffSystem {
+  /**
+   *
+   * @type {Map}
+   */
   #definitions;
+  /**
+   *
+   * @type {Map}
+   */
   #active = new Map();
+  /**
+   *
+   * @type {number}
+   */
   #revision = 0;
 
+  /**
+   *
+   * @param {Array} definitions
+   */
   constructor(definitions = HERO_BUFF_DEFINITIONS) {
+    /**
+     *
+     * @type {Map}
+     */
     this.#definitions = new Map(
-      structuredClone(definitions).map((definition) => [definition.id, definition]),
+      structuredClone(definitions).map(/**
+       *
+       * @param {import("src/game/GameContracts.js").GameObjectDefinition} definition
+       */
+      (definition) => [definition.id, definition]),
     );
   }
 
@@ -17,10 +41,22 @@ export class BuffSystem {
     return this.#revision;
   }
 
+  /**
+   *
+   * @returns {Array}
+   */
   get state() {
-    return [...this.#active.keys()].map((id) => this.get(id));
+    return [...this.#active.keys()].map(/**
+     *
+     * @param {string} id
+     */
+    (id) => this.get(id));
   }
 
+  /**
+   *
+   * @param {string} id
+   */
   get(id) {
     const effect = this.#active.get(id);
     if (!effect) {
@@ -29,14 +65,29 @@ export class BuffSystem {
     return structuredClone({ ...this.#definitions.get(id), ...effect });
   }
 
+  /**
+   *
+   * @param {string} id
+   */
   has(id) {
     return this.#active.has(id);
   }
 
+  /**
+   *
+   * @param {string} id
+   */
   remaining(id) {
     return this.#active.get(id)?.remaining ?? 0;
   }
 
+  /**
+   *
+   * @param {string} id
+   * @param {{stacks: Array, duration: number}} options
+   * @param {Array} options.stacks
+   * @param {number} options.duration
+   */
   apply(id, { stacks = 1, duration } = {}) {
     const definition = this.#definitions.get(id);
     if (!definition || !Number.isInteger(stacks) || stacks <= 0) {
@@ -45,7 +96,11 @@ export class BuffSystem {
     const remaining = Number.isFinite(duration) && duration > 0
       ? duration
       : definition.duration;
-    if (definition.blockedBy?.some((blocker) => this.has(blocker))) {
+    if (definition.blockedBy?.some(/**
+     *
+     * @param {pc.Entity} blocker
+     */
+    (blocker) => this.has(blocker))) {
       return false;
     }
     for (const replaced of definition.replaces ?? []) {
@@ -59,6 +114,10 @@ export class BuffSystem {
     return true;
   }
 
+  /**
+   *
+   * @param {string} id
+   */
   remove(id) {
     const removed = this.#active.delete(id);
     if (removed) {
@@ -74,6 +133,12 @@ export class BuffSystem {
     }
   }
 
+  /**
+   *
+   * @param {number} deltaTime
+   * @param {{resting: boolean}} options
+   * @param {boolean} options.resting
+   */
   advance(deltaTime, { resting = true } = {}) {
     if (!Number.isFinite(deltaTime) || deltaTime <= 0) {
       return;
@@ -89,6 +154,11 @@ export class BuffSystem {
     }
   }
 
+  /**
+   *
+   * @param {string} stat
+   * @param {number} baseValue
+   */
   modifyStat(stat, baseValue) {
     let flat = 0;
     let percent = 0;

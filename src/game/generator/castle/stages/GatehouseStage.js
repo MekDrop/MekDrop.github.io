@@ -11,6 +11,10 @@ import {
 import { AbstractCastleGenerationStage } from "../AbstractCastleGenerationStage.js";
 
 export class GatehouseStage extends AbstractCastleGenerationStage {
+  /**
+   *
+   * @param {CastleGenerationContext} context
+   */
   async run(context) {
     if (context.layout.empty) {
       return;
@@ -18,7 +22,11 @@ export class GatehouseStage extends AbstractCastleGenerationStage {
     const { style, castleDepth, facadeSpan, openings } = context.layout;
     const towerSpan = style.towerSpanBlocks ?? CASTLE_TOWER_SPAN_BLOCKS;
     const towerHeight = style.towerHeightBlocks ?? CASTLE_TOWER_HEIGHT_BLOCKS;
-    context.structure.gatehouses = openings.map((opening) => {
+    context.structure.gatehouses = openings.map(/**
+     *
+     * @param {import("src/game/GameContracts.js").CastleOpening} opening
+     */
+    (opening) => {
       const primary = opening.boundary === CASTLE_BOUNDARY.FRONT;
       const gatehouseDepth = Math.min(towerSpan, castleDepth);
       const gatehouseHeight = towerHeight;

@@ -9,10 +9,27 @@ const GROUNDED_ZOOM = 2.5;
 const GROUNDING_RESPONSE = 5;
 
 export class FloatingIslandMotion {
+  /**
+   *
+    * @type {number}
+   */
   #elapsed = 0;
+  /**
+   *
+    * @type {number}
+   */
   #strength = 1;
+  /**
+   *
+    * @type {number}
+   */
   #targetStrength = 1;
 
+  /**
+   *
+   * @param {{zoom: number}} options
+   * @param {number} options.zoom
+   */
   constructor({ zoom = 1 }) {
     this.zoom = zoom;
     this.#strength = this.#targetStrength;
@@ -44,6 +61,10 @@ export class FloatingIslandMotion {
     }
   }
 
+  /**
+   *
+   * @param {number} deltaTime
+   */
   update(deltaTime) {
     this.#elapsed += deltaTime;
     const grounding = 1 - Math.exp(-GROUNDING_RESPONSE * deltaTime);

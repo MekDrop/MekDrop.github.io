@@ -1,11 +1,45 @@
 export class VegetationInteraction {
+  /**
+   *
+    * @type {import("./DestructibleVegetation.js").DestructibleVegetation}
+   */
   #item;
+  /**
+   *
+    * @type {import("src/game/objects/ObjectTypes.js").HeroLike}
+   */
   #hero;
+  /**
+   *
+    * @type {import("src/game/objects/hero/tools/HeroTool.js").HeroTool|null}
+   */
   #tool;
+  /**
+   *
+    * @type {(value: import("src/game/objects/ObjectTypes.js").InteractionLike|null) => void}
+   */
   #onChange;
+  /**
+   *
+    * @type {() => void}
+   */
   #onComplete;
+  /**
+   *
+    * @type {() => void}
+   */
   #onDestroyed;
 
+  /**
+   *
+   * @param {{item: import("./DestructibleVegetation.js").DestructibleVegetation, hero: import("src/game/objects/ObjectTypes.js").HeroLike, tool: import("src/game/objects/hero/tools/HeroTool.js").HeroTool, onChange: (value: import("src/game/objects/ObjectTypes.js").InteractionLike|null) => void, onComplete: () => void, onDestroyed: () => void}} options
+   * @param {import("./DestructibleVegetation.js").DestructibleVegetation} options.item
+   * @param {import("src/game/objects/ObjectTypes.js").HeroLike} options.hero
+   * @param {import("src/game/objects/hero/tools/HeroTool.js").HeroTool} options.tool
+   * @param {(value: import("src/game/objects/ObjectTypes.js").InteractionLike|null) => void} options.onChange
+   * @param {() => void} options.onComplete
+   * @param {() => void} options.onDestroyed
+   */
   constructor({ item, hero, tool, onChange, onComplete, onDestroyed }) {
     this.#item = item;
     this.#hero = hero;
@@ -15,6 +49,10 @@ export class VegetationInteraction {
     this.#onDestroyed = onDestroyed;
   }
 
+  /**
+   *
+    * @returns {boolean}
+   */
   get canInteract() {
     return (
       this.#item.canInteract &&
@@ -22,6 +60,10 @@ export class VegetationInteraction {
     );
   }
 
+  /**
+   *
+    * @returns {{x: number, y: number, z: number}}
+   */
   get description() {
     const target = this.#item.describe();
     const active = this.#hero.tool === this.#tool;

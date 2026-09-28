@@ -7,18 +7,34 @@ import { LavafallGeometry } from './LavafallGeometry.js';
 import { RiverWater } from './RiverWater.js';
 
 export class RiverLava extends RiverWater {
+  /**
+   *
+    * @returns {string|number}
+   */
   get riverKind() {
     return RIVER_KIND.LAVA;
   }
 
+  /**
+   *
+    * @returns {boolean}
+   */
   get hasRockContactEffects() {
     return false;
   }
 
+  /**
+   *
+    * @returns {boolean}
+   */
   get hasWaterEffects() {
     return false;
   }
 
+  /**
+   *
+    * @returns {boolean}
+   */
   get hasWaterEffects() {
     return false;
   }
@@ -27,6 +43,10 @@ export class RiverLava extends RiverWater {
     return null;
   }
 
+  /**
+   *
+   * @param {number} cellIndex
+   */
   isSpringSource(cellIndex) {
     return cellIndex === 0;
   }
@@ -35,6 +55,10 @@ export class RiverLava extends RiverWater {
     return null;
   }
 
+  /**
+   *
+   * @param {boolean} translucent
+   */
   createMaterial(translucent = false) {
     const key = translucent ? 'translucent' : 'opaque';
     return this.materialFor(key, () => {
@@ -66,6 +90,15 @@ export class RiverLava extends RiverWater {
     });
   }
 
+  /**
+   *
+   * @param {{group: import("src/game/objects/ObjectTypes.js").RiverGeometryGroup, cascade: number, cols: number, rows: number, routeDistance: number}} options
+   * @param {import("src/game/objects/ObjectTypes.js").RiverGeometryGroup} options.group
+   * @param {number} options.cascade
+   * @param {number} options.cols
+   * @param {number} options.rows
+   * @param {number} options.routeDistance
+   */
   appendCascade({ group, cascade, cols, rows, routeDistance }) {
     const geometry = new LavafallGeometry();
     geometry.append(
@@ -86,6 +119,15 @@ export class RiverLava extends RiverWater {
     this.#addWaterfallMist(cascade, cols, rows, false);
   }
 
+  /**
+   *
+   * @param {{terminalGroup: {x: number, y: number, z: number}, waterfall: import("src/game/objects/ObjectTypes.js").WaterfallDefinition, cols: number, rows: number, routeDistance: number}} options
+   * @param {{x: number, y: number, z: number}} options.terminalGroup
+   * @param {import("src/game/objects/ObjectTypes.js").WaterfallDefinition} options.waterfall
+   * @param {number} options.cols
+   * @param {number} options.rows
+   * @param {number} options.routeDistance
+   */
   appendTerminal({ terminalGroup, waterfall, cols, rows, routeDistance }) {
     new LavafallGeometry().append(
       terminalGroup,
@@ -98,6 +140,13 @@ export class RiverLava extends RiverWater {
     this.#addWaterfallMist(waterfall, cols, rows, true);
   }
 
+  /**
+   *
+   * @param {import("src/game/objects/ObjectTypes.js").WaterfallDefinition} waterfall
+   * @param {number} cols
+   * @param {number} rows
+   * @param {import("src/game/objects/ObjectTypes.js").RiverTerminal} terminal
+   */
   #addWaterfallMist(waterfall, cols, rows, terminal) {
     const direction = this.#directionVector(waterfall.direction);
     const cross = { col: -direction.row, row: direction.col };
@@ -241,18 +290,30 @@ export class RiverLava extends RiverWater {
     root.addChild(spray);
   }
 
+  /**
+   *
+   * @param {string} keys
+   */
   #curve(keys) {
     const curve = new this.pc.Curve(keys);
     curve.type = this.pc.CURVE_SMOOTHSTEP;
     return curve;
   }
 
+  /**
+   *
+   * @param {...Array<number>} channels
+   */
   #curveSet(...channels) {
     const curves = new this.pc.CurveSet(channels);
     curves.type = this.pc.CURVE_SMOOTHSTEP;
     return curves;
   }
 
+  /**
+   *
+   * @param {{x: number, y: number, z: number}} direction
+   */
   #directionVector(direction) {
     if (direction === 'NORTH') {
       return { col: 0, row: -1 };

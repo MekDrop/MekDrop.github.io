@@ -10,17 +10,51 @@ const DEBRIS_FOOT_CENTER_HEIGHT = 0.16;
 const HERO_SURFACE_IGNORE_TAG = "hero-surface-ignore";
 
 export class MushroomPhysics {
+  /**
+   *
+    * @type {typeof import("playcanvas")}
+   */
   #pc;
+  /**
+   *
+    * @type {import("playcanvas").Entity}
+   */
   #entity;
+  /**
+   *
+    * @type {number}
+   */
   #rigidbodySystem;
+  /**
+   *
+    * @type {Array<{entity: import("playcanvas").Entity, body: import("playcanvas").RigidBodyComponent}>}
+   */
   #debrisFeet = [];
+  /**
+   *
+    * @type {Array<{entity: import("playcanvas").Entity, item: GroundCoverItem}>}
+   */
   #mushrooms = [];
+  /**
+   *
+    * @type {Map}
+   */
   #mushroomsByEntity = new Map();
 
+  /**
+   *
+   * @param {{pc: typeof import("playcanvas"), app: import("playcanvas").Application}} options
+   * @param {typeof import("playcanvas")} options.pc
+   * @param {import("playcanvas").Application} options.app
+   */
   constructor({ pc, app }) {
+
     this.#pc = pc;
+
     this.#entity = new pc.Entity("Mushroom physics");
+
     this.#rigidbodySystem = app.systems.rigidbody;
+
     this.#debrisFeet = [
       this.#createDebrisFoot("left"),
       this.#createDebrisFoot("right"),
@@ -31,6 +65,15 @@ export class MushroomPhysics {
     return this.#entity;
   }
 
+  /**
+   *
+   * @param {{variant: string, position: {x: number, y: number, z: number}, interactionRadius: number, scale: number, onDestroy: () => void}} options
+   * @param {string} options.variant
+   * @param {{x: number, y: number, z: number}} options.position
+   * @param {number} options.interactionRadius
+   * @param {number} options.scale
+   * @param {() => void} options.onDestroy
+   */
   addMushroom({
     variant,
     position,
@@ -60,6 +103,16 @@ export class MushroomPhysics {
     return mushroom;
   }
 
+  /**
+   *
+   * @param {{x: number, y: number, z: number}} options
+   * @param {number} options.x
+   * @param {number} options.y
+   * @param {number} options.z
+   * @param {number} config0
+   * @param {{x: number, y: number, z: number}} config0.direction
+   * @param {number} config0.speed
+   */
   updateHeroPosition(
     { x, y, z },
     { direction = { x: 0, z: 1 }, speed = 0 } = {},
@@ -104,6 +157,10 @@ export class MushroomPhysics {
     );
   }
 
+  /**
+   *
+   * @param {{entity: import("playcanvas").Entity, body: import("playcanvas").RigidBodyComponent}} mushroom
+   */
   hide(mushroom) {
     if (!mushroom || mushroom.destroyed) {
       return;
@@ -121,6 +178,10 @@ export class MushroomPhysics {
     this.#rigidbodySystem = null;
   }
 
+  /**
+   *
+   * @param {{normal: import("src/game/objects/ObjectTypes.js").Point3}} side
+   */
   #createDebrisFoot(side) {
     const foot = new this.#pc.Entity(`Hero ${side} mushroom debris collider`);
     foot.tags.add(HERO_SURFACE_IGNORE_TAG);
@@ -140,12 +201,24 @@ export class MushroomPhysics {
     return foot;
   }
 
+  /**
+   *
+   * @param {number} x
+   * @param {number} y
+   * @param {number} z
+   * @param {number} directionX
+   * @param {number} directionZ
+   */
   #probeFoot(x, y, z, directionX, directionZ) {
     const hits = this.#rigidbodySystem.raycastAll(
       new this.#pc.Vec3(x, y + FOOT_PROBE_UP, z),
       new this.#pc.Vec3(x, y - FOOT_PROBE_DOWN, z),
       {
         sort: true,
+        /**
+         *
+         * @param {import("playcanvas").Entity} entity
+         */
         filterCallback: (entity) => this.#mushroomsByEntity.has(entity),
       },
     );

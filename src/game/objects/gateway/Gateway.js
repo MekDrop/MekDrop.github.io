@@ -22,36 +22,151 @@ const PORTAL_WIND_FEATHER_BLOCKS = 1;
  * terrain cube by default.
  */
 export class Gateway {
+  /**
+   *
+    * @returns {string}
+   */
   static get modelUrl() {
     return gatewayFrameModelUrl;
   }
 
+  /**
+   *
+    * @type {typeof import("playcanvas")}
+   */
   #pc;
+  /**
+   *
+    * @type {import("playcanvas").Application}
+   */
   #app;
+  /**
+   *
+    * @type {import("playcanvas").Entity}
+   */
   #entity;
+  /**
+   *
+    * @type {number}
+   */
   #cubeSize;
+  /**
+   *
+    * @type {string}
+   */
   #symbol;
+  /**
+   *
+    * @type {string}
+   */
   #modelLibrary;
+  /**
+   *
+    * @type {Array<import("playcanvas").Material>}
+   */
   #materials = [];
+  /**
+   *
+    * @type {Array<import("playcanvas").Mesh>}
+   */
   #meshes = [];
+  /**
+   *
+    * @type {Array<import("playcanvas").Texture>}
+   */
   #textures = [];
+  /**
+   *
+    * @type {ShaderMaterial}
+   */
   #portalMaterial = null;
+  /**
+   *
+    * @type {import("playcanvas").StandardMaterial}
+   */
   #bannerMaterial = null;
+  /**
+   *
+    * @type {import("playcanvas").Mesh}
+   */
   #bannerMesh = null;
+  /**
+   *
+    * @type {Float32Array}
+   */
   #bannerPositions = null;
+  /**
+   *
+    * @type {Float32Array}
+   */
   #bannerVertexUv = null;
+  /**
+   *
+    * @type {Uint16Array|Uint32Array}
+   */
   #bannerIndices = null;
+  /**
+   *
+    * @type {{update: (deltaTime: number) => void, destroy: () => void}}
+   */
   #bannerCloth = null;
+  /**
+   *
+    * @type {Array<AmmoClothPhysics>}
+   */
   #bannerPhysics = null;
+  /**
+   *
+    * @type {import("src/game/objects/ObjectTypes.js").InteractionLike|null}
+   */
   #bannerInteraction = null;
+  /**
+   *
+    * @type {import("playcanvas").EventHandle|null}
+   */
   #updateHandle = null;
+  /**
+   *
+    * @type {number}
+   */
   #elapsed = 0;
+  /**
+   *
+    * @type {typeof import("playcanvas")}
+   */
   #inverseWorldTransform = null;
+  /**
+   *
+    * @type {number}
+   */
   #collisionWorldPoint = null;
+  /**
+   *
+    * @type {number}
+   */
   #collisionLocalPoint = null;
+  /**
+   *
+    * @type {number}
+   */
   #repulsionFromLocalPoint = null;
+  /**
+   *
+    * @type {number}
+   */
   #repulsionDirection = null;
 
+  /**
+   *
+   * @param {{pc: typeof import("playcanvas"), app: import("playcanvas").Application, color: import("playcanvas").Color|number, cubeSize: number, surfaceLift: number, symbol: string, modelLibrary: string}} options
+   * @param {typeof import("playcanvas")} options.pc
+   * @param {import("playcanvas").Application} options.app
+   * @param {import("playcanvas").Color|number} options.color
+   * @param {number} options.cubeSize
+   * @param {number} options.surfaceLift
+   * @param {string} options.symbol
+   * @param {string} options.modelLibrary
+   */
   constructor({
     pc,
     app,
@@ -61,23 +176,39 @@ export class Gateway {
     symbol = "✧",
     modelLibrary,
   }) {
+
     this.#pc = pc;
+
     this.#app = app;
+
     this.#cubeSize = cubeSize;
+
     this.#symbol = symbol;
+
     this.#modelLibrary = modelLibrary;
+
     this.#entity = new pc.Entity("Voxel gateway");
+
     this.#bannerPhysics = new AmmoClothPhysics({ pc });
+
     this.#collisionWorldPoint = new pc.Vec3();
+
     this.#collisionLocalPoint = new pc.Vec3();
+
     this.#repulsionFromLocalPoint = new pc.Vec3();
+
     this.#repulsionDirection = new pc.Vec3();
 
     this.#createFrame(surfaceLift);
     this.#createPortal();
     this.setColor(color);
 
-    this.#updateHandle = app.on("update", (deltaTime) => {
+
+    this.#updateHandle = app.on("update", /**
+     *
+     * @param {number} deltaTime
+     */
+    (deltaTime) => {
       this.#elapsed += deltaTime;
       this.#portalMaterial?.setParameter("uTime", this.#elapsed);
       this.#animateBanner(deltaTime);
@@ -88,6 +219,12 @@ export class Gateway {
     return this.#entity;
   }
 
+  /**
+   *
+   * @param {number} x
+   * @param {number} z
+   * @param {number} radius
+   */
   intersectsGroundFootprint(x, z, radius = 0) {
     if (!this.#entity) {
       return false;
@@ -109,6 +246,14 @@ export class Gateway {
     );
   }
 
+  /**
+   *
+   * @param {number} fromX
+   * @param {number} fromZ
+   * @param {number} toX
+   * @param {number} toZ
+   * @param {number} radius
+   */
   repulsionForMovement(fromX, fromZ, toX, toZ, radius = 0) {
     if (!this.#entity) {
       return null;
@@ -159,6 +304,10 @@ export class Gateway {
     };
   }
 
+  /**
+   *
+   * @param {number} value
+   */
   setColor(value) {
     const color = colorFromValue(this.#pc, value, DEFAULT_GATEWAY_COLOR);
     this.#portalMaterial?.setParameter("uColor", [color.r, color.g, color.b]);
@@ -172,20 +321,41 @@ export class Gateway {
     }
   }
 
+  /**
+   *
+   * @param {number} rayStart
+   * @param {number} rayEnd
+   */
   getBannerHit(rayStart, rayEnd) {
     return this.#intersectBannerRay(rayStart, rayEnd, true);
   }
 
+  /**
+   *
+   * @param {number} rayStart
+   * @param {number} rayEnd
+   */
   getPointerHit(rayStart, rayEnd) {
     const hit = this.getBannerHit(rayStart, rayEnd);
     return hit ? { ...hit, pointerTarget: this } : null;
   }
 
+  /**
+   *
+   * @param {{hit: {point: import("playcanvas").Vec3, entity?: import("playcanvas").Entity}}} options
+   * @param {{point: import("playcanvas").Vec3, entity?: import("playcanvas").Entity}} options.hit
+   */
   handlePointerDown({ hit }) {
     this.beginWindGesture(hit);
     return { capturePointer: true };
   }
 
+  /**
+   *
+   * @param {{ray: number, deltaTime: number}} options
+   * @param {number} options.ray
+   * @param {number} options.deltaTime
+   */
   handlePointerMove({ ray, deltaTime }) {
     this.applyMouseWind(ray.start, ray.end, deltaTime);
     return true;
@@ -200,10 +370,20 @@ export class Gateway {
     this.endWindGesture();
   }
 
+  /**
+   *
+   * @param {{point: import("playcanvas").Vec3, entity?: import("playcanvas").Entity}} hit
+   */
   beginWindGesture(hit) {
     this.#bannerPhysics.beginPointer(this.#bannerCloth, hit?.point ?? hit);
   }
 
+  /**
+   *
+   * @param {number} rayStart
+   * @param {number} rayEnd
+   * @param {number} deltaTime
+   */
   applyMouseWind(rayStart, rayEnd, deltaTime) {
     const hit = this.#intersectBannerRay(rayStart, rayEnd, false);
     if (!hit) {
@@ -249,6 +429,10 @@ export class Gateway {
     this.#repulsionDirection = null;
   }
 
+  /**
+   *
+   * @param {number} surfaceLift
+   */
   #createFrame(surfaceLift) {
     const frame = this.#modelLibrary.instantiate(Gateway.modelUrl);
     frame.name = "Gateway frame instance";
@@ -257,6 +441,10 @@ export class Gateway {
     this.#createBanner(surfaceLift);
   }
 
+  /**
+   *
+   * @param {number} surfaceLift
+   */
   #createBanner(surfaceLift) {
     const pc = this.#pc;
     const width = this.#cubeSize * 6;
@@ -340,6 +528,11 @@ export class Gateway {
       indices: this.#bannerIndices,
       pinnedIndices: Array.from(
         { length: columnSegments + 1 },
+        /**
+         *
+         * @param {undefined} _
+         * @param {number} index
+         */
         (_, index) => index,
       ),
       vertexUv: this.#bannerVertexUv,
@@ -397,6 +590,12 @@ export class Gateway {
     this.#entity.addChild(banner);
   }
 
+  /**
+   *
+   * @param {number} rayStart
+   * @param {number} rayEnd
+   * @param {boolean} bounded
+   */
   #intersectBannerRay(rayStart, rayEnd, bounded) {
     if (!this.#entity || !this.#bannerInteraction) {
       return null;
@@ -435,6 +634,10 @@ export class Gateway {
     return { distance, point };
   }
 
+  /**
+   *
+   * @param {number} deltaTime
+   */
   #animateBanner(deltaTime) {
     if (
       !this.#bannerMesh ||

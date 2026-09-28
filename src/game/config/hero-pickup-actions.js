@@ -23,6 +23,10 @@ export const HERO_PICKUP_ACTIONS = Object.freeze({
   }),
 });
 
+/**
+ *
+ * @param {string} category
+ */
 export function pickupActionForCategory(category) {
   return HERO_PICKUP_ACTIONS[category] ?? null;
 }

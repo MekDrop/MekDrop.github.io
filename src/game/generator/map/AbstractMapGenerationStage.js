@@ -8,6 +8,7 @@ export class AbstractMapGenerationStage {
   /**
    * @abstract
    * Reads and writes the documented artifacts on the generation context.
+   * @param {import("./GenerationContext.js").GenerationContext} context
    */
   async run(context) {
     void context;

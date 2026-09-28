@@ -1,23 +1,66 @@
 const GRASS_HEIGHT_TOLERANCE = 0.08;
 
 export class VegetationDirtPatchLayout {
+  /**
+   *
+    * @type {number}
+   */
   #x;
+  /**
+   *
+    * @type {number}
+   */
   #y;
+  /**
+   *
+    * @type {number}
+   */
   #z;
+  /**
+   *
+    * @type {number}
+   */
   #outline;
+  /**
+   *
+    * @type {number}
+   */
   #cosine;
+  /**
+   *
+    * @type {number}
+   */
   #sine;
 
+  /**
+   *
+   * @param {{outline: Array<import("src/game/objects/ObjectTypes.js").Point3>, x: number, y: number, z: number, rotation: number}} options
+   * @param {Array<import("src/game/objects/ObjectTypes.js").Point3>} options.outline
+   * @param {number} options.x
+   * @param {number} options.y
+   * @param {number} options.z
+   * @param {number} options.rotation
+   */
   constructor({ outline, x, y, z, rotation = 0 }) {
     this.#x = x;
     this.#y = y;
     this.#z = z;
-    this.#outline = outline.map((point) => ({ ...point }));
+    this.#outline = outline.map(/**
+     *
+     * @param {{x: number, y: number, z: number}} point
+     */
+    (point) => ({ ...point }));
     const rotationRadians = (rotation * Math.PI) / 180;
     this.#cosine = Math.cos(rotationRadians);
     this.#sine = Math.sin(rotationRadians);
   }
 
+  /**
+   *
+   * @param {number} x
+   * @param {number} z
+   * @param {number} elevation
+   */
   grassWeightAt(x, z, elevation) {
     if (Math.abs(elevation - this.#y) > GRASS_HEIGHT_TOLERANCE) {
       return 0;

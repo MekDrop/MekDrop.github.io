@@ -1,6 +1,12 @@
 import accepts from "accepts";
 import hostnameFromCName from "../../../CNAME?raw";
 
+/**
+ *
+ * @param {import("vue-router").RouteLocationRaw} to
+ * @param {import("vue-router").Router} router
+ * @param {NonNullable<import("@quasar/app-vite").HasSsrParam["ssrContext"]>|null} ssrContext
+ */
 export function getRouteUrl(to, router, ssrContext = null) {
   let url = router.resolve(to).href;
   if (url.startsWith("/")) {
@@ -18,6 +24,12 @@ export function getRouteUrl(to, router, ssrContext = null) {
   return url;
 }
 
+/**
+ *
+ * @param {import("vue-router").RouteLocationRaw} to
+ * @param {NonNullable<import("@quasar/app-vite").HasSsrParam["ssrContext"]>|null} ssrContext
+ * @param {string[]} availableLanguages
+ */
 export function getCurrentLocaleFromRoute(to, ssrContext, availableLanguages) {
   if (to.meta.autoSwitchLanguage && to.params.lang) {
     return to.params.lang;

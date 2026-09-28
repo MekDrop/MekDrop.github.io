@@ -1,5 +1,12 @@
 /**
  * Builds one static compound body directly from generated voxel dimensions.
+ *
+ * @param {{pc: typeof import("playcanvas"), parent: import("playcanvas").Entity, name: string, voxels: Array<{x: number, y: number, z: number, width: number, height: number, depth: number}>, friction?: number}} options
+ * @param {typeof import("playcanvas")} options.pc
+ * @param {import("playcanvas").Entity} options.parent
+ * @param {string} options.name
+ * @param {Array<{x: number, y: number, z: number, width: number, height: number, depth: number}>} options.voxels
+ * @param {number} [options.friction=0]
  */
 export function addGeneratedVoxelPhysics({
   pc,

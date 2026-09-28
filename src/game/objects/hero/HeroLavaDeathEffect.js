@@ -1,10 +1,36 @@
 export class HeroLavaDeathEffect {
+  /**
+   *
+    * @type {typeof import("playcanvas")}
+   */
   #pc;
+  /**
+   *
+    * @type {import("playcanvas").Application}
+   */
   #app;
+  /**
+   *
+    * @type {import("playcanvas").Entity}
+   */
   #entity;
+  /**
+   *
+    * @type {import("playcanvas").Entity|null}
+   */
   #flames;
+  /**
+   *
+    * @type {typeof import("playcanvas")}
+   */
   #flameTexture;
 
+  /**
+   *
+   * @param {{pc: typeof import("playcanvas"), app: import("playcanvas").Application}} options
+   * @param {typeof import("playcanvas")} options.pc
+   * @param {import("playcanvas").Application} options.app
+   */
   constructor({ pc, app }) {
     this.#pc = pc;
     this.#app = app;
@@ -26,6 +52,10 @@ export class HeroLavaDeathEffect {
     this.#flames.particlesystem?.play();
   }
 
+  /**
+   *
+   * @param {number} progress
+   */
   update(progress) {
     this.#flames.enabled = progress < 0.86;
   }
@@ -132,18 +162,30 @@ export class HeroLavaDeathEffect {
     return texture;
   }
 
+  /**
+   *
+   * @param {string} keys
+   */
   #curve(keys) {
     const curve = new this.#pc.Curve(keys);
     curve.type = this.#pc.CURVE_SMOOTHSTEP;
     return curve;
   }
 
+  /**
+   *
+   * @param {...Array<number>} channels
+   */
   #curveSet(...channels) {
     const curves = new this.#pc.CurveSet(channels);
     curves.type = this.#pc.CURVE_SMOOTHSTEP;
     return curves;
   }
 
+  /**
+   *
+   * @param {...Array<number>} channels
+   */
   #stepCurveSet(...channels) {
     const curves = new this.#pc.CurveSet(channels);
     curves.type = this.#pc.CURVE_STEP;

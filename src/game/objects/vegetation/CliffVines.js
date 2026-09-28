@@ -5,11 +5,30 @@ import { createCliffVineLayout } from "./CliffVineLayout.js";
  * Repeated authored vine modules fitted to generated exposed cliff faces.
  */
 export class CliffVines {
+  /**
+   *
+    * @type {Array<string>}
+   */
   static modelUrls = [cliffVineModelUrl];
 
+  /**
+   *
+    * @type {import("playcanvas").Entity}
+   */
   #entity;
+  /**
+   *
+    * @type {import("playcanvas").Entity}
+   */
   #vertexBuffer = null;
 
+  /**
+   *
+   * @param {{pc: typeof import("playcanvas"), mapData: import("src/game/objects/ObjectTypes.js").GameMapData, modelLibrary: string}} options
+   * @param {typeof import("playcanvas")} options.pc
+   * @param {import("src/game/objects/ObjectTypes.js").GameMapData} options.mapData
+   * @param {string} options.modelLibrary
+   */
   constructor({ pc, mapData, modelLibrary }) {
     this.#entity = new pc.Entity("Cliff vines");
     const matrices = [];

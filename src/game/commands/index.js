@@ -3,6 +3,12 @@ import { GetWindSpeedCommand } from "./GetWindSpeedCommand.js";
 import { HelpCommand } from "./HelpCommand.js";
 import { SetWindSpeedCommand } from "./SetWindSpeedCommand.js";
 
+/**
+ *
+ * @param {{target: EventTarget|pc.Entity, logger: Console}} options
+ * @param {EventTarget|pc.Entity} options.target
+ * @param {Console} options.logger
+ */
 export function createGameCommandRegistry({
   target = globalThis,
   logger = console,

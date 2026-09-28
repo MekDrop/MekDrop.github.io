@@ -12,6 +12,11 @@ const ANIMATIONS = Object.freeze({
 export class HeroDodgeActionState extends HeroRuntimeActionState {
   constructor() {
     super(HERO_ACTION.DODGING, {
+      /**
+       *
+       * @param {{payload: import("src/game/objects/ObjectTypes.js").HeroActionPayload}} options
+       * @param {import("src/game/objects/ObjectTypes.js").HeroActionPayload} options.payload
+       */
       animation: ({ payload }) => ANIMATIONS[payload.direction]
         ?? HERO_ANIMATION.DODGE_FORWARD,
       allowedTransitions: [
@@ -20,11 +25,26 @@ export class HeroDodgeActionState extends HeroRuntimeActionState {
       ],
       allowsJump: true,
       requiresGrounded: true,
+      /**
+       *
+       * @param {{payload: import("src/game/objects/ObjectTypes.js").HeroActionPayload}} options
+       * @param {import("src/game/objects/ObjectTypes.js").HeroActionPayload} options.payload
+       */
       movement: ({ payload }) => ({
         x: payload.x * payload.speed,
         z: payload.z * payload.speed,
       }),
+      /**
+       *
+       * @param {{payload: import("src/game/objects/ObjectTypes.js").HeroActionPayload}} options
+       * @param {import("src/game/objects/ObjectTypes.js").HeroActionPayload} options.payload
+       */
       facing: ({ payload }) => payload.facing,
+      /**
+       *
+       * @param {{payload: import("src/game/objects/ObjectTypes.js").HeroActionPayload}} options
+       * @param {import("src/game/objects/ObjectTypes.js").HeroActionPayload} options.payload
+       */
       snapFacing: ({ payload }) =>
         payload.direction === "left" || payload.direction === "right",
       allowsFootPlacement: false,
@@ -32,6 +52,10 @@ export class HeroDodgeActionState extends HeroRuntimeActionState {
     });
   }
 
+  /**
+   *
+   * @param {import("src/game/objects/ObjectTypes.js").HeroActionContext} owner
+   */
   execute(owner) {
     const action = this.payload;
     action.elapsed = Math.min(

@@ -1,10 +1,30 @@
 // Sample one world-space pressure field on both sides of source-cell seams.
 export class RiverSourceProfile {
+  /**
+   *
+    * @type {{x: number, y: number, z: number}}
+   */
   #source;
+  /**
+   *
+    * @type {{x: number, y: number, z: number}}
+   */
   #flow;
+  /**
+   *
+    * @type {import("src/game/objects/ObjectTypes.js").Point3}
+   */
   #outlet;
+  /**
+   *
+    * @type {import("src/game/objects/ObjectTypes.js").Point3}
+   */
   #outgoing;
 
+  /**
+   *
+   * @param {number} cells
+   */
   constructor(cells) {
     this.#source = cells[0];
     this.#outlet = cells[1] ?? cells[0];
@@ -12,6 +32,11 @@ export class RiverSourceProfile {
     this.#outgoing = this.#direction(this.#outlet.direction);
   }
 
+  /**
+   *
+   * @param {number} col
+   * @param {number} row
+   */
   sample(col, row) {
     const distance = Math.max(0,
       (col - this.#source.col) * this.#flow[0] +
@@ -29,11 +54,19 @@ export class RiverSourceProfile {
     ];
   }
 
+  /**
+   *
+   * @param {number} value
+   */
   #smooth(value) {
     const clamped = Math.max(0, Math.min(1, value));
     return clamped * clamped * (3 - 2 * clamped);
   }
 
+  /**
+   *
+   * @param {{x: number, y: number, z: number}} direction
+   */
   #direction(direction) {
     switch (direction) {
       case 'NORTH': return [0, -1];

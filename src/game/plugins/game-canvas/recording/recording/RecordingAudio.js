@@ -4,20 +4,60 @@ import { RecordingAudioUnavailableError } from "../../../../errors/recording/ind
  * Taps PlayCanvas sound instances after their effects without muting playback.
  */
 export class RecordingAudio {
+  /**
+   *
+   * @type {pc.Application}
+   */
   #app;
+  /**
+   *
+   * @type {import("src/game/GameContracts.js").GameCanvasPluginContext}
+   */
   #context;
+  /**
+   *
+   * @type {MediaStreamAudioDestinationNode}
+   */
   #destination;
+  /**
+   *
+   * @type {ConstantSourceNode}
+   */
   #silence;
+  /**
+   *
+   * @type {Map}
+   */
   #connections = new Map();
 
+  /**
+   *
+   * @param {pc.Application} app
+   */
   constructor(app) {
+    /**
+     *
+     * @type {pc.Application}
+     */
     this.#app = app;
+    /**
+     *
+     * @type {import("src/game/GameContracts.js").GameCanvasPluginContext}
+     */
     this.#context = app.soundManager.context;
     if (!this.#context) {
       throw new RecordingAudioUnavailableError();
     }
+    /**
+     *
+     * @type {MediaStreamAudioDestinationNode}
+     */
     this.#destination = this.#context.createMediaStreamDestination();
     // Keep an audio clock even on maps without sounds, including the galleries.
+    /**
+     *
+     * @type {ConstantSourceNode}
+     */
     this.#silence = this.#context.createConstantSource();
     this.#silence.offset.value = 0;
     this.#silence.connect(this.#destination);
@@ -25,6 +65,10 @@ export class RecordingAudio {
     this.sync();
   }
 
+  /**
+   *
+   * @returns {MediaStream}
+   */
   get stream() {
     return this.#destination.stream;
   }
@@ -60,8 +104,19 @@ export class RecordingAudio {
     }
   }
 
+  /**
+   *
+   * @param {pc.Entity|pc.MeshInstance} instance
+   * @param {{node: pc.GraphNode, owned: boolean}} options
+   * @param {pc.GraphNode} options.node
+   * @param {boolean} options.owned
+   */
   #disconnect(instance, { node, owned }) {
-    if (![...this.#connections.values()].some((connection) => connection.node === node)) {
+    if (![...this.#connections.values()].some(/**
+     *
+     * @param {{firstPathIndex: number, secondPathIndex: number, col: number, row: number}} connection
+     */
+    (connection) => connection.node === node)) {
       node.disconnect(this.#destination);
     }
     if (owned && instance.getExternalNodes()[0] === node) {

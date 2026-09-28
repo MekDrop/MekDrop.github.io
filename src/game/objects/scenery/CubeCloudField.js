@@ -53,6 +53,14 @@ const CLOUD_DEPTH_LAYERS = Object.freeze([
   },
 ]);
 
+/**
+ *
+ * @param {Array<{x: number, y: number, z: number, width?: number, height?: number, depth?: number}>} voxels
+ * @param {boolean} occupied
+ * @param {number} x
+ * @param {number} y
+ * @param {number} z
+ */
 function addVoxel(voxels, occupied, x, y, z) {
   const key = `${x}:${y}:${z}`;
   if (occupied.has(key)) {
@@ -62,6 +70,10 @@ function addVoxel(voxels, occupied, x, y, z) {
   voxels.push([x, y, z]);
 }
 
+/**
+ *
+ * @param {string} variant
+ */
 function createCloudVariant(variant) {
   const voxels = [];
   const occupied = new Set();
@@ -108,39 +120,133 @@ function createCloudVariant(variant) {
 }
 
 const CLOUD_VARIANTS = Object.freeze(
-  Array.from({ length: CLOUD_VARIANT_COUNT }, (_, variant) =>
+  Array.from({ length: CLOUD_VARIANT_COUNT }, /**
+   *
+   * @param {undefined} _
+   * @param {number} variant
+   */
+  (_, variant) =>
     createCloudVariant(variant),
   ),
 );
 
 export class CubeCloudField {
+  /**
+   *
+    * @type {typeof import("playcanvas")}
+   */
   #pc;
+  /**
+   *
+    * @type {import("playcanvas").Application}
+   */
   #app;
+  /**
+   *
+    * @type {import("playcanvas").Entity}
+   */
   #camera;
+  /**
+   *
+    * @type {boolean}
+   */
   #canvas;
+  /**
+   *
+    * @type {import("src/game/objects/ObjectTypes.js").GameMapData}
+   */
   #mapData;
+  /**
+   *
+    * @type {number}
+   */
   #layerId;
+  /**
+   *
+    * @type {import("playcanvas").Entity}
+   */
   #entity;
+  /**
+   *
+    * @type {import("playcanvas").Mesh}
+   */
   #mesh;
+  /**
+   *
+    * @type {Array<import("playcanvas").Material>}
+   */
   #materials = [];
+  /**
+   *
+    * @type {Array<{entity: import("playcanvas").Entity, baseRadius: number}>}
+   */
   #clusters = [];
+  /**
+   *
+    * @type {Array<import("playcanvas").VertexBuffer>}
+   */
   #vertexBuffers = [];
+  /**
+   *
+    * @type {number}
+   */
   #elapsed = 0;
+  /**
+   *
+    * @type {typeof import("playcanvas")}
+   */
   #windSpeed = AMBIENT_WIND_BASE_SPEED;
+  /**
+   *
+    * @type {{x: number, y: number, z: number}}
+   */
   #windDirection = { ...AMBIENT_WIND_DIRECTION };
+  /**
+   *
+    * @type {{x: number, y: number, z: number}}
+   */
   #viewRotation = null;
+  /**
+   *
+    * @type {{position: Point3, forward: Point3}}
+   */
   #cameraState = { panX: 0, panZ: 0, zoom: 1 };
+  /**
+   *
+    * @type {{x: number, y: number, z: number}}
+   */
   #floatingOffset = { x: 0, y: 0, z: 0 };
+  /**
+   *
+    * @type {number}
+   */
   #seed;
 
+  /**
+   *
+   * @param {{pc: typeof import("playcanvas"), app: import("playcanvas").Application, camera: import("playcanvas").Entity, mapData: import("src/game/objects/ObjectTypes.js").GameMapData, layerId: number}} options
+   * @param {typeof import("playcanvas")} options.pc
+   * @param {import("playcanvas").Application} options.app
+   * @param {import("playcanvas").Entity} options.camera
+   * @param {import("src/game/objects/ObjectTypes.js").GameMapData} options.mapData
+   * @param {number} options.layerId
+   */
   constructor({ pc, app, camera, mapData, layerId }) {
+
     this.#pc = pc;
+
     this.#app = app;
+
     this.#camera = camera;
+
     this.#canvas = app.graphicsDevice.canvas;
+
     this.#mapData = mapData;
+
     this.#layerId = layerId;
+
     this.#seed = this.#hashString(mapData.layoutSignature ?? "cube-clouds");
+
     this.#entity = new pc.Entity("Shader cube cloud field");
 
     this.#createResources();
@@ -156,6 +262,10 @@ export class CubeCloudField {
     return this.#windSpeed;
   }
 
+  /**
+   *
+    * @returns {{direction: import("src/game/objects/ObjectTypes.js").Point3, speed: number}}
+   */
   get wind() {
     return {
       direction: { ...this.#windDirection },
@@ -163,6 +273,10 @@ export class CubeCloudField {
     };
   }
 
+  /**
+   *
+   * @param {number} deltaTime
+   */
   update(deltaTime) {
     const frameTime = Math.min(deltaTime, 0.1);
     this.#elapsed += frameTime;
@@ -198,6 +312,14 @@ export class CubeCloudField {
     }
   }
 
+  /**
+   *
+   * @param {{rotation: number, panX: number, panZ: number, zoom: number}} options
+   * @param {number} options.rotation
+   * @param {number} options.panX
+   * @param {number} options.panZ
+   * @param {number} options.zoom
+   */
   setCameraState({ rotation, panX, panZ, zoom }) {
     this.#cameraState = { panX, panZ, zoom };
     this.#setViewRotation(rotation);
@@ -213,6 +335,10 @@ export class CubeCloudField {
     for (const cluster of this.#clusters) this.#positionCluster(cluster);
   }
 
+  /**
+   *
+   * @param {number} rotation
+   */
   #setViewRotation(rotation) {
     if (rotation === this.#viewRotation && this.#clusters.length) {
       return;
@@ -248,7 +374,11 @@ export class CubeCloudField {
     );
     this.#mesh.incRefCount();
 
-    this.#materials = CLOUD_DEPTH_LAYERS.map((layer) => {
+    this.#materials = CLOUD_DEPTH_LAYERS.map(/**
+     *
+     * @param {import("playcanvas").Layer} layer
+     */
+    (layer) => {
       const material = new pc.ShaderMaterial({
         uniqueName: `shader-cube-clouds-${layer.name}`,
         vertexGLSL: cloudVertexShader,
@@ -293,7 +423,12 @@ export class CubeCloudField {
       seedSalt: 211,
     });
 
-    Array.from({ length: CLOUD_COUNT }, (_, cloudIndex) => {
+    Array.from({ length: CLOUD_COUNT }, /**
+     *
+     * @param {undefined} _
+     * @param {number} cloudIndex
+     */
+    (_, cloudIndex) => {
       const depthLayerIndex = cloudIndex % CLOUD_DEPTH_LAYERS.length;
       const depthLayer = CLOUD_DEPTH_LAYERS[depthLayerIndex];
       const isFarCloud = depthLayerIndex === 0;
@@ -374,7 +509,14 @@ export class CubeCloudField {
         z: initialPosition.z,
         baseScale: scale,
         baseRadius:
-          (Math.max(...variant.map(([x, y, z]) => Math.hypot(x, y, z))) *
+          (Math.max(...variant.map(/**
+           *
+           * @param {Array<number>} options
+           * @param {number} options."0"
+           * @param {number} options."1"
+           * @param {number} options."2"
+           */
+          ([x, y, z]) => Math.hypot(x, y, z))) *
             CUBE_STEP +
             (CUBE_SIZE * Math.sqrt(3)) / 2) *
           scale,
@@ -390,6 +532,10 @@ export class CubeCloudField {
     });
   }
 
+  /**
+   *
+   * @param {number} cluster
+   */
   #positionCluster(cluster) {
     const depthLayer = CLOUD_DEPTH_LAYERS[cluster.depthLayerIndex];
     const { panX, panZ, zoom } = this.#cameraState;
@@ -409,6 +555,12 @@ export class CubeCloudField {
     );
   }
 
+  /**
+   *
+   * @param {number} cluster
+   * @param {number} x
+   * @param {number} z
+   */
   #isSafelyOffscreen(cluster, x, z) {
     const position = this.#clusterPosition(cluster, x, z);
     const screenPosition = this.#camera.worldToScreen(position);
@@ -431,6 +583,12 @@ export class CubeCloudField {
     );
   }
 
+  /**
+   *
+   * @param {number} cluster
+   * @param {number} x
+   * @param {number} z
+   */
   #clusterPosition(cluster, x, z) {
     const depthLayer = CLOUD_DEPTH_LAYERS[cluster.depthLayerIndex];
     const { panX, panZ } = this.#cameraState;
@@ -441,6 +599,14 @@ export class CubeCloudField {
     );
   }
 
+  /**
+   *
+   * @param {{fieldMinimum: number, fieldSpan: number, count: number, seedSalt: number}} options
+   * @param {number} options.fieldMinimum
+   * @param {number} options.fieldSpan
+   * @param {number} options.count
+   * @param {number} options.seedSalt
+   */
   #createInitialPositions({
     fieldMinimum,
     fieldSpan,
@@ -467,7 +633,12 @@ export class CubeCloudField {
           x: fieldMinimum + xFraction * fieldSpan,
           z: fieldMinimum + zFraction * fieldSpan,
         };
-        const nearestDistance = positions.reduce((nearest, position) => {
+        const nearestDistance = positions.reduce(/**
+         *
+         * @param {number} nearest
+         * @param {{x: number, y: number, z: number}} position
+         */
+        (nearest, position) => {
           const directXDistance = Math.abs(
             candidate.xFraction - position.xFraction,
           );
@@ -499,14 +670,30 @@ export class CubeCloudField {
     return positions;
   }
 
+  /**
+   *
+   * @param {number} value
+   * @param {number} minimum
+   * @param {number} span
+   */
   #wrapFieldPosition(value, minimum, span) {
     return minimum + ((((value - minimum) % span) + span) % span);
   }
 
+  /**
+   *
+   * @param {number} index
+   * @param {number} salt
+   */
   #unitHash(index, salt) {
     return this.#hash(index, salt) / 0xffffffff;
   }
 
+  /**
+   *
+   * @param {number} index
+   * @param {number} salt
+   */
   #hash(index, salt) {
     let value = this.#seed ^ salt;
     value = Math.imul(value ^ (index + 101), 2246822519);
@@ -514,6 +701,10 @@ export class CubeCloudField {
     return value >>> 0;
   }
 
+  /**
+   *
+   * @param {number} value
+   */
   #hashString(value) {
     let hash = 2166136261;
     for (let index = 0; index < value.length; index += 1) {

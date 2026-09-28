@@ -2,6 +2,26 @@ import { InventoryItemProjector } from "./InventoryItemProjector.js";
 import { gameUiTheme } from "./GameUiTheme.js";
 import fullInventoryEffectModelUrl from "../models/ui/full-inventory-effect.glb?url";
 
+/**
+ * @typedef {{id: string, variant: string, category: number, labelKey: string, icon: string, modelUrl: string, slot: number}} InventoryItem
+ */
+
+/**
+ * @typedef {{capacity: number, items: InventoryItem[]}} InventoryState
+ */
+
+/**
+ * @typedef {{canvas: HTMLCanvasElement, context: CanvasRenderingContext2D, texture: import("playcanvas").Texture}} TextureRecord
+ */
+
+/**
+ * @typedef {{entity: import("playcanvas").Entity, ownedTexture: import("playcanvas").Texture|null}} ItemVisual
+ */
+
+/**
+ * @typedef {{bounds: DOMRect, scale: number}} CanvasMetrics
+ */
+
 const REFERENCE_WIDTH = 1280;
 const REFERENCE_HEIGHT = 720;
 const PANEL_WIDTH = 430;
@@ -22,42 +42,149 @@ const FULL_INDICATOR_DURATION = 1.3;
 const FULL_INDICATOR_SCALE = 0.4;
 
 export class InventoryHud {
+  /**
+   * @type {typeof import("playcanvas")|null}
+   */
   #pc;
+  /**
+   * @type {import("playcanvas").Application|null}
+   */
   #app;
+  /**
+   * @type {((key: string) => string)|null}
+   */
   #translate;
+  /**
+   * @type {((sourceSlot: number, targetSlot: number) => boolean)|null}
+   */
   #onMoveItem;
+  /**
+   * @type {((sourceSlot: number, dropX: number, dropY: number, clientX: number, clientY: number) => boolean)|null}
+   */
   #onDropItem;
+  /**
+   * @type {import("playcanvas").Entity|null}
+   */
   #entity;
+  /**
+   * @type {import("playcanvas").Entity|null}
+   */
   #modalRoot;
+  /**
+   * @type {import("playcanvas").Entity|null}
+   */
   #panel;
+  /**
+   * @type {import("playcanvas").Texture|null}
+   */
   #panelTexture;
+  /**
+   * @type {InventoryItemProjector|null}
+   */
   #itemProjector;
+  /**
+   * @type {import("playcanvas").Entity[]}
+   */
   #itemProjectionEntities = [];
+  /**
+   * @type {import("playcanvas").Entity|null}
+   */
   #tooltip;
+  /**
+   * @type {TextureRecord|null}
+   */
   #tooltipTexture;
+  /**
+   * @type {TextureRecord|null}
+   */
   #closeTexture;
+  /**
+   * @type {import("playcanvas").Entity|null}
+   */
   #closeButton;
+  /**
+   * @type {import("playcanvas").Entity|null}
+   */
   #fullIndicator;
+  /**
+   * @type {import("playcanvas").Entity|null}
+   */
   #fullIndicatorFx;
+  /**
+   * @type {import("playcanvas").Entity|null}
+   */
   #fullIndicatorOutline;
+  /**
+   * @type {import("playcanvas").Entity|null}
+   */
   #fullIndicatorModel;
+  /**
+   * @type {TextureRecord|null}
+   */
   #fullIndicatorTexture;
+  /**
+   * @type {number|null}
+   */
   #fullReactionElapsed = null;
+  /**
+   * @type {{x: number, y: number}}
+   */
   #fullReactionAnchor = { x: 0, y: 0 };
+  /**
+   * @type {boolean}
+   */
   #closeHovered = false;
+  /**
+   * @type {boolean}
+   */
   #closePressed = false;
+  /**
+   * @type {boolean}
+   */
   #closeArmed = false;
+  /**
+   * @type {number|null}
+   */
   #hoveredItemSlot = null;
+  /**
+   * @type {number|null}
+   */
   #draggedItemSlot = null;
+  /**
+   * @type {number|null}
+   */
   #dragHoveredSlot = null;
+  /**
+   * @type {ItemVisual|null}
+   */
   #dragVisual = null;
+  /**
+   * @type {{x: number, y: number}|null}
+   */
   #dragStartClient = null;
+  /**
+   * @type {InventoryState}
+   */
   #state = { capacity: SLOT_COLUMNS * SLOT_ROWS, items: [] };
 
+  /**
+   *
+   * @param {{pc: typeof import("playcanvas"), app: import("playcanvas").Application, modelLibrary: import("../models/GameModelLibrary.js").GameModelLibrary, translate?: (key: string) => string, onMoveItem?: ((sourceSlot: number, targetSlot: number) => boolean)|null, onDropItem?: ((sourceSlot: number, dropX: number, dropY: number, clientX: number, clientY: number) => boolean)|null}} options
+   * @param {typeof import("playcanvas")} options.pc
+   * @param {import("playcanvas").Application} options.app
+   * @param {import("../models/GameModelLibrary.js").GameModelLibrary} options.modelLibrary
+   * @param {(key: string) => string} options.translate
+   * @param {((sourceSlot: number, targetSlot: number) => boolean)|null} options.onMoveItem
+   * @param {((sourceSlot: number, dropX: number, dropY: number, clientX: number, clientY: number) => boolean)|null} options.onDropItem
+   */
   constructor({
     pc,
     app,
     modelLibrary,
+    /**
+     *
+     * @param {string} key
+     */
     translate = (key) => key,
     onMoveItem = null,
     onDropItem = null,
@@ -83,14 +210,23 @@ export class InventoryHud {
     this.#build();
   }
 
+  /**
+   * @returns {string}
+   */
   static get modelUrl() {
     return fullInventoryEffectModelUrl;
   }
 
+  /**
+   * @returns {boolean}
+   */
   get visible() {
     return Boolean(this.#modalRoot?.enabled);
   }
 
+  /**
+   * @returns {boolean}
+   */
   get fullReactionVisible() {
     return Boolean(this.#fullIndicator?.enabled);
   }
@@ -108,6 +244,10 @@ export class InventoryHud {
     }
   }
 
+  /**
+   *
+   * @param {import("playcanvas").Entity} parent
+   */
   attach(parent = this.#app.root) {
     if (!this.#entity || this.#entity.parent === parent) {
       return;
@@ -120,6 +260,11 @@ export class InventoryHud {
     return this.visible;
   }
 
+  /**
+   *
+   * @param {number} clientX
+   * @param {number} clientY
+   */
   closeButtonContains(clientX, clientY) {
     const canvas = this.#app.graphicsDevice.canvas;
     const bounds = canvas.getBoundingClientRect();
@@ -142,6 +287,11 @@ export class InventoryHud {
     );
   }
 
+  /**
+   *
+   * @param {number} clientX
+   * @param {number} clientY
+   */
   pointerDown(clientX, clientY) {
     const closeHovered = this.closeButtonContains(clientX, clientY);
     this.#closeArmed = closeHovered;
@@ -158,6 +308,11 @@ export class InventoryHud {
     return true;
   }
 
+  /**
+   *
+   * @param {number} clientX
+   * @param {number} clientY
+   */
   pointerMove(clientX, clientY) {
     if (this.#draggedItemSlot !== null) {
       this.#dragHoveredSlot = this.#slotIndexAt(clientX, clientY);
@@ -178,6 +333,11 @@ export class InventoryHud {
     return hovered || this.#hoveredItemSlot !== null;
   }
 
+  /**
+   *
+   * @param {number} clientX
+   * @param {number} clientY
+   */
   pointerUp(clientX, clientY) {
     if (this.#draggedItemSlot !== null) {
       this.#finishItemDrag(clientX, clientY);
@@ -207,11 +367,19 @@ export class InventoryHud {
     this.#setCloseButtonState(false, false);
   }
 
+  /**
+   *
+   * @param {InventoryState} state
+   */
   setInventory(state) {
     const occupiedSlots = new Set();
     this.#state = {
       capacity: state.capacity,
-      items: state.items.map((item) => {
+      items: state.items.map(/**
+       *
+       * @param {InventoryItem} item
+       */
+      (item) => {
         let slot = item.slot;
         if (
           !Number.isInteger(slot) ||
@@ -238,6 +406,10 @@ export class InventoryHud {
     this.#drawPanel();
   }
 
+  /**
+   *
+   * @param {{x: number, y: number}|null} screenPosition
+   */
   showFullReaction(screenPosition = null) {
     if (!this.#fullIndicator || this.#state.items.length < this.#state.capacity) {
       return false;
@@ -267,6 +439,11 @@ export class InventoryHud {
     return true;
   }
 
+  /**
+   *
+   * @param {number} deltaTime
+   * @param {{x: number, y: number}|null} screenPosition
+   */
   update(deltaTime, screenPosition = null) {
     if (this.#fullReactionElapsed === null || !this.#fullIndicator) {
       return;
@@ -429,6 +606,10 @@ export class InventoryHud {
     this.#drawFullIndicator();
   }
 
+  /**
+   *
+   * @param {number} progress
+   */
   #drawFullIndicator(progress = 0) {
     const { canvas, context, texture } = this.#fullIndicatorTexture;
     context.clearRect(0, 0, canvas.width, canvas.height);
@@ -569,6 +750,10 @@ export class InventoryHud {
     this.#panel.addChild(this.#tooltip);
   }
 
+  /**
+   *
+   * @param {import("playcanvas").Entity} panel
+   */
   #createCloseButton(panel) {
     const canvas = document.createElement("canvas");
     canvas.width = CLOSE_BUTTON_SIZE * PANEL_TEXTURE_SCALE;
@@ -594,6 +779,11 @@ export class InventoryHud {
     this.#drawCloseButton();
   }
 
+  /**
+   *
+   * @param {boolean} hovered
+   * @param {boolean} pressed
+   */
   #setCloseButtonState(hovered, pressed) {
     const nextHovered = Boolean(hovered);
     const nextPressed = Boolean(pressed);
@@ -667,6 +857,10 @@ export class InventoryHud {
     this.#closeButton.setLocalScale(1, 1, 1);
   }
 
+  /**
+   *
+   * @param {string} cursor
+   */
   #setCursor(cursor) {
     const canvas = this.#app?.graphicsDevice?.canvas;
     if (canvas) {
@@ -705,6 +899,10 @@ export class InventoryHud {
     texture.setSource(canvas);
   }
 
+  /**
+   *
+   * @param {CanvasRenderingContext2D} context
+   */
   #drawPanelBackground(context) {
     context.shadowColor = gameUiTheme.withAlpha(gameUiTheme.shadow, 0.58);
     context.shadowBlur = 18;
@@ -744,6 +942,10 @@ export class InventoryHud {
     context.stroke();
   }
 
+  /**
+   *
+   * @param {CanvasRenderingContext2D} context
+   */
   #drawHeader(context) {
     context.textAlign = "left";
     context.textBaseline = "alphabetic";
@@ -776,6 +978,10 @@ export class InventoryHud {
     context.stroke();
   }
 
+  /**
+   *
+   * @param {CanvasRenderingContext2D} context
+   */
   #drawSlots(context) {
     const left =
       (PANEL_WIDTH -
@@ -792,6 +998,14 @@ export class InventoryHud {
     }
   }
 
+  /**
+   *
+   * @param {CanvasRenderingContext2D} context
+   * @param {number} x
+   * @param {number} y
+   * @param {InventoryItem|null} item
+   * @param {number} slot
+   */
   #drawSlot(context, x, y, item, slot) {
     const isDragSource = slot === this.#draggedItemSlot;
     const isHoveredDropSlot = slot === this.#dragHoveredSlot;
@@ -940,6 +1154,12 @@ export class InventoryHud {
     this.#tooltip.enabled = true;
   }
 
+  /**
+   *
+   * @param {number} clientX
+   * @param {number} clientY
+   * @param {boolean} occupiedOnly
+   */
   #slotIndexAt(clientX, clientY, occupiedOnly = false) {
     if (!this.visible || !this.#panelTexture) {
       return null;
@@ -964,6 +1184,10 @@ export class InventoryHud {
     return null;
   }
 
+  /**
+   *
+   * @param {number} slot
+   */
   #setHoveredItem(slot) {
     if (slot === this.#hoveredItemSlot) {
       return;
@@ -985,6 +1209,12 @@ export class InventoryHud {
     }
   }
 
+  /**
+   *
+   * @param {number} slot
+   * @param {number} clientX
+   * @param {number} clientY
+   */
   #beginItemDrag(slot, clientX, clientY) {
     const item = this.#itemAtSlot(slot);
     if (!item) {
@@ -1003,6 +1233,11 @@ export class InventoryHud {
     this.#updateCursor();
   }
 
+  /**
+   *
+   * @param {number} clientX
+   * @param {number} clientY
+   */
   #finishItemDrag(clientX, clientY) {
     const sourceSlot = this.#draggedItemSlot;
     const targetSlot = this.#slotIndexAt(clientX, clientY);
@@ -1057,6 +1292,11 @@ export class InventoryHud {
     this.#updateCursor();
   }
 
+  /**
+   *
+   * @param {InventoryItem} item
+   * @param {string} name
+   */
   #createItemVisual(item, name) {
     let texture = this.#itemProjector.textureFor(item.modelUrl);
     let ownedTexture = null;
@@ -1093,6 +1333,12 @@ export class InventoryHud {
     return { entity, ownedTexture };
   }
 
+  /**
+   *
+   * @param {ItemVisual|null} visual
+   * @param {number} clientX
+   * @param {number} clientY
+   */
   #positionItemVisual(visual, clientX, clientY) {
     if (!visual) {
       return;
@@ -1105,6 +1351,10 @@ export class InventoryHud {
     );
   }
 
+  /**
+   *
+   * @param {ItemVisual|null} visual
+   */
   #destroyItemVisual(visual) {
     if (!visual) {
       return;
@@ -1113,11 +1363,20 @@ export class InventoryHud {
     visual.ownedTexture?.destroy();
   }
 
+  /**
+   *
+   * @param {number} clientX
+   * @param {number} clientY
+   */
   #dialogContains(clientX, clientY) {
     const { x, y } = this.#clientToPanel(clientX, clientY);
     return x >= 0 && x <= PANEL_WIDTH && y >= 0 && y <= PANEL_HEIGHT;
   }
 
+  /**
+   *
+   * @param {number} clientX
+   */
   #dialogBottomDropPoint(clientX) {
     const { clientY } = this.#panelToClient(
       PANEL_WIDTH / 2,
@@ -1126,6 +1385,11 @@ export class InventoryHud {
     return { clientX, clientY };
   }
 
+  /**
+   *
+   * @param {number} clientX
+   * @param {number} clientY
+   */
   #clientToPanel(clientX, clientY) {
     const { bounds, scale } = this.#canvasMetrics;
     return {
@@ -1138,6 +1402,11 @@ export class InventoryHud {
     };
   }
 
+  /**
+   *
+   * @param {number} x
+   * @param {number} y
+   */
   #panelToClient(x, y) {
     const { bounds, scale } = this.#canvasMetrics;
     return {
@@ -1146,6 +1415,9 @@ export class InventoryHud {
     };
   }
 
+  /**
+   * @returns {CanvasMetrics}
+   */
   get #canvasMetrics() {
     const canvas = this.#app.graphicsDevice.canvas;
     const bounds = canvas.getBoundingClientRect();
@@ -1158,13 +1430,24 @@ export class InventoryHud {
     };
   }
 
+  /**
+   *
+   * @param {number} slot
+   */
   #itemAtSlot(slot) {
     if (!Number.isInteger(slot)) {
       return null;
     }
-    return this.#state.items.find((item) => item.slot === slot) ?? null;
+    return this.#state.items.find(/**
+     *
+     * @param {InventoryItem} item
+     */
+    (item) => item.slot === slot) ?? null;
   }
 
+  /**
+   * @returns {number}
+   */
   get #slotLeft() {
     return (
       (PANEL_WIDTH -
@@ -1174,6 +1457,12 @@ export class InventoryHud {
     );
   }
 
+  /**
+   *
+   * @param {CanvasRenderingContext2D} context
+   * @param {number} value
+   * @param {number} maximumWidth
+   */
   #fitText(context, value, maximumWidth) {
     const text = String(value);
     if (context.measureText(text).width <= maximumWidth) {
@@ -1189,6 +1478,11 @@ export class InventoryHud {
     return fitted + "…";
   }
 
+  /**
+   *
+   * @param {string} name
+   * @param {HTMLCanvasElement} canvas
+   */
   #createTexture(name, canvas) {
     const texture = new this.#pc.Texture(this.#app.graphicsDevice, {
       width: canvas.width,
@@ -1206,6 +1500,10 @@ export class InventoryHud {
     return texture;
   }
 
+  /**
+   *
+   * @param {{x: number, y: number}|null} screenPosition
+   */
   #updateFullReactionAnchor(screenPosition) {
     if (!screenPosition) {
       return;
@@ -1218,11 +1516,24 @@ export class InventoryHud {
     };
   }
 
+  /**
+   *
+   * @param {number} value
+   */
   #smoothstep(value) {
     const clamped = Math.max(0, Math.min(1, value));
     return clamped * clamped * (3 - 2 * clamped);
   }
 
+  /**
+   *
+   * @param {CanvasRenderingContext2D} context
+   * @param {number} x
+   * @param {number} y
+   * @param {number} width
+   * @param {number} height
+   * @param {number} radius
+   */
   #roundedRect(context, x, y, width, height, radius) {
     context.beginPath();
     context.moveTo(x + radius, y);

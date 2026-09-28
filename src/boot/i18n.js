@@ -4,7 +4,14 @@ import messages from "src/i18n";
 import { getCurrentLocaleFromRoute } from "src/assets/helpers/route";
 import { updateQuasarLanguage } from "assets/helpers/i18n";
 
-export default boot(async ({ app, router, ssrContext }) => {
+export default boot(/**
+ *
+ * @param {{app: import("vue").App, router: import("vue-router").Router, ssrContext?: NonNullable<import("@quasar/app-vite").HasSsrParam["ssrContext"]>|null}} options
+ * @param {import("vue").App} options.app
+ * @param {import("vue-router").Router} options.router
+ * @param {NonNullable<import("@quasar/app-vite").HasSsrParam["ssrContext"]>|null} options.ssrContext
+ */
+async ({ app, router, ssrContext }) => {
   const availableLanguages = Object.keys(messages);
   const locale = getCurrentLocaleFromRoute(
     router.currentRoute.value,
@@ -23,7 +30,11 @@ export default boot(async ({ app, router, ssrContext }) => {
 
   await updateQuasarLanguage(locale, availableLanguages, ssrContext);
 
-  router.beforeEach((to) => {
+  router.beforeEach(/**
+   *
+   * @param {import("vue-router").RouteLocationNormalized} to
+   */
+  (to) => {
     i18n.global.locale.value = getCurrentLocaleFromRoute(
       to,
       ssrContext,

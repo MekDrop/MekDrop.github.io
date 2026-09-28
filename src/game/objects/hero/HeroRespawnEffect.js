@@ -8,15 +8,59 @@ const SOLID_FADE_START = 0.12;
 const SOLID_FADE_END = 0.82;
 
 export class HeroRespawnEffect {
+  /**
+   *
+    * @type {typeof import("playcanvas")}
+   */
   #pc;
+  /**
+   *
+    * @type {import("playcanvas").Entity}
+   */
   #modelRoot;
+  /**
+   *
+    * @type {import("playcanvas").Entity}
+   */
   #outlineRoot;
+  /**
+   *
+    * @type {number}
+   */
   #contourMaterial;
+  /**
+   *
+    * @type {Array<{meshInstance: import("playcanvas").MeshInstance, fadeMaterial: import("playcanvas").Material}>}
+   */
   #solidMeshes = [];
+  /**
+   *
+    * @type {Map}
+   */
   #fadeMaterials = new Map();
+  /**
+   *
+    * @type {string}
+   */
   #modelScale;
+  /**
+   *
+    * @type {typeof import("playcanvas")}
+   */
   #startHeight;
 
+  /**
+   *
+   * @param {{pc: typeof import("playcanvas"), parent: import("playcanvas").Entity, modelRoot: import("playcanvas").Entity, modelLibrary: string, modelUrl: string, modelScale: string, startHeight: number, respawnAnimation: number}} options
+   * @param {typeof import("playcanvas")} options.pc
+   * @param {import("playcanvas").Entity} options.parent
+   * @param {import("playcanvas").Entity} options.modelRoot
+   * @param {string} options.modelLibrary
+   * @param {string} options.modelUrl
+   * @param {string} options.modelScale
+   * @param {number} options.startHeight
+   * @param {number} options.respawnAnimation
+   */
   constructor({
     pc,
     parent,
@@ -27,11 +71,16 @@ export class HeroRespawnEffect {
     startHeight,
     respawnAnimation,
   }) {
+
     this.#pc = pc;
+
     this.#modelRoot = modelRoot;
+
     this.#modelScale = modelScale;
+
     this.#startHeight = startHeight;
     this.#collectSolidMeshes();
+
 
     this.#contourMaterial = new pc.ShaderMaterial({
       uniqueName: "hero-respawn-contour",
@@ -51,6 +100,7 @@ export class HeroRespawnEffect {
     this.#contourMaterial.setParameter("uHeroHeight", RECONSTRUCTION_HEIGHT);
     this.#contourMaterial.update();
 
+
     this.#outlineRoot = modelLibrary.instantiate(modelUrl);
     this.#outlineRoot.name = "Hero respawn contour";
     this.#configureOutlineMeshes();
@@ -65,6 +115,11 @@ export class HeroRespawnEffect {
     parent.addChild(this.#outlineRoot);
   }
 
+  /**
+   *
+   * @param {number} facingYaw
+   * @param {number} baseHeight
+   */
   begin(facingYaw, baseHeight) {
     this.#outlineRoot.enabled = true;
     this.#outlineRoot.setLocalEulerAngles(0, facingYaw, 0);
@@ -72,10 +127,20 @@ export class HeroRespawnEffect {
     this.update(0, 0, baseHeight);
   }
 
+  /**
+   *
+   * @param {number} facingYaw
+   */
   setFacingYaw(facingYaw) {
     this.#outlineRoot?.setLocalEulerAngles(0, facingYaw, 0);
   }
 
+  /**
+   *
+   * @param {number} progress
+   * @param {number} elapsed
+   * @param {number} baseHeight
+   */
   update(progress, elapsed, baseHeight) {
     const reconstruction = this.#smoothStep(
       Math.min(1, progress / 0.68),
@@ -148,7 +213,11 @@ export class HeroRespawnEffect {
   }
 
   #collectSolidMeshes() {
-    this.#forEachMesh(this.#modelRoot, (meshInstance) => {
+    this.#forEachMesh(this.#modelRoot, /**
+     *
+     * @param {import("playcanvas").MeshInstance} meshInstance
+     */
+    (meshInstance) => {
       const originalMaterial = meshInstance.material;
       let fadeMaterial = this.#fadeMaterials.get(originalMaterial);
       if (!fadeMaterial) {
@@ -171,7 +240,11 @@ export class HeroRespawnEffect {
   }
 
   #configureOutlineMeshes() {
-    this.#forEachMesh(this.#outlineRoot, (meshInstance) => {
+    this.#forEachMesh(this.#outlineRoot, /**
+     *
+     * @param {import("playcanvas").MeshInstance} meshInstance
+     */
+    (meshInstance) => {
       meshInstance.material = this.#contourMaterial;
       meshInstance.renderStyle = this.#pc.RENDERSTYLE_WIREFRAME;
       meshInstance.castShadow = false;
@@ -180,6 +253,10 @@ export class HeroRespawnEffect {
     });
   }
 
+  /**
+   *
+   * @param {number} opacity
+   */
   #setSolidOpacity(opacity) {
     for (const material of this.#fadeMaterials.values()) {
       material.opacity = opacity;
@@ -192,6 +269,11 @@ export class HeroRespawnEffect {
     }
   }
 
+  /**
+   *
+   * @param {import("playcanvas").Entity} root
+   * @param {(meshInstance: import("playcanvas").MeshInstance) => void} callback
+   */
   #forEachMesh(root, callback) {
     const pending = [root];
     while (pending.length) {
@@ -203,6 +285,10 @@ export class HeroRespawnEffect {
     }
   }
 
+  /**
+   *
+   * @param {number} value
+   */
   #smoothStep(value) {
     return value * value * (3 - 2 * value);
   }

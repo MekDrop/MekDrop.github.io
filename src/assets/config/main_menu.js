@@ -1,3 +1,7 @@
+/**
+ *
+ * @param {import("vue-i18n").Composer} i18n
+ */
 export default function (i18n) {
   return [
     i18n.locale.value === "lt"

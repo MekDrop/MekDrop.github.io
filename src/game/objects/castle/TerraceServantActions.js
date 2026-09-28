@@ -8,14 +8,37 @@ import { syncTerraceWalk } from "./TerraceMovement.js";
  * Executes movement and animation for whichever servant accepts a wish.
  */
 export class TerraceServantActions {
+  /**
+   *
+    * @returns {Array<string>}
+   */
   static get modelUrls() {
     return [servantUrl, elderServantUrl];
   }
 
+  /**
+   *
+    * @type {Array<TerraceActor>}
+   */
   #servants = [];
+  /**
+   *
+    * @type {TerraceActor|null}
+   */
   #servant;
+  /**
+   *
+    * @type {number}
+   */
   #visit = -1;
 
+  /**
+   *
+   * @param {{pc: typeof import("playcanvas"), modelLibrary: string, stage: import("playcanvas").Entity}} options
+   * @param {typeof import("playcanvas")} options.pc
+   * @param {string} options.modelLibrary
+   * @param {import("playcanvas").Entity} options.stage
+   */
   constructor({ pc, modelLibrary, stage }) {
     for (const modelUrl of TerraceServantActions.modelUrls) {
       const actor = new TerraceActor({
@@ -36,6 +59,10 @@ export class TerraceServantActions {
     return this.#servant;
   }
 
+  /**
+   *
+   * @param {import("./TerraceServantBehavior.js").TerraceServantBehavior} behavior
+   */
   sync(behavior) {
     if (this.#visit !== behavior.visitId) {
       this.#visit = behavior.visitId;

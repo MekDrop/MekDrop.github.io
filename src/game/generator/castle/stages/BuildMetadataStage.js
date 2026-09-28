@@ -6,6 +6,10 @@ import {
 import { AbstractCastleGenerationStage } from "../AbstractCastleGenerationStage.js";
 
 export class BuildMetadataStage extends AbstractCastleGenerationStage {
+  /**
+   *
+   * @param {CastleGenerationContext} context
+   */
   async run(context) {
     if (context.layout.empty) {
       return;
@@ -14,6 +18,10 @@ export class BuildMetadataStage extends AbstractCastleGenerationStage {
       context.layout;
     const { towerSpan, wallHeight } = context.structure.wall;
     const audienceOpening = openings.find(
+      /**
+       *
+       * @param {import("src/game/GameContracts.js").CastleOpening} opening
+       */
       (opening) => opening.boundary === CASTLE_BOUNDARY.FRONT,
     );
     const interiorDepth =
@@ -59,15 +67,29 @@ export class BuildMetadataStage extends AbstractCastleGenerationStage {
         y: CASTLE_BLOCK_SIZE / 2,
         z: CASTLE_BLOCK_SIZE / 2,
       },
-      groundColumns: context.geometry.collision.groundColumns.map((column) => ({
+      groundColumns: context.geometry.collision.groundColumns.map(/**
+       *
+       * @param {number} column
+       */
+      (column) => ({
         ...column,
       })),
-      cameraBlocks: context.geometry.collision.cameraBlocks.map((block) => ({
+      cameraBlocks: context.geometry.collision.cameraBlocks.map(/**
+       *
+       * @param {{x: number, y: number, z: number, role?: string}} block
+       */
+      (block) => ({
         ...block,
       })),
     };
   }
 
+  /**
+   *
+   * @param {import("src/game/GameContracts.js").CastleLayout} layout
+   * @param {number} blockU
+   * @param {number} blockV
+   */
   #localToWorld(layout, blockU, blockV) {
     let blockX = blockU;
     let blockZ = blockV;

@@ -10,6 +10,10 @@ import { PrincessWantsTeaState } from "./states/terrace/princess/PrincessWantsTe
 import { RoyalTerraceActivityBehavior } from "./RoyalTerraceActivityBehavior.js";
 
 export class PrincessLeisureBehavior extends RoyalTerraceActivityBehavior {
+  /**
+   *
+   * @param {(atThrone: boolean) => void} onThroneChange
+   */
   constructor(onThroneChange) {
     const walkSpeed = ROYAL_WALK_SPEED.PRINCESS;
     const walkDuration = 0.7 + 2.5 / walkSpeed;

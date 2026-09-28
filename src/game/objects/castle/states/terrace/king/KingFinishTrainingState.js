@@ -3,6 +3,10 @@ import { CASTLE_TERRACE_PHASE as STAGE } from "../../../../../enum/CastleTerrace
 import { AbstractTerraceParticipantState } from "../AbstractTerraceParticipantState.js";
 
 export class KingFinishTrainingState extends AbstractTerraceParticipantState {
+  /**
+   *
+   * @param {number} duration
+   */
   constructor(duration) {
     super({ phase: KingFinishTrainingState.name, stagePhase: STAGE.RISE,
       duration, action: "sword", animation: KING_ANIMATION.SWORD_FINISH });

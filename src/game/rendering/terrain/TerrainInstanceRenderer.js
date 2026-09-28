@@ -5,23 +5,94 @@ import {
 } from "./TerrainMaterialMaps.js";
 
 export class TerrainInstanceRenderer {
+  /**
+   *
+   * @type {typeof pc}
+   */
   #pc;
+  /**
+   *
+   * @type {pc.Application}
+   */
   #app;
+  /**
+   *
+   * @type {pc.Entity}
+   */
   #root;
+  /**
+   *
+   * @type {pc.Material[]}
+   */
   #materials;
+  /**
+   *
+   * @type {Map}
+   */
   #batches = new Map();
+  /**
+   *
+   * @type {Array}
+   */
   #meshes;
+  /**
+   *
+   * @type {Array}
+   */
   #entities = [];
+  /**
+   *
+   * @type {Array}
+   */
   #vertexBuffers = [];
 
+  /**
+   *
+   * @param {{pc: typeof pc, app: pc.Application, root: pc.Entity, materials: pc.Material[]}} options
+   * @param {typeof pc} options.pc
+   * @param {pc.Application} options.app
+   * @param {pc.Entity} options.root
+   * @param {pc.Material[]} options.materials
+   */
   constructor({ pc, app, root, materials }) {
+    /**
+     *
+     * @type {typeof pc}
+     */
     this.#pc = pc;
+    /**
+     *
+     * @type {pc.Application}
+     */
     this.#app = app;
+    /**
+     *
+     * @type {pc.Entity}
+     */
     this.#root = root;
+    /**
+     *
+     * @type {pc.Material[]}
+     */
     this.#materials = materials;
+    /**
+     *
+     * @type {Array}
+     */
     this.#meshes = this.#createMeshes();
   }
 
+  /**
+   *
+   * @param {pc.Material} topMaterial
+   * @param {pc.Material} sideMaterial
+   * @param {number} x
+   * @param {number} y
+   * @param {number} z
+   * @param {string} coverage
+   * @param {pc.Material} underlayMaterial
+   * @param {number} surfaceLift
+   */
   addCubeMatrix(
     topMaterial,
     sideMaterial,
@@ -47,6 +118,21 @@ export class TerrainInstanceRenderer {
     );
   }
 
+  /**
+   *
+   * @param {pc.Material} topMaterial
+   * @param {pc.Material} sideMaterial
+   * @param {number} x
+   * @param {number} y
+   * @param {number} z
+   * @param {number} yaw
+   * @param {number} sx
+   * @param {number} sy
+   * @param {number} sz
+   * @param {string} coverage
+   * @param {pc.Material} underlayMaterial
+   * @param {number} pitch
+   */
   addBoxMatrix(
     topMaterial,
     sideMaterial,
@@ -207,42 +293,120 @@ export class TerrainInstanceRenderer {
     const half = 0.5;
     const inner = 0.49;
 
+    /**
+     *
+     * @param {string} groupName
+     * @param {number[][]} sourcePoints
+     */
     const addFace = (groupName, sourcePoints) => {
       const group = groups[groupName];
-      const points = sourcePoints.map((point) => [...point]);
-      const edgeA = points[1].map((value, axis) => value - points[0][axis]);
-      const edgeB = points[2].map((value, axis) => value - points[0][axis]);
+      const points = sourcePoints.map(/**
+       *
+       * @param {import("src/game/GameContracts.js").GridPoint} point
+       */
+      (point) => [...point]);
+      const edgeA = points[1].map(/**
+       *
+       * @param {number} value
+       * @param {string} axis
+       */
+      (value, axis) => value - points[0][axis]);
+      const edgeB = points[2].map(/**
+       *
+       * @param {number} value
+       * @param {string} axis
+       */
+      (value, axis) => value - points[0][axis]);
       let normal = [
         edgeA[1] * edgeB[2] - edgeA[2] * edgeB[1],
         edgeA[2] * edgeB[0] - edgeA[0] * edgeB[2],
         edgeA[0] * edgeB[1] - edgeA[1] * edgeB[0],
       ];
       const center = [0, 1, 2].map(
+        /**
+         *
+         * @param {string} axis
+         */
         (axis) =>
-          points.reduce((sum, point) => sum + point[axis], 0) / points.length,
+          points.reduce(/**
+           *
+           * @param {number} sum
+           * @param {import("src/game/GameContracts.js").GridPoint} point
+           */
+          (sum, point) => sum + point[axis], 0) / points.length,
       );
       if (
-        normal.reduce((sum, value, axis) => sum + value * center[axis], 0) < 0
+        normal.reduce(/**
+         *
+         * @param {number} sum
+         * @param {number} value
+         * @param {string} axis
+         */
+        (sum, value, axis) => sum + value * center[axis], 0) < 0
       ) {
         points.reverse();
-        normal = normal.map((value) => -value);
+        normal = normal.map(/**
+         *
+         * @param {number} value
+         */
+        (value) => -value);
       }
       const normalLength = Math.hypot(...normal);
-      normal = normal.map((value) => value / normalLength);
+      normal = normal.map(/**
+       *
+       * @param {number} value
+       */
+      (value) => value / normalLength);
 
       const start = group.positions.length / 3;
       const xRange =
-        Math.max(...points.map((point) => point[0])) -
-        Math.min(...points.map((point) => point[0]));
+        Math.max(...points.map(/**
+         *
+         * @param {import("src/game/GameContracts.js").GridPoint} point
+         */
+        (point) => point[0])) -
+        Math.min(...points.map(/**
+         *
+         * @param {import("src/game/GameContracts.js").GridPoint} point
+         */
+        (point) => point[0]));
       const zRange =
-        Math.max(...points.map((point) => point[2])) -
-        Math.min(...points.map((point) => point[2]));
+        Math.max(...points.map(/**
+         *
+         * @param {import("src/game/GameContracts.js").GridPoint} point
+         */
+        (point) => point[2])) -
+        Math.min(...points.map(/**
+         *
+         * @param {import("src/game/GameContracts.js").GridPoint} point
+         */
+        (point) => point[2]));
       const horizontalAxis = xRange >= zRange ? 0 : 2;
-      const minX = Math.min(...points.map((point) => point[0]));
-      const maxX = Math.max(...points.map((point) => point[0]));
-      const minZ = Math.min(...points.map((point) => point[2]));
-      const maxZ = Math.max(...points.map((point) => point[2]));
-      points.forEach((point) => {
+      const minX = Math.min(...points.map(/**
+       *
+       * @param {import("src/game/GameContracts.js").GridPoint} point
+       */
+      (point) => point[0]));
+      const maxX = Math.max(...points.map(/**
+       *
+       * @param {import("src/game/GameContracts.js").GridPoint} point
+       */
+      (point) => point[0]));
+      const minZ = Math.min(...points.map(/**
+       *
+       * @param {import("src/game/GameContracts.js").GridPoint} point
+       */
+      (point) => point[2]));
+      const maxZ = Math.max(...points.map(/**
+       *
+       * @param {import("src/game/GameContracts.js").GridPoint} point
+       */
+      (point) => point[2]));
+      points.forEach(/**
+       *
+       * @param {import("src/game/GameContracts.js").GridPoint} point
+       */
+      (point) => {
         group.positions.push(...point);
         group.normals.push(...normal);
         if (!groupName.toLowerCase().endsWith("sides")) {
@@ -288,6 +452,11 @@ export class TerrainInstanceRenderer {
     for (const [axisA, axisB, freeAxis] of axisPairs) {
       for (const signA of [-1, 1]) {
         for (const signB of [-1, 1]) {
+          /**
+           *
+           * @param {(axis: string, value: number) => void} onAxis
+           * @param {number} freeValue
+           */
           const point = (onAxis, freeValue) => {
             const result = [0, 0, 0];
             result[axisA] = signA * (onAxis === axisA ? half : inner);
@@ -376,6 +545,11 @@ export class TerrainInstanceRenderer {
       const isUpper = coverage.endsWith("Upper");
       const low = isUpper ? 0.5 : 0;
       const high = isUpper ? 1 : 0.5;
+      /**
+       *
+       * @param {number} x
+       * @param {number} z
+       */
       const cornerHeight = (x, z) => {
         if (direction === SLOPE_DIRECTION.NORTH) {
           return z < 0 ? high : low;
@@ -393,6 +567,13 @@ export class TerrainInstanceRenderer {
       const southEast = [half, cornerHeight(half, half), half];
       const northEast = [half, cornerHeight(half, -half), -half];
       addFace(groupNames.surface, [northWest, southWest, southEast, northEast]);
+      /**
+       *
+       * @param {pc.Vec3|pc.Vec3} bottomA
+       * @param {pc.Vec3|pc.Vec3} bottomB
+       * @param {pc.Vec3|pc.Vec3} topB
+       * @param {pc.Vec3|pc.Vec3} topA
+       */
       const addSlopeSide = (bottomA, bottomB, topB, topA) => {
         if (topA[1] <= 0 && topB[1] <= 0) {
           return;
@@ -405,6 +586,10 @@ export class TerrainInstanceRenderer {
       addSlopeSide([-half, 0, half], [half, 0, half], southEast, southWest);
     }
 
+    /**
+     *
+     * @param {string|number|symbol} group
+     */
     const createMesh = (group) => {
       const geometry = new pc.Geometry();
       geometry.positions = group.positions;
@@ -423,7 +608,13 @@ export class TerrainInstanceRenderer {
       bridgeVerticalSides: createMesh(groups.bridgeVerticalSides),
       underlay: createMesh(groups.underlay),
       slopes: Object.fromEntries(
-        Object.entries(slopeGroupNames).map(([coverage, groupNames]) => [
+        Object.entries(slopeGroupNames).map(/**
+         *
+         * @param {{"0": Array, "1": Array}} options
+         * @param {Array} options."0"
+         * @param {Array} options."1"
+         */
+        ([coverage, groupNames]) => [
           coverage,
           {
             surface: createMesh(groups[groupNames.surface]),
@@ -438,6 +629,10 @@ export class TerrainInstanceRenderer {
     };
   }
 
+  /**
+   *
+   * @param {pc.Mesh} mesh
+   */
   #destroyMesh(mesh) {
     mesh.decRefCount();
     if (mesh.refCount < 1) {

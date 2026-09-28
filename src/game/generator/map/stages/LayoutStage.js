@@ -4,13 +4,29 @@ import { AbstractMapGenerationStage } from "../AbstractMapGenerationStage.js";
  * Converts normalized input into the routing layout and river request.
  */
 export class LayoutStage extends AbstractMapGenerationStage {
+  /**
+   *
+   * @type {Array}
+   */
   #operations;
 
+  /**
+   *
+   * @param {Array<() => void>} operations
+   */
   constructor(operations) {
     super();
+    /**
+     *
+     * @type {Array}
+     */
     this.#operations = operations;
   }
 
+  /**
+   *
+   * @param {GenerationContext} context
+   */
   async run(context) {
     const {
       numPaths: requestedNumPaths,

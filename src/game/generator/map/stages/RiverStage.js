@@ -4,13 +4,29 @@ import { AbstractMapGenerationStage } from "../AbstractMapGenerationStage.js";
  * Builds terrain heights and materializes deterministic river features.
  */
 export class RiverStage extends AbstractMapGenerationStage {
+  /**
+   *
+   * @type {Array}
+   */
   #operations;
 
+  /**
+   *
+   * @param {Array<() => void>} operations
+   */
   constructor(operations) {
     super();
+    /**
+     *
+     * @type {Array}
+     */
     this.#operations = operations;
   }
 
+  /**
+   *
+   * @param {GenerationContext} context
+   */
   async run(context) {
     const { grid, tileMeta, islandMask } = context.world;
     const { layout, requestedNumRivers } = context.routing;

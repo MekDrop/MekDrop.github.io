@@ -2,6 +2,10 @@ import { HERO_ACTION } from "../../../../enum/HeroAction.js";
 import { HERO_ANIMATION } from "../../../../enum/HeroAnimation.js";
 import { HeroRuntimeActionState } from "./HeroRuntimeActionState.js";
 
+/**
+ *
+ * @param {number} progress
+ */
 function smoothProgress(progress) {
   const clamped = Math.max(0, Math.min(1, progress));
   return clamped * clamped * (3 - 2 * clamped);
@@ -10,6 +14,12 @@ function smoothProgress(progress) {
 export class HeroBridgeClimbActionState extends HeroRuntimeActionState {
   constructor() {
     super(HERO_ACTION.BRIDGE_CLIMB, {
+      /**
+       *
+       * @param {{payload: import("src/game/objects/ObjectTypes.js").HeroActionPayload, bridgeClimbEnd: ConstructorParameters<typeof HeroRuntimeActionState>[0]}} options
+       * @param {import("src/game/objects/ObjectTypes.js").HeroActionPayload} options.payload
+       * @param {ConstructorParameters<typeof HeroRuntimeActionState>[0]} options.bridgeClimbEnd
+       */
       animation: ({ payload, bridgeClimbEnd }) =>
         payload.elapsed < bridgeClimbEnd
           ? HERO_ANIMATION.BLOCKED_PUSH
@@ -22,11 +32,19 @@ export class HeroBridgeClimbActionState extends HeroRuntimeActionState {
     });
   }
 
+  /**
+   *
+   * @param {import("src/game/objects/ObjectTypes.js").HeroActionContext} owner
+   */
   enter(owner) {
     super.enter(owner);
     this.payload = owner.feedback.bridgeClimb.begin(this.payload);
   }
 
+  /**
+   *
+   * @param {import("src/game/objects/ObjectTypes.js").HeroActionContext} owner
+   */
   execute(owner) {
     const feedback = owner.feedback.bridgeClimb;
     const action = this.payload;
@@ -76,11 +94,19 @@ export class HeroBridgeClimbActionState extends HeroRuntimeActionState {
     }
   }
 
+  /**
+   *
+   * @param {import("src/game/objects/ObjectTypes.js").HeroActionContext} owner
+   */
   exit(owner) {
     owner.feedback.bridgeClimb?.resetPresentation?.();
     super.exit(owner);
   }
 
+  /**
+   *
+   * @param {import("src/game/objects/ObjectTypes.js").HeroActionContext} owner
+   */
   present(owner) {
     const feedback = owner.feedback.bridgeClimb;
     const elapsed = this.payload.elapsed;

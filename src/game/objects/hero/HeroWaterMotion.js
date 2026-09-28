@@ -1,4 +1,8 @@
 export class HeroWaterMotion {
+  /**
+   *
+   * @param {number} elapsed
+   */
   static offsetAt(elapsed) {
     // Uneven attempts to lift the mouth clear, followed by longer, deeper dips.
     const breath = Math.sin(elapsed * 3.7);

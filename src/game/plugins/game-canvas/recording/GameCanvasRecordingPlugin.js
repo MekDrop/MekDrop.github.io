@@ -11,15 +11,53 @@ const TOGGLE_RECORDING_BINDING = Object.freeze({
 });
 
 export class GameCanvasRecordingPlugin {
+  /**
+   *
+   * @type {import("src/game/GameContracts.js").GameCanvasPluginContext}
+   */
   #context;
+  /**
+   *
+   * @type {Array}
+   */
   #messages;
+  /**
+   *
+   * @type {null}
+   */
   #recorder = null;
+  /**
+   *
+   * @type {string}
+   */
   #state = GAME_RECORDING_STATE.IDLE;
+  /**
+   *
+   * @type {null}
+   */
   #statusElement = null;
+  /**
+   *
+   * @type {null}
+   */
   #unregisterControlAction = null;
 
+  /**
+   *
+   * @param {import("src/game/GameContracts.js").GameCanvasPluginContext} context
+   * @param {{messages: Array}} options
+   * @param {Array} options.messages
+   */
   constructor(context, { messages }) {
+    /**
+     *
+     * @type {import("src/game/GameContracts.js").GameCanvasPluginContext}
+     */
     this.#context = context;
+    /**
+     *
+     * @type {Array}
+     */
     this.#messages = messages;
   }
 
@@ -34,6 +72,10 @@ export class GameCanvasRecordingPlugin {
     this.#recorder = new GameRecorder({
       app: renderer.app,
       canvas: renderer.canvasElement,
+      /**
+       *
+       * @param {import("src/game/GameContracts.js").StoreContract} state
+       */
       onStateChange: (state) => this.#setState(state),
       onError: this.#reportError,
     });
@@ -71,6 +113,10 @@ export class GameCanvasRecordingPlugin {
     }
   }
 
+  /**
+   *
+   * @param {import("src/game/GameContracts.js").StoreContract} state
+   */
   #setState(state) {
     this.#state = state;
     this.#syncPresentation();
@@ -94,6 +140,11 @@ export class GameCanvasRecordingPlugin {
     }
   }
 
+  /**
+   *
+   * @param {Error} error
+   * @type {(error: Error) => void}
+   */
   #reportError = (error) => {
     reportGlobalException(error, { context: "Game recording" });
   };

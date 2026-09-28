@@ -11,11 +11,31 @@ const COUNTER_NUMBER_TEXTURE_HEIGHT = 64;
 const COUNTER_FONT_SIZE = 48;
 
 export class GamePanelHud {
+  /**
+   * @type {typeof import("playcanvas")|null}
+   */
   #pc;
+  /**
+   * @type {import("playcanvas").Application|null}
+   */
   #app;
+  /**
+   * @type {import("playcanvas").Entity|null}
+   */
   #entity;
+  /**
+   * @type {Set}
+   */
   #textures = new Set();
 
+  /**
+   *
+   * @param {{pc: typeof import("playcanvas"), app: import("playcanvas").Application, name: string, priority: number}} options
+   * @param {typeof import("playcanvas")} options.pc
+   * @param {import("playcanvas").Application} options.app
+   * @param {string} options.name
+   * @param {number} options.priority
+   */
   constructor({ pc, app, name, priority }) {
     this.#pc = pc;
     this.#app = app;
@@ -37,14 +57,23 @@ export class GamePanelHud {
     return this.#app;
   }
 
+  /**
+   * @returns {number}
+   */
   get counterIconSize() {
     return COUNTER_ICON_SIZE;
   }
 
+  /**
+   * @returns {number}
+   */
   get counterNumberWidth() {
     return COUNTER_NUMBER_WIDTH;
   }
 
+  /**
+   * @returns {number}
+   */
   get counterNumberHeight() {
     return COUNTER_NUMBER_HEIGHT;
   }
@@ -57,6 +86,10 @@ export class GamePanelHud {
     return this.#entity;
   }
 
+  /**
+   *
+   * @param {import("playcanvas").Entity} parent
+   */
   attach(parent = this.#app.root) {
     if (!this.#entity || this.#entity.parent === parent) {
       return;
@@ -70,6 +103,15 @@ export class GamePanelHud {
     }
   }
 
+  /**
+   *
+   * @param {{name: string, x: number, y: number, width: number, height: number}} options
+   * @param {string} options.name
+   * @param {number} options.x
+   * @param {number} options.y
+   * @param {number} options.width
+   * @param {number} options.height
+   */
   createPanel({ name, x, y, width, height }) {
     const panel = new this.#pc.Entity(name);
     panel.addComponent("element", {
@@ -85,6 +127,18 @@ export class GamePanelHud {
     return panel;
   }
 
+  /**
+   *
+   * @param {{parent: import("playcanvas").Entity, name: string, x: number, y: number, width: number, height: number, texture: import("playcanvas").Texture, color?: import("playcanvas").Color|string|null}} options
+   * @param {import("playcanvas").Entity} options.parent
+   * @param {string} options.name
+   * @param {number} options.x
+   * @param {number} options.y
+   * @param {number} options.width
+   * @param {number} options.height
+   * @param {import("playcanvas").Texture} options.texture
+   * @param {import("playcanvas").Color|string} options.color
+   */
   createImage({ parent, name, x, y, width, height, texture, color = null }) {
     const options = {
       type: this.#pc.ELEMENTTYPE_IMAGE,
@@ -106,6 +160,12 @@ export class GamePanelHud {
     return entity;
   }
 
+  /**
+   *
+   * @param {string} name
+   * @param {number} width
+   * @param {number} height
+   */
   createTextureRecord(name, width, height) {
     const canvas = document.createElement("canvas");
     canvas.width = width;
@@ -117,6 +177,10 @@ export class GamePanelHud {
     };
   }
 
+  /**
+   *
+   * @param {string} name
+   */
   createCounterNumberTexture(name) {
     return this.createTextureRecord(
       name,
@@ -125,6 +189,13 @@ export class GamePanelHud {
     );
   }
 
+  /**
+   *
+   * @param {string} name
+   * @param {number} width
+   * @param {number} height
+   * @param {(context: CanvasRenderingContext2D) => void} draw
+   */
   createDrawnTexture(name, width, height, draw) {
     const record = this.createTextureRecord(name, width, height);
     draw(record.context);
@@ -132,6 +203,12 @@ export class GamePanelHud {
     return record.texture;
   }
 
+  /**
+   *
+   * @param {string} name
+   * @param {number} width
+   * @param {number} height
+   */
   createPanelTexture(name, width, height) {
     const canvas = document.createElement("canvas");
     canvas.width = width * PANEL_TEXTURE_SCALE;
@@ -142,6 +219,13 @@ export class GamePanelHud {
     return this.createTexture(name, canvas);
   }
 
+  /**
+   *
+   * @param {string} name
+   * @param {HTMLCanvasElement} canvas
+   * @param {{mipmaps?: boolean}} options
+   * @param {boolean} options.mipmaps
+   */
   createTexture(name, canvas, { mipmaps = false } = {}) {
     const texture = new this.#pc.Texture(this.#app.graphicsDevice, {
       width: canvas.width,
@@ -162,6 +246,10 @@ export class GamePanelHud {
     return texture;
   }
 
+  /**
+   *
+   * @param {import("playcanvas").Texture} texture
+   */
   releaseTexture(texture) {
     if (!texture || !this.#textures.delete(texture)) {
       return;
@@ -169,6 +257,12 @@ export class GamePanelHud {
     texture.destroy();
   }
 
+  /**
+   *
+   * @param {CanvasRenderingContext2D} context
+   * @param {number} width
+   * @param {number} height
+   */
   drawPanelFrame(context, width, height) {
     const gradient = context.createLinearGradient(0, 0, 0, height);
     gradient.addColorStop(0, gameUiTheme.surfaceTop);
@@ -199,6 +293,11 @@ export class GamePanelHud {
     context.stroke();
   }
 
+  /**
+   *
+   * @param {{canvas: HTMLCanvasElement, context: CanvasRenderingContext2D, texture: import("playcanvas").Texture}} record
+   * @param {number} value
+   */
   drawNumber(record, value) {
     const { canvas, context, texture } = record;
     context.clearRect(0, 0, canvas.width, canvas.height);
@@ -217,6 +316,15 @@ export class GamePanelHud {
     texture.setSource(canvas);
   }
 
+  /**
+   *
+   * @param {CanvasRenderingContext2D} context
+   * @param {number} x
+   * @param {number} y
+   * @param {number} width
+   * @param {number} height
+   * @param {number} radius
+   */
   roundedRect(context, x, y, width, height, radius) {
     context.beginPath();
     context.moveTo(x + radius, y);

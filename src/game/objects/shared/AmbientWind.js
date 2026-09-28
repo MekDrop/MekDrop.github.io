@@ -11,6 +11,10 @@ export const AMBIENT_WIND_DIRECTION = Object.freeze({
   z: Math.sin(AMBIENT_WIND_BASE_ANGLE),
 });
 
+/**
+ *
+ * @param {number} elapsedSeconds
+ */
 export function getAmbientWindSpeed(elapsedSeconds) {
   if (ambientWindSpeedOverride !== null) {
     currentAmbientWindSpeed = ambientWindSpeedOverride;
@@ -36,6 +40,10 @@ export function getCurrentAmbientWindSpeed() {
   return currentAmbientWindSpeed;
 }
 
+/**
+ *
+ * @param {number} speed
+ */
 export function setAmbientWindSpeed(speed) {
   ambientWindSpeedOverride = speed;
   currentAmbientWindSpeed = speed;
@@ -46,6 +54,10 @@ export function resetAmbientWindSpeed() {
   currentAmbientWindSpeed = AMBIENT_WIND_BASE_SPEED;
 }
 
+/**
+ *
+ * @param {number} elapsedSeconds
+ */
 export function getAmbientWind(elapsedSeconds) {
   const angle =
     AMBIENT_WIND_BASE_ANGLE +

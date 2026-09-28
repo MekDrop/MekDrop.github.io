@@ -5,22 +5,64 @@ import {
 } from "../errors/assets/index.js";
 
 export class GameModelLibrary {
+  /**
+   *
+   * @type {typeof pc}
+   */
   #pc;
+  /**
+   *
+   * @type {pc.Application}
+   */
   #app;
+  /**
+   *
+   * @type {Map}
+   */
   #assets = new Map();
+  /**
+   *
+   * @type {Map}
+   */
   #mergedModels = new Map();
 
+  /**
+   *
+   * @param {{pc: typeof pc, app: pc.Application}} options
+   * @param {typeof pc} options.pc
+   * @param {pc.Application} options.app
+   */
   constructor({ pc, app }) {
+    /**
+     *
+     * @type {typeof pc}
+     */
     this.#pc = pc;
+    /**
+     *
+     * @type {pc.Application}
+     */
     this.#app = app;
   }
 
+  /**
+   *
+   * @param {string[]} urls
+   */
   async load(urls) {
     await Promise.all(
-      [...new Set(urls)].map((url) => this.#loadModel(url)),
+      [...new Set(urls)].map(/**
+       *
+       * @param {string} url
+       */
+      (url) => this.#loadModel(url)),
     );
   }
 
+  /**
+   *
+   * @param {string} url
+   */
   instantiate(url) {
     const asset = this.#assets.get(url);
     if (!asset?.resource) throw new GameModelUnavailableError({ url });
@@ -33,6 +75,14 @@ export class GameModelLibrary {
     return entity;
   }
 
+  /**
+   *
+   * @param {string} url
+   * @param {{material: pc.Material, castShadows: boolean, receiveShadows: boolean}} options
+   * @param {pc.Material} options.material
+   * @param {boolean} options.castShadows
+   * @param {boolean} options.receiveShadows
+   */
   instantiateMerged(
     url,
     {
@@ -59,6 +109,17 @@ export class GameModelLibrary {
     return entity;
   }
 
+  /**
+   *
+   * @param {string} url
+   * @param {Array} matrices
+   * @param {{name: string, material: pc.Material, castShadows: boolean, receiveShadows: boolean, dynamic: boolean}} options
+   * @param {string} options.name
+   * @param {pc.Material} options.material
+   * @param {boolean} options.castShadows
+   * @param {boolean} options.receiveShadows
+   * @param {boolean} options.dynamic
+   */
   instantiateMergedBatch(
     url,
     matrices,
@@ -104,12 +165,22 @@ export class GameModelLibrary {
     return { entity, vertexBuffer };
   }
 
+  /**
+   *
+   * @param {string} url
+   * @param {Array} requiredNames
+   */
   getAnimationTracks(url, requiredNames = []) {
     const asset = this.#assets.get(url);
     if (!asset?.resource) throw new GameModelUnavailableError({ url });
 
     const tracks = new Map(
-      (asset.resource.animations ?? []).map(({ resource }) => [
+      (asset.resource.animations ?? []).map(/**
+       *
+       * @param {{resource: pc.Asset|pc.Texture|pc.Material}} options
+       * @param {pc.Asset|pc.Texture|pc.Material} options.resource
+       */
+      ({ resource }) => [
         resource.name,
         resource,
       ]),
@@ -136,6 +207,10 @@ export class GameModelLibrary {
     this.#assets.clear();
   }
 
+  /**
+   *
+   * @param {string} url
+   */
   #loadModel(url) {
     const asset = new this.#pc.Asset("Game model", "container", {
       url,
@@ -143,12 +218,25 @@ export class GameModelLibrary {
     });
     this.#app.assets.add(asset);
 
-    return new Promise((resolve, reject) => {
-      asset.ready((loadedAsset) => {
+    return new Promise(/**
+     *
+     * @param {(value?: (value?: void) => void) => void} resolve
+     * @param {(reason?: Error) => void} reject
+     */
+    (resolve, reject) => {
+      asset.ready(/**
+       *
+       * @param {pc.Asset} loadedAsset
+       */
+      (loadedAsset) => {
         this.#assets.set(url, loadedAsset);
         resolve();
       });
-      asset.once("error", (cause) => {
+      asset.once("error", /**
+       *
+       * @param {string|Error} cause
+       */
+      (cause) => {
         this.#app.assets.remove(asset);
         reject(new GameModelLoadError({ url, cause }));
       });
@@ -156,6 +244,10 @@ export class GameModelLibrary {
     });
   }
 
+  /**
+   *
+   * @param {string} url
+   */
   #mergedModelFor(url) {
     const asset = this.#assets.get(url);
     if (!asset?.resource) throw new GameModelUnavailableError({ url });
@@ -168,6 +260,10 @@ export class GameModelLibrary {
     return mergedModel;
   }
 
+  /**
+   *
+   * @param {pc.Entity} root
+   */
   #configureRenderHierarchy(root) {
     const pending = [root];
     while (pending.length) {
@@ -180,6 +276,10 @@ export class GameModelLibrary {
     }
   }
 
+  /**
+   *
+   * @param {pc.Asset|pc.Texture|pc.Material} resource
+   */
   #mergeRenderHierarchy(resource) {
     const pc = this.#pc;
     const sourceRoot = resource.instantiateRenderEntity();

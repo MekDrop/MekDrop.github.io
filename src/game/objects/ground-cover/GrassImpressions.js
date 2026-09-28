@@ -4,9 +4,25 @@ const STAMP_DISTANCE = 0.14;
 const MINIMUM_STRENGTH = 0.025;
 
 export class GrassImpressions {
+  /**
+   *
+    * @type {Array<{x: number, z: number, age: number, strength: number}>}
+   */
   #history = [];
+  /**
+   *
+    * @type {Map}
+   */
   #contacts = new Map();
+  /**
+   *
+    * @type {Float32Array}
+   */
   #positions = new Float32Array(MAXIMUM_IMPRESSIONS * 4);
+  /**
+   *
+    * @type {Float32Array}
+   */
   #shapes = new Float32Array(MAXIMUM_IMPRESSIONS * 4);
 
   get positions() {
@@ -17,15 +33,40 @@ export class GrassImpressions {
     return this.#shapes;
   }
 
+  /**
+   *
+   * @param {number} deltaTime
+   * @param {number} contacts
+   */
   update(deltaTime, contacts = []) {
     for (const impression of this.#history) {
       impression.age += deltaTime;
     }
-    this.#history = this.#history.filter(({ age }) => age < RECOVERY_SECONDS);
+    this.#history = this.#history.filter(/**
+     *
+     * @param {{age: number}} options
+     * @param {number} options.age
+     */
+    ({ age }) => age < RECOVERY_SECONDS);
     const active = contacts
-      .map((contact, index) => this.#normalize(contact, index))
-      .filter(({ strength }) => strength > MINIMUM_STRENGTH)
-      .sort((left, right) => right.strength - left.strength)
+      .map(/**
+       *
+       * @param {number} contact
+       * @param {number} index
+       */
+      (contact, index) => this.#normalize(contact, index))
+      .filter(/**
+       *
+       * @param {{strength: number}} options
+       * @param {number} options.strength
+       */
+      ({ strength }) => strength > MINIMUM_STRENGTH)
+      .sort(/**
+       *
+       * @param {boolean} left
+       * @param {number} right
+       */
+      (left, right) => right.strength - left.strength)
       .slice(0, MAXIMUM_IMPRESSIONS);
     for (const contact of active) {
       const previous = this.#contacts.get(contact.id);
@@ -45,7 +86,11 @@ export class GrassImpressions {
       });
     }
     for (const [id, contact] of this.#contacts) {
-      if (!active.some((candidate) => candidate.id === id)) {
+      if (!active.some(/**
+       *
+       * @param {boolean} candidate
+       */
+      (candidate) => candidate.id === id)) {
         this.#stamp(contact.last);
         this.#contacts.delete(id);
       }
@@ -54,7 +99,12 @@ export class GrassImpressions {
     this.#shapes.fill(0);
     [...active, ...this.#history]
       .slice(0, MAXIMUM_IMPRESSIONS)
-      .forEach((impression, index) => {
+      .forEach(/**
+       *
+       * @param {{x: number, y: number, z: number, radius: number, strength: number}} impression
+       * @param {number} index
+       */
+      (impression, index) => {
         const recovery = Math.min(
           1,
           (impression.age ?? 0) / RECOVERY_SECONDS,
@@ -78,6 +128,11 @@ export class GrassImpressions {
       });
   }
 
+  /**
+   *
+   * @param {number} contact
+   * @param {number} index
+   */
   #normalize(contact, index) {
     const radius = Math.max(0.001, contact.radius ?? 0.1);
     const directionLength =
@@ -96,6 +151,10 @@ export class GrassImpressions {
     };
   }
 
+  /**
+   *
+   * @param {number} contact
+   */
   #stamp(contact) {
     this.#history.unshift({ ...contact, age: 0 });
     this.#history.length = Math.min(

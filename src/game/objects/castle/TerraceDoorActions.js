@@ -7,24 +7,73 @@ import { TerraceInspectorWalk } from "./TerraceInspectorWalk.js";
 const DOORWAY_POSITION_Z = -0.25;
 const DOORWAY_START_Z = -1.4;
 const DOORWAY_VISIBLE_Z = 0.2;
+/**
+ *
+ * @param {number} value
+ */
 const ease = (value) => value * value * (3 - 2 * value);
 
 /**
  * Owns door interaction and executes the inspector's Yuka-state presentation.
  */
 export class TerraceDoorActions {
+  /**
+   *
+    * @returns {string}
+   */
   static get modelUrls() {
     return TerraceDoor.modelUrls;
   }
 
+  /**
+   *
+    * @type {typeof import("playcanvas")}
+   */
   #pc;
+  /**
+   *
+    * @type {import("playcanvas").Entity}
+   */
   #root;
+  /**
+   *
+    * @type {import("playcanvas").Entity}
+   */
   #stage;
+  /**
+   *
+    * @type {TerraceDoor}
+   */
   #door;
+  /**
+   *
+    * @type {TerraceDoorInspection}
+   */
   #inspection = new TerraceDoorInspection();
+  /**
+   *
+    * @type {import("./TerraceActor.js").TerraceActor|null}
+   */
   #inspector;
+  /**
+   *
+    * @type {() => boolean}
+   */
   #canInspect;
 
+  /**
+   *
+   * @param {{pc: typeof import("playcanvas"), modelLibrary: string, wallMaterial: import("playcanvas").Material, woodMaterial: import("playcanvas").Material, root: import("playcanvas").Entity, stage: import("playcanvas").Entity, scale: number, inspector: import("./TerraceActor.js").TerraceActor, canInspect: boolean}} options
+   * @param {typeof import("playcanvas")} options.pc
+   * @param {string} options.modelLibrary
+   * @param {import("playcanvas").Material} options.wallMaterial
+   * @param {import("playcanvas").Material} options.woodMaterial
+   * @param {import("playcanvas").Entity} options.root
+   * @param {import("playcanvas").Entity} options.stage
+   * @param {number} options.scale
+   * @param {import("./TerraceActor.js").TerraceActor} options.inspector
+   * @param {boolean} options.canInspect
+   */
   constructor({
     pc,
     modelLibrary,
@@ -55,10 +104,18 @@ export class TerraceDoorActions {
     this.#inspector.entity.enabled = false;
   }
 
+  /**
+   *
+    * @returns {boolean}
+   */
   get inspecting() {
     return this.#inspection.inspecting;
   }
 
+  /**
+   *
+    * @returns {import("src/game/objects/ObjectTypes.js").TerraceActivityState}
+   */
   get state() {
     return {
       openAmount: this.#door.openAmount,
@@ -74,6 +131,11 @@ export class TerraceDoorActions {
     };
   }
 
+  /**
+   *
+   * @param {number} deltaTime
+   * @param {string} participantPhase
+   */
   update(deltaTime, participantPhase) {
     const traffic = [
       PHASE.SERVANT_ENTER,
@@ -99,10 +161,22 @@ export class TerraceDoorActions {
     this.#syncInspector();
   }
 
+  /**
+   *
+   * @param {number} rayStart
+   * @param {number} rayEnd
+   */
   getPointerHit(rayStart, rayEnd) {
     return this.#door.getPointerHit(rayStart, rayEnd);
   }
 
+  /**
+   *
+   * @param {number} x
+   * @param {number} y
+   * @param {number} z
+   * @param {number} radius
+   */
   blocksCameraAt(x, y, z, radius = 0) {
     return this.#door.blocksCameraAt(x, y, z, radius);
   }

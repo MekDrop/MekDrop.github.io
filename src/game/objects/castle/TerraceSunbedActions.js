@@ -5,25 +5,73 @@ import { CASTLE_TERRACE_PHASE as PHASE } from "../../enum/CastleTerracePhase.js"
 
 const SUNBED_POSITION = [0, 0, 3.1];
 const SUNBED_CARRY_OFFSET = [0, 0.55, 1.55];
+/**
+ *
+ * @param {number} value
+ */
 const ease = (value) => value * value * (3 - 2 * value);
 
 /**
  * Executes the sunbed and reading-prop actions requested by the queen.
  */
 export class TerraceSunbedActions {
+  /**
+   *
+    * @returns {Array<string>}
+   */
   static get modelUrls() {
     return [sunbedUrl, bookUrl];
   }
 
+  /**
+   *
+    * @type {typeof import("playcanvas")}
+   */
   #pc;
+  /**
+   *
+    * @type {import("playcanvas").Entity}
+   */
   #stage;
+  /**
+   *
+    * @type {import("./TerraceQueen.js").TerraceQueen}
+   */
   #royal;
+  /**
+   *
+    * @type {import("playcanvas").Entity}
+   */
   #sunbed;
+  /**
+   *
+    * @type {import("playcanvas").Entity}
+   */
   #book;
+  /**
+   *
+    * @type {number}
+   */
   #bookOpenAmount = 0;
+  /**
+   *
+    * @type {import("playcanvas").AnimController}
+   */
   #bookAnimationLayer;
+  /**
+   *
+    * @type {number}
+   */
   #bookAnimationDuration;
 
+  /**
+   *
+   * @param {{pc: typeof import("playcanvas"), modelLibrary: string, stage: import("playcanvas").Entity, royal: import("./TerraceQueen.js").TerraceQueen}} options
+   * @param {typeof import("playcanvas")} options.pc
+   * @param {string} options.modelLibrary
+   * @param {import("playcanvas").Entity} options.stage
+   * @param {import("./TerraceQueen.js").TerraceQueen} options.royal
+   */
   constructor({ pc, modelLibrary, stage, royal }) {
     this.#pc = pc;
     this.#stage = stage;
@@ -37,15 +85,30 @@ export class TerraceSunbedActions {
     this.#setupBookAnimation(modelLibrary);
   }
 
+  /**
+   *
+    * @returns {import("src/game/objects/ObjectTypes.js").TerraceActivityState}
+   */
   get state() {
     return { bookOpenAmount: this.#bookOpenAmount };
   }
 
+  /**
+   *
+   * @param {import("./TerraceServantBehavior.js").TerraceServantBehavior} servantBehavior
+   * @param {number} royalBehavior
+   * @param {import("./TerraceActor.js").TerraceActor} servant
+   */
   sync(servantBehavior, royalBehavior, servant) {
     this.#syncSunbed(servantBehavior, servant);
     this.#syncBook(royalBehavior);
   }
 
+  /**
+   *
+   * @param {import("./RoyalTerraceActivityBehavior.js").RoyalTerraceActivityBehavior|import("./TerraceServantBehavior.js").TerraceServantBehavior} behavior
+   * @param {import("./TerraceActor.js").TerraceActor} servant
+   */
   #syncSunbed(behavior, servant) {
     const phase = behavior.stagePhase;
     const moving = behavior.cargo === "sunbed" && [
@@ -83,6 +146,10 @@ export class TerraceSunbedActions {
     this.#sunbed.enabled = servant.entity.enabled;
   }
 
+  /**
+   *
+   * @param {string} modelLibrary
+   */
   #setupBookAnimation(modelLibrary) {
     const track = modelLibrary
       .getAnimationTracks(bookUrl, [BOOK_ANIMATION.OPEN])
@@ -96,6 +163,10 @@ export class TerraceSunbedActions {
     this.#setBookOpenAmount(0);
   }
 
+  /**
+   *
+   * @param {import("./RoyalTerraceActivityBehavior.js").RoyalTerraceActivityBehavior|import("./TerraceServantBehavior.js").TerraceServantBehavior} behavior
+   */
   #syncBook(behavior) {
     const phase = behavior.stagePhase;
     const visible = [PHASE.ROYAL_ENTER, PHASE.SETTLE, PHASE.ACTIVITY,
@@ -133,6 +204,10 @@ export class TerraceSunbedActions {
     this.#setBookOpenAmount(this.#bookOpenAmount);
   }
 
+  /**
+   *
+   * @param {number} amount
+   */
   #setBookOpenAmount(amount) {
     this.#bookAnimationLayer.activeStateCurrentTime =
       this.#bookAnimationDuration * amount;

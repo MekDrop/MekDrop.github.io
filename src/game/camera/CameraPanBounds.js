@@ -7,15 +7,63 @@ const PAN_SEGMENT_SEARCH_STEPS = 24;
 const MINIMUM_ZOOM = DEFAULT_CONTROLS.zoom.min;
 const FULL_STRUCTURE_PAN_ZOOM = DEFAULT_CONTROLS.zoom.max;
 
+/**
+ * @typedef {{x: number, y: number, z: number}} WorldPoint
+ */
+
+/**
+ * @typedef {{x: number, y: number}} ScreenPoint
+ */
+
+/**
+ * @typedef {{x: number, y: number, z: number}} WorldPoint
+ */
+
+/**
+ * @typedef {{x: number, y: number}} ScreenPoint
+ */
+
 export class CameraPanBounds {
+  /**
+   *
+   * @type {Array}
+   */
   #tileCenters = [];
+  /**
+   *
+   * @type {Array}
+   */
   #visualPoints = [];
+  /**
+   *
+   * @type {Map}
+   */
   #visualGroups = new Map();
+  /**
+   *
+   * @type {Set}
+   */
   #protectedVisualGroups = new Set();
+  /**
+   *
+   * @type {Set}
+   */
   #alwaysCenteredVisualGroups = new Set();
+  /**
+   *
+   * @type {string}
+   */
   #allowedHullCacheKey = "";
+  /**
+   *
+   * @type {Array}
+   */
   #allowedHullCache = [];
 
+  /**
+   *
+   * @param {import("src/game/GameContracts.js").GameMapData} mapData
+   */
   constructor(mapData) {
     const { grid, heightmap, cols, rows } = mapData ?? {};
     if (!grid || !Number.isFinite(cols) || !Number.isFinite(rows)) {
@@ -43,6 +91,15 @@ export class CameraPanBounds {
     }
   }
 
+  /**
+   *
+   * @param {pc.Vec3|pc.Vec3} center
+   * @param {Array} halfExtents
+   * @param {{group: string|number|symbol, protectAtPanLimit: boolean, centerReachableAtEveryZoom: number}} options
+   * @param {string|number|symbol} options.group
+   * @param {boolean} options.protectAtPanLimit
+   * @param {number} options.centerReachableAtEveryZoom
+   */
   addVisualBounds(
     center,
     halfExtents,
@@ -79,6 +136,11 @@ export class CameraPanBounds {
     this.#allowedHullCacheKey = "";
   }
 
+  /**
+   *
+   * @param {{position: pc.Vec3, target: pc.Vec3}} view
+   * @param {pc.Vec3|pc.Vec3} origin
+   */
   constrain(view, origin = null) {
     if (view.zoom <= 1) {
       return { x: view.centerX, z: view.centerZ };
@@ -115,6 +177,10 @@ export class CameraPanBounds {
     };
   }
 
+  /**
+   *
+   * @param {{position: pc.Vec3, target: pc.Vec3}} view
+   */
   visibility(view) {
     const frame = this.#frame(view);
     const allowedHull = this.#extendedAllowedHull(
@@ -125,7 +191,12 @@ export class CameraPanBounds {
       { x: view.panX, y: view.targetY, z: view.panZ },
       frame,
     );
-    const safeVisibleTileCenters = this.#tileCenters.reduce((count, point) => {
+    const safeVisibleTileCenters = this.#tileCenters.reduce(/**
+     *
+     * @param {number} count
+     * @param {import("src/game/GameContracts.js").GridPoint} point
+     */
+    (count, point) => {
       const projected = this.#project(point, frame);
       const visible =
         Math.abs(projected.x - target.x) <=
@@ -144,7 +215,13 @@ export class CameraPanBounds {
       panWithinBounds:
         view.zoom <= 1 || this.#contains(target, allowedHull),
       visualGroups: Object.fromEntries(
-        [...this.#visualGroups].map(([name, points]) => [
+        [...this.#visualGroups].map(/**
+         *
+         * @param {{"0": Array, "1": Array}} options
+         * @param {Array} options."0"
+         * @param {Array} options."1"
+         */
+        ([name, points]) => [
           name,
           this.#screenBounds(points, target, frame),
         ]),
@@ -152,21 +229,60 @@ export class CameraPanBounds {
     };
   }
 
+  /**
+   *
+   * @param {WorldPoint[]} points
+   * @param {EventTarget|pc.Entity} target
+   * @param {number} frame
+   */
   #screenBounds(points, target, frame) {
-    const projected = points.map((point) => this.#project(point, frame));
+    const projected = points.map(/**
+     *
+     * @param {import("src/game/GameContracts.js").GridPoint} point
+     */
+    (point) => this.#project(point, frame));
     const worldPerPixel = (frame.halfHeight * 2) / frame.viewportHeight;
-    const screenPoints = projected.map((point) => ({
+    const screenPoints = projected.map(/**
+     *
+     * @param {import("src/game/GameContracts.js").GridPoint} point
+     */
+    (point) => ({
       x: frame.viewportWidth / 2 + (point.x - target.x) / worldPerPixel,
       y: frame.viewportHeight / 2 + (point.y - target.y) / worldPerPixel,
     }));
     return {
-      left: Math.min(...screenPoints.map(({ x }) => x)),
-      top: Math.min(...screenPoints.map(({ y }) => y)),
-      right: Math.max(...screenPoints.map(({ x }) => x)),
-      bottom: Math.max(...screenPoints.map(({ y }) => y)),
+      left: Math.min(...screenPoints.map(/**
+       *
+       * @param {{x: number}} options
+       * @param {number} options.x
+       */
+      ({ x }) => x)),
+      top: Math.min(...screenPoints.map(/**
+       *
+       * @param {{y: number}} options
+       * @param {number} options.y
+       */
+      ({ y }) => y)),
+      right: Math.max(...screenPoints.map(/**
+       *
+       * @param {{x: number}} options
+       * @param {number} options.x
+       */
+      ({ x }) => x)),
+      bottom: Math.max(...screenPoints.map(/**
+       *
+       * @param {{y: number}} options
+       * @param {number} options.y
+       */
+      ({ y }) => y)),
     };
   }
 
+  /**
+   *
+   * @param {boolean} allowedHull
+   * @param {number} frame
+   */
   #extendedAllowedHull(allowedHull, frame) {
     const points = [...allowedHull];
     const zoomRange = Math.max(
@@ -224,19 +340,52 @@ export class CameraPanBounds {
     return this.#convexHull(points);
   }
 
+  /**
+   *
+   * @param {WorldPoint[]} points
+   * @param {number} frame
+   */
   #projectedBounds(points, frame) {
     if (points.length === 0) {
       return null;
     }
-    const projected = points.map((point) => this.#project(point, frame));
+    const projected = points.map(/**
+     *
+     * @param {import("src/game/GameContracts.js").GridPoint} point
+     */
+    (point) => this.#project(point, frame));
     return {
-      minimumX: Math.min(...projected.map(({ x }) => x)),
-      minimumY: Math.min(...projected.map(({ y }) => y)),
-      maximumX: Math.max(...projected.map(({ x }) => x)),
-      maximumY: Math.max(...projected.map(({ y }) => y)),
+      minimumX: Math.min(...projected.map(/**
+       *
+       * @param {{x: number}} options
+       * @param {number} options.x
+       */
+      ({ x }) => x)),
+      minimumY: Math.min(...projected.map(/**
+       *
+       * @param {{y: number}} options
+       * @param {number} options.y
+       */
+      ({ y }) => y)),
+      maximumX: Math.max(...projected.map(/**
+       *
+       * @param {{x: number}} options
+       * @param {number} options.x
+       */
+      ({ x }) => x)),
+      maximumY: Math.max(...projected.map(/**
+       *
+       * @param {{y: number}} options
+       * @param {number} options.y
+       */
+      ({ y }) => y)),
     };
   }
 
+  /**
+   *
+   * @param {number} frame
+   */
   #allowedTargetHull(frame) {
     const cacheKey = [
       frame.cosYaw,
@@ -249,7 +398,11 @@ export class CameraPanBounds {
       return this.#allowedHullCache;
     }
     const projectedHull = this.#convexHull(
-      this.#visualPoints.map((point) => this.#project(point, frame)),
+      this.#visualPoints.map(/**
+       *
+       * @param {import("src/game/GameContracts.js").GridPoint} point
+       */
+      (point) => this.#project(point, frame)),
     );
     if (projectedHull.length < 3) {
       return this.#cacheAllowedHull(cacheKey, projectedHull);
@@ -276,12 +429,23 @@ export class CameraPanBounds {
     return this.#cacheAllowedHull(cacheKey, allowedHull);
   }
 
+  /**
+   *
+   * @param {KeyboardEvent} cacheKey
+   * @param {pc.Vec3[]} hull
+   */
   #cacheAllowedHull(cacheKey, hull) {
     this.#allowedHullCacheKey = cacheKey;
     this.#allowedHullCache = hull;
     return hull;
   }
 
+  /**
+   *
+   * @param {pc.Vec3[]} hull
+   * @param {number} frame
+   * @param {number} scale
+   */
   #insetHull(hull, frame, scale) {
     let polygon = hull;
     for (let index = 0; index < hull.length; index += 1) {
@@ -301,6 +465,13 @@ export class CameraPanBounds {
     return polygon;
   }
 
+  /**
+   *
+   * @param {Array<{x: number, z: number}>} polygon
+   * @param {pc.Vec3|pc.Vec3} edgeStart
+   * @param {pc.Vec3|pc.Vec3} edgeEnd
+   * @param {number} inset
+   */
   #clipPolygon(polygon, edgeStart, edgeEnd, inset) {
     const clipped = [];
     for (let index = 0; index < polygon.length; index += 1) {
@@ -327,6 +498,11 @@ export class CameraPanBounds {
     return clipped;
   }
 
+  /**
+   *
+   * @param {import("src/game/GameContracts.js").GridPoint} point
+   * @param {Array<{x: number, z: number}>} polygon
+   */
   #closestPointInPolygon(point, polygon) {
     if (this.#contains(point, polygon)) {
       return point;
@@ -347,6 +523,12 @@ export class CameraPanBounds {
     return nearest;
   }
 
+  /**
+   *
+   * @param {import("src/game/GameContracts.js").GridPoint} point
+   * @param {pc.Vec3|pc.Vec3} start
+   * @param {pc.Vec3|pc.Vec3} end
+   */
   #closestPointOnSegment(point, start, end) {
     const deltaX = end.x - start.x;
     const deltaY = end.y - start.y;
@@ -366,6 +548,12 @@ export class CameraPanBounds {
     };
   }
 
+  /**
+   *
+   * @param {pc.Vec3|pc.Vec3} start
+   * @param {pc.Vec3|pc.Vec3} end
+   * @param {Array<{x: number, z: number}>} polygon
+   */
   #furthestAllowedPoint(start, end, polygon) {
     if (this.#contains(end, polygon)) {
       return end;
@@ -393,6 +581,11 @@ export class CameraPanBounds {
     };
   }
 
+  /**
+   *
+   * @param {import("src/game/GameContracts.js").GridPoint} point
+   * @param {Array<{x: number, z: number}>} polygon
+   */
   #contains(point, polygon) {
     if (polygon.length === 0) {
       return false;
@@ -413,16 +606,33 @@ export class CameraPanBounds {
     return true;
   }
 
+  /**
+   *
+   * @param {ScreenPoint[]} points
+   */
   #convexHull(points) {
     const uniquePoints = [
       ...new Map(
-        points.map((point) => [`${point.x}:${point.y}`, point]),
+        points.map(/**
+         *
+         * @param {import("src/game/GameContracts.js").GridPoint} point
+         */
+        (point) => [`${point.x}:${point.y}`, point]),
       ).values(),
-    ].sort((left, right) => left.x - right.x || left.y - right.y);
+    ].sort(/**
+     *
+     * @param {ScreenPoint} left
+     * @param {ScreenPoint} right
+     */
+    (left, right) => left.x - right.x || left.y - right.y);
     if (uniquePoints.length <= 2) {
       return uniquePoints;
     }
 
+    /**
+     *
+     * @param {Array} orderedPoints
+     */
     const buildHalf = (orderedPoints) => {
       const half = [];
       for (const point of orderedPoints) {
@@ -443,6 +653,10 @@ export class CameraPanBounds {
     return [...lower, ...upper];
   }
 
+  /**
+   *
+   * @param {Array<{x: number, z: number}>} polygon
+   */
   #hasArea(polygon) {
     if (polygon.length < 3) {
       return false;
@@ -456,6 +670,16 @@ export class CameraPanBounds {
     return Math.abs(doubledArea) > VISIBILITY_TOLERANCE;
   }
 
+  /**
+   *
+   * @param {{rotation: pc.Vec3, pitch: number, zoom: number, orthoHeight: number, viewportWidth: number, viewportHeight: number}} options
+   * @param {pc.Vec3} options.rotation
+   * @param {number} options.pitch
+   * @param {number} options.zoom
+   * @param {number} options.orthoHeight
+   * @param {number} options.viewportWidth
+   * @param {number} options.viewportHeight
+   */
   #frame({
     rotation,
     pitch,
@@ -493,6 +717,11 @@ export class CameraPanBounds {
     };
   }
 
+  /**
+   *
+   * @param {import("src/game/GameContracts.js").GridPoint} point
+   * @param {number} frame
+   */
   #project(point, frame) {
     const depth = point.x * frame.sinYaw + point.z * frame.cosYaw;
     return {
@@ -501,6 +730,12 @@ export class CameraPanBounds {
     };
   }
 
+  /**
+   *
+   * @param {pc.Vec3|pc.Vec3} origin
+   * @param {number} first
+   * @param {number} second
+   */
   #cross(origin, first, second) {
     return (
       (first.x - origin.x) * (second.y - origin.y) -
@@ -508,6 +743,12 @@ export class CameraPanBounds {
     );
   }
 
+  /**
+   *
+   * @param {number} value
+   * @param {number} minimum
+   * @param {number} maximum
+   */
   #clamp(value, minimum, maximum) {
     return Math.max(minimum, Math.min(maximum, value));
   }

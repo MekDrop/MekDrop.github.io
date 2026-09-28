@@ -370,7 +370,11 @@ export default {
     };
 
     const mainMenu = computed(() => {
-      return getMainMenu(i18n).filter((item) => !!item);
+      return getMainMenu(i18n).filter(/**
+       *
+       * @param {{url: string, label: string}|null} item
+       */
+      (item) => !!item);
     });
 
     const otherLinksSearchResults = computed(() => {

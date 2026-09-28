@@ -27,16 +27,48 @@ const FALLBACK_VISUAL_SIZE = Object.freeze({ x: 1.2, y: 2.2, z: 1.2 });
  * An imported seated royal whose local +Z axis faces the visitor.
  */
 export class SeatedRoyal {
+  /**
+   *
+    * @returns {string}
+   */
   static get modelUrls() {
     return MODEL_URLS;
   }
 
+  /**
+   *
+    * @type {import("playcanvas").Entity}
+   */
   #entity;
+  /**
+   *
+    * @type {KingGameOverBehavior|QueenGameOverBehavior|PrincessGameOverBehavior}
+   */
   #gameOverBehavior;
+  /**
+   *
+    * @type {{follower: RoyalGameOverRouteFollower, collisionRadius: number, isBlocked: (x: number, z: number, radius: number) => boolean, getCameraPosition: () => {x: number, y: number, z: number}}|null}
+   */
   #gameOverRoute = null;
+  /**
+   *
+    * @type {RoyalTears}
+   */
   #tears;
+  /**
+   *
+    * @type {number}
+   */
   #walkDuration;
 
+  /**
+   *
+   * @param {{pc: typeof import("playcanvas"), app: import("playcanvas").Application, modelUrl: string, modelLibrary: string}} options
+   * @param {typeof import("playcanvas")} options.pc
+   * @param {import("playcanvas").Application} options.app
+   * @param {string} options.modelUrl
+   * @param {string} options.modelLibrary
+   */
   constructor({ pc, app, modelUrl = kingModelUrl, modelLibrary }) {
     const modelIndex = MODEL_URLS.indexOf(modelUrl);
     const kind = ["KING", "QUEEN", "PRINCESS"][modelIndex] ?? "KING";
@@ -69,7 +101,16 @@ export class SeatedRoyal {
       walkDuration,
       walkStartDelay: WALK_START_DELAY,
       beginWalk: () => this.#beginGameOverWalk(),
+      /**
+       *
+       * @param {number} progress
+       */
       move: (progress) => this.#moveGameOverWalk(progress),
+      /**
+       *
+       * @param {string} animation
+       * @param {number} blendDuration
+       */
       playAnimation: (animation, blendDuration) =>
         this.#playAnimation(animation, blendDuration),
     });
@@ -79,10 +120,18 @@ export class SeatedRoyal {
     return this.#entity;
   }
 
+  /**
+   *
+    * @returns {{lateral: number, forward: number, elevation: number}}
+   */
   get gameOverDestination() {
     return this.#gameOverBehavior.destination;
   }
 
+  /**
+   *
+    * @returns {{center: {x: number, y: number, z: number}, size: {x: number, y: number, z: number}}}
+   */
   get visualBounds() {
     let minimumX = Number.POSITIVE_INFINITY;
     let minimumY = Number.POSITIVE_INFINITY;
@@ -129,6 +178,12 @@ export class SeatedRoyal {
     };
   }
 
+  /**
+   *
+   * @param {{route: {waypoints: Array<{x: number, y: number, z: number}>, collisionRadius: number, isBlocked: (x: number, z: number, radius: number) => boolean}, getCameraPosition: () => {x: number, y: number, z: number}}} options
+   * @param {{waypoints: Array<{x: number, y: number, z: number}>, collisionRadius: number, isBlocked: (x: number, z: number, radius: number) => boolean}} options.route
+   * @param {() => {x: number, y: number, z: number}} options.getCameraPosition
+   */
   beginGameOver({ route, getCameraPosition }) {
     if (this.#gameOverBehavior.active) {
       return;
@@ -145,10 +200,20 @@ export class SeatedRoyal {
     this.#gameOverBehavior.start();
   }
 
+  /**
+   *
+   * @param {{blendDuration: number}} options
+   * @param {number} options.blendDuration
+   */
   beginCrying({ blendDuration = 0 } = {}) {
     this.#playAnimation(ROYAL_ANIMATION.CRY, blendDuration);
   }
 
+  /**
+   *
+   * @param {string} animation
+   * @param {number} blendDuration
+   */
   #playAnimation(animation, blendDuration = 0) {
     if (blendDuration > 0) {
       this.#entity.anim.baseLayer.transition(animation, blendDuration);
@@ -157,6 +222,10 @@ export class SeatedRoyal {
     }
   }
 
+  /**
+   *
+   * @param {number} deltaTime
+   */
   update(deltaTime) {
     this.#gameOverBehavior.update(deltaTime);
   }
@@ -173,6 +242,10 @@ export class SeatedRoyal {
     this.#applyGameOverPose(this.#gameOverRoute.follower.pose);
   }
 
+  /**
+   *
+   * @param {number} progress
+   */
   #moveGameOverWalk(progress) {
     const pose = this.#gameOverRoute.follower.advance(progress);
     const { position } = pose;
@@ -194,6 +267,10 @@ export class SeatedRoyal {
     return true;
   }
 
+  /**
+   *
+   * @param {{x: number, y: number, z: number}} position
+   */
   #faceGameOverCamera(position) {
     const cameraPosition = this.#gameOverRoute.getCameraPosition?.();
     if (cameraPosition) {
@@ -204,6 +281,12 @@ export class SeatedRoyal {
     }
   }
 
+  /**
+   *
+   * @param {{position: {x: number, y: number, z: number}, rotation: number}} options
+   * @param {{x: number, y: number, z: number}} options.position
+   * @param {number} options.rotation
+   */
   #applyGameOverPose({ position, rotation }) {
     this.#entity.setLocalPosition(position.x, position.y, position.z);
     this.#entity.setLocalRotation(
@@ -214,6 +297,11 @@ export class SeatedRoyal {
     );
   }
 
+  /**
+   *
+   * @param {number} x
+   * @param {number} z
+   */
   #face(x, z) {
     if (Math.hypot(x, z) <= 0.001) {
       return;

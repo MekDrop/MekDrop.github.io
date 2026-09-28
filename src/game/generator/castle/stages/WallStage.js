@@ -9,6 +9,10 @@ import { CastleBuildPlanWriter } from "../CastleBuildPlanWriter.js";
 import { CastleGeometryPlanner } from "../CastleGeometryPlanner.js";
 
 export class WallStage extends AbstractCastleGenerationStage {
+  /**
+   *
+   * @param {CastleGenerationContext} context
+   */
   async run(context) {
     if (context.layout.empty) {
       return;
@@ -27,6 +31,10 @@ export class WallStage extends AbstractCastleGenerationStage {
     };
 
     const audienceOpening = openings.find(
+      /**
+       *
+       * @param {import("src/game/GameContracts.js").CastleOpening} opening
+       */
       (opening) => opening.boundary === CASTLE_BOUNDARY.FRONT,
     );
     context.structure.audienceWing = audienceOpening

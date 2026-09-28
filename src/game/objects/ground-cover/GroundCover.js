@@ -123,28 +123,112 @@ const STILL_ZOOM = 1;
 const FULL_AMBIENT_MOTION_ZOOM = 1.1;
 
 export class GroundCover {
+  /**
+   *
+    * @returns {number}
+   */
   static get modelUrls() {
-    return Object.values(GROUND_COVER_VARIANTS).map(({ modelUrl }) => modelUrl);
+    return Object.values(GROUND_COVER_VARIANTS).map(/**
+     *
+     * @param {{modelUrl: string}} options
+     * @param {string} options.modelUrl
+     */
+    ({ modelUrl }) => modelUrl);
   }
 
+  /**
+   *
+    * @type {typeof import("playcanvas")}
+   */
   #pc;
+  /**
+   *
+    * @type {import("playcanvas").Application}
+   */
   #app;
+  /**
+   *
+    * @type {import("playcanvas").Entity}
+   */
   #entity;
+  /**
+   *
+    * @type {Array<GroundCoverItem>}
+   */
   #items = [];
+  /**
+   *
+    * @type {Array<GroundCoverCollectible>}
+   */
   #collectibles = [];
+  /**
+   *
+    * @type {FlowerPhysics|null}
+   */
   #flowerPhysics;
+  /**
+   *
+    * @type {MushroomPhysics|null}
+   */
   #mushroomPhysics;
+  /**
+   *
+    * @type {Map}
+   */
   #materials = new Map();
+  /**
+   *
+    * @type {Map}
+   */
   #heldMaterials = new Map();
+  /**
+   *
+    * @type {Array<import("playcanvas").VertexBuffer>}
+   */
   #vertexBuffers = [];
+  /**
+   *
+    * @type {import("playcanvas").EventHandle|null}
+   */
   #updateHandle = null;
+  /**
+   *
+    * @type {number}
+   */
   #elapsed = 0;
+  /**
+   *
+    * @type {number}
+   */
   #ambientMotion = 0;
 
+  /**
+   *
+    * @type {(item: GroundCoverCollectible) => void}
+   */
   #onCollect;
+  /**
+   *
+    * @type {(item: GroundCoverCollectible) => void}
+   */
   #onCollectibleRemoved;
+  /**
+   *
+    * @type {typeof import("playcanvas")}
+   */
   #tool = null;
 
+  /**
+   *
+   * @param {{pc: typeof import("playcanvas"), app: import("playcanvas").Application, mapData: import("src/game/objects/ObjectTypes.js").GameMapData, modelLibrary: string, zoom: number, onCollect: (item: GroundCoverCollectible) => void, onCollectibleRemoved: (item: GroundCoverCollectible) => void}} options
+   * @param {typeof import("playcanvas")} options.pc
+   * @param {import("playcanvas").Application} options.app
+   * @param {import("src/game/objects/ObjectTypes.js").GameMapData} options.mapData
+   * @param {string} options.modelLibrary
+   * @param {number} options.zoom
+   * @param {(item: GroundCoverCollectible) => void} options.onCollect
+   * @param {(item: GroundCoverCollectible) => void} options.onCollectibleRemoved
+   */
   constructor({
     pc,
     app,
@@ -173,8 +257,16 @@ export class GroundCover {
     return this.#entity;
   }
 
+  /**
+   *
+    * @returns {boolean}
+   */
   get grassImpressionContacts() {
-    return this.#items.flatMap((item) => item.grassImpressionContacts);
+    return this.#items.flatMap(/**
+     *
+     * @param {GroundCoverCollectible} item
+     */
+    (item) => item.grassImpressionContacts);
   }
 
   set tool(tool) {
@@ -199,11 +291,28 @@ export class GroundCover {
     }
   }
 
+  /**
+   *
+   * @param {{x: number, y: number, z: number}} options
+   * @param {number} options.x
+   * @param {number} options.y
+   * @param {number} options.z
+   * @param {{directionX: number, directionZ: number, strength: number}} movement
+   */
   applyHeroInteraction({ x, y, z }, movement) {
     this.#flowerPhysics.updateHeroPosition({ x, y, z }, movement?.direction);
     this.#mushroomPhysics.updateHeroPosition({ x, y, z }, movement);
   }
 
+  /**
+   *
+   * @param {{hero: import("src/game/objects/ObjectTypes.js").HeroLike, onChange: (value: import("src/game/objects/ObjectTypes.js").InteractionLike|null) => void, onComplete: () => void, reach: number, heightTolerance: number}} options
+   * @param {import("src/game/objects/ObjectTypes.js").HeroLike} options.hero
+   * @param {(value: import("src/game/objects/ObjectTypes.js").InteractionLike|null) => void} options.onChange
+   * @param {() => void} options.onComplete
+   * @param {number} options.reach
+   * @param {number} options.heightTolerance
+   */
   findInteraction({
     hero,
     onChange = null,
@@ -332,6 +441,11 @@ export class GroundCover {
     }
   }
 
+  /**
+   *
+   * @param {import("src/game/objects/ObjectTypes.js").GameMapData} mapData
+   * @param {string} modelLibrary
+   */
   #buildGroundCover(mapData, modelLibrary) {
     const matricesByVariant = new Map();
     for (const [decorationIndex, decoration] of (
@@ -370,6 +484,10 @@ export class GroundCover {
           position: { x, y, z },
           interactionRadius: definition.interactionRadius * decoration.scale,
           scale,
+          /**
+           *
+           * @param {{x: number, y: number, z: number}} impact
+           */
           onDestroy: (impact) => collectible?.destroy(impact),
         });
         collectible = this.#createCollectible({
@@ -382,6 +500,10 @@ export class GroundCover {
             item.collect();
             this.#mushroomPhysics.hide(mushroom);
           },
+          /**
+           *
+           * @param {{x: number, y: number, z: number}} impact
+           */
           onDestroy: (impact) => {
             item.crush(impact);
             this.#mushroomPhysics.hide(mushroom);
@@ -451,6 +573,17 @@ export class GroundCover {
     }
   }
 
+  /**
+   *
+   * @param {{decoration: {variant: string, category: number, labelKey: string, icon: string, modelUrl: string, interactionRadius: number}, decorationIndex: {variant: string, category: number, labelKey: string, icon: string, modelUrl: string, interactionRadius: number}, definition: import("src/game/objects/ObjectTypes.js").MapObjectDefinition, modelLibrary: string, position: {x: number, y: number, z: number}, onHide: () => void, onDestroy: () => void}} options
+   * @param {{variant: string, category: number, labelKey: string, icon: string, modelUrl: string, interactionRadius: number}} options.decoration
+   * @param {{variant: string, category: number, labelKey: string, icon: string, modelUrl: string, interactionRadius: number}} options.decorationIndex
+   * @param {import("src/game/objects/ObjectTypes.js").MapObjectDefinition} options.definition
+   * @param {string} options.modelLibrary
+   * @param {{x: number, y: number, z: number}} options.position
+   * @param {() => void} options.onHide
+   * @param {() => void} options.onDestroy
+   */
   #createCollectible({
     decoration,
     decorationIndex,
@@ -478,6 +611,10 @@ export class GroundCover {
           category: definition.category,
         });
       },
+      /**
+       *
+       * @param {{x: number, y: number, z: number}} impact
+       */
       onDestroy: (impact) => {
         onDestroy(impact);
         this.#onCollectibleRemoved({
@@ -515,6 +652,11 @@ export class GroundCover {
     });
   }
 
+  /**
+   *
+   * @param {number} deltaTime
+    * @type {(deltaTime: number) => void}
+   */
   #update = (deltaTime) => {
     const frameTime = Math.min(deltaTime, 0.1);
     this.#elapsed += frameTime;

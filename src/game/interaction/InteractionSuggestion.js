@@ -1,18 +1,59 @@
 const DEFAULT_COOLDOWN_MILLISECONDS = 400;
 
 export class InteractionSuggestion {
+  /**
+   *
+   * @type {(value: boolean|number|string|null) => void}
+   */
   #onChange;
+  /**
+   *
+   * @type {Array}
+   */
   #cooldownMilliseconds;
+  /**
+   *
+   * @type {number}
+   */
   #lastChangeAt = Number.NEGATIVE_INFINITY;
+  /**
+   *
+   * @type {null}
+   */
   #pendingTarget = null;
+  /**
+   *
+   * @type {boolean}
+   */
   #hasPendingTarget = false;
+  /**
+   *
+   * @type {null}
+   */
   #timeoutId = null;
 
+  /**
+   *
+   * @param {(value: boolean|number|(value: boolean|number|string|null) => void|null) => void} onChange
+   * @param {number} cooldownMilliseconds
+   */
   constructor(onChange, cooldownMilliseconds = DEFAULT_COOLDOWN_MILLISECONDS) {
+    /**
+     *
+     * @type {(value: boolean|number|string|null) => void}
+     */
     this.#onChange = onChange;
+    /**
+     *
+     * @type {Array}
+     */
     this.#cooldownMilliseconds = cooldownMilliseconds;
   }
 
+  /**
+   *
+   * @param {EventTarget|pc.Entity} target
+   */
   update(target) {
     this.#pendingTarget = target;
     this.#hasPendingTarget = true;

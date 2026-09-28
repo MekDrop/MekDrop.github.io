@@ -4,13 +4,29 @@ import { AbstractMapGenerationStage } from "../AbstractMapGenerationStage.js";
  * Resolves terrain smoothing, banks, supports, dips, and tile elevations.
  */
 export class TerrainStage extends AbstractMapGenerationStage {
+  /**
+   *
+   * @type {Array}
+   */
   #operations;
 
+  /**
+   *
+   * @param {Array<() => void>} operations
+   */
   constructor(operations) {
     super();
+    /**
+     *
+     * @type {Array}
+     */
     this.#operations = operations;
   }
 
+  /**
+   *
+   * @param {GenerationContext} context
+   */
   async run(context) {
     const { grid, heightmap, tileMeta, islandMask } = context.world;
     const { layout, mergeZones } = context.routing;

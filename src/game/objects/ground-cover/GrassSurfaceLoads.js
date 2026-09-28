@@ -2,7 +2,15 @@ const MAXIMUM_SURFACE_LOADS = 4;
 const VALUES_PER_LOAD = 4;
 
 export class GrassSurfaceLoads {
+  /**
+   *
+    * @type {Float32Array}
+   */
   #positions = new Float32Array(MAXIMUM_SURFACE_LOADS * VALUES_PER_LOAD);
+  /**
+   *
+    * @type {Float32Array}
+   */
   #loads = new Float32Array(MAXIMUM_SURFACE_LOADS * VALUES_PER_LOAD);
 
   get positions() {
@@ -13,10 +21,19 @@ export class GrassSurfaceLoads {
     return this.#loads;
   }
 
+  /**
+   *
+   * @param {number} contacts
+   */
   update(contacts = []) {
     this.#positions.fill(0);
     this.#loads.fill(0);
-    contacts.slice(0, MAXIMUM_SURFACE_LOADS).forEach((contact, index) => {
+    contacts.slice(0, MAXIMUM_SURFACE_LOADS).forEach(/**
+     *
+     * @param {number} contact
+     * @param {number} index
+     */
+    (contact, index) => {
       const offset = index * VALUES_PER_LOAD;
       this.#positions.set([
         contact.x ?? 0,

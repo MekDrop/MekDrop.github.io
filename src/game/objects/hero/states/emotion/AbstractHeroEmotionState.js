@@ -5,13 +5,45 @@ import { State } from "yuka";
  * @abstract
  */
 export class AbstractHeroEmotionState extends State {
+  /**
+   *
+    * @type {string}
+   */
   #emotion;
+  /**
+   *
+    * @type {number}
+   */
   #minimumPressure;
+  /**
+   *
+    * @type {number}
+   */
   #levelCount;
+  /**
+   *
+    * @type {Array<number>}
+   */
   #tracksPressureLevels;
+  /**
+   *
+    * @type {number}
+   */
   #pressure = 0;
+  /**
+   *
+    * @type {number}
+   */
   #level = 0;
 
+  /**
+   *
+   * @param {string} emotion
+   * @param {number} minimumPressure
+   * @param {number} levelCount
+   * @param {{tracksPressureLevels: Array<number>}} options
+   * @param {Array<number>} options.tracksPressureLevels
+   */
   constructor(
     emotion,
     minimumPressure,
@@ -51,6 +83,10 @@ export class AbstractHeroEmotionState extends State {
     return this.#level;
   }
 
+  /**
+   *
+    * @returns {boolean}
+   */
   get acceptsActions() {
     return true;
   }
@@ -63,6 +99,10 @@ export class AbstractHeroEmotionState extends State {
     this.#level = Math.min(this.#levelCount, Math.max(1, this.#level + 1));
   }
 
+  /**
+   *
+   * @param {number} level
+   */
   setLevel(level) {
     if (!Number.isFinite(level)) {
       return;

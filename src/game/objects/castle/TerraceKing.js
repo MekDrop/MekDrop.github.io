@@ -7,25 +7,80 @@ import { TerraceActor } from "./TerraceActor.js";
  * Owns the king model, its embedded animation player, and roof routine.
  */
 export class TerraceKing {
+  /**
+   *
+    * @returns {string}
+   */
   static get kind() {
     return "king";
   }
 
+  /**
+   *
+    * @returns {string}
+   */
   static get modelUrl() {
     return kingModelUrl;
   }
 
+  /**
+   *
+    * @type {TerraceActor|null}
+   */
   #actor;
+  /**
+   *
+    * @type {KingTerracePerformance|null}
+   */
   #performance;
+  /**
+   *
+    * @type {import("playcanvas").AnimController|null}
+   */
   #animationLayer;
+  /**
+   *
+    * @type {string}
+   */
   #animationName;
+  /**
+   *
+    * @type {string}
+   */
   #animationStep = "idle";
+  /**
+   *
+    * @type {string}
+   */
   #action;
+  /**
+   *
+    * @type {{x: number, y: number, z: number}}
+   */
   #performanceOrigin;
+  /**
+   *
+    * @type {{x: number, y: number, z: number}}
+   */
   #performanceRotation;
+  /**
+   *
+    * @type {import("src/game/objects/ObjectTypes.js").Point3|null}
+   */
   #lastOffset = { x: 0, y: 0, z: 0 };
+  /**
+   *
+    * @type {number}
+   */
   #lastYaw = 0;
 
+  /**
+   *
+   * @param {{pc: typeof import("playcanvas"), modelLibrary: string, performanceSeed: number|string}} options
+   * @param {typeof import("playcanvas")} options.pc
+   * @param {string} options.modelLibrary
+   * @param {number|string} options.performanceSeed
+   */
   constructor({ pc, modelLibrary, performanceSeed }) {
     this.#actor = new TerraceActor({
       pc,
@@ -37,26 +92,52 @@ export class TerraceKing {
     this.#setupAnimations(modelLibrary);
   }
 
+  /**
+   *
+    * @returns {import("playcanvas").Entity}
+   */
   get entity() {
     return this.#actor.entity;
   }
 
+  /**
+   *
+    * @returns {number}
+   */
   get rightHand() {
     return this.#actor.rightHand;
   }
 
+  /**
+   *
+    * @returns {import("playcanvas").Entity|null}
+   */
   get leftHand() {
     return this.#actor.leftHand;
   }
 
+  /**
+   *
+    * @returns {import("playcanvas").Entity|null}
+   */
   get head() {
     return this.#actor.head;
   }
 
+  /**
+   *
+    * @returns {number}
+   */
   get height() {
     return this.#actor.height;
   }
 
+  /**
+   *
+   * @param {string} action
+   * @param {number} time
+   * @param {number} blend
+   */
   pose(action, time = 0, blend = 1) {
     if (action !== this.#action) {
       this.#action = action;
@@ -111,6 +192,10 @@ export class TerraceKing {
     this.#performanceRotation = null;
   }
 
+  /**
+   *
+   * @param {string} modelLibrary
+   */
   #setupAnimations(modelLibrary) {
     const names = Object.values(KING_ANIMATION);
     const tracks = modelLibrary.getAnimationTracks(kingModelUrl, names);
@@ -129,6 +214,12 @@ export class TerraceKing {
     this.#animationName = KING_ANIMATION.TERRACE_IDLE;
   }
 
+  /**
+   *
+   * @param {string} name
+   * @param {string|number} sequenceStep
+   * @param {number} speed
+   */
   #play(name, sequenceStep, speed) {
     this.#actor.model.anim.speed = speed;
     if (name === this.#animationName && sequenceStep === this.#animationStep) {

@@ -27,6 +27,32 @@ import { BuffSystem } from "../../buffs/BuffSystem.js";
 import { AxeTool, KnifeTool, ShovelTool } from "./tools/index.js";
 import { projectFirstPersonMovement } from "./projectFirstPersonMovement.js";
 
+/**
+ * @typedef {{capacity: number, items: Array<{id: string, variant: string, quantity?: number}>}} HeroInventory
+ * @typedef {object} HeroState
+ * @property {number} lives
+ * @property {number} maxLives
+ * @property {boolean} gameOver
+ * @property {boolean} drowning
+ * @property {boolean} burning
+ * @property {boolean} ashes
+ * @property {Record<string, number>} wallet
+ * @property {HeroInventory} inventory
+ * @property {{kind: string, speedMultiplier: number, escaping: boolean}} mood
+ * @property {string} action
+ * @property {Array<{type: string, remaining: number}>} buffs
+ * @property {{walkSpeed: number, runSpeed: number}} stats
+ * @typedef {{inventory: HeroInventory, addInventoryItem: (item: {id: string, variant: string, quantity?: number}) => boolean}} HeroConfigurationStore
+ * @typedef {object} HeroPresentation
+ * @property {{setMood: (mood: {kind: string}|null) => void, sync: (state: HeroState) => void, $reset: () => void} [stateStore]
+ * @property {{setLives: (lives: number, maximum: number) => void}} [lifeHud]
+ * @property {{setWallet: (wallet: Record<string, number>) => void}} [coinHud]
+ * @property {{setInventory: (inventory: HeroInventory) => void, showFullReaction: (position: {x: number, y: number}|null) => void}} [inventoryScene]
+ * @property {{syncHeroState: (state: HeroState) => void}} [gameOverScene]
+ * @property {() => {x: number, y: number}|null} [getInventoryFullScreenPosition]
+ * @property {() => {x: number, y: number}|null} [getMoodScreenPosition]
+ */
+
 const MAX_FRAME_TIME = 0.1;
 const MOVE_SPEED = 4.2;
 const RUN_SPEED = 6.3;
@@ -156,12 +182,36 @@ const PAT_HAIR_CONTACT_HEIGHT = 0.78;
 const HAIR_ENTITY_NAME = /(?:hair|nape lock|swept fringe|layered lock)/i;
 
 export class Hero {
+  /**
+   *
+    * @type {BuffSystem}
+   */
   #buffs = new BuffSystem();
+  /**
+   *
+    * @type {HeroEmotionBehavior}
+   */
   #emotionBehavior = new HeroEmotionBehavior(this.#buffs);
+  /**
+   *
+    * @type {HeroAngryEscapeBehavior}
+   */
   #angryEscapeBehavior = new HeroAngryEscapeBehavior();
+  /**
+   *
+    * @type {HeroIdleBehavior}
+   */
   #idleBehavior = new HeroIdleBehavior();
+  /**
+   *
+    * @type {Array<{meshInstance: import("playcanvas").MeshInstance, morphInstance: import("playcanvas").MorphInstance}>}
+   */
   #faceMorphs = [];
 
+  /**
+   *
+    * @returns {string}
+   */
   get mood() {
     return {
       ...this.#emotionBehavior.state,
@@ -171,10 +221,18 @@ export class Hero {
     };
   }
 
+  /**
+   *
+    * @returns {Array<{type: string, remaining: number}>}
+   */
   get buffs() {
     return this.#buffs.state;
   }
 
+  /**
+   *
+    * @returns {{walkSpeed: number, runSpeed: number}}
+   */
   get stats() {
     return {
       walkSpeed: this.#buffs.modifyStat(HERO_STAT.MOVEMENT_SPEED, MOVE_SPEED),
@@ -182,6 +240,11 @@ export class Hero {
     };
   }
 
+  /**
+   *
+   * @param {string} id
+   * @param {{duration?: number, stacks?: number}} options
+   */
   applyBuff(id, options) {
     if (
       this.#actionBehavior.gameOver ||
@@ -194,6 +257,10 @@ export class Hero {
     return true;
   }
 
+  /**
+   *
+   * @param {string} id
+   */
   removeBuff(id) {
     if (!this.#buffs.remove(id)) {
       return false;
@@ -202,12 +269,20 @@ export class Hero {
     return true;
   }
 
+  /**
+   *
+    * @returns {boolean}
+   */
   get canBePatted() {
     return Boolean(this.#headEntity)
       && this.#grounded
       && this.#actionBehavior.canBePatted;
   }
 
+  /**
+   *
+    * @returns {{x: number, y: number, z: number}}
+   */
   get patPosition() {
     return this.#headEntity?.getWorldTransform().transformPoint(
       new this.#pc.Vec3(0, PAT_HAIR_CONTACT_HEIGHT, 0),
@@ -243,6 +318,11 @@ export class Hero {
     return true;
   }
 
+  /**
+   *
+   * @param {import("src/game/objects/ObjectTypes.js").Point3} from
+   * @param {import("src/game/objects/ObjectTypes.js").Point3} to
+   */
   #canEscapeAcross(from, to) {
     // Keep the escape on the current connected level. Check the whole body
     // footprint at short intervals, excluding water, holes and unsafe slopes.
@@ -268,10 +348,18 @@ export class Hero {
     return true;
   }
 
+  /**
+   *
+    * @returns {string}
+   */
   static get modelUrl() {
     return heroModelUrl;
   }
 
+  /**
+   *
+    * @returns {Array<string>}
+   */
   static get modelUrls() {
     return [
       Hero.modelUrl,
@@ -281,88 +369,401 @@ export class Hero {
     ];
   }
 
+  /**
+   *
+    * @returns {number}
+   */
   static get inventoryCapacity() {
     return HERO_INVENTORY_CAPACITY;
   }
 
+  /**
+   *
+    * @type {typeof import("playcanvas")}
+   */
   #pc;
+  /**
+   *
+    * @type {import("playcanvas").Application}
+   */
   #app;
+  /**
+   *
+    * @type {import("src/game/objects/ObjectTypes.js").GameMapData}
+   */
   #mapData;
+  /**
+   *
+    * @type {{x: number, y: number, z: number}}
+   */
   #spawnCenter;
+  /**
+   *
+    * @type {() => number}
+   */
   #getViewRotation;
+  /**
+   *
+    * @type {() => {x: number, y: number, z: number}}
+   */
   #getViewDirection;
+  /**
+   *
+    * @type {(position: {x: number, y: number, z: number}) => void}
+   */
   #onPositionChange;
+  /**
+   *
+    * @type {(yaw: number) => void}
+   */
   #onFacingChange;
+  /**
+   *
+    * @type {import("src/game/collision/GroundCollisionWorld.js").GroundCollisionWorld}
+   */
   #collisionWorld;
+  /**
+   *
+    * @type {import("src/game/models/GameModelLibrary.js").GameModelLibrary}
+   */
   #modelLibrary;
+  /**
+   *
+    * @type {import("playcanvas").Entity}
+   */
   #entity;
+  /**
+   *
+    * @type {HeroPhysicsController}
+   */
   #physics;
+  /**
+   *
+    * @type {import("playcanvas").Entity}
+   */
   #modelRoot;
+  /**
+   *
+    * @type {import("playcanvas").Entity}
+   */
   #headEntity;
+  /**
+   *
+    * @type {import("playcanvas").Entity}
+   */
   #mouthEntity;
+  /**
+   *
+    * @type {import("playcanvas").Entity}
+   */
   #leftEyeEntity;
+  /**
+   *
+    * @type {import("playcanvas").Entity}
+   */
   #rightEyeEntity;
+  /**
+   *
+    * @type {import("playcanvas").Entity}
+   */
   #leftArmEntity;
+  /**
+   *
+    * @type {import("playcanvas").Entity}
+   */
   #rightArmEntity;
+  /**
+   *
+    * @type {import("playcanvas").Entity}
+   */
   #toolAttachmentEntity;
+  /**
+   *
+    * @type {import("playcanvas").Entity}
+   */
   #rightHeldItemAttachmentEntity;
+  /**
+   *
+    * @type {import("playcanvas").Entity}
+   */
   #leftHeldItemAttachmentEntity;
+  /**
+   *
+    * @type {import("src/game/objects/ObjectTypes.js").Point3}
+   */
   #spawn;
+  /**
+   *
+    * @type {{x: number, y: number, z: number}}
+   */
   #position;
+  /**
+   *
+    * @type {{x: number, y: number, z: number}}
+   */
   #velocity = { x: 0, y: 0, z: 0 };
+  /**
+   *
+    * @type {import("src/game/objects/ObjectTypes.js").Point3}
+   */
   #input = { x: 0, y: 0 };
+  /**
+   *
+    * @type {boolean}
+   */
   #running = false;
+  /**
+   *
+    * @type {boolean}
+   */
   #movementBlocked = false;
+  /**
+   *
+    * @type {number}
+   */
   #automaticStepGroundingRemaining = 0;
+  /**
+   *
+    * @type {number|null}
+   */
   #automaticStepTargetHeight = null;
+  /**
+   *
+    * @type {number}
+   */
   #automaticStepVisualOffset = 0;
+  /**
+   *
+    * @type {Array<import("playcanvas").Entity>}
+   */
   #heroPartColliders = [];
+  /**
+   *
+    * @type {number}
+   */
   #airborneStallElapsed = 0;
+  /**
+   *
+    * @type {boolean}
+   */
   #partCollidersSuspended = false;
+  /**
+   *
+    * @type {number}
+   */
   #blockedPushElapsed = 0;
+  /**
+   *
+    * @type {boolean}
+   */
   #blockedPushFinished = false;
+  /**
+   *
+    * @type {boolean}
+   */
   #holeRefusalAcknowledged = false;
+  /**
+   *
+    * @type {boolean}
+   */
   #holeMovementBlocked = false;
+  /**
+   *
+    * @type {string|number}
+   */
   #lastEdgeRefusalFoot = FOOT_SIDE.RIGHT;
+  /**
+   *
+    * @type {{x: number, y: number, z: number}}
+   */
   #stableGroundPosition;
+  /**
+   *
+    * @type {boolean}
+   */
   #grounded = true;
+  /**
+   *
+    * @type {boolean}
+   */
   #physicsSupportContact = false;
+  /**
+   *
+    * @type {number}
+   */
   #coyoteRemaining = COYOTE_TIME;
+  /**
+   *
+    * @type {number}
+   */
   #jumpBufferRemaining = 0;
+  /**
+   *
+    * @type {number}
+   */
   #jumpsUsed = 0;
+  /**
+   *
+    * @type {number}
+   */
   #facingYaw = 0;
+  /**
+   *
+    * @type {boolean}
+   */
   #animationState = null;
+  /**
+   *
+    * @type {boolean}
+   */
   #restartAnimation = false;
+  /**
+   *
+    * @type {string}
+   */
   #idleLookTarget = null;
+  /**
+   *
+    * @type {{x: number, y: number, z: number}}
+   */
   #queuedFacingDirection = null;
+  /**
+   *
+    * @type {number}
+   */
   #headLookYaw = 0;
+  /**
+   *
+    * @type {import("playcanvas").EventHandle|null}
+   */
   #updateHandle = null;
+  /**
+   *
+    * @type {import("src/game/objects/hero/tools/HeroTool.js").HeroTool|null}
+   */
   #tool = null;
+  /**
+   *
+    * @type {Map}
+   */
   #tools = new Map();
+  /**
+   *
+    * @type {number}
+   */
   #facingHoldRemaining = 0;
+  /**
+   *
+    * @type {number}
+   */
   #movementAnimationHoldRemaining = 0;
+  /**
+   *
+    * @type {string}
+   */
   #actionBehavior;
+  /**
+   *
+    * @type {number}
+   */
   #respawnEffect = null;
+  /**
+   *
+    * @type {HeroFootPlacement}
+   */
   #footPlacement = null;
+  /**
+   *
+    * @type {HeroHairPhysics|null}
+   */
   #hairPhysics = null;
+  /**
+   *
+    * @type {Map}
+   */
   #riverRoutesByCell = new Map();
+  /**
+   *
+    * @type {Array<{x: number, z: number, radius: number}>}
+   */
   #riverSourceCovers = [];
+  /**
+   *
+    * @type {Map}
+   */
   #drowningRenderStates = new Map();
+  /**
+   *
+    * @type {HeroLavaDeathEffect}
+   */
   #lavaDeathEffect = null;
+  /**
+   *
+    * @type {boolean}
+   */
   #lavaAshes = false;
+  /**
+   *
+    * @type {number}
+   */
   #lives = MAX_LIVES;
+  /**
+   *
+    * @type {number}
+   */
   #gatewayRepelCooldown = 0;
+  /**
+   *
+    * @type {Record<string, number>}
+   */
   #wallet = {
     [COIN_TYPE.GOLD]: 0,
     [COIN_TYPE.SILVER]: 0,
     [COIN_TYPE.COPPER]: 0,
   };
+  /**
+   *
+    * @type {HeroConfigurationStore}
+   */
   #heroConfigurationStore;
+  /**
+   *
+    * @type {(x: number, z: number) => void}
+   */
   #onMovementInput;
+  /**
+   *
+    * @type {HeroPresentation}
+   */
   #presentation;
+  /**
+   *
+    * @type {boolean}
+   */
   #moodVisible = false;
+  /**
+   *
+    * @type {boolean}
+   */
   #firstPersonCameraEnabled = false;
 
+  /**
+   *
+   * @param {{pc: typeof import("playcanvas"), app: import("playcanvas").Application, mapData: import("src/game/objects/ObjectTypes.js").GameMapData, spawnCenter: {x: number, y: number, z: number}, getViewRotation: () => number, getViewDirection: () => {x: number, y: number, z: number}, onPositionChange: (position: {x: number, y: number, z: number}) => void, onFacingChange: (yaw: number) => void, onMovementInput: (x: number, z: number) => void, heroConfigurationStore: HeroConfigurationStore, presentation: HeroPresentation, collisionWorld: import("src/game/collision/GroundCollisionWorld.js").GroundCollisionWorld, modelLibrary: import("src/game/models/GameModelLibrary.js").GameModelLibrary}} options
+   * @param {typeof import("playcanvas")} options.pc
+   * @param {import("playcanvas").Application} options.app
+   * @param {import("src/game/objects/ObjectTypes.js").GameMapData} options.mapData
+   * @param {{x: number, y: number, z: number}} options.spawnCenter
+   * @param {() => number} options.getViewRotation
+   * @param {() => {x: number, y: number, z: number}} options.getViewDirection
+   * @param {(position: {x: number, y: number, z: number}) => void} options.onPositionChange
+   * @param {(yaw: number) => void} options.onFacingChange
+   * @param {(x: number, z: number) => void} options.onMovementInput
+   * @param {HeroConfigurationStore} options.heroConfigurationStore
+   * @param {HeroPresentation} options.presentation
+   * @param {import("src/game/collision/GroundCollisionWorld.js").GroundCollisionWorld} options.collisionWorld
+   * @param {import("src/game/models/GameModelLibrary.js").GameModelLibrary} options.modelLibrary
+   */
   constructor({
     pc,
     app,
@@ -426,6 +827,10 @@ export class Hero {
           this.#restartAnimation = true;
         },
         tool: {
+          /**
+           *
+           * @param {string} action
+           */
           begin: (action) => {
             action.tool.mount(this.#toolAttachmentEntity);
             action.tool.visible = true;
@@ -438,6 +843,10 @@ export class Hero {
           restartAnimation: () => {
             this.#restartAnimation = true;
           },
+          /**
+           *
+           * @param {string} action
+           */
           complete: (action) => {
             action.tool.visible = false;
             this.#tool = null;
@@ -449,13 +858,32 @@ export class Hero {
           positioningDuration: PICKUP_POSITIONING_DURATION,
           fullEffectTime: INVENTORY_FULL_EFFECT_TIME,
           fullDuration: INVENTORY_FULL_COLLAPSE_DURATION,
+          /**
+           *
+           * @param {number} x
+           * @param {number} z
+           */
           canOccupy: (x, z) => this.#occupancyAt(x, z) === OCCUPANCY.open,
+          /**
+           *
+           * @param {number} x
+           * @param {number} z
+           */
           moveTo: (x, z) => {
             this.#position.x = x;
             this.#position.z = z;
           },
+          /**
+           *
+           * @param {import("../ground-cover/GroundCoverHeldItem.js").GroundCoverHeldItem} item
+           * @param {import("playcanvas").Entity} attachment
+           */
           mountHeldItem: (item, attachment) =>
             item.mount(this.#entity, attachment),
+          /**
+           *
+           * @param {string} action
+           */
           begin: (action) => {
             if (action.tool) {
               action.tool.mount(this.#toolAttachmentEntity);
@@ -475,6 +903,10 @@ export class Hero {
           restartAnimation: () => {
             this.#restartAnimation = true;
           },
+          /**
+           *
+           * @param {string} action
+           */
           endCollection: (action) => {
             if (action.tool) {
               action.tool.visible = false;
@@ -486,6 +918,10 @@ export class Hero {
             }
           },
           showInventoryFull: () => this.#showInventoryFull(),
+          /**
+           *
+           * @param {string} action
+           */
           endInventoryFull: (action) => {
             this.#restartAnimation = true;
             if (action.completed) {
@@ -494,6 +930,10 @@ export class Hero {
           },
         },
         dodge: {
+          /**
+           *
+           * @param {number} crossedLedge
+           */
           complete: (crossedLedge) => {
             if (crossedLedge) {
               const riverRouteEntry = this.#riverRouteEntryAt(
@@ -527,6 +967,10 @@ export class Hero {
           },
         },
         repel: {
+          /**
+           *
+           * @param {{x: number, y: number, z: number}} direction
+           */
           begin: (direction) => {
             this.#velocity.x = direction.x * GATEWAY_REPEL_SPEED;
             this.#velocity.z = direction.z * GATEWAY_REPEL_SPEED;
@@ -538,6 +982,11 @@ export class Hero {
           },
         },
         refusal: {
+          /**
+           *
+           * @param {{foot: import("src/game/objects/ObjectTypes.js").HeroFootRig}} options
+           * @param {import("src/game/objects/ObjectTypes.js").HeroFootRig} options.foot
+           */
           beginEdge: ({ foot }) => {
             this.#lastEdgeRefusalFoot = foot;
             this.#velocity.x = 0;
@@ -578,19 +1027,59 @@ export class Hero {
             verticalVelocity: this.#velocity.y,
             position: this.#position,
           }),
+          /**
+           *
+           * @param {{x: number, z: number}} options
+           * @param {number} options.x
+           * @param {number} options.z
+           */
           hasRiverSourceCover: ({ x, z }) =>
             this.#riverSourceCoverHeightAt(x, z) !== null,
+          /**
+           *
+           * @param {{x: number, z: number}} options
+           * @param {number} options.x
+           * @param {number} options.z
+           */
           routeEntryAt: ({ x, z }) => this.#riverRouteEntryAt(x, z),
           position: () => this.#position,
+          /**
+           *
+           * @param {{x: number, y: number, z: number}} direction
+           */
           directionVector: (direction) => this.#riverDirectionVector(direction),
+          /**
+           *
+           * @param {number} cell
+           */
           canClimbBridge: (cell) => this.#canClimbRiverBridge(cell),
+          /**
+           *
+           * @param {{x: number, y: number, z: number}} velocity
+           */
           setVelocity: (velocity) => {
             this.#velocity = velocity;
           },
+          /**
+           *
+           * @param {{x: number, y: number, z: number}} direction
+           */
           finishAtWaterfall: (direction) =>
             this.#finishDrowningAtWaterfall(direction),
+          /**
+           *
+           * @param {number} routeEntry
+           */
           begin: (routeEntry) => this.#beginDrowning(routeEntry),
           endPresentation: () => this.#setDrowningPresentation(false),
+          /**
+           *
+           * @param {{pitch: number, yaw: number, roll: number, mouthScale: {x: number, y: number, z: number}}} options
+           * @param {number} options.pitch
+           * @param {number} options.yaw
+           * @param {number} options.roll
+           * @param {{x: number, y: number, z: number}} options.mouthScale
+           */
           updatePresentation: ({ pitch, yaw, roll, mouthScale }) => {
             this.#headLookYaw = yaw;
             this.#headEntity?.setLocalEulerAngles(pitch, yaw, roll);
@@ -604,7 +1093,16 @@ export class Hero {
           catchHeightOffset: RIVER_BRIDGE_CATCH_HEIGHT_OFFSET,
           railOffset: RIVER_BRIDGE_RAIL_OFFSET,
           hopHeight: RIVER_BRIDGE_HOP_HEIGHT,
+          /**
+           *
+           * @param {number} cell
+           */
           begin: (cell) => this.#beginRiverBridgeExit(cell),
+          /**
+           *
+           * @param {{x: number, y: number, z: number}} position
+           * @param {number} deltaTime
+           */
           moveTo: (position, deltaTime) => {
             const previous = this.#position;
             this.#position = position;
@@ -615,6 +1113,13 @@ export class Hero {
             };
           },
           complete: () => this.#finishRiverBridgeExit(),
+          /**
+           *
+           * @param {{armPitch: number, armSpread: number, headPitch: number}} options
+           * @param {number} options.armPitch
+           * @param {number} options.armSpread
+           * @param {number} options.headPitch
+           */
           updatePresentation: ({ armPitch, armSpread, headPitch }) => {
             this.#leftArmEntity?.setLocalEulerAngles(
               armPitch,
@@ -638,11 +1143,29 @@ export class Hero {
           ashStart: LAVA_ASH_START,
           submergeDepth: LAVA_SUBMERGE_DEPTH,
           modelScale: HERO_MODEL_SCALE,
+          /**
+           *
+           * @param {number} routeEntry
+           */
           begin: (routeEntry) => this.#beginLavaDeath(routeEntry),
+          /**
+           *
+           * @param {number} height
+           */
           setHeight: (height) => {
             this.#position.y = height;
           },
+          /**
+           *
+           * @param {number} progress
+           */
           updateEffect: (progress) => this.#lavaDeathEffect?.update(progress),
+          /**
+           *
+           * @param {number} x
+           * @param {number} y
+           * @param {number} z
+           */
           setModelScale: (x, y, z) => this.#modelRoot?.setLocalScale(x, y, z),
           ashes: () => this.#lavaAshes,
           showAshes: () => {
@@ -660,6 +1183,11 @@ export class Hero {
         respawning: {
           duration: RESPAWN_ANIMATION_DURATION,
           begin: () => this.#beginRespawn(),
+          /**
+           *
+           * @param {number} progress
+           * @param {number} elapsed
+           */
           updatePresentation: (progress, elapsed) => {
             this.#respawnEffect?.update(progress, elapsed, this.#position.y);
           },
@@ -686,18 +1214,34 @@ export class Hero {
     return this.#entity;
   }
 
+  /**
+   *
+    * @returns {import("src/game/objects/ObjectTypes.js").Point3}
+   */
   get position() {
     return { ...this.#position };
   }
 
+  /**
+   *
+    * @returns {boolean}
+   */
   get isUsingTool() {
     return this.#actionBehavior.toolAction !== null;
   }
 
+  /**
+   *
+    * @returns {boolean}
+   */
   get isCollecting() {
     return this.#actionBehavior.collectAction !== null;
   }
 
+  /**
+   *
+    * @returns {boolean}
+   */
   get isRefusingInventoryPickup() {
     return this.#actionBehavior.inventoryFullAction !== null;
   }
@@ -710,19 +1254,35 @@ export class Hero {
     return this.#tools;
   }
 
+  /**
+   *
+    * @returns {Record<string, number>}
+   */
   get wallet() {
     return { ...this.#wallet };
   }
 
+  /**
+   *
+    * @returns {HeroInventory}
+   */
   get inventory() {
     return {
       capacity: this.#heroConfigurationStore.inventory.capacity,
-      items: this.#heroConfigurationStore.inventory.items.map((item) => ({
+      items: this.#heroConfigurationStore.inventory.items.map(/**
+       *
+       * @param {{id: string, variant: string, quantity?: number}} item
+       */
+      (item) => ({
         ...item,
       })),
     };
   }
 
+  /**
+   *
+    * @returns {boolean}
+   */
   get inventoryFull() {
     return (
       this.#heroConfigurationStore.inventory.items.length >=
@@ -730,6 +1290,10 @@ export class Hero {
     );
   }
 
+  /**
+   *
+    * @returns {import("src/game/objects/ObjectTypes.js").Point3}
+   */
   get inventoryFullIndicatorPosition() {
     const anchor = this.#headEntity?.getPosition() ?? this.#entity.getPosition();
     return {
@@ -739,6 +1303,10 @@ export class Hero {
     };
   }
 
+  /**
+   *
+    * @returns {boolean}
+   */
   get isGameOver() {
     return this.#actionBehavior.gameOver;
   }
@@ -747,6 +1315,10 @@ export class Hero {
     return this.#animationState;
   }
 
+  /**
+   *
+    * @returns {boolean}
+   */
   get animationTransitioning() {
     return this.#modelRoot?.anim?.baseLayer.transitioning ?? false;
   }
@@ -759,30 +1331,58 @@ export class Hero {
     return this.#grounded;
   }
 
+  /**
+   *
+    * @returns {Record<string, {appliedLift: number, minimumClearance: number, tiltDegrees: number}>|null}
+   */
   get footPlacementState() {
     return this.#footPlacement?.state ?? null;
   }
 
+  /**
+   *
+    * @returns {Array<{x: number, y: number, z: number, directionX: number, directionZ: number, strength: number}>}
+   */
   get grassFootContacts() {
     return this.#footPlacement?.grassContacts ?? [];
   }
 
+  /**
+   *
+    * @returns {boolean}
+   */
   get isIncapacitated() {
     return this.#actionBehavior.incapacitated;
   }
 
+  /**
+   *
+    * @returns {boolean}
+   */
   get isDying() {
     return this.#actionBehavior.dying;
   }
 
+  /**
+   *
+    * @returns {boolean}
+   */
   get isRespawning() {
     return this.#actionBehavior.respawning;
   }
 
+  /**
+   *
+    * @returns {boolean}
+   */
   get drowning() {
     return this.#actionBehavior.drowning;
   }
 
+  /**
+   *
+    * @returns {{head: import("playcanvas").Entity, x: number, z: number, surfaceY: number}|null}
+   */
   get waterPresentation() {
     if (!this.#actionBehavior.drowningAction || !this.#headEntity) {
       return null;
@@ -799,6 +1399,10 @@ export class Hero {
     };
   }
 
+  /**
+   *
+    * @returns {boolean}
+   */
   get burning() {
     return this.#actionBehavior.burning && !this.#lavaAshes;
   }
@@ -807,10 +1411,18 @@ export class Hero {
     return this.#lavaAshes;
   }
 
+  /**
+   *
+    * @returns {boolean}
+   */
   get isReacting() {
     return this.#actionBehavior.blockedDigReactionAction !== null || this.#actionsLocked;
   }
 
+  /**
+   *
+    * @returns {string}
+   */
   get actionState() {
     return this.#actionBehavior.state;
   }
@@ -825,10 +1437,18 @@ export class Hero {
     this.#syncState();
   }
 
+  /**
+   *
+    * @returns {number}
+   */
   get #actionsLocked() {
     return this.#angryEscapeBehavior.active || !this.#emotionBehavior.acceptsActions;
   }
 
+  /**
+   *
+   * @param {boolean} attempt
+   */
   #acceptAction(attempt = true) {
     const acceptsEmotion = attempt
       ? this.#attemptEmotionAction().accepted
@@ -858,6 +1478,11 @@ export class Hero {
     this.#clearActionInput();
     this.#angryEscapeBehavior.begin(
       this.#position,
+      /**
+       *
+       * @param {import("src/game/objects/ObjectTypes.js").Point3} from
+       * @param {import("src/game/objects/ObjectTypes.js").Point3} to
+       */
       (from, to) => this.#canEscapeAcross(from, to),
       Math.random,
       distance,
@@ -879,6 +1504,10 @@ export class Hero {
     this.#jumpBufferRemaining = 0;
   }
 
+  /**
+   *
+    * @returns {boolean}
+   */
   get #restingForMood() {
     return this.canBePatted && !this.#angryEscapeBehavior.active
       && !this.#hasMovementInput
@@ -886,11 +1515,19 @@ export class Hero {
       && Math.hypot(this.#velocity.x, this.#velocity.y, this.#velocity.z) <= 0.08;
   }
 
+  /**
+   *
+    * @returns {{x: number, z: number}}
+   */
   get facingDirection() {
     const yaw = (this.#facingYaw * Math.PI) / 180;
     return { x: Math.sin(yaw), z: Math.cos(yaw) };
   }
 
+  /**
+   *
+    * @returns {boolean}
+   */
   get firstPersonCameraPose() {
     const direction = this.facingDirection;
     const leftEye = this.#leftEyeEntity?.getPosition();
@@ -927,6 +1564,10 @@ export class Hero {
     }
   }
 
+  /**
+   *
+    * @returns {{direction: {x: number, z: number}, speed: number, running: boolean}}
+   */
   get movementState() {
     const speed = Math.hypot(this.#velocity.x, this.#velocity.z);
     return {
@@ -954,6 +1595,11 @@ export class Hero {
     this.#movementAnimationHoldRemaining = Math.max(0, duration ?? 0);
   }
 
+  /**
+   *
+   * @param {number} inputX
+   * @param {number} inputY
+   */
   queueFacingInput(inputX, inputY) {
     if (this.#actionsLocked) {
       return;
@@ -965,6 +1611,12 @@ export class Hero {
     this.#queuedFacingDirection = null;
   }
 
+  /**
+   *
+   * @param {number} inputX
+   * @param {number} inputY
+   * @param {number} running
+   */
   setMovement(inputX, inputY, running = false) {
     const hasInput = Math.hypot(inputX, inputY) > 0.001;
     if (!this.#acceptAction(hasInput)) {
@@ -1017,6 +1669,14 @@ export class Hero {
     this.#idleLookTarget = target ? { x: target.x, z: target.z } : null;
   }
 
+  /**
+   *
+   * @param {number} inputX
+   * @param {number} inputY
+   * @param {{x: number, y: number, z: number}} direction
+   * @param {{facing: {x: number, y: number, z: number}}} options
+   * @param {{x: number, y: number, z: number}} options.facing
+   */
   dodge(inputX, inputY, direction, { facing = null } = {}) {
     if (!this.#acceptAction()) {
       return false;
@@ -1088,6 +1748,15 @@ export class Hero {
     return true;
   }
 
+  /**
+   *
+   * @param {import("./tools/HeroTool.js").HeroTool} tool
+   * @param {{targetPosition: {x: number, y: number, z: number}, context: Record<string, string|number|boolean>, onImpact: (impact: import("src/game/objects/ObjectTypes.js").HeroActionPayload) => void, onComplete: () => void}} options
+   * @param {{x: number, y: number, z: number}} options.targetPosition
+   * @param {Record<string, string|number|boolean>} options.context
+   * @param {(impact: import("src/game/objects/ObjectTypes.js").HeroActionPayload) => void} options.onImpact
+   * @param {() => void} options.onComplete
+   */
   useTool(
     tool,
     {
@@ -1127,6 +1796,17 @@ export class Hero {
     return true;
   }
 
+  /**
+   *
+   * @param {number} category
+   * @param {{targetPosition: {x: number, y: number, z: number}, targetRadius: number, tool: import("src/game/objects/hero/tools/HeroTool.js").HeroTool, heldItem: boolean, onImpact: (impact: import("src/game/objects/ObjectTypes.js").HeroActionPayload) => void, onComplete: () => void}} options
+   * @param {{x: number, y: number, z: number}} options.targetPosition
+   * @param {number} options.targetRadius
+   * @param {import("src/game/objects/hero/tools/HeroTool.js").HeroTool} options.tool
+   * @param {boolean} options.heldItem
+   * @param {(impact: import("src/game/objects/ObjectTypes.js").HeroActionPayload) => void} options.onImpact
+   * @param {() => void} options.onComplete
+   */
   collectGroundCover(
     category,
     {
@@ -1187,6 +1867,11 @@ export class Hero {
     return true;
   }
 
+  /**
+   *
+   * @param {string} type
+   * @param {number} amount
+   */
   collectCoin(type, amount = 1) {
     if (!Object.hasOwn(this.#wallet, type)) {
       return false;
@@ -1209,6 +1894,10 @@ export class Hero {
     return true;
   }
 
+  /**
+   *
+   * @param {{id: string, variant: string, quantity?: number}} item
+   */
   collectInventoryItem(item) {
     if (!this.#heroConfigurationStore.addInventoryItem(item)) {
       this.#showInventoryFull();
@@ -1219,6 +1908,14 @@ export class Hero {
     return true;
   }
 
+  /**
+   *
+   * @param {number} category
+   * @param {{targetPosition: {x: number, y: number, z: number}, targetRadius: number, onComplete: () => void}} options
+   * @param {{x: number, y: number, z: number}} options.targetPosition
+   * @param {number} options.targetRadius
+   * @param {() => void} options.onComplete
+   */
   refuseInventoryPickup(
     category,
     {
@@ -1261,6 +1958,12 @@ export class Hero {
     return true;
   }
 
+  /**
+   *
+   * @param {{x: number, y: number, z: number}} direction
+   * @param {{x: number, y: number, z: number}} movementDirection
+   * @param {{x: number, y: number, z: number}} facing
+   */
   #dodgeFacingDirection(direction, movementDirection, facing = null) {
     if (direction === "down") {
       return facing ?? this.facingDirection;
@@ -1271,6 +1974,11 @@ export class Hero {
     return this.#projectInput(0, 1) ?? movementDirection;
   }
 
+  /**
+   *
+   * @param {{dismiss: boolean}} options
+   * @param {boolean} options.dismiss
+   */
   stopUsingTool({ dismiss = true } = {}) {
     if (!this.#actionBehavior.toolAction) {
       return false;
@@ -1326,6 +2034,11 @@ export class Hero {
     this.#stableGroundPosition = null;
   }
 
+  /**
+   *
+   * @param {number} deltaTime
+    * @type {(deltaTime: number) => void}
+   */
   #update = (deltaTime) => {
     this.#step(Math.min(deltaTime, MAX_FRAME_TIME));
     this.#animate(deltaTime);
@@ -1333,6 +2046,10 @@ export class Hero {
     this.#syncMood();
   };
 
+  /**
+   *
+   * @param {number} deltaTime
+   */
   #step(deltaTime) {
     const previousX = this.#position.x;
     const previousY = this.#position.y;
@@ -1482,6 +2199,11 @@ export class Hero {
     };
   }
 
+  /**
+   *
+   * @param {number} inputX
+   * @param {number} inputY
+   */
   #projectInput(inputX, inputY) {
     const length = Math.hypot(inputX, inputY);
     if (length < 0.001) {
@@ -1516,6 +2238,10 @@ export class Hero {
     };
   }
 
+  /**
+   *
+   * @param {number} deltaTime
+   */
   #moveHorizontally(deltaTime) {
     const attemptedX = Math.abs(this.#velocity.x) > 0.001;
     const nextX = this.#position.x + this.#velocity.x * deltaTime;
@@ -1575,6 +2301,11 @@ export class Hero {
     }
   }
 
+  /**
+   *
+   * @param {number} nextX
+   * @param {number} nextZ
+   */
   #tryAutomaticStepUp(nextX, nextZ) {
     if (
       !this.#grounded ||
@@ -1616,12 +2347,21 @@ export class Hero {
     )?.height;
     const stepHeight = [physicsHeight]
       .filter(
+        /**
+         *
+         * @param {number} height
+         */
         (height) =>
           Number.isFinite(height) &&
           height - this.#position.y >= MIN_AUTOMATIC_STEP_HEIGHT &&
           height - this.#position.y <= MAX_AUTOMATIC_STEP_HEIGHT,
       )
       .reduce(
+        /**
+         *
+         * @param {number} highest
+         * @param {number} height
+         */
         (highest, height) => Math.max(highest, height),
         -Infinity,
       );
@@ -1742,12 +2482,24 @@ export class Hero {
     }
   }
 
+  /**
+   *
+   * @param {number} x
+   * @param {number} z
+   */
   #riverRouteEntryAt(x, z) {
     const col = Math.round(x + (this.#mapData.cols - 1) / 2);
     const row = Math.round(z + (this.#mapData.rows - 1) / 2);
     return this.#riverRoutesByCell.get(`${col},${row}`) ?? null;
   }
 
+  /**
+   *
+   * @param {number} x
+   * @param {number} z
+   * @param {number} col
+   * @param {number} row
+   */
   #riverSourceCoverHeightAt(x, z, col = null, row = null) {
     const epsilon = 0.000001;
     for (const cover of this.#riverSourceCovers) {
@@ -1772,14 +2524,27 @@ export class Hero {
     return null;
   }
 
+  /**
+   *
+   * @param {number} col
+   * @param {number} row
+   */
   #riverSourceCoverAtCell(col, row) {
     return (
       this.#riverSourceCovers.find(
+        /**
+         *
+         * @param {number} cover
+         */
         (cover) => cover.col === col && cover.row === row,
       ) ?? null
     );
   }
 
+  /**
+   *
+   * @param {number} routeEntry
+   */
   #beginLavaDeath(routeEntry) {
     this.#clearActionInput();
     this.#grounded = false;
@@ -1800,6 +2565,10 @@ export class Hero {
   }
 
 
+  /**
+   *
+   * @param {number} routeEntry
+   */
   #beginDrowning(routeEntry) {
     this.#clearActionInput();
     this.#grounded = false;
@@ -1829,6 +2598,10 @@ export class Hero {
     return action;
   }
 
+  /**
+   *
+   * @param {{x: number, y: number, z: number}} bridgeCell
+   */
   #beginRiverBridgeExit(bridgeCell) {
     this.#velocity = { x: 0, y: 0, z: 0 };
     const direction = this.#riverDirectionVector(bridgeCell.direction);
@@ -1851,6 +2624,10 @@ export class Hero {
     };
   }
 
+  /**
+   *
+   * @param {{x: number, y: number, z: number}} bridgeCell
+   */
   #canClimbRiverBridge(bridgeCell) {
     return (
       bridgeCell.terrainHeight - bridgeCell.elevation <=
@@ -1868,6 +2645,10 @@ export class Hero {
     this.#restartAnimation = true;
   }
 
+  /**
+   *
+   * @param {{x: number, y: number, z: number}} direction
+   */
   #finishDrowningAtWaterfall(direction) {
     this.#velocity = {
       x: direction.x * RIVER_CURRENT_SPEED,
@@ -1878,6 +2659,10 @@ export class Hero {
     this.#actionBehavior.fallingToDeath = true;
   }
 
+  /**
+   *
+   * @param {boolean} drowning
+   */
   #setDrowningPresentation(drowning) {
     if (!this.#modelRoot || !this.#headEntity) {
       return;
@@ -1910,6 +2695,10 @@ export class Hero {
     }
   }
 
+  /**
+   *
+   * @param {{x: number, y: number, z: number}} direction
+   */
   #riverDirectionVector(direction) {
     if (direction === "NORTH") {
       return { x: 0, z: -1 };
@@ -1923,6 +2712,12 @@ export class Hero {
     return { x: -1, z: 0 };
   }
 
+  /**
+   *
+   * @param {number} previousX
+   * @param {number} previousY
+   * @param {number} previousZ
+   */
   #applyPosition(previousX, previousY, previousZ) {
     const bodyPosition = this.#physics.position;
     const positionWasScripted =
@@ -1947,6 +2742,11 @@ export class Hero {
     }
   }
 
+  /**
+   *
+   * @param {number} deltaTime
+   * @param {number} previousY
+   */
   #updateAirborneColliderRecovery(deltaTime, previousY) {
     if (this.#grounded || this.#physics.scripted) {
       this.#airborneStallElapsed = 0;
@@ -1966,6 +2766,10 @@ export class Hero {
     this.#setHeroPartCollidersEnabled(false);
   }
 
+  /**
+   *
+   * @param {boolean} enabled
+   */
   #setHeroPartCollidersEnabled(enabled) {
     if (this.#partCollidersSuspended === !enabled) {
       return;
@@ -1979,6 +2783,10 @@ export class Hero {
     this.#entity?.rigidbody?.activate();
   }
 
+  /**
+   *
+   * @param {string} occupancy
+   */
   #preservesRisingMomentum(occupancy) {
     return (
       occupancy === OCCUPANCY.blocked &&
@@ -1987,6 +2795,10 @@ export class Hero {
     );
   }
 
+  /**
+   *
+   * @param {number} deltaTime
+   */
   #advanceBlockedPush(deltaTime) {
     const blocked =
       this.#hasMovementInput &&
@@ -2009,6 +2821,11 @@ export class Hero {
       this.#blockedPushElapsed >= BLOCKED_PUSH_DURATION;
   }
 
+  /**
+   *
+   * @param {number} x
+   * @param {number} z
+   */
   #occupancyAt(x, z) {
     if (this.#overheadClearanceBlockedAt(x, z)) {
       return OCCUPANCY.blocked;
@@ -2131,6 +2948,15 @@ export class Hero {
     );
   }
 
+  /**
+   *
+   * @param {number} fromX
+   * @param {number} fromZ
+   * @param {number} toX
+   * @param {number} toZ
+   * @param {number} checksEdges
+   * @param {boolean} solidRadius
+   */
   #terrainOccupancyAt(
     fromX,
     fromZ,
@@ -2251,6 +3077,12 @@ export class Hero {
     return OCCUPANCY.open;
   }
 
+  /**
+   *
+   * @param {number} currentDistance
+   * @param {number} nextDistance
+   * @param {number} radius
+   */
   #blocksTerrainMovement(currentDistance, nextDistance, radius) {
     if (nextDistance >= radius ** 2) {
       return false;
@@ -2261,10 +3093,25 @@ export class Hero {
     );
   }
 
+  /**
+   *
+   * @param {number} x
+   * @param {number} z
+   * @param {number} col
+   * @param {number} row
+   * @param {number} radius
+   */
   #circleOverlapsTile(x, z, col, row, radius = HERO_RADIUS) {
     return this.#circleDistanceSquaredToTile(x, z, col, row) < radius ** 2;
   }
 
+  /**
+   *
+   * @param {number} x
+   * @param {number} z
+   * @param {number} col
+   * @param {number} row
+   */
   #circleDistanceSquaredToTile(x, z, col, row) {
     const tileX = col - (this.#mapData.cols - 1) / 2;
     const tileZ = row - (this.#mapData.rows - 1) / 2;
@@ -2273,6 +3120,11 @@ export class Hero {
     return distanceX * distanceX + distanceZ * distanceZ;
   }
 
+  /**
+   *
+   * @param {number} x
+   * @param {number} z
+   */
   #surfaceAt(x, z) {
     const maximumSupportHeight = this.#position.y + STEP_CLEARANCE;
     const collisionSurface = this.#collisionWorld?.surfaceHeightAt(
@@ -2335,6 +3187,11 @@ export class Hero {
     return highestSurface;
   }
 
+  /**
+   *
+   * @param {number} x
+   * @param {number} z
+   */
   #landingSurfaceAt(x, z) {
     return this.#supportHeightAtPoint(
       x,
@@ -2343,6 +3200,10 @@ export class Hero {
     );
   }
 
+  /**
+   *
+    * @returns {{x: number, z: number}}
+   */
   get #movementDirection() {
     const speed = Math.hypot(this.#velocity.x, this.#velocity.z);
     if (speed > 0.001) {
@@ -2354,17 +3215,32 @@ export class Hero {
     return this.facingDirection;
   }
 
+  /**
+   *
+    * @returns {boolean}
+   */
   get #hasMovementInput() {
     return this.#angryEscapeBehavior.active || (!this.#actionsLocked
       && Math.hypot(this.#input.x, this.#input.y) > 0.001);
   }
 
+  /**
+   *
+    * @returns {boolean}
+   */
   get #alternateEdgeFoot() {
     return this.#lastEdgeRefusalFoot === FOOT_SIDE.LEFT
       ? FOOT_SIDE.RIGHT
       : FOOT_SIDE.LEFT;
   }
 
+  /**
+   *
+   * @param {number} x
+   * @param {number} z
+   * @param {number} elevation
+   * @param {{x: number, y: number, z: number}} direction
+   */
   #unsupportedFootAt(x, z, elevation, direction) {
     const support = this.#feetSupportAt(x, z, elevation, direction);
     if (support.left && support.right) {
@@ -2379,6 +3255,13 @@ export class Hero {
     return this.#alternateEdgeFoot;
   }
 
+  /**
+   *
+   * @param {number} x
+   * @param {number} z
+   * @param {number} elevation
+   * @param {{x: number, y: number, z: number}} direction
+   */
   #feetSupportAt(x, z, elevation, direction) {
     const rightX = direction.z;
     const rightZ = -direction.x;
@@ -2404,6 +3287,13 @@ export class Hero {
     };
   }
 
+  /**
+   *
+   * @param {number} x
+   * @param {number} z
+   * @param {number} elevation
+   * @param {{x: number, y: number, z: number}} direction
+   */
   #bothFootCentersSupportedAt(x, z, elevation, direction) {
     const rightX = direction.z;
     const rightZ = -direction.x;
@@ -2423,6 +3313,13 @@ export class Hero {
     );
   }
 
+  /**
+   *
+   * @param {number} x
+   * @param {number} z
+   * @param {number} elevation
+   * @param {{x: number, y: number, z: number}} direction
+   */
   #fullySupportedPositionAhead(x, z, elevation, direction) {
     if (!this.#bothFootCentersSupportedAt(x, z, elevation, direction)) {
       return null;
@@ -2450,6 +3347,15 @@ export class Hero {
     return null;
   }
 
+  /**
+   *
+   * @param {number} centerX
+   * @param {number} centerZ
+   * @param {number} elevation
+   * @param {{x: number, y: number, z: number}} direction
+   * @param {number} rightX
+   * @param {number} rightZ
+   */
   #footHasSupport(
     centerX,
     centerZ,
@@ -2468,6 +3374,11 @@ export class Hero {
       return false;
     }
 
+    /**
+     *
+     * @param {number} forward
+     * @param {number} right
+     */
     const supportAtOffset = (forward, right) =>
       this.#supportMatchesElevation(
         centerX +
@@ -2491,6 +3402,12 @@ export class Hero {
     );
   }
 
+  /**
+   *
+   * @param {number} x
+   * @param {number} z
+   * @param {number} elevation
+   */
   #supportMatchesElevation(x, z, elevation) {
     const supportHeight = this.#supportHeightAtPoint(
       x,
@@ -2503,6 +3420,13 @@ export class Hero {
     );
   }
 
+  /**
+   *
+   * @param {number} x
+   * @param {number} z
+   * @param {number} elevation
+   * @param {{x: number, y: number, z: number}} direction
+   */
   #isSafeDescentAt(x, z, elevation, direction) {
     const rightX = direction.z;
     const rightZ = -direction.x;
@@ -2532,6 +3456,12 @@ export class Hero {
     );
   }
 
+  /**
+   *
+   * @param {number} x
+   * @param {number} z
+   * @param {number} maximumHeight
+   */
   #supportHeightAtPoint(x, z, maximumHeight) {
     const col = Math.round(x + (this.#mapData.cols - 1) / 2);
     const row = Math.round(z + (this.#mapData.rows - 1) / 2);
@@ -2575,6 +3505,13 @@ export class Hero {
     return highestSurface;
   }
 
+  /**
+   *
+   * @param {number} col
+   * @param {number} row
+   * @param {number} x
+   * @param {number} z
+   */
   #terrainSurfaceHeightAt(col, row, x, z) {
     const type = this.#mapData.grid[row][col];
     const metadata = this.#mapData.tileMeta?.[row]?.[col];
@@ -2601,6 +3538,11 @@ export class Hero {
     );
   }
 
+  /**
+   *
+   * @param {number} x
+   * @param {number} z
+   */
   #overheadClearanceBlockedAt(x, z) {
     const ceiling = this.#collisionWorld?.ceilingHeightAt(
       x,
@@ -2628,6 +3570,10 @@ export class Hero {
     this.#stableGroundPosition = { ...this.#position };
   }
 
+  /**
+   *
+   * @param {number} ground
+   */
   #rejectUnsupportedLanding(ground) {
     const direction = this.#movementDirection;
     const unsupportedFoot = this.#unsupportedFootAt(
@@ -2690,6 +3636,11 @@ export class Hero {
     return true;
   }
 
+  /**
+   *
+   * @param {import("src/game/objects/ObjectTypes.js").HeroFootRig} foot
+   * @param {{x: number, y: number, z: number}} direction
+   */
   #beginEdgeRefusal(foot, direction) {
     if (this.#actionBehavior.edgeRefusalAction) {
       return;
@@ -2702,6 +3653,11 @@ export class Hero {
   }
 
 
+  /**
+   *
+   * @param {number} x
+   * @param {number} z
+   */
   #tryMovementRefusal(x, z) {
     const direction = this.#movementDirection;
     const refusal =
@@ -2734,6 +3690,11 @@ export class Hero {
 
 
 
+  /**
+   *
+   * @param {number} x
+   * @param {number} z
+   */
   #isBeyondMapEdge(x, z) {
     const gridX = x + (this.#mapData.cols - 1) / 2;
     const gridZ = z + (this.#mapData.rows - 1) / 2;
@@ -2799,7 +3760,12 @@ export class Hero {
     if (candidates.length) {
       const centerCol = this.#spawnCenter.x + (cols - 1) / 2;
       const centerRow = this.#spawnCenter.z + (rows - 1) / 2;
-      const tile = candidates.reduce((closest, candidate) => {
+      const tile = candidates.reduce(/**
+       *
+       * @param {number} closest
+       * @param {boolean} candidate
+       */
+      (closest, candidate) => {
         if (!closest) {
           return candidate;
         }
@@ -2821,6 +3787,11 @@ export class Hero {
     return { x: 0, y: 1, z: 0 };
   }
 
+  /**
+   *
+   * @param {number} col
+   * @param {number} row
+   */
   #hasSpawnExit(col, row) {
     const height = this.#mapData.heightmap[row][col];
     let exits = 0;
@@ -2945,6 +3916,10 @@ export class Hero {
     );
   }
 
+  /**
+   *
+   * @param {number} deltaTime
+   */
   #animate(deltaTime) {
     if (!this.#entity || !this.#modelRoot) {
       return;
@@ -3080,6 +4055,10 @@ export class Hero {
     );
   }
 
+  /**
+   *
+   * @param {number} deltaTime
+   */
   #selectIdleAnimation(deltaTime) {
     return this.#idleBehavior.advance(deltaTime, {
       hasLookTarget: Boolean(this.#idleLookTarget),
@@ -3090,6 +4069,12 @@ export class Hero {
     this.#idleBehavior.reset();
   }
 
+  /**
+   *
+   * @param {string} name
+   * @param {number} speed
+   * @param {number} restart
+   */
   #playAnimation(name, speed, restart) {
     const animation = this.#modelRoot.anim;
     if (!animation) {
@@ -3108,6 +4093,10 @@ export class Hero {
     this.#animationState = name;
   }
 
+  /**
+   *
+    * @returns {number}
+   */
   get #headLookTargetYaw() {
     if (
       this.#animationState !== HERO_ANIMATION.BORED_CURSOR_LOOK ||
@@ -3132,6 +4121,10 @@ export class Hero {
     );
   }
 
+  /**
+   *
+   * @param {number} deltaTime
+   */
   #updateHeadLook(deltaTime) {
     if (this.#actionBehavior.locksHeadForward) {
       this.#headLookYaw = 0;
@@ -3209,6 +4202,10 @@ export class Hero {
     }
   }
 
+  /**
+   *
+   * @param {number} amount
+   */
   #setAngryFace(amount) {
     if (this.#faceMorphs.length) {
       for (const morph of this.#faceMorphs) {
@@ -3260,7 +4257,11 @@ export class Hero {
       app: this.#app,
       headEntity: this.#headEntity,
       hairEntities:
-        this.#headEntity?.children.filter((entity) =>
+        this.#headEntity?.children.filter(/**
+         *
+         * @param {import("playcanvas").Entity} entity
+         */
+        (entity) =>
           HAIR_ENTITY_NAME.test(entity.name),
         ) ?? [],
       modelScale: HERO_MODEL_SCALE,
@@ -3273,9 +4274,25 @@ export class Hero {
       this.#findModelEntity("Left cyan eyebrow"),
       this.#findModelEntity("Right cyan eyebrow"),
     ]
-      .flatMap((entity) => entity?.render?.meshInstances ?? [])
-      .map((mesh) => mesh.morphInstance)
-      .filter((morph) => morph?.morph.targets.some((target) => target.name === "HappyPat"));
+      .flatMap(/**
+       *
+       * @param {import("playcanvas").Entity} entity
+       */
+      (entity) => entity?.render?.meshInstances ?? [])
+      .map(/**
+       *
+       * @param {import("playcanvas").Mesh} mesh
+       */
+      (mesh) => mesh.morphInstance)
+      .filter(/**
+       *
+       * @param {import("playcanvas").MorphInstance} morph
+       */
+      (morph) => morph?.morph.targets.some(/**
+       *
+       * @param {{x: number, y: number, z: number}} target
+       */
+      (target) => target.name === "HappyPat"));
     this.#leftArmEntity = this.#findModelEntity("Left arm");
     this.#rightArmEntity = this.#findModelEntity("Right arm");
     this.#toolAttachmentEntity = this.#findModelEntity("Right arm");
@@ -3306,6 +4323,12 @@ export class Hero {
     this.#animationState = HERO_ANIMATION.IDLE;
     this.#footPlacement = new HeroFootPlacement({
       pc: this.#pc,
+      /**
+       *
+       * @param {number} x
+       * @param {number} z
+       * @param {number} maximumHeight
+       */
       surfaceAt: (x, z, maximumHeight) =>
         this.#physics.surfaceAt(x, z, maximumHeight),
       getHeroPosition: () => this.#position,
@@ -3318,7 +4341,11 @@ export class Hero {
           "Boot shaft",
           "Boot front strap",
           "Left ankle",
-        ].map((name) => this.#findModelEntity(name)),
+        ].map(/**
+         *
+         * @param {string} name
+         */
+        (name) => this.#findModelEntity(name)),
       },
       right: {
         side: "right",
@@ -3329,7 +4356,11 @@ export class Hero {
           "Boot shaft.001",
           "Boot front strap.001",
           "Right ankle",
-        ].map((name) => this.#findModelEntity(name)),
+        ].map(/**
+         *
+         * @param {string} name
+         */
+        (name) => this.#findModelEntity(name)),
       },
     });
     this.#respawnEffect = new HeroRespawnEffect({
@@ -3347,6 +4378,14 @@ export class Hero {
 
 
 
+  /**
+   *
+   * @param {{pickupAction: {targetDistance?: number, minimumDistance: number, maximumDistance: number, radiusClearance: number, maximumStep?: number, maximumForwardStep: number, maximumBackwardStep: number}, targetPosition: {x: number, y: number, z: number}, targetRadius: number, targetDistance: number}} options
+   * @param {{targetDistance?: number, minimumDistance: number, maximumDistance: number, radiusClearance: number, maximumStep?: number, maximumForwardStep: number, maximumBackwardStep: number}} options.pickupAction
+   * @param {{x: number, y: number, z: number}} options.targetPosition
+   * @param {number} options.targetRadius
+   * @param {number} options.targetDistance
+   */
   #collectionPositioning({
     pickupAction,
     targetPosition,
@@ -3389,6 +4428,11 @@ export class Hero {
   }
 
 
+  /**
+   *
+   * @param {number} toX
+   * @param {number} toZ
+   */
   #tryGatewayRepulsion(toX, toZ) {
     if (
       this.#actionBehavior.collectAction ||
@@ -3455,6 +4499,10 @@ export class Hero {
     }
   }
 
+  /**
+   *
+   * @param {string} name
+   */
   #findModelEntity(name) {
     const pending = [this.#modelRoot];
     while (pending.length) {
@@ -3467,6 +4515,12 @@ export class Hero {
     return null;
   }
 
+  /**
+   *
+   * @param {number} value
+   * @param {{x: number, y: number, z: number}} target
+   * @param {number} amount
+   */
   #approach(value, target, amount) {
     if (value < target) {
       return Math.min(value + amount, target);
@@ -3474,6 +4528,12 @@ export class Hero {
     return Math.max(value - amount, target);
   }
 
+  /**
+   *
+   * @param {import("src/game/objects/ObjectTypes.js").Point3} from
+   * @param {import("src/game/objects/ObjectTypes.js").Point3} to
+   * @param {number} amount
+   */
   #lerpAngle(from, to, amount) {
     const difference = ((to - from + 540) % 360) - 180;
     return from + difference * amount;

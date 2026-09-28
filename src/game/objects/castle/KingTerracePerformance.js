@@ -22,7 +22,11 @@ const ATTACKS = new Set([
   KING_ANIMATION.SWORD_LUNGE,
   KING_ANIMATION.SWORD_TWO_HANDED_SWING,
 ]);
-const ATTACK_SEQUENCE = SWORD_SEQUENCE.filter((clip) => ATTACKS.has(clip));
+const ATTACK_SEQUENCE = SWORD_SEQUENCE.filter(/**
+ *
+ * @param {number} clip
+ */
+(clip) => ATTACKS.has(clip));
 const POSITION_BY_CLIP = new Map([
   [KING_ANIMATION.SWORD_READY, { x: 0, y: 0, z: 0 }],
   [KING_ANIMATION.SWORD_OVERHEAD_STRIKE, { x: -0.7, y: 0, z: 0.1 }],
@@ -61,14 +65,32 @@ const ZERO_POSITION = { x: 0, y: 0, z: 0 };
  * Chooses model-authored clips; it never manufactures joint transforms.
  */
 export class KingTerracePerformance {
+  /**
+   *
+    * @type {number}
+   */
   #seed;
+  /**
+   *
+    * @type {number}
+   */
   #schedule;
 
+  /**
+   *
+   * @param {number} seed
+   */
   constructor(seed = Math.random()) {
     this.#seed = Number.isFinite(seed) ? seed : 0;
     this.#schedule = this.#buildSchedule();
   }
 
+  /**
+   *
+   * @param {string} action
+   * @param {number} time
+   * @param {number} blend
+   */
   sample(action, time, blend = 1) {
     const safeTime = Number.isFinite(time) ? Math.max(0, time) : 0;
     if (action === "walk") {
@@ -160,6 +182,11 @@ export class KingTerracePerformance {
     return schedule;
   }
 
+  /**
+   *
+   * @param {number} index
+   * @param {number} salt
+   */
   #noise(index, salt) {
     const value = Math.sin(
       (index + 1) * 12.9898 + (this.#seed + salt) * 78.233,
@@ -167,6 +194,10 @@ export class KingTerracePerformance {
     return value - Math.floor(value);
   }
 
+  /**
+   *
+   * @param {number} value
+   */
   #smooth(value) {
     return value * value * (3 - 2 * value);
   }

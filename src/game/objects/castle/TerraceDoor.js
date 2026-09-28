@@ -6,18 +6,59 @@ import { CASTLE_DOOR_ANIMATION } from "../../enum/CastleDoorAnimation.js";
  * A roof stairhead with a single rectangular door opening onto the terrace.
  */
 export class TerraceDoor {
+  /**
+   *
+    * @returns {Array<string>}
+   */
   static get modelUrls() {
     return [terraceDoorUrl, terraceStairheadUrl];
   }
 
+  /**
+   *
+    * @type {import("playcanvas").Entity}
+   */
   #entity;
+  /**
+   *
+    * @type {import("playcanvas").Entity}
+   */
   #door;
+  /**
+   *
+    * @type {import("playcanvas").AnimController}
+   */
   #layer;
+  /**
+   *
+    * @type {number}
+   */
   #duration;
+  /**
+   *
+    * @type {number}
+   */
   #amount = 0;
+  /**
+   *
+    * @type {typeof import("playcanvas")}
+   */
   #pc;
+  /**
+   *
+    * @type {() => boolean}
+   */
   #onOpen;
 
+  /**
+   *
+   * @param {{pc: typeof import("playcanvas"), modelLibrary: string, wallMaterial: import("playcanvas").Material, woodMaterial: import("playcanvas").Material, onOpen: () => boolean}} options
+   * @param {typeof import("playcanvas")} options.pc
+   * @param {string} options.modelLibrary
+   * @param {import("playcanvas").Material} options.wallMaterial
+   * @param {import("playcanvas").Material} options.woodMaterial
+   * @param {() => boolean} options.onOpen
+   */
   constructor({
     pc,
     modelLibrary,
@@ -25,11 +66,15 @@ export class TerraceDoor {
     woodMaterial,
     onOpen,
   }) {
+
     this.#pc = pc;
+
     this.#onOpen = onOpen;
+
     this.#entity = modelLibrary.instantiate(terraceStairheadUrl);
     this.#entity.name = "Terrace stairhead";
     this.#applyWallMaterial(wallMaterial);
+
     this.#door = modelLibrary.instantiate(terraceDoorUrl);
     this.#door.name = "Terrace outward-opening door";
     this.#applyWoodMaterial(woodMaterial);
@@ -39,9 +84,11 @@ export class TerraceDoor {
     ]).get(CASTLE_DOOR_ANIMATION.OPEN);
     this.#door.addComponent("anim", { activate: true });
     this.#door.anim.addAnimationState(CASTLE_DOOR_ANIMATION.OPEN, track, 1, false);
+
     this.#layer = this.#door.anim.baseLayer;
     this.#layer.play(CASTLE_DOOR_ANIMATION.OPEN);
     this.#door.anim.speed = 0;
+
     this.#duration = track.duration;
     this.#layer.activeStateCurrentTime = 0;
   }
@@ -60,14 +107,27 @@ export class TerraceDoor {
     this.#door.anim.update(0);
   }
 
+  /**
+   *
+    * @returns {boolean}
+   */
   get insideHandle() {
     return this.#door.findByName("Terrace door inside ring handle");
   }
 
+  /**
+   *
+    * @returns {{x: number, y: number, z: number}}
+   */
   get hingeRotation() {
     return this.#door.findByName("Terrace door hinge").getRotation();
   }
 
+  /**
+   *
+   * @param {number} rayStart
+   * @param {number} rayEnd
+   */
   getPointerHit(rayStart, rayEnd) {
     const hinge = this.#door?.findByName("Terrace door hinge");
     if (!hinge) {
@@ -93,6 +153,13 @@ export class TerraceDoor {
     return this.#onOpen?.() ?? false;
   }
 
+  /**
+   *
+   * @param {number} x
+   * @param {number} y
+   * @param {number} z
+   * @param {number} radius
+   */
   blocksCameraAt(x, y, z, radius = 0) {
     const hinge = this.#door?.findByName("Terrace door hinge");
     if (!hinge) {
@@ -112,6 +179,12 @@ export class TerraceDoor {
     );
   }
 
+  /**
+   *
+   * @param {number} deltaTime
+   * @param {boolean} open
+   * @param {number} speed
+   */
   update(deltaTime, open, speed = 3) {
     const step = Math.max(0, deltaTime) * speed;
     this.#amount = open
@@ -125,6 +198,10 @@ export class TerraceDoor {
     this.#door = null;
   }
 
+  /**
+   *
+   * @param {import("playcanvas").Material} wallMaterial
+   */
   #applyWallMaterial(wallMaterial) {
     if (!wallMaterial) {
       return;
@@ -145,6 +222,10 @@ export class TerraceDoor {
     }
   }
 
+  /**
+   *
+   * @param {import("playcanvas").Material} woodMaterial
+   */
   #applyWoodMaterial(woodMaterial) {
     const pending = [this.#door];
     while (pending.length) {

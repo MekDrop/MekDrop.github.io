@@ -3,6 +3,10 @@ export class InvalidCastleEntranceWidthError extends Error {
     super(
       "Map validation failed: the castle entrance must cover both full-width path lanes.",
     );
+    /**
+     *
+     * @type {string}
+     */
     this.name = this.constructor.name;
   }
 }

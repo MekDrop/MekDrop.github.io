@@ -5,10 +5,18 @@ import { TerraceKing } from "../../castle/TerraceKing.js";
 import { AbstractRoyal } from "../AbstractRoyal.js";
 
 export class King extends AbstractRoyal {
+  /**
+   *
+    * @returns {Array<string>}
+   */
   static get modelUrls() {
     return [kingModelUrl, ...CastleTerraceActivity.modelUrls];
   }
 
+  /**
+   *
+   * @param {ConstructorParameters<typeof AbstractRoyal>[0]} options
+   */
   constructor(options) {
     super({
       ...options,

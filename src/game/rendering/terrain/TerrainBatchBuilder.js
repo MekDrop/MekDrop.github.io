@@ -11,14 +11,53 @@ import {
 } from "./TerrainMaterialMaps.js";
 
 export class TerrainBatchBuilder {
+  /**
+   *
+   * @type {import("src/game/GameContracts.js").GameMapData}
+   */
   #mapData;
+  /**
+   *
+   * @type {import("src/game/objects/path/BridgeRailingKit.js").BridgeRailingKit}
+   */
   #bridgeRailingKit;
+  /**
+   *
+   * @type {Array}
+   */
   #cubeMaterials;
+  /**
+   *
+   * @type {(col: number, row: number, level: number) => string}
+   */
   #pathEarthSideMaterial;
+  /**
+   *
+   * @type {(col: number, row: number, level: number) => string}
+   */
   #earthSideMaterial;
+  /**
+   *
+   * @type {(material: string, index: number) => string}
+   */
   #sideVariant;
+  /**
+   *
+   * @type {TerrainInstanceRenderer}
+   */
   #instanceRenderer;
 
+  /**
+   *
+   * @param {{mapData: import("src/game/GameContracts.js").GameMapData, bridgeRailingKit: import("src/game/objects/path/BridgeRailingKit.js").BridgeRailingKit, cubeMaterials: Array, pathEarthSideMaterial: pc.Material, earthSideMaterial: pc.Material, sideVariant: (material: string, index: number) => string, instanceRenderer: TerrainInstanceRenderer}} options
+   * @param {import("src/game/GameContracts.js").GameMapData} options.mapData
+   * @param {import("src/game/objects/path/BridgeRailingKit.js").BridgeRailingKit} options.bridgeRailingKit
+   * @param {Array} options.cubeMaterials
+   * @param {pc.Material} options.pathEarthSideMaterial
+   * @param {pc.Material} options.earthSideMaterial
+   * @param {(material: string, index: number) => string} options.sideVariant
+   * @param {TerrainInstanceRenderer} options.instanceRenderer
+   */
   constructor({
     mapData,
     bridgeRailingKit,
@@ -28,15 +67,47 @@ export class TerrainBatchBuilder {
     sideVariant,
     instanceRenderer,
   }) {
+    /**
+     *
+     * @type {import("src/game/GameContracts.js").GameMapData}
+     */
     this.#mapData = mapData;
+    /**
+     *
+     * @type {import("src/game/objects/path/BridgeRailingKit.js").BridgeRailingKit}
+     */
     this.#bridgeRailingKit = bridgeRailingKit;
+    /**
+     *
+     * @type {Array}
+     */
     this.#cubeMaterials = cubeMaterials;
+    /**
+     *
+     * @type {(col: number, row: number, level: number) => string}
+     */
     this.#pathEarthSideMaterial = pathEarthSideMaterial;
+    /**
+     *
+     * @type {(col: number, row: number, level: number) => string}
+     */
     this.#earthSideMaterial = earthSideMaterial;
+    /**
+     *
+     * @type {(material: string, index: number) => string}
+     */
     this.#sideVariant = sideVariant;
+    /**
+     *
+     * @type {TerrainInstanceRenderer}
+     */
     this.#instanceRenderer = instanceRenderer;
   }
 
+  /**
+   *
+   * @param {Array<{col: number, row: number, level: number, rocky: boolean}>} undersideVoxels
+   */
   build(undersideVoxels = []) {
     const { grid, heightmap, tileMeta, cols, rows } = this.#mapData;
     for (const { col, row, level, rocky } of undersideVoxels) {
@@ -53,8 +124,16 @@ export class TerrainBatchBuilder {
     }
     const processedBridgeCells = new Set();
     const riverCells = new Map(
-      (this.#mapData.riverData ?? []).flatMap((river) =>
-        river.cells.map((cell) => [`${cell.col},${cell.row}`, cell]),
+      (this.#mapData.riverData ?? []).flatMap(/**
+       *
+       * @param {{kind: string, cells: import("src/game/GameContracts.js").GridPoint[]}} river
+       */
+      (river) =>
+        river.cells.map(/**
+         *
+         * @param {import("src/game/GameContracts.js").GridPoint} cell
+         */
+        (cell) => [`${cell.col},${cell.row}`, cell]),
       ),
     );
     for (let row = 0; row < rows; row += 1) {
@@ -231,6 +310,11 @@ export class TerrainBatchBuilder {
     this.#addOverpassDeck(cols, rows);
   }
 
+  /**
+   *
+   * @param {number[]} cols
+   * @param {number[]} rows
+   */
   #addOverpassDeck(cols, rows) {
     const overpass = this.#mapData.overpassData;
     if (!overpass) {
@@ -289,6 +373,12 @@ export class TerrainBatchBuilder {
     this.#bridgeRailingKit.addOverpass(overpass, railingMaterial, cols, rows);
   }
 
+  /**
+   *
+   * @param {import("src/game/GameContracts.js").GridPoint} cell
+   * @param {number[]} cols
+   * @param {number[]} rows
+   */
   #addRiverbed(cell, cols, rows) {
     const { col, row, bedElevation } = cell;
     const x = col - (cols - 1) / 2;
@@ -333,6 +423,15 @@ export class TerrainBatchBuilder {
     );
   }
 
+  /**
+   *
+   * @param {number} col
+   * @param {number} row
+   * @param {number} height
+   * @param {number[]} cols
+   * @param {number[]} rows
+   * @param {boolean} dirtOnly
+   */
   #addBridgeGround(col, row, height, cols, rows, dirtOnly = false) {
     const x = col - (cols - 1) / 2;
     const z = row - (rows - 1) / 2;
@@ -358,6 +457,12 @@ export class TerrainBatchBuilder {
     }
   }
 
+  /**
+   *
+   * @param {HTMLCanvasElement|MediaStream|pc.Entity} source
+   * @param {number[]} cols
+   * @param {number[]} rows
+   */
   #addRiverSourceCap(source, cols, rows) {
     if (!source) {
       return;
@@ -407,6 +512,14 @@ export class TerrainBatchBuilder {
     );
   }
 
+  /**
+   *
+   * @param {string[][]} grid
+   * @param {import("src/game/GameContracts.js").TileMetadata[][]} tileMeta
+   * @param {number} col
+   * @param {number} row
+   * @param {string} direction
+   */
   #bridgeMateCell(grid, tileMeta, col, row, direction) {
     const horizontal = direction === "EAST" || direction === "WEST";
     const candidates = horizontal
@@ -420,6 +533,10 @@ export class TerrainBatchBuilder {
         ];
     return (
       candidates.find(
+        /**
+         *
+         * @param {{col: number, row: number}} candidate
+         */
         (candidate) =>
           grid[candidate.row]?.[candidate.col] === TileType.PATH &&
           tileMeta[candidate.row]?.[candidate.col]?.renderMode === "BRIDGE" &&
@@ -428,6 +545,15 @@ export class TerrainBatchBuilder {
     );
   }
 
+  /**
+   *
+   * @param {string[][]} grid
+   * @param {number[][]} heightmap
+   * @param {import("src/game/GameContracts.js").TileMetadata[][]} tileMeta
+   * @param {number} col
+   * @param {number} row
+   * @param {string} direction
+   */
   #collectBridgeSpan(grid, heightmap, tileMeta, col, row, direction) {
     const horizontal = direction === "EAST" || direction === "WEST";
     const mate = this.#bridgeMateCell(grid, tileMeta, col, row, direction);
@@ -438,6 +564,10 @@ export class TerrainBatchBuilder {
         : col;
     const crossEnd = mate ? crossStart + 1 : crossStart;
     const height = heightmap[row][col];
+    /**
+     *
+     * @param {pc.Vec3} position
+     */
     const isStation = (position) => {
       for (let cross = crossStart; cross <= crossEnd; cross += 1) {
         const stationCol = horizontal ? position : cross;
@@ -481,6 +611,10 @@ export class TerrainBatchBuilder {
     };
   }
 
+  /**
+   *
+   * @param {{top: string, sides: string, underlay: string}} topCube
+   */
   #surfaceCoverage(topCube) {
     if (!topCube) {
       return "none";

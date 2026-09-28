@@ -5,6 +5,12 @@ const quasarLanguageLoaders = {
   lt: () => import("quasar/lang/lt.js"),
 };
 
+/**
+ *
+ * @param {string} language
+ * @param {string[]} availableLanguages
+ * @param {NonNullable<import("@quasar/app-vite").HasSsrParam["ssrContext"]>|null} ssrContext
+ */
 export async function updateQuasarLanguage(
   language,
   availableLanguages,

@@ -3,15 +3,59 @@ import { ThrownInventoryItem } from "../../objects/inventory/index.js";
 import { InventoryHud } from "../../ui/index.js";
 
 export class InventoryScene {
+  /**
+   *
+   * @type {InventoryHud|null}
+   */
   #hud = null;
+  /**
+   *
+   * @type {typeof pc}
+   */
   #pc;
+  /**
+   *
+   * @type {GameModelLibrary}
+   */
   #modelLibrary;
+  /**
+   *
+   * @type {import("src/game/GameContracts.js").StoreContract}
+   */
   #heroConfigurationStore;
+  /**
+   *
+   * @type {() => Hero|null}
+   */
   #getHero;
+  /**
+   *
+   * @type {() => pc.Entity}
+   */
   #getMapRoot;
+  /**
+   *
+   * @type {() => {position: pc.Vec3, rotation?: pc.Quat}|null}
+   */
   #getDropPlacement;
+  /**
+   *
+   * @type {Array}
+   */
   #thrownItems = [];
 
+  /**
+   *
+   * @param {{pc: typeof pc, app: pc.Application, modelLibrary: GameModelLibrary, heroConfigurationStore: import("src/game/GameContracts.js").StoreContract, translate: (key: string, values?: {[key: string]: string|number}) => string, getHero: () => Hero|null, getMapRoot: () => pc.Entity, getDropPlacement?: () => {position: pc.Vec3, rotation?: pc.Quat}|null}} options
+   * @param {typeof pc} options.pc
+   * @param {pc.Application} options.app
+   * @param {GameModelLibrary} options.modelLibrary
+   * @param {import("src/game/GameContracts.js").StoreContract} options.heroConfigurationStore
+   * @param {(key: string, values?: {[key: string]: string|number}) => string} options.translate
+   * @param {() => Hero|null} options.getHero
+   * @param {() => pc.Entity} options.getMapRoot
+   * @param {() => {position: pc.Vec3, rotation?: pc.Quat}|null} options.getDropPlacement
+   */
   constructor({
     pc,
     app,
@@ -22,18 +66,59 @@ export class InventoryScene {
     getMapRoot,
     getDropPlacement = null,
   }) {
+    /**
+     *
+     * @type {typeof pc}
+     */
     this.#pc = pc;
+    /**
+     *
+     * @type {GameModelLibrary}
+     */
     this.#modelLibrary = modelLibrary;
+    /**
+     *
+     * @type {import("src/game/GameContracts.js").StoreContract}
+     */
     this.#heroConfigurationStore = heroConfigurationStore;
+    /**
+     *
+     * @type {() => Hero|null}
+     */
     this.#getHero = getHero;
+    /**
+     *
+     * @type {() => pc.Entity}
+     */
     this.#getMapRoot = getMapRoot;
+    /**
+     *
+     * @type {() => {position: pc.Vec3, rotation?: pc.Quat}|null}
+     */
     this.#getDropPlacement = getDropPlacement;
+    /**
+     *
+     * @type {InventoryHud}
+     */
     this.#hud = new InventoryHud({
       pc,
       app,
       modelLibrary,
       translate,
+      /**
+       *
+       * @param {number} fromSlot
+       * @param {number} toSlot
+       */
       onMoveItem: (fromSlot, toSlot) => this.moveItem(fromSlot, toSlot),
+      /**
+       *
+       * @param {number} slot
+       * @param {number} clientX
+       * @param {number} clientY
+       * @param {number} heightClientX
+       * @param {number} heightClientY
+       */
       onDropItem: (slot, clientX, clientY, heightClientX, heightClientY) =>
         this.dropItem(slot, clientX, clientY, heightClientX, heightClientY),
     });
@@ -41,10 +126,18 @@ export class InventoryScene {
     this.#hud.visible = Boolean(this.#heroConfigurationStore.inventory.visible);
   }
 
+  /**
+   *
+   * @returns {Array}
+   */
   static get modelUrls() {
     return [InventoryHud.modelUrl];
   }
 
+  /**
+   *
+   * @returns {import("src/game/GameContracts.js").CameraState}
+   */
   get state() {
     const hero = this.#getHero();
     return {
@@ -56,6 +149,10 @@ export class InventoryScene {
     };
   }
 
+  /**
+   *
+   * @returns {boolean}
+   */
   get visible() {
     return this.#hud?.visible ?? false;
   }
@@ -64,22 +161,50 @@ export class InventoryScene {
     this.setVisible(visible);
   }
 
+  /**
+   *
+   * @returns {boolean}
+   */
   get fullReactionVisible() {
     return this.#hud?.fullReactionVisible ?? false;
   }
 
+  /**
+   *
+   * @returns {number}
+   */
   get thrownItemCount() {
     return this.#thrownItems.length;
   }
 
+  /**
+   *
+   * @returns {Array}
+   */
   get thrownItemStates() {
-    return this.#thrownItems.map((item) => item.state);
+    return this.#thrownItems.map(/**
+     *
+     * @param {import("src/game/GameContracts.js").GameObjectContract} item
+     */
+    (item) => item.state);
   }
 
+  /**
+   *
+   * @returns {Array}
+   */
   get grassImpressionContacts() {
-    return this.#thrownItems.flatMap((item) => item.grassImpressionContacts);
+    return this.#thrownItems.flatMap(/**
+     *
+     * @param {import("src/game/GameContracts.js").GameObjectContract} item
+     */
+    (item) => item.grassImpressionContacts);
   }
 
+  /**
+   *
+   * @param {boolean} visible
+   */
   setVisible(visible) {
     const nextVisible = Boolean(visible);
     if (this.#hud) {
@@ -108,19 +233,37 @@ export class InventoryScene {
     return configuredVisibility;
   }
 
+  /**
+   *
+   * @param {import("src/game/GameContracts.js").StoreContract} state
+   */
   setInventory(state) {
     this.#hud?.setInventory(state);
   }
 
+  /**
+   *
+   * @param {pc.Vec3} position
+   */
   showFullReaction(position) {
     this.#hud?.showFullReaction(position);
   }
 
+  /**
+   *
+   * @param {number} deltaTime
+   * @param {pc.Vec3} fullIndicatorPosition
+   */
   update(deltaTime, fullIndicatorPosition) {
     this.#hud?.update(deltaTime, fullIndicatorPosition);
     this.#updateThrownItems(deltaTime);
   }
 
+  /**
+   *
+   * @param {number} fromSlot
+   * @param {number} toSlot
+   */
   moveItem(fromSlot, toSlot) {
     const moved = this.#heroConfigurationStore.moveInventoryItem(
       fromSlot,
@@ -132,8 +275,20 @@ export class InventoryScene {
     return moved;
   }
 
+  /**
+   *
+   * @param {number} slot
+   * @param {number} clientX
+   * @param {number} clientY
+   * @param {number} heightClientX
+   * @param {number} heightClientY
+   */
   dropItem(slot, clientX, clientY, heightClientX, heightClientY) {
     const inventoryItem = this.#heroConfigurationStore.inventory.items.find(
+      /**
+       *
+       * @param {import("src/game/GameContracts.js").GameObjectContract} item
+       */
       (item) => item.slot === slot,
     );
     const hero = this.#getHero();
@@ -171,14 +326,29 @@ export class InventoryScene {
     return droppedItem;
   }
 
+  /**
+   *
+   * @param {number} clientX
+   * @param {number} clientY
+   */
   pointerDown(clientX, clientY) {
     return this.#hud?.pointerDown(clientX, clientY) ?? false;
   }
 
+  /**
+   *
+   * @param {number} clientX
+   * @param {number} clientY
+   */
   pointerMove(clientX, clientY) {
     return this.#hud?.pointerMove(clientX, clientY) ?? false;
   }
 
+  /**
+   *
+   * @param {number} clientX
+   * @param {number} clientY
+   */
   pointerUp(clientX, clientY) {
     return this.#hud?.pointerUp(clientX, clientY) ?? false;
   }
@@ -215,6 +385,10 @@ export class InventoryScene {
     this.#getDropPlacement = null;
   }
 
+  /**
+   *
+   * @param {number} deltaTime
+   */
   #updateThrownItems(deltaTime) {
     const remainingItems = [];
     for (const thrownItem of this.#thrownItems) {

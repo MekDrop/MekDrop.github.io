@@ -8,28 +8,88 @@ const POSITIONS = {
   cup: [0.25, 1.2, 3.25],
 };
 const TRAY_POSITION = [0.61, 1.08, 3.08];
+/**
+ *
+ * @param {number} value
+ */
 const ease = (value) => value * value * (3 - 2 * value);
 
 /**
  * Executes tray, pouring, and drinking actions after tea is requested.
  */
 export class TerraceTeaSetActions {
+  /**
+   *
+    * @returns {Array<string>}
+   */
   static get modelUrls() {
     return [potUrl, cupUrl, trayUrl];
   }
 
+  /**
+   *
+    * @type {typeof import("playcanvas")}
+   */
   #pc;
+  /**
+   *
+    * @type {import("playcanvas").Entity}
+   */
   #stage;
+  /**
+   *
+    * @type {import("./TerracePrincess.js").TerracePrincess}
+   */
   #royal;
+  /**
+   *
+    * @type {import("playcanvas").Entity}
+   */
   #pot;
+  /**
+   *
+    * @type {import("playcanvas").Entity}
+   */
   #cup;
+  /**
+   *
+    * @type {import("playcanvas").Entity}
+   */
   #tray;
+  /**
+   *
+    * @type {import("playcanvas").Entity}
+   */
   #stream;
+  /**
+   *
+    * @type {import("playcanvas").StandardMaterial|null}
+   */
   #material;
+  /**
+   *
+    * @type {import("./TerraceActor.js").TerraceActor|null}
+   */
   #servant = null;
+  /**
+   *
+    * @type {import("./TerraceServantBehavior.js").TerraceServantBehavior|null}
+   */
   #servantBehavior = null;
+  /**
+   *
+    * @type {import("./RoyalTerraceActivityBehavior.js").RoyalTerraceActivityBehavior|null}
+   */
   #royalBehavior = null;
 
+  /**
+   *
+   * @param {{pc: typeof import("playcanvas"), modelLibrary: string, stage: import("playcanvas").Entity, royal: import("./TerracePrincess.js").TerracePrincess}} options
+   * @param {typeof import("playcanvas")} options.pc
+   * @param {string} options.modelLibrary
+   * @param {import("playcanvas").Entity} options.stage
+   * @param {import("./TerracePrincess.js").TerracePrincess} options.royal
+   */
   constructor({ pc, modelLibrary, stage, royal }) {
     this.#pc = pc;
     this.#stage = stage;
@@ -56,6 +116,10 @@ export class TerraceTeaSetActions {
     stage.addChild(this.#stream);
   }
 
+  /**
+   *
+    * @returns {string}
+   */
   get state() {
     const pouring = this.#servantBehavior?.stagePhase === PHASE.POUR;
     const potHandDistance = pouring && this.#servant
@@ -86,6 +150,12 @@ export class TerraceTeaSetActions {
     };
   }
 
+  /**
+   *
+   * @param {import("./TerraceServantBehavior.js").TerraceServantBehavior} servantBehavior
+   * @param {import("./RoyalTerraceActivityBehavior.js").RoyalTerraceActivityBehavior} royalBehavior
+   * @param {import("./TerraceActor.js").TerraceActor} servant
+   */
   sync(servantBehavior, royalBehavior, servant) {
     this.#servantBehavior = servantBehavior;
     this.#royalBehavior = royalBehavior;
@@ -118,6 +188,12 @@ export class TerraceTeaSetActions {
     }
   }
 
+  /**
+   *
+   * @param {string} name
+   * @param {import("playcanvas").Entity} prop
+   * @param {boolean} packing
+   */
   #moveWithTray(name, prop, packing) {
     const trayPosition = this.#trayItemPosition(name);
     if (packing) {
@@ -226,6 +302,10 @@ export class TerraceTeaSetActions {
     return this.#stage.getWorldTransform().clone().invert().transformPoint(world);
   }
 
+  /**
+   *
+   * @param {string} name
+   */
   #trayItemPosition(name) {
     const offset = name === "pot"
       ? new this.#pc.Vec3(0.31, 0.12, -0.08)
@@ -259,6 +339,10 @@ export class TerraceTeaSetActions {
     this.#cup.setLocalEulerAngles(0, 90, 0);
   }
 
+  /**
+   *
+   * @param {boolean} visible
+   */
   #setSaucerVisible(visible) {
     this.#cup.findByName("Ivory saucer").enabled = visible;
     this.#cup.findByName("Saucer gilt edge").enabled = visible;

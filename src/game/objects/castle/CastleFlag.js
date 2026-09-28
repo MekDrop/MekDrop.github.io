@@ -6,18 +6,68 @@ const FLAG_TRAILING_EDGE_HEIGHT_RATIO = 0.2;
 const FLAG_TEXTURE_WIDTH = 64;
 const FLAG_TEXTURE_HEIGHT = 40;
 
+/**
+ * @typedef {{root: import("playcanvas").Entity, width: number, height: number, poleHeight: number, cloth: ReturnType<AmmoClothPhysics["createCloth"]>, mesh: import("playcanvas").Mesh, positions: Float32Array, vertexUv: Float32Array, indices: Uint16Array}} CastleFlagInstance
+ */
+
 export class CastleFlag {
+  /**
+   *
+    * @type {typeof import("playcanvas")}
+   */
   #pc;
+  /**
+   *
+    * @type {import("playcanvas").Application}
+   */
   #app;
+  /**
+   *
+    * @type {import("playcanvas").Entity}
+   */
   #entity;
+  /**
+   *
+    * @type {import("playcanvas").StandardMaterial}
+   */
   #flagMaterial;
+  /**
+   *
+    * @type {import("playcanvas").StandardMaterial}
+   */
   #poleMaterial;
+  /**
+   *
+    * @type {import("playcanvas").Texture}
+   */
   #texture;
+  /**
+   *
+    * @type {Array<CastleFlagInstance>}
+   */
   #flags = [];
+  /**
+   *
+    * @type {CastleFlagInstance|null}
+   */
   #activeFlag = null;
+  /**
+   *
+    * @type {AmmoClothPhysics}
+   */
   #physics;
+  /**
+   *
+    * @type {{off: () => void}|null}
+   */
   #updateHandle = null;
 
+  /**
+   *
+   * @param {{pc: typeof import("playcanvas"), app: import("playcanvas").Application}} options
+   * @param {typeof import("playcanvas")} options.pc
+   * @param {import("playcanvas").Application} options.app
+   */
   constructor({ pc, app }) {
     this.#pc = pc;
     this.#app = app;
@@ -26,7 +76,11 @@ export class CastleFlag {
     this.#flagMaterial = this.#createFlagMaterial();
     this.#poleMaterial = this.#createPoleMaterial();
     this.#physics = new AmmoClothPhysics({ pc });
-    this.#updateHandle = app.on("update", (deltaTime) => {
+    this.#updateHandle = app.on("update", /**
+     *
+     * @param {number} deltaTime
+     */
+    (deltaTime) => {
       this.#animate(deltaTime);
     });
   }
@@ -35,6 +89,18 @@ export class CastleFlag {
     return this.#entity;
   }
 
+  /**
+   *
+   * @param {{x: number, y: number, z: number, yaw: number, width: number, height: number, poleHeight: number, roofCollider: number}} options
+   * @param {number} options.x
+   * @param {number} options.y
+   * @param {number} options.z
+   * @param {number} options.yaw
+   * @param {number} options.width
+   * @param {number} options.height
+   * @param {number} options.poleHeight
+   * @param {number} options.roofCollider
+   */
   add({
     x,
     y,
@@ -104,7 +170,12 @@ export class CastleFlag {
     flag.cloth = this.#physics.createCloth({
       positions: flag.positions,
       indices: flag.indices,
-      pinnedIndices: Array.from({ length: FLAG_ROWS + 1 }, (_, index) => index),
+      pinnedIndices: Array.from({ length: FLAG_ROWS + 1 }, /**
+       *
+       * @param {undefined} _
+       * @param {number} index
+       */
+      (_, index) => index),
       vertexUv: flag.vertexUv,
       root,
       normalAxis: 2,
@@ -116,6 +187,11 @@ export class CastleFlag {
     this.#flags.push(flag);
   }
 
+  /**
+   *
+   * @param {number} rayStart
+   * @param {number} rayEnd
+   */
   getFlagHit(rayStart, rayEnd) {
     let closest = null;
     for (const flag of this.#flags) {
@@ -126,6 +202,10 @@ export class CastleFlag {
     return closest;
   }
 
+  /**
+   *
+   * @param {{flag: CastleFlagInstance, point: import("playcanvas").Vec3}} hit
+   */
   beginWindGesture(hit) {
     if (!hit?.flag) {
       return;
@@ -134,6 +214,12 @@ export class CastleFlag {
     this.#physics.beginPointer(this.#activeFlag.cloth, hit.point);
   }
 
+  /**
+   *
+   * @param {number} rayStart
+   * @param {number} rayEnd
+   * @param {number} deltaTime
+   */
   applyMouseWind(rayStart, rayEnd, deltaTime) {
     if (!this.#activeFlag) {
       return;
@@ -230,6 +316,12 @@ export class CastleFlag {
     return material;
   }
 
+  /**
+   *
+   * @param {number} width
+   * @param {number} height
+   * @param {number} poleHeight
+   */
   #createMesh(width, height, poleHeight) {
     const positions = [];
     const textureUvs = [];
@@ -288,6 +380,12 @@ export class CastleFlag {
     };
   }
 
+  /**
+   *
+   * @param {{root: import("playcanvas").Entity, positions: Float32Array, indices: Uint16Array}} flag
+   * @param {number} rayStart
+   * @param {number} rayEnd
+   */
   #intersectFlagRay(flag, rayStart, rayEnd) {
     if (!flag?.root) {
       return null;
@@ -325,6 +423,15 @@ export class CastleFlag {
     };
   }
 
+  /**
+   *
+   * @param {{x: number, y: number, z: number}} origin
+   * @param {{x: number, y: number, z: number}} direction
+   * @param {Float32Array} positions
+   * @param {number} first
+   * @param {number} second
+   * @param {number} third
+   */
   #intersectTriangle(origin, direction, positions, first, second, third) {
     const firstOffset = first * 3;
     const secondOffset = second * 3;
@@ -399,6 +506,10 @@ export class CastleFlag {
     };
   }
 
+  /**
+   *
+   * @param {number} deltaTime
+   */
   #animate(deltaTime) {
     this.#physics.step(deltaTime);
     for (const flag of this.#flags) {

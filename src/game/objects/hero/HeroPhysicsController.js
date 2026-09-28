@@ -11,14 +11,53 @@ const HERO_SURFACE_IGNORE_TAG = "hero-surface-ignore";
  * Owns the hero rigid body and all reads/writes to PlayCanvas physics.
  */
 export class HeroPhysicsController {
+  /**
+   *
+    * @type {typeof import("playcanvas")}
+   */
   #pc;
+  /**
+   *
+    * @type {import("playcanvas").Application}
+   */
   #app;
+  /**
+   *
+    * @type {import("playcanvas").Entity}
+   */
   #entity;
+  /**
+   *
+    * @type {typeof import("playcanvas")}
+   */
   #gravity;
+  /**
+   *
+    * @type {typeof import("playcanvas")}
+   */
   #gravityVector = null;
+  /**
+   *
+    * @type {boolean}
+   */
   #scripted = false;
+  /**
+   *
+    * @type {boolean}
+   */
   #supportContact = false;
 
+  /**
+   *
+   * @param {{pc: typeof import("playcanvas"), app: import("playcanvas").Application, entity: import("playcanvas").Entity, radius: number, height: number, gravity: number, fixedTimeStep: number}} options
+   * @param {typeof import("playcanvas")} options.pc
+   * @param {import("playcanvas").Application} options.app
+   * @param {import("playcanvas").Entity} options.entity
+   * @param {number} options.radius
+   * @param {number} options.height
+   * @param {number} options.gravity
+   * @param {number} options.fixedTimeStep
+   */
   constructor({
     pc,
     app,
@@ -64,11 +103,19 @@ export class HeroPhysicsController {
     return this.#scripted;
   }
 
+  /**
+   *
+    * @returns {{x: number, y: number, z: number}}
+   */
   get position() {
     const position = this.#entity.getLocalPosition();
     return { x: position.x, y: position.y, z: position.z };
   }
 
+  /**
+   *
+    * @returns {{x: number, y: number, z: number}}
+   */
   get velocity() {
     const velocity = this.#entity.rigidbody?.linearVelocity;
     return velocity
@@ -93,6 +140,11 @@ export class HeroPhysicsController {
     this.#entity.rigidbody.activate();
   }
 
+  /**
+   *
+   * @param {{x: number, y: number, z: number}} position
+   * @param {{x: number, y: number, z: number}} velocity
+   */
   setScripted(position, velocity = { x: 0, y: 0, z: 0 }) {
     if (!this.#scripted) {
       this.#entity.rigidbody.type = "kinematic";
@@ -106,6 +158,11 @@ export class HeroPhysicsController {
     );
   }
 
+  /**
+   *
+   * @param {{x: number, y: number, z: number}} position
+   * @param {{x: number, y: number, z: number}} velocity
+   */
   resume(position, velocity = { x: 0, y: 0, z: 0 }) {
     if (this.#scripted) {
       this.#entity.rigidbody.type = "dynamic";
@@ -115,20 +172,41 @@ export class HeroPhysicsController {
     this.teleport(position, velocity);
   }
 
+  /**
+   *
+   * @param {{x: number, y: number, z: number}} position
+   * @param {{x: number, y: number, z: number}} velocity
+   */
   teleport(position, velocity = this.velocity) {
     this.#entity.rigidbody.teleport(position.x, position.y, position.z);
     this.velocity = velocity;
   }
 
+  /**
+   *
+   * @param {number} x
+   * @param {number} z
+   * @param {number} maximumHeight
+   * @param {number} minimumHeight
+   */
   surfaceAt(x, z, maximumHeight, minimumHeight = maximumHeight - 3) {
     const start = new this.#pc.Vec3(x, maximumHeight, z);
     const end = new this.#pc.Vec3(x, minimumHeight, z);
     const hits = this.#app.systems.rigidbody.raycastAll(start, end, {
       sort: true,
+      /**
+       *
+       * @param {import("playcanvas").Entity} entity
+       */
       filterCallback: (entity) =>
         entity !== this.#entity && !entity.tags?.has(HERO_SURFACE_IGNORE_TAG),
     });
-    const hit = hits.find(({ normal }) => normal?.y >= GROUND_NORMAL_MINIMUM);
+    const hit = hits.find(/**
+     *
+     * @param {{normal: {x: number, y: number, z: number}}} options
+     * @param {{x: number, y: number, z: number}} options.normal
+     */
+    ({ normal }) => normal?.y >= GROUND_NORMAL_MINIMUM);
     if (!hit) {
       return null;
     }
@@ -144,6 +222,10 @@ export class HeroPhysicsController {
     };
   }
 
+  /**
+   *
+   * @param {{x: number, y: number, z: number}} position
+   */
   groundContact(position = this.position) {
     const surface = this.surfaceAt(
       position.x,
@@ -176,12 +258,21 @@ export class HeroPhysicsController {
     this.#app = null;
   }
 
+  /**
+   *
+   * @param {number} result
+    * @type {(result: {other: import("playcanvas").Entity, contacts: Array<{normal: import("src/game/objects/ObjectTypes.js").Point3}>}) => void}
+   */
   #handleContact = (result) => {
     const position = this.#entity?.getLocalPosition?.();
     if (!position) {
       return;
     }
     this.#supportContact ||= result.contacts?.some(
+      /**
+       *
+       * @param {number} contact
+       */
       (contact) =>
         contact.normal?.y >= SUPPORT_NORMAL_MINIMUM &&
         contact.point?.y <= position.y + SUPPORT_CONTACT_HEIGHT,

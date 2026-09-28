@@ -10,6 +10,10 @@ import { QueenWantsSunbedState } from "./states/terrace/queen/QueenWantsSunbedSt
 import { RoyalTerraceActivityBehavior } from "./RoyalTerraceActivityBehavior.js";
 
 export class QueenLeisureBehavior extends RoyalTerraceActivityBehavior {
+  /**
+   *
+   * @param {(atThrone: boolean) => void} onThroneChange
+   */
   constructor(onThroneChange) {
     const walkSpeed = ROYAL_WALK_SPEED.QUEEN;
     const walkDuration = 0.7 + 2.5 / walkSpeed;

@@ -4,21 +4,53 @@ import { RecordingCanvasUnavailableError } from "../../../../errors/recording/in
  * Composes game pixels and a software cursor; keeps UI borders out of the video.
  */
 export class RecordingCanvas {
+  /**
+   *
+   * @type {HTMLCanvasElement}
+   */
   #source;
+  /**
+   *
+   * @type {HTMLCanvasElement}
+   */
   #canvas;
+  /**
+   *
+   * @type {CanvasRenderingContext2D}
+   */
   #context;
+  /**
+   *
+   * @type {{x: number, y: number}|null}
+   */
   #pointer = null;
 
+  /**
+   *
+   * @param {HTMLCanvasElement} source
+   */
   constructor(source) {
+    /**
+     *
+     * @type {HTMLCanvasElement}
+     */
     this.#source = source;
     if (!source.width || !source.height) {
       throw new RecordingCanvasUnavailableError();
     }
     // Keep native detail up to 4K; avoid enlarging smaller source canvases.
     const scale = Math.min(1, 3840 / source.width, 2160 / source.height);
+    /**
+     *
+     * @type {HTMLCanvasElement}
+     */
     this.#canvas = document.createElement("canvas");
     this.#canvas.width = Math.max(2, Math.floor(source.width * scale / 2) * 2);
     this.#canvas.height = Math.max(2, Math.floor(source.height * scale / 2) * 2);
+    /**
+     *
+     * @type {CanvasRenderingContext2D}
+     */
     this.#context = this.#canvas.getContext("2d", { alpha: false });
     if (!this.#context) {
       throw new RecordingCanvasUnavailableError();
@@ -33,10 +65,19 @@ export class RecordingCanvas {
     return this.#canvas;
   }
 
+  /**
+   *
+   * @param {Event} event
+   * @type {(event: Event) => void}
+   */
   #move = (event) => {
     this.#pointer = { x: event.clientX, y: event.clientY };
   };
 
+  /**
+   *
+   * @type {() => void}
+   */
   #leave = () => {
     this.#pointer = null;
   };

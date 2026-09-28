@@ -2,24 +2,100 @@ import { FirstPersonCameraMode } from "../strategies/camera/FirstPersonCameraMod
 import { IsometricCameraMode } from "../strategies/camera/IsometricCameraMode.js";
 
 export class GameCamera {
+  /**
+   *
+   * @type {typeof pc}
+   */
   #pc;
+  /**
+   *
+   * @type {pc.Entity}
+   */
   #entity;
+  /**
+   *
+   * @type {IsometricCameraMode}
+   */
   #mode;
+  /**
+   *
+   * @type {number}
+   */
   #zoom = 1;
+  /**
+   *
+   * @type {number}
+   */
   #rotation = 0;
+  /**
+   *
+   * @type {number}
+   */
   #panX = 0;
+  /**
+   *
+   * @type {number}
+   */
   #panZ = 0;
+  /**
+   *
+   * @type {number}
+   */
   #targetY;
+  /**
+   *
+   * @type {number}
+   */
   #baseOrthoHeight = 24;
+  /**
+   *
+   * @type {number}
+   */
   #fitCenterX = 0;
+  /**
+   *
+   * @type {number}
+   */
   #fitCenterZ = 0;
+  /**
+   *
+   * @type {boolean}
+   */
   #manuallyMoved = false;
+  /**
+   *
+   * @type {null}
+   */
   #orbitPivot = null;
+  /**
+   *
+   * @type {null}
+   */
   #returnTransition = null;
 
+  /**
+   *
+   * @param {{pc: typeof pc, app: pc.Application, cloudLayerId: string, targetY: number}} options
+   * @param {typeof pc} options.pc
+   * @param {pc.Application} options.app
+   * @param {string} options.cloudLayerId
+   * @param {number} options.targetY
+   */
   constructor({ pc, app, cloudLayerId, targetY }) {
+    /**
+     *
+     * @type {typeof pc}
+     */
     this.#pc = pc;
+    /**
+     *
+     * @type {number}
+     */
     this.#targetY = targetY;
+    /**
+     *
+     * @type {pc.Entity}
+     */
     this.#entity = new pc.Entity("Game camera");
     this.#entity.addComponent("camera", {
       clearColor: new pc.Color(0.055, 0.45, 0.72),
@@ -29,6 +105,10 @@ export class GameCamera {
     });
     this.#entity.camera.layers = [cloudLayerId, ...this.#entity.camera.layers];
     app.root.addChild(this.#entity);
+    /**
+     *
+     * @type {IsometricCameraMode}
+     */
     this.#mode = new IsometricCameraMode(this);
   }
 
@@ -40,14 +120,26 @@ export class GameCamera {
     return this.#entity;
   }
 
+  /**
+   *
+   * @returns {pc.Entity}
+   */
   get camera() {
     return this.#entity.camera;
   }
 
+  /**
+   *
+   * @returns {pc.Entity}
+   */
   get component() {
     return this.#entity.camera;
   }
 
+  /**
+   *
+   * @returns {number}
+   */
   get right() {
     return this.#entity.right;
   }
@@ -124,6 +216,10 @@ export class GameCamera {
     this.#manuallyMoved = Boolean(value);
   }
 
+  /**
+   *
+   * @returns {boolean}
+   */
   get panLimitsEnabled() {
     return this.#mode.panLimitsEnabled ?? false;
   }
@@ -134,6 +230,10 @@ export class GameCamera {
     }
   }
 
+  /**
+   *
+   * @returns {Array|null}
+   */
   get panBounds() {
     return this.#mode.panBounds ?? null;
   }
@@ -154,18 +254,34 @@ export class GameCamera {
     this.#returnTransition = value;
   }
 
+  /**
+   *
+   * @returns {boolean}
+   */
   get firstPersonEnabled() {
     return this.#mode instanceof FirstPersonCameraMode;
   }
 
+  /**
+   *
+   * @returns {string|null}
+   */
   get firstPersonState() {
     return this.firstPersonEnabled ? this.#mode.state : null;
   }
 
+  /**
+   *
+   * @returns {number}
+   */
   get pointerInputActive() {
     return this.#mode.pointerInputActive;
   }
 
+  /**
+   *
+   * @returns {import("src/game/GameContracts.js").ViewportRect}
+   */
   get viewport() {
     return {
       zoom: this.#zoom,
@@ -176,6 +292,10 @@ export class GameCamera {
     };
   }
 
+  /**
+   *
+   * @returns {import("src/game/GameContracts.js").CameraState}
+   */
   get state() {
     return {
       rotation: this.#rotation,
@@ -187,6 +307,11 @@ export class GameCamera {
     };
   }
 
+  /**
+   *
+   * @param {import("src/game/GameContracts.js").GameMapData} mapData
+   * @param {number} targetY
+   */
   reset(mapData, targetY) {
     this.#mode.reset?.(mapData);
     this.#zoom = 1;
@@ -199,6 +324,10 @@ export class GameCamera {
     this.#orbitPivot = null;
   }
 
+  /**
+   *
+   * @param {import("src/game/GameContracts.js").StoreContract} state
+   */
   setState(state) {
     if (Number.isFinite(state.rotation)) {
       this.#rotation = state.rotation;
@@ -220,6 +349,12 @@ export class GameCamera {
     }
   }
 
+  /**
+   *
+   * @param {boolean} enabled
+   * @param {{mapData: import("src/game/GameContracts.js").GameMapData}} options
+   * @param {import("src/game/GameContracts.js").GameMapData} options.mapData
+   */
   setFirstPersonEnabled(enabled, { mapData }) {
     const nextEnabled = Boolean(enabled);
     if (this.firstPersonEnabled === nextEnabled) {
@@ -233,22 +368,43 @@ export class GameCamera {
     return true;
   }
 
+  /**
+   *
+   * @param {{mapName?: string, numPaths?: number, numRivers?: number, signal?: AbortSignal}} options
+   */
   update(options) {
     return this.#mode.update(options);
   }
 
+  /**
+   *
+   * @param {number} yawDegrees
+   * @param {number} pitchDegrees
+   */
   lookFirstPersonBy(yawDegrees, pitchDegrees) {
     this.#mode.lookBy?.(yawDegrees, pitchDegrees);
   }
 
+  /**
+   *
+   * @param {{position?: import("src/game/GameContracts.js").GridPoint, doors?: import("src/game/GameContracts.js").CastleOpening[], style?: string}} input
+   */
   pointerDown(input) {
     return this.#mode.pointerDown(input);
   }
 
+  /**
+   *
+   * @param {{position?: import("src/game/GameContracts.js").GridPoint, doors?: import("src/game/GameContracts.js").CastleOpening[], style?: string}} input
+   */
   pointerMove(input) {
     return this.#mode.pointerMove(input);
   }
 
+  /**
+   *
+   * @param {string|number|boolean} args
+   */
   translateLocal(...args) {
     this.#entity.translateLocal(...args);
   }

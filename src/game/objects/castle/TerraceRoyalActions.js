@@ -13,16 +13,41 @@ const QUEEN_ROUTE = [
   { progress: 1, x: QUEEN_APPROACH_POSITION[0], z: QUEEN_APPROACH_POSITION[2] },
 ];
 
+/**
+ *
+ * @param {number} value
+ */
 const ease = (value) => value * value * (3 - 2 * value);
 
 /**
  * Executes the visual action selected by one royal's current state.
  */
 export class TerraceRoyalActions {
+  /**
+   *
+    * @type {string}
+   */
   #kind;
+  /**
+   *
+    * @type {import("./TerraceKing.js").TerraceKing|import("./TerraceQueen.js").TerraceQueen|import("./TerracePrincess.js").TerracePrincess}
+   */
   #royal;
+  /**
+   *
+    * @type {number}
+   */
   #activityTime = 0;
 
+  /**
+   *
+   * @param {{RoyalType: typeof import("./TerraceKing.js").TerraceKing|typeof import("./TerraceQueen.js").TerraceQueen|typeof import("./TerracePrincess.js").TerracePrincess, pc: typeof import("playcanvas"), modelLibrary: import("src/game/models/GameModelLibrary.js").GameModelLibrary, performanceSeed: number|string, stage: import("playcanvas").Entity}} options
+   * @param {typeof import("./TerraceKing.js").TerraceKing|typeof import("./TerraceQueen.js").TerraceQueen|typeof import("./TerracePrincess.js").TerracePrincess} options.RoyalType
+   * @param {typeof import("playcanvas")} options.pc
+   * @param {import("src/game/models/GameModelLibrary.js").GameModelLibrary} options.modelLibrary
+   * @param {number|string} options.performanceSeed
+   * @param {import("playcanvas").Entity} options.stage
+   */
   constructor({ RoyalType, pc, modelLibrary, performanceSeed, stage }) {
     this.#kind = RoyalType.kind;
     this.#royal = new RoyalType({ pc, modelLibrary, performanceSeed });
@@ -33,6 +58,10 @@ export class TerraceRoyalActions {
     return this.#royal;
   }
 
+  /**
+   *
+    * @returns {import("src/game/objects/ObjectTypes.js").TerraceActivityState}
+   */
   get state() {
     const position = this.#royal.entity.enabled
       ? this.#royal.entity.getLocalPosition() : null;
@@ -43,6 +72,10 @@ export class TerraceRoyalActions {
     };
   }
 
+  /**
+   *
+   * @param {import("./RoyalTerraceActivityBehavior.js").RoyalTerraceActivityBehavior} behavior
+   */
   sync(behavior) {
     const phase = behavior.stagePhase;
     const visible = [PHASE.ROYAL_ENTER, PHASE.SETTLE, PHASE.ACTIVITY,
@@ -88,6 +121,10 @@ export class TerraceRoyalActions {
     this.#royal = null;
   }
 
+  /**
+   *
+   * @param {import("./RoyalTerraceActivityBehavior.js").RoyalTerraceActivityBehavior} behavior
+   */
   #syncQueen(behavior) {
     const phase = behavior.stagePhase;
     if ([PHASE.ROYAL_ENTER, PHASE.ROYAL_EXIT].includes(phase)) {
@@ -105,6 +142,11 @@ export class TerraceRoyalActions {
     this.#royal.pose(behavior.action, this.#activityTime);
   }
 
+  /**
+   *
+   * @param {import("./RoyalTerraceActivityBehavior.js").RoyalTerraceActivityBehavior} behavior
+   * @param {boolean} leaving
+   */
   #walkQueen(behavior, leaving) {
     const travelDuration = behavior.duration - 0.7;
     const travelTime = Math.max(
@@ -136,6 +178,10 @@ export class TerraceRoyalActions {
     );
   }
 
+  /**
+   *
+   * @param {number} progress
+   */
   #queenRoutePoint(progress) {
     const clamped = Math.max(0, Math.min(1, progress));
     for (let index = 1; index < QUEEN_ROUTE.length; index += 1) {
@@ -155,6 +201,11 @@ export class TerraceRoyalActions {
     return { x: QUEEN_APPROACH_POSITION[0], z: QUEEN_APPROACH_POSITION[2] };
   }
 
+  /**
+   *
+   * @param {number} progress
+   * @param {string} action
+   */
   #poseQueenOnSunbed(progress, action) {
     const phase = Math.max(0, Math.min(1, progress));
     const sitting = ease(phase / 0.28);

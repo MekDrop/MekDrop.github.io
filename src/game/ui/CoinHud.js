@@ -4,6 +4,10 @@ import { gameUiTheme } from "./GameUiTheme.js";
 
 const TEXTURE_SIZE = 64;
 
+/**
+ * @typedef {{type: string, light: string, main: string, dark: string}} CoinStyle
+ */
+
 const COINS = [
   { type: COIN_TYPE.GOLD, light: "#fff09b", main: "#f5b72e", dark: "#8a4c0a" },
   { type: COIN_TYPE.SILVER, light: "#f2f7ff", main: "#aabbd0", dark: "#48596d" },
@@ -11,16 +15,37 @@ const COINS = [
 ];
 
 export class CoinHud extends GamePanelHud {
+  /**
+   * @type {import("playcanvas").Entity|null}
+   */
   #panel;
+  /**
+   * @type {import("playcanvas").Texture|null}
+   */
   #panelTexture;
+  /**
+   * @type {Map}
+   */
   #coinTextures = new Map();
+  /**
+   * @type {Map}
+   */
   #numberTextures = new Map();
+  /**
+   * @type {Record<string, number>}
+   */
   #wallet = {
     [COIN_TYPE.GOLD]: 0,
     [COIN_TYPE.SILVER]: 0,
     [COIN_TYPE.COPPER]: 0,
   };
 
+  /**
+   *
+   * @param {{pc: typeof import("playcanvas"), app: import("playcanvas").Application}} options
+   * @param {typeof import("playcanvas")} options.pc
+   * @param {import("playcanvas").Application} options.app
+   */
   constructor({ pc, app }) {
     super({
       pc,
@@ -31,6 +56,10 @@ export class CoinHud extends GamePanelHud {
     this.#build();
   }
 
+  /**
+   *
+   * @param {Record<string, number>} wallet
+   */
   setWallet(wallet = {}) {
     for (const { type } of COINS) {
       this.#wallet[type] = Math.max(0, Math.floor(Number(wallet[type]) || 0));
@@ -82,7 +111,12 @@ export class CoinHud extends GamePanelHud {
       texture: this.#panelTexture,
     });
 
-    COINS.forEach((coin, index) => {
+    COINS.forEach(/**
+     *
+     * @param {CoinStyle} coin
+     * @param {number} index
+     */
+    (coin, index) => {
       const coinTexture = this.#createCoinTexture(coin);
       this.#coinTextures.set(coin.type, coinTexture);
       const numberTexture = this.createCounterNumberTexture(
@@ -113,11 +147,23 @@ export class CoinHud extends GamePanelHud {
     this.syncDrawOrder();
   }
 
+  /**
+   *
+   * @param {CoinStyle} options
+   * @param {string} options.type
+   * @param {string} options.light
+   * @param {string} options.main
+   * @param {string} options.dark
+   */
   #createCoinTexture({ type, light, main, dark }) {
     return this.createDrawnTexture(
       `${type} coin texture`,
       TEXTURE_SIZE,
       TEXTURE_SIZE,
+      /**
+       *
+       * @param {CanvasRenderingContext2D} context
+       */
       (context) => {
         const gradient = context.createRadialGradient(24, 19, 4, 32, 32, 25);
         gradient.addColorStop(0, light);
@@ -148,6 +194,10 @@ export class CoinHud extends GamePanelHud {
     );
   }
 
+  /**
+   *
+   * @param {string} type
+   */
   #drawNumber(type) {
     const record = this.#numberTextures.get(type);
     if (!record) {

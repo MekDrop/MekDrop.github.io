@@ -3,6 +3,10 @@ export class InsufficientParallelPathSpacingError extends Error {
     super(
       "Map validation failed: two parallel paths are separated by fewer than two full grass tiles outside a merge zone.",
     );
+    /**
+     *
+     * @type {string}
+     */
     this.name = this.constructor.name;
   }
 }

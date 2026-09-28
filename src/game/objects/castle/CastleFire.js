@@ -1,15 +1,54 @@
 import { colorFromHex } from "../../helpers/colors.js";
 
 export class CastleFire {
+  /**
+   *
+    * @type {typeof import("playcanvas")}
+   */
   #pc;
+  /**
+   *
+    * @type {import("playcanvas").Application}
+   */
   #app;
+  /**
+   *
+    * @type {import("playcanvas").Entity}
+   */
   #entity;
+  /**
+   *
+    * @type {import("playcanvas").StandardMaterial}
+   */
   #brazierMaterial;
+  /**
+   *
+    * @type {import("playcanvas").Texture}
+   */
   #particleTexture;
+  /**
+   *
+    * @type {Array<{entity: import("playcanvas").Entity, phase: number, intensity: number}>}
+   */
   #lights = [];
+  /**
+   *
+    * @type {number}
+   */
   #elapsed = 0;
+  /**
+   *
+    * @type {{off: () => void}|null}
+   */
   #updateHandle = null;
 
+  /**
+   *
+   * @param {{pc: typeof import("playcanvas"), app: import("playcanvas").Application, particleTexture: import("playcanvas").Texture}} options
+   * @param {typeof import("playcanvas")} options.pc
+   * @param {import("playcanvas").Application} options.app
+   * @param {import("playcanvas").Texture} options.particleTexture
+   */
   constructor({ pc, app, particleTexture }) {
     this.#pc = pc;
     this.#app = app;
@@ -17,7 +56,11 @@ export class CastleFire {
     this.#brazierMaterial = this.#createBrazierMaterial();
     this.#particleTexture = particleTexture;
 
-    this.#updateHandle = app.on("update", (deltaTime) => {
+    this.#updateHandle = app.on("update", /**
+     *
+     * @param {number} deltaTime
+     */
+    (deltaTime) => {
       this.#elapsed += deltaTime;
       this.#animateLights();
     });
@@ -27,6 +70,16 @@ export class CastleFire {
     return this.#entity;
   }
 
+  /**
+   *
+   * @param {{x: number, y: number, z: number, scale: number, brazier: boolean, intensity: number}} options
+   * @param {number} options.x
+   * @param {number} options.y
+   * @param {number} options.z
+   * @param {number} options.scale
+   * @param {boolean} options.brazier
+   * @param {number} options.intensity
+   */
   add({ x, y, z, scale = 0.25, brazier = true, intensity = 1 }) {
     const root = new this.#pc.Entity("Castle fire");
     root.setPosition(x, y, z);
@@ -65,6 +118,11 @@ export class CastleFire {
     this.#particleTexture = null;
   }
 
+  /**
+   *
+   * @param {import("playcanvas").Entity} parent
+   * @param {number} scale
+   */
   #createBrazier(parent, scale) {
     const brazier = new this.#pc.Entity("Fire brazier");
     brazier.addComponent("render", {
@@ -82,6 +140,11 @@ export class CastleFire {
     parent.addChild(brazier);
   }
 
+  /**
+   *
+   * @param {import("playcanvas").Entity} parent
+   * @param {number} scale
+   */
   #createFlameEmitter(parent, scale) {
     const emitter = new this.#pc.Entity("Rising fire particles");
     emitter.addComponent("particlesystem", {
@@ -156,6 +219,11 @@ export class CastleFire {
     parent.addChild(emitter);
   }
 
+  /**
+   *
+   * @param {import("playcanvas").Entity} parent
+   * @param {number} scale
+   */
   #createSparkEmitter(parent, scale) {
     const emitter = new this.#pc.Entity("Fire sparks");
     emitter.addComponent("particlesystem", {
@@ -206,18 +274,30 @@ export class CastleFire {
     parent.addChild(emitter);
   }
 
+  /**
+   *
+   * @param {string} keys
+   */
   #curve(keys) {
     const curve = new this.#pc.Curve(keys);
     curve.type = this.#pc.CURVE_SMOOTHSTEP;
     return curve;
   }
 
+  /**
+   *
+   * @param {...Array<number>} channels
+   */
   #curveSet(...channels) {
     const curves = new this.#pc.CurveSet(channels);
     curves.type = this.#pc.CURVE_SMOOTHSTEP;
     return curves;
   }
 
+  /**
+   *
+   * @param {...Array<number>} channels
+   */
   #stepCurveSet(...channels) {
     const curves = new this.#pc.CurveSet(channels);
     curves.type = this.#pc.CURVE_STEP;

@@ -1,11 +1,42 @@
 export class ZoomAction {
+  /**
+   *
+   * @type {PlayCanvasRenderer}
+   */
   #renderer;
+  /**
+   *
+   * @type {HTMLElement}
+   */
   #element;
+  /**
+   *
+   * @type {{minimum: number, maximum: number, step: number}}
+   */
   #settings;
+  /**
+   *
+   * @type {number}
+   */
   #factor;
 
+  /**
+   *
+   * @param {PlayCanvasRenderer} renderer
+   * @param {HTMLElement} element
+   * @param {{enabled?: boolean, scale?: number, color?: number}} settings
+   * @param {number} factor
+   */
   constructor(renderer, element, settings, factor = settings?.factor) {
+    /**
+     *
+     * @type {PlayCanvasRenderer}
+     */
     this.#renderer = renderer;
+    /**
+     *
+     * @type {HTMLElement}
+     */
     this.#element = element;
     const configuredMin = settings?.min;
     const configuredMax = settings?.max;
@@ -18,13 +49,25 @@ export class ZoomAction {
       ? configuredMax
       : 6;
 
+    /**
+     *
+     * @type {{minimum: number, maximum: number, step: number}}
+     */
     this.#settings = {
       min: Math.min(min, max),
       max: Math.max(min, max),
     };
+    /**
+     *
+     * @type {number}
+     */
     this.#factor = resolvedFactor > 0 ? resolvedFactor : 1;
   }
 
+  /**
+   *
+   * @param {{x: number, y: number}} pivot
+   */
   invoke(pivot = this.#viewportCenter()) {
     if (this.#renderer.inventoryVisible) {
       return;
@@ -47,6 +90,10 @@ export class ZoomAction {
     };
   }
 
+  /**
+   *
+   * @param {number} zoom
+   */
   #clampZoom(zoom) {
     return Math.max(this.#settings.min, Math.min(this.#settings.max, zoom));
   }

@@ -1,25 +1,114 @@
 import { isNumber } from "../../helpers/types.js";
 
 export class GroundCoverHeldItem {
+  /**
+   *
+    * @type {typeof import("playcanvas")}
+   */
   #pc;
+  /**
+   *
+    * @type {string}
+   */
   #modelLibrary;
+  /**
+   *
+    * @type {string}
+   */
   #modelUrl;
+  /**
+   *
+    * @type {string}
+   */
   #name;
+  /**
+   *
+    * @type {number}
+   */
   #scale;
+  /**
+   *
+    * @type {import("playcanvas").Material}
+   */
   #material;
+  /**
+   *
+    * @type {number}
+   */
   #castShadows;
+  /**
+   *
+    * @type {number}
+   */
   #receiveShadows;
+  /**
+   *
+    * @type {{x: number, y: number, z: number}}
+   */
   #gripPoint;
+  /**
+   *
+    * @type {number}
+   */
   #pickupTilt;
+  /**
+   *
+    * @type {number}
+   */
   #pickupPitch;
+  /**
+   *
+    * @type {number}
+   */
   #pickupYaw;
+  /**
+   *
+    * @type {boolean}
+   */
   #keepCapUpright;
+  /**
+   *
+    * @type {import("playcanvas").Entity}
+   */
   #entity = null;
+  /**
+   *
+    * @type {import("playcanvas").Entity}
+   */
   #visualPivot = null;
+  /**
+   *
+    * @type {{x: number, y: number, z: number}}
+   */
   #followTarget = null;
+  /**
+   *
+    * @type {boolean}
+   */
   #ownsMaterial = false;
+  /**
+   *
+    * @type {Array<import("playcanvas").Material>}
+   */
   #ownedPartMaterials = [];
 
+  /**
+   *
+   * @param {{pc: typeof import("playcanvas"), modelLibrary: string, modelUrl: string, name: string, scale: number, material: import("playcanvas").Material, castShadows: number, receiveShadows: number, gripPoint: {x: number, y: number, z: number}, pickupTilt: number, pickupPitch: number, pickupYaw: number, keepCapUpright: boolean}} options
+   * @param {typeof import("playcanvas")} options.pc
+   * @param {string} options.modelLibrary
+   * @param {string} options.modelUrl
+   * @param {string} options.name
+   * @param {number} options.scale
+   * @param {import("playcanvas").Material} options.material
+   * @param {number} options.castShadows
+   * @param {number} options.receiveShadows
+   * @param {{x: number, y: number, z: number}} options.gripPoint
+   * @param {number} options.pickupTilt
+   * @param {number} options.pickupPitch
+   * @param {number} options.pickupYaw
+   * @param {boolean} options.keepCapUpright
+   */
   constructor({
     pc,
     modelLibrary,
@@ -57,6 +146,11 @@ export class GroundCoverHeldItem {
     this.#keepCapUpright = keepCapUpright;
   }
 
+  /**
+   *
+   * @param {import("playcanvas").Entity} parent
+   * @param {{x: number, y: number, z: number}} followTarget
+   */
   mount(parent, followTarget = parent) {
     if (!this.#entity) {
       this.#createVisual();
@@ -145,6 +239,10 @@ export class GroundCoverHeldItem {
     );
   }
 
+  /**
+   *
+   * @param {import("playcanvas").Entity} visual
+   */
   #matchMergedAppearance(visual) {
     const replacements = new Map();
     const pending = [visual];
@@ -178,6 +276,10 @@ export class GroundCoverHeldItem {
     }
   }
 
+  /**
+   *
+   * @param {import("playcanvas").Entity} visual
+   */
   #orientMushroomCaps(visual) {
     const nodes = [];
     const pending = [visual];
@@ -187,7 +289,11 @@ export class GroundCoverHeldItem {
       pending.push(...node.children);
     }
 
-    const stalks = nodes.filter((node) => node.name.endsWith(" stalk"));
+    const stalks = nodes.filter(/**
+     *
+     * @param {import("playcanvas").Entity} node
+     */
+    (node) => node.name.endsWith(" stalk"));
     const stalkJoints = new Map();
     let heldStalk = null;
     let nearestGripDistance = Infinity;
@@ -230,7 +336,11 @@ export class GroundCoverHeldItem {
       );
     }
 
-    for (const cap of nodes.filter((node) => node.name.endsWith(" cap"))) {
+    for (const cap of nodes.filter(/**
+     *
+     * @param {import("playcanvas").Entity} node
+     */
+    (node) => node.name.endsWith(" cap"))) {
       const prefix = cap.name.slice(0, -4);
       const parent = cap.parent;
       const joint =
@@ -241,6 +351,10 @@ export class GroundCoverHeldItem {
       parent.addChild(pivot);
 
       for (const part of nodes.filter(
+        /**
+         *
+         * @param {import("playcanvas").Entity} node
+         */
         (node) =>
           node.parent === parent &&
           (node === cap ||

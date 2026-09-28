@@ -1,12 +1,39 @@
 export class LavafallGeometry {
+  /**
+   *
+   * @param {import("src/game/objects/ObjectTypes.js").RiverGeometryGroup} group
+   * @param {import("src/game/objects/ObjectTypes.js").WaterfallDefinition} waterfall
+   * @param {number} cols
+   * @param {number} rows
+   * @param {import("src/game/objects/ObjectTypes.js").RiverTerminal} terminal
+   * @param {number} routeDistance
+   */
   append(group, waterfall, cols, rows, terminal, routeDistance) {
     this.#addLavafall(group, waterfall, cols, rows, terminal, routeDistance);
   }
 
+  /**
+   *
+   * @param {import("src/game/objects/ObjectTypes.js").RiverGeometryGroup} group
+   * @param {number} cascade
+   * @param {number} cols
+   * @param {number} rows
+   */
   appendCascadeImpact(group, cascade, cols, rows) {
     this.#addCascadeImpact(group, cascade, cols, rows);
   }
 
+  /**
+   *
+   * @param {import("src/game/objects/ObjectTypes.js").RiverGeometryGroup} group
+   * @param {{x: number, y: number, z: number}} point
+   * @param {{x: number, y: number, z: number}} normal
+   * @param {import("playcanvas").Color|number} color
+   * @param {Array<number>} uv
+   * @param {boolean} weld
+   * @param {Array<number>} metadata
+   * @param {{x: number, y: number, z: number}} source
+   */
   #addVertex(group, point, normal, color, uv, weld, metadata = [0, 0], source = [0, 0]) {
     // A bend's inside corner belongs to both ends of its route interval.
     // Keep distinct UVs there instead of stretching one tile's paint into the next.
@@ -30,6 +57,15 @@ export class LavafallGeometry {
     return index;
   }
 
+  /**
+   *
+   * @param {import("src/game/objects/ObjectTypes.js").RiverGeometryGroup} group
+   * @param {Array<{x: number, y: number, z: number}>} points
+   * @param {{x: number, y: number, z: number}} normal
+   * @param {number} colors
+   * @param {boolean} weld
+   * @param {Array<number>} metadata
+   */
   #addQuad(
     group,
     points,
@@ -62,6 +98,15 @@ export class LavafallGeometry {
     );
   }
 
+  /**
+   *
+   * @param {import("src/game/objects/ObjectTypes.js").RiverGeometryGroup} group
+   * @param {import("src/game/objects/ObjectTypes.js").WaterfallDefinition} waterfall
+   * @param {number} cols
+   * @param {number} rows
+   * @param {import("src/game/objects/ObjectTypes.js").RiverTerminal} terminal
+   * @param {number} routeDistance
+   */
   #addLavafall(group, waterfall, cols, rows, terminal, routeDistance) {
     const direction = this.#directionVector(waterfall.direction);
     const cross = { col: -direction.row, row: direction.col };
@@ -86,6 +131,11 @@ export class LavafallGeometry {
     const seed = waterfall.col * 53 + waterfall.row * 97;
     const bottomByWidth = Array.from(
       { length: widthSegments + 1 },
+      /**
+       *
+       * @param {undefined} _
+       * @param {number} widthIndex
+       */
       (_, widthIndex) =>
         terminal
           ? waterfall.bottomElevation +
@@ -94,6 +144,12 @@ export class LavafallGeometry {
           : waterfall.bottomElevation + 0.012,
     );
 
+    /**
+     *
+     * @param {number} row
+     * @param {number} widthIndex
+     * @param {number} depthOffset
+     */
     const pointAt = (row, widthIndex, depthOffset) => {
       const acrossBase = widthIndex / widthSegments - 0.5;
       if (row <= lipSlices) {
@@ -153,8 +209,17 @@ export class LavafallGeometry {
       ];
     };
 
+    /**
+     *
+     * @param {number} widthIndex
+     */
     const depthOffsetAt = (widthIndex) =>
       Math.sin((widthIndex / widthSegments) * Math.PI) * 0.13;
+    /**
+     *
+     * @param {number} row
+     * @param {number} widthIndex
+     */
     const colorAt = (row, widthIndex) =>
       this.#waterfallVertexColor(
         row,
@@ -164,6 +229,11 @@ export class LavafallGeometry {
         widthSegments,
         terminal,
       );
+    /**
+     *
+     * @param {number} row
+     * @param {number} widthIndex
+     */
     const innerColorAt = (row, widthIndex) => {
       const color = colorAt(row, widthIndex);
       color[3] = Math.min(
@@ -172,6 +242,11 @@ export class LavafallGeometry {
       );
       return color;
     };
+    /**
+     *
+     * @param {number} row
+     * @param {number} widthIndex
+     */
     const uvAt = (row, widthIndex) => [
       widthIndex / widthSegments,
       routeDistance +
@@ -185,6 +260,11 @@ export class LavafallGeometry {
       group,
       totalRows,
       widthSegments,
+      /**
+       *
+       * @param {number} row
+       * @param {number} widthIndex
+       */
       (row, widthIndex) =>
         pointAt(row, widthIndex, depthOffsetAt(widthIndex)),
       [direction.col, 0, direction.row],
@@ -195,6 +275,11 @@ export class LavafallGeometry {
       () => waterfallMetadata,
     );
     const curtainThickness = 0.32;
+    /**
+     *
+     * @param {number} row
+     * @param {number} widthIndex
+     */
     const innerPointAt = (row, widthIndex) => {
       const point = pointAt(row, widthIndex, depthOffsetAt(widthIndex));
       const lipProgress = Math.min(1, row / lipSlices);
@@ -260,6 +345,13 @@ export class LavafallGeometry {
     }
   }
 
+  /**
+   *
+   * @param {import("src/game/objects/ObjectTypes.js").RiverGeometryGroup} group
+   * @param {number} cascade
+   * @param {number} cols
+   * @param {number} rows
+   */
   #addCascadeImpact(group, cascade, cols, rows) {
     const direction = this.#directionVector(cascade.direction);
     const cross = { col: -direction.row, row: direction.col };
@@ -272,6 +364,11 @@ export class LavafallGeometry {
       const baseForward = 0.94 + band * 0.095;
       const thickness = 0.026 - band * 0.004;
       for (let widthIndex = 0; widthIndex < widthSegments; widthIndex++) {
+        /**
+         *
+         * @param {number} column
+         * @param {{front: Array<number>, rear: Array<number>, uvs: Array<number>}} edge
+         */
         const pointAt = (column, edge) => {
           const across = column / widthSegments - 0.5;
           const arch = (1 - Math.pow(across * 2, 2)) * (0.045 + band * 0.01);
@@ -307,6 +404,17 @@ export class LavafallGeometry {
     }
   }
 
+  /**
+   *
+   * @param {import("src/game/objects/ObjectTypes.js").RiverGeometryGroup} group
+   * @param {import("src/game/objects/ObjectTypes.js").WaterfallDefinition} waterfall
+   * @param {{x: number, y: number, z: number}} direction
+   * @param {number} cross
+   * @param {number} centerX
+   * @param {number} centerZ
+   * @param {number} curtainForward
+   * @param {number} seed
+   */
   #addWaterfallDroplets(
     group,
     waterfall,
@@ -348,6 +456,14 @@ export class LavafallGeometry {
     }
   }
 
+  /**
+   *
+   * @param {import("src/game/objects/ObjectTypes.js").RiverGeometryGroup} group
+   * @param {number} center
+   * @param {number} radius
+   * @param {number} height
+   * @param {Array<number>} metadata
+   */
   #addDroplet(group, center, radius, height, metadata) {
     const top = [center[0], center[1] + height / 2, center[2]];
     const bottom = [center[0], center[1] - height / 2, center[2]];
@@ -376,6 +492,14 @@ export class LavafallGeometry {
     }
   }
 
+  /**
+   *
+   * @param {import("src/game/objects/ObjectTypes.js").RiverGeometryGroup} group
+   * @param {Array<{x: number, y: number, z: number}>} points
+   * @param {{x: number, y: number, z: number}} normal
+   * @param {number} colors
+   * @param {Array<number>} metadata
+   */
   #addTriangle(group, points, normal, colors = null, metadata = [0, 0]) {
     const start = group.positions.length / 3;
     for (let index = 0; index < points.length; index++) {
@@ -389,6 +513,20 @@ export class LavafallGeometry {
     group.indices.push(start, start + 1, start + 2);
   }
 
+  /**
+   *
+   * @param {import("src/game/objects/ObjectTypes.js").RiverGeometryGroup} group
+   * @param {number} rowSegments
+   * @param {number} columnSegments
+   * @param {(...args: number[]) => Array<number>} pointAt
+   * @param {{x: number, y: number, z: number}} normal
+   * @param {number} colorAt
+   * @param {boolean} reverseWinding
+   * @param {boolean} weld
+   * @param {(...args: number[]) => Array<number>} uvAt
+   * @param {(...args: number[]) => Array<number>} metadataAt
+   * @param {(...args: number[]) => Array<number>} sourceAt
+   */
   #addGrid(
     group,
     rowSegments,
@@ -450,6 +588,15 @@ export class LavafallGeometry {
     }
   }
 
+  /**
+   *
+   * @param {number} row
+   * @param {number} widthIndex
+   * @param {Array<{left: {x: number, y: number, z: number}, right: {x: number, y: number, z: number}}>} lipSlices
+   * @param {number} curtainSegments
+   * @param {number} widthSegments
+   * @param {import("src/game/objects/ObjectTypes.js").RiverTerminal} terminal
+   */
   #waterfallVertexColor(
     row,
     widthIndex,
@@ -481,11 +628,19 @@ export class LavafallGeometry {
     ];
   }
 
+  /**
+   *
+   * @param {number} seed
+   */
   #waterfallNoise(seed) {
     const value = Math.sin(seed * 12.9898) * 43758.5453;
     return value - Math.floor(value);
   }
 
+  /**
+   *
+   * @param {{x: number, y: number, z: number}} direction
+   */
   #directionVector(direction) {
     if (direction === 'NORTH') {
       return { col: 0, row: -1 };

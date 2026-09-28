@@ -1,5 +1,10 @@
 import { isArray, isString } from "./types.js";
 
+/**
+ *
+ * @param {typeof pc} pc
+ * @param {number} value
+ */
 export function colorFromHex(pc, value) {
   return new pc.Color(
     ((value >> 16) & 0xff) / 255,
@@ -8,10 +13,20 @@ export function colorFromHex(pc, value) {
   );
 }
 
+/**
+ *
+ * @param {number} value
+ */
 export function colorToCss(value) {
   return `#${(value >>> 0).toString(16).padStart(6, "0").slice(-6)}`;
 }
 
+/**
+ *
+ * @param {typeof pc} pc
+ * @param {number} value
+ * @param {number} fallback
+ */
 export function colorFromValue(pc, value, fallback = 0xffffff) {
   if (value instanceof pc.Color) {
     return value.clone();
@@ -26,6 +41,11 @@ export function colorFromValue(pc, value, fallback = 0xffffff) {
   return colorFromHex(pc, Number.isFinite(parsed) ? parsed : fallback);
 }
 
+/**
+ *
+ * @param {number} value
+ * @param {string} shade
+ */
 export function shadeHexColor(value, shade) {
   const red = Math.round(((value >> 16) & 0xff) * shade);
   const green = Math.round(((value >> 8) & 0xff) * shade);

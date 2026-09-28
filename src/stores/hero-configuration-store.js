@@ -1,6 +1,18 @@
 import { defineStore } from "pinia";
 import { HERO_INVENTORY_CAPACITY } from "src/game/config/inventory.js";
 
+/**
+ * @typedef {{id: string, variant: string, category: number, labelKey: string, icon: string, modelUrl: string, slot?: number}} InventoryItem
+ */
+
+/**
+ * @typedef {{capacity: number, items: InventoryItem[], visible?: boolean}} InventoryState
+ */
+
+/**
+ *
+ * @param {InventoryState} inventory
+ */
 function normalizeInventorySlots(inventory) {
   const occupiedSlots = new Set();
   let changed = false;
@@ -44,6 +56,10 @@ export const useHeroConfigurationStore = defineStore(
           this.$persist();
         }
       },
+      /**
+       *
+       * @param {InventoryItem} item
+       */
       addInventoryItem(item) {
         this.normalizeInventorySlots();
         if (this.inventory.items.length >= this.inventory.capacity) {
@@ -51,7 +67,12 @@ export const useHeroConfigurationStore = defineStore(
         }
 
         const occupiedSlots = new Set(
-          this.inventory.items.map(({ slot }) => slot),
+          this.inventory.items.map(/**
+           *
+           * @param {InventoryItem} options
+           * @param {number} options.slot
+           */
+          ({ slot }) => slot),
         );
         let slot = 0;
         while (occupiedSlots.has(slot)) {
@@ -61,6 +82,11 @@ export const useHeroConfigurationStore = defineStore(
         this.$persist();
         return true;
       },
+      /**
+       *
+       * @param {number} fromSlot
+       * @param {number} toSlot
+       */
       moveInventoryItem(fromSlot, toSlot) {
         this.normalizeInventorySlots();
         if (
@@ -68,11 +94,21 @@ export const useHeroConfigurationStore = defineStore(
           !Number.isInteger(toSlot) ||
           toSlot < 0 ||
           toSlot >= this.inventory.capacity ||
-          this.inventory.items.some(({ slot }) => slot === toSlot)
+          this.inventory.items.some(/**
+           *
+           * @param {InventoryItem} options
+           * @param {number} options.slot
+           */
+          ({ slot }) => slot === toSlot)
         ) {
           return false;
         }
-        const item = this.inventory.items.find(({ slot }) => slot === fromSlot);
+        const item = this.inventory.items.find(/**
+         *
+         * @param {InventoryItem} options
+         * @param {number} options.slot
+         */
+        ({ slot }) => slot === fromSlot);
         if (!item) {
           return false;
         }
@@ -81,9 +117,17 @@ export const useHeroConfigurationStore = defineStore(
         this.$persist();
         return true;
       },
+      /**
+       *
+       * @param {number} slot
+       */
       dropInventoryItem(slot) {
         this.normalizeInventorySlots();
         const itemIndex = this.inventory.items.findIndex(
+          /**
+           *
+           * @param {InventoryItem} item
+           */
           (item) => item.slot === slot,
         );
         if (itemIndex < 0) {
@@ -94,6 +138,10 @@ export const useHeroConfigurationStore = defineStore(
         this.$persist();
         return { ...item };
       },
+      /**
+       *
+       * @param {boolean} visible
+       */
       setInventoryVisible(visible) {
         this.inventory.visible = Boolean(visible);
         this.$persist();

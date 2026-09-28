@@ -8,6 +8,7 @@ export class AbstractCastleGenerationStage {
   /**
    * @abstract
    * Reads and writes the documented artifacts on the generation context.
+   * @param {import("./CastleGenerationContext.js").CastleGenerationContext} context
    */
   async run(context) {
     void context;

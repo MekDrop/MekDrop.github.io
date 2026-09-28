@@ -57,6 +57,10 @@ import twemoji from "twemoji";
 
 const i18n = useI18n({ useScope: "global" });
 const route = useRoute();
+/**
+ *
+ * @param {string} lang
+ */
 const languageRoute = (lang) => ({
   name: route.params.mapName ? "map" : "index",
   params: {
@@ -66,6 +70,10 @@ const languageRoute = (lang) => ({
   query: route.query,
   hash: route.hash,
 });
+/**
+ *
+ * @param {string} lang
+ */
 const getLanguageEmoji = (lang) => {
   let country = (lang.includes("-") ? lang.split("-")[1] : lang).toUpperCase();
   let data = getCountryByAlpha2(country);
@@ -73,7 +81,11 @@ const getLanguageEmoji = (lang) => {
   return data.emoji;
 };
 const languageOptions = computed(() => {
-  return i18n.availableLocales.map((lang) => {
+  return i18n.availableLocales.map(/**
+   *
+   * @param {string} lang
+   */
+  (lang) => {
     const emoji = getLanguageEmoji(lang);
     return {
       value: lang,

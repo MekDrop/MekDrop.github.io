@@ -8,26 +8,66 @@ const MOVEMENT_VECTORS = Object.freeze({
 });
 
 export class HeroMovementAction {
+  /**
+   *
+   * @type {PlayCanvasRenderer}
+   */
   #renderer;
+  /**
+   *
+   * @type {Readonly<Record<string, number>>}
+   */
   #directions = {
     up: false,
     down: false,
     left: false,
     right: false,
   };
+  /**
+   *
+   * @type {boolean}
+   */
   #running = false;
+  /**
+   *
+   * @type {Map}
+   */
   #lastDirectionTapAt = new Map();
+  /**
+   *
+   * @type {Map}
+   */
   #dodgeFacingAtFirstTap = new Map();
+  /**
+   *
+   * @type {Set}
+   */
   #consumedDodgeDirections = new Set();
 
+  /**
+   *
+   * @param {PlayCanvasRenderer} renderer
+   */
   constructor(renderer) {
+    /**
+     *
+     * @type {PlayCanvasRenderer}
+     */
     this.#renderer = renderer;
   }
 
+  /**
+   *
+   * @returns {Hero|null}
+   */
   get #hero() {
     return this.#renderer.hero;
   }
 
+  /**
+   *
+   * @param {Event} event
+   */
   invoke(event) {
     if (this.#renderer.inventoryVisible) {
       return;
@@ -37,6 +77,12 @@ export class HeroMovementAction {
     );
   }
 
+  /**
+   *
+   * @param {string} direction
+   * @param {Event} event
+   * @param {number} doubleTapWindow
+   */
   pressDirection(direction, event, doubleTapWindow) {
     if (this.#renderer.inventoryVisible) {
       return;
@@ -73,6 +119,10 @@ export class HeroMovementAction {
     this.setDirection(direction, true);
   }
 
+  /**
+   *
+   * @param {string} direction
+   */
   releaseDirection(direction) {
     this.#consumedDodgeDirections.delete(direction);
     if (!this.#directions[direction]) {
@@ -81,6 +131,11 @@ export class HeroMovementAction {
     this.setDirection(direction, false);
   }
 
+  /**
+   *
+   * @param {string} direction
+   * @param {boolean} pressed
+   */
   setDirection(direction, pressed) {
     if (!(direction in this.#directions)) {
       return;
@@ -89,6 +144,10 @@ export class HeroMovementAction {
     this.#applyMovement();
   }
 
+  /**
+   *
+   * @param {boolean} running
+   */
   setRunning(running) {
     this.#running = running;
     this.#applyMovement();
@@ -101,6 +160,11 @@ export class HeroMovementAction {
     this.#hero?.jump();
   }
 
+  /**
+   *
+   * @param {string} direction
+   * @param {null} facing
+   */
   dodge(direction, facing = null) {
     const input = MOVEMENT_VECTORS[direction];
     if (!input) {
@@ -126,6 +190,11 @@ export class HeroMovementAction {
     this.#applyMovement();
   }
 
+  /**
+   *
+   * @param {string} direction
+   * @param {number} doubleTapWindow
+   */
   #isDirectionDoubleTap(direction, doubleTapWindow) {
     const now = performance.now();
     const previousTapAt = this.#lastDirectionTapAt.get(direction);

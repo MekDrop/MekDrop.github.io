@@ -5,6 +5,10 @@ import {
 import { AbstractCastleGenerationStage } from "../AbstractCastleGenerationStage.js";
 
 export class TowerStage extends AbstractCastleGenerationStage {
+  /**
+   *
+   * @param {CastleGenerationContext} context
+   */
   async run(context) {
     if (context.layout.empty) {
       return;
@@ -23,9 +27,17 @@ export class TowerStage extends AbstractCastleGenerationStage {
       },
     };
     context.structure.towers = (style.towerPlacements ?? [])
-      .map((placement) => placements[placement])
+      .map(/**
+       *
+       * @param {{position: pc.Vec3, rotation?: pc.Quat}} placement
+       */
+      (placement) => placements[placement])
       .filter(Boolean)
-      .map((tower) => ({
+      .map(/**
+       *
+       * @param {{entity: pc.Entity, position?: pc.Vec3}} tower
+       */
+      (tower) => ({
         ...tower,
         span: towerSpan,
         height: towerHeight,

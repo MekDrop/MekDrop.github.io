@@ -3,6 +3,10 @@ import { CASTLE_TERRACE_PHASE as STAGE } from "../../../../../enum/CastleTerrace
 import { AbstractTerraceParticipantState } from "../AbstractTerraceParticipantState.js";
 
 export class QueenMountSunbedState extends AbstractTerraceParticipantState {
+  /**
+   *
+   * @param {number} duration
+   */
   constructor(duration) {
     super({ phase: QueenMountSunbedState.name, stagePhase: STAGE.SETTLE,
       duration, action: "mountSunbed", animation: ANIMATION.MOUNT_SUNBED });

@@ -5,6 +5,11 @@ import {
   CASTLE_UPPER_FLOOR_ROOM_HEIGHT_BLOCKS,
 } from "./CastleGenerationConfig.js";
 
+/**
+ *
+ * @param {import("src/game/GameContracts.js").CastleOpening} opening
+ * @param {number} horizontalBlock
+ */
 export const castleGateArchHeight = (opening, horizontalBlock) => {
   const width = opening.end - opening.start;
   const localBlock = horizontalBlock - opening.start;
@@ -24,6 +29,16 @@ export const castleGateArchHeight = (opening, horizontalBlock) => {
   );
 };
 
+/**
+ *
+ * @param {{blockU: number, blockY: number, blockV: number, opening: import("src/game/GameContracts.js").CastleOpening, gatehouseDepth: number, wallHeight: number}} options
+ * @param {number} options.blockU
+ * @param {number} options.blockY
+ * @param {number} options.blockV
+ * @param {import("src/game/GameContracts.js").CastleOpening} options.opening
+ * @param {number} options.gatehouseDepth
+ * @param {number} options.wallHeight
+ */
 export const isCastleUpperFloorRoomVoid = ({
   blockU,
   blockY,

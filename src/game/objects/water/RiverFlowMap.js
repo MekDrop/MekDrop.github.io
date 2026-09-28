@@ -3,11 +3,33 @@ import { RiverImpactFlow } from './RiverImpactFlow.js';
 
 // Route metadata is sampled by world cell, so paint never resets at mesh edges.
 export class RiverFlowMap {
+  /**
+   *
+    * @type {string}
+   */
   #texture;
+  /**
+   *
+    * @type {number}
+   */
   #impactTexture;
+  /**
+   *
+    * @type {number}
+   */
   #bankTexture;
+  /**
+   *
+    * @type {number}
+   */
   #size;
 
+  /**
+   *
+   * @param {typeof import("playcanvas")} pc
+   * @param {import("playcanvas").GraphicsDevice} device
+   * @param {import("src/game/objects/ObjectTypes.js").GameMapData} mapData
+   */
   constructor(pc, device, mapData) {
     const { cols, rows, riverData = [] } = mapData;
     this.#size = [cols, rows];
@@ -57,7 +79,11 @@ export class RiverFlowMap {
         continue;
       }
       for (const cell of river.cells) {
-        banks.set(field.bankMask(cell.col, cell.row).map(closed => closed * 255),
+        banks.set(field.bankMask(cell.col, cell.row).map(/**
+         *
+         * @param {number} closed
+         */
+        closed => closed * 255),
           (cell.row * cols + cell.col) * 4);
         for (let z = 0; z < resolution; z++) {
           for (let x = 0; x < resolution; x++) {
@@ -79,6 +105,10 @@ export class RiverFlowMap {
     this.#bankTexture.unlock();
   }
 
+  /**
+   *
+   * @param {import("playcanvas").Material} material
+   */
   apply(material) {
     material.setParameter('uRiverFlowMap', this.#texture);
     material.setParameter('uRiverMapSize', this.#size);
@@ -92,6 +122,10 @@ export class RiverFlowMap {
     this.#bankTexture.destroy();
   }
 
+  /**
+   *
+   * @param {{x: number, y: number, z: number}} direction
+   */
   #direction(direction) {
     switch (direction) {
       case 'NORTH': return [0, -1];

@@ -2,12 +2,32 @@
  * Finds a stable orbit focus on the scene beneath the viewport center.
  */
 export class CameraOrbitPivot {
+  /**
+   *
+   * @type {typeof pc}
+   */
   #pc;
 
+  /**
+   *
+   * @param {typeof pc} pc
+   */
   constructor(pc) {
+    /**
+     *
+     * @type {typeof pc}
+     */
     this.#pc = pc;
   }
 
+  /**
+   *
+   * @param {pc.Entity} camera
+   * @param {pc.Entity} root
+   * @param {import("src/game/GameContracts.js").GameMapData} mapData
+   * @param {number} width
+   * @param {number} height
+   */
   find(camera, root, mapData, width, height) {
     const pc = this.#pc;
     const start = camera.screenToWorld(width / 2, height / 2, camera.nearClip);
@@ -78,6 +98,14 @@ export class CameraOrbitPivot {
     return inverseRoot.transformPoint(start.add(direction.mulScalar(distance)));
   }
 
+  /**
+   *
+   * @param {pc.Vec3|pc.Vec3} origin
+   * @param {string} direction
+   * @param {number} a
+   * @param {number} b
+   * @param {number} c
+   */
   #triangleDistance(origin, direction, a, b, c) {
     const edge1 = b.clone().sub(a);
     const edge2 = c.clone().sub(a);

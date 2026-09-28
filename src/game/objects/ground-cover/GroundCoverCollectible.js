@@ -1,18 +1,86 @@
 export class GroundCoverCollectible {
+  /**
+   *
+    * @type {string}
+   */
   #id;
+  /**
+   *
+    * @type {string}
+   */
   #variant;
+  /**
+   *
+    * @type {number}
+   */
   #category;
+  /**
+   *
+    * @type {string}
+   */
   #labelKey;
+  /**
+   *
+    * @type {string}
+   */
   #icon;
+  /**
+   *
+    * @type {string}
+   */
   #modelUrl;
+  /**
+   *
+    * @type {number}
+   */
   #interactionRadius;
+  /**
+   *
+    * @type {{x: number, y: number, z: number}}
+   */
   #position;
+  /**
+   *
+    * @type {(item: GroundCoverCollectible) => void}
+   */
   #onCollect;
+  /**
+   *
+    * @type {() => void}
+   */
   #onHide;
+  /**
+   *
+    * @type {() => void}
+   */
   #onDestroy;
+  /**
+   *
+    * @type {(options: {parent: import("playcanvas").Entity}) => import("./GroundCoverHeldItem.js").GroundCoverHeldItem}
+   */
   #createHeldItem;
+  /**
+   *
+    * @type {boolean}
+   */
   #collected = false;
 
+  /**
+   *
+   * @param {{id: string, variant: string, category: number, labelKey: string, icon: string, modelUrl: string, interactionRadius: number, position: {x: number, y: number, z: number}, onCollect: (item: GroundCoverCollectible) => void, onHide: () => void, onDestroy: () => void, createHeldItem: (options: {parent: import("playcanvas").Entity}) => import("./GroundCoverHeldItem.js").GroundCoverHeldItem}} options
+   * @param {string} options.id
+   * @param {string} options.variant
+   * @param {number} options.category
+   * @param {string} options.labelKey
+   * @param {string} options.icon
+   * @param {string} options.modelUrl
+   * @param {number} options.interactionRadius
+   * @param {{x: number, y: number, z: number}} options.position
+   * @param {(item: GroundCoverCollectible) => void} options.onCollect
+   * @param {() => void} options.onHide
+   * @param {() => void} options.onDestroy
+   * @param {(options: {parent: import("playcanvas").Entity}) => import("./GroundCoverHeldItem.js").GroundCoverHeldItem} options.createHeldItem
+   */
   constructor({
     id,
     variant,
@@ -41,6 +109,10 @@ export class GroundCoverCollectible {
     this.#createHeldItem = createHeldItem;
   }
 
+  /**
+   *
+    * @returns {boolean}
+   */
   get canInteract() {
     return !this.#collected;
   }
@@ -57,6 +129,10 @@ export class GroundCoverCollectible {
     return this.#interactionRadius;
   }
 
+  /**
+   *
+    * @returns {string}
+   */
   get interactionLabelKey() {
     return `game.interaction.collect_${this.#category}`;
   }
@@ -97,6 +173,10 @@ export class GroundCoverCollectible {
     return true;
   }
 
+  /**
+   *
+   * @param {{x: number, y: number, z: number}} impact
+   */
   destroy(impact) {
     if (!this.canInteract) {
       return;

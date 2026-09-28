@@ -16,20 +16,70 @@ const STAIR_MODULE_RUN_BLOCKS = 2;
  * Builds variable-size flights from a reusable imported stone stair module.
  */
 export class CastleStairs {
+  /**
+   *
+    * @returns {string}
+   */
   static get modelUrl() {
     return stairModuleModelUrl;
   }
 
+  /**
+   *
+    * @type {typeof import("playcanvas")}
+   */
   #pc;
+  /**
+   *
+    * @type {{x: number, y: number, z: number}}
+   */
   #position;
+  /**
+   *
+    * @type {Array<{side: string, offset: number, width: number, approachElevation?: number}>}
+   */
   #doors;
+  /**
+   *
+    * @type {number}
+   */
   #cubeSize;
+  /**
+   *
+    * @type {string}
+   */
   #modelLibrary;
+  /**
+   *
+    * @type {Map<string, import("playcanvas").Material>}
+   */
   #materials;
+  /**
+   *
+    * @type {import("playcanvas").Entity}
+   */
   #entity;
+  /**
+   *
+    * @type {Array<{side: string, vertical: boolean, outerEdge: number, acrossStart: number, acrossEnd: number, approachElevation: number, rise: number, run: number, riseBlocks: number, stepRun: number, stepHeight: number}>}
+   */
   #surfaces = [];
+  /**
+   *
+    * @type {Array<import("playcanvas").VertexBuffer>}
+   */
   #vertexBuffers = [];
 
+  /**
+   *
+   * @param {{pc: typeof import("playcanvas"), position: {x: number, y: number, z: number}, doors: Array<{side: string, offset: number, width: number, approachElevation?: number}>, cubeSize: number, modelLibrary: string, materials: Map<string, import("playcanvas").Material>}} options
+   * @param {typeof import("playcanvas")} options.pc
+   * @param {{x: number, y: number, z: number}} options.position
+   * @param {Array<{side: string, offset: number, width: number, approachElevation?: number}>} options.doors
+   * @param {number} options.cubeSize
+   * @param {string} options.modelLibrary
+   * @param {Map<string, import("playcanvas").Material>} options.materials
+   */
   constructor({
     pc,
     position,
@@ -38,12 +88,19 @@ export class CastleStairs {
     modelLibrary,
     materials,
   }) {
+
     this.#pc = pc;
+
     this.#position = position;
+
     this.#doors = doors;
+
     this.#cubeSize = cubeSize;
+
     this.#modelLibrary = modelLibrary;
+
     this.#materials = materials;
+
     this.#entity = new pc.Entity("Castle stone stairs");
 
     this.#render();
@@ -53,6 +110,11 @@ export class CastleStairs {
     return this.#entity;
   }
 
+  /**
+   *
+   * @param {number} x
+   * @param {number} z
+   */
   surfaceHeightAt(x, z) {
     for (const surface of this.#surfaces) {
       const across = surface.vertical ? z : x;
@@ -70,6 +132,14 @@ export class CastleStairs {
     return null;
   }
 
+  /**
+   *
+   * @param {number} x
+   * @param {number} z
+   * @param {number} radius
+   * @param {number} elevation
+   * @param {number} stepClearance
+   */
   blocksMovementAt(x, z, radius = 0, elevation = -Infinity, stepClearance = 0) {
     for (const surface of this.#surfaces) {
       const across = surface.vertical ? z : x;
@@ -94,6 +164,12 @@ export class CastleStairs {
     return false;
   }
 
+  /**
+   *
+   * @param {{side: string, vertical: boolean, outerEdge: number, acrossStart: number, acrossEnd: number, approachElevation: number, rise: number, run: number, riseBlocks: number, stepRun: number, stepHeight: number}} surface
+   * @param {number} x
+   * @param {number} z
+   */
   #inwardAt(surface, x, z) {
     if (surface.side === "WEST") {
       return x - surface.outerEdge;
@@ -107,6 +183,11 @@ export class CastleStairs {
     return surface.outerEdge - z;
   }
 
+  /**
+   *
+   * @param {{side: string, vertical: boolean, outerEdge: number, acrossStart: number, acrossEnd: number, approachElevation: number, rise: number, run: number, riseBlocks: number, stepRun: number, stepHeight: number}} surface
+   * @param {number} inward
+   */
   #heightAt(surface, inward) {
     const level = Math.min(
       surface.riseBlocks - 1,
@@ -177,6 +258,13 @@ export class CastleStairs {
     this.#createInstancedBatches(batches);
   }
 
+  /**
+   *
+   * @param {import("src/game/objects/ObjectTypes.js").CastleDoorDefinition} door
+   * @param {number} approachElevation
+   * @param {number} riseBlocks
+   * @param {number} rise
+   */
   #addSurface(door, approachElevation, riseBlocks, rise) {
     if (riseBlocks <= 0) {
       return;
@@ -215,6 +303,15 @@ export class CastleStairs {
     });
   }
 
+  /**
+   *
+   * @param {string} side
+   * @param {number} distanceBlocks
+   * @param {number} acrossBlocks
+   * @param {number} approachElevation
+   * @param {number} layer
+   * @param {number} stepHeight
+   */
   #modulePosition(
     side,
     distanceBlocks,
@@ -240,6 +337,12 @@ export class CastleStairs {
     return positions[side] ?? null;
   }
 
+  /**
+   *
+   * @param {number} distanceBlocks
+   * @param {number} acrossBlocks
+   * @param {number} layer
+   */
   #materialFor(distanceBlocks, acrossBlocks, layer) {
     const hash =
       Math.imul(distanceBlocks + 11, 73856093) ^
@@ -248,6 +351,14 @@ export class CastleStairs {
     return STONE_MATERIAL_NAMES[(hash >>> 0) % STONE_MATERIAL_NAMES.length];
   }
 
+  /**
+   *
+   * @param {Map<string, Array<number>>} batches
+   * @param {string} material
+   * @param {string} side
+   * @param {{x: number, y: number, z: number}} position
+   * @param {number} stepHeight
+   */
   #addModuleMatrix(batches, material, side, position, stepHeight) {
     const matrix = new this.#pc.Mat4();
     const rotation = new this.#pc.Quat();
@@ -266,6 +377,10 @@ export class CastleStairs {
     batches.set(material, matrices);
   }
 
+  /**
+   *
+   * @param {Map<string, Array<number>>} batches
+   */
   #createInstancedBatches(batches) {
     for (const [materialName, matrices] of batches.entries()) {
       const batch = this.#modelLibrary.instantiateMergedBatch(

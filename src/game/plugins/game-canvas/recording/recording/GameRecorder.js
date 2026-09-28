@@ -11,18 +11,70 @@ const FRAME_DURATION = 1 / FRAME_RATE;
  * Local MP4 recording. Encoder packages are loaded only when recording starts.
  */
 export class GameRecorder {
+  /**
+   *
+   * @type {pc.Application}
+   */
   #app;
+  /**
+   *
+   * @type {HTMLCanvasElement}
+   */
   #canvas;
+  /**
+   *
+   * @type {(state: string) => void}
+   */
   #onStateChange;
+  /**
+   *
+   * @type {(error: Error) => void}
+   */
   #onError;
+  /**
+   *
+   * @type {string}
+   */
   #state = GAME_RECORDING_STATE.IDLE;
+  /**
+   *
+   * @type {null}
+   */
   #session = null;
+  /**
+   *
+   * @type {boolean}
+   */
   #destroyed = false;
 
+  /**
+   *
+   * @param {{app: pc.Application, canvas: HTMLCanvasElement, onStateChange: (state: string) => void, onError: (error: Error) => void}} options
+   * @param {pc.Application} options.app
+   * @param {HTMLCanvasElement} options.canvas
+   * @param {(state: string) => void} options.onStateChange
+   * @param {(error: Error) => void} options.onError
+   */
   constructor({ app, canvas, onStateChange, onError }) {
+    /**
+     *
+     * @type {pc.Application}
+     */
     this.#app = app;
+    /**
+     *
+     * @type {HTMLCanvasElement}
+     */
     this.#canvas = canvas;
+    /**
+     *
+     * @type {(state: string) => void}
+     */
     this.#onStateChange = onStateChange;
+    /**
+     *
+     * @type {(error: Error) => void}
+     */
     this.#onError = onError;
     document.addEventListener("visibilitychange", this.#visibilityChange);
   }
@@ -38,6 +90,10 @@ export class GameRecorder {
     }
   }
 
+  /**
+   *
+   * @param {import("src/game/GameContracts.js").StoreContract} state
+   */
   #setState(state) {
     this.#state = state;
     this.#onStateChange?.(state);
@@ -94,6 +150,11 @@ export class GameRecorder {
       // path can leave queued VideoFrames unclosed when recording is stopped.
       session.videoSource = new media.CanvasSource(session.compositor.canvas, {
         codec, quality, latencyMode: "quality", keyFrameInterval: 2,
+        /**
+         *
+         * @param {EncodedVideoChunkMetadata} _packet
+         * @param {{name?: string, type?: string, value?: string|number|boolean}} metadata
+         */
         onEncodedPacket: (_packet, metadata) => AvcRecordingConfiguration.repair(metadata),
       });
       session.audioSource = new media.MediaStreamAudioTrackSource(
@@ -102,7 +163,11 @@ export class GameRecorder {
       );
       session.output.addVideoTrack(session.videoSource, { frameRate: FRAME_RATE });
       session.output.addAudioTrack(session.audioSource);
-      session.audioSource.errorPromise.catch((error) => this.#fail(session, error));
+      session.audioSource.errorPromise.catch(/**
+       *
+       * @param {Error} error
+       */
+      (error) => this.#fail(session, error));
       await session.output.start();
       if (this.#destroyed || this.#session !== session) {
         return;
@@ -153,6 +218,11 @@ export class GameRecorder {
     }
   }
 
+  /**
+   *
+   * @param {{stream?: MediaStream, recorder?: MediaRecorder, startedAt?: number}} session
+   * @param {number} now
+   */
   #captureVideoFrame(session, now = performance.now()) {
     const frame = Math.floor((now - session.recordingStartedAt) * FRAME_RATE / 1000);
     if (frame <= session.lastVideoFrame || session.videoFramePending) {
@@ -163,7 +233,11 @@ export class GameRecorder {
     session.videoFramePromise = promise;
     session.videoFramePending = true;
     void promise
-      .catch((error) => this.#fail(session, error))
+      .catch(/**
+       *
+       * @param {Error} error
+       */
+      (error) => this.#fail(session, error))
       .finally(() => {
         if (session.videoFramePromise === promise) {
           session.videoFramePending = false;
@@ -171,6 +245,11 @@ export class GameRecorder {
       });
   }
 
+  /**
+   *
+   * @param {{stream?: MediaStream, recorder?: MediaRecorder, startedAt?: number}} session
+   * @param {Error} error
+   */
   async #fail(session, error) {
     if (this.#session !== session || this.#state === GAME_RECORDING_STATE.STOPPING) {
       return;
@@ -182,6 +261,11 @@ export class GameRecorder {
     }
   }
 
+  /**
+   *
+   * @param {{stream?: MediaStream, recorder?: MediaRecorder, startedAt?: number}} session
+   * @param {boolean} cancel
+   */
   async #release(session, cancel) {
     session.frameHandle?.off();
     if (this.#session === session) {
@@ -199,6 +283,10 @@ export class GameRecorder {
     }
   }
 
+  /**
+   *
+   * @type {() => void}
+   */
   #visibilityChange = () => {
     // Save when backgrounded; browsers throttle hidden canvases and their clocks.
     if (document.hidden && this.#state === GAME_RECORDING_STATE.RECORDING) {

@@ -1,10 +1,39 @@
 export class GroundCoverInteraction {
+  /**
+   *
+    * @type {number}
+   */
   #collectible;
+  /**
+   *
+    * @type {import("src/game/objects/ObjectTypes.js").HeroLike}
+   */
   #hero;
+  /**
+   *
+    * @type {import("src/game/objects/hero/tools/HeroTool.js").HeroTool|null}
+   */
   #tool;
+  /**
+   *
+    * @type {(value: import("src/game/objects/ObjectTypes.js").InteractionLike|null) => void}
+   */
   #onChange;
+  /**
+   *
+    * @type {() => void}
+   */
   #onComplete;
 
+  /**
+   *
+   * @param {{collectible: number, hero: import("src/game/objects/ObjectTypes.js").HeroLike, tool: import("src/game/objects/hero/tools/HeroTool.js").HeroTool, onChange: (value: import("src/game/objects/ObjectTypes.js").InteractionLike|null) => void, onComplete: () => void}} options
+   * @param {number} options.collectible
+   * @param {import("src/game/objects/ObjectTypes.js").HeroLike} options.hero
+   * @param {import("src/game/objects/hero/tools/HeroTool.js").HeroTool} options.tool
+   * @param {(value: import("src/game/objects/ObjectTypes.js").InteractionLike|null) => void} options.onChange
+   * @param {() => void} options.onComplete
+   */
   constructor({ collectible, hero, tool, onChange, onComplete }) {
     this.#collectible = collectible;
     this.#hero = hero;
@@ -13,6 +42,10 @@ export class GroundCoverInteraction {
     this.#onComplete = onComplete;
   }
 
+  /**
+   *
+    * @returns {boolean}
+   */
   get canInteract() {
     return (
       this.#collectible.canInteract &&
@@ -21,6 +54,10 @@ export class GroundCoverInteraction {
     );
   }
 
+  /**
+   *
+    * @returns {import("src/game/objects/ObjectTypes.js").InteractionDescription}
+   */
   get description() {
     return this.#collectible.describe();
   }

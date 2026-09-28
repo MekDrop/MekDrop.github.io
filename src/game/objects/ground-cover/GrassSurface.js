@@ -10,6 +10,10 @@ const FITTED_VIEW_WIND_VISIBILITY = 0.35;
 const CALM_WIND_SPEED = 0.1;
 const STRONG_WIND_SPEED = 0.28;
 
+/**
+ *
+ * @param {number} speed
+ */
 function getWindStrength(speed) {
   const progress = Math.max(
     0,
@@ -22,20 +26,84 @@ function getWindStrength(speed) {
 }
 
 export class GrassSurface {
+  /**
+   *
+    * @type {Array<import("playcanvas").Material>}
+   */
   #terrainMaterials;
+  /**
+   *
+    * @type {import("playcanvas").EventHandle|null}
+   */
   #updateHandle;
+  /**
+   *
+    * @type {number}
+   */
   #renderHandle;
+  /**
+   *
+    * @type {() => Array<{x: number, y: number, z: number, directionX: number, directionZ: number, strength: number}>}
+   */
   #getImpressionContacts;
+  /**
+   *
+    * @type {() => Array<{x: number, y: number, z: number, radius: number}>}
+   */
   #getSurfaceContacts;
+  /**
+   *
+    * @type {(x: number, z: number, elevation: number) => number}
+   */
   #getWeightAt;
+  /**
+   *
+    * @type {GrassImpressions}
+   */
   #impressions = new GrassImpressions();
+  /**
+   *
+    * @type {GrassSurfaceLoads}
+   */
   #surfaceLoads = new GrassSurfaceLoads();
+  /**
+   *
+    * @type {GrassObstacleMap}
+   */
   #obstacleMap = null;
+  /**
+   *
+    * @type {import("playcanvas").Material}
+   */
   #windMap = null;
+  /**
+   *
+    * @type {number}
+   */
   #deltaTime = 0;
+  /**
+   *
+    * @type {number}
+   */
   #elapsed = 0;
+  /**
+   *
+    * @type {import("playcanvas").Material}
+   */
   #windVisibility = FITTED_VIEW_WIND_VISIBILITY;
 
+  /**
+   *
+   * @param {{app: import("playcanvas").Application, pc: typeof import("playcanvas"), mapData: import("src/game/objects/ObjectTypes.js").GameMapData, terrainMaterials: Array<import("playcanvas").Material>, zoom: number, getImpressionContacts: () => Array<{x: number, y: number, z: number, directionX: number, directionZ: number, strength: number}>, getSurfaceContacts: () => Array<{x: number, y: number, z: number, radius: number}>, getWeightAt: (x: number, z: number, elevation: number) => number}} options
+   * @param {import("playcanvas").Application} options.app
+   * @param {typeof import("playcanvas")} options.pc
+   * @param {import("src/game/objects/ObjectTypes.js").GameMapData} options.mapData
+   * @param {Array<import("playcanvas").Material>} options.terrainMaterials
+   * @param {number} options.zoom
+   * @param {() => Array<{x: number, y: number, z: number, directionX: number, directionZ: number, strength: number}>} options.getImpressionContacts
+   * @param {() => Array<{x: number, y: number, z: number, radius: number}>} options.getSurfaceContacts
+   * @param {(x: number, z: number, elevation: number) => number} options.getWeightAt
+   */
   constructor({
     app,
     pc = null,
@@ -46,16 +114,22 @@ export class GrassSurface {
     getSurfaceContacts = () => [],
     getWeightAt = () => 0,
   }) {
+
     this.#terrainMaterials = terrainMaterials;
+
     this.#getImpressionContacts = getImpressionContacts;
+
     this.#getSurfaceContacts = getSurfaceContacts;
+
     this.#getWeightAt = getWeightAt;
     if (pc && mapData) {
+
       this.#obstacleMap = new GrassObstacleMap({
         pc,
         device: app.graphicsDevice,
         mapData,
       });
+
       this.#windMap = new GrassWindMap({
         pc,
         device: app.graphicsDevice,
@@ -67,11 +141,14 @@ export class GrassSurface {
       }
       this.refreshObstacles();
     }
+
     this.zoom = zoom;
     this.#update(0);
     this.#updateImpressions();
+
     this.#updateHandle = app.on("update", this.#update);
     // Sample after the hero has applied animation and sole-to-ground alignment.
+
     this.#renderHandle = app.on("prerender", this.#updateImpressions);
   }
 
@@ -104,10 +181,19 @@ export class GrassSurface {
     this.#terrainMaterials = [];
   }
 
+  /**
+   *
+   * @param {import("src/game/objects/ObjectTypes.js").GridPoint} tile
+   */
   refreshObstacles(tile = null) {
     this.#obstacleMap?.refresh(this.#getWeightAt, tile);
   }
 
+  /**
+   *
+   * @param {number} deltaTime
+    * @type {number}
+   */
   #update = (deltaTime) => {
     this.#deltaTime = Math.min(deltaTime, 0.1);
     this.#elapsed += this.#deltaTime;
@@ -124,6 +210,10 @@ export class GrassSurface {
     }
   };
 
+  /**
+   *
+    * @type {() => void}
+   */
   #updateImpressions = () => {
     this.#impressions.update(
       this.#deltaTime,

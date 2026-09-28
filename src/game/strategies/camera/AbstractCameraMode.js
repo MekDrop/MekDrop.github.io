@@ -2,9 +2,21 @@
  * @abstract
  */
 export class AbstractCameraMode {
+  /**
+   *
+   * @type {GameCamera}
+   */
   #gameCamera;
 
+  /**
+   *
+   * @param {GameCamera} gameCamera
+   */
   constructor(gameCamera) {
+    /**
+     *
+     * @type {GameCamera}
+     */
     this.#gameCamera = gameCamera;
   }
 
@@ -22,6 +34,10 @@ export class AbstractCameraMode {
    */
   exit() {}
 
+  /**
+   *
+   * @returns {boolean}
+   */
   get pointerInputActive() {
     return false;
   }

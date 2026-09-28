@@ -12,13 +12,32 @@ const TOP_VARIANTS = [
 const TOP_VARIANT_WEIGHTS = [0, 0, 1, 0, 2, 3, 4, 0];
 const SIDE_COLORS = [0xead8b9, 0xe2ceb0, 0xecd5b4, 0xdcc6a7, 0xe8d1b0, 0xdfc9a9];
 
+/**
+ * @typedef {{startU?: number, startV?: number, scaleU?: number, scaleV?: number, flipU?: boolean, flipV?: boolean}} TextureTransform
+ */
+
 export class PathSurfaceMaterials {
+  /**
+   *
+   * @returns {Readonly<Record<string, string>>}
+   */
   static get textureUrls() {
     return { path: pathTopUrl, pathSide: pathSideUrl };
   }
 
+  /**
+   *
+   * @param {pc.Material[]} materials
+   * @param {(name: string, definition: import("src/game/GameContracts.js").MaterialDefinition) => pc.Material} createMaterial
+   * @param {TextureTransform[]} sideTransforms
+   */
   static register(materials, createMaterial, sideTransforms) {
-    TOP_VARIANTS.forEach((variant, index) => {
+    TOP_VARIANTS.forEach(/**
+     *
+     * @param {string} variant
+     * @param {number} index
+     */
+    (variant, index) => {
       const name = index === 0 ? "path" : `path-${index}`;
       const material = createMaterial(name, {
         texture: "path",
@@ -32,7 +51,12 @@ export class PathSurfaceMaterials {
       materials.set(name, material);
     });
 
-    sideTransforms.forEach((transform, index) => {
+    sideTransforms.forEach(/**
+     *
+     * @param {pc.Mat4} transform
+     * @param {number} index
+     */
+    (transform, index) => {
       const name = `pathSide-${index}`;
       materials.set(
         name,
@@ -46,6 +70,12 @@ export class PathSurfaceMaterials {
     });
   }
 
+  /**
+   *
+   * @param {number} col
+   * @param {number} row
+   * @param {number} level
+   */
   static topForTile(col, row, level) {
     const hash =
       Math.imul(col + 17, 73856093) ^

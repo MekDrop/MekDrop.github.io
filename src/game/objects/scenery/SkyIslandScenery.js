@@ -2,18 +2,46 @@ import { TileType } from "../../generator/map/MapGenerator.js";
 import { MAX_UNDERSIDE_DEPTH } from "../../config/terrain.js";
 
 export class SkyIslandScenery {
+  /**
+   *
+    * @type {import("src/game/objects/ObjectTypes.js").GameMapData}
+   */
   #mapData;
+  /**
+   *
+    * @type {number}
+   */
   #seed;
+  /**
+   *
+    * @type {Set<string>}
+   */
   #riverCells;
 
+  /**
+   *
+   * @param {import("src/game/objects/ObjectTypes.js").GameMapData} mapData
+   */
   constructor(mapData) {
     this.#mapData = mapData;
     this.#seed = this.#hashString(mapData.layoutSignature ?? "sky-island");
     this.#riverCells = new Set(
-      (mapData.riverData ?? []).flatMap((river) =>
+      (mapData.riverData ?? []).flatMap(/**
+       *
+       * @param {number} river
+       */
+      (river) =>
         river.cells
-          .filter((cell) => !cell.underBridge)
-          .map((cell) => `${cell.col},${cell.row}`),
+          .filter(/**
+           *
+           * @param {number} cell
+           */
+          (cell) => !cell.underBridge)
+          .map(/**
+           *
+           * @param {number} cell
+           */
+          (cell) => `${cell.col},${cell.row}`),
       ),
     );
   }
@@ -74,6 +102,12 @@ export class SkyIslandScenery {
           [col, row - 1],
           [col, row + 1],
         ].some(
+          /**
+           *
+           * @param {Array<number>} options
+           * @param {number} options."0"
+           * @param {number} options."1"
+           */
           ([neighborCol, neighborRow]) =>
             neighborCol < 0 ||
             neighborCol >= cols ||
@@ -114,6 +148,12 @@ export class SkyIslandScenery {
     return distances;
   }
 
+  /**
+   *
+   * @param {Array<Array<number|string>>} grid
+   * @param {number} col
+   * @param {number} row
+   */
   #isIslandCell(grid, col, row) {
     return (
       grid[row]?.[col] !== undefined &&
@@ -122,6 +162,12 @@ export class SkyIslandScenery {
     );
   }
 
+  /**
+   *
+   * @param {import("src/game/objects/ObjectTypes.js").Point3} first
+   * @param {import("src/game/objects/ObjectTypes.js").Point3} second
+   * @param {number} salt
+   */
   #hash(first, second, salt) {
     let value = this.#seed ^ salt;
     value = Math.imul(value ^ (first + 101), 2246822519);
@@ -130,6 +176,10 @@ export class SkyIslandScenery {
     return value >>> 0;
   }
 
+  /**
+   *
+   * @param {number} value
+   */
   #hashString(value) {
     let hash = 2166136261;
     for (let index = 0; index < value.length; index += 1) {

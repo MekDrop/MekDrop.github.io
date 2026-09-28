@@ -8,6 +8,10 @@ import { KingReturnToThroneState } from "./states/terrace/king/KingReturnToThron
 import { RoyalTerraceActivityBehavior } from "./RoyalTerraceActivityBehavior.js";
 
 export class KingTrainingBehavior extends RoyalTerraceActivityBehavior {
+  /**
+   *
+   * @param {(atThrone: boolean) => void} onThroneChange
+   */
   constructor(onThroneChange) {
     const walkSpeed = ROYAL_WALK_SPEED.KING;
     const walkDuration = 0.7 + 2.5 / walkSpeed;

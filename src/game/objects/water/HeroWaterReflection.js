@@ -1,19 +1,72 @@
 // Captures the actual animated head from a mirrored camera. The river shader
 // projects this texture only onto nearby water, so banks and bridges cannot reflect it.
 export class HeroWaterReflection {
+  /**
+   *
+    * @type {typeof import("playcanvas")}
+   */
   #pc;
+  /**
+   *
+    * @type {import("playcanvas").Application}
+   */
   #app;
+  /**
+   *
+    * @type {typeof import("playcanvas")}
+   */
   #layer;
+  /**
+   *
+    * @type {import("playcanvas").Entity}
+   */
   #camera;
+  /**
+   *
+    * @type {{x: number, y: number, z: number}}
+   */
   #target;
+  /**
+   *
+    * @type {string}
+   */
   #texture;
+  /**
+   *
+    * @type {typeof import("playcanvas")}
+   */
   #head = null;
+  /**
+   *
+    * @type {Array<{entity: import("playcanvas").Entity, material: import("playcanvas").Material}>}
+   */
   #instances = [];
+  /**
+   *
+    * @type {Array<import("playcanvas").Material>}
+   */
   #materials = [];
+  /**
+   *
+    * @type {typeof import("playcanvas")}
+   */
   #matrix;
+  /**
+   *
+    * @type {typeof import("playcanvas")}
+   */
   #view;
+  /**
+   *
+    * @type {typeof import("playcanvas")}
+   */
   #data = new Float32Array(4);
 
+  /**
+   *
+   * @param {typeof import("playcanvas")} pc
+   * @param {import("playcanvas").Application} app
+   */
   constructor(pc, app) {
     this.#pc = pc;
     this.#app = app;
@@ -41,6 +94,11 @@ export class HeroWaterReflection {
     this.#camera.enabled = false;
   }
 
+  /**
+   *
+   * @param {{position: import("src/game/objects/ObjectTypes.js").Point3, rotation: import("playcanvas").Quat}} presentation
+   * @param {import("playcanvas").Entity} camera
+   */
   update(presentation, camera) {
     this.#data[3] = 0;
     this.#camera.enabled = Boolean(presentation && camera);
@@ -63,6 +121,10 @@ export class HeroWaterReflection {
     this.#data.set([presentation.x, presentation.surfaceY, presentation.z, 1]);
   }
 
+  /**
+   *
+   * @param {import("playcanvas").Material} material
+   */
   apply(material) {
     material.setParameter('uHeroReflection', this.#texture);
     material.setParameter('uHeroReflectionMatrix', this.#matrix.data);
@@ -91,6 +153,10 @@ export class HeroWaterReflection {
     this.#head = null;
   }
 
+  /**
+   *
+   * @param {import("playcanvas").Entity} head
+   */
   #bindHead(head) {
     this.#clearHead();
     this.#head = head;

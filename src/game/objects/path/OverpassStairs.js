@@ -8,18 +8,61 @@ const STAIR_MODULE_RUN_BLOCKS = 2;
  * Replaces an overpass ramp surface with castle-style sandstone steps.
  */
 export class OverpassStairs {
+  /**
+   *
+    * @returns {string}
+   */
   static get modelUrl() {
     return stairModuleModelUrl;
   }
 
+  /**
+   *
+    * @type {typeof import("playcanvas")}
+   */
   #pc;
+  /**
+   *
+    * @type {{stairApproach?: boolean, slopeCells: Array<{col: number, row: number, riseDirection: number, lowHeight: number, highHeight: number}>}}
+   */
   #overpass;
+  /**
+   *
+    * @type {number}
+   */
   #cols;
+  /**
+   *
+    * @type {number}
+   */
   #rows;
+  /**
+   *
+    * @type {string}
+   */
   #modelLibrary;
+  /**
+   *
+    * @type {Array<import("playcanvas").Material>}
+   */
   #materials;
+  /**
+   *
+    * @type {import("playcanvas").Entity}
+   */
   #root;
 
+  /**
+   *
+   * @param {{pc: typeof import("playcanvas"), overpass: {stairApproach?: boolean, slopeCells: Array<{col: number, row: number, riseDirection: number, lowHeight: number, highHeight: number}>}, cols: number, rows: number, modelLibrary: import("src/game/models/GameModelLibrary.js").GameModelLibrary, materials: Array<import("playcanvas").Material>, root: import("playcanvas").Entity}} options
+   * @param {typeof import("playcanvas")} options.pc
+   * @param {{stairApproach?: boolean, slopeCells: Array<{col: number, row: number, riseDirection: number, lowHeight: number, highHeight: number}>}} options.overpass
+   * @param {number} options.cols
+   * @param {number} options.rows
+   * @param {import("src/game/models/GameModelLibrary.js").GameModelLibrary} options.modelLibrary
+   * @param {Array<import("playcanvas").Material>} options.materials
+   * @param {import("playcanvas").Entity} options.root
+   */
   constructor({ pc, overpass, cols, rows, modelLibrary, materials, root }) {
     this.#pc = pc;
     this.#overpass = overpass;
@@ -64,6 +107,12 @@ export class OverpassStairs {
     return [batch.vertexBuffer];
   }
 
+  /**
+   *
+   * @param {Array<import("playcanvas").Mat4>} matrices
+   * @param {number} riseDirection
+   * @param {Array<{col: number, row: number, lowHeight: number, highHeight: number}>} cells
+   */
   #addFlight(matrices, riseDirection, cells) {
     if (
       riseDirection !== SLOPE_DIRECTION.NORTH &&
@@ -72,12 +121,36 @@ export class OverpassStairs {
       return;
     }
 
-    const minCol = Math.min(...cells.map((cell) => cell.col));
-    const maxCol = Math.max(...cells.map((cell) => cell.col));
-    const minRow = Math.min(...cells.map((cell) => cell.row));
-    const maxRow = Math.max(...cells.map((cell) => cell.row));
-    const baseElevation = Math.min(...cells.map((cell) => cell.lowHeight));
-    const topElevation = Math.max(...cells.map((cell) => cell.highHeight));
+    const minCol = Math.min(...cells.map(/**
+     *
+     * @param {number} cell
+     */
+    (cell) => cell.col));
+    const maxCol = Math.max(...cells.map(/**
+     *
+     * @param {number} cell
+     */
+    (cell) => cell.col));
+    const minRow = Math.min(...cells.map(/**
+     *
+     * @param {number} cell
+     */
+    (cell) => cell.row));
+    const maxRow = Math.max(...cells.map(/**
+     *
+     * @param {number} cell
+     */
+    (cell) => cell.row));
+    const baseElevation = Math.min(...cells.map(/**
+     *
+     * @param {number} cell
+     */
+    (cell) => cell.lowHeight));
+    const topElevation = Math.max(...cells.map(/**
+     *
+     * @param {number} cell
+     */
+    (cell) => cell.highHeight));
     const riseBlocks = Math.round(
       (topElevation - baseElevation) / STAIR_BLOCK_SIZE,
     );
@@ -111,6 +184,11 @@ export class OverpassStairs {
     }
   }
 
+  /**
+   *
+   * @param {Array<import("playcanvas").Mat4>} matrices
+   * @param {{x: number, y: number, z: number}} position
+   */
   #addMatrix(matrices, position) {
     const matrix = new this.#pc.Mat4();
     matrix.setTRS(

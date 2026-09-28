@@ -11,11 +11,35 @@ import { ServantPourTeaState } from "./states/terrace/servant/ServantPourTeaStat
 import { ServantReturnState } from "./states/terrace/servant/ServantReturnState.js";
 
 export class TerraceServantBehavior extends TerraceParticipantStateMachine {
+  /**
+   *
+    * @type {boolean}
+   */
   #requested = false;
+  /**
+   *
+    * @type {string|null}
+   */
   #service = null;
+  /**
+   *
+    * @type {Array<string>}
+   */
   #deliveries = [];
+  /**
+   *
+    * @type {number}
+   */
   #delivery = 0;
+  /**
+   *
+    * @type {number}
+   */
   #installed = 0;
+  /**
+   *
+    * @type {number}
+   */
   #visitId = 0;
 
   constructor() {
@@ -35,6 +59,10 @@ export class TerraceServantBehavior extends TerraceParticipantStateMachine {
     });
   }
 
+  /**
+   *
+    * @returns {number}
+   */
   get cargo() {
     return this.#deliveries[this.#delivery] ?? null;
   }
@@ -43,11 +71,19 @@ export class TerraceServantBehavior extends TerraceParticipantStateMachine {
     return this.#installed;
   }
 
+  /**
+   *
+    * @returns {boolean}
+   */
   get ready() {
     return this.#deliveries.length > 0 &&
       this.#installed === this.#deliveries.length;
   }
 
+  /**
+   *
+    * @returns {string|null}
+   */
   get fulfilledService() {
     return this.ready ? this.#service : null;
   }
@@ -56,6 +92,10 @@ export class TerraceServantBehavior extends TerraceParticipantStateMachine {
     return this.#visitId;
   }
 
+  /**
+   *
+   * @param {string} service
+   */
   fulfill(service) {
     if (![TERRACE_SERVICE.SUNBED, TERRACE_SERVICE.TEA].includes(service)) {
       return false;
@@ -88,6 +128,10 @@ export class TerraceServantBehavior extends TerraceParticipantStateMachine {
     return true;
   }
 
+  /**
+   *
+   * @param {number} phase
+   */
   nextPhase(phase) {
     switch (phase) {
       case ServantCarryInState.name:

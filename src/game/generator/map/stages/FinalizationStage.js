@@ -4,13 +4,29 @@ import { AbstractMapGenerationStage } from "../AbstractMapGenerationStage.js";
  * Assembles the stable public map contract and generated object records.
  */
 export class FinalizationStage extends AbstractMapGenerationStage {
+  /**
+   *
+   * @type {Array}
+   */
   #operations;
 
+  /**
+   *
+   * @param {Array<() => void>} operations
+   */
   constructor(operations) {
     super();
+    /**
+     *
+     * @type {Array}
+     */
     this.#operations = operations;
   }
 
+  /**
+   *
+   * @param {GenerationContext} context
+   */
   async run(context) {
     const { grid, heightmap, tileMeta } = context.world;
     const { layout, routeCellsByPath, mergeZones, trunkStart } =
@@ -50,7 +66,12 @@ export class FinalizationStage extends AbstractMapGenerationStage {
         castleIndex: 0,
         position: residentPosition,
       },
-      ...vegetationPlacements.map((vegetation, index) => ({
+      ...vegetationPlacements.map(/**
+       *
+       * @param {import("src/game/GameContracts.js").GameObjectDefinition} vegetation
+       * @param {number} index
+       */
+      (vegetation, index) => ({
         id: `vegetation-${index}`,
         object: "Vegetation",
         variant: vegetation.variant,
@@ -65,7 +86,12 @@ export class FinalizationStage extends AbstractMapGenerationStage {
           z: vegetation.row - (rows - 1) / 2,
         },
       })),
-      ...stonePlacements.map((stone, index) => ({
+      ...stonePlacements.map(/**
+       *
+       * @param {number} stone
+       * @param {number} index
+       */
+      (stone, index) => ({
         id: `stone-cluster-${index}`,
         object: "StoneCluster",
         tile: { col: stone.col, row: stone.row },
@@ -85,7 +111,12 @@ export class FinalizationStage extends AbstractMapGenerationStage {
       tileMeta,
       cols,
       rows,
-      entries: layout.entries.map((entry, index) => ({
+      entries: layout.entries.map(/**
+       *
+       * @param {import("src/game/GameContracts.js").GameCanvasPluginEntry} entry
+       * @param {number} index
+       */
+      (entry, index) => ({
         col: entry.gateCol,
         row: entry.gateRows[0],
         rows: [...entry.gateRows],
@@ -98,7 +129,12 @@ export class FinalizationStage extends AbstractMapGenerationStage {
       castlePos: { col: layout.castleLeft, row: layout.pathRows[0] },
       castle,
       numPaths: layout.entries.length,
-      paths: routeCellsByPath.map((path, pathIdx) => ({
+      paths: routeCellsByPath.map(/**
+       *
+       * @param {string} path
+       * @param {number} pathIdx
+       */
+      (path, pathIdx) => ({
         ...path,
         route: routes[pathIdx],
       })),

@@ -4,13 +4,47 @@
 const BANK_SEAM_OVERLAP = 0.012;
 
 export class WaterfallGeometry {
+  /**
+   *
+    * @type {import("src/game/objects/ObjectTypes.js").WaterfallDefinition}
+   */
   #waterfall;
+  /**
+   *
+    * @type {{x: number, y: number, z: number}}
+   */
   #direction;
+  /**
+   *
+    * @type {number}
+   */
   #center;
+  /**
+   *
+    * @type {import("src/game/objects/ObjectTypes.js").RiverTerminal}
+   */
   #terminal;
+  /**
+   *
+    * @type {number}
+   */
   #routeDistance;
+  /**
+   *
+    * @type {import("src/game/objects/ObjectTypes.js").WaterfallJoin|null}
+   */
   #join;
 
+  /**
+   *
+   * @param {import("src/game/objects/ObjectTypes.js").WaterfallDefinition} waterfall
+   * @param {{x: number, y: number, z: number}} direction
+   * @param {number} cols
+   * @param {number} rows
+   * @param {import("src/game/objects/ObjectTypes.js").RiverTerminal} terminal
+   * @param {number} routeDistance
+   * @param {import("src/game/objects/ObjectTypes.js").WaterfallJoin|null} join
+   */
   constructor(
     waterfall,
     direction,
@@ -31,6 +65,11 @@ export class WaterfallGeometry {
     this.#join = join;
   }
 
+  /**
+   *
+   * @param {(...args: (number|boolean|Array<number>|((row: number, column: number) => Array<number>)|null)[]) => void} grid
+   * @param {string} section
+   */
   append(grid, section = "all") {
     const lipRows = 12;
     const width = 12;
@@ -45,6 +84,12 @@ export class WaterfallGeometry {
     const radius = Math.min(0.22, drop * 0.22);
     const direction = this.#direction;
     const cross = { col: -direction.row, row: direction.col };
+    /**
+     *
+     * @param {number} row
+     * @param {number} column
+     * @param {number} rear
+     */
     const pointAt = (row, column, rear = false) => {
       if (row === 0 && this.#join) {
         return (rear ? this.#join.rear : this.#join.front)[column];
@@ -97,6 +142,11 @@ export class WaterfallGeometry {
           cross.row * joinedAcross * taper,
       ];
     };
+    /**
+     *
+     * @param {number} row
+     * @param {number} rear
+     */
     const colorAt = (row, rear = false) => {
       const fall = Math.max(0, (row - lipRows) / fallRows);
       const fade = this.#terminal ? Math.max(0, (fall - 0.78) / 0.22) : 0;
@@ -107,6 +157,11 @@ export class WaterfallGeometry {
         Math.round((1 - fade * fade * (3 - 2 * fade)) * 255),
       ];
     };
+    /**
+     *
+     * @param {number} row
+     * @param {number} column
+     */
     const uvAt = (row, column) => {
       if (row === 0 && this.#join) {
         return this.#join.uvs[column];
@@ -119,6 +174,12 @@ export class WaterfallGeometry {
     };
     // Carry the source pressure across the exact lip vertices, then let it
     // dissipate down the rounded spillway. Fall/depth color metadata stays intact.
+    /**
+     *
+     * @param {number} row
+     * @param {number} column
+     * @param {number} rear
+     */
     const sourceAt = (row, column, rear = false) => {
       const source = this.#join?.sources?.[column];
       if (!source || rear) {
@@ -128,23 +189,70 @@ export class WaterfallGeometry {
       const fade = 1 - progress * progress * (3 - 2 * progress);
       return [source[0] * fade, source[1]];
     };
+    /**
+     *
+     * @param {number} column
+     */
     const metadataAt = (column) => {
       const magnitude = 2 + column / width;
       return [direction.col * magnitude, direction.row * magnitude];
     };
     grid(
-      sectionRows, width, (r, c) => pointAt(r + startRow, c),
+      sectionRows, width, /**
+       *
+       * @param {number} r
+       * @param {number} c
+       */
+      (r, c) => pointAt(r + startRow, c),
       [direction.col, 0, direction.row],
+      /**
+       *
+       * @param {number} r
+       */
       (r) => colorAt(r + startRow), false, false,
+      /**
+       *
+       * @param {number} r
+       * @param {number} c
+       */
       (r, c) => uvAt(r + startRow, c),
+      /**
+       *
+       * @param {number} r
+       * @param {number} c
+       */
       (r, c) => metadataAt(c),
+      /**
+       *
+       * @param {number} r
+       * @param {number} c
+       */
       (r, c) => sourceAt(r + startRow, c),
     );
     grid(
-      sectionRows, width, (r, c) => pointAt(r + startRow, c, true),
+      sectionRows, width, /**
+       *
+       * @param {number} r
+       * @param {number} c
+       */
+      (r, c) => pointAt(r + startRow, c, true),
       [-direction.col, 0, -direction.row],
+      /**
+       *
+       * @param {number} r
+       */
       (r) => colorAt(r + startRow, true), true, false,
+      /**
+       *
+       * @param {number} r
+       * @param {number} c
+       */
       (r, c) => uvAt(r + startRow, c),
+      /**
+       *
+       * @param {number} r
+       * @param {number} c
+       */
       (r, c) => metadataAt(c),
     );
     // Side faces share exactly the front/back boundary positions; no extra shells.
@@ -152,11 +260,30 @@ export class WaterfallGeometry {
       const side = column === 0 ? -1 : 1;
       grid(
         sectionRows, 1,
+        /**
+         *
+         * @param {number} r
+         * @param {number} c
+         */
         (r, c) => pointAt(r + startRow, column, c === 1),
         [cross.col * side, 0, cross.row * side],
+        /**
+         *
+         * @param {number} r
+         * @param {number} c
+         */
         (r, c) => colorAt(r + startRow, c === 1), column === 0, false,
+        /**
+         *
+         * @param {number} r
+         */
         (r) => uvAt(r + startRow, column),
         () => metadataAt(column),
+        /**
+         *
+         * @param {number} r
+         * @param {number} c
+         */
         (r, c) => sourceAt(r + startRow, column, c === 1),
       );
     }

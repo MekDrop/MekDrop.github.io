@@ -3,16 +3,54 @@ import { surfaceMaterialForTile } from "./TerrainMaterialMaps.js";
 import { tileVariantIndex } from "./TileVariantIndex.js";
 
 export class TerrainMaterialSelector {
+  /**
+   *
+   * @type {import("./GrassSurfaceMaterials.js").GrassSurfaceMaterials}
+   */
   #grass;
+  /**
+   *
+   * @type {import("./EarthSurfaceMaterials.js").EarthSurfaceMaterials}
+   */
   #earth;
+  /**
+   *
+   * @type {number}
+   */
   #sideVariantCount;
 
+  /**
+   *
+   * @param {import("./GrassSurfaceMaterials.js").GrassSurfaceMaterials} grass
+   * @param {import("./EarthSurfaceMaterials.js").EarthSurfaceMaterials} earth
+   * @param {number} sideVariantCount
+   */
   constructor(grass, earth, sideVariantCount) {
+    /**
+     *
+     * @type {import("./GrassSurfaceMaterials.js").GrassSurfaceMaterials}
+     */
     this.#grass = grass;
+    /**
+     *
+     * @type {import("./EarthSurfaceMaterials.js").EarthSurfaceMaterials}
+     */
     this.#earth = earth;
+    /**
+     *
+     * @type {number}
+     */
     this.#sideVariantCount = sideVariantCount;
   }
 
+  /**
+   *
+   * @param {string} type
+   * @param {{top: string, sides: string, underlay: string}} topCube
+   * @param {number} col
+   * @param {number} row
+   * @param {number} level
+   */
   cubeMaterials(type, topCube, col, row, level) {
     if (type === TileType.CASTLE_WALL || type === TileType.CASTLE_TOWER) {
       if (!topCube) {
@@ -48,6 +86,13 @@ export class TerrainMaterialSelector {
     };
   }
 
+  /**
+   *
+   * @param {pc.Material} material
+   * @param {number} col
+   * @param {number} row
+   * @param {number} level
+   */
   sideVariant(material, col, row, level) {
     if (material === "castleWall" || material === "castleTower") {
       return material;

@@ -6,12 +6,41 @@ const RELEASE_RESPONSE = 18;
 const TILT_RESPONSE = 20;
 
 export class HeroFootPlacement {
+  /**
+   *
+    * @type {typeof import("playcanvas")}
+   */
   #pc;
+  /**
+   *
+    * @type {typeof import("playcanvas")}
+   */
   #surfaceAt;
+  /**
+   *
+    * @type {() => {x: number, y: number, z: number}}
+   */
   #getHeroPosition;
+  /**
+   *
+    * @type {typeof import("playcanvas")}
+   */
   #feet;
+  /**
+   *
+    * @type {boolean}
+   */
   #enabled = false;
 
+  /**
+   *
+   * @param {{pc: typeof import("playcanvas"), surfaceAt: (...args: number[]) => Array<number>, getHeroPosition: () => {x: number, y: number, z: number}, left: boolean, right: number}} options
+   * @param {typeof import("playcanvas")} options.pc
+   * @param {(...args: number[]) => Array<number>} options.surfaceAt
+   * @param {() => {x: number, y: number, z: number}} options.getHeroPosition
+   * @param {boolean} options.left
+   * @param {number} options.right
+   */
   constructor({ pc, surfaceAt, getHeroPosition, left, right }) {
     this.#pc = pc;
     this.#surfaceAt = surfaceAt;
@@ -22,9 +51,17 @@ export class HeroFootPlacement {
     ];
   }
 
+  /**
+   *
+    * @returns {boolean}
+   */
   get state() {
     return Object.fromEntries(
-      this.#feet.map((foot) => [
+      this.#feet.map(/**
+       *
+       * @param {import("src/game/objects/ObjectTypes.js").HeroFootRig} foot
+       */
+      (foot) => [
         foot.side,
         {
           appliedLift: foot.appliedLift,
@@ -35,11 +72,19 @@ export class HeroFootPlacement {
     );
   }
 
+  /**
+   *
+    * @returns {Array<{minX: number, maxX: number, minZ: number, maxZ: number}>}
+   */
   get grassContacts() {
     if (!this.#enabled) {
       return [];
     }
-    return this.#feet.flatMap((foot) => {
+    return this.#feet.flatMap(/**
+     *
+     * @param {import("src/game/objects/ObjectTypes.js").HeroFootRig} foot
+     */
+    (foot) => {
       const bounds = foot.sole.render?.meshInstances?.[0]?.mesh?.aabb;
       if (!bounds || foot.minimumClearance === null) {
         return [];
@@ -65,6 +110,11 @@ export class HeroFootPlacement {
     });
   }
 
+  /**
+   *
+   * @param {number} deltaTime
+   * @param {boolean} enabled
+   */
   update(deltaTime, enabled) {
     this.#enabled = enabled;
     const maximumSurfaceHeight =
@@ -94,6 +144,12 @@ export class HeroFootPlacement {
         Math.max(
           0,
           ...contacts.map(
+            /**
+             *
+             * @param {{solePoint: {x: number, y: number, z: number}, surface: import("src/game/objects/ObjectTypes.js").SurfaceSample}} options
+             * @param {{x: number, y: number, z: number}} options.solePoint
+             * @param {import("src/game/objects/ObjectTypes.js").SurfaceSample} options.surface
+             */
             ({ solePoint, surface }) =>
               surface.height - solePoint.y + CONTACT_EPSILON,
           ),
@@ -116,6 +172,12 @@ export class HeroFootPlacement {
       foot.minimumClearance = contacts.length
         ? Math.min(
             ...contacts.map(
+              /**
+               *
+               * @param {{solePoint: {x: number, y: number, z: number}, surface: import("src/game/objects/ObjectTypes.js").SurfaceSample}} options
+               * @param {{x: number, y: number, z: number}} options.solePoint
+               * @param {import("src/game/objects/ObjectTypes.js").SurfaceSample} options.surface
+               */
               ({ solePoint, surface }) =>
                 solePoint.y + foot.appliedLift - surface.height,
             ),
@@ -131,6 +193,16 @@ export class HeroFootPlacement {
     this.#feet = [];
   }
 
+  /**
+   *
+   * @param {string} name
+   * @param {{side: import("playcanvas").Entity, leg: import("playcanvas").Entity, sole: import("playcanvas").Entity, cuff: number, tiltingParts: Array<import("playcanvas").Entity>}} options
+   * @param {import("playcanvas").Entity} options.side
+   * @param {import("playcanvas").Entity} options.leg
+   * @param {import("playcanvas").Entity} options.sole
+   * @param {number} options.cuff
+   * @param {Array<import("playcanvas").Entity>} options.tiltingParts
+   */
   #createFoot(name, { side, leg, sole, cuff, tiltingParts }) {
     const visualChildren = [...leg.children];
     const wrapper = new this.#pc.Entity(name);
@@ -169,11 +241,21 @@ export class HeroFootPlacement {
     };
   }
 
+  /**
+   *
+   * @param {import("src/game/objects/ObjectTypes.js").HeroFootRig} foot
+   */
   #resetWrapper(foot) {
     foot.wrapper.setLocalPosition(0, 0, 0);
     foot.tilt.setLocalRotation(0, 0, 0, 1);
   }
 
+  /**
+   *
+   * @param {import("src/game/objects/ObjectTypes.js").HeroFootRig} foot
+   * @param {number} contacts
+   * @param {number} deltaTime
+   */
   #alignBootToSurface(
     foot,
     contacts,
@@ -219,6 +301,10 @@ export class HeroFootPlacement {
       Math.PI;
   }
 
+  /**
+   *
+   * @param {number} contacts
+   */
   #contactNormal(contacts) {
     let x = 0;
     let y = 0;
@@ -263,6 +349,11 @@ export class HeroFootPlacement {
     );
   }
 
+  /**
+   *
+   * @param {import("src/game/objects/ObjectTypes.js").HeroFootRig} foot
+   * @param {number} maximumSurfaceHeight
+   */
   #contacts(foot, maximumSurfaceHeight) {
     const bounds = foot.sole.render?.meshInstances?.[0]?.mesh?.aabb;
     if (!bounds) {
@@ -282,7 +373,14 @@ export class HeroFootPlacement {
       [maximumX, minimumY, maximumZ],
     ];
     const transform = foot.sole.getWorldTransform();
-    return contactCoordinates.flatMap(([x, y, z]) => {
+    return contactCoordinates.flatMap(/**
+     *
+     * @param {Array<number>} options
+     * @param {number} options."0"
+     * @param {number} options."1"
+     * @param {number} options."2"
+     */
+    ([x, y, z]) => {
       const solePoint = transform.transformPoint(new this.#pc.Vec3(x, y, z));
       const surface = this.#surfaceAt(
         solePoint.x,

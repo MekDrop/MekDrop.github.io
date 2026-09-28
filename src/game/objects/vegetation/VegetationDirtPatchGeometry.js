@@ -4,6 +4,11 @@ const EDGE_INSET_RANGE = 0.022;
 const COORDINATE_PRECISION = 5;
 const DIRT_COLORS = Object.freeze([0x8f5b3a, 0x986443, 0x855234, 0xa06a47]);
 
+/**
+ *
+ * @param {number} seed
+ * @param {number} index
+ */
 function randomUnit(seed, index) {
   let hash = 2166136261;
   const text = `${seed}:${index}`;
@@ -17,10 +22,22 @@ function randomUnit(seed, index) {
   return (hash >>> 0) / 4294967295;
 }
 
+/**
+ *
+ * @param {{x: number, z: number}} options
+ * @param {number} options.x
+ * @param {number} options.z
+ */
 function pointKey({ x, z }) {
   return `${x.toFixed(COORDINATE_PRECISION)},${z.toFixed(COORDINATE_PRECISION)}`;
 }
 
+/**
+ *
+ * @param {Array<{start: {x: number, z: number}, end: {x: number, z: number}}>} edges
+ * @param {import("src/game/objects/ObjectTypes.js").Point3} start
+ * @param {import("src/game/objects/ObjectTypes.js").Point3} end
+ */
 function addBoundaryEdge(edges, start, end) {
   const key = `${pointKey(start)}>${pointKey(end)}`;
   const reverseKey = `${pointKey(end)}>${pointKey(start)}`;
@@ -31,8 +48,16 @@ function addBoundaryEdge(edges, start, end) {
   edges.set(key, { start, end });
 }
 
+/**
+ *
+ * @param {import("src/game/objects/ObjectTypes.js").HeroFootRig} footprint
+ */
 function clippedFootprints(footprint) {
-  return footprint.flatMap((part) => {
+  return footprint.flatMap(/**
+   *
+   * @param {{x: number, z: number}} part
+   */
+  (part) => {
     const left = Math.max(-MAX_LOCAL_EXTENT, part.x - part.width / 2);
     const right = Math.min(MAX_LOCAL_EXTENT, part.x + part.width / 2);
     const near = Math.max(-MAX_LOCAL_EXTENT, part.z - part.depth / 2);
@@ -41,6 +66,10 @@ function clippedFootprints(footprint) {
   });
 }
 
+/**
+ *
+ * @param {import("src/game/objects/ObjectTypes.js").HeroFootRig} footprint
+ */
 function buildBoundary(footprint) {
   const edges = new Map();
   for (const { left, right, near, far } of clippedFootprints(footprint)) {
@@ -58,7 +87,12 @@ function buildBoundary(footprint) {
   for (const edge of edges.values()) {
     edgeByStart.set(pointKey(edge.start), edge);
   }
-  const first = [...edges.values()].sort((left, right) =>
+  const first = [...edges.values()].sort(/**
+   *
+   * @param {boolean} left
+   * @param {number} right
+   */
+  (left, right) =>
     pointKey(left.start).localeCompare(pointKey(right.start)),
   )[0];
   if (!first) {
@@ -74,8 +108,18 @@ function buildBoundary(footprint) {
   return boundary;
 }
 
+/**
+ *
+ * @param {Array<import("src/game/objects/ObjectTypes.js").Point3>} boundary
+ * @param {number} seed
+ */
 function irregularizeBoundary(boundary, seed) {
-  return boundary.flatMap((point, index) => {
+  return boundary.flatMap(/**
+   *
+   * @param {{x: number, y: number, z: number}} point
+   * @param {number} index
+   */
+  (point, index) => {
     const next = boundary[(index + 1) % boundary.length];
     const deltaX = next.x - point.x;
     const deltaZ = next.z - point.z;
@@ -92,6 +136,12 @@ function irregularizeBoundary(boundary, seed) {
   });
 }
 
+/**
+ *
+ * @param {{x: number, y: number, z: number}} origin
+ * @param {boolean} left
+ * @param {number} right
+ */
 function cross(origin, left, right) {
   return (
     (left.x - origin.x) * (right.z - origin.z) -
@@ -99,6 +149,13 @@ function cross(origin, left, right) {
   );
 }
 
+/**
+ *
+ * @param {{x: number, y: number, z: number}} point
+ * @param {import("src/game/objects/ObjectTypes.js").Point3} first
+ * @param {import("src/game/objects/ObjectTypes.js").Point3} second
+ * @param {import("src/game/objects/ObjectTypes.js").Point3} third
+ */
 function pointInsideTriangle(point, first, second, third) {
   return (
     cross(first, second, point) >= 0 &&
@@ -107,8 +164,17 @@ function pointInsideTriangle(point, first, second, third) {
   );
 }
 
+/**
+ *
+ * @param {Array<import("src/game/objects/ObjectTypes.js").Point3>} outline
+ */
 function triangulate(outline) {
-  const remaining = outline.map((_, index) => index);
+  const remaining = outline.map(/**
+   *
+   * @param {{x: number, z: number}} _
+   * @param {number} index
+   */
+  (_, index) => index);
   const indices = [];
   while (remaining.length > 3) {
     let clipped = false;
@@ -121,6 +187,10 @@ function triangulate(outline) {
         continue;
       }
       const containsVertex = remaining.some(
+        /**
+         *
+         * @param {boolean} candidate
+         */
         (candidate) =>
           candidate !== previous &&
           candidate !== current &&
@@ -150,6 +220,11 @@ function triangulate(outline) {
   return indices;
 }
 
+/**
+ *
+ * @param {import("src/game/objects/ObjectTypes.js").HeroFootRig} footprint
+ * @param {number} seed
+ */
 export function buildVegetationDirtPatchGeometry(footprint, seed) {
   const outline = irregularizeBoundary(buildBoundary(footprint), seed);
   const positions = [];

@@ -1,6 +1,14 @@
 import { GamePanelHud } from "./GamePanelHud.js";
 import { gameUiTheme } from "./GameUiTheme.js";
 
+/**
+ * @typedef {{label?: string, showHealth?: boolean, health?: number, maxHealth?: number}} InteractionTarget
+ */
+
+/**
+ * @typedef {{firstPersonVisible: boolean, interaction: InteractionTarget|null}} GameStatusState
+ */
+
 const TEXTURE_SCALE = 4;
 const FIRST_PERSON_HEIGHT = 36;
 const FIRST_PERSON_TEXT =
@@ -11,13 +19,37 @@ const INTERACTION_PIP_WIDTH = 7;
 const INTERACTION_PIP_HEIGHT = 13;
 
 export class GameStatusHud extends GamePanelHud {
+  /**
+   * @type {import("playcanvas").Entity|null}
+   */
   #firstPersonPanel = null;
+  /**
+   * @type {import("playcanvas").Texture|null}
+   */
   #firstPersonTexture = null;
+  /**
+   * @type {import("playcanvas").Entity|null}
+   */
   #interactionPanel = null;
+  /**
+   * @type {import("playcanvas").Texture|null}
+   */
   #interactionTexture = null;
+  /**
+   * @type {boolean}
+   */
   #firstPersonVisible = false;
+  /**
+   * @type {InteractionTarget|null}
+   */
   #interaction = null;
 
+  /**
+   *
+   * @param {{pc: typeof import("playcanvas"), app: import("playcanvas").Application}} options
+   * @param {typeof import("playcanvas")} options.pc
+   * @param {import("playcanvas").Application} options.app
+   */
   constructor({ pc, app }) {
     super({ pc, app, name: "Game status HUD", priority: 105 });
     this.#buildFirstPersonPanel();
@@ -25,6 +57,9 @@ export class GameStatusHud extends GamePanelHud {
     this.syncDrawOrder();
   }
 
+  /**
+   * @returns {GameStatusState}
+   */
   get state() {
     return {
       firstPersonVisible: this.#firstPersonVisible,
@@ -39,6 +74,10 @@ export class GameStatusHud extends GamePanelHud {
     }
   }
 
+  /**
+   *
+   * @param {InteractionTarget|null} target
+   */
   setInteraction(target) {
     const interaction = target?.label
       ? {
@@ -73,6 +112,10 @@ export class GameStatusHud extends GamePanelHud {
       "First-person camera status texture",
       width,
       FIRST_PERSON_HEIGHT,
+      /**
+       *
+       * @param {CanvasRenderingContext2D} context
+       */
       (context) => {
         context.font = gameUiTheme.font(700, 12);
         context.textAlign = "center";
@@ -110,6 +153,10 @@ export class GameStatusHud extends GamePanelHud {
     this.#interactionPanel.enabled = false;
   }
 
+  /**
+   *
+   * @param {InteractionTarget|null} interaction
+   */
   #drawInteraction(interaction) {
     const measureCanvas = document.createElement("canvas");
     const measureContext = measureCanvas.getContext("2d");
@@ -130,6 +177,10 @@ export class GameStatusHud extends GamePanelHud {
       "Interaction prompt texture",
       width,
       INTERACTION_HEIGHT,
+      /**
+       *
+       * @param {CanvasRenderingContext2D} context
+       */
       (context) => {
         const keyX = padding;
         const keyY = (INTERACTION_HEIGHT - 23) / 2;
@@ -177,6 +228,17 @@ export class GameStatusHud extends GamePanelHud {
     this.#interactionPanel.element.texture = this.#interactionTexture;
   }
 
+  /**
+   *
+   * @param {{name: string, anchor: import("playcanvas").Vec4, pivot: import("playcanvas").Vec2, y: number, width: number, height: number, texture: import("playcanvas").Texture}} options
+   * @param {string} options.name
+   * @param {import("playcanvas").Vec4} options.anchor
+   * @param {import("playcanvas").Vec2} options.pivot
+   * @param {number} options.y
+   * @param {number} options.width
+   * @param {number} options.height
+   * @param {import("playcanvas").Texture} options.texture
+   */
   #createCenteredImage({ name, anchor, pivot, y, width, height, texture }) {
     const entity = new this.pc.Entity(name);
     entity.addComponent("element", {
@@ -193,11 +255,22 @@ export class GameStatusHud extends GamePanelHud {
     return entity;
   }
 
+  /**
+   *
+   * @param {string} name
+   * @param {number} width
+   * @param {number} height
+   * @param {(context: CanvasRenderingContext2D) => void} drawContent
+   */
   #createStatusTexture(name, width, height, drawContent) {
     return this.createDrawnTexture(
       name,
       width * TEXTURE_SCALE,
       height * TEXTURE_SCALE,
+      /**
+       *
+       * @param {CanvasRenderingContext2D} context
+       */
       (context) => {
         context.scale(TEXTURE_SCALE, TEXTURE_SCALE);
         this.drawPanelFrame(context, width, height);

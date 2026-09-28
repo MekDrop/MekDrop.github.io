@@ -8,23 +8,52 @@ import {
 import { isFunction } from "../../../../helpers/types.js";
 
 export class CopyScreenshotAction {
+  /**
+   *
+   * @type {{copy: (items: ClipboardItem[]) => Promise<void>, isSupported: boolean}}
+   */
   #clipboard = useClipboardItems();
+  /**
+   *
+   * @type {PlayCanvasRenderer}
+   */
   #renderer;
 
+  /**
+   *
+   * @param {PlayCanvasRenderer} renderer
+   */
   constructor(renderer) {
+    /**
+     *
+     * @type {PlayCanvasRenderer}
+     */
     this.#renderer = renderer;
   }
 
   invoke() {
-    void this.copyScreenshot().catch((error) => {
+    void this.copyScreenshot().catch(/**
+     *
+     * @param {Error} error
+     */
+    (error) => {
       console.error("[CopyScreenshotAction] Screenshot failed.", error);
     });
   }
 
   async copyScreenshot() {
     const canvas = this.#renderer.canvasElement;
-    const blob = await new Promise((resolve, reject) => {
-      canvas.toBlob((result) => {
+    const blob = await new Promise(/**
+     *
+     * @param {(value?: (value?: void) => void) => void} resolve
+     * @param {(reason?: Error) => void} reject
+     */
+    (resolve, reject) => {
+      canvas.toBlob(/**
+       *
+       * @param {{success: boolean, value?: string|number|boolean}} result
+       */
+      (result) => {
         if (result) {
           resolve(result);
         } else {
@@ -43,6 +72,11 @@ export class CopyScreenshotAction {
     return blob;
   }
 
+  /**
+   *
+   * @param {HTMLCanvasElement} canvas
+   * @param {Blob} blob
+   */
   async #copyImage(canvas, blob) {
     if (
       isFunction(globalThis.ClipboardItem) &&
@@ -65,6 +99,10 @@ export class CopyScreenshotAction {
     }
   }
 
+  /**
+   *
+   * @param {HTMLCanvasElement} canvas
+   */
   async #copyImageLegacy(canvas) {
     if (!isFunction(document.execCommand)) {
       return false;
@@ -72,7 +110,12 @@ export class CopyScreenshotAction {
 
     const image = new Image();
     image.src = canvas.toDataURL("image/png");
-    await new Promise((resolve, reject) => {
+    await new Promise(/**
+     *
+     * @param {(value?: (value?: void) => void) => void} resolve
+     * @param {(reason?: Error) => void} reject
+     */
+    (resolve, reject) => {
       image.addEventListener("load", resolve, { once: true });
       image.addEventListener(
         "error",

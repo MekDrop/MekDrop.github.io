@@ -1,8 +1,25 @@
 export class SceneObjectRegistry {
+  /**
+   *
+   * @type {Map}
+   */
   #objects = new Map();
+  /**
+   *
+   * @type {Map}
+   */
   #keysByType = new Map();
+  /**
+   *
+   * @type {Map}
+   */
   #countsByType = new Map();
 
+  /**
+   *
+   * @param {string} type
+   * @param {import("src/game/GameContracts.js").GameObjectContract} object
+   */
   setOne(type, object) {
     this.#forgetType(type);
     this.#objects.set(type, object);
@@ -11,6 +28,11 @@ export class SceneObjectRegistry {
     return type;
   }
 
+  /**
+   *
+   * @param {string} type
+   * @param {import("src/game/GameContracts.js").GameObjectContract} object
+   */
   add(type, object) {
     const key = this.#nextCollectionKey(type);
     this.#objects.set(key, object);
@@ -20,22 +42,42 @@ export class SceneObjectRegistry {
     return key;
   }
 
+  /**
+   *
+   * @param {string} key
+   */
   get(key) {
     return this.#objects.get(key) ?? null;
   }
 
+  /**
+   *
+   * @param {string} type
+   */
   getOne(type) {
     return this.get(type);
   }
 
+  /**
+   *
+   * @param {string} type
+   */
   getFirst(type) {
     const keys = this.#keysByType.get(type) ?? [];
     return this.get(keys[0]);
   }
 
+  /**
+   *
+   * @param {string} type
+   */
   getAll(type) {
     return (this.#keysByType.get(type) ?? [])
-      .map((key) => this.get(key))
+      .map(/**
+       *
+       * @param {string} key
+       */
+      (key) => this.get(key))
       .filter(Boolean);
   }
 
@@ -43,6 +85,10 @@ export class SceneObjectRegistry {
     yield* this.#objects.values();
   }
 
+  /**
+   *
+   * @param {string} type
+   */
   destroyType(type) {
     for (const object of this.getAll(type)) {
       object.destroy?.();
@@ -56,12 +102,20 @@ export class SceneObjectRegistry {
     this.#countsByType.clear();
   }
 
+  /**
+   *
+   * @param {string} type
+   */
   #nextCollectionKey(type) {
     const count = this.#countsByType.get(type) ?? 0;
     this.#countsByType.set(type, count + 1);
     return `${type}_${count}`;
   }
 
+  /**
+   *
+   * @param {string} type
+   */
   #forgetType(type) {
     for (const key of this.#keysByType.get(type) ?? []) {
       this.#objects.delete(key);

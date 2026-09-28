@@ -1,11 +1,45 @@
 export class DigInteraction {
+  /**
+   *
+    * @type {import("./BuriedTreasureField.js").BuriedTreasureField}
+   */
   #field;
+  /**
+   *
+    * @type {{x: number, y: number, z: number}}
+   */
   #target;
+  /**
+   *
+    * @type {import("src/game/objects/ObjectTypes.js").HeroLike}
+   */
   #hero;
+  /**
+   *
+    * @type {import("src/game/objects/hero/tools/HeroTool.js").HeroTool|null}
+   */
   #tool;
+  /**
+   *
+    * @type {(value: import("src/game/objects/ObjectTypes.js").InteractionLike|null) => void}
+   */
   #onChange;
+  /**
+   *
+    * @type {() => void}
+   */
   #onComplete;
 
+  /**
+   *
+   * @param {{field: import("./BuriedTreasureField.js").BuriedTreasureField, target: {x: number, y: number, z: number}, hero: import("src/game/objects/ObjectTypes.js").HeroLike, tool: import("src/game/objects/hero/tools/HeroTool.js").HeroTool, onChange: (value: import("src/game/objects/ObjectTypes.js").InteractionLike|null) => void, onComplete: () => void}} options
+   * @param {import("./BuriedTreasureField.js").BuriedTreasureField} options.field
+   * @param {{x: number, y: number, z: number}} options.target
+   * @param {import("src/game/objects/ObjectTypes.js").HeroLike} options.hero
+   * @param {import("src/game/objects/hero/tools/HeroTool.js").HeroTool} options.tool
+   * @param {(value: import("src/game/objects/ObjectTypes.js").InteractionLike|null) => void} options.onChange
+   * @param {() => void} options.onComplete
+   */
   constructor({ field, target, hero, tool, onChange, onComplete }) {
     this.#field = field;
     this.#target = target;
@@ -15,6 +49,10 @@ export class DigInteraction {
     this.#onComplete = onComplete;
   }
 
+  /**
+   *
+    * @returns {boolean}
+   */
   get canInteract() {
     return (
       this.#field.canDig(this.#target.id) &&
@@ -22,6 +60,10 @@ export class DigInteraction {
     );
   }
 
+  /**
+   *
+    * @returns {import("src/game/objects/ObjectTypes.js").InteractionDescription}
+   */
   get description() {
     return {
       ...this.#target,

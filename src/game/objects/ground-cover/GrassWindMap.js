@@ -17,11 +17,34 @@ const DIRECTION_REFRESH_DOT = 0.9999;
  * Builds a smooth, direction-aware shelter field for the grass shader.
  */
 export class GrassWindMap {
+  /**
+   *
+    * @type {string}
+   */
   #texture;
+  /**
+   *
+    * @type {import("src/game/objects/ObjectTypes.js").GameMapData}
+   */
   #mapData;
+  /**
+   *
+    * @type {Array<{x: number, z: number, radius: number}>}
+   */
   #blockers = [];
+  /**
+   *
+    * @type {{x: number, y: number, z: number}}
+   */
   #lastDirection = null;
 
+  /**
+   *
+   * @param {{pc: typeof import("playcanvas"), device: import("playcanvas").GraphicsDevice, mapData: import("src/game/objects/ObjectTypes.js").GameMapData}} options
+   * @param {typeof import("playcanvas")} options.pc
+   * @param {import("playcanvas").GraphicsDevice} options.device
+   * @param {import("src/game/objects/ObjectTypes.js").GameMapData} options.mapData
+   */
   constructor({ pc, device, mapData }) {
     this.#mapData = mapData;
     this.#texture = new pc.Texture(device, {
@@ -42,6 +65,10 @@ export class GrassWindMap {
     return this.#texture;
   }
 
+  /**
+   *
+   * @param {import("playcanvas").Material} material
+   */
   apply(material) {
     material.setParameter("uGrassWindMap", this.#texture);
     material.setParameter("uGrassWindMapSize", [
@@ -50,6 +77,10 @@ export class GrassWindMap {
     ]);
   }
 
+  /**
+   *
+   * @param {{x: number, y: number, z: number}} direction
+   */
   refresh(direction) {
     const length = Math.hypot(direction?.x ?? 0, direction?.z ?? 0);
     if (length <= 0.000001) {
@@ -117,6 +148,11 @@ export class GrassWindMap {
     }
 
     for (const vegetation of (this.#mapData.objects ?? []).filter(
+      /**
+       *
+       * @param {{object: import("src/game/objects/ObjectTypes.js").MapObjectLike}} options
+       * @param {import("src/game/objects/ObjectTypes.js").MapObjectLike} options.object
+       */
       ({ object }) => object === "Vegetation",
     )) {
       const tree = vegetation.kind === "tree";
@@ -130,6 +166,12 @@ export class GrassWindMap {
     }
   }
 
+  /**
+   *
+   * @param {number} col
+   * @param {number} row
+   * @param {{x: number, y: number, z: number}} direction
+   */
   #exposureAt(col, row, direction) {
     let exposure = 1;
     const crossX = -direction.z;

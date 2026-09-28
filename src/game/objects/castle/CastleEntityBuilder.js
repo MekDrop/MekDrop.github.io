@@ -13,7 +13,27 @@ import {
   CASTLE_WALL_THICKNESS_BLOCKS,
 } from "../../generator/castle/CastleGenerationConfig.js";
 
+/**
+ * @typedef {object} CastleTerraceContext
+ * @property {typeof import("playcanvas")} pc
+ * @property {import("src/game/models/GameModelLibrary.js").GameModelLibrary} modelLibrary
+ * @property {import("playcanvas").Material} wallMaterial
+ * @property {import("playcanvas").Material} woodMaterial
+ * @property {{x: number, y: number, z: number}} position
+ * @property {Array<{side: string, offset: number, width: number, approachElevation?: number}>} doors
+ * @property {{x: number, y: number, z: number, yaw: number, depth: number, width: number}} layout
+ * @property {(atThrone: boolean) => void} onRoyalAtThroneChange
+ */
+
+/**
+ * @typedef {Parameters<CastleBanner["beginWindGesture"]>[0]|Parameters<CastleFlag["beginWindGesture"]>[0]} CastleWindHit
+ */
+
 export class CastleEntityBuilder {
+  /**
+   *
+    * @returns {Array<string>}
+   */
   static get modelUrls() {
     return [
       CastleDoor.modelUrl,
@@ -23,40 +43,184 @@ export class CastleEntityBuilder {
     ];
   }
 
+  /**
+   *
+    * @type {typeof import("playcanvas")}
+   */
   #pc;
+  /**
+   *
+    * @type {import("playcanvas").Application}
+   */
   #app;
+  /**
+   *
+    * @type {{x: number, y: number, z: number}}
+   */
   #position;
+  /**
+   *
+    * @type {Array<{side: string, offset: number, width: number, approachElevation?: number}>}
+   */
   #doors;
+  /**
+   *
+    * @type {import("src/game/generator/castle/CastleBuildPlanWriter.js").CastleBuildPlan}
+   */
   #buildPlan;
+  /**
+   *
+    * @type {import("src/game/models/GameModelLibrary.js").GameModelLibrary}
+   */
   #modelLibrary;
+  /**
+   *
+    * @type {import("playcanvas").Texture}
+   */
   #fireParticleTexture;
+  /**
+   *
+    * @type {import("playcanvas").Entity}
+   */
   #entity;
+  /**
+   *
+    * @type {Map<string, import("playcanvas").StandardMaterial>}
+   */
   #materials = new Map();
+  /**
+   *
+    * @type {import("playcanvas").Texture|null}
+   */
   #stoneTexture = null;
+  /**
+   *
+    * @type {import("playcanvas").Texture|null}
+   */
   #doorTexture = null;
+  /**
+   *
+    * @type {import("playcanvas").Mesh|null}
+   */
   #blockMesh = null;
+  /**
+   *
+    * @type {Array<import("playcanvas").VertexBuffer>}
+   */
   #vertexBuffers = [];
+  /**
+   *
+    * @type {CastleFire|null}
+   */
   #fire = null;
+  /**
+   *
+    * @type {CastleBanner|null}
+   */
   #banners = null;
+  /**
+   *
+    * @type {CastleFlag|null}
+   */
   #flags = null;
+  /**
+   *
+    * @type {CastleBanner|CastleFlag|null}
+   */
   #activeWindTarget = null;
+  /**
+   *
+    * @type {CastleRoof|null}
+   */
   #roofs = null;
+  /**
+   *
+    * @type {CastleStairs|null}
+   */
   #stairs = null;
+  /**
+   *
+    * @type {CastleAudienceRoom|null}
+   */
   #audienceRoom = null;
+  /**
+   *
+    * @type {import("./CastleTerraceActivity.js").CastleTerraceActivity|null}
+   */
   #terraceActivity = null;
+  /**
+   *
+    * @type {CastleTerraceContext|null}
+   */
   #terraceContext = null;
+  /**
+   *
+    * @type {import("../royal/AbstractRoyal.js").AbstractRoyal|null}
+   */
   #royal = null;
+  /**
+   *
+    * @type {import("../servant/Servant.js").Servant|null}
+   */
   #servant = null;
+  /**
+   *
+    * @type {Array<{x: number, z: number}>}
+   */
   #groundCollisionColumns = [];
+  /**
+   *
+    * @type {Array<{x: number, y: number, z: number, halfX: number, halfY: number, halfZ: number}>}
+   */
   #cameraCollisionBlocks = [];
+  /**
+   *
+    * @type {Array<CastleDoor>}
+   */
   #animatedDoors = [];
+  /**
+   *
+    * @type {Array<CastleDoorArch>}
+   */
   #doorArches = [];
+  /**
+   *
+    * @type {{off: () => void}|null}
+   */
   #updateHandle = null;
+  /**
+   *
+    * @type {((error: Error) => void)|null}
+   */
   #onRuntimeError;
+  /**
+   *
+    * @type {boolean}
+   */
   #updateFailed = false;
+  /**
+   *
+    * @type {number}
+   */
   #interiorDepth = 0;
+  /**
+   *
+    * @type {number}
+   */
   #interiorWidth = 0;
 
+  /**
+   *
+   * @param {{pc: typeof import("playcanvas"), app: import("playcanvas").Application, buildPlan: import("src/game/generator/castle/CastleBuildPlanWriter.js").CastleBuildPlan, modelLibrary: import("src/game/models/GameModelLibrary.js").GameModelLibrary, doorTexture: import("playcanvas").Texture, stoneTexture: import("playcanvas").Texture, fireParticleTexture: import("playcanvas").Texture, onRuntimeError: ((error: Error) => void)|null}} options
+   * @param {typeof import("playcanvas")} options.pc
+   * @param {import("playcanvas").Application} options.app
+   * @param {import("src/game/generator/castle/CastleBuildPlanWriter.js").CastleBuildPlan} options.buildPlan
+   * @param {import("src/game/models/GameModelLibrary.js").GameModelLibrary} options.modelLibrary
+   * @param {import("playcanvas").Texture} options.doorTexture
+   * @param {import("playcanvas").Texture} options.stoneTexture
+   * @param {import("playcanvas").Texture} options.fireParticleTexture
+   * @param {((error: Error) => void)|null} options.onRuntimeError
+   */
   constructor({
     pc,
     app,
@@ -96,41 +260,79 @@ export class CastleEntityBuilder {
     return this.#entity;
   }
 
+  /**
+   *
+   * @param {import("../royal/AbstractRoyal.js").AbstractRoyal} royal
+   */
   attachRoyal(royal) {
     this.#royal = royal;
     this.#audienceRoom.occupant = royal.audienceActor;
     this.#connectResidents();
   }
 
+  /**
+   *
+   * @param {import("../servant/Servant.js").Servant} servant
+   */
   attachServant(servant) {
     this.#servant = servant;
     this.#connectResidents();
   }
 
+  /**
+   *
+    * @returns {number}
+   */
   get royalActivityState() {
     return this.#terraceActivity?.state ?? null;
   }
 
+  /**
+   *
+   * @param {boolean} triggered
+   */
   setRoyalActivityTriggered(triggered) {
     this.#terraceActivity?.setTriggered(triggered);
   }
 
+  /**
+   *
+   * @param {{x: number, y: number, z: number}} position
+   */
   isRoyalActivityTriggerAt(position) {
     return this.#terraceActivity?.isTriggerAt(position) ?? false;
   }
 
+  /**
+   *
+   * @param {number} x
+   * @param {number} z
+   * @param {number} radius
+   */
   intersectsGroundFootprint(x, z, radius = 0) {
     if (this.#audienceRoom?.intersectsFootprint(x, z, radius)) {
       return true;
     }
     if (
-      this.#animatedDoors.some((door) => door.intersectsFootprint(x, z, radius))
+      this.#animatedDoors.some(/**
+       *
+       * @param {import("src/game/objects/ObjectTypes.js").CastleDoorDefinition} door
+       */
+      (door) => door.intersectsFootprint(x, z, radius))
     ) {
       return true;
     }
     return this.#intersectsGroundColumns(x, z, radius);
   }
 
+  /**
+   *
+   * @param {number} x
+   * @param {number} z
+   * @param {number} radius
+   * @param {number} elevation
+   * @param {number} stepClearance
+   */
   blocksMovementAt(x, z, radius = 0, elevation = -Infinity, stepClearance = 0) {
     // The room floor supports walking; it must not cancel its solid furniture,
     // walls, or closed doors when the collision world queries this aggregate.
@@ -143,16 +345,31 @@ export class CastleEntityBuilder {
     );
   }
 
+  /**
+   *
+   * @param {number} x
+   * @param {number} y
+   * @param {number} z
+   * @param {number} radius
+   */
   blocksCameraAt(x, y, z, radius = 0) {
     if (
-      this.#animatedDoors.some((door) =>
+      this.#animatedDoors.some(/**
+       *
+       * @param {import("src/game/objects/ObjectTypes.js").CastleDoorDefinition} door
+       */
+      (door) =>
         door.blocksCameraAt(x, y, z, radius),
       ) ||
       this.#terraceActivity?.blocksCameraAt(x, y, z, radius)
     ) {
       return true;
     }
-    return this.#cameraCollisionBlocks.some((block) => {
+    return this.#cameraCollisionBlocks.some(/**
+     *
+     * @param {{x: number, y: number, z: number, halfX: number, halfY: number, halfZ: number}} block
+     */
+    (block) => {
       const distanceX = Math.max(Math.abs(x - block.x) - block.halfX, 0);
       const distanceY = Math.max(Math.abs(y - block.y) - block.halfY, 0);
       const distanceZ = Math.max(Math.abs(z - block.z) - block.halfZ, 0);
@@ -163,6 +380,11 @@ export class CastleEntityBuilder {
     });
   }
 
+  /**
+   *
+   * @param {number} x
+   * @param {number} z
+   */
   surfaceHeightAt(x, z) {
     return (
       this.#stairs?.surfaceHeightAt(x, z) ??
@@ -171,6 +393,10 @@ export class CastleEntityBuilder {
     );
   }
 
+  /**
+   *
+   * @param {{x: number, y: number, z: number}} position
+   */
   updateHeroPosition(position) {
     for (const door of this.#animatedDoors) {
       door.updateHeroPosition(position);
@@ -179,6 +405,11 @@ export class CastleEntityBuilder {
     this.#audienceRoom?.updateHeroPosition(position);
   }
 
+  /**
+   *
+   * @param {number} rayStart
+   * @param {number} rayEnd
+   */
   getBannerHit(rayStart, rayEnd) {
     const bannerHit = this.#banners?.getBannerHit(rayStart, rayEnd) ?? null;
     const flagHit = this.#flags?.getFlagHit(rayStart, rayEnd) ?? null;
@@ -191,6 +422,11 @@ export class CastleEntityBuilder {
     return flagHit.distance < bannerHit.distance ? flagHit : bannerHit;
   }
 
+  /**
+   *
+   * @param {number} rayStart
+   * @param {number} rayEnd
+   */
   getPointerHit(rayStart, rayEnd) {
     const bannerHit = this.getBannerHit(rayStart, rayEnd);
     const pointerBannerHit = bannerHit
@@ -208,16 +444,31 @@ export class CastleEntityBuilder {
       : pointerBannerHit;
   }
 
+  /**
+   *
+   * @param {CastleWindHit} hit
+   */
   beginWindGesture(hit) {
     this.#activeWindTarget = hit?.flag ? this.#flags : this.#banners;
     this.#activeWindTarget?.beginWindGesture(hit);
   }
 
+  /**
+   *
+   * @param {{hit: CastleWindHit}} options
+   * @param {CastleWindHit} options.hit
+   */
   handlePointerDown({ hit }) {
     this.beginWindGesture(hit);
     return { capturePointer: true };
   }
 
+  /**
+   *
+   * @param {{ray: number, deltaTime: number}} options
+   * @param {number} options.ray
+   * @param {number} options.deltaTime
+   */
   handlePointerMove({ ray, deltaTime }) {
     this.applyMouseWind(ray.start, ray.end, deltaTime);
     return true;
@@ -232,6 +483,12 @@ export class CastleEntityBuilder {
     this.endWindGesture();
   }
 
+  /**
+   *
+   * @param {number} rayStart
+   * @param {number} rayEnd
+   * @param {number} deltaTime
+   */
   applyMouseWind(rayStart, rayEnd, deltaTime) {
     this.#activeWindTarget?.applyMouseWind(rayStart, rayEnd, deltaTime);
   }
@@ -281,6 +538,12 @@ export class CastleEntityBuilder {
     this.#cameraCollisionBlocks = [];
   }
 
+  /**
+   *
+   * @param {number} x
+   * @param {number} z
+   * @param {number} radius
+   */
   #intersectsGroundColumns(x, z, radius) {
     const radiusSquared = radius * radius;
     for (const column of this.#groundCollisionColumns) {
@@ -299,6 +562,11 @@ export class CastleEntityBuilder {
     return false;
   }
 
+  /**
+   *
+   * @param {number} deltaTime
+    * @type {boolean}
+   */
   #update = (deltaTime) => {
     if (this.#updateFailed) {
       return;
@@ -323,6 +591,11 @@ export class CastleEntityBuilder {
     }
   }
 
+  /**
+   *
+   * @param {number} rayStart
+   * @param {number} rayEnd
+   */
   #getDoorHit(rayStart, rayEnd) {
     let closest =
       this.#terraceActivity?.getPointerHit(rayStart, rayEnd) ?? null;
@@ -412,6 +685,18 @@ export class CastleEntityBuilder {
     this.#entity.addChild(this.#audienceRoom.entity);
   }
 
+  /**
+   *
+   * @param {Map<string, Array<number>>} batches
+   * @param {string} material
+   * @param {number} x
+   * @param {number} y
+   * @param {number} z
+   * @param {number} yaw
+   * @param {number} sx
+   * @param {number} sy
+   * @param {number} sz
+   */
   #addBoxMatrix(batches, material, x, y, z, yaw, sx, sy, sz) {
     const matrix = new this.#pc.Mat4();
     const rotation = new this.#pc.Quat();
@@ -426,6 +711,10 @@ export class CastleEntityBuilder {
     batches.set(material, data);
   }
 
+  /**
+   *
+   * @param {Map<string, Array<number>>} batches
+   */
   #createInstancedBatches(batches) {
     for (const [materialName, matrices] of batches.entries()) {
       if (!matrices.length) continue;
@@ -466,9 +755,17 @@ export class CastleEntityBuilder {
     this.#interiorDepth = metadata.runtime.interiorDepth;
     this.#interiorWidth = metadata.runtime.interiorWidth;
     this.#groundCollisionColumns = metadata.collision.groundColumns.map(
+      /**
+       *
+       * @param {number} column
+       */
       (column) => ({ ...column }),
     );
     this.#cameraCollisionBlocks = metadata.collision.cameraBlocks.map(
+      /**
+       *
+       * @param {{x: number, y: number, z: number, halfX: number, halfY: number, halfZ: number}} block
+       */
       (block) => ({ ...block }),
     );
 
@@ -510,6 +807,10 @@ export class CastleEntityBuilder {
         position: this.#position,
         doors: this.#doors,
         layout: { ...metadata.runtime.terrace },
+        /**
+         *
+         * @param {boolean} atThrone
+         */
         onRoyalAtThroneChange: (atThrone) => {
           this.#audienceRoom.royalVisible = atThrone;
         },
@@ -530,6 +831,12 @@ export class CastleEntityBuilder {
       ...this.#terraceContext,
       servant: this.#servant,
       audienceRoom: this.#audienceRoom,
+      /**
+       *
+       * @param {number} x
+       * @param {number} z
+       * @param {number} radius
+       */
       isBlocked: (x, z, radius) => this.#intersectsGroundColumns(x, z, radius),
       prepareGameOver: () => {
         this.#terraceActivity?.stop();

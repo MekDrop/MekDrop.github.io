@@ -105,6 +105,11 @@ const MAX_CASTLE_LIVES = 3;
 const INVENTORY_DROP_MIN_FALL_HEIGHT = 0.35;
 const INVENTORY_DROP_MAX_FALL_HEIGHT = 12;
 
+/**
+ *
+ * @param {string} scriptUrl
+ * @param {boolean} wasmUrl
+ */
 function getShaderTranspilerScriptUrl(scriptUrl, wasmUrl) {
   const expectedWasmUrl = scriptUrl.replace(/\.js$/, ".wasm");
   if (expectedWasmUrl !== wasmUrl) {
@@ -120,67 +125,302 @@ const GLSLANG_URL = getShaderTranspilerScriptUrl(
 const TWGSL_URL = getShaderTranspilerScriptUrl(twgslScriptUrl, twgslWasmUrl);
 
 export class PlayCanvasRenderer {
+  /**
+   *
+   * @type {null}
+   */
   #pc = null;
+  /**
+   *
+   * @type {null}
+   */
   #app = null;
+  /**
+   *
+   * @type {null}
+   */
   #camera = null;
+  /**
+   *
+   * @type {null}
+   */
   #cloudLayer = null;
+  /**
+   *
+   * @type {null}
+   */
   #mapRoot = null;
+  /**
+   *
+   * @type {null}
+   */
   #mapData = null;
+  /**
+   *
+   * @type {Map}
+   */
   #materials = new Map();
+  /**
+   *
+   * @type {Map}
+   */
   #textureAssets = new Map();
+  /**
+   *
+   * @type {Array}
+   */
   #vertexBuffers = [];
+  /**
+   *
+   * @type {import("./objects/path/BridgeRailingKit.js").BridgeRailingKit}
+   */
   #bridgeRailingKit = null;
+  /**
+   *
+   * @type {SceneObjectRegistry}
+   */
   #sceneObjects = new SceneObjectRegistry();
+  /**
+   *
+   * @type {null}
+   */
   #heroPatGesture = null;
+  /**
+   *
+   * @type {null}
+   */
   #heroPatHand = null;
+  /**
+   *
+   * @type {null}
+   */
   #huds = null;
+  /**
+   *
+   * @type {null}
+   */
   #inventoryScene = null;
+  /**
+   *
+   * @type {null}
+   */
   #scene = null;
+  /**
+   *
+   * @type {null}
+   */
   #heroVisibility = null;
+  /**
+   *
+   * @type {null}
+   */
   #floatingIslandMotion = null;
+  /**
+   *
+   * @type {null}
+   */
   #floatingCameraLocalOffset = null;
+  /**
+   *
+   * @type {null}
+   */
   #floatingCloudOffset = null;
+  /**
+   *
+   * @type {number}
+   */
   #floatingCameraOffsetX = 0;
+  /**
+   *
+   * @type {number}
+   */
   #floatingCameraOffsetY = 0;
+  /**
+   *
+   * @type {boolean}
+   */
   #floatingCameraOffsetApplied = false;
+  /**
+   *
+   * @type {null}
+   */
   #groundCover = null;
+  /**
+   *
+   * @type {null}
+   */
   #grassSurface = null;
+  /**
+   *
+   * @type {null}
+   */
   #grassCarpet = null;
+  /**
+   *
+   * @type {null}
+   */
   #grassMaterials = null;
+  /**
+   *
+   * @type {null}
+   */
   #earthMaterials = null;
+  /**
+   *
+   * @type {null}
+   */
   #terrainMaterialSelector = null;
+  /**
+   *
+   * @type {null}
+   */
   #buriedTreasure = null;
+  /**
+   *
+   * @type {Array}
+   */
   #interactionProviders = [];
+  /**
+   *
+   * @type {null}
+   */
   #cloudField = null;
+  /**
+   *
+   * @type {GroundCollisionWorld}
+   */
   #collisionWorld = new GroundCollisionWorld();
+  /**
+   *
+   * @type {null}
+   */
   #terrainRenderer = null;
+  /**
+   *
+   * @type {null}
+   */
   #pathOverpassCollider = null;
+  /**
+   *
+   * @type {GameModelLibrary|null}
+   */
   #modelLibrary = null;
+  /**
+   *
+   * @type {ScenePointerInteraction|null}
+   */
   #pointerInteraction = null;
+  /**
+   *
+   * @type {null}
+   */
   #heroLookPointer = null;
+  /**
+   *
+   * @type {null}
+   */
   #interactionTarget = null;
+  /**
+   *
+   * @type {null}
+   */
   #interactionSignature = null;
+  /**
+   *
+   * @type {(description: import("src/game/GameContracts.js").InteractionDescription|null) => void}
+   */
   #onInteractionChange = null;
+  /**
+   *
+   * @type {string}
+   */
   #viewportSignature = "";
+  /**
+   *
+   * @type {boolean}
+   */
   #viewportPersistenceEnabled = false;
+  /**
+   *
+   * @type {() => void}
+   */
   #saveViewportDebounced = null;
+  /**
+   *
+   * @type {import("src/game/GameContracts.js").StoreContract}
+   */
   #debugStore = null;
+  /**
+   *
+   * @type {import("src/game/GameContracts.js").StoreContract}
+   */
   #gameViewStore = null;
+  /**
+   *
+   * @type {import("src/game/GameContracts.js").StoreContract}
+   */
   #graphicsSettingsStore = null;
+  /**
+   *
+   * @type {import("src/game/GameContracts.js").StoreContract}
+   */
   #heroConfigurationStore = null;
+  /**
+   *
+   * @type {import("src/game/GameContracts.js").StoreContract}
+   */
   #heroStateStore = null;
+  /**
+   *
+   * @type {null}
+   */
   #stopDebugStoreSubscription = null;
+  /**
+   *
+   * @param {string} key
+   * @type {(key: string, values?: {[key: string]: string|number}) => string}
+   */
   #translate = (key) => key;
+  /**
+   *
+   * @type {boolean}
+   */
   #destroyed = false;
+  /**
+   *
+   * @type {(error: Error) => void}
+   */
   #onRuntimeError;
+  /**
+   *
+   * @type {boolean}
+   */
   #frameUpdateFailed = false;
 
+  /**
+   *
+   * @param {HTMLCanvasElement} canvas
+   * @param {pc.Entity} container
+   * @param {{onRuntimeError: (error: Error) => void, onInteractionChange: (description: (description: import("src/game/GameContracts.js").InteractionDescription|null) => void|null) => void, debugStore: import("src/game/GameContracts.js").StoreContract, gameViewStore: import("src/game/GameContracts.js").StoreContract, graphicsSettingsStore: import("src/game/GameContracts.js").StoreContract, heroConfigurationStore: import("src/game/GameContracts.js").StoreContract, heroStateStore: import("src/game/GameContracts.js").StoreContract}} options
+   * @param {(error: Error) => void} options.onRuntimeError
+   * @param {(description: (description: import("src/game/GameContracts.js").InteractionDescription|null) => void|null) => void} options.onInteractionChange
+   * @param {(key: string, values?: (key: string, values?: {[key: string]: string|number}) => string) => string} options.t
+   * @param {import("src/game/GameContracts.js").StoreContract} options.debugStore
+   * @param {import("src/game/GameContracts.js").StoreContract} options.gameViewStore
+   * @param {import("src/game/GameContracts.js").StoreContract} options.graphicsSettingsStore
+   * @param {import("src/game/GameContracts.js").StoreContract} options.heroConfigurationStore
+   * @param {import("src/game/GameContracts.js").StoreContract} options.heroStateStore
+   */
   constructor(
     canvas,
     container,
     {
       onRuntimeError = null,
       onInteractionChange = null,
+      /**
+       *
+       * @param {string} key
+       */
       t = (key) => key,
       debugStore,
       gameViewStore,
@@ -189,33 +429,94 @@ export class PlayCanvasRenderer {
       heroStateStore,
     } = {},
   ) {
+    /**
+     *
+     * @type {(error: Error) => void}
+     */
     this.#onRuntimeError = onRuntimeError;
+    /**
+     *
+     * @type {HTMLCanvasElement}
+     */
     this.canvas = canvas;
+    /**
+     *
+     * @type {pc.Entity}
+     */
     this.container = container;
+    /**
+     *
+     * @type {(description: import("src/game/GameContracts.js").InteractionDescription|null) => void}
+     */
     this.#onInteractionChange = onInteractionChange;
+    /**
+     *
+     * @type {import("src/game/GameContracts.js").StoreContract}
+     */
     this.#debugStore = debugStore;
+    /**
+     *
+     * @type {import("src/game/GameContracts.js").StoreContract}
+     */
     this.#gameViewStore = gameViewStore;
+    /**
+     *
+     * @type {import("src/game/GameContracts.js").StoreContract}
+     */
     this.#graphicsSettingsStore = graphicsSettingsStore;
+    /**
+     *
+     * @type {import("src/game/GameContracts.js").StoreContract}
+     */
     this.#heroConfigurationStore = heroConfigurationStore;
+    /**
+     *
+     * @type {import("src/game/GameContracts.js").StoreContract}
+     */
     this.#heroStateStore = heroStateStore;
     this.#heroConfigurationStore.normalizeInventorySlots();
+    /**
+     *
+     * @type {(key: string, values?: {[key: string]: string|number}) => string}
+     */
     this.#translate = t;
+    /**
+     *
+     * @type {() => void}
+     */
     this.#saveViewportDebounced = useDebounceFn(() => {
       this.#saveViewport();
     }, 150);
+    /**
+     *
+     * @type {ScenePointerInteraction}
+     */
     this.#pointerInteraction = new ScenePointerInteraction({
       canvas,
       sceneObjects: this.#sceneObjects,
+      /**
+       *
+       * @param {Event} event
+       */
       pointerRay: (event) => this.#pointerRay(event),
       onMousePointerMove: this.#trackHeroLookPointer,
       onMousePointerLeave: () => this.#clearHeroIdleLookTarget(),
     });
   }
 
+  /**
+   *
+   * @param {string} key
+   * @param {{[key: string]: string|number}} values
+   */
   t(key, values) {
     return this.#translate(key, values);
   }
 
+  /**
+   *
+   * @param {typeof pc} pc
+   */
   #resolveDeviceTypes(pc) {
     if (this.#graphicsSettingsStore.driver === GRAPHICS_DRIVER.WEBGPU) {
       return [pc.DEVICETYPE_WEBGPU];
@@ -274,6 +575,13 @@ export class PlayCanvasRenderer {
       translate: this.#translate,
       getHero: () => this.#sceneObjects.getOne(SCENE_OBJECT_TYPE.HERO),
       getMapRoot: () => this.#mapRoot,
+      /**
+       *
+       * @param {number} clientX
+       * @param {number} clientY
+       * @param {number} heightClientX
+       * @param {number} heightClientY
+       */
       getDropPlacement: (clientX, clientY, heightClientX, heightClientY) =>
         this.#inventoryDropPlacement(
           clientX,
@@ -290,6 +598,10 @@ export class PlayCanvasRenderer {
       getViewport: () => this.viewport,
       getCameraPosition: () => this.#camera?.getPosition() ?? null,
       getCameraState: () => this.#cameraState,
+      /**
+       *
+       * @param {import("src/game/GameContracts.js").StoreContract} state
+       */
       setCameraState: (state) => this.#setCameraState(state),
       clearCameraReturn: () => {
         this.#camera.returnTransition = null;
@@ -353,6 +665,10 @@ export class PlayCanvasRenderer {
     this.#connectPointerInteractions();
   }
 
+  /**
+   *
+   * @param {import("src/game/GameContracts.js").GameMapData} mapData
+   */
   render(mapData) {
     let initialViewport = null;
     if (!this.#mapData) {
@@ -401,10 +717,18 @@ export class PlayCanvasRenderer {
       !this.#debugStore.hasAny && !this.#camera.firstPersonEnabled;
   }
 
+  /**
+   *
+   * @returns {number}
+   */
   get zoom() {
     return this.#camera.zoom;
   }
 
+  /**
+   *
+   * @returns {boolean}
+   */
   get canPan() {
     return (
       !this.#cameraLocked &&
@@ -413,18 +737,34 @@ export class PlayCanvasRenderer {
     );
   }
 
+  /**
+   *
+   * @returns {pc.Vec3}
+   */
   get rotation() {
     return this.#camera.rotation;
   }
 
+  /**
+   *
+   * @returns {number}
+   */
   get windSpeed() {
     return this.#cloudField?.windSpeed ?? 0;
   }
 
+  /**
+   *
+   * @returns {pc.GraphicsDevice|null}
+   */
   get graphicsBackend() {
     return this.#app?.graphicsDevice?.deviceType ?? null;
   }
 
+  /**
+   *
+   * @returns {import("src/game/GameContracts.js").StoreContract}
+   */
   get heroState() {
     const hero = this.#sceneObjects.getOne(SCENE_OBJECT_TYPE.HERO);
     if (!hero) {
@@ -453,12 +793,24 @@ export class PlayCanvasRenderer {
     };
   }
 
+  /**
+   *
+   * @returns {Array}
+   */
   get royalCastleStates() {
     return this.#sceneObjects
       .getAll(SCENE_OBJECT_TYPE.CASTLE)
-      .map((castle) => castle.royalActivityState);
+      .map(/**
+       *
+       * @param {import("src/game/GameContracts.js").CastleLayout} castle
+       */
+      (castle) => castle.royalActivityState);
   }
 
+  /**
+   *
+   * @returns {{capacity: number, items: GameObjectDefinition[]}}
+   */
   get inventoryState() {
     return (
       this.#inventoryScene?.state ?? {
@@ -469,22 +821,42 @@ export class PlayCanvasRenderer {
     );
   }
 
+  /**
+   *
+   * @returns {boolean}
+   */
   get inventoryVisible() {
     return this.#inventoryScene?.visible ?? false;
   }
 
+  /**
+   *
+   * @returns {boolean}
+   */
   get inventoryFullReactionVisible() {
     return this.#inventoryScene?.fullReactionVisible ?? false;
   }
 
+  /**
+   *
+   * @returns {number}
+   */
   get thrownInventoryItemCount() {
     return this.#inventoryScene?.thrownItemCount ?? 0;
   }
 
+  /**
+   *
+   * @returns {Array}
+   */
   get thrownInventoryItemStates() {
     return this.#inventoryScene?.thrownItemStates ?? [];
   }
 
+  /**
+   *
+   * @returns {{speed: number, direction?: pc.Vec3}}
+   */
   get wind() {
     return (
       this.#cloudField?.wind ?? {
@@ -494,12 +866,20 @@ export class PlayCanvasRenderer {
     );
   }
 
+  /**
+   *
+   * @returns {Readonly<Record<string, number>>}
+   */
   get debugDirections() {
     if (!this.#pc || !this.#camera?.camera) {
       return null;
     }
     const pc = this.#pc;
     const origin = this.#camera.camera.worldToScreen(new pc.Vec3(0, 0, 0));
+    /**
+     *
+     * @param {import("src/game/GameContracts.js").GridPoint} point
+     */
     const projectDirection = (point) => {
       const endpoint = this.#camera.camera.worldToScreen(point);
       const x = endpoint.x - origin.x;
@@ -515,22 +895,42 @@ export class PlayCanvasRenderer {
     };
   }
 
+  /**
+   *
+   * @returns {import("src/game/GameContracts.js").ViewportRect}
+   */
   get viewport() {
     return this.#camera.viewport;
   }
 
+  /**
+   *
+   * @returns {boolean}
+   */
   get panLimitsEnabled() {
     return this.#camera.panLimitsEnabled;
   }
 
+  /**
+   *
+   * @returns {boolean}
+   */
   get firstPersonCameraEnabled() {
     return this.#camera.firstPersonEnabled;
   }
 
+  /**
+   *
+   * @returns {import("src/game/GameContracts.js").CameraState}
+   */
   get firstPersonCameraState() {
     return this.#camera.firstPersonState;
   }
 
+  /**
+   *
+   * @returns {number}
+   */
   get cameraPointerInputActive() {
     return this.#camera.pointerInputActive;
   }
@@ -575,6 +975,10 @@ export class PlayCanvasRenderer {
     this.#updateCamera();
   }
 
+  /**
+   *
+   * @returns {{visible: boolean, opacity?: number}}
+   */
   get mapVisibility() {
     return (
       this.#camera.panBounds?.visibility(this.#cameraView) ?? {
@@ -586,6 +990,10 @@ export class PlayCanvasRenderer {
     );
   }
 
+  /**
+   *
+   * @returns {{visible: boolean, message?: string}}
+   */
   get gameStatusHudState() {
     return (
       this.getHud(GameStatusHud)?.state ?? {
@@ -595,6 +1003,11 @@ export class PlayCanvasRenderer {
     );
   }
 
+  /**
+   *
+   * @param {EventTarget|pc.Entity} target
+   * @param {boolean} visible
+   */
   setInteractionPrompt(target, visible = true) {
     const prompt =
       visible && target?.labelKey
@@ -603,10 +1016,18 @@ export class PlayCanvasRenderer {
     this.getHud(GameStatusHud)?.setInteraction(prompt);
   }
 
+  /**
+   *
+   * @returns {boolean}
+   */
   get cameraReturningToHero() {
     return this.#camera.returnTransition !== null;
   }
 
+  /**
+   *
+   * @returns {Hero|null}
+   */
   get hero() {
     return this.#sceneObjects.getOne(SCENE_OBJECT_TYPE.HERO) ?? null;
   }
@@ -621,6 +1042,10 @@ export class PlayCanvasRenderer {
     );
   }
 
+  /**
+   *
+   * @returns {import("src/game/GameContracts.js").ViewportRect}
+   */
   get gameOverReturnViewport() {
     return this.#scene?.returnViewport ?? this.viewport;
   }
@@ -661,19 +1086,38 @@ export class PlayCanvasRenderer {
     return true;
   }
 
+  /**
+   *
+   * @param {boolean} visible
+   */
   #setInventoryVisible(visible) {
     const nextVisible = Boolean(visible);
     this.#inventoryScene?.setVisible(nextVisible);
   }
 
+  /**
+   *
+   * @param {number} clientX
+   * @param {number} clientY
+   */
   pressInventoryPointer(clientX, clientY) {
     return this.#inventoryScene?.pointerDown(clientX, clientY) ?? false;
   }
 
+  /**
+   *
+   * @param {number} clientX
+   * @param {number} clientY
+   */
   moveInventoryPointer(clientX, clientY) {
     return this.#inventoryScene?.pointerMove(clientX, clientY) ?? false;
   }
 
+  /**
+   *
+   * @param {number} clientX
+   * @param {number} clientY
+   */
   releaseInventoryPointer(clientX, clientY) {
     if (!this.inventoryVisible) {
       return false;
@@ -690,6 +1134,15 @@ export class PlayCanvasRenderer {
     this.#inventoryScene?.cancelPointer();
   }
 
+  /**
+   *
+   * @param {{zoom: number, rotation: pc.Vec3, panX: number, panZ: number, manuallyMoved: boolean}} options
+   * @param {number} options.zoom
+   * @param {pc.Vec3} options.rotation
+   * @param {number} options.panX
+   * @param {number} options.panZ
+   * @param {boolean} options.manuallyMoved
+   */
   setViewport({
     zoom,
     rotation = 0,
@@ -713,6 +1166,12 @@ export class PlayCanvasRenderer {
     this.#updateCamera();
   }
 
+  /**
+   *
+   * @param {number} newZoom
+   * @param {number} pivotX
+   * @param {number} pivotY
+   */
   zoomTo(newZoom, pivotX, pivotY) {
     if (this.#cameraLocked) {
       return;
@@ -751,6 +1210,11 @@ export class PlayCanvasRenderer {
     this.#updateCamera();
   }
 
+  /**
+   *
+   * @param {number} deltaX
+   * @param {number} deltaY
+   */
   panBy(deltaX, deltaY) {
     if (this.#cameraLocked) {
       return;
@@ -775,6 +1239,11 @@ export class PlayCanvasRenderer {
     this.#updateCamera(panOrigin);
   }
 
+  /**
+   *
+   * @param {number} quarterTurns
+   * @param {number} verticalQuarterTurns
+   */
   rotateBy(quarterTurns, verticalQuarterTurns = 0) {
     if (this.#cameraLocked) {
       return this.#camera.rotation;
@@ -814,6 +1283,11 @@ export class PlayCanvasRenderer {
     return this.#camera.rotation;
   }
 
+  /**
+   *
+   * @param {number} yawDegrees
+   * @param {number} pitchDegrees
+   */
   lookFirstPersonBy(yawDegrees, pitchDegrees) {
     if (!this.#camera.firstPersonEnabled) {
       return;
@@ -822,10 +1296,18 @@ export class PlayCanvasRenderer {
     this.#updateCamera();
   }
 
+  /**
+   *
+   * @param {{position?: import("src/game/GameContracts.js").GridPoint, doors?: import("src/game/GameContracts.js").CastleOpening[], style?: string}} input
+   */
   cameraPointerDown(input) {
     return this.#camera.pointerDown(input);
   }
 
+  /**
+   *
+   * @param {{position?: import("src/game/GameContracts.js").GridPoint, doors?: import("src/game/GameContracts.js").CastleOpening[], style?: string}} input
+   */
   cameraPointerMove(input) {
     if (!this.#camera.pointerMove(input)) {
       return false;
@@ -859,6 +1341,10 @@ export class PlayCanvasRenderer {
     return this.#pc;
   }
 
+  /**
+   *
+   * @returns {pc.Entity}
+   */
   get camera() {
     return this.#camera.entity;
   }
@@ -871,14 +1357,27 @@ export class PlayCanvasRenderer {
     return this.#mapRoot;
   }
 
+  /**
+   *
+   * @param {new (options: new (options: {pc: typeof pc, app: pc.Application, root: pc.Entity}) => {entity: pc.Entity, destroy: () => void, update?: (deltaTime: number) => void}) => new (options: {pc: typeof pc, app: pc.Application, root: pc.Entity}) => {entity: pc.Entity, destroy: () => void, update?: (deltaTime: number) => void}} HudClass
+   * @param {{mapName?: string, numPaths?: number, numRivers?: number, signal?: AbortSignal}} options
+   */
   addHud(HudClass, options = {}) {
     return this.#huds?.add(HudClass, options) ?? null;
   }
 
+  /**
+   *
+   * @param {new (options: new (options: {pc: typeof pc, app: pc.Application, root: pc.Entity}) => {entity: pc.Entity, destroy: () => void, update?: (deltaTime: number) => void}) => new (options: {pc: typeof pc, app: pc.Application, root: pc.Entity}) => {entity: pc.Entity, destroy: () => void, update?: (deltaTime: number) => void}} HudClass
+   */
   getHud(HudClass) {
     return this.#huds?.getHud(HudClass) ?? null;
   }
 
+  /**
+   *
+   * @param {new (options: new (options: {pc: typeof pc, app: pc.Application, root: pc.Entity}) => {entity: pc.Entity, destroy: () => void, update?: (deltaTime: number) => void}) => new (options: {pc: typeof pc, app: pc.Application, root: pc.Entity}) => {entity: pc.Entity, destroy: () => void, update?: (deltaTime: number) => void}} HudClass
+   */
   removeHud(HudClass) {
     return this.#huds?.remove(HudClass) ?? false;
   }
@@ -917,7 +1416,13 @@ export class PlayCanvasRenderer {
   async #createMaterials() {
     const textures = new Map();
     await Promise.all(
-      Object.entries(TEXTURE_URLS).map(async ([name, url]) => {
+      Object.entries(TEXTURE_URLS).map(/**
+       *
+       * @param {{"0": Array, "1": Array}} options
+       * @param {Array} options."0"
+       * @param {Array} options."1"
+       */
+      async ([name, url]) => {
         textures.set(name, await this.#loadTexture(name, url));
       }),
     );
@@ -929,7 +1434,12 @@ export class PlayCanvasRenderer {
     }
 
     for (const [name, definition] of Object.entries(SIDE_VARIANT_DEFINITIONS)) {
-      SIDE_VARIANT_TRANSFORMS.forEach((transform, index) => {
+      SIDE_VARIANT_TRANSFORMS.forEach(/**
+       *
+       * @param {pc.Mat4} transform
+       * @param {number} index
+       */
+      (transform, index) => {
         const variantName = `${name}-${index}`;
         this.#materials.set(
           variantName,
@@ -948,21 +1458,42 @@ export class PlayCanvasRenderer {
 
     GrassSurfaceMaterials.register(
       this.#materials,
+      /**
+       *
+       * @param {string} name
+       * @param {import("src/game/GameContracts.js").GameObjectDefinition} definition
+       */
       (name, definition) => this.#createMaterial(name, definition, textures),
       SIDE_VARIANT_TRANSFORMS,
     );
     EarthSurfaceMaterials.register(
       this.#materials,
+      /**
+       *
+       * @param {string} name
+       * @param {import("src/game/GameContracts.js").GameObjectDefinition} definition
+       */
       (name, definition) => this.#createMaterial(name, definition, textures),
       SIDE_VARIANT_TRANSFORMS,
     );
     PathSurfaceMaterials.register(
       this.#materials,
+      /**
+       *
+       * @param {string} name
+       * @param {import("src/game/GameContracts.js").GameObjectDefinition} definition
+       */
       (name, definition) => this.#createMaterial(name, definition, textures),
       SIDE_VARIANT_TRANSFORMS,
     );
   }
 
+  /**
+   *
+   * @param {string} name
+   * @param {import("src/game/GameContracts.js").GameObjectDefinition} definition
+   * @param {Map} textures
+   */
   #createMaterial(name, definition, textures = new Map()) {
     const pc = this.#pc;
     const material = new pc.StandardMaterial();
@@ -1006,14 +1537,28 @@ export class PlayCanvasRenderer {
     return material;
   }
 
+  /**
+   *
+   * @param {string} name
+   * @param {string} url
+   */
   #loadTexture(name, url) {
     const pc = this.#pc;
     const asset = new pc.Asset(name, "texture", { url });
     this.#textureAssets.set(name, asset);
     this.#app.assets.add(asset);
 
-    return new Promise((resolve, reject) => {
-      asset.ready((loadedAsset) => {
+    return new Promise(/**
+     *
+     * @param {(value?: (value?: void) => void) => void} resolve
+     * @param {(reason?: Error) => void} reject
+     */
+    (resolve, reject) => {
+      asset.ready(/**
+       *
+       * @param {pc.Asset} loadedAsset
+       */
+      (loadedAsset) => {
         const texture = loadedAsset.resource;
         texture.mipmaps = this.#graphicsSettingsStore.mipmaps;
         texture.minFilter = texture.mipmaps
@@ -1060,6 +1605,14 @@ export class PlayCanvasRenderer {
       root: this.#mapRoot,
       materials: this.#materials,
       bridgeRailingKit: this.#bridgeRailingKit,
+      /**
+       *
+       * @param {string} type
+       * @param {{top: string, sides: string, underlay: string}} topCube
+       * @param {number} col
+       * @param {number} row
+       * @param {number} level
+       */
       cubeMaterials: (type, topCube, col, row, level) =>
         this.#terrainMaterialSelector.cubeMaterials(
           type,
@@ -1068,10 +1621,29 @@ export class PlayCanvasRenderer {
           row,
           level,
         ),
+      /**
+       *
+       * @param {number} col
+       * @param {number} row
+       * @param {number} level
+       */
       pathEarthSideMaterial: (col, row, level) =>
         this.#earthMaterials.overpassSideForTile(col, row, level),
+      /**
+       *
+       * @param {number} col
+       * @param {number} row
+       * @param {number} level
+       */
       earthSideMaterial: (col, row, level) =>
         this.#earthMaterials.sideForTile(col, row, level),
+      /**
+       *
+       * @param {pc.Material} material
+       * @param {number} col
+       * @param {number} row
+       * @param {number} level
+       */
       sideVariant: (material, col, row, level) =>
         this.#terrainMaterialSelector.sideVariant(material, col, row, level),
       modelLibrary: this.#modelLibrary,
@@ -1103,6 +1675,12 @@ export class PlayCanvasRenderer {
       mapData: this.#mapData,
       modelLibrary: this.#modelLibrary,
       tileColors: GrassSurfaceMaterials.tileColors,
+      /**
+       *
+       * @param {number} col
+       * @param {number} row
+       * @param {number} level
+       */
       variantForTile: (col, row, level) =>
         this.#grassMaterials.variantForTile(col, row, level),
       zoom: this.#camera.zoom,
@@ -1123,7 +1701,18 @@ export class PlayCanvasRenderer {
       getSurfaceContacts: () =>
         this.#sceneObjects
           .getAll(SCENE_OBJECT_TYPE.MAP_OBJECT)
-          .flatMap(({ grassSurfaceContacts = [] }) => grassSurfaceContacts),
+          .flatMap(/**
+           *
+           * @param {{grassSurfaceContacts: Array}} options
+           * @param {Array} options.grassSurfaceContacts
+           */
+          ({ grassSurfaceContacts = [] }) => grassSurfaceContacts),
+      /**
+       *
+       * @param {number} x
+       * @param {number} y
+       * @param {number} z
+       */
       getWeightAt: (x, y, z) => this.#collisionWorld.grassWeightAt(x, z, y),
     });
 
@@ -1164,14 +1753,27 @@ export class PlayCanvasRenderer {
       runtime: {
         objects: this.#sceneObjects,
         textureAssets: this.#textureAssets,
+        /**
+         *
+         * @param {pc.Vec3} position
+         * @param {number} radius
+         */
         getGrassSupportPoints: (position, radius) =>
           this.#grassCarpet.supportPointsWithin(position, radius),
+        /**
+         *
+         * @param {import("src/game/GameContracts.js").GameObjectContract} removedObject
+         */
         onObjectRemoved: (removedObject) => {
           this.#buriedTreasure?.removeMapObject(removedObject);
           this.#grassSurface?.refreshObstacles(removedObject.tile);
         },
         onRuntimeError: this.#onRuntimeError,
       },
+      /**
+       *
+       * @param {import("src/game/GameContracts.js").GameObjectContract} object
+       */
       onCreate: (object) =>
         this.#sceneObjects.add(
           object.sceneObjectType ?? SCENE_OBJECT_TYPE.MAP_OBJECT,
@@ -1192,21 +1794,39 @@ export class PlayCanvasRenderer {
     const castles = this.#sceneObjects.getAll(SCENE_OBJECT_TYPE.CASTLE);
     const gateways = this.#sceneObjects.getAll(SCENE_OBJECT_TYPE.GATEWAY);
     const roots = [
-      ...castles.map((castle, index) => ({
+      ...castles.map(/**
+       *
+       * @param {import("src/game/GameContracts.js").CastleLayout} castle
+       * @param {number} index
+       */
+      (castle, index) => ({
         name: `castle-${index}`,
         protectAtPanLimit: true,
         centerReachableAtEveryZoom: true,
         root: castle.entity,
       })),
-      ...gateways.map((gateway, index) => ({
+      ...gateways.map(/**
+       *
+       * @param {import("src/game/GameContracts.js").GameObjectContract} gateway
+       * @param {number} index
+       */
+      (gateway, index) => ({
         name: `gateway-${index}`,
         protectAtPanLimit: true,
         root: gateway.entity,
       })),
       ...this.#sceneObjects
         .getAll(SCENE_OBJECT_TYPE.MAP_OBJECT)
-        .flatMap((object) =>
-          object.visualRoots.map((root) => ({
+        .flatMap(/**
+         *
+         * @param {import("src/game/GameContracts.js").GameObjectContract} object
+         */
+        (object) =>
+          object.visualRoots.map(/**
+           *
+           * @param {pc.Entity} root
+           */
+          (root) => ({
             name: `map-object-${root.name}`,
             protectAtPanLimit: true,
             centerReachableAtEveryZoom: true,
@@ -1214,7 +1834,12 @@ export class PlayCanvasRenderer {
           })),
         ),
       { name: "ground-cover", root: this.#groundCover?.entity },
-    ].filter(({ root }) => root);
+    ].filter(/**
+     *
+     * @param {{root: pc.Entity}} options
+     * @param {pc.Entity} options.root
+     */
+    ({ root }) => root);
     for (const {
       name,
       protectAtPanLimit,
@@ -1235,9 +1860,18 @@ export class PlayCanvasRenderer {
   }
 
   #buildHero() {
-    if (this.#mapData.objects?.some(({ object }) => object === Hero.name)) {
+    if (this.#mapData.objects?.some(/**
+     *
+     * @param {{object: import("src/game/GameContracts.js").GameObjectContract}} options
+     * @param {import("src/game/GameContracts.js").GameObjectContract} options.object
+     */
+    ({ object }) => object === Hero.name)) {
       return;
     }
+    /**
+     *
+     * @param {new (options: new (options: {pc: typeof pc, app: pc.Application, root: pc.Entity}) => {entity: pc.Entity, destroy: () => void, update?: (deltaTime: number) => void}) => new (options: {pc: typeof pc, app: pc.Application, root: pc.Entity}) => {entity: pc.Entity, destroy: () => void, update?: (deltaTime: number) => void}} HudClass
+     */
     const getHud = (HudClass) => this.getHud(HudClass);
     const hero = new Hero({
       pc: this.#pc,
@@ -1284,6 +1918,10 @@ export class PlayCanvasRenderer {
     });
     this.#mapRoot.addChild(this.#heroPatHand.entity);
     this.#heroPatGesture = new HeroPatGesture(this.canvas, {
+      /**
+       *
+       * @param {Event} event
+       */
       hitTest: (event) => this.#isHeroPatHit(event),
       pat: () => {
         if (hero.canBePatted) {
@@ -1298,6 +1936,10 @@ export class PlayCanvasRenderer {
       camera: this.#camera.camera,
       hero: hero.entity,
       getRotation: () => this.#camera.rotation,
+      /**
+       *
+       * @param {pc.Vec3} rotation
+       */
       setRotation: (rotation) => {
         if (
           this.#cameraLocked ||
@@ -1344,7 +1986,12 @@ export class PlayCanvasRenderer {
     }
     this.#interactionProviders = [
       this.#groundCover,
-      ...mapObjects.filter(({ findInteraction }) => findInteraction),
+      ...mapObjects.filter(/**
+       *
+       * @param {{findInteraction: (options: {origin: pc.Vec3, direction: pc.Vec3}) => import("src/game/GameContracts.js").InteractionDescription|null}} options
+       * @param {(options: {origin: pc.Vec3, direction: pc.Vec3}) => import("src/game/GameContracts.js").InteractionDescription|null} options.findInteraction
+       */
+      ({ findInteraction }) => findInteraction),
       this.#buriedTreasure,
     ];
   }
@@ -1368,10 +2015,18 @@ export class PlayCanvasRenderer {
       getHeroFootContacts: () =>
         this.#sceneObjects.getOne(SCENE_OBJECT_TYPE.HERO)?.grassFootContacts ??
         [],
+      /**
+       *
+       * @param {import("src/game/GameContracts.js").GameObjectContract} item
+       */
       onCollect: (item) =>
         this.#sceneObjects
           .getOne(SCENE_OBJECT_TYPE.HERO)
           ?.collectInventoryItem(item) ?? false,
+      /**
+       *
+       * @param {import("src/game/GameContracts.js").GameObjectContract} groundCover
+       */
       onCollectibleRemoved: (groundCover) =>
         this.#buriedTreasure?.removeGroundCover(groundCover),
     });
@@ -1384,11 +2039,21 @@ export class PlayCanvasRenderer {
       app: this.#app,
       mapData: this.#mapData,
       modelLibrary: this.#modelLibrary,
+      /**
+       *
+       * @param {string} type
+       * @param {number} amount
+       */
       onCollectCoin: (type, amount) =>
         this.#sceneObjects
           .getOne(SCENE_OBJECT_TYPE.HERO)
           ?.collectCoin(type, amount),
       onInteractionChange: () => this.#updateInteractionTarget(),
+      /**
+       *
+       * @param {pc.Vec3} position
+       * @param {number} radius
+       */
       onTerrainExcavated: (position, radius) =>
         this.#grassCarpet?.clearAt(position, radius),
     });
@@ -1403,14 +2068,28 @@ export class PlayCanvasRenderer {
       const swapIndex = Math.floor(Math.random() * (index + 1));
       [signs[index], signs[swapIndex]] = [signs[swapIndex], signs[index]];
     }
-    entries.forEach((entry, index) => {
+    entries.forEach(/**
+     *
+     * @param {import("src/game/GameContracts.js").GameCanvasPluginEntry} entry
+     * @param {number} index
+     */
+    (entry, index) => {
       const gateRows = entry.rows ?? [entry.row, entry.row + 1];
       const x = entry.col - (cols - 1) / 2;
       const z =
-        gateRows.reduce((sum, row) => sum + row, 0) / gateRows.length -
+        gateRows.reduce(/**
+         *
+         * @param {number} sum
+         * @param {number} row
+         */
+        (sum, row) => sum + row, 0) / gateRows.length -
         (rows - 1) / 2;
       const groundHeight = Math.max(
-        ...gateRows.map((row) => this.#tileHeight(entry.col, row)),
+        ...gateRows.map(/**
+         *
+         * @param {number} row
+         */
+        (row) => this.#tileHeight(entry.col, row)),
       );
       const gateway = new Gateway({
         pc: this.#pc,
@@ -1429,11 +2108,19 @@ export class PlayCanvasRenderer {
     });
   }
 
+  /**
+   *
+   * @param {pc.Vec3} position
+   */
   #updateCastlesForHero(position) {
     const castles = this.#sceneObjects.getAll(SCENE_OBJECT_TYPE.CASTLE);
     const hero = this.#sceneObjects.getOne(SCENE_OBJECT_TYPE.HERO);
     const heroPosition = hero?.position ?? position;
-    const activeCastle = castles.find((castle) =>
+    const activeCastle = castles.find(/**
+     *
+     * @param {import("src/game/GameContracts.js").CastleLayout} castle
+     */
+    (castle) =>
       castle.isRoyalActivityTriggerAt(heroPosition),
     );
     if (hero) {
@@ -1452,6 +2139,11 @@ export class PlayCanvasRenderer {
     }
   }
 
+  /**
+   *
+   * @param {number} deltaTime
+   * @type {(deltaTime: number) => void}
+   */
   #updateFrame = (deltaTime) => {
     if (this.#frameUpdateFailed) {
       return;
@@ -1468,6 +2160,10 @@ export class PlayCanvasRenderer {
     }
   };
 
+  /**
+   *
+   * @param {number} deltaTime
+   */
   #updateRuntimeSystems(deltaTime) {
     const hero = this.#sceneObjects.getOne(SCENE_OBJECT_TYPE.HERO);
     this.#terrainRenderer?.update(deltaTime, hero, this.#camera?.camera);
@@ -1490,6 +2186,10 @@ export class PlayCanvasRenderer {
     this.#updateFloatingIslandMotion(deltaTime);
   }
 
+  /**
+   *
+   * @param {number} deltaTime
+   */
   #updateFloatingIslandMotion(deltaTime) {
     if (
       !this.#floatingIslandMotion ||
@@ -1514,6 +2214,11 @@ export class PlayCanvasRenderer {
     );
   }
 
+  /**
+   *
+   * @param {number} x
+   * @param {number} y
+   */
   #setFloatingCameraOffset(x, y) {
     if (!this.#camera) {
       return;
@@ -1577,6 +2282,10 @@ export class PlayCanvasRenderer {
     };
   }
 
+  /**
+   *
+   * @param {Event} event
+   */
   #isHeroPatHit(event) {
     const hero = this.#sceneObjects.getOne(SCENE_OBJECT_TYPE.HERO);
     if (
@@ -1605,6 +2314,11 @@ export class PlayCanvasRenderer {
     );
   }
 
+  /**
+   *
+   * @param {number} col
+   * @param {number} row
+   */
   #tileHeight(col, row) {
     const type = this.#mapData.grid[row][col];
     return type in FIXED_HEIGHTS
@@ -1666,6 +2380,14 @@ export class PlayCanvasRenderer {
     this.#camera.fitCenterZ = rightZ * centerProjection;
   }
 
+  /**
+   *
+   * @param {{x: number, y: number, z: number}} options
+   * @param {number} options.x
+   * @param {number} options.y
+   * @param {number} options.z
+   * @type {(arg0: {x: number, y: number, z: number}) => void}
+   */
   #handleHeroPositionChange = ({ x, y, z }) => {
     const hero = this.#sceneObjects.getOne(SCENE_OBJECT_TYPE.HERO);
     this.#camera.orbitPivot = null;
@@ -1741,6 +2463,14 @@ export class PlayCanvasRenderer {
     this.#heroVisibility?.schedule();
   };
 
+  /**
+   *
+   * @param {boolean} force
+   * @param {{allowAutomatic: boolean, duration: number, preserveFocus: boolean}} options
+   * @param {boolean} options.allowAutomatic
+   * @param {number} options.duration
+   * @param {boolean} options.preserveFocus
+   */
   #startHeroCameraReturn(
     force = false,
     {
@@ -1790,6 +2520,10 @@ export class PlayCanvasRenderer {
     return true;
   }
 
+  /**
+   *
+   * @param {number} deltaTime
+   */
   #updateHeroCameraReturn(deltaTime) {
     const transition = this.#camera.returnTransition;
     const hero = this.#sceneObjects.getOne(SCENE_OBJECT_TYPE.HERO);
@@ -1814,6 +2548,10 @@ export class PlayCanvasRenderer {
     this.#heroVisibility?.schedule();
   }
 
+  /**
+   *
+   * @type {() => void}
+   */
   #handleHeroFacingChange = () => {
     const hero = this.#sceneObjects.getOne(SCENE_OBJECT_TYPE.HERO);
     if (this.#camera.firstPersonEnabled) {
@@ -1824,18 +2562,35 @@ export class PlayCanvasRenderer {
     }
   };
 
+  /**
+   *
+   * @returns {boolean}
+   */
   get #cameraLocked() {
     return this.#scene?.cameraLocked ?? false;
   }
 
+  /**
+   *
+   * @returns {string}
+   */
   get #cameraState() {
     return this.#camera.state;
   }
 
+  /**
+   *
+   * @param {import("src/game/GameContracts.js").StoreContract} state
+   */
   #setCameraState(state) {
     this.#camera.setState(state);
   }
 
+  /**
+   *
+   * @param {null} panOrigin
+   * @param {boolean} preserveFocus
+   */
   #updateCamera(panOrigin = null, preserveFocus = false) {
     if (!this.#camera || !this.#mapData) {
       return;
@@ -1904,6 +2659,11 @@ export class PlayCanvasRenderer {
     this.#notifyViewportChange();
   }
 
+  /**
+   *
+   * @param {number} x
+   * @param {number} z
+   */
   #terrainHeightAtWorldPosition(x, z) {
     if (!this.#mapData) {
       return null;
@@ -1950,6 +2710,10 @@ export class PlayCanvasRenderer {
     this.#gameViewStore.updateViewport(this.viewport);
   }
 
+  /**
+   *
+   * @returns {{position: pc.Vec3, target: pc.Vec3}}
+   */
   get #cameraView() {
     return {
       panX: this.#camera.panX,
@@ -1967,6 +2731,12 @@ export class PlayCanvasRenderer {
     };
   }
 
+  /**
+   *
+   * @param {number} x
+   * @param {number} y
+   * @param {number} zoom
+   */
   #screenOffsetToGround(x, y, zoom) {
     return this.#screenDeltaToGround(
       x - this.container.clientWidth / 2,
@@ -1975,6 +2745,12 @@ export class PlayCanvasRenderer {
     );
   }
 
+  /**
+   *
+   * @param {number} deltaX
+   * @param {number} deltaY
+   * @param {number} zoom
+   */
   #screenDeltaToGround(deltaX, deltaY, zoom) {
     const yaw = Math.PI / 4 + this.#camera.rotation * (Math.PI / 2);
     const worldPerPixel =
@@ -2001,6 +2777,10 @@ export class PlayCanvasRenderer {
     this.#clearHeroIdleLookTarget();
   }
 
+  /**
+   *
+   * @param {Event} event
+   */
   #pointerRay(event) {
     if (!this.#camera?.camera || !this.canvas) {
       return null;
@@ -2022,6 +2802,13 @@ export class PlayCanvasRenderer {
     };
   }
 
+  /**
+   *
+   * @param {number} clientX
+   * @param {number} clientY
+   * @param {number} heightClientX
+   * @param {number} heightClientY
+   */
   #inventoryDropPlacement(clientX, clientY, heightClientX, heightClientY) {
     const ray = this.#pointerRay({ clientX, clientY });
     const heightRay = this.#pointerRay({
@@ -2062,14 +2849,28 @@ export class PlayCanvasRenderer {
     };
   }
 
+  /**
+   *
+   * @param {{origin: pc.Vec3, direction: pc.Vec3}} ray
+   */
   #inventoryDropRaycast(ray) {
     const hits =
       this.#app?.systems.rigidbody?.raycastAll?.(ray.start, ray.end, {
         sort: true,
       }) ?? [];
-    return hits.find((hit) => hit.normal?.y >= 0.35) ?? null;
+    return hits.find(/**
+     *
+     * @param {pc.PickerSelection} hit
+     */
+    (hit) => hit.normal?.y >= 0.35) ?? null;
   }
 
+  /**
+   *
+   * @param {number} height
+   * @param {number} clientX
+   * @param {number} clientY
+   */
   #inventoryDropScreenPosition(height, clientX, clientY) {
     if (!this.#camera?.camera || !this.canvas) {
       return null;
@@ -2090,6 +2891,11 @@ export class PlayCanvasRenderer {
     );
   }
 
+  /**
+   *
+   * @param {pc.Vec3} position
+   * @param {number} clientY
+   */
   #inventoryDropStartY(position, clientY) {
     if (!this.#camera?.camera || !this.canvas) {
       return null;
@@ -2116,6 +2922,11 @@ export class PlayCanvasRenderer {
     );
   }
 
+  /**
+   *
+   * @param {{origin: pc.Vec3, direction: pc.Vec3}} ray
+   * @param {number} height
+   */
   #inventoryDropPlanePosition(ray, height) {
     const rayY = ray.end.y - ray.start.y;
     if (Math.abs(rayY) <= 0.000001) {
@@ -2132,6 +2943,11 @@ export class PlayCanvasRenderer {
     );
   }
 
+  /**
+   *
+   * @param {Event} event
+   * @type {(event: Event) => void}
+   */
   #trackHeroLookPointer = (event) => {
     this.#heroLookPointer = {
       clientX: event.clientX,
@@ -2210,6 +3026,10 @@ export class PlayCanvasRenderer {
     this.#setInteractionTarget(target);
   }
 
+  /**
+   *
+   * @param {EventTarget|pc.Entity} target
+   */
   #setInteractionTarget(target) {
     const interaction = target?.canInteract ? target : null;
     const description = interaction?.description ?? null;
@@ -2223,10 +3043,18 @@ export class PlayCanvasRenderer {
     }
   }
 
+  /**
+   *
+   * @type {() => void}
+   */
   #refreshInteractionTarget = () => {
     this.#setInteractionTarget(this.#interactionTarget);
   };
 
+  /**
+   *
+   * @type {() => void}
+   */
   #completeInteraction = () => {
     this.#setInteractionTarget(null);
     this.#updateInteractionTarget();

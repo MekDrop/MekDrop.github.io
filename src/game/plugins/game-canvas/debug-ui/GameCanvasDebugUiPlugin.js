@@ -6,18 +6,58 @@ import { DebugAxesHud } from "./ui/DebugAxesHud.js";
 import { DebugFpsHud } from "./ui/DebugFpsHud.js";
 
 export class GameCanvasDebugUiPlugin {
+  /**
+   *
+   * @type {import("src/game/GameContracts.js").GameCanvasPluginContext}
+   */
   #context;
+  /**
+   *
+   * @type {null}
+   */
   #debugAxesHud = null;
+  /**
+   *
+   * @type {null}
+   */
   #debugFpsHud = null;
+  /**
+   *
+   * @type {null}
+   */
   #devWireframeInspector = null;
+  /**
+   *
+   * @type {null}
+   */
   #pathArrows = null;
+  /**
+   *
+   * @type {null}
+   */
   #debugStatsTimer = null;
+  /**
+   *
+   * @type {null}
+   */
   #stopDebugStoreSubscription = null;
 
+  /**
+   *
+   * @param {import("src/game/GameContracts.js").GameCanvasPluginContext} context
+   */
   constructor(context) {
+    /**
+     *
+     * @type {import("src/game/GameContracts.js").GameCanvasPluginContext}
+     */
     this.#context = context;
   }
 
+  /**
+   *
+   * @returns {number}
+   */
   static get #DEBUG_STATS_UPDATE_INTERVAL() {
     return 100;
   }
@@ -64,6 +104,10 @@ export class GameCanvasDebugUiPlugin {
     this.#devWireframeInspector?.refresh();
   }
 
+  /**
+   *
+   * @param {import("src/game/GameContracts.js").GameMapData} mapData
+   */
   afterRender(mapData) {
     const mapRoot = this.#context.renderer().mapRoot;
     if (!mapRoot) {

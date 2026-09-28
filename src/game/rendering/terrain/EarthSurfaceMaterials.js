@@ -9,17 +9,47 @@ const DEPTH_SHADES = [
 ];
 const HIGHEST_SIDE_LEVEL = 1;
 
+/**
+ * @typedef {{startU?: number, startV?: number, scaleU?: number, scaleV?: number, flipU?: boolean, flipV?: boolean}} TextureTransform
+ */
+
+/**
+ * @typedef {{startU?: number, startV?: number, scaleU?: number, scaleV?: number, flipU?: boolean, flipV?: boolean}} TextureTransform
+ */
+
 export class EarthSurfaceMaterials {
+  /**
+   *
+   * @type {import("src/game/GameContracts.js").GameMapData}
+   */
   #mapData;
 
+  /**
+   *
+   * @param {import("src/game/GameContracts.js").GameMapData} mapData
+   */
   constructor(mapData) {
+    /**
+     *
+     * @type {import("src/game/GameContracts.js").GameMapData}
+     */
     this.#mapData = mapData;
   }
 
+  /**
+   *
+   * @returns {Readonly<Record<string, string>>}
+   */
   static get textureUrls() {
     return { earthSide: earthSideUrl };
   }
 
+  /**
+   *
+   * @param {pc.Material[]} materials
+   * @param {(name: string, definition: import("src/game/GameContracts.js").MaterialDefinition) => pc.Material} createMaterial
+   * @param {TextureTransform[]} sideTransforms
+   */
   static register(materials, createMaterial, sideTransforms) {
     for (const [name, definition] of Object.entries({
       earth: { color: 0xe8c4a0, texture: "earthSide", gloss: 0.08 },
@@ -28,8 +58,18 @@ export class EarthSurfaceMaterials {
       materials.set(name, createMaterial(name, definition));
     }
 
-    DEPTH_SHADES.forEach((shade, depth) => {
-      EARTH_TEXTURE_COLORS.forEach((color, variant) => {
+    DEPTH_SHADES.forEach(/**
+     *
+     * @param {string} shade
+     * @param {number} depth
+     */
+    (shade, depth) => {
+      EARTH_TEXTURE_COLORS.forEach(/**
+       *
+       * @param {string} color
+       * @param {string} variant
+       */
+      (color, variant) => {
         const bridgeSideTexture = {
           ...sideTransforms[variant],
           startV: 0.4,
@@ -65,18 +105,40 @@ export class EarthSurfaceMaterials {
     });
   }
 
+  /**
+   *
+   * @param {number} col
+   * @param {number} row
+   * @param {number} level
+   */
   sideForTile(col, row, level) {
     return `grassEarthSide-depth-${this.#depth(level)}-${this.#variant(col, row, level)}`;
   }
 
+  /**
+   *
+   * @param {number} col
+   * @param {number} row
+   * @param {number} level
+   */
   topSideForTile(col, row, level) {
     return `grassTopSide-depth-${this.#depth(level)}-${this.#variant(col, row, level)}`;
   }
 
+  /**
+   *
+   * @param {number} col
+   * @param {number} row
+   * @param {number} level
+   */
   overpassSideForTile(col, row, level) {
     return `overpassEarthSide-depth-${this.#depth(level)}-${this.#variant(col, row, level)}`;
   }
 
+  /**
+   *
+   * @param {number} level
+   */
   #depth(level) {
     return Math.max(
       0,
@@ -84,6 +146,12 @@ export class EarthSurfaceMaterials {
     );
   }
 
+  /**
+   *
+   * @param {number} col
+   * @param {number} row
+   * @param {number} level
+   */
   #variant(col, row, level) {
     const selection = this.#mapData.earthTextureVariants;
     return selection?.tiles[row]?.[col]?.[Math.floor(level) - selection.firstLevel] ?? 0;

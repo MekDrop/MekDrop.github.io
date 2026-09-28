@@ -6,6 +6,10 @@ export class HeroAngryEmotionState extends AbstractHeroEmotionState {
     super(HERO_MOOD.ANGRY, 9, 4, { tracksPressureLevels: false });
   }
 
+  /**
+   *
+    * @returns {boolean}
+   */
   get acceptsActions() {
     return false;
   }
@@ -14,11 +18,19 @@ export class HeroAngryEmotionState extends AbstractHeroEmotionState {
     this.resetLevel();
   }
 
+  /**
+   *
+   * @param {import("src/game/objects/ObjectTypes.js").HeroActionContext} owner
+   */
   rejectAction(owner) {
     this.increaseLevel();
     owner.refreshAnger();
   }
 
+  /**
+   *
+   * @param {number} level
+   */
   coolDown(level) {
     this.setLevel(level);
   }

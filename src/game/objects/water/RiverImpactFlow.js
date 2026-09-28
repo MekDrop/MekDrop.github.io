@@ -3,14 +3,26 @@ import { RIVER_KIND } from '../../enum/RiverKind.js';
 // A local surface current: spread from the falling sheet, turn at solid banks,
 // and merge into the receiving route. It affects paint, not actor movement.
 export class RiverImpactFlow {
+  /**
+   *
+    * @type {Map}
+   */
   #cells = new Map();
 
+  /**
+   *
+   * @param {number} rivers
+   */
   constructor(rivers) {
     for (const river of rivers) {
       if (river.kind === RIVER_KIND.LAVA) {
         continue;
       }
-      const impacts = river.cascades.map((cascade) => {
+      const impacts = river.cascades.map(/**
+       *
+       * @param {number} cascade
+       */
+      (cascade) => {
         const flow = this.#direction(cascade.direction);
         const drop = cascade.topElevation - cascade.bottomElevation;
         const forward = 0.565 + Math.min(0.22, drop * 0.22);
@@ -18,7 +30,11 @@ export class RiverImpactFlow {
           col: cascade.from.col + flow[0] * forward,
           row: cascade.from.row + flow[1] * forward,
           elevation: cascade.bottomElevation,
-          index: river.cells.findIndex((cell) =>
+          index: river.cells.findIndex(/**
+           *
+           * @param {number} cell
+           */
+          (cell) =>
             cell.col === cascade.to.col && cell.row === cascade.to.row),
         };
       });
@@ -28,6 +44,11 @@ export class RiverImpactFlow {
     }
   }
 
+  /**
+   *
+   * @param {number} col
+   * @param {number} row
+   */
   sample(col, row) {
     const record = this.#cells.get(`${Math.floor(col + 0.5)},${Math.floor(row + 0.5)}`);
     if (!record) {
@@ -86,23 +107,44 @@ export class RiverImpactFlow {
 
   // Closed sides of the actual receiving cell, including the tall upstream
   // cliff. Angular route UVs cannot describe the extra wall inside an L turn.
+  /**
+   *
+   * @param {number} col
+   * @param {number} row
+   */
   bankMask(col, row) {
     const record = this.#cells.get(`${col},${row}`);
     if (!record) {
       return [0, 0, 0, 0];
     }
-    return [[-1, 0], [1, 0], [0, -1], [0, 1]].map(([nx, nz]) => {
+    return [[-1, 0], [1, 0], [0, -1], [0, 1]].map(/**
+     *
+     * @param {Array<number>} options
+     * @param {number} options."0"
+     * @param {number} options."1"
+     */
+    ([nx, nz]) => {
       const neighbor = this.#cells.get(`${col + nx},${row + nz}`);
       return neighbor?.river === record.river &&
         Math.abs(neighbor.cell.elevation - record.cell.elevation) <= 0.04 ? 0 : 1;
     });
   }
 
+  /**
+   *
+   * @param {import("src/game/objects/ObjectTypes.js").Point3} start
+   * @param {import("src/game/objects/ObjectTypes.js").Point3} end
+   * @param {number} value
+   */
   #smooth(start, end, value) {
     const t = Math.max(0, Math.min(1, (value - start) / (end - start)));
     return t * t * (3 - 2 * t);
   }
 
+  /**
+   *
+   * @param {{x: number, y: number, z: number}} direction
+   */
   #direction(direction) {
     switch (direction) {
       case 'NORTH': return [0, -1];

@@ -18,6 +18,10 @@ export class HeroDrowningActionState extends HeroRuntimeActionState {
     });
   }
 
+  /**
+   *
+   * @param {import("src/game/objects/ObjectTypes.js").HeroActionContext} owner
+   */
   tryEnter(owner) {
     const feedback = owner.feedback.drowning;
     const situation = feedback.situation();
@@ -50,11 +54,19 @@ export class HeroDrowningActionState extends HeroRuntimeActionState {
     return true;
   }
 
+  /**
+   *
+   * @param {import("src/game/objects/ObjectTypes.js").HeroActionContext} owner
+   */
   enter(owner) {
     super.enter(owner);
     this.payload = owner.feedback.drowning.begin(this.payload);
   }
 
+  /**
+   *
+   * @param {import("src/game/objects/ObjectTypes.js").HeroActionContext} owner
+   */
   execute(owner) {
     const feedback = owner.feedback.drowning;
     const action = this.payload;
@@ -121,11 +133,19 @@ export class HeroDrowningActionState extends HeroRuntimeActionState {
     });
   }
 
+  /**
+   *
+   * @param {import("src/game/objects/ObjectTypes.js").HeroActionContext} owner
+   */
   exit(owner) {
     owner.feedback.drowning.endPresentation?.();
     super.exit(owner);
   }
 
+  /**
+   *
+   * @param {import("src/game/objects/ObjectTypes.js").HeroActionContext} owner
+   */
   present(owner) {
     const elapsed = this.payload.elapsed;
     const scanningYaw =

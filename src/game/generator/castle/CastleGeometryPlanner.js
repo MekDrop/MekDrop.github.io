@@ -13,6 +13,11 @@ import {
 import { castleGateArchHeight } from "./CastleGeometry.js";
 
 export class CastleGeometryPlanner {
+  /**
+   *
+   * @param {CastleGenerationContext} context
+   * @param {CastleBuildPlanWriter} writer
+   */
   async buildWalls(context, writer) {
     const wall = context.structure.wall;
     if (!wall) {
@@ -43,6 +48,11 @@ export class CastleGeometryPlanner {
       );
     }
 }
+  /**
+   *
+   * @param {CastleGenerationContext} context
+   * @param {CastleBuildPlanWriter} writer
+   */
   async buildTowers(context, writer) {
     const { battlementPeriod } = context.structure.wall;
     for (const tower of context.structure.towers) {
@@ -87,6 +97,11 @@ export class CastleGeometryPlanner {
     }
   }
 
+  /**
+   *
+   * @param {CastleGenerationContext} context
+   * @param {CastleBuildPlanWriter} writer
+   */
   async buildGatehouses(context, writer) {
     const { castleDepth, facadeSpan, style } = context.layout;
     const { towerSpan, battlementPeriod } = context.structure.wall;
@@ -110,6 +125,17 @@ export class CastleGeometryPlanner {
     }
   }
 
+  /**
+   *
+   * @param {(blockU: number, blockY: number, blockV: number, role?: string) => void} addBlock
+   * @param {number} openingAt
+   * @param {number} castleDepth
+   * @param {number} facadeSpan
+   * @param {number} towerSpan
+   * @param {number} wallHeight
+   * @param {number} battlementPeriod
+   * @param {Array} wallWings
+   */
   #buildCastleWallShell(
     addBlock,
     openingAt,
@@ -185,6 +211,16 @@ export class CastleGeometryPlanner {
     }
   }
 
+  /**
+   *
+   * @param {(blockU: number, blockY: number, blockV: number, role?: string) => void} addBlock
+   * @param {import("src/game/GameContracts.js").CastleOpening} opening
+   * @param {number} castleDepth
+   * @param {number} facadeSpan
+   * @param {number} wallHeight
+   * @param {number} battlementPeriod
+   * @param {number} openingAt
+   */
   #buildCastleAudienceWing(
     addBlock,
     opening,
@@ -259,6 +295,15 @@ export class CastleGeometryPlanner {
     return interiorWidth;
   }
 
+  /**
+   *
+   * @param {(blockU: number, blockY: number, blockV: number, role?: string) => void} addBlock
+   * @param {number} roomStart
+   * @param {number} roomEnd
+   * @param {number} castleDepth
+   * @param {number} wallHeight
+   * @param {number} battlementPeriod
+   */
   #buildCastleAudienceRoof(
     addBlock,
     roomStart,
@@ -282,6 +327,17 @@ export class CastleGeometryPlanner {
     }
   }
 
+  /**
+   *
+   * @param {(blockU: number, blockY: number, blockV: number, role?: string) => void} addBlock
+   * @param {number} startU
+   * @param {number} startV
+   * @param {number} spanU
+   * @param {number} spanV
+   * @param {number} baseBlockY
+   * @param {number} bodyHeight
+   * @param {number} battlementPeriod
+   */
   #buildCastleTower(
     addBlock,
     startU,
@@ -353,6 +409,22 @@ export class CastleGeometryPlanner {
     }
   }
 
+  /**
+   *
+   * @param {(blockU: number, blockY: number, blockV: number, role?: string) => void} addBlock
+   * @param {(blockU: number, blockY: number, blockV: number, scaleU: number, scaleY: number, scaleV: number, role?: string) => void} addLocalBox
+   * @param {(blockU: number, blockY: number, blockV: number, scale?: number) => void} addFlame
+   * @param {(blockU: number, blockY: number, blockV: number, width: number, height: number, boundary?: string) => void} addBanner
+   * @param {(blockU: number, blockY: number, blockV: number, boundary?: string, roofCollider?: {x: number, y: number, z: number, width?: number, height?: number, depth?: number}|null) => void} addFlag
+   * @param {(blockU: number, blockY: number, blockV: number, width: number, depth: number, height: number, boundary?: string) => void} addRoof
+   * @param {import("src/game/GameContracts.js").CastleOpening} opening
+   * @param {number} castleDepth
+   * @param {number} facadeSpan
+   * @param {number} towerSpan
+   * @param {number} towerHeight
+   * @param {number} battlementPeriod
+   * @param {number} primaryStyle
+   */
   #buildCastleGatehouse(
     addBlock,
     addLocalBox,
@@ -379,6 +451,12 @@ export class CastleGeometryPlanner {
     );
     const roofDoorBase =
       (primaryStyle?.wallHeightBlocks ?? CASTLE_WALL_HEIGHT_BLOCKS) + 1;
+    /**
+     *
+     * @param {number} depth
+     * @param {number} horizontal
+     * @param {number} blockY
+     */
     const isRoofDoorOpening = (depth, horizontal, blockY) =>
       Boolean(primaryStyle) &&
       depth >= gateFaceDepth &&
@@ -387,6 +465,13 @@ export class CastleGeometryPlanner {
       horizontal < roofDoorStart + roofDoorWidth &&
       blockY >= roofDoorBase &&
       blockY < roofDoorBase + roofDoorHeight;
+    /**
+     *
+     * @param {number} depth
+     * @param {number} horizontal
+     * @param {number} blockY
+     * @param {string} role
+     */
     const placeBoundaryBlock = (depth, horizontal, blockY, role) => {
       if (opening.boundary === CASTLE_BOUNDARY.BACK) {
         addBlock(castleDepth - 1 - depth, blockY, horizontal, role);
@@ -398,6 +483,16 @@ export class CastleGeometryPlanner {
         addBlock(depth, blockY, horizontal, role);
       }
     };
+    /**
+     *
+     * @param {number} depth
+     * @param {number} horizontal
+     * @param {number} blockY
+     * @param {number} scaleDepth
+     * @param {number} scaleY
+     * @param {number} scaleHorizontal
+     * @param {string} role
+     */
     const placeBoundaryDecoration = (
       depth,
       horizontal,
@@ -449,6 +544,13 @@ export class CastleGeometryPlanner {
         );
       }
     };
+    /**
+     *
+     * @param {number} depth
+     * @param {number} horizontal
+     * @param {number} blockY
+     * @param {number} scale
+     */
     const placeBoundaryFlame = (depth, horizontal, blockY, scale = 1) => {
       const horizontalLimit = [
         CASTLE_BOUNDARY.FRONT,
@@ -469,6 +571,12 @@ export class CastleGeometryPlanner {
         addFlame(depth, blockY, horizontal, scale);
       }
     };
+    /**
+     *
+     * @param {number} centerDepth
+     * @param {number} centerHorizontal
+     * @param {number} baseBlockY
+     */
     const placeBoundaryRoofFireTurret = (
       centerDepth,
       centerHorizontal,
@@ -536,6 +644,14 @@ export class CastleGeometryPlanner {
         1.05,
       );
     };
+    /**
+     *
+     * @param {number} depth
+     * @param {number} horizontal
+     * @param {number} blockY
+     * @param {number} width
+     * @param {number} height
+     */
     const placeBoundaryBanner = (depth, horizontal, blockY, width, height) => {
       const horizontalLimit = [
         CASTLE_BOUNDARY.FRONT,
@@ -570,6 +686,13 @@ export class CastleGeometryPlanner {
         addBanner(depth, blockY, horizontal, width, height, opening.boundary);
       }
     };
+    /**
+     *
+     * @param {number} depth
+     * @param {number} horizontal
+     * @param {number} blockY
+     * @param {null} roofCollider
+     */
     const placeBoundaryFlag = (
       depth,
       horizontal,
@@ -598,6 +721,15 @@ export class CastleGeometryPlanner {
         addFlag(depth, blockY, horizontal, opening.boundary, roofCollider);
       }
     };
+    /**
+     *
+     * @param {number} depth
+     * @param {number} horizontal
+     * @param {number} blockY
+     * @param {number} width
+     * @param {number} roofDepth
+     * @param {number} height
+     */
     const placeBoundaryRoof = (
       depth,
       horizontal,

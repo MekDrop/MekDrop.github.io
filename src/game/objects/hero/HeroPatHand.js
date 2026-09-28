@@ -10,18 +10,71 @@ const PAT_CONTACT_TIMES = [
 ];
 
 export class HeroPatHand {
+  /**
+   *
+    * @type {import("playcanvas").Entity}
+   */
   #entity;
+  /**
+   *
+    * @type {string}
+   */
   #model;
+  /**
+   *
+    * @type {{x: number, y: number, z: number}}
+   */
   #animationLayer;
+  /**
+   *
+    * @type {{x: number, y: number, z: number}}
+   */
   #animationDuration;
+  /**
+   *
+    * @type {number}
+   */
   #contactSource;
+  /**
+   *
+    * @type {number}
+   */
   #contactCollider;
+  /**
+   *
+    * @type {number}
+   */
   #elapsed = 0;
+  /**
+   *
+    * @type {number}
+   */
   #contactIndex = 0;
+  /**
+   *
+    * @type {() => {x: number, y: number, z: number}}
+   */
   #getPatPosition;
+  /**
+   *
+    * @type {() => number}
+   */
   #getViewRotation;
+  /**
+   *
+    * @type {() => void}
+   */
   #onContact;
 
+  /**
+   *
+   * @param {{pc: typeof import("playcanvas"), modelLibrary: import("src/game/models/GameModelLibrary.js").GameModelLibrary, getPatPosition: () => {x: number, y: number, z: number}, getViewRotation: () => number, onContact: () => void}} options
+   * @param {typeof import("playcanvas")} options.pc
+   * @param {import("src/game/models/GameModelLibrary.js").GameModelLibrary} options.modelLibrary
+   * @param {() => {x: number, y: number, z: number}} options.getPatPosition
+   * @param {() => number} options.getViewRotation
+   * @param {() => void} options.onContact
+   */
   constructor({
     pc,
     modelLibrary,
@@ -65,6 +118,10 @@ export class HeroPatHand {
     this.#entity.enabled = false;
   }
 
+  /**
+   *
+    * @returns {string}
+   */
   static get modelUrl() {
     return pattingHandModelUrl;
   }
@@ -88,6 +145,10 @@ export class HeroPatHand {
     return true;
   }
 
+  /**
+   *
+   * @param {number} deltaTime
+   */
   update(deltaTime) {
     if (!this.#entity.enabled) {
       return;
@@ -132,6 +193,10 @@ export class HeroPatHand {
     return true;
   }
 
+  /**
+   *
+   * @param {string} name
+   */
   #findModelEntity(name) {
     const pending = [this.#model];
     while (pending.length) {

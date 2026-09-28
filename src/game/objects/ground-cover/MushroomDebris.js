@@ -77,26 +77,114 @@ const FRAGMENT_SPECS = [
 ];
 
 export class MushroomDebris {
+  /**
+   *
+    * @type {typeof import("playcanvas")}
+   */
   #pc;
+  /**
+   *
+    * @type {import("playcanvas").Entity}
+   */
   #entity;
+  /**
+   *
+    * @type {MeshShatter}
+   */
   #meshShatter;
+  /**
+   *
+    * @type {string}
+   */
   #modelUrl;
+  /**
+   *
+    * @type {string}
+   */
   #variant;
+  /**
+   *
+    * @type {number}
+   */
   #scale;
+  /**
+   *
+    * @type {number}
+   */
   #rotation;
+  /**
+   *
+    * @type {number}
+   */
   #seed;
+  /**
+   *
+    * @type {Array<import("playcanvas").Entity>}
+   */
   #fragments = [];
+  /**
+   *
+    * @type {Map}
+   */
   #fragmentOrigins = new Map();
+  /**
+   *
+    * @type {Map}
+   */
   #collisionHandlers = new Map();
+  /**
+   *
+    * @type {Set}
+   */
   #pendingSettle = new Set();
+  /**
+   *
+    * @type {Set}
+   */
   #settledFragments = new Set();
+  /**
+   *
+    * @type {Array<import("playcanvas").Mesh>}
+   */
   #meshes = [];
+  /**
+   *
+    * @type {Array<import("playcanvas").Material>}
+   */
   #materials = [];
+  /**
+   *
+    * @type {Map}
+   */
   #materialClones = new Map();
+  /**
+   *
+    * @type {number}
+   */
   #elapsed = 0;
+  /**
+   *
+    * @type {boolean}
+   */
   #fading = false;
+  /**
+   *
+    * @type {boolean}
+   */
   #expired = false;
 
+  /**
+   *
+   * @param {{pc: typeof import("playcanvas"), app: import("playcanvas").Application, modelLibrary: string, modelUrl: string, variant: string, scale: number, rotation: number, seed: number}} options
+   * @param {typeof import("playcanvas")} options.pc
+   * @param {import("playcanvas").Application} options.app
+   * @param {string} options.modelLibrary
+   * @param {string} options.modelUrl
+   * @param {string} options.variant
+   * @param {number} options.scale
+   * @param {number} options.rotation
+   * @param {number} options.seed
+   */
   constructor({
     pc,
     app,
@@ -107,13 +195,21 @@ export class MushroomDebris {
     rotation = 0,
     seed = 0,
   }) {
+
     this.#pc = pc;
+
     this.#meshShatter = new MeshShatter({ pc, app, modelLibrary });
+
     this.#modelUrl = modelUrl;
+
     this.#variant = variant;
+
     this.#scale = scale;
+
     this.#rotation = rotation;
+
     this.#seed = seed;
+
     this.#entity = new pc.Entity(`${variant} mushroom fragments`);
   }
 
@@ -125,8 +221,16 @@ export class MushroomDebris {
     return this.#expired;
   }
 
+  /**
+   *
+    * @returns {Array<{id: import("playcanvas").Entity, x: number, y: number, z: number, radius: number, strength: number}>}
+   */
   get grassImpressionContacts() {
-    return [...this.#settledFragments].map((fragment) => {
+    return [...this.#settledFragments].map(/**
+     *
+     * @param {import("playcanvas").Entity} fragment
+     */
+    (fragment) => {
       const position = fragment.getPosition();
       const radius = fragment.collision.radius;
       return {
@@ -140,6 +244,12 @@ export class MushroomDebris {
     });
   }
 
+  /**
+   *
+   * @param {{directionX: number, directionZ: number}} options
+   * @param {number} options.directionX
+   * @param {number} options.directionZ
+   */
   burst({ directionX = 0, directionZ = 1 } = {}) {
     if (this.#fragments.length) {
       return false;
@@ -163,7 +273,12 @@ export class MushroomDebris {
     const rotationCosine = Math.cos(rotationRadians);
     const rotationSine = Math.sin(rotationRadians);
 
-    pieces.forEach((piece, index) => {
+    pieces.forEach(/**
+     *
+     * @param {import("src/game/objects/ObjectTypes.js").ShatterPiece} piece
+     * @param {number} index
+     */
+    (piece, index) => {
       const spec = FRAGMENT_SPECS[index % FRAGMENT_SPECS.length];
       const centroidX =
         piece.centroid.x * rotationCosine + piece.centroid.z * rotationSine;
@@ -227,9 +342,17 @@ export class MushroomDebris {
         spec.spin[1] * DEBRIS_SPIN_SCALE,
         spec.spin[2] * DEBRIS_SPIN_SCALE,
       );
+      /**
+       *
+       * @param {number} result
+       */
       const handleCollisionStart = (result) => {
         const touchesTerrain = result.other?.tags?.has(TERRAIN_TAG);
         const restsOnSurface = result.contacts?.some(
+          /**
+           *
+           * @param {number} contact
+           */
           (contact) => contact.normal.y >= MINIMUM_SETTLE_NORMAL_Y,
         );
         if (touchesTerrain && restsOnSurface) {
@@ -250,6 +373,10 @@ export class MushroomDebris {
     return true;
   }
 
+  /**
+   *
+   * @param {number} deltaTime
+   */
   advance(deltaTime) {
     if (!this.#fragments.length || this.#expired) {
       return;
@@ -329,6 +456,10 @@ export class MushroomDebris {
     }
   }
 
+  /**
+   *
+   * @param {import("playcanvas").Material} sourceMaterial
+   */
   #cloneMaterial(sourceMaterial) {
     if (this.#materialClones.has(sourceMaterial)) {
       return this.#materialClones.get(sourceMaterial);

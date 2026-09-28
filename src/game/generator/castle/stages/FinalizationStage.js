@@ -1,11 +1,19 @@
 import { AbstractCastleGenerationStage } from "../AbstractCastleGenerationStage.js";
 
 export class FinalizationStage extends AbstractCastleGenerationStage {
+  /**
+   *
+   * @param {CastleGenerationContext} context
+   */
   async run(context) {
     context.output.buildPlan = {
       input: {
         position: context.input.position ? { ...context.input.position } : null,
-        doors: context.input.doors.map((door) => ({ ...door })),
+        doors: context.input.doors.map(/**
+         *
+         * @param {{side: string, offset: number, width: number, cells?: import("src/game/GameContracts.js").GridPoint[]}} door
+         */
+        (door) => ({ ...door })),
         requestedStyle: context.input.style,
       },
       layout: this.#clone(context.layout),
@@ -18,6 +26,10 @@ export class FinalizationStage extends AbstractCastleGenerationStage {
     };
   }
 
+  /**
+   *
+   * @param {number} value
+   */
   #clone(value) {
     return JSON.parse(JSON.stringify(value));
   }

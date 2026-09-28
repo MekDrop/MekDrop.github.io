@@ -19,20 +19,65 @@ const VEGETATION_TYPES = Object.freeze({
 const MINIMUM_FACING_DOT = Math.cos((50 * Math.PI) / 180);
 
 export class VoxelVegetation {
+  /**
+   *
+    * @returns {Array<string>}
+   */
   static get modelUrls() {
     return Object.values(VEGETATION_TYPES).map(
+      /**
+       *
+       * @param {typeof import("./DestructibleVegetation.js").DestructibleVegetation} VegetationType
+       */
       (VegetationType) => VegetationType.modelUrl,
     );
   }
 
+  /**
+   *
+    * @type {import("playcanvas").Entity}
+   */
   #entity;
+  /**
+   *
+    * @type {Array<{item: import("./DestructibleVegetation.js").DestructibleVegetation, col: number, row: number, rotation: number}>}
+   */
   #items = [];
+  /**
+   *
+    * @type {Array<VegetationDirtPatch>}
+   */
   #dirtPatches = [];
+  /**
+   *
+    * @type {typeof import("playcanvas")}
+   */
   #pc;
+  /**
+   *
+    * @type {import("playcanvas").Application}
+   */
   #app;
+  /**
+   *
+    * @type {import("playcanvas").Entity}
+   */
   #tool = null;
+  /**
+   *
+    * @type {({col, row, kind}: {col: number, row: number, kind: string}) => void}
+   */
   #onVegetationRemoved;
 
+  /**
+   *
+   * @param {{pc: typeof import("playcanvas"), app: import("playcanvas").Application, definitions: Array<{id: string, variant: string, position: {x: number, y: number, z: number}, tile: {col: number, row: number}, rotation?: number}>, modelLibrary: import("../../models/GameModelLibrary.js").GameModelLibrary, runtime: {onObjectRemoved?: (event: {object: string, tile: {col: number, row: number}, kind: string}) => void}}} options
+   * @param {typeof import("playcanvas")} options.pc
+   * @param {import("playcanvas").Application} options.app
+   * @param {Array<{id: string, variant: string, position: {x: number, y: number, z: number}, tile: {col: number, row: number}, rotation?: number}>} options.definitions
+   * @param {import("../../models/GameModelLibrary.js").GameModelLibrary} options.modelLibrary
+   * @param {{onObjectRemoved?: (event: {object: string, tile: {col: number, row: number}, kind: string}) => void}} options.runtime
+   */
   constructor({
     pc,
     app,
@@ -40,9 +85,19 @@ export class VoxelVegetation {
     modelLibrary,
     runtime = {},
   }) {
+
     this.#entity = new pc.Entity("Voxel vegetation");
+
     this.#pc = pc;
+
     this.#app = app;
+    /**
+     *
+     * @param {{col: number, row: number, kind: string}} options
+     * @param {number} options.col
+     * @param {number} options.row
+     * @param {string} options.kind
+     */
     this.#onVegetationRemoved = ({ col, row, kind }) =>
       runtime.onObjectRemoved?.({
         object: "Vegetation",
@@ -78,18 +133,34 @@ export class VoxelVegetation {
     return this.#entity;
   }
 
+  /**
+   *
+    * @returns {boolean}
+   */
   get isGroundCollider() {
     return true;
   }
 
+  /**
+   *
+    * @returns {boolean}
+   */
   get physicsSurface() {
     return false;
   }
 
+  /**
+   *
+    * @returns {string}
+   */
   get toolName() {
     return "AxeTool";
   }
 
+  /**
+   *
+    * @returns {Array<import("playcanvas").Entity>}
+   */
   get visualRoots() {
     return [this.#entity];
   }
@@ -98,6 +169,15 @@ export class VoxelVegetation {
     this.#tool = tool;
   }
 
+  /**
+   *
+   * @param {{hero: import("src/game/objects/ObjectTypes.js").HeroLike, onChange: (value: import("src/game/objects/ObjectTypes.js").InteractionLike|null) => void, onComplete: () => void, reach: number, heightTolerance: number}} options
+   * @param {import("src/game/objects/ObjectTypes.js").HeroLike} options.hero
+   * @param {(value: import("src/game/objects/ObjectTypes.js").InteractionLike|null) => void} options.onChange
+   * @param {() => void} options.onComplete
+   * @param {number} options.reach
+   * @param {number} options.heightTolerance
+   */
   findInteraction({
     hero,
     onChange = null,
@@ -142,6 +222,10 @@ export class VoxelVegetation {
           tool: this.#tool,
           onChange,
           onComplete,
+          /**
+           *
+           * @param {string} description
+           */
           onDestroyed: (description) => {
             this.#leaveDirtPatch(description, closest.rotation);
             this.#onVegetationRemoved({
@@ -154,25 +238,61 @@ export class VoxelVegetation {
       : null;
   }
 
+  /**
+   *
+   * @param {number} x
+   * @param {number} z
+   * @param {number} radius
+   */
   intersectsGroundFootprint(x, z, radius = 0) {
-    return this.#items.some(({ item }) =>
+    return this.#items.some(/**
+     *
+     * @param {{item: import("./DestructibleVegetation.js").DestructibleVegetation}} options
+     * @param {import("./DestructibleVegetation.js").DestructibleVegetation} options.item
+     */
+    ({ item }) =>
       item.intersectsGroundFootprint(x, z, radius),
     );
   }
 
+  /**
+   *
+   * @param {number} x
+   * @param {number} z
+   * @param {number} elevation
+   */
   grassWeightAt(x, z, elevation) {
     const vegetationWeight = this.#items.reduce(
+      /**
+       *
+       * @param {number} weight
+       * @param {{item: import("./DestructibleVegetation.js").DestructibleVegetation}} options
+       * @param {import("./DestructibleVegetation.js").DestructibleVegetation} options.item
+       */
       (weight, { item }) =>
         Math.max(weight, item.grassWeightAt(x, z, elevation)),
       0,
     );
     return this.#dirtPatches.reduce(
+      /**
+       *
+       * @param {number} weight
+       * @param {import("./VegetationDirtPatch.js").VegetationDirtPatch} patch
+       */
       (weight, patch) =>
         Math.max(weight, patch.grassWeightAt(x, z, elevation)),
       vegetationWeight,
     );
   }
 
+  /**
+   *
+   * @param {number} x
+   * @param {number} z
+   * @param {number} radius
+   * @param {number} elevation
+   * @param {number} stepClearance
+   */
   blocksMovementAt(
     x,
     z,
@@ -191,6 +311,14 @@ export class VoxelVegetation {
     );
   }
 
+  /**
+   *
+   * @param {number} x
+   * @param {number} z
+   * @param {number} radius
+   * @param {number} elevation
+   * @param {number} stepClearance
+   */
   collisionDepthAt(
     x,
     z,
@@ -199,6 +327,12 @@ export class VoxelVegetation {
     stepClearance = 0,
   ) {
     return this.#items.reduce(
+      /**
+       *
+       * @param {number} total
+       * @param {{item: import("./DestructibleVegetation.js").DestructibleVegetation}} options
+       * @param {import("./DestructibleVegetation.js").DestructibleVegetation} options.item
+       */
       (total, { item }) =>
         total +
         item.collisionDepthAt(
@@ -212,6 +346,14 @@ export class VoxelVegetation {
     );
   }
 
+  /**
+   *
+   * @param {number} x
+   * @param {number} z
+   * @param {number} radius
+   * @param {number} elevation
+   * @param {number} stepClearance
+   */
   movementCollisionDepthAt(
     x,
     z,
@@ -220,6 +362,12 @@ export class VoxelVegetation {
     stepClearance = 0,
   ) {
     return this.#items.reduce(
+      /**
+       *
+       * @param {number} total
+       * @param {{item: import("./DestructibleVegetation.js").DestructibleVegetation}} options
+       * @param {import("./DestructibleVegetation.js").DestructibleVegetation} options.item
+       */
       (total, { item }) =>
         total +
         item.movementCollisionDepthAt(
@@ -233,6 +381,12 @@ export class VoxelVegetation {
     );
   }
 
+  /**
+   *
+   * @param {number} x
+   * @param {number} z
+   * @param {number} radius
+   */
   surfaceHeightAt(x, z, radius = 0) {
     let highestSurface = null;
     for (const { item } of this.#items) {
@@ -258,6 +412,16 @@ export class VoxelVegetation {
     this.#app = null;
   }
 
+  /**
+   *
+   * @param {{id: string, groundFootprint: {width: number, depth: number, offsetX?: number, offsetZ?: number}, x: number, y: number, z: number}} options
+   * @param {string} options.id
+   * @param {{width: number, depth: number, offsetX?: number, offsetZ?: number}} options.groundFootprint
+   * @param {number} options.x
+   * @param {number} options.y
+   * @param {number} options.z
+   * @param {number} rotation
+   */
   #leaveDirtPatch({ id, groundFootprint, x, y, z }, rotation) {
     const patch = new VegetationDirtPatch({
       pc: this.#pc,

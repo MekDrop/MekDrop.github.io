@@ -21,10 +21,25 @@ const QUASAR_COLOR_ROLES = [
 ];
 
 class GameUiTheme {
+  /**
+   * @type {Map}
+   */
   #colors = new Map();
+  /**
+   * @type {string|null}
+   */
   #fontFamily;
+  /**
+   * @type {number|null}
+   */
   #borderRadius;
+  /**
+   * @type {Map}
+   */
   #spacing = new Map();
+  /**
+   * @type {boolean}
+   */
   #initialized = false;
 
   #initialize() {
@@ -76,126 +91,220 @@ class GameUiTheme {
     this.#initialized = true;
   }
 
+  /**
+   * @returns {string}
+   */
   get surfaceTop() {
     return this.#hex("surfaceTop");
   }
 
+  /**
+   * @returns {string}
+   */
   get surfaceBottom() {
     return this.#hex("surfaceBottom");
   }
 
+  /**
+   * @returns {string}
+   */
   get surfaceInsetTop() {
     return this.#hex("surfaceInsetTop");
   }
 
+  /**
+   * @returns {string}
+   */
   get surfaceInsetBottom() {
     return this.#hex("surfaceInsetBottom");
   }
 
+  /**
+   * @returns {string}
+   */
   get surfaceRaisedTop() {
     return this.#hex("surfaceRaisedTop");
   }
 
+  /**
+   * @returns {string}
+   */
   get surfaceRaisedBottom() {
     return this.#hex("surfaceRaisedBottom");
   }
 
+  /**
+   * @returns {string}
+   */
   get outline() {
     return this.#hex("outline");
   }
 
+  /**
+   * @returns {string}
+   */
   get outlineStrong() {
     return this.#hex("outlineStrong");
   }
 
+  /**
+   * @returns {string}
+   */
   get text() {
     return this.#hex("text");
   }
 
+  /**
+   * @returns {string}
+   */
   get textMuted() {
     return this.#hex("textMuted");
   }
 
+  /**
+   * @returns {string}
+   */
   get textSubtle() {
     return this.#hex("textSubtle");
   }
 
+  /**
+   * @returns {string}
+   */
   get shadow() {
     return this.#hex("shadow");
   }
 
+  /**
+   * @returns {string}
+   */
   get backdrop() {
     return this.#hex("backdrop");
   }
 
+  /**
+   * @returns {string}
+   */
   get positive() {
     return this.#hex("positive");
   }
 
+  /**
+   * @returns {string}
+   */
   get negative() {
     return this.#hex("negative");
   }
 
+  /**
+   * @returns {string}
+   */
   get negativeBright() {
     return this.#hex("negativeBright");
   }
 
+  /**
+   * @returns {string}
+   */
   get negativeDark() {
     return this.#hex("negativeDark");
   }
 
+  /**
+   * @returns {string}
+   */
   get info() {
     return this.#hex("info");
   }
 
+  /**
+   * @returns {string}
+   */
   get warning() {
     return this.#hex("warning");
   }
 
+  /**
+   * @returns {string}
+   */
   get fontFamily() {
     this.#initialize();
     return this.#fontFamily;
   }
 
+  /**
+   * @returns {number}
+   */
   get borderRadius() {
     this.#initialize();
     return this.#borderRadius;
   }
 
+  /**
+   * @returns {number}
+   */
   get spaceXs() {
     this.#initialize();
     return this.#spacing.get("xs");
   }
 
+  /**
+   * @returns {number}
+   */
   get spaceSm() {
     this.#initialize();
     return this.#spacing.get("sm");
   }
 
+  /**
+   * @returns {number}
+   */
   get spaceMd() {
     this.#initialize();
     return this.#spacing.get("md");
   }
 
+  /**
+   * @returns {number}
+   */
   get spaceLg() {
     this.#initialize();
     return this.#spacing.get("lg");
   }
 
+  /**
+   * @returns {number}
+   */
   get spaceXl() {
     this.#initialize();
     return this.#spacing.get("xl");
   }
 
+  /**
+   *
+   * @param {number|string} weight
+   * @param {number} size
+   */
   font(weight, size) {
     return `${weight} ${size}px ${this.fontFamily}`;
   }
 
+  /**
+   *
+   * @param {import("playcanvas").Color|string} color
+   * @param {number} alpha
+   */
   withAlpha(color, alpha) {
     const { red, green, blue } = this.#parseColor(color, "runtime color");
     return `rgba(${red}, ${green}, ${blue}, ${this.#clamp(alpha, 0, 1)})`;
   }
 
+  /**
+   *
+   * @param {typeof import("playcanvas")} pc
+   * @param {import("playcanvas").Color|string} color
+   * @param {number} alpha
+   */
   playCanvasColor(pc, color, alpha = 1) {
     const value = this.#parseColor(color, "runtime color");
     return new pc.Color(
@@ -206,22 +315,45 @@ class GameUiTheme {
     );
   }
 
+  /**
+   *
+   * @param {string} name
+   * @param {import("playcanvas").Color|string} color
+   */
   #set(name, color) {
     this.#colors.set(name, color);
   }
 
+  /**
+   *
+   * @param {string} name
+   */
   #get(name) {
     return this.#colors.get(name);
   }
 
+  /**
+   *
+   * @param {string} name
+   */
   #hex(name) {
     this.#initialize();
     const { red, green, blue } = this.#get(name);
     return `#${[red, green, blue]
-      .map((component) => component.toString(16).padStart(2, "0"))
+      .map(/**
+       *
+       * @param {number} component
+       */
+      (component) => component.toString(16).padStart(2, "0"))
       .join("")}`;
   }
 
+  /**
+   *
+   * @param {import("playcanvas").Color} first
+   * @param {import("playcanvas").Color} second
+   * @param {number} amount
+   */
   #mix(first, second, amount) {
     const weight = this.#clamp(amount, 0, 1);
     return {
@@ -231,8 +363,17 @@ class GameUiTheme {
     };
   }
 
+  /**
+   *
+   * @param {import("playcanvas").Color|string} color
+   * @param {number} amount
+   */
   #shade(color, amount) {
     const weight = this.#clamp(amount, -1, 1);
+    /**
+     *
+     * @param {number} component
+     */
     const nextComponent = (component) =>
       weight < 0
         ? component * (1 + weight)
@@ -244,6 +385,10 @@ class GameUiTheme {
     };
   }
 
+  /**
+   *
+   * @param {string} role
+   */
   #parsePaletteRole(role) {
     const variable = role === "darkPage" ? "dark-page" : role;
     const value = getCssVar(variable);
@@ -265,6 +410,10 @@ class GameUiTheme {
     return this.#parsePixelToken("border-radius");
   }
 
+  /**
+   *
+   * @param {string} token
+   */
   #parsePixelToken(token) {
     const value = this.#token(token);
     if (value === null || value === undefined || String(value).trim() === "") {
@@ -282,6 +431,10 @@ class GameUiTheme {
     return length;
   }
 
+  /**
+   *
+   * @param {string} name
+   */
   #token(name) {
     return window
       .getComputedStyle(document.documentElement)
@@ -289,6 +442,11 @@ class GameUiTheme {
       .trim();
   }
 
+  /**
+   *
+   * @param {number|string} value
+   * @param {string} role
+   */
   #parseColor(value, role) {
     if (isNumber(value)) {
       return {
@@ -305,7 +463,11 @@ class GameUiTheme {
         hex.length === 3
           ? hex
               .split("")
-              .map((character) => character + character)
+              .map(/**
+               *
+               * @param {string} character
+               */
+              (character) => character + character)
               .join("")
           : hex;
       return {
@@ -329,12 +491,22 @@ class GameUiTheme {
     throw new InvalidGameUiThemeColorError({ role, value });
   }
 
+  /**
+   *
+   * @param {number} value
+   */
   #srgbToLinear(value) {
     return value <= 0.04045
       ? value / 12.92
       : ((value + 0.055) / 1.055) ** 2.4;
   }
 
+  /**
+   *
+   * @param {number} value
+   * @param {number} minimum
+   * @param {number} maximum
+   */
   #clamp(value, minimum, maximum) {
     return Math.min(maximum, Math.max(minimum, value));
   }

@@ -2,12 +2,30 @@ import { AbstractCameraMode } from "./AbstractCameraMode.js";
 import { CameraPanBounds } from "../../camera/CameraPanBounds.js";
 
 export class IsometricCameraMode extends AbstractCameraMode {
+  /**
+   *
+   * @type {boolean}
+   */
   #panLimitsEnabled = true;
+  /**
+   *
+   * @type {CameraPanBounds|null}
+   */
   #panBounds = null;
 
+  /**
+   *
+   * @param {GameCamera} gameCamera
+   * @param {{mapData: import("src/game/GameContracts.js").GameMapData}} options
+   * @param {import("src/game/GameContracts.js").GameMapData} options.mapData
+   */
   constructor(gameCamera, { mapData } = {}) {
     super(gameCamera);
     if (mapData) {
+      /**
+       *
+       * @type {CameraPanBounds}
+       */
       this.#panBounds = new CameraPanBounds(mapData);
     }
   }
@@ -24,6 +42,10 @@ export class IsometricCameraMode extends AbstractCameraMode {
     return this.#panBounds;
   }
 
+  /**
+   *
+   * @param {import("src/game/GameContracts.js").GameMapData} mapData
+   */
   reset(mapData) {
     this.#panBounds = new CameraPanBounds(mapData);
   }
@@ -33,6 +55,12 @@ export class IsometricCameraMode extends AbstractCameraMode {
     gameCamera.component.projection = gameCamera.playCanvas.PROJECTION_ORTHOGRAPHIC;
   }
 
+  /**
+   *
+   * @param {{cameraDistance: number, cameraPitch: number}} options
+   * @param {number} options.cameraDistance
+   * @param {number} options.cameraPitch
+   */
   update({ cameraDistance, cameraPitch }) {
     const { gameCamera } = this;
     const yaw = Math.PI / 4 + gameCamera.rotation * (Math.PI / 2);

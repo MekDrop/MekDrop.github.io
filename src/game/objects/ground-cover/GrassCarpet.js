@@ -10,21 +10,67 @@ const BASE_FADE_END_ZOOM = 1.22;
 const DETAIL_FADE_START_ZOOM = 1.5;
 const DETAIL_FADE_END_ZOOM = 2.25;
 
+/**
+ *
+ * @param {number} zoom
+ * @param {number} start
+ * @param {number} end
+ */
 function revealAtZoom(zoom, start, end) {
   const progress = Math.max(0, Math.min(1, (zoom - start) / (end - start)));
   return progress * progress * (3 - 2 * progress);
 }
 
 export class GrassCarpet {
+  /**
+   *
+    * @returns {Array<string>}
+   */
   static get modelUrls() {
     return [meadowGrassModelUrl, cloverModelUrl];
   }
 
+  /**
+   *
+    * @type {import("playcanvas").Entity}
+   */
   #entity;
+  /**
+   *
+    * @type {import("playcanvas").StandardMaterial}
+   */
   #material;
+  /**
+   *
+    * @type {import("playcanvas").Texture}
+   */
   #variantMap;
+  /**
+   *
+    * @type {Array<{
+    *   entity: import("playcanvas").Entity,
+    *   vertexBuffer: import("playcanvas").VertexBuffer,
+    *   placements: Array<{x: number, y: number, z: number}>,
+    *   detail: boolean,
+    *   castleRearGrass: boolean
+    * }>}
+   */
   #batches = [];
 
+  /**
+   *
+   * @param {{pc: typeof import("playcanvas"), device: import("playcanvas").GraphicsDevice, mapData: {cols: number, rows: number, heightmap: Array<Array<number>>}, modelLibrary: import("../../models/GameModelLibrary.js").GameModelLibrary, tileColors: Array<Array<number>>, variantForTile: (col: number, row: number, height: number) => number, zoom: number}} options
+   * @param {typeof import("playcanvas")} options.pc
+   * @param {import("playcanvas").GraphicsDevice} options.device
+   * @param {{cols: number, rows: number, heightmap: Array<Array<number>>}} options.mapData
+   * @param {number} options.mapData.cols
+   * @param {number} options.mapData.rows
+   * @param {Array<Array<number>>} options.mapData.heightmap
+   * @param {import("../../models/GameModelLibrary.js").GameModelLibrary} options.modelLibrary
+   * @param {Array<Array<number>>} options.tileColors
+   * @param {(col: number, row: number, height: number) => number} options.variantForTile
+   * @param {number} options.zoom
+   */
   constructor({
     pc,
     device,
@@ -34,6 +80,7 @@ export class GrassCarpet {
     variantForTile,
     zoom = 1,
   }) {
+
     this.#variantMap = new pc.Texture(device, {
       name: "Grass tile variants",
       width: mapData.cols,
@@ -58,7 +105,9 @@ export class GrassCarpet {
       }
     }
     this.#variantMap.unlock();
+
     this.#entity = new pc.Entity("Short grass carpet");
+
     this.#material = new pc.StandardMaterial();
     this.#material.name = "Short living grass";
     this.#material.gloss = 0;
@@ -166,6 +215,7 @@ export class GrassCarpet {
         castleRearGrass: chunk.castleRearGrass,
       });
     }
+
     this.zoom = zoom;
   }
 
@@ -203,10 +253,23 @@ export class GrassCarpet {
     return this.#material;
   }
 
+  /**
+   *
+   * @param {{x: number, y: number, z: number}} options
+   * @param {number} options.x
+   * @param {number} options.y
+   * @param {number} options.z
+   * @param {number} radius
+   */
   clearAt({ x, y, z }, radius = 0.65) {
     for (const { vertexBuffer, placements } of this.#batches) {
       const indices = [];
-      placements.forEach((placement, index) => {
+      placements.forEach(/**
+       *
+       * @param {{x: number, y: number, z: number}} placement
+       * @param {number} index
+       */
+      (placement, index) => {
         if (
           Math.abs(placement.y - y) < 0.25 &&
           Math.hypot(placement.x - x, placement.z - z) < radius
@@ -227,6 +290,14 @@ export class GrassCarpet {
     }
   }
 
+  /**
+   *
+   * @param {{x: number, y: number, z: number}} options
+   * @param {number} options.x
+   * @param {number} options.y
+   * @param {number} options.z
+   * @param {number} radius
+   */
   supportPointsWithin({ x, y, z }, radius) {
     const points = [];
     for (const { placements } of this.#batches) {

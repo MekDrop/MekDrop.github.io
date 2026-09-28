@@ -17,15 +17,53 @@ const TIME_EPSILON = 0.0000001;
  * Produces deterministic Yuka poses for a royal's authored walk-out route.
  */
 export class RoyalGameOverRouteFollower {
+  /**
+   *
+    * @type {ArriveBehavior}
+   */
   #arrive;
+  /**
+   *
+    * @type {number}
+   */
   #duration;
+  /**
+   *
+    * @type {FollowPathBehavior}
+   */
   #followPath;
+  /**
+   *
+    * @type {{x: number, y: number, z: number}}
+   */
   #lastWaypoint;
+  /**
+   *
+    * @type {Vector3}
+   */
   #orientationTarget = new Vector3();
+  /**
+   *
+    * @type {Path}
+   */
   #path;
+  /**
+   *
+    * @type {number}
+   */
   #simulatedTime = 0;
+  /**
+   *
+    * @type {Vehicle}
+   */
   #vehicle;
 
+  /**
+   *
+   * @param {{waypoints: Array<{x: number, y: number, z: number}>, duration: number}} options
+   * @param {Array<{x: number, y: number, z: number}>} options.waypoints
+   * @param {number} options.duration
+   */
   constructor({ waypoints, duration }) {
     this.#duration = Math.max(0, duration);
     this.#path = new Path();
@@ -69,6 +107,10 @@ export class RoyalGameOverRouteFollower {
     this.#primeOrientation();
   }
 
+  /**
+   *
+    * @returns {{position: import("src/game/objects/ObjectTypes.js").Point3, rotation: import("playcanvas").Quat}}
+   */
   get pose() {
     const { position, rotation } = this.#vehicle;
     return {
@@ -82,6 +124,10 @@ export class RoyalGameOverRouteFollower {
     };
   }
 
+  /**
+   *
+   * @param {number} progress
+   */
   advance(progress) {
     const normalizedProgress = Math.max(0, Math.min(1, progress));
     const targetTime = normalizedProgress * this.#duration;
@@ -111,6 +157,10 @@ export class RoyalGameOverRouteFollower {
     this.#orientFrom(desiredVelocity);
   }
 
+  /**
+   *
+   * @param {number} deltaTime
+   */
   #step(deltaTime) {
     if (this.#path.finished()) {
       this.#followPath.active = false;
@@ -120,6 +170,10 @@ export class RoyalGameOverRouteFollower {
     this.#orientFrom(this.#vehicle.velocity);
   }
 
+  /**
+   *
+   * @param {{x: number, y: number, z: number}} direction
+   */
   #orientFrom(direction) {
     if (direction.x * direction.x + direction.z * direction.z <= TIME_EPSILON) {
       return;

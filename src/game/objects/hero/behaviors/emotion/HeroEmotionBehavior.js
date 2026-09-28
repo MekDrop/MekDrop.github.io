@@ -13,17 +13,55 @@ const AGITATION_THRESHOLD = 5;
 const SNAP_THRESHOLD = 9;
 
 export class HeroEmotionBehavior {
+  /**
+   *
+    * @type {import("../../../../buffs/BuffSystem.js").BuffSystem}
+   */
   #buffs;
+  /**
+   *
+    * @type {string}
+   */
   #stateMachine;
+  /**
+   *
+    * @type {number}
+   */
   #context;
+  /**
+   *
+    * @type {boolean}
+   */
   #wasOverstimulated = false;
+  /**
+   *
+    * @type {number}
+   */
   #sincePat = Infinity;
+  /**
+   *
+    * @type {number}
+   */
   #sinceProvoked = Infinity;
+  /**
+   *
+    * @type {number}
+   */
   #elapsed = 0;
+  /**
+   *
+    * @type {number}
+   */
   #reactionRevision = 0;
 
+  /**
+   *
+   * @param {import("../../../../buffs/BuffSystem.js").BuffSystem} buffs
+   */
   constructor(buffs) {
+
     this.#buffs = buffs;
+
     this.#context = {
       refreshAnger: () => {
         const state = this.#stateMachine.currentState;
@@ -31,9 +69,11 @@ export class HeroEmotionBehavior {
         this.#buffs.apply(HERO_BUFF.OVERSTIMULATED, {
           duration: ANGRY_DURATION + (state.level - 1) * ANGER_LEVEL_DURATION,
         });
+
         this.#wasOverstimulated = true;
       },
     };
+
     this.#stateMachine = new StateMachine(this.#context);
     this.#stateMachine
       .add(HERO_MOOD.CALM, new State())
@@ -43,6 +83,10 @@ export class HeroEmotionBehavior {
     this.#stateMachine.changeTo(HERO_MOOD.CALM);
   }
 
+  /**
+   *
+    * @returns {string}
+   */
   get state() {
     const overstimulated = this.#buffs.remaining(HERO_BUFF.OVERSTIMULATED);
     const happyRemaining = this.#buffs.remaining(HERO_BUFF.AFFECTION);
@@ -80,6 +124,10 @@ export class HeroEmotionBehavior {
     };
   }
 
+  /**
+   *
+    * @returns {boolean}
+   */
   get acceptsActions() {
     return this.#stateMachine.currentState.acceptsActions ?? true;
   }
@@ -135,6 +183,10 @@ export class HeroEmotionBehavior {
     };
   }
 
+  /**
+   *
+   * @param {number} deltaTime
+   */
   advance(deltaTime) {
     if (!Number.isFinite(deltaTime) || deltaTime <= 0) {
       return;
@@ -181,10 +233,18 @@ export class HeroEmotionBehavior {
     this.#changeState(HERO_MOOD.CALM);
   }
 
+  /**
+   *
+    * @returns {number}
+   */
   get #pressure() {
     return this.#stateMachine.currentState.pressure ?? 0;
   }
 
+  /**
+   *
+   * @param {number} pressure
+   */
   #updateState(pressure) {
     let kind;
     if (this.#buffs.has(HERO_BUFF.OVERSTIMULATED)) {
@@ -204,6 +264,10 @@ export class HeroEmotionBehavior {
     this.#stateMachine.update();
   }
 
+  /**
+   *
+   * @param {string} kind
+   */
   #changeState(kind) {
     if (!this.#stateMachine.in(kind)) {
       this.#stateMachine.changeTo(kind);

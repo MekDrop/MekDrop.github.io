@@ -1,19 +1,56 @@
 export class GameCommandRegistry {
+  /**
+   *
+   * @type {typeof globalThis}
+   */
   #target;
+  /**
+   *
+   * @type {Map}
+   */
   #commands = new Map();
+  /**
+   *
+   * @type {Map}
+   */
   #installedProperties = new Map();
+  /**
+   *
+   * @type {boolean}
+   */
   #installed = false;
 
+  /**
+   *
+   * @param {typeof globalThis} target
+   */
   constructor(target = globalThis) {
+    /**
+     *
+     * @type {typeof globalThis}
+     */
     this.#target = target;
   }
 
+  /**
+   *
+   * @returns {Array}
+   */
   get commands() {
-    return [...this.#commands.values()].sort((left, right) =>
+    return [...this.#commands.values()].sort(/**
+     *
+     * @param {{name: string}} left
+     * @param {{name: string}} right
+     */
+    (left, right) =>
       left.name.localeCompare(right.name),
     );
   }
 
+  /**
+   *
+   * @param {string} command
+   */
   register(command) {
     if (!command?.name || this.#commands.has(command.name)) {
       return false;
@@ -51,6 +88,10 @@ export class GameCommandRegistry {
     this.#installed = false;
   }
 
+  /**
+   *
+   * @param {string} command
+   */
   #installCommand(command) {
     const previous = Object.getOwnPropertyDescriptor(
       this.#target,
@@ -59,6 +100,10 @@ export class GameCommandRegistry {
     if (previous && !previous.configurable) {
       return;
     }
+    /**
+     *
+     * @param {...(string|number|boolean)} parameters
+     */
     const invocation = (...parameters) => command.execute(...parameters);
     Object.defineProperty(this.#target, command.name, {
       configurable: true,

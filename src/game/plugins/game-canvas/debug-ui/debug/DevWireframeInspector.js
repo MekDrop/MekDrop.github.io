@@ -4,29 +4,125 @@ import { POINTER_TYPE } from "../../../../enum/PointerType.js";
 const ALT_KEYS = new Set(["Alt", "AltLeft", "AltRight"]);
 
 export class DevWireframeInspector {
+  /**
+   *
+   * @type {typeof pc}
+   */
   #pc;
+  /**
+   *
+   * @type {pc.Application}
+   */
   #app;
+  /**
+   *
+   * @type {HTMLCanvasElement}
+   */
   #canvas;
+  /**
+   *
+   * @type {pc.Entity}
+   */
   #camera;
+  /**
+   *
+   * @type {pc.Picker}
+   */
   #picker;
+  /**
+   *
+   * @type {pc.StandardMaterial}
+   */
   #solidMaterial;
+  /**
+   *
+   * @type {pc.StandardMaterial}
+   */
   #wireframeMaterial;
+  /**
+   *
+   * @type {null}
+   */
   #pointer = null;
+  /**
+   *
+   * @type {null}
+   */
   #coordinatePrintPointer = null;
+  /**
+   *
+   * @type {boolean}
+   */
   #altPressed = false;
+  /**
+   *
+   * @type {null}
+   */
   #selection = null;
+  /**
+   *
+   * @type {null}
+   */
   #frameRequest = null;
+  /**
+   *
+   * @type {boolean}
+   */
   #pickInProgress = false;
+  /**
+   *
+   * @type {boolean}
+   */
   #pickPending = false;
+  /**
+   *
+   * @type {number}
+   */
   #generation = 0;
+  /**
+   *
+   * @type {boolean}
+   */
   #connected = false;
 
+  /**
+   *
+   * @param {{pc: typeof pc, app: pc.Application, canvas: HTMLCanvasElement, camera: pc.Entity}} options
+   * @param {typeof pc} options.pc
+   * @param {pc.Application} options.app
+   * @param {HTMLCanvasElement} options.canvas
+   * @param {pc.Entity} options.camera
+   */
   constructor({ pc, app, canvas, camera }) {
+    /**
+     *
+     * @type {typeof pc}
+     */
     this.#pc = pc;
+    /**
+     *
+     * @type {pc.Application}
+     */
     this.#app = app;
+    /**
+     *
+     * @type {HTMLCanvasElement}
+     */
     this.#canvas = canvas;
+    /**
+     *
+     * @type {pc.Entity}
+     */
     this.#camera = camera;
+    /**
+     *
+     * @type {pc.Picker}
+     */
     this.#picker = new pc.Picker(app, 1, 1, true);
+    /**
+     *
+     * @type {pc.StandardMaterial}
+     */
     this.#solidMaterial = new pc.StandardMaterial();
     this.#solidMaterial.name = "Development mesh solid";
     this.#solidMaterial.diffuse = new pc.Color(0.015, 0.02, 0.025);
@@ -34,6 +130,10 @@ export class DevWireframeInspector {
     this.#solidMaterial.useLighting = false;
     this.#solidMaterial.depthBias = -0.5;
     this.#solidMaterial.update();
+    /**
+     *
+     * @type {pc.StandardMaterial}
+     */
     this.#wireframeMaterial = new pc.StandardMaterial();
     this.#wireframeMaterial.name = "Development mesh wireframe";
     this.#wireframeMaterial.diffuse = new pc.Color(1, 0.08, 0.72);
@@ -125,6 +225,11 @@ export class DevWireframeInspector {
     this.#canvas = null;
   }
 
+  /**
+   *
+   * @param {Event} event
+   * @type {(event: Event) => void}
+   */
   #handlePointerDown = (event) => {
     if (
       event.pointerType !== POINTER_TYPE.MOUSE ||
@@ -140,6 +245,11 @@ export class DevWireframeInspector {
     this.#schedulePick();
   };
 
+  /**
+   *
+   * @param {Event} event
+   * @type {(event: Event) => void}
+   */
   #handlePointerMove = (event) => {
     if (event.pointerType !== POINTER_TYPE.MOUSE) {
       return;
@@ -155,6 +265,11 @@ export class DevWireframeInspector {
     this.#schedulePick();
   };
 
+  /**
+   *
+   * @param {Event} event
+   * @type {(event: Event) => void}
+   */
   #handlePointerLeave = (event) => {
     if (event.pointerType !== POINTER_TYPE.MOUSE) {
       return;
@@ -168,6 +283,11 @@ export class DevWireframeInspector {
     this.#clearSelection();
   };
 
+  /**
+   *
+   * @param {Event} event
+   * @type {(event: Event) => void}
+   */
   #handleKeyDown = (event) => {
     if (!ALT_KEYS.has(event.key) && !ALT_KEYS.has(event.code)) {
       return;
@@ -179,6 +299,11 @@ export class DevWireframeInspector {
     this.#schedulePick();
   };
 
+  /**
+   *
+   * @param {Event} event
+   * @type {(event: Event) => void}
+   */
   #handleKeyUp = (event) => {
     if (!ALT_KEYS.has(event.key) && !ALT_KEYS.has(event.code)) {
       return;
@@ -189,10 +314,18 @@ export class DevWireframeInspector {
     this.#deactivate();
   };
 
+  /**
+   *
+   * @type {() => void}
+   */
   #handleBlur = () => {
     this.#deactivate();
   };
 
+  /**
+   *
+   * @type {() => void}
+   */
   #handleVisibilityChange = () => {
     if (document.hidden) {
       this.#deactivate();
@@ -303,8 +436,16 @@ export class DevWireframeInspector {
     const meshInstances =
       this.#app.root
         ?.findComponents("render")
-        .flatMap((render) => render.meshInstances ?? []) ?? [];
+        .flatMap(/**
+         *
+         * @param {pc.RenderComponent} render
+         */
+        (render) => render.meshInstances ?? []) ?? [];
     const debugPickInstances = meshInstances.filter(
+      /**
+       *
+       * @param {pc.MeshInstance} meshInstance
+       */
       (meshInstance) =>
         meshInstance.devWireframeInspectable && meshInstance.pick === false,
     );
@@ -314,6 +455,11 @@ export class DevWireframeInspector {
     return debugPickInstances;
   }
 
+  /**
+   *
+   * @param {pc.MeshInstance} meshInstance
+   * @param {pc.Vec3} worldPoint
+   */
   #setSelection(meshInstance, worldPoint) {
     const instanceIndex = this.#findInstanceIndex(meshInstance, worldPoint);
     const instanceSource = meshInstance?.instancingData?.vertexBuffer ?? null;
@@ -345,6 +491,11 @@ export class DevWireframeInspector {
     this.#applySelection(this.#selection);
   }
 
+  /**
+   *
+   * @param {pc.MeshInstance} meshInstance
+   * @param {pc.Vec3} worldPoint
+   */
   #printObjectCoordinates(meshInstance, worldPoint) {
     if (!meshInstance) {
       console.info("[DevWireframeInspector] No object selected.");
@@ -360,6 +511,11 @@ export class DevWireframeInspector {
     });
   }
 
+  /**
+   *
+   * @param {pc.MeshInstance} meshInstance
+   * @param {number} instanceIndex
+   */
   #objectPosition(meshInstance, instanceIndex) {
     if (instanceIndex === null) {
       return meshInstance.node?.getPosition?.() ?? null;
@@ -376,6 +532,10 @@ export class DevWireframeInspector {
     return worldMatrix.getTranslation();
   }
 
+  /**
+   *
+   * @param {import("src/game/GameContracts.js").GridPoint} point
+   */
   #coordinates(point) {
     if (!point) {
       return null;
@@ -383,6 +543,10 @@ export class DevWireframeInspector {
     return { x: point.x, y: point.y, z: point.z };
   }
 
+  /**
+   *
+   * @param {{entity?: pc.Entity, meshInstance?: pc.MeshInstance, distance?: number}} selection
+   */
   #applySelection(selection) {
     selection.meshInstance.material = this.#wireframeMaterial;
     selection.meshInstance.renderStyle = this.#pc.RENDERSTYLE_WIREFRAME;
@@ -416,6 +580,10 @@ export class DevWireframeInspector {
     return selection;
   }
 
+  /**
+   *
+   * @param {{entity?: pc.Entity, meshInstance?: pc.MeshInstance, distance?: number}} selection
+   */
   #reapplySelection(selection) {
     if (!selection || !this.#wireframeMaterial) {
       return;
@@ -424,6 +592,11 @@ export class DevWireframeInspector {
     this.#applySelection(selection);
   }
 
+  /**
+   *
+   * @param {pc.MeshInstance} meshInstance
+   * @param {pc.Vec3} worldPoint
+   */
   #findInstanceIndex(meshInstance, worldPoint) {
     const instancingData = meshInstance?.instancingData;
     const vertexBuffer = instancingData?.vertexBuffer;
@@ -460,6 +633,10 @@ export class DevWireframeInspector {
     return closestIndex;
   }
 
+  /**
+   *
+   * @param {Storage} storage
+   */
   #floatValues(storage) {
     if (storage instanceof Float32Array) {
       return storage;
@@ -474,6 +651,11 @@ export class DevWireframeInspector {
     return new Float32Array(storage);
   }
 
+  /**
+   *
+   * @param {pc.MeshInstance} meshInstance
+   * @param {number} instanceIndex
+   */
   #createInstanceSelection(meshInstance, instanceIndex) {
     const instanceSource = meshInstance.instancingData.vertexBuffer;
     const values = this.#floatValues(instanceSource.storage);
@@ -487,6 +669,10 @@ export class DevWireframeInspector {
     overlay.setLocalRotation(new this.#pc.Quat().setFromMat4(matrix));
     overlay.setLocalScale(matrix.getScale());
     const sourceMeshes = meshInstance.node.render.meshInstances.filter(
+      /**
+       *
+       * @param {pc.MeshInstance} candidate
+       */
       (candidate) =>
         candidate.instancingData?.vertexBuffer === instanceSource,
     );

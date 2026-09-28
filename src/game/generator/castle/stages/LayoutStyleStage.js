@@ -10,7 +10,15 @@ import {
 } from "../CastleGenerationConfig.js";
 import { AbstractCastleGenerationStage } from "../AbstractCastleGenerationStage.js";
 
+/**
+ * @typedef {{boundary: string, start: number, end: number}} CastleOpening
+ */
+
 export class LayoutStyleStage extends AbstractCastleGenerationStage {
+  /**
+   *
+   * @param {CastleGenerationContext} context
+   */
   async run(context) {
     const { position, doors, style: preferredStyleId } = context.input;
     if (!position || !doors.length) {
@@ -27,7 +35,11 @@ export class LayoutStyleStage extends AbstractCastleGenerationStage {
     const facadeSpan = ["WEST", "EAST"].includes(primarySide)
       ? depthBlocks
       : widthBlocks;
-    const openings = doors.map((door) => {
+    const openings = doors.map(/**
+     *
+     * @param {{side: string, offset: number, width: number, cells?: import("src/game/GameContracts.js").GridPoint[]}} door
+     */
+    (door) => {
       const boundary = this.#localBoundary(primarySide, door.side);
       const start = door.offset * CASTLE_BLOCKS_PER_TILE;
       const end = (door.offset + door.width) * CASTLE_BLOCKS_PER_TILE;
@@ -52,6 +64,10 @@ export class LayoutStyleStage extends AbstractCastleGenerationStage {
       inwardCapacity,
     });
     const hasSecondarySide = openings.some(
+      /**
+       *
+       * @param {import("src/game/GameContracts.js").CastleOpening} opening
+       */
       (opening) => opening.boundary !== CASTLE_BOUNDARY.FRONT,
     );
     const requiredDepth = Math.max(
@@ -77,6 +93,11 @@ export class LayoutStyleStage extends AbstractCastleGenerationStage {
     });
   }
 
+  /**
+   *
+   * @param {string} primarySide
+   * @param {string} side
+   */
   #localBoundary(primarySide, side) {
     const boundaries = {
       WEST: {
@@ -107,6 +128,14 @@ export class LayoutStyleStage extends AbstractCastleGenerationStage {
     return boundaries[primarySide]?.[side] ?? CASTLE_BOUNDARY.FRONT;
   }
 
+  /**
+   *
+   * @param {{preferredStyleId: string, openings: CastleOpening[], facadeSpan: number, inwardCapacity: number}} options
+   * @param {string} options.preferredStyleId
+   * @param {CastleOpening[]} options.openings
+   * @param {number} options.facadeSpan
+   * @param {number} options.inwardCapacity
+   */
   #selectStyle({
     preferredStyleId,
     openings,
@@ -114,15 +143,27 @@ export class LayoutStyleStage extends AbstractCastleGenerationStage {
     inwardCapacity,
   }) {
     const preferredStyle = CASTLE_STYLES.find(
+      /**
+       *
+       * @param {{id: string}} candidate
+       */
       (candidate) => candidate.id === preferredStyleId,
     );
     const styles = preferredStyle
       ? [
           preferredStyle,
-          ...CASTLE_STYLES.filter((candidate) => candidate !== preferredStyle),
+          ...CASTLE_STYLES.filter(/**
+           *
+           * @param {{id: string}} candidate
+           */
+          (candidate) => candidate !== preferredStyle),
         ]
       : CASTLE_STYLES;
-    const style = styles.find((candidate) =>
+    const style = styles.find(/**
+     *
+     * @param {{id: string}} candidate
+     */
+    (candidate) =>
       this.#styleFits(candidate, openings, facadeSpan, inwardCapacity),
     );
     if (!style) {
@@ -131,6 +172,13 @@ export class LayoutStyleStage extends AbstractCastleGenerationStage {
     return style;
   }
 
+  /**
+   *
+   * @param {{id: string, towerSpanBlocks?: number, visualDepthBlocks?: number}} style
+   * @param {CastleOpening[]} openings
+   * @param {number} facadeSpan
+   * @param {number} inwardCapacity
+   */
   #styleFits(style, openings, facadeSpan, inwardCapacity) {
     const towerSpan = style.towerSpanBlocks ?? CASTLE_TOWER_SPAN_BLOCKS;
     const requiredDepth = Math.max(
@@ -147,7 +195,11 @@ export class LayoutStyleStage extends AbstractCastleGenerationStage {
     }
 
     const requiredDoorWidth = CASTLE_DOOR_WIDTH_TILES * CASTLE_BLOCKS_PER_TILE;
-    return openings.every((opening) => {
+    return openings.every(/**
+     *
+     * @param {import("src/game/GameContracts.js").CastleOpening} opening
+     */
+    (opening) => {
       if (opening.end - opening.start !== requiredDoorWidth) {
         return false;
       }
@@ -190,6 +242,12 @@ export class LayoutStyleStage extends AbstractCastleGenerationStage {
         }
       }
       return towerRanges.every(
+        /**
+         *
+         * @param {{"0": Array, "1": Array}} options
+         * @param {Array} options."0"
+         * @param {Array} options."1"
+         */
         ([start, end]) => opening.end <= start || opening.start >= end,
       );
     });

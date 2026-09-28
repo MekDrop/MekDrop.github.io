@@ -32,42 +32,185 @@ const ROYAL_DOORWAY_OUTSIDE = -0.35;
  * "king", "queen", or "princess".
  */
 export class CastleAudienceRoom {
+  /**
+   *
+    * @returns {Array<string>}
+   */
   static get modelUrls() {
     return [CastleThrone.modelUrl];
   }
 
+  /**
+   *
+    * @type {typeof import("playcanvas")}
+   */
   #pc;
+  /**
+   *
+    * @type {import("playcanvas").Application}
+   */
   #app;
+  /**
+   *
+    * @type {{x: number, y: number, z: number}}
+   */
   #position;
+  /**
+   *
+    * @type {TerraceDoor}
+   */
   #door;
+  /**
+   *
+    * @type {SeatedRoyal|null}
+   */
   #occupant;
+  /**
+   *
+    * @type {Map<string, import("playcanvas").Material>}
+   */
   #sharedMaterials;
+  /**
+   *
+    * @type {string}
+   */
   #modelLibrary;
+  /**
+   *
+    * @type {import("playcanvas").Entity}
+   */
   #entity;
+  /**
+   *
+    * @type {Map<string, import("playcanvas").StandardMaterial>}
+   */
   #materials = new Map();
+  /**
+   *
+    * @type {import("playcanvas").Asset|null}
+   */
   #carpetAsset = null;
+  /**
+   *
+    * @type {CastleFire|null}
+   */
   #fire = null;
+  /**
+   *
+    * @type {{x: number, y: number, z: number}|null}
+   */
   #royalPosition = null;
+  /**
+   *
+    * @type {CastleThrone|null}
+   */
   #throne = null;
+  /**
+   *
+    * @type {{x: number, z: number}}
+   */
   #center;
+  /**
+   *
+    * @type {{x: number, z: number}}
+   */
   #inward;
+  /**
+   *
+    * @type {{x: number, z: number}}
+   */
   #tangent;
+  /**
+   *
+    * @type {number}
+   */
   #forwardCapacity;
+  /**
+   *
+    * @type {number}
+   */
   #roomWidth;
+  /**
+   *
+    * @type {number}
+   */
   #baseY;
+  /**
+   *
+    * @type {number}
+   */
   #availableDepth;
+  /**
+   *
+    * @type {number}
+   */
   #availableWidth;
+  /**
+   *
+    * @type {number}
+   */
   #frontWallDepth;
+  /**
+   *
+    * @type {Array<{lateral: number, forward: number, width: number, depth: number}>}
+   */
   #obstacles = [];
+  /**
+   *
+    * @type {Array<{lateral: number, forward: number, width: number, depth: number, height: number}>}
+   */
   #floorSurfaces = [];
+  /**
+   *
+    * @type {boolean}
+   */
   #heroWithinVisibility = false;
+  /**
+   *
+    * @type {boolean}
+   */
   #entranceVisible = true;
+  /**
+   *
+    * @type {boolean}
+   */
   #gameOverPerformance = false;
+  /**
+   *
+    * @type {boolean}
+   */
   #gameOverPerformanceStarted = false;
+  /**
+   *
+    * @type {{x: number, y: number, z: number}}
+   */
   #gameOverEndPosition = null;
+  /**
+   *
+    * @type {{waypoints: Array<{x: number, y: number, z: number}>, collisionRadius: number, isBlocked: (x: number, z: number, radius: number) => boolean}|null}
+   */
   #gameOverRoute = null;
+  /**
+   *
+    * @type {(() => {x: number, y: number, z: number})|null}
+   */
   #getGameOverCameraPosition = null;
 
+  /**
+   *
+   * @param {{pc: typeof import("playcanvas"), app: import("playcanvas").Application, position: {x: number, y: number, z: number}, door: import("src/game/objects/ObjectTypes.js").CastleDoorDefinition, occupant: SeatedRoyal, materials: Map<string, import("playcanvas").Material>, availableDepth: number, availableWidth: number, frontWallDepth: number, modelLibrary: string, fireParticleTexture: import("playcanvas").Texture}} options
+   * @param {typeof import("playcanvas")} options.pc
+   * @param {import("playcanvas").Application} options.app
+   * @param {{x: number, y: number, z: number}} options.position
+   * @param {import("src/game/objects/ObjectTypes.js").CastleDoorDefinition} options.door
+   * @param {SeatedRoyal} options.occupant
+   * @param {Map<string, import("playcanvas").Material>} options.materials
+   * @param {number} options.availableDepth
+   * @param {number} options.availableWidth
+   * @param {number} options.frontWallDepth
+   * @param {string} options.modelLibrary
+   * @param {import("playcanvas").Texture} options.fireParticleTexture
+   */
   constructor({
     pc,
     app,
@@ -118,6 +261,12 @@ export class CastleAudienceRoom {
     }
   }
 
+  /**
+   *
+   * @param {{x: number, z: number}} options
+   * @param {number} options.x
+   * @param {number} options.z
+   */
   updateHeroPosition({ x, z }) {
     const deltaX = x - this.#center.x;
     const deltaZ = z - this.#center.z;
@@ -141,6 +290,11 @@ export class CastleAudienceRoom {
     }
   }
 
+  /**
+   *
+   * @param {() => {x: number, y: number, z: number}} getCameraPosition
+   * @param {(x: number, z: number, radius: number) => boolean} isBlocked
+   */
   beginGameOver(getCameraPosition, isBlocked = () => false) {
     if (this.#gameOverPerformance || !this.#occupant || !this.#royalPosition) {
       return null;
@@ -208,6 +362,11 @@ export class CastleAudienceRoom {
     });
   }
 
+  /**
+   *
+   * @param {number} x
+   * @param {number} z
+   */
   surfaceHeightAt(x, z) {
     const deltaX = x - this.#center.x;
     const deltaZ = z - this.#center.z;
@@ -232,12 +391,22 @@ export class CastleAudienceRoom {
     return height;
   }
 
+  /**
+   *
+   * @param {number} x
+   * @param {number} z
+   * @param {number} radius
+   */
   intersectsFootprint(x, z, radius = 0) {
     const deltaX = x - this.#center.x;
     const deltaZ = z - this.#center.z;
     const lateral = deltaX * this.#tangent.x + deltaZ * this.#tangent.z;
     const forward = deltaX * this.#inward.x + deltaZ * this.#inward.z;
-    return this.#obstacles.some((obstacle) => {
+    return this.#obstacles.some(/**
+     *
+     * @param {{x: number, z: number, radius: number}} obstacle
+     */
+    (obstacle) => {
       const distanceLateral = Math.max(
         Math.abs(lateral - obstacle.lateral) - obstacle.width / 2,
         0,
@@ -357,7 +526,11 @@ export class CastleAudienceRoom {
     });
     this.#carpetAsset = asset;
     this.#app.assets.add(asset);
-    asset.ready((loadedAsset) => {
+    asset.ready(/**
+     *
+     * @param {import("playcanvas").Asset} loadedAsset
+     */
+    (loadedAsset) => {
       if (this.#carpetAsset !== loadedAsset) {
         return;
       }
@@ -395,6 +568,10 @@ export class CastleAudienceRoom {
     this.#buildRearBanners(throneForward);
   }
 
+  /**
+   *
+   * @param {{x: number, y: number, z: number}} throneForward
+   */
   #buildFloor(throneForward) {
     const firstFloorPart = this.#entity.children.length;
     // Keep the wide room slab behind the facade. Only the doorway-width
@@ -484,6 +661,10 @@ export class CastleAudienceRoom {
     }
   }
 
+  /**
+   *
+   * @param {{x: number, y: number, z: number}} throneForward
+   */
   #buildThrone(throneForward) {
     this.#throne = new CastleThrone({ modelLibrary: this.#modelLibrary });
     const throne = this.#throne.entity;
@@ -520,6 +701,10 @@ export class CastleAudienceRoom {
     this.#occupant.entity.setLocalEulerAngles(0, this.#visitorFacingYaw(), 0);
     this.#occupant.entity.setLocalScale(0.72, 0.72, 0.72);
   }
+  /**
+   *
+   * @param {{x: number, y: number, z: number}} throneForward
+   */
   #buildColumns(throneForward) {
     const lateral = Math.max(1.35, this.#roomWidth / 2 - 0.76);
     const rows = [Math.min(1.72, throneForward * 0.38), throneForward * 0.72];
@@ -554,6 +739,10 @@ export class CastleAudienceRoom {
     }
   }
 
+  /**
+   *
+   * @param {{x: number, y: number, z: number}} throneForward
+   */
   #buildBenches(throneForward) {
     const lateral = Math.max(1.35, this.#roomWidth / 2 - 0.78);
     for (const side of [-1, 1]) {
@@ -580,6 +769,10 @@ export class CastleAudienceRoom {
     }
   }
 
+  /**
+   *
+   * @param {{x: number, y: number, z: number}} throneForward
+   */
   #buildBraziers(throneForward) {
     const lateral = Math.min(1.48, this.#roomWidth / 2 - 0.42);
     const rows = [Math.min(1.15, throneForward * 0.32), throneForward - 1.15];
@@ -615,6 +808,10 @@ export class CastleAudienceRoom {
     }
   }
 
+  /**
+   *
+   * @param {{x: number, y: number, z: number}} throneForward
+   */
   #buildRearBanners(throneForward) {
     const lateral = Math.min(1.68, this.#roomWidth / 2 - 0.48);
     for (const side of [-1, 1]) {
@@ -645,6 +842,16 @@ export class CastleAudienceRoom {
     }
   }
 
+  /**
+   *
+   * @param {string} name
+   * @param {string} materialName
+   * @param {number} lateral
+   * @param {number} forward
+   * @param {number} y
+   * @param {number} scale
+   * @param {boolean} blocksMovement
+   */
   #boxAt(
     name,
     materialName,
@@ -679,6 +886,12 @@ export class CastleAudienceRoom {
     return entity;
   }
 
+  /**
+   *
+   * @param {number} lateral
+   * @param {number} forward
+   * @param {number} y
+   */
   #point(lateral, forward, y) {
     return {
       x: this.#center.x + this.#tangent.x * lateral + this.#inward.x * forward,
@@ -717,6 +930,10 @@ export class CastleAudienceRoom {
     this.#entity.enabled = true;
   }
 
+  /**
+   *
+   * @param {string} name
+   */
   #material(name) {
     const sharedName = {
       wood: "castleDoor",

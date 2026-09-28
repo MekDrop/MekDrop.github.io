@@ -7,11 +7,31 @@ import {
 import { isCastleUpperFloorRoomVoid } from "./CastleGeometry.js";
 
 export class CastleBuildPlanWriter {
+  /**
+   *
+   * @type {import("src/game/GameContracts.js").CastleLayout}
+   */
   #layout;
+  /**
+   *
+   * @type {Set}
+   */
   #occupied = new Set();
+  /**
+   *
+   * @type {Set}
+   */
   #groundCollisionKeys = new Set();
 
+  /**
+   *
+   * @param {CastleGenerationContext} context
+   */
   constructor(context) {
+    /**
+     *
+     * @type {import("src/game/GameContracts.js").CastleLayout}
+     */
     this.#layout = context.layout;
     context.geometry = {
       boxes: [],
@@ -26,11 +46,25 @@ export class CastleBuildPlanWriter {
         cameraBlocks: [],
       },
     };
+    /**
+     *
+     * @type {import("./CastleGenerationContext.js").CastleGenerationContext["geometry"]}
+     */
     this.geometry = context.geometry;
   }
 
+  /**
+   *
+   * @param {{minimum: number, maximum: number}} boundary
+   * @param {number} horizontalBlock
+   * @param {number} blockY
+   */
   openingAt(boundary, horizontalBlock, blockY) {
     const opening = this.#layout.openings.find(
+      /**
+       *
+       * @param {{boundary: string, start: number, end: number}} candidate
+       */
       (candidate) =>
         candidate.boundary === boundary &&
         horizontalBlock >= candidate.start &&
@@ -39,6 +73,13 @@ export class CastleBuildPlanWriter {
     return Boolean(opening) && blockY < CASTLE_GATE_OPENING_HEIGHT_BLOCKS;
   }
 
+  /**
+   *
+   * @param {number} blockU
+   * @param {number} blockY
+   * @param {number} blockV
+   * @param {string} role
+   */
   addBlock(blockU, blockY, blockV, role = "stone") {
     if (this.#isTerraceAccessVoid(blockU, blockY, blockV)) {
       return;
@@ -76,6 +117,16 @@ export class CastleBuildPlanWriter {
     this.addLocalBox(blockU, blockY, blockV, 1, 1, 1, role);
   }
 
+  /**
+   *
+   * @param {number} blockU
+   * @param {number} blockY
+   * @param {number} blockV
+   * @param {number} scaleU
+   * @param {number} scaleY
+   * @param {number} scaleV
+   * @param {string} role
+   */
   addLocalBox(
     blockU,
     blockY,
@@ -104,6 +155,13 @@ export class CastleBuildPlanWriter {
     });
   }
 
+  /**
+   *
+   * @param {number} blockU
+   * @param {number} blockY
+   * @param {number} blockV
+   * @param {number} scale
+   */
   addFlame(blockU, blockY, blockV, scale = 1) {
     const position = this.#localToWorld(blockU, blockV);
     this.geometry.decorations.flames.push({
@@ -114,6 +172,15 @@ export class CastleBuildPlanWriter {
     });
   }
 
+  /**
+   *
+   * @param {number} blockU
+   * @param {number} blockY
+   * @param {number} blockV
+   * @param {number} widthBlocks
+   * @param {number} heightBlocks
+   * @param {{minimum: number, maximum: number}} boundary
+   */
   addBanner(
     blockU,
     blockY,
@@ -136,6 +203,14 @@ export class CastleBuildPlanWriter {
     });
   }
 
+  /**
+   *
+   * @param {number} blockU
+   * @param {number} blockY
+   * @param {number} blockV
+   * @param {{minimum: number, maximum: number}} boundary
+   * @param {null} roofCollider
+   */
   addFlag(
     blockU,
     blockY,
@@ -157,6 +232,16 @@ export class CastleBuildPlanWriter {
     });
   }
 
+  /**
+   *
+   * @param {number} blockU
+   * @param {number} blockY
+   * @param {number} blockV
+   * @param {number} widthBlocks
+   * @param {number} depthBlocks
+   * @param {number} heightBlocks
+   * @param {{minimum: number, maximum: number}} boundary
+   */
   addRoof(
     blockU,
     blockY,
@@ -179,6 +264,12 @@ export class CastleBuildPlanWriter {
     });
   }
 
+  /**
+   *
+   * @param {number} centerU
+   * @param {number} centerV
+   * @param {number} baseBlockY
+   */
   addRoofFireTurret(centerU, centerV, baseBlockY) {
     const turretU = Math.round(centerU);
     const turretV = Math.round(centerV);
@@ -222,8 +313,18 @@ export class CastleBuildPlanWriter {
     };
   }
 
+  /**
+   *
+   * @param {number} blockU
+   * @param {number} blockY
+   * @param {number} blockV
+   */
   #isTerraceAccessVoid(blockU, blockY, blockV) {
     const opening = this.#layout.openings.find(
+      /**
+       *
+       * @param {{boundary: string, start: number, end: number}} candidate
+       */
       (candidate) => candidate.boundary === CASTLE_BOUNDARY.FRONT,
     );
     if (!opening) {
@@ -273,6 +374,13 @@ export class CastleBuildPlanWriter {
     );
   }
 
+  /**
+   *
+   * @param {number} blockU
+   * @param {number} blockY
+   * @param {number} blockV
+   * @param {string} role
+   */
   #materialFor(blockU, blockY, blockV, role) {
     const roleMaterials = {
       accent: "castleAccent",
@@ -301,6 +409,11 @@ export class CastleBuildPlanWriter {
     ][(hash >>> 0) % 8];
   }
 
+  /**
+   *
+   * @param {number} blockU
+   * @param {number} blockV
+   */
   #localToBlock(blockU, blockV) {
     let blockX = blockU;
     let blockZ = blockV;
@@ -316,6 +429,11 @@ export class CastleBuildPlanWriter {
     return { blockX, blockZ };
   }
 
+  /**
+   *
+   * @param {number} blockU
+   * @param {number} blockV
+   */
   #localToWorld(blockU, blockV) {
     const { blockX, blockZ } = this.#localToBlock(blockU, blockV);
     return {
@@ -324,6 +442,10 @@ export class CastleBuildPlanWriter {
     };
   }
 
+  /**
+   *
+   * @param {{minimum: number, maximum: number}} boundary
+   */
   #boundaryNormal(boundary) {
     const normals = {
       WEST: {

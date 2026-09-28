@@ -6,11 +6,30 @@ const PANEL_WIDTH = 340;
 const PANEL_HEIGHT = 122;
 
 export class GameOverHud {
+  /**
+   * @type {typeof import("playcanvas")|null}
+   */
   #pc;
+  /**
+   * @type {import("playcanvas").Application|null}
+   */
   #app;
+  /**
+   * @type {import("playcanvas").Entity|null}
+   */
   #entity;
+  /**
+   * @type {import("playcanvas").Texture|null}
+   */
   #panelTexture;
 
+  /**
+   *
+   * @param {{pc: typeof import("playcanvas"), app: import("playcanvas").Application, translate: (key: string) => string}} options
+   * @param {typeof import("playcanvas")} options.pc
+   * @param {import("playcanvas").Application} options.app
+   * @param {(key: string) => string} options.translate
+   */
   constructor({ pc, app, translate }) {
     this.#pc = pc;
     this.#app = app;
@@ -31,6 +50,10 @@ export class GameOverHud {
     this.#entity.enabled = false;
   }
 
+  /**
+   *
+   * @param {import("playcanvas").Entity} parent
+   */
   attach(parent = this.#app.root) {
     if (!this.#entity || this.#entity.parent === parent) {
       return;
@@ -86,6 +109,11 @@ export class GameOverHud {
     this.#entity.screen.syncDrawOrder();
   }
 
+  /**
+   *
+   * @param {string} title
+   * @param {string} prompt
+   */
   #createPanelTexture(title, prompt) {
     const canvas = document.createElement("canvas");
     canvas.width = 680;
@@ -150,6 +178,15 @@ export class GameOverHud {
     return texture;
   }
 
+  /**
+   *
+   * @param {CanvasRenderingContext2D} context
+   * @param {number} x
+   * @param {number} y
+   * @param {number} width
+   * @param {number} height
+   * @param {number} radius
+   */
   #roundedRect(context, x, y, width, height, radius) {
     context.beginPath();
     context.moveTo(x + radius, y);

@@ -14,6 +14,13 @@ export const SURFACE_MATERIALS = {
   [TileType.ENTRY]: "path",
 };
 
+/**
+ *
+ * @param {string} type
+ * @param {number} col
+ * @param {number} row
+ * @param {number} level
+ */
 export function surfaceMaterialForTile(type, col, row, level) {
   if (type === TileType.PATH || type === TileType.ENTRY) {
     return PathSurfaceMaterials.topForTile(col, row, level);

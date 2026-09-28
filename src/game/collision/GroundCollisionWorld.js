@@ -1,7 +1,21 @@
 export class GroundCollisionWorld {
+  /**
+   *
+   * @type {Set}
+   */
   #colliders = new Set();
+  /**
+   *
+   * @type {Set}
+   */
   #physicsSurfaceColliders = new Set();
 
+  /**
+   *
+   * @param {{entity: pc.Entity, destroy?: () => void}} collider
+   * @param {{physicsSurface: TerrainPhysicsSurface}} options
+   * @param {TerrainPhysicsSurface} options.physicsSurface
+   */
   add(collider, { physicsSurface = true } = {}) {
     if (collider) {
       this.#colliders.add(collider);
@@ -22,6 +36,10 @@ export class GroundCollisionWorld {
   /**
    * Registered ground objects are solid to grass by default. They may expose a
    * normalized grassWeight or grassWeightAt() to tune the surrounding bend.
+   *
+   * @param {number} x
+   * @param {number} z
+   * @param {number} elevation
    */
   grassWeightAt(x, z, elevation) {
     let weight = 0;
@@ -65,12 +83,27 @@ export class GroundCollisionWorld {
     return weight;
   }
 
+  /**
+   *
+   * @param {number} x
+   * @param {number} z
+   * @param {number} radius
+   * @param {number} elevation
+   * @param {number} stepClearance
+   */
   isBlocked(x, z, radius = 0, elevation = -Infinity, stepClearance = 0) {
     return (
       this.#blockingDepthAt(x, z, radius, elevation, stepClearance) > 0
     );
   }
 
+  /**
+   *
+   * @param {number} x
+   * @param {number} y
+   * @param {number} z
+   * @param {number} radius
+   */
   isCameraBlocked(x, y, z, radius = 0) {
     for (const collider of this.#colliders) {
       if (collider.blocksCameraAt?.(x, y, z, radius)) {
@@ -80,6 +113,16 @@ export class GroundCollisionWorld {
     return false;
   }
 
+  /**
+   *
+   * @param {number} fromX
+   * @param {number} fromZ
+   * @param {number} toX
+   * @param {number} toZ
+   * @param {number} radius
+   * @param {number} elevation
+   * @param {number} stepClearance
+   */
   isMovementBlocked(
     fromX,
     fromZ,
@@ -112,6 +155,13 @@ export class GroundCollisionWorld {
     return currentDepth <= 0 || destinationDepth >= currentDepth - 0.000001;
   }
 
+  /**
+   *
+   * @param {number} x
+   * @param {number} z
+   * @param {number} radius
+   * @param {number} elevation
+   */
   movementRefusalAt(x, z, radius = 0, elevation = -Infinity) {
     for (const collider of this.#colliders) {
       const refusal = collider.movementRefusalAt?.(
@@ -127,6 +177,14 @@ export class GroundCollisionWorld {
     return null;
   }
 
+  /**
+   *
+   * @param {number} fromX
+   * @param {number} fromZ
+   * @param {number} toX
+   * @param {number} toZ
+   * @param {number} radius
+   */
   movementRepulsionFor(fromX, fromZ, toX, toZ, radius = 0) {
     for (const collider of this.#colliders) {
       const direction = collider.repulsionForMovement?.(
@@ -143,6 +201,15 @@ export class GroundCollisionWorld {
     return null;
   }
 
+  /**
+   *
+   * @param {number} x
+   * @param {number} z
+   * @param {number} radius
+   * @param {number} elevation
+   * @param {number} stepClearance
+   * @param {boolean} movement
+   */
   #blockingDepthAt(
     x,
     z,
@@ -186,6 +253,15 @@ export class GroundCollisionWorld {
     return depth;
   }
 
+  /**
+   *
+   * @param {{entity: pc.Entity, destroy?: () => void}} collider
+   * @param {number} x
+   * @param {number} z
+   * @param {number} radius
+   * @param {number} elevation
+   * @param {number} stepClearance
+   */
   #colliderBlocks(collider, x, z, radius, elevation, stepClearance) {
     if (collider.blocksMovementAt) {
       return collider.blocksMovementAt(
@@ -206,10 +282,22 @@ export class GroundCollisionWorld {
     );
   }
 
+  /**
+   *
+   * @param {number} x
+   * @param {number} z
+   * @param {number} radius
+   */
   surfaceHeightAt(x, z, radius = 0) {
     return this.#surfaceHeightAt(this.#colliders, x, z, radius);
   }
 
+  /**
+   *
+   * @param {number} x
+   * @param {number} z
+   * @param {number} radius
+   */
   physicsSurfaceHeightAt(x, z, radius = 0) {
     return this.#surfaceHeightAt(
       this.#physicsSurfaceColliders,
@@ -219,6 +307,13 @@ export class GroundCollisionWorld {
     );
   }
 
+  /**
+   *
+   * @param {Array} colliders
+   * @param {number} x
+   * @param {number} z
+   * @param {number} radius
+   */
   #surfaceHeightAt(colliders, x, z, radius) {
     let highestSurface = null;
     for (const collider of colliders) {
@@ -230,6 +325,13 @@ export class GroundCollisionWorld {
     return highestSurface;
   }
 
+  /**
+   *
+   * @param {number} x
+   * @param {number} z
+   * @param {number} radius
+   * @param {number} minimumHeight
+   */
   ceilingHeightAt(x, z, radius = 0, minimumHeight = -Infinity) {
     let lowestCeiling = null;
     for (const collider of this.#colliders) {

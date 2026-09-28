@@ -5,6 +5,10 @@ import { TILE_SHAPE } from "../../enum/TileShape.js";
 const CLUMPS_PER_TILE = 72;
 
 export class GrassCarpetLayout {
+  /**
+   *
+   * @param {import("src/game/objects/ObjectTypes.js").GameMapData} mapData
+   */
   static create(mapData) {
     const placements = [];
     const { grid, heightmap, tileMeta, cols, rows } = mapData;
@@ -14,16 +18,39 @@ export class GrassCarpetLayout {
       mapSeed = (Math.imul(mapSeed, 31) + character.charCodeAt(0)) | 0;
     }
     const stoneParts = (mapData.objects ?? [])
-      .filter(({ object }) => object === "StoneCluster")
-      .flatMap(({ position, parts }) =>
-        parts.map(({ offsetX, offsetZ, diameter }) => ({
+      .filter(/**
+       *
+       * @param {{object: string}} options
+       * @param {string} options.object
+       */
+      ({ object }) => object === "StoneCluster")
+      .flatMap(/**
+       *
+       * @param {{position: {x: number, y: number, z: number}, parts: Array<{offsetX: number, offsetZ: number, diameter: number}>}} options
+       * @param {{x: number, y: number, z: number}} options.position
+       * @param {Array<{offsetX: number, offsetZ: number, diameter: number}>} options.parts
+       */
+      ({ position, parts }) =>
+        parts.map(/**
+         *
+         * @param {{offsetX: number, offsetZ: number, diameter: number}} options
+         * @param {number} options.offsetX
+         * @param {number} options.offsetZ
+         * @param {number} options.diameter
+         */
+        ({ offsetX, offsetZ, diameter }) => ({
           x: position.x + offsetX,
           z: position.z + offsetZ,
           radius: diameter / 2,
         })),
       );
     const sourceCovers = new Map(
-      (mapData.riverData ?? []).flatMap(({ cells }) =>
+      (mapData.riverData ?? []).flatMap(/**
+       *
+       * @param {{cells: number}} options
+       * @param {number} options.cells
+       */
+      ({ cells }) =>
         cells[0]
           ? [[`${cells[0].col},${cells[0].row}`, cells[0].terrainHeight]]
           : [],
@@ -48,6 +75,12 @@ export class GrassCarpetLayout {
           continue;
         }
         const nearbyStones = stoneParts.filter(
+          /**
+           *
+           * @param {{x: number, z: number}} options
+           * @param {number} options.x
+           * @param {number} options.z
+           */
           ({ x, z }) =>
             Math.abs(x - (col - (cols - 1) / 2)) < 1.5 &&
             Math.abs(z - (row - (rows - 1) / 2)) < 1.5,
@@ -65,7 +98,14 @@ export class GrassCarpetLayout {
           [0, -1],
           [1, 0],
           [0, 1],
-        ].map(([dx, dz], side) => {
+        ].map(/**
+         *
+         * @param {{"\"0\"": number, "\"1\"": number}} options
+         * @param {number} options."0"
+         * @param {number} options."1"
+         * @param {number} side
+         */
+        ([dx, dz], side) => {
           const neighborCol = col + dx;
           const neighborRow = row + dz;
           const neighborType = grid[neighborRow]?.[neighborCol];
@@ -107,6 +147,10 @@ export class GrassCarpetLayout {
         for (let index = 0; index < CLUMPS_PER_TILE; index += 1) {
           const seed =
             mapSeed ^ (col * 73856093) ^ (row * 19349663) ^ (index * 83492791);
+          /**
+           *
+           * @param {number} salt
+           */
           const random = (salt) => this.#random(seed ^ salt);
           const offsetX = (random(11) - 0.5) * 0.98;
           const offsetZ = (random(23) - 0.5) * 0.98;
@@ -119,7 +163,12 @@ export class GrassCarpetLayout {
               : 0.5 + random(53) * 0.08;
           const x = col - (cols - 1) / 2 + offsetX;
           const z = row - (rows - 1) / 2 + offsetZ;
-          const stoneInfluence = nearbyStones.reduce((strength, stone) => {
+          const stoneInfluence = nearbyStones.reduce(/**
+           *
+           * @param {number} strength
+           * @param {{x: number, z: number, radius: number}} stone
+           */
+          (strength, stone) => {
             const edgeDistance =
               Math.hypot(x - stone.x, z - stone.z) - stone.radius;
             return Math.max(
@@ -161,6 +210,10 @@ export class GrassCarpetLayout {
     return placements;
   }
 
+  /**
+   *
+   * @param {number} seed
+   */
   static #random(seed) {
     let value = Math.imul(seed ^ (seed >>> 16), 0x45d9f3b);
     value = Math.imul(value ^ (value >>> 16), 0x45d9f3b);

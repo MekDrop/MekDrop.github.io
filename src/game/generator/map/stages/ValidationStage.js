@@ -4,13 +4,29 @@ import { AbstractMapGenerationStage } from "../AbstractMapGenerationStage.js";
  * Applies the canonical validation sequence to all generated artifacts.
  */
 export class ValidationStage extends AbstractMapGenerationStage {
+  /**
+   *
+   * @type {Array}
+   */
   #operations;
 
+  /**
+   *
+   * @param {Array<() => void>} operations
+   */
   constructor(operations) {
     super();
+    /**
+     *
+     * @type {Array}
+     */
     this.#operations = operations;
   }
 
+  /**
+   *
+   * @param {GenerationContext} context
+   */
   async run(context) {
     const { grid, heightmap, tileMeta, islandMask } = context.world;
     const { layout, routeCellsByPath } = context.routing;

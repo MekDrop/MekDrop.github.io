@@ -2,6 +2,17 @@
  * Places authored steps along a route, with turns made before/after walking.
  */
 export class TerraceInspectorWalk {
+  /**
+   *
+   * @param {{start: {x: number, y: number, z: number}, end: {x: number, y: number, z: number}, startYaw: number, endYaw: number, elapsed: number, duration: number, scale: number}} options
+   * @param {{x: number, y: number, z: number}} options.start
+   * @param {{x: number, y: number, z: number}} options.end
+   * @param {number} options.startYaw
+   * @param {number} options.endYaw
+   * @param {number} options.elapsed
+   * @param {number} options.duration
+   * @param {number} options.scale
+   */
   static sample({ start, end, startYaw, endYaw, elapsed, duration, scale }) {
     const dx = end.x - start.x;
     const dz = end.z - start.z;
@@ -34,10 +45,19 @@ export class TerraceInspectorWalk {
       action: t < 1 ? "turn" : "idle", animationTime: t, progress: 1 };
   }
 
+  /**
+   *
+   * @param {number} from
+   * @param {number} to
+   */
   static #delta(from, to) {
     return ((to - from + 540) % 360) - 180;
   }
 
+  /**
+   *
+   * @param {number} t
+   */
   static #ease(t) {
     return t * t * (3 - 2 * t);
   }

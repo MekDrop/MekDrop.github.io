@@ -11,22 +11,62 @@ const TABLE_GRIPS = [
   [0.415, 1.069, -0.468],
 ];
 const TABLE_GRIP_MIDPOINT = [0, 1.069, -0.468];
+/**
+ *
+ * @param {number} value
+ */
 const ease = (value) => value * value * (3 - 2 * value);
 
 /**
  * Executes table and chair transport actions for tea service.
  */
 export class TerraceFurnitureActions {
+  /**
+   *
+    * @returns {number}
+   */
   static get modelUrls() {
-    return Object.values(DEFINITIONS).map(({ url }) => url);
+    return Object.values(DEFINITIONS).map(/**
+     *
+     * @param {{url: string}} options
+     * @param {string} options.url
+     */
+    ({ url }) => url);
   }
 
+  /**
+   *
+    * @type {typeof import("playcanvas")}
+   */
   #pc;
+  /**
+   *
+    * @type {import("playcanvas").Entity}
+   */
   #stage;
+  /**
+   *
+    * @type {Record<string, import("playcanvas").Entity>}
+   */
   #props = {};
+  /**
+   *
+    * @type {import("./TerraceActor.js").TerraceActor|null}
+   */
   #servant = null;
+  /**
+   *
+    * @type {import("./TerraceServantBehavior.js").TerraceServantBehavior|null}
+   */
   #behavior = null;
 
+  /**
+   *
+   * @param {{pc: typeof import("playcanvas"), modelLibrary: string, stage: import("playcanvas").Entity}} options
+   * @param {typeof import("playcanvas")} options.pc
+   * @param {string} options.modelLibrary
+   * @param {import("playcanvas").Entity} options.stage
+   */
   constructor({ pc, modelLibrary, stage }) {
     this.#pc = pc;
     this.#stage = stage;
@@ -38,6 +78,10 @@ export class TerraceFurnitureActions {
     }
   }
 
+  /**
+   *
+    * @returns {import("src/game/objects/ObjectTypes.js").TerraceActivityState}
+   */
   get state() {
     const carryingTable = this.#behavior?.cargo === "table" && [
       PHASE.SERVANT_ENTER,
@@ -48,6 +92,11 @@ export class TerraceFurnitureActions {
     };
   }
 
+  /**
+   *
+   * @param {import("./TerraceServantBehavior.js").TerraceServantBehavior} behavior
+   * @param {import("./TerraceActor.js").TerraceActor} servant
+   */
   sync(behavior, servant) {
     this.#behavior = behavior;
     this.#servant = servant;
@@ -72,6 +121,14 @@ export class TerraceFurnitureActions {
     }
   }
 
+  /**
+   *
+   * @param {string} name
+   * @param {import("playcanvas").Entity} prop
+   * @param {Array<number>} floor
+   * @param {boolean} placing
+   * @param {boolean} packing
+   */
   #move(name, prop, floor, placing, packing) {
     const carry = this.#carryPosition(name);
     const progress = placing
@@ -95,6 +152,10 @@ export class TerraceFurnitureActions {
     prop.enabled = this.#servant.entity.enabled;
   }
 
+  /**
+   *
+   * @param {string} name
+   */
   #carryPosition(name) {
     if (name === "table") {
       const left = this.#servant.leftHand.getPosition();
@@ -116,7 +177,11 @@ export class TerraceFurnitureActions {
 
   #tableGripDistance() {
     const hands = [this.#servant.leftHand, this.#servant.rightHand];
-    const grips = TABLE_GRIPS.map((point) => this.#props.table
+    const grips = TABLE_GRIPS.map(/**
+     *
+     * @param {{x: number, y: number, z: number}} point
+     */
+    (point) => this.#props.table
       .getWorldTransform().transformPoint(new this.#pc.Vec3(...point)));
     const direct = grips[0].distance(hands[0].getPosition()) +
       grips[1].distance(hands[1].getPosition());

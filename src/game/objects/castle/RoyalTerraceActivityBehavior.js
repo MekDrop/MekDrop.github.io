@@ -6,12 +6,41 @@ import { TerraceParticipantStateMachine } from "./TerraceParticipantStateMachine
  * @abstract
  */
 export class RoyalTerraceActivityBehavior extends TerraceParticipantStateMachine {
+  /**
+   *
+    * @type {boolean}
+   */
   #requested = false;
+  /**
+   *
+    * @type {Record<string, string>}
+   */
   #phases;
+  /**
+   *
+    * @type {(atThrone: boolean) => void}
+   */
   #onThroneChange;
+  /**
+   *
+    * @type {number}
+   */
   #walkSpeed;
+  /**
+   *
+    * @type {string|null}
+   */
   #service;
 
+  /**
+   *
+   * @param {{states: Array<import("yuka").State>, phases: Record<string, string>, onThroneChange: (atThrone: boolean) => void, walkSpeed: number, service: string|null}} options
+   * @param {Array<import("yuka").State>} options.states
+   * @param {Record<string, string>} options.phases
+   * @param {(atThrone: boolean) => void} options.onThroneChange
+   * @param {number} options.walkSpeed
+   * @param {string|null} options.service
+   */
   constructor({ states, phases, onThroneChange, walkSpeed, service = null }) {
     super({ dormantPhase: phases.throne, states });
     this.#phases = phases;
@@ -43,15 +72,27 @@ export class RoyalTerraceActivityBehavior extends TerraceParticipantStateMachine
     }
   }
 
+  /**
+   *
+    * @returns {boolean}
+   */
   get onThrone() {
     return this.in(this.#phases.throne) ||
       Boolean(this.#phases.wish && this.in(this.#phases.wish));
   }
 
+  /**
+   *
+    * @returns {boolean}
+   */
   get active() {
     return !this.onThrone;
   }
 
+  /**
+   *
+    * @returns {string|null}
+   */
   get wish() {
     return this.#phases.wish && this.in(this.#phases.wish)
       ? this.#service : null;
@@ -61,6 +102,10 @@ export class RoyalTerraceActivityBehavior extends TerraceParticipantStateMachine
     return this.#walkSpeed;
   }
 
+  /**
+   *
+   * @param {string} service
+   */
   fulfillWish(service) {
     if (!this.#requested || !this.#phases.wish ||
       !this.in(this.#phases.wish) || service !== this.#service) {
@@ -75,6 +120,10 @@ export class RoyalTerraceActivityBehavior extends TerraceParticipantStateMachine
     this.transition(this.#phases.enter);
   }
 
+  /**
+   *
+   * @param {number} phase
+   */
   nextPhase(phase) {
     switch (phase) {
       case this.#phases.enter:

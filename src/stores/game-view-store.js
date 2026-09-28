@@ -10,6 +10,11 @@ const MAX_ZOOM = import.meta.env.DEV
   ? DEVELOPMENT_MAX_ZOOM
   : DEFAULT_CONTROLS.zoom.max;
 
+/**
+ *
+ * @param {number} value
+ * @param {number} fallback
+ */
 function finiteValue(value, fallback) {
   return Number.isFinite(value) ? value : fallback;
 }
@@ -23,6 +28,10 @@ export const useGameViewStore = defineStore(
     const panZ = ref(0);
     const manuallyMoved = ref(false);
 
+    /**
+     *
+     * @param {{zoom?: number, rotation?: number, panX?: number, panZ?: number, manuallyMoved?: boolean}|null} nextViewport
+     */
     const updateViewport = (nextViewport) => {
       const normalized = {
         zoom: Math.max(

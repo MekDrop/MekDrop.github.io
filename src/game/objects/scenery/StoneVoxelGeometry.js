@@ -66,6 +66,13 @@ const STONE_ROWS = [
 ];
 const VOXEL_TONES = [0.86, 0.98, 0.74, 0.82];
 
+/**
+ *
+ * @param {import("playcanvas").Mesh} geometry
+ * @param {Array<{x: number, y: number, z: number}>} points
+ * @param {{x: number, y: number, z: number}} normal
+ * @param {import("playcanvas").Color|number} color
+ */
 function addPolygon(geometry, points, normal, color) {
   const [nx, ny, nz] = normal;
   const length = Math.hypot(nx, ny, nz);
@@ -104,19 +111,44 @@ function addPolygon(geometry, points, normal, color) {
   }
 }
 
+/**
+ *
+ * @param {import("playcanvas").Mesh} geometry
+ * @param {number} center
+ * @param {number} size
+ * @param {import("playcanvas").Color|number} color
+ */
 function addVoxel(geometry, center, size, color) {
-  const half = size.map((dimension) => dimension / 2);
+  const half = size.map(/**
+   *
+   * @param {{x: number, y: number, z: number}} dimension
+   */
+  (dimension) => dimension / 2);
   const bevel = Math.min(...half) * 0.12;
-  const inner = half.map((value) => value - bevel);
+  const inner = half.map(/**
+   *
+   * @param {number} value
+   */
+  (value) => value - bevel);
   for (let axis = 0; axis < 3; axis++) {
-    const other = [0, 1, 2].filter((index) => index !== axis);
+    const other = [0, 1, 2].filter(/**
+     *
+     * @param {number} index
+     */
+    (index) => index !== axis);
     for (const sign of [-1, 1]) {
       const points = [
         [-1, -1],
         [1, -1],
         [1, 1],
         [-1, 1],
-      ].map(([a, b]) => {
+      ].map(/**
+       *
+       * @param {Array<number>} options
+       * @param {number} options."0"
+       * @param {number} options."1"
+       */
+      ([a, b]) => {
         const point = [...center];
         point[axis] += sign * half[axis];
         point[other[0]] += a * inner[other[0]];
@@ -130,7 +162,11 @@ function addVoxel(geometry, center, size, color) {
   }
   for (let first = 0; first < 3; first++) {
     for (let second = first + 1; second < 3; second++) {
-      const third = [0, 1, 2].find((axis) => axis !== first && axis !== second);
+      const third = [0, 1, 2].find(/**
+       *
+       * @param {{x: number, y: number, z: number}} axis
+       */
+      (axis) => axis !== first && axis !== second);
       for (const firstSign of [-1, 1]) {
         for (const secondSign of [-1, 1]) {
           const points = [
@@ -138,7 +174,11 @@ function addVoxel(geometry, center, size, color) {
             [half[first], inner[second], inner[third]],
             [inner[first], half[second], inner[third]],
             [inner[first], half[second], -inner[third]],
-          ].map((coordinates) => {
+          ].map(/**
+           *
+           * @param {number} coordinates
+           */
+          (coordinates) => {
             const point = [...center];
             point[first] += coordinates[0] * firstSign;
             point[second] += coordinates[1] * secondSign;
@@ -160,13 +200,24 @@ function addVoxel(geometry, center, size, color) {
           [xSign * half[0], ySign * inner[1], zSign * inner[2]],
           [xSign * inner[0], ySign * half[1], zSign * inner[2]],
           [xSign * inner[0], ySign * inner[1], zSign * half[2]],
-        ].map(([x, y, z]) => [center[0] + x, center[1] + y, center[2] + z]);
+        ].map(/**
+         *
+         * @param {Array<number>} options
+         * @param {number} options."0"
+         * @param {number} options."1"
+         * @param {number} options."2"
+         */
+        ([x, y, z]) => [center[0] + x, center[1] + y, center[2] + z]);
         addPolygon(geometry, points, [xSign, ySign, zSign], color);
       }
     }
   }
 }
 
+/**
+ *
+ * @param {Array<{x: number, y: number, z: number, width: number, height: number, depth: number}>} stones
+ */
 export function buildStoneVoxels(stones) {
   const voxels = [];
   for (const stone of stones) {
@@ -188,7 +239,11 @@ export function buildStoneVoxels(stones) {
             (stone.variant * 5 + row * 3 + col * 7 + depth * 11 + 40) %
               VOXEL_TONES.length
           ];
-        const color = tint.map((channel) => channel * shade);
+        const color = tint.map(/**
+         *
+         * @param {number} channel
+         */
+        (channel) => channel * shade);
         const x = stone.x + (col * cosine - depth * sine) * width;
         const z = stone.z + (col * sine + depth * cosine) * width;
         const y = stone.ground + (row + 0.5) * height;
@@ -207,6 +262,10 @@ export function buildStoneVoxels(stones) {
   return voxels;
 }
 
+/**
+ *
+ * @param {Array<{x: number, y: number, z: number, width: number, height: number, depth: number}>} stones
+ */
 export function buildStoneVoxelGeometry(stones) {
   const geometry = { positions: [], normals: [], colors: [], indices: [] };
   for (const voxel of buildStoneVoxels(stones)) {

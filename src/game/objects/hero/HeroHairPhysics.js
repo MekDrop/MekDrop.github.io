@@ -5,10 +5,18 @@ const MAXIMUM_COMPRESSION = 0.055;
 const MAXIMUM_LIFT = 0.008;
 const MAXIMUM_ANCHOR_STEP = 0.4;
 
+/**
+ *
+ * @param {{x: number, y: number, z: number}} vector
+ */
 function copyVector(vector) {
   return { x: vector.x, y: vector.y, z: vector.z };
 }
 
+/**
+ *
+ * @param {string} name
+ */
 function profileFor(name) {
   if (/hair cap/i.test(name)) {
     return {
@@ -56,26 +64,91 @@ function profileFor(name) {
 }
 
 export class HeroHairPhysics {
+  /**
+   *
+    * @type {typeof import("playcanvas")}
+   */
   #pc;
+  /**
+   *
+    * @type {import("playcanvas").Entity}
+   */
   #headEntity;
+  /**
+   *
+    * @type {string}
+   */
   #modelScale;
+  /**
+   *
+    * @type {Array<{entity: import("playcanvas").Entity, body: import("playcanvas").RigidBodyComponent}>}
+   */
   #parts;
+  /**
+   *
+    * @type {import("playcanvas").Entity}
+   */
   #entity;
+  /**
+   *
+    * @type {typeof import("playcanvas")}
+   */
   #anchor;
+  /**
+   *
+    * @type {typeof import("playcanvas")}
+   */
   #driver;
+  /**
+   *
+    * @type {typeof import("playcanvas")}
+   */
   #joint;
+  /**
+   *
+    * @type {{x: number, y: number, z: number}}
+   */
   #anchorPosition;
+  /**
+   *
+    * @type {{x: number, y: number, z: number}}
+   */
   #previousAnchorPosition;
+  /**
+   *
+    * @type {typeof import("playcanvas")}
+   */
   #anchorHeight;
+  /**
+   *
+    * @type {typeof import("playcanvas")}
+   */
   #gravityVector = null;
+  /**
+   *
+    * @type {number}
+   */
   #compression = 0;
 
+  /**
+   *
+   * @param {{pc: typeof import("playcanvas"), app: import("playcanvas").Application, headEntity: import("playcanvas").Entity, hairEntities: Array<import("playcanvas").Entity>, modelScale: string}} options
+   * @param {typeof import("playcanvas")} options.pc
+   * @param {import("playcanvas").Application} options.app
+   * @param {import("playcanvas").Entity} options.headEntity
+   * @param {Array<import("playcanvas").Entity>} options.hairEntities
+   * @param {string} options.modelScale
+   */
   constructor({ pc, app, headEntity, hairEntities, modelScale }) {
     this.#pc = pc;
     this.#headEntity = headEntity;
     this.#modelScale = modelScale;
     this.#anchorHeight = DRIVER_LOCAL_HEIGHT * modelScale;
-    this.#parts = hairEntities.filter(Boolean).map((entity) => ({
+    this.#parts = hairEntities.filter(Boolean).map(/**
+     *
+     * @param {import("playcanvas").Entity} entity
+     */
+    (entity) => ({
       entity,
       position: copyVector(entity.getLocalPosition()),
       rotation: copyVector(entity.getLocalEulerAngles()),
@@ -138,6 +211,10 @@ export class HeroHairPhysics {
     this.#disableDriverGravity();
   }
 
+  /**
+   *
+    * @returns {{entity: import("playcanvas").Entity, body: import("playcanvas").RigidBodyComponent}}
+   */
   get state() {
     return {
       compression: this.#compression,
@@ -186,6 +263,10 @@ export class HeroHairPhysics {
     this.#parts = [];
   }
 
+  /**
+   *
+   * @param {import("src/game/objects/ObjectTypes.js").Point3} initial
+   */
   #syncAnchor(initial = false) {
     const headPosition = this.#headEntity.getPosition();
     this.#anchorPosition.set(

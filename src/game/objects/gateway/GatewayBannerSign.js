@@ -17,6 +17,12 @@ export const GATEWAY_BANNER_SIGNS = [
  * Creates a transparent texture containing one decorative Unicode glyph.
  */
 export class GatewayBannerSign {
+  /**
+   *
+   * @param {typeof import("playcanvas")} pc
+   * @param {import("playcanvas").GraphicsDevice} graphicsDevice
+   * @param {string} symbol
+   */
   static createTexture(pc, graphicsDevice, symbol) {
     const size = 128;
     const canvas = document.createElement("canvas");

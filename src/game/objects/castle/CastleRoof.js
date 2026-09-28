@@ -8,19 +8,58 @@ const ROOF_TILE_LIFT = 0.032;
 const ROOF_TILE_INNER_LIFT = 0.004;
 
 export class CastleRoof {
+  /**
+   *
+    * @type {typeof import("playcanvas")}
+   */
   #pc;
+  /**
+   *
+    * @type {import("playcanvas").Application}
+   */
   #app;
+  /**
+   *
+    * @type {import("playcanvas").Entity}
+   */
   #entity;
+  /**
+   *
+    * @type {Array<import("playcanvas").StandardMaterial>}
+   */
   #tileMaterials = [];
+  /**
+   *
+    * @type {import("playcanvas").StandardMaterial}
+   */
   #backingMaterial;
+  /**
+   *
+    * @type {import("playcanvas").StandardMaterial}
+   */
   #trimMaterial;
+  /**
+   *
+    * @type {Array<import("playcanvas").Mesh>}
+   */
   #meshes = [];
 
+  /**
+   *
+   * @param {{pc: typeof import("playcanvas"), app: import("playcanvas").Application}} options
+   * @param {typeof import("playcanvas")} options.pc
+   * @param {import("playcanvas").Application} options.app
+   */
   constructor({ pc, app }) {
     this.#pc = pc;
     this.#app = app;
     this.#entity = new pc.Entity("Castle roofs");
-    this.#tileMaterials = ROOF_TILE_COLORS.map((color, index) =>
+    this.#tileMaterials = ROOF_TILE_COLORS.map(/**
+     *
+     * @param {import("playcanvas").Color|number} color
+     * @param {number} index
+     */
+    (color, index) =>
       this.#createMaterial(color, `Castle blue roof tile ${index + 1}`),
     );
     this.#backingMaterial = this.#createMaterial(
@@ -39,6 +78,17 @@ export class CastleRoof {
     return this.#entity;
   }
 
+  /**
+   *
+   * @param {{x: number, y: number, z: number, yaw: number, width: number, depth: number, height: number}} options
+   * @param {number} options.x
+   * @param {number} options.y
+   * @param {number} options.z
+   * @param {number} options.yaw
+   * @param {number} options.width
+   * @param {number} options.depth
+   * @param {number} options.height
+   */
   add({ x, y, z, yaw = 0, width = 1.4, depth = 1.4, height = 0.9 }) {
     const root = new this.#pc.Entity("Block-tiled blue roof");
     root.setPosition(x, y, z);
@@ -119,6 +169,12 @@ export class CastleRoof {
     this.#trimMaterial = null;
   }
 
+  /**
+   *
+   * @param {import("playcanvas").Color|number} color
+   * @param {string} name
+   * @param {number} gloss
+   */
   #createMaterial(color, name, gloss = 0.08) {
     const material = new this.#pc.StandardMaterial();
     material.name = name;
@@ -130,6 +186,13 @@ export class CastleRoof {
     return material;
   }
 
+  /**
+   *
+   * @param {number} face
+   * @param {number} halfWidth
+   * @param {number} halfDepth
+   * @param {number} height
+   */
   #createFaceBacking(face, halfWidth, halfDepth, height) {
     return this.#createMesh(
       [
@@ -142,6 +205,13 @@ export class CastleRoof {
     );
   }
 
+  /**
+   *
+   * @param {number} face
+   * @param {number} halfWidth
+   * @param {number} halfDepth
+   * @param {number} height
+   */
   #createFaceTiles(face, halfWidth, halfDepth, height) {
     const faceSpan = face % 2 === 0 ? halfWidth * 2 : halfDepth * 2;
     const courses = this.#courseCount(height);
@@ -249,6 +319,16 @@ export class CastleRoof {
     return instances;
   }
 
+  /**
+   *
+   * @param {number} face
+   * @param {number} u
+   * @param {number} t
+   * @param {number} halfWidth
+   * @param {number} halfDepth
+   * @param {number} height
+   * @param {number} lift
+   */
   #surfacePoint(face, u, t, halfWidth, halfDepth, height, lift = 0) {
     const taper = 1 - t;
     if (face === 0) {
@@ -263,10 +343,19 @@ export class CastleRoof {
     return [-halfWidth * taper - lift, t * height, -u * halfDepth * taper];
   }
 
+  /**
+   *
+   * @param {number} height
+   */
   #courseCount(height) {
     return height > 1.1 ? 3 : 2;
   }
 
+  /**
+   *
+   * @param {Array<number>} outerPositions
+   * @param {Array<number>} innerPositions
+   */
   #createTileMesh(outerPositions, innerPositions) {
     return this.#createMesh(
       [...outerPositions, ...innerPositions],
@@ -278,6 +367,12 @@ export class CastleRoof {
     );
   }
 
+  /**
+   *
+   * @param {Array<number>} positions
+   * @param {Array<number>} indices
+   * @param {Array<number>} uvs
+   */
   #createMesh(positions, indices, uvs) {
     const geometry = new this.#pc.Geometry();
     geometry.positions = positions;
@@ -290,6 +385,15 @@ export class CastleRoof {
     return mesh;
   }
 
+  /**
+   *
+   * @param {import("playcanvas").Entity} root
+   * @param {string} name
+   * @param {number} x
+   * @param {number} z
+   * @param {number} width
+   * @param {number} depth
+   */
   #addBaseEave(root, name, x, z, width, depth) {
     const eave = new this.#pc.Entity(name);
     eave.addComponent("render", {

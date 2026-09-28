@@ -5,6 +5,10 @@ import {
   GroundCoverItem,
 } from "../objects/ground-cover/index.js";
 
+/**
+ *
+ * @param {import("src/game/GameContracts.js").GameObjectDefinition} definition
+ */
 function defaultScale(definition) {
   return definition.category === "flower"
     ? {
@@ -19,19 +23,51 @@ function defaultScale(definition) {
  * A non-interactive item placed directly by stored map data.
  */
 export class MapVirtualItem {
+  /**
+   *
+   * @type {import("src/game/GameContracts.js").GameObjectDefinition}
+   */
   #definition;
+  /**
+   *
+   * @type {GroundCoverItem}
+   */
   #item;
+  /**
+   *
+   * @type {import("src/game/GameContracts.js").GameObjectDefinition}
+   */
   #variantDefinition;
 
+  /**
+   *
+   * @param {{pc: typeof pc, app: pc.Application, modelLibrary: GameModelLibrary, definition: import("src/game/GameContracts.js").GameObjectDefinition}} options
+   * @param {typeof pc} options.pc
+   * @param {pc.Application} options.app
+   * @param {GameModelLibrary} options.modelLibrary
+   * @param {import("src/game/GameContracts.js").GameObjectDefinition} options.definition
+   */
   constructor({ pc, app, modelLibrary, definition }) {
     if (definition.object !== GroundCoverItem.name) {
       throw new VirtualItemObjectNotSupportedError({
         object: definition.object,
       });
     }
+    /**
+     *
+     * @type {import("src/game/GameContracts.js").GameObjectDefinition}
+     */
     this.#definition = definition;
+    /**
+     *
+     * @type {import("src/game/GameContracts.js").GameObjectDefinition}
+     */
     this.#variantDefinition = GROUND_COVER_VARIANTS[definition.variant];
     const position = definition.position;
+    /**
+     *
+     * @type {GroundCoverItem}
+     */
     this.#item = new GroundCoverItem({
       pc,
       app,
@@ -61,6 +97,10 @@ export class MapVirtualItem {
     return this.#definition;
   }
 
+  /**
+   *
+   * @returns {pc.Entity}
+   */
   get entity() {
     return this.#item.entity;
   }
@@ -69,10 +109,18 @@ export class MapVirtualItem {
     return this.#variantDefinition;
   }
 
+  /**
+   *
+   * @returns {Array}
+   */
   get visualRoots() {
     return [this.#item.entity];
   }
 
+  /**
+   *
+   * @param {number} deltaTime
+   */
   advance(deltaTime) {
     this.#item.advance(deltaTime);
   }

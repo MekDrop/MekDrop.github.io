@@ -31,13 +31,25 @@ const OBJECT_CLASSES = new Map([
 ]);
 
 /**
+ * @typedef {{new (options: {pc: typeof import("playcanvas"), app: import("playcanvas").Application, modelLibrary: import("src/game/models/GameModelLibrary.js").GameModelLibrary, definition: import("./ObjectTypes.js").MapObjectDefinition, runtime: import("./ObjectTypes.js").MapObjectRuntime}): import("./ObjectTypes.js").MapObjectLike, modelUrls?: Array<string>, modelUrl?: string}} MapObjectConstructor
+ */
+
+/**
  * Creates map objects through the class registered for each object name.
  */
 export class MapObjectFactory {
+  /**
+   *
+    * @returns {Array<string>}
+   */
   static get modelUrls() {
     return [
       ...new Set(
         [...OBJECT_CLASSES.values()].flatMap(
+          /**
+           *
+           * @param {MapObjectConstructor} ObjectClass
+           */
           (ObjectClass) =>
             ObjectClass.modelUrls ??
             (ObjectClass.modelUrl ? [ObjectClass.modelUrl] : []),
@@ -46,6 +58,16 @@ export class MapObjectFactory {
     ];
   }
 
+  /**
+   *
+   * @param {{pc: typeof import("playcanvas"), app: import("playcanvas").Application, modelLibrary: import("src/game/models/GameModelLibrary.js").GameModelLibrary, definitions: Array<{id: string, object: string, position?: {x: number, y: number, z: number}}>, runtime: import("src/game/objects/ObjectTypes.js").MapObjectRuntime, onCreate: (mapObject: import("src/game/objects/ObjectTypes.js").MapObjectLike) => void}} options
+   * @param {typeof import("playcanvas")} options.pc
+   * @param {import("playcanvas").Application} options.app
+   * @param {import("src/game/models/GameModelLibrary.js").GameModelLibrary} options.modelLibrary
+   * @param {Array<{id: string, object: string, position?: {x: number, y: number, z: number}}>} options.definitions
+   * @param {import("src/game/objects/ObjectTypes.js").MapObjectRuntime} options.runtime
+   * @param {(mapObject: import("src/game/objects/ObjectTypes.js").MapObjectLike) => void} options.onCreate
+   */
   static createAll({
     pc,
     app,
@@ -97,7 +119,12 @@ export class MapObjectFactory {
         app,
         modelLibrary,
         definitions: pickupDefinitions,
-        items: objects.filter(({ definition }) => definition),
+        items: objects.filter(/**
+         *
+         * @param {{definition: import("src/game/objects/ObjectTypes.js").MapObjectDefinition}} options
+         * @param {import("src/game/objects/ObjectTypes.js").MapObjectDefinition} options.definition
+         */
+        ({ definition }) => definition),
       });
       objects.push(pickupActors);
       onCreate(pickupActors);

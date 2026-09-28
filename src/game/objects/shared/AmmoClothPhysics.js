@@ -25,19 +25,72 @@ const MINIMUM_POINTER_RADIUS = 0.16;
  * Runs deformable cloth meshes in an isolated Ammo soft-body world.
  */
 export class AmmoClothPhysics {
+  /**
+   *
+    * @type {typeof import("playcanvas")}
+   */
   #pc;
+  /**
+   *
+    * @type {typeof import("playcanvas")}
+   */
   #ammo;
+  /**
+   *
+    * @type {number}
+   */
   #collisionConfiguration;
+  /**
+   *
+    * @type {typeof import("playcanvas")}
+   */
   #dispatcher;
+  /**
+   *
+    * @type {typeof import("playcanvas")}
+   */
   #broadphase;
+  /**
+   *
+    * @type {typeof import("playcanvas")}
+   */
   #solver;
+  /**
+   *
+    * @type {typeof import("playcanvas")}
+   */
   #softBodySolver;
+  /**
+   *
+    * @type {typeof import("playcanvas")}
+   */
   #world;
+  /**
+   *
+    * @type {typeof import("playcanvas")}
+   */
   #gravity;
+  /**
+   *
+    * @type {number}
+   */
   #force;
+  /**
+   *
+    * @type {Array<{softBody: {update: (deltaTime: number) => void, destroy: () => void}, mesh: import("playcanvas").Mesh, entity: import("playcanvas").Entity}>}
+   */
   #cloths = [];
+  /**
+   *
+    * @type {typeof import("playcanvas")}
+   */
   #elapsed = 0;
 
+  /**
+   *
+   * @param {{pc: typeof import("playcanvas")}} options
+   * @param {typeof import("playcanvas")} options.pc
+   */
   constructor({ pc = null } = {}) {
     this.#pc = pc;
     this.#ammo = globalThis.Ammo;
@@ -62,6 +115,22 @@ export class AmmoClothPhysics {
     this.#world.getWorldInfo().set_m_gravity(this.#gravity);
   }
 
+  /**
+   *
+   * @param {{positions: Array<{x: number, y: number, z: number}>, indices: Array<number>, pinnedIndices: Array<number>, vertexUv: import("src/game/objects/ObjectTypes.js").Point3, root: import("playcanvas").Entity, normalAxis: {x: number, y: number, z: number}, seed: number, wallPlane: {normal: import("src/game/objects/ObjectTypes.js").Point3, distance: number}|null, wallOpeningWindExposure: (position: import("src/game/objects/ObjectTypes.js").Point3) => number, roofCollider: number, bendingStiffness: number, selfCollision: boolean}} options
+   * @param {Array<{x: number, y: number, z: number}>} options.positions
+   * @param {Array<number>} options.indices
+   * @param {Array<number>} options.pinnedIndices
+   * @param {import("src/game/objects/ObjectTypes.js").Point3} options.vertexUv
+   * @param {import("playcanvas").Entity} options.root
+   * @param {{x: number, y: number, z: number}} options.normalAxis
+   * @param {number} options.seed
+   * @param {{normal: import("src/game/objects/ObjectTypes.js").Point3, distance: number}|null} options.wallPlane
+   * @param {(position: import("src/game/objects/ObjectTypes.js").Point3) => number} options.wallOpeningWindExposure
+   * @param {number} options.roofCollider
+   * @param {number} options.bendingStiffness
+   * @param {boolean} options.selfCollision
+   */
   createCloth({
     positions,
     indices,
@@ -122,6 +191,11 @@ export class AmmoClothPhysics {
       roofCollider,
       roofFaces: Array.from(
         { length: indices.length / 3 },
+        /**
+         *
+         * @param {undefined} _
+         * @param {number} faceIndex
+         */
         (_, faceIndex) => ({
           first: indices[faceIndex * 3],
           second: indices[faceIndex * 3 + 1],
@@ -138,6 +212,11 @@ export class AmmoClothPhysics {
     return cloth;
   }
 
+  /**
+   *
+   * @param {number} cloth
+   * @param {{x: number, y: number, z: number}} point
+   */
   beginPointer(cloth, point) {
     if (!cloth || !point) {
       return;
@@ -146,6 +225,12 @@ export class AmmoClothPhysics {
     this.#applyPointerVelocity(cloth, point, { x: 0, y: 0, z: 0 }, 0.12);
   }
 
+  /**
+   *
+   * @param {number} cloth
+   * @param {{x: number, y: number, z: number}} point
+   * @param {number} deltaTime
+   */
   applyPointer(cloth, point, deltaTime) {
     if (!cloth?.pointerPoint || !point) {
       return;
@@ -172,12 +257,20 @@ export class AmmoClothPhysics {
     cloth.pointerPoint = this.#copyPoint(point);
   }
 
+  /**
+   *
+   * @param {number} cloth
+   */
   endPointer(cloth) {
     if (cloth) {
       cloth.pointerPoint = null;
     }
   }
 
+  /**
+   *
+   * @param {number} deltaTime
+   */
   step(deltaTime) {
     if (!this.#world) {
       return;
@@ -194,6 +287,11 @@ export class AmmoClothPhysics {
     }
   }
 
+  /**
+   *
+   * @param {number} cloth
+   * @param {{x: number, y: number, z: number}} target
+   */
   writePositions(cloth, target) {
     const nodes = cloth.body.get_m_nodes();
     for (let index = 0; index < nodes.size(); index += 1) {
@@ -205,6 +303,12 @@ export class AmmoClothPhysics {
     }
   }
 
+  /**
+   *
+   * @param {number} cloth
+   * @param {number} u
+   * @param {number} v
+   */
   sample(cloth, u, v) {
     if (!cloth?.vertexUv) {
       return null;
@@ -271,6 +375,11 @@ export class AmmoClothPhysics {
     this.#ammo = null;
   }
 
+  /**
+   *
+   * @param {number} cloth
+   * @param {{direction: import("src/game/objects/ObjectTypes.js").Point3, speed: number}} wind
+   */
   #applyWind(cloth, wind) {
     let windX = wind.direction.x;
     let windZ = wind.direction.z;
@@ -355,6 +464,11 @@ export class AmmoClothPhysics {
     cloth.body.activate();
   }
 
+  /**
+   *
+   * @param {Array<{x: number, y: number, z: number}>} positions
+   * @param {Array<number>} indices
+   */
   #createBody(positions, indices) {
     const body = new this.#ammo.btSoftBody(this.#world.getWorldInfo());
     for (let index = 0; index < positions.length; index += 3) {
@@ -371,6 +485,11 @@ export class AmmoClothPhysics {
     const nodes = body.get_m_nodes();
     const links = new Set();
     const stretchConstraints = [];
+    /**
+     *
+     * @param {boolean} left
+     * @param {number} right
+     */
     const appendLink = (left, right) => {
       const minimum = Math.min(left, right);
       const maximum = Math.max(left, right);
@@ -391,7 +510,11 @@ export class AmmoClothPhysics {
         left,
         maximumLength: restLength * MAXIMUM_LINK_STRETCH,
         minimumLength: restLength * MINIMUM_LINK_LENGTH_RATIO,
-        restDirection: restDelta.map((value) => value / restLength),
+        restDirection: restDelta.map(/**
+         *
+         * @param {number} value
+         */
+        (value) => value / restLength),
         right,
       });
       body.appendLink(nodes.at(left), nodes.at(right), material, false);
@@ -414,6 +537,10 @@ export class AmmoClothPhysics {
     return { body, material, stretchConstraints };
   }
 
+  /**
+   *
+   * @param {number} cloth
+   */
   #limitStretch(cloth) {
     const nodes = cloth.body.get_m_nodes();
     const iterations = cloth.roofCollider
@@ -478,6 +605,11 @@ export class AmmoClothPhysics {
     }
   }
 
+  /**
+   *
+   * @param {number} cloth
+   * @param {Array<import("playcanvas").Entity>} nodes
+   */
   #enforceWallPlane(cloth, nodes) {
     if (cloth.wallPlane === null) {
       return;
@@ -509,6 +641,11 @@ export class AmmoClothPhysics {
     }
   }
 
+  /**
+   *
+   * @param {number} cloth
+   * @param {Array<import("playcanvas").Entity>} nodes
+   */
   #enforceRoofCollider(cloth, nodes) {
     const collider = cloth.roofCollider;
     if (!collider || collider.halfWidth <= 0 || collider.halfDepth <= 0) {
@@ -522,6 +659,13 @@ export class AmmoClothPhysics {
     }
   }
 
+  /**
+   *
+   * @param {number} cloth
+   * @param {Array<import("playcanvas").Entity>} nodes
+   * @param {number} collider
+   * @param {number} index
+   */
   #enforceRoofNodeContact(cloth, nodes, collider, index) {
     const node = nodes.at(index);
     const position = node.get_m_x();
@@ -538,8 +682,19 @@ export class AmmoClothPhysics {
     this.#removeRoofVelocity(node.get_m_v(), contact.normal, 1);
   }
 
+  /**
+   *
+   * @param {number} cloth
+   * @param {Array<import("playcanvas").Entity>} nodes
+   * @param {number} collider
+   * @param {import("src/game/objects/ObjectTypes.js").Triangle} face
+   */
   #enforceRoofFaceContacts(cloth, nodes, collider, face) {
-    const facePositions = [face.first, face.second, face.third].map((index) =>
+    const facePositions = [face.first, face.second, face.third].map(/**
+     *
+     * @param {number} index
+     */
+    (index) =>
       nodes.at(index).get_m_x(),
     );
     const centerX = collider.centerX ?? 0;
@@ -547,19 +702,39 @@ export class AmmoClothPhysics {
     const clearance = collider.clearance ?? ROOF_COLLISION_CLEARANCE;
     if (
       facePositions.every(
+        /**
+         *
+         * @param {{x: number, y: number, z: number}} position
+         */
         (position) =>
           position.y() >= collider.baseY + collider.height + clearance,
       ) ||
       facePositions.every(
+        /**
+         *
+         * @param {{x: number, y: number, z: number}} position
+         */
         (position) => position.x() < centerX - collider.halfWidth,
       ) ||
       facePositions.every(
+        /**
+         *
+         * @param {{x: number, y: number, z: number}} position
+         */
         (position) => position.x() > centerX + collider.halfWidth,
       ) ||
       facePositions.every(
+        /**
+         *
+         * @param {{x: number, y: number, z: number}} position
+         */
         (position) => position.z() < centerZ - collider.halfDepth,
       ) ||
       facePositions.every(
+        /**
+         *
+         * @param {{x: number, y: number, z: number}} position
+         */
         (position) => position.z() > centerZ + collider.halfDepth,
       )
     ) {
@@ -612,9 +787,22 @@ export class AmmoClothPhysics {
     }
   }
 
+  /**
+   *
+   * @param {number} cloth
+   * @param {Array<import("playcanvas").Entity>} nodes
+   * @param {number} collider
+   * @param {import("src/game/objects/ObjectTypes.js").Triangle} face
+   * @param {number} x
+   * @param {number} z
+   */
   #enforceRoofFeaturePoint(cloth, nodes, collider, face, x, z) {
     const indices = [face.first, face.second, face.third];
-    const points = indices.map((index) => nodes.at(index).get_m_x());
+    const points = indices.map(/**
+     *
+     * @param {number} index
+     */
+    (index) => nodes.at(index).get_m_x());
     const denominator =
       (points[1].z() - points[2].z()) * (points[0].x() - points[2].x()) +
       (points[2].x() - points[1].x()) * (points[0].z() - points[2].z());
@@ -648,6 +836,16 @@ export class AmmoClothPhysics {
     );
   }
 
+  /**
+   *
+   * @param {number} cloth
+   * @param {Array<import("playcanvas").Entity>} nodes
+   * @param {number} collider
+   * @param {import("src/game/objects/ObjectTypes.js").Triangle} face
+   * @param {boolean} leftSlot
+   * @param {number} rightSlot
+   * @param {Array<number>} line
+   */
   #enforceRoofEdgeIntersection(
     cloth,
     nodes,
@@ -685,6 +883,16 @@ export class AmmoClothPhysics {
     );
   }
 
+  /**
+   *
+   * @param {number} cloth
+   * @param {Array<import("playcanvas").Entity>} nodes
+   * @param {number} collider
+   * @param {import("src/game/objects/ObjectTypes.js").Triangle} face
+   * @param {number} firstWeight
+   * @param {number} secondWeight
+   * @param {number} thirdWeight
+   */
   #enforceRoofFaceSample(
     cloth,
     nodes,
@@ -696,16 +904,38 @@ export class AmmoClothPhysics {
   ) {
     const indices = [face.first, face.second, face.third];
     const weights = [firstWeight, secondWeight, thirdWeight];
-    const positions = indices.map((index) => nodes.at(index).get_m_x());
+    const positions = indices.map(/**
+     *
+     * @param {number} index
+     */
+    (index) => nodes.at(index).get_m_x());
     const x = positions.reduce(
+      /**
+       *
+       * @param {number} total
+       * @param {{x: number, y: number, z: number}} position
+       * @param {number} index
+       */
       (total, position, index) => total + position.x() * weights[index],
       0,
     );
     const y = positions.reduce(
+      /**
+       *
+       * @param {number} total
+       * @param {{x: number, y: number, z: number}} position
+       * @param {number} index
+       */
       (total, position, index) => total + position.y() * weights[index],
       0,
     );
     const z = positions.reduce(
+      /**
+       *
+       * @param {number} total
+       * @param {{x: number, y: number, z: number}} position
+       * @param {number} index
+       */
       (total, position, index) => total + position.z() * weights[index],
       0,
     );
@@ -732,8 +962,18 @@ export class AmmoClothPhysics {
       position.setValue(position.x(), position.y() + correction, position.z());
     }
 
-    const velocities = indices.map((index) => nodes.at(index).get_m_v());
+    const velocities = indices.map(/**
+     *
+     * @param {number} index
+     */
+    (index) => nodes.at(index).get_m_v());
     const inwardSpeed = velocities.reduce(
+      /**
+       *
+       * @param {number} total
+       * @param {{x: number, y: number, z: number}} velocity
+       * @param {number} index
+       */
       (total, velocity, index) =>
         total +
         weights[index] *
@@ -758,6 +998,13 @@ export class AmmoClothPhysics {
     }
   }
 
+  /**
+   *
+   * @param {number} collider
+   * @param {number} x
+   * @param {number} y
+   * @param {number} z
+   */
   #roofContact(collider, x, y, z) {
     const centerX = collider.centerX ?? 0;
     const centerZ = collider.centerZ ?? 0;
@@ -794,6 +1041,13 @@ export class AmmoClothPhysics {
     return { normal, penetration: roofY - y };
   }
 
+  /**
+   *
+   * @param {{x: number, y: number, z: number}} velocity
+   * @param {{x: number, y: number, z: number}} normal
+   * @param {number} scale
+   * @param {number} inwardSpeed
+   */
   #removeRoofVelocity(velocity, normal, scale, inwardSpeed = null) {
     const speed =
       inwardSpeed ??
@@ -810,6 +1064,15 @@ export class AmmoClothPhysics {
     );
   }
 
+  /**
+   *
+   * @param {import("playcanvas").Entity} leftNode
+   * @param {import("playcanvas").Entity} rightNode
+   * @param {{x: number, y: number, z: number}} direction
+   * @param {boolean} leftPinned
+   * @param {number} rightPinned
+   * @param {number} compressed
+   */
   #removeConstraintVelocity(
     leftNode,
     rightNode,
@@ -841,6 +1104,13 @@ export class AmmoClothPhysics {
     );
   }
 
+  /**
+   *
+   * @param {number} cloth
+   * @param {{x: number, y: number, z: number}} point
+   * @param {{x: number, y: number, z: number}} direction
+   * @param {number} strength
+   */
   #applyPointerVelocity(cloth, point, direction, strength) {
     const nodes = cloth.body.get_m_nodes();
     const bounds = this.#measureBounds(cloth.positions);
@@ -878,6 +1148,10 @@ export class AmmoClothPhysics {
     cloth.body.activate();
   }
 
+  /**
+   *
+   * @param {Array<{x: number, y: number, z: number}>} positions
+   */
   #measureBounds(positions) {
     const minimum = [Infinity, Infinity, Infinity];
     const maximum = [-Infinity, -Infinity, -Infinity];
@@ -894,6 +1168,10 @@ export class AmmoClothPhysics {
     };
   }
 
+  /**
+   *
+   * @param {{x: number, y: number, z: number}} point
+   */
   #copyPoint(point) {
     return { x: point.x, y: point.y, z: point.z };
   }

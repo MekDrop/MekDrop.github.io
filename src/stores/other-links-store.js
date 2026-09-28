@@ -2,12 +2,24 @@ import { defineStore } from "pinia";
 import lunr from "lunr";
 import { computed, ref } from "vue";
 
+/**
+ * @typedef {{name: string, url: string, icon: string, tags: string[], search_words: string[], handle?: string, translate?: boolean}} OtherLink
+ */
+
+/**
+ * @typedef {Record<string, OtherLink>} OtherLinkMap
+ */
+
 export const useOtherLinksStore = defineStore("other-links", () => {
   const isLoading = ref(false);
   const isLoaded = ref(false);
 
   const index = ref(null);
   const data = ref({});
+  /**
+   *
+   * @param {import("vue-i18n").Composer} i18n
+   */
   const load = async (i18n) => {
     isLoading.value = true;
     isLoaded.value = false;
@@ -19,7 +31,11 @@ export const useOtherLinksStore = defineStore("other-links", () => {
     for (const linkName in otherLinksConfig) {
       const row = Object.assign({ name: linkName }, otherLinksConfig[linkName]);
       if (row.tags) {
-        row.tags = row.tags.map((tag) =>
+        row.tags = row.tags.map(/**
+         *
+         * @param {string} tag
+         */
+        (tag) =>
           i18n.te(`tag.${tag}`) ? i18n.t(`tag.${tag}`) : tag,
         );
       }
@@ -29,7 +45,12 @@ export const useOtherLinksStore = defineStore("other-links", () => {
 
     data.value = Object.keys(data.value)
       .sort()
-      .reduce((acc, key) => ((acc[key] = data.value[key]), acc), {});
+      .reduce(/**
+       *
+       * @param {OtherLinkMap} acc
+       * @param {string} key
+       */
+      (acc, key) => ((acc[key] = data.value[key]), acc), {});
 
     index.value = lunr(function () {
       this.field("tags");
@@ -53,11 +74,19 @@ export const useOtherLinksStore = defineStore("other-links", () => {
     data.value = {};
   };
 
+  /**
+   *
+   * @param {import("vue-i18n").Composer} i18n
+   */
   const reload = async (i18n) => {
     unload();
     await load(i18n);
   };
 
+  /**
+   *
+   * @param {string} term
+   */
   const search = (term) => {
     if (!term) {
       return Object.values(data.value);
@@ -66,7 +95,11 @@ export const useOtherLinksStore = defineStore("other-links", () => {
     const searchTerm = `*${lunr.utils.asString(term)}* ${lunr.utils.asString(term)}~1`;
 
     const results = index.value.search(searchTerm);
-    return results.map((result) => data.value[result.ref]);
+    return results.map(/**
+     *
+     * @param {import("lunr").Index.Result} result
+     */
+    (result) => data.value[result.ref]);
   };
 
   return {

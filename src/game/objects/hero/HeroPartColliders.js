@@ -22,6 +22,10 @@ const HERO_BODY_PART_NAMES = new Set([
 
 /**
  * Adds fitted compound-collider children to every solid hero body part.
+ *
+ * @param {{pc: typeof import("playcanvas"), modelRoot: import("playcanvas").Entity}} options
+ * @param {typeof import("playcanvas")} options.pc
+ * @param {import("playcanvas").Entity} options.modelRoot
  */
 export function addHeroPartColliders({ pc, modelRoot }) {
   const pending = [modelRoot];

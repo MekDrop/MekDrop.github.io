@@ -13,6 +13,10 @@ export class HeroGameOverActionState extends HeroRuntimeActionState {
     });
   }
 
+  /**
+   *
+   * @param {import("src/game/objects/ObjectTypes.js").HeroActionContext} owner
+   */
   enter(owner) {
     super.enter(owner);
     owner.feedback.gameOver.begin();

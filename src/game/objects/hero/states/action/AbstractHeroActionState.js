@@ -5,9 +5,22 @@ import { State } from "yuka";
  * @abstract
  */
 export class AbstractHeroActionState extends State {
+  /**
+   *
+    * @type {string}
+   */
   #action;
+  /**
+   *
+    * @type {string}
+   */
   #animation;
 
+  /**
+   *
+   * @param {string} action
+   * @param {string|number} animation
+   */
   constructor(action, animation) {
     super();
     this.#action = action;

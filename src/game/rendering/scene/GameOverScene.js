@@ -6,20 +6,88 @@ const CAMERA_DURATION = 0.8;
 const ROYAL_VIEWPORT_HEIGHT = 0.6;
 
 export class GameOverScene {
+  /**
+   *
+   * @type {GameOverHud|null}
+   */
   #hud = null;
+  /**
+   *
+   * @type {Array}
+   */
   #sceneObjects;
+  /**
+   *
+   * @type {() => import("src/game/GameContracts.js").ViewportRect}
+   */
   #getViewport;
+  /**
+   *
+   * @type {() => pc.Vec3}
+   */
   #getCameraPosition;
+  /**
+   *
+   * @type {() => import("src/game/GameContracts.js").CameraState}
+   */
   #getCameraState;
+  /**
+   *
+   * @type {(state: import("src/game/GameContracts.js").CameraState) => void}
+   */
   #setCameraState;
+  /**
+   *
+   * @type {() => void}
+   */
   #clearCameraReturn;
+  /**
+   *
+   * @type {() => void}
+   */
   #updateCamera;
+  /**
+   *
+   * @type {number}
+   */
   #cameraPitch;
+  /**
+   *
+   * @type {number}
+   */
   #mapFitZoom;
+  /**
+   *
+   * @type {null}
+   */
   #transition = null;
+  /**
+   *
+   * @type {null}
+   */
   #returnViewport = null;
+  /**
+   *
+   * @type {boolean}
+   */
   #active = false;
 
+  /**
+   *
+   * @param {{pc: typeof pc, app: pc.Application, translate: (key: string, values?: {[key: string]: string|number}) => string, sceneObjects: Array, getViewport: () => import("src/game/GameContracts.js").ViewportRect, getCameraPosition: () => pc.Vec3, getCameraState: () => import("src/game/GameContracts.js").CameraState, setCameraState: (state: import("src/game/GameContracts.js").CameraState) => void, clearCameraReturn: () => void, updateCamera: () => void, cameraPitch: number, mapFitZoom: number}} options
+   * @param {typeof pc} options.pc
+   * @param {pc.Application} options.app
+   * @param {(key: string, values?: {[key: string]: string|number}) => string} options.translate
+   * @param {Array} options.sceneObjects
+   * @param {() => import("src/game/GameContracts.js").ViewportRect} options.getViewport
+   * @param {() => pc.Vec3} options.getCameraPosition
+   * @param {() => import("src/game/GameContracts.js").CameraState} options.getCameraState
+   * @param {(state: import("src/game/GameContracts.js").CameraState) => void} options.setCameraState
+   * @param {() => void} options.clearCameraReturn
+   * @param {() => void} options.updateCamera
+   * @param {number} options.cameraPitch
+   * @param {number} options.mapFitZoom
+   */
   constructor({
     pc,
     app,
@@ -34,15 +102,55 @@ export class GameOverScene {
     cameraPitch,
     mapFitZoom,
   }) {
+    /**
+     *
+     * @type {Array}
+     */
     this.#sceneObjects = sceneObjects;
+    /**
+     *
+     * @type {() => import("src/game/GameContracts.js").ViewportRect}
+     */
     this.#getViewport = getViewport;
+    /**
+     *
+     * @type {() => pc.Vec3}
+     */
     this.#getCameraPosition = getCameraPosition;
+    /**
+     *
+     * @type {() => import("src/game/GameContracts.js").CameraState}
+     */
     this.#getCameraState = getCameraState;
+    /**
+     *
+     * @type {(state: import("src/game/GameContracts.js").CameraState) => void}
+     */
     this.#setCameraState = setCameraState;
+    /**
+     *
+     * @type {() => void}
+     */
     this.#clearCameraReturn = clearCameraReturn;
+    /**
+     *
+     * @type {() => void}
+     */
     this.#updateCamera = updateCamera;
+    /**
+     *
+     * @type {number}
+     */
     this.#cameraPitch = cameraPitch;
+    /**
+     *
+     * @type {number}
+     */
     this.#mapFitZoom = mapFitZoom;
+    /**
+     *
+     * @type {GameOverHud}
+     */
     this.#hud = new GameOverHud({
       pc,
       app,
@@ -59,6 +167,10 @@ export class GameOverScene {
     return this.#active;
   }
 
+  /**
+   *
+   * @returns {import("src/game/GameContracts.js").ViewportRect}
+   */
   get returnViewport() {
     return this.#returnViewport
       ? { ...this.#returnViewport }
@@ -74,6 +186,10 @@ export class GameOverScene {
     }
   }
 
+  /**
+   *
+   * @param {import("src/game/GameContracts.js").StoreContract} state
+   */
   syncHeroState(state) {
     if (this.#hud) {
       this.#hud.visible = state.gameOver;
@@ -83,16 +199,29 @@ export class GameOverScene {
     }
     const royals = this.#sceneObjects
       .getAll(SCENE_OBJECT_TYPE.MAP_OBJECT)
-      .filter((object) => typeof object.beginGameOver === "function");
+      .filter(/**
+       *
+       * @param {import("src/game/GameContracts.js").GameObjectContract} object
+       */
+      (object) => typeof object.beginGameOver === "function");
     if (royals.length === 0 || !this.#getCameraPosition()) {
       return;
     }
     const performances = royals
-      .map((royal) => ({
+      .map(/**
+       *
+       * @param {{entity: pc.Entity, definition?: GameObjectDefinition}} royal
+       */
+      (royal) => ({
         royal,
         presentation: royal.beginGameOver(() => this.#getCameraPosition()),
       }))
-      .filter(({ presentation }) => presentation);
+      .filter(/**
+       *
+       * @param {{presentation: {install?: () => void, destroy?: () => void}}} options
+       * @param {{install?: () => void, destroy?: () => void}} options.presentation
+       */
+      ({ presentation }) => presentation);
     if (performances.length === 0) {
       return;
     }
@@ -122,6 +251,10 @@ export class GameOverScene {
     }
   }
 
+  /**
+   *
+   * @param {number} deltaTime
+   */
   update(deltaTime) {
     const transition = this.#transition;
     if (!transition) {
@@ -165,6 +298,12 @@ export class GameOverScene {
     this.#returnViewport = null;
   }
 
+  /**
+   *
+   * @param {{x: number, y: number, z: number}} visualSize
+   * @param {number} viewRotation
+   * @param {import("src/game/GameContracts.js").CameraState} cameraState
+   */
   #getZoom(visualSize, viewRotation, cameraState) {
     if (
       !visualSize ||

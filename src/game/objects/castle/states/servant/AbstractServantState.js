@@ -5,13 +5,47 @@ import { State } from "yuka";
  * @abstract
  */
 export class AbstractServantState extends State {
+  /**
+   *
+    * @type {string}
+   */
   #phase;
+  /**
+   *
+    * @type {number}
+   */
   #duration;
+  /**
+   *
+    * @type {string|null}
+   */
   #nextPhase;
+  /**
+   *
+    * @type {string}
+   */
   #action;
+  /**
+   *
+    * @type {string}
+   */
   #animation;
+  /**
+   *
+    * @type {string}
+   */
   #alignmentAnimation;
 
+  /**
+   *
+   * @param {{phase: number, duration: number, nextPhase: string|null, action: string, animation: string, alignmentAnimation: string}} options
+   * @param {number} options.phase
+   * @param {number} options.duration
+   * @param {string|null} options.nextPhase
+   * @param {string} options.action
+   * @param {string} options.animation
+   * @param {string} options.alignmentAnimation
+   */
   constructor({
     phase,
     duration,
@@ -53,6 +87,10 @@ export class AbstractServantState extends State {
     return this.#alignmentAnimation;
   }
 
+  /**
+   *
+   * @param {import("../../ServantStateMachine.js").ServantStateMachine} owner
+   */
   execute(owner) {
     if (!owner.canAdvance(this)) {
       return;

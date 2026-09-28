@@ -6,18 +6,68 @@ const BANNER_COLUMNS = 8;
 const BANNER_ROWS = 8;
 const BANNER_POINT_START = 0.8;
 
+/**
+ * @typedef {{root: import("playcanvas").Entity, width: number, height: number, cloth: ReturnType<AmmoClothPhysics["createCloth"]>, mesh: import("playcanvas").Mesh, positions: Float32Array, vertexUv: Float32Array, indices: Uint16Array}} CastleBannerInstance
+ */
+
 export class CastleBanner {
+  /**
+   *
+    * @type {typeof import("playcanvas")}
+   */
   #pc;
+  /**
+   *
+    * @type {import("playcanvas").Application}
+   */
   #app;
+  /**
+   *
+    * @type {import("playcanvas").Entity}
+   */
   #entity;
+  /**
+   *
+    * @type {import("playcanvas").StandardMaterial}
+   */
   #material;
+  /**
+   *
+    * @type {import("playcanvas").StandardMaterial}
+   */
   #railMaterial;
+  /**
+   *
+    * @type {import("playcanvas").Texture}
+   */
   #texture;
+  /**
+   *
+    * @type {Array<CastleBannerInstance>}
+   */
   #banners = [];
+  /**
+   *
+    * @type {CastleBannerInstance|null}
+   */
   #activeBanner = null;
+  /**
+   *
+    * @type {AmmoClothPhysics}
+   */
   #physics;
+  /**
+   *
+    * @type {{off: () => void}|null}
+   */
   #updateHandle = null;
 
+  /**
+   *
+   * @param {{pc: typeof import("playcanvas"), app: import("playcanvas").Application}} options
+   * @param {typeof import("playcanvas")} options.pc
+   * @param {import("playcanvas").Application} options.app
+   */
   constructor({ pc, app }) {
     this.#pc = pc;
     this.#app = app;
@@ -26,7 +76,11 @@ export class CastleBanner {
     this.#material = this.#createMaterial();
     this.#railMaterial = this.#createRailMaterial();
     this.#physics = new AmmoClothPhysics({ pc });
-    this.#updateHandle = app.on("update", (deltaTime) => {
+    this.#updateHandle = app.on("update", /**
+     *
+     * @param {number} deltaTime
+     */
+    (deltaTime) => {
       this.#animate(deltaTime);
     });
   }
@@ -35,6 +89,16 @@ export class CastleBanner {
     return this.#entity;
   }
 
+  /**
+   *
+   * @param {{x: number, y: number, z: number, yaw: number, width: number, height: number}} options
+   * @param {number} options.x
+   * @param {number} options.y
+   * @param {number} options.z
+   * @param {number} options.yaw
+   * @param {number} options.width
+   * @param {number} options.height
+   */
   add({ x, y, z, yaw = 0, width = 1, height = 1.5 }) {
     const root = new this.#pc.Entity("Hanging castle banner");
     root.setPosition(x, y, z);
@@ -87,6 +151,11 @@ export class CastleBanner {
       indices: banner.indices,
       pinnedIndices: Array.from(
         { length: BANNER_COLUMNS + 1 },
+        /**
+         *
+         * @param {undefined} _
+         * @param {number} index
+         */
         (_, index) => index,
       ),
       vertexUv: banner.vertexUv,
@@ -99,6 +168,11 @@ export class CastleBanner {
     return true;
   }
 
+  /**
+   *
+   * @param {number} rayStart
+   * @param {number} rayEnd
+   */
   getBannerHit(rayStart, rayEnd) {
     let closest = null;
     for (const banner of this.#banners) {
@@ -109,6 +183,10 @@ export class CastleBanner {
     return closest;
   }
 
+  /**
+   *
+   * @param {{banner: CastleBannerInstance, point: import("playcanvas").Vec3}} hit
+   */
   beginWindGesture(hit) {
     if (!hit?.banner) {
       return;
@@ -117,6 +195,12 @@ export class CastleBanner {
     this.#physics.beginPointer(this.#activeBanner.cloth, hit.point);
   }
 
+  /**
+   *
+   * @param {number} rayStart
+   * @param {number} rayEnd
+   * @param {number} deltaTime
+   */
   applyMouseWind(rayStart, rayEnd, deltaTime) {
     if (!this.#activeBanner) {
       return;
@@ -222,6 +306,11 @@ export class CastleBanner {
     return material;
   }
 
+  /**
+   *
+   * @param {number} width
+   * @param {number} height
+   */
   #createMesh(width, height) {
     const positions = [];
     const textureUvs = [];
@@ -295,6 +384,13 @@ export class CastleBanner {
     };
   }
 
+  /**
+   *
+   * @param {{root: import("playcanvas").Entity, width: number, height: number}} banner
+   * @param {number} rayStart
+   * @param {number} rayEnd
+   * @param {boolean} bounded
+   */
   #intersectBannerRay(banner, rayStart, rayEnd, bounded) {
     if (!banner?.root) {
       return null;
@@ -329,6 +425,10 @@ export class CastleBanner {
     };
   }
 
+  /**
+   *
+   * @param {number} deltaTime
+   */
   #animate(deltaTime) {
     this.#physics.step(deltaTime);
     for (const banner of this.#banners) {

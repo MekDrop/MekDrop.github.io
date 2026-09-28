@@ -3,6 +3,10 @@ import { HERO_ANIMATION } from "../../../../enum/HeroAnimation.js";
 import { HeroRuntimeActionState } from "./HeroRuntimeActionState.js";
 
 export class HeroPatReactionActionState extends HeroRuntimeActionState {
+  /**
+   *
+   * @param {boolean} allowedTransitions
+   */
   constructor(allowedTransitions = []) {
     super(HERO_ACTION.PAT_REACTION, {
       animation: HERO_ANIMATION.PAT_ANNOYED,
@@ -12,6 +16,10 @@ export class HeroPatReactionActionState extends HeroRuntimeActionState {
     });
   }
 
+  /**
+   *
+   * @param {import("src/game/objects/ObjectTypes.js").HeroActionContext} owner
+   */
   execute(owner) {
     if (!owner.feedback.patReaction.shouldContinue()) {
       owner.finish();

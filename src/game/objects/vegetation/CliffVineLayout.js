@@ -8,6 +8,10 @@ const FACE_TRANSFORMS = {
   WEST: { normalX: -1, normalZ: 0, tangentX: 0, tangentZ: -1, yaw: -90 },
 };
 
+/**
+ *
+ * @param {import("src/game/objects/ObjectTypes.js").GameMapData} mapData
+ */
 export function createCliffVineLayout(mapData) {
   const modules = [];
   for (const vine of mapData.cliffVineData ?? []) {

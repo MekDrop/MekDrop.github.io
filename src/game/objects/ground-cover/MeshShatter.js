@@ -5,16 +5,43 @@ const FILL_DEPTH_SCALE = 0.45;
 const MIN_FILL_DEPTH = 0.01;
 
 export class MeshShatter {
+  /**
+   *
+    * @type {typeof import("playcanvas")}
+   */
   #pc;
+  /**
+   *
+    * @type {import("playcanvas").Application}
+   */
   #app;
+  /**
+   *
+    * @type {string}
+   */
   #modelLibrary;
 
+  /**
+   *
+   * @param {{pc: typeof import("playcanvas"), app: import("playcanvas").Application, modelLibrary: string}} options
+   * @param {typeof import("playcanvas")} options.pc
+   * @param {import("playcanvas").Application} options.app
+   * @param {string} options.modelLibrary
+   */
   constructor({ pc, app, modelLibrary }) {
     this.#pc = pc;
     this.#app = app;
     this.#modelLibrary = modelLibrary;
   }
 
+  /**
+   *
+   * @param {{modelUrl: string, scale: number, seed: number, shardCountForMesh: (triangleCount: number) => number}} options
+   * @param {string} options.modelUrl
+   * @param {number} options.scale
+   * @param {number} options.seed
+   * @param {(triangleCount: number) => number} options.shardCountForMesh
+   */
   shatter({ modelUrl, scale = 1, seed = 0, shardCountForMesh = null }) {
     const source = this.#modelLibrary.instantiate(modelUrl);
     const rootInverse = new this.#pc.Mat4()
@@ -45,6 +72,15 @@ export class MeshShatter {
     return pieces;
   }
 
+  /**
+   *
+   * @param {{meshInstance: import("playcanvas").MeshInstance, rootInverse: number, scale: number, seed: number, shardCountForMesh: (triangleCount: number) => number}} options
+   * @param {import("playcanvas").MeshInstance} options.meshInstance
+   * @param {number} options.rootInverse
+   * @param {number} options.scale
+   * @param {number} options.seed
+   * @param {(triangleCount: number) => number} options.shardCountForMesh
+   */
   #shatterMesh({ meshInstance, rootInverse, scale, seed, shardCountForMesh }) {
     const geometry = this.#readGeometry(meshInstance, rootInverse);
     const triangleCount = geometry.indices.length / 3;
@@ -80,10 +116,20 @@ export class MeshShatter {
     );
     const clusters = Array.from({ length: shardCount }, () => []);
 
-    centroids.forEach((centroid, triangleIndex) => {
+    centroids.forEach(/**
+     *
+     * @param {number} centroid
+     * @param {number} triangleIndex
+     */
+    (centroid, triangleIndex) => {
       let closestCluster = 0;
       let closestDistance = Number.POSITIVE_INFINITY;
-      clusterSeeds.forEach((clusterSeed, clusterIndex) => {
+      clusterSeeds.forEach(/**
+       *
+       * @param {number} clusterSeed
+       * @param {number} clusterIndex
+       */
+      (clusterSeed, clusterIndex) => {
         const distance = this.#distanceSquared(centroid, clusterSeed);
         if (distance < closestDistance) {
           closestDistance = distance;
@@ -94,8 +140,16 @@ export class MeshShatter {
     });
 
     return clusters
-      .filter((cluster) => cluster.length)
-      .map((cluster) =>
+      .filter(/**
+       *
+       * @param {number} cluster
+       */
+      (cluster) => cluster.length)
+      .map(/**
+       *
+       * @param {number} cluster
+       */
+      (cluster) =>
         this.#createPiece({
           geometry,
           triangleIndices: cluster,
@@ -105,6 +159,11 @@ export class MeshShatter {
       );
   }
 
+  /**
+   *
+   * @param {import("playcanvas").MeshInstance} meshInstance
+   * @param {number} rootInverse
+   */
   #readGeometry(meshInstance, rootInverse) {
     const sourceMesh = meshInstance.mesh;
     const sourcePositions = [];
@@ -187,6 +246,12 @@ export class MeshShatter {
     return { positions, normals, uvs, indices };
   }
 
+  /**
+   *
+   * @param {{positions: Array<{x: number, y: number, z: number}>, indices: Array<number>}} options
+   * @param {Array<{x: number, y: number, z: number}>} options.positions
+   * @param {Array<number>} options.indices
+   */
   #triangleCentroids({ positions, indices }) {
     const centroids = [];
     for (let index = 0; index < indices.length; index += 3) {
@@ -210,6 +275,12 @@ export class MeshShatter {
     return centroids;
   }
 
+  /**
+   *
+   * @param {number} centroids
+   * @param {number} count
+   * @param {number} random
+   */
   #chooseClusterSeeds(centroids, count, random) {
     const seeds = [centroids[Math.floor(random() * centroids.length)]];
     while (seeds.length < count) {
@@ -217,7 +288,11 @@ export class MeshShatter {
       let farthestDistance = -1;
       for (const centroid of centroids) {
         const nearestDistance = Math.min(
-          ...seeds.map((seed) => this.#distanceSquared(centroid, seed)),
+          ...seeds.map(/**
+           *
+           * @param {number} seed
+           */
+          (seed) => this.#distanceSquared(centroid, seed)),
         );
         const weightedDistance = nearestDistance * (0.9 + random() * 0.2);
         if (weightedDistance > farthestDistance) {
@@ -230,6 +305,14 @@ export class MeshShatter {
     return seeds;
   }
 
+  /**
+   *
+   * @param {{geometry: import("playcanvas").Mesh, triangleIndices: Array<number>, material: import("playcanvas").Material, scale: number}} options
+   * @param {import("playcanvas").Mesh} options.geometry
+   * @param {Array<number>} options.triangleIndices
+   * @param {import("playcanvas").Material} options.material
+   * @param {number} options.scale
+   */
   #createPiece({ geometry, triangleIndices, material, scale }) {
     const centroid = { x: 0, y: 0, z: 0 };
     let vertexCount = 0;
@@ -313,6 +396,14 @@ export class MeshShatter {
     };
   }
 
+  /**
+   *
+   * @param {{geometry: import("playcanvas").Mesh, triangleIndices: Array<number>, centroid: number, scale: number}} options
+   * @param {import("playcanvas").Mesh} options.geometry
+   * @param {Array<number>} options.triangleIndices
+   * @param {number} options.centroid
+   * @param {number} options.scale
+   */
   #createFillAnchor({ geometry, triangleIndices, centroid, scale }) {
     const normal = { x: 0, y: 0, z: 0 };
     let farthestVertexDistanceSquared = 0;
@@ -345,6 +436,15 @@ export class MeshShatter {
     };
   }
 
+  /**
+   *
+   * @param {{positions: Array<{x: number, y: number, z: number}>, normals: Array<{x: number, y: number, z: number}>, uvs: Array<number>, vertices: Array<{x: number, y: number, z: number}>, fillAnchor: import("src/game/objects/ObjectTypes.js").Point3}} options
+   * @param {Array<{x: number, y: number, z: number}>} options.positions
+   * @param {Array<{x: number, y: number, z: number}>} options.normals
+   * @param {Array<number>} options.uvs
+   * @param {Array<{x: number, y: number, z: number}>} options.vertices
+   * @param {import("src/game/objects/ObjectTypes.js").Point3} options.fillAnchor
+   */
   #appendFillFaces({ positions, normals, uvs, vertices, fillAnchor }) {
     for (let index = 0; index < vertices.length; index += 1) {
       const first = vertices[index];
@@ -371,12 +471,26 @@ export class MeshShatter {
     }
   }
 
+  /**
+   *
+   * @param {{positions: Array<{x: number, y: number, z: number}>, normals: Array<{x: number, y: number, z: number}>, uvs: Array<number>, vertex: import("src/game/objects/ObjectTypes.js").Point3}} options
+   * @param {Array<{x: number, y: number, z: number}>} options.positions
+   * @param {Array<{x: number, y: number, z: number}>} options.normals
+   * @param {Array<number>} options.uvs
+   * @param {import("src/game/objects/ObjectTypes.js").Point3} options.vertex
+   */
   #pushVertex({ positions, normals, uvs, vertex }) {
     positions.push(vertex.x, vertex.y, vertex.z);
     normals.push(vertex.normal.x, vertex.normal.y, vertex.normal.z);
     uvs.push(vertex.uv.u, vertex.uv.v);
   }
 
+  /**
+   *
+   * @param {import("src/game/objects/ObjectTypes.js").Point3} first
+   * @param {import("src/game/objects/ObjectTypes.js").Point3} second
+   * @param {import("src/game/objects/ObjectTypes.js").Point3} third
+   */
   #faceNormal(first, second, third) {
     const edgeAx = second.x - first.x;
     const edgeAy = second.y - first.y;
@@ -397,6 +511,11 @@ export class MeshShatter {
     };
   }
 
+  /**
+   *
+   * @param {import("src/game/objects/ObjectTypes.js").Point3} first
+   * @param {import("src/game/objects/ObjectTypes.js").Point3} second
+   */
   #distanceSquared(first, second) {
     const x = first.x - second.x;
     const y = first.y - second.y;
@@ -404,6 +523,10 @@ export class MeshShatter {
     return x * x + y * y + z * z;
   }
 
+  /**
+   *
+   * @param {number} seed
+   */
   #createRandom(seed) {
     let state = seed >>> 0;
     return () => {

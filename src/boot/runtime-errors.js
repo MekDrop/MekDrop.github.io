@@ -10,15 +10,27 @@ const FALLBACK_UNKNOWN = "An unknown error occurred.";
 const FALLBACK_REFRESH = "Refresh ({seconds}s)";
 const FALLBACK_DISMISS = "Dismiss";
 
+/**
+ * @typedef {Error|string|{message?: string}|null|undefined} RuntimeErrorInput
+ */
+
 let translate = null;
 let lastSignature = "";
 let lastReportedAt = 0;
 
+/**
+ *
+ * @param {number} seconds
+ */
 function refreshLabel(seconds) {
   return translate?.("game.notification.refresh_countdown", { seconds }) ??
     FALLBACK_REFRESH.replace("{seconds}", seconds);
 }
 
+/**
+ *
+ * @param {import("quasar").QNotifyCreateOptions} notificationOptions
+ */
 function schedulePageReload(notificationOptions) {
   let updateNotification;
 
@@ -33,6 +45,10 @@ function schedulePageReload(notificationOptions) {
     stopReloadTimer();
     updateNotification();
   };
+  /**
+   *
+   * @param {number} seconds
+   */
   const optionsFor = (seconds) => ({
     ...notificationOptions,
     actions: [
@@ -59,6 +75,10 @@ function schedulePageReload(notificationOptions) {
   countdown.start();
 }
 
+/**
+ *
+ * @param {RuntimeErrorInput} error
+ */
 export function runtimeErrorDescription(error) {
   if (error instanceof Error && error.message) {
     return error.message;
@@ -74,6 +94,12 @@ export function runtimeErrorDescription(error) {
     FALLBACK_UNKNOWN;
 }
 
+/**
+ *
+ * @param {RuntimeErrorInput} error
+ * @param {{context?: string}} options
+ * @param {string} options.context
+ */
 export function reportGlobalException(error, { context = "Application" } = {}) {
   const description = runtimeErrorDescription(error);
   const signature = `${context}:${description}`;
@@ -102,13 +128,29 @@ export function reportGlobalException(error, { context = "Application" } = {}) {
   });
 }
 
-export default boot(({ app }) => {
+export default boot(/**
+ *
+ * @param {{app: import("vue").App}} options
+ * @param {import("vue").App} options.app
+ */
+({ app }) => {
   const appTranslate = app.config.globalProperties.$t;
   if (typeof appTranslate === "function") {
+    /**
+     *
+     * @param {string} key
+     * @param {Record<string, string|number>} values
+     */
     translate = (key, values) => appTranslate(key, values);
   }
 
   const previousVueErrorHandler = app.config.errorHandler;
+  /**
+   *
+   * @param {RuntimeErrorInput} error
+   * @param {import("vue").ComponentPublicInstance|null} instance
+   * @param {string} info
+   */
   app.config.errorHandler = (error, instance, info) => {
     reportGlobalException(error, { context: `Vue (${info})` });
     previousVueErrorHandler?.(error, instance, info);
@@ -118,11 +160,19 @@ export default boot(({ app }) => {
     return;
   }
   window[INSTALLATION_KEY] = true;
-  window.addEventListener("error", (event) => {
+  window.addEventListener("error", /**
+   *
+   * @param {ErrorEvent} event
+   */
+  (event) => {
     reportGlobalException(event.error ?? event.message);
     event.preventDefault();
   });
-  window.addEventListener("unhandledrejection", (event) => {
+  window.addEventListener("unhandledrejection", /**
+   *
+   * @param {PromiseRejectionEvent} event
+   */
+  (event) => {
     reportGlobalException(event.reason, { context: "Promise" });
     event.preventDefault();
   });

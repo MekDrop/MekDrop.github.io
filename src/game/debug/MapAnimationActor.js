@@ -10,7 +10,12 @@ import { Hero } from "../objects/hero/Hero.js";
 import { AxeTool, ShovelTool } from "../objects/hero/tools/index.js";
 
 const ROYAL_VARIANTS = new Map(
-  ["king", "queen", "princess"].map((variant, index) => [
+  ["king", "queen", "princess"].map(/**
+   *
+   * @param {string} variant
+   * @param {number} index
+   */
+  (variant, index) => [
     variant,
     SeatedRoyal.modelUrls[index],
   ]),
@@ -27,15 +32,55 @@ const AXE_ANIMATIONS = new Set([
  * A map-positioned model playing one animation clip in a loop.
  */
 export class MapAnimationActor {
+  /**
+   *
+   * @type {pc.Entity}
+   */
   #entity;
+  /**
+   *
+   * @type {pc.Entity}
+   */
   #model;
+  /**
+   *
+   * @type {null}
+   */
   #ownedObject = null;
+  /**
+   *
+   * @type {null}
+   */
   #tool = null;
+  /**
+   *
+   * @type {null}
+   */
   #morph = null;
+  /**
+   *
+   * @type {Array}
+   */
   #morphInstances = [];
+  /**
+   *
+   * @type {pc.EventHandle|null}
+   */
   #updateHandle = null;
+  /**
+   *
+   * @type {number}
+   */
   #elapsed = 0;
 
+  /**
+   *
+   * @param {{pc: typeof pc, app: pc.Application, modelLibrary: GameModelLibrary, definition: import("src/game/GameContracts.js").GameObjectDefinition}} options
+   * @param {typeof pc} options.pc
+   * @param {pc.Application} options.app
+   * @param {GameModelLibrary} options.modelLibrary
+   * @param {import("src/game/GameContracts.js").GameObjectDefinition} options.definition
+   */
   constructor({ pc, app, modelLibrary, definition }) {
     const {
       id,
@@ -46,12 +91,20 @@ export class MapAnimationActor {
       scale = 0.65,
       morph = null,
     } = definition;
+    /**
+     *
+     * @type {pc.Entity}
+     */
     this.#entity = new pc.Entity(`${id} animation actor`);
     this.#entity.setLocalPosition(
       position.x,
       position.y ?? GRASS_SURFACE_LIFT,
       position.z,
     );
+    /**
+     *
+     * @type {pc.Entity}
+     */
     this.#model = this.#createModel({
       pc,
       app,
@@ -73,6 +126,10 @@ export class MapAnimationActor {
     }
 
     if (this.#morphInstances.length) {
+      /**
+       *
+       * @type {pc.EventHandle}
+       */
       this.#updateHandle = app.on("update", this.#update);
     }
   }
@@ -81,6 +138,10 @@ export class MapAnimationActor {
     return this.#entity;
   }
 
+  /**
+   *
+   * @returns {Array}
+   */
   get visualRoots() {
     return [this.#entity];
   }
@@ -98,6 +159,14 @@ export class MapAnimationActor {
     this.#morphInstances = [];
   }
 
+  /**
+   *
+   * @param {{pc: typeof pc, app: pc.Application, modelLibrary: GameModelLibrary, definition: import("src/game/GameContracts.js").GameObjectDefinition}} options
+   * @param {typeof pc} options.pc
+   * @param {pc.Application} options.app
+   * @param {GameModelLibrary} options.modelLibrary
+   * @param {import("src/game/GameContracts.js").GameObjectDefinition} options.definition
+   */
   #createModel({ pc, app, modelLibrary, definition }) {
     if (definition.object === Hero.name) {
       return modelLibrary.instantiate(Hero.modelUrl);
@@ -123,6 +192,13 @@ export class MapAnimationActor {
     return this.#ownedObject.entity;
   }
 
+  /**
+   *
+   * @param {{modelLibrary: GameModelLibrary, animation: string, morph: (value: number) => void}} options
+   * @param {GameModelLibrary} options.modelLibrary
+   * @param {string} options.animation
+   * @param {(value: number) => void} options.morph
+   */
   #configureHero({ modelLibrary, animation, morph }) {
     const tracks = modelLibrary.getAnimationTracks(Hero.modelUrl, [animation]);
     this.#model.addComponent("anim", { activate: true });
@@ -132,10 +208,26 @@ export class MapAnimationActor {
     if (morph) {
       this.#morphInstances = this.#model
         .findComponents("render")
-        .flatMap((render) => render.meshInstances)
-        .map((mesh) => mesh.morphInstance)
-        .filter((instance) =>
-          instance?.morph.targets.some((target) => target.name === morph),
+        .flatMap(/**
+         *
+         * @param {pc.RenderComponent} render
+         */
+        (render) => render.meshInstances)
+        .map(/**
+         *
+         * @param {pc.Mesh} mesh
+         */
+        (mesh) => mesh.morphInstance)
+        .filter(/**
+         *
+         * @param {pc.Entity|pc.MeshInstance} instance
+         */
+        (instance) =>
+          instance?.morph.targets.some(/**
+           *
+           * @param {EventTarget|pc.Entity} target
+           */
+          (target) => target.name === morph),
         );
     }
     if (animation === HERO_ANIMATION.FILL_HOLE) {
@@ -149,6 +241,11 @@ export class MapAnimationActor {
     }
   }
 
+  /**
+   *
+   * @param {number} deltaTime
+   * @type {(deltaTime: number) => void}
+   */
   #update = (deltaTime) => {
     this.#elapsed += deltaTime;
     const expression = Math.min(

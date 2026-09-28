@@ -1,3 +1,9 @@
+/**
+ *
+ * @param {number} inputX
+ * @param {number} inputY
+ * @param {{x: number, y: number, z: number}} viewDirection
+ */
 export function projectFirstPersonMovement(inputX, inputY, viewDirection) {
   const viewLength = Math.hypot(
     viewDirection?.x ?? 0,

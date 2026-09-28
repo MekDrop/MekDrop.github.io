@@ -23,6 +23,26 @@ const baseRestrictedSyntax = [
   },
 ];
 
+const functionsWithParameters = [
+  "FunctionDeclaration[params.length>0]",
+  "FunctionExpression[params.length>0]",
+  "ArrowFunctionExpression[params.length>0]",
+];
+
+const typedClassProperties = [
+  "PropertyDefinition",
+];
+
+const typedGetters = [
+  "MethodDefinition[kind='get']:not(:has(FunctionExpression > BlockStatement[body.length=1] > ReturnStatement > MemberExpression[computed=false][object.type='ThisExpression']))",
+];
+
+const typedApiContexts = [
+  ...functionsWithParameters,
+  ...typedClassProperties,
+  ...typedGetters,
+];
+
 // An enum is an exported SCREAMING_SNAKE_CASE `Object.freeze({...})` whose
 // values are all primitive literals. Enums live one-per-file under
 // `src/game/enum/` (game code) or `src/enum/` (everything else).
@@ -125,6 +145,104 @@ module.exports = [
           selector:
             "ExportNamedDeclaration > VariableDeclaration Property[value.type!='Literal']",
           message: "Enum values must be primitive literals.",
+        },
+      ],
+    },
+  },
+  {
+    files: ["src/**/*.{js,vue}"],
+    settings: {
+      jsdoc: {
+        preferredTypes: {
+          "*": {
+            message: "Use a concrete named, imported, or structural type.",
+            replacement: false,
+          },
+          any: {
+            message: "Use a concrete named, imported, or structural type.",
+            replacement: false,
+          },
+          Function: {
+            message: "Document the callable signature instead of Function.",
+            replacement: false,
+          },
+          Object: {
+            message: "Use a concrete named, imported, or structural type.",
+            replacement: false,
+          },
+          object: {
+            message: "Use a concrete named, imported, or structural type.",
+            replacement: false,
+          },
+        },
+      },
+    },
+    rules: {
+      "jsdoc/check-types": [
+        "error",
+        {
+          exemptTagContexts: [
+            {
+              tag: "typedef",
+              types: ["object"],
+            },
+          ],
+        },
+      ],
+      "jsdoc/require-jsdoc": [
+        "error",
+        {
+          checkGetters: false,
+          checkSetters: false,
+          contexts: typedApiContexts,
+          require: {
+            ArrowFunctionExpression: false,
+            ClassDeclaration: false,
+            ClassExpression: false,
+            FunctionDeclaration: false,
+            FunctionExpression: false,
+            MethodDefinition: false,
+          },
+        },
+      ],
+      "jsdoc/no-blank-blocks": [
+        "error",
+        {
+          enableFixer: true,
+        },
+      ],
+      "jsdoc/require-param": [
+        "error",
+        {
+          contexts: functionsWithParameters,
+          unnamedRootBase: ["options", "config"],
+        },
+      ],
+      "jsdoc/require-param-type": [
+        "error",
+        {
+          contexts: functionsWithParameters,
+        },
+      ],
+      "jsdoc/require-tags": [
+        "error",
+        {
+          tags: [
+            ...typedClassProperties.map((context) => ({
+              context,
+              tag: "type",
+            })),
+            ...typedGetters.map((context) => ({
+              context,
+              tag: "returns",
+            })),
+          ],
+        },
+      ],
+      "jsdoc/require-returns-type": [
+        "error",
+        {
+          contexts: typedGetters,
         },
       ],
     },

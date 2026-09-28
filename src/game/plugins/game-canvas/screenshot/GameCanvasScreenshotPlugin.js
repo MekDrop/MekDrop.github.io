@@ -7,10 +7,26 @@ const COPY_SCREENSHOT_BINDING = Object.freeze({
 });
 
 export class GameCanvasScreenshotPlugin {
+  /**
+   *
+   * @type {import("src/game/GameContracts.js").GameCanvasPluginContext}
+   */
   #context;
+  /**
+   *
+   * @type {null}
+   */
   #unregisterControlAction = null;
 
+  /**
+   *
+   * @param {import("src/game/GameContracts.js").GameCanvasPluginContext} context
+   */
   constructor(context) {
+    /**
+     *
+     * @type {import("src/game/GameContracts.js").GameCanvasPluginContext}
+     */
     this.#context = context;
   }
 

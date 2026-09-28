@@ -1,5 +1,9 @@
 // noinspection AllyPlainJsInspection
 
+/**
+ *
+ * @param {import("vue-i18n").Composer} i18n
+ */
 export default function (i18n) {
   return {
     LinkedIn: {

@@ -6,14 +6,49 @@ import { ROYAL_ANIMATION } from "../../enum/RoyalAnimation.js";
  * Small procedural tear particles following the imported character's face.
  */
 export class RoyalTears {
+  /**
+   *
+    * @type {import("playcanvas").Entity}
+   */
   #royal;
+  /**
+   *
+    * @type {import("playcanvas").Mesh}
+   */
   #mesh;
+  /**
+   *
+    * @type {Array<import("playcanvas").Entity>}
+   */
   #particles = [];
+  /**
+   *
+    * @type {Array<import("playcanvas").ShaderMaterial>}
+   */
   #materials = [];
+  /**
+   *
+    * @type {{off: () => void}}
+   */
   #updateHandle;
+  /**
+   *
+    * @type {boolean}
+   */
   #princess;
+  /**
+   *
+    * @type {number}
+   */
   #cryElapsed = 0;
 
+  /**
+   *
+   * @param {{pc: typeof import("playcanvas"), app: import("playcanvas").Application, royal: import("playcanvas").Entity}} options
+   * @param {typeof import("playcanvas")} options.pc
+   * @param {import("playcanvas").Application} options.app
+   * @param {import("playcanvas").Entity} options.royal
+   */
   constructor({ pc, app, royal }) {
     this.#royal = royal;
     this.#princess = Boolean(royal.findByName("Princess handkerchief"));
@@ -88,6 +123,10 @@ export class RoyalTears {
     this.#materials = [];
   }
 
+  /**
+   *
+   * @param {number} deltaTime
+   */
   #update(deltaTime) {
     const layer = this.#royal.anim.baseLayer;
     const crying = layer.activeState === ROYAL_ANIMATION.CRY;

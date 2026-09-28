@@ -56,6 +56,140 @@ import { RouteDataStage } from "./stages/RouteDataStage.js";
 import { TerrainStage } from "./stages/TerrainStage.js";
 import { ValidationStage } from "./stages/ValidationStage.js";
 
+/**
+ * @typedef {object} TileMetadata
+ * @property {string} [shape]
+ * @property {string} [direction]
+ * @property {string} [surfaceType]
+ * @property {string} [renderMode]
+ * @property {number} [baseHeight]
+ * @property {string} [overpassId]
+ */
+
+/**
+ * @typedef {object} MapLayout
+ * @property {number} [castleLeft]
+ * @property {number} [castleRight]
+ * @property {number} [castleTop]
+ * @property {number} [castleBottom]
+ * @property {number} [castleEntranceCol]
+ * @property {number[]} [castleEntranceRows]
+ * @property {number[]} [pathRows]
+ * @property {LayoutEntry[]} [entries]
+ * @property {OverpassPlan|null} [overpassPlan]
+ */
+
+/**
+ * @typedef {object} LayoutEntry
+ * @property {number} gateCol
+ * @property {number[]} gateRows
+ * @property {number} mergeCol
+ * @property {string} side
+ * @property {string} [inwardDirection]
+ */
+
+/**
+ * @typedef {object} MapCell
+ * @property {number} col
+ * @property {number} row
+ * @property {number} [col2]
+ * @property {number} [row2]
+ * @property {number} [elevation]
+ * @property {number} [terrainHeight]
+ * @property {string} [direction]
+ * @property {boolean} [underBridge]
+ */
+
+/**
+ * @typedef {object} OverpassPlan
+ * @property {string} [id]
+ * @property {string} [axis]
+ * @property {number} [start]
+ * @property {number} [end]
+ * @property {number} [cross]
+ * @property {number} [deckElevation]
+ * @property {{col: number, row: number, width: number, depth: number}} [crossing]
+ * @property {MapCell[]} [slopeCells]
+ */
+
+/**
+ * @typedef {object} RiverRecord
+ * @property {string} kind
+ * @property {MapCell[]} cells
+ * @property {MapCell} [source]
+ */
+
+/**
+ * @typedef {object} RouteRecord
+ * @property {MapCell[]} [route]
+ * @property {Set<string>} [routeCells]
+ * @property {number} [cost]
+ */
+
+/**
+ * @typedef {object} GenerationTemplate
+ * @property {number} [weight]
+ * @property {string} [id]
+ * @property {number[]} [pathRows]
+ */
+
+/**
+ * @typedef {object} GenerationYieldState
+ * @property {number} [lastYieldAt]
+ */
+
+/**
+ * @typedef {object} GroundCoverData
+ * @property {MapCell[]} [flowers]
+ * @property {MapCell[]} [mushrooms]
+ * @property {MapCell[]} [grass]
+ */
+
+/**
+ * @typedef {object} MapGenerationOptions
+ * @property {string} [mapName]
+ * @property {number} [numPaths]
+ * @property {number} [numRivers]
+ * @property {boolean|OverpassPlan} [overpass]
+ * @property {AbortSignal} [signal]
+ */
+
+/**
+ * @typedef {string|number|boolean|MapCell|MapLayout|TileMetadata[][]|number[][]|string[][]|GenerationYieldState} MapGenerationArgument
+ */
+
+/**
+ * @typedef {{col: number, row: number}} GridCell
+ */
+
+/**
+ * @typedef {{col: number, row: number, underBridge?: boolean, terrainHeight?: number}} RiverCell
+ */
+
+/**
+ * @typedef {{kind: string, cells: RiverCell[]}} RiverData
+ */
+
+/**
+ * @typedef {{routeCells: Set<string>}} RouteData
+ */
+
+/**
+ * @typedef {{col2: number, row2: number, elevation?: number}} RouteWaypoint
+ */
+
+/**
+ * @typedef {{axis: string, cross: number, start: number, end: number, rampTiles?: number, id?: string}} PathDipPlan
+ */
+
+/**
+ * @typedef {{col: number, row: number, variant: string, kind?: string, rotation?: number}} VegetationPlacement
+ */
+
+/**
+ * @typedef {{col: number, row: number, parts: Array<{style: number}>}} StonePlacement
+ */
+
 export const TileType = {
   WATER: 0,
   GRASS: 1,
@@ -66,51 +200,227 @@ export const TileType = {
 };
 
 export class MapGenerator {
+  /**
+   *
+   * @type {() => number}
+   */
   #random = Math.random;
+  /**
+   *
+   * @type {Promise}
+   */
   static #generationQueue = Promise.resolve();
+  /**
+   *
+   * @type {number}
+   */
   #YIELD_INTERVAL_MS = 8;
+  /**
+   *
+   * @type {number}
+   */
   #MAP_COLS = 42;
+  /**
+   *
+   * @type {number}
+   */
   #MAP_ROWS = 42;
+  /**
+   *
+   * @type {number}
+   */
   #DEFAULT_MIN_PATHS = 2;
+  /**
+   *
+   * @type {number}
+   */
   #DEFAULT_MAX_PATHS = 4;
+  /**
+   *
+   * @type {number}
+   */
   #LEFT_GATE_COL = 4;
+  /**
+   *
+   * @type {number}
+   */
   #RIGHT_GATE_COL = this.#MAP_COLS - 1 - this.#LEFT_GATE_COL;
+  /**
+   *
+   * @type {number}
+   */
   #PATH_HEIGHT = 2;
+  /**
+   *
+   * @type {number}
+   */
   #FOUNDATION_HEIGHT = 3;
+  /**
+   *
+   * @type {number}
+   */
   #WATER_HEIGHT = 0;
+  /**
+   *
+   * @type {number}
+   */
   #MAX_RIVERS = 6;
+  /**
+   *
+   * @type {number}
+   */
   #MIN_RIVER_TILES = 7;
+  /**
+   *
+   * @type {number}
+   */
   #RIVER_SURFACE_INSET = 0.5;
+  /**
+   *
+   * @type {number}
+   */
   #LAVA_SURFACE_INSET = 0.22;
+  /**
+   *
+   * @type {number}
+   */
   #RIVER_WATER_DEPTH = 0.5;
+  /**
+   *
+   * @type {number}
+   */
   #BRIDGE_WATER_CLEARANCE = 0.52;
+  /**
+   *
+   * @type {number}
+   */
   #RIVER_CASTLE_SETBACK = 6;
+  /**
+   *
+   * @type {number}
+   */
   #TERMINAL_WATERFALL_BOTTOM = -10.5;
+  /**
+   *
+   * @type {Array}
+   */
   #RIVER_COUNT_WEIGHTS = [15, 35, 22, 13, 8, 5, 2];
+  /**
+   *
+   * @type {number}
+   */
   #LAVA_ISLAND_CHANCE = 10;
+  /**
+   *
+   * @type {number}
+   */
   #MAX_LAVA_ELIGIBLE_RIVERS = 2;
+  /**
+   *
+   * @type {number}
+   */
   #CASTLE_GROUND_CLEARANCE = 3;
+  /**
+   *
+   * @type {number}
+   */
   #CASTLE_REAR_GROUND_CLEARANCE = 1;
+  /**
+   *
+   * @type {Array}
+   */
   #OVERPASS_CHANCE_BY_PATH_COUNT = [0, 0, 10, 28, 46];
+  /**
+   *
+   * @type {number}
+   */
   #OVERPASS_ELEVATION = this.#PATH_HEIGHT + 2;
+  /**
+   *
+   * @type {number}
+   */
   #OVERPASS_RAMP_TILES = 4;
+  /**
+   *
+   * @type {number}
+   */
   #OVERPASS_HALF_STEP = 0.5;
+  /**
+   *
+   * @type {number}
+   */
   #OVERPASS_DECK_THICKNESS = 0.24;
+  /**
+   *
+   * @type {number}
+   */
   #OVERPASS_MIN_CLEARANCE = 1.6;
+  /**
+   *
+   * @type {number}
+   */
   #OVERPASS_RAISED_ENTRY_CHANCE = 60;
+  /**
+   *
+   * @type {number}
+   */
   #OVERPASS_STAIR_APPROACH_CHANCE = 40;
+  /**
+   *
+   * @type {number}
+   */
   #OVERPASS_PLATEAU_RADIUS = 3;
+  /**
+   *
+   * @type {number}
+   */
   #MIN_ARROW_GATE_CLEARANCE = 0.5;
+  /**
+   *
+   * @type {number}
+   */
   #MIN_ARROW_CASTLE_CLEARANCE = 4;
+  /**
+   *
+   * @type {number}
+   */
   #TERRAIN_BRIDGE_DIP_CHANCE = 60;
+  /**
+   *
+   * @type {number}
+   */
   #TERRAIN_BRIDGE_DIP_ELEVATION = this.#PATH_HEIGHT - 1;
+  /**
+   *
+   * @type {number}
+   */
   #TERRAIN_BRIDGE_DIP_RAMP_TILES = 2;
+  /**
+   *
+   * @type {number}
+   */
   #TERRAIN_BRIDGE_DIP_MIN_SPAN =
     this.#TERRAIN_BRIDGE_DIP_RAMP_TILES * 2 + 1;
+  /**
+   *
+   * @type {Array}
+   */
   #STONE_LEVEL_WEIGHTS = [72, 23, 5];
 
+  /**
+   *
+   * @type {Array}
+   */
   #TREE_VARIANTS = ["oak", "pine", "tall-tree", "sapling"];
+  /**
+   *
+   * @type {Array}
+   */
   #BUSH_VARIANTS = ["round-bush", "wide-bush"];
+  /**
+   *
+   * @type {Array}
+   */
   #GROUND_COVER_VARIANTS = [
     "daisy-patch",
     "buttercup-patch",
@@ -121,6 +431,10 @@ export class MapGenerator {
     "golden-mushroom-pair",
     "forest-mushroom-cluster",
   ];
+  /**
+   *
+   * @type {Array}
+   */
   #FLOWER_PATCH_VARIANTS = [
     "daisy-patch",
     "buttercup-patch",
@@ -128,21 +442,37 @@ export class MapGenerator {
     "blue-flower-patch",
     "clover-patch",
   ];
+  /**
+   *
+   * @type {Array}
+   */
   #MUSHROOM_PATCH_VARIANTS = [
     "red-mushroom",
     "golden-mushroom-pair",
     "forest-mushroom-cluster",
   ];
+  /**
+   *
+   * @type {Array}
+   */
   #VEGETATION_VARIANTS = [
     ...this.#TREE_VARIANTS,
     ...this.#BUSH_VARIANTS,
   ];
+  /**
+   *
+   * @type {Array}
+   */
   #CASTLE_FOOTPRINTS = [
     { width: 5, depth: 7, style: "twin-tower" },
     { width: 6, depth: 7, style: "right-angle" },
     { width: 5, depth: 7, style: "single-tower" },
     { width: 6, depth: 7, style: "left-angle" },
   ];
+  /**
+   *
+   * @type {Readonly<Record<string, string>>}
+   */
   #DIRECTIONS = {
     NORTH: "NORTH",
     EAST: "EAST",
@@ -150,6 +480,10 @@ export class MapGenerator {
     WEST: "WEST",
     NONE: "NONE",
   };
+  /**
+   *
+   * @type {Array}
+   */
   #ENTRY_TEMPLATES = [
     { id: "north", gateRows: [5, 6], mergeRange: [18, 24] },
     { id: "upper", gateRows: [10, 11], mergeRange: [14, 20] },
@@ -157,6 +491,10 @@ export class MapGenerator {
     { id: "south", gateRows: [25, 26], mergeRange: [13, 20] },
   ];
 
+  /**
+   *
+   * @param {MapGenerationOptions} options
+   */
   static generate(options) {
     const generator = new MapGenerator();
     const generation = this.#generationQueue.then(() =>
@@ -166,6 +504,10 @@ export class MapGenerator {
     return generation;
   }
 
+  /**
+   *
+   * @param {MapGenerationOptions} options
+   */
   async #generateMap(options) {
     const normalizedOptions = this.#normalizeOptions(options);
     const mapName = String(normalizedOptions.mapName ?? this.#createMapName());
@@ -174,9 +516,17 @@ export class MapGenerator {
 
     try {
       const generate = createMapGenerationPipeline({
+        /**
+         *
+         * @param {MapGenerationOptions} pipelineOptions
+         */
         createContext: (pipelineOptions) =>
           new GenerationContext(pipelineOptions, {
             now: () => this.#now(),
+            /**
+             *
+             * @param {GenerationYieldState} state
+             */
             yieldIfNeeded: (state) => this.#yieldIfNeeded(state),
             yieldToMainThread: () => this.#yieldToMainThread(),
           }),
@@ -206,13 +556,25 @@ export class MapGenerator {
   }
 
   #createStageOperations() {
+    /**
+     *
+     * @param {...MapGenerationArgument} args
+     */
     const materializeSingleCellTerrainHoles = (...args) =>
       this.#materializeSingleCellTerrainHoles(...args);
+    /**
+     *
+     * @param {...MapGenerationArgument} args
+     */
     const applyOverpassTerrain = (...args) =>
       this.#applyOverpassTerrain(...args);
 
     return {
       layout: {
+        /**
+         *
+         * @param {number} requestedNumPaths
+         */
         selectPathCount: (requestedNumPaths) =>
           this.#clamp(
             Number.isFinite(requestedNumPaths)
@@ -221,22 +583,56 @@ export class MapGenerator {
             1,
             this.#ENTRY_TEMPLATES.length,
           ),
+        /**
+         *
+         * @param {number} numPaths
+         */
         createLayoutConfig: (numPaths) => this.#createLayoutConfig(numPaths),
+        /**
+         *
+         * @param {...MapGenerationArgument} args
+         */
         selectOverpassPlan: (...args) => this.#selectOverpassPlan(...args),
+        /**
+         *
+         * @param {MapLayout} layout
+         */
         retainSeparatedCurvePlans: (layout) =>
           this.#retainSeparatedCurvePlans(layout),
       },
       island: {
         createGrid: () => this.#createGrid(TileType.WATER),
         createTileMetadata: () => this.#createTileMetadata(),
+        /**
+         *
+         * @param {MapLayout} layout
+         */
         buildIslandMask: (layout) => this.#buildIslandMask(layout),
+        /**
+         *
+         * @param {...MapGenerationArgument} args
+         */
         materializeIsland: (...args) => this.#materializeIsland(...args),
       },
       path: {
+        /**
+         *
+         * @param {...MapGenerationArgument} args
+         */
         carvePaths: (...args) => this.#carvePaths(...args),
+        /**
+         *
+         * @param {...MapGenerationArgument} args
+         */
         configureOverpassEntryPlateau: (...args) =>
           this.#configureOverpassEntryPlateau(...args),
         materializeSingleCellTerrainHoles,
+        /**
+         *
+         * @param {MapLayout} layout
+         * @param {boolean} islandMask
+         * @param {string[][]} grid
+         */
         assertOverpassFits: (layout, islandMask, grid) => {
           if (
             layout.overpassPlan &&
@@ -249,78 +645,234 @@ export class MapGenerator {
         },
       },
       castle: {
+        /**
+         *
+         * @param {...MapGenerationArgument} args
+         */
         placeCastle: (...args) => this.#placeCastle(...args),
         materializeSingleCellTerrainHoles,
       },
       river: {
+        /**
+         *
+         * @param {...MapGenerationArgument} args
+         */
         buildHeightmap: (...args) => this.#buildHeightmap(...args),
         applyOverpassTerrain,
+        /**
+         *
+         * @param {...MapGenerationArgument} args
+         */
         generateRivers: (...args) => this.#generateRivers(...args),
+        /**
+         *
+         * @param {RiverData[]} riverData
+         */
         assignRiverKinds: (riverData) => this.#assignRiverKinds(riverData),
+        /**
+         *
+         * @param {...MapGenerationArgument} args
+         */
         raiseLavaSurfaces: (...args) => this.#raiseLavaSurfaces(...args),
       },
       terrain: {
+        /**
+         *
+         * @param {...MapGenerationArgument} args
+         */
         smoothGrassHeights: (...args) => this.#smoothGrassHeights(...args),
         applyOverpassTerrain,
+        /**
+         *
+         * @param {...MapGenerationArgument} args
+         */
         materializeRiverBanks: (...args) =>
           this.#materializeRiverBanks(...args),
+        /**
+         *
+         * @param {...MapGenerationArgument} args
+         */
         materializePathSupports: (...args) =>
           this.#materializePathSupports(...args),
+        /**
+         *
+         * @param {...MapGenerationArgument} args
+         */
         applyTerrainBridgeDips: (...args) =>
           this.#applyTerrainBridgeDips(...args),
+        /**
+         *
+         * @param {...MapGenerationArgument} args
+         */
         applyHeightsToMetadata: (...args) =>
           this.#applyHeightsToMetadata(...args),
         materializeSingleCellTerrainHoles,
       },
       decoration: {
+        /**
+         *
+         * @param {...MapGenerationArgument} args
+         */
         placeVegetation: (...args) => this.#placeVegetation(...args),
+        /**
+         *
+         * @param {...MapGenerationArgument} args
+         */
         placeStones: (...args) => this.#placeStones(...args),
+        /**
+         *
+         * @param {...MapGenerationArgument} args
+         */
         placeGroundCover: (...args) => this.#placeGroundCover(...args),
+        /**
+         *
+         * @param {...MapGenerationArgument} args
+         */
         placeCliffVines: (...args) => this.#placeCliffVines(...args),
       },
       validation: {
+        /**
+         *
+         * @param {...MapGenerationArgument} args
+         */
         validateRivers: (...args) => this.#validateRivers(...args),
+        /**
+         *
+         * @param {...MapGenerationArgument} args
+         */
         validateNoSingleCellTerrainHoles: (...args) =>
           this.#validateNoSingleCellTerrainHoles(...args),
+        /**
+         *
+         * @param {...MapGenerationArgument} args
+         */
         validateIslandConnectivity: (...args) =>
           this.#validateIslandConnectivity(...args),
+        /**
+         *
+         * @param {...MapGenerationArgument} args
+         */
         validateGatePlacement: (...args) =>
           this.#validateGatePlacement(...args),
+        /**
+         *
+         * @param {...MapGenerationArgument} args
+         */
         validatePathSpacing: (...args) => this.#validatePathSpacing(...args),
+        /**
+         *
+         * @param {...MapGenerationArgument} args
+         */
         validateRouteSeparation: (...args) =>
           this.#validateRouteSeparation(...args),
+        /**
+         *
+         * @param {...MapGenerationArgument} args
+         */
         validateParallelPathClearance: (...args) =>
           this.#validateParallelPathClearance(...args),
+        /**
+         *
+         * @param {...MapGenerationArgument} args
+         */
         validateFlatPathCrossings: (...args) =>
           this.#validateFlatPathCrossings(...args),
+        /**
+         *
+         * @param {...MapGenerationArgument} args
+         */
         validateRouteReachability: (...args) =>
           this.#validateRouteReachability(...args),
+        /**
+         *
+         * @param {...MapGenerationArgument} args
+         */
         validateCastleEntrance: (...args) =>
           this.#validateCastleEntrance(...args),
+        /**
+         *
+         * @param {...MapGenerationArgument} args
+         */
         validateCastleGroundClearance: (...args) =>
           this.#validateCastleGroundClearance(...args),
+        /**
+         *
+         * @param {...MapGenerationArgument} args
+         */
         validateHeightDiscipline: (...args) =>
           this.#validateHeightDiscipline(...args),
+        /**
+         *
+         * @param {...MapGenerationArgument} args
+         */
         validateOverpass: (...args) => this.#validateOverpass(...args),
+        /**
+         *
+         * @param {...MapGenerationArgument} args
+         */
         validatePathRenderModes: (...args) =>
           this.#validatePathRenderModes(...args),
+        /**
+         *
+         * @param {...MapGenerationArgument} args
+         */
         validatePathDips: (...args) => this.#validatePathDips(...args),
+        /**
+         *
+         * @param {...MapGenerationArgument} args
+         */
         validateBridgeTurns: (...args) => this.#validateBridgeTurns(...args),
+        /**
+         *
+         * @param {...MapGenerationArgument} args
+         */
         validateBridgeGroundHeights: (...args) =>
           this.#validateBridgeGroundHeights(...args),
+        /**
+         *
+         * @param {...MapGenerationArgument} args
+         */
         validateGrassNoise: (...args) => this.#validateGrassNoise(...args),
+        /**
+         *
+         * @param {...MapGenerationArgument} args
+         */
         validateLayoutVariety: (...args) =>
           this.#validateLayoutVariety(...args),
+        /**
+         *
+         * @param {...MapGenerationArgument} args
+         */
         validateVegetation: (...args) => this.#validateVegetation(...args),
+        /**
+         *
+         * @param {...MapGenerationArgument} args
+         */
         validateStones: (...args) => this.#validateStones(...args),
+        /**
+         *
+         * @param {...MapGenerationArgument} args
+         */
         validateGroundCover: (...args) => this.#validateGroundCover(...args),
       },
       routeData: {
+        /**
+         *
+         * @param {MapLayout} layout
+         */
         buildRouteData: (layout) => this.#buildRouteData(layout),
+        /**
+         *
+         * @param {...MapGenerationArgument} args
+         */
         buildCastleData: (...args) => this.#buildCastleData(...args),
       },
       castleBuildPlan: {
         mapDimensions: { cols: this.#MAP_COLS, rows: this.#MAP_ROWS },
+        /**
+         *
+         * @param {MapGenerationOptions} options
+         */
         generateCastleBuildPlan: (options) => CastleGenerator.generate(options),
       },
       finalization: {
@@ -337,6 +889,10 @@ export class MapGenerator {
     return globalThis.performance?.now?.() ?? Date.now();
   }
 
+  /**
+   *
+   * @param {GenerationYieldState} state
+   */
   async #yieldIfNeeded(state) {
     if (this.#now() - state.lastYield < this.#YIELD_INTERVAL_MS) {
       return;
@@ -346,9 +902,18 @@ export class MapGenerator {
   }
 
   #yieldToMainThread() {
-    return new Promise((resolve) => globalThis.setTimeout(resolve, 0));
+    return new Promise(/**
+     *
+     * @param {(value?: void) => void} resolve
+     */
+    (resolve) => globalThis.setTimeout(resolve, 0));
   }
 
+  /**
+   *
+   * @param {number} min
+   * @param {number} max
+   */
   #rng(min, max) {
     return Math.floor(this.#random() * (max - min + 1)) + min;
   }
@@ -361,6 +926,10 @@ export class MapGenerator {
     return `${timestamp}_${randomPart}`;
   }
 
+  /**
+   *
+   * @param {string} mapName
+   */
   #createSeededRandom(mapName) {
     let state = this.#hashMapName(mapName);
 
@@ -373,6 +942,10 @@ export class MapGenerator {
     };
   }
 
+  /**
+   *
+   * @param {string} mapName
+   */
   #hashMapName(mapName) {
     let hash = 0x811c9dc5;
     for (const character of mapName) {
@@ -382,18 +955,42 @@ export class MapGenerator {
     return hash >>> 0;
   }
 
+  /**
+   *
+   * @param {string} mapName
+   * @param {number} salt
+   * @param {number} chance
+   */
   #deterministicChance(mapName, salt, chance) {
     return this.#hashMapName(`${mapName}:${salt}`) % 100 < chance;
   }
 
+  /**
+   *
+   * @param {number} value
+   * @param {number} min
+   * @param {number} max
+   */
   #clamp(value, min, max) {
     return Math.max(min, Math.min(max, value));
   }
 
+  /**
+   *
+   * @template T
+   * @param {T[]} items
+   * @returns {T}
+   */
   #randomItem(items) {
     return items[this.#rng(0, items.length - 1)];
   }
 
+  /**
+   *
+   * @template T
+   * @param {T[]} items
+   * @returns {T[]}
+   */
   #shuffle(items) {
     for (let index = items.length - 1; index > 0; index--) {
       const swapIndex = this.#rng(0, index);
@@ -402,6 +999,10 @@ export class MapGenerator {
     return items;
   }
 
+  /**
+   *
+   * @param {MapGenerationOptions} options
+   */
   #normalizeOptions(options) {
     if (isNumber(options)) {
       return { numPaths: options };
@@ -409,10 +1010,19 @@ export class MapGenerator {
     return options ?? {};
   }
 
+  /**
+   *
+   * @param {number} col
+   * @param {number} row
+   */
   #tileKey(col, row) {
     return `${col},${row}`;
   }
 
+  /**
+   *
+   * @param {number} fillValue
+   */
   #createGrid(fillValue) {
     return Array.from({ length: this.#MAP_ROWS }, () =>
       new Array(this.#MAP_COLS).fill(fillValue),
@@ -420,8 +1030,18 @@ export class MapGenerator {
   }
 
   #createTileMetadata() {
-    return Array.from({ length: this.#MAP_ROWS }, (_, row) =>
-      Array.from({ length: this.#MAP_COLS }, (_, col) => ({
+    return Array.from({ length: this.#MAP_ROWS }, /**
+     *
+     * @param {undefined} _
+     * @param {number} row
+     */
+    (_, row) =>
+      Array.from({ length: this.#MAP_COLS }, /**
+       *
+       * @param {undefined} _
+       * @param {number} col
+       */
+      (_, col) => ({
         x: col,
         y: row,
         baseHeight: this.#WATER_HEIGHT,
@@ -434,8 +1054,16 @@ export class MapGenerator {
     );
   }
 
+  /**
+   *
+   * @param {number} numPaths
+   */
   #createLayoutConfig(numPaths) {
-    const anchorRows = this.#ENTRY_TEMPLATES.map((template) => [
+    const anchorRows = this.#ENTRY_TEMPLATES.map(/**
+     *
+     * @param {GenerationTemplate} template
+     */
+    (template) => [
       ...template.gateRows,
     ]);
     const pathRows =
@@ -533,10 +1161,24 @@ export class MapGenerator {
     };
   }
 
+  /**
+   *
+   * @param {number} col
+   * @param {number} row
+   */
   #inBounds(col, row) {
     return col >= 0 && col < this.#MAP_COLS && row >= 0 && row < this.#MAP_ROWS;
   }
 
+  /**
+   *
+   * @param {string[][]} grid
+   * @param {TileMetadata[][]} tileMeta
+   * @param {number} col
+   * @param {number} row
+   * @param {string} type
+   * @param {Partial<TileMetadata>} overrides
+   */
   #setTile(grid, tileMeta, col, row, type, overrides = {}) {
     if (!this.#inBounds(col, row)) {
       return;
@@ -551,6 +1193,17 @@ export class MapGenerator {
     };
   }
 
+  /**
+   *
+   * @param {string[][]} grid
+   * @param {TileMetadata[][]} tileMeta
+   * @param {number} left
+   * @param {number} top
+   * @param {number} right
+   * @param {number} bottom
+   * @param {string} type
+   * @param {Partial<TileMetadata>} overrides
+   */
   #fillRect(
     grid,
     tileMeta,
@@ -568,6 +1221,14 @@ export class MapGenerator {
     }
   }
 
+  /**
+   *
+   * @param {boolean[][]} mask
+   * @param {number} centerCol
+   * @param {number} centerRow
+   * @param {number} radiusX
+   * @param {number} radiusY
+   */
   #addEllipse(mask, centerCol, centerRow, radiusX, radiusY) {
     for (let row = 0; row < this.#MAP_ROWS; row++) {
       for (let col = 0; col < this.#MAP_COLS; col++) {
@@ -580,6 +1241,14 @@ export class MapGenerator {
     }
   }
 
+  /**
+   *
+   * @param {boolean[][]} mask
+   * @param {number} left
+   * @param {number} top
+   * @param {number} right
+   * @param {number} bottom
+   */
   #fillMaskRect(mask, left, top, right, bottom) {
     for (
       let row = Math.max(0, top);
@@ -596,6 +1265,10 @@ export class MapGenerator {
     }
   }
 
+  /**
+   *
+   * @param {MapLayout} layout
+   */
   #buildIslandMask(layout) {
     const mask = Array.from({ length: this.#MAP_ROWS }, () =>
       new Array(this.#MAP_COLS).fill(false),
@@ -620,7 +1293,11 @@ export class MapGenerator {
         Math.max(
           entry.gateCol,
           entry.mergeCol + 1,
-          ...curveColumns.map((col) => col + 1),
+          ...curveColumns.map(/**
+           *
+           * @param {number} col
+           */
+          (col) => col + 1),
         ) + 1;
       this.#fillMaskRect(
         mask,
@@ -636,8 +1313,16 @@ export class MapGenerator {
           ...entry.curvePlan.bands,
           [layout.pathRows[0], layout.pathRows[1]],
         ];
-        const minTop = Math.min(...curveBands.map((rows) => rows[0]));
-        const maxBottom = Math.max(...curveBands.map((rows) => rows[1]));
+        const minTop = Math.min(...curveBands.map(/**
+         *
+         * @param {number[]} rows
+         */
+        (rows) => rows[0]));
+        const maxBottom = Math.max(...curveBands.map(/**
+         *
+         * @param {number[]} rows
+         */
+        (rows) => rows[1]));
         this.#fillMaskRect(
           mask,
           corridorLeft,
@@ -710,6 +1395,10 @@ export class MapGenerator {
     return mask;
   }
 
+  /**
+   *
+   * @param {boolean[][]} mask
+   */
   #fillSingleCellTerrainHoles(mask) {
     const holes = [];
     for (let row = 1; row < this.#MAP_ROWS - 1; row++) {
@@ -733,6 +1422,13 @@ export class MapGenerator {
     }
   }
 
+  /**
+   *
+   * @param {string[][]} grid
+   * @param {TileMetadata[][]} tileMeta
+   * @param {boolean} islandMask
+   * @param {number[][]} heightmap
+   */
   #materializeSingleCellTerrainHoles(
     grid,
     tileMeta,
@@ -750,7 +1446,11 @@ export class MapGenerator {
           grid[row + 1][col],
           grid[row][col - 1],
           grid[row][col + 1],
-        ].every((tile) => tile !== TileType.WATER);
+        ].every(/**
+         *
+         * @param {TileMetadata} tile
+         */
+        (tile) => tile !== TileType.WATER);
         if (enclosed) {
           holes.push({ col, row });
         }
@@ -768,6 +1468,12 @@ export class MapGenerator {
     }
   }
 
+  /**
+   *
+   * @param {string[][]} grid
+   * @param {TileMetadata[][]} tileMeta
+   * @param {boolean} islandMask
+   */
   #materializeIsland(grid, tileMeta, islandMask) {
     for (let row = 0; row < this.#MAP_ROWS; row++) {
       for (let col = 0; col < this.#MAP_COLS; col++) {
@@ -780,10 +1486,24 @@ export class MapGenerator {
     }
   }
 
+  /**
+   *
+   * @param {number[]} rows
+   * @param {number} top
+   * @param {number} bottom
+   */
   #rowsOverlap(rows, top, bottom) {
     return rows[0] <= bottom && rows[1] >= top;
   }
 
+  /**
+   *
+   * @param {number} numPaths
+   * @param {number} castleLeft
+   * @param {number} castleTop
+   * @param {number} castleBottom
+   * @param {number[]} pathRows
+   */
   #selectEntries(
     numPaths,
     castleLeft,
@@ -798,16 +1518,33 @@ export class MapGenerator {
     const shuffled = this.#shuffle([...this.#ENTRY_TEMPLATES]);
     const selected = shuffled
       .slice(0, count)
-      .sort((a, b) => a.gateRows[0] - b.gateRows[0]);
+      .sort(/**
+       *
+       * @param {number} a
+       * @param {number} b
+       */
+      (a, b) => a.gateRows[0] - b.gateRows[0]);
     const sharedMinMerge = Math.max(
-      ...selected.map((template) => template.mergeRange[0]),
+      ...selected.map(/**
+       *
+       * @param {GenerationTemplate} template
+       */
+      (template) => template.mergeRange[0]),
     );
     const sharedMaxMerge = Math.min(
       castleLeft - 6,
-      ...selected.map((template) => template.mergeRange[1]),
+      ...selected.map(/**
+       *
+       * @param {GenerationTemplate} template
+       */
+      (template) => template.mergeRange[1]),
     );
     const mergeCol = this.#rng(sharedMinMerge, sharedMaxMerge);
-    const sides = selected.map((template) => {
+    const sides = selected.map(/**
+     *
+     * @param {GenerationTemplate} template
+     */
+    (template) => {
       if (
         this.#rowsOverlap(template.gateRows, castleTop - 3, castleBottom + 3)
       ) {
@@ -816,10 +1553,24 @@ export class MapGenerator {
       return this.#rng(0, 1) === 0 ? "LEFT" : "RIGHT";
     });
 
-    if (selected.length > 1 && sides.every((side) => side === sides[0])) {
+    if (selected.length > 1 && sides.every(/**
+     *
+     * @param {string} side
+     */
+    (side) => side === sides[0])) {
       const candidateIndexes = selected
-        .map((template, index) => ({ template, index }))
+        .map(/**
+         *
+         * @param {GenerationTemplate} template
+         * @param {number} index
+         */
+        (template, index) => ({ template, index }))
         .filter(
+          /**
+           *
+           * @param {{template: MapGenerationOptions}} options
+           * @param {MapGenerationOptions} options.template
+           */
           ({ template }) =>
             !this.#rowsOverlap(
               template.gateRows,
@@ -827,7 +1578,12 @@ export class MapGenerator {
               castleBottom + 3,
             ),
         )
-        .map(({ index }) => index);
+        .map(/**
+         *
+         * @param {{index: number}} options
+         * @param {number} options.index
+         */
+        ({ index }) => index);
 
       if (candidateIndexes.length) {
         const flipIndex =
@@ -836,7 +1592,12 @@ export class MapGenerator {
       }
     }
 
-    return selected.map((template, index) => {
+    return selected.map(/**
+     *
+     * @param {GenerationTemplate} template
+     * @param {number} index
+     */
+    (template, index) => {
       const side = sides[index];
       const entry = {
         ...template,
@@ -852,12 +1613,23 @@ export class MapGenerator {
           entry,
           pathRows,
           mergeCol,
-          selected.map((candidate) => candidate.gateRows[0]),
+          selected.map(/**
+           *
+           * @param {{gateRows: number[]}} candidate
+           */
+          (candidate) => candidate.gateRows[0]),
         ),
       };
     });
   }
 
+  /**
+   *
+   * @param {LayoutEntry} entry
+   * @param {number[]} pathRows
+   * @param {number} mergeCol
+   * @param {Array} occupiedBandStarts
+   */
   #buildCurvePlan(entry, pathRows, mergeCol, occupiedBandStarts) {
     const [topRow, bottomRow] = entry.gateRows;
     const [trunkTop, trunkBottom] = pathRows;
@@ -899,10 +1671,19 @@ export class MapGenerator {
       turnCols,
       bands: bandStarts
         .slice(0, turnCols.length)
-        .map((start) => [start, start + 1]),
+        .map(/**
+         *
+         * @param {number} start
+         */
+        (start) => [start, start + 1]),
     };
   }
 
+  /**
+   *
+   * @param {MapLayout} layout
+   * @param {boolean|OverpassPlan} requestedOverpass
+   */
   #selectOverpassPlan(layout, requestedOverpass) {
     if (requestedOverpass === false || layout.entries.length < 2) {
       return null;
@@ -1008,7 +1789,11 @@ export class MapGenerator {
     if (!candidates.length) {
       return null;
     }
-    const originalCurvePlans = layout.entries.map((entry) => entry.curvePlan);
+    const originalCurvePlans = layout.entries.map(/**
+     *
+     * @param {LayoutEntry} entry
+     */
+    (entry) => entry.curvePlan);
     const shuffledCandidates = this.#shuffle([...candidates]);
     for (const selected of shuffledCandidates) {
       for (const entry of layout.entries) {
@@ -1059,14 +1844,27 @@ export class MapGenerator {
       }
     }
 
-    layout.entries.forEach((entry, index) => {
+    layout.entries.forEach(/**
+     *
+     * @param {LayoutEntry} entry
+     * @param {number} index
+     */
+    (entry, index) => {
       entry.curvePlan = originalCurvePlans[index];
     });
     return null;
   }
 
+  /**
+   *
+   * @param {MapLayout} layout
+   */
   #retainSeparatedCurvePlans(layout) {
-    const curvePlans = layout.entries.map((entry) => entry.curvePlan);
+    const curvePlans = layout.entries.map(/**
+     *
+     * @param {LayoutEntry} entry
+     */
+    (entry) => entry.curvePlan);
     for (const entry of layout.entries) {
       entry.curvePlan = null;
     }
@@ -1094,6 +1892,13 @@ export class MapGenerator {
     }
   }
 
+  /**
+   *
+   * @param {number} vertical
+   * @param {number} horizontal
+   * @param {number} crossingCol2
+   * @param {number} crossingRow2
+   */
   #buildVerticalOverpassPlan(
     vertical,
     horizontal,
@@ -1158,6 +1963,12 @@ export class MapGenerator {
     };
   }
 
+  /**
+   *
+   * @param {OverpassPlan|PathDipPlan} plan
+   * @param {boolean} islandMask
+   * @param {string[][]} grid
+   */
   #overpassPlanFits(plan, islandMask, grid) {
     const pathCells = [
       ...plan.crossingCells,
@@ -1178,6 +1989,12 @@ export class MapGenerator {
     return true;
   }
 
+  /**
+   *
+   * @param {string[][]} grid
+   * @param {OverpassPlan|PathDipPlan} plan
+   * @param {RouteData[]} routeCellsByPath
+   */
   #configureOverpassEntryPlateau(grid, plan, routeCellsByPath) {
     if (!plan) {
       return;
@@ -1189,6 +2006,11 @@ export class MapGenerator {
       return;
     }
 
+    /**
+     *
+     * @param {{row: number}} options
+     * @param {number} options.row
+     */
     const entrySideContains = ({ row }) =>
       plan.upperDirection === this.#DIRECTIONS.SOUTH
         ? row < plan.crossing.row
@@ -1208,12 +2030,25 @@ export class MapGenerator {
     }
 
     plan.raisedApproachCells = [...raisedApproachKeys]
-      .map((key) => {
+      .map(/**
+       *
+       * @param {string} key
+       */
+      (key) => {
         const [col, row] = key.split(",").map(Number);
         return { col, row };
       })
-      .sort((left, right) => left.row - right.row || left.col - right.col);
+      .sort(/**
+       *
+       * @param {GridCell} left
+       * @param {GridCell} right
+       */
+      (left, right) => left.row - right.row || left.col - right.col);
     plan.slopeCells = plan.slopeCells.filter(
+      /**
+       *
+       * @param {MapCell} cell
+       */
       (cell) => !entrySideContains(cell),
     );
 
@@ -1237,13 +2072,30 @@ export class MapGenerator {
       }
     }
     plan.raisedTerrainCells = [...raisedTerrainKeys]
-      .map((key) => {
+      .map(/**
+       *
+       * @param {string} key
+       */
+      (key) => {
         const [col, row] = key.split(",").map(Number);
         return { col, row };
       })
-      .sort((left, right) => left.row - right.row || left.col - right.col);
+      .sort(/**
+       *
+       * @param {GridCell} left
+       * @param {GridCell} right
+       */
+      (left, right) => left.row - right.row || left.col - right.col);
   }
 
+  /**
+   *
+   * @param {number} min
+   * @param {number} max
+   * @param {Array} occupiedBandStarts
+   * @param {pc.Vec3} trunkTop
+   * @param {string} direction
+   */
   #collectSafeCurveBandStarts(
     min,
     max,
@@ -1265,8 +2117,16 @@ export class MapGenerator {
 
     const safe = [];
     for (const candidate of candidates) {
-      if (!blocked.every((start) => Math.abs(candidate - start) >= 4)) continue;
-      if (!safe.every((start) => Math.abs(candidate - start) >= 4)) continue;
+      if (!blocked.every(/**
+       *
+       * @param {number} start
+       */
+      (start) => Math.abs(candidate - start) >= 4)) continue;
+      if (!safe.every(/**
+       *
+       * @param {number} start
+       */
+      (start) => Math.abs(candidate - start) >= 4)) continue;
       safe.push(candidate);
     }
 
@@ -1277,6 +2137,10 @@ export class MapGenerator {
     return safe;
   }
 
+  /**
+   *
+   * @param {Array} safeBands
+   */
   #selectCurveBandStarts(safeBands) {
     if (safeBands.length >= 3) {
       const midIndex = Math.floor(safeBands.length / 2);
@@ -1292,6 +2156,13 @@ export class MapGenerator {
     return safeBands.slice(0, 1);
   }
 
+  /**
+   *
+   * @param {string} side
+   * @param {number} gateCol
+   * @param {number} mergeCol
+   * @param {number} requestedCount
+   */
   #pickCurveTurnCols(side, gateCol, mergeCol, requestedCount) {
     if (side === "LEFT") {
       const width = mergeCol - gateCol;
@@ -1340,6 +2211,16 @@ export class MapGenerator {
     return outerNearGate >= mergeCol + 3 ? [outerNearGate] : [];
   }
 
+  /**
+   *
+   * @param {string[][]} grid
+   * @param {TileMetadata[][]} tileMeta
+   * @param {number} startCol
+   * @param {number} endCol
+   * @param {number[]} rows
+   * @param {string} direction
+   * @param {string} type
+   */
   #drawHorizontalPath(
     grid,
     tileMeta,
@@ -1364,6 +2245,14 @@ export class MapGenerator {
     }
   }
 
+  /**
+   *
+   * @param {string[][]} grid
+   * @param {TileMetadata[][]} tileMeta
+   * @param {number} colLeft
+   * @param {number} top
+   * @param {number} bottom
+   */
   #drawVerticalPath(grid, tileMeta, colLeft, top, bottom) {
     const low = Math.min(top, bottom);
     const high = Math.max(top, bottom);
@@ -1384,6 +2273,16 @@ export class MapGenerator {
     );
   }
 
+  /**
+   *
+   * @param {string[][]} grid
+   * @param {TileMetadata[][]} tileMeta
+   * @param {Set<string>} cells
+   * @param {number} startCol
+   * @param {number} endCol
+   * @param {number[]} rows
+   * @param {string} direction
+   */
   #addHorizontalRoute(
     grid,
     tileMeta,
@@ -1403,6 +2302,15 @@ export class MapGenerator {
     }
   }
 
+  /**
+   *
+   * @param {string[][]} grid
+   * @param {TileMetadata[][]} tileMeta
+   * @param {Set<string>} cells
+   * @param {number} colLeft
+   * @param {number} top
+   * @param {number} bottom
+   */
   #addVerticalRoute(grid, tileMeta, cells, colLeft, top, bottom) {
     this.#drawVerticalPath(grid, tileMeta, colLeft, top, bottom);
     const low = Math.min(top, bottom);
@@ -1413,6 +2321,15 @@ export class MapGenerator {
     }
   }
 
+  /**
+   *
+   * @param {string[][]} grid
+   * @param {TileMetadata[][]} tileMeta
+   * @param {Set<string>} cells
+   * @param {number} colLeft
+   * @param {Array} firstRows
+   * @param {Array} secondRows
+   */
   #addVerticalRouteBetweenBands(
     grid,
     tileMeta,
@@ -1426,11 +2343,21 @@ export class MapGenerator {
     this.#addVerticalRoute(grid, tileMeta, cells, colLeft, top, bottom);
   }
 
+  /**
+   *
+   * @param {string[][]} grid
+   * @param {TileMetadata[][]} tileMeta
+   * @param {MapLayout} layout
+   */
   #carvePaths(grid, tileMeta, layout) {
     const mergeZones = new Set();
     const routeCellsByPath = [];
     const trunkStart = Math.min(
-      ...layout.entries.map((entry) => entry.mergeCol),
+      ...layout.entries.map(/**
+       *
+       * @param {LayoutEntry} entry
+       */
+      (entry) => entry.mergeCol),
     );
 
     this.#drawHorizontalPath(
@@ -1599,6 +2526,12 @@ export class MapGenerator {
     return { mergeZones, routeCellsByPath, trunkStart };
   }
 
+  /**
+   *
+   * @param {string[][]} grid
+   * @param {TileMetadata[][]} tileMeta
+   * @param {MapLayout} layout
+   */
   #placeCastle(grid, tileMeta, layout) {
     for (let row = layout.castleTop; row <= layout.castleBottom; row++) {
       for (let col = layout.castleLeft; col <= layout.castleRight; col++) {
@@ -1633,8 +2566,21 @@ export class MapGenerator {
     }
   }
 
+  /**
+   *
+   * @param {string[][]} grid
+   * @param {MapLayout} layout
+   */
   #buildCastleData(grid, layout) {
     const doors = [];
+    /**
+     *
+     * @param {string} side
+     * @param {GridCell[]} cells
+     * @param {string} inwardDirection
+     * @param {number} outsideColOffset
+     * @param {number} outsideRowOffset
+     */
     const collectGate = (
       side,
       cells,
@@ -1658,9 +2604,23 @@ export class MapGenerator {
             (verticalSide ? run[0].row : run[0].col) -
             (verticalSide ? layout.castleTop : layout.castleLeft),
           width: run.length,
-          cells: run.map((cell) => ({ ...cell })),
-          centerCol: run.reduce((sum, cell) => sum + cell.col, 0) / run.length,
-          centerRow: run.reduce((sum, cell) => sum + cell.row, 0) / run.length,
+          cells: run.map(/**
+           *
+           * @param {MapCell} cell
+           */
+          (cell) => ({ ...cell })),
+          centerCol: run.reduce(/**
+           *
+           * @param {number} sum
+           * @param {MapCell} cell
+           */
+          (sum, cell) => sum + cell.col, 0) / run.length,
+          centerRow: run.reduce(/**
+           *
+           * @param {number} sum
+           * @param {MapCell} cell
+           */
+          (sum, cell) => sum + cell.row, 0) / run.length,
           inwardDirection,
         });
         run = [];
@@ -1688,6 +2648,11 @@ export class MapGenerator {
       "WEST",
       Array.from(
         { length: layout.castleBottom - layout.castleTop + 1 },
+        /**
+         *
+         * @param {undefined} _
+         * @param {number} index
+         */
         (_, index) => ({
           col: layout.castleLeft,
           row: layout.castleTop + index,
@@ -1701,6 +2666,11 @@ export class MapGenerator {
       "EAST",
       Array.from(
         { length: layout.castleBottom - layout.castleTop + 1 },
+        /**
+         *
+         * @param {undefined} _
+         * @param {number} index
+         */
         (_, index) => ({
           col: layout.castleRight,
           row: layout.castleTop + index,
@@ -1714,6 +2684,11 @@ export class MapGenerator {
       "NORTH",
       Array.from(
         { length: layout.castleRight - layout.castleLeft + 1 },
+        /**
+         *
+         * @param {undefined} _
+         * @param {number} index
+         */
         (_, index) => ({
           col: layout.castleLeft + index,
           row: layout.castleTop,
@@ -1727,6 +2702,11 @@ export class MapGenerator {
       "SOUTH",
       Array.from(
         { length: layout.castleRight - layout.castleLeft + 1 },
+        /**
+         *
+         * @param {undefined} _
+         * @param {number} index
+         */
         (_, index) => ({
           col: layout.castleLeft + index,
           row: layout.castleBottom,
@@ -1750,6 +2730,10 @@ export class MapGenerator {
     };
   }
 
+  /**
+   *
+   * @param {number} requestedNumRivers
+   */
   #selectRiverCount(requestedNumRivers) {
     if (Number.isFinite(requestedNumRivers)) {
       return this.#clamp(Math.round(requestedNumRivers), 0, this.#MAX_RIVERS);
@@ -1766,12 +2750,32 @@ export class MapGenerator {
     return this.#MAX_RIVERS;
   }
 
+  /**
+   *
+   * @param {number} col
+   * @param {number} row
+   * @param {number} centerCol
+   * @param {number} centerRow
+   * @param {number} radiusX
+   * @param {number} radiusY
+   */
   #insideEllipse(col, row, centerCol, centerRow, radiusX, radiusY) {
     const dx = (col - centerCol) / radiusX;
     const dy = (row - centerRow) / radiusY;
     return dx * dx + dy * dy <= 1;
   }
 
+  /**
+   *
+   * @param {string[][]} grid
+   * @param {number[][]} heightmap
+   * @param {number} left
+   * @param {number} top
+   * @param {number} right
+   * @param {number} bottom
+   * @param {number} value
+   * @param {(value: TileMetadata) => boolean} predicate
+   */
   #fillHeightRect(
     grid,
     heightmap,
@@ -1792,6 +2796,11 @@ export class MapGenerator {
     }
   }
 
+  /**
+   *
+   * @param {string[][]} grid
+   * @param {number[][]} heightmap
+   */
   #blendGrassNearPaths(grid, heightmap) {
     for (let row = 1; row < this.#MAP_ROWS - 1; row++) {
       for (let col = 1; col < this.#MAP_COLS - 1; col++) {
@@ -1818,6 +2827,12 @@ export class MapGenerator {
     }
   }
 
+  /**
+   *
+   * @param {string[][]} grid
+   * @param {number[][]} heightmap
+   * @param {MapLayout} layout
+   */
   #flattenBuildableZones(grid, heightmap, layout) {
     const topPadRight = this.#clamp(layout.castleLeft - 10, 10, 15);
     this.#fillHeightRect(
@@ -1828,6 +2843,10 @@ export class MapGenerator {
       topPadRight,
       8,
       1,
+      /**
+       *
+       * @param {TileMetadata} tile
+       */
       (tile) => tile === TileType.GRASS,
     );
     this.#fillHeightRect(
@@ -1838,6 +2857,10 @@ export class MapGenerator {
       12,
       33,
       1,
+      /**
+       *
+       * @param {TileMetadata} tile
+       */
       (tile) => tile === TileType.GRASS,
     );
     this.#fillHeightRect(
@@ -1848,6 +2871,10 @@ export class MapGenerator {
       24,
       29,
       2,
+      /**
+       *
+       * @param {TileMetadata} tile
+       */
       (tile) => tile === TileType.GRASS,
     );
     this.#fillHeightRect(
@@ -1858,6 +2885,10 @@ export class MapGenerator {
       layout.castleRight + this.#CASTLE_REAR_GROUND_CLEARANCE,
       layout.castleBottom + 1,
       this.#FOUNDATION_HEIGHT,
+      /**
+       *
+       * @param {TileMetadata} tile
+       */
       (tile) =>
         tile !== TileType.WATER &&
         tile !== TileType.PATH &&
@@ -1871,10 +2902,19 @@ export class MapGenerator {
       layout.castleEntranceCol,
       layout.pathRows[1],
       this.#PATH_HEIGHT,
+      /**
+       *
+       * @param {TileMetadata} tile
+       */
       (tile) => tile === TileType.PATH || tile === TileType.ENTRY,
     );
   }
 
+  /**
+   *
+   * @param {string[][]} grid
+   * @param {MapLayout} layout
+   */
   #buildHeightmap(grid, layout) {
     const heightmap = this.#createGrid(this.#WATER_HEIGHT);
 
@@ -1916,6 +2956,13 @@ export class MapGenerator {
     return heightmap;
   }
 
+  /**
+   *
+   * @param {string[][]} grid
+   * @param {number[][]} heightmap
+   * @param {TileMetadata[][]} tileMeta
+   * @param {OverpassPlan|PathDipPlan} plan
+   */
   #applyOverpassTerrain(grid, heightmap, tileMeta, plan) {
     if (!plan) {
       return;
@@ -1992,6 +3039,12 @@ export class MapGenerator {
     }
   }
 
+  /**
+   *
+   * @param {boolean} islandMask
+   * @param {number} col
+   * @param {number} row
+   */
   #hasRiverSourceSetback(islandMask, col, row) {
     for (let deltaRow = -5; deltaRow <= 5; deltaRow++) {
       for (let deltaCol = -5; deltaCol <= 5; deltaCol++) {
@@ -2011,6 +3064,12 @@ export class MapGenerator {
     return true;
   }
 
+  /**
+   *
+   * @param {MapLayout} layout
+   * @param {number} col
+   * @param {number} row
+   */
   #isNearCastle(layout, col, row) {
     return (
       col >= layout.castleLeft - this.#CASTLE_GROUND_CLEARANCE &&
@@ -2020,6 +3079,12 @@ export class MapGenerator {
     );
   }
 
+  /**
+   *
+   * @param {MapLayout} layout
+   * @param {number} col
+   * @param {number} row
+   */
   #isNearCastleForRiver(layout, col, row) {
     return (
       col >= layout.castleLeft - this.#RIVER_CASTLE_SETBACK &&
@@ -2029,15 +3094,38 @@ export class MapGenerator {
     );
   }
 
+  /**
+   *
+   * @param {MapLayout} layout
+   * @param {number} col
+   * @param {number} row
+   */
   #isNearGate(layout, col, row) {
-    return layout.entries.some((entry) =>
+    return layout.entries.some(/**
+     *
+     * @param {LayoutEntry} entry
+     */
+    (entry) =>
       entry.gateRows.some(
+        /**
+         *
+         * @param {number} gateRow
+         */
         (gateRow) =>
           Math.max(Math.abs(entry.gateCol - col), Math.abs(gateRow - row)) <= 1,
       ),
     );
   }
 
+  /**
+   *
+   * @param {string[][]} grid
+   * @param {TileMetadata[][]} tileMeta
+   * @param {MapLayout} layout
+   * @param {Array} occupiedRiverCells
+   * @param {number} col
+   * @param {number} row
+   */
   #isRiverTraversalCell(
     grid,
     tileMeta,
@@ -2063,6 +3151,12 @@ export class MapGenerator {
     return tile === TileType.GRASS || tile === TileType.PATH;
   }
 
+  /**
+   *
+   * @param {Array} occupiedRiverCells
+   * @param {number} col
+   * @param {number} row
+   */
   #touchesOccupiedRiver(occupiedRiverCells, col, row) {
     for (let deltaRow = -1; deltaRow <= 1; deltaRow++) {
       for (let deltaCol = -1; deltaCol <= 1; deltaCol++) {
@@ -2076,6 +3170,11 @@ export class MapGenerator {
     return false;
   }
 
+  /**
+   *
+   * @param {pc.Vec3} from
+   * @param {pc.Vec3} to
+   */
   #directionFromStep(from, to) {
     const deltaCol = to.col - from.col;
     const deltaRow = to.row - from.row;
@@ -2094,13 +3193,22 @@ export class MapGenerator {
     return this.#DIRECTIONS.NONE;
   }
 
+  /**
+   *
+   * @param {string[][]} grid
+   * @param {RouteRecord} route
+   */
   #riverSourceHasEarthEnclosure(grid, route) {
     if (route.length < 2) {
       return false;
     }
     const source = route[0];
     const routeCells = new Set(
-      route.map((cell) => this.#tileKey(cell.col, cell.row)),
+      route.map(/**
+       *
+       * @param {MapCell} cell
+       */
+      (cell) => this.#tileKey(cell.col, cell.row)),
     );
     for (let deltaRow = -1; deltaRow <= 1; deltaRow++) {
       for (let deltaCol = -1; deltaCol <= 1; deltaCol++) {
@@ -2120,6 +3228,13 @@ export class MapGenerator {
     return true;
   }
 
+  /**
+   *
+   * @param {string[][]} grid
+   * @param {boolean} islandMask
+   * @param {MapLayout} layout
+   * @param {RouteRecord} route
+   */
   #riverTerminalDirection(grid, islandMask, layout, route) {
     if (route.length < this.#MIN_RIVER_TILES) {
       return null;
@@ -2159,6 +3274,11 @@ export class MapGenerator {
     return this.#directionFromStep(previous, terminal);
   }
 
+  /**
+   *
+   * @param {Array} parents
+   * @param {KeyboardEvent} terminalKey
+   */
   #reconstructRiverRoute(parents, terminalKey) {
     const route = [];
     let key = terminalKey;
@@ -2171,6 +3291,16 @@ export class MapGenerator {
     return route;
   }
 
+  /**
+   *
+   * @param {string[][]} grid
+   * @param {TileMetadata[][]} tileMeta
+   * @param {boolean} islandMask
+   * @param {MapLayout} layout
+   * @param {MapCell} source
+   * @param {Array} occupiedRiverCells
+   * @param {GenerationYieldState} yieldState
+   */
   async #findRiverRoute(
     grid,
     tileMeta,
@@ -2234,8 +3364,17 @@ export class MapGenerator {
     return null;
   }
 
+  /**
+   *
+   * @param {string[][]} grid
+   * @param {RouteRecord} route
+   */
   #riverRouteKeepsIslandConnected(grid, route) {
-    const trialGrid = grid.map((row) => [...row]);
+    const trialGrid = grid.map(/**
+     *
+     * @param {number} row
+     */
+    (row) => [...row]);
     for (const cell of route) {
       if (trialGrid[cell.row][cell.col] === TileType.GRASS) {
         trialGrid[cell.row][cell.col] = TileType.WATER;
@@ -2256,6 +3395,12 @@ export class MapGenerator {
     );
   }
 
+  /**
+   *
+   * @param {string[][]} grid
+   * @param {TileMetadata[][]} tileMeta
+   * @param {RouteRecord} route
+   */
   #validateRiverPathCrossings(grid, tileMeta, route) {
     for (let index = 0; index < route.length; index++) {
       const cell = route[index];
@@ -2277,7 +3422,11 @@ export class MapGenerator {
       if (
         route
           .slice(start, end + 1)
-          .some((pathCell) => tileMeta[pathCell.row][pathCell.col].overpassId)
+          .some(/**
+           *
+           * @param {MapCell} pathCell
+           */
+          (pathCell) => tileMeta[pathCell.row][pathCell.col].overpassId)
       ) {
         return false;
       }
@@ -2312,6 +3461,15 @@ export class MapGenerator {
     return true;
   }
 
+  /**
+   *
+   * @param {string[][]} grid
+   * @param {number[][]} heightmap
+   * @param {TileMetadata[][]} tileMeta
+   * @param {RouteRecord} route
+   * @param {string} terminalDirection
+   * @param {number} riverIndex
+   */
   #materializeRiver(
     grid,
     heightmap,
@@ -2400,6 +3558,16 @@ export class MapGenerator {
     };
   }
 
+  /**
+   *
+   * @param {string[][]} grid
+   * @param {number[][]} heightmap
+   * @param {TileMetadata[][]} tileMeta
+   * @param {MapLayout} layout
+   * @param {boolean} islandMask
+   * @param {number} requestedNumRivers
+   * @param {GenerationYieldState} yieldState
+   */
   async #generateRivers(
     grid,
     heightmap,
@@ -2429,7 +3597,12 @@ export class MapGenerator {
       }
     }
     this.#shuffle(sourceCandidates);
-    sourceCandidates.sort((left, right) => right.height - left.height);
+    sourceCandidates.sort(/**
+     *
+     * @param {{height: number}} left
+     * @param {{height: number}} right
+     */
+    (left, right) => right.height - left.height);
 
     const rivers = [];
     const occupiedRiverCells = new Set();
@@ -2474,6 +3647,10 @@ export class MapGenerator {
     return rivers;
   }
 
+  /**
+   *
+   * @param {Array} rivers
+   */
   #assignRiverKinds(rivers) {
     if (
       rivers.length === 0 ||
@@ -2492,6 +3669,12 @@ export class MapGenerator {
     }
   }
 
+  /**
+   *
+   * @param {number[][]} heightmap
+   * @param {TileMetadata[][]} tileMeta
+   * @param {Array} rivers
+   */
   #raiseLavaSurfaces(heightmap, tileMeta, rivers) {
     for (const river of rivers) {
       if (river.kind !== RIVER_KIND.LAVA) {
@@ -2535,12 +3718,24 @@ export class MapGenerator {
     }
   }
 
+  /**
+   *
+   * @param {RiverRecord} river
+   */
   #riverSurfaceInset(river) {
     return river.kind === RIVER_KIND.LAVA
       ? this.#LAVA_SURFACE_INSET
       : this.#RIVER_SURFACE_INSET;
   }
 
+  /**
+   *
+   * @param {string[][]} grid
+   * @param {number[][]} heightmap
+   * @param {TileMetadata[][]} tileMeta
+   * @param {boolean} islandMask
+   * @param {RiverData[]} riverData
+   */
   #materializeRiverBanks(
     grid,
     heightmap,
@@ -2555,8 +3750,16 @@ export class MapGenerator {
       [this.#DIRECTIONS.WEST]: [-1, 0],
     };
     const riverCellKeys = new Set(
-      riverData.flatMap((river) =>
-        river.cells.map((cell) => this.#tileKey(cell.col, cell.row)),
+      riverData.flatMap(/**
+       *
+       * @param {RiverRecord} river
+       */
+      (river) =>
+        river.cells.map(/**
+         *
+         * @param {MapCell} cell
+         */
+        (cell) => this.#tileKey(cell.col, cell.row)),
       ),
     );
 
@@ -2693,6 +3896,11 @@ export class MapGenerator {
     }
   }
 
+  /**
+   *
+   * @param {string[][]} grid
+   * @param {number[][]} heightmap
+   */
   #smoothGrassHeights(grid, heightmap) {
     let changed = true;
 
@@ -2727,6 +3935,14 @@ export class MapGenerator {
     }
   }
 
+  /**
+   *
+   * @param {string[][]} grid
+   * @param {number[][]} heightmap
+   * @param {TileMetadata[][]} tileMeta
+   * @param {RiverData[]} riverData
+   * @param {Array} mergeZones
+   */
   #applyTerrainBridgeDips(
     grid,
     heightmap,
@@ -2735,10 +3951,22 @@ export class MapGenerator {
     mergeZones,
   ) {
     const riverBridgeCells = new Set(
-      riverData.flatMap((river) =>
+      riverData.flatMap(/**
+       *
+       * @param {RiverRecord} river
+       */
+      (river) =>
         river.cells
-          .filter((cell) => cell.underBridge)
-          .map((cell) => this.#tileKey(cell.col, cell.row)),
+          .filter(/**
+           *
+           * @param {MapCell} cell
+           */
+          (cell) => cell.underBridge)
+          .map(/**
+           *
+           * @param {MapCell} cell
+           */
+          (cell) => this.#tileKey(cell.col, cell.row)),
       ),
     );
     const stations = [];
@@ -2787,6 +4015,10 @@ export class MapGenerator {
         const cells = this.#pathStationCells(axis, cross, coordinate);
         if (
           cells.some(
+            /**
+             *
+             * @param {MapCell} cell
+             */
             (cell) =>
               mergeZones.has(this.#tileKey(cell.col, cell.row)) ||
               riverBridgeCells.has(this.#tileKey(cell.col, cell.row)) ||
@@ -2814,6 +4046,10 @@ export class MapGenerator {
         if (
           !lateralCells ||
           lateralCells.some(
+            /**
+             *
+             * @param {MapCell} cell
+             */
             (cell) =>
               !this.#inBounds(cell.col, cell.row) ||
               grid[cell.row][cell.col] !== TileType.GRASS ||
@@ -2843,7 +4079,12 @@ export class MapGenerator {
 
     const eligibleSpans = [];
     for (const group of groupedStations.values()) {
-      group.sort((left, right) => left.coordinate - right.coordinate);
+      group.sort(/**
+       *
+       * @param {{coordinate: number}} left
+       * @param {{coordinate: number}} right
+       */
+      (left, right) => left.coordinate - right.coordinate);
       let run = [];
       const finishRun = () => {
         if (run.length >= this.#TERRAIN_BRIDGE_DIP_MIN_SPAN) {
@@ -2893,6 +4134,11 @@ export class MapGenerator {
     }
 
     eligibleSpans.sort(
+      /**
+       *
+       * @param {PathDipPlan} left
+       * @param {PathDipPlan} right
+       */
       (left, right) =>
         left.axis.localeCompare(right.axis) ||
         left.cross - right.cross ||
@@ -2910,6 +4156,12 @@ export class MapGenerator {
     return plans;
   }
 
+  /**
+   *
+   * @param {string} axis
+   * @param {Array} cross
+   * @param {number} coordinate
+   */
   #pathStationCells(axis, cross, coordinate) {
     return axis === "HORIZONTAL"
       ? [
@@ -2922,6 +4174,16 @@ export class MapGenerator {
         ];
   }
 
+  /**
+   *
+   * @param {string[][]} grid
+   * @param {number[][]} heightmap
+   * @param {TileMetadata[][]} tileMeta
+   * @param {Array} riverBridgeCells
+   * @param {Array} mergeZones
+   * @param {number} span
+   * @param {number} coordinate
+   */
   #pathDipLandingFits(
     grid,
     heightmap,
@@ -2934,6 +4196,10 @@ export class MapGenerator {
     const cells = this.#pathStationCells(span.axis, span.cross, coordinate);
     if (
       cells.some(
+        /**
+         *
+         * @param {MapCell} cell
+         */
         (cell) =>
           !this.#inBounds(cell.col, cell.row) ||
           grid[cell.row][cell.col] !== TileType.PATH ||
@@ -2965,6 +4231,11 @@ export class MapGenerator {
     );
   }
 
+  /**
+   *
+   * @param {number} span
+   * @param {number} index
+   */
   #buildTerrainBridgeDipPlan(span, index) {
     const firstRiseDirection =
       span.axis === "HORIZONTAL" ? SLOPE_DIRECTION.WEST : SLOPE_DIRECTION.NORTH;
@@ -2982,13 +4253,21 @@ export class MapGenerator {
           span.axis,
           span.cross,
           span.start + offset,
-        ).map((cell) => ({
+        ).map(/**
+         *
+         * @param {MapCell} cell
+         */
+        (cell) => ({
           ...cell,
           lowHeight,
           highHeight,
           riseDirection: firstRiseDirection,
         })),
         ...this.#pathStationCells(span.axis, span.cross, span.end - offset).map(
+          /**
+           *
+           * @param {MapCell} cell
+           */
           (cell) => ({
             ...cell,
             lowHeight,
@@ -3022,6 +4301,12 @@ export class MapGenerator {
     };
   }
 
+  /**
+   *
+   * @param {number[][]} heightmap
+   * @param {TileMetadata[][]} tileMeta
+   * @param {OverpassPlan|PathDipPlan} plan
+   */
   #applyTerrainBridgeDipPlan(heightmap, tileMeta, plan) {
     for (const cell of plan.flatCells) {
       heightmap[cell.row][cell.col] = plan.elevation;
@@ -3049,6 +4334,13 @@ export class MapGenerator {
     }
   }
 
+  /**
+   *
+   * @param {string[][]} grid
+   * @param {TileMetadata[][]} tileMeta
+   * @param {number[][]} heightmap
+   * @param {RiverData[]} riverData
+   */
   #applyHeightsToMetadata(grid, tileMeta, heightmap, riverData) {
     for (let row = 0; row < this.#MAP_ROWS; row++) {
       for (let col = 0; col < this.#MAP_COLS; col++) {
@@ -3075,10 +4367,25 @@ export class MapGenerator {
     this.#assignBridgeGround(tileMeta, heightmap, riverData);
   }
 
+  /**
+   *
+   * @param {string[][]} grid
+   * @param {number[][]} heightmap
+   * @param {TileMetadata[][]} tileMeta
+   * @param {RiverData[]} riverData
+   */
   #materializePathSupports(grid, heightmap, tileMeta, riverData) {
     const riverCells = new Set(
-      riverData.flatMap((river) =>
-        river.cells.map((cell) => this.#tileKey(cell.col, cell.row)),
+      riverData.flatMap(/**
+       *
+       * @param {RiverRecord} river
+       */
+      (river) =>
+        river.cells.map(/**
+         *
+         * @param {MapCell} cell
+         */
+        (cell) => this.#tileKey(cell.col, cell.row)),
       ),
     );
     const processedStations = new Set();
@@ -3104,7 +4411,11 @@ export class MapGenerator {
             ? "H"
             : "V";
         const stationKey = `${axis}:${lateralCells
-          .map((cell) => this.#tileKey(cell.col, cell.row))
+          .map(/**
+           *
+           * @param {MapCell} cell
+           */
+          (cell) => this.#tileKey(cell.col, cell.row))
           .sort()
           .join("|")}`;
         if (processedStations.has(stationKey)) {
@@ -3114,6 +4425,12 @@ export class MapGenerator {
 
         const pathHeight = heightmap[row][col];
         const supportedSides = lateralCells.filter(
+          /**
+           *
+           * @param {{col: number, row: number}} options
+           * @param {number} options.col
+           * @param {number} options.row
+           */
           ({ col: sideCol, row: sideRow }) =>
             this.#hasPathSideBlock(
               grid,
@@ -3154,6 +4471,12 @@ export class MapGenerator {
     }
   }
 
+  /**
+   *
+   * @param {string[][]} grid
+   * @param {number[][]} heightmap
+   * @param {TileMetadata[][]} tileMeta
+   */
   #applyPathRenderModes(grid, heightmap, tileMeta) {
     for (let row = 0; row < this.#MAP_ROWS; row++) {
       for (let col = 0; col < this.#MAP_COLS; col++) {
@@ -3171,12 +4494,30 @@ export class MapGenerator {
     }
   }
 
+  /**
+   *
+   * @param {TileMetadata[][]} tileMeta
+   * @param {number[][]} heightmap
+   * @param {RiverData[]} riverData
+   */
   #assignBridgeGround(tileMeta, heightmap, riverData) {
     const riverBridgeCells = new Set(
-      riverData.flatMap((river) =>
+      riverData.flatMap(/**
+       *
+       * @param {RiverRecord} river
+       */
+      (river) =>
         river.cells
-          .filter((cell) => cell.underBridge)
-          .map((cell) => this.#tileKey(cell.col, cell.row)),
+          .filter(/**
+           *
+           * @param {MapCell} cell
+           */
+          (cell) => cell.underBridge)
+          .map(/**
+           *
+           * @param {MapCell} cell
+           */
+          (cell) => this.#tileKey(cell.col, cell.row)),
       ),
     );
     for (let row = 0; row < this.#MAP_ROWS; row++) {
@@ -3193,6 +4534,14 @@ export class MapGenerator {
     }
   }
 
+  /**
+   *
+   * @param {string[][]} grid
+   * @param {number[][]} heightmap
+   * @param {TileMetadata[][]} tileMeta
+   * @param {number} col
+   * @param {number} row
+   */
   #classifyRenderMode(grid, heightmap, tileMeta, col, row) {
     const tile = grid[row][col];
     if (tile !== TileType.PATH) {
@@ -3215,19 +4564,44 @@ export class MapGenerator {
 
     const pathHeight = heightmap[row][col];
     const hasLateralSupport = lateralCells.some(
+      /**
+       *
+       * @param {{col: number, row: number}} options
+       * @param {number} options.col
+       * @param {number} options.row
+       */
       ({ col: sideCol, row: sideRow }) =>
         this.#hasPathSideBlock(grid, heightmap, sideCol, sideRow, pathHeight),
     );
     return hasLateralSupport ? "SOLID" : "BRIDGE";
   }
 
+  /**
+   *
+   * @param {string[][]} grid
+   * @param {Array} lateralCells
+   */
   #isPathTurnPosition(grid, lateralCells) {
     return lateralCells.some(
+      /**
+       *
+       * @param {{col: number, row: number}} options
+       * @param {number} options.col
+       * @param {number} options.row
+       */
       ({ col, row }) =>
         this.#inBounds(col, row) && this.#isRouteTile(grid[row][col]),
     );
   }
 
+  /**
+   *
+   * @param {string[][]} grid
+   * @param {number[][]} heightmap
+   * @param {number} col
+   * @param {number} row
+   * @param {number} pathHeight
+   */
   #hasPathSideBlock(grid, heightmap, col, row, pathHeight) {
     if (!this.#inBounds(col, row) || grid[row][col] === TileType.WATER) {
       return false;
@@ -3235,6 +4609,13 @@ export class MapGenerator {
     return heightmap[row][col] >= pathHeight;
   }
 
+  /**
+   *
+   * @param {string[][]} grid
+   * @param {TileMetadata[][]} tileMeta
+   * @param {number} col
+   * @param {number} row
+   */
   #pathLateralCells(grid, tileMeta, col, row) {
     const direction = tileMeta[row][col].direction;
     if (
@@ -3280,6 +4661,14 @@ export class MapGenerator {
     return null;
   }
 
+  /**
+   *
+   * @param {string[][]} grid
+   * @param {TileMetadata[][]} tileMeta
+   * @param {number} col
+   * @param {number} row
+   * @param {string} direction
+   */
   #findLaneMateRow(grid, tileMeta, col, row, direction) {
     const candidates = [row - 1, row + 1];
     for (const candidateRow of candidates) {
@@ -3294,6 +4683,14 @@ export class MapGenerator {
     return null;
   }
 
+  /**
+   *
+   * @param {string[][]} grid
+   * @param {TileMetadata[][]} tileMeta
+   * @param {number} col
+   * @param {number} row
+   * @param {string} direction
+   */
   #findLaneMateCol(grid, tileMeta, col, row, direction) {
     const candidates = [col - 1, col + 1];
     for (const candidateCol of candidates) {
@@ -3308,10 +4705,22 @@ export class MapGenerator {
     return null;
   }
 
+  /**
+   *
+   * @param {number} col2
+   * @param {number} row2
+   * @param {number} elevation
+   */
   #routeNodeKey(col2, row2, elevation = this.#PATH_HEIGHT) {
     return `${col2},${row2},${Math.round(elevation * 1000) / 1000}`;
   }
 
+  /**
+   *
+   * @param {RouteWaypoint[]} waypoints
+   * @param {number} col2
+   * @param {number} row2
+   */
   #appendRouteWaypoint(waypoints, col2, row2) {
     const previous = waypoints[waypoints.length - 1];
     if (previous?.col2 === col2 && previous?.row2 === row2) {
@@ -3320,6 +4729,11 @@ export class MapGenerator {
     waypoints.push({ col2, row2 });
   }
 
+  /**
+   *
+   * @param {MapLayout} layout
+   * @param {LayoutEntry} entry
+   */
   #buildRouteWaypoints(layout, entry) {
     const waypoints = [];
     const gateCenterRow2 = entry.gateRows[0] + entry.gateRows[1];
@@ -3357,6 +4771,10 @@ export class MapGenerator {
     return waypoints;
   }
 
+  /**
+   *
+   * @param {RouteWaypoint[]} waypoints
+   */
   #expandRouteWaypoints(waypoints) {
     const points = [{ ...waypoints[0] }];
 
@@ -3390,6 +4808,12 @@ export class MapGenerator {
     return points;
   }
 
+  /**
+   *
+   * @param {Map} graph
+   * @param {number} first
+   * @param {number} second
+   */
   #connectRouteNodes(graph, first, second) {
     const firstKey = this.#routeNodeKey(
       first.col2,
@@ -3407,6 +4831,11 @@ export class MapGenerator {
     graph.get(secondKey).add(firstKey);
   }
 
+  /**
+   *
+   * @param {Map} graph
+   * @param {KeyboardEvent} targetKey
+   */
   #buildRouteDistances(graph, targetKey) {
     const distances = new Map([[targetKey, 0]]);
     const queue = [targetKey];
@@ -3425,6 +4854,13 @@ export class MapGenerator {
     return distances;
   }
 
+  /**
+   *
+   * @param {Map} graph
+   * @param {Array} distances
+   * @param {KeyboardEvent} startKey
+   * @param {KeyboardEvent} targetKey
+   */
   #followQuickestRoute(graph, distances, startKey, targetKey) {
     const route = [];
     let key = startKey;
@@ -3438,7 +4874,11 @@ export class MapGenerator {
 
       const distance = distances.get(key);
       const nextKey = [...(graph.get(key) ?? [])]
-        .filter((neighbor) => distances.get(neighbor) === distance - 1)
+        .filter(/**
+         *
+         * @param {MapCell} neighbor
+         */
+        (neighbor) => distances.get(neighbor) === distance - 1)
         .sort()[0];
 
       if (!nextKey) {
@@ -3448,10 +4888,19 @@ export class MapGenerator {
     }
   }
 
+  /**
+   *
+   * @param {Array} routes
+   */
   #buildArrowData(routes) {
     const arrowData = new Map();
 
-    routes.forEach((route, pathIdx) => {
+    routes.forEach(/**
+     *
+     * @param {RouteRecord} route
+     * @param {number} pathIdx
+     */
+    (route, pathIdx) => {
       const turnIndices = new Set();
       const distancesToCastle = new Array(route.length).fill(0);
       for (let index = 1; index < route.length - 1; index++) {
@@ -3499,7 +4948,11 @@ export class MapGenerator {
           dc += previousDc;
           dr += previousDr;
         } else if (
-          [...turnIndices].some((turnIndex) => Math.abs(turnIndex - index) <= 2)
+          [...turnIndices].some(/**
+           *
+           * @param {number} turnIndex
+           */
+          (turnIndex) => Math.abs(turnIndex - index) <= 2)
         ) {
           continue;
         }
@@ -3545,9 +4998,18 @@ export class MapGenerator {
     return arrowData;
   }
 
+  /**
+   *
+   * @param {MapLayout} layout
+   */
   #buildRouteData(layout) {
     const graph = new Map();
-    const rawRoutes = layout.entries.map((entry, pathIdx) => {
+    const rawRoutes = layout.entries.map(/**
+     *
+     * @param {LayoutEntry} entry
+     * @param {number} pathIdx
+     */
+    (entry, pathIdx) => {
       const route = this.#applyRouteElevations(
         this.#expandRouteWaypoints(this.#buildRouteWaypoints(layout, entry)),
         pathIdx,
@@ -3565,7 +5027,11 @@ export class MapGenerator {
       this.#PATH_HEIGHT,
     );
     const distances = this.#buildRouteDistances(graph, targetKey);
-    const routes = rawRoutes.map((route) =>
+    const routes = rawRoutes.map(/**
+     *
+     * @param {RouteRecord} route
+     */
+    (route) =>
       this.#followQuickestRoute(
         graph,
         distances,
@@ -3577,15 +5043,31 @@ export class MapGenerator {
     return { routes, arrowData: this.#buildArrowData(routes) };
   }
 
+  /**
+   *
+   * @param {RouteRecord} route
+   * @param {number} pathIdx
+   * @param {OverpassPlan|null} overpassPlan
+   * @param {Array} pathDipPlans
+   */
   #applyRouteElevations(route, pathIdx, overpassPlan, pathDipPlans) {
     const crossingCol2 = overpassPlan?.crossing.col * 2 + 1;
     const crossingRow2 = overpassPlan?.crossing.row * 2 + 1;
     const raisedEntryEndIndex = overpassPlan?.raisedEntryApproach
       ? route.findIndex(
+          /**
+           *
+           * @param {MapCell} point
+           */
           (point) => point.col2 === crossingCol2 && point.row2 === crossingRow2,
         )
       : -1;
-    return route.map((point, pointIndex) => {
+    return route.map(/**
+     *
+     * @param {MapCell} point
+     * @param {number} pointIndex
+     */
+    (point, pointIndex) => {
       let elevation = this.#terrainPathDipElevation(point, pathDipPlans);
       if (
         overpassPlan &&
@@ -3613,6 +5095,11 @@ export class MapGenerator {
     });
   }
 
+  /**
+   *
+   * @param {MapCell} point
+   * @param {PathDipPlan[]} plans
+   */
   #terrainPathDipElevation(point, plans = []) {
     for (const plan of plans) {
       const crossCoordinate2 = plan.cross * 2 + 1;
@@ -3651,6 +5138,11 @@ export class MapGenerator {
     return this.#PATH_HEIGHT;
   }
 
+  /**
+   *
+   * @param {string[][]} grid
+   * @param {Array} startTiles
+   */
   #findConnectedComponent(grid, startTiles) {
     const seen = new Set();
     const queue = [...startTiles];
@@ -3676,6 +5168,15 @@ export class MapGenerator {
     return seen;
   }
 
+  /**
+   *
+   * @param {string[][]} grid
+   * @param {number[][]} heightmap
+   * @param {TileMetadata[][]} tileMeta
+   * @param {MapLayout} layout
+   * @param {number} col
+   * @param {number} row
+   */
   #isVegetationCandidate(grid, heightmap, tileMeta, layout, col, row) {
     if (!this.#inBounds(col, row)) {
       return false;
@@ -3712,6 +5213,13 @@ export class MapGenerator {
     return true;
   }
 
+  /**
+   *
+   * @param {string[][]} grid
+   * @param {number[][]} heightmap
+   * @param {TileMetadata[][]} tileMeta
+   * @param {MapLayout} layout
+   */
   #placeVegetation(grid, heightmap, tileMeta, layout) {
     const candidates = [];
     for (let row = 0; row < this.#MAP_ROWS; row++) {
@@ -3747,6 +5255,10 @@ export class MapGenerator {
     for (const candidate of centerCandidates) {
       if (
         centers.some(
+          /**
+           *
+           * @param {number} center
+           */
           (center) =>
             Math.max(
               Math.abs(center.col - candidate.col),
@@ -3762,6 +5274,10 @@ export class MapGenerator {
 
     const selected = [];
     const occupied = new Set();
+    /**
+     *
+     * @param {GridCell} candidate
+     */
     const addCandidate = (candidate) => {
       const key = this.#tileKey(candidate.col, candidate.row);
       if (occupied.has(key) || selected.length >= targetCount) {
@@ -3774,6 +5290,10 @@ export class MapGenerator {
     for (const center of centers) {
       const nearby = this.#shuffle(
         candidates.filter(
+          /**
+           *
+           * @param {GridCell} candidate
+           */
           (candidate) =>
             Math.max(
               Math.abs(center.col - candidate.col),
@@ -3795,11 +5315,21 @@ export class MapGenerator {
     const bushVariants = this.#shuffle([...this.#BUSH_VARIANTS]);
     const treeCount = Math.round(selected.length * 0.8);
     const kinds = this.#shuffle(
-      selected.map((_, index) => (index < treeCount ? "tree" : "bush")),
+      selected.map(/**
+       *
+       * @param {undefined} _
+       * @param {number} index
+       */
+      (_, index) => (index < treeCount ? "tree" : "bush")),
     );
     let treeIndex = 0;
     let bushIndex = 0;
-    return selected.map((candidate, index) => {
+    return selected.map(/**
+     *
+     * @param {GridCell} candidate
+     * @param {number} index
+     */
+    (candidate, index) => {
       const kind = kinds[index];
       const variant =
         kind === "tree"
@@ -3814,6 +5344,14 @@ export class MapGenerator {
     });
   }
 
+  /**
+   *
+   * @param {string[][]} grid
+   * @param {number[][]} heightmap
+   * @param {TileMetadata[][]} tileMeta
+   * @param {number} col
+   * @param {number} row
+   */
   #isGroundCoverCandidate(grid, heightmap, tileMeta, col, row) {
     if (!this.#inBounds(col, row)) {
       return false;
@@ -3841,6 +5379,14 @@ export class MapGenerator {
     return 3;
   }
 
+  /**
+   *
+   * @param {string[][]} grid
+   * @param {number[][]} heightmap
+   * @param {TileMetadata[][]} tileMeta
+   * @param {VegetationPlacement[]} vegetationPlacements
+   * @param {string} mapName
+   */
   #placeStones(
     grid,
     heightmap,
@@ -3852,7 +5398,13 @@ export class MapGenerator {
       return [];
     }
     const occupied = new Set(
-      vegetationPlacements.map(({ col, row }) => this.#tileKey(col, row)),
+      vegetationPlacements.map(/**
+       *
+       * @param {{col: number, row: number}} options
+       * @param {number} options.col
+       * @param {number} options.row
+       */
+      ({ col, row }) => this.#tileKey(col, row)),
     );
     const candidates = [];
     for (let row = 0; row < this.#MAP_ROWS; row++) {
@@ -3872,6 +5424,12 @@ export class MapGenerator {
     for (const candidate of shuffledCandidates) {
       if (
         stones.some(
+          /**
+           *
+           * @param {{col: number, row: number}} options
+           * @param {number} options.col
+           * @param {number} options.row
+           */
           ({ col, row }) =>
             Math.max(
               Math.abs(col - candidate.col),
@@ -3900,7 +5458,12 @@ export class MapGenerator {
               ]
             : [[0, 0]];
       const clusterRotation = partCount === 1 ? 0 : this.#rng(0, 3);
-      const parts = Array.from({ length: partCount }, (_, index) => {
+      const parts = Array.from({ length: partCount }, /**
+       *
+       * @param {undefined} _
+       * @param {number} index
+       */
+      (_, index) => {
         const variant = variants[index];
         const color =
           colors[
@@ -3938,6 +5501,14 @@ export class MapGenerator {
     return stones;
   }
 
+  /**
+   *
+   * @param {string[][]} grid
+   * @param {number[][]} heightmap
+   * @param {TileMetadata[][]} tileMeta
+   * @param {VegetationPlacement[]} vegetationPlacements
+   * @param {StonePlacement[]} stonePlacements
+   */
   #placeGroundCover(
     grid,
     heightmap,
@@ -3946,7 +5517,13 @@ export class MapGenerator {
     stonePlacements,
   ) {
     const occupied = new Set(
-      [...vegetationPlacements, ...stonePlacements].map(({ col, row }) =>
+      [...vegetationPlacements, ...stonePlacements].map(/**
+       *
+       * @param {{col: number, row: number}} options
+       * @param {number} options.col
+       * @param {number} options.row
+       */
+      ({ col, row }) =>
         this.#tileKey(col, row),
       ),
     );
@@ -3985,6 +5562,13 @@ export class MapGenerator {
     return groundCover;
   }
 
+  /**
+   *
+   * @param {GridCell} candidate
+   * @param {string} variant
+   * @param {number} offsetX
+   * @param {number} offsetZ
+   */
   #createGroundCoverDecoration(candidate, variant, offsetX, offsetZ) {
     return {
       ...candidate,
@@ -3997,10 +5581,27 @@ export class MapGenerator {
     };
   }
 
+  /**
+   *
+   * @param {string[][]} grid
+   * @param {number[][]} heightmap
+   * @param {boolean} islandMask
+   * @param {RiverData[]} riverData
+   */
   #placeCliffVines(grid, heightmap, islandMask, riverData) {
     const riverTiles = new Set(
-      riverData.flatMap((river) =>
-        river.cells.map(({ col, row }) => this.#tileKey(col, row)),
+      riverData.flatMap(/**
+       *
+       * @param {RiverRecord} river
+       */
+      (river) =>
+        river.cells.map(/**
+         *
+         * @param {{col: number, row: number}} options
+         * @param {number} options.col
+         * @param {number} options.row
+         */
+        ({ col, row }) => this.#tileKey(col, row)),
       ),
     );
     const directions = [
@@ -4080,6 +5681,10 @@ export class MapGenerator {
     return selected;
   }
 
+  /**
+   *
+   * @param {string[][]} grid
+   */
   #validateIslandConnectivity(grid) {
     const allLand = [];
     for (let row = 0; row < this.#MAP_ROWS; row++) {
@@ -4100,6 +5705,11 @@ export class MapGenerator {
     }
   }
 
+  /**
+   *
+   * @param {string[][]} grid
+   * @param {MapLayout} layout
+   */
   #validateGatePlacement(grid, layout) {
     for (const entry of layout.entries) {
       const outsideCol =
@@ -4131,6 +5741,10 @@ export class MapGenerator {
     }
   }
 
+  /**
+   *
+   * @param {MapLayout} layout
+   */
   #validatePathSpacing(layout) {
     for (let i = 0; i < layout.entries.length; i++) {
       for (let j = i + 1; j < layout.entries.length; j++) {
@@ -4143,10 +5757,20 @@ export class MapGenerator {
     }
   }
 
+  /**
+   *
+   * @param {TileMetadata} tile
+   */
   #isRouteTile(tile) {
     return tile === TileType.PATH || tile === TileType.ENTRY;
   }
 
+  /**
+   *
+   * @param {MapLayout} layout
+   * @param {number} col
+   * @param {number} row
+   */
   #isWithinMergeZone(layout, col, row) {
     const mergeCol = layout.entries[0]?.mergeCol;
     if (!Number.isFinite(mergeCol)) {
@@ -4160,22 +5784,46 @@ export class MapGenerator {
     );
   }
 
+  /**
+   *
+   * @param {MapLayout} layout
+   * @param {number} col
+   */
   #isWithinMergeCorridor(layout, col) {
     const mergeCol = layout.entries[0]?.mergeCol;
     return Number.isFinite(mergeCol) && col >= mergeCol && col <= mergeCol + 1;
   }
 
+  /**
+   *
+   * @param {Array} firstCells
+   * @param {Array} secondCells
+   * @param {MapLayout} layout
+   * @param {number} row
+   */
   #routesShareMergeCellAtRow(firstCells, secondCells, layout, row) {
     const mergeCol = layout.entries[0]?.mergeCol;
     if (!Number.isFinite(mergeCol)) {
       return false;
     }
-    return [mergeCol, mergeCol + 1].some((col) => {
+    return [mergeCol, mergeCol + 1].some(/**
+     *
+     * @param {number} col
+     */
+    (col) => {
       const key = this.#tileKey(col, row);
       return firstCells.has(key) && secondCells.has(key);
     });
   }
 
+  /**
+   *
+   * @param {Array} firstCells
+   * @param {Array} secondCells
+   * @param {MapLayout} layout
+   * @param {MapCell} firstCell
+   * @param {MapCell} secondCell
+   */
   #isPlannedMergeContact(
     firstCells,
     secondCells,
@@ -4189,11 +5837,21 @@ export class MapGenerator {
     ) {
       return false;
     }
-    return [firstCell.row, secondCell.row].some((row) =>
+    return [firstCell.row, secondCell.row].some(/**
+     *
+     * @param {number} row
+     */
+    (row) =>
       this.#routesShareMergeCellAtRow(firstCells, secondCells, layout, row),
     );
   }
 
+  /**
+   *
+   * @param {OverpassPlan|null} overpassPlan
+   * @param {number} col
+   * @param {number} row
+   */
   #isWithinOverpassCrossing(overpassPlan, col, row) {
     if (!overpassPlan) {
       return false;
@@ -4207,6 +5865,12 @@ export class MapGenerator {
     );
   }
 
+  /**
+   *
+   * @param {RouteData[]} routeCellsByPath
+   * @param {MapLayout} layout
+   * @param {OverpassPlan|null} overpassPlan
+   */
   #findUnexpectedRouteConnection(
     routeCellsByPath,
     layout,
@@ -4270,6 +5934,11 @@ export class MapGenerator {
     return null;
   }
 
+  /**
+   *
+   * @param {RouteData[]} routeCellsByPath
+   * @param {MapLayout} layout
+   */
   #validateRouteSeparation(routeCellsByPath, layout) {
     const connection = this.#findUnexpectedRouteConnection(
       routeCellsByPath,
@@ -4281,6 +5950,11 @@ export class MapGenerator {
     }
   }
 
+  /**
+   *
+   * @param {string[][]} grid
+   * @param {MapLayout} layout
+   */
   #hasInsufficientParallelPathClearance(grid, layout) {
     for (let col = 0; col < this.#MAP_COLS; col++) {
       const horizontalBands = [];
@@ -4342,13 +6016,30 @@ export class MapGenerator {
     return false;
   }
 
+  /**
+   *
+   * @param {string[][]} grid
+   * @param {MapLayout} layout
+   */
   #validateParallelPathClearance(grid, layout) {
     if (this.#hasInsufficientParallelPathClearance(grid, layout)) {
       throw new InsufficientParallelPathSpacingError();
     }
   }
 
+  /**
+   *
+   * @param {string[][]} grid
+   * @param {OverpassPlan|null} overpassPlan
+   */
   #findUnexpectedFlatPathCrossing(grid, overpassPlan) {
+    /**
+     *
+     * @param {number} firstCol
+     * @param {number} firstRow
+     * @param {number} secondCol
+     * @param {number} secondRow
+     */
     const isRoutePair = (firstCol, firstRow, secondCol, secondRow) =>
       this.#inBounds(firstCol, firstRow) &&
       this.#inBounds(secondCol, secondRow) &&
@@ -4387,6 +6078,11 @@ export class MapGenerator {
     return null;
   }
 
+  /**
+   *
+   * @param {string[][]} grid
+   * @param {OverpassPlan|null} overpassPlan
+   */
   #validateFlatPathCrossings(grid, overpassPlan) {
     const crossing = this.#findUnexpectedFlatPathCrossing(grid, overpassPlan);
     if (crossing) {
@@ -4394,14 +6090,27 @@ export class MapGenerator {
     }
   }
 
+  /**
+   *
+   * @param {string[][]} grid
+   * @param {MapLayout} layout
+   */
   #validateRouteReachability(grid, layout) {
-    const entranceTargets = layout.castleEntranceRows.map((row) =>
+    const entranceTargets = layout.castleEntranceRows.map(/**
+     *
+     * @param {number} row
+     */
+    (row) =>
       this.#tileKey(layout.castleEntranceCol, row),
     );
 
     for (const entry of layout.entries) {
       const seen = new Set();
-      const queue = entry.gateRows.map((row) => ({ col: entry.gateCol, row }));
+      const queue = entry.gateRows.map(/**
+       *
+       * @param {number} row
+       */
+      (row) => ({ col: entry.gateCol, row }));
 
       while (queue.length) {
         const current = queue.shift();
@@ -4421,14 +6130,28 @@ export class MapGenerator {
         }
       }
 
-      if (!entranceTargets.some((key) => seen.has(key))) {
+      if (!entranceTargets.some(/**
+       *
+       * @param {string} key
+       */
+      (key) => seen.has(key))) {
         throw new EntryPathUnreachableError();
       }
     }
   }
 
+  /**
+   *
+   * @param {string[][]} grid
+   * @param {MapLayout} layout
+   */
   #validateCastleEntrance(grid, layout) {
     const entranceRows = [...layout.castleEntranceRows].sort(
+      /**
+       *
+       * @param {number} left
+       * @param {number} right
+       */
       (left, right) => left - right,
     );
     if (entranceRows.length !== 2 || entranceRows[1] !== entranceRows[0] + 1) {
@@ -4442,6 +6165,11 @@ export class MapGenerator {
     }
   }
 
+  /**
+   *
+   * @param {string[][]} grid
+   * @param {MapLayout} layout
+   */
   #validateCastleGroundClearance(grid, layout) {
     for (
       let row = layout.castleTop - this.#CASTLE_GROUND_CLEARANCE;
@@ -4460,6 +6188,12 @@ export class MapGenerator {
     }
   }
 
+  /**
+   *
+   * @param {string[][]} grid
+   * @param {number[][]} heightmap
+   * @param {TileMetadata[][]} tileMeta
+   */
   #validateHeightDiscipline(grid, heightmap, tileMeta) {
     for (let row = 0; row < this.#MAP_ROWS; row++) {
       for (let col = 0; col < this.#MAP_COLS; col++) {
@@ -4499,11 +6233,24 @@ export class MapGenerator {
     }
   }
 
+  /**
+   *
+   * @param {string[][]} grid
+   * @param {number[][]} heightmap
+   * @param {TileMetadata[][]} tileMeta
+   * @param {OverpassPlan|PathDipPlan} plan
+   */
   #validateOverpass(grid, heightmap, tileMeta, plan) {
     if (!plan) {
       return;
     }
 
+    /**
+     *
+     * @param {GridCell[]} cells
+     * @param {number} expectedHeight
+     * @param {string} expectedShape
+     */
     const validatePathCells = (cells, expectedHeight, expectedShape) => {
       for (const cell of cells) {
         if (
@@ -4615,10 +6362,26 @@ export class MapGenerator {
     }
   }
 
+  /**
+   *
+   * @param {string[][]} grid
+   * @param {number[][]} heightmap
+   * @param {TileMetadata[][]} tileMeta
+   * @param {PathDipPlan[]} plans
+   * @param {RiverData[]} riverData
+   */
   #validatePathDips(grid, heightmap, tileMeta, plans, riverData) {
     const riverCells = new Set(
-      riverData.flatMap((river) =>
-        river.cells.map((cell) => this.#tileKey(cell.col, cell.row)),
+      riverData.flatMap(/**
+       *
+       * @param {RiverRecord} river
+       */
+      (river) =>
+        river.cells.map(/**
+         *
+         * @param {MapCell} cell
+         */
+        (cell) => this.#tileKey(cell.col, cell.row)),
       ),
     );
     const planIds = new Set();
@@ -4733,6 +6496,12 @@ export class MapGenerator {
     }
   }
 
+  /**
+   *
+   * @param {string[][]} grid
+   * @param {number[][]} heightmap
+   * @param {TileMetadata[][]} tileMeta
+   */
   #validatePathRenderModes(grid, heightmap, tileMeta) {
     for (let row = 0; row < this.#MAP_ROWS; row++) {
       for (let col = 0; col < this.#MAP_COLS; col++) {
@@ -4759,12 +6528,30 @@ export class MapGenerator {
     }
   }
 
+  /**
+   *
+   * @param {number[][]} heightmap
+   * @param {TileMetadata[][]} tileMeta
+   * @param {RiverData[]} riverData
+   */
   #validateBridgeGroundHeights(heightmap, tileMeta, riverData) {
     const riverBridgeCells = new Set(
-      riverData.flatMap((river) =>
+      riverData.flatMap(/**
+       *
+       * @param {RiverRecord} river
+       */
+      (river) =>
         river.cells
-          .filter((cell) => cell.underBridge)
-          .map((cell) => this.#tileKey(cell.col, cell.row)),
+          .filter(/**
+           *
+           * @param {MapCell} cell
+           */
+          (cell) => cell.underBridge)
+          .map(/**
+           *
+           * @param {MapCell} cell
+           */
+          (cell) => this.#tileKey(cell.col, cell.row)),
       ),
     );
     for (let row = 0; row < this.#MAP_ROWS; row++) {
@@ -4789,6 +6576,10 @@ export class MapGenerator {
     }
   }
 
+  /**
+   *
+   * @param {TileMetadata[][]} tileMeta
+   */
   #validateBridgeTurns(tileMeta) {
     for (let row = 0; row < this.#MAP_ROWS; row++) {
       for (let col = 0; col < this.#MAP_COLS; col++) {
@@ -4826,6 +6617,13 @@ export class MapGenerator {
     }
   }
 
+  /**
+   *
+   * @param {string[][]} grid
+   * @param {number[][]} heightmap
+   * @param {TileMetadata[][]} tileMeta
+   * @param {RiverData[]} riverData
+   */
   #validateGrassNoise(grid, heightmap, tileMeta, riverData) {
     const intentionalRiverBanks = new Set();
     for (const river of riverData) {
@@ -4868,9 +6666,18 @@ export class MapGenerator {
     }
   }
 
+  /**
+   *
+   * @param {MapLayout} layout
+   */
   #validateLayoutVariety(layout) {
     if (
-      layout.islandEllipses.every((ellipse, index) => {
+      layout.islandEllipses.every(/**
+       *
+       * @param {{centerCol: number, centerRow: number, radiusCol: number, radiusRow: number}} ellipse
+       * @param {number} index
+       */
+      (ellipse, index) => {
         const base = [
           { centerCol: 23, centerRow: 16, radiusX: 18, radiusY: 12 },
           { centerCol: 15, centerRow: 15, radiusX: 12, radiusY: 10 },
@@ -4890,6 +6697,14 @@ export class MapGenerator {
     }
   }
 
+  /**
+   *
+   * @param {string[][]} grid
+   * @param {number[][]} heightmap
+   * @param {TileMetadata[][]} tileMeta
+   * @param {MapLayout} layout
+   * @param {VegetationPlacement[]} vegetationPlacements
+   */
   #validateVegetation(
     grid,
     heightmap,
@@ -4945,6 +6760,14 @@ export class MapGenerator {
     }
   }
 
+  /**
+   *
+   * @param {string[][]} grid
+   * @param {number[][]} heightmap
+   * @param {TileMetadata[][]} tileMeta
+   * @param {VegetationPlacement[]} vegetationPlacements
+   * @param {StonePlacement[]} stonePlacements
+   */
   #validateStones(
     grid,
     heightmap,
@@ -4953,7 +6776,13 @@ export class MapGenerator {
     stonePlacements,
   ) {
     const occupied = new Set(
-      vegetationPlacements.map(({ col, row }) => this.#tileKey(col, row)),
+      vegetationPlacements.map(/**
+       *
+       * @param {{col: number, row: number}} options
+       * @param {number} options.col
+       * @param {number} options.row
+       */
+      ({ col, row }) => this.#tileKey(col, row)),
     );
     const styles = new Set();
     for (const { col, row, parts } of stonePlacements) {
@@ -4965,6 +6794,18 @@ export class MapGenerator {
         parts.length < 1 ||
         parts.length > 3 ||
         parts.some(
+          /**
+           *
+           * @param {{variant: string, style: MapGenerationOptions, color: string, levels: Array, offsetX: number, offsetZ: number, diameter: number, height: number}} options
+           * @param {string} options.variant
+           * @param {MapGenerationOptions} options.style
+           * @param {string} options.color
+           * @param {Array} options.levels
+           * @param {number} options.offsetX
+           * @param {number} options.offsetZ
+           * @param {number} options.diameter
+           * @param {number} options.height
+           */
           ({
             variant,
             style,
@@ -5007,6 +6848,15 @@ export class MapGenerator {
     }
   }
 
+  /**
+   *
+   * @param {string[][]} grid
+   * @param {number[][]} heightmap
+   * @param {TileMetadata[][]} tileMeta
+   * @param {VegetationPlacement[]} vegetationPlacements
+   * @param {StonePlacement[]} stonePlacements
+   * @param {GroundCoverData} groundCoverData
+   */
   #validateGroundCover(
     grid,
     heightmap,
@@ -5016,7 +6866,13 @@ export class MapGenerator {
     groundCoverData,
   ) {
     const vegetationTiles = new Set(
-      [...vegetationPlacements, ...stonePlacements].map(({ col, row }) =>
+      [...vegetationPlacements, ...stonePlacements].map(/**
+       *
+       * @param {{col: number, row: number}} options
+       * @param {number} options.col
+       * @param {number} options.row
+       */
+      ({ col, row }) =>
         this.#tileKey(col, row),
       ),
     );
@@ -5047,6 +6903,10 @@ export class MapGenerator {
     }
   }
 
+  /**
+   *
+   * @param {string[][]} grid
+   */
   #validateNoSingleCellTerrainHoles(grid) {
     for (let row = 1; row < this.#MAP_ROWS - 1; row++) {
       for (let col = 1; col < this.#MAP_COLS - 1; col++) {
@@ -5058,7 +6918,11 @@ export class MapGenerator {
           grid[row + 1][col],
           grid[row][col - 1],
           grid[row][col + 1],
-        ].every((tile) => tile !== TileType.WATER);
+        ].every(/**
+         *
+         * @param {TileMetadata} tile
+         */
+        (tile) => tile !== TileType.WATER);
         if (enclosed) {
           throw new IsolatedTerrainHoleError({ col, row });
         }
@@ -5066,6 +6930,15 @@ export class MapGenerator {
     }
   }
 
+  /**
+   *
+   * @param {string[][]} grid
+   * @param {number[][]} heightmap
+   * @param {TileMetadata[][]} tileMeta
+   * @param {boolean} islandMask
+   * @param {MapLayout} layout
+   * @param {RiverData[]} riverData
+   */
   #validateRivers(
     grid,
     heightmap,
@@ -5081,6 +6954,10 @@ export class MapGenerator {
       });
     }
     const lavaRiverCount = riverData.filter(
+      /**
+       *
+       * @param {RiverRecord} river
+       */
       (river) => river.kind === RIVER_KIND.LAVA,
     ).length;
     if (
@@ -5096,8 +6973,16 @@ export class MapGenerator {
 
     const occupied = new Set();
     const allRiverCells = new Set(
-      riverData.flatMap((river) =>
-        river.cells.map((cell) => this.#tileKey(cell.col, cell.row)),
+      riverData.flatMap(/**
+       *
+       * @param {RiverRecord} river
+       */
+      (river) =>
+        river.cells.map(/**
+         *
+         * @param {MapCell} cell
+         */
+        (cell) => this.#tileKey(cell.col, cell.row)),
       ),
     );
     const directionOffsets = {
@@ -5138,7 +7023,11 @@ export class MapGenerator {
         source.elevation + this.#riverSurfaceInset(river),
       );
       const riverCellKeys = new Set(
-        river.cells.map((cell) => this.#tileKey(cell.col, cell.row)),
+        river.cells.map(/**
+         *
+         * @param {MapCell} cell
+         */
+        (cell) => this.#tileKey(cell.col, cell.row)),
       );
       for (let deltaRow = -1; deltaRow <= 1; deltaRow++) {
         for (let deltaCol = -1; deltaCol <= 1; deltaCol++) {
@@ -5343,6 +7232,10 @@ export class MapGenerator {
 
 }
 
+/**
+ *
+ * @param {MapGenerationOptions} options
+ */
 export function generateMap(options) {
   return MapGenerator.generate(options);
 }

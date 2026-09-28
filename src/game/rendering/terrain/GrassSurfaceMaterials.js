@@ -13,8 +13,16 @@ import { tilePatchValue } from "./TileVariantIndex.js";
 const TOP_TEXTURES = ["grass", "grass2", "grass3", "grass4", "grass5", "grass6"];
 const TILE_COLORS = [0x69a92f, 0x75b638, 0x568d29, 0x7ead35, 0x69a92f, 0x568d29];
 const TEXTURE_MIXES = [0.12, 0.13, 0.13, 0.12, 0.17, 0.14];
-const LINEAR_COLORS = TILE_COLORS.map((color) =>
-  [16, 8, 0].map((shift) => {
+const LINEAR_COLORS = TILE_COLORS.map(/**
+ *
+ * @param {string} color
+ */
+(color) =>
+  [16, 8, 0].map(/**
+   *
+   * @param {number} shift
+   */
+  (shift) => {
     const channel = ((color >> shift) & 0xff) / 255;
     return channel <= 0.04045
       ? channel / 12.92
@@ -25,12 +33,32 @@ const OPEN_VARIANT_THRESHOLDS = [0.53, 0.622, 0.697, 0.738, 0.825];
 const SHADED_VARIANT_THRESHOLDS = [0.465, 0.525, 0.639, 0.67, 0.73];
 const SIDE_COLORS = [0xffffff, 0xf9f5ee, 0xf2f7ed, 0xf8fbf5, 0xf5f1e9, 0xfbf8f2];
 
+/**
+ * @typedef {{startU?: number, startV?: number, scaleU?: number, scaleV?: number, flipU?: boolean, flipV?: boolean}} TextureTransform
+ */
+
 export class GrassSurfaceMaterials {
+  /**
+   *
+   * @type {import("src/game/GameContracts.js").GameMapData}
+   */
   #mapData;
+  /**
+   *
+   * @param {import("src/game/GameContracts.js").GameMapData} mapData
+   */
   constructor(mapData) {
+    /**
+     *
+     * @type {import("src/game/GameContracts.js").GameMapData}
+     */
     this.#mapData = mapData;
   }
 
+  /**
+   *
+   * @returns {Readonly<Record<string, string>>}
+   */
   static get textureUrls() {
     return {
       grass: grassTopUrl,
@@ -43,10 +71,21 @@ export class GrassSurfaceMaterials {
     };
   }
 
+  /**
+   *
+   * @returns {Array}
+   */
   static get tileColors() {
     return LINEAR_COLORS;
   }
 
+  /**
+   *
+   * @param {typeof pc} pc
+   * @param {string} name
+   * @param {pc.Texture} texture
+   * @param {Array} mipmaps
+   */
   static configureTexture(pc, name, texture, mipmaps) {
     const topTexture = TOP_TEXTURES.includes(name);
     if (!topTexture) {
@@ -63,7 +102,19 @@ export class GrassSurfaceMaterials {
     texture.addressV = texture.addressU;
   }
 
+  /**
+   *
+   * @param {pc.Material[]} materials
+   * @param {(name: string, definition: import("src/game/GameContracts.js").MaterialDefinition) => pc.Material} createMaterial
+   * @param {TextureTransform[]} sideTransforms
+   */
   static register(materials, createMaterial, sideTransforms) {
+    /**
+     *
+     * @param {string} name
+     * @param {pc.Texture} texture
+     * @param {number} index
+     */
     const createTop = (name, texture, index) => {
       const material = createMaterial(name, {
         color: 0xffffff,
@@ -77,11 +128,21 @@ export class GrassSurfaceMaterials {
       materials.set(name, material);
     };
     createTop("grass", TOP_TEXTURES[0], 0);
-    TOP_TEXTURES.forEach((texture, index) => {
+    TOP_TEXTURES.forEach(/**
+     *
+     * @param {pc.Texture} texture
+     * @param {number} index
+     */
+    (texture, index) => {
       createTop(`grass-${index}`, texture, index);
     });
 
-    sideTransforms.forEach((transform, index) => {
+    sideTransforms.forEach(/**
+     *
+     * @param {pc.Mat4} transform
+     * @param {number} index
+     */
+    (transform, index) => {
       const name = `grassSide-${index}`;
       materials.set(
         name,
@@ -96,10 +157,22 @@ export class GrassSurfaceMaterials {
 
   }
 
+  /**
+   *
+   * @param {number} col
+   * @param {number} row
+   * @param {number} level
+   */
   topForTile(col, row, level) {
     return `grass-${this.variantForTile(col, row, level)}`;
   }
 
+  /**
+   *
+   * @param {number} col
+   * @param {number} row
+   * @param {number} level
+   */
   variantForTile(col, row, level) {
     const thresholds = this.#isShaded(col, row, level)
       ? SHADED_VARIANT_THRESHOLDS
@@ -113,6 +186,11 @@ export class GrassSurfaceMaterials {
     return thresholds.length;
   }
 
+  /**
+   *
+   * @param {number} col
+   * @param {number} row
+   */
   #tileHeight(col, row) {
     const type = this.#mapData.grid[row][col];
     return type in FIXED_HEIGHTS
@@ -120,11 +198,22 @@ export class GrassSurfaceMaterials {
       : this.#mapData.heightmap[row][col];
   }
 
+  /**
+   *
+   * @param {number} col
+   * @param {number} row
+   * @param {number} level
+   */
   #isShaded(col, row, level) {
     const { grid, objects, castle, castles } = this.#mapData;
     const nearStructure = (
       castles?.length ? castles : castle ? [castle] : []
     ).some(
+      /**
+       *
+       * @param {{position: pc.Vec3}} options
+       * @param {pc.Vec3} options.position
+       */
       ({ position }) =>
         col >= position.col - 2 &&
         col < position.col + position.width + 2 &&
@@ -135,7 +224,14 @@ export class GrassSurfaceMaterials {
       return true;
     }
     if (
-      (objects ?? []).some(({ object, tile, kind }) => {
+      (objects ?? []).some(/**
+       *
+       * @param {{object: import("src/game/GameContracts.js").GameObjectContract, tile: import("src/game/GameContracts.js").TileMetadata, kind: string}} options
+       * @param {import("src/game/GameContracts.js").GameObjectContract} options.object
+       * @param {import("src/game/GameContracts.js").TileMetadata} options.tile
+       * @param {string} options.kind
+       */
+      ({ object, tile, kind }) => {
         if (object !== "Vegetation" || !tile) {
           return false;
         }

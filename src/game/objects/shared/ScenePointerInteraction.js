@@ -1,17 +1,78 @@
 import { INPUT_EVENT_TYPE } from "../../enum/InputEventType.js";
 import { POINTER_TYPE } from "../../enum/PointerType.js";
 
+/**
+ * @typedef {{start: import("playcanvas").Vec3, end: import("playcanvas").Vec3}} ScenePointerRay
+ * @typedef {{capturePointer?: boolean}} PointerHandlerResult
+ * @typedef {object} ScenePointerTarget
+ * @property {(options: {event: PointerEvent, hit: ScenePointerHit, ray: ScenePointerRay}) => boolean|PointerHandlerResult|void} [handlePointerDown]
+ * @property {(options: {event: PointerEvent, ray: ScenePointerRay, deltaTime: number}) => boolean|void} [handlePointerMove]
+ * @property {(options: {event: PointerEvent}) => boolean|void} [handlePointerUp]
+ * @property {() => void} [handlePointerCancel]
+ * @typedef {object} ScenePointerHit
+ * @property {number} distance
+ * @property {import("playcanvas").Vec3} point
+ * @property {import("playcanvas").Entity} [entity]
+ * @property {ScenePointerTarget} [pointerTarget]
+ * @typedef {ScenePointerTarget & {entity: import("playcanvas").Entity, getPointerHit?: (rayStart: import("playcanvas").Vec3, rayEnd: import("playcanvas").Vec3) => ScenePointerHit|null}} ScenePointerObject
+ */
+
 export class ScenePointerInteraction {
+  /**
+   *
+    * @type {HTMLCanvasElement}
+   */
   #canvas;
+  /**
+   *
+    * @type {Array<ScenePointerObject>}
+   */
   #sceneObjects;
+  /**
+   *
+    * @type {(event: PointerEvent) => ScenePointerRay|null}
+   */
   #pointerRay;
+  /**
+   *
+    * @type {((event: PointerEvent) => void)|null}
+   */
   #onMousePointerMove;
+  /**
+   *
+    * @type {(() => void)|null}
+   */
   #onMousePointerLeave;
+  /**
+   *
+    * @type {ScenePointerTarget|null}
+   */
   #activeTarget = null;
+  /**
+   *
+    * @type {number|null}
+   */
   #activePointerId = null;
+  /**
+   *
+    * @type {number}
+   */
   #activeLastTime = 0;
+  /**
+   *
+    * @type {boolean}
+   */
   #connected = false;
 
+  /**
+   *
+   * @param {{canvas: HTMLCanvasElement, sceneObjects: Array<ScenePointerObject>, pointerRay: (event: PointerEvent) => ScenePointerRay|null, onMousePointerMove: ((event: PointerEvent) => void)|null, onMousePointerLeave: (() => void)|null}} options
+   * @param {HTMLCanvasElement} options.canvas
+   * @param {Array<ScenePointerObject>} options.sceneObjects
+   * @param {(event: PointerEvent) => ScenePointerRay|null} options.pointerRay
+   * @param {(event: PointerEvent) => void} options.onMousePointerMove
+   * @param {() => void} options.onMousePointerLeave
+   */
   constructor({
     canvas,
     sceneObjects,
@@ -86,6 +147,11 @@ export class ScenePointerInteraction {
     this.#releaseActivePointer();
   }
 
+  /**
+   *
+   * @param {PointerEvent} event
+    * @type {(event: PointerEvent) => void}
+   */
   #handlePointerDown = (event) => {
     if (event.defaultPrevented || event.button !== 0 || this.#activeTarget) {
       return;
@@ -118,6 +184,11 @@ export class ScenePointerInteraction {
     this.#canvas.setPointerCapture(event.pointerId);
   };
 
+  /**
+   *
+   * @param {PointerEvent} event
+    * @type {(event: PointerEvent) => void}
+   */
   #handlePointerMove = (event) => {
     if (event.pointerType === POINTER_TYPE.MOUSE) {
       this.#onMousePointerMove?.(event);
@@ -142,6 +213,11 @@ export class ScenePointerInteraction {
     }
   };
 
+  /**
+   *
+   * @param {PointerEvent} event
+    * @type {(event: PointerEvent) => void}
+   */
   #handlePointerUp = (event) => {
     if (event.pointerId !== this.#activePointerId) {
       return;
@@ -153,6 +229,11 @@ export class ScenePointerInteraction {
     this.#releaseActivePointer();
   };
 
+  /**
+   *
+   * @param {PointerEvent} event
+    * @type {(event: PointerEvent) => void}
+   */
   #handlePointerCancel = (event) => {
     if (event.pointerId !== this.#activePointerId) {
       return;
@@ -161,12 +242,21 @@ export class ScenePointerInteraction {
     this.cancelActivePointer();
   };
 
+  /**
+   *
+   * @param {PointerEvent} event
+    * @type {(event: PointerEvent) => void}
+   */
   #handlePointerLeave = (event) => {
     if (event.pointerType === POINTER_TYPE.MOUSE) {
       this.#onMousePointerLeave?.();
     }
   };
 
+  /**
+   *
+   * @param {ScenePointerRay} ray
+   */
   #findClosestHit(ray) {
     let closest = null;
     for (const object of this.#sceneObjects) {
@@ -179,10 +269,21 @@ export class ScenePointerInteraction {
     return closest;
   }
 
+  /**
+   *
+   * @param {{object: ScenePointerObject, hit: ScenePointerHit}} options
+   * @param {ScenePointerObject} options.object
+   * @param {ScenePointerHit} options.hit
+   */
   #hitTarget({ object, hit }) {
     return hit.pointerTarget ?? object;
   }
 
+  /**
+   *
+   * @param {ScenePointerTarget} target
+   * @param {boolean|PointerHandlerResult|void} result
+   */
   #shouldCapturePointer(target, result) {
     if (typeof result === "object" && result !== null) {
       return Boolean(result.capturePointer);

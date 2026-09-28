@@ -10,11 +10,22 @@ export const useHeroStateStore = defineStore("hero-state", {
     mood: null,
   }),
   actions: {
+    /**
+     *
+     * @param {{lives: number, maxLives: number, gameOver: boolean}} options
+     * @param {number} options.lives
+     * @param {number} options.maxLives
+     * @param {boolean} options.gameOver
+     */
     sync({ lives, maxLives, gameOver }) {
       this.lives = lives;
       this.maxLives = maxLives;
       this.gameOver = gameOver;
     },
+    /**
+     *
+     * @param {string} mood
+     */
     setMood(mood) {
       this.mood = mood;
     },

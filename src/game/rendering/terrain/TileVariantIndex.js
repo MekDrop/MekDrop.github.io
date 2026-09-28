@@ -1,3 +1,11 @@
+/**
+ *
+ * @param {number} col
+ * @param {number} row
+ * @param {number} level
+ * @param {number} salt
+ * @param {number} count
+ */
 export function tileVariantIndex(col, row, level, salt, count) {
   const hash =
     Math.imul(col + 17, 73856093) ^
@@ -7,6 +15,12 @@ export function tileVariantIndex(col, row, level, salt, count) {
   return (hash >>> 0) % count;
 }
 
+/**
+ *
+ * @param {number} col
+ * @param {number} row
+ * @param {number} level
+ */
 export function tilePatchValue(col, row, level) {
   // Smooth values across neighboring terrain cubes while keeping the final
   // material choice aligned to each cube, with a little irregularity at edges.
@@ -18,6 +32,11 @@ export function tilePatchValue(col, row, level) {
   const fractionZ = z - cellZ;
   const blendX = fractionX * fractionX * (3 - 2 * fractionX);
   const blendZ = fractionZ * fractionZ * (3 - 2 * fractionZ);
+  /**
+   *
+   * @param {number} sampleX
+   * @param {number} sampleZ
+   */
   const sample = (sampleX, sampleZ) =>
     tileVariantIndex(sampleX, sampleZ, level, 97, 10000) / 10000;
   const north = sample(cellX, cellZ) * (1 - blendX) +

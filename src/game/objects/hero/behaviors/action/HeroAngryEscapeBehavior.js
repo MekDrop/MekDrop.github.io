@@ -1,20 +1,55 @@
 // A bounded search of connected safe ground. The hero's collision checks still
 // own every movement step, including obstacles that change after planning.
 export class HeroAngryEscapeBehavior {
+  /**
+   *
+    * @type {Array<{x: number, y: number, z: number}>}
+   */
   #route = [];
+  /**
+   *
+    * @type {{x: number, y: number, z: number}}
+   */
   #target = null;
+  /**
+   *
+    * @type {number}
+   */
   #remaining = 0;
+  /**
+   *
+    * @type {number}
+   */
   #stalled = 0;
+  /**
+   *
+    * @type {{x: number, y: number, z: number}|null}
+   */
   #previous = null;
 
+  /**
+   *
+    * @returns {boolean}
+   */
   get active() {
     return this.#route.length > 0;
   }
 
+  /**
+   *
+    * @returns {{x: number, y: number, z: number}}
+   */
   get target() {
     return this.#target ? { ...this.#target } : null;
   }
 
+  /**
+   *
+   * @param {{x: number, y: number, z: number}} position
+   * @param {boolean} canTraverse
+   * @param {number} random
+   * @param {number} distance
+   */
   begin(position, canTraverse, random = Math.random, distance = 3) {
     this.reset();
     const desiredDistance = Number.isFinite(distance)
@@ -60,19 +95,46 @@ export class HeroAngryEscapeBehavior {
     // Pick a narrow distance band, so repeated pats visibly extend the escape
     // instead of randomly choosing a shorter trip. In an enclosure, use the
     // farthest reachable band when the requested distance is unavailable.
-    const candidates = nodes.slice(1).map((node, i) => ({
+    const candidates = nodes.slice(1).map(/**
+     *
+     * @param {import("playcanvas").Entity} node
+     * @param {number} i
+     */
+    (node, i) => ({
       index: i + 1,
       difference: Math.abs(Math.hypot(node.col, node.row) * 0.75 - desiredDistance),
     }));
-    const closest = candidates.reduce((best, node) => Math.min(best, node.difference), Infinity);
-    const choices = candidates.filter((node) => node.difference <= closest + 0.15)
-      .map((node) => node.index);
+    const closest = candidates.reduce(/**
+     *
+     * @param {{x: number, z: number, score: number}|null} best
+     * @param {import("playcanvas").Entity} node
+     */
+    (best, node) => Math.min(best, node.difference), Infinity);
+    const choices = candidates.filter(/**
+     *
+     * @param {import("playcanvas").Entity} node
+     */
+    (node) => node.difference <= closest + 0.15)
+      .map(/**
+       *
+       * @param {import("playcanvas").Entity} node
+       */
+      (node) => node.index);
     if (!choices.length) {
       return;
     }
     // When the direct run is blocked, use the reachable destination closest
     // to the randomly chosen heading at the requested distance.
-    let index = choices.reduce((best, candidate) => {
+    let index = choices.reduce(/**
+     *
+     * @param {{x: number, z: number, score: number}|null} best
+     * @param {boolean} candidate
+     */
+    (best, candidate) => {
+      /**
+       *
+       * @param {number} i
+       */
       const alignment = (i) => {
         const node = nodes[i];
         return (node.col * direction.x + node.row * direction.z) / Math.hypot(node.col, node.row);
@@ -101,10 +163,19 @@ export class HeroAngryEscapeBehavior {
     this.#start(position);
   }
 
+  /**
+   *
+   * @param {{x: number, y: number, z: number}} position
+   */
   #start(position) {
     this.#previous = { ...position };
     let previous = position;
-    const length = this.#route.reduce((total, point) => {
+    const length = this.#route.reduce(/**
+     *
+     * @param {number} total
+     * @param {{x: number, y: number, z: number}} point
+     */
+    (total, point) => {
       const distance = Math.hypot(point.x - previous.x, point.z - previous.z);
       previous = point;
       return total + distance;
@@ -112,6 +183,11 @@ export class HeroAngryEscapeBehavior {
     this.#remaining = Math.max(5, length / 3 + 1);
   }
 
+  /**
+   *
+   * @param {number} deltaTime
+   * @param {{x: number, y: number, z: number}} position
+   */
   advance(deltaTime, position) {
     if (!this.active) {
       return;
@@ -130,6 +206,11 @@ export class HeroAngryEscapeBehavior {
     }
   }
 
+  /**
+   *
+   * @param {{x: number, y: number, z: number}} position
+   * @param {number} speed
+   */
   velocity(position, speed) {
     if (!this.active) {
       return { x: 0, z: 0 };

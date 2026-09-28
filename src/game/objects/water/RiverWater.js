@@ -9,15 +9,46 @@ import { RiverSourceProfile } from './RiverSourceProfile.js';
 import { RiverStoneField } from './RiverStoneField.js';
 
 export class RiverWater {
+  /**
+   *
+    * @returns {string}
+   */
   static get modelUrls() {
     return RiverStoneField.modelUrls;
 }
+  /**
+   *
+    * @type {typeof import("playcanvas")}
+   */
   #pc;
+  /**
+   *
+    * @type {Map}
+   */
   #materials = new Map();
+  /**
+   *
+    * @type {RiverRuntimeEffects}
+   */
   #effects;
+  /**
+   *
+    * @type {typeof import("playcanvas")}
+   */
   #meshBuilder;
+  /**
+   *
+    * @type {typeof import("playcanvas")}
+   */
   #stoneField;
 
+  /**
+   *
+   * @param {{pc: typeof import("playcanvas"), app: import("playcanvas").Application, mapData: import("src/game/objects/ObjectTypes.js").GameMapData}} options
+   * @param {typeof import("playcanvas")} options.pc
+   * @param {import("playcanvas").Application} options.app
+   * @param {import("src/game/objects/ObjectTypes.js").GameMapData} options.mapData
+   */
   constructor({ pc, app, mapData }) {
     this.#pc = pc;
     this.entity = new pc.Entity(`River ${this.riverKind.toLowerCase()}`);
@@ -45,15 +76,45 @@ export class RiverWater {
     });
   }
 
+  /**
+   *
+   * @param {string} modelLibrary
+   */
   build(modelLibrary) {
     this.#meshBuilder.build({
+      /**
+       *
+       * @param {number} cells
+       */
       createSourceProfile: (cells) => this.createSourceProfile(cells),
+      /**
+       *
+       * @param {number} cellIndex
+       * @param {number} cascadeLanding
+       */
       isSpringSource: (cellIndex, cascadeLanding) =>
         this.isSpringSource(cellIndex, cascadeLanding),
+      /**
+       *
+       * @param {Array<number>} surfaceHeights
+       * @param {number} cell
+       */
       surfaceCorners: (surfaceHeights, cell) =>
         this.surfaceCorners(surfaceHeights, cell),
+      /**
+       *
+       * @param {{group: import("src/game/objects/ObjectTypes.js").RiverGeometryGroup, waterfall: import("src/game/objects/ObjectTypes.js").WaterfallDefinition, cols: number, rows: number, routeDistance: number, join?: import("src/game/objects/ObjectTypes.js").WaterfallJoin|null}} options
+       */
       appendCascade: (options) => this.appendCascade(options),
+      /**
+       *
+       * @param {{group: import("src/game/objects/ObjectTypes.js").RiverGeometryGroup, waterfall: import("src/game/objects/ObjectTypes.js").WaterfallDefinition, cols: number, rows: number, routeDistance: number, join?: import("src/game/objects/ObjectTypes.js").WaterfallJoin|null}} options
+       */
       appendTerminal: (options) => this.appendTerminal(options),
+      /**
+       *
+       * @param {boolean} translucent
+       */
       createMaterial: (translucent) => this.createMaterial(translucent),
     });
     this.#stoneField.build(modelLibrary);
@@ -62,6 +123,10 @@ export class RiverWater {
     }
   }
 
+  /**
+   *
+    * @returns {string|number}
+   */
   get riverKind() {
     return RIVER_KIND.WATER;
   }
@@ -70,30 +135,66 @@ export class RiverWater {
     return this.#pc;
   }
 
+  /**
+   *
+    * @returns {import("playcanvas").Texture}
+   */
   get mistTexture() {
     return this.#effects.mistTexture;
   }
 
+  /**
+   *
+    * @returns {boolean}
+   */
   get hasRockContactEffects() {
     return true;
   }
 
+  /**
+   *
+    * @returns {boolean}
+   */
   get hasWaterEffects() {
     return true;
   }
 
+  /**
+   *
+   * @param {number} cells
+   */
   createSourceProfile(cells) {
     return new RiverSourceProfile(cells);
   }
 
+  /**
+   *
+   * @param {number} cellIndex
+   * @param {number} cascadeLanding
+   */
   isSpringSource(cellIndex, cascadeLanding) {
     return cellIndex < 2 && !cascadeLanding;
   }
 
+  /**
+   *
+   * @param {Array<number>} surfaceHeights
+   * @param {number} cell
+   */
   surfaceCorners(surfaceHeights, cell) {
     return surfaceHeights.cornersFor(cell);
   }
 
+  /**
+   *
+   * @param {{group: import("src/game/objects/ObjectTypes.js").RiverGeometryGroup, cascade: number, cols: number, rows: number, routeDistance: number, join: import("src/game/objects/ObjectTypes.js").WaterfallJoin|null}} options
+   * @param {import("src/game/objects/ObjectTypes.js").RiverGeometryGroup} options.group
+   * @param {number} options.cascade
+   * @param {number} options.cols
+   * @param {number} options.rows
+   * @param {number} options.routeDistance
+   * @param {import("src/game/objects/ObjectTypes.js").WaterfallJoin|null} options.join
+   */
   appendCascade({ group, cascade, cols, rows, routeDistance, join }) {
     const waterfall = {
       col: cascade.from.col,
@@ -115,6 +216,17 @@ export class RiverWater {
     this.#effects.addWaterfall(waterfall, cols, rows, false, routeDistance);
   }
 
+  /**
+   *
+   * @param {{riverGroup: number, terminalGroup: {x: number, y: number, z: number}, waterfall: import("src/game/objects/ObjectTypes.js").WaterfallDefinition, cols: number, rows: number, routeDistance: number, join: import("src/game/objects/ObjectTypes.js").WaterfallJoin|null}} options
+   * @param {number} options.riverGroup
+   * @param {{x: number, y: number, z: number}} options.terminalGroup
+   * @param {import("src/game/objects/ObjectTypes.js").WaterfallDefinition} options.waterfall
+   * @param {number} options.cols
+   * @param {number} options.rows
+   * @param {number} options.routeDistance
+   * @param {import("src/game/objects/ObjectTypes.js").WaterfallJoin|null} options.join
+   */
   appendTerminal({
     riverGroup,
     terminalGroup,
@@ -147,6 +259,12 @@ export class RiverWater {
     );
   }
 
+  /**
+   *
+   * @param {number} deltaTime
+   * @param {import("src/game/objects/ObjectTypes.js").HeroLike} hero
+   * @param {import("playcanvas").Entity} camera
+   */
   update(deltaTime, hero = null, camera = null) {
     this.#effects.update(deltaTime, hero, camera);
     for (const material of this.#materials.values()) {
@@ -166,6 +284,10 @@ export class RiverWater {
     this.#stoneField.destroy();
   }
 
+  /**
+   *
+   * @param {boolean} translucent
+   */
   createMaterial(translucent = false) {
     const key = translucent ? 'translucent' : 'opaque';
     return this.materialFor(key, () => {
@@ -203,6 +325,11 @@ export class RiverWater {
     });
   }
 
+  /**
+   *
+   * @param {string} key
+   * @param {number} create
+   */
   materialFor(key, create) {
     if (this.#materials.has(key)) {
       return this.#materials.get(key);

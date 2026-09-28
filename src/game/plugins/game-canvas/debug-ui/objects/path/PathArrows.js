@@ -23,30 +23,128 @@ const ARROW_COLOR_SCROLL_SPEED = 0.42;
 const ARROW_GLOW_PULSE_SPEED = 4.2;
 
 export class PathArrows {
+  /**
+   *
+   * @type {typeof pc}
+   */
   #pc;
+  /**
+   *
+   * @type {pc.Application}
+   */
   #app;
+  /**
+   *
+   * @type {Array}
+   */
   #colors = [];
+  /**
+   *
+   * @type {null}
+   */
   #entity = null;
+  /**
+   *
+   * @type {boolean}
+   */
   #visible = false;
+  /**
+   *
+   * @type {Map}
+   */
   #materials = new Map();
+  /**
+   *
+   * @type {Map}
+   */
   #animatedPalettes = new Map();
+  /**
+   *
+   * @type {Array}
+   */
   #generatedTextures = [];
+  /**
+   *
+   * @type {Array}
+   */
   #vertexBuffers = [];
+  /**
+   *
+   * @type {pc.Mesh}
+   */
   #arrowMesh;
+  /**
+   *
+   * @type {pc.Mesh}
+   */
   #auraMesh;
+  /**
+   *
+   * @type {pc.Texture}
+   */
   #auraTexture;
+  /**
+   *
+   * @type {Map}
+   */
   #sliceMeshes = new Map();
+  /**
+   *
+   * @type {number}
+   */
   #animationTime = 0;
+  /**
+   *
+   * @type {pc.EventHandle|null}
+   */
   #updateHandle = null;
+  /**
+   *
+   * @type {null}
+   */
   #mapData = null;
 
+  /**
+   *
+   * @param {{pc: typeof pc, app: pc.Application}} options
+   * @param {typeof pc} options.pc
+   * @param {pc.Application} options.app
+   */
   constructor({ pc, app }) {
+    /**
+     *
+     * @type {typeof pc}
+     */
     this.#pc = pc;
+    /**
+     *
+     * @type {pc.Application}
+     */
     this.#app = app;
+    /**
+     *
+     * @type {pc.Mesh}
+     */
     this.#arrowMesh = this.#createArrowSliceMesh(0, 1);
+    /**
+     *
+     * @type {pc.Mesh}
+     */
     this.#auraMesh = this.#createAuraMesh();
+    /**
+     *
+     * @type {pc.Texture}
+     */
     this.#auraTexture = this.#createAuraTexture();
-    this.#updateHandle = app.on("update", (deltaTime) => {
+    /**
+     *
+     * @type {pc.EventHandle}
+     */
+    this.#updateHandle = app.on("update", /**
+     *
+     * @param {number} deltaTime
+     */
+    (deltaTime) => {
       this.#updateAnimation(deltaTime);
     });
   }
@@ -64,9 +162,17 @@ export class PathArrows {
     if (this.#entity) this.#entity.enabled = visible;
   }
 
+  /**
+   *
+   * @param {import("src/game/GameContracts.js").GameMapData} mapData
+   */
   render(mapData) {
     this.clear();
-    this.#colors = mapData.entries.map((entry) => entry.color);
+    this.#colors = mapData.entries.map(/**
+     *
+     * @param {import("src/game/GameContracts.js").GameCanvasPluginEntry} entry
+     */
+    (entry) => entry.color);
     this.#createMaterials();
     this.#mapData = mapData;
     this.#entity = new this.#pc.Entity("Path arrows");
@@ -105,7 +211,12 @@ export class PathArrows {
   }
 
   #createMaterials() {
-    this.#colors.forEach((color, index) => {
+    this.#colors.forEach(/**
+     *
+     * @param {string} color
+     * @param {number} index
+     */
+    (color, index) => {
       this.#materials.set(
         `arrow-${index}`,
         this.#createCoreMaterial(`arrow-${index}`, color),
@@ -117,6 +228,11 @@ export class PathArrows {
     });
   }
 
+  /**
+   *
+   * @param {string} name
+   * @param {string} color
+   */
   #createCoreMaterial(name, color) {
     return this.#createMaterial(name, {
       color,
@@ -126,6 +242,11 @@ export class PathArrows {
     });
   }
 
+  /**
+   *
+   * @param {string} name
+   * @param {string} color
+   */
   #createAuraMaterial(name, color) {
     const material = this.#createMaterial(name, {
       color,
@@ -145,6 +266,11 @@ export class PathArrows {
     return material;
   }
 
+  /**
+   *
+   * @param {string} name
+   * @param {import("src/game/GameContracts.js").GameObjectDefinition} definition
+   */
   #createMaterial(name, definition) {
     const material = new this.#pc.StandardMaterial();
     material.name = name;
@@ -159,6 +285,10 @@ export class PathArrows {
     return material;
   }
 
+  /**
+   *
+   * @param {number[]} colorIndexes
+   */
   #getAnimatedMaterials(colorIndexes) {
     const key = colorIndexes.join("-");
     const existing = this.#animatedPalettes.get(key);
@@ -208,6 +338,11 @@ export class PathArrows {
     return palette;
   }
 
+  /**
+   *
+   * @param {HTMLCanvasElement} canvas
+   * @param {number[]} colorIndexes
+   */
   #paintScrollTexture(canvas, colorIndexes) {
     const context = canvas.getContext("2d");
     const gradient = context.createLinearGradient(0, 0, 0, canvas.height);
@@ -227,8 +362,17 @@ export class PathArrows {
     context.fillRect(0, 0, canvas.width, canvas.height);
   }
 
+  /**
+   *
+   * @param {number[]} colorIndexes
+   */
   #averageColor(colorIndexes) {
     const channels = colorIndexes.reduce(
+      /**
+       *
+       * @param {number} sum
+       * @param {number} index
+       */
       (sum, index) => {
         const color = this.#colors[index];
         sum.r += (color >> 16) & 0xff;
@@ -246,6 +390,10 @@ export class PathArrows {
     );
   }
 
+  /**
+   *
+   * @param {number} deltaTime
+   */
   #updateAnimation(deltaTime) {
     this.#animationTime += deltaTime;
     const pulse =
@@ -270,6 +418,10 @@ export class PathArrows {
     }
   }
 
+  /**
+   *
+   * @param {Array} batches
+   */
   #buildMatrices(batches) {
     const { arrowData, cols, rows } = this.#mapData;
     if (!arrowData) {
@@ -278,21 +430,43 @@ export class PathArrows {
 
     for (const group of this.#groupNearby(arrowData)) {
       const col =
-        group.reduce((sum, marker) => sum + marker.col, 0) / group.length;
+        group.reduce(/**
+         *
+         * @param {number} sum
+         * @param {{entity: pc.Entity, position?: pc.Vec3}} marker
+         */
+        (sum, marker) => sum + marker.col, 0) / group.length;
       const row =
-        group.reduce((sum, marker) => sum + marker.row, 0) / group.length;
+        group.reduce(/**
+         *
+         * @param {number} sum
+         * @param {{entity: pc.Entity, position?: pc.Vec3}} marker
+         */
+        (sum, marker) => sum + marker.row, 0) / group.length;
       const baseX = col - (cols - 1) / 2;
       const baseZ = row - (rows - 1) / 2;
       const top = Math.max(
-        ...group.map((marker) =>
+        ...group.map(/**
+         *
+         * @param {{entity: pc.Entity, position?: pc.Vec3}} marker
+         */
+        (marker) =>
           Number.isFinite(marker.elevation)
             ? marker.elevation
             : this.#height(marker.col, marker.row),
         ),
       );
-      const arrows = group.flatMap((marker) => marker.arrows);
+      const arrows = group.flatMap(/**
+       *
+       * @param {{entity: pc.Entity, position?: pc.Vec3}} marker
+       */
+      (marker) => marker.arrows);
       const directions = arrows
-        .map((arrow) => {
+        .map(/**
+         *
+         * @param {{entity: pc.Entity, direction?: string, index?: number}} arrow
+         */
+        (arrow) => {
           const length = Math.hypot(arrow.dc, arrow.dr);
           return length
             ? { dx: arrow.dc / length, dz: arrow.dr / length }
@@ -301,8 +475,18 @@ export class PathArrows {
         .filter(Boolean);
       if (!directions.length) continue;
 
-      let dx = directions.reduce((sum, direction) => sum + direction.dx, 0);
-      let dz = directions.reduce((sum, direction) => sum + direction.dz, 0);
+      let dx = directions.reduce(/**
+       *
+       * @param {number} sum
+       * @param {string} direction
+       */
+      (sum, direction) => sum + direction.dx, 0);
+      let dz = directions.reduce(/**
+       *
+       * @param {number} sum
+       * @param {string} direction
+       */
+      (sum, direction) => sum + direction.dz, 0);
       const combinedLength = Math.hypot(dx, dz);
       if (combinedLength < 0.001) {
         ({ dx, dz } = directions[0]);
@@ -311,11 +495,20 @@ export class PathArrows {
         dz /= combinedLength;
       }
       const colorIndexes = [
-        ...new Set(arrows.map((arrow) => arrow.pathIdx % this.#colors.length)),
+        ...new Set(arrows.map(/**
+         *
+         * @param {{entity: pc.Entity, direction?: string, index?: number}} arrow
+         */
+        (arrow) => arrow.pathIdx % this.#colors.length)),
       ];
       const yaw = (Math.atan2(dx, dz) * 180) / Math.PI;
       const surfacePitch =
         arrows.reduce(
+          /**
+           *
+           * @param {number} sum
+           * @param {{entity: pc.Entity, direction?: string, index?: number}} arrow
+           */
           (sum, arrow) => sum + (arrow.surfacePitch ?? 0),
           0,
         ) / arrows.length;
@@ -353,12 +546,27 @@ export class PathArrows {
     }
   }
 
+  /**
+   *
+   * @param {{direction: string, position: pc.Vec3}} arrowData
+   */
   #groupNearby(arrowData) {
-    const markers = [...arrowData.entries()].map(([key, arrows]) => {
+    const markers = [...arrowData.entries()].map(/**
+     *
+     * @param {{"0": Array, "1": Array}} options
+     * @param {Array} options."0"
+     * @param {Array} options."1"
+     */
+    ([key, arrows]) => {
       const [col, row, elevation] = key.split(",").map(Number);
       return { col, row, elevation, arrows };
     });
-    const remaining = new Set(markers.map((_, index) => index));
+    const remaining = new Set(markers.map(/**
+     *
+     * @param {undefined} _
+     * @param {number} index
+     */
+    (_, index) => index));
     const groups = [];
 
     while (remaining.size) {
@@ -393,6 +601,19 @@ export class PathArrows {
     return groups;
   }
 
+  /**
+   *
+   * @param {Array} batches
+   * @param {pc.Material} material
+   * @param {KeyboardEvent} meshKey
+   * @param {number} x
+   * @param {number} y
+   * @param {number} z
+   * @param {number} yaw
+   * @param {number} surfacePitch
+   * @param {number} scaleX
+   * @param {number} scaleZ
+   */
   #addMatrix(
     batches,
     material,
@@ -419,6 +640,11 @@ export class PathArrows {
     batches.set(batchKey, data);
   }
 
+  /**
+   *
+   * @param {number} col
+   * @param {number} row
+   */
   #height(col, row) {
     const { cols, rows, grid } = this.#mapData;
     const candidateCols = [...new Set([Math.floor(col), Math.ceil(col)])];
@@ -449,12 +675,21 @@ export class PathArrows {
     return this.#tileHeight(nearestCol, nearestRow);
   }
 
+  /**
+   *
+   * @param {number} col
+   * @param {number} row
+   */
   #tileHeight(col, row) {
     return this.#mapData.grid[row][col] === TileType.WATER
       ? 0
       : this.#mapData.heightmap[row][col];
   }
 
+  /**
+   *
+   * @param {Array} batches
+   */
   #createInstancedBatches(batches) {
     for (const [batchKey, matrices] of batches.entries()) {
       if (matrices.length === 0) continue;
@@ -487,6 +722,10 @@ export class PathArrows {
     }
   }
 
+  /**
+   *
+   * @param {KeyboardEvent} meshKey
+   */
   #getMesh(meshKey) {
     if (meshKey === "full") {
       return this.#arrowMesh;
@@ -554,6 +793,11 @@ export class PathArrows {
     return texture;
   }
 
+  /**
+   *
+   * @param {number} sliceIndex
+   * @param {number} sliceCount
+   */
   #createArrowSliceMesh(sliceIndex, sliceCount) {
     const sliceWidth = (ARROW_MAX_Z - ARROW_MIN_Z) / sliceCount;
     const sliceMin = ARROW_MIN_Z + sliceWidth * sliceIndex;
@@ -562,13 +806,33 @@ export class PathArrows {
     const normals = [];
     const uvs = [];
     const indices = [];
-    const minX = Math.min(...ARROW_POINTS.map((point) => point[0]));
-    const maxX = Math.max(...ARROW_POINTS.map((point) => point[0]));
-    const minZ = Math.min(...ARROW_POINTS.map((point) => point[1]));
-    const maxZ = Math.max(...ARROW_POINTS.map((point) => point[1]));
+    const minX = Math.min(...ARROW_POINTS.map(/**
+     *
+     * @param {import("src/game/GameContracts.js").GridPoint} point
+     */
+    (point) => point[0]));
+    const maxX = Math.max(...ARROW_POINTS.map(/**
+     *
+     * @param {import("src/game/GameContracts.js").GridPoint} point
+     */
+    (point) => point[0]));
+    const minZ = Math.min(...ARROW_POINTS.map(/**
+     *
+     * @param {import("src/game/GameContracts.js").GridPoint} point
+     */
+    (point) => point[1]));
+    const maxZ = Math.max(...ARROW_POINTS.map(/**
+     *
+     * @param {import("src/game/GameContracts.js").GridPoint} point
+     */
+    (point) => point[1]));
 
     for (const triangle of ARROW_TRIANGLES) {
-      let polygon = triangle.map((index) => ARROW_POINTS[index]);
+      let polygon = triangle.map(/**
+       *
+       * @param {number} index
+       */
+      (index) => ARROW_POINTS[index]);
       polygon = this.#clipPolygon(polygon, 1, sliceMin, true);
       polygon = this.#clipPolygon(polygon, 1, sliceMax, false);
       if (polygon.length < 3) continue;
@@ -596,6 +860,13 @@ export class PathArrows {
     return mesh;
   }
 
+  /**
+   *
+   * @param {Array<{x: number, z: number}>} polygon
+   * @param {string} axis
+   * @param {number} boundary
+   * @param {boolean} keepAbove
+   */
   #clipPolygon(polygon, axis, boundary, keepAbove) {
     const clipped = [];
     for (let index = 0; index < polygon.length; index += 1) {
@@ -623,6 +894,10 @@ export class PathArrows {
     return clipped;
   }
 
+  /**
+   *
+   * @param {pc.Mesh} mesh
+   */
   #destroyMesh(mesh) {
     if (!mesh) {
       return;

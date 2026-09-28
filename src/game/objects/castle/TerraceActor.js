@@ -13,18 +13,70 @@ const LOOPING_ANIMATIONS = new Set([
  * Low-level model/animation adapter; role objects own choreography and sequences.
  */
 export class TerraceActor {
+  /**
+   *
+    * @type {import("playcanvas").Entity}
+   */
   #entity;
+  /**
+   *
+    * @type {import("playcanvas").Entity}
+   */
   #body;
+  /**
+   *
+    * @type {import("playcanvas").Entity}
+   */
   #model;
+  /**
+   *
+    * @type {string}
+   */
   #kind;
+  /**
+   *
+    * @type {Map<string, import("playcanvas").Entity>}
+   */
   #joints = new Map();
+  /**
+   *
+    * @type {number}
+   */
   #height = 2.2;
+  /**
+   *
+    * @type {import("playcanvas").Entity|null}
+   */
   #rightHand;
+  /**
+   *
+    * @type {import("playcanvas").Entity|null}
+   */
   #leftHand;
+  /**
+   *
+    * @type {import("playcanvas").AnimController|null}
+   */
   #animationLayer;
+  /**
+   *
+    * @type {string}
+   */
   #animationName;
+  /**
+   *
+    * @type {Map<string, number>}
+   */
   #animationDurations = new Map();
 
+  /**
+   *
+   * @param {{pc: typeof import("playcanvas"), modelLibrary: string, modelUrl: string, kind: string}} options
+   * @param {typeof import("playcanvas")} options.pc
+   * @param {string} options.modelLibrary
+   * @param {string} options.modelUrl
+   * @param {string} options.kind
+   */
   constructor({ pc, modelLibrary, modelUrl, kind }) {
     this.#kind = kind;
     this.#entity = new pc.Entity(`Terrace ${kind}`);
@@ -64,7 +116,11 @@ export class TerraceActor {
       ["rightWrist", "Princess right wrist", "Servant right wrist"],
     ];
     for (const [key, ...names] of jointNames) {
-      const node = names.map((name) => this.#model.findByName(name)).find(Boolean);
+      const node = names.map(/**
+       *
+       * @param {string} name
+       */
+      (name) => this.#model.findByName(name)).find(Boolean);
       if (!node) {
         continue;
       }
@@ -95,6 +151,10 @@ export class TerraceActor {
     return this.#leftHand;
   }
 
+  /**
+   *
+    * @returns {import("playcanvas").Entity|undefined}
+   */
   get head() {
     return this.#joints.get("head");
   }
@@ -104,8 +164,12 @@ export class TerraceActor {
   }
 
   /**
- * Plays model-authored local animation while the scene owns world placement.
- */
+   * Plays model-authored local animation while the scene owns world placement.
+   *
+   * @param {string} action
+   * @param {number} [time=0]
+   * @param {number} [blend=1]
+   */
   pose(action, time = 0, blend = 1) {
     if (!this.#animationLayer) {
       return;
@@ -165,6 +229,11 @@ export class TerraceActor {
     this.#animationLayer = null;
   }
 
+  /**
+   *
+   * @param {string} modelLibrary
+   * @param {string} modelUrl
+   */
   #setupAnimations(modelLibrary, modelUrl) {
     const names = this.#animationNames;
     const tracks = modelLibrary.getAnimationTracks(modelUrl, names);
@@ -187,6 +256,10 @@ export class TerraceActor {
     this.#animationLayer = this.#model.anim.baseLayer;
   }
 
+  /**
+   *
+    * @returns {Array<string>}
+   */
   get #animationNames() {
     switch (this.#kind) {
       case "queen":
@@ -215,6 +288,11 @@ export class TerraceActor {
     }
   }
 
+  /**
+   *
+   * @param {string} name
+   * @param {number} time
+   */
   #sampleLoop(name, time) {
     const duration = this.#animationDurations.get(name);
     if (!duration) {
@@ -224,6 +302,11 @@ export class TerraceActor {
     this.#sampleTime(name, elapsed);
   }
 
+  /**
+   *
+   * @param {string} name
+   * @param {number} progress
+   */
   #sampleProgress(name, progress) {
     const duration = this.#animationDurations.get(name);
     if (!duration) {
@@ -233,6 +316,11 @@ export class TerraceActor {
     this.#sampleTime(name, duration * clamped);
   }
 
+  /**
+   *
+   * @param {string} name
+   * @param {number} time
+   */
   #sampleTime(name, time) {
     const duration = this.#animationDurations.get(name);
     if (!duration) {

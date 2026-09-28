@@ -19,21 +19,85 @@ const GRASS_SURFACE_TILES = new Set([TileType.GRASS]);
  * Builds the static walkable world consumed by PlayCanvas' physics backend.
  */
 export class TerrainPhysicsSurface {
+  /**
+   *
+   * @type {typeof pc}
+   */
   #pc;
+  /**
+   *
+   * @type {pc.Application}
+   */
   #app;
+  /**
+   *
+   * @type {import("src/game/GameContracts.js").GameMapData}
+   */
   #mapData;
+  /**
+   *
+   * @type {GroundCollisionWorld}
+   */
   #collisionWorld;
+  /**
+   *
+   * @type {pc.Entity}
+   */
   #entity;
+  /**
+   *
+   * @type {null}
+   */
   #mesh = null;
+  /**
+   *
+   * @type {null}
+   */
   #model = null;
+  /**
+   *
+   * @type {null}
+   */
   #material = null;
+  /**
+   *
+   * @type {Map}
+   */
   #sourceCovers = new Map();
 
+  /**
+   *
+   * @param {{pc: typeof pc, app: pc.Application, mapData: import("src/game/GameContracts.js").GameMapData, collisionWorld: GroundCollisionWorld}} options
+   * @param {typeof pc} options.pc
+   * @param {pc.Application} options.app
+   * @param {import("src/game/GameContracts.js").GameMapData} options.mapData
+   * @param {GroundCollisionWorld} options.collisionWorld
+   */
   constructor({ pc, app, mapData, collisionWorld }) {
+    /**
+     *
+     * @type {typeof pc}
+     */
     this.#pc = pc;
+    /**
+     *
+     * @type {pc.Application}
+     */
     this.#app = app;
+    /**
+     *
+     * @type {import("src/game/GameContracts.js").GameMapData}
+     */
     this.#mapData = mapData;
+    /**
+     *
+     * @type {GroundCollisionWorld}
+     */
     this.#collisionWorld = collisionWorld;
+    /**
+     *
+     * @type {pc.Entity}
+     */
     this.#entity = new pc.Entity("Terrain physics surface");
     this.#entity.tags.add("terrain-physics-surface");
     this.#indexSourceCovers();
@@ -144,6 +208,11 @@ export class TerrainPhysicsSurface {
     return { positions, indices };
   }
 
+  /**
+   *
+   * @param {number} col
+   * @param {number} row
+   */
   #tileSurface(col, row) {
     const type = this.#mapData.grid[row][col];
     const sourceCover = this.#sourceCovers.get(`${col},${row}`);
@@ -193,6 +262,14 @@ export class TerrainPhysicsSurface {
     return [height, height, height, height];
   }
 
+  /**
+   *
+   * @param {number[]} positions
+   * @param {number[]} indices
+   * @param {number} col
+   * @param {number} row
+   * @param {number[]} heights
+   */
   #addTileTop(positions, indices, col, row, heights) {
     const x = col - (this.#mapData.cols - 1) / 2;
     const z = row - (this.#mapData.rows - 1) / 2;
@@ -206,6 +283,15 @@ export class TerrainPhysicsSurface {
     );
   }
 
+  /**
+   *
+   * @param {number[]} positions
+   * @param {number[]} indices
+   * @param {Array<Array<number[]|null>>} tiles
+   * @param {number} col
+   * @param {number} row
+   * @param {number[]} heights
+   */
   #addExposedTileSides(positions, indices, tiles, col, row, heights) {
     const x = col - (this.#mapData.cols - 1) / 2;
     const z = row - (this.#mapData.rows - 1) / 2;
@@ -236,6 +322,12 @@ export class TerrainPhysicsSurface {
     }
   }
 
+  /**
+   *
+   * @param {number[]} positions
+   * @param {number[]} indices
+   * @param {Array<Array<number[]|null>>} tiles
+   */
   #addSupplementalSurfaces(positions, indices, tiles) {
     if (!this.#collisionWorld) {
       return;
@@ -282,6 +374,11 @@ export class TerrainPhysicsSurface {
     }
   }
 
+  /**
+   *
+   * @param {number[]} positions
+   * @param {number[]} indices
+   */
   #addOverpassDeck(positions, indices) {
     const overpass = this.#mapData.overpassData;
     if (!overpass?.crossing) {
@@ -302,7 +399,14 @@ export class TerrainPhysicsSurface {
       [maximumX, top, maximumZ],
       [minimumX, top, maximumZ],
     ];
-    const bottomCorners = topCorners.map(([x, , z]) => [x, bottom, z]);
+    const bottomCorners = topCorners.map(/**
+     *
+     * @param {{"0": Array, "1": Array, "2": Array}} options
+     * @param {Array} options."0"
+     * @param {Array} options."1"
+     * @param {Array} options."2"
+     */
+    ([x, , z]) => [x, bottom, z]);
     this.#addQuad(positions, indices, ...topCorners);
     this.#addQuad(positions, indices, ...bottomCorners.toReversed());
     for (let index = 0; index < topCorners.length; index += 1) {
@@ -317,6 +421,15 @@ export class TerrainPhysicsSurface {
       );
     }
   }
+  /**
+   *
+   * @param {number[]} positions
+   * @param {number[]} indices
+   * @param {number} a
+   * @param {number} b
+   * @param {number} c
+   * @param {number} d
+   */
   #addQuad(positions, indices, a, b, c, d) {
     const start = positions.length / 3;
     positions.push(...a, ...b, ...c, ...d);

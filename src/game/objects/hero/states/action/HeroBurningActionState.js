@@ -15,11 +15,19 @@ export class HeroBurningActionState extends HeroRuntimeActionState {
     });
   }
 
+  /**
+   *
+   * @param {import("src/game/objects/ObjectTypes.js").HeroActionContext} owner
+   */
   enter(owner) {
     super.enter(owner);
     this.payload = owner.feedback.burning.begin(this.payload);
   }
 
+  /**
+   *
+   * @param {import("src/game/objects/ObjectTypes.js").HeroActionContext} owner
+   */
   execute(owner) {
     const feedback = owner.feedback.burning;
     const action = this.payload;

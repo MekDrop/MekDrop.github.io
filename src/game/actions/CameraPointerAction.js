@@ -1,13 +1,53 @@
 export class CameraPointerAction {
+  /**
+   *
+   * @type {PlayCanvasRenderer}
+   */
   #renderer;
+  /**
+   *
+   * @type {HTMLElement}
+   */
   #element;
+  /**
+   *
+   * @type {import("src/game/GameContracts.js").GameActionContract}
+   */
   #primaryAction;
+  /**
+   *
+   * @type {number}
+   */
   #degreesPerPixel;
 
+  /**
+   *
+   * @param {PlayCanvasRenderer} renderer
+   * @param {HTMLElement} element
+   * @param {import("src/game/GameContracts.js").GameActionContract} primaryAction
+   * @param {{degreesPerPixel: number}} options
+   * @param {number} options.degreesPerPixel
+   */
   constructor(renderer, element, primaryAction, { degreesPerPixel } = {}) {
+    /**
+     *
+     * @type {PlayCanvasRenderer}
+     */
     this.#renderer = renderer;
+    /**
+     *
+     * @type {HTMLElement}
+     */
     this.#element = element;
+    /**
+     *
+     * @type {import("src/game/GameContracts.js").GameActionContract}
+     */
     this.#primaryAction = primaryAction;
+    /**
+     *
+     * @type {number}
+     */
     this.#degreesPerPixel = Number.isFinite(degreesPerPixel)
       ? degreesPerPixel
       : 0.12;
@@ -32,6 +72,10 @@ export class CameraPointerAction {
     return true;
   }
 
+  /**
+   *
+   * @param {Event} event
+   */
   press(event) {
     const command = this.#renderer.cameraPointerDown({
       button: event.button,
@@ -49,6 +93,10 @@ export class CameraPointerAction {
     return true;
   }
 
+  /**
+   *
+   * @param {Event} event
+   */
   move(event) {
     return this.#renderer.cameraPointerMove({
       captured: document.pointerLockElement === this.#element,

@@ -22,21 +22,84 @@ const DEFAULT_WIND = Object.freeze({
 });
 
 export class DebugAxesHud {
+  /**
+   *
+   * @type {typeof pc}
+   */
   #pc;
+  /**
+   *
+   * @type {pc.Application}
+   */
   #app;
+  /**
+   *
+   * @type {HTMLCanvasElement}
+   */
   #gameCanvas;
+  /**
+   *
+   * @type {pc.Entity}
+   */
   #entity;
+  /**
+   *
+   * @type {pc.Texture}
+   */
   #texture;
+  /**
+   *
+   * @type {HTMLCanvasElement}
+   */
   #canvas;
+  /**
+   *
+   * @type {import("src/game/GameContracts.js").GameCanvasPluginContext}
+   */
   #context;
+  /**
+   *
+   * @type {pc.EventHandle}
+   */
   #updateHandle;
+  /**
+   *
+   * @type {number}
+   */
   #elapsed = 0;
+  /**
+   *
+   * @type {string}
+   */
   #signature = "";
 
+  /**
+   *
+   * @param {{pc: typeof pc, app: pc.Application, gameCanvas: HTMLCanvasElement}} options
+   * @param {typeof pc} options.pc
+   * @param {pc.Application} options.app
+   * @param {HTMLCanvasElement} options.gameCanvas
+   */
   constructor({ pc, app, gameCanvas }) {
+    /**
+     *
+     * @type {typeof pc}
+     */
     this.#pc = pc;
+    /**
+     *
+     * @type {pc.Application}
+     */
     this.#app = app;
+    /**
+     *
+     * @type {HTMLCanvasElement}
+     */
     this.#gameCanvas = gameCanvas;
+    /**
+     *
+     * @type {pc.Entity}
+     */
     this.#entity = new pc.Entity("Debug axes HUD");
     this.#entity.addComponent("screen", {
       screenSpace: true,
@@ -46,11 +109,23 @@ export class DebugAxesHud {
       priority: 104,
     });
 
+    /**
+     *
+     * @type {HTMLCanvasElement}
+     */
     this.#canvas = document.createElement("canvas");
     this.#canvas.width = PANEL_WIDTH * TEXTURE_SCALE;
     this.#canvas.height = PANEL_HEIGHT * TEXTURE_SCALE;
+    /**
+     *
+     * @type {import("src/game/GameContracts.js").GameCanvasPluginContext}
+     */
     this.#context = this.#canvas.getContext("2d");
     this.#context.scale(TEXTURE_SCALE, TEXTURE_SCALE);
+    /**
+     *
+     * @type {pc.Texture}
+     */
     this.#texture = new pc.Texture(app.graphicsDevice, {
       name: "Debug axes HUD texture",
       width: this.#canvas.width,
@@ -79,10 +154,18 @@ export class DebugAxesHud {
     this.#entity.addChild(panel);
     this.#entity.screen.syncDrawOrder();
     this.#entity.enabled = false;
+    /**
+     *
+     * @type {pc.EventHandle}
+     */
     this.#updateHandle = app.on("update", this.#update);
     this.#draw(DEFAULT_DIRECTIONS, DEFAULT_WIND, 1);
   }
 
+  /**
+   *
+   * @param {pc.Entity} parent
+   */
   attach(parent = this.#app.root) {
     if (!this.#entity || this.#entity.parent === parent) {
       return;
@@ -90,6 +173,11 @@ export class DebugAxesHud {
     parent.addChild(this.#entity);
   }
 
+  /**
+   *
+   * @param {number} width
+   * @param {number} height
+   */
   resize(width, height) {
     if (!this.#entity?.screen) {
       return;
@@ -128,6 +216,11 @@ export class DebugAxesHud {
     this.#pc = null;
   }
 
+  /**
+   *
+   * @param {number} deltaTime
+   * @type {(deltaTime: number) => void}
+   */
   #update = (deltaTime) => {
     if (!this.#entity?.enabled) {
       return;
@@ -140,6 +233,10 @@ export class DebugAxesHud {
     this.#sync();
   };
 
+  /**
+   *
+   * @param {boolean} force
+   */
   #sync(force = false) {
     const directions = this.#gameCanvas?.debugDirections ?? DEFAULT_DIRECTIONS;
     const wind = this.#gameCanvas?.wind ?? DEFAULT_WIND;
@@ -157,7 +254,11 @@ export class DebugAxesHud {
       wind.speed,
       zoom,
     ];
-    const signature = values.map((value) => value.toFixed(3)).join(":");
+    const signature = values.map(/**
+     *
+     * @param {number} value
+     */
+    (value) => value.toFixed(3)).join(":");
     if (!force && signature === this.#signature) {
       return;
     }
@@ -165,6 +266,12 @@ export class DebugAxesHud {
     this.#draw(directions, wind, zoom);
   }
 
+  /**
+   *
+   * @param {string[]} directions
+   * @param {{speed: number, direction?: pc.Vec3}} wind
+   * @param {number} zoom
+   */
   #draw(directions, wind, zoom) {
     const context = this.#context;
     context.clearRect(0, 0, PANEL_WIDTH, PANEL_HEIGHT);
@@ -237,6 +344,11 @@ export class DebugAxesHud {
     this.#texture.setSource(this.#canvas);
   }
 
+  /**
+   *
+   * @param {string[]} directions
+   * @param {{speed: number, direction?: pc.Vec3}} wind
+   */
   #projectWind(directions, wind) {
     const x =
       wind.x * directions.x.x +
@@ -250,6 +362,13 @@ export class DebugAxesHud {
     return { x: x / length, y: y / length };
   }
 
+  /**
+   *
+   * @param {string} direction
+   * @param {number} length
+   * @param {string} label
+   * @param {string} color
+   */
   #drawAxis(direction, length, label, color) {
     const end = {
       x: AXIS_ORIGIN.x + direction.x * length,
@@ -275,6 +394,12 @@ export class DebugAxesHud {
     });
   }
 
+  /**
+   *
+   * @param {pc.Vec3|pc.Vec3} start
+   * @param {pc.Vec3|pc.Vec3} end
+   * @param {string} color
+   */
   #drawArrow(start, end, color) {
     const context = this.#context;
     context.beginPath();
@@ -303,6 +428,15 @@ export class DebugAxesHud {
     context.fill();
   }
 
+  /**
+   *
+   * @param {string} text
+   * @param {number} x
+   * @param {number} y
+   * @param {{color: string, font: string}} options
+   * @param {string} options.color
+   * @param {string} options.font
+   */
   #drawText(text, x, y, { color, font }) {
     const context = this.#context;
     context.textAlign = "center";

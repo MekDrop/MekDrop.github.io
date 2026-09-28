@@ -7,14 +7,49 @@ const OUTER_BEND_SAMPLES = 2;
 const INNER_DIRECTION_SAMPLES = 6;
 
 export class GrassObstacleMap {
+  /**
+   *
+    * @type {string}
+   */
   #texture;
+  /**
+   *
+    * @type {import("src/game/objects/ObjectTypes.js").GameMapData}
+   */
   #mapData;
+  /**
+   *
+    * @type {number}
+   */
   #width;
+  /**
+   *
+    * @type {number}
+   */
   #height;
+  /**
+   *
+    * @type {number}
+   */
   #weights;
+  /**
+   *
+    * @type {Uint8Array}
+   */
   #field;
+  /**
+   *
+    * @type {Map<string, {x: number, z: number, radius: number}>}
+   */
   #sourceCovers;
 
+  /**
+   *
+   * @param {{pc: typeof import("playcanvas"), device: import("playcanvas").GraphicsDevice, mapData: import("src/game/objects/ObjectTypes.js").GameMapData}} options
+   * @param {typeof import("playcanvas")} options.pc
+   * @param {import("playcanvas").GraphicsDevice} options.device
+   * @param {import("src/game/objects/ObjectTypes.js").GameMapData} options.mapData
+   */
   constructor({ pc, device, mapData }) {
     this.#mapData = mapData;
     this.#width = mapData.cols * SAMPLES_PER_TILE;
@@ -22,7 +57,12 @@ export class GrassObstacleMap {
     this.#weights = new Uint8Array(this.#width * this.#height);
     this.#field = new Uint8Array(this.#width * this.#height * 4);
     this.#sourceCovers = new Map(
-      (this.#mapData.riverData ?? []).flatMap(({ cells }) =>
+      (this.#mapData.riverData ?? []).flatMap(/**
+       *
+       * @param {{cells: number}} options
+       * @param {number} options.cells
+       */
+      ({ cells }) =>
         cells[0]
           ? [[cells[0].col + "," + cells[0].row, cells[0].terrainHeight]]
           : [],
@@ -45,6 +85,10 @@ export class GrassObstacleMap {
     return this.#texture;
   }
 
+  /**
+   *
+   * @param {import("playcanvas").Material} material
+   */
   apply(material) {
     material.setParameter("uGrassObstacleMap", this.#texture);
     material.setParameter("uGrassObstacleMapSize", [
@@ -53,6 +97,11 @@ export class GrassObstacleMap {
     ]);
   }
 
+  /**
+   *
+   * @param {number} weightAt
+   * @param {import("src/game/objects/ObjectTypes.js").GridPoint} tile
+   */
   refresh(weightAt = () => 0, tile = null) {
     const weightBounds = this.#weightBounds(tile);
     this.#updateWeights(weightAt, weightBounds);
@@ -73,6 +122,10 @@ export class GrassObstacleMap {
     this.#sourceCovers = null;
   }
 
+  /**
+   *
+   * @param {import("src/game/objects/ObjectTypes.js").GridPoint} tile
+   */
   #weightBounds(tile) {
     if (!Number.isFinite(tile?.col) || !Number.isFinite(tile?.row)) {
       return {
@@ -97,6 +150,11 @@ export class GrassObstacleMap {
     };
   }
 
+  /**
+   *
+   * @param {Array<{minX: number, maxX: number, minZ: number, maxZ: number}>} bounds
+   * @param {number} padding
+   */
   #expandBounds(bounds, padding) {
     return {
       minimumX: Math.max(0, bounds.minimumX - padding),
@@ -106,6 +164,11 @@ export class GrassObstacleMap {
     };
   }
 
+  /**
+   *
+   * @param {number} weightAt
+   * @param {Array<{minX: number, maxX: number, minZ: number, maxZ: number}>} bounds
+   */
   #updateWeights(weightAt, bounds) {
     for (
       let pixelZ = bounds.minimumZ;
@@ -150,6 +213,10 @@ export class GrassObstacleMap {
     }
   }
 
+  /**
+   *
+   * @param {Array<{minX: number, maxX: number, minZ: number, maxZ: number}>} bounds
+   */
   #updateField(bounds) {
     for (let z = bounds.minimumZ; z < bounds.maximumZ; z += 1) {
       for (let x = bounds.minimumX; x < bounds.maximumX; x += 1) {
@@ -199,6 +266,14 @@ export class GrassObstacleMap {
     }
   }
 
+  /**
+   *
+   * @param {number} weights
+   * @param {number} x
+   * @param {number} z
+   * @param {boolean} occupied
+   * @param {number} radius
+   */
   #nearestOpposite(weights, x, z, occupied, radius) {
     let nearest = null;
     for (let dz = -radius; dz <= radius; dz += 1) {

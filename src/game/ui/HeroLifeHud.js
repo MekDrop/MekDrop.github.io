@@ -11,30 +11,110 @@ const DEFAULT_COLORS = Object.freeze({
 });
 
 export class HeroLifeHud extends GamePanelHud {
+  /**
+   * @type {import("playcanvas").Entity|null}
+   */
   #panelRoot = null;
+  /**
+   * @type {import("playcanvas").Entity|null}
+   */
   #heartEntity = null;
+  /**
+   * @type {import("playcanvas").Entity|null}
+   */
   #heartLeftFragmentEntity = null;
+  /**
+   * @type {import("playcanvas").Entity|null}
+   */
   #heartRightFragmentEntity = null;
+  /**
+   * @type {import("playcanvas").Entity|null}
+   */
   #shieldEntity = null;
+  /**
+   * @type {import("playcanvas").Entity|null}
+   */
   #heroNumberEntity = null;
+  /**
+   * @type {import("playcanvas").Entity|null}
+   */
   #castleNumberEntity = null;
+  /**
+   * @type {import("playcanvas").Texture|null}
+   */
   #heartTexture;
+  /**
+   * @type {import("playcanvas").Texture|null}
+   */
   #heartLeftFragmentTexture;
+  /**
+   * @type {import("playcanvas").Texture|null}
+   */
   #heartRightFragmentTexture;
+  /**
+   * @type {import("playcanvas").Texture|null}
+   */
   #shieldTexture;
+  /**
+   * @type {{canvas: HTMLCanvasElement, context: CanvasRenderingContext2D, texture: import("playcanvas").Texture}|null}
+   */
   #heroNumberTexture;
+  /**
+   * @type {{canvas: HTMLCanvasElement, context: CanvasRenderingContext2D, texture: import("playcanvas").Texture}|null}
+   */
   #castleNumberTexture;
+  /**
+   * @type {import("playcanvas").Texture|null}
+   */
   #panelTexture = null;
+  /**
+   * @type {number}
+   */
   #lives = 3;
+  /**
+   * @type {number}
+   */
   #maxLives = 3;
+  /**
+   * @type {number}
+   */
   #castleLives = 3;
+  /**
+   * @type {number}
+   */
   #maxCastleLives = 3;
+  /**
+   * @type {boolean}
+   */
   #hasDisplayedLives = false;
+  /**
+   * @type {number|null}
+   */
   #deathAnimationElapsed = null;
+  /**
+   * @type {number}
+   */
   #heartX = 0;
+  /**
+   * @type {number}
+   */
   #heartY = 0;
+  /**
+   * @type {Record<string, number>|null}
+   */
   #colors;
 
+  /**
+   *
+   * @param {{pc: typeof import("playcanvas"), app: import("playcanvas").Application, lives?: number, maxLives?: number, castleLives?: number, maxCastleLives?: number, colors?: Record<string, number>}} options
+   * @param {typeof import("playcanvas")} options.pc
+   * @param {import("playcanvas").Application} options.app
+   * @param {number} options.lives
+   * @param {number} options.maxLives
+   * @param {number} options.castleLives
+   * @param {number} options.maxCastleLives
+   * @param {Record<string, number>} options.colors
+   */
   constructor({
     pc,
     app,
@@ -74,6 +154,11 @@ export class HeroLifeHud extends GamePanelHud {
     return this.#maxLives;
   }
 
+  /**
+   *
+   * @param {number} current
+   * @param {number} maximum
+   */
   setLives(current, maximum = this.#maxLives) {
     const nextMaximum = this.#normalizeMaximum(maximum);
     const nextLives = this.#normalizeLives(current, nextMaximum);
@@ -100,6 +185,10 @@ export class HeroLifeHud extends GamePanelHud {
     }
   }
 
+  /**
+   *
+   * @param {number} deltaTime
+   */
   update(deltaTime) {
     if (this.#deathAnimationElapsed === null) {
       return;
@@ -145,6 +234,11 @@ export class HeroLifeHud extends GamePanelHud {
     );
   }
 
+  /**
+   *
+   * @param {number} current
+   * @param {number} maximum
+   */
   setCastleLives(current, maximum = this.#maxCastleLives) {
     const nextMaximum = this.#normalizeMaximum(maximum);
     const nextLives = this.#normalizeLives(current, nextMaximum);
@@ -227,6 +321,10 @@ export class HeroLifeHud extends GamePanelHud {
       texture: this.#panelTexture,
     });
 
+    /**
+     *
+     * @param {number} height
+     */
     const centeredY = (height) =>
       panelPaddingY + (contentHeight - height) / 2;
     this.#heartEntity = this.createImage({
@@ -293,6 +391,13 @@ export class HeroLifeHud extends GamePanelHud {
     this.syncDrawOrder();
   }
 
+  /**
+   *
+   * @param {import("playcanvas").Entity} icon
+   * @param {import("playcanvas").Entity} number
+   * @param {{canvas: HTMLCanvasElement, context: CanvasRenderingContext2D, texture: import("playcanvas").Texture}} numberTexture
+   * @param {number} value
+   */
   #syncIndicator(icon, number, numberTexture, value) {
     if (!icon || !number || !numberTexture) {
       return;
@@ -310,17 +415,29 @@ export class HeroLifeHud extends GamePanelHud {
       "Hero heart icon",
       TEXTURE_SIZE,
       TEXTURE_SIZE,
+      /**
+       *
+       * @param {CanvasRenderingContext2D} context
+       */
       (context) => {
         this.#drawHeart(context);
       },
     );
   }
 
+  /**
+   *
+   * @param {number} side
+   */
   #createHeartFragmentTexture(side) {
     return this.createDrawnTexture(
       `Hero heart ${side} fragment`,
       TEXTURE_SIZE,
       TEXTURE_SIZE,
+      /**
+       *
+       * @param {CanvasRenderingContext2D} context
+       */
       (context) => {
         context.save();
         this.#heartFragmentPath(context, side);
@@ -331,6 +448,10 @@ export class HeroLifeHud extends GamePanelHud {
     );
   }
 
+  /**
+   *
+   * @param {CanvasRenderingContext2D} context
+   */
   #drawHeart(context) {
     const gradient = context.createLinearGradient(0, 10, 0, 58);
     gradient.addColorStop(0, "#ff5866");
@@ -353,6 +474,11 @@ export class HeroLifeHud extends GamePanelHud {
     context.stroke();
   }
 
+  /**
+   *
+   * @param {CanvasRenderingContext2D} context
+   * @param {number} side
+   */
   #heartFragmentPath(context, side) {
     const crack = [
       [33, -2],
@@ -383,6 +509,11 @@ export class HeroLifeHud extends GamePanelHud {
     context.closePath();
   }
 
+  /**
+   *
+   * @param {string} name
+   * @param {import("playcanvas").Texture} texture
+   */
   #createHeartFragmentEntity(name, texture) {
     const iconSize = this.counterIconSize;
     const entity = this.createImage({
@@ -444,6 +575,14 @@ export class HeroLifeHud extends GamePanelHud {
     );
   }
 
+  /**
+   *
+   * @param {import("playcanvas").Entity} entity
+   * @param {number} offsetX
+   * @param {number} offsetY
+   * @param {number} rotation
+   * @param {number} opacity
+   */
   #positionHeartFragment(entity, offsetX, offsetY, rotation, opacity) {
     if (!entity) {
       return;
@@ -474,6 +613,10 @@ export class HeroLifeHud extends GamePanelHud {
     }
   }
 
+  /**
+   *
+   * @param {CanvasRenderingContext2D} context
+   */
   #heartPath(context) {
     context.beginPath();
     context.moveTo(32, 57);
@@ -489,6 +632,10 @@ export class HeroLifeHud extends GamePanelHud {
       "Castle shield icon",
       TEXTURE_SIZE,
       TEXTURE_SIZE,
+      /**
+       *
+       * @param {CanvasRenderingContext2D} context
+       */
       (context) => {
         const gradient = context.createLinearGradient(0, 7, 0, 58);
         gradient.addColorStop(0, "#35c7ff");
@@ -518,6 +665,10 @@ export class HeroLifeHud extends GamePanelHud {
     );
   }
 
+  /**
+   *
+   * @param {CanvasRenderingContext2D} context
+   */
   #shieldPath(context) {
     context.beginPath();
     context.moveTo(32, 7);
@@ -529,14 +680,27 @@ export class HeroLifeHud extends GamePanelHud {
     context.closePath();
   }
 
+  /**
+   *
+   * @param {number} maximum
+   */
   #numberWidth(maximum) {
     return this.counterNumberWidth * Math.max(1, String(maximum).length);
   }
 
+  /**
+   *
+   * @param {number} value
+   */
   #normalizeMaximum(value) {
     return Math.max(0, Math.floor(Number(value) || 0));
   }
 
+  /**
+   *
+   * @param {number} value
+   * @param {number} maximum
+   */
   #normalizeLives(value, maximum) {
     return Math.min(maximum, Math.max(0, Math.floor(Number(value) || 0)));
   }

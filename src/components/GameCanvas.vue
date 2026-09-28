@@ -127,6 +127,30 @@ import { useGameViewStore } from "src/stores/game-view-store.js";
 import { useHeroConfigurationStore } from "src/stores/hero-configuration-store.js";
 import { useHeroStateStore } from "src/stores/hero-state-store.js";
 
+/**
+ * @typedef {Error|string|{message?: string}|null|undefined} RuntimeErrorInput
+ */
+
+/**
+ * @typedef {{invoke: (event?: Event) => boolean|void}} ControlAction
+ */
+
+/**
+ * @typedef {string|{binding: string, action: ControlAction}} PluginControlEntry
+ */
+
+/**
+ * @typedef {{object: string}} GeneratedMapObject
+ */
+
+/**
+ * @typedef {{mapName: string, objects?: GeneratedMapObject[]}} GeneratedMap
+ */
+
+/**
+ * @typedef {{labelKey?: string, label?: string, showHealth?: boolean, health?: number, maxHealth?: number}} InteractionTarget
+ */
+
 const container = ref(null);
 const canvas = ref(null);
 const gameReady = ref(false);
@@ -195,6 +219,10 @@ const gameCanvasPluginRegistry = new GameCanvasPluginRegistry({
   mapRouteLocation,
   loadMapRoute,
   mapRouteLoadPromise: () => mapRouteLoadPromise,
+  /**
+   *
+   * @param {Promise<void>} promise
+   */
   setMapRouteLoadPromise: (promise) => {
     mapRouteLoadPromise = promise;
   },
@@ -206,22 +234,50 @@ const { stop: stopResizeObserver } = useResizeObserver(container, () => {
   gameCanvasPluginRegistry.resize();
 });
 
+/**
+ *
+ * @param {RuntimeErrorInput} error
+ */
 function reportRuntimeError(error) {
   reportGlobalException(error, { context: "Game" });
 }
 
+/**
+ *
+ * @param {string} listName
+ * @param {PluginControlEntry} entry
+ */
 function addPluginControlEntry(listName, entry) {
   if (!pluginControlKeyboard[listName].includes(entry)) {
     pluginControlKeyboard[listName].push(entry);
   }
 }
 
+/**
+ *
+ * @param {string} listName
+ * @param {PluginControlEntry} entry
+ */
 function removePluginControlEntry(listName, entry) {
   pluginControlKeyboard[listName] = pluginControlKeyboard[listName].filter(
+    /**
+     *
+     * @param {PluginControlEntry} registeredEntry
+     */
     (registeredEntry) => registeredEntry !== entry,
   );
 }
 
+/**
+ *
+ * @param {string} name
+ * @param {ControlAction} action
+ * @param {{binding?: string, keydown?: boolean, keyup?: boolean, consumeKeydown?: boolean}} options
+ * @param {string} options.binding
+ * @param {boolean} options.keydown
+ * @param {boolean} options.keyup
+ * @param {boolean} options.consumeKeydown
+ */
 function registerControlAction(
   name,
   action,
@@ -254,6 +310,10 @@ function requestedMapName() {
     : null;
 }
 
+/**
+ *
+ * @param {string} mapName
+ */
 async function createMap(mapName = null) {
   if (!import.meta.env.DEV || !mapName?.startsWith("test_")) {
     mapFileLoader = null;
@@ -264,6 +324,10 @@ async function createMap(mapName = null) {
   return MapFileLoader.load(mapName);
 }
 
+/**
+ *
+ * @param {string} mapName
+ */
 function mapRouteLocation(mapName) {
   const params = { mapName };
   if (route.params.lang) {
@@ -277,10 +341,19 @@ function mapRouteLocation(mapName) {
   };
 }
 
+/**
+ *
+ * @param {GeneratedMap} generatedMap
+ */
 async function updateCurrentMap(generatedMap) {
   mapData = generatedMap;
   currentMapName.value = generatedMap.mapName;
   interactionPromptsVisible.value = !generatedMap.objects?.some(
+    /**
+     *
+     * @param {GeneratedMapObject} options
+     * @param {string} options.object
+     */
     ({ object }) => object === "Hero",
   );
   syncInteractionHud();
@@ -290,6 +363,10 @@ async function updateCurrentMap(generatedMap) {
   await gameCanvasPluginRegistry.refresh();
 }
 
+/**
+ *
+ * @param {GeneratedMap} mapDataToRender
+ */
 function renderMap(mapDataToRender) {
   gameCanvasPluginRegistry.beforeRender();
   renderer.render(mapDataToRender);
@@ -313,7 +390,11 @@ function disconnectControls() {
 }
 
 function waitForAnimationFrame() {
-  return new Promise((resolve) => {
+  return new Promise(/**
+   *
+   * @param {(value?: void|PromiseLike<void>) => void} resolve
+   */
+  (resolve) => {
     if (typeof requestAnimationFrame === "function") {
       requestAnimationFrame(() => setTimeout(resolve, 0));
       return;
@@ -322,6 +403,11 @@ function waitForAnimationFrame() {
   });
 }
 
+/**
+ *
+ * @param {string} phase
+ * @param {number} operationId
+ */
 async function showLoadingPhase(phase, operationId = null) {
   const nextOperationId = operationId ?? ++loadingOperationId;
   if (operationId !== null && operationId !== loadingOperationId) {
@@ -337,6 +423,10 @@ async function showLoadingPhase(phase, operationId = null) {
   return nextOperationId;
 }
 
+/**
+ *
+ * @param {number} operationId
+ */
 function finishLoading(operationId) {
   if (operationId !== loadingOperationId) {
     return;
@@ -347,6 +437,10 @@ function finishLoading(operationId) {
   }
 }
 
+/**
+ *
+ * @param {string} mapName
+ */
 async function loadMapRoute(mapName) {
   const navigationId = ++mapNavigationId;
   const operationId = await showLoadingPhase("generating");
@@ -389,13 +483,21 @@ async function init() {
     const zoomSettings = import.meta.env.DEV
       ? { ...bindings.zoom, max: DEVELOPMENT_MAX_ZOOM }
       : bindings.zoom;
-    interactionSuggestion = new InteractionSuggestion((target) => {
+    interactionSuggestion = new InteractionSuggestion(/**
+     *
+     * @param {InteractionTarget|null} target
+     */
+    (target) => {
       interactionTarget.value = target;
       syncInteractionHud();
     });
 
   const activeRenderer = new PlayCanvasRenderer(canvas.value, container.value, {
     onRuntimeError: reportRuntimeError,
+    /**
+     *
+     * @param {InteractionTarget|null} target
+     */
     onInteractionChange: (target) => {
       interactionSuggestion?.update(target);
     },
@@ -429,18 +531,35 @@ async function init() {
   }
   const regenerateMapAction = new RegenerateMapAction(renderer, generateMap, {
     beforeGeneration: () => showLoadingPhase("generating"),
+    /**
+     *
+     * @param {GeneratedMap} _generatedMap
+     * @param {number} operationId
+     */
     beforeRender: async (_generatedMap, operationId) => {
       await showLoadingPhase("rendering", operationId);
       gameCanvasPluginRegistry.beforeRender();
     },
+    /**
+     *
+     * @param {GeneratedMap} generatedMap
+     */
     onGenerated: async (generatedMap) => {
       await updateCurrentMap(generatedMap);
       await router.push(mapRouteLocation(generatedMap.mapName));
     },
     onGenerationError: reportRuntimeError,
+    /**
+     *
+     * @param {GeneratedMap} generatedMap
+     */
     afterRender: (generatedMap) =>
       gameCanvasPluginRegistry.afterRender(generatedMap),
     onComplete: finishLoading,
+    /**
+     *
+     * @param {Promise<void>} promise
+     */
     onLifecycle: (promise) => {
       mapRouteLoadPromise = promise;
     },
@@ -524,6 +643,10 @@ async function init() {
             renderer,
             heroMovementAction,
             cameraPointerAction,
+            /**
+             *
+             * @param {boolean} enabled
+             */
             (enabled) => {
               firstPersonCameraEnabled.value = enabled;
             },
@@ -537,6 +660,10 @@ async function init() {
 
   stopMapRouteWatch = watch(
     () => route.params.mapName,
+    /**
+     *
+     * @param {string} mapName
+     */
     (mapName) => {
       if (mapName === mapData?.mapName) {
         return;

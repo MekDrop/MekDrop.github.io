@@ -3,15 +3,56 @@ import { CameraDrag } from "src/game/controls/CameraDrag.js";
 import { INPUT_EVENT_TYPE } from "src/game/enum/InputEventType.js";
 
 export class GameControls {
+  /**
+   *
+   * @type {HTMLElement}
+   */
   #element;
+  /**
+   *
+   * @type {Array}
+   */
   #bindings = DEFAULT_CONTROLS;
+  /**
+   *
+   * @type {Array}
+   */
   #actions;
+  /**
+   *
+   * @type {CameraDrag}
+   */
   #cameraDrag;
+  /**
+   *
+   * @type {null}
+   */
   #inventoryPointerId = null;
+  /**
+   *
+   * @type {Array}
+   */
   #keydownConsumeBindings;
+  /**
+   *
+   * @type {Map}
+   */
   #keydownActions;
+  /**
+   *
+   * @type {Map}
+   */
   #keyupActions;
 
+  /**
+   *
+   * @param {HTMLElement} element
+   * @param {Array} actions
+   * @param {{keydownActions: Array, keyupActions: Array, keydownConsumeBindings: Array}} options
+   * @param {Array} options.keydownActions
+   * @param {Array} options.keyupActions
+   * @param {Array} options.keydownConsumeBindings
+   */
   constructor(
     element,
     actions,
@@ -21,9 +62,25 @@ export class GameControls {
       keydownConsumeBindings = [],
     } = {},
   ) {
+    /**
+     *
+     * @type {HTMLElement}
+     */
     this.#element = element;
+    /**
+     *
+     * @type {Array}
+     */
     this.#actions = actions;
+    /**
+     *
+     * @type {CameraDrag}
+     */
     this.#cameraDrag = new CameraDrag(element, actions, this.#config());
+    /**
+     *
+     * @type {Array}
+     */
     this.#keydownConsumeBindings = keydownConsumeBindings;
     const keydownActionNames = [
       "regenerateMap",
@@ -44,12 +101,26 @@ export class GameControls {
     if (this.#actions.toggleFirstPersonCamera) {
       keydownActionNames.push("toggleFirstPersonCamera");
     }
+    /**
+     *
+     * @type {Map}
+     */
     this.#keydownActions = new Map(
       [
         ...this.#entriesFor(keydownActionNames),
-        ...keydownActions.map(({ binding, action }) => [binding, action]),
+        ...keydownActions.map(/**
+         *
+         * @param {{action: import("src/game/GameContracts.js").GameActionContract}} options
+         * @param {string|{value: string, modifiers?: string[]}} options.binding
+         * @param {import("src/game/GameContracts.js").GameActionContract} options.action
+         */
+        ({ binding, action }) => [binding, action]),
       ],
     );
+    /**
+     *
+     * @type {Map}
+     */
     this.#keyupActions = new Map(
       [
         ...this.#entriesFor([
@@ -60,7 +131,13 @@ export class GameControls {
           "moveLeft",
           "moveRight",
         ]),
-        ...keyupActions.map(({ binding, action }) => [binding, action]),
+        ...keyupActions.map(/**
+         *
+         * @param {{action: import("src/game/GameContracts.js").GameActionContract}} options
+         * @param {string|{value: string, modifiers?: string[]}} options.binding
+         * @param {import("src/game/GameContracts.js").GameActionContract} options.action
+         */
+        ({ binding, action }) => [binding, action]),
       ],
     );
   }
@@ -69,8 +146,16 @@ export class GameControls {
     return this.#bindings;
   }
 
+  /**
+   *
+   * @param {string[]} names
+   */
   #entriesFor(names) {
-    return names.map((name) => [this.#config()[name], this.#actions[name]]);
+    return names.map(/**
+     *
+     * @param {string} name
+     */
+    (name) => [this.#config()[name], this.#actions[name]]);
   }
 
   connect() {
@@ -148,6 +233,11 @@ export class GameControls {
     this.#clearMovement();
   }
 
+  /**
+   *
+   * @param {Event} event
+   * @type {(event: Event) => void}
+   */
   #handleKeydown = (event) => {
     if (this.#isEditable(event.target)) {
       return;
@@ -173,6 +263,11 @@ export class GameControls {
     }
   };
 
+  /**
+   *
+   * @param {Event} event
+   * @type {(event: Event) => void}
+   */
   #handleKeyup = (event) => {
     if (this.#isEditable(event.target)) {
       return;
@@ -181,14 +276,27 @@ export class GameControls {
     this.#invokeKeyboardAction(event, this.#keyupActions);
   };
 
+  /**
+   *
+   * @type {() => void}
+   */
   #handleVisibilityChange = () => {
     if (document.hidden) this.#clearMovement();
   };
 
+  /**
+   *
+   * @type {() => void}
+   */
   #clearMovement = () => {
     this.#actions.heroMovement?.clear();
   };
 
+  /**
+   *
+   * @param {Event} event
+   * @type {(event: Event) => void}
+   */
   #handleWheel = (event) => {
     event.preventDefault();
     if (this.#actions.toggleInventory?.visible) {
@@ -208,6 +316,11 @@ export class GameControls {
     }
   };
 
+  /**
+   *
+   * @param {Event} event
+   * @type {(event: Event) => void}
+   */
   #handlePointerDown = (event) => {
     if (event.defaultPrevented) {
       return;
@@ -236,10 +349,20 @@ export class GameControls {
     this.#cameraDrag.start(event);
   };
 
+  /**
+   *
+   * @param {Event} event
+   * @type {(event: Event) => void}
+   */
   #handleCameraPointerMove = (event) => {
     this.#actions.cameraPointer?.move(event);
   };
 
+  /**
+   *
+   * @param {Event} event
+   * @type {(event: Event) => void}
+   */
   #handlePointerMove = (event) => {
     if (this.#actions.toggleInventory?.visible) {
       event.preventDefault();
@@ -252,6 +375,11 @@ export class GameControls {
     this.#cameraDrag.move(event);
   };
 
+  /**
+   *
+   * @param {Event} event
+   * @type {(event: Event) => void}
+   */
   #handlePointerUp = (event) => {
     if (event.pointerId === this.#inventoryPointerId) {
       event.preventDefault();
@@ -272,12 +400,21 @@ export class GameControls {
     this.#cameraDrag.end(event);
   };
 
+  /**
+   *
+   * @type {() => void}
+   */
   #handlePointerLeave = () => {
     if (this.#actions.toggleInventory?.visible) {
       this.#actions.toggleInventory.leavePointer();
     }
   };
 
+  /**
+   *
+   * @param {Event} event
+   * @param {Array} actions
+   */
   #invokeKeyboardAction(event, actions) {
     for (const [binding, action] of actions) {
       if (!this.#matchesKey(event, binding)) {
@@ -291,12 +428,21 @@ export class GameControls {
     return false;
   }
 
+  /**
+   *
+   * @param {Event} event
+   */
   #cancelKeyboardEvent(event) {
     event.preventDefault();
     event.returnValue = false;
     event.stopImmediatePropagation();
   }
 
+  /**
+   *
+   * @param {Event} event
+   * @param {string|{value: string, modifiers?: string[]}} binding
+   */
   #matchesKey(event, binding) {
     if (!binding?.keys?.length) {
       return false;
@@ -325,10 +471,23 @@ export class GameControls {
     return binding.allowRepeat !== false || !event.repeat;
   }
 
+  /**
+   *
+   * @param {Event} event
+   * @param {Array} bindings
+   */
   #matchesAnyKey(event, bindings) {
-    return bindings.some((binding) => this.#matchesKey(event, binding));
+    return bindings.some(/**
+     *
+     * @param {string|{value: string, modifiers?: string[]}} binding
+     */
+    (binding) => this.#matchesKey(event, binding));
   }
 
+  /**
+   *
+   * @param {Event} event
+   */
   #eventModifierKey(event) {
     if (["Alt", "AltLeft", "AltRight"].includes(event.code)) {
       return "altKey";
@@ -345,6 +504,10 @@ export class GameControls {
     return null;
   }
 
+  /**
+   *
+   * @param {EventTarget|pc.Entity} target
+   */
   #isEditable(target) {
     return (
       target instanceof HTMLElement &&

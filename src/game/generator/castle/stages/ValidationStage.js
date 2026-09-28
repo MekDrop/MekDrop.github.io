@@ -7,6 +7,10 @@ import {
 import { AbstractCastleGenerationStage } from "../AbstractCastleGenerationStage.js";
 
 export class ValidationStage extends AbstractCastleGenerationStage {
+  /**
+   *
+   * @param {CastleGenerationContext} context
+   */
   async run(context) {
     if (context.layout.empty) {
       return;

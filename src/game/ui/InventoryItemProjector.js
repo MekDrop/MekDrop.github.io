@@ -2,17 +2,40 @@ const TEXTURE_SIZE = 384;
 const CAMERA_DIRECTION = Object.freeze({ x: 1, y: 1, z: 1 });
 
 export class InventoryItemProjector {
+  /**
+   * @type {typeof import("playcanvas")|null}
+   */
   #pc;
+  /**
+   * @type {import("playcanvas").Application|null}
+   */
   #app;
+  /**
+   * @type {import("../models/GameModelLibrary.js").GameModelLibrary|null}
+   */
   #modelLibrary;
+  /**
+   * @type {Map}
+   */
   #projections = new Map();
 
+  /**
+   *
+   * @param {{pc: typeof import("playcanvas"), app: import("playcanvas").Application, modelLibrary: import("../models/GameModelLibrary.js").GameModelLibrary}} options
+   * @param {typeof import("playcanvas")} options.pc
+   * @param {import("playcanvas").Application} options.app
+   * @param {import("../models/GameModelLibrary.js").GameModelLibrary} options.modelLibrary
+   */
   constructor({ pc, app, modelLibrary }) {
     this.#pc = pc;
     this.#app = app;
     this.#modelLibrary = modelLibrary;
   }
 
+  /**
+   *
+   * @param {string} modelUrl
+   */
   textureFor(modelUrl) {
     if (!modelUrl) {
       return null;
@@ -43,6 +66,10 @@ export class InventoryItemProjector {
     this.#pc = null;
   }
 
+  /**
+   *
+   * @param {string} modelUrl
+   */
   #createProjection(modelUrl) {
     const pc = this.#pc;
     const layer = new pc.Layer({ name: "Inventory item projection" });
@@ -139,6 +166,10 @@ export class InventoryItemProjector {
     return projection;
   }
 
+  /**
+   *
+   * @param {import("playcanvas").StandardMaterial} sourceMaterial
+   */
   #createSpriteMaterial(sourceMaterial) {
     const material = sourceMaterial.clone();
     const sourceColor = sourceMaterial.diffuse?.clone();
@@ -164,10 +195,19 @@ export class InventoryItemProjector {
     return material;
   }
 
+  /**
+   *
+   * @param {import("playcanvas").Entity} model
+   */
   #modelBounds(model) {
     const meshInstances = model
       .findComponents("render")
-      .flatMap(({ meshInstances }) => meshInstances);
+      .flatMap(/**
+       *
+       * @param {{meshInstances: import("playcanvas").MeshInstance[]}} options
+       * @param {import("playcanvas").MeshInstance[]} options.meshInstances
+       */
+      ({ meshInstances }) => meshInstances);
     const bounds = meshInstances[0].aabb.clone();
     for (const meshInstance of meshInstances.slice(1)) {
       bounds.add(meshInstance.aabb);
@@ -175,6 +215,13 @@ export class InventoryItemProjector {
     return bounds;
   }
 
+  /**
+   *
+   * @param {import("playcanvas").Entity} model
+   * @param {import("playcanvas").Vec3} center
+   * @param {import("playcanvas").Vec3} right
+   * @param {import("playcanvas").Vec3} up
+   */
   #projectedHalfExtents(model, center, right, up) {
     let projectedHalfWidth = 0;
     let projectedHalfHeight = 0;

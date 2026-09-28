@@ -7,21 +7,89 @@ const ROTATION_COUNT = 4;
 const ALTERNATE_ROTATIONS = [-1, 1, 2];
 
 export class HeroVisibilityController {
+  /**
+   *
+   * @type {typeof pc}
+   */
   #pc;
+  /**
+   *
+   * @type {pc.Application}
+   */
   #app;
+  /**
+   *
+   * @type {HTMLCanvasElement}
+   */
   #canvas;
+  /**
+   *
+   * @type {pc.Entity}
+   */
   #camera;
+  /**
+   *
+   * @type {Hero}
+   */
   #hero;
+  /**
+   *
+   * @type {() => number}
+   */
   #getRotation;
+  /**
+   *
+   * @type {(rotation: number) => void}
+   */
   #setRotation;
+  /**
+   *
+   * @type {boolean}
+   */
   #shouldPreserveRotation;
+  /**
+   *
+   * @type {pc.Picker}
+   */
   #picker;
+  /**
+   *
+   * @type {null}
+   */
   #timer = null;
+  /**
+   *
+   * @type {boolean}
+   */
   #inProgress = false;
+  /**
+   *
+   * @type {boolean}
+   */
   #checkPending = false;
+  /**
+   *
+   * @type {number}
+   */
   #lastCheckTime = 0;
+  /**
+   *
+   * @type {number}
+   */
   #generation = 0;
 
+  /**
+   *
+   * @param {{pc: typeof pc, app: pc.Application, canvas: HTMLCanvasElement, camera: pc.Entity, getRotation: () => number, setRotation: (rotation: number) => void, shouldPreserveRotation: boolean}} options
+   * @param {typeof pc} options.pc
+   * @param {pc.Application} options.app
+   * @param {HTMLCanvasElement} options.canvas
+   * @param {pc.Entity} options.camera
+   * @param {{entity: pc.Entity, position?: pc.Vec3, visible?: boolean}} options.hero
+   * @param {() => number} options.getRotation
+   * @param {(rotation: number) => void} options.setRotation
+   * @param {boolean} options.shouldPreserveRotation
+   */
   constructor({
     pc,
     app,
@@ -32,14 +100,50 @@ export class HeroVisibilityController {
     setRotation,
     shouldPreserveRotation = null,
   }) {
+    /**
+     *
+     * @type {typeof pc}
+     */
     this.#pc = pc;
+    /**
+     *
+     * @type {pc.Application}
+     */
     this.#app = app;
+    /**
+     *
+     * @type {HTMLCanvasElement}
+     */
     this.#canvas = canvas;
+    /**
+     *
+     * @type {pc.Entity}
+     */
     this.#camera = camera;
+    /**
+     *
+     * @type {Hero}
+     */
     this.#hero = hero;
+    /**
+     *
+     * @type {() => number}
+     */
     this.#getRotation = getRotation;
+    /**
+     *
+     * @type {(rotation: number) => void}
+     */
     this.#setRotation = setRotation;
+    /**
+     *
+     * @type {boolean}
+     */
     this.#shouldPreserveRotation = shouldPreserveRotation;
+    /**
+     *
+     * @type {pc.Picker}
+     */
     this.#picker = new pc.Picker(app, 1, 1);
   }
 
@@ -135,6 +239,11 @@ export class HeroVisibilityController {
     }
   }
 
+  /**
+   *
+   * @param {pc.Vec3} rotation
+   * @param {{id?: number, complete?: boolean}} generation
+   */
   async #isVisibleAtRotation(rotation, generation) {
     if (
       !this.#picker ||
@@ -189,12 +298,20 @@ export class HeroVisibilityController {
       if (generation !== this.#generation) {
         return null;
       }
-      return selection.some((item) => this.#belongsToHero(item?.node));
+      return selection.some(/**
+       *
+       * @param {import("src/game/GameContracts.js").GameObjectContract} item
+       */
+      (item) => this.#belongsToHero(item?.node));
     } catch {
       return null;
     }
   }
 
+  /**
+   *
+   * @param {pc.GraphNode} node
+   */
   #belongsToHero(node) {
     for (let current = node; current; current = current.parent) {
       if (current === this.#hero) {
@@ -204,6 +321,10 @@ export class HeroVisibilityController {
     return false;
   }
 
+  /**
+   *
+   * @param {pc.Vec3} rotation
+   */
   #normalizeRotation(rotation) {
     return ((rotation % ROTATION_COUNT) + ROTATION_COUNT) % ROTATION_COUNT;
   }

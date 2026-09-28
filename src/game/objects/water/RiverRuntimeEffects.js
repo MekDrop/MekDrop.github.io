@@ -3,20 +3,81 @@ import { RiverFlowMap } from './RiverFlowMap.js';
 import { WaterfallSpray } from './WaterfallSpray.js';
 
 export class RiverRuntimeEffects {
+  /**
+   *
+    * @type {typeof import("playcanvas")}
+   */
   #pc;
+  /**
+   *
+    * @type {import("playcanvas").Application}
+   */
   #app;
+  /**
+   *
+    * @type {import("playcanvas").Entity}
+   */
   #entity;
+  /**
+   *
+    * @type {import("./WaterfallSpray.js").WaterfallSpray}
+   */
   #waterfallSpray;
+  /**
+   *
+    * @type {typeof import("playcanvas")}
+   */
   #mistTexture;
+  /**
+   *
+    * @type {typeof import("playcanvas")}
+   */
   #heroReflection;
+  /**
+   *
+    * @type {typeof import("playcanvas")}
+   */
   #flowMap;
+  /**
+   *
+    * @type {number}
+   */
   #time = 0;
+  /**
+   *
+    * @type {Float32Array}
+   */
   #rockContacts = new Float32Array(18 * 4);
+  /**
+   *
+    * @type {number}
+   */
   #rockContactCount = 0;
+  /**
+   *
+    * @type {Float32Array}
+   */
   #cascadeImpacts = new Float32Array(32 * 4);
+  /**
+   *
+    * @type {Float32Array}
+   */
   #cascadeFlows = new Float32Array(32 * 4);
+  /**
+   *
+    * @type {number}
+   */
   #cascadeImpactCount = 0;
 
+  /**
+   *
+   * @param {{pc: typeof import("playcanvas"), app: import("playcanvas").Application, mapData: import("src/game/objects/ObjectTypes.js").GameMapData, entity: import("playcanvas").Entity, waterEffects: Array<{update: (deltaTime: number) => void, destroy: () => void}>}} options
+   * @param {typeof import("playcanvas")} options.pc
+   * @param {import("playcanvas").Application} options.app
+   * @param {import("src/game/objects/ObjectTypes.js").GameMapData} options.mapData
+   * @param {import("playcanvas").Entity} options.entity
+   * @param {Array<{update: (deltaTime: number) => void, destroy: () => void}>} options.waterEffects
+   */
   constructor({ pc, app, mapData, entity, waterEffects }) {
     this.#pc = pc;
     this.#app = app;
@@ -38,22 +99,40 @@ export class RiverRuntimeEffects {
     return this.#mistTexture;
   }
 
+  /**
+   *
+   * @param {number} deltaTime
+   * @param {import("src/game/objects/ObjectTypes.js").HeroLike} hero
+   * @param {import("playcanvas").Entity} camera
+   */
   update(deltaTime, hero = null, camera = null) {
     this.#time = (this.#time + deltaTime) % 1000;
     this.#heroReflection?.update(hero?.waterPresentation, camera);
   }
 
+  /**
+   *
+   * @param {import("playcanvas").Material} material
+   */
   apply(material) {
     material.setParameter('uRiverTime', this.#time);
     this.#heroReflection?.apply(material);
     this.#flowMap?.apply(material);
   }
 
+  /**
+   *
+   * @param {import("playcanvas").Material} material
+   */
   updateMaterial(material) {
     material.setParameter('uRiverTime', this.#time);
     this.#heroReflection?.apply(material);
   }
 
+  /**
+   *
+   * @param {import("playcanvas").Material} material
+   */
   applyGeometryParameters(material) {
     material.setParameter('uRiverRocks[0]', this.#rockContacts);
     material.setParameter('uRiverRockCount', this.#rockContactCount);
@@ -62,6 +141,14 @@ export class RiverRuntimeEffects {
     material.setParameter('uCascadeImpactCount', this.#cascadeImpactCount);
   }
 
+  /**
+   *
+   * @param {number} x
+   * @param {number} elevation
+   * @param {number} z
+   * @param {number} radius
+   * @param {{x: number, y: number, z: number}} direction
+   */
   registerRockContact(x, elevation, z, radius, direction) {
     if (this.#rockContactCount >= 18) {
       return;
@@ -74,6 +161,14 @@ export class RiverRuntimeEffects {
     this.addRockSpray(x, elevation, z, radius, direction);
   }
 
+  /**
+   *
+   * @param {import("src/game/objects/ObjectTypes.js").WaterfallDefinition} waterfall
+   * @param {number} cols
+   * @param {number} rows
+   * @param {import("src/game/objects/ObjectTypes.js").RiverTerminal} terminal
+   * @param {number} routeDistance
+   */
   addWaterfall(waterfall, cols, rows, terminal, routeDistance) {
     this.#waterfallSpray?.add(waterfall, cols, rows, terminal);
     if (terminal || this.#cascadeImpactCount >= 32) {
@@ -94,6 +189,14 @@ export class RiverRuntimeEffects {
     this.#cascadeImpactCount++;
   }
 
+  /**
+   *
+   * @param {number} x
+   * @param {number} elevation
+   * @param {number} z
+   * @param {number} radius
+   * @param {{x: number, y: number, z: number}} direction
+   */
   addRockSpray(x, elevation, z, radius, direction) {
     const flow = this.#directionVector(direction);
     const spray = new this.#pc.Entity('River rock contact spray');
@@ -178,12 +281,20 @@ export class RiverRuntimeEffects {
     return texture;
   }
 
+  /**
+   *
+   * @param {string} keys
+   */
   #curve(keys) {
     const curve = new this.#pc.Curve(keys);
     curve.type = this.#pc.CURVE_SMOOTHSTEP;
     return curve;
   }
 
+  /**
+   *
+   * @param {...Array<number>} channels
+   */
   #curveSet(...channels) {
     const curves = new this.#pc.CurveSet(channels);
     curves.type = this.#pc.CURVE_SMOOTHSTEP;
@@ -201,6 +312,10 @@ export class RiverRuntimeEffects {
     this.#mistTexture = null;
   }
 
+  /**
+   *
+   * @param {{x: number, y: number, z: number}} direction
+   */
   #directionVector(direction) {
     if (direction === 'NORTH') {
       return { col: 0, row: -1 };

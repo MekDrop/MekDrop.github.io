@@ -5,13 +5,47 @@ import { State } from "yuka";
  * @abstract
  */
 export class AbstractTerraceParticipantState extends State {
+  /**
+   *
+    * @type {string}
+   */
   #phase;
+  /**
+   *
+    * @type {string}
+   */
   #stagePhase;
+  /**
+   *
+    * @type {number}
+   */
   #duration;
+  /**
+   *
+    * @type {string}
+   */
   #action;
+  /**
+   *
+    * @type {string}
+   */
   #animation;
+  /**
+   *
+    * @type {boolean}
+   */
   #resumeOnComplete;
 
+  /**
+   *
+   * @param {{phase: number, stagePhase: string, duration: number, action: string, animation: string, resumeOnComplete: number}} options
+   * @param {number} options.phase
+   * @param {string} options.stagePhase
+   * @param {number} options.duration
+   * @param {string} options.action
+   * @param {string} options.animation
+   * @param {number} options.resumeOnComplete
+   */
   constructor({
     phase,
     stagePhase,
@@ -53,15 +87,27 @@ export class AbstractTerraceParticipantState extends State {
     return this.#resumeOnComplete;
   }
 
+  /**
+   *
+   * @param {import("../../TerraceParticipantStateMachine.js").TerraceParticipantStateMachine} owner
+   */
   enter(owner) {
     owner.enterAction(this);
   }
 
+  /**
+   *
+   * @param {import("../../TerraceParticipantStateMachine.js").TerraceParticipantStateMachine} owner
+   */
   execute(owner) {
     owner.updateAction(this);
     owner.completeState(this);
   }
 
+  /**
+   *
+   * @param {import("../../TerraceParticipantStateMachine.js").TerraceParticipantStateMachine} owner
+   */
   exit(owner) {
     owner.exitAction(this);
   }

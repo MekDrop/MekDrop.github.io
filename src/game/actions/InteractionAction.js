@@ -1,7 +1,19 @@
 export class InteractionAction {
+  /**
+   *
+   * @type {PlayCanvasRenderer}
+   */
   #renderer;
 
+  /**
+   *
+   * @param {PlayCanvasRenderer} renderer
+   */
   constructor(renderer) {
+    /**
+     *
+     * @type {PlayCanvasRenderer}
+     */
     this.#renderer = renderer;
   }
 

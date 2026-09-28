@@ -19,19 +19,78 @@ const FADE_SECONDS = 0.24;
 const GRASS_CONTACT_RADIUS = 0.16;
 
 export class ThrownInventoryItem {
+  /**
+   *
+    * @type {typeof import("playcanvas")}
+   */
   #pc;
+  /**
+   *
+    * @type {import("playcanvas").Entity}
+   */
   #entity;
+  /**
+   *
+    * @type {import("playcanvas").Entity|null}
+   */
   #body;
+  /**
+   *
+    * @type {import("playcanvas").Entity|null}
+   */
   #floor;
+  /**
+   *
+    * @type {number}
+   */
   #grassSurfaceY;
+  /**
+   *
+    * @type {boolean}
+   */
   #touchingGrass = false;
+  /**
+   *
+    * @type {import("playcanvas").Vec3}
+   */
   #forward;
+  /**
+   *
+    * @type {import("playcanvas").Vec3}
+   */
   #worldForward;
+  /**
+   *
+    * @type {Array<import("playcanvas").Material>}
+   */
   #materials = [];
+  /**
+   *
+    * @type {boolean}
+   */
   #fading = false;
+  /**
+   *
+    * @type {number}
+   */
   #fadeElapsed = 0;
+  /**
+   *
+    * @type {boolean}
+   */
   #expired = false;
 
+  /**
+   *
+   * @param {{pc: typeof import("playcanvas"), modelLibrary: import("src/game/models/GameModelLibrary.js").GameModelLibrary, item: {variant: string, modelUrl: string}, position: {x: number, y: number, z: number}, direction: {x: number, y: number, z: number}, dropped: boolean, dropStartY: number}} options
+   * @param {typeof import("playcanvas")} options.pc
+   * @param {import("src/game/models/GameModelLibrary.js").GameModelLibrary} options.modelLibrary
+   * @param {{variant: string, modelUrl: string}} options.item
+   * @param {{x: number, y: number, z: number}} options.position
+   * @param {{x: number, y: number, z: number}} options.direction
+   * @param {boolean} options.dropped
+   * @param {number} options.dropStartY
+   */
   constructor({
     pc,
     modelLibrary,
@@ -135,6 +194,10 @@ export class ThrownInventoryItem {
     return this.#expired;
   }
 
+  /**
+   *
+    * @returns {{position: {x: number, y: number, z: number}|null}}
+   */
   get state() {
     const position = this.#body?.getPosition();
     return {
@@ -144,6 +207,10 @@ export class ThrownInventoryItem {
     };
   }
 
+  /**
+   *
+    * @returns {Array<{id: ThrownInventoryItem, x: number, y: number, z: number, directionX: number, directionZ: number, halfWidth: number, halfLength: number, strength: number}>}
+   */
   get grassImpressionContacts() {
     if (!this.#touchingGrass) {
       return [];
@@ -180,6 +247,10 @@ export class ThrownInventoryItem {
     }
   }
 
+  /**
+   *
+   * @param {number} deltaTime
+   */
   advance(deltaTime) {
     if (this.#expired || !this.#fading) {
       return;
@@ -201,6 +272,10 @@ export class ThrownInventoryItem {
     this.#pc = null;
   }
 
+  /**
+   *
+   * @param {import("playcanvas").Entity} model
+   */
   #cloneMaterials(model) {
     const clones = new Map();
     for (const render of model.findComponents("render")) {
@@ -219,18 +294,32 @@ export class ThrownInventoryItem {
     }
   }
 
+  /**
+   *
+   * @param {{other: import("playcanvas").Entity}} result
+    * @type {(result: {other: import("playcanvas").Entity}) => void}
+   */
   #handleCollisionStart = (result) => {
     if (result.other === this.#floor) {
       this.#touchingGrass = true;
     }
   };
 
+  /**
+   *
+   * @param {import("playcanvas").Entity} other
+    * @type {(other: import("playcanvas").Entity) => void}
+   */
   #handleCollisionEnd = (other) => {
     if (other === this.#floor) {
       this.#touchingGrass = false;
     }
   };
 
+  /**
+   *
+   * @param {number} deltaTime
+   */
   #advanceFade(deltaTime) {
     this.#fadeElapsed = Math.min(
       FADE_SECONDS,

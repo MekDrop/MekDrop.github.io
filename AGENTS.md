@@ -47,6 +47,10 @@ Treat every authored entity placed at map coordinates as a normal entry in the m
 
 Name abstract base classes with an `Abstract` prefix or `Base` suffix, mark them with a JSDoc `@abstract` annotation, and do not instantiate them directly. Prefer the `Abstract` prefix when the class primarily defines a polymorphic contract. Give abstract or overridable methods concise JSDoc only for non-obvious responsibilities, inputs, outputs, or lifecycle behavior; do not restate the code. Always format JSDoc for classes and methods as multiline starred blocks; single-line JSDoc is forbidden and enforced by ESLint.
 
+Specify the type of every function and method argument with a JSDoc `@param` annotation. Also document class property types with JSDoc and getter return types with `@returns`. A getter may omit its own return-type annotation only when it directly returns an already-typed property without transforming or wrapping the value, making the return type unambiguous from that property.
+
+Do not use broad placeholder types such as `object`, `object[]`, `Array<object>`, `*`, or `unknown` when the code relies on specific properties or methods. Reuse an existing named type or introduce a named class, typedef, or interface-like contract that captures those requirements. When collection elements share polymorphic behavior, define an abstract base class for that behavior, make each supported implementation extend it, and type the collection to that base class so unrelated objects are rejected by tooling.
+
 Before implementing custom JSDoc or lint enforcement, check npm for an established, maintained ESLint plugin or package that provides the rule. Prefer the existing package when it meets the requirement; add a custom rule only when no suitable package exists.
 
 For guard-style conditionals, use explicit brace blocks, even for single statements:

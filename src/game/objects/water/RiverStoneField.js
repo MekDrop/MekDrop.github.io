@@ -5,6 +5,10 @@ import { RIVER_KIND } from '../../enum/RiverKind.js';
 import { RiverStonePlacementPlan } from './RiverStonePlacementPlan.js';
 
 export class RiverStoneField {
+  /**
+   *
+    * @returns {Array<string>}
+   */
   static get modelUrls() {
     return [
       riverStoneModelUrl,
@@ -13,14 +17,52 @@ export class RiverStoneField {
     ];
   }
 
+  /**
+   *
+    * @type {typeof import("playcanvas")}
+   */
   #pc;
+  /**
+   *
+    * @type {import("src/game/objects/ObjectTypes.js").GameMapData}
+   */
   #mapData;
+  /**
+   *
+    * @type {number}
+   */
   #riverKind;
+  /**
+   *
+    * @type {import("playcanvas").Entity}
+   */
   #entity;
+  /**
+   *
+    * @type {import("./RiverRuntimeEffects.js").RiverRuntimeEffects}
+   */
   #effects;
+  /**
+   *
+    * @type {boolean}
+   */
   #hasRockContactEffects;
+  /**
+   *
+    * @type {Array<import("playcanvas").VertexBuffer>}
+   */
   #vertexBuffers = [];
 
+  /**
+   *
+   * @param {{pc: typeof import("playcanvas"), mapData: import("src/game/objects/ObjectTypes.js").GameMapData, riverKind: number, entity: import("playcanvas").Entity, effects: import("./RiverRuntimeEffects.js").RiverRuntimeEffects, hasRockContactEffects: boolean}} options
+   * @param {typeof import("playcanvas")} options.pc
+   * @param {import("src/game/objects/ObjectTypes.js").GameMapData} options.mapData
+   * @param {number} options.riverKind
+   * @param {import("playcanvas").Entity} options.entity
+   * @param {import("./RiverRuntimeEffects.js").RiverRuntimeEffects} options.effects
+   * @param {boolean} options.hasRockContactEffects
+   */
   constructor({
     pc,
     mapData,
@@ -29,17 +71,31 @@ export class RiverStoneField {
     effects,
     hasRockContactEffects,
   }) {
+
     this.#pc = pc;
+
     this.#mapData = mapData;
+
     this.#riverKind = riverKind;
+
     this.#entity = entity;
+
     this.#effects = effects;
+
     this.#hasRockContactEffects = hasRockContactEffects;
   }
 
+  /**
+   *
+   * @param {string} modelLibrary
+   */
   build(modelLibrary) {
     const { cols, rows, riverData = [] } = this.#mapData;
     const rivers = riverData.filter(
+      /**
+       *
+       * @param {number} river
+       */
       (river) => (river.kind ?? RIVER_KIND.WATER) === this.#riverKind,
     );
     const stoneModels = [
@@ -49,7 +105,11 @@ export class RiverStoneField {
     ];
     const stoneModelHeights = [0.20761, 0.14188, 0.27262];
     const matricesByModel = new Map(
-      stoneModels.map((modelUrl) => [modelUrl, []]),
+      stoneModels.map(/**
+       *
+       * @param {string} modelUrl
+       */
+      (modelUrl) => [modelUrl, []]),
     );
     const placements = new RiverStonePlacementPlan(stoneModelHeights).create(
       rivers,

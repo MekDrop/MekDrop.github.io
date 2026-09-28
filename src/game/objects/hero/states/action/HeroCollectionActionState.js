@@ -2,6 +2,11 @@ import { HERO_ACTION } from "../../../../enum/HeroAction.js";
 import { HERO_ANIMATION } from "../../../../enum/HeroAnimation.js";
 import { HeroRuntimeActionState } from "./HeroRuntimeActionState.js";
 
+/**
+ *
+ * @param {string} action
+ * @param {import("src/game/objects/ObjectTypes.js").HeroActionContext} owner
+ */
 function advancePositioning(action, owner) {
   if (!action.positioning) {
     return false;
@@ -35,6 +40,11 @@ function advancePositioning(action, owner) {
 export class HeroCollectingActionState extends HeroRuntimeActionState {
   constructor() {
     super(HERO_ACTION.COLLECTING, {
+      /**
+       *
+       * @param {{payload: import("src/game/objects/ObjectTypes.js").HeroActionPayload}} options
+       * @param {import("src/game/objects/ObjectTypes.js").HeroActionPayload} options.payload
+       */
       animation: ({ payload }) => payload.positioning
         ? HERO_ANIMATION.WALK
         : payload.animation,
@@ -45,11 +55,19 @@ export class HeroCollectingActionState extends HeroRuntimeActionState {
     });
   }
 
+  /**
+   *
+   * @param {import("src/game/objects/ObjectTypes.js").HeroActionContext} owner
+   */
   enter(owner) {
     super.enter(owner);
     owner.feedback.collection.begin(this.payload);
   }
 
+  /**
+   *
+   * @param {import("src/game/objects/ObjectTypes.js").HeroActionContext} owner
+   */
   execute(owner) {
     const action = this.payload;
     const feedback = owner.feedback.collection;
@@ -80,6 +98,10 @@ export class HeroCollectingActionState extends HeroRuntimeActionState {
     owner.finish();
   }
 
+  /**
+   *
+   * @param {import("src/game/objects/ObjectTypes.js").HeroActionContext} owner
+   */
   exit(owner) {
     const action = this.payload;
     owner.feedback.collection.endCollection(action);
@@ -90,6 +112,11 @@ export class HeroCollectingActionState extends HeroRuntimeActionState {
 export class HeroInventoryFullActionState extends HeroRuntimeActionState {
   constructor() {
     super(HERO_ACTION.INVENTORY_FULL_REACTION, {
+      /**
+       *
+       * @param {{payload: import("src/game/objects/ObjectTypes.js").HeroActionPayload}} options
+       * @param {import("src/game/objects/ObjectTypes.js").HeroActionPayload} options.payload
+       */
       animation: ({ payload }) => payload.positioning
         ? HERO_ANIMATION.WALK
         : HERO_ANIMATION.INVENTORY_FULL_COLLAPSE,
@@ -100,11 +127,19 @@ export class HeroInventoryFullActionState extends HeroRuntimeActionState {
     });
   }
 
+  /**
+   *
+   * @param {import("src/game/objects/ObjectTypes.js").HeroActionContext} owner
+   */
   enter(owner) {
     super.enter(owner);
     owner.feedback.collection.beginInventoryFull(this.payload);
   }
 
+  /**
+   *
+   * @param {import("src/game/objects/ObjectTypes.js").HeroActionContext} owner
+   */
   execute(owner) {
     const action = this.payload;
     const feedback = owner.feedback.collection;
@@ -122,6 +157,10 @@ export class HeroInventoryFullActionState extends HeroRuntimeActionState {
     }
   }
 
+  /**
+   *
+   * @param {import("src/game/objects/ObjectTypes.js").HeroActionContext} owner
+   */
   exit(owner) {
     const action = this.payload;
     owner.feedback.collection.endInventoryFull(action);

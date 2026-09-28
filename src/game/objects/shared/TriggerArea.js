@@ -35,26 +35,94 @@ const MINIMUM_NORMAL_Y = 0.2;
  * A map-authored pressure plate that runs JavaScript when its active state changes.
  */
 export class TriggerArea {
+  /**
+   *
+    * @type {boolean}
+   */
   #active = false;
+  /**
+   *
+    * @type {import("src/game/objects/ObjectTypes.js").MapObjectDefinition}
+   */
   #definition;
+  /**
+   *
+    * @type {import("playcanvas").Entity}
+   */
   #entity;
+  /**
+   *
+    * @type {(active: boolean, objects: Array<import("src/game/objects/ObjectTypes.js").MapObjectLike>, trigger: import("src/game/objects/ObjectTypes.js").MapObjectDefinition) => void}
+   */
   #executeScript;
+  /**
+   *
+    * @type {{x: number, z: number}|null}
+   */
   #heroContact = null;
+  /**
+   *
+    * @type {import("playcanvas").Material}
+   */
   #material;
+  /**
+   *
+    * @type {{x: number, y: number, z: number}}
+   */
   #normal;
+  /**
+   *
+    * @type {Array<import("src/game/objects/ObjectTypes.js").MapObjectLike>}
+   */
   #objects;
+  /**
+   *
+    * @type {(error: Error) => void}
+   */
   #onRuntimeError;
+  /**
+   *
+    * @type {number}
+   */
   #restingBottomY;
+  /**
+   *
+    * @type {number}
+   */
   #restingCenterY;
+  /**
+   *
+    * @type {Array<{x: number, y: number, z: number}>}
+   */
   #supportPoints;
+  /**
+   *
+    * @type {import("playcanvas").EventHandle|null}
+   */
   #updateHandle = null;
+  /**
+   *
+    * @type {{x: number, y: number, z: number}}
+   */
   #up;
 
+  /**
+   *
+   * @param {{pc: typeof import("playcanvas"), app: import("playcanvas").Application, definition: import("src/game/objects/ObjectTypes.js").MapObjectDefinition, runtime: number}} options
+   * @param {typeof import("playcanvas")} options.pc
+   * @param {import("playcanvas").Application} options.app
+   * @param {import("src/game/objects/ObjectTypes.js").MapObjectDefinition} options.definition
+   * @param {number} options.runtime
+   */
   constructor({ pc, app, definition, runtime = {} }) {
     const { id, color, position, script } = definition;
+
     this.#definition = definition;
+
     this.#objects = runtime.objects;
+
     this.#onRuntimeError = runtime.onRuntimeError;
+
     this.#executeScript = Function(
       "active",
       "objects",
@@ -67,6 +135,7 @@ export class TriggerArea {
       ? `#${color.toString(16).padStart(6, "0")}`
       : color.startsWith("#") ? color : `#${color}`;
     parsedColor.fromString(colorText);
+
     this.#material = new pc.StandardMaterial();
     this.#material.name = `${id} trigger material`;
     this.#material.diffuse.copy(parsedColor);
@@ -74,6 +143,7 @@ export class TriggerArea {
     this.#material.emissiveIntensity = 0.45;
     this.#material.gloss = 0.18;
     this.#material.update();
+
 
     this.#entity = new pc.Entity(`${id} trigger area`);
     this.#entity.tags.add("map-object", id, this.constructor.name);
@@ -109,21 +179,28 @@ export class TriggerArea {
     });
 
     const grassRootY = position.y + GRASS_ROOT_LIFT;
+
     this.#supportPoints = runtime.getGrassSupportPoints?.(
       { x: position.x, y: grassRootY, z: position.z },
       TRIGGER_RADIUS - 0.025,
     ) ?? this.#fallbackSupportPoints(position.x, grassRootY, position.z);
     if (!this.#supportPoints.length) {
+
       this.#supportPoints = this.#fallbackSupportPoints(
         position.x,
         grassRootY,
         position.z,
       );
     }
+
     this.#restingBottomY = position.y + RESTING_BOTTOM_LIFT;
+
     this.#restingCenterY = position.y + RESTING_CENTER_LIFT;
+
     this.#normal = new pc.Vec3(0, 1, 0);
+
     this.#up = new pc.Vec3(0, 1, 0);
+
     this.#updateHandle = app?.on("update", this.#update) ?? null;
   }
 
@@ -135,14 +212,28 @@ export class TriggerArea {
     return this.#definition;
   }
 
+  /**
+   *
+    * @returns {boolean}
+   */
   get isGroundCollider() {
     return true;
   }
 
+  /**
+   *
+    * @returns {Array<import("playcanvas").Entity>}
+   */
   get visualRoots() {
     return [this.#entity];
   }
 
+  /**
+   *
+   * @param {number} x
+   * @param {number} z
+   * @param {number} elevation
+   */
   grassWeightAt(x, z, elevation) {
     const { position } = this.#definition;
     if (Math.abs(position.y - elevation) > GRASS_ELEVATION_TOLERANCE) {
@@ -153,6 +244,12 @@ export class TriggerArea {
       : 0;
   }
 
+  /**
+   *
+   * @param {number} x
+   * @param {number} z
+   * @param {number} radius
+   */
   surfaceHeightAt(x, z, radius = 0) {
     const { position } = this.#definition;
     if (Math.hypot(x - position.x, z - position.z) > TRIGGER_RADIUS + radius) {
@@ -165,6 +262,13 @@ export class TriggerArea {
         surface.normalY;
   }
 
+  /**
+   *
+   * @param {{x: number, y: number, z: number}} options
+   * @param {number} options.x
+   * @param {number} options.y
+   * @param {number} options.z
+   */
   updateHeroPosition({ x, y, z }) {
     const { position } = this.#definition;
     const distance = Math.hypot(x - position.x, z - position.z);
@@ -192,6 +296,10 @@ export class TriggerArea {
     }
   }
 
+  /**
+   *
+    * @returns {Array<{x: number, y: number, z: number, radius: number, compression: number, slopeX: number, slopeZ: number}>}
+   */
   get grassSurfaceContacts() {
     const { position } = this.#definition;
     const surface = this.#surfaceState();
@@ -206,6 +314,10 @@ export class TriggerArea {
     }];
   }
 
+  /**
+   *
+    * @returns {{position: import("src/game/objects/ObjectTypes.js").Point3, normal: import("src/game/objects/ObjectTypes.js").Point3, compression: number, supportCount: number}}
+   */
   get physicsState() {
     const surface = this.#surfaceState();
     return {
@@ -232,6 +344,12 @@ export class TriggerArea {
     this.#supportPoints = [];
   }
 
+  /**
+   *
+   * @param {number} x
+   * @param {number} y
+   * @param {number} z
+   */
   #fallbackSupportPoints(x, y, z) {
     const points = [{ x, y, z }];
     for (let index = 0; index < 12; index += 1) {
@@ -257,6 +375,10 @@ export class TriggerArea {
     };
   }
 
+  /**
+   *
+    * @type {() => void}
+   */
   #update = () => {
     const body = this.#entity.rigidbody;
     const surface = this.#surfaceState();

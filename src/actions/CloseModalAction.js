@@ -1,7 +1,17 @@
 export class CloseModalAction {
+  /**
+   * @type {import("./AbstractModalAction.js").AbstractModalAction[]}
+   */
   #modals;
 
+  /**
+   *
+   * @param {import("./AbstractModalAction.js").AbstractModalAction[]} modals
+   */
   constructor(modals) {
+    /**
+     * @type {import("./AbstractModalAction.js").AbstractModalAction[]}
+     */
     this.#modals = modals;
   }
 

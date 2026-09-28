@@ -1,16 +1,36 @@
 import { AbstractMapGenerationStage } from "../AbstractMapGenerationStage.js";
 
 /**
+ * @typedef {{col: number, row: number}} GridCell
+ */
+
+/**
  * Generates the renderer-independent castle build plan as part of the map.
  */
 export class CastleBuildPlanStage extends AbstractMapGenerationStage {
+  /**
+   *
+   * @type {Array}
+   */
   #operations;
 
+  /**
+   *
+   * @param {Array<() => void>} operations
+   */
   constructor(operations) {
     super();
+    /**
+     *
+     * @type {Array}
+     */
     this.#operations = operations;
   }
 
+  /**
+   *
+   * @param {GenerationContext} context
+   */
   async run(context) {
     const { castle } = context.output;
     if (!castle?.position || !castle.doors?.length) {
@@ -26,9 +46,23 @@ export class CastleBuildPlanStage extends AbstractMapGenerationStage {
       depth: castle.position.depth,
       elevation: castle.position.elevation,
     };
-    const doors = castle.doors.map(({ side, offset, width, cells = [] }) => {
+    const doors = castle.doors.map(/**
+     *
+     * @param {{side: string, offset: number, width: number, cells: GridCell[]}} options
+     * @param {string} options.side
+     * @param {number} options.offset
+     * @param {number} options.width
+     * @param {GridCell[]} options.cells
+     */
+    ({ side, offset, width, cells = [] }) => {
       const approachElevations = cells
-        .map(({ col, row }) => heightmap?.[row]?.[col])
+        .map(/**
+         *
+         * @param {{col: number, row: number}} options
+         * @param {number} options.col
+         * @param {number} options.row
+         */
+        ({ col, row }) => heightmap?.[row]?.[col])
         .filter(Number.isFinite);
       return {
         side,

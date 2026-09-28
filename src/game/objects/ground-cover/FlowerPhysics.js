@@ -10,17 +10,62 @@ const FOOT_SIDE_OFFSET = 0.13;
 const FOOT_CENTER_HEIGHT = 0.16;
 
 export class FlowerPhysics {
+  /**
+   *
+    * @type {typeof import("playcanvas")}
+   */
   #pc;
+  /**
+   *
+    * @type {import("playcanvas").Entity}
+   */
   #entity;
+  /**
+   *
+    * @type {Array<{entity: import("playcanvas").Entity, body: import("playcanvas").RigidBodyComponent}>}
+   */
   #feet = [];
+  /**
+   *
+    * @type {Array<{entity: import("playcanvas").Entity, matrixIndex: number}>}
+   */
   #flowers = [];
+  /**
+   *
+    * @type {Map}
+   */
   #batches = new Map();
+  /**
+   *
+    * @type {typeof import("playcanvas")}
+   */
   #up;
+  /**
+   *
+    * @type {{x: number, y: number, z: number}}
+   */
   #visualPosition;
+  /**
+   *
+    * @type {{x: number, y: number, z: number}}
+   */
   #visualRotation;
+  /**
+   *
+    * @type {boolean}
+   */
   #hiddenRotation;
+  /**
+   *
+    * @type {typeof import("playcanvas")}
+   */
   #hiddenScale;
 
+  /**
+   *
+   * @param {{pc: typeof import("playcanvas")}} options
+   * @param {typeof import("playcanvas")} options.pc
+   */
   constructor({ pc }) {
     this.#pc = pc;
     this.#entity = new pc.Entity("Flower physics");
@@ -36,6 +81,17 @@ export class FlowerPhysics {
     return this.#entity;
   }
 
+  /**
+   *
+   * @param {{variant: string, matrixIndex: number, position: {x: number, y: number, z: number}, rotation: number, horizontalScale: {x: number, y: number, z: number}, verticalScale: {x: number, y: number, z: number}, interactionRadius: number}} options
+   * @param {string} options.variant
+   * @param {number} options.matrixIndex
+   * @param {{x: number, y: number, z: number}} options.position
+   * @param {number} options.rotation
+   * @param {{x: number, y: number, z: number}} options.horizontalScale
+   * @param {{x: number, y: number, z: number}} options.verticalScale
+   * @param {number} options.interactionRadius
+   */
   addFlower({
     variant,
     matrixIndex,
@@ -106,10 +162,23 @@ export class FlowerPhysics {
     return flower;
   }
 
+  /**
+   *
+   * @param {string} variant
+   * @param {import("playcanvas").VertexBuffer} vertexBuffer
+   */
   setBatch(variant, vertexBuffer) {
     this.#batches.set(variant, vertexBuffer);
   }
 
+  /**
+   *
+   * @param {{x: number, y: number, z: number}} options
+   * @param {number} options.x
+   * @param {number} options.y
+   * @param {number} options.z
+   * @param {{x: number, y: number, z: number}} direction
+   */
   updateHeroPosition({ x, y, z }, direction = { x: 0, z: 1 }) {
     const directionLength = Math.hypot(direction.x, direction.z) || 1;
     const forwardX = direction.x / directionLength;
@@ -132,6 +201,10 @@ export class FlowerPhysics {
     );
   }
 
+  /**
+   *
+   * @param {{entity: import("playcanvas").Entity, body: import("playcanvas").RigidBodyComponent}} flower
+   */
   hide(flower) {
     flower.hidden = true;
     flower.anchor.enabled = false;
@@ -151,6 +224,10 @@ export class FlowerPhysics {
     this.#batches.clear();
   }
 
+  /**
+   *
+   * @param {{normal: import("src/game/objects/ObjectTypes.js").Point3}} side
+   */
   #createFoot(side) {
     const foot = new this.#pc.Entity(`Hero ${side} flower collider`);
     foot.setLocalPosition(0, -1000, 0);
@@ -169,6 +246,10 @@ export class FlowerPhysics {
     return foot;
   }
 
+  /**
+   *
+   * @param {string} variant
+   */
   #writeBatch(variant) {
     const vertexBuffer = this.#batches.get(variant);
     if (!vertexBuffer) {

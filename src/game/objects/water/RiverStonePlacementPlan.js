@@ -1,17 +1,35 @@
 export class RiverStonePlacementPlan {
+  /**
+   *
+    * @type {string}
+   */
   #modelHeights;
 
+  /**
+   *
+   * @param {string} modelHeights
+   */
   constructor(modelHeights) {
     this.#modelHeights = modelHeights;
   }
 
+  /**
+   *
+   * @param {number} rivers
+   * @param {number} cols
+   * @param {number} rows
+   */
   create(rivers, cols, rows) {
     const placements = [];
     for (const [riverIndex, river] of rivers.entries()) {
       const blockedCells = new Set([
         `${river.cells[0].col},${river.cells[0].row}`,
         `${river.waterfall.col},${river.waterfall.row}`,
-        ...river.cascades.flatMap((cascade) => [
+        ...river.cascades.flatMap(/**
+         *
+         * @param {number} cascade
+         */
+        (cascade) => [
           `${cascade.from.col},${cascade.from.row}`,
           `${cascade.to.col},${cascade.to.row}`,
         ]),
@@ -73,6 +91,10 @@ export class RiverStonePlacementPlan {
     return placements;
   }
 
+  /**
+   *
+   * @param {number} seed
+   */
   #noise(seed) {
     const value = Math.sin(seed * 12.9898) * 43758.5453;
     return value - Math.floor(value);

@@ -1,14 +1,34 @@
 // Short-lived droplets detach from the lower half of the curtain and kick up at landings.
 export class WaterfallSpray {
+  /**
+   *
+    * @type {typeof import("playcanvas")}
+   */
   #pc;
+  /**
+   *
+    * @type {typeof import("playcanvas")}
+   */
   #texture;
 
+  /**
+   *
+   * @param {typeof import("playcanvas")} pc
+   * @param {import("playcanvas").GraphicsDevice} device
+   */
   constructor(pc, device) {
     this.#pc = pc;
     this.entity = new pc.Entity('Waterfall splash layers');
     this.#texture = this.#createTexture(device);
   }
 
+  /**
+   *
+   * @param {import("src/game/objects/ObjectTypes.js").WaterfallDefinition} waterfall
+   * @param {number} cols
+   * @param {number} rows
+   * @param {import("src/game/objects/ObjectTypes.js").RiverTerminal} terminal
+   */
   add(waterfall, cols, rows, terminal) {
     const directions = {
       NORTH: [0, -1], EAST: [1, 0], SOUTH: [0, 1], WEST: [-1, 0],
@@ -49,6 +69,18 @@ export class WaterfallSpray {
     this.#texture.destroy();
   }
 
+  /**
+   *
+   * @param {number} center
+   * @param {{x: number, y: number, z: number}} flow
+   * @param {number} cross
+   * @param {number} forward
+   * @param {number} height
+   * @param {number} lifetime
+   * @param {number} verticalExtent
+   * @param {{x: number, y: number, z: number}} impact
+   * @param {number} width
+   */
   #emit(center, flow, cross, forward, height, lifetime, verticalExtent, impact, width = 0.84) {
     const pc = this.#pc;
     const emitter = new pc.Entity(impact ? 'Waterfall landing splashes' : 'Waterfall airborne splashes');
@@ -57,6 +89,12 @@ export class WaterfallSpray {
     );
     // Confine the spray to the pocket behind the sheet. The opaque curtain
     // naturally hides it head-on while side views reveal the falling droplets.
+    /**
+     *
+     * @param {number} spread
+     * @param {number} speed
+     * @param {number} finalSpeed
+     */
     const velocity = (spread, speed, finalSpeed) => this.#curves(
       [0, flow[0] * speed + cross[0] * spread, 1, flow[0] * finalSpeed],
       impact ? [0, 0.75, 1, -0.85] : [0, -0.28, 1, -1.5],
@@ -102,18 +140,30 @@ export class WaterfallSpray {
     this.entity.addChild(emitter);
   }
 
+  /**
+   *
+   * @param {string} keys
+   */
   #curve(keys) {
     const curve = new this.#pc.Curve(keys);
     curve.type = this.#pc.CURVE_SMOOTHSTEP;
     return curve;
   }
 
+  /**
+   *
+   * @param {...Array<number>} channels
+   */
   #curves(...channels) {
     const curves = new this.#pc.CurveSet(channels);
     curves.type = this.#pc.CURVE_SMOOTHSTEP;
     return curves;
   }
 
+  /**
+   *
+   * @param {import("playcanvas").GraphicsDevice} device
+   */
   #createTexture(device) {
     const size = 32;
     const pixels = new Uint8Array(size * size * 4);

@@ -6,6 +6,10 @@ import { TerraceServiceActions } from "./TerraceServiceActions.js";
  * Connects the hero trigger, royal wishes, and participant-owned actions.
  */
 export class CastleTerraceActivity {
+  /**
+   *
+    * @returns {Array<string>}
+   */
   static get modelUrls() {
     return [
       ...TerraceDoorActions.modelUrls,
@@ -13,20 +17,86 @@ export class CastleTerraceActivity {
     ];
   }
 
+  /**
+   *
+    * @type {import("playcanvas").Entity}
+   */
   #entity;
+  /**
+   *
+    * @type {import("playcanvas").Entity}
+   */
   #stage;
+  /**
+   *
+    * @type {string}
+   */
   #kind;
+  /**
+   *
+    * @type {import("./RoyalTerraceActivityBehavior.js").RoyalTerraceActivityBehavior}
+   */
   #royalBehavior;
+  /**
+   *
+    * @type {import("./TerraceServantBehavior.js").TerraceServantBehavior|null}
+   */
   #servantBehavior;
+  /**
+   *
+    * @type {RoyalWishFulfillment}
+   */
   #wishFulfillment;
+  /**
+   *
+    * @type {import("./TerraceRoyalActions.js").TerraceRoyalActions}
+   */
   #royalActions;
+  /**
+   *
+    * @type {TerraceServiceActions|null}
+   */
   #serviceActions;
+  /**
+   *
+    * @type {TerraceDoorActions}
+   */
   #doorActions;
+  /**
+   *
+    * @type {{x: number, y: number, z: number}}
+   */
   #position;
+  /**
+   *
+    * @type {Array<{side: string, offset: number, width: number, approachElevation?: number}>}
+   */
   #doors;
+  /**
+   *
+    * @type {boolean}
+   */
   #triggered = false;
+  /**
+   *
+    * @type {boolean}
+   */
   #stopped = false;
 
+  /**
+   *
+   * @param {{pc: typeof import("playcanvas"), modelLibrary: string, wallMaterial: import("playcanvas").Material, woodMaterial: import("playcanvas").Material, royal: import("../royal/AbstractRoyal.js").AbstractRoyal, servant: import("../servant/Servant.js").Servant, position: {x: number, y: number, z: number}, doors: Array<{side: string, offset: number, width: number, approachElevation?: number}>, layout: {x: number, y: number, z: number, yaw: number, depth: number, width: number}, onRoyalAtThroneChange: (atThrone: boolean) => void}} options
+   * @param {typeof import("playcanvas")} options.pc
+   * @param {string} options.modelLibrary
+   * @param {import("playcanvas").Material} options.wallMaterial
+   * @param {import("playcanvas").Material} options.woodMaterial
+   * @param {import("../royal/AbstractRoyal.js").AbstractRoyal} options.royal
+   * @param {import("../servant/Servant.js").Servant} options.servant
+   * @param {{x: number, y: number, z: number}} options.position
+   * @param {Array<{side: string, offset: number, width: number, approachElevation?: number}>} options.doors
+   * @param {{x: number, y: number, z: number, yaw: number, depth: number, width: number}} options.layout
+   * @param {(atThrone: boolean) => void} options.onRoyalAtThroneChange
+   */
   constructor({
     pc,
     modelLibrary,
@@ -100,6 +170,10 @@ export class CastleTerraceActivity {
     return this.#entity;
   }
 
+  /**
+   *
+    * @returns {boolean}
+   */
   get active() {
     return (
       this.#royalBehavior.active ||
@@ -108,6 +182,10 @@ export class CastleTerraceActivity {
     );
   }
 
+  /**
+   *
+    * @returns {import("src/game/objects/ObjectTypes.js").TerraceActivityState}
+   */
   get state() {
     const behavior = this.#activeBehavior;
     const door = this.#doorActions.state;
@@ -139,6 +217,10 @@ export class CastleTerraceActivity {
     };
   }
 
+  /**
+   *
+   * @param {number} value
+   */
   setTriggered(value) {
     this.#triggered = Boolean(value);
     if (!this.#doorActions.inspecting) {
@@ -146,16 +228,35 @@ export class CastleTerraceActivity {
     }
   }
 
+  /**
+   *
+   * @param {number} rayStart
+   * @param {number} rayEnd
+   */
   getPointerHit(rayStart, rayEnd) {
     return this.#stopped
       ? null
       : this.#doorActions.getPointerHit(rayStart, rayEnd);
   }
 
+  /**
+   *
+   * @param {number} x
+   * @param {number} y
+   * @param {number} z
+   * @param {number} radius
+   */
   blocksCameraAt(x, y, z, radius = 0) {
     return this.#doorActions.blocksCameraAt(x, y, z, radius);
   }
 
+  /**
+   *
+   * @param {{x: number, y: number, z: number}} options
+   * @param {number} options.x
+   * @param {number} options.y
+   * @param {number} options.z
+   */
   isTriggerAt({ x, y, z }) {
     const position = this.#position;
     const inside =
@@ -164,7 +265,11 @@ export class CastleTerraceActivity {
       z >= position.z &&
       z <= position.z + position.depth;
     const distance = this.#triggered ? 2.4 : 1.7;
-    const nearDoor = this.#doors.some((door) => {
+    const nearDoor = this.#doors.some(/**
+     *
+     * @param {import("src/game/objects/ObjectTypes.js").CastleDoorDefinition} door
+     */
+    (door) => {
       const vertical = door.side === "WEST" || door.side === "EAST";
       const lateral = vertical ? z - position.z : x - position.x;
       const boundary =
@@ -188,6 +293,10 @@ export class CastleTerraceActivity {
     );
   }
 
+  /**
+   *
+   * @param {number} deltaTime
+   */
   update(deltaTime) {
     if (this.#stopped) {
       return;
@@ -220,6 +329,10 @@ export class CastleTerraceActivity {
     this.#entity.destroy();
   }
 
+  /**
+   *
+    * @returns {number}
+   */
   get #activeBehavior() {
     if (this.#royalBehavior.active) {
       return this.#royalBehavior;

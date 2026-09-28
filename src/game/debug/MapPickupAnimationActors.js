@@ -10,6 +10,11 @@ import { GroundCoverHeldItem } from "../objects/ground-cover/index.js";
 const HERO_ACTOR_SCALE = 0.65;
 const PICKUP_LOOP_PAUSE = 0.32;
 
+/**
+ *
+ * @param {pc.Entity} root
+ * @param {string} name
+ */
 function findChildByName(root, name) {
   const pending = [root];
   while (pending.length) {
@@ -22,6 +27,10 @@ function findChildByName(root, name) {
   return null;
 }
 
+/**
+ *
+ * @param {import("src/game/GameContracts.js").GameObjectDefinition} definition
+ */
 function heldItemScale(definition) {
   return definition.category === "flower"
     ? {
@@ -32,12 +41,21 @@ function heldItemScale(definition) {
     : definition.scale;
 }
 
+/**
+ *
+ * @param {string} category
+ */
 function heldMaterialSettings(category) {
   return category === "flower"
     ? { bendHeight: 0.14, colorBoost: [1.08, 1.04, 1.08] }
     : { bendHeight: 0.12, colorBoost: [1, 1, 1] };
 }
 
+/**
+ *
+ * @param {typeof pc} pc
+ * @param {string} category
+ */
 function createHeldMaterial(pc, category) {
   const settings = heldMaterialSettings(category);
   const material = new pc.ShaderMaterial({
@@ -62,20 +80,70 @@ function createHeldMaterial(pc, category) {
  * Map-positioned hero pickup animation actors.
  */
 export class MapPickupAnimationActors {
+  /**
+   *
+   * @type {typeof pc}
+   */
   #pc;
+  /**
+   *
+   * @type {GameModelLibrary}
+   */
   #modelLibrary;
+  /**
+   *
+   * @type {pc.Entity}
+   */
   #entity;
+  /**
+   *
+   * @type {Map}
+   */
   #heldMaterials = new Map();
+  /**
+   *
+   * @type {Array}
+   */
   #entries = [];
+  /**
+   *
+   * @type {pc.EventHandle|null}
+   */
   #updateHandle = null;
 
+  /**
+   *
+   * @param {{pc: typeof pc, modelLibrary: GameModelLibrary, app: pc.Application, definitions: Array}} options
+   * @param {typeof pc} options.pc
+   * @param {GameModelLibrary} options.modelLibrary
+   * @param {pc.Application} options.app
+   * @param {Array} options.definitions
+   * @param {Array<{definition: {id: string}, variantDefinition: object}>} options.items
+   */
   constructor({ pc, modelLibrary, app, definitions, items }) {
+    /**
+     *
+     * @type {typeof pc}
+     */
     this.#pc = pc;
+    /**
+     *
+     * @type {GameModelLibrary}
+     */
     this.#modelLibrary = modelLibrary;
+    /**
+     *
+     * @type {pc.Entity}
+     */
     this.#entity = new pc.Entity("Map pickup animation actors");
     const tracks = modelLibrary.getAnimationTracks(
       Hero.modelUrl,
-      [...new Set(definitions.map(({ animation }) => animation))],
+      [...new Set(definitions.map(/**
+       *
+       * @param {{animation: string}} options
+       * @param {string} options.animation
+       */
+      ({ animation }) => animation))],
     );
 
     for (const [index, actor] of definitions.entries()) {
@@ -88,6 +156,11 @@ export class MapPickupAnimationActors {
         scale = HERO_ACTOR_SCALE,
       } = actor;
       const sourceItem = items.find(
+        /**
+         *
+         * @param {{definition: import("src/game/GameContracts.js").GameObjectDefinition}} options
+         * @param {import("src/game/GameContracts.js").GameObjectDefinition} options.definition
+         */
         ({ definition }) => definition.id === sequence.item,
       );
       if (!sourceItem) {
@@ -151,6 +224,10 @@ export class MapPickupAnimationActors {
       });
     }
 
+    /**
+     *
+     * @type {pc.EventHandle}
+     */
     this.#updateHandle = app.on("update", this.#update);
   }
 
@@ -158,6 +235,10 @@ export class MapPickupAnimationActors {
     return this.#entity;
   }
 
+  /**
+   *
+   * @returns {Array}
+   */
   get visualRoots() {
     return this.#entity.children;
   }
@@ -177,6 +258,10 @@ export class MapPickupAnimationActors {
     this.#entity.destroy();
   }
 
+  /**
+   *
+   * @param {import("src/game/GameContracts.js").GameCanvasPluginEntry} entry
+   */
   #createHeldItem(entry) {
     return new GroundCoverHeldItem({
       pc: this.#pc,
@@ -196,6 +281,11 @@ export class MapPickupAnimationActors {
     });
   }
 
+  /**
+   *
+   * @param {number} deltaTime
+   * @type {(deltaTime: number) => void}
+   */
   #update = (deltaTime) => {
     for (const entry of this.#entries) {
       const loopDuration = entry.pickupAction.duration + PICKUP_LOOP_PAUSE;

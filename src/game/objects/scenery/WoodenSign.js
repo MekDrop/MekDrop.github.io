@@ -4,15 +4,43 @@ import signModelUrl from "../../models/scenery/arrow-signpost.glb?url";
  * An authored wooden direction sign with an instance-specific inscription.
  */
 export class WoodenSign {
+  /**
+   *
+    * @type {import("playcanvas").Entity}
+   */
   #entity;
+  /**
+   *
+    * @type {import("src/game/objects/ObjectTypes.js").MapObjectDefinition}
+   */
   #definition;
+  /**
+   *
+    * @type {string}
+   */
   #texture;
+  /**
+   *
+    * @type {import("playcanvas").Material}
+   */
   #material;
 
+  /**
+   *
+    * @returns {string}
+   */
   static get modelUrl() {
     return signModelUrl;
   }
 
+  /**
+   *
+   * @param {{pc: typeof import("playcanvas"), app: import("playcanvas").Application, modelLibrary: string, definition: import("src/game/objects/ObjectTypes.js").MapObjectDefinition}} options
+   * @param {typeof import("playcanvas")} options.pc
+   * @param {import("playcanvas").Application} options.app
+   * @param {string} options.modelLibrary
+   * @param {import("src/game/objects/ObjectTypes.js").MapObjectDefinition} options.definition
+   */
   constructor({ pc, app, modelLibrary, definition }) {
     const {
       id,
@@ -42,7 +70,11 @@ export class WoodenSign {
     context.textBaseline = "alphabetic";
     do {
       context.font = `bold ${fontSize}px "Palatino Linotype", Georgia, serif`;
-      if (lines.every((line) => {
+      if (lines.every(/**
+       *
+       * @param {Array<number>} line
+       */
+      (line) => {
         const metrics = context.measureText(line);
         const height = metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent;
         return metrics.width <= 494 && height <= (lines.length > 1 ? 67 : 142);
@@ -110,6 +142,10 @@ export class WoodenSign {
     return this.#definition;
   }
 
+  /**
+   *
+    * @returns {Array<import("playcanvas").Entity>}
+   */
   get visualRoots() {
     return [this.#entity];
   }

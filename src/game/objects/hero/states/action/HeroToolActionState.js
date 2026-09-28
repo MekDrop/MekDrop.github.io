@@ -4,6 +4,11 @@ import { HeroRuntimeActionState } from "./HeroRuntimeActionState.js";
 export class HeroToolActionState extends HeroRuntimeActionState {
   constructor() {
     super(HERO_ACTION.USING_TOOL, {
+      /**
+       *
+       * @param {{payload: import("src/game/objects/ObjectTypes.js").HeroActionPayload}} options
+       * @param {import("src/game/objects/ObjectTypes.js").HeroActionPayload} options.payload
+       */
       animation: ({ payload }) => {
         if (payload.phase === "summon") {
           return payload.tool.summonAnimation;
@@ -19,11 +24,19 @@ export class HeroToolActionState extends HeroRuntimeActionState {
     });
   }
 
+  /**
+   *
+   * @param {import("src/game/objects/ObjectTypes.js").HeroActionContext} owner
+   */
   enter(owner) {
     super.enter(owner);
     owner.feedback.tool.begin(this.payload);
   }
 
+  /**
+   *
+   * @param {import("src/game/objects/ObjectTypes.js").HeroActionContext} owner
+   */
   execute(owner) {
     const action = this.payload;
     const feedback = owner.feedback.tool;
@@ -61,6 +74,10 @@ export class HeroToolActionState extends HeroRuntimeActionState {
     feedback.restartAnimation();
   }
 
+  /**
+   *
+   * @param {import("src/game/objects/ObjectTypes.js").HeroActionContext} owner
+   */
   exit(owner) {
     const action = this.payload;
     owner.feedback.tool.complete(action);

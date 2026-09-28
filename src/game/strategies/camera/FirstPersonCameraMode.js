@@ -5,22 +5,60 @@ const MAXIMUM_DOWNWARD_PITCH = 80;
 const MAXIMUM_UPWARD_PITCH = 60;
 const MAXIMUM_YAW = 80;
 
+/**
+ *
+ * @param {number} degrees
+ */
 function normalizeDegrees(degrees) {
   return ((degrees + 540) % 360) - 180;
 }
 
 export class FirstPersonCameraMode extends AbstractCameraMode {
+  /**
+   *
+   * @type {null}
+   */
   #position = null;
+  /**
+   *
+   * @type {null}
+   */
   #direction = null;
+  /**
+   *
+   * @type {null}
+   */
   #right = null;
+  /**
+   *
+   * @type {null}
+   */
   #yaw = null;
+  /**
+   *
+   * @type {null}
+   */
   #centerYaw = null;
+  /**
+   *
+   * @type {number}
+   */
   #pitch = 0;
 
+  /**
+   *
+   * @returns {boolean}
+   */
   get pointerInputActive() {
     return true;
   }
 
+  /**
+   *
+   * @param {{button: number, captured: boolean}} options
+   * @param {number} options.button
+   * @param {boolean} options.captured
+   */
   pointerDown({ button, captured }) {
     if (button !== 0) {
       return null;
@@ -31,6 +69,14 @@ export class FirstPersonCameraMode extends AbstractCameraMode {
     };
   }
 
+  /**
+   *
+   * @param {{captured: boolean, movementX: number, movementY: number, degreesPerPixel: number}} options
+   * @param {boolean} options.captured
+   * @param {number} options.movementX
+   * @param {number} options.movementY
+   * @param {number} options.degreesPerPixel
+   */
   pointerMove({ captured, movementX, movementY, degreesPerPixel }) {
     if (!captured) {
       return false;
@@ -42,6 +88,10 @@ export class FirstPersonCameraMode extends AbstractCameraMode {
     return true;
   }
 
+  /**
+   *
+   * @returns {import("src/game/GameContracts.js").CameraState}
+   */
   get state() {
     if (!this.#position || !this.#direction) {
       return null;
@@ -75,6 +125,11 @@ export class FirstPersonCameraMode extends AbstractCameraMode {
     this.#pitch = 0;
   }
 
+  /**
+   *
+   * @param {number} yawDegrees
+   * @param {number} pitchDegrees
+   */
   lookBy(yawDegrees, pitchDegrees) {
     if (!Number.isFinite(yawDegrees) || !Number.isFinite(pitchDegrees)) {
       return;
@@ -93,6 +148,11 @@ export class FirstPersonCameraMode extends AbstractCameraMode {
     );
   }
 
+  /**
+   *
+   * @param {{hero: {entity: pc.Entity, position?: pc.Vec3, visible?: boolean}}} options
+   * @param {{entity: pc.Entity, position?: pc.Vec3, visible?: boolean}} options.hero
+   */
   update({ hero }) {
     const pose = hero?.firstPersonCameraPose;
     if (!pose) {

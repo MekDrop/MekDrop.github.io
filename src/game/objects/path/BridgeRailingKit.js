@@ -3,27 +3,93 @@ import bridgeRailingSegmentModelUrl from "../../models/bridge/bridge-railing-seg
 import { SLOPE_DIRECTION } from "../../enum/SlopeDirection.js";
 
 /**
+ * @typedef {object} BridgeSpan
+ * @property {boolean} horizontal
+ * @property {number} center
+ * @property {number} crossCenter
+ * @property {number} start
+ * @property {number} end
+ */
+
+/**
+ * @typedef {object} PathOverpass
+ * @property {Array<{col: number, row: number, riseDirection: string, lowHeight: number, highHeight: number}>} slopeCells
+ * @property {Array<{col: number, row: number}>} approachCells
+ * @property {Array<{col: number, row: number}>} crossingCells
+ * @property {{col: number, row: number, width: number}} crossing
+ * @property {number} deckElevation
+ */
+
+/**
  * Builds flat bridge rails from reusable authored modules.
  */
 export class BridgeRailingKit {
+  /**
+   *
+    * @returns {Array<string>}
+   */
   static get modelUrls() {
     return [bridgeRailingSegmentModelUrl, bridgeRailingPostModelUrl];
   }
 
+  /**
+   *
+    * @type {typeof import("playcanvas")}
+   */
   #pc;
+  /**
+   *
+    * @type {import("../../models/GameModelLibrary.js").GameModelLibrary}
+   */
   #modelLibrary;
+  /**
+   *
+    * @type {Map<string, import("playcanvas").Material>}
+   */
   #materials;
+  /**
+   *
+    * @type {import("playcanvas").Entity}
+   */
   #root;
+  /**
+   *
+    * @type {Map<string, Array<number>>}
+   */
   #segmentMatrices = new Map();
+  /**
+   *
+    * @type {Map<string, Array<number>>}
+   */
   #postMatrices = new Map();
 
+  /**
+   *
+   * @param {{pc: typeof import("playcanvas"), modelLibrary: import("../../models/GameModelLibrary.js").GameModelLibrary, materials: Map<string, import("playcanvas").Material>, root: import("playcanvas").Entity}} options
+   * @param {typeof import("playcanvas")} options.pc
+   * @param {import("../../models/GameModelLibrary.js").GameModelLibrary} options.modelLibrary
+   * @param {Map<string, import("playcanvas").Material>} options.materials
+   * @param {import("playcanvas").Entity} options.root
+   */
   constructor({ pc, modelLibrary, materials, root }) {
+
     this.#pc = pc;
+
     this.#modelLibrary = modelLibrary;
+
     this.#materials = materials;
+
     this.#root = root;
   }
 
+  /**
+   *
+   * @param {BridgeSpan} span
+   * @param {number} height
+   * @param {string} material
+   * @param {number} cols
+   * @param {number} rows
+   */
   addSpan(span, height, material, cols, rows) {
     const centerX =
       (span.horizontal ? span.center : span.crossCenter) - (cols - 1) / 2;
@@ -34,6 +100,11 @@ export class BridgeRailingKit {
       postPositions.push(position);
     }
     const uniquePostPositions = [...new Set(postPositions)].sort(
+      /**
+       *
+       * @param {number} left
+       * @param {number} right
+       */
       (left, right) => left - right,
     );
 
@@ -70,19 +141,39 @@ export class BridgeRailingKit {
     }
   }
 
+  /**
+   *
+   * @param {PathOverpass} overpass
+   * @param {string} material
+   * @param {number} cols
+   * @param {number} rows
+   */
   addOverpass(overpass, material, cols, rows) {
     const pathCells = [
       ...overpass.slopeCells,
       ...overpass.approachCells,
       ...overpass.crossingCells,
     ];
-    const start = Math.min(...pathCells.map((cell) => cell.row));
-    const end = Math.max(...pathCells.map((cell) => cell.row));
+    const start = Math.min(...pathCells.map(/**
+     *
+     * @param {number} cell
+     */
+    (cell) => cell.row));
+    const end = Math.max(...pathCells.map(/**
+     *
+     * @param {number} cell
+     */
+    (cell) => cell.row));
     const postPositions = [start - 0.34, end + 0.34];
     for (let position = start + 0.5; position < end; position += 1) {
       postPositions.push(position);
     }
-    postPositions.sort((left, right) => left - right);
+    postPositions.sort(/**
+     *
+     * @param {number} left
+     * @param {number} right
+     */
+    (left, right) => left - right);
 
     const centerX =
       overpass.crossing.col +
@@ -135,6 +226,12 @@ export class BridgeRailingKit {
     ];
   }
 
+  /**
+   *
+   * @param {string} material
+   * @param {import("playcanvas").Vec3} start
+   * @param {import("playcanvas").Vec3} end
+   */
   #addSegment(material, start, end) {
     const direction = new this.#pc.Vec3().sub2(end, start);
     const fullLength = direction.length();
@@ -157,6 +254,11 @@ export class BridgeRailingKit {
     );
   }
 
+  /**
+   *
+   * @param {string} material
+   * @param {{x: number, y: number, z: number}} position
+   */
   #addPost(material, position) {
     this.#addMatrix(
       this.#postMatrices,
@@ -167,6 +269,14 @@ export class BridgeRailingKit {
     );
   }
 
+  /**
+   *
+   * @param {Map<string, Array<number>>} batches
+   * @param {string} material
+   * @param {import("playcanvas").Vec3} position
+   * @param {import("playcanvas").Quat} rotation
+   * @param {import("playcanvas").Vec3} scale
+   */
   #addMatrix(batches, material, position, rotation, scale) {
     const matrix = new this.#pc.Mat4();
     matrix.setTRS(position, rotation, scale);
@@ -177,6 +287,11 @@ export class BridgeRailingKit {
     batches.set(material, matrices);
   }
 
+  /**
+   *
+   * @param {PathOverpass} overpass
+   * @param {number} position
+   */
   #overpassHeightAt(overpass, position) {
     for (const slope of overpass.slopeCells) {
       if (position < slope.row - 0.5 || position > slope.row + 0.5) {
@@ -195,6 +310,12 @@ export class BridgeRailingKit {
     return overpass.deckElevation;
   }
 
+  /**
+   *
+   * @param {string} modelUrl
+   * @param {Map<string, Array<number>>} batches
+   * @param {string} name
+   */
   #buildModelBatches(modelUrl, batches, name) {
     const vertexBuffers = [];
     for (const [materialName, matrices] of batches.entries()) {
