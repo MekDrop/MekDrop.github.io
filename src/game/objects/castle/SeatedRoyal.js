@@ -6,6 +6,7 @@ import { ROYAL_ANIMATION } from "../../enum/RoyalAnimation.js";
 import { KingGameOverBehavior } from "./KingGameOverBehavior.js";
 import { PrincessGameOverBehavior } from "./PrincessGameOverBehavior.js";
 import { QueenGameOverBehavior } from "./QueenGameOverBehavior.js";
+import { RoyalGameOverRouteFollower } from "./RoyalGameOverRouteFollower.js";
 import { RoyalTears } from "./RoyalTears.js";
 
 const MODEL_URLS = Object.freeze([
@@ -34,6 +35,7 @@ export class SeatedRoyal {
   #gameOverBehavior;
   #gameOverRoute = null;
   #tears;
+  #walkDuration;
 
   constructor({ pc, app, modelUrl = kingModelUrl, modelLibrary }) {
     const modelIndex = MODEL_URLS.indexOf(modelUrl);
@@ -41,6 +43,8 @@ export class SeatedRoyal {
     const GameOverBehaviorType =
       GAME_OVER_BEHAVIOR_TYPES[modelIndex] ?? KingGameOverBehavior;
     const walkAnimationSpeed = WALK_OUT_ANIMATION_SPEED * ROYAL_WALK_SPEED[kind];
+    const walkDuration = 3.2 / walkAnimationSpeed;
+    this.#walkDuration = walkDuration;
     this.#entity = modelLibrary.instantiate(modelUrl);
     this.#entity.name = "Seated royal";
     const tracks = modelLibrary.getAnimationTracks(modelUrl, [
@@ -62,7 +66,7 @@ export class SeatedRoyal {
     );
     this.#tears = new RoyalTears({ pc, app, royal: this.#entity });
     this.#gameOverBehavior = new GameOverBehaviorType({
-      walkDuration: 3.2 / walkAnimationSpeed,
+      walkDuration,
       walkStartDelay: WALK_START_DELAY,
       beginWalk: () => this.#beginGameOverWalk(),
       move: (progress) => this.#moveGameOverWalk(progress),
@@ -129,20 +133,11 @@ export class SeatedRoyal {
     if (this.#gameOverBehavior.active) {
       return;
     }
-    const waypoints = route.waypoints.map((waypoint) => ({ ...waypoint }));
-    const segmentLengths = [];
-    let totalLength = 0;
-    for (let index = 1; index < waypoints.length; index += 1) {
-      const start = waypoints[index - 1];
-      const end = waypoints[index];
-      const length = Math.hypot(end.x - start.x, end.z - start.z);
-      segmentLengths.push(length);
-      totalLength += length;
-    }
     this.#gameOverRoute = {
-      waypoints,
-      segmentLengths,
-      totalLength,
+      follower: new RoyalGameOverRouteFollower({
+        waypoints: route.waypoints,
+        duration: this.#walkDuration - WALK_START_DELAY,
+      }),
       collisionRadius: route.collisionRadius,
       isBlocked: route.isBlocked,
       getCameraPosition,
@@ -175,15 +170,12 @@ export class SeatedRoyal {
   }
 
   #beginGameOverWalk() {
-    const [startPosition, endPosition] = this.#gameOverRoute.waypoints;
-    this.#face(
-      endPosition.x - startPosition.x,
-      endPosition.z - startPosition.z,
-    );
+    this.#applyGameOverPose(this.#gameOverRoute.follower.pose);
   }
 
   #moveGameOverWalk(progress) {
-    const position = this.#gameOverRoutePoint(progress);
+    const pose = this.#gameOverRoute.follower.advance(progress);
+    const { position } = pose;
     if (
       progress > 0 &&
       this.#gameOverRoute.isBlocked?.(
@@ -195,7 +187,7 @@ export class SeatedRoyal {
       this.#faceGameOverCamera(this.#entity.getLocalPosition());
       return false;
     }
-    this.#entity.setLocalPosition(position.x, position.y, position.z);
+    this.#applyGameOverPose(pose);
     if (progress === 1) {
       this.#faceGameOverCamera(position);
     }
@@ -212,29 +204,14 @@ export class SeatedRoyal {
     }
   }
 
-  #gameOverRoutePoint(progress) {
-    const route = this.#gameOverRoute;
-    const lastWaypoint = route.waypoints.at(-1);
-    if (route.totalLength <= 0.001 || progress >= 1) {
-      return { ...lastWaypoint };
-    }
-    let remaining = route.totalLength * progress;
-    for (let index = 0; index < route.segmentLengths.length; index += 1) {
-      const length = route.segmentLengths[index];
-      if (remaining > length) {
-        remaining -= length;
-        continue;
-      }
-      const start = route.waypoints[index];
-      const end = route.waypoints[index + 1];
-      const segmentProgress = length > 0 ? remaining / length : 1;
-      return {
-        x: start.x + (end.x - start.x) * segmentProgress,
-        y: start.y + (end.y - start.y) * segmentProgress,
-        z: start.z + (end.z - start.z) * segmentProgress,
-      };
-    }
-    return { ...lastWaypoint };
+  #applyGameOverPose({ position, rotation }) {
+    this.#entity.setLocalPosition(position.x, position.y, position.z);
+    this.#entity.setLocalRotation(
+      rotation.x,
+      rotation.y,
+      rotation.z,
+      rotation.w,
+    );
   }
 
   #face(x, z) {
