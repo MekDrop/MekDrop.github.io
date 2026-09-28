@@ -1168,7 +1168,7 @@ export class PlayCanvasRenderer {
           this.#grassCarpet.supportPointsWithin(position, radius),
         onObjectRemoved: (removedObject) => {
           this.#buriedTreasure?.removeMapObject(removedObject);
-          this.#grassSurface?.refreshObstacles(removedObject);
+          this.#grassSurface?.refreshObstacles(removedObject.tile);
         },
         onRuntimeError: this.#onRuntimeError,
       },

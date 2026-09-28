@@ -6,6 +6,7 @@ import {
   TallTree,
 } from "./trees/index.js";
 import { VegetationInteraction } from "./VegetationInteraction.js";
+import { VegetationDirtPatch } from "./VegetationDirtPatch.js";
 
 const VEGETATION_TYPES = Object.freeze({
   oak: OakTree,
@@ -26,16 +27,22 @@ export class VoxelVegetation {
 
   #entity;
   #items = [];
+  #dirtPatches = [];
+  #pc;
+  #app;
   #tool = null;
   #onVegetationRemoved;
 
   constructor({
     pc,
+    app,
     definitions,
     modelLibrary,
     runtime = {},
   }) {
     this.#entity = new pc.Entity("Voxel vegetation");
+    this.#pc = pc;
+    this.#app = app;
     this.#onVegetationRemoved = ({ col, row, kind }) =>
       runtime.onObjectRemoved?.({
         object: "Vegetation",
@@ -62,6 +69,7 @@ export class VoxelVegetation {
         item,
         col: vegetation.tile.col,
         row: vegetation.tile.row,
+        rotation: vegetation.rotation ?? 0,
       });
     }
   }
@@ -103,7 +111,7 @@ export class VoxelVegetation {
     const position = hero.position;
     const facingDirection = hero.facingDirection;
     let closest = null;
-    for (const { item, col, row } of this.#items) {
+    for (const { item, col, row, rotation } of this.#items) {
       if (!item.canInteract) {
         continue;
       }
@@ -125,7 +133,7 @@ export class VoxelVegetation {
       if (distance > reach || (closest && distance >= closest.distance)) {
         continue;
       }
-      closest = { item, col, row, distance };
+      closest = { item, col, row, rotation, distance };
     }
     return closest
       ? new VegetationInteraction({
@@ -134,12 +142,14 @@ export class VoxelVegetation {
           tool: this.#tool,
           onChange,
           onComplete,
-          onDestroyed: ({ kind }) =>
+          onDestroyed: (description) => {
+            this.#leaveDirtPatch(description, closest.rotation);
             this.#onVegetationRemoved({
               col: closest.col,
               row: closest.row,
-              kind,
-            }),
+              kind: description.kind,
+            });
+          },
         })
       : null;
   }
@@ -151,10 +161,15 @@ export class VoxelVegetation {
   }
 
   grassWeightAt(x, z, elevation) {
-    return this.#items.reduce(
+    const vegetationWeight = this.#items.reduce(
       (weight, { item }) =>
         Math.max(weight, item.grassWeightAt(x, z, elevation)),
       0,
+    );
+    return this.#dirtPatches.reduce(
+      (weight, patch) =>
+        Math.max(weight, patch.grassWeightAt(x, z, elevation)),
+      vegetationWeight,
     );
   }
 
@@ -232,8 +247,29 @@ export class VoxelVegetation {
   }
 
   destroy() {
+    for (const patch of this.#dirtPatches) {
+      patch.destroy();
+    }
     this.#entity?.destroy();
     this.#entity = null;
     this.#items = [];
+    this.#dirtPatches = [];
+    this.#pc = null;
+    this.#app = null;
+  }
+
+  #leaveDirtPatch({ id, groundFootprint, x, y, z }, rotation) {
+    const patch = new VegetationDirtPatch({
+      pc: this.#pc,
+      app: this.#app,
+      id,
+      footprint: groundFootprint,
+      x,
+      y,
+      z,
+      rotation,
+    });
+    this.#entity.addChild(patch.entity);
+    this.#dirtPatches.push(patch);
   }
 }

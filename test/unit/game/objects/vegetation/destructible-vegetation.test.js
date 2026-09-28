@@ -37,6 +37,13 @@ describe("destructible vegetation grass footprint", () => {
     assert.equal(vegetation.grassWeightAt(2.25, 4, 3.002), 1);
     assert.equal(vegetation.grassWeightAt(2, 4, 3.002), 0);
     assert.equal(vegetation.grassWeightAt(1.75, 4, 4), 0);
+
+    vegetation.cut();
+    const result = vegetation.cut();
+    assert.deepEqual(result.groundFootprint, [
+      { x: -0.25, z: 0, width: 0.25, depth: 0.25 },
+      { x: 0.25, z: 0, width: 0.25, depth: 0.25 },
+    ]);
   });
 
   it("builds Ammo bodies for every generated tree and bush voxel", () => {

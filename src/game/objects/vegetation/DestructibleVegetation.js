@@ -112,10 +112,13 @@ export class DestructibleVegetation {
     this.#health -= 1;
     if (this.#health <= 0) {
       const description = this.describe();
+      const groundFootprint = this.#grassFootprints.map((footprint) => ({
+        ...footprint,
+      }));
       this.#destroyed = true;
       this.#physicsCollider = null;
       this.#entity.destroy();
-      return { ...description, destroyed: true };
+      return { ...description, destroyed: true, groundFootprint };
     }
 
     const cutsTaken = this.#maxHealth - this.#health;

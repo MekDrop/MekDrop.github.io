@@ -83,6 +83,7 @@ export class MapObjectFactory {
     if (vegetationDefinitions.length) {
       const vegetation = new VoxelVegetation({
         pc,
+        app,
         modelLibrary,
         definitions: vegetationDefinitions,
         runtime,
