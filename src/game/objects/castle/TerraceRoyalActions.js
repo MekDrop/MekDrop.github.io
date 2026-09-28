@@ -1,5 +1,5 @@
 import { CASTLE_TERRACE_PHASE as PHASE } from "../../enum/CastleTerracePhase.js";
-import { syncTerraceWalk } from "./TerraceMovement.js";
+import { syncTerraceWalk, terracePathYaw } from "./TerraceMovement.js";
 
 const DOORWAY_START_Z = -1.4;
 const DOORWAY_VISIBLE_Z = 0.2;
@@ -126,11 +126,7 @@ export class TerraceRoyalActions {
       -1.05 * (1 - stairProgress),
       position.z,
     );
-    const direction = leaving ? -1 : 1;
-    const yaw = Math.atan2(
-      (after.x - before.x) * direction,
-      (after.z - before.z) * direction,
-    ) * 180 / Math.PI;
+    const yaw = terracePathYaw([before, after], leaving);
     this.#royal.entity.setLocalEulerAngles(0, yaw, 0);
     this.#royal.entity.enabled = position.z > DOORWAY_VISIBLE_Z;
     const moving = travelTime > 0 && travelTime < travelDuration;
