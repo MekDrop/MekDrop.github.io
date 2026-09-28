@@ -38,6 +38,10 @@ export class HeroCollectingActionState extends HeroRuntimeActionState {
       animation: ({ payload }) => payload.positioning
         ? HERO_ANIMATION.WALK
         : payload.animation,
+      allowedTransitions: [HERO_ACTION.BLOCKED_DIG_REACTION],
+      requiresGrounded: true,
+      blocksMovement: true,
+      allowsIdleHeadLook: false,
     });
   }
 
@@ -78,6 +82,10 @@ export class HeroInventoryFullActionState extends HeroRuntimeActionState {
       animation: ({ payload }) => payload.positioning
         ? HERO_ANIMATION.WALK
         : HERO_ANIMATION.INVENTORY_FULL_COLLAPSE,
+      allowedTransitions: [HERO_ACTION.BLOCKED_DIG_REACTION],
+      requiresGrounded: true,
+      blocksMovement: true,
+      allowsIdleHeadLook: false,
     });
   }
 

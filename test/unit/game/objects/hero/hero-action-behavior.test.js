@@ -13,6 +13,7 @@ function createBehavior(options = {}) {
     holeRefusalDuration: 1.45,
     blockedDigReactionDuration: 1.75,
     repelDuration: 0.5,
+    repelSpeed: 2.2,
     feedback: options.feedback ?? { drowning: {} },
     handler: options.handler,
   });
@@ -214,4 +215,118 @@ it("dispatches updates only through the current action state", () => {
   behavior.update(0.25);
 
   assert.deepEqual(updates, [[HERO_ACTION.ANGRY_ESCAPE, payload, 0.25]]);
+});
+
+it("centralizes action admission on the active and target states", () => {
+  const behavior = createBehavior();
+  assert.equal(
+    behavior.canStart(HERO_ACTION.DODGING, { grounded: true }),
+    true,
+  );
+  assert.equal(
+    behavior.canStart(HERO_ACTION.DODGING, { grounded: false }),
+    false,
+  );
+
+  behavior.dodgeAction = {
+    direction: "left",
+    x: 1,
+    z: 0,
+    speed: 4,
+    facing: { x: 0, z: 1 },
+    duration: 0.5,
+  };
+  assert.equal(
+    behavior.canStart(HERO_ACTION.USING_TOOL, { grounded: true }),
+    true,
+  );
+  assert.equal(
+    behavior.canStart(HERO_ACTION.COLLECTING, { grounded: true }),
+    false,
+  );
+
+  behavior.toolAction = {
+    tool: { summonAnimation: "summon", dismissAnimation: "dismiss" },
+    phase: "summon",
+    useAnimation: "use",
+  };
+  assert.equal(
+    behavior.canStart(HERO_ACTION.DODGING, { grounded: true }),
+    false,
+  );
+  assert(!behavior.canJump);
+});
+
+it("derives movement and facing policy from the active action state", () => {
+  const behavior = createBehavior();
+  behavior.dodgeAction = {
+    direction: "left",
+    x: 1,
+    z: -0.5,
+    speed: 4,
+    facing: { x: 0, z: 1 },
+    duration: 0.5,
+  };
+
+  assert.deepEqual(
+    behavior.movementFor({ x: 9, z: 9 }, { x: 2, z: 3 }),
+    { x: 4, z: -2 },
+  );
+  assert.deepEqual(
+    behavior.facingFor({ x: 1, z: 0 }),
+    { x: 0, z: 1 },
+  );
+  assert.equal(behavior.snapsFacing, true);
+  assert.equal(behavior.allowsFootPlacement, false);
+
+  behavior.repelAction = { x: -1, z: 0.5, elapsed: 0 };
+  assert.deepEqual(
+    behavior.movementFor({ x: 9, z: 9 }, { x: 2, z: 3 }),
+    { x: -2.2, z: 1.1 },
+  );
+  assert(behavior.locksFacing);
+});
+
+it("lets action states drive and clean up their presentation", () => {
+  const presentations = [];
+  const resets = [];
+  const behavior = createBehavior({
+    feedback: {
+      drowning: {
+        updatePresentation: (pose) => presentations.push(["drowning", pose]),
+        endPresentation: () => resets.push("drowning"),
+      },
+      bridgeClimb: {
+        duration: 1.15,
+        catchEnd: 0.25,
+        climbEnd: 0.75,
+        updatePresentation: (pose) => presentations.push(["bridge", pose]),
+        resetPresentation: () => resets.push("bridge"),
+      },
+      respawning: {
+        duration: 1.55,
+        updatePresentation: (progress, elapsed) =>
+          presentations.push(["respawn", { progress, elapsed }]),
+        resetPresentation: () => resets.push("respawn"),
+      },
+    },
+  });
+
+  behavior.drowningAction = { elapsed: 0.4 };
+  behavior.present(0.016);
+  behavior.finish();
+  behavior.bridgeClimbAction = { elapsed: 0.4 };
+  behavior.present(0.016);
+  behavior.fallingToDeath = true;
+  behavior.respawnAction = { elapsed: 0.31 };
+  behavior.present(0.016);
+  behavior.finish();
+
+  assert.deepEqual(presentations.map(([kind]) => kind), [
+    "drowning",
+    "bridge",
+    "respawn",
+  ]);
+  assert.deepEqual(resets, ["drowning", "bridge", "respawn"]);
+  assert(Math.abs(presentations[2][1].progress - 0.2) < Number.EPSILON);
 });

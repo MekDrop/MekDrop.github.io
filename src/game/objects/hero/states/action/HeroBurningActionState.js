@@ -9,6 +9,9 @@ export class HeroBurningActionState extends HeroRuntimeActionState {
       exclusive: true,
       incapacitated: true,
       dying: true,
+      locksFacing: true,
+      allowsFootPlacement: false,
+      allowsIdleHeadLook: false,
     });
   }
 

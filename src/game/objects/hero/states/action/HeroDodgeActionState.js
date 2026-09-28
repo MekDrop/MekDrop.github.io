@@ -14,6 +14,21 @@ export class HeroDodgeActionState extends HeroRuntimeActionState {
     super(HERO_ACTION.DODGING, {
       animation: ({ payload }) => ANIMATIONS[payload.direction]
         ?? HERO_ANIMATION.DODGE_FORWARD,
+      allowedTransitions: [
+        HERO_ACTION.USING_TOOL,
+        HERO_ACTION.BLOCKED_DIG_REACTION,
+      ],
+      allowsJump: true,
+      requiresGrounded: true,
+      movement: ({ payload }) => ({
+        x: payload.x * payload.speed,
+        z: payload.z * payload.speed,
+      }),
+      facing: ({ payload }) => payload.facing,
+      snapFacing: ({ payload }) =>
+        payload.direction === "left" || payload.direction === "right",
+      allowsFootPlacement: false,
+      allowsIdleHeadLook: false,
     });
   }
 

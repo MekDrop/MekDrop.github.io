@@ -16,6 +16,14 @@ import {
 import { HeroDodgeActionState } from "../../states/action/HeroDodgeActionState.js";
 import { HeroPatReactionActionState } from "../../states/action/HeroPatReactionActionState.js";
 
+const USER_ACTIONS = [
+  HERO_ACTION.DODGING,
+  HERO_ACTION.USING_TOOL,
+  HERO_ACTION.COLLECTING,
+  HERO_ACTION.INVENTORY_FULL_REACTION,
+  HERO_ACTION.BLOCKED_DIG_REACTION,
+];
+
 export class HeroActionBehavior {
   #stateMachine;
   #context;
@@ -32,6 +40,7 @@ export class HeroActionBehavior {
     holeRefusalDuration,
     blockedDigReactionDuration,
     repelDuration,
+    repelSpeed,
     feedback,
     handler = null,
   }) {
@@ -47,6 +56,7 @@ export class HeroActionBehavior {
       holeRefusalDuration,
       blockedDigReactionDuration,
       repelDuration,
+      repelSpeed,
       feedback,
       get deltaTime() {
         return this.behavior.deltaTime;
@@ -79,10 +89,16 @@ export class HeroActionBehavior {
   get #states() {
     const state = (action, options) => new HeroRuntimeActionState(action, options);
     return [
-      state(HERO_ACTION.EXPLORING, { canBePatted: true }),
+      state(HERO_ACTION.EXPLORING, {
+        canBePatted: true,
+        allowedTransitions: USER_ACTIONS,
+        allowsJump: true,
+      }),
       state(HERO_ACTION.BOOSTING_COUNTRY_FINANCES, {
         animation: HERO_ANIMATION.IDLE,
         canBePatted: true,
+        allowedTransitions: USER_ACTIONS,
+        allowsJump: true,
       }),
       new HeroToolActionState(),
       new HeroCollectingActionState(),
@@ -91,7 +107,16 @@ export class HeroActionBehavior {
       new HeroTimedActionState(
         HERO_ACTION.REPELLED,
         this.#context.repelDuration,
-        { animation: HERO_ANIMATION.REPELLED },
+        {
+          animation: HERO_ANIMATION.REPELLED,
+          allowedTransitions: [HERO_ACTION.BLOCKED_DIG_REACTION],
+          movement: ({ owner, payload }) => ({
+            x: payload.x * owner.repelSpeed,
+            z: payload.z * owner.repelSpeed,
+          }),
+          locksFacing: true,
+          allowsIdleHeadLook: false,
+        },
       ),
       new HeroTimedActionState(
         HERO_ACTION.EDGE_REFUSAL,
@@ -100,19 +125,37 @@ export class HeroActionBehavior {
           animation: ({ payload }) => payload.foot === FOOT_SIDE.RIGHT
             ? HERO_ANIMATION.EDGE_REFUSE_RIGHT
             : HERO_ANIMATION.EDGE_REFUSE_LEFT,
+          allowedTransitions: [HERO_ACTION.BLOCKED_DIG_REACTION],
+          allowsJump: true,
+          blocksMovement: true,
+          facing: ({ payload }) => payload.direction,
         },
       ),
       new HeroTimedActionState(
         HERO_ACTION.HOLE_REFUSAL,
         this.#context.holeRefusalDuration,
-        { animation: HERO_ANIMATION.HOLE_REFUSAL },
+        {
+          animation: HERO_ANIMATION.HOLE_REFUSAL,
+          allowedTransitions: [HERO_ACTION.BLOCKED_DIG_REACTION],
+          blocksMovement: true,
+          facing: ({ payload }) => payload.direction,
+          allowsIdleHeadLook: false,
+          locksHeadForward: true,
+        },
       ),
       new HeroTimedActionState(
         HERO_ACTION.BLOCKED_DIG_REACTION,
         this.#context.blockedDigReactionDuration,
-        { animation: HERO_ANIMATION.DIG_BLOCKED_ANNOYED },
+        {
+          animation: HERO_ANIMATION.DIG_BLOCKED_ANNOYED,
+          allowedTransitions: [HERO_ACTION.BLOCKED_DIG_REACTION],
+          requiresGrounded: true,
+          blocksMovement: true,
+          allowsIdleHeadLook: false,
+          locksHeadForward: true,
+        },
       ),
-      new HeroPatReactionActionState(),
+      new HeroPatReactionActionState(USER_ACTIONS),
       state(HERO_ACTION.ANGRY_ESCAPE, { canBePatted: true }),
       new HeroDrowningActionState(),
       new HeroBridgeClimbActionState(),
@@ -120,12 +163,19 @@ export class HeroActionBehavior {
         animation: HERO_ANIMATION.FALL_DEATH,
         incapacitated: true,
         dying: true,
+        movement: ({ velocity }) => ({ x: velocity.x, z: velocity.z }),
+        locksFacing: true,
+        allowsFootPlacement: false,
+        allowsIdleHeadLook: false,
       }),
       new HeroBurningActionState(),
       new HeroRespawningActionState(),
       state(HERO_ACTION.GAME_OVER, {
         animation: HERO_ANIMATION.FALL_DEATH,
         incapacitated: true,
+        locksFacing: true,
+        allowsFootPlacement: false,
+        allowsIdleHeadLook: false,
       }),
     ];
   }
@@ -180,6 +230,59 @@ export class HeroActionBehavior {
 
   get canBePatted() {
     return this.#stateMachine.currentState.canBePatted;
+  }
+
+  get canJump() {
+    return this.#stateMachine.currentState.allowsJump;
+  }
+
+  get locksFacing() {
+    return this.#stateMachine.currentState.locksFacing;
+  }
+
+  get snapsFacing() {
+    return this.#stateMachine.currentState.snapsFacing(this.#context);
+  }
+
+  get allowsFootPlacement() {
+    return this.#stateMachine.currentState.allowsFootPlacement;
+  }
+
+  get allowsIdleHeadLook() {
+    return this.#stateMachine.currentState.allowsIdleHeadLook;
+  }
+
+  get locksHeadForward() {
+    return this.#stateMachine.currentState.locksHeadForward;
+  }
+
+  get controlsHeadPresentation() {
+    return this.#stateMachine.currentState.controlsHeadPresentation;
+  }
+
+  canStart(action, { grounded = false } = {}) {
+    const target = this.#statesByAction.get(action);
+    if (!target || (target.requiresGrounded && !grounded)) {
+      return false;
+    }
+    return this.#stateMachine.currentState.allowsTransitionTo(action);
+  }
+
+  movementFor(desired, velocity) {
+    return this.#stateMachine.currentState.movementFor(
+      this.#context,
+      desired,
+      velocity,
+    );
+  }
+
+  facingFor(fallback) {
+    return this.#stateMachine.currentState.facingFor(this.#context, fallback);
+  }
+
+  present(deltaTime) {
+    this.#deltaTime = deltaTime;
+    this.#stateMachine.currentState.present(this.#context);
   }
 
   get boostingCountryFinances() {

@@ -7,6 +7,10 @@ export class HeroRespawningActionState extends HeroRuntimeActionState {
     super(HERO_ACTION.RESPAWNING, {
       animation: HERO_ANIMATION.RESPAWN,
       incapacitated: true,
+      blocksMovement: true,
+      locksFacing: true,
+      allowsFootPlacement: false,
+      allowsIdleHeadLook: false,
     });
   }
 
@@ -16,10 +20,22 @@ export class HeroRespawningActionState extends HeroRuntimeActionState {
       feedback.duration,
       this.payload.elapsed + owner.deltaTime,
     );
-    feedback.update();
     if (this.payload.elapsed >= feedback.duration) {
       owner.finish();
       feedback.complete();
     }
+  }
+
+  exit(owner) {
+    owner.feedback.respawning?.resetPresentation?.();
+    super.exit(owner);
+  }
+
+  present(owner) {
+    const feedback = owner.feedback.respawning;
+    feedback.updatePresentation?.(
+      Math.min(1, this.payload.elapsed / feedback.duration),
+      this.payload.elapsed,
+    );
   }
 }

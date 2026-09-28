@@ -3,10 +3,12 @@ import { HERO_ANIMATION } from "../../../../enum/HeroAnimation.js";
 import { HeroRuntimeActionState } from "./HeroRuntimeActionState.js";
 
 export class HeroPatReactionActionState extends HeroRuntimeActionState {
-  constructor() {
+  constructor(allowedTransitions = []) {
     super(HERO_ACTION.PAT_REACTION, {
       animation: HERO_ANIMATION.PAT_ANNOYED,
       canBePatted: true,
+      allowedTransitions,
+      allowsJump: true,
     });
   }
 

@@ -13,6 +13,9 @@ export class HeroToolActionState extends HeroRuntimeActionState {
         }
         return payload.useAnimation;
       },
+      requiresGrounded: true,
+      blocksMovement: true,
+      allowsIdleHeadLook: false,
     });
   }
 

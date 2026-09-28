@@ -4,12 +4,17 @@ import { RIVER_KIND } from "../../../../enum/RiverKind.js";
 import { HeroWaterMotion } from "../../HeroWaterMotion.js";
 import { HeroRuntimeActionState } from "./HeroRuntimeActionState.js";
 
+const HEAD_YAW_LIMIT = 46;
+
 export class HeroDrowningActionState extends HeroRuntimeActionState {
   constructor() {
     super(HERO_ACTION.DROWNING, {
       animation: HERO_ANIMATION.IDLE,
       exclusive: true,
       incapacitated: true,
+      allowsFootPlacement: false,
+      allowsIdleHeadLook: false,
+      controlsHeadPresentation: true,
     });
   }
 
@@ -108,6 +113,37 @@ export class HeroDrowningActionState extends HeroRuntimeActionState {
       z: distance > feedback.waypointEpsilon
         ? (deltaZ / distance) * feedback.currentSpeed
         : 0,
+    });
+  }
+
+  exit(owner) {
+    owner.feedback.drowning.endPresentation?.();
+    super.exit(owner);
+  }
+
+  present(owner) {
+    const elapsed = this.payload.elapsed;
+    const scanningYaw =
+      Math.sin(elapsed * 9.5) * 29
+      + Math.sin(elapsed * 17.3 + 1.2) * 11;
+    const startledJerk =
+      Math.max(0, Math.sin(elapsed * 4.1) - 0.68)
+      * Math.sin(elapsed * 31)
+      * 25;
+    const yaw = Math.max(
+      -HEAD_YAW_LIMIT,
+      Math.min(HEAD_YAW_LIMIT, scanningYaw + startledJerk),
+    );
+    const pitch =
+      7 + Math.sin(elapsed * 13.1 + 0.4) * 8 + Math.sin(elapsed * 27) * 3;
+    const roll =
+      Math.sin(elapsed * 11.7 + 0.8) * 8
+      + Math.sin(elapsed * 23.5) * 2.5;
+    owner.feedback.drowning.updatePresentation?.({
+      pitch,
+      yaw,
+      roll,
+      mouthScale: 1.5 + (Math.sin(elapsed * 15.5) + 1) * 0.22,
     });
   }
 }

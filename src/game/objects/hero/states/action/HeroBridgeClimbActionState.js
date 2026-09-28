@@ -16,6 +16,9 @@ export class HeroBridgeClimbActionState extends HeroRuntimeActionState {
           : HERO_ANIMATION.JUMP,
       exclusive: true,
       incapacitated: true,
+      allowsFootPlacement: false,
+      allowsIdleHeadLook: false,
+      controlsHeadPresentation: true,
     });
   }
 
@@ -66,5 +69,42 @@ export class HeroBridgeClimbActionState extends HeroRuntimeActionState {
       owner.finish();
       feedback.complete();
     }
+  }
+
+  exit(owner) {
+    owner.feedback.bridgeClimb?.resetPresentation?.();
+    super.exit(owner);
+  }
+
+  present(owner) {
+    const feedback = owner.feedback.bridgeClimb;
+    const elapsed = this.payload.elapsed;
+    let armPitch;
+    let armSpread;
+    if (elapsed < feedback.catchEnd) {
+      const phase = smoothProgress(elapsed / feedback.catchEnd);
+      armPitch = -92 * phase;
+      armSpread = 12 * phase;
+    } else if (elapsed < feedback.climbEnd) {
+      const phase = smoothProgress(
+        (elapsed - feedback.catchEnd)
+          / (feedback.climbEnd - feedback.catchEnd),
+      );
+      armPitch = -92 + phase * 27;
+      armSpread = 12 - phase * 5;
+    } else {
+      const phase = smoothProgress(
+        (elapsed - feedback.climbEnd)
+          / (feedback.duration - feedback.climbEnd),
+      );
+      armPitch = -65 * (1 - phase);
+      armSpread = 7 * (1 - phase);
+    }
+    const headPitch = elapsed < feedback.climbEnd
+      ? -10 + Math.sin(elapsed * 18) * 4
+      : -10
+        * (1 - (elapsed - feedback.climbEnd)
+          / (feedback.duration - feedback.climbEnd));
+    feedback.updatePresentation?.({ armPitch, armSpread, headPitch });
   }
 }

@@ -115,7 +115,6 @@ const DROWNING_ENTRY_CLEARANCE = 0.32;
 const LAVA_ENTRY_CLEARANCE = 0.12;
 const DROWNING_SUBMERGE_DEPTH = 0.68;
 const DROWNING_SINK_SPEED = 2.8;
-const DROWNING_HEAD_YAW_LIMIT = 46;
 const LAVA_BURN_DURATION = 1.35;
 const LAVA_ASH_START = 0.68;
 const LAVA_SUBMERGE_DEPTH = 0.82;
@@ -430,6 +429,7 @@ export class Hero {
       holeRefusalDuration: HOLE_REFUSAL_DURATION,
       blockedDigReactionDuration: BLOCKED_DIG_REACTION_DURATION,
       repelDuration: GATEWAY_REPEL_DURATION,
+      repelSpeed: GATEWAY_REPEL_SPEED,
       feedback: {
         actionComplete: (action) => {
           if (action === HERO_ACTION.REPELLED) {
@@ -541,6 +541,12 @@ export class Hero {
             this.#finishDrowningAtWaterfall(direction),
           beginBurning: (routeEntry) => this.#beginLavaDeath(routeEntry),
           beginDrowning: (routeEntry) => this.#beginDrowning(routeEntry),
+          endPresentation: () => this.#setDrowningPresentation(false),
+          updatePresentation: ({ pitch, yaw, roll, mouthScale }) => {
+            this.#headLookYaw = yaw;
+            this.#headEntity?.setLocalEulerAngles(pitch, yaw, roll);
+            this.#mouthEntity?.setLocalScale(1, mouthScale, 1);
+          },
         },
         bridgeClimb: {
           duration: RIVER_BRIDGE_EXIT_DURATION,
@@ -559,6 +565,23 @@ export class Hero {
             };
           },
           complete: () => this.#finishRiverBridgeExit(),
+          updatePresentation: ({ armPitch, armSpread, headPitch }) => {
+            this.#leftArmEntity?.setLocalEulerAngles(
+              armPitch,
+              0,
+              -armSpread,
+            );
+            this.#rightArmEntity?.setLocalEulerAngles(
+              armPitch,
+              0,
+              armSpread,
+            );
+            this.#headEntity?.setLocalEulerAngles(headPitch, 0, 0);
+          },
+          resetPresentation: () => {
+            this.#leftArmEntity?.setLocalEulerAngles(0, 0, 0);
+            this.#rightArmEntity?.setLocalEulerAngles(0, 0, 0);
+          },
         },
         burning: {
           duration: LAVA_BURN_DURATION,
@@ -583,9 +606,11 @@ export class Hero {
         },
         respawning: {
           duration: RESPAWN_ANIMATION_DURATION,
-          update: () => this.#updateRespawnPresentation(),
+          updatePresentation: (progress, elapsed) => {
+            this.#respawnEffect?.update(progress, elapsed, this.#position.y);
+          },
+          resetPresentation: () => this.#respawnEffect?.reset(),
           complete: () => {
-            this.#resetRespawnPresentation();
             this.#restartAnimation = true;
           },
         },
@@ -781,7 +806,6 @@ export class Hero {
       distance,
     );
     this.#actionBehavior.angryEscape = this.#angryEscapeBehavior.active;
-    this.#actionBehavior.angryEscape = this.#angryEscapeBehavior.active;
     this.#jumpBufferRemaining = 0;
     this.#facingHoldRemaining = 0;
     this.#resetBoredom();
@@ -922,24 +946,11 @@ export class Hero {
     if (!this.#acceptAction()) {
       return;
     }
-    if (
-      this.#actionBehavior.gameOver ||
-      this.#actionBehavior.respawnAction ||
-      this.#actionBehavior.fallingToDeath ||
-      this.#actionBehavior.lavaDeathAction ||
-      this.#actionBehavior.drowningAction ||
-      this.#actionBehavior.bridgeClimbAction ||
-      this.#actionBehavior.toolAction ||
-      this.#actionBehavior.collectAction ||
-      this.#actionBehavior.inventoryFullAction ||
-      this.#actionBehavior.repelAction ||
-      this.#actionBehavior.holeRefusalAction ||
-      this.#actionBehavior.blockedDigReactionAction
-    ) {
+    if (!this.#actionBehavior.canJump) {
       return;
     }
     if (this.#actionBehavior.edgeRefusalAction) {
-      this.#actionBehavior.edgeRefusalAction = null;
+      this.#actionBehavior.finish();
       this.#restartAnimation = true;
     }
     this.#jumpBufferRemaining = JUMP_BUFFER_TIME;
@@ -954,18 +965,9 @@ export class Hero {
       return false;
     }
     if (
-      this.#actionBehavior.gameOver ||
-      this.#actionBehavior.respawnAction ||
-      this.#actionBehavior.fallingToDeath ||
-      this.#actionBehavior.lavaDeathAction ||
-      !this.#grounded ||
-      this.#actionBehavior.toolAction ||
-      this.#actionBehavior.collectAction ||
-      this.#actionBehavior.inventoryFullAction ||
-      this.#actionBehavior.repelAction ||
-      this.#actionBehavior.edgeRefusalAction ||
-      this.#actionBehavior.holeRefusalAction ||
-      this.#actionBehavior.blockedDigReactionAction
+      !this.#actionBehavior.canStart(HERO_ACTION.DODGING, {
+        grounded: this.#grounded,
+      })
     ) {
       return false;
     }
@@ -1043,18 +1045,9 @@ export class Hero {
       !tool ||
       !useAnimation ||
       !this.#acceptAction() ||
-      this.#actionBehavior.gameOver ||
-      this.#actionBehavior.respawnAction ||
-      this.#actionBehavior.fallingToDeath ||
-      this.#actionBehavior.lavaDeathAction ||
-      !this.#grounded ||
-      this.#actionBehavior.toolAction ||
-      this.#actionBehavior.collectAction ||
-      this.#actionBehavior.inventoryFullAction ||
-      this.#actionBehavior.repelAction ||
-      this.#actionBehavior.edgeRefusalAction ||
-      this.#actionBehavior.holeRefusalAction ||
-      this.#actionBehavior.blockedDigReactionAction
+      !this.#actionBehavior.canStart(HERO_ACTION.USING_TOOL, {
+        grounded: this.#grounded,
+      })
     ) {
       return false;
     }
@@ -1097,21 +1090,9 @@ export class Hero {
   ) {
     if (
       !this.#acceptAction() ||
-      this.#actionBehavior.gameOver ||
-      this.#actionBehavior.respawnAction ||
-      this.#actionBehavior.fallingToDeath ||
-      this.#actionBehavior.lavaDeathAction ||
-      this.#actionBehavior.drowningAction ||
-      this.#actionBehavior.bridgeClimbAction ||
-      !this.#grounded ||
-      this.#actionBehavior.toolAction ||
-      this.#actionBehavior.collectAction ||
-      this.#actionBehavior.inventoryFullAction ||
-      this.#actionBehavior.repelAction ||
-      this.#actionBehavior.dodgeAction ||
-      this.#actionBehavior.edgeRefusalAction ||
-      this.#actionBehavior.holeRefusalAction ||
-      this.#actionBehavior.blockedDigReactionAction
+      !this.#actionBehavior.canStart(HERO_ACTION.COLLECTING, {
+        grounded: this.#grounded,
+      })
     ) {
       return false;
     }
@@ -1176,14 +1157,9 @@ export class Hero {
   reactToBlockedDig() {
     if (
       !this.#acceptAction() ||
-      this.#actionBehavior.gameOver ||
-      this.#actionBehavior.respawnAction ||
-      this.#actionBehavior.fallingToDeath ||
-      this.#actionBehavior.lavaDeathAction ||
-      this.#actionBehavior.drowningAction ||
-      this.#actionBehavior.bridgeClimbAction ||
-      this.#actionBehavior.toolAction ||
-      !this.#grounded
+      !this.#actionBehavior.canStart(HERO_ACTION.BLOCKED_DIG_REACTION, {
+        grounded: this.#grounded,
+      })
     ) {
       return false;
     }
@@ -1216,19 +1192,9 @@ export class Hero {
     if (
       !this.inventoryFull ||
       !this.#acceptAction() ||
-      this.#actionBehavior.gameOver ||
-      this.#actionBehavior.respawnAction ||
-      this.#actionBehavior.fallingToDeath ||
-      this.#actionBehavior.lavaDeathAction ||
-      !this.#grounded ||
-      this.#actionBehavior.toolAction ||
-      this.#actionBehavior.collectAction ||
-      this.#actionBehavior.inventoryFullAction ||
-      this.#actionBehavior.repelAction ||
-      this.#actionBehavior.dodgeAction ||
-      this.#actionBehavior.edgeRefusalAction ||
-      this.#actionBehavior.holeRefusalAction ||
-      this.#actionBehavior.blockedDigReactionAction
+      !this.#actionBehavior.canStart(HERO_ACTION.INVENTORY_FULL_REACTION, {
+        grounded: this.#grounded,
+      })
     ) {
       return false;
     }
@@ -1383,9 +1349,6 @@ export class Hero {
       if (this.#actionBehavior.angryEscape && !this.#angryEscapeBehavior.active) {
         this.#actionBehavior.angryEscape = false;
       }
-      if (this.#actionBehavior.angryEscape && !this.#angryEscapeBehavior.active) {
-        this.#actionBehavior.angryEscape = false;
-      }
     }
     if (this.#buffs.revision !== buffRevision) {
       this.#syncState();
@@ -1420,29 +1383,10 @@ export class Hero {
       this.#jumpsUsed = 1;
     }
 
-    const desired = this.#actionBehavior.respawnAction
-      ? { x: 0, z: 0 }
-      : this.#actionBehavior.fallingToDeath
-        ? { x: this.#velocity.x, z: this.#velocity.z }
-        : this.#actionBehavior.edgeRefusalAction ||
-            this.#actionBehavior.holeRefusalAction ||
-            this.#actionBehavior.blockedDigReactionAction
-          ? { x: 0, z: 0 }
-          : this.#actionBehavior.toolAction ||
-              this.#actionBehavior.collectAction ||
-              this.#actionBehavior.inventoryFullAction
-            ? { x: 0, z: 0 }
-            : this.#actionBehavior.repelAction
-              ? {
-                  x: this.#actionBehavior.repelAction.x * GATEWAY_REPEL_SPEED,
-                  z: this.#actionBehavior.repelAction.z * GATEWAY_REPEL_SPEED,
-                }
-              : this.#actionBehavior.dodgeAction
-                ? {
-                    x: this.#actionBehavior.dodgeAction.x * this.#actionBehavior.dodgeAction.speed,
-                    z: this.#actionBehavior.dodgeAction.z * this.#actionBehavior.dodgeAction.speed,
-                  }
-                : this.#desiredVelocity();
+    const desired = this.#actionBehavior.movementFor(
+      this.#desiredVelocity(),
+      this.#velocity,
+    );
     const moving = Math.hypot(desired.x, desired.z) > 0.001;
     const acceleration = moving
       ? this.#grounded
@@ -1471,13 +1415,7 @@ export class Hero {
     const canGroundJump = this.#coyoteRemaining > 0;
     const canAirJump = !this.#grounded && this.#jumpsUsed < MAX_JUMPS;
     if (
-      !this.#actionBehavior.respawnAction &&
-      !this.#actionBehavior.fallingToDeath &&
-      !this.#actionBehavior.toolAction &&
-      !this.#actionBehavior.collectAction &&
-      !this.#actionBehavior.inventoryFullAction &&
-      !this.#actionBehavior.blockedDigReactionAction &&
-      !this.#actionBehavior.repelAction &&
+      this.#actionBehavior.canJump &&
       this.#jumpBufferRemaining > 0 &&
       (canGroundJump || canAirJump)
     ) {
@@ -1898,7 +1836,6 @@ export class Hero {
   }
 
   #beginRiverBridgeExit(bridgeCell) {
-    this.#setDrowningPresentation(false);
     this.#velocity = { x: 0, y: 0, z: 0 };
     const direction = this.#riverDirectionVector(bridgeCell.direction);
     const bridgeX = bridgeCell.col - (this.#mapData.cols - 1) / 2;
@@ -1929,7 +1866,6 @@ export class Hero {
   }
 
   #finishRiverBridgeExit() {
-    this.#resetRiverBridgeExitPose();
     this.#velocity = { x: 0, y: 0, z: 0 };
     this.#grounded = true;
     this.#coyoteRemaining = COYOTE_TIME;
@@ -1941,7 +1877,6 @@ export class Hero {
 
   #finishDrowningAtWaterfall(direction) {
     this.#actionBehavior.drowningAction = null;
-    this.#setDrowningPresentation(false);
     this.#velocity = {
       x: direction.x * RIVER_CURRENT_SPEED,
       y: -1.2,
@@ -1994,11 +1929,6 @@ export class Hero {
       return { x: 0, z: 1 };
     }
     return { x: -1, z: 0 };
-  }
-
-  #smoothProgress(progress) {
-    const clamped = Math.max(0, Math.min(1, progress));
-    return clamped * clamped * (3 - 2 * clamped);
   }
 
   #applyPosition(previousX, previousY, previousZ) {
@@ -2988,11 +2918,9 @@ export class Hero {
     this.#physics.gravity = GRAVITY;
     if (this.#actionBehavior.drowningAction) {
       this.#actionBehavior.drowningAction = null;
-      this.#setDrowningPresentation(false);
     }
     if (this.#actionBehavior.bridgeClimbAction) {
       this.#actionBehavior.bridgeClimbAction = null;
-      this.#resetRiverBridgeExitPose();
     }
     this.stopUsingTool({ dismiss: false });
     if (this.#actionBehavior.collectAction?.tool) {
@@ -3047,7 +2975,6 @@ export class Hero {
     this.#physics.gravity = GRAVITY;
     this.#physics.resume(this.#position, this.#velocity);
     this.#respawnEffect.begin(this.#facingYaw, this.#position.y);
-    this.#updateRespawnPresentation();
     this.#gatewayRepelCooldown = 0;
     this.#restartAnimation = true;
     this.#resetBoredom();
@@ -3094,43 +3021,26 @@ export class Hero {
       !this.#holeMovementBlocked &&
       horizontalSpeed <= 0.08;
     const showingBlockedPush = blocked && !this.#blockedPushFinished;
-    const refusingEdge = this.#actionBehavior.edgeRefusalAction !== null;
-    const refusingHole = this.#actionBehavior.holeRefusalAction !== null;
-    const reactingToBlockedDig = this.#actionBehavior.blockedDigReactionAction !== null;
-    const drowning = this.#actionBehavior.drowningAction !== null;
-    const bridgeClimbing = this.#actionBehavior.bridgeClimbAction !== null;
-    const burning = this.#actionBehavior.lavaDeathAction !== null;
     const actionAnimation = this.#actionBehavior.animation;
-    const facingVelocity = this.#actionBehavior.dodgeAction
-      ? this.#actionBehavior.dodgeAction.facing
-      : refusingEdge
-        ? this.#actionBehavior.edgeRefusalAction.direction
-        : refusingHole
-          ? this.#actionBehavior.holeRefusalAction.direction
-          : blocked
+    const defaultFacing = blocked
+      ? this.#desiredVelocity()
+      : queuedFacingDirection
+        ? queuedFacingDirection
+        : this.#hasMovementInput
+          ? this.#grounded
             ? this.#desiredVelocity()
-            : queuedFacingDirection
-            ? queuedFacingDirection
-            : this.#hasMovementInput
-              ? this.#grounded
-                ? this.#desiredVelocity()
-                : { x: this.#velocity.x, z: this.#velocity.z }
-              : this.facingDirection;
-    const locksDodgeFacing =
-      this.#actionBehavior.dodgeAction?.direction === "left" ||
-      this.#actionBehavior.dodgeAction?.direction === "right";
+            : { x: this.#velocity.x, z: this.#velocity.z }
+          : this.facingDirection;
+    const facingVelocity = this.#actionBehavior.facingFor(defaultFacing);
     const previousFacingYaw = this.#facingYaw;
     if (
-      !this.#actionBehavior.fallingToDeath &&
-      !burning &&
-      !this.#actionBehavior.respawnAction &&
-      !this.#actionBehavior.repelAction &&
+      !this.#actionBehavior.locksFacing &&
       this.#facingHoldRemaining === 0 &&
       Math.hypot(facingVelocity.x, facingVelocity.z) > 0.08
     ) {
       const targetYaw =
         (Math.atan2(facingVelocity.x, facingVelocity.z) * 180) / Math.PI;
-      this.#facingYaw = locksDodgeFacing
+      this.#facingYaw = this.#actionBehavior.snapsFacing
         ? targetYaw
         : this.#lerpAngle(
             this.#facingYaw,
@@ -3149,7 +3059,6 @@ export class Hero {
     }
     this.#modelRoot.setLocalEulerAngles(0, this.#facingYaw, 0);
     this.#respawnEffect?.setFacingYaw(this.#facingYaw);
-    if (this.#actionBehavior.respawnAction) this.#updateRespawnPresentation();
     if (Math.abs(this.#facingYaw - previousFacingYaw) > 0.001) {
       this.#onFacingChange?.(this.facingDirection);
     }
@@ -3204,24 +3113,17 @@ export class Hero {
         morph.setWeight("Blink", 0);
       }
     }
-    if (drowning) {
-      this.#updateDrowningHeadPanic();
-    } else if (animation !== HERO_ANIMATION.PAT_ANNOYED) {
+    if (
+      !this.#actionBehavior.controlsHeadPresentation
+      && animation !== HERO_ANIMATION.PAT_ANNOYED
+    ) {
       this.#updateHeadLook(deltaTime);
     }
-    if (bridgeClimbing) {
-      this.#updateRiverBridgeExitPose();
-    }
+    this.#actionBehavior.present(deltaTime);
     this.#footPlacement?.update(
       deltaTime,
       this.#grounded &&
-        !this.#actionBehavior.gameOver &&
-        !this.#actionBehavior.dodgeAction &&
-        !this.#actionBehavior.fallingToDeath &&
-        !this.#actionBehavior.respawnAction &&
-        !drowning &&
-        !bridgeClimbing &&
-        !burning,
+        this.#actionBehavior.allowsFootPlacement,
     );
   }
 
@@ -3259,15 +3161,7 @@ export class Hero {
       !this.#idleLookTarget ||
       this.#hasMovementInput ||
       !this.#grounded ||
-      this.#actionBehavior.toolAction ||
-      this.#actionBehavior.collectAction ||
-      this.#actionBehavior.inventoryFullAction ||
-      this.#actionBehavior.repelAction ||
-      this.#actionBehavior.dodgeAction ||
-      this.#actionBehavior.holeRefusalAction ||
-      this.#actionBehavior.blockedDigReactionAction ||
-      this.#actionBehavior.respawnAction ||
-      this.#actionBehavior.fallingToDeath
+      !this.#actionBehavior.allowsIdleHeadLook
     ) {
       return 0;
     }
@@ -3286,11 +3180,7 @@ export class Hero {
   }
 
   #updateHeadLook(deltaTime) {
-    if (this.#actionBehavior.blockedDigReactionAction) {
-      this.#headLookYaw = 0;
-      return;
-    }
-    if (this.#actionBehavior.holeRefusalAction) {
+    if (this.#actionBehavior.locksHeadForward) {
       this.#headLookYaw = 0;
       return;
     }
@@ -3396,75 +3286,6 @@ export class Hero {
       1 - amount * 0.72,
       1,
     );
-  }
-
-  #updateDrowningHeadPanic() {
-    const elapsed = this.#actionBehavior.drowningAction?.elapsed ?? 0;
-    const scanningYaw =
-      Math.sin(elapsed * 9.5) * 29 +
-      Math.sin(elapsed * 17.3 + 1.2) * 11;
-    const startledJerk =
-      Math.max(0, Math.sin(elapsed * 4.1) - 0.68) *
-      Math.sin(elapsed * 31) *
-      25;
-    const yaw = Math.max(
-      -DROWNING_HEAD_YAW_LIMIT,
-      Math.min(DROWNING_HEAD_YAW_LIMIT, scanningYaw + startledJerk),
-    );
-    const pitch =
-      7 + Math.sin(elapsed * 13.1 + 0.4) * 8 + Math.sin(elapsed * 27) * 3;
-    const roll =
-      Math.sin(elapsed * 11.7 + 0.8) * 8 +
-      Math.sin(elapsed * 23.5) * 2.5;
-    this.#headLookYaw = yaw;
-    this.#headEntity?.setLocalEulerAngles(pitch, yaw, roll);
-    const gasp = 1.5 + (Math.sin(elapsed * 15.5) + 1) * 0.22;
-    this.#mouthEntity?.setLocalScale(1, gasp, 1);
-  }
-
-  #updateRiverBridgeExitPose() {
-    const elapsed = this.#actionBehavior.bridgeClimbAction?.elapsed;
-    if (elapsed === undefined) {
-      return;
-    }
-    let armPitch;
-    let armSpread;
-    if (elapsed < RIVER_BRIDGE_CATCH_END) {
-      const phase = this.#smoothProgress(
-        elapsed / RIVER_BRIDGE_CATCH_END,
-      );
-      armPitch = -92 * phase;
-      armSpread = 12 * phase;
-    } else if (elapsed < RIVER_BRIDGE_CLIMB_END) {
-      const phase = this.#smoothProgress(
-        (elapsed - RIVER_BRIDGE_CATCH_END) /
-          (RIVER_BRIDGE_CLIMB_END - RIVER_BRIDGE_CATCH_END),
-      );
-      armPitch = -92 + phase * 27;
-      armSpread = 12 - phase * 5;
-    } else {
-      const phase = this.#smoothProgress(
-        (elapsed - RIVER_BRIDGE_CLIMB_END) /
-          (RIVER_BRIDGE_EXIT_DURATION - RIVER_BRIDGE_CLIMB_END),
-      );
-      armPitch = -65 * (1 - phase);
-      armSpread = 7 * (1 - phase);
-    }
-    this.#leftArmEntity?.setLocalEulerAngles(armPitch, 0, -armSpread);
-    this.#rightArmEntity?.setLocalEulerAngles(armPitch, 0, armSpread);
-    const effortPitch =
-      elapsed < RIVER_BRIDGE_CLIMB_END
-        ? -10 + Math.sin(elapsed * 18) * 4
-        : -10 *
-          (1 -
-            (elapsed - RIVER_BRIDGE_CLIMB_END) /
-              (RIVER_BRIDGE_EXIT_DURATION - RIVER_BRIDGE_CLIMB_END));
-    this.#headEntity?.setLocalEulerAngles(effortPitch, 0, 0);
-  }
-
-  #resetRiverBridgeExitPose() {
-    this.#leftArmEntity?.setLocalEulerAngles(0, 0, 0);
-    this.#rightArmEntity?.setLocalEulerAngles(0, 0, 0);
   }
 
   #createModel() {
@@ -3658,26 +3479,6 @@ export class Hero {
   }
 
 
-
-  #updateRespawnPresentation() {
-    if (!this.#modelRoot || !this.#actionBehavior.respawnAction) {
-      return;
-    }
-
-    const progress = Math.min(
-      1,
-      this.#actionBehavior.respawnAction.elapsed / RESPAWN_ANIMATION_DURATION,
-    );
-    this.#respawnEffect?.update(
-      progress,
-      this.#actionBehavior.respawnAction.elapsed,
-      this.#position.y,
-    );
-  }
-
-  #resetRespawnPresentation() {
-    this.#respawnEffect?.reset();
-  }
 
   #syncState() {
     const state = {
