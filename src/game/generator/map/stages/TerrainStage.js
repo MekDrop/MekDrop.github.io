@@ -1,31 +1,18 @@
 import { AbstractMapGenerationStage } from "../AbstractMapGenerationStage.js";
 
 /**
- * @typedef {import("../MapGenerationTypes.js").TileMetadata} TileMetadata
- * @typedef {import("../MapGenerationTypes.js").RiverData} RiverData
- * @typedef {import("../MapGenerationTypes.js").OverpassPlan} OverpassPlan
- */
-
-/**
- * Terrain operations still implemented by the facade, excluding dip construction.
- * @typedef {object} TerrainOperations
- * @property {(grid: number[][], heightmap: number[][]) => void} smoothGrassHeights
- * @property {(grid: number[][], heightmap: number[][], tileMeta: TileMetadata[][], plan: OverpassPlan|null) => void} applyOverpassTerrain
- * @property {(grid: number[][], heightmap: number[][], tileMeta: TileMetadata[][], islandMask: boolean[][], rivers: RiverData[]) => void} materializeRiverBanks
- * @property {(grid: number[][], heightmap: number[][], tileMeta: TileMetadata[][], rivers: RiverData[]) => void} materializePathSupports
- * @property {(grid: number[][], tileMeta: TileMetadata[][], heightmap: number[][], rivers: RiverData[]) => void} applyHeightsToMetadata
- * @property {(grid: number[][], tileMeta: TileMetadata[][], islandMask: boolean[][], heightmap: number[][]) => void} materializeSingleCellTerrainHoles
- */
-
-/**
  * Resolves terrain smoothing, banks, supports, dips, and tile elevations.
  */
 export class TerrainStage extends AbstractMapGenerationStage {
   /**
-   *
-   * @type {TerrainOperations}
+   * @type {import("../TerrainBuilder.js").TerrainBuilder}
    */
-  #operations;
+  #terrain;
+
+  /**
+   * @type {import("../RiverBuilder.js").RiverBuilder}
+   */
+  #rivers;
 
   /**
    * @type {import("../TerrainBridgeDipBuilder.js").TerrainBridgeDipBuilder}
@@ -33,39 +20,46 @@ export class TerrainStage extends AbstractMapGenerationStage {
   #dips;
 
   /**
-   *
-   * @param {TerrainOperations} operations
-   * @param {import("../TerrainBridgeDipBuilder.js").TerrainBridgeDipBuilder} dips
+   * @type {import("../IslandBuilder.js").IslandBuilder}
    */
-  constructor(operations, dips) {
+  #island;
+
+  /**
+   * @param {import("../TerrainBuilder.js").TerrainBuilder} terrain
+   * @param {import("../RiverBuilder.js").RiverBuilder} rivers
+   * @param {import("../TerrainBridgeDipBuilder.js").TerrainBridgeDipBuilder} dips
+   * @param {import("../IslandBuilder.js").IslandBuilder} island
+   */
+  constructor(terrain, rivers, dips, island) {
     super();
-    this.#operations = operations;
+    this.#terrain = terrain;
+    this.#rivers = rivers;
     this.#dips = dips;
+    this.#island = island;
   }
 
   /**
-   *
    * @param {import("../GenerationContext.js").GenerationContext} context
    */
   async run(context) {
     const { grid, heightmap, tileMeta, islandMask } = context.world;
     const { layout, mergeZones } = context.routing;
     const { riverData } = context.features;
-    this.#operations.smoothGrassHeights(grid, heightmap);
-    this.#operations.applyOverpassTerrain(
+    this.#terrain.smoothGrassHeights(grid, heightmap);
+    this.#terrain.applyOverpassTerrain(
       grid,
       heightmap,
       tileMeta,
       layout.overpassPlan,
     );
-    this.#operations.materializeRiverBanks(
+    this.#rivers.materializeRiverBanks(
       grid,
       heightmap,
       tileMeta,
       islandMask,
       riverData,
     );
-    this.#operations.materializePathSupports(
+    this.#terrain.materializePathSupports(
       grid,
       heightmap,
       tileMeta,
@@ -79,13 +73,13 @@ export class TerrainStage extends AbstractMapGenerationStage {
       riverData,
       mergeZones,
     );
-    this.#operations.applyHeightsToMetadata(
+    this.#terrain.applyHeightsToMetadata(
       grid,
       tileMeta,
       heightmap,
       riverData,
     );
-    this.#operations.materializeSingleCellTerrainHoles(
+    this.#island.materializeSingleCellTerrainHoles(
       grid,
       tileMeta,
       islandMask,

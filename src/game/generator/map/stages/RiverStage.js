@@ -5,40 +5,40 @@ import { AbstractMapGenerationStage } from "../AbstractMapGenerationStage.js";
  */
 export class RiverStage extends AbstractMapGenerationStage {
   /**
-   *
-   * @type {Array}
+   * @type {import("../TerrainBuilder.js").TerrainBuilder}
    */
-  #operations;
+  #terrain;
 
   /**
-   *
-   * @param {Array<() => void>} operations
+   * @type {import("../RiverBuilder.js").RiverBuilder}
    */
-  constructor(operations) {
+  #rivers;
+
+  /**
+   * @param {import("../TerrainBuilder.js").TerrainBuilder} terrain
+   * @param {import("../RiverBuilder.js").RiverBuilder} rivers
+   */
+  constructor(terrain, rivers) {
     super();
-    /**
-     *
-     * @type {Array}
-     */
-    this.#operations = operations;
+    this.#terrain = terrain;
+    this.#rivers = rivers;
   }
 
   /**
-   *
-   * @param {GenerationContext} context
+   * @param {import("../GenerationContext.js").GenerationContext} context
    */
   async run(context) {
     const { grid, tileMeta, islandMask } = context.world;
     const { layout, requestedNumRivers } = context.routing;
-    const heightmap = this.#operations.buildHeightmap(grid, layout);
-    this.#operations.applyOverpassTerrain(
+    const heightmap = this.#terrain.buildHeightmap(grid, layout);
+    this.#terrain.applyOverpassTerrain(
       grid,
       heightmap,
       tileMeta,
       layout.overpassPlan,
     );
     await context.scheduler.yieldIfNeeded(context.yieldState);
-    const riverData = await this.#operations.generateRivers(
+    const riverData = await this.#rivers.generateRivers(
       grid,
       heightmap,
       tileMeta,
@@ -47,8 +47,8 @@ export class RiverStage extends AbstractMapGenerationStage {
       requestedNumRivers,
       context.yieldState,
     );
-    this.#operations.assignRiverKinds(riverData);
-    this.#operations.raiseLavaSurfaces(heightmap, tileMeta, riverData);
+    this.#rivers.assignRiverKinds(riverData);
+    this.#rivers.raiseLavaSurfaces(heightmap, tileMeta, riverData);
 
     context.world.heightmap = heightmap;
     context.features.riverData = riverData;

@@ -5,27 +5,27 @@ import { AbstractMapGenerationStage } from "../AbstractMapGenerationStage.js";
  */
 export class LayoutStage extends AbstractMapGenerationStage {
   /**
-   *
-   * @type {Array}
+   * @type {import("../LayoutPlanner.js").LayoutPlanner}
    */
-  #operations;
+  #layout;
 
   /**
-   *
-   * @param {Array<() => void>} operations
+   * @type {import("../OverpassPlanner.js").OverpassPlanner}
    */
-  constructor(operations) {
+  #overpasses;
+
+  /**
+   * @param {import("../LayoutPlanner.js").LayoutPlanner} layout
+   * @param {import("../OverpassPlanner.js").OverpassPlanner} overpasses
+   */
+  constructor(layout, overpasses) {
     super();
-    /**
-     *
-     * @type {Array}
-     */
-    this.#operations = operations;
+    this.#layout = layout;
+    this.#overpasses = overpasses;
   }
 
   /**
-   *
-   * @param {GenerationContext} context
+   * @param {import("../GenerationContext.js").GenerationContext} context
    */
   async run(context) {
     const {
@@ -34,15 +34,15 @@ export class LayoutStage extends AbstractMapGenerationStage {
       overpass: requestedOverpass,
       mapName,
     } = context.input;
-    const numPaths = this.#operations.selectPathCount(requestedNumPaths);
-    const layout = this.#operations.createLayoutConfig(numPaths);
+    const numPaths = this.#layout.selectPathCount(requestedNumPaths);
+    const layout = this.#layout.createLayoutConfig(numPaths);
     layout.signature = mapName;
-    layout.overpassPlan = this.#operations.selectOverpassPlan(
+    layout.overpassPlan = this.#overpasses.selectOverpassPlan(
       layout,
       requestedOverpass,
     );
     if (!layout.overpassPlan) {
-      this.#operations.retainSeparatedCurvePlans(layout);
+      this.#layout.retainSeparatedCurvePlans(layout);
     }
 
     context.routing.layout = layout;

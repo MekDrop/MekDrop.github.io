@@ -5,33 +5,33 @@ import { AbstractMapGenerationStage } from "../AbstractMapGenerationStage.js";
  */
 export class CastleStage extends AbstractMapGenerationStage {
   /**
-   *
-   * @type {Array}
+   * @type {import("../CastlePlacement.js").CastlePlacement}
    */
-  #operations;
+  #castle;
 
   /**
-   *
-   * @param {Array<() => void>} operations
+   * @type {import("../IslandBuilder.js").IslandBuilder}
    */
-  constructor(operations) {
+  #island;
+
+  /**
+   * @param {import("../CastlePlacement.js").CastlePlacement} castle
+   * @param {import("../IslandBuilder.js").IslandBuilder} island
+   */
+  constructor(castle, island) {
     super();
-    /**
-     *
-     * @type {Array}
-     */
-    this.#operations = operations;
+    this.#castle = castle;
+    this.#island = island;
   }
 
   /**
-   *
-   * @param {GenerationContext} context
+   * @param {import("../GenerationContext.js").GenerationContext} context
    */
   async run(context) {
     const { grid, tileMeta, islandMask } = context.world;
     const { layout } = context.routing;
-    this.#operations.placeCastle(grid, tileMeta, layout);
-    this.#operations.materializeSingleCellTerrainHoles(
+    this.#castle.placeCastle(grid, tileMeta, layout);
+    this.#island.materializeSingleCellTerrainHoles(
       grid,
       tileMeta,
       islandMask,
