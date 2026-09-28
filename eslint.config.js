@@ -4,13 +4,10 @@ const jsdoc = require("eslint-plugin-jsdoc");
 const vue = require("eslint-plugin-vue");
 
 const oversizedSourceFileExemptions = [
-  "src/game/generator/map/MapGenerator.js",
   "src/game/objects/hero/Hero.js",
   "src/game/PlayCanvasRenderer.js",
   "src/game/objects/treasure/BuriedTreasureField.js",
   "src/game/ui/InventoryHud.js",
-  "src/game/objects/shared/AmmoClothPhysics.js",
-  "src/game/generator/castle/CastleGeometryPlanner.js",
 ];
 
 const baseRestrictedSyntax = [
