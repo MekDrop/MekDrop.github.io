@@ -1,76 +1,30 @@
 # Repository Guidelines
 
-## Project Summary
+## Project Overview
 
-This is a Quasar 2/Vue 3 personal site with a PlayCanvas isometric 3D game layer. `src/layouts/MainLayout.vue` composes the visible site shell, while `src/pages/IndexPage.vue` is intentionally only a route placeholder. Game generation and PlayCanvas rendering belong in `src/game/`; PixiJS remains only in some legacy asset-management code and is not the current game renderer.
+Quasar 2/Vue 3 personal site with a PlayCanvas isometric 3D game layer. `src/layouts/MainLayout.vue` composes the visible site shell; `src/pages/IndexPage.vue` is a route placeholder. Game generation and rendering belong in `src/game/`; PixiJS is legacy asset-management code, not the game renderer.
 
-For faster AI-assisted work, start with [docs/ai/task-map.md](docs/ai/task-map.md) and read the focused rule files only when the task matches their scope.
+Start with [docs/ai/task-map.md](docs/ai/task-map.md) for task locations and focused verification. Read only the relevant focused rule files in `docs/ai/`.
 
-## Project Structure
+## Architecture Invariants
 
-- `src/components/`: reusable Vue components, including `GameCanvas.vue`.
-- `src/game/`: PlayCanvas game systems, map generation, rendering, controls, actions, assets, models, errors, and enums.
-- `src/stores/`: Pinia state.
-- `src/router/`: routes and locale-prefixed routing.
-- `src/i18n/`: locale YAML; adding a locale file also adds an SSG route through `quasar.config.js`.
-- `src/states/`: reusable state classes.
-- `src/assets/`: bundled assets and configuration.
-- `public/`: static, unbundled files.
-- `src-ssr/`: SSR middleware.
-- `docs/ai/`: focused AI guidance; load only the relevant document.
+- Render visible game overlays, prompts, status, counters, and controls as PlayCanvas HUD under `src/game/ui/`, not as visible HTML over `GameCanvas.vue`. Hidden HTML may mirror text for accessibility semantics.
+- Authored entities at map coordinates must enter through the map's `objects` array. Their object class owns rendering and behavior. Generic infrastructure may discover shared needs such as model URLs; do not add entity-specific fields, collections, imports, preload entries, or rendering branches to `PlayCanvasRenderer`. If normal object integration cannot support the entity, ask before adding a special case.
 
-## Commands
+## Universal Code Rules
 
-- `npm install` installs locked dependencies; use Node 24+ and npm 11.9+.
-- `npm run dev:spa`, `npm run dev:ssr`, and `npm run dev:ssg` start mode-specific development servers.
-- `npm run build:spa`, `npm run build:ssr`, and `npm run build:ssg` create mode-specific builds.
-- `npm run serve:ssg` serves generated `dist/ssg` output.
-- `npm run lint` checks JavaScript and Vue files with ESLint.
-- `npm run format` formats JavaScript, Vue, and SCSS files with Prettier.
-- `npm run test:unit` runs Node unit tests.
-- `npm run test:e2e:ci -- --spec test/cypress/e2e/pages/IndexPage.cy.js` runs the current index E2E spec headlessly.
-- `npm run test:e2e:ci` runs all Cypress E2E specs headlessly.
-- `npm run test:game:movement` runs the hero movement E2E spec.
-- `npm run test:game:performance` runs the sealed game performance check.
+Follow `.editorconfig` and [docs/ai/code-style.md](docs/ai/code-style.md). ESLint and Prettier configuration define enforced style. Store temporary helper, conversion, migration, and diagnostic scripts in ignored project-root `tmp/`; never stage or commit its contents.
 
-Before running a build command or Prettier check/format command, check whether `http://localhost:9000` is accessible. If it is accessible, skip build and Prettier steps; other relevant checks such as lint may still run.
+## Verification
 
-## Always-On Style Rules
+Choose the smallest check that covers changed behavior, as listed in the task map and [docs/ai/testing.md](docs/ai/testing.md). Avoid broad suites by default. Before a build or Prettier command, check whether `http://localhost:9000` is accessible; if so, skip that build or formatting step. Relevant lint and focused checks may still run.
 
-Follow `.editorconfig`: UTF-8, LF endings, two-space indentation, final newlines, and no trailing whitespace. ESLint uses Vue's essential rules plus `eslint-config-prettier`; production builds reject `debugger` statements. Run Prettier rather than hand-aligning code.
+## Focused Rules
 
-Vue component filenames and component names use PascalCase. Prefer configured aliases such as `src/*`, `components/*`, and `stores/*` over deep relative imports.
-
-Render player-facing game overlays, prompts, status messages, counters, and controls as PlayCanvas HUD elements under `src/game/ui/`, not as visible HTML layered over `GameCanvas.vue`. HTML may mirror HUD text only when it is visually hidden and needed for accessibility semantics; it must not provide the visual presentation.
-
-Treat every authored entity placed at map coordinates as a normal entry in the map's `objects` array first. Its object class must own its rendering and behavior, and generic object infrastructure may discover shared requirements such as model URLs. Do not add entity-specific fields, collections, imports, preload entries, or rendering branches to `PlayCanvasRenderer`. If the entity cannot be implemented through the normal map-object path, stop and ask the user how to proceed before introducing a special case.
-
-Name abstract base classes with an `Abstract` prefix or `Base` suffix, mark them with a JSDoc `@abstract` annotation, and do not instantiate them directly. Prefer the `Abstract` prefix when the class primarily defines a polymorphic contract. Give abstract or overridable methods concise JSDoc only for non-obvious responsibilities, inputs, outputs, or lifecycle behavior; do not restate the code. Always format JSDoc for classes and methods as multiline starred blocks; single-line JSDoc is forbidden and enforced by ESLint.
-
-Specify the type of every function and method argument with a JSDoc `@param` annotation. Also document class property types with JSDoc and getter return types with `@returns`. A getter may omit its own return-type annotation only when it directly returns an already-typed property without transforming or wrapping the value, making the return type unambiguous from that property.
-
-Do not use broad placeholder types such as `object`, `object[]`, `Array<object>`, `*`, or `unknown` when the code relies on specific properties or methods. Reuse an existing named type or introduce a named class, typedef, or interface-like contract that captures those requirements. When collection elements share polymorphic behavior, define an abstract base class for that behavior, make each supported implementation extend it, and type the collection to that base class so unrelated objects are rejected by tooling.
-
-Before implementing custom JSDoc or lint enforcement, check npm for an established, maintained ESLint plugin or package that provides the rule. Prefer the existing package when it meets the requirement; add a custom rule only when no suitable package exists.
-
-For guard-style conditionals, use explicit brace blocks, even for single statements:
-
-```js
-if (cond) {
-  return value
-}
-```
-
-Store temporary helper, conversion, migration, or diagnostic scripts under the project-root `tmp/` directory. Keep `tmp/` ignored by Git, and never stage or commit its contents.
-
-Recent commits use short, imperative summaries, optionally with Conventional Commit prefixes such as `feat:`, `fix:`, and `refactor(game):`. Keep commits focused on one behavior change. This is a personal site and `CONTRIBUTING.md` says outside contributions are not accepted; there is no pull-request template.
-
-## Conditional Rule Files
-
-- Runtime error recovery: read [docs/ai/runtime-errors.md](docs/ai/runtime-errors.md).
-- Map generation, terrain, paths, water, or validation: read [docs/ai/map-generation.md](docs/ai/map-generation.md).
-- Visible stable 3D characters, architecture, or reusable props: read [docs/ai/blender-models.md](docs/ai/blender-models.md).
-- Physical contact, collision, forces, gravity, inertia, springs, joints, raycasts, rigid bodies, or soft bodies: read [docs/ai/game-physics.md](docs/ai/game-physics.md).
-- Hero dodge movement: read [docs/ai/dodge-movement.md](docs/ai/dodge-movement.md).
-- Game errors and enums: read [docs/ai/game-code-style.md](docs/ai/game-code-style.md).
-- Test creation, organization, and selection: read [docs/ai/testing.md](docs/ai/testing.md).
+- Runtime error recovery: [docs/ai/runtime-errors.md](docs/ai/runtime-errors.md)
+- Map generation, terrain, paths, water, or validation: [docs/ai/map-generation.md](docs/ai/map-generation.md)
+- Stable visible 3D models or props: [docs/ai/blender-models.md](docs/ai/blender-models.md)
+- Physical contact, collision, forces, gravity, inertia, joints, raycasts, rigid bodies, or soft bodies: [docs/ai/game-physics.md](docs/ai/game-physics.md)
+- Hero dodge movement: [docs/ai/dodge-movement.md](docs/ai/dodge-movement.md)
+- Game errors and enums: [docs/ai/game-code-style.md](docs/ai/game-code-style.md)
+- Test creation, organization, and selection: [docs/ai/testing.md](docs/ai/testing.md)
