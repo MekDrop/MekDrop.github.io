@@ -3,6 +3,16 @@ const prettier = require("eslint-config-prettier/flat");
 const jsdoc = require("eslint-plugin-jsdoc");
 const vue = require("eslint-plugin-vue");
 
+const oversizedSourceFileExemptions = [
+  "src/game/generator/map/MapGenerator.js",
+  "src/game/objects/hero/Hero.js",
+  "src/game/PlayCanvasRenderer.js",
+  "src/game/objects/treasure/BuriedTreasureField.js",
+  "src/game/ui/InventoryHud.js",
+  "src/game/objects/shared/AmmoClothPhysics.js",
+  "src/game/generator/castle/CastleGeometryPlanner.js",
+];
+
 const baseRestrictedSyntax = [
   {
     selector:
@@ -245,6 +255,25 @@ module.exports = [
           contexts: typedGetters,
         },
       ],
+    },
+  },
+  {
+    files: ["src/**/*.{js,vue}"],
+    rules: {
+      "max-lines": [
+        "warn",
+        {
+          max: 1000,
+          skipBlankLines: true,
+          skipComments: true,
+        },
+      ],
+    },
+  },
+  {
+    files: oversizedSourceFileExemptions,
+    rules: {
+      "max-lines": "off",
     },
   },
   ...vue.configs["flat/essential"],
