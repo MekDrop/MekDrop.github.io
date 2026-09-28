@@ -1,0 +1,386 @@
+import { StateMachine } from "yuka";
+import { HERO_ACTION } from "../../../../enum/HeroAction.js";
+import { HERO_ANIMATION } from "../../../../enum/HeroAnimation.js";
+import { FOOT_SIDE } from "../../../../enum/FootSide.js";
+import { HeroRuntimeActionState } from "../../states/action/HeroRuntimeActionState.js";
+import { HeroDrowningActionState } from "../../states/action/HeroDrowningActionState.js";
+import { HeroBridgeClimbActionState } from "../../states/action/HeroBridgeClimbActionState.js";
+import { HeroBurningActionState } from "../../states/action/HeroBurningActionState.js";
+import { HeroRespawningActionState } from "../../states/action/HeroRespawningActionState.js";
+import { HeroTimedActionState } from "../../states/action/HeroTimedActionState.js";
+import { HeroToolActionState } from "../../states/action/HeroToolActionState.js";
+import {
+  HeroCollectingActionState,
+  HeroInventoryFullActionState,
+} from "../../states/action/HeroCollectionActionState.js";
+import { HeroDodgeActionState } from "../../states/action/HeroDodgeActionState.js";
+import { HeroPatReactionActionState } from "../../states/action/HeroPatReactionActionState.js";
+
+export class HeroActionBehavior {
+  #stateMachine;
+  #context;
+  #pendingPayload = null;
+  #deltaTime = 0;
+  #handler = null;
+  #restingAction = HERO_ACTION.EXPLORING;
+  #statesByAction = new Map();
+
+  constructor({
+    bridgeClimbEnd,
+    dodgeAnimationDuration,
+    edgeRefusalDuration,
+    holeRefusalDuration,
+    blockedDigReactionDuration,
+    repelDuration,
+    feedback,
+    handler = null,
+  }) {
+    this.#handler = handler;
+    this.#context = {
+      get payload() {
+        return this.behavior.payload;
+      },
+      behavior: this,
+      bridgeClimbEnd,
+      dodgeAnimationDuration,
+      edgeRefusalDuration,
+      holeRefusalDuration,
+      blockedDigReactionDuration,
+      repelDuration,
+      feedback,
+      get deltaTime() {
+        return this.behavior.deltaTime;
+      },
+      transition: (action, payload) => this.#transition(action, payload),
+      finish: () => this.finish(),
+      enterState: (state) => {
+        state.payload = this.#pendingPayload;
+        this.#pendingPayload = null;
+        this.#handler?.enter?.(state, this);
+      },
+      updateState: (state) => this.#handler?.update?.(
+        state,
+        this,
+        this.#deltaTime,
+      ),
+      exitState: (state) => {
+        this.#handler?.exit?.(state, this);
+        state.payload = null;
+      },
+    };
+    this.#stateMachine = new StateMachine(this.#context);
+    for (const state of this.#states) {
+      this.#stateMachine.add(state.action, state);
+      this.#statesByAction.set(state.action, state);
+    }
+    this.#stateMachine.changeTo(HERO_ACTION.EXPLORING);
+  }
+
+  get #states() {
+    const state = (action, options) => new HeroRuntimeActionState(action, options);
+    return [
+      state(HERO_ACTION.EXPLORING, { canBePatted: true }),
+      state(HERO_ACTION.BOOSTING_COUNTRY_FINANCES, {
+        animation: HERO_ANIMATION.IDLE,
+        canBePatted: true,
+      }),
+      new HeroToolActionState(),
+      new HeroCollectingActionState(),
+      new HeroInventoryFullActionState(),
+      new HeroDodgeActionState(),
+      new HeroTimedActionState(
+        HERO_ACTION.REPELLED,
+        this.#context.repelDuration,
+        { animation: HERO_ANIMATION.REPELLED },
+      ),
+      new HeroTimedActionState(
+        HERO_ACTION.EDGE_REFUSAL,
+        this.#context.edgeRefusalDuration,
+        {
+          animation: ({ payload }) => payload.foot === FOOT_SIDE.RIGHT
+            ? HERO_ANIMATION.EDGE_REFUSE_RIGHT
+            : HERO_ANIMATION.EDGE_REFUSE_LEFT,
+        },
+      ),
+      new HeroTimedActionState(
+        HERO_ACTION.HOLE_REFUSAL,
+        this.#context.holeRefusalDuration,
+        { animation: HERO_ANIMATION.HOLE_REFUSAL },
+      ),
+      new HeroTimedActionState(
+        HERO_ACTION.BLOCKED_DIG_REACTION,
+        this.#context.blockedDigReactionDuration,
+        { animation: HERO_ANIMATION.DIG_BLOCKED_ANNOYED },
+      ),
+      new HeroPatReactionActionState(),
+      state(HERO_ACTION.ANGRY_ESCAPE, { canBePatted: true }),
+      new HeroDrowningActionState(),
+      new HeroBridgeClimbActionState(),
+      state(HERO_ACTION.FALLING_TO_DEATH, {
+        animation: HERO_ANIMATION.FALL_DEATH,
+        incapacitated: true,
+        dying: true,
+      }),
+      new HeroBurningActionState(),
+      new HeroRespawningActionState(),
+      state(HERO_ACTION.GAME_OVER, {
+        animation: HERO_ANIMATION.FALL_DEATH,
+        incapacitated: true,
+      }),
+    ];
+  }
+
+  get state() {
+    const current = this.#stateMachine.currentState;
+    return {
+      name: current.action,
+      action: current.action,
+      animation: this.animation,
+      animationSpeed: this.animationSpeed,
+      incapacitated: current.incapacitated,
+      dying: current.dying,
+      canBePatted: current.canBePatted,
+      boostingCountryFinances: this.boostingCountryFinances,
+    };
+  }
+
+  get payload() {
+    return this.#stateMachine.currentState.payload;
+  }
+
+  get deltaTime() {
+    return this.#deltaTime;
+  }
+
+  get animation() {
+    return this.#stateMachine.currentState.animationFor(this.#context);
+  }
+
+  get animationSpeed() {
+    if (this.collectAction?.positioning || this.inventoryFullAction?.positioning) {
+      return this.payload.positioning.animationSpeed ?? 1;
+    }
+    if (this.dodgeAction) {
+      return this.#context.dodgeAnimationDuration / this.dodgeAction.duration;
+    }
+    return 1;
+  }
+
+  get exclusive() {
+    return this.#stateMachine.currentState.exclusive;
+  }
+
+  get incapacitated() {
+    return this.#stateMachine.currentState.incapacitated;
+  }
+
+  get dying() {
+    return this.#stateMachine.currentState.dying;
+  }
+
+  get canBePatted() {
+    return this.#stateMachine.currentState.canBePatted;
+  }
+
+  get boostingCountryFinances() {
+    return this.#restingAction === HERO_ACTION.BOOSTING_COUNTRY_FINANCES;
+  }
+
+  set boostingCountryFinances(value) {
+    this.#restingAction = value
+      ? HERO_ACTION.BOOSTING_COUNTRY_FINANCES
+      : HERO_ACTION.EXPLORING;
+    if (this.#isResting) {
+      this.#transition(this.#restingAction, null);
+    }
+  }
+
+  get toolAction() {
+    return this.#payloadFor(HERO_ACTION.USING_TOOL);
+  }
+
+  set toolAction(action) {
+    this.#setAction(HERO_ACTION.USING_TOOL, action);
+  }
+
+  get collectAction() {
+    return this.#payloadFor(HERO_ACTION.COLLECTING);
+  }
+
+  set collectAction(action) {
+    this.#setAction(HERO_ACTION.COLLECTING, action);
+  }
+
+  get inventoryFullAction() {
+    return this.#payloadFor(HERO_ACTION.INVENTORY_FULL_REACTION);
+  }
+
+  set inventoryFullAction(action) {
+    this.#setAction(HERO_ACTION.INVENTORY_FULL_REACTION, action);
+  }
+
+  get dodgeAction() {
+    return this.#payloadFor(HERO_ACTION.DODGING);
+  }
+
+  set dodgeAction(action) {
+    this.#setAction(HERO_ACTION.DODGING, action);
+  }
+
+  get repelAction() {
+    return this.#payloadFor(HERO_ACTION.REPELLED);
+  }
+
+  set repelAction(action) {
+    this.#setAction(HERO_ACTION.REPELLED, action);
+  }
+
+  get edgeRefusalAction() {
+    return this.#payloadFor(HERO_ACTION.EDGE_REFUSAL);
+  }
+
+  set edgeRefusalAction(action) {
+    this.#setAction(HERO_ACTION.EDGE_REFUSAL, action);
+  }
+
+  get holeRefusalAction() {
+    return this.#payloadFor(HERO_ACTION.HOLE_REFUSAL);
+  }
+
+  set holeRefusalAction(action) {
+    this.#setAction(HERO_ACTION.HOLE_REFUSAL, action);
+  }
+
+  get blockedDigReactionAction() {
+    return this.#payloadFor(HERO_ACTION.BLOCKED_DIG_REACTION);
+  }
+
+  set blockedDigReactionAction(action) {
+    this.#setAction(HERO_ACTION.BLOCKED_DIG_REACTION, action);
+  }
+
+  get patReactionRemaining() {
+    return this.#payloadFor(HERO_ACTION.PAT_REACTION)?.remaining ?? 0;
+  }
+
+  set patReactionRemaining(remaining) {
+    this.#setAction(
+      HERO_ACTION.PAT_REACTION,
+      remaining > 0 ? { remaining } : null,
+    );
+  }
+
+  get angryEscape() {
+    return this.#stateMachine.in(HERO_ACTION.ANGRY_ESCAPE);
+  }
+
+  set angryEscape(active) {
+    this.#setAction(HERO_ACTION.ANGRY_ESCAPE, active ? {} : null);
+  }
+
+  get drowning() {
+    return this.#stateMachine.in(HERO_ACTION.DROWNING);
+  }
+
+  get drowningAction() {
+    return this.#payloadFor(HERO_ACTION.DROWNING);
+  }
+
+  set drowningAction(action) {
+    this.#setAction(HERO_ACTION.DROWNING, action);
+  }
+
+  get bridgeClimbing() {
+    return this.#stateMachine.in(HERO_ACTION.BRIDGE_CLIMB);
+  }
+
+  get bridgeClimbAction() {
+    return this.#payloadFor(HERO_ACTION.BRIDGE_CLIMB);
+  }
+
+  set bridgeClimbAction(action) {
+    this.#setAction(HERO_ACTION.BRIDGE_CLIMB, action);
+  }
+
+  get fallingToDeath() {
+    return this.#stateMachine.in(HERO_ACTION.FALLING_TO_DEATH);
+  }
+
+  set fallingToDeath(falling) {
+    this.#setAction(HERO_ACTION.FALLING_TO_DEATH, falling ? {} : null);
+  }
+
+  get burning() {
+    return this.#stateMachine.in(HERO_ACTION.BURNING);
+  }
+
+  get lavaDeathAction() {
+    return this.#payloadFor(HERO_ACTION.BURNING);
+  }
+
+  set lavaDeathAction(action) {
+    this.#setAction(HERO_ACTION.BURNING, action);
+  }
+
+  get respawning() {
+    return this.#stateMachine.in(HERO_ACTION.RESPAWNING);
+  }
+
+  get respawnAction() {
+    return this.#payloadFor(HERO_ACTION.RESPAWNING);
+  }
+
+  set respawnAction(action) {
+    this.#setAction(HERO_ACTION.RESPAWNING, action);
+  }
+
+  get gameOver() {
+    return this.#stateMachine.in(HERO_ACTION.GAME_OVER);
+  }
+
+  endGame() {
+    this.#transition(HERO_ACTION.GAME_OVER, null);
+  }
+
+  tryBeginDrowning() {
+    return this.#statesByAction.get(HERO_ACTION.DROWNING).tryEnter(this.#context);
+  }
+
+  finish() {
+    this.#transition(this.#restingAction, null);
+  }
+
+  update(deltaTime) {
+    if (!Number.isFinite(deltaTime) || deltaTime <= 0) {
+      return;
+    }
+    this.#deltaTime = deltaTime;
+    this.#stateMachine.update();
+  }
+
+  get #isResting() {
+    return this.#stateMachine.in(HERO_ACTION.EXPLORING)
+      || this.#stateMachine.in(HERO_ACTION.BOOSTING_COUNTRY_FINANCES);
+  }
+
+  #payloadFor(action) {
+    return this.#stateMachine.in(action) ? this.payload : null;
+  }
+
+  #setAction(action, payload) {
+    if (payload) {
+      this.#transition(action, payload);
+    } else if (this.#stateMachine.in(action)) {
+      this.finish();
+    }
+  }
+
+  #transition(action, payload) {
+    if (this.#stateMachine.in(action)) {
+      this.#stateMachine.currentState.payload = payload;
+      return;
+    }
+    this.#pendingPayload = payload;
+    this.#stateMachine.changeTo(action);
+  }
+}
