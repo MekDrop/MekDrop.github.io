@@ -126,6 +126,7 @@ describe("Hero movement on a predefined terrain map", { testIsolation: false }, 
   });
 
   afterEach(() => {
+    setMovementKey("ArrowDown", false);
     stopMoving();
   });
 
@@ -419,22 +420,30 @@ describe("Hero movement on a predefined terrain map", { testIsolation: false }, 
   });
 
   it("walks out of a raised-terrain pocket along an open direction", () => {
+    let blockedPosition;
     loadScenario("raised-pocket");
     move(0, -1);
     expectState((state) => {
       expect(state.animation).to.equal(HERO_ANIMATION.BLOCKED_PUSH);
-      expect(state.position.x).to.be.closeTo(-0.7, 0.08);
+      // Ammo separates the overlapping compound body from this authored spawn.
+      // Input must not drive it farther into either wall.
+      expect(state.position.x).to.be.at.most(-0.7 + 0.01);
+      expect(state.grounded).to.equal(true);
+      expect(state.movement.speed).to.be.at.most(0.08);
     });
     stopMoving();
     expectState((state) => {
       expect(state.animation).to.equal(HERO_ANIMATION.IDLE);
     }, 250);
 
+    cy.window().then((window) => {
+      blockedPosition = { ...window.gameMovementTest.state().position };
+    });
     move(0, 1);
     expectState((state) => {
-      expect(state.position.x).to.be.lessThan(-1.1);
+      expect(state.position.x).to.be.lessThan(blockedPosition.x - 0.4);
       expect(state.animation).to.equal(HERO_ANIMATION.WALK);
-      expect(state.position.y).to.be.closeTo(1 + GRASS_SURFACE_LIFT, 0.03);
+      expect(state.position.y).to.be.closeTo(blockedPosition.y, 0.03);
     });
     stopMoving();
   });

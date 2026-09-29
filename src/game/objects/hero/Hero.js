@@ -1,3 +1,16 @@
+import { HeroTerrain } from "./HeroTerrain.js";
+import { HeroFootSupport } from "./HeroFootSupport.js";
+import { HeroMovementSurface } from "./HeroMovementSurface.js";
+import {
+  STEP_CLEARANCE,
+  MAX_SAFE_STEP_DOWN,
+  HERO_RADIUS,
+  HERO_COLLISION_HEIGHT,
+  MOVEMENT_COLLISION_RADIUS,
+  MOVEMENT_FORWARD_COLLISION_OFFSET,
+  WALKABLE_TILES,
+  GRASS_SURFACE_TILES,
+} from "./HeroSurfaceRules.js";
 import { TileType } from "../../generator/map/MapGenerator.js";
 import { GRASS_SURFACE_LIFT } from "../../config/terrain.js";
 import heroModelUrl from "../../models/hero/hero.glb?url";
@@ -10,8 +23,6 @@ import { COIN_TYPE } from "../../enum/CoinType.js";
 import { MOVEMENT_REFUSAL } from "../../enum/MovementRefusal.js";
 import { HERO_INVENTORY_CAPACITY } from "../../config/inventory.js";
 import { pickupActionForCategory } from "../../config/hero-pickup-actions.js";
-import { SLOPE_DIRECTION } from "../../enum/SlopeDirection.js";
-import { TILE_SHAPE } from "../../enum/TileShape.js";
 import { HeroLavaDeathEffect } from "./HeroLavaDeathEffect.js";
 import { HeroPhysicsController } from "./HeroPhysicsController.js";
 import { addHeroPartColliders } from "./HeroPartColliders.js";
@@ -62,7 +73,6 @@ const BRAKING = 30;
 const GRAVITY = -22;
 const MAX_JUMP_HEIGHT = 2;
 const JUMP_VELOCITY = Math.sqrt(-2 * GRAVITY * MAX_JUMP_HEIGHT);
-const MAX_SAFE_STEP_DOWN = 1 + GRASS_SURFACE_LIFT;
 const DODGE_DISTANCE = 3;
 const SIDE_DODGE_JUMP_HEIGHT = 0.68;
 const FORWARD_BACK_DODGE_JUMP_HEIGHT = 1;
@@ -77,7 +87,6 @@ const AIRBORNE_STALL_FALL_SPEED = 0.6;
 const MAX_LIVES = 3;
 const RESPAWN_ANIMATION_DURATION = 1.55;
 const RESPAWN_START_HEIGHT = 1;
-const STEP_CLEARANCE = 0.32;
 const MIN_AUTOMATIC_STEP_HEIGHT = 0.04;
 const MAX_AUTOMATIC_STEP_HEIGHT = 0.32;
 const AUTOMATIC_STEP_SURFACE_CLEARANCE = 0.015;
@@ -94,34 +103,6 @@ const LOOPING_ANIMATIONS = new Set([
   HERO_ANIMATION.RUN,
   HERO_ANIMATION.BLOCKED_PUSH,
 ]);
-// Matches the widest part of the hero below one terrain level. The circle is
-// still slightly narrower than a tile, leaving room to slide along ledges.
-const HERO_RADIUS = 0.46;
-const HERO_COLLISION_HEIGHT = 1.45;
-// Terrain and scenery clearance follows the hero's planted lower body. Wider
-// arm and shoulder poses are visual only and must not close valid footpaths.
-const MOVEMENT_COLLISION_RADIUS = 0.18;
-// Raised terrain must also clear the torso around exposed corners. This stays
-// below half a tile so a one-tile corridor remains traversable.
-const TERRAIN_BODY_COLLISION_RADIUS = 0.4;
-const MOVEMENT_FORWARD_COLLISION_OFFSET =
-  HERO_RADIUS - MOVEMENT_COLLISION_RADIUS;
-// BlockedPush leans the upper body forward beyond the standing footprint.
-// Reserve that depth and head width only in front of raised terrain; keeping
-// the probe below half a tile leaves one-tile corridors open.
-const TERRAIN_FORWARD_COLLISION_OFFSET = 0.48;
-const TERRAIN_FORWARD_COLLISION_RADIUS = 0.36;
-const COLLISION_DISTANCE_EPSILON = 0.000001;
-// Ledge checks follow the hero's planted feet instead of the widest parts of
-// the model. This lets the hero approach a drop before refusing to step off.
-const LEDGE_RADIUS = 0.27;
-const FOOT_FORWARD_OFFSET = 0.1;
-const FOOT_LATERAL_OFFSET = 0.13;
-// Slightly inset from the authored boot sole (0.19 x 0.12 at game scale) so
-// tiny visual corner overhangs remain usable while half-sole overhangs do not.
-const FOOT_HALF_LENGTH = 0.18;
-const FOOT_HALF_WIDTH = 0.11;
-const FOOT_REQUIRED_PERIMETER_SUPPORTS = 5;
 const EDGE_REFUSAL_DURATION = 0.8;
 const HOLE_REFUSAL_DURATION = 1.45;
 const BLOCKED_DIG_REACTION_DURATION = 42 / 24;
@@ -129,10 +110,6 @@ const BLOCKED_DIG_EYE_ANGLE = 20;
 const INVENTORY_FULL_COLLAPSE_DURATION = 52 / 24;
 const INVENTORY_FULL_EFFECT_TIME = 14 / 24;
 const INVENTORY_FULL_INDICATOR_CLEARANCE = 0.82;
-const LANDING_BACKTRACK_STEP = 0.025;
-const LANDING_BACKTRACK_DISTANCE = 0.75;
-const LANDING_FORWARD_SETTLE_DISTANCE =
-  FOOT_FORWARD_OFFSET + FOOT_HALF_LENGTH;
 const FALL_EXIT_HEIGHT = -14;
 const RIVER_CURRENT_SPEED = 1.45;
 const RIVER_WAYPOINT_EPSILON = 0.035;
@@ -155,24 +132,6 @@ const RIVER_BRIDGE_HOP_HEIGHT = 0.24;
 // Keeps the widest pose, including the pauldron and its outline, within one
 // 1x1 terrain/path cube.
 const HERO_MODEL_SCALE = 0.65;
-// Castle foundation cells remain traversable dirt. The castle collision world
-// owns the exact wall, door, stair, and furniture footprints, so the whole
-// foundation rectangle must not behave like one solid wall.
-const WALKABLE_TILES = new Set([
-  TileType.GRASS,
-  TileType.PATH,
-  TileType.ENTRY,
-  TileType.CASTLE_WALL,
-  TileType.CASTLE_TOWER,
-]);
-const GRASS_SURFACE_TILES = new Set([TileType.GRASS]);
-// Only castle floor and stair surfaces may replace the terrain height beneath
-// their footprint. Vegetation surfaces can overlap a neighbouring terrain
-// tile, but must never make that tile's cliff face traversable.
-const STRUCTURE_SURFACE_TILES = new Set([
-  TileType.CASTLE_WALL,
-  TileType.CASTLE_TOWER,
-]);
 const GATEWAY_REPEL_DURATION = 0.5;
 const GATEWAY_REPEL_SPEED = 2.2;
 const GATEWAY_REPEL_COOLDOWN = 0.2;
@@ -182,6 +141,21 @@ const PAT_HAIR_CONTACT_HEIGHT = 0.78;
 const HAIR_ENTITY_NAME = /(?:hair|nape lock|swept fringe|layered lock)/i;
 
 export class Hero {
+  /**
+   * @type {HeroTerrain}
+   */
+  #terrain;
+
+  /**
+   * @type {HeroFootSupport}
+   */
+  #footSupport;
+
+  /**
+   * @type {HeroMovementSurface}
+   */
+  #movementSurface;
+
   /**
    *
     * @type {BuffSystem}
@@ -315,36 +289,6 @@ export class Hero {
     }
     this.#resetBoredom();
     this.#syncState();
-    return true;
-  }
-
-  /**
-   *
-   * @param {import("src/game/objects/ObjectTypes.js").Point3} from
-   * @param {import("src/game/objects/ObjectTypes.js").Point3} to
-   */
-  #canEscapeAcross(from, to) {
-    // Keep the escape on the current connected level. Check the whole body
-    // footprint at short intervals, excluding water, holes and unsafe slopes.
-    const distance = Math.hypot(to.x - from.x, to.z - from.z);
-    const steps = Math.ceil(distance / 0.15);
-    for (let step = 1; step <= steps; step += 1) {
-      const x = from.x + (to.x - from.x) * step / steps;
-      const z = from.z + (to.z - from.z) * step / steps;
-      for (const [dx, dz] of [[0, 0], [0.48, 0], [-0.48, 0], [0, 0.48], [0, -0.48]]) {
-        const height = this.#supportHeightAtPoint(x + dx, z + dz, this.#position.y + 0.08);
-        if (height === null || Math.abs(height - this.#position.y) > 0.08) {
-          return false;
-        }
-      }
-      if (this.#terrainOccupancyAt(from.x, from.z, x, z, true, 0.48) !== OCCUPANCY.open
-        || this.#overheadClearanceBlockedAt(x, z)
-        || this.#collisionWorld?.isMovementBlocked(
-          from.x, from.z, x, z, 0.48, this.#position.y, STEP_CLEARANCE,
-        )) {
-        return false;
-      }
-    }
     return true;
   }
 
@@ -684,7 +628,7 @@ export class Hero {
   #riverRoutesByCell = new Map();
   /**
    *
-    * @type {Array<{x: number, z: number, radius: number}>}
+    * @type {Array<import("./HeroSurfaceTypes.js").RiverSourceCover>}
    */
   #riverSourceCovers = [];
   /**
@@ -792,6 +736,17 @@ export class Hero {
     this.#onMovementInput = onMovementInput;
     this.#presentation = presentation;
     this.#collisionWorld = collisionWorld;
+    this.#terrain = new HeroTerrain(
+      mapData,
+      collisionWorld,
+      this.#riverSourceCovers,
+    );
+    this.#footSupport = new HeroFootSupport(this.#terrain);
+    this.#movementSurface = new HeroMovementSurface(
+      this.#terrain,
+      this.#footSupport,
+      collisionWorld,
+    );
     this.#modelLibrary = modelLibrary;
     this.#tools.set(AxeTool.name, new AxeTool({ modelLibrary }));
     this.#tools.set(KnifeTool.name, new KnifeTool({ modelLibrary }));
@@ -863,7 +818,8 @@ export class Hero {
            * @param {number} x
            * @param {number} z
            */
-          canOccupy: (x, z) => this.#occupancyAt(x, z) === OCCUPANCY.open,
+          canOccupy: (x, z) =>
+            this.#movementSurface.occupancyAt(x, z, this.#surfaceState) === OCCUPANCY.open,
           /**
            *
            * @param {number} x
@@ -1034,7 +990,7 @@ export class Hero {
            * @param {number} options.z
            */
           hasRiverSourceCover: ({ x, z }) =>
-            this.#riverSourceCoverHeightAt(x, z) !== null,
+            this.#terrain.riverSourceCoverHeightAt(x, z) !== null,
           /**
            *
            * @param {{x: number, z: number}} options
@@ -1483,7 +1439,8 @@ export class Hero {
        * @param {import("src/game/objects/ObjectTypes.js").Point3} from
        * @param {import("src/game/objects/ObjectTypes.js").Point3} to
        */
-      (from, to) => this.#canEscapeAcross(from, to),
+      (from, to) =>
+        this.#movementSurface.canEscapeAcross(from, to, this.#surfaceState),
       Math.random,
       distance,
     );
@@ -1692,9 +1649,10 @@ export class Hero {
     if (!projected) {
       return false;
     }
-    const runwaySurface = this.#surfaceAt(
+    const runwaySurface = this.#terrain.surfaceAt(
       this.#position.x + projected.x * DODGE_REQUIRED_RUNWAY,
       this.#position.z + projected.z * DODGE_REQUIRED_RUNWAY,
+      this.#position.y + STEP_CLEARANCE,
     );
     if (runwaySurface === null) {
       return false;
@@ -2247,7 +2205,11 @@ export class Hero {
     const nextX = this.#position.x + this.#velocity.x * deltaTime;
     const nextZ = this.#position.z + this.#velocity.z * deltaTime;
     this.#tryAutomaticStepUp(nextX, nextZ);
-    const occupancyX = this.#occupancyAt(nextX, this.#position.z);
+    const occupancyX = this.#movementSurface.occupancyAt(
+      nextX,
+      this.#position.z,
+      this.#surfaceState,
+    );
     if (occupancyX !== OCCUPANCY.open) {
       this.#movementBlocked ||= attemptedX;
       if (attemptedX) {
@@ -2256,11 +2218,12 @@ export class Hero {
       if (attemptedX && occupancyX === OCCUPANCY.edge) {
         const direction = this.#movementDirection;
         this.#beginEdgeRefusal(
-          this.#unsupportedFootAt(
+          this.#footSupport.unsupportedFootAt(
             nextX,
             this.#position.z,
             this.#position.y,
             direction,
+            this.#alternateEdgeFoot,
           ) ?? this.#alternateEdgeFoot,
           direction,
         );
@@ -2274,7 +2237,11 @@ export class Hero {
     }
 
     const attemptedZ = Math.abs(this.#velocity.z) > 0.001;
-    const occupancyZ = this.#occupancyAt(this.#position.x, nextZ);
+    const occupancyZ = this.#movementSurface.occupancyAt(
+      this.#position.x,
+      nextZ,
+      this.#surfaceState,
+    );
     if (occupancyZ !== OCCUPANCY.open) {
       this.#movementBlocked ||= attemptedZ;
       if (attemptedZ) {
@@ -2283,11 +2250,12 @@ export class Hero {
       if (attemptedZ && occupancyZ === OCCUPANCY.edge) {
         const direction = this.#movementDirection;
         this.#beginEdgeRefusal(
-          this.#unsupportedFootAt(
+          this.#footSupport.unsupportedFootAt(
             this.#position.x,
             nextZ,
             this.#position.y,
             direction,
+            this.#alternateEdgeFoot,
           ) ?? this.#alternateEdgeFoot,
           direction,
         );
@@ -2425,7 +2393,7 @@ export class Hero {
       !this.#actionBehavior.fallingToDeath &&
       !this.#actionBehavior.dodgeAction &&
       !aboveExposedRiver &&
-      (this.#isBeyondMapEdge(this.#position.x, this.#position.z) ||
+      (this.#terrain.isBeyondMapEdge(this.#position.x, this.#position.z) ||
         (!safeLanding &&
           !this.#grounded &&
           this.#velocity.y <= 0 &&
@@ -2495,54 +2463,6 @@ export class Hero {
 
   /**
    *
-   * @param {number} x
-   * @param {number} z
-   * @param {number} col
-   * @param {number} row
-   */
-  #riverSourceCoverHeightAt(x, z, col = null, row = null) {
-    const epsilon = 0.000001;
-    for (const cover of this.#riverSourceCovers) {
-      if (
-        (col !== null && cover.col !== col) ||
-        (row !== null && cover.row !== row)
-      ) {
-        continue;
-      }
-      const relativeX = x - cover.centerX;
-      const relativeZ = z - cover.centerZ;
-      const forward = relativeX * cover.flowX + relativeZ * cover.flowZ;
-      const across = -relativeX * cover.flowZ + relativeZ * cover.flowX;
-      if (
-        forward >= -0.5 - epsilon &&
-        forward <= 0.5 + epsilon &&
-        Math.abs(across) <= 0.5 + epsilon
-      ) {
-        return cover.height;
-      }
-    }
-    return null;
-  }
-
-  /**
-   *
-   * @param {number} col
-   * @param {number} row
-   */
-  #riverSourceCoverAtCell(col, row) {
-    return (
-      this.#riverSourceCovers.find(
-        /**
-         *
-         * @param {number} cover
-         */
-        (cover) => cover.col === col && cover.row === row,
-      ) ?? null
-    );
-  }
-
-  /**
-   *
    * @param {number} routeEntry
    */
   #beginLavaDeath(routeEntry) {
@@ -2563,7 +2483,6 @@ export class Hero {
     this.#syncState();
     return action;
   }
-
 
   /**
    *
@@ -2788,8 +2707,11 @@ export class Hero {
    * @param {string} occupancy
    */
   #preservesRisingMomentum(occupancy) {
+    // Ammo can briefly lift the body as animated parts contact the ground.
+    // Only a committed jump may bypass a blocked horizontal approach.
     return (
       occupancy === OCCUPANCY.blocked &&
+      this.#jumpsUsed > 0 &&
       !this.#grounded &&
       this.#velocity.y > 0
     );
@@ -2823,385 +2745,6 @@ export class Hero {
 
   /**
    *
-   * @param {number} x
-   * @param {number} z
-   */
-  #occupancyAt(x, z) {
-    if (this.#overheadClearanceBlockedAt(x, z)) {
-      return OCCUPANCY.blocked;
-    }
-    const movementLength = Math.hypot(this.#velocity.x, this.#velocity.z);
-    const facing =
-      movementLength > 0.001
-        ? {
-            x: this.#velocity.x / movementLength,
-            z: this.#velocity.z / movementLength,
-          }
-        : this.facingDirection;
-    const terrainOccupancy = this.#terrainOccupancyAt(
-      this.#position.x,
-      this.#position.z,
-      x,
-      z,
-      this.#grounded,
-      TERRAIN_BODY_COLLISION_RADIUS,
-    );
-    if (terrainOccupancy !== OCCUPANCY.open) {
-      return terrainOccupancy;
-    }
-    const terrainForwardFromX =
-      this.#position.x + facing.x * TERRAIN_FORWARD_COLLISION_OFFSET;
-    const terrainForwardFromZ =
-      this.#position.z + facing.z * TERRAIN_FORWARD_COLLISION_OFFSET;
-    const terrainForwardToX =
-      x + facing.x * TERRAIN_FORWARD_COLLISION_OFFSET;
-    const terrainForwardToZ =
-      z + facing.z * TERRAIN_FORWARD_COLLISION_OFFSET;
-    const forwardTerrainOccupancy = this.#terrainOccupancyAt(
-      terrainForwardFromX,
-      terrainForwardFromZ,
-      terrainForwardToX,
-      terrainForwardToZ,
-      false,
-      TERRAIN_FORWARD_COLLISION_RADIUS,
-    );
-    if (forwardTerrainOccupancy !== OCCUPANCY.open) {
-      return OCCUPANCY.blocked;
-    }
-    const movementForwardFromX =
-      this.#position.x + facing.x * MOVEMENT_FORWARD_COLLISION_OFFSET;
-    const movementForwardFromZ =
-      this.#position.z + facing.z * MOVEMENT_FORWARD_COLLISION_OFFSET;
-    const movementForwardToX =
-      x + facing.x * MOVEMENT_FORWARD_COLLISION_OFFSET;
-    const movementForwardToZ =
-      z + facing.z * MOVEMENT_FORWARD_COLLISION_OFFSET;
-    if (
-      this.#collisionWorld?.isMovementBlocked(
-        this.#position.x,
-        this.#position.z,
-        x,
-        z,
-        MOVEMENT_COLLISION_RADIUS,
-        this.#position.y,
-        STEP_CLEARANCE,
-      )
-    ) {
-      return OCCUPANCY.blocked;
-    }
-    if (
-      this.#collisionWorld?.isMovementBlocked(
-        movementForwardFromX,
-        movementForwardFromZ,
-        movementForwardToX,
-        movementForwardToZ,
-        MOVEMENT_COLLISION_RADIUS,
-        this.#position.y,
-        STEP_CLEARANCE,
-      )
-    ) {
-      return OCCUPANCY.blocked;
-    }
-    if (
-      this.#grounded &&
-      !this.#actionBehavior.dodgeAction &&
-      !this.#actionBehavior.repelAction &&
-      !this.#isStandingOnPhysicsManagedSurface() &&
-      this.#unsupportedFootAt(
-        x,
-        z,
-        this.#position.y,
-        facing,
-      ) &&
-      !this.#isSafeDescentAt(x, z, this.#position.y, facing) &&
-      !this.#fullySupportedPositionAhead(
-        x,
-        z,
-        this.#position.y,
-        facing,
-      )
-    ) {
-      return OCCUPANCY.edge;
-    }
-    return OCCUPANCY.open;
-  }
-
-  #isStandingOnPhysicsManagedSurface() {
-    const surfaceHeight = this.#collisionWorld?.surfaceHeightAt(
-      this.#position.x,
-      this.#position.z,
-    );
-    if (
-      !Number.isFinite(surfaceHeight) ||
-      Math.abs(surfaceHeight - this.#position.y) > STEP_CLEARANCE
-    ) {
-      return false;
-    }
-    const authoredSurfaceHeight =
-      this.#collisionWorld?.physicsSurfaceHeightAt(
-        this.#position.x,
-        this.#position.z,
-      );
-    return (
-      !Number.isFinite(authoredSurfaceHeight) ||
-      authoredSurfaceHeight < surfaceHeight - STEP_CLEARANCE
-    );
-  }
-
-  /**
-   *
-   * @param {number} fromX
-   * @param {number} fromZ
-   * @param {number} toX
-   * @param {number} toZ
-   * @param {number} checksEdges
-   * @param {boolean} solidRadius
-   */
-  #terrainOccupancyAt(
-    fromX,
-    fromZ,
-    toX,
-    toZ,
-    checksEdges,
-    solidRadius,
-  ) {
-    const collisionSurface =
-      this.#collisionWorld?.surfaceHeightAt(toX, toZ) ?? null;
-    const gridX = toX + (this.#mapData.cols - 1) / 2;
-    const gridZ = toZ + (this.#mapData.rows - 1) / 2;
-    const searchRadius = Math.max(LEDGE_RADIUS, solidRadius);
-    const firstCol = Math.floor(gridX - searchRadius + 0.5);
-    const lastCol = Math.floor(gridX + searchRadius + 0.5);
-    const firstRow = Math.floor(gridZ - searchRadius + 0.5);
-    const lastRow = Math.floor(gridZ + searchRadius + 0.5);
-    let currentSolidDistance = Number.POSITIVE_INFINITY;
-    let nextSolidDistance = Number.POSITIVE_INFINITY;
-    let currentEdgeDistance = Number.POSITIVE_INFINITY;
-    let nextEdgeDistance = Number.POSITIVE_INFINITY;
-
-    for (let row = firstRow; row <= lastRow; row += 1) {
-      for (let col = firstCol; col <= lastCol; col += 1) {
-        if (
-          col < 0 ||
-          row < 0 ||
-          col >= this.#mapData.cols ||
-          row >= this.#mapData.rows
-        ) {
-          if (
-            !checksEdges ||
-            this.#actionBehavior.dodgeAction ||
-            this.#actionBehavior.fallingToDeath
-          ) {
-            continue;
-          }
-          currentEdgeDistance = Math.min(
-            currentEdgeDistance,
-            this.#circleDistanceSquaredToTile(fromX, fromZ, col, row),
-          );
-          nextEdgeDistance = Math.min(
-            nextEdgeDistance,
-            this.#circleDistanceSquaredToTile(toX, toZ, col, row),
-          );
-          continue;
-        }
-
-        const type = this.#mapData.grid[row][col];
-        const riverSourceCover =
-          type === TileType.WATER
-            ? this.#riverSourceCoverAtCell(col, row)
-            : null;
-        if (riverSourceCover) {
-          continue;
-        }
-        if (!checksEdges && type === TileType.WATER) {
-          continue;
-        }
-        const height = this.#terrainSurfaceHeightAt(col, row, toX, toZ);
-        const isStructureSurface =
-          collisionSurface !== null && STRUCTURE_SURFACE_TILES.has(type);
-        if (
-          !WALKABLE_TILES.has(type) ||
-          (!isStructureSurface &&
-            height > this.#position.y + STEP_CLEARANCE)
-        ) {
-          const isEdge = type === TileType.WATER;
-          if (isEdge && this.#actionBehavior.dodgeAction) {
-            continue;
-          }
-          const currentDistance = this.#circleDistanceSquaredToTile(
-            fromX,
-            fromZ,
-            col,
-            row,
-          );
-          const nextDistance = this.#circleDistanceSquaredToTile(
-            toX,
-            toZ,
-            col,
-            row,
-          );
-          if (isEdge) {
-            currentEdgeDistance = Math.min(
-              currentEdgeDistance,
-              currentDistance,
-            );
-            nextEdgeDistance = Math.min(nextEdgeDistance, nextDistance);
-          } else {
-            currentSolidDistance = Math.min(
-              currentSolidDistance,
-              currentDistance,
-            );
-            nextSolidDistance = Math.min(nextSolidDistance, nextDistance);
-          }
-        }
-      }
-    }
-    if (
-      this.#blocksTerrainMovement(
-        currentSolidDistance,
-        nextSolidDistance,
-        solidRadius,
-      )
-    ) {
-      return OCCUPANCY.blocked;
-    }
-    if (
-      this.#blocksTerrainMovement(
-        currentEdgeDistance,
-        nextEdgeDistance,
-        LEDGE_RADIUS,
-      )
-    ) {
-      return OCCUPANCY.edge;
-    }
-    return OCCUPANCY.open;
-  }
-
-  /**
-   *
-   * @param {number} currentDistance
-   * @param {number} nextDistance
-   * @param {number} radius
-   */
-  #blocksTerrainMovement(currentDistance, nextDistance, radius) {
-    if (nextDistance >= radius ** 2) {
-      return false;
-    }
-    return !(
-      currentDistance < radius ** 2 &&
-      nextDistance >= currentDistance - COLLISION_DISTANCE_EPSILON
-    );
-  }
-
-  /**
-   *
-   * @param {number} x
-   * @param {number} z
-   * @param {number} col
-   * @param {number} row
-   * @param {number} radius
-   */
-  #circleOverlapsTile(x, z, col, row, radius = HERO_RADIUS) {
-    return this.#circleDistanceSquaredToTile(x, z, col, row) < radius ** 2;
-  }
-
-  /**
-   *
-   * @param {number} x
-   * @param {number} z
-   * @param {number} col
-   * @param {number} row
-   */
-  #circleDistanceSquaredToTile(x, z, col, row) {
-    const tileX = col - (this.#mapData.cols - 1) / 2;
-    const tileZ = row - (this.#mapData.rows - 1) / 2;
-    const distanceX = Math.max(Math.abs(x - tileX) - 0.5, 0);
-    const distanceZ = Math.max(Math.abs(z - tileZ) - 0.5, 0);
-    return distanceX * distanceX + distanceZ * distanceZ;
-  }
-
-  /**
-   *
-   * @param {number} x
-   * @param {number} z
-   */
-  #surfaceAt(x, z) {
-    const maximumSupportHeight = this.#position.y + STEP_CLEARANCE;
-    const collisionSurface = this.#collisionWorld?.surfaceHeightAt(
-      x,
-      z,
-      LEDGE_RADIUS,
-    );
-    let highestSurface =
-      Number.isFinite(collisionSurface) &&
-      collisionSurface <= maximumSupportHeight
-        ? collisionSurface
-        : null;
-    const sourceCoverHeight = this.#riverSourceCoverHeightAt(x, z);
-    if (
-      sourceCoverHeight !== null &&
-      sourceCoverHeight <= maximumSupportHeight
-    ) {
-      highestSurface =
-        highestSurface === null
-          ? sourceCoverHeight
-          : Math.max(highestSurface, sourceCoverHeight);
-    }
-    const gridX = x + (this.#mapData.cols - 1) / 2;
-    const gridZ = z + (this.#mapData.rows - 1) / 2;
-    const firstCol = Math.floor(gridX - LEDGE_RADIUS + 0.5);
-    const lastCol = Math.floor(gridX + LEDGE_RADIUS + 0.5);
-    const firstRow = Math.floor(gridZ - LEDGE_RADIUS + 0.5);
-    const lastRow = Math.floor(gridZ + LEDGE_RADIUS + 0.5);
-
-    for (let row = firstRow; row <= lastRow; row += 1) {
-      for (let col = firstCol; col <= lastCol; col += 1) {
-        if (
-          col < 0 ||
-          row < 0 ||
-          col >= this.#mapData.cols ||
-          row >= this.#mapData.rows ||
-          !this.#circleOverlapsTile(x, z, col, row, LEDGE_RADIUS)
-        ) {
-          continue;
-        }
-        const type = this.#mapData.grid[row][col];
-        if (!WALKABLE_TILES.has(type)) {
-          continue;
-        }
-        const terrainSurface = this.#terrainSurfaceHeightAt(col, row, x, z);
-        const overpassSurface =
-          this.#mapData.tileMeta?.[row]?.[col]?.overpass?.elevation;
-        for (const surfaceHeight of [terrainSurface, overpassSurface]) {
-          if (
-            !Number.isFinite(surfaceHeight) ||
-            surfaceHeight > maximumSupportHeight ||
-            (highestSurface !== null && surfaceHeight <= highestSurface)
-          ) {
-            continue;
-          }
-          highestSurface = surfaceHeight;
-        }
-      }
-    }
-    return highestSurface;
-  }
-
-  /**
-   *
-   * @param {number} x
-   * @param {number} z
-   */
-  #landingSurfaceAt(x, z) {
-    return this.#supportHeightAtPoint(
-      x,
-      z,
-      this.#position.y + STEP_CLEARANCE,
-    );
-  }
-
-  /**
-   *
     * @returns {{x: number, z: number}}
    */
   get #movementDirection() {
@@ -3226,7 +2769,7 @@ export class Hero {
 
   /**
    *
-    * @returns {boolean}
+    * @returns {string}
    */
   get #alternateEdgeFoot() {
     return this.#lastEdgeRefusalFoot === FOOT_SIDE.LEFT
@@ -3235,330 +2778,22 @@ export class Hero {
   }
 
   /**
-   *
-   * @param {number} x
-   * @param {number} z
-   * @param {number} elevation
-   * @param {{x: number, y: number, z: number}} direction
+   * @returns {import("./HeroSurfaceTypes.js").MovementSurfaceState}
    */
-  #unsupportedFootAt(x, z, elevation, direction) {
-    const support = this.#feetSupportAt(x, z, elevation, direction);
-    if (support.left && support.right) {
-      return null;
-    }
-    if (!support.left && support.right) {
-      return FOOT_SIDE.LEFT;
-    }
-    if (support.left && !support.right) {
-      return FOOT_SIDE.RIGHT;
-    }
-    return this.#alternateEdgeFoot;
-  }
-
-  /**
-   *
-   * @param {number} x
-   * @param {number} z
-   * @param {number} elevation
-   * @param {{x: number, y: number, z: number}} direction
-   */
-  #feetSupportAt(x, z, elevation, direction) {
-    const rightX = direction.z;
-    const rightZ = -direction.x;
-    const forwardX = direction.x * FOOT_FORWARD_OFFSET;
-    const forwardZ = direction.z * FOOT_FORWARD_OFFSET;
+  get #surfaceState() {
     return {
-      left: this.#footHasSupport(
-        x + forwardX - rightX * FOOT_LATERAL_OFFSET,
-        z + forwardZ - rightZ * FOOT_LATERAL_OFFSET,
-        elevation,
-        direction,
-        rightX,
-        rightZ,
-      ),
-      right: this.#footHasSupport(
-        x + forwardX + rightX * FOOT_LATERAL_OFFSET,
-        z + forwardZ + rightZ * FOOT_LATERAL_OFFSET,
-        elevation,
-        direction,
-        rightX,
-        rightZ,
-      ),
+      position: this.#position,
+      direction: this.#movementDirection,
+      grounded: this.#grounded,
+      dodging: Boolean(this.#actionBehavior.dodgeAction),
+      repelled: Boolean(this.#actionBehavior.repelAction),
+      fallingToDeath: this.#actionBehavior.fallingToDeath,
     };
-  }
-
-  /**
-   *
-   * @param {number} x
-   * @param {number} z
-   * @param {number} elevation
-   * @param {{x: number, y: number, z: number}} direction
-   */
-  #bothFootCentersSupportedAt(x, z, elevation, direction) {
-    const rightX = direction.z;
-    const rightZ = -direction.x;
-    const forwardX = direction.x * FOOT_FORWARD_OFFSET;
-    const forwardZ = direction.z * FOOT_FORWARD_OFFSET;
-    return (
-      this.#supportMatchesElevation(
-        x + forwardX - rightX * FOOT_LATERAL_OFFSET,
-        z + forwardZ - rightZ * FOOT_LATERAL_OFFSET,
-        elevation,
-      ) &&
-      this.#supportMatchesElevation(
-        x + forwardX + rightX * FOOT_LATERAL_OFFSET,
-        z + forwardZ + rightZ * FOOT_LATERAL_OFFSET,
-        elevation,
-      )
-    );
-  }
-
-  /**
-   *
-   * @param {number} x
-   * @param {number} z
-   * @param {number} elevation
-   * @param {{x: number, y: number, z: number}} direction
-   */
-  #fullySupportedPositionAhead(x, z, elevation, direction) {
-    if (!this.#bothFootCentersSupportedAt(x, z, elevation, direction)) {
-      return null;
-    }
-    for (
-      let distance = LANDING_BACKTRACK_STEP;
-      distance <= LANDING_FORWARD_SETTLE_DISTANCE;
-      distance += LANDING_BACKTRACK_STEP
-    ) {
-      const candidate = {
-        x: x + direction.x * distance,
-        z: z + direction.z * distance,
-      };
-      if (
-        !this.#unsupportedFootAt(
-          candidate.x,
-          candidate.z,
-          elevation,
-          direction,
-        )
-      ) {
-        return candidate;
-      }
-    }
-    return null;
-  }
-
-  /**
-   *
-   * @param {number} centerX
-   * @param {number} centerZ
-   * @param {number} elevation
-   * @param {{x: number, y: number, z: number}} direction
-   * @param {number} rightX
-   * @param {number} rightZ
-   */
-  #footHasSupport(
-    centerX,
-    centerZ,
-    elevation,
-    direction,
-    rightX,
-    rightZ,
-  ) {
-    if (
-      !this.#supportMatchesElevation(
-        centerX,
-        centerZ,
-        elevation,
-      )
-    ) {
-      return false;
-    }
-
-    /**
-     *
-     * @param {number} forward
-     * @param {number} right
-     */
-    const supportAtOffset = (forward, right) =>
-      this.#supportMatchesElevation(
-        centerX +
-          direction.x * forward +
-          rightX * right,
-        centerZ +
-          direction.z * forward +
-          rightZ * right,
-        elevation,
-      );
-    const supportedPerimeterPoints = [
-      supportAtOffset(FOOT_HALF_LENGTH, -FOOT_HALF_WIDTH),
-      supportAtOffset(FOOT_HALF_LENGTH, FOOT_HALF_WIDTH),
-      supportAtOffset(0, -FOOT_HALF_WIDTH),
-      supportAtOffset(0, FOOT_HALF_WIDTH),
-      supportAtOffset(-FOOT_HALF_LENGTH, -FOOT_HALF_WIDTH),
-      supportAtOffset(-FOOT_HALF_LENGTH, FOOT_HALF_WIDTH),
-    ].filter(Boolean).length;
-    return (
-      supportedPerimeterPoints >= FOOT_REQUIRED_PERIMETER_SUPPORTS
-    );
-  }
-
-  /**
-   *
-   * @param {number} x
-   * @param {number} z
-   * @param {number} elevation
-   */
-  #supportMatchesElevation(x, z, elevation) {
-    const supportHeight = this.#supportHeightAtPoint(
-      x,
-      z,
-      elevation + STEP_CLEARANCE,
-    );
-    return (
-      supportHeight !== null &&
-      Math.abs(supportHeight - elevation) <= STEP_CLEARANCE
-    );
-  }
-
-  /**
-   *
-   * @param {number} x
-   * @param {number} z
-   * @param {number} elevation
-   * @param {{x: number, y: number, z: number}} direction
-   */
-  #isSafeDescentAt(x, z, elevation, direction) {
-    const rightX = direction.z;
-    const rightZ = -direction.x;
-    const frontOffset = FOOT_FORWARD_OFFSET + FOOT_HALF_LENGTH;
-    const frontX = x + direction.x * frontOffset;
-    const frontZ = z + direction.z * frontOffset;
-    const maximumHeight = elevation + STEP_CLEARANCE;
-    const leftHeight = this.#supportHeightAtPoint(
-      frontX - rightX * FOOT_LATERAL_OFFSET,
-      frontZ - rightZ * FOOT_LATERAL_OFFSET,
-      maximumHeight,
-    );
-    const rightHeight = this.#supportHeightAtPoint(
-      frontX + rightX * FOOT_LATERAL_OFFSET,
-      frontZ + rightZ * FOOT_LATERAL_OFFSET,
-      maximumHeight,
-    );
-    if (leftHeight === null || rightHeight === null) {
-      return false;
-    }
-    return (
-      leftHeight < elevation - STEP_CLEARANCE &&
-      rightHeight < elevation - STEP_CLEARANCE &&
-      elevation - leftHeight <= MAX_SAFE_STEP_DOWN &&
-      elevation - rightHeight <= MAX_SAFE_STEP_DOWN &&
-      Math.abs(leftHeight - rightHeight) <= STEP_CLEARANCE
-    );
-  }
-
-  /**
-   *
-   * @param {number} x
-   * @param {number} z
-   * @param {number} maximumHeight
-   */
-  #supportHeightAtPoint(x, z, maximumHeight) {
-    const col = Math.round(x + (this.#mapData.cols - 1) / 2);
-    const row = Math.round(z + (this.#mapData.rows - 1) / 2);
-    if (
-      col < 0 ||
-      row < 0 ||
-      col >= this.#mapData.cols ||
-      row >= this.#mapData.rows
-    ) {
-      return null;
-    }
-    const type = this.#mapData.grid[row][col];
-    if (!WALKABLE_TILES.has(type)) {
-      const sourceCoverHeight =
-        type === TileType.WATER
-          ? this.#riverSourceCoverHeightAt(x, z, col, row)
-          : null;
-      return sourceCoverHeight !== null && sourceCoverHeight <= maximumHeight
-        ? sourceCoverHeight
-        : null;
-    }
-    // Authored stairs extend onto approach PATH/GRASS cells, not just the
-    // castle's foundation tiles. Sample their support for feet and landing too.
-    const collisionSurface = this.#collisionWorld?.surfaceHeightAt(x, z);
-    let highestSurface =
-      Number.isFinite(collisionSurface) && collisionSurface <= maximumHeight
-        ? collisionSurface
-        : null;
-    const terrainSurface = this.#terrainSurfaceHeightAt(col, row, x, z);
-    const overpassSurface =
-      this.#mapData.tileMeta?.[row]?.[col]?.overpass?.elevation;
-    for (const surfaceHeight of [terrainSurface, overpassSurface]) {
-      if (
-        Number.isFinite(surfaceHeight) &&
-        surfaceHeight <= maximumHeight &&
-        (highestSurface === null || surfaceHeight > highestSurface)
-      ) {
-        highestSurface = surfaceHeight;
-      }
-    }
-    return highestSurface;
-  }
-
-  /**
-   *
-   * @param {number} col
-   * @param {number} row
-   * @param {number} x
-   * @param {number} z
-   */
-  #terrainSurfaceHeightAt(col, row, x, z) {
-    const type = this.#mapData.grid[row][col];
-    const metadata = this.#mapData.tileMeta?.[row]?.[col];
-    const slope = metadata?.slope;
-    if (metadata?.shape === TILE_SHAPE.SLOPE && slope) {
-      const gridX = x + (this.#mapData.cols - 1) / 2;
-      const gridZ = z + (this.#mapData.rows - 1) / 2;
-      const localX = Math.max(0, Math.min(1, gridX - col + 0.5));
-      const localZ = Math.max(0, Math.min(1, gridZ - row + 0.5));
-      const progress =
-        slope.riseDirection === SLOPE_DIRECTION.NORTH
-          ? 1 - localZ
-          : slope.riseDirection === SLOPE_DIRECTION.SOUTH
-            ? localZ
-            : slope.riseDirection === SLOPE_DIRECTION.WEST
-              ? 1 - localX
-              : localX;
-      return slope.lowHeight +
-        (slope.highHeight - slope.lowHeight) * progress;
-    }
-    return (
-      this.#mapData.heightmap[row][col] +
-      (GRASS_SURFACE_TILES.has(type) ? GRASS_SURFACE_LIFT : 0)
-    );
-  }
-
-  /**
-   *
-   * @param {number} x
-   * @param {number} z
-   */
-  #overheadClearanceBlockedAt(x, z) {
-    const ceiling = this.#collisionWorld?.ceilingHeightAt(
-      x,
-      z,
-      MOVEMENT_COLLISION_RADIUS,
-      this.#position.y,
-    );
-    return (
-      Number.isFinite(ceiling) &&
-      this.#position.y + HERO_COLLISION_HEIGHT > ceiling
-    );
   }
 
   #rememberStableGroundPosition() {
     if (
-      this.#unsupportedFootAt(
+      this.#footSupport.unsupportedFootAt(
         this.#position.x,
         this.#position.z,
         this.#position.y,
@@ -3572,74 +2807,8 @@ export class Hero {
 
   /**
    *
-   * @param {number} ground
-   */
-  #rejectUnsupportedLanding(ground) {
-    const direction = this.#movementDirection;
-    const unsupportedFoot = this.#unsupportedFootAt(
-      this.#position.x,
-      this.#position.z,
-      ground,
-      direction,
-    );
-    if (!unsupportedFoot) {
-      return false;
-    }
-
-    const supportedPosition = this.#fullySupportedPositionAhead(
-      this.#position.x,
-      this.#position.z,
-      ground,
-      direction,
-    );
-    if (supportedPosition) {
-      this.#position.x = supportedPosition.x;
-      this.#position.z = supportedPosition.z;
-      return false;
-    }
-
-    let safePosition = null;
-    for (
-      let distance = LANDING_BACKTRACK_STEP;
-      distance <= LANDING_BACKTRACK_DISTANCE;
-      distance += LANDING_BACKTRACK_STEP
-    ) {
-      const candidate = {
-        x: this.#position.x - direction.x * distance,
-        y: ground,
-        z: this.#position.z - direction.z * distance,
-      };
-      if (
-        !this.#unsupportedFootAt(
-          candidate.x,
-          candidate.z,
-          candidate.y,
-          direction,
-        )
-      ) {
-        safePosition = candidate;
-        break;
-      }
-    }
-    safePosition ??= this.#stableGroundPosition;
-    if (safePosition) {
-      this.#position = { ...safePosition };
-    } else {
-      this.#position.y = ground;
-    }
-    this.#velocity = { x: 0, y: 0, z: 0 };
-    this.#grounded = true;
-    this.#jumpsUsed = 0;
-    this.#movementBlocked = true;
-    this.#beginEdgeRefusal(unsupportedFoot, direction);
-    this.#rememberStableGroundPosition();
-    return true;
-  }
-
-  /**
-   *
-   * @param {import("src/game/objects/ObjectTypes.js").HeroFootRig} foot
-   * @param {{x: number, y: number, z: number}} direction
+   * @param {string} foot
+   * @param {{x: number, z: number}} direction
    */
   #beginEdgeRefusal(foot, direction) {
     if (this.#actionBehavior.edgeRefusalAction) {
@@ -3652,7 +2821,6 @@ export class Hero {
     };
   }
 
-
   /**
    *
    * @param {number} x
@@ -3660,19 +2828,12 @@ export class Hero {
    */
   #tryMovementRefusal(x, z) {
     const direction = this.#movementDirection;
-    const refusal =
-      this.#collisionWorld?.movementRefusalAt(
-        x,
-        z,
-        MOVEMENT_COLLISION_RADIUS,
-        this.#position.y,
-      ) ??
-      this.#collisionWorld?.movementRefusalAt(
-        x + direction.x * MOVEMENT_FORWARD_COLLISION_OFFSET,
-        z + direction.z * MOVEMENT_FORWARD_COLLISION_OFFSET,
-        MOVEMENT_COLLISION_RADIUS,
-        this.#position.y,
-      );
+    const refusal = this.#movementSurface.refusalAt(
+      x,
+      z,
+      this.#position.y,
+      direction,
+    );
     if (refusal !== MOVEMENT_REFUSAL.HOLE) {
       return false;
     }
@@ -3686,24 +2847,6 @@ export class Hero {
     };
     this.#holeRefusalAcknowledged = true;
     return true;
-  }
-
-
-
-  /**
-   *
-   * @param {number} x
-   * @param {number} z
-   */
-  #isBeyondMapEdge(x, z) {
-    const gridX = x + (this.#mapData.cols - 1) / 2;
-    const gridZ = z + (this.#mapData.rows - 1) / 2;
-    return (
-      gridX < -0.5 ||
-      gridZ < -0.5 ||
-      gridX > this.#mapData.cols - 0.5 ||
-      gridZ > this.#mapData.rows - 0.5
-    );
   }
 
   #findSpawn() {
@@ -4375,9 +3518,6 @@ export class Hero {
     });
   }
 
-
-
-
   /**
    *
    * @param {{pickupAction: {targetDistance?: number, minimumDistance: number, maximumDistance: number, radiusClearance: number, maximumStep?: number, maximumForwardStep: number, maximumBackwardStep: number}, targetPosition: {x: number, y: number, z: number}, targetRadius: number, targetDistance: number}} options
@@ -4427,7 +3567,6 @@ export class Hero {
     };
   }
 
-
   /**
    *
    * @param {number} toX
@@ -4454,8 +3593,6 @@ export class Hero {
     this.#actionBehavior.repelAction = { ...direction, elapsed: 0 };
     return true;
   }
-
-
 
   #syncState() {
     const state = {
