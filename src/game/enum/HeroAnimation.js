@@ -5,6 +5,7 @@ export const HERO_ANIMATION = Object.freeze({
   RUN: "Run",
   JUMP: "Jump",
   FALL_DEATH: "FallDeath",
+  LAVA_FAREWELL: "LavaFarewell",
   RESPAWN: "Respawn",
   INVENTORY_FULL_COLLAPSE: "InventoryFullCollapse",
   DODGE_FORWARD: "DodgeForward",

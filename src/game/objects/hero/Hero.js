@@ -23,7 +23,6 @@ import { COIN_TYPE } from "../../enum/CoinType.js";
 import { MOVEMENT_REFUSAL } from "../../enum/MovementRefusal.js";
 import { HERO_INVENTORY_CAPACITY } from "../../config/inventory.js";
 import { pickupActionForCategory } from "../../config/hero-pickup-actions.js";
-import { HeroLavaDeathEffect } from "./HeroLavaDeathEffect.js";
 import { HeroPhysicsController } from "./HeroPhysicsController.js";
 import { addHeroPartColliders } from "./HeroPartColliders.js";
 import { HeroFootPlacement } from "./HeroFootPlacement.js";
@@ -118,9 +117,6 @@ const DROWNING_ENTRY_CLEARANCE = 0.32;
 const LAVA_ENTRY_CLEARANCE = 0.12;
 const DROWNING_SUBMERGE_DEPTH = 0.68;
 const DROWNING_SINK_SPEED = 2.8;
-const LAVA_BURN_DURATION = 1.35;
-const LAVA_ASH_START = 0.68;
-const LAVA_SUBMERGE_DEPTH = 0.82;
 const RIVER_BRIDGE_MAX_CLIMB_HEIGHT = 1;
 const RIVER_BRIDGE_APPROACH_OFFSET = 0.94;
 const RIVER_BRIDGE_RAIL_OFFSET = 0.43;
@@ -638,16 +634,6 @@ export class Hero {
   #drowningRenderStates = new Map();
   /**
    *
-    * @type {HeroLavaDeathEffect}
-   */
-  #lavaDeathEffect = null;
-  /**
-   *
-    * @type {boolean}
-   */
-  #lavaAshes = false;
-  /**
-   *
     * @type {number}
    */
   #lives = MAX_LIVES;
@@ -1095,15 +1081,14 @@ export class Hero {
           },
         },
         burning: {
-          duration: LAVA_BURN_DURATION,
-          ashStart: LAVA_ASH_START,
-          submergeDepth: LAVA_SUBMERGE_DEPTH,
           modelScale: HERO_MODEL_SCALE,
+          lives: () => this.#lives,
+          presentation: () => ({ pc, app, parent: this.#entity }),
           /**
            *
-           * @param {number} routeEntry
+           * @param {number} height
            */
-          begin: (routeEntry) => this.#beginLavaDeath(routeEntry),
+          freezeAtHeight: (height) => this.#freezeAtHeight(height),
           /**
            *
            * @param {number} height
@@ -1113,21 +1098,12 @@ export class Hero {
           },
           /**
            *
-           * @param {number} progress
-           */
-          updateEffect: (progress) => this.#lavaDeathEffect?.update(progress),
-          /**
-           *
            * @param {number} x
            * @param {number} y
            * @param {number} z
            */
           setModelScale: (x, y, z) => this.#modelRoot?.setLocalScale(x, y, z),
-          ashes: () => this.#lavaAshes,
-          showAshes: () => {
-            this.#lavaAshes = true;
-            this.#syncState();
-          },
+          syncState: () => this.#syncState(),
         },
         falling: {
           begin: () => this.#beginFallDeath(),
@@ -1159,8 +1135,6 @@ export class Hero {
     });
 
     this.#createModel();
-    this.#lavaDeathEffect = new HeroLavaDeathEffect({ pc, app });
-    this.#entity.addChild(this.#lavaDeathEffect.entity);
     this.#updateHandle = app.on("update", this.#update);
     this.#syncState();
     this.#presentation?.stateStore?.setMood(null);
@@ -1360,11 +1334,14 @@ export class Hero {
     * @returns {boolean}
    */
   get burning() {
-    return this.#actionBehavior.burning && !this.#lavaAshes;
+    return this.#actionBehavior.burning && !this.ashes;
   }
 
+  /**
+   * @returns {boolean}
+   */
   get ashes() {
-    return this.#lavaAshes;
+    return this.#actionBehavior.ashes;
   }
 
   /**
@@ -1964,8 +1941,6 @@ export class Hero {
     this.#hairPhysics = null;
     this.#respawnEffect?.destroy();
     this.#respawnEffect = null;
-    this.#lavaDeathEffect?.destroy();
-    this.#lavaDeathEffect = null;
     for (const tool of this.#tools.values()) {
       tool.destroy();
     }
@@ -1988,7 +1963,6 @@ export class Hero {
     this.#heroPartColliders = [];
     this.#animationState = null;
     this.#tool = null;
-    this.#lavaAshes = false;
     this.#stableGroundPosition = null;
   }
 
@@ -2463,25 +2437,18 @@ export class Hero {
 
   /**
    *
-   * @param {number} routeEntry
+   * @param {number} height
    */
-  #beginLavaDeath(routeEntry) {
+  #freezeAtHeight(height) {
     this.#clearActionInput();
     this.#grounded = false;
     this.#coyoteRemaining = 0;
     this.#velocity = { x: 0, y: 0, z: 0 };
-    this.#position.y = routeEntry.cell.elevation + 0.02;
-    const action = {
-      elapsed: 0,
-      surfaceY: this.#position.y,
-    };
-    this.#lavaAshes = false;
+    this.#position.y = height;
     this.#physics.setScripted(this.#position, this.#velocity);
-    this.#lavaDeathEffect?.begin();
     this.#restartAnimation = true;
     this.#resetBoredom();
     this.#syncState();
-    return action;
   }
 
   /**
@@ -3014,17 +2981,17 @@ export class Hero {
   }
 
   #resolveDeath() {
-    if (this.#actionBehavior.burning) {
-      this.#lavaDeathEffect?.complete();
-      this.#modelRoot?.setLocalScale(0, 0, 0);
-    }
     this.#lives = Math.max(0, this.#lives - 1);
     this.#syncState();
     return this.#lives === 0 ? HERO_ACTION.GAME_OVER : HERO_ACTION.RESPAWNING;
   }
 
   #beginRespawn() {
-    this.#resetLavaDeathPresentation();
+    this.#modelRoot?.setLocalScale(
+      HERO_MODEL_SCALE,
+      HERO_MODEL_SCALE,
+      HERO_MODEL_SCALE,
+    );
     this.#position = { ...this.#spawn };
     this.#velocity = { x: 0, y: 0, z: 0 };
     this.#grounded = true;
@@ -3047,16 +3014,6 @@ export class Hero {
     this.#velocity = { x: 0, y: 0, z: 0 };
     this.#physics.setScripted(this.#position, this.#velocity);
     this.#syncState();
-  }
-
-  #resetLavaDeathPresentation() {
-    this.#lavaAshes = false;
-    this.#lavaDeathEffect?.reset();
-    this.#modelRoot?.setLocalScale(
-      HERO_MODEL_SCALE,
-      HERO_MODEL_SCALE,
-      HERO_MODEL_SCALE,
-    );
   }
 
   /**
@@ -3601,7 +3558,7 @@ export class Hero {
       gameOver: this.#actionBehavior.gameOver,
       drowning: this.#actionBehavior.drowningAction !== null,
       burning: this.burning,
-      ashes: this.#lavaAshes,
+      ashes: this.ashes,
       wallet: this.wallet,
       inventory: this.inventory,
       mood: this.mood,

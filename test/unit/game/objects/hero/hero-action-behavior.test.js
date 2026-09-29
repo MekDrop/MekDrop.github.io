@@ -29,7 +29,14 @@ function createFeedback(overrides = {}) {
     blockedDig: { begin: () => {} },
     drowning: { begin: (payload) => payload, endPresentation: () => {} },
     bridgeClimb: { begin: (payload) => payload },
-    burning: { begin: (payload) => payload },
+    burning: {
+      lives: () => 3,
+      freezeAtHeight: () => {},
+      setHeight: () => {},
+      setModelScale: () => {},
+      modelScale: 0.65,
+      syncState: () => {},
+    },
     falling: { begin: () => {}, finished: () => false },
     death: { resolve: () => HERO_ACTION.RESPAWNING },
     respawning: { begin: () => {}, resetPresentation: () => {} },
@@ -224,7 +231,6 @@ it("lets the drowning state decide whether water or lava feedback begins", () =>
       routeEntryAt: () => routeEntry,
       begin: () => ({ kind: "water" }),
     },
-    burning: { begin: () => ({ kind: "lava" }) },
   };
   const behavior = createBehavior({ feedback });
 
@@ -236,7 +242,9 @@ it("lets the drowning state decide whether water or lava feedback begins", () =>
   routeEntry.river.kind = RIVER_KIND.LAVA;
   assert.equal(behavior.tryBeginDrowning(), true);
   assert.equal(behavior.state.action, HERO_ACTION.BURNING);
-  assert.deepEqual(behavior.payload, { kind: "lava" });
+  assert.deepEqual(behavior.payload, {
+    elapsed: 0, surfaceY: 0.02, farewell: true, ashes: false,
+  });
 });
 
 it("dispatches updates only through the current action state", () => {

@@ -583,6 +583,13 @@ export class HeroActionBehavior {
   }
 
   /**
+   * @returns {boolean}
+   */
+  get ashes() {
+    return this.payload?.ashes === true;
+  }
+
+  /**
    *
     * @returns {import("src/game/objects/ObjectTypes.js").HeroActionPayload|null}
    */
