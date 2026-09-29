@@ -211,10 +211,10 @@ export class AbstractRoyal {
   destroy() {
     this.#updateHandle?.off();
     this.#updateHandle = null;
-    this.#actions?.destroy();
-    this.#actions = null;
     this.#activity?.destroy();
     this.#activity = null;
+    this.#actions?.destroy();
+    this.#actions = null;
     this.#behavior = null;
     this.#audienceActor?.destroy();
     this.#audienceActor = null;

@@ -1038,7 +1038,8 @@ export class PlayCanvasRenderer {
 
   isGameOver() {
     return (
-      this.#sceneObjects.getOne(SCENE_OBJECT_TYPE.HERO)?.isGameOver ?? false
+      this.#sceneObjects.getOne(SCENE_OBJECT_TYPE.HERO)?.isGameOver ||
+      this.#heroStateStore.gameOver
     );
   }
 
@@ -3070,8 +3071,8 @@ export class PlayCanvasRenderer {
     this.#heroPatHand = null;
     this.#pointerInteraction?.cancelActivePointer();
     this.#sceneObjects.destroyType(SCENE_OBJECT_TYPE.GATEWAY);
-    this.#sceneObjects.destroyType(SCENE_OBJECT_TYPE.CASTLE);
     this.#sceneObjects.destroyType(SCENE_OBJECT_TYPE.MAP_OBJECT);
+    this.#sceneObjects.destroyType(SCENE_OBJECT_TYPE.CASTLE);
     this.#heroVisibility?.destroy();
     this.#heroVisibility = null;
     this.#floatingIslandMotion = null;

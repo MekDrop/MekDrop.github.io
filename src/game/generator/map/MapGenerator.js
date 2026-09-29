@@ -9,7 +9,7 @@ import { IslandBuilder } from "./IslandBuilder.js";
 import { TerrainBridgeDipBuilder } from "./TerrainBridgeDipBuilder.js";
 import { createEarthTextureVariants } from "../../EarthTextureSelection.js";
 import { CastleGenerator } from "../castle/CastleGenerator.js";
-import { InvalidOverpassError } from "../../errors/map/index.js";
+import * as MapErrors from "../../errors/map/index.js";
 import { RIVER_KIND } from "../../enum/RiverKind.js";
 import { isNumber } from "../../helpers/types.js";
 import { SLOPE_DIRECTION } from "../../enum/SlopeDirection.js";
@@ -92,6 +92,16 @@ import { DecorationBuilder } from "./DecorationBuilder.js";
 
 export { MAP_TILE_TYPE as TileType } from "../../enum/MapTileType.js";
 
+const MAX_RANDOM_MAP_ATTEMPTS = 5;
+const RETRYABLE_MAP_ERRORS = Object.values(MapErrors).filter(
+  /**
+   * @param {typeof Error} ErrorType
+   */
+  (ErrorType) =>
+    ErrorType !== MapErrors.MapGenerationStageRunNotImplementedError &&
+    ErrorType !== MapErrors.StoredMapNotFoundError,
+);
+
 export class MapGenerator {
   /**
    * @type {IslandBuilder}
@@ -112,9 +122,31 @@ export class MapGenerator {
    */
   static generate(options) {
     const generator = new MapGenerator();
-    const generation = this.#generationQueue.then(() =>
-      generator.#generateMap(options),
-    );
+    const generation = this.#generationQueue.then(async () => {
+      const normalizedOptions = generator.#normalizeOptions(options);
+      const attempts = normalizedOptions.mapName == null
+        ? MAX_RANDOM_MAP_ATTEMPTS
+        : 1;
+      let attempt = 0;
+      while (true) {
+        try {
+          return await generator.#generateMap(normalizedOptions);
+        } catch (error) {
+          attempt += 1;
+          if (
+            attempt >= attempts ||
+            !RETRYABLE_MAP_ERRORS.some(
+              /**
+               * @param {typeof Error} ErrorType
+               */
+              (ErrorType) => error instanceof ErrorType,
+            )
+          ) {
+            throw error;
+          }
+        }
+      }
+    });
     this.#generationQueue = generation.catch(() => {});
     return generation;
   }

@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
 import { generateMap } from "../../../../../src/game/generator/map/MapGenerator.js";
+import { PathOutsideGateError } from "../../../../../src/game/errors/map/index.js";
 
 describe("async map generation", () => {
   it("yields to the event loop before resolving", async () => {
@@ -33,6 +34,30 @@ describe("async map generation", () => {
 
     assert.deepEqual(first, repeatedFirst);
     assert.deepEqual(second, repeatedSecond);
+  });
+
+  it("retries an invalid random map with a fresh seed", async () => {
+    const originalNow = Date.now;
+    const originalRandom = Math.random;
+    Date.now = () => 1;
+    const randomValues = [36, 37];
+    Math.random = () => randomValues.shift() / 0x100000000;
+
+    try {
+      const map = await generateMap();
+      assert.equal(map.mapName, "1_0000011");
+      assert.equal(randomValues.length, 0);
+    } finally {
+      Date.now = originalNow;
+      Math.random = originalRandom;
+    }
+  });
+
+  it("rejects an invalid named map without changing its seed", async () => {
+    await assert.rejects(
+      generateMap({ mapName: "1_0000010" }),
+      PathOutsideGateError,
+    );
   });
 
   it("preserves deterministic output across representative pipeline paths", async () => {
