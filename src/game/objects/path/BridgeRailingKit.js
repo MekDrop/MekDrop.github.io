@@ -53,6 +53,18 @@ export class BridgeRailingKit {
    */
   #root;
   /**
+   * @type {Set<string>[]|null}
+   */
+  #islandCells = null;
+  /**
+   * @type {import("playcanvas").Entity[]|null}
+   */
+  #islandRoots = null;
+  /**
+   * @type {number}
+   */
+  #currentGroup = -1;
+  /**
    *
     * @type {Map<string, Array<number>>}
    */
@@ -65,13 +77,14 @@ export class BridgeRailingKit {
 
   /**
    *
-   * @param {{pc: typeof import("playcanvas"), modelLibrary: import("../../models/GameModelLibrary.js").GameModelLibrary, materials: Map<string, import("playcanvas").Material>, root: import("playcanvas").Entity}} options
+   * @param {{pc: typeof import("playcanvas"), modelLibrary: import("../../models/GameModelLibrary.js").GameModelLibrary, materials: Map<string, import("playcanvas").Material>, root: import("playcanvas").Entity, mapData?: import("src/game/GameContracts.js").GameMapData}} options
    * @param {typeof import("playcanvas")} options.pc
    * @param {import("../../models/GameModelLibrary.js").GameModelLibrary} options.modelLibrary
    * @param {Map<string, import("playcanvas").Material>} options.materials
    * @param {import("playcanvas").Entity} options.root
+   * @param {import("src/game/GameContracts.js").GameMapData} [options.mapData]
    */
-  constructor({ pc, modelLibrary, materials, root }) {
+  constructor({ pc, modelLibrary, materials, root, mapData = null }) {
 
     this.#pc = pc;
 
@@ -80,6 +93,19 @@ export class BridgeRailingKit {
     this.#materials = materials;
 
     this.#root = root;
+    if (mapData?.islandConnectorData) {
+      this.#islandCells = [
+        new Set(mapData.islandConnectorData.nearIsland),
+        new Set(mapData.islandConnectorData.farIsland),
+      ];
+      this.#islandRoots = [
+        new pc.Entity("Near island bridge railings"),
+        new pc.Entity("Far island bridge railings"),
+      ];
+      for (const islandRoot of this.#islandRoots) {
+        root.addChild(islandRoot);
+      }
+    }
   }
 
   /**
@@ -91,6 +117,10 @@ export class BridgeRailingKit {
    * @param {number} rows
    */
   addSpan(span, height, material, cols, rows) {
+    this.#currentGroup = this.#groupForCell(
+      span.horizontal ? span.start : span.crossCenter - 0.5,
+      span.horizontal ? span.crossCenter - 0.5 : span.start,
+    );
     const centerX =
       (span.horizontal ? span.center : span.crossCenter) - (cols - 1) / 2;
     const centerZ =
@@ -149,6 +179,10 @@ export class BridgeRailingKit {
    * @param {number} rows
    */
   addOverpass(overpass, material, cols, rows) {
+    this.#currentGroup = this.#groupForCell(
+      overpass.crossing.col,
+      overpass.crossing.row,
+    );
     const pathCells = [
       ...overpass.slopeCells,
       ...overpass.approachCells,
@@ -227,6 +261,27 @@ export class BridgeRailingKit {
   }
 
   /**
+   * @param {number} near
+   * @param {number} far
+   */
+  setIslandOffsets(near, far) {
+    this.#islandRoots?.[0].setLocalPosition(0, near, 0);
+    this.#islandRoots?.[1].setLocalPosition(0, far, 0);
+  }
+
+  /**
+   * @param {number} col
+   * @param {number} row
+   */
+  #groupForCell(col, row) {
+    const key = `${col},${row}`;
+    return this.#islandCells?.findIndex(/**
+     * @param {Set<string>} cells
+     */
+    (cells) => cells.has(key)) ?? -1;
+  }
+
+  /**
    *
    * @param {string} material
    * @param {import("playcanvas").Vec3} start
@@ -280,11 +335,12 @@ export class BridgeRailingKit {
   #addMatrix(batches, material, position, rotation, scale) {
     const matrix = new this.#pc.Mat4();
     matrix.setTRS(position, rotation, scale);
-    const matrices = batches.get(material) ?? [];
+    const batchKey = `${this.#currentGroup}|${material}`;
+    const matrices = batches.get(batchKey) ?? [];
     for (const value of matrix.data) {
       matrices.push(value);
     }
-    batches.set(material, matrices);
+    batches.set(batchKey, matrices);
   }
 
   /**
@@ -318,7 +374,8 @@ export class BridgeRailingKit {
    */
   #buildModelBatches(modelUrl, batches, name) {
     const vertexBuffers = [];
-    for (const [materialName, matrices] of batches.entries()) {
+    for (const [batchKey, matrices] of batches.entries()) {
+      const [group, materialName] = batchKey.split("|");
       const batch = this.#modelLibrary.instantiateMergedBatch(
         modelUrl,
         matrices,
@@ -331,7 +388,7 @@ export class BridgeRailingKit {
       if (!batch) {
         continue;
       }
-      this.#root.addChild(batch.entity);
+      (this.#islandRoots?.[Number(group)] ?? this.#root).addChild(batch.entity);
       vertexBuffers.push(batch.vertexBuffer);
     }
     return vertexBuffers;

@@ -120,6 +120,7 @@ export class TerrainRenderer {
       app,
       root,
       materials,
+      mapData,
     });
     /**
      *
@@ -160,6 +161,14 @@ export class TerrainRenderer {
    */
   update(deltaTime, hero = null, camera = null) {
     this.#rivers?.update(deltaTime, hero, camera);
+  }
+
+  /**
+   * @param {number} near
+   * @param {number} far
+   */
+  setIslandOffsets(near, far) {
+    this.#instanceRenderer.setIslandOffsets(near, far);
   }
 
   /**

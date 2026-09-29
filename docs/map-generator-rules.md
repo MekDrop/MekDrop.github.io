@@ -194,6 +194,7 @@ slope -> flat tile(s) -> slope
 * Each straight bridge span must use continuous outer fascia and continuous rail runs. Per-tile border seams, coincident internal faces, and overlapping border geometry are forbidden.
 * Bridge borders must remain visually stable without crawling, flickering, or noisy seams at fractional supported zoom levels, including `1.08`.
 * Gate structure tiles are exempt from automatic bridge conversion.
+* When a narrow grass neck beside a straight, two-lane route is the only terrain join between two substantial island sections, 70% of eligible generated maps may remove that neck. The path remains a two-lane bridge over open sky, without the ordinary reserved grass block beneath it. The two terrain sections bob visually at different periods; the connector bridge belongs to the near island, and all bridge decks and railings move together with their owning terrain section. Hero boots follow the visual surface height while gameplay collision remains stable and walkable.
 
 ## 10. Grass terrain
 

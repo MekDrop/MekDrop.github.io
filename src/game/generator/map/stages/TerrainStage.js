@@ -25,17 +25,31 @@ export class TerrainStage extends AbstractMapGenerationStage {
   #island;
 
   /**
+   * @type {import("../IslandConnectorBuilder.js").IslandConnectorBuilder}
+   */
+  #connectors;
+
+  /**
+   * @type {import("../GenerationRandom.js").GenerationRandom}
+   */
+  #random;
+
+  /**
    * @param {import("../TerrainBuilder.js").TerrainBuilder} terrain
    * @param {import("../RiverBuilder.js").RiverBuilder} rivers
    * @param {import("../TerrainBridgeDipBuilder.js").TerrainBridgeDipBuilder} dips
    * @param {import("../IslandBuilder.js").IslandBuilder} island
+   * @param {import("../IslandConnectorBuilder.js").IslandConnectorBuilder} connectors
+   * @param {import("../GenerationRandom.js").GenerationRandom} random
    */
-  constructor(terrain, rivers, dips, island) {
+  constructor(terrain, rivers, dips, island, connectors, random) {
     super();
     this.#terrain = terrain;
     this.#rivers = rivers;
     this.#dips = dips;
     this.#island = island;
+    this.#connectors = connectors;
+    this.#random = random;
   }
 
   /**
@@ -72,6 +86,17 @@ export class TerrainStage extends AbstractMapGenerationStage {
       tileMeta,
       riverData,
       mergeZones,
+    );
+    context.features.islandConnectorData = context.input.islandConnectors === false
+      ? null
+      : this.#connectors.build(
+      grid,
+      heightmap,
+      tileMeta,
+      islandMask,
+      context.input.mapName,
+      this.#random,
+      riverData,
     );
     this.#terrain.applyHeightsToMetadata(
       grid,

@@ -15,11 +15,12 @@ describe("map generation pre-extraction compatibility", () => {
   for (const { options, sha256, error } of baselines) {
     it(`preserves the complete result for ${options.mapName}`, async () => {
       if (error) {
-        await assert.rejects(MapGenerator.generate(options), error);
+        await assert.rejects(MapGenerator.generate({ ...options, islandConnectors: false }), error);
         return;
       }
 
-      const map = await MapGenerator.generate(options);
+      // These fixtures document the pre-feature output; opt out of connectors.
+      const map = await MapGenerator.generate({ ...options, islandConnectors: false });
       const serialized = JSON.stringify(map, (_key, value) => {
         if (value instanceof Map) {
           return { mapEntries: [...value] };

@@ -58,6 +58,11 @@ export class GrassCarpet {
   #batches = [];
 
   /**
+   * @type {import("playcanvas").Entity[]|null}
+   */
+  #islandRoots = null;
+
+  /**
    *
    * @param {{pc: typeof import("playcanvas"), device: import("playcanvas").GraphicsDevice, mapData: {cols: number, rows: number, heightmap: Array<Array<number>>}, modelLibrary: import("../../models/GameModelLibrary.js").GameModelLibrary, tileColors: Array<Array<number>>, variantForTile: (col: number, row: number, height: number) => number, zoom: number}} options
    * @param {typeof import("playcanvas")} options.pc
@@ -107,6 +112,17 @@ export class GrassCarpet {
     this.#variantMap.unlock();
 
     this.#entity = new pc.Entity("Short grass carpet");
+    const connector = mapData.islandConnectorData;
+    const islandCells = connector
+      ? [new Set(connector.nearIsland), new Set(connector.farIsland)]
+      : null;
+    if (islandCells) {
+      this.#islandRoots = [
+        new pc.Entity("Near island grass"),
+        new pc.Entity("Far island grass"),
+      ];
+      for (const root of this.#islandRoots) this.#entity.addChild(root);
+    }
 
     this.#material = new pc.StandardMaterial();
     this.#material.name = "Short living grass";
@@ -144,8 +160,15 @@ export class GrassCarpet {
     const rotation = new pc.Quat();
     const scale = new pc.Vec3();
     for (const placement of GrassCarpetLayout.create(mapData)) {
-      const key = `${placement.chunk}:${placement.detail}:${placement.broadleaf}:${placement.castleRearGrass}:${placement.boundaryExtension}`;
+      const col = Math.round(placement.x + (mapData.cols - 1) / 2);
+      const row = Math.round(placement.z + (mapData.rows - 1) / 2);
+      const group = islandCells?.findIndex(/**
+       * @param {Set<string>} cells
+       */
+      (cells) => cells.has(`${col},${row}`)) ?? -1;
+      const key = `${group}:${placement.chunk}:${placement.detail}:${placement.broadleaf}:${placement.castleRearGrass}:${placement.boundaryExtension}`;
       const chunk = chunks.get(key) ?? {
+        group,
         matrices: [],
         placements: [],
         detail: placement.detail,
@@ -207,7 +230,7 @@ export class GrassCarpet {
         instance.cull = true;
         instance.setCustomAabb(bounds);
       }
-      this.#entity.addChild(batch.entity);
+      (this.#islandRoots?.[chunk.group] ?? this.#entity).addChild(batch.entity);
       this.#batches.push({
         ...batch,
         placements: chunk.placements,
@@ -217,6 +240,15 @@ export class GrassCarpet {
     }
 
     this.zoom = zoom;
+  }
+
+  /**
+   * @param {number} near
+   * @param {number} far
+   */
+  setIslandOffsets(near, far) {
+    this.#islandRoots?.[0].setLocalPosition(0, near, 0);
+    this.#islandRoots?.[1].setLocalPosition(0, far, 0);
   }
 
   set zoom(value) {

@@ -548,9 +548,8 @@ export class TerrainBuilder {
         if (tileMeta[row][col].renderMode !== "BRIDGE") {
           continue;
         }
-        tileMeta[row][col].bridgeGroundHeight = riverBridgeCells.has(
-          MapGrid.tileKey(col, row),
-        )
+        tileMeta[row][col].bridgeGroundHeight =
+          tileMeta[row][col].islandConnector || riverBridgeCells.has(MapGrid.tileKey(col, row))
           ? null
           : Math.max(1, heightmap[row][col] - 1);
       }

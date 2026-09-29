@@ -3,7 +3,7 @@ import { describe, it } from "node:test";
 import * as pc from "playcanvas";
 import { HeroFootPlacement } from "../../../../../src/game/objects/hero/HeroFootPlacement.js";
 
-function createFoot(side) {
+function createFoot(side, tiltSole = true) {
   const leg = new pc.Entity(`${side} leg`);
   const sole = new pc.Entity(`${side} sole`);
   const cuff = new pc.Entity(`${side} cuff`);
@@ -21,7 +21,7 @@ function createFoot(side) {
   };
   leg.addChild(sole);
   leg.addChild(cuff);
-  return { side, leg, sole, cuff, tiltingParts: [sole] };
+  return { side, leg, sole, cuff, tiltingParts: tiltSole ? [sole] : [] };
 }
 
 describe("hero foot placement physics contacts", () => {
@@ -70,5 +70,35 @@ describe("hero foot placement physics contacts", () => {
       tiltDegrees: 0,
     });
     assert.deepEqual(placement.grassContacts, []);
+  });
+
+  it("moves boot visuals with an island while physics contact stays fixed", () => {
+    const left = createFoot("left", false);
+    const right = createFoot("right", false);
+    let visualOffset = 0;
+    const placement = new HeroFootPlacement({
+      pc,
+      surfaceAt: (x, z) => ({
+        height: 0,
+        normal: new pc.Vec3(0, 1, 0),
+        point: new pc.Vec3(x, 0, z),
+      }),
+      getHeroPosition: () => new pc.Vec3(0, 0, 0),
+      visualOffsetAt: () => visualOffset,
+      left,
+      right,
+    });
+
+    placement.update(1, true);
+    const baseline = left.sole.getPosition().y;
+    const clearance = placement.state.left.minimumClearance;
+    visualOffset = 0.065;
+    placement.update(1, true);
+    assert.ok(Math.abs(left.sole.getPosition().y - baseline - 0.065) < 0.001);
+    assert.equal(placement.state.left.minimumClearance, clearance);
+    visualOffset = -0.045;
+    placement.update(1, true);
+    assert.ok(Math.abs(left.sole.getPosition().y - baseline + 0.045) < 0.001);
+    assert.equal(placement.state.left.minimumClearance, clearance);
   });
 });

@@ -22,6 +22,10 @@ export class HeroFootPlacement {
    */
   #getHeroPosition;
   /**
+   * @type {(x: number, z: number) => number}
+   */
+  #visualOffsetAt;
+  /**
    *
     * @type {typeof import("playcanvas")}
    */
@@ -34,17 +38,26 @@ export class HeroFootPlacement {
 
   /**
    *
-   * @param {{pc: typeof import("playcanvas"), surfaceAt: (...args: number[]) => Array<number>, getHeroPosition: () => {x: number, y: number, z: number}, left: boolean, right: number}} options
+   * @param {{pc: typeof import("playcanvas"), surfaceAt: (...args: number[]) => Array<number>, getHeroPosition: () => {x: number, y: number, z: number}, visualOffsetAt?: (x: number, z: number) => number, left: boolean, right: number}} options
    * @param {typeof import("playcanvas")} options.pc
    * @param {(...args: number[]) => Array<number>} options.surfaceAt
    * @param {() => {x: number, y: number, z: number}} options.getHeroPosition
+   * @param {(x: number, z: number) => number} [options.visualOffsetAt]
    * @param {boolean} options.left
    * @param {number} options.right
    */
-  constructor({ pc, surfaceAt, getHeroPosition, left, right }) {
+  constructor({
+    pc,
+    surfaceAt,
+    getHeroPosition,
+    visualOffsetAt = () => 0,
+    left,
+    right,
+  }) {
     this.#pc = pc;
     this.#surfaceAt = surfaceAt;
     this.#getHeroPosition = getHeroPosition;
+    this.#visualOffsetAt = visualOffsetAt;
     this.#feet = [
       this.#createFoot("Left leg surface adjustment", left),
       this.#createFoot("Right leg surface adjustment", right),
@@ -164,9 +177,11 @@ export class HeroFootPlacement {
       }
 
       const wrapperPosition = foot.wrapper.getPosition().clone();
+      const solePosition = foot.sole.getPosition();
       foot.wrapper.setPosition(
         wrapperPosition.x,
-        wrapperPosition.y + foot.appliedLift,
+        wrapperPosition.y + foot.appliedLift +
+          this.#visualOffsetAt(solePosition.x, solePosition.z),
         wrapperPosition.z,
       );
       foot.minimumClearance = contacts.length

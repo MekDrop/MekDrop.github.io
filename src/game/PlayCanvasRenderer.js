@@ -20,6 +20,7 @@ import { GrassCarpet } from "./objects/ground-cover/GrassCarpet.js";
 import {
   CubeCloudField,
   FloatingIslandMotion,
+  IslandConnectorMotion,
   SkyIslandScenery,
 } from "./objects/scenery/index.js";
 import { CliffVines } from "./objects/vegetation/index.js";
@@ -215,6 +216,11 @@ export class PlayCanvasRenderer {
    * @type {null}
    */
   #floatingIslandMotion = null;
+
+  /**
+   * @type {IslandConnectorMotion|null}
+   */
+  #islandConnectorMotion = null;
   /**
    *
    * @type {null}
@@ -1591,6 +1597,9 @@ export class PlayCanvasRenderer {
     this.#floatingIslandMotion = new FloatingIslandMotion({
       zoom: this.#camera.zoom,
     });
+    this.#islandConnectorMotion = this.#mapData.islandConnectorData
+      ? new IslandConnectorMotion()
+      : null;
 
     const scenery = new SkyIslandScenery(this.#mapData);
     this.#bridgeRailingKit = new BridgeRailingKit({
@@ -1598,6 +1607,7 @@ export class PlayCanvasRenderer {
       modelLibrary: this.#modelLibrary,
       materials: this.#materials,
       root: this.#mapRoot,
+      mapData: this.#mapData,
     });
     this.#terrainRenderer = new TerrainRenderer({
       pc: this.#pc,
@@ -2184,7 +2194,25 @@ export class PlayCanvasRenderer {
     this.#cloudField?.update(deltaTime);
     this.#updateHeroCameraReturn(deltaTime);
     this.#scene?.update(deltaTime);
+    this.#updateIslandConnectorMotion(deltaTime);
     this.#updateFloatingIslandMotion(deltaTime);
+  }
+
+  /**
+   * @param {number} deltaTime
+   */
+  #updateIslandConnectorMotion(deltaTime) {
+    if (!this.#islandConnectorMotion) return;
+    const offsets = this.#camera?.firstPersonEnabled
+      ? { near: 0, far: 0 }
+      : this.#islandConnectorMotion.update(deltaTime);
+    this.#terrainRenderer?.setIslandOffsets(offsets.near, offsets.far);
+    this.#grassCarpet?.setIslandOffsets(offsets.near, offsets.far);
+    this.#bridgeRailingKit?.setIslandOffsets(offsets.near, offsets.far);
+    this.#sceneObjects.getOne(SCENE_OBJECT_TYPE.HERO)?.setIslandVisualOffsets(
+      offsets.near,
+      offsets.far,
+    );
   }
 
   /**
@@ -3076,6 +3104,7 @@ export class PlayCanvasRenderer {
     this.#heroVisibility?.destroy();
     this.#heroVisibility = null;
     this.#floatingIslandMotion = null;
+    this.#islandConnectorMotion = null;
     this.#floatingCameraOffsetX = 0;
     this.#floatingCameraOffsetY = 0;
     this.#floatingCameraOffsetApplied = false;

@@ -405,7 +405,9 @@ export class PathSurfaceValidator {
         ) {
           continue;
         }
-        const expectedHeight = Math.max(1, heightmap[row][col] - 1);
+        const expectedHeight = tileMeta[row][col].islandConnector
+          ? null
+          : Math.max(1, heightmap[row][col] - 1);
         const actualHeight = tileMeta[row][col].bridgeGroundHeight;
         if (actualHeight !== expectedHeight) {
           throw new BridgeGroundHeightMismatchError({

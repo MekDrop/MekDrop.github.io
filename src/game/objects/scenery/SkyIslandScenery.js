@@ -19,6 +19,11 @@ export class SkyIslandScenery {
   #riverCells;
 
   /**
+   * @type {Set<string>}
+   */
+  #connectorCells;
+
+  /**
    *
    * @param {import("src/game/objects/ObjectTypes.js").GameMapData} mapData
    */
@@ -43,6 +48,12 @@ export class SkyIslandScenery {
            */
           (cell) => `${cell.col},${cell.row}`),
       ),
+    );
+    this.#connectorCells = new Set(
+      (mapData.islandConnectorData?.cells ?? []).map(/**
+       * @param {{col: number, row: number}} cell
+       */
+      ({ col, row }) => `${col},${row}`),
     );
   }
 
@@ -157,6 +168,7 @@ export class SkyIslandScenery {
   #isIslandCell(grid, col, row) {
     return (
       grid[row]?.[col] !== undefined &&
+      !this.#connectorCells.has(`${col},${row}`) &&
       (grid[row][col] !== TileType.WATER ||
         this.#riverCells.has(`${col},${row}`))
     );

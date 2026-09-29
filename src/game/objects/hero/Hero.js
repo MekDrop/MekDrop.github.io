@@ -613,6 +613,14 @@ export class Hero {
    */
   #footPlacement = null;
   /**
+   * @type {Set<string>[]|null}
+   */
+  #visualIslandCells = null;
+  /**
+   * @type {number[]}
+   */
+  #visualIslandOffsets = [0, 0];
+  /**
    *
     * @type {HeroHairPhysics|null}
    */
@@ -712,6 +720,12 @@ export class Hero {
     this.#pc = pc;
     this.#app = app;
     this.#mapData = mapData;
+    if (mapData.islandConnectorData) {
+      this.#visualIslandCells = [
+        new Set(mapData.islandConnectorData.nearIsland),
+        new Set(mapData.islandConnectorData.farIsland),
+      ];
+    }
     this.#buildRiverRouteLookup();
     this.#spawnCenter = spawnCenter;
     this.#getViewRotation = getViewRotation;
@@ -1150,6 +1164,30 @@ export class Hero {
    */
   get position() {
     return { ...this.#position };
+  }
+
+  /**
+   * @param {number} near
+   * @param {number} far
+   */
+  setIslandVisualOffsets(near, far) {
+    this.#visualIslandOffsets[0] = near;
+    this.#visualIslandOffsets[1] = far;
+  }
+
+  /**
+   * @param {number} x
+   * @param {number} z
+   */
+  #islandVisualOffsetAt(x, z) {
+    const col = Math.round(x + (this.#mapData.cols - 1) / 2);
+    const row = Math.round(z + (this.#mapData.rows - 1) / 2);
+    const key = `${col},${row}`;
+    const group = this.#visualIslandCells?.findIndex(/**
+     * @param {Set<string>} cells
+     */
+    (cells) => cells.has(key)) ?? -1;
+    return this.#visualIslandOffsets[group] ?? 0;
   }
 
   /**
@@ -3432,6 +3470,11 @@ export class Hero {
       surfaceAt: (x, z, maximumHeight) =>
         this.#physics.surfaceAt(x, z, maximumHeight),
       getHeroPosition: () => this.#position,
+      /**
+       * @param {number} x
+       * @param {number} z
+       */
+      visualOffsetAt: (x, z) => this.#islandVisualOffsetAt(x, z),
       left: {
         side: "left",
         leg: this.#findModelEntity("Left leg"),

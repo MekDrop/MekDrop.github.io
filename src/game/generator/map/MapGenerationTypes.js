@@ -10,6 +10,7 @@
  * @property {string} [overpassPlateauId]
  * @property {string} [pathDipId]
  * @property {number|null} [bridgeGroundHeight]
+ * @property {boolean} [islandConnector]
  * @property {SlopeProfile} [slope]
  * @property {{elevation: number, direction: string}} [overpass]
  * @property {number} [x]
@@ -117,6 +118,7 @@
  * @property {number} [numPaths]
  * @property {number} [numRivers]
  * @property {boolean|OverpassPlan} [overpass]
+ * @property {boolean} [islandConnectors]
  * @property {AbortSignal} [signal]
  */
 

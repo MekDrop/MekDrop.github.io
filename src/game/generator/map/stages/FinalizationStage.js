@@ -146,6 +146,9 @@ export class FinalizationStage extends AbstractMapGenerationStage {
       pipeData: new Map(),
       overpassData: layout.overpassPlan,
       pathDipData: layout.pathDipPlans,
+      ...(context.features.islandConnectorData
+        ? { islandConnectorData: context.features.islandConnectorData }
+        : {}),
       mergeZones,
       trunkStart,
       layoutSignature: layout.signature,

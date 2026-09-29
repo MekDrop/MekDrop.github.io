@@ -47,14 +47,35 @@ export class TerrainInstanceRenderer {
   #vertexBuffers = [];
 
   /**
+   * @type {pc.Entity[]|null}
+   */
+  #islandRoots = null;
+
+  /**
+   * @type {Set<string>[]|null}
+   */
+  #islandCells = null;
+
+  /**
+   * @type {number}
+   */
+  #cols = 0;
+
+  /**
+   * @type {number}
+   */
+  #rows = 0;
+
+  /**
    *
-   * @param {{pc: typeof pc, app: pc.Application, root: pc.Entity, materials: pc.Material[]}} options
+   * @param {{pc: typeof pc, app: pc.Application, root: pc.Entity, materials: pc.Material[], mapData?: import("src/game/GameContracts.js").GameMapData|null}} options
    * @param {typeof pc} options.pc
    * @param {pc.Application} options.app
    * @param {pc.Entity} options.root
    * @param {pc.Material[]} options.materials
+   * @param {import("src/game/GameContracts.js").GameMapData|null} [options.mapData]
    */
-  constructor({ pc, app, root, materials }) {
+  constructor({ pc, app, root, materials, mapData = null }) {
     /**
      *
      * @type {typeof pc}
@@ -75,6 +96,19 @@ export class TerrainInstanceRenderer {
      * @type {pc.Material[]}
      */
     this.#materials = materials;
+    if (mapData?.islandConnectorData) {
+      this.#cols = mapData.cols;
+      this.#rows = mapData.rows;
+      this.#islandCells = [
+        new Set(mapData.islandConnectorData.nearIsland),
+        new Set(mapData.islandConnectorData.farIsland),
+      ];
+      this.#islandRoots = [
+        new pc.Entity("Near island terrain"),
+        new pc.Entity("Far island terrain"),
+      ];
+      for (const islandRoot of this.#islandRoots) root.addChild(islandRoot);
+    }
     /**
      *
      * @type {Array}
@@ -152,7 +186,14 @@ export class TerrainInstanceRenderer {
     const rotation = new pc.Quat();
     rotation.setFromEulerAngles(pitch, yaw, 0);
     matrix.setTRS(new pc.Vec3(x, y, z), rotation, new pc.Vec3(sx, sy, sz));
-    const materialBatch = `${topMaterial}|${sideMaterial}|${underlayMaterial}|${coverage}`;
+    const col = Math.round(x + (this.#cols - 1) / 2);
+    const row = Math.round(z + (this.#rows - 1) / 2);
+    const key = `${col},${row}`;
+    const group = this.#islandCells?.findIndex(/**
+     * @param {Set<string>} cells
+     */
+    (cells) => cells.has(key)) ?? -1;
+    const materialBatch = `${group}|${topMaterial}|${sideMaterial}|${underlayMaterial}|${coverage}`;
     const data = this.#batches.get(materialBatch) ?? [];
     for (const value of matrix.data) {
       data.push(value);
@@ -166,7 +207,7 @@ export class TerrainInstanceRenderer {
       if (matrices.length === 0) {
         continue;
       }
-      const [topMaterial, sideMaterial, underlayMaterial, coverage] =
+      const [group, topMaterial, sideMaterial, underlayMaterial, coverage] =
         materialBatch.split("|");
       const instanceCount = matrices.length / 16;
       const vertexBuffer = new pc.VertexBuffer(
@@ -227,10 +268,19 @@ export class TerrainInstanceRenderer {
         meshInstance.castShadow = true;
         meshInstance.receiveShadow = true;
       }
-      this.#root.addChild(entity);
+      (this.#islandRoots?.[Number(group)] ?? this.#root).addChild(entity);
       this.#entities.push(entity);
     }
     this.#batches.clear();
+  }
+
+  /**
+   * @param {number} near
+   * @param {number} far
+   */
+  setIslandOffsets(near, far) {
+    this.#islandRoots?.[0].setLocalPosition(0, near, 0);
+    this.#islandRoots?.[1].setLocalPosition(0, far, 0);
   }
 
   destroy() {
@@ -243,6 +293,8 @@ export class TerrainInstanceRenderer {
     }
     this.#vertexBuffers = [];
     this.#batches.clear();
+    for (const islandRoot of this.#islandRoots ?? []) islandRoot.destroy();
+    this.#islandRoots = null;
     this.#destroyMesh(this.#meshes.sides);
     this.#destroyMesh(this.#meshes.wallSides);
     this.#destroyMesh(this.#meshes.bridgeHorizontalSides);

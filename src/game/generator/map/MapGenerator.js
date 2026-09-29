@@ -6,6 +6,7 @@ import { OverpassPlanner } from "./OverpassPlanner.js";
 import { PathCarver } from "./PathCarver.js";
 import { CastlePlacement } from "./CastlePlacement.js";
 import { IslandBuilder } from "./IslandBuilder.js";
+import { IslandConnectorBuilder } from "./IslandConnectorBuilder.js";
 import { TerrainBridgeDipBuilder } from "./TerrainBridgeDipBuilder.js";
 import { createEarthTextureVariants } from "../../EarthTextureSelection.js";
 import { CastleGenerator } from "../castle/CastleGenerator.js";
@@ -208,6 +209,8 @@ export class MapGenerator {
         rivers,
         new TerrainBridgeDipBuilder(this.#random),
         this.#island,
+        new IslandConnectorBuilder(),
+        this.#random,
       ),
       new DecorationStage(new DecorationBuilder(this.#random)),
       new ValidationStage(),
