@@ -46,7 +46,16 @@ export class DecorationPlacementRules {
       for (let deltaCol = -1; deltaCol <= 1; deltaCol++) {
         const neighborCol = col + deltaCol;
         const neighborRow = row + deltaRow;
-        if (!MapGrid.inBounds(neighborCol, neighborRow)) { continue; }
+        // Vegetation extends beyond its center tile, including after rotation.
+        // Keep its surrounding footprint on the same flat grass surface.
+        if (
+          !this.isGroundCoverCandidate(
+            grid, heightmap, tileMeta, neighborCol, neighborRow,
+          ) ||
+          heightmap[neighborRow][neighborCol] !== heightmap[row][col]
+        ) {
+          return false;
+        }
         if (MapGrid.isRouteTile(grid[neighborRow][neighborCol])) {
           return false;
         }
