@@ -42,6 +42,7 @@ import {
   CoinHud,
   GameStatusHud,
   HeroLifeHud,
+  HeroMoodHud,
   HudCollection,
 } from "./ui/index.js";
 import { colorFromHex } from "./helpers/colors.js";
@@ -573,6 +574,7 @@ export class PlayCanvasRenderer {
     this.addHud(HeroLifeHud);
     this.addHud(CoinHud);
     this.addHud(GameStatusHud);
+    this.addHud(HeroMoodHud, { getMood: () => this.#heroStateStore?.mood ?? null });
     this.#inventoryScene = new InventoryScene({
       pc,
       app: this.#app,
@@ -1912,7 +1914,7 @@ export class PlayCanvasRenderer {
         inventoryScene: this.#inventoryScene,
         gameOverScene: this.#scene,
         stateStore: this.#heroStateStore,
-        getMoodScreenPosition: () => this.#heroPatScreenPosition(),
+        getMoodScreenPosition: () => this.#heroPatScreenPosition(0.6),
         getInventoryFullScreenPosition: () =>
           this.#inventoryFullIndicatorScreenPosition(),
       },
@@ -2298,12 +2300,16 @@ export class PlayCanvasRenderer {
     );
   }
 
-  #heroPatScreenPosition() {
+  /**
+   * @param {number} heightOffset World-space height above the hair contact point.
+   */
+  #heroPatScreenPosition(heightOffset = 0) {
     const hero = this.#sceneObjects.getOne(SCENE_OBJECT_TYPE.HERO);
     const position = hero?.patPosition;
     if (!position || !this.#camera?.camera) {
       return null;
     }
+    position.y += heightOffset;
     const center = this.#camera.camera.worldToScreen(position);
     const edge = this.#camera.camera.worldToScreen(
       position.clone().add(this.#camera.right.clone().mulScalar(0.42)),

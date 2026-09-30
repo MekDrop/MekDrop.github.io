@@ -1,6 +1,7 @@
 export { GameOverHud } from "./GameOverHud.js";
 export { GamePanelHud } from "./GamePanelHud.js";
 export { GameStatusHud } from "./GameStatusHud.js";
+export { HeroMoodHud } from "./HeroMoodHud.js";
 export { gameUiTheme } from "./GameUiTheme.js";
 export { HudCollection } from "./HudCollection.js";
 export { HeroLifeHud } from "./HeroLifeHud.js";
