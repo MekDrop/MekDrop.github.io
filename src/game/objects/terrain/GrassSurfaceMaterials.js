@@ -7,8 +7,8 @@ import grassTop5Url from "src/assets/game/tiles/grass-top-5.png";
 import grassTop6Url from "src/assets/game/tiles/grass-top-6.png";
 import grassTerrainShader from "../../objects/ground-cover/GrassTerrain.frag?raw";
 import { TileType } from "../../generator/map/MapGenerator.js";
-import { FIXED_HEIGHTS } from "./TerrainMaterialMaps.js";
-import { tilePatchValue } from "./TileVariantIndex.js";
+import { FIXED_HEIGHTS } from "../../rendering/terrain/TerrainMaterialMaps.js";
+import { tilePatchValue } from "../../rendering/terrain/TileVariantIndex.js";
 
 const TOP_TEXTURES = ["grass", "grass2", "grass3", "grass4", "grass5", "grass6"];
 const TILE_COLORS = [0x69a92f, 0x75b638, 0x568d29, 0x7ead35, 0x69a92f, 0x568d29];
@@ -44,6 +44,10 @@ export class GrassSurfaceMaterials {
    */
   #mapData;
   /**
+   * @type {import("src/game/objects/ObjectTypes.js").MapObjectDefinition[]}
+   */
+  #vegetation;
+  /**
    *
    * @param {import("src/game/GameContracts.js").GameMapData} mapData
    */
@@ -53,6 +57,11 @@ export class GrassSurfaceMaterials {
      * @type {import("src/game/GameContracts.js").GameMapData}
      */
     this.#mapData = mapData;
+    this.#vegetation = (mapData?.objects ?? []).filter(
+      /**
+       * @param {import("src/game/objects/ObjectTypes.js").MapObjectDefinition} definition
+       */
+      (definition) => definition.object === "Vegetation");
   }
 
   /**
@@ -205,7 +214,7 @@ export class GrassSurfaceMaterials {
    * @param {number} level
    */
   #isShaded(col, row, level) {
-    const { grid, objects, castle, castles } = this.#mapData;
+    const { grid, castle, castles } = this.#mapData;
     const nearStructure = (
       castles?.length ? castles : castle ? [castle] : []
     ).some(
@@ -224,7 +233,7 @@ export class GrassSurfaceMaterials {
       return true;
     }
     if (
-      (objects ?? []).some(/**
+      this.#vegetation.some(/**
        *
        * @param {{object: import("src/game/GameContracts.js").GameObjectContract, tile: import("src/game/GameContracts.js").TileMetadata, kind: string}} options
        * @param {import("src/game/GameContracts.js").GameObjectContract} options.object

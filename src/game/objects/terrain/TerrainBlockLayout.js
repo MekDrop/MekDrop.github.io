@@ -1,16 +1,15 @@
-import { TileType } from "../../generator/map/MapGenerator.js";
+import { MAP_TILE_TYPE as TileType } from "../../enum/MapTileType.js";
 import { GRASS_SURFACE_LIFT } from "../../config/terrain.js";
 import { TILE_SHAPE } from "../../enum/TileShape.js";
 import {
   CUBE_SCALE,
   FIXED_HEIGHTS,
-  GRASS_SURFACE_TILES,
-  SIDE_MATERIALS,
   SURFACE_ELEVATION_BIAS,
-  SURFACE_MATERIALS,
-} from "./TerrainMaterialMaps.js";
+} from "../../rendering/terrain/TerrainMaterialMaps.js";
 
-export class TerrainBatchBuilder {
+import { GRASS_SURFACE_TILES, SIDE_MATERIALS, SURFACE_MATERIALS } from "./TerrainBlockMaterialMaps.js";
+
+export class TerrainBlockLayout {
   /**
    *
    * @type {import("src/game/GameContracts.js").GameMapData}

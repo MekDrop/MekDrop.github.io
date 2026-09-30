@@ -1,38 +1,7 @@
-import { TileType } from "../../generator/map/MapGenerator.js";
-import { PathSurfaceMaterials } from "./PathSurfaceMaterials.js";
+import { MAP_TILE_TYPE as TileType } from "../../enum/MapTileType.js";
 
 export const FIXED_HEIGHTS = {
   [TileType.WATER]: 0,
-};
-
-export const GRASS_SURFACE_TILES = new Set([TileType.GRASS]);
-
-export const SURFACE_MATERIALS = {
-  [TileType.GRASS]: "grass",
-  [TileType.PATH]: "path",
-  [TileType.WATER]: "water",
-  [TileType.ENTRY]: "path",
-};
-
-/**
- *
- * @param {string} type
- * @param {number} col
- * @param {number} row
- * @param {number} level
- */
-export function surfaceMaterialForTile(type, col, row, level) {
-  if (type === TileType.PATH || type === TileType.ENTRY) {
-    return PathSurfaceMaterials.topForTile(col, row, level);
-  }
-  return SURFACE_MATERIALS[type];
-}
-
-export const SIDE_MATERIALS = {
-  [TileType.GRASS]: "grassSide",
-  [TileType.PATH]: "pathSide",
-  [TileType.WATER]: "waterSide",
-  [TileType.ENTRY]: "pathSide",
 };
 
 export const CUBE_SCALE = 1;

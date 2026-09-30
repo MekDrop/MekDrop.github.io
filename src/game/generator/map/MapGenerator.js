@@ -8,7 +8,6 @@ import { CastlePlacement } from "./CastlePlacement.js";
 import { IslandBuilder } from "./IslandBuilder.js";
 import { IslandConnectorBuilder } from "./IslandConnectorBuilder.js";
 import { TerrainBridgeDipBuilder } from "./TerrainBridgeDipBuilder.js";
-import { createEarthTextureVariants } from "../../EarthTextureSelection.js";
 import { CastleGenerator } from "../castle/CastleGenerator.js";
 import * as MapErrors from "../../errors/map/index.js";
 import { RIVER_KIND } from "../../enum/RiverKind.js";
@@ -224,7 +223,6 @@ export class MapGenerator {
         gatewayColors: GATEWAY_COLORS,
         grassSurfaceLift: GRASS_SURFACE_LIFT,
         randomUint32: () => Number(this.#random.rng(0, 0xffffffff)) >>> 0,
-        createEarthTextureVariants,
       }),
     ];
   }

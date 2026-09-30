@@ -21,6 +21,10 @@ describe("map generation pre-extraction compatibility", () => {
 
       // These fixtures document the pre-feature output; opt out of connectors.
       const map = await MapGenerator.generate({ ...options, islandConnectors: false });
+      // Terrain is now published as object records; compare the original
+      // generation contract independently of this derived rendering metadata.
+      map.objects = map.objects.filter(({ generated }) => !generated);
+      delete map.renderCommands;
       const serialized = JSON.stringify(map, (_key, value) => {
         if (value instanceof Map) {
           return { mapEntries: [...value] };

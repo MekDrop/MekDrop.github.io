@@ -15,19 +15,16 @@ import { BridgeRailingKit, OverpassStairs } from "./objects/path/index.js";
 import { Hero, HeroPatHand } from "./objects/hero/index.js";
 import { HeroPatGesture } from "./controls/HeroPatGesture.js";
 import { KnifeTool, ShovelTool } from "./objects/hero/tools/index.js";
-import { GrassSurface, GroundCover } from "./objects/ground-cover/index.js";
-import { GrassCarpet } from "./objects/ground-cover/GrassCarpet.js";
+import { GroundCover } from "./objects/ground-cover/index.js";
 import {
   CubeCloudField,
   FloatingIslandMotion,
   IslandConnectorMotion,
-  SkyIslandScenery,
 } from "./objects/scenery/index.js";
 import { CliffVines } from "./objects/vegetation/index.js";
 import { BuriedTreasureField } from "./objects/treasure/index.js";
 import { ScenePointerInteraction } from "./objects/shared/ScenePointerInteraction.js";
 import { TileType } from "./generator/map/MapGenerator.js";
-import { GRASS_SURFACE_LIFT } from "./config/terrain.js";
 import { GRAPHICS_DRIVER } from "./enum/GraphicsDriver.js";
 import { SCENE_OBJECT_TYPE } from "./enum/SceneObjectType.js";
 import { ShaderTranspilerAssetsNotColocatedError } from "./errors/assets/index.js";
@@ -51,20 +48,14 @@ import { GameOverScene } from "./rendering/scene/GameOverScene.js";
 import { InventoryScene } from "./rendering/scene/InventoryScene.js";
 import { SceneObjectRegistry } from "./rendering/scene/SceneObjectRegistry.js";
 import { TerrainRenderer } from "./rendering/terrain/TerrainRenderer.js";
-import { GrassSurfaceMaterials } from "./rendering/terrain/GrassSurfaceMaterials.js";
-import { EarthSurfaceMaterials } from "./rendering/terrain/EarthSurfaceMaterials.js";
-import { TerrainMaterialSelector } from "./rendering/terrain/TerrainMaterialSelector.js";
 import { PathSurfaceMaterials } from "./rendering/terrain/PathSurfaceMaterials.js";
 import {
   CUBE_SCALE,
   FIXED_HEIGHTS,
-  GRASS_SURFACE_TILES,
-  SURFACE_MATERIALS,
 } from "./rendering/terrain/TerrainMaterialMaps.js";
 
 const TEXTURE_URLS = {
-  ...GrassSurfaceMaterials.textureUrls,
-  ...EarthSurfaceMaterials.textureUrls,
+  ...MapObjectFactory.textureUrls,
   ...PathSurfaceMaterials.textureUrls,
   water: waterTopUrl,
   waterSide: waterSideUrl,
@@ -252,31 +243,6 @@ export class PlayCanvasRenderer {
    * @type {null}
    */
   #groundCover = null;
-  /**
-   *
-   * @type {null}
-   */
-  #grassSurface = null;
-  /**
-   *
-   * @type {null}
-   */
-  #grassCarpet = null;
-  /**
-   *
-   * @type {null}
-   */
-  #grassMaterials = null;
-  /**
-   *
-   * @type {null}
-   */
-  #earthMaterials = null;
-  /**
-   *
-   * @type {null}
-   */
-  #terrainMaterialSelector = null;
   /**
    *
    * @type {null}
@@ -655,7 +621,6 @@ export class PlayCanvasRenderer {
         ...BridgeRailingKit.modelUrls,
         OverpassStairs.modelUrl,
         ...GroundCover.modelUrls,
-        ...GrassCarpet.modelUrls,
         ...CliffVines.modelUrls,
         ...BuriedTreasureField.modelUrls,
         ...TerrainRenderer.modelUrls,
@@ -687,13 +652,7 @@ export class PlayCanvasRenderer {
       this.#heroConfigurationStore.inventory.visible,
     );
     this.#mapData = mapData;
-    this.#grassMaterials = new GrassSurfaceMaterials(mapData);
-    this.#earthMaterials = new EarthSurfaceMaterials(mapData);
-    this.#terrainMaterialSelector = new TerrainMaterialSelector(
-      this.#grassMaterials,
-      this.#earthMaterials,
-      SIDE_VARIANT_TRANSFORMS.length,
-    );
+    MapObjectFactory.prepareMap(mapData);
     this.#camera.reset(mapData, CAMERA_TARGET_HEIGHT);
     this.#scene?.reset();
     this.#updateFitCenter();
@@ -1444,17 +1403,7 @@ export class PlayCanvasRenderer {
       });
     }
 
-    GrassSurfaceMaterials.register(
-      this.#materials,
-      /**
-       *
-       * @param {string} name
-       * @param {import("src/game/GameContracts.js").GameObjectDefinition} definition
-       */
-      (name, definition) => this.#createMaterial(name, definition, textures),
-      SIDE_VARIANT_TRANSFORMS,
-    );
-    EarthSurfaceMaterials.register(
+    MapObjectFactory.registerMaterials(
       this.#materials,
       /**
        *
@@ -1558,7 +1507,7 @@ export class PlayCanvasRenderer {
         texture.addressU = pc.ADDRESS_CLAMP_TO_EDGE;
         texture.addressV =
           name === "castleDoor" ? pc.ADDRESS_REPEAT : pc.ADDRESS_CLAMP_TO_EDGE;
-        GrassSurfaceMaterials.configureTexture(
+        MapObjectFactory.configureTexture(
           pc,
           name,
           texture,
@@ -1582,7 +1531,6 @@ export class PlayCanvasRenderer {
       ? new IslandConnectorMotion()
       : null;
 
-    const scenery = new SkyIslandScenery(this.#mapData);
     this.#bridgeRailingKit = new BridgeRailingKit({
       pc: this.#pc,
       modelLibrary: this.#modelLibrary,
@@ -1597,50 +1545,10 @@ export class PlayCanvasRenderer {
       root: this.#mapRoot,
       materials: this.#materials,
       bridgeRailingKit: this.#bridgeRailingKit,
-      /**
-       *
-       * @param {string} type
-       * @param {{top: string, sides: string, underlay: string}} topCube
-       * @param {number} col
-       * @param {number} row
-       * @param {number} level
-       */
-      cubeMaterials: (type, topCube, col, row, level) =>
-        this.#terrainMaterialSelector.cubeMaterials(
-          type,
-          topCube,
-          col,
-          row,
-          level,
-        ),
-      /**
-       *
-       * @param {number} col
-       * @param {number} row
-       * @param {number} level
-       */
-      pathEarthSideMaterial: (col, row, level) =>
-        this.#earthMaterials.overpassSideForTile(col, row, level),
-      /**
-       *
-       * @param {number} col
-       * @param {number} row
-       * @param {number} level
-       */
-      earthSideMaterial: (col, row, level) =>
-        this.#earthMaterials.sideForTile(col, row, level),
-      /**
-       *
-       * @param {pc.Material} material
-       * @param {number} col
-       * @param {number} row
-       * @param {number} level
-       */
-      sideVariant: (material, col, row, level) =>
-        this.#terrainMaterialSelector.sideVariant(material, col, row, level),
       modelLibrary: this.#modelLibrary,
     });
-    this.#terrainRenderer.build(scenery.createUndersideVoxels());
+    this.#buildMapObjects();
+    this.#terrainRenderer.build();
     this.#vertexBuffers.push(...this.#bridgeRailingKit.build());
     this.#vertexBuffers.push(
       ...new OverpassStairs({
@@ -1661,53 +1569,6 @@ export class PlayCanvasRenderer {
       });
       this.#collisionWorld.add(this.#pathOverpassCollider);
     }
-    this.#grassCarpet = new GrassCarpet({
-      pc: this.#pc,
-      device: this.#app.graphicsDevice,
-      mapData: this.#mapData,
-      modelLibrary: this.#modelLibrary,
-      tileColors: GrassSurfaceMaterials.tileColors,
-      /**
-       *
-       * @param {number} col
-       * @param {number} row
-       * @param {number} level
-       */
-      variantForTile: (col, row, level) =>
-        this.#grassMaterials.variantForTile(col, row, level),
-      zoom: this.#camera.zoom,
-    });
-    this.#mapRoot.addChild(this.#grassCarpet.entity);
-    this.#grassSurface = new GrassSurface({
-      app: this.#app,
-      pc: this.#pc,
-      mapData: this.#mapData,
-      terrainMaterials: [this.#grassCarpet.material].filter(Boolean),
-      zoom: this.#camera.zoom,
-      getImpressionContacts: () => [
-        ...(this.#sceneObjects.getOne(SCENE_OBJECT_TYPE.HERO)
-          ?.grassFootContacts ?? []),
-        ...(this.#inventoryScene?.grassImpressionContacts ?? []),
-        ...(this.#groundCover?.grassImpressionContacts ?? []),
-      ],
-      getSurfaceContacts: () =>
-        this.#sceneObjects
-          .getAll(SCENE_OBJECT_TYPE.MAP_OBJECT)
-          .flatMap(/**
-           *
-           * @param {{grassSurfaceContacts: Array}} options
-           * @param {Array} options.grassSurfaceContacts
-           */
-          ({ grassSurfaceContacts = [] }) => grassSurfaceContacts),
-      /**
-       *
-       * @param {number} x
-       * @param {number} y
-       * @param {number} z
-       */
-      getWeightAt: (x, y, z) => this.#collisionWorld.grassWeightAt(x, z, y),
-    });
-
     this.#cloudField = new CubeCloudField({
       pc: this.#pc,
       app: this.#app,
@@ -1716,7 +1577,6 @@ export class PlayCanvasRenderer {
       layerId: this.#cloudLayer.id,
     });
     this.#app.root.addChild(this.#cloudField.entity);
-    this.#buildMapObjects();
     this.getHud(HeroLifeHud)?.setCastleLives(
       this.#sceneObjects.getFirst(SCENE_OBJECT_TYPE.CASTLE)
         ? MAX_CASTLE_LIVES
@@ -1730,7 +1590,7 @@ export class PlayCanvasRenderer {
     this.#terrainRenderer.buildPhysicsSurface(this.#collisionWorld);
     this.#buildHero();
     this.#connectHeroTools();
-    this.#grassSurface.refreshObstacles();
+    for (const object of this.#sceneObjects.getAll(SCENE_OBJECT_TYPE.MAP_OBJECT)) object.onSceneReady?.();
     this.#updateInteractionTarget();
 
     this.#captureCameraVisualBounds();
@@ -1746,20 +1606,22 @@ export class PlayCanvasRenderer {
         mapData: this.#mapData,
         objects: this.#sceneObjects,
         textureAssets: this.#textureAssets,
+        root: this.#mapRoot,
+        camera: this.#camera,
+        collisionWorld: this.#collisionWorld,
+        instanceRenderer: this.#terrainRenderer.instanceRenderer,
         /**
-         *
-         * @param {pc.Vec3} position
-         * @param {number} radius
+         * @param {(value: string) => string} value
          */
-        getGrassSupportPoints: (position, radius) =>
-          this.#grassCarpet.supportPointsWithin(position, radius),
+        setMaterialResolver: (value) => { this.#terrainRenderer.resolveMaterial = value; },
+        sideVariantCount: SIDE_VARIANT_TRANSFORMS.length,
+        getContactProviders: () => [this.#sceneObjects.getOne(SCENE_OBJECT_TYPE.HERO), this.#inventoryScene, this.#groundCover],
         /**
-         *
          * @param {import("src/game/GameContracts.js").GameObjectContract} removedObject
          */
         onObjectRemoved: (removedObject) => {
           this.#buriedTreasure?.removeMapObject(removedObject);
-          this.#grassSurface?.refreshObstacles(removedObject.tile);
+          for (const object of this.#sceneObjects.getAll(SCENE_OBJECT_TYPE.MAP_OBJECT)) object.onObjectRemoved?.(removedObject);
         },
         onRuntimeError: this.#onRuntimeError,
       },
@@ -2048,7 +1910,11 @@ export class PlayCanvasRenderer {
        * @param {number} radius
        */
       onTerrainExcavated: (position, radius) =>
-        this.#grassCarpet?.clearAt(position, radius),
+        this.#sceneObjects.getAll(SCENE_OBJECT_TYPE.MAP_OBJECT).forEach(
+          /**
+           * @param {import("src/game/GameContracts.js").GameObjectContract} object
+           */
+          (object) => object.onTerrainExcavated?.(position, radius)),
     });
     this.#collisionWorld.add(this.#buriedTreasure);
     this.#mapRoot.addChild(this.#buriedTreasure.entity);
@@ -2089,7 +1955,7 @@ export class PlayCanvasRenderer {
         app: this.#app,
         color: entry.color,
         cubeSize: CUBE_SCALE / 4,
-        surfaceLift: GRASS_SURFACE_LIFT,
+        surfaceLift: MapObjectFactory.surfaceLiftForTile(TileType.GRASS),
         symbol: signs[index % signs.length],
         modelLibrary: this.#modelLibrary,
       });
@@ -2189,7 +2055,6 @@ export class PlayCanvasRenderer {
       ? { near: 0, far: 0 }
       : this.#islandConnectorMotion.update(deltaTime);
     this.#terrainRenderer?.setIslandOffsets(offsets.near, offsets.far);
-    this.#grassCarpet?.setIslandOffsets(offsets.near, offsets.far);
     this.#groundCover?.setIslandOffsets(offsets.near, offsets.far);
     this.#bridgeRailingKit?.setIslandOffsets(offsets.near, offsets.far);
     for (const object of this.#sceneObjects.getAll(SCENE_OBJECT_TYPE.MAP_OBJECT)) {
@@ -2659,10 +2524,7 @@ export class PlayCanvasRenderer {
       if (this.#groundCover) {
         this.#groundCover.zoom = this.#camera.zoom;
       }
-      if (this.#grassSurface) {
-        this.#grassSurface.zoom = this.#camera.zoom;
-        this.#grassCarpet.zoom = this.#camera.zoom;
-      }
+      for (const object of this.#sceneObjects.getAll(SCENE_OBJECT_TYPE.MAP_OBJECT)) object.onCameraChanged?.();
       this.#cloudField?.setCameraState({
         rotation: this.#camera.rotation,
         panX: this.#camera.panX,
@@ -2699,7 +2561,7 @@ export class PlayCanvasRenderer {
     }
     return (
       this.#tileHeight(col, row) +
-      (GRASS_SURFACE_TILES.has(type) ? GRASS_SURFACE_LIFT : 0)
+      MapObjectFactory.surfaceLiftForTile(type)
     );
   }
 
@@ -3108,10 +2970,6 @@ export class PlayCanvasRenderer {
     this.#buriedTreasure = null;
     this.#groundCover?.destroy();
     this.#groundCover = null;
-    this.#grassSurface?.destroy();
-    this.#grassSurface = null;
-    this.#grassCarpet?.destroy();
-    this.#grassCarpet = null;
     this.#cloudField?.destroy();
     this.#cloudField = null;
     this.#setInteractionTarget(null);

@@ -1,4 +1,4 @@
-import { createEarthTextureVariants } from "./EarthTextureSelection.js";
+import { TerrainBlockDefinitions } from "./objects/terrain/TerrainBlockDefinitions.js";
 import { StoredMapNotFoundError } from "./errors/map/index.js";
 
 export class MapFileLoader {
@@ -38,7 +38,7 @@ export class MapFileLoader {
     const mapData = JSON.parse(JSON.stringify(storedMap));
     mapData.pipeData = new Map(mapData.pipeData ?? []);
     mapData.mapName = mapName;
-    mapData.earthTextureVariants ??= createEarthTextureVariants(mapData);
+    TerrainBlockDefinitions.populate(mapData);
     return mapData;
   }
 }

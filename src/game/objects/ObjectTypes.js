@@ -7,13 +7,17 @@
  * @typedef {object} MapObjectDefinition
  * @property {string} id
  * @property {string} object
- * @property {Point3} position
+ * @property {Point3} [position]
+ * @property {number} [level] Block bottom elevation when position is omitted.
+ * @property {boolean} [generated]
+ * @property {RenderCommand} [geometry]
  * @property {string} [variant]
  * @property {number} [rotation]
  * @property {{col: number, row: number}} [tile]
  * @property {Array<{offsetX: number, offsetZ: number, diameter: number, height: number}>} [parts]
  * @property {string} [script]
  * @property {string|number} [color]
+ * @typedef {{method: string, args: Array}} RenderCommand
  * @typedef {object} GameMapData
  * @property {number} cols
  * @property {number} rows
@@ -22,13 +26,24 @@
  * @property {Array<Array<number>>} heightmap
  * @property {Array<Array<{shape?: string, overpassId?: string, bridgeGroundHeight?: number, renderMode?: string}>>} [tileMeta]
  * @property {Array<MapObjectDefinition>} [objects]
+ * @property {Array<RenderCommand>} [renderCommands]
  * @property {Array<{id?: string, kind?: string, cells: Array<RiverCell>, cascades: Array<RiverCascade>, waterfall: WaterfallDefinition}>} [riverData]
  * @property {PathOverpass} [overpassData]
  * @property {{horizontal: boolean, station: number, cells: Array<{col: number, row: number}>, removedCells: Array<{col: number, row: number}>, nearIsland: string[], farIsland: string[]}} [islandConnectorData]
  * @property {{position: {col: number, row: number, width: number, depth: number}}} [castle]
  * @typedef {object} MapObjectRuntime
  * @property {GameMapData} [mapData]
- * @property {Array<MapObjectLike>} [objects]
+ * @property {Iterable<MapObjectLike>} [objects]
+ * @property {import("playcanvas").Entity} [root]
+ * @property {{zoom: number}} [camera]
+ * @property {import("src/game/collision/GroundCollisionWorld.js").GroundCollisionWorld} [collisionWorld]
+ * @property {import("src/game/rendering/terrain/TerrainInstanceRenderer.js").TerrainInstanceRenderer} [instanceRenderer]
+ * @property {number} [sideVariantCount]
+ * @property {(value: string) => string} [resolveMaterial]
+ * @property {(resolve: (value: string) => string) => void} [setMaterialResolver]
+ * @property {() => Array<MapObjectLike>} [getContactProviders]
+ * @property {{earth: import("./terrain/EarthSurfaceMaterials.js").EarthSurfaceMaterials, grass: import("./terrain/GrassSurfaceMaterials.js").GrassSurfaceMaterials}} [surfaceMaterials]
+ * @property {{carpet: import("./ground-cover/GrassCarpet.js").GrassCarpet, surface: import("./ground-cover/GrassSurface.js").GrassSurface}} [canopy]
  * @property {(definition: MapObjectDefinition) => void} [onObjectRemoved]
  * @property {(error: Error) => void} [onRuntimeError]
  * @property {(position: Point3, radius: number) => Array<Point3>} [getGrassSupportPoints]

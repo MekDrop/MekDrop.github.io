@@ -1,3 +1,4 @@
+import { TerrainBlockDefinitions } from "../../../objects/terrain/TerrainBlockDefinitions.js";
 import { AbstractMapGenerationStage } from "../AbstractMapGenerationStage.js";
 
 /**
@@ -154,8 +155,7 @@ export class FinalizationStage extends AbstractMapGenerationStage {
       layoutSignature: layout.signature,
       mapName: context.input.mapName,
     };
-    mapData.earthTextureVariants =
-      this.#operations.createEarthTextureVariants(mapData);
+    TerrainBlockDefinitions.populate(mapData);
     context.output.mapData = mapData;
   }
 }

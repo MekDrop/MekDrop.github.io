@@ -1,4 +1,4 @@
-import { TileType } from "../../generator/map/MapGenerator.js";
+import { MAP_TILE_TYPE as TileType } from "../../enum/MapTileType.js";
 import { MAX_UNDERSIDE_DEPTH } from "../../config/terrain.js";
 
 export class SkyIslandScenery {

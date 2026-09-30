@@ -21,6 +21,7 @@
  * @property {number[][]} heightmap
  * @property {TileMetadata[][]} [tileMeta]
  * @property {GameObjectDefinition[]} [objects]
+ * @property {import("./objects/ObjectTypes.js").RenderCommand[]} [renderCommands]
  * @property {string} [mapName]
  * @property {CastleLayout} [castle]
  * @property {{horizontal: boolean, station: number, cells: GridPoint[], removedCells: GridPoint[], nearIsland: string[], farIsland: string[]}} [islandConnectorData]

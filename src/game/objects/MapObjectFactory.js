@@ -1,3 +1,5 @@
+import { Earth } from "./terrain/Earth.js";
+import { Grass } from "./terrain/Grass.js";
 import { SeatedRoyal } from "./castle/SeatedRoyal.js";
 import { Castle } from "./castle/Castle.js";
 import { MapObjectClassNotFoundError } from "../errors/debug/index.js";
@@ -16,6 +18,8 @@ import { MapPickupAnimationActors } from "../debug/MapPickupAnimationActors.js";
 import { MapVirtualItem } from "../debug/MapVirtualItem.js";
 
 const OBJECT_CLASSES = new Map([
+  [Earth.name, Earth],
+  [Grass.name, Grass],
   [Castle.name, Castle],
   [GroundCoverItem.name, MapVirtualItem],
   [Hero.name, MapAnimationActor],
@@ -38,6 +42,49 @@ const OBJECT_CLASSES = new Map([
  * Creates map objects through the class registered for each object name.
  */
 export class MapObjectFactory {
+  /**
+   * @returns {Readonly<Record<string, string>>}
+   */
+  static get textureUrls() {
+    return Object.assign({}, ...[...new Set(OBJECT_CLASSES.values())].map(
+      /**
+       * @param {MapObjectConstructor} ObjectClass
+       */
+      (ObjectClass) => ObjectClass.textureUrls ?? {}));
+  }
+  /**
+   * @param {number} type
+   */
+  static surfaceLiftForTile(type) {
+    return Math.max(0, ...[...new Set(OBJECT_CLASSES.values())].map(
+      /**
+       * @param {MapObjectConstructor} ObjectClass
+       */
+      (ObjectClass) => ObjectClass.surfaceLiftForTile?.(type) ?? 0));
+  }
+  /**
+   * @param {Array} args
+   */
+  static registerMaterials(...args) {
+    for (const ObjectClass of new Set(OBJECT_CLASSES.values())) ObjectClass.registerMaterials?.(...args);
+  }
+  /**
+   * @param {Array} args
+   */
+  static configureTexture(...args) {
+    for (const ObjectClass of new Set(OBJECT_CLASSES.values())) ObjectClass.configureTexture?.(...args);
+  }
+  /**
+   * @param {import("src/game/GameContracts.js").GameMapData} mapData
+   */
+  static prepareMap(mapData) {
+    for (const ObjectClass of new Set(OBJECT_CLASSES.values())) {
+      if (Object.hasOwn(ObjectClass, "prepareMap")) {
+        ObjectClass.prepareMap(mapData);
+      }
+    }
+  }
+
   /**
    *
     * @returns {Array<string>}
@@ -77,6 +124,11 @@ export class MapObjectFactory {
     onCreate = () => {},
   }) {
     const objects = [];
+    for (const ObjectClass of new Set(OBJECT_CLASSES.values())) {
+      if (Object.hasOwn(ObjectClass, "prepareRuntime")) {
+        ObjectClass.prepareRuntime(runtime);
+      }
+    }
     const pickupDefinitions = [];
     const vegetationDefinitions = [];
     for (const definition of definitions) {

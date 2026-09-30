@@ -1,6 +1,7 @@
 import { TileType } from "../../generator/map/MapGenerator.js";
-import { surfaceMaterialForTile } from "./TerrainMaterialMaps.js";
-import { tileVariantIndex } from "./TileVariantIndex.js";
+import { SURFACE_MATERIALS } from "./TerrainBlockMaterialMaps.js";
+import { PathSurfaceMaterials } from "../../rendering/terrain/PathSurfaceMaterials.js";
+import { tileVariantIndex } from "../../rendering/terrain/TileVariantIndex.js";
 
 export class TerrainMaterialSelector {
   /**
@@ -77,7 +78,7 @@ export class TerrainMaterialSelector {
       top:
         type === TileType.GRASS
           ? this.#grass.topForTile(col, row, level)
-          : surfaceMaterialForTile(type, col, row, level),
+          : ((type === TileType.PATH || type === TileType.ENTRY) ? PathSurfaceMaterials.topForTile(col, row, level) : SURFACE_MATERIALS[type]),
       sides:
         type === TileType.GRASS
           ? this.#earth.topSideForTile(col, row, level)
