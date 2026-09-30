@@ -144,6 +144,29 @@ export class GameCamera {
     return this.#entity.right;
   }
 
+  /**
+   * Screen directions depend on orientation, never on camera position or zoom.
+   * @returns {{x: {x: number, y: number}, y: {x: number, y: number}, z: {x: number, y: number}}}
+   */
+  get debugDirections() {
+    const right = this.#entity.right;
+    const up = this.#entity.up;
+    /**
+     * @param {number} x
+     * @param {number} y
+     * @returns {{x: number, y: number}}
+     */
+    const normalize = (x, y) => {
+      const length = Math.max(0.0001, Math.hypot(x, y));
+      return { x: x / length, y: y / length };
+    };
+    return {
+      x: normalize(right.x, -up.x),
+      y: normalize(right.z, -up.z),
+      z: normalize(right.y, -up.y),
+    };
+  }
+
   get zoom() {
     return this.#zoom;
   }
@@ -373,7 +396,11 @@ export class GameCamera {
    * @param {{mapName?: string, numPaths?: number, numRivers?: number, signal?: AbortSignal}} options
    */
   update(options) {
-    return this.#mode.update(options);
+    const result = this.#mode.update(options);
+    // PlayCanvas otherwise invalidates these cached matrices only at prerender.
+    // Input and scene updates query projections before that event.
+    this.#entity.camera.onAppPrerender();
+    return result;
   }
 
   /**
@@ -407,6 +434,7 @@ export class GameCamera {
    */
   translateLocal(...args) {
     this.#entity.translateLocal(...args);
+    this.#entity.camera.onAppPrerender();
   }
 
   getPosition() {

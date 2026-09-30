@@ -879,28 +879,7 @@ export class PlayCanvasRenderer {
    * @returns {Readonly<Record<string, number>>}
    */
   get debugDirections() {
-    if (!this.#pc || !this.#camera?.camera) {
-      return null;
-    }
-    const pc = this.#pc;
-    const origin = this.#camera.camera.worldToScreen(new pc.Vec3(0, 0, 0));
-    /**
-     *
-     * @param {import("src/game/GameContracts.js").GridPoint} point
-     */
-    const projectDirection = (point) => {
-      const endpoint = this.#camera.camera.worldToScreen(point);
-      const x = endpoint.x - origin.x;
-      const y = endpoint.y - origin.y;
-      const length = Math.max(0.0001, Math.hypot(x, y));
-      return { x: x / length, y: y / length };
-    };
-
-    return {
-      x: projectDirection(new pc.Vec3(1, 0, 0)),
-      y: projectDirection(new pc.Vec3(0, 0, 1)),
-      z: projectDirection(new pc.Vec3(0, 1, 0)),
-    };
+    return this.#camera?.debugDirections ?? null;
   }
 
   /**

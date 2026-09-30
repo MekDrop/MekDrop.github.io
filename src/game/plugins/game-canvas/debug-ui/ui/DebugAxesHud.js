@@ -5,7 +5,6 @@ const REFERENCE_HEIGHT = 720;
 const PANEL_WIDTH = 214;
 const PANEL_HEIGHT = 134;
 const TEXTURE_SCALE = 2;
-const UPDATE_INTERVAL = 0.25;
 const AXIS_ORIGIN = Object.freeze({ x: 66, y: 68 });
 const GROUND_AXIS_LENGTH = 40;
 const VERTICAL_AXIS_LENGTH = 45;
@@ -62,11 +61,6 @@ export class DebugAxesHud {
    * @type {pc.EventHandle}
    */
   #updateHandle;
-  /**
-   *
-   * @type {number}
-   */
-  #elapsed = 0;
   /**
    *
    * @type {string}
@@ -198,7 +192,6 @@ export class DebugAxesHud {
     if (!beginsUpdate) {
       return;
     }
-    this.#elapsed = 0;
     this.#sync(true);
   }
 
@@ -217,19 +210,13 @@ export class DebugAxesHud {
   }
 
   /**
-   *
-   * @param {number} deltaTime
-   * @type {(deltaTime: number) => void}
+   * Keep the compass in sync with the camera each frame.
+   * @type {() => void}
    */
-  #update = (deltaTime) => {
+  #update = () => {
     if (!this.#entity?.enabled) {
       return;
     }
-    this.#elapsed += Math.max(0, deltaTime);
-    if (this.#elapsed < UPDATE_INTERVAL) {
-      return;
-    }
-    this.#elapsed %= UPDATE_INTERVAL;
     this.#sync();
   };
 

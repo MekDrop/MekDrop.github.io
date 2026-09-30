@@ -1,7 +1,7 @@
 import { useIntervalFn } from "@vueuse/core";
 
 import { DevWireframeInspector } from "./debug/DevWireframeInspector.js";
-import { PathArrows } from "./objects/path/PathArrows.js";
+import { PathArrowTextures } from "../../../rendering/terrain/PathArrowTextures.js";
 import { DebugAxesHud } from "./ui/DebugAxesHud.js";
 import { DebugFpsHud } from "./ui/DebugFpsHud.js";
 
@@ -74,7 +74,7 @@ export class GameCanvasDebugUiPlugin {
       gameCanvas: renderer,
     });
     this.#debugAxesHud.attach();
-    this.#pathArrows = new PathArrows({ pc, app });
+    this.#pathArrows = new PathArrowTextures({ pc, app });
     if (import.meta.env.DEV) {
       this.#devWireframeInspector = new DevWireframeInspector({
         pc,
@@ -113,7 +113,7 @@ export class GameCanvasDebugUiPlugin {
     if (!mapRoot) {
       return;
     }
-    mapRoot.addChild(this.#pathArrows.render(mapData));
+    this.#pathArrows.render(mapData, mapRoot);
   }
 
   resize() {
