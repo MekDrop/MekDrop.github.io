@@ -273,3 +273,13 @@ for (const side of Object.keys(layouts)) {
     room.destroy();
   });
 }
+
+it("assigns the preloaded carpet texture before displaying the room", () => {
+  const carpetTexture = { name: "Castle carpet" };
+  const room = createRoom("NORTH", null, { carpetTexture });
+  const runner = room.entity.children.find(
+    ({ name }) => name === "Audience carpet runner",
+  );
+  assert.equal(runner.render.meshInstances[0].material.diffuseMap, carpetTexture);
+  room.destroy();
+});

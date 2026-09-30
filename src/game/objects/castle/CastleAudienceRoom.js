@@ -1,4 +1,3 @@
-import carpetTextureUrl from "src/assets/game/textures/castle-carpet.png";
 import { CastleThrone } from "./CastleThrone.js";
 import { CastleFire } from "./CastleFire.js";
 import { GAME_OVER_VIEW_ROTATION_BY_SIDE } from "../../enum/GameOverViewRotation.js";
@@ -87,11 +86,6 @@ export class CastleAudienceRoom {
     * @type {Map<string, import("playcanvas").StandardMaterial>}
    */
   #materials = new Map();
-  /**
-   *
-    * @type {import("playcanvas").Asset|null}
-   */
-  #carpetAsset = null;
   /**
    *
     * @type {CastleFire|null}
@@ -212,7 +206,7 @@ export class CastleAudienceRoom {
 
   /**
    *
-   * @param {{pc: typeof import("playcanvas"), app: import("playcanvas").Application, position: {x: number, y: number, z: number}, door: import("src/game/objects/ObjectTypes.js").CastleDoorDefinition, occupant: SeatedRoyal, materials: Map<string, import("playcanvas").Material>, availableDepth: number, availableWidth: number, frontWallDepth: number, modelLibrary: string, fireParticleTexture: import("playcanvas").Texture}} options
+   * @param {{pc: typeof import("playcanvas"), app: import("playcanvas").Application, position: {x: number, y: number, z: number}, door: import("src/game/objects/ObjectTypes.js").CastleDoorDefinition, occupant: SeatedRoyal, materials: Map<string, import("playcanvas").Material>, availableDepth: number, availableWidth: number, frontWallDepth: number, modelLibrary: string, fireParticleTexture: import("playcanvas").Texture, carpetTexture: import("playcanvas").Texture}} options
    * @param {typeof import("playcanvas")} options.pc
    * @param {import("playcanvas").Application} options.app
    * @param {{x: number, y: number, z: number}} options.position
@@ -223,6 +217,7 @@ export class CastleAudienceRoom {
    * @param {number} options.availableWidth
    * @param {number} options.frontWallDepth
    * @param {string} options.modelLibrary
+   * @param {import("playcanvas").Texture} options.carpetTexture
    * @param {import("playcanvas").Texture} options.fireParticleTexture
    */
   constructor({
@@ -237,6 +232,7 @@ export class CastleAudienceRoom {
     frontWallDepth = DEFAULT_FRONT_WALL_DEPTH,
     modelLibrary,
     fireParticleTexture,
+    carpetTexture,
   }) {
     this.#pc = pc;
     this.#app = app;
@@ -259,7 +255,8 @@ export class CastleAudienceRoom {
 
     this.#resolveLayout();
     this.#createMaterials();
-    this.#loadCarpetTexture();
+    this.#materials.get("carpet").diffuseMap = carpetTexture ?? null;
+    this.#materials.get("carpet").update();
     this.#build();
     this.#entity.enabled = true;
   }
@@ -446,11 +443,6 @@ export class CastleAudienceRoom {
     this.#entity = null;
     for (const material of this.#materials.values()) material.destroy();
     this.#materials.clear();
-    if (this.#carpetAsset) {
-      this.#carpetAsset.unload();
-      this.#app.assets.remove(this.#carpetAsset);
-      this.#carpetAsset = null;
-    }
     this.#obstacles = [];
     this.#floorSurfaces = [];
   }
@@ -538,44 +530,6 @@ export class CastleAudienceRoom {
       material.update();
       this.#materials.set(name, material);
     }
-  }
-
-  #loadCarpetTexture() {
-    if (!this.#pc.Asset || !this.#app.assets) {
-      return;
-    }
-    const asset = new this.#pc.Asset("Castle carpet", "texture", {
-      url: carpetTextureUrl,
-    });
-    this.#carpetAsset = asset;
-    this.#app.assets.add(asset);
-    asset.ready(/**
-     *
-     * @param {import("playcanvas").Asset} loadedAsset
-     */
-    (loadedAsset) => {
-      if (this.#carpetAsset !== loadedAsset) {
-        return;
-      }
-      const texture = loadedAsset.resource;
-      texture.mipmaps = true;
-      texture.minFilter = this.#pc.FILTER_LINEAR_MIPMAP_LINEAR;
-      texture.magFilter = this.#pc.FILTER_LINEAR;
-      texture.anisotropy = 4;
-      texture.addressU = this.#pc.ADDRESS_CLAMP_TO_EDGE;
-      texture.addressV = this.#pc.ADDRESS_CLAMP_TO_EDGE;
-      const material = this.#materials.get("carpet");
-      material.diffuseMap = texture;
-      material.update();
-    });
-    asset.once("error", () => {
-      if (this.#carpetAsset !== asset) {
-        return;
-      }
-      this.#app.assets.remove(asset);
-      this.#carpetAsset = null;
-    });
-    this.#app.assets.load(asset);
   }
 
   #build() {

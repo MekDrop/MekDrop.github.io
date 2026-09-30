@@ -1,3 +1,4 @@
+import carpetTextureUrl from "src/assets/game/textures/castle-carpet.png";
 import { CastleEntityBuilder } from "./CastleEntityBuilder.js";
 import { IslandCellOwnership } from "../shared/IslandCellOwnership.js";
 import { SCENE_OBJECT_TYPE } from "../../enum/SceneObjectType.js";
@@ -17,8 +18,14 @@ export class Castle extends CastleEntityBuilder {
   #islandGroup = -1;
 
   /**
-   *
-    * @returns {Array<string>}
+   * @returns {Readonly<Record<string, string>>}
+   */
+  static get textureUrls() {
+    return { castleCarpet: carpetTextureUrl };
+  }
+
+  /**
+   * @returns {Array<string>}
    */
   static get modelUrls() {
     return CastleEntityBuilder.modelUrls;
@@ -42,6 +49,7 @@ export class Castle extends CastleEntityBuilder {
       modelLibrary,
       doorTexture: textureAssets.get("castleDoor").resource,
       stoneTexture: textureAssets.get("castleStone").resource,
+      carpetTexture: textureAssets.get("castleCarpet").resource,
       fireParticleTexture: textureAssets.get("castleFireParticle").resource,
       onRuntimeError: runtime.onRuntimeError,
     });
