@@ -1,3 +1,4 @@
+import { IslandObjectRoots } from "../shared/IslandObjectRoots.js";
 import { RoundBush, WideBush } from "./bushes/index.js";
 import {
   OakTree,
@@ -44,6 +45,10 @@ export class VoxelVegetation {
    */
   #items = [];
   /**
+   * @type {IslandObjectRoots}
+   */
+  #islandRoots;
+  /**
    *
     * @type {Array<VegetationDirtPatch>}
    */
@@ -71,12 +76,12 @@ export class VoxelVegetation {
 
   /**
    *
-   * @param {{pc: typeof import("playcanvas"), app: import("playcanvas").Application, definitions: Array<{id: string, variant: string, position: {x: number, y: number, z: number}, tile: {col: number, row: number}, rotation?: number}>, modelLibrary: import("../../models/GameModelLibrary.js").GameModelLibrary, runtime: {onObjectRemoved?: (event: {object: string, tile: {col: number, row: number}, kind: string}) => void}}} options
+   * @param {{pc: typeof import("playcanvas"), app: import("playcanvas").Application, definitions: Array<{id: string, variant: string, position: {x: number, y: number, z: number}, tile: {col: number, row: number}, rotation?: number}>, modelLibrary: import("../../models/GameModelLibrary.js").GameModelLibrary, runtime: import("../ObjectTypes.js").MapObjectRuntime}} options
    * @param {typeof import("playcanvas")} options.pc
    * @param {import("playcanvas").Application} options.app
    * @param {Array<{id: string, variant: string, position: {x: number, y: number, z: number}, tile: {col: number, row: number}, rotation?: number}>} options.definitions
    * @param {import("../../models/GameModelLibrary.js").GameModelLibrary} options.modelLibrary
-   * @param {{onObjectRemoved?: (event: {object: string, tile: {col: number, row: number}, kind: string}) => void}} options.runtime
+   * @param {import("../ObjectTypes.js").MapObjectRuntime} options.runtime
    */
   constructor({
     pc,
@@ -87,6 +92,8 @@ export class VoxelVegetation {
   }) {
 
     this.#entity = new pc.Entity("Voxel vegetation");
+
+    this.#islandRoots = new IslandObjectRoots(pc, this.#entity, runtime.mapData);
 
     this.#pc = pc;
 
@@ -119,7 +126,7 @@ export class VoxelVegetation {
         z,
         rotation: vegetation.rotation ?? 0,
       });
-      this.#entity.addChild(item.entity);
+      this.#islandRoots.addChild(item.entity, vegetation.tile);
       this.#items.push({
         item,
         col: vegetation.tile.col,
@@ -127,6 +134,14 @@ export class VoxelVegetation {
         rotation: vegetation.rotation ?? 0,
       });
     }
+  }
+
+  /**
+   * @param {number} near
+   * @param {number} far
+   */
+  setIslandOffsets(near, far) {
+    this.#islandRoots.setOffsets(near, far);
   }
 
   get entity() {
@@ -227,7 +242,7 @@ export class VoxelVegetation {
            * @param {string} description
            */
           onDestroyed: (description) => {
-            this.#leaveDirtPatch(description, closest.rotation);
+            this.#leaveDirtPatch(description, closest.rotation, closest);
             this.#onVegetationRemoved({
               col: closest.col,
               row: closest.row,
@@ -421,8 +436,9 @@ export class VoxelVegetation {
    * @param {number} options.y
    * @param {number} options.z
    * @param {number} rotation
+   * @param {{col: number, row: number}} tile
    */
-  #leaveDirtPatch({ id, groundFootprint, x, y, z }, rotation) {
+  #leaveDirtPatch({ id, groundFootprint, x, y, z }, rotation, tile) {
     const patch = new VegetationDirtPatch({
       pc: this.#pc,
       app: this.#app,
@@ -433,7 +449,7 @@ export class VoxelVegetation {
       z,
       rotation,
     });
-    this.#entity.addChild(patch.entity);
+    this.#islandRoots.addChild(patch.entity, tile);
     this.#dirtPatches.push(patch);
   }
 }

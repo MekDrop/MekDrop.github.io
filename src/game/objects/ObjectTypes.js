@@ -27,6 +27,7 @@
  * @property {{horizontal: boolean, station: number, cells: Array<{col: number, row: number}>, removedCells: Array<{col: number, row: number}>, nearIsland: string[], farIsland: string[]}} [islandConnectorData]
  * @property {{position: {col: number, row: number, width: number, depth: number}}} [castle]
  * @typedef {object} MapObjectRuntime
+ * @property {GameMapData} [mapData]
  * @property {Array<MapObjectLike>} [objects]
  * @property {(definition: MapObjectDefinition) => void} [onObjectRemoved]
  * @property {(error: Error) => void} [onRuntimeError]

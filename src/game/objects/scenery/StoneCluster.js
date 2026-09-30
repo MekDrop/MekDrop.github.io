@@ -1,3 +1,4 @@
+import { IslandObjectRoots } from "../shared/IslandObjectRoots.js";
 import { addGeneratedVoxelPhysics } from "../shared/GeneratedVoxelPhysics.js";
 import {
   buildStoneVoxelGeometry,
@@ -13,6 +14,14 @@ export class StoneCluster {
     * @type {import("playcanvas").Entity}
    */
   #entity;
+  /**
+   * @type {IslandObjectRoots}
+   */
+  #islandRoots;
+  /**
+   * @type {import("playcanvas").Entity}
+   */
+  #root;
   /**
    *
     * @type {import("src/game/objects/ObjectTypes.js").MapObjectDefinition}
@@ -41,16 +50,21 @@ export class StoneCluster {
 
   /**
    *
-   * @param {{pc: typeof import("playcanvas"), app: import("playcanvas").Application, definition: import("src/game/objects/ObjectTypes.js").MapObjectDefinition}} options
+   * @param {{pc: typeof import("playcanvas"), app: import("playcanvas").Application, definition: import("src/game/objects/ObjectTypes.js").MapObjectDefinition, runtime?: import("src/game/objects/ObjectTypes.js").MapObjectRuntime}} options
    * @param {typeof import("playcanvas")} options.pc
    * @param {import("playcanvas").Application} options.app
+   * @param {import("src/game/objects/ObjectTypes.js").MapObjectRuntime} options.runtime
    * @param {import("src/game/objects/ObjectTypes.js").MapObjectDefinition} options.definition
    */
-  constructor({ pc, app, definition }) {
+  constructor({ pc, app, definition, runtime = {} }) {
 
     this.#definition = definition;
 
     this.#entity = new pc.Entity(`${definition.id} stone cluster`);
+    this.#root = new pc.Entity(`${definition.id} island ownership`);
+    const root = this.#root;
+    this.#islandRoots = new IslandObjectRoots(pc, root, runtime.mapData);
+    this.#islandRoots.addChild(this.#entity, definition.tile);
     this.#entity.tags.add("map-object", definition.id, this.constructor.name);
     const stones = [];
     const { position, parts } = definition;
@@ -101,8 +115,16 @@ export class StoneCluster {
     });
   }
 
+  /**
+   * @param {number} near
+   * @param {number} far
+   */
+  setIslandOffsets(near, far) {
+    this.#islandRoots.setOffsets(near, far);
+  }
+
   get entity() {
-    return this.#entity;
+    return this.#root;
   }
 
   get definition() {
@@ -230,7 +252,8 @@ export class StoneCluster {
   }
 
   destroy() {
-    this.#entity?.destroy();
+    this.#root?.destroy();
+    this.#root = null;
     this.#entity = null;
     this.#mesh?.destroy();
     this.#mesh = null;
