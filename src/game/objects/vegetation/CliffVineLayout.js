@@ -35,6 +35,8 @@ export function createCliffVineLayout(mapData) {
       const horizontalScale =
         0.92 + ((Math.round(vine.phase * 100) + index * 17) % 19) / 100;
       modules.push({
+        col: vine.col,
+        row: vine.row,
         x:
           centerX +
           face.normalX * 0.515 +
@@ -45,7 +47,7 @@ export function createCliffVineLayout(mapData) {
           face.normalZ * 0.515 +
           face.tangentZ * tangentOffset,
         yaw: face.yaw,
-        scaleX: horizontalScale,
+        scaleX: horizontalScale * 1.7,
         scaleY: verticalScale,
         scaleZ: 0.9,
         topY: vine.topY,
