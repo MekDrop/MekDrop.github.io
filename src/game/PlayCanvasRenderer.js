@@ -1957,6 +1957,8 @@ export class PlayCanvasRenderer {
         cubeSize: CUBE_SCALE / 4,
         surfaceLift: MapObjectFactory.surfaceLiftForTile(TileType.GRASS),
         symbol: signs[index % signs.length],
+        mapData: this.#mapData,
+        tile: { col: entry.col, row: gateRows[0] },
         modelLibrary: this.#modelLibrary,
       });
       this.#collisionWorld.add(gateway);

@@ -1,3 +1,4 @@
+import { IslandCellOwnership } from "../shared/IslandCellOwnership.js";
 import { AmmoClothPhysics } from "../shared/AmmoClothPhysics.js";
 import { colorFromValue } from "../../helpers/colors.js";
 import gatewayFrameModelUrl from "../../models/gateway/gateway-frame.glb?url";
@@ -50,6 +51,14 @@ export class Gateway {
     * @type {number}
    */
   #cubeSize;
+  /**
+   * @type {import("playcanvas").Entity}
+   */
+  #visualRoot;
+  /**
+   * @type {number}
+   */
+  #islandGroup = -1;
   /**
    *
     * @type {string}
@@ -158,13 +167,15 @@ export class Gateway {
 
   /**
    *
-   * @param {{pc: typeof import("playcanvas"), app: import("playcanvas").Application, color: import("playcanvas").Color|number, cubeSize: number, surfaceLift: number, symbol: string, modelLibrary: string}} options
+   * @param {{pc: typeof import("playcanvas"), app: import("playcanvas").Application, color: import("playcanvas").Color|number, cubeSize: number, surfaceLift: number, symbol: string, modelLibrary: string, mapData: import("src/game/GameContracts.js").GameMapData, tile: {col: number, row: number}}} options
    * @param {typeof import("playcanvas")} options.pc
    * @param {import("playcanvas").Application} options.app
    * @param {import("playcanvas").Color|number} options.color
    * @param {number} options.cubeSize
    * @param {number} options.surfaceLift
    * @param {string} options.symbol
+   * @param {import("src/game/GameContracts.js").GameMapData} options.mapData
+   * @param {{col: number, row: number}} options.tile
    * @param {string} options.modelLibrary
    */
   constructor({
@@ -175,6 +186,8 @@ export class Gateway {
     surfaceLift = 0,
     symbol = "✧",
     modelLibrary,
+    mapData,
+    tile,
   }) {
 
     this.#pc = pc;
@@ -188,6 +201,14 @@ export class Gateway {
     this.#modelLibrary = modelLibrary;
 
     this.#entity = new pc.Entity("Voxel gateway");
+    this.#visualRoot = new pc.Entity("Gateway island visuals");
+    this.#entity.addChild(this.#visualRoot);
+    this.#islandGroup = new IslandCellOwnership(mapData).groups.findIndex(
+      /**
+       * @param {Set<string>} cells
+       */
+      (cells) => cells.has(`${tile?.col},${tile?.row}`),
+    );
 
     this.#bannerPhysics = new AmmoClothPhysics({ pc });
 
@@ -213,6 +234,15 @@ export class Gateway {
       this.#portalMaterial?.setParameter("uTime", this.#elapsed);
       this.#animateBanner(deltaTime);
     });
+  }
+
+  /**
+   * @param {number} near
+   * @param {number} far
+   */
+  setIslandOffsets(near, far) {
+    const offset = [near, far][this.#islandGroup] ?? 0;
+    this.#visualRoot.setLocalPosition(0, offset, 0);
   }
 
   get entity() {
@@ -405,6 +435,7 @@ export class Gateway {
     this.#bannerCloth = null;
     this.#entity?.destroy();
     this.#entity = null;
+    this.#visualRoot = null;
 
     for (const material of this.#materials) material.destroy();
     this.#materials = [];
@@ -437,7 +468,7 @@ export class Gateway {
     const frame = this.#modelLibrary.instantiate(Gateway.modelUrl);
     frame.name = "Gateway frame instance";
     frame.setLocalPosition(0, surfaceLift, 0);
-    this.#entity.addChild(frame);
+    this.#visualRoot.addChild(frame);
     this.#createBanner(surfaceLift);
   }
 
@@ -587,7 +618,7 @@ export class Gateway {
       castShadows: true,
       receiveShadows: true,
     });
-    this.#entity.addChild(banner);
+    this.#visualRoot.addChild(banner);
   }
 
   /**
@@ -602,7 +633,7 @@ export class Gateway {
     }
 
     const pc = this.#pc;
-    const inverse = this.#entity.getWorldTransform().clone().invert();
+    const inverse = this.#visualRoot.getWorldTransform().clone().invert();
     const localStart = inverse.transformPoint(rayStart, new pc.Vec3());
     const localEnd = inverse.transformPoint(rayEnd, new pc.Vec3());
     const directionX = localEnd.x - localStart.x;
@@ -735,6 +766,6 @@ export class Gateway {
       castShadows: false,
       receiveShadows: false,
     });
-    this.#entity.addChild(portal);
+    this.#visualRoot.addChild(portal);
   }
 }
