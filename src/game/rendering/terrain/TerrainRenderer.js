@@ -169,6 +169,7 @@ export class TerrainRenderer {
    */
   setIslandOffsets(near, far) {
     this.#instanceRenderer.setIslandOffsets(near, far);
+    this.#rivers?.setIslandOffsets(near, far);
   }
 
   /**

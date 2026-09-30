@@ -1,3 +1,5 @@
+import { IslandCellOwnership } from "./IslandCellOwnership.js";
+
 /**
  * Groups map-local props by authored tile without changing their local transforms.
  */
@@ -24,12 +26,7 @@ export class IslandObjectRoots {
     this.#parent = parent;
     const connector = mapData?.islandConnectorData;
     if (!connector) return;
-    this.#cells = [connector.nearIsland, connector.farIsland].map(
-      /**
-       * @param {string[]} cells
-       */
-      (cells) => new Set(cells),
-    );
+    this.#cells = new IslandCellOwnership(mapData).groups;
     this.#roots = [new pc.Entity("Near island props"), new pc.Entity("Far island props")];
     for (const root of this.#roots) parent.addChild(root);
   }
@@ -39,14 +36,22 @@ export class IslandObjectRoots {
    * @param {{col: number, row: number}} tile
    */
   addChild(entity, tile) {
+    const group = this.groupForTile(tile);
+    (this.#roots[group] ?? this.#parent).addChild(entity);
+  }
+
+  /**
+   * @param {{col: number, row: number}} tile
+   * @returns {number}
+   */
+  groupForTile(tile) {
     const key = `${tile?.col},${tile?.row}`;
-    const group = this.#cells.findIndex(
+    return this.#cells.findIndex(
       /**
        * @param {Set<string>} cells
        */
       (cells) => cells.has(key),
     );
-    (this.#roots[group] ?? this.#parent).addChild(entity);
   }
 
   /**

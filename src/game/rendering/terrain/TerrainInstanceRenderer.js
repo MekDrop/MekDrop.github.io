@@ -1,3 +1,4 @@
+import { IslandCellOwnership } from "../../objects/shared/IslandCellOwnership.js";
 import { SLOPE_DIRECTION } from "../../enum/SlopeDirection.js";
 import {
   CUBE_SCALE,
@@ -99,10 +100,7 @@ export class TerrainInstanceRenderer {
     if (mapData?.islandConnectorData) {
       this.#cols = mapData.cols;
       this.#rows = mapData.rows;
-      this.#islandCells = [
-        new Set(mapData.islandConnectorData.nearIsland),
-        new Set(mapData.islandConnectorData.farIsland),
-      ];
+      this.#islandCells = new IslandCellOwnership(mapData).groups;
       this.#islandRoots = [
         new pc.Entity("Near island terrain"),
         new pc.Entity("Far island terrain"),
