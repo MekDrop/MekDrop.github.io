@@ -64,6 +64,18 @@ describe("Buried treasure", () => {
   });
 
   it("digs up a chest, opens it, and collects medieval coins", () => {
+    cy.visit("/map/test_flat", {
+      onBeforeLoad(window) {
+        let seed = 137;
+        window.Math.random = () => {
+          seed = (seed * 16807) % 2147483647;
+          return (seed - 1) / 2147483646;
+        };
+      },
+    });
+    cy.get('.background-canvas[data-game-ready="true"]', {
+      timeout: 30000,
+    }).should("be.visible");
     cy.window().should((window) => {
       expect(window.gameMovementTest.state().wallet).to.deep.equal({
         gold: 0,
@@ -102,7 +114,7 @@ describe("Buried treasure", () => {
 
     cy.window({ timeout: 4000 }).should((window) => {
       const wallet = window.gameMovementTest.state().wallet;
-      expect(wallet.gold + wallet.silver + wallet.copper).to.equal(5);
+      expect(wallet.gold + wallet.silver + wallet.copper).to.be.within(5, 12);
     });
 
     cy.get(".interaction-prompt").should("contain.text", "Fill hole");

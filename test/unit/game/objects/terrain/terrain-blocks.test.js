@@ -48,7 +48,7 @@ function fixture() {
     camera: { zoom: 1.25 },
     root: { addChild: (child) => children.push(child) },
     sideVariantCount: 6,
-    instanceRenderer: { addCubeMatrix: (...args) => cubes.push(args), addBoxMatrix: (...args) => cubes.push(args) },
+    instanceRenderer: { addCubeMatrix: (...args) => cubes.push(args), addBoxMatrix: (...args) => cubes.push(args), excavateSurface: (...args) => cubes.push(["excavate", ...args]) },
     collisionWorld: { grassWeightAt: (...args) => { weightQueries.push(args); return 0.4; } },
     getContactProviders: () => contacts,
   };
@@ -83,7 +83,7 @@ describe("terrain building objects", () => {
   });
 
   it("keeps grass contact, obstacle, excavation, zoom, motion, and disposal behavior in Grass", () => {
-    const { runtime, objects, weightQueries } = fixture();
+    const { runtime, objects, weightQueries, cubes } = fixture();
     Earth.prepareRuntime(runtime);
     const grass = new Grass({ pc, app: {}, definition: { id: "grass", object: "Grass", position: { x: 0, y: 1.5, z: 0 } }, runtime });
     const { carpet, surface } = runtime.canopy;
@@ -97,6 +97,7 @@ describe("terrain building objects", () => {
     grass.onSceneReady();
     grass.onObjectRemoved({ tile: { col: 1, row: 1 } });
     grass.onTerrainExcavated(point, 0.4);
+    assert.deepEqual(cubes.at(-1), ["excavate", point, 0.4]);
     grass.setIslandOffsets(0.1, -0.2);
     runtime.camera.zoom = 2;
     grass.onCameraChanged();

@@ -1847,7 +1847,6 @@ export class PlayCanvasRenderer {
        * @param {(options: {origin: pc.Vec3, direction: pc.Vec3}) => import("src/game/GameContracts.js").InteractionDescription|null} options.findInteraction
        */
       ({ findInteraction }) => findInteraction),
-      this.#buriedTreasure,
     ];
   }
 
@@ -1917,6 +1916,7 @@ export class PlayCanvasRenderer {
           (object) => object.onTerrainExcavated?.(position, radius)),
     });
     this.#collisionWorld.add(this.#buriedTreasure);
+    this.#sceneObjects.add(SCENE_OBJECT_TYPE.MAP_OBJECT, this.#buriedTreasure);
     this.#mapRoot.addChild(this.#buriedTreasure.entity);
   }
 
@@ -2966,7 +2966,6 @@ export class PlayCanvasRenderer {
     this.#sceneObjects.destroyType(SCENE_OBJECT_TYPE.CLIFF_VINES);
     this.#terrainRenderer?.destroy();
     this.#terrainRenderer = null;
-    this.#buriedTreasure?.destroy();
     this.#buriedTreasure = null;
     this.#groundCover?.destroy();
     this.#groundCover = null;

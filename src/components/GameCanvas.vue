@@ -95,6 +95,7 @@ import SiteNoticeDialog from "components/SiteNoticeDialog.vue";
 import GameLoadingScene from "components/GameLoadingScene.vue";
 import HeroMoodStatus from "components/HeroMoodStatus.vue";
 import { generateMap } from "src/game/generator/map/MapGenerator.js";
+import { GameMapLoader } from "src/game/GameMapLoader.js";
 import { PlayCanvasRenderer } from "src/game/PlayCanvasRenderer.js";
 import { GameControls } from "src/game/GameControls.js";
 import { createGameCommandRegistry } from "src/game/commands/index.js";
@@ -317,11 +318,11 @@ function requestedMapName() {
 async function createMap(mapName = null) {
   if (!import.meta.env.DEV || !mapName?.startsWith("test_")) {
     mapFileLoader = null;
-    return generateMap(mapName ? { mapName } : undefined);
+    return GameMapLoader.load(await generateMap(mapName ? { mapName } : undefined));
   }
   const { MapFileLoader } = await import("src/game/MapFileLoader.js");
   mapFileLoader = MapFileLoader;
-  return MapFileLoader.load(mapName);
+  return GameMapLoader.load(await MapFileLoader.load(mapName));
 }
 
 /**
@@ -529,7 +530,7 @@ async function init() {
   if (renderer !== activeRenderer) {
     return;
   }
-  const regenerateMapAction = new RegenerateMapAction(renderer, generateMap, {
+  const regenerateMapAction = new RegenerateMapAction(renderer, createMap, {
     beforeGeneration: () => showLoadingPhase("generating"),
     /**
      *

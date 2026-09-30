@@ -1,4 +1,5 @@
 import { IslandCellOwnership } from "../../objects/shared/IslandCellOwnership.js";
+import { ExcavatedSurface } from "./ExcavatedSurface.js";
 import { SLOPE_DIRECTION } from "../../enum/SlopeDirection.js";
 import {
   CUBE_SCALE,
@@ -46,6 +47,10 @@ export class TerrainInstanceRenderer {
    * @type {Array}
    */
   #vertexBuffers = [];
+  /**
+   * @type {Map<string, {buffer: import("playcanvas").VertexBuffer, index: number, y: number, parent: import("playcanvas").Entity, material: import("playcanvas").Material, halfSize: number, entity?: import("playcanvas").Entity, mesh?: import("playcanvas").Mesh}>}
+   */
+  #surfaceInstances = new Map();
 
   /**
    * @type {pc.Entity[]|null}
@@ -262,7 +267,25 @@ export class TerrainInstanceRenderer {
         receiveShadows: true,
       });
       for (const meshInstance of meshInstances) {
-        meshInstance.setInstancing(vertexBuffer, false);
+        let buffer = vertexBuffer;
+        if (meshInstance === topMeshInstance && coverage === "full" && topMaterial.startsWith("grass")) {
+          buffer = new pc.VertexBuffer(this.#app.graphicsDevice,
+            pc.VertexFormat.getDefaultInstancingFormat(this.#app.graphicsDevice), instanceCount,
+            { data: new Float32Array(matrices) });
+          this.#vertexBuffers.push(buffer);
+          for (let index = 0; index < instanceCount; index += 1) {
+            const offset = index * 16;
+            const x = matrices[offset + 12];
+            const y = matrices[offset + 13] + matrices[offset + 5] / 2;
+            const z = matrices[offset + 14];
+            this.#surfaceInstances.set(`${x},${y.toFixed(4)},${z}`, {
+              buffer, index, y: matrices[offset + 13],
+              parent: this.#islandRoots?.[Number(group)] ?? this.#root,
+              material: this.#materials.get(topMaterial), halfSize: matrices[offset] / 2,
+            });
+          }
+        }
+        meshInstance.setInstancing(buffer, false);
         meshInstance.castShadow = true;
         meshInstance.receiveShadow = true;
       }
@@ -281,7 +304,42 @@ export class TerrainInstanceRenderer {
     this.#islandRoots?.[1].setLocalPosition(0, far, 0);
   }
 
+  /**
+   * Opens only the top face; cube walls and adjacent terrain stay intact.
+   * @param {{x: number, y: number, z: number}} position
+   * @param {number} radius
+   */
+  excavateSurface(position, radius) {
+    const record = this.#surfaceInstances.get(`${position.x},${position.y.toFixed(4)},${position.z}`);
+    if (!record) { return; }
+    const storage = record.buffer.lock();
+    const data = storage instanceof Float32Array ? storage : new Float32Array(storage);
+    data[record.index * 16 + 13] = radius > 0 ? -10000 : record.y;
+    record.buffer.unlock();
+    if (radius <= 0) {
+      if (record.entity) { record.entity.enabled = false; }
+      return;
+    }
+    if (!record.entity) {
+      record.mesh = ExcavatedSurface.createMesh(this.#pc, this.#app.graphicsDevice, record.halfSize, radius);
+      record.entity = new this.#pc.Entity("Excavated cube surface");
+      record.entity.setLocalPosition(position.x, position.y, position.z);
+      record.entity.addComponent("render", {
+        meshInstances: [new this.#pc.MeshInstance(record.mesh, record.material)],
+      });
+      record.parent.addChild(record.entity);
+    } else {
+      ExcavatedSurface.updateMesh(record.mesh, record.halfSize, radius);
+      record.entity.enabled = true;
+    }
+  }
+
   destroy() {
+    for (const record of this.#surfaceInstances.values()) {
+      record.entity?.destroy();
+      record.mesh?.destroy();
+    }
+    this.#surfaceInstances.clear();
     for (const entity of this.#entities) {
       entity.destroy();
     }

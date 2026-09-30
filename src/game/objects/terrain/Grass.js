@@ -122,7 +122,10 @@ export class Grass extends Earth {
    */
   onTerrainExcavated(position, radius) {
     if (this.#ownsSurface) {
-      this.#runtime.canopy.carpet.clearAt(position, radius);
+      if (radius > 0) {
+        this.#runtime.canopy.carpet.clearAt(position, Math.min(0.4, radius + 0.08));
+      }
+      this.#runtime.instanceRenderer.excavateSurface(position, radius);
     }
   }
   /**

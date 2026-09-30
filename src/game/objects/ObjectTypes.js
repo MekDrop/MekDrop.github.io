@@ -17,6 +17,8 @@
  * @property {Array<{offsetX: number, offsetZ: number, diameter: number, height: number}>} [parts]
  * @property {string} [script]
  * @property {string|number} [color]
+ * @property {{id: string, contents: Array<string>}} [buriedTreasure]
+ * @property {{id: string, contents: Array<string>}} [buriedTreasure]
  * @typedef {{method: string, args: Array}} RenderCommand
  * @typedef {object} GameMapData
  * @property {number} cols

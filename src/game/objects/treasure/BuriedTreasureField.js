@@ -15,6 +15,7 @@ import riverStoneModelUrl from "../../models/water/river-stone.glb?url";
 import { DigInteraction } from "./DigInteraction.js";
 import { FillHoleInteraction } from "./FillHoleInteraction.js";
 import { TreasureChestInteraction } from "./TreasureChestInteraction.js";
+import { IslandObjectRoots } from "../shared/IslandObjectRoots.js";
 
 /**
  * @typedef {{x: number, y: number, z: number}} Point3
@@ -35,6 +36,7 @@ import { TreasureChestInteraction } from "./TreasureChestInteraction.js";
  * @property {import("playcanvas").Entity|null} filledPatch
  * @property {import("playcanvas").Entity|null} chest
  * @property {Array<import("playcanvas").Material>} chestMaterials
+ * @property {Array<string>} contents
  * @property {Array<import("playcanvas").Entity>} rocks
  */
 
@@ -65,11 +67,6 @@ import { TreasureChestInteraction } from "./TreasureChestInteraction.js";
  * @property {number} scale
  */
 
-const TREASURE_CHANCE = 0.6;
-const HARVESTED_FLOWER_REWARD_MULTIPLIER = 5;
-const HARVESTED_MUSHROOM_REWARD_MULTIPLIER = 0.8;
-const FELLED_TREE_TREASURE_CHANCE = 0.02;
-const FELLED_TREE_REWARD_MULTIPLIER = 3.5;
 const MINIMUM_FACING_DOT = Math.cos((50 * Math.PI) / 180);
 const INTERACTION_REACH = 1.18;
 const HOLE_INITIAL_SCALE = 0.42;
@@ -158,6 +155,10 @@ export class BuriedTreasureField {
    */
   #entity;
   /**
+   * @type {IslandObjectRoots}
+   */
+  #islandRoots;
+  /**
    *
     * @type {import("../hero/tools/HeroTool.js").HeroTool|null}
    */
@@ -208,6 +209,10 @@ export class BuriedTreasureField {
    */
   #sites = [];
   /**
+   * @type {Map<string, TreasureSite>}
+   */
+  #buriedChests = new Map();
+  /**
    *
     * @type {Array<TreasureCoin>}
    */
@@ -244,7 +249,7 @@ export class BuriedTreasureField {
   #onInteractionChange;
   /**
    *
-    * @type {(position: {x: number, y: number, z: number}) => void}
+    * @type {(position: {x: number, y: number, z: number}, radius: number) => void}
    */
   #onTerrainExcavated;
   /**
@@ -255,14 +260,14 @@ export class BuriedTreasureField {
 
   /**
    *
-   * @param {{pc: typeof import("playcanvas"), app: import("playcanvas").Application, mapData: import("src/game/objects/ObjectTypes.js").GameMapData, modelLibrary: string, onCollectCoin: (coinType: string, amount: number) => void, onInteractionChange: (interaction: import("src/game/objects/ObjectTypes.js").InteractionLike|null) => void, onTerrainExcavated: (position: {x: number, y: number, z: number}) => void}} options
+   * @param {{pc: typeof import("playcanvas"), app: import("playcanvas").Application, mapData: import("src/game/objects/ObjectTypes.js").GameMapData, modelLibrary: string, onCollectCoin: (coinType: string, amount: number) => void, onInteractionChange: (interaction: import("src/game/objects/ObjectTypes.js").InteractionLike|null) => void, onTerrainExcavated: (position: {x: number, y: number, z: number}, radius: number) => void}} options
    * @param {typeof import("playcanvas")} options.pc
    * @param {import("playcanvas").Application} options.app
    * @param {import("src/game/objects/ObjectTypes.js").GameMapData} options.mapData
    * @param {string} options.modelLibrary
    * @param {(coinType: string, amount: number) => void} options.onCollectCoin
    * @param {(interaction: import("src/game/objects/ObjectTypes.js").InteractionLike|null) => void} options.onInteractionChange
-   * @param {(position: {x: number, y: number, z: number}) => void} options.onTerrainExcavated
+   * @param {(position: {x: number, y: number, z: number}, radius: number) => void} options.onTerrainExcavated
    */
   constructor({
     pc,
@@ -287,6 +292,7 @@ export class BuriedTreasureField {
     this.#onTerrainExcavated = onTerrainExcavated;
 
     this.#entity = new pc.Entity("Buried treasure field");
+    this.#islandRoots = new IslandObjectRoots(pc, this.#entity, mapData);
     this.#registerRiverSourceCovers();
     for (const { tile: { col, row } } of (mapData.objects ?? [])
       .filter(/**
@@ -318,12 +324,39 @@ export class BuriedTreasureField {
       );
     }
     this.#createMaterials();
+    for (const cube of mapData.objects ?? []) {
+      if (!cube.buriedTreasure) {
+        continue;
+      }
+      const { col, row } = cube.tile;
+      const site = {
+        id: this.#tileKey(col, row), col, row,
+        x: cube.position.x, y: mapData.heightmap[row][col] + GRASS_SURFACE_LIFT,
+        z: cube.position.z, contents: cube.buriedTreasure.contents,
+      };
+      this.#createChest(site);
+      this.#buriedChests.set(site.id, site);
+    }
 
     this.#updateHandle = app.on("update", this.#update);
   }
 
+  /**
+   * Buried contents and excavations stay within the terrain's camera bounds.
+   * @returns {Array<import("playcanvas").Entity>}
+   */
+  get visualRoots() { return []; }
+
   get entity() {
     return this.#entity;
+  }
+
+  /**
+   * @param {number} near
+   * @param {number} far
+   */
+  setIslandOffsets(near, far) {
+    this.#islandRoots.setOffsets(near, far);
   }
 
   set tool(tool) {
@@ -464,7 +497,7 @@ export class BuriedTreasureField {
       }
       existingSite.state = "expanding";
       existingSite.elapsed = 0;
-      existingSite.hasTreasure = Math.random() < existingSite.treasureChance;
+      // Treasure and contents were assigned when this map was loaded.
       return true;
     }
     if (this.#dugTiles.has(target.id)) {
@@ -472,7 +505,7 @@ export class BuriedTreasureField {
     }
 
     this.#dugTiles.add(target.id);
-    const rewardProfile = this.#rewardProfileFor(target.id);
+    const buriedChest = this.#buriedChests.get(target.id);
     const site = {
       id: target.id,
       col: target.col,
@@ -490,14 +523,17 @@ export class BuriedTreasureField {
       chestAnimationDuration: 0,
       chestMaterials: [],
       lootSpawned: false,
-      hasTreasure: false,
+      hasTreasure: Boolean(buriedChest),
       coinsRemaining: 0,
       fillProgress: 0,
-      treasureChance: rewardProfile.treasureChance,
-      rewardMultiplier: rewardProfile.rewardMultiplier,
+      contents: buriedChest?.contents ?? [],
     };
+    if (buriedChest) {
+      Object.assign(site, buriedChest);
+      this.#buriedChests.delete(target.id);
+    }
     this.#createHole(site);
-    this.#onTerrainExcavated?.(site, 0.65);
+
     this.#sites.push(site);
     return false;
   }
@@ -524,6 +560,7 @@ export class BuriedTreasureField {
       site.hole.enabled = false;
       site.earthPile.enabled = false;
       site.state = "filled";
+      this.#onTerrainExcavated?.(site, 0);
       return true;
     }
     site.state = "filling";
@@ -669,7 +706,7 @@ export class BuriedTreasureField {
   destroy() {
     this.#updateHandle?.off();
     this.#updateHandle = null;
-    for (const site of this.#sites) {
+    for (const site of [...this.#sites, ...this.#buriedChests.values()]) {
       for (const material of site.chestMaterials) {
         material.destroy();
       }
@@ -677,6 +714,7 @@ export class BuriedTreasureField {
     this.#entity?.destroy();
     this.#entity = null;
     this.#sites = [];
+    this.#buriedChests.clear();
     this.#coins = [];
     this.#fillClods = [];
     for (const material of this.#materials.values()) {
@@ -851,7 +889,6 @@ export class BuriedTreasureField {
     }
     const unfinished = this.#sites.some(
       /**
-       *
        * @param {TreasureSite} site
        */
       (site) => site.id === key && site.state === "digging",
@@ -865,35 +902,6 @@ export class BuriedTreasureField {
       !this.#groundCoverTileCounts.has(key) &&
       !this.#stoneTiles.has(key)
     );
-  }
-
-  /**
-   *
-   * @param {string} key
-   */
-  #rewardProfileFor(key) {
-    if (this.#felledTreeTiles.has(key)) {
-      return {
-        treasureChance: FELLED_TREE_TREASURE_CHANCE,
-        rewardMultiplier: FELLED_TREE_REWARD_MULTIPLIER,
-      };
-    }
-    if (this.#harvestedFlowerTiles.has(key)) {
-      return {
-        treasureChance: TREASURE_CHANCE / HARVESTED_FLOWER_REWARD_MULTIPLIER,
-        rewardMultiplier: HARVESTED_FLOWER_REWARD_MULTIPLIER,
-      };
-    }
-    if (this.#harvestedMushroomTiles.has(key)) {
-      return {
-        treasureChance: TREASURE_CHANCE,
-        rewardMultiplier: HARVESTED_MUSHROOM_REWARD_MULTIPLIER,
-      };
-    }
-    return {
-      treasureChance: TREASURE_CHANCE,
-      rewardMultiplier: 1,
-    };
   }
 
   #registerRiverSourceCovers() {
@@ -945,7 +953,7 @@ export class BuriedTreasureField {
       BLOCKED_DIG_HOLE_SCALE,
     );
     site.hole.setLocalPosition(site.x, site.y + 0.008, site.z);
-    this.#entity.addChild(site.hole);
+    this.#islandRoots.addChild(site.hole, site);
     for (const definition of BLOCKED_DIG_ROCKS) {
       const rock = this.#modelLibrary.instantiate(definition.modelUrl);
       rock.name = `Embedded source rock ${site.id}`;
@@ -960,7 +968,7 @@ export class BuriedTreasureField {
         definition.scale * 0.72,
         definition.scale,
       );
-      this.#entity.addChild(rock);
+      this.#islandRoots.addChild(rock, site);
       site.rocks.push(rock);
     }
     this.#sites.push(site);
@@ -981,7 +989,7 @@ export class BuriedTreasureField {
       HOLE_INITIAL_SCALE,
     );
     site.hole.setLocalPosition(site.x, site.y + 0.008, site.z);
-    this.#entity.addChild(site.hole);
+    this.#islandRoots.addChild(site.hole, site);
     site.earthPile = this.#modelLibrary.instantiate(earthModelUrl);
     site.earthPile.name = `Excavated earth pile ${site.id}`;
     site.earthPile.setLocalPosition(
@@ -989,12 +997,12 @@ export class BuriedTreasureField {
       site.y + 0.012,
       site.z + 0.3,
     );
-    this.#entity.addChild(site.earthPile);
+    this.#islandRoots.addChild(site.earthPile, site);
     site.filledPatch = this.#modelLibrary.instantiate(filledEarthModelUrl);
     site.filledPatch.name = `Filled earth patch ${site.id}`;
     site.filledPatch.setLocalPosition(site.x, site.y + 0.014, site.z);
     site.filledPatch.enabled = false;
-    this.#entity.addChild(site.filledPatch);
+    this.#islandRoots.addChild(site.filledPatch, site);
     this.#setExcavationScale(site, HOLE_INITIAL_SCALE);
   }
 
@@ -1006,6 +1014,7 @@ export class BuriedTreasureField {
   #setExcavationScale(site, scale) {
     site.hole.setLocalScale(scale, scale, scale);
     site.earthPile.setLocalScale(scale, scale, scale);
+    this.#onTerrainExcavated?.(site, 0.31 * scale);
   }
 
   /**
@@ -1051,7 +1060,7 @@ export class BuriedTreasureField {
       const scale = 0.045 + Math.random() * 0.035;
       entity.setLocalPosition(start.x, start.y, start.z);
       entity.setLocalScale(scale, scale * 0.72, scale);
-      this.#entity.addChild(entity);
+      this.#islandRoots.addChild(entity, site);
       this.#fillClods.push({
         entity,
         start,
@@ -1075,7 +1084,7 @@ export class BuriedTreasureField {
   #createChest(site) {
     site.chest = this.#modelLibrary.instantiate(chestModelUrl);
     site.chest.name = `Buried treasure chest ${site.id}`;
-    site.chest.setLocalScale(0.86, 0.86, 0.86);
+    site.chest.setLocalScale(0.72, 0.72, 0.72);
     site.chest.setLocalPosition(site.x, site.y - 0.58, site.z);
     const openTrack = this.#modelLibrary
       .getAnimationTracks(chestModelUrl, [TREASURE_CHEST_ANIMATION.OPEN])
@@ -1093,7 +1102,7 @@ export class BuriedTreasureField {
     site.chestAnimationDuration = openTrack.duration;
     site.chestAnimationLayer.activeStateCurrentTime = 0;
     this.#createChestMaterialCopies(site);
-    this.#entity.addChild(site.chest);
+    this.#islandRoots.addChild(site.chest, site);
   }
 
   /**
@@ -1121,12 +1130,10 @@ export class BuriedTreasureField {
    * @param {TreasureSite} site
    */
   #spawnCoins(site) {
-    const amount = Math.round(
-      (5 + Math.floor(Math.random() * 8)) * site.rewardMultiplier,
-    );
+    const amount = site.contents.length;
     site.coinsRemaining = amount;
     for (let index = 0; index < amount; index += 1) {
-      const type = this.#rollCoinType();
+      const type = site.contents[index];
       const angle = (index / amount) * Math.PI * 2 + Math.random() * 0.45;
       const coinEntity = this.#modelLibrary.instantiate(coinModelUrl);
       coinEntity.name = `${type} treasure coin`;
@@ -1167,17 +1174,6 @@ export class BuriedTreasureField {
         rotation: Math.random() * 360,
       });
     }
-  }
-
-  #rollCoinType() {
-    let roll = Math.random() * 100;
-    for (const [type, definition] of COIN_DEFINITIONS) {
-      roll -= definition.weight;
-      if (roll < 0) {
-        return type;
-      }
-    }
-    return COIN_TYPE.COPPER;
   }
 
   /**
@@ -1308,7 +1304,7 @@ export class BuriedTreasureField {
       if (progress >= 1) {
         site.elapsed = 0;
         if (site.hasTreasure) {
-          this.#createChest(site);
+          // The chest is already embedded beneath the turf.
           site.state = "emerging";
         } else {
           site.state = "empty";
@@ -1321,7 +1317,7 @@ export class BuriedTreasureField {
       site.elapsed = Math.min(CHEST_EMERGE_DURATION, site.elapsed + deltaTime);
       const progress = site.elapsed / CHEST_EMERGE_DURATION;
       const eased = 1 - (1 - progress) ** 3;
-      site.chest.setLocalPosition(site.x, site.y - 0.58 + eased * 0.58, site.z);
+      site.chest.setLocalPosition(site.x, site.y - 0.58 + eased * 0.18, site.z);
       if (progress >= 1) {
         site.state = "closed";
         site.elapsed = 0;
