@@ -245,6 +245,7 @@ export class Hero {
    */
   get canBePatted() {
     return Boolean(this.#headEntity)
+      && !this.#firstPersonCameraEnabled
       && this.#grounded
       && this.#actionBehavior.canBePatted;
   }
