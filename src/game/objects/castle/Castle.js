@@ -1,4 +1,5 @@
 import { CastleEntityBuilder } from "./CastleEntityBuilder.js";
+import { IslandCellOwnership } from "../shared/IslandCellOwnership.js";
 import { SCENE_OBJECT_TYPE } from "../../enum/SceneObjectType.js";
 
 export { isCastleUpperFloorRoomVoid } from "../../generator/castle/CastleGeometry.js";
@@ -9,6 +10,11 @@ export class Castle extends CastleEntityBuilder {
     * @type {import("src/game/objects/ObjectTypes.js").MapObjectDefinition}
    */
   #definition;
+
+  /**
+   * @type {number}
+   */
+  #islandGroup = -1;
 
   /**
    *
@@ -40,7 +46,26 @@ export class Castle extends CastleEntityBuilder {
       onRuntimeError: runtime.onRuntimeError,
     });
     this.#definition = definition;
+    const { mapData } = runtime;
+    const { x, z } = definition.buildPlan.input.position;
+    const col = Math.floor(x + (mapData?.cols ?? 0) / 2);
+    const row = Math.floor(z + (mapData?.rows ?? 0) / 2);
+    this.#islandGroup = new IslandCellOwnership(mapData).groups.findIndex(
+      /**
+       * @param {Set<string>} cells
+       */
+      (cells) => cells.has(`${col},${row}`),
+    );
     this.entity.tags.add("map-object", definition.id, this.constructor.name);
+  }
+
+  /**
+   * Keep all castle parts on the same visual island as the authored footprint.
+   * @param {number} near
+   * @param {number} far
+   */
+  setIslandOffsets(near, far) {
+    this.entity.setLocalPosition(0, [near, far][this.#islandGroup] ?? 0, 0);
   }
 
   get definition() {
