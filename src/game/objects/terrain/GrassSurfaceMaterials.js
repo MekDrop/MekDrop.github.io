@@ -11,8 +11,9 @@ import { FIXED_HEIGHTS } from "../../rendering/terrain/TerrainMaterialMaps.js";
 import { tilePatchValue } from "../../rendering/terrain/TileVariantIndex.js";
 
 const TOP_TEXTURES = ["grass", "grass2", "grass3", "grass4", "grass5", "grass6"];
-const TILE_COLORS = [0x69a92f, 0x75b638, 0x568d29, 0x7ead35, 0x69a92f, 0x568d29];
-const TEXTURE_MIXES = [0.12, 0.13, 0.13, 0.12, 0.17, 0.14];
+// Narrow the meadow palette so paths and flowers lead the eye at gameplay zoom.
+const TILE_COLORS = [0x70a044, 0x79aa4c, 0x638b3b, 0x7fa449, 0x70a044, 0x638b3b];
+const TEXTURE_MIXES = [0.06, 0.065, 0.065, 0.06, 0.085, 0.07];
 const LINEAR_COLORS = TILE_COLORS.map(/**
  *
  * @param {string} color

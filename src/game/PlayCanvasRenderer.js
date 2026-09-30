@@ -531,7 +531,8 @@ export class PlayCanvasRenderer {
       this.#graphicsSettingsStore.maxPixelRatio,
     );
 
-    this.#app.scene.ambientLight = new pc.Color(0.5, 0.57, 0.64);
+    // Cool fill keeps shaded armor and cliff faces readable under the warm key.
+    this.#app.scene.ambientLight = new pc.Color(0.42, 0.5, 0.61);
     this.#cloudLayer = new pc.Layer({ name: "Cloud backdrop" });
     this.#app.scene.layers.insert(this.#cloudLayer, 0);
     this.#app.on("update", this.#updateFrame);
@@ -596,14 +597,15 @@ export class PlayCanvasRenderer {
     const sunlight = new pc.Entity("Sunlight");
     sunlight.addComponent("light", {
       type: "directional",
-      color: new pc.Color(1, 0.93, 0.8),
-      intensity: 2.1,
+      color: new pc.Color(1, 0.94, 0.84),
+      intensity: 1.95,
       castShadows: this.#graphicsSettingsStore.shadows,
       shadowType: pc.SHADOW_PCF5,
       shadowDistance: SHADOW_DISTANCE,
       shadowResolution: this.#graphicsSettingsStore.shadowResolution,
-      shadowIntensity: 0.72,
-      shadowBias: 0.18,
+      shadowIntensity: 0.82,
+      // Keep small feet and trunks attached to their shadows without extra passes.
+      shadowBias: 0.14,
       normalOffsetBias: 0.035,
       numCascades: 1,
     });
