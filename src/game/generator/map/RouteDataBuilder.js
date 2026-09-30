@@ -203,7 +203,7 @@ export class RouteDataBuilder {
   /**
    * @param {MapCell[][]} routes
    */
-  #buildArrowData(routes) {
+  buildArrowData(routes) {
     const arrowData = new Map();
 
     routes.forEach(/**
@@ -350,7 +350,7 @@ export class RouteDataBuilder {
       ),
     );
 
-    return { routes, arrowData: this.#buildArrowData(routes) };
+    return { routes, arrowData: this.buildArrowData(routes) };
   }
 
   /**

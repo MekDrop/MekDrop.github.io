@@ -24,6 +24,9 @@
  * @property {import("./objects/ObjectTypes.js").RenderCommand[]} [renderCommands]
  * @property {string} [mapName]
  * @property {CastleLayout} [castle]
+ * @property {import("./navigation/WalkingPaths.js").WalkingEntry[]} [entries]
+ * @property {{pathIdx: number, entry: import("./navigation/WalkingPaths.js").WalkingEntry, route: import("./navigation/WalkingPaths.js").WalkingPoint[]}[]} [paths]
+ * @property {Map<string, Array<{dc: number, dr: number, elevation: number, marker: string, pathIdx: number, surfacePitch: number}>>} [arrowData]
  * @property {{horizontal: boolean, station: number, cells: GridPoint[], removedCells: GridPoint[], nearIsland: string[], farIsland: string[]}} [islandConnectorData]
  */
 
@@ -34,6 +37,8 @@
  * @property {string} [surfaceType]
  * @property {string} [renderMode]
  * @property {number} [baseHeight]
+ * @property {{lowHeight: number, highHeight: number, riseDirection: string}} [slope]
+ * @property {{direction: string, elevation: number}} [overpass]
  */
 
 /**
@@ -79,6 +84,7 @@
  * @typedef {object} CastleLayout
  * @property {GridPoint} [position]
  * @property {CastleOpening[]} [openings]
+ * @property {{centerCol: number, centerRow: number}[]} [doors]
  * @property {string} [style]
  */
 

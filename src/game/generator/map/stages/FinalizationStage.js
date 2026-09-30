@@ -1,3 +1,4 @@
+import { WalkingPaths } from "../../../navigation/WalkingPaths.js";
 import { TerrainBlockDefinitions } from "../../../objects/terrain/TerrainBlockDefinitions.js";
 import { AbstractMapGenerationStage } from "../AbstractMapGenerationStage.js";
 
@@ -30,7 +31,7 @@ export class FinalizationStage extends AbstractMapGenerationStage {
    */
   async run(context) {
     const { grid, heightmap, tileMeta } = context.world;
-    const { layout, routeCellsByPath, mergeZones, trunkStart } =
+    const { layout, mergeZones, trunkStart } =
       context.routing;
     const {
       riverData,
@@ -39,7 +40,7 @@ export class FinalizationStage extends AbstractMapGenerationStage {
       groundCoverData,
       cliffVineData,
     } = context.features;
-    const { routes, arrowData, castle, castleBuildPlan } = context.output;
+    const { castle, castleBuildPlan } = context.output;
     const { cols, rows } = this.#operations.mapDimensions;
     const royalSeed = this.#operations.randomUint32();
     const royalType = ["King", "Queen", "Princess"][royalSeed % 3];
@@ -130,16 +131,6 @@ export class FinalizationStage extends AbstractMapGenerationStage {
       castlePos: { col: layout.castleLeft, row: layout.pathRows[0] },
       castle,
       numPaths: layout.entries.length,
-      paths: routeCellsByPath.map(/**
-       *
-       * @param {string} path
-       * @param {number} pathIdx
-       */
-      (path, pathIdx) => ({
-        ...path,
-        route: routes[pathIdx],
-      })),
-      arrowData,
       objects,
       groundCoverData,
       cliffVineData,
@@ -155,6 +146,7 @@ export class FinalizationStage extends AbstractMapGenerationStage {
       layoutSignature: layout.signature,
       mapName: context.input.mapName,
     };
+    WalkingPaths.rebuild(mapData);
     TerrainBlockDefinitions.populate(mapData);
     context.output.mapData = mapData;
   }

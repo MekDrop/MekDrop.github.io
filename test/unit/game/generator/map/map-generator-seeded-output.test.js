@@ -5,14 +5,15 @@ import { describe, it } from "node:test";
 
 import { MapGenerator } from "../../../../../src/game/generator/map/MapGenerator.js";
 
-// Captured before collaborator extraction. Include Map/Set entries in insertion
-// order: JSON.stringify alone would silently omit route ownership and arrows.
+// Terrain baselines began before collaborator extraction. Full-result hashes
+// reflect the tile-derived runtime schema; routing hashes were captured from
+// the previous layout router and preserve its exact routes and arrows.
 const baselines = JSON.parse(
   readFileSync(new URL("./fixtures/pre-extraction-seeds.json", import.meta.url)),
 );
 
 describe("map generation pre-extraction compatibility", () => {
-  for (const { options, sha256, error } of baselines) {
+  for (const { options, sha256, routingSha256, error } of baselines) {
     it(`preserves the complete result for ${options.mapName}`, async () => {
       if (error) {
         await assert.rejects(MapGenerator.generate({ ...options, islandConnectors: false }), error);
@@ -35,6 +36,11 @@ describe("map generation pre-extraction compatibility", () => {
         return value;
       });
       assert.equal(createHash("sha256").update(serialized).digest("hex"), sha256);
+      const routing = JSON.stringify(
+        { routes: map.paths.map((path) => path.route), arrowData: map.arrowData },
+        (_key, value) => value instanceof Map ? { mapEntries: [...value] } : value,
+      );
+      assert.equal(createHash("sha256").update(routing).digest("hex"), routingSha256);
     });
   }
 });

@@ -1,5 +1,6 @@
 import { TerrainBlockDefinitions } from "./objects/terrain/TerrainBlockDefinitions.js";
 import { StoredMapNotFoundError } from "./errors/map/index.js";
+import { WalkingPaths } from "./navigation/WalkingPaths.js";
 
 export class MapFileLoader {
   /**
@@ -38,6 +39,7 @@ export class MapFileLoader {
     const mapData = JSON.parse(JSON.stringify(storedMap));
     mapData.pipeData = new Map(mapData.pipeData ?? []);
     mapData.mapName = mapName;
+    WalkingPaths.rebuild(mapData);
     TerrainBlockDefinitions.populate(mapData);
     return mapData;
   }

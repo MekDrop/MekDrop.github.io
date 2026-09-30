@@ -3,14 +3,15 @@
     "options": {
       "mapName": "pipeline-baseline-default"
     },
-    "sha256": "b65a63dec7657267728146dab47f00df6267cae68dff9183fe4bc1e8c4923881",
+    "sha256": "7c3dc7c92903661232404e5bda8134d2766873e16b79f201d102387cd6a78b6d",
     "features": {
       "rivers": 4,
       "lava": 0,
       "dips": 0,
       "overpass": false,
       "stones": 0
-    }
+    },
+    "routingSha256": "ab5e5a8908d6f5dfbe93f51d5b5a4369c46e2a46d847be2e51b840aed3ba3199"
   },
   {
     "options": {
@@ -18,14 +19,15 @@
       "numPaths": 4,
       "numRivers": 6
     },
-    "sha256": "2dcdcd9ca848978865f2ef035ea5d5a60dfbd5e6918d969761bca1d1a36a49db",
+    "sha256": "417cb201243f9cc581f372a661e6e0b79590fbc476a9913fa5421b8a3116fea4",
     "features": {
       "rivers": 6,
       "lava": 0,
       "dips": 0,
       "overpass": false,
       "stones": 6
-    }
+    },
+    "routingSha256": "8b9bc0c1e7ccf470bf1c6e7d9eaebd59b0db84f73fc6095ffc450f3dd0730ad9"
   },
   {
     "options": {
@@ -33,14 +35,15 @@
       "numPaths": 1,
       "numRivers": 0
     },
-    "sha256": "0263c96d13ebc6d4972ec5093beb76b39416580389f5c0874d4ddc295fb268e1",
+    "sha256": "2b43dcd6e2b16b3627dca890993072da460b07636e1561190e5dfe092c1b7139",
     "features": {
       "rivers": 0,
       "lava": 0,
       "dips": 0,
       "overpass": false,
       "stones": 0
-    }
+    },
+    "routingSha256": "a6cad2e5b1d76bfda2ab640245bb7b4cbd37284f74627cf7abd33e92fda9142f"
   },
   {
     "options": {
@@ -48,14 +51,15 @@
       "numPaths": 4,
       "overpass": true
     },
-    "sha256": "994058bd1d2bc166d55189999a7cb6a5783a264fa89ce34404f52ea861dc2498",
+    "sha256": "2e7e3586dd879f26a68ee96673140bda23fc49ea436de676453f60be511309a2",
     "features": {
       "rivers": 4,
       "lava": 0,
       "dips": 0,
       "overpass": true,
       "stones": 8
-    }
+    },
+    "routingSha256": "b9b4c071828bce24369c75720fd9468735c6c38f393c99e4c3c02d8781d50789"
   },
   {
     "options": {
@@ -64,14 +68,15 @@
       "numRivers": 0,
       "overpass": true
     },
-    "sha256": "3996e8d0581225995481f8fe2e976a1cc6e9b8c74535b7408fcc0e55c96b58c7",
+    "sha256": "6de91efaffeb57479eba05e938abbeb9361b22b8d839b57c22ca145732c317ec",
     "features": {
       "rivers": 0,
       "lava": 0,
       "dips": 1,
       "overpass": true,
       "stones": 8
-    }
+    },
+    "routingSha256": "fa909f201a73c96626a6cbf7e6e5eafb896db923539168a2f67a697a60363005"
   },
   {
     "options": {
@@ -80,14 +85,15 @@
       "numRivers": 0,
       "overpass": true
     },
-    "sha256": "52f52eff184a59172c2c8ee139cf3b3f26ec5449b2afe0bd3a67164ec83abfa9",
+    "sha256": "0069a9321baa43934a5200e5aae71fd4ed7fe44f27cc4e8290029ebf24d2a337",
     "features": {
       "rivers": 0,
       "lava": 0,
       "dips": 0,
       "overpass": true,
       "stones": 0
-    }
+    },
+    "routingSha256": "fd40e17e3fef5c64b63446dcb788cfa367602fb1b62fe0b5fd3af44f8e42d430"
   },
   {
     "options": {
@@ -95,14 +101,15 @@
       "numPaths": 1,
       "numRivers": 0
     },
-    "sha256": "31f837efb6f3c4e90b90ec73651c12a37ba215a9d86bf8707887bc485a34b7d4",
+    "sha256": "80694e5a42205704176fd3ad8102fc1acf13fbadf48ef99af8003585f6d1759a",
     "features": {
       "rivers": 0,
       "lava": 0,
       "dips": 0,
       "overpass": false,
       "stones": 0
-    }
+    },
+    "routingSha256": "0cee20f84077af4a39ad82627b6cbf3ad0c5ae40f923f7c3d8775b99ae734fab"
   },
   {
     "options": {
@@ -110,14 +117,15 @@
       "numPaths": 2,
       "numRivers": 1
     },
-    "sha256": "d5f59a7041a9ce3c26dc918bbf379293f345f26039dba49f74f086273569751b",
+    "sha256": "7d3df98f1987c54808719e4430f524db64c49e2798f7594cd29a274d30f76e0a",
     "features": {
       "rivers": 1,
       "lava": 0,
       "dips": 0,
       "overpass": false,
       "stones": 5
-    }
+    },
+    "routingSha256": "8dcfa70abd43c9abf3d5774685fec05d2914cfc6bd5dd58782189692190ff03a"
   },
   {
     "options": {
@@ -125,14 +133,15 @@
       "numPaths": 3,
       "numRivers": 2
     },
-    "sha256": "7c1a4bcc6cfd8ab501ae7da8f372e87f7a383e6d228d7829861f166fb9aa71b5",
+    "sha256": "2aed6a458c085ceda9de2234ee175d71a905fdee363f75f4ec036be9c1603b95",
     "features": {
       "rivers": 2,
       "lava": 0,
       "dips": 0,
       "overpass": false,
       "stones": 4
-    }
+    },
+    "routingSha256": "3cf330ff540f25ca9f117f6c6fca0ed80c6ca8fd449722530e259292268bdbce"
   },
   {
     "options": {
@@ -140,14 +149,15 @@
       "numPaths": 4,
       "numRivers": 3
     },
-    "sha256": "d6ee9e22f3a8a9511f021207d7128ec9e92038589a9c1f054a826c5739b472eb",
+    "sha256": "dcc7702ffb9472fdee353ab8c9f3eee22605c3a0cb5eaabcff710070a7b17f76",
     "features": {
       "rivers": 3,
       "lava": 0,
       "dips": 1,
       "overpass": false,
       "stones": 7
-    }
+    },
+    "routingSha256": "75e9a22c240cbc17850e1a300b0a66f755a77f682a6b89c8d6e2e6f847708dbe"
   },
   {
     "options": {
@@ -155,14 +165,15 @@
       "numPaths": 1,
       "numRivers": 4
     },
-    "sha256": "c0c938cdeb31ba4ed7f425d2300b53b24f5c0e44ed6f33c94f71cf8438683cde",
+    "sha256": "a23b096951330b6c0135478da906f349d80c631b3f9543bfe5590ede6674a351",
     "features": {
       "rivers": 4,
       "lava": 0,
       "dips": 0,
       "overpass": false,
       "stones": 0
-    }
+    },
+    "routingSha256": "8127c984dccc243abb19128ba741df71c22b4348e8248c9c88f7c3b9ab1d1abd"
   },
   {
     "options": {
@@ -170,14 +181,15 @@
       "numPaths": 2,
       "numRivers": 5
     },
-    "sha256": "de459fcc0f9fd18bdb70bf9d48258a0ffffb20a8893c9ce5c91e8f706c75a0a2",
+    "sha256": "36e0a212363031dae38a7da0cddaaafff67ef1a8bcfd30841bab923d75c355ec",
     "features": {
       "rivers": 5,
       "lava": 0,
       "dips": 0,
       "overpass": false,
       "stones": 0
-    }
+    },
+    "routingSha256": "8dcfa70abd43c9abf3d5774685fec05d2914cfc6bd5dd58782189692190ff03a"
   },
   {
     "options": {
@@ -185,14 +197,15 @@
       "numPaths": 3,
       "numRivers": 6
     },
-    "sha256": "7be8a950852702577681c415dc74c000d2937ebc4abb1cddd6867051c14f0f19",
+    "sha256": "58a88821c5540f096afb07d383d46d98af62b663db7b11b3e8c3ec0893f4eca7",
     "features": {
       "rivers": 6,
       "lava": 0,
       "dips": 0,
       "overpass": false,
       "stones": 8
-    }
+    },
+    "routingSha256": "6e523f9a4f7ed1afda26c28f3b12728b392b3c44a48523c2ceddc36b068f33f0"
   },
   {
     "options": {
@@ -200,14 +213,15 @@
       "numPaths": 4,
       "numRivers": 0
     },
-    "sha256": "404176452fabe0522c394952b4707fbb75d89d84945f1dab0cf1bc0ba73deee2",
+    "sha256": "b0f0c1f5ae5bfede34cc1c8c77b1f7d905c6caab12469445e078290d346a3686",
     "features": {
       "rivers": 0,
       "lava": 0,
       "dips": 0,
       "overpass": false,
       "stones": 6
-    }
+    },
+    "routingSha256": "ed844f590a69088d5d5a8d06ef287b9b5b3f12554c54a43828b7a304d7e8f2ff"
   },
   {
     "options": {
@@ -215,14 +229,15 @@
       "numPaths": 1,
       "numRivers": 1
     },
-    "sha256": "7eb3fbfe21be73647a3dfbb61188d38de38da3a38d79cc63b78bbccb66c7d8c2",
+    "sha256": "8d218b7068e03d811a68cd12613419c10bead0ce2dd3a335a1e31003df370e0c",
     "features": {
       "rivers": 1,
       "lava": 0,
       "dips": 0,
       "overpass": false,
       "stones": 8
-    }
+    },
+    "routingSha256": "de7dcf4f58e6fa8fe50360b094f349c50dcdab00921317c6d636fceba7e2d36d"
   },
   {
     "options": {
@@ -230,14 +245,15 @@
       "numPaths": 2,
       "numRivers": 2
     },
-    "sha256": "48c7cb67f8eaaeca7ff8a7fa962d8733b84ec062c0f42e0ee61c36798a1ed7ee",
+    "sha256": "9c2a7cdbdd6dfbef45c01b8f808a962217f11f47ff96570626864b3fc528a5b3",
     "features": {
       "rivers": 2,
       "lava": 0,
       "dips": 0,
       "overpass": true,
       "stones": 6
-    }
+    },
+    "routingSha256": "716bce3310c49f171cf19d7039336843cb9d1a914a8bb794fd004b6cd2c04258"
   },
   {
     "options": {
@@ -256,14 +272,15 @@
       "numPaths": 4,
       "numRivers": 4
     },
-    "sha256": "c7be8b01827959d7939152cb14ab7600dbc41738caa4fa88f78eb678b5cc25de",
+    "sha256": "c5c68f5602a60600d23994f37acea1c39fdbea4902093c5b510d741fd9c2cdd0",
     "features": {
       "rivers": 4,
       "lava": 0,
       "dips": 1,
       "overpass": false,
       "stones": 9
-    }
+    },
+    "routingSha256": "1ea01a7f8db49e62aaa678bb44e10032266cd5c4c9bb353d358e5d2d5e78665a"
   },
   {
     "options": {
@@ -271,13 +288,14 @@
       "numPaths": 2,
       "numRivers": 2
     },
-    "sha256": "d7091b2faf3820fd08333c9667267c2dda4bb6e6113edcd0fdfe0903e08ba400",
+    "sha256": "2e8a7c15fa471bc6d91a1a00fb0ceddf4555b6ae71f34bbef2ba543ec8d6432d",
     "features": {
       "rivers": 2,
       "lava": 1,
       "dips": 0,
       "overpass": false,
       "stones": 5
-    }
+    },
+    "routingSha256": "c80ab8e57f00c1453129baf9d96cf27fa5c135fbf36acf0125a1cdd8696d8cb9"
   }
 ]
