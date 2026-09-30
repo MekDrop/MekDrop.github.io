@@ -621,6 +621,10 @@ export class CastleEntityBuilder {
       material.useMetalness = true;
       if (definition.texture === "castleStone") {
         material.diffuseMap = this.#stoneTexture;
+        // The eye camera can reach a block's interior at wall contact. Keep
+        // its exit faces solid instead of exposing the scene through backfaces.
+        material.cull = this.#pc.CULLFACE_NONE;
+        material.twoSidedLighting = true;
       } else if (definition.texture === "castleDoor") {
         material.diffuseMap = this.#doorTexture;
         material.cull = this.#pc.CULLFACE_NONE;

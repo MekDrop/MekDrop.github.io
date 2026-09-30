@@ -21,7 +21,7 @@ function cameraFixture() {
       Vec3,
       PROJECTION_PERSPECTIVE: "perspective",
     },
-    component: {},
+    component: { nearClip: 0.1 },
     right: { x: -1, y: 0, z: 0 },
     entity: {
       setPosition(position) {
@@ -43,6 +43,22 @@ const hero = {
 };
 
 describe("first-person camera", () => {
+  it("keeps nearby wall faces in front of the near plane and restores third-person clipping", () => {
+    const { gameCamera } = cameraFixture();
+    const mode = new FirstPersonCameraMode(gameCamera);
+    mode.enter();
+    // A wall 2 cm from the eye must survive at straight and oblique angles.
+    for (const angle of [0, 45, 80]) {
+      const wallDepth = 0.02 / Math.cos(angle * Math.PI / 180);
+      assert.ok(wallDepth > gameCamera.component.nearClip);
+    }
+    mode.exit();
+    assert.equal(gameCamera.component.nearClip, 0.1);
+    mode.enter();
+    mode.exit();
+    assert.equal(gameCamera.component.nearClip, 0.1);
+  });
+
   it("binds FPS movement to both WASD and the arrow keys", () => {
     assert.deepEqual(DEFAULT_CONTROLS.moveUp.keys, ["ArrowUp", "KeyW"]);
     assert.deepEqual(DEFAULT_CONTROLS.moveDown.keys, ["ArrowDown", "KeyS"]);

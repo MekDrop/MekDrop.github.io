@@ -1,6 +1,7 @@
 import { AbstractCameraMode } from "./AbstractCameraMode.js";
 
 const FIELD_OF_VIEW = 70;
+const NEAR_CLIP = 0.01;
 const MAXIMUM_DOWNWARD_PITCH = 80;
 const MAXIMUM_UPWARD_PITCH = 60;
 const MAXIMUM_YAW = 80;
@@ -44,6 +45,11 @@ export class FirstPersonCameraMode extends AbstractCameraMode {
    * @type {number}
    */
   #pitch = 0;
+
+  /**
+   * @type {number|null}
+   */
+  #previousNearClip = null;
 
   /**
    *
@@ -112,11 +118,18 @@ export class FirstPersonCameraMode extends AbstractCameraMode {
 
   enter() {
     const { gameCamera } = this;
+    this.#previousNearClip = gameCamera.component.nearClip;
+    // A 10 cm near plane cuts through nearby 25 cm castle blocks at eye level.
+    gameCamera.component.nearClip = NEAR_CLIP;
     gameCamera.component.projection = gameCamera.playCanvas.PROJECTION_PERSPECTIVE;
     gameCamera.component.fov = FIELD_OF_VIEW;
   }
 
   exit() {
+    if (this.#previousNearClip !== null) {
+      this.gameCamera.component.nearClip = this.#previousNearClip;
+      this.#previousNearClip = null;
+    }
     this.#position = null;
     this.#direction = null;
     this.#right = null;
