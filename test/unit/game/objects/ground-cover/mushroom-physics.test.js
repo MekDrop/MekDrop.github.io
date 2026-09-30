@@ -44,6 +44,10 @@ class FakeEntity {
     this.setLocalPosition(x, y, z);
   }
 
+  getLocalPosition() {
+    return this.position;
+  }
+
   destroy() {}
 }
 
@@ -91,6 +95,17 @@ function createMushroom(physics, onDestroy = () => {}) {
 }
 
 describe("mushroom physics", () => {
+  it("keeps the crush trigger at the island height without accumulating offsets", () => {
+    const { physics } = createSubject();
+    const mushroom = createMushroom(physics);
+    const baseY = mushroom.entity.position.y;
+    for (const offset of [0.6, -0.2, 0]) {
+      physics.setOffset(mushroom, offset);
+      assert.equal(mushroom.entity.position.y, baseY + offset);
+      assert.equal(mushroom.entity.position.x, 2);
+      assert.equal(mushroom.entity.position.z, 4);
+    }
+  });
   it("uses isolated kinematic feet to push debris without moving the hero", () => {
     const { physics } = createSubject();
     const feet = physics.entity.children;

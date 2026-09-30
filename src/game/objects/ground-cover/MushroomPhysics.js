@@ -94,6 +94,7 @@ export class MushroomPhysics {
 
     const mushroom = {
       destroyed: false,
+      baseY: position.y + height / 2,
       entity,
       onDestroy,
     };
@@ -167,6 +168,22 @@ export class MushroomPhysics {
     }
     mushroom.destroyed = true;
     mushroom.entity.enabled = false;
+  }
+
+  /**
+   * @param {ReturnType<MushroomPhysics["addMushroom"]>} mushroom
+   * @param {number} offset
+   */
+  setOffset(mushroom, offset) {
+    if (mushroom.destroyed) {
+      return;
+    }
+    const position = mushroom.entity.getLocalPosition();
+    mushroom.entity.setLocalPosition(
+      position.x,
+      mushroom.baseY + offset,
+      position.z,
+    );
   }
 
   destroy() {

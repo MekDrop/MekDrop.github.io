@@ -124,9 +124,18 @@ export class FlowerPhysics {
       mask: this.#pc.BODYGROUP_USER_2,
     });
     anchor.addChild(body);
+    // A world-fixed joint cannot follow a floating island. Give it a moving
+    // kinematic support, isolated from all collision groups.
+    anchor.addComponent("collision", { type: "sphere", radius: 0.01 });
+    anchor.addComponent("rigidbody", {
+      type: this.#pc.BODYTYPE_KINEMATIC,
+      group: this.#pc.BODYGROUP_USER_1,
+      mask: 0,
+    });
     anchor.addComponent("joint", {
       type: this.#pc.JOINTTYPE_6DOF,
       entityA: body,
+      entityB: anchor,
       linearMotionX: this.#pc.MOTION_LOCKED,
       linearMotionY: this.#pc.MOTION_LIMITED,
       linearMotionZ: this.#pc.MOTION_LOCKED,
@@ -146,6 +155,8 @@ export class FlowerPhysics {
     const flower = {
       anchor,
       body,
+      baseY: position.y,
+      offset: 0,
       hidden: false,
       matrix: new this.#pc.Mat4(),
       matrixIndex,
@@ -209,6 +220,30 @@ export class FlowerPhysics {
     flower.hidden = true;
     flower.anchor.enabled = false;
     this.#writeBatch(flower.variant);
+  }
+
+  /**
+   * @param {ReturnType<FlowerPhysics["addFlower"]>} flower
+   * @param {number} offset
+   */
+  setOffset(flower, offset) {
+    const delta = offset - flower.offset;
+    if (delta === 0 || flower.hidden) {
+      return;
+    }
+    const bodyPosition = flower.body.getPosition();
+    const x = bodyPosition.x;
+    const y = bodyPosition.y + delta;
+    const z = bodyPosition.z;
+    const anchorPosition = flower.anchor.getLocalPosition();
+    flower.anchor.setLocalPosition(
+      anchorPosition.x,
+      flower.baseY + offset,
+      anchorPosition.z,
+    );
+    flower.anchor.rigidbody.syncEntityToBody();
+    flower.body.rigidbody.teleport(x, y, z);
+    flower.offset = offset;
   }
 
   updateMatrices() {

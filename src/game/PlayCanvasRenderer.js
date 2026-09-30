@@ -2211,6 +2211,7 @@ export class PlayCanvasRenderer {
       : this.#islandConnectorMotion.update(deltaTime);
     this.#terrainRenderer?.setIslandOffsets(offsets.near, offsets.far);
     this.#grassCarpet?.setIslandOffsets(offsets.near, offsets.far);
+    this.#groundCover?.setIslandOffsets(offsets.near, offsets.far);
     this.#bridgeRailingKit?.setIslandOffsets(offsets.near, offsets.far);
     for (const object of this.#sceneObjects.getAll(SCENE_OBJECT_TYPE.MAP_OBJECT)) {
       object.setIslandOffsets?.(offsets.near, offsets.far);

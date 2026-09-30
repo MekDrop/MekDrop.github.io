@@ -197,6 +197,14 @@ export class GroundCover {
    */
   #elapsed = 0;
   /**
+   * @type {Array<{group: number, apply: (offset: number) => void}>}
+   */
+  #islandAttachments = [];
+  /**
+   * @type {Set<string>[]}
+   */
+  #islandCells = [];
+  /**
    *
     * @type {number}
    */
@@ -247,10 +255,26 @@ export class GroundCover {
     this.#entity.addChild(this.#flowerPhysics.entity);
     this.#mushroomPhysics = new MushroomPhysics({ pc, app });
     this.#entity.addChild(this.#mushroomPhysics.entity);
+    const connector = mapData.islandConnectorData;
+    this.#islandCells = connector
+      ? [new Set(connector.nearIsland), new Set(connector.farIsland)]
+      : [];
     this.#createMaterials();
     this.zoom = zoom;
     this.#buildGroundCover(mapData, modelLibrary);
     this.#updateHandle = app.on("update", this.#update);
+  }
+
+  /**
+   * @param {number} near
+   * @param {number} far
+   */
+  setIslandOffsets(near, far) {
+    const offsets = [near, far];
+    for (const attachment of this.#islandAttachments) {
+      attachment.apply(offsets[attachment.group] ?? 0);
+    }
+    this.#flowerPhysics.updateMatrices();
   }
 
   get entity() {
@@ -389,6 +413,7 @@ export class GroundCover {
     for (const material of this.#heldMaterials.values()) material.destroy();
     this.#heldMaterials.clear();
     this.#collectibles = [];
+    this.#islandAttachments = [];
   }
 
   #createMaterials() {
@@ -458,6 +483,14 @@ export class GroundCover {
       const y =
         mapData.heightmap[decoration.row][decoration.col] + GRASS_SURFACE_LIFT;
 
+      const position = { x, y, z };
+      const group = this.#islandCells.findIndex(
+        /**
+         * @param {Set<string>} cells
+         */
+        (cells) => cells.has(`${decoration.col},${decoration.row}`),
+      );
+
       if (definition.category === MUSHROOM_CATEGORY) {
         const scale = decoration.scale * definition.scale;
         const item = new GroundCoverItem({
@@ -481,7 +514,7 @@ export class GroundCover {
         let collectible = null;
         const mushroom = this.#mushroomPhysics.addMushroom({
           variant: decoration.variant,
-          position: { x, y, z },
+          position,
           interactionRadius: definition.interactionRadius * decoration.scale,
           scale,
           /**
@@ -495,7 +528,7 @@ export class GroundCover {
           decorationIndex,
           definition,
           modelLibrary,
-          position: { x, y, z },
+          position,
           onHide: () => {
             item.collect();
             this.#mushroomPhysics.hide(mushroom);
@@ -507,6 +540,17 @@ export class GroundCover {
           onDestroy: (impact) => {
             item.crush(impact);
             this.#mushroomPhysics.hide(mushroom);
+          },
+        });
+        this.#islandAttachments.push({
+          group,
+          /**
+           * @param {number} offset
+           */
+          apply: (offset) => {
+            position.y = y + offset;
+            item.entity.setLocalPosition(x, position.y, z);
+            this.#mushroomPhysics.setOffset(mushroom, offset);
           },
         });
         this.#collectibles.push(collectible);
@@ -534,11 +578,21 @@ export class GroundCover {
       const flower = this.#flowerPhysics.addFlower({
         variant: decoration.variant,
         matrixIndex,
-        position: { x, y, z },
+        position,
         rotation: decoration.rotation,
         horizontalScale,
         verticalScale,
         interactionRadius: definition.interactionRadius * decoration.scale,
+      });
+      this.#islandAttachments.push({
+        group,
+        /**
+         * @param {number} offset
+         */
+        apply: (offset) => {
+          position.y = y + offset;
+          this.#flowerPhysics.setOffset(flower, offset);
+        },
       });
       matricesByVariant.set(decoration.variant, batch);
       this.#collectibles.push(
@@ -547,7 +601,7 @@ export class GroundCover {
           decorationIndex,
           definition,
           modelLibrary,
-          position: { x, y, z },
+          position,
           onHide: () => this.#flowerPhysics.hide(flower),
         }),
       );

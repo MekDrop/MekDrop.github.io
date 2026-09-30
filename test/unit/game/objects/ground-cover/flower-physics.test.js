@@ -76,6 +76,9 @@ class FakeEntity {
 
   addComponent(type, options) {
     this.components.set(type, options);
+    if (type === "rigidbody") {
+      this.rigidbody = { syncEntityToBody() {}, teleport: (x, y, z) => this.setPosition(x, y, z) };
+    }
   }
 
   setLocalPosition(x, y, z) {
@@ -84,6 +87,10 @@ class FakeEntity {
 
   setPosition(x, y, z) {
     this.position.set(x, y, z);
+  }
+
+  getLocalPosition() {
+    return this.position;
   }
 
   getPosition() {
@@ -124,6 +131,24 @@ function createFlower(physics) {
 }
 
 describe("flower physics", () => {
+  it("moves the spring support and instance matrix without accumulating offsets", () => {
+    const physics = new FlowerPhysics({ pc });
+    const flower = createFlower(physics);
+    const storage = new Float32Array(16);
+    physics.setBatch("daisy-patch", { lock: () => storage, unlock() {} });
+    flower.body.setPosition(2, 3.18, 4);
+    physics.setOffset(flower, 0.6);
+    physics.updateMatrices();
+    assert.equal(flower.anchor.getPosition().y, 3.6);
+    assert.ok(Math.abs(storage[13] - 3.6) < 1e-6);
+    physics.setOffset(flower, -0.2);
+    physics.updateMatrices();
+    assert.equal(flower.anchor.getPosition().y, 2.8);
+    assert.ok(Math.abs(storage[13] - 2.8) < 1e-6);
+    physics.setOffset(flower, 0);
+    physics.updateMatrices();
+    assert.ok(Math.abs(storage[13] - 3) < 1e-6);
+  });
   it("uses isolated Ammo bodies, spring joints, and kinematic feet", () => {
     const physics = new FlowerPhysics({ pc });
     const flower = createFlower(physics);
@@ -139,6 +164,9 @@ describe("flower physics", () => {
     assert.equal(body.components.get("rigidbody").mask, 256);
     assert.equal(anchor.components.get("joint").type, "6dof");
     assert.equal(anchor.components.get("joint").entityA, body);
+    assert.equal(anchor.components.get("joint").entityB, anchor);
+    assert.equal(anchor.components.get("rigidbody").type, "kinematic");
+    assert.equal(anchor.components.get("rigidbody").mask, 0);
     assert.equal(anchor.components.get("joint").linearMotionY, "limited");
     assert.equal(anchor.components.get("joint").angularMotionX, "limited");
     assert.equal(anchor.components.get("joint").angularMotionY, "locked");
