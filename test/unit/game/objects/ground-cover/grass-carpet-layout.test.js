@@ -99,7 +99,7 @@ describe("short grass carpet placement", () => {
     );
   });
 
-  it("grows on the solid source cover at its terrain height, keeping the downstream water clear", () => {
+  it("covers solid source caps with grass while keeping downstream water clear", () => {
     const input = map([[TileType.WATER, TileType.WATER]]);
     input.heightmap[0] = [0, 0];
     input.riverData = [{ cells: [
@@ -111,6 +111,13 @@ describe("short grass carpet placement", () => {
     assert.ok(placements.every(({ x, y }) => x < 0 && y > 3 && y < 3 + GRASS_SURFACE_LIFT));
   });
 
+  it("keeps grass tips inside the bank beside a lower fluid tile", () => {
+    const input = map([[TileType.GRASS, TileType.WATER]]);
+    input.heightmap[0] = [2, 0];
+    const placements = GrassCarpetLayout.create(input);
+    assert.equal(placements.length, 72);
+    assert.ok(placements.every(({ boundaryExtension }) => boundaryExtension[2] === 0));
+  });
   it("scatters freely across the tile and changes the arrangement with the map seed", () => {
     const input = map([[TileType.GRASS]]);
     const placements = GrassCarpetLayout.create({ ...input, mapName: "lawn-a" });

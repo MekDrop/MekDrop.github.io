@@ -206,95 +206,86 @@ export class TerrainInstanceRenderer {
 
   build() {
     const pc = this.#pc;
-    for (const [materialBatch, matrices] of this.#batches.entries()) {
-      if (matrices.length === 0) {
-        continue;
-      }
+    const batches = new Map();
+    for (const [materialBatch, matrices] of this.#batches) {
       const [group, topMaterial, sideMaterial, underlayMaterial, coverage] =
         materialBatch.split("|");
-      const instanceCount = matrices.length / 16;
-      const vertexBuffer = new pc.VertexBuffer(
-        this.#app.graphicsDevice,
-        pc.VertexFormat.getDefaultInstancingFormat(this.#app.graphicsDevice),
-        instanceCount,
-        { data: new Float32Array(matrices) },
-      );
-      this.#vertexBuffers.push(vertexBuffer);
-
-      const entity = new pc.Entity(`${topMaterial}/${sideMaterial} cubes`);
       const bridgeSideMesh =
-        coverage === "bridgeHorizontal" ||
-        coverage === "bridgeHorizontalSidesOnly"
+        coverage === "bridgeHorizontal" || coverage === "bridgeHorizontalSidesOnly"
           ? this.#meshes.bridgeHorizontalSides
-          : coverage === "bridgeVertical" ||
-              coverage === "bridgeVerticalSidesOnly"
+          : coverage === "bridgeVertical" || coverage === "bridgeVerticalSidesOnly"
             ? this.#meshes.bridgeVerticalSides
             : null;
       const slopeMeshes = this.#meshes.slopes[coverage] ?? null;
       const sidesOnly = coverage.endsWith("SidesOnly");
       const surfaceOnly = coverage === "surfaceOnly";
-      const sideMeshInstance = surfaceOnly
-        ? null
-        : new pc.MeshInstance(
-            slopeMeshes?.sides ?? bridgeSideMesh ?? this.#meshes.wallSides,
-            this.#materials.get(sideMaterial),
-          );
       const surfaceMesh = surfaceOnly
         ? this.#meshes.surfaces.full
         : sidesOnly
           ? null
-          : (slopeMeshes?.surface ??
-            this.#meshes.surfaces[coverage] ??
+          : (slopeMeshes?.surface ?? this.#meshes.surfaces[coverage] ??
             (bridgeSideMesh ? this.#meshes.surfaces.full : null));
-      const topMeshInstance = surfaceMesh
-        ? new pc.MeshInstance(surfaceMesh, this.#materials.get(topMaterial))
-        : null;
-      const underlayMeshInstance =
-        underlayMaterial === "none"
-          ? null
-          : new pc.MeshInstance(
-              this.#meshes.underlay,
-              this.#materials.get(underlayMaterial),
-            );
-      const meshInstances = [
-        sideMeshInstance,
-        underlayMeshInstance,
-        topMeshInstance,
-      ].filter(Boolean);
+      /**
+       * @param {import("playcanvas").Mesh|null} mesh
+       * @param {string} material
+       * @param {boolean} excavatable
+       */
+      const addFace = (mesh, material, excavatable = false) => {
+        if (!mesh || material === "none") {
+          return;
+        }
+        // A side's material need not split an otherwise identical top or underside.
+        const key = `${group}|${mesh.id}|${material}|${excavatable}`;
+        const batch = batches.get(key) ?? { group, mesh, material, excavatable, matrices: [] };
+        for (const value of matrices) {
+          batch.matrices.push(value);
+        }
+        batches.set(key, batch);
+      };
+      if (!surfaceOnly) {
+        addFace(slopeMeshes?.sides ?? bridgeSideMesh ?? this.#meshes.wallSides, sideMaterial);
+      }
+      addFace(this.#meshes.underlay, underlayMaterial);
+      addFace(surfaceMesh, topMaterial, coverage === "full" && topMaterial.startsWith("grass"));
+    }
+    for (const { group, mesh, material, excavatable, matrices } of batches.values()) {
+      if (!matrices.length) {
+        continue;
+      }
+      const instanceCount = matrices.length / 16;
+      const buffer = new pc.VertexBuffer(
+        this.#app.graphicsDevice,
+        pc.VertexFormat.getDefaultInstancingFormat(this.#app.graphicsDevice),
+        instanceCount,
+        { data: new Float32Array(matrices) },
+      );
+      this.#vertexBuffers.push(buffer);
+      const parent = this.#islandRoots?.[Number(group)] ?? this.#root;
+      const entity = new pc.Entity(`${material} cubes`);
+      const meshInstance = new pc.MeshInstance(mesh, this.#materials.get(material));
+      meshInstance.setInstancing(buffer, false);
       entity.addComponent("render", {
-        meshInstances,
+        meshInstances: [meshInstance],
         castShadows: true,
         receiveShadows: true,
       });
-      for (const meshInstance of meshInstances) {
-        let buffer = vertexBuffer;
-        if (meshInstance === topMeshInstance && coverage === "full" && topMaterial.startsWith("grass")) {
-          buffer = new pc.VertexBuffer(this.#app.graphicsDevice,
-            pc.VertexFormat.getDefaultInstancingFormat(this.#app.graphicsDevice), instanceCount,
-            { data: new Float32Array(matrices) });
-          this.#vertexBuffers.push(buffer);
-          for (let index = 0; index < instanceCount; index += 1) {
-            const offset = index * 16;
-            const x = matrices[offset + 12];
-            const y = matrices[offset + 13] + matrices[offset + 5] / 2;
-            const z = matrices[offset + 14];
-            this.#surfaceInstances.set(`${x},${y.toFixed(4)},${z}`, {
-              buffer, index, y: matrices[offset + 13],
-              parent: this.#islandRoots?.[Number(group)] ?? this.#root,
-              material: this.#materials.get(topMaterial), halfSize: matrices[offset] / 2,
-            });
-          }
+      if (excavatable) {
+        for (let index = 0; index < instanceCount; index += 1) {
+          const offset = index * 16;
+          const x = matrices[offset + 12];
+          const y = matrices[offset + 13] + matrices[offset + 5] / 2;
+          const z = matrices[offset + 14];
+          this.#surfaceInstances.set(`${x},${y.toFixed(4)},${z}`, {
+            buffer, index, y: matrices[offset + 13], parent,
+            material: this.#materials.get(material), halfSize: matrices[offset] / 2,
+          });
         }
-        meshInstance.setInstancing(buffer, false);
-        meshInstance.castShadow = true;
-        meshInstance.receiveShadow = true;
       }
-      (this.#islandRoots?.[Number(group)] ?? this.#root).addChild(entity);
+      parent.addChild(entity);
       this.#entities.push(entity);
     }
     this.#batches.clear();
   }
-
   /**
    * @param {number} near
    * @param {number} far

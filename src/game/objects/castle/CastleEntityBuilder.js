@@ -1,3 +1,4 @@
+import { DynamicRenderBatch } from "../../rendering/DynamicRenderBatch.js";
 import { CastleBanner } from "./CastleBanner.js";
 import { CastleAudienceRoom } from "./CastleAudienceRoom.js";
 import { CastleDoor } from "./CastleDoor.js";
@@ -53,6 +54,10 @@ export class CastleEntityBuilder {
     * @type {import("playcanvas").Application}
    */
   #app;
+  /**
+   * @type {DynamicRenderBatch|null}
+   */
+  #renderBatch = null;
   /**
    *
     * @type {{x: number, y: number, z: number}}
@@ -498,7 +503,17 @@ export class CastleEntityBuilder {
     this.#activeWindTarget = null;
   }
 
+  onSceneReady() {
+    this.#renderBatch ??= new DynamicRenderBatch(
+      this.#app,
+      this.#entity,
+      this.#pc.BUFFER_STATIC,
+    );
+  }
+
   destroy() {
+    this.#renderBatch?.destroy();
+    this.#renderBatch = null;
     this.#updateHandle?.off();
     this.#updateHandle = null;
     this.endWindGesture();

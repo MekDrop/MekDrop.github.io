@@ -100,7 +100,7 @@ async function main() {
     "run",
     "--e2e",
     "--browser",
-    "electron",
+    process.env.GAME_PERFORMANCE_BROWSER ?? "chrome",
     "--config-file",
     "cypress.performance.config.cjs",
   ]);

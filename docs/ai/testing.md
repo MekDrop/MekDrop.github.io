@@ -23,6 +23,7 @@ Prefer the smallest meaningful check first:
 
 - `npm run check:changed` detects JS/Vue changes against the upstream branch, including staged, unstaged, and committed branch changes. It lints those files, runs unambiguous nearby unit tests, selects a matching Cypress spec for supported UI/game changes, and considers a targeted build for routing, locale, layout, page, or Quasar config changes. Build checks are skipped when `http://localhost:9000` is accessible. Configure an upstream branch for the most accurate committed-change comparison; without one, the command checks the working tree against `HEAD`.
 - `npm run test:unit` for Node unit tests.
+- `npm run test:game:performance` measures sustained gameplay near 60 FPS in installed Chrome. Set `GAME_PERFORMANCE_BROWSER` to choose another Cypress browser. The check samples frame times after startup settles, and verifies the canvas stays at full CSS resolution or higher; the HUD counter reports individual frames.
 - `npm run test:game:movement` for hero movement behavior.
 - `npm run test:e2e:ci -- --spec test/cypress/e2e/pages/IndexPage.cy.js` for the current index page E2E spec.
 - `npm run test:e2e:ci -- --spec <path>` for a targeted Cypress spec.

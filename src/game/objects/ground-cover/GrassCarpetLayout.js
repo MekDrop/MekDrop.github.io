@@ -121,6 +121,11 @@ export class GrassCarpetLayout {
             neighborBridgeGround ??
             heightmap[neighborRow]?.[neighborCol] ??
             0;
+          // Keep moving blades inside the bank, including at fluid sources.
+          if (neighborType === TileType.WATER && neighborSource === undefined &&
+            !Number.isFinite(neighborBridgeGround)) {
+            return 0;
+          }
           if (neighborHeight < surfaceHeight - 0.25) {
             exposedSides |= 1 << side;
             return 0.06;

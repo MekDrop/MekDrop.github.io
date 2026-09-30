@@ -1,8 +1,8 @@
 const GAME_READY_BUDGET_MS = 15000;
-const WARMUP_DURATION_MS = 1000;
+const WARMUP_DURATION_MS = 3000;
 const SAMPLE_DURATION_MS = 4000;
-const MINIMUM_GAME_FPS = 50;
-const AVERAGE_FRAME_BUDGET_MS = 20;
+const MINIMUM_GAME_FPS = 58;
+const AVERAGE_FRAME_BUDGET_MS = 18;
 const P95_FRAME_BUDGET_MS = 35;
 const LONG_FRAME_THRESHOLD_MS = 100;
 const MAX_LONG_FRAME_RATIO = 0.05;
@@ -59,6 +59,10 @@ describe("Game performance", () => {
 
     cy.visit("/", {
       onBeforeLoad(win) {
+        // Measure gameplay with the FPS counter, without route and axis debug overlays.
+        win.sessionStorage.setItem("debug", JSON.stringify({
+          pathArrows: false, debugAxesHud: false, debugFpsHud: true,
+        }));
         cy.stub(win.console, "error").as("consoleError");
       },
     });
@@ -85,20 +89,12 @@ describe("Game performance", () => {
         cy.get(".site-notice-dialog").should("not.exist");
       });
 
-    cy.window().then((win) => {
-      win.dispatchEvent(new KeyboardEvent("keydown", { code: "Pause" }));
-    });
     cy.get(".background-canvas").should(
       "have.attr",
       "data-debug-visible",
       "true",
     );
-    cy.get(".background-canvas").should(($game) => {
-      const framesPerSecond = Number($game.attr("data-game-fps"));
-      expect(framesPerSecond, "measured game FPS").to.be.at.least(
-        MINIMUM_GAME_FPS,
-      );
-    });
+
 
     cy.window()
       .then((win) => sampleFrameTimes(win, WARMUP_DURATION_MS))
@@ -106,7 +102,9 @@ describe("Game performance", () => {
       .then((win) => sampleFrameTimes(win, SAMPLE_DURATION_MS))
       .then((frameTimes) => {
         const metrics = summarizeFrameTimes(frameTimes);
+        const framesPerSecond = 1000 / metrics.average;
         const summary = [
+          `${framesPerSecond.toFixed(1)} FPS`,
           `${graphicsBackend} backend`,
           `${readyDuration} ms ready`,
           `${metrics.sampleSize} frames`,
@@ -116,6 +114,7 @@ describe("Game performance", () => {
         ].join(", ");
 
         cy.log(summary);
+        expect(framesPerSecond, `measured game FPS (${summary})`).to.be.at.least(MINIMUM_GAME_FPS);
         expect(metrics.sampleSize, "captured frame count").to.be.greaterThan(
           0,
         );
@@ -131,6 +130,15 @@ describe("Game performance", () => {
         ).to.be.at.most(MAX_LONG_FRAME_RATIO);
         return cy.task("reportGamePerformance", summary);
       });
+    cy.get(".background-canvas canvas").should(($canvas) => {
+      const canvas = $canvas[0];
+      expect(canvas.width, "sharp canvas backing width").to.be.at.least(
+        Math.floor(canvas.clientWidth),
+      );
+      expect(canvas.height, "sharp canvas backing height").to.be.at.least(
+        Math.floor(canvas.clientHeight),
+      );
+    });
     cy.get("@consoleError").then((consoleError) => {
       const messages = consoleError
         .getCalls()

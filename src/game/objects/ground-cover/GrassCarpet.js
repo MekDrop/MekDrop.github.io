@@ -1,3 +1,4 @@
+import { IslandCellOwnership } from "../shared/IslandCellOwnership.js";
 import meadowGrassModelUrl from "../../models/ground-cover/meadow-grass.glb?url";
 import cloverModelUrl from "../../models/ground-cover/clover-patch.glb?url";
 import { GrassCarpetLayout } from "./GrassCarpetLayout.js";
@@ -5,8 +6,6 @@ import vertexShader from "./GrassCarpet.vert?raw";
 import fragmentShader from "./GrassCarpet.frag?raw";
 import normalShader from "./GrassCarpetNormal.frag?raw";
 
-const BASE_FADE_START_ZOOM = 1;
-const BASE_FADE_END_ZOOM = 1.22;
 const DETAIL_FADE_START_ZOOM = 1.5;
 const DETAIL_FADE_END_ZOOM = 2.25;
 
@@ -114,7 +113,7 @@ export class GrassCarpet {
     this.#entity = new pc.Entity("Short grass carpet");
     const connector = mapData.islandConnectorData;
     const islandCells = connector
-      ? [new Set(connector.nearIsland), new Set(connector.farIsland)]
+      ? new IslandCellOwnership(mapData).groups
       : null;
     if (islandCells) {
       this.#islandRoots = [
@@ -166,7 +165,9 @@ export class GrassCarpet {
        * @param {Set<string>} cells
        */
       (cells) => cells.has(`${col},${row}`)) ?? -1;
-      const key = `${group}:${placement.chunk}:${placement.detail}:${placement.broadleaf}:${placement.castleRearGrass}:${placement.boundaryExtension}`;
+      // Share clumps across larger patches without changing their transforms.
+      const patch = `${Math.floor(col / 12)},${Math.floor(row / 12)}`;
+      const key = `${group}:${patch}:${placement.detail}:${placement.broadleaf}:${placement.boundaryExtension}`;
       const chunk = chunks.get(key) ?? {
         group,
         matrices: [],
@@ -252,22 +253,14 @@ export class GrassCarpet {
   }
 
   set zoom(value) {
-    const baseReveal = revealAtZoom(
-      value,
-      BASE_FADE_START_ZOOM,
-      BASE_FADE_END_ZOOM,
-    );
     const detailReveal = revealAtZoom(
       value,
       DETAIL_FADE_START_ZOOM,
       DETAIL_FADE_END_ZOOM,
     );
     for (const batch of this.#batches) {
-      const reveal = batch.detail
-        ? detailReveal
-        : batch.castleRearGrass
-          ? 1
-          : baseReveal;
+      // Keep the base lawn continuous; only close-up detail fades with zoom.
+      const reveal = batch.detail ? detailReveal : 1;
       batch.entity.enabled = reveal > 0;
       if (reveal > 0) {
         for (const instance of batch.entity.render.meshInstances) {

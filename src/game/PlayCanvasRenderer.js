@@ -1590,7 +1590,7 @@ export class PlayCanvasRenderer {
     this.#terrainRenderer.buildPhysicsSurface(this.#collisionWorld);
     this.#buildHero();
     this.#connectHeroTools();
-    for (const object of this.#sceneObjects.getAll(SCENE_OBJECT_TYPE.MAP_OBJECT)) object.onSceneReady?.();
+    for (const object of this.#sceneObjects) object.onSceneReady?.();
     this.#updateInteractionTarget();
 
     this.#captureCameraVisualBounds();

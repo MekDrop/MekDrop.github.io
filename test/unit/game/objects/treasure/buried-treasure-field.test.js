@@ -37,11 +37,17 @@ it("reveals the already instantiated chest and spawns its stored contents withou
   const field = new BuriedTreasureField({ pc, mapData, modelLibrary,
     app: { on(event, callback) { update = callback; return { off() {} }; } },
   });
+  // Mirror the live application root for hierarchy-enabled checks.
+  const root = new pc.GraphNode();
+  root._enabledInHierarchy = true;
+  root.addChild(field.entity);
   const chest = models.find(({ url }) => url.includes("treasure-chest")).entity;
   assert.equal(chest.parent.parent, field.entity);
   assert.ok(chest.getLocalPosition().y < mapData.heightmap[0][0]);
+  assert.equal(chest.enabled, false, "buried chests do not render or animate");
   const target = { kind: "dig", id: "0:0", col: 0, row: 0, x: 0, y: 2, z: 0 };
   field.dig(target);
+  assert.equal(chest.enabled, true, "digging exposes the existing chest");
   const hole = models.find(({ url }) => url.includes("/hole.glb")).entity;
   const holeY = hole.getPosition().y;
   field.setIslandOffsets(0.2, -0.1);

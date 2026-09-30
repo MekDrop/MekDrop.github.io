@@ -1,4 +1,5 @@
 import { IslandObjectRoots } from "../shared/IslandObjectRoots.js";
+import { DynamicRenderBatch } from "../../rendering/DynamicRenderBatch.js";
 import { RoundBush, WideBush } from "./bushes/index.js";
 import {
   OakTree,
@@ -63,6 +64,10 @@ export class VoxelVegetation {
     * @type {import("playcanvas").Application}
    */
   #app;
+  /**
+   * @type {DynamicRenderBatch|null}
+   */
+  #renderBatch = null;
   /**
    *
     * @type {import("playcanvas").Entity}
@@ -146,6 +151,14 @@ export class VoxelVegetation {
 
   get entity() {
     return this.#entity;
+  }
+
+  onSceneReady() {
+    this.#renderBatch ??= new DynamicRenderBatch(
+      this.#app,
+      this.#entity,
+      this.#pc.BUFFER_STATIC,
+    );
   }
 
   /**
@@ -416,6 +429,8 @@ export class VoxelVegetation {
   }
 
   destroy() {
+    this.#renderBatch?.destroy();
+    this.#renderBatch = null;
     for (const patch of this.#dirtPatches) {
       patch.destroy();
     }

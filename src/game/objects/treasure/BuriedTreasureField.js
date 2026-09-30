@@ -335,6 +335,8 @@ export class BuriedTreasureField {
         z: cube.position.z, contents: cube.buriedTreasure.contents,
       };
       this.#createChest(site);
+      // Buried models must leave the render and animation systems until exposed.
+      site.chest.enabled = false;
       this.#buriedChests.set(site.id, site);
     }
 
@@ -530,6 +532,7 @@ export class BuriedTreasureField {
     };
     if (buriedChest) {
       Object.assign(site, buriedChest);
+      site.chest.enabled = true;
       this.#buriedChests.delete(target.id);
     }
     this.#createHole(site);
