@@ -33,8 +33,7 @@ fn routePaint() -> vec4f {
       metadata.a * 1.35 + uniform.uRouteTime * 0.42, (palette + 0.5) / 16.0
     ), 0.0).rgb;
     color = pow(color, vec3f(2.2));
-    let pulse = (sin(uniform.uRouteTime * 4.2) + 1.0) * 0.5;
-    paint = vec4f(paint.rgb + color * (mask.r * (1.3 + pulse * 0.45) + mask.g * 0.14),
+    paint = vec4f(paint.rgb + color * max(0.0, mask.r - mask.g) * 0.8 + vec3f(0.85, 0.87, 0.9) * mask.g,
       max(paint.a, mask.r));
   }
   return paint;

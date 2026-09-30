@@ -140,13 +140,16 @@ export class PathArrowTextures {
             const along = (dc * marker.dx + dr * marker.dz) / (0.9 * cosine);
             // Signed distance to the original shaft and triangular head. The
             // transition spans one texel to keep the silhouette legible at zoom.
-            const shaft = Math.min(0.1 - Math.abs(across), along + 0.32, 0.04 - along);
+            // Extend the shaft inside the head so their join has no outline seam.
+            const shaft = Math.min(0.1 - Math.abs(across), along + 0.32, 0.14 - along);
             const head = Math.min(along + 0.01,
               (0.43 - along - Math.abs(across) * (0.44 / 0.34)) / 1.637);
-            const core = Math.max(0, Math.min(1, 0.5 + Math.max(shaft, head) * resolution * 0.86));
-            const radius = Math.hypot(across / 0.6, along / 0.54);
-            const glow = Math.max(0, 1 - radius) ** 2 * 0.58;
-            if (core + glow < 0.004) {
+            // Fill the silhouette and reserve a thin inset border for white paint.
+            const distance = Math.max(shaft, head);
+            const outer = Math.max(0, Math.min(1, 0.5 + distance * resolution * 0.86));
+            const inner = Math.max(0, Math.min(1, 0.5 + (distance - 0.0225) * resolution * 0.86));
+            const core = outer;
+            if (core < 0.004) {
               continue;
             }
             const offset = ((z + layer * layerHeight) * width + x) * 4;
@@ -154,7 +157,7 @@ export class PathArrowTextures {
               continue;
             }
             mask[offset] = Math.round(core * 255);
-            mask[offset + 1] = Math.round(glow * 255);
+            mask[offset + 1] = Math.round((outer - inner) * 255);
             mask[offset + 2] = marker.palette;
             mask[offset + 3] = Math.round(Math.max(0, Math.min(1, (along + 0.32) / 0.75)) * 255);
             const surfaceHeight = marker.elevation + along * 0.9 * Math.sin(marker.pitch);

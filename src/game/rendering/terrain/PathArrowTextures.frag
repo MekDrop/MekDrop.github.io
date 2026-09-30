@@ -28,8 +28,7 @@ vec4 routePaint() {
       metadata.a * 1.35 + uRouteTime * 0.42, (palette + 0.5) / 16.0
     )).rgb;
     color = pow(color, vec3(2.2));
-    float pulse = (sin(uRouteTime * 4.2) + 1.0) * 0.5;
-    paint.rgb += color * (mask.r * (1.3 + pulse * 0.45) + mask.g * 0.14);
+    paint.rgb += color * max(0.0, mask.r - mask.g) * 0.8 + vec3(0.85, 0.87, 0.9) * mask.g;
     paint.a = max(paint.a, mask.r);
   }
   return paint;
