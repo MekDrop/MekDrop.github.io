@@ -127,7 +127,7 @@ const layouts = {
   },
 };
 
-function createRoom(side, occupant = null) {
+function createRoom(side, occupant = null, options = {}) {
   return new CastleAudienceRoom({
     pc,
     app,
@@ -142,6 +142,7 @@ function createRoom(side, occupant = null) {
     availableWidth: 6.4,
     frontWallDepth: 0.5,
     modelLibrary,
+    ...options,
   });
 }
 
@@ -239,3 +240,36 @@ it("routes a royal through the doorway with castle collision knowledge", () => {
   );
   room.destroy();
 });
+
+for (const side of Object.keys(layouts)) {
+  it(`${side} covers the full off-centre chamber through the rear wall`, () => {
+    const room = createRoom(side, null, {
+      availableDepth: 6.5,
+      availableWidth: 5,
+      door: { side, offset: 2, width: 2 },
+    });
+    // The room is 8 units wide with half-unit walls. Its doorway is at 3,
+    // so the former 5-unit furnished floor left a wider uncovered side strip.
+    const inward = layouts[side].inward;
+    const tangent = inward.x ? { x: 0, z: 1 } : { x: 1, z: 0 };
+    const center = {
+      WEST: { x: 0, z: 3 },
+      EAST: { x: 8, z: 3 },
+      NORTH: { x: 3, z: 0 },
+      SOUTH: { x: 3, z: 8 },
+    }[side];
+    for (const lateral of [-2.49, 4.49]) {
+      for (const forward of [0.51, 4.2, 6.49]) {
+        const x = center.x + tangent.x * lateral + inward.x * forward;
+        const z = center.z + tangent.z * lateral + inward.z * forward;
+        assert.ok(room.surfaceHeightAt(x, z) >= 2.05);
+      }
+    }
+    const floor = room.entity.children.find(
+      ({ name }) => name === "Audience wooden floor",
+    );
+    assert.equal(floor.scale.x, 7);
+    assert.equal(floor.scale.z, 6);
+    room.destroy();
+  });
+}

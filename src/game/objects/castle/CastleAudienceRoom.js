@@ -20,6 +20,8 @@ const DEFAULT_FRONT_WALL_DEPTH = 0.5;
 const VISIBILITY_MARGIN = 0.85;
 const CARPET_ENTRANCE_INSET = 0.32;
 const CARPET_REAR_CLEARANCE = 0.36;
+// The authored throne dais extends 0.875 units behind its origin.
+const THRONE_REAR_CLEARANCE = 0.9;
 const ROYAL_COLLISION_RADIUS = 0.22;
 const ROYAL_DOORWAY_INSIDE = 0.35;
 const ROYAL_DOORWAY_OUTSIDE = -0.35;
@@ -130,6 +132,18 @@ export class CastleAudienceRoom {
     * @type {number}
    */
   #roomWidth;
+  /**
+   * @type {number}
+   */
+  #floorWidth;
+  /**
+   * @type {number}
+   */
+  #floorLateral;
+  /**
+   * @type {number}
+   */
+  #floorDepth;
   /**
    *
     * @type {number}
@@ -373,19 +387,19 @@ export class CastleAudienceRoom {
     const lateral = deltaX * this.#tangent.x + deltaZ * this.#tangent.z;
     const forward = deltaX * this.#inward.x + deltaZ * this.#inward.z;
     const insideFloor =
-      Math.abs(lateral) <= this.#roomWidth / 2 &&
+      Math.abs(lateral - this.#floorLateral) <= this.#floorWidth / 2 &&
       forward >= -0.08 &&
-      forward <= this.#forwardCapacity;
+      forward <= this.#floorDepth;
     if (!insideFloor) {
       return null;
     }
-    let height = this.#baseY;
+    let height = null;
     for (const surface of this.#floorSurfaces) {
       if (
         Math.abs(lateral - surface.lateral) <= surface.width / 2 &&
         Math.abs(forward - surface.forward) <= surface.depth / 2
       ) {
-        height = Math.max(height, surface.height);
+        height = Math.max(height ?? this.#baseY, surface.height);
       }
     }
     return height;
@@ -486,6 +500,15 @@ export class CastleAudienceRoom {
       footprintCapacity,
       castleCapacity,
     );
+    // Coverage follows the masonry, independently of the furnished area and
+    // its doorway-centred width. Off-centre doors leave unequal side strips.
+    const wallDepth = Math.max(0, this.#frontWallDepth);
+    this.#floorWidth = Math.max(0, layout.span - wallDepth * 2);
+    this.#floorLateral = layout.span / 2 - offset - doorWidth / 2;
+    this.#floorDepth = Math.min(
+      Math.max(0, layout.capacity - wallDepth),
+      castleCapacity,
+    );
     this.#roomWidth = Math.max(
       0,
       Math.min(layout.span - EDGE_MARGIN * 2, this.#availableWidth, 6.4),
@@ -556,10 +579,7 @@ export class CastleAudienceRoom {
   }
 
   #build() {
-    const throneForward = Math.min(
-      this.#forwardCapacity - 0.76,
-      Math.max(3.05, this.#forwardCapacity * 0.78),
-    );
+    const throneForward = Math.max(0, this.#floorDepth - THRONE_REAR_CLEARANCE);
     this.#buildFloor(throneForward);
     this.#buildThrone(throneForward);
     this.#buildColumns(throneForward);
@@ -579,9 +599,9 @@ export class CastleAudienceRoom {
     // the slab through the masonry on oblique castle views.
     const floorInset = Math.min(
       Math.max(0, this.#frontWallDepth),
-      this.#forwardCapacity,
+      this.#floorDepth,
     );
-    const roomFloorDepth = this.#forwardCapacity - floorInset;
+    const roomFloorDepth = this.#floorDepth - floorInset;
     const roomFloorCenter = floorInset + roomFloorDepth / 2;
     const entranceFloorWidth = Math.min(
       this.#roomWidth,
@@ -591,10 +611,10 @@ export class CastleAudienceRoom {
       this.#boxAt(
         "Audience wooden floor",
         "woodLight",
-        0,
+        this.#floorLateral,
         roomFloorCenter,
         0.025,
-        [this.#roomWidth, 0.05, roomFloorDepth],
+        [this.#floorWidth, 0.05, roomFloorDepth],
       );
     }
     if (floorInset > 0 && entranceFloorWidth > 0) {
@@ -608,8 +628,8 @@ export class CastleAudienceRoom {
       );
     }
     for (const lateral of [
-      -this.#roomWidth / 2 + 0.05,
-      this.#roomWidth / 2 - 0.05,
+      this.#floorLateral - this.#floorWidth / 2 + 0.05,
+      this.#floorLateral + this.#floorWidth / 2 - 0.05,
     ]) {
       if (roomFloorDepth <= 0) {
         continue;
@@ -623,18 +643,25 @@ export class CastleAudienceRoom {
         [0.1, 0.025, roomFloorDepth],
       );
     }
-    for (let forward = 0.75; forward < this.#forwardCapacity; forward += 0.75) {
-      this.#boxAt("Audience floor plank seam", "wood", 0, forward, 0.057, [
-        this.#roomWidth - 0.18,
-        0.025,
-        0.035,
-      ]);
+    for (
+      let forward = Math.max(0.75, floorInset);
+      forward < this.#floorDepth;
+      forward += 0.75
+    ) {
+      this.#boxAt(
+        "Audience floor plank seam",
+        "wood",
+        this.#floorLateral,
+        forward,
+        0.057,
+        [this.#floorWidth - 0.18, 0.025, 0.035],
+      );
     }
 
     const runnerStart = CARPET_ENTRANCE_INSET;
     const runnerEnd = Math.min(
       throneForward - 0.07,
-      this.#forwardCapacity - CARPET_REAR_CLEARANCE,
+      this.#floorDepth - CARPET_REAR_CLEARANCE,
     );
     const runnerLength = Math.max(0, runnerEnd - runnerStart);
     const runnerCenter = runnerStart + runnerLength / 2;
