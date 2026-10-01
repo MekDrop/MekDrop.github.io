@@ -122,6 +122,20 @@ export class CastleFlag {
     poleHeight = 1.25,
     roofCollider = null,
   }) {
+    if (roofCollider) {
+      // Leave room for the free cloth to hang below its lowest attachment.
+      // This also corrects short poles stored in existing saved build plans.
+      const roofPeak = roofCollider.baseY + roofCollider.height;
+      const hangingReach = Math.hypot(width, height) * 1.08;
+      poleHeight = Math.max(
+        poleHeight,
+        roofPeak +
+          (roofCollider.clearance ?? 0.065) +
+          height +
+          0.12 +
+          hangingReach,
+      );
+    }
     const root = new this.#pc.Entity("Castle roof flag");
     root.setPosition(x, y, z);
     root.setEulerAngles(0, yaw, 0);
