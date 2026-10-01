@@ -72,6 +72,9 @@ game:
     unhandled_error: Unexpected application error
     refresh_countdown: "Refresh ({seconds}s)"
     dismiss: Dismiss
+    copy_details: Copy details
+    copied: Copied
+    copy_failed: Copy failed — retry
   graphics:
     webgl_fallback: WebGPU is unavailable. Using WebGL 2 compatibility rendering.
   interaction:

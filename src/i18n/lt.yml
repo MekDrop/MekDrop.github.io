@@ -72,6 +72,9 @@ game:
     unhandled_error: Netikėta programos klaida
     refresh_countdown: "Atnaujinti ({seconds}s)"
     dismiss: Uždaryti
+    copy_details: Kopijuoti klaidos informaciją
+    copied: Nukopijuota
+    copy_failed: Nepavyko nukopijuoti — bandykite dar kartą
   graphics:
     webgl_fallback: WebGPU nepasiekiamas. Naudojamas suderinamumo WebGL 2 atvaizdavimas.
   interaction:

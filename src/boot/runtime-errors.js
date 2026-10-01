@@ -1,9 +1,8 @@
-import { Notify } from "quasar";
+import { Notify, copyToClipboard } from "quasar";
 import { boot } from "quasar/wrappers";
 import { useCountdown } from "@vueuse/core";
 
 const INSTALLATION_KEY = Symbol.for("mekdrop.runtime-error-handler");
-const DUPLICATE_WINDOW_MS = 1000;
 const RELOAD_DELAY_MS = 30_000;
 const FALLBACK_TITLE = "Unexpected application error";
 const FALLBACK_UNKNOWN = "An unknown error occurred.";
@@ -15,8 +14,7 @@ const FALLBACK_DISMISS = "Dismiss";
  */
 
 let translate = null;
-let lastSignature = "";
-let lastReportedAt = 0;
+const activeSignatures = new Set();
 
 /**
  *
@@ -30,9 +28,32 @@ function refreshLabel(seconds) {
 /**
  *
  * @param {import("quasar").QNotifyCreateOptions} notificationOptions
+ * @param {string} signature
+ * @param {string} details
  */
-function schedulePageReload(notificationOptions) {
+function schedulePageReload(notificationOptions, signature, details) {
   let updateNotification;
+  let released = false;
+  const copyDetails = async () => {
+    let message;
+    let type;
+    try {
+      await copyToClipboard(details);
+      message = translate?.("game.notification.copied") ?? "Copied";
+      type = "positive";
+    } catch {
+      message = translate?.("game.notification.copy_failed") ?? "Copy failed — retry";
+      type = "warning";
+    }
+    Notify.create({ message, type, position: "bottom", timeout: 2000 });
+  };
+
+  const releaseSignature = () => {
+    if (!released) {
+      released = true;
+      activeSignatures.delete(signature);
+    }
+  };
 
   const stopReloadTimer = () => {
     countdown.stop();
@@ -43,6 +64,7 @@ function schedulePageReload(notificationOptions) {
   };
   const dismissError = () => {
     stopReloadTimer();
+    releaseSignature();
     updateNotification();
   };
   /**
@@ -51,14 +73,28 @@ function schedulePageReload(notificationOptions) {
    */
   const optionsFor = (seconds) => ({
     ...notificationOptions,
+    onDismiss: () => {
+      stopReloadTimer();
+      releaseSignature();
+    },
     actions: [
       {
+        label: translate?.("game.notification.copy_details") ?? "Copy details",
+        icon: "fas fa-copy",
+        style: { marginRight: "auto" },
+        color: "white",
+        noDismiss: true,
+        handler: copyDetails,
+      },
+      {
         label: refreshLabel(seconds),
+        icon: "fas fa-rotate-right",
         color: "white",
         handler: reloadPage,
       },
       {
         label: translate?.("game.notification.dismiss") ?? FALLBACK_DISMISS,
+        icon: "fas fa-xmark",
         color: "white",
         handler: dismissError,
       },
@@ -95,7 +131,53 @@ export function runtimeErrorDescription(error) {
 }
 
 /**
- *
+ * @param {RuntimeErrorInput} error
+ * @param {string} context
+ * @returns {string}
+ */
+export function runtimeErrorDetails(error, context) {
+  const seen = new WeakSet();
+  let serialized;
+  try {
+    serialized = JSON.stringify(error, /**
+     *
+     * @param {string} key
+     * @param {Error|Record<string, RuntimeErrorInput>|string|number|boolean|bigint|null|undefined} value
+     */
+    (key, value) => {
+      if (typeof value === "bigint") {
+        return String(value);
+      }
+      if (value && typeof value === "object") {
+        if (seen.has(value)) {
+          return "[Circular]";
+        }
+        seen.add(value);
+        if (value instanceof Error) {
+          return Object.fromEntries(
+            ["name", ...Object.getOwnPropertyNames(value)].map(/**
+             *
+             * @param {string} name
+             */
+            (name) => [name, value[name]]),
+          );
+        }
+      }
+      return value;
+    }, 2);
+  } catch {
+    serialized = runtimeErrorDescription(error);
+  }
+  return [
+    `Context: ${context}`,
+    `Page: ${window.location?.href ?? ""}`,
+    `Time: ${new Date().toISOString()}`,
+    "",
+    serialized ?? runtimeErrorDescription(error),
+  ].join("\n");
+}
+
+/**
  * @param {RuntimeErrorInput} error
  * @param {{context?: string}} options
  * @param {string} options.context
@@ -103,29 +185,31 @@ export function runtimeErrorDescription(error) {
 export function reportGlobalException(error, { context = "Application" } = {}) {
   const description = runtimeErrorDescription(error);
   const signature = `${context}:${description}`;
-  const reportedAt = Date.now();
   console.error(`[${context}]`, error);
   if (typeof window === "undefined" ||
-    (signature === lastSignature &&
-      reportedAt - lastReportedAt < DUPLICATE_WINDOW_MS)) {
+    activeSignatures.has(signature)) {
     return;
   }
-  lastSignature = signature;
-  lastReportedAt = reportedAt;
-  schedulePageReload({
-    type: "negative",
-    icon: "fas fa-triangle-exclamation",
-    position: "top",
-    message: translate?.("game.notification.unhandled_error") ?? FALLBACK_TITLE,
-    caption: `${context}: ${description}`,
-    timeout: 0,
-    group: false,
-    multiLine: true,
-    attrs: {
-      "data-global-exception": "true",
-      role: "alert",
-    },
-  });
+  activeSignatures.add(signature);
+  try {
+    schedulePageReload({
+      type: "negative",
+      icon: "fas fa-triangle-exclamation",
+      position: "top",
+      message: translate?.("game.notification.unhandled_error") ?? FALLBACK_TITLE,
+      caption: `${context}: ${description}`,
+      timeout: 0,
+      group: false,
+      multiLine: true,
+      attrs: {
+        "data-global-exception": "true",
+        role: "alert",
+      },
+    }, signature, runtimeErrorDetails(error, context));
+  } catch (error) {
+    activeSignatures.delete(signature);
+    throw error;
+  }
 }
 
 export default boot(/**

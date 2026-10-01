@@ -25,6 +25,55 @@ it("provides a safe description for unknown rejection values", () => {
   assert.equal(runtimeErrorDescription(null), "An unknown error occurred.");
 });
 
+it("suppresses open duplicate errors and allows them again after dismissal", () => {
+  const originalCreate = Notify.create;
+  const originalError = console.error;
+  const originalWindow = globalThis.window;
+  const originalSetInterval = globalThis.setInterval;
+  const originalClearInterval = globalThis.clearInterval;
+  const originalNow = Date.now;
+  const notifications = [];
+  let now = 100_000;
+  let timers = 0;
+
+  try {
+    Notify.create = (options) => {
+      notifications.push(options);
+      return () => null;
+    };
+    console.error = () => null;
+    globalThis.window = { location: { reload: () => null } };
+    globalThis.setInterval = () => ++timers;
+    globalThis.clearInterval = () => null;
+    Date.now = () => now;
+
+    reportGlobalException("first duplicate");
+    now += 5_000;
+    reportGlobalException("first duplicate");
+    reportGlobalException("different exception");
+    reportGlobalException("first duplicate");
+    assert.equal(notifications.length, 2);
+    assert.equal(timers, 2);
+
+    notifications[0].actions[2].handler();
+    reportGlobalException("first duplicate");
+    assert.equal(notifications.length, 3);
+
+    notifications[1].onDismiss();
+    reportGlobalException("different exception");
+    assert.equal(notifications.length, 4);
+    notifications[2].actions[2].handler();
+    notifications[3].actions[2].handler();
+  } finally {
+    Notify.create = originalCreate;
+    console.error = originalError;
+    globalThis.window = originalWindow;
+    globalThis.setInterval = originalSetInterval;
+    globalThis.clearInterval = originalClearInterval;
+    Date.now = originalNow;
+  }
+});
+
 it("counts down and reloads immediately from the recovery action", () => {
   const originalCreate = Notify.create;
   const originalError = console.error;
@@ -61,13 +110,13 @@ it("counts down and reloads immediately from the recovery action", () => {
     };
 
     reportGlobalException("reload recovery", { context: "Countdown test" });
-    assert.equal(notification.actions[0].label, "Refresh (30s)");
+    assert.equal(notification.actions[1].label, "Refresh (30s)");
 
     now += 1_001;
     intervalCallback();
-    assert.equal(notification.actions[0].label, "Refresh (29s)");
+    assert.equal(notification.actions[1].label, "Refresh (29s)");
 
-    notification.actions[0].handler();
+    notification.actions[1].handler();
     assert.equal(reloaded, 1);
     assert.deepEqual(clearedIntervals, [11]);
   } finally {
@@ -153,13 +202,95 @@ it("dismisses the recovery notification and cancels its reload timer", () => {
     };
 
     reportGlobalException("dismiss recovery", { context: "Dismiss test" });
-    assert.equal(notification.actions[1].label, "Dismiss");
-    notification.actions[1].handler();
+    assert.equal(notification.actions[2].label, "Dismiss");
+    notification.actions[2].handler();
 
     assert.equal(dismissed, 1);
     assert.equal(reloaded, 0);
     assert.deepEqual(clearedIntervals, [31]);
   } finally {
+    Notify.create = originalCreate;
+    console.error = originalError;
+    globalThis.window = originalWindow;
+    globalThis.setInterval = originalSetInterval;
+    globalThis.clearInterval = originalClearInterval;
+  }
+});
+
+it("copies full error details and reports clipboard failures without dismissing", async () => {
+  const originalCreate = Notify.create;
+  const originalError = console.error;
+  const originalWindow = globalThis.window;
+  const originalSetInterval = globalThis.setInterval;
+  const originalClearInterval = globalThis.clearInterval;
+  const originalClipboard = Object.getOwnPropertyDescriptor(navigator, "clipboard");
+  let notification;
+  let copied;
+  const feedback = [];
+  let failCopy = false;
+  let dismissed = 0;
+  let stopped = 0;
+  try {
+    Object.defineProperty(navigator, "clipboard", {
+      configurable: true,
+      value: {
+        writeText: async (text) => {
+          if (failCopy) {
+            throw new TypeError("clipboard denied");
+          }
+          copied = text;
+        },
+      },
+    });
+    Notify.create = (options) => {
+      if (!options.actions) {
+        feedback.push(options);
+        return () => null;
+      }
+      notification = options;
+      return (updated) => {
+        if (updated) {
+          notification = updated;
+        } else {
+          dismissed += 1;
+        }
+      };
+    };
+    console.error = () => null;
+    globalThis.window = { location: { href: "https://example.test/game" } };
+    globalThis.setInterval = () => 41;
+    globalThis.clearInterval = () => { stopped += 1; };
+    const cause = new TypeError("underlying failure");
+    const error = new TypeError("copy recovery", { cause });
+    error.code = "RENDER_FAILED";
+    error.self = error;
+    reportGlobalException(error, { context: "Copy test" });
+    assert.equal(notification.actions[0].label, "Copy details");
+    assert.equal(notification.actions[0].noDismiss, true);
+    await notification.actions[0].handler();
+    assert.match(copied, /Context: Copy test/);
+    assert.match(copied, /https:\/\/example.test\/game/);
+    assert.match(copied, /Time: /);
+    assert.match(copied, /TypeError/);
+    assert.match(copied, /"stack":/);
+    assert.match(copied, /underlying failure/);
+    assert.match(copied, /RENDER_FAILED/);
+    assert.match(copied, /\[Circular\]/);
+    assert.equal(notification.actions[0].label, "Copy details");
+    assert.equal(feedback[0].message, "Copied");
+    failCopy = true;
+    await notification.actions[0].handler();
+    assert.equal(notification.actions[0].label, "Copy details");
+    assert.equal(feedback[1].message, "Copy failed — retry");
+    assert.equal(dismissed, 0);
+    assert.equal(stopped, 0);
+    notification.actions[2].handler();
+  } finally {
+    if (originalClipboard) {
+      Object.defineProperty(navigator, "clipboard", originalClipboard);
+    } else {
+      delete navigator.clipboard;
+    }
     Notify.create = originalCreate;
     console.error = originalError;
     globalThis.window = originalWindow;
