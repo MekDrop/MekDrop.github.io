@@ -46,7 +46,7 @@
     "eslint": "^10.11.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-cypress": "^7.0.2",
-    "eslint-plugin-vue": "^10.10.0",
+    "eslint-plugin-vue": "^10.11.1",
     "glob": "^13.0.6",
     "postcss": "^8.5.28",
     "prettier": "^3.9.6",
