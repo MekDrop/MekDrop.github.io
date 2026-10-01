@@ -58,6 +58,7 @@ describe("CastleBuildPlanStage", () => {
           },
         ],
         style: "twin-tower",
+        seed: "map:castle:33:17",
       },
     ]);
   });

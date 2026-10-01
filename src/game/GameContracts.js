@@ -11,6 +11,55 @@
  * @typedef {object} CastleBuildPlan
  * @property {GameObjectDefinition[]} [objects]
  * @property {GridPoint[]} [collision]
+ * @property {{runtime: {residential?: CastleResidentialMetadata}}} [metadata]
+ */
+
+/**
+ * @typedef {object} CastleResidentialMetadata
+ * @property {{x: number, y: number, z: number, yaw: number}} origin
+ * @property {number} facadeDepth
+ * @property {number} floorHeight
+ * @property {{x: number, y: number, z: number, width: number, depth: number}} workRoom
+ * @property {Record<string, CastleRoomBounds>} rooms
+ * @property {Record<string, CastleRoomBounds>} reservations
+ * @property {CastleWindowPlacement[]} [exteriorWindows]
+ * @property {CastleWindowOpening[]} [windowOpenings]
+ * @property {Array<{x:number,z:number,baseY:number,topY:number,width:number,depth:number}>} [buttressFootings]
+ * @property {Array<{id:string,purpose:string,bounds:CastleRoomBounds,floorY:number,height:number}>} [buildings]
+ * @property {Array<{id:string,bounds:CastleRoomBounds,floorY:number}>} [walkableAreas]
+ * @property {Array<{x:number,y:number,z:number,yaw:number,width:number,height:number}>} [secondaryDoors]
+ * @property {{x: number, y: number, z: number, radius: number, rise: number}} serviceStair
+ * @property {{x: number, y: number, z: number, yaw: number, width: number, height: number}} serviceDoor
+ * @property {{side: string, offset: number, width: number, approachElevation: number}} serviceEntry
+ * @property {number} gatehouseDepth Upper residence depth in world units.
+ * @property {{startDepth: number, endDepth: number}} balcony Empty front terrace bounds from the entrance.
+ * @property {{x: number, y: number, z: number, width: number, depth: number, height: number, startDepth: number, endDepth: number}} upperRoom
+ * @property {{x: number, y: number, z: number, radius: number, rise: number}} stair
+ * @property {{x: number, y: number, z: number, yaw: number, width: number, height: number}} [upperDoor]
+ * @property {{x: number, y: number, z: number, yaw: number, width: number, height: number}} sideDoor
+ * @property {{x: number, y: number, z: number, yaw: number, width: number, depth: number, height: number}} [chimney]
+ * @property {{x: number, z: number, floorY: number, ceilingY: number, width: number, depth: number, yaw: number, allowedRole: string}} basement
+ */
+
+/**
+ * @typedef {object} CastleWindowPlacement
+ * @property {string} role
+ * @property {{x:number,y:number,z:number}} position
+ * @property {{x:number,y:number,z:number}} scale
+ * @property {number} yaw
+ */
+
+/**
+ * @typedef {CastleWindowPlacement & {width:number,height:number,depth:number,min:{x:number,y:number,z:number},max:{x:number,y:number,z:number}}} CastleWindowOpening
+ */
+
+/**
+ * @typedef {object} CastleRoomBounds
+ * @property {number} minX
+ * @property {number} maxX
+ * @property {number} minZ
+ * @property {number} maxZ
+ * @property {number} floorY
  */
 
 /**
@@ -43,6 +92,7 @@
 
 /**
  * @typedef {object} GameObjectDefinition
+ * @property {string|number} [seed]
  * @property {string} id
  * @property {string} [type]
  * @property {GridPoint} [position]

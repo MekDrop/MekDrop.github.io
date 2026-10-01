@@ -1,9 +1,9 @@
+import clothModelUrl from "../../models/castle/residential/banner-cloth.glb?url";
+import authoredModelUrl from "../../models/castle/residential/metal-pole.glb?url";
 import { AmmoClothPhysics } from "../shared/AmmoClothPhysics.js";
 
 const BANNER_TEXTURE_WIDTH = 64;
 const BANNER_TEXTURE_HEIGHT = 96;
-const BANNER_COLUMNS = 8;
-const BANNER_ROWS = 8;
 const BANNER_POINT_START = 0.8;
 
 /**
@@ -11,6 +11,14 @@ const BANNER_POINT_START = 0.8;
  */
 
 export class CastleBanner {
+  /**
+   * @returns {string[]}
+   */
+  static get modelUrls() { return [authoredModelUrl, clothModelUrl]; }
+  /**
+   * @type {import("../../models/GameModelLibrary.js").GameModelLibrary}
+   */
+  #modelLibrary;
   /**
    *
     * @type {typeof import("playcanvas")}
@@ -66,9 +74,11 @@ export class CastleBanner {
    *
    * @param {{pc: typeof import("playcanvas"), app: import("playcanvas").Application}} options
    * @param {typeof import("playcanvas")} options.pc
+   * @param {import("../../models/GameModelLibrary.js").GameModelLibrary} options.modelLibrary
    * @param {import("playcanvas").Application} options.app
    */
-  constructor({ pc, app }) {
+  constructor({ pc, app, modelLibrary }) {
+    this.#modelLibrary = modelLibrary;
     this.#pc = pc;
     this.#app = app;
     this.#entity = new pc.Entity("Castle banners");
@@ -121,20 +131,18 @@ export class CastleBanner {
     });
     root.addChild(cloth);
 
-    const rail = new this.#pc.Entity("Castle banner rail");
-    rail.addComponent("render", {
-      type: "cylinder",
-      castShadows: true,
-      receiveShadows: true,
-    });
-    for (const instance of rail.render.meshInstances) {
+    const rail = this.#modelLibrary.instantiate(authoredModelUrl);
+    rail.name = "Castle banner rail";
+    for (const instance of rail.findComponents("render").flatMap(/**
+     * @param {import("playcanvas").RenderComponent} render
+     */ (render) => render.meshInstances)) {
       instance.material = this.#railMaterial;
       instance.castShadow = true;
       instance.receiveShadow = true;
     }
     rail.setLocalPosition(0, 0.035, 0.012);
     rail.setLocalEulerAngles(0, 0, 90);
-    rail.setLocalScale(0.055, (width + 0.18) / 2, 0.055);
+    rail.setLocalScale(0.055, width + 0.18, 0.055);
     root.addChild(rail);
 
     const seed = Math.abs(
@@ -149,15 +157,7 @@ export class CastleBanner {
     banner.cloth = this.#physics.createCloth({
       positions: banner.positions,
       indices: banner.indices,
-      pinnedIndices: Array.from(
-        { length: BANNER_COLUMNS + 1 },
-        /**
-         *
-         * @param {undefined} _
-         * @param {number} index
-         */
-        (_, index) => index,
-      ),
+      pinnedIndices: geometry.pinnedIndices,
       vertexUv: banner.vertexUv,
       root,
       normalAxis: 2,
@@ -312,59 +312,25 @@ export class CastleBanner {
    * @param {number} height
    */
   #createMesh(width, height) {
+    const authored = this.#modelLibrary.instantiate(clothModelUrl);
+    const sourceMesh = authored.findComponents("render")[0].meshInstances[0].mesh;
     const positions = [];
     const textureUvs = [];
-    const vertexUv = [];
     const indices = [];
-
-    for (let row = 0; row <= BANNER_ROWS; row += 1) {
-      const v = row / BANNER_ROWS;
-      for (let column = 0; column <= BANNER_COLUMNS; column += 1) {
-        const textureU = column / BANNER_COLUMNS;
-        const u = textureU * 2 - 1;
-        const foldedDepth =
-          Math.cos(u * Math.PI * 3) * (0.009 + Math.sin(v * Math.PI) * 0.011);
-        positions.push(
-          u * (width / 2),
-          -v * BANNER_POINT_START * height,
-          foldedDepth,
-        );
-        textureUvs.push(textureU, 1 - v * BANNER_POINT_START);
-        vertexUv.push(u, v * BANNER_POINT_START);
-      }
+    sourceMesh.getPositions(positions);
+    sourceMesh.getUvs(0, textureUvs);
+    sourceMesh.getIndices(indices);
+    const vertexUv = [];
+    const pinnedIndices = [];
+    for (let index = 0; index < positions.length; index += 3) {
+      const u = positions[index] * 2;
+      const v = -positions[index + 1];
+      positions[index] *= width;
+      positions[index + 1] *= height;
+      vertexUv.push(u, v);
+      if (v < 0.001) { pinnedIndices.push(index / 3); }
     }
-
-    const rowLength = BANNER_COLUMNS + 1;
-    for (let row = 0; row < BANNER_ROWS; row += 1) {
-      for (let column = 0; column < BANNER_COLUMNS; column += 1) {
-        const topLeft = row * rowLength + column;
-        const topRight = topLeft + 1;
-        const bottomLeft = topLeft + rowLength;
-        const bottomRight = bottomLeft + 1;
-        indices.push(
-          topLeft,
-          bottomRight,
-          topRight,
-          topLeft,
-          bottomLeft,
-          bottomRight,
-        );
-      }
-    }
-
-    const pointIndex = positions.length / 3;
-    positions.push(0, -height, 0);
-    textureUvs.push(0.5, 0);
-    vertexUv.push(0, 1);
-    const bottomRowStart = BANNER_ROWS * rowLength;
-    for (let column = 0; column < BANNER_COLUMNS; column += 1) {
-      indices.push(
-        bottomRowStart + column,
-        pointIndex,
-        bottomRowStart + column + 1,
-      );
-    }
-
+    authored.destroy();
     const animatedPositions = Float32Array.from(positions);
     const meshIndices = Uint16Array.from(indices);
     const mesh = new this.#pc.Mesh(this.#app.graphicsDevice);
@@ -378,6 +344,7 @@ export class CastleBanner {
 
     return {
       mesh,
+      pinnedIndices,
       positions: animatedPositions,
       vertexUv: Float32Array.from(vertexUv),
       indices: meshIndices,

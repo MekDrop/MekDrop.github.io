@@ -1,3 +1,4 @@
+import stoneBlockUrl from "../../models/castle/residential/stone-block.glb?url";
 import { DynamicRenderBatch } from "../../rendering/DynamicRenderBatch.js";
 import { CastleBanner } from "./CastleBanner.js";
 import { CastleAudienceRoom } from "./CastleAudienceRoom.js";
@@ -7,6 +8,7 @@ import { CastleFire } from "./CastleFire.js";
 import { CastleFlag } from "./CastleFlag.js";
 import { CastleRoof } from "./CastleRoof.js";
 import { CastleStairs } from "./CastleStairs.js";
+import { CastleResidence } from "./CastleResidence.js";
 import { colorFromHex } from "../../helpers/colors.js";
 import {
   CASTLE_BLOCK_SIZE,
@@ -37,10 +39,16 @@ export class CastleEntityBuilder {
    */
   static get modelUrls() {
     return [
+      stoneBlockUrl,
+      CastleRoof.modelUrl,
+      ...CastleFire.modelUrls,
+      ...CastleBanner.modelUrls,
+      ...CastleFlag.modelUrls,
       CastleDoor.modelUrl,
       CastleDoorArch.modelUrl,
       CastleStairs.modelUrl,
       ...CastleAudienceRoom.modelUrls,
+      ...CastleResidence.modelUrls,
     ];
   }
 
@@ -110,11 +118,6 @@ export class CastleEntityBuilder {
   #doorTexture = null;
   /**
    *
-    * @type {import("playcanvas").Mesh|null}
-   */
-  #blockMesh = null;
-  /**
-   *
     * @type {Array<import("playcanvas").VertexBuffer>}
    */
   #vertexBuffers = [];
@@ -148,6 +151,10 @@ export class CastleEntityBuilder {
     * @type {CastleStairs|null}
    */
   #stairs = null;
+  /**
+   * @type {CastleStairs|null}
+   */
+  #serviceStairs = null;
   /**
    *
     * @type {CastleAudienceRoom|null}
@@ -220,6 +227,19 @@ export class CastleEntityBuilder {
   #interiorWidth = 0;
 
   /**
+   * @type {CastleResidence|null}
+   */
+  #residence = null;
+  /**
+   * @type {number}
+   */
+  #heroElevation = 0;
+  /**
+   * @type {boolean}
+   */
+  #residentsConnected = false;
+
+  /**
    *
    * @param {{pc: typeof import("playcanvas"), app: import("playcanvas").Application, buildPlan: import("src/game/generator/castle/CastleBuildPlanWriter.js").CastleBuildPlan, modelLibrary: import("src/game/models/GameModelLibrary.js").GameModelLibrary, doorTexture: import("playcanvas").Texture, stoneTexture: import("playcanvas").Texture, fireParticleTexture: import("playcanvas").Texture, carpetTexture: import("playcanvas").Texture, onRuntimeError: ((error: Error) => void)|null}} options
    * @param {typeof import("playcanvas")} options.pc
@@ -228,6 +248,7 @@ export class CastleEntityBuilder {
    * @param {import("src/game/models/GameModelLibrary.js").GameModelLibrary} options.modelLibrary
    * @param {import("playcanvas").Texture} options.doorTexture
    * @param {import("playcanvas").Texture} options.stoneTexture
+   * @param {import("playcanvas").Texture|null} options.gardenTexture
    * @param {import("playcanvas").Texture} options.carpetTexture
    * @param {import("playcanvas").Texture} options.fireParticleTexture
    * @param {((error: Error) => void)|null} options.onRuntimeError
@@ -241,6 +262,7 @@ export class CastleEntityBuilder {
     stoneTexture,
     fireParticleTexture,
     carpetTexture,
+    gardenTexture = null,
     onRuntimeError = null,
   }) {
     this.#pc = pc;
@@ -261,7 +283,12 @@ export class CastleEntityBuilder {
       this.#createDecorations();
       this.#createStairs();
       this.#render();
+      if (!buildPlan.layout.empty && buildPlan.metadata.runtime.residential) {
+        this.#residence = new CastleResidence({ pc, buildPlan, modelLibrary, gardenTexture });
+        this.#entity.addChild(this.#residence.entity);
+      }
       this.#createAudienceRoom();
+      this.#heroElevation = this.#position.elevation ?? 0;
       this.#updateHandle = app.on("update", this.#update);
     } catch (error) {
       this.destroy();
@@ -279,7 +306,9 @@ export class CastleEntityBuilder {
    */
   attachRoyal(royal) {
     this.#royal = royal;
-    this.#audienceRoom.occupant = royal.audienceActor;
+    if (this.#audienceRoom) {
+      this.#audienceRoom.occupant = royal.audienceActor;
+    }
     this.#connectResidents();
   }
 
@@ -289,8 +318,17 @@ export class CastleEntityBuilder {
    */
   attachServant(servant) {
     this.#servant = servant;
+    if (this.#residence) {
+      this.#residence.servant = servant;
+      servant.bindResidence({ pc: this.#pc, modelLibrary: this.#modelLibrary, residence: this.#residence });
+    }
     this.#connectResidents();
   }
+
+  /**
+   * @returns {CastleResidence|null}
+   */
+  get residence() { return this.#residence; }
 
   /**
    *
@@ -347,15 +385,33 @@ export class CastleEntityBuilder {
    * @param {number} stepClearance
    */
   blocksMovementAt(x, z, radius = 0, elevation = -Infinity, stepClearance = 0) {
+    if (this.residence?.blocksMovementAt(x, z, radius, elevation)) {
+      return true;
+    }
+    if (this.residence && Number.isFinite(elevation)) {
+      // Navigation queries use the authored engine collider dimensions at the
+      // actor's current level; ground columns cannot describe multiple floors.
+      return this.#animatedDoors.some(/**
+       * @param {CastleDoor} door
+       */ (door) => door.blocksCameraAt(x, elevation + 0.4, z, radius)) ||
+        this.#cameraCollisionBlocks.some(/**
+         * @param {{x: number, y: number, z: number, halfX: number, halfY: number, halfZ: number}} block
+         */ (block) => {
+          if (block.y + block.halfY <= elevation + Math.max(0.02, stepClearance) + 0.000001 || block.y - block.halfY >= elevation + 0.8) {
+            return false;
+          }
+          const dx = Math.max(Math.abs(x - block.x) - block.halfX, 0);
+          const dz = Math.max(Math.abs(z - block.z) - block.halfZ, 0);
+          return dx * dx + dz * dz <= radius * radius;
+        });
+    }
     // The room floor supports walking; it must not cancel its solid furniture,
     // walls, or closed doors when the collision world queries this aggregate.
     if (this.intersectsGroundFootprint(x, z, radius)) {
       return true;
     }
-    return (
-      this.#stairs?.blocksMovementAt(x, z, radius, elevation, stepClearance) ??
-      false
-    );
+    return Boolean(this.#stairs?.blocksMovementAt(x, z, radius, elevation, stepClearance) ||
+      this.#serviceStairs?.blocksMovementAt(x, z, radius, elevation, stepClearance));
   }
 
   /**
@@ -366,6 +422,9 @@ export class CastleEntityBuilder {
    * @param {number} radius
    */
   blocksCameraAt(x, y, z, radius = 0) {
+    if (this.#residence?.blocksCameraAt(x, y, z, radius)) {
+      return true;
+    }
     if (
       this.#animatedDoors.some(/**
        *
@@ -400,7 +459,9 @@ export class CastleEntityBuilder {
    */
   surfaceHeightAt(x, z) {
     return (
+      this.#residence?.surfaceHeightAt(x, z, this.#heroElevation) ??
       this.#stairs?.surfaceHeightAt(x, z) ??
+      this.#serviceStairs?.surfaceHeightAt(x, z) ??
       this.#audienceRoom?.surfaceHeightAt(x, z) ??
       null
     );
@@ -411,6 +472,7 @@ export class CastleEntityBuilder {
    * @param {{x: number, y: number, z: number}} position
    */
   updateHeroPosition(position) {
+    this.#heroElevation = position.y;
     for (const door of this.#animatedDoors) {
       door.updateHeroPosition(position);
     }
@@ -531,6 +593,8 @@ export class CastleEntityBuilder {
     this.#doorArches = [];
     this.#audienceRoom?.destroy();
     this.#audienceRoom = null;
+    this.#residence?.destroy();
+    this.#residence = null;
     this.#terraceActivity = null;
     this.#terraceContext = null;
     this.#royal = null;
@@ -545,13 +609,12 @@ export class CastleEntityBuilder {
     this.#roofs = null;
     this.#stairs?.destroy();
     this.#stairs = null;
+    this.#serviceStairs?.destroy();
+    this.#serviceStairs = null;
     this.#entity?.destroy();
     this.#entity = null;
     for (const buffer of this.#vertexBuffers) buffer.destroy();
     this.#vertexBuffers = [];
-    this.#blockMesh?.decRefCount();
-    if (this.#blockMesh?.refCount < 1) this.#blockMesh.destroy();
-    this.#blockMesh = null;
     for (const material of this.#materials.values()) material.destroy();
     this.#materials.clear();
     this.#stoneTexture = null;
@@ -644,6 +707,7 @@ export class CastleEntityBuilder {
       material.metalness = 0;
       material.useMetalness = true;
       if (definition.texture === "castleStone") {
+        material.diffuseVertexColor = false;
         material.diffuseMap = this.#stoneTexture;
         // The eye camera can reach a block's interior at wall contact. Keep
         // its exit faces solid instead of exposing the scene through backfaces.
@@ -658,25 +722,22 @@ export class CastleEntityBuilder {
       this.#materials.set(name, material);
     }
 
-    this.#blockMesh = this.#pc.Mesh.fromGeometry(
-      this.#app.graphicsDevice,
-      new this.#pc.BoxGeometry(),
-    );
-    this.#blockMesh.incRefCount();
+
   }
 
   #createDecorations() {
     this.#fire = new CastleFire({
       pc: this.#pc,
+      modelLibrary: this.#modelLibrary,
       app: this.#app,
       particleTexture: this.#fireParticleTexture,
     });
     this.#entity.addChild(this.#fire.entity);
-    this.#banners = new CastleBanner({ pc: this.#pc, app: this.#app });
+    this.#banners = new CastleBanner({ pc: this.#pc, app: this.#app, modelLibrary: this.#modelLibrary });
     this.#entity.addChild(this.#banners.entity);
-    this.#flags = new CastleFlag({ pc: this.#pc, app: this.#app });
+    this.#flags = new CastleFlag({ pc: this.#pc, app: this.#app, modelLibrary: this.#modelLibrary });
     this.#entity.addChild(this.#flags.entity);
-    this.#roofs = new CastleRoof({ pc: this.#pc, app: this.#app });
+    this.#roofs = new CastleRoof({ pc: this.#pc, modelLibrary: this.#modelLibrary });
     this.#entity.addChild(this.#roofs.entity);
   }
 
@@ -690,6 +751,13 @@ export class CastleEntityBuilder {
       materials: this.#materials,
     });
     this.#entity.addChild(this.#stairs.entity);
+    const serviceEntry = this.#buildPlan.metadata.runtime.residential?.serviceEntry;
+    if (serviceEntry) {
+      this.#serviceStairs = new CastleStairs({ pc: this.#pc, position: this.#position,
+        doors: [serviceEntry], cubeSize: CASTLE_BLOCK_SIZE, modelLibrary: this.#modelLibrary,
+        materials: this.#materials });
+      this.#entity.addChild(this.#serviceStairs.entity);
+    }
   }
 
   #createAudienceRoom() {
@@ -697,6 +765,7 @@ export class CastleEntityBuilder {
     if (!door) {
       return;
     }
+    const serviceStair = this.#residence?.layout.serviceStair;
     this.#audienceRoom = new CastleAudienceRoom({
       pc: this.#pc,
       app: this.#app,
@@ -706,7 +775,11 @@ export class CastleEntityBuilder {
       materials: this.#materials,
       availableDepth: this.#interiorDepth,
       availableWidth: this.#interiorWidth,
+      residentialLayout: this.#residence?.layout ?? null,
       frontWallDepth: CASTLE_WALL_THICKNESS_BLOCKS * CASTLE_BLOCK_SIZE,
+      serviceOpening: serviceStair
+        ? { ...serviceStair.center, radius: serviceStair.radius }
+        : null,
       modelLibrary: this.#modelLibrary,
       fireParticleTexture: this.#fireParticleTexture,
       carpetTexture: this.#carpetTexture,
@@ -731,7 +804,7 @@ export class CastleEntityBuilder {
     const rotation = new this.#pc.Quat();
     rotation.setFromEulerAngles(0, yaw, 0);
     matrix.setTRS(
-      new this.#pc.Vec3(x, y, z),
+      new this.#pc.Vec3(x, y - sy / 2, z),
       rotation,
       new this.#pc.Vec3(sx, sy, sz),
     );
@@ -747,30 +820,11 @@ export class CastleEntityBuilder {
   #createInstancedBatches(batches) {
     for (const [materialName, matrices] of batches.entries()) {
       if (!matrices.length) continue;
-      const vertexBuffer = new this.#pc.VertexBuffer(
-        this.#app.graphicsDevice,
-        this.#pc.VertexFormat.getDefaultInstancingFormat(
-          this.#app.graphicsDevice,
-        ),
-        matrices.length / 16,
-        { data: new Float32Array(matrices) },
+      const { entity, vertexBuffer } = this.#modelLibrary.instantiateMergedBatch(
+        stoneBlockUrl, matrices,
+        { name: `${materialName} authored castle masonry`, material: this.#materials.get(materialName), linearVertexColors: true, castShadows: true, receiveShadows: true },
       );
       this.#vertexBuffers.push(vertexBuffer);
-
-      const meshInstance = new this.#pc.MeshInstance(
-        this.#blockMesh,
-        this.#materials.get(materialName),
-      );
-      meshInstance.setInstancing(vertexBuffer, false);
-      meshInstance.castShadow = true;
-      meshInstance.receiveShadow = true;
-
-      const entity = new this.#pc.Entity(`${materialName} castle blocks`);
-      entity.addComponent("render", {
-        meshInstances: [meshInstance],
-        castShadows: true,
-        receiveShadows: true,
-      });
       this.#entity.addChild(entity);
     }
   }
@@ -849,6 +903,7 @@ export class CastleEntityBuilder {
   }
   #connectResidents() {
     if (
+      this.#residentsConnected ||
       this.#terraceActivity ||
       !this.#terraceContext ||
       !this.#royal ||
@@ -856,8 +911,10 @@ export class CastleEntityBuilder {
     ) {
       return;
     }
+    this.#residentsConnected = true;
     this.#terraceActivity = this.#royal.connectToCastle({
       ...this.#terraceContext,
+      emptyBalcony: Boolean(this.#residence),
       servant: this.#servant,
       audienceRoom: this.#audienceRoom,
       /**
@@ -896,6 +953,28 @@ export class CastleEntityBuilder {
       this.#entity.addChild(door.entity);
       this.#animatedDoors.push(door);
     }
+    const residential = this.#buildPlan.metadata.runtime.residential;
+    for (const upperDoor of [residential?.upperDoor, residential?.sideDoor, residential?.serviceDoor, ...(residential?.secondaryDoors ?? [])].filter(Boolean)) {
+      const arch = new CastleDoorArch({
+        castlePosition: this.#position,
+        door: { side: this.#doors[0].side, width: upperDoor.width },
+        modelLibrary: this.#modelLibrary,
+        placement: upperDoor,
+      });
+      this.#entity.addChild(arch.entity);
+      this.#doorArches.push(arch);
+      const door = new CastleDoor({
+        pc: this.#pc,
+        castlePosition: this.#position,
+        door: { side: this.#doors[0].side, width: upperDoor.width },
+        placement: upperDoor,
+        modelLibrary: this.#modelLibrary,
+        woodMaterial: this.#materials.get("castleDoor"),
+      });
+      this.#entity.addChild(door.entity);
+      this.#animatedDoors.push(door);
+    }
+
   }
 
 }

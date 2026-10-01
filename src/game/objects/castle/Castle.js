@@ -1,3 +1,5 @@
+import { CastleMapPreparation } from "./CastleMapPreparation.js";
+import gardenTextureUrl from "src/assets/game/tiles/grass-top.png";
 import carpetTextureUrl from "src/assets/game/textures/castle-carpet.png";
 import { CastleEntityBuilder } from "./CastleEntityBuilder.js";
 import { IslandCellOwnership } from "../shared/IslandCellOwnership.js";
@@ -6,6 +8,12 @@ import { SCENE_OBJECT_TYPE } from "../../enum/SceneObjectType.js";
 export { isCastleUpperFloorRoomVoid } from "../../generator/castle/CastleGeometry.js";
 
 export class Castle extends CastleEntityBuilder {
+  /**
+   * @param {import("../../GameContracts.js").GameMapData} mapData
+   */
+  static prepareMap(mapData) {
+    CastleMapPreparation.prepareMap(mapData);
+  }
   /**
    *
     * @type {import("src/game/objects/ObjectTypes.js").MapObjectDefinition}
@@ -21,7 +29,7 @@ export class Castle extends CastleEntityBuilder {
    * @returns {Readonly<Record<string, string>>}
    */
   static get textureUrls() {
-    return { castleCarpet: carpetTextureUrl };
+    return { castleCarpet: carpetTextureUrl, castleGarden: gardenTextureUrl };
   }
 
   /**
@@ -49,6 +57,7 @@ export class Castle extends CastleEntityBuilder {
       modelLibrary,
       doorTexture: textureAssets.get("castleDoor").resource,
       stoneTexture: textureAssets.get("castleStone").resource,
+      gardenTexture: textureAssets.get("castleGarden").resource,
       carpetTexture: textureAssets.get("castleCarpet").resource,
       fireParticleTexture: textureAssets.get("castleFireParticle").resource,
       onRuntimeError: runtime.onRuntimeError,

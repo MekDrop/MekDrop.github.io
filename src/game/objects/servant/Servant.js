@@ -37,6 +37,14 @@ export class Servant {
     * @type {TerraceActor|null}
    */
   #inspector = null;
+  /**
+   * @type {import("../castle/CastleResidence.js").CastleResidence|null}
+   */
+  #residence = null;
+  /**
+   * @type {TerraceActor|null}
+   */
+  #resident = null;
 
   /**
    *
@@ -57,6 +65,38 @@ export class Servant {
 
   get entity() {
     return this.#entity;
+  }
+
+  /**
+   * @param {{pc: typeof import("playcanvas"), modelLibrary: import("../../models/GameModelLibrary.js").GameModelLibrary, residence: import("../castle/CastleResidence.js").CastleResidence}} options
+   * @param {typeof import("playcanvas")} options.pc
+   * @param {import("../../models/GameModelLibrary.js").GameModelLibrary} options.modelLibrary
+   * @param {import("../castle/CastleResidence.js").CastleResidence} options.residence
+   */
+  bindResidence({ pc, modelLibrary, residence }) {
+    this.#residence = residence;
+    this.#resident = new TerraceActor({ pc, modelLibrary, modelUrl: servantModelUrl, kind: "servant" });
+    this.#resident.entity.name = "Basement servant resident";
+    this.#resident.entity.setLocalScale(0.4, 0.4, 0.4);
+    this.#entity.addChild(this.#resident.entity);
+    this.enterBasement();
+    this.#resident.pose("idle", 0);
+  }
+
+  /**
+   * The castle authorizes the attached servant identity.
+   * @returns {boolean}
+   */
+  enterBasement() {
+    if (!this.#residence?.canEnterBasement(this)) {
+      return false;
+    }
+    const { layout } = this.#residence;
+    const room = layout.rooms.servantBedroom;
+    const point = layout.toWorld(room.maxX - 0.35, room.minZ + 0.4, room.floorY - layout.origin.y);
+    this.#entity.setLocalPosition(point.x, point.y, point.z);
+    this.#entity.setLocalEulerAngles(0, layout.yaw, 0);
+    return true;
   }
 
   get definition() {
@@ -113,6 +153,9 @@ export class Servant {
   }
 
   destroy() {
+    this.#resident?.destroy();
+    this.#resident = null;
+    this.#residence = null;
     this.#serviceActions?.destroy();
     this.#serviceActions = null;
     this.#inspector?.destroy();

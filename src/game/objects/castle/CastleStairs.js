@@ -1,3 +1,4 @@
+import { createCastleStairFlight } from "./CastleStairFlight.js";
 import stairModuleModelUrl from "../../models/castle/stairs/castle-stair-module.glb?url";
 
 const STONE_MATERIAL_NAMES = [
@@ -210,22 +211,14 @@ export class CastleStairs {
     }
 
     const batches = new Map();
-    const baseY = Math.max(0, this.#position.elevation ?? 0);
     const blocksPerTile = 1 / this.#cubeSize;
-
     for (const door of this.#doors) {
-      const approachElevation = Number.isFinite(door.approachElevation)
-        ? door.approachElevation
-        : baseY;
-      const rise = Math.max(0, baseY - approachElevation);
-      const riseBlocks = Math.max(
-        0,
-        Math.ceil(rise / this.#cubeSize - 0.000001),
-      );
-      const stepHeight = riseBlocks > 0 ? rise / riseBlocks : this.#cubeSize;
-      const widthBlocks = Math.round(door.width * blocksPerTile);
-      const offsetBlocks = Math.round(door.offset * blocksPerTile);
-      this.#addSurface(door, approachElevation, riseBlocks, rise);
+      const flight = createCastleStairFlight(this.#position, door, this.#cubeSize);
+      if (!flight) continue;
+      const { approachElevation, riseBlocks, stepHeight } = flight;
+      const widthBlocks = Math.round(flight.width * blocksPerTile);
+      const offsetBlocks = Math.round(flight.offset * blocksPerTile);
+      this.#surfaces.push(flight);
 
       for (let level = 0; level < riseBlocks; level += 1) {
         const distanceBlocks =
@@ -256,51 +249,6 @@ export class CastleStairs {
     }
 
     this.#createInstancedBatches(batches);
-  }
-
-  /**
-   *
-   * @param {import("src/game/objects/ObjectTypes.js").CastleDoorDefinition} door
-   * @param {number} approachElevation
-   * @param {number} riseBlocks
-   * @param {number} rise
-   */
-  #addSurface(door, approachElevation, riseBlocks, rise) {
-    if (riseBlocks <= 0) {
-      return;
-    }
-    const run = riseBlocks * STAIR_MODULE_RUN_BLOCKS * this.#cubeSize;
-    const left = this.#position.x;
-    const right = left + this.#position.width;
-    const top = this.#position.z;
-    const bottom = top + this.#position.depth;
-    const vertical = door.side === "WEST" || door.side === "EAST";
-    const acrossOrigin = vertical ? top : left;
-    const boundaryEdge = {
-      WEST: left,
-      EAST: right,
-      NORTH: top,
-      SOUTH: bottom,
-    }[door.side];
-    const outwardSign =
-      door.side === "WEST" || door.side === "NORTH" ? -1 : 1;
-    if (!Number.isFinite(boundaryEdge)) {
-      return;
-    }
-
-    this.#surfaces.push({
-      side: door.side,
-      vertical,
-      outerEdge: boundaryEdge + outwardSign * run,
-      acrossStart: acrossOrigin + door.offset,
-      acrossEnd: acrossOrigin + door.offset + door.width,
-      approachElevation,
-      rise,
-      run,
-      riseBlocks,
-      stepRun: STAIR_MODULE_RUN_BLOCKS * this.#cubeSize,
-      stepHeight: rise / riseBlocks,
-    });
   }
 
   /**

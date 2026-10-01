@@ -67,9 +67,11 @@ export class GrassCarpetLayout {
           sourceHeight ?? bridgeGroundHeight ?? heightmap[row][col];
         if (
           (grid[row][col] !== TileType.GRASS &&
+            !metadata?.exposedTerrain &&
             sourceHeight === undefined &&
             !Number.isFinite(bridgeGroundHeight)) ||
           surfaceHeight <= 0 ||
+          ["EARTH", "STONE"].includes(metadata?.surfaceType) ||
           metadata?.shape === TILE_SHAPE.SLOPE
         ) {
           continue;
@@ -161,13 +163,22 @@ export class GrassCarpetLayout {
           const offsetZ = (random(23) - 0.5) * 0.98;
           const broadleaf = random(89) < 0.045;
           const fineBlade = !broadleaf && random(97) < 0.28;
-          const width = broadleaf
+          let width = broadleaf
             ? 0.68 + random(53) * 0.22
             : fineBlade
               ? 0.32 + random(53) * 0.08
               : 0.5 + random(53) * 0.08;
           const x = col - (cols - 1) / 2 + offsetX;
           const z = row - (rows - 1) / 2 + offsetZ;
+          let groundClearance = Infinity;
+          for (const cut of metadata?.terrainCutouts ?? []) {
+            if (surfaceHeight + 0.35 < cut.minY || surfaceHeight > cut.maxY) continue;
+            const dx = Math.max(cut.minX - x, x - cut.maxX, 0);
+            const dz = Math.max(cut.minZ - z, z - cut.maxZ, 0);
+            groundClearance = Math.min(groundClearance, Math.hypot(dx, dz));
+          }
+          if (groundClearance < 0.08) continue;
+          width = Math.min(width, groundClearance * 0.9);
           const stoneInfluence = nearbyStones.reduce(/**
            *
            * @param {number} strength

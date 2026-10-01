@@ -25,7 +25,7 @@ class FakeEntity {
     this.position = { x, y, z };
   }
 
-  setLocalEulerAngles() {}
+  setLocalEulerAngles(x, y, z) { this.euler = { x, y, z }; }
 
   setLocalScale(x, y, z) {
     this.scale = { x, y, z };
@@ -49,18 +49,22 @@ class FakeEntity {
     };
   }
 
+  findComponents() { this.render ??= { meshInstances: [{ material: null }] }; return [this.render]; }
   destroy() {}
 }
 
 class FakeMaterial {
   update() {}
 
+  findComponents() { this.render ??= { meshInstances: [{ material: null }] }; return [this.render]; }
   destroy() {}
 }
 
 const pc = {
   Entity: FakeEntity,
   StandardMaterial: FakeMaterial,
+  ADDRESS_REPEAT: 0,
+  Vec2: class Vec2 { constructor(x, y) { this.x = x; this.y = y; } },
   Vec3: class Vec3 {
     constructor(x, y, z) {
       this.x = x;
@@ -80,6 +84,10 @@ const audienceRoomSource = readFileSync(
 ).replace(/^import[^;]+;\r?\n/gm, "");
 const dependencies = `
   const pc = globalThis.__castleAudienceTestPc;
+  const authoredModelUrl = "stone-block";
+  const floorModelUrl = "floor-panel";
+  const rugModelUrl = "rug";
+  const lanternModelUrl = "wall-lantern";
   const SeatedRoyal = { modelUrls: [] };
   class CastleThrone {
     static modelUrl = "throne";
@@ -274,12 +282,122 @@ for (const side of Object.keys(layouts)) {
   });
 }
 
-it("assigns the preloaded carpet texture before displaying the room", () => {
+it("uses the original carpet texture on a centered authored floor panel", () => {
   const carpetTexture = { name: "Castle carpet" };
   const room = createRoom("NORTH", null, { carpetTexture });
   const runner = room.entity.children.find(
     ({ name }) => name === "Audience carpet runner",
   );
-  assert.equal(runner.render.meshInstances[0].material.diffuseMap, carpetTexture);
+  assert.equal(runner.children.length, 1);
+  assert.equal(runner.children[0].position.y, -0.5);
+  assert.equal(runner.position.y, 2.055);
+  assert.equal(runner.children[0].render.meshInstances[0].material.diffuseMap, carpetTexture);
   room.destroy();
+});
+
+
+it("cuts a service stair opening from the visible floor and support surfaces", () => {
+  for (const side of Object.keys(layouts)) {
+    const { center, inward } = layouts[side];
+    const tangent = { x: -inward.z, z: inward.x };
+    const opening = {
+      x: center.x + inward.x * 2.7 + tangent.x * 1.1,
+      z: center.z + inward.z * 2.7 + tangent.z * 1.1,
+      radius: 0.45,
+    };
+    const room = createRoom(side, null, { serviceOpening: opening });
+    try {
+      assert.equal(room.surfaceHeightAt(opening.x, opening.z), null, side);
+      assert.ok(room.surfaceHeightAt(opening.x + inward.x * 0.7, opening.z + inward.z * 0.7) !== null);
+    } finally {
+      room.destroy();
+    }
+  }
+});
+
+it("uses the shared room plan and keeps the actual throne dais clear of furniture and stair bays", async () => {
+  const { CastleGenerator } = await import("../../../../../src/game/generator/castle/CastleGenerator.js");
+  const { CastleResidentialLayout } = await import("../../../../../src/game/objects/castle/CastleResidentialLayout.js");
+  for (const style of ["twin-tower", "single-tower", "right-angle", "left-angle"]) {
+    for (const side of Object.keys(layouts)) {
+      const plan = await CastleGenerator.generate({
+        position: { x: 0, z: 0, width: 8, depth: 8, elevation: 2 },
+        doors: [{ side, offset: 3, width: 2 }], style,
+      });
+      const shared = new CastleResidentialLayout(plan);
+      const room = createRoom(side, null, { residentialLayout: shared });
+      const throne = room.entity.children.find((entity) => entity.name === "Throne");
+      const seat = shared.toLocal(throne.position.x, throne.position.z);
+      const dais = { minX: seat.x - 1.3, maxX: seat.x + 1.3, minZ: seat.z - 0.675, maxZ: seat.z + 0.875 };
+      const work = shared.rooms.work;
+      assert.ok(dais.minX >= work.minX && dais.maxX <= work.maxX && dais.minZ >= work.minZ && dais.maxZ <= work.maxZ, `${style}/${side} throne bounds`);
+      for (const zone of shared.reservations.filter((zone) => ["mainStair", "serviceStair", "workDesk"].includes(zone.role))) {
+        assert.ok(dais.maxX <= zone.minX || dais.minX >= zone.maxX || dais.maxZ <= zone.minZ || dais.minZ >= zone.maxZ, `${style}/${side} throne overlaps ${zone.role}`);
+      }
+      assert.equal(room.entity.children.some((entity) => entity.name.includes("column")), false);
+      const aisle = shared.reservations.find((zone) => zone.role === "centralAisle");
+      for (let forward = aisle.minZ; forward < aisle.maxZ; forward += 0.2) {
+        const point = shared.toWorld(0, forward);
+        assert.equal(room.intersectsFootprint(point.x, point.z, 0.22), false, `${style}/${side} aisle`);
+      }
+      room.destroy();
+    }
+  }
+});
+it("keeps all timber floor finishes behind occupied walls and leaves stone-only gate thresholds", async () => {
+  const { CastleGenerator } = await import("../../../../../src/game/generator/castle/CastleGenerator.js");
+  const { CastleResidentialLayout } = await import("../../../../../src/game/objects/castle/CastleResidentialLayout.js");
+  for (const style of ["twin-keeps", "courtyard-keep", "long-hall", "l-courtyard", "terraced-keeps"]) {
+    for (const side of Object.keys(layouts)) {
+      const plan = await CastleGenerator.generate({ position: { x: 0, z: 0, width: 12, depth: 12, elevation: 2 },
+        doors: [{ side, offset: 5, width: 2 }], style });
+      const shared = new CastleResidentialLayout(plan);
+      const room = createRoom(side, null, { residentialLayout: shared });
+      assert.equal(room.entity.children.some((part) => part.name === "Audience entrance floor"), false);
+      const work = shared.rooms.work;
+      for (const part of room.entity.children.filter((item) => item.name.includes("floor") || item.name === "Audience carpet runner")) {
+        const center = shared.toLocal(part.position.x, part.position.z);
+        assert.ok(center.x - part.scale.x / 2 >= work.minX + 0.03 && center.x + part.scale.x / 2 <= work.maxX - 0.03,
+          `${style}/${side}/${part.name}: side finish remains behind masonry`);
+        assert.ok(center.z - part.scale.z / 2 >= work.minZ + 0.03 && center.z + part.scale.z / 2 <= work.maxZ - 0.03,
+          `${style}/${side}/${part.name}: finish stays inside work hall`);
+      }
+      room.destroy();
+    }
+  }
+});
+
+it("faces the royal and runner toward the primary entrance in every orientation", async () => {
+  const { CastleGenerator } = await import("../../../../../src/game/generator/castle/CastleGenerator.js");
+  const { CastleResidentialLayout } = await import("../../../../../src/game/objects/castle/CastleResidentialLayout.js");
+  for (const side of Object.keys(layouts)) {
+    const plan = await CastleGenerator.generate({ position: { x: 0, z: 0, width: 12, depth: 12, elevation: 2 },
+      doors: [{ side, offset: 5, width: 2 }], style: "courtyard-keep" });
+    const shared = new CastleResidentialLayout(plan);
+    const occupant = { entity: new FakeEntity("Royal") };
+    const room = createRoom(side, occupant, { residentialLayout: shared });
+    const runner = room.entity.children.find((part) => part.name === "Audience carpet runner");
+    const yaw = runner.euler.y * Math.PI / 180;
+    const expected = shared.yaw * Math.PI / 180;
+    assert.ok(Math.abs(Math.sin(yaw) - Math.sin(expected)) < 0.000001, side);
+    assert.ok(Math.abs(Math.cos(yaw) - Math.cos(expected)) < 0.000001, side);
+    const facing = occupant.entity.euler.y * Math.PI / 180;
+    assert.ok(Math.abs(Math.sin(facing) + Math.sin(expected)) < 0.000001, side);
+    assert.ok(Math.abs(Math.cos(facing) + Math.cos(expected)) < 0.000001, side);
+    room.destroy();
+  }
+});
+
+it("repeats the carpet motif at its pixel aspect across different hall lengths", () => {
+  for (const availableDepth of [2.8, 4.1]) {
+    const carpetTexture = { width: 512, height: 768 };
+    const room = createRoom("NORTH", null, { carpetTexture, availableDepth });
+    const runner = room.entity.children.find((part) => part.name === "Audience carpet runner");
+    const material = runner.children[0].render.meshInstances[0].material;
+    assert.equal(material.diffuseMap, carpetTexture);
+    assert.equal(material.diffuseMapTiling.x, 1);
+    assert.ok(Math.abs(runner.scale.z / material.diffuseMapTiling.y / runner.scale.x - 768 / 512) < 0.000001);
+    assert.equal(carpetTexture.addressV, pc.ADDRESS_REPEAT);
+    room.destroy();
+  }
 });

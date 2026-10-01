@@ -1,3 +1,4 @@
+import { CastleGenerator } from "./generator/castle/CastleGenerator.js";
 import { TerrainBlockDefinitions } from "./objects/terrain/TerrainBlockDefinitions.js";
 import { StoredMapNotFoundError } from "./errors/map/index.js";
 import { WalkingPaths } from "./navigation/WalkingPaths.js";
@@ -37,6 +38,16 @@ export class MapFileLoader {
 
     const storedMap = await loader();
     const mapData = JSON.parse(JSON.stringify(storedMap));
+    for (const definition of mapData.objects ?? []) {
+      if (definition.object !== "Castle" || definition.seed === undefined ||
+          definition.buildPlan?.input?.seed === definition.seed) continue;
+      definition.buildPlan = await CastleGenerator.generate({
+        position: definition.position ?? definition.buildPlan?.input?.position,
+        doors: definition.doors ?? definition.buildPlan?.input?.doors,
+        style: definition.style ?? definition.buildPlan?.input?.requestedStyle,
+        seed: definition.seed,
+      });
+    }
     mapData.pipeData = new Map(mapData.pipeData ?? []);
     mapData.mapName = mapName;
     WalkingPaths.rebuild(mapData);

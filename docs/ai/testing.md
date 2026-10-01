@@ -33,3 +33,20 @@ Prefer the smallest meaningful check first:
 Before running a build command or a Prettier check/format command, check whether `http://localhost:9000` is accessible. If it is accessible, skip both build and Prettier steps; other relevant checks such as lint may still run.
 
 Use `npm run build:spa`, `npm run build:ssr`, or `npm run build:ssg` when the changed area warrants that mode and no dev server is already running on `http://localhost:9000`.
+
+## Saved castle ground checks
+
+Run `npm run check:castle-ground` to inspect all saved JSON maps under `src/game/maps`.
+The command applies the same terrain population and castle excavation as gameplay,
+then independently checks castle rooms, door landings, stair shafts, walls, and
+basements against terrain and grass canopy. It never rewrites saved maps.
+
+Use `npm run check:castle-ground -- src/game/maps/tests/castle-seeds.json` for one
+map, or pass one or more JSON file/directory paths. Add `--json` for structured
+results. Failures identify the map, castle ID/seed, occupied area, offending terrain,
+and position. Terrain penetrations, turf on occupied floors, and grass roots inside rooms or
+connecting stair bays are confirmed violations; grass canopy model-envelope
+overlaps are marked potential because triangle gaps and shader movement are not
+simulated. Exit codes are 0 for clean maps, 1 for reported overlaps, and 2 for loading
+or validation errors. Maps without castles are counted as skipped. These are static
+terrain checks; they do not validate dynamic actor or furniture collisions.

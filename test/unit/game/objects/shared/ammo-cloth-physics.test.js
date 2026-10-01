@@ -19,6 +19,21 @@ afterEach(() => {
 });
 
 describe("AmmoClothPhysics", () => {
+  it("fits thirty active castle cloth collections plus unused flags inside Ammo's fixed heap", () => {
+    const unused = Array.from({ length: 24 }, () => new AmmoClothPhysics());
+    for (const physics of unused) physics.step(1 / 60);
+    const active = Array.from({ length: 30 }, () => new AmmoClothPhysics());
+    for (const physics of active) {
+      const positions = new Float32Array([-0.5, 0, 0, 0.5, 0, 0, -0.5, -1, 0, 0.5, -1, 0]);
+      const cloth = physics.createCloth({ positions, indices: new Uint16Array([0, 2, 1, 1, 2, 3]), pinnedIndices: [0, 1] });
+      physics.step(1 / 60);
+      physics.writePositions(cloth, positions);
+      assert.equal(positions[0], -0.5);
+      assert.ok(Number.isFinite(positions[7]));
+    }
+    for (const physics of [...active, ...unused]) physics.destroy();
+  });
+
   it("constructs multiple soft bodies without Ammo's array bridge", () => {
     const physics = new AmmoClothPhysics();
     const createCloth = (offset) => {

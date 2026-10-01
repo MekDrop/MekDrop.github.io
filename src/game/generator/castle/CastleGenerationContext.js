@@ -3,6 +3,7 @@
  * @property {import("src/game/GameContracts.js").GridPoint|null} [position]
  * @property {Array<{side: string, offset: number, width: number, cells?: import("src/game/GameContracts.js").GridPoint[]}>} [doors]
  * @property {string|null} [style]
+ * @property {string|number} [seed]
  */
 
 /**
@@ -66,6 +67,7 @@ export class CastleGenerationContext {
         (door) => Object.freeze({ ...door })),
       ),
       style: options.style ?? null,
+      ...(options.seed === undefined ? {} : { seed: options.seed }),
     });
     /**
      *

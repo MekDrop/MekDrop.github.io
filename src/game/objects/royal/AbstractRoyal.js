@@ -159,6 +159,9 @@ export class AbstractRoyal {
     this.#audienceRoom = audienceRoom;
     this.#isBlocked = isBlocked;
     this.#prepareGameOver = prepareGameOver;
+    if (activityOptions.emptyBalcony) {
+      return null;
+    }
     this.#activity = new CastleTerraceActivity({
       ...activityOptions,
       royal: this,

@@ -1,3 +1,4 @@
+import { GenerationRandom } from "../../map/GenerationRandom.js";
 import { CASTLE_BOUNDARY } from "../../../enum/CastleBoundary.js";
 import { CastlePlacementError } from "../../../errors/castle/index.js";
 import {
@@ -20,7 +21,7 @@ export class LayoutStyleStage extends AbstractCastleGenerationStage {
    * @param {CastleGenerationContext} context
    */
   async run(context) {
-    const { position, doors, style: preferredStyleId } = context.input;
+    const { position, doors, style: preferredStyleId, seed } = context.input;
     if (!position || !doors.length) {
       context.layout.empty = true;
       return;
@@ -59,6 +60,7 @@ export class LayoutStyleStage extends AbstractCastleGenerationStage {
     });
     const style = this.#selectStyle({
       preferredStyleId,
+      seed,
       openings,
       facadeSpan,
       inwardCapacity,
@@ -131,6 +133,7 @@ export class LayoutStyleStage extends AbstractCastleGenerationStage {
   /**
    *
    * @param {{preferredStyleId: string, openings: CastleOpening[], facadeSpan: number, inwardCapacity: number}} options
+   * @param {string|number} [options.seed]
    * @param {string} options.preferredStyleId
    * @param {CastleOpening[]} options.openings
    * @param {number} options.facadeSpan
@@ -138,6 +141,7 @@ export class LayoutStyleStage extends AbstractCastleGenerationStage {
    */
   #selectStyle({
     preferredStyleId,
+    seed,
     openings,
     facadeSpan,
     inwardCapacity,
@@ -158,7 +162,7 @@ export class LayoutStyleStage extends AbstractCastleGenerationStage {
            */
           (candidate) => candidate !== preferredStyle),
         ]
-      : CASTLE_STYLES;
+      : seed === undefined ? CASTLE_STYLES : new GenerationRandom(`castle:${seed}:style`).shuffle([...CASTLE_STYLES]);
     const style = styles.find(/**
      *
      * @param {{id: string}} candidate

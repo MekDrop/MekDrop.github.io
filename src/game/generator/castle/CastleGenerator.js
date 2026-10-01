@@ -12,13 +12,13 @@ import { WallStage } from "./stages/WallStage.js";
 export class CastleGenerator {
   /**
    *
-   * @param {{position?: import("src/game/GameContracts.js").GridPoint, doors?: import("src/game/GameContracts.js").CastleOpening[], style?: string, scheduler?: CastleGenerationScheduler, signal?: AbortSignal}} options
+   * @param {{position?: import("src/game/GameContracts.js").GridPoint, doors?: import("src/game/GameContracts.js").CastleOpening[], style?: string, seed?: string|number, scheduler?: CastleGenerationScheduler, signal?: AbortSignal}} options
    */
   static generate(options = {}) {
     const generate = createCastleGenerationPipeline({
       /**
        *
-       * @param {{position?: import("src/game/GameContracts.js").GridPoint, doors?: import("src/game/GameContracts.js").CastleOpening[], style?: string, scheduler?: CastleGenerationScheduler, signal?: AbortSignal}} pipelineOptions
+       * @param {{position?: import("src/game/GameContracts.js").GridPoint, doors?: import("src/game/GameContracts.js").CastleOpening[], style?: string, seed?: string|number, scheduler?: CastleGenerationScheduler, signal?: AbortSignal}} pipelineOptions
        */
       createContext: (pipelineOptions) => {
         const scheduler =

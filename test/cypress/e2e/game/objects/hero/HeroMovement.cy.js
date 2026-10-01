@@ -191,24 +191,31 @@ describe("Hero movement on a predefined terrain map", { testIsolation: false }, 
     });
   });
 
-  it("walks up castle stairs one step at a time without jumping", () => {
-    loadScenario("royal-castles");
-    let usedJumpAnimation = false;
-    let usedWalkAnimation = false;
-    expectState((state) => {
-      expect(state.grounded).to.equal(true);
+  it("walks up castle stairs and through the open entrance without jumping", () => {
+      loadScenario("royal-castles");
+      let usedJumpAnimation = false;
+      let usedWalkAnimation = false;
+      let target;
+      cy.window().then((window) => { target = window; });
+      expectState((state) => {
+        expect(state.grounded).to.equal(true);
+      });
+      expectState((state) => {
+        // Royal activity rotates the camera on the approach. Keep walking north
+        // in world space so this regression checks the doorway, not that turn.
+        const rotation = target.gameCameraTest.state().viewport.rotation;
+        const yaw = Math.PI / 4 + rotation * Math.PI / 2;
+        target.gameMovementTest.move(Math.sin(yaw), Math.cos(yaw));
+        usedJumpAnimation ||= state.animation === HERO_ANIMATION.JUMP;
+        usedWalkAnimation ||= state.animation === HERO_ANIMATION.WALK;
+        expect(state.position.z, JSON.stringify(state)).to.be.lessThan(0.8);
+        expect(state.position.y, JSON.stringify(state)).to.be.greaterThan(3.8);
+        expect(state.grounded).to.equal(true);
+        expect(usedWalkAnimation).to.equal(true);
+        expect(usedJumpAnimation).to.equal(false);
+      });
+      stopMoving();
     });
-    move(1, 0);
-    expectState((state) => {
-      usedJumpAnimation ||= state.animation === HERO_ANIMATION.JUMP;
-      usedWalkAnimation ||= state.animation === HERO_ANIMATION.WALK;
-      expect(state.position.z, JSON.stringify(state)).to.be.lessThan(3);
-      expect(state.position.y, JSON.stringify(state)).to.be.greaterThan(3.8);
-      expect(state.grounded).to.equal(true);
-      expect(usedWalkAnimation).to.equal(true);
-      expect(usedJumpAnimation).to.equal(false);
-    });
-  });
 
   it("walks down onto terrain one block lower", () => {
     loadScenario("safe-descent");

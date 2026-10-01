@@ -1,3 +1,4 @@
+import { createCastleStairFlight } from "../../../../src/game/objects/castle/CastleStairFlight.js";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { it } from "node:test";
@@ -9,7 +10,7 @@ import { CASTLE_BOUNDARY } from "../../../../src/game/enum/CastleBoundary.js";
 // substituting only rendering imports that require a browser/GPU in Node.
 const stairSource = readFileSync(new URL(
   "../../../../src/game/objects/castle/CastleStairs.js", import.meta.url,
-), "utf8").replace(/^import stairModuleModelUrl[^\n]*\n/, 'const stairModuleModelUrl = "stair-model";\n');
+), "utf8").replace(/^import \{ createCastleStairFlight \}[^\n]*\n/, `const createCastleStairFlight = ${createCastleStairFlight.toString()};\n`).replace(/^import stairModuleModelUrl[^\n]*\n/m, 'const stairModuleModelUrl = "stair-model";\n');
 const { CastleStairs } = await import(
   `data:text/javascript;base64,${Buffer.from(stairSource).toString("base64")}`
 );
@@ -112,3 +113,75 @@ it("a level entrance does not create invisible stairs or blocking surfaces", () 
     assert.equal(world.isBlocked(0, 0, 0.18, 3, 0.22), true);
     assert.equal(world.isMovementBlocked(-0.1, 0, 0, 0, 0.18, 3, 0.22), true);
   });
+
+it("fills the widened whole-cell excavation with rendered treads and matching support", () => {
+  for (const side of ["WEST", "EAST", "NORTH", "SOUTH"]) {
+    const door = { side, offset: 3, width: 2, approachElevation: 2 };
+    const position = { x: 0, z: 0, width: 8, depth: 8, elevation: 3 };
+    const bounds = createCastleStairFlight(position, door);
+    assert.equal(bounds.width, 2);
+    assert.equal(bounds.offset, door.offset, "The outer left strip remains grass");
+    assert.equal(door.width, 2, "Widening the flight retains the doorway width");
+    const acrossCenters = [];
+    const flight = new CastleStairs({ pc, position, doors: [door], cubeSize: 0.25, materials: new Map(),
+      modelLibrary: { instantiateMergedBatch: (_url, matrices) => {
+        for (let offset = 0; offset < matrices.length; offset += 16) {
+          acrossCenters.push(matrices[offset + (bounds.vertical ? 14 : 12)]);
+        }
+        return null;
+      } },
+    });
+    assert.equal(Math.min(...acrossCenters) - 0.125, bounds.acrossStart);
+    assert.equal(Math.max(...acrossCenters) + 0.125, bounds.acrossEnd);
+    for (const across of [bounds.acrossStart + 0.01, bounds.acrossEnd - 0.01]) {
+      const sample = point(side, 1.8, across);
+      assert.equal(flight.surfaceHeightAt(...sample), 3);
+      assert.equal(flight.blocksMovementAt(...sample, 0.18, 3, 0.32), false);
+    }
+    flight.destroy();
+  }
+  const service = createCastleStairFlight({ x: -6.5, z: -8.5, width: 12, depth: 11, elevation: 4 },
+    { side: "EAST", offset: 8.25, width: 1, approachElevation: 2 });
+  assert.equal(service.width, 2);
+  assert.equal(service.offset, 8);
+});
+
+it("trims extra stair width before neighboring road and gate cells in every orientation", () => {
+  for (const side of ["WEST", "EAST", "NORTH", "SOUTH"]) {
+    for (const type of [2, 5]) {
+      const position = { x: 0, z: 0, width: 8, depth: 8, elevation: 3 };
+      const door = { side, offset: 3, width: 2, approachElevation: 2 };
+      const grid = Array.from({ length: 32 }, () => Array(32).fill(1));
+      const [x, z] = point(side, 1.5, 5.5);
+      grid[Math.round(z + 15.5)][Math.round(x + 15.5)] = type;
+      const layout = createCastleStairFlight(position, door, 0.25, { grid, cols: 32, rows: 32 });
+      assert.equal(layout.width, 2);
+      assert.equal(layout.acrossEnd, 5);
+      assert.equal(layout.acrossStart, 3, "The left outer grass strip remains clear");
+      door.stairOffset = layout.offset;
+      door.stairWidth = layout.width;
+      assert.deepEqual(createCastleStairFlight(position, door), layout, "Runtime uses the prepared footprint");
+    }
+  }
+});
+
+it("walks across ground-floor courtyard slabs while retaining walls and closed doors", async () => {
+  const probeSource = castleSource.replace(/  constructor\(\{[\s\S]*?\n  get entity\(\)/, `
+  constructor({ blocks, doors = [], residenceBlocked = false }) {
+    this.#position = { elevation: 4 };
+    this.#residence = { blocksMovementAt: () => residenceBlocked };
+    this.#groundCollisionColumns = [{ x: 0, z: 0 }];
+    this.#cameraCollisionBlocks = blocks;
+    this.#animatedDoors = doors;
+  }
+  get entity()`);
+  const { CastleEntityBuilder: ProbeCastle } = await import(`data:text/javascript;base64,${Buffer.from(
+    `const CASTLE_BOUNDARY = ${JSON.stringify(CASTLE_BOUNDARY)};\n${probeSource}`,
+  ).toString("base64")}`);
+  const slab = { x: 0, y: 4.125, z: 0, halfX: 0.125, halfY: 0.125, halfZ: 0.125 };
+  const castle = new ProbeCastle({ blocks: [slab] });
+  assert.equal(castle.blocksMovementAt(0, 0, 0.18, 4, 0.32), false);
+  assert.equal(new ProbeCastle({ blocks: [{ ...slab, y: 4.375 }] }).blocksMovementAt(0, 0, 0.18, 4, 0.32), true);
+  assert.equal(new ProbeCastle({ blocks: [slab], doors: [{ blocksCameraAt: () => true }] }).blocksMovementAt(0, 0, 0.18, 4, 0.32), true);
+  assert.equal(new ProbeCastle({ blocks: [slab], residenceBlocked: true }).blocksMovementAt(0, 0, 0.18, 4, 0.32), true);
+});

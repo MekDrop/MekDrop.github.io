@@ -7,6 +7,7 @@ import goldenMushroomPairModelUrl from "../../models/ground-cover/golden-mushroo
 import pinkFlowerPatchModelUrl from "../../models/ground-cover/pink-flower-patch.glb?url";
 import redMushroomModelUrl from "../../models/ground-cover/red-mushroom.glb?url";
 import { GRASS_SURFACE_LIFT } from "../../config/terrain.js";
+import { DecorationPlacementRules } from "../../generator/map/DecorationPlacementRules.js";
 import groundCoverFragmentShader from "./GroundCover.frag?raw";
 import groundCoverHeldVertexShader from "./GroundCoverHeld.vert?raw";
 import groundCoverVertexShader from "./GroundCover.vert?raw";
@@ -476,6 +477,12 @@ export class GroundCover {
     for (const [decorationIndex, decoration] of (
       mapData.groundCoverData ?? []
     ).entries()) {
+      if (!DecorationPlacementRules.isGroundCoverCandidate(
+        mapData.grid, mapData.heightmap, mapData.tileMeta,
+        decoration.col, decoration.row,
+      )) {
+        continue;
+      }
       const definition = GROUND_COVER_VARIANTS[decoration.variant];
       if (!definition) continue;
       const x = decoration.col - (mapData.cols - 1) / 2 + decoration.offsetX;

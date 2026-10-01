@@ -10,7 +10,7 @@ import { Princess } from "./royal/princess/Princess.js";
 import { Queen } from "./royal/queen/Queen.js";
 import { StoneCluster } from "./scenery/StoneCluster.js";
 import { Servant } from "./servant/Servant.js";
-import { WoodenSign } from "./scenery/WoodenSign.js";
+import { WoodenSign } from "./wooden-sign/WoodenSign.js";
 import { TriggerArea } from "./shared/TriggerArea.js";
 import { VoxelVegetation } from "./vegetation/VoxelVegetation.js";
 import { MapAnimationActor } from "../debug/MapAnimationActor.js";

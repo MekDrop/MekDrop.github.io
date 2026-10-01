@@ -47,18 +47,19 @@ export class CastleDoorArch {
    * @param {import("src/game/objects/ObjectTypes.js").CastleDoorDefinition} options.door
    * @param {string} options.modelLibrary
    */
-  constructor({ castlePosition, door, modelLibrary }) {
+  constructor({ castlePosition, door, modelLibrary, placement = null }) {
     this.#entity = modelLibrary.instantiate(CastleDoorArch.modelUrl);
     this.#entity.name = "Castle door stone arch";
     hideMortarBacking(this.#entity);
 
-    const placement = this.#placement(castlePosition, door);
+    const frame = placement ?? this.#placement(castlePosition, door);
     this.#entity.setLocalPosition(
-      placement.x,
-      castlePosition.elevation,
-      placement.z,
+      frame.x,
+      placement?.y ?? castlePosition.elevation,
+      frame.z,
     );
-    this.#entity.setLocalEulerAngles(0, placement.yaw, 0);
+    this.#entity.setLocalEulerAngles(0, frame.yaw, 0);
+    if (placement) this.#entity.setLocalScale(door.width / 2, placement.height / 2.3, 1);
   }
 
   get entity() {

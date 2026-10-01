@@ -1,7 +1,8 @@
+import clothModelUrl from "../../models/castle/residential/flag-cloth.glb?url";
+import finialModelUrl from "../../models/castle/residential/metal-finial.glb?url";
+import authoredModelUrl from "../../models/castle/residential/metal-pole.glb?url";
 import { AmmoClothPhysics } from "../shared/AmmoClothPhysics.js";
 
-const FLAG_COLUMNS = 6;
-const FLAG_ROWS = 5;
 const FLAG_TRAILING_EDGE_HEIGHT_RATIO = 0.2;
 const FLAG_TEXTURE_WIDTH = 64;
 const FLAG_TEXTURE_HEIGHT = 40;
@@ -11,6 +12,14 @@ const FLAG_TEXTURE_HEIGHT = 40;
  */
 
 export class CastleFlag {
+  /**
+   * @returns {string[]}
+   */
+  static get modelUrls() { return [authoredModelUrl, finialModelUrl, clothModelUrl]; }
+  /**
+   * @type {import("../../models/GameModelLibrary.js").GameModelLibrary}
+   */
+  #modelLibrary;
   /**
    *
     * @type {typeof import("playcanvas")}
@@ -66,9 +75,11 @@ export class CastleFlag {
    *
    * @param {{pc: typeof import("playcanvas"), app: import("playcanvas").Application}} options
    * @param {typeof import("playcanvas")} options.pc
+   * @param {import("../../models/GameModelLibrary.js").GameModelLibrary} options.modelLibrary
    * @param {import("playcanvas").Application} options.app
    */
-  constructor({ pc, app }) {
+  constructor({ pc, app, modelLibrary }) {
+    this.#modelLibrary = modelLibrary;
     this.#pc = pc;
     this.#app = app;
     this.#entity = new pc.Entity("Castle flags");
@@ -116,26 +127,22 @@ export class CastleFlag {
     root.setEulerAngles(0, yaw, 0);
     this.#entity.addChild(root);
 
-    const pole = new this.#pc.Entity("Castle flag pole");
-    pole.addComponent("render", {
-      type: "cylinder",
-      castShadows: true,
-      receiveShadows: true,
-    });
-    for (const instance of pole.render.meshInstances) {
+    const pole = this.#modelLibrary.instantiate(authoredModelUrl);
+    pole.name = "Castle flag pole";
+    for (const instance of pole.findComponents("render").flatMap(/**
+     * @param {import("playcanvas").RenderComponent} render
+     */ (render) => render.meshInstances)) {
       instance.material = this.#poleMaterial;
     }
     pole.setLocalPosition(0, poleHeight / 2, 0);
     pole.setLocalScale(0.035, poleHeight, 0.035);
     root.addChild(pole);
 
-    const finial = new this.#pc.Entity("Castle flag finial");
-    finial.addComponent("render", {
-      type: "sphere",
-      castShadows: true,
-      receiveShadows: true,
-    });
-    for (const instance of finial.render.meshInstances) {
+    const finial = this.#modelLibrary.instantiate(finialModelUrl);
+    finial.name = "Castle flag finial";
+    for (const instance of finial.findComponents("render").flatMap(/**
+     * @param {import("playcanvas").RenderComponent} render
+     */ (render) => render.meshInstances)) {
       instance.material = this.#poleMaterial;
     }
     finial.setLocalPosition(0, poleHeight + 0.035, 0);
@@ -170,12 +177,7 @@ export class CastleFlag {
     flag.cloth = this.#physics.createCloth({
       positions: flag.positions,
       indices: flag.indices,
-      pinnedIndices: Array.from({ length: FLAG_ROWS + 1 }, /**
-       *
-       * @param {undefined} _
-       * @param {number} index
-       */
-      (_, index) => index),
+      pinnedIndices: geometry.pinnedIndices,
       vertexUv: flag.vertexUv,
       root,
       normalAxis: 2,
@@ -323,44 +325,27 @@ export class CastleFlag {
    * @param {number} poleHeight
    */
   #createMesh(width, height, poleHeight) {
+    const authored = this.#modelLibrary.instantiate(clothModelUrl);
+    const sourceMesh = authored.findComponents("render")[0].meshInstances[0].mesh;
     const positions = [];
     const textureUvs = [];
-    const vertexUv = [];
     const indices = [];
+    sourceMesh.getPositions(positions);
+    sourceMesh.getUvs(0, textureUvs);
+    sourceMesh.getIndices(indices);
+    const vertexUv = [];
+    const pinnedIndices = [];
     const centerY = poleHeight - height / 2 - 0.12;
-
-    for (let column = 0; column < FLAG_COLUMNS; column += 1) {
-      const freedom = column / (FLAG_COLUMNS - 1);
-      const halfHeight =
-        (height / 2) *
-        (1 - freedom * (1 - FLAG_TRAILING_EDGE_HEIGHT_RATIO));
-      for (let row = 0; row <= FLAG_ROWS; row += 1) {
-        const rowRatio = row / FLAG_ROWS;
-        const vertical = 1 - rowRatio * 2;
-        positions.push(width * freedom, centerY + vertical * halfHeight, 0);
-        textureUvs.push(freedom, rowRatio);
-        vertexUv.push(vertical, freedom);
-      }
+    for (let index = 0; index < positions.length; index += 3) {
+      const freedom = positions[index];
+      const halfHeight = 0.5 * (1 - freedom * (1 - FLAG_TRAILING_EDGE_HEIGHT_RATIO));
+      const vertical = positions[index + 1] / halfHeight;
+      positions[index] *= width;
+      positions[index + 1] = centerY + positions[index + 1] * height;
+      vertexUv.push(vertical, freedom);
+      if (freedom < 0.001) { pinnedIndices.push(index / 3); }
     }
-
-    const rowLength = FLAG_ROWS + 1;
-    for (let column = 0; column < FLAG_COLUMNS - 1; column += 1) {
-      for (let row = 0; row < FLAG_ROWS; row += 1) {
-        const topLeft = column * rowLength + row;
-        const bottomLeft = topLeft + 1;
-        const topRight = topLeft + rowLength;
-        const bottomRight = topRight + 1;
-        indices.push(
-          topLeft,
-          bottomRight,
-          topRight,
-          topLeft,
-          bottomLeft,
-          bottomRight,
-        );
-      }
-    }
-
+    authored.destroy();
     const animatedPositions = Float32Array.from(positions);
     const meshIndices = Uint16Array.from(indices);
     const mesh = new this.#pc.Mesh(this.#app.graphicsDevice);
@@ -374,6 +359,7 @@ export class CastleFlag {
 
     return {
       mesh,
+      pinnedIndices,
       positions: animatedPositions,
       vertexUv: Float32Array.from(vertexUv),
       indices: meshIndices,

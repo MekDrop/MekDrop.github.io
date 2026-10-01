@@ -74,11 +74,13 @@ export class CastleBuildPlanStage extends AbstractMapGenerationStage {
       };
     });
 
+    castle.seed ??= `${context.input?.mapName ?? "map"}:castle:${castle.position.col}:${castle.position.row}`;
     context.output.castleBuildPlan =
       await this.#operations.generateCastleBuildPlan({
         position,
         doors,
         style: castle.style,
+        seed: castle.seed,
       });
   }
 }

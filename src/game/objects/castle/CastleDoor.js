@@ -9,7 +9,7 @@ const CLOSE_INSIDE_DISTANCE = 0.9;
 const PASSABLE_OPEN_AMOUNT = 0.72;
 const CLICK_OPEN_SECONDS = 1;
 const DOOR_HEIGHT = 2.3;
-const WOOD_PLANK_NAME = "castle door plank";
+
 
 export class CastleDoor {
   /**
@@ -61,6 +61,18 @@ export class CastleDoor {
    */
   #width;
   /**
+   * @type {number}
+   */
+  #height = DOOR_HEIGHT;
+  /**
+   * @type {boolean}
+   */
+  #upperFloor = false;
+  /**
+   * @type {boolean}
+   */
+  #elevated = false;
+  /**
    *
     * @type {boolean}
    */
@@ -83,14 +95,24 @@ export class CastleDoor {
    * @param {{x: number, z: number, width: number, depth: number, elevation: number}} options.castlePosition
    * @param {import("src/game/objects/ObjectTypes.js").CastleDoorDefinition} options.door
    * @param {string} options.modelLibrary
+   * @param {{x: number, y: number, z: number, yaw: number, height: number}|null} options.placement
    * @param {import("playcanvas").Material} options.woodMaterial
    */
-  constructor({ pc, castlePosition, door, modelLibrary, woodMaterial }) {
+  constructor({ pc, castlePosition, door, modelLibrary, placement = null }) {
 
     this.#pc = pc;
 
     this.#width = door.width;
-    const geometry = this.#doorGeometry(castlePosition, door);
+    this.#height = placement?.height ?? DOOR_HEIGHT;
+    this.#upperFloor = Boolean(placement);
+    this.#elevated = Boolean(placement && placement.y > castlePosition.elevation + 0.24);
+    const angle = (placement?.yaw ?? 0) * Math.PI / 180;
+    const geometry = placement ? {
+      center: { x: placement.x, y: placement.y, z: placement.z },
+      inward: { x: Math.sin(angle), z: Math.cos(angle) },
+      tangent: { x: Math.cos(angle), z: -Math.sin(angle) },
+      baseYaw: placement.yaw,
+    } : this.#doorGeometry(castlePosition, door);
 
     this.#center = geometry.center;
 
@@ -101,13 +123,16 @@ export class CastleDoor {
 
     this.#entity = modelLibrary.instantiate(CastleDoor.modelUrl);
     this.#entity.name = `Castle ${door.side.toLowerCase()} doors`;
-    this.#applyWoodMaterial(woodMaterial);
+    // Preserve the oak and iron materials authored with the entrance model.
     this.#entity.setLocalPosition(
       this.#center.x,
       this.#center.y,
       this.#center.z,
     );
     this.#entity.setLocalEulerAngles(0, geometry.baseYaw, 0);
+    if (placement) {
+      this.#entity.setLocalScale(this.#width / 2, this.#height / DOOR_HEIGHT, 1);
+    }
     const animationTrack = modelLibrary
       .getAnimationTracks(CastleDoor.modelUrl, [
         CASTLE_DOOR_ANIMATION.OPEN,
@@ -176,7 +201,7 @@ export class CastleDoor {
     const localX = localStart.x + (localEnd.x - localStart.x) * distance;
     const localY = localStart.y + (localEnd.y - localStart.y) * distance;
     if (
-      Math.abs(localX) > this.#width / 2 + 0.08 ||
+      Math.abs(localX) > (this.#upperFloor ? 1 : this.#width / 2) + 0.08 ||
       localY < -0.08 ||
       localY > DOOR_HEIGHT + 0.08
     ) {
@@ -203,11 +228,15 @@ export class CastleDoor {
 
   /**
    *
-   * @param {{x: number, z: number}} options
+   * @param {{x: number, y?: number, z: number}} options
    * @param {number} options.x
    * @param {number} options.z
    */
-  updateHeroPosition({ x, z }) {
+  updateHeroPosition({ x, y, z }) {
+    if (this.#upperFloor && (y === undefined || Math.abs(y - this.#center.y) > 0.7)) {
+      this.#targetOpen = false;
+      return;
+    }
     const deltaX = x - this.#center.x;
     const deltaZ = z - this.#center.z;
     const insideDistance = deltaX * this.#inward.x + deltaZ * this.#inward.z;
@@ -250,6 +279,8 @@ export class CastleDoor {
    * @param {number} radius
    */
   intersectsFootprint(x, z, radius) {
+    // Ground navigation must not inherit a bedroom door several metres above it.
+    if (this.#elevated) return false;
     if (this.#openAmount >= PASSABLE_OPEN_AMOUNT) {
       return false;
     }
@@ -288,7 +319,7 @@ export class CastleDoor {
     );
     return (
       y >= this.#center.y - radius &&
-      y <= this.#center.y + DOOR_HEIGHT + radius &&
+      y <= this.#center.y + this.#height + radius &&
       normalDistance <= DOOR_THICKNESS / 2 + radius &&
       lateralDistance <= this.#width / 2 + radius
     );
@@ -349,30 +380,6 @@ export class CastleDoor {
       },
     };
     return geometryBySide[door.side];
-  }
-
-  /**
-   *
-   * @param {import("playcanvas").Material} material
-   */
-  #applyWoodMaterial(material) {
-    const pending = [this.#entity];
-    while (pending.length) {
-      const entity = pending.pop();
-      for (const meshInstance of entity.render?.meshInstances ?? []) {
-        const nodeName = meshInstance.node?.name?.toLowerCase() ?? "";
-        const materialName = meshInstance.material?.name?.toLowerCase() ?? "";
-        const isWood =
-          entity.name.toLowerCase().includes(WOOD_PLANK_NAME) ||
-          nodeName.includes(WOOD_PLANK_NAME) ||
-          materialName === "castle door wood" ||
-          materialName === "castle door shadowed wood";
-        if (isWood) {
-          meshInstance.material = material;
-        }
-      }
-      pending.push(...entity.children);
-    }
   }
 
   #syncAnimation() {

@@ -1,3 +1,6 @@
+import lanternModelUrl from "../../models/castle/residential/wall-lantern.glb?url";
+import floorModelUrl from "../../models/castle/residential/floor-panel.glb?url";
+import authoredModelUrl from "../../models/castle/residential/stone-block.glb?url";
 import { CastleThrone } from "./CastleThrone.js";
 import { CastleFire } from "./CastleFire.js";
 import { GAME_OVER_VIEW_ROTATION_BY_SIDE } from "../../enum/GameOverViewRotation.js";
@@ -38,7 +41,7 @@ export class CastleAudienceRoom {
     * @returns {Array<string>}
    */
   static get modelUrls() {
-    return [CastleThrone.modelUrl];
+    return [CastleThrone.modelUrl, authoredModelUrl, floorModelUrl, lanternModelUrl, ...CastleFire.modelUrls];
   }
 
   /**
@@ -169,6 +172,14 @@ export class CastleAudienceRoom {
    */
   #floorSurfaces = [];
   /**
+   * @type {{x: number, z: number, radius: number}|null}
+   */
+  #serviceOpening = null;
+  /**
+   * @type {import("./CastleResidentialLayout.js").CastleResidentialLayout|null}
+   */
+  #residentialLayout = null;
+  /**
    *
     * @type {boolean}
    */
@@ -218,6 +229,8 @@ export class CastleAudienceRoom {
    * @param {number} options.frontWallDepth
    * @param {string} options.modelLibrary
    * @param {import("playcanvas").Texture} options.carpetTexture
+   * @param {import("./CastleResidentialLayout.js").CastleResidentialLayout|null} options.residentialLayout
+   * @param {{x: number, z: number, radius: number}|null} options.serviceOpening
    * @param {import("playcanvas").Texture} options.fireParticleTexture
    */
   constructor({
@@ -233,6 +246,8 @@ export class CastleAudienceRoom {
     modelLibrary,
     fireParticleTexture,
     carpetTexture,
+    serviceOpening = null,
+    residentialLayout = null,
   }) {
     this.#pc = pc;
     this.#app = app;
@@ -244,16 +259,27 @@ export class CastleAudienceRoom {
     this.#availableDepth = availableDepth;
     this.#availableWidth = availableWidth;
     this.#frontWallDepth = frontWallDepth;
+    this.#residentialLayout = residentialLayout;
     this.#entity = new pc.Entity("Castle audience chamber");
     this.#baseY = position.elevation ?? 0;
     this.#fire = new CastleFire({
       pc,
       app,
       particleTexture: fireParticleTexture,
+      modelLibrary,
     });
     this.#entity.addChild(this.#fire.entity);
 
     this.#resolveLayout();
+    if (serviceOpening) {
+      const dx = serviceOpening.x - this.#center.x;
+      const dz = serviceOpening.z - this.#center.z;
+      this.#serviceOpening = {
+        x: dx * this.#tangent.x + dz * this.#tangent.z,
+        z: dx * this.#inward.x + dz * this.#inward.z,
+        radius: serviceOpening.radius,
+      };
+    }
     this.#createMaterials();
     this.#materials.get("carpet").diffuseMap = carpetTexture ?? null;
     this.#materials.get("carpet").update();
@@ -505,6 +531,20 @@ export class CastleAudienceRoom {
       0,
       Math.min(layout.span - EDGE_MARGIN * 2, this.#availableWidth, 6.4),
     );
+    if (this.#residentialLayout) {
+      const shared = this.#residentialLayout;
+      const room = shared.rooms.work;
+      const angle = shared.yaw * Math.PI / 180;
+      this.#center = { x: shared.origin.x, z: shared.origin.z };
+      this.#inward = { x: Math.sin(angle), z: Math.cos(angle) };
+      this.#tangent = { x: Math.cos(angle), z: -Math.sin(angle) };
+      this.#floorWidth = room.maxX - room.minX;
+      this.#floorLateral = (room.minX + room.maxX) / 2;
+      this.#floorDepth = room.maxZ;
+      this.#frontWallDepth = room.minZ;
+      this.#roomWidth = this.#floorWidth;
+      this.#forwardCapacity = room.maxZ;
+    }
   }
 
   #createMaterials() {
@@ -533,11 +573,13 @@ export class CastleAudienceRoom {
   }
 
   #build() {
-    const throneForward = Math.max(0, this.#floorDepth - THRONE_REAR_CLEARANCE);
+    const throneZone = this.#residentialLayout?.reservations.find(/**
+     * @param {{role: string, maxZ: number}} zone
+     */ (zone) => zone.role === "throne");
+    const throneForward = throneZone ? throneZone.maxZ - THRONE_REAR_CLEARANCE : Math.max(0, this.#floorDepth - THRONE_REAR_CLEARANCE);
     this.#buildFloor(throneForward);
     this.#buildThrone(throneForward);
     this.#buildColumns(throneForward);
-    this.#buildBenches(throneForward);
     this.#buildBraziers(throneForward);
     this.#buildRearBanners(throneForward);
   }
@@ -555,8 +597,11 @@ export class CastleAudienceRoom {
       Math.max(0, this.#frontWallDepth),
       this.#floorDepth,
     );
-    const roomFloorDepth = this.#floorDepth - floorInset;
-    const roomFloorCenter = floorInset + roomFloorDepth / 2;
+    // Shared castles own a stone threshold; timber stays clear of exterior faces.
+    const finishInset = this.#residentialLayout ? 0.05 : 0;
+    const finishStart = floorInset + finishInset;
+    const roomFloorDepth = Math.max(0, this.#floorDepth - finishStart - finishInset);
+    const roomFloorCenter = finishStart + roomFloorDepth / 2;
     const entranceFloorWidth = Math.min(
       this.#roomWidth,
       Math.max(0, this.#door.width ?? 2),
@@ -568,10 +613,10 @@ export class CastleAudienceRoom {
         this.#floorLateral,
         roomFloorCenter,
         0.025,
-        [this.#floorWidth, 0.05, roomFloorDepth],
+        [this.#floorWidth - finishInset * 2, 0.05, roomFloorDepth],
       );
     }
-    if (floorInset > 0 && entranceFloorWidth > 0) {
+    if (!this.#residentialLayout && floorInset > 0 && entranceFloorWidth > 0) {
       this.#boxAt(
         "Audience entrance floor",
         "woodLight",
@@ -582,8 +627,8 @@ export class CastleAudienceRoom {
       );
     }
     for (const lateral of [
-      this.#floorLateral - this.#floorWidth / 2 + 0.05,
-      this.#floorLateral + this.#floorWidth / 2 - 0.05,
+      this.#floorLateral - this.#floorWidth / 2 + 0.05 + finishInset,
+      this.#floorLateral + this.#floorWidth / 2 - 0.05 - finishInset,
     ]) {
       if (roomFloorDepth <= 0) {
         continue;
@@ -598,8 +643,8 @@ export class CastleAudienceRoom {
       );
     }
     for (
-      let forward = Math.max(0.75, floorInset);
-      forward < this.#floorDepth;
+      let forward = Math.max(0.75, finishStart);
+      forward < this.#floorDepth - finishInset;
       forward += 0.75
     ) {
       this.#boxAt(
@@ -612,7 +657,7 @@ export class CastleAudienceRoom {
       );
     }
 
-    const runnerStart = CARPET_ENTRANCE_INSET;
+    const runnerStart = Math.max(CARPET_ENTRANCE_INSET, floorInset + 0.1);
     const runnerEnd = Math.min(
       throneForward - 0.07,
       this.#floorDepth - CARPET_REAR_CLEARANCE,
@@ -620,6 +665,14 @@ export class CastleAudienceRoom {
     const runnerLength = Math.max(0, runnerEnd - runnerStart);
     const runnerCenter = runnerStart + runnerLength / 2;
     const runnerWidth = Math.min(1.2, this.#roomWidth - 0.36);
+    const carpetMaterial = this.#materials.get("carpet");
+    const texture = carpetMaterial.diffuseMap;
+    const aspect = texture?.width > 0 && texture?.height > 0 ? texture.height / texture.width : 1.5;
+    // One complete motif spans the runner width; repeat along the hall at its
+    // authored pixel aspect rather than stretching one motif over the whole floor.
+    carpetMaterial.diffuseMapTiling = new this.#pc.Vec2(1, runnerLength / Math.max(0.001, runnerWidth * aspect));
+    if (texture) texture.addressV = this.#pc.ADDRESS_REPEAT;
+    carpetMaterial.update();
     this.#boxAt("Audience carpet runner", "carpet", 0, runnerCenter, 0.055, [
       runnerWidth,
       0.06,
@@ -687,6 +740,9 @@ export class CastleAudienceRoom {
    * @param {{x: number, y: number, z: number}} throneForward
    */
   #buildColumns(throneForward) {
+    // Room-first castles supply their supports through the structural shell.
+    // Extra audience columns must not occupy reserved furniture or walking space.
+    if (this.#residentialLayout) return;
     const lateral = Math.max(1.35, this.#roomWidth / 2 - 0.76);
     const rows = [Math.min(1.72, throneForward * 0.38), throneForward * 0.72];
     for (const forward of rows) {
@@ -755,37 +811,17 @@ export class CastleAudienceRoom {
    * @param {{x: number, y: number, z: number}} throneForward
    */
   #buildBraziers(throneForward) {
-    const lateral = Math.min(1.48, this.#roomWidth / 2 - 0.42);
-    const rows = [Math.min(1.15, throneForward * 0.32), throneForward - 1.15];
-    for (const forward of rows) {
-      for (const side of [-1, 1]) {
-        this.#boxAt(
-          "Royal torch pedestal",
-          "iron",
-          side * lateral,
-          forward,
-          0.49,
-          [0.24, 0.98, 0.24],
-          true,
-        );
-        this.#boxAt(
-          "Royal torch bowl",
-          "gold",
-          side * lateral,
-          forward,
-          1.01,
-          [0.58, 0.18, 0.58],
-        );
-        const flamePosition = this.#point(side * lateral, forward, 1.12);
-        this.#fire.add({
-          x: flamePosition.x,
-          y: flamePosition.y,
-          z: flamePosition.z,
-          scale: 0.18,
-          brazier: false,
-          intensity: 0.72,
-        });
-      }
+    const lateral = Math.min(2.8, this.#roomWidth / 2 - 0.1);
+    for (const side of [-1, 1]) {
+      const position = this.#point(side * lateral, throneForward + 0.6, 0.85);
+      const lantern = this.#modelLibrary.instantiate(lanternModelUrl);
+      lantern.name = "Royal chamber wall lantern";
+      lantern.setLocalPosition(position.x, position.y, position.z);
+      lantern.setLocalEulerAngles(0, this.#roomYaw() + 180, 0);
+      lantern.setLocalScale(0.85, 0.85, 0.85);
+      this.#entity.addChild(lantern);
+      const glow = this.#point(side * lateral, throneForward + 0.35, 1.12);
+      this.#fire.add({ ...glow, scale: 0.065, brazier: false, intensity: 0.6, flame: false });
     }
   }
 
@@ -842,16 +878,47 @@ export class CastleAudienceRoom {
     scale,
     blocksMovement = false,
   ) {
+    const hole = this.#serviceOpening;
+    if (hole && y <= 0.1 && !blocksMovement) {
+      const left = lateral - scale[0] / 2;
+      const right = lateral + scale[0] / 2;
+      const front = forward - scale[2] / 2;
+      const back = forward + scale[2] / 2;
+      const cutLeft = Math.max(left, hole.x - hole.radius);
+      const cutRight = Math.min(right, hole.x + hole.radius);
+      const cutFront = Math.max(front, hole.z - hole.radius);
+      const cutBack = Math.min(back, hole.z + hole.radius);
+      if (cutRight - cutLeft > 0.0001 && cutBack - cutFront > 0.0001) {
+        for (const [minX, maxX, minZ, maxZ] of [
+          [left, cutLeft, front, back],
+          [cutRight, right, front, back],
+          [cutLeft, cutRight, front, cutFront],
+          [cutLeft, cutRight, cutBack, back],
+        ]) {
+          if (maxX - minX > 0.0001 && maxZ - minZ > 0.0001) {
+            this.#boxAt(name, materialName, (minX + maxX) / 2,
+              (minZ + maxZ) / 2, y, [maxX - minX, scale[1], maxZ - minZ]);
+          }
+        }
+        return null;
+      }
+    }
     const position = this.#point(lateral, forward, y);
     const entity = new this.#pc.Entity(name);
-    entity.addComponent("render", {
-      type: "box",
-      castShadows: true,
-      receiveShadows: true,
-    });
-    for (const meshInstance of entity.render.meshInstances) {
-      meshInstance.material = this.#material(materialName);
+    const floor = name.toLowerCase().includes("floor");
+    const carpet = materialName === "carpet";
+    const model = this.#modelLibrary.instantiate(floor || carpet ? floorModelUrl : authoredModelUrl);
+    const authoredHeight = floor || carpet ? 0.06 : 1;
+    model.setLocalScale(1, 1 / authoredHeight, 1);
+    model.setLocalPosition(0, -0.5, 0);
+    if (!floor || carpet) {
+      for (const meshInstance of model.findComponents("render").flatMap(/**
+       * @param {import("playcanvas").RenderComponent} render
+       */ (render) => render.meshInstances)) {
+        meshInstance.material = this.#material(materialName);
+      }
     }
+    entity.addChild(model);
     entity.setLocalPosition(position.x, position.y, position.z);
     entity.setLocalEulerAngles(0, this.#roomYaw(), 0);
     entity.setLocalScale(...scale);
@@ -882,29 +949,11 @@ export class CastleAudienceRoom {
   }
 
   #roomYaw() {
-    if (this.#inward.x > 0) {
-      return 90;
-    }
-    if (this.#inward.x < 0) {
-      return -90;
-    }
-    if (this.#inward.z < 0) {
-      return 180;
-    }
-    return 0;
+    return Math.round(Math.atan2(this.#inward.x, this.#inward.z) * 180 / Math.PI / 90) * 90;
   }
 
   #visitorFacingYaw() {
-    if (this.#inward.x > 0) {
-      return -90;
-    }
-    if (this.#inward.x < 0) {
-      return 90;
-    }
-    if (this.#inward.z > 0) {
-      return 180;
-    }
-    return 0;
+    return this.#roomYaw() + 180;
   }
 
   #syncVisibility() {

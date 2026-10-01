@@ -2519,7 +2519,9 @@ export class PlayCanvasRenderer {
     });
     if (update.firstPerson) {
       if (update.position) {
-        this.#updateCastlesForHero(update.position);
+        // Floor support and door proximity follow the actor's feet, even when
+        // the first-person camera is above them at eye height.
+        this.#updateCastlesForHero(hero?.position ?? update.position);
       }
     } else {
       if (this.#floatingIslandMotion) {

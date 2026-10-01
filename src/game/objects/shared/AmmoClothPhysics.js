@@ -26,6 +26,10 @@ const MINIMUM_POINTER_RADIUS = 0.16;
  */
 export class AmmoClothPhysics {
   /**
+   * @type {WeakMap<object, Set<AmmoClothPhysics>>}
+   */
+  static #worldOwners = new WeakMap();
+  /**
    *
     * @type {typeof import("playcanvas")}
    */
@@ -94,6 +98,27 @@ export class AmmoClothPhysics {
   constructor({ pc = null } = {}) {
     this.#pc = pc;
     this.#ammo = globalThis.Ammo;
+  }
+
+  /**
+   * Bullet reserves large pools per world; empty flag collections need none.
+   */
+  #initializeWorld() {
+    if (this.#world) return;
+    const owners = AmmoClothPhysics.#worldOwners.get(this.#ammo);
+    if (owners?.size) {
+      const owner = owners.values().next().value;
+      this.#collisionConfiguration = owner.#collisionConfiguration;
+      this.#dispatcher = owner.#dispatcher;
+      this.#broadphase = owner.#broadphase;
+      this.#solver = owner.#solver;
+      this.#softBodySolver = owner.#softBodySolver;
+      this.#world = owner.#world;
+      this.#gravity = owner.#gravity;
+      this.#force = owner.#force;
+      owners.add(this);
+      return;
+    }
     this.#collisionConfiguration =
       new this.#ammo.btSoftBodyRigidBodyCollisionConfiguration();
     this.#dispatcher = new this.#ammo.btCollisionDispatcher(
@@ -113,6 +138,7 @@ export class AmmoClothPhysics {
     this.#force = new this.#ammo.btVector3(0, 0, 0);
     this.#world.setGravity(this.#gravity);
     this.#world.getWorldInfo().set_m_gravity(this.#gravity);
+    AmmoClothPhysics.#worldOwners.set(this.#ammo, new Set([this]));
   }
 
   /**
@@ -145,6 +171,7 @@ export class AmmoClothPhysics {
     bendingStiffness = 0.86,
     selfCollision = false,
   }) {
+    this.#initializeWorld();
     const vertexCount = positions.length / 3;
     const { body, material, stretchConstraints } = this.#createBody(
       positions,
@@ -275,15 +302,19 @@ export class AmmoClothPhysics {
     if (!this.#world) {
       return;
     }
+    const owners = AmmoClothPhysics.#worldOwners.get(this.#ammo);
+    // One owner advances the shared world; other collections only read their
+    // meshes. Apply every collection's forces before that single simulation.
+    if (owners.values().next().value !== this) return;
     const elapsed = Math.max(0, Math.min(0.05, deltaTime));
-    this.#elapsed += elapsed;
-    const wind = getAmbientWind(this.#elapsed);
-    for (const cloth of this.#cloths) {
-      this.#applyWind(cloth, wind);
+    for (const owner of owners) {
+      owner.#elapsed += elapsed;
+      const wind = getAmbientWind(owner.#elapsed);
+      for (const cloth of owner.#cloths) owner.#applyWind(cloth, wind);
     }
     this.#world.stepSimulation(elapsed, MAXIMUM_SUB_STEPS, FIXED_TIME_STEP);
-    for (const cloth of this.#cloths) {
-      this.#limitStretch(cloth);
+    for (const owner of owners) {
+      for (const cloth of owner.#cloths) owner.#limitStretch(cloth);
     }
   }
 
@@ -348,7 +379,7 @@ export class AmmoClothPhysics {
   }
 
   destroy() {
-    if (!this.#ammo) {
+    if (!this.#world) {
       return;
     }
     for (const cloth of this.#cloths) {
@@ -356,6 +387,13 @@ export class AmmoClothPhysics {
       this.#ammo.destroy(cloth.body);
     }
     this.#cloths = [];
+    const owners = AmmoClothPhysics.#worldOwners.get(this.#ammo);
+    owners.delete(this);
+    if (owners.size) {
+      this.#world = null;
+      return;
+    }
+    AmmoClothPhysics.#worldOwners.delete(this.#ammo);
     this.#ammo.destroy(this.#force);
     this.#ammo.destroy(this.#gravity);
     this.#ammo.destroy(this.#world);

@@ -15,6 +15,7 @@ export class FinalizationStage extends AbstractCastleGenerationStage {
          */
         (door) => ({ ...door })),
         requestedStyle: context.input.style,
+        ...(context.input.seed === undefined ? {} : { seed: context.input.seed }),
       },
       layout: this.#clone(context.layout),
       structure: this.#clone(context.structure),

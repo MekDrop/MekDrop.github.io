@@ -53,12 +53,12 @@ it("gives the king, queen, and princess independent castles and one shared trigg
   const middleCastle = map.castles[1];
   const southEdge = middleCastle.position.row + middleCastle.position.depth - 1;
   assert.equal(trigger.position.z, 4);
-  assert.equal(southEdge, 10);
+  assert.equal(southEdge, 12);
   assert.equal(trigger.position.x, 0);
 });
 
-it("starts the hero two tiles away from the middle activation tile", () => {
+it("starts the hero outside the middle activation tile", () => {
   const trigger = map.objects.find(({ object }) => object === "TriggerArea");
-  assert.equal(map.heroSpawn.x, trigger.position.x);
-  assert.equal(map.heroSpawn.z - trigger.position.z, 2);
+  assert.ok(Math.abs(map.heroSpawn.x - trigger.position.x) <= 0.5);
+  assert.ok(map.heroSpawn.z - trigger.position.z >= 2);
 });

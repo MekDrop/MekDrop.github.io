@@ -80,6 +80,7 @@ export class GameModelLibrary {
    * @param {string} url
    * @param {{material: pc.Material, castShadows: boolean, receiveShadows: boolean}} options
    * @param {pc.Material} options.material
+   * @param {boolean} options.linearVertexColors Decode imported material colour before baking it into linear vertex colours.
    * @param {boolean} options.castShadows
    * @param {boolean} options.receiveShadows
    */
@@ -87,11 +88,12 @@ export class GameModelLibrary {
     url,
     {
       material = null,
+      linearVertexColors = false,
       castShadows = true,
       receiveShadows = castShadows,
     } = {},
   ) {
-    const mergedModel = this.#mergedModelFor(url);
+    const mergedModel = this.#mergedModelFor(url, linearVertexColors);
 
     const entity = new this.#pc.Entity("Merged game model");
     const meshInstance = new this.#pc.MeshInstance(
@@ -116,6 +118,7 @@ export class GameModelLibrary {
    * @param {{name: string, material: pc.Material, castShadows: boolean, receiveShadows: boolean, dynamic: boolean}} options
    * @param {string} options.name
    * @param {pc.Material} options.material
+   * @param {boolean} options.linearVertexColors Decode imported material colour before baking it into linear vertex colours.
    * @param {boolean} options.castShadows
    * @param {boolean} options.receiveShadows
    * @param {boolean} options.dynamic
@@ -126,12 +129,13 @@ export class GameModelLibrary {
     {
       name = "Instanced game model",
       material = null,
+      linearVertexColors = false,
       castShadows = true,
       receiveShadows = castShadows,
       dynamic = false,
     } = {},
   ) {
-    const mergedModel = this.#mergedModelFor(url);
+    const mergedModel = this.#mergedModelFor(url, linearVertexColors);
     if (!matrices.length) {
       return null;
     }
@@ -247,15 +251,17 @@ export class GameModelLibrary {
   /**
    *
    * @param {string} url
+   * @param {boolean} linearVertexColors
    */
-  #mergedModelFor(url) {
+  #mergedModelFor(url, linearVertexColors = false) {
     const asset = this.#assets.get(url);
     if (!asset?.resource) throw new GameModelUnavailableError({ url });
 
-    let mergedModel = this.#mergedModels.get(url);
+    const cacheKey = `${url}:${linearVertexColors}`;
+    let mergedModel = this.#mergedModels.get(cacheKey);
     if (!mergedModel) {
-      mergedModel = this.#mergeRenderHierarchy(asset.resource);
-      this.#mergedModels.set(url, mergedModel);
+      mergedModel = this.#mergeRenderHierarchy(asset.resource, linearVertexColors);
+      this.#mergedModels.set(cacheKey, mergedModel);
     }
     return mergedModel;
   }
@@ -279,8 +285,9 @@ export class GameModelLibrary {
   /**
    *
    * @param {pc.Asset|pc.Texture|pc.Material} resource
+   * @param {boolean} linearVertexColors
    */
-  #mergeRenderHierarchy(resource) {
+  #mergeRenderHierarchy(resource, linearVertexColors = false) {
     const pc = this.#pc;
     const sourceRoot = resource.instantiateRenderEntity();
     const rootInverse = new pc.Mat4().copy(
@@ -320,7 +327,10 @@ export class GameModelLibrary {
           .invert()
           .transpose();
         const vertexOffset = positions.length / 3;
-        const color = meshInstance.material?.diffuse ?? pc.Color.WHITE;
+        const color = (meshInstance.material?.diffuse ?? pc.Color.WHITE).clone();
+        // glTF diffuse is stored as sRGB in StandardMaterial, while vertex
+        // colours multiply the linear albedo directly in the engine shader.
+        if (linearVertexColors) color.linear();
         const alpha = meshInstance.material?.opacity ?? 1;
 
         for (let vertex = 0; vertex < vertexCount; vertex += 1) {

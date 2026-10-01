@@ -167,9 +167,9 @@ export class TerrainBuilder {
       grid,
       heightmap,
       layout.castleLeft - 2,
-      layout.castleTop - 1,
+      layout.castleTop - 2,
       layout.castleRight + CASTLE_REAR_GROUND_CLEARANCE,
-      layout.castleBottom + 1,
+      layout.castleBottom + 2,
       FOUNDATION_HEIGHT,
       /**
        *

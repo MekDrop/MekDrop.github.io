@@ -53,6 +53,7 @@ export class FinalizationStage extends AbstractMapGenerationStage {
       {
         id: "castle-0",
         object: "Castle",
+        seed: castleBuildPlan?.input?.seed,
         buildPlan: castleBuildPlan,
       },
       {

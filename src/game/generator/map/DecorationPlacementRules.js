@@ -75,10 +75,14 @@ export class DecorationPlacementRules {
     if (!MapGrid.inBounds(col, row)) {
       return false;
     }
-    if (grid[row][col] !== TileType.GRASS) {
+    if (grid[row]?.[col] !== TileType.GRASS) {
       return false;
     }
-    if (tileMeta[row][col].shape !== TILE_SHAPE.FLAT) {
+    const metadata = tileMeta[row]?.[col];
+    if (metadata?.surfaceType && metadata.surfaceType !== "GRASS") {
+      return false;
+    }
+    if (metadata?.shape !== TILE_SHAPE.FLAT) {
       return false;
     }
     if (!Number.isFinite(heightmap[row][col])) {
