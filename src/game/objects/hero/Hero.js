@@ -127,7 +127,8 @@ const RIVER_BRIDGE_CATCH_HEIGHT_OFFSET = 0.98;
 const RIVER_BRIDGE_HOP_HEIGHT = 0.24;
 // Keeps the widest pose, including the pauldron and its outline, within one
 // 1x1 terrain/path cube.
-const HERO_MODEL_SCALE = 0.65;
+// Halfway between the original hero size and the terrace-sized version.
+const HERO_MODEL_SCALE = (0.65 + (2.2 * 0.45) / 2.645) / 2;
 const GATEWAY_REPEL_DURATION = 0.5;
 const GATEWAY_REPEL_SPEED = 2.2;
 const GATEWAY_REPEL_COOLDOWN = 0.2;

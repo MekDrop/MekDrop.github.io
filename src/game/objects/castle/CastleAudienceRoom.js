@@ -22,6 +22,7 @@ const DEFAULT_FRONT_WALL_DEPTH = 0.5;
 const VISIBILITY_MARGIN = 0.85;
 const CARPET_ENTRANCE_INSET = 0.32;
 const CARPET_REAR_CLEARANCE = 0.36;
+const THRONE_SCALE = 0.85;
 // The authored throne dais extends 0.875 units behind its origin.
 const THRONE_REAR_CLEARANCE = 0.9;
 const ROYAL_COLLISION_RADIUS = 0.22;
@@ -709,15 +710,20 @@ export class CastleAudienceRoom {
       thronePosition.z,
     );
     throne.setLocalEulerAngles(0, this.#roomYaw(), 0);
+    throne.setLocalScale(THRONE_SCALE, THRONE_SCALE, THRONE_SCALE);
     this.#entity.addChild(throne);
     this.#obstacles.push({
       lateral: 0,
-      forward: throneForward + 0.1,
-      width: 2.6,
-      depth: 1.55,
+      forward: throneForward + 0.1 * THRONE_SCALE,
+      width: 2.6 * THRONE_SCALE,
+      depth: 1.55 * THRONE_SCALE,
     });
 
-    const royalPosition = this.#point(0, throneForward - 0.07, 0.37);
+    const royalPosition = this.#point(
+      0,
+      throneForward - 0.07 * THRONE_SCALE,
+      0.37 * THRONE_SCALE,
+    );
     this.#royalPosition = royalPosition;
     this.#placeOccupant();
   }
@@ -733,7 +739,8 @@ export class CastleAudienceRoom {
       royalPosition.z,
     );
     this.#occupant.entity.setLocalEulerAngles(0, this.#visitorFacingYaw(), 0);
-    this.#occupant.entity.setLocalScale(0.72, 0.72, 0.72);
+    const scale = (0.72 + this.#occupant.terraceScale) / 2;
+    this.#occupant.entity.setLocalScale(scale, scale, scale);
   }
   /**
    *

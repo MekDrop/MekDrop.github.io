@@ -129,6 +129,30 @@ export class SeatedRoyal {
   }
 
   /**
+   * Uses the same authored body bounds and height as the terrace actor.
+   *
+   * @returns {number}
+   */
+  get terraceScale() {
+    let bottom = Number.POSITIVE_INFINITY;
+    let top = Number.NEGATIVE_INFINITY;
+    for (const render of this.#entity.findComponents("render")) {
+      for (const mesh of render.meshInstances) {
+        if (/sword|tear|handkerchief/i.test(mesh.node.name)) {
+          continue;
+        }
+        const bounds = mesh.aabb;
+        bottom = Math.min(bottom, bounds.center.y - bounds.halfExtents.y);
+        top = Math.max(top, bounds.center.y + bounds.halfExtents.y);
+      }
+    }
+    const height = top - bottom;
+    return Number.isFinite(height) && height >= 0.01
+      ? (2.2 * 0.45 * this.#entity.getLocalScale().y) / height
+      : 0.45;
+  }
+
+  /**
    *
     * @returns {{center: {x: number, y: number, z: number}, size: {x: number, y: number, z: number}}}
    */
