@@ -221,9 +221,12 @@ export class CastleStairs {
       this.#surfaces.push(flight);
 
       for (let level = 0; level < riseBlocks; level += 1) {
+        // Bury the final tread's beveled end inside the masonry so grass
+        // cannot show through the joint at the castle boundary.
+        const wallOverlapBlocks = level === riseBlocks - 1 ? 0.5 : 0;
         const distanceBlocks =
           (riseBlocks - level) * STAIR_MODULE_RUN_BLOCKS -
-          STAIR_MODULE_RUN_BLOCKS / 2;
+          STAIR_MODULE_RUN_BLOCKS / 2 - wallOverlapBlocks / 2;
         for (let horizontal = 0; horizontal < widthBlocks; horizontal += 1) {
           for (let layer = 0; layer <= level; layer += 1) {
             const acrossBlocks = offsetBlocks + horizontal;
@@ -242,6 +245,7 @@ export class CastleStairs {
               door.side,
               position,
               stepHeight,
+              wallOverlapBlocks,
             );
           }
         }
@@ -306,8 +310,9 @@ export class CastleStairs {
    * @param {string} side
    * @param {{x: number, y: number, z: number}} position
    * @param {number} stepHeight
+   * @param {number} wallOverlapBlocks
    */
-  #addModuleMatrix(batches, material, side, position, stepHeight) {
+  #addModuleMatrix(batches, material, side, position, stepHeight, wallOverlapBlocks) {
     const matrix = new this.#pc.Mat4();
     const rotation = new this.#pc.Quat();
     rotation.setFromEulerAngles(
@@ -318,7 +323,11 @@ export class CastleStairs {
     matrix.setTRS(
       new this.#pc.Vec3(position.x, position.y, position.z),
       rotation,
-      new this.#pc.Vec3(this.#cubeSize, stepHeight, this.#cubeSize),
+      new this.#pc.Vec3(
+        this.#cubeSize,
+        stepHeight,
+        this.#cubeSize * (1 + wallOverlapBlocks / STAIR_MODULE_RUN_BLOCKS),
+      ),
     );
     const matrices = batches.get(material) ?? [];
     for (const value of matrix.data) matrices.push(value);

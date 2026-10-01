@@ -16,7 +16,7 @@ export class CastleMapPreparation {
       /**
        * @param {import("../ObjectTypes.js").MapObjectDefinition} definition
        */
-      (definition) => definition.object === "Castle" && definition.buildPlan?.metadata?.runtime?.residential,
+      (definition) => definition.object === "Castle" && definition.buildPlan?.input?.position,
     );
     const flights = castles.flatMap(/**
      *
@@ -129,11 +129,14 @@ export class CastleMapPreparation {
         surfaceType: intersectsTerrain && !turf && [1, 3, 4].includes(mapData.grid[row][col]) ? "STONE" : metadata.surfaceType };
     }
     for (const definition of castles) {
-      definition.buildPlan.metadata.runtime.residential.buttressFootings = createCastleButtressFootings(definition.buildPlan, mapData);
+      const residential = definition.buildPlan.metadata.runtime.residential;
+      if (residential) {
+        residential.buttressFootings = createCastleButtressFootings(definition.buildPlan, mapData);
+      }
     }
   }
   /**
-   * Restore surrounding soil up to the underground ceiling before carving rooms.
+   * Restore supporting soil up to the castle base before carving underground rooms.
    * Roads retain their approach elevation; only the actual servant flight exposes the basement.
    * @param {import("../../GameContracts.js").GameMapData} mapData
    * @param {Array<import("../ObjectTypes.js").MapObjectDefinition>} castles
@@ -149,10 +152,9 @@ export class CastleMapPreparation {
       terrain.set(key, records);
     }
     for (const castle of castles) {
-      const basement = castle.buildPlan.metadata.runtime.residential.basement;
-      if (!basement || !Number.isFinite(basement.ceilingY)) continue;
-      const target = Math.ceil(basement.ceilingY - 0.000001);
+      const basement = castle.buildPlan.metadata.runtime.residential?.basement;
       const position = castle.buildPlan.input.position;
+      const target = Math.ceil(Math.max(basement?.ceilingY ?? 0, position.elevation ?? 0) - 0.000001);
       for (let row = 0; row < mapData.rows; row += 1) {
         for (let col = 0; col < mapData.cols; col += 1) {
           if (![1, 3, 4].includes(mapData.grid?.[row]?.[col])) continue;
