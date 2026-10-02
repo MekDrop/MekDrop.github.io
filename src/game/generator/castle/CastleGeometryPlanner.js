@@ -116,7 +116,7 @@ export class CastleGeometryPlanner {
         gatehouse.opening,
         castleDepth,
         facadeSpan,
-        towerSpan,
+        gatehouse.gatehouseDepth,
         style.towerHeightBlocks,
         battlementPeriod,
         gatehouse.primary ? style : null,

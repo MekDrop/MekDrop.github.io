@@ -36,7 +36,9 @@ export class BuildMetadataStage extends AbstractCastleGenerationStage {
         (facadeSpan - CASTLE_WALL_THICKNESS_BLOCKS) * CASTLE_BLOCK_SIZE;
       interiorWidth =
         Math.min(openingCenter - interiorStart, interiorEnd - openingCenter) * 2;
-      const gatehouseDepth = Math.min(towerSpan, castleDepth);
+      const gatehouseDepth = context.layout.roomPlan
+        ? context.layout.roomPlan.gatehouseDepth / CASTLE_BLOCK_SIZE
+        : Math.min(towerSpan, castleDepth);
       const doorStart = Math.floor(
         (audienceOpening.start + audienceOpening.end - 4) / 2,
       );
@@ -58,6 +60,7 @@ export class BuildMetadataStage extends AbstractCastleGenerationStage {
       interiorWidth,
       audienceOpening: audienceOpening ? { ...audienceOpening } : null,
       terrace,
+      residential: context.layout.roomPlan,
     };
     context.metadata.collision = {
       blockSize: CASTLE_BLOCK_SIZE,

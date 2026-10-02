@@ -287,9 +287,18 @@ export class CastleResidence {
       for (let z = bedroom.minZ; z < bedroom.maxZ - 0.001; z += 0.5) {
         const w = Math.min(0.5, bedroom.maxX - x);
         const d = Math.min(0.5, bedroom.maxZ - z);
-        if (x < stair.x + radius && x + w > stair.x - radius && z < stair.z + radius && z + d > stair.z - radius) continue;
-        const panel = place(floorUrl, "Bedroom oak parquet panel", x + w / 2, y + 0.002, z + d / 2);
-        panel.setLocalScale(w, 0.3, d);
+        // Clip boundary panels instead of dropping a whole tile when only
+        // its corner touches the stair opening. Match the support cut below.
+        const pieces = subtractFloorArea([[x, x + w, z, z + d]], {
+          minX: stair.x - radius, maxX: stair.x + radius,
+          minZ: stair.z - radius, maxZ: stair.z + radius,
+        });
+        for (const [minX, maxX, minZ, maxZ] of pieces) {
+          if (maxX <= minX || maxZ <= minZ) continue;
+          const panel = place(floorUrl, "Bedroom oak parquet panel",
+            (minX + maxX) / 2, y + 0.002, (minZ + maxZ) / 2);
+          panel.setLocalScale(maxX - minX, 0.3, maxZ - minZ);
+        }
       }
     }
     const rug = place(rugUrl, "Bedroom embroidered rug", (bedroom.minX + bedroom.maxX) / 2, y + 0.022, (bedroom.minZ + bedroom.maxZ) / 2, 0.55);

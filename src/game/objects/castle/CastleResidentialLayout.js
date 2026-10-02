@@ -188,7 +188,7 @@ export class CastleResidentialLayout {
       maxZ: serviceCenter.z + serviceExitSign * serviceRadius * (serviceExitSign < 0 ? 0.08 : 0.59) / 0.65,
       floorY: this.#origin.y });
     const deskSlot = runtime.residential?.reservations?.workDesk;
-    this.#place("workDesk", deskSlot ? (deskSlot.minX + deskSlot.maxX) / 2 : this.#rooms.work.maxX - 0.6, deskSlot ? (deskSlot.minZ + deskSlot.maxZ) / 2 : this.#rooms.work.minZ + 1.05, 0, Math.min(1, workWidth / 4));
+    this.#place("workDesk", deskSlot ? (deskSlot.minX + deskSlot.maxX) / 2 : (stairLocal.x > 0 ? this.#rooms.work.minX + 0.6 : this.#rooms.work.maxX - 0.6), deskSlot ? (deskSlot.minZ + deskSlot.maxZ) / 2 : this.#rooms.work.minZ + 1.05, 0, Math.min(1, workWidth / 4));
     const activeBedroom = this.#rooms.bedroom;
     const activeWidth = activeBedroom.maxX - activeBedroom.minX;
     const activeDepth = activeBedroom.maxZ - activeBedroom.minZ;

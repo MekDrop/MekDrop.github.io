@@ -28,7 +28,9 @@ export class GatehouseStage extends AbstractCastleGenerationStage {
      */
     (opening) => {
       const primary = opening.boundary === CASTLE_BOUNDARY.FRONT;
-      const gatehouseDepth = Math.min(towerSpan, castleDepth);
+      const gatehouseDepth = primary && context.layout.roomPlan
+        ? context.layout.roomPlan.gatehouseDepth / 0.25
+        : Math.min(towerSpan, castleDepth);
       const gatehouseHeight = towerHeight;
       const roofDoorWidth = 4;
       const roofDoorStart = Math.floor(

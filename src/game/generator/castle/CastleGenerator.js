@@ -5,8 +5,10 @@ import { BuildMetadataStage } from "./stages/BuildMetadataStage.js";
 import { FinalizationStage } from "./stages/FinalizationStage.js";
 import { GatehouseStage } from "./stages/GatehouseStage.js";
 import { LayoutStyleStage } from "./stages/LayoutStyleStage.js";
+import { RoomPlanningStage } from "./stages/RoomPlanningStage.js";
 import { TowerStage } from "./stages/TowerStage.js";
 import { ValidationStage } from "./stages/ValidationStage.js";
+import { UpperRoomShellStage } from "./stages/UpperRoomShellStage.js";
 import { WallStage } from "./stages/WallStage.js";
 
 export class CastleGenerator {
@@ -28,9 +30,11 @@ export class CastleGenerator {
       },
       createStages: () => [
         new LayoutStyleStage(),
+        new RoomPlanningStage(),
         new WallStage(),
         new TowerStage(),
         new GatehouseStage(),
+        new UpperRoomShellStage(),
         new BuildMetadataStage(),
         new ValidationStage(),
         new FinalizationStage(),

@@ -34,7 +34,7 @@ describe("CastleGenerator", () => {
     ]);
   });
 
-  it("preserves representative pre-refactor layout and build dimensions", async () => {
+  it("preserves castle dimensions while carving the planned rooms", async () => {
     const plan = await CastleGenerator.generate(options);
 
     assert.deepEqual(plan.structure.wall, {
@@ -52,11 +52,11 @@ describe("CastleGenerator", () => {
     assert.equal(plan.metadata.runtime.interiorDepth, 4.5);
     assert.equal(plan.metadata.runtime.interiorWidth, 7);
     assert.deepEqual(plan.metadata.runtime.terrace, {
-      x: -2.045,
+      x: -0.7949999999999999,
       z: 0,
       y: 6,
       yaw: 90,
-      depth: 2.75,
+      depth: 1.5,
       width: 7,
     });
     assert.equal(plan.metadata.collision.blockSize, 0.25);
@@ -77,20 +77,20 @@ describe("CastleGenerator", () => {
         cameraBlocks: plan.metadata.collision.cameraBlocks.length,
       },
       {
-        boxes: 5276,
+        boxes: 5158,
         flames: 4,
         banners: 4,
         flags: 1,
         roofs: 1,
-        groundColumns: 296,
-        cameraBlocks: 5258,
+        groundColumns: 268,
+        cameraBlocks: 5140,
       },
     );
     assert.equal(
       createHash("sha256")
         .update(JSON.stringify(plan.geometry))
         .digest("hex"),
-      "f2f150fb69fdb2e758e553679c9669b9c467c4fbe99bdb7d13590fbf95194e43",
+      "d506b763101f4b4406c6fbfdb9ae37a00687ae0143259a3a8a435be8ccf4743d",
     );
   });
 

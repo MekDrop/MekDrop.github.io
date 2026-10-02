@@ -81,7 +81,7 @@ export class CastleBuildPlanWriter {
    * @param {string} role
    */
   addBlock(blockU, blockY, blockV, role = "stone") {
-    if (this.#isTerraceAccessVoid(blockU, blockY, blockV)) {
+    if (role !== "roomShell" && this.#isTerraceAccessVoid(blockU, blockY, blockV)) {
       return;
     }
     const { blockX, blockZ } = this.#localToBlock(blockU, blockV);
@@ -320,6 +320,29 @@ export class CastleBuildPlanWriter {
    * @param {number} blockV
    */
   #isTerraceAccessVoid(blockU, blockY, blockV) {
+    const plan = this.#layout.roomPlan;
+    if (plan) {
+      const opening = this.#layout.openings.find(
+        /**
+         * @param {{boundary: string}} candidate
+         */
+        (candidate) => candidate.boundary === CASTLE_BOUNDARY.FRONT,
+      );
+      const sign = ["WEST", "SOUTH"].includes(this.#layout.primarySide) ? -1 : 1;
+      const x = sign * (blockV - (opening.start + opening.end - 1) / 2) * CASTLE_BLOCK_SIZE;
+      const z = (blockU + 0.5) * CASTLE_BLOCK_SIZE;
+      const y = this.#layout.baseY + (blockY + 0.5) * CASTLE_BLOCK_SIZE;
+      const upper = plan.envelope ?? plan.rooms.bedroom;
+      const shaft = plan.rooms.stairwell;
+      if (x > shaft.minX && x < shaft.maxX && z > shaft.minZ && z < shaft.maxZ &&
+        y >= shaft.floorY && y < shaft.ceilingY) {
+        return true;
+      }
+      if (x > upper.minX && x < upper.maxX && z >= upper.minZ && z <= upper.maxZ &&
+        y >= upper.floorY && y < upper.floorY + plan.upperRoom.height) {
+        return true;
+      }
+    }
     const opening = this.#layout.openings.find(
       /**
        *
@@ -331,7 +354,7 @@ export class CastleBuildPlanWriter {
       return false;
     }
     const wallHeight = this.#layout.style.wallHeightBlocks;
-    const gatehouseDepth = Math.min(
+    const gatehouseDepth = plan ? plan.gatehouseDepth / CASTLE_BLOCK_SIZE : Math.min(
       this.#layout.style.towerSpanBlocks,
       this.#layout.castleDepth,
     );
@@ -346,7 +369,7 @@ export class CastleBuildPlanWriter {
       blockU >= 1 &&
       blockU < gatehouseDepth &&
       blockY >= roofDoorBase &&
-      blockY < roofDoorBase + 5;
+      blockY < roofDoorBase + (plan ? 8 : 5);
     const stairheadSideWall =
       blockU === gatehouseDepth - 1 &&
       (blockV === roofDoorStart - 1 ||

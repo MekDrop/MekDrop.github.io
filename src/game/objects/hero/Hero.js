@@ -3102,6 +3102,7 @@ export class Hero {
     const facingVelocity = this.#actionBehavior.facingFor(defaultFacing);
     const previousFacingYaw = this.#facingYaw;
     if (
+      !this.#firstPersonCameraEnabled &&
       !this.#actionBehavior.locksFacing &&
       this.#facingHoldRemaining === 0 &&
       Math.hypot(facingVelocity.x, facingVelocity.z) > 0.08
