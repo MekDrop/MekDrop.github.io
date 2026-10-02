@@ -73,3 +73,12 @@ describe("ground collision world physics surfaces", () => {
     ]);
   });
 });
+
+it("passes a support height limit to objects with stacked floors", () => {
+  const world = new GroundCollisionWorld();
+  world.add({ surfaceHeightAt: (x, z, radius, maximumHeight) =>
+    maximumHeight < 4 ? 2 : 4 }, { physicsSurface: false });
+  assert.equal(world.surfaceHeightAt(1, 1, 0, 2.3), 2);
+  assert.equal(world.surfaceHeightAt(1, 1), 4);
+  assert.equal(world.physicsSurfaceHeightAt(1, 1), null);
+});

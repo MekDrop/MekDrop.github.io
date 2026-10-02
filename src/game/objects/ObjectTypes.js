@@ -13,6 +13,8 @@
  * @property {RenderCommand} [geometry]
  * @property {string} [variant]
  * @property {number} [rotation]
+ * @property {number} [Z1] Spiral staircase lower map elevation (world Y).
+ * @property {number} [Z2] Spiral staircase upper map elevation (world Y), above Z1.
  * @property {{col: number, row: number}} [tile]
  * @property {Array<{offsetX: number, offsetZ: number, diameter: number, height: number}>} [parts]
  * @property {string} [script]

@@ -275,7 +275,7 @@ export class GroundCollisionWorld {
     if (!collider.intersectsGroundFootprint?.(x, z, radius)) {
       return false;
     }
-    const surfaceHeight = collider.surfaceHeightAt?.(x, z, radius);
+    const surfaceHeight = collider.surfaceHeightAt?.(x, z, radius, elevation + stepClearance);
     return !(
       Number.isFinite(surfaceHeight) &&
       surfaceHeight <= elevation + stepClearance
@@ -287,9 +287,10 @@ export class GroundCollisionWorld {
    * @param {number} x
    * @param {number} z
    * @param {number} radius
+   * @param {number} maximumHeight
    */
-  surfaceHeightAt(x, z, radius = 0) {
-    return this.#surfaceHeightAt(this.#colliders, x, z, radius);
+  surfaceHeightAt(x, z, radius = 0, maximumHeight = Infinity) {
+    return this.#surfaceHeightAt(this.#colliders, x, z, radius, maximumHeight);
   }
 
   /**
@@ -313,11 +314,12 @@ export class GroundCollisionWorld {
    * @param {number} x
    * @param {number} z
    * @param {number} radius
+   * @param {number} maximumHeight
    */
-  #surfaceHeightAt(colliders, x, z, radius) {
+  #surfaceHeightAt(colliders, x, z, radius, maximumHeight = Infinity) {
     let highestSurface = null;
     for (const collider of colliders) {
-      const height = collider.surfaceHeightAt?.(x, z, radius);
+      const height = collider.surfaceHeightAt?.(x, z, radius, maximumHeight);
       if (!Number.isFinite(height)) continue;
       highestSurface =
         highestSurface === null ? height : Math.max(highestSurface, height);

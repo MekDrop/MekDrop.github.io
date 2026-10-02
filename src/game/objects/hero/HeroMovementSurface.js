@@ -148,6 +148,8 @@ export class HeroMovementSurface {
     const surfaceHeight = this.#collisionWorld?.surfaceHeightAt(
       position.x,
       position.z,
+      0,
+      position.y + STEP_CLEARANCE,
     );
     if (
       !Number.isFinite(surfaceHeight) ||

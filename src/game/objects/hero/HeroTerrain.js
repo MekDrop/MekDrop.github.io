@@ -63,7 +63,7 @@ export class HeroTerrain {
     state,
   ) {
     const collisionSurface =
-      this.#collisionWorld?.surfaceHeightAt(toX, toZ) ?? null;
+      this.#collisionWorld?.surfaceHeightAt(toX, toZ, 0, state.position.y + STEP_CLEARANCE) ?? null;
     const gridX = toX + (this.#mapData.cols - 1) / 2;
     const gridZ = toZ + (this.#mapData.rows - 1) / 2;
     const searchRadius = Math.max(LEDGE_RADIUS, solidRadius);
@@ -232,6 +232,7 @@ export class HeroTerrain {
       x,
       z,
       LEDGE_RADIUS,
+      maximumSupportHeight,
     );
     let highestSurface =
       Number.isFinite(collisionSurface) &&
@@ -318,7 +319,7 @@ export class HeroTerrain {
     }
     // Authored stairs extend onto approach PATH/GRASS cells, not just the
     // castle's foundation tiles. Sample their support for feet and landing too.
-    const collisionSurface = this.#collisionWorld?.surfaceHeightAt(x, z);
+    const collisionSurface = this.#collisionWorld?.surfaceHeightAt(x, z, 0, maximumHeight);
     let highestSurface =
       Number.isFinite(collisionSurface) && collisionSurface <= maximumHeight
         ? collisionSurface

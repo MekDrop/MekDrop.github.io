@@ -9,6 +9,7 @@ import { King } from "./royal/king/King.js";
 import { Princess } from "./royal/princess/Princess.js";
 import { Queen } from "./royal/queen/Queen.js";
 import { StoneCluster } from "./scenery/StoneCluster.js";
+import { SpiralStaircase } from "./spiral-staircase/SpiralStaircase.js";
 import { Servant } from "./servant/Servant.js";
 import { WoodenSign } from "./wooden-sign/WoodenSign.js";
 import { TriggerArea } from "./shared/TriggerArea.js";
@@ -27,6 +28,7 @@ const OBJECT_CLASSES = new Map([
   [Princess.name, Princess],
   [Queen.name, Queen],
   [StoneCluster.name, StoneCluster],
+  [SpiralStaircase.name, SpiralStaircase],
   [TriggerArea.name, TriggerArea],
   ["Vegetation", VoxelVegetation],
   [WoodenSign.name, WoodenSign],
