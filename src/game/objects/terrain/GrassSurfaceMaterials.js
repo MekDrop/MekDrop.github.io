@@ -131,6 +131,11 @@ export class GrassSurfaceMaterials {
         texture,
         gloss: 0.05,
       });
+      // The earth backing is only 0.2 mm below this surface. Keep turf ahead
+      // in the depth buffer, including grazing first-person views, without
+      // raising the geometry or changing the camera's close-wall clipping.
+      material.depthBias = -2;
+      material.slopeDepthBias = -1;
       material.shaderChunks.glsl.set("diffusePS", grassTerrainShader);
       material.setParameter("uGrassTileColor", LINEAR_COLORS[index]);
       material.setParameter("uGrassTextureMix", TEXTURE_MIXES[index]);
