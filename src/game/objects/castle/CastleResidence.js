@@ -1,6 +1,4 @@
-import squareWindowUrl from "../../models/castle/residential/timber-window.glb?url";
 import buttressUrl from "../../models/castle/residential/corner-buttress.glb?url";
-import windowUrl from "../../models/castle/residential/arched-window.glb?url";
 import chimneyUrl from "../../models/castle/residential/chimney.glb?url";
 import crestUrl from "../../models/castle/residential/crown-crest.glb?url";
 import lanternUrl from "../../models/castle/residential/wall-lantern.glb?url";
@@ -61,7 +59,7 @@ export class CastleResidence {
    * @returns {string[]}
    */
   static get modelUrls() {
-    return [...Object.values(MODEL_URLS), chestUrl, stairUrl, stoneUrl, lanternUrl, bookcaseUrl, mapUrl, floorUrl, rugUrl, crestUrl, windowUrl, squareWindowUrl, buttressUrl, chimneyUrl];
+    return [...Object.values(MODEL_URLS), chestUrl, stairUrl, stoneUrl, lanternUrl, bookcaseUrl, mapUrl, floorUrl, rugUrl, crestUrl, buttressUrl, chimneyUrl];
   }
 
   /**
@@ -296,43 +294,13 @@ export class CastleResidence {
   }
 
   /**
-   * Closed window ornaments sit on exterior masonry; existing walls remain solid.
+   * Castle exterior buttresses, footings and chimneys.
    * @param {typeof import("playcanvas")} pc
    * @param {import("../../GameContracts.js").CastleBuildPlan} buildPlan
    * @param {import("../../models/GameModelLibrary.js").GameModelLibrary} models
    */
   #buildExterior(buildPlan, models, pc) {
     const { origin, yaw } = this.#layout;
-    for (const placement of this.#layout.exteriorWindows) {
-      const window = models.instantiate(placement.role !== "archedWindow" ? squareWindowUrl : windowUrl);
-      window.name = placement.role !== "archedWindow" ? "Castle closed timber window" : "Castle closed arched window";
-      const local = this.#layout.toLocal(placement.position.x, placement.position.z);
-      window.setLocalPosition(local.x, placement.position.y - origin.y, local.z);
-      window.setLocalEulerAngles(0, placement.yaw - yaw, 0);
-      window.setLocalScale(placement.scale.x, placement.scale.y, placement.scale.z);
-      this.#entity.addChild(window);
-      if (placement.role === "squareWindow") {
-        const angle = (placement.yaw - yaw) * Math.PI / 180;
-        const flank = local.x < 0 ? -1 : 1;
-        const tangentX = Math.cos(angle) * flank * 0.48;
-        const tangentZ = -Math.sin(angle) * flank * 0.48;
-        const x = local.x + tangentX + Math.sin(angle) * 0.12;
-        const z = local.z + tangentZ + Math.cos(angle) * 0.12;
-        const y = placement.position.y - origin.y + 0.25;
-        const lantern = models.instantiate(lanternUrl);
-        lantern.name = "Castle exterior wall lantern";
-        lantern.setLocalPosition(x, y, z);
-        lantern.setLocalEulerAngles(0, placement.yaw - yaw, 0);
-        lantern.setLocalScale(0.75, 0.75, 0.75);
-        this.#entity.addChild(lantern);
-        const light = new pc.Entity("Castle exterior lantern light");
-        light.setLocalPosition(x + Math.sin(angle) * 0.2, y + 0.2, z + Math.cos(angle) * 0.2);
-        light.addComponent("light", { type: "omni", color: new pc.Color(1, 0.65, 0.25), intensity: 1.1, range: 2, castShadows: false });
-        this.#entity.addChild(light);
-      }
-
-
-    }
     for (const placement of this.#layout.exteriorButtresses) {
       const local = this.#layout.toLocal(placement.position.x, placement.position.z);
       const visual = models.instantiate(buttressUrl);

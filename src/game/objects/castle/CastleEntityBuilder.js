@@ -9,6 +9,8 @@ import { CastleFlag } from "./CastleFlag.js";
 import { CastleRoof } from "./CastleRoof.js";
 import { CastleStairs } from "./CastleStairs.js";
 import { CastleResidence } from "./CastleResidence.js";
+import { CastleWindowLayout } from "./CastleWindowLayout.js";
+import { CastleWindows } from "./CastleWindows.js";
 import { colorFromHex } from "../../helpers/colors.js";
 import {
   CASTLE_BLOCK_SIZE,
@@ -49,6 +51,7 @@ export class CastleEntityBuilder {
       CastleStairs.modelUrl,
       ...CastleAudienceRoom.modelUrls,
       ...CastleResidence.modelUrls,
+      ...CastleWindows.modelUrls,
     ];
   }
 
@@ -852,8 +855,30 @@ export class CastleEntityBuilder {
       (block) => ({ ...block }),
     );
 
+    const windows = new CastleWindowLayout(this.#buildPlan);
+    // Use the same subtraction for masonry and camera collision. The glazing
+    // closes each recess while preserving the visible depth of its stone reveal.
+    this.#cameraCollisionBlocks = windows.cutBoxes(this.#cameraCollisionBlocks.map(
+      /**
+       * @param {{x:number,y:number,z:number,halfX:number,halfY:number,halfZ:number}} block
+       */
+      (block) => ({ ...block, sx: block.halfX * 2, sy: block.halfY * 2, sz: block.halfZ * 2, yaw: 0 }),
+    )).map(
+      /**
+       * @param {import("./CastleWindowLayout.js").MasonryBox} box
+       */
+      (box) => ({ x: box.x, y: box.y, z: box.z, halfX: box.sx / 2, halfY: box.sy / 2, halfZ: box.sz / 2 }),
+    );
+    for (const window of windows.windows) {
+      const angle = window.yaw * Math.PI / 180;
+      const crosswise = Math.abs(Math.sin(angle)) > 0.5;
+      this.#cameraCollisionBlocks.push({ x: window.position.x - Math.sin(angle) * window.depth * 0.315,
+        y: window.position.y + window.height / 2, z: window.position.z - Math.cos(angle) * window.depth * 0.315,
+        halfX: crosswise ? 0.025 : window.width / 2, halfY: window.height / 2, halfZ: crosswise ? window.width / 2 : 0.025 });
+    }
+    this.#entity.addChild(new CastleWindows({ pc: this.#pc, modelLibrary: this.#modelLibrary, windows: windows.windows, wallMaterial: this.#materials.get("castleStoneMid") }).entity);
     const batches = new Map();
-    for (const box of geometry.boxes) {
+    for (const box of windows.cutBoxes(geometry.boxes)) {
       this.#addBoxMatrix(
         batches,
         box.material,
