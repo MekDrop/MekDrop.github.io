@@ -2,7 +2,7 @@ import buttressUrl from "../../models/castle/residential/corner-buttress.glb?url
 import chimneyUrl from "../../models/castle/residential/chimney.glb?url";
 import crestUrl from "../../models/castle/residential/crown-crest.glb?url";
 import lanternUrl from "../../models/castle/residential/wall-lantern.glb?url";
-import bookcaseUrl from "../../models/castle/residential/bookcase.glb?url";
+import { Bookshelf } from "../bookshelf/Bookshelf.js";
 import mapUrl from "../../models/castle/residential/framed-map.glb?url";
 import floorUrl from "../../models/castle/residential/floor-panel.glb?url";
 import rugUrl from "../../models/castle/residential/rug.glb?url";
@@ -59,7 +59,7 @@ export class CastleResidence {
    * @returns {string[]}
    */
   static get modelUrls() {
-    return [...Object.values(MODEL_URLS), chestUrl, stairUrl, stoneUrl, lanternUrl, bookcaseUrl, mapUrl, floorUrl, rugUrl, crestUrl, buttressUrl, chimneyUrl];
+    return [...Object.values(MODEL_URLS), chestUrl, stairUrl, stoneUrl, lanternUrl, ...Bookshelf.modelUrls, mapUrl, floorUrl, rugUrl, crestUrl, buttressUrl, chimneyUrl];
   }
 
   /**
@@ -259,9 +259,12 @@ export class CastleResidence {
       if (room === work) {
         const shelfBack = work.minZ + (work.maxZ - work.minZ) * 0.45;
         for (const x of [deskSide > 0 ? work.maxX - 0.24 : work.minX + 0.24]) {
-          const bookcase = place(bookcaseUrl, "Castle oak bookcase", x, y, shelfBack, 1, -deskSide * 90);
-          bookcase.setLocalScale(1.1, 1.8 / 1.35, 1);
-          this.#solids.push({ x, y: y + 0.9, z: shelfBack, width: 0.36, height: 1.8, depth: 0.935 });
+          this.#solids.push(Bookshelf.addVisual(models, this.#entity, {
+            id: "castle-work-bookshelf", object: Bookshelf.name,
+            from: { x, y, z: shelfBack - 0.4675 },
+            to: { x, y, z: shelfBack + 0.4675 },
+            height: 1.8, facing: -deskSide,
+          }));
         }
         const mapMount = findCastleMapMount(buildPlan, this.#layout, deskSide, shelfBack);
         if (mapMount) place(mapUrl, "Castle framed map", mapMount.x, y + 0.85, mapMount.z, 0.8, mapMount.yaw);

@@ -13,6 +13,10 @@
  * @property {RenderCommand} [geometry]
  * @property {string} [variant]
  * @property {number} [rotation]
+ * @property {Point3} [from] Bookshelf start edge; world Y is the bottom elevation.
+ * @property {Point3} [to] Bookshelf end edge; same Y and exactly one differing ground coordinate.
+ * @property {number} [height] Bookshelf height; defaults to 1.8.
+ * @property {number} [facing] Bookshelf front direction, 1 or -1 on the perpendicular axis.
  * @property {number} [Z1] Spiral staircase lower map elevation (world Y).
  * @property {number} [Z2] Spiral staircase upper map elevation (world Y), above Z1.
  * @property {{col: number, row: number}} [tile]
