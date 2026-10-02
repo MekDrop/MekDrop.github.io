@@ -1,3 +1,4 @@
+import { MapObjectReplacement } from "./rendering/scene/MapObjectReplacement.js";
 import { useDebounceFn } from "@vueuse/core";
 import Ammo from "sync-ammo";
 import * as playCanvas from "playcanvas/build/playcanvas/src/index.js";
@@ -154,7 +155,10 @@ export class PlayCanvasRenderer {
    */
   #materials = new Map();
   /**
-   *
+   * @type {MapObjectReplacement|null}
+   */
+  #mapObjectReplacement = null;
+  /**
    * @type {Map}
    */
   #textureAssets = new Map();
@@ -655,6 +659,7 @@ export class PlayCanvasRenderer {
       this.#heroConfigurationStore.inventory.visible,
     );
     this.#mapData = mapData;
+    this.#mapObjectReplacement = new MapObjectReplacement(mapData);
     MapObjectFactory.prepareMap(mapData);
     this.#camera.reset(mapData, CAMERA_TARGET_HEIGHT);
     this.#scene?.reset();
@@ -761,6 +766,16 @@ export class PlayCanvasRenderer {
       wallet: hero.wallet,
       inventory: this.inventoryState,
     };
+  }
+
+  /**
+   * @returns {import("./objects/ObjectTypes.js").MapObjectDefinition[]}
+   */
+  get authoredObjectDefinitions() {
+    return this.#mapData?.objects.filter(/**
+     * @param {import("./objects/ObjectTypes.js").MapObjectDefinition} definition
+     */
+    (definition) => !definition.generated) ?? [];
   }
 
   /**
@@ -1599,7 +1614,34 @@ export class PlayCanvasRenderer {
     this.#captureCameraVisualBounds();
   }
 
+  /**
+   * @param {import("./objects/ObjectTypes.js").MapObjectDefinition} definition
+   * @param {MapObjectReplacement} replacement
+   * @returns {boolean}
+   */
+  #replaceObjectDefinition(definition, replacement) {
+    if (this.#destroyed || replacement !== this.#mapObjectReplacement) {
+      return false;
+    }
+    const map = replacement.replace(definition, this.#mapData.objects, this.hero.position);
+    if (!map) { return false; }
+    const viewport = { ...this.viewport };
+    const camera = this.firstPersonCameraState;
+    this.render(map);
+    this.setViewport(viewport);
+    if (camera) {
+      const current = this.firstPersonCameraState;
+      const degrees = 180 / Math.PI;
+      this.lookFirstPersonBy(
+        (Math.atan2(camera.direction.x, camera.direction.z) - Math.atan2(current.direction.x, current.direction.z)) * degrees,
+        (Math.asin(current.direction.y) - Math.asin(camera.direction.y)) * degrees,
+      );
+    }
+    return true;
+  }
+
   #buildMapObjects() {
+    const replacement = this.#mapObjectReplacement;
     for (const object of MapObjectFactory.createAll({
       pc: this.#pc,
       app: this.#app,
@@ -1608,6 +1650,10 @@ export class PlayCanvasRenderer {
       runtime: {
         mapData: this.#mapData,
         objects: this.#sceneObjects,
+        /**
+         * @param {import("./objects/ObjectTypes.js").MapObjectDefinition} definition
+         */
+        replaceObjectDefinition: (definition) => this.#replaceObjectDefinition(definition, replacement),
         textureAssets: this.#textureAssets,
         root: this.#mapRoot,
         camera: this.#camera,

@@ -34,6 +34,16 @@ export class CastleRoof {
     roof.setLocalEulerAngles(0, yaw, 0);
     roof.setLocalScale(width, height, depth);
     this.#entity.addChild(roof);
+    // The authored stepped courses own both the visible surface and Ammo contact.
+    // Boxes match each course rather than enclosing the whole pitched silhouette.
+    roof.addComponent("collision", { type: "compound" });
+    for (const render of roof.findComponents("render")) {
+      if (!render.entity.name.startsWith("Hipped roof course") && render.entity.name !== "Roof cap") { continue; }
+      const bounds = render.meshInstances[0].mesh.aabb;
+      render.entity.addComponent("collision", { type: "box", halfExtents: bounds.halfExtents.clone(),
+        linearOffset: bounds.center.clone() });
+    }
+    roof.addComponent("rigidbody", { type: "static", friction: 0.8, restitution: 0 });
   }
   destroy() { this.#entity.destroy(); }
 }

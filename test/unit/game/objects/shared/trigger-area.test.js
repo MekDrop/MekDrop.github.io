@@ -103,6 +103,20 @@ const pc = {
 };
 
 describe("trigger area grass physics", () => {
+  it("keeps a restored active plate latched until the hero steps off", () => {
+    const objects = { calls: [] };
+    const definition = {id:"latched",color:"#409eff",position:{x:0,y:2,z:0},active:true,script:"objects.calls.push(active);"};
+    const field = new TriggerArea({pc,definition,runtime:{objects}});
+    field.updateHeroPosition({x:0,y:2,z:0});
+    assert.deepEqual(objects.calls,[]);
+    field.updateHeroPosition({x:3,y:2,z:0});
+    assert.equal(definition.active,false);
+    field.updateHeroPosition({x:0,y:2,z:0});
+    assert.deepEqual(objects.calls,[false,true]);
+    assert.equal(definition.active,true);
+    field.destroy();
+  });
+
   it("contributes a light weight over the marker footprint", () => {
     const field = new TriggerArea({
       pc,

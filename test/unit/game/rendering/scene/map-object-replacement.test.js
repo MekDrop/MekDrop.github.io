@@ -1,0 +1,21 @@
+import assert from "node:assert/strict";
+import { it } from "node:test";
+import { MapObjectReplacement } from "../../../../../src/game/rendering/scene/MapObjectReplacement.js";
+it("restores terrain while retaining authored state and player position", () => {
+  const map = { heightmap: [[2]], objects: [{id:"castle",seed:1},{id:"sign",text:"Seed 1"},{id:"trigger",active:false}] };
+  const replacement = new MapObjectReplacement(map);
+  map.heightmap[0][0] = -2;
+  map.objects[1].text = "Seed 2";
+  map.objects[2].active = true;
+  map.objects.push({id:"old-generated",generated:true});
+  const next = replacement.replace({id:"castle",seed:2},map.objects,{x:3,y:2,z:-8});
+  assert.deepEqual(next.heightmap,[[2]]);
+  assert.equal(next.objects.length,3);
+  assert.equal(next.objects[0].seed,2);
+  assert.equal(next.objects[1].text,"Seed 2");
+  assert.equal(next.objects[2].active,true);
+  assert.deepEqual(next.heroSpawn,{x:3,y:2,z:-8});
+  assert.equal(replacement.replace({id:"unknown"},map.objects,{}),null);
+  next.heightmap[0][0]=4;
+  assert.deepEqual(replacement.replace({id:"castle"},map.objects,{}).heightmap,[[2]]);
+});

@@ -1,3 +1,4 @@
+import { CastleGenerator } from "../../generator/castle/CastleGenerator.js";
 import { CastleMapPreparation } from "./CastleMapPreparation.js";
 import gardenTextureUrl from "src/assets/game/tiles/grass-top.png";
 import carpetTextureUrl from "src/assets/game/textures/castle-carpet.png";
@@ -37,6 +38,15 @@ export class Castle extends CastleEntityBuilder {
     * @type {import("src/game/objects/ObjectTypes.js").MapObjectDefinition}
    */
   #definition;
+  /**
+   * @type {import("../ObjectTypes.js").MapObjectRuntime}
+   */
+  #runtime;
+  /**
+   * @type {boolean}
+   */
+  #regenerating = false;
+
 
   /**
    * @type {number}
@@ -81,6 +91,7 @@ export class Castle extends CastleEntityBuilder {
       onRuntimeError: runtime.onRuntimeError,
     });
     this.#definition = definition;
+    this.#runtime = runtime;
     const { mapData } = runtime;
     const { x, z } = definition.buildPlan.input.position;
     const col = Math.floor(x + (mapData?.cols ?? 0) / 2);
@@ -101,6 +112,45 @@ export class Castle extends CastleEntityBuilder {
    */
   setIslandOffsets(near, far) {
     this.entity.setLocalPosition(0, [near, far][this.#islandGroup] ?? 0, 0);
+  }
+
+  /**
+   * @returns {Promise<number|null>}
+   */
+  regenerateRandomSeed() {
+    let seed = Math.floor(Math.random() * 2147483647);
+    if (seed === this.#definition.seed) { seed = (seed + 1) % 2147483647; }
+    return this.regenerate(seed);
+  }
+
+  /**
+   * Generate before replacing the live object; ignore concurrent or stale requests.
+   * @param {number} seed
+   * @returns {Promise<number|null>}
+   */
+  async regenerate(seed) {
+    if (this.#regenerating || !this.entity) { return null; }
+    this.#regenerating = true;
+    try {
+      const buildPlan = await CastleGenerator.generate({ ...this.#definition, seed });
+      if (!this.entity) { return null; }
+      const sign = this.#runtime.objects.getAll(SCENE_OBJECT_TYPE.MAP_OBJECT)
+        .find(/**
+         *
+         * @param {import("../ObjectTypes.js").MapObjectLike} object
+         */
+        (object) => object.definition?.id === this.#definition.seedSignId);
+      const previousText = sign?.definition.text;
+      if (sign) { sign.text = `Seed ${seed}`; }
+      const replaced = this.#runtime.replaceObjectDefinition({ ...this.#definition, seed, buildPlan });
+      if (!replaced && sign) { sign.text = previousText; }
+      return replaced ? seed : null;
+    } catch (error) {
+      this.#runtime.onRuntimeError?.(error);
+      return null;
+    } finally {
+      this.#regenerating = false;
+    }
   }
 
   get definition() {

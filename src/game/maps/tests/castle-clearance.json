@@ -2041,19 +2041,18 @@
   "mergeZones": [],
   "trunkStart": null,
   "overpassData": null,
-  "mapName": "test_castle-seeds",
-  "layoutSignature": "test_castle-seeds",
+  "mapName": "test_castle-clearance",
+  "layoutSignature": "test_castle-clearance",
   "heroSpawn": {
-    "x": 0,
+    "x": -4.150819825866314,
     "y": 2.014,
-    "z": -9
+    "z": 3.2417775332267333
   },
   "objects": [
     {
-      "id": "seed-castle",
+      "id": "castle-room-correctness",
       "object": "Castle",
-      "seed": 1,
-      "seedSignId": "castle-seed-sign",
+      "seed": "murakqq0_09eph3i",
       "position": {
         "x": -6,
         "z": -6,
@@ -2068,55 +2067,6 @@
           "width": 2
         }
       ]
-    },
-    {
-      "id": "castle-seed-sign",
-      "object": "WoodenSign",
-      "text": "Seed 1",
-      "position": {
-        "x": 1.5,
-        "y": 2.004,
-        "z": -9
-      },
-      "rotation": {
-        "x": 0,
-        "y": 0,
-        "z": 0
-      },
-      "scale": 1
-    },
-    {
-      "id": "castle-seed-trigger-sign",
-      "object": "WoodenSign",
-      "text": "New seed",
-      "position": {
-        "x": 4.5,
-        "y": 2.004,
-        "z": -8
-      },
-      "rotation": {
-        "x": 0,
-        "y": 0,
-        "z": 0
-      },
-      "scale": 1
-    },
-    {
-      "id": "castle-seed-trigger",
-      "object": "TriggerArea",
-      "color": "#409eff",
-      "position": {
-        "x": 3,
-        "y": 2.004,
-        "z": -8
-      },
-      "script": "if (active) { objects.getAll('castle').find((castle) => castle.definition.id === 'seed-castle')?.regenerateRandomSeed(); }"
     }
-  ],
-  "animationViewport": {
-    "zoom": 1.5,
-    "rotation": 2,
-    "panX": 0,
-    "panZ": 0
-  }
+  ]
 }

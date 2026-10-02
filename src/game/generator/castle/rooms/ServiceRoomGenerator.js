@@ -1,7 +1,7 @@
 import { AbstractCastleRoomGenerator } from "./AbstractCastleRoomGenerator.js";
 
 export class ServiceRoomGenerator extends AbstractCastleRoomGenerator {
-  constructor() { super("service", { x: 2, y: 2.5 }, { x: 4, y: 8 }); }
+  constructor() { super("service", { x: 2, y: 2.5 }, { x: 4.5, y: 8 }); }
   /**
    * @returns {number[]}
    */

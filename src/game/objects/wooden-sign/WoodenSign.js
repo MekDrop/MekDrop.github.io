@@ -57,6 +57,46 @@ export class WoodenSign {
     this.#entity.setLocalPosition(position.x, position.y, position.z);
     this.#entity.setLocalScale(scale, scale, scale);
 
+    const canvas = WoodenSign.#createInscription(text);
+    this.#texture = new pc.Texture(app.graphicsDevice, {
+      name: `${text} sign lettering`,
+      width: canvas.width,
+      height: canvas.height,
+      format: pc.PIXELFORMAT_RGBA8,
+      srgb: true,
+      mipmaps: true,
+      minFilter: pc.FILTER_LINEAR_MIPMAP_LINEAR,
+      magFilter: pc.FILTER_LINEAR,
+      addressU: pc.ADDRESS_CLAMP_TO_EDGE,
+      addressV: pc.ADDRESS_CLAMP_TO_EDGE,
+      anisotropy: 4,
+    });
+    this.#texture.setSource(canvas);
+    this.#material = new pc.StandardMaterial();
+    this.#material.name = `${text} painted inscription`;
+    this.#material.diffuse = new pc.Color(1, 1, 1);
+    this.#material.diffuseMap = this.#texture;
+    this.#material.opacityMap = this.#texture;
+    this.#material.opacityMapChannel = "a";
+    this.#material.blendType = pc.BLEND_NORMAL;
+    this.#material.depthWrite = false;
+    this.#material.useMetalness = true;
+    this.#material.metalness = 0;
+    this.#material.gloss = 0;
+    this.#material.update();
+    for (const render of this.#entity.findByName("Sign inscription").findComponents("render")) {
+      for (const mesh of render.meshInstances) {
+        mesh.material = this.#material;
+        mesh.castShadow = false;
+      }
+    }
+  }
+
+  /**
+   * @param {string} text
+   * @returns {HTMLCanvasElement}
+   */
+  static #createInscription(text) {
     const canvas = document.createElement("canvas");
     canvas.width = 512;
     canvas.height = 160;
@@ -100,38 +140,16 @@ export class WoodenSign {
         x += context.measureText(letter).width;
       }
     }
-    this.#texture = new pc.Texture(app.graphicsDevice, {
-      name: `${text} sign lettering`,
-      width: canvas.width,
-      height: canvas.height,
-      format: pc.PIXELFORMAT_RGBA8,
-      srgb: true,
-      mipmaps: true,
-      minFilter: pc.FILTER_LINEAR_MIPMAP_LINEAR,
-      magFilter: pc.FILTER_LINEAR,
-      addressU: pc.ADDRESS_CLAMP_TO_EDGE,
-      addressV: pc.ADDRESS_CLAMP_TO_EDGE,
-      anisotropy: 4,
-    });
-    this.#texture.setSource(canvas);
-    this.#material = new pc.StandardMaterial();
-    this.#material.name = `${text} painted inscription`;
-    this.#material.diffuse = new pc.Color(1, 1, 1);
-    this.#material.diffuseMap = this.#texture;
-    this.#material.opacityMap = this.#texture;
-    this.#material.opacityMapChannel = "a";
-    this.#material.blendType = pc.BLEND_NORMAL;
-    this.#material.depthWrite = false;
-    this.#material.useMetalness = true;
-    this.#material.metalness = 0;
-    this.#material.gloss = 0;
-    this.#material.update();
-    for (const render of this.#entity.findByName("Sign inscription").findComponents("render")) {
-      for (const mesh of render.meshInstances) {
-        mesh.material = this.#material;
-        mesh.castShadow = false;
-      }
-    }
+    return canvas;
+  }
+
+  /**
+   * Repaint an existing inscription without allocating another material or texture.
+   * @param {string} value
+   */
+  set text(value) {
+    this.#texture.setSource(WoodenSign.#createInscription(value));
+    this.#definition.text = value;
   }
 
   get entity() {

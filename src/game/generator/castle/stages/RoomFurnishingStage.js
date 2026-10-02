@@ -29,11 +29,11 @@ export class RoomFurnishingStage extends AbstractCastleGenerationStage {
         const blockedEntrance = plan.doorways.some(/**
          * @param {{roomId:string,axis:string,coordinate:number,center:number,width:number,floorY:number}} door
          */
-        (door) => door.roomId === room.id && door.floorY === room.floorY &&
+        (door) => door.floorY === room.floorY &&
           (door.axis === "x" ? Math.abs(item.x - door.coordinate) < halfX + door.width + 0.25 &&
-            Math.abs(item.z - door.center) < halfZ + door.width / 2 + 0.2 :
+            Math.abs(item.z - door.center) < halfZ + door.width / 2 + 0.45 :
             Math.abs(item.z - door.coordinate) < halfZ + door.width + 0.25 &&
-            Math.abs(item.x - door.center) < halfX + door.width / 2 + 0.2));
+            Math.abs(item.x - door.center) < halfX + door.width / 2 + 0.45));
         if (blockedEntrance) { continue; }
         plan.furniture.push({ ...item, roomId: room.id, floorY: room.floorY });
       }

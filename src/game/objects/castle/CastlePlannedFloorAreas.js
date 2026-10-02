@@ -59,6 +59,18 @@ export function createCastlePlannedFloorAreas(buildPlan) {
         maxZ: doorway.center + doorway.width / 2, floorY: doorway.floorY });
     }
   }
+  // A room's finish stops at its inner wall face. Bridge the wall thickness
+  // with a continuous structural threshold, including doors onto the terrace.
+  for (const doorway of plan.doorways) {
+    if (doorway.floorY <= plan.origin.y) { continue; }
+    const acrossX = doorway.axis === "x";
+    result.push({ id: "upperRoomThreshold",
+      minX: (acrossX ? doorway.coordinate - 0.25 : doorway.center - doorway.width / 2),
+      maxX: (acrossX ? doorway.coordinate + 0.25 : doorway.center + doorway.width / 2),
+      minZ: (acrossX ? doorway.center - doorway.width / 2 : doorway.coordinate - 0.25),
+      maxZ: (acrossX ? doorway.center + doorway.width / 2 : doorway.coordinate + 0.25),
+      floorY: doorway.floorY });
+  }
   // A doorway apron can overlap an existing landing. Keep one surface owner.
   const unique = [];
   for (const area of result) {

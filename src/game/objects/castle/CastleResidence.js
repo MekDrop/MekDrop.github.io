@@ -142,7 +142,7 @@ export class CastleResidence {
       }
       for (const [pieces, timber] of [[stonePieces, false], [woodPieces, true]]) {
         // The generated brick shell already owns exposed upper surfaces.
-        if (!timber && area.floorY > plan.origin.y) { continue; }
+        if (!timber && area.floorY > plan.origin.y && !area.id.endsWith("Threshold")) { continue; }
         for (const [minX, maxX, minZ, maxZ] of pieces) {
           if (maxX <= minX || maxZ <= minZ) { continue; }
           // Door thresholds already have masonry and exterior stair support.
@@ -159,6 +159,13 @@ export class CastleResidence {
             panel.setLocalPosition(x, y - (wood ? 0.06 : 0.25) + 0.004, z);
             panel.setLocalScale(maxX - minX, wood ? 1 : 0.25, maxZ - minZ);
             this.#entity.addChild(panel);
+          }
+          if (wood) {
+            const backing = models.instantiate(stoneUrl);
+            backing.name = `Castle ${area.id} structural floor backing`;
+            backing.setLocalPosition(x, y - 0.25, z);
+            backing.setLocalScale(maxX - minX, 0.214, maxZ - minZ);
+            this.#entity.addChild(backing);
           }
           this.#solids.push({ x, y: y - 0.125, z, width: maxX - minX,
             height: 0.25, depth: maxZ - minZ, floorSupport: true });

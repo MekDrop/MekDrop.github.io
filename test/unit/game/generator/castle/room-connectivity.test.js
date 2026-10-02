@@ -82,12 +82,13 @@ it("preserves wide connected routes for randomized rooms and towers in all orien
   assert.ok(towers > 0, "checks include towers on both floors");
 });
 
-it("connects every castle in the saved seed gallery using current generation", async () => {
+it("connects the preview castle across ten generated seeds", async () => {
   const { readFile } = await import("node:fs/promises");
   const map = JSON.parse(await readFile(new URL("../../../../../src/game/maps/tests/castle-seeds.json", import.meta.url), "utf8"));
   const castles = map.objects.filter((object) => object.object === "Castle");
-  assert.equal(castles.length, 10);
-  for (const castle of castles) {
+  assert.equal(castles.length, 1);
+  for (let seed = 1; seed <= 10; seed++) {
+    const castle = { ...castles[0], seed };
     assert.equal(castle.buildPlan, undefined, "saved seeds must not freeze generated geometry");
     checkRoutes(await CastleGenerator.generate(castle));
   }
@@ -110,6 +111,35 @@ it("keeps every planned doorway free of masonry from other shell layers", async 
         assert.ok(Math.abs(across - door.coordinate) >= 0.26 - 1e-6 || Math.abs(along - door.center) >= door.width / 2 + 0.125 - 1e-6,
           `${castle.seed}: ${door.roomId} doorway is filled by another wall ${JSON.stringify({door,block,point})}`);
       }
+    }
+  }
+});
+
+it("keeps the reported seed's door approaches clear and upper thresholds continuously supported", async () => {
+  const { readFile } = await import("node:fs/promises");
+  const map=JSON.parse(await readFile(new URL("../../../../../src/game/maps/tests/castle-clearance.json",import.meta.url),"utf8"));
+  const plan=await CastleGenerator.generate(map.objects[0]);
+  checkRoutes(plan);
+  const layout=new CastleResidentialLayout(plan);
+  for (const door of plan.metadata.runtime.roomDoors) {
+    assert.ok(door.height + 0.025 * door.height / 2.3 < 1.875);
+    if (door.y > layout.origin.y) assert.ok(door.width <= 1.25);
+  }
+  for (const door of plan.layout.roomPlan.doorways) {
+    for (const item of plan.layout.roomPlan.furniture) {
+      if (item.floorY !== door.floorY) continue;
+      const normal=Math.abs((door.axis === "x" ? item.x : item.z)-door.coordinate);
+      const tangent=Math.abs((door.axis === "x" ? item.z : item.x)-door.center);
+      const halfNormal=(door.axis === "x" ? item.width : item.depth)*item.scale/2;
+      const halfTangent=(door.axis === "x" ? item.depth : item.width)*item.scale/2;
+      assert.ok(normal >= halfNormal + door.width + 0.25 || tangent >= halfTangent + door.width/2 + 0.45);
+    }
+    if (door.floorY > layout.origin.y) {
+      const x=door.axis === "x" ? door.coordinate : door.center;
+      const z=door.axis === "z" ? door.coordinate : door.center;
+      for (const delta of [-0.2,0,0.2]) assert.ok(layout.walkableAreas.some((area) => area.floorY===door.floorY &&
+        x+(door.axis === "x" ? delta : 0)>=area.minX-1e-8 && x+(door.axis === "x" ? delta : 0)<=area.maxX+1e-8 &&
+        z+(door.axis === "z" ? delta : 0)>=area.minZ-1e-8 && z+(door.axis === "z" ? delta : 0)<=area.maxZ+1e-8));
     }
   }
 });

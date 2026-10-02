@@ -41,7 +41,7 @@ it("uses the full reserved castle footprint and ordered, separated rooms for eve
         (["library", "service"].includes(doorway.roomId) && doorway.floorY <= layout.origin.y));
       assert.equal(plan.metadata.runtime.roomDoors.length, entrances.length);
       assert.ok(plan.metadata.runtime.roomDoors.some((door) => door.roomId === plan.layout.roomPlan.stairHostRoomId &&
-        door.y > layout.origin.y && door.height === 2 && door.openingInset === 0), "the covered stair room has a rectangular upper entrance door");
+        door.y > layout.origin.y && door.height < 1.875 && door.height > 1.75 && door.openingInset === 0), "the covered stair room has a rectangular upper entrance door");
       assert.ok(entrances.length < plan.layout.roomPlan.doorways.length);
       assert.ok(!plan.metadata.runtime.roomDoors.some((door) => door.roomId === "throneRoom"),
         "the main gate serves the hall; its circulation passages remain open");
@@ -55,7 +55,7 @@ it("uses the full reserved castle footprint and ordered, separated rooms for eve
         assert.ok(Math.abs(door.x - expected.x) < 1e-6 && Math.abs(door.z - expected.z) < 1e-6);
         assert.equal(door.y, expected.y);
         assert.equal(door.width, doorway.width);
-        assert.equal(door.height, 2);
+        assert.ok(door.height + 0.025 * door.height / 2.3 < 1.875, "the leaf stays below the lintel underside");
         if (door.roomId === plan.layout.roomPlan.stairHostRoomId && door.y > layout.origin.y) {
           const shaft = plan.layout.roomPlan.shaft;
           assert.ok(doorway.center - doorway.width / 2 >= shaft.minZ + 0.249 ||

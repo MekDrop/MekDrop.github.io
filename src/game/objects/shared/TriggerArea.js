@@ -118,6 +118,7 @@ export class TriggerArea {
     const { id, color, position, script } = definition;
 
     this.#definition = definition;
+    this.#active = definition.active ?? false;
 
     this.#objects = runtime.objects;
 
@@ -285,6 +286,7 @@ export class TriggerArea {
       return;
     }
     this.#active = active;
+    this.#definition.active = active;
     try {
       this.#executeScript(active, this.#objects, this.#definition);
     } catch (error) {

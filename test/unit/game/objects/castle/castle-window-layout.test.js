@@ -68,3 +68,12 @@ it("exports amber glazing with alpha blending and editable matching sources", as
     assert.equal(gltf.scenes[0].extras.zUpAuthored, true);
   }
 });
+
+it("splits rotated rectangular masonry in world axes without a gap under the sill", () => {
+  const layout = new CastleWindowLayout({layout:{empty:true}});
+  layout.windows.push({cut:{minX:-0.3,maxX:0.3,minY:0,maxY:0.75,minZ:-0.2,maxZ:0.2}});
+  const pieces=layout.cutBoxes([{x:0,y:0,z:0,sx:0.25,sy:2,sz:2,yaw:90,material:"castleStoneMid"}]);
+  assert.ok(pieces.every((piece) => piece.yaw === 0));
+  assert.ok(pieces.some((piece) => piece.y + piece.sy / 2 === 0 && piece.sy === 1));
+  assert.ok(Math.abs(pieces.reduce((volume,piece) => volume+piece.sx*piece.sy*piece.sz,0)-0.8875)<1e-8);
+});

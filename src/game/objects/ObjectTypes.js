@@ -21,6 +21,8 @@
  * @property {number} [Z2] Spiral staircase upper map elevation (world Y), above Z1.
  * @property {{col: number, row: number}} [tile]
  * @property {Array<{offsetX: number, offsetZ: number, diameter: number, height: number}>} [parts]
+ * @property {boolean} [active] Runtime pressure-plate latch preserved during object replacement.
+ * @property {string} [seedSignId] Castle seed inscription binding.
  * @property {string} [script]
  * @property {string|number} [color]
  * @property {{id: string, contents: Array<string>}} [buriedTreasure]
@@ -40,6 +42,7 @@
  * @property {{horizontal: boolean, station: number, cells: Array<{col: number, row: number}>, removedCells: Array<{col: number, row: number}>, nearIsland: string[], farIsland: string[]}} [islandConnectorData]
  * @property {{position: {col: number, row: number, width: number, depth: number}}} [castle]
  * @typedef {object} MapObjectRuntime
+ * @property {(definition: MapObjectDefinition) => boolean} [replaceObjectDefinition]
  * @property {GameMapData} [mapData]
  * @property {Iterable<MapObjectLike>} [objects]
  * @property {import("playcanvas").Entity} [root]

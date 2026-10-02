@@ -57,6 +57,7 @@ export class GameCanvasMovementTestDriverPlugin {
       dodge: (inputX, inputY, direction = "forward") =>
         this.#context.renderer().hero?.dodge(inputX, inputY, direction) ?? false,
       interact: () => this.#context.renderer().interact(),
+      mapObjects: () => this.#context.renderer().authoredObjectDefinitions,
       royalCastles: () => this.#context.renderer().royalCastleStates,
       droppedInventoryItemCount: () =>
         this.#context.renderer().thrownInventoryItemCount,

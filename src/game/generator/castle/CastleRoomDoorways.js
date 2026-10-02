@@ -19,7 +19,7 @@ export function createCastleRoomDoorways(plan) {
     if (room.level === 1 && !room.id.startsWith("tower")) {
       // Upper chambers open onto the broad rear landing rather than a side slot.
       result.push({ roomId: room.id, axis: "z", coordinate: room.maxZ + 0.125,
-        center: Math.max(room.minX + 0.75, Math.min(room.maxX - 0.75, x + (plan.shaft.minX < 0 ? 0.5 : -0.5))), width: 1.2, floorY: room.floorY });
+        center: Math.max(room.minX + 0.75, Math.min(room.maxX - 0.75, x + (plan.shaft.minX < 0 ? 0.5 : -0.5))), width: 1, floorY: room.floorY });
       continue;
     }
     const side = x < 0 ? room.maxX + 0.125 : room.minX - 0.125;
@@ -51,7 +51,7 @@ export function createCastleRoomDoorways(plan) {
       const landingMaxZ = x < 0 ? plan.shaft.maxZ - 0.25 : shaftCenterZ + 0.2;
       result.push({ roomId: room.id, axis: "x", coordinate: side,
         center: openLanding ? (landingMinZ + landingMaxZ) / 2 : room.stairHost ? plan.shaft.minZ : clearCenter,
-        width: openLanding ? landingMaxZ - landingMinZ : Math.min(1.2, room.maxZ - room.minZ - 0.5),
+        width: openLanding ? Math.min(1.25, landingMaxZ - landingMinZ) : Math.min(1.2, room.maxZ - room.minZ - 0.5),
         floorY: room.floorY + floor * plan.rise });
     }
     if (room.level === 0 && !room.id.startsWith("tower")) {

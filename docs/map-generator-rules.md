@@ -327,6 +327,10 @@ slope tiles = absolute elevation difference
 * After packing, eligible ground-floor rooms should absorb adjacent unused strips within their maximum dimensions. Keep the stair shaft, door approaches, and circulation routes clear.
 * Interior partitions must reach the ceiling underside. Library and service room entrances must have rectangular, single-leaf doors hinged on the right when entering, seated in the actual masonry opening.
 * Door proximity must allow the moving leaf to clear an approaching visitor. Furniture must remain outside the complete doorway and door-swing clearance.
+* Generated upper entrances must be no wider than 1.25 metres, retain hero clearance, and sit below the lintel underside. Every upper doorway must have continuous structural floor support across the wall thickness.
+* Furniture clearance applies to every doorway on the same floor, including a neighbouring room’s entrance. Reserve the leaf swing plus the hero’s footprint.
+* Authored pitched roof courses must have matching static Ammo collision; jumping must not enter their solid volume.
+* Window subtraction must operate in world axes after normalizing rotated masonry dimensions.
 * Tower window reveals must use the actual wall thickness. Visible masonry and carpet surfaces must not contain overlapping coplanar faces or repeated complete carpet borders.
 
 ## 18. Floating-island structure

@@ -91,6 +91,7 @@ export class CastleRoomPacker {
       (entry) => entry.id === room.id);
       const left = (room.minX + room.maxX) / 2 < 0;
       for (const [key, target] of [[left ? "minX" : "maxX", left ? this.bounds.minX : this.bounds.maxX],
+        ...(!room.stairHost ? [[left ? "maxX" : "minX", left ? -1.25 : 1.25]] : []),
         ["maxZ", this.bounds.maxZ], ...(!room.stairHost ? [["minZ", this.bounds.minZ]] : [])]) {
         const direction = target < room[key] ? -0.25 : 0.25;
         while (Math.abs(target - room[key]) >= 0.249) {

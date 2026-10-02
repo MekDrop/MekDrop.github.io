@@ -348,7 +348,17 @@ export class CastleWindowLayout {
    * @returns {MasonryBox[]}
    */
   cutBoxes(boxes) {
-    let result = boxes;
+    // Apertures use world axes. Normalize quarter-turn masonry before splitting;
+    // retaining its old yaw would rotate the cut fragments a second time.
+    let result = boxes.map(/**
+     * @param {MasonryBox} box
+     */
+    (box) => {
+      const angle = box.yaw * Math.PI / 180;
+      return { ...box, yaw: 0,
+        sx: Math.abs(Math.cos(angle)) * box.sx + Math.abs(Math.sin(angle)) * box.sz,
+        sz: Math.abs(Math.sin(angle)) * box.sx + Math.abs(Math.cos(angle)) * box.sz };
+    });
     for (const window of this.#windows) {
       result = result.flatMap(
         /**

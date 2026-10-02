@@ -87,7 +87,7 @@ export class BuildMetadataStage extends AbstractCastleGenerationStage {
         return { roomId: doorway.roomId,
           x: plan.origin.x + Math.cos(angle) * x + Math.sin(angle) * z,
           z: plan.origin.z - Math.sin(angle) * x + Math.cos(angle) * z,
-          y: doorway.floorY, width: doorway.width, height: 2, openingInset: 0,
+          y: doorway.floorY, width: doorway.width, height: 1.84, openingInset: 0,
           yaw: plan.origin.yaw + (doorway.axis === "z" ? 0 : x < 0 ? -90 : 90) };
       }) : [];
     context.metadata.runtime = {
