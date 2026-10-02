@@ -4,7 +4,6 @@ import chimneyUrl from "../../models/castle/residential/chimney.glb?url";
 import crestUrl from "../../models/castle/residential/crown-crest.glb?url";
 import lanternUrl from "../../models/castle/residential/wall-lantern.glb?url";
 import { Bookshelf } from "../bookshelf/Bookshelf.js";
-import mapUrl from "../../models/castle/residential/framed-map.glb?url";
 import floorUrl from "../../models/castle/residential/floor-panel.glb?url";
 import rugUrl from "../../models/castle/residential/rug.glb?url";
 import royalBedUrl from "../../models/castle/residential/royal-bed.glb?url";
@@ -69,7 +68,7 @@ export class CastleResidence {
    * @returns {string[]}
    */
   static get modelUrls() {
-    return [...Object.values(MODEL_URLS), chestUrl, stairUrl, stoneUrl, lanternUrl, ...Bookshelf.modelUrls, mapUrl, floorUrl, rugUrl, crestUrl, buttressUrl, chimneyUrl];
+    return [...Object.values(MODEL_URLS), chestUrl, stairUrl, stoneUrl, lanternUrl, ...Bookshelf.modelUrls, floorUrl, rugUrl, crestUrl, buttressUrl, chimneyUrl];
   }
 
   /**
@@ -389,8 +388,6 @@ export class CastleResidence {
             height: 1.8, facing: -deskSide,
           }));
         }
-        const mapMount = findCastleMapMount(buildPlan, this.#layout, deskSide, shelfBack);
-        if (mapMount) place(mapUrl, "Castle framed map", mapMount.x, y + 0.85, mapMount.z, 0.8, mapMount.yaw);
       }
       for (const x of [room.minX + 0.12, room.maxX - 0.12]) {
         const yaw = x < 0 ? 90 : -90;
@@ -766,4 +763,3 @@ function reshapeSpiralModel(pc, graph, shaft, radius) {
   }
   return meshes;
 }
-

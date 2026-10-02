@@ -15,6 +15,7 @@
  * @property {number} [rotation]
  * @property {Point3} [from] Bookshelf bottom edge or window corner in world coordinates.
  * @property {Point3} [to] Bookshelf bottom edge or opposite window corner; exactly one differing ground axis.
+ * @property {number} [width] Painting horizontal scale (default 1).
  * @property {number} [height] Bookshelf height (default 1.8), or window height when endpoints have equal Y.
  * @property {number} [facing] Bookshelf/window front direction, 1 or -1 on the perpendicular axis.
  * @property {number} [depth] Window reveal depth; defaults to 0.3.
