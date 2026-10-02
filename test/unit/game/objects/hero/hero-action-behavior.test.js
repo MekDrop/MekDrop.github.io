@@ -4,7 +4,41 @@ import { HERO_ACTION } from "../../../../../src/game/enum/HeroAction.js";
 import { HERO_ANIMATION } from "../../../../../src/game/enum/HeroAnimation.js";
 import { RIVER_KIND } from "../../../../../src/game/enum/RiverKind.js";
 import { HeroActionBehavior } from "../../../../../src/game/objects/hero/behaviors/action/HeroActionBehavior.js";
+import { HeroDyingTimeoutError } from "../../../../../src/game/errors/hero/index.js";
 
+it("reports a stalled dying state and respawns only after ten seconds", (context) => {
+  const errors = [];
+  context.mock.method(console, "error", (error) => errors.push(error));
+  let respawns = 0;
+  const behavior = createBehavior({
+    feedback: { respawning: { begin: () => { respawns += 1; } } },
+  });
+  behavior.fallingToDeath = true;
+  behavior.update(10);
+  assert.equal(behavior.dying, true);
+  assert.equal(errors.length, 0);
+  behavior.update(0.01);
+  assert.equal(behavior.respawning, true);
+  assert.equal(respawns, 1);
+  assert.ok(errors[0] instanceof HeroDyingTimeoutError);
+  assert.equal(errors[0].action, HERO_ACTION.FALLING_TO_DEATH);
+  behavior.update(0.01);
+  assert.equal(errors.length, 1);
+});
+
+it("starts a fresh timeout after leaving and reentering dying", (context) => {
+  const errors = [];
+  context.mock.method(console, "error", (error) => errors.push(error));
+  const behavior = createBehavior();
+  behavior.fallingToDeath = true;
+  behavior.update(9);
+  behavior.finish();
+  behavior.update(20);
+  behavior.fallingToDeath = true;
+  behavior.update(2);
+  assert.equal(behavior.dying, true);
+  assert.equal(errors.length, 0);
+});
 function createFeedback(overrides = {}) {
   const feedback = {
     tool: { begin: () => {}, restartAnimation: () => {}, complete: () => {} },

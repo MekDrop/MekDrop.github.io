@@ -1,4 +1,5 @@
 import { StateMachine } from "yuka";
+import { HeroDyingTimeoutError } from "../../../../errors/hero/index.js";
 import { HERO_ACTION } from "../../../../enum/HeroAction.js";
 import { HERO_ANIMATION } from "../../../../enum/HeroAnimation.js";
 import { HeroRuntimeActionState } from "../../states/action/HeroRuntimeActionState.js";
@@ -51,6 +52,10 @@ export class HeroActionBehavior {
     * @type {number}
    */
   #deltaTime = 0;
+  /**
+   * @type {number}
+   */
+  #dyingElapsed = 0;
   /**
    *
     * @type {{enter?: (state: HeroRuntimeActionState, behavior: HeroActionBehavior) => void, update?: (state: HeroRuntimeActionState, behavior: HeroActionBehavior, deltaTime: number) => void, exit?: (state: HeroRuntimeActionState, behavior: HeroActionBehavior) => void}|null}
@@ -650,6 +655,18 @@ export class HeroActionBehavior {
       return;
     }
     this.#deltaTime = deltaTime;
+    if (this.dying) {
+      this.#dyingElapsed += deltaTime;
+      if (this.#dyingElapsed > 10) {
+        const error = new HeroDyingTimeoutError(
+          this.#stateMachine.currentState.action,
+          this.#dyingElapsed,
+        );
+        this.#transition(HERO_ACTION.RESPAWNING, { elapsed: 0 });
+        console.error(error);
+        return;
+      }
+    }
     this.#stateMachine.update();
   }
 
@@ -689,6 +706,9 @@ export class HeroActionBehavior {
    * @param {import("src/game/objects/ObjectTypes.js").HeroActionPayload} payload
    */
   #transition(action, payload) {
+    if (!this.dying || !this.#statesByAction.get(action)?.dying) {
+      this.#dyingElapsed = 0;
+    }
     if (this.#stateMachine.in(action)) {
       this.#stateMachine.currentState.payload = payload;
       this.#stateMachine.currentState.reenter?.(this.#context);
