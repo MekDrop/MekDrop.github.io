@@ -81,7 +81,7 @@ export class CastleBuildPlanWriter {
    * @param {string} role
    */
   addBlock(blockU, blockY, blockV, role = "stone") {
-    if (role !== "roomShell" && this.#isTerraceAccessVoid(blockU, blockY, blockV)) {
+    if (this.#isRoomDoorway(blockU, blockY, blockV) || (role !== "roomShell" && role !== "roomShellTrim" && this.#isTerraceAccessVoid(blockU, blockY, blockV))) {
       return;
     }
     const { blockX, blockZ } = this.#localToBlock(blockU, blockV);
@@ -318,9 +318,58 @@ export class CastleBuildPlanWriter {
    * @param {number} blockU
    * @param {number} blockY
    * @param {number} blockV
+   * @param {number} u
+   * @param {number} y
+   * @param {number} v
+   */
+  #isRoomDoorway(u, y, v) {
+    const plan = this.#layout.roomPlan;
+    if (plan?.version !== 2) return false;
+    const opening = this.#layout.openings.find(/**
+     *
+     * @param {{boundary:string}} entry
+     */
+    (entry) => entry.boundary === CASTLE_BOUNDARY.FRONT);
+    const sign = ["WEST", "SOUTH"].includes(this.#layout.primarySide) ? -1 : 1;
+    const x = sign * (v - (opening.start + opening.end - 1) / 2) * CASTLE_BLOCK_SIZE;
+    const z = (u + 0.5) * CASTLE_BLOCK_SIZE;
+    const height = this.#layout.baseY + y * CASTLE_BLOCK_SIZE;
+    return plan.doorways.some(/**
+     *
+     * @param {{axis:string,coordinate:number,center:number,width:number,floorY:number}} door
+     */
+    (door) => height >= door.floorY && height < door.floorY + 2 &&
+      Math.abs((door.axis === "x" ? x : z) - door.coordinate) < 0.26 &&
+      Math.abs((door.axis === "x" ? z : x) - door.center) < door.width / 2 - 0.00001);
+  }
+
+  /**
+   * @param {number} blockU
+   * @param {number} blockY
+   * @param {number} blockV
    */
   #isTerraceAccessVoid(blockU, blockY, blockV) {
     const plan = this.#layout.roomPlan;
+    if (plan?.version === 2) {
+      const opening = this.#layout.openings.find(/**
+       *
+       * @param {{boundary:string}} entry
+       */
+      (entry) => entry.boundary === CASTLE_BOUNDARY.FRONT);
+      const sign = ["WEST", "SOUTH"].includes(this.#layout.primarySide) ? -1 : 1;
+      const x = sign * (blockV - (opening.start + opening.end - 1) / 2) * CASTLE_BLOCK_SIZE;
+      const z = (blockU + 0.5) * CASTLE_BLOCK_SIZE;
+      const y = this.#layout.baseY + (blockY + 0.5) * CASTLE_BLOCK_SIZE;
+      const shaft = plan.shaft;
+      if ((plan.stair || plan.serviceStair) && x > shaft.minX && x < shaft.maxX &&
+        z > shaft.minZ && z < shaft.maxZ && y < this.#layout.baseY + plan.rise + 2.25) { return true; }
+      return plan.placedRooms.some(/**
+       *
+       * @param {import("./rooms/AbstractCastleRoomGenerator.js").PlannedCastleRoom} room
+       */
+      (room) => x > room.minX && x < room.maxX &&
+        z > room.minZ && z < room.maxZ && y >= room.floorY && y < room.floorY + room.height);
+    }
     if (plan) {
       const opening = this.#layout.openings.find(
         /**
@@ -411,6 +460,7 @@ export class CastleBuildPlanWriter {
       doorLight: "castleDoorLight",
       iron: "castleIron",
       trim: "castleStoneLight",
+      roomShellTrim: "castleStoneLight",
       arch: "castleArchStone",
     };
     if (roleMaterials[role]) {

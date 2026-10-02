@@ -1,0 +1,3 @@
+interface:
+  display_name: "Delegate Local AI"
+  short_description: "Route safe bounded subtasks to local Ollama models"

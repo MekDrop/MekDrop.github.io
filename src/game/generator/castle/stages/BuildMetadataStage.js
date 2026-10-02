@@ -55,7 +55,43 @@ export class BuildMetadataStage extends AbstractCastleGenerationStage {
         width: interiorWidth,
       };
     }
+    if (context.layout.roomPlan?.version === 2) {
+      const plan = context.layout.roomPlan;
+      const room = plan.rooms.leisure;
+      if (room) {
+        const angle = plan.origin.yaw * Math.PI / 180;
+        const x = room.maxX <= -0.625 ? room.maxX + 0.125 : room.minX - 0.125;
+        const z = (room.minZ + room.maxZ) / 2;
+        terrace = { x: plan.origin.x + Math.cos(angle) * x + Math.sin(angle) * z,
+          z: plan.origin.z - Math.sin(angle) * x + Math.cos(angle) * z,
+          y: room.floorY, yaw: plan.origin.yaw + (x < 0 ? -90 : 90),
+          width: room.maxZ - room.minZ, depth: room.maxX - room.minX };
+      } else { terrace = null; }
+    }
+    // Keep circulation open. Private rooms get one door; roof entrances close out the weather.
+    const roomDoors = context.layout.roomPlan?.version === 2
+      ? context.layout.roomPlan.doorways.filter(/**
+       *
+       * @param {{roomId:string}} doorway
+       */
+      (doorway) => !doorway.roomId.startsWith("tower")).filter(/**
+       * @param {{roomId:string,axis:string,floorY:number}} doorway
+       */ (doorway) => (doorway.roomId !== "leisure" && doorway.floorY > context.layout.roomPlan.origin.y) ||
+         (["library", "service"].includes(doorway.roomId) && doorway.floorY <= context.layout.roomPlan.origin.y)).map(/**
+       * @param {{roomId:string,axis:string,coordinate:number,center:number,width:number,floorY:number}} doorway
+       */ (doorway) => {
+        const plan = context.layout.roomPlan;
+        const angle = plan.origin.yaw * Math.PI / 180;
+        const x = doorway.axis === "x" ? doorway.coordinate : doorway.center;
+        const z = doorway.axis === "z" ? doorway.coordinate : doorway.center;
+        return { roomId: doorway.roomId,
+          x: plan.origin.x + Math.cos(angle) * x + Math.sin(angle) * z,
+          z: plan.origin.z - Math.sin(angle) * x + Math.cos(angle) * z,
+          y: doorway.floorY, width: doorway.width, height: 2, openingInset: 0,
+          yaw: plan.origin.yaw + (doorway.axis === "z" ? 0 : x < 0 ? -90 : 90) };
+      }) : [];
     context.metadata.runtime = {
+      roomDoors,
       interiorDepth,
       interiorWidth,
       audienceOpening: audienceOpening ? { ...audienceOpening } : null,

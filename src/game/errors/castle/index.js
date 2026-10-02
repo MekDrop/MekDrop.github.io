@@ -6,3 +6,4 @@ export { CastleBuildPlanGatehouseCountMismatchError } from "./CastleBuildPlanGat
 export { CastleBuildPlanInteriorDepthInvalidError } from "./CastleBuildPlanInteriorDepthInvalidError.js";
 export { CastleBuildPlanStyleMissingError } from "./CastleBuildPlanStyleMissingError.js";
 export { CastleBuildPlanWallMissingError } from "./CastleBuildPlanWallMissingError.js";
+export { CastleRoomSizeInvalidError } from "./CastleRoomSizeInvalidError.js";

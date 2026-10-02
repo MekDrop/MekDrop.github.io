@@ -1,3 +1,4 @@
+import { CastleOuterShellBuilder } from "./CastleOuterShellBuilder.js";
 import { CASTLE_BOUNDARY } from "../../enum/CastleBoundary.js";
 import {
   CASTLE_BLOCK_SIZE,
@@ -21,6 +22,10 @@ export class CastleGeometryPlanner {
   async buildWalls(context, writer) {
     const wall = context.structure.wall;
     if (!wall) {
+      return;
+    }
+    if (context.layout.roomPlan?.version === 2) {
+      await new CastleOuterShellBuilder().build(context, writer);
       return;
     }
     const addBlock = writer.addBlock.bind(writer);
@@ -61,9 +66,9 @@ export class CastleGeometryPlanner {
         tower.u,
         tower.v,
         tower.span,
-        tower.span,
-        0,
-        tower.height,
+        tower.depth ?? tower.span,
+        (tower.baseBlockY ?? 0) + (tower.shellHeight ?? 0),
+        tower.height - (tower.shellHeight ?? 0),
         battlementPeriod,
       );
       const centerU = tower.u + (tower.span - 1) / 2;
@@ -85,7 +90,7 @@ export class CastleGeometryPlanner {
       const fireTurret = writer.addRoofFireTurret(
         centerU,
         centerV,
-        tower.height,
+        tower.height + (tower.baseBlockY ?? 0),
       );
       writer.addFlame(
         fireTurret.blockU,

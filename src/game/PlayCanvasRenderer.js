@@ -471,7 +471,8 @@ export class PlayCanvasRenderer {
        *
        * @param {Event} event
        */
-      pointerRay: (event) => this.#pointerRay(event),
+      pointerRay: (event) =>
+        this.#camera.firstPersonEnabled ? null : this.#pointerRay(event),
       onMousePointerMove: this.#trackHeroLookPointer,
       onMousePointerLeave: () => this.#clearHeroIdleLookTarget(),
     });

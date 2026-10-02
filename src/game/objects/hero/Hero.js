@@ -1528,6 +1528,23 @@ export class Hero {
     };
   }
 
+  /**
+   * Turn the body when first-person look reaches the free-look limit.
+   * @param {number} yaw
+   */
+  set firstPersonFacingYaw(yaw) {
+    if (!this.#firstPersonCameraEnabled || !Number.isFinite(yaw)) {
+      return;
+    }
+    const previousYaw = this.#facingYaw;
+    this.#facingYaw = yaw;
+    this.#modelRoot?.setLocalEulerAngles(0, yaw, 0);
+    this.#respawnEffect?.setFacingYaw(yaw);
+    if (Math.abs(yaw - previousYaw) > 0.001) {
+      this.#onFacingChange?.(this.facingDirection);
+    }
+  }
+
   set firstPersonCameraEnabled(enabled) {
     this.#firstPersonCameraEnabled = Boolean(enabled);
     if (this.#firstPersonCameraEnabled) {

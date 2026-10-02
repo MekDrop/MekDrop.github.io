@@ -1,3 +1,4 @@
+import { createSpiralStairCollision } from "../shared/SpiralStairCollision.js";
 import treadUrl from "../../models/spiral-staircase/spiral-tread.glb?url";
 import columnUrl from "../../models/spiral-staircase/castle-brick.glb?url";
 import { IslandObjectRoots } from "../shared/IslandObjectRoots.js";
@@ -45,6 +46,10 @@ export class SpiralStaircase {
    */
   #collisionGraphs = [];
   /**
+   * @type {import("playcanvas").MeshInstance[]}
+   */
+  #supportInstances = [];
+  /**
    * @type {import("playcanvas").VertexBuffer|null}
    */
   #columnBuffers = [];
@@ -73,24 +78,55 @@ export class SpiralStaircase {
     this.#islandRoots.addChild(this.#visual, definition.tile);
     const { x, z } = definition.position;
     this.#visual.setLocalPosition(x, 0, z);
-    for (const step of SpiralStaircaseLayout.steps(definition)) {
+    const steps = SpiralStaircaseLayout.steps(definition);
+    for (const [index, step] of steps.entries()) {
+      const entrance = index < 2 || index >= steps.length - 2;
       const root = new pc.Entity(`${definition.id} tread ${step.height}`);
       root.setLocalPosition(0, step.height, 0);
       root.setLocalEulerAngles(0, step.rotation, 0);
-      root.addChild(modelLibrary.instantiate(treadUrl));
+      const visual = modelLibrary.instantiate(treadUrl);
+      // Leave the lower radial entrance clear instead of fencing off the first tread.
+      if (entrance) {
+        for (const render of visual.findComponents("render")) {
+          if (render.entity.name.includes("iron")) { render.enabled = false; }
+        }
+      }
+      root.addChild(visual);
       this.#visual.addChild(root);
-      const graph = modelLibrary.instantiateMerged(treadUrl);
+      const graph = modelLibrary.instantiate(treadUrl);
       const model = new pc.Model();
       model.graph = graph;
       model.meshInstances = graph.findComponents("render").flatMap(
         /**
          * @param {import("playcanvas").RenderComponent} render
          */
-        (render) => render.meshInstances);
-      root.addComponent("collision", { type: "mesh", model });
-      root.addComponent("rigidbody", { type: "static", friction: 0.6, restitution: 0 });
+        (render) => !entrance && render.entity.name.includes("iron") ? render.meshInstances : []);
+      if (model.meshInstances.length) {
+        root.addComponent("collision", { type: "mesh", model });
+        root.addComponent("rigidbody", { type: "static", friction: 0.6, restitution: 0 });
+      }
       this.#collisionGraphs.push(graph);
     }
+    const supportRoot = new pc.Entity("Spiral continuous tread physics");
+    supportRoot.setLocalPosition(0, definition.Z1, 0);
+    supportRoot.setLocalEulerAngles(0, definition.rotation ?? 0, 0);
+    this.#visual.addChild(supportRoot);
+    const source = modelLibrary.instantiate(treadUrl);
+    const firstMesh = source.findComponents("render")[0].meshInstances[0];
+    const support = createSpiralStairCollision(pc, {
+      device: firstMesh.mesh.device, material: firstMesh.material,
+      innerRadius: 0.24, outerRadius: 1.77, rise: definition.Z2 - definition.Z1,
+      turns: steps.length * SpiralStaircaseLayout.stepAngle / 360, steps: steps.length,
+    });
+    const supportModel = new pc.Model();
+    const supportGraph = new pc.Entity("Spiral support graph");
+    supportGraph.addChild(support.node);
+    supportModel.graph = supportGraph;
+    supportModel.meshInstances = [support];
+    this.#supportInstances.push(support);
+    supportRoot.addComponent("collision", {type:"mesh", model:supportModel});
+    supportRoot.addComponent("rigidbody", {type:"static", friction:0.6, restitution:0});
+    this.#collisionGraphs.push(supportGraph, source);
     const height = definition.Z2 - definition.Z1 + HANDRAIL_TOP_HEIGHT;
     const column = new pc.Entity(`${definition.id} center column`);
     column.setLocalPosition(0, definition.Z1 + height / 2, 0);
@@ -201,5 +237,7 @@ export class SpiralStaircase {
     this.#columnMaterials = [];
     for (const graph of this.#collisionGraphs) { graph.destroy(); }
     this.#collisionGraphs = [];
+    for (const instance of this.#supportInstances) instance.destroy();
+    this.#supportInstances = [];
   }
 }

@@ -93,7 +93,7 @@ export function validateCastleGround(mapData) {
     }
     for (const name of ["servantBedroom", "storage"]) {
       const room = layout.rooms[name];
-      addRoom(name, room, room.floorY, residential.basement.ceilingY);
+      if (room && residential.basement) { addRoom(name, room, room.floorY, residential.basement.ceilingY); }
     }
     for (const [index, block] of (plan.metadata.collision?.cameraBlocks ?? []).entries()) {
       if (block.y + block.halfY <= layout.origin.y || block.y - block.halfY > layout.origin.y + 1) continue;

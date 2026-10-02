@@ -323,6 +323,11 @@ slope tiles = absolute elevation difference
 * Trees, water, and decorations must not block the entrance.
 * The castle must be placed away from entry gates.
 * Enough green ground must remain around the castle footprint.
+* Castle room planning must reconsider seeded room sizes and arrangements before accepting a skipped room. Preserve the reserved footprint and room priority; never consume required hall or stair access to fit another room.
+* After packing, eligible ground-floor rooms should absorb adjacent unused strips within their maximum dimensions. Keep the stair shaft, door approaches, and circulation routes clear.
+* Interior partitions must reach the ceiling underside. Library and service room entrances must have rectangular, single-leaf doors hinged on the right when entering, seated in the actual masonry opening.
+* Door proximity must allow the moving leaf to clear an approaching visitor. Furniture must remain outside the complete doorway and door-swing clearance.
+* Tower window reveals must use the actual wall thickness. Visible masonry and carpet surfaces must not contain overlapping coplanar faces or repeated complete carpet borders.
 
 ## 18. Floating-island structure
 

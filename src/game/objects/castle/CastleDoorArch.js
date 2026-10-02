@@ -59,7 +59,9 @@ export class CastleDoorArch {
       frame.z,
     );
     this.#entity.setLocalEulerAngles(0, frame.yaw, 0);
-    if (placement) this.#entity.setLocalScale(door.width / 2, placement.height / 2.3, 1);
+    // The imported jamb faces sit exactly on the voxel opening sides at x = +/-1.
+    // A small reveal separates them from the masonry and avoids depth flicker.
+    this.#entity.setLocalScale((door.width ?? 2) / 2 * 1.015, placement ? placement.height / 2.3 : 1, 1);
   }
 
   get entity() {

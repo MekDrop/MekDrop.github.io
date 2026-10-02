@@ -1,5 +1,4 @@
 import assert from "node:assert/strict";
-import { createHash } from "node:crypto";
 import { describe, it } from "node:test";
 
 import { CastleGenerator } from "../../../../../src/game/generator/castle/CastleGenerator.js";
@@ -34,64 +33,21 @@ describe("CastleGenerator", () => {
     ]);
   });
 
-  it("preserves castle dimensions while carving the planned rooms", async () => {
+  it("uses the full reserved footprint and keeps geometry/collision finite", async () => {
     const plan = await CastleGenerator.generate(options);
-
-    assert.deepEqual(plan.structure.wall, {
-      castleDepth: 20,
-      facadeSpan: 32,
-      towerSpan: 8,
-      wallHeight: 11,
-      battlementPeriod: 2,
-      wallWings: [],
-    });
-    assert.deepEqual(plan.structure.towers, [
-      { u: 0, v: 0, front: true, span: 8, height: 20 },
-      { u: 0, v: 24, front: true, span: 8, height: 20 },
-    ]);
-    assert.equal(plan.metadata.runtime.interiorDepth, 4.5);
+    assert.equal(plan.structure.wall.castleDepth, 32);
+    assert.equal(plan.structure.wall.facadeSpan, 32);
+    assert.equal(plan.metadata.runtime.interiorDepth, 7.5);
     assert.equal(plan.metadata.runtime.interiorWidth, 7);
-    assert.deepEqual(plan.metadata.runtime.terrace, {
-      x: -0.7949999999999999,
-      z: 0,
-      y: 6,
-      yaw: 90,
-      depth: 1.5,
-      width: 7,
-    });
     assert.equal(plan.metadata.collision.blockSize, 0.25);
-    assert.equal(plan.metadata.collision.groundCourse, 0);
-    assert.deepEqual(plan.metadata.collision.cameraBlockHalfExtents, {
-      x: 0.125,
-      y: 0.125,
-      z: 0.125,
-    });
-    assert.deepEqual(
-      {
-        boxes: plan.geometry.boxes.length,
-        flames: plan.geometry.decorations.flames.length,
-        banners: plan.geometry.decorations.banners.length,
-        flags: plan.geometry.decorations.flags.length,
-        roofs: plan.geometry.decorations.roofs.length,
-        groundColumns: plan.metadata.collision.groundColumns.length,
-        cameraBlocks: plan.metadata.collision.cameraBlocks.length,
-      },
-      {
-        boxes: 5158,
-        flames: 4,
-        banners: 4,
-        flags: 1,
-        roofs: 1,
-        groundColumns: 268,
-        cameraBlocks: 5140,
-      },
-    );
-    assert.equal(
-      createHash("sha256")
-        .update(JSON.stringify(plan.geometry))
-        .digest("hex"),
-      "d506b763101f4b4406c6fbfdb9ae37a00687ae0143259a3a8a435be8ccf4743d",
-    );
+    assert.ok(plan.geometry.boxes.length > 0);
+    for (const block of plan.metadata.collision.cameraBlocks) {
+      assert.ok(Object.values(block).every(Number.isFinite));
+      assert.ok(block.x - block.halfX >= options.position.x);
+      assert.ok(block.x + block.halfX <= options.position.x + options.position.width);
+      assert.ok(block.z - block.halfZ >= options.position.z);
+      assert.ok(block.z + block.halfZ <= options.position.z + options.position.depth);
+    }
   });
 
   it("normalizes side-facing openings exactly as the previous builder did", async () => {

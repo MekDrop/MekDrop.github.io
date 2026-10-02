@@ -26,6 +26,32 @@ export class TowerStage extends AbstractCastleGenerationStage {
         front: false,
       },
     };
+    if (context.layout.roomPlan?.version === 2) {
+      const plan = context.layout.roomPlan;
+      const opening = context.layout.openings.find(/**
+       *
+       * @param {{boundary:string}} entry
+       */
+      (entry) => entry.boundary === "FRONT");
+      const middle = (opening.start + opening.end - 1) / 2;
+      const sign = ["WEST", "SOUTH"].includes(context.layout.primarySide) ? -1 : 1;
+      context.structure.towers = plan.placedRooms.filter(/**
+       *
+       * @param {import("../rooms/AbstractCastleRoomGenerator.js").PlannedCastleRoom} room
+       */
+      (room) => room.id.startsWith("tower")).map(/**
+       *
+       * @param {import("../rooms/AbstractCastleRoomGenerator.js").PlannedCastleRoom} room
+       */
+      (room) => ({
+        u: Math.round((room.minZ - 0.125) * 4),
+        v: Math.round(middle + sign * (sign > 0 ? room.minX - 0.125 : room.maxX + 0.125) * 4),
+        span: Math.round((room.maxX - room.minX + 0.25) * 4),
+        depth: Math.round((room.maxZ - room.minZ + 0.25) * 4),
+        baseBlockY: 0, shellHeight: Math.round(plan.rise * 4) + 9,
+        roomId: room.id, front: room.minZ < castleDepth / 8, height: Math.max(towerHeight, Math.round(plan.rise * 4) + 13),
+      }));
+    } else {
     context.structure.towers = (style.towerPlacements ?? [])
       .map(/**
        *
@@ -42,6 +68,7 @@ export class TowerStage extends AbstractCastleGenerationStage {
         span: towerSpan,
         height: towerHeight,
       }));
+    }
     await context.planning.geometryPlanner.buildTowers(
       context,
       context.planning.writer,

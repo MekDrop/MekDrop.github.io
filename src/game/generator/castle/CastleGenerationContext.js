@@ -4,6 +4,7 @@
  * @property {Array<{side: string, offset: number, width: number, cells?: import("src/game/GameContracts.js").GridPoint[]}>} [doors]
  * @property {string|null} [style]
  * @property {string|number} [seed]
+ * @property {import("./rooms/AbstractCastleRoomGenerator.js").AbstractCastleRoomGenerator[]} [roomGenerators]
  */
 
 /**
@@ -113,11 +114,12 @@ export class CastleGenerationContext {
     };
     /**
      *
-     * @type {{writer: import("./CastleBuildPlanWriter.js").CastleBuildPlanWriter|null, geometryPlanner: import("./CastleGeometryPlanner.js").CastleGeometryPlanner|null}}
+     * @type {{writer: import("./CastleBuildPlanWriter.js").CastleBuildPlanWriter|null, geometryPlanner: import("./CastleGeometryPlanner.js").CastleGeometryPlanner|null, roomGenerators?: import("./rooms/AbstractCastleRoomGenerator.js").AbstractCastleRoomGenerator[]}}
      */
     this.planning = {
       writer: null,
       geometryPlanner: null,
+      roomGenerators: options.roomGenerators,
     };
     /**
      *

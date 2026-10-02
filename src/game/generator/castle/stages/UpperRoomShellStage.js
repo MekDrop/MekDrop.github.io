@@ -1,4 +1,5 @@
 import { AbstractCastleGenerationStage } from "../AbstractCastleGenerationStage.js";
+import { CastleRoomShellBuilder } from "../CastleRoomShellBuilder.js";
 
 /**
  * Builds the planned upper rooms instead of relying on gatehouse leftovers.
@@ -10,6 +11,10 @@ export class UpperRoomShellStage extends AbstractCastleGenerationStage {
   async run(context) {
     const plan = context.layout.roomPlan;
     if (!plan) return;
+    if (plan.version === 2) {
+      await new CastleRoomShellBuilder().build(context);
+      return;
+    }
     const room = plan.envelope;
     const opening = context.layout.openings.find(
       /**

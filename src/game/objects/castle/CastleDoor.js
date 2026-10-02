@@ -1,12 +1,12 @@
+import { createCastleDoorCollision } from "./CastleDoorCollision.js";
+import interiorDoorUrl from "../../models/castle/doors/interior-doors.glb?url";
 import castleDoorsModelUrl from "../../models/castle/doors/castle-doors.glb?url";
 import { CASTLE_DOOR_ANIMATION } from "../../enum/CastleDoorAnimation.js";
 
-const DOOR_THICKNESS = 0.16;
 const DOOR_INSET = -0.18;
 const OPEN_SPEED = 3.4;
 const OPEN_DISTANCE = 1.8;
 const CLOSE_INSIDE_DISTANCE = 0.9;
-const PASSABLE_OPEN_AMOUNT = 0.72;
 const CLICK_OPEN_SECONDS = 1;
 const DOOR_HEIGHT = 2.3;
 
@@ -19,6 +19,11 @@ export class CastleDoor {
   static get modelUrl() {
     return castleDoorsModelUrl;
   }
+
+  /**
+   * @returns {string[]}
+   */
+  static get modelUrls() { return [castleDoorsModelUrl, interiorDoorUrl]; }
 
   /**
    *
@@ -64,6 +69,10 @@ export class CastleDoor {
    * @type {number}
    */
   #height = DOOR_HEIGHT;
+  /**
+   * @type {ReturnType<typeof createCastleDoorCollision>}
+   */
+  #collision;
   /**
    * @type {boolean}
    */
@@ -114,6 +123,10 @@ export class CastleDoor {
       baseYaw: placement.yaw,
     } : this.#doorGeometry(castlePosition, door);
 
+    if (placement?.openingInset) {
+      geometry.center.x -= geometry.inward.x * placement.openingInset;
+      geometry.center.z -= geometry.inward.z * placement.openingInset;
+    }
     this.#center = geometry.center;
 
     this.#inward = geometry.inward;
@@ -121,20 +134,21 @@ export class CastleDoor {
     this.#tangent = geometry.tangent;
 
 
-    this.#entity = modelLibrary.instantiate(CastleDoor.modelUrl);
+    const modelUrl = placement ? interiorDoorUrl : castleDoorsModelUrl;
+    this.#entity = modelLibrary.instantiate(modelUrl);
     this.#entity.name = `Castle ${door.side.toLowerCase()} doors`;
     // Preserve the oak and iron materials authored with the entrance model.
     this.#entity.setLocalPosition(
       this.#center.x,
-      this.#center.y,
+      this.#center.y + 0.025 * this.#height / DOOR_HEIGHT,
       this.#center.z,
     );
     this.#entity.setLocalEulerAngles(0, geometry.baseYaw, 0);
     if (placement) {
-      this.#entity.setLocalScale(this.#width / 2, this.#height / DOOR_HEIGHT, 1);
+      this.#entity.setLocalScale(this.#width / 2, this.#height / DOOR_HEIGHT, this.#width / 2);
     }
     const animationTrack = modelLibrary
-      .getAnimationTracks(CastleDoor.modelUrl, [
+      .getAnimationTracks(modelUrl, [
         CASTLE_DOOR_ANIMATION.OPEN,
       ])
       .get(CASTLE_DOOR_ANIMATION.OPEN);
@@ -152,6 +166,8 @@ export class CastleDoor {
     this.#animationLayer.play(CASTLE_DOOR_ANIMATION.OPEN);
     this.#entity.anim.speed = 0;
     this.#syncAnimation();
+    this.#collision = createCastleDoorCollision(pc, this.#entity);
+
   }
 
   get entity() {
@@ -245,11 +261,12 @@ export class CastleDoor {
     );
     const alignedWithDoor = lateralDistance <= this.#width / 2 + 0.8;
 
-    if (insideDistance > CLOSE_INSIDE_DISTANCE) {
+    if (!this.#upperFloor && insideDistance > CLOSE_INSIDE_DISTANCE) {
       this.#targetOpen = false;
     } else {
       this.#targetOpen =
-        alignedWithDoor && Math.abs(insideDistance) <= OPEN_DISTANCE;
+        // Leave time for a full leaf to swing clear before a running visitor reaches it.
+        alignedWithDoor && Math.abs(insideDistance) <= Math.max(OPEN_DISTANCE, this.#width + 1.3);
     }
   }
 
@@ -281,48 +298,17 @@ export class CastleDoor {
   intersectsFootprint(x, z, radius) {
     // Ground navigation must not inherit a bedroom door several metres above it.
     if (this.#elevated) return false;
-    if (this.#openAmount >= PASSABLE_OPEN_AMOUNT) {
-      return false;
-    }
-    const deltaX = x - this.#center.x;
-    const deltaZ = z - this.#center.z;
-    const normalDistance = Math.abs(
-      deltaX * this.#inward.x + deltaZ * this.#inward.z,
-    );
-    const lateralDistance = Math.abs(
-      deltaX * this.#tangent.x + deltaZ * this.#tangent.z,
-    );
-    return (
-      normalDistance <= DOOR_THICKNESS / 2 + radius &&
-      lateralDistance <= this.#width / 2 + radius
-    );
+    return this.#collision.blocksAt(x, this.#center.y + 0.4, z, radius);
   }
 
   /**
-   *
    * @param {number} x
    * @param {number} y
    * @param {number} z
    * @param {number} radius
    */
   blocksCameraAt(x, y, z, radius = 0) {
-    if (this.#openAmount >= PASSABLE_OPEN_AMOUNT) {
-      return false;
-    }
-    const deltaX = x - this.#center.x;
-    const deltaZ = z - this.#center.z;
-    const normalDistance = Math.abs(
-      deltaX * this.#inward.x + deltaZ * this.#inward.z,
-    );
-    const lateralDistance = Math.abs(
-      deltaX * this.#tangent.x + deltaZ * this.#tangent.z,
-    );
-    return (
-      y >= this.#center.y - radius &&
-      y <= this.#center.y + this.#height + radius &&
-      normalDistance <= DOOR_THICKNESS / 2 + radius &&
-      lateralDistance <= this.#width / 2 + radius
-    );
+    return this.#collision.blocksAt(x, y, z, radius);
   }
 
   destroy() {
@@ -346,7 +332,7 @@ export class CastleDoor {
         },
         inward: { x: 1, z: 0 },
         tangent: { x: 0, z: 1 },
-        baseYaw: -90,
+        baseYaw: 90,
       },
       EAST: {
         center: {
@@ -376,7 +362,7 @@ export class CastleDoor {
         },
         inward: { x: 0, z: -1 },
         tangent: { x: 1, z: 0 },
-        baseYaw: 0,
+        baseYaw: 180,
       },
     };
     return geometryBySide[door.side];
@@ -391,3 +377,4 @@ export class CastleDoor {
     return this.#targetOpen || this.#manualOpenRemaining > 0;
   }
 }
+

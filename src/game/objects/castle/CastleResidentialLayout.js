@@ -1,3 +1,5 @@
+import { spiralStairRise } from "../shared/SpiralStairCollision.js";
+import { createCastlePlannedFloorAreas } from "./CastlePlannedFloorAreas.js";
 import { createCastleInteriorFloorAreas } from "./CastleInteriorFloorAreas.js";
 /**
  * @typedef {{x: number, y: number, z: number}} ResidentialPoint
@@ -43,7 +45,7 @@ export class CastleResidentialLayout {
    */
   #reservations = [];
   /**
-   * @type {{center: ResidentialPoint, radius: number, innerRadius: number, rise: number, steps: number, turns: number, treads: ResidentialPoint[], yaw: number}}
+   * @type {{center: ResidentialPoint, radius: number, innerRadius: number, rise: number, steps: number, turns: number, treads: ResidentialPoint[], yaw: number, landingProfile?: boolean}}
    */
   #stairs;
   /**
@@ -67,6 +69,10 @@ export class CastleResidentialLayout {
    * @param {import("../../GameContracts.js").CastleBuildPlan} buildPlan
    */
   constructor(buildPlan) {
+    if (buildPlan.metadata.runtime.residential?.version === 2) {
+      this.#loadPlannedRooms(buildPlan);
+      return;
+    }
     const { position, doors } = buildPlan.input;
     const door = doors[0];
     const runtime = buildPlan.metadata.runtime;
@@ -369,6 +375,7 @@ export class CastleResidentialLayout {
     const opening = plan.metadata.runtime.audienceOpening;
     const middle = opening ? (opening.start + opening.end - 1) / 2 : 0;
     for (const tower of plan.structure?.towers ?? []) {
+      if (plan.layout.roomPlan?.version === 2) continue;
       const centerX = lateralSign * (tower.v + (tower.span - 1) / 2 - middle) * blockSize;
       for (const flank of [-1, 1]) {
         const x = centerX + flank * (tower.span * blockSize / 2 + 0.1);
@@ -383,6 +390,53 @@ export class CastleResidentialLayout {
       }
     }
     this.#buttressFootings = plan.metadata.runtime.residential?.buttressFootings ?? [];
+  }
+
+  /**
+   * Loads the two-pass generator output without inventing rooms or furniture.
+   * @param {import("../../GameContracts.js").CastleBuildPlan} buildPlan
+   */
+  #loadPlannedRooms(buildPlan) {
+    const plan = buildPlan.metadata.runtime.residential;
+    this.#origin = plan.origin;
+    this.#yaw = plan.origin.yaw;
+    this.#rooms = plan.rooms;
+    this.#walkableAreas = createCastlePlannedFloorAreas(buildPlan);
+    this.#placements = plan.furniture.map(/**
+     *
+     * @param {{role:string,x:number,z:number,scale:number,floorY:number}} item
+     */
+    (item) => ({ role: item.role,
+      position: this.toWorld(item.x, item.z, item.floorY - this.#origin.y),
+      scale: { x: item.scale, y: item.scale, z: item.scale }, yaw: this.#yaw }));
+    this.#reservations = Object.entries(plan.reservations).map(/**
+     *
+     * @param {[string, {minX:number,maxX:number,minZ:number,maxZ:number,minY:number,maxY:number}]} options
+     * @param {string} options."0"
+     * @param {{minX:number,maxX:number,minZ:number,maxZ:number,minY:number,maxY:number}} options."1"
+     */
+    ([role, bounds]) => ({ role, ...bounds }));
+    if (plan.stair) {
+      const yaw = this.#yaw;
+      const steps = 24;
+      const turns = 1.5;
+      const radius = plan.stair.radius;
+      const local = this.toLocal(plan.stair.x, plan.stair.z);
+      const stairYaw = local.x < 0 ? yaw + 180 : yaw;
+      const treads = [];
+      for (let step = 1; step <= steps; step++) {
+        const angle = Math.PI / 2 - stairYaw * Math.PI / 180 - (step - 0.5) / steps * turns * Math.PI * 2;
+        treads.push({ x: plan.stair.x + Math.cos(angle) * radius * 0.335 / 0.65,
+          y: this.#origin.y + plan.rise * spiralStairRise(step / steps, true),
+          z: plan.stair.z + Math.sin(angle) * radius * 0.335 / 0.65 });
+      }
+      this.#stairs = { center: plan.stair, radius, innerRadius: radius * 0.08 / 0.65,
+        rise: plan.rise, steps, turns, landingProfile: true, yaw: stairYaw, treads };
+    } else { this.#stairs = null; }
+    this.#basement = plan.basement ? { ...plan.basement,
+      access: plan.serviceStair, locked: true } : null;
+    this.#serviceDoor = plan.serviceStair;
+    this.#planButtresses(buildPlan);
   }
 
   get origin() { return this.#origin; }
@@ -401,9 +455,10 @@ export class CastleResidentialLayout {
    * @returns {{center: ResidentialPoint, radius: number, rise: number}}
    */
   get serviceStair() {
+    if (!this.#basement) { return null; }
     return {
       center: { x: this.#basement.access.x, y: this.#basement.floorY, z: this.#basement.access.z },
-      radius: 0.45,
+      radius: this.#basement.access.radius ?? 0.45,
       rise: this.#origin.y - this.#basement.floorY,
       yaw: this.#yaw + (this.toLocal(this.#basement.access.x, this.#basement.access.z).x < (this.#rooms.work.minX + this.#rooms.work.maxX) / 2 ? 180 : 0),
     };
@@ -414,6 +469,7 @@ export class CastleResidentialLayout {
    * @returns {ResidentialPlacement[]}
    */
   get basementShell() {
+    if (!this.#basement) { return []; }
     const bedroom = this.#rooms.servantBedroom;
     const storage = this.#rooms.storage;
     const width = storage.maxX - bedroom.minX;
@@ -470,29 +526,36 @@ export class CastleResidentialLayout {
 
   /**
    * Select only a tread reachable from the caller's current level.
+   * @param {import("./TerraceActor.js").TerraceActor|null} actor
    * @param {number} x
    * @param {number} z
    * @param {number} currentElevation
    */
-  stairSurfaceHeightAt(x, z, currentElevation) {
-    const stair = this.#stairs;
-    const dx = x - stair.center.x;
-    const dz = z - stair.center.z;
-    const distance = Math.hypot(dx, dz);
-    if (distance < stair.innerRadius || distance > stair.radius * 0.59 / 0.65 || !Number.isFinite(currentElevation)) { return null; }
-    let best = null;
-    let difference = Number.POSITIVE_INFINITY;
-    const totalAngle = stair.turns * Math.PI * 2;
-    const stepAngle = totalAngle / stair.steps;
-    const startAngle = Math.PI / 2 - stair.yaw * Math.PI / 180;
-    const wrapped = ((startAngle - Math.atan2(dz, dx)) % (Math.PI * 2) + Math.PI * 2) % (Math.PI * 2);
-    for (let angle = wrapped; angle <= totalAngle; angle += Math.PI * 2) {
-      const step = Math.min(stair.steps, Math.max(1, Math.ceil(angle / stepAngle)));
-      const height = this.#origin.y + stair.rise * step / stair.steps;
-      const heightDifference = Math.abs(height - currentElevation);
-      if (heightDifference <= 0.24 && heightDifference < difference) { best = height; difference = heightDifference; }
+  stairSurfaceHeightAt(x, z, currentElevation, actor = null) {
+    const service = this.canEnterBasement(actor) ? this.serviceStair : null;
+    const stairs = [this.#stairs, service ? { ...service, innerRadius: service.radius * 0.08 / 0.65, steps: 24, turns: 1.5 } : null];
+    let result = null;
+    for (const stair of stairs) {
+      if (!stair) { continue; }
+      const dx = x - stair.center.x;
+      const dz = z - stair.center.z;
+      const distance = Math.hypot(dx, dz);
+      if (distance < stair.innerRadius || distance > stair.radius * 0.59 / 0.65 || !Number.isFinite(currentElevation)) { continue; }
+      let best = null;
+      let difference = Number.POSITIVE_INFINITY;
+      const totalAngle = stair.turns * Math.PI * 2;
+      const stepAngle = totalAngle / stair.steps;
+      const startAngle = Math.PI / 2 - stair.yaw * Math.PI / 180;
+      const wrapped = ((startAngle - Math.atan2(dz, dx)) % (Math.PI * 2) + Math.PI * 2) % (Math.PI * 2);
+      for (let angle = wrapped; angle <= totalAngle; angle += Math.PI * 2) {
+        const step = Math.min(stair.steps, Math.max(1, Math.ceil(angle / stepAngle)));
+        const height = stair.center.y + stair.rise * spiralStairRise(step / stair.steps, stair.landingProfile);
+        const heightDifference = Math.abs(height - currentElevation);
+        if (heightDifference <= 0.32 && heightDifference < difference) { best = height; difference = heightDifference; }
+      }
+      if (best !== null && (result === null || Math.abs(best - currentElevation) < Math.abs(result - currentElevation))) { result = best; }
     }
-    return best;
+    return result;
   }
 
   /**
@@ -502,13 +565,15 @@ export class CastleResidentialLayout {
    * @param {import("./TerraceActor.js").TerraceActor|null} actor
    */
   surfaceHeightAt(x, z, currentElevation, actor = null) {
-    const stairHeight = this.stairSurfaceHeightAt(x, z, currentElevation);
+    const stairHeight = this.stairSurfaceHeightAt(x, z, currentElevation, actor);
     if (stairHeight !== null) { return stairHeight; }
     const local = this.toLocal(x, z);
     for (const area of this.#walkableAreas) {
+      if (area.floorY < this.#origin.y && !this.canEnterBasement(actor)) { continue; }
       if (Math.abs(area.floorY - currentElevation) <= 0.24 && local.x >= area.minX && local.x <= area.maxX && local.z >= area.minZ && local.z <= area.maxZ) return area.floorY;
     }
     for (const [name, room] of Object.entries(this.#rooms)) {
+      if (!room || (room.purpose === "upper hall" || room.purpose === "upper terrace") || room.purpose === "unused" || (room.floorY < this.#origin.y && !this.canEnterBasement(actor))) { continue; }
       if (["servantBedroom", "storage"].includes(name) && !this.canEnterBasement(actor)) { continue; }
       if (Math.abs(room.floorY - currentElevation) <= 0.24 && local.x >= room.minX && local.x <= room.maxX && local.z >= room.minZ && local.z <= room.maxZ) { return room.floorY; }
     }
@@ -585,3 +650,4 @@ export const createCastleButtressFootings = (plan, mapData) => {
   }
   return footings;
 };
+

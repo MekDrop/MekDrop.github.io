@@ -9,6 +9,24 @@ export { isCastleUpperFloorRoomVoid } from "../../generator/castle/CastleGeometr
 
 export class Castle extends CastleEntityBuilder {
   /**
+   * Smooth the fine masonry pattern as the first-person camera moves.
+   * @param {typeof import("playcanvas")} pc
+   * @param {string} name
+   * @param {import("playcanvas").Texture} texture
+   */
+  static configureTexture(pc, name, texture) {
+    if (name === "castleStone") texture.magFilter = pc.FILTER_LINEAR;
+  }
+  /**
+   * Smooth the fine masonry pattern as the first-person camera moves.
+   * @param {typeof import("playcanvas")} pc
+   * @param {string} name
+   * @param {import("playcanvas").Texture} texture
+   */
+  static configureTexture(pc, name, texture) {
+    if (name === "castleStone") texture.magFilter = pc.FILTER_LINEAR;
+  }
+  /**
    * @param {import("../../GameContracts.js").GameMapData} mapData
    */
   static prepareMap(mapData) {

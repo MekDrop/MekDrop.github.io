@@ -38,11 +38,13 @@ export class CastleWindows {
           }
         }
       }
-      visual.setLocalPosition(window.position.x, window.position.y, window.position.z);
-      visual.setLocalEulerAngles(0, window.yaw, 0);
-      visual.setLocalScale(window.width, window.height, window.depth);
-      this.#entity.addChild(visual);
+      // The reveal slightly overlaps the cut edge, but never shares its plane.
       const angle = window.yaw * Math.PI / 180;
+      visual.setLocalPosition(window.position.x + Math.sin(angle) * 0.004,
+        window.position.y + window.height * 0.01, window.position.z + Math.cos(angle) * 0.004);
+      visual.setLocalEulerAngles(0, window.yaw, 0);
+      visual.setLocalScale(window.width * 0.98, window.height * 0.98, window.depth);
+      this.#entity.addChild(visual);
       const glow = new pc.Entity("Castle amber window glow");
       glow.setLocalPosition(window.position.x - Math.sin(angle) * window.depth * 0.2,
         window.position.y + window.height / 2, window.position.z - Math.cos(angle) * window.depth * 0.2);

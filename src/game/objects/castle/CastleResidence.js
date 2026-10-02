@@ -1,3 +1,4 @@
+import { createSpiralStairCollision, spiralStairRise } from "../shared/SpiralStairCollision.js";
 import buttressUrl from "../../models/castle/residential/corner-buttress.glb?url";
 import chimneyUrl from "../../models/castle/residential/chimney.glb?url";
 import crestUrl from "../../models/castle/residential/crown-crest.glb?url";
@@ -23,6 +24,7 @@ const FLOOR_STEP_CLEARANCE = 0.32;
 
 const MODEL_URLS = {
   workDesk: deskUrl,
+  kitchenTable: deskUrl,
   royalBed: royalBedUrl,
   wardrobe: wardrobeUrl,
   readingChair: chairUrl,
@@ -54,6 +56,14 @@ export class CastleResidence {
    * @type {Array<import("playcanvas").Entity>}
    */
   #stairPhysicsGraphs = [];
+  /**
+   * @type {import("playcanvas").Mesh[]}
+   */
+  #stairProfileMeshes = [];
+  /**
+   * @type {import("playcanvas").MeshInstance[]}
+   */
+  #stairSupportInstances = [];
 
   /**
    * @returns {string[]}
@@ -76,6 +86,7 @@ export class CastleResidence {
     this.#entity.setLocalPosition(origin.x, origin.y, origin.z);
     this.#entity.setLocalEulerAngles(0, yaw, 0);
     for (const placement of this.#layout.placements) {
+      if (placement.role === "bookshelf") { continue; }
       const visual = modelLibrary.instantiate(MODEL_URLS[placement.role]);
       visual.name = `Castle ${placement.role}`;
       const local = this.#layout.toLocal(placement.position.x, placement.position.z);
@@ -85,11 +96,19 @@ export class CastleResidence {
       this.#entity.addChild(visual);
       // Furniture is solid at its occupied level, rather than an infinite column.
       const dimensions = {
-        workDesk: [0.9, 0.73, 0.55], royalBed: [1.2, 0.75, 1.8],
+        workDesk: [0.9, 0.73, 0.55], kitchenTable: [0.9, 0.73, 0.55], royalBed: [1.2, 0.75, 1.8],
         wardrobe: [0.65, 1.15, 0.46], readingChair: [0.75, 1.665, 0.735],
         servantBed: [0.8, 0.675, 1.6], storageShelf: [0.8, 1, 0.3],
       }[placement.role];
       this.#solids.push({ x: local.x, y: placement.position.y - origin.y + dimensions[1] * placement.scale.y / 2, z: local.z, width: dimensions[0] * placement.scale.x, height: dimensions[1] * placement.scale.y, depth: dimensions[2] * placement.scale.z });
+    }
+    if (buildPlan.metadata.runtime.residential?.version === 2) {
+      this.#buildExterior(buildPlan, modelLibrary, pc);
+      this.#buildPlannedFloors(buildPlan, modelLibrary, pc);
+      if (this.#layout.stairs) { this.#buildStair(pc, modelLibrary, this.#layout.stairs, "Castle upper staircase", buildPlan.metadata.runtime.residential.shaft); }
+      if (this.#layout.serviceStair) { this.#buildStair(pc, modelLibrary, this.#layout.serviceStair, "Castle basement staircase"); }
+      addGeneratedVoxelPhysics({ pc, parent: this.#entity, name: "Castle rooms", voxels: this.#solids, friction: 0.6 });
+      return;
     }
     this.#buildExterior(buildPlan, modelLibrary, pc);
     this.#buildBasement(pc, modelLibrary);
@@ -98,6 +117,71 @@ export class CastleResidence {
     this.#buildStair(pc, modelLibrary, this.#layout.serviceStair, "Servant basement spiral staircase");
     this.#addUpperFloorSupport(modelLibrary, pc, gardenTexture);
     addGeneratedVoxelPhysics({ pc, parent: this.#entity, name: "Castle private room", voxels: this.#solids, friction: 0.6 });
+  }
+
+  /**
+   * Floors and light use the same planned bounds as walls and furniture.
+   * @param {import("../../GameContracts.js").CastleBuildPlan} buildPlan
+   * @param {import("../../models/GameModelLibrary.js").GameModelLibrary} models
+   * @param {typeof import("playcanvas")} pc
+   */
+  #buildPlannedFloors(buildPlan, models, pc) {
+    const plan = buildPlan.metadata.runtime.residential;
+    for (const area of this.#layout.walkableAreas) {
+      const rooms = plan.placedRooms.filter(/**
+       * @param {import("../../generator/castle/rooms/AbstractCastleRoomGenerator.js").PlannedCastleRoom} room
+       */ (room) => room.id !== "leisure" && area.floorY >= room.floorY && area.floorY < room.floorY + room.height);
+      let stonePieces = [[area.minX, area.maxX, area.minZ, area.maxZ]];
+      const woodPieces = [];
+      for (const room of rooms) {
+        const intersection = [Math.max(area.minX, room.minX), Math.min(area.maxX, room.maxX),
+          Math.max(area.minZ, room.minZ), Math.min(area.maxZ, room.maxZ)];
+        stonePieces = subtractFloorArea(stonePieces, room);
+        // The audience-room object owns its ground-floor timber.
+        if (room.id !== "throneRoom" || area.floorY !== plan.origin.y) { woodPieces.push(intersection); }
+      }
+      for (const [pieces, timber] of [[stonePieces, false], [woodPieces, true]]) {
+        // The generated brick shell already owns exposed upper surfaces.
+        if (!timber && area.floorY > plan.origin.y) { continue; }
+        for (const [minX, maxX, minZ, maxZ] of pieces) {
+          if (maxX <= minX || maxZ <= minZ) { continue; }
+          // Door thresholds already have masonry and exterior stair support.
+          // Keep their support record without adding another visible slab.
+          const threshold = area.id.endsWith("Threshold");
+          const wood = timber && !threshold;
+          const panel = models.instantiate(wood ? floorUrl : stoneUrl);
+          const x = (minX + maxX) / 2;
+          const z = (minZ + maxZ) / 2;
+          const y = area.floorY - plan.origin.y;
+          if (panel) {
+            panel.name = `Castle ${area.id} ${wood ? "wood" : "stone"} floor`;
+            // Keep finishes clear of terrain and the final stone tread.
+            panel.setLocalPosition(x, y - (wood ? 0.06 : 0.25) + 0.004, z);
+            panel.setLocalScale(maxX - minX, wood ? 1 : 0.25, maxZ - minZ);
+            this.#entity.addChild(panel);
+          }
+          this.#solids.push({ x, y: y - 0.125, z, width: maxX - minX,
+            height: 0.25, depth: maxZ - minZ, floorSupport: true });
+        }
+      }
+    }
+
+    for (const item of plan.furniture) {
+      if (item.role !== "bookshelf") { continue; }
+      this.#solids.push(Bookshelf.addVisual(models, this.#entity, {
+        id: `castle-${item.roomId}-books`, object: Bookshelf.name,
+        from: { x: item.x, y: item.floorY - plan.origin.y, z: item.z - item.depth * item.scale / 2 },
+        to: { x: item.x, y: item.floorY - plan.origin.y, z: item.z + item.depth * item.scale / 2 },
+        height: 1.6, facing: item.x < 0 ? 1 : -1,
+      }));
+    }
+    for (const room of plan.placedRooms) {
+      const light = new pc.Entity(`Castle ${room.id} light`);
+      light.setLocalPosition((room.minX + room.maxX) / 2, room.floorY - plan.origin.y + 1.7, (room.minZ + room.maxZ) / 2);
+      light.addComponent("light", { type: "omni", color: new pc.Color(1, 0.72, 0.4),
+        intensity: 1.2, range: 4, castShadows: false });
+      this.#entity.addChild(light);
+    }
   }
 
   get entity() { return this.#entity; }
@@ -133,7 +217,7 @@ export class CastleResidence {
     // Only an actor fully below the basement ceiling needs the private-room guard.
     // Feet can sit below the work floor while crossing its entrance threshold.
     const basementCeiling = this.#layout.origin.y - 0.25;
-    if (elevation + 0.8 <= basementCeiling) {
+    if (this.#layout.basement && elevation + 0.8 <= basementCeiling) {
       const bed = this.#layout.rooms.servantBedroom;
       const storage = this.#layout.rooms.storage;
       const room = { ...bed, maxX: storage.maxX };
@@ -169,19 +253,32 @@ export class CastleResidence {
     this.#entity.destroy();
     for (const graph of this.#stairPhysicsGraphs) graph.destroy();
     this.#stairPhysicsGraphs = [];
+    for (const instance of this.#stairSupportInstances) instance.destroy();
+    this.#stairSupportInstances = [];
+    for (const mesh of this.#stairProfileMeshes) mesh.destroy();
+    this.#stairProfileMeshes = [];
     this.#solids = [];
   }
 
   /**
    * @param {typeof import("playcanvas")} pc
    * @param {import("../../models/GameModelLibrary.js").GameModelLibrary} modelLibrary
-   * @param {{center: {x: number, y: number, z: number}, radius: number, rise: number, yaw?: number}} definition
+   * @param {{center: {x: number, y: number, z: number}, radius: number, rise: number, yaw?: number, landingProfile?: boolean}} definition
    * @param {string} name
+   * @param {{minZ:number,maxZ:number}|null} shaft
    */
-  #buildStair(pc, modelLibrary, definition, name) {
+  #buildStair(pc, modelLibrary, definition, name, shaft = null) {
     const root = new pc.Entity(`${name} physics`);
     const stair = modelLibrary.instantiate(stairUrl);
     stair.name = name;
+    const landingProfile = definition.landingProfile ?? false;
+    if (landingProfile) this.#stairProfileMeshes.push(...reshapeSpiralModel(pc, stair, shaft, definition.radius));
+    const entranceRails = new Set(["Handrail", "Handrail.001", "Handrail.022", "Handrail.023",
+      "Rail post", "Rail post.001", "Rail post.022", "Rail post.023",
+      "Rail tread connection 00", "Rail tread connection 01", "Rail tread connection 22", "Rail tread connection 23"]);
+    for (const render of stair.findComponents("render")) {
+      if (entranceRails.has(render.entity.name)) { render.enabled = false; }
+    }
     const local = this.#layout.toLocal(definition.center.x, definition.center.z);
     root.setLocalPosition(local.x, definition.center.y - this.#layout.origin.y, local.z);
     root.setLocalEulerAngles(0, (definition.yaw ?? this.#layout.yaw) - this.#layout.yaw, 0);
@@ -193,24 +290,30 @@ export class CastleResidence {
     // graph at the origin so the rigid body applies the room placement once.
     // Bake dimensions into a separate mesh. Ammo caches triangle data by mesh ID,
     // so differently scaled main and servant stairs must not share that data.
-    const collisionGraph = modelLibrary.instantiateMerged(stairUrl);
+    const collisionGraph = modelLibrary.instantiate(stairUrl);
+    if (landingProfile) this.#stairProfileMeshes.push(...reshapeSpiralModel(pc, collisionGraph, shaft, definition.radius));
     model.graph = collisionGraph;
     model.meshInstances = collisionGraph.findComponents("render").flatMap(
       /**
        * @param {import("playcanvas").RenderComponent} render
        */
-      (render) => render.meshInstances,
+      (render) => entranceRails.has(render.entity.name) || render.entity.name.startsWith("Stone tread") ? [] : render.meshInstances,
     );
+    const rootInverse = new pc.Mat4().copy(collisionGraph.getWorldTransform()).invert();
+    const point = new pc.Vec3();
     for (const instance of model.meshInstances) {
       const source = instance.mesh;
       const positions = [];
       const indices = [];
       source.getPositions(positions);
       source.getIndices(indices);
+      const transform = new pc.Mat4().mul2(rootInverse, instance.node.getWorldTransform());
       for (let index = 0; index < positions.length; index += 3) {
-        positions[index] *= definition.radius / 0.65;
-        positions[index + 1] *= definition.rise;
-        positions[index + 2] *= definition.radius / 0.65;
+        point.set(positions[index], positions[index + 1], positions[index + 2]);
+        transform.transformPoint(point, point);
+        positions[index] = point.x * definition.radius / 0.65;
+        positions[index + 1] = point.y * definition.rise;
+        positions[index + 2] = point.z * definition.radius / 0.65;
       }
       const mesh = new pc.Mesh(source.device);
       mesh.setPositions(positions);
@@ -218,6 +321,19 @@ export class CastleResidence {
       mesh.update(pc.PRIMITIVE_TRIANGLES);
       instance.mesh = mesh;
     }
+    for (const instance of model.meshInstances) {
+      instance.node.setLocalPosition(0, 0, 0);
+      instance.node.setLocalEulerAngles(0, 0, 0);
+      instance.node.setLocalScale(1, 1, 1);
+    }
+    const support = createSpiralStairCollision(pc, {
+      device: model.meshInstances[0].mesh.device, material: model.meshInstances[0].material,
+      innerRadius: definition.radius * 0.08 / 0.65, outerRadius: definition.radius * 0.59 / 0.65,
+      rise: definition.rise, turns: 1.5, steps: 24, landingProfile,
+    });
+    this.#stairSupportInstances.push(support);
+    collisionGraph.addChild(support.node);
+    model.meshInstances.push(support);
     root.addComponent("collision", { type: "mesh", model });
     root.addComponent("rigidbody", { type: "static", friction: 0.6, restitution: 0 });
     this.#stairPhysicsGraphs.push(collisionGraph);
@@ -336,6 +452,23 @@ export class CastleResidence {
       this.#solids.push({ x: local.x, y, z: local.z, width: footing.width, height, depth: footing.depth });
     }
     const residential = buildPlan.metadata.runtime.residential;
+    if (residential?.version === 2) {
+      const keep = residential.placedRooms.find(/**
+       *
+       * @param {import("../../generator/castle/rooms/AbstractCastleRoomGenerator.js").PlannedCastleRoom} room
+       */
+      (room) => room.stairHost);
+      if (keep) {
+        const left = (keep.minX + keep.maxX) / 2 < 0;
+        const crest = models.instantiate(crestUrl);
+        crest.name = "Castle keep royal crest";
+        crest.setLocalPosition(left ? keep.minX - 0.35 : keep.maxX + 0.35,
+          keep.floorY - origin.y + residential.rise + 1, (keep.minZ + keep.maxZ) / 2);
+        crest.setLocalEulerAngles(0, left ? -90 : 90, 0);
+        crest.setLocalScale(0.8, 0.8, 0.8);
+        this.#entity.addChild(crest);
+      }
+    }
     for (const chimney of residential?.chimneys ?? [residential?.chimney].filter(Boolean)) {
       const visual = models.instantiate(chimneyUrl);
       visual.name = "Castle masonry chimney";
@@ -574,3 +707,56 @@ function subtractFloorArea(rectangles, area) {
       [left, right, minZ, front], [left, right, rear, maxZ]];
   });
 }
+
+/**
+ * Lower the first turn to keep headroom beneath the solid exit-side landing.
+ * Bake the same profile into private visual and collision meshes; leave column
+ * masonry unchanged and retain the railing's authored height above each tread.
+ * @param {typeof import("playcanvas")} pc
+ * @param {import("playcanvas").Entity} graph
+ * @param {{minZ:number,maxZ:number}} shaft
+ * @param {number} radius
+ * @returns {import("playcanvas").Mesh[]}
+ */
+function reshapeSpiralModel(pc, graph, shaft, radius) {
+  const meshes = [];
+  const inverse = new pc.Mat4().copy(graph.getWorldTransform()).invert();
+  const point = new pc.Vec3();
+  for (const render of graph.findComponents("render")) {
+    const name = render.entity.name;
+    if (!/^(Stone tread|Handrail|Rail post|Rail tread connection)/.test(name)) continue;
+    const suffix = name.match(/(?:\.| )(\d+)$/);
+    const step = Number(suffix?.[1] ?? 0) + 1;
+    const base = step / 24;
+    for (const instance of render.meshInstances) {
+      const positions = [], indices = [], uvs = [];
+      const source = instance.mesh;
+      source.getPositions(positions); source.getIndices(indices); source.getUvs(0, uvs);
+      const transform = new pc.Mat4().mul2(inverse, instance.node.getWorldTransform());
+      for (let index = 0; index < positions.length; index += 3) {
+        const terminalCap = name === "Handrail.021" && positions[index + 1] > 0;
+        point.set(positions[index], positions[index + 1], positions[index + 2]);
+        transform.transformPoint(point, point);
+        // Stretch the last retained rail into the rear masonry, on both meshes.
+        if (terminalCap) point.z -= (shaft.maxZ - shaft.minZ) / 2 * 0.65 / radius - 0.62 / Math.SQRT2;
+        // Handrails follow the varying slope; posts and flat treads translate.
+        const progress = name.startsWith("Handrail") ? Math.max(0, Math.min(1, point.y - 0.22)) : base;
+        positions[index] = point.x;
+        positions[index + 1] = point.y + spiralStairRise(progress, true) - progress;
+        positions[index + 2] = point.z;
+      }
+      const mesh = new pc.Mesh(source.device);
+      mesh.setPositions(positions); mesh.setIndices(indices);
+      mesh.setNormals(pc.calculateNormals(positions, indices));
+      meshes.push(mesh);
+      if (uvs.length) mesh.setUvs(0, uvs);
+      mesh.update(pc.PRIMITIVE_TRIANGLES);
+      instance.mesh = mesh;
+    }
+    render.entity.setLocalPosition(0, 0, 0);
+    render.entity.setLocalEulerAngles(0, 0, 0);
+    render.entity.setLocalScale(1, 1, 1);
+  }
+  return meshes;
+}
+

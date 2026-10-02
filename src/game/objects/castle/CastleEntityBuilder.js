@@ -1,4 +1,6 @@
-import stoneBlockUrl from "../../models/castle/residential/stone-block.glb?url";
+import { createCastleMasonryVoxels } from "./CastleMasonryPhysics.js";
+import { addGeneratedVoxelPhysics } from "../shared/GeneratedVoxelPhysics.js";
+import stoneBlockUrl from "../../models/castle/residential/masonry-block.glb?url";
 import { DynamicRenderBatch } from "../../rendering/DynamicRenderBatch.js";
 import { CastleBanner } from "./CastleBanner.js";
 import { CastleAudienceRoom } from "./CastleAudienceRoom.js";
@@ -46,7 +48,7 @@ export class CastleEntityBuilder {
       ...CastleFire.modelUrls,
       ...CastleBanner.modelUrls,
       ...CastleFlag.modelUrls,
-      CastleDoor.modelUrl,
+      ...CastleDoor.modelUrls,
       CastleDoorArch.modelUrl,
       CastleStairs.modelUrl,
       ...CastleAudienceRoom.modelUrls,
@@ -456,7 +458,22 @@ export class CastleEntityBuilder {
   }
 
   /**
-   *
+   * Spiral treads use Ammo contact support rather than the flat-floor boot-edge guard.
+   * @param {number} x
+   * @param {number} z
+   * @returns {number|null}
+   */
+  physicsSurfaceHeightAt(x, z) {
+    // Planned room floors and masonry have their own engine bodies. Sampling them
+    // into the terrain would freeze an extra floor at the hero's current storey.
+    if (this.#buildPlan.metadata.runtime.residential?.version === 2) {
+      return this.#stairs?.surfaceHeightAt(x, z) ?? this.#serviceStairs?.surfaceHeightAt(x, z) ?? null;
+    }
+    if (this.#residence?.layout.stairSurfaceHeightAt(x, z, this.#heroElevation) != null) { return null; }
+    return this.surfaceHeightAt(x, z);
+  }
+
+  /**
    * @param {number} x
    * @param {number} z
    */
@@ -712,10 +729,9 @@ export class CastleEntityBuilder {
       if (definition.texture === "castleStone") {
         material.diffuseVertexColor = false;
         material.diffuseMap = this.#stoneTexture;
-        // The eye camera can reach a block's interior at wall contact. Keep
-        // its exit faces solid instead of exposing the scene through backfaces.
-        material.cull = this.#pc.CULLFACE_NONE;
-        material.twoSidedLighting = true;
+        // Closed masonry has outward faces on both sides of each wall.
+        // Rendering its hidden reverse faces causes coincident internal seams.
+        material.cull = this.#pc.CULLFACE_BACK;
       } else if (definition.texture === "castleDoor") {
         material.diffuseMap = this.#doorTexture;
         material.cull = this.#pc.CULLFACE_NONE;
@@ -904,6 +920,9 @@ export class CastleEntityBuilder {
       this.#roofs.add(roof);
     }
 
+    // Solid masonry owns engine contact at every storey, including window glazing.
+    addGeneratedVoxelPhysics({ pc: this.#pc, parent: this.#entity, name: "Castle masonry",
+      voxels: createCastleMasonryVoxels(this.#cameraCollisionBlocks), friction: 0 });
     this.#createInstancedBatches(batches);
     this.#createAnimatedDoors();
     if (metadata.runtime.terrace) {
@@ -979,15 +998,7 @@ export class CastleEntityBuilder {
       this.#animatedDoors.push(door);
     }
     const residential = this.#buildPlan.metadata.runtime.residential;
-    for (const upperDoor of [residential?.upperDoor, residential?.sideDoor, residential?.serviceDoor, ...(residential?.secondaryDoors ?? [])].filter(Boolean)) {
-      const arch = new CastleDoorArch({
-        castlePosition: this.#position,
-        door: { side: this.#doors[0].side, width: upperDoor.width },
-        modelLibrary: this.#modelLibrary,
-        placement: upperDoor,
-      });
-      this.#entity.addChild(arch.entity);
-      this.#doorArches.push(arch);
+    for (const upperDoor of [residential?.upperDoor, residential?.sideDoor, residential?.serviceDoor, ...(residential?.secondaryDoors ?? []), ...(this.#buildPlan.metadata.runtime.roomDoors ?? [])].filter(Boolean)) {
       const door = new CastleDoor({
         pc: this.#pc,
         castlePosition: this.#position,

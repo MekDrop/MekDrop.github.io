@@ -86,6 +86,7 @@ const dependencies = `
   const pc = globalThis.__castleAudienceTestPc;
   const authoredModelUrl = "stone-block";
   const floorModelUrl = "floor-panel";
+  const carpetModelUrl = "carpet-panel";
   const rugModelUrl = "rug";
   const lanternModelUrl = "wall-lantern";
   const SeatedRoyal = { modelUrls: [] };
@@ -335,7 +336,7 @@ it("uses the shared room plan and keeps the actual throne dais clear of furnitur
         assert.ok(dais.maxX <= zone.minX || dais.minX >= zone.maxX || dais.maxZ <= zone.minZ || dais.minZ >= zone.maxZ, `${style}/${side} throne overlaps ${zone.role}`);
       }
       assert.equal(room.entity.children.some((entity) => entity.name.includes("column")), false);
-      const aisle = shared.reservations.find((zone) => zone.role === "centralAisle");
+      const aisle = { minZ: work.minZ, maxZ: dais.minZ - 0.22 };
       for (let forward = aisle.minZ; forward < aisle.maxZ; forward += 0.2) {
         const point = shared.toWorld(0, forward);
         assert.equal(room.intersectsFootprint(point.x, point.z, 0.22), false, `${style}/${side} aisle`);
@@ -357,11 +358,15 @@ it("keeps all timber floor finishes behind occupied walls and leaves stone-only 
       const work = shared.rooms.work;
       for (const part of room.entity.children.filter((item) => item.name.includes("floor") || item.name === "Audience carpet runner")) {
         const center = shared.toLocal(part.position.x, part.position.z);
-        assert.ok(center.x - part.scale.x / 2 >= work.minX + 0.03 && center.x + part.scale.x / 2 <= work.maxX - 0.03,
+        assert.ok(center.x - part.scale.x / 2 >= work.minX - 1e-6 && center.x + part.scale.x / 2 <= work.maxX + 1e-6,
           `${style}/${side}/${part.name}: side finish remains behind masonry`);
-        assert.ok(center.z - part.scale.z / 2 >= work.minZ + 0.03 && center.z + part.scale.z / 2 <= work.maxZ - 0.03,
+        assert.ok(center.z - part.scale.z / 2 >= work.minZ - 1e-6 && center.z + part.scale.z / 2 <= work.maxZ + 1e-6,
           `${style}/${side}/${part.name}: finish stays inside work hall`);
       }
+      const floor = room.entity.children.find((part) => part.name === "Audience wooden floor");
+      const center = shared.toLocal(floor.position.x, floor.position.z);
+      assert.ok(Math.abs(center.x - floor.scale.x / 2 - work.minX) < 1e-6, "timber reaches the left wall");
+      assert.ok(Math.abs(center.x + floor.scale.x / 2 - work.maxX) < 1e-6, "timber reaches the right wall");
       room.destroy();
     }
   }
@@ -388,7 +393,7 @@ it("faces the royal and runner toward the primary entrance in every orientation"
   }
 });
 
-it("repeats the carpet motif at its pixel aspect across different hall lengths", () => {
+it("maps one complete carpet border across different hall lengths", () => {
   for (const availableDepth of [2.8, 4.1]) {
     const carpetTexture = { width: 512, height: 768 };
     const room = createRoom("NORTH", null, { carpetTexture, availableDepth });
@@ -396,8 +401,20 @@ it("repeats the carpet motif at its pixel aspect across different hall lengths",
     const material = runner.children[0].render.meshInstances[0].material;
     assert.equal(material.diffuseMap, carpetTexture);
     assert.equal(material.diffuseMapTiling.x, 1);
-    assert.ok(Math.abs(runner.scale.z / material.diffuseMapTiling.y / runner.scale.x - 768 / 512) < 0.000001);
-    assert.equal(carpetTexture.addressV, pc.ADDRESS_REPEAT);
+    assert.equal(material.diffuseMapTiling.y, 1);
+    assert.equal(carpetTexture.addressV, pc.ADDRESS_CLAMP_TO_EDGE);
     room.destroy();
+  }
+});
+it("keeps parquet seams clear of borders instead of drawing overlapping top faces", () => {
+  const room = createRoom("NORTH");
+  const borders = room.entity.children.filter((part) => part.name === "Audience floor border");
+  const seams = room.entity.children.filter((part) => part.name === "Audience floor plank seam");
+  assert.ok(seams.length > 0);
+  for (const seam of seams) {
+    for (const border of borders) {
+      assert.ok(Math.abs(seam.position.x - border.position.x) > (seam.scale.x + border.scale.x) / 2,
+        "coplanar seams and borders have no overlapping footprint");
+    }
   }
 });

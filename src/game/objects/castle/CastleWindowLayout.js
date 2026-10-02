@@ -23,6 +23,10 @@ export class CastleWindowLayout {
    */
   #masonry;
   /**
+   * @type {Map<string, Array<WindowBounds & {box:MasonryBox}>>}
+   */
+  #wallCells = new Map();
+  /**
    * @type {import("../../GameContracts.js").CastleBuildPlan}
    */
   #plan;
@@ -47,9 +51,34 @@ export class CastleWindowLayout {
        */
       (box) => ({ ...this.#localBounds(box), box }),
     );
+    for (const block of this.#masonry) {
+      for (const axis of ["X", "Z"]) {
+        const along = axis === "X" ? "Z" : "X";
+        for (let t = Math.floor(block[`min${along}`] * 4); t < Math.ceil(block[`max${along}`] * 4); t += 1) {
+          for (let y = Math.floor(block.minY * 4); y < Math.ceil(block.maxY * 4); y += 1) {
+            const key = `${axis}:${t}:${y}`;
+            const cells = this.#wallCells.get(key) ?? [];
+            cells.push(block);
+            this.#wallCells.set(key, cells);
+          }
+        }
+      }
+    }
     const residential = plan.metadata.runtime.residential;
     const upper = this.#rooms.rooms.bedroom;
     const ground = this.#rooms.rooms.work;
+    if (residential?.version === 2) {
+      this.#roomWindows({ ...residential.outerBounds, floorY: this.#rooms.origin.y }, "hall", this.#rooms.origin.y + residential.rise - 0.25);
+      if (residential.rooms.upperGallery) {
+        const gallery = residential.rooms.upperGallery;
+        this.#roomWindows(gallery, "slit", gallery.floorY + gallery.height);
+      }
+      for (const room of residential.placedRooms) {
+        if (!residential.rooms.upperGallery && room.level === 1) { this.#roomWindows(room, "room", room.floorY + 2.25); }
+      }
+      this.#towerWindows();
+      return;
+    }
     this.#roomWindows(ground, "hall", upper.floorY - 0.25);
     const upperCeiling = residential?.upperRoom?.height
       ? upper.floorY + residential.upperRoom.height
@@ -87,7 +116,7 @@ export class CastleWindowLayout {
    * @param {number} ceiling
    */
   #roomWindows(room, role, ceiling) {
-    const width = 0.5;
+    const width = role === "slit" ? 0.25 : 0.5;
     const sillHeight = ceiling - room.floorY < 1.75 ? 0.9 : 1;
     const height = Math.min(role === "hall" && room.floorY > this.#rooms.origin.y + 0.25 ? 1.25 : 0.75, Math.floor((ceiling - room.floorY - sillHeight - 0.1 + 0.00001) / 0.25) * 0.25);
     if (height < 0.25 || room.floorY < this.#rooms.origin.y) {
@@ -120,7 +149,7 @@ export class CastleWindowLayout {
         }
         for (const section of runs) {
           const length = section.end - section.start;
-          const count = Math.min(isRear ? 3 : Infinity, Math.floor((length - 0.75) / (isRear ? 2.5 : 1.5)));
+          const count = Math.min(role === "slit" ? 2 : isRear ? 3 : Infinity, Math.floor((length - 0.75) / (isRear ? 2.5 : 1.5)));
           if (count < 1) {
             continue;
           }
@@ -148,7 +177,8 @@ export class CastleWindowLayout {
     const along = axis === "X" ? "Z" : "X";
     let result = null;
     for (let y = sill + 0.125; y < sill + height; y += 0.25) {
-      const blocks = this.#masonry.filter(
+      const candidates = this.#wallCells.get(`${axis}:${Math.floor(t * 4)}:${Math.floor(y * 4)}`) ?? [];
+      const blocks = candidates.filter(
         /**
          * @param {WindowBounds} block
          */
@@ -174,7 +204,7 @@ export class CastleWindowLayout {
         return null;
       }
       // Reject partitions, adjoining wings and deep solid tower cores.
-      const blocked = this.#masonry.some(
+      const blocked = candidates.some(
         /**
          * @param {WindowBounds} block
          */
@@ -204,6 +234,20 @@ export class CastleWindowLayout {
       const floorY = this.#rooms.rooms.work.floorY;
       const sill = floorY + 1;
       if (sill + 1 > this.#rooms.origin.y + tower.height * 0.25 - 0.5) {
+        continue;
+      }
+      if (plan.metadata.runtime.residential?.version === 2) {
+        // Measure every reveal from the actual shell, including tower corners.
+        // A fixed half-metre insert can protrude through a quarter-metre wall.
+        for (const [axis, face, t, sign, width, role] of [
+          ["Z", minZ, centerX, -1, 0.5, "room"],
+          ["X", centerX + (centerX < 0 ? -1 : 1) * tower.span * 0.125,
+            (minZ + maxZ) / 2, centerX < 0 ? -1 : 1, 0.25, "slit"],
+          ["Z", maxZ, centerX, 1, 0.25, "slit"],
+        ]) {
+          const wall = this.#wallAt(axis, face, t + 0.01, sill, 0.75, sign);
+          if (wall) this.#add(axis, wall.face, t, sign, sill, width, 0.75, wall.depth, role, floorY);
+        }
         continue;
       }
       // Front openings share the inhabited ground-floor sill line at the rear.
@@ -240,7 +284,7 @@ export class CastleWindowLayout {
     const halfX = (Math.abs(Math.cos(angle)) * width + Math.abs(Math.sin(angle)) * (depth + 0.02)) / 2;
     const halfZ = (Math.abs(Math.sin(angle)) * width + Math.abs(Math.cos(angle)) * (depth + 0.02)) / 2;
     const cut = { minX: center.x - halfX, maxX: center.x + halfX, minZ: center.z - halfZ, maxZ: center.z + halfZ, minY: sill, maxY: sill + height };
-    const stairs = [this.#rooms.stairs, this.#rooms.serviceStair];
+    const stairs = [this.#rooms.stairs, this.#rooms.serviceStair].filter(Boolean);
     if (stairs.some(
       /**
        * @param {{center:{x:number,y:number,z:number},radius:number,rise:number}} stair
@@ -250,7 +294,7 @@ export class CastleWindowLayout {
     )) {
       return;
     }
-    const doors = [this.#plan.metadata.runtime.residential?.upperDoor, this.#plan.metadata.runtime.residential?.sideDoor, ...(this.#plan.metadata.runtime.residential?.secondaryDoors ?? [])].filter(Boolean);
+    const doors = [...(this.#plan.metadata.runtime.roomDoors ?? []), this.#plan.metadata.runtime.residential?.upperDoor, this.#plan.metadata.runtime.residential?.sideDoor, ...(this.#plan.metadata.runtime.residential?.secondaryDoors ?? [])].filter(Boolean);
     if (doors.some(
       /**
        * @param {{x:number,y:number,z:number,width:number,height:number}} door

@@ -64,6 +64,11 @@ export class GatehouseStage extends AbstractCastleGenerationStage {
           : castleDepth,
       };
     });
+    if (context.layout.roomPlan?.version === 2) {
+      // The perimeter already contains each entrance. Avoid a second solid
+      // gatehouse volume competing with the priority-placed rooms.
+      return;
+    }
     await context.planning.geometryPlanner.buildGatehouses(
       context,
       context.planning.writer,

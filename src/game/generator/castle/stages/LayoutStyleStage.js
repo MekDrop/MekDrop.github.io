@@ -65,18 +65,6 @@ export class LayoutStyleStage extends AbstractCastleGenerationStage {
       facadeSpan,
       inwardCapacity,
     });
-    const hasSecondarySide = openings.some(
-      /**
-       *
-       * @param {import("src/game/GameContracts.js").CastleOpening} opening
-       */
-      (opening) => opening.boundary !== CASTLE_BOUNDARY.FRONT,
-    );
-    const requiredDepth = Math.max(
-      style.visualDepthBlocks ?? CASTLE_AUDIENCE_ROOM_DEPTH_BLOCKS,
-      CASTLE_AUDIENCE_ROOM_DEPTH_BLOCKS,
-    );
-
     Object.assign(context.layout, {
       empty: false,
       widthBlocks,
@@ -89,9 +77,7 @@ export class LayoutStyleStage extends AbstractCastleGenerationStage {
       facadeSpan,
       openings,
       style,
-      castleDepth: hasSecondarySide
-        ? inwardCapacity
-        : Math.min(requiredDepth, inwardCapacity),
+      castleDepth: inwardCapacity,
     });
   }
 

@@ -54,12 +54,12 @@ if (args.includes("--help")) {
       report.castles += castles.length;
       // Match per-castle seed rebuilding performed by the saved-map loader.
       for (const castle of castles) {
-        if (castle.seed === undefined || castle.buildPlan?.input?.seed === castle.seed) continue;
+        
         castle.buildPlan = await CastleGenerator.generate({
           position: castle.position ?? castle.buildPlan?.input?.position,
           doors: castle.doors ?? castle.buildPlan?.input?.doors,
           style: castle.style ?? castle.buildPlan?.input?.requestedStyle,
-          seed: castle.seed,
+          seed: castle.seed ?? castle.buildPlan?.input?.seed,
         });
       }
       TerrainBlockDefinitions.populate(data);

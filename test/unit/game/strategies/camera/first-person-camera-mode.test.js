@@ -104,6 +104,42 @@ describe("first-person camera", () => {
     assert.ok(mode.state.direction.y < -0.98);
   });
 
+  it("turns the hero beyond either free-look limit and keeps turning across the yaw seam", () => {
+    const { gameCamera } = cameraFixture();
+    const mode = new FirstPersonCameraMode(gameCamera);
+    let bodyYaw = 0;
+    const turningHero = {
+      get firstPersonCameraPose() {
+        const radians = bodyYaw * Math.PI / 180;
+        return {
+          position: { x: 2, y: 3, z: 4 },
+          direction: { x: Math.sin(radians), y: 0, z: Math.cos(radians) },
+        };
+      },
+      set firstPersonFacingYaw(yaw) {
+        bodyYaw = yaw;
+      },
+    };
+    mode.enter();
+    mode.update({ hero: turningHero });
+    mode.lookBy(40, 0);
+    mode.update({ hero: turningHero });
+    assert.equal(bodyYaw, 0);
+    mode.lookBy(60, 0);
+    mode.update({ hero: turningHero });
+    assert.equal(bodyYaw, 20);
+    for (let step = 0; step < 20; step += 1) {
+      mode.lookBy(30, 0);
+      mode.update({ hero: turningHero });
+    }
+    assert.equal(bodyYaw, -100);
+    mode.lookBy(-170, 0);
+    mode.update({ hero: turningHero });
+    assert.equal(bodyYaw, -110);
+    const viewYaw = Math.atan2(mode.state.direction.x, mode.state.direction.z) * 180 / Math.PI;
+    assert.ok(Math.abs(viewYaw - 170) < 0.001);
+  });
+
   it("keeps pointer interpretation in the active camera strategy", () => {
     const { gameCamera } = cameraFixture();
     const mode = new FirstPersonCameraMode(gameCamera);

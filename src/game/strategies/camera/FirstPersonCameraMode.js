@@ -148,13 +148,7 @@ export class FirstPersonCameraMode extends AbstractCameraMode {
       return;
     }
     const centerYaw = this.#centerYaw ?? this.#yaw ?? 0;
-    const nextYaw = (this.#yaw ?? centerYaw) + yawDegrees;
-    this.#yaw =
-      centerYaw +
-      Math.max(
-        -MAXIMUM_YAW,
-        Math.min(MAXIMUM_YAW, normalizeDegrees(nextYaw - centerYaw)),
-      );
+    this.#yaw = (this.#yaw ?? centerYaw) + yawDegrees;
     this.#pitch = Math.max(
       -MAXIMUM_DOWNWARD_PITCH,
       Math.min(MAXIMUM_UPWARD_PITCH, this.#pitch - pitchDegrees),
@@ -167,26 +161,28 @@ export class FirstPersonCameraMode extends AbstractCameraMode {
    * @param {{entity: pc.Entity, position?: pc.Vec3, visible?: boolean}} options.hero
    */
   update({ hero }) {
-    const pose = hero?.firstPersonCameraPose;
+    let pose = hero?.firstPersonCameraPose;
     if (!pose) {
       return { firstPerson: true, position: null };
     }
     const { gameCamera } = this;
+    const centerYaw =
+      (Math.atan2(pose.direction.x, pose.direction.z) * 180) / Math.PI;
+    this.#centerYaw = centerYaw;
+    this.#yaw ??= centerYaw;
+    const relativeYaw = normalizeDegrees(this.#yaw - centerYaw);
+    const limitedYaw = Math.max(-MAXIMUM_YAW, Math.min(MAXIMUM_YAW, relativeYaw));
+    const bodyTurn = relativeYaw - limitedYaw;
+    if (bodyTurn !== 0) {
+      hero.firstPersonFacingYaw = normalizeDegrees(centerYaw + bodyTurn);
+      pose = hero.firstPersonCameraPose;
+    }
+    this.#yaw = normalizeDegrees(this.#yaw);
     this.#position = new gameCamera.playCanvas.Vec3(
       pose.position.x,
       pose.position.y,
       pose.position.z,
     );
-    const centerYaw =
-      (Math.atan2(pose.direction.x, pose.direction.z) * 180) / Math.PI;
-    this.#centerYaw = centerYaw;
-    this.#yaw ??= centerYaw;
-    this.#yaw =
-      centerYaw +
-      Math.max(
-        -MAXIMUM_YAW,
-        Math.min(MAXIMUM_YAW, normalizeDegrees(this.#yaw - centerYaw)),
-      );
     const yaw = (this.#yaw * Math.PI) / 180;
     const pitch = (this.#pitch * Math.PI) / 180;
     const horizontal = Math.cos(pitch);

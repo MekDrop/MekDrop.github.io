@@ -40,13 +40,13 @@ it('preserves masonry volume outside an aperture, including partial voxel inters
   assert.ok(pieces.every(b => !CastleWindowLayout.intersects(CastleWindowLayout.bounds(b), layout.windows[0].cut)));
 });
 
-it('uses smaller sparse rear casements with generous masonry between openings', async () => {
+it('uses sparse small rear openings with generous masonry between them', async () => {
   const plan = await CastleGenerator.generate({ position: { x: 0, z: 0, width: 12, depth: 11, elevation: 2 }, doors: [{ side: 'NORTH', offset: 5, width: 2 }], style: 'twin-tower' });
-  const rear = new CastleWindowLayout(plan).windows.filter(w => w.role === 'hall' && w.yaw === 0);
+  const rear = new CastleWindowLayout(plan).windows.filter(w => w.yaw === 0);
   const floor = Math.min(...rear.map(w => w.floorY));
   const windows = rear.filter(w => w.floorY === floor).sort((a, b) => a.position.x - b.position.x);
   assert.ok(windows.length >= 1 && windows.length <= 3);
-  assert.ok(windows.every(w => w.height <= .75));
+  assert.ok(windows.every(w => w.width <= .5 && w.height <= .75));
   assert.ok(windows[0].position.x - windows[0].width / 2 >= .75);
   assert.ok(12 - windows.at(-1).position.x - windows.at(-1).width / 2 >= .75);
   for (let i = 1; i < windows.length; i++) {

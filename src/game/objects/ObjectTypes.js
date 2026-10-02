@@ -60,6 +60,7 @@
  * @property {MapObjectDefinition} [definition]
  * @property {() => void} destroy
  * @property {(x: number, z: number, radius?: number) => number|null} [surfaceHeightAt]
+ * @property {(x: number, z: number, radius?: number) => number|null} [physicsSurfaceHeightAt]
  * @property {(position: Point3) => InteractionLike|null} [getInteraction]
  * @typedef {object} InteractionLike
  * @property {string} [description]

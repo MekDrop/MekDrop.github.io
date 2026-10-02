@@ -6,6 +6,7 @@ import { FinalizationStage } from "./stages/FinalizationStage.js";
 import { GatehouseStage } from "./stages/GatehouseStage.js";
 import { LayoutStyleStage } from "./stages/LayoutStyleStage.js";
 import { RoomPlanningStage } from "./stages/RoomPlanningStage.js";
+import { RoomFurnishingStage } from "./stages/RoomFurnishingStage.js";
 import { TowerStage } from "./stages/TowerStage.js";
 import { ValidationStage } from "./stages/ValidationStage.js";
 import { UpperRoomShellStage } from "./stages/UpperRoomShellStage.js";
@@ -14,13 +15,13 @@ import { WallStage } from "./stages/WallStage.js";
 export class CastleGenerator {
   /**
    *
-   * @param {{position?: import("src/game/GameContracts.js").GridPoint, doors?: import("src/game/GameContracts.js").CastleOpening[], style?: string, seed?: string|number, scheduler?: CastleGenerationScheduler, signal?: AbortSignal}} options
+   * @param {{position?: import("src/game/GameContracts.js").GridPoint, doors?: import("src/game/GameContracts.js").CastleOpening[], style?: string, seed?: string|number, roomGenerators?: import("./rooms/AbstractCastleRoomGenerator.js").AbstractCastleRoomGenerator[], scheduler?: CastleGenerationScheduler, signal?: AbortSignal}} options
    */
   static generate(options = {}) {
     const generate = createCastleGenerationPipeline({
       /**
        *
-       * @param {{position?: import("src/game/GameContracts.js").GridPoint, doors?: import("src/game/GameContracts.js").CastleOpening[], style?: string, seed?: string|number, scheduler?: CastleGenerationScheduler, signal?: AbortSignal}} pipelineOptions
+       * @param {{position?: import("src/game/GameContracts.js").GridPoint, doors?: import("src/game/GameContracts.js").CastleOpening[], style?: string, seed?: string|number, roomGenerators?: import("./rooms/AbstractCastleRoomGenerator.js").AbstractCastleRoomGenerator[], scheduler?: CastleGenerationScheduler, signal?: AbortSignal}} pipelineOptions
        */
       createContext: (pipelineOptions) => {
         const scheduler =
@@ -35,6 +36,7 @@ export class CastleGenerator {
         new TowerStage(),
         new GatehouseStage(),
         new UpperRoomShellStage(),
+        new RoomFurnishingStage(),
         new BuildMetadataStage(),
         new ValidationStage(),
         new FinalizationStage(),

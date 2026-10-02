@@ -1,4 +1,5 @@
 import lanternModelUrl from "../../models/castle/residential/wall-lantern.glb?url";
+import carpetModelUrl from "../../models/castle/residential/carpet-panel.glb?url";
 import floorModelUrl from "../../models/castle/residential/floor-panel.glb?url";
 import authoredModelUrl from "../../models/castle/residential/stone-block.glb?url";
 import { CastleThrone } from "./CastleThrone.js";
@@ -42,7 +43,7 @@ export class CastleAudienceRoom {
     * @returns {Array<string>}
    */
   static get modelUrls() {
-    return [CastleThrone.modelUrl, authoredModelUrl, floorModelUrl, lanternModelUrl, ...CastleFire.modelUrls];
+    return [CastleThrone.modelUrl, authoredModelUrl, floorModelUrl, carpetModelUrl, lanternModelUrl, ...CastleFire.modelUrls];
   }
 
   /**
@@ -598,8 +599,8 @@ export class CastleAudienceRoom {
       Math.max(0, this.#frontWallDepth),
       this.#floorDepth,
     );
-    // Shared castles own a stone threshold; timber stays clear of exterior faces.
-    const finishInset = this.#residentialLayout ? 0.05 : 0;
+    // Timber meets the interior wall faces; the gate threshold remains stone.
+    const finishInset = 0;
     const finishStart = floorInset + finishInset;
     const roomFloorDepth = Math.max(0, this.#floorDepth - finishStart - finishInset);
     const roomFloorCenter = finishStart + roomFloorDepth / 2;
@@ -654,7 +655,7 @@ export class CastleAudienceRoom {
         this.#floorLateral,
         forward,
         0.057,
-        [this.#floorWidth - 0.18, 0.025, 0.035],
+        [Math.max(0, this.#floorWidth - finishInset * 2 - 0.22), 0.025, 0.035],
       );
     }
 
@@ -668,11 +669,9 @@ export class CastleAudienceRoom {
     const runnerWidth = Math.min(1.2, this.#roomWidth - 0.36);
     const carpetMaterial = this.#materials.get("carpet");
     const texture = carpetMaterial.diffuseMap;
-    const aspect = texture?.width > 0 && texture?.height > 0 ? texture.height / texture.width : 1.5;
-    // One complete motif spans the runner width; repeat along the hall at its
-    // authored pixel aspect rather than stretching one motif over the whole floor.
-    carpetMaterial.diffuseMapTiling = new this.#pc.Vec2(1, runnerLength / Math.max(0.001, runnerWidth * aspect));
-    if (texture) texture.addressV = this.#pc.ADDRESS_REPEAT;
+    // The texture border belongs to the complete runner, never each floor tile.
+    carpetMaterial.diffuseMapTiling = new this.#pc.Vec2(1, 1);
+    if (texture) texture.addressV = this.#pc.ADDRESS_CLAMP_TO_EDGE;
     carpetMaterial.update();
     this.#boxAt("Audience carpet runner", "carpet", 0, runnerCenter, 0.055, [
       runnerWidth,
@@ -914,7 +913,7 @@ export class CastleAudienceRoom {
     const entity = new this.#pc.Entity(name);
     const floor = name.toLowerCase().includes("floor");
     const carpet = materialName === "carpet";
-    const model = this.#modelLibrary.instantiate(floor || carpet ? floorModelUrl : authoredModelUrl);
+    const model = this.#modelLibrary.instantiate(carpet ? carpetModelUrl : floor ? floorModelUrl : authoredModelUrl);
     const authoredHeight = floor || carpet ? 0.06 : 1;
     model.setLocalScale(1, 1 / authoredHeight, 1);
     model.setLocalPosition(0, -0.5, 0);
