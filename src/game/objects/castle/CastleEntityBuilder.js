@@ -12,7 +12,7 @@ import { CastleRoof } from "./CastleRoof.js";
 import { CastleStairs } from "./CastleStairs.js";
 import { CastleResidence } from "./CastleResidence.js";
 import { CastleWindowLayout } from "./CastleWindowLayout.js";
-import { CastleWindows } from "./CastleWindows.js";
+import { Window } from "../window/Window.js";
 import { colorFromHex } from "../../helpers/colors.js";
 import {
   CASTLE_BLOCK_SIZE,
@@ -53,7 +53,7 @@ export class CastleEntityBuilder {
       CastleStairs.modelUrl,
       ...CastleAudienceRoom.modelUrls,
       ...CastleResidence.modelUrls,
-      ...CastleWindows.modelUrls,
+      ...Window.modelUrls,
     ];
   }
 
@@ -891,8 +891,16 @@ export class CastleEntityBuilder {
       this.#cameraCollisionBlocks.push({ x: window.position.x - Math.sin(angle) * window.depth * 0.315,
         y: window.position.y + window.height / 2, z: window.position.z - Math.cos(angle) * window.depth * 0.315,
         halfX: crosswise ? 0.025 : window.width / 2, halfY: window.height / 2, halfZ: crosswise ? window.width / 2 : 0.025 });
+      const alongX = Math.abs(Math.sin(window.yaw * Math.PI / 180)) < 0.5;
+      const half = window.width / 2;
+      Window.addVisual(this.#pc, this.#modelLibrary, this.#entity, {
+        id: `castle-${window.role}-window`, object: Window.name,
+        from: { x: window.position.x - (alongX ? half : 0), y: window.position.y, z: window.position.z - (alongX ? 0 : half) },
+        to: { x: window.position.x + (alongX ? half : 0), y: window.position.y + window.height, z: window.position.z + (alongX ? 0 : half) },
+        depth: window.depth, variant: window.role,
+        facing: (alongX ? Math.cos(window.yaw * Math.PI / 180) : Math.sin(window.yaw * Math.PI / 180)) >= 0 ? 1 : -1,
+    }, this.#materials.get("castleStoneMid"));
     }
-    this.#entity.addChild(new CastleWindows({ pc: this.#pc, modelLibrary: this.#modelLibrary, windows: windows.windows, wallMaterial: this.#materials.get("castleStoneMid") }).entity);
     const batches = new Map();
     for (const box of windows.cutBoxes(geometry.boxes)) {
       this.#addBoxMatrix(

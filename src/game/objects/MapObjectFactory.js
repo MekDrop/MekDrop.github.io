@@ -1,4 +1,5 @@
 import { Earth } from "./terrain/Earth.js";
+import { Window } from "./window/Window.js";
 import { Bookshelf } from "./bookshelf/Bookshelf.js";
 import { Grass } from "./terrain/Grass.js";
 import { SeatedRoyal } from "./castle/SeatedRoyal.js";
@@ -21,6 +22,7 @@ import { MapVirtualItem } from "../debug/MapVirtualItem.js";
 
 const OBJECT_CLASSES = new Map([
   [Bookshelf.name, Bookshelf],
+  [Window.name, Window],
   [Earth.name, Earth],
   [Grass.name, Grass],
   [Castle.name, Castle],
