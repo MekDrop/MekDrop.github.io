@@ -77,3 +77,17 @@ it("splits rotated rectangular masonry in world axes without a gap under the sil
   assert.ok(pieces.some((piece) => piece.y + piece.sy / 2 === 0 && piece.sy === 1));
   assert.ok(Math.abs(pieces.reduce((volume,piece) => volume+piece.sx*piece.sy*piece.sz,0)-0.8875)<1e-8);
 });
+
+it("separates rendered aperture faces from trim without changing collision or source bounds", () => {
+  const layout = new CastleWindowLayout({ layout: { empty: true } });
+  const cut = { minX: -0.2, maxX: 0.2, minY: -0.3, maxY: 0.3, minZ: -0.6, maxZ: 0.6 };
+  layout.windows.push({ cut });
+  const box = { x: 0, y: 0, z: 0, sx: 1, sy: 1, sz: 1, yaw: 0, material: "castleStoneMid" };
+  const collision = layout.cutBoxes([box]);
+  const visual = layout.cutBoxes([box], 0.002);
+  const expanded = { minX: -0.202, maxX: 0.202, minY: -0.302, maxY: 0.302, minZ: -0.602, maxZ: 0.602 };
+  assert.ok(visual.every(piece => !CastleWindowLayout.intersects(CastleWindowLayout.bounds(piece), expanded)));
+  assert.ok(Math.abs(visual.reduce((sum, piece) => sum + piece.sx * piece.sy * piece.sz, 0) - (1 - 0.404 * 0.604)) < 1e-8);
+  assert.ok(Math.abs(collision.reduce((sum, piece) => sum + piece.sx * piece.sy * piece.sz, 0) - 0.76) < 1e-8);
+  assert.deepEqual(cut, { minX: -0.2, maxX: 0.2, minY: -0.3, maxY: 0.3, minZ: -0.6, maxZ: 0.6 });
+});

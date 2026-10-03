@@ -374,9 +374,10 @@ export class CastleWindowLayout {
   /**
    * Subtract rectangular apertures without dropping whole intersected blocks.
    * @param {MasonryBox[]} boxes
+   * @param {number} clearance Visual separation from the authored stone reveal.
    * @returns {MasonryBox[]}
    */
-  cutBoxes(boxes) {
+  cutBoxes(boxes, clearance = 0) {
     // Apertures use world axes. Normalize quarter-turn masonry before splitting;
     // retaining its old yaw would rotate the cut fragments a second time.
     let result = boxes.map(/**
@@ -389,12 +390,20 @@ export class CastleWindowLayout {
         sz: Math.abs(Math.sin(angle)) * box.sx + Math.abs(Math.cos(angle)) * box.sz };
     });
     for (const window of this.#windows) {
+      // The insert's jambs and lintel sit exactly on the aperture boundary.
+      // Recess the rendered wall faces beneath that trim instead of drawing
+      // both surfaces in the same plane. Collision keeps the exact aperture.
+      const cut = { ...window.cut };
+      for (const axis of ["X", "Y", "Z"]) {
+        cut[`min${axis}`] -= clearance;
+        cut[`max${axis}`] += clearance;
+      }
       result = result.flatMap(
         /**
          * @param {MasonryBox} box
          */
         (box) => {
-          if (!CastleWindowLayout.intersects(CastleWindowLayout.bounds(box), window.cut)) {
+          if (!CastleWindowLayout.intersects(CastleWindowLayout.bounds(box), cut)) {
             return [box];
           }
           const remainder = CastleWindowLayout.bounds(box);
@@ -402,7 +411,7 @@ export class CastleWindowLayout {
           for (const axis of ["X", "Y", "Z"]) {
             for (const side of ["min", "max"]) {
               const key = `${side}${axis}`;
-              const boundary = window.cut[key];
+              const boundary = cut[key];
               if (side === "min" ? remainder[key] < boundary : remainder[key] > boundary) {
                 const piece = { ...remainder, [`${side === "min" ? "max" : "min"}${axis}`]: boundary };
                 pieces.push({ ...box, x: (piece.minX + piece.maxX) / 2, y: (piece.minY + piece.maxY) / 2, z: (piece.minZ + piece.maxZ) / 2, sx: piece.maxX - piece.minX, sy: piece.maxY - piece.minY, sz: piece.maxZ - piece.minZ });

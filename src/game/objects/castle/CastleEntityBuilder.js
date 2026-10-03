@@ -893,7 +893,7 @@ export class CastleEntityBuilder {
     }, this.#materials.get("castleStoneMid"));
     }
     const batches = new Map();
-    for (const box of windows.cutBoxes(geometry.boxes)) {
+    for (const box of windows.cutBoxes(geometry.boxes, 0.002)) {
       this.#addBoxMatrix(
         batches,
         box.material,
