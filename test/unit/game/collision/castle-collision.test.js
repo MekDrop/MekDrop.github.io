@@ -185,3 +185,25 @@ it("walks across ground-floor courtyard slabs while retaining walls and closed d
   assert.equal(new ProbeCastle({ blocks: [slab], doors: [{ blocksCameraAt: () => true }] }).blocksMovementAt(0, 0, 0.18, 4, 0.32), true);
   assert.equal(new ProbeCastle({ blocks: [slab], residenceBlocked: true }).blocksMovementAt(0, 0, 0.18, 4, 0.32), true);
 });
+it("authored entrance masonry owns the final tread without changing walking support", () => {
+  for (const side of ["WEST", "EAST", "NORTH", "SOUTH"]) {
+    const counts = [];
+    for (const authoredThreshold of [false, true]) {
+      let count = 0;
+      const flight = new CastleStairs({
+        pc, position: { x: 0, z: 0, width: 8, depth: 8, elevation: 3 },
+        doors: [{ side, offset: 3, width: 2, approachElevation: 2 }],
+        cubeSize: 0.25, materials: new Map(), authoredThreshold,
+        modelLibrary: { instantiateMergedBatch: (_url, matrices) => {
+          count += matrices.length / 16;
+          return null;
+        } },
+      });
+      counts.push(count);
+      assert.equal(flight.surfaceHeightAt(...point(side, 1.9)), 3);
+      assert.equal(flight.blocksMovementAt(...point(side, 1.9), 0.18, 3, 0.32), false);
+      flight.destroy();
+    }
+    assert.equal(counts[0] - counts[1], 8, `${side}: remove only the eight overlapping doorway bricks`);
+  }
+});

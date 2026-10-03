@@ -72,6 +72,11 @@ export class CastleStairs {
   #vertexBuffers = [];
 
   /**
+   * @type {boolean}
+   */
+  #authoredThreshold;
+
+  /**
    *
    * @param {{pc: typeof import("playcanvas"), position: {x: number, y: number, z: number}, doors: Array<{side: string, offset: number, width: number, approachElevation?: number}>, cubeSize: number, modelLibrary: string, materials: Map<string, import("playcanvas").Material>}} options
    * @param {typeof import("playcanvas")} options.pc
@@ -80,6 +85,7 @@ export class CastleStairs {
    * @param {number} options.cubeSize
    * @param {string} options.modelLibrary
    * @param {Map<string, import("playcanvas").Material>} options.materials
+   * @param {boolean} options.authoredThreshold Whether authored masonry owns the final doorway tread.
    */
   constructor({
     pc,
@@ -88,6 +94,7 @@ export class CastleStairs {
     cubeSize,
     modelLibrary,
     materials,
+    authoredThreshold = false,
   }) {
 
     this.#pc = pc;
@@ -101,6 +108,7 @@ export class CastleStairs {
     this.#modelLibrary = modelLibrary;
 
     this.#materials = materials;
+    this.#authoredThreshold = authoredThreshold;
 
     this.#entity = new pc.Entity("Castle stone stairs");
 
@@ -230,6 +238,16 @@ export class CastleStairs {
         for (let horizontal = 0; horizontal < widthBlocks; horizontal += 1) {
           for (let layer = 0; layer <= level; layer += 1) {
             const acrossBlocks = offsetBlocks + horizontal;
+            // Authored door thresholds extend half a metre outside the wall.
+            // They already fill the final tread's top course in the doorway;
+            // drawing both gives coincident top, riser, and side faces.
+            const acrossStart = acrossBlocks * this.#cubeSize;
+            if (this.#authoredThreshold && level === riseBlocks - 1 && layer === level &&
+              acrossStart >= door.offset - 0.000001 &&
+              acrossStart + this.#cubeSize <= door.offset + door.width + 0.000001 &&
+              stepHeight <= this.#cubeSize + 0.000001) {
+              continue;
+            }
             const position = this.#modulePosition(
               door.side,
               distanceBlocks,

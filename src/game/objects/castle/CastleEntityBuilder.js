@@ -756,6 +756,7 @@ export class CastleEntityBuilder {
       position: this.#position,
       doors: this.#doors,
       cubeSize: CASTLE_BLOCK_SIZE,
+      authoredThreshold: Boolean(this.#buildPlan.layout.basePlanId),
       modelLibrary: this.#modelLibrary,
       materials: this.#materials,
     });
