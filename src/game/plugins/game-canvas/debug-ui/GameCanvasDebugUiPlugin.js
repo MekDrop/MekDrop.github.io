@@ -4,6 +4,8 @@ import { DevWireframeInspector } from "./debug/DevWireframeInspector.js";
 import { PathArrowTextures } from "../../../rendering/terrain/PathArrowTextures.js";
 import { DebugAxesHud } from "./ui/DebugAxesHud.js";
 import { DebugFpsHud } from "./ui/DebugFpsHud.js";
+import { DebugCastleRoomHud } from "../../../ui/DebugCastleRoomHud.js";
+import { CastleRoomLocator } from "./debug/CastleRoomLocator.js";
 
 export class GameCanvasDebugUiPlugin {
   /**
@@ -11,6 +13,14 @@ export class GameCanvasDebugUiPlugin {
    * @type {import("src/game/GameContracts.js").GameCanvasPluginContext}
    */
   #context;
+  /**
+   * @type {DebugCastleRoomHud|null}
+   */
+  #castleRoomHud = null;
+  /**
+   * @type {import("src/game/GameContracts.js").GameMapData|null}
+   */
+  #mapData = null;
   /**
    *
    * @type {null}
@@ -66,6 +76,8 @@ export class GameCanvasDebugUiPlugin {
     const renderer = this.#context.renderer();
     const pc = renderer.playCanvas;
     const app = renderer.app;
+    this.#castleRoomHud = new DebugCastleRoomHud({ pc, app });
+    this.#castleRoomHud.attach();
     this.#debugFpsHud = new DebugFpsHud({ pc, app });
     this.#debugFpsHud.attach();
     this.#debugAxesHud = new DebugAxesHud({
@@ -89,6 +101,7 @@ export class GameCanvasDebugUiPlugin {
     this.#debugStatsTimer = useIntervalFn(() => {
       if (this.#context.debugStore.hasAny) {
         this.#syncDebugFramesPerSecond();
+        this.#syncCastleRoom();
       }
     }, GameCanvasDebugUiPlugin.#DEBUG_STATS_UPDATE_INTERVAL);
     this.#stopDebugStoreSubscription = this.#context.debugStore.$subscribe(
@@ -100,6 +113,7 @@ export class GameCanvasDebugUiPlugin {
   }
 
   beforeRender() {
+    this.#mapData = null;
     this.#pathArrows?.clear();
     this.#devWireframeInspector?.refresh();
   }
@@ -109,6 +123,8 @@ export class GameCanvasDebugUiPlugin {
    * @param {import("src/game/GameContracts.js").GameMapData} mapData
    */
   afterRender(mapData) {
+    this.#mapData = mapData;
+    this.#syncCastleRoom();
     const mapRoot = this.#context.renderer().mapRoot;
     if (!mapRoot) {
       return;
@@ -125,9 +141,13 @@ export class GameCanvasDebugUiPlugin {
     const height = Math.max(1, container.clientHeight);
     this.#debugAxesHud?.resize(width, height);
     this.#debugFpsHud?.resize(width, height);
+    this.#castleRoomHud?.resize(width, height);
   }
 
   destroy() {
+    this.#castleRoomHud?.destroy();
+    this.#castleRoomHud = null;
+    this.#mapData = null;
     if (this.#debugStatsTimer !== null) {
       this.#debugStatsTimer.pause();
       this.#debugStatsTimer = null;
@@ -146,6 +166,8 @@ export class GameCanvasDebugUiPlugin {
   }
 
   #applyDebugSettings() {
+    this.#castleRoomHud.visible = this.#context.debugStore.hasAny;
+    this.#syncCastleRoom();
     this.#pathArrows.visible = this.#context.debugStore.pathArrows;
     this.#debugAxesHud.visible = this.#context.debugStore.debugAxesHud;
     this.#debugFpsHud.visible = this.#context.debugStore.debugFpsHud;
@@ -160,4 +182,29 @@ export class GameCanvasDebugUiPlugin {
     this.#context.debugStore.framesPerSecond =
       this.#debugFpsHud?.framesPerSecond ?? 0;
   }
+
+  #syncCastleRoom() {
+    if (!this.#castleRoomHud || !this.#context.debugStore.hasAny) {
+      return;
+    }
+    const position = this.#context.renderer().hero?.position;
+    let message = "Outside castle";
+    if (position) {
+      for (const definition of this.#mapData?.objects ?? []) {
+        const plan = definition.buildPlan?.metadata?.runtime?.residential;
+        if (!plan?.origin) {
+          continue;
+        }
+        const room = CastleRoomLocator.locate(plan, position);
+        if (room) {
+          const name = room.name ?? room.purpose ?? room.id;
+          const label = String(name).replace(/([a-z])([A-Z])/g, "$1 $2").replace(/[-_]/g, " ");
+          message = `Castle room: ${label.charAt(0).toUpperCase()}${label.slice(1)}`;
+          break;
+        }
+      }
+    }
+    this.#castleRoomHud.message = message;
+  }
+
 }
