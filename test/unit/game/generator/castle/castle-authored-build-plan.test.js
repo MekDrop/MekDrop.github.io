@@ -19,6 +19,16 @@ it("builds all reference plans in each gate orientation, preserving authored ape
       assert.equal(plan.layout.basePlanId, source.id);
       assert.ok(plan.geometry.boxes.every((brick) => brick.sx <= 0.250001 && brick.sy <= 0.250001 && brick.sz <= 0.250001),
         "authored masonry uses the gate's quarter-metre bricks");
+      const solids = plan.metadata.collision.cameraBlocks;
+      for (let index = 0; index < solids.length; index++) {
+        const a = solids[index];
+        for (const b of solids.slice(index + 1)) {
+          assert.ok(Math.abs(a.x - b.x) >= a.halfX + b.halfX - 1e-6 ||
+            Math.abs(a.y - b.y) >= a.halfY + b.halfY - 1e-6 ||
+            Math.abs(a.z - b.z) >= a.halfZ + b.halfZ - 1e-6,
+          `${source.id}/${side}: masonry junctions have one surface owner`);
+        }
+      }
       const layout = new CastleResidentialLayout(plan);
       const windows = new CastleWindowLayout(plan);
       assert.equal(windows.windows.length, plan.layout.roomPlan.openings.filter((opening) => opening.kind === "window").length);

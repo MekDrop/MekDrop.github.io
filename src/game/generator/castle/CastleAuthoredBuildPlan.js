@@ -276,7 +276,7 @@ export class CastleAuthoredBuildPlan {
      * @param {{minX:number,maxX:number,minZ:number,maxZ:number,minY:number,maxY:number}} bounds
      * @param {string} material
      */
-    const addBox = (bounds, material = "castleStoneMid") => {
+    const emitBox = (bounds, material = "castleStoneMid") => {
       if (bounds.maxX <= bounds.minX || bounds.maxZ <= bounds.minZ || bounds.maxY <= bounds.minY) { return; }
       const point = world((bounds.minX + bounds.maxX) / 2, (bounds.minZ + bounds.maxZ) / 2, (bounds.minY + bounds.maxY) / 2);
       const crosswise = ["WEST", "EAST"].includes(side);
@@ -290,13 +290,16 @@ export class CastleAuthoredBuildPlan {
       if (uniqueBoxes.has(key)) { return; }
       uniqueBoxes.add(key);
       // The gate's quarter-metre masonry vocabulary, instanced by material.
-      for (let y = bounds.minY; y < bounds.maxY - 1e-6; y += 0.25) {
-        for (let x = bounds.minX; x < bounds.maxX - 1e-6; x += 0.25) {
-          for (let z = bounds.minZ; z < bounds.maxZ - 1e-6; z += 0.25) {
-            const bx = Math.min(0.25, bounds.maxX - x);
-            const by = Math.min(0.25, bounds.maxY - y);
-            const bz = Math.min(0.25, bounds.maxZ - z);
-            const brick = world(x + bx / 2, z + bz / 2, y + by / 2);
+      for (let y = Math.floor(bounds.minY * 4 + 1e-6) / 4; y < bounds.maxY - 1e-6; y += 0.25) {
+        for (let x = Math.floor(bounds.minX * 4 + 1e-6) / 4; x < bounds.maxX - 1e-6; x += 0.25) {
+          for (let z = Math.floor(bounds.minZ * 4 + 1e-6) / 4; z < bounds.maxZ - 1e-6; z += 0.25) {
+            const left = Math.max(x, bounds.minX);
+            const bottom = Math.max(y, bounds.minY);
+            const front = Math.max(z, bounds.minZ);
+            const bx = Math.min(x + 0.25, bounds.maxX) - left;
+            const by = Math.min(y + 0.25, bounds.maxY) - bottom;
+            const bz = Math.min(z + 0.25, bounds.maxZ) - front;
+            const brick = world(left + bx / 2, front + bz / 2, bottom + by / 2);
             const hash = Math.imul(Math.round(x * 4) + 11, 73856093) ^
               Math.imul(Math.round(y * 4) + 17, 19349663) ^ Math.imul(Math.round(z * 4) + 23, 83492791);
             const shade = (hash >>> 0) % 8;
@@ -307,6 +310,35 @@ export class CastleAuthoredBuildPlan {
       }
       cameraBlocks.push({ ...point, halfX: sx / 2, halfY: sy / 2, halfZ: sz / 2 });
       if (bounds.minY <= baseY && bounds.maxY > baseY) { groundColumns.push({ x: point.x, z: point.z }); }
+    };
+    const occupiedBounds = [];
+    /**
+     * Earlier masonry owns intersections, including room and exterior junctions.
+     * @param {{minX:number,maxX:number,minZ:number,maxZ:number,minY:number,maxY:number}} bounds
+     * @param {string} material
+     */
+    const addBox = (bounds, material = "castleStoneMid") => {
+      let pieces = [bounds];
+      for (const occupied of occupiedBounds) {
+        pieces = pieces.flatMap(/**
+         * @param {{minX:number,maxX:number,minZ:number,maxZ:number,minY:number,maxY:number}} piece
+         */ (piece) => {
+          const minX = Math.max(piece.minX, occupied.minX), maxX = Math.min(piece.maxX, occupied.maxX);
+          const minY = Math.max(piece.minY, occupied.minY), maxY = Math.min(piece.maxY, occupied.maxY);
+          const minZ = Math.max(piece.minZ, occupied.minZ), maxZ = Math.min(piece.maxZ, occupied.maxZ);
+          if (maxX - minX <= 1e-6 || maxY - minY <= 1e-6 || maxZ - minZ <= 1e-6) { return [piece]; }
+          return [{ ...piece, maxX: minX }, { ...piece, minX: maxX },
+            { ...piece, minX, maxX, maxY: minY }, { ...piece, minX, maxX, minY: maxY },
+            { minX, maxX, minY, maxY, minZ: piece.minZ, maxZ: minZ },
+            { minX, maxX, minY, maxY, minZ: maxZ, maxZ: piece.maxZ }].filter(/**
+             * @param {{minX:number,maxX:number,minZ:number,maxZ:number,minY:number,maxY:number}} remainder
+             */ (remainder) => remainder.maxX - remainder.minX > 1e-6 &&
+              remainder.maxY - remainder.minY > 1e-6 && remainder.maxZ - remainder.minZ > 1e-6);
+        });
+        if (!pieces.length) { return; }
+      }
+      for (const piece of pieces) { emitBox(piece, material); }
+      occupiedBounds.push(bounds);
     };
     /**
      * @param {import("./CastleBasePlanGenerator.js").CompiledCastleSpace} room
