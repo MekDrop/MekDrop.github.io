@@ -290,10 +290,9 @@ export class GameModelLibrary {
   #mergeRenderHierarchy(resource, linearVertexColors = false) {
     const pc = this.#pc;
     const sourceRoot = resource.instantiateRenderEntity();
-    const rootInverse = new pc.Mat4().copy(
-      sourceRoot.getWorldTransform(),
-    );
-    rootInverse.invert();
+    // A single-node glTF uses its authored node as the entity root. Its
+    // transform is part of the asset (for example bottom-anchored masonry),
+    // so bake it just like child transforms rather than cancelling it out.
     const positions = [];
     const normals = [];
     const uvs = [];
@@ -318,10 +317,7 @@ export class GameModelLibrary {
         sourceMesh.getUvs(0, sourceUvs);
         sourceMesh.getIndices(sourceIndices);
 
-        const modelTransform = new pc.Mat4().mul2(
-          rootInverse,
-          meshInstance.node.getWorldTransform(),
-        );
+        const modelTransform = meshInstance.node.getWorldTransform();
         const normalTransform = new pc.Mat4()
           .copy(modelTransform)
           .invert()
