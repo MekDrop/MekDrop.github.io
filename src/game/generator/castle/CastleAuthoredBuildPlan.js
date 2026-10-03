@@ -62,7 +62,10 @@ export class CastleAuthoredBuildPlan {
      * @param {import("./CastleBasePlanGenerator.js").CompiledCastleSpace} space
      */
     (space) => space.kind === "room");
-    const buildings = authored.buildings.map(transform);
+    const buildings = authored.buildings.map(/**
+     * @param {import("./CastleBasePlanGenerator.js").CompiledCastleSpace} building
+     */
+    (building) => ({ ...transform(building), floorY: building.floorY }));
     const openings = [];
     for (const opening of authored.openings) {
       const entrance = opening.roomId === gate.roomId && opening.floorY === baseY && opening.side === gate.side && opening.kind === "door";
@@ -147,12 +150,17 @@ export class CastleAuthoredBuildPlan {
       (opening) => opening.kind === "door"), furniture, rise: authored.floorHeight, floorHeight: authored.floorHeight,
       walkableAreas, authoredStairs: stairs, stair: null, serviceStair: null, basement: null,
       reservations: { throne: { ...rooms.work, minY: 0, maxY: rooms.work.height } },
-      outerBounds, gatehouseDepth: 0, skippedRooms: [], subrooms: [], roomRequirements: [],
+      outerBounds, buildings, gatehouseDepth: 0, skippedRooms: [], subrooms: [], roomRequirements: [],
       shaft: stairs[0]?.shaft, stairHostRoomId: null };
     for (const roof of authored.roofs) {
       if (roof.shape === "flat") { residential.walkableAreas.push({ ...transform(roof), id: `roof:${roof.id}`, floorY: roof.y }); }
     }
     for (const building of authored.buildings) {
+      if (building.floorY < baseY) {
+        // Basement room finishes stop short of the exterior wall. A continuous
+        // foundation slab covers those perimeter seams and partition gaps.
+        residential.walkableAreas.push({ ...transform(building), id: `basement-slab:${building.id}`, floorY: building.floorY });
+      }
       if (building.floorY <= baseY && building.floorY + building.height > baseY) {
         // Room interiors omit partition thickness and circulation seams. The
         // building owns a continuous ground slab before cutting stair openings.

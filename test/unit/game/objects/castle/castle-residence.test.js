@@ -330,3 +330,34 @@ it("mounts the entire framed map on continuous masonry away from service doors a
     }
   }
 });
+
+it("excavates buried exterior masonry and basement circulation seams", async () => {
+  const plan = await CastleGenerator.generate({
+    position: { x: -14, z: -8, width: 28, depth: 16, elevation: 3 },
+    doors: [{ side: "NORTH", offset: 13, width: 2 }], seed: 1, basePlanId: "castle-demo-compact",
+  });
+  const layout = new CastleResidentialLayout(plan);
+  const cuts = createCastleGroundCuts(plan, layout);
+  const buried = plan.metadata.collision.cameraBlocks.filter((block) => block.y + block.halfY < 3);
+  assert.ok(buried.length > 0);
+  for (const block of buried) {
+    const terrain = { id: "buried-wall", object: "Earth", position: { x: block.x, y: block.y, z: block.z },
+      geometry: { method: "addBoxMatrix", args: ["earth", "earth", block.x, block.y, block.z, 0,
+        block.halfX * 2, block.halfY * 2, block.halfZ * 2] } };
+    assert.equal(clipCastleTerrainRecord(terrain, cuts).length, 0, "earth must not occupy basement masonry");
+  }
+  const base = plan.layout.roomPlan.buildings[0];
+  assert.equal(base.floorY, 0);
+  const slabs = plan.layout.roomPlan.walkableAreas.filter((area) => area.id.startsWith("basement-slab:base"));
+  const slab = slabs[0];
+  assert.ok(slab, "basement needs a continuous slab beneath perimeter seams");
+  assert.equal(slab.floorY, base.floorY);
+  for (const edge of ["minX", "maxX", "minZ", "maxZ"]) {
+    const extent = edge.startsWith("min") ? Math.min(...slabs.map((area) => area[edge])) : Math.max(...slabs.map((area) => area[edge]));
+    assert.equal(extent, base[edge], "basement slab reaches the exterior wall");
+  }
+  const point = layout.toWorld(base.minX + 0.05, base.minZ + 0.05, 1 - layout.origin.y);
+  const seam = { id: "basement-seam", object: "Earth", position: point,
+    geometry: { method: "addBoxMatrix", args: ["earth", "earth", point.x, point.y, point.z, 0, 0.05, 0.05, 0.05] } };
+  assert.equal(clipCastleTerrainRecord(seam, cuts).length, 0);
+});

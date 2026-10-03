@@ -31,9 +31,9 @@ export function createCastleGroundCuts(plan, layout = null) {
   const rooms = [...(authoredGround ?? [residential.outerBounds, residential.rooms.work]), ...authoredFloors, ...thresholds,
     ...(residential.buildings ?? []).map(/**
      *
-     * @param {{bounds:RoomBounds}} building
+     * @param {RoomBounds & {floorY?:number}} building
      */
-    (building) => building.bounds),
+    (building) => building.bounds ?? building),
     ...(!residential.basePlanId ? residential.walkableAreas ?? [] : []).filter(/**
      *
      * @param {{id:string,bounds:RoomBounds}} area
@@ -90,7 +90,7 @@ export function createCastleGroundCuts(plan, layout = null) {
       maxY: Number.MAX_VALUE });
   }
   for (const block of plan.metadata.collision?.cameraBlocks ?? []) {
-    if (block.y + block.halfY <= origin.y + 0.05 || block.y - block.halfY > origin.y + 1) continue;
+    if (block.y - block.halfY > origin.y + 1) continue;
     cuts.push({ minX: block.x - block.halfX, maxX: block.x + block.halfX,
       minZ: block.z - block.halfZ, maxZ: block.z + block.halfZ,
       minY: Math.min(origin.y - 0.05, block.y - block.halfY), maxY: Number.MAX_VALUE });
