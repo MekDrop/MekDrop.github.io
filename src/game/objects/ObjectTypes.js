@@ -15,8 +15,13 @@
  * @property {number} [rotation]
  * @property {Point3} [from] Bookshelf bottom edge or window corner in world coordinates.
  * @property {Point3} [to] Bookshelf bottom edge or opposite window corner; exactly one differing ground axis.
- * @property {number} [width] Painting horizontal scale (default 1).
- * @property {number} [height] Bookshelf height (default 1.8), or window height when endpoints have equal Y.
+ * @property {number} [width] Painting horizontal scale or flag cloth width.
+ * @property {number} [height] Bookshelf, window, or flag cloth height.
+ * @property {number} [poleHeight] Flag pole height in metres (default 1.25).
+ * @property {string} [texture] Flag cloth image URL; omitted uses the blue castle crest.
+ * @property {{baseY: number, height: number, clearance?: number}} [roofCollider] Flag roof contact shape passed to cloth physics.
+ * @property {string} [sourceCastleId] Castle that supplied a migrated flag.
+ * @property {number} [sourceCastleSeed] Seed used to generate the migrated flag.
  * @property {number} [facing] Bookshelf/window front direction, 1 or -1 on the perpendicular axis.
  * @property {number} [depth] Window reveal depth; defaults to 0.3.
  * @property {number} [Z1] Spiral staircase lower map elevation (world Y).

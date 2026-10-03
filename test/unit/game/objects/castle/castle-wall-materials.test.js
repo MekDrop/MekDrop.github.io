@@ -18,7 +18,7 @@ class Decoration {
   destroy() { this.entity.destroy(); }
 }
 const CastleFire = Decoration, CastleBanner = Decoration,
-  CastleFlag = Decoration, CastleRoof = Decoration, CastleStairs = Decoration;
+  CastleRoof = Decoration, CastleStairs = Decoration;
 `;
 const { CastleEntityBuilder } = await import(
   `data:text/javascript;base64,${Buffer.from(prelude + source).toString("base64")}`

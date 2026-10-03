@@ -1,3 +1,4 @@
+import { Flag } from "./flag/Flag.js";
 import { Painting } from "./painting/Painting.js";
 import { Earth } from "./terrain/Earth.js";
 import { Window } from "./window/Window.js";
@@ -22,6 +23,7 @@ import { MapPickupAnimationActors } from "../debug/MapPickupAnimationActors.js";
 import { MapVirtualItem } from "../debug/MapVirtualItem.js";
 
 const OBJECT_CLASSES = new Map([
+  [Flag.name, Flag],
   [Bookshelf.name, Bookshelf],
   [Painting.name, Painting],
   [Window.name, Window],

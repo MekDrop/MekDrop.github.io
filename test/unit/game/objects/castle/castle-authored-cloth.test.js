@@ -12,9 +12,9 @@ class FakeMesh {
   incRefCount() {}
 }
 
-for (const name of ["CastleBanner", "CastleFlag"]) {
+for (const name of ["CastleBanner", "Flag"]) {
   it(`${name} clones authored topology and selects pins independent of vertex ordering`, () => {
-    const source = readFileSync(new URL(`../../../../../src/game/objects/castle/${name}.js`, import.meta.url), "utf8");
+    const source = readFileSync(new URL(`../../../../../src/game/objects/${name === "Flag" ? "flag" : "castle"}/${name}.js`, import.meta.url), "utf8");
     const start = source.indexOf("  #createMesh(");
     const end = source.indexOf("\n  /**", start);
     const method = source.slice(start, end).replace("#createMesh", "createMesh");

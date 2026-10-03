@@ -1,6 +1,7 @@
 import clothModelUrl from "../../models/castle/residential/flag-cloth.glb?url";
 import finialModelUrl from "../../models/castle/residential/metal-finial.glb?url";
 import authoredModelUrl from "../../models/castle/residential/metal-pole.glb?url";
+import { IslandObjectRoots } from "../shared/IslandObjectRoots.js";
 import { AmmoClothPhysics } from "../shared/AmmoClothPhysics.js";
 
 const FLAG_TRAILING_EDGE_HEIGHT_RATIO = 0.2;
@@ -8,10 +9,86 @@ const FLAG_TEXTURE_WIDTH = 64;
 const FLAG_TEXTURE_HEIGHT = 40;
 
 /**
- * @typedef {{root: import("playcanvas").Entity, width: number, height: number, poleHeight: number, cloth: ReturnType<AmmoClothPhysics["createCloth"]>, mesh: import("playcanvas").Mesh, positions: Float32Array, vertexUv: Float32Array, indices: Uint16Array}} CastleFlagInstance
+ * @typedef {{root: import("playcanvas").Entity, width: number, height: number, poleHeight: number, cloth: ReturnType<AmmoClothPhysics["createCloth"]>, mesh: import("playcanvas").Mesh, positions: Float32Array, vertexUv: Float32Array, indices: Uint16Array}} FlagInstance
  */
 
-export class CastleFlag {
+export class Flag {
+  /**
+   * @type {import("../ObjectTypes.js").MapObjectDefinition}
+   */
+  #definition;
+  /**
+   * @type {IslandObjectRoots}
+   */
+  #islandRoots;
+  /**
+   * @type {import("playcanvas").Asset|null}
+   */
+  #textureAsset = null;
+
+  /**
+   * Extract saved castle roof flags into independently owned map objects.
+   * @param {import("../ObjectTypes.js").GameMapData} mapData
+   */
+  static prepareMap(mapData) {
+    const objects = mapData.objects ??= [];
+    for (let index = objects.length - 1; index >= 0; index--) {
+      const flag = objects[index];
+      if (!flag.sourceCastleId) continue;
+      const castle = objects.find(/**
+       * @param {import("../ObjectTypes.js").MapObjectDefinition} item
+       */ (item) => item.id === flag.sourceCastleId);
+      if (!castle || castle.seed !== flag.sourceCastleSeed) objects.splice(index, 1);
+    }
+    for (const castle of [...objects]) {
+      if (castle.object !== "Castle") continue;
+      for (const [index, flag] of (castle.buildPlan?.geometry?.decorations?.flags ?? []).entries()) {
+        const id = `${castle.id}-flag-${index}`;
+        if (objects.some(/**
+         *
+         * @param {import("../ObjectTypes.js").MapObjectDefinition} item
+         */
+        (item) => item.id === id)) continue;
+        objects.push({ id, object: Flag.name, sourceCastleId: castle.id, sourceCastleSeed: castle.seed, position: { x: flag.x, y: flag.y, z: flag.z },
+          rotation: flag.yaw, width: flag.width, height: flag.height,
+          poleHeight: flag.poleHeight, roofCollider: flag.roofCollider, tile: castle.tile });
+      }
+    }
+  }
+
+  get definition() { return this.#definition; }
+  /**
+   * @returns {import("playcanvas").Entity[]}
+   */
+  get visualRoots() { return this.#flags.map(/**
+   *
+   * @param {FlagInstance} flag
+   */
+  (flag) => flag.root); }
+  /**
+   * @param {number} near
+   * @param {number} far
+   */
+  setIslandOffsets(near, far) { this.#islandRoots.setOffsets(near, far); }
+  /**
+   * @param {import("playcanvas").Vec3} rayStart
+   * @param {import("playcanvas").Vec3} rayEnd
+   */
+  getPointerHit(rayStart, rayEnd) {
+    const hit = this.getFlagHit(rayStart, rayEnd);
+    return hit ? { ...hit, pointerTarget: this } : null;
+  }
+  /**
+   * @param {{hit: Parameters<Flag["beginWindGesture"]>[0]}} options
+   */
+  handlePointerDown({ hit }) { this.beginWindGesture(hit); return { capturePointer: true }; }
+  /**
+   * @param {{ray: {start: import("playcanvas").Vec3, end: import("playcanvas").Vec3}, deltaTime: number}} options
+   */
+  handlePointerMove({ ray, deltaTime }) { this.applyMouseWind(ray.start, ray.end, deltaTime); return true; }
+  handlePointerUp() { this.endWindGesture(); return true; }
+  handlePointerCancel() { this.endWindGesture(); }
+
   /**
    * @returns {string[]}
    */
@@ -52,12 +129,12 @@ export class CastleFlag {
   #texture;
   /**
    *
-    * @type {Array<CastleFlagInstance>}
+    * @type {Array<FlagInstance>}
    */
   #flags = [];
   /**
    *
-    * @type {CastleFlagInstance|null}
+    * @type {FlagInstance|null}
    */
   #activeFlag = null;
   /**
@@ -73,20 +150,39 @@ export class CastleFlag {
 
   /**
    *
-   * @param {{pc: typeof import("playcanvas"), app: import("playcanvas").Application}} options
+   * @param {{pc: typeof import("playcanvas"), app: import("playcanvas").Application, modelLibrary: import("../../models/GameModelLibrary.js").GameModelLibrary, definition: import("../ObjectTypes.js").MapObjectDefinition, runtime?: import("../ObjectTypes.js").MapObjectRuntime}} options
    * @param {typeof import("playcanvas")} options.pc
    * @param {import("../../models/GameModelLibrary.js").GameModelLibrary} options.modelLibrary
    * @param {import("playcanvas").Application} options.app
    */
-  constructor({ pc, app, modelLibrary }) {
+  constructor({ pc, app, modelLibrary, definition, runtime = {} }) {
+    this.#definition = definition;
     this.#modelLibrary = modelLibrary;
     this.#pc = pc;
     this.#app = app;
-    this.#entity = new pc.Entity("Castle flags");
+    this.#entity = new pc.Entity(`${definition.id} flag ownership`);
     this.#texture = this.#createTexture();
     this.#flagMaterial = this.#createFlagMaterial();
     this.#poleMaterial = this.#createPoleMaterial();
     this.#physics = new AmmoClothPhysics({ pc });
+    this.#islandRoots = new IslandObjectRoots(pc, this.#entity, runtime.mapData);
+    this.#add({ ...definition.position, yaw: definition.rotation ?? 0,
+      width: definition.width, height: definition.height,
+      poleHeight: definition.poleHeight, roofCollider: definition.roofCollider });
+    this.#entity.tags.add("map-object", definition.id, Flag.name);
+    if (definition.texture) {
+      this.#textureAsset = new pc.Asset(`${definition.id} flag texture`, "texture", { url: definition.texture });
+      this.#textureAsset.once("load", /**
+       *
+       * @param {import("playcanvas").Asset} asset
+       */
+      (asset) => {
+        this.#flagMaterial.diffuseMap = asset.resource;
+        this.#flagMaterial.update();
+      });
+      app.assets.add(this.#textureAsset);
+      app.assets.load(this.#textureAsset);
+    }
     this.#updateHandle = app.on("update", /**
      *
      * @param {number} deltaTime
@@ -112,7 +208,7 @@ export class CastleFlag {
    * @param {number} options.poleHeight
    * @param {number} options.roofCollider
    */
-  add({
+  #add({
     x,
     y,
     z,
@@ -136,13 +232,13 @@ export class CastleFlag {
           hangingReach,
       );
     }
-    const root = new this.#pc.Entity("Castle roof flag");
-    root.setPosition(x, y, z);
-    root.setEulerAngles(0, yaw, 0);
-    this.#entity.addChild(root);
+    const root = new this.#pc.Entity("Flag");
+    root.setLocalPosition(x, y, z);
+    root.setLocalEulerAngles(0, yaw, 0);
+    this.#islandRoots.addChild(root, this.#definition.tile);
 
     const pole = this.#modelLibrary.instantiate(authoredModelUrl);
-    pole.name = "Castle flag pole";
+    pole.name = "Flag pole";
     for (const instance of pole.findComponents("render").flatMap(/**
      * @param {import("playcanvas").RenderComponent} render
      */ (render) => render.meshInstances)) {
@@ -153,7 +249,7 @@ export class CastleFlag {
     root.addChild(pole);
 
     const finial = this.#modelLibrary.instantiate(finialModelUrl);
-    finial.name = "Castle flag finial";
+    finial.name = "Flag finial";
     for (const instance of finial.findComponents("render").flatMap(/**
      * @param {import("playcanvas").RenderComponent} render
      */ (render) => render.meshInstances)) {
@@ -172,7 +268,7 @@ export class CastleFlag {
     meshInstance.receiveShadow = true;
     meshInstance.pick = false;
     meshInstance.devWireframeInspectable = true;
-    const cloth = new this.#pc.Entity("Tapered castle flag");
+    const cloth = new this.#pc.Entity("Tapered flag");
     cloth.addComponent("render", {
       meshInstances: [meshInstance],
       castShadows: true,
@@ -220,7 +316,7 @@ export class CastleFlag {
 
   /**
    *
-   * @param {{flag: CastleFlagInstance, point: import("playcanvas").Vec3}} hit
+   * @param {{flag: FlagInstance, point: import("playcanvas").Vec3}} hit
    */
   beginWindGesture(hit) {
     if (!hit?.flag) {
@@ -248,7 +344,7 @@ export class CastleFlag {
   }
 
   endWindGesture() {
-    this.#physics.endPointer(this.#activeFlag?.cloth);
+    this.#physics?.endPointer(this.#activeFlag?.cloth);
     this.#activeFlag = null;
   }
 
@@ -269,6 +365,12 @@ export class CastleFlag {
     this.#flagMaterial = null;
     this.#poleMaterial?.destroy();
     this.#poleMaterial = null;
+    if (this.#textureAsset) {
+      this.#textureAsset.off();
+      this.#textureAsset.unload();
+      this.#app.assets.remove(this.#textureAsset);
+      this.#textureAsset = null;
+    }
     this.#texture?.destroy();
     this.#texture = null;
   }
@@ -297,7 +399,7 @@ export class CastleFlag {
     context.fillRect(28, 18, 6, 8);
 
     const texture = new this.#pc.Texture(this.#app.graphicsDevice, {
-      name: "Tapered castle flag",
+      name: "Tapered flag",
       width: FLAG_TEXTURE_WIDTH,
       height: FLAG_TEXTURE_HEIGHT,
       addressU: this.#pc.ADDRESS_CLAMP_TO_EDGE,
@@ -313,7 +415,7 @@ export class CastleFlag {
 
   #createFlagMaterial() {
     const material = new this.#pc.StandardMaterial();
-    material.name = "Castle flag cloth";
+    material.name = "Flag cloth";
     material.diffuse = new this.#pc.Color(1, 1, 1);
     material.diffuseMap = this.#texture;
     material.cull = this.#pc.CULLFACE_NONE;
@@ -325,7 +427,7 @@ export class CastleFlag {
 
   #createPoleMaterial() {
     const material = new this.#pc.StandardMaterial();
-    material.name = "Castle flag pole";
+    material.name = "Flag pole";
     material.diffuse = new this.#pc.Color(0.76, 0.55, 0.16);
     material.gloss = 0.18;
     material.update();

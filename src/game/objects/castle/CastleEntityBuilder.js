@@ -7,7 +7,6 @@ import { CastleAudienceRoom } from "./CastleAudienceRoom.js";
 import { CastleDoor } from "./CastleDoor.js";
 import { CastleDoorArch } from "./CastleDoorArch.js";
 import { CastleFire } from "./CastleFire.js";
-import { CastleFlag } from "./CastleFlag.js";
 import { CastleRoof } from "./CastleRoof.js";
 import { CastleStairs } from "./CastleStairs.js";
 import { CastleResidence } from "./CastleResidence.js";
@@ -33,7 +32,7 @@ import {
  */
 
 /**
- * @typedef {Parameters<CastleBanner["beginWindGesture"]>[0]|Parameters<CastleFlag["beginWindGesture"]>[0]} CastleWindHit
+ * @typedef {Parameters<CastleBanner["beginWindGesture"]>[0]} CastleWindHit
  */
 
 export class CastleEntityBuilder {
@@ -47,7 +46,6 @@ export class CastleEntityBuilder {
       CastleRoof.modelUrl,
       ...CastleFire.modelUrls,
       ...CastleBanner.modelUrls,
-      ...CastleFlag.modelUrls,
       ...CastleDoor.modelUrls,
       CastleDoorArch.modelUrl,
       CastleStairs.modelUrl,
@@ -138,12 +136,7 @@ export class CastleEntityBuilder {
   #banners = null;
   /**
    *
-    * @type {CastleFlag|null}
-   */
-  #flags = null;
-  /**
-   *
-    * @type {CastleBanner|CastleFlag|null}
+    * @type {CastleBanner|null}
    */
   #activeWindTarget = null;
   /**
@@ -506,15 +499,7 @@ export class CastleEntityBuilder {
    * @param {number} rayEnd
    */
   getBannerHit(rayStart, rayEnd) {
-    const bannerHit = this.#banners?.getBannerHit(rayStart, rayEnd) ?? null;
-    const flagHit = this.#flags?.getFlagHit(rayStart, rayEnd) ?? null;
-    if (!bannerHit) {
-      return flagHit;
-    }
-    if (!flagHit) {
-      return bannerHit;
-    }
-    return flagHit.distance < bannerHit.distance ? flagHit : bannerHit;
+    return this.#banners?.getBannerHit(rayStart, rayEnd) ?? null;
   }
 
   /**
@@ -544,7 +529,7 @@ export class CastleEntityBuilder {
    * @param {CastleWindHit} hit
    */
   beginWindGesture(hit) {
-    this.#activeWindTarget = hit?.flag ? this.#flags : this.#banners;
+    this.#activeWindTarget = this.#banners;
     this.#activeWindTarget?.beginWindGesture(hit);
   }
 
@@ -623,8 +608,6 @@ export class CastleEntityBuilder {
     this.#fire = null;
     this.#banners?.destroy();
     this.#banners = null;
-    this.#flags?.destroy();
-    this.#flags = null;
     this.#roofs?.destroy();
     this.#roofs = null;
     this.#stairs?.destroy();
@@ -754,8 +737,6 @@ export class CastleEntityBuilder {
     this.#entity.addChild(this.#fire.entity);
     this.#banners = new CastleBanner({ pc: this.#pc, app: this.#app, modelLibrary: this.#modelLibrary });
     this.#entity.addChild(this.#banners.entity);
-    this.#flags = new CastleFlag({ pc: this.#pc, app: this.#app, modelLibrary: this.#modelLibrary });
-    this.#entity.addChild(this.#flags.entity);
     this.#roofs = new CastleRoof({ pc: this.#pc, modelLibrary: this.#modelLibrary });
     this.#entity.addChild(this.#roofs.entity);
   }
@@ -920,9 +901,6 @@ export class CastleEntityBuilder {
     }
     for (const banner of geometry.decorations.banners) {
       this.#banners.add(banner);
-    }
-    for (const flag of geometry.decorations.flags) {
-      this.#flags.add(flag);
     }
     for (const roof of geometry.decorations.roofs) {
       this.#roofs.add(roof);
