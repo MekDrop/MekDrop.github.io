@@ -1,0 +1,400 @@
+{
+  "version": 1,
+  "id": "castle-demo-compact",
+  "name": "Compact castle — 7 by 8 metre demo",
+  "source": {
+    "image": "sources/castle-demo-compact-game-constrained.png",
+    "method": "manual dimensioned schematic transcription",
+    "accuracy": "Dimensions in metres. S1 aligned on all three levels. Upper northwest study/landing is open beneath the flat terrace roof outline."
+  },
+  "coordinates": {
+    "width": 7,
+    "depth": 8,
+    "north": "-z",
+    "units": "metres",
+    "recommendedUnitMetres": 1
+  },
+  "floorHeight": 3,
+  "wallThickness": 0.25,
+  "entrance": {
+    "spaceId": "main-entrance",
+    "side": "SOUTH",
+    "offset": 0.375,
+    "width": 2,
+    "bridge": [
+      0.75,
+      7.625,
+      2,
+      0.375
+    ]
+  },
+  "buildings": [
+    {
+      "id": "base",
+      "bounds": [
+        0.25,
+        0.25,
+        6.5,
+        7.5
+      ],
+      "elevation": -3,
+      "height": 6
+    },
+    {
+      "id": "keep",
+      "bounds": [
+        2.625,
+        0.25,
+        4.125,
+        4.125
+      ],
+      "elevation": 3,
+      "height": 3
+    }
+  ],
+  "levels": [
+    {
+      "index": -1,
+      "elevation": -3,
+      "spaces": [
+        {
+          "id": "kitchen",
+          "label": "Service room / kitchen and storage",
+          "kind": "room",
+          "bounds": [
+            0.375,
+            5.125,
+            2,
+            2.5
+          ],
+          "openings": [
+            {
+              "kind": "door",
+              "side": "EAST",
+              "offset": 0.25,
+              "width": 1,
+              "bottom": 0,
+              "height": 2.5
+            }
+          ],
+          "generator": "KitchenRoomGenerator"
+        },
+        {
+          "id": "storage-north",
+          "label": "Storage / circulation",
+          "kind": "corridor",
+          "bounds": [
+            0.375,
+            0.375,
+            2.25,
+            3.5
+          ],
+          "openings": [],
+          "generator": null
+        },
+        {
+          "id": "storage-south",
+          "label": "Storage / circulation",
+          "kind": "corridor",
+          "bounds": [
+            2.625,
+            3.875,
+            4,
+            3.75
+          ],
+          "openings": [],
+          "generator": null
+        },
+        {
+          "id": "basement-stair-room",
+          "label": "S1 basement landing",
+          "kind": "room",
+          "bounds": [
+            2.625,
+            0.375,
+            4,
+            3.5
+          ],
+          "openings": [
+            {
+              "kind": "door",
+              "side": "WEST",
+              "offset": 2,
+              "width": 1,
+              "bottom": 0,
+              "height": 2.5,
+              "swing": "outward"
+            }
+          ],
+          "generator": null
+        },
+        {
+          "id": "storage-west",
+          "label": "Storage circulation",
+          "kind": "corridor",
+          "bounds": [
+            0.375,
+            3.875,
+            2.25,
+            1.125
+          ],
+          "openings": [],
+          "generator": null
+        }
+      ]
+    },
+    {
+      "index": 0,
+      "elevation": 0,
+      "spaces": [
+        {
+          "id": "vestibule",
+          "label": "Vestibule / circulation",
+          "kind": "corridor",
+          "bounds": [
+            0.375,
+            0.375,
+            2.25,
+            4.125
+          ],
+          "openings": [
+            {
+              "kind": "window",
+              "side": "WEST",
+              "offset": 3.25,
+              "width": 0.75,
+              "bottom": 1,
+              "height": 1
+            }
+          ],
+          "generator": null
+        },
+        {
+          "id": "stair-room",
+          "label": "S1 ground landing",
+          "kind": "room",
+          "bounds": [
+            2.625,
+            0.375,
+            4,
+            3.75
+          ],
+          "openings": [
+            {
+              "kind": "door",
+              "side": "WEST",
+              "offset": 2,
+              "width": 1,
+              "bottom": 0,
+              "height": 2.5,
+              "swing": "outward"
+            }
+          ],
+          "generator": null
+        },
+        {
+          "id": "throne-hall",
+          "label": "Throne room",
+          "kind": "room",
+          "bounds": [
+            3.625,
+            4.375,
+            3,
+            3
+          ],
+          "openings": [
+            {
+              "kind": "door",
+              "side": "WEST",
+              "offset": 1.5,
+              "width": 1,
+              "bottom": 0,
+              "height": 2.5,
+              "swing": "inward"
+            },
+            {
+              "kind": "window",
+              "side": "EAST",
+              "offset": 0.375,
+              "width": 0.75,
+              "bottom": 1,
+              "height": 1
+            },
+            {
+              "kind": "window",
+              "side": "EAST",
+              "offset": 2,
+              "width": 0.75,
+              "bottom": 1,
+              "height": 1
+            }
+          ],
+          "generator": "ThroneRoomGenerator"
+        },
+        {
+          "id": "throne-landing",
+          "label": "Throne circulation",
+          "kind": "corridor",
+          "bounds": [
+            3.625,
+            4.125,
+            3,
+            0.25
+          ],
+          "openings": [],
+          "generator": null
+        },
+        {
+          "id": "main-entrance",
+          "label": "Entrance circulation",
+          "kind": "corridor",
+          "bounds": [
+            0.375,
+            7.625,
+            6.25,
+            0.125
+          ],
+          "openings": [
+            {
+              "kind": "door",
+              "side": "SOUTH",
+              "offset": 0.375,
+              "width": 2,
+              "bottom": 0,
+              "height": 2.5
+            }
+          ],
+          "generator": null
+        },
+        {
+          "id": "vestibule-south",
+          "label": "Vestibule / circulation",
+          "kind": "corridor",
+          "bounds": [
+            0.375,
+            4.5,
+            3.25,
+            2.875
+          ],
+          "openings": [
+            {
+              "kind": "window",
+              "side": "WEST",
+              "offset": 1.375,
+              "width": 0.75,
+              "bottom": 1,
+              "height": 1
+            }
+          ],
+          "generator": null
+        }
+      ]
+    },
+    {
+      "index": 1,
+      "elevation": 3,
+      "spaces": [
+        {
+          "id": "study-landing",
+          "label": "Study / landing",
+          "kind": "corridor",
+          "bounds": [
+            0.375,
+            0.375,
+            2.25,
+            3
+          ],
+          "openings": [],
+          "generator": null
+        },
+        {
+          "id": "upper-stair-room",
+          "label": "S1 upper landing",
+          "kind": "room",
+          "bounds": [
+            2.625,
+            0.375,
+            4,
+            3.75
+          ],
+          "openings": [
+            {
+              "kind": "door",
+              "side": "WEST",
+              "offset": 2,
+              "width": 1,
+              "bottom": 0,
+              "height": 2.5,
+              "swing": "outward"
+            },
+            {
+              "kind": "window",
+              "side": "EAST",
+              "offset": 1,
+              "width": 0.75,
+              "bottom": 1,
+              "height": 1
+            }
+          ],
+          "generator": null
+        },
+        {
+          "id": "terrace-west",
+          "label": "Leisure terrace west",
+          "kind": "terrace",
+          "bounds": [
+            0.375,
+            3.625,
+            2.25,
+            4
+          ],
+          "openings": [],
+          "generator": null
+        },
+        {
+          "id": "terrace-south",
+          "label": "Leisure terrace east",
+          "kind": "terrace",
+          "bounds": [
+            3.625,
+            4.125,
+            3,
+            3.25
+          ],
+          "openings": [],
+          "generator": null
+        }
+      ]
+    }
+  ],
+  "staircases": [
+    {
+      "id": "S1",
+      "bounds": [
+        3.875,
+        0.75,
+        2.75,
+        2.75
+      ],
+      "radius": 1.35,
+      "landingProfile": false,
+      "from": -1,
+      "to": 1
+    }
+  ],
+  "roofs": [
+    {
+      "id": "tower-roof",
+      "bounds": [
+        2.5,
+        0,
+        4.5,
+        4.375
+      ],
+      "elevation": 6,
+      "height": 2,
+      "shape": "pyramid",
+      "walkable": false
+    }
+  ]
+}

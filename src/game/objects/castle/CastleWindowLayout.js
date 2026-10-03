@@ -40,6 +40,10 @@ export class CastleWindowLayout {
       return;
     }
     this.#rooms = new CastleResidentialLayout(plan);
+    if (plan.layout.basePlanId) {
+      this.#authoredWindows(plan);
+      return;
+    }
     this.#masonry = plan.geometry.boxes.filter(
       /**
        * @param {MasonryBox} box
@@ -318,6 +322,31 @@ export class CastleWindowLayout {
     );
     if (intersectsStone) {
       this.#windows.push({ role, position, yaw, width, height, depth, cut, floorY });
+    }
+  }
+
+  /**
+   * Uses JSON apertures directly, without a window-placement search.
+   * @param {import("../../GameContracts.js").CastleBuildPlan} plan
+   */
+  #authoredWindows(plan) {
+    for (const opening of plan.metadata.runtime.residential.openings) {
+      if (opening.kind !== "window") { continue; }
+      const sign = ["WEST", "NORTH"].includes(opening.side) ? -1 : 1;
+      const axis = opening.axis;
+      const face = opening.coordinate + sign * 0.25;
+      const position = this.#rooms.toWorld(axis === "x" ? face : opening.center,
+        axis === "z" ? face : opening.center, opening.floorY + opening.bottom - this.#rooms.origin.y);
+      const yaw = this.#rooms.yaw + (axis === "x" ? sign * 90 : sign < 0 ? 180 : 0);
+      const angle = yaw * Math.PI / 180;
+      const depth = 0.25;
+      const x = position.x - Math.sin(angle) * depth / 2;
+      const z = position.z - Math.cos(angle) * depth / 2;
+      const halfX = (Math.abs(Math.cos(angle)) * opening.width + Math.abs(Math.sin(angle)) * (depth + 0.02)) / 2;
+      const halfZ = (Math.abs(Math.sin(angle)) * opening.width + Math.abs(Math.cos(angle)) * (depth + 0.02)) / 2;
+      const cut = { minX: x - halfX, maxX: x + halfX, minZ: z - halfZ, maxZ: z + halfZ,
+        minY: position.y, maxY: position.y + opening.height };
+      this.#windows.push({ role: "room", position, yaw, width: opening.width, height: opening.height, depth, cut, floorY: opening.floorY });
     }
   }
 

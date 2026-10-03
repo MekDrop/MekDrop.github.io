@@ -43,7 +43,6 @@ export class MapFileLoader {
       definition.buildPlan = await CastleGenerator.generate({
         position: definition.position ?? definition.buildPlan?.input?.position,
         doors: definition.doors ?? definition.buildPlan?.input?.doors,
-        style: definition.style ?? definition.buildPlan?.input?.requestedStyle,
         seed: definition.seed ?? definition.buildPlan?.input?.seed,
       });
     }

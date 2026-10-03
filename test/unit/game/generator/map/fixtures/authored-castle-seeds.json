@@ -1,0 +1,174 @@
+[
+  {
+    "options": {
+      "mapName": "pipeline-baseline-default"
+    },
+    "sha256": "619b7ecd8811f440c1f937c0b802eed720256372c83c90eac9b33a9f50f60b23",
+    "routingSha256": "a668cb459a225895fd7d0e2edf23cee0b2e7d5b27cf77918255cbbd85f128d0c"
+  },
+  {
+    "options": {
+      "mapName": "pipeline-baseline-rivers",
+      "numPaths": 4,
+      "numRivers": 6
+    },
+    "sha256": "426210d377eb39c988d02c950baad51518a4a0fecc9ba1a0b942337db01c79b9",
+    "routingSha256": "ef5b40fe97dac320714a565517024cd93a606b59121ffdf21e20db1108ce6ed7"
+  },
+  {
+    "options": {
+      "mapName": "pipeline-baseline-no-rivers",
+      "numPaths": 1,
+      "numRivers": 0
+    },
+    "sha256": "65156370d4e1e520a6135bc4ab78582b239e9808e466146552bc84104eadf782",
+    "routingSha256": "9487b7a898ffdb96c9e1c5b1d926083d501816f3a8446252835215d28bc87846"
+  },
+  {
+    "options": {
+      "mapName": "pipeline-baseline-overpass",
+      "numPaths": 4,
+      "overpass": true
+    },
+    "sha256": "2032113f1d474f0d3c5a84c8c062f040693d9db810aea286cc6be684e27f209b",
+    "routingSha256": "60d5e0aa81155ba1871ef9833a512494dc92710c2270f18bab6f9c891d1258fe"
+  },
+  {
+    "options": {
+      "mapName": "variant-4",
+      "numPaths": 4,
+      "numRivers": 0,
+      "overpass": true
+    },
+    "sha256": "34f7f1b07e580934ba3007bf0934cc2e0511b59e593ab8fe467e0175eebd1103",
+    "routingSha256": "f3f938d14d89e9b43468c329688ee60297022eccd16a6e8f45b02a8d6a8e3ffe"
+  },
+  {
+    "options": {
+      "mapName": "variant-2",
+      "numPaths": 4,
+      "numRivers": 0,
+      "overpass": true
+    },
+    "sha256": "5436025b1d9d74e42e0dcc1cf96fe18ffae4ff53f2e43bbc53e6ae09e333b704",
+    "routingSha256": "5dce3bdeafbb5ce4e4afd477bde0bdb016a7c20ba35027429d962733277cb221"
+  },
+  {
+    "options": {
+      "mapName": "collaborator-0",
+      "numPaths": 1,
+      "numRivers": 0
+    },
+    "sha256": "80af04bfd882f6130ca95f1e46766eb2a6378a32f5661394648800f2fc2b08ed",
+    "routingSha256": "34965d26e25fc86bf7e586f137a2d81688fd79f5b683de066c8c8856800053f5"
+  },
+  {
+    "options": {
+      "mapName": "collaborator-1",
+      "numPaths": 2,
+      "numRivers": 1
+    },
+    "sha256": "4da63c5f17a0b761e855287db61e45c4141f4b3692cd4c62b6f7981e577767fe",
+    "routingSha256": "3fad90ee86f8a675ec27521ed05144a76153df80323c4c364a4929a6a4a119cf"
+  },
+  {
+    "options": {
+      "mapName": "collaborator-2",
+      "numPaths": 3,
+      "numRivers": 2
+    },
+    "sha256": "fad09b69f706439a42a2a9b33c9482faf31092acc158b30c0cd05ac2163a51c7",
+    "routingSha256": "4f01b1c89654285129e693bcb3aca415b52aab4dcfeddcd67116e1f9fbd2812a"
+  },
+  {
+    "options": {
+      "mapName": "collaborator-3",
+      "numPaths": 4,
+      "numRivers": 3
+    },
+    "sha256": "f99701a0aa6e37356c5ed52a40f4eecef467b13bf78be1413b6c27f356fbadc5",
+    "routingSha256": "b37738dff24634a95cd12fa66d7751c84983a01d79e6f020cea9ca59da3d3812"
+  },
+  {
+    "options": {
+      "mapName": "collaborator-4",
+      "numPaths": 1,
+      "numRivers": 4
+    },
+    "sha256": "0ba4d170e7017b966a8410edcd6d21a65f5ced28f22d6259896822e67bab6821",
+    "routingSha256": "d83059294003c16a6f734958f68e0750e3fe53aebd790fb7a6470bcde33735e2"
+  },
+  {
+    "options": {
+      "mapName": "collaborator-5",
+      "numPaths": 2,
+      "numRivers": 5
+    },
+    "sha256": "103ffdb4002dde57e9fcd5626f282abdde29af7b84fa0ca5f92a19e51b109a16",
+    "routingSha256": "3fad90ee86f8a675ec27521ed05144a76153df80323c4c364a4929a6a4a119cf"
+  },
+  {
+    "options": {
+      "mapName": "collaborator-6",
+      "numPaths": 3,
+      "numRivers": 6
+    },
+    "sha256": "6cd74cf063b6c64d1f3dd44085b0284e217888db5f659af4c2189fc0a9a5b6d7",
+    "routingSha256": "0a34258b04ce840b07c0222592f38fef0a74cc5bfacec2a1b513e94380185693"
+  },
+  {
+    "options": {
+      "mapName": "collaborator-7",
+      "numPaths": 4,
+      "numRivers": 0
+    },
+    "sha256": "147135d1de028ec199e5c80e7b4e290c165d207d21637ad541ac04f052021786",
+    "routingSha256": "718d9c3a8f06c7f32943c967d6e6a55ed3f56230a3ece065742a3c31414db21b"
+  },
+  {
+    "options": {
+      "mapName": "collaborator-8",
+      "numPaths": 1,
+      "numRivers": 1
+    },
+    "sha256": "0557edc7321140fe1ec2eeb96fc9c2ba4464173cba249ca3691566a0baf4b51a",
+    "routingSha256": "bb7ed9435c7458ba94f1a77f18aa0e0c1578cddfd7d7835a50944ba61ba74022"
+  },
+  {
+    "options": {
+      "mapName": "collaborator-9",
+      "numPaths": 2,
+      "numRivers": 2
+    },
+    "sha256": "94078b42a6ad4612810af24b8be5d79729e88cce77a317ccf1f3e0397306ded4",
+    "routingSha256": "df9f00426f7b1ee3eb7e97d44034137ea558bbe1d55c8f913731b1ae399ec9d6"
+  },
+  {
+    "options": {
+      "mapName": "collaborator-10",
+      "numPaths": 3,
+      "numRivers": 3
+    },
+    "error": {
+      "name": "PathOutsideGateError"
+    }
+  },
+  {
+    "options": {
+      "mapName": "collaborator-11",
+      "numPaths": 4,
+      "numRivers": 4
+    },
+    "sha256": "479cbe49956c14c1e4aebb0edd42ff59779d9e1810edd78a7cbf68630f8ad412",
+    "routingSha256": "e697510a5ae4f41218199d73d88c1268a60e16031ff217e770adccf30a40b239"
+  },
+  {
+    "options": {
+      "mapName": "lava-extraction-2",
+      "numPaths": 2,
+      "numRivers": 2
+    },
+    "sha256": "bbfeff9877ea316aad1b0837704ab1c64e3ef2fc7ad9b62418d46fcee667071c",
+    "routingSha256": "bc790ddd8cc2452ab78f99528839141fd42e2041ecf7015c586fb3e016ebc631"
+  }
+]

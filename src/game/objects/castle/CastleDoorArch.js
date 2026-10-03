@@ -3,6 +3,7 @@ import entranceArchModelUrl from "../../models/castle/doors/entrance-arch.glb?ur
 const HIDDEN_MORTAR_PREFIXES = [
   "Castle arch solid wedge",
   "Castle arch solid jamb",
+  "Solid outer arch shoulder infill",
 ];
 
 /**
@@ -53,10 +54,12 @@ export class CastleDoorArch {
     hideMortarBacking(this.#entity);
 
     const frame = placement ?? this.#placement(castlePosition, door);
+    const angle = frame.yaw * Math.PI / 180;
+    const projection = placement ? 0.3 : 0;
     this.#entity.setLocalPosition(
-      frame.x,
+      frame.x - Math.sin(angle) * projection,
       placement?.y ?? castlePosition.elevation,
-      frame.z,
+      frame.z - Math.cos(angle) * projection,
     );
     this.#entity.setLocalEulerAngles(0, frame.yaw, 0);
     // The imported jamb faces sit exactly on the voxel opening sides at x = +/-1.

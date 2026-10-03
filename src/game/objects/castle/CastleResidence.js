@@ -102,8 +102,9 @@ export class CastleResidence {
       this.#solids.push({ x: local.x, y: placement.position.y - origin.y + dimensions[1] * placement.scale.y / 2, z: local.z, width: dimensions[0] * placement.scale.x, height: dimensions[1] * placement.scale.y, depth: dimensions[2] * placement.scale.z });
     }
     if (buildPlan.metadata.runtime.residential?.version === 2) {
-      this.#buildExterior(buildPlan, modelLibrary, pc);
+      if (!buildPlan.metadata.runtime.residential.basePlanId) { this.#buildExterior(buildPlan, modelLibrary, pc); }
       this.#buildPlannedFloors(buildPlan, modelLibrary, pc);
+      for (const stair of this.#layout.authoredStairs) { this.#buildStair(pc, modelLibrary, stair, "Castle authored staircase", stair.shaft); }
       if (this.#layout.stairs) { this.#buildStair(pc, modelLibrary, this.#layout.stairs, "Castle upper staircase", buildPlan.metadata.runtime.residential.shaft); }
       if (this.#layout.serviceStair) { this.#buildStair(pc, modelLibrary, this.#layout.serviceStair, "Castle basement staircase"); }
       addGeneratedVoxelPhysics({ pc, parent: this.#entity, name: "Castle rooms", voxels: this.#solids, friction: 0.6 });
@@ -141,7 +142,7 @@ export class CastleResidence {
       }
       for (const [pieces, timber] of [[stonePieces, false], [woodPieces, true]]) {
         // The generated brick shell already owns exposed upper surfaces.
-        if (!timber && area.floorY > plan.origin.y && !area.id.endsWith("Threshold")) { continue; }
+        if (!plan.basePlanId && !timber && area.floorY > plan.origin.y && !area.id.endsWith("Threshold")) { continue; }
         for (const [minX, maxX, minZ, maxZ] of pieces) {
           if (maxX <= minX || maxZ <= minZ) { continue; }
           // Door thresholds already have masonry and exterior stair support.
@@ -152,7 +153,7 @@ export class CastleResidence {
           const x = (minX + maxX) / 2;
           const z = (minZ + maxZ) / 2;
           const y = area.floorY - plan.origin.y;
-          if (panel) {
+          if (panel && (wood || !plan.basePlanId)) {
             panel.name = `Castle ${area.id} ${wood ? "wood" : "stone"} floor`;
             // Keep finishes clear of terrain and the final stone tread.
             panel.setLocalPosition(x, y - (wood ? 0.06 : 0.25) + 0.004, z);
@@ -269,7 +270,7 @@ export class CastleResidence {
   /**
    * @param {typeof import("playcanvas")} pc
    * @param {import("../../models/GameModelLibrary.js").GameModelLibrary} modelLibrary
-   * @param {{center: {x: number, y: number, z: number}, radius: number, rise: number, yaw?: number, landingProfile?: boolean}} definition
+   * @param {{center: {x: number, y: number, z: number}, radius: number, rise: number, yaw?: number, turns?: number, landingProfile?: boolean}} definition
    * @param {string} name
    * @param {{minZ:number,maxZ:number}|null} shaft
    */
@@ -278,7 +279,8 @@ export class CastleResidence {
     const stair = modelLibrary.instantiate(stairUrl);
     stair.name = name;
     const landingProfile = definition.landingProfile ?? false;
-    if (landingProfile) this.#stairProfileMeshes.push(...reshapeSpiralModel(pc, stair, shaft, definition.radius));
+    const turns = definition.turns ?? 1.5;
+    if (landingProfile || turns !== 1.5) this.#stairProfileMeshes.push(...reshapeSpiralModel(pc, stair, shaft, definition.radius, landingProfile, turns));
     const entranceRails = new Set(["Handrail", "Handrail.001", "Handrail.022", "Handrail.023",
       "Rail post", "Rail post.001", "Rail post.022", "Rail post.023",
       "Rail tread connection 00", "Rail tread connection 01", "Rail tread connection 22", "Rail tread connection 23"]);
@@ -297,7 +299,7 @@ export class CastleResidence {
     // Bake dimensions into a separate mesh. Ammo caches triangle data by mesh ID,
     // so differently scaled main and servant stairs must not share that data.
     const collisionGraph = modelLibrary.instantiate(stairUrl);
-    if (landingProfile) this.#stairProfileMeshes.push(...reshapeSpiralModel(pc, collisionGraph, shaft, definition.radius));
+    if (landingProfile || turns !== 1.5) this.#stairProfileMeshes.push(...reshapeSpiralModel(pc, collisionGraph, shaft, definition.radius, landingProfile, turns));
     model.graph = collisionGraph;
     model.meshInstances = collisionGraph.findComponents("render").flatMap(
       /**
@@ -335,7 +337,7 @@ export class CastleResidence {
     const support = createSpiralStairCollision(pc, {
       device: model.meshInstances[0].mesh.device, material: model.meshInstances[0].material,
       innerRadius: definition.radius * 0.08 / 0.65, outerRadius: definition.radius * 0.59 / 0.65,
-      rise: definition.rise, turns: 1.5, steps: 24, landingProfile,
+      rise: definition.rise, turns, steps: 24, landingProfile,
     });
     this.#stairSupportInstances.push(support);
     collisionGraph.addChild(support.node);
@@ -720,9 +722,11 @@ function subtractFloorArea(rectangles, area) {
  * @param {import("playcanvas").Entity} graph
  * @param {{minZ:number,maxZ:number}} shaft
  * @param {number} radius
+ * @param {boolean} landingProfile
+ * @param {number} turns
  * @returns {import("playcanvas").Mesh[]}
  */
-function reshapeSpiralModel(pc, graph, shaft, radius) {
+function reshapeSpiralModel(pc, graph, shaft, radius, landingProfile = true, turns = 1.5) {
   const meshes = [];
   const inverse = new pc.Mat4().copy(graph.getWorldTransform()).invert();
   const point = new pc.Vec3();
@@ -742,12 +746,15 @@ function reshapeSpiralModel(pc, graph, shaft, radius) {
         point.set(positions[index], positions[index + 1], positions[index + 2]);
         transform.transformPoint(point, point);
         // Stretch the last retained rail into the rear masonry, on both meshes.
-        if (terminalCap) point.z -= (shaft.maxZ - shaft.minZ) / 2 * 0.65 / radius - 0.62 / Math.SQRT2;
+        if (terminalCap && landingProfile) point.z -= (shaft.maxZ - shaft.minZ) / 2 * 0.65 / radius - 0.62 / Math.SQRT2;
         // Handrails follow the varying slope; posts and flat treads translate.
         const progress = name.startsWith("Handrail") ? Math.max(0, Math.min(1, point.y - 0.22)) : base;
-        positions[index] = point.x;
-        positions[index + 1] = point.y + spiralStairRise(progress, true) - progress;
-        positions[index + 2] = point.z;
+        const rawAngle = Math.atan2(point.x, point.z);
+        const angle = (rawAngle + Math.round((progress * Math.PI * 3 - rawAngle) / (Math.PI * 2)) * Math.PI * 2) * turns / 1.5;
+        const distance = Math.hypot(point.x, point.z);
+        positions[index] = turns === 1.5 ? point.x : Math.sin(angle) * distance;
+        positions[index + 1] = point.y + spiralStairRise(progress, landingProfile) - progress;
+        positions[index + 2] = turns === 1.5 ? point.z : Math.cos(angle) * distance;
       }
       const mesh = new pc.Mesh(source.device);
       mesh.setPositions(positions); mesh.setIndices(indices);

@@ -5,14 +5,13 @@ import { describe, it } from "node:test";
 
 import { MapGenerator } from "../../../../../src/game/generator/map/MapGenerator.js";
 
-// Terrain baselines began before collaborator extraction. Full-result hashes
-// reflect the tile-derived runtime schema; routing hashes were captured from
-// the previous layout router and preserve its exact routes and arrows.
+// Authored castles change the reserved foundation and entrance route.
+// Preserve both full results and routing for the new authored-plan contract.
 const baselines = JSON.parse(
-  readFileSync(new URL("./fixtures/pre-extraction-seeds.json", import.meta.url)),
+  readFileSync(new URL("./fixtures/authored-castle-seeds.json", import.meta.url)),
 );
 
-describe("map generation pre-extraction compatibility", () => {
+describe("map generation authored-castle compatibility", () => {
   for (const { options, sha256, routingSha256, error } of baselines) {
     it(`preserves the complete result for ${options.mapName}`, async () => {
       if (error) {
@@ -20,7 +19,7 @@ describe("map generation pre-extraction compatibility", () => {
         return;
       }
 
-      // These fixtures document the pre-feature output; opt out of connectors.
+      // Keep connector generation independent of this castle baseline.
       const map = await MapGenerator.generate({ ...options, islandConnectors: false });
       // Terrain is now published as object records; compare the original
       // generation contract independently of this derived rendering metadata.

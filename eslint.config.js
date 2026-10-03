@@ -274,6 +274,10 @@ module.exports = [
     },
   },
   ...vue.configs["flat/essential"],
+  {
+    files: ["src/game/generator/castle/CastleBasePlanGenerator.js"],
+    languageOptions: { ecmaVersion: 2025 },
+  },
   prettier,
   {
     rules: {

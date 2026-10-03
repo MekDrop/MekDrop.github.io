@@ -172,6 +172,8 @@ export class CastleDataBuilder {
         elevation: FOUNDATION_HEIGHT,
       },
       style: layout.castleFootprint.style,
+      basePlanId: layout.castleFootprint.basePlanId,
+      seed: layout.castleSeed,
       doors,
     };
   }

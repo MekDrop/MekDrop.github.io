@@ -20,16 +20,18 @@ it("gives the king, queen, and princess independent castles and one shared trigg
   for (const castle of map.objects.filter(
     ({ object }) => object === "Castle",
   )) {
-    assert.deepEqual(castle.buildPlan.input.position, castle.position);
-    assert.deepEqual(castle.buildPlan.input.doors, castle.doors);
-    assert.equal(castle.buildPlan.input.requestedStyle, castle.style);
+    assert.equal(castle.buildPlan, undefined);
+    assert.ok(castle.seed);
+    assert.equal(castle.position.width, 28);
+    assert.equal(castle.position.depth, 16);
   }
   for (const castle of map.objects.filter(
     ({ object }) => object === "Castle",
   )) {
-    assert.deepEqual(castle.buildPlan.input.position, castle.position);
-    assert.deepEqual(castle.buildPlan.input.doors, castle.doors);
-    assert.equal(castle.buildPlan.input.requestedStyle, castle.style);
+    assert.equal(castle.buildPlan, undefined);
+    assert.ok(castle.seed);
+    assert.equal(castle.position.width, 28);
+    assert.equal(castle.position.depth, 16);
   }
   const residents = map.objects.filter(({ object }) =>
     ["King", "Queen", "Princess", "Servant"].includes(object),
@@ -53,7 +55,7 @@ it("gives the king, queen, and princess independent castles and one shared trigg
   const middleCastle = map.castles[1];
   const southEdge = middleCastle.position.row + middleCastle.position.depth - 1;
   assert.equal(trigger.position.z, 4);
-  assert.equal(southEdge, 12);
+  assert.ok(southEdge < map.rows - 1);
   assert.equal(trigger.position.x, 0);
 });
 

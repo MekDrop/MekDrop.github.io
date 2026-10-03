@@ -1,5 +1,6 @@
 import {
   MAP_COLS,
+  MAP_ROWS,
   DEFAULT_MIN_PATHS,
   DEFAULT_MAX_PATHS,
   LEFT_GATE_COL,
@@ -53,8 +54,9 @@ export class LayoutPlanner {
 
   /**
    * @param {number} numPaths
+   * @param {{basePlanId:string,entranceInset:number,width:number,depth:number}} [authoredPlan]
    */
-  createLayoutConfig(numPaths) {
+  createLayoutConfig(numPaths, authoredPlan) {
     const anchorRows = ENTRY_TEMPLATES.map(/**
      *
      * @param {GenerationTemplate} template
@@ -62,7 +64,7 @@ export class LayoutPlanner {
     (template) => [
       ...template.gateRows,
     ]);
-    const pathRows =
+    let pathRows =
       numPaths > 1
         ? this.#random.randomItem([anchorRows[0], anchorRows[anchorRows.length - 1]])
         : anchorRows[this.#random.rng(0, anchorRows.length - 1)];
@@ -74,14 +76,16 @@ export class LayoutPlanner {
           : pathRows[0] <= 6 || pathRows[1] >= 25
             ? 0
             : 3;
-    const castleFootprint = CASTLE_FOOTPRINTS[castleFootprintIndex];
+    const castleFootprint = { ...CASTLE_FOOTPRINTS[castleFootprintIndex], ...authoredPlan };
     // Keep the castle against the rear of its buildable plateau. The footprint
     // still varies by width and row, while the required grass clearance remains
     // between the back wall and the island edge.
     const castleRight = MAP_COLS - CASTLE_REAR_GROUND_CLEARANCE - 2;
     const castleLeft = castleRight - castleFootprint.width + 1;
-    const castleCenterRow = pathRows[1];
-    const castleTop = pathRows[0] - Math.floor((castleFootprint.depth - 2) / 2);
+    const entranceOffset = Math.round((authoredPlan?.entranceInset !== undefined ? castleFootprint.depth / 2 + authoredPlan.entranceInset : castleFootprint.entranceFraction * castleFootprint.depth) - 1);
+    const castleTop = MapGrid.clamp(pathRows[0] - entranceOffset, 4, MAP_ROWS - castleFootprint.depth - 4);
+    pathRows = [castleTop + entranceOffset, castleTop + entranceOffset + 1];
+    const castleCenterRow = castleTop + Math.floor(castleFootprint.depth / 2);
     const castleBottom = castleTop + castleFootprint.depth - 1;
     const castleEntranceRows = [...pathRows];
     const entries = this.#selectEntries(
@@ -215,7 +219,7 @@ export class LayoutPlanner {
      */
     (template) => {
       if (
-        this.#rowsOverlap(template.gateRows, castleTop - 3, castleBottom + 3)
+        this.#rowsOverlap(template.gateRows, castleTop - 5, castleBottom + 5)
       ) {
         return "LEFT";
       }
@@ -243,8 +247,8 @@ export class LayoutPlanner {
           ({ template }) =>
             !this.#rowsOverlap(
               template.gateRows,
-              castleTop - 3,
-              castleBottom + 3,
+              castleTop - 5,
+              castleBottom + 5,
             ),
         )
         .map(/**
@@ -351,6 +355,30 @@ export class LayoutPlanner {
    * @param {MapLayout} layout
    */
   retainSeparatedCurvePlans(layout) {
+    // An entry on the trunk plus branches above and below would form a flat
+    // four-way crossing at their shared merge. Use separated T junctions.
+    if (layout.entries.every(/**
+                             * @param {LayoutEntry} entry
+                             */ (entry) => entry.mergeCol === layout.entries[0].mergeCol) &&
+      layout.entries.some(/**
+                             * @param {LayoutEntry} entry
+                             */
+      (entry) => entry.gateRows[0] === layout.pathRows[0]) &&
+      layout.entries.some(/**
+                           * @param {LayoutEntry} entry
+                           */
+        (entry) => entry.gateRows[1] < layout.pathRows[0]) &&
+      layout.entries.some(/**
+                           * @param {LayoutEntry} entry
+                           */
+        (entry) => entry.gateRows[0] > layout.pathRows[1])) {
+      for (const entry of layout.entries) {
+        if (entry.gateRows[0] >= layout.pathRows[0]) {
+          entry.mergeCol -= 4;
+          entry.curvePlan = null;
+        }
+      }
+    }
     const curvePlans = layout.entries.map(/**
      *
      * @param {LayoutEntry} entry

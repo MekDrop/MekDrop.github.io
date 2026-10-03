@@ -15,7 +15,9 @@ export function createSpiralStairCollision(pc, { device, material, innerRadius, 
   const stride = row * 2;
   for (let angleIndex = 0; angleIndex <= segments; angleIndex++) {
     const angle = angleIndex / segments * turns * Math.PI * 2;
-    const height = rise * spiralStairRise(Math.min(1, angleIndex / segments + 1 / steps), landingProfile);
+    const progress = angleIndex / segments;
+    // Begin at floor level, blending the tread offset over six steps to avoid a steep entry lip.
+    const height = rise * spiralStairRise(Math.min(1, progress + Math.min(1, progress * steps / 6) / steps), landingProfile);
     for (const y of [height, height - 0.08]) {
       for (let radialIndex = 0; radialIndex <= radialSegments; radialIndex++) {
         const radius = innerRadius + (outerRadius - innerRadius) * radialIndex / radialSegments;
@@ -57,4 +59,3 @@ export function spiralStairRise(progress, landingProfile = false) {
   if (!landingProfile) return progress;
   return progress <= 0.5 ? progress * 0.5 : 0.25 + (progress - 0.5) * 1.5;
 }
-

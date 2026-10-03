@@ -636,6 +636,15 @@ export class CastleEntityBuilder {
    */
   #intersectsGroundColumns(x, z, radius) {
     const radiusSquared = radius * radius;
+    if (this.#buildPlan?.layout.basePlanId) {
+      return this.#cameraCollisionBlocks.some(/**
+       * @param {{x:number,y:number,z:number,halfX:number,halfY:number,halfZ:number}} block
+       */
+      (block) => block.y + block.halfY > this.#position.elevation + 0.25 &&
+        block.y - block.halfY < this.#position.elevation + 0.8 &&
+        Math.max(Math.abs(x - block.x) - block.halfX, 0) ** 2 +
+        Math.max(Math.abs(z - block.z) - block.halfZ, 0) ** 2 <= radiusSquared);
+    }
     for (const column of this.#groundCollisionColumns) {
       const distanceX = Math.max(
         Math.abs(x - column.x) - CASTLE_BLOCK_SIZE / 2,
@@ -966,6 +975,22 @@ export class CastleEntityBuilder {
 
   #createAnimatedDoors() {
     for (const doorData of this.#doors) {
+      if (this.#buildPlan.layout.basePlanId) {
+        const residential = this.#buildPlan.metadata.runtime.residential;
+        const opening = residential.openings.find(/**
+         * @param {{exteriorEntrance:boolean}} aperture
+         */ (aperture) => aperture.exteriorEntrance);
+        const arch = new CastleDoorArch({ castlePosition: this.#position, door: doorData,
+          modelLibrary: this.#modelLibrary, placement: { ...residential.origin, height: opening.height - 0.05 } });
+        this.#entity.addChild(arch.entity);
+        this.#doorArches.push(arch);
+        const door = new CastleDoor({ pc: this.#pc, castlePosition: this.#position, door: doorData,
+          placement: { ...residential.origin, height: opening.height - 0.05, openingInset: 0, arched: true },
+          modelLibrary: this.#modelLibrary, woodMaterial: this.#materials.get("castleDoor") });
+        this.#entity.addChild(door.entity);
+        this.#animatedDoors.push(door);
+        continue;
+      }
       const arch = new CastleDoorArch({
         castlePosition: this.#position,
         door: doorData,

@@ -6,6 +6,10 @@
  */
 export function createCastlePlannedFloorAreas(buildPlan) {
   const plan = buildPlan.metadata.runtime.residential;
+  if (plan.basePlanId) { return plan.walkableAreas.map(/**
+   * @param {{id:string,minX:number,maxX:number,minZ:number,maxZ:number,floorY:number}} area
+   */
+  (area) => ({ ...area })); }
   const result = [];
   const shaft = plan.shaft;
   for (const area of plan.walkableAreas) {
@@ -26,24 +30,24 @@ export function createCastlePlannedFloorAreas(buildPlan) {
     }
     const x = (shaft.minX + shaft.maxX) / 2;
     const z = (shaft.minZ + shaft.maxZ) / 2;
-    const direction = x < 0 ? 1 : -1;
+    const direction = plan.stairExitDirection ?? (x < 0 ? 1 : -1);
     // Keep the slab above the outer exit, preserving lower-turn headroom.
     // Continue to the rear wall so both boots have support across the landing.
     result.push({ id: area.floorY > plan.origin.y ? "mainStairLanding" : "serviceStairLanding",
-      minX: direction > 0 ? x - 0.05 : shaft.minX,
-      maxX: direction > 0 ? shaft.maxX : x + 0.05,
-      minZ: direction > 0 ? z + cut.radius * 0.35 / 0.65 : shaft.minZ,
-      maxZ: direction > 0 ? shaft.maxZ : z - cut.radius * 0.35 / 0.65,
+      minX: direction > 0 ? x - (plan.stairExitClearance === undefined ? 0.05 : 0.35) : shaft.minX,
+      maxX: direction > 0 ? shaft.maxX : x + (plan.stairExitClearance === undefined ? 0.05 : 0.35),
+      minZ: direction > 0 ? z + cut.radius * (plan.stairExitClearance === undefined ? 0.35 : 0.45) / 0.65 : shaft.minZ,
+      maxZ: direction > 0 ? shaft.maxZ : z - cut.radius * (plan.stairExitClearance === undefined ? 0.35 : 0.45) / 0.65,
       floorY: area.floorY });
     // Close the entire upstairs exit quadrant, including the strip between
     // the circular stair and doorway. Its slower lower turn retains headroom.
     // Service stairs keep their original profile and outer-edge infill.
-    const clearance = area.floorY > plan.origin.y ? 0 : cut.radius * 0.335 / 0.65 + 0.35;
+    const clearance = plan.stairExitClearance ?? (area.floorY > plan.origin.y ? 0 : cut.radius * 0.335 / 0.65 + 0.35);
     result.push({ id: "StairExitInfill",
       minX: direction > 0 ? x + clearance : shaft.minX,
       maxX: direction > 0 ? shaft.maxX : x - clearance,
-      minZ: area.floorY > plan.origin.y && direction > 0 ? z - 0.2 : shaft.minZ,
-      maxZ: area.floorY > plan.origin.y && direction < 0 ? z + 0.2 : shaft.maxZ, floorY: area.floorY });
+      minZ: plan.stairExitClearance === undefined && area.floorY > plan.origin.y && direction > 0 ? z - 0.2 : shaft.minZ,
+      maxZ: plan.stairExitClearance === undefined && area.floorY > plan.origin.y && direction < 0 ? z + 0.2 : shaft.maxZ, floorY: area.floorY });
   }
   if (plan.stair) {
     // The complete upstairs doorway needs floor, not only the final tread's quadrant.
@@ -113,4 +117,3 @@ export function createCastlePlannedFloorAreas(buildPlan) {
        */ (bounds) => ({ ...area, minX: bounds[0], maxX: bounds[1], minZ: bounds[2], maxZ: bounds[3] }));
   });
 }
-

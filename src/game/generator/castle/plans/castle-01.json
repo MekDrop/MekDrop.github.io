@@ -1,0 +1,1141 @@
+{
+  "version": 1,
+  "id": "castle-01",
+  "name": "Symmetric courtyard castle",
+  "source": {
+    "image": "sources/castle-01.png",
+    "method": "manual schematic transcription",
+    "accuracy": "Approximate drawing proportions; not surveyed dimensions. Door and window positions are authored, not inferred at runtime."
+  },
+  "coordinates": {
+    "width": 100,
+    "depth": 60,
+    "north": "-z",
+    "units": "schematic units",
+    "recommendedUnitMetres": 0.5
+  },
+  "floorHeight": 4,
+  "wallThickness": 0.5,
+  "entrance": {
+    "spaceId": "gate-passage",
+    "side": "SOUTH",
+    "offset": 4,
+    "width": 4,
+    "bridge": [
+      44,
+      54,
+      8,
+      6
+    ]
+  },
+  "levels": [
+    {
+      "index": 0,
+      "elevation": 0,
+      "spaces": [
+        {
+          "id": "keep-hall",
+          "label": "Keep entrance hall",
+          "kind": "room",
+          "bounds": [
+            36,
+            2,
+            20,
+            13
+          ],
+          "generator": null,
+          "openings": [
+            {
+              "kind": "door",
+              "side": "SOUTH",
+              "offset": 9,
+              "width": 3,
+              "bottom": 0,
+              "height": 2.5
+            },
+            {
+              "kind": "window",
+              "side": "NORTH",
+              "offset": 3,
+              "width": 1.5,
+              "bottom": 1,
+              "height": 1.5
+            },
+            {
+              "kind": "window",
+              "side": "NORTH",
+              "offset": 9,
+              "width": 1.5,
+              "bottom": 1,
+              "height": 1.5
+            },
+            {
+              "kind": "window",
+              "side": "NORTH",
+              "offset": 15,
+              "width": 1.5,
+              "bottom": 1,
+              "height": 1.5
+            }
+          ]
+        },
+        {
+          "id": "keep-stair-0",
+          "label": "Keep stair",
+          "kind": "room",
+          "bounds": [
+            57,
+            2,
+            5,
+            13
+          ],
+          "generator": null,
+          "openings": [
+            {
+              "kind": "door",
+              "side": "WEST",
+              "offset": 9,
+              "width": 2,
+              "bottom": 0,
+              "height": 2.5
+            }
+          ]
+        },
+        {
+          "id": "pantry",
+          "label": "Pantry",
+          "kind": "room",
+          "bounds": [
+            5,
+            8,
+            14,
+            7
+          ],
+          "generator": "ServiceRoomGenerator",
+          "openings": [
+            {
+              "kind": "door",
+              "side": "SOUTH",
+              "offset": 6,
+              "width": 2,
+              "bottom": 0,
+              "height": 2.5
+            },
+            {
+              "kind": "window",
+              "side": "WEST",
+              "offset": 3,
+              "width": 1.5,
+              "bottom": 1,
+              "height": 1.5
+            }
+          ]
+        },
+        {
+          "id": "kitchen",
+          "label": "Kitchen",
+          "kind": "room",
+          "bounds": [
+            5,
+            16,
+            14,
+            8
+          ],
+          "generator": "ServiceRoomGenerator",
+          "openings": [
+            {
+              "kind": "door",
+              "side": "SOUTH",
+              "offset": 6,
+              "width": 2,
+              "bottom": 0,
+              "height": 2.5
+            },
+            {
+              "kind": "door",
+              "side": "EAST",
+              "offset": 3,
+              "width": 2,
+              "bottom": 0,
+              "height": 2.5
+            },
+            {
+              "kind": "window",
+              "side": "WEST",
+              "offset": 3,
+              "width": 1.5,
+              "bottom": 1,
+              "height": 1.5
+            }
+          ]
+        },
+        {
+          "id": "dining-hall",
+          "label": "Dining hall",
+          "kind": "room",
+          "bounds": [
+            5,
+            25,
+            14,
+            13
+          ],
+          "generator": "ServiceRoomGenerator",
+          "openings": [
+            {
+              "kind": "door",
+              "side": "SOUTH",
+              "offset": 6,
+              "width": 2,
+              "bottom": 0,
+              "height": 2.5
+            },
+            {
+              "kind": "door",
+              "side": "EAST",
+              "offset": 5,
+              "width": 2,
+              "bottom": 0,
+              "height": 2.5
+            },
+            {
+              "kind": "window",
+              "side": "WEST",
+              "offset": 3,
+              "width": 1.5,
+              "bottom": 1,
+              "height": 1.5
+            },
+            {
+              "kind": "window",
+              "side": "WEST",
+              "offset": 8,
+              "width": 1.5,
+              "bottom": 1,
+              "height": 1.5
+            }
+          ]
+        },
+        {
+          "id": "armory",
+          "label": "Armory",
+          "kind": "room",
+          "bounds": [
+            5,
+            39,
+            14,
+            8
+          ],
+          "generator": "ServiceRoomGenerator",
+          "openings": [
+            {
+              "kind": "door",
+              "side": "EAST",
+              "offset": 3,
+              "width": 2,
+              "bottom": 0,
+              "height": 2.5
+            },
+            {
+              "kind": "window",
+              "side": "WEST",
+              "offset": 3,
+              "width": 1.5,
+              "bottom": 1,
+              "height": 1.5
+            }
+          ]
+        },
+        {
+          "id": "throne-hall",
+          "label": "Throne room",
+          "kind": "room",
+          "bounds": [
+            80,
+            8,
+            15,
+            30
+          ],
+          "generator": "ThroneRoomGenerator",
+          "openings": [
+            {
+              "kind": "door",
+              "side": "WEST",
+              "offset": 16,
+              "width": 2,
+              "bottom": 0,
+              "height": 2.5
+            },
+            {
+              "kind": "door",
+              "side": "SOUTH",
+              "offset": 7,
+              "width": 2,
+              "bottom": 0,
+              "height": 2.5
+            },
+            {
+              "kind": "window",
+              "side": "EAST",
+              "offset": 5,
+              "width": 1.5,
+              "bottom": 1,
+              "height": 1.5
+            },
+            {
+              "kind": "window",
+              "side": "EAST",
+              "offset": 12,
+              "width": 1.5,
+              "bottom": 1,
+              "height": 1.5
+            },
+            {
+              "kind": "window",
+              "side": "EAST",
+              "offset": 19,
+              "width": 1.5,
+              "bottom": 1,
+              "height": 1.5
+            },
+            {
+              "kind": "window",
+              "side": "EAST",
+              "offset": 26,
+              "width": 1.5,
+              "bottom": 1,
+              "height": 1.5
+            }
+          ]
+        },
+        {
+          "id": "east-guard",
+          "label": "Guard room",
+          "kind": "room",
+          "bounds": [
+            80,
+            39,
+            15,
+            8
+          ],
+          "generator": "ServiceRoomGenerator",
+          "openings": [
+            {
+              "kind": "door",
+              "side": "WEST",
+              "offset": 3,
+              "width": 2,
+              "bottom": 0,
+              "height": 2.5
+            },
+            {
+              "kind": "door",
+              "side": "SOUTH",
+              "offset": 10,
+              "width": 2,
+              "bottom": 0,
+              "height": 2.5
+            },
+            {
+              "kind": "window",
+              "side": "EAST",
+              "offset": 3,
+              "width": 1.5,
+              "bottom": 1,
+              "height": 1.5
+            }
+          ]
+        },
+        {
+          "id": "gate-west-guard",
+          "label": "Gate guard",
+          "kind": "room",
+          "bounds": [
+            36,
+            41,
+            5,
+            12
+          ],
+          "generator": "ServiceRoomGenerator",
+          "openings": [
+            {
+              "kind": "door",
+              "side": "SOUTH",
+              "offset": 2,
+              "width": 2,
+              "bottom": 0,
+              "height": 2.5
+            }
+          ]
+        },
+        {
+          "id": "gate-passage",
+          "label": "Main gate passage",
+          "kind": "room",
+          "bounds": [
+            42,
+            41,
+            12,
+            12
+          ],
+          "generator": null,
+          "openings": [
+            {
+              "kind": "door",
+              "side": "NORTH",
+              "offset": 4,
+              "width": 4,
+              "bottom": 0,
+              "height": 2.5
+            },
+            {
+              "kind": "door",
+              "side": "SOUTH",
+              "offset": 4,
+              "width": 4,
+              "bottom": 0,
+              "height": 2.5
+            }
+          ]
+        },
+        {
+          "id": "gate-east-guard",
+          "label": "Gate guard",
+          "kind": "room",
+          "bounds": [
+            55,
+            41,
+            7,
+            12
+          ],
+          "generator": "ServiceRoomGenerator",
+          "openings": [
+            {
+              "kind": "door",
+              "side": "SOUTH",
+              "offset": 2,
+              "width": 2,
+              "bottom": 0,
+              "height": 2.5
+            }
+          ]
+        },
+        {
+          "id": "courtyard",
+          "label": "Courtyard",
+          "kind": "courtyard",
+          "bounds": [
+            20,
+            16,
+            59,
+            24
+          ],
+          "generator": null,
+          "openings": []
+        },
+        {
+          "id": "corner-1-0",
+          "label": "Corner tower",
+          "kind": "room",
+          "bounds": [
+            1,
+            1,
+            7,
+            7
+          ],
+          "generator": "TowerRoomGenerator",
+          "openings": [
+            {
+              "kind": "door",
+              "side": "SOUTH",
+              "offset": 2,
+              "width": 2,
+              "bottom": 0,
+              "height": 2.5
+            }
+          ]
+        },
+        {
+          "id": "corner-2-0",
+          "label": "Corner tower",
+          "kind": "room",
+          "bounds": [
+            91,
+            1,
+            7,
+            7
+          ],
+          "generator": "TowerRoomGenerator",
+          "openings": [
+            {
+              "kind": "door",
+              "side": "SOUTH",
+              "offset": 2,
+              "width": 2,
+              "bottom": 0,
+              "height": 2.5
+            }
+          ]
+        },
+        {
+          "id": "corner-3-0",
+          "label": "Corner tower",
+          "kind": "room",
+          "bounds": [
+            1,
+            48,
+            7,
+            7
+          ],
+          "generator": "TowerRoomGenerator",
+          "openings": [
+            {
+              "kind": "door",
+              "side": "NORTH",
+              "offset": 2,
+              "width": 2,
+              "bottom": 0,
+              "height": 2.5
+            }
+          ]
+        },
+        {
+          "id": "corner-4-0",
+          "label": "Corner tower",
+          "kind": "room",
+          "bounds": [
+            91,
+            48,
+            7,
+            7
+          ],
+          "generator": "TowerRoomGenerator",
+          "openings": [
+            {
+              "kind": "door",
+              "side": "NORTH",
+              "offset": 2,
+              "width": 2,
+              "bottom": 0,
+              "height": 2.5
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "index": 1,
+      "elevation": 4,
+      "spaces": [
+        {
+          "id": "royal-chamber",
+          "label": "Royal chamber",
+          "kind": "room",
+          "bounds": [
+            36,
+            2,
+            20,
+            13
+          ],
+          "generator": "ServiceRoomGenerator",
+          "openings": [
+            {
+              "kind": "door",
+              "side": "SOUTH",
+              "offset": 9,
+              "width": 3,
+              "bottom": 0,
+              "height": 2.5
+            },
+            {
+              "kind": "window",
+              "side": "NORTH",
+              "offset": 3,
+              "width": 1.5,
+              "bottom": 1,
+              "height": 1.5
+            },
+            {
+              "kind": "window",
+              "side": "NORTH",
+              "offset": 9,
+              "width": 1.5,
+              "bottom": 1,
+              "height": 1.5
+            },
+            {
+              "kind": "window",
+              "side": "NORTH",
+              "offset": 15,
+              "width": 1.5,
+              "bottom": 1,
+              "height": 1.5
+            }
+          ]
+        },
+        {
+          "id": "keep-stair-1",
+          "label": "Keep stair",
+          "kind": "room",
+          "bounds": [
+            57,
+            2,
+            5,
+            13
+          ],
+          "generator": null,
+          "openings": [
+            {
+              "kind": "door",
+              "side": "WEST",
+              "offset": 9,
+              "width": 2,
+              "bottom": 0,
+              "height": 2.5
+            }
+          ]
+        },
+        {
+          "id": "north-barracks",
+          "label": "Barracks",
+          "kind": "room",
+          "bounds": [
+            5,
+            8,
+            14,
+            7
+          ],
+          "generator": "ServiceRoomGenerator",
+          "openings": [
+            {
+              "kind": "door",
+              "side": "EAST",
+              "offset": 3,
+              "width": 2,
+              "bottom": 0,
+              "height": 2.5
+            },
+            {
+              "kind": "window",
+              "side": "WEST",
+              "offset": 3,
+              "width": 1.5,
+              "bottom": 1,
+              "height": 1.5
+            }
+          ]
+        },
+        {
+          "id": "guest-west-1",
+          "label": "Guest room",
+          "kind": "room",
+          "bounds": [
+            5,
+            16,
+            14,
+            10
+          ],
+          "generator": "ServiceRoomGenerator",
+          "openings": [
+            {
+              "kind": "door",
+              "side": "EAST",
+              "offset": 3,
+              "width": 2,
+              "bottom": 0,
+              "height": 2.5
+            },
+            {
+              "kind": "window",
+              "side": "WEST",
+              "offset": 3,
+              "width": 1.5,
+              "bottom": 1,
+              "height": 1.5
+            }
+          ]
+        },
+        {
+          "id": "guest-west-2",
+          "label": "Guest room",
+          "kind": "room",
+          "bounds": [
+            5,
+            27,
+            14,
+            11
+          ],
+          "generator": "ServiceRoomGenerator",
+          "openings": [
+            {
+              "kind": "door",
+              "side": "EAST",
+              "offset": 3,
+              "width": 2,
+              "bottom": 0,
+              "height": 2.5
+            },
+            {
+              "kind": "window",
+              "side": "WEST",
+              "offset": 3,
+              "width": 1.5,
+              "bottom": 1,
+              "height": 1.5
+            }
+          ]
+        },
+        {
+          "id": "south-barracks",
+          "label": "Barracks",
+          "kind": "room",
+          "bounds": [
+            5,
+            39,
+            14,
+            8
+          ],
+          "generator": "ServiceRoomGenerator",
+          "openings": [
+            {
+              "kind": "door",
+              "side": "EAST",
+              "offset": 3,
+              "width": 2,
+              "bottom": 0,
+              "height": 2.5
+            },
+            {
+              "kind": "window",
+              "side": "WEST",
+              "offset": 3,
+              "width": 1.5,
+              "bottom": 1,
+              "height": 1.5
+            }
+          ]
+        },
+        {
+          "id": "gallery",
+          "label": "East gallery",
+          "kind": "corridor",
+          "bounds": [
+            74,
+            8,
+            5,
+            39
+          ],
+          "generator": null,
+          "openings": []
+        },
+        {
+          "id": "throne-void",
+          "label": "Throne hall open below",
+          "kind": "void",
+          "bounds": [
+            80,
+            8,
+            15,
+            30
+          ],
+          "generator": null,
+          "openings": []
+        },
+        {
+          "id": "council",
+          "label": "Council chamber",
+          "kind": "room",
+          "bounds": [
+            80,
+            39,
+            15,
+            8
+          ],
+          "generator": "LibraryRoomGenerator",
+          "openings": [
+            {
+              "kind": "door",
+              "side": "WEST",
+              "offset": 3,
+              "width": 2,
+              "bottom": 0,
+              "height": 2.5
+            },
+            {
+              "kind": "window",
+              "side": "EAST",
+              "offset": 3,
+              "width": 1.5,
+              "bottom": 1,
+              "height": 1.5
+            }
+          ]
+        },
+        {
+          "id": "winch",
+          "label": "Winch room",
+          "kind": "room",
+          "bounds": [
+            42,
+            41,
+            12,
+            12
+          ],
+          "generator": null,
+          "openings": [
+            {
+              "kind": "door",
+              "side": "NORTH",
+              "offset": 4,
+              "width": 4,
+              "bottom": 0,
+              "height": 2.5
+            }
+          ]
+        },
+        {
+          "id": "courtyard-void-1",
+          "label": "Courtyard open below",
+          "kind": "void",
+          "bounds": [
+            20,
+            16,
+            53,
+            24
+          ],
+          "generator": null,
+          "openings": []
+        },
+        {
+          "id": "corner-1-1",
+          "label": "Corner tower",
+          "kind": "room",
+          "bounds": [
+            1,
+            1,
+            7,
+            7
+          ],
+          "generator": "TowerRoomGenerator",
+          "openings": [
+            {
+              "kind": "door",
+              "side": "SOUTH",
+              "offset": 2,
+              "width": 2,
+              "bottom": 0,
+              "height": 2.5
+            }
+          ]
+        },
+        {
+          "id": "corner-2-1",
+          "label": "Corner tower",
+          "kind": "room",
+          "bounds": [
+            91,
+            1,
+            7,
+            7
+          ],
+          "generator": "TowerRoomGenerator",
+          "openings": [
+            {
+              "kind": "door",
+              "side": "SOUTH",
+              "offset": 2,
+              "width": 2,
+              "bottom": 0,
+              "height": 2.5
+            }
+          ]
+        },
+        {
+          "id": "corner-3-1",
+          "label": "Corner tower",
+          "kind": "room",
+          "bounds": [
+            1,
+            48,
+            7,
+            7
+          ],
+          "generator": "TowerRoomGenerator",
+          "openings": [
+            {
+              "kind": "door",
+              "side": "NORTH",
+              "offset": 2,
+              "width": 2,
+              "bottom": 0,
+              "height": 2.5
+            }
+          ]
+        },
+        {
+          "id": "corner-4-1",
+          "label": "Corner tower",
+          "kind": "room",
+          "bounds": [
+            91,
+            48,
+            7,
+            7
+          ],
+          "generator": "TowerRoomGenerator",
+          "openings": [
+            {
+              "kind": "door",
+              "side": "NORTH",
+              "offset": 2,
+              "width": 2,
+              "bottom": 0,
+              "height": 2.5
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "index": 2,
+      "elevation": 8,
+      "spaces": [
+        {
+          "id": "study",
+          "label": "Study",
+          "kind": "room",
+          "bounds": [
+            36,
+            2,
+            7,
+            13
+          ],
+          "generator": "LibraryRoomGenerator",
+          "openings": [
+            {
+              "kind": "door",
+              "side": "EAST",
+              "offset": 8,
+              "width": 2,
+              "bottom": 0,
+              "height": 2.5
+            },
+            {
+              "kind": "window",
+              "side": "NORTH",
+              "offset": 2,
+              "width": 1.5,
+              "bottom": 1,
+              "height": 1.5
+            }
+          ]
+        },
+        {
+          "id": "treasury",
+          "label": "Treasury",
+          "kind": "room",
+          "bounds": [
+            44,
+            2,
+            12,
+            13
+          ],
+          "generator": "LibraryRoomGenerator",
+          "openings": [
+            {
+              "kind": "door",
+              "side": "EAST",
+              "offset": 8,
+              "width": 2,
+              "bottom": 0,
+              "height": 2.5
+            },
+            {
+              "kind": "window",
+              "side": "NORTH",
+              "offset": 3,
+              "width": 1.5,
+              "bottom": 1,
+              "height": 1.5
+            },
+            {
+              "kind": "window",
+              "side": "NORTH",
+              "offset": 8,
+              "width": 1.5,
+              "bottom": 1,
+              "height": 1.5
+            }
+          ]
+        },
+        {
+          "id": "keep-stair-2",
+          "label": "Keep stair",
+          "kind": "room",
+          "bounds": [
+            57,
+            2,
+            5,
+            13
+          ],
+          "generator": null,
+          "openings": [
+            {
+              "kind": "door",
+              "side": "WEST",
+              "offset": 8,
+              "width": 2,
+              "bottom": 0,
+              "height": 2.5
+            }
+          ]
+        },
+        {
+          "id": "courtyard-void-2",
+          "label": "Courtyard open below",
+          "kind": "void",
+          "bounds": [
+            20,
+            16,
+            59,
+            24
+          ],
+          "generator": null,
+          "openings": []
+        },
+        {
+          "id": "wall-walk-1",
+          "label": "Wall walk",
+          "kind": "wallWalk",
+          "bounds": [
+            8,
+            3,
+            27,
+            5
+          ],
+          "generator": null,
+          "openings": []
+        },
+        {
+          "id": "wall-walk-2",
+          "label": "Wall walk",
+          "kind": "wallWalk",
+          "bounds": [
+            63,
+            3,
+            28,
+            5
+          ],
+          "generator": null,
+          "openings": []
+        },
+        {
+          "id": "wall-walk-3",
+          "label": "Wall walk",
+          "kind": "wallWalk",
+          "bounds": [
+            8,
+            48,
+            27,
+            5
+          ],
+          "generator": null,
+          "openings": []
+        },
+        {
+          "id": "wall-walk-4",
+          "label": "Wall walk",
+          "kind": "wallWalk",
+          "bounds": [
+            63,
+            48,
+            28,
+            5
+          ],
+          "generator": null,
+          "openings": []
+        }
+      ]
+    }
+  ],
+  "staircases": [
+    {
+      "id": "keep-stair",
+      "bounds": [
+        57,
+        2,
+        5,
+        13
+      ],
+      "from": 0,
+      "to": 2
+    },
+    {
+      "id": "S2",
+      "bounds": [
+        1,
+        48,
+        7,
+        7
+      ],
+      "from": 0,
+      "to": 2
+    },
+    {
+      "id": "S3",
+      "bounds": [
+        91,
+        48,
+        7,
+        7
+      ],
+      "from": 0,
+      "to": 2
+    }
+  ],
+  "roofs": [
+    {
+      "id": "keep",
+      "bounds": [
+        35,
+        1,
+        28,
+        15
+      ],
+      "elevation": 12,
+      "shape": "pyramid"
+    },
+    {
+      "id": "west-wing",
+      "bounds": [
+        4,
+        8,
+        16,
+        39
+      ],
+      "elevation": 8,
+      "shape": "pitched-ns"
+    },
+    {
+      "id": "east-wing",
+      "bounds": [
+        79,
+        8,
+        17,
+        39
+      ],
+      "elevation": 8,
+      "shape": "pitched-ns"
+    },
+    {
+      "id": "gatehouse",
+      "bounds": [
+        35,
+        40,
+        28,
+        14
+      ],
+      "elevation": 8,
+      "shape": "flat"
+    }
+  ]
+}

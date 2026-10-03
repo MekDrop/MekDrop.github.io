@@ -21,13 +21,20 @@ export function createCastleGroundCuts(plan, layout = null) {
   const thresholds = (layout?.walkableAreas ?? []).filter(/**
    * @param {{id:string}} area
    */ (area) => area.id.startsWith("interiorFloor:") || area.id === "serviceGroundBay" || area.id === "serviceStairLanding" || area.id.endsWith("Threshold") || area.id.startsWith("doorThreshold"));
-  const rooms = [residential.outerBounds, residential.rooms.work, ...thresholds,
+  const authoredGround = residential.basePlanId ? residential.spaces.filter(/**
+   * @param {{level:number,kind:string}} space
+   */
+  (space) => space.level <= 0 && space.kind !== "void" && space.kind !== "courtyard") : null;
+  const authoredFloors = residential.basePlanId ? residential.walkableAreas.filter(/**
+   * @param {{floorY:number,id:string}} area
+   */ (area) => area.floorY <= origin.y && !area.id.includes("courtyard")) : [];
+  const rooms = [...(authoredGround ?? [residential.outerBounds, residential.rooms.work]), ...authoredFloors, ...thresholds,
     ...(residential.buildings ?? []).map(/**
      *
      * @param {{bounds:RoomBounds}} building
      */
     (building) => building.bounds),
-    ...(residential.walkableAreas ?? []).filter(/**
+    ...(!residential.basePlanId ? residential.walkableAreas ?? [] : []).filter(/**
      *
      * @param {{id:string,bounds:RoomBounds}} area
      */
@@ -79,14 +86,14 @@ export function createCastleGroundCuts(plan, layout = null) {
        * @param {{x:number,z:number}} point
        */
       (point) => point.z)),
-      minY: stairRooms.includes(room) ? residential.basement?.floorY ?? origin.y - 0.05 : origin.y - 0.05,
+      minY: stairRooms.includes(room) ? residential.basement?.floorY ?? origin.y - 0.05 : Math.min(origin.y - (residential.basePlanId ? 0.25 : 0.05), (room.floorY ?? origin.y) - (residential.basePlanId ? 0.25 : 0.05)),
       maxY: Number.MAX_VALUE });
   }
   for (const block of plan.metadata.collision?.cameraBlocks ?? []) {
     if (block.y + block.halfY <= origin.y + 0.05 || block.y - block.halfY > origin.y + 1) continue;
     cuts.push({ minX: block.x - block.halfX, maxX: block.x + block.halfX,
       minZ: block.z - block.halfZ, maxZ: block.z + block.halfZ,
-      minY: origin.y - 0.05, maxY: Number.MAX_VALUE });
+      minY: Math.min(origin.y - 0.05, block.y - block.halfY), maxY: Number.MAX_VALUE });
   }
   const basement = residential.basement;
   if (basement) {

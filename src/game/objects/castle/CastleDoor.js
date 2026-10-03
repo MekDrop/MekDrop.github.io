@@ -104,7 +104,7 @@ export class CastleDoor {
    * @param {{x: number, z: number, width: number, depth: number, elevation: number}} options.castlePosition
    * @param {import("src/game/objects/ObjectTypes.js").CastleDoorDefinition} options.door
    * @param {string} options.modelLibrary
-   * @param {{x: number, y: number, z: number, yaw: number, height: number}|null} options.placement
+   * @param {{x: number, y: number, z: number, yaw: number, height: number, arched?: boolean}|null} options.placement
    * @param {import("playcanvas").Material} options.woodMaterial
    */
   constructor({ pc, castlePosition, door, modelLibrary, placement = null }) {
@@ -134,7 +134,7 @@ export class CastleDoor {
     this.#tangent = geometry.tangent;
 
 
-    const modelUrl = placement ? interiorDoorUrl : castleDoorsModelUrl;
+    const modelUrl = placement && !placement.arched ? interiorDoorUrl : castleDoorsModelUrl;
     this.#entity = modelLibrary.instantiate(modelUrl);
     this.#entity.name = `Castle ${door.side.toLowerCase()} doors`;
     // Preserve the oak and iron materials authored with the entrance model.
@@ -377,4 +377,3 @@ export class CastleDoor {
     return this.#targetOpen || this.#manualOpenRemaining > 0;
   }
 }
-

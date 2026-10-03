@@ -18,13 +18,17 @@ export class PathTopology {
    * @param {number} row
    */
   static #isWithinMergeZone(layout, col, row) {
-    const mergeCol = layout.entries[0]?.mergeCol;
+    const mergeCols = layout.entries.map(/**
+                                          * @param {import("./MapGenerationTypes.js").LayoutEntry} entry
+                                          */ (entry) => entry.mergeCol);
+    const mergeCol = mergeCols[0];
     if (!Number.isFinite(mergeCol)) {
       return false;
     }
     return (
-      col >= mergeCol &&
-      col <= mergeCol + 1 &&
+      mergeCols.some(/**
+                      * @param {number} start
+                      */ (start) => col >= start && col <= start + 1) &&
       row >= layout.pathRows[0] &&
       row <= layout.pathRows[1]
     );
@@ -35,8 +39,13 @@ export class PathTopology {
    * @param {number} col
    */
   static #isWithinMergeCorridor(layout, col) {
-    const mergeCol = layout.entries[0]?.mergeCol;
-    return Number.isFinite(mergeCol) && col >= mergeCol && col <= mergeCol + 1;
+    const mergeCols = layout.entries.map(/**
+                                          * @param {import("./MapGenerationTypes.js").LayoutEntry} entry
+                                          */ (entry) => entry.mergeCol);
+    const mergeCol = mergeCols[0];
+    return mergeCols.some(/**
+                           * @param {number} start
+                           */ (start) => Number.isFinite(start) && col >= start && col <= start + 1);
   }
 
   /**
@@ -46,11 +55,16 @@ export class PathTopology {
    * @param {number} row
    */
   static #routesShareMergeCellAtRow(firstCells, secondCells, layout, row) {
-    const mergeCol = layout.entries[0]?.mergeCol;
+    const mergeCols = layout.entries.map(/**
+                                          * @param {import("./MapGenerationTypes.js").LayoutEntry} entry
+                                          */ (entry) => entry.mergeCol);
+    const mergeCol = mergeCols[0];
     if (!Number.isFinite(mergeCol)) {
       return false;
     }
-    return [mergeCol, mergeCol + 1].some(/**
+    return mergeCols.flatMap(/**
+                              * @param {number} start
+                              */ (start) => [start, start + 1]).some(/**
      *
      * @param {number} col
      */

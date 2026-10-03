@@ -1,47 +1,15 @@
-import { CastleGenerationContext } from "./CastleGenerationContext.js";
-import { CastleGenerationScheduler } from "./CastleGenerationScheduler.js";
-import { createCastleGenerationPipeline } from "./createCastleGenerationPipeline.js";
-import { BuildMetadataStage } from "./stages/BuildMetadataStage.js";
-import { FinalizationStage } from "./stages/FinalizationStage.js";
-import { GatehouseStage } from "./stages/GatehouseStage.js";
-import { LayoutStyleStage } from "./stages/LayoutStyleStage.js";
-import { RoomPlanningStage } from "./stages/RoomPlanningStage.js";
-import { RoomFurnishingStage } from "./stages/RoomFurnishingStage.js";
-import { TowerStage } from "./stages/TowerStage.js";
-import { ValidationStage } from "./stages/ValidationStage.js";
-import { UpperRoomShellStage } from "./stages/UpperRoomShellStage.js";
-import { WallStage } from "./stages/WallStage.js";
+import { CastleAuthoredBuildPlan } from "./CastleAuthoredBuildPlan.js";
 
+/**
+ * Seed-driven entry point for authored castle construction.
+ */
 export class CastleGenerator {
   /**
-   *
-   * @param {{position?: import("src/game/GameContracts.js").GridPoint, doors?: import("src/game/GameContracts.js").CastleOpening[], style?: string, seed?: string|number, roomGenerators?: import("./rooms/AbstractCastleRoomGenerator.js").AbstractCastleRoomGenerator[], scheduler?: CastleGenerationScheduler, signal?: AbortSignal}} options
+   * @param {{position:import("../../GameContracts.js").GridPoint,doors:import("../../GameContracts.js").CastleOpening[],seed?:string|number,scheduler?:import("./CastleGenerationScheduler.js").CastleGenerationScheduler,signal?:AbortSignal}} options
+   * @returns {Promise<import("../../GameContracts.js").CastleBuildPlan>}
    */
   static generate(options = {}) {
-    const generate = createCastleGenerationPipeline({
-      /**
-       *
-       * @param {{position?: import("src/game/GameContracts.js").GridPoint, doors?: import("src/game/GameContracts.js").CastleOpening[], style?: string, seed?: string|number, roomGenerators?: import("./rooms/AbstractCastleRoomGenerator.js").AbstractCastleRoomGenerator[], scheduler?: CastleGenerationScheduler, signal?: AbortSignal}} pipelineOptions
-       */
-      createContext: (pipelineOptions) => {
-        const scheduler =
-          pipelineOptions.scheduler ??
-          new CastleGenerationScheduler({ signal: pipelineOptions.signal });
-        return new CastleGenerationContext(pipelineOptions, scheduler);
-      },
-      createStages: () => [
-        new LayoutStyleStage(),
-        new RoomPlanningStage(),
-        new WallStage(),
-        new TowerStage(),
-        new GatehouseStage(),
-        new UpperRoomShellStage(),
-        new RoomFurnishingStage(),
-        new BuildMetadataStage(),
-        new ValidationStage(),
-        new FinalizationStage(),
-      ],
-    });
-    return generate(options);
+    return CastleAuthoredBuildPlan.generate({ position: options.position, doors: options.doors, seed: options.seed,
+      scheduler: options.scheduler, signal: options.signal, requestedStyle: options.requestedStyle });
   }
 }

@@ -79,7 +79,7 @@ export class CastleBuildPlanStage extends AbstractMapGenerationStage {
       await this.#operations.generateCastleBuildPlan({
         position,
         doors,
-        style: castle.style,
+        requestedStyle: castle.style,
         seed: castle.seed,
       });
   }

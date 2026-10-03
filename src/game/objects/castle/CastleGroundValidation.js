@@ -76,7 +76,7 @@ export function validateCastleGround(mapData) {
       addRoom(`building:${building.id ?? building.role}`, building.bounds, layout.origin.y, layout.origin.y + 2);
     }
     for (const area of layout.walkableAreas) {
-      if (area.id === "courtyard") continue;
+      if (area.id === "courtyard" || area.kind === "courtyard") continue;
       addRoom(area.id, area, area.floorY, area.floorY + 1);
     }
     // The surrounding bay is occupied too, not just the narrow spiral shaft.
@@ -85,7 +85,9 @@ export function validateCastleGround(mapData) {
       const bay = residential.reservations?.[name];
       if (bay) addRoom(`${name}Bay`, bay, layout.origin.y, layout.origin.y + 2);
     }
-    for (const [name, stair] of [["mainStair", layout.stairs], ["serviceStair", layout.serviceStair]]) {
+    for (const [name, stair] of [["mainStair", layout.stairs], ["serviceStair", layout.serviceStair], ...layout.authoredStairs.map(/**
+     * @param {{id:string}} stair
+     */ (stair) => [stair.id, stair])]) {
       if (!stair) continue;
       const { center, radius } = stair;
       areas.push({ area: name, bounds: { minX: center.x - radius, maxX: center.x + radius,
@@ -101,7 +103,7 @@ export function validateCastleGround(mapData) {
         minY: Math.max(layout.origin.y, block.y - block.halfY), maxY: block.y + block.halfY,
         minZ: block.z - block.halfZ, maxZ: block.z + block.halfZ } });
     }
-    if (residential.outerBounds) addRoom("castleEnvelope", residential.outerBounds, layout.origin.y, layout.origin.y + 2);
+    if (!residential.basePlanId && residential.outerBounds) addRoom("castleEnvelope", residential.outerBounds, layout.origin.y, layout.origin.y + 2);
     const context = { castleId: castle.id ?? "Castle", seed: String(castle.seed ?? plan.input.seed ?? plan.metadata.seed ?? mapData.seed ?? mapData.mapName ?? "") };
     for (const object of terrain) {
       const args = object.geometry?.args;
@@ -167,4 +169,3 @@ function overlaps(a, b) {
     Math.min(a.maxY, b.maxY) - Math.max(a.minY, b.minY) > 0.000001 &&
     Math.min(a.maxZ, b.maxZ) - Math.max(a.minZ, b.minZ) > 0.000001;
 }
-

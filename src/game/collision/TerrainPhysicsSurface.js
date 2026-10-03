@@ -1,3 +1,4 @@
+import { subtractTerrainCutouts } from "./TerrainSurfaceCutouts.js";
 import { TileType } from "../generator/map/MapGenerator.js";
 import { GRASS_SURFACE_LIFT } from "../config/terrain.js";
 import { SLOPE_DIRECTION } from "../enum/SlopeDirection.js";
@@ -273,9 +274,10 @@ export class TerrainPhysicsSurface {
   #addTileTop(positions, indices, col, row, heights) {
     const x = col - (this.#mapData.cols - 1) / 2;
     const z = row - (this.#mapData.rows - 1) / 2;
-    this.#addQuad(
+    this.#addTerrainQuad(
       positions,
       indices,
+      this.#mapData.tileMeta?.[row]?.[col]?.terrainCutouts ?? [],
       [x - 0.5, heights[0], z - 0.5],
       [x + 0.5, heights[1], z - 0.5],
       [x + 0.5, heights[2], z + 0.5],
@@ -311,9 +313,10 @@ export class TerrainPhysicsSurface {
       ) {
         continue;
       }
-      this.#addQuad(
+      this.#addTerrainQuad(
         positions,
         indices,
+      this.#mapData.tileMeta?.[row]?.[col]?.terrainCutouts ?? [],
         [side.a[0], side.a[2], side.a[1]],
         [side.b[0], side.b[2], side.b[1]],
         [side.b[0], Math.min(side.b[2], lowB), side.b[1]],
@@ -435,4 +438,23 @@ export class TerrainPhysicsSurface {
     positions.push(...a, ...b, ...c, ...d);
     indices.push(start, start + 2, start + 1, start, start + 3, start + 2);
   }
+  /**
+   * @param {number[]} positions
+   * @param {number[]} indices
+   * @param {Array} cuts
+   * @param {number[]} a
+   * @param {number[]} b
+   * @param {number[]} c
+   * @param {number[]} d
+   */
+  #addTerrainQuad(positions, indices, cuts, a, b, c, d) {
+    for (const polygon of subtractTerrainCutouts([a, b, c, d], cuts)) {
+      const start = positions.length / 3;
+      for (const point of polygon) positions.push(...point);
+      for (let index = 1; index + 1 < polygon.length; index++) {
+        indices.push(start, start + index + 1, start + index);
+      }
+    }
+  }
+
 }

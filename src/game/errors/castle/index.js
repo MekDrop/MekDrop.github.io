@@ -1,4 +1,5 @@
 export { CastlePlacementError } from "./CastlePlacementError.js";
+export { CastleBasePlanInvalidError } from "./CastleBasePlanInvalidError.js";
 export { CastleStairwellPlacementError } from "./CastleStairwellPlacementError.js";
 export { CastleGenerationAbortedError } from "./CastleGenerationAbortedError.js";
 export { CastleGenerationStageRunNotImplementedError } from "./CastleGenerationStageRunNotImplementedError.js";

@@ -70,10 +70,10 @@ export const VEGETATION_VARIANTS = [
   ...BUSH_VARIANTS,
 ];
 export const CASTLE_FOOTPRINTS = [
-  { width: 8, depth: 8, style: "twin-tower" },
-  { width: 8, depth: 8, style: "right-angle" },
-  { width: 8, depth: 8, style: "single-tower" },
-  { width: 8, depth: 8, style: "left-angle" },
+  { width: 16, depth: 28, style: "twin-tower", entranceFraction: 0.48 },
+  { width: 16, depth: 28, style: "right-angle", entranceFraction: 0.43 },
+  { width: 16, depth: 28, style: "single-tower", entranceFraction: 0.22 },
+  { width: 16, depth: 28, style: "left-angle", entranceFraction: 0.22 },
 ];
 export const ENTRY_TEMPLATES = [
   { id: "north", gateRows: [5, 6], mergeRange: [18, 24] },

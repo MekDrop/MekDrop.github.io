@@ -57,7 +57,7 @@ describe("CastleBuildPlanStage", () => {
             approachElevation: 2.5,
           },
         ],
-        style: "twin-tower",
+        requestedStyle: "twin-tower",
         seed: "map:castle:33:17",
       },
     ]);

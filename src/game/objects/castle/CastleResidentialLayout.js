@@ -1,3 +1,4 @@
+import { MAX_SAFE_STEP_DOWN, STEP_CLEARANCE } from "../hero/HeroSurfaceRules.js";
 import { spiralStairRise } from "../shared/SpiralStairCollision.js";
 import { createCastlePlannedFloorAreas } from "./CastlePlannedFloorAreas.js";
 import { createCastleInteriorFloorAreas } from "./CastleInteriorFloorAreas.js";
@@ -48,6 +49,10 @@ export class CastleResidentialLayout {
    * @type {{center: ResidentialPoint, radius: number, innerRadius: number, rise: number, steps: number, turns: number, treads: ResidentialPoint[], yaw: number, landingProfile?: boolean}}
    */
   #stairs;
+  /**
+   * @type {Array<{center:ResidentialPoint,radius:number,innerRadius:number,rise:number,steps:number,turns:number,yaw:number,landingProfile:boolean,shaft:{minX:number,maxX:number,minZ:number,maxZ:number}}> }
+   */
+  #authoredStairs = [];
   /**
    * @type {Array<{id: string, minX: number, maxX: number, minZ: number, maxZ: number, floorY: number}>}
    */
@@ -436,7 +441,12 @@ export class CastleResidentialLayout {
     this.#basement = plan.basement ? { ...plan.basement,
       access: plan.serviceStair, locked: true } : null;
     this.#serviceDoor = plan.serviceStair;
-    this.#planButtresses(buildPlan);
+    if (plan.basePlanId) {
+      this.#authoredStairs = plan.authoredStairs.map(/**
+       * @param {{radius:number}} stair
+       */
+      (stair) => ({ ...stair, innerRadius: stair.radius * 0.08 / 0.65 }));
+    } else { this.#planButtresses(buildPlan); }
   }
 
   get origin() { return this.#origin; }
@@ -449,6 +459,7 @@ export class CastleResidentialLayout {
   get buttressFootings() { return this.#buttressFootings; }
   get reservations() { return this.#reservations; }
   get stairs() { return this.#stairs; }
+  get authoredStairs() { return this.#authoredStairs; }
   get basement() { return this.#basement; }
   get serviceDoor() { return this.#serviceDoor; }
   /**
@@ -501,7 +512,9 @@ export class CastleResidentialLayout {
   /**
    * @param {import("./TerraceActor.js").TerraceActor|null} actor
    */
-  canEnterBasement(actor) { return this.#servant !== null && actor === this.#servant; }
+  canEnterBasement(actor) { return this.#authoredStairs.some(/**
+   * @param {{center:{y:number}}} stair
+   */ (stair) => stair.center.y < this.#origin.y) || (this.#servant !== null && actor === this.#servant); }
 
   /**
    * @param {number} lateral
@@ -533,7 +546,7 @@ export class CastleResidentialLayout {
    */
   stairSurfaceHeightAt(x, z, currentElevation, actor = null) {
     const service = this.canEnterBasement(actor) ? this.serviceStair : null;
-    const stairs = [this.#stairs, service ? { ...service, innerRadius: service.radius * 0.08 / 0.65, steps: 24, turns: 1.5 } : null];
+    const stairs = [...this.#authoredStairs, this.#stairs, service ? { ...service, innerRadius: service.radius * 0.08 / 0.65, steps: 24, turns: 1.5 } : null];
     let result = null;
     for (const stair of stairs) {
       if (!stair) { continue; }
@@ -551,7 +564,7 @@ export class CastleResidentialLayout {
         const step = Math.min(stair.steps, Math.max(1, Math.ceil(angle / stepAngle)));
         const height = stair.center.y + stair.rise * spiralStairRise(step / stair.steps, stair.landingProfile);
         const heightDifference = Math.abs(height - currentElevation);
-        if (heightDifference <= 0.32 && heightDifference < difference) { best = height; difference = heightDifference; }
+        if (heightDifference <= (height > currentElevation ? STEP_CLEARANCE : MAX_SAFE_STEP_DOWN) && heightDifference < difference) { best = height; difference = heightDifference; }
       }
       if (best !== null && (result === null || Math.abs(best - currentElevation) < Math.abs(result - currentElevation))) { result = best; }
     }
@@ -572,6 +585,8 @@ export class CastleResidentialLayout {
       if (area.floorY < this.#origin.y && !this.canEnterBasement(actor)) { continue; }
       if (Math.abs(area.floorY - currentElevation) <= 0.24 && local.x >= area.minX && local.x <= area.maxX && local.z >= area.minZ && local.z <= area.maxZ) return area.floorY;
     }
+    // Authored floor areas already exclude stair openings.
+    if (this.#authoredStairs.length > 0) { return null; }
     for (const [name, room] of Object.entries(this.#rooms)) {
       if (!room || (room.purpose === "upper hall" || room.purpose === "upper terrace") || room.purpose === "unused" || (room.floorY < this.#origin.y && !this.canEnterBasement(actor))) { continue; }
       if (["servantBedroom", "storage"].includes(name) && !this.canEnterBasement(actor)) { continue; }
@@ -650,4 +665,3 @@ export const createCastleButtressFootings = (plan, mapData) => {
   }
   return footings;
 };
-
