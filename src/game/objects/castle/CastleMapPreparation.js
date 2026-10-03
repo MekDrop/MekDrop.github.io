@@ -114,7 +114,10 @@ export class CastleMapPreparation {
        * @param {import("../ObjectTypes.js").MapObjectDefinition} definition
        */
       (definition) => `${definition.tile.col},${definition.tile.row}`));
-    for (const [key, terrainCutouts] of cutsByTile) {
+    // Foundation ownership can extend beyond the castle walls. Publish every
+    // surviving turf tile, including lawn untouched by excavation, to the canopy.
+    for (const key of new Set([...cutsByTile.keys(), ...turfTiles])) {
+      const terrainCutouts = cutsByTile.get(key) ?? [];
       const [col, row] = key.split(",").map(Number);
       if (!mapData.tileMeta?.[row]) continue;
       const metadata = mapData.tileMeta[row][col] ?? {};
