@@ -10,6 +10,14 @@ export class WoodenSign {
    */
   #entity;
   /**
+   * @type {import("playcanvas").Entity}
+   */
+  #visual;
+  /**
+   * @type {import("playcanvas").Entity}
+   */
+  #collisionGraph;
+  /**
    *
     * @type {import("src/game/objects/ObjectTypes.js").MapObjectDefinition}
    */
@@ -50,12 +58,34 @@ export class WoodenSign {
       scale = 1,
     } = definition;
     this.#definition = definition;
-    this.#entity = modelLibrary.instantiate(signModelUrl);
-    this.#entity.name = `${id} wooden sign`;
+    this.#entity = new pc.Entity(`${id} wooden sign`);
     this.#entity.tags.add("map-object", id, this.constructor.name);
-    this.#entity.setLocalEulerAngles(rotation.x, rotation.y, rotation.z);
+    const angles = typeof rotation === "number"
+      ? { x: 0, y: rotation, z: 0 }
+      : rotation;
+    this.#entity.setLocalEulerAngles(angles.x ?? 0, angles.y ?? 45, angles.z ?? 0);
     this.#entity.setLocalPosition(position.x, position.y, position.z);
-    this.#entity.setLocalScale(scale, scale, scale);
+    this.#visual = modelLibrary.instantiate(signModelUrl);
+    this.#visual.setLocalScale(scale, scale, scale);
+    this.#entity.addChild(this.#visual);
+
+    // Keep the physics root unscaled; bake the authored wood geometry into its mesh shape.
+    this.#collisionGraph = modelLibrary.instantiate(signModelUrl);
+    this.#collisionGraph.setLocalScale(scale, scale, scale);
+    const collisionModel = new pc.Model();
+    collisionModel.graph = this.#collisionGraph;
+    collisionModel.meshInstances = this.#collisionGraph.findComponents("render").flatMap(
+      /**
+       * @param {import("playcanvas").RenderComponent} render
+       */
+      (render) => render.entity.name === "Sign inscription" ? [] : render.meshInstances,
+    );
+    this.#entity.addComponent("collision", { type: "mesh", model: collisionModel });
+    this.#entity.addComponent("rigidbody", {
+      type: "static",
+      friction: 0.6,
+      restitution: 0,
+    });
 
     const canvas = WoodenSign.#createInscription(text);
     this.#texture = new pc.Texture(app.graphicsDevice, {
@@ -84,7 +114,7 @@ export class WoodenSign {
     this.#material.metalness = 0;
     this.#material.gloss = 0;
     this.#material.update();
-    for (const render of this.#entity.findByName("Sign inscription").findComponents("render")) {
+    for (const render of this.#visual.findByName("Sign inscription").findComponents("render")) {
       for (const mesh of render.meshInstances) {
         mesh.material = this.#material;
         mesh.castShadow = false;
@@ -170,6 +200,7 @@ export class WoodenSign {
 
   destroy() {
     this.#entity.destroy();
+    this.#collisionGraph.destroy();
     this.#material.destroy();
     this.#texture.destroy();
   }
