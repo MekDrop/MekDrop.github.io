@@ -107,3 +107,28 @@ it("builds the compact reference as one base with a corner keep and open terrace
   }
 });
 
+it("keeps the upper landing door swing clear of masonry in every castle orientation", async () => {
+  for (const side of ["NORTH", "SOUTH", "WEST", "EAST"]) {
+    const plan = await CastleAuthoredBuildPlan.generate({ basePlanId: "castle-demo-compact",
+      position: { x: 0, z: 0, width: 16, depth: 16, elevation: 0 },
+      doors: [{ side, offset: 7, width: 2 }], seed: "door-swing" });
+    const door = plan.metadata.runtime.roomDoors.find((entry) => entry.roomId === "upper-stair-room");
+    assert.ok(door);
+    const yaw = door.yaw * Math.PI / 180;
+    for (let angle = 0; angle <= 90; angle += 5) {
+      const radians = angle * Math.PI / 180;
+      for (let along = 0; along <= 1; along += 0.05) {
+        for (const thickness of [-0.045, 0.045]) {
+          const x = -door.width * 0.5075 + (along * door.width + door.width * 0.0075) * Math.cos(radians) - (thickness - 0.0575) * Math.sin(radians);
+          const z = 0.0575 + (along * door.width + door.width * 0.0075) * Math.sin(radians) + (thickness - 0.0575) * Math.cos(radians);
+          const point = { x: door.x + 0.155 * Math.sin(yaw) + x * Math.cos(yaw) + z * Math.sin(yaw),
+            z: door.z + 0.155 * Math.cos(yaw) - x * Math.sin(yaw) + z * Math.cos(yaw), y: door.y + door.height / 2 };
+          assert.ok(!plan.metadata.collision.cameraBlocks.some((box) =>
+            Math.abs(point.x - box.x) < box.halfX - 1e-6 &&
+            Math.abs(point.y - box.y) < box.halfY - 1e-6 &&
+            Math.abs(point.z - box.z) < box.halfZ - 1e-6), `${side}: door intersects wall at ${angle} degrees`);
+        }
+      }
+    }
+  }
+});

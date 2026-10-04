@@ -112,7 +112,8 @@ export class CastleDoor {
     this.#pc = pc;
 
     this.#width = door.width;
-    this.#height = placement?.height ?? DOOR_HEIGHT;
+    const framedInterior = Boolean(placement && !placement.arched);
+    this.#height = framedInterior ? placement.height * DOOR_HEIGHT / 2.4 : placement?.height ?? DOOR_HEIGHT;
     this.#upperFloor = Boolean(placement);
     this.#elevated = Boolean(placement && placement.y > castlePosition.elevation + 0.24);
     const angle = (placement?.yaw ?? 0) * Math.PI / 180;
@@ -126,6 +127,12 @@ export class CastleDoor {
     if (placement?.openingInset) {
       geometry.center.x -= geometry.inward.x * placement.openingInset;
       geometry.center.z -= geometry.inward.z * placement.openingInset;
+    }
+    if (framedInterior) {
+      // The frame extends behind the leaf into the quarter-metre wall.
+      // Seat the inset leaf and its edge hinge within the wall depth.
+      geometry.center.x += geometry.inward.x * 0.155;
+      geometry.center.z += geometry.inward.z * 0.155;
     }
     this.#center = geometry.center;
 
@@ -145,7 +152,7 @@ export class CastleDoor {
     );
     this.#entity.setLocalEulerAngles(0, geometry.baseYaw, 0);
     if (placement) {
-      this.#entity.setLocalScale(this.#width / 2, this.#height / DOOR_HEIGHT, this.#width / 2);
+      this.#entity.setLocalScale(this.#width / 2, this.#height / DOOR_HEIGHT, framedInterior ? 0.5 : this.#width / 2);
     }
     const animationTrack = modelLibrary
       .getAnimationTracks(modelUrl, [
@@ -371,6 +378,7 @@ export class CastleDoor {
   #syncAnimation() {
     this.#animationLayer.activeStateCurrentTime =
       this.#animationDuration * this.#openAmount;
+    this.#entity.anim.update(0);
   }
 
   #shouldOpen() {

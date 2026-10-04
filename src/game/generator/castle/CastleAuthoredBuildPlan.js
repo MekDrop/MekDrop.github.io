@@ -393,10 +393,15 @@ export class CastleAuthoredBuildPlan {
       for (const door of openings) {
         if (door.kind !== "door" || door.axis !== axis || Math.abs(door.coordinate - coordinate) > thickness * 1.1 ||
           door.floorY + door.height <= room.floorY || door.floorY >= room.floorY + height) { continue; }
+        // Cut the full wooden frame envelope; the casing overlaps the stone
+        // while the jambs fit inside the opening around the unchanged leaf.
+        const frameClearance = door.exteriorEntrance ? 0 : door.width * 0.09 + 0.005;
+        const start = door.center - door.width / 2 - frameClearance;
+        const end = door.center + door.width / 2 + frameClearance;
         const next = [];
         for (const piece of pieces) {
-          const a = Math.max(piece.start, door.center - door.width / 2);
-          const b = Math.min(piece.end, door.center + door.width / 2);
+          const a = Math.max(piece.start, start);
+          const b = Math.min(piece.end, end);
           const bottom = Math.max(piece.bottom, door.floorY);
           const top = Math.min(piece.top, door.floorY + door.height);
           if (b <= a || top <= bottom) { next.push(piece); continue; }
