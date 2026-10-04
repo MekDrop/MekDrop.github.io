@@ -185,6 +185,34 @@ it("walks across ground-floor courtyard slabs while retaining walls and closed d
   assert.equal(new ProbeCastle({ blocks: [slab], doors: [{ blocksCameraAt: () => true }] }).blocksMovementAt(0, 0, 0.18, 4, 0.32), true);
   assert.equal(new ProbeCastle({ blocks: [slab], residenceBlocked: true }).blocksMovementAt(0, 0, 0.18, 4, 0.32), true);
 });
+it("keeps exterior stair supports behind the authored basement wall", () => {
+  for (const side of ["WEST", "EAST", "NORTH", "SOUTH"]) {
+    const position = { x: 9, z: -16, width: 8, depth: 8, elevation: 3 };
+    const boundary = { WEST: 9, EAST: 17, NORTH: -16, SOUTH: -8 }[side];
+    const inwardSign = side === "WEST" || side === "NORTH" ? 1 : -1;
+    const vertical = side === "WEST" || side === "EAST";
+    let count = 0;
+    const flight = new CastleStairs({
+      pc, position, doors: [{ side, offset: 2, width: 2, approachElevation: 1 }],
+      cubeSize: 0.25, materials: new Map(), authoredThreshold: true,
+      modelLibrary: { instantiateMergedBatch: (_url, matrices) => {
+        for (let offset = 0; offset < matrices.length; offset += 16) {
+          const center = matrices[offset + (vertical ? 12 : 14)];
+          // The imported module spans two units along its local Z axis.
+          const halfRun = Math.hypot(matrices[offset + 8], matrices[offset + 10]);
+          const innerEdge = center + inwardSign * halfRun;
+          assert.ok((innerEdge - boundary) * inwardSign <= -0.125 + 1e-6,
+            `${side}: supports stop inside the outward wall thickness`);
+          count++;
+        }
+        return null;
+      } },
+    });
+    assert.ok(count > 0);
+    flight.destroy();
+  }
+});
+
 it("authored entrance masonry owns the final tread without changing walking support", () => {
   for (const side of ["WEST", "EAST", "NORTH", "SOUTH"]) {
     const counts = [];

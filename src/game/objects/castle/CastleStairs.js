@@ -229,9 +229,11 @@ export class CastleStairs {
       this.#surfaces.push(flight);
 
       for (let level = 0; level < riseBlocks; level += 1) {
-        // Bury the final tread's beveled end inside the masonry so grass
-        // cannot show through the joint at the castle boundary.
-        const wallOverlapBlocks = level === riseBlocks - 1 ? 0.5 : 0;
+        // Authored walls extend outward from the boundary. End their stair
+        // supports inside that masonry, before its flat basement-facing side.
+        // Other castles need the beveled end to overlap inward to hide grass.
+        const wallOverlapBlocks = level === riseBlocks - 1
+          ? (this.#authoredThreshold ? -0.5 : 0.5) : 0;
         const distanceBlocks =
           (riseBlocks - level) * STAIR_MODULE_RUN_BLOCKS -
           STAIR_MODULE_RUN_BLOCKS / 2 - wallOverlapBlocks / 2;
