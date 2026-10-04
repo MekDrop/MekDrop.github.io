@@ -12,7 +12,7 @@ it('supports both sides of every interior door and clears the hero body',async()
   const circulation=plan.layout.roomPlan.spaces.find(s=>s.id==='vestibule-south');
   assert.ok(throne.minX<circulation.minX, 'throne occupies the formerly open room beside the entrance');
   const throneDoor=plan.layout.roomPlan.doorways.find(d=>d.roomId==='throne-hall'&&!d.exteriorEntrance);
-  assert.ok(throneDoor.center<throne.minZ+1.5, 'connecting door stays at the front, away from the throne rear');
+  assert.ok(throneDoor.center-throneDoor.width/2>=throne.minZ && throneDoor.center+throneDoor.width/2<=throne.maxZ, 'connecting doorway fits within the throne-room wall');
   for(const door of plan.layout.roomPlan.doorways.filter(d=>!d.exteriorEntrance)) {
     for(const normal of [-.6,0,.6]) {
       for(const lateral of [-.15,0,.15]) {

@@ -987,7 +987,7 @@ export class CastleEntityBuilder {
         this.#entity.addChild(arch.entity);
         this.#doorArches.push(arch);
         const door = new CastleDoor({ pc: this.#pc, castlePosition: this.#position, door: doorData,
-          placement: { ...residential.origin, height: opening.height - 0.05, openingInset: 0, arched: true },
+          placement: { ...residential.origin, height: opening.height - 0.05, openingInset: 0, arched: true, swing: opening.swing },
           modelLibrary: this.#modelLibrary, woodMaterial: this.#materials.get("castleDoor") });
         this.#entity.addChild(door.entity);
         this.#animatedDoors.push(door);

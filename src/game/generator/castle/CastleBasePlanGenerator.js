@@ -7,14 +7,14 @@ import { LeisureRoomGenerator } from "./rooms/LeisureRoomGenerator.js";
 import { TowerRoomGenerator } from "./rooms/TowerRoomGenerator.js";
 
 /**
- * @typedef {{kind:string,side:string,offset:number,width:number,bottom:number,height:number,swing?:string}} AuthoredCastleOpening
+ * @typedef {{kind:string,side:string,offset:number,width:number,bottom:number,height:number,swing?:string,openingInset?:number}} AuthoredCastleOpening
  * @typedef {{id:string,label:string,kind:string,bounds:number[],generator:string|null,openings:AuthoredCastleOpening[]}} AuthoredCastleSpace
  * @typedef {{id:string,bounds:number[],from:number,to:number,landingProfile?:boolean,radius?:number,flightGap?:number,flightShift?:number,landingLift?:number}} AuthoredCastleStair
  * @typedef {{id:string,bounds:number[],elevation:number,shape:string,height?:number}} AuthoredCastleRoof
  * @typedef {{id:string,bounds:number[],elevation:number,height:number}} AuthoredCastleBuilding
  * @typedef {{index:number,elevation:number,spaces:AuthoredCastleSpace[]}} AuthoredCastleFloor
  * @typedef {import("./rooms/AbstractCastleRoomGenerator.js").PlannedCastleRoom & {kind:string,generator:string|null}} CompiledCastleSpace
- * @typedef {{roomId:string,kind:string,side:string,axis:string,coordinate:number,center:number,width:number,bottom:number,height:number,floorY:number,swing:string}} CompiledCastleOpening
+ * @typedef {{roomId:string,kind:string,side:string,axis:string,coordinate:number,center:number,width:number,bottom:number,height:number,floorY:number,swing:string,openingInset:number}} CompiledCastleOpening
  * @typedef {{version:number,id:string,name:string,source:{image:string},coordinates:{width:number,depth:number,recommendedUnitMetres:number},floorHeight:number,wallThickness:number,entrance:{spaceId:string,side:string,offset:number,width:number,bridge:number[]},levels:Array<{index:number,elevation:number,spaces:AuthoredCastleSpace[]}>,staircases:AuthoredCastleStair[],roofs:AuthoredCastleRoof[],buildings?:AuthoredCastleBuilding[]}} CastleBasePlan
  */
 
@@ -112,7 +112,7 @@ export class CastleBasePlanGenerator {
               ? opening.side === "NORTH" ? room.minZ : room.maxZ
               : opening.side === "WEST" ? room.minX : room.maxX,
             center: (alongX ? room.minX : room.minZ) + (opening.offset + opening.width / 2) * scale,
-            width: opening.width * scale, bottom: opening.bottom, height: opening.height, floorY: room.floorY, swing: opening.swing ?? "outward" });
+            width: opening.width * scale, bottom: opening.bottom, height: opening.height, floorY: room.floorY, swing: opening.swing ?? "outward", openingInset: opening.openingInset ?? 0 });
         }
         if (!authored.generator) { continue; }
         const generator = registry.get(authored.generator);

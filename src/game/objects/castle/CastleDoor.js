@@ -4,7 +4,8 @@ import castleDoorsModelUrl from "../../models/castle/doors/castle-doors.glb?url"
 import { CASTLE_DOOR_ANIMATION } from "../../enum/CastleDoorAnimation.js";
 
 const DOOR_INSET = -0.18;
-const OPEN_SPEED = 3.4;
+const OPEN_SPEED = 1.7;
+const SWING_SAMPLE_STEP = 1 / 360;
 const OPEN_DISTANCE = 1.8;
 const CLOSE_INSIDE_DISTANCE = 0.9;
 const CLICK_OPEN_SECONDS = 1;
@@ -150,18 +151,19 @@ export class CastleDoor {
       this.#center.y + 0.025 * this.#height / DOOR_HEIGHT,
       this.#center.z,
     );
-    this.#entity.setLocalEulerAngles(0, geometry.baseYaw, 0);
+    this.#entity.setLocalEulerAngles(0, geometry.baseYaw + (placement?.arched && placement.swing === "inward" ? 180 : 0), 0);
     if (placement) {
       this.#entity.setLocalScale(this.#width / 2, this.#height / DOOR_HEIGHT, framedInterior ? 0.5 : this.#width / 2);
     }
+    const animationName = CASTLE_DOOR_ANIMATION.OPEN_WIDE;
     const animationTrack = modelLibrary
       .getAnimationTracks(modelUrl, [
-        CASTLE_DOOR_ANIMATION.OPEN,
+        animationName,
       ])
-      .get(CASTLE_DOOR_ANIMATION.OPEN);
+      .get(animationName);
     this.#entity.addComponent("anim", { activate: true });
     this.#entity.anim.addAnimationState(
-      CASTLE_DOOR_ANIMATION.OPEN,
+      animationName,
       animationTrack,
       1,
       false,
@@ -170,7 +172,7 @@ export class CastleDoor {
     this.#animationLayer = this.#entity.anim.baseLayer;
 
     this.#animationDuration = animationTrack.duration;
-    this.#animationLayer.play(CASTLE_DOOR_ANIMATION.OPEN);
+    this.#animationLayer.play(animationName);
     this.#entity.anim.speed = 0;
     this.#syncAnimation();
     this.#collision = createCastleDoorCollision(pc, this.#entity);
@@ -209,28 +211,10 @@ export class CastleDoor {
     if (!this.#entity) {
       return null;
     }
-    const inverse = this.#entity.getWorldTransform().clone().invert();
-    const localStart = inverse.transformPoint(rayStart, new this.#pc.Vec3());
-    const localEnd = inverse.transformPoint(rayEnd, new this.#pc.Vec3());
-    const directionZ = localEnd.z - localStart.z;
-    if (Math.abs(directionZ) < 0.000001) {
+    const distance = this.#collision.raycast(rayStart, rayEnd);
+    if (distance === null) {
       return null;
     }
-
-    const distance = -localStart.z / directionZ;
-    if (distance < 0 || distance > 1) {
-      return null;
-    }
-    const localX = localStart.x + (localEnd.x - localStart.x) * distance;
-    const localY = localStart.y + (localEnd.y - localStart.y) * distance;
-    if (
-      Math.abs(localX) > (this.#upperFloor ? 1 : this.#width / 2) + 0.08 ||
-      localY < -0.08 ||
-      localY > DOOR_HEIGHT + 0.08
-    ) {
-      return null;
-    }
-
     return { distance, door: this };
   }
 
@@ -287,13 +271,33 @@ export class CastleDoor {
       this.#manualOpenRemaining - deltaTime,
     );
     const target = Number(this.#shouldOpen());
-    const amount = OPEN_SPEED * deltaTime;
-    if (this.#openAmount < target) {
-      this.#openAmount = Math.min(target, this.#openAmount + amount);
-    } else if (this.#openAmount > target) {
-      this.#openAmount = Math.max(target, this.#openAmount - amount);
+    const amount = OPEN_SPEED * Math.max(0, deltaTime);
+    const destination = this.#openAmount < target
+      ? Math.min(target, this.#openAmount + amount)
+      : Math.max(target, this.#openAmount - amount);
+    if (destination === this.#openAmount) return;
+    // Existing hinge/support contacts may clear, but must not deepen as the leaf swings.
+    const initialContacts = this.#collision.swing.contacts();
+    const direction = Math.sign(destination - this.#openAmount);
+    // Sample the entire arc, including when a delayed frame spans both sides of a wall.
+    while (Math.abs(destination - this.#openAmount) > 0.000001) {
+      const previous = this.#openAmount;
+      this.#openAmount += direction * Math.min(SWING_SAMPLE_STEP, Math.abs(destination - previous));
+      this.#syncAnimation();
+      const contacts = this.#collision.swing.contacts();
+      const obstructed = [...contacts].some(/**
+       *
+       * @param {number[]} entry
+       */
+      (entry) =>
+        entry[1] > Math.max(0.002, initialContacts.get(entry[0]) ?? 0) + 0.000001);
+      if (obstructed) {
+        this.#openAmount = previous;
+        break;
+      }
     }
     this.#syncAnimation();
+    this.#collision.swing.syncBodies();
   }
 
   /**
@@ -319,6 +323,7 @@ export class CastleDoor {
   }
 
   destroy() {
+    this.#collision?.swing.destroy();
     this.#entity?.destroy();
     this.#entity = null;
     this.#animationLayer = null;

@@ -482,7 +482,7 @@ export class CastleAuthoredBuildPlan {
       if (uniqueDoors.has(key)) { continue; }
       uniqueDoors.add(key);
       roomDoors.push({ ...world(x, z, door.floorY), roomId: door.roomId, width: door.width, height: door.height - 0.05,
-        yaw: yaw + { NORTH: 180, SOUTH: 0, WEST: -90, EAST: 90 }[door.side] + (door.swing === "inward" ? 180 : 0), openingInset: 0 });
+        yaw: yaw + { NORTH: 180, SOUTH: 0, WEST: -90, EAST: 90 }[door.side] + (door.swing === "inward" ? 180 : 0), openingInset: door.openingInset ?? 0 });
     }
     return { input: { ...options, doors: adaptedDoors, requestedStyle: options.requestedStyle ?? authored.basePlanId },
       layout: { empty: false, basePlanId: authored.basePlanId, baseY, primarySide: side, widthBlocks: position.width * 4,

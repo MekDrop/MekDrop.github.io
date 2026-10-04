@@ -94,6 +94,7 @@ export class ScenePointerInteraction {
     this.#canvas.addEventListener(
       INPUT_EVENT_TYPE.POINTER_DOWN,
       this.#handlePointerDown,
+      true,
     );
     this.#canvas.addEventListener(
       INPUT_EVENT_TYPE.POINTER_MOVE,
@@ -121,6 +122,7 @@ export class ScenePointerInteraction {
     this.#canvas.removeEventListener(
       INPUT_EVENT_TYPE.POINTER_DOWN,
       this.#handlePointerDown,
+      true,
     );
     this.#canvas.removeEventListener(
       INPUT_EVENT_TYPE.POINTER_MOVE,

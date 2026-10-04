@@ -71,10 +71,12 @@
             {
               "kind": "door",
               "side": "WEST",
-              "offset": 2,
+              "offset": 2.5,
               "width": 1,
               "bottom": 0,
-              "height": 2.5
+              "height": 2.5,
+              "swing": "inward",
+              "openingInset": 0.255
             }
           ],
           "generator": "KitchenRoomGenerator"
@@ -119,8 +121,8 @@
             {
               "kind": "door",
               "side": "WEST",
-              "offset": 1.75,
-              "width": 1.5,
+              "offset": 0,
+              "width": 1,
               "bottom": 0,
               "height": 2.5,
               "swing": "outward"
@@ -170,8 +172,8 @@
             {
               "kind": "door",
               "side": "WEST",
-              "offset": 1.75,
-              "width": 1.5,
+              "offset": 0,
+              "width": 1,
               "bottom": 0,
               "height": 2.5,
               "swing": "outward"
@@ -193,11 +195,12 @@
             {
               "kind": "door",
               "side": "WEST",
-              "offset": 2,
+              "offset": 1.75,
               "width": 1,
               "bottom": 0,
               "height": 2.5,
-              "swing": "inward"
+              "swing": "inward",
+              "openingInset": 0.255
             },
             {
               "kind": "window",
@@ -235,7 +238,8 @@
               "offset": 0.375,
               "width": 2,
               "bottom": 0,
-              "height": 2.5
+              "height": 2.5,
+              "swing": "inward"
             }
           ],
           "generator": null
