@@ -1,4 +1,5 @@
 import { CASTLE_TERRACE_PHASE as PHASE } from "../../enum/CastleTerracePhase.js";
+import { CHARACTER_HEIGHT } from "../../config/character-size.js";
 import { syncTerraceWalk, terracePathYaw } from "./TerraceMovement.js";
 
 const DOORWAY_START_Z = -1.4;
@@ -51,6 +52,8 @@ export class TerraceRoyalActions {
   constructor({ RoyalType, pc, modelLibrary, performanceSeed, stage }) {
     this.#kind = RoyalType.kind;
     this.#royal = new RoyalType({ pc, modelLibrary, performanceSeed });
+    const scale = CHARACTER_HEIGHT / (this.#royal.height * stage.getLocalScale().y);
+    this.#royal.entity.setLocalScale(scale, scale, scale);
     stage.addChild(this.#royal.entity);
   }
 

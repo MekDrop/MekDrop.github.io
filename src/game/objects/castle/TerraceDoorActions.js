@@ -1,3 +1,4 @@
+import { CHARACTER_HEIGHT } from "../../config/character-size.js";
 import { CASTLE_TERRACE_PHASE as PHASE } from "../../enum/CastleTerracePhase.js";
 import { TERRACE_DOOR_INSPECTION_PHASE as INSPECTION } from "../../enum/TerraceDoorInspectionPhase.js";
 import { TerraceDoor } from "./TerraceDoor.js";
@@ -81,7 +82,6 @@ export class TerraceDoorActions {
     woodMaterial,
     root,
     stage,
-    scale,
     inspector,
     canInspect,
   }) {
@@ -100,7 +100,8 @@ export class TerraceDoorActions {
     root.addChild(this.#door.entity);
     this.#inspector = inspector;
     this.#inspector.entity.name = "Terrace door inspecting servant";
-    this.#inspector.entity.setLocalScale(scale, scale, scale);
+    const actorScale = CHARACTER_HEIGHT / this.#inspector.height;
+    this.#inspector.entity.setLocalScale(actorScale, actorScale, actorScale);
     this.#inspector.entity.enabled = false;
   }
 

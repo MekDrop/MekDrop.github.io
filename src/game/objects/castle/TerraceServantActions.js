@@ -1,4 +1,5 @@
 import servantUrl from "../../models/castle/leisure/servant.glb?url";
+import { CHARACTER_HEIGHT } from "../../config/character-size.js";
 import elderServantUrl from "../../models/castle/leisure/elder-servant.glb?url";
 import { CASTLE_TERRACE_PHASE as PHASE } from "../../enum/CastleTerracePhase.js";
 import { TerraceActor } from "./TerraceActor.js";
@@ -48,6 +49,8 @@ export class TerraceServantActions {
         kind: "servant",
       });
       actor.entity.name = "Terrace servant standby";
+      const scale = CHARACTER_HEIGHT / (actor.height * stage.getLocalScale().y);
+      actor.entity.setLocalScale(scale, scale, scale);
       actor.entity.enabled = false;
       stage.addChild(actor.entity);
       this.#servants.push(actor);

@@ -1,4 +1,5 @@
 import servantModelUrl from "../../models/castle/leisure/servant.glb?url";
+import { CHARACTER_HEIGHT } from "../../config/character-size.js";
 import { TerraceActor } from "../castle/TerraceActor.js";
 import { TerraceServantBehavior } from "../castle/TerraceServantBehavior.js";
 import { TerraceServiceActions } from "../castle/TerraceServiceActions.js";
@@ -77,7 +78,8 @@ export class Servant {
     this.#residence = residence;
     this.#resident = new TerraceActor({ pc, modelLibrary, modelUrl: servantModelUrl, kind: "servant" });
     this.#resident.entity.name = "Basement servant resident";
-    this.#resident.entity.setLocalScale(0.4, 0.4, 0.4);
+    const scale = CHARACTER_HEIGHT / this.#resident.height;
+    this.#resident.entity.setLocalScale(scale, scale, scale);
     this.#entity.addChild(this.#resident.entity);
     this.enterBasement();
     this.#resident.pose("idle", 0);

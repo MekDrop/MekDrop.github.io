@@ -739,7 +739,7 @@ export class CastleAudienceRoom {
       royalPosition.z,
     );
     this.#occupant.entity.setLocalEulerAngles(0, this.#visitorFacingYaw(), 0);
-    const scale = (0.72 + this.#occupant.terraceScale) / 2;
+    const scale = this.#occupant.terraceScale;
     this.#occupant.entity.setLocalScale(scale, scale, scale);
   }
   /**

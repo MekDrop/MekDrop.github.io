@@ -1,4 +1,5 @@
 import kingModelUrl from "../../models/castle/royals/king.glb?url";
+import { CHARACTER_HEIGHT } from "../../config/character-size.js";
 import princessModelUrl from "../../models/castle/royals/princess.glb?url";
 import queenModelUrl from "../../models/castle/royals/queen.glb?url";
 import { ROYAL_WALK_SPEED } from "../../enum/RoyalWalkSpeed.js";
@@ -148,7 +149,7 @@ export class SeatedRoyal {
     }
     const height = top - bottom;
     return Number.isFinite(height) && height >= 0.01
-      ? (2.2 * 0.45 * this.#entity.getLocalScale().y) / height
+      ? (CHARACTER_HEIGHT * this.#entity.getLocalScale().y) / height
       : 0.45;
   }
 
