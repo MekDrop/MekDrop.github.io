@@ -99,3 +99,43 @@ it("honors river source covers, their cell bounds and their support height", () 
   assert.equal(terrain.riverSourceCoverHeightAt(0, 0, 2, 1), null);
   assert.equal(terrain.occupancyAt(-1, 0, -0.7, 0, true, 0.4, standing), "open");
 });
+
+it("walks through excavated path cells while retaining soil outside the cut", () => {
+  const data = map();
+  for (const row of data.heightmap) row.fill(0);
+  data.grid[1][2] = TileType.PATH;
+  data.heightmap[1][2] = 2;
+  const cut = { minX: 0.5, maxX: 1.1, minZ: -0.5, maxZ: 0.5, minY: -0.25, maxY: 2.75 };
+  data.tileMeta[1][2].terrainCutouts = [cut];
+  const terrain = new HeroTerrain(data, { surfaceHeightAt: () => 0 }, []);
+  const basement = { ...standing, position: { x: 0, y: 0.004, z: 0 } };
+  assert.equal(terrain.occupancyAt(0, 0, 0.3, 0, true, 0.4, basement), "open");
+  assert.equal(terrain.occupancyAt(0.3, 0, 0.75, 0, true, 0.4, basement), "blocked");
+  assert.equal(terrain.occupancyAt(0.75, 0, 0.65, 0, true, 0.4, basement), "open");
+  cut.minY = 1;
+  assert.equal(terrain.occupancyAt(0, 0, 0.3, 0, true, 0.4, basement), "blocked");
+});
+
+it("clears the reported basement approach under the two outdoor entrance lanes", () => {
+  const data = {
+    cols: 42, rows: 42,
+    grid: Array.from({ length: 42 }, () => Array(42).fill(TileType.CASTLE_WALL)),
+    heightmap: Array.from({ length: 42 }, () => Array(42).fill(3)),
+    tileMeta: Array.from({ length: 42 }, () => Array.from({ length: 42 }, () => ({}))),
+  };
+  for (const row of [6, 7]) {
+    data.grid[row][30] = TileType.PATH;
+    data.heightmap[row][30] = 2;
+    data.tileMeta[row][30].terrainCutouts = [{
+      minX: 9, maxX: 16.5, minZ: -15.5, maxZ: -8, minY: -0.25, maxY: Number.MAX_VALUE,
+    }];
+  }
+  const terrain = new HeroTerrain(data, { surfaceHeightAt: () => 0 }, []);
+  const basement = { ...standing, position: { x: 9.875, y: 0.004, z: -15.125 } };
+  for (let z = -15.125; z <= -13.125; z += 0.05) {
+    assert.equal(terrain.occupancyAt(9.875, z, 9.875, z + 0.05, true, 0.4, basement), "open");
+    assert.equal(terrain.occupancyAt(9.875, z + 0.05, 9.875, z, true, 0.4, basement), "open");
+  }
+  data.tileMeta[6][30].terrainCutouts = [];
+  assert.equal(terrain.occupancyAt(9.875, -15.125, 9.875, -15.075, true, 0.4, basement), "blocked");
+});

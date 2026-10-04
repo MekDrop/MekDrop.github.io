@@ -16,6 +16,43 @@ const Bookshelf = { name: "Bookshelf", addVisual: () => ({}) };
 ${source.slice(source.indexOf("function subtractFloorArea"))}
 return class { ${method} };`)();
 
+const movementMethod = source.slice(source.indexOf("  blocksMovementAt("), source.indexOf("  blocksCameraAt("))
+  .replaceAll("this.#", "this.");
+const MovementHarness = new Function(`
+const FLOOR_STEP_CLEARANCE = 0.32;
+return class { ${movementMethod} };`)();
+
+it("allows walking into an authored basement while retaining furniture collision", async () => {
+  for (const side of ["NORTH", "SOUTH", "WEST", "EAST"]) {
+    const plan = await CastleGenerator.generate({
+      position: { x: -14, z: -8, width: 28, depth: 16, elevation: 3 },
+      doors: [{ side, offset: 13, width: 2 }], seed: 1,
+    });
+    const harness = new MovementHarness();
+    harness.layout = new CastleResidentialLayout(plan);
+    harness.solids = [];
+    assert.equal(harness.layout.canEnterBasement(null), true);
+    const room = harness.layout.rooms.servantBedroom;
+    const x = (room.minX + room.maxX) / 2;
+    const z = (room.minZ + room.maxZ) / 2;
+    const point = harness.layout.toWorld(x, z, room.floorY - harness.layout.origin.y);
+    assert.equal(harness.blocksMovementAt(point.x, point.z, 0.22, room.floorY), false, side);
+    harness.solids.push({ x, z, y: room.floorY - harness.layout.origin.y + 0.4,
+      width: 0.8, depth: 0.8, height: 0.8 });
+    assert.equal(harness.blocksMovementAt(point.x, point.z, 0.22, room.floorY), true, `${side} furniture`);
+  }
+});
+
+it("retains the private basement guard when there is no public staircase", () => {
+  const harness = new MovementHarness();
+  harness.layout = {
+    origin: { y: 3 }, basement: { floorY: 0.5 },
+    rooms: { servantBedroom: { minX: -2, maxX: 0, minZ: 1, maxZ: 3 }, storage: { maxX: 2 } },
+    toLocal: (x, z) => ({ x, z }), canEnterBasement: () => false,
+  };
+  harness.solids = [];
+  assert.equal(harness.blocksMovementAt(-1, 2, 0.22, 0.5), true);
+});
 it("covers every bedroom floor patch outside the exact reserved stair opening", async () => {
   class Entity extends pc.Entity {
     addComponent() {}

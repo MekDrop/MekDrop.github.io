@@ -3,6 +3,7 @@ import { OCCUPANCY } from "../../enum/Occupancy.js";
 import { GRASS_SURFACE_LIFT } from "../../config/terrain.js";
 import { SLOPE_DIRECTION } from "../../enum/SlopeDirection.js";
 import { TILE_SHAPE } from "../../enum/TileShape.js";
+import { subtractTerrainCutouts } from "../../collision/TerrainSurfaceCutouts.js";
 import {
   STEP_CLEARANCE,
   HERO_RADIUS,
@@ -125,17 +126,19 @@ export class HeroTerrain {
           if (isEdge && state.dodging) {
             continue;
           }
-          const currentDistance = this.#circleDistanceSquaredToTile(
+          const currentDistance = this.#terrainDistanceSquaredToTile(
             fromX,
             fromZ,
             col,
             row,
+            state.position.y + STEP_CLEARANCE,
           );
-          const nextDistance = this.#circleDistanceSquaredToTile(
+          const nextDistance = this.#terrainDistanceSquaredToTile(
             toX,
             toZ,
             col,
             row,
+            state.position.y + STEP_CLEARANCE,
           );
           if (isEdge) {
             currentEdgeDistance = Math.min(
@@ -218,6 +221,42 @@ export class HeroTerrain {
     const distanceX = Math.max(Math.abs(x - tileX) - 0.5, 0);
     const distanceZ = Math.max(Math.abs(z - tileZ) - 0.5, 0);
     return distanceX * distanceX + distanceZ * distanceZ;
+  }
+
+  /**
+   * The grid retains outdoor heights above excavated rooms. Use the same cuts
+   * as Ammo's terrain mesh so those heights cannot close an underground route.
+   * @param {number} x
+   * @param {number} z
+   * @param {number} col
+   * @param {number} row
+   * @param {number} elevation
+   * @returns {number}
+   */
+  #terrainDistanceSquaredToTile(x, z, col, row, elevation) {
+    const cuts = this.#mapData.tileMeta?.[row]?.[col]?.terrainCutouts ?? [];
+    if (!cuts.length || !WALKABLE_TILES.has(this.#mapData.grid[row][col])) {
+      return this.#circleDistanceSquaredToTile(x, z, col, row);
+    }
+    const tileX = col - (this.#mapData.cols - 1) / 2;
+    const tileZ = row - (this.#mapData.rows - 1) / 2;
+    const pieces = subtractTerrainCutouts([
+      [tileX - 0.5, elevation, tileZ - 0.5], [tileX + 0.5, elevation, tileZ - 0.5],
+      [tileX + 0.5, elevation, tileZ + 0.5], [tileX - 0.5, elevation, tileZ + 0.5],
+    ], cuts);
+    let distance = Infinity;
+    for (const piece of pieces) {
+      let minX = Infinity, maxX = -Infinity, minZ = Infinity, maxZ = -Infinity;
+      for (const vertex of piece) {
+        minX = Math.min(minX, vertex[0]); maxX = Math.max(maxX, vertex[0]);
+        minZ = Math.min(minZ, vertex[2]); maxZ = Math.max(maxZ, vertex[2]);
+      }
+      if (maxX - minX <= COLLISION_DISTANCE_EPSILON || maxZ - minZ <= COLLISION_DISTANCE_EPSILON) { continue; }
+      const dx = Math.max(minX - x, x - maxX, 0);
+      const dz = Math.max(minZ - z, z - maxZ, 0);
+      distance = Math.min(distance, dx * dx + dz * dz);
+    }
+    return distance;
   }
 
   /**

@@ -240,7 +240,7 @@ export class CastleResidence {
     // Only an actor fully below the basement ceiling needs the private-room guard.
     // Feet can sit below the work floor while crossing its entrance threshold.
     const basementCeiling = this.#layout.origin.y - 0.25;
-    if (this.#layout.basement && elevation + 0.8 <= basementCeiling) {
+    if (this.#layout.basement && !this.#layout.canEnterBasement(null) && elevation + 0.8 <= basementCeiling) {
       const bed = this.#layout.rooms.servantBedroom;
       const storage = this.#layout.rooms.storage;
       const room = { ...bed, maxX: storage.maxX };
