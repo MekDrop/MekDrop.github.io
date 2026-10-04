@@ -188,6 +188,7 @@ export class AbstractRoyal {
       performanceSeed: this.#definition.seed ?? 0,
       stage,
     });
+    this.#actions.actor.behavior = this.#behavior;
     return {
       kind: this.#RoyalType.kind,
       behavior: this.#behavior,

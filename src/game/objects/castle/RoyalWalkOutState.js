@@ -13,9 +13,10 @@ export class RoyalWalkOutState extends State {
 
   /**
    *
-   * @param {{elapsed: number, deltaTime: number, walkDuration: number, walkStartDelay: number, beginWalk: () => void, move: (progress: number) => boolean, playAnimation: (animation: string) => void, completeWalk: () => void}} owner
+   * @param {{isResumingReaction?: () => boolean, elapsed: number, deltaTime: number, walkDuration: number, walkStartDelay: number, beginWalk: () => void, move: (progress: number) => boolean, playAnimation: (animation: string) => void, completeWalk: () => void}} owner
    */
   enter(owner) {
+    if (owner.isResumingReaction?.()) { return; }
     owner.elapsed = 0;
     owner.beginWalk();
     owner.playAnimation(ROYAL_ANIMATION.WALK_OUT);
@@ -23,7 +24,7 @@ export class RoyalWalkOutState extends State {
 
   /**
    *
-   * @param {{elapsed: number, deltaTime: number, walkDuration: number, walkStartDelay: number, beginWalk: () => void, move: (progress: number) => boolean, playAnimation: (animation: string) => void, completeWalk: () => void}} owner
+   * @param {{isResumingReaction?: () => boolean, elapsed: number, deltaTime: number, walkDuration: number, walkStartDelay: number, beginWalk: () => void, move: (progress: number) => boolean, playAnimation: (animation: string) => void, completeWalk: () => void}} owner
    */
   execute(owner) {
     owner.elapsed += owner.deltaTime;

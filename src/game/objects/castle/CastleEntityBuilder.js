@@ -672,7 +672,10 @@ export class CastleEntityBuilder {
       return;
     }
     try {
-      for (const door of this.#animatedDoors) door.update(deltaTime);
+      for (const door of this.#animatedDoors) {
+        door.npcNavigation = this.#canNpcMove;
+        door.update(deltaTime);
+      }
       this.#syncAudienceRoomVisibility();
     } catch (error) {
       this.#updateFailed = true;
@@ -690,6 +693,27 @@ export class CastleEntityBuilder {
       this.#audienceRoom.royalVisible = true;
     }
   }
+
+  /**
+   * Navigation reuses the existing scene collider queries at the NPC's level.
+   * @param {import("yuka").Vector3} point
+   * @returns {boolean}
+   * @type {(point: import("yuka").Vector3) => boolean}
+   */
+  #canNpcMove = (point) => {
+    const layout = this.#residence?.layout;
+    if (layout) {
+      const local = layout.toLocal(point.x, point.z);
+      const supported = [...layout.walkableAreas, ...Object.values(layout.rooms)].some(/**
+       * @param {{floorY:number,minX:number,maxX:number,minZ:number,maxZ:number}} area
+       */ (area) =>
+        Math.abs(area.floorY - point.y) < 0.15 && local.x >= area.minX + 0.5 &&
+        local.x <= area.maxX - 0.5 && local.z >= area.minZ + 0.5 && local.z <= area.maxZ - 0.5);
+      if (!supported) { return false; }
+    }
+    return !this.blocksCameraAt(point.x, point.y + 0.6, point.z, 0.5) &&
+      !this.blocksCameraAt(point.x, point.y + 1.5, point.z, 0.5);
+  };
 
   /**
    *

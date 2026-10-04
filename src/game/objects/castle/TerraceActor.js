@@ -1,4 +1,5 @@
 import { TERRACE_ACTOR_ANIMATION } from "../../enum/TerraceActorAnimation.js";
+import { NpcDoorAvoidance } from "../shared/NpcDoorAvoidance.js";
 
 const LOOPING_ANIMATIONS = new Set([
   TERRACE_ACTOR_ANIMATION.IDLE,
@@ -13,6 +14,18 @@ const LOOPING_ANIMATIONS = new Set([
  * Low-level model/animation adapter; role objects own choreography and sequences.
  */
 export class TerraceActor {
+  /**
+   * @type {NpcDoorAvoidance}
+   */
+  #doorAvoidance;
+  /**
+   * @type {{action: string, time: number, blend: number}}
+   */
+  #authoredPose = { action: "idle", time: 0, blend: 1 };
+  /**
+   * @type {boolean}
+   */
+  #applyingDoorPose = false;
   /**
    *
     * @type {import("playcanvas").Entity}
@@ -82,7 +95,9 @@ export class TerraceActor {
     this.#entity = new pc.Entity(`Terrace ${kind}`);
     this.#body = new pc.Entity("Terrace posture");
     this.#model = modelLibrary.instantiate(modelUrl);
-    this.#entity.addChild(this.#body);
+    const avoidanceRoot = new pc.Entity("NPC doorway reaction");
+    this.#entity.addChild(avoidanceRoot);
+    avoidanceRoot.addChild(this.#body);
     this.#body.addChild(this.#model);
 
     // Terrace clones deliberately do not play the throne's WalkOut/Cry tracks.
@@ -133,11 +148,27 @@ export class TerraceActor {
       this.#setupAnimations(modelLibrary, modelUrl);
       this.pose("idle", 0);
     }
+    this.#doorAvoidance = new NpcDoorAvoidance(avoidanceRoot, pc.Application?.getApplication(),
+      /**
+       * @param {string} action
+       * @param {number} time
+       */
+      (action, time) => this.#applyDoorPose(action, time));
   }
 
   get entity() {
     return this.#entity;
   }
+
+  /**
+   * @returns {import("../shared/NpcStateMachine.js").NpcStateMachine}
+   */
+  get behavior() { return this.#doorAvoidance.behavior; }
+
+  /**
+   * @param {import("../shared/NpcStateMachine.js").NpcStateMachine} behavior
+   */
+  set behavior(behavior) { this.#doorAvoidance.behavior = behavior; }
 
   get model() {
     return this.#model;
@@ -171,6 +202,7 @@ export class TerraceActor {
    * @param {number} [blend=1]
    */
   pose(action, time = 0, blend = 1) {
+    if (!this.#applyingDoorPose) { this.#authoredPose = { action, time, blend }; }
     if (!this.#animationLayer) {
       return;
     }
@@ -218,11 +250,25 @@ export class TerraceActor {
     }
   }
 
+  /**
+   * @param {string} action
+   * @param {number} time
+   */
+  #applyDoorPose(action, time) {
+    this.#applyingDoorPose = true;
+    try {
+      const pose = action === "resume" ? this.#authoredPose : { action, time, blend: 1 };
+      this.pose(pose.action, pose.time, pose.blend);
+      this.evaluatePose();
+    } finally { this.#applyingDoorPose = false; }
+  }
+
   evaluatePose() {
     this.#model.anim?.update(0);
   }
 
   destroy() {
+    this.#doorAvoidance.destroy();
     this.#entity.destroy();
     this.#joints.clear();
     this.#animationDurations.clear();

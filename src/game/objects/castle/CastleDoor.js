@@ -2,6 +2,7 @@ import { createCastleDoorCollision } from "./CastleDoorCollision.js";
 import interiorDoorUrl from "../../models/castle/doors/interior-doors.glb?url";
 import castleDoorsModelUrl from "../../models/castle/doors/castle-doors.glb?url";
 import { CASTLE_DOOR_ANIMATION } from "../../enum/CastleDoorAnimation.js";
+import { NpcDoorAvoidance } from "../shared/NpcDoorAvoidance.js";
 
 const DOOR_INSET = -0.18;
 const OPEN_SPEED = 1.7;
@@ -97,6 +98,27 @@ export class CastleDoor {
     * @type {number}
    */
   #manualOpenRemaining = 0;
+  /**
+   * @type {((point: import("yuka").Vector3) => boolean)|null}
+   */
+  #canNpcMove = null;
+
+  /**
+   * @param {(point: import("yuka").Vector3) => boolean} query
+   */
+  set npcNavigation(query) { this.#canNpcMove = query; }
+
+  /**
+   * @param {import("yuka").Vector3} point
+   * @type {(point: import("yuka").Vector3) => boolean}
+   */
+  #inNpcSwing = (point) => {
+    const dx = point.x - this.#center.x;
+    const dz = point.z - this.#center.z;
+    return point.y < this.#center.y + this.#height && point.y + 2.2 > this.#center.y &&
+      Math.abs(dx * this.#tangent.x + dz * this.#tangent.z) < this.#width / 2 + 0.6 &&
+      Math.abs(dx * this.#inward.x + dz * this.#inward.z) < this.#width + 0.6;
+  };
 
   /**
    *
@@ -271,6 +293,9 @@ export class CastleDoor {
       this.#manualOpenRemaining - deltaTime,
     );
     const target = Number(this.#shouldOpen());
+    if (Math.abs(target - this.#openAmount) > 0.000001 && this.#canNpcMove) {
+      NpcDoorAvoidance.requestClearance(this.#entity, this.#inNpcSwing, this.#canNpcMove);
+    }
     const amount = OPEN_SPEED * Math.max(0, deltaTime);
     const destination = this.#openAmount < target
       ? Math.min(target, this.#openAmount + amount)
@@ -291,7 +316,14 @@ export class CastleDoor {
        */
       (entry) =>
         entry[1] > Math.max(0.002, initialContacts.get(entry[0]) ?? 0) + 0.000001);
-      if (obstructed) {
+      const npcObstructed = NpcDoorAvoidance.occupied(this.#entity, /**
+       *
+       * @param {import("yuka").Vector3} point
+       */
+      (point) =>
+        this.#collision.blocksAt(point.x, point.y + 0.6, point.z, 0.5) ||
+        this.#collision.blocksAt(point.x, point.y + 1.5, point.z, 0.5));
+      if (obstructed || npcObstructed) {
         this.#openAmount = previous;
         break;
       }

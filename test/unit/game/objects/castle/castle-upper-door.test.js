@@ -3,11 +3,12 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { it } from "node:test";
 import * as pc from "playcanvas";
+import { NpcDoorAvoidance } from "../../../../../src/game/objects/shared/NpcDoorAvoidance.js";
 import { createCastleDoorCollision } from "../../../../../src/game/objects/castle/CastleDoorCollision.js";
 
 const source = readFileSync(new URL("../../../../../src/game/objects/castle/CastleDoor.js", import.meta.url), "utf8")
   .replace(/^import[^\n]+\r?\n/gm, "");
-const Door = new Function("interiorDoorUrl", "castleDoorsModelUrl", "CASTLE_DOOR_ANIMATION", "createCastleDoorCollision", `${source.replace("export class", "class")}\nreturn CastleDoor;`)("interior.glb", "doors.glb", { OPEN: "open", OPEN_WIDE: "wide" }, createCastleDoorCollision);
+const Door = new Function("interiorDoorUrl", "castleDoorsModelUrl", "CASTLE_DOOR_ANIMATION", "createCastleDoorCollision", "NpcDoorAvoidance", `${source.replace("export class", "class")}\nreturn CastleDoor;`)("interior.glb", "doors.glb", { OPEN: "open", OPEN_WIDE: "wide" }, createCastleDoorCollision, NpcDoorAvoidance);
 
 /**
  * @param {number} floorY
@@ -185,4 +186,31 @@ it("clicks the moving leaf at closed, intermediate and fully open poses", () => 
     assert.equal(hit.pointerTarget.handlePointerDown(), true);
   }
   assert.equal(door.getPointerHit(new pc.Vec3(10, 1, 0), new pc.Vec3(10, 1, 4)), null);
+});
+
+it("holds a swinging door until a visible NPC clears its leaf", () => {
+  const { door, entity } = upperDoor();
+  const app = new pc.EventHandler();
+  const root = new pc.Entity();
+  root._enabledInHierarchy = true;
+  root.addChild(entity);
+  const npc = new pc.Entity("blocked servant");
+  root.addChild(npc);
+  npc.setPosition(0, 3, 2.8);
+  const behavior = new NpcDoorAvoidance(npc, app);
+  try {
+    door.npcNavigation = () => false;
+    door.openTemporarily(10);
+    door.update(1);
+    assert.equal(behavior.phase, "wait");
+    assert.equal(door.blocksCameraAt(0, 3.6, 2.8, 0.5), false,
+      "accepted leaf pose never overlaps the NPC footprint");
+    const held = entity.children[0].getLocalRotation().clone();
+    door.update(1);
+    assert.deepEqual(entity.children[0].getLocalRotation(), held);
+    npc.setPosition(10, 3, 10);
+    door.update(1);
+    assert.notDeepEqual(entity.children[0].getLocalRotation(), held,
+      "door resumes once the NPC is clear");
+  } finally { behavior.destroy(); door.destroy(); }
 });

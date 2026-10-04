@@ -67,6 +67,7 @@ export class TerraceServantActions {
    * @param {import("./TerraceServantBehavior.js").TerraceServantBehavior} behavior
    */
   sync(behavior) {
+    if (behavior.reacting) { return; }
     if (this.#visit !== behavior.visitId) {
       this.#visit = behavior.visitId;
       for (const servant of this.#servants) {
@@ -78,6 +79,7 @@ export class TerraceServantActions {
       ];
       this.#servant.entity.name = "Terrace servant";
     }
+    this.#servant.behavior = behavior;
     const phase = behavior.stagePhase;
     const visible = [PHASE.SERVANT_ENTER, PHASE.FURNISH, PHASE.POUR,
       PHASE.SERVANT_EXIT, PHASE.SERVANT_RETURN, PHASE.PACK,

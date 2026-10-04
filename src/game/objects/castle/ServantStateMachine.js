@@ -1,4 +1,5 @@
-import { State, StateMachine } from "yuka";
+import { State } from "yuka";
+import { NpcStateMachine } from "../shared/NpcStateMachine.js";
 
 /**
  * Context supplied while a servant sequence is updated.
@@ -9,7 +10,7 @@ import { State, StateMachine } from "yuka";
 /**
  * Yuka state machine with game-time updates and resumable interruptions.
  */
-export class ServantStateMachine extends StateMachine {
+export class ServantStateMachine extends NpcStateMachine {
   /**
    *
     * @type {string}
@@ -127,7 +128,7 @@ export class ServantStateMachine extends StateMachine {
     * @returns {boolean}
    */
   get interrupted() {
-    return this.#interruptions.length > 0;
+    return this.reacting || this.#interruptions.length > 0;
   }
 
   /**
@@ -155,7 +156,7 @@ export class ServantStateMachine extends StateMachine {
    * @param {ServantUpdateContext|null} context
    */
   update(deltaTime, context = null) {
-    if (!this.active || !Number.isFinite(deltaTime) || deltaTime <= 0) {
+    if (this.reacting || !this.active || !Number.isFinite(deltaTime) || deltaTime <= 0) {
       return this;
     }
     this.#elapsed += deltaTime;

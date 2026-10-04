@@ -80,6 +80,7 @@ export class TerraceRoyalActions {
    * @param {import("./RoyalTerraceActivityBehavior.js").RoyalTerraceActivityBehavior} behavior
    */
   sync(behavior) {
+    if (behavior.reacting) { return; }
     const phase = behavior.stagePhase;
     const visible = [PHASE.ROYAL_ENTER, PHASE.SETTLE, PHASE.ACTIVITY,
       PHASE.RISE, PHASE.ROYAL_EXIT].includes(phase);

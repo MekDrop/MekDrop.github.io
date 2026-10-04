@@ -69,6 +69,7 @@ export class TerraceServiceActions {
    * @param {import("./RoyalTerraceActivityBehavior.js").RoyalTerraceActivityBehavior} royalBehavior
    */
   sync(servantBehavior, royalBehavior) {
+    if (servantBehavior.reacting) { return; }
     this.#servant.sync(servantBehavior);
     this.#service.sync(
       servantBehavior,

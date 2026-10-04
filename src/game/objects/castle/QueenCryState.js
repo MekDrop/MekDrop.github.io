@@ -13,9 +13,10 @@ export class QueenCryState extends State {
 
   /**
    *
-   * @param {{playAnimation: (animation: string, blendDuration?: number) => void}} owner
+   * @param {{isResumingReaction?: () => boolean, playAnimation: (animation: string, blendDuration?: number) => void}} owner
    */
   enter(owner) {
+    if (owner.isResumingReaction?.()) { return; }
     owner.playAnimation(ROYAL_ANIMATION.CRY, 0.18);
   }
 }

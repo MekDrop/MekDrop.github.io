@@ -99,6 +99,7 @@ export class TerraceDoorActions {
     this.#door.entity.setLocalPosition(0, 0, DOORWAY_POSITION_Z);
     root.addChild(this.#door.entity);
     this.#inspector = inspector;
+    this.#inspector.behavior = this.#inspection;
     this.#inspector.entity.name = "Terrace door inspecting servant";
     const actorScale = CHARACTER_HEIGHT / this.#inspector.height;
     this.#inspector.entity.setLocalScale(actorScale, actorScale, actorScale);
@@ -196,6 +197,7 @@ export class TerraceDoorActions {
   }
 
   #syncInspector() {
+    if (this.#inspection.reacting) { return; }
     const phase = this.#inspection.phase;
     const progress = this.#inspection.progress;
     const turn = ease(Math.min(1, progress * 2));

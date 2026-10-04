@@ -1,10 +1,10 @@
-import { StateMachine } from "yuka";
+import { NpcStateMachine } from "../shared/NpcStateMachine.js";
 
 /**
  * Game-time Yuka machine shared by individual terrace participants.
  * @abstract
  */
-export class TerraceParticipantStateMachine extends StateMachine {
+export class TerraceParticipantStateMachine extends NpcStateMachine {
   /**
    *
     * @type {string}
@@ -122,7 +122,7 @@ export class TerraceParticipantStateMachine extends StateMachine {
     * @returns {boolean}
    */
   get interrupted() {
-    return this.#interruptions.length > 0;
+    return this.reacting || this.#interruptions.length > 0;
   }
 
   set actionHandler(handler) {
@@ -134,6 +134,7 @@ export class TerraceParticipantStateMachine extends StateMachine {
    * @param {import("./states/terrace/AbstractTerraceParticipantState.js").AbstractTerraceParticipantState} state
    */
   enterAction(state) {
+    if (this.resumingReaction) { return; }
     this.#actionHandler?.enter?.(state, this);
   }
 
@@ -150,6 +151,7 @@ export class TerraceParticipantStateMachine extends StateMachine {
    * @param {import("./states/terrace/AbstractTerraceParticipantState.js").AbstractTerraceParticipantState} state
    */
   exitAction(state) {
+    if (this.reactionTransition) { return; }
     this.#actionHandler?.exit?.(state, this);
   }
 
@@ -158,7 +160,7 @@ export class TerraceParticipantStateMachine extends StateMachine {
    * @param {number} deltaTime
    */
   update(deltaTime) {
-    if (!this.active || !Number.isFinite(deltaTime) || deltaTime <= 0) {
+    if (this.reacting || !this.active || !Number.isFinite(deltaTime) || deltaTime <= 0) {
       return;
     }
     this.#elapsed += deltaTime;

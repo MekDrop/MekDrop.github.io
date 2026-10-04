@@ -81,6 +81,52 @@ describe("Castle door swing physics", () => {
         "fully open leaf stays clickable").to.equal(door);
         door.update(20);
         expect(layer.activeStateCurrentTime, "still closes").to.be.closeTo(0, .001);
+        const { Servant } = await load("/src/game/objects/servant/Servant.js");
+        const { TerraceActor } = await load("/src/game/objects/castle/TerraceActor.js");
+        await library.load([Servant.modelUrls[0]]);
+        const actor = new TerraceActor({ pc, modelLibrary: library,
+          modelUrl: Servant.modelUrls[0], kind: "servant" });
+        app.root.addChild(actor.entity);
+        const reaction = actor.entity.findByName("NPC doorway reaction");
+        const originalState = actor.behavior.currentState;
+        let displacement = 0;
+        let standing;
+        for (let x = 99; x <= 101 && !standing; x += .25) {
+          for (let z = 99; z <= 101 && !standing; z += .25) {
+            const closed = door.blocksCameraAt(x, 20.6, z, .5);
+            layer.activeStateCurrentTime = duration * .5;
+            door.entity.anim.update(0);
+            const swept = door.blocksCameraAt(x, 20.6, z, .5);
+            layer.activeStateCurrentTime = 0;
+            door.entity.anim.update(0);
+            if (!closed && swept) { standing = new pc.Vec3(x, 20, z); }
+          }
+        }
+        expect(standing, "free standing point in the door swing").to.exist;
+        actor.entity.setPosition(standing);
+        door.npcNavigation = (point) =>
+          !door.blocksCameraAt(point.x, point.y + .6, point.z, .5) &&
+          !door.blocksCameraAt(point.x, point.y + 1.5, point.z, .5);
+        try {
+          door.openTemporarily(10);
+          for (let frame = 0; frame < 240; frame++) {
+            door.update(1 / 60);
+            await new Promise((resolve) => window.requestAnimationFrame(resolve));
+            const position = reaction.getPosition();
+            displacement = Math.max(displacement, position.distance(standing));
+            expect(door.blocksCameraAt(position.x, position.y + .6, position.z, .5),
+              "servant stays clear throughout the swing").to.equal(false);
+          }
+          expect(displacement, "rendered servant steps aside")
+            .to.be.greaterThan(.15);
+          // End clearance requests independently of masonry limiting the imported leaf.
+          door.npcNavigation = null;
+          for (let frame = 0; frame < 240 && actor.behavior.reacting; frame++) {
+            await new Promise((resolve) => window.requestAnimationFrame(resolve));
+          }
+          expect(actor.behavior.currentState, "reaction returns to its previous Yuka state")
+            .to.equal(originalState);
+        } finally { actor.destroy(); }
       } finally {
         if (wall.parent) wall.destroy();
         door.destroy();

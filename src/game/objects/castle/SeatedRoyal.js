@@ -9,6 +9,7 @@ import { PrincessGameOverBehavior } from "./PrincessGameOverBehavior.js";
 import { QueenGameOverBehavior } from "./QueenGameOverBehavior.js";
 import { RoyalGameOverRouteFollower } from "./RoyalGameOverRouteFollower.js";
 import { RoyalTears } from "./RoyalTears.js";
+import { NpcDoorAvoidance } from "../shared/NpcDoorAvoidance.js";
 
 const MODEL_URLS = Object.freeze([
   kingModelUrl,
@@ -28,6 +29,14 @@ const FALLBACK_VISUAL_SIZE = Object.freeze({ x: 1.2, y: 2.2, z: 1.2 });
  * An imported seated royal whose local +Z axis faces the visitor.
  */
 export class SeatedRoyal {
+  /**
+   * @type {NpcDoorAvoidance}
+   */
+  #doorAvoidance;
+  /**
+   * @type {number|null}
+   */
+  #suspendedAnimationSpeed = null;
   /**
    *
     * @returns {string}
@@ -80,6 +89,7 @@ export class SeatedRoyal {
     this.#walkDuration = walkDuration;
     this.#entity = modelLibrary.instantiate(modelUrl);
     this.#entity.name = "Seated royal";
+
     const tracks = modelLibrary.getAnimationTracks(modelUrl, [
       ROYAL_ANIMATION.WALK_OUT,
       ROYAL_ANIMATION.CRY,
@@ -115,6 +125,8 @@ export class SeatedRoyal {
       playAnimation: (animation, blendDuration) =>
         this.#playAnimation(animation, blendDuration),
     });
+    this.#doorAvoidance = new NpcDoorAvoidance(this.#entity, app);
+    this.#doorAvoidance.behavior = this.#gameOverBehavior.stateMachine;
   }
 
   get entity() {
@@ -252,10 +264,18 @@ export class SeatedRoyal {
    * @param {number} deltaTime
    */
   update(deltaTime) {
+    if (this.#gameOverBehavior.stateMachine.reacting) {
+      this.#suspendedAnimationSpeed ??= this.#entity.anim.speed;
+      this.#entity.anim.speed = 0;
+    } else if (this.#suspendedAnimationSpeed !== null) {
+      this.#entity.anim.speed = this.#suspendedAnimationSpeed;
+      this.#suspendedAnimationSpeed = null;
+    }
     this.#gameOverBehavior.update(deltaTime);
   }
 
   destroy() {
+    this.#doorAvoidance.destroy();
     this.#tears?.destroy();
     this.#entity?.destroy();
     this.#entity = null;
