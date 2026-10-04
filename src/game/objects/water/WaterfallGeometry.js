@@ -166,9 +166,16 @@ export class WaterfallGeometry {
       if (row === 0 && this.#join) {
         return this.#join.uvs[column];
       }
-      return [
+      // Continue the river's paint coordinates through the whole curtain.
+      // Resetting them after the shared row compresses any boundary offset
+      // into the first strip and leaves a visible break in the moving ribbons.
+      const boundaryUv = this.#join?.uvs[column] ?? [
         column / width,
-        this.#routeDistance + Math.min(1, row / lipRows) * radius * Math.PI / 2 +
+        this.#routeDistance,
+      ];
+      return [
+        boundaryUv[0],
+        boundaryUv[1] + Math.min(1, row / lipRows) * radius * Math.PI / 2 +
           Math.max(0, (row - lipRows) / fallRows) * (drop - radius),
       ];
     };

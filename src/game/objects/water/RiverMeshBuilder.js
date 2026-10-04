@@ -377,6 +377,25 @@ export class RiverMeshBuilder {
       return north * (1 - v) + south * v;
     };
     const outgoing = this.#directionVector(cell.direction);
+    const spillFlow = waterfallDirection
+      ? this.#directionVector(waterfallDirection)
+      : null;
+    // Opaque surface alpha carries the paint blend before a spill. The
+    // waterfall uses its alpha for tail opacity in its separate material.
+    /**
+     * @param {number} row
+     * @param {number} column
+     */
+    const spillPaintAt = (row, column) => {
+      if (!spillFlow || this.#riverKind !== RIVER_KIND.WATER) {
+        return 255;
+      }
+      const progress = 0.5 +
+        (column / surfaceSegments - 0.5) * spillFlow.col +
+        (row / surfaceSegments - 0.5) * spillFlow.row;
+      const blend = Math.max(0, Math.min(1, (progress - 0.65) / 0.35));
+      return Math.round((1 - blend * blend * (3 - 2 * blend)) * 255);
+    };
     const surfaceMetadata = [outgoing.col, outgoing.row];
     const incoming = this.#directionVector(incomingDirection);
     /**
@@ -516,7 +535,7 @@ export class RiverMeshBuilder {
         Math.round(springSource
           ? sourceProgressAt(row, column) * 96
           : flowInteriorStrengthAt(row, column) * 96),
-        255,
+        spillPaintAt(row, column),
       ],
       false,
       true,

@@ -154,6 +154,33 @@ describe('waterfall geometry', () => {
     }
   });
 
+  it('continues inherited paint coordinates without a reset below the join', () => {
+    const join = {
+      front: Array.from({ length: 13 }, () => [0.5, 2.512, 0]),
+      rear: Array.from({ length: 13 }, () => [0.5, 2.012, 0]),
+      uvs: Array.from({ length: 13 }, (_, column) => [
+        column / 12 + 0.08,
+        9 + column / 24,
+      ]),
+    };
+    const [front, rear, left, right] = patchesFor(
+      { col: 1, row: 0 }, true, 13.5, 'all', join,
+    );
+    const lipStep = 0.22 * Math.PI / 2 / 12;
+    for (const patch of [front, rear, left, right]) {
+      for (let column = 0; column <= patch.columns; column++) {
+        const boundary = patch.uvAt(0, column);
+        for (let row = 1; row <= patch.rows; row++) {
+          assert.equal(patch.uvAt(row, column)[0], boundary[0]);
+          assert.ok(patch.uvAt(row, column)[1] > patch.uvAt(row - 1, column)[1]);
+          if (row <= 12) {
+            assert.ok(Math.abs(patch.uvAt(row, column)[1] - boundary[1] - row * lipStep) < 1e-10);
+          }
+        }
+      }
+    }
+  });
+
   it('carries source pressure through the lip and seals both side faces', () => {
     const join = {
       front: Array.from({ length: 13 }, (_, index) => [index, 2.512, 4]),

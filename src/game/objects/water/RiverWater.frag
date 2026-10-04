@@ -76,6 +76,9 @@ void getAlbedo() {
     );
   }
   vec2 flowDirection = normalize(mix(surfaceFlow, fallFlow, vertical));
+  // Blend the curtain palette upstream, before the surface bends downward.
+  // Surface alpha stores this opaque paint transition; fall alpha fades spray.
+  float lip = mix(1.0 - vVertexColor.a, 1.0, vertical);
   float horizontalTop = (1.0 - vertical) *
     (1.0 - step(0.01, vVertexColor.r));
   vec2 uv = mix(surfaceUv, vUv0, max(vertical, horizontalTop));
@@ -103,7 +106,7 @@ void getAlbedo() {
   vec4 currentSample = texture2D(uCascadeCurrentMap, gridPosition / uRiverMapSize);
   float wetCoverage = max(currentSample.a, 0.001);
   vec2 impactVelocity = (currentSample.rg * 255.0 - 128.0) / (127.0 * wetCoverage);
-  float cascadeChurn = clamp(currentSample.b / wetCoverage, 0.0, 1.0) * horizontalTop;
+  float cascadeChurn = clamp(currentSample.b / wetCoverage, 0.0, 1.0) * horizontalTop * (1.0 - lip);
   float impactWash = currentNoise(vPositionW.xz, impactVelocity, 5.2);
   float impactBubbles = currentNoise(vPositionW.xz + 17.3, impactVelocity, 12.0);
   float cascadeFoam = paintedEdge(0.58, impactBubbles) * 0.76;
@@ -127,7 +130,7 @@ void getAlbedo() {
     vec4 impact = uCascadeImpacts[impactIndex];
     vec4 impactFlow = uCascadeFlows[impactIndex];
     vec2 offset = vPositionW.xz - impact.xz;
-    float sameSurface = horizontalTop *
+    float sameSurface = horizontalTop * (1.0 - lip) *
       (1.0 - smoothstep(0.04, 0.12, abs(vPositionW.y - impact.y)));
     float alongJet = dot(offset, impactFlow.xy);
     float acrossJet = dot(offset, vec2(-impactFlow.y, impactFlow.x));
@@ -139,7 +142,6 @@ void getAlbedo() {
   float across = uv.x;
   float downstream = uv.y - uRiverTime * 0.72;
   float depth = (1.0 - vertical) * vVertexColor.r;
-  float lip = vertical * smoothstep(0.0, 0.75, vVertexColor.b);
   float falling = vertical * vVertexColor.g;
 
   // Display-space river colors; foam is the only near-white part of the sheet.
