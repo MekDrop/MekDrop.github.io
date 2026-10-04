@@ -419,6 +419,24 @@ export class DecorationBuilder {
         ) {
           continue;
         }
+        // Castle stairs and route stair flights extend beside their grid cells.
+        // Keep vines off the surrounding faces, including diagonal corners.
+        let nearStairs = false;
+        for (let deltaRow = -1; deltaRow <= 1; deltaRow += 1) {
+          for (let deltaCol = -1; deltaCol <= 1; deltaCol += 1) {
+            const neighborType = grid[row + deltaRow]?.[col + deltaCol];
+            if (
+              MapGrid.isRouteTile(neighborType) ||
+              neighborType === TileType.CASTLE_WALL ||
+              neighborType === TileType.CASTLE_TOWER
+            ) {
+              nearStairs = true;
+            }
+          }
+        }
+        if (nearStairs) {
+          continue;
+        }
         const topY = heightmap[row][col];
         for (const { direction, deltaCol, deltaRow } of directions) {
           const neighborCol = col + deltaCol;
