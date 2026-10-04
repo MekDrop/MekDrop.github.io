@@ -2437,7 +2437,14 @@ export class Hero {
           this.#position.y <
             (this.#stableGroundPosition?.y ?? this.#spawn.y) -
               MAX_SAFE_STEP_DOWN -
-              STEP_CLEARANCE))
+              STEP_CLEARANCE &&
+          // A distant floor still provides a landing after a castle-height drop.
+          this.#physics.surfaceAt(
+            this.#position.x,
+            this.#position.z,
+            this.#position.y + STEP_CLEARANCE,
+            FALL_EXIT_HEIGHT,
+          ) === null))
     ) {
       this.#actionBehavior.fallingToDeath = true;
     }

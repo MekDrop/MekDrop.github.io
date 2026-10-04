@@ -257,6 +257,23 @@ describe("Hero movement on a predefined terrain map", { testIsolation: false }, 
     });
   });
 
+  it("lands alive after jumping from a castle-height platform", () => {
+    loadScenario("jump-high-descent");
+    cy.window().then((window) => {
+      window.gameMovementTest.jump();
+      window.gameMovementTest.moveForward(true);
+    });
+    expectState((state) => {
+      expect(state.position.x).to.be.greaterThan(0);
+    });
+    stopMoving();
+    expectState((state) => {
+      expect(state.position.y).to.be.closeTo(1 + GRASS_SURFACE_LIFT, 0.03);
+      expect(state.grounded).to.equal(true);
+      expect(state.animation).to.equal(HERO_ANIMATION.IDLE);
+    });
+  });
+
   it("jumps from lower terrain onto a one-block-higher platform", () => {
     loadScenario("jump-ascent");
     cy.window().then((window) => {
