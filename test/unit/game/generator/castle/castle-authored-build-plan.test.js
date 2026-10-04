@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { castleStraightStairSurfaces } from "../../../../../src/game/objects/castle/CastleStraightStairs.js";
 import { it } from "node:test";
 import { CastleAuthoredBuildPlan } from "../../../../../src/game/generator/castle/CastleAuthoredBuildPlan.js";
 import { CastleGenerator } from "../../../../../src/game/generator/castle/CastleGenerator.js";
@@ -56,10 +57,13 @@ it("builds all reference plans in each gate orientation, preserving authored ape
         }
       }
       for (const stair of layout.authoredStairs) {
+        const [incoming, landing] = castleStraightStairSurfaces(stair);
+        assert.equal(landing.low, incoming.high, `${source.id}: turning landing meets the incoming tread without a lip`);
+        assert.equal(landing.high, incoming.high);
         const radians = stair.yaw * Math.PI / 180;
-        const angle = Math.PI / 2 - radians - 0.5 / stair.steps * stair.turns * Math.PI * 2;
-        const x = stair.center.x + Math.cos(angle) * stair.radius * 0.335 / 0.65;
-        const z = stair.center.z + Math.sin(angle) * stair.radius * 0.335 / 0.65;
+        const localX = -stair.radius / 2, localZ = stair.radius - 0.05;
+        const x = stair.center.x + localX * Math.cos(radians) + localZ * Math.sin(radians);
+        const z = stair.center.z - localX * Math.sin(radians) + localZ * Math.cos(radians);
         const height = layout.stairSurfaceHeightAt(x, z, stair.center.y);
         assert.ok(height !== null && height > stair.center.y && height <= stair.center.y + 0.32, `${source.id}: accessible stair ${stair.id}`);
       }

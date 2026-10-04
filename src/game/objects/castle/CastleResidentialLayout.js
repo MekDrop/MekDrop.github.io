@@ -2,6 +2,7 @@ import { MAX_SAFE_STEP_DOWN, STEP_CLEARANCE } from "../hero/HeroSurfaceRules.js"
 import { spiralStairRise } from "../shared/SpiralStairCollision.js";
 import { createCastlePlannedFloorAreas } from "./CastlePlannedFloorAreas.js";
 import { createCastleInteriorFloorAreas } from "./CastleInteriorFloorAreas.js";
+import { castleStraightStairHeight } from "./CastleStraightStairs.js";
 /**
  * @typedef {{x: number, y: number, z: number}} ResidentialPoint
  * @typedef {{minX: number, maxX: number, minZ: number, maxZ: number, floorY: number, purpose: string}} ResidentialRoom
@@ -550,6 +551,11 @@ export class CastleResidentialLayout {
     let result = null;
     for (const stair of stairs) {
       if (!stair) { continue; }
+      if (stair.straight) {
+        const height = castleStraightStairHeight(stair, x, z, currentElevation);
+        if (height !== null && (result === null || Math.abs(height - currentElevation) < Math.abs(result - currentElevation))) { result = height; }
+        continue;
+      }
       const dx = x - stair.center.x;
       const dz = z - stair.center.z;
       const distance = Math.hypot(dx, dz);

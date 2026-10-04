@@ -1,6 +1,6 @@
 import { CastleGenerator } from '../../../../../../src/game/generator/castle/CastleGenerator.js';
 import { CastleResidentialLayout } from '../../../../../../src/game/objects/castle/CastleResidentialLayout.js';
-import {spiralStairRise} from '../../../../../../src/game/objects/shared/SpiralStairCollision.js';
+import {castleStraightStairHeight, castleStraightStairSurfaces, castleStraightStairStepCount} from '../../../../../../src/game/objects/castle/CastleStraightStairs.js';
 import castleMap from '../../../../../../src/game/maps/tests/castle-seeds.json';
 
 async function walkTo(window, target) {
@@ -27,6 +27,8 @@ async function walkTo(window, target) {
   await new Promise(resolve=>window.setTimeout(resolve,50));
   const start = Date.now();
   while (Date.now() - start < 15000) {
+    const alert = window.document.querySelector('[data-global-exception]');
+    if (alert) { expect(false, alert.textContent).to.equal(true); }
     const state = driver.state();
     const dx = target.x - state.position.x, dz = target.z - state.position.z;
     if (Math.hypot(dx,dz) < (target.tolerance ?? .12)) { driver.move(0,0); return; }
@@ -38,7 +40,7 @@ async function walkTo(window, target) {
 
   }
   driver.move(0,0);
-  throw new Error(JSON.stringify({target,state:{position:driver.state().position,movement:driver.state().movement,facing:driver.state().facing}}));
+  expect(false, JSON.stringify({target,state:{position:driver.state().position,movement:driver.state().movement,facing:driver.state().facing}})).to.equal(true);
 }
 
 describe('Compact authored castle traversal', () => {
@@ -71,34 +73,69 @@ describe('Compact authored castle traversal', () => {
       const upper=layout.authoredStairs.find(s=>s.center.y===origin.y);
       const lower=layout.authoredStairs.find(s=>s.center.y<origin.y);
       const tread=(stair,step)=>{
-        const progress=step/stair.steps,angle=Math.PI/2-stair.yaw*Math.PI/180-progress*stair.turns*Math.PI*2;
-        return {x:stair.center.x+Math.cos(angle)*stair.radius*.375/.65,z:stair.center.z+Math.sin(angle)*stair.radius*.375/.65,y:stair.center.y+stair.rise*spiralStairRise(progress,stair.landingProfile),tolerance:.075};
+        const r=stair.radius, lane=r/2+(stair.flightGap ?? 0)/2, landing=Math.min(.7,r*.5), apron=Math.min(.15,r*.1);
+        const shift=stair.flightShift ?? 0;
+        const points=[[-lane,r+shift,0],[-lane,-r+landing+shift,stair.rise/2],
+          [-lane,-r+(landing+shift)*.7,stair.rise/2],[lane,-r+(landing+shift)*.7,stair.rise/2],
+          [lane,-r+landing+shift,stair.rise/2],[lane,r-apron+shift,stair.rise],[lane,r+shift,stair.rise]];
+        const boundaries=[0,9,11,13,15,22,24];
+        let segment=boundaries.findIndex((end,index)=>index>0 && step<=end)-1;
+        segment=Math.max(0,segment);
+        const progress=(step-boundaries[segment])/(boundaries[segment+1]-boundaries[segment]);
+        const a=points[segment],b=points[segment+1],lx=a[0]+(b[0]-a[0])*progress,lz=a[1]+(b[1]-a[1])*progress;
+        const angle=stair.yaw*Math.PI/180;
+        const x=stair.center.x+lx*Math.cos(angle)+lz*Math.sin(angle),z=stair.center.z-lx*Math.sin(angle)+lz*Math.cos(angle);
+        const predicted=stair.center.y+a[2]+(b[2]-a[2])*progress;
+        const y=castleStraightStairHeight(stair,x,z,predicted) ?? predicted;
+        return {x,z,y,tolerance:.075};
       };
       const verifyFlight=async(stair,ascending)=>{
         for(let step=ascending?1:stair.steps-1;ascending?step<=stair.steps:step>=1;step+=ascending?1:-1){
           const target=tread(stair,step);
           await walkTo(window,target);
           expect(window.gameMovementTest.state().position.y,'stair '+stair.id+' step '+step).to.be.closeTo(target.y,.45);
+          if (step === 4 || step === 18) {
+            const angle=stair.yaw*Math.PI/180;
+            const dx=target.x-stair.center.x,dz=target.z-stair.center.z;
+            const lx=dx*Math.cos(angle)-dz*Math.sin(angle),lz=dx*Math.sin(angle)+dz*Math.cos(angle);
+            const surface=castleStraightStairSurfaces(stair).find(s=>s.high>s.low && lx>=s.minX && lx<=s.maxX && lz>=s.minZ && lz<=s.maxZ);
+            const count=castleStraightStairStepCount(surface),run=surface.maxZ-surface.minZ;
+            const progress=surface.reverse ? (surface.maxZ-lz)/run : (lz-surface.minZ)/run;
+            const index=Math.min(count-1,Math.floor(progress*count));
+            const centerZ=surface.reverse ? surface.maxZ-run*(index+.5)/count : surface.minZ+run*(index+.5)/count;
+            await walkTo(window,{x:stair.center.x+lx*Math.cos(angle)+centerZ*Math.sin(angle),z:stair.center.z-lx*Math.sin(angle)+centerZ*Math.cos(angle),tolerance:.01});
+            window.gameMovementTest.move(0,0);
+            await new Promise(resolve=>window.setTimeout(resolve,500));
+            const resting=window.gameMovementTest.state().position;
+            await new Promise(resolve=>window.setTimeout(resolve,1500));
+            const stopped=window.gameMovementTest.state().position;
+            expect(Math.hypot(stopped.x-resting.x,stopped.z-resting.z),'idle stair drift').to.be.lessThan(.04);
+            expect(stopped.y,'idle stair height').to.be.closeTo(resting.y,.04);
+          }
         }
       };
       await walkTo(window,{x:groundDoor.x+1.1,z:groundDoor.z});
       await walkTo(window,{x:groundDoor.x-.7,z:groundDoor.z});
-      const entryX=upper.center.x+1.4, entryZ=upper.center.z;
+      const entryX=upper.center.x+upper.radius+.55, entryZ=upper.center.z;
       await walkTo(window,{x:entryX,z:entryZ});
       await walkTo(window,tread(upper,0));
       await verifyFlight(upper,true);
+      await walkTo(window,{x:entryX,z:tread(upper,24).z});
       await walkTo(window,{x:entryX,z:entryZ});
       await walkTo(window,{x:upperDoor.x-.7,z:upperDoor.z});
       await walkTo(window,{x:upperDoor.x+1.1,z:upperDoor.z});
       expect(window.gameMovementTest.state().position.y).to.be.closeTo(upperDoor.y,.2);
       await walkTo(window,{x:upperDoor.x-.7,z:upperDoor.z});
       await walkTo(window,{x:entryX,z:entryZ});
+      await walkTo(window,{x:entryX,z:tread(upper,24).z});
       await verifyFlight(upper,false);
+      await walkTo(window,{x:entryX,z:entryZ});
       await verifyFlight(lower,false);
       const basementDoor=plan.metadata.runtime.roomDoors.find(d=>d.roomId==='basement-stair-room');
-      await walkTo(window,{x:entryX,z:entryZ});
-      await walkTo(window,{x:basementDoor.x-.7,z:basementDoor.z});
-      await walkTo(window,{x:basementDoor.x+1.1,z:basementDoor.z});
+      await walkTo(window,tread(lower,0));
+      await walkTo(window,{x:basementDoor.x-.7,z:tread(lower,0).z,tolerance:.025});
+      await walkTo(window,{x:basementDoor.x-.7,z:basementDoor.z,tolerance:.01});
+      await walkTo(window,{x:basementDoor.x+1.1,z:basementDoor.z,tolerance:.025});
       const kitchen=plan.metadata.runtime.roomDoors.find(d=>d.roomId==='kitchen');
       const serviceCorner=kitchen.z+1.5;
       await walkTo(window,{x:basementDoor.x+1.1,z:serviceCorner,tolerance:.025});
@@ -114,10 +151,10 @@ describe('Compact authored castle traversal', () => {
       const {origin,groundDoor,basementDoor,kitchen,lower,entryX,entryZ,serviceCorner,corridorX,tread,verifyFlight}=returnRoute;
       await walkTo(window,{x:kitchen.x-1.1,z:kitchen.z+1.175,tolerance:.025});
       await walkTo(window,{x:basementDoor.x+1.1,z:serviceCorner,tolerance:.025});
-      await walkTo(window,{x:basementDoor.x+1.1,z:basementDoor.z});
-      await walkTo(window,{x:basementDoor.x-.7,z:basementDoor.z});
+      await walkTo(window,{x:basementDoor.x+1.1,z:basementDoor.z,tolerance:.025});
+      await walkTo(window,{x:basementDoor.x-.7,z:basementDoor.z,tolerance:.01});
       expect(window.gameMovementTest.state().position.y).to.be.closeTo(basementDoor.y,.2);
-      await walkTo(window,{x:entryX,z:entryZ});
+      await walkTo(window,{x:basementDoor.x-.7,z:tread(lower,0).z,tolerance:.025});
       await walkTo(window,tread(lower,0));
       await verifyFlight(lower,true);
       await walkTo(window,{x:entryX,z:entryZ});
@@ -153,24 +190,3 @@ describe('Compact authored castle traversal', () => {
     }
   });
 });
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

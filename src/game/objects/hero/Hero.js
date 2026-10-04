@@ -490,6 +490,10 @@ export class Hero {
    */
   #partCollidersSuspended = false;
   /**
+   * @type {boolean}
+   */
+  #capsuleSupportOnly = false;
+  /**
    *
     * @type {number}
    */
@@ -2130,7 +2134,7 @@ export class Hero {
       desired.z,
       acceleration * deltaTime,
     );
-    if (this.#partCollidersSuspended) {
+    if (this.#partCollidersSuspended && !this.#capsuleSupportOnly) {
       this.#velocity.x = 0;
       this.#velocity.z = 0;
       this.#velocity.y = Math.min(
@@ -2330,12 +2334,14 @@ export class Hero {
     if (movementLength <= 0.000001) {
       return false;
     }
+    // Use capsule clearance on stairs, where animated limb colliders are suspended.
+    const stepProbeOffset = this.#capsuleSupportOnly ? MOVEMENT_FORWARD_COLLISION_OFFSET : HERO_RADIUS;
     const probeX =
       nextX +
-      (movementX / movementLength) * MOVEMENT_FORWARD_COLLISION_OFFSET;
+      (movementX / movementLength) * stepProbeOffset;
     const probeZ =
       nextZ +
-      (movementZ / movementLength) * MOVEMENT_FORWARD_COLLISION_OFFSET;
+      (movementZ / movementLength) * stepProbeOffset;
     // Ammo's dynamic capsule has no configurable step offset. Apply a bounded
     // lift only when the support ahead is within a normal walking step.
     const physicsHeight = this.#physics.surfaceAt(
@@ -2691,6 +2697,32 @@ export class Hero {
    * @param {number} previousY
    */
   #updateAirborneColliderRecovery(deltaTime, previousY) {
+    const previousCapsuleSupport = this.#capsuleSupportOnly;
+    const support = this.#physics.surfaceAt(this.#position.x, this.#position.z, this.#position.y + STEP_CLEARANCE, this.#position.y - STEP_CLEARANCE - 0.15);
+    let supportOwner = support?.entity;
+    let supportZone = false;
+    while (supportOwner) {
+      if (supportOwner.tags?.has("capsule-support-zone")) { supportZone = true; break; }
+      supportOwner = supportOwner.parent;
+    }
+    let stairSupport = support?.entity?.tags?.has("capsule-support");
+    if (!stairSupport && supportZone) {
+      for (const [dx, dz] of [[HERO_RADIUS, 0], [-HERO_RADIUS, 0], [0, HERO_RADIUS], [0, -HERO_RADIUS]]) {
+        const adjacent = this.#physics.surfaceAt(this.#position.x + dx, this.#position.z + dz,
+          this.#position.y + STEP_CLEARANCE, this.#position.y - STEP_CLEARANCE - 0.15);
+        if (adjacent?.entity?.tags?.has("capsule-support")) { stairSupport = true; break; }
+      }
+    }
+    this.#capsuleSupportOnly = Boolean(stairSupport ||
+      (previousCapsuleSupport && support && Math.abs(this.#position.y - support.height) > 0.08));
+    // Animated arms extend beyond the walking capsule and can snag nearby
+    // risers. Stair support remains entirely simulated by the Ammo capsule.
+    if (this.#capsuleSupportOnly) {
+      this.#airborneStallElapsed = 0;
+      this.#setHeroPartCollidersEnabled(false);
+      return;
+    }
+    if (previousCapsuleSupport) { this.#setHeroPartCollidersEnabled(true); }
     if (this.#grounded || this.#physics.scripted) {
       this.#airborneStallElapsed = 0;
       this.#setHeroPartCollidersEnabled(true);

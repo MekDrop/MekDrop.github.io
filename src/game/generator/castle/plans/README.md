@@ -22,8 +22,10 @@ its vertically aligned shaft is consistently named S1.
   (default). Blank opening arrays mean no openings.
 - `staircases` describes fixed shafts and connected levels. `roofs` records
   footprint, elevation and shape. `entrance` references an authored door and
-  bridge footprint. Optional stair `radius` controls the spiral independently
-  of the floor opening; `landingProfile` selects the slower lower turn.
+  bridge footprint. Optional stair `radius` controls the stair footprint independently
+  of the floor opening. Optional `flightGap` moves the flights outward, reserving
+  centre space for a castle-brick divider while widening the upper floor opening.
+  Flights use the exterior stone stair modules and materials.
 - A slot's `generator` is an existing room generator class name or null.
   Null preserves an unfurnished slot. Service/library mappings provide the
   currently available furniture; dedicated royal, barracks, armory, winch and
@@ -63,9 +65,10 @@ Schematic footprints scale; the metric demo only rotates around its entrance. Op
 stay fixed. Door widths have a 0.75-metre gameplay minimum, and the exterior gate
 matches the map's two-lane approach. Windows bypass inferred placement entirely.
 
-Every shaft builds the existing spiral stair module between its specified levels.
-The drawings' straight stair shapes and distinct roof profiles are approximated
-with the existing stair and pitched-roof models. Void areas remain unfloored.
+Each shaft connects its specified levels with two straight stone flights and a
+turning landing. Existing stone models form deep treads with flat Ammo collision
+tops, allowing the hero to rest between steps. Risers stay within the automatic
+step clearance, and open floor shafts provide headroom. Void areas remain unfloored.
 The public generator no longer dispatches to the legacy room-packing pipeline.
 A preview fixture is available at /en/map/test_castle-base-plans.
 
@@ -83,9 +86,9 @@ The ground-floor study was removed at the user’s request, extending the west
 vestibule. The main entrance was moved 1.75 metres left from the source position.
 Other room boundaries follow that sheet. Door hinge orientation keeps the open
 leaves out of the landing route. The stair-room west partition moves 1 metre and its south wall moves
-0.5 metres in the basement and 0.75 metres above ground to clear the full hero beside the spiral. The shaft moves south by 0.25 metres for its basement approach. The corner keep and its roof
+0.5 metres in the basement and 0.75 metres above ground to clear the full hero beside the staircase. The shaft moves south by 0.25 metres for its basement approach. The corner keep and its roof
 follow that adjustment; the outer 7 by 8 metre footprint stays fixed.
-The spiral and floor opening fit inside that room.
+The staircase and floor opening fit inside that room.
 Landing infill stays outside the walking lane to preserve headroom.
 Each flight faces the nearest door on its starting floor, rounded to the nearest
 cardinal direction. Compact flights make one full turn so their bottom entrance
@@ -104,3 +107,4 @@ The marked ground-floor room now contains the throne and royal furnishings. Audi
 The compact ground floor has a continuous structural slab beneath the room interiors and circulation seams. Terrain is excavated below its full quarter-metre thickness, preventing grass and earth strips from showing between floor sections. Stair openings remain cut from the slab.
 
 Generated maps reserve the selected plan's rotated metric footprint plus one tile on each side. The compact castle therefore uses a 10 by 9 tile reservation instead of the legacy 16 by 28 area; island clearance and plateau shaping follow that reservation.
+`flightShift` moves both straight flights toward their door in metres while keeping the back edge of the turning landing fixed. The compact plan uses 0.1 m, enlarging that platform by the same amount so the extended central divider retains a walking route.

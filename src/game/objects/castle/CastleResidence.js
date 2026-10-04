@@ -17,6 +17,9 @@ import stoneUrl from "../../models/castle/residential/stone-block.glb?url";
 import chairUrl from "../../models/castle/leisure/tea-chair.glb?url";
 import { CastleResidentialLayout } from "./CastleResidentialLayout.js";
 import { addGeneratedVoxelPhysics } from "../shared/GeneratedVoxelPhysics.js";
+import stairModuleUrl from "../../models/castle/stairs/castle-stair-module.glb?url";
+import masonryBlockUrl from "../../models/castle/residential/masonry-block.glb?url";
+import { castleStraightStairSurfaces, castleStraightStairStepCount } from "./CastleStraightStairs.js";
 
 // Floor support stays traversable within the hero's automatic step height.
 const FLOOR_STEP_CLEARANCE = 0.32;
@@ -52,6 +55,11 @@ export class CastleResidence {
    */
   #solids = [];
   /**
+   * Stair walls own Ammo bodies separately from the generated room solids.
+   * @type {Array<{x:number,y:number,z:number,width:number,height:number,depth:number}>}
+   */
+  #stairCameraSolids = [];
+  /**
    * @type {Array<import("playcanvas").Entity>}
    */
   #stairPhysicsGraphs = [];
@@ -63,12 +71,16 @@ export class CastleResidence {
    * @type {import("playcanvas").MeshInstance[]}
    */
   #stairSupportInstances = [];
+  /**
+   * @type {Map<string,import("playcanvas").StandardMaterial>}
+   */
+  #stairMaterials;
 
   /**
    * @returns {string[]}
    */
   static get modelUrls() {
-    return [...Object.values(MODEL_URLS), chestUrl, stairUrl, stoneUrl, lanternUrl, ...Bookshelf.modelUrls, floorUrl, rugUrl, crestUrl, buttressUrl, chimneyUrl];
+    return [...Object.values(MODEL_URLS), chestUrl, stairUrl, stairModuleUrl, masonryBlockUrl, stoneUrl, lanternUrl, ...Bookshelf.modelUrls, floorUrl, rugUrl, crestUrl, buttressUrl, chimneyUrl];
   }
 
   /**
@@ -76,9 +88,11 @@ export class CastleResidence {
    * @param {typeof import("playcanvas")} options.pc
    * @param {import("../../GameContracts.js").CastleBuildPlan} options.buildPlan
    * @param {import("../../models/GameModelLibrary.js").GameModelLibrary} options.modelLibrary
+   * @param {Map<string,import("playcanvas").StandardMaterial>} options.stairMaterials
    * @param {import("playcanvas").Texture|null} options.gardenTexture
    */
-  constructor({ pc, buildPlan, modelLibrary, gardenTexture = null }) {
+  constructor({ pc, buildPlan, modelLibrary, gardenTexture = null, stairMaterials = new Map() }) {
+    this.#stairMaterials = stairMaterials;
     this.#layout = new CastleResidentialLayout(buildPlan);
     this.#entity = new pc.Entity("Castle private rooms");
     const { origin, yaw } = this.#layout;
@@ -160,7 +174,9 @@ export class CastleResidence {
             panel.setLocalScale(maxX - minX, wood ? 1 : 0.25, maxZ - minZ);
             this.#entity.addChild(panel);
           }
-          if (wood) {
+          // Authored masonry already owns the slab, including its underside.
+          // A second backing shares its bottom face and flickers in first person.
+          if (wood && !plan.basePlanId) {
             const backing = models.instantiate(stoneUrl);
             backing.name = `Castle ${area.id} structural floor backing`;
             backing.setLocalPosition(x, y - 0.25, z);
@@ -247,7 +263,7 @@ export class CastleResidence {
    */
   blocksCameraAt(x, y, z, radius) {
     const local = this.#layout.toLocal(x, z);
-    return this.#solids.some(
+    return [...this.#solids, ...this.#stairCameraSolids].some(
       /**
        * @param {{x: number, y: number, z: number, width: number, height: number, depth: number, floorSupport?: boolean}} solid
        */
@@ -265,6 +281,7 @@ export class CastleResidence {
     for (const mesh of this.#stairProfileMeshes) mesh.destroy();
     this.#stairProfileMeshes = [];
     this.#solids = [];
+    this.#stairCameraSolids = [];
   }
 
   /**
@@ -275,6 +292,10 @@ export class CastleResidence {
    * @param {{minZ:number,maxZ:number}|null} shaft
    */
   #buildStair(pc, modelLibrary, definition, name, shaft = null) {
+    if (definition.straight) {
+      this.#buildStraightStair(pc, modelLibrary, definition);
+      return;
+    }
     const root = new pc.Entity(`${name} physics`);
     const stair = modelLibrary.instantiate(stairUrl);
     stair.name = name;
@@ -345,6 +366,179 @@ export class CastleResidence {
     root.addComponent("collision", { type: "mesh", model });
     root.addComponent("rigidbody", { type: "static", friction: 0.6, restitution: 0 });
     this.#stairPhysicsGraphs.push(collisionGraph);
+  }
+
+  /**
+   * Stone modules and flat Ammo tread tops share the same step dimensions.
+   * The hero can climb using its automatic step lift and rest on each tread.
+   * @param {typeof import("playcanvas")} pc
+   * @param {import("../../models/GameModelLibrary.js").GameModelLibrary} models
+   * @param {{center:{x:number,y:number,z:number},yaw:number,radius:number,rise:number,flightGap?:number}} stair
+   */
+  #buildStraightStair(pc, models, stair) {
+    const root = new pc.Entity("Castle straight staircase");
+    root.tags.add("capsule-support");
+    const local = this.#layout.toLocal(stair.center.x, stair.center.z);
+    root.setLocalPosition(local.x, stair.center.y - this.#layout.origin.y, local.z);
+    root.setLocalEulerAngles(0, stair.yaw - this.#layout.yaw, 0);
+    this.#entity.addChild(root);
+    const positions = [], indices = [];
+    for (const surface of castleStraightStairSurfaces(stair)) {
+      const run = surface.maxZ - surface.minZ;
+      const rise = surface.high - surface.low;
+      // Turning landings use the castle's quarter-metre masonry courses.
+      const steps = castleStraightStairStepCount(surface);
+      // The generated upper landing owns the flat exit's visible surface.
+      // Retain its flat collision support without drawing another tread layer.
+      const drawSurface = rise > 0 || surface.high < stair.rise;
+      for (let step = 0; drawSurface && step < steps; step++) {
+        const columns = Math.max(1, Math.round((surface.maxX - surface.minX) / 0.25));
+        const width = (surface.maxX - surface.minX) / columns;
+        const height = surface.low + rise * (step + 1) / steps;
+        const thickness = rise ? rise / steps : 0.25;
+        const z = surface.reverse ? surface.maxZ - run * (step + 0.5) / steps : surface.minZ + run * (step + 0.5) / steps;
+        for (let column = 0; column < columns; column++) {
+          // Preserve the GLB root pivot: the masonry block starts at Y=0,
+          // while the stair module is centred on Y=0.
+          const tread = new pc.Entity();
+          tread.addChild(models.instantiate(rise ? stairModuleUrl : masonryBlockUrl));
+          tread.name = rise ? "Castle straight stone tread" : "Castle stair turning landing";
+          tread.setLocalPosition(surface.minX + width * (column + 0.5), height - (rise ? thickness / 2 : thickness), z);
+          tread.setLocalScale(width, thickness, run / steps / (rise ? 2 : 1));
+          const material = this.#stairMaterials.get((step + column * 3) % 8 === 0 ? "castleStoneDark" : "castleStoneMid");
+          if (material) {
+            for (const render of tread.findComponents("render")) {
+              for (const instance of render.meshInstances) { instance.material = material; }
+            }
+          }
+          root.addChild(tread);
+        }
+      }
+      // Flat Ammo tread tops support an idle hero instead of a slippery ramp.
+      for (let step = 0; step < steps; step++) {
+        const front = surface.reverse ? surface.maxZ - run * (step + 1) / steps : surface.minZ + run * step / steps;
+        const rear = front + run / steps;
+        const height = surface.low + rise * (step + 1) / steps;
+        const offset = positions.length / 3;
+        positions.push(surface.minX, height, front, surface.minX, height, rear,
+          surface.maxX, height, rear, surface.maxX, height, front);
+        indices.push(offset, offset + 1, offset + 2, offset, offset + 2, offset + 3);
+        if (rise > 0) {
+          const edge = surface.reverse ? rear : front;
+          const bottom = surface.low + rise * step / steps;
+          const wall = positions.length / 3;
+          positions.push(surface.minX, bottom, edge, surface.minX, height, edge,
+            surface.maxX, height, edge, surface.maxX, bottom, edge);
+          indices.push(wall, wall + 1, wall + 2, wall, wall + 2, wall + 3,
+            wall + 2, wall + 1, wall, wall + 3, wall + 2, wall);
+        }
+      }
+    }
+    const mesh = new pc.Mesh(this.#entity.findComponents("render")[0].meshInstances[0].mesh.device);
+    mesh.setPositions(positions);
+    mesh.setIndices(indices);
+    mesh.update(pc.PRIMITIVE_TRIANGLES);
+    const graph = new pc.GraphNode("Castle straight stair support");
+    const model = new pc.Model();
+    model.graph = graph;
+    const material = root.findComponents("render")[0].meshInstances[0].material;
+    const support = new pc.MeshInstance(mesh, material, graph);
+    model.meshInstances = [support];
+    this.#stairSupportInstances.push(support);
+    this.#stairPhysicsGraphs.push(graph);
+    root.addComponent("collision", { type: "mesh", model });
+    root.addComponent("rigidbody", { type: "static", friction: 0.6, restitution: 0 });
+    this.#buildStairDivider(pc, models, root, stair);
+  }
+
+  /**
+   * Reuse the castle masonry kit, leaving the turning landing open
+   * so both flights remain connected around the divider.
+   * @param {typeof import("playcanvas")} pc
+   * @param {import("../../models/GameModelLibrary.js").GameModelLibrary} models
+   * @param {import("playcanvas").Entity} root
+   * @param {{radius:number,rise:number,flightGap?:number}} stair
+   */
+  #buildStairDivider(pc, models, root, stair) {
+    const flight = castleStraightStairSurfaces(stair)[0];
+    const minZ = flight.minZ;
+    const maxZ = flight.maxZ;
+    const length = maxZ - minZ;
+    if (length <= 0) { return; }
+    const topY = stair.center.y + stair.rise;
+    const local = this.#layout.toLocal(stair.center.x, stair.center.z);
+    const nextFlight = this.#layout.authoredStairs.some(/**
+     * @param {{center:{x:number,y:number,z:number}}} next
+     */ next =>
+      Math.abs(next.center.y - topY) < 0.001 &&
+      Math.hypot(next.center.x - stair.center.x, next.center.z - stair.center.z) < 0.001);
+    // Lower segments meet at floor height; the final segment ends at
+    // the same 75 cm guard height as the top-floor half wall.
+    const height = stair.rise + (nextFlight ? 0 : 0.75);
+    const divider = new pc.Entity("Castle stair brick divider");
+    divider.setLocalPosition(0, height / 2, (minZ + maxZ) / 2);
+    root.addChild(divider);
+    const courses = Math.max(1, Math.ceil(height / 0.25));
+    const courseHeight = height / courses;
+    const columns = Math.max(1, Math.ceil(length / 0.25));
+    const brickLength = length / columns;
+    for (let row = 0; row < courses; row++) {
+      for (let column = 0; column < columns; column++) {
+        const shade = (row + column * 3) % 8;
+        const material = this.#stairMaterials.get(shade === 0 || shade === 7 ? "castleStoneDark" : "castleStoneMid");
+        const brick = models.instantiateMerged(masonryBlockUrl, { material, linearVertexColors: true });
+        brick.setLocalPosition(0, -height / 2 + row * courseHeight,
+          -length / 2 + (column + 0.5) * brickLength);
+        brick.setLocalScale(0.25, courseHeight, brickLength);
+        divider.addChild(brick);
+      }
+    }
+    divider.addComponent("collision", {
+      type: "box", halfExtents: new pc.Vec3(0.125, height / 2, length / 2),
+    });
+    divider.addComponent("rigidbody", { type: "static", friction: 0.6, restitution: 0 });
+    const angle = (stair.yaw - this.#layout.yaw) * Math.PI / 180;
+    const sine = Math.round(Math.sin(angle)), cosine = Math.round(Math.cos(angle));
+    const middleZ = (minZ + maxZ) / 2;
+    this.#stairCameraSolids.push({
+      x: local.x + middleZ * sine, z: local.z + middleZ * cosine,
+      y: stair.center.y - this.#layout.origin.y + height / 2, height,
+      width: Math.abs(cosine) * 0.25 + Math.abs(sine) * length,
+      depth: Math.abs(sine) * 0.25 + Math.abs(cosine) * length,
+    });
+    if (!nextFlight) { this.#buildStairOpeningGuard(pc, models, root, stair, flight.minX); }
+  }
+
+  /**
+   * A plain terrace-height guard closes the upper floor's drop beside the
+   * divider. Intermediate floors stay open for the next ascending flight.
+   * @param {typeof import("playcanvas")} pc
+   * @param {import("../../models/GameModelLibrary.js").GameModelLibrary} models
+   * @param {import("playcanvas").Entity} root
+   * @param {{radius:number,rise:number}} stair
+   * @param {number} minX
+   */
+  #buildStairOpeningGuard(pc, models, root, stair, minX) {
+    const height = 0.75, maxX = -0.125, width = maxX - minX, depth = 0.125;
+    const guard = new pc.Entity("Castle stair opening half wall");
+    guard.setLocalPosition((minX + maxX) / 2, stair.rise + height / 2, stair.radius + (stair.flightShift ?? 0) - depth / 2);
+    root.addChild(guard);
+    const columns = Math.max(1, Math.ceil(width / 0.5));
+    const brickWidth = width / columns;
+    for (let row = 0; row < 3; row++) {
+      for (let column = 0; column < columns; column++) {
+        const brick = models.instantiateMerged(stoneUrl, {
+          material: this.#stairMaterials.get("castleStoneMid"), linearVertexColors: true,
+        });
+        brick.setLocalPosition(-width / 2 + brickWidth * (column + 0.5), -height / 2 + row * 0.25, 0);
+        brick.setLocalScale(brickWidth, 0.25, depth);
+        guard.addChild(brick);
+      }
+    }
+    guard.addComponent("collision", {
+      type: "box", halfExtents: new pc.Vec3(width / 2, height / 2, depth / 2),
+    });
+    guard.addComponent("rigidbody", { type: "static", friction: 0.6, restitution: 0 });
   }
 
   /**

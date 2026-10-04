@@ -275,6 +275,7 @@ export class CastleEntityBuilder {
     this.#carpetTexture = carpetTexture;
     this.#onRuntimeError = onRuntimeError;
     this.#entity = new pc.Entity("Castle");
+    this.#entity.tags.add("capsule-support-zone");
 
     try {
       this.#createStructureResources();
@@ -282,7 +283,7 @@ export class CastleEntityBuilder {
       this.#createStairs();
       this.#render();
       if (!buildPlan.layout.empty && buildPlan.metadata.runtime.residential) {
-        this.#residence = new CastleResidence({ pc, buildPlan, modelLibrary, gardenTexture });
+        this.#residence = new CastleResidence({ pc, buildPlan, modelLibrary, gardenTexture, stairMaterials: this.#materials });
         this.#entity.addChild(this.#residence.entity);
       }
       this.#createAudienceRoom();

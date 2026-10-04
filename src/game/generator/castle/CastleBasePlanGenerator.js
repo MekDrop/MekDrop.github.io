@@ -9,7 +9,7 @@ import { TowerRoomGenerator } from "./rooms/TowerRoomGenerator.js";
 /**
  * @typedef {{kind:string,side:string,offset:number,width:number,bottom:number,height:number,swing?:string}} AuthoredCastleOpening
  * @typedef {{id:string,label:string,kind:string,bounds:number[],generator:string|null,openings:AuthoredCastleOpening[]}} AuthoredCastleSpace
- * @typedef {{id:string,bounds:number[],from:number,to:number,landingProfile?:boolean,radius?:number}} AuthoredCastleStair
+ * @typedef {{id:string,bounds:number[],from:number,to:number,landingProfile?:boolean,radius?:number,flightGap?:number,flightShift?:number,landingLift?:number}} AuthoredCastleStair
  * @typedef {{id:string,bounds:number[],elevation:number,shape:string,height?:number}} AuthoredCastleRoof
  * @typedef {{id:string,bounds:number[],elevation:number,height:number}} AuthoredCastleBuilding
  * @typedef {{index:number,elevation:number,spaces:AuthoredCastleSpace[]}} AuthoredCastleFloor
@@ -168,7 +168,7 @@ export class CastleBasePlanGenerator {
        * @param {AuthoredCastleStair} stair
        */
       (stair) => ({ id: stair.id, ...this.#bounds(stair.bounds, scale),
-        from: stair.from, to: stair.to, landingProfile: stair.landingProfile, radius: stair.radius === undefined ? undefined : stair.radius * scale, bottomY: baseY + stair.from * plan.floorHeight, topY: baseY + stair.to * plan.floorHeight })),
+        from: stair.from, to: stair.to, landingProfile: stair.landingProfile, flightGap: (stair.flightGap ?? 0) * scale, flightShift: (stair.flightShift ?? 0) * scale, landingLift: (stair.landingLift ?? 0) * scale, radius: stair.radius === undefined ? undefined : stair.radius * scale, bottomY: baseY + stair.from * plan.floorHeight, topY: baseY + stair.to * plan.floorHeight })),
       roofs: plan.roofs.map(/**
        *
        * @param {AuthoredCastleRoof} roof

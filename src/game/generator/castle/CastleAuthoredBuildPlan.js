@@ -125,7 +125,41 @@ export class CastleAuthoredBuildPlan {
           return !best || distance < best.distance ? { door, dx, dz, distance } : best;
         }, null);
         const entryYaw = nearest ? Math.round(Math.atan2(nearest.dx, nearest.dz) * 180 / Math.PI / 90) * 90 : (x < 0 ? 180 : 0);
-        stairs.push({ id: `${shaft.id}:${level}`, shaft: bounds, center: world(x, z, floorY), radius,
+        const flightGap = shaft.flightGap ?? 0;
+        const flightShift = shaft.flightShift ?? 0;
+        const entryAngle = entryYaw * Math.PI / 180;
+        const cosine = Math.round(Math.cos(entryAngle)), sine = Math.round(Math.sin(entryAngle));
+        let flightMin = -Infinity, flightMax = Infinity, landingBack = -Infinity;
+        for (const room of placedRooms) {
+          if (!flightGap || (room.floorY !== floorY && room.floorY !== floorY + authored.floorHeight) ||
+              x < room.minX || x > room.maxX || z < room.minZ || z > room.maxZ) { continue; }
+          let roomMin = Infinity, roomMax = -Infinity, roomBack = Infinity;
+          for (const [rx, rz] of [[room.minX, room.minZ], [room.minX, room.maxZ], [room.maxX, room.minZ], [room.maxX, room.maxZ]]) {
+            const lateral = (rx - x) * cosine - (rz - z) * sine;
+            roomBack = Math.min(roomBack, (rx - x) * sine + (rz - z) * cosine);
+            roomMin = Math.min(roomMin, lateral);
+            roomMax = Math.max(roomMax, lateral);
+          }
+          // Recess tread ends half a masonry course into the wall to cover
+          // the imported stone edge bevels and the wall joints.
+          landingBack = Math.max(landingBack, roomBack - 0.01);
+          flightMin = Math.max(flightMin, roomMin - 0.125);
+          flightMax = Math.min(flightMax, roomMax + 0.125);
+        }
+        const flightBounds = Number.isFinite(flightMin) && Number.isFinite(flightMax)
+          ? { minX: flightMin, maxX: flightMax, inner: 0.12 } : undefined;
+        const min = flightBounds?.minX ?? -radius - flightGap / 2;
+        const max = flightBounds?.maxX ?? radius + flightGap / 2;
+        const stairBounds = { ...bounds,
+          minX: Math.min(bounds.minX, x + Math.min(min * cosine, max * cosine) - radius * Math.abs(sine) - 0.025),
+          maxX: Math.max(bounds.maxX, x + Math.max(min * cosine, max * cosine) + radius * Math.abs(sine) + 0.025),
+          minZ: Math.min(bounds.minZ, z + Math.min(-min * sine, -max * sine) - radius * Math.abs(cosine) - 0.025),
+          maxZ: Math.max(bounds.maxZ, z + Math.max(-min * sine, -max * sine) + radius * Math.abs(cosine) + 0.025) };
+        stairBounds.minX += Math.min(0, flightShift * sine);
+        stairBounds.maxX += Math.max(0, flightShift * sine);
+        stairBounds.minZ += Math.min(0, flightShift * cosine);
+        stairBounds.maxZ += Math.max(0, flightShift * cosine);
+        stairs.push({ landingLift: shaft.landingLift ?? 0, localCenter: { x, z }, flightShift, id: `${shaft.id}:${level}`, straight: true, flightGap, flightBounds, landingBack: Number.isFinite(landingBack) ? landingBack : undefined, shaft: stairBounds, center: world(x, z, floorY), radius,
           rise: authored.floorHeight, steps: 24, turns: shaft.landingProfile === false ? 1 : 1.5, landingProfile: shaft.landingProfile ?? true,
           entryDoorId: nearest?.door.roomId, exitDirection: 1, yaw: yaw + entryYaw });
       }
@@ -175,68 +209,47 @@ export class CastleAuthoredBuildPlan {
         residential.walkableAreas.push({ ...transform(building), id: "base-ceiling", floorY });
       }
     }
-    // Rotate each top-floor opening into the stair's frame; quarter turns retain exact brick rectangles.
+    // Keep both straight flights open; only the top approach owns a slab.
     for (const stair of stairs) {
-      const center = { x: (stair.shaft.minX + stair.shaft.maxX) / 2, z: (stair.shaft.minZ + stair.shaft.maxZ) / 2 };
-      const frame = stair.yaw - yaw + (stair.turns === 1 ? 0 : -180);
-      /**
-       * @param {{minX:number,maxX:number,minZ:number,maxZ:number,floorY?:number}} area
-       * @param {number} degrees
-       */
-      const rotate = (area, degrees) => {
-        const radians = degrees * Math.PI / 180, cosine = Math.round(Math.cos(radians)), sine = Math.round(Math.sin(radians));
-        const corners = [[area.minX, area.minZ], [area.maxX, area.minZ], [area.minX, area.maxZ], [area.maxX, area.maxZ]].map(/**
-         *
-         * @param {number[]} options
-         * @param {number} options."0"
-         * @param {number} options."1"
-         */
-        ([px, pz]) => ({
-          x: center.x + (px - center.x) * cosine + (pz - center.z) * sine,
-          z: center.z - (px - center.x) * sine + (pz - center.z) * cosine,
-        }));
-        return { ...area, minX: Math.min(...corners.map(/**
-         *
-         * @param {{x:number,z:number}} point
-         */
-        point => point.x)), maxX: Math.max(...corners.map(/**
-         *
-         * @param {{x:number,z:number}} point
-         */
-        point => point.x)),
-          minZ: Math.min(...corners.map(/**
-           *
-           * @param {{x:number,z:number}} point
-           */
-          point => point.z)), maxZ: Math.max(...corners.map(/**
-           *
-           * @param {{x:number,z:number}} point
-           */
-          point => point.z)) };
-      };
-      const top = residential.walkableAreas.filter(/**
-       *
-       * @param {{minX:number,maxX:number,minZ:number,maxZ:number,floorY?:number}} area
-       */
-      area => area.floorY === stair.center.y + stair.rise).map(/**
-       *
-       * @param {{minX:number,maxX:number,minZ:number,maxZ:number,floorY?:number}} area
-       */
-      area => rotate(area, -frame));
-      const source = { ...residential, authoredStairs: undefined, basePlanId: undefined,
-        walkableAreas: top, shaft: rotate(stair.shaft, -frame), stair: { ...center, radius: stair.radius },
-        origin: { ...origin, y: stair.center.y }, rooms: {}, doorways: [], stairExitDirection: 1,
-        stairExitClearance: stair.landingProfile ? undefined : stair.radius * 0.375 / 0.65 + 0.49 };
-      residential.walkableAreas = [...residential.walkableAreas.filter(/**
-       *
-       * @param {{minX:number,maxX:number,minZ:number,maxZ:number,floorY?:number}} area
-       */
-      area => area.floorY !== stair.center.y + stair.rise),
-        ...createCastlePlannedFloorAreas({ metadata: { runtime: { residential: source } } }).map(/**
-         *
-         * @param {{minX:number,maxX:number,minZ:number,maxZ:number,floorY?:number}} area
-         */
-        area => rotate(area, frame))];
+      const shaft = stair.shaft;
+      const topY = stair.center.y + stair.rise;
+      residential.walkableAreas = residential.walkableAreas.flatMap(/**
+       * @param {{minX:number,maxX:number,minZ:number,maxZ:number,floorY:number,id:string}} area
+       */ (area) => {
+        if (area.floorY !== topY) { return [area]; }
+        const left = Math.max(area.minX, shaft.minX), right = Math.min(area.maxX, shaft.maxX);
+        const front = Math.max(area.minZ, shaft.minZ), rear = Math.min(area.maxZ, shaft.maxZ);
+        if (right <= left || rear <= front) { return [area]; }
+        return [{ ...area, maxX: left }, { ...area, minX: right },
+          { ...area, minX: left, maxX: right, maxZ: front },
+          { ...area, minX: left, maxX: right, minZ: rear }]
+          .filter(/**
+           * @param {{minX:number,maxX:number,minZ:number,maxZ:number}} piece
+           */ piece => piece.maxX > piece.minX && piece.maxZ > piece.minZ);
+      });
+      const angle = (stair.yaw - yaw) * Math.PI / 180;
+      const cosine = Math.round(Math.cos(angle)), sine = Math.round(Math.sin(angle));
+      const cx = stair.localCenter.x, cz = stair.localCenter.z;
+      const r = stair.radius + (stair.flightShift ?? 0), landing = Math.min(0.15, r * 0.1);
+      const width = stair.radius + (stair.flightGap ?? 0) / 2;
+      const min = stair.flightBounds?.minX ?? -width, max = stair.flightBounds?.maxX ?? width;
+      const corners = [[min, r - landing], [max, r - landing], [min, r + 0.05], [max, r + 0.05]].map(/**
+       * @param {number[]} point
+       */ point => ({ x: cx + point[0] * cosine + point[1] * sine,
+        z: cz - point[0] * sine + point[1] * cosine }));
+      residential.walkableAreas.push({ id: stair.id + ':straightLanding', floorY: topY,
+        minX: Math.min(...corners.map(/**
+                                       * @param {{x:number,z:number}} point
+                                       */ point => point.x)),
+        maxX: Math.max(...corners.map(/**
+                                       * @param {{x:number,z:number}} point
+                                       */ point => point.x)),
+        minZ: Math.min(...corners.map(/**
+                                       * @param {{x:number,z:number}} point
+                                       */ point => point.z)),
+        maxZ: Math.max(...corners.map(/**
+                                       * @param {{x:number,z:number}} point
+                                       */ point => point.z)) });
     }
     // Thresholds on the lowest floor also need a single surface owner.
     residential.walkableAreas = createCastlePlannedFloorAreas({ metadata: { runtime: { residential: {

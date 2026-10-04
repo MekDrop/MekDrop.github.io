@@ -377,6 +377,9 @@
         2.75
       ],
       "radius": 1.35,
+      "flightGap": 0.5,
+      "flightShift": 0.1,
+      "landingLift": 0.3,
       "landingProfile": false,
       "from": -1,
       "to": 1
