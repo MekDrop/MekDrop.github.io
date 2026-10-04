@@ -32,7 +32,7 @@ export class TerrainBlockDefinitions {
     const record = (method, args) => {
       const top = args[0];
       const object = top.startsWith("grass:") ? "Grass" :
-        top === "earth" || top === "islandRock" || top.startsWith("earthSide:") ? "Earth" : null;
+        top === "earth" || top === "islandRock" || top.startsWith("earthSide:") || top.startsWith("surface:") ? "Earth" : null;
       if (!object) {
         commands.push({ method, args });
         return;

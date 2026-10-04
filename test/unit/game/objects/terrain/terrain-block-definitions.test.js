@@ -3,12 +3,26 @@ import { describe, it } from "node:test";
 import { TerrainBlockDefinitions } from "../../../../../src/game/objects/terrain/TerrainBlockDefinitions.js";
 import { MapGenerator } from "../../../../../src/game/generator/map/MapGenerator.js";
 import { GRASS_SURFACE_LIFT } from "../../../../../src/game/config/terrain.js";
+import { clipCastleTerrainRecord } from "../../../../../src/game/objects/castle/CastleGroundCuts.js";
+
 
 function map() {
   return { cols: 2, rows: 2, grid: [[1, 1], [1, 0]], heightmap: [[2, 1], [1, 0]], tileMeta: [[{}, {}], [{}, {}]], objects: [{ id: "authored", object: "Earth", position: { x: 0, y: 4.5, z: 0 } }] };
 }
 
 describe("terrain map-object integration", () => {
+  it("exposes path-topped earth to basement excavation", () => {
+    const subject = map();
+    subject.grid[0][0] = 2;
+    TerrainBlockDefinitions.populate(subject);
+    const surface = subject.objects.find(({ geometry }) => geometry?.args[0] === "surface:0:0:1");
+    assert.ok(surface, "the surface cube must be an excavatable terrain record");
+    assert.equal(surface.object, "Earth");
+    assert.equal(surface.geometry.args[1], "earthSide:0:0:1");
+    assert.ok(!subject.renderCommands.some(({ args }) => args[0] === "surface:0:0:1"));
+    assert.deepEqual(clipCastleTerrainRecord(surface, [{ minX: -1, maxX: 0, minY: 1, maxY: 2, minZ: -1, maxZ: 0 }]), []);
+  });
+
   it("materializes surface, fill, and underside blocks without changing authored definitions or grid", () => {
     const subject = map();
     const authored = subject.objects[0];
