@@ -2,6 +2,7 @@ import { CastleGenerationScheduler } from "./CastleGenerationScheduler.js";
 import { CastleBasePlanGenerator } from "./CastleBasePlanGenerator.js";
 import { CastleBasePlanInvalidError } from "../../errors/castle/index.js";
 import { createCastlePlannedFloorAreas } from "../../objects/castle/CastlePlannedFloorAreas.js";
+import { castleStraightStairSurfaces } from "../../objects/castle/CastleStraightStairs.js";
 
 /**
  * Converts a reference plan to the existing castle-owned rendering contract.
@@ -159,6 +160,19 @@ export class CastleAuthoredBuildPlan {
         stairBounds.maxX += Math.max(0, flightShift * sine);
         stairBounds.minZ += Math.min(0, flightShift * cosine);
         stairBounds.maxZ += Math.max(0, flightShift * cosine);
+        // The turning platform reaches farther back than the flight radius.
+        // Cut floors through that rear edge, including the masonry overlap,
+        // or each storey leaves a narrow shelf projecting from the shaft wall.
+        const turning = castleStraightStairSurfaces({ radius, rise: authored.floorHeight, flightGap,
+          flightShift, flightBounds, landingBack: Number.isFinite(landingBack) ? landingBack : undefined })[1];
+        for (const [across, along] of [[turning.minX, turning.minZ], [turning.maxX, turning.minZ]]) {
+          const rearX = x + across * cosine + along * sine;
+          const rearZ = z - across * sine + along * cosine;
+          stairBounds.minX = Math.min(stairBounds.minX, rearX);
+          stairBounds.maxX = Math.max(stairBounds.maxX, rearX);
+          stairBounds.minZ = Math.min(stairBounds.minZ, rearZ);
+          stairBounds.maxZ = Math.max(stairBounds.maxZ, rearZ);
+        }
         stairs.push({ landingLift: shaft.landingLift ?? 0, localCenter: { x, z }, flightShift, id: `${shaft.id}:${level}`, straight: true, flightGap, flightBounds, landingBack: Number.isFinite(landingBack) ? landingBack : undefined, shaft: stairBounds, center: world(x, z, floorY), radius,
           rise: authored.floorHeight, steps: 24, turns: shaft.landingProfile === false ? 1 : 1.5, landingProfile: shaft.landingProfile ?? true,
           entryDoorId: nearest?.door.roomId, exitDirection: 1, yaw: yaw + entryYaw });
