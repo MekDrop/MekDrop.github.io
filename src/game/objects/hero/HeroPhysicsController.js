@@ -6,6 +6,7 @@ const GROUND_NORMAL_MINIMUM = 0.35;
 const SUPPORT_NORMAL_MINIMUM = 0.65;
 const SUPPORT_CONTACT_HEIGHT = 0.3;
 const HERO_SURFACE_IGNORE_TAG = "hero-surface-ignore";
+const CAMERA_WALL_CLEARANCE = 0.04;
 
 /**
  * Owns the hero rigid body and all reads/writes to PlayCanvas physics.
@@ -26,6 +27,10 @@ export class HeroPhysicsController {
     * @type {import("playcanvas").Entity}
    */
   #entity;
+  /**
+   * @type {number}
+   */
+  #height;
   /**
    *
     * @type {typeof import("playcanvas")}
@@ -70,6 +75,7 @@ export class HeroPhysicsController {
     this.#pc = pc;
     this.#app = app;
     this.#entity = entity;
+    this.#height = height;
     this.#gravity = gravity;
     const system = app.systems.rigidbody;
     system.fixedTimeStep = fixedTimeStep;
@@ -121,6 +127,40 @@ export class HeroPhysicsController {
     return velocity
       ? { x: velocity.x, y: velocity.y, z: velocity.z }
       : { x: 0, y: 0, z: 0 };
+  }
+
+  /**
+   * Keep the animated eyes on the body's side of walls and stair ceilings.
+   * @param {{x:number,y:number,z:number}} anchor
+   * @returns {{x:number,y:number,z:number}}
+   */
+  cameraPosition(anchor) {
+    const body = this.#entity.getPosition();
+    const start = new this.#pc.Vec3(body.x, body.y + this.#height / 2, body.z);
+    const dx = anchor.x - start.x, dy = anchor.y - start.y, dz = anchor.z - start.z;
+    const distance = Math.hypot(dx, dy, dz);
+    if (distance < 0.000001) { return { ...anchor }; }
+    // Probe past the eyes so the near plane also stays clear of a nearby face.
+    const scale = (distance + CAMERA_WALL_CLEARANCE) / distance;
+    const end = new this.#pc.Vec3(start.x + dx * scale, start.y + dy * scale, start.z + dz * scale);
+    const hits = this.#app.systems.rigidbody.raycastAll(start, end, {
+      sort: true,
+      /**
+       * @param {import("playcanvas").Entity} entity
+       */
+      filterCallback: (entity) => {
+        for (let node = entity; node; node = node.parent) {
+          if (node === this.#entity) { return false; }
+        }
+        return true;
+      },
+    });
+    const hit = hits[0];
+    if (!hit) { return { ...anchor }; }
+    const travel = Math.max(0, Math.min(distance,
+      Math.hypot(hit.point.x - start.x, hit.point.y - start.y, hit.point.z - start.z) - CAMERA_WALL_CLEARANCE));
+    const fraction = travel / distance;
+    return { x: start.x + dx * fraction, y: start.y + dy * fraction, z: start.z + dz * fraction };
   }
 
   set gravity(value) {

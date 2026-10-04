@@ -1504,7 +1504,7 @@ export class Hero {
 
   /**
    *
-    * @returns {boolean}
+    * @returns {{position:{x:number,y:number,z:number},direction:{x:number,y:number,z:number}}}
    */
   get firstPersonCameraPose() {
     const direction = this.facingDirection;
@@ -1523,11 +1523,7 @@ export class Hero {
             z: this.#position.z,
           });
     return {
-      position: {
-        x: anchor.x,
-        y: anchor.y,
-        z: anchor.z,
-      },
+      position: this.#physics.cameraPosition(anchor),
       direction: { x: direction.x, y: 0, z: direction.z },
     };
   }

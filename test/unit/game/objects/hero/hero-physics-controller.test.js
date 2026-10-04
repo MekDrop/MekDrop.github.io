@@ -94,6 +94,10 @@ class FakeEntity {
     return this.position;
   }
 
+  getPosition() {
+    return this.position;
+  }
+
   setLocalPosition(x, y, z) {
     this.position = new FakeVec3(x, y, z);
   }
@@ -131,6 +135,45 @@ function createFixture({ maxSubSteps = 4, fixedTimeStep } = {}) {
 }
 
 describe("HeroPhysicsController", () => {
+  it("retains animated eye motion when the view is clear", () => {
+    const { controller, entity, raycasts } = createFixture();
+    const anchor = { x: 2.15, y: 4.2, z: 4.1 };
+    assert.deepEqual(controller.cameraPosition(anchor), anchor);
+    const { start, options } = raycasts[0];
+    assert.deepEqual(start, new FakeVec3(2, 3 + 1.44 / 2, 4));
+    assert.equal(options.sort, true);
+    assert.equal(options.filterCallback(entity), false);
+    assert.equal(options.filterCallback({ parent: { parent: entity } }), false);
+    assert.equal(options.filterCallback({ parent: null }), true);
+    controller.destroy();
+  });
+
+  it("pulls eyes back before a stair wall or low ceiling in either travel direction", () => {
+    for (const direction of [{ x: 1, y: 0, z: 0 }, { x: 0, y: 0, z: -1 }, { x: 0, y: 1, z: 0 }]) {
+      const { app, controller } = createFixture();
+      const start = { x: 2, y: 3.72, z: 4 };
+      const anchor = { x: start.x + direction.x * 0.3, y: start.y + direction.y * 0.3, z: start.z + direction.z * 0.3 };
+      app.systems.rigidbody.raycastAll = () => [{ point: {
+        x: start.x + direction.x * 0.2, y: start.y + direction.y * 0.2, z: start.z + direction.z * 0.2,
+      } }];
+      const camera = controller.cameraPosition(anchor);
+      const travel = Math.hypot(camera.x - start.x, camera.y - start.y, camera.z - start.z);
+      assert.ok(Math.abs(travel - 0.16) < 1e-9);
+      controller.destroy();
+    }
+  });
+
+  it("keeps the near plane clear even when the eyes have not crossed a wall", () => {
+    const { app, controller } = createFixture();
+    app.systems.rigidbody.raycastAll = (start, end) => {
+      assert.ok(end.x > 2.31);
+      return [{ point: { x: 2.31, y: 3.72, z: 4 } }];
+    };
+    const camera = controller.cameraPosition({ x: 2.3, y: 3.72, z: 4 });
+    assert.ok(Math.abs(camera.x - 2.27) < 1e-9);
+    controller.destroy();
+  });
+
   it("creates a compound body ready for fitted animated part colliders", () => {
     const { app, controller, entity } = createFixture();
 
