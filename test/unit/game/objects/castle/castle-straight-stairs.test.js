@@ -1,5 +1,7 @@
 import assert from "node:assert/strict";
 import { it } from "node:test";
+import { readFileSync } from "node:fs";
+import * as pc from "playcanvas";
 import { castleStraightStairHeight, castleStraightStairSurfaces, castleStraightStairStepCount } from "../../../../../src/game/objects/castle/CastleStraightStairs.js";
 
 it("provides deep, level tread centres within the automatic step clearance", () => {
@@ -69,4 +71,35 @@ it("aligns the raised landing with both adjoining tread tops", () => {
   const firstOutgoing = outgoing.low + (outgoing.high - outgoing.low) / castleStraightStairStepCount(outgoing);
   assert.equal(firstOutgoing, landing.high);
   assert.ok(incoming.high / castleStraightStairStepCount(incoming) <= 0.32);
+});
+
+it("separates turning-landing faces from shaft masonry without shrinking walking support", () => {
+  const source = readFileSync(new URL("../../../../../src/game/objects/castle/CastleResidence.js", import.meta.url), "utf8");
+  const start = source.indexOf("  #buildStraightStair(pc, models, stair)");
+  const end = source.indexOf("    const mesh =", start);
+  const method = source.slice(start, end).replace("#buildStraightStair", "build").replaceAll("this.#", "this.");
+  const Builder = new Function("castleStraightStairSurfaces", "castleStraightStairStepCount", "stairModuleUrl", "masonryBlockUrl",
+    `return class { ${method} return positions; } };`)(castleStraightStairSurfaces, castleStraightStairStepCount, "tread", "landing");
+  const builder = new Builder();
+  builder.entity = new pc.Entity();
+  builder.layout = { origin: { y: 0 }, yaw: 0, toLocal: (x, z) => ({ x, z }) };
+  builder.stairMaterials = new Map();
+  const stair = { center: { x: 0, y: 0, z: 0 }, yaw: 0, radius: 1.35, rise: 3, landingLift: 0.3, flightGap: 0.5 };
+  const positions = builder.build(pc, { instantiate: () => new pc.Entity() }, stair);
+  const landing = castleStraightStairSurfaces(stair).find(surface => surface.low === surface.high && surface.high < stair.rise);
+  const blocks = builder.entity.children[0].children.filter(entity => entity.name === "Castle stair turning landing");
+  assert.ok(blocks.length > 0);
+  for (const block of blocks) {
+    const center = block.getLocalPosition(), size = block.getLocalScale();
+    assert.ok(center.x - size.x / 2 >= landing.minX + 0.003);
+    assert.ok(center.x + size.x / 2 <= landing.maxX - 0.003);
+    assert.ok(center.z - size.z / 2 >= landing.minZ + 0.003);
+    assert.ok(center.z + size.z / 2 <= landing.maxZ - 0.003);
+    assert.ok(Math.abs(center.y + size.y - landing.high) < 1e-6);
+  }
+  for (const x of [landing.minX, landing.maxX]) {
+    for (const z of [landing.minZ, landing.maxZ]) {
+      assert.ok(positions.some((value, index) => index % 3 === 0 && value === x && positions[index + 1] === landing.high && positions[index + 2] === z), "collision retains the original landing corners");
+    }
+  }
 });

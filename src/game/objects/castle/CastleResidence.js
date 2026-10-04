@@ -391,20 +391,24 @@ export class CastleResidence {
       // The generated upper landing owns the flat exit's visible surface.
       // Retain its flat collision support without drawing another tread layer.
       const drawSurface = rise > 0 || surface.high < stair.rise;
+      // Turning landings meet authored shaft masonry on the same vertical plane.
+      // Recess only their visible perimeter; the full surface still owns support.
+      const edgeClearance = rise > 0 ? 0 : 0.004;
+      const visualRun = run - edgeClearance * 2;
       for (let step = 0; drawSurface && step < steps; step++) {
         const columns = Math.max(1, Math.round((surface.maxX - surface.minX) / 0.25));
-        const width = (surface.maxX - surface.minX) / columns;
+        const width = (surface.maxX - surface.minX - edgeClearance * 2) / columns;
         const height = surface.low + rise * (step + 1) / steps;
         const thickness = rise ? rise / steps : 0.25;
-        const z = surface.reverse ? surface.maxZ - run * (step + 0.5) / steps : surface.minZ + run * (step + 0.5) / steps;
+        const z = surface.reverse ? surface.maxZ - edgeClearance - visualRun * (step + 0.5) / steps : surface.minZ + edgeClearance + visualRun * (step + 0.5) / steps;
         for (let column = 0; column < columns; column++) {
           // Preserve the GLB root pivot: the masonry block starts at Y=0,
           // while the stair module is centred on Y=0.
           const tread = new pc.Entity();
           tread.addChild(models.instantiate(rise ? stairModuleUrl : masonryBlockUrl));
           tread.name = rise ? "Castle straight stone tread" : "Castle stair turning landing";
-          tread.setLocalPosition(surface.minX + width * (column + 0.5), height - (rise ? thickness / 2 : thickness), z);
-          tread.setLocalScale(width, thickness, run / steps / (rise ? 2 : 1));
+          tread.setLocalPosition(surface.minX + edgeClearance + width * (column + 0.5), height - (rise ? thickness / 2 : thickness), z);
+          tread.setLocalScale(width, thickness, visualRun / steps / (rise ? 2 : 1));
           const material = this.#stairMaterials.get((step + column * 3) % 8 === 0 ? "castleStoneDark" : "castleStoneMid");
           if (material) {
             for (const render of tread.findComponents("render")) {
