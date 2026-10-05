@@ -1,6 +1,6 @@
 import lanternModelUrl from "../../models/castle/residential/wall-lantern.glb?url";
 import carpetModelUrl from "../../models/castle/residential/carpet-panel.glb?url";
-import floorModelUrl from "../../models/castle/residential/floor-panel.glb?url";
+import { WoodenFloor } from "../wooden-floor/WoodenFloor.js";
 import authoredModelUrl from "../../models/castle/residential/stone-block.glb?url";
 import { CastleThrone } from "./CastleThrone.js";
 import { CastleFire } from "./CastleFire.js";
@@ -43,7 +43,7 @@ export class CastleAudienceRoom {
     * @returns {Array<string>}
    */
   static get modelUrls() {
-    return [CastleThrone.modelUrl, authoredModelUrl, floorModelUrl, carpetModelUrl, lanternModelUrl, ...CastleFire.modelUrls];
+    return [CastleThrone.modelUrl, authoredModelUrl, ...WoodenFloor.modelUrls, carpetModelUrl, lanternModelUrl, ...CastleFire.modelUrls];
   }
 
   /**
@@ -914,7 +914,7 @@ export class CastleAudienceRoom {
     const entity = new this.#pc.Entity(name);
     const floor = name.toLowerCase().includes("floor");
     const carpet = materialName === "carpet";
-    const model = this.#modelLibrary.instantiate(carpet ? carpetModelUrl : floor ? floorModelUrl : authoredModelUrl);
+    const model = floor && !carpet ? WoodenFloor.createPanel(this.#modelLibrary) : this.#modelLibrary.instantiate(carpet ? carpetModelUrl : authoredModelUrl);
     const authoredHeight = floor || carpet ? 0.06 : 1;
     model.setLocalScale(1, 1 / authoredHeight, 1);
     model.setLocalPosition(0, -0.5, 0);

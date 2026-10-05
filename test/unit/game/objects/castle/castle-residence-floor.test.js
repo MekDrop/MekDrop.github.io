@@ -11,6 +11,7 @@ const method = source.slice(source.indexOf("  #furnishRooms("), source.indexOf("
 const Harness = new Function(`
 const bookcaseUrl = "books", mapUrl = "map", lanternUrl = "lantern", crestUrl = "crest",
   floorUrl = "floor", rugUrl = "rug";
+const WoodenFloor = { createPanel: (models) => models.instantiate(floorUrl) };
 const findCastleMapMount = () => null;
 const Bookshelf = { name: "Bookshelf", addVisual: () => ({}) };
 ${source.slice(source.indexOf("function subtractFloorArea"))}

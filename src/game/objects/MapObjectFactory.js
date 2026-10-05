@@ -1,3 +1,4 @@
+import { WoodenFloor } from "./wooden-floor/WoodenFloor.js";
 import { Flag } from "./flag/Flag.js";
 import { Painting } from "./painting/Painting.js";
 import { Earth } from "./terrain/Earth.js";
@@ -24,6 +25,7 @@ import { MapVirtualItem } from "../debug/MapVirtualItem.js";
 
 const OBJECT_CLASSES = new Map([
   [Flag.name, Flag],
+  [WoodenFloor.name, WoodenFloor],
   [Bookshelf.name, Bookshelf],
   [Painting.name, Painting],
   [Window.name, Window],

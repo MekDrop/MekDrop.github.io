@@ -11,6 +11,7 @@ const end = source.indexOf("\n  /**", start);
 // Exercise the real construction method without a GPU or model loader.
 const FloorBuilder = new Function("floorUrl", "stoneUrl", "Bookshelf", `
 ${source.slice(source.indexOf("function subtractFloorArea("))}
+const WoodenFloor = { createPanel: (models) => models.instantiate(floorUrl) };
 return class {
   #layout; #entity = { children: [], addChild(child) { this.children.push(child); } }; #solids = [];
   constructor(layout) { this.#layout = layout; }

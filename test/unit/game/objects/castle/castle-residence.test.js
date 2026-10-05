@@ -171,7 +171,8 @@ it("lets a slightly lower actor cross the real castle threshold without granting
   const residenceSource = readFileSync(new URL(`${path}CastleResidence.js`, import.meta.url), "utf8")
     .replace(/^import (\w+) from "[^\"]+";\r?\n/gm, 'const $1 = "$1";\n')
     .replace(/^import[^\n]+\r?\n/gm, "");
-  const Residence = new Function("CastleResidentialLayout", "addGeneratedVoxelPhysics", `${residenceSource.replace("export class", "class").replace("export function", "function")}\nreturn CastleResidence;`)(CastleResidentialLayout, () => {});
+  const Residence = new Function("CastleResidentialLayout", "addGeneratedVoxelPhysics", `const WoodenFloor = { modelUrls: ["floor"], createPanel: (models) => models.instantiate("floor") };
+${residenceSource.replace("export class", "class").replace("export function", "function")}\nreturn CastleResidence;`)(CastleResidentialLayout, () => {});
   class Entity {
     addChild() {}
     setLocalPosition() {}
@@ -266,6 +267,7 @@ it("connects the final spiral edge to a rendered and physical upper landing", ()
   const end = source.indexOf("  #buildBasement(", start);
   const method = source.slice(start, end).replace("#addUpperFloorSupport", "addUpperFloorSupport").replaceAll("this.#", "this.");
   const Harness = new Function("stoneUrl", "floorUrl", `${source.slice(source.indexOf("function subtractFloorArea"))}
+const WoodenFloor = { createPanel: (models) => models.instantiate(floorUrl) };
 return class { ${method} };`)("stone", "floor");
   const fixture = JSON.parse(readFileSync(new URL("../../../../../src/game/maps/tests/royal-castles.json", import.meta.url), "utf8"));
   for (const castle of fixture.objects.filter((object) => object.object === "Castle")) {

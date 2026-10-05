@@ -4,7 +4,7 @@ import chimneyUrl from "../../models/castle/residential/chimney.glb?url";
 import crestUrl from "../../models/castle/residential/crown-crest.glb?url";
 import lanternUrl from "../../models/castle/residential/wall-lantern.glb?url";
 import { Bookshelf } from "../bookshelf/Bookshelf.js";
-import floorUrl from "../../models/castle/residential/floor-panel.glb?url";
+import { WoodenFloor } from "../wooden-floor/WoodenFloor.js";
 import rugUrl from "../../models/castle/residential/rug.glb?url";
 import royalBedUrl from "../../models/castle/residential/royal-bed.glb?url";
 import servantBedUrl from "../../models/castle/residential/servant-bed.glb?url";
@@ -80,7 +80,7 @@ export class CastleResidence {
    * @returns {string[]}
    */
   static get modelUrls() {
-    return [...Object.values(MODEL_URLS), chestUrl, stairUrl, stairModuleUrl, masonryBlockUrl, stoneUrl, lanternUrl, ...Bookshelf.modelUrls, floorUrl, rugUrl, crestUrl, buttressUrl, chimneyUrl];
+    return [...Object.values(MODEL_URLS), chestUrl, stairUrl, stairModuleUrl, masonryBlockUrl, stoneUrl, lanternUrl, ...Bookshelf.modelUrls, ...WoodenFloor.modelUrls, rugUrl, crestUrl, buttressUrl, chimneyUrl];
   }
 
   /**
@@ -163,7 +163,7 @@ export class CastleResidence {
           // Keep their support record without adding another visible slab.
           const threshold = area.id.endsWith("Threshold");
           const wood = timber && !threshold;
-          const panel = models.instantiate(wood ? floorUrl : stoneUrl);
+          const panel = wood ? WoodenFloor.createPanel(models) : models.instantiate(stoneUrl);
           const x = (minX + maxX) / 2;
           const z = (minZ + maxZ) / 2;
           const y = area.floorY - plan.origin.y;
@@ -615,8 +615,10 @@ export class CastleResidence {
         });
         for (const [minX, maxX, minZ, maxZ] of pieces) {
           if (maxX <= minX || maxZ <= minZ) continue;
-          const panel = place(floorUrl, "Bedroom oak parquet panel",
-            (minX + maxX) / 2, y + 0.002, (minZ + maxZ) / 2);
+          const panel = WoodenFloor.createPanel(modelLibrary);
+          panel.name = "Bedroom oak parquet panel";
+          panel.setLocalPosition((minX + maxX) / 2, y + 0.002, (minZ + maxZ) / 2);
+          this.#entity.addChild(panel);
           panel.setLocalScale(maxX - minX, 0.3, maxZ - minZ);
         }
       }
@@ -712,7 +714,7 @@ export class CastleResidence {
         const width = room.maxX - room.minX;
         const depth = room.maxZ - room.minZ;
         const stoneLanding = room.id !== "mainStairLanding";
-        const panel = modelLibrary.instantiate(stoneLanding ? stoneUrl : floorUrl);
+        const panel = stoneLanding ? modelLibrary.instantiate(stoneUrl) : WoodenFloor.createPanel(modelLibrary);
         panel.name = room.id === "serviceDoorThreshold" ? "Castle service entrance stone landing" : "Castle spiral upper landing";
         panel.setLocalPosition(x, stoneLanding ? y - 0.25 : y - 0.018, z);
         panel.setLocalScale(width, stoneLanding ? 0.25 : 0.3, depth);
@@ -772,7 +774,7 @@ export class CastleResidence {
       for (const [minX, maxX, minZ, maxZ] of rectangles) {
         if (maxX <= minX || maxZ <= minZ) continue;
         if (room.id === "courtyard" || room.id === "castleGroundFloor" || room.id === "serviceGroundBay" || room.id?.startsWith("interiorFloor:")) {
-          const panel = modelLibrary.instantiate(floorUrl);
+          const panel = WoodenFloor.createPanel(modelLibrary);
           const garden = room.id === "courtyard";
           panel.name = garden ? "Castle garden grass surface" : "Castle enclosed room wooden floor";
           // The authored panel is bottom anchored and 0.06 metres thick.
@@ -820,7 +822,7 @@ export class CastleResidence {
     ];
     for (const box of boxes) {
       const floor = box === boxes[0];
-      const wall = modelLibrary.instantiate(floor ? floorUrl : stoneUrl);
+      const wall = floor ? WoodenFloor.createPanel(modelLibrary) : modelLibrary.instantiate(stoneUrl);
       wall.name = floor ? "Castle basement wooden floor" : "Castle basement masonry";
       wall.setLocalPosition(box.x, floor ? y - 0.06 : box.y - box.height / 2, box.z);
       wall.setLocalScale(box.width, floor ? 1 : box.height, box.depth);

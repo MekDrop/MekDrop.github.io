@@ -86,6 +86,7 @@ const dependencies = `
   const pc = globalThis.__castleAudienceTestPc;
   const authoredModelUrl = "stone-block";
   const floorModelUrl = "floor-panel";
+  const WoodenFloor = { modelUrls: [floorModelUrl], createPanel: (models) => models.instantiate(floorModelUrl) };
   const carpetModelUrl = "carpet-panel";
   const rugModelUrl = "rug";
   const lanternModelUrl = "wall-lantern";

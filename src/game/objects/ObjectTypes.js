@@ -13,8 +13,8 @@
  * @property {RenderCommand} [geometry]
  * @property {string} [variant]
  * @property {number} [rotation]
- * @property {Point3} [from] Bookshelf bottom edge or window corner in world coordinates.
- * @property {Point3} [to] Bookshelf bottom edge or opposite window corner; exactly one differing ground axis.
+ * @property {Point3} [from] Bookshelf bottom edge, window corner, or WoodenFloor surface corner in world coordinates.
+ * @property {Point3} [to] Bookshelf bottom edge or opposite window corner (one differing ground axis); WoodenFloor opposite surface corner (both ground axes differ, equal Y).
  * @property {number} [width] Painting horizontal scale or flag cloth width.
  * @property {number} [height] Bookshelf, window, or flag cloth height.
  * @property {number} [poleHeight] Flag pole height in metres (default 1.25).
