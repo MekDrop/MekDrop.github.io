@@ -167,9 +167,11 @@ export class NpcDoorAvoidance {
    * @param {import("playcanvas").Entity} door
    * @param {(point: Vector3) => boolean} inSwing
    * @param {(point: Vector3) => boolean} canMove
+   * @param {import("playcanvas").Entity|null} recipient
    */
-  static requestClearance(door, inSwing, canMove) {
+  static requestClearance(door, inSwing, canMove, recipient = null) {
     for (const participant of this.#participants) {
+      if (recipient && participant.#entity !== recipient) { continue; }
       if (participant.#entity.root !== door.root || !participant.#entity.enabled) {
         continue;
       }

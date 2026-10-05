@@ -58,6 +58,29 @@ it("waits without teleporting when furniture blocks every escape route", () => {
   } finally { behavior.destroy(); }
 });
 
+it("hero clearance interrupts only the requested servant", () => {
+  const { app, root, door: hero, npc, behavior } = scene();
+  const other = new pc.Entity("other servant");
+  root.addChild(other);
+  const otherBehavior = new NpcDoorAvoidance(other, app);
+  try {
+    for (let frame = 0; frame < 180; frame++) {
+      NpcDoorAvoidance.requestClearance(hero,
+        (point) => Math.hypot(point.x, point.z) < 1.1,
+        () => true, npc);
+      app.fire("update", 1 / 60);
+      app.fire("prerender");
+    }
+    assert.ok(npc.getPosition().length() >= 1.1);
+    assert.equal(behavior.phase, PHASE.WAIT);
+    assert.equal(otherBehavior.phase, PHASE.IDLE);
+    assert.equal(other.getPosition().length(), 0);
+  } finally {
+    behavior.destroy();
+    otherBehavior.destroy();
+  }
+});
+
 it("avoids thin obstacles along the route and rechecks each movement step", () => {
   const { app, door, npc, behavior } = scene();
   try {

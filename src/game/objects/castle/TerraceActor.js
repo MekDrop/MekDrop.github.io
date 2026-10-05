@@ -1,5 +1,6 @@
 import { TERRACE_ACTOR_ANIMATION } from "../../enum/TerraceActorAnimation.js";
 import { NpcDoorAvoidance } from "../shared/NpcDoorAvoidance.js";
+import { ServantHeroClearance } from "../shared/ServantHeroClearance.js";
 
 const LOOPING_ANIMATIONS = new Set([
   TERRACE_ACTOR_ANIMATION.IDLE,
@@ -14,6 +15,10 @@ const LOOPING_ANIMATIONS = new Set([
  * Low-level model/animation adapter; role objects own choreography and sequences.
  */
 export class TerraceActor {
+  /**
+   * @type {ServantHeroClearance|null}
+   */
+  #heroClearance = null;
   /**
    * @type {NpcDoorAvoidance}
    */
@@ -154,6 +159,10 @@ export class TerraceActor {
        * @param {number} time
        */
       (action, time) => this.#applyDoorPose(action, time));
+    const app = pc.Application?.getApplication();
+    if (kind === "servant" && app?.systems.rigidbody) {
+      this.#heroClearance = new ServantHeroClearance(avoidanceRoot, app);
+    }
   }
 
   get entity() {
@@ -268,6 +277,7 @@ export class TerraceActor {
   }
 
   destroy() {
+    this.#heroClearance?.destroy();
     this.#doorAvoidance.destroy();
     this.#entity.destroy();
     this.#joints.clear();
