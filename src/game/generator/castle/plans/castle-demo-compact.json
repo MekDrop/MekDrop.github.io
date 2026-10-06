@@ -5,7 +5,7 @@
   "source": {
     "image": "sources/castle-demo-compact-game-constrained.png",
     "method": "manual dimensioned schematic transcription",
-    "accuracy": "Dimensions in metres. S1 aligned on all three levels. Upper northwest study/landing is open beneath the flat terrace roof outline."
+    "accuracy": "Dimensions in metres. S1 aligned on all three levels. Upper room extends west to the terrace boundary, with its door on the south wall."
   },
   "coordinates": {
     "width": 8,
@@ -43,10 +43,10 @@
     {
       "id": "keep",
       "bounds": [
-        3.625,
         0.25,
-        4.125,
-        4.125
+        0.25,
+        7.5,
+        3.375
       ],
       "elevation": 3,
       "height": 3
@@ -273,33 +273,20 @@
       "elevation": 3,
       "spaces": [
         {
-          "id": "study-landing",
-          "label": "Study / landing",
-          "kind": "corridor",
-          "bounds": [
-            0.375,
-            0.375,
-            3.25,
-            3
-          ],
-          "openings": [],
-          "generator": null
-        },
-        {
           "id": "upper-stair-room",
-          "label": "S1 upper landing",
+          "label": "Library",
           "kind": "room",
           "bounds": [
-            3.625,
             0.375,
-            4,
-            3.75
+            0.375,
+            7.25,
+            3.25
           ],
           "openings": [
             {
               "kind": "door",
-              "side": "WEST",
-              "offset": 2,
+              "side": "SOUTH",
+              "offset": 1.5,
               "width": 1,
               "bottom": 0,
               "height": 2.5,
@@ -335,9 +322,9 @@
           "kind": "terrace",
           "bounds": [
             4.625,
-            4.125,
+            3.625,
             3,
-            3.25
+            3.75
           ],
           "openings": [],
           "generator": null
@@ -367,10 +354,10 @@
     {
       "id": "tower-roof",
       "bounds": [
-        3.5,
         0,
-        4.5,
-        4.375
+        0,
+        8,
+        3.625
       ],
       "elevation": 6,
       "height": 2,
