@@ -1,5 +1,4 @@
-const MODULE_HEIGHT = 0.55;
-const MODULE_STEP = 0.43;
+const MODEL_HEIGHT = 1.663;
 
 const FACE_TRANSFORMS = {
   NORTH: { normalX: 0, normalZ: -1, tangentX: 1, tangentZ: 0, yaw: 180 },
@@ -9,7 +8,7 @@ const FACE_TRANSFORMS = {
 };
 
 /**
- *
+ * Fit continuous authored trails to an exposed cliff, anchored at its grass lip.
  * @param {import("src/game/objects/ObjectTypes.js").GameMapData} mapData
  */
 export function createCliffVineLayout(mapData) {
@@ -19,44 +18,28 @@ export function createCliffVineLayout(mapData) {
     if (!face) {
       continue;
     }
-    const length = vine.topY - vine.bottomY;
-    const moduleCount = Math.max(
-      1,
-      Math.ceil(Math.max(0, length - MODULE_HEIGHT) / MODULE_STEP) + 1,
-    );
-    const verticalScale =
-      length / (MODULE_HEIGHT + (moduleCount - 1) * MODULE_STEP);
+    const topY = mapData.heightmap?.[vine.row]?.[vine.col] ?? vine.topY;
+    const footY = mapData.heightmap?.[vine.row + face.normalZ]?.[vine.col + face.normalX];
+    const bottomY = Number.isFinite(footY) && topY - footY <= 1.25
+      ? footY + 0.025
+      : vine.bottomY;
+    const length = topY - bottomY;
     const centerX = vine.col - (mapData.cols - 1) / 2;
     const centerZ = vine.row - (mapData.rows - 1) / 2;
-
-    for (let index = 0; index < moduleCount; index += 1) {
-      const tangentOffset =
-        vine.offset + Math.sin(vine.phase + index * 1.7) * 0.025;
-      const horizontalScale =
-        0.92 + ((Math.round(vine.phase * 100) + index * 17) % 19) / 100;
-      modules.push({
-        col: vine.col,
-        row: vine.row,
-        x:
-          centerX +
-          face.normalX * 0.515 +
-          face.tangentX * tangentOffset,
-        y: vine.topY - index * MODULE_STEP * verticalScale,
-        z:
-          centerZ +
-          face.normalZ * 0.515 +
-          face.tangentZ * tangentOffset,
-        yaw: face.yaw,
-        scaleX: horizontalScale * 1.7,
-        scaleY: verticalScale,
-        scaleZ: 0.9,
-        topY: vine.topY,
-        bottomY: vine.bottomY,
-        moduleBottomY:
-          vine.topY -
-          (index * MODULE_STEP + MODULE_HEIGHT) * verticalScale,
-      });
-    }
+    modules.push({
+      col: vine.col,
+      row: vine.row,
+      x: centerX + face.normalX * 0.515 + face.tangentX * vine.offset,
+      y: topY,
+      z: centerZ + face.normalZ * 0.515 + face.tangentZ * vine.offset,
+      yaw: face.yaw,
+      scaleX: vine.width / 0.16,
+      scaleY: length / MODEL_HEIGHT,
+      scaleZ: 1,
+      topY,
+      bottomY,
+      moduleBottomY: bottomY,
+    });
   }
   return modules;
 }

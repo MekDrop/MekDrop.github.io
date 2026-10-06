@@ -1,3 +1,4 @@
+import { CliffVine } from "./vegetation/CliffVine.js";
 import { WoodenFloor } from "./wooden-floor/WoodenFloor.js";
 import { Flag } from "./flag/Flag.js";
 import { Painting } from "./painting/Painting.js";
@@ -24,6 +25,7 @@ import { MapPickupAnimationActors } from "../debug/MapPickupAnimationActors.js";
 import { MapVirtualItem } from "../debug/MapVirtualItem.js";
 
 const OBJECT_CLASSES = new Map([
+  [CliffVine.name, CliffVine],
   [Flag.name, Flag],
   [WoodenFloor.name, WoodenFloor],
   [Bookshelf.name, Bookshelf],

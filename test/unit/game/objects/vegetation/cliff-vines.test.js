@@ -23,7 +23,7 @@ describe("generated cliff vines", () => {
     }
   });
 
-  it("repeats the authored module within each face's vertical bounds", () => {
+  it("fits continuous authored trails within each face's vertical bounds", () => {
     const modules = createCliffVineLayout({
       cols: 3,
       rows: 3,
@@ -41,7 +41,7 @@ describe("generated cliff vines", () => {
         },
       ],
     });
-    assert.ok(modules.length >= 3);
+    assert.equal(modules.length, 1);
     assert.ok(modules.every(({ y }) => y <= 2.9 && y >= 1.2));
     assert.ok(modules.every(({ moduleBottomY }) => moduleBottomY >= 1.2));
     assert.ok(modules.every(({ z }) => z > 0.5));

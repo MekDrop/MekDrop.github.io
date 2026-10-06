@@ -22,7 +22,6 @@ import {
   FloatingIslandMotion,
   IslandConnectorMotion,
 } from "./objects/scenery/index.js";
-import { CliffVines } from "./objects/vegetation/index.js";
 import { BuriedTreasureField } from "./objects/treasure/index.js";
 import { ScenePointerInteraction } from "./objects/shared/ScenePointerInteraction.js";
 import { TileType } from "./generator/map/MapGenerator.js";
@@ -628,7 +627,6 @@ export class PlayCanvasRenderer {
         ...BridgeRailingKit.modelUrls,
         OverpassStairs.modelUrl,
         ...GroundCover.modelUrls,
-        ...CliffVines.modelUrls,
         ...BuriedTreasureField.modelUrls,
         ...TerrainRenderer.modelUrls,
       ]),
@@ -1602,7 +1600,6 @@ export class PlayCanvasRenderer {
       MAX_CASTLE_LIVES,
     );
     this.#buildGateways();
-    this.#buildCliffVines();
     this.#buildGroundCover();
     this.#buildBuriedTreasure();
     this.#terrainRenderer.buildPhysicsSurface(this.#collisionWorld);
@@ -1897,16 +1894,6 @@ export class PlayCanvasRenderer {
        */
       ({ findInteraction }) => findInteraction),
     ];
-  }
-
-  #buildCliffVines() {
-    const cliffVines = new CliffVines({
-      pc: this.#pc,
-      mapData: this.#mapData,
-      modelLibrary: this.#modelLibrary,
-    });
-    this.#sceneObjects.setOne(SCENE_OBJECT_TYPE.CLIFF_VINES, cliffVines);
-    this.#mapRoot.addChild(cliffVines.entity);
   }
 
   #buildGroundCover() {
@@ -3016,7 +3003,6 @@ export class PlayCanvasRenderer {
     this.#interactionProviders = [];
     this.#inventoryScene?.clearWorldItems();
     this.#sceneObjects.destroyType(SCENE_OBJECT_TYPE.HERO);
-    this.#sceneObjects.destroyType(SCENE_OBJECT_TYPE.CLIFF_VINES);
     this.#terrainRenderer?.destroy();
     this.#terrainRenderer = null;
     this.#buriedTreasure = null;
