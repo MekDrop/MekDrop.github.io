@@ -214,3 +214,29 @@ it("holds a swinging door until a visible NPC clears its leaf", () => {
       "door resumes once the NPC is clear");
   } finally { behavior.destroy(); door.destroy(); }
 });
+
+it("mirrors the interior hinge and animated leaf while keeping collision and picking aligned", () => {
+  for (const yaw of [0, 90, 180, -90]) {
+    const placement = { x: 0, y: 0, z: 2, yaw, height: 2 };
+    const original = upperDoor(0, "NORTH", false, placement);
+    const mirror = upperDoor(0, "NORTH", false, { ...placement, mirrored: true });
+    for (const step of [0, .2, 1]) {
+      original.door.openTemporarily(10); original.door.update(step);
+      mirror.door.openTemporarily(10); mirror.door.update(step);
+      const a = original.entity.children[0].getWorldTransform().transformPoint(new pc.Vec3(1, .5, 0));
+      const b = mirror.entity.children[0].getWorldTransform().transformPoint(new pc.Vec3(1, .5, 0));
+      const center = original.entity.getPosition(), angle = yaw * Math.PI / 180;
+      const tangent = (point) => (point.x - center.x) * Math.cos(angle) - (point.z - center.z) * Math.sin(angle);
+      const normal = (point) => (point.x - center.x) * Math.sin(angle) + (point.z - center.z) * Math.cos(angle);
+      assert.ok(Math.abs(tangent(b) + tangent(a)) < 1e-6);
+      assert.ok(Math.abs(normal(b) - normal(a)) < 1e-6);
+      assert.equal(mirror.door.blocksCameraAt(b.x, b.y, b.z, .1), true);
+      const collider = mirror.entity.findComponents("render")[0].entity.children[0];
+      const transform = collider.getWorldTransform();
+      assert.equal(mirror.door.getPointerHit(
+        transform.transformPoint(new pc.Vec3(0, 0, -.5)),
+        transform.transformPoint(new pc.Vec3(0, 0, .5)),
+      )?.pointerTarget, mirror.door);
+    }
+  }
+});

@@ -70,3 +70,18 @@ it("rejects stale floral placements over soil cleared for castle stairs", () => 
   );
   assert.deepEqual(visible, [decorations[2]]);
 });
+
+it("keeps flowers and mushrooms off surviving grass strips next to castle walls", () => {
+  const grid = MapGrid.createGrid(MAP_TILE_TYPE.GRASS);
+  const heights = MapGrid.createGrid(3);
+  const metadata = MapGrid.createTileMetadata().map(row => row.map(tile => ({ ...tile, surfaceType: "GRASS" })));
+  const x = 10 - (grid[0].length - 1) / 2, z = 10 - (grid.length - 1) / 2;
+  const cut = { minX: x + 0.6, maxX: x + 1, minZ: z - 1, maxZ: z + 1, minY: 2.75, maxY: 6 };
+  metadata[10][10].terrainCutouts = [cut];
+  assert.equal(DecorationPlacementRules.isGroundCoverCandidate(grid, heights, metadata, 10, 10), false);
+  cut.minX = x + 0.8;
+  assert.equal(DecorationPlacementRules.isGroundCoverCandidate(grid, heights, metadata, 10, 10), true);
+  cut.minX = x + 0.6;
+  cut.maxY = 2.5;
+  assert.equal(DecorationPlacementRules.isGroundCoverCandidate(grid, heights, metadata, 10, 10), true, "buried rooms below the lawn do not exclude plants");
+});

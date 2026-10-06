@@ -26,7 +26,7 @@ export class CastleAuthoredBuildPlan {
      *
      * @param {import("./CastleBasePlanGenerator.js").CastleBasePlan} plan
      */
-    (plan) => plan.id === (options.basePlanId ?? "castle-demo-compact"));
+    (plan) => plan.id === (options.basePlanId ?? CastleBasePlanGenerator.selectPlanId(options.seed)));
     if (!envelope) { throw new CastleBasePlanInvalidError(options.basePlanId, "plan id"); }
     const scale = envelope.coordinates.units === "metres" ? 1
       : Math.min(transverse / (envelope.coordinates.width + 4), inward / (envelope.coordinates.depth + 4));
@@ -481,7 +481,7 @@ export class CastleAuthoredBuildPlan {
       const key = [door.axis, door.floorY, door.coordinate, door.center].join(":");
       if (uniqueDoors.has(key)) { continue; }
       uniqueDoors.add(key);
-      roomDoors.push({ ...world(x, z, door.floorY), roomId: door.roomId, width: door.width, height: door.height - 0.05,
+      roomDoors.push({ ...world(x, z, door.floorY), roomId: door.roomId, width: door.width, height: door.height - 0.05, mirrored: authored.mirrored,
         yaw: yaw + { NORTH: 180, SOUTH: 0, WEST: -90, EAST: 90 }[door.side] + (door.swing === "inward" ? 180 : 0), openingInset: door.openingInset ?? 0 });
     }
     return { input: { ...options, doors: adaptedDoors, requestedStyle: options.requestedStyle ?? authored.basePlanId },

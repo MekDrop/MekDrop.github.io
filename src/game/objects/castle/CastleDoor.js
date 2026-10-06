@@ -127,7 +127,7 @@ export class CastleDoor {
    * @param {{x: number, z: number, width: number, depth: number, elevation: number}} options.castlePosition
    * @param {import("src/game/objects/ObjectTypes.js").CastleDoorDefinition} options.door
    * @param {string} options.modelLibrary
-   * @param {{x: number, y: number, z: number, yaw: number, height: number, arched?: boolean}|null} options.placement
+   * @param {{x: number, y: number, z: number, yaw: number, height: number, arched?: boolean, mirrored?: boolean}|null} options.placement
    * @param {import("playcanvas").Material} options.woodMaterial
    */
   constructor({ pc, castlePosition, door, modelLibrary, placement = null }) {
@@ -175,7 +175,7 @@ export class CastleDoor {
     );
     this.#entity.setLocalEulerAngles(0, geometry.baseYaw + (placement?.arched && placement.swing === "inward" ? 180 : 0), 0);
     if (placement) {
-      this.#entity.setLocalScale(this.#width / 2, this.#height / DOOR_HEIGHT, framedInterior ? 0.5 : this.#width / 2);
+      this.#entity.setLocalScale((placement.mirrored ? -1 : 1) * this.#width / 2, this.#height / DOOR_HEIGHT, framedInterior ? 0.5 : this.#width / 2);
     }
     const animationName = CASTLE_DOOR_ANIMATION.OPEN_WIDE;
     const animationTrack = modelLibrary

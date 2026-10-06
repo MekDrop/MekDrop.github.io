@@ -24,6 +24,41 @@ import { TowerRoomGenerator } from "./rooms/TowerRoomGenerator.js";
  */
 export class CastleBasePlanGenerator {
   /**
+   * Layouts enabled for seed selection, in stable order.
+   * @returns {string[]}
+   */
+  static get layoutPlanIds() {
+    return ["castle-demo-compact"];
+  }
+
+  /**
+   * Consecutive even/odd seeds select the same layout.
+   * @param {string|number} [seed]
+   * @returns {string}
+   */
+  static selectPlanId(seed) {
+    const ids = this.layoutPlanIds;
+    return ids[Math.floor(this.#seedNumber(seed) / 2) % ids.length];
+  }
+
+  /**
+   * Numeric strings retain their parity; named seeds use a stable unsigned hash.
+   * @param {string|number} [seed]
+   * @returns {number}
+   */
+  static #seedNumber(seed = 0) {
+    const numeric = Number(seed);
+    if (Number.isFinite(numeric)) {
+      return Math.abs(Math.trunc(numeric));
+    }
+    let hash = 0;
+    for (const character of String(seed)) {
+      hash = (Math.imul(hash, 31) + character.charCodeAt(0)) >>> 0;
+    }
+    return hash;
+  }
+
+  /**
    * @returns {Promise<CastleBasePlan[]>} Independent copies suitable for an editor.
    */
   static get plans() {
@@ -56,18 +91,12 @@ export class CastleBasePlanGenerator {
    */
   static async generate(options = {}) {
     const plans = await this.plans;
-    // Keep the compact reference pinned while its exterior is the demo.
-    const plan = options.planId === undefined
-      ? plans.find(/**
+    const planId = options.planId ?? this.selectPlanId(options.seed);
+    const plan = plans.find(/**
        *
        * @param {CastleBasePlan} candidate
        */
-      (candidate) => candidate.id === "castle-demo-compact")
-      : plans.find(/**
-       *
-       * @param {CastleBasePlan} candidate
-       */
-      (candidate) => candidate.id === options.planId);
+      (candidate) => candidate.id === planId);
     if (!plan) {
       throw new CastleBasePlanInvalidError(options.planId, "planId");
     }
@@ -156,7 +185,7 @@ export class CastleBasePlanGenerator {
     (opening) => opening.roomId === entranceRoom.id && opening.kind === "door" &&
       opening.side === plan.entrance.side && opening.floorY === baseY &&
       opening.width === plan.entrance.width * scale);
-    return { basePlanId: plan.id, sourceImage: plan.source.image, width: plan.coordinates.width * scale,
+    const result = { basePlanId: plan.id, sourceImage: plan.source.image, width: plan.coordinates.width * scale,
       depth: plan.coordinates.depth * scale, wallThickness: plan.wallThickness * scale, floorHeight: plan.floorHeight, spaces,
       placedRooms: spaces.filter(/**
        *
@@ -181,6 +210,30 @@ export class CastleBasePlanGenerator {
       (building) => ({ ...building, ...this.#bounds(building.bounds, scale),
         floorY: baseY + building.elevation })),
       entrance: { ...entrance, bridge: this.#bounds(plan.entrance.bridge, scale) }, furniture };
+    result.mirrored = this.#seedNumber(options.seed) % 2 === 1;
+    if (result.mirrored) {
+      // Reflect parallel to the entrance wall about the door itself, fixing its anchor.
+      const axis = entrance.axis === "z" ? "X" : "Z";
+      const twiceCenter = entrance.center * 2;
+      for (const bounds of [...spaces, ...result.stairs, ...result.roofs, ...result.buildings, result.entrance.bridge]) {
+        const min = bounds[`min${axis}`];
+        bounds[`min${axis}`] = twiceCenter - bounds[`max${axis}`];
+        bounds[`max${axis}`] = twiceCenter - min;
+      }
+      for (const opening of openings) {
+        if (opening.axis === entrance.axis) {
+          opening.center = twiceCenter - opening.center;
+        } else {
+          opening.coordinate = twiceCenter - opening.coordinate;
+          opening.side = { WEST: "EAST", EAST: "WEST", NORTH: "SOUTH", SOUTH: "NORTH" }[opening.side];
+        }
+      }
+      for (const item of furniture) {
+        const coordinate = axis.toLowerCase();
+        item[coordinate] = twiceCenter - item[coordinate];
+      }
+    }
+    return result;
   }
 
   /**

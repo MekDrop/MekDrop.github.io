@@ -1,3 +1,4 @@
+import { DecorationPlacementRules } from "../../generator/map/DecorationPlacementRules.js";
 import { createCastleStairFlight } from "./CastleStairFlight.js";
 import { createCastleGroundCuts, clipCastleTerrainRecord } from "./CastleGroundCuts.js";
 import { CastleResidentialLayout, createCastleButtressFootings } from "./CastleResidentialLayout.js";
@@ -130,6 +131,39 @@ export class CastleMapPreparation {
       (cut) => x + 0.5 > cut.minX && x - 0.5 < cut.maxX && z + 0.5 > cut.minZ && z - 0.5 < cut.maxZ);
       mapData.tileMeta[row][col] = { ...metadata, terrainCutouts, exposedTerrain: turf,
         surfaceType: intersectsTerrain && !turf && [1, 3, 4].includes(mapData.grid[row][col]) ? "STONE" : metadata.surfaceType };
+    }
+    // Decoration was seeded before the authored footprint was excavated. Keep
+    // plants and rocks out of the actual occupied volumes, including basements
+    // and mirrored wings extending past the original tile reservation.
+    mapData.objects = mapData.objects.filter(
+      /**
+       * @param {import("../ObjectTypes.js").MapObjectDefinition} definition
+       */
+      (definition) => {
+        if (!["Vegetation", "StoneCluster"].includes(definition.object) || !definition.position) {
+          return true;
+        }
+        const { x, y, z } = definition.position;
+        const height = definition.object === "Vegetation" ? 2 : 1;
+        return !groundCuts.some(
+          /**
+           * @param {import("./CastleGroundCuts.js").GroundCut} cut
+           */
+          (cut) => x + 0.75 > cut.minX && x - 0.75 < cut.maxX &&
+            z + 0.75 > cut.minZ && z - 0.75 < cut.maxZ &&
+            y + height > cut.minY && y < cut.maxY,
+        );
+      },
+    );
+    if (mapData.groundCoverData) {
+      mapData.groundCoverData = mapData.groundCoverData.filter(
+        /**
+         * @param {{col:number,row:number}} decoration
+         */
+        (decoration) => DecorationPlacementRules.isGroundCoverCandidate(
+          mapData.grid, mapData.heightmap, mapData.tileMeta, decoration.col, decoration.row,
+        ),
+      );
     }
     for (const definition of castles) {
       const residential = definition.buildPlan.metadata.runtime.residential;

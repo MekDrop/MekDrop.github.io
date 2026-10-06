@@ -88,6 +88,22 @@ export class DecorationPlacementRules {
     if (!Number.isFinite(heightmap[row][col])) {
       return false;
     }
+    // Castle excavation can retain part of a grass tile beside a mirrored wall.
+    // Reserve the patch's full envelope (model, rotation and seeded offset),
+    // rather than treating that surviving strip as a safe planting surface.
+    const x = col - (grid[row].length - 1) / 2;
+    const z = row - (grid.length - 1) / 2;
+    const y = heightmap[row][col];
+    if (metadata?.terrainCutouts?.some(
+      /**
+       * @param {{minX:number,maxX:number,minY:number,maxY:number,minZ:number,maxZ:number}} cut
+       */
+      (cut) => x + 0.75 > cut.minX && x - 0.75 < cut.maxX &&
+        z + 0.75 > cut.minZ && z - 0.75 < cut.maxZ &&
+        y + 1 > cut.minY && y < cut.maxY,
+    )) {
+      return false;
+    }
     return true;
   }
 }

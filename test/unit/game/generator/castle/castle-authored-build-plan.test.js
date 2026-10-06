@@ -16,7 +16,7 @@ it("builds all reference plans in each gate orientation, preserving authored ape
       const offset = Math.round((slot.bounds[0] + source.entrance.offset + source.entrance.width / 2) * 28 / 104 - 1);
       const plan = await CastleAuthoredBuildPlan.generate({ basePlanId: source.id,
         position: { x: -8, z: -14, width: crosswise ? 16 : 28, depth: crosswise ? 28 : 16, elevation: 3 },
-        doors: [{ side, offset, width: 2 }], seed: "reference" });
+        doors: [{ side, offset, width: 2 }], seed: 0 });
       assert.equal(plan.layout.basePlanId, source.id);
       assert.ok(plan.geometry.boxes.every((brick) => brick.sx <= 0.250001 && brick.sy <= 0.250001 && brick.sz <= 0.250001),
         "authored masonry uses the gate's quarter-metre bricks");
@@ -97,7 +97,7 @@ it("builds the compact reference as one base with a corner keep and open terrace
   assert.equal(keep.minZ, base.minZ);
   assert.equal(source.roofs.length, 1);
   assert.equal(source.roofs[0].y + source.roofs[0].height, 11);
-  const plan = await CastleGenerator.generate({position:{x:-14,z:-8,width:28,depth:16,elevation:3},doors:[{side:"NORTH",offset:13,width:2}],seed:1});
+  const plan = await CastleGenerator.generate({position:{x:-14,z:-8,width:28,depth:16,elevation:3},doors:[{side:"NORTH",offset:13,width:2}],seed:0});
   const layout = new CastleResidentialLayout(plan);
   const terrace = plan.layout.roomPlan.spaces.filter((space) => space.kind === "terrace");
   assert.equal(terrace.length, 2);
@@ -130,5 +130,22 @@ it("keeps the upper landing door swing clear of masonry in every castle orientat
         }
       }
     }
+  }
+});
+
+it("keeps the world entrance fixed when odd seeds mirror the castle in each orientation", async () => {
+  for (const side of ["NORTH", "SOUTH", "WEST", "EAST"]) {
+    const options = { position: { x: 0, z: 0, width: 16, depth: 16, elevation: 3 },
+      doors: [{ side, offset: 7, width: 2 }] };
+    const original = await CastleGenerator.generate({ ...options, seed: 42 });
+    const mirrored = await CastleGenerator.generate({ ...options, seed: 43 });
+    assert.deepEqual(mirrored.layout.roomPlan.origin, original.layout.roomPlan.origin);
+    const door = (plan) => plan.layout.roomPlan.openings.find((entry) => entry.exteriorEntrance);
+    assert.ok(door(original));
+    assert.deepEqual(door(mirrored), door(original));
+    const a = original.layout.roomPlan.spaces.find((room) => room.id === "throne-hall");
+    const b = mirrored.layout.roomPlan.spaces.find((room) => room.id === "throne-hall");
+    assert.equal(b.minX, -a.maxX);
+    assert.equal(b.maxX, -a.minX);
   }
 });

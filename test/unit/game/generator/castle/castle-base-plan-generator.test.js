@@ -35,7 +35,7 @@ it("transcribes all four sheets with fixed rooms, stairs, roofs, doors and windo
   }
 });
 
-it("pins the compact demo for every seed and callers cannot mutate the catalogue", async () => {
+it("selects only enabled layouts and callers cannot mutate the catalogue", async () => {
   const first = await CastleBasePlanGenerator.generate({ seed: "reference" });
   assert.equal(first.basePlanId, "castle-demo-compact");
   for (const seed of [1, 42, "murpaxlt_1ungww5"]) {
@@ -45,6 +45,44 @@ it("pins the compact demo for every seed and callers cannot mutate the catalogue
   const plans = (await CastleBasePlanGenerator.plans);
   plans[0].levels[0].spaces[0].bounds[0] = -100;
   assert.notEqual((await CastleBasePlanGenerator.plans)[0].levels[0].spaces[0].bounds[0], -100);
+});
+
+it("mirrors odd seeds around the unchanged entrance, including every structural footprint", async () => {
+  const original = await CastleBasePlanGenerator.generate({ seed: 42 });
+  const mirrored = await CastleBasePlanGenerator.generate({ seed: 43 });
+  assert.deepEqual(CastleBasePlanGenerator.layoutPlanIds, ["castle-demo-compact"]);
+  assert.equal(original.basePlanId, mirrored.basePlanId);
+  assert.equal(original.mirrored, false);
+  assert.equal(mirrored.mirrored, true);
+  assert.equal(original.entrance.side, mirrored.entrance.side);
+  assert.equal(original.entrance.center, mirrored.entrance.center);
+  assert.equal(original.entrance.coordinate, mirrored.entrance.coordinate);
+  const center = original.entrance.center * 2;
+  for (const key of ["spaces", "stairs", "roofs", "buildings"]) {
+    original[key].forEach((bounds, index) => {
+      assert.equal(mirrored[key][index].minX, center - bounds.maxX);
+      assert.equal(mirrored[key][index].maxX, center - bounds.minX);
+      assert.equal(mirrored[key][index].minZ, bounds.minZ);
+      assert.equal(mirrored[key][index].maxZ, bounds.maxZ);
+    });
+  }
+  original.openings.forEach((opening, index) => {
+    const mirror = mirrored.openings[index];
+    assert.equal(mirror.axis, opening.axis);
+    if (opening.axis === "z") {
+      assert.equal(mirror.center, center - opening.center);
+      assert.equal(mirror.coordinate, opening.coordinate);
+    } else {
+      assert.equal(mirror.coordinate, center - opening.coordinate);
+      assert.equal(mirror.side, opening.side === "WEST" ? "EAST" : "WEST");
+    }
+  });
+  original.furniture.forEach((item, index) => {
+    assert.equal(mirrored.furniture[index].x, center - item.x);
+    assert.equal(mirrored.furniture[index].z, item.z);
+  });
+  assert.deepEqual(await CastleBasePlanGenerator.generate({ seed: "43" }), mirrored);
+  assert.deepEqual(await CastleBasePlanGenerator.generate({ seed: 43 }), mirrored);
 });
 
 it("runs a room generator at every assigned slot without changing its bounds", async () => {

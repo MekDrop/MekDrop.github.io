@@ -37,7 +37,7 @@ its vertically aligned shaft is consistently named S1.
 import { CastleBasePlanGenerator } from "../CastleBasePlanGenerator.js";
 
 const plan = await CastleBasePlanGenerator.generate({
-  planId: "castle-03", // omit to use the pinned compact demo
+  planId: "castle-03", // omit for seed selection
   seed: "my-castle",
   unitMetres: 0.5,
   baseY: 3,
@@ -52,11 +52,11 @@ roofs, entrance and furniture. It never packs rooms or invents openings.
 
 ## Live integration
 
-The compact demo is currently pinned for every seed, before planning its entrance
-route. Seeds still control room content; selecting among plans is deferred. `CASTLE_FOOTPRINTS` only reserves the footprint.
+The active layout list (`CastleBasePlanGenerator.layoutPlanIds`) currently contains only the compact demo, selected by seed before planning its entrance
+route. Even/odd seed pairs select the same layout; odd seeds mirror all compiled spaces, openings, roofs, buildings, stairs and furniture about the entrance, preserving its position and direction. Named seeds use a stable hash; numeric strings retain numeric parity. Add future playable plan IDs to the ordered active list. `CASTLE_FOOTPRINTS` only reserves the footprint.
 All castle test fixtures store a seed and construction inputs, with no mode flag
 or plan ID. `CastleGenerator.generate({ position, doors, seed })`
-uses the pinned compact plan, including during live regeneration.
+uses the seed-selected compact plan and mirror orientation, including during live regeneration.
 The public generator compiles the
 selected plan into castle-owned walls, floors, roofs, doors, windows and furniture.
 Masonry uses the same quarter-metre blocks and stone palette as the gates;
