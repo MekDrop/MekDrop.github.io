@@ -19,15 +19,17 @@ fn routePaint() -> vec4f {
   let position = (uniform.uRouteWorldToMap * vec4f(vPositionW, 1.0)).xyz;
   let uv = (position.xz + uniform.uRouteMap.xy) / uniform.uRouteMap.zw;
   if (any(uv < vec2f(0.0)) || any(uv > vec2f(1.0))) { return vec4f(0.0); }
-  if (vNormalW.y < 0.35) { return vec4f(0.0); }
+  if (vNormalW.y < -0.01) { return vec4f(0.0); }
   var paint = vec4f(0.0);
   for (var layer: i32 = 0; layer < i32(uniform.uRouteLayers); layer++) {
     let atlasUv = vec2f(uv.x, (uv.y + f32(layer)) / uniform.uRouteLayers);
-    let mask = textureSampleLevel(uRouteMask, uRouteMaskSampler, atlasUv, 0.0);
-    let metadata = textureSampleLevel(uRouteHeight, uRouteHeightSampler, atlasUv, 0.0);
+    var mask = textureSampleLevel(uRouteMask, uRouteMaskSampler, atlasUv, 0.0);
+    var metadata = textureSampleLevel(uRouteHeight, uRouteHeightSampler, atlasUv, 0.0);
     let heightBytes = floor(metadata.rg * 255.0 + 0.5);
     let height = (heightBytes.x * 256.0 + heightBytes.y) / 65535.0 * uniform.uRouteHeightRange;
-    if (abs(position.y - height) > 0.14 || mask.r + mask.g < 0.005) { continue; }
+    // Match the quarter-block tread and riser allowance used by GLSL.
+    let heightTolerance = 0.26;
+    if (abs(position.y - height) > heightTolerance || mask.r + mask.g < 0.005) { continue; }
     let palette = floor(metadata.b * 255.0 + 0.5);
     var color = textureSampleLevel(uRoutePalette, uRoutePaletteSampler, vec2f(
       metadata.a * 1.35 + uniform.uRouteTime * 0.42, (palette + 0.5) / 16.0

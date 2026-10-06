@@ -117,6 +117,23 @@ export class PathArrowTextureLayout {
         (mask, arrow) => mask | (1 << (arrow.pathIdx % mapData.entries.length)), 0),
       });
     }
+    if (mapData.overpassData?.stairApproach) {
+      for (const marker of result) {
+        if (!marker.pitch || !mapData.overpassData.slopeCells.some(/**
+         * @param {{col: number, row: number}} cell
+         */
+        (cell) => Math.abs(cell.col - marker.col) <= 0.5 &&
+          Math.abs(cell.row - marker.row) <= 0.5)) {
+          continue;
+        }
+        // Keep the head's broad base off a riser. Only the narrow shaft crosses
+        // the step, avoiding a stretched rectangle of white outline paint.
+        const offset = 0.125;
+        marker.col += marker.dx * offset;
+        marker.row += marker.dz * offset;
+        marker.elevation += Math.tan(marker.pitch) * offset;
+      }
+    }
     return result;
   }
 }

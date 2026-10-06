@@ -31,6 +31,25 @@ describe("PathArrowTextureLayout", () => {
     assert.equal(markers[1].dx, -1);
   });
 
+  it("keeps a stair arrow head off the riser without changing its surface plane", () => {
+    const [marker] = PathArrowTextureLayout.markers({
+      entries: [{ color: 0xff0000 }],
+      overpassData: {
+        stairApproach: true,
+        slopeCells: [{ col: 4, row: 6 }, { col: 5, row: 6 }],
+      },
+      arrowData: new Map([
+        ["4.5,6,2.25", [{ dc: 0, dr: -1, pathIdx: 0, surfacePitch: -Math.atan(0.5) * 180 / Math.PI }]],
+      ]),
+    });
+    assert.equal(marker.col, 4.5);
+    assert.equal(marker.row, 5.875);
+    assert.equal(marker.elevation, 2.1875);
+    // At row 6 (the riser), the head base is no longer sampled at along = 0.
+    const along = (6 - marker.row) * marker.dz / (0.9 * Math.cos(marker.pitch));
+    assert.ok(along < -0.1 && along > -0.32);
+  });
+
   it("preserves diagonal turn direction and ignores maps without route markers", () => {
     const [marker] = PathArrowTextureLayout.markers({
       entries: [{ color: 0xff0000 }],
