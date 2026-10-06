@@ -81,7 +81,10 @@ void getAlbedo() {
   float lip = mix(1.0 - vVertexColor.a, 1.0, vertical);
   float horizontalTop = (1.0 - vertical) *
     (1.0 - step(0.01, vVertexColor.r));
-  vec2 uv = mix(surfaceUv, vUv0, max(vertical, horizontalTop));
+  // Evaluate bends per fragment. Interpolated mesh UVs stretch the singular
+  // inside corner across its neighbouring triangles into a separate flow patch.
+  // Curtains retain their authored arc coordinates.
+  vec2 uv = mix(surfaceUv, vUv0, vertical);
   // Bend the moving paint around exposed stones, using a local stream
   // function. Flow divides upstream, accelerates along the flanks, and
   // converges again downstream instead of sliding straight through the rock.
