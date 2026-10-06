@@ -141,7 +141,6 @@ export class GameCanvasDebugUiPlugin {
     const height = Math.max(1, container.clientHeight);
     this.#debugAxesHud?.resize(width, height);
     this.#debugFpsHud?.resize(width, height);
-    this.#castleRoomHud?.resize(width, height);
   }
 
   destroy() {

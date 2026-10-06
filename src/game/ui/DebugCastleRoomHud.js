@@ -21,9 +21,10 @@ export class DebugCastleRoomHud extends GamePanelHud {
     super({ ...options, name: "Debug castle room HUD", priority: 106 });
     this.#record = this.createTextureRecord("Debug castle room", WIDTH * 3, HEIGHT * 3);
     this.#record.context.scale(3, 3);
-    const panel = this.createPanel({ name: "Current castle room", x: 0, y: 56, width: WIDTH, height: HEIGHT });
+    const top = 36 + gameUiTheme.spaceMd * 2;
+    const panel = this.createPanel({ name: "Current castle room", x: 0, y: top, width: WIDTH, height: HEIGHT });
     panel.element.anchor = new this.pc.Vec4(0.5, 1, 0.5, 1);
-    panel.setLocalPosition(-WIDTH / 2, -56, 0);
+    panel.setLocalPosition(-WIDTH / 2, -top, 0);
     this.createImage({ parent: panel, name: "Castle room message", x: 0, y: 0, width: WIDTH, height: HEIGHT, texture: this.#record.texture });
     this.syncDrawOrder();
     this.visible = false;
@@ -48,11 +49,4 @@ export class DebugCastleRoomHud extends GamePanelHud {
     texture.setSource(canvas);
   }
 
-  /**
-   * @param {number} width
-   * @param {number} height
-   */
-  resize(width, height) {
-    this.entity.screen.referenceResolution = new this.pc.Vec2(Math.max(1, width), Math.max(1, height));
-  }
 }
