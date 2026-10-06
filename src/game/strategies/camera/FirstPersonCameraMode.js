@@ -5,13 +5,14 @@ const NEAR_CLIP = 0.01;
 const MAXIMUM_DOWNWARD_PITCH = 80;
 const MAXIMUM_UPWARD_PITCH = 60;
 const MAXIMUM_YAW = 80;
+const BODY_TURN_TOLERANCE = 0.001;
 
 /**
  *
  * @param {number} degrees
  */
 function normalizeDegrees(degrees) {
-  return ((degrees + 540) % 360) - 180;
+  return ((((degrees + 180) % 360) + 360) % 360) - 180;
 }
 
 export class FirstPersonCameraMode extends AbstractCameraMode {
@@ -173,7 +174,7 @@ export class FirstPersonCameraMode extends AbstractCameraMode {
     const relativeYaw = normalizeDegrees(this.#yaw - centerYaw);
     const limitedYaw = Math.max(-MAXIMUM_YAW, Math.min(MAXIMUM_YAW, relativeYaw));
     const bodyTurn = relativeYaw - limitedYaw;
-    if (bodyTurn !== 0) {
+    if (Math.abs(bodyTurn) > BODY_TURN_TOLERANCE) {
       hero.firstPersonFacingYaw = normalizeDegrees(centerYaw + bodyTurn);
       pose = hero.firstPersonCameraPose;
     }

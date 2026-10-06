@@ -140,6 +140,27 @@ describe("first-person camera", () => {
     assert.ok(Math.abs(viewYaw - 170) < 0.001);
   });
 
+  it("ignores rounding drift at the body turn limit", () => {
+    const { gameCamera } = cameraFixture();
+    const mode = new FirstPersonCameraMode(gameCamera);
+    let turns = 0;
+    const stationaryHero = {
+      firstPersonCameraPose: hero.firstPersonCameraPose,
+      set firstPersonFacingYaw(value) {
+        turns += 1;
+      },
+    };
+    mode.enter();
+    mode.update({ hero: stationaryHero });
+    mode.lookBy(80 + 1e-10, 0);
+    for (let frame = 0; frame < 60; frame += 1) {
+      mode.update({ hero: stationaryHero });
+    }
+    assert.equal(turns, 0);
+    mode.lookBy(1, 0);
+    mode.update({ hero: stationaryHero });
+    assert.equal(turns, 1);
+  });
   it("keeps pointer interpretation in the active camera strategy", () => {
     const { gameCamera } = cameraFixture();
     const mode = new FirstPersonCameraMode(gameCamera);

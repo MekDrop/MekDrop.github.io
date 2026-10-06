@@ -1508,20 +1508,14 @@ export class Hero {
    */
   get firstPersonCameraPose() {
     const direction = this.facingDirection;
-    const leftEye = this.#leftEyeEntity?.getPosition();
-    const rightEye = this.#rightEyeEntity?.getPosition();
-    const anchor =
-      leftEye && rightEye
-        ? {
-            x: (leftEye.x + rightEye.x) / 2,
-            y: (leftEye.y + rightEye.y) / 2,
-            z: (leftEye.z + rightEye.z) / 2,
-          }
-        : (this.#headEntity?.getPosition() ?? {
-            x: this.#position.x,
-            y: this.#position.y + HERO_COLLISION_HEIGHT * 0.8,
-            z: this.#position.z,
-          });
+    // Animated eyes orbit the head pivot during look and body turns. Anchoring
+    // to them feeds the previous camera direction back into camera translation.
+    const body = this.#entity.getPosition();
+    const anchor = {
+      x: body.x,
+      y: body.y + HERO_COLLISION_HEIGHT * 0.8,
+      z: body.z,
+    };
     return {
       position: this.#physics.cameraPosition(anchor),
       direction: { x: direction.x, y: 0, z: direction.z },
