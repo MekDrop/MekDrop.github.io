@@ -182,7 +182,7 @@ for (const side of Object.keys(layouts)) {
 
     assert.ok(woodenFloor);
     assert.ok(entranceFloor);
-    assert.equal(borders.length, 2);
+    assert.equal(borders.length, 0);
     assert.deepEqual(
       carpetParts.map(({ name }) => name),
       ["Audience carpet runner"],
@@ -196,12 +196,6 @@ for (const side of Object.keys(layouts)) {
       forwardPosition(entranceFloor, side) - entranceFloor.scale.z / 2,
       0,
     );
-    for (const border of borders) {
-      assert.equal(
-        forwardPosition(border, side) - border.scale.z / 2,
-        0.5,
-      );
-    }
 
     room.destroy();
   });
@@ -407,15 +401,9 @@ it("maps one complete carpet border across different hall lengths", () => {
     room.destroy();
   }
 });
-it("keeps parquet seams clear of borders instead of drawing overlapping top faces", () => {
+it("uses authored parquet detail without raised strips across the floor", () => {
   const room = createRoom("NORTH");
-  const borders = room.entity.children.filter((part) => part.name === "Audience floor border");
-  const seams = room.entity.children.filter((part) => part.name === "Audience floor plank seam");
-  assert.ok(seams.length > 0);
-  for (const seam of seams) {
-    for (const border of borders) {
-      assert.ok(Math.abs(seam.position.x - border.position.x) > (seam.scale.x + border.scale.x) / 2,
-        "coplanar seams and borders have no overlapping footprint");
-    }
-  }
+  assert.equal(room.entity.children.some((part) =>
+    part.name === "Audience floor border" || part.name === "Audience floor plank seam"), false);
+  room.destroy();
 });

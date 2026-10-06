@@ -629,36 +629,7 @@ export class CastleAudienceRoom {
         [entranceFloorWidth, 0.05, floorInset],
       );
     }
-    for (const lateral of [
-      this.#floorLateral - this.#floorWidth / 2 + 0.05 + finishInset,
-      this.#floorLateral + this.#floorWidth / 2 - 0.05 - finishInset,
-    ]) {
-      if (roomFloorDepth <= 0) {
-        continue;
-      }
-      this.#boxAt(
-        "Audience floor border",
-        "wood",
-        lateral,
-        roomFloorCenter,
-        0.057,
-        [0.1, 0.025, roomFloorDepth],
-      );
-    }
-    for (
-      let forward = Math.max(0.75, finishStart);
-      forward < this.#floorDepth - finishInset;
-      forward += 0.75
-    ) {
-      this.#boxAt(
-        "Audience floor plank seam",
-        "wood",
-        this.#floorLateral,
-        forward,
-        0.057,
-        [Math.max(0, this.#floorWidth - finishInset * 2 - 0.22), 0.025, 0.035],
-      );
-    }
+    // The authored parquet panel already includes plank joints and edge detail.
 
     const runnerStart = Math.max(CARPET_ENTRANCE_INSET, floorInset + 0.1);
     const runnerEnd = Math.min(
@@ -680,7 +651,7 @@ export class CastleAudienceRoom {
       runnerLength,
     ]);
     // The same authored floor boxes define foot support, including the carpet
-    // and plank borders, so boots cannot sink into the visuals.
+    // so boots cannot sink into the visuals.
     for (const part of this.#entity.children.slice(firstFloorPart)) {
       const position = part.getLocalPosition();
       const scale = part.getLocalScale();
