@@ -142,9 +142,30 @@ export class CastleResidence {
   #buildPlannedFloors(buildPlan, models, pc) {
     const plan = buildPlan.metadata.runtime.residential;
     for (const area of this.#layout.walkableAreas) {
-      const rooms = plan.placedRooms.filter(/**
+      const rooms = (plan.spaces ?? plan.placedRooms).filter(/**
        * @param {import("../../generator/castle/rooms/AbstractCastleRoomGenerator.js").PlannedCastleRoom} room
-       */ (room) => room.id !== "leisure" && area.floorY >= room.floorY && area.floorY < room.floorY + room.height);
+       */ (room) => (room.kind === "room" || !room.kind || room.id === "storage-north" || room.id === "storage-south" ||
+          room.id === "vestibule" || room.id === "vestibule-south") &&
+          room.id !== "leisure" && room.id !== "basement-stair-room" &&
+          !(room.id === "stair-room" && room.floorY === plan.origin.y) &&
+          area.floorY >= room.floorY && area.floorY < room.floorY + room.height)
+        .map(/**
+         * @param {import("../../generator/castle/rooms/AbstractCastleRoomGenerator.js").PlannedCastleRoom} room
+         */ (room) => {
+          const finish = { ...room };
+          // Authored rooms omit the half-wall perimeter reveal. The building
+          // wall owns that boundary, so timber must reach its inside face.
+          for (const building of plan.buildings ?? []) {
+            if (building.floorY > area.floorY || room.minX < building.minX ||
+              room.maxX > building.maxX || room.minZ < building.minZ || room.maxZ > building.maxZ) { continue; }
+            for (const edge of ["minX", "maxX", "minZ", "maxZ"]) {
+              if (Math.abs(room[edge] - building[edge]) <= 0.125 + 1e-6) {
+                finish[edge] = building[edge];
+              }
+            }
+          }
+          return finish;
+        });
       let stonePieces = [[area.minX, area.maxX, area.minZ, area.maxZ]];
       const woodPieces = [];
       for (const room of rooms) {
@@ -162,16 +183,16 @@ export class CastleResidence {
           // Door thresholds already have masonry and exterior stair support.
           // Keep their support record without adding another visible slab.
           const threshold = area.id.endsWith("Threshold");
-          const wood = timber && !threshold;
-          const panel = wood ? WoodenFloor.createPanel(models) : models.instantiate(stoneUrl);
+          const wood = timber && !threshold && !area.id.endsWith(":straightLanding");
+          const panel = wood ? WoodenFloor.createPanel(models, true) : models.instantiate(stoneUrl);
           const x = (minX + maxX) / 2;
           const z = (minZ + maxZ) / 2;
           const y = area.floorY - plan.origin.y;
           if (panel && (wood || !plan.basePlanId)) {
             panel.name = `Castle ${area.id} ${wood ? "wood" : "stone"} floor`;
-            // Keep finishes clear of terrain and the final stone tread.
-            panel.setLocalPosition(x, y - (wood ? 0.06 : 0.25) + 0.004, z);
-            panel.setLocalScale(maxX - minX, wood ? 1 : 0.25, maxZ - minZ);
+            // Keep timber above the slab so its sides cannot leak through masonry joints.
+            panel.setLocalPosition(x, y + (wood ? 0.001 : -0.246), z);
+            panel.setLocalScale(maxX - minX, wood ? 0.05 : 0.25, maxZ - minZ);
             this.#entity.addChild(panel);
           }
           // Authored masonry already owns the slab, including its underside.

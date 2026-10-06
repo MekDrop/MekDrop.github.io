@@ -29,3 +29,18 @@ it("rejects empty, non-finite, and sloping areas", () => {
     assert.throws(() => new WoodenFloor({ pc, definition: { id: "invalid", from: { x: 0, y: 1, z: 0 }, to } }), InvalidWoodenFloorAreaError);
   }
 });
+
+it("keeps compressed parquet clear of its backing without sinking timber into masonry", () => {
+  const panel = new pc.Entity();
+  const backing = new pc.Entity("Tile backing");
+  panel.addChild(backing);
+  WoodenFloor.createPanel({ instantiate: () => panel }, true);
+  const buffer = readFileSync(new URL("../../../../../src/game/models/castle/residential/floor-panel.glb", import.meta.url));
+  const gltf = JSON.parse(buffer.subarray(20, 20 + buffer.readUInt32LE(12)));
+  const node = gltf.nodes.find(node => node.name === "Tile backing");
+  const bounds = gltf.accessors[gltf.meshes[node.mesh].primitives[0].attributes.POSITION];
+  const top = 0.001 + (backing.getLocalPosition().y + bounds.max[1] * backing.getLocalScale().y) * 0.05;
+  const bottom = 0.001 + (backing.getLocalPosition().y + bounds.min[1] * backing.getLocalScale().y) * 0.05;
+  assert.ok(0.004 - top > 0.002, "parquet and backing have more than 2 mm of depth separation");
+  assert.ok(bottom > 0.001, "backing remains above the masonry surface");
+});

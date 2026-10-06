@@ -37,7 +37,7 @@ it("keeps continuous timber above masonry in the panel's seams and corners", () 
 
 
 
-it("keeps authored floor finishes inside rooms and supports all occupied levels", async () => {
+it("keeps authored floor finishes inside room wall reveals and supports all occupied levels", async () => {
   const plan = await CastleGenerator.generate({position:{x:-14,z:-8,width:28,depth:16,elevation:3},doors:[{side:"NORTH",offset:13,width:2}],seed:1});
   const residential = plan.metadata.runtime.residential;
   residential.furniture = [];
@@ -46,10 +46,24 @@ it("keeps authored floor finishes inside rooms and supports all occupied levels"
   builder.build(plan,{instantiate:url=>Object.assign(new Entity(),{url})},{Entity,Color:class {}});
   const timber = builder.children.filter(child=>child.url==="wood");
   assert.ok(timber.length>0);
+  assert.ok(!timber.some(panel => panel.name.includes(":straightLanding")), "stairwell landing strips remain stone");
+  assert.ok(timber.some(panel => panel.name === "Castle storage-north wood floor"));
+  assert.ok(timber.some(panel => panel.name === "Castle vestibule wood floor"));
+  assert.ok(timber.some(panel => panel.name === "Castle vestibule-south wood floor"));
+  assert.ok(timber.some(panel => panel.name === "Castle storage-south wood floor"));
+  assert.ok(!timber.some(panel => panel.name === "Castle basement-stair-room wood floor"));
   for(const panel of timber) {
-    const [x,y,z] = panel.position, [width,,depth] = panel.scale;
-    assert.ok(residential.placedRooms.some(room=>x-width/2>=room.minX-1e-6&&x+width/2<=room.maxX+1e-6&&z-depth/2>=room.minZ-1e-6&&z+depth/2<=room.maxZ+1e-6&&Math.abs(y+.056-(room.floorY-layout.origin.y))<1e-6));
+    const [x,y,z] = panel.position, [width,height,depth] = panel.scale;
+    assert.ok(residential.spaces.some(room=>x-width/2>=room.minX-0.125-1e-6&&x+width/2<=room.maxX+0.125+1e-6&&z-depth/2>=room.minZ-0.125-1e-6&&z+depth/2<=room.maxZ+0.125+1e-6&&Math.abs(y+height*0.06-0.004-(room.floorY-layout.origin.y))<1e-6));
   }
+  for (const panel of timber) {
+    const level = Math.round((panel.position[1] - 0.001) / 3) * 3;
+    assert.ok(panel.position[1] > level, "timber stays above stone risers and slab joints");
+    assert.ok(Math.abs(panel.position[1] + panel.scale[1] * 0.06 - level - 0.004) < 1e-6, "walking finish height is unchanged");
+  }
+  const library = timber.filter(panel => panel.name === "Castle base-ceiling wood floor");
+  assert.ok(library.some(panel => Math.abs(panel.position[0] + panel.scale[0] / 2 - 1.5) < 1e-6), "Library timber reaches the exterior wall beyond the room reveal");
+  assert.ok(library.some(panel => Math.abs(panel.position[2] + panel.scale[2] / 2 - 7.5) < 1e-6), "Library timber covers the rear perimeter strip");
   for(const floorY of [0,3,6]) assert.ok(layout.walkableAreas.some(area=>area.floorY===floorY));
   for(const area of layout.walkableAreas) assert.ok(area.maxX>area.minX&&area.maxZ>area.minZ);
   for(let i=0;i<layout.walkableAreas.length;i++)for(const other of layout.walkableAreas.slice(i+1)){

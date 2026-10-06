@@ -32,9 +32,18 @@ export class WoodenFloor {
   /**
    * Returns the shared bottom-anchored, one-metre-square, 0.06-metre-thick panel.
    * @param {import("../../models/GameModelLibrary.js").GameModelLibrary} models
+   * @param {boolean} thinFinish Keep backing clear of parquet in a compressed surface finish.
    * @returns {import("playcanvas").Entity}
    */
-  static createPanel(models) { return models.instantiate(floorUrl); }
+  static createPanel(models, thinFinish = false) {
+    const panel = models.instantiate(floorUrl);
+    if (thinFinish) {
+      const backing = panel.findByName("Tile backing");
+      backing.setLocalPosition(0, 0.003, 0);
+      backing.setLocalScale(1, 0.1, 1);
+    }
+    return panel;
+  }
 
   /**
    * Corner Y is the walking surface; the timber extends below it.
