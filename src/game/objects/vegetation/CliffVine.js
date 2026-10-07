@@ -46,9 +46,16 @@ export class CliffVine {
     const objects = mapData.objects ??= [];
     for (const [index, face] of createCliffVineLayout(mapData).entries()) {
       const id = `cliff-vine-${index}`;
-      if (objects.some(/**
+      const existing = objects.find(/**
                         * @param {import("../ObjectTypes.js").MapObjectDefinition} item
-                        */ (item) => item.id === id)) continue;
+                        */ (item) => item.id === id);
+      if (existing) {
+        if (existing.generated) {
+          existing.height = face.topY - face.bottomY;
+          existing.position = { x: face.x, y: face.y, z: face.z };
+        }
+        continue;
+      }
       objects.push({ id, object: CliffVine.name, tile: { col: face.col, row: face.row },
         position: { x: face.x, y: face.y, z: face.z }, rotation: face.yaw,
         height: face.topY - face.bottomY, seed: `${mapData.mapName}:${face.col}:${face.row}:${face.yaw}`, generated: true });

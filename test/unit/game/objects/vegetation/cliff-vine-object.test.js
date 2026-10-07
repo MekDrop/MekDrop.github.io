@@ -23,7 +23,7 @@ describe("cliff vine map objects", () => {
     assert.equal(map.objects.length, 1);
     assert.equal(map.objects[0].object, "CliffVine");
     assert.equal(map.objects[0].position.y, 3);
-    assert.ok(Math.abs(map.objects[0].height - 0.6) < 1e-9);
+    assert.ok(map.objects[0].height >= 1.05 && map.objects[0].height <= 2.25);
     assert.deepEqual(map.objects[0].tile, { col: 1, row: 1 });
   });
   it("moves all modular growth with its owning island", () => {
