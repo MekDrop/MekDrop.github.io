@@ -402,6 +402,18 @@ export class LayoutPlanner {
         layout,
       );
       if (
+        previewGrid.some(/**
+         * @param {number[]} tiles
+         * @param {number} row
+         */
+        (tiles, row) => row >= layout.castleTop && row <= layout.castleBottom &&
+          tiles.some(/**
+           * @param {number} tile
+           * @param {number} col
+           */
+          (tile, col) => tile === TileType.PATH && col >= layout.castleLeft &&
+            col <= layout.castleRight && !(col === layout.castleEntranceCol &&
+              layout.castleEntranceRows.includes(row)))) ||
         PathTopology.findUnexpectedFlatPathCrossing(previewGrid, null) ||
         PathTopology.hasInsufficientParallelPathClearance(previewGrid, layout) ||
         PathTopology.findUnexpectedRouteConnection(routeCellsByPath, layout, null)
