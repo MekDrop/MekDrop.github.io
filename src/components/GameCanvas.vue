@@ -94,7 +94,7 @@ import { useRoute, useRouter } from "vue-router";
 import SiteNoticeDialog from "components/SiteNoticeDialog.vue";
 import GameLoadingScene from "components/GameLoadingScene.vue";
 import HeroMoodStatus from "components/HeroMoodStatus.vue";
-import { generateMap } from "src/game/generator/map/MapGenerator.js";
+import { LevelLoader } from "src/game/LevelLoader.js";
 import { GameMapLoader } from "src/game/GameMapLoader.js";
 import { PlayCanvasRenderer } from "src/game/PlayCanvasRenderer.js";
 import { GameControls } from "src/game/GameControls.js";
@@ -318,7 +318,7 @@ function requestedMapName() {
 async function createMap(mapName = null) {
   if (!import.meta.env.DEV || !mapName?.startsWith("test_")) {
     mapFileLoader = null;
-    return GameMapLoader.load(await generateMap(mapName ? { mapName } : undefined));
+    return LevelLoader.load(mapName ? { mapName } : undefined);
   }
   const { MapFileLoader } = await import("src/game/MapFileLoader.js");
   mapFileLoader = MapFileLoader;

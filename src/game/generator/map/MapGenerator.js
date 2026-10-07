@@ -243,6 +243,10 @@ export class MapGenerator {
   }
 
   #yieldToMainThread() {
+    if (typeof globalThis.WorkerGlobalScope !== "undefined" &&
+      globalThis instanceof globalThis.WorkerGlobalScope) {
+      return Promise.resolve();
+    }
     return new Promise(/**
      *
      * @param {(value?: void) => void} resolve
