@@ -1,3 +1,4 @@
+import { CASTLE_TERRACE_PHASE as PHASE } from "../../enum/CastleTerracePhase.js";
 import { RoyalWishFulfillment } from "./RoyalWishFulfillment.js";
 import { TerraceDoorActions } from "./TerraceDoorActions.js";
 import { TerraceServiceActions } from "./TerraceServiceActions.js";
@@ -84,6 +85,15 @@ export class CastleTerraceActivity {
   #stopped = false;
 
   /**
+   * @type {import("../servant/Servant.js").Servant}
+   */
+  #servant;
+  /**
+   * @type {import("./CastleResidentMotion.js").CastleResidentMotion}
+   */
+  #servantMotion;
+
+  /**
    *
    * @param {{pc: typeof import("playcanvas"), modelLibrary: string, wallMaterial: import("playcanvas").Material, woodMaterial: import("playcanvas").Material, royal: import("../royal/AbstractRoyal.js").AbstractRoyal, servant: import("../servant/Servant.js").Servant, position: {x: number, y: number, z: number}, doors: Array<{side: string, offset: number, width: number, approachElevation?: number}>, layout: {x: number, y: number, z: number, yaw: number, depth: number, width: number}, onRoyalAtThroneChange: (atThrone: boolean) => void}} options
    * @param {typeof import("playcanvas")} options.pc
@@ -95,6 +105,7 @@ export class CastleTerraceActivity {
    * @param {{x: number, y: number, z: number}} options.position
    * @param {Array<{side: string, offset: number, width: number, approachElevation?: number}>} options.doors
    * @param {{x: number, y: number, z: number, yaw: number, depth: number, width: number}} options.layout
+   * @param {import("./CastleDoor.js").CastleDoor|null} options.door
    * @param {(atThrone: boolean) => void} options.onRoyalAtThroneChange
    */
   constructor({
@@ -108,8 +119,11 @@ export class CastleTerraceActivity {
     doors,
     layout,
     onRoyalAtThroneChange,
+    door = null,
+    navigation,
   }) {
     this.#position = position;
+    this.#servant = servant;
     this.#doors = doors;
     this.#entity = new pc.Entity("Castle terrace activity");
     this.#entity.setLocalPosition(layout.x, layout.y, layout.z);
@@ -118,11 +132,13 @@ export class CastleTerraceActivity {
     const scale = Math.min(0.45, layout.depth / 5.5, layout.width / 4.2);
     this.#stage.setLocalScale(scale, scale, scale);
     this.#entity.addChild(this.#stage);
+    if (door) { this.#stage.tags.add("flat-terrace-entry"); }
     const royalParticipant = royal.createTerraceParticipant({
       pc,
       modelLibrary,
       onRoyalAtThroneChange,
       stage: this.#stage,
+      navigation,
     });
     this.#kind = royalParticipant.kind;
     this.#royalBehavior = royalParticipant.behavior;
@@ -134,7 +150,10 @@ export class CastleTerraceActivity {
       scale,
       kind: this.#kind,
       royal: this.#royalActions.actor,
+      navigation,
     });
+    this.#servantMotion = servantParticipant.motion;
+    this.#royalBehavior.canComplete = () => ![PHASE.ROYAL_ENTER, PHASE.ROYAL_EXIT].includes(this.#royalBehavior.stagePhase) || this.#royalActions.arrived;
     this.#servantBehavior =
       this.#kind === "king" ? null : servantParticipant.behavior;
     this.#serviceActions =
@@ -150,9 +169,12 @@ export class CastleTerraceActivity {
       woodMaterial,
       root: this.#entity,
       stage: this.#stage,
+      navigation,
       scale,
       inspector: servantParticipant.inspector,
+      motion: this.#servantMotion,
       canInspect: () => !this.#stopped,
+      door,
     });
     const actionHandler = {
       enter: () => this.#syncParticipantActions(),
@@ -162,6 +184,7 @@ export class CastleTerraceActivity {
     this.#royalBehavior.actionHandler = actionHandler;
     if (this.#servantBehavior) {
       this.#servantBehavior.actionHandler = actionHandler;
+      this.#servantBehavior.canComplete = () => this.#serviceActions.arrived;
     }
     this.#syncParticipantActions();
   }
@@ -301,6 +324,9 @@ export class CastleTerraceActivity {
     if (this.#stopped) {
       return;
     }
+    this.#syncParticipantActions();
+    this.#royalActions.update(deltaTime);
+    this.#servantMotion.update(deltaTime);
     if (!this.#doorActions.inspecting) {
       this.#wishFulfillment.update(this.#triggered);
       this.#royalBehavior.update(deltaTime);
@@ -312,6 +338,8 @@ export class CastleTerraceActivity {
 
   stop() {
     this.#stopped = true;
+    this.#royalActions.stop();
+    this.#servantMotion.stop();
     this.#royalBehavior.reset();
     this.#servantBehavior?.reset();
     this.#syncParticipantActions();
@@ -319,6 +347,8 @@ export class CastleTerraceActivity {
   }
 
   destroy() {
+    this.#royalActions.stop();
+    this.#servantMotion.stop();
     this.#royalBehavior.reset();
     this.#servantBehavior?.reset();
     this.#royalBehavior.actionHandler = null;
@@ -343,9 +373,9 @@ export class CastleTerraceActivity {
   }
 
   #syncParticipantActions() {
-    this.#stage.enabled = this.active;
+    this.#stage.enabled = true;
     this.#royalActions.sync(this.#royalBehavior);
-    if (this.#serviceActions) {
+    if (this.#serviceActions && !this.#doorActions?.inspecting) {
       this.#serviceActions.sync(this.#servantBehavior, this.#royalBehavior);
     }
   }

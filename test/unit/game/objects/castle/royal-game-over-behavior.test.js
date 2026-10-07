@@ -132,3 +132,17 @@ it("lets each royal choose a different place to stop outside", () => {
   });
   assert.notEqual(king.destination, king.destination);
 });
+
+it("keeps the walking state while a resident returns through the castle", () => {
+  let arrived = false;
+  const behavior = new KingGameOverBehavior({ walkDuration: 3.2, walkStartDelay: 0.2,
+    beginWalk() {}, move: () => arrived ? true : null, playAnimation() {} });
+  behavior.start();
+  for (let frame = 0; frame < 100; frame++) { behavior.update(0.1); }
+  assert.equal(behavior.phase, ROYAL_GAME_OVER_PHASE.WALK_OUT);
+  arrived = true;
+  behavior.update(1);
+  assert.equal(behavior.phase, ROYAL_GAME_OVER_PHASE.WALK_OUT);
+  behavior.update(3);
+  assert.equal(behavior.phase, ROYAL_GAME_OVER_PHASE.CRY);
+});

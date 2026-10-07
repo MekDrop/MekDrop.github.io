@@ -94,3 +94,17 @@ it("brings tea before the princess comes to drink it", () => {
   assert.equal(servant.fulfilledService, TERRACE_SERVICE.TEA);
   assert.equal(princess.onThrone, false);
 });
+
+
+it("holds the Yuka walking state until the resident arrives", () => {
+  const behavior = new KingTrainingBehavior(() => {});
+  let arrived = false;
+  behavior.canComplete = () => arrived;
+  behavior.requested = true;
+  const entering = behavior.phase;
+  behavior.update(100);
+  assert.equal(behavior.phase, entering);
+  arrived = true;
+  behavior.update(0.1);
+  assert.notEqual(behavior.phase, entering);
+});

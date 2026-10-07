@@ -167,10 +167,12 @@ export class NpcDoorAvoidance {
    * @param {import("playcanvas").Entity} door
    * @param {(point: Vector3) => boolean} inSwing
    * @param {(point: Vector3) => boolean} canMove
+   * @param {import("playcanvas").Entity|null} operator
    * @param {import("playcanvas").Entity|null} recipient
    */
-  static requestClearance(door, inSwing, canMove, recipient = null) {
+  static requestClearance(door, inSwing, canMove, recipient = null, operator = null) {
     for (const participant of this.#participants) {
+      if (operator && (participant.#entity === operator || participant.#entity.isDescendantOf(operator))) { continue; }
       if (recipient && participant.#entity !== recipient) { continue; }
       if (participant.#entity.root !== door.root || !participant.#entity.enabled) {
         continue;
@@ -216,11 +218,13 @@ export class NpcDoorAvoidance {
 
   /**
    * @param {import("playcanvas").Entity} door
+   * @param {import("playcanvas").Entity|null} operator
    * @param {(point: Vector3) => boolean} blocks
    * @returns {boolean}
    */
-  static occupied(door, blocks) {
+  static occupied(door, blocks, operator = null) {
     for (const participant of this.#participants) {
+      if (operator && (participant.#entity === operator || participant.#entity.isDescendantOf(operator))) { continue; }
       if (participant.#entity.root === door.root && participant.#entity.enabled &&
         blocks(participant.#entity.getPosition())) { return true; }
     }

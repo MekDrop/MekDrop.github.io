@@ -13,7 +13,7 @@ export class RoyalWalkOutState extends State {
 
   /**
    *
-   * @param {{isResumingReaction?: () => boolean, elapsed: number, deltaTime: number, walkDuration: number, walkStartDelay: number, beginWalk: () => void, move: (progress: number) => boolean, playAnimation: (animation: string) => void, completeWalk: () => void}} owner
+   * @param {{isResumingReaction?: () => boolean, elapsed: number, deltaTime: number, walkDuration: number, walkStartDelay: number, beginWalk: () => void, move: (progress: number) => boolean|null, playAnimation: (animation: string) => void, completeWalk: () => void}} owner
    */
   enter(owner) {
     if (owner.isResumingReaction?.()) { return; }
@@ -24,7 +24,7 @@ export class RoyalWalkOutState extends State {
 
   /**
    *
-   * @param {{isResumingReaction?: () => boolean, elapsed: number, deltaTime: number, walkDuration: number, walkStartDelay: number, beginWalk: () => void, move: (progress: number) => boolean, playAnimation: (animation: string) => void, completeWalk: () => void}} owner
+   * @param {{isResumingReaction?: () => boolean, elapsed: number, deltaTime: number, walkDuration: number, walkStartDelay: number, beginWalk: () => void, move: (progress: number) => boolean|null, playAnimation: (animation: string) => void, completeWalk: () => void}} owner
    */
   execute(owner) {
     owner.elapsed += owner.deltaTime;
@@ -39,6 +39,10 @@ export class RoyalWalkOutState extends State {
     const easedProgress =
       travelProgress * travelProgress * (3 - 2 * travelProgress);
     const pathClear = owner.move(easedProgress);
+    if (pathClear === null) {
+      owner.elapsed -= owner.deltaTime;
+      return;
+    }
     if (!pathClear || travelProgress === 1) {
       owner.completeWalk();
     }

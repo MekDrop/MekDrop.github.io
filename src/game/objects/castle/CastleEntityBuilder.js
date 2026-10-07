@@ -170,6 +170,10 @@ export class CastleEntityBuilder {
    */
   #terraceActivity = null;
   /**
+   * @type {CastleDoor|null}
+   */
+  #terraceDoor = null;
+  /**
    *
     * @type {CastleTerraceContext|null}
    */
@@ -609,6 +613,7 @@ export class CastleEntityBuilder {
     this.#residence?.destroy();
     this.#residence = null;
     this.#terraceActivity = null;
+    this.#terraceDoor = null;
     this.#terraceContext = null;
     this.#royal = null;
     this.#servant = null;
@@ -969,7 +974,7 @@ export class CastleEntityBuilder {
          * @param {boolean} atThrone
          */
         onRoyalAtThroneChange: (atThrone) => {
-          this.#audienceRoom.royalVisible = atThrone;
+          if (this.#audienceRoom) { this.#audienceRoom.royalVisible = atThrone; }
         },
       };
       this.#connectResidents();
@@ -988,7 +993,46 @@ export class CastleEntityBuilder {
     this.#residentsConnected = true;
     this.#terraceActivity = this.#royal.connectToCastle({
       ...this.#terraceContext,
-      emptyBalcony: Boolean(this.#residence),
+      door: this.#terraceDoor,
+      navigation: {
+        layout: this.#residence.layout,
+        blocked: /**
+         * @param {import("playcanvas").Vec3} point
+         * @param {boolean} avoidDoors
+         */ (point, avoidDoors = false) => (avoidDoors && this.#animatedDoors.some(/**
+           * @param {CastleDoor} door
+           */ (door) => door.openAmount > 0.02 && door.blocksCameraAt(point.x, point.y + 0.4, point.z, 0.22))) || this.#residence.blocksMovementAt(point.x, point.z, 0.22, point.y) ||
+          this.#cameraCollisionBlocks.some(/**
+           *
+           * @param {{x:number,y:number,z:number,halfX:number,halfY:number,halfZ:number}} block
+           */
+          (block) => {
+            if (block.y + block.halfY <= point.y + 0.32 || block.y - block.halfY >= point.y + 1.6) { return false; }
+            return Math.hypot(Math.max(0, Math.abs(point.x - block.x) - block.halfX),
+              Math.max(0, Math.abs(point.z - block.z) - block.halfZ)) < 0.22;
+          }),
+        clear: /**
+         * @param {import("playcanvas").Vec3} point
+         * @param {import("playcanvas").Entity} operator
+         */ (point, operator) => {
+          if (!point) {
+            for (const door of this.#animatedDoors) { if (door.operator === operator) { door.operator = null; } }
+            return true;
+          }
+          for (const door of this.#animatedDoors) {
+            if (Math.hypot(door.entity.getPosition().x - point.x, door.entity.getPosition().z - point.z) < 2.4 &&
+              Math.abs(door.entity.getPosition().y - point.y) < 2.8) {
+              door.operator = operator; door.openTemporarily(1);
+            }
+            else if (door.operator === operator) { door.operator = null; }
+          }
+          return !this.#animatedDoors.some(/**
+           *
+           * @param {import("./CastleDoor.js").CastleDoor} door
+           */
+          (door) => door.blocksCameraAt(point.x, point.y + 0.4, point.z, 0.22));
+        },
+      },
       servant: this.#servant,
       audienceRoom: this.#audienceRoom,
       /**
@@ -1055,6 +1099,9 @@ export class CastleEntityBuilder {
       });
       this.#entity.addChild(door.entity);
       this.#animatedDoors.push(door);
+      if (upperDoor.roomId === this.#buildPlan.metadata.runtime.terrace?.doorRoomId) {
+        this.#terraceDoor = door;
+      }
     }
 
   }

@@ -29,6 +29,10 @@ export class TerraceKing {
    */
   #actor;
   /**
+   * @type {import("playcanvas").Entity|null}
+   */
+  #performanceFrame = null;
+  /**
    *
     * @type {KingTerracePerformance|null}
    */
@@ -93,8 +97,27 @@ export class TerraceKing {
   }
 
   /**
-   *
-    * @returns {import("playcanvas").Entity}
+   * @param {import("playcanvas").Entity} value
+   */
+  set performanceFrame(value) { this.#performanceFrame = value; }
+
+  /**
+   * @returns {import("playcanvas").Entity}
+   */
+  get model() { return this.#actor.model; }
+
+  /**
+   * @returns {import("../shared/NpcStateMachine.js").NpcStateMachine}
+   */
+  get behavior() { return this.#actor.behavior; }
+
+  /**
+   * @param {import("../shared/NpcStateMachine.js").NpcStateMachine} value
+   */
+  set behavior(value) { this.#actor.behavior = value; }
+
+  /**
+   * @returns {import("playcanvas").Entity}
    */
   get entity() {
     return this.#actor.entity;
@@ -171,6 +194,12 @@ export class TerraceKing {
       this.#lastOffset = sample.offset;
       this.#lastYaw = sample.yaw;
     }
+    if (this.#performanceFrame) {
+      const vector = this.entity.getLocalPosition().clone().set(offset.x, offset.y, offset.z);
+      this.#performanceFrame.getWorldTransform().transformVector(vector, vector);
+      this.entity.parent.getWorldTransform().clone().invert().transformVector(vector, vector);
+      offset = vector;
+    }
     this.entity.setLocalPosition(
       this.#performanceOrigin.x + offset.x,
       this.#performanceOrigin.y + offset.y,
@@ -222,7 +251,7 @@ export class TerraceKing {
    */
   #play(name, sequenceStep, speed) {
     this.#actor.model.anim.speed = speed;
-    if (name === this.#animationName && sequenceStep === this.#animationStep) {
+    if (name === this.#animationName && sequenceStep === this.#animationStep && this.#animationLayer.activeState === name) {
       return;
     }
     if (name === this.#animationName) {

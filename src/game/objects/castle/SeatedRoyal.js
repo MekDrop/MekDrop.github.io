@@ -51,6 +51,22 @@ export class SeatedRoyal {
    */
   #entity;
   /**
+   * @type {import("playcanvas").Entity}
+   */
+  #model;
+  /**
+   * @type {import("./TerraceKing.js").TerraceKing|import("./TerraceQueen.js").TerraceQueen|import("./TerracePrincess.js").TerracePrincess|null}
+   */
+  #resident;
+  /**
+   * @type {import("./CastleResidentMotion.js").CastleResidentMotion|null}
+   */
+  #navigation = null;
+  /**
+   * @type {boolean}
+   */
+  #returning = false;
+  /**
    *
     * @type {KingGameOverBehavior|QueenGameOverBehavior|PrincessGameOverBehavior}
    */
@@ -79,7 +95,7 @@ export class SeatedRoyal {
    * @param {string} options.modelUrl
    * @param {string} options.modelLibrary
    */
-  constructor({ pc, app, modelUrl = kingModelUrl, modelLibrary }) {
+  constructor({ pc, app, modelUrl = kingModelUrl, modelLibrary, resident = null }) {
     const modelIndex = MODEL_URLS.indexOf(modelUrl);
     const kind = ["KING", "QUEEN", "PRINCESS"][modelIndex] ?? "KING";
     const GameOverBehaviorType =
@@ -87,27 +103,29 @@ export class SeatedRoyal {
     const walkAnimationSpeed = WALK_OUT_ANIMATION_SPEED * ROYAL_WALK_SPEED[kind];
     const walkDuration = 3.2 / walkAnimationSpeed;
     this.#walkDuration = walkDuration;
-    this.#entity = modelLibrary.instantiate(modelUrl);
+    this.#resident = resident;
+    this.#entity = resident?.entity ?? modelLibrary.instantiate(modelUrl);
+    this.#model = resident?.model ?? this.#entity;
     this.#entity.name = "Seated royal";
 
     const tracks = modelLibrary.getAnimationTracks(modelUrl, [
       ROYAL_ANIMATION.WALK_OUT,
       ROYAL_ANIMATION.CRY,
     ]);
-    this.#entity.addComponent("anim", { activate: true });
-    this.#entity.anim.addAnimationState(
+    if (!this.#model.anim) { this.#model.addComponent("anim", { activate: true }); }
+    this.#model.anim.addAnimationState(
       ROYAL_ANIMATION.WALK_OUT,
       tracks.get(ROYAL_ANIMATION.WALK_OUT),
       walkAnimationSpeed,
       false,
     );
-    this.#entity.anim.addAnimationState(
+    this.#model.anim.addAnimationState(
       ROYAL_ANIMATION.CRY,
       tracks.get(ROYAL_ANIMATION.CRY),
       1,
       true,
     );
-    this.#tears = new RoyalTears({ pc, app, royal: this.#entity });
+    this.#tears = new RoyalTears({ pc, app, royal: this.#model });
     this.#gameOverBehavior = new GameOverBehaviorType({
       walkDuration,
       walkStartDelay: WALK_START_DELAY,
@@ -125,9 +143,22 @@ export class SeatedRoyal {
       playAnimation: (animation, blendDuration) =>
         this.#playAnimation(animation, blendDuration),
     });
-    this.#doorAvoidance = new NpcDoorAvoidance(this.#entity, app);
-    this.#doorAvoidance.behavior = this.#gameOverBehavior.stateMachine;
+    if (!resident) {
+      this.#doorAvoidance = new NpcDoorAvoidance(this.#entity, app);
+      this.#doorAvoidance.behavior = this.#gameOverBehavior.stateMachine;
+    }
+    this.sit();
   }
+
+  /**
+   * @param {import("./CastleResidentMotion.js").CastleResidentMotion|null} value
+   */
+  set navigation(value) { this.#navigation = value; }
+
+  /**
+   * @returns {boolean}
+   */
+  get persistent() { return this.#resident !== null; }
 
   get entity() {
     return this.#entity;
@@ -147,6 +178,7 @@ export class SeatedRoyal {
    * @returns {number}
    */
   get terraceScale() {
+    if (this.#resident) { return CHARACTER_HEIGHT / this.#resident.height; }
     let bottom = Number.POSITIVE_INFINITY;
     let top = Number.NEGATIVE_INFINITY;
     for (const render of this.#entity.findComponents("render")) {
@@ -234,12 +266,24 @@ export class SeatedRoyal {
       isBlocked: route.isBlocked,
       getCameraPosition,
     };
+    if (this.#resident) { this.#resident.behavior = this.#gameOverBehavior.stateMachine; }
+    this.#model.anim.speed = 1;
     this.#gameOverBehavior.start();
   }
 
   /**
    *
-   * @param {{blendDuration: number}} options
+   * Restores the seated pose on the resident model.
+   */
+  sit() {
+    this.#model.anim.baseLayer.play(ROYAL_ANIMATION.WALK_OUT);
+    this.#model.anim.speed = 0;
+    this.#model.anim.baseLayer.activeStateCurrentTime = 0;
+    this.#model.anim.update(0);
+  }
+
+  /**
+   * @param {{blendDuration?:number}} options
    * @param {number} options.blendDuration
    */
   beginCrying({ blendDuration = 0 } = {}) {
@@ -252,10 +296,11 @@ export class SeatedRoyal {
    * @param {number} blendDuration
    */
   #playAnimation(animation, blendDuration = 0) {
+    this.#model.anim.speed = 1;
     if (blendDuration > 0) {
-      this.#entity.anim.baseLayer.transition(animation, blendDuration);
+      this.#model.anim.baseLayer.transition(animation, blendDuration);
     } else {
-      this.#entity.anim.baseLayer.play(animation);
+      this.#model.anim.baseLayer.play(animation);
     }
   }
 
@@ -265,25 +310,31 @@ export class SeatedRoyal {
    */
   update(deltaTime) {
     if (this.#gameOverBehavior.stateMachine.reacting) {
-      this.#suspendedAnimationSpeed ??= this.#entity.anim.speed;
-      this.#entity.anim.speed = 0;
+      this.#suspendedAnimationSpeed ??= this.#model.anim.speed;
+      this.#model.anim.speed = 0;
     } else if (this.#suspendedAnimationSpeed !== null) {
-      this.#entity.anim.speed = this.#suspendedAnimationSpeed;
+      this.#model.anim.speed = this.#suspendedAnimationSpeed;
       this.#suspendedAnimationSpeed = null;
     }
+    if (this.#returning) { this.#navigation.update(deltaTime); }
     this.#gameOverBehavior.update(deltaTime);
   }
 
   destroy() {
-    this.#doorAvoidance.destroy();
+    this.#doorAvoidance?.destroy();
     this.#tears?.destroy();
-    this.#entity?.destroy();
+    if (!this.#resident) { this.#entity?.destroy(); }
     this.#entity = null;
     this.#gameOverBehavior = null;
     this.#gameOverRoute = null;
   }
 
   #beginGameOverWalk() {
+    if (this.#navigation && this.#entity.getPosition().distance(this.#navigation.home) > 0.025) {
+      this.#returning = true;
+      this.#navigation.moveTo(this.#navigation.home);
+      return;
+    }
     this.#applyGameOverPose(this.#gameOverRoute.follower.pose);
   }
 
@@ -292,6 +343,12 @@ export class SeatedRoyal {
    * @param {number} progress
    */
   #moveGameOverWalk(progress) {
+    if (this.#returning) {
+      if (!this.#navigation.arrived) { return null; }
+      this.#returning = false;
+      this.#playAnimation(ROYAL_ANIMATION.WALK_OUT);
+      this.#model.anim.speed = 1;
+    }
     const pose = this.#gameOverRoute.follower.advance(progress);
     const { position } = pose;
     if (

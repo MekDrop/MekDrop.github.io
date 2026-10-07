@@ -24,6 +24,10 @@ export class AbstractRoyal {
    */
   #audienceActor;
   /**
+   * @type {import("../castle/TerraceKing.js").TerraceKing|import("../castle/TerraceQueen.js").TerraceQueen|import("../castle/TerracePrincess.js").TerracePrincess}
+   */
+  #resident;
+  /**
    *
     * @type {CastleTerraceActivity}
    */
@@ -107,7 +111,9 @@ export class AbstractRoyal {
     this.#BehaviorType = BehaviorType;
     this.#entity = new pc.Entity(`${definition.id} royal`);
     this.#entity.tags.add("map-object", definition.id, this.constructor.name);
+    this.#resident = new RoyalType({ pc, modelLibrary, performanceSeed: definition.seed ?? 0 });
     this.#audienceActor = new SeatedRoyal({
+      resident: this.#resident,
       pc,
       app,
       modelLibrary,
@@ -159,9 +165,6 @@ export class AbstractRoyal {
     this.#audienceRoom = audienceRoom;
     this.#isBlocked = isBlocked;
     this.#prepareGameOver = prepareGameOver;
-    if (activityOptions.emptyBalcony) {
-      return null;
-    }
     this.#activity = new CastleTerraceActivity({
       ...activityOptions,
       royal: this,
@@ -179,15 +182,25 @@ export class AbstractRoyal {
    * @param {(atThrone: boolean) => void} options.onRoyalAtThroneChange
    * @param {import("playcanvas").Entity} options.stage
    */
-  createTerraceParticipant({ pc, modelLibrary, onRoyalAtThroneChange, stage }) {
-    this.#behavior = new this.#BehaviorType(onRoyalAtThroneChange);
+  createTerraceParticipant({ pc, modelLibrary, onRoyalAtThroneChange, stage, navigation }) {
+    this.#behavior = new this.#BehaviorType(/**
+     *
+     * @param {boolean} atThrone
+     */
+    (atThrone) => {
+      if (atThrone) { this.#audienceActor.sit(); }
+      onRoyalAtThroneChange(atThrone);
+    });
     this.#actions = new TerraceRoyalActions({
       RoyalType: this.#RoyalType,
+      actor: this.#resident,
+      navigation,
       pc,
       modelLibrary,
       performanceSeed: this.#definition.seed ?? 0,
       stage,
     });
+    this.#audienceActor.navigation = this.#actions.motion;
     this.#actions.actor.behavior = this.#behavior;
     return {
       kind: this.#RoyalType.kind,
@@ -222,6 +235,8 @@ export class AbstractRoyal {
     this.#behavior = null;
     this.#audienceActor?.destroy();
     this.#audienceActor = null;
+    this.#resident?.destroy();
+    this.#resident = null;
     this.#entity?.destroy();
     this.#entity = null;
     this.#audienceRoom = null;

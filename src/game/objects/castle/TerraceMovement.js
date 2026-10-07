@@ -71,7 +71,7 @@ export const syncTerraceWalk = ({
   ));
   actor.entity.setLocalPosition(
     target[0] * lateral,
-    -1.05 * (1 - stairProgress),
+    (actor.entity.parent?.tags.has("flat-terrace-entry") ? 0 : -1.05) * (1 - stairProgress),
     z,
   );
   const path = lateral > 0 && lateral < 1

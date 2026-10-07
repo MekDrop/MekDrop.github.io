@@ -237,3 +237,24 @@ it("returns to its previous state at the safe sidestep if the old spot stays blo
     assert.ok(npc.getPosition().x > .9, "never returns into the blocked spot");
   } finally { behavior.destroy(); }
 });
+
+it("keeps the door operator at the handle while bystanders still yield", () => {
+  const { app, root, door, npc, behavior } = scene();
+  const operator = new pc.Entity("Door operator");
+  root.addChild(operator);
+  operator.addChild(npc);
+  const bystander = new pc.Entity("Bystander");
+  root.addChild(bystander);
+  const avoidance = new NpcDoorAvoidance(bystander, app);
+  try {
+    NpcDoorAvoidance.requestClearance(door, () => true, () => false, null, operator);
+    assert.equal(behavior.phase, PHASE.IDLE);
+    assert.equal(avoidance.phase, PHASE.WAIT);
+    bystander.enabled = false;
+    assert.equal(NpcDoorAvoidance.occupied(door, () => true, operator), false);
+    assert.equal(NpcDoorAvoidance.occupied(door, () => true), true);
+  } finally {
+    behavior.destroy();
+    avoidance.destroy();
+  }
+});

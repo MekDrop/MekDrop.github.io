@@ -149,3 +149,29 @@ it("keeps the world entrance fixed when odd seeds mirror the castle in each orie
     assert.equal(b.maxX, -a.minX);
   }
 });
+
+it("places restored royal activities on an open terrace in every entrance orientation", async () => {
+  for (const side of ["NORTH", "SOUTH", "WEST", "EAST"]) {
+    for (const seed of [0, 1]) {
+      const plan = await CastleGenerator.generate({ position: { x: -8, z: -8, width: 16, depth: 16, elevation: 3 },
+        doors: [{ side, offset: 7, width: 2 }], seed });
+      const activity = plan.metadata.runtime.terrace;
+      assert.ok(activity, "authored castles provide a terrace activity location");
+      assert.ok(activity.depth > 0 && activity.width > 0);
+      const entrance = plan.metadata.runtime.roomDoors.find((door) => door.roomId === activity.doorRoomId);
+      assert.ok(entrance, "the sequence reuses an authored door");
+      assert.deepEqual([activity.x, activity.y, activity.z], [entrance.x, entrance.y, entrance.z]);
+      const layout = new CastleResidentialLayout(plan);
+      const angle = activity.yaw * Math.PI / 180;
+      const scale = Math.min(0.45, activity.depth / 5.5, activity.width / 4.2);
+      for (const [x, z] of [[0, 0], [0, 1.6 * scale], [0, 3.1 * scale], [-0.75 * scale, 3.2 * scale]]) {
+        const point = { x: activity.x + Math.cos(angle) * x + Math.sin(angle) * z,
+          z: activity.z - Math.sin(angle) * x + Math.cos(angle) * z };
+        const local = layout.toLocal(point.x, point.z);
+        assert.ok(plan.layout.roomPlan.spaces.some((area) => area.kind === "terrace" &&
+          area.floorY === activity.y && local.x >= area.minX - 0.00001 && local.x <= area.maxX + 0.00001 &&
+          local.z >= area.minZ - 0.00001 && local.z <= area.maxZ + 0.00001), "inspection and royal destinations stay on the terrace floor");
+      }
+    }
+  }
+});

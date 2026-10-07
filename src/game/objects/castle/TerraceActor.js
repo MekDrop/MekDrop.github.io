@@ -105,7 +105,7 @@ export class TerraceActor {
     avoidanceRoot.addChild(this.#body);
     this.#body.addChild(this.#model);
 
-    // Terrace clones deliberately do not play the throne's WalkOut/Cry tracks.
+    // The role controller chooses the current animation on this resident model.
     for (const component of this.#model.findComponents("anim")) {
       component.enabled = false;
     }
@@ -382,7 +382,7 @@ export class TerraceActor {
     if (!duration) {
       return;
     }
-    if (this.#animationName !== name) {
+    if (this.#animationName !== name || this.#animationLayer.activeState !== name) {
       this.#animationLayer.play(name);
       this.#animationName = name;
     }

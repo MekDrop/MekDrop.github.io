@@ -25,6 +25,15 @@ export class TerraceParticipantStateMachine extends NpcStateMachine {
     * @type {{enter?: (state: import("./states/terrace/AbstractTerraceParticipantState.js").AbstractTerraceParticipantState, machine: TerraceParticipantStateMachine) => void, update?: (state: import("./states/terrace/AbstractTerraceParticipantState.js").AbstractTerraceParticipantState, machine: TerraceParticipantStateMachine) => void, exit?: (state: import("./states/terrace/AbstractTerraceParticipantState.js").AbstractTerraceParticipantState, machine: TerraceParticipantStateMachine) => void}|null}
    */
   #actionHandler = null;
+  /**
+   * @type {(() => boolean)|null}
+   */
+  #canComplete = null;
+
+  /**
+   * @param {(() => boolean)|null} value
+   */
+  set canComplete(value) { this.#canComplete = value; }
 
   /**
    *
@@ -188,6 +197,10 @@ export class TerraceParticipantStateMachine extends NpcStateMachine {
    */
   completeState(state) {
     if (this.#elapsed < state.duration) {
+      return;
+    }
+    if (this.#canComplete && !this.#canComplete()) {
+      this.#elapsed = state.duration;
       return;
     }
     const remaining = this.#elapsed - state.duration;

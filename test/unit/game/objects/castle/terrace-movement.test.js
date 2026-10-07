@@ -100,3 +100,14 @@ it("keeps leaving direction, carry animation, and walk phase semantics", () => {
   }
   assert.deepEqual(finished.calls.pose, ["idle", 3.125]);
 });
+
+it("keeps participants on the floor when entering through an existing room door", () => {
+  const { actor, calls } = createActor();
+  actor.entity.parent = { tags: { has: (tag) => tag === "flat-terrace-entry" } };
+  for (const leaving of [false, true]) {
+    for (const elapsed of [0, 0.9, 1.3, 2.2, 3.2]) {
+      syncTerraceWalk({ actor, target: TARGET, leaving, behavior: { duration: 3.2, elapsed } });
+      assert.equal(Math.abs(calls.position[1]), 0);
+    }
+  }
+});

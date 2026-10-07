@@ -240,3 +240,24 @@ it("mirrors the interior hinge and animated leaf while keeping collision and pic
     }
   }
 });
+
+it("lets terrace choreography request a swing without bypassing hero clearance", () => {
+  const { door } = upperDoor();
+  let openings = 0;
+  door.onOpen = () => { openings++; return true; };
+  assert.equal(door.handlePointerDown(), true);
+  assert.equal(openings, 1);
+  door.sequenceOpenAmount = 1;
+  door.update(1);
+  assert.ok(Math.abs(door.openAmount - 1) < 0.000001);
+  door.updateHeroPosition({ x: 0, y: 3, z: 1.5 });
+  assert.equal(openings, 2);
+  door.sequenceOpenAmount = 0;
+  door.update(1);
+  assert.ok(Math.abs(door.openAmount - 1) < 0.000001, "a hero in the doorway prevents closure");
+  door.updateHeroPosition({ x: 20, y: 3, z: 20 });
+  door.update(1);
+  assert.ok(door.openAmount < 0.000001);
+  door.onOpen = null;
+  door.sequenceOpenAmount = null;
+});

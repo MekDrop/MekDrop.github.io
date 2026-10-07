@@ -484,13 +484,32 @@ export class CastleAuthoredBuildPlan {
       roomDoors.push({ ...world(x, z, door.floorY), roomId: door.roomId, width: door.width, height: door.height - 0.05, mirrored: authored.mirrored,
         yaw: yaw + { NORTH: 180, SOUTH: 0, WEST: -90, EAST: 90 }[door.side] + (door.swing === "inward" ? 180 : 0), openingInset: door.openingInset ?? 0 });
     }
+    const terraceEntrance = roomDoors.find(/**
+     * @param {{roomId:string}} door
+     */
+    (door) => door.roomId === "upper-stair-room");
+    const leisure = spaces.find(/**
+     * @param {import("./CastleBasePlanGenerator.js").CompiledCastleSpace} space
+     */
+    (space) => space.kind === "terrace" && space.maxZ === rooms["upper-stair-room"]?.minZ);
+    // Use the authored upper landing doorway; never add a second stairhead.
+    const entrance = openings.find(/**
+     * @param {import("./CastleBasePlanGenerator.js").CompiledCastleOpening} opening
+     */
+    (opening) => opening.roomId === "upper-stair-room" && opening.kind === "door");
+    const terrace = leisure && terraceEntrance && entrance ? {
+      x: terraceEntrance.x, y: terraceEntrance.y, z: terraceEntrance.z,
+      yaw: yaw + 180, doorRoomId: terraceEntrance.roomId,
+      width: 2 * Math.min(entrance.center - leisure.minX, leisure.maxX - entrance.center) - 0.4,
+      depth: leisure.maxZ - leisure.minZ - 0.25,
+    } : null;
     return { input: { ...options, doors: adaptedDoors, requestedStyle: options.requestedStyle ?? authored.basePlanId },
       layout: { empty: false, basePlanId: authored.basePlanId, baseY, primarySide: side, widthBlocks: position.width * 4,
         depthBlocks: position.depth * 4, facadeSpan: transverse * 4, castleDepth: inward * 4,
         worldLeft: position.x, worldTop: position.z, style: { id: authored.basePlanId, wallHeightBlocks: 15, towerSpanBlocks: 6 },
         openings: [{ boundary: "FRONT", start: adaptedDoors[0].offset * 4, end: (adaptedDoors[0].offset + adaptedDoors[0].width) * 4 }], roomPlan: residential },
       structure: { wall: { towerSpan: 6, wallHeight: 15 }, towers: [], gatehouses: [], audienceWing: null }, geometry,
-      metadata: { runtime: { residential, roomDoors, terrace: null, audienceOpening: null, interiorWidth: rooms.work.maxX - rooms.work.minX,
+      metadata: { runtime: { residential, roomDoors, terrace, audienceOpening: null, interiorWidth: rooms.work.maxX - rooms.work.minX,
         interiorDepth: rooms.work.maxZ - rooms.work.minZ }, collision: { blockSize: 0.25, groundCourse: 0,
         groundColumns, cameraBlocks, cameraBlockHalfExtents: { x: 0.125, y: 0.125, z: 0.125 } } } };
   }

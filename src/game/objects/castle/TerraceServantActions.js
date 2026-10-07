@@ -32,6 +32,14 @@ export class TerraceServantActions {
     * @type {number}
    */
   #visit = -1;
+  /**
+   * @type {import("./CastleResidentMotion.js").CastleResidentMotion|null}
+   */
+  #motion = null;
+  /**
+   * @type {import("playcanvas").Entity}
+   */
+  #stage;
 
   /**
    *
@@ -40,7 +48,10 @@ export class TerraceServantActions {
    * @param {string} options.modelLibrary
    * @param {import("playcanvas").Entity} options.stage
    */
-  constructor({ pc, modelLibrary, stage }) {
+  constructor({ pc, modelLibrary, stage, actor = null, motion = null }) {
+    this.#stage = stage;
+    this.#motion = motion;
+    if (actor) { this.#servant = actor; return; }
     for (const modelUrl of TerraceServantActions.modelUrls) {
       const actor = new TerraceActor({
         pc,
@@ -58,6 +69,11 @@ export class TerraceServantActions {
     this.#servant = this.#servants[0];
   }
 
+  /**
+   * @returns {boolean}
+   */
+  get arrived() { return this.#motion?.arrived ?? true; }
+
   get actor() {
     return this.#servant;
   }
@@ -68,6 +84,7 @@ export class TerraceServantActions {
    */
   sync(behavior) {
     if (behavior.reacting) { return; }
+    if (this.#motion) { this.#syncResident(behavior); return; }
     if (this.#visit !== behavior.visitId) {
       this.#visit = behavior.visitId;
       for (const servant of this.#servants) {
@@ -110,6 +127,27 @@ export class TerraceServantActions {
         : 2 * (phase === PHASE.PACK
           ? 1 - behavior.progress : behavior.progress),
     );
+  }
+
+  /**
+   * @param {import("./TerraceServantBehavior.js").TerraceServantBehavior} behavior
+   */
+  #syncResident(behavior) {
+    this.#servant.behavior = behavior;
+    const phase = behavior.stagePhase;
+    const enter = [PHASE.SERVANT_ENTER, PHASE.SERVANT_RETURN].includes(phase);
+    const leave = [PHASE.SERVANT_EXIT, PHASE.SERVANT_LEAVE].includes(phase);
+    if (enter || leave) {
+      const target = behavior.cargo === "chair" ? [-0.75, 0, 4]
+        : behavior.cargo === "sunbed" ? [0, 0, 4] : [0.65, 0, 4];
+      const point = this.#servant.entity.getPosition().clone().set(...target);
+      this.#motion.moveTo(leave ? this.#motion.home
+        : this.#stage.getWorldTransform().transformPoint(point, point), behavior.action);
+      if (this.#motion.arrived) { this.#servant.pose(behavior.action === "carry" ? "carry" : "idle", behavior.elapsed); }
+    } else if ([PHASE.FURNISH, PHASE.POUR, PHASE.PACK].includes(phase)) {
+      this.#servant.pose(behavior.action, phase === PHASE.POUR ? behavior.elapsed
+        : 2 * (phase === PHASE.PACK ? 1 - behavior.progress : behavior.progress));
+    }
   }
 
   destroy() {

@@ -1,5 +1,6 @@
 import servantModelUrl from "../../models/castle/leisure/servant.glb?url";
 import { CHARACTER_HEIGHT } from "../../config/character-size.js";
+import { CastleResidentMotion } from "../castle/CastleResidentMotion.js";
 import { TerraceActor } from "../castle/TerraceActor.js";
 import { TerraceServantBehavior } from "../castle/TerraceServantBehavior.js";
 import { TerraceServiceActions } from "../castle/TerraceServiceActions.js";
@@ -46,6 +47,10 @@ export class Servant {
    * @type {TerraceActor|null}
    */
   #resident = null;
+  /**
+   * @type {CastleResidentMotion|null}
+   */
+  #motion = null;
 
   /**
    *
@@ -145,12 +150,13 @@ export class Servant {
    * @param {string} options.kind
    * @param {import("../royal/AbstractRoyal.js").AbstractRoyal} options.royal
    */
-  createTerraceParticipant({ pc, modelLibrary, layout, scale, kind, royal }) {
-    this.#entity.setLocalPosition(layout.x, layout.y, layout.z);
-    this.#entity.setLocalEulerAngles(0, layout.yaw, 0);
+  createTerraceParticipant({ pc, modelLibrary, layout, scale, kind, royal, navigation }) {
     const stage = new pc.Entity("Servant terrace stage");
     stage.setLocalScale(scale, scale, scale);
     this.#entity.addChild(stage);
+    stage.setPosition(layout.x, layout.y, layout.z);
+    stage.setEulerAngles(0, layout.yaw, 0);
+    this.#motion = new CastleResidentMotion({ actor: this.#resident, ...navigation });
     this.#behavior = kind === "king" ? null : new TerraceServantBehavior();
     this.#serviceActions =
       kind === "king"
@@ -161,18 +167,15 @@ export class Servant {
             stage,
             kind,
             royal,
+            actor: this.#resident,
+            motion: this.#motion,
           });
-    this.#inspector = new TerraceActor({
-      pc,
-      modelLibrary,
-      modelUrl: servantModelUrl,
-      kind: "servant",
-    });
-    this.#entity.addChild(this.#inspector.entity);
+    this.#inspector = this.#resident;
     return {
       behavior: this.#behavior,
       serviceActions: this.#serviceActions,
       inspector: this.#inspector,
+      motion: this.#motion,
     };
   }
 
@@ -182,7 +185,7 @@ export class Servant {
     this.#residence = null;
     this.#serviceActions?.destroy();
     this.#serviceActions = null;
-    this.#inspector?.destroy();
+    this.#motion = null;
     this.#inspector = null;
     this.#behavior = null;
     this.#entity?.destroy();

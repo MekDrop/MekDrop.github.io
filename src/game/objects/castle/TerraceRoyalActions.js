@@ -1,4 +1,5 @@
 import { CASTLE_TERRACE_PHASE as PHASE } from "../../enum/CastleTerracePhase.js";
+import { CastleResidentMotion } from "./CastleResidentMotion.js";
 import { CHARACTER_HEIGHT } from "../../config/character-size.js";
 import { syncTerraceWalk, terracePathYaw } from "./TerraceMovement.js";
 
@@ -39,6 +40,22 @@ export class TerraceRoyalActions {
     * @type {number}
    */
   #activityTime = 0;
+  /**
+   * @type {CastleResidentMotion|null}
+   */
+  #motion = null;
+  /**
+   * @type {import("playcanvas").Entity}
+   */
+  #stage;
+  /**
+   * @type {boolean}
+   */
+  #ownsActor;
+  /**
+   * @type {import("playcanvas").Quat}
+   */
+  #homeRotation;
 
   /**
    *
@@ -49,13 +66,36 @@ export class TerraceRoyalActions {
    * @param {number|string} options.performanceSeed
    * @param {import("playcanvas").Entity} options.stage
    */
-  constructor({ RoyalType, pc, modelLibrary, performanceSeed, stage }) {
+  constructor({ RoyalType, pc, modelLibrary, performanceSeed, stage, actor = null, navigation = null }) {
     this.#kind = RoyalType.kind;
-    this.#royal = new RoyalType({ pc, modelLibrary, performanceSeed });
+    this.#stage = stage;
+    this.#homeRotation = actor?.entity.getRotation().clone();
+    this.#ownsActor = !actor;
+    this.#royal = actor ?? new RoyalType({ pc, modelLibrary, performanceSeed });
+    if (actor && navigation) {
+      if (this.#kind === "king") { actor.performanceFrame = stage; }
+      this.#motion = new CastleResidentMotion({ actor, ...navigation });
+      return;
+    }
     const scale = CHARACTER_HEIGHT / (this.#royal.height * stage.getLocalScale().y);
     this.#royal.entity.setLocalScale(scale, scale, scale);
     stage.addChild(this.#royal.entity);
   }
+
+  /**
+   * @returns {boolean}
+   */
+  get arrived() { return this.#motion?.arrived ?? true; }
+
+  /**
+   * @param {number} deltaTime
+   */
+  update(deltaTime) { this.#motion?.update(deltaTime); }
+
+  /**
+   * @returns {CastleResidentMotion|null}
+   */
+  get motion() { return this.#motion; }
 
   get actor() {
     return this.#royal;
@@ -82,6 +122,27 @@ export class TerraceRoyalActions {
   sync(behavior) {
     if (behavior.reacting) { return; }
     const phase = behavior.stagePhase;
+    if (this.#motion) {
+      if ([PHASE.ROYAL_ENTER, PHASE.ROYAL_EXIT].includes(phase)) {
+        const target = this.#kind === "queen" ? QUEEN_APPROACH_POSITION
+          : this.#kind === "princess" ? [-0.75, 0, 3.2] : [0, 0, 3.1];
+        this.#motion.moveTo(phase === PHASE.ROYAL_EXIT ? this.#motion.home
+          : this.#world(...target));
+        return;
+      }
+      if (![PHASE.SETTLE, PHASE.ACTIVITY, PHASE.RISE].includes(phase)) {
+        if (behavior.onThrone && this.#motion.arrived) { this.#royal.entity.setRotation(this.#homeRotation); }
+        return;
+      }
+      if (phase === PHASE.ACTIVITY) { this.#activityTime = behavior.elapsed; }
+      if (phase === PHASE.SETTLE) { this.#activityTime = 0; }
+      if (this.#kind === "queen") { this.#syncQueen(behavior); return; }
+      const target = this.#kind === "princess" ? [-0.75, 0, 3.2] : [0, 0, 3.1];
+      this.#place(...target, this.#kind === "princess" ? 90 : 0);
+      this.#royal.pose(behavior.action, this.#activityTime, phase === PHASE.SETTLE
+        ? behavior.progress : phase === PHASE.RISE ? 1 - behavior.progress : 1);
+      return;
+    }
     const visible = [PHASE.ROYAL_ENTER, PHASE.SETTLE, PHASE.ACTIVITY,
       PHASE.RISE, PHASE.ROYAL_EXIT].includes(phase);
     this.#royal.entity.enabled = visible;
@@ -120,8 +181,11 @@ export class TerraceRoyalActions {
     this.#royal.pose(behavior.action, this.#activityTime, blend);
   }
 
+  stop() { this.#motion?.stop(); }
+
   destroy() {
-    this.#royal.destroy();
+    this.stop();
+    if (this.#ownsActor) { this.#royal.destroy(); }
     this.#royal = null;
   }
 
@@ -141,8 +205,7 @@ export class TerraceRoyalActions {
       this.#poseQueenOnSunbed(progress, behavior.action);
       return;
     }
-    this.#royal.entity.setLocalPosition(...QUEEN_REST_POSITION);
-    this.#royal.entity.setLocalEulerAngles(0, 0, 0);
+    this.#place(...QUEEN_REST_POSITION, 0);
     this.#royal.pose(behavior.action, this.#activityTime);
   }
 
@@ -169,7 +232,7 @@ export class TerraceRoyalActions {
     ));
     this.#royal.entity.setLocalPosition(
       position.x,
-      -1.05 * (1 - stairProgress),
+      (this.#royal.entity.parent?.tags.has("flat-terrace-entry") ? 0 : -1.05) * (1 - stairProgress),
       position.z,
     );
     const yaw = terracePathYaw([before, after], leaving);
@@ -207,6 +270,32 @@ export class TerraceRoyalActions {
 
   /**
    *
+   * @param {number} x
+   * @param {number} y
+   * @param {number} z
+   */
+  #world(x, y, z) {
+    const point = this.#royal.entity.getPosition().clone().set(x, y, z);
+    return this.#stage.getWorldTransform().transformPoint(point, point);
+  }
+
+  /**
+   * @param {number} x
+   * @param {number} y
+   * @param {number} z
+   * @param {number} yaw
+   */
+  #place(x, y, z, yaw) {
+    if (this.#motion) {
+      this.#royal.entity.setPosition(this.#world(x, y, z));
+      this.#royal.entity.setEulerAngles(0, this.#stage.getEulerAngles().y + yaw, 0);
+    } else {
+      this.#royal.entity.setLocalPosition(x, y, z);
+      this.#royal.entity.setLocalEulerAngles(0, yaw, 0);
+    }
+  }
+
+  /**
    * @param {number} progress
    * @param {string} action
    */
@@ -219,8 +308,7 @@ export class TerraceRoyalActions {
     const y = 0.18 * sitting * (1 - feetUp);
     const z = QUEEN_APPROACH_POSITION[2] +
       (QUEEN_REST_POSITION[2] - QUEEN_APPROACH_POSITION[2]) * feetUp;
-    this.#royal.entity.setLocalPosition(x, y, z);
-    this.#royal.entity.setLocalEulerAngles(0, -90 * (1 - feetUp), 0);
+    this.#place(x, y, z, -90 * (1 - feetUp));
     this.#royal.pose(action, phase);
   }
 }

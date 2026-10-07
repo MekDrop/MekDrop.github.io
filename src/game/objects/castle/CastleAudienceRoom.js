@@ -325,7 +325,7 @@ export class CastleAudienceRoom {
 
   set royalVisible(visible) {
     if (this.#occupant) {
-      this.#occupant.entity.enabled = visible || this.#gameOverPerformance;
+      this.#occupant.entity.enabled = visible || this.#gameOverPerformance || this.#occupant.persistent;
     }
   }
 

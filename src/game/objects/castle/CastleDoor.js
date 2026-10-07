@@ -93,6 +93,45 @@ export class CastleDoor {
     * @type {number}
    */
   #openAmount = 0;
+
+  /**
+   * @type {number|null}
+   */
+  #sequenceOpenAmount = null;
+
+  /**
+   * @type {(() => boolean)|null}
+   */
+  #onOpen = null;
+
+  /**
+   * @type {import("playcanvas").Entity|null}
+   */
+  #operator = null;
+
+  /**
+   * @returns {import("playcanvas").Entity|null}
+   */
+  get operator() { return this.#operator; }
+
+  /**
+   * @param {import("playcanvas").Entity|null} actor
+   */
+  set operator(actor) { this.#operator = actor; }
+
+  get openAmount() { return this.#openAmount; }
+
+  /**
+   * The existing collision-aware update still owns the animated leaf.
+   * @param {number|null} value
+   */
+  set sequenceOpenAmount(value) { this.#sequenceOpenAmount = value; }
+
+  /**
+   * @param {(() => boolean)|null} callback
+   */
+  set onOpen(callback) { this.#onOpen = callback; }
+
   /**
    *
     * @type {number}
@@ -251,6 +290,9 @@ export class CastleDoor {
   }
 
   handlePointerDown() {
+    if (this.#onOpen) {
+      return this.#onOpen();
+    }
     this.openTemporarily();
     return true;
   }
@@ -266,6 +308,7 @@ export class CastleDoor {
       this.#targetOpen = false;
       return;
     }
+    const wasOpen = this.#targetOpen;
     const deltaX = x - this.#center.x;
     const deltaZ = z - this.#center.z;
     const insideDistance = deltaX * this.#inward.x + deltaZ * this.#inward.z;
@@ -281,6 +324,7 @@ export class CastleDoor {
         // Leave time for a full leaf to swing clear before a running visitor reaches it.
         alignedWithDoor && Math.abs(insideDistance) <= Math.max(OPEN_DISTANCE, this.#width + 1.3);
     }
+    if (this.#targetOpen && !wasOpen) { this.#onOpen?.(); }
   }
 
   /**
@@ -292,9 +336,9 @@ export class CastleDoor {
       0,
       this.#manualOpenRemaining - deltaTime,
     );
-    const target = Number(this.#shouldOpen());
+    const target = Math.max(Number(this.#shouldOpen()), this.#sequenceOpenAmount ?? 0);
     if (Math.abs(target - this.#openAmount) > 0.000001 && this.#canNpcMove) {
-      NpcDoorAvoidance.requestClearance(this.#entity, this.#inNpcSwing, this.#canNpcMove);
+      NpcDoorAvoidance.requestClearance(this.#entity, this.#inNpcSwing, this.#canNpcMove, null, this.#operator);
     }
     const amount = OPEN_SPEED * Math.max(0, deltaTime);
     const destination = this.#openAmount < target
@@ -322,7 +366,7 @@ export class CastleDoor {
        */
       (point) =>
         this.#collision.blocksAt(point.x, point.y + 0.6, point.z, 0.5) ||
-        this.#collision.blocksAt(point.x, point.y + 1.5, point.z, 0.5));
+        this.#collision.blocksAt(point.x, point.y + 1.5, point.z, 0.5), this.#operator);
       if (obstructed || npcObstructed) {
         this.#openAmount = previous;
         break;
@@ -359,6 +403,9 @@ export class CastleDoor {
     this.#entity?.destroy();
     this.#entity = null;
     this.#animationLayer = null;
+    this.#onOpen = null;
+    this.#operator = null;
+    this.#sequenceOpenAmount = null;
   }
 
   /**

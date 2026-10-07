@@ -43,7 +43,7 @@ export class TerraceDoorActions {
   #stage;
   /**
    *
-    * @type {TerraceDoor}
+    * @type {TerraceDoor|import("./CastleDoor.js").CastleDoor}
    */
   #door;
   /**
@@ -61,6 +61,14 @@ export class TerraceDoorActions {
     * @type {() => boolean}
    */
   #canInspect;
+  /**
+   * @type {boolean}
+   */
+  #ownsDoor;
+  /**
+   * @type {import("./CastleResidentMotion.js").CastleResidentMotion|null}
+   */
+  #motion;
 
   /**
    *
@@ -73,6 +81,7 @@ export class TerraceDoorActions {
    * @param {import("playcanvas").Entity} options.stage
    * @param {number} options.scale
    * @param {import("./TerraceActor.js").TerraceActor} options.inspector
+   * @param {import("./CastleDoor.js").CastleDoor|null} options.door
    * @param {boolean} options.canInspect
    */
   constructor({
@@ -84,26 +93,34 @@ export class TerraceDoorActions {
     stage,
     inspector,
     canInspect,
+    door = null,
+    motion = null,
   }) {
     this.#pc = pc;
+    this.#motion = motion;
+    this.#inspection.canComplete = () => !this.#motion ||
+      ![INSPECTION.NOTICE, INSPECTION.WALK_OUT, INSPECTION.RETURN, INSPECTION.LEAVE].includes(this.#inspection.phase) || this.#motion.arrived;
     this.#root = root;
     this.#stage = stage;
     this.#canInspect = canInspect;
-    this.#door = new TerraceDoor({
-      pc,
-      modelLibrary,
-      wallMaterial,
-      woodMaterial,
-      onOpen: () => this.#canInspect() && this.#inspection.start(),
-    });
-    this.#door.entity.setLocalPosition(0, 0, DOORWAY_POSITION_Z);
-    root.addChild(this.#door.entity);
+    this.#ownsDoor = !door;
+    const onOpen = () => this.#canInspect() && this.#inspection.start();
+    if (door) {
+      this.#door = door;
+      door.onOpen = onOpen;
+    } else {
+      this.#door = new TerraceDoor({
+        pc, modelLibrary, wallMaterial, woodMaterial, onOpen,
+      });
+      this.#door.entity.setLocalPosition(0, 0, DOORWAY_POSITION_Z);
+      root.addChild(this.#door.entity);
+    }
     this.#inspector = inspector;
     this.#inspector.behavior = this.#inspection;
-    this.#inspector.entity.name = "Terrace door inspecting servant";
+    if (!motion) { this.#inspector.entity.name = "Terrace door inspecting servant"; }
     const actorScale = CHARACTER_HEIGHT / this.#inspector.height;
     this.#inspector.entity.setLocalScale(actorScale, actorScale, actorScale);
-    this.#inspector.entity.enabled = false;
+    if (!this.#motion) { this.#inspector.entity.enabled = false; }
   }
 
   /**
@@ -125,7 +142,7 @@ export class TerraceDoorActions {
       inspectionAnimation: this.#inspection.animation,
       inspectorVisible: this.#inspector.entity.enabled,
       handleGripDistance:
-        this.#inspection.phase === INSPECTION.CLOSE
+        this.#ownsDoor && this.#inspection.phase === INSPECTION.CLOSE
           ? this.#inspector.rightHand
               .getPosition()
               .distance(this.#door.insideHandle.getPosition())
@@ -147,11 +164,19 @@ export class TerraceDoorActions {
       PHASE.SERVANT_RETURN,
       PHASE.SERVANT_LEAVE,
     ].includes(participantPhase);
+    if (this.#motion) { this.#syncResidentInspector(); }
     this.#inspection.update(
-      deltaTime,
+      !this.#ownsDoor && this.#inspection.phase === INSPECTION.CLOSE &&
+        this.#inspection.progress >= 0.95 && this.#door.openAmount > 0.02 ? 0 : deltaTime,
       ![PHASE.DORMANT, PHASE.ACTIVITY].includes(participantPhase),
     );
-    if (this.#inspection.phase === INSPECTION.CLOSE) {
+    if (!this.#ownsDoor) {
+      if (this.#inspection.inspecting) { this.#door.operator = this.#inspector.entity; }
+      else if (!traffic) { this.#door.operator = null; }
+      this.#door.sequenceOpenAmount = this.#inspection.phase === INSPECTION.CLOSE
+        ? 1 - ease(this.#inspection.progress)
+        : traffic || this.#inspection.doorOpen ? 1 : null;
+    } else if (this.#inspection.phase === INSPECTION.CLOSE) {
       this.#door.openAmount = 1 - ease(this.#inspection.progress);
     } else {
       this.#door.update(
@@ -161,6 +186,7 @@ export class TerraceDoorActions {
       );
     }
     this.#syncInspector();
+
   }
 
   /**
@@ -185,18 +211,30 @@ export class TerraceDoorActions {
 
   stop() {
     this.#inspection.reset();
-    this.#inspector.entity.enabled = false;
-    this.#door.update(1, false);
+    if (!this.#motion) { this.#inspector.entity.enabled = false; }
+    if (this.#ownsDoor) {
+      this.#door.update(1, false);
+    } else {
+      this.#door.sequenceOpenAmount = null;
+      this.#door.operator = null;
+    }
   }
 
   destroy() {
     this.#inspection.reset();
-    this.#inspector.entity.enabled = false;
+    if (!this.#motion) { this.#inspector.entity.enabled = false; }
     this.#inspector = null;
-    this.#door.destroy();
+    if (this.#ownsDoor) {
+      this.#door.destroy();
+    } else {
+      this.#door.sequenceOpenAmount = null;
+      this.#door.operator = null;
+      this.#door.onOpen = null;
+    }
   }
 
   #syncInspector() {
+    if (this.#motion) { this.#syncResidentInspector(); return; }
     if (this.#inspection.reacting) { return; }
     const phase = this.#inspection.phase;
     const progress = this.#inspection.progress;
@@ -246,7 +284,7 @@ export class TerraceDoorActions {
     const scale = this.#stage.getLocalScale().x;
     this.#inspector.entity.setLocalPosition(
       0,
-      -1.05 * (1 - stairProgress) * scale,
+      (this.#ownsDoor ? -1.05 : 0) * (1 - stairProgress) * scale,
       z * scale,
     );
     this.#inspector.entity.setLocalEulerAngles(0, yaw, 0);
@@ -255,7 +293,36 @@ export class TerraceDoorActions {
     this.#inspector.pose(animation, animationTime);
   }
 
+  #syncResidentInspector() {
+    if (!this.#inspection.inspecting || this.#inspection.reacting) { return; }
+    this.#inspector.behavior = this.#inspection;
+    const phase = this.#inspection.phase;
+    const moving = [INSPECTION.NOTICE, INSPECTION.WALK_OUT, INSPECTION.RETURN, INSPECTION.LEAVE].includes(phase);
+    if (moving) {
+      const scale = this.#stage.getLocalScale().x;
+      const point = this.#inspector.entity.getPosition().clone().set(0, 0,
+        phase === INSPECTION.WALK_OUT ? 1.6 * scale : -0.7);
+      this.#motion.moveTo(phase === INSPECTION.LEAVE ? this.#motion.home
+        : this.#root.getWorldTransform().transformPoint(point, point));
+      if (this.#motion.arrived) { this.#inspector.pose("idle", this.#inspection.elapsed); }
+      return;
+    }
+    const progress = this.#inspection.progress;
+    const yaw = phase === INSPECTION.LOOK_LEFT ? -90 * ease(Math.min(1, progress * 2))
+      : phase === INSPECTION.LOOK_RIGHT ? -90 + 180 * ease(Math.min(1, progress * 2)) : 0;
+    this.#inspector.entity.setEulerAngles(0, this.#root.getEulerAngles().y + yaw, 0);
+    const time = phase === INSPECTION.CLOSE ? 0.7 + 2 * progress
+      : phase === INSPECTION.RELEASE ? 2.7 + 0.5 * progress
+        : phase === INSPECTION.GRASP ? 0.7 * progress : this.#inspection.elapsed;
+    this.#inspector.pose(this.#inspection.animation ?? "idle", time);
+    this.#inspector.evaluatePose();
+  }
+
   #syncInspectorClosing() {
+    if (!this.#ownsDoor) {
+      this.#syncExistingDoorInspectorClosing();
+      return;
+    }
     const phase = this.#inspection.phase;
     const progress = this.#inspection.progress;
     const actor = this.#inspector;
@@ -269,6 +336,7 @@ export class TerraceDoorActions {
       .clone()
       .sub(actor.rightHand.getPosition());
     actor.entity.setPosition(actor.entity.getPosition().clone().add(offset));
+
     const gripPosition = actor.entity.getLocalPosition().clone();
     if (phase === INSPECTION.RETURN) {
       const forward = this.#door.hingeRotation.transformVector(
@@ -301,7 +369,7 @@ export class TerraceDoorActions {
     } else if (phase === INSPECTION.LEAVE) {
       const motion = TerraceInspectorWalk.sample({
         start: gripPosition,
-        end: { x: 0, y: -1.05 * scale, z: DOORWAY_START_Z * scale },
+        end: { x: 0, y: (this.#ownsDoor ? -1.05 : 0) * scale, z: DOORWAY_START_Z * scale },
         startYaw: 0,
         endYaw: 180,
         elapsed: this.#inspection.elapsed,
@@ -314,6 +382,38 @@ export class TerraceDoorActions {
         motion.action === "walk" ? this.#inspection.animation : motion.action,
         motion.animationTime,
       );
+    }
+    actor.entity.enabled = phase !== INSPECTION.LEAVE || progress < 0.95;
+    actor.evaluatePose();
+  }
+  #syncExistingDoorInspectorClosing() {
+    const phase = this.#inspection.phase;
+    const progress = this.#inspection.progress;
+    const actor = this.#inspector;
+    const scale = this.#stage.getLocalScale().x;
+    // This leaf swings onto the terrace. Operate it from the landing side,
+    // keeping the servant's feet on the floor and body outside the swing arc.
+    const standing = { x: 0, y: 0, z: -0.7 };
+    if (phase === INSPECTION.RETURN || phase === INSPECTION.LEAVE) {
+      const returning = phase === INSPECTION.RETURN;
+      const motion = TerraceInspectorWalk.sample({
+        start: returning ? { x: 0, y: 0, z: 1.6 * scale } : standing,
+        end: returning ? standing : { x: 0, y: 0, z: -1.4 },
+        startYaw: returning ? 90 : 0,
+        endYaw: returning ? 0 : 180,
+        elapsed: this.#inspection.elapsed,
+        duration: returning ? 2 : 1.8,
+        scale,
+      });
+      actor.entity.setLocalPosition(motion.x, 0, motion.z);
+      actor.entity.setLocalEulerAngles(0, motion.yaw, 0);
+      actor.pose(motion.action, motion.animationTime);
+    } else {
+      actor.entity.setLocalPosition(standing.x, standing.y, standing.z);
+      actor.entity.setLocalEulerAngles(0, 0, 0);
+      const time = phase === INSPECTION.CLOSE ? 0.7 + 2 * progress
+        : phase === INSPECTION.RELEASE ? 2.7 + 0.5 * progress : 0.7 * progress;
+      actor.pose(this.#inspection.alignmentAnimation, time);
     }
     actor.entity.enabled = phase !== INSPECTION.LEAVE || progress < 0.95;
     actor.evaluatePose();

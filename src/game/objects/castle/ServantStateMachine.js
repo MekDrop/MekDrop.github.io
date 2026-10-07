@@ -17,6 +17,15 @@ export class ServantStateMachine extends NpcStateMachine {
    */
   #idlePhase;
   /**
+   * @type {(() => boolean)|null}
+   */
+  #canComplete = null;
+
+  /**
+   * @param {(() => boolean)|null} value
+   */
+  set canComplete(value) { this.#canComplete = value; }
+  /**
    *
     * @type {string}
    */
@@ -179,7 +188,7 @@ export class ServantStateMachine extends NpcStateMachine {
     if (this.#elapsed < state.duration) {
       return false;
     }
-    if (this.#holdState(state, this.#context)) {
+    if ((this.#canComplete && !this.#canComplete()) || this.#holdState(state, this.#context)) {
       this.#elapsed = state.duration;
       return false;
     }

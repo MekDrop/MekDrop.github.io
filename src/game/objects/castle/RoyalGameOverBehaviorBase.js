@@ -13,7 +13,7 @@ export class RoyalGameOverBehaviorBase {
   #stateMachine;
   /**
    *
-    * @type {{isResumingReaction: () => boolean, elapsed: number, deltaTime: number, walkDuration: number, walkStartDelay: number, beginWalk: () => void, move: (progress: number) => boolean, playAnimation: (animation: string, blendDuration: number) => void, completeWalk: () => void}}
+    * @type {{isResumingReaction: () => boolean, elapsed: number, deltaTime: number, walkDuration: number, walkStartDelay: number, beginWalk: () => void, move: (progress: number) => boolean|null, playAnimation: (animation: string, blendDuration: number) => void, completeWalk: () => void}}
    */
   #context;
   /**
@@ -24,13 +24,13 @@ export class RoyalGameOverBehaviorBase {
 
   /**
    *
-   * @param {{CryStateType: new () => import("yuka").State, destination: {lateral: number, forward: number, elevation: number}, walkDuration: number, walkStartDelay: number, beginWalk: () => void, move: (progress: number) => boolean, playAnimation: (animation: string, blendDuration: number) => void}} options
+   * @param {{CryStateType: new () => import("yuka").State, destination: {lateral: number, forward: number, elevation: number}, walkDuration: number, walkStartDelay: number, beginWalk: () => void, move: (progress: number) => boolean|null, playAnimation: (animation: string, blendDuration: number) => void}} options
    * @param {new () => import("yuka").State} options.CryStateType
    * @param {{lateral: number, forward: number, elevation: number}} options.destination
    * @param {number} options.walkDuration
    * @param {number} options.walkStartDelay
    * @param {() => void} options.beginWalk
-   * @param {(progress: number) => boolean} options.move
+   * @param {(progress: number) => boolean|null} options.move
    * @param {(animation: string, blendDuration: number) => void} options.playAnimation
    */
   constructor({

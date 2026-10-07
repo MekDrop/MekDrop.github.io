@@ -43,8 +43,22 @@ export class TerracePrincess {
   }
 
   /**
-   *
-    * @returns {import("playcanvas").Entity}
+   * @returns {import("playcanvas").Entity}
+   */
+  get model() { return this.#actor.model; }
+
+  /**
+   * @returns {import("../shared/NpcStateMachine.js").NpcStateMachine}
+   */
+  get behavior() { return this.#actor.behavior; }
+
+  /**
+   * @param {import("../shared/NpcStateMachine.js").NpcStateMachine} value
+   */
+  set behavior(value) { this.#actor.behavior = value; }
+
+  /**
+   * @returns {import("playcanvas").Entity}
    */
   get entity() {
     return this.#actor.entity;
