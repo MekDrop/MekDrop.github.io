@@ -1,3 +1,6 @@
+import { generateMap } from "./generator/map/MapGenerator.js";
+import { GameMapLoader } from "./GameMapLoader.js";
+
 /**
  * Prepares generated levels away from the rendering thread when available.
  */
@@ -58,10 +61,6 @@ export class LevelLoader {
    * @param {import("./generator/map/MapGenerationTypes.js").MapGenerationOptions} options
    */
   static async #loadLocally(options) {
-    const [{ generateMap }, { GameMapLoader }] = await Promise.all([
-      import("./generator/map/MapGenerator.js"),
-      import("./GameMapLoader.js"),
-    ]);
     return GameMapLoader.load(await generateMap(options));
   }
 }
