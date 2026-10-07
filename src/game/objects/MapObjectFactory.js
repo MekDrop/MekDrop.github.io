@@ -25,7 +25,6 @@ import { MapPickupAnimationActors } from "../debug/MapPickupAnimationActors.js";
 import { MapVirtualItem } from "../debug/MapVirtualItem.js";
 
 const OBJECT_CLASSES = new Map([
-  [CliffVine.name, CliffVine],
   [Flag.name, Flag],
   [WoodenFloor.name, WoodenFloor],
   [Bookshelf.name, Bookshelf],
@@ -46,6 +45,8 @@ const OBJECT_CLASSES = new Map([
   [WoodenSign.name, WoodenSign],
   [SeatedRoyal.name, MapAnimationActor],
   [Servant.name, Servant],
+  // Attach cliff growth only after terrain population and castle excavation.
+  [CliffVine.name, CliffVine],
 ]);
 
 /**

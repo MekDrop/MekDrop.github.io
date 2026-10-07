@@ -25,7 +25,7 @@ const hooks = registerHooks({
         }
       `)}` };
     }
-    if (/\.(png|jpg|glb|frag|vert)(\?(url|raw))?$/.test(specifier)) {
+    if (/\.(png|jpg|glb|frag|vert|wgsl)(\?(url|raw))?$/.test(specifier)) {
       return { shortCircuit: true, url: `data:text/javascript,export default ${JSON.stringify(specifier)}` };
     }
     return nextResolve(specifier, context);
@@ -115,6 +115,23 @@ describe("terrain building objects", () => {
 
 // Captured from the pre-refactor renderer, including every cube, ramp,
 // riverbed, cap, deck, railing command, and per-block material choice.
+describe("cliff growth after terrain preparation", () => {
+  it("anchors map 11 vines to the cliff lowered by castle excavation", async () => {
+    const map = await MapGenerator.generate({ mapName: "11" });
+    assert.equal(map.heightmap[17][34], 3);
+    MapObjectFactory.prepareMap(map);
+    assert.equal(map.heightmap[17][34], 2);
+    const vine = map.objects.find(({ object, tile }) => object === "CliffVine" && tile.col === 34 && tile.row === 17);
+    const turf = map.objects.find(({ object, tile }) => object === "Grass" && tile?.col === 34 && tile.row === 17);
+    assert.ok(vine);
+    assert.ok(turf);
+    assert.equal(vine.position.y, turf.position.y + 0.5);
+    assert.equal(vine.position.y, map.heightmap[17][34]);
+    MapObjectFactory.prepareMap(map);
+    assert.equal(vine.position.y, map.heightmap[17][34]);
+  });
+});
+
 describe("terrain rendering compatibility", () => {
   for (const [options, sha256] of [
     [{ mapName: "pipeline-baseline-rivers", numPaths: 3 }, "e880d99bc860f73321e7f29e39ddb7d0af5d3596cbd2dcaf117f68e605f10cec"],
