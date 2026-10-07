@@ -2325,7 +2325,9 @@ export class Hero {
       return false;
     }
     // Use capsule clearance on stairs, where animated limb colliders are suspended.
-    const stepProbeOffset = this.#capsuleSupportOnly ? MOVEMENT_FORWARD_COLLISION_OFFSET : HERO_RADIUS;
+    // Probe the capsule's leading edge on closely spaced steps. The torso's
+    // forward offset can span several roof courses and miss reachable treads.
+    const stepProbeOffset = this.#capsuleSupportOnly ? MOVEMENT_COLLISION_RADIUS : HERO_RADIUS;
     const probeX =
       nextX +
       (movementX / movementLength) * stepProbeOffset;
@@ -2665,6 +2667,11 @@ export class Hero {
    * @param {number} previousZ
    */
   #applyPosition(previousX, previousY, previousZ) {
+    this.#physics.setSurfaceGrip(
+      this.#grounded && this.#capsuleSupportOnly &&
+      Math.hypot(this.#velocity.x, this.#velocity.z) < 0.001 &&
+      !this.#actionBehavior.dodgeAction && !this.#actionBehavior.repelAction,
+    );
     const bodyPosition = this.#physics.position;
     const positionWasScripted =
       Math.abs(bodyPosition.x - this.#position.x) > 0.000001 ||

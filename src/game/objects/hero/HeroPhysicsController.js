@@ -281,6 +281,18 @@ export class HeroPhysicsController {
       : null;
   }
 
+  /**
+   * Use Ammo friction to hold a resting capsule on stepped supports.
+   * Release grip during movement so it cannot catch on stair risers.
+   * @param {boolean} idle
+   */
+  setSurfaceGrip(idle) {
+    const friction = idle ? 2 : 0;
+    if (this.#entity.rigidbody.friction !== friction) {
+      this.#entity.rigidbody.friction = friction;
+    }
+  }
+
   consumeSupportContact() {
     const supported = this.#supportContact;
     this.#supportContact = false;

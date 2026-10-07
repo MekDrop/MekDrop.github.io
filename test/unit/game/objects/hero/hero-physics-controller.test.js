@@ -135,6 +135,15 @@ function createFixture({ maxSubSteps = 4, fixedTimeStep } = {}) {
 }
 
 describe("HeroPhysicsController", () => {
+  it("holds resting stepped supports with Ammo friction and releases grip for movement", () => {
+    const { controller, entity } = createFixture();
+    assert.equal(entity.rigidbody.friction, 0);
+    controller.setSurfaceGrip(true);
+    assert.equal(entity.rigidbody.friction, 2);
+    controller.setSurfaceGrip(false);
+    assert.equal(entity.rigidbody.friction, 0);
+    controller.destroy();
+  });
   it("retains animated eye motion when the view is clear", () => {
     const { controller, entity, raycasts } = createFixture();
     const anchor = { x: 2.15, y: 4.2, z: 4.1 };
