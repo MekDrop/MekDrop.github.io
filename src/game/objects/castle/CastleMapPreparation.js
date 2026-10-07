@@ -1,4 +1,5 @@
 import { DecorationPlacementRules } from "../../generator/map/DecorationPlacementRules.js";
+import { CastleGroundWeathering } from "./CastleGroundWeathering.js";
 import { createCastleStairFlight } from "./CastleStairFlight.js";
 import { createCastleGroundCuts, clipCastleTerrainRecord } from "./CastleGroundCuts.js";
 import { CastleResidentialLayout, createCastleButtressFootings } from "./CastleResidentialLayout.js";
@@ -132,6 +133,7 @@ export class CastleMapPreparation {
       mapData.tileMeta[row][col] = { ...metadata, terrainCutouts, exposedTerrain: turf,
         surfaceType: intersectsTerrain && !turf && [1, 3, 4].includes(mapData.grid[row][col]) ? "STONE" : metadata.surfaceType };
     }
+    CastleGroundWeathering.apply(mapData, castles, groundCuts);
     // Decoration was seeded before the authored footprint was excavated. Keep
     // plants and rocks out of the actual occupied volumes, including basements
     // and mirrored wings extending past the original tile reservation.
@@ -191,20 +193,42 @@ export class CastleMapPreparation {
     for (const castle of castles) {
       const basement = castle.buildPlan.metadata.runtime.residential?.basement;
       const position = castle.buildPlan.input.position;
-      const target = Math.ceil(Math.max(basement?.ceilingY ?? 0, position.elevation ?? 0) - 0.000001);
+      const supportCuts = createCastleGroundCuts(castle.buildPlan, new CastleResidentialLayout(castle.buildPlan));
+      const foundationHeight = Math.ceil(Math.max(basement?.ceilingY ?? 0, position.elevation ?? 0) - 0.000001);
       for (let row = 0; row < mapData.rows; row += 1) {
         for (let col = 0; col < mapData.cols; col += 1) {
-          if (![1, 3, 4].includes(mapData.grid?.[row]?.[col])) continue;
+          if (![0, 1, 3, 4].includes(mapData.grid?.[row]?.[col])) continue;
+          if (mapData.tileMeta?.[row]?.[col]?.castleWeathered) continue;
           const x = col - (mapData.cols - 1) / 2;
           const z = row - (mapData.rows - 1) / 2;
-          if (x + 0.5 <= position.x - 1 || x - 0.5 >= position.x + position.width + 1 ||
-            z + 0.5 <= position.z - 1 || z - 0.5 >= position.z + position.depth + 1) continue;
+          const inReservation = x + 0.5 > position.x - 1 && x - 0.5 < position.x + position.width + 1 &&
+            z + 0.5 > position.z - 1 && z - 0.5 < position.z + position.depth + 1;
+          const edgeWave = Math.sin((x - position.x) * 0.8 + 0.4) + Math.cos((z - position.z) * 0.7);
+          const apronWidth = edgeWave > 0.3 ? 2 : 1;
+          if (!inReservation && !supportCuts.some(/**
+           * @param {import("./CastleGroundCuts.js").GroundCut} cut
+           */
+          (cut) => x + 0.5 > cut.minX - apronWidth && x - 0.5 < cut.maxX + apronWidth &&
+            z + 0.5 > cut.minZ - apronWidth && z - 0.5 < cut.maxZ + apronWidth)) continue;
+          if (mapData.riverData?.some(/**
+           * @param {{cells:Array<{col:number,row:number}>}} river
+           */
+          (river) => river.cells.some(/**
+           * @param {{col:number,row:number}} cell
+           */
+          (cell) => cell.col === col && cell.row === row))) continue;
           if (flights.some(/**
            *
            * @param {{minX:number,maxX:number,minZ:number,maxZ:number}} flight
            */
           (flight) => x + 0.5 > flight.minX && x - 0.5 < flight.maxX &&
             z + 0.5 > flight.minZ && z - 0.5 < flight.maxZ)) continue;
+          const nearWall = supportCuts.some(/**
+           * @param {import("./CastleGroundCuts.js").GroundCut} cut
+           */
+          (cut) => x + 0.5 > cut.minX - 0.4 && x - 0.5 < cut.maxX + 0.4 &&
+            z + 0.5 > cut.minZ - 0.4 && z - 0.5 < cut.maxZ + 0.4);
+          const target = Math.max(1, foundationHeight - (nearWall || inReservation || edgeWave > 0.7 ? 0 : 1));
           if (!(mapData.heightmap?.[row]?.[col] < target)) continue;
           const records = terrain.get(`${col},${row}`) ?? [];
           const previous = records.reduce(/**
@@ -218,14 +242,16 @@ export class CastleMapPreparation {
             if (record.object !== "Grass") continue;
             record.object = "Earth";
             record.geometry.args[0] = "earth";
-            record.geometry.args[1] = "earth";
+            record.geometry.args[1] = `earthSide:${col}:${row}:${Math.floor(record.position.y)}`;
           }
-          for (let level = Math.ceil(previous); level < target; level += 1) {
+          const firstLevel = mapData.grid[row][col] === 0 ? -2 - Math.round((edgeWave + 2) / 2) : Math.ceil(previous);
+          for (let level = firstLevel; level < target; level += 1) {
             const turf = level === target - 1;
             mapData.objects.push({ id: `castle-soil-${col}-${row}-${level}`, generated: true,
               object: turf ? "Grass" : "Earth", tile: { col, row }, position: { x, y: level + 0.5, z },
-              geometry: { method: "addCubeMatrix", args: [turf ? `grass:${col}:${row}:${level}` : "earth", "earth", x, level + 0.5, z, "full", "earth"] } });
+              geometry: { method: "addCubeMatrix", args: [turf ? `grass:${col}:${row}:${level}` : "earth", `${turf ? "turfSide" : "earthSide"}:${col}:${row}:${level}`, x, level + 0.5, z, "full", "earth"] } });
           }
+          mapData.grid[row][col] = mapData.grid[row][col] === 0 ? 1 : mapData.grid[row][col];
           mapData.heightmap[row][col] = target;
           if (mapData.tileMeta?.[row]) mapData.tileMeta[row][col] = {
             ...mapData.tileMeta[row][col], baseHeight: target, surfaceType: "GRASS", shape: "FLAT", slope: undefined,

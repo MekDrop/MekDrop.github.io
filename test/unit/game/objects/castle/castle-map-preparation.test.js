@@ -9,6 +9,31 @@ import { CastleMapPreparation } from "../../../../../src/game/objects/castle/Cas
 import { GrassCarpetLayout } from "../../../../../src/game/objects/ground-cover/GrassCarpetLayout.js";
 import { TileType } from "../../../../../src/game/generator/map/MapGenerator.js";
 
+it("terraces exposed mirrored castle lawns while preserving roads and repeat preparation", async () => {
+  const map = await MapGenerator.generate({ mapName: "43" });
+  TerrainBlockDefinitions.populate(map);
+  const before = map.heightmap.map(row => [...row]);
+  CastleMapPreparation.prepareMap(map);
+  const terraces = [];
+  for (let row = 0; row < map.rows; row += 1) {
+    for (let col = 0; col < map.cols; col += 1) {
+      if ([TileType.PATH, TileType.ENTRY].includes(map.grid[row][col])) {
+        assert.equal(map.heightmap[row][col], before[row][col]);
+      }
+      if (!map.tileMeta[row][col].castleWeathered) continue;
+      terraces.push([col, row]);
+      assert.equal(map.heightmap[row][col], before[row][col] - 1);
+      assert.ok(map.objects.some(record => record.object === "Grass" &&
+        record.tile?.col === col && record.tile?.row === row &&
+        record.position.y + 0.5 === map.heightmap[row][col]));
+    }
+  }
+  assert.ok(terraces.length > 5, "the reserved lawn has visible terrain variation");
+  const heights = map.heightmap.map(row => [...row]);
+  CastleMapPreparation.prepareMap(map);
+  assert.deepEqual(map.heightmap, heights);
+});
+
 it("grows blades on exposed foundation turf outside excavation cuts", () => {
   const map = {
     cols: 1,

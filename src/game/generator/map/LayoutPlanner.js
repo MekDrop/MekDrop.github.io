@@ -83,7 +83,7 @@ export class LayoutPlanner {
     const castleRight = MAP_COLS - CASTLE_REAR_GROUND_CLEARANCE - 2;
     const castleLeft = castleRight - castleFootprint.width + 1;
     const entranceOffset = Math.round((authoredPlan?.entranceInset !== undefined ? castleFootprint.depth / 2 + authoredPlan.entranceInset : castleFootprint.entranceFraction * castleFootprint.depth) - 1);
-    const castleTop = MapGrid.clamp(pathRows[0] - entranceOffset, 4, MAP_ROWS - castleFootprint.depth - 4);
+    const castleTop = MapGrid.clamp(pathRows[0] - entranceOffset, 6, MAP_ROWS - castleFootprint.depth - 6);
     pathRows = [castleTop + entranceOffset, castleTop + entranceOffset + 1];
     const castleCenterRow = castleTop + Math.floor(castleFootprint.depth / 2);
     const castleBottom = castleTop + castleFootprint.depth - 1;
