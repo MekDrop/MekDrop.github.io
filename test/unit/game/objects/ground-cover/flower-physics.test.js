@@ -30,6 +30,7 @@ class FakeVec3 {
 }
 
 class FakeQuat {
+  set(x, y, z, w) { Object.assign(this, { x, y, z, w }); return this; }
   setFromEulerAngles() {
     return this;
   }
@@ -86,7 +87,13 @@ class FakeEntity {
   }
 
   setPosition(x, y, z) {
-    this.position.set(x, y, z);
+    if (typeof x === "object") { this.position.set(x.x, x.y, x.z); }
+    else { this.position.set(x, y, z); }
+  }
+
+  setPositionAndRotation(position, rotation) {
+    this.setPosition(position);
+    this.rotation = rotation;
   }
 
   getLocalPosition() {
@@ -199,5 +206,68 @@ describe("flower physics", () => {
     assert.equal(storage[5], 0);
     assert.equal(storage[10], 0);
     assert.equal(unlockCount, 1);
+  });
+});
+
+class FakeWorker {
+  static current;
+  messages = [];
+  terminated = false;
+  constructor() { FakeWorker.current = this; }
+  postMessage(message) { this.messages.push(message); }
+  terminate() { this.terminated = true; }
+  emit(data) { this.onmessage({ data }); }
+}
+
+describe("flower worker lifecycle", () => {
+  it("bounds outstanding requests and adjusts delayed poses to current island offsets", () => {
+    const originalWorker = globalThis.Worker;
+    globalThis.Worker = FakeWorker;
+    try {
+      const physics = new FlowerPhysics({ pc, useWorker: true });
+      const flower = createFlower(physics);
+      const storage = new Float32Array(16);
+      physics.setBatch("daisy-patch", { lock: () => storage, unlock() {} });
+      physics.advance(1 / 60);
+      const worker = FakeWorker.current;
+      assert.equal(worker.messages[0].type, "initialize");
+      worker.emit({ type: "ready" });
+      assert.equal(physics.entity.enabled, false);
+      physics.advance(1 / 60);
+      physics.advance(1 / 60);
+      assert.equal(worker.messages.filter(m => m.type === "step").length, 1);
+      physics.setOffset(flower, 0.3);
+      worker.emit({ type: "result", transforms: new Float32Array([2, 3.18, 4, 0, 0, 0, 1]) });
+      physics.advance(1 / 60);
+      assert.ok(Math.abs(storage[13] - 3.3) < 1e-5);
+      physics.hide(flower);
+      worker.emit({ type: "result", transforms: new Float32Array([2, 3.18, 4, 0, 0, 0, 1]) });
+      physics.advance(1 / 60);
+      assert.equal(storage[0], 0);
+      assert.equal(worker.messages.at(-1).hidden[0], 1);
+      physics.destroy();
+      assert.equal(worker.terminated, true);
+    } finally { globalThis.Worker = originalWorker; }
+  });
+  it("restores main-thread simulation when the worker fails", () => {
+    const originalWorker = globalThis.Worker;
+    const originalWarn = console.warn;
+    globalThis.Worker = FakeWorker;
+    console.warn = () => {};
+    try {
+      const physics = new FlowerPhysics({ pc, useWorker: true });
+      createFlower(physics);
+      physics.advance(1 / 60);
+      const worker = FakeWorker.current;
+      worker.emit({ type: "ready" });
+      let prevented = false;
+      worker.onerror({ message: "test failure", preventDefault() { prevented = true; } });
+      assert.equal(prevented, true);
+      assert.equal(physics.entity.enabled, true);
+      assert.equal(worker.terminated, true);
+      physics.advance(1 / 60);
+      assert.equal(FakeWorker.current, worker);
+      physics.destroy();
+    } finally { globalThis.Worker = originalWorker; console.warn = originalWarn; }
   });
 });

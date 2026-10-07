@@ -1,3 +1,5 @@
+import { FLOWER_WORKER_MESSAGE as MESSAGE } from "../../enum/FlowerWorkerMessage.js";
+
 const BODY_MASS = 0.008;
 const BODY_HEIGHT = 0.035;
 const BODY_PIVOT_HEIGHT = 0.09;
@@ -10,6 +12,42 @@ const FOOT_SIDE_OFFSET = 0.13;
 const FOOT_CENTER_HEIGHT = 0.16;
 
 export class FlowerPhysics {
+  /**
+   * @type {boolean}
+   */
+  #useWorker;
+  /**
+   * @type {number}
+   */
+  #gravity;
+  /**
+   * @type {Worker|null}
+   */
+  #worker = null;
+  /**
+   * @type {boolean}
+   */
+  #workerStarted = false;
+  /**
+   * @type {boolean}
+   */
+  #workerReady = false;
+  /**
+   * @type {boolean}
+   */
+  #workerBusy = false;
+  /**
+   * @type {number}
+   */
+  #pendingDelta = 0;
+  /**
+   * @type {Float32Array|null}
+   */
+  #submittedOffsets = null;
+  /**
+   * @type {import("../../physics/FlowerPhysicsSimulation.js").FlowerDefinition[]}
+   */
+  #definitions = [];
   /**
    *
     * @type {typeof import("playcanvas")}
@@ -63,11 +101,15 @@ export class FlowerPhysics {
 
   /**
    *
-   * @param {{pc: typeof import("playcanvas")}} options
+   * @param {{pc: typeof import("playcanvas"), useWorker?: boolean, gravity?: number}} options
    * @param {typeof import("playcanvas")} options.pc
+   * @param {boolean} options.useWorker
+   * @param {number} options.gravity
    */
-  constructor({ pc }) {
+  constructor({ pc, useWorker = false, gravity = -9.81 }) {
     this.#pc = pc;
+    this.#useWorker = useWorker;
+    this.#gravity = gravity;
     this.#entity = new pc.Entity("Flower physics");
     this.#up = new pc.Vec3(0, 1, 0);
     this.#visualPosition = new pc.Vec3();
@@ -170,6 +212,7 @@ export class FlowerPhysics {
       variant,
     };
     this.#flowers.push(flower);
+    this.#definitions.push({ position: { ...position }, pivotHeight, radius: interactionRadius });
     return flower;
   }
 
@@ -241,8 +284,12 @@ export class FlowerPhysics {
       flower.baseY + offset,
       anchorPosition.z,
     );
-    flower.anchor.rigidbody.syncEntityToBody();
-    flower.body.rigidbody.teleport(x, y, z);
+    if (this.#workerReady) {
+      flower.body.setPosition(x, y, z);
+    } else {
+      flower.anchor.rigidbody.syncEntityToBody();
+      flower.body.rigidbody.teleport(x, y, z);
+    }
     flower.offset = offset;
   }
 
@@ -252,11 +299,103 @@ export class FlowerPhysics {
     }
   }
 
+  /**
+   * @param {number} deltaTime
+   */
+  advance(deltaTime) {
+    if (this.#useWorker && !this.#workerStarted && this.#flowers.length) {
+      this.#workerStarted = true;
+      try {
+        this.#worker = new Worker(new URL("../../physics/FlowerPhysics.worker.js", import.meta.url), { type: "module" });
+        this.#worker.onmessage = this.#receiveWorkerMessage;
+        this.#worker.onerror = this.#handleWorkerError;
+        this.#worker.postMessage({ type: MESSAGE.INITIALIZE, definitions: this.#definitions, gravity: this.#gravity });
+      } catch {
+        this.#restoreMainThreadPhysics();
+      }
+    }
+    this.#pendingDelta = Math.min(this.#pendingDelta + deltaTime, 0.1);
+    if (this.#workerReady && !this.#workerBusy) {
+      const offsets = new Float32Array(this.#flowers.length);
+      const hidden = new Uint8Array(this.#flowers.length);
+      for (let index = 0; index < this.#flowers.length; index++) {
+        offsets[index] = this.#flowers[index].offset;
+        hidden[index] = Number(this.#flowers[index].hidden);
+      }
+      const feet = new Float32Array(6);
+      for (let index = 0; index < this.#feet.length; index++) {
+        const position = this.#feet[index].getPosition();
+        feet.set([position.x, position.y, position.z], index * 3);
+      }
+      this.#submittedOffsets = offsets;
+      this.#workerBusy = true;
+      this.#worker.postMessage({ type: MESSAGE.STEP, deltaTime: this.#pendingDelta, offsets, hidden, feet });
+      this.#pendingDelta = 0;
+    }
+    this.updateMatrices();
+  }
+
+  /**
+   * @param {MessageEvent} event
+   * @type {(event: MessageEvent) => void}
+   */
+  #receiveWorkerMessage = (event) => {
+    const { type, transforms } = event.data;
+    if (type === MESSAGE.READY) {
+      this.#workerReady = true;
+      this.#entity.enabled = false;
+    } else if (type === MESSAGE.RESULT) {
+      this.#workerBusy = false;
+      for (let index = 0; index < this.#flowers.length; index++) {
+        const flower = this.#flowers[index];
+        if (flower.hidden) { continue; }
+        const offset = index * 7;
+        this.#visualPosition.set(transforms[offset],
+          transforms[offset + 1] + flower.offset - this.#submittedOffsets[index], transforms[offset + 2]);
+        this.#visualRotation.set(transforms[offset + 3], transforms[offset + 4], transforms[offset + 5], transforms[offset + 6]);
+        flower.body.setPositionAndRotation(this.#visualPosition, this.#visualRotation);
+      }
+    } else if (type === MESSAGE.FAILED) {
+      console.warn(event.data.detail);
+      this.#restoreMainThreadPhysics();
+    }
+  };
+
+  /**
+   * @param {ErrorEvent} event
+   * @type {(event: ErrorEvent) => void}
+   */
+  #handleWorkerError = (event) => {
+    event.preventDefault();
+    console.warn(event.message);
+    this.#restoreMainThreadPhysics();
+  };
+
+  /**
+   * @type {() => void}
+   */
+  #restoreMainThreadPhysics = () => {
+    this.#worker?.terminate();
+    this.#worker = null;
+    this.#workerReady = false;
+    this.#workerBusy = false;
+    for (const flower of this.#flowers) {
+      if (flower.hidden) { continue; }
+      flower.anchor.rigidbody.syncEntityToBody();
+      flower.body.rigidbody.teleport(flower.body.getPosition(), flower.body.getRotation());
+    }
+    this.#entity.enabled = true;
+    console.warn("Flower physics worker unavailable; using main-thread Ammo.");
+  };
+
   destroy() {
+    this.#worker?.terminate();
+    this.#worker = null;
     this.#entity.destroy();
     this.#feet = [];
     this.#flowers = [];
     this.#batches.clear();
+    this.#definitions = [];
   }
 
   /**

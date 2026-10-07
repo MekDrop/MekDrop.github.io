@@ -252,7 +252,7 @@ export class GroundCover {
     this.#onCollect = onCollect;
     this.#onCollectibleRemoved = onCollectibleRemoved;
     this.#entity = new pc.Entity("GPU-instanced interactive ground cover");
-    this.#flowerPhysics = new FlowerPhysics({ pc });
+    this.#flowerPhysics = new FlowerPhysics({ pc, useWorker: true, gravity: app.systems.rigidbody.gravity.y });
     this.#entity.addChild(this.#flowerPhysics.entity);
     this.#mushroomPhysics = new MushroomPhysics({ pc, app });
     this.#entity.addChild(this.#mushroomPhysics.entity);
@@ -725,7 +725,7 @@ export class GroundCover {
     for (const material of this.#materials.values()) {
       material.setParameter("uTime", this.#elapsed);
     }
-    this.#flowerPhysics.updateMatrices();
+    this.#flowerPhysics.advance(frameTime);
     for (const item of this.#items) item.advance(frameTime);
   };
 }

@@ -1,3 +1,4 @@
+import Ammo from "sync-ammo/dist/ammo.module.js";
 import { getAmbientWind } from "./AmbientWind.js";
 
 const GRAVITY = -3.2;
@@ -97,7 +98,7 @@ export class AmmoClothPhysics {
    */
   constructor({ pc = null } = {}) {
     this.#pc = pc;
-    this.#ammo = globalThis.Ammo;
+    this.#ammo = Ammo;
   }
 
   /**

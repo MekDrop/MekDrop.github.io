@@ -1,6 +1,6 @@
 import { MapObjectReplacement } from "./rendering/scene/MapObjectReplacement.js";
 import { useDebounceFn } from "@vueuse/core";
-import Ammo from "sync-ammo";
+import { AmmoRuntime } from "./physics/AmmoRuntime.js";
 import * as playCanvas from "playcanvas/build/playcanvas/src/index.js";
 import castleDoorUrl from "src/assets/game/textures/castle-door.png";
 import castleStoneUrl from "src/assets/game/textures/castle-stone.png";
@@ -506,7 +506,7 @@ export class PlayCanvasRenderer {
   }
 
   async init() {
-    globalThis.Ammo ??= Ammo;
+    await AmmoRuntime.initialize(playCanvas);
     this.#pc = playCanvas;
     if (this.#destroyed) {
       return;
