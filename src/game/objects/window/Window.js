@@ -3,6 +3,7 @@ import roomUrl from "../../models/castle/windows/room-window.glb?url";
 import slitUrl from "../../models/castle/windows/slit-window.glb?url";
 
 import { WindowLayout } from "./WindowLayout.js";
+import { WindowModules } from "./WindowModules.js";
 import { IslandObjectRoots } from "../shared/IslandObjectRoots.js";
 
 /**
@@ -53,6 +54,7 @@ export class Window {
     const modelLibrary = models;
   const visual = modelLibrary.instantiate(window.role === "slit" ? slitUrl : window.role === "hall" && window.height > 0.75 ? hallUrl : roomUrl);
   visual.name = `Castle ${window.role} recessed window`;
+  WindowModules.fit(visual, window);
   // The reveal is part of this wall, including its authored stone texture.
   // Timber and individual translucent panes keep their own materials.
   if (wallMaterial) {

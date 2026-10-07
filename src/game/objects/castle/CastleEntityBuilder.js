@@ -7,6 +7,7 @@ import { CastleMasonryMaterial } from "./CastleMasonryMaterial.js";
 import { CastleAudienceRoom } from "./CastleAudienceRoom.js";
 import { CastleDoor } from "./CastleDoor.js";
 import { CastleDoorArch } from "./CastleDoorArch.js";
+import { CastleEntranceDetails } from "./CastleEntranceDetails.js";
 import { CastleFire } from "./CastleFire.js";
 import { CastleRoof } from "./CastleRoof.js";
 import { CastleStairs } from "./CastleStairs.js";
@@ -49,6 +50,7 @@ export class CastleEntityBuilder {
       ...CastleBanner.modelUrls,
       ...CastleDoor.modelUrls,
       CastleDoorArch.modelUrl,
+      ...CastleEntranceDetails.modelUrls,
       CastleStairs.modelUrl,
       ...CastleAudienceRoom.modelUrls,
       ...CastleResidence.modelUrls,
@@ -1063,6 +1065,8 @@ export class CastleEntityBuilder {
           modelLibrary: this.#modelLibrary, placement: { ...residential.origin, height: opening.height - 0.05 } });
         this.#entity.addChild(arch.entity);
         this.#doorArches.push(arch);
+        CastleEntranceDetails.add(this.#pc, this.#modelLibrary, this.#entity,
+          this.#buildPlan, this.#materials.get("castleStoneMid"));
         const door = new CastleDoor({ pc: this.#pc, castlePosition: this.#position, door: doorData,
           placement: { ...residential.origin, height: opening.height - 0.05, openingInset: 0, arched: true, swing: opening.swing },
           modelLibrary: this.#modelLibrary, woodMaterial: this.#materials.get("castleDoor") });

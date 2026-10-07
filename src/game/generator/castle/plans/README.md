@@ -81,9 +81,16 @@ node --test --test-isolation=none test/unit/game/generator/castle/castle-base-pl
 
 ## Compact demo adjustments
 
+The upper south facade has a door near its west corner and three windows to its
+east, each 1 metre wide and 1.5 metres tall with a 0.75-metre sill and
+0.75 metres of masonry between consecutive openings. Both storeys
+retain the same east/west footprint. This facade adjustment preserves the
+existing brick palette and does not author banners or change the main entrance.
+
 The dimensioned game-constrained sheet is retained as the regeneration source.
 The ground-floor study was removed at the user’s request, extending the west
-vestibule. The main entrance was moved 1.75 metres left from the source position.
+vestibule. The main entrance was moved 1.5 metres left from the source position, including
+a 0.25-metre adjustment toward the throne room. Its bridge follows the door.
 Other room boundaries follow that sheet. Door hinge orientation keeps the open
 leaves out of the landing route. The stair-room west partition moves 1 metre and its south wall moves
 0.5 metres in the basement and 0.75 metres above ground to clear the full hero beside the staircase. The shaft moves south by 0.25 metres for its basement approach. The corner keep and its roof

@@ -13,7 +13,41 @@ const hooks = registerHooks({
   },
 });
 const { Window } = await import("../../../../../src/game/objects/window/Window.js");
+const { WindowModules } = await import("../../../../../src/game/objects/window/WindowModules.js");
 hooks.deregister();
+
+test("larger windows repeat imported panes, dividers and masonry courses", () => {
+  const data = readFileSync(new URL("../../../../../src/game/models/castle/windows/room-window.glb", import.meta.url));
+  const gltf = JSON.parse(data.subarray(20, 20 + data.readUInt32LE(12)).toString());
+  for (const [width, height, columns, rows, courses] of [[0.5, 0.75, 2, 2, 4], [1, 1.5, 2, 3, 6], [1.5, 2.25, 3, 5, 9]]) {
+    const app = { _entityIndex: {} };
+    const visual = new pc.Entity("Window modules", app);
+    for (const node of gltf.nodes) {
+      const entity = new pc.Entity(node.name, app);
+      entity.setLocalPosition(...node.translation);
+      visual.addChild(entity);
+    }
+    WindowModules.fit(visual, { width, height, role: "room" });
+    const panes = visual.children.filter(node => node.name.startsWith("Amber glass pane"));
+    assert.equal(panes.length, columns * rows);
+    assert.equal(visual.children.filter(node => node.name.startsWith("Fine oak transom")).length, rows - 1);
+    assert.equal(visual.children.filter(node => node.name.startsWith("Central oak mullion")).length, columns - 1);
+    for (const side of [1, -1]) {
+      assert.equal(visual.children.filter(node => node.name.startsWith(`Stone jamb course ${side} `)).length, courses);
+    }
+    for (const pane of panes) {
+      const position = pane.getLocalPosition();
+      const scale = pane.getLocalScale();
+      assert.ok(position.x - 0.25 * scale.x >= -0.500001);
+      assert.ok(position.x + 0.25 * scale.x <= 0.500001);
+      assert.ok(position.y - 0.25 * scale.y >= -0.000001);
+      assert.ok(position.y + 0.25 * scale.y <= 1.000001);
+    }
+    assert.ok(visual.findByName("Projecting stone sill"));
+    assert.ok(visual.findByName("Oak frame rail -1"));
+    visual.destroy();
+  }
+});
 
 test("window sills overlap masonry without sharing its top plane at every size and facing", () => {
   class TestEntity extends pc.Entity {
@@ -31,7 +65,8 @@ test("window sills overlap masonry without sharing its top plane at every size a
     for (const height of [0.25, 0.75, 1.25, 2]) {
       for (const alongX of [true, false]) {
         for (const facing of [-1, 1]) {
-          const visual = new pc.Entity();
+          const app = { _entityIndex: {} };
+    const visual = new pc.Entity("Window modules", app);
           const sillEntity = new pc.Entity(sill.name);
           sillEntity.setLocalPosition(...sill.translation);
           visual.addChild(sillEntity);

@@ -468,8 +468,8 @@ export class CastleAuthoredBuildPlan {
         wall(platform, "z", bounds.maxZ, 1, 0.75);
       } else {
         const center = world((bounds.minX + bounds.maxX) / 2, (bounds.minZ + bounds.maxZ) / 2, roof.y);
-        geometry.decorations.roofs.push({ ...center, yaw, width: bounds.maxX - bounds.minX + 0.5,
-          depth: bounds.maxZ - bounds.minZ + 0.5, height: roof.height });
+        geometry.decorations.roofs.push({ ...center, yaw, width: bounds.maxX - bounds.minX,
+          depth: bounds.maxZ - bounds.minZ, height: roof.height });
       }
     }
     const roomDoors = [];

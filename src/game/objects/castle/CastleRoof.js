@@ -26,7 +26,14 @@ export class CastleRoof {
   constructor({ pc, modelLibrary, masonryMaterial }) {
     this.#entity = new pc.Entity("Authored castle roofs");
     this.#modelLibrary = modelLibrary;
-    this.#masonryMaterial = masonryMaterial;
+    this.#masonryMaterial = masonryMaterial.clone();
+    this.#masonryMaterial.name = "Castle darker gable masonry";
+    this.#masonryMaterial.diffuse.mulScalar(0.8);
+    const coordinates = masonryMaterial.getParameter("uWorldToCastle");
+    if (coordinates) {
+      this.#masonryMaterial.setParameter("uWorldToCastle", coordinates.data);
+    }
+    this.#masonryMaterial.update();
   }
   get entity() { return this.#entity; }
   /**
@@ -50,12 +57,16 @@ export class CastleRoof {
     // Boxes match each course rather than enclosing the whole pitched silhouette.
     roof.addComponent("collision", { type: "compound" });
     for (const render of roof.findComponents("render")) {
-      if (!render.entity.name.startsWith("Hipped roof course") && render.entity.name !== "Roof cap") { continue; }
+      if (!render.entity.name.startsWith("Hipped roof course") && render.entity.name !== "Roof cap" &&
+        !render.entity.name.startsWith("Dormer stone body")) { continue; }
       const bounds = render.meshInstances[0].mesh.aabb;
       render.entity.addComponent("collision", { type: "box", halfExtents: bounds.halfExtents.clone(),
         linearOffset: bounds.center.clone() });
     }
     roof.addComponent("rigidbody", { type: "static", friction: 0.8, restitution: 0 });
   }
-  destroy() { this.#entity.destroy(); }
+  destroy() {
+    this.#entity.destroy();
+    this.#masonryMaterial.destroy();
+  }
 }

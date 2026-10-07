@@ -8,6 +8,23 @@ import { CastleResidentialLayout } from "../../../../../src/game/objects/castle/
 import { CastleWindowLayout } from "../../../../../src/game/objects/castle/CastleWindowLayout.js";
 import { MapGenerator } from "../../../../../src/game/generator/map/MapGenerator.js";
 
+it("fits the compact roof to the upper shell's outer wall faces without extra eaves", async () => {
+  for (const side of ["NORTH", "SOUTH", "WEST", "EAST"]) {
+    for (const seed of [0, 1]) {
+      const plan = await CastleGenerator.generate({ position: { x: -14, z: -8, width: 28, depth: 16, elevation: 3 },
+        doors: [{ side, offset: 13, width: 2 }], seed });
+      const residential = plan.metadata.runtime.residential;
+      const keep = residential.buildings.find(building => building.floorY === residential.origin.y + residential.floorHeight);
+      const roof = plan.geometry.decorations.roofs[0];
+      const center = new CastleResidentialLayout(plan).toLocal(roof.x, roof.z);
+      assert.equal(roof.width, keep.maxX - keep.minX + 0.5);
+      assert.equal(roof.depth, keep.maxZ - keep.minZ + 0.5);
+      assert.ok(Math.abs(center.x - (keep.minX + keep.maxX) / 2) < 1e-6);
+      assert.ok(Math.abs(center.z - (keep.minZ + keep.maxZ) / 2) < 1e-6);
+    }
+  }
+});
+
 it("builds all reference plans in each gate orientation, preserving authored aperture centres", async () => {
   for (const source of await CastleBasePlanGenerator.plans) {
     for (const side of ["NORTH", "SOUTH", "WEST", "EAST"]) {
