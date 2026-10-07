@@ -67,30 +67,25 @@ export class CastleEntranceDetails {
       for (const x of [building.minX, building.maxX]) {
         for (const z of [building.minZ, building.maxZ]) {
           for (let y = 0.125; y < floorHeight; y += 0.25) {
-            const stone = models.instantiate(masonryUrl);
-            stone.name = "Castle ground floor corner trim";
-            stone.setLocalPosition(origin.x + Math.cos(angle) * (x + (x === building.minX ? -0.125 : 0.125)) + Math.sin(angle) * (z + (z === building.minZ ? -0.125 : 0.125)),
-              origin.y + y, origin.z - Math.sin(angle) * (x + (x === building.minX ? -0.125 : 0.125)) + Math.cos(angle) * (z + (z === building.minZ ? -0.125 : 0.125)));
-            stone.setLocalEulerAngles(0, origin.yaw, 0);
-            stone.setLocalScale(y % 0.5 < 0.25 ? 0.44 : 0.34, 0.248,
-              y % 0.5 < 0.25 ? 0.34 : 0.44);
-            for (const render of stone.findComponents("render")) {
-              for (const mesh of render.meshInstances) { mesh.material = stoneMaterial; }
-            }
-            parent.addChild(stone);
+            const width = y % 0.5 < 0.25 ? 0.44 : 0.34;
+            const depth = y % 0.5 < 0.25 ? 0.34 : 0.44;
+            // Keep the alternating courses outside both interior wall faces.
+            addStone(x + (x === building.minX ? -width / 2 : width / 2),
+              origin.y + y, z + (z === building.minZ ? -depth / 2 : depth / 2),
+              [width, 0.248, depth], "Castle ground floor corner trim");
           }
         }
       }
       // Recess the trim beneath the floor: its top otherwise shares the
       // masonry's plane and flickers as the floating island moves.
       const bandY = origin.y + floorHeight - 0.125 - 0.002;
-      for (const z of [building.minZ - 0.125, building.maxZ + 0.125]) {
+      for (const z of [building.minZ - 0.2, building.maxZ + 0.2]) {
         for (let x = building.minX; x < building.maxX; x += 0.5) {
           const width = Math.min(0.5, building.maxX - x);
           addStone(x + width / 2, bandY, z, [width, 0.25, 0.4], "Castle terrace support band");
         }
       }
-      for (const x of [building.minX - 0.125, building.maxX + 0.125]) {
+      for (const x of [building.minX - 0.2, building.maxX + 0.2]) {
         for (let z = building.minZ; z < building.maxZ; z += 0.5) {
           const depth = Math.min(0.5, building.maxZ - z);
           addStone(x, bandY, z + depth / 2, [0.4, 0.25, depth], "Castle terrace support band");

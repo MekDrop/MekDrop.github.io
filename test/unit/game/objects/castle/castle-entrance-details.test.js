@@ -44,6 +44,21 @@ test("entrance lanterns flank the fixed doorway on every facing and mirrored see
       assert.equal(planters.length, 4);
       const { origin } = plan.metadata.runtime.residential;
       const angle = origin.yaw * Math.PI / 180;
+      for (const detail of [...trim, ...bands]) {
+        const position = detail.getLocalPosition();
+        const scale = detail.getLocalScale();
+        const dx = position.x - origin.x;
+        const dz = position.z - origin.z;
+        const x = dx * Math.cos(angle) - dz * Math.sin(angle);
+        const z = dx * Math.sin(angle) + dz * Math.cos(angle);
+        for (const building of plan.metadata.runtime.residential.buildings) {
+          if (building.floorY > origin.y) { continue; }
+          const overlapX = Math.min(x + scale.x / 2, building.maxX) - Math.max(x - scale.x / 2, building.minX);
+          const overlapZ = Math.min(z + scale.z / 2, building.maxZ) - Math.max(z - scale.z / 2, building.minZ);
+          assert.ok(overlapX <= 1e-6 || overlapZ <= 1e-6,
+            "exterior masonry details never protrude into a building interior");
+        }
+      }
       for (const planter of planters) {
         const position = planter.getLocalPosition();
         const dx = position.x - origin.x;
