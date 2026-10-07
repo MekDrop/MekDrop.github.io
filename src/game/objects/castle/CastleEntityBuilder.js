@@ -780,7 +780,7 @@ export class CastleEntityBuilder {
     this.#entity.addChild(this.#fire.entity);
     this.#banners = new CastleBanner({ pc: this.#pc, app: this.#app, modelLibrary: this.#modelLibrary });
     this.#entity.addChild(this.#banners.entity);
-    this.#roofs = new CastleRoof({ pc: this.#pc, modelLibrary: this.#modelLibrary });
+    this.#roofs = new CastleRoof({ pc: this.#pc, modelLibrary: this.#modelLibrary, masonryMaterial: this.#materials.get("castleStoneMid") });
     this.#entity.addChild(this.#roofs.entity);
   }
 

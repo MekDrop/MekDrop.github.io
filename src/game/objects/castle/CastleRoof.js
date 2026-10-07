@@ -17,11 +17,16 @@ export class CastleRoof {
    */
   #modelLibrary;
   /**
-   * @param {{pc: typeof import("playcanvas"), modelLibrary: import("../../models/GameModelLibrary.js").GameModelLibrary}} options
+   * @type {import("playcanvas").StandardMaterial}
    */
-  constructor({ pc, modelLibrary }) {
+  #masonryMaterial;
+  /**
+   * @param {{pc: typeof import("playcanvas"), modelLibrary: import("../../models/GameModelLibrary.js").GameModelLibrary, masonryMaterial: import("playcanvas").StandardMaterial}} options
+   */
+  constructor({ pc, modelLibrary, masonryMaterial }) {
     this.#entity = new pc.Entity("Authored castle roofs");
     this.#modelLibrary = modelLibrary;
+    this.#masonryMaterial = masonryMaterial;
   }
   get entity() { return this.#entity; }
   /**
@@ -34,6 +39,13 @@ export class CastleRoof {
     roof.setLocalEulerAngles(0, yaw, 0);
     roof.setLocalScale(width, height, depth);
     this.#entity.addChild(roof);
+    for (const render of roof.findComponents("render")) {
+      for (const instance of render.meshInstances) {
+        if (instance.material.name.startsWith("Roof gable sandstone")) {
+          instance.material = this.#masonryMaterial;
+        }
+      }
+    }
     // The authored stepped courses own both the visible surface and Ammo contact.
     // Boxes match each course rather than enclosing the whole pitched silhouette.
     roof.addComponent("collision", { type: "compound" });
