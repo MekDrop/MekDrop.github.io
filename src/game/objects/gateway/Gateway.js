@@ -3,6 +3,7 @@ import { AmmoClothPhysics } from "../shared/AmmoClothPhysics.js";
 import { colorFromValue } from "../../helpers/colors.js";
 import gatewayFrameModelUrl from "../../models/gateway/gateway-frame.glb?url";
 import { GatewayBannerSign } from "./GatewayBannerSign.js";
+import { GatewayRepulsionEffect } from "./GatewayRepulsionEffect.js";
 import portalFragmentShader from "./GatewayPortal.frag?raw";
 import portalVertexShader from "./GatewayPortal.vert?raw";
 
@@ -23,6 +24,14 @@ const PORTAL_WIND_FEATHER_BLOCKS = 1;
  * terrain cube by default.
  */
 export class Gateway {
+  /**
+   * @type {GatewayRepulsionEffect}
+   */
+  #repulsionEffect;
+  /**
+   * @type {number}
+   */
+  #burstStarted = -10;
   /**
    *
     * @returns {string}
@@ -222,6 +231,7 @@ export class Gateway {
 
     this.#createFrame(surfaceLift);
     this.#createPortal();
+    this.#repulsionEffect = new GatewayRepulsionEffect(pc, app.graphicsDevice, this.#visualRoot, cubeSize);
     this.setColor(color);
 
 
@@ -231,7 +241,9 @@ export class Gateway {
      */
     (deltaTime) => {
       this.#elapsed += deltaTime;
+      this.#repulsionEffect.update(deltaTime);
       this.#portalMaterial?.setParameter("uTime", this.#elapsed);
+      this.#portalMaterial?.setParameter("uBurstAge", this.#elapsed - this.#burstStarted);
       this.#animateBanner(deltaTime);
     });
   }
@@ -328,9 +340,19 @@ export class Gateway {
     if (length <= 0.001) {
       return null;
     }
+    const impactZ = Math.max(-this.#cubeSize * 4, Math.min(this.#cubeSize * 4, this.#collisionLocalPoint.z));
     return {
       x: this.#repulsionDirection.x / length,
       z: this.#repulsionDirection.z / length,
+      onRepelled: () => {
+        this.#burstStarted = this.#elapsed;
+        this.#portalMaterial.setParameter("uBurstSide", side);
+        this.#portalMaterial.setParameter("uBurstCenter", [
+          (impactZ + this.#cubeSize * 4) / (this.#cubeSize * 8),
+          0.25,
+        ]);
+        this.#repulsionEffect.play(side, impactZ, this.#cubeSize);
+      },
     };
   }
 
@@ -427,6 +449,7 @@ export class Gateway {
   }
 
   destroy() {
+    this.#repulsionEffect?.destroy();
     this.#updateHandle?.off();
     this.#updateHandle = null;
     this.endWindGesture();
@@ -747,6 +770,9 @@ export class Gateway {
     this.#portalMaterial.depthWrite = false;
     this.#portalMaterial.cull = pc.CULLFACE_NONE;
     this.#portalMaterial.setParameter("uTime", 0);
+    this.#portalMaterial.setParameter("uBurstAge", 10);
+    this.#portalMaterial.setParameter("uBurstSide", 1);
+    this.#portalMaterial.setParameter("uBurstCenter", [0.5, 0.25]);
     const portalColor = colorFromValue(this.#pc, DEFAULT_GATEWAY_COLOR);
     this.#portalMaterial.setParameter("uColor", [
       portalColor.r,

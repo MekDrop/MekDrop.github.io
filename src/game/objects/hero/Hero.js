@@ -129,8 +129,8 @@ const RIVER_BRIDGE_HOP_HEIGHT = 0.24;
 // Keeps the widest pose, including the pauldron and its outline, within one
 // 1x1 terrain/path cube.
 // Halfway between the original hero size and the terrace-sized version.
-const GATEWAY_REPEL_DURATION = 0.5;
-const GATEWAY_REPEL_SPEED = 2.2;
+const GATEWAY_REPEL_DURATION = 0.25;
+const GATEWAY_REPEL_SPEED = 4.4;
 const GATEWAY_REPEL_COOLDOWN = 0.2;
 const PICKUP_POSITIONING_DURATION = 0.24;
 const PAT_ANNOYED_DURATION = 1.25;
@@ -3640,6 +3640,7 @@ export class Hero {
       return false;
     }
     this.#actionBehavior.repelAction = { ...direction, elapsed: 0 };
+    direction.onRepelled?.();
     return true;
   }
 
