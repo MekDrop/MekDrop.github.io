@@ -81,7 +81,9 @@ export class CastleEntranceDetails {
           }
         }
       }
-      const bandY = origin.y + floorHeight - 0.125;
+      // Recess the trim beneath the floor: its top otherwise shares the
+      // masonry's plane and flickers as the floating island moves.
+      const bandY = origin.y + floorHeight - 0.125 - 0.002;
       for (const z of [building.minZ - 0.125, building.maxZ + 0.125]) {
         for (let x = building.minX; x < building.maxX; x += 0.5) {
           const width = Math.min(0.5, building.maxX - x);

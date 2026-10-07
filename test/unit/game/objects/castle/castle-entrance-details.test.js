@@ -32,7 +32,14 @@ test("entrance lanterns flank the fixed doorway on every facing and mirrored see
       assert.equal(lights.length, 2);
       assert.equal(trim.length, 48);
       assert.ok(trim.every(node => node.getLocalScale().x >= 0.34 && node.getLocalScale().z >= 0.34));
-      assert.ok(parent.children.some(node => node.name === "Castle terrace support band"));
+      const bands = parent.children.filter(node => node.name === "Castle terrace support band");
+      assert.ok(bands.length > 0);
+      const terraceY = plan.metadata.runtime.residential.origin.y + plan.metadata.runtime.residential.floorHeight;
+      for (const band of bands) {
+        const topY = band.getLocalPosition().y + band.getLocalScale().y / 2;
+        assert.ok(Math.abs(terraceY - topY - 0.002) < 1e-6,
+          "decorative bands stay below the masonry floor plane on every facing");
+      }
       const planters = parent.children.filter(node => node.name === "Castle terrace boxwood planter");
       assert.equal(planters.length, 4);
       const { origin } = plan.metadata.runtime.residential;
