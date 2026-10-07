@@ -9,7 +9,12 @@ import { CASTLE_BLOCK_SIZE, CASTLE_MATERIAL_DEFINITIONS } from "../../../../../s
 const source = readFileSync(new URL(
   "../../../../../src/game/objects/castle/CastleEntityBuilder.js", import.meta.url,
 ), "utf8").replace(/^import[\s\S]*?from "[^"]+";\r?\n/gm, "");
+const diffuseShader = readFileSync(new URL("../../../../../src/game/objects/castle/CastleMasonry.frag", import.meta.url), "utf8");
+const diffuseWgslShader = readFileSync(new URL("../../../../../src/game/objects/castle/CastleMasonry.wgsl", import.meta.url), "utf8");
 const prelude = `
+const diffuseShader = ${JSON.stringify(diffuseShader)};
+const diffuseWgslShader = ${JSON.stringify(diffuseWgslShader)};
+${readFileSync(new URL("../../../../../src/game/objects/castle/CastleMasonryMaterial.js", import.meta.url), "utf8").replace(/^import.*;\r?\n/gm, "").replace("export class", "class")}
 const CASTLE_BLOCK_SIZE = ${CASTLE_BLOCK_SIZE};
 const CASTLE_MATERIAL_DEFINITIONS = ${JSON.stringify(CASTLE_MATERIAL_DEFINITIONS)};
 const colorFromHex = (pc, hex) => new pc.Color().fromString('#' + hex.toString(16).padStart(6, '0'));
@@ -39,6 +44,7 @@ it("stone blocks remain opaque from both sides with depth testing and writing en
     buildPlan: {
       input: { position: { x: 0, y: 0, z: 0 }, doors: [] },
       layout: { empty: true },
+      metadata: { runtime: {} },
     },
   });
   try {
@@ -47,8 +53,9 @@ it("stone blocks remain opaque from both sides with depth testing and writing en
     );
     assert.equal(stone.length, 5);
     for (const material of stone) {
-      assert.equal(material.cull, pc.CULLFACE_NONE, material.name);
-      assert.equal(material.twoSidedLighting, true, material.name);
+      assert.equal(material.cull, pc.CULLFACE_BACK, material.name);
+      assert.equal(material.getShaderChunks(pc.SHADERLANGUAGE_GLSL).get("diffusePS"), diffuseShader);
+      assert.equal(material.getShaderChunks(pc.SHADERLANGUAGE_WGSL).get("diffusePS"), diffuseWgslShader);
       assert.equal(material.blendType, pc.BLEND_NONE, material.name);
       assert.equal(material.opacity, 1, material.name);
       assert.equal(material.depthWrite, true, material.name);

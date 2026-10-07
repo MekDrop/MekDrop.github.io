@@ -3,6 +3,7 @@ import { addGeneratedVoxelPhysics } from "../shared/GeneratedVoxelPhysics.js";
 import stoneBlockUrl from "../../models/castle/residential/masonry-block.glb?url";
 import { DynamicRenderBatch } from "../../rendering/DynamicRenderBatch.js";
 import { CastleBanner } from "./CastleBanner.js";
+import { CastleMasonryMaterial } from "./CastleMasonryMaterial.js";
 import { CastleAudienceRoom } from "./CastleAudienceRoom.js";
 import { CastleDoor } from "./CastleDoor.js";
 import { CastleDoorArch } from "./CastleDoorArch.js";
@@ -114,6 +115,11 @@ export class CastleEntityBuilder {
     * @type {import("playcanvas").Texture|null}
    */
   #stoneTexture = null;
+
+  /**
+   * @type {import("playcanvas").Mat4}
+   */
+  #worldToCastle;
   /**
    *
     * @type {import("playcanvas").Texture|null}
@@ -271,6 +277,7 @@ export class CastleEntityBuilder {
     this.#modelLibrary = modelLibrary;
     this.#doorTexture = doorTexture;
     this.#stoneTexture = stoneTexture;
+    this.#worldToCastle = new pc.Mat4();
     this.#fireParticleTexture = fireParticleTexture;
     this.#carpetTexture = carpetTexture;
     this.#onRuntimeError = onRuntimeError;
@@ -672,6 +679,7 @@ export class CastleEntityBuilder {
       return;
     }
     try {
+      this.#worldToCastle.copy(this.#entity.getWorldTransform()).invert();
       for (const door of this.#animatedDoors) {
         door.npcNavigation = this.#canNpcMove;
         door.update(deltaTime);
@@ -746,6 +754,7 @@ export class CastleEntityBuilder {
       if (definition.texture === "castleStone") {
         material.diffuseVertexColor = false;
         material.diffuseMap = this.#stoneTexture;
+        CastleMasonryMaterial.configure(this.#pc, material, this.#worldToCastle.data);
         // Closed masonry has outward faces on both sides of each wall.
         // Rendering its hidden reverse faces causes coincident internal seams.
         material.cull = this.#pc.CULLFACE_BACK;

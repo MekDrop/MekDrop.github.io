@@ -2,7 +2,7 @@ import { CASTLE_BOUNDARY } from "../../enum/CastleBoundary.js";
 
 export const CASTLE_MATERIAL_DEFINITIONS = Object.freeze({
   castleStoneDark: Object.freeze({
-    color: 0x62615a,
+    color: 0x7b786f,
     texture: "castleStone",
     gloss: 0.04,
   }),
