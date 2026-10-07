@@ -11,6 +11,7 @@ import twgslScriptUrl from "src/assets/game/wasm/twgsl/twgsl.js?url";
 import twgslWasmUrl from "src/assets/game/wasm/twgsl/twgsl.wasm?url";
 import waterSideUrl from "src/assets/game/tiles/water-side.png";
 import waterTopUrl from "src/assets/game/tiles/water-top.png";
+
 import { GATEWAY_BANNER_SIGNS, Gateway } from "./objects/gateway/index.js";
 import { BridgeRailingKit, OverpassStairs } from "./objects/path/index.js";
 import { Hero, HeroPatHand } from "./objects/hero/index.js";
@@ -3019,4 +3020,12 @@ export class PlayCanvasRenderer {
     for (const buffer of this.#vertexBuffers) buffer.destroy();
     this.#vertexBuffers = [];
   }
+}
+
+// Native Ammo state cannot survive Vue hot replacement of the game scene.
+// Reload at this boundary when the renderer or its game dependencies change.
+if (import.meta.hot) {
+  import.meta.hot.accept(() => {
+    window.location.reload();
+  });
 }

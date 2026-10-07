@@ -350,7 +350,7 @@ it("keeps all timber floor finishes behind occupied walls and leaves stone-only 
       const shared = new CastleResidentialLayout(plan);
       const room = createRoom(side, null, { residentialLayout: shared });
       assert.equal(room.entity.children.some((part) => part.name === "Audience entrance floor"), false);
-      const work = shared.rooms.work;
+      const work = shared.audienceFloorBounds;
       for (const part of room.entity.children.filter((item) => item.name.includes("floor") || item.name === "Audience carpet runner")) {
         const center = shared.toLocal(part.position.x, part.position.z);
         assert.ok(center.x - part.scale.x / 2 >= work.minX - 1e-6 && center.x + part.scale.x / 2 <= work.maxX + 1e-6,

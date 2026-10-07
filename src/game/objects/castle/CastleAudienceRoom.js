@@ -535,7 +535,7 @@ export class CastleAudienceRoom {
     );
     if (this.#residentialLayout) {
       const shared = this.#residentialLayout;
-      const room = shared.rooms.work;
+      const room = shared.audienceFloorBounds ?? shared.rooms.work;
       const angle = shared.yaw * Math.PI / 180;
       const lateral = (room.minX + room.maxX) / 2;
       this.#center = { x: shared.origin.x + Math.cos(angle) * lateral, z: shared.origin.z - Math.sin(angle) * lateral };

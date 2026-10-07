@@ -1,3 +1,4 @@
+import { CastleFloorFinish } from "./CastleFloorFinish.js";
 import { MAX_SAFE_STEP_DOWN, STEP_CLEARANCE } from "../hero/HeroSurfaceRules.js";
 import { spiralStairRise } from "../shared/SpiralStairCollision.js";
 import { createCastlePlannedFloorAreas } from "./CastlePlannedFloorAreas.js";
@@ -25,6 +26,10 @@ export class CastleResidentialLayout {
    * @type {Record<string, ResidentialRoom>}
    */
   #rooms;
+  /**
+   * @type {{minX:number,maxX:number,minZ:number,maxZ:number,floorY:number}|null}
+   */
+  #audienceFloorBounds = null;
   /**
    * @type {ResidentialPlacement[]}
    */
@@ -407,6 +412,7 @@ export class CastleResidentialLayout {
     this.#origin = plan.origin;
     this.#yaw = plan.origin.yaw;
     this.#rooms = plan.rooms;
+    this.#audienceFloorBounds = CastleFloorFinish.bounds(plan.rooms.work, plan.buildings, plan.openings);
     this.#walkableAreas = createCastlePlannedFloorAreas(buildPlan);
     this.#placements = plan.furniture.map(/**
      *
@@ -453,6 +459,10 @@ export class CastleResidentialLayout {
   get origin() { return this.#origin; }
   get yaw() { return this.#yaw; }
   get rooms() { return this.#rooms; }
+  /**
+   * @returns {{minX:number,maxX:number,minZ:number,maxZ:number,floorY:number}}
+   */
+  get audienceFloorBounds() { return this.#audienceFloorBounds ?? this.#rooms.work; }
   get walkableAreas() { return this.#walkableAreas; }
   get placements() { return this.#placements; }
   get exteriorWindows() { return this.#exteriorWindows; }

@@ -1,3 +1,4 @@
+import { CastleFloorFinish } from "./CastleFloorFinish.js";
 import { createSpiralStairCollision, spiralStairRise } from "../shared/SpiralStairCollision.js";
 import buttressUrl from "../../models/castle/residential/corner-buttress.glb?url";
 import chimneyUrl from "../../models/castle/residential/chimney.glb?url";
@@ -141,6 +142,7 @@ export class CastleResidence {
    */
   #buildPlannedFloors(buildPlan, models, pc) {
     const plan = buildPlan.metadata.runtime.residential;
+    const timberFinishes = new Map();
     for (const area of this.#layout.walkableAreas) {
       const rooms = (plan.spaces ?? plan.placedRooms).filter(/**
        * @param {import("../../generator/castle/rooms/AbstractCastleRoomGenerator.js").PlannedCastleRoom} room
@@ -152,19 +154,7 @@ export class CastleResidence {
         .map(/**
          * @param {import("../../generator/castle/rooms/AbstractCastleRoomGenerator.js").PlannedCastleRoom} room
          */ (room) => {
-          const finish = { ...room };
-          // Authored rooms omit the half-wall perimeter reveal. The building
-          // wall owns that boundary, so timber must reach its inside face.
-          for (const building of plan.buildings ?? []) {
-            if (building.floorY > area.floorY || room.minX < building.minX ||
-              room.maxX > building.maxX || room.minZ < building.minZ || room.maxZ > building.maxZ) { continue; }
-            for (const edge of ["minX", "maxX", "minZ", "maxZ"]) {
-              if (Math.abs(room[edge] - building[edge]) <= 0.125 + 1e-6) {
-                finish[edge] = building[edge];
-              }
-            }
-          }
-          return finish;
+          return CastleFloorFinish.bounds(room, plan.buildings, plan.openings);
         });
       let stonePieces = [[area.minX, area.maxX, area.minZ, area.maxZ]];
       const woodPieces = [];
@@ -172,10 +162,26 @@ export class CastleResidence {
         const intersection = [Math.max(area.minX, room.minX), Math.min(area.maxX, room.maxX),
           Math.max(area.minZ, room.minZ), Math.min(area.maxZ, room.maxZ)];
         stonePieces = subtractFloorArea(stonePieces, room);
-        // The audience-room object owns its ground-floor timber.
-        if (room.id !== "throneRoom" || area.floorY !== plan.origin.y) { woodPieces.push(intersection); }
+        woodPieces.push(intersection);
       }
-      for (const [pieces, timber] of [[stonePieces, false], [woodPieces, true]]) {
+      // The audience object owns the complete timber finish at its actual level,
+      // including authored halls whose IDs differ from generated throneRoom.
+      const audienceFloor = this.#layout.audienceFloorBounds;
+      let visibleWoodPieces = woodPieces;
+      if (area.floorY === audienceFloor.floorY) {
+        visibleWoodPieces = subtractFloorArea(woodPieces, audienceFloor);
+        for (const [minX, maxX, minZ, maxZ] of woodPieces) {
+          const left = Math.max(minX, audienceFloor.minX);
+          const right = Math.min(maxX, audienceFloor.maxX);
+          const front = Math.max(minZ, audienceFloor.minZ);
+          const rear = Math.min(maxZ, audienceFloor.maxZ);
+          if (right <= left || rear <= front) { continue; }
+          this.#solids.push({ x: (left + right) / 2,
+            y: area.floorY - plan.origin.y - 0.125, z: (front + rear) / 2,
+            width: right - left, height: 0.25, depth: rear - front, floorSupport: true });
+        }
+      }
+      for (const [pieces, timber] of [[stonePieces, false], [visibleWoodPieces, true]]) {
         // The generated brick shell already owns exposed upper surfaces.
         if (!plan.basePlanId && !timber && area.floorY > plan.origin.y && !area.id.endsWith("Threshold")) { continue; }
         for (const [minX, maxX, minZ, maxZ] of pieces) {
@@ -184,10 +190,27 @@ export class CastleResidence {
           // Keep their support record without adding another visible slab.
           const threshold = area.id.endsWith("Threshold");
           const wood = timber && !threshold && !area.id.endsWith(":straightLanding");
-          const panel = wood ? WoodenFloor.createPanel(models, true) : models.instantiate(stoneUrl);
+          const panel = wood ? null : models.instantiate(stoneUrl);
           const x = (minX + maxX) / 2;
           const z = (minZ + maxZ) / 2;
           const y = area.floorY - plan.origin.y;
+          if (wood) {
+            const owner = rooms.find(/**
+             *
+             * @param {{id:string,minX:number,maxX:number,minZ:number,maxZ:number}} room
+             */
+            (room) => room.id !== "main-entrance" &&
+              x >= room.minX - 1e-6 && x <= room.maxX + 1e-6 &&
+              z >= room.minZ - 1e-6 && z <= room.maxZ + 1e-6) ??
+              rooms.find(/**
+               *
+               * @param {{id:string,minX:number,maxX:number,minZ:number,maxZ:number}} room
+               */
+              (room) => x >= room.minX && x <= room.maxX && z >= room.minZ && z <= room.maxZ);
+            const key = `${owner.id}:${area.floorY}`;
+            if (!timberFinishes.has(key)) { timberFinishes.set(key, { id: owner.id, y, pieces: [] }); }
+            timberFinishes.get(key).pieces.push([minX, maxX, minZ, maxZ]);
+          }
           if (panel && (wood || !plan.basePlanId)) {
             panel.name = `Castle ${area.id} ${wood ? "wood" : "stone"} floor`;
             // Keep timber above the slab so its sides cannot leak through masonry joints.
@@ -207,6 +230,16 @@ export class CastleResidence {
           this.#solids.push({ x, y: y - 0.125, z, width: maxX - minX,
             height: 0.25, depth: maxZ - minZ, floorSupport: true });
         }
+      }
+    }
+
+    for (const { id, y, pieces } of timberFinishes.values()) {
+      for (const [minX, maxX, minZ, maxZ] of CastleFloorFinish.merge(pieces)) {
+        const panel = WoodenFloor.createPanel(models, true);
+        panel.name = `Castle ${id} wood floor`;
+        panel.setLocalPosition((minX + maxX) / 2, y + 0.001, (minZ + maxZ) / 2);
+        panel.setLocalScale(maxX - minX, 0.05, maxZ - minZ);
+        this.#entity.addChild(panel);
       }
     }
 
