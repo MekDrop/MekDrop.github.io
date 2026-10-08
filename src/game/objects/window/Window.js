@@ -89,6 +89,16 @@ export class Window {
     const position = bottomRail.getLocalPosition();
     bottomRail.setLocalPosition(position.x, position.y - 0.013 + 0.001 / window.height, position.z);
   }
+  // The top rail also stops 0.013 short of the aperture. Extend only its
+  // upper edge into the lintel, preserving the overlap with the glass below.
+  const topRail = visual.findByName("Oak frame rail 1");
+  if (topRail) {
+    const extension = 0.013 + 0.001 / window.height;
+    const position = topRail.getLocalPosition();
+    const scale = topRail.getLocalScale();
+    topRail.setLocalPosition(position.x, position.y + extension / 2, position.z);
+    topRail.setLocalScale(scale.x, scale.y * (1 + extension / 0.04), scale.z);
+  }
   parent.addChild(visual);
   const glow = new pc.Entity("Castle amber window glow");
   glow.setLocalPosition(window.position.x - Math.sin(angle) * window.depth * 0.2,
