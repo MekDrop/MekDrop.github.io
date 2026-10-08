@@ -297,8 +297,9 @@ export class GamePanelHud {
    *
    * @param {{canvas: HTMLCanvasElement, context: CanvasRenderingContext2D, texture: import("playcanvas").Texture}} record
    * @param {number} value
+   * @param {number} minimumDigits
    */
-  drawNumber(record, value) {
+  drawNumber(record, value, minimumDigits = 1) {
     const { canvas, context, texture } = record;
     context.clearRect(0, 0, canvas.width, canvas.height);
     context.font = gameUiTheme.font(900, COUNTER_FONT_SIZE);
@@ -307,9 +308,22 @@ export class GamePanelHud {
     context.lineJoin = "round";
     context.strokeStyle = gameUiTheme.shadow;
     context.lineWidth = 7;
-    const text = String(Math.max(0, value));
+    const amount = String(Math.max(0, value));
+    const text = amount.padStart(minimumDigits, "0");
     const x = canvas.width / 2;
     const y = canvas.height / 2 + 2;
+    const paddingLength = text.length - amount.length;
+    if (paddingLength > 0) {
+      context.textAlign = "left";
+      const padding = text.slice(0, paddingLength);
+      const left = x - context.measureText(text).width / 2;
+      context.fillStyle = gameUiTheme.text;
+      const amountX = left + context.measureText(padding).width;
+      context.strokeText(amount, amountX, y);
+      context.fillText(amount, amountX, y);
+      texture.setSource(canvas);
+      return;
+    }
     context.strokeText(text, x, y);
     context.fillStyle = gameUiTheme.text;
     context.fillText(text, x, y);

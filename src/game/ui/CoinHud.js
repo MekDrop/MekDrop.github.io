@@ -9,10 +9,15 @@ const TEXTURE_SIZE = 64;
  */
 
 const COINS = [
-  { type: COIN_TYPE.GOLD, light: "#fff09b", main: "#f5b72e", dark: "#8a4c0a" },
-  { type: COIN_TYPE.SILVER, light: "#f2f7ff", main: "#aabbd0", dark: "#48596d" },
   { type: COIN_TYPE.COPPER, light: "#ffd0a3", main: "#bd6a32", dark: "#613018" },
 ];
+
+// Wallet values are displayed in copper: 100 copper = 1 silver, 100 silver = 1 gold.
+const COPPER_VALUE = {
+  [COIN_TYPE.GOLD]: 10000,
+  [COIN_TYPE.SILVER]: 100,
+  [COIN_TYPE.COPPER]: 1,
+};
 
 export class CoinHud extends GamePanelHud {
   /**
@@ -61,10 +66,10 @@ export class CoinHud extends GamePanelHud {
    * @param {Record<string, number>} wallet
    */
   setWallet(wallet = {}) {
-    for (const { type } of COINS) {
+    for (const type of Object.values(COIN_TYPE)) {
       this.#wallet[type] = Math.max(0, Math.floor(Number(wallet[type]) || 0));
-      this.#drawNumber(type);
     }
+    this.#drawNumber(COIN_TYPE.COPPER);
   }
 
   destroy() {
@@ -81,11 +86,12 @@ export class CoinHud extends GamePanelHud {
     const contentGap = gameUiTheme.spaceXs;
     const indicatorGap = gameUiTheme.spaceSm;
     const iconSize = this.counterIconSize;
-    const numberWidth = this.counterNumberWidth;
+    const numberWidth = this.counterNumberWidth * 2;
     const numberHeight = this.counterNumberHeight;
     const itemWidth = iconSize + contentGap + numberWidth;
+    // Match the two counters in the lives panel above the wallet.
     const contentWidth =
-      COINS.length * itemWidth + (COINS.length - 1) * indicatorGap;
+      2 * (iconSize + contentGap + this.counterNumberWidth) + indicatorGap;
     const panelWidth = contentWidth + panelPaddingX * 2;
     const panelHeight = iconSize + panelPaddingY * 2;
 
@@ -119,8 +125,10 @@ export class CoinHud extends GamePanelHud {
     (coin, index) => {
       const coinTexture = this.#createCoinTexture(coin);
       this.#coinTextures.set(coin.type, coinTexture);
-      const numberTexture = this.createCounterNumberTexture(
+      const numberTexture = this.createTextureRecord(
         `${coin.type} coin number texture`,
+        256,
+        64,
       );
       this.#numberTextures.set(coin.type, numberTexture);
       const itemX = panelPaddingX + index * (itemWidth + indicatorGap);
@@ -136,7 +144,7 @@ export class CoinHud extends GamePanelHud {
       this.createImage({
         parent: this.#panel,
         name: `${coin.type} coin count`,
-        x: itemX + iconSize + contentGap,
+        x: panelWidth - panelPaddingX - numberWidth,
         y: panelPaddingY + (iconSize - numberHeight) / 2,
         width: numberWidth,
         height: numberHeight,
@@ -203,6 +211,10 @@ export class CoinHud extends GamePanelHud {
     if (!record) {
       return;
     }
-    this.drawNumber(record, this.#wallet[type]);
+    let total = 0;
+    for (const [coinType, value] of Object.entries(COPPER_VALUE)) {
+      total += this.#wallet[coinType] * value;
+    }
+    this.drawNumber(record, total, 6);
   }
 }
