@@ -21,8 +21,8 @@ describe("short grass carpet placement", () => {
       TileType.ENTRY, TileType.CASTLE_WALL, TileType.CASTLE_TOWER]]);
     const before = structuredClone(input);
     const placements = GrassCarpetLayout.create(input);
-    assert.equal(placements.length, 72);
-    assert.equal(placements.filter(({ detail }) => !detail).length, 24);
+    assert.equal(placements.length, 75);
+    assert.equal(placements.filter(({ detail }) => !detail).length, 27);
     assert.ok(placements.every(({ x, z }) => Math.abs(x + 2.5) < 0.5 && Math.abs(z) < 0.5));
     assert.deepEqual(input, before);
   });
@@ -33,7 +33,7 @@ describe("short grass carpet placement", () => {
     const placements = GrassCarpetLayout.create(input);
     assert.deepEqual(placements, GrassCarpetLayout.create(input));
     assert.ok(new Set(placements.map(({ rotation }) => rotation)).size > 20);
-    assert.ok(placements.every(({ height, broadleaf }) => height * (broadleaf ? 0.19 : 0.34) < 0.075));
+    assert.ok(placements.filter(({ fringe }) => !fringe).every(({ height, broadleaf }) => height * (broadleaf ? 0.19 : 0.34) < 0.075));
     assert.ok(placements.some(({ broadleaf }) => broadleaf));
     assert.ok(placements.some(({ broadleaf }) => !broadleaf));
     assert.ok(placements.filter(({ x }) => x > 0).every(({ y }) => y === 4 + GRASS_SURFACE_LIFT - 0.002));
@@ -60,7 +60,7 @@ describe("short grass carpet placement", () => {
     };
 
     const placements = GrassCarpetLayout.create(input);
-    assert.equal(placements.length, 144);
+    assert.equal(placements.length, 150);
     assert.ok(
       placements.every(
         ({ y }) => y === 1 + GRASS_SURFACE_LIFT - 0.002,
@@ -84,8 +84,8 @@ describe("short grass carpet placement", () => {
     const treeGrass = placements.filter(({ x }) => x < 0);
     const bushGrass = placements.filter(({ x }) => x > 0);
 
-    assert.equal(treeGrass.length, 72);
-    assert.equal(bushGrass.length, 72);
+    assert.equal(treeGrass.length, 75);
+    assert.equal(bushGrass.length, 75);
     assert.ok(
       treeGrass.some(
         ({ x, z }) =>
@@ -107,24 +107,25 @@ describe("short grass carpet placement", () => {
       { col: 1, row: 0, terrainHeight: 2 },
     ] }];
     const placements = GrassCarpetLayout.create(input);
-    assert.equal(placements.length, 72);
+    assert.equal(placements.length, 76);
     assert.ok(placements.every(({ x, y }) => x < 0 && y > 3 && y < 3 + GRASS_SURFACE_LIFT));
   });
 
-  it("keeps grass tips inside the bank beside a lower fluid tile", () => {
+  it("adds a short fringe along lower river banks", () => {
     const input = map([[TileType.GRASS, TileType.WATER]]);
     input.heightmap[0] = [2, 0];
     const placements = GrassCarpetLayout.create(input);
-    assert.equal(placements.length, 72);
-    assert.ok(placements.every(({ boundaryExtension }) => boundaryExtension[2] === 0));
+    assert.equal(placements.length, 76);
+    assert.ok(placements.every(({ boundaryExtension }) => boundaryExtension[2] === 0.1));
+    assert.equal(placements.filter(({ fringe, x }) => fringe && Math.abs(x + 0.01) < 0.001).length, 1);
   });
   it("scatters freely across the tile and changes the arrangement with the map seed", () => {
     const input = map([[TileType.GRASS]]);
     const placements = GrassCarpetLayout.create({ ...input, mapName: "lawn-a" });
     const otherSeed = GrassCarpetLayout.create({ ...input, mapName: "lawn-b" });
     assert.notDeepEqual(placements, otherSeed);
-    assert.equal(new Set(placements.map(({ x }) => x)).size, placements.length);
-    assert.equal(new Set(placements.map(({ z }) => z)).size, placements.length);
+    assert.equal(new Set(placements.filter(({ fringe }) => !fringe).map(({ x }) => x)).size, 72);
+    assert.equal(new Set(placements.filter(({ fringe }) => !fringe).map(({ z }) => z)).size, 72);
     for (const signX of [-1, 1]) {
       for (const signZ of [-1, 1]) {
         assert.ok(placements.filter(({ x, z }) => x * signX > 0 && z * signZ > 0).length > 8);
@@ -132,31 +133,53 @@ describe("short grass carpet placement", () => {
     }
   });
 
-  it("keeps the same scatter and density at a cliff as inside the lawn", () => {
+  it("preserves lawn scatter and adds wind-responsive turf geometry only on exposed edges", () => {
     const input = map(Array.from({ length: 3 }, () => Array(3).fill(TileType.GRASS)));
     const center = (placements) => placements.filter(({ x, z }) => Math.abs(x) < 0.5 && Math.abs(z) < 0.5);
     const inside = center(GrassCarpetLayout.create(input));
     input.heightmap[1][1] = 3;
     const cliff = center(GrassCarpetLayout.create(input));
-    assert.equal(cliff.length, inside.length);
-    assert.deepEqual(cliff.map(({ x, z, rotation, width, height }) => [x, z, rotation, width, height]),
+    assert.equal(cliff.length, inside.length + 4);
+    assert.equal(cliff.filter(({ fringe }) => fringe).length, 4);
+    assert.deepEqual(cliff.filter(({ fringe }) => !fringe).map(({ x, z, rotation, width, height }) => [x, z, rotation, width, height]),
       inside.map(({ x, z, rotation, width, height }) => [x, z, rotation, width, height]));
     assert.ok(cliff.every(({ exposedSides }) => exposedSides === 15));
   });
 
-  it("uses the neighboring height on every corner without adding edge rows", () => {
+  it("keeps fringe off edges blocked by higher neighbors", () => {
     for (const [closedX, closedZ, closedSide] of [[-1, 0, 0], [0, -1, 1], [1, 0, 2], [0, 1, 3]]) {
       const input = map(Array.from({ length: 3 }, () => Array(3).fill(TileType.GRASS)));
       input.heightmap[1][1] = 3;
       input.heightmap[1 + closedZ][1 + closedX] = 4;
       const center = GrassCarpetLayout.create(input)
         .filter(({ x, z }) => Math.abs(x) < 0.5 && Math.abs(z) < 0.5);
-      assert.equal(center.length, 72);
+      assert.equal(center.length, 75);
       assert.ok(center.every(({ exposedSides, boundaryExtension }) =>
         exposedSides === (15 & ~(1 << closedSide)) && boundaryExtension[closedSide] === 0));
     }
   });
 
+  it("adds fringe on fractional ledges without putting it on level seams", () => {
+    const input = map(Array.from({ length: 3 }, () => Array(3).fill(TileType.GRASS)));
+    input.heightmap[1][1] = 2.2;
+    const center = GrassCarpetLayout.create(input)
+      .filter(({ x, z }) => Math.abs(x) < 0.5 && Math.abs(z) < 0.5);
+    assert.equal(center.filter(({ fringe }) => fringe).length, 4);
+    input.heightmap[1][1] = 2;
+    assert.equal(GrassCarpetLayout.create(input)
+      .filter(({ x, z, fringe }) => fringe && Math.abs(x) < 0.5 && Math.abs(z) < 0.5).length, 0);
+  });
+  it("clips only the excavated portion of a turf edge", () => {
+    const input = map([[TileType.GRASS]]);
+    input.tileMeta[0][0].terrainCutouts = [{
+      minX: -0.1, maxX: 0.1, minY: 1, maxY: 3, minZ: -0.6, maxZ: -0.4,
+    }];
+    const north = GrassCarpetLayout.create(input)
+      .filter(({ fringe, z }) => fringe && Math.abs(z + 0.49) < 0.001);
+    assert.equal(north.length, 2);
+    assert.ok(north.every(({ x, width }) =>
+      x + width / 2 <= -0.119 || x - width / 2 >= 0.119));
+  });
   it("limits paving overhang to four centimeters without shrinking the lawn", () => {
     const input = map([[TileType.GRASS, TileType.PATH, TileType.GRASS]]);
     input.heightmap[0] = [2, 2, 3];

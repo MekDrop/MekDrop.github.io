@@ -1,3 +1,6 @@
+uniform float uGrassEdge;
+varying vec2 vGrassTilePosition;
+varying vec2 vGrassEdgeGrain;
 uniform float uGrassTime;
 uniform float uGrassAmbientMotion;
 uniform float uGrassLodReveal;
@@ -22,7 +25,10 @@ vec4 getPosition() {
   dModelMatrix = getModelMatrix();
   vec3 root = dModelMatrix[3].xyz;
   vec3 offset = mat3(dModelMatrix) * vertex_position.xyz;
-  float height = max(vertex_position.y, 0.0) * length(dModelMatrix[1].xyz);
+  vGrassTilePosition = root.xz;
+  // Capture the undeformed mesh coordinates: wind must carry its grain.
+  vGrassEdgeGrain = vertex_position.xy;
+  float height = mix(max(vertex_position.y, 0.0), abs(vertex_position.y), uGrassEdge) * length(dModelMatrix[1].xyz);
   float tip = smoothstep(0.0, 0.06, height);
   float contact = 0.0;
   float movingContact = 0.0;
@@ -122,6 +128,12 @@ vec4 getPosition() {
   vGrassVariation = fract(sin(dot(root.xz, vec2(12.9898, 78.233))) * 43758.5453);
   vGrassCompression = contact;
   dPositionW = root + offset;
+  if (uGrassEdge > 0.5) {
+    // Rooted sod is stiffer than loose blades: only the hanging lip flexes.
+    dPositionW.xz = root.xz + (mat3(dModelMatrix) * vertex_position.xyz).xz +
+      windDirection * windBend * 0.2;
+    return matrix_viewProjection * vec4(dPositionW, 1.0);
+  }
   vec2 cellCenter = floor(root.xz + uGrassGridOffset + 0.5) - uGrassGridOffset;
   // Smoothly curl outward vertices back toward the edge. Unlike clamp(),
   // this retains each tapered tip instead of piling them onto a flat plane.
@@ -135,11 +147,12 @@ vec4 getPosition() {
   vec2 highBend = max(vec2(0.0), dPositionW.xz - upper + 0.025);
   dPositionW.xz += lowBend - 0.025 * (1.0 - exp(-lowBend / 0.025));
   dPositionW.xz -= highBend - 0.025 * (1.0 - exp(-highBend / 0.025));
-  // A little droop only beyond exposed terrain, never at internal lawn seams.
+  // Curl real blades over exposed cliffs, retaining wind and contact bending.
   vec2 relative = dPositionW.xz - cellCenter;
   vec2 overhang = abs(relative) - 0.5;
   vec2 reach = mix(edgeReach.xy, edgeReach.zw, step(vec2(0.0), relative));
-  vec2 edgeDroop = smoothstep(vec2(0.0), vec2(0.06), overhang) * (1.0 - step(vec2(0.2), reach));
+  vec2 edgeDroop = smoothstep(vec2(0.0), vec2(0.12), overhang) *
+    step(vec2(0.08), reach) * (1.0 - step(vec2(0.2), reach));
   dPositionW.y -= max(edgeDroop.x, edgeDroop.y) * tip * 0.018;
   // Grow grass clumps from beneath the terrain instead of switching them
   // on together at one zoom value.

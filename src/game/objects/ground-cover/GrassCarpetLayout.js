@@ -123,14 +123,19 @@ export class GrassCarpetLayout {
             neighborBridgeGround ??
             heightmap[neighborRow]?.[neighborCol] ??
             0;
-          // Keep moving blades inside the bank, including at fluid sources.
+          // River banks still have exposed turf. Use a shorter fringe so tips
+          // stay near the bank instead of spanning the channel.
           if (neighborType === TileType.WATER && neighborSource === undefined &&
             !Number.isFinite(neighborBridgeGround)) {
+            if (neighborHeight < surfaceHeight - 0.01) {
+              exposedSides |= 1 << side;
+              return 0.1;
+            }
             return 0;
           }
-          if (neighborHeight < surfaceHeight - 0.25) {
+          if (neighborHeight < surfaceHeight - 0.01) {
             exposedSides |= 1 << side;
-            return 0.06;
+            return 0.14;
           }
           if (
             Math.abs(neighborHeight - surfaceHeight) > 0.01 ||
@@ -151,6 +156,45 @@ export class GrassCarpetLayout {
             ? 0.04
             : 0;
         });
+        // A continuous sod lip per exposed side, with lawn blades above it.
+        for (let side = 0; side < 4; side += 1) {
+          if (!(exposedSides & (1 << side))) continue;
+          const x = col - (cols - 1) / 2 + (side === 0 ? -0.49 : side === 2 ? 0.49 : 0);
+          const z = row - (rows - 1) / 2 + (side === 1 ? -0.49 : side === 3 ? 0.49 : 0);
+          let spans = [[-0.5, 0.5]];
+          const acrossX = side === 1 || side === 3;
+          for (const cut of metadata?.terrainCutouts ?? []) {
+            if (surfaceHeight < cut.minY || surfaceHeight > cut.maxY) continue;
+            const normal = acrossX ? z : x;
+            const minNormal = acrossX ? cut.minZ : cut.minX;
+            const maxNormal = acrossX ? cut.maxZ : cut.maxX;
+            if (normal < minNormal - 0.05 || normal > maxNormal + 0.05) continue;
+            const center = acrossX ? x : z;
+            const start = (acrossX ? cut.minX : cut.minZ) - center - 0.02;
+            const end = (acrossX ? cut.maxX : cut.maxZ) - center + 0.02;
+            const remaining = [];
+            for (const [low, high] of spans) {
+              if (start >= high || end <= low) remaining.push([low, high]);
+              else {
+                if (start > low) remaining.push([low, start]);
+                if (end < high) remaining.push([end, high]);
+              }
+            }
+            spans = remaining;
+          }
+          for (const [low, high] of spans) {
+          const midpoint = (low + high) / 2;
+          placements.push({
+            x: x + (acrossX ? midpoint : 0),
+            y: surfaceHeight + GRASS_SURFACE_LIFT - 0.002,
+            z: z + (acrossX ? 0 : midpoint),
+            rotation: [270, 180, 90, 0][side], width: high - low, height: 1,
+            fringe: true, broadleaf: false, exposedSides, boundaryExtension,
+            chunk: `${Math.floor(col / 6)},${Math.floor(row / 6)}`,
+            detail: false, castleRearGrass: Boolean(castleRearGrass),
+          });
+          }
+        }
         for (let index = 0; index < CLUMPS_PER_TILE; index += 1) {
           const seed =
             mapSeed ^ (col * 73856093) ^ (row * 19349663) ^ (index * 83492791);

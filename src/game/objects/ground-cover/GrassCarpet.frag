@@ -1,3 +1,6 @@
+uniform float uGrassEdge;
+varying vec2 vGrassTilePosition;
+varying vec2 vGrassEdgeGrain;
 uniform vec3 material_diffuse;
 uniform float uGrassBroadleaf;
 uniform vec2 uGrassGridOffset;
@@ -15,7 +18,7 @@ void getAlbedo() {
   // The 3D blades inherit the square terrain-tile color, while their own
   // root-to-tip shading stays independent of the painted ground texture.
   vec2 tileIndex = clamp(
-    floor(vPositionW.xz + uGrassGridOffset + 0.5),
+    floor(mix(vPositionW.xz, vGrassTilePosition, uGrassEdge) + uGrassGridOffset + 0.5),
     vec2(0.0),
     uGrassVariantMapSize - 1.0
   );
@@ -36,6 +39,20 @@ void getAlbedo() {
   // Keep the physical blades close to the tile color so the meadow reads
   // as broad patches instead of thousands of dark individual flecks.
   vec3 narrowGrass = tileColor * mix(0.66, 0.9, paintBand);
+  if (uGrassEdge > 0.5) {
+    // Broken turf and root fibers, rather than a smooth manufactured green band.
+    vec2 grainCell = floor(vGrassEdgeGrain * 48.0);
+    float grain = fract(sin(dot(grainCell, vec2(127.1, 311.7))) * 43758.5453);
+    float grainVisibility = 1.0 - smoothstep(0.025, 0.08,
+      max(fwidth(vGrassEdgeGrain.x), fwidth(vGrassEdgeGrain.y)));
+    grain = mix(0.5, grain, grainVisibility);
+    // Match the lawn at the join; introduce fibers only farther down.
+    float edgeDepth = smoothstep(0.0, 0.035, abs(vGrassEdgeGrain.y));
+    vec3 turf = tileColor * mix(1.0, 0.76 + grain * 0.24, edgeDepth);
+    float roots = smoothstep(0.45 + grain * 0.25, 1.0, vGrassTip);
+    vec3 rootColor = vec3(0.105, 0.065, 0.028) * (0.8 + grain * 0.4);
+    narrowGrass = mix(turf, rootColor, roots * 0.75);
+  }
 
   vec3 broadleaf = tileColor * mix(0.55, 0.78, paintBand);
   dAlbedo = material_diffuse * mix(narrowGrass, broadleaf, uGrassBroadleaf) *

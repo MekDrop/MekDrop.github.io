@@ -1,3 +1,4 @@
+import { GrassEdgeMesh } from "./GrassEdgeMesh.js";
 import { IslandCellOwnership } from "../shared/IslandCellOwnership.js";
 import meadowGrassModelUrl from "../../models/ground-cover/meadow-grass.glb?url";
 import cloverModelUrl from "../../models/ground-cover/clover-patch.glb?url";
@@ -44,6 +45,10 @@ export class GrassCarpet {
     * @type {import("playcanvas").Texture}
    */
   #variantMap;
+  /**
+   * @type {import("playcanvas").Mesh}
+   */
+  #edgeMesh;
   /**
    *
     * @type {Array<{
@@ -153,6 +158,9 @@ export class GrassCarpet {
     this.#material.shaderChunks.glsl.set("normalMapPS", normalShader);
     this.#material.update();
 
+    this.#edgeMesh = GrassEdgeMesh.create(pc, device);
+    this.#edgeMesh.incRefCount();
+    this.#material.setParameter("uGrassEdge", 0);
     const chunks = new Map();
     const matrix = new pc.Mat4();
     const position = new pc.Vec3();
@@ -167,9 +175,10 @@ export class GrassCarpet {
       (cells) => cells.has(`${col},${row}`)) ?? -1;
       // Share clumps across larger patches without changing their transforms.
       const patch = `${Math.floor(col / 12)},${Math.floor(row / 12)}`;
-      const key = `${group}:${patch}:${placement.detail}:${placement.broadleaf}:${placement.boundaryExtension}`;
+      const key = `${group}:${patch}:${Boolean(placement.fringe)}:${placement.detail}:${placement.broadleaf}:${placement.boundaryExtension}`;
       const chunk = chunks.get(key) ?? {
         group,
+        fringe: Boolean(placement.fringe),
         matrices: [],
         placements: [],
         detail: placement.detail,
@@ -181,7 +190,7 @@ export class GrassCarpet {
       matrix.setTRS(
         position.set(placement.x, placement.y, placement.z),
         rotation,
-        scale.set(placement.width, placement.height, placement.width),
+        scale.set(placement.width, placement.height, placement.fringe ? 1 : placement.width),
       );
       chunk.matrices.push(...matrix.data);
       chunk.placements.push(placement);
@@ -189,7 +198,9 @@ export class GrassCarpet {
     }
     for (const [key, chunk] of chunks) {
       const modelUrl = chunk.broadleaf ? cloverModelUrl : meadowGrassModelUrl;
-      const batch = modelLibrary.instantiateMergedBatch(
+      const batch = chunk.fringe
+        ? GrassEdgeMesh.batch(pc, device, this.#edgeMesh, this.#material, chunk.matrices)
+        : modelLibrary.instantiateMergedBatch(
         modelUrl,
         chunk.matrices,
         {
@@ -207,22 +218,23 @@ export class GrassCarpet {
       for (const placement of chunk.placements) {
         minimum.min(
           position.set(
-            placement.x - 0.25,
-            placement.y - 0.15,
-            placement.z - 0.25,
+            placement.x - (chunk.fringe ? 0.6 : 0.25),
+            placement.y - 0.3,
+            placement.z - (chunk.fringe ? 0.6 : 0.25),
           ),
         );
         maximum.max(
           position.set(
-            placement.x + 0.25,
-            placement.y + Math.max(0.2, placement.height + 0.05),
-            placement.z + 0.25,
+            placement.x + (chunk.fringe ? 0.6 : 0.25),
+            placement.y + (chunk.fringe ? 0.04 : Math.max(0.2, placement.height + 0.05)),
+            placement.z + (chunk.fringe ? 0.6 : 0.25),
           ),
         );
       }
       const bounds = new pc.BoundingBox();
       bounds.setMinMax(minimum, maximum);
       for (const instance of batch.entity.render.meshInstances) {
+        instance.setParameter("uGrassEdge", chunk.fringe ? 1 : 0);
         instance.setParameter("uGrassBroadleaf", chunk.broadleaf ? 1 : 0);
         instance.setParameter(
           "uGrassBoundaryExtension",
@@ -344,6 +356,8 @@ export class GrassCarpet {
       vertexBuffer.destroy();
     }
     this.#batches = [];
+    this.#edgeMesh.decRefCount();
+    if (this.#edgeMesh.refCount < 1) this.#edgeMesh.destroy();
     this.#material.destroy();
     this.#variantMap.destroy();
   }
