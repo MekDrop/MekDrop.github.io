@@ -1,3 +1,4 @@
+import { IslandCellOwnership } from "../shared/IslandCellOwnership.js";
 import blueFlowerPatchModelUrl from "../../models/ground-cover/blue-flower-patch.glb?url";
 import buttercupPatchModelUrl from "../../models/ground-cover/buttercup-patch.glb?url";
 import cloverPatchModelUrl from "../../models/ground-cover/clover-patch.glb?url";
@@ -258,7 +259,7 @@ export class GroundCover {
     this.#entity.addChild(this.#mushroomPhysics.entity);
     const connector = mapData.islandConnectorData;
     this.#islandCells = connector
-      ? [new Set(connector.nearIsland), new Set(connector.farIsland)]
+      ? new IslandCellOwnership(mapData).groups
       : [];
     this.#createMaterials();
     this.zoom = zoom;
@@ -269,9 +270,10 @@ export class GroundCover {
   /**
    * @param {number} near
    * @param {number} far
+   * @param {number[]} [offsets]
    */
-  setIslandOffsets(near, far) {
-    const offsets = [near, far];
+  setIslandOffsets(near, far, offsets = [near, far]) {
+
     for (const attachment of this.#islandAttachments) {
       attachment.apply(offsets[attachment.group] ?? 0);
     }

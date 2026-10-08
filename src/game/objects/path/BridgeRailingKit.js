@@ -1,3 +1,4 @@
+import { IslandCellOwnership } from "../shared/IslandCellOwnership.js";
 import bridgeRailingPostModelUrl from "../../models/bridge/bridge-railing-post.glb?url";
 import bridgeRailingSegmentModelUrl from "../../models/bridge/bridge-railing-segment.glb?url";
 import { SLOPE_DIRECTION } from "../../enum/SlopeDirection.js";
@@ -94,14 +95,13 @@ export class BridgeRailingKit {
 
     this.#root = root;
     if (mapData?.islandConnectorData) {
-      this.#islandCells = [
-        new Set(mapData.islandConnectorData.nearIsland),
-        new Set(mapData.islandConnectorData.farIsland),
-      ];
-      this.#islandRoots = [
-        new pc.Entity("Near island bridge railings"),
-        new pc.Entity("Far island bridge railings"),
-      ];
+      this.#islandCells = new IslandCellOwnership(mapData).groups;
+      this.#islandRoots = this.#islandCells.map(/**
+       *
+       * @param {Set<string>} cells
+       * @param {number} index
+       */
+      (cells, index) => new pc.Entity(`Island ${index} bridge railings`));
       for (const islandRoot of this.#islandRoots) {
         root.addChild(islandRoot);
       }
@@ -263,10 +263,12 @@ export class BridgeRailingKit {
   /**
    * @param {number} near
    * @param {number} far
+   * @param {number[]} [offsets]
    */
-  setIslandOffsets(near, far) {
-    this.#islandRoots?.[0].setLocalPosition(0, near, 0);
-    this.#islandRoots?.[1].setLocalPosition(0, far, 0);
+  setIslandOffsets(near, far, offsets = [near, far]) {
+    for (const [index, root] of (this.#islandRoots ?? []).entries()) {
+      root.setLocalPosition(0, offsets[index] ?? 0, 0);
+    }
   }
 
   /**

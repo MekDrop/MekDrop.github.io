@@ -48,3 +48,16 @@ it("keeps single-island props directly under their original parent", () => {
   assert.deepEqual(prop.getLocalPosition().toArray(), [1, 2, 3]);
   parent.destroy();
 });
+
+it("moves props on the third island independently", () => {
+  const parent = new pc.Entity();
+  const roots = new IslandObjectRoots(pc, parent, {
+    islandConnectorData: { islands: [["0,0"], ["1,0"], ["2,0"]] },
+  });
+  const prop = new pc.Entity();
+  prop.setLocalPosition(0, 4, 0);
+  roots.addChild(prop, { col: 2, row: 0 });
+  roots.setOffsets(0.1, 0.2, [0.1, 0.2, 0.3]);
+  assert.ok(Math.abs(prop.getPosition().y - 4.3) < 1e-6);
+  parent.destroy();
+});

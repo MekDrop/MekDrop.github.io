@@ -1,5 +1,5 @@
 /**
- * Includes river-owned terrain in the same motion group as its banks.
+ * Keeps rivers and complete bridge spans in one visual motion group.
  */
 export class IslandCellOwnership {
   /**
@@ -15,7 +15,7 @@ export class IslandCellOwnership {
     if (!connector) {
       return;
     }
-    this.#groups = [connector.nearIsland, connector.farIsland].map(
+    this.#groups = (connector.islands ?? [connector.nearIsland, connector.farIsland]).map(
       /**
        * @param {string[]} cells
        */
@@ -43,6 +43,33 @@ export class IslandCellOwnership {
         for (const { col, row } of river.cells) {
           this.#groups[owner].add(`${col},${row}`);
         }
+      }
+    }
+    const connectorCells = new Set((connector.cells ?? []).map(/**
+     * @param {{col: number, row: number}} cell
+     */
+    (cell) => `${cell.col},${cell.row}`));
+    for (const command of mapData.renderCommands ?? []) {
+      if (command.method !== "addSpan") continue;
+      const span = command.args[0];
+      const keys = span.cells.map(/**
+       * @param {{col: number, row: number}} cell
+       */
+      (cell) => `${cell.col},${cell.row}`);
+      // Prefer the connector's near-island owner, even if the render span starts
+      // on the other island. All deck tiles, fascia, and rails share this owner.
+      const anchor = keys.find(/**
+       * @param {string} key
+       */
+      (key) => connectorCells.has(key)) ?? keys[0];
+      const owner = this.#groups.findIndex(/**
+       * @param {Set<string>} cells
+       */
+      (cells) => cells.has(anchor));
+      if (owner < 0) continue;
+      for (const key of keys) {
+        for (const cells of this.#groups) cells.delete(key);
+        this.#groups[owner].add(key);
       }
     }
   }

@@ -27,7 +27,12 @@ export class IslandObjectRoots {
     const connector = mapData?.islandConnectorData;
     if (!connector) return;
     this.#cells = new IslandCellOwnership(mapData).groups;
-    this.#roots = [new pc.Entity("Near island props"), new pc.Entity("Far island props")];
+    this.#roots = this.#cells.map(/**
+     *
+     * @param {Set<string>} cells
+     * @param {number} index
+     */
+    (cells, index) => new pc.Entity(`Island ${index} props`));
     for (const root of this.#roots) parent.addChild(root);
   }
 
@@ -57,9 +62,11 @@ export class IslandObjectRoots {
   /**
    * @param {number} near
    * @param {number} far
+   * @param {number[]} [offsets]
    */
-  setOffsets(near, far) {
-    this.#roots[0]?.setLocalPosition(0, near, 0);
-    this.#roots[1]?.setLocalPosition(0, far, 0);
+  setOffsets(near, far, offsets = [near, far]) {
+    for (const [index, root] of this.#roots.entries()) {
+      root.setLocalPosition(0, offsets[index] ?? 0, 0);
+    }
   }
 }

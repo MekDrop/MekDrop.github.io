@@ -132,9 +132,10 @@ export class CliffVine {
   /**
    * @param {number} near
    * @param {number} far
+   * @param {number[]} [offsets]
    */
-  setIslandOffsets(near, far) {
-    const offset = [near, far][this.#group] ?? 0;
+  setIslandOffsets(near, far, offsets = [near, far]) {
+    const offset = offsets[this.#group] ?? 0;
     if (offset === this.#offset) {
       return;
     }

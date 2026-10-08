@@ -121,10 +121,12 @@ export class GrassCarpet {
       ? new IslandCellOwnership(mapData).groups
       : null;
     if (islandCells) {
-      this.#islandRoots = [
-        new pc.Entity("Near island grass"),
-        new pc.Entity("Far island grass"),
-      ];
+      this.#islandRoots = islandCells.map(/**
+       *
+       * @param {Set<string>} cells
+       * @param {number} index
+       */
+      (cells, index) => new pc.Entity(`Island ${index} grass`));
       for (const root of this.#islandRoots) this.#entity.addChild(root);
     }
 
@@ -258,10 +260,12 @@ export class GrassCarpet {
   /**
    * @param {number} near
    * @param {number} far
+   * @param {number[]} [offsets]
    */
-  setIslandOffsets(near, far) {
-    this.#islandRoots?.[0].setLocalPosition(0, near, 0);
-    this.#islandRoots?.[1].setLocalPosition(0, far, 0);
+  setIslandOffsets(near, far, offsets = [near, far]) {
+    for (const [index, root] of (this.#islandRoots ?? []).entries()) {
+      root.setLocalPosition(0, offsets[index] ?? 0, 0);
+    }
   }
 
   set zoom(value) {

@@ -115,7 +115,8 @@ export class Window {
   /**
    * @param {number} near
    * @param {number} far
+   * @param {number[]} [offsets]
    */
-  setIslandOffsets(near, far) { this.#islandRoots.setOffsets(near, far); }
+  setIslandOffsets(near, far, offsets = [near, far]) { this.#islandRoots.setOffsets(near, far, offsets); }
   destroy() { this.#entity.destroy(); }
 }

@@ -1,3 +1,4 @@
+import { IslandCellOwnership } from "../shared/IslandCellOwnership.js";
 import { HeroTerrain } from "./HeroTerrain.js";
 import { HERO_MODEL_SCALE } from "../../config/character-size.js";
 import { HeroFootSupport } from "./HeroFootSupport.js";
@@ -727,10 +728,7 @@ export class Hero {
     this.#app = app;
     this.#mapData = mapData;
     if (mapData.islandConnectorData) {
-      this.#visualIslandCells = [
-        new Set(mapData.islandConnectorData.nearIsland),
-        new Set(mapData.islandConnectorData.farIsland),
-      ];
+      this.#visualIslandCells = new IslandCellOwnership(mapData).groups;
     }
     this.#buildRiverRouteLookup();
     this.#spawnCenter = spawnCenter;
@@ -1175,10 +1173,10 @@ export class Hero {
   /**
    * @param {number} near
    * @param {number} far
+   * @param {number[]} [offsets]
    */
-  setIslandVisualOffsets(near, far) {
-    this.#visualIslandOffsets[0] = near;
-    this.#visualIslandOffsets[1] = far;
+  setIslandVisualOffsets(near, far, offsets = [near, far]) {
+    this.#visualIslandOffsets = offsets;
   }
 
   /**

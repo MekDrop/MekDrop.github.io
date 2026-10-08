@@ -84,12 +84,18 @@ export class CliffVines {
   /**
    * @param {number} near
    * @param {number} far
+   * @param {number[]} [offsets]
    */
-  setIslandOffsets(near, far) {
-    if (!this.#vertexBuffer || (near === this.#offsets[0] && far === this.#offsets[1])) {
+  setIslandOffsets(near, far, offsets = [near, far]) {
+    if (!this.#vertexBuffer || offsets.every(/**
+     *
+     * @param {number} offset
+     * @param {number} index
+     */
+    (offset, index) => offset === this.#offsets[index])) {
       return;
     }
-    this.#offsets = [near, far];
+    this.#offsets = offsets;
     for (const [index, { group, y }] of this.#moduleOffsets.entries()) {
       this.#matrices[index * 16 + 13] = y + (this.#offsets[group] ?? 0);
     }

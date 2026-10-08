@@ -201,8 +201,9 @@ export class SpiralStaircase {
   /**
    * @param {number} near
    * @param {number} far
+   * @param {number[]} [offsets]
    */
-  setIslandOffsets(near, far) { this.#islandRoots.setOffsets(near, far); }
+  setIslandOffsets(near, far, offsets = [near, far]) { this.#islandRoots.setOffsets(near, far, offsets); }
 
   /**
    * Uses Ammo to select the tread below a height limit across stacked turns.

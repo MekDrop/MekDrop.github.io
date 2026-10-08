@@ -106,10 +106,12 @@ export class TerrainInstanceRenderer {
       this.#cols = mapData.cols;
       this.#rows = mapData.rows;
       this.#islandCells = new IslandCellOwnership(mapData).groups;
-      this.#islandRoots = [
-        new pc.Entity("Near island terrain"),
-        new pc.Entity("Far island terrain"),
-      ];
+      this.#islandRoots = this.#islandCells.map(/**
+       *
+       * @param {Set<string>} cells
+       * @param {number} index
+       */
+      (cells, index) => new pc.Entity(`Island ${index} terrain`));
       for (const islandRoot of this.#islandRoots) root.addChild(islandRoot);
     }
     /**
@@ -289,10 +291,12 @@ export class TerrainInstanceRenderer {
   /**
    * @param {number} near
    * @param {number} far
+   * @param {number[]} [offsets]
    */
-  setIslandOffsets(near, far) {
-    this.#islandRoots?.[0].setLocalPosition(0, near, 0);
-    this.#islandRoots?.[1].setLocalPosition(0, far, 0);
+  setIslandOffsets(near, far, offsets = [near, far]) {
+    for (const [index, root] of (this.#islandRoots ?? []).entries()) {
+      root.setLocalPosition(0, offsets[index] ?? 0, 0);
+    }
   }
 
   /**

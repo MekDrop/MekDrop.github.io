@@ -109,9 +109,10 @@ export class Castle extends CastleEntityBuilder {
    * Keep all castle parts on the same visual island as the authored footprint.
    * @param {number} near
    * @param {number} far
+   * @param {number[]} [offsets]
    */
-  setIslandOffsets(near, far) {
-    this.entity.setLocalPosition(0, [near, far][this.#islandGroup] ?? 0, 0);
+  setIslandOffsets(near, far, offsets = [near, far]) {
+    this.entity.setLocalPosition(0, offsets[this.#islandGroup] ?? 0, 0);
   }
 
   /**

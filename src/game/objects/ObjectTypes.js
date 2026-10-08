@@ -46,7 +46,7 @@
  * @property {Array<RenderCommand>} [renderCommands]
  * @property {Array<{id?: string, kind?: string, cells: Array<RiverCell>, cascades: Array<RiverCascade>, waterfall: WaterfallDefinition}>} [riverData]
  * @property {PathOverpass} [overpassData]
- * @property {{horizontal: boolean, station: number, cells: Array<{col: number, row: number}>, removedCells: Array<{col: number, row: number}>, nearIsland: string[], farIsland: string[]}} [islandConnectorData]
+ * @property {{horizontal: boolean, station: number, cells: Array<{col: number, row: number}>, removedCells: Array<{col: number, row: number}>, nearIsland: string[], farIsland: string[], islands?: string[][]}} [islandConnectorData]
  * @property {{position: {col: number, row: number, width: number, depth: number}}} [castle]
  * @typedef {object} MapObjectRuntime
  * @property {(definition: MapObjectDefinition) => boolean} [replaceObjectDefinition]

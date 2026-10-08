@@ -251,9 +251,10 @@ export class Gateway {
   /**
    * @param {number} near
    * @param {number} far
+   * @param {number[]} [offsets]
    */
-  setIslandOffsets(near, far) {
-    const offset = [near, far][this.#islandGroup] ?? 0;
+  setIslandOffsets(near, far, offsets = [near, far]) {
+    const offset = offsets[this.#islandGroup] ?? 0;
     this.#visualRoot.setLocalPosition(0, offset, 0);
   }
 

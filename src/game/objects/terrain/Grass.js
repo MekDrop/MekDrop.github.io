@@ -131,10 +131,11 @@ export class Grass extends Earth {
   /**
    * @param {number} near
    * @param {number} far
+   * @param {number[]} [offsets]
    */
-  setIslandOffsets(near, far) {
+  setIslandOffsets(near, far, offsets = [near, far]) {
     if (this.#ownsSurface) {
-      this.#runtime.canopy.carpet.setIslandOffsets(near, far);
+      this.#runtime.canopy.carpet.setIslandOffsets(near, far, offsets);
     }
   }
   onCameraChanged() {

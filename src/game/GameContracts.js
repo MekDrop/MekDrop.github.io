@@ -76,7 +76,7 @@
  * @property {import("./navigation/WalkingPaths.js").WalkingEntry[]} [entries]
  * @property {{pathIdx: number, entry: import("./navigation/WalkingPaths.js").WalkingEntry, route: import("./navigation/WalkingPaths.js").WalkingPoint[]}[]} [paths]
  * @property {Map<string, Array<{dc: number, dr: number, elevation: number, marker: string, pathIdx: number, surfacePitch: number}>>} [arrowData]
- * @property {{horizontal: boolean, station: number, cells: GridPoint[], removedCells: GridPoint[], nearIsland: string[], farIsland: string[]}} [islandConnectorData]
+ * @property {{horizontal: boolean, station: number, cells: GridPoint[], removedCells: GridPoint[], nearIsland: string[], farIsland: string[], islands?: string[][], connectors?: Array<{horizontal: boolean, station: number, cells: GridPoint[], removedCells: GridPoint[]}>}} [islandConnectorData]
  */
 
 /**

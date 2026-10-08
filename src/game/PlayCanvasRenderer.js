@@ -2090,18 +2090,20 @@ export class PlayCanvasRenderer {
    */
   #updateIslandConnectorMotion(deltaTime) {
     if (!this.#islandConnectorMotion) return;
+    const count = this.#mapData.islandConnectorData.islands?.length ?? 2;
     const offsets = this.#camera?.firstPersonEnabled
-      ? { near: 0, far: 0 }
-      : this.#islandConnectorMotion.update(deltaTime);
-    this.#terrainRenderer?.setIslandOffsets(offsets.near, offsets.far);
-    this.#groundCover?.setIslandOffsets(offsets.near, offsets.far);
-    this.#bridgeRailingKit?.setIslandOffsets(offsets.near, offsets.far);
+      ? { near: 0, far: 0, groups: new Array(count).fill(0) }
+      : this.#islandConnectorMotion.update(deltaTime, count);
+    this.#terrainRenderer?.setIslandOffsets(offsets.near, offsets.far, offsets.groups);
+    this.#groundCover?.setIslandOffsets(offsets.near, offsets.far, offsets.groups);
+    this.#bridgeRailingKit?.setIslandOffsets(offsets.near, offsets.far, offsets.groups);
     for (const object of this.#sceneObjects) {
-      object.setIslandOffsets?.(offsets.near, offsets.far);
+      object.setIslandOffsets?.(offsets.near, offsets.far, offsets.groups);
     }
     this.#sceneObjects.getOne(SCENE_OBJECT_TYPE.HERO)?.setIslandVisualOffsets(
       offsets.near,
       offsets.far,
+      offsets.groups,
     );
   }
 
