@@ -390,7 +390,23 @@ export class CastleAuthoredBuildPlan {
       const alongMin = axis === "x" ? room.minZ : room.minX;
       const alongMax = axis === "x" ? room.maxZ : room.maxX;
       let pieces = [{ start: alongMin - thickness, end: alongMax + thickness, bottom: room.floorY, top: room.floorY + height }];
-      for (const door of openings) {
+      const wallOpenings = openings.flatMap(/**
+       * @param {import("./CastleBasePlanGenerator.js").CompiledCastleOpening} opening
+       */
+      (opening) => {
+        if (!opening.exteriorEntrance) { return [opening]; }
+        // Retain normal wall tiles above the stepped crown instead of cutting
+        // a rectangular hole and covering its shoulders with arch trim.
+        const crownHeights = [1.92114, 2.22114, 2.40114, 2.54614, 2.54614, 2.40114, 2.22114, 1.92114];
+        return crownHeights.map(/**
+         * @param {number} crownHeight
+         * @param {number} index
+         */
+        (crownHeight, index) => ({ ...opening, width: opening.width / 8,
+          center: opening.center + opening.width * ((index + 0.5) / 8 - 0.5),
+          height: Math.min(opening.height, crownHeight * (opening.height - 0.05) / 2.3) }));
+      });
+      for (const door of wallOpenings) {
         if (door.kind !== "door" || door.axis !== axis || Math.abs(door.coordinate - coordinate) > thickness * 1.1 ||
           door.floorY + door.height <= room.floorY || door.floorY >= room.floorY + height) { continue; }
         // Cut the full wooden frame envelope; the casing overlaps the stone
