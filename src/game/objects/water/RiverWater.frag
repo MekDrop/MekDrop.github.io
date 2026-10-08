@@ -1,5 +1,6 @@
 uniform vec3 material_diffuse;
 uniform float uRiverTime;
+uniform float uRiverFlowScale;
 uniform sampler2D uHeroReflection;
 uniform mat4 uHeroReflectionMatrix;
 uniform vec4 uHeroWater;
@@ -9,6 +10,7 @@ uniform vec4 uCascadeImpacts[32];
 uniform vec4 uCascadeFlows[32];
 uniform int uCascadeImpactCount;
 uniform sampler2D uRiverFlowMap;
+uniform sampler2D uRiverForkMap;
 uniform sampler2D uCascadeCurrentMap;
 uniform sampler2D uRiverBankMap;
 uniform vec2 uRiverMapSize;
@@ -27,12 +29,16 @@ float paintedNoise(vec2 p) {
 
 // Two overlapping advection phases hide the reset while the texture follows
 // the spatial current, including backward spread and bank-driven turns.
-float currentNoise(vec2 position, vec2 velocity, float frequency) {
-  float phase = fract(uRiverTime * 2.0);
-  float nextPhase = fract(uRiverTime * 2.0 + 0.5);
+float currentNoiseAt(vec2 position, vec2 velocity, float frequency, float speed) {
+  float phase = fract(uRiverTime * speed * 2.0);
+  float nextPhase = fract(uRiverTime * speed * 2.0 + 0.5);
   float first = paintedNoise((position - velocity * phase * 0.5) * frequency);
   float second = paintedNoise((position - velocity * nextPhase * 0.5) * frequency);
   return mix(first, second, abs(phase - 0.5) * 2.0);
+}
+
+float currentNoise(vec2 position, vec2 velocity, float frequency) {
+  return currentNoiseAt(position, velocity, frequency, uRiverFlowScale);
 }
 
 // Broad, antialiased paint shapes stay readable at the normal game zoom.
@@ -44,6 +50,10 @@ float paintedEdge(float edge, float value) {
 void getAlbedo() {
   float metadataLength = length(vUv1);
   float vertical = clamp(metadataLength - 1.0, 0.0, 1.0);
+  // At the lip, floor(world position) can select the lower basin's texel.
+  // Use the shared authored coordinates and fade out planar landing effects
+  // before that edge, so lower foam cannot draw a line across the upper sheet.
+  float spillCoordinates = max(vertical, 1.0 - vVertexColor.a);
   vec2 fallFlow = vUv1 / max(metadataLength, 0.0001);
   vec2 gridPosition = vPositionW.xz + uRiverMapSize * 0.5;
   // Keep the terminal edge in its final cell. Letting floor() step outside
@@ -75,16 +85,36 @@ void getAlbedo() {
       route.x + progress
     );
   }
+  vec4 fork = texture2D(uRiverForkMap, (cell + 0.5) / uRiverMapSize);
+  vec2 forkLocal = gridPosition - fork.xy - 0.5;
+  vec2 forkInlet = vec2(
+    float(fork.z == 2.0) - float(fork.z == 1.0),
+    float(fork.z == 8.0) - float(fork.z == 4.0)
+  );
+  vec4 outlets = mod(floor(fork.w / vec4(1.0, 2.0, 4.0, 8.0)), 2.0);
+  vec4 weights = pow(max(vec4(0.001), vec4(
+    0.5 - forkLocal.x, 0.5 + forkLocal.x, 0.5 - forkLocal.y, 0.5 + forkLocal.y
+  )), vec4(6.0)) * outlets;
+  float inlet = pow(clamp(0.5 - dot(forkLocal, forkInlet), 0.0, 1.0), 6.0) * 4.0;
+  vec2 forkVelocity = vec2(weights.y - weights.x, weights.w - weights.z) + forkInlet * inlet;
+  forkVelocity /= max(dot(weights, vec4(1.0)) + inlet, 0.001);
+  float forkInfluence = step(0.5, fork.w) * (1.0 - smoothstep(0.65, 2.2, length(forkLocal)));
+  float forkSurface = forkInfluence * (1.0 - spillCoordinates);
+  float forkSpeed = 1.0 / max(dot(outlets, vec4(1.0)), 1.0);
+  vec2 forkDirection = forkVelocity + forkInlet * 0.001;
+  forkDirection /= max(length(forkDirection), 0.001);
+  surfaceFlow = mix(surfaceFlow, forkDirection, forkSurface);
   vec2 flowDirection = normalize(mix(surfaceFlow, fallFlow, vertical));
-  // Blend the curtain palette upstream, before the surface bends downward.
-  // Surface alpha stores this opaque paint transition; fall alpha fades spray.
-  float lip = mix(1.0 - vVertexColor.a, 1.0, vertical);
+  // Keep the upstream paint through the exact shared edge. Introduce the
+  // falling-sheet variation gradually along the arc, rather than switching
+  // to a different pattern at the tile boundary.
+  float lip = vertical * smoothstep(0.0, 1.0, vVertexColor.b);
   float horizontalTop = (1.0 - vertical) *
-    (1.0 - step(0.01, vVertexColor.r));
+    (1.0 - step(0.01, vVertexColor.r)) * (1.0 - spillCoordinates);
   // Evaluate bends per fragment. Interpolated mesh UVs stretch the singular
   // inside corner across its neighbouring triangles into a separate flow patch.
   // Curtains retain their authored arc coordinates.
-  vec2 uv = mix(surfaceUv, vUv0, vertical);
+  vec2 uv = mix(surfaceUv, vUv0, spillCoordinates);
   // Bend the moving paint around exposed stones, using a local stream
   // function. Flow divides upstream, accelerates along the flanks, and
   // converges again downstream instead of sliding straight through the rock.
@@ -120,8 +150,27 @@ void getAlbedo() {
   vec4 wallDistances = mix(vec4(2.0), bankDistances, closedBanks);
   float wallDistance = min(min(wallDistances.x, wallDistances.y),
     min(wallDistances.z, wallDistances.w));
+  // Include adjacent bank endpoints so the foam rounds the inner corner and
+  // continues across its open tile join instead of ending in a sharp wedge.
+  for (int bankRow = -1; bankRow <= 1; bankRow++) {
+    for (int bankCol = -1; bankCol <= 1; bankCol++) {
+      vec2 neighborCell = cell + vec2(float(bankCol), float(bankRow));
+      vec4 neighborBanks = texture2D(uRiverBankMap, (neighborCell + 0.5) / uRiverMapSize);
+      vec2 bankLocal = gridPosition - neighborCell - 0.5;
+      vec2 beyond = max(abs(bankLocal) - 0.5, vec2(0.0));
+      vec4 segmentDistances = vec4(
+        length(vec2(bankLocal.x + 0.5, beyond.y)),
+        length(vec2(bankLocal.x - 0.5, beyond.y)),
+        length(vec2(beyond.x, bankLocal.y + 0.5)),
+        length(vec2(beyond.x, bankLocal.y - 0.5))
+      );
+      segmentDistances = mix(vec4(2.0), segmentDistances, neighborBanks);
+      wallDistance = min(wallDistance, min(min(segmentDistances.x, segmentDistances.y),
+        min(segmentDistances.z, segmentDistances.w)));
+    }
+  }
   float wallEnvelope = 1.0 - smoothstep(0.035, 0.2, wallDistance);
-  float wallCrest = sin(wallDistance * 42.0 - uRiverTime * 7.0 + impactBubbles * 3.0);
+  float wallCrest = sin(wallDistance * 42.0 - (uRiverTime * uRiverFlowScale) * 7.0 + impactBubbles * 3.0);
   float brokenCrest = paintedEdge(0.35, impactBubbles);
   float backwashFoam = wallEnvelope * brokenCrest *
     (0.35 + paintedEdge(0.45, wallCrest) * 0.5);
@@ -143,7 +192,7 @@ void getAlbedo() {
       core * (0.3 + impactBubbles * 0.55) * sameSurface * impact.w);
   }
   float across = uv.x;
-  float downstream = uv.y - uRiverTime * 0.72;
+  float downstream = uv.y - (uRiverTime * uRiverFlowScale) * 0.72;
   float depth = (1.0 - vertical) * vVertexColor.r;
   float falling = vertical * vVertexColor.g;
 
@@ -155,34 +204,48 @@ void getAlbedo() {
   vec3 foamTint = vec3(232.0, 248.0, 247.0) / 255.0;
   vec3 strongFoam = vec3(247.0, 255.0, 255.0) / 255.0;
   float wash = paintedNoise(vec2(across * 3.6, downstream * 1.5));
+  float forkWash = currentNoiseAt(vPositionW.xz, forkVelocity * 0.72, 5.2, forkSpeed);
+  wash = mix(wash, forkWash, forkSurface);
   float patches = paintedEdge(0.47, wash);
   vec3 water = mix(waterBlue, lightCyan, patches * 0.18);
   water = mix(water, deepBlue, (1.0 - paintedEdge(0.38, wash)) * 0.72);
 
   // Broken ribbons follow route coordinates through every corner.
   float foamAcross = foamUv.x;
-  float foamDownstream = foamUv.y - uRiverTime * 0.72;
+  float foamDownstream = foamUv.y - (uRiverTime * uRiverFlowScale) * 0.72;
   float warp = sin(foamDownstream * 4.2 + foamAcross * 3.0) * 0.035 +
     (paintedNoise(vec2(foamAcross * 4.0, foamDownstream * 2.1)) - 0.5) * 0.085;
   float bank = min(bankAcross, 1.0 - bankAcross);
-  float bankFoam = 1.0 - paintedEdge(0.055 + warp, bank);
+  // Bank ownership changes discretely at a cell boundary. Derivatives across
+  // that metadata jump widen the foam into a dotted line over an open join.
+  // Surface banks follow the actual earth boundary. Radial route coordinates
+  // describe moving ribbons, but put a false foam arc inside an L-shaped cell.
+  float bankDistance = mix(bank, wallDistance, horizontalTop);
+  float bankWarp = mix(warp,
+    (currentNoise(vPositionW.xz, vec2(0.0), 4.0) - 0.5) * 0.035,
+    horizontalTop);
+  float bankFoam = 1.0 - smoothstep(0.04 + bankWarp, 0.07 + bankWarp, bankDistance);
   float streak = sin((foamAcross + warp) * 23.0 + sin(foamDownstream * 2.1) * 0.7);
   float breaks = paintedNoise(vec2(foamAcross * 8.0 + 13.0, foamDownstream * 3.0));
   float streamFoam = paintedEdge(0.82, streak) * paintedEdge(0.47, breaks);
   float flecks = paintedEdge(0.78, paintedNoise(vec2(foamAcross * 13.0, foamDownstream * 8.0)));
   float foam = max(bankFoam * 0.94, max(streamFoam, flecks * 0.75));
+  // A shared basin has outlets, not imaginary straight banks across each mouth.
+  float forkFoam = paintedEdge(0.67, currentNoiseAt(vPositionW.xz + 17.3, forkVelocity * 0.72, 12.0, forkSpeed));
+  float forkBankFoam = (1.0 - smoothstep(0.04, 0.07, wallDistance)) * 0.94;
+  foam = mix(foam, max(forkBankFoam, forkFoam * 0.7), forkSurface);
   float sourceEnvelope =
     (1.0 - vertical) *
     (1.0 - step(0.01, vVertexColor.r)) *
     clamp(vVertexColor.g, 0.0, 1.0);
   float sourceProgress = clamp(vVertexColor.b / 0.3764706, 0.0, 1.0);
-  float sourceFlowPhase = sourceProgress * 14.0 - uRiverTime * 7.4;
+  float sourceFlowPhase = sourceProgress * 14.0 - (uRiverTime * uRiverFlowScale) * 7.4;
   float sourcePressure = 0.52 + sin(sourceFlowPhase) * 0.29;
   sourcePressure += sin(
-    sourceProgress * 25.0 - uRiverTime * 10.7 + across * 2.2
+    sourceProgress * 25.0 - (uRiverTime * uRiverFlowScale) * 10.7 + across * 2.2
   ) * 0.14;
   sourcePressure += sin(
-    sourceProgress * 7.0 - uRiverTime * 4.3 + 1.9
+    sourceProgress * 7.0 - (uRiverTime * uRiverFlowScale) * 4.3 + 1.9
   ) * 0.09;
   sourcePressure = clamp(sourcePressure, 0.0, 1.0);
   float sourceEnergy = 1.0 - smoothstep(0.34, 0.96, sourceProgress);
@@ -190,7 +253,7 @@ void getAlbedo() {
   float outletBand = smoothstep(0.72, 0.97, sourceEnvelope);
   float fixedAcrossNoise = paintedNoise(vec2(across * 7.0 + 31.0, 4.7));
   float foamFlicker = sin(
-    uRiverTime * 5.8 + across * 8.5 + fixedAcrossNoise * 2.8
+    (uRiverTime * uRiverFlowScale) * 5.8 + across * 8.5 + fixedAcrossNoise * 2.8
   ) * 0.5 + 0.5;
   float brokenAcross = 0.72 + paintedEdge(0.48, foamFlicker) * 0.28;
   float sourceFoam = max(
@@ -218,7 +281,7 @@ void getAlbedo() {
       }
       float along = dot(offset, flow);
       float lateral = dot(offset, crossFlow);
-      vec2 foamPosition = vec2(lateral * 23.0, (along - uRiverTime * 0.72) * 9.0);
+      vec2 foamPosition = vec2(lateral * 23.0, (along - (uRiverTime * uRiverFlowScale) * 0.72) * 9.0);
       float churn = paintedNoise(foamPosition + rock.xz * 17.0);
       // Water piles up only against the upstream face, never in a full ring.
       float contact = 1.0 - smoothstep(0.02, 0.065, abs(distanceToRock - rock.w));
@@ -283,6 +346,23 @@ void getAlbedo() {
   vec3 impactWater = mix(deepBlue, waterBlue,
     0.35 + paintedEdge(0.46, impactWash) * 0.55);
   water = mix(water, impactWater, cascadeChurn);
+  // The landing, all branch mouths, and the last part of the curtain sample
+  // the same moving paint. Neither a cell border nor a mesh clock restarts it.
+  float landingBlend = 0.0;
+  for (int impactIndex = 0; impactIndex < 32; impactIndex++) {
+    if (impactIndex >= uCascadeImpactCount) {
+      break;
+    }
+    vec4 impact = uCascadeImpacts[impactIndex];
+    landingBlend = max(landingBlend,
+      (1.0 - smoothstep(0.02, 0.28, abs(vPositionW.y - impact.y))) *
+      (1.0 - smoothstep(0.4, 0.9, length(vPositionW.xz - impact.xz))));
+  }
+  float sharedLanding = forkInfluence * max(1.0 - spillCoordinates, landingBlend);
+  vec3 forkWater = mix(waterBlue, lightCyan, paintedEdge(0.47, forkWash) * 0.18);
+  forkWater = mix(forkWater, deepBlue, (1.0 - paintedEdge(0.38, forkWash)) * 0.72);
+  water = mix(water, forkWater, sharedLanding);
+  foam = mix(foam, max(forkBankFoam, forkFoam * 0.7), sharedLanding);
   foam *= 1.0 - depth;
   water = mix(water, deepBlue, depth);
   // A restrained reflected sky and sun glint, following the animated surface normal.
@@ -298,7 +378,7 @@ void getAlbedo() {
     (1.0 - abs(normal.y));
   vec2 sidePosition = vec2(
     vVertexColor.r * 3.2,
-    (vUv0.y - uRiverTime * 0.72) * 4.0
+    (vUv0.y - (uRiverTime * uRiverFlowScale) * 0.72) * 4.0
   );
   float sideWarp = paintedNoise(sidePosition * vec2(0.7, 0.55) + 12.4);
   vec2 sideFlow = sidePosition + vec2((sideWarp - 0.5) * 0.8, 0.0);
@@ -336,8 +416,8 @@ void getAlbedo() {
     vec4 projected = uHeroReflectionMatrix * vec4(vPositionW, 1.0);
     vec2 reflectedUv = projected.xy / projected.w * 0.5 + 0.5;
     reflectedUv += vec2(
-      sin(vPositionW.z * 32.0 - uRiverTime * 5.0),
-      sin(vPositionW.x * 26.0 - uRiverTime * 3.7)
+      sin(vPositionW.z * 32.0 - (uRiverTime * uRiverFlowScale) * 5.0),
+      sin(vPositionW.x * 26.0 - (uRiverTime * uRiverFlowScale) * 3.7)
     ) * 0.007;
     float inFrame = step(0.0, reflectedUv.x) * step(reflectedUv.x, 1.0) *
       step(0.0, reflectedUv.y) * step(reflectedUv.y, 1.0);
@@ -345,7 +425,7 @@ void getAlbedo() {
     vec3 reflectedFace = pow(face.rgb, vec3(2.2)) * vec3(0.62, 0.82, 0.80);
     dAlbedo = mix(dAlbedo, reflectedFace,
       face.a * nearby * inFrame * 0.3 * (1.0 - foam * 0.6));
-    float ripple = sin(distanceToHead * 37.0 - uRiverTime * 6.0);
+    float ripple = sin(distanceToHead * 37.0 - (uRiverTime * uRiverFlowScale) * 6.0);
     float collar = smoothstep(0.18, 0.26, distanceToHead) *
       (1.0 - smoothstep(0.32, 0.55, distanceToHead));
     dAlbedo = mix(dAlbedo, pow(foamTint, vec3(2.2)),

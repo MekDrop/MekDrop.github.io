@@ -102,12 +102,21 @@ export class RiverMeshBuilder {
       );
       const terminalGroup = this.#group(
         groups,
-        `terminal|${river.id ?? riverIndex}`,
+        `terminal|${river.id ?? riverIndex}@${river.cells.at(-1)?.flowScale ?? 1}`,
       );
-      const surfaceHeights = new RiverSurfaceHeights(river.cells);
+      // All outlets reconcile their shared corners against the same family.
+      // A branch-local table can assign different heights to the basin edge.
+      const familyCells = rivers.filter(/**
+       * @param {import("src/game/generator/map/MapGenerationTypes.js").RiverData} item
+       */
+      (item) => (item.sourceId ?? item.id) === (river.sourceId ?? river.id)).flatMap(/**
+       * @param {import("src/game/generator/map/MapGenerationTypes.js").RiverData} item
+       */
+      (item) => item.cells);
+      const surfaceHeights = new RiverSurfaceHeights(familyCells);
       const sourceProfile = createSourceProfile(river.cells);
       const riverCellKeys = new Set(
-        river.cells.map(/**
+        familyCells.map(/**
          *
          * @param {number} cell
          */
@@ -129,6 +138,9 @@ export class RiverMeshBuilder {
       );
       const spillJoins = new Map();
       for (const [cellIndex, cell] of river.cells.entries()) {
+        if (cellIndex < (river.branchStart ?? 0)) {
+          continue;
+        }
         const cellKey = `${cell.col},${cell.row}`;
         const spillDirection = spillDirections.get(cellKey) ?? null;
         const cascadeLanding = river.cascades.some(
@@ -138,8 +150,11 @@ export class RiverMeshBuilder {
            */
           (cascade) => cascade.to.col === cell.col && cascade.to.row === cell.row,
         );
+        const surfaceGroup = (cell.flowScale ?? 1) === 1 ? riverGroup : this.#group(
+          groups, `river|${river.id ?? riverIndex}@${cell.flowScale}`,
+        );
         const spillJoin = this.#addWaterVolume(
-          riverGroup,
+          surfaceGroup,
           cell,
           cols,
           rows,
@@ -156,8 +171,18 @@ export class RiverMeshBuilder {
         }
       }
       for (const cascade of river.cascades) {
+        const cascadeIndex = river.cells.findIndex(/**
+         *
+         * @param {import("src/game/objects/ObjectTypes.js").RiverCell} cell
+         */
+        (cell) => cell.col === cascade.from.col && cell.row === cascade.from.row);
+        if (cascadeIndex < (river.branchStart ?? 0) - 1) {
+          continue;
+        }
         appendCascade({
-          group: riverGroup,
+          group: (river.cells[cascadeIndex]?.flowScale ?? 1) === 1 ? riverGroup : this.#group(
+            groups, `river|${river.id ?? riverIndex}@${river.cells[cascadeIndex].flowScale}`,
+          ),
           cascade,
           cols,
           rows,
@@ -172,7 +197,9 @@ export class RiverMeshBuilder {
         });
       }
       appendTerminal({
-        riverGroup,
+        riverGroup: (river.cells.at(-1)?.flowScale ?? 1) === 1 ? riverGroup : this.#group(
+          groups, `river|${river.id ?? riverIndex}@${river.cells.at(-1).flowScale}`,
+        ),
         terminalGroup,
         waterfall: river.waterfall,
         cols,
@@ -204,6 +231,7 @@ export class RiverMeshBuilder {
         mesh,
         createMaterial(surfaceType === "terminal"),
       );
+      meshInstance.setParameter('uRiverFlowScale', Number(key.split('@')[1] ?? 1));
       const entity = new this.#pc.Entity(
         `River ${this.#riverKind.toLowerCase()} ${key}`,
       );

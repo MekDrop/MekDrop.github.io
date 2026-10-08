@@ -18,7 +18,7 @@ class FakeEntity {
 function surfaceFor(direction, kind = 'WATER') {
   let surface;
   const builder = new RiverMeshBuilder({
-    pc: { Mesh: FakeMesh, MeshInstance: class {}, Entity: FakeEntity },
+    pc: { Mesh: FakeMesh, MeshInstance: class { setParameter() {} }, Entity: FakeEntity },
     device: null,
     entity: { addChild() {} },
     riverKind: kind,
@@ -83,4 +83,41 @@ it('keeps lava surface metadata unchanged', () => {
   for (let vertex = 0; vertex < 13 * 13; vertex++) {
     assert.equal(surface.colors[vertex * 4 + 3], 255);
   }
+});
+
+it('keeps the waterfall on the upstream animation clock when the landing slows', () => {
+  const children = [];
+  let cascadeGroup;
+  class Mesh extends FakeMesh {
+    setPositions(positions) { this.positions = positions; }
+  }
+  class MeshInstance {
+    constructor(mesh) { this.mesh = mesh; this.parameters = new Map(); }
+    setParameter(name, value) { this.parameters.set(name, value); }
+  }
+  class Entity {
+    addComponent(_type, options) { this.meshInstances = options.meshInstances; }
+  }
+  const builder = new RiverMeshBuilder({
+    pc: { Mesh, MeshInstance, Entity }, device: null,
+    entity: { addChild: child => children.push(child) }, riverKind: 'WATER',
+    mapData: { cols: 3, rows: 3, riverData: [{
+      id: 'river', kind: 'WATER',
+      cells: [
+        { col: 1, row: 1, direction: 'WEST', elevation: 2 },
+        { col: 0, row: 1, direction: 'WEST', elevation: 1, flowScale: 1 / 3 },
+      ],
+      cascades: [{ from: { col: 1, row: 1 }, to: { col: 0, row: 1 }, direction: 'WEST', topElevation: 2, bottomElevation: 1 }],
+      waterfall: { col: 0, row: 1, direction: 'WEST' },
+    }] },
+  });
+  builder.build({
+    createSourceProfile: () => null, isSpringSource: () => false,
+    surfaceCorners: () => null, createMaterial: () => null,
+    appendCascade: ({ group }) => { cascadeGroup = group; }, appendTerminal() {},
+  });
+  const instances = children.flatMap(child => child.meshInstances);
+  const waterfall = instances.find(instance => instance.mesh.positions === cascadeGroup.positions);
+  assert.equal(waterfall.parameters.get('uRiverFlowScale'), 1);
+  assert.ok(instances.some(instance => instance.parameters.get('uRiverFlowScale') === 1 / 3));
 });

@@ -43,13 +43,18 @@ export class RiverValidator {
     layout,
     riverData,
   ) {
-    if (riverData.length > MAX_RIVERS) {
+    const sources = riverData.filter(/**
+     *
+     * @param {RiverData} river
+     */
+    (river) => !river.sourceId);
+    if (sources.length > MAX_RIVERS) {
       throw new InvalidRiverCountError({
         count: riverData.length,
         maximum: MAX_RIVERS,
       });
     }
-    const lavaRiverCount = riverData.filter(
+    const lavaRiverCount = sources.filter(
       /**
        *
        * @param {RiverRecord} river
@@ -58,7 +63,7 @@ export class RiverValidator {
     ).length;
     if (
       lavaRiverCount > MAX_LAVA_ELIGIBLE_RIVERS ||
-      (riverData.length > MAX_LAVA_ELIGIBLE_RIVERS && lavaRiverCount > 0)
+      (sources.length > MAX_LAVA_ELIGIBLE_RIVERS && lavaRiverCount > 0)
     ) {
       throw new InvalidLavaRiverCountError({
         lavaCount: lavaRiverCount,
@@ -67,7 +72,6 @@ export class RiverValidator {
       });
     }
 
-    const occupied = new Set();
     const allRiverCells = new Set(
       riverData.flatMap(/**
        *
@@ -88,6 +92,86 @@ export class RiverValidator {
       [DIRECTIONS.WEST]: [-1, 0],
     };
     for (const river of riverData) {
+      const familyId = river.sourceId ?? river.id;
+      const family = riverData.filter(/**
+       *
+       * @param {RiverData} item
+       */
+      (item) => (item.sourceId ?? item.id) === familyId);
+      const parent = riverData.find(/**
+       *
+       * @param {RiverData} item
+       */
+      (item) => item.id === river.sourceId && !item.sourceId);
+      if (family.length > 3 || (river.sourceId && (
+        !parent || river.kind !== parent.kind || !Number.isInteger(river.branchStart) ||
+        family.some(/**
+         *
+         * @param {RiverData} item
+         */
+        (item) => item.sourceId && item.branchStart !== river.branchStart) ||
+        river.branchStart < 2 || river.branchStart >= river.cells.length ||
+        river.cells.slice(0, river.branchStart).some(/**
+         *
+         * @param {MapCell} cell
+         * @param {number} index
+         */
+        (cell, index) =>
+          cell.col !== parent.cells[index]?.col || cell.row !== parent.cells[index]?.row ||
+          cell.elevation !== parent.cells[index]?.elevation) ||
+        !parent.cascades.some(/**
+         * @param {import("./MapGenerationTypes.js").RiverCascade} cascade
+         */
+        (cascade) => cascade.to.col === river.cells[river.branchStart - 1].col &&
+          cascade.to.row === river.cells[river.branchStart - 1].row) ||
+        river.cells[river.branchStart].elevation !== river.cells[river.branchStart - 1].elevation
+      ))) {
+        throw new InvalidRiverPathError({ riverId: river.id, reason: "has an invalid cliff branch" });
+      }
+      const foreign = new Set(riverData.filter(/**
+       *
+       * @param {RiverData} item
+       */
+      (item) => (item.sourceId ?? item.id) !== familyId)
+        .flatMap(/**
+         *
+         * @param {RiverData} item
+         */
+        (item) => item.cells.map(/**
+         *
+         * @param {MapCell} cell
+         */
+        (cell) => MapGrid.tileKey(cell.col, cell.row))));
+      const buffered = new Set(riverData.filter(/**
+       *
+       * @param {RiverData} item
+       */
+      (item) => item !== river).flatMap(/**
+       *
+       * @param {RiverData} other
+       */
+      (other) => {
+        if ((other.sourceId ?? other.id) !== familyId) {
+          return other.cells.map(/**
+           *
+           * @param {MapCell} cell
+           */
+          (cell) => MapGrid.tileKey(cell.col, cell.row));
+        }
+        const start = river.branchStart ?? other.branchStart;
+        const junction = river.cells[start - 1];
+        return other.cells.slice(start).filter(/**
+         *
+         * @param {MapCell} cell
+         */
+        (cell) =>
+          Math.max(Math.abs(cell.col - junction.col), Math.abs(cell.row - junction.row)) > 1,
+        ).map(/**
+         *
+         * @param {MapCell} cell
+         */
+        (cell) => MapGrid.tileKey(cell.col, cell.row));
+      }));
       const riverCells = new Set();
       if (
         river.cells.length < MIN_RIVER_TILES ||
@@ -119,7 +203,11 @@ export class RiverValidator {
         source.elevation + RiverPlacementRules.riverSurfaceInset(river),
       );
       const riverCellKeys = new Set(
-        river.cells.map(/**
+        family.flatMap(/**
+         *
+         * @param {RiverData} item
+         */
+        (item) => item.cells).map(/**
          *
          * @param {MapCell} cell
          */
@@ -157,7 +245,39 @@ export class RiverValidator {
             reason: `reuses its own flow tile at (${cell.col}, ${cell.row})`,
           });
         }
-        if (RiverPlacementRules.touchesOccupiedRiver(occupied, cell.col, cell.row)) {
+        const sharedStart = river.branchStart ?? family.find(/**
+         *
+         * @param {RiverData} item
+         */
+        (item) => item.sourceId)?.branchStart;
+        if (sharedStart && index >= sharedStart && family.some(/**
+         *
+         * @param {RiverData} other
+         */
+        (other) => other !== river &&
+          other.cells.slice(sharedStart).some(/**
+           *
+           * @param {MapCell} otherCell
+           */
+          (otherCell) => otherCell.col === cell.col && otherCell.row === cell.row))) {
+          throw new InvalidRiverPathError({ riverId: river.id, reason: "rejoins or overlaps a downstream branch" });
+        }
+        const expectedScale = sharedStart && index >= sharedStart - 1 ? 1 / family.length : 1;
+        if ((cell.flowScale ?? 1) !== expectedScale) {
+          throw new InvalidRiverFlowError({ riverId: river.id, reason: "has an invalid split current speed" });
+        }
+        const nearFork = family.some(/**
+         *
+         * @param {RiverData} item
+         */
+        (item) => {
+          if (!item.branchStart) {
+            return false;
+          }
+          const junction = item.cells[item.branchStart - 1];
+          return index < item.branchStart || Math.max(Math.abs(cell.col - junction.col), Math.abs(cell.row - junction.row)) <= 1;
+        });
+        if (RiverPlacementRules.touchesOccupiedRiver(nearFork ? foreign : buffered, cell.col, cell.row)) {
           throw new InvalidRiverPathError({
             riverId: river.id,
             reason: `does not leave an earth-cell buffer around (${cell.col}, ${cell.row})`,
@@ -233,10 +353,6 @@ export class RiverValidator {
             reason: `flows uphill or loses direction at (${cell.col}, ${cell.row})`,
           });
         }
-      }
-
-      for (const key of riverCells) {
-        occupied.add(key);
       }
 
       for (const cascade of river.cascades) {

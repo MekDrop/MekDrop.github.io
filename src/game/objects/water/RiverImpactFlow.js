@@ -39,6 +39,9 @@ export class RiverImpactFlow {
         };
       });
       for (const [index, cell] of river.cells.entries()) {
+        if (index < (river.branchStart ?? 0)) {
+          continue;
+        }
         this.#cells.set(`${cell.col},${cell.row}`, { cell, index, impacts, river });
       }
     }
@@ -125,7 +128,8 @@ export class RiverImpactFlow {
      */
     ([nx, nz]) => {
       const neighbor = this.#cells.get(`${col + nx},${row + nz}`);
-      return neighbor?.river === record.river &&
+      return neighbor && (neighbor.river === record.river || (record.river.id &&
+        (neighbor.river.sourceId ?? neighbor.river.id) === (record.river.sourceId ?? record.river.id))) &&
         Math.abs(neighbor.cell.elevation - record.cell.elevation) <= 0.04 ? 0 : 1;
     });
   }

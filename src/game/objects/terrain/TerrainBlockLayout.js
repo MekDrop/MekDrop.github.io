@@ -304,7 +304,9 @@ export class TerrainBlockLayout {
     }
 
     for (const river of this.#mapData.riverData ?? []) {
-      this.#addRiverSourceCap(river.cells[0], cols, rows);
+      if (!river.sourceId) {
+        this.#addRiverSourceCap(river.cells[0], cols, rows);
+      }
     }
     this.#addOverpassDeck(cols, rows);
   }

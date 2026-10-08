@@ -15,6 +15,8 @@ import {
   BRIDGE_WATER_CLEARANCE,
   TERMINAL_WATERFALL_BOTTOM,
   RIVER_COUNT_WEIGHTS,
+  RIVER_TWO_BRANCH_CHANCE,
+  RIVER_THREE_BRANCH_CHANCE,
   LAVA_ISLAND_CHANCE,
   MAX_LAVA_ELIGIBLE_RIVERS,
 } from "./mapGenerationConfig.js";
@@ -96,6 +98,8 @@ export class RiverBuilder {
    * @param {MapCell[]} route
    * @param {string} terminalDirection
    * @param {number} riverIndex
+   * @param {RiverData|null} [parent]
+   * @param {number} [splitIndex]
    */
   #materializeRiver(
     grid,
@@ -104,6 +108,8 @@ export class RiverBuilder {
     route,
     terminalDirection,
     riverIndex,
+    parent = null,
+    splitIndex = -1,
   ) {
     const cells = [];
     const cascades = [];
@@ -114,6 +120,11 @@ export class RiverBuilder {
 
     for (let index = 0; index < route.length; index++) {
       const cell = route[index];
+      if (parent && index <= splitIndex) {
+        cells.push({ ...parent.cells[index], direction: MapGrid.directionFromStep(cell, route[index + 1]) });
+        waterElevation = parent.cells[index].elevation;
+        continue;
+      }
       const tile = grid[cell.row][cell.col];
       const underBridge = tile === TileType.PATH;
       const terrainHeight = heightmap[cell.row][cell.col];
@@ -163,7 +174,8 @@ export class RiverBuilder {
     const terminal = cells[cells.length - 1];
     return {
       id: `river-${riverIndex + 1}`,
-      kind: RIVER_KIND.WATER,
+      kind: parent?.kind ?? RIVER_KIND.WATER,
+      ...(parent ? { sourceId: parent.sourceId ?? parent.id, branchStart: splitIndex + 1 } : {}),
       source: {
         col: cells[0].col,
         row: cells[0].row,
@@ -274,6 +286,200 @@ export class RiverBuilder {
   }
 
   /**
+   * Try complete branches on copies; cramped layouts keep their original river.
+   * @param {number[][]} grid
+   * @param {number[][]} heightmap
+   * @param {TileMetadata[][]} tileMeta
+   * @param {MapLayout} layout
+   * @param {boolean[][]} islandMask
+   * @param {RiverData[]} rivers
+   * @param {GenerationYieldState} yieldState
+   */
+  async splitRivers(grid, heightmap, tileMeta, layout, islandMask, rivers, yieldState) {
+    for (const river of [...rivers]) {
+      const roll = this.#random.rng(1, 100);
+      const branchCount = roll <= RIVER_THREE_BRANCH_CHANCE ? 3 :
+        roll <= RIVER_THREE_BRANCH_CHANCE + RIVER_TWO_BRANCH_CHANCE ? 2 : 1;
+      if (branchCount === 1) {
+        continue;
+      }
+      // A fork starts at a real inland cliff lip, never inside a source cap or bridge.
+      const candidates = river.cascades.map(/**
+       *
+       * @param {import("./MapGenerationTypes.js").RiverCascade} cascade
+       */
+      (cascade) => river.cells.findIndex(
+        /**
+         * @param {MapCell} cell
+         */
+        (cell) => cell.col === cascade.from.col && cell.row === cascade.from.row,
+      )).filter(/**
+       *
+       * @param {number} index
+       */
+      (index) => index > 0 && !river.cells[index].underBridge);
+      for (const splitIndex of this.#random.shuffle(candidates)) {
+        const trialGrid = grid.map(/**
+         *
+         * @param {number[]} row
+         */
+        (row) => [...row]);
+        const trialHeights = heightmap.map(/**
+         *
+         * @param {number[]} row
+         */
+        (row) => [...row]);
+        const trialMeta = tileMeta.map(/**
+         *
+         * @param {TileMetadata[]} row
+         */
+        (row) => row.map(/**
+         *
+         * @param {MapCell} cell
+         */
+        (cell) => ({ ...cell })));
+        const occupied = new Set(rivers.flatMap(/**
+         *
+         * @param {RiverData} item
+         */
+        (item) => item.cells.map(
+          /**
+           * @param {MapCell} cell
+           */
+          (cell) => MapGrid.tileKey(cell.col, cell.row),
+        )));
+        const branches = [];
+        for (let index = 1; index < branchCount; index++) {
+          const prefix = river.cells.slice(0, splitIndex + 1);
+          const junction = prefix.at(-1);
+          const outlets = [
+            { col: junction.col - 1, row: junction.row },
+            { col: junction.col + 1, row: junction.row },
+            { col: junction.col, row: junction.row - 1 },
+            { col: junction.col, row: junction.row + 1 },
+          ].filter(/**
+           *
+           * @param {MapCell} cell
+           */
+          (cell) => MapGrid.inBounds(cell.col, cell.row) &&
+            trialHeights[cell.row][cell.col] < junction.elevation);
+          const result = await this.#router.findRiverRoute(
+            trialGrid, trialMeta, islandMask, layout, prefix[0], occupied, yieldState, prefix, outlets,
+          );
+          if (!result) {
+            break;
+          }
+          const first = result.route[splitIndex + 1];
+          // Every outlet must descend the same cliff, with room for its own banks.
+          if (!first || trialHeights[first.row][first.col] >= river.cells[splitIndex].elevation) {
+            break;
+          }
+          const branch = this.#materializeRiver(trialGrid, trialHeights, trialMeta,
+            result.route, result.terminalDirection, rivers.length + branches.length, river, splitIndex);
+          branches.push(branch);
+          for (const cell of branch.cells) {
+            occupied.add(MapGrid.tileKey(cell.col, cell.row));
+          }
+        }
+        if (branches.length !== branchCount - 1) {
+          continue;
+        }
+        const trialMask = islandMask.map(/**
+         *
+         * @param {number[]} row
+         */
+        (row) => [...row]);
+        const allRivers = [...rivers, ...branches];
+        this.materializeRiverBanks(trialGrid.map(/**
+         *
+         * @param {number[]} row
+         */
+        (row) => [...row]),
+          trialHeights.map(/**
+           *
+           * @param {number[]} row
+           */
+          (row) => [...row]),
+          trialMeta.map(/**
+           *
+           * @param {number[]} row
+           */
+          (row) => row.map(/**
+           *
+           * @param {TileMetadata} cell
+           */
+          (cell) => ({ ...cell }))), trialMask, allRivers);
+        const blockedOutlet = allRivers.some(/**
+         *
+         * @param {RiverData} item
+         */
+        (item) => {
+          const terminal = item.cells.at(-1);
+          const previous = item.cells.at(-2);
+          const col = terminal.col + terminal.col - previous.col;
+          const row = terminal.row + terminal.row - previous.row;
+          return MapGrid.inBounds(col, row) && trialMask[row][col];
+        });
+        if (blockedOutlet) {
+          continue;
+        }
+        // One upstream fall feeds a shared lower basin. Independent curtains
+        // leaving adjacent sides of a raised square intersect at its corners.
+        const basinElevation = Math.min(river.cells[splitIndex + 1].elevation,
+          ...branches.map(/**
+           *
+           * @param {import("src/game/generator/map/MapGenerationTypes.js").RiverData} branch
+           */
+          (branch) => branch.cells[branch.branchStart].elevation));
+        for (const channel of [river, ...branches]) {
+          for (let index = splitIndex; index < channel.cells.length; index++) {
+            const cell = channel.cells[index];
+            cell.elevation = Math.min(cell.elevation, basinElevation);
+            cell.bedElevation = Math.max(0, cell.elevation - RIVER_WATER_DEPTH);
+            cell.terrainHeight = Math.min(cell.terrainHeight,
+              cell.elevation + RIVER_SURFACE_INSET);
+            if (!cell.underBridge) {
+              trialHeights[cell.row][cell.col] = cell.elevation;
+              trialMeta[cell.row][cell.col].baseHeight = cell.elevation;
+            }
+          }
+          channel.cascades = [];
+          for (let index = channel.branchStart ?? 1; index < channel.cells.length; index++) {
+            const previous = channel.cells[index - 1];
+            const cell = channel.cells[index];
+            if (previous.elevation - cell.elevation > 0.04) {
+              channel.cascades.push({
+                from: { col: previous.col, row: previous.row },
+                to: { col: cell.col, row: cell.row },
+                direction: MapGrid.directionFromStep(previous, cell),
+                topElevation: previous.elevation,
+                bottomElevation: cell.elevation,
+              });
+            }
+          }
+          channel.waterfall.topElevation = channel.cells.at(-1).elevation;
+        }
+        const speed = 1 / branchCount;
+        for (const cell of river.cells.slice(splitIndex)) {
+          cell.flowScale = speed;
+        }
+        for (const branch of branches) {
+          for (const cell of branch.cells.slice(branch.branchStart - 1)) {
+            cell.flowScale = speed;
+          }
+        }
+        for (let row = 0; row < grid.length; row++) {
+          grid[row] = trialGrid[row];
+          heightmap[row] = trialHeights[row];
+          tileMeta[row] = trialMeta[row];
+        }
+        rivers.push(...branches);
+        break;
+      }
+    }
+  }
+
+  /**
    * @param {RiverData[]} rivers
    */
   assignRiverKinds(rivers) {
@@ -308,6 +514,17 @@ export class RiverBuilder {
       let previousElevation = Number.POSITIVE_INFINITY;
       const cascades = [];
       for (const [index, cell] of river.cells.entries()) {
+        if (index < (river.branchStart ?? 0)) {
+          const parent = rivers.find(/**
+           *
+           * @param {RiverData} item
+           */
+          (item) => item.id === river.sourceId);
+          cell.elevation = parent.cells[index].elevation;
+          cell.bedElevation = parent.cells[index].bedElevation;
+          previousElevation = cell.elevation;
+          continue;
+        }
         const heightLimit = cell.underBridge
           ? PATH_HEIGHT - BRIDGE_WATER_CLEARANCE
           : Math.max(

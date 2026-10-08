@@ -48,6 +48,8 @@ export class RiverStage extends AbstractMapGenerationStage {
       context.yieldState,
     );
     this.#rivers.assignRiverKinds(riverData);
+    await this.#rivers.splitRivers(grid, heightmap, tileMeta, layout, islandMask,
+      riverData, context.yieldState);
     this.#rivers.raiseLavaSurfaces(heightmap, tileMeta, riverData);
 
     context.world.heightmap = heightmap;

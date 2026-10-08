@@ -35,7 +35,7 @@ export class RiverStonePlacementPlan {
         ]),
       ]);
       let stonesPlaced = 0;
-      for (const cell of river.cells) {
+      for (const cell of river.cells.slice(river.branchStart ?? 0)) {
         if (
           cell.underBridge ||
           blockedCells.has(`${cell.col},${cell.row}`) ||

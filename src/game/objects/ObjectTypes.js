@@ -3,7 +3,7 @@
  *
  * @typedef {{x: number, y: number, z: number}} Point3
  * @typedef {{col: number, row: number}} GridPoint
- * @typedef {{col: number, row: number, elevation?: number, terrainHeight?: number, direction?: string}} RiverCell
+ * @typedef {{col: number, row: number, elevation?: number, terrainHeight?: number, direction?: string, flowScale?: number}} RiverCell
  * @typedef {object} MapObjectDefinition
  * @property {string} id
  * @property {string} object
@@ -44,7 +44,7 @@
  * @property {Array<Array<{shape?: string, overpassId?: string, bridgeGroundHeight?: number, renderMode?: string}>>} [tileMeta]
  * @property {Array<MapObjectDefinition>} [objects]
  * @property {Array<RenderCommand>} [renderCommands]
- * @property {Array<{id?: string, kind?: string, cells: Array<RiverCell>, cascades: Array<RiverCascade>, waterfall: WaterfallDefinition}>} [riverData]
+ * @property {Array<{id?: string, sourceId?: string, branchStart?: number, kind?: string, cells: Array<RiverCell>, cascades: Array<RiverCascade>, waterfall: WaterfallDefinition}>} [riverData]
  * @property {PathOverpass} [overpassData]
  * @property {{horizontal: boolean, station: number, cells: Array<{col: number, row: number}>, removedCells: Array<{col: number, row: number}>, nearIsland: string[], farIsland: string[], islands?: string[][]}} [islandConnectorData]
  * @property {{position: {col: number, row: number, width: number, depth: number}}} [castle]

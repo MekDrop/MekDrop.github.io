@@ -182,6 +182,8 @@ export class RiverRouter {
    * @param {MapCell} source
    * @param {Set<string>} occupiedRiverCells
    * @param {GenerationYieldState} yieldState
+   * @param {MapCell[]} [prefix]
+   * @param {MapCell[]|null} [outlets]
    */
   async findRiverRoute(
     grid,
@@ -191,10 +193,25 @@ export class RiverRouter {
     source,
     occupiedRiverCells,
     yieldState,
+    prefix = [source],
+    outlets = null,
   ) {
     const sourceKey = MapGrid.tileKey(source.col, source.row);
     const parents = new Map([[sourceKey, null]]);
-    const queue = [{ ...source }];
+    for (let index = 1; index < prefix.length; index++) {
+      parents.set(MapGrid.tileKey(prefix[index].col, prefix[index].row),
+        MapGrid.tileKey(prefix[index - 1].col, prefix[index - 1].row));
+    }
+    const junction = prefix.at(-1);
+    const buffered = new Set([...occupiedRiverCells].filter(/**
+     *
+     * @param {string} key
+     */
+    (key) => {
+      const [col, row] = key.split(",").map(Number);
+      return Math.max(Math.abs(col - junction.col), Math.abs(row - junction.row)) > 1;
+    }));
+    const queue = [{ ...junction }];
     let queueIndex = 0;
 
     while (queueIndex < queue.length) {
@@ -210,6 +227,7 @@ export class RiverRouter {
       );
       if (
         terminalDirection &&
+        (prefix.length === 1 || route.length - prefix.length >= 3) &&
         this.#validateRiverPathCrossings(grid, tileMeta, route) &&
         this.#riverRouteKeepsIslandConnected(grid, route)
       ) {
@@ -224,7 +242,15 @@ export class RiverRouter {
       ]);
       for (const neighbor of neighbors) {
         const neighborKey = MapGrid.tileKey(neighbor.col, neighbor.row);
-        if (parents.has(neighborKey)) {
+        if (outlets && currentKey === MapGrid.tileKey(junction.col, junction.row) &&
+          !outlets.some(/**
+           *
+           * @param {MapCell} cell
+           */
+          (cell) => cell.col === neighbor.col && cell.row === neighbor.row)) {
+          continue;
+        }
+        if (parents.has(neighborKey) || occupiedRiverCells.has(neighborKey)) {
           continue;
         }
         if (
@@ -232,7 +258,7 @@ export class RiverRouter {
             grid,
             tileMeta,
             layout,
-            occupiedRiverCells,
+            prefix.length > 1 ? buffered : occupiedRiverCells,
             neighbor.col,
             neighbor.row,
           )

@@ -25,6 +25,11 @@ export class RiverFlowMap {
   #size;
 
   /**
+   * @type {import("playcanvas").Texture}
+   */
+  #forkTexture;
+
+  /**
    *
    * @param {typeof import("playcanvas")} pc
    * @param {import("playcanvas").GraphicsDevice} device
@@ -45,6 +50,9 @@ export class RiverFlowMap {
         continue;
       }
       for (const [index, cell] of river.cells.entries()) {
+        if (index < (river.branchStart ?? 0)) {
+          continue;
+        }
         const outgoing = this.#direction(cell.direction);
         const incoming = this.#direction(river.cells[index - 1]?.direction ?? cell.direction);
         const turn = incoming[0] * outgoing[1] - incoming[1] * outgoing[0];
@@ -52,6 +60,48 @@ export class RiverFlowMap {
       }
     }
     this.#texture.unlock();
+    this.#forkTexture = new pc.Texture(device, {
+      name: 'River fork outlets', width: cols, height: rows,
+      format: pc.PIXELFORMAT_RGBA32F, mipmaps: false,
+      minFilter: pc.FILTER_NEAREST, magFilter: pc.FILTER_NEAREST,
+      addressU: pc.ADDRESS_CLAMP_TO_EDGE, addressV: pc.ADDRESS_CLAMP_TO_EDGE,
+    });
+    const forks = this.#forkTexture.lock();
+    for (const river of riverData) {
+      if (river.sourceId || river.kind === RIVER_KIND.LAVA) {
+        continue;
+      }
+      const branches = riverData.filter(/**
+       *
+       * @param {import("src/game/generator/map/MapGenerationTypes.js").RiverData} branch
+       */
+      (branch) => branch.sourceId === river.id);
+      if (!branches.length) {
+        continue;
+      }
+      const index = branches[0].branchStart - 1;
+      const junction = river.cells[index];
+      const incoming = this.#direction(river.cells[index - 1].direction);
+      let mask = 0;
+      for (const channel of [river, ...branches]) {
+        const direction = this.#direction(channel.cells[index].direction);
+        mask += direction[0] < 0 ? 1 : direction[0] > 0 ? 2 : direction[1] < 0 ? 4 : 8;
+      }
+      const incomingCode = incoming[0] < 0 ? 1 : incoming[0] > 0 ? 2 : incoming[1] < 0 ? 4 : 8;
+      // Repeat one world-space field over the complete landing and its outlets.
+      // A texture entry confined to the junction makes its square border visible.
+      for (const channel of [river, ...branches]) {
+        for (const cell of channel.cells) {
+          if (Math.abs(cell.elevation - junction.elevation) > 0.04 ||
+            Math.hypot(cell.col - junction.col, cell.row - junction.row) > 3) {
+            continue;
+          }
+          forks.set([junction.col, junction.row, incomingCode, mask],
+            (cell.row * cols + cell.col) * 4);
+        }
+      }
+    }
+    this.#forkTexture.unlock();
     const resolution = 16;
     const width = cols * resolution;
     const height = rows * resolution;
@@ -111,6 +161,7 @@ export class RiverFlowMap {
    */
   apply(material) {
     material.setParameter('uRiverFlowMap', this.#texture);
+    material.setParameter('uRiverForkMap', this.#forkTexture);
     material.setParameter('uRiverMapSize', this.#size);
     material.setParameter('uCascadeCurrentMap', this.#impactTexture);
     material.setParameter('uRiverBankMap', this.#bankTexture);
@@ -118,6 +169,7 @@ export class RiverFlowMap {
 
   destroy() {
     this.#texture.destroy();
+    this.#forkTexture.destroy();
     this.#impactTexture.destroy();
     this.#bankTexture.destroy();
   }

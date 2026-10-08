@@ -54,6 +54,7 @@
  * @property {number} [elevation]
  * @property {number} [terrainHeight]
  * @property {string} [direction]
+ * @property {number} [flowScale]
  * @property {boolean} [underBridge]
  */
 
@@ -84,6 +85,8 @@
  * @property {MapCell[]} cells
  * @property {MapCell} [source]
  * @property {string} id
+ * @property {string} [sourceId]
+ * @property {number} [branchStart]
  * @property {number} upstreamLength
  * @property {RiverCascade[]} cascades
  * @property {WaterfallRecord} waterfall

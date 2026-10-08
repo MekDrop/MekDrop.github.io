@@ -122,13 +122,14 @@ export class HeroDrowningActionState extends HeroRuntimeActionState {
         (targetY - position.y) * feedback.sinkSpeed,
       ),
     );
+    const currentSpeed = feedback.currentSpeed * (currentRouteEntry?.cell.flowScale ?? targetCell.flowScale ?? 1);
     feedback.setVelocity({
       x: distance > feedback.waypointEpsilon
-        ? (deltaX / distance) * feedback.currentSpeed
+        ? (deltaX / distance) * currentSpeed
         : 0,
       y: verticalVelocity,
       z: distance > feedback.waypointEpsilon
-        ? (deltaZ / distance) * feedback.currentSpeed
+        ? (deltaZ / distance) * currentSpeed
         : 0,
     });
   }

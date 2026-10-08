@@ -1,5 +1,6 @@
 uniform vec3 material_diffuse;
 uniform float uRiverTime;
+uniform float uRiverFlowScale;
 uniform float uRiverLava;
 
 float riverHash(vec2 position) {
@@ -43,7 +44,7 @@ void getAlbedo() {
   float waterVolumeSide = (1.0 - vertical) * smoothstep(0.02, 0.18, waterDepth);
   vec2 lavaFlowPosition = vec2(
     acrossSurfaceFlow * 1.45,
-    alongSurfaceFlow * 0.62 - uRiverTime * 0.14
+    alongSurfaceFlow * 0.62 - (uRiverTime * uRiverFlowScale) * 0.14
   );
   float lavaBroad = riverFbm(lavaFlowPosition + vec2(17.3, 4.1));
   float lavaVein = smoothstep(
@@ -51,7 +52,7 @@ void getAlbedo() {
     0.88,
     sin(
       alongSurfaceFlow * 2.8 -
-      uRiverTime * 0.54 +
+      (uRiverTime * uRiverFlowScale) * 0.54 +
       lavaBroad * 4.2
     ) * 0.5 + 0.5
   );
@@ -62,7 +63,7 @@ void getAlbedo() {
   );
   vec2 lavaFallPosition = vec2(
     waterfallAcross * 1.8,
-    fallProgress * 1.35 - uRiverTime * 0.12
+    fallProgress * 1.35 - (uRiverTime * uRiverFlowScale) * 0.12
   );
   float lavaFallBroad = riverFbm(lavaFallPosition + vec2(8.7, 21.4));
   float lavaFallRibbon = smoothstep(

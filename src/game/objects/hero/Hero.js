@@ -2461,7 +2461,7 @@ export class Hero {
         flowZ = -1;
       }
       if (
-        source &&
+        source && !river.sourceId &&
         (flowX !== 0 || flowZ !== 0)
       ) {
         this.#riverSourceCovers.push({
@@ -2475,6 +2475,9 @@ export class Hero {
         });
       }
       for (const [index, cell] of river.cells.entries()) {
+        if (index < (river.branchStart ?? 0)) {
+          continue;
+        }
         this.#riverRoutesByCell.set(`${cell.col},${cell.row}`, {
           river,
           index,
@@ -2530,9 +2533,9 @@ export class Hero {
     };
     const direction = this.#riverDirectionVector(routeEntry.cell.direction);
     this.#velocity = {
-      x: direction.x * RIVER_CURRENT_SPEED,
+      x: direction.x * RIVER_CURRENT_SPEED * (routeEntry.cell.flowScale ?? 1),
       y: 0,
-      z: direction.z * RIVER_CURRENT_SPEED,
+      z: direction.z * RIVER_CURRENT_SPEED * (routeEntry.cell.flowScale ?? 1),
     };
     this.#position.y =
       routeEntry.cell.elevation - DROWNING_SUBMERGE_DEPTH;
@@ -2597,9 +2600,9 @@ export class Hero {
    */
   #finishDrowningAtWaterfall(direction) {
     this.#velocity = {
-      x: direction.x * RIVER_CURRENT_SPEED,
+      x: direction.x * RIVER_CURRENT_SPEED * (routeEntry.cell.flowScale ?? 1),
       y: -1.2,
-      z: direction.z * RIVER_CURRENT_SPEED,
+      z: direction.z * RIVER_CURRENT_SPEED * (routeEntry.cell.flowScale ?? 1),
     };
     this.#physics.gravity = GRAVITY;
     this.#actionBehavior.fallingToDeath = true;
