@@ -3,11 +3,34 @@ import { it } from "node:test";
 import * as pc from "playcanvas";
 import { TerrainInstanceRenderer } from "../../../../../src/game/rendering/terrain/TerrainInstanceRenderer.js";
 
+let nextMeshId = 0;
 class Mesh {
-  static fromGeometry() { return new Mesh(); }
+  static fromGeometry(device, geometry) { return Object.assign(new Mesh(), { geometry, id: nextMeshId++ }); }
   incRefCount() {} decRefCount() {} destroy() {}
   setPositions() {} setNormals() {} setUvs() {} setIndices() {} update() {}
 }
+
+it("closes bridge decks below the walking surface with downward-facing geometry", () => {
+  const root = new pc.Entity();
+  const wood = {};
+  const renderer = new TerrainInstanceRenderer({
+    pc: { ...pc, Entity, Mesh, VertexBuffer, MeshInstance, VertexFormat: { getDefaultInstancingFormat() {} } },
+    app: { graphicsDevice: {} }, root, materials: new Map([["wood", wood]]),
+    mapData: { cols: 1, rows: 1 },
+  });
+  for (const coverage of ["bridgeHorizontalSidesOnly", "bridgeVerticalSidesOnly"]) {
+    renderer.addBoxMatrix("wood", "wood", 0, 1, 0, 0, 2, 0.24, 2, coverage, "wood");
+  }
+  renderer.build();
+  const faces = root.children.flatMap((child) => child.render?.meshInstances ?? []);
+  const bottoms = faces.filter(({ mesh }) => mesh.geometry.normals.every((value, index) => value === (index % 3 === 1 ? -1 : 0)));
+  assert.equal(bottoms.length, 1);
+  const bottom = bottoms[0];
+  assert.equal(bottom.material, wood);
+  assert.ok(bottom.mesh.geometry.positions.every((value, index) => index % 3 !== 1 || value === -0.5));
+  assert.equal(bottom.buffer.data.length, 32);
+  renderer.destroy();
+});
 class Entity extends pc.Entity {
   addComponent(type, options) { this.render = options; }
 }

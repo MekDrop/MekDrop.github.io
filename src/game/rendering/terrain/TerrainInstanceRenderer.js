@@ -247,7 +247,7 @@ export class TerrainInstanceRenderer {
       if (!surfaceOnly) {
         addFace(slopeMeshes?.sides ?? bridgeSideMesh ?? this.#meshes.wallSides, sideMaterial);
       }
-      addFace(this.#meshes.underlay, underlayMaterial);
+      addFace(bridgeSideMesh ? this.#meshes.bridgeUnderside : this.#meshes.underlay, underlayMaterial);
       addFace(surfaceMesh, topMaterial, coverage === "full" && topMaterial.startsWith("grass"));
     }
     for (const { group, mesh, material, excavatable, matrices } of batches.values()) {
@@ -350,6 +350,7 @@ export class TerrainInstanceRenderer {
     this.#destroyMesh(this.#meshes.wallSides);
     this.#destroyMesh(this.#meshes.bridgeHorizontalSides);
     this.#destroyMesh(this.#meshes.bridgeVerticalSides);
+    this.#destroyMesh(this.#meshes.bridgeUnderside);
     this.#destroyMesh(this.#meshes.underlay);
     for (const slope of Object.values(this.#meshes.slopes)) {
       this.#destroyMesh(slope.sides);
@@ -365,6 +366,7 @@ export class TerrainInstanceRenderer {
     const pc = this.#pc;
     const groups = {
       underlay: { positions: [], normals: [], uvs: [], indices: [] },
+      bridgeUnderside: { positions: [], normals: [], uvs: [], indices: [] },
       sides: { positions: [], normals: [], uvs: [], indices: [] },
       wallSides: { positions: [], normals: [], uvs: [], indices: [] },
       bridgeHorizontalSides: {
@@ -525,6 +527,14 @@ export class TerrainInstanceRenderer {
         group.indices.push(start, start + index, start + index + 1);
       }
     };
+
+    // Bridge decks need a downward-facing bottom, not the terrain's top underlay.
+    addFace("bridgeUnderside", [
+      [-half, -half, -half],
+      [half, -half, -half],
+      [half, -half, half],
+      [-half, -half, half],
+    ]);
 
     for (const sign of [-1, 1]) {
       addFace("sides", [
@@ -709,6 +719,7 @@ export class TerrainInstanceRenderer {
       wallSides: createMesh(groups.wallSides),
       bridgeHorizontalSides: createMesh(groups.bridgeHorizontalSides),
       bridgeVerticalSides: createMesh(groups.bridgeVerticalSides),
+      bridgeUnderside: createMesh(groups.bridgeUnderside),
       underlay: createMesh(groups.underlay),
       slopes: Object.fromEntries(
         Object.entries(slopeGroupNames).map(/**

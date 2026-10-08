@@ -265,7 +265,7 @@ export class TerrainBlockLayout {
             span.horizontal
               ? "bridgeHorizontalSidesOnly"
               : "bridgeVerticalSidesOnly",
-            "none",
+            railingMaterial,
           );
           this.#bridgeRailingKit.addSpan(
             span,
@@ -369,7 +369,7 @@ export class TerrainBlockLayout {
       deckThickness,
       span.length,
       "bridgeVerticalSidesOnly",
-      "none",
+      railingMaterial,
     );
     this.#bridgeRailingKit.addOverpass(overpass, railingMaterial, cols, rows);
   }
