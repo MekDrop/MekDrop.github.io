@@ -27,6 +27,8 @@ export class CastleEntranceDetails {
     opening => opening.exteriorEntrance);
     if (!entrance) { return; }
     const angle = origin.yaw * Math.PI / 180;
+    // Bury inward trim faces beneath the shell rather than sharing its plane.
+    const faceClearance = 0.004;
     /**
      * @param {number} x
      * @param {number} y
@@ -70,8 +72,8 @@ export class CastleEntranceDetails {
             const width = y % 0.5 < 0.25 ? 0.44 : 0.34;
             const depth = y % 0.5 < 0.25 ? 0.34 : 0.44;
             // Keep the alternating courses outside both interior wall faces.
-            addStone(x + (x === building.minX ? -width / 2 : width / 2),
-              origin.y + y, z + (z === building.minZ ? -depth / 2 : depth / 2),
+            addStone(x + (x === building.minX ? -width / 2 - faceClearance : width / 2 + faceClearance),
+              origin.y + y, z + (z === building.minZ ? -depth / 2 - faceClearance : depth / 2 + faceClearance),
               [width, 0.248, depth], "Castle ground floor corner trim");
           }
         }
@@ -79,13 +81,13 @@ export class CastleEntranceDetails {
       // Recess the trim beneath the floor: its top otherwise shares the
       // masonry's plane and flickers as the floating island moves.
       const bandY = origin.y + floorHeight - 0.125 - 0.002;
-      for (const z of [building.minZ - 0.2, building.maxZ + 0.2]) {
+      for (const z of [building.minZ - 0.2 - faceClearance, building.maxZ + 0.2 + faceClearance]) {
         for (let x = building.minX; x < building.maxX; x += 0.5) {
           const width = Math.min(0.5, building.maxX - x);
           addStone(x + width / 2, bandY, z, [width, 0.25, 0.4], "Castle terrace support band");
         }
       }
-      for (const x of [building.minX - 0.2, building.maxX + 0.2]) {
+      for (const x of [building.minX - 0.2 - faceClearance, building.maxX + 0.2 + faceClearance]) {
         for (let z = building.minZ; z < building.maxZ; z += 0.5) {
           const depth = Math.min(0.5, building.maxZ - z);
           addStone(x, bandY, z + depth / 2, [0.4, 0.25, depth], "Castle terrace support band");

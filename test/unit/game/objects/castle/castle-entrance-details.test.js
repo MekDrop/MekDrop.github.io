@@ -55,8 +55,8 @@ test("entrance lanterns flank the fixed doorway on every facing and mirrored see
           if (building.floorY > origin.y) { continue; }
           const overlapX = Math.min(x + scale.x / 2, building.maxX) - Math.max(x - scale.x / 2, building.minX);
           const overlapZ = Math.min(z + scale.z / 2, building.maxZ) - Math.max(z - scale.z / 2, building.minZ);
-          assert.ok(overlapX <= 1e-6 || overlapZ <= 1e-6,
-            "exterior masonry details never protrude into a building interior");
+          assert.ok(overlapX <= -0.003 || overlapZ <= -0.003,
+            "exterior trim faces stay buried beyond the interior wall plane");
         }
       }
       for (const planter of planters) {
