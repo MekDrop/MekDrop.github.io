@@ -180,13 +180,25 @@ describe("short grass carpet placement", () => {
     assert.ok(north.every(({ x, width }) =>
       x + width / 2 <= -0.119 || x - width / 2 >= 0.119));
   });
-  it("limits paving overhang to four centimeters without shrinking the lawn", () => {
+  it("keeps grass inside paving boundaries without shrinking the lawn or cliff fringe", () => {
     const input = map([[TileType.GRASS, TileType.PATH, TileType.GRASS]]);
     input.heightmap[0] = [2, 2, 3];
     const left = GrassCarpetLayout.create(input).filter(({ x }) => x < -0.5);
     assert.ok(left.every(({ exposedSides }) => (exposedSides & 4) === 0));
-    assert.ok(left.every(({ boundaryExtension }) => boundaryExtension[2] <= 0.04));
+    assert.ok(left.length > 0);
+    assert.ok(left.every(({ boundaryExtension }) => boundaryExtension[2] === 0));
     const right = GrassCarpetLayout.create(input).filter(({ x }) => x > 0.5);
     assert.ok(right.every(({ exposedSides }) => (exposedSides & 1) === 1));
+    for (const paving of [TileType.PATH, TileType.ENTRY]) {
+      const surrounded = map([
+        [paving, paving, paving],
+        [paving, TileType.GRASS, paving],
+        [paving, paving, paving],
+      ]);
+      const lawn = GrassCarpetLayout.create(surrounded);
+      assert.ok(lawn.length > 0);
+      assert.ok(lawn.every(({ boundaryExtension, exposedSides }) =>
+        boundaryExtension.every((extension) => extension === 0) && exposedSides === 0));
+    }
   });
 });

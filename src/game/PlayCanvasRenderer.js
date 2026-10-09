@@ -530,9 +530,13 @@ export class PlayCanvasRenderer {
     }
     this.#app = new pc.Application(this.canvas, { graphicsDevice });
     this.#app.setCanvasFillMode(pc.FILLMODE_NONE);
-    this.#app.setCanvasResolution(pc.RESOLUTION_AUTO);
+    // Own the backing size in resize(); automatic resolution clamps it to display DPR.
+    this.#app.setCanvasResolution(pc.RESOLUTION_FIXED, this.canvas.width, this.canvas.height);
+    // Native MSAA misses fine roof courses and window trim inside a pixel.
+    // Downsampling a modestly larger canvas filters those geometric edges too.
+    const pixelRatio = window.devicePixelRatio || 1;
     this.#app.graphicsDevice.maxPixelRatio = Math.min(
-      window.devicePixelRatio || 1,
+      this.#graphicsSettingsStore.antialias ? Math.max(1.5, pixelRatio) : pixelRatio,
       this.#graphicsSettingsStore.maxPixelRatio,
     );
 
@@ -1290,6 +1294,12 @@ export class PlayCanvasRenderer {
     const width = Math.max(1, this.container.clientWidth);
     const height = Math.max(1, this.container.clientHeight);
     this.#app.resizeCanvas(width, height);
+    // resizeCanvas clamps to the display's DPR, so explicitly allow supersampling.
+    const pixelRatio = this.#app.graphicsDevice.maxPixelRatio;
+    this.#app.graphicsDevice.setResolution(
+      Math.max(1, Math.floor(width * pixelRatio)),
+      Math.max(1, Math.floor(height * pixelRatio)),
+    );
     this.#fitCamera();
     this.#updateCamera();
     if (!this.#cameraLocked) {

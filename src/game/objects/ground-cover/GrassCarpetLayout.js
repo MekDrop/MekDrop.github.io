@@ -94,7 +94,7 @@ export class GrassCarpetLayout {
           row < castlePosition.row + castlePosition.depth;
         let exposedSides = 0;
         // West, north, east, south. Continuous lawn can cross internal seams;
-        // cliffs allow short tips, while paving gets only a tiny soft overlap.
+        // cliffs allow short tips, while paving keeps blades inside the lawn.
         const boundaryExtension = [
           [-1, 0],
           [0, -1],
@@ -151,10 +151,8 @@ export class GrassCarpetLayout {
           ) {
             return 0.24;
           }
-          return neighborType === TileType.PATH ||
-            neighborType === TileType.ENTRY
-            ? 0.04
-            : 0;
+          // Blades over paving compete with the path surface at subpixel depth.
+          return 0;
         });
         // A continuous sod lip per exposed side, with lawn blades above it.
         for (let side = 0; side < 4; side += 1) {
