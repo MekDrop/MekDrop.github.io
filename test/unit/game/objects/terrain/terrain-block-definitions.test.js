@@ -4,6 +4,7 @@ import { TerrainBlockDefinitions } from "../../../../../src/game/objects/terrain
 import { MapGenerator } from "../../../../../src/game/generator/map/MapGenerator.js";
 import { GRASS_SURFACE_LIFT } from "../../../../../src/game/config/terrain.js";
 import { clipCastleTerrainRecord } from "../../../../../src/game/objects/castle/CastleGroundCuts.js";
+import { MAP_TILE_TYPE } from "../../../../../src/game/enum/MapTileType.js";
 
 
 function map() {
@@ -11,6 +12,17 @@ function map() {
 }
 
 describe("terrain map-object integration", () => {
+  it("keeps castle-reserved turf level with neighbouring grass", () => {
+    const subject = map();
+    subject.grid[0] = [MAP_TILE_TYPE.CASTLE_WALL, MAP_TILE_TYPE.CASTLE_TOWER];
+    subject.heightmap[0] = [1, 1];
+    TerrainBlockDefinitions.populate(subject);
+    const lawn = subject.objects.filter(({ object }) => object === "Grass");
+    assert.equal(lawn.length, 3);
+    for (const block of lawn) {
+      assert.equal(block.geometry.args[7], GRASS_SURFACE_LIFT);
+    }
+  });
   it("exposes path-topped earth to basement excavation", () => {
     const subject = map();
     subject.grid[0][0] = 2;

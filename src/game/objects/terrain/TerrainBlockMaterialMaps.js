@@ -1,6 +1,10 @@
 import { MAP_TILE_TYPE as TileType } from "../../enum/MapTileType.js";
 
-export const GRASS_SURFACE_TILES = new Set([TileType.GRASS]);
+export const GRASS_SURFACE_TILES = new Set([
+  TileType.GRASS,
+  TileType.CASTLE_WALL,
+  TileType.CASTLE_TOWER,
+]);
 
 export const SURFACE_MATERIALS = {
   [TileType.GRASS]: "grass",

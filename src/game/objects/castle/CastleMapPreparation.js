@@ -1,4 +1,5 @@
 import { DecorationPlacementRules } from "../../generator/map/DecorationPlacementRules.js";
+import { GRASS_SURFACE_LIFT } from "../../config/terrain.js";
 import { CastleGroundWeathering } from "./CastleGroundWeathering.js";
 import { createCastleStairFlight } from "./CastleStairFlight.js";
 import { createCastleGroundCuts, clipCastleTerrainRecord } from "./CastleGroundCuts.js";
@@ -249,7 +250,7 @@ export class CastleMapPreparation {
             const turf = level === target - 1;
             mapData.objects.push({ id: `castle-soil-${col}-${row}-${level}`, generated: true,
               object: turf ? "Grass" : "Earth", tile: { col, row }, position: { x, y: level + 0.5, z },
-              geometry: { method: "addCubeMatrix", args: [turf ? `grass:${col}:${row}:${level}` : "earth", `${turf ? "turfSide" : "earthSide"}:${col}:${row}:${level}`, x, level + 0.5, z, "full", "earth"] } });
+              geometry: { method: "addCubeMatrix", args: [turf ? `grass:${col}:${row}:${level}` : "earth", `${turf ? "turfSide" : "earthSide"}:${col}:${row}:${level}`, x, level + 0.5, z, "full", "earth", turf ? GRASS_SURFACE_LIFT : 0] } });
           }
           mapData.grid[row][col] = mapData.grid[row][col] === 0 ? 1 : mapData.grid[row][col];
           mapData.heightmap[row][col] = target;

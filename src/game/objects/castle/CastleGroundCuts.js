@@ -1,3 +1,6 @@
+import { GRASS_SURFACE_LIFT } from "../../config/terrain.js";
+import { SURFACE_ELEVATION_BIAS } from "../../rendering/terrain/TerrainMaterialMaps.js";
+
 /**
  * @typedef {{minX:number,maxX:number,minY:number,maxY:number,minZ:number,maxZ:number}} GroundCut
  */
@@ -161,9 +164,15 @@ export function clipCastleTerrainRecord(definition, cuts) {
    */
   (piece, index) => {
     const top = definition.object === "Grass" && Math.abs(piece.maxY - originalTop) < 0.000001;
-    const position = { x: (piece.minX + piece.maxX) / 2, y: (piece.minY + piece.maxY) / 2, z: (piece.minZ + piece.maxZ) / 2 };
+    const height = piece.maxY - piece.minY;
+    // Box surfaces receive a bias scaled by their height. Preserve the full
+    // grass cube's rendered top, even when excavation leaves a shallow piece.
+    const lift = top
+      ? (GRASS_SURFACE_LIFT + SURFACE_ELEVATION_BIAS * (1 + GRASS_SURFACE_LIFT - height)) / (1 + SURFACE_ELEVATION_BIAS)
+      : 0;
+    const position = { x: (piece.minX + piece.maxX) / 2, y: (piece.minY + piece.maxY + lift) / 2, z: (piece.minZ + piece.maxZ) / 2 };
     return { ...definition, id: `${definition.id}-castle-cut-${index}`, object: top ? "Grass" : "Earth", position,
       geometry: { method: "addBoxMatrix", args: [top ? args?.[0] ?? "grass" : "earth", args?.[1] ?? "earth", position.x, position.y, position.z,
-        0, piece.maxX - piece.minX, piece.maxY - piece.minY, piece.maxZ - piece.minZ, "full", "earth"] } };
+        0, piece.maxX - piece.minX, height + lift, piece.maxZ - piece.minZ, "full", "earth"] } };
   });
 }
