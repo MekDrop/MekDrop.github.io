@@ -60,11 +60,12 @@ describe('Compact authored castle traversal', () => {
       await walkTo(window,{x:origin.x,z:-8.2});
       await walkTo(window,{x:origin.x,z:origin.z+.8});
       const doors=plan.metadata.runtime.roomDoors.filter(d=>d.y===origin.y);
-      const corridorX=Math.max(...doors.map(door=>door.x))+1.4;
+      const corridorX=origin.x;
+      const roomSide=Math.sign(doors[0].x-origin.x);
       for(const door of doors) {
         await walkTo(window,{x:corridorX,z:window.gameMovementTest.state().position.z});
         await walkTo(window,{x:corridorX,z:door.z});
-        await walkTo(window,{x:door.x-.55,z:door.z});
+        await walkTo(window,{x:door.x+roomSide*.55,z:door.z});
         expect(window.gameMovementTest.state().position.y,door.roomId).to.be.closeTo(door.y,.2);
         await walkTo(window,{x:corridorX,z:door.z});
       }
@@ -75,9 +76,10 @@ describe('Compact authored castle traversal', () => {
       const tread=(stair,step)=>{
         const r=stair.radius, lane=r/2+(stair.flightGap ?? 0)/2, landing=Math.min(.7,r*.5), apron=Math.min(.15,r*.1);
         const shift=stair.flightShift ?? 0;
-        const points=[[-lane,r+shift,0],[-lane,-r+landing+shift,stair.rise/2],
-          [-lane,-r+(landing+shift)*.7,stair.rise/2],[lane,-r+(landing+shift)*.7,stair.rise/2],
-          [lane,-r+landing+shift,stair.rise/2],[lane,r-apron+shift,stair.rise],[lane,r+shift,stair.rise]];
+        const landingHeight=stair.rise/2+(stair.landingLift ?? 0);
+        const points=[[-lane,r+shift,0],[-lane,-r+landing+shift,landingHeight],
+          [-lane,-r+(landing+shift)*.7,landingHeight],[lane,-r+(landing+shift)*.7,landingHeight],
+          [lane,-r+landing+shift,landingHeight],[lane,r-apron+shift,stair.rise],[lane,r+shift,stair.rise]];
         const boundaries=[0,9,11,13,15,22,24];
         let segment=boundaries.findIndex((end,index)=>index>0 && step<=end)-1;
         segment=Math.max(0,segment);
@@ -114,18 +116,20 @@ describe('Compact authored castle traversal', () => {
           }
         }
       };
-      await walkTo(window,{x:groundDoor.x+1.1,z:groundDoor.z});
-      await walkTo(window,{x:groundDoor.x-.7,z:groundDoor.z});
-      const entryX=upper.center.x+upper.radius+.55, entryZ=upper.center.z;
+      await walkTo(window,{x:groundDoor.x-roomSide*1.1,z:groundDoor.z});
+      await walkTo(window,{x:groundDoor.x+roomSide*.7,z:groundDoor.z});
+      const entryX=upper.center.x-roomSide*(upper.radius+.55), entryZ=upper.center.z;
       await walkTo(window,{x:entryX,z:entryZ});
       await walkTo(window,tread(upper,0));
       await verifyFlight(upper,true);
       await walkTo(window,{x:entryX,z:tread(upper,24).z});
       await walkTo(window,{x:entryX,z:entryZ});
-      await walkTo(window,{x:upperDoor.x-.7,z:upperDoor.z});
-      await walkTo(window,{x:upperDoor.x+1.1,z:upperDoor.z});
+      await walkTo(window,{x:upperDoor.x,z:entryZ});
+      await walkTo(window,{x:upperDoor.x,z:upperDoor.z+.7});
+      await walkTo(window,{x:upperDoor.x,z:upperDoor.z-.7});
       expect(window.gameMovementTest.state().position.y).to.be.closeTo(upperDoor.y,.2);
-      await walkTo(window,{x:upperDoor.x-.7,z:upperDoor.z});
+      await walkTo(window,{x:upperDoor.x,z:upperDoor.z+.7});
+      await walkTo(window,{x:upperDoor.x,z:entryZ});
       await walkTo(window,{x:entryX,z:entryZ});
       await walkTo(window,{x:entryX,z:tread(upper,24).z});
       await verifyFlight(upper,false);
@@ -133,32 +137,28 @@ describe('Compact authored castle traversal', () => {
       await verifyFlight(lower,false);
       const basementDoor=plan.metadata.runtime.roomDoors.find(d=>d.roomId==='basement-stair-room');
       await walkTo(window,tread(lower,0));
-      await walkTo(window,{x:basementDoor.x-.7,z:tread(lower,0).z,tolerance:.025});
-      await walkTo(window,{x:basementDoor.x-.7,z:basementDoor.z,tolerance:.01});
-      await walkTo(window,{x:basementDoor.x+1.1,z:basementDoor.z,tolerance:.025});
+      await walkTo(window,{x:basementDoor.x+roomSide*.7,z:tread(lower,0).z,tolerance:.025});
+      await walkTo(window,{x:basementDoor.x+roomSide*.7,z:basementDoor.z,tolerance:.01});
+      await walkTo(window,{x:basementDoor.x-roomSide*1.1,z:basementDoor.z,tolerance:.025});
       const kitchen=plan.metadata.runtime.roomDoors.find(d=>d.roomId==='kitchen');
-      const serviceCorner=kitchen.z+1.5;
-      await walkTo(window,{x:basementDoor.x+1.1,z:serviceCorner,tolerance:.025});
-      await walkTo(window,{x:kitchen.x-1.1,z:kitchen.z+1.375,tolerance:.025});
-      await walkTo(window,{x:kitchen.x-1.1,z:kitchen.z});
-      await walkTo(window,{x:kitchen.x+.55,z:kitchen.z});
+      await walkTo(window,{x:corridorX,z:basementDoor.z});
+      await walkTo(window,{x:corridorX,z:kitchen.z});
+      await walkTo(window,{x:kitchen.x+roomSide*.55,z:kitchen.z});
       expect(window.gameMovementTest.state().position.y).to.be.closeTo(kitchen.y,.2);
-      await walkTo(window,{x:kitchen.x-1.1,z:kitchen.z});
-      returnRoute={origin,groundDoor,basementDoor,kitchen,lower,entryX,entryZ,serviceCorner,corridorX,tread,verifyFlight};
+      await walkTo(window,{x:corridorX,z:kitchen.z});
+      returnRoute={origin,groundDoor,basementDoor,lower,entryX,entryZ,corridorX,roomSide,tread,verifyFlight};
     });
     cy.get('.background-canvas').screenshot('compact-basement-doors-crossed');
     cy.window().then({timeout:180000},async window=>{
-      const {origin,groundDoor,basementDoor,kitchen,lower,entryX,entryZ,serviceCorner,corridorX,tread,verifyFlight}=returnRoute;
-      await walkTo(window,{x:kitchen.x-1.1,z:kitchen.z+1.175,tolerance:.025});
-      await walkTo(window,{x:basementDoor.x+1.1,z:serviceCorner,tolerance:.025});
-      await walkTo(window,{x:basementDoor.x+1.1,z:basementDoor.z,tolerance:.025});
-      await walkTo(window,{x:basementDoor.x-.7,z:basementDoor.z,tolerance:.01});
+      const {origin,groundDoor,basementDoor,lower,entryX,entryZ,corridorX,roomSide,tread,verifyFlight}=returnRoute;
+      await walkTo(window,{x:corridorX,z:basementDoor.z});
+      await walkTo(window,{x:basementDoor.x+roomSide*.7,z:basementDoor.z,tolerance:.01});
       expect(window.gameMovementTest.state().position.y).to.be.closeTo(basementDoor.y,.2);
-      await walkTo(window,{x:basementDoor.x-.7,z:tread(lower,0).z,tolerance:.025});
+      await walkTo(window,{x:basementDoor.x+roomSide*.7,z:tread(lower,0).z,tolerance:.025});
       await walkTo(window,tread(lower,0));
       await verifyFlight(lower,true);
       await walkTo(window,{x:entryX,z:entryZ});
-      await walkTo(window,{x:groundDoor.x-.7,z:groundDoor.z});
+      await walkTo(window,{x:groundDoor.x+roomSide*.7,z:groundDoor.z});
       await walkTo(window,{x:corridorX,z:groundDoor.z});
       expect(window.gameMovementTest.state().position.y).to.be.closeTo(origin.y,.2);
       await walkTo(window,{x:origin.x,z:origin.z+.8});

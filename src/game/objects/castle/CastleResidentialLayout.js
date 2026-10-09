@@ -599,7 +599,9 @@ export class CastleResidentialLayout {
     const local = this.toLocal(x, z);
     for (const area of this.#walkableAreas) {
       if (area.floorY < this.#origin.y && !this.canEnterBasement(actor)) { continue; }
-      if (Math.abs(area.floorY - currentElevation) <= 0.24 && local.x >= area.minX && local.x <= area.maxX && local.z >= area.minZ && local.z <= area.maxZ) return area.floorY;
+      // The first authored tread can be 0.3 m high. Its adjoining floor must
+      // remain queryable throughout the same step range used by the hero.
+      if (Math.abs(area.floorY - currentElevation) <= STEP_CLEARANCE && local.x >= area.minX && local.x <= area.maxX && local.z >= area.minZ && local.z <= area.maxZ) return area.floorY;
     }
     // Authored floor areas already exclude stair openings.
     if (this.#authoredStairs.length > 0) { return null; }
