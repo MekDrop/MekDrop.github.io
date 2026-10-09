@@ -1,3 +1,24 @@
+import { BedsideDrawers } from "./castle-props/BedsideDrawers.js";
+import { BlueArmchair } from "./castle-props/BlueArmchair.js";
+import { BowlGreenVegetables } from "./castle-props/BowlGreenVegetables.js";
+import { BowlRedFruit } from "./castle-props/BowlRedFruit.js";
+import { DeskGlobe } from "./castle-props/DeskGlobe.js";
+import { DeskParchment } from "./castle-props/DeskParchment.js";
+import { FireplaceCauldron } from "./castle-props/FireplaceCauldron.js";
+import { FloorCandelabrum } from "./castle-props/FloorCandelabrum.js";
+import { HangingFryingPan } from "./castle-props/HangingFryingPan.js";
+import { KitchenFireplace } from "./castle-props/KitchenFireplace.js";
+import { KitchenTable } from "./castle-props/KitchenTable.js";
+import { PlateBread } from "./castle-props/PlateBread.js";
+import { SingleCandleStand } from "./castle-props/SingleCandleStand.js";
+import { StoragePotteryJar } from "./castle-props/StoragePotteryJar.js";
+import { TableCandles } from "./castle-props/TableCandles.js";
+import { WoodenBarrel } from "./castle-props/WoodenBarrel.js";
+import { WoodenCrate } from "./castle-props/WoodenCrate.js";
+import { WoodenDeskChair } from "./castle-props/WoodenDeskChair.js";
+import { WallLantern } from "./castle-props/WallLantern.js";
+import { EntranceLantern } from "./castle-props/EntranceLantern.js";
+import { TowerBrazier } from "./castle-props/TowerBrazier.js";
 import { CliffVine } from "./vegetation/CliffVine.js";
 import { WoodenFloor } from "./wooden-floor/WoodenFloor.js";
 import { Flag } from "./flag/Flag.js";
@@ -25,6 +46,27 @@ import { MapPickupAnimationActors } from "../debug/MapPickupAnimationActors.js";
 import { MapVirtualItem } from "../debug/MapVirtualItem.js";
 
 const OBJECT_CLASSES = new Map([
+  [BedsideDrawers.name, BedsideDrawers],
+  [BlueArmchair.name, BlueArmchair],
+  [BowlGreenVegetables.name, BowlGreenVegetables],
+  [BowlRedFruit.name, BowlRedFruit],
+  [DeskGlobe.name, DeskGlobe],
+  [DeskParchment.name, DeskParchment],
+  [FireplaceCauldron.name, FireplaceCauldron],
+  [FloorCandelabrum.name, FloorCandelabrum],
+  [HangingFryingPan.name, HangingFryingPan],
+  [KitchenFireplace.name, KitchenFireplace],
+  [KitchenTable.name, KitchenTable],
+  [PlateBread.name, PlateBread],
+  [SingleCandleStand.name, SingleCandleStand],
+  [StoragePotteryJar.name, StoragePotteryJar],
+  [TableCandles.name, TableCandles],
+  [WoodenBarrel.name, WoodenBarrel],
+  [WoodenCrate.name, WoodenCrate],
+  [WoodenDeskChair.name, WoodenDeskChair],
+  [WallLantern.name, WallLantern],
+  [EntranceLantern.name, EntranceLantern],
+  [TowerBrazier.name, TowerBrazier],
   [Flag.name, Flag],
   [WoodenFloor.name, WoodenFloor],
   [Bookshelf.name, Bookshelf],

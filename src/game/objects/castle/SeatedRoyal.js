@@ -109,10 +109,12 @@ export class SeatedRoyal {
     this.#entity.name = "Seated royal";
 
     const tracks = modelLibrary.getAnimationTracks(modelUrl, [
+      ROYAL_ANIMATION.SIT,
       ROYAL_ANIMATION.WALK_OUT,
       ROYAL_ANIMATION.CRY,
     ]);
     if (!this.#model.anim) { this.#model.addComponent("anim", { activate: true }); }
+    this.#model.anim.addAnimationState(ROYAL_ANIMATION.SIT, tracks.get(ROYAL_ANIMATION.SIT), 1, true);
     this.#model.anim.addAnimationState(
       ROYAL_ANIMATION.WALK_OUT,
       tracks.get(ROYAL_ANIMATION.WALK_OUT),
@@ -276,7 +278,7 @@ export class SeatedRoyal {
    * Restores the seated pose on the resident model.
    */
   sit() {
-    this.#model.anim.baseLayer.play(ROYAL_ANIMATION.WALK_OUT);
+    this.#model.anim.baseLayer.play(ROYAL_ANIMATION.SIT);
     this.#model.anim.speed = 0;
     this.#model.anim.baseLayer.activeStateCurrentTime = 0;
     this.#model.anim.update(0);

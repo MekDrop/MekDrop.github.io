@@ -1,4 +1,5 @@
-import throneModelUrl from "../../models/castle/throne/throne.glb?url";
+import throneModelUrl from "../../models/castle/props/blue-armchair.glb?url";
+import { addAuthoredMeshPhysics } from "../shared/AuthoredMeshPhysics.js";
 
 export class CastleThrone {
   /**
@@ -14,15 +15,22 @@ export class CastleThrone {
     * @type {import("playcanvas").Entity}
    */
   #entity;
+  /**
+   * @type {import("playcanvas").Entity}
+   */
+  #collisionGraph;
 
   /**
    *
-   * @param {{modelLibrary: string}} options
+   * @param {{pc: typeof import("playcanvas"), modelLibrary: import("../../models/GameModelLibrary.js").GameModelLibrary}} options
+   * @param {typeof import("playcanvas")} options.pc
    * @param {string} options.modelLibrary
    */
-  constructor({ modelLibrary }) {
+  constructor({ pc, modelLibrary }) {
     this.#entity = modelLibrary.instantiate(CastleThrone.modelUrl);
     this.#entity.name = "Throne";
+    this.#collisionGraph = modelLibrary.instantiate(CastleThrone.modelUrl);
+    addAuthoredMeshPhysics(pc, this.#entity, this.#collisionGraph);
   }
 
   get entity() {
@@ -31,6 +39,7 @@ export class CastleThrone {
 
   destroy() {
     this.#entity?.destroy();
+    this.#collisionGraph?.destroy();
     this.#entity = null;
   }
 }

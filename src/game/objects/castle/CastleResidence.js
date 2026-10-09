@@ -3,7 +3,7 @@ import { createSpiralStairCollision, spiralStairRise } from "../shared/SpiralSta
 import buttressUrl from "../../models/castle/residential/corner-buttress.glb?url";
 import chimneyUrl from "../../models/castle/residential/chimney.glb?url";
 import crestUrl from "../../models/castle/residential/crown-crest.glb?url";
-import lanternUrl from "../../models/castle/residential/wall-lantern.glb?url";
+import lanternUrl from "../../models/castle/props/wall-lantern.glb?url";
 import { Bookshelf } from "../bookshelf/Bookshelf.js";
 import { WoodenFloor } from "../wooden-floor/WoodenFloor.js";
 import rugUrl from "../../models/castle/residential/rug.glb?url";
@@ -646,7 +646,10 @@ export class CastleResidence {
       for (const x of [room.minX + 0.12, room.maxX - 0.12]) {
         const yaw = x < 0 ? 90 : -90;
         const forward = room.minZ + (room.maxZ - room.minZ) * 0.65;
-        place(lanternUrl, "Castle warm wall lantern", x, y + 0.65, forward, 0.7, yaw);
+        const lantern = place(lanternUrl, "Castle warm wall lantern", x, y + 0.65, forward, 0.7, yaw);
+        lantern.addComponent("collision", { type: "box", halfExtents: new pc.Vec3(0.0799, 0.3, 0.13),
+          linearOffset: new pc.Vec3(0, 0.3, 0) });
+        lantern.addComponent("rigidbody", { type: "static", friction: 0.6, restitution: 0 });
         const light = new pc.Entity("Castle room lantern light");
         light.setLocalPosition(x + (x < 0 ? 0.25 : -0.25), y + 0.9, forward);
         light.addComponent("light", { type: "omni", color: new pc.Color(1, 0.72, 0.38), intensity: 1.25, range: Math.min(3.5, room.maxX - room.minX), castShadows: false });

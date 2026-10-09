@@ -1,4 +1,4 @@
-import lanternModelUrl from "../../models/castle/residential/wall-lantern.glb?url";
+import lanternModelUrl from "../../models/castle/props/wall-lantern.glb?url";
 import carpetModelUrl from "../../models/castle/residential/carpet-panel.glb?url";
 import { WoodenFloor } from "../wooden-floor/WoodenFloor.js";
 import authoredModelUrl from "../../models/castle/residential/stone-block.glb?url";
@@ -24,7 +24,7 @@ const VISIBILITY_MARGIN = 0.85;
 const CARPET_ENTRANCE_INSET = 0.32;
 const CARPET_REAR_CLEARANCE = 0.36;
 const THRONE_SCALE = 0.85;
-// The authored throne dais extends 0.875 units behind its origin.
+// Keep the chair and its seated royal clear of the rear wall and room furniture.
 const THRONE_REAR_CLEARANCE = 0.9;
 const ROYAL_COLLISION_RADIUS = 0.22;
 const ROYAL_DOORWAY_INSIDE = 0.35;
@@ -672,7 +672,7 @@ export class CastleAudienceRoom {
    * @param {{x: number, y: number, z: number}} throneForward
    */
   #buildThrone(throneForward) {
-    this.#throne = new CastleThrone({ modelLibrary: this.#modelLibrary });
+    this.#throne = new CastleThrone({ pc: this.#pc, modelLibrary: this.#modelLibrary });
     const throne = this.#throne.entity;
     const thronePosition = this.#point(0, throneForward, 0);
     throne.setLocalPosition(
@@ -680,20 +680,21 @@ export class CastleAudienceRoom {
       thronePosition.y,
       thronePosition.z,
     );
-    throne.setLocalEulerAngles(0, this.#roomYaw(), 0);
+    // Tripo authored this chair facing -X; the royal's seated pose faces +Z.
+    throne.setLocalEulerAngles(0, this.#visitorFacingYaw() + 90, 0);
     throne.setLocalScale(THRONE_SCALE, THRONE_SCALE, THRONE_SCALE);
     this.#entity.addChild(throne);
     this.#obstacles.push({
       lateral: 0,
-      forward: throneForward + 0.1 * THRONE_SCALE,
-      width: 2.6 * THRONE_SCALE,
-      depth: 1.55 * THRONE_SCALE,
+      forward: throneForward,
+      width: 0.9102 * THRONE_SCALE,
+      depth: 0.7375 * THRONE_SCALE,
     });
 
     const royalPosition = this.#point(
       0,
       throneForward - 0.07 * THRONE_SCALE,
-      0.37 * THRONE_SCALE,
+      0.02 * THRONE_SCALE,
     );
     this.#royalPosition = royalPosition;
     this.#placeOccupant();
@@ -798,6 +799,9 @@ export class CastleAudienceRoom {
       lantern.setLocalEulerAngles(0, this.#roomYaw() + 180, 0);
       lantern.setLocalScale(0.85, 0.85, 0.85);
       this.#entity.addChild(lantern);
+      lantern.addComponent("collision", { type: "box", halfExtents: new this.#pc.Vec3(0.0799, 0.3, 0.13),
+        linearOffset: new this.#pc.Vec3(0, 0.3, 0) });
+      lantern.addComponent("rigidbody", { type: "static", friction: 0.6, restitution: 0 });
       const glow = this.#point(side * lateral, throneForward + 0.35, 1.12);
       this.#fire.add({ ...glow, scale: 0.065, brazier: false, intensity: 0.6, flame: false });
     }

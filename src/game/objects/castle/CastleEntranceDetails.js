@@ -1,4 +1,4 @@
-import lanternUrl from "../../models/castle/residential/entrance-lantern.glb?url";
+import lanternUrl from "../../models/castle/props/entrance-lantern.glb?url";
 import masonryUrl from "../../models/castle/residential/masonry-block.glb?url";
 import planterUrl from "../../models/castle/residential/terrace-planter.glb?url";
 
@@ -57,9 +57,12 @@ export class CastleEntranceDetails {
       lantern.setLocalPosition(x, origin.y + 1.3, z);
       lantern.setLocalEulerAngles(0, origin.yaw + 180, 0);
       parent.addChild(lantern);
+      lantern.addComponent("collision", { type: "box", halfExtents: new pc.Vec3(0.0774, 0.225, 0.1532),
+        linearOffset: new pc.Vec3(0, 0.225, 0) });
+      lantern.addComponent("rigidbody", { type: "static", friction: 0.6, restitution: 0 });
       const light = new pc.Entity("Castle entrance lantern light");
-      light.setLocalPosition(x - Math.sin(angle) * 0.25, origin.y + 1.67,
-        z - Math.cos(angle) * 0.25);
+      light.setLocalPosition(x - Math.sin(angle) * 0.1, origin.y + 1.47,
+        z - Math.cos(angle) * 0.1);
       light.addComponent("light", { type: "omni", color: new pc.Color(1, 0.38, 0.06),
         intensity: 0.85, range: 2.2, castShadows: false });
       parent.addChild(light);

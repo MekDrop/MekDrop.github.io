@@ -1,0 +1,1195 @@
+{
+  "grid": [
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      0
+    ],
+    [
+      0,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      0
+    ],
+    [
+      0,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      0
+    ],
+    [
+      0,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      0
+    ],
+    [
+      0,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      0
+    ],
+    [
+      0,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      0
+    ],
+    [
+      0,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      0
+    ],
+    [
+      0,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      0
+    ],
+    [
+      0,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      0
+    ],
+    [
+      0,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      0
+    ],
+    [
+      0,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  ],
+  "heightmap": [
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      0
+    ],
+    [
+      0,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      0
+    ],
+    [
+      0,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      0
+    ],
+    [
+      0,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      0
+    ],
+    [
+      0,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      0
+    ],
+    [
+      0,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      0
+    ],
+    [
+      0,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      0
+    ],
+    [
+      0,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      0
+    ],
+    [
+      0,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      0
+    ],
+    [
+      0,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      0
+    ],
+    [
+      0,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  ],
+  "tileMeta": [
+    [
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {}
+    ],
+    [
+      {},
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH"
+      },
+      {}
+    ],
+    [
+      {},
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH"
+      },
+      {}
+    ],
+    [
+      {},
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH"
+      },
+      {}
+    ],
+    [
+      {},
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH"
+      },
+      {}
+    ],
+    [
+      {},
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH"
+      },
+      {}
+    ],
+    [
+      {},
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH"
+      },
+      {}
+    ],
+    [
+      {},
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH"
+      },
+      {}
+    ],
+    [
+      {},
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH"
+      },
+      {}
+    ],
+    [
+      {},
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH"
+      },
+      {}
+    ],
+    [
+      {},
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH"
+      },
+      {}
+    ],
+    [
+      {},
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH"
+      },
+      {}
+    ],
+    [
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {}
+    ]
+  ],
+  "cols": 13,
+  "rows": 13,
+  "entries": [],
+  "castle": null,
+  "numPaths": 0,
+  "groundCoverData": [],
+  "riverData": [],
+  "pipeData": [],
+  "overpassData": null,
+  "mergeZones": [],
+  "trunkStart": null,
+  "mapName": "test_castle-props-1",
+  "layoutSignature": "test_castle-props-1",
+  "heroSpawn": {
+    "x": 0,
+    "y": 2.14,
+    "z": 4
+  },
+  "objects": [
+    {
+      "id": "bedside-drawers",
+      "object": "BedsideDrawers",
+      "tile": {
+        "col": 3,
+        "row": 3
+      },
+      "position": {
+        "x": -3.0,
+        "y": 2.002,
+        "z": -3.0
+      },
+      "rotation": 0
+    },
+    {
+      "id": "blue-armchair",
+      "object": "BlueArmchair",
+      "tile": {
+        "col": 6,
+        "row": 3
+      },
+      "position": {
+        "x": 0.0,
+        "y": 2.002,
+        "z": -3.0
+      },
+      "rotation": 0
+    },
+    {
+      "id": "bowl-green-vegetables",
+      "object": "BowlGreenVegetables",
+      "tile": {
+        "col": 9,
+        "row": 3
+      },
+      "position": {
+        "x": 3.0,
+        "y": 2.002,
+        "z": -3.0
+      },
+      "rotation": 0
+    },
+    {
+      "id": "bowl-red-fruit",
+      "object": "BowlRedFruit",
+      "tile": {
+        "col": 3,
+        "row": 6
+      },
+      "position": {
+        "x": -3.0,
+        "y": 2.002,
+        "z": 0.0
+      },
+      "rotation": 0
+    },
+    {
+      "id": "desk-globe",
+      "object": "DeskGlobe",
+      "tile": {
+        "col": 6,
+        "row": 6
+      },
+      "position": {
+        "x": 0.0,
+        "y": 2.002,
+        "z": 0.0
+      },
+      "rotation": 0
+    },
+    {
+      "id": "desk-parchment",
+      "object": "DeskParchment",
+      "tile": {
+        "col": 9,
+        "row": 6
+      },
+      "position": {
+        "x": 3.0,
+        "y": 2.002,
+        "z": 0.0
+      },
+      "rotation": 0
+    },
+    {
+      "id": "fireplace-cauldron",
+      "object": "FireplaceCauldron",
+      "tile": {
+        "col": 3,
+        "row": 9
+      },
+      "position": {
+        "x": -3.0,
+        "y": 2.002,
+        "z": 3.0
+      },
+      "rotation": 0
+    }
+  ]
+}
