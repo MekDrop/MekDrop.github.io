@@ -26,8 +26,7 @@ export class HeroDrowningActionState extends HeroRuntimeActionState {
     const feedback = owner.feedback.drowning;
     const situation = feedback.situation();
     if (
-      situation.grounded
-      || situation.fallingToDeath
+      situation.fallingToDeath
       || situation.respawning
       || situation.verticalVelocity > 0
       || feedback.hasRiverSourceCover(situation.position)
@@ -37,6 +36,10 @@ export class HeroDrowningActionState extends HeroRuntimeActionState {
 
     const routeEntry = feedback.routeEntryAt(situation.position);
     if (!routeEntry || routeEntry.cell.underBridge) {
+      return false;
+    }
+    // Bank or riverbed contacts do not make a submerged hero safe from the current.
+    if (situation.grounded && situation.position.y > routeEntry.cell.elevation) {
       return false;
     }
     const entryClearance = routeEntry.river.kind === RIVER_KIND.LAVA
@@ -75,7 +78,11 @@ export class HeroDrowningActionState extends HeroRuntimeActionState {
     const cells = action.river.cells;
     const terminal = cells[cells.length - 1];
     const targetCell = action.exiting ? terminal : cells[action.targetIndex];
-    const direction = feedback.directionVector(targetCell.direction);
+    // A bend on the bridge must be approached from the upstream cell.
+    const approachCell = !action.exiting && targetCell.underBridge
+      ? cells[Math.max(0, action.targetIndex - 1)]
+      : targetCell;
+    const direction = feedback.directionVector(approachCell.direction);
     const climbsBridge = targetCell.underBridge
       && feedback.canClimbBridge(targetCell);
     const targetX = targetCell.col - (feedback.mapColumns - 1) / 2
@@ -99,7 +106,10 @@ export class HeroDrowningActionState extends HeroRuntimeActionState {
         return;
       }
       if (climbsBridge) {
-        owner.transition(HERO_ACTION.BRIDGE_CLIMB, targetCell);
+        owner.transition(HERO_ACTION.BRIDGE_CLIMB, {
+          ...targetCell,
+          direction: approachCell.direction,
+        });
         return;
       }
       if (action.targetIndex < cells.length - 1) {
@@ -123,13 +133,17 @@ export class HeroDrowningActionState extends HeroRuntimeActionState {
       ),
     );
     const currentSpeed = feedback.currentSpeed * (currentRouteEntry?.cell.flowScale ?? targetCell.flowScale ?? 1);
+    // Let Ammo reach the waypoint without repeatedly overshooting it on slow frames.
+    const waypointSpeed = owner.deltaTime > 0
+      ? Math.min(currentSpeed, distance / owner.deltaTime)
+      : currentSpeed;
     feedback.setVelocity({
       x: distance > feedback.waypointEpsilon
-        ? (deltaX / distance) * currentSpeed
+        ? (deltaX / distance) * waypointSpeed
         : 0,
       y: verticalVelocity,
       z: distance > feedback.waypointEpsilon
-        ? (deltaZ / distance) * currentSpeed
+        ? (deltaZ / distance) * waypointSpeed
         : 0,
     });
   }

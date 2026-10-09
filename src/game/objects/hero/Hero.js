@@ -2599,10 +2599,12 @@ export class Hero {
    * @param {{x: number, y: number, z: number}} direction
    */
   #finishDrowningAtWaterfall(direction) {
+    const terminal = this.#actionBehavior.drowningAction?.river.cells.at(-1);
+    const currentSpeed = RIVER_CURRENT_SPEED * (terminal?.flowScale ?? 1);
     this.#velocity = {
-      x: direction.x * RIVER_CURRENT_SPEED * (routeEntry.cell.flowScale ?? 1),
+      x: direction.x * currentSpeed,
       y: -1.2,
-      z: direction.z * RIVER_CURRENT_SPEED * (routeEntry.cell.flowScale ?? 1),
+      z: direction.z * currentSpeed,
     };
     this.#physics.gravity = GRAVITY;
     this.#actionBehavior.fallingToDeath = true;
@@ -2613,6 +2615,9 @@ export class Hero {
    * @param {boolean} drowning
    */
   #setDrowningPresentation(drowning) {
+    // Hidden animated limbs must not wedge the body against narrow river banks.
+    // The Ammo capsule continues to collide with banks and bridge decks.
+    this.#setHeroPartCollidersEnabled(!drowning);
     if (!this.#modelRoot || !this.#headEntity) {
       return;
     }

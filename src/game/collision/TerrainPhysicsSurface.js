@@ -7,6 +7,7 @@ import { TILE_SHAPE } from "../enum/TileShape.js";
 const COLLISION_BASE_HEIGHT = -16;
 const SUPPLEMENTAL_SAMPLE_SIZE = 0.25;
 const SURFACE_EPSILON = 0.01;
+const BRIDGE_DECK_THICKNESS = 0.24;
 const WALKABLE_TILES = new Set([
   TileType.GRASS,
   TileType.PATH,
@@ -65,6 +66,10 @@ export class TerrainPhysicsSurface {
    * @type {Map}
    */
   #sourceCovers = new Map();
+  /**
+   * @type {Set<string>}
+   */
+  #riverBridges = new Set();
 
   /**
    *
@@ -160,10 +165,16 @@ export class TerrainPhysicsSurface {
     this.#model = null;
     this.#material = null;
     this.#sourceCovers.clear();
+    this.#riverBridges.clear();
   }
 
   #indexSourceCovers() {
     for (const river of this.#mapData.riverData ?? []) {
+      for (const cell of river.cells ?? []) {
+        if (cell.underBridge) {
+          this.#riverBridges.add(`${cell.col},${cell.row}`);
+        }
+      }
       const source = river.cells?.[0];
       if (!source) {
         continue;
@@ -283,6 +294,26 @@ export class TerrainPhysicsSurface {
       [x + 0.5, heights[2], z + 0.5],
       [x - 0.5, heights[3], z + 0.5],
     );
+    if (this.#isBridge(col, row)) {
+      this.#addTerrainQuad(
+        positions,
+        indices,
+        this.#mapData.tileMeta?.[row]?.[col]?.terrainCutouts ?? [],
+        [x - 0.5, heights[3] - BRIDGE_DECK_THICKNESS, z + 0.5],
+        [x + 0.5, heights[2] - BRIDGE_DECK_THICKNESS, z + 0.5],
+        [x + 0.5, heights[1] - BRIDGE_DECK_THICKNESS, z - 0.5],
+        [x - 0.5, heights[0] - BRIDGE_DECK_THICKNESS, z - 0.5],
+      );
+    }
+  }
+
+  /**
+   * @param {number} col
+   * @param {number} row
+   * @returns {boolean}
+   */
+  #isBridge(col, row) {
+    return this.#riverBridges.has(`${col},${row}`);
   }
 
   /**
@@ -305,8 +336,16 @@ export class TerrainPhysicsSurface {
     ];
     for (const side of sides) {
       const neighbour = tiles[row + side.dr]?.[col + side.dc] ?? null;
-      const lowA = neighbour?.[side.neighbour[0]] ?? COLLISION_BASE_HEIGHT;
-      const lowB = neighbour?.[side.neighbour[1]] ?? COLLISION_BASE_HEIGHT;
+      // Bridge fascia ends at the deck underside; it must not dam the river.
+      const bridge = this.#isBridge(col, row);
+      const lowA = Math.max(
+        neighbour?.[side.neighbour[0]] ?? COLLISION_BASE_HEIGHT,
+        bridge ? side.a[2] - BRIDGE_DECK_THICKNESS : COLLISION_BASE_HEIGHT,
+      );
+      const lowB = Math.max(
+        neighbour?.[side.neighbour[1]] ?? COLLISION_BASE_HEIGHT,
+        bridge ? side.b[2] - BRIDGE_DECK_THICKNESS : COLLISION_BASE_HEIGHT,
+      );
       if (
         side.a[2] <= lowA + SURFACE_EPSILON &&
         side.b[2] <= lowB + SURFACE_EPSILON
