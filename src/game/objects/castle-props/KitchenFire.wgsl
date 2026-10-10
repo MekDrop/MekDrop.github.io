@@ -22,13 +22,12 @@ fn hearthFire() -> vec4f {
   let uv = vec2f(p.x / 0.35, (p.y - 0.28) / 0.48);
   let t = uniform.uHearthTime;
   let noise = hearthNoise(vec2f(uv.x * 5.0, uv.y * 5.0 - t * 2.8));
-  let fine = hearthNoise(vec2f(uv.x * 13.0 + noise, uv.y * 11.0 - t * 4.5));
   let bend = sin(uv.y * 5.0 - t * 3.2) * uv.y * 0.14;
   let field = 1.0 - uv.y - abs(uv.x + bend) * 0.47 +
-    (noise - 0.5) * 0.62 + (fine - 0.5) * 0.18;
-  let flame = smoothstep(0.16, 0.29, field);
-  let core = smoothstep(0.63, 0.95, field);
-  let color = mix(vec3f(1.0, 0.075, 0.003), vec3f(1.0, 0.48, 0.025),
-    smoothstep(0.23, 0.52, field));
-  return vec4f(mix(color, vec3f(1.0, 0.85, 0.32), core) * flame * 1.4, mask);
+    (noise - 0.5) * 0.62;
+  // Crisp color bands use the castle brazier's orange/yellow palette.
+  let flame = smoothstep(0.20, 0.22, field);
+  let outerColor = mix(vec3f(0.74, 0.025, 0.0), vec3f(1.0, 0.24, 0.012), step(0.36, field));
+  let color = mix(outerColor, vec3f(1.0, 0.56, 0.08), step(0.64, field));
+  return vec4f(color * flame * 1.18, mask);
 }

@@ -1,5 +1,6 @@
 import modelUrl from "../../models/castle/props/kitchen-fireplace.glb?url";
 import { AbstractCastleProp } from "./AbstractCastleProp.js";
+import { CastleFire } from "../castle/CastleFire.js";
 import fireGLSL from "./KitchenFire.glsl?raw";
 import fireWGSL from "./KitchenFire.wgsl?raw";
 import chimneyModelUrl from "../../models/castle/props/kitchen-chimney-course.glb?url";
@@ -24,6 +25,10 @@ export class KitchenFireplace extends AbstractCastleProp {
    * @type {import("playcanvas").Entity|null}
    */
   #chimney = null;
+  /**
+   * @type {CastleFire|null}
+   */
+  #fire = null;
 
   /**
    * @param {{pc: typeof import("playcanvas"), app: import("playcanvas").Application, modelLibrary: import("../../models/GameModelLibrary.js").GameModelLibrary, definition: import("../ObjectTypes.js").MapObjectDefinition, runtime?: import("../ObjectTypes.js").MapObjectRuntime}} options
@@ -65,7 +70,7 @@ ${diffuse.slice(0, close)}
 ${diffuse.slice(close)}`);
           chunks.set("emissivePS", `${wgsl ? "fn" : "void"} getEmission() {
   ${declaration} hearth = hearthFire();
-  dEmission = hearth.rgb * hearth.a;
+  dEmission = ${vector}(0.0);
 }`);
         }
         material.setParameter("uHearthTime", 0);
@@ -77,6 +82,15 @@ ${diffuse.slice(close)}`);
     // Keep full stone courses at their authored proportions. Only the final
     // course is shortened to meet the local roof surface exactly.
     const scale = definition.scale ?? 1;
+    // Reuse the brazier flames in three spatially separated hearth pockets.
+    // The shader only removes the model's baked fire; particles own the flame.
+    this.#fire = new CastleFire({ pc, app, modelLibrary: options.modelLibrary,
+      particleTexture: app.assets.find("castleFireParticle", "texture").resource });
+    for (const x of [-0.16, 0, 0.16]) {
+      this.#fire.add({ x, y: 0.29, z: -0.04, scale: 0.12, brazier: false, intensity: 0 });
+    }
+    this.#fire.add({ x: 0.028, y: 0.29, z: -0.2073, scale: 0.075, brazier: false, intensity: 0.15 });
+    root.children[0].addChild(this.#fire.entity);
     const top = definition.chimneyHeight ?? 1.65 * scale;
     const courseHeight = 0.24 * scale;
     this.#chimney = new pc.Entity("Kitchen chimney");
@@ -155,6 +169,8 @@ ${diffuse.slice(close)}`);
   }
 
   destroy() {
+    this.#fire?.destroy();
+    this.#fire = null;
     this.#updateHandle?.off();
     this.#updateHandle = null;
     super.destroy();

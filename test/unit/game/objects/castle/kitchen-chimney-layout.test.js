@@ -8,10 +8,10 @@ test("chimneys meet the pitched roof after castle rotation and retain room floor
     geometry: { decorations: { roofs: [{ x: 0, y: 9, z: 0, yaw: 0, width: 8, depth: 4, height: 2 }] } },
   };
   const position = { x: 1.972, y: 3, z: 0.2073 };
-  assert.equal(KitchenChimneyLayout.height(plan, { x: 2, z: 0, floorY: 3 }, position, 0), 7.12);
+  assert.equal(KitchenChimneyLayout.height(plan, { x: 2, z: 0, floorY: 3 }, position, 0), 8.4);
   plan.geometry.decorations.roofs[0].yaw = 90;
-  assert.equal(KitchenChimneyLayout.height(plan, { x: 2, z: 0, floorY: 3 }, { x: 0.2073, y: 3, z: -1.972 }, 90), 7.12);
-  assert.equal(KitchenChimneyLayout.height(plan, { x: 2, z: 0, floorY: 0 }, { x: 0.2073, y: 0, z: -1.972 }, 90), 10.12);
+  assert.equal(KitchenChimneyLayout.height(plan, { x: 2, z: 0, floorY: 3 }, { x: 0.2073, y: 3, z: -1.972 }, 90), 8.4);
+  assert.equal(KitchenChimneyLayout.height(plan, { x: 2, z: 0, floorY: 0 }, { x: 0.2073, y: 0, z: -1.972 }, 90), 11.4);
 });
 
 test("flat ceilings use the highest covering floor while unrelated roofs are excluded", () => {

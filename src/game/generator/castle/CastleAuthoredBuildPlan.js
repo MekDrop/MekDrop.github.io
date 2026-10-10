@@ -94,7 +94,7 @@ export class CastleAuthoredBuildPlan {
     (room) => [room.id, room]));
     rooms.work = rooms["throne-hall"];
     rooms.bedroom = rooms["royal-chamber"] ?? rooms.work;
-    rooms.service = rooms.kitchen ?? rooms.armory ?? rooms.work;
+    rooms.service = rooms["service-quarters"] ?? rooms.kitchen ?? rooms.armory ?? rooms.work;
     rooms.servantBedroom = rooms.service;
     rooms.storage = rooms.service;
     rooms.balcony = { ...rooms.bedroom, purpose: "unused" };

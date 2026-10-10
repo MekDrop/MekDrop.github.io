@@ -58,8 +58,8 @@
       "elevation": -3,
       "spaces": [
         {
-          "id": "kitchen",
-          "label": "Service room / kitchen and storage",
+          "id": "service-quarters",
+          "label": "Service quarters",
           "kind": "room",
           "bounds": [
             3.625,
@@ -79,20 +79,39 @@
               "openingInset": 0.255
             }
           ],
-          "generator": "KitchenRoomGenerator"
+          "generator": "ServiceRoomGenerator"
         },
         {
-          "id": "storage-north",
-          "label": "Storage / circulation",
-          "kind": "corridor",
+          "id": "kitchen",
+          "label": "Kitchen / pantry",
+          "kind": "room",
           "bounds": [
             0.375,
             0.375,
             3.25,
             3.5
           ],
-          "openings": [],
-          "generator": null
+          "openings": [
+            {
+              "kind": "door",
+              "side": "EAST",
+              "offset": 0,
+              "width": 1,
+              "bottom": 0,
+              "height": 2.5,
+              "swing": "inward"
+            },
+            {
+              "kind": "door",
+              "side": "SOUTH",
+              "offset": 0,
+              "width": 1,
+              "bottom": 0,
+              "height": 2.5,
+              "swing": "outward"
+            }
+          ],
+          "generator": "KitchenRoomGenerator"
         },
         {
           "id": "storage-south",

@@ -23,14 +23,12 @@ vec4 hearthFire() {
   vec2 uv = vec2(p.x / 0.35, (p.y - 0.28) / 0.48);
   float t = uHearthTime;
   float noise = hearthNoise(vec2(uv.x * 5.0, uv.y * 5.0 - t * 2.8));
-  float fine = hearthNoise(vec2(uv.x * 13.0 + noise, uv.y * 11.0 - t * 4.5));
   float bend = sin(uv.y * 5.0 - t * 3.2) * uv.y * 0.14;
   float field = 1.0 - uv.y - abs(uv.x + bend) * 0.47 +
-    (noise - 0.5) * 0.62 + (fine - 0.5) * 0.18;
-  float flame = smoothstep(0.16, 0.29, field);
-  float core = smoothstep(0.63, 0.95, field);
-  vec3 color = mix(vec3(1.0, 0.075, 0.003), vec3(1.0, 0.48, 0.025),
-    smoothstep(0.23, 0.52, field));
-  color = mix(color, vec3(1.0, 0.85, 0.32), core);
-  return vec4(color * flame * 1.4, mask);
+    (noise - 0.5) * 0.62;
+  // Crisp color bands use the castle brazier's orange/yellow palette.
+  float flame = smoothstep(0.20, 0.22, field);
+  vec3 color = mix(vec3(0.74, 0.025, 0.0), vec3(1.0, 0.24, 0.012), step(0.36, field));
+  color = mix(color, vec3(1.0, 0.56, 0.08), step(0.64, field));
+  return vec4(color * flame * 1.18, mask);
 }

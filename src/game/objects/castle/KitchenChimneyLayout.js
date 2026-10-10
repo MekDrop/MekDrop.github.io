@@ -15,6 +15,7 @@ export class KitchenChimneyLayout {
     const z = position.z - Math.sin(yaw) * 0.028 - Math.cos(yaw) * 0.2073;
     const plan = buildPlan.metadata.runtime.residential;
     let top = position.y + 1.65;
+    let roofClearance = 0.12;
     for (const space of plan.spaces ?? []) {
       if (item.x >= space.minX && item.x <= space.maxX &&
         item.z >= space.minZ && item.z <= space.maxZ && space.height) {
@@ -34,14 +35,15 @@ export class KitchenChimneyLayout {
       const u = Math.abs(Math.cos(angle) * dx - Math.sin(angle) * dz) * 2 / roof.width;
       const v = Math.abs(Math.sin(angle) * dx + Math.cos(angle) * dz) * 2 / roof.depth;
       if (u <= 1 && v <= 1) {
-        top = Math.max(top, roof.y + roof.height * (1 - Math.max(u, v)));
+        // The authored blue roof is a gable: its ridge extends along x.
+        // Each tile course adds up to 6% above the continuous depth slope.
+        top = Math.max(top, roof.y + roof.height * Math.min(1, 1 - v + 0.06));
+        roofClearance = 0.4;
       }
     }
     if (top <= position.y + 1.65) {
       top = position.y + (plan.floorHeight ?? 3);
     }
-    // The authored stone course has rounded edges. Embed its final course in
-    // the covering slab instead of ending tangent to its nominal surface.
-    return Math.max(0, top - position.y + 0.12);
+    return Math.max(0, top - position.y + roofClearance);
   }
 }

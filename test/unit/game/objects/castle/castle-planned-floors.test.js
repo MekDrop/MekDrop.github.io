@@ -48,7 +48,7 @@ it("keeps authored floor finishes inside room wall reveals and supports all occu
   const timber = builder.children.filter(child=>child.url==="wood");
   assert.ok(timber.length>0);
   assert.ok(!timber.some(panel => panel.name.includes(":straightLanding")), "stairwell landing strips remain stone");
-  assert.ok(timber.some(panel => panel.name === "Castle storage-north wood floor"));
+  assert.ok(timber.some(panel => panel.name === "Castle kitchen wood floor"));
   assert.ok(timber.some(panel => panel.name === "Castle vestibule wood floor"));
   assert.ok(timber.some(panel => panel.name === "Castle vestibule-south wood floor"));
   assert.ok(timber.some(panel => panel.name === "Castle storage-south wood floor"));
@@ -103,7 +103,7 @@ it("joins vestibule and basement floor reveals without timber outside the entran
   const layout = new CastleResidentialLayout(plan);
   const builder = new FloorBuilder(layout);
   builder.build(plan, { instantiate: url => Object.assign(new Entity(), { url }) }, { Entity, Color: class {} });
-  for (const id of ["vestibule", "vestibule-south", "storage-north", "storage-south"]) {
+  for (const id of ["vestibule", "vestibule-south", "kitchen", "storage-south"]) {
     const panels = builder.children.filter(panel => panel.name === `Castle ${id} wood floor`);
     assert.equal(panels.length, 1, id + " uses one continuous plank layout");
   }

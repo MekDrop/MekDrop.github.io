@@ -60,9 +60,10 @@ it('keeps the kitchen entry aisle clear of generated furniture',async()=>{
   const roomPlan=plan.metadata.runtime.residential;
   const door=roomPlan.doorways.find(d=>d.roomId==='kitchen');
   const kitchen=roomPlan.placedRooms.find(r=>r.id==='kitchen');
-  const inward=Math.sign((kitchen.minX+kitchen.maxX)/2-door.coordinate);
+  const inward=Math.sign((door.axis==='x'?(kitchen.minX+kitchen.maxX):(kitchen.minZ+kitchen.maxZ))/2-door.coordinate);
   for(const distance of [0,.3,.6,.9])for(const lateral of [-.2,0,.2]) {
-    const x=door.coordinate+inward*distance,z=door.center+lateral;
+    const x=door.axis==='x'?door.coordinate+inward*distance:door.center+lateral;
+    const z=door.axis==='z'?door.coordinate+inward*distance:door.center+lateral;
     for(const item of roomPlan.furniture.filter(i=>i.roomId==='kitchen')) {
       const separation=Math.hypot(Math.max(Math.abs(x-item.x)-item.width*item.scale/2,0),Math.max(Math.abs(z-item.z)-item.depth*item.scale/2,0));
       assert.ok(separation>=MOVEMENT_COLLISION_RADIUS,item.role+' obstructs the kitchen door');
