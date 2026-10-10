@@ -81,6 +81,37 @@ it("hero clearance interrupts only the requested servant", () => {
   }
 });
 
+it("resumes the servant's interrupted work while hero checks continue after moving away", () => {
+  const { app, door: hero, npc, behavior } = scene();
+  const role = new ServantStateMachine({ idlePhase: "idle", initialPhase: "work",
+    states: [new ServantWaitState({ phase: "work", duration: 2, nextPhase: "idle" })] });
+  role.start();
+  role.update(.75);
+  const suspended = role.currentState;
+  behavior.behavior = role;
+  try {
+    const hazard = (point) => Math.hypot(point.x - hero.getPosition().x,
+      point.z - hero.getPosition().z) < 1.1;
+    for (let frame = 0; frame < 30; frame++) {
+      NpcDoorAvoidance.requestClearance(hero, hazard, () => true, npc);
+      app.fire("update", 1 / 60); app.fire("prerender");
+    }
+    assert.equal(role.reacting, true);
+    assert.ok(npc.getPosition().length() > 0);
+    hero.setPosition(10, 0, 0);
+    for (let frame = 0; frame < 360; frame++) {
+      NpcDoorAvoidance.requestClearance(hero, hazard, () => true, npc);
+      app.fire("update", 1 / 60); app.fire("prerender");
+    }
+    assert.equal(behavior.phase, PHASE.IDLE);
+    assert.equal(role.currentState, suspended);
+    assert.equal(role.elapsed, .75);
+    assert.ok(npc.getPosition().length() < .04);
+    role.update(.25);
+    assert.equal(role.elapsed, 1);
+  } finally { behavior.destroy(); }
+});
+
 it("avoids thin obstacles along the route and rechecks each movement step", () => {
   const { app, door, npc, behavior } = scene();
   try {

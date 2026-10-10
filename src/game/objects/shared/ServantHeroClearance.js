@@ -3,6 +3,7 @@ import { CHARACTER_HEIGHT } from "../../config/character-size.js";
 import { NpcDoorAvoidance } from "./NpcDoorAvoidance.js";
 
 const RADIUS = 0.35;
+const RESUME_DISTANCE = 1.6;
 
 /**
  * An unscaled Ammo body follows the servant's avoidance root.
@@ -61,6 +62,12 @@ export class ServantHeroClearance {
     const hazard = (point) => {
       const current = hero.getPosition();
       const velocity = hero.rigidbody.linearVelocity;
+      const actor = this.#actor.getPosition();
+      // Release the interrupted task once the hero clears the servant himself,
+      // even if the hero is still close to the servant's previous work position.
+      if (Math.hypot(actor.x - current.x, actor.z - current.z) >= RESUME_DISTANCE &&
+        Math.hypot(actor.x - current.x - velocity.x * 0.2,
+          actor.z - current.z - velocity.z * 0.2) >= RESUME_DISTANCE) { return false; }
       return Math.abs(point.y - current.y) < CHARACTER_HEIGHT &&
         (Math.hypot(point.x - current.x, point.z - current.z) < 1.1 ||
           Math.hypot(point.x - current.x - velocity.x * 0.2,

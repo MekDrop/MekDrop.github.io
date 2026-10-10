@@ -177,7 +177,12 @@ export class NpcDoorAvoidance {
       if (participant.#entity.root !== door.root || !participant.#entity.enabled) {
         continue;
       }
-      if (participant.#door === door) { participant.#remaining = 0.6; }
+      // Doors reserve their swing until they stop requesting clearance. Hero
+      // checks run continuously; keep waiting only while the old spot is unsafe.
+      if (participant.#door === door && (!recipient || (participant.#home &&
+        inSwing(participant.#entity.parent.getWorldTransform().transformPoint(participant.#home))))) {
+        participant.#remaining = 0.6;
+      }
       const point = participant.#entity.getPosition();
       if (!inSwing(point)) { continue; }
       if (!participant.#machine.interruptReaction(participant.#reaction)) { continue; }
