@@ -1,0 +1,79 @@
+{
+  "status": "implemented",
+  "variants": [
+    "Royal Court",
+    "Scholar King",
+    "War Council"
+  ],
+  "sharedStyle": "Colorful stylized low-poly medieval game props, flat shaded, warm orange wood, royal blue and restrained gold. One reusable prop per model, no background or characters, bottom-center pivot for furniture. Preserve compact throne-room circulation.",
+  "assets": [
+    {
+      "name": "court-lectern",
+      "dimensionsMeters": {
+        "width": 0.45,
+        "height": 0.75,
+        "depth": 0.45
+      },
+      "prompt": "Single narrow medieval wooden clerk lectern, warm orange oak, simple stable pedestal base, slightly sloping empty writing top, modest royal blue front panel with small gold trim. No baked book, parchment, ink or map; these are separate runtime props. Low-poly game furniture."
+    },
+    {
+      "name": "throne-dais",
+      "dimensionsMeters": {
+        "width": 1.1,
+        "height": 0.1,
+        "depth": 0.95
+      },
+      "prompt": "Single very low rectangular wooden throne platform, one shallow step, warm orange oak, thin gold rim, flat empty top. No throne, no rug, no railings. Compact low-poly medieval game prop."
+    },
+    {
+      "name": "war-council-wall-shield",
+      "dimensionsMeters": {
+        "width": 0.7,
+        "height": 0.85,
+        "depth": 0.1
+      },
+      "prompt": "Single wall decoration comprising a royal blue shield with simple silver border mounted over two crossed short swords. Flat rear mounting plane. Low-poly medieval game prop, no wall, no text."
+    },
+    {
+      "name": "compact-spear-rack",
+      "dimensionsMeters": {
+        "width": 0.5,
+        "height": 1.2,
+        "depth": 0.25
+      },
+      "prompt": "Single compact wall-side wooden spear rack holding three upright short spears with simple silver heads. Warm orange oak rack, stable narrow base, no wall. Stylized low-poly medieval game prop."
+    }
+  ],
+  "reuse": [
+    "castle/residential/crown-crest.glb",
+    "FloorCandelabrum",
+    "WoodenDeskChair",
+    "WritingDesk",
+    "OpenReadingBook",
+    "Bookshelf",
+    "KitchenTable",
+    "DeskParchment"
+  ],
+  "runtimeMap": {
+    "providerGenerated": false,
+    "description": "Flat 2D parchment texture derived from the current GameMapData grid, heightmap, water, roads and castle location, fitted to the table surface. Never bake a fictional map into a generated model."
+  },
+  "integration": "Seeded room furnishing via registered map object classes; retain doorway and stair clearances. Every admitted GLB needs adjacent editable BLEND source, measured bounds, tabletop support checks and focused generation tests.",
+  "spendCeiling": null,
+  "provenance": {
+    "provider": "Tripo Studio via cua_repl Opera UI",
+    "approvedCredits": 120,
+    "initialCredits": 24540,
+    "remainingCreditsAfterSubmission": 24420,
+    "spentCredits": 120,
+    "model": "H3.1 Geometry & Texture",
+    "jobs": {
+      "court-lectern": "2a8624d1-020a-4330-9db4-25ba333f34aa",
+      "throne-dais": "63fe9a4f-70db-4cde-a44f-94f3a9892457",
+      "war-council-wall-shield": "9940d8f7-aa15-4d52-9a20-f4e4129e9461",
+      "compact-spear-rack": "0c06cee2-8243-4006-9310-795f8638e4ea"
+    },
+    "referenceDirectory": "C:/Users/mekdr/AppData/Roaming/clairvoyance/pictures/generated",
+    "status": "completed-and-imported"
+  }
+}

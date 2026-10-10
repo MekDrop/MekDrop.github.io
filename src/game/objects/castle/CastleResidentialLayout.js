@@ -35,6 +35,10 @@ export class CastleResidentialLayout {
    */
   #placements = [];
   /**
+   * @type {number}
+   */
+  #throneSupportHeight = 0;
+  /**
    * @type {ResidentialPlacement[]}
    */
   #exteriorWindows = [];
@@ -409,6 +413,12 @@ export class CastleResidentialLayout {
    */
   #loadPlannedRooms(buildPlan) {
     const plan = buildPlan.metadata.runtime.residential;
+    const platform = plan.furniture.find(
+      /**
+       * @param {import("../../generator/castle/rooms/AbstractCastleRoomGenerator.js").RoomItem} item
+       */
+      item => item.object === "ThroneDais");
+    this.#throneSupportHeight = platform ? (platform.elevation ?? 0) + platform.height * platform.scale : 0;
     this.#origin = plan.origin;
     this.#yaw = plan.origin.yaw;
     this.#rooms = plan.rooms;
@@ -468,6 +478,10 @@ export class CastleResidentialLayout {
   get audienceFloorBounds() { return this.#audienceFloorBounds ?? this.#rooms.work; }
   get walkableAreas() { return this.#walkableAreas; }
   get placements() { return this.#placements; }
+  /**
+   * @returns {number}
+   */
+  get throneSupportHeight() { return this.#throneSupportHeight; }
   get exteriorWindows() { return this.#exteriorWindows; }
   get exteriorButtresses() { return this.#exteriorButtresses; }
   get buttressFootings() { return this.#buttressFootings; }

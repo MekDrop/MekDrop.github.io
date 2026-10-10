@@ -1,3 +1,11 @@
+import { WritingDesk } from "./castle-props/WritingDesk.js";
+import { OpenReadingBook } from "./castle-props/OpenReadingBook.js";
+import { CourtLectern } from "./castle-props/CourtLectern.js";
+import { ThroneDais } from "./castle-props/ThroneDais.js";
+import { RoyalCrest } from "./castle-props/RoyalCrest.js";
+import { WarCouncilShield } from "./castle-props/WarCouncilShield.js";
+import { SpearRack } from "./castle-props/SpearRack.js";
+import { WarMapTable } from "./castle-props/WarMapTable.js";
 import { TerracePlanter } from "./castle-props/TerracePlanter.js";
 import { BedsideDrawers } from "./castle-props/BedsideDrawers.js";
 import { BlueArmchair } from "./castle-props/BlueArmchair.js";
@@ -47,6 +55,15 @@ import { MapPickupAnimationActors } from "../debug/MapPickupAnimationActors.js";
 import { MapVirtualItem } from "../debug/MapVirtualItem.js";
 
 const OBJECT_CLASSES = new Map([
+  [WritingDesk.name, WritingDesk],
+  [OpenReadingBook.name, OpenReadingBook],
+  [CourtLectern.name, CourtLectern],
+  [ThroneDais.name, ThroneDais],
+  [RoyalCrest.name, RoyalCrest],
+  [WarCouncilShield.name, WarCouncilShield],
+  [SpearRack.name, SpearRack],
+  [WarMapTable.name, WarMapTable],
+
   [TerracePlanter.name, TerracePlanter],
   [BedsideDrawers.name, BedsideDrawers],
   [BlueArmchair.name, BlueArmchair],

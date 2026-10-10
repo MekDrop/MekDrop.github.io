@@ -40,8 +40,17 @@ export class AbstractCastleProp {
     const { x, y, z } = definition.position;
     this.#visual.setLocalPosition(x, y, z);
     this.#visual.setLocalEulerAngles(0, definition.rotation ?? 0, 0);
-    this.#visual.addChild(modelLibrary.instantiate(this.constructor.modelUrl));
+    const model = modelLibrary.instantiate(this.constructor.modelUrl);
+    const scale = definition.scale ?? 1;
+    model.setLocalScale(scale, scale, scale);
+    this.#visual.addChild(model);
     this.#collisionGraph = modelLibrary.instantiate(this.constructor.modelUrl);
+    this.#collisionGraph.setLocalScale(scale, scale, scale);
+    // Subclasses may replace baked details with separately authored map objects.
+    for (const name of this.constructor.omittedModelNodes ?? []) {
+      model.findByName(name)?.destroy();
+      this.#collisionGraph.findByName(name)?.destroy();
+    }
     addAuthoredMeshPhysics(pc, this.#visual, this.#collisionGraph);
   }
 

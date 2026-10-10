@@ -674,7 +674,8 @@ export class CastleAudienceRoom {
   #buildThrone(throneForward) {
     this.#throne = new CastleThrone({ pc: this.#pc, modelLibrary: this.#modelLibrary });
     const throne = this.#throne.entity;
-    const thronePosition = this.#point(0, throneForward, 0);
+    const supportHeight = this.#residentialLayout?.throneSupportHeight ?? 0;
+    const thronePosition = this.#point(0, throneForward, supportHeight);
     throne.setLocalPosition(
       thronePosition.x,
       thronePosition.y,
@@ -694,7 +695,7 @@ export class CastleAudienceRoom {
     const royalPosition = this.#point(
       0,
       throneForward - 0.07 * THRONE_SCALE,
-      0.02 * THRONE_SCALE,
+      supportHeight + 0.02 * THRONE_SCALE,
     );
     this.#royalPosition = royalPosition;
     this.#placeOccupant();

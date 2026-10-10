@@ -3,7 +3,7 @@ import { CastleRoomSizeInvalidError } from "../../../errors/castle/index.js";
 /**
  * @typedef {{x:number,y:number}} RoomSize Horizontal dimensions in metres.
  * @typedef {{id:string,minX:number,maxX:number,minZ:number,maxZ:number,floorY:number,level:number,floorSpan:number,height:number,purpose:string,stairHost?:boolean,contentBounds?:{minX:number,maxX:number,minZ:number,maxZ:number}}} PlannedCastleRoom
- * @typedef {{role:string,x:number,z:number,width:number,depth:number,scale:number}} RoomItem
+ * @typedef {{role:string,x:number,z:number,width:number,depth:number,scale:number,object?:string,rotation?:number,y?:number,height?:number,mirrorRotationOffset?:number}} RoomItem
  */
 
 /**
