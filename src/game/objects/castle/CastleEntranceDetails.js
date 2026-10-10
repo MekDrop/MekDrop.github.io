@@ -1,6 +1,5 @@
 import lanternUrl from "../../models/castle/props/entrance-lantern.glb?url";
 import masonryUrl from "../../models/castle/residential/masonry-block.glb?url";
-import planterUrl from "../../models/castle/residential/terrace-planter.glb?url";
 
 /**
  * Imported entrance lighting and corner courses for authored castle shells.
@@ -9,7 +8,7 @@ export class CastleEntranceDetails {
   /**
    * @returns {string[]}
    */
-  static get modelUrls() { return [lanternUrl, masonryUrl, planterUrl]; }
+  static get modelUrls() { return [lanternUrl, masonryUrl]; }
 
   /**
    * @param {typeof import("playcanvas")} pc
@@ -95,26 +94,6 @@ export class CastleEntranceDetails {
           const depth = Math.min(0.5, building.maxZ - z);
           addStone(x, bandY, z + depth / 2, [0.4, 0.25, depth], "Castle terrace support band");
         }
-      }
-    }
-    for (const terrace of residential.spaces) {
-      if (terrace.kind !== "terrace" || terrace.maxX - terrace.minX < 2 || terrace.maxZ - terrace.minZ < 2) { continue; }
-      for (const x of [terrace.minX + 0.6, terrace.maxX - 0.6]) {
-        const z = terrace.minZ + 0.6;
-        const planter = models.instantiate(planterUrl);
-        planter.name = "Castle terrace boxwood planter";
-        planter.setLocalPosition(origin.x + Math.cos(angle) * x + Math.sin(angle) * z,
-          terrace.floorY, origin.z - Math.sin(angle) * x + Math.cos(angle) * z);
-        planter.setLocalEulerAngles(0, origin.yaw, 0);
-        planter.addComponent("collision", { type: "box", halfExtents: new pc.Vec3(0.33, 0.23, 0.33),
-          linearOffset: new pc.Vec3(0, 0.23, 0) });
-        planter.addComponent("rigidbody", { type: "static", friction: 0.8, restitution: 0 });
-        for (const render of planter.findComponents("render")) {
-          for (const mesh of render.meshInstances) {
-            if (mesh.material.name === "Terrace planter sandstone") { mesh.material = stoneMaterial; }
-          }
-        }
-        parent.addChild(planter);
       }
     }
   }

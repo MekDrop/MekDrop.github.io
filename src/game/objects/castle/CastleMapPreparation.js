@@ -1,3 +1,4 @@
+import { LeisureRoomMapObjects } from "./LeisureRoomMapObjects.js";
 import { DecorationPlacementRules } from "../../generator/map/DecorationPlacementRules.js";
 import { GRASS_SURFACE_LIFT } from "../../config/terrain.js";
 import { CastleGroundWeathering } from "./CastleGroundWeathering.js";
@@ -15,6 +16,7 @@ export class CastleMapPreparation {
    * @param {import("../../GameContracts.js").GameMapData} mapData
    */
   static prepareMap(mapData) {
+    LeisureRoomMapObjects.prepareMap(mapData);
     const castles = (mapData.objects ?? []).filter(
       /**
        * @param {import("../ObjectTypes.js").MapObjectDefinition} definition

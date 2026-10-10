@@ -1,3 +1,4 @@
+import { TerracePlanter } from "./castle-props/TerracePlanter.js";
 import { BedsideDrawers } from "./castle-props/BedsideDrawers.js";
 import { BlueArmchair } from "./castle-props/BlueArmchair.js";
 import { BowlGreenVegetables } from "./castle-props/BowlGreenVegetables.js";
@@ -46,6 +47,7 @@ import { MapPickupAnimationActors } from "../debug/MapPickupAnimationActors.js";
 import { MapVirtualItem } from "../debug/MapVirtualItem.js";
 
 const OBJECT_CLASSES = new Map([
+  [TerracePlanter.name, TerracePlanter],
   [BedsideDrawers.name, BedsideDrawers],
   [BlueArmchair.name, BlueArmchair],
   [BowlGreenVegetables.name, BowlGreenVegetables],

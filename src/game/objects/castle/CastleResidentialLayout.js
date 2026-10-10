@@ -414,7 +414,10 @@ export class CastleResidentialLayout {
     this.#rooms = plan.rooms;
     this.#audienceFloorBounds = CastleFloorFinish.bounds(plan.rooms.work, plan.buildings, plan.openings);
     this.#walkableAreas = createCastlePlannedFloorAreas(buildPlan);
-    this.#placements = plan.furniture.map(/**
+    this.#placements = plan.furniture.filter(/**
+     * @param {import("../../generator/castle/rooms/AbstractCastleRoomGenerator.js").RoomItem} item
+     */
+    item => !item.object).map(/**
      *
      * @param {{role:string,x:number,z:number,scale:number,floorY:number}} item
      */

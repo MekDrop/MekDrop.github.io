@@ -148,7 +148,9 @@ export class CastleBasePlanGenerator {
         if (!generator) {
           throw new CastleBasePlanInvalidError(plan.id, `generator:${authored.generator}`);
         }
-        for (const item of generator.furnish(room)) {
+        for (const item of generator.furnish(room, { openings, stairs: plan.staircases.map(/**
+           * @param {AuthoredCastleStair} stair
+           */ (stair) => ({ ...stair, ...this.#bounds(stair.bounds, scale) })) })) {
           const halfX = item.width * item.scale / 2;
           const halfZ = item.depth * item.scale / 2;
           if (item.x - halfX < room.minX || item.x + halfX > room.maxX ||
