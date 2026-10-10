@@ -1,5 +1,6 @@
 import { CastleGenerationScheduler } from "./CastleGenerationScheduler.js";
 import { CastleBasePlanGenerator } from "./CastleBasePlanGenerator.js";
+import { StairwellRoomGenerator } from "./rooms/StairwellRoomGenerator.js";
 import { CastleBasePlanInvalidError } from "../../errors/castle/index.js";
 import { createCastlePlannedFloorAreas } from "../../objects/castle/CastlePlannedFloorAreas.js";
 import { castleStraightStairSurfaces } from "../../objects/castle/CastleStraightStairs.js";
@@ -519,6 +520,7 @@ export class CastleAuthoredBuildPlan {
       width: 2 * Math.min(entrance.center - leisure.minX, leisure.maxX - entrance.center) - 0.4,
       depth: leisure.maxZ - leisure.minZ - 0.25,
     } : null;
+    residential.furniture.push(...StairwellRoomGenerator.furnishPockets(residential, options.seed ?? 0));
     return { input: { ...options, doors: adaptedDoors, requestedStyle: options.requestedStyle ?? authored.basePlanId },
       layout: { empty: false, basePlanId: authored.basePlanId, baseY, primarySide: side, widthBlocks: position.width * 4,
         depthBlocks: position.depth * 4, facadeSpan: transverse * 4, castleDepth: inward * 4,

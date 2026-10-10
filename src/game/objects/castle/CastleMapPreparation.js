@@ -2,6 +2,7 @@ import { KitchenRoomMapObjects } from "./KitchenRoomMapObjects.js";
 import { LibraryRoomMapObjects } from "./LibraryRoomMapObjects.js";
 import { ThroneRoomMapObjects } from "./ThroneRoomMapObjects.js";
 import { LeisureRoomMapObjects } from "./LeisureRoomMapObjects.js";
+import { StairwellRoomMapObjects } from "./StairwellRoomMapObjects.js";
 import { DecorationPlacementRules } from "../../generator/map/DecorationPlacementRules.js";
 import { GRASS_SURFACE_LIFT } from "../../config/terrain.js";
 import { CastleGroundWeathering } from "./CastleGroundWeathering.js";
@@ -23,6 +24,7 @@ export class CastleMapPreparation {
     LibraryRoomMapObjects.prepareMap(mapData);
     ThroneRoomMapObjects.prepareMap(mapData);
     LeisureRoomMapObjects.prepareMap(mapData);
+    StairwellRoomMapObjects.prepareMap(mapData);
     const castles = (mapData.objects ?? []).filter(
       /**
        * @param {import("../ObjectTypes.js").MapObjectDefinition} definition

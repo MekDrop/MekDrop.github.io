@@ -5,6 +5,7 @@ import { LibraryRoomGenerator } from "./rooms/LibraryRoomGenerator.js";
 import { ThroneRoomGenerator } from "./rooms/ThroneRoomGenerator.js";
 import { LeisureRoomGenerator } from "./rooms/LeisureRoomGenerator.js";
 import { TowerRoomGenerator } from "./rooms/TowerRoomGenerator.js";
+import { StairwellRoomGenerator } from "./rooms/StairwellRoomGenerator.js";
 
 /**
  * @typedef {{kind:string,side:string,offset:number,width:number,bottom:number,height:number,swing?:string,openingInset?:number}} AuthoredCastleOpening
@@ -227,6 +228,20 @@ export class CastleBasePlanGenerator {
       (building) => ({ ...building, ...this.#bounds(building.bounds, scale),
         floorY: baseY + building.elevation })),
       entrance: { ...entrance, bridge: this.#bounds(plan.entrance.bridge, scale) }, furniture };
+    const stairwell = new StairwellRoomGenerator("authored-stairwell");
+    for (const room of spaces) {
+      if (room.kind !== "room") { continue; }
+      const stairs = result.stairs.filter(/**
+       * @param {{from:number,to:number,minX:number,maxX:number,minZ:number,maxZ:number}} stair
+       */ stair => room.level >= stair.from && room.level <= stair.to &&
+        room.maxX > stair.minX && room.minX < stair.maxX && room.maxZ > stair.minZ && room.minZ < stair.maxZ);
+      const occupied = furniture.filter(/**
+       * @param {import("./rooms/AbstractCastleRoomGenerator.js").RoomItem & {roomId:string,floorY:number}} item
+       */ item => item.roomId === room.id && item.floorY === room.floorY);
+      for (const item of stairwell.furnish(room, { seed: Math.floor(this.#seedNumber(options.seed) / 2), stairs, openings, occupied })) {
+        furniture.push({ ...item, roomId: room.id, floorY: room.floorY });
+      }
+    }
     result.mirrored = this.#seedNumber(options.seed) % 2 === 1;
     if (result.mirrored) {
       // Reflect parallel to the entrance wall about the door itself, fixing its anchor.
@@ -251,7 +266,10 @@ export class CastleBasePlanGenerator {
       for (const item of furniture) {
         const coordinate = axis.toLowerCase();
         item[coordinate] = twiceCenter - item[coordinate];
-        if (item.rotation !== undefined) {
+        if (item.role === "stairwellProp") {
+          item.rotation = axis === "X" ? -item.rotation : 180 - item.rotation;
+        }
+        if (item.rotation !== undefined && item.role !== "stairwellProp") {
           item.rotation = (axis === "X" ? -item.rotation : 180 - item.rotation) + (item.mirrorRotationOffset ?? 0);
         }
       }

@@ -29,6 +29,8 @@ import { StoragePotteryJar } from "./castle-props/StoragePotteryJar.js";
 import { TableCandles } from "./castle-props/TableCandles.js";
 import { WoodenBarrel } from "./castle-props/WoodenBarrel.js";
 import { WoodenCrate } from "./castle-props/WoodenCrate.js";
+import { WoodenStorageChest } from "./castle-props/WoodenStorageChest.js";
+import { WoodenWaterBucket } from "./castle-props/WoodenWaterBucket.js";
 import { WoodenDeskChair } from "./castle-props/WoodenDeskChair.js";
 import { WallLantern } from "./castle-props/WallLantern.js";
 import { EntranceLantern } from "./castle-props/EntranceLantern.js";
@@ -92,6 +94,8 @@ const OBJECT_CLASSES = new Map([
   [TableCandles.name, TableCandles],
   [WoodenBarrel.name, WoodenBarrel],
   [WoodenCrate.name, WoodenCrate],
+  [WoodenStorageChest.name, WoodenStorageChest],
+  [WoodenWaterBucket.name, WoodenWaterBucket],
   [WoodenDeskChair.name, WoodenDeskChair],
   [WallLantern.name, WallLantern],
   [EntranceLantern.name, EntranceLantern],
