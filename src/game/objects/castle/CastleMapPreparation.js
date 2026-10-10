@@ -1,3 +1,4 @@
+import { KitchenRoomMapObjects } from "./KitchenRoomMapObjects.js";
 import { LibraryRoomMapObjects } from "./LibraryRoomMapObjects.js";
 import { ThroneRoomMapObjects } from "./ThroneRoomMapObjects.js";
 import { LeisureRoomMapObjects } from "./LeisureRoomMapObjects.js";
@@ -18,6 +19,7 @@ export class CastleMapPreparation {
    * @param {import("../../GameContracts.js").GameMapData} mapData
    */
   static prepareMap(mapData) {
+    KitchenRoomMapObjects.prepareMap(mapData);
     LibraryRoomMapObjects.prepareMap(mapData);
     ThroneRoomMapObjects.prepareMap(mapData);
     LeisureRoomMapObjects.prepareMap(mapData);
