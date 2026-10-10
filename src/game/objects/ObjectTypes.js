@@ -17,12 +17,15 @@
  * @property {Point3} [to] Bookshelf bottom edge or opposite window corner (one differing ground axis); WoodenFloor opposite surface corner (both ground axes differ, equal Y).
  * @property {number} [width] Painting horizontal scale or flag cloth width.
  * @property {number} [height] Bookshelf, window, or flag cloth height.
+ * @property {number} [chimneyHeight] Fireplace base to the covering roof surface, in metres.
  * @property {number} [poleHeight] Flag pole height in metres (default 1.25).
  * @property {string} [texture] Flag cloth image URL; omitted uses the blue castle crest.
  * @property {{baseY: number, height: number, clearance?: number}} [roofCollider] Flag roof contact shape passed to cloth physics.
  * @property {string} [sourceCastleId] Castle that supplied a migrated flag.
  * @property {number} [sourceCastleSeed] Seed used to generate the migrated flag.
  * @property {number} [facing] Bookshelf/window front direction, 1 or -1 on the perpendicular axis.
+ * @property {boolean} [joinStart] Bookshelf shares its local left upright with the previous section.
+ * @property {boolean} [joinEnd] Bookshelf supplies a slimmer shared upright at its local right edge.
  * @property {number} [depth] Window reveal depth; defaults to 0.3.
  * @property {number} [Z1] Spiral staircase lower map elevation (world Y).
  * @property {number} [Z2] Spiral staircase upper map elevation (world Y), above Z1.

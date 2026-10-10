@@ -1,52 +1,83 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { Entity } from "playcanvas";
+import { Entity, StandardMaterial } from "playcanvas";
 import { BookshelfBooks } from "../../../../../src/game/objects/bookshelf/BookshelfBooks.js";
 
-test("random book widths vary per section and row while preserving fit and spine details", () => {
-  let seed = 345;
-  const random = () => {
-    seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0;
-    return seed / 4294967296;
-  };
-  const sections = [];
-  for (let section = 0; section < 2; section += 1) {
-    const model = new Entity("shelf");
-    const books = [];
-    const bands = [];
-    for (let row = 0; row < 3; row += 1) {
-      for (let index = 0; index < 8; index += 1) {
-        const book = new Entity(`Leather bound book ${row}-${index}`);
-        book.setLocalPosition(-0.32 + index * 0.09, 0.21 + row * 0.35, 0.02);
-        model.addChild(book);
-        books.push(book);
-        for (const offset of [-0.08, 0.08]) {
-          const band = new Entity(`Book spine brass ${row}-${index}-${offset}`);
-          band.setLocalPosition(book.getLocalPosition().x, book.getLocalPosition().y + offset, 0.135);
-          model.addChild(band);
-          bands.push({ book, band });
-        }
-      }
-    }
-    BookshelfBooks.randomize(model, random);
-    const widths = books.map((book) => 0.065 * book.getLocalScale().x);
-    assert.equal(new Set(widths.map((width) => width.toFixed(5))).size, 24);
-    for (let row = 0; row < 3; row += 1) {
-      const entries = books.slice(row * 8, row * 8 + 8);
-      let edge = -0.365;
-      for (const book of entries) {
-        const halfWidth = 0.065 * book.getLocalScale().x / 2;
-        assert.ok(book.getLocalPosition().x - halfWidth > edge);
-        edge = book.getLocalPosition().x + halfWidth;
-      }
-      assert.ok(edge < 0.365);
-    }
-    for (const { book, band } of bands) {
-      assert.equal(band.getLocalPosition().x, book.getLocalPosition().x);
-      assert.equal(band.getLocalScale().x, book.getLocalScale().x);
-    }
-    sections.push(widths);
-    model.destroy();
+test("a full-height top compartment receives upright books", () => {
+  const shelf = new Entity("shelf");
+  const models = { instantiate: () => new Entity("book") };
+  const level = { bottom: 2.15, height: 0.29 };
+  BookshelfBooks.populate(models, shelf, "book.glb", () => 0.5, [level]);
+  assert.equal(shelf.children.length, 10);
+  for (const book of shelf.children) {
+    assert.equal(book.getLocalPosition().y, level.bottom);
+    assert.equal(book.getLocalEulerAngles().z, 0);
+    assert.ok(book.getLocalScale().y * 0.26 <= level.height);
   }
-  assert.notDeepEqual(sections[0], sections[1]);
+  shelf.destroy();
+});
+
+test("reusable books remain supported, fit every shelf and isolate cover colors", () => {
+  const original = new StandardMaterial();
+  original.name = "Book leather";
+  const fixed = new StandardMaterial();
+  fixed.name = "Book parchment and brass";
+  const signatures = [];
+  for (const seed of [42, 42, 43]) {
+    let state = seed;
+    const shelf = new Entity("shelf");
+    for (const name of ["Leather bound book", "Book spine brass"]) { shelf.addChild(new Entity(name)); }
+    const models = { instantiate: () => {
+      const book = new Entity("book");
+      const renders = [{ meshInstances: [{ material: original }, { material: fixed }] }];
+      book.findComponents = () => renders;
+      return book;
+    } };
+    BookshelfBooks.populate(models, shelf, "book.glb", () => {
+      state = (Math.imul(state, 1664525) + 1013904223) >>> 0;
+      return state / 4294967296;
+    });
+    assert.equal(shelf.children.length, 36);
+    const materials = new Set();
+    const signature = [];
+    for (const [row, level] of BookshelfBooks.levels.slice(0, 3).entries()) {
+      let edge = -0.355;
+      for (const book of shelf.children.slice(row * 10, row * 10 + 10)) {
+        const point = book.getLocalPosition(), scale = book.getLocalScale();
+        const width = scale.x * 0.065;
+        assert.ok(Math.abs(point.x - width / 2 - edge) < 1e-6);
+        edge = point.x + width / 2;
+        assert.ok(edge <= 0.365);
+        assert.equal(point.y, level.bottom);
+        assert.ok(scale.y * 0.26 <= level.height + 1e-6);
+        assert.ok(point.z - scale.z * 0.1 > -0.125);
+        assert.ok(Math.abs(point.z - scale.z * 0.1 + 0.11) < 1e-6);
+        assert.ok(point.z + scale.z * 0.1 < 0.17);
+        const meshes = book.findComponents("render")[0].meshInstances;
+        assert.notEqual(meshes[0].material, original);
+        assert.equal(meshes[1].material, fixed);
+        materials.add(meshes[0].material);
+        signature.push([point.x, scale.x, scale.y, scale.z, meshes[0].material.diffuse.toString()]);
+      }
+    }
+    for (let stack = 0; stack < 2; stack++) {
+      let top = 1.13;
+      for (const book of shelf.children.slice(30 + stack * 3, 33 + stack * 3)) {
+        const point = book.getLocalPosition(), scale = book.getLocalScale();
+        const thickness = scale.x * 0.065;
+        assert.ok(Math.abs(point.y - thickness / 2 - top) < 1e-6);
+        top = point.y + thickness / 2;
+        assert.ok(top < 1.275);
+        assert.ok(Math.abs(book.getLocalEulerAngles().z - 90) < 1e-5);
+      }
+    }
+    assert.ok(materials.size > 3 && materials.size <= 6);
+    assert.equal(original.diffuse.toString(), "#ffffff");
+    signatures.push(signature);
+    shelf.destroy();
+  }
+  assert.deepEqual(signatures[0], signatures[1]);
+  assert.notDeepEqual(signatures[0], signatures[2]);
+  original.destroy();
+  fixed.destroy();
 });

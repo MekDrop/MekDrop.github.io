@@ -1,3 +1,8 @@
+import { LibrarySideTable } from "./castle-props/LibrarySideTable.js";
+import { LibraryStepStool } from "./castle-props/LibraryStepStool.js";
+import { ParchmentBundle } from "./castle-props/ParchmentBundle.js";
+import { ClosedReadingBook } from "./castle-props/ClosedReadingBook.js";
+import { LibraryBookStack } from "./castle-props/LibraryBookStack.js";
 import { WritingDesk } from "./castle-props/WritingDesk.js";
 import { OpenReadingBook } from "./castle-props/OpenReadingBook.js";
 import { CourtLectern } from "./castle-props/CourtLectern.js";
@@ -55,6 +60,11 @@ import { MapPickupAnimationActors } from "../debug/MapPickupAnimationActors.js";
 import { MapVirtualItem } from "../debug/MapVirtualItem.js";
 
 const OBJECT_CLASSES = new Map([
+  [LibrarySideTable.name, LibrarySideTable],
+  [LibraryStepStool.name, LibraryStepStool],
+  [ParchmentBundle.name, ParchmentBundle],
+  [ClosedReadingBook.name, ClosedReadingBook],
+  [LibraryBookStack.name, LibraryBookStack],
   [WritingDesk.name, WritingDesk],
   [OpenReadingBook.name, OpenReadingBook],
   [CourtLectern.name, CourtLectern],

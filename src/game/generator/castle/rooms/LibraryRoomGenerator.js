@@ -1,17 +1,26 @@
 import { AbstractCastleRoomGenerator } from "./AbstractCastleRoomGenerator.js";
+import { LibraryRoomFurnishing } from "./LibraryRoomFurnishing.js";
 
 export class LibraryRoomGenerator extends AbstractCastleRoomGenerator {
   constructor() { super("library", { x: 1.75, y: 2 }, { x: 6, y: 4.5 }); }
   /**
    * @param {import("./AbstractCastleRoomGenerator.js").PlannedCastleRoom} room
+   * @param {{seed?:string|number,openings?:import("../CastleBasePlanGenerator.js").CompiledCastleOpening[],stairs?:Array<{from:number,to:number,minX:number,maxX:number,minZ:number,maxZ:number}>,wallThickness?:number}} [context]
    * @returns {import("./AbstractCastleRoomGenerator.js").RoomItem[]}
    */
-  furnish(room) {
-    const x = room.maxX - 0.55;
-    return [
-      { role: "workDesk", x, z: room.minZ + 0.35, width: 0.9, depth: 0.55, scale: 0.8 },
-      { role: "bookshelf", x: room.minX + 0.3, z: room.minZ + 0.35, width: 0.5, depth: 0.8, scale: 0.8 },
-    ];
+  furnish(room, context = {}) {
+    return new LibraryRoomFurnishing({ ...room, seed: context.seed ?? room.furnishingSeed,
+      wallThickness: context.wallThickness, openings: (context.openings ?? room.openings ?? [])
+        .filter(/**
+         *
+         * @param {import("../CastleBasePlanGenerator.js").CompiledCastleOpening} opening
+         */
+        opening => opening.roomId === room.id && opening.floorY === room.floorY),
+      stairs: (context.stairs ?? room.stairs ?? []).filter(/**
+       *
+       * @param {{from:number,to:number}} stair
+       */
+      stair => room.level >= stair.from && room.level <= stair.to) }).items;
   }
 }
 

@@ -1,89 +1,90 @@
 /**
- * Packs independently randomized book widths into each authored shelf section.
+ * Replaces baked shelf books with one reusable, independently tinted Tripo asset.
  */
 export class BookshelfBooks {
   /**
-   * @param {import("playcanvas").Entity} model
-   * @param {() => number} random
+   * Shelf plank tops and clearance below the next plank, measured from bookcase.glb.
+   * @type {{bottom:number,height:number}[]}
    */
-  static randomize(model, random = Math.random) {
-    const books = model.find(/**
-     *
+  static levels = [{ bottom: 0.08, height: 0.29 }, { bottom: 0.42, height: 0.31 },
+    { bottom: 0.78, height: 0.30 }, { bottom: 1.13, height: 0.145 }];
+  /**
+   * @type {number[][]}
+   */
+  static colors = [[0.65, 0.22, 0.22], [0.20, 0.38, 0.62], [0.27, 0.48, 0.30],
+    [0.62, 0.43, 0.22], [0.45, 0.28, 0.52], [0.33, 0.24, 0.19]];
+
+  /**
+   * @param {import("../../models/GameModelLibrary.js").GameModelLibrary} models
+   * @param {import("playcanvas").Entity} shelf
+   * @param {string} bookUrl
+   * @param {() => number} random
+   * @param {{bottom:number,height:number}[]} [levels]
+   */
+  static populate(models, shelf, bookUrl, random = Math.random, levels = this.levels) {
+    for (const node of shelf.find(/**
      * @param {import("playcanvas").GraphNode} node
      */
-    (node) => node.name.startsWith("Leather bound book"));
-    const bands = model.find(/**
-     *
-     * @param {import("playcanvas").GraphNode} node
-     */
-    (node) => node.name.startsWith("Book spine brass"));
-    const attachments = new Map(books.map(/**
-     *
-     * @param {import("playcanvas").GraphNode} book
-     */
-    (book) => [book, []]));
-    for (const band of bands) {
-      const position = band.getLocalPosition();
-      const book = books.reduce(/**
-       *
-       * @param {import("playcanvas").GraphNode} nearest
-       * @param {import("playcanvas").GraphNode} candidate
-       */
-      (nearest, candidate) => {
-        const point = candidate.getLocalPosition();
-        const other = nearest.getLocalPosition();
-        const distance = Math.abs(point.x - position.x) * 10 + Math.abs(point.y - position.y);
-        const previous = Math.abs(other.x - position.x) * 10 + Math.abs(other.y - position.y);
-        return distance < previous ? candidate : nearest;
-      }, books[0]);
-      if (book) attachments.get(book).push(band);
+    (node) => /^(Leather bound book|Book spine brass)/.test(node.name))) {
+      node.destroy();
     }
-    const rows = new Map();
-    for (const book of books) {
-      const level = Math.round(book.getLocalPosition().y * 100);
-      if (!rows.has(level)) rows.set(level, []);
-      rows.get(level).push(book);
-    }
-    for (const row of rows.values()) {
-      row.sort(/**
-       *
-       * @param {import("playcanvas").GraphNode} a
-       * @param {import("playcanvas").GraphNode} b
-       */
-      (a, b) => a.getLocalPosition().x - b.getLocalPosition().x);
-      const samples = row.map(() => 0.032 + random() * 0.085);
-      const total = samples.reduce(/**
-       *
+    const materials = new Map();
+    shelf.once("destroy", () => {
+      for (const material of materials.values()) { material.destroy(); }
+    });
+    for (const [row, level] of levels.entries()) {
+      const horizontal = level.height < 0.24;
+      const count = horizontal ? 6 : 10;
+      const widths = Array.from({ length: count }, () => horizontal ? 0.032 + random() * 0.008 : 0.04 + random() * 0.025);
+      const total = widths.reduce(/**
        * @param {number} sum
        * @param {number} width
        */
       (sum, width) => sum + width, 0);
-      // Leave room for all gaps and keep books inside the oak side panels.
-      const factor = Math.min(1, 0.60 / total);
-      const gap = 0.012;
-      let cursor = -(total * factor + gap * (row.length - 1)) / 2;
-      row.forEach(/**
-       *
-       * @param {import("playcanvas").GraphNode} book
-       * @param {number} index
-       */
-      (book, index) => {
-        const width = samples[index] * factor;
-        const center = cursor + width / 2;
-        const position = book.getLocalPosition().clone();
-        const scale = book.getLocalScale().clone();
-        // The authored book mesh is 0.065 wide before its node transform.
-        const ratio = width / (0.065 * scale.x);
-        for (const band of attachments.get(book)) {
-          const bandPosition = band.getLocalPosition().clone();
-          const bandScale = band.getLocalScale().clone();
-          band.setLocalPosition(center + (bandPosition.x - position.x) * ratio, bandPosition.y, bandPosition.z);
-          band.setLocalScale(bandScale.x * ratio, bandScale.y, bandScale.z);
+      const gap = 0, factor = horizontal ? 1 : 0.71 / total;
+      let cursor = -0.355;
+      let stackHeight = 0;
+      let groupHeight = Math.min(level.height - 0.015, 0.265) * (0.93 + random() * 0.07);
+      let groupColor = Math.floor(random() * this.colors.length);
+      for (const [index, sample] of widths.entries()) {
+        const width = sample * factor;
+        if (index % 3 === 0) {
+          groupHeight = horizontal ? 0.23 + random() * 0.025 : Math.min(level.height - 0.015, 0.265) * (0.93 + random() * 0.07);
+          groupColor = Math.floor(random() * this.colors.length);
+          stackHeight = 0;
         }
-        book.setLocalPosition(center, position.y, position.z);
-        book.setLocalScale(scale.x * ratio, scale.y, scale.z);
+        const height = groupHeight * (0.97 + random() * 0.03);
+        const depth = 0.20 * height / 0.26;
+        const color = random() < 0.75 ? groupColor : Math.floor(random() * this.colors.length);
+        const book = models.instantiate(bookUrl);
+        book.name = `Shelf book ${row}-${index}`;
+        if (horizontal) {
+          // The authored pivot is at the foot of the spine. After tipping onto
+          // its cover, half the thickness raises that pivot onto the plank.
+          book.setLocalEulerAngles(0, 0, 90);
+          book.setLocalPosition((index < 3 ? -0.18 : 0.18) + height / 2, level.bottom + stackHeight + width / 2, -0.11 + depth / 2);
+          stackHeight += width;
+        } else {
+          book.setLocalPosition(cursor + width / 2, level.bottom, -0.11 + depth / 2);
+        }
+        book.setLocalScale(width / 0.065, height / 0.26, depth / 0.20);
+        for (const render of book.findComponents("render")) {
+          for (const mesh of render.meshInstances) {
+            if (mesh.material.name !== "Book leather") { continue; }
+            let material = materials.get(color);
+            if (!material) {
+              material = mesh.material.clone();
+              material.diffuseTint = true;
+              material.diffuse.set(...this.colors[color]);
+              material.update();
+              materials.set(color, material);
+            }
+            mesh.material = material;
+          }
+        }
+        shelf.addChild(book);
         cursor += width + gap;
-      });
+      }
     }
   }
 }

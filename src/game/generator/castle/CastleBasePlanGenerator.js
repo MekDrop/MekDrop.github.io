@@ -13,7 +13,7 @@ import { TowerRoomGenerator } from "./rooms/TowerRoomGenerator.js";
  * @typedef {{id:string,bounds:number[],elevation:number,shape:string,height?:number}} AuthoredCastleRoof
  * @typedef {{id:string,bounds:number[],elevation:number,height:number}} AuthoredCastleBuilding
  * @typedef {{index:number,elevation:number,spaces:AuthoredCastleSpace[]}} AuthoredCastleFloor
- * @typedef {import("./rooms/AbstractCastleRoomGenerator.js").PlannedCastleRoom & {kind:string,generator:string|null}} CompiledCastleSpace
+ * @typedef {import("./rooms/AbstractCastleRoomGenerator.js").PlannedCastleRoom & {kind:string,generator:string|null,wallBounds:{minX:number,maxX:number,minZ:number,maxZ:number}}} CompiledCastleSpace
  * @typedef {{roomId:string,kind:string,side:string,axis:string,coordinate:number,center:number,width:number,bottom:number,height:number,floorY:number,swing:string,openingInset:number}} CompiledCastleOpening
  * @typedef {{version:number,id:string,name:string,source:{image:string},coordinates:{width:number,depth:number,recommendedUnitMetres:number},floorHeight:number,wallThickness:number,entrance:{spaceId:string,side:string,offset:number,width:number,bridge:number[]},levels:Array<{index:number,elevation:number,spaces:AuthoredCastleSpace[]}>,staircases:AuthoredCastleStair[],roofs:AuthoredCastleRoof[],buildings?:AuthoredCastleBuilding[]}} CastleBasePlan
  */
@@ -131,9 +131,19 @@ export class CastleBasePlanGenerator {
           }
         }
         const room = { ...this.#bounds(authored.bounds, scale), id: authored.id, purpose: authored.label,
-          kind: authored.kind, level: floor.index, floorY: baseY + floor.elevation,
+          kind: authored.kind, level: floor.index, floorY: baseY + floor.elevation, furnishingSeed: options.seed ?? 0,
           floorSpan, height: floorSpan * plan.floorHeight - (plan.buildings ? 0 : 0.25), generator: authored.generator };
         spaces.push(room);
+        // Exterior walls follow the building envelope rather than the inset
+        // room rectangle. Preserve their actual inside faces for wall props.
+        room.wallBounds = { minX: room.minX, maxX: room.maxX, minZ: room.minZ, maxZ: room.maxZ };
+        for (const building of plan.buildings ?? []) {
+          if (floor.elevation < building.elevation || floor.elevation + room.height > building.elevation + building.height) { continue; }
+          const envelope = this.#bounds(building.bounds, scale);
+          for (const edge of ["minX", "maxX", "minZ", "maxZ"]) {
+            if (Math.abs(room[edge] - envelope[edge]) <= plan.wallThickness * scale * 1.1) { room.wallBounds[edge] = envelope[edge]; }
+          }
+        }
         for (const opening of authored.openings) {
           const alongX = ["NORTH", "SOUTH"].includes(opening.side);
           openings.push({ roomId: room.id, kind: opening.kind, side: opening.side,
@@ -148,18 +158,23 @@ export class CastleBasePlanGenerator {
         if (!generator) {
           throw new CastleBasePlanInvalidError(plan.id, `generator:${authored.generator}`);
         }
-        for (const item of generator.furnish(room, { openings, stairs: plan.staircases.map(/**
+        for (const item of generator.furnish(room, { seed: options.seed, wallThickness: plan.wallThickness * scale,
+          openings, stairs: plan.staircases.map(/**
            * @param {AuthoredCastleStair} stair
            */ (stair) => ({ ...stair, ...this.#bounds(stair.bounds, scale) })) })) {
           const halfX = item.width * item.scale / 2;
           const halfZ = item.depth * item.scale / 2;
-          if (item.x - halfX < room.minX || item.x + halfX > room.maxX ||
-            item.z - halfZ < room.minZ || item.z + halfZ > room.maxZ) { continue; }
+          const bounds = item.role === "libraryProp" ? room.wallBounds : room;
+          if (item.x - halfX < bounds.minX - 1e-6 || item.x + halfX > bounds.maxX + 1e-6 ||
+            item.z - halfZ < bounds.minZ - 1e-6 || item.z + halfZ > bounds.maxZ + 1e-6) { continue; }
           const blocksDoor = openings.some(/**
            *
            * @param {CompiledCastleOpening} opening
            */
           (opening) => opening.roomId === room.id && opening.kind === "door" &&
+            !(item.object === "Bookshelf" && (opening.axis === "z" ?
+              Math.abs(item.x - opening.center) >= halfX + opening.width / 2 && Math.abs(item.z - opening.coordinate) >= halfZ + 0.1 :
+              Math.abs(item.z - opening.center) >= halfZ + opening.width / 2 && Math.abs(item.x - opening.coordinate) >= halfX + 0.1)) &&
             (opening.axis === "x" ? Math.abs(item.x - opening.coordinate) < halfX + 0.75 &&
               Math.abs(item.z - opening.center) < halfZ + opening.width / 2 + 0.25 :
               Math.abs(item.z - opening.coordinate) < halfZ + 0.75 &&
@@ -217,7 +232,10 @@ export class CastleBasePlanGenerator {
       // Reflect parallel to the entrance wall about the door itself, fixing its anchor.
       const axis = entrance.axis === "z" ? "X" : "Z";
       const twiceCenter = entrance.center * 2;
-      for (const bounds of [...spaces, ...result.stairs, ...result.roofs, ...result.buildings, result.entrance.bridge]) {
+      for (const bounds of [...spaces, ...spaces.map(/**
+       * @param {CompiledCastleSpace} space
+       */
+      space => space.wallBounds), ...result.stairs, ...result.roofs, ...result.buildings, result.entrance.bridge]) {
         const min = bounds[`min${axis}`];
         bounds[`min${axis}`] = twiceCenter - bounds[`max${axis}`];
         bounds[`max${axis}`] = twiceCenter - min;
@@ -233,6 +251,9 @@ export class CastleBasePlanGenerator {
       for (const item of furniture) {
         const coordinate = axis.toLowerCase();
         item[coordinate] = twiceCenter - item[coordinate];
+        if (item.rotation !== undefined) {
+          item.rotation = (axis === "X" ? -item.rotation : 180 - item.rotation) + (item.mirrorRotationOffset ?? 0);
+        }
       }
     }
     return result;
