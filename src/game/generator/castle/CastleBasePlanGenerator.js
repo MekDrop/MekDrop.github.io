@@ -1,3 +1,4 @@
+import { TerraceStorageRoomGenerator } from "./rooms/TerraceStorageRoomGenerator.js";
 import { KitchenRoomGenerator } from "./rooms/KitchenRoomGenerator.js";
 import { CastleBasePlanInvalidError } from "../../errors/castle/index.js";
 import { ServiceRoomGenerator } from "./rooms/ServiceRoomGenerator.js";
@@ -109,7 +110,7 @@ export class CastleBasePlanGenerator {
       throw new CastleBasePlanInvalidError(plan.id, "scale/baseY");
     }
     const generators = options.generators ?? [new ServiceRoomGenerator(), new KitchenRoomGenerator(), new LibraryRoomGenerator(),
-      new ThroneRoomGenerator(), new LeisureRoomGenerator(), new TowerRoomGenerator(1), new VestibuleRoomGenerator()];
+      new ThroneRoomGenerator(), new LeisureRoomGenerator(), new TowerRoomGenerator(1), new VestibuleRoomGenerator(), new TerraceStorageRoomGenerator()];
     const registry = new Map(generators.map(/**
      *
      * @param {import("./rooms/AbstractCastleRoomGenerator.js").AbstractCastleRoomGenerator} generator

@@ -1,10 +1,11 @@
-import sunbedUrl from "../../models/castle/leisure/sunbed.glb?url";
+import sunbedUrl from "../../models/castle/leisure/folding-daybed.glb?url";
+import { FoldingDaybedDelivery } from "./FoldingDaybedDelivery.js";
 import bookUrl from "../../models/castle/leisure/open-book.glb?url";
 import { BOOK_ANIMATION } from "../../enum/BookAnimation.js";
 import { CASTLE_TERRACE_PHASE as PHASE } from "../../enum/CastleTerracePhase.js";
 
 const SUNBED_POSITION = [0, 0, 3.1];
-const SUNBED_CARRY_OFFSET = [0, 0.55, 1.55];
+const SUNBED_CARRY_OFFSET = [0, 0.75, 0.9];
 /**
  *
  * @param {number} value
@@ -63,6 +64,14 @@ export class TerraceSunbedActions {
     * @type {number}
    */
   #bookAnimationDuration;
+  /**
+   * @type {import("playcanvas").AnimController}
+   */
+  #daybedAnimationLayer;
+  /**
+   * @type {number}
+   */
+  #daybedAnimationDuration;
 
   /**
    *
@@ -79,6 +88,13 @@ export class TerraceSunbedActions {
     this.#sunbed = modelLibrary.instantiate(sunbedUrl);
     this.#sunbed.name = "Terrace sunbed";
     stage.addChild(this.#sunbed);
+    const daybedTrack = modelLibrary.getAnimationTracks(sunbedUrl, ["UnfoldDaybed"]).get("UnfoldDaybed");
+    this.#sunbed.addComponent("anim", { activate: true });
+    this.#sunbed.anim.addAnimationState("UnfoldDaybed", daybedTrack, 1, false);
+    this.#sunbed.anim.baseLayer.play("UnfoldDaybed");
+    this.#sunbed.anim.speed = 0;
+    this.#daybedAnimationLayer = this.#sunbed.anim.baseLayer;
+    this.#daybedAnimationDuration = daybedTrack.duration;
     this.#book = modelLibrary.instantiate(bookUrl);
     this.#book.name = "Terrace book";
     stage.addChild(this.#book);
@@ -122,6 +138,9 @@ export class TerraceSunbedActions {
     this.#sunbed.setLocalPosition(...SUNBED_POSITION);
     this.#sunbed.setLocalEulerAngles(0, 0, 0);
     this.#sunbed.setLocalScale(1, 1, 1);
+    const pose = FoldingDaybedDelivery.pose(phase === PHASE.FURNISH ? behavior.progress
+      : phase === PHASE.PACK ? 1 - behavior.progress : installed && !moving ? 1 : 0);
+    this.#daybedAnimationLayer.activeStateCurrentTime = this.#daybedAnimationDuration * pose.unfold;
     if (!moving) {
       return;
     }
@@ -130,9 +149,7 @@ export class TerraceSunbedActions {
     );
     const carry = this.#stage.getWorldTransform().clone().invert()
       .transformPoint(world);
-    const progress = phase === PHASE.FURNISH
-      ? ease(behavior.progress)
-      : phase === PHASE.PACK ? 1 - ease(behavior.progress) : 0;
+    const progress = pose.placement;
     this.#sunbed.setLocalPosition(
       carry.x + (SUNBED_POSITION[0] - carry.x) * progress,
       carry.y + (SUNBED_POSITION[1] - carry.y) * progress,

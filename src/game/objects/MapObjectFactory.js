@@ -21,6 +21,13 @@ import { RoyalCrest } from "./castle-props/RoyalCrest.js";
 import { WarCouncilShield } from "./castle-props/WarCouncilShield.js";
 import { SpearRack } from "./castle-props/SpearRack.js";
 import { WarMapTable } from "./castle-props/WarMapTable.js";
+import { TerraceSunbed } from "./castle-props/TerraceSunbed.js";
+import { TerraceTeaChair } from "./castle-props/TerraceTeaChair.js";
+import { TerraceServingTray } from "./castle-props/TerraceServingTray.js";
+import { TerraceTeapot } from "./castle-props/TerraceTeapot.js";
+import { TerraceTeacup } from "./castle-props/TerraceTeacup.js";
+import { TerraceReadingBook } from "./castle-props/TerraceReadingBook.js";
+import { TeaTable } from "./castle-props/TeaTable.js";
 import { TerracePlanter } from "./castle-props/TerracePlanter.js";
 import { BedsideDrawers } from "./castle-props/BedsideDrawers.js";
 import { BlueArmchair } from "./castle-props/BlueArmchair.js";
@@ -96,6 +103,13 @@ const OBJECT_CLASSES = new Map([
   [SpearRack.name, SpearRack],
   [WarMapTable.name, WarMapTable],
 
+  [TerraceSunbed.name, TerraceSunbed],
+  [TerraceTeaChair.name, TerraceTeaChair],
+  [TerraceServingTray.name, TerraceServingTray],
+  [TerraceTeapot.name, TerraceTeapot],
+  [TerraceTeacup.name, TerraceTeacup],
+  [TerraceReadingBook.name, TerraceReadingBook],
+  [TeaTable.name, TeaTable],
   [TerracePlanter.name, TerracePlanter],
   [BedsideDrawers.name, BedsideDrawers],
   [BlueArmchair.name, BlueArmchair],

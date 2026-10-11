@@ -129,3 +129,39 @@ it("replans around an opened leaf instead of forcing an actor through it", () =>
   assert.equal(motion.arrived, true);
   assert.ok(furthest > 0.8);
 });
+
+
+it("carries terrace equipment out of furnished basement storage and back in both mirrors", async () => {
+  for (const seed of [2, 3]) {
+    const plan = await CastleAuthoredBuildPlan.generate({ basePlanId: "castle-demo-compact",
+      position: { x: -8, z: -14, width: 28, depth: 16, elevation: 3 },
+      doors: [{ side: "NORTH", offset: 8, width: 2 }], seed });
+    const layout = new CastleResidentialLayout(plan);
+    const furniture = plan.metadata.runtime.residential.furniture.filter(item => item.roomId === "storage-south" && !item.supportId);
+    const blocks = plan.metadata.collision.cameraBlocks;
+    const blocked = point => {
+      const local = layout.toLocal(point.x, point.z);
+      return blocks.some(block => block.y + block.halfY > point.y + 0.32 &&
+        block.y - block.halfY < point.y + 1.6 && Math.hypot(
+          Math.max(0, Math.abs(point.x - block.x) - block.halfX),
+          Math.max(0, Math.abs(point.z - block.z) - block.halfZ)) < 0.22) ||
+        furniture.some(item => Math.abs(item.floorY - point.y) < 0.1 && Math.hypot(
+          Math.max(0, Math.abs(local.x - item.x) - item.width * item.scale / 2),
+          Math.max(0, Math.abs(local.z - item.z) - item.depth * item.scale / 2)) < 0.22);
+    };
+    const room = plan.layout.roomPlan.spaces.find(space => space.id === "storage-south");
+    const home = layout.toWorld((room.minX + room.maxX) / 2, (room.minZ + room.maxZ) / 2, room.floorY - layout.origin.y);
+    const scene = new pc.Entity(); scene._enabledInHierarchy = true;
+    const entity = new pc.Entity("Storage servant"); scene.addChild(entity);
+    entity.setPosition(home.x, home.y, home.z);
+    const motion = new CastleResidentMotion({ actor: { entity, pose() {} }, layout, blocked, clear: () => true });
+    const terrace = plan.metadata.runtime.terrace;
+    const radians = terrace.yaw * Math.PI / 180;
+    const target = new pc.Vec3(terrace.x + Math.sin(radians) * 0.7, terrace.y, terrace.z + Math.cos(radians) * 0.7);
+    for (const destination of [target, motion.home]) {
+      motion.moveTo(destination, "carry");
+      for (let frame = 0; frame < 3000 && !motion.arrived; frame++) { motion.update(0.1); }
+      assert.ok(motion.arrived, "storage servant completes the carrying route for seed " + seed);
+    }
+  }
+});
