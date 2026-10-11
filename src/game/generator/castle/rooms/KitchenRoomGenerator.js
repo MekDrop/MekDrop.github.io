@@ -106,8 +106,12 @@ export class KitchenRoomGenerator extends AbstractCastleRoomGenerator {
       prop("BowlGreenVegetables", sideEntry ? tableX - reverse * 0.38 : tableX, sideEntry ? tableZ : tableZ - reverse * 0.38, 0.291, 0.3, top, random() < 0.5 ? 0 : 180);
       prop("PlateBread", tableX, tableZ, 0.287, 0.3, top, random() < 0.5 ? 0 : 180);
       prop("BowlRedFruit", sideEntry ? tableX + reverse * 0.38 : tableX, sideEntry ? tableZ : tableZ + reverse * 0.38, 0.278, 0.3, top, random() < 0.5 ? 0 : 180);
+      // Centre the utensils above the preparation table, with the mounting plates against its wall.
+      const walls = room.wallBounds ?? room;
+      prop("HangingFryingPan", sideEntry ? tableX : walls.maxX - 0.0955,
+        sideEntry ? eastEntry ? walls.maxZ - 0.0955 : walls.minZ + 0.0955 : tableZ,
+        sideEntry ? 1.2 : 0.191, sideEntry ? 0.191 : 1.2, 1.05, sideEntry ? eastEntry ? 180 : 0 : -90);
     }
-    prop("HangingFryingPan", (room.wallBounds ?? room).minX + 0.031, room.minZ + 2.2, 0.062, 0.2, 1.05, 90);
     if (width >= 3.5 && depth >= 3.4) {
       const shelfX = room.minX + (westEntry ? 0.7 : 2.2);
       const shelfZ = room.minZ + inset + 0.15;

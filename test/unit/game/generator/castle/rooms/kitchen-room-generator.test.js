@@ -93,8 +93,12 @@ test("active authored pipeline publishes kitchen objects and replaces old seeded
   assert.deepEqual([kitchen.minX, kitchen.minZ, kitchen.maxX, kitchen.maxZ], [0.375, 0.375, 3.625, 3.875]);
   const hearth = authored.furniture.find(item => item.object === "KitchenFireplace");
   const pan = authored.furniture.find(item => item.object === "HangingFryingPan");
-  assert.ok(Math.abs(pan.x - pan.width / 2 - kitchen.wallBounds.minX) < 0.000001,
+  const table = authored.furniture.find(item => item.object === "KitchenTable");
+  assert.ok(Math.abs(pan.z + pan.depth / 2 - kitchen.wallBounds.maxZ) < 0.000001,
     "pan sits against the actual wall face");
+  assert.equal(pan.x, table.x, "utensil row is centred above the preparation table");
+  assert.equal(pan.rotation, 180, "utensils face into the kitchen");
+  assert.ok(pan.y > 0.564499, "utensils clear the tabletop");
   assert.ok(pan.z - pan.depth / 2 > hearth.z + hearth.depth / 2,
     "pan hangs beside the chimney rather than in front of it");
   assert.equal(hearth.rotation, 0);
