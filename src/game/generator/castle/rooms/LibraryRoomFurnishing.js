@@ -65,9 +65,10 @@ export class LibraryRoomFurnishing {
         const group = this.#point(yaw, along, 0.85);
         const width = yaw % 180 ? 1.7 : 1.05, depth = yaw % 180 ? 1.05 : 1.7;
         if (!this.#clear(group, width, depth, 1.1)) { continue; }
-        desk = this.#item("WritingDesk", this.#point(yaw, along, 0.275), 0.9, 0.55, yaw);
+        // Keep a 1 cm gap to the actual wall, like the neighbouring bookcases.
+        desk = this.#item("WritingDesk", this.#point(yaw, along, 0.285, true), 0.9, 0.55, yaw);
         // Both imported chairs face -X (their tall backs sit on +X).
-        this.#items.push(desk, this.#item("WoodenDeskChair", this.#point(yaw, along, 0.9), 0.43, 0.51, (yaw + 270) % 360));
+        this.#items.push(desk, this.#item("WoodenDeskChair", this.#point(yaw, along, 0.91, true), 0.43, 0.51, (yaw + 270) % 360));
         this.#reserve(group, width, depth);
         break;
       }
@@ -226,14 +227,16 @@ export class LibraryRoomFurnishing {
    * @param {number} yaw
    * @param {number} along
    * @param {number} inward
+   * @param {boolean} [wallAligned]
    * @returns {{x:number,z:number}}
    */
-  #point(yaw, along, inward) {
-    const bounds = this.#room.contentBounds ?? this.#room;
-    if (yaw === 0) { return { x: along, z: bounds.minZ + this.#inset + inward }; }
-    if (yaw === 180) { return { x: along, z: bounds.maxZ - this.#inset - inward }; }
-    if (yaw === 90) { return { x: bounds.minX + this.#inset + inward, z: along }; }
-    return { x: bounds.maxX - this.#inset - inward, z: along };
+  #point(yaw, along, inward, wallAligned = false) {
+    const bounds = (wallAligned ? this.#room.wallBounds : undefined) ?? this.#room.contentBounds ?? this.#room;
+    const inset = wallAligned ? 0 : this.#inset;
+    if (yaw === 0) { return { x: along, z: bounds.minZ + inset + inward }; }
+    if (yaw === 180) { return { x: along, z: bounds.maxZ - inset - inward }; }
+    if (yaw === 90) { return { x: bounds.minX + inset + inward, z: along }; }
+    return { x: bounds.maxX - inset - inward, z: along };
   }
   /**
    * @param {string} object
