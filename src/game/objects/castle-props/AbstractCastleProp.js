@@ -1,5 +1,6 @@
 import { IslandObjectRoots } from "../shared/IslandObjectRoots.js";
 import { addAuthoredMeshPhysics } from "../shared/AuthoredMeshPhysics.js";
+import { DynamicRenderBatch } from "../../rendering/DynamicRenderBatch.js";
 
 /**
  * Lifecycle for imported static castle props with an authored bottom-center pivot.
@@ -35,11 +36,20 @@ export class AbstractCastleProp {
    * @type {import("playcanvas").Material[]}
    */
   #instanceMaterials = [];
+  /**
+   * @type {typeof import("playcanvas")}
+   */
+  #pc;
+  /**
+   * @type {DynamicRenderBatch|null}
+   */
+  #renderBatch = null;
 
   /**
    * @param {{pc: typeof import("playcanvas"), modelLibrary: import("../../models/GameModelLibrary.js").GameModelLibrary, definition: import("../ObjectTypes.js").MapObjectDefinition, runtime?: import("../ObjectTypes.js").MapObjectRuntime}} options
    */
   constructor({ pc, modelLibrary, definition, runtime = {} }) {
+    this.#pc = pc;
     this.#definition = definition;
     this.#entity = new pc.Entity(`${definition.id} island ownership`);
     this.#visual = new pc.Entity(`${definition.id} ${this.constructor.name}`);
@@ -118,7 +128,18 @@ export class AbstractCastleProp {
     this.#islandRoots.setOffsets(near, far, offsets);
     this.#visual.rigidbody?.syncEntityToBody();
   }
+  onSceneReady() {
+    // Batch after parenting and subclass material/part customization. Dynamic
+    // batches retain the transforms used when islands move vertically.
+    this.#renderBatch ??= new DynamicRenderBatch(
+      this.#pc.Application.getApplication(),
+      this.#visual,
+      this.#pc.BUFFER_STATIC,
+    );
+  }
   destroy() {
+    this.#renderBatch?.destroy();
+    this.#renderBatch = null;
     this.#entity.destroy();
     this.#collisionGraph?.destroy();
     for (const material of this.#instanceMaterials) { material.destroy(); }
