@@ -5,6 +5,46 @@ import { CastleResidentMotion } from "../../../../../src/game/objects/castle/Cas
 import { CastleAuthoredBuildPlan } from "../../../../../src/game/generator/castle/CastleAuthoredBuildPlan.js";
 import { CastleResidentialLayout } from "../../../../../src/game/objects/castle/CastleResidentialLayout.js";
 
+it("replans around solid objects added after route construction", () => {
+  const entity = new pc.Entity();
+  entity.setPosition(0, 0, 0.5);
+  const layout = { origin: { y: 0 }, walkableAreas: [{ minX: 0, maxX: 2, minZ: 0, maxZ: 2, floorY: 0 }],
+    authoredStairs: [], stairs: null, toLocal: (x, z) => ({ x, z }), toWorld: (x, z, y) => ({ x, y, z }) };
+  let occupied = () => false;
+  const motion = new CastleResidentMotion({ actor: { entity, pose() {} }, layout,
+    blocked: point => occupied(point), clear: () => true });
+  motion.moveTo(new pc.Vec3(1.5, 0, 0.5));
+  occupied = point => point.x >= 0.4 && point.x <= 0.8 && point.z <= 0.9;
+  let furthest = 0;
+  for (let frame = 0; frame < 150 && !motion.arrived; frame++) {
+    const before = entity.getPosition().clone();
+    motion.update(0.1);
+    const after = entity.getPosition().clone();
+    for (let sample = 0; sample <= 10; sample++) {
+      assert.equal(occupied(before.clone().lerp(before, after, sample / 10)), false);
+    }
+    furthest = Math.max(furthest, after.z);
+  }
+  assert.equal(motion.arrived, true);
+  assert.ok(furthest > 0.9);
+});
+
+it("retries an unreachable destination when its obstruction clears", () => {
+  const entity = new pc.Entity();
+  const layout = { origin: { y: 0 }, walkableAreas: [{ minX: 0, maxX: 2, minZ: 0, maxZ: 2, floorY: 0 }],
+    authoredStairs: [], stairs: null, toLocal: (x, z) => ({ x, z }), toWorld: (x, z, y) => ({ x, y, z }) };
+  let closed = false;
+  const motion = new CastleResidentMotion({ actor: { entity, pose() {} }, layout,
+    blocked: point => closed && point.x > 0.4 && point.x < 0.8, clear: () => true });
+  closed = true;
+  motion.moveTo(new pc.Vec3(1.5, 0, 0));
+  motion.update(0.1);
+  assert.ok(entity.getPosition().equals(pc.Vec3.ZERO));
+  closed = false;
+  for (let frame = 0; frame < 100 && !motion.arrived; frame++) { motion.update(0.1); }
+  assert.equal(motion.arrived, true);
+});
+
 it("walks existing residents through authored castle stairs and home without jumps", async () => {
   for (const side of ["NORTH", "SOUTH", "WEST", "EAST"]) {
     const plan = await CastleAuthoredBuildPlan.generate({ basePlanId: "castle-demo-compact",

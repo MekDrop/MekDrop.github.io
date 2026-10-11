@@ -107,10 +107,14 @@ export class CastleResidentMotion {
    * @param {number} deltaTime
    */
   update(deltaTime) {
+    this.#retry = Math.max(0, this.#retry - deltaTime);
+    if (!this.#route && this.#target && this.#retry === 0) {
+      this.#route = this.#find(this.#actor.entity.getPosition(), this.#target);
+      this.#retry = 0.5;
+    }
     if (!this.#route?.length) { return; }
     this.#clear(this.#actor.entity.getPosition(), this.#actor.entity);
     if (this.#actor.behavior?.reacting) { return; }
-    this.#retry = Math.max(0, this.#retry - deltaTime);
     this.#time += deltaTime;
     let remaining = this.#vehicle.maxSpeed * Math.min(deltaTime, 0.1);
     const entity = this.#actor.entity;
@@ -121,7 +125,7 @@ export class CastleResidentMotion {
       const distance = direction.length();
       const step = Math.min(remaining, distance);
       const candidate = position.clone().add(direction.clone().normalize().mulScalar(step));
-      if (!this.#clear(candidate, entity)) {
+      if (!this.#clear(candidate, entity) || !this.#collisionFree(position, candidate, true)) {
         if (this.#retry === 0) {
           const detour = this.#find(position, this.#target, true);
           if (detour) { this.#route = detour; }
@@ -254,6 +258,22 @@ export class CastleResidentMotion {
   }
 
   /**
+   * Query the scene's collider footprints along movement, including stair edges
+   * where floor-only route validation does not apply.
+   * @param {import("playcanvas").Vec3} start
+   * @param {import("playcanvas").Vec3} end
+   * @param {boolean} avoidDoors
+   * @returns {boolean}
+   */
+  #collisionFree(start, end, avoidDoors = false) {
+    const steps = Math.max(1, Math.ceil(start.distance(end) / 0.05));
+    for (let step = 0; step <= steps; step++) {
+      if (this.#blocked(start.clone().lerp(start, end, step / steps), avoidDoors)) { return false; }
+    }
+    return true;
+  }
+
+  /**
    * @param {import("playcanvas").Vec3} start
    * @param {import("playcanvas").Vec3} target
    * @param {boolean} avoidDoors
@@ -280,8 +300,7 @@ export class CastleResidentMotion {
       }
       open.delete(current);
       for (const neighbor of [...current.links, ...(goalNeighbors.has(current) ? [goal] : [])]) {
-        if (avoidDoors && ((this.#blocked(neighbor.point, true) && !this.#blocked(neighbor.point, false)) ||
-          (current.ix !== undefined && neighbor.ix !== undefined && Math.abs(current.point.y - neighbor.point.y) < 0.01 && !this.#segment(current.point, neighbor.point, true)))) { continue; }
+        if (!this.#collisionFree(current.point, neighbor.point, avoidDoors)) { continue; }
         const cost = costs.get(current) + current.point.distance(neighbor.point);
         if (cost >= (costs.get(neighbor) ?? Infinity)) { continue; }
         costs.set(neighbor, cost); previous.set(neighbor, current); open.add(neighbor);
