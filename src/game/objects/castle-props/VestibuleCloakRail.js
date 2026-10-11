@@ -40,6 +40,15 @@ export class VestibuleCloakRail extends AbstractCastleProp {
       if (!item) { node.destroy(); continue; }
       const position = node.getLocalPosition().clone();
       position.x += item.hookX - item.authoredX;
+      // Adult-sized garments: enlarge around the authored loop.
+      const garmentScale = 1.75;
+      const loopHeight = 0.78;
+      const scale = node.getLocalScale().clone();
+      position.y -= loopHeight * scale.y * (garmentScale - 1);
+      // Seat the loop over the peg's upper/front edge rather than inside its shaft.
+      position.y += 0.005;
+      position.z += 0.012;
+      node.setLocalScale(scale.x * garmentScale, scale.y * garmentScale, scale.z);
       node.setLocalPosition(position);
       if (collision) { continue; }
       for (const render of node.findComponents("render")) {
