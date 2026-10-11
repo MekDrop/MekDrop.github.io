@@ -15,8 +15,24 @@ The classes in `src/game/objects/castle-props` register through `MapObjectFactor
 Place them in the map's `objects` array using `id`, `object`, `tile`, `position`,
 and optional `rotation`, as shown by `castle-props-{1,2,3}.json` under map tests.
 They are static props with Ammo triangle-mesh collisions that preserve openings
-under tables and between chair arms. Candles and lanterns include textured
-flame/glow geometry. Interactions and dynamic light emitters are not implemented.
+under tables and between chair arms. Candles and wall lanterns include textured
+flame/glow geometry. Entrance lanterns use translucent amber glass with a separate
+runtime `CastleFire` particle flame inside the housing, supplied by `LanternFire`.
+
+The entrance lantern was remade from the unlit four-finial concept in Tripo
+Studio H3.1 on 2026-10-10, using 30 credits (task
+`f76ac5e2-0536-49f1-a0f7-372348e70e46`). Its bronze frame and frosted glass have
+no baked flame. Matching ornaments finish all four bottom corners. The source
+contains packed textures up to 2k, normalized to 0.187 × 0.450 ×
+0.257 metres in glTF XYZ, with its wall bracket facing -Z. The entrance uses
+1.6 times that height and 1.38128 times the horizontal dimensions. Glass panes
+transmit the view of the internal particles; no flame is drawn on their surface.
+The bronze frame renders from both sides, and each glass pane is a separate
+mesh so transparent surfaces sort independently when viewed from the side.
+The exposed interior has clean rectangular panes, straight bronze corner rails,
+and flat floor and ceiling surfaces, replacing warped generated faces.
+Warm yellow translucent panes have a continuous fine square frosted texture,
+without dividing bars or outlines, retaining a visible internal flame.
 
 Verification: the focused `CastleProps.cy.js` spec loads all three maps, checks
 every prop has render meshes, a grounded bounding box, a native Ammo body and a
