@@ -1,8 +1,8 @@
-import modelUrl from "../../models/castle/residential/banner-cloth.glb?url";
+import modelUrl from "../../models/castle/props/vestibule-banner.glb?url";
 import { AbstractCastleProp } from "./AbstractCastleProp.js";
 
 /**
- * Existing royal cloth, mounted at its authored top-center pivot.
+ * Folded navy banner with an oak rod and embroidered castle, mounted at the top.
  */
 export class VestibuleBanner extends AbstractCastleProp {
   /**

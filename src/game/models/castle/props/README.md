@@ -123,6 +123,12 @@ cover support, non-overlap, repeatability, and connected walking routes across
 
 ## Vestibule arrival accessories
 
+`vestibule-banner.blend/.glb` replaces the flat residential pennant in this room.
+It matches the approved screenshot mockup with navy cloth folds, an inset gold
+border, a shallow pointed hem, a five-tower embroidered castle with windows and
+an arched gate, and an oak rod supported by three fabric tabs. Its top-center
+pivot preserves existing map placement. Other rooms retain their original banner.
+
 Four isolated game-style references were converted with Tripo Studio H3.1 on
 2026-10-11, using the approved 120 credits (30 per model).
 
