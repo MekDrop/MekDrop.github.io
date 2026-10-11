@@ -1010,7 +1010,6 @@ export class PlayCanvasRenderer {
   teleportHeroAtPointer(event) {
     const hero = this.hero;
     if (
-      !(import.meta.env.DEV || this.#debugStore?.hasAny) ||
       !hero || this.inventoryVisible || hero.isGameOver
     ) {
       return false;

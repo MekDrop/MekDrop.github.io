@@ -45,13 +45,19 @@ export class GameControls {
   #keyupActions;
 
   /**
+   * @type {Array<{action: import("src/game/GameContracts.js").GameActionContract}>}
+   */
+  #doubleClickActions;
+
+  /**
    *
    * @param {HTMLElement} element
    * @param {Array} actions
-   * @param {{keydownActions: Array, keyupActions: Array, keydownConsumeBindings: Array}} options
+   * @param {{keydownActions?: Array, keyupActions?: Array, keydownConsumeBindings?: Array, doubleClickActions?: Array}} options
    * @param {Array} options.keydownActions
    * @param {Array} options.keyupActions
    * @param {Array} options.keydownConsumeBindings
+   * @param {Array} options.doubleClickActions
    */
   constructor(
     element,
@@ -60,6 +66,7 @@ export class GameControls {
       keydownActions = [],
       keyupActions = [],
       keydownConsumeBindings = [],
+      doubleClickActions = [],
     } = {},
   ) {
     /**
@@ -72,6 +79,7 @@ export class GameControls {
      * @type {Array}
      */
     this.#actions = actions;
+    this.#doubleClickActions = doubleClickActions;
     /**
      *
      * @type {CameraDrag}
@@ -306,16 +314,16 @@ export class GameControls {
    * @type {(event: Event) => void}
    */
   #handleDoubleClick = (event) => {
-    if (
-      event.defaultPrevented || event.button !== 0 ||
-      this.#actions.toggleInventory?.visible
-    ) {
+    if (event.defaultPrevented) {
       return;
     }
-    if (this.#actions.teleportHero?.invoke(event)) {
-      event.preventDefault();
-      this.#cameraDrag.cancel();
-      this.#clearMovement();
+    for (const { action } of this.#doubleClickActions) {
+      if (action.invoke(event)) {
+        event.preventDefault();
+        this.#cameraDrag.cancel();
+        this.#clearMovement();
+        return;
+      }
     }
   };
 

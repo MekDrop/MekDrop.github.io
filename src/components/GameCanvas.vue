@@ -202,6 +202,7 @@ const pluginControlKeyboard = {
   keydownActions: [],
   keyupActions: [],
   keydownConsumeBindings: [],
+  doubleClickActions: [],
 };
 
 function syncInteractionHud() {
@@ -260,29 +261,28 @@ function addPluginControlEntry(listName, entry) {
  * @param {PluginControlEntry} entry
  */
 function removePluginControlEntry(listName, entry) {
-  pluginControlKeyboard[listName] = pluginControlKeyboard[listName].filter(
-    /**
-     *
-     * @param {PluginControlEntry} registeredEntry
-     */
-    (registeredEntry) => registeredEntry !== entry,
-  );
+  const entries = pluginControlKeyboard[listName];
+  const index = entries.indexOf(entry);
+  if (index !== -1) {
+    entries.splice(index, 1);
+  }
 }
 
 /**
  *
  * @param {string} name
  * @param {ControlAction} action
- * @param {{binding?: string, keydown?: boolean, keyup?: boolean, consumeKeydown?: boolean}} options
+ * @param {{binding?: string, keydown?: boolean, keyup?: boolean, consumeKeydown?: boolean, doubleClick?: boolean}} options
  * @param {string} options.binding
  * @param {boolean} options.keydown
  * @param {boolean} options.keyup
  * @param {boolean} options.consumeKeydown
+ * @param {boolean} options.doubleClick
  */
 function registerControlAction(
   name,
   action,
-  { binding, keydown = false, keyup = false, consumeKeydown = false } = {},
+  { binding, keydown = false, keyup = false, consumeKeydown = false, doubleClick = false } = {},
 ) {
   pluginControlActions[name] = action;
   const entry = { binding, action };
@@ -295,6 +295,9 @@ function registerControlAction(
   if (consumeKeydown) {
     addPluginControlEntry("keydownConsumeBindings", binding);
   }
+  if (doubleClick) {
+    addPluginControlEntry("doubleClickActions", entry);
+  }
   return () => {
     if (pluginControlActions[name] === action) {
       delete pluginControlActions[name];
@@ -302,6 +305,7 @@ function registerControlAction(
     removePluginControlEntry("keydownActions", entry);
     removePluginControlEntry("keyupActions", entry);
     removePluginControlEntry("keydownConsumeBindings", binding);
+    removePluginControlEntry("doubleClickActions", entry);
   };
 }
 
@@ -615,12 +619,6 @@ async function init() {
     bindings.cameraPointer,
   );
   const actions = {
-    teleportHero: {
-      /**
-       * @param {MouseEvent} event
-       */
-      invoke: (event) => renderer.teleportHeroAtPointer(event),
-    },
     zoomIn: zoomInAction,
     zoomOut: zoomOutAction,
     moveCamera: moveCameraAction,
