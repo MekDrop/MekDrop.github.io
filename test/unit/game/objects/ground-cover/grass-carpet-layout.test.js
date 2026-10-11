@@ -16,6 +16,21 @@ function map(grid) {
 }
 
 describe("short grass carpet placement", () => {
+  it("miters exposed corners without cutting gaps into continuous cliff edges", () => {
+    const input = map([[TileType.GRASS, TileType.GRASS]]);
+    const fringe = GrassCarpetLayout.create(input).filter(({ fringe }) => fringe);
+    const west = fringe.find(({ rotation }) => rotation === 270);
+    const east = fringe.find(({ rotation }) => rotation === 90);
+    assert.deepEqual(west.edgeJoins, [1, 1]);
+    assert.deepEqual(east.edgeJoins, [1, 1]);
+    const north = fringe.filter(({ rotation }) => rotation === 180)
+      .sort((a, b) => a.x - b.x);
+    const south = fringe.filter(({ rotation }) => rotation === 0)
+      .sort((a, b) => a.x - b.x);
+    assert.deepEqual(north.map(({ edgeJoins }) => edgeJoins), [[0, 1], [1, 0]]);
+    assert.deepEqual(south.map(({ edgeJoins }) => edgeJoins), [[1, 0], [0, 1]]);
+  });
+
   it("covers grass without occupying paths, water, gates or castle foundations", () => {
     const input = map([[TileType.GRASS, TileType.PATH, TileType.WATER,
       TileType.ENTRY, TileType.CASTLE_WALL, TileType.CASTLE_TOWER]]);
@@ -133,7 +148,7 @@ describe("short grass carpet placement", () => {
     }
   });
 
-  it("preserves lawn scatter and adds wind-responsive turf geometry only on exposed edges", () => {
+  it("preserves lawn scatter and adds rooted turf geometry only on exposed edges", () => {
     const input = map(Array.from({ length: 3 }, () => Array(3).fill(TileType.GRASS)));
     const center = (placements) => placements.filter(({ x, z }) => Math.abs(x) < 0.5 && Math.abs(z) < 0.5);
     const inside = center(GrassCarpetLayout.create(input));

@@ -13,11 +13,14 @@ export class GrassEdgeMesh {
     // reaches outside the soil face; there is no exposed horizontal trim.
     for (let segment = 0; segment <= 16; segment += 1) {
       const x = segment / 16 - 0.5;
-      const grain = ((segment * 37 + segment * segment * 13) % 17) / 16;
+      const grain = segment === 16 ? 0 : ((segment * 37 + segment * segment * 13) % 17) / 16;
       const depth = segment === 0 || segment === 16 ? 0.085 : 0.075 + grain * 0.02;
       const roughness = (grain - 0.5) * 0.006;
+      // Both rows of the hanging face must clear the soil plane at z=0.01.
+      // Returning the tips into that plane makes grazing camera movement
+      // alternate between soil and turf at almost identical depths.
       for (const [y, z] of [[-0.012, -0.035], [0.002, 0.01],
-        [-0.012, 0.014 + roughness], [-depth, 0.006 + roughness],
+        [-0.012, 0.014 + roughness], [-depth, 0.012],
         [-depth + 0.008, -0.012]]) {
         positions.push(x, y, z);
       }

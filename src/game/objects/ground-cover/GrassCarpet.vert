@@ -1,4 +1,5 @@
 uniform float uGrassEdge;
+uniform vec2 uGrassEdgeJoins;
 varying vec2 vGrassTilePosition;
 varying vec2 vGrassEdgeGrain;
 uniform float uGrassTime;
@@ -28,6 +29,21 @@ vec4 getPosition() {
   vGrassTilePosition = root.xz;
   // Capture the undeformed mesh coordinates: wind must carry its grain.
   vGrassEdgeGrain = vertex_position.xy;
+  if (uGrassEdge > 0.5) {
+    // Miter adjoining exposed sides on the tile's corner diagonal. Apply
+    // the cut in metres even when excavation has shortened the strip.
+    vec3 sod = vertex_position.xyz;
+    float join = mix(uGrassEdgeJoins.x, uGrassEdgeJoins.y, step(0.0, sod.x));
+    sod.x += sign(sod.x) * (sod.z - 0.01) * join *
+      step(0.499, abs(sod.x)) / max(length(dModelMatrix[0].xyz), 0.001);
+    // Sod belongs to the terrain. Independent wind/contact deformation of
+    // adjacent strips separates their joins and exposes overlapping faces.
+    vGrassTip = clamp(abs(vertex_position.y) / 0.06, 0.0, 1.0);
+    vGrassVariation = 0.0;
+    vGrassCompression = 0.0;
+    dPositionW = root + mat3(dModelMatrix) * sod;
+    return matrix_viewProjection * vec4(dPositionW, 1.0);
+  }
   float height = mix(max(vertex_position.y, 0.0), abs(vertex_position.y), uGrassEdge) * length(dModelMatrix[1].xyz);
   float tip = smoothstep(0.0, 0.06, height);
   float contact = 0.0;
@@ -128,12 +144,6 @@ vec4 getPosition() {
   vGrassVariation = fract(sin(dot(root.xz, vec2(12.9898, 78.233))) * 43758.5453);
   vGrassCompression = contact;
   dPositionW = root + offset;
-  if (uGrassEdge > 0.5) {
-    // Rooted sod is stiffer than loose blades: only the hanging lip flexes.
-    dPositionW.xz = root.xz + (mat3(dModelMatrix) * vertex_position.xyz).xz +
-      windDirection * windBend * 0.2;
-    return matrix_viewProjection * vec4(dPositionW, 1.0);
-  }
   vec2 cellCenter = floor(root.xz + uGrassGridOffset + 0.5) - uGrassGridOffset;
   // Smoothly curl outward vertices back toward the edge. Unlike clamp(),
   // this retains each tapered tip instead of piling them onto a flat plane.

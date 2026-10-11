@@ -163,6 +163,7 @@ export class GrassCarpet {
     this.#edgeMesh = GrassEdgeMesh.create(pc, device);
     this.#edgeMesh.incRefCount();
     this.#material.setParameter("uGrassEdge", 0);
+    this.#material.setParameter("uGrassEdgeJoins", [0, 0]);
     const chunks = new Map();
     const matrix = new pc.Mat4();
     const position = new pc.Vec3();
@@ -177,7 +178,7 @@ export class GrassCarpet {
       (cells) => cells.has(`${col},${row}`)) ?? -1;
       // Share clumps across larger patches without changing their transforms.
       const patch = `${Math.floor(col / 12)},${Math.floor(row / 12)}`;
-      const key = `${group}:${patch}:${Boolean(placement.fringe)}:${placement.detail}:${placement.broadleaf}:${placement.boundaryExtension}`;
+      const key = `${group}:${patch}:${Boolean(placement.fringe)}:${placement.detail}:${placement.broadleaf}:${placement.boundaryExtension}:${placement.edgeJoins ?? [0, 0]}`;
       const chunk = chunks.get(key) ?? {
         group,
         fringe: Boolean(placement.fringe),
@@ -187,6 +188,7 @@ export class GrassCarpet {
         castleRearGrass: placement.castleRearGrass,
         broadleaf: placement.broadleaf,
         boundaryExtension: placement.boundaryExtension,
+        edgeJoins: placement.edgeJoins ?? [0, 0],
       };
       rotation.setFromEulerAngles(0, placement.rotation, 0);
       matrix.setTRS(
@@ -237,6 +239,7 @@ export class GrassCarpet {
       bounds.setMinMax(minimum, maximum);
       for (const instance of batch.entity.render.meshInstances) {
         instance.setParameter("uGrassEdge", chunk.fringe ? 1 : 0);
+        instance.setParameter("uGrassEdgeJoins", chunk.edgeJoins);
         instance.setParameter("uGrassBroadleaf", chunk.broadleaf ? 1 : 0);
         instance.setParameter(
           "uGrassBoundaryExtension",

@@ -182,12 +182,17 @@ export class GrassCarpetLayout {
           }
           for (const [low, high] of spans) {
           const midpoint = (low + high) / 2;
+          const [lowSide, highSide] = [[1, 3], [2, 0], [3, 1], [0, 2]][side];
           placements.push({
             x: x + (acrossX ? midpoint : 0),
             y: surfaceHeight + GRASS_SURFACE_LIFT - 0.002,
             z: z + (acrossX ? 0 : midpoint),
             rotation: [270, 180, 90, 0][side], width: high - low, height: 1,
             fringe: true, broadleaf: false, exposedSides, boundaryExtension,
+            edgeJoins: [
+              Number(low === -0.5 && Boolean(exposedSides & (1 << lowSide))),
+              Number(high === 0.5 && Boolean(exposedSides & (1 << highSide))),
+            ],
             chunk: `${Math.floor(col / 6)},${Math.floor(row / 6)}`,
             detail: false, castleRearGrass: Boolean(castleRearGrass),
           });
