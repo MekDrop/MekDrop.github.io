@@ -26,8 +26,10 @@ export class WindowModules {
       for (let row = 0; row < rows; row++) {
         const copy = pane.clone();
         copy.name = `Amber glass pane ${column} ${row}`;
+        // Seat the glazing inside the timber depth. The imported panes sit
+        // behind the dividers, exposing a slit when viewed obliquely.
         copy.setLocalPosition(-0.5 + (column + 0.5) / columns,
-          (row + 0.5) / rows, pane.getLocalPosition().z);
+          (row + 0.5) / rows, pane.getLocalPosition().z + 0.035);
         const scale = pane.getLocalScale();
         copy.setLocalScale(scale.x * sourceColumns / columns, scale.y * sourceRows / rows, scale.z);
         pane.parent.addChild(copy);
