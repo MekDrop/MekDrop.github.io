@@ -13,8 +13,6 @@ const ROOM_MATERIALS = {
   woodLight: { color: 0x6b3a22, gloss: 0.06 },
   gold: { color: 0xd8a936, gloss: 0.36, metalness: 0.28 },
   iron: { color: 0x171b1d, gloss: 0.16 },
-  banner: { color: 0x234f9b, gloss: 0.05 },
-  bannerLight: { color: 0x3974c7, gloss: 0.06 },
 };
 
 const EDGE_MARGIN = 0.82;
@@ -584,7 +582,6 @@ export class CastleAudienceRoom {
     this.#buildThrone(throneForward);
     this.#buildColumns(throneForward);
     this.#buildBraziers(throneForward);
-    this.#buildRearBanners(throneForward);
   }
 
   /**
@@ -805,40 +802,6 @@ export class CastleAudienceRoom {
       lantern.addComponent("rigidbody", { type: "static", friction: 0.6, restitution: 0 });
       const glow = this.#point(side * lateral, throneForward + 0.35, 1.12);
       this.#fire.add({ ...glow, scale: 0.065, brazier: false, intensity: 0.6, flame: false });
-    }
-  }
-
-  /**
-   *
-   * @param {{x: number, y: number, z: number}} throneForward
-   */
-  #buildRearBanners(throneForward) {
-    const lateral = Math.min(1.68, this.#roomWidth / 2 - 0.48);
-    for (const side of [-1, 1]) {
-      this.#boxAt(
-        "Audience chamber banner",
-        "banner",
-        side * lateral,
-        throneForward + 0.56,
-        1.62,
-        [0.78, 1.38, 0.08],
-      );
-      this.#boxAt(
-        "Audience banner stripe",
-        "bannerLight",
-        side * lateral,
-        throneForward + 0.51,
-        1.65,
-        [0.18, 1.18, 0.035],
-      );
-      this.#boxAt(
-        "Audience banner rail",
-        "gold",
-        side * lateral,
-        throneForward + 0.58,
-        2.35,
-        [0.98, 0.09, 0.11],
-      );
     }
   }
 

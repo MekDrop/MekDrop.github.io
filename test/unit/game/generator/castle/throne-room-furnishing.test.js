@@ -79,6 +79,13 @@ it("publishes actual prop definitions once and replaces old furnishings on regen
   definition.buildPlan = await CastleAuthoredBuildPlan.generate(definition);
   const map = { cols: 42, rows: 32, objects: [definition] };
   ThroneRoomMapObjects.prepareMap(map);
+  const banners = map.objects.filter(item => item.object === "VestibuleBanner");
+  assert.equal(banners.length, 2);
+  for (const banner of banners) {
+    assert.deepEqual(banner.stretch, { x: 0.975, y: 1.4, z: 1 });
+    const dais = map.objects.find(item => item.object === "ThroneDais");
+    assert.ok(Math.abs(banner.position.y - dais.position.y - 2.3) < 0.00001);
+  }
   const first = structuredClone(map.objects);
   ThroneRoomMapObjects.prepareMap(map);
   assert.deepEqual(map.objects, first);

@@ -7,7 +7,7 @@ export class ThroneRoomGenerator extends AbstractCastleRoomGenerator {
    */
   get levels() { return [0]; }
   /**
-   * The audience object keeps its throne, runner, banners and rear lanterns.
+   * The audience object keeps its throne, runner and rear lanterns.
    * Court furniture stays outside its central visitor and royal movement lane.
    * Dimensions are the exported prop envelopes, including candle arms.
    * @param {import("./AbstractCastleRoomGenerator.js").PlannedCastleRoom} room
@@ -76,6 +76,14 @@ export class ThroneRoomGenerator extends AbstractCastleRoomGenerator {
         depth: Math.abs(Math.sin(angle)) * itemWidth + Math.abs(Math.cos(angle)) * itemDepth,
         scale: 1, elevation, rotation, mirrorRotationOffset: object === "WoodenDeskChair" ? 180 : 0 });
     };
+    // Top-mounted authored cloth hangs clear of the rear wall and candle groups.
+    const bannerLateral = Math.min(1.68, width / 2 - 0.6);
+    for (const side of [-1, 1]) {
+      add("VestibuleBanner", center + side * bannerLateral, bounds.minZ + 0.38,
+        0.98, 0.1, 2.35);
+      items.at(-1).stretch = { x: 0.975, y: 1.4, z: 1 };
+      items.at(-1).height = 1.38;
+    }
     add("ThroneDais", center, bounds.minZ + 0.9, 1.1, 0.95, 0.05);
     items.at(-1).height = 0.1;
     add(variant === "warCouncil" ? "WarCouncilShield" : "RoyalCrest", center,
