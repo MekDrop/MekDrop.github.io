@@ -1,5 +1,6 @@
 export const INPUT_EVENT_TYPE = Object.freeze({
   BLUR: "blur",
+  DOUBLE_CLICK: "dblclick",
   KEY_DOWN: "keydown",
   KEY_UP: "keyup",
   MOUSE_MOVE: "mousemove",

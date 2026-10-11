@@ -615,6 +615,12 @@ async function init() {
     bindings.cameraPointer,
   );
   const actions = {
+    teleportHero: {
+      /**
+       * @param {MouseEvent} event
+       */
+      invoke: (event) => renderer.teleportHeroAtPointer(event),
+    },
     zoomIn: zoomInAction,
     zoomOut: zoomOutAction,
     moveCamera: moveCameraAction,

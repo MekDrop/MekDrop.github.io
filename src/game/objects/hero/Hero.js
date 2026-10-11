@@ -17,6 +17,7 @@ import { TileType } from "../../generator/map/MapGenerator.js";
 import { GRASS_SURFACE_LIFT } from "../../config/terrain.js";
 import heroModelUrl from "../../models/hero/hero.glb?url";
 import { HeroRespawnEffect } from "./HeroRespawnEffect.js";
+import { HeroTeleportEffect } from "./HeroTeleportEffect.js";
 import { FOOT_SIDE } from "../../enum/FootSide.js";
 import { HERO_ANIMATION } from "../../enum/HeroAnimation.js";
 import { HERO_ACTION } from "../../enum/HeroAction.js";
@@ -614,6 +615,11 @@ export class Hero {
     * @type {number}
    */
   #respawnEffect = null;
+
+  /**
+   * @type {HeroTeleportEffect|null}
+   */
+  #teleportEffect = null;
   /**
    *
     * @type {HeroFootPlacement}
@@ -1168,6 +1174,40 @@ export class Hero {
    */
   get position() {
     return { ...this.#position };
+  }
+
+  /**
+   * @param {{x: number, y: number, z: number}} position
+   * @returns {boolean}
+   */
+  teleport(position) {
+    if (this.isGameOver || ![position.x, position.y, position.z].every(Number.isFinite)) {
+      return false;
+    }
+    const previous = this.position;
+    this.#actionBehavior.finish();
+    this.#clearActionInput();
+    this.#angryEscapeBehavior.reset();
+    this.#actionBehavior.angryEscape = false;
+    this.#position = { x: position.x, y: position.y + 0.04, z: position.z };
+    this.#velocity = { x: 0, y: 0, z: 0 };
+    this.#grounded = false;
+    this.#coyoteRemaining = 0;
+    this.#jumpsUsed = 0;
+    this.#automaticStepVisualOffset = 0;
+    this.#automaticStepGroundingRemaining = 0;
+    this.#automaticStepTargetHeight = null;
+    this.#stableGroundPosition = { ...this.#position };
+    this.#movementBlocked = false;
+    this.#physics.gravity = GRAVITY;
+    this.#physics.resume(this.#position, this.#velocity);
+    this.#teleportEffect ??= new HeroTeleportEffect(this.#pc, this.#app);
+    this.#teleportEffect.play(previous, this.#position);
+    this.#onPositionChange?.(this.#position);
+    this.#restartAnimation = true;
+    this.#resetBoredom();
+    this.#syncState();
+    return true;
   }
 
   /**
@@ -1990,6 +2030,8 @@ export class Hero {
     this.#hairPhysics = null;
     this.#respawnEffect?.destroy();
     this.#respawnEffect = null;
+    this.#teleportEffect?.destroy();
+    this.#teleportEffect = null;
     for (const tool of this.#tools.values()) {
       tool.destroy();
     }

@@ -1003,6 +1003,35 @@ export class PlayCanvasRenderer {
     return this.#startHeroCameraReturn(true);
   }
 
+  /**
+   * @param {MouseEvent} event
+   * @returns {boolean}
+   */
+  teleportHeroAtPointer(event) {
+    const hero = this.hero;
+    if (
+      !(import.meta.env.DEV || this.#debugStore?.hasAny) ||
+      !hero || this.inventoryVisible || hero.isGameOver
+    ) {
+      return false;
+    }
+    const ray = this.#pointerRay(event);
+    if (!ray) {
+      return false;
+    }
+    const hit = this.#app.systems.rigidbody.raycastFirst(ray.start, ray.end, {
+      /**
+       * @param {pc.Entity} entity
+       */
+      filterCallback: (entity) =>
+        entity !== hero.entity && !entity.isDescendantOf(hero.entity),
+    });
+    if (!hit || hit.normal.y < 0.35) {
+      return false;
+    }
+    return hero.teleport(hit.point);
+  }
+
   isGameOver() {
     return (
       this.#sceneObjects.getOne(SCENE_OBJECT_TYPE.HERO)?.isGameOver ||

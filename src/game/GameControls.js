@@ -159,6 +159,10 @@ export class GameControls {
   }
 
   connect() {
+    this.#element.addEventListener(
+      INPUT_EVENT_TYPE.DOUBLE_CLICK,
+      this.#handleDoubleClick,
+    );
     window.addEventListener(INPUT_EVENT_TYPE.KEY_DOWN, this.#handleKeydown, true);
     window.addEventListener(INPUT_EVENT_TYPE.KEY_UP, this.#handleKeyup, true);
     window.addEventListener(INPUT_EVENT_TYPE.BLUR, this.#clearMovement);
@@ -196,6 +200,10 @@ export class GameControls {
   }
 
   disconnect() {
+    this.#element.removeEventListener(
+      INPUT_EVENT_TYPE.DOUBLE_CLICK,
+      this.#handleDoubleClick,
+    );
     window.removeEventListener(INPUT_EVENT_TYPE.KEY_DOWN, this.#handleKeydown, true);
     window.removeEventListener(INPUT_EVENT_TYPE.KEY_UP, this.#handleKeyup, true);
     window.removeEventListener(INPUT_EVENT_TYPE.BLUR, this.#clearMovement);
@@ -296,6 +304,24 @@ export class GameControls {
    *
    * @param {Event} event
    * @type {(event: Event) => void}
+   */
+  #handleDoubleClick = (event) => {
+    if (
+      event.defaultPrevented || event.button !== 0 ||
+      this.#actions.toggleInventory?.visible
+    ) {
+      return;
+    }
+    if (this.#actions.teleportHero?.invoke(event)) {
+      event.preventDefault();
+      this.#cameraDrag.cancel();
+      this.#clearMovement();
+    }
+  };
+
+  /**
+   * @param {WheelEvent} event
+   * @type {(event: WheelEvent) => void}
    */
   #handleWheel = (event) => {
     event.preventDefault();
