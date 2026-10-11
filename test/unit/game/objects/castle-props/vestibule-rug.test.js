@@ -4,6 +4,22 @@ import { it } from "node:test";
 import * as pc from "playcanvas";
 import { AbstractCastleProp } from "../../../../../src/game/objects/castle-props/AbstractCastleProp.js";
 
+it("separates the runner inset from its backing to prevent depth fighting", async () => {
+  const buffer = await readFile(new URL("../../../../../src/game/models/castle/props/vestibule-runner.glb", import.meta.url));
+  const gltf = JSON.parse(buffer.toString("utf8", 20, 20 + buffer.readUInt32LE(12)));
+  const primitives = gltf.meshes.flatMap(mesh => mesh.primitives);
+  const bounds = name => {
+    const primitive = primitives.find(item => gltf.materials[item.material].name === name);
+    return gltf.accessors[primitive.attributes.POSITION];
+  };
+  const backing = bounds("Crimson fabric");
+  const inset = bounds("Dark crimson woven inset");
+  const embroidery = bounds("Muted gold woven thread");
+  assert.ok(inset.min[1] - backing.max[1] >= 0.002,
+    "the inset needs millimetres of clearance, not a nearly coplanar surface");
+  assert.ok(embroidery.min[1] > inset.max[1], "gold stitching remains above the inset");
+});
+
 it("keeps the runner visible without a door-blocking body while solid props retain collision", async () => {
   const sourceUrl = new URL("../../../../../src/game/objects/castle-props/VestibuleRug.js", import.meta.url);
   const source = (await readFile(sourceUrl, "utf8"))
