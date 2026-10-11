@@ -33,6 +33,15 @@ it("repeats study groups and preserves the end-wall bookcase row across seeds", 
     for (const object of ["LibraryStepStool", "ParchmentBundle", "LibraryBookStack"]) {
       assert.ok(furniture.some(item => item.object === object), `seed ${seed} uses ${object}`);
     }
+    const stool = furniture.find(item => item.object === "LibraryStepStool");
+    const shaft = plan.stairs.find(item => item.to === room.level);
+    const xGap = Math.abs(stool.x - (shaft.minX + shaft.maxX) / 2) - shaft.radius - shaft.flightShift - stool.width / 2;
+    const zGap = room.wallBounds.maxZ - stool.z - stool.depth / 2;
+    assert.ok(Math.abs(xGap - 0.01) < 1e-6 && Math.abs(zGap - 0.01) < 1e-6,
+      `seed ${seed} tucks the stool against the window wall and stair guard`);
+    if (seed === 48) {
+      assert.equal(stool.rotation, 180, "preserves the original stool orientation");
+    }
     for (const detail of furniture.filter(item => ["LibraryBookStack", "ParchmentBundle"].includes(item.object))) {
       const shelf = furniture.find(item => item.object === "Bookshelf" &&
         item.height === detail.y &&
@@ -55,8 +64,9 @@ it("repeats study groups and preserves the end-wall bookcase row across seeds", 
     }
     for (const stair of plan.stairs) {
       for (const item of furniture) {
-        assert.ok(item.x + item.width / 2 <= stair.minX - 0.39 || item.x - item.width / 2 >= stair.maxX + 0.39 ||
-          item.z + item.depth / 2 <= stair.minZ - 0.39 || item.z - item.depth / 2 >= stair.maxZ + 0.39);
+        const clearance = item.object === "LibraryStepStool" ? 0 : 0.39;
+        assert.ok(item.x + item.width / 2 <= stair.minX - clearance || item.x - item.width / 2 >= stair.maxX + clearance ||
+          item.z + item.depth / 2 <= stair.minZ - clearance || item.z - item.depth / 2 >= stair.maxZ + clearance);
       }
     }
     assert.deepEqual((await CastleBasePlanGenerator.generate({ seed })).furniture.filter(item => item.role === "libraryProp"), furniture);
@@ -73,7 +83,8 @@ it("repeats study groups and preserves the end-wall bookcase row across seeds", 
     }
     signatures.add(JSON.stringify(furniture));
   }
-  assert.ok(signatures.size > 30);
+  // Corner placement removes the stool's random wall-slot variation.
+  assert.ok(signatures.size > 20);
 });
 
 it("small studies omit groups that cannot preserve their approaches", () => {

@@ -1,6 +1,6 @@
 /**
  * @typedef {{minX:number,maxX:number,minZ:number,maxZ:number}} StudyBounds
- * @typedef {import("./AbstractCastleRoomGenerator.js").PlannedCastleRoom & {seed?:string|number,furnishingSeed?:string|number,wallThickness?:number,openings?:import("../CastleBasePlanGenerator.js").CompiledCastleOpening[],stairs?:StudyBounds[]}} StudyRoom
+ * @typedef {import("./AbstractCastleRoomGenerator.js").PlannedCastleRoom & {seed?:string|number,furnishingSeed?:string|number,wallThickness?:number,openings?:import("../CastleBasePlanGenerator.js").CompiledCastleOpening[],stairs?:(StudyBounds & {to?:number,radius?:number,flightShift?:number})[]}} StudyRoom
  */
 
 /**
@@ -95,9 +95,22 @@ export class LibraryRoomFurnishing {
     if (desk) {
       stool: for (const yaw of sides) {
         for (const along of this.#positions(yaw)) {
-          const point = this.#point(yaw, along, 0.26);
+          const original = this.#point(yaw, along, 0.26);
           const width = yaw % 180 ? 0.488 : 0.517, depth = yaw % 180 ? 0.517 : 0.488;
-          if (!this.#clear(point, width, depth, 0.4)) { continue; }
+          if (!this.#clear(original, width, depth, 0.4)) { continue; }
+          const bounds = this.#room.wallBounds ?? this.#room.contentBounds ?? this.#room;
+          const stair = (this.#room.stairs ?? []).find(/**
+           * @param {StudyBounds & {to?:number}} shaft
+           */
+          shaft => shaft.to === this.#room.level);
+          // The marked corner is the SOUTH window wall meeting the stair
+          // opening guard, not an outer corner of the room. The guard's
+          // library-side face is one radius plus flight shift from its centre.
+          const guardX = stair ? (stair.minX + stair.maxX) / 2 -
+            (stair.radius ?? (stair.maxX - stair.minX) / 2 - 0.025) - (stair.flightShift ?? 0) : undefined;
+          const target = stair ? { x: guardX - width / 2 - 0.01,
+            z: bounds.maxZ - depth / 2 - 0.01 } : original;
+          const point = this.#clear(target, width, depth, 0.4, 0, false, undefined, true) ? target : original;
           this.#items.push(this.#item("LibraryStepStool", point, 0.517, 0.488, yaw));
           this.#reserve(point, width, depth);
           break stool;
@@ -255,11 +268,12 @@ export class LibraryRoomFurnishing {
    * @param {number} [y]
    * @param {boolean} [sharedShelfAisle]
    * @param {{x:number,z:number}} [shelfPoint]
+   * @param {boolean} [cornerProp]
    * @returns {boolean}
    */
-  #clear({ x, z }, width, depth, height, y = 0, sharedShelfAisle = false, shelfPoint) {
-    const room = this.#room, bounds = sharedShelfAisle ? room.wallBounds ?? room : room.contentBounds ?? room;
-    const inset = sharedShelfAisle ? 0 : y >= 1.8 ? this.#inset - 0.06 : this.#inset;
+  #clear({ x, z }, width, depth, height, y = 0, sharedShelfAisle = false, shelfPoint, cornerProp = false) {
+    const room = this.#room, bounds = sharedShelfAisle || cornerProp ? room.wallBounds ?? room.contentBounds ?? room : room.contentBounds ?? room;
+    const inset = cornerProp ? 0.01 : sharedShelfAisle ? 0 : y >= 1.8 ? this.#inset - 0.06 : this.#inset;
     const box = { minX: x - width / 2, maxX: x + width / 2, minZ: z - depth / 2, maxZ: z + depth / 2 };
     if (box.minX < bounds.minX + inset - 1e-6 || box.maxX > bounds.maxX - inset + 1e-6 ||
         box.minZ < bounds.minZ + inset - 1e-6 || box.maxZ > bounds.maxZ - inset + 1e-6) { return false; }
@@ -288,8 +302,11 @@ export class LibraryRoomFurnishing {
           Math.abs(x - opening.center) < width / 2 + half) { return false; }
     }
     for (const stair of room.stairs ?? []) {
-      if (box.maxX > stair.minX - 0.4 && box.minX < stair.maxX + 0.4 &&
-          box.maxZ > stair.minZ - 0.4 && box.minZ < stair.maxZ + 0.4) { return false; }
+      // The low corner stool can occupy the wall strip outside the shaft;
+      // taller furniture still reserves the wider staircase approach.
+      const clearance = cornerProp ? 0 : 0.4;
+      if (box.maxX > stair.minX - clearance && box.minX < stair.maxX + clearance &&
+          box.maxZ > stair.minZ - clearance && box.minZ < stair.maxZ + clearance) { return false; }
     }
     return true;
   }
