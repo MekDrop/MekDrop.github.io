@@ -114,7 +114,9 @@ export class CastleResidence {
         wardrobe: [0.65, 1.15, 0.46], readingChair: [0.75, 1.665, 0.735],
         servantBed: [0.8, 0.675, 1.6], storageShelf: [0.8, 1, 0.3],
       }[placement.role];
-      this.#solids.push({ x: local.x, y: placement.position.y - origin.y + dimensions[1] * placement.scale.y / 2, z: local.z, width: dimensions[0] * placement.scale.x, height: dimensions[1] * placement.scale.y, depth: dimensions[2] * placement.scale.z });
+      this.#solids.push({ x: local.x, y: placement.position.y - origin.y + dimensions[1] * placement.scale.y / 2, z: local.z,
+        width: placement.footprint?.width ?? dimensions[0] * placement.scale.x, height: dimensions[1] * placement.scale.y,
+        depth: placement.footprint?.depth ?? dimensions[2] * placement.scale.z });
     }
     if (buildPlan.metadata.runtime.residential?.version === 2) {
       if (!buildPlan.metadata.runtime.residential.basePlanId) { this.#buildExterior(buildPlan, modelLibrary, pc); }

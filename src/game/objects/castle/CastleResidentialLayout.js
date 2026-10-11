@@ -432,8 +432,9 @@ export class CastleResidentialLayout {
      * @param {{role:string,x:number,z:number,scale:number,floorY:number}} item
      */
     (item) => ({ role: item.role,
+      footprint: { width: item.width * item.scale, depth: item.depth * item.scale },
       position: this.toWorld(item.x, item.z, item.floorY - this.#origin.y),
-      scale: { x: item.scale, y: item.scale, z: item.scale }, yaw: this.#yaw }));
+      scale: { x: item.scale, y: item.scale, z: item.scale }, yaw: this.#yaw + (item.rotation === undefined ? 0 : 180 + item.rotation) }));
     this.#reservations = Object.entries(plan.reservations).map(/**
      *
      * @param {[string, {minX:number,maxX:number,minZ:number,maxZ:number,minY:number,maxY:number}]} options
