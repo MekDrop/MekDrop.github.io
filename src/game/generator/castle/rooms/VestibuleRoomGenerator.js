@@ -1,0 +1,147 @@
+import { AbstractCastleRoomGenerator } from "./AbstractCastleRoomGenerator.js";
+
+/**
+ * A coat corner and a picture over luggage flank a clear arrival aisle.
+ */
+export class VestibuleRoomGenerator extends AbstractCastleRoomGenerator {
+  constructor() { super("vestibule", { x: 2, y: 2 }); }
+
+  /**
+   * @param {import("./AbstractCastleRoomGenerator.js").PlannedCastleRoom} room
+   * @param {{wallThickness?:number,openings?:import("../CastleBasePlanGenerator.js").CompiledCastleOpening[],stairs?:Array}} [context]
+   * @returns {import("./AbstractCastleRoomGenerator.js").RoomItem[]}
+   */
+  furnish(room, context = {}) {
+    const items = [];
+    const inset = (context.wallThickness ?? 0.25) / 2;
+    const wall = room.minX;
+    const low = room.minZ + inset + 0.12;
+    const high = room.maxZ - inset - 0.12;
+    if (room.maxX - room.minX < 2 || high - low < 1.5) { return items; }
+    /**
+     * @param {import("./AbstractCastleRoomGenerator.js").RoomItem} item
+     * @returns {boolean}
+     */
+    const safe = item => {
+      const halfX = item.width * item.scale / 2;
+      const halfZ = item.depth * item.scale / 2;
+      if (item.x - halfX < room.minX || item.x + halfX > room.maxX ||
+        item.z - halfZ < room.minZ || item.z + halfZ > room.maxZ) { return false; }
+      if ((context.openings ?? []).some(/**
+       * @param {import("../CastleBasePlanGenerator.js").CompiledCastleOpening} opening
+       */ opening => opening.floorY === room.floorY && (item.y ?? 0) + item.height * item.scale > 0.05 &&
+        !(opening.kind === "window" && (item.y ?? 0) + item.height * item.scale <= opening.bottom - 0.1) &&
+        (opening.axis === "x" ? Math.abs(item.x - opening.coordinate) < halfX + 0.85 &&
+          Math.abs(item.z - opening.center) < halfZ + opening.width / 2 + 0.25 :
+          Math.abs(item.z - opening.coordinate) < halfZ + 0.85 &&
+          Math.abs(item.x - opening.center) < halfX + opening.width / 2 + 0.25))) { return false; }
+      return !(context.stairs ?? []).some(/**
+       * @param {{from:number,to:number,minX:number,maxX:number,minZ:number,maxZ:number}} stair
+       */ stair => room.level >= stair.from && room.level <= stair.to &&
+        item.x + halfX > stair.minX - 0.35 && item.x - halfX < stair.maxX + 0.35 &&
+        item.z + halfZ > stair.minZ - 0.35 && item.z - halfZ < stair.maxZ + 0.35);
+    };
+    // Try both ends of the wall; windows retain a clear approach.
+    for (let z = low + 0.65; z <= high - 0.65; z += 0.1) {
+      const bench = { role: "vestibuleProp", object: "VestibuleBench", x: wall + 0.27,
+        z, width: 0.5, depth: 1.3, height: 0.82, scale: 1, rotation: 90, y: 0.002 };
+      if (!safe(bench)) { continue; }
+      items.push(bench);
+      for (const offset of [-0.35, 0.35]) {
+        const rail = { role: "vestibuleProp", object: "VestibuleCloakRail", x: wall + 0.09,
+          z: z + offset, width: 0.16, depth: 0.85, height: 0.8, scale: 0.78,
+          rotation: 90, y: 1.28 };
+        if (safe(rail)) { items.push(rail); }
+      }
+      items.push({ role: "vestibuleProp", object: "VestibuleBoots", x: wall + 0.44,
+        z: z + 0.15, width: 0.32, depth: 0.4, height: 0.28, scale: 1, rotation: 90, y: 0.002 });
+      const stand = { role: "vestibuleProp", object: "VestibuleStickStand", x: wall + 0.25,
+        z: z + 1, width: 0.36, depth: 0.36, height: 1.05, scale: 1, rotation: 90, y: 0.002 };
+      if (safe(stand)) { items.push(stand); }
+      break;
+    }
+    // Low benches use the empty window bays without covering their glass.
+    for (const window of (context.openings ?? []).filter(/**
+     * @param {import("../CastleBasePlanGenerator.js").CompiledCastleOpening} opening
+     */ opening => opening.roomId === room.id && opening.kind === "window" &&
+      opening.axis === "x" && opening.floorY === room.floorY && opening.coordinate === wall)) {
+      const z = Math.max(low + 0.52, Math.min(high - 0.52, window.center));
+      const bench = { role: "vestibuleProp", object: "VestibuleBench", x: wall + 0.32,
+        z, width: 0.4, depth: 1.04, height: 0.82, scale: 1,
+        stretch: { x: 0.8, y: 1, z: 0.8 }, rotation: 90, y: 0.002 };
+      const free = safe(bench) && !items.some(/**
+       * @param {import("./AbstractCastleRoomGenerator.js").RoomItem} item
+       */ item => (item.y ?? 0) < 0.9 && Math.abs(item.x - bench.x) <
+        (item.width * item.scale + bench.width * bench.scale) / 2 + 0.05 &&
+        Math.abs(item.z - bench.z) < (item.depth * item.scale + bench.depth * bench.scale) / 2 + 0.12);
+      if (!free) { continue; }
+      items.push(bench);
+      const planter = { role: "vestibuleProp", object: "TerracePlanter", x: wall + 0.35,
+        z: z - 0.85, width: 0.665, depth: 0.665, height: 0.99, scale: 0.65,
+        rotation: 90, y: 0.002 };
+      if (safe(planter) && !items.some(/**
+       * @param {import("./AbstractCastleRoomGenerator.js").RoomItem} item
+       */ item => (item.y ?? 0) < 0.9 && Math.abs(item.x - planter.x) <
+        (item.width * item.scale + planter.width * planter.scale) / 2 + 0.05 &&
+        Math.abs(item.z - planter.z) < (item.depth * item.scale + planter.depth * planter.scale) / 2 + 0.05)) {
+        items.push(planter);
+      }
+    }
+    // The opposite wall's door-free pocket holds luggage and the framed picture.
+    if (room.id === "vestibule") {
+      const oppositeWall = room.maxX;
+      const centerZ = (low + high) / 2;
+      for (let offset = 0; offset <= (high - low) / 2; offset += 0.1) {
+        const chest = { role: "vestibuleProp", object: "WoodenStorageChest",
+          x: oppositeWall - 0.405, z: centerZ + offset, width: 0.55, depth: 0.7,
+          height: 0.3291, scale: 1.4, rotation: 270, y: 0.002 };
+        const painting = { role: "vestibuleProp", object: "VestibulePainting",
+          x: oppositeWall - 0.3, z: chest.z, width: 0.08, depth: 1.05,
+          height: 0.78, scale: 1, rotation: 270, y: 1.15 };
+        if (!safe(chest) || !safe(painting)) { continue; }
+        items.push(chest, painting);
+        items.push({ role: "vestibuleProp", object: "VestibuleTravelKit",
+          x: chest.x, z: chest.z, width: 0.3, depth: 0.48, height: 0.45,
+          scale: 1, rotation: 270, y: 0.3291 * chest.scale + 0.002 });
+        // A single armor display flanks the picture while respecting door swings.
+        for (const side of [1, -1]) {
+          const armor = { role: "vestibuleProp", object: "VestibuleArmorDisplay",
+            x: oppositeWall - 0.34, z: chest.z + side * 1.2,
+            width: 0.4, depth: 0.65, height: 1.75, scale: 1, rotation: 270, y: 0.002 };
+          if (!safe(armor) || items.some(/**
+           * @param {import("./AbstractCastleRoomGenerator.js").RoomItem} item
+           */ item => Math.abs(item.x - armor.x) < (item.width * item.scale + armor.width) / 2 + 0.05 &&
+            Math.abs(item.z - armor.z) < (item.depth * item.scale + armor.depth) / 2 + 0.08)) { continue; }
+          items.push(armor);
+          break;
+        }
+        break;
+      }
+    }
+    // Mount a lantern on an unused stretch of the same wall.
+    for (let z = high - 0.3; z >= low + 0.3; z -= 0.15) {
+      const lantern = { role: "vestibuleProp", object: "VestibuleLantern", x: wall + 0.13,
+        z, width: 0.257, depth: 0.187, height: 0.45, scale: 1, rotation: 90, y: 1.75 };
+      if (!safe(lantern) || items.some(/**
+       * @param {import("./AbstractCastleRoomGenerator.js").RoomItem} item
+       */ item => (item.y ?? 0) + item.height * item.scale > lantern.y - 0.1 &&
+          Math.abs(item.x - lantern.x) < 0.7 &&
+          Math.abs(item.z - z) < item.depth * item.scale / 2 + 0.3)) { continue; }
+      items.push(lantern);
+      break;
+    }
+    if (room.id === "vestibule") {
+      const banner = { role: "vestibuleProp", object: "VestibuleBanner", x: (room.minX + room.maxX) / 2,
+        z: room.minZ + 0.02, width: 1.1, depth: 0.03, height: 1.3,
+        scale: 1, stretch: { x: 1.1, y: 1.3, z: 1 }, rotation: 0, y: 2.35 };
+      if (safe(banner)) { items.push(banner); }
+    }
+    // A thin rug marks the route without narrowing the walking aisle.
+    const runnerLength = room.maxZ - room.minZ - 0.12;
+    const rug = { role: "vestibuleProp", object: "VestibuleRug", x: (room.minX + room.maxX) / 2,
+      z: (room.minZ + room.maxZ) / 2, width: 1.3, depth: runnerLength, height: 0.031,
+      scale: 1, stretch: { x: 1, y: 1, z: runnerLength / 3.3 }, rotation: 0, y: 0.002 };
+    if (safe(rug)) { items.push(rug); }
+    return items;
+  }
+}

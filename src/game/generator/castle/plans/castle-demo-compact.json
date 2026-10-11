@@ -175,7 +175,7 @@
               "height": 1
             }
           ],
-          "generator": null
+          "generator": "VestibuleRoomGenerator"
         },
         {
           "id": "stair-room",
@@ -283,7 +283,7 @@
               "height": 1
             }
           ],
-          "generator": null
+          "generator": "VestibuleRoomGenerator"
         }
       ]
     },

@@ -5,6 +5,7 @@ import { LibraryRoomGenerator } from "./rooms/LibraryRoomGenerator.js";
 import { ThroneRoomGenerator } from "./rooms/ThroneRoomGenerator.js";
 import { LeisureRoomGenerator } from "./rooms/LeisureRoomGenerator.js";
 import { TowerRoomGenerator } from "./rooms/TowerRoomGenerator.js";
+import { VestibuleRoomGenerator } from "./rooms/VestibuleRoomGenerator.js";
 import { StairwellRoomGenerator } from "./rooms/StairwellRoomGenerator.js";
 
 /**
@@ -108,7 +109,7 @@ export class CastleBasePlanGenerator {
       throw new CastleBasePlanInvalidError(plan.id, "scale/baseY");
     }
     const generators = options.generators ?? [new ServiceRoomGenerator(), new KitchenRoomGenerator(), new LibraryRoomGenerator(),
-      new ThroneRoomGenerator(), new LeisureRoomGenerator(), new TowerRoomGenerator(1)];
+      new ThroneRoomGenerator(), new LeisureRoomGenerator(), new TowerRoomGenerator(1), new VestibuleRoomGenerator()];
     const registry = new Map(generators.map(/**
      *
      * @param {import("./rooms/AbstractCastleRoomGenerator.js").AbstractCastleRoomGenerator} generator
@@ -154,42 +155,46 @@ export class CastleBasePlanGenerator {
             center: (alongX ? room.minX : room.minZ) + (opening.offset + opening.width / 2) * scale,
             width: opening.width * scale, bottom: opening.bottom, height: opening.height, floorY: room.floorY, swing: opening.swing ?? "outward", openingInset: opening.openingInset ?? 0 });
         }
-        if (!authored.generator) { continue; }
-        const generator = registry.get(authored.generator);
-        if (!generator) {
-          throw new CastleBasePlanInvalidError(plan.id, `generator:${authored.generator}`);
-        }
-        for (const item of generator.furnish(room, { seed: options.seed, wallThickness: plan.wallThickness * scale,
-          openings, stairs: plan.staircases.map(/**
-           * @param {AuthoredCastleStair} stair
-           */ (stair) => ({ ...stair, ...this.#bounds(stair.bounds, scale) })) })) {
-          const halfX = item.width * item.scale / 2;
-          const halfZ = item.depth * item.scale / 2;
-          const bounds = item.role === "libraryProp" || ["KitchenFireplace", "HangingFryingPan"].includes(item.object) ? room.wallBounds : room;
-          const wallInset = item.wallInset ?? 0;
-          if (item.x - halfX < bounds.minX - wallInset - 1e-6 || item.x + halfX > bounds.maxX + wallInset + 1e-6 ||
-            item.z - halfZ < bounds.minZ - wallInset - 1e-6 || item.z + halfZ > bounds.maxZ + wallInset + 1e-6) { continue; }
-          const blocksDoor = openings.some(/**
-           *
-           * @param {CompiledCastleOpening} opening
-           */
-          (opening) => opening.roomId === room.id && opening.kind === "door" &&
-            !(item.object === "Bookshelf" && (opening.axis === "z" ?
-              Math.abs(item.x - opening.center) >= halfX + opening.width / 2 && Math.abs(item.z - opening.coordinate) >= halfZ + 0.1 :
-              Math.abs(item.z - opening.center) >= halfZ + opening.width / 2 && Math.abs(item.x - opening.coordinate) >= halfX + 0.1)) &&
-            (opening.axis === "x" ? Math.abs(item.x - opening.coordinate) < halfX + 0.75 &&
-              Math.abs(item.z - opening.center) < halfZ + opening.width / 2 + 0.25 :
-              Math.abs(item.z - opening.coordinate) < halfZ + 0.75 &&
-              Math.abs(item.x - opening.center) < halfX + opening.width / 2 + 0.25));
-          const blocksStair = plan.staircases.some(/**
-           *
-           * @param {AuthoredCastleStair} stair
-           */
-          (stair) => floor.index >= stair.from && floor.index <= stair.to &&
-            item.x + halfX > stair.bounds[0] * scale && item.x - halfX < (stair.bounds[0] + stair.bounds[2]) * scale &&
-            item.z + halfZ > stair.bounds[1] * scale && item.z - halfZ < (stair.bounds[1] + stair.bounds[3]) * scale);
-          if (!blocksDoor && !blocksStair) { furniture.push({ ...item, roomId: room.id, floorY: room.floorY }); }
-        }
+      }
+    }
+    // Furnishing must see doors authored by neighboring rooms, including later spaces.
+    for (const room of spaces) {
+      if (!room.generator) { continue; }
+      const generator = registry.get(room.generator);
+      if (!generator) {
+        throw new CastleBasePlanInvalidError(plan.id, `generator:${room.generator}`);
+      }
+      for (const item of generator.furnish(room, { seed: options.seed, wallThickness: plan.wallThickness * scale,
+        openings, stairs: plan.staircases.map(/**
+         * @param {AuthoredCastleStair} stair
+         */ (stair) => ({ ...stair, ...this.#bounds(stair.bounds, scale) })) })) {
+        const halfX = item.width * item.scale / 2;
+        const halfZ = item.depth * item.scale / 2;
+        const bounds = item.role === "libraryProp" || ["KitchenFireplace", "HangingFryingPan"].includes(item.object) ? room.wallBounds : room;
+        const wallInset = item.wallInset ?? 0;
+        if (item.x - halfX < bounds.minX - wallInset - 1e-6 || item.x + halfX > bounds.maxX + wallInset + 1e-6 ||
+          item.z - halfZ < bounds.minZ - wallInset - 1e-6 || item.z + halfZ > bounds.maxZ + wallInset + 1e-6) { continue; }
+        const blocksDoor = openings.some(/**
+         *
+         * @param {CompiledCastleOpening} opening
+         */
+        (opening) => opening.roomId === room.id && opening.kind === "door" &&
+          (item.y ?? 0) + (item.height ?? Infinity) * item.scale > 0.05 &&
+          !(item.object === "Bookshelf" && (opening.axis === "z" ?
+            Math.abs(item.x - opening.center) >= halfX + opening.width / 2 && Math.abs(item.z - opening.coordinate) >= halfZ + 0.1 :
+            Math.abs(item.z - opening.center) >= halfZ + opening.width / 2 && Math.abs(item.x - opening.coordinate) >= halfX + 0.1)) &&
+          (opening.axis === "x" ? Math.abs(item.x - opening.coordinate) < halfX + 0.75 &&
+            Math.abs(item.z - opening.center) < halfZ + opening.width / 2 + 0.25 :
+            Math.abs(item.z - opening.coordinate) < halfZ + 0.75 &&
+            Math.abs(item.x - opening.center) < halfX + opening.width / 2 + 0.25));
+        const blocksStair = plan.staircases.some(/**
+         *
+         * @param {AuthoredCastleStair} stair
+         */
+        (stair) => room.level >= stair.from && room.level <= stair.to &&
+          item.x + halfX > stair.bounds[0] * scale && item.x - halfX < (stair.bounds[0] + stair.bounds[2]) * scale &&
+          item.z + halfZ > stair.bounds[1] * scale && item.z - halfZ < (stair.bounds[1] + stair.bounds[3]) * scale);
+        if (!blocksDoor && !blocksStair) { furniture.push({ ...item, roomId: room.id, floorY: room.floorY }); }
       }
     }
     const entranceRoom = spaces.find(/**

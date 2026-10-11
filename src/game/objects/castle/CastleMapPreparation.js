@@ -1,3 +1,4 @@
+import { VestibuleRoomMapObjects } from "./VestibuleRoomMapObjects.js";
 import { KitchenRoomMapObjects } from "./KitchenRoomMapObjects.js";
 import { LibraryRoomMapObjects } from "./LibraryRoomMapObjects.js";
 import { ThroneRoomMapObjects } from "./ThroneRoomMapObjects.js";
@@ -25,6 +26,7 @@ export class CastleMapPreparation {
     ThroneRoomMapObjects.prepareMap(mapData);
     LeisureRoomMapObjects.prepareMap(mapData);
     StairwellRoomMapObjects.prepareMap(mapData);
+    VestibuleRoomMapObjects.prepareMap(mapData);
     const castles = (mapData.objects ?? []).filter(
       /**
        * @param {import("../ObjectTypes.js").MapObjectDefinition} definition

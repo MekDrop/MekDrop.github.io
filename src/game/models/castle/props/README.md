@@ -1,5 +1,25 @@
 # Castle props
 
+## Vestibule furnishings
+
+`vestibule-bench` and `vestibule-cloak-rail` were generated from isolated castle-style
+concepts using Tripo Studio H3.1 on 2026-10-10 (60 credits total). Task IDs:
+`8417a73a-877a-49b0-b49e-a65175894643` and
+`3d80f078-fdc3-444c-84c4-d1f71312954e`. Reference PNGs are saved under the user's
+Clairvoyance `pictures/generated` directory with matching basenames.
+
+The editable adjacent Blender sources preserve Tripo geometry and packed
+1024-pixel textures. Models use bottom-center pivots, glTF +Y up and +Z facing.
+The bench is 1.30 × 0.82 × 0.50 metres (3763 triangles); the cloak rail assembly
+is 0.85 × 0.80 × 0.16 metres (4616 triangles). Both pass fresh GLB import checks.
+Import scripts and front/rear previews remain in ignored `tmp/vestibule`.
+
+`VestibuleRoomGenerator` furnishes the compact plan's two circulation slots.
+`VestibuleRoomMapObjects` publishes its props through normal map objects, with
+authored mesh collision, mirrored placement and replacement on regeneration.
+The embroidered rug, royal crest and bronze lantern reuse existing models;
+`VestibuleLantern` adds a warm point light to the existing flame effect.
+
 Twenty-one textured Tripo Studio models generated from the isolated PNG references
 in `tmp/items`, through the Opera browser UI. The batch used 600 Studio credits;
 no Tripo generation API or paid regeneration was used. Job IDs and import receipts
@@ -100,3 +120,80 @@ The candle stand uses animated castle torch fire, with its baked flame removed
 from the adjacent Blender source and GLB. Focused checks
 cover support, non-overlap, repeatability, and connected walking routes across
 60 standard room seeds.
+
+## Vestibule arrival accessories
+
+Four isolated game-style references were converted with Tripo Studio H3.1 on
+2026-10-11, using the approved 120 credits (30 per model).
+
+| Model | Tripo task | glTF XYZ metres |
+| --- | --- | --- |
+| vestibule-painting | 54e8b168-d8c0-4596-97e6-ee087f2953af | 1.05 × 0.78 × 0.08 |
+| vestibule-travel-kit | d94b1aa4-a848-47cf-ba7e-e9e333ddcf53 | 0.48 × 0.45 × 0.30 |
+| vestibule-boots | 37ba755b-d50e-45fb-b7e4-68f096a3e4e6 | 0.40 × 0.28 × 0.32 |
+| vestibule-stick-stand | 557f1d3b-35aa-428f-abe5-a05b4cfaf637 | 0.36 × 1.05 × 0.36 |
+
+References are saved as matching `-reference.png` files in Clairvoyance's
+`pictures/generated` directory. Adjacent editable Blender sources have packed
+1024-pixel textures and bottom-center pivots. Each fresh GLB import was checked
+for finite geometry, grounded bounds, intended dimensions, and fewer than
+10,000 triangles. The painting landscape is baked onto a thin recessed canvas
+inside a complete oak frame, with no scenery protruding behind its edges.
+The travel kit rests on the measured bench seat, rather than the
+bench's overall bounding-box height.
+
+The room reuses the existing wooden storage chest and royal blue banner.
+Paired cloak rails share the bench wall; the painting occupies the opposite
+wall's clear pocket. The red runner is stretched along the arrival aisle.
+All props enter through registered map objects. Focused generator tests cover
+both mirrored layouts, door/window approaches, stairs, and cramped rooms.
+
+`vestibule-runner.blend/.glb` is a separate refinement of the existing castle
+rug, matching the approved mockup's double gold border, repeating leaf diamonds,
+crimson inset, and short fringe. Its measured glTF dimensions are
+1.300 × 0.0306 × 3.300 metres, with a grounded center pivot and a single mesh
+node. Placement varies its length with the room while retaining its 1.3-metre
+width. Aligned vestibule sections publish one continuous carpet, reaching to
+within six centimetres of the corridor ends, including the entrance section.
+The runner has no rigid collision surface;
+the castle floor supplies support, so door contact queries cannot catch its
+embroidery or fringe. Thin floor coverings may pass through door
+approaches; furniture still reserves those approaches. Other rooms keep the
+original rug asset.
+
+Window bays reuse the bench and a small terrace planter.
+All benches retain the full 0.82-metre backrest height; window benches shorten
+only their horizontal dimensions.
+These groups stay below the measured window sill and outside door and stair
+approaches. One travel kit sits on the chest below the painting, and one pair
+of boots remains by the main coat bench. All benches stay free of bags.
+Long rooms can fill multiple window
+bays; intersecting furniture groups are omitted. No additional Tripo jobs were
+submitted for this refinement.
+
+The cloak rail contains `Rail wood and pegs`, `Cloak A`, and `Cloak B` in its
+editable source. The wooden board and four pegs were rebuilt with a portable
+oak grain texture to remove embedded garment fragments at empty hooks. The
+complete Tripo cloaks have a neutral fold texture for per-instance tinting. A stable random
+seed from the map object ID selects one or two cloaks, occupied hooks, and six
+muted fabric colors. Two cloaks on one rail use different colors. Runtime
+placement is applied to both visual and collision model parts before Ammo
+receives the mesh. Instance materials are cloned and released with the prop.
+The later cloak replacement is a complete separate asset in
+`vestibule-hanging-cloak.blend` / `.glb`; its intact copies replace the cut-out
+garments in the rail assembly. It was generated from the neutral standalone
+cloak reference with Tripo H3.1 task `0d7ce5b7-0dc0-4121-9c9a-1c036354d524`
+for 30 newly authorized credits. Its hanging loop is aligned to the pegs.
+
+`vestibule-armor-display.blend` / `.glb` is a complete empty suit of armor on a
+narrow oak base, 0.65 × 0.4 × 1.75 m. Tripo H3.1 task
+`b4a9d987-9428-433e-ba72-5103fc0ead08` used another 30 authorized credits and the
+simplified game-style armor reference. The room generator places one beside
+the painting on the spacious side opposite the stairs door, only when its
+footprint clears furniture, openings and stairs. All room openings are compiled
+before furnishing so doors authored by neighboring rooms also reserve clearance.
+Its packed base-color texture uses warm grey steel, brighter golden brass
+fasteners, warm leather joints and an oak base. The matte finish preserves the
+room's stylized shading; this color refinement keeps geometry and bounds intact.
+Both replacement assets retain packed textures capped at 1024 pixels and were
+validated after fresh GLB import.

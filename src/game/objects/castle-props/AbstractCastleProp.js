@@ -7,6 +7,11 @@ import { addAuthoredMeshPhysics } from "../shared/AuthoredMeshPhysics.js";
  */
 export class AbstractCastleProp {
   /**
+   * Decorative floor coverings rely on the castle floor for physical support.
+   * @returns {boolean}
+   */
+  static get hasAuthoredCollision() { return true; }
+  /**
    * @type {import("playcanvas").Entity}
    */
   #entity;
@@ -48,6 +53,7 @@ export class AbstractCastleProp {
     const scale = definition.scale ?? 1;
     const stretch = definition.stretch ?? { x: 1, y: 1, z: 1 };
     model.setLocalScale(scale * stretch.x, scale * stretch.y, scale * stretch.z);
+    this.prepareModel(model, false);
     this.#visual.addChild(model);
     if (definition.weathering) {
       for (const render of model.findComponents("render")) {
@@ -68,17 +74,36 @@ export class AbstractCastleProp {
         }
       }
     }
-    this.#collisionGraph = modelLibrary.instantiate(this.constructor.modelUrl);
-    this.#collisionGraph.setLocalScale(scale * stretch.x, scale * stretch.y, scale * stretch.z);
+    if (this.constructor.hasAuthoredCollision) {
+      this.#collisionGraph = modelLibrary.instantiate(this.constructor.modelUrl);
+      this.#collisionGraph.setLocalScale(scale * stretch.x, scale * stretch.y, scale * stretch.z);
+      this.prepareModel(this.#collisionGraph, true);
+    }
     // Subclasses may replace baked details with separately authored map objects.
     for (const name of this.constructor.omittedModelNodes ?? []) {
       model.findByName(name)?.destroy();
-      this.#collisionGraph.findByName(name)?.destroy();
+      this.#collisionGraph?.findByName(name)?.destroy();
     }
-    addAuthoredMeshPhysics(pc, this.#visual, this.#collisionGraph);
+    if (this.#collisionGraph) { addAuthoredMeshPhysics(pc, this.#visual, this.#collisionGraph); }
   }
 
   get entity() { return this.#entity; }
+  /**
+   * Apply instance-specific authored part placement before creating its collider.
+   * @param {import("playcanvas").Entity} model
+   * @param {boolean} collision
+   */
+  prepareModel(model, collision) {}
+
+  /**
+   * @param {import("playcanvas").Material} material
+   * @returns {import("playcanvas").Material}
+   */
+  cloneMaterial(material) {
+    const clone = material.clone();
+    this.#instanceMaterials.push(clone);
+    return clone;
+  }
   get definition() { return this.#definition; }
   /**
    * @returns {import("playcanvas").Entity[]}
@@ -95,7 +120,7 @@ export class AbstractCastleProp {
   }
   destroy() {
     this.#entity.destroy();
-    this.#collisionGraph.destroy();
+    this.#collisionGraph?.destroy();
     for (const material of this.#instanceMaterials) { material.destroy(); }
   }
 }

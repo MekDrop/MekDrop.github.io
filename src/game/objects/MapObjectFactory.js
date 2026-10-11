@@ -1,3 +1,13 @@
+import { VestibuleBench } from "./castle-props/VestibuleBench.js";
+import { VestibuleBanner } from "./castle-props/VestibuleBanner.js";
+import { VestibulePainting } from "./castle-props/VestibulePainting.js";
+import { VestibuleArmorDisplay } from "./castle-props/VestibuleArmorDisplay.js";
+import { VestibuleTravelKit } from "./castle-props/VestibuleTravelKit.js";
+import { VestibuleBoots } from "./castle-props/VestibuleBoots.js";
+import { VestibuleStickStand } from "./castle-props/VestibuleStickStand.js";
+import { VestibuleCloakRail } from "./castle-props/VestibuleCloakRail.js";
+import { VestibuleLantern } from "./castle-props/VestibuleLantern.js";
+import { VestibuleRug } from "./castle-props/VestibuleRug.js";
 import { LibrarySideTable } from "./castle-props/LibrarySideTable.js";
 import { LibraryStepStool } from "./castle-props/LibraryStepStool.js";
 import { ParchmentBundle } from "./castle-props/ParchmentBundle.js";
@@ -62,6 +72,16 @@ import { MapPickupAnimationActors } from "../debug/MapPickupAnimationActors.js";
 import { MapVirtualItem } from "../debug/MapVirtualItem.js";
 
 const OBJECT_CLASSES = new Map([
+  [VestibuleBench.name, VestibuleBench],
+  [VestibuleBanner.name, VestibuleBanner],
+  [VestibulePainting.name, VestibulePainting],
+  [VestibuleArmorDisplay.name, VestibuleArmorDisplay],
+  [VestibuleTravelKit.name, VestibuleTravelKit],
+  [VestibuleBoots.name, VestibuleBoots],
+  [VestibuleStickStand.name, VestibuleStickStand],
+  [VestibuleCloakRail.name, VestibuleCloakRail],
+  [VestibuleLantern.name, VestibuleLantern],
+  [VestibuleRug.name, VestibuleRug],
   [LibrarySideTable.name, LibrarySideTable],
   [LibraryStepStool.name, LibraryStepStool],
   [ParchmentBundle.name, ParchmentBundle],
