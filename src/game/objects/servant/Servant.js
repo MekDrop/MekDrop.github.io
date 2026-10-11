@@ -110,7 +110,7 @@ export class Servant {
          * @param {{role:string,position:{x:number,z:number},scale:{x:number,z:number}}} item
          */ (item) => {
           const local = layout.toLocal(item.position.x, item.position.z);
-          const [width, depth] = { kitchenTable: [0.9, 0.55], servantBed: [0.8, 1.6],
+          const [width, depth] = { kitchenTable: [0.9, 0.55], servantBed: [0.9, 2],
             storageShelf: [0.8, 0.3], workDesk: [0.9, 0.55], bookshelf: [0.3, 1],
             royalBed: [1.2, 1.8], wardrobe: [0.65, 0.46], readingChair: [0.75, 0.735] }[item.role] ?? [1, 1];
           return Math.hypot(Math.max(0, Math.abs(local.x - x) - (item.footprint?.width ?? width * item.scale.x) / 2),

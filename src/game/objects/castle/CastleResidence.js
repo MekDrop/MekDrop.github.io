@@ -112,7 +112,7 @@ export class CastleResidence {
       const dimensions = {
         workDesk: [0.9, 0.73, 0.55], kitchenTable: [0.9, 0.73, 0.55], royalBed: [1.2, 0.75, 1.8],
         wardrobe: [0.65, 1.15, 0.46], readingChair: [0.75, 1.665, 0.735],
-        servantBed: [0.8, 0.675, 1.6], storageShelf: [0.8, 1, 0.3],
+        servantBed: [0.9, 0.675, 2], storageShelf: [0.8, 1, 0.3],
       }[placement.role];
       this.#solids.push({ x: local.x, y: placement.position.y - origin.y + dimensions[1] * placement.scale.y / 2, z: local.z,
         width: placement.footprint?.width ?? dimensions[0] * placement.scale.x, height: dimensions[1] * placement.scale.y,
@@ -255,10 +255,13 @@ export class CastleResidence {
       }));
     }
     for (const room of plan.placedRooms) {
+      const bedsideLighting = plan.furniture.some(/**
+       * @param {import("../../generator/castle/rooms/AbstractCastleRoomGenerator.js").RoomItem & {roomId:string}} item
+       */ item => item.roomId === room.id && item.object === "ServantBedsideLantern");
       const light = new pc.Entity(`Castle ${room.id} light`);
       light.setLocalPosition((room.minX + room.maxX) / 2, room.floorY - plan.origin.y + 1.7, (room.minZ + room.maxZ) / 2);
       light.addComponent("light", { type: "omni", color: new pc.Color(1, 0.72, 0.4),
-        intensity: 1.2, range: 4, castShadows: false });
+        intensity: bedsideLighting ? 0.6 : 1.2, range: 4, castShadows: false });
       this.#entity.addChild(light);
     }
   }

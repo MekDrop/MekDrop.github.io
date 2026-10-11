@@ -1,3 +1,8 @@
+import { WovenRug } from "./castle-props/WovenRug.js";
+import { FoldedLinens } from "./castle-props/FoldedLinens.js";
+import { SewingBasket } from "./castle-props/SewingBasket.js";
+import { ServantBedsideLantern } from "./castle-props/ServantBedsideLantern.js";
+import { WoodenWashBasin } from "./castle-props/WoodenWashBasin.js";
 import { VestibuleBench } from "./castle-props/VestibuleBench.js";
 import { VestibuleBanner } from "./castle-props/VestibuleBanner.js";
 import { VestibulePainting } from "./castle-props/VestibulePainting.js";
@@ -79,6 +84,11 @@ import { MapPickupAnimationActors } from "../debug/MapPickupAnimationActors.js";
 import { MapVirtualItem } from "../debug/MapVirtualItem.js";
 
 const OBJECT_CLASSES = new Map([
+  [WovenRug.name, WovenRug],
+  [FoldedLinens.name, FoldedLinens],
+  [SewingBasket.name, SewingBasket],
+  [ServantBedsideLantern.name, ServantBedsideLantern],
+  [WoodenWashBasin.name, WoodenWashBasin],
   [VestibuleBench.name, VestibuleBench],
   [VestibuleBanner.name, VestibuleBanner],
   [VestibulePainting.name, VestibulePainting],

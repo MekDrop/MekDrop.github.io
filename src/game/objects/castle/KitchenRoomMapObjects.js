@@ -2,7 +2,7 @@ import { CastleResidentialLayout } from "./CastleResidentialLayout.js";
 import { KitchenChimneyLayout } from "./KitchenChimneyLayout.js";
 
 /**
- * Publishes room-authored kitchen props through the normal map object lifecycle.
+ * Publishes room-authored kitchen and service props through the map lifecycle.
  */
 export class KitchenRoomMapObjects {
   /**
@@ -16,7 +16,7 @@ export class KitchenRoomMapObjects {
      */
     definition => definition.object === "Castle")) {
       const plan = castle.buildPlan?.metadata?.runtime?.residential;
-      if (!plan?.basePlanId) { continue; }
+      if (!plan?.furniture) { continue; }
       const layout = new CastleResidentialLayout(castle.buildPlan);
       // Regeneration replaces the kitchen's records even when optional counts change.
       for (let index = objects.length - 1; index >= 0; index--) {
@@ -26,8 +26,8 @@ export class KitchenRoomMapObjects {
         if (!["kitchenProp", "serviceProp"].includes(item.role) || !item.object) { continue; }
         const id = `${castle.id}-kitchen-prop-${index}`;
         const position = layout.toWorld(item.x, item.z, item.floorY - layout.origin.y + (item.y ?? 0));
-        // The authored plan transforms both horizontal coordinates by 180°.
-        const rotation = layout.yaw + 180 + (item.rotation ?? 0);
+        // Only compiled base plans transform both horizontal coordinates by 180°.
+        const rotation = layout.yaw + (plan.basePlanId ? 180 : 0) + (item.rotation ?? 0);
         objects.push({ id, object: item.object, position, rotation, scale: item.scale, generated: true, kitchenFurnishing: true,
           ...(item.object === "KitchenFireplace" ? {
             chimneyHeight: KitchenChimneyLayout.height(castle.buildPlan, item, position, rotation),

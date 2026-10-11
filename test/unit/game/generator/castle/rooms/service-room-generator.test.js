@@ -45,7 +45,7 @@ test("compact seeded furnishing leaves bounds, door swing, stair bay, and suppor
       if (item.supportId) {
         const support = items.find(candidate => candidate.id === item.supportId);
         assert.ok(support);
-        assert.equal(item.y, support.height * support.scale);
+        assert.equal(item.y, item.underSupport ? 0 : support.height * support.scale);
         assert.ok(hx <= support.width / 2 && hz <= support.depth / 2);
       }
     }
@@ -57,7 +57,7 @@ test("different room sizes keep seeded floor props separate and retain sleeping-
     for (let seed = 0; seed < 40; seed++) {
       const items = generator.furnish({ ...room, maxX, maxZ }, { seed });
       assert.ok(items.some(item => item.role === "servantBed"));
-      const floor = items.filter(item => !item.supportId);
+      const floor = items.filter(item => !item.supportId && (item.y ?? 0) < 0.9 && item.height * item.scale > 0.05);
       for (let first = 0; first < floor.length; first++) {
         for (let second = first + 1; second < floor.length; second++) {
           const a = floor[first], b = floor[second];
@@ -68,6 +68,26 @@ test("different room sizes keep seeded floor props separate and retain sleeping-
       }
     }
   }
+});
+
+test("quarters provide cozy, mending and steward layouts with supported work details", () => {
+  const variants = new Map();
+  for (let seed = 0; seed < 20; seed++) {
+    const items = generator.furnish(room, { seed });
+    variants.set(items[0].furnishingVariant, items);
+    assert.ok(items.some(item => item.object === "WovenRug"));
+    assert.ok(items.some(item => item.object === "FoldedLinens"));
+    for (const item of items.filter(item => item.supportId)) {
+      const support = items.find(candidate => candidate.id === item.supportId);
+      assert.equal(item.y, item.underSupport ? 0 : support.height * support.scale);
+      assert.ok(Math.abs(item.x - support.x) + item.width / 2 <= support.width * support.scale / 2 + 1e-5);
+      assert.ok(Math.abs(item.z - support.z) + item.depth / 2 <= support.depth * support.scale / 2 + 1e-5);
+    }
+  }
+  assert.deepEqual([...variants.keys()].sort(), ["cozy", "mending", "steward"]);
+  assert.ok(variants.get("cozy").some(item => item.object === "WoodenWashBasin"));
+  assert.ok(variants.get("mending").some(item => item.object === "SewingBasket"));
+  assert.ok(variants.get("steward").some(item => item.object === "OpenReadingBook"));
 });
 
 test("service props enter actual authored-plan furniture for both mirrored seeds", async () => {
@@ -107,4 +127,19 @@ test("authored service props publish once with supported heights and rotated res
   const placement = layout.placements.find(item => item.role === "royalBed");
   assert.equal(placement.footprint.width, bed.width * bed.scale);
   assert.equal(placement.footprint.depth, bed.depth * bed.scale);
+});
+
+test("the compact castle publishes each requested quarters variant as normal map objects", async () => {
+  for (const [seed, variant, detail] of [[2, "cozy", "WoodenWashBasin"], [0, "mending", "SewingBasket"], [17, "steward", "OpenReadingBook"]]) {
+    const buildPlan = await CastleAuthoredBuildPlan.generate({ basePlanId: "castle-demo-compact", seed,
+      position: { x: -6.5, z: -5.5, width: 12, depth: 11, elevation: 0 }, doors: [{ side: "NORTH", offset: 5, width: 2 }] });
+    const furniture = buildPlan.metadata.runtime.residential.furniture.filter(item => item.roomId === "service-quarters");
+    assert.ok(furniture.length);
+    assert.ok(furniture.every(item => item.furnishingVariant === variant));
+    const map = { cols: 30, rows: 30, objects: [{ id: "quarters-castle", object: "Castle", buildPlan }] };
+    KitchenRoomMapObjects.prepareMap(map);
+    for (const object of ["WovenRug", "FoldedLinens", detail]) {
+      assert.ok(map.objects.some(item => item.object === object && item.sourceCastleId === "quarters-castle"));
+    }
+  }
 });

@@ -237,7 +237,7 @@ export class CastleResidentialLayout {
       this.#place("wardrobe", nextLateral, this.#rooms.bedroom.minZ + 0.22, rise, 0.65);
       this.#place("readingChair", nextLateral, this.#rooms.bedroom.maxZ - 0.3, rise, 0.5);
     }
-    this.#place("servantBed", basementCenter.x - basementWidth * 0.27, basementCenter.z, basementElevation, Math.min(0.8, basementWidth / 4, (basementDepth - 0.15) / 1.6));
+    this.#place("servantBed", basementCenter.x - basementWidth * 0.27, basementCenter.z, basementElevation, Math.min(0.8, basementWidth / 4, (basementDepth - 0.15) / 2));
     this.#place("storageShelf", basementCenter.x + basementWidth * 0.3, basementRear - 0.35, basementElevation, Math.min(0.75, basementWidth / 4));
     const work = this.#rooms.work;
     const mainLocal = this.toLocal(this.#stairs.center.x, this.#stairs.center.z);
