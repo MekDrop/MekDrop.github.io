@@ -2,6 +2,19 @@
 
 ## Vestibule furnishings
 
+The stick stand retains its open oak-stave holder and matte iron hoops. Its two
+walking sticks and folded navy umbrella were regenerated independently in Tripo
+Studio H3.1 on 2026-10-12 using isolated original-style image references. Accepted
+jobs: `975b165c-703c-4f76-82a7-106de6063936` (tall stick),
+`45fa27e5-4f1e-43c3-a7cd-72ee1c345da8` (short stick), and
+`89bfba68-372c-41e5-8ed7-bffa501a5e4c` (umbrella). Three initial text candidates
+and three image-guided generations used 180 Studio credits in total.
+The adjacent source and GLB contain four independent named meshes: the open
+holder and three complete contents, grounded inside it. Each content mesh
+records its provider job ID. Textures are packed and exported at up to 1024px.
+Import receipts, reference renders and fresh-import previews are in ignored
+`tmp/stick-holder/`.
+
 `vestibule-bench` and `vestibule-cloak-rail` were generated from isolated castle-style
 concepts using Tripo Studio H3.1 on 2026-10-10 (60 credits total). Task IDs:
 `8417a73a-877a-49b0-b49e-a65175894643` and
