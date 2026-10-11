@@ -53,8 +53,10 @@ export class VestibuleRoomGenerator extends AbstractCastleRoomGenerator {
           rotation: 90, y: 1.28 };
         if (safe(rail)) { items.push(rail); }
       }
-      items.push({ role: "vestibuleProp", object: "VestibuleBoots", x: wall + 0.44,
-        z: z + 0.15, width: 0.32, depth: 0.4, height: 0.28, scale: 1, rotation: 90, y: 0.002 });
+      // Tuck the shafts behind the front brace; the low toes fit beneath it.
+      const boots = { role: "vestibuleProp", object: "VestibuleBoots", x: wall + 0.3,
+        z: z + 0.05, width: 0.5, depth: 0.7, height: 0.28, scale: 1, rotation: 90, y: 0.002 };
+      if (safe(boots)) { items.push(boots); }
       const stand = { role: "vestibuleProp", object: "VestibuleStickStand", x: wall + 0.25,
         z: z + 1, width: 0.36, depth: 0.36, height: 1.05, scale: 1, rotation: 90, y: 0.002 };
       if (safe(stand)) { items.push(stand); }
