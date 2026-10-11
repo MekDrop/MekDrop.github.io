@@ -4,6 +4,9 @@ import { CastleFire } from "../castle/CastleFire.js";
 import fireGLSL from "./KitchenFire.glsl?raw";
 import fireWGSL from "./KitchenFire.wgsl?raw";
 import chimneyModelUrl from "../../models/castle/props/kitchen-chimney-course.glb?url";
+import { CastleMasonryMaterial } from "../castle/CastleMasonryMaterial.js";
+import { CASTLE_MATERIAL_DEFINITIONS } from "../../generator/castle/CastleGenerationConfig.js";
+import { colorFromHex } from "../../helpers/colors.js";
 
 /**
  * Authored kitchen fireplace placed through the map objects array.
@@ -29,6 +32,10 @@ export class KitchenFireplace extends AbstractCastleProp {
    * @type {CastleFire|null}
    */
   #fire = null;
+  /**
+   * @type {import("playcanvas").Mat4}
+   */
+  #worldToMasonry;
 
   /**
    * @param {{pc: typeof import("playcanvas"), app: import("playcanvas").Application, modelLibrary: import("../../models/GameModelLibrary.js").GameModelLibrary, definition: import("../ObjectTypes.js").MapObjectDefinition, runtime?: import("../ObjectTypes.js").MapObjectRuntime}} options
@@ -37,8 +44,25 @@ export class KitchenFireplace extends AbstractCastleProp {
     super(options);
     const { pc, app, definition } = options;
     const root = this.visualRoots[0];
+    // Castle masonry uses map coordinates, with only the island offset removed.
+    this.#worldToMasonry = new pc.Mat4().copy(root.parent.getWorldTransform()).invert();
+    const stone = CASTLE_MATERIAL_DEFINITIONS.castleStoneMid;
+    const masonry = new pc.StandardMaterial();
+    this.#materials.push(masonry);
+    masonry.name = "Kitchen chimney castle masonry";
+    masonry.diffuse = colorFromHex(pc, stone.color);
+    masonry.gloss = stone.gloss;
+    masonry.metalness = 0;
+    masonry.useMetalness = true;
+    CastleMasonryMaterial.configure(pc, masonry, this.#worldToMasonry.data);
+    masonry.update();
     for (const render of root.findComponents("render")) {
       for (const instance of render.meshInstances) {
+        if (instance.material.name === "Castle fireplace masonry") {
+          instance.material = masonry;
+          continue;
+        }
+        if (instance.material.name === "Chimney soot-dark stone") { continue; }
         const material = instance.material.clone();
         material.name = "Animated kitchen hearth";
         material.shaderChunksVersion = pc.version.split(".").slice(0, 2).join(".");
@@ -61,8 +85,7 @@ export class KitchenFireplace extends AbstractCastleProp {
           const close = diffuse.lastIndexOf("}");
           const declaration = wgsl ? "let" : "vec4";
           const vector = wgsl ? "vec3f" : "vec3";
-          // Erase the painted flame before adding emission, retaining the
-          // imported material's lighting and texture outside the firebox.
+          // Remove the baked flame from the preserved firebox texture.
           chunks.set("diffusePS", `${fire}
 ${diffuse.slice(0, close)}
   ${declaration} hearth = hearthFire();
@@ -78,6 +101,10 @@ ${diffuse.slice(close)}`);
         instance.material = material;
         this.#materials.push(material);
       }
+    }
+    const socket = root.findByName("Chimney socket from original fireplace stone");
+    for (const render of socket?.findComponents("render") ?? []) {
+      for (const instance of render.meshInstances) { instance.material = masonry; }
     }
     // Keep full stone courses at their authored proportions. Only the final
     // course is shortened to meet the local roof surface exactly.
@@ -101,6 +128,11 @@ ${diffuse.slice(close)}`);
       course.setLocalPosition(0.028 * scale, bottom, -0.2073 * scale);
       course.setLocalEulerAngles(0, index % 2 * 180, 0);
       course.setLocalScale(scale, Math.min(courseHeight, top - bottom) / 0.24, scale);
+      for (const render of course.findComponents("render")) {
+        for (const instance of render.meshInstances) {
+          if (instance.material.name !== "Chimney soot-dark stone") { instance.material = masonry; }
+        }
+      }
       this.#chimney.addChild(course);
     }
     if (top > 1.65 * scale) {
@@ -136,6 +168,7 @@ ${diffuse.slice(close)}`);
    * @param {import("playcanvas").Entity} glow
    */
   #animate(deltaTime, glow) {
+    this.#worldToMasonry.copy(this.visualRoots[0].parent.getWorldTransform()).invert();
     this.#elapsed += deltaTime;
     // Only uniforms change each frame; compiled shader variants remain cached.
     for (const material of this.#materials) {
@@ -165,6 +198,7 @@ ${diffuse.slice(close)}`);
    */
   setIslandOffsets(near, far, offsets = [near, far]) {
     super.setIslandOffsets(near, far, offsets);
+    this.#worldToMasonry.copy(this.visualRoots[0].parent.getWorldTransform()).invert();
     this.#chimney.rigidbody?.syncEntityToBody();
   }
 
