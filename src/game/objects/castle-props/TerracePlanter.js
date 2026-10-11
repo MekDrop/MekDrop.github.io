@@ -18,8 +18,10 @@ export class TerracePlanter extends AbstractCastleProp {
     for (let index = 0; index < 5; index++) {
       const node = model.findByName(index === 0 ? "Boxwood foliage" :
         `Boxwood foliage.${String(index).padStart(3, "0")}`);
-      const offsetX = random.rng(-4, 4) / 100;
-      const offsetZ = random.rng(-4, 4) / 100;
+      // Authored faces and random offsets share a centimetre grid. Give each
+      // block a distinct sub-grid offset so overlapping faces cannot coincide.
+      const offsetX = random.rng(-4, 4) / 100 + index * 0.001;
+      const offsetZ = random.rng(-4, 4) / 100 + index * 0.001;
       if (!node) { continue; }
       const position = node.getLocalPosition().clone();
       node.setLocalPosition(
