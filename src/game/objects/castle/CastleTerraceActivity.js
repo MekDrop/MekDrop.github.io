@@ -141,6 +141,23 @@ export class CastleTerraceActivity {
       navigation,
     });
     this.#kind = royalParticipant.kind;
+    // The service arrangement is authored around local z=3.1. Center that
+    // arrangement on the terrace while leaving the doorway root in place.
+    const serviceOffset = { x: 0, z: 0 };
+    if (navigation && this.#kind !== "king") {
+      const angle = layout.yaw * Math.PI / 180;
+      const dx = layout.serviceCenter ? layout.serviceCenter.x - layout.x : 0;
+      const dz = layout.serviceCenter ? layout.serviceCenter.z - layout.z : 0;
+      serviceOffset.x = dx * Math.cos(angle) - dz * Math.sin(angle);
+      // Center the delivered table itself; its chair remains beside it.
+      if (layout.serviceCenter && this.#kind === "princess") {
+        serviceOffset.x -= 0.65 * scale;
+      }
+      serviceOffset.z = layout.serviceCenter
+        ? dx * Math.sin(angle) + dz * Math.cos(angle) - 3.1 * scale
+        : Math.max(0, layout.depth / 2 - 3.1 * scale);
+    }
+    this.#stage.setLocalPosition(serviceOffset.x, 0, serviceOffset.z);
     this.#royalBehavior = royalParticipant.behavior;
     this.#royalActions = royalParticipant.actions;
     const servantParticipant = servant.createTerraceParticipant({
@@ -148,6 +165,7 @@ export class CastleTerraceActivity {
       modelLibrary,
       layout,
       scale,
+      serviceOffset,
       kind: this.#kind,
       royal: this.#royalActions.actor,
       navigation,

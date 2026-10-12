@@ -171,12 +171,18 @@ export class Servant {
    * @param {number} options.scale
    * @param {string} options.kind
    * @param {import("../royal/AbstractRoyal.js").AbstractRoyal} options.royal
+   * @param {{x: number, z: number}} options.serviceOffset Offset from the doorway toward the terrace center.
    */
-  createTerraceParticipant({ pc, modelLibrary, layout, scale, kind, royal, navigation }) {
+  createTerraceParticipant({ pc, modelLibrary, layout, scale, kind, royal, navigation, serviceOffset = { x: 0, z: 0 } }) {
     const stage = new pc.Entity("Servant terrace stage");
     stage.setLocalScale(scale, scale, scale);
     this.#entity.addChild(stage);
-    stage.setPosition(layout.x, layout.y, layout.z);
+    const angle = layout.yaw * Math.PI / 180;
+    stage.setPosition(
+      layout.x + Math.cos(angle) * serviceOffset.x + Math.sin(angle) * serviceOffset.z,
+      layout.y,
+      layout.z - Math.sin(angle) * serviceOffset.x + Math.cos(angle) * serviceOffset.z,
+    );
     stage.setEulerAngles(0, layout.yaw, 0);
     this.#motion = new CastleResidentMotion({ actor: this.#resident, ...navigation });
     this.#behavior = kind === "king" ? null : new TerraceServantBehavior();

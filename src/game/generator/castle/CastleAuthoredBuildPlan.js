@@ -507,9 +507,26 @@ export class CastleAuthoredBuildPlan {
      * @param {import("./CastleBasePlanGenerator.js").CompiledCastleOpening} opening
      */
     (opening) => opening.roomId === "upper-stair-room" && opening.kind === "door");
+    const terraceAreas = leisure ? spaces.filter(/**
+     * @param {import("./CastleBasePlanGenerator.js").CompiledCastleSpace} space
+     */
+    (space) => space.kind === "terrace" && space.floorY === leisure.floorY) : [];
+    const terraceBounds = { minX: Infinity, maxX: -Infinity, minZ: Infinity, maxZ: -Infinity };
+    for (const area of terraceAreas) {
+      terraceBounds.minX = Math.min(terraceBounds.minX, area.minX);
+      terraceBounds.maxX = Math.max(terraceBounds.maxX, area.maxX);
+      terraceBounds.minZ = Math.min(terraceBounds.minZ, area.minZ);
+      terraceBounds.maxZ = Math.max(terraceBounds.maxZ, area.maxZ);
+    }
+    const terraceCenter = leisure ? world(
+      (terraceBounds.minX + terraceBounds.maxX) / 2,
+      (terraceBounds.minZ + terraceBounds.maxZ) / 2,
+      leisure.floorY,
+    ) : null;
     const terrace = leisure && terraceEntrance && entrance ? {
       x: terraceEntrance.x, y: terraceEntrance.y, z: terraceEntrance.z,
       yaw: yaw + 180, doorRoomId: terraceEntrance.roomId,
+      serviceCenter: terraceCenter,
       width: 2 * Math.min(entrance.center - leisure.minX, leisure.maxX - entrance.center) - 0.4,
       depth: leisure.maxZ - leisure.minZ - 0.25,
     } : null;

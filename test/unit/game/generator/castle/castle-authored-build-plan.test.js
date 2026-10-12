@@ -179,6 +179,12 @@ it("places restored royal activities on an open terrace in every entrance orient
       assert.ok(entrance, "the sequence reuses an authored door");
       assert.deepEqual([activity.x, activity.y, activity.z], [entrance.x, entrance.y, entrance.z]);
       const layout = new CastleResidentialLayout(plan);
+      const center = layout.toLocal(activity.serviceCenter.x, activity.serviceCenter.z);
+      const serviceAreas = plan.layout.roomPlan.spaces.filter((area) => area.kind === "terrace" && area.floorY === activity.y);
+      const centerX = (Math.min(...serviceAreas.map((area) => area.minX)) + Math.max(...serviceAreas.map((area) => area.maxX))) / 2;
+      const centerZ = (Math.min(...serviceAreas.map((area) => area.minZ)) + Math.max(...serviceAreas.map((area) => area.maxZ))) / 2;
+      assert.ok(Math.abs(center.x - centerX) < 1e-6, "service uses the full terrace width");
+      assert.ok(Math.abs(center.z - centerZ) < 1e-6, "service uses the full terrace depth");
       const angle = activity.yaw * Math.PI / 180;
       const scale = Math.min(0.45, activity.depth / 5.5, activity.width / 4.2);
       for (const [x, z] of [[0, 0], [0, 1.6 * scale], [0, 3.1 * scale], [-0.75 * scale, 3.2 * scale]]) {
