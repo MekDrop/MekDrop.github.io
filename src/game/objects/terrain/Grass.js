@@ -3,6 +3,7 @@ import { Earth } from "./Earth.js";
 import { GrassSurfaceMaterials } from "./GrassSurfaceMaterials.js";
 import { GrassCarpet } from "../ground-cover/GrassCarpet.js";
 import { GrassSurface } from "../ground-cover/GrassSurface.js";
+import { SurfaceContactProviders } from "../ground-cover/SurfaceContactProviders.js";
 import { GRASS_SURFACE_LIFT } from "../../config/terrain.js";
 
 /**
@@ -64,17 +65,14 @@ export class Grass extends Earth {
       zoom: runtime.camera.zoom,
     });
     runtime.root.addChild(carpet.entity);
+    const surfaceContacts = new SurfaceContactProviders(runtime.objects, runtime.getContactProviders);
     const surface = new GrassSurface({ app, pc, mapData: runtime.mapData, terrainMaterials: [carpet.material].filter(Boolean), zoom: runtime.camera.zoom,
       getImpressionContacts: () => runtime.getContactProviders().flatMap(
         /**
          * @param {import("src/game/GameContracts.js").GameObjectContract} object
          */
         (object) => object?.grassFootContacts ?? object?.grassImpressionContacts ?? []),
-      getSurfaceContacts: () => [...runtime.objects].flatMap(
-        /**
-         * @param {import("src/game/GameContracts.js").GameObjectContract} object
-         */
-        (object) => object.grassSurfaceContacts ?? []),
+      getSurfaceContacts: () => surfaceContacts.contacts,
       /**
        * @param {number} x
        * @param {number} y

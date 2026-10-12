@@ -1,4 +1,5 @@
 import { IslandObjectRoots } from "../shared/IslandObjectRoots.js";
+import { SurfaceSpatialIndex } from "../shared/SurfaceSpatialIndex.js";
 import { DynamicRenderBatch } from "../../rendering/DynamicRenderBatch.js";
 import { RoundBush, WideBush } from "./bushes/index.js";
 import {
@@ -45,6 +46,14 @@ export class VoxelVegetation {
     * @type {Array<{item: import("./DestructibleVegetation.js").DestructibleVegetation, col: number, row: number, rotation: number}>}
    */
   #items = [];
+  /**
+   * @type {SurfaceSpatialIndex}
+   */
+  #surfaceIndex = new SurfaceSpatialIndex();
+  /**
+   * @type {boolean}
+   */
+  #dynamicBatches = false;
   /**
    * @type {IslandObjectRoots}
    */
@@ -99,6 +108,7 @@ export class VoxelVegetation {
     this.#entity = new pc.Entity("Voxel vegetation");
 
     this.#islandRoots = new IslandObjectRoots(pc, this.#entity, runtime.mapData);
+    this.#dynamicBatches = Boolean(runtime.mapData?.islandConnectorData);
 
     this.#pc = pc;
 
@@ -132,6 +142,7 @@ export class VoxelVegetation {
         rotation: vegetation.rotation ?? 0,
       });
       this.#islandRoots.addChild(item.entity, vegetation.tile);
+      this.#surfaceIndex.add(item, item.surfaceBounds);
       this.#items.push({
         item,
         col: vegetation.tile.col,
@@ -159,6 +170,7 @@ export class VoxelVegetation {
       this.#app,
       this.#entity,
       this.#pc.BUFFER_STATIC,
+      this.#dynamicBatches,
     );
   }
 
@@ -418,7 +430,7 @@ export class VoxelVegetation {
    */
   surfaceHeightAt(x, z, radius = 0) {
     let highestSurface = null;
-    for (const { item } of this.#items) {
+    for (const item of this.#surfaceIndex.query(x, z, radius)) {
       const surfaceHeight = item.surfaceHeightAt(x, z, radius);
       if (!Number.isFinite(surfaceHeight)) continue;
       highestSurface =
@@ -438,6 +450,7 @@ export class VoxelVegetation {
     this.#entity?.destroy();
     this.#entity = null;
     this.#items = [];
+    this.#surfaceIndex = new SurfaceSpatialIndex();
     this.#dirtPatches = [];
     this.#pc = null;
     this.#app = null;

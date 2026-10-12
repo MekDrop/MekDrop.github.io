@@ -186,7 +186,7 @@ describe("HeroPhysicsController", () => {
   it("creates a compound body ready for fitted animated part colliders", () => {
     const { app, controller, entity } = createFixture();
 
-    assert.equal(app.systems.rigidbody.fixedTimeStep, 1 / 120);
+    assert.equal(app.systems.rigidbody.fixedTimeStep, 1 / 60);
     assert.equal(app.systems.rigidbody.maxSubSteps, 12);
     assert.deepEqual(entity.components.get("collision"), {
       type: "compound",

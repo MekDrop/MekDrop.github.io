@@ -1,4 +1,5 @@
 import { addGeneratedVoxelPhysics } from "../shared/GeneratedVoxelPhysics.js";
+import { mergeCollisionVoxels } from "../shared/MergeCollisionVoxels.js";
 
 const DAMAGE_ROW_PATTERN = /^Voxel damage row (\d+)/;
 
@@ -441,6 +442,24 @@ export class DestructibleVegetation {
     return highestSurface;
   }
 
+  /**
+   * Conservative X/Z bounds stay valid as damage removes collision voxels.
+   * @returns {{minX: number, maxX: number, minZ: number, maxZ: number}}
+   */
+  get surfaceBounds() {
+    let radius = 0;
+    for (const footprint of this.#collisionFootprints) {
+      radius = Math.max(radius, Math.hypot(
+        Math.abs(footprint.x) + footprint.width / 2,
+        Math.abs(footprint.z) + footprint.depth / 2,
+      ));
+    }
+    return {
+      minX: this.#origin.x - radius, maxX: this.#origin.x + radius,
+      minZ: this.#origin.z - radius, maxZ: this.#origin.z + radius,
+    };
+  }
+
   #heightClass() {
     if (this.#interactionHeight < 0.9) {
       return "low";
@@ -534,17 +553,17 @@ export class DestructibleVegetation {
       return;
     }
     const physicsName = this.#kind === "tree" ? "Tree" : "Bush";
-    const physicsVoxels = voxels.map(/**
+    const physicsVoxels = mergeCollisionVoxels(voxels).map(/**
      *
-     * @param {{x: number, y: number, z: number}} voxel
+     * @param {import("../shared/MergeCollisionVoxels.js").CollisionBox} voxel
      */
     (voxel) => ({
-      x: voxel.x * this.#voxelSize,
-      y: (voxel.y + 0.5) * this.#voxelSize,
-      z: voxel.z * this.#voxelSize,
-      width: this.#voxelSize,
-      height: this.#voxelSize,
-      depth: this.#voxelSize,
+      x: (voxel.x + (voxel.width - 1) / 2) * this.#voxelSize,
+      y: (voxel.y + voxel.height / 2) * this.#voxelSize,
+      z: (voxel.z + (voxel.depth - 1) / 2) * this.#voxelSize,
+      width: voxel.width * this.#voxelSize,
+      height: voxel.height * this.#voxelSize,
+      depth: voxel.depth * this.#voxelSize,
     }));
     this.#physicsCollider = addGeneratedVoxelPhysics({
       pc: this.#pc,

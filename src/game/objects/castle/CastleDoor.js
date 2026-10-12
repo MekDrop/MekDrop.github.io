@@ -235,6 +235,9 @@ export class CastleDoor {
     this.#animationDuration = animationTrack.duration;
     this.#animationLayer.play(animationName);
     this.#entity.anim.speed = 0;
+    // Door motion samples the authored animation explicitly in #syncAnimation.
+    // Avoid evaluating every stationary door again in the global animation tick.
+    this.#entity.anim.playing = false;
     this.#syncAnimation();
     this.#collision = createCastleDoorCollision(pc, this.#entity);
 

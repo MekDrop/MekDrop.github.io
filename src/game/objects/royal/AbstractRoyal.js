@@ -1,4 +1,5 @@
 import { CastleTerraceActivity } from "../castle/CastleTerraceActivity.js";
+import { DynamicRenderBatch } from "../../rendering/DynamicRenderBatch.js";
 import { SeatedRoyal } from "../castle/SeatedRoyal.js";
 import { TerraceRoyalActions } from "../castle/TerraceRoyalActions.js";
 
@@ -8,6 +9,18 @@ import { TerraceRoyalActions } from "../castle/TerraceRoyalActions.js";
  * @abstract
  */
 export class AbstractRoyal {
+  /**
+   * @type {typeof import("playcanvas")}
+   */
+  #pc;
+  /**
+   * @type {import("playcanvas").Application}
+   */
+  #app;
+  /**
+   * @type {DynamicRenderBatch|null}
+   */
+  #renderBatch = null;
   /**
    *
     * @type {import("playcanvas").EventHandle|null}
@@ -105,6 +118,8 @@ export class AbstractRoyal {
     RoyalType,
     BehaviorType,
   }) {
+    this.#pc = pc;
+    this.#app = app;
     this.#definition = definition;
     this.#onRuntimeError = runtime.onRuntimeError;
     this.#RoyalType = RoyalType;
@@ -129,6 +144,11 @@ export class AbstractRoyal {
 
   get entity() {
     return this.#entity;
+  }
+
+  onSceneReady() {
+    this.#renderBatch ??= new DynamicRenderBatch(this.#app, this.#entity,
+      this.#pc.BUFFER_STATIC, true, "characters");
   }
 
   get definition() {
@@ -226,6 +246,8 @@ export class AbstractRoyal {
   }
 
   destroy() {
+    this.#renderBatch?.destroy();
+    this.#renderBatch = null;
     this.#updateHandle?.off();
     this.#updateHandle = null;
     this.#activity?.destroy();

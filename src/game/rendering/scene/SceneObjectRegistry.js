@@ -1,5 +1,14 @@
 export class SceneObjectRegistry {
   /**
+   * @type {number}
+   */
+  #revision = 0;
+  /**
+   * Changes when membership changes, including replacement at the same size.
+   * @returns {number}
+   */
+  get revision() { return this.#revision; }
+  /**
    *
    * @type {Map}
    */
@@ -21,6 +30,7 @@ export class SceneObjectRegistry {
    * @param {import("src/game/GameContracts.js").GameObjectContract} object
    */
   setOne(type, object) {
+    this.#revision++;
     this.#forgetType(type);
     this.#objects.set(type, object);
     this.#keysByType.set(type, [type]);
@@ -34,6 +44,7 @@ export class SceneObjectRegistry {
    * @param {import("src/game/GameContracts.js").GameObjectContract} object
    */
   add(type, object) {
+    this.#revision++;
     const key = this.#nextCollectionKey(type);
     this.#objects.set(key, object);
     const keys = this.#keysByType.get(type) ?? [];
@@ -90,6 +101,7 @@ export class SceneObjectRegistry {
    * @param {string} type
    */
   destroyType(type) {
+    this.#revision++;
     for (const object of this.getAll(type)) {
       object.destroy?.();
     }
@@ -97,6 +109,7 @@ export class SceneObjectRegistry {
   }
 
   clear() {
+    this.#revision++;
     this.#objects.clear();
     this.#keysByType.clear();
     this.#countsByType.clear();

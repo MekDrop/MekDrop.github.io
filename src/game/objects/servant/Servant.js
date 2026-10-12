@@ -1,4 +1,5 @@
 import servantModelUrl from "../../models/castle/leisure/servant.glb?url";
+import { DynamicRenderBatch } from "../../rendering/DynamicRenderBatch.js";
 import { CHARACTER_HEIGHT } from "../../config/character-size.js";
 import { CastleResidentMotion } from "../castle/CastleResidentMotion.js";
 import { TerraceActor } from "../castle/TerraceActor.js";
@@ -6,6 +7,18 @@ import { TerraceServantBehavior } from "../castle/TerraceServantBehavior.js";
 import { TerraceServiceActions } from "../castle/TerraceServiceActions.js";
 
 export class Servant {
+  /**
+   * @type {typeof import("playcanvas")}
+   */
+  #pc;
+  /**
+   * @type {import("playcanvas").Application}
+   */
+  #app;
+  /**
+   * @type {DynamicRenderBatch|null}
+   */
+  #renderBatch = null;
   /**
    *
     * @returns {Array<string>}
@@ -54,12 +67,15 @@ export class Servant {
 
   /**
    *
-   * @param {{pc: typeof import("playcanvas"), definition: import("src/game/objects/ObjectTypes.js").MapObjectDefinition, runtime: import("src/game/objects/ObjectTypes.js").MapObjectRuntime}} options
+   * @param {{pc: typeof import("playcanvas"), app: import("playcanvas").Application, definition: import("src/game/objects/ObjectTypes.js").MapObjectDefinition, runtime: import("src/game/objects/ObjectTypes.js").MapObjectRuntime}} options
    * @param {typeof import("playcanvas")} options.pc
+   * @param {import("playcanvas").Application} options.app
    * @param {import("src/game/objects/ObjectTypes.js").MapObjectDefinition} options.definition
    * @param {import("src/game/objects/ObjectTypes.js").MapObjectRuntime} options.runtime
    */
-  constructor({ pc, definition, runtime }) {
+  constructor({ pc, app, definition, runtime }) {
+    this.#pc = pc;
+    this.#app = app;
     this.#definition = definition;
     this.#entity = new pc.Entity(`${definition.id} servant`);
     this.#entity.tags.add("map-object", definition.id, this.constructor.name);
@@ -71,6 +87,12 @@ export class Servant {
 
   get entity() {
     return this.#entity;
+  }
+
+  onSceneReady() {
+    if (!this.#app) return;
+    this.#renderBatch ??= new DynamicRenderBatch(this.#app, this.#entity,
+      this.#pc.BUFFER_STATIC, true, "characters");
   }
 
   /**
@@ -180,6 +202,8 @@ export class Servant {
   }
 
   destroy() {
+    this.#renderBatch?.destroy();
+    this.#renderBatch = null;
     this.#resident?.destroy();
     this.#resident = null;
     this.#residence = null;

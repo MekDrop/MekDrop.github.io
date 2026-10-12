@@ -1,4 +1,6 @@
-const DEFAULT_FIXED_TIME_STEP = 1 / 120;
+// This configures the entire Ammo world, not just the hero. Match the 60 FPS
+// simulation budget instead of doubling every body's collision/solver work.
+const DEFAULT_FIXED_TIME_STEP = 1 / 60;
 const DEFAULT_MAX_SUB_STEPS = 12;
 const GROUND_PROBE_UP = 0.08;
 const GROUND_PROBE_DOWN = 0.16;

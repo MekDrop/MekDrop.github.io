@@ -10,6 +10,10 @@ const RESUME_DISTANCE = 1.6;
  */
 export class ServantHeroClearance {
   /**
+   * @type {WeakMap<import("playcanvas").AppBase, Entity>}
+   */
+  static #heroes = new WeakMap();
+  /**
    * @type {Entity}
    */
   #actor;
@@ -54,7 +58,15 @@ export class ServantHeroClearance {
     if (!this.#body.enabled) { return; }
     const position = this.#actor.getPosition();
     this.#body.rigidbody.teleport(position.x, position.y + CHARACTER_HEIGHT / 2, position.z);
-    const hero = this.#app.root.findByName("Hero");
+    let hero = ServantHeroClearance.#heroes.get(this.#app);
+    if (!hero) {
+      hero = this.#app.root.findByName("Hero");
+      if (hero) {
+        const app = this.#app;
+        ServantHeroClearance.#heroes.set(app, hero);
+        hero.once("destroy", () => ServantHeroClearance.#heroes.delete(app));
+      }
+    }
     if (!hero?.enabled || !hero.rigidbody) { return; }
     /**
      * @param {import("yuka").Vector3} point

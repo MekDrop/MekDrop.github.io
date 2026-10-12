@@ -1,4 +1,5 @@
 import { MapObjectReplacement } from "./rendering/scene/MapObjectReplacement.js";
+import { DirectionalShadowBudget } from "./rendering/DirectionalShadowBudget.js";
 import { useDebounceFn } from "@vueuse/core";
 import { AmmoRuntime } from "./physics/AmmoRuntime.js";
 import * as playCanvas from "playcanvas/build/playcanvas/src/index.js";
@@ -88,6 +89,7 @@ const SIDE_VARIANT_TRANSFORMS = [
 const CAMERA_PITCH = Math.atan(1 / Math.sqrt(2));
 const CAMERA_DISTANCE = 80;
 const SHADOW_DISTANCE = 150;
+const FIRST_PERSON_SHADOW_DISTANCE = 24;
 const MAP_FIT_ZOOM = 1;
 const HERO_VIEWPORT_MARGIN = 32;
 const HERO_CAMERA_CENTER_HEIGHT = 0.85;
@@ -129,6 +131,10 @@ export class PlayCanvasRenderer {
    * @type {null}
    */
   #app = null;
+  /**
+   * @type {DirectionalShadowBudget|null}
+   */
+  #shadowBudget = null;
   /**
    *
    * @type {null}
@@ -217,6 +223,10 @@ export class PlayCanvasRenderer {
    * @type {IslandConnectorMotion|null}
    */
   #islandConnectorMotion = null;
+  /**
+   * @type {boolean}
+   */
+  #firstPersonIslandOffsetsApplied = false;
   /**
    *
    * @type {null}
@@ -532,11 +542,11 @@ export class PlayCanvasRenderer {
     this.#app.setCanvasFillMode(pc.FILLMODE_NONE);
     // Own the backing size in resize(); automatic resolution clamps it to display DPR.
     this.#app.setCanvasResolution(pc.RESOLUTION_FIXED, this.canvas.width, this.canvas.height);
-    // Native MSAA misses fine roof courses and window trim inside a pixel.
-    // Downsampling a modestly larger canvas filters those geometric edges too.
+    // Keep MSAA at display resolution: forced 1.5x supersampling adds 125%
+    // more fragment work, especially when first-person masonry fills the view.
     const pixelRatio = window.devicePixelRatio || 1;
     this.#app.graphicsDevice.maxPixelRatio = Math.min(
-      this.#graphicsSettingsStore.antialias ? Math.max(1.5, pixelRatio) : pixelRatio,
+      pixelRatio,
       this.#graphicsSettingsStore.maxPixelRatio,
     );
 
@@ -620,6 +630,7 @@ export class PlayCanvasRenderer {
     });
     sunlight.setEulerAngles(48, 132, 0);
     this.#app.root.addChild(sunlight);
+    this.#shadowBudget = new DirectionalShadowBudget(pc, sunlight.light);
 
     await Promise.all([
       this.#createMaterials(),
@@ -653,6 +664,7 @@ export class PlayCanvasRenderer {
    * @param {import("src/game/GameContracts.js").GameMapData} mapData
    */
   render(mapData) {
+    this.#firstPersonIslandOffsetsApplied = false;
     let initialViewport = null;
     if (!this.#mapData) {
       this.#gameViewStore.updateViewport(this.#gameViewStore.$state);
@@ -914,6 +926,14 @@ export class PlayCanvasRenderer {
     this.#camera.returnTransition = null;
     this.#camera.orbitPivot = null;
     this.#camera.manuallyMoved = nextEnabled;
+    this.#firstPersonIslandOffsetsApplied = false;
+    this.#shadowBudget.limited = nextEnabled;
+    const sunlight = this.#app.root.findByName("Sunlight");
+    if (sunlight?.light) {
+      sunlight.light.shadowDistance = nextEnabled
+        ? FIRST_PERSON_SHADOW_DISTANCE
+        : SHADOW_DISTANCE;
+    }
     const statusHud = this.getHud(GameStatusHud);
     if (statusHud) {
       statusHud.firstPersonVisible = nextEnabled;
@@ -1322,7 +1342,7 @@ export class PlayCanvasRenderer {
     const width = Math.max(1, this.container.clientWidth);
     const height = Math.max(1, this.container.clientHeight);
     this.#app.resizeCanvas(width, height);
-    // resizeCanvas clamps to the display's DPR, so explicitly allow supersampling.
+    // Apply the configured DPR cap consistently to the backing buffer.
     const pixelRatio = this.#app.graphicsDevice.maxPixelRatio;
     this.#app.graphicsDevice.setResolution(
       Math.max(1, Math.floor(width * pixelRatio)),
@@ -1413,6 +1433,7 @@ export class PlayCanvasRenderer {
     }
     this.#app?.destroy();
     this.#app = null;
+    this.#shadowBudget = null;
   }
 
   async #createMaterials() {
@@ -2081,6 +2102,7 @@ export class PlayCanvasRenderer {
    * @type {(deltaTime: number) => void}
    */
   #updateFrame = (deltaTime) => {
+    this.#shadowBudget?.update(deltaTime);
     if (this.#frameUpdateFailed) {
       return;
     }
@@ -2128,6 +2150,12 @@ export class PlayCanvasRenderer {
    */
   #updateIslandConnectorMotion(deltaTime) {
     if (!this.#islandConnectorMotion) return;
+    const firstPerson = this.#camera?.firstPersonEnabled;
+    // First-person islands stay at zero offset. Reapplying that transform to
+    // every object dirties the hierarchy and rewrites flower instance buffers.
+    if (firstPerson && this.#firstPersonIslandOffsetsApplied) {
+      return;
+    }
     const count = this.#mapData.islandConnectorData.islands?.length ?? 2;
     const offsets = this.#camera?.firstPersonEnabled
       ? { near: 0, far: 0, groups: new Array(count).fill(0) }
@@ -2143,6 +2171,7 @@ export class PlayCanvasRenderer {
       offsets.far,
       offsets.groups,
     );
+    this.#firstPersonIslandOffsetsApplied = firstPerson;
   }
 
   /**

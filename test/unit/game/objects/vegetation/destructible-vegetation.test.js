@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { DestructibleVegetation } from "../../../../../src/game/objects/vegetation/DestructibleVegetation.js";
+import { SurfaceSpatialIndex } from "../../../../../src/game/objects/shared/SurfaceSpatialIndex.js";
 
 function createEntity() {
   return {
@@ -16,6 +17,34 @@ function createEntity() {
 }
 
 describe("destructible vegetation grass footprint", () => {
+  it("preserves surface queries for rotated and damaged vegetation through the spatial index", () => {
+    for (const rotation of [0, 45, 90, 135]) {
+      const vegetation = new DestructibleVegetation({
+        modelLibrary: { instantiate: () => createEntity() },
+        modelUrl: "vegetation.glb", id: "indexed", variant: "test", kind: "bush",
+        cutsRequired: 3, rotation,
+        collisionRows: [
+          { y: 0, cells: [[-2, -1], [3, 1]] },
+          { y: 1, cells: [[0, 0]] },
+        ],
+        x: -4, y: 3, z: 4,
+      });
+      const index = new SurfaceSpatialIndex();
+      index.add(vegetation, vegetation.surfaceBounds);
+      for (let damage = 0; damage < 4; damage++) {
+        for (let x = -6; x <= -2; x += 0.25) {
+          for (let z = 2; z <= 6; z += 0.25) {
+            for (const radius of [0, 0.3, 1]) {
+              const actual = index.query(x, z, radius).has(vegetation)
+                ? vegetation.surfaceHeightAt(x, z, radius) : null;
+              assert.equal(actual, vegetation.surfaceHeightAt(x, z, radius));
+            }
+          }
+        }
+        vegetation.cut();
+      }
+    }
+  });
   it("weights only ground-contact voxels instead of their bounding rectangle", () => {
     const vegetation = new DestructibleVegetation({
       modelLibrary: { instantiate: () => createEntity() },
@@ -46,7 +75,7 @@ describe("destructible vegetation grass footprint", () => {
     ]);
   });
 
-  it("builds Ammo bodies for every generated tree and bush voxel", () => {
+  it("preserves generated tree and bush occupied volume with fewer Ammo shapes", () => {
     const physicsEntities = [];
     class PhysicsEntity {
       constructor(name) {
@@ -105,24 +134,23 @@ describe("destructible vegetation grass footprint", () => {
     assert.equal(collider.name, "Tree physics collider");
     assert.equal(collider.tag, undefined);
     assert.equal(collider.components.collision.type, "compound");
-    assert.equal(collider.children.length, 5);
-    assert.deepEqual(
-      collider.children.map(({ position }) => position),
-      [
-        { x: 0, y: 0.125, z: 0 },
-        { x: 0, y: 0.375, z: 0 },
-        { x: -0.25, y: 0.375, z: 0 },
-        { x: 0.25, y: 0.375, z: 0 },
-        { x: 0, y: 0.375, z: -0.25 },
-      ],
-    );
-    assert.deepEqual({
-      ...collider.children[0].components.collision.halfExtents,
-    }, {
-      x: 0.125,
-      y: 0.125,
-      z: 0.125,
-    });
+    assert.equal(collider.children.length, 3);
+    for (const point of [
+      { x: 0, y: 0.125, z: 0 }, { x: 0, y: 0.375, z: 0 },
+      { x: -0.25, y: 0.375, z: 0 }, { x: 0.25, y: 0.375, z: 0 },
+      { x: 0, y: 0.375, z: -0.25 },
+    ]) {
+      assert.ok(collider.children.some(({ position, components }) => {
+        const half = components.collision.halfExtents;
+        return Math.abs(position.x - point.x) < half.x &&
+          Math.abs(position.y - point.y) < half.y && Math.abs(position.z - point.z) < half.z;
+      }));
+    }
+    const volume = collider.children.reduce((total, child) => {
+      const half = child.components.collision.halfExtents;
+      return total + 8 * half.x * half.y * half.z;
+    }, 0);
+    assert.equal(volume, 5 * 0.25 ** 3);
     assert.equal(collider.components.rigidbody.type, "static");
     assert.ok(vegetation.collisionDepthAt(0, 0, 0.18, 0, 0.22) > 0);
     assert.equal(
@@ -147,7 +175,7 @@ describe("destructible vegetation grass footprint", () => {
       ({ name }) => name === "Bush physics collider",
     );
     assert.equal(bushCollider.components.collision.type, "compound");
-    assert.equal(bushCollider.children.length, 2);
+    assert.equal(bushCollider.children.length, 1);
     assert.equal(bushCollider.components.rigidbody.type, "static");
     assert.equal(bush.movementCollisionDepthAt(0, 0, 0.18, 0, 0.22), 0);
   });
