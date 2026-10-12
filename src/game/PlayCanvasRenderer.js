@@ -1,4 +1,6 @@
 import { MapObjectReplacement } from "./rendering/scene/MapObjectReplacement.js";
+import { MapTestControls } from "./debug/MapTestControls.js";
+import { MapTestControlsHud } from "./ui/MapTestControlsHud.js";
 import { DirectionalShadowBudget } from "./rendering/DirectionalShadowBudget.js";
 import { useDebounceFn } from "@vueuse/core";
 import { AmmoRuntime } from "./physics/AmmoRuntime.js";
@@ -682,6 +684,25 @@ export class PlayCanvasRenderer {
     this.#camera.panX = this.#camera.fitCenterX;
     this.#camera.panZ = this.#camera.fitCenterZ;
     this.#rebuildScene();
+    this.#huds.remove(MapTestControlsHud);
+    if (mapData.testControls?.panels?.length) {
+      this.#huds.add(MapTestControlsHud, {
+        panels: mapData.testControls.panels,
+        controls: new MapTestControls({
+          getObjects: () => this.#sceneObjects,
+          getMap: () => this.#mapData,
+          onRuntimeError: this.#onRuntimeError,
+          /**
+           * @param {{zoom: number, rotation: number, panX: number, panZ: number}} viewport
+           */
+          setViewport: (viewport) => this.setViewport(viewport),
+          /**
+           * @param {boolean} enabled
+           */
+          setFirstPerson: (enabled) => { this.firstPersonCameraEnabled = enabled; },
+        }),
+      });
+    }
     this.#fitCamera();
     this.#updateCamera();
     this.#heroVisibility?.schedule();

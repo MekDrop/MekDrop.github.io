@@ -4,6 +4,7 @@ Use this file to find likely entry points, focused rules, and the smallest relev
 
 | Task | Start With | Also Check | Focused Rules | Suggested Checks |
 | --- | --- | --- | --- | --- |
+| Interactive visual previews or map-authored test controls | `src/game/maps/tests/`, `src/game/ui/MapTestControlsHud.js` | `src/game/debug/MapTestControls.js`, owning object | `docs/ai/test-maps.md` | focused dispatcher test; verify the normal game route and HUD buttons |
 | Site shell or visible homepage UI | `src/layouts/MainLayout.vue` | `src/components/`, `src/i18n/` | root `AGENTS.md`, `docs/ai/code-style.md` | `npm run lint`; SPA build only if route/build behavior changed |
 | Route or locale behavior | `src/router/`, `src/i18n/`, `quasar.config.js` | `src/pages/IndexPage.vue` | root `AGENTS.md`, `docs/ai/code-style.md` | `npm run lint`; `npm run build:ssg` if output behavior changed |
 | Game canvas mounting | `src/components/GameCanvas.vue` | `src/game/PlayCanvasRenderer.js`, `src/stores/` | root `AGENTS.md`, `docs/ai/code-style.md` | `npm run lint`; affected E2E spec if mounting behavior changed |

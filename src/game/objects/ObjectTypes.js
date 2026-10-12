@@ -39,6 +39,7 @@
  * @property {{id: string, contents: Array<string>}} [buriedTreasure]
  * @typedef {{method: string, args: Array}} RenderCommand
  * @typedef {object} GameMapData
+ * @property {{panels: import("../ui/MapTestControlsHud.js").MapTestPanel[]}} [testControls]
  * @property {number} cols
  * @property {number} rows
  * @property {string} [mapName]
@@ -69,6 +70,7 @@
  * @property {(error: Error) => void} [onRuntimeError]
  * @property {(position: Point3, radius: number) => Array<Point3>} [getGrassSupportPoints]
  * @typedef {object} MapObjectLike
+ * @property {string} [testStatus]
  * @property {import("playcanvas").Entity} entity
  * @property {MapObjectDefinition} [definition]
  * @property {() => void} destroy

@@ -64,6 +64,7 @@
 
 /**
  * @typedef {object} GameMapData
+ * @property {{panels: import("./ui/MapTestControlsHud.js").MapTestPanel[]}} [testControls]
  * @property {number} cols
  * @property {number} rows
  * @property {number[][]} grid

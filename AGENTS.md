@@ -21,6 +21,8 @@ Choose the smallest check that covers changed behavior, as listed in the task ma
 
 ## Focused Rules
 
+- Interactive visual checks and map-authored test controls: [docs/ai/test-maps.md](docs/ai/test-maps.md). Prefer real test maps with PlayCanvas HUD controls over standalone preview apps.
+
 - Runtime error recovery: [docs/ai/runtime-errors.md](docs/ai/runtime-errors.md)
 - Map generation, terrain, paths, water, or validation: [docs/ai/map-generation.md](docs/ai/map-generation.md)
 - Stable visible 3D models or props: [docs/ai/blender-models.md](docs/ai/blender-models.md)

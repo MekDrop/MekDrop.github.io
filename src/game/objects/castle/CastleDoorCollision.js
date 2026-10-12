@@ -7,8 +7,57 @@ import { CastleDoorSwingPhysics } from "./CastleDoorSwingPhysics.js";
  */
 export function createCastleDoorCollision(pc, door) {
   const parts = [];
-  for (const render of door.findComponents("render")) {
-    if (!render.entity.name.includes("door plank")) continue;
+  const frameBodies = [];
+  const configuredShapes = new Set();
+  /**
+   * Mesh assets may create their native shape after the door is constructed.
+   * @param {import("playcanvas").Entity} entity
+   * @param {boolean} hull
+   */
+  const configureMargin = (entity, hull = false) => {
+    const shape = entity.collision?.shape;
+    if (!shape?.getNumChildShapes) return;
+    const key = globalThis.Ammo?.getPointer?.(shape) ?? shape;
+    if (configuredShapes.has(key)) return;
+    for (let index = 0; index < shape.getNumChildShapes(); index++) {
+      const child = shape.getChildShape(index);
+      child.setMargin(0.001);
+      if (hull && globalThis.Ammo?.castObject) {
+        globalThis.Ammo.castObject(child, globalThis.Ammo.btConvexHullShape).recalcLocalAabb();
+      }
+    }
+    configuredShapes.add(key);
+  };
+  const renders = door.findComponents("render");
+  const authoredLeaves = renders.some(/**
+   * @param {import("playcanvas").RenderComponent} render
+   */ (render) => render.entity.name.startsWith("Entrance oak plank") && render.asset);
+  for (const render of renders) {
+    if (render.entity.name.startsWith("Entrance masonry interior")) {
+      // Use the authored masonry surface, rather than a box that fills the arch.
+      // The ordinary door swing probe then sees its own frame like any nearby wall.
+      const node = new pc.GraphNode("Castle entrance frame physics mesh");
+      const model = new pc.Model();
+      model.graph = node;
+      model.meshInstances = render.meshInstances.map(/**
+       * @param {import("playcanvas").MeshInstance} instance
+       */ (instance) =>
+        new pc.MeshInstance(instance.mesh, instance.material, node));
+      const collider = new pc.Entity("Castle entrance frame collider");
+      render.entity.addChild(collider);
+      collider.addComponent("collision", { type: "mesh", model });
+      collider.addComponent("rigidbody", { type: "static", friction: 0, restitution: 0 });
+      // Bullet's default mesh margin is wider than the authored door/frame clearance.
+      configureMargin(collider);
+      frameBodies.push({ collider, model });
+    }
+    if (render.entity.name.startsWith("Entrance collision door plank")) {
+      // Authored curved-leaf columns supply collision without visible helper cubes.
+      render.enabled = false;
+      if (authoredLeaves) continue;
+    }
+    const curvedLeaf = authoredLeaves && render.entity.name.startsWith("Entrance oak plank");
+    if (!render.entity.name.includes("door plank") && !curvedLeaf) continue;
     const positions = [];
     for (const instance of render.meshInstances) instance.mesh.getPositions(positions);
     const min = [Infinity, Infinity, Infinity], max = [-Infinity, -Infinity, -Infinity];
@@ -24,28 +73,51 @@ export function createCastleDoorCollision(pc, door) {
      * @param {number} axis
      */
     (value, axis) => (value - min[axis]) / 2);
-    part.setLocalPosition(...max.map(/**
+    const center = max.map(/**
      *
      * @param {number} value
      * @param {number} axis
      */
-    (value, axis) => (value + min[axis]) / 2));
+    (value, axis) => (value + min[axis]) / 2);
+    if (!curvedLeaf) part.setLocalPosition(...center);
     render.entity.addChild(part);
     // PlayCanvas box half-extents are physics-world dimensions; entity scale
     // affects the mesh and picking transform but does not scale the Ammo box.
     const worldScale = part.getWorldTransform().getScale();
-    part.addComponent("collision", { type: "box", halfExtents: new pc.Vec3(
+    part.addComponent("collision", curvedLeaf ? {
+      type: "mesh", renderAsset: render.asset, convexHull: true,
+    } : { type: "box", halfExtents: new pc.Vec3(
       half[0] * Math.abs(worldScale.x),
       half[1] * Math.abs(worldScale.y),
       half[2] * Math.abs(worldScale.z),
     ) });
     part.addComponent("rigidbody", { type: "kinematic", friction: 0, restitution: 0 });
-    parts.push({ entity: part, half });
+    if (curvedLeaf) {
+      configureMargin(part, true);
+    }
+    parts.push({ entity: part, half, center: curvedLeaf ? center : [0, 0, 0] });
   }
   const point = new pc.Vec3(), inverse = new pc.Mat4(), scale = new pc.Vec3();
   const swing = new CastleDoorSwingPhysics(parts);
   return {
     swing,
+    syncFrameBodies() {
+      // The castle attaches this door after construction; use its final world pose.
+      for (const { collider } of frameBodies) {
+        configureMargin(collider);
+        collider.rigidbody?.syncEntityToBody?.();
+      }
+      if (authoredLeaves) {
+        for (const { entity } of parts) configureMargin(entity, true);
+      }
+    },
+    destroy() {
+      swing.destroy();
+      for (const { collider, model } of frameBodies) {
+        collider.destroy();
+        model.destroy();
+      }
+    },
     /**
      * Picks the actual moving leaves, including when folded back along a wall.
      * @param {import("playcanvas").Vec3} start
@@ -55,10 +127,12 @@ export function createCastleDoorCollision(pc, door) {
     raycast(start, end) {
       let closest = null;
       const localStart = new pc.Vec3(), localEnd = new pc.Vec3();
-      for (const { entity, half } of parts) {
+      for (const { entity, half, center } of parts) {
         inverse.copy(entity.getWorldTransform()).invert();
         inverse.transformPoint(start, localStart);
         inverse.transformPoint(end, localEnd);
+        localStart.sub(point.set(...center));
+        localEnd.sub(point);
         const origin = [localStart.x, localStart.y, localStart.z];
         const destination = [localEnd.x, localEnd.y, localEnd.z];
         let near = 0, far = 1;
@@ -87,13 +161,15 @@ export function createCastleDoorCollision(pc, door) {
     blocksAt(x, y, z, radius) {
       return parts.some(/**
        *
-       * @param {{entity: import("playcanvas").Entity, half: number[]}} options
+       * @param {{entity: import("playcanvas").Entity, half: number[], center: number[]}} options
        * @param {import("playcanvas").Entity} options.entity
        * @param {number[]} options.half
+       * @param {number[]} options.center
        */
-      ({ entity, half }) => {
+      ({ entity, half, center }) => {
         const transform = entity.getWorldTransform();
         inverse.copy(transform).invert().transformPoint(point.set(x, y, z), point);
+        point.x -= center[0]; point.y -= center[1]; point.z -= center[2];
         transform.getScale(scale);
         const distance = Math.hypot(
           Math.max(Math.abs(point.x) - half[0], 0) * scale.x,

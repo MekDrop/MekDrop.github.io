@@ -509,6 +509,32 @@ export class CastleEntityBuilder {
   }
 
   /**
+   * @param {number|null} amount
+   */
+  set testEntranceOpenAmount(amount) {
+    for (const door of this.#animatedDoors) {
+      if (!door.exteriorEntrance) { continue; }
+      door.testOpenAmount = amount === null ? null : Math.max(0, Math.min(1, amount));
+    }
+  }
+
+  /**
+   * @returns {string}
+   */
+  get testStatus() {
+    const doors = this.#animatedDoors.filter(/**
+     *
+     * @param {CastleDoor} door
+     */
+    (door) => door.exteriorEntrance);
+    return `Entrance: ${doors.map(/**
+     *
+     * @param {CastleDoor} door
+     */
+    (door) => `${Math.round(door.openAmount * 100)}%`).join(", ")}`;
+  }
+
+  /**
    *
    * @param {number} rayStart
    * @param {number} rayEnd
@@ -1062,14 +1088,12 @@ export class CastleEntityBuilder {
         const opening = residential.openings.find(/**
          * @param {{exteriorEntrance:boolean}} aperture
          */ (aperture) => aperture.exteriorEntrance);
-        const arch = new CastleDoorArch({ castlePosition: this.#position, door: doorData,
-          modelLibrary: this.#modelLibrary, placement: { ...residential.origin, height: opening.height - 0.05 } });
-        this.#entity.addChild(arch.entity);
-        this.#doorArches.push(arch);
         CastleEntranceDetails.add(this.#pc, this.#modelLibrary, this.#entity,
           this.#buildPlan, this.#materials.get("castleStoneMid"));
         const door = new CastleDoor({ pc: this.#pc, castlePosition: this.#position, door: doorData,
           placement: { ...residential.origin, height: opening.height - 0.05, openingInset: 0, arched: true, swing: opening.swing },
+          bundledEntrance: true,
+          masonryMaterials: this.#materials,
           modelLibrary: this.#modelLibrary, woodMaterial: this.#materials.get("castleDoor") });
         this.#entity.addChild(door.entity);
         this.#animatedDoors.push(door);

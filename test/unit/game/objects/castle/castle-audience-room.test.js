@@ -340,7 +340,7 @@ it("uses the shared room plan and keeps the actual throne dais clear of furnitur
     }
   }
 });
-it("keeps all timber floor finishes behind occupied walls and leaves stone-only gate thresholds", async () => {
+it("keeps room timber inside the walls and extends doorway-width wood and rug to the entrance", async () => {
   const { CastleGenerator } = await import("../../../../../src/game/generator/castle/CastleGenerator.js");
   const { CastleResidentialLayout } = await import("../../../../../src/game/objects/castle/CastleResidentialLayout.js");
   for (const style of ["twin-keeps", "courtyard-keep", "long-hall", "l-courtyard", "terraced-keeps"]) {
@@ -349,13 +349,15 @@ it("keeps all timber floor finishes behind occupied walls and leaves stone-only 
         doors: [{ side, offset: 5, width: 2 }], style });
       const shared = new CastleResidentialLayout(plan);
       const room = createRoom(side, null, { residentialLayout: shared });
-      assert.equal(room.entity.children.some((part) => part.name === "Audience entrance floor"), false);
+      const entry = room.entity.children.find((part) => part.name === "Audience entrance floor");
+      assert.equal(Boolean(entry), shared.audienceFloorBounds.minZ > 0);
+      if (entry) assert.equal(entry.scale.x, 2);
       const work = shared.audienceFloorBounds;
       for (const part of room.entity.children.filter((item) => item.name.includes("floor") || item.name === "Audience carpet runner")) {
         const center = shared.toLocal(part.position.x, part.position.z);
         assert.ok(center.x - part.scale.x / 2 >= work.minX - 1e-6 && center.x + part.scale.x / 2 <= work.maxX + 1e-6,
           `${style}/${side}/${part.name}: side finish remains behind masonry`);
-        assert.ok(center.z - part.scale.z / 2 >= work.minZ - 1e-6 && center.z + part.scale.z / 2 <= work.maxZ + 1e-6,
+        assert.ok(center.z - part.scale.z / 2 >= (part.name === "Audience entrance floor" ? 0 : part.name === "Audience carpet runner" ? 0.32 : work.minZ) - 1e-6 && center.z + part.scale.z / 2 <= work.maxZ + 1e-6,
           `${style}/${side}/${part.name}: finish stays inside work hall`);
       }
       const floor = room.entity.children.find((part) => part.name === "Audience wooden floor");

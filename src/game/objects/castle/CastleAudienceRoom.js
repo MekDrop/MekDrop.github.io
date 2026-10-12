@@ -597,7 +597,7 @@ export class CastleAudienceRoom {
       Math.max(0, this.#frontWallDepth),
       this.#floorDepth,
     );
-    // Timber meets the interior wall faces; the gate threshold remains stone.
+    // Timber continues through the doorway-width interior threshold.
     const finishInset = 0;
     const finishStart = floorInset + finishInset;
     const roomFloorDepth = Math.max(0, this.#floorDepth - finishStart - finishInset);
@@ -616,7 +616,7 @@ export class CastleAudienceRoom {
         [this.#floorWidth - finishInset * 2, 0.05, roomFloorDepth],
       );
     }
-    if (!this.#residentialLayout && floorInset > 0 && entranceFloorWidth > 0) {
+    if (floorInset > 0 && entranceFloorWidth > 0) {
       this.#boxAt(
         "Audience entrance floor",
         "woodLight",
@@ -628,7 +628,7 @@ export class CastleAudienceRoom {
     }
     // The authored parquet panel already includes plank joints and edge detail.
 
-    const runnerStart = Math.max(CARPET_ENTRANCE_INSET, floorInset + 0.1);
+    const runnerStart = CARPET_ENTRANCE_INSET;
     const runnerEnd = Math.min(
       throneForward - 0.07,
       this.#floorDepth - CARPET_REAR_CLEARANCE,

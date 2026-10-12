@@ -125,6 +125,9 @@ export class CastleDoorSwingPhysics {
       const contact = ammo.wrapPointer(pointPointer, ammo.btManifoldPoint);
       const depth = -contact.getDistance();
       if (depth <= 0) return 0;
+      // A vertical hinge cannot move deeper into a level floor or ceiling.
+      // Ignore their support normals, including small manifold-depth variations.
+      if (Math.abs(contact.get_m_normalWorldOnB().y()) > 0.999) return 0;
       const first = ammo.wrapPointer(firstPointer, ammo.btCollisionObjectWrapper).getCollisionObject();
       const second = ammo.wrapPointer(secondPointer, ammo.btCollisionObjectWrapper).getCollisionObject();
       const other = ammo.getPointer(first) === ammo.getPointer(this.#probe) ? second : first;

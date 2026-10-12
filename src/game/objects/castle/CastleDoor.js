@@ -1,8 +1,11 @@
 import { createCastleDoorCollision } from "./CastleDoorCollision.js";
 import interiorDoorUrl from "../../models/castle/doors/interior-doors.glb?url";
 import castleDoorsModelUrl from "../../models/castle/doors/castle-doors.glb?url";
+import roundedEntranceUrl from "../../models/castle/doors/entrance-rounded.glb?url";
 import { CASTLE_DOOR_ANIMATION } from "../../enum/CastleDoorAnimation.js";
 import { NpcDoorAvoidance } from "../shared/NpcDoorAvoidance.js";
+import entranceMasonryShader from "./CastleEntranceMasonry.frag?raw";
+import entranceMasonryWgsl from "./CastleEntranceMasonry.wgsl?raw";
 
 const DOOR_INSET = -0.18;
 const OPEN_SPEED = 1.7;
@@ -25,7 +28,7 @@ export class CastleDoor {
   /**
    * @returns {string[]}
    */
-  static get modelUrls() { return [castleDoorsModelUrl, interiorDoorUrl]; }
+  static get modelUrls() { return [castleDoorsModelUrl, interiorDoorUrl, roundedEntranceUrl]; }
 
   /**
    *
@@ -37,6 +40,10 @@ export class CastleDoor {
     * @type {import("playcanvas").Entity}
    */
   #entity;
+  /**
+   * @type {import("playcanvas").StandardMaterial|null}
+   */
+  #archMaterial = null;
   /**
    *
     * @type {import("playcanvas").AnimController}
@@ -98,6 +105,22 @@ export class CastleDoor {
    * @type {number|null}
    */
   #sequenceOpenAmount = null;
+  /**
+   * @type {number|null}
+   */
+  #testOpenAmount = null;
+  /**
+   * @type {boolean}
+   */
+  #exteriorEntrance = false;
+
+  get exteriorEntrance() { return this.#exteriorEntrance; }
+
+  /**
+   * A test override changes the destination, preserving collision-aware movement.
+   * @param {number|null} value
+   */
+  set testOpenAmount(value) { this.#testOpenAmount = value; }
 
   /**
    * @type {(() => boolean)|null}
@@ -168,8 +191,11 @@ export class CastleDoor {
    * @param {string} options.modelLibrary
    * @param {{x: number, y: number, z: number, yaw: number, height: number, arched?: boolean, mirrored?: boolean}|null} options.placement
    * @param {import("playcanvas").Material} options.woodMaterial
+   * @param {boolean} options.bundledEntrance Use the complete stone-and-timber entrance.
+   * @param {Map<string, import("playcanvas").Material>|null} options.masonryMaterials
    */
-  constructor({ pc, castlePosition, door, modelLibrary, placement = null }) {
+  constructor({ pc, castlePosition, door, modelLibrary, placement = null, bundledEntrance = false, masonryMaterials = null }) {
+    this.#exteriorEntrance = bundledEntrance || !placement;
 
     this.#pc = pc;
 
@@ -196,6 +222,11 @@ export class CastleDoor {
       geometry.center.x += geometry.inward.x * 0.155;
       geometry.center.z += geometry.inward.z * 0.155;
     }
+    if (bundledEntrance) {
+      // Seat the complete reveal in the outer wall; its threshold top is floor zero.
+      geometry.center.x -= geometry.inward.x * 0.15;
+      geometry.center.z -= geometry.inward.z * 0.15;
+    }
     this.#center = geometry.center;
 
     this.#inward = geometry.inward;
@@ -203,16 +234,44 @@ export class CastleDoor {
     this.#tangent = geometry.tangent;
 
 
-    const modelUrl = placement && !placement.arched ? interiorDoorUrl : castleDoorsModelUrl;
+    const modelUrl = bundledEntrance ? roundedEntranceUrl : placement && !placement.arched ? interiorDoorUrl : castleDoorsModelUrl;
     this.#entity = modelLibrary.instantiate(modelUrl);
+    if (bundledEntrance && masonryMaterials) {
+      const stone = masonryMaterials.get("castleStoneMid");
+      // Radial stone joints are authored in the arch mesh, rather than wall courses.
+      this.#archMaterial = new pc.StandardMaterial();
+      this.#archMaterial.diffuse.copy(stone.diffuse);
+      this.#archMaterial.diffuseVertexColor = true;
+      this.#archMaterial.gloss = stone.gloss;
+      this.#archMaterial.useMetalness = true;
+      this.#archMaterial.metalness = 0;
+      this.#archMaterial.forceUv1 = true;
+      this.#archMaterial.shaderChunksVersion = pc.version.split(".").slice(0, 2).join(".");
+      this.#archMaterial.getShaderChunks(pc.SHADERLANGUAGE_GLSL).set("diffusePS", entranceMasonryShader);
+      this.#archMaterial.getShaderChunks(pc.SHADERLANGUAGE_WGSL).set("diffusePS", entranceMasonryWgsl);
+      this.#archMaterial.update();
+      for (const render of this.#entity.findComponents("render")) {
+        if (!render.entity.name.startsWith("Entrance masonry")) continue;
+          const material = render.entity.name.startsWith("Entrance masonry arch") ||
+            render.entity.name.startsWith("Entrance masonry course")
+          ? this.#archMaterial : stone;
+        for (const instance of render.meshInstances) {
+          instance.material = material;
+          if (material === this.#archMaterial) {
+            instance.setParameter("uStoneFaceSize", render.entity.name.startsWith("Entrance masonry arch")
+              ? [Math.PI * 0.97 / 11, 0.28] : [0.28, 1.704 / 7]);
+          }
+        }
+      }
+    }
     this.#entity.name = `Castle ${door.side.toLowerCase()} doors`;
     // Preserve the oak and iron materials authored with the entrance model.
     this.#entity.setLocalPosition(
       this.#center.x,
-      this.#center.y + 0.025 * this.#height / DOOR_HEIGHT,
+      this.#center.y + (bundledEntrance ? 0 : 0.025 * this.#height / DOOR_HEIGHT),
       this.#center.z,
     );
-    this.#entity.setLocalEulerAngles(0, geometry.baseYaw + (placement?.arched && placement.swing === "inward" ? 180 : 0), 0);
+    this.#entity.setLocalEulerAngles(0, geometry.baseYaw + (!bundledEntrance && placement?.arched && placement.swing === "inward" ? 180 : 0), 0);
     if (placement) {
       this.#entity.setLocalScale((placement.mirrored ? -1 : 1) * this.#width / 2, this.#height / DOOR_HEIGHT, framedInterior ? 0.5 : this.#width / 2);
     }
@@ -293,6 +352,7 @@ export class CastleDoor {
   }
 
   handlePointerDown() {
+    this.#testOpenAmount = null;
     if (this.#onOpen) {
       return this.#onOpen();
     }
@@ -339,7 +399,7 @@ export class CastleDoor {
       0,
       this.#manualOpenRemaining - deltaTime,
     );
-    const target = Math.max(Number(this.#shouldOpen()), this.#sequenceOpenAmount ?? 0);
+    const target = this.#testOpenAmount ?? Math.max(Number(this.#shouldOpen()), this.#sequenceOpenAmount ?? 0);
     if (Math.abs(target - this.#openAmount) > 0.000001 && this.#canNpcMove) {
       NpcDoorAvoidance.requestClearance(this.#entity, this.#inNpcSwing, this.#canNpcMove, null, this.#operator);
     }
@@ -349,6 +409,7 @@ export class CastleDoor {
       : Math.max(target, this.#openAmount - amount);
     if (destination === this.#openAmount) return;
     // Existing hinge/support contacts may clear, but must not deepen as the leaf swings.
+    this.#collision.syncFrameBodies();
     const initialContacts = this.#collision.swing.contacts();
     const direction = Math.sign(destination - this.#openAmount);
     // Sample the entire arc, including when a delayed frame spans both sides of a wall.
@@ -402,8 +463,10 @@ export class CastleDoor {
   }
 
   destroy() {
-    this.#collision?.swing.destroy();
+    this.#collision?.destroy();
     this.#entity?.destroy();
+    this.#archMaterial?.destroy();
+    this.#archMaterial = null;
     this.#entity = null;
     this.#animationLayer = null;
     this.#onOpen = null;

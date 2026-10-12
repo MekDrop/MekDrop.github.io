@@ -396,16 +396,9 @@ export class CastleAuthoredBuildPlan {
        */
       (opening) => {
         if (!opening.exteriorEntrance) { return [opening]; }
-        // Retain normal wall tiles above the stepped crown instead of cutting
-        // a rectangular hole and covering its shoulders with arch trim.
-        const crownHeights = [1.92114, 2.22114, 2.40114, 2.54614, 2.54614, 2.40114, 2.22114, 1.92114];
-        return crownHeights.map(/**
-         * @param {number} crownHeight
-         * @param {number} index
-         */
-        (crownHeight, index) => ({ ...opening, width: opening.width / 8,
-          center: opening.center + opening.width * ((index + 0.5) / 8 - 0.5),
-          height: Math.min(opening.height, crownHeight * (opening.height - 0.05) / 2.3) }));
+        // The bundled arch closes the shoulders. Clear the full leaf height
+        // through the wall so its taller centre can swing past either jamb.
+        return [{ ...opening, height: opening.height - 0.05 }];
       });
       for (const door of wallOpenings) {
         if (door.kind !== "door" || door.axis !== axis || Math.abs(door.coordinate - coordinate) > thickness * 1.1 ||
