@@ -760,13 +760,8 @@
   ],
   "cols": 11,
   "rows": 11,
-  "entries": [],
-  "castle": null,
   "numPaths": 0,
-  "groundCoverData": [],
-  "riverData": [],
   "pipeData": [],
-  "overpassData": null,
   "mergeZones": [],
   "trunkStart": null,
   "mapName": "test_royals-crying",
@@ -778,8 +773,41 @@
     "panZ": 0
   },
   "objects": [
-    {"id":"king-crying","object":"SeatedRoyal","variant":"king","animation":"Cry","position":{"x":-1.8,"y":2.05,"z":1.8},"scale":0.72},
-    {"id":"queen-crying","object":"SeatedRoyal","variant":"queen","animation":"Cry","position":{"x":0,"y":2.05,"z":0},"scale":0.72},
-    {"id":"princess-crying","object":"SeatedRoyal","variant":"princess","animation":"Cry","position":{"x":1.8,"y":2.05,"z":-1.8},"scale":0.72}
+    {
+      "id": "king-crying",
+      "object": "SeatedRoyal",
+      "variant": "king",
+      "animation": "Cry",
+      "position": {
+        "x": -1.8,
+        "y": 2.05,
+        "z": 1.8
+      },
+      "scale": 0.72
+    },
+    {
+      "id": "queen-crying",
+      "object": "SeatedRoyal",
+      "variant": "queen",
+      "animation": "Cry",
+      "position": {
+        "x": 0,
+        "y": 2.05,
+        "z": 0
+      },
+      "scale": 0.72
+    },
+    {
+      "id": "princess-crying",
+      "object": "SeatedRoyal",
+      "variant": "princess",
+      "animation": "Cry",
+      "position": {
+        "x": 1.8,
+        "y": 2.05,
+        "z": -1.8
+      },
+      "scale": 0.72
+    }
   ]
 }

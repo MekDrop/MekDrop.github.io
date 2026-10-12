@@ -50,3 +50,24 @@ it("destroys and forgets every object for a type", () => {
   assert.deepEqual(registry.getAll(SCENE_OBJECT_TYPE.CASTLE), []);
   assert.equal(registry.get("castle_0"), null);
 });
+
+it("refreshes class lookups after creation, replacement, destruction, and clearing", () => {
+  class Service { destroy() {} onFrame() {} }
+  const registry = new SceneObjectRegistry();
+  assert.equal(registry.getFirstByClass(Service.name), null);
+  const first = new Service();
+  registry.add(SCENE_OBJECT_TYPE.MAP_OBJECT, first);
+  assert.equal(registry.getFirstByClass(Service.name), first);
+  assert.deepEqual(registry.getWithMethod("onFrame"), [first]);
+  const second = new Service();
+  registry.setOne(SCENE_OBJECT_TYPE.HERO, second);
+  registry.destroyType(SCENE_OBJECT_TYPE.MAP_OBJECT);
+  assert.equal(registry.getFirstByClass(Service.name), second);
+  assert.deepEqual(registry.getWithMethod("onFrame"), [second]);
+  const replacement = new Service();
+  registry.setOne(SCENE_OBJECT_TYPE.HERO, replacement);
+  assert.equal(registry.getFirstByClass(Service.name), replacement);
+  registry.clear();
+  assert.equal(registry.getFirstByClass(Service.name), null);
+  assert.deepEqual(registry.getWithMethod("onFrame"), []);
+});

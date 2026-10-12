@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { MapObjectDefinitions } from "../../../../src/game/objects/MapObjectDefinitions.js";
 import { readFileSync } from "node:fs";
 import { it } from "node:test";
 import Ammo from "sync-ammo/dist/ammo.module.js";
@@ -6,6 +7,7 @@ import { TerrainPhysicsSurface } from "../../../../src/game/collision/TerrainPhy
 
 it("keeps the river open below high bridges while retaining deck collisions", () => {
   const mapData = JSON.parse(readFileSync(new URL("../../../../src/game/maps/tests/river-high-bridge.json", import.meta.url)));
+  MapObjectDefinitions.prepare(mapData);
   let mesh;
   const pc = {
     Entity: class {

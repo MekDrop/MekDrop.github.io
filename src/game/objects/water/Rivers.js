@@ -5,7 +5,7 @@ import { IslandObjectRoots } from '../shared/IslandObjectRoots.js';
 export class Rivers {
   /**
    *
-    * @returns {string}
+    * @returns {string[]}
    */
   static get modelUrls() {
     return RiverWater.modelUrls;
@@ -24,9 +24,15 @@ export class Rivers {
 
   /**
    *
-   * @param {{pc: typeof import("playcanvas"), app: import("playcanvas").Application, mapData: import("src/game/objects/ObjectTypes.js").GameMapData, modelLibrary: import("../../models/GameModelLibrary.js").GameModelLibrary}} context
+   * @param {{pc: typeof import("playcanvas"), app: import("playcanvas").Application, mapData?: import("src/game/objects/ObjectTypes.js").GameMapData, modelLibrary: import("../../models/GameModelLibrary.js").GameModelLibrary, definition?: import("../ObjectTypes.js").MapObjectDefinition, runtime?: import("../ObjectTypes.js").MapObjectRuntime}} context
    */
   constructor(context) {
+    if (context.definition) {
+      this.definition = context.definition;
+      context = { ...context, mapData: { ...context.runtime.mapData,
+        islandConnectorData: context.runtime.mapData.islandConnectorData,
+        riverData: context.definition.rivers } };
+    }
     this.entity = new context.pc.Entity('Rivers');
     this.#islandRoots = new IslandObjectRoots(context.pc, this.entity, context.mapData);
     this.#surfaces = [];
@@ -69,6 +75,15 @@ export class Rivers {
     for (const surface of this.#surfaces) {
       surface.update(deltaTime, hero, camera);
     }
+  }
+
+  /**
+   * @param {number} deltaTime
+   * @param {import("../ObjectTypes.js").HeroLike} hero
+   * @param {import("playcanvas").Entity} camera
+   */
+  onFrame(deltaTime, hero, camera) {
+    this.update(deltaTime, hero, camera);
   }
 
   destroy() {

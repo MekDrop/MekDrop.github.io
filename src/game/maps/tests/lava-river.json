@@ -360,104 +360,110 @@
   ],
   "cols": 9,
   "rows": 7,
-  "entries": [],
-  "castle": null,
   "numPaths": 0,
-  "groundCoverData": [],
-  "riverData": [
-    {
-      "id": "movement-test-river",
-      "kind": "LAVA",
-      "source": {
-        "col": 2,
-        "row": 3,
-        "terrainHeight": 2
-      },
-      "cells": [
-        {
-          "col": 2,
-          "row": 3,
-          "direction": "EAST",
-          "elevation": 1.5,
-          "bedElevation": 1,
-          "terrainHeight": 2,
-          "underBridge": false
-        },
-        {
-          "col": 3,
-          "row": 3,
-          "direction": "EAST",
-          "elevation": 1.5,
-          "bedElevation": 1,
-          "terrainHeight": 2,
-          "underBridge": false
-        },
-        {
-          "col": 4,
-          "row": 3,
-          "direction": "EAST",
-          "elevation": 1.5,
-          "bedElevation": 1,
-          "terrainHeight": 2,
-          "underBridge": false
-        },
-        {
-          "col": 5,
-          "row": 3,
-          "direction": "EAST",
-          "elevation": 1.5,
-          "bedElevation": 1,
-          "terrainHeight": 2,
-          "underBridge": false
-        },
-        {
-          "col": 6,
-          "row": 3,
-          "direction": "EAST",
-          "elevation": 1.5,
-          "bedElevation": 1,
-          "terrainHeight": 2,
-          "underBridge": false
-        },
-        {
-          "col": 7,
-          "row": 3,
-          "direction": "EAST",
-          "elevation": 1.5,
-          "bedElevation": 1,
-          "terrainHeight": 2,
-          "underBridge": false
-        },
-        {
-          "col": 8,
-          "row": 3,
-          "direction": "EAST",
-          "elevation": 1.5,
-          "bedElevation": 1,
-          "terrainHeight": 2,
-          "underBridge": false
-        }
-      ],
-      "cascades": [],
-      "upstreamLength": 5,
-      "waterfall": {
-        "col": 8,
-        "row": 3,
-        "direction": "EAST",
-        "topElevation": 1.5,
-        "bottomElevation": -10
-      }
-    }
-  ],
   "pipeData": [],
-  "overpassData": null,
   "mergeZones": [],
   "trunkStart": null,
   "mapName": "test_lava-river",
   "layoutSignature": "test_lava-river",
-  "heroSpawn": {
-    "x": -3,
-    "y": 2.14,
-    "z": 0
-  }
+  "objects": [
+    {
+      "id": "rivers",
+      "object": "Rivers",
+      "rivers": [
+        {
+          "id": "movement-test-river",
+          "kind": "LAVA",
+          "source": {
+            "col": 2,
+            "row": 3,
+            "terrainHeight": 2
+          },
+          "cells": [
+            {
+              "col": 2,
+              "row": 3,
+              "direction": "EAST",
+              "elevation": 1.5,
+              "bedElevation": 1,
+              "terrainHeight": 2,
+              "underBridge": false
+            },
+            {
+              "col": 3,
+              "row": 3,
+              "direction": "EAST",
+              "elevation": 1.5,
+              "bedElevation": 1,
+              "terrainHeight": 2,
+              "underBridge": false
+            },
+            {
+              "col": 4,
+              "row": 3,
+              "direction": "EAST",
+              "elevation": 1.5,
+              "bedElevation": 1,
+              "terrainHeight": 2,
+              "underBridge": false
+            },
+            {
+              "col": 5,
+              "row": 3,
+              "direction": "EAST",
+              "elevation": 1.5,
+              "bedElevation": 1,
+              "terrainHeight": 2,
+              "underBridge": false
+            },
+            {
+              "col": 6,
+              "row": 3,
+              "direction": "EAST",
+              "elevation": 1.5,
+              "bedElevation": 1,
+              "terrainHeight": 2,
+              "underBridge": false
+            },
+            {
+              "col": 7,
+              "row": 3,
+              "direction": "EAST",
+              "elevation": 1.5,
+              "bedElevation": 1,
+              "terrainHeight": 2,
+              "underBridge": false
+            },
+            {
+              "col": 8,
+              "row": 3,
+              "direction": "EAST",
+              "elevation": 1.5,
+              "bedElevation": 1,
+              "terrainHeight": 2,
+              "underBridge": false
+            }
+          ],
+          "cascades": [],
+          "upstreamLength": 5,
+          "waterfall": {
+            "col": 8,
+            "row": 3,
+            "direction": "EAST",
+            "topElevation": 1.5,
+            "bottomElevation": -10
+          }
+        }
+      ]
+    },
+    {
+      "id": "hero-spawn",
+      "object": "SpawnPoint",
+      "position": {
+        "x": -3,
+        "y": 2.14,
+        "z": 0
+      }
+    }
+  ]
 }

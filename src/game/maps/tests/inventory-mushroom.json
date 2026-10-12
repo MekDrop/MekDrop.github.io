@@ -322,31 +322,37 @@
   ],
   "cols": 9,
   "rows": 7,
-  "entries": [],
-  "castle": null,
   "numPaths": 0,
-  "groundCoverData": [
-    {
-      "col": 2,
-      "row": 3,
-      "variant": "red-mushroom",
-      "offsetX": 0,
-      "offsetZ": 0.58,
-      "rotation": 0,
-      "scale": 1,
-      "phase": 0
-    }
-  ],
-  "riverData": [],
   "pipeData": [],
-  "overpassData": null,
   "mergeZones": [],
   "trunkStart": null,
   "mapName": "test_inventory-mushroom",
   "layoutSignature": "test_inventory-mushroom",
-  "heroSpawn": {
-    "x": -2,
-    "y": 2.14,
-    "z": 0
-  }
+  "objects": [
+    {
+      "id": "ground-cover",
+      "object": "GroundCover",
+      "placements": [
+        {
+          "col": 2,
+          "row": 3,
+          "variant": "red-mushroom",
+          "offsetX": 0,
+          "offsetZ": 0.58,
+          "rotation": 0,
+          "scale": 1,
+          "phase": 0
+        }
+      ]
+    },
+    {
+      "id": "hero-spawn",
+      "object": "SpawnPoint",
+      "position": {
+        "x": -2,
+        "y": 2.14,
+        "z": 0
+      }
+    }
+  ]
 }

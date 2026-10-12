@@ -21,6 +21,41 @@ Likely entry points:
 - map-related objects under `src/game/objects/`
 - relevant Cypress specs under `test/cypress/e2e/`
 
+## Authored map objects
+
+Saved JSON maps and generator finalization author entities through `objects[]`:
+
+- `Gateway`: `entry` contains its grid column, row pair, side, and color; an optional
+  `symbol` selects its banner.
+- `Rivers`: one grouped `rivers` array retains connected water/lava channels,
+  cascades, sources, and waterfalls.
+- `GroundCover`: one batched `placements` array retains variant, grid position,
+  local offsets, rotation, and scale. Do not turn dense cover into independent GPU entities.
+- `Overpass`: `layout` retains its deck and approach topology. The owning class
+  builds stairs and registers collision; terrain publishes the shared tile surfaces.
+- `SpawnPoint`: `position` supplies the playable hero's spawn. A `Hero` record is
+  still a debug animation actor, not the playable hero.
+- `IslandConnector`: `topology` describes connector cells and island membership;
+  motion remains shared across all island attachments.
+- `Castle`: `navigation` stores its grid foundation and route endpoints alongside
+  its existing generation inputs.
+
+`MapObjectDefinitions.prepare(map)` accepts old top-level fields and publishes
+non-enumerable runtime views (`entries`, `riverData`, `groundCoverData`,
+`overpassData`, `heroSpawn`, `islandConnectorData`, and `castle`) from the records.
+These views keep shared terrain, navigation, and physics consumers working and are
+excluded from JSON and structured clones. Prepare cloned maps before reading them.
+Loading, walking-path rebuilding, terrain population, and factory preparation do
+this automatically. Do not author both forms in a saved map.
+
+`MapObjectFactory` owns construction and asset discovery for these objects.
+Frame-driven objects may implement `onFrame(deltaTime, hero, camera)`. Objects
+that update themselves through application events should not implement that hook.
+The scene registry owns disposal and forwards shared island offsets.
+
+Keep `grid`, `heightmap`, `tileMeta`, dimensions, map identity, and test/HUD
+configuration at map level. Routes and arrows are derived runtime data.
+
 ## Runtime walking paths
 
 `src/game/navigation/WalkingPaths.js` derives walking centerlines from `grid`,

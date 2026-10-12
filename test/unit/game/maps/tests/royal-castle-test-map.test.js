@@ -12,7 +12,7 @@ const map = JSON.parse(
 );
 
 it("gives the king, queen, and princess independent castles and one shared trigger", () => {
-  assert.equal(map.castles.length, 3);
+  assert.equal(Object.hasOwn(map, "castles"), false);
   assert.equal(
     map.objects.filter(({ object }) => object === "Castle").length,
     3,
@@ -52,7 +52,7 @@ it("gives the king, queen, and princess independent castles and one shared trigg
   const [trigger] = triggers;
   assert.equal(trigger.color, "#d8aa3d");
   assert.match(trigger.script, /setRoyalActivityTriggered/);
-  const middleCastle = map.castles[1];
+  const middleCastle = map.objects.filter(({ object }) => object === "Castle")[1].navigation;
   const southEdge = middleCastle.position.row + middleCastle.position.depth - 1;
   assert.equal(trigger.position.z, 4);
   assert.ok(southEdge < map.rows - 1);
@@ -61,6 +61,6 @@ it("gives the king, queen, and princess independent castles and one shared trigg
 
 it("starts the hero outside the middle activation tile", () => {
   const trigger = map.objects.find(({ object }) => object === "TriggerArea");
-  assert.ok(Math.abs(map.heroSpawn.x - trigger.position.x) <= 0.5);
-  assert.ok(map.heroSpawn.z - trigger.position.z >= 2);
+  assert.ok(Math.abs(map.objects.find(({ object }) => object === "SpawnPoint").position.x - trigger.position.x) <= 0.5);
+  assert.ok(map.objects.find(({ object }) => object === "SpawnPoint").position.z - trigger.position.z >= 2);
 });

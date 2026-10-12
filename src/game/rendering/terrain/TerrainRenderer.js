@@ -1,15 +1,7 @@
 import { TerrainPhysicsSurface } from "../../collision/index.js";
-import { Rivers } from "../../objects/water/index.js";
 import { TerrainInstanceRenderer } from "./TerrainInstanceRenderer.js";
 
 export class TerrainRenderer {
-  /**
-   *
-   * @returns {Array}
-   */
-  static get modelUrls() {
-    return Rivers.modelUrls;
-  }
 
   /**
    *
@@ -50,20 +42,10 @@ export class TerrainRenderer {
    * @type {null}
    */
   #physicsSurface = null;
-  /**
-   *
-   * @type {null}
-   */
-  #rivers = null;
-  /**
-   *
-   * @type {GameModelLibrary}
-   */
-  #modelLibrary;
 
   /**
    *
-   * @param {{pc: typeof pc, app: pc.Application, mapData: import("src/game/GameContracts.js").GameMapData, root: pc.Entity, materials: pc.Material[], bridgeRailingKit: import("src/game/objects/path/BridgeRailingKit.js").BridgeRailingKit, resolveMaterial?: (value: string) => string, modelLibrary: GameModelLibrary}} options
+   * @param {{pc: typeof pc, app: pc.Application, mapData: import("src/game/GameContracts.js").GameMapData, root: pc.Entity, materials: pc.Material[], bridgeRailingKit: import("src/game/objects/path/BridgeRailingKit.js").BridgeRailingKit, resolveMaterial?: (value: string) => string}} options
    * @param {typeof pc} options.pc
    * @param {pc.Application} options.app
    * @param {import("src/game/GameContracts.js").GameMapData} options.mapData
@@ -71,7 +53,6 @@ export class TerrainRenderer {
    * @param {pc.Material[]} options.materials
    * @param {import("src/game/objects/path/BridgeRailingKit.js").BridgeRailingKit} options.bridgeRailingKit
    * @param {(value: string) => string} [options.resolveMaterial]
-   * @param {GameModelLibrary} options.modelLibrary
    */
   constructor({
     pc,
@@ -81,7 +62,6 @@ export class TerrainRenderer {
     materials,
     bridgeRailingKit,
     resolveMaterial,
-    modelLibrary,
   }) {
     /**
      *
@@ -107,11 +87,6 @@ export class TerrainRenderer {
     this.#root = root;
     /**
      *
-     * @type {GameModelLibrary}
-     */
-    this.#modelLibrary = modelLibrary;
-    /**
-     *
      * @type {TerrainInstanceRenderer}
      */
     this.#instanceRenderer = new TerrainInstanceRenderer({
@@ -129,13 +104,6 @@ export class TerrainRenderer {
       target[method](...args.map(this.#resolveMaterial));
     }
     this.#instanceRenderer.build();
-    this.#rivers = new Rivers({
-      pc: this.#pc,
-      app: this.#app,
-      mapData: this.#mapData,
-      modelLibrary: this.#modelLibrary,
-    });
-    this.#root.addChild(this.#rivers.entity);
   }
 
   get instanceRenderer() { return this.#instanceRenderer; }
@@ -144,15 +112,6 @@ export class TerrainRenderer {
    */
   set resolveMaterial(value) { this.#resolveMaterial = value; }
 
-  /**
-   *
-   * @param {number} deltaTime
-   * @param {null} hero
-   * @param {null} camera
-   */
-  update(deltaTime, hero = null, camera = null) {
-    this.#rivers?.update(deltaTime, hero, camera);
-  }
 
   /**
    * @param {number} near
@@ -161,7 +120,6 @@ export class TerrainRenderer {
    */
   setIslandOffsets(near, far, offsets = [near, far]) {
     this.#instanceRenderer.setIslandOffsets(near, far, offsets);
-    this.#rivers?.setIslandOffsets(near, far, offsets);
   }
 
   /**
@@ -183,7 +141,5 @@ export class TerrainRenderer {
     this.#physicsSurface?.destroy();
     this.#physicsSurface = null;
     this.#instanceRenderer.destroy();
-    this.#rivers?.destroy();
-    this.#rivers = null;
   }
 }

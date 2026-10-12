@@ -1,9 +1,10 @@
 import { MAP_TILE_TYPE } from "../enum/MapTileType.js";
 import { RouteDataBuilder } from "../generator/map/RouteDataBuilder.js";
+import { MapObjectDefinitions } from "../objects/MapObjectDefinitions.js";
 
 /**
  * @typedef {{col: number, row: number, elevation: number}} WalkingPoint
- * @typedef {{col: number, rows: number[]}} WalkingEntry
+ * @typedef {{col: number, row?: number, rows: number[], side?: string, color?: number}} WalkingEntry
  * @typedef {{height: number, slope?: {lowHeight: number, highHeight: number, riseDirection: string}}} WalkingSurface
  */
 
@@ -18,6 +19,7 @@ export class WalkingPaths {
    * @returns {{graph: Map<string, Set<string>>, distances: Map<string, number>}}
    */
   static rebuild(map) {
+    MapObjectDefinitions.prepare(map);
     const graph = new Map();
     const points = new Map();
     /**

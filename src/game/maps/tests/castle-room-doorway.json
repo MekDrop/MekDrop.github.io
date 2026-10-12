@@ -9259,22 +9259,12 @@
       {}
     ]
   ],
-  "entries": [],
-  "castle": null,
   "numPaths": 0,
-  "groundCoverData": [],
-  "riverData": [],
   "pipeData": [],
   "mergeZones": [],
   "trunkStart": null,
-  "overpassData": null,
   "mapName": "test_castle-room-doorway",
   "layoutSignature": "test_castle-room-doorway",
-  "heroSpawn": {
-    "x": 2.375,
-    "y": 2.014,
-    "z": -0.925
-  },
   "objects": [
     {
       "id": "ascent-castle",
@@ -9294,6 +9284,15 @@
         }
       ],
       "seed": "rooms"
+    },
+    {
+      "id": "hero-spawn",
+      "object": "SpawnPoint",
+      "position": {
+        "x": 2.375,
+        "y": 2.014,
+        "z": -0.925
+      }
     }
   ]
 }

@@ -21,11 +21,41 @@ describe("map generation authored-castle compatibility", () => {
 
       // Keep connector generation independent of this castle baseline.
       const map = await MapGenerator.generate({ ...options, islandConnectors: false });
-      // Terrain is now published as object records; compare the original
-      // generation contract independently of this derived rendering metadata.
-      map.objects = map.objects.filter(({ generated }) => !generated);
-      delete map.renderCommands;
-      const serialized = JSON.stringify(map, (_key, value) => {
+      // Compare authored generation independently of the storage-schema migration.
+      // The original key order is part of the historical checksum.
+      const featureTypes = new Set(["Gateway", "Rivers", "GroundCover", "Overpass", "SpawnPoint", "IslandConnector"]);
+      const objects = map.objects.filter(({ generated, object }) => !generated && !featureTypes.has(object)).map((definition) => {
+        const original = { ...definition };
+        delete original.navigation;
+        return original;
+      });
+      const originalContract = {
+        grid: map.grid,
+        heightmap: map.heightmap,
+        tileMeta: map.tileMeta,
+        cols: map.cols,
+        rows: map.rows,
+        entries: map.entries,
+        castlePos: map.castlePos,
+        castle: map.castle,
+        numPaths: map.numPaths,
+        objects,
+        groundCoverData: map.groundCoverData,
+        cliffVineData: map.cliffVineData,
+        riverData: map.riverData,
+        pipeData: map.pipeData,
+        overpassData: map.overpassData,
+        pathDipData: map.pathDipData,
+        ...(map.islandConnectorData ? { islandConnectorData: map.islandConnectorData } : {}),
+        mergeZones: map.mergeZones,
+        trunkStart: map.trunkStart,
+        layoutSignature: map.layoutSignature,
+        mapName: map.mapName,
+        paths: map.paths,
+        arrowData: map.arrowData,
+        earthTextureVariants: map.earthTextureVariants,
+      };
+      const serialized = JSON.stringify(originalContract, (_key, value) => {
         if (value instanceof Map) {
           return { mapEntries: [...value] };
         }

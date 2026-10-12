@@ -53,6 +53,7 @@ export class FinalizationStage extends AbstractMapGenerationStage {
       {
         id: "castle-0",
         object: "Castle",
+        navigation: castle,
         seed: castleBuildPlan?.input?.seed,
         basePlanId: castleBuildPlan?.layout?.basePlanId,
         buildPlan: castleBuildPlan,
@@ -109,40 +110,49 @@ export class FinalizationStage extends AbstractMapGenerationStage {
         parts: stone.parts,
       })),
     ];
+    objects.push(...layout.entries.map(/**
+       *
+       * @param {import("src/game/GameContracts.js").GameCanvasPluginEntry} entry
+       * @param {number} index
+       */
+      (entry, index) => ({
+        id: `gateway-${index}`,
+        object: "Gateway",
+        entry: {
+          col: entry.gateCol,
+          row: entry.gateRows[0],
+          rows: [...entry.gateRows],
+          side: entry.side,
+          color:
+            this.#operations.gatewayColors[
+              index % this.#operations.gatewayColors.length
+            ],
+        },
+      })));
+    if (riverData.length) {
+      objects.push({ id: "rivers", object: "Rivers", rivers: riverData });
+    }
+    if (groundCoverData.length) {
+      objects.push({ id: "ground-cover", object: "GroundCover", placements: groundCoverData });
+    }
+    if (layout.overpassPlan) {
+      objects.push({ id: "overpass", object: "Overpass", layout: layout.overpassPlan });
+    }
+    if (context.features.islandConnectorData) {
+      objects.push({ id: "island-connector", object: "IslandConnector", topology: context.features.islandConnectorData });
+    }
     const mapData = {
       grid,
       heightmap,
       tileMeta,
       cols,
       rows,
-      entries: layout.entries.map(/**
-       *
-       * @param {import("src/game/GameContracts.js").GameCanvasPluginEntry} entry
-       * @param {number} index
-       */
-      (entry, index) => ({
-        col: entry.gateCol,
-        row: entry.gateRows[0],
-        rows: [...entry.gateRows],
-        side: entry.side,
-        color:
-          this.#operations.gatewayColors[
-            index % this.#operations.gatewayColors.length
-          ],
-      })),
       castlePos: { col: layout.castleLeft, row: layout.pathRows[0] },
-      castle,
       numPaths: layout.entries.length,
       objects,
-      groundCoverData,
       cliffVineData,
-      riverData,
       pipeData: new Map(),
-      overpassData: layout.overpassPlan,
       pathDipData: layout.pathDipPlans,
-      ...(context.features.islandConnectorData
-        ? { islandConnectorData: context.features.islandConnectorData }
-        : {}),
       mergeZones,
       trunkStart,
       layoutSignature: layout.signature,

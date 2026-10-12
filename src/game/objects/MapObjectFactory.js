@@ -82,8 +82,21 @@ import { VoxelVegetation } from "./vegetation/VoxelVegetation.js";
 import { MapAnimationActor } from "../debug/MapAnimationActor.js";
 import { MapPickupAnimationActors } from "../debug/MapPickupAnimationActors.js";
 import { MapVirtualItem } from "../debug/MapVirtualItem.js";
+import { Gateway } from "./gateway/Gateway.js";
+import { Rivers } from "./water/Rivers.js";
+import { GroundCover } from "./ground-cover/GroundCover.js";
+import { Overpass } from "./path/Overpass.js";
+import { SpawnPoint } from "./shared/SpawnPoint.js";
+import { IslandConnector } from "./scenery/IslandConnector.js";
+import { MapObjectDefinitions } from "./MapObjectDefinitions.js";
 
 const OBJECT_CLASSES = new Map([
+  [Gateway.name, Gateway],
+  [Rivers.name, Rivers],
+  [GroundCover.name, GroundCover],
+  [Overpass.name, Overpass],
+  [SpawnPoint.name, SpawnPoint],
+  [IslandConnector.name, IslandConnector],
   [WovenRug.name, WovenRug],
   [FoldedLinens.name, FoldedLinens],
   [SewingBasket.name, SewingBasket],
@@ -212,6 +225,7 @@ export class MapObjectFactory {
    * @param {import("src/game/GameContracts.js").GameMapData} mapData
    */
   static prepareMap(mapData) {
+    MapObjectDefinitions.prepare(mapData);
     for (const ObjectClass of new Set(OBJECT_CLASSES.values())) {
       if (Object.hasOwn(ObjectClass, "prepareMap")) {
         ObjectClass.prepareMap(mapData);

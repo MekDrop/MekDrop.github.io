@@ -11359,22 +11359,12 @@
       {}
     ]
   ],
-  "entries": [],
-  "castle": null,
   "numPaths": 0,
-  "groundCoverData": [],
-  "riverData": [],
   "pipeData": [],
   "mergeZones": [],
   "trunkStart": null,
-  "overpassData": null,
   "mapName": "test_castle-base-plans",
   "layoutSignature": "test_castle-base-plans",
-  "heroSpawn": {
-    "x": -1,
-    "y": 3.14,
-    "z": 0
-  },
   "objects": [
     {
       "id": "authored-castle",
@@ -11395,6 +11385,15 @@
         }
       ],
       "seed": "authored-plan"
+    },
+    {
+      "id": "hero-spawn",
+      "object": "SpawnPoint",
+      "position": {
+        "x": -1,
+        "y": 3.14,
+        "z": 0
+      }
     }
   ]
 }

@@ -4,6 +4,45 @@ export class SceneObjectRegistry {
    */
   #revision = 0;
   /**
+   * @type {Map<string, import("src/game/GameContracts.js").GameObjectContract>|null}
+   */
+  #firstByClass = null;
+  /**
+   * @type {Map<string, import("src/game/GameContracts.js").GameObjectContract[]>}
+   */
+  #methodMembers = new Map();
+
+  /**
+   * Cache optional hook membership so frame dispatch does not scan terrain blocks.
+   * @param {string} method
+   * @returns {ReadonlyArray<import("src/game/GameContracts.js").GameObjectContract>}
+   */
+  getWithMethod(method) {
+    if (!this.#methodMembers.has(method)) {
+      this.#methodMembers.set(method, [...this.#objects.values()].filter(/**
+       * @param {import("src/game/GameContracts.js").GameObjectContract} object
+       */
+      (object) => typeof object[method] === "function"));
+    }
+    return this.#methodMembers.get(method);
+  }
+
+  /**
+   * @param {string} className
+   * @returns {import("src/game/GameContracts.js").GameObjectContract|null}
+   */
+  getFirstByClass(className) {
+    if (!this.#firstByClass) {
+      this.#firstByClass = new Map();
+      for (const object of this.#objects.values()) {
+        if (!this.#firstByClass.has(object.constructor.name)) {
+          this.#firstByClass.set(object.constructor.name, object);
+        }
+      }
+    }
+    return this.#firstByClass.get(className) ?? null;
+  }
+  /**
    * Changes when membership changes, including replacement at the same size.
    * @returns {number}
    */
@@ -30,6 +69,8 @@ export class SceneObjectRegistry {
    * @param {import("src/game/GameContracts.js").GameObjectContract} object
    */
   setOne(type, object) {
+    this.#methodMembers.clear();
+    this.#firstByClass = null;
     this.#revision++;
     this.#forgetType(type);
     this.#objects.set(type, object);
@@ -44,6 +85,8 @@ export class SceneObjectRegistry {
    * @param {import("src/game/GameContracts.js").GameObjectContract} object
    */
   add(type, object) {
+    this.#methodMembers.clear();
+    this.#firstByClass = null;
     this.#revision++;
     const key = this.#nextCollectionKey(type);
     this.#objects.set(key, object);
@@ -101,6 +144,8 @@ export class SceneObjectRegistry {
    * @param {string} type
    */
   destroyType(type) {
+    this.#methodMembers.clear();
+    this.#firstByClass = null;
     this.#revision++;
     for (const object of this.getAll(type)) {
       object.destroy?.();
@@ -109,6 +154,8 @@ export class SceneObjectRegistry {
   }
 
   clear() {
+    this.#methodMembers.clear();
+    this.#firstByClass = null;
     this.#revision++;
     this.#objects.clear();
     this.#keysByType.clear();

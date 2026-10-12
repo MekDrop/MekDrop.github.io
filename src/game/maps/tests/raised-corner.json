@@ -378,20 +378,21 @@
   ],
   "cols": 9,
   "rows": 7,
-  "entries": [],
-  "castle": null,
   "numPaths": 0,
-  "groundCoverData": [],
-  "riverData": [],
   "pipeData": [],
-  "overpassData": null,
   "mergeZones": [],
   "trunkStart": null,
   "mapName": "test_raised-corner",
   "layoutSignature": "test_raised-corner",
-  "heroSpawn": {
-    "x": -2,
-    "y": 1.1400000000000001,
-    "z": 0.79
-  }
+  "objects": [
+    {
+      "id": "hero-spawn",
+      "object": "SpawnPoint",
+      "position": {
+        "x": -2,
+        "y": 1.1400000000000001,
+        "z": 0.79
+      }
+    }
+  ]
 }

@@ -9,7 +9,7 @@
 
 /**
  * @typedef {object} CastleBuildPlan
- * @property {GameObjectDefinition[]} [objects]
+ * @property {import("./objects/ObjectTypes.js").MapObjectDefinition[]} [objects]
  * @property {GridPoint[]} [collision]
  * @property {{runtime: {residential?: CastleResidentialMetadata}}} [metadata]
  */
@@ -93,6 +93,7 @@
 
 /**
  * @typedef {object} GameObjectDefinition
+ * @property {string} [object]
  * @property {string|number} [seed]
  * @property {string} id
  * @property {string} [type]
@@ -108,6 +109,8 @@
  * @property {GameObjectDefinition} [variantDefinition]
  * @property {() => void} [destroy]
  * @property {(deltaTime: number) => void} [update]
+ * @property {(deltaTime: number, hero: import("./objects/ObjectTypes.js").HeroLike, camera: pc.Entity) => void} [onFrame]
+ * @property {pc.Entity[]} [visualRoots]
  */
 
 /**

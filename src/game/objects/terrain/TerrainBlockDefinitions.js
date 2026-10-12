@@ -3,6 +3,7 @@ import { TerrainBlockLayout } from "./TerrainBlockLayout.js";
 import { SkyIslandScenery } from "../scenery/SkyIslandScenery.js";
 import { MAP_TILE_TYPE } from "../../enum/MapTileType.js";
 import { tileVariantIndex } from "../../rendering/terrain/TileVariantIndex.js";
+import { MapObjectDefinitions } from "../MapObjectDefinitions.js";
 
 /**
  * Publishes terrain geometry as authored block records and shared mesh commands.
@@ -12,6 +13,7 @@ export class TerrainBlockDefinitions {
    * @param {import("src/game/GameContracts.js").GameMapData} mapData
    */
   static populate(mapData) {
+    MapObjectDefinitions.prepare(mapData);
     mapData.earthTextureVariants ??= createEarthTextureVariants(mapData);
     if (mapData.renderCommands) {
       return;

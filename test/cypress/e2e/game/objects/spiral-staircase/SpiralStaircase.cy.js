@@ -139,8 +139,9 @@ async function climbCastle(window) {
   const plan = await CastleGenerator.generate(castleMap.objects[0]);
   const stair = new CastleResidentialLayout(plan).stairs;
   const entry = plan.metadata.runtime.roomDoors.find((door) => door.roomId === "library" && door.y === stair.center.y);
+  const spawn = castleMap.objects.find(({ object }) => object === "SpawnPoint").position;
   const targets = [{ x: entry.x, z: entry.z + 0.5 }, { x: entry.x, z: entry.z - 0.6 },
-    { x: entry.x, z: entry.z + 0.5 }, castleMap.heroSpawn, ...stair.treads];
+    { x: entry.x, z: entry.z + 0.5 }, spawn, ...stair.treads];
   const last = targets.at(-1);
   const outer = { x: stair.center.x + (last.x - stair.center.x) * 1.5,
     z: stair.center.z + (last.z - stair.center.z) * 1.5 };
@@ -151,7 +152,7 @@ async function climbCastle(window) {
     for (const target of targets) {
       await walkTo(window, { ...target, speed: 0.6 }, true);
       // Contact support ramps between adjacent treads; detect a wrong turn or fall.
-      if (target.y !== undefined && target !== castleMap.heroSpawn) {
+      if (target.y !== undefined && target !== spawn) {
         expect(driver.state().position.y, `tread at ${target.x}, ${target.z}`).to.be.closeTo(target.y, 0.4);
       }
     }

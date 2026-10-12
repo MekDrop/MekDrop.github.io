@@ -294,20 +294,21 @@
   ],
   "cols": 9,
   "rows": 7,
-  "entries": [],
-  "castle": null,
   "numPaths": 0,
-  "groundCoverData": [],
-  "riverData": [],
   "pipeData": [],
-  "overpassData": null,
   "mergeZones": [],
   "trunkStart": null,
   "mapName": "test_parallel-edge-right",
   "layoutSignature": "test_parallel-edge-right",
-  "heroSpawn": {
-    "x": -2,
-    "y": 2.14,
-    "z": -0.38
-  }
+  "objects": [
+    {
+      "id": "hero-spawn",
+      "object": "SpawnPoint",
+      "position": {
+        "x": -2,
+        "y": 2.14,
+        "z": -0.38
+      }
+    }
+  ]
 }

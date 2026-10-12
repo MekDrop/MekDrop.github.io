@@ -8,6 +8,10 @@ import portalFragmentShader from "./GatewayPortal.frag?raw";
 import portalVertexShader from "./GatewayPortal.vert?raw";
 
 import { DEFAULT_GATEWAY_COLOR } from "../../config/gateway.js";
+import { GATEWAY_BANNER_SIGNS } from "./GatewayBannerSign.js";
+import { GRASS_SURFACE_LIFT } from "../../config/terrain.js";
+import { SCENE_OBJECT_TYPE } from "../../enum/SceneObjectType.js";
+import { FIXED_HEIGHTS } from "../../rendering/terrain/TerrainMaterialMaps.js";
 
 const FRAME_WIDTH_BLOCKS = 16;
 const FRAME_OPENING_HEIGHT_BLOCKS = 8;
@@ -24,6 +28,29 @@ const PORTAL_WIND_FEATHER_BLOCKS = 1;
  * terrain cube by default.
  */
 export class Gateway {
+  /**
+   * @returns {string}
+   */
+  get sceneObjectType() { return SCENE_OBJECT_TYPE.GATEWAY; }
+
+  /**
+   * Assign each gateway a banner once per scene, without renderer-owned setup.
+   * @param {import("../ObjectTypes.js").MapObjectRuntime} runtime
+   */
+  static prepareRuntime(runtime) {
+    const signs = [...GATEWAY_BANNER_SIGNS];
+    for (let index = signs.length - 1; index > 0; index--) {
+      const swap = Math.floor(Math.random() * (index + 1));
+      [signs[index], signs[swap]] = [signs[swap], signs[index]];
+    }
+    for (const [index, definition] of (runtime.mapData?.objects ?? []).filter(/**
+     *
+     * @param {import("../ObjectTypes.js").MapObjectDefinition} item
+     */
+    (item) => item.object === Gateway.name).entries()) {
+      definition.symbol ??= signs[index % signs.length];
+    }
+  }
   /**
    * @type {GatewayRepulsionEffect}
    */
@@ -186,6 +213,8 @@ export class Gateway {
    * @param {import("src/game/GameContracts.js").GameMapData} options.mapData
    * @param {{col: number, row: number}} options.tile
    * @param {string} options.modelLibrary
+   * @param {import("../ObjectTypes.js").MapObjectDefinition} [options.definition]
+   * @param {import("../ObjectTypes.js").MapObjectRuntime} [options.runtime]
    */
   constructor({
     pc,
@@ -197,7 +226,18 @@ export class Gateway {
     modelLibrary,
     mapData,
     tile,
+    definition,
+    runtime,
   }) {
+    if (definition) {
+      const entry = definition.entry;
+      mapData = runtime.mapData;
+      tile = { col: entry.col, row: (entry.rows ?? [entry.row, entry.row + 1])[0] };
+      color = entry.color ?? color;
+      symbol = definition.symbol ?? symbol;
+      surfaceLift = GRASS_SURFACE_LIFT;
+      this.definition = definition;
+    }
 
     this.#pc = pc;
 
@@ -233,6 +273,26 @@ export class Gateway {
     this.#createPortal();
     this.#repulsionEffect = new GatewayRepulsionEffect(pc, app.graphicsDevice, this.#visualRoot, cubeSize);
     this.setColor(color);
+    if (definition) {
+      const entry = definition.entry;
+      const gateRows = entry.rows ?? [entry.row, entry.row + 1];
+      const height = Math.max(...gateRows.map(/**
+       *
+       * @param {number} row
+       */
+      (row) => FIXED_HEIGHTS[mapData.grid[row][entry.col]] ?? mapData.heightmap[row][entry.col]));
+      this.#entity.setPosition(entry.col - (mapData.cols - 1) / 2, height,
+        gateRows.reduce(/**
+         *
+         * @param {number} sum
+         * @param {number} row
+         */
+        (sum, row) => sum + row, 0) / gateRows.length - (mapData.rows - 1) / 2);
+      if (entry.side === "RIGHT") {
+        this.#entity.setEulerAngles(0, 180, 0);
+      }
+      runtime.collisionWorld.add(this);
+    }
 
 
     this.#updateHandle = app.on("update", /**

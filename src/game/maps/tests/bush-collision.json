@@ -322,31 +322,37 @@
   ],
   "cols": 9,
   "rows": 7,
-  "entries": [],
-  "castle": null,
   "numPaths": 0,
   "objects": [
     {
       "id": "round-bush-0",
       "object": "Vegetation",
       "kind": "bush",
-      "tile": { "col": 2, "row": 4 },
-      "position": { "x": -2, "y": 2.002, "z": 1 },
+      "tile": {
+        "col": 2,
+        "row": 4
+      },
+      "position": {
+        "x": -2,
+        "y": 2.002,
+        "z": 1
+      },
       "variant": "round-bush",
       "rotation": 0
+    },
+    {
+      "id": "hero-spawn",
+      "object": "SpawnPoint",
+      "position": {
+        "x": -2,
+        "y": 2.14,
+        "z": 0
+      }
     }
   ],
-  "groundCoverData": [],
-  "riverData": [],
   "pipeData": [],
-  "overpassData": null,
   "mergeZones": [],
   "trunkStart": null,
   "mapName": "test_bush-collision",
-  "layoutSignature": "test_bush-collision",
-  "heroSpawn": {
-    "x": -2,
-    "y": 2.14,
-    "z": 0
-  }
+  "layoutSignature": "test_bush-collision"
 }

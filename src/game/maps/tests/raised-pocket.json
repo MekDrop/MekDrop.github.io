@@ -378,20 +378,21 @@
   ],
   "cols": 9,
   "rows": 7,
-  "entries": [],
-  "castle": null,
   "numPaths": 0,
-  "groundCoverData": [],
-  "riverData": [],
   "pipeData": [],
-  "overpassData": null,
   "mergeZones": [],
   "trunkStart": null,
   "mapName": "test_raised-pocket",
   "layoutSignature": "test_raised-pocket",
-  "heroSpawn": {
-    "x": -0.7,
-    "y": 1.1400000000000001,
-    "z": 0.2
-  }
+  "objects": [
+    {
+      "id": "hero-spawn",
+      "object": "SpawnPoint",
+      "position": {
+        "x": -0.7,
+        "y": 1.1400000000000001,
+        "z": 0.2
+      }
+    }
+  ]
 }

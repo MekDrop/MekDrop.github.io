@@ -10,7 +10,8 @@ it("restores terrain while retaining authored state and player position", () => 
   map.objects.push({id:"old-generated",generated:true});
   const next = replacement.replace({id:"castle",seed:2},map.objects,{x:3,y:2,z:-8});
   assert.deepEqual(next.heightmap,[[2]]);
-  assert.equal(next.objects.length,3);
+  assert.equal(next.objects.length,4);
+  assert.deepEqual(next.objects.find(({object}) => object === "SpawnPoint").position,{x:3,y:2,z:-8});
   assert.equal(next.objects[0].seed,2);
   assert.equal(next.objects[1].text,"Seed 2");
   assert.equal(next.objects[2].active,true);

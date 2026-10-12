@@ -25,7 +25,7 @@ const hooks = registerHooks({
         }
       `)}` };
     }
-    if (/\.(png|jpg|glb|frag|vert|wgsl)(\?(url|raw))?$/.test(specifier)) {
+    if (/\.(png|jpg|glb|frag|vert|wgsl|glsl)(\?(url|raw))?$/.test(specifier)) {
       return { shortCircuit: true, url: `data:text/javascript,export default ${JSON.stringify(specifier)}` };
     }
     return nextResolve(specifier, context);

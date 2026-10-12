@@ -322,20 +322,21 @@
   ],
   "cols": 9,
   "rows": 7,
-  "entries": [],
-  "castle": null,
   "numPaths": 0,
-  "groundCoverData": [],
-  "riverData": [],
   "pipeData": [],
-  "overpassData": null,
   "mergeZones": [],
   "trunkStart": null,
   "mapName": "test_safe-descent",
   "layoutSignature": "test_safe-descent",
-  "heroSpawn": {
-    "x": -2,
-    "y": 2.14,
-    "z": 0
-  }
+  "objects": [
+    {
+      "id": "hero-spawn",
+      "object": "SpawnPoint",
+      "position": {
+        "x": -2,
+        "y": 2.14,
+        "z": 0
+      }
+    }
+  ]
 }

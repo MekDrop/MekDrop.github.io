@@ -1076,22 +1076,12 @@
   ],
   "cols": 13,
   "rows": 13,
-  "entries": [],
-  "castle": null,
   "numPaths": 0,
-  "groundCoverData": [],
-  "riverData": [],
   "pipeData": [],
-  "overpassData": null,
   "mergeZones": [],
   "trunkStart": null,
   "mapName": "test_castle-props-3",
   "layoutSignature": "test_castle-props-3",
-  "heroSpawn": {
-    "x": 0,
-    "y": 2.14,
-    "z": 4
-  },
   "objects": [
     {
       "id": "table-candles",
@@ -1101,9 +1091,9 @@
         "row": 3
       },
       "position": {
-        "x": -3.0,
+        "x": -3,
         "y": 2.002,
-        "z": -3.0
+        "z": -3
       },
       "rotation": 0
     },
@@ -1115,9 +1105,9 @@
         "row": 3
       },
       "position": {
-        "x": 0.0,
+        "x": 0,
         "y": 2.002,
-        "z": -3.0
+        "z": -3
       },
       "rotation": 0
     },
@@ -1129,9 +1119,9 @@
         "row": 3
       },
       "position": {
-        "x": 3.0,
+        "x": 3,
         "y": 2.002,
-        "z": -3.0
+        "z": -3
       },
       "rotation": 0
     },
@@ -1143,9 +1133,9 @@
         "row": 6
       },
       "position": {
-        "x": -3.0,
+        "x": -3,
         "y": 2.002,
-        "z": 0.0
+        "z": 0
       },
       "rotation": 0
     },
@@ -1157,9 +1147,9 @@
         "row": 6
       },
       "position": {
-        "x": 0.0,
+        "x": 0,
         "y": 2.002,
-        "z": 0.0
+        "z": 0
       },
       "rotation": 0
     },
@@ -1171,9 +1161,9 @@
         "row": 6
       },
       "position": {
-        "x": 3.0,
+        "x": 3,
         "y": 2.002,
-        "z": 0.0
+        "z": 0
       },
       "rotation": 0
     },
@@ -1185,11 +1175,20 @@
         "row": 9
       },
       "position": {
-        "x": -3.0,
+        "x": -3,
         "y": 2.002,
-        "z": 3.0
+        "z": 3
       },
       "rotation": 0
+    },
+    {
+      "id": "hero-spawn",
+      "object": "SpawnPoint",
+      "position": {
+        "x": 0,
+        "y": 2.14,
+        "z": 4
+      }
     }
   ]
 }

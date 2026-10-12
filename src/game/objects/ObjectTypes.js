@@ -7,6 +7,13 @@
  * @typedef {object} MapObjectDefinition
  * @property {string} id
  * @property {string} object
+ * @property {string} [symbol] Gateway banner override.
+ * @property {import("../navigation/WalkingPaths.js").WalkingEntry} [entry]
+ * @property {Array<import("../generator/map/MapGenerationTypes.js").RiverData>} [rivers]
+ * @property {import("../generator/map/MapGenerationTypes.js").GroundCoverData} [placements]
+ * @property {PathOverpass} [layout]
+ * @property {import("../GameContracts.js").GameMapData["islandConnectorData"]} [topology]
+ * @property {import("../GameContracts.js").CastleLayout} [navigation]
  * @property {Point3} [position]
  * @property {number} [level] Block bottom elevation when position is omitted.
  * @property {boolean} [generated]
@@ -53,6 +60,9 @@
  * @property {{horizontal: boolean, station: number, cells: Array<{col: number, row: number}>, removedCells: Array<{col: number, row: number}>, nearIsland: string[], farIsland: string[], islands?: string[][]}} [islandConnectorData]
  * @property {{position: {col: number, row: number, width: number, depth: number}}} [castle]
  * @typedef {object} MapObjectRuntime
+ * @property {Array<import("playcanvas").Material>} [materials]
+ * @property {() => HeroLike} [getHero]
+ * @property {(item: MapObjectLike) => void} [onCollectibleRemoved]
  * @property {(definition: MapObjectDefinition) => boolean} [replaceObjectDefinition]
  * @property {GameMapData} [mapData]
  * @property {Iterable<MapObjectLike>} [objects]
@@ -88,6 +98,7 @@
  * @property {Point3} facingDirection
  * @property {number} [facing]
  * @property {boolean} [grounded]
+ * @property {(item: import("./ground-cover/GroundCoverCollectible.js").GroundCoverCollectible) => boolean} [collectInventoryItem]
  * @property {(interaction: InteractionLike|null) => void} [setInteraction]
  * @typedef {object} HeroActionPayload
  * @property {Point3} [direction]
@@ -154,6 +165,15 @@
  * @property {number} [bookOpenAmount]
  * @property {Point3} [position]
  * @property {number} [rotation]
+ */
+
+/**
+ * @typedef {object} MapObjectOptions
+ * @property {typeof import("playcanvas")} pc
+ * @property {import("playcanvas").Application} app
+ * @property {import("../models/GameModelLibrary.js").GameModelLibrary} modelLibrary
+ * @property {MapObjectDefinition} definition
+ * @property {MapObjectRuntime} runtime
  */
 
 export {};

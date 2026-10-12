@@ -40,7 +40,7 @@ it("applies fixed first-person island transforms once and resumes floating updat
   for (let frame = 0; frame < 120; frame += 1) {
     driver.update(1 / 60);
   }
-  assert.equal(calls.length, 5);
+  assert.equal(calls.length, 4);
   assert.equal(motionUpdates, 0);
   assert.ok(calls.every((values) => JSON.stringify(values) === "[0,0,[0,0]]"));
 
@@ -48,11 +48,11 @@ it("applies fixed first-person island transforms once and resumes floating updat
   driver.update(1 / 60);
   driver.update(1 / 60);
   assert.equal(motionUpdates, 2);
-  assert.equal(calls.length, 15);
+  assert.equal(calls.length, 12);
   assert.deepEqual(calls.at(-1), [0.1, -0.2, [0.1, -0.2]]);
 
   camera.firstPersonEnabled = true;
   driver.update(1 / 60);
-  assert.equal(calls.length, 20);
+  assert.equal(calls.length, 16);
   assert.deepEqual(calls.at(-1), [0, 0, [0, 0]]);
 });

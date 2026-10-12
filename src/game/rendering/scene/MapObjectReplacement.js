@@ -1,3 +1,5 @@
+import { MapObjectDefinitions } from "../../objects/MapObjectDefinitions.js";
+
 /**
  * Keeps pre-excavation terrain so changing an authored object cannot retain cuts
  * from its previous layout. Runtime state of other authored objects is retained.
@@ -45,6 +47,7 @@ export class MapObjectReplacement {
      * @param {import("../../objects/ObjectTypes.js").MapObjectDefinition} entry
      */
     (entry) => structuredClone(current.get(entry.id) ?? entry));
+    MapObjectDefinitions.prepare(map);
     map.heroSpawn = { ...heroPosition };
     return map;
   }

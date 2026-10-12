@@ -15,11 +15,11 @@ import twgslWasmUrl from "src/assets/game/wasm/twgsl/twgsl.wasm?url";
 import waterSideUrl from "src/assets/game/tiles/water-side.png";
 import waterTopUrl from "src/assets/game/tiles/water-top.png";
 
-import { GATEWAY_BANNER_SIGNS, Gateway } from "./objects/gateway/index.js";
-import { BridgeRailingKit, OverpassStairs } from "./objects/path/index.js";
+import { BridgeRailingKit } from "./objects/path/index.js";
 import { Hero, HeroPatHand } from "./objects/hero/index.js";
 import { HeroPatGesture } from "./controls/HeroPatGesture.js";
 import { KnifeTool, ShovelTool } from "./objects/hero/tools/index.js";
+import { Overpass } from "./objects/path/Overpass.js";
 import { GroundCover } from "./objects/ground-cover/index.js";
 import {
   CubeCloudField,
@@ -34,7 +34,6 @@ import { SCENE_OBJECT_TYPE } from "./enum/SceneObjectType.js";
 import { ShaderTranspilerAssetsNotColocatedError } from "./errors/assets/index.js";
 import {
   GroundCollisionWorld,
-  PathOverpassCollider,
 } from "./collision/index.js";
 import { GameModelLibrary } from "./models/index.js";
 import { GameCamera, HeroVisibilityController } from "./camera/index.js";
@@ -255,10 +254,9 @@ export class PlayCanvasRenderer {
    */
   #floatingCameraOffsetApplied = false;
   /**
-   *
-   * @type {null}
+   * @returns {GroundCover|null}
    */
-  #groundCover = null;
+  get #groundCover() { return this.#sceneObjects.getFirstByClass(GroundCover.name); }
   /**
    *
    * @type {null}
@@ -285,10 +283,9 @@ export class PlayCanvasRenderer {
    */
   #terrainRenderer = null;
   /**
-   *
-   * @type {null}
+   * @returns {Overpass|null}
    */
-  #pathOverpassCollider = null;
+  get #pathOverpassCollider() { return this.#sceneObjects.getFirstByClass(Overpass.name); }
   /**
    *
    * @type {GameModelLibrary|null}
@@ -641,12 +638,8 @@ export class PlayCanvasRenderer {
         HeroPatHand.modelUrl,
         ...MapObjectFactory.modelUrls,
         ...InventoryScene.modelUrls,
-        Gateway.modelUrl,
         ...BridgeRailingKit.modelUrls,
-        OverpassStairs.modelUrl,
-        ...GroundCover.modelUrls,
         ...BuriedTreasureField.modelUrls,
-        ...TerrainRenderer.modelUrls,
       ]),
     ]);
     if (this.#destroyed) {
@@ -1647,25 +1640,6 @@ export class PlayCanvasRenderer {
     this.#buildMapObjects();
     this.#terrainRenderer.build();
     this.#vertexBuffers.push(...this.#bridgeRailingKit.build());
-    this.#vertexBuffers.push(
-      ...new OverpassStairs({
-        pc: this.#pc,
-        overpass: this.#mapData.overpassData,
-        cols: this.#mapData.cols,
-        rows: this.#mapData.rows,
-        modelLibrary: this.#modelLibrary,
-        materials: this.#materials,
-        root: this.#mapRoot,
-      }).build(),
-    );
-    if (this.#mapData.overpassData) {
-      this.#pathOverpassCollider = new PathOverpassCollider({
-        overpass: this.#mapData.overpassData,
-        cols: this.#mapData.cols,
-        rows: this.#mapData.rows,
-      });
-      this.#collisionWorld.add(this.#pathOverpassCollider);
-    }
     this.#cloudField = new CubeCloudField({
       pc: this.#pc,
       app: this.#app,
@@ -1680,8 +1654,6 @@ export class PlayCanvasRenderer {
         : 0,
       MAX_CASTLE_LIVES,
     );
-    this.#buildGateways();
-    this.#buildGroundCover();
     this.#buildBuriedTreasure();
     this.#terrainRenderer.buildPhysicsSurface(this.#collisionWorld);
     this.#buildHero();
@@ -1727,6 +1699,12 @@ export class PlayCanvasRenderer {
       definitions: this.#mapData.objects ?? [],
       runtime: {
         mapData: this.#mapData,
+        materials: this.#materials,
+        getHero: () => this.#sceneObjects.getOne(SCENE_OBJECT_TYPE.HERO),
+        /**
+         * @param {import("./objects/ground-cover/GroundCoverCollectible.js").GroundCoverCollectible} item
+         */
+        onCollectibleRemoved: (item) => this.#buriedTreasure?.removeGroundCover(item),
         objects: this.#sceneObjects,
         /**
          * @param {import("./objects/ObjectTypes.js").MapObjectDefinition} definition
@@ -1804,7 +1782,7 @@ export class PlayCanvasRenderer {
          * @param {import("src/game/GameContracts.js").GameObjectContract} object
          */
         (object) =>
-          object.visualRoots.map(/**
+          (object.visualRoots ?? []).map(/**
            *
            * @param {pc.Entity} root
            */
@@ -1967,7 +1945,6 @@ export class PlayCanvasRenderer {
       this.#buriedTreasure.tool = hero.tools.get(ShovelTool.name);
     }
     this.#interactionProviders = [
-      this.#groundCover,
       ...mapObjects.filter(/**
        *
        * @param {{findInteraction: (options: {origin: pc.Vec3, direction: pc.Vec3}) => import("src/game/GameContracts.js").InteractionDescription|null}} options
@@ -1975,33 +1952,6 @@ export class PlayCanvasRenderer {
        */
       ({ findInteraction }) => findInteraction),
     ];
-  }
-
-  #buildGroundCover() {
-    this.#groundCover = new GroundCover({
-      pc: this.#pc,
-      app: this.#app,
-      mapData: this.#mapData,
-      modelLibrary: this.#modelLibrary,
-      getHeroFootContacts: () =>
-        this.#sceneObjects.getOne(SCENE_OBJECT_TYPE.HERO)?.grassFootContacts ??
-        [],
-      /**
-       *
-       * @param {import("src/game/GameContracts.js").GameObjectContract} item
-       */
-      onCollect: (item) =>
-        this.#sceneObjects
-          .getOne(SCENE_OBJECT_TYPE.HERO)
-          ?.collectInventoryItem(item) ?? false,
-      /**
-       *
-       * @param {import("src/game/GameContracts.js").GameObjectContract} groundCover
-       */
-      onCollectibleRemoved: (groundCover) =>
-        this.#buriedTreasure?.removeGroundCover(groundCover),
-    });
-    this.#mapRoot.addChild(this.#groundCover.entity);
   }
 
   #buildBuriedTreasure() {
@@ -2035,55 +1985,6 @@ export class PlayCanvasRenderer {
     this.#collisionWorld.add(this.#buriedTreasure);
     this.#sceneObjects.add(SCENE_OBJECT_TYPE.MAP_OBJECT, this.#buriedTreasure);
     this.#mapRoot.addChild(this.#buriedTreasure.entity);
-  }
-
-  #buildGateways() {
-    const { entries = [], cols, rows } = this.#mapData;
-    const signs = [...GATEWAY_BANNER_SIGNS];
-    for (let index = signs.length - 1; index > 0; index -= 1) {
-      const swapIndex = Math.floor(Math.random() * (index + 1));
-      [signs[index], signs[swapIndex]] = [signs[swapIndex], signs[index]];
-    }
-    entries.forEach(/**
-     *
-     * @param {import("src/game/GameContracts.js").GameCanvasPluginEntry} entry
-     * @param {number} index
-     */
-    (entry, index) => {
-      const gateRows = entry.rows ?? [entry.row, entry.row + 1];
-      const x = entry.col - (cols - 1) / 2;
-      const z =
-        gateRows.reduce(/**
-         *
-         * @param {number} sum
-         * @param {number} row
-         */
-        (sum, row) => sum + row, 0) / gateRows.length -
-        (rows - 1) / 2;
-      const groundHeight = Math.max(
-        ...gateRows.map(/**
-         *
-         * @param {number} row
-         */
-        (row) => this.#tileHeight(entry.col, row)),
-      );
-      const gateway = new Gateway({
-        pc: this.#pc,
-        app: this.#app,
-        color: entry.color,
-        cubeSize: CUBE_SCALE / 4,
-        surfaceLift: MapObjectFactory.surfaceLiftForTile(TileType.GRASS),
-        symbol: signs[index % signs.length],
-        mapData: this.#mapData,
-        tile: { col: entry.col, row: gateRows[0] },
-        modelLibrary: this.#modelLibrary,
-      });
-      this.#collisionWorld.add(gateway);
-      gateway.entity.setPosition(x, groundHeight, z);
-      if (entry.side === "RIGHT") gateway.entity.setEulerAngles(0, 180, 0);
-      this.#mapRoot.addChild(gateway.entity);
-      this.#sceneObjects.add(SCENE_OBJECT_TYPE.GATEWAY, gateway);
-    });
   }
 
   /**
@@ -2145,7 +2046,9 @@ export class PlayCanvasRenderer {
    */
   #updateRuntimeSystems(deltaTime) {
     const hero = this.#sceneObjects.getOne(SCENE_OBJECT_TYPE.HERO);
-    this.#terrainRenderer?.update(deltaTime, hero, this.#camera?.camera);
+    for (const object of this.#sceneObjects.getWithMethod("onFrame")) {
+      object.onFrame?.(deltaTime, hero, this.#camera?.camera);
+    }
     this.#heroPatHand?.update(deltaTime);
     this.#huds?.update(deltaTime);
     const inventoryVisibilityChange =
@@ -2182,7 +2085,6 @@ export class PlayCanvasRenderer {
       ? { near: 0, far: 0, groups: new Array(count).fill(0) }
       : this.#islandConnectorMotion.update(deltaTime, count);
     this.#terrainRenderer?.setIslandOffsets(offsets.near, offsets.far, offsets.groups);
-    this.#groundCover?.setIslandOffsets(offsets.near, offsets.far, offsets.groups);
     this.#bridgeRailingKit?.setIslandOffsets(offsets.near, offsets.far, offsets.groups);
     for (const object of this.#sceneObjects) {
       object.setIslandOffsets?.(offsets.near, offsets.far, offsets.groups);
@@ -3097,8 +2999,6 @@ export class PlayCanvasRenderer {
     this.#terrainRenderer?.destroy();
     this.#terrainRenderer = null;
     this.#buriedTreasure = null;
-    this.#groundCover?.destroy();
-    this.#groundCover = null;
     this.#cloudField?.destroy();
     this.#cloudField = null;
     this.#setInteractionTarget(null);
@@ -3106,7 +3006,6 @@ export class PlayCanvasRenderer {
     this.#mapRoot = null;
     this.#bridgeRailingKit = null;
     this.#collisionWorld.clear();
-    this.#pathOverpassCollider = null;
     for (const buffer of this.#vertexBuffers) buffer.destroy();
     this.#vertexBuffers = [];
   }

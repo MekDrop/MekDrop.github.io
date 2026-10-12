@@ -126,6 +126,18 @@ const FULL_AMBIENT_MOTION_ZOOM = 1.1;
 
 export class GroundCover {
   /**
+   * Keep the shared collectible service available on maps without placements.
+   * @param {import("../ObjectTypes.js").GameMapData} mapData
+   */
+  static prepareMap(mapData) {
+    if (!mapData.objects.some(/**
+     * @param {import("../ObjectTypes.js").MapObjectDefinition} definition
+     */
+    (definition) => definition.object === GroundCover.name)) {
+      mapData.objects.push({ id: "ground-cover", object: GroundCover.name, placements: [], generated: true });
+    }
+  }
+  /**
    *
     * @returns {number}
    */
@@ -238,6 +250,8 @@ export class GroundCover {
    * @param {number} options.zoom
    * @param {(item: GroundCoverCollectible) => void} options.onCollect
    * @param {(item: GroundCoverCollectible) => void} options.onCollectibleRemoved
+   * @param {import("../ObjectTypes.js").MapObjectDefinition} [options.definition]
+   * @param {import("../ObjectTypes.js").MapObjectRuntime} [options.runtime]
    */
   constructor({
     pc,
@@ -247,7 +261,20 @@ export class GroundCover {
     zoom = 1,
     onCollect = () => false,
     onCollectibleRemoved = () => {},
+    definition,
+    runtime,
   }) {
+    if (definition) {
+      this.definition = definition;
+      mapData = { ...runtime.mapData, groundCoverData: definition.placements,
+        riverData: runtime.mapData.riverData, islandConnectorData: runtime.mapData.islandConnectorData };
+      zoom = runtime.camera.zoom;
+      onCollect = /**
+       * @param {GroundCoverCollectible} item
+       */
+      (item) => runtime.getHero()?.collectInventoryItem(item) ?? false;
+      onCollectibleRemoved = runtime.onCollectibleRemoved;
+    }
     this.#pc = pc;
     this.#app = app;
     this.#onCollect = onCollect;

@@ -28291,107 +28291,12 @@
   ],
   "cols": 124,
   "rows": 39,
-  "entries": [],
-  "castle": {
-    "position": {
-      "col": 2,
-      "row": 2,
-      "width": 12,
-      "depth": 11,
-      "elevation": 2
-    },
-    "style": "twin-keeps",
-    "doors": [
-      {
-        "side": "SOUTH",
-        "offset": 5,
-        "width": 2,
-        "cells": [
-          {
-            "col": 7,
-            "row": 12
-          },
-          {
-            "col": 8,
-            "row": 12
-          }
-        ],
-        "centerCol": 7.5,
-        "centerRow": 12,
-        "inwardDirection": "NORTH"
-      }
-    ]
-  },
-  "castles": [
-    {
-      "position": {
-        "col": 21,
-        "row": 6,
-        "width": 28,
-        "depth": 16,
-        "elevation": 2
-      },
-      "seed": "test_royal-castles:west-castle",
-      "doors": [
-        {
-          "side": "SOUTH",
-          "offset": 5.461538461538462,
-          "width": 2,
-          "approachElevation": 2
-        }
-      ]
-    },
-    {
-      "position": {
-        "col": 49,
-        "row": 6,
-        "width": 28,
-        "depth": 16,
-        "elevation": 4
-      },
-      "seed": "test_royal-castles:middle-castle",
-      "doors": [
-        {
-          "side": "SOUTH",
-          "offset": 11.115384615384615,
-          "width": 2,
-          "approachElevation": 2
-        }
-      ]
-    },
-    {
-      "position": {
-        "col": 89,
-        "row": 6,
-        "width": 28,
-        "depth": 16,
-        "elevation": 2
-      },
-      "seed": "test_royal-castles:east-castle",
-      "doors": [
-        {
-          "side": "SOUTH",
-          "offset": 5.461538461538462,
-          "width": 2,
-          "approachElevation": 2
-        }
-      ]
-    }
-  ],
   "numPaths": 0,
-  "groundCoverData": [],
-  "riverData": [],
   "pipeData": [],
-  "overpassData": null,
   "mergeZones": [],
   "trunkStart": null,
   "mapName": "test_royal-castles",
   "layoutSignature": "test-royal-castles-v2",
-  "heroSpawn": {
-    "x": -0.5,
-    "y": 2.264,
-    "z": 6.25
-  },
   "objects": [
     {
       "id": "west-castle",
@@ -28411,7 +28316,37 @@
           "approachElevation": 2
         }
       ],
-      "seed": "test_royal-castles:west-castle"
+      "seed": "test_royal-castles:west-castle",
+      "navigation": {
+        "position": {
+          "col": 2,
+          "row": 2,
+          "width": 12,
+          "depth": 11,
+          "elevation": 2
+        },
+        "style": "twin-keeps",
+        "doors": [
+          {
+            "side": "SOUTH",
+            "offset": 5,
+            "width": 2,
+            "cells": [
+              {
+                "col": 7,
+                "row": 12
+              },
+              {
+                "col": 8,
+                "row": 12
+              }
+            ],
+            "centerCol": 7.5,
+            "centerRow": 12,
+            "inwardDirection": "NORTH"
+          }
+        ]
+      }
     },
     {
       "id": "middle-castle",
@@ -28431,7 +28366,25 @@
           "approachElevation": 2
         }
       ],
-      "seed": "test_royal-castles:middle-castle"
+      "seed": "test_royal-castles:middle-castle",
+      "navigation": {
+        "position": {
+          "col": 49,
+          "row": 6,
+          "width": 28,
+          "depth": 16,
+          "elevation": 4
+        },
+        "seed": "test_royal-castles:middle-castle",
+        "doors": [
+          {
+            "side": "SOUTH",
+            "offset": 11.115384615384615,
+            "width": 2,
+            "approachElevation": 2
+          }
+        ]
+      }
     },
     {
       "id": "east-castle",
@@ -28451,7 +28404,25 @@
           "approachElevation": 2
         }
       ],
-      "seed": "test_royal-castles:east-castle"
+      "seed": "test_royal-castles:east-castle",
+      "navigation": {
+        "position": {
+          "col": 89,
+          "row": 6,
+          "width": 28,
+          "depth": 16,
+          "elevation": 2
+        },
+        "seed": "test_royal-castles:east-castle",
+        "doors": [
+          {
+            "side": "SOUTH",
+            "offset": 5.461538461538462,
+            "width": 2,
+            "approachElevation": 2
+          }
+        ]
+      }
     },
     {
       "id": "west-castle-king",
@@ -28526,6 +28497,15 @@
         "z": 4
       },
       "script": "for (const castle of objects.getAll('castle')) { castle.setRoyalActivityTriggered(active); }"
+    },
+    {
+      "id": "hero-spawn",
+      "object": "SpawnPoint",
+      "position": {
+        "x": -0.5,
+        "y": 2.264,
+        "z": 6.25
+      }
     }
   ]
 }
