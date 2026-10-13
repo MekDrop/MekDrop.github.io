@@ -35,6 +35,11 @@ export class CastleResidentialLayout {
    */
   #placements = [];
   /**
+   * All authored furniture, including independently rendered map props.
+   * @type {ResidentialPlacement[]|null}
+   */
+  #standingObstacles = null;
+  /**
    * @type {number}
    */
   #throneSupportHeight = 0;
@@ -424,6 +429,18 @@ export class CastleResidentialLayout {
     this.#rooms = plan.rooms;
     this.#audienceFloorBounds = CastleFloorFinish.bounds(plan.rooms.work, plan.buildings, plan.openings);
     this.#walkableAreas = createCastlePlannedFloorAreas(buildPlan);
+    this.#standingObstacles = plan.furniture.map(
+      /**
+       * @param {import("../../generator/castle/rooms/AbstractCastleRoomGenerator.js").RoomItem} item
+       */
+      (item) => ({
+        role: item.role,
+        footprint: { width: item.width * item.scale, depth: item.depth * item.scale },
+        position: this.toWorld(item.x, item.z, item.floorY - this.#origin.y),
+        scale: { x: item.scale, y: item.scale, z: item.scale },
+        yaw: this.#yaw,
+      }),
+    );
     this.#placements = plan.furniture.filter(/**
      * @param {import("../../generator/castle/rooms/AbstractCastleRoomGenerator.js").RoomItem} item
      */
@@ -479,6 +496,11 @@ export class CastleResidentialLayout {
   get audienceFloorBounds() { return this.#audienceFloorBounds ?? this.#rooms.work; }
   get walkableAreas() { return this.#walkableAreas; }
   get placements() { return this.#placements; }
+
+  /**
+   * @returns {ResidentialPlacement[]}
+   */
+  get standingObstacles() { return this.#standingObstacles ?? this.#placements; }
   /**
    * @returns {number}
    */
