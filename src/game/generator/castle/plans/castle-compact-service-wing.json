@@ -1,0 +1,423 @@
+{
+  "version": 1,
+  "id": "castle-compact-service-wing",
+  "name": "Side-attached watchtower castle",
+  "source": {
+    "image": "sources/castle-demo-compact-game-constrained.png",
+    "method": "authored variant of the compact game-constrained schematic",
+    "accuracy": "Eight-metre main block with a projecting watchtower attached midway along the east wall. Shared halls connect the side tower and the original front entrance."
+  },
+  "coordinates": {
+    "width": 12.25,
+    "depth": 8,
+    "north": "-z",
+    "units": "metres",
+    "recommendedUnitMetres": 1
+  },
+  "floorHeight": 3,
+  "wallThickness": 0.25,
+  "entrance": {
+    "spaceId": "vestibule",
+    "side": "SOUTH",
+    "offset": 0.375,
+    "width": 2,
+    "bridge": [
+      0.75,
+      7.625,
+      2,
+      0.375
+    ]
+  },
+  "buildings": [
+    {
+      "id": "base",
+      "bounds": [
+        0.25,
+        0.25,
+        7.5,
+        7.5
+      ],
+      "elevation": -3,
+      "height": 6
+    },
+    {
+      "id": "watchtower",
+      "bounds": [
+        7.625,
+        2.125,
+        4.375,
+        3.875
+      ],
+      "elevation": -3,
+      "height": 12
+    }
+  ],
+  "levels": [
+    {
+      "index": -1,
+      "elevation": -3,
+      "spaces": [
+        {
+          "id": "basement-storeroom",
+          "label": "Basement equipment storeroom",
+          "kind": "room",
+          "bounds": [
+            3.625,
+            0.375,
+            3.75,
+            3.75
+          ],
+          "openings": [
+            {
+              "kind": "door",
+              "side": "WEST",
+              "offset": 2.25,
+              "width": 1.25,
+              "bottom": 0,
+              "height": 2.5,
+              "swing": "inward"
+            }
+          ],
+          "generator": "TerraceStorageRoomGenerator"
+        },
+        {
+          "id": "basement-passage",
+          "label": "Kitchen and storeroom passage",
+          "kind": "corridor",
+          "bounds": [
+            0.375,
+            0.375,
+            3.25,
+            7.25
+          ],
+          "openings": [],
+          "generator": null
+        },
+        {
+          "id": "basement-stair-room",
+          "label": "S1 basement landing",
+          "kind": "room",
+          "bounds": [
+            7.875,
+            2.125,
+            4,
+            3.75
+          ],
+          "openings": [
+            {
+              "kind": "door",
+              "side": "WEST",
+              "offset": 2.5,
+              "width": 1.25,
+              "bottom": 0,
+              "height": 2.5,
+              "swing": "outward"
+            }
+          ],
+          "generator": null,
+          "floorFinish": "stone",
+          "furnish": true
+        },
+        {
+          "id": "basement-east-passage",
+          "label": "Side tower access passage",
+          "kind": "corridor",
+          "bounds": [
+            3.625,
+            4.125,
+            4,
+            3.5
+          ],
+          "generator": null,
+          "openings": []
+        }
+      ]
+    },
+    {
+      "index": 0,
+      "elevation": 0,
+      "spaces": [
+        {
+          "id": "vestibule",
+          "label": "Vestibule",
+          "kind": "corridor",
+          "bounds": [
+            0.375,
+            3.875,
+            7.25,
+            3.875
+          ],
+          "openings": [
+            {
+              "kind": "door",
+              "side": "SOUTH",
+              "offset": 0.375,
+              "width": 2,
+              "bottom": 0,
+              "height": 2.5,
+              "swing": "inward"
+            },
+            {
+              "kind": "window",
+              "side": "WEST",
+              "offset": 2.5,
+              "width": 0.75,
+              "bottom": 1,
+              "height": 1
+            }
+          ],
+          "generator": "VestibuleRoomGenerator"
+        },
+        {
+          "id": "stair-room",
+          "label": "S1 ground landing",
+          "kind": "room",
+          "bounds": [
+            7.875,
+            2.125,
+            4,
+            3.75
+          ],
+          "openings": [
+            {
+              "kind": "door",
+              "side": "WEST",
+              "offset": 2.5,
+              "width": 1.25,
+              "bottom": 0,
+              "height": 2.5,
+              "swing": "outward"
+            }
+          ],
+          "generator": null,
+          "floorFinish": "stone",
+          "furnish": true
+        },
+        {
+          "id": "throne-hall",
+          "label": "Throne room",
+          "kind": "room",
+          "bounds": [
+            3.625,
+            0.375,
+            3.75,
+            3.5
+          ],
+          "openings": [
+            {
+              "kind": "door",
+              "side": "SOUTH",
+              "offset": 0.875,
+              "width": 1.25,
+              "bottom": 0,
+              "height": 2.5,
+              "swing": "inward"
+            },
+            {
+              "kind": "window",
+              "side": "NORTH",
+              "offset": 1.5,
+              "width": 0.75,
+              "bottom": 1,
+              "height": 1
+            }
+          ],
+          "generator": "ThroneRoomGenerator"
+        },
+        {
+          "id": "service-quarters",
+          "label": "Service quarters",
+          "kind": "room",
+          "bounds": [
+            0.375,
+            0.375,
+            3.25,
+            3.5
+          ],
+          "generator": "ServiceRoomGenerator",
+          "openings": [
+            {
+              "kind": "door",
+              "side": "SOUTH",
+              "offset": 0.875,
+              "width": 1.25,
+              "bottom": 0,
+              "height": 2.5,
+              "swing": "inward"
+            },
+            {
+              "kind": "window",
+              "side": "WEST",
+              "offset": 1.5,
+              "width": 0.75,
+              "bottom": 1,
+              "height": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "index": 1,
+      "elevation": 3,
+      "spaces": [
+        {
+          "id": "upper-stair-room",
+          "label": "Watchtower landing",
+          "kind": "room",
+          "bounds": [
+            7.875,
+            2.375,
+            4,
+            3.5
+          ],
+          "generator": null,
+          "openings": [
+            {
+              "kind": "door",
+              "side": "WEST",
+              "offset": 2.125,
+              "width": 1.25,
+              "bottom": 0,
+              "height": 2.5,
+              "swing": "inward"
+            },
+            {
+              "kind": "window",
+              "side": "EAST",
+              "offset": 1.5,
+              "width": 0.75,
+              "bottom": 1,
+              "height": 1
+            }
+          ],
+          "floorFinish": "stone",
+          "furnish": false
+        },
+        {
+          "id": "terrace-west",
+          "label": "Leisure terrace west",
+          "kind": "terrace",
+          "bounds": [
+            0.375,
+            0.375,
+            3.25,
+            7.25
+          ],
+          "openings": [],
+          "generator": "LeisureRoomGenerator"
+        },
+        {
+          "id": "terrace-north",
+          "label": "Leisure terrace behind tower",
+          "kind": "terrace",
+          "bounds": [
+            3.625,
+            0.375,
+            4,
+            7.25
+          ],
+          "openings": [],
+          "generator": "LeisureRoomGenerator"
+        }
+      ]
+    },
+    {
+      "index": 2,
+      "elevation": 6,
+      "spaces": [
+        {
+          "id": "watchtower",
+          "label": "Entrance watchtower lookout",
+          "kind": "room",
+          "bounds": [
+            7.875,
+            2.375,
+            4,
+            3.5
+          ],
+          "generator": null,
+          "openings": [
+            {
+              "kind": "window",
+              "side": "SOUTH",
+              "offset": 0.5,
+              "width": 1.25,
+              "bottom": 0.75,
+              "height": 1.75
+            },
+            {
+              "kind": "window",
+              "side": "EAST",
+              "offset": 1,
+              "width": 1.25,
+              "bottom": 0.75,
+              "height": 1.75
+            }
+          ],
+          "floorFinish": "stone",
+          "furnish": false
+        }
+      ]
+    }
+  ],
+  "staircases": [
+    {
+      "id": "S1",
+      "bounds": [
+        9.125,
+        2.75,
+        2.75,
+        2.75
+      ],
+      "radius": 1.35,
+      "flightGap": 0.5,
+      "flightShift": 0,
+      "landingLift": 0,
+      "landingProfile": false,
+      "from": -1,
+      "to": 2,
+      "entrySide": "WEST"
+    }
+  ],
+  "roofs": [
+    {
+      "id": "watchtower-roof",
+      "bounds": [
+        7.375,
+        2.125,
+        4.875,
+        4.125
+      ],
+      "elevation": 9,
+      "height": 1,
+      "shape": "flat",
+      "walkable": false,
+      "battlements": true
+    }
+  ],
+  "roofAccess": {
+    "bounds": [
+      8,
+      3.25,
+      1,
+      1.25
+    ],
+    "bottom": [
+      8.625,
+      6,
+      3.875
+    ],
+    "top": [
+      9.5,
+      9,
+      3.875
+    ],
+    "position": [
+      8.25,
+      6,
+      3.875
+    ],
+    "rotation": 90
+  }
+}

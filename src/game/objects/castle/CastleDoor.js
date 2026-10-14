@@ -189,7 +189,7 @@ export class CastleDoor {
    * @param {{x: number, z: number, width: number, depth: number, elevation: number}} options.castlePosition
    * @param {import("src/game/objects/ObjectTypes.js").CastleDoorDefinition} options.door
    * @param {string} options.modelLibrary
-   * @param {{x: number, y: number, z: number, yaw: number, height: number, arched?: boolean, mirrored?: boolean}|null} options.placement
+   * @param {{x: number, y: number, z: number, yaw: number, height: number, arched?: boolean, mirrored?: boolean, frameOffset?:number}|null} options.placement
    * @param {import("playcanvas").Material} options.woodMaterial
    * @param {boolean} options.bundledEntrance Use the complete stone-and-timber entrance.
    * @param {Map<string, import("playcanvas").Material>|null} options.masonryMaterials
@@ -219,8 +219,8 @@ export class CastleDoor {
     if (framedInterior) {
       // The frame extends behind the leaf into the quarter-metre wall.
       // Seat the inset leaf and its edge hinge within the wall depth.
-      geometry.center.x += geometry.inward.x * 0.155;
-      geometry.center.z += geometry.inward.z * 0.155;
+      geometry.center.x += geometry.inward.x * (placement.frameOffset ?? 0.155);
+      geometry.center.z += geometry.inward.z * (placement.frameOffset ?? 0.155);
     }
     if (bundledEntrance) {
       // Seat the complete reveal in the outer wall; its threshold top is floor zero.
@@ -268,12 +268,20 @@ export class CastleDoor {
     // Preserve the oak and iron materials authored with the entrance model.
     this.#entity.setLocalPosition(
       this.#center.x,
-      this.#center.y + (bundledEntrance ? 0 : 0.025 * this.#height / DOOR_HEIGHT),
+      this.#center.y + (bundledEntrance || framedInterior ? 0 : 0.025 * this.#height / DOOR_HEIGHT),
       this.#center.z,
     );
     this.#entity.setLocalEulerAngles(0, geometry.baseYaw + (!bundledEntrance && placement?.arched && placement.swing === "inward" ? 180 : 0), 0);
     if (placement) {
       this.#entity.setLocalScale((placement.mirrored ? -1 : 1) * this.#width / 2, this.#height / DOOR_HEIGHT, framedInterior ? 0.5 : this.#width / 2);
+    }
+    if (framedInterior) {
+      // Raise only the moving leaf: jambs meet the floor, while the leaf clears
+      // the floor finish throughout its swing.
+      const hinge = this.#entity.findByName("Right interior door hinge");
+      const position = hinge.getLocalPosition().clone();
+      position.y += 0.03;
+      hinge.setLocalPosition(position);
     }
     const animationName = CASTLE_DOOR_ANIMATION.OPEN_WIDE;
     const animationTrack = modelLibrary

@@ -606,17 +606,18 @@ export class CastleAudienceRoom {
       this.#roomWidth,
       Math.max(0, this.#door.width ?? 2),
     );
+    const floorTop = this.#residentialLayout ? 0.004 : 0.05;
     if (roomFloorDepth > 0) {
       this.#boxAt(
         "Audience wooden floor",
         "woodLight",
         this.#floorLateral,
         roomFloorCenter,
-        0.025,
+        floorTop - 0.025,
         [this.#floorWidth - finishInset * 2, 0.05, roomFloorDepth],
       );
     }
-    if (floorInset > 0 && entranceFloorWidth > 0) {
+    if (!this.#residentialLayout && floorInset > 0 && entranceFloorWidth > 0) {
       this.#boxAt(
         "Audience entrance floor",
         "woodLight",
@@ -628,9 +629,11 @@ export class CastleAudienceRoom {
     }
     // The authored parquet panel already includes plank joints and edge detail.
 
-    const runnerStart = CARPET_ENTRANCE_INSET;
+    const runnerStart = this.#residentialLayout
+      ? Math.max(CARPET_ENTRANCE_INSET, finishStart + CARPET_ENTRANCE_INSET)
+      : CARPET_ENTRANCE_INSET;
     const runnerEnd = Math.min(
-      throneForward - 0.07,
+      this.#residentialLayout ? throneForward + 0.45 : throneForward - 0.07,
       this.#floorDepth - CARPET_REAR_CLEARANCE,
     );
     const runnerLength = Math.max(0, runnerEnd - runnerStart);
@@ -639,12 +642,16 @@ export class CastleAudienceRoom {
     const carpetMaterial = this.#materials.get("carpet");
     const texture = carpetMaterial.diffuseMap;
     // The texture border belongs to the complete runner, never each floor tile.
-    carpetMaterial.diffuseMapTiling = new this.#pc.Vec2(1, 1);
-    if (texture) texture.addressV = this.#pc.ADDRESS_CLAMP_TO_EDGE;
+    // The authored box uses a cube UV atlas: its top occupies U .625–.875, V .5–.75 after glTF V flipping.
+    carpetMaterial.diffuseMapTiling = new this.#pc.Vec2(4, 4);
+    carpetMaterial.diffuseMapOffset = new this.#pc.Vec2(-2.5, -2);
+    if (texture) { texture.addressU = texture.addressV = this.#pc.ADDRESS_CLAMP_TO_EDGE; }
     carpetMaterial.update();
-    this.#boxAt("Audience carpet runner", "carpet", 0, runnerCenter, 0.055, [
+    const carpetThickness = this.#residentialLayout ? 0.018 : 0.06;
+    const carpetY = this.#residentialLayout ? floorTop + 0.001 + carpetThickness / 2 : 0.055;
+    this.#boxAt("Audience carpet runner", "carpet", 0, runnerCenter, carpetY, [
       runnerWidth,
-      0.06,
+      carpetThickness,
       runnerLength,
     ]);
     // The same authored floor boxes define foot support, including the carpet
@@ -853,10 +860,10 @@ export class CastleAudienceRoom {
     const entity = new this.#pc.Entity(name);
     const floor = name.toLowerCase().includes("floor");
     const carpet = materialName === "carpet";
-    const model = floor && !carpet ? WoodenFloor.createPanel(this.#modelLibrary) : this.#modelLibrary.instantiate(carpet ? carpetModelUrl : authoredModelUrl);
+    const model = floor && !carpet ? WoodenFloor.createPanel(this.#modelLibrary, false, scale[0], scale[2]) : this.#modelLibrary.instantiate(carpet ? carpetModelUrl : authoredModelUrl);
     const authoredHeight = floor || carpet ? 0.06 : 1;
     model.setLocalScale(1, 1 / authoredHeight, 1);
-    model.setLocalPosition(0, -0.5, 0);
+    model.setLocalPosition(0, carpet ? 0 : -0.5, 0);
     if (!floor || carpet) {
       for (const meshInstance of model.findComponents("render").flatMap(/**
        * @param {import("playcanvas").RenderComponent} render

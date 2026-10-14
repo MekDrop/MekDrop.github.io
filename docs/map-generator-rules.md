@@ -328,7 +328,7 @@ slope tiles = absolute elevation difference
 * Interior partitions must reach the ceiling underside. Library and service room entrances must have rectangular, single-leaf doors hinged on the right when entering, seated in the actual masonry opening.
 * Door proximity must allow the moving leaf to clear an approaching visitor. Furniture must remain outside the complete doorway and door-swing clearance.
 * Generated upper entrances must be no wider than 1.25 metres, retain hero clearance, and sit below the lintel underside. Every upper doorway must have continuous structural floor support across the wall thickness.
-* Furniture clearance applies to every doorway on the same floor, including a neighbouring room’s entrance. Reserve the leaf swing plus the hero’s footprint.
+* Furniture clearance applies to every doorway on the same floor, including a neighbouring roomï¿½s entrance. Reserve the leaf swing plus the heroï¿½s footprint.
 * Authored pitched roof courses must have matching static Ammo collision; jumping must not enter their solid volume.
 * Window subtraction must operate in world axes after normalizing rotated masonry dimensions.
 * Tower window reveals must use the actual wall thickness. Visible masonry and carpet surfaces must not contain overlapping coplanar faces or repeated complete carpet borders.
@@ -544,3 +544,16 @@ Grade-separated crossing ramps instead require:
 ```text
 tileCount = 2 * abs(endHeight - startHeight)
 ```
+
+## Castle room furnishing
+
+* Ordinary furnishings must remain inside the room's wall faces, with at least 0.025 metres of clearance. Bounds refer to the complete occupied envelope, including scale, rotation, and separately supported details.
+* Room item width and depth describe the envelope along the room axes after rotation. Height and elevation describe its occupied vertical interval; imported prop heights come from measured GLB bounds.
+* Furnishings must not intersect another furnishing's occupied volume. Contact at a supporting surface is allowed. A detail with `supportId` requires its support to survive placement; `underSupport` explicitly identifies an authored empty space beneath that support.
+* Wall penetration requires explicit `wallAttachment: true` metadata, reserved for designed wall fixtures such as inset hearths. A `wallInset` value alone is not an exemption. Doors and windows belong to structural openings rather than ordinary room furniture.
+* Apply `RoomPlacementRules` to both authored base-plan furnishings and the room-packing furnishing stage before publishing map objects. Preserve the original inventory and valid placements. Repair offending groups at the nearest valid position against the compiled masonry and furnishings; never silently delete failed candidates.
+* Composite props must also preserve separation between independently placed parts. Two enlarged rail garments occupy the outer hooks, with matching render and collision transforms.
+* Neighboring cloak rails on the same wall require 0.18 metres between their complete garment envelopes along the wall; move along the wall to obtain the gap.
+* Interior door-frame placement must account for `openingInset` and the actual jamb wall face on either side of the opening. The frame must be seated in the opening, rather than using a fixed outward offset.
+Wall-mounted pictures, banners, cloak rails and kitchen racks must contact the emitted wall face at their measured model-local rear mounting plane. Keep that normal position fixed while resolving spacing along the wall. Bookshelves remain freestanding: preserve their full footprint and the ordinary masonry clearance.
+

@@ -12,12 +12,29 @@ export function subtractTerrainCutouts(polygon, cuts) {
       [2, cut.minZ, true], [2, cut.maxZ, false]];
     const retained = [];
     for (const piece of pieces) {
+      // Boundary contact has no excavated volume. Keeping it out of the
+      // clipping pass also prevents coplanar faces being retained twice.
+      if ([0, 1, 2].some(/**
+       * @param {number} axis
+       */
+      (axis) => {
+        const values = piece.map(/**
+         * @param {number[]} point
+         */
+        (point) => point[axis]);
+        const minimum = [cut.minX, cut.minY, cut.minZ][axis];
+        const maximum = [cut.maxX, cut.maxY, cut.maxZ][axis];
+        return Math.max(...values) <= minimum + 1e-8 || Math.min(...values) >= maximum - 1e-8;
+      })) {
+        retained.push(piece);
+        continue;
+      }
       let inside = piece;
       for (const [axis, value, greater] of planes) {
         const outside = clipHalfSpace(inside, axis, value, !greater);
-        if (outside.length >= 3) retained.push(outside);
+        if (hasSurfaceArea(outside)) retained.push(outside);
         inside = clipHalfSpace(inside, axis, value, greater);
-        if (inside.length < 3) break;
+        if (!hasSurfaceArea(inside)) break;
       }
     }
     pieces = retained;
@@ -50,4 +67,21 @@ function clipHalfSpace(polygon, axis, value, greater) {
     }
   }
   return result;
+}
+
+/**
+ * Reject collinear fragments before subsequent cuts can multiply them.
+ * @param {number[][]} polygon
+ * @returns {boolean}
+ */
+function hasSurfaceArea(polygon) {
+  if (polygon.length < 3) { return false; }
+  const normal = [0, 0, 0];
+  for (let index = 0; index < polygon.length; index++) {
+    const a = polygon[index], b = polygon[(index + 1) % polygon.length];
+    normal[0] += (a[1] - b[1]) * (a[2] + b[2]);
+    normal[1] += (a[2] - b[2]) * (a[0] + b[0]);
+    normal[2] += (a[0] - b[0]) * (a[1] + b[1]);
+  }
+  return Math.hypot(...normal) > 1e-8;
 }

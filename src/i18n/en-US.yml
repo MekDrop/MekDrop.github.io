@@ -86,6 +86,8 @@ game:
     dig: Dig for treasure
     stop_digging: Stop digging
     open_treasure: Open treasure chest
+    climb_ladder: Climb ladder
+    descend_ladder: Descend ladder
     fill_hole: Fill hole
     stop_filling: Stop filling
   inventory:

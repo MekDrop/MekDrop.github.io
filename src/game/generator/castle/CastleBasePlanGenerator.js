@@ -10,15 +10,15 @@ import { VestibuleRoomGenerator } from "./rooms/VestibuleRoomGenerator.js";
 import { StairwellRoomGenerator } from "./rooms/StairwellRoomGenerator.js";
 
 /**
- * @typedef {{kind:string,side:string,offset:number,width:number,bottom:number,height:number,swing?:string,openingInset?:number}} AuthoredCastleOpening
- * @typedef {{id:string,label:string,kind:string,bounds:number[],generator:string|null,openings:AuthoredCastleOpening[]}} AuthoredCastleSpace
- * @typedef {{id:string,bounds:number[],from:number,to:number,landingProfile?:boolean,radius?:number,flightGap?:number,flightShift?:number,landingLift?:number}} AuthoredCastleStair
- * @typedef {{id:string,bounds:number[],elevation:number,shape:string,height?:number}} AuthoredCastleRoof
+ * @typedef {{kind:string,side:string,offset:number,width:number,bottom:number,height:number,swing?:string,openingInset?:number,open?:boolean}} AuthoredCastleOpening
+ * @typedef {{id:string,label:string,kind:string,bounds:number[],generator:string|null,openings:AuthoredCastleOpening[],floorFinish?:string,furnish?:boolean}} AuthoredCastleSpace
+ * @typedef {{id:string,bounds:number[],from:number,to:number,landingProfile?:boolean,radius?:number,flightGap?:number,flightShift?:number,landingLift?:number,entrySide?:string}} AuthoredCastleStair
+ * @typedef {{id:string,bounds:number[],elevation:number,shape:string,height?:number,battlements?:boolean}} AuthoredCastleRoof
  * @typedef {{id:string,bounds:number[],elevation:number,height:number}} AuthoredCastleBuilding
  * @typedef {{index:number,elevation:number,spaces:AuthoredCastleSpace[]}} AuthoredCastleFloor
  * @typedef {import("./rooms/AbstractCastleRoomGenerator.js").PlannedCastleRoom & {kind:string,generator:string|null,wallBounds:{minX:number,maxX:number,minZ:number,maxZ:number}}} CompiledCastleSpace
- * @typedef {{roomId:string,kind:string,side:string,axis:string,coordinate:number,center:number,width:number,bottom:number,height:number,floorY:number,swing:string,openingInset:number}} CompiledCastleOpening
- * @typedef {{version:number,id:string,name:string,source:{image:string},coordinates:{width:number,depth:number,recommendedUnitMetres:number},floorHeight:number,wallThickness:number,entrance:{spaceId:string,side:string,offset:number,width:number,bridge:number[]},levels:Array<{index:number,elevation:number,spaces:AuthoredCastleSpace[]}>,staircases:AuthoredCastleStair[],roofs:AuthoredCastleRoof[],buildings?:AuthoredCastleBuilding[]}} CastleBasePlan
+ * @typedef {{roomId:string,kind:string,side:string,axis:string,coordinate:number,center:number,width:number,bottom:number,height:number,floorY:number,swing:string,openingInset:number,open?:boolean}} CompiledCastleOpening
+ * @typedef {{version:number,id:string,name:string,source:{image:string},coordinates:{width:number,depth:number,recommendedUnitMetres:number},floorHeight:number,wallThickness:number,entrance:{spaceId:string,side:string,offset:number,width:number,bridge:number[]},levels:Array<{index:number,elevation:number,spaces:AuthoredCastleSpace[]}>,staircases:AuthoredCastleStair[],roofs:AuthoredCastleRoof[],buildings?:AuthoredCastleBuilding[],roofAccess?:{bounds:number[],bottom:number[],top:number[],position?:number[],rotation?:number}} CastleBasePlan
  */
 
 /**
@@ -31,7 +31,7 @@ export class CastleBasePlanGenerator {
    * @returns {string[]}
    */
   static get layoutPlanIds() {
-    return ["castle-demo-compact"];
+    return ["castle-demo-compact", "castle-compact-tower", "castle-compact-service-wing"];
   }
 
   /**
@@ -76,11 +76,11 @@ export class CastleBasePlanGenerator {
   static async #loadPlans() {
     let modules;
     if (import.meta.env) {
-      modules = await Promise.all([import("./plans/castle-01.json"), import("./plans/castle-03.json"), import("./plans/castle-04.json"), import("./plans/castle-demo-compact.json")]);
+      modules = await Promise.all([import("./plans/castle-01.json"), import("./plans/castle-03.json"), import("./plans/castle-04.json"), import("./plans/castle-demo-compact.json"), import("./plans/castle-compact-tower.json"), import("./plans/castle-compact-service-wing.json")]);
     } else {
       modules = await Promise.all([import("./plans/castle-01.json", { with: { type: "json" } }),
         import("./plans/castle-03.json", { with: { type: "json" } }), import("./plans/castle-04.json", { with: { type: "json" } }),
-        import("./plans/castle-demo-compact.json", { with: { type: "json" } })]);
+        import("./plans/castle-demo-compact.json", { with: { type: "json" } }), import("./plans/castle-compact-tower.json", { with: { type: "json" } }), import("./plans/castle-compact-service-wing.json", { with: { type: "json" } })]);
     }
     return structuredClone(modules.map(/**
      * @param {{default:CastleBasePlan}} module
@@ -134,7 +134,7 @@ export class CastleBasePlanGenerator {
           }
         }
         const room = { ...this.#bounds(authored.bounds, scale), id: authored.id, purpose: authored.label,
-          kind: authored.kind, level: floor.index, floorY: baseY + floor.elevation, furnishingSeed: options.seed ?? 0,
+          kind: authored.kind, floorFinish: authored.floorFinish, furnish: authored.furnish, level: floor.index, floorY: baseY + floor.elevation, furnishingSeed: options.seed ?? 0,
           floorSpan, height: floorSpan * plan.floorHeight - (plan.buildings ? 0 : 0.25), generator: authored.generator };
         spaces.push(room);
         // Exterior walls follow the building envelope rather than the inset
@@ -154,13 +154,13 @@ export class CastleBasePlanGenerator {
               ? opening.side === "NORTH" ? room.minZ : room.maxZ
               : opening.side === "WEST" ? room.minX : room.maxX,
             center: (alongX ? room.minX : room.minZ) + (opening.offset + opening.width / 2) * scale,
-            width: opening.width * scale, bottom: opening.bottom, height: opening.height, floorY: room.floorY, swing: opening.swing ?? "outward", openingInset: opening.openingInset ?? 0 });
+            open: opening.open === true, width: opening.width * scale, bottom: opening.bottom, height: opening.height, floorY: room.floorY, swing: opening.swing ?? "outward", openingInset: opening.openingInset ?? 0 });
         }
       }
     }
     // Furnishing must see doors authored by neighboring rooms, including later spaces.
     for (const room of spaces) {
-      if (!room.generator) { continue; }
+      if (!room.generator || room.furnish === false) { continue; }
       const generator = registry.get(room.generator);
       if (!generator) {
         throw new CastleBasePlanInvalidError(plan.id, `generator:${room.generator}`);
@@ -210,7 +210,12 @@ export class CastleBasePlanGenerator {
     (opening) => opening.roomId === entranceRoom.id && opening.kind === "door" &&
       opening.side === plan.entrance.side && opening.floorY === baseY &&
       opening.width === plan.entrance.width * scale);
-    const result = { basePlanId: plan.id, sourceImage: plan.source.image, width: plan.coordinates.width * scale,
+    const roofAccess = plan.roofAccess ? { ...this.#bounds(plan.roofAccess.bounds, scale),
+      position: { x: (plan.roofAccess.position ?? plan.roofAccess.bottom)[0] * scale, y: baseY + (plan.roofAccess.position ?? plan.roofAccess.bottom)[1], z: (plan.roofAccess.position ?? plan.roofAccess.bottom)[2] * scale },
+      rotation: plan.roofAccess.rotation ?? 0,
+      bottom: { x: plan.roofAccess.bottom[0] * scale, y: baseY + plan.roofAccess.bottom[1], z: plan.roofAccess.bottom[2] * scale },
+      top: { x: plan.roofAccess.top[0] * scale, y: baseY + plan.roofAccess.top[1], z: plan.roofAccess.top[2] * scale } } : null;
+    const result = { roofAccess, basePlanId: plan.id, sourceImage: plan.source.image, width: plan.coordinates.width * scale,
       depth: plan.coordinates.depth * scale, wallThickness: plan.wallThickness * scale, floorHeight: plan.floorHeight, spaces,
       placedRooms: spaces.filter(/**
        *
@@ -222,12 +227,12 @@ export class CastleBasePlanGenerator {
        * @param {AuthoredCastleStair} stair
        */
       (stair) => ({ id: stair.id, ...this.#bounds(stair.bounds, scale),
-        from: stair.from, to: stair.to, landingProfile: stair.landingProfile, flightGap: (stair.flightGap ?? 0) * scale, flightShift: (stair.flightShift ?? 0) * scale, landingLift: (stair.landingLift ?? 0) * scale, radius: stair.radius === undefined ? undefined : stair.radius * scale, bottomY: baseY + stair.from * plan.floorHeight, topY: baseY + stair.to * plan.floorHeight })),
+        from: stair.from, to: stair.to, entrySide: stair.entrySide, landingProfile: stair.landingProfile, flightGap: (stair.flightGap ?? 0) * scale, flightShift: (stair.flightShift ?? 0) * scale, landingLift: (stair.landingLift ?? 0) * scale, radius: stair.radius === undefined ? undefined : stair.radius * scale, bottomY: baseY + stair.from * plan.floorHeight, topY: baseY + stair.to * plan.floorHeight })),
       roofs: plan.roofs.map(/**
        *
        * @param {AuthoredCastleRoof} roof
        */
-      (roof) => ({ id: roof.id, ...this.#bounds(roof.bounds, scale), y: baseY + roof.elevation, shape: roof.shape, height: roof.height ?? 1.5 })),
+      (roof) => ({ id: roof.id, ...this.#bounds(roof.bounds, scale), y: baseY + roof.elevation, shape: roof.shape, battlements: roof.battlements === true, height: roof.height ?? 1.5 })),
       buildings: (plan.buildings ?? []).map(/**
        *
        * @param {{bounds:number[],elevation:number,height:number,id:string}} building
@@ -237,7 +242,9 @@ export class CastleBasePlanGenerator {
       entrance: { ...entrance, bridge: this.#bounds(plan.entrance.bridge, scale) }, furniture };
     const stairwell = new StairwellRoomGenerator("authored-stairwell");
     for (const room of spaces) {
-      if (room.kind !== "room") { continue; }
+      if (room.kind !== "room" || room.furnish === false) { continue; }
+      if (roofAccess && room.floorY === roofAccess.bottom.y && roofAccess.position.x >= room.minX &&
+          roofAccess.position.x <= room.maxX && roofAccess.position.z >= room.minZ && roofAccess.position.z <= room.maxZ) { continue; }
       const stairs = result.stairs.filter(/**
        * @param {{from:number,to:number,minX:number,maxX:number,minZ:number,maxZ:number}} stair
        */ stair => room.level >= stair.from && room.level <= stair.to &&
@@ -254,13 +261,25 @@ export class CastleBasePlanGenerator {
       // Reflect parallel to the entrance wall about the door itself, fixing its anchor.
       const axis = entrance.axis === "z" ? "X" : "Z";
       const twiceCenter = entrance.center * 2;
-      for (const bounds of [...spaces, ...spaces.map(/**
+      for (const bounds of [...(roofAccess ? [roofAccess] : []), ...spaces, ...spaces.map(/**
        * @param {CompiledCastleSpace} space
        */
       space => space.wallBounds), ...result.stairs, ...result.roofs, ...result.buildings, result.entrance.bridge]) {
         const min = bounds[`min${axis}`];
         bounds[`min${axis}`] = twiceCenter - bounds[`max${axis}`];
         bounds[`max${axis}`] = twiceCenter - min;
+      }
+      for (const stair of result.stairs) {
+        if (axis === "X" && ["WEST", "EAST"].includes(stair.entrySide) || axis === "Z" && ["NORTH", "SOUTH"].includes(stair.entrySide)) {
+          stair.entrySide = { WEST: "EAST", EAST: "WEST", NORTH: "SOUTH", SOUTH: "NORTH" }[stair.entrySide];
+        }
+      }
+      if (roofAccess) {
+        const coordinate = axis.toLowerCase();
+        roofAccess.position[coordinate] = twiceCenter - roofAccess.position[coordinate];
+        roofAccess.rotation = axis === "X" ? -roofAccess.rotation : 180 - roofAccess.rotation;
+        roofAccess.bottom[coordinate] = twiceCenter - roofAccess.bottom[coordinate];
+        roofAccess.top[coordinate] = twiceCenter - roofAccess.top[coordinate];
       }
       for (const opening of openings) {
         if (opening.axis === entrance.axis) {
@@ -326,6 +345,7 @@ export class CastleBasePlanGenerator {
       }
     }
     for (const stair of plan.staircases) {
+      if (stair.entrySide !== undefined && !["NORTH", "EAST", "SOUTH", "WEST"].includes(stair.entrySide)) { fail(`stair:${stair.id}:entrySide`); }
       if (!boundsValid(stair.bounds) || !floors.has(stair.from) || !floors.has(stair.to) || stair.from >= stair.to) { fail(`stair:${stair.id}`); }
     }
     for (const roof of plan.roofs) {

@@ -285,7 +285,7 @@ it("uses the original carpet texture on a centered authored floor panel", () => 
     ({ name }) => name === "Audience carpet runner",
   );
   assert.equal(runner.children.length, 1);
-  assert.equal(runner.children[0].position.y, -0.5);
+  assert.equal(runner.children[0].position.y, 0);
   assert.equal(runner.position.y, 2.055);
   assert.equal(runner.children[0].render.meshInstances[0].material.diffuseMap, carpetTexture);
   room.destroy();
@@ -340,7 +340,7 @@ it("uses the shared room plan and keeps the actual throne dais clear of furnitur
     }
   }
 });
-it("keeps room timber inside the walls and extends doorway-width wood and rug to the entrance", async () => {
+it("keeps room timber and carpet within the planned chamber", async () => {
   const { CastleGenerator } = await import("../../../../../src/game/generator/castle/CastleGenerator.js");
   const { CastleResidentialLayout } = await import("../../../../../src/game/objects/castle/CastleResidentialLayout.js");
   for (const style of ["twin-keeps", "courtyard-keep", "long-hall", "l-courtyard", "terraced-keeps"]) {
@@ -366,6 +366,26 @@ it("keeps room timber inside the walls and extends doorway-width wood and rug to
       assert.ok(Math.abs(center.x + floor.scale.x / 2 - work.maxX) < 1e-6, "timber reaches the right wall");
       room.destroy();
     }
+  }
+});
+
+it("keeps authored throne-room finishes flush and out of the shared hall", async () => {
+  const { CastleGenerator } = await import("../../../../../src/game/generator/castle/CastleGenerator.js");
+  const { CastleResidentialLayout } = await import("../../../../../src/game/objects/castle/CastleResidentialLayout.js");
+  for (const seed of [4, 5]) {
+    const plan = await CastleGenerator.generate({ position: { x: 0, z: 0, width: 28, depth: 16, elevation: 2 },
+      doors: [{ side: "NORTH", offset: 13, width: 2 }], seed });
+    const layout = new CastleResidentialLayout(plan);
+    const room = createRoom("NORTH", null, { residentialLayout: layout });
+    assert.ok(!room.entity.children.some(part => part.name === "Audience entrance floor"), "no raised floor tongue through the hall");
+    const floor = room.entity.children.find(part => part.name === "Audience wooden floor");
+    assert.ok(Math.abs(floor.position.y + floor.scale.y / 2 - 2.004) < 1e-6, "floor aligns with the surrounding compressed timber finish");
+    const carpet = room.entity.children.find(part => part.name === "Audience carpet runner");
+    const local = layout.toLocal(carpet.position.x, carpet.position.z);
+    assert.ok(local.z - carpet.scale.z / 2 >= layout.audienceFloorBounds.minZ + 0.32 - 1e-6, "carpet stays behind the doorway and threshold");
+    assert.ok(carpet.position.y - carpet.scale.y / 2 >= 2.004, "carpet rests on the floor");
+    assert.ok(carpet.scale.y <= 0.03, "runner remains a thin cloth covering");
+    room.destroy();
   }
 });
 
@@ -397,8 +417,10 @@ it("maps one complete carpet border across different hall lengths", () => {
     const runner = room.entity.children.find((part) => part.name === "Audience carpet runner");
     const material = runner.children[0].render.meshInstances[0].material;
     assert.equal(material.diffuseMap, carpetTexture);
-    assert.equal(material.diffuseMapTiling.x, 1);
-    assert.equal(material.diffuseMapTiling.y, 1);
+    assert.equal(material.diffuseMapTiling.x, 4);
+    assert.equal(material.diffuseMapTiling.y, 4);
+    assert.equal(material.diffuseMapOffset.x, -2.5);
+    assert.equal(material.diffuseMapOffset.y, -2);
     assert.equal(carpetTexture.addressV, pc.ADDRESS_CLAMP_TO_EDGE);
     room.destroy();
   }

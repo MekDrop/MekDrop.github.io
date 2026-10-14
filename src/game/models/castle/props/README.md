@@ -73,8 +73,6 @@ successful ray hit against its actual surface, and captures both map
 views plus an individual close-up for every prop. Offline vertex inspection also
 confirms static, unskinned, uncompressed geometry with zero ground offset.
 
-
-
 ## Library books
 
 `open-reading-book` and `closed-shelf-book` were generated from matching isolated
@@ -95,8 +93,8 @@ facing +Z. Its mesh is reduced to about 1500 triangles for repeated shelf use.
 `BookshelfBooks` replaces the bookcase's embedded books at runtime and varies
 width, height, depth, and six leather colors with the shelf's seeded random
 source. Upright volumes touch their neighbors, align at the back, and are grouped
-by similar size and cover color. Compartment clearance determines upright rows or horizontal stacks; taller cases
-repeat authored planks and use slimmer shared dividers at connected joins. Variations remain
+by similar size and cover color. The shallow top compartment holds two supported
+horizontal stacks rather than miniature upright books. Variations remain
 supported on the measured plank tops. Library desks
 place `OpenReadingBook` through the normal map-object registry.
 
@@ -126,11 +124,9 @@ green, and brown leather. Both have editable adjacent Blender sources and
 registered object classes. No additional Tripo generation was used.
 
 `LibraryRoomFurnishing` places stacks and scroll bundles on measured shelf tops,
-a floor step stool, and a candle stand beside the single writing desk. Shelf tops
-vary between bare, books, parchment, and combinations. Remaining suitable wall
-space receives additional bookcases. Door and shelf approaches stay clear.
-The candle stand uses animated castle torch fire, with its baked flame removed
-from the adjacent Blender source and GLB. Focused checks
+a closed book on the side table, and a floor step stool. It reserves the desk
+and shelf approaches before optional reading furniture, uses ordinary wooden
+chairs, and omits groups that cannot fit safely in small rooms. Focused checks
 cover support, non-overlap, repeatability, and connected walking routes across
 60 standard room seeds.
 

@@ -519,6 +519,15 @@ export class CastleEntityBuilder {
   }
 
   /**
+   * @param {number|null} amount
+   */
+  set testDoorOpenAmount(amount) {
+    for (const door of this.#animatedDoors) {
+      door.testOpenAmount = amount === null ? null : Math.max(0, Math.min(1, amount));
+    }
+  }
+
+  /**
    * @returns {string}
    */
   get testStatus() {
@@ -947,16 +956,18 @@ export class CastleEntityBuilder {
     for (const window of windows.windows) {
       const angle = window.yaw * Math.PI / 180;
       const crosswise = Math.abs(Math.sin(angle)) > 0.5;
+      if (!window.open) {
       this.#cameraCollisionBlocks.push({ x: window.position.x - Math.sin(angle) * window.depth * 0.315,
         y: window.position.y + window.height / 2, z: window.position.z - Math.cos(angle) * window.depth * 0.315,
         halfX: crosswise ? 0.025 : window.width / 2, halfY: window.height / 2, halfZ: crosswise ? window.width / 2 : 0.025 });
+      }
       const alongX = Math.abs(Math.sin(window.yaw * Math.PI / 180)) < 0.5;
       const half = window.width / 2;
       Window.addVisual(this.#pc, this.#modelLibrary, this.#entity, {
         id: `castle-${window.role}-window`, object: Window.name,
         from: { x: window.position.x - (alongX ? half : 0), y: window.position.y, z: window.position.z - (alongX ? 0 : half) },
         to: { x: window.position.x + (alongX ? half : 0), y: window.position.y + window.height, z: window.position.z + (alongX ? 0 : half) },
-        depth: window.depth, variant: window.role,
+        depth: window.depth, variant: window.role, open: window.open,
         facing: (alongX ? Math.cos(window.yaw * Math.PI / 180) : Math.sin(window.yaw * Math.PI / 180)) >= 0 ? 1 : -1,
     }, this.#materials.get("castleStoneMid"));
     }

@@ -3,7 +3,7 @@ import { CastleResidentialLayout } from "./CastleResidentialLayout.js";
 /**
  * @typedef {{minX:number,maxX:number,minY:number,maxY:number,minZ:number,maxZ:number}} WindowBounds
  * @typedef {{x:number,y:number,z:number,sx:number,sy:number,sz:number,yaw:number,material:string}} MasonryBox
- * @typedef {{role:string,position:{x:number,y:number,z:number},yaw:number,width:number,height:number,depth:number,cut:WindowBounds,floorY:number}} RecessedWindow
+ * @typedef {{role:string,position:{x:number,y:number,z:number},yaw:number,width:number,height:number,depth:number,cut:WindowBounds,floorY:number,open?:boolean}} RecessedWindow
  */
 
 /**
@@ -346,7 +346,7 @@ export class CastleWindowLayout {
       const halfZ = (Math.abs(Math.sin(angle)) * opening.width + Math.abs(Math.cos(angle)) * (depth + 0.02)) / 2;
       const cut = { minX: x - halfX, maxX: x + halfX, minZ: z - halfZ, maxZ: z + halfZ,
         minY: position.y, maxY: position.y + opening.height };
-      this.#windows.push({ role: "room", position, yaw, width: opening.width, height: opening.height, depth, cut, floorY: opening.floorY });
+      this.#windows.push({ role: "room", open: opening.open === true, position, yaw, width: opening.width, height: opening.height, depth, cut, floorY: opening.floorY });
     }
   }
 

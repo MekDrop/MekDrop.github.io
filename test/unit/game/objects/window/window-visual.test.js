@@ -101,3 +101,25 @@ test("window sills overlap masonry without sharing its top plane at every size a
     }
   }
 });
+
+test("open windows retain the surround and remove glazing and internal dividers", () => {
+  const data = readFileSync(new URL("../../../../../src/game/models/castle/windows/room-window.glb", import.meta.url));
+  const gltf = JSON.parse(data.subarray(20, 20 + data.readUInt32LE(12)).toString());
+  const app = { _entityIndex: {} };
+  const parent = new pc.Entity("Open window", app);
+  let visual;
+  const models = { instantiate() {
+    visual = new pc.Entity("Window", app);
+    for (const node of gltf.nodes) {
+      const entity = new pc.Entity(node.name, app);
+      entity.setLocalPosition(...node.translation);
+      visual.addChild(entity);
+    }
+    return visual;
+  } };
+  Window.addVisual(pc, models, parent, { id: "lookout", from: { x: 0, y: 0, z: 0 }, to: { x: 1.25, y: 1.75, z: 0 }, open: true });
+  assert.equal(visual.find(node => /^(Amber glass pane |Fine oak transom |Central oak mullion)/.test(node.name)).length, 0);
+  assert.ok(visual.findByName("Projecting stone sill"));
+  assert.ok(visual.findByName("Oak frame rail -1"));
+  parent.destroy();
+});

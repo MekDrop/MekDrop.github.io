@@ -44,3 +44,48 @@ it("keeps compressed parquet clear of its backing without sinking timber into ma
   assert.ok(0.004 - top > 0.002, "parquet and backing have more than 2 mm of depth separation");
   assert.ok(bottom > 0.001, "backing remains above the masonry surface");
 });
+
+it("keeps plank top seams equally narrow when a room stretches the floor panel", () => {
+  const buffer = readFileSync(new URL("../../../../../src/game/models/castle/residential/floor-panel.glb", import.meta.url));
+  const jsonLength = buffer.readUInt32LE(12);
+  const gltf = JSON.parse(buffer.subarray(20, 20 + jsonLength));
+  const binary = buffer.subarray(28 + jsonLength);
+  for (const [width, depth] of [[1, 1], [3.25, 3.5], [6, 7]]) {
+    const root = new pc.Entity();
+    const renders = [];
+    for (const source of gltf.nodes.filter(node => node.name.startsWith("Oak plank"))) {
+      const node = new pc.Entity(source.name);
+      node.setLocalPosition(...source.translation);
+      root.addChild(node);
+      const accessor = gltf.accessors[gltf.meshes[source.mesh].primitives[0].attributes.POSITION];
+      const view = gltf.bufferViews[accessor.bufferView];
+      const vertices = [];
+      for (let index = 0; index < accessor.count; index++) {
+        for (let axis = 0; axis < 3; axis++) {
+          vertices.push(binary.readFloatLE((view.byteOffset ?? 0) + (accessor.byteOffset ?? 0) + index * (view.byteStride ?? 12) + axis * 4));
+        }
+      }
+      const min = new pc.Vec3(...accessor.min), max = new pc.Vec3(...accessor.max);
+      const aabb = new pc.BoundingBox();
+      aabb.setMinMax(min, max);
+      const top = vertices.filter((value, index) => index % 3 === 1).reduce((a, b) => Math.max(a, b));
+      const points = [];
+      for (let index = 0; index < vertices.length; index += 3) {
+        if (vertices[index + 1] >= top - 1e-5) { points.push({ x: vertices[index], z: vertices[index + 2] }); }
+      }
+      node.topPoints = points;
+      renders.push({ entity: node, meshInstances: [{ mesh: { aabb, getPositions: output => output.push(...vertices) } }] });
+    }
+    root.findComponents = () => renders;
+    WoodenFloor.createPanel({ instantiate: () => root }, false, width, depth);
+    const edge = (name, axis, maximum) => {
+      const node = root.findByName(name);
+      const points = node.topPoints.map(point => (node.getLocalPosition()[axis] + point[axis] * node.getLocalScale()[axis]) * (axis === "x" ? width : depth));
+      return maximum ? Math.max(...points) : Math.min(...points);
+    };
+    const endGap = edge("Oak plank row 1 section 2", "x", false) - edge("Oak plank row 1 section 1", "x", true);
+    const sideGap = edge("Oak plank row 1 section 1", "z", false) - edge("Oak plank row 2 section 1", "z", true);
+    assert.ok(Math.abs(endGap - 0.006) < 1e-6);
+    assert.ok(Math.abs(sideGap - 0.006) < 1e-6);
+  }
+});

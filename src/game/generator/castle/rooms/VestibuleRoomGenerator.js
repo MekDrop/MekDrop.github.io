@@ -49,7 +49,7 @@ export class VestibuleRoomGenerator extends AbstractCastleRoomGenerator {
       items.push(bench);
       for (const offset of [-0.35, 0.35]) {
         const rail = { role: "vestibuleProp", object: "VestibuleCloakRail", x: wall + 0.09,
-          z: z + offset, width: 0.16, depth: 0.85, height: 0.8, scale: 0.78,
+          z: z + offset, width: 0.1771, depth: 1.1, height: 1.365, scale: 0.78,
           rotation: 90, y: 1.28 };
         if (safe(rail)) { items.push(rail); }
       }

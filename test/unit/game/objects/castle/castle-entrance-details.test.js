@@ -6,6 +6,9 @@ import { CastleGenerator } from "../../../../../src/game/generator/castle/Castle
 
 const hooks = registerHooks({
   resolve(specifier, context, nextResolve) {
+    if (specifier.endsWith("/LanternFire.js")) {
+      return { url: "data:text/javascript,export class LanternFire { static add() {} }", shortCircuit: true };
+    }
     if (specifier.endsWith(".glb?url")) {
       return { url: `data:text/javascript,export default ${JSON.stringify(specifier)}`, shortCircuit: true };
     }
@@ -14,6 +17,33 @@ const hooks = registerHooks({
 });
 const { CastleEntranceDetails } = await import("../../../../../src/game/objects/castle/CastleEntranceDetails.js");
 hooks.deregister();
+
+test("attached tower exterior trim never projects into the castle interior", async () => {
+  class DetailEntity extends pc.Entity {
+    addComponent() {}
+  }
+  for (const side of ["NORTH", "SOUTH", "EAST", "WEST"]) {
+    for (const seed of [4, 5]) {
+      const plan = await CastleGenerator.generate({ position: { x: -14, z: -8, width: 28, depth: 16, elevation: 3 }, doors: [{ side, offset: 13, width: 2 }], seed });
+      const parent = new pc.Entity();
+      CastleEntranceDetails.add({ ...pc, Entity: DetailEntity }, { instantiate: () => new DetailEntity() }, parent, plan, null);
+      const residential = plan.metadata.runtime.residential;
+      const angle = residential.origin.yaw * Math.PI / 180;
+      const details = parent.children.filter(node => /corner trim|support band/.test(node.name));
+      assert.ok(details.length > 0, "exposed facade details remain");
+      for (const detail of details) {
+        const p = detail.getLocalPosition(), scale = detail.getLocalScale();
+        const dx = p.x - residential.origin.x, dz = p.z - residential.origin.z;
+        const x = dx * Math.cos(angle) - dz * Math.sin(angle), z = dx * Math.sin(angle) + dz * Math.cos(angle);
+        assert.ok(!residential.buildings.some(building =>
+          Math.min(x + scale.x / 2, building.maxX) > Math.max(x - scale.x / 2, building.minX) + 1e-6 &&
+          Math.min(z + scale.z / 2, building.maxZ) > Math.max(z - scale.z / 2, building.minZ) + 1e-6 &&
+          Math.min(p.y + scale.y / 2, building.floorY + building.height) > Math.max(p.y - scale.y / 2, building.floorY) + 1e-6), `${seed}/${side}: trim intersects an interior volume`);
+      }
+      parent.destroy();
+    }
+  }
+});
 
 test("entrance lanterns flank the fixed doorway on every facing and mirrored seed", async () => {
   class LightEntity extends pc.Entity {

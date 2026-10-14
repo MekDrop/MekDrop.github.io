@@ -150,7 +150,7 @@ export class CastleResidence {
        * @param {import("../../generator/castle/rooms/AbstractCastleRoomGenerator.js").PlannedCastleRoom} room
        */ (room) => (room.kind === "room" || !room.kind || room.id === "storage-north" || room.id === "storage-south" ||
           room.id === "vestibule" || room.id === "vestibule-south") &&
-          room.id !== "leisure" && room.id !== "basement-stair-room" &&
+          room.floorFinish !== "stone" && room.id !== "leisure" && room.id !== "basement-stair-room" &&
           !(room.id === "stair-room" && room.floorY === plan.origin.y) &&
           area.floorY >= room.floorY && area.floorY < room.floorY + room.height)
         .map(/**
@@ -237,7 +237,7 @@ export class CastleResidence {
 
     for (const { id, y, pieces } of timberFinishes.values()) {
       for (const [minX, maxX, minZ, maxZ] of CastleFloorFinish.merge(pieces)) {
-        const panel = WoodenFloor.createPanel(models, true);
+        const panel = WoodenFloor.createPanel(models, true, maxX - minX, maxZ - minZ);
         panel.name = `Castle ${id} wood floor`;
         panel.setLocalPosition((minX + maxX) / 2, y + 0.001, (minZ + maxZ) / 2);
         panel.setLocalScale(maxX - minX, 0.05, maxZ - minZ);
@@ -460,6 +460,7 @@ export class CastleResidence {
         const height = surface.low + rise * (step + 1) / steps;
         const thickness = rise ? rise / steps : 0.25;
         const z = surface.reverse ? surface.maxZ - edgeClearance - visualRun * (step + 0.5) / steps : surface.minZ + edgeClearance + visualRun * (step + 0.5) / steps;
+        // Use the original authored stone tread, including its riser and underside.
         for (let column = 0; column < columns; column++) {
           // Preserve the GLB root pivot: the masonry block starts at Y=0,
           // while the stair module is centred on Y=0.
@@ -467,7 +468,9 @@ export class CastleResidence {
           tread.addChild(models.instantiate(rise ? stairModuleUrl : masonryBlockUrl));
           tread.name = rise ? "Castle straight stone tread" : "Castle stair turning landing";
           tread.setLocalPosition(surface.minX + edgeClearance + width * (column + 0.5), height - (rise ? thickness / 2 : thickness), z);
-          tread.setLocalScale(width, thickness, visualRun / steps / (rise ? 2 : 1));
+          // Slightly overlap the original beveled modules so their seams cannot expose the room above.
+            tread.setLocalScale(width + (rise ? 0.004 : 0), thickness + (rise ? 0.008 : 0),
+              visualRun / steps / (rise ? 2 : 1) + (rise ? 0.008 : 0));
           const material = this.#stairMaterials.get((step + column * 3) % 8 === 0 ? "castleStoneDark" : "castleStoneMid");
           if (material) {
             for (const render of tread.findComponents("render")) {

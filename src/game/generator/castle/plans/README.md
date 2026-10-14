@@ -1,6 +1,7 @@
 # Authored castle base plans
 
-The four JSON files are manual schematic transcriptions of the supplied drawings.
+The reference JSON files are manual schematic transcriptions of the supplied drawings.
+`castle-compact-tower` is an authored playable variant of the compact schematic.
 The original sheets are retained in `sources/` under the matching plan ID.
 Coordinates approximate the drawing proportions; these are not architectural surveys.
 The inconsistent stair label on castle 03's upper keep is recorded in the slot label;
@@ -52,11 +53,11 @@ roofs, entrance and furniture. It never packs rooms or invents openings.
 
 ## Live integration
 
-The active layout list (`CastleBasePlanGenerator.layoutPlanIds`) currently contains only the compact demo, selected by seed before planning its entrance
+The active layout list (`CastleBasePlanGenerator.layoutPlanIds`) contains the compact demo, compact tower variant and service-wing alternative, selected by seed before planning its entrance
 route. Even/odd seed pairs select the same layout; odd seeds mirror all compiled spaces, openings, roofs, buildings, stairs and furniture about the entrance, preserving its position and direction. Named seeds use a stable hash; numeric strings retain numeric parity. Add future playable plan IDs to the ordered active list. `CASTLE_FOOTPRINTS` only reserves the footprint.
 All castle test fixtures store a seed and construction inputs, with no mode flag
 or plan ID. `CastleGenerator.generate({ position, doors, seed })`
-uses the seed-selected compact plan and mirror orientation, including during live regeneration.
+uses the seed-selected plan and mirror orientation, including during live regeneration.
 The public generator compiles the
 selected plan into castle-owned walls, floors, roofs, doors, windows and furniture.
 Masonry uses the same quarter-metre blocks and stone palette as the gates;
@@ -115,3 +116,44 @@ The compact ground floor has a continuous structural slab beneath the room inter
 
 Generated maps reserve the selected plan's rotated metric footprint plus one tile on each side. The compact castle therefore uses a 10 by 9 tile reservation instead of the legacy 16 by 28 area; island clearance and plateau shaping follow that reservation.
 `flightShift` moves both straight flights toward their door in metres while keeping the back edge of the turning landing fixed. The compact plan uses 0.1 m, enlarging that platform by the same amount so the extended central divider retains a walking route.
+
+## Compact tower variant
+
+`castle-compact-tower` keeps the eight-metre envelope, swaps the basement kitchen
+and service quarters, and splits the upper keep into a west library and an east
+watchtower. The existing stair shaft continues to a lookout at elevation 6 metres;
+the tower roof begins at 9 metres. Seed pairs 0/1 select the original compact plan,
+2/3 select the tower variant, and 4/5 select the service-wing alternative, and the sequence repeats every six numeric seeds.
+Odd seeds mirror the selected layout around its entrance.
+
+## Service-wing alternative
+
+`castle-compact-service-wing` has an eight-by-eight-metre main block and a
+watchtower attached midway along its east side. The total authored envelope is
+12.25 by 8 metres. The tower projects from the side wall; the original south
+entrance retains its unobstructed two-lane approach.
+
+The shared ground-floor hall opens directly into the tower. The throne room
+and servant quarters retain separate doors, and the basement has storage and
+circulation leading to its own tower entrance. Connected building envelopes omit
+shared exterior walls while preserving room partitions and projecting floors.
+
+One west-facing stair shaft uses matching flights and landings through every
+storey. Its flights meet the side walls and retain an aisle to the final ladder.
+The wall-mounted oak ladder reaches the battlement crown through a clear hatch.
+`roofAccess` records model placement, rotation, and supported lower/upper
+landings separately. Preparation publishes a normal `Ladder` map object.
+E transfers between the landings instantly; a climbing animation is not authored.
+The ladder wall remains unfurnished.
+
+The lookout has open south/east windows with 0.75-metre sills and 1.25 by
+1.75-metre apertures. `open: true` removes glazing, dividers, glow, and glazing
+collision while retaining the stone surround. The crown is a flat platform
+with alternating stone merlons and embrasures.
+
+The authored ladder measures 0.925 by 3.7 by 0.2 metres, uses a bottom-centred
+pivot, and includes 0.7-metre handholds above the climb. Its decoded GLB bounds
+are static vertex bounds, with no runtime scaling correction required.
+
+The service-wing ground-floor cross hall and entrance circulation now form one rectangular vestibule. Its original main entrance and west window remain at the same coordinates; a single room generator and timber finish cover the full arrival area.
+The crown ladder ends below the roof surface. Its map-owned ladder object also owns a framed timber hatch with handles on both faces. Climbing opens the hatch temporarily; the closed lid restores physical support across the aperture.

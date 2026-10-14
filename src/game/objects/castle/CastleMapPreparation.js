@@ -1,10 +1,12 @@
-import { VestibuleRoomMapObjects } from "./VestibuleRoomMapObjects.js";
-import { KitchenRoomMapObjects } from "./KitchenRoomMapObjects.js";
-import { LibraryRoomMapObjects } from "./LibraryRoomMapObjects.js";
-import { ThroneRoomMapObjects } from "./ThroneRoomMapObjects.js";
-import { LeisureRoomMapObjects } from "./LeisureRoomMapObjects.js";
-import { StairwellRoomMapObjects } from "./StairwellRoomMapObjects.js";
+import { CastleLadderMapObjects } from "./CastleLadderMapObjects.js";
 import { DecorationPlacementRules } from "../../generator/map/DecorationPlacementRules.js";
+import { LibraryRoomMapObjects } from "./LibraryRoomMapObjects.js";
+import { LeisureRoomMapObjects } from "./LeisureRoomMapObjects.js";
+import { KitchenRoomMapObjects } from "./KitchenRoomMapObjects.js";
+import { ThroneRoomMapObjects } from "./ThroneRoomMapObjects.js";
+import { StairwellRoomMapObjects } from "./StairwellRoomMapObjects.js";
+import { TowerRoomMapObjects } from "./TowerRoomMapObjects.js";
+import { VestibuleRoomMapObjects } from "./VestibuleRoomMapObjects.js";
 import { GRASS_SURFACE_LIFT } from "../../config/terrain.js";
 import { CastleGroundWeathering } from "./CastleGroundWeathering.js";
 import { createCastleStairFlight } from "./CastleStairFlight.js";
@@ -21,11 +23,13 @@ export class CastleMapPreparation {
    * @param {import("../../GameContracts.js").GameMapData} mapData
    */
   static prepareMap(mapData) {
-    KitchenRoomMapObjects.prepareMap(mapData);
     LibraryRoomMapObjects.prepareMap(mapData);
-    ThroneRoomMapObjects.prepareMap(mapData);
     LeisureRoomMapObjects.prepareMap(mapData);
+    KitchenRoomMapObjects.prepareMap(mapData);
+    ThroneRoomMapObjects.prepareMap(mapData);
     StairwellRoomMapObjects.prepareMap(mapData);
+    TowerRoomMapObjects.prepareMap(mapData);
+    CastleLadderMapObjects.prepareMap(mapData);
     VestibuleRoomMapObjects.prepareMap(mapData);
     const castles = (mapData.objects ?? []).filter(
       /**

@@ -33,10 +33,31 @@ export class WoodenFloor {
    * Returns the shared bottom-anchored, one-metre-square, 0.06-metre-thick panel.
    * @param {import("../../models/GameModelLibrary.js").GameModelLibrary} models
    * @param {boolean} thinFinish Keep backing clear of parquet in a compressed surface finish.
+   * @param {number} width
+   * @param {number} depth
    * @returns {import("playcanvas").Entity}
    */
-  static createPanel(models, thinFinish = false) {
+  static createPanel(models, thinFinish = false, width = 1, depth = 1) {
     const panel = models.instantiate(floorUrl);
+    for (const render of panel.findComponents("render")) {
+      if (!render.entity?.name.startsWith("Oak plank")) { continue; }
+      const mesh = render.meshInstances[0]?.mesh;
+      if (!mesh?.getPositions) { continue; }
+      const vertices = [];
+      mesh.getPositions(vertices);
+      const topY = mesh.aabb.center.y + mesh.aabb.halfExtents.y;
+      let minX = Infinity, maxX = -Infinity, minZ = Infinity, maxZ = -Infinity;
+      for (let index = 0; index < vertices.length; index += 3) {
+        if (vertices[index + 1] < topY - 1e-5) { continue; }
+        minX = Math.min(minX, vertices[index]); maxX = Math.max(maxX, vertices[index]);
+        minZ = Math.min(minZ, vertices[index + 2]); maxZ = Math.max(maxZ, vertices[index + 2]);
+      }
+      // Keep the visible top seams six millimetres wide after the room stretches the panel.
+      const nominalX = mesh.aabb.halfExtents.x * 2 + 0.003;
+      const nominalZ = 0.125;
+      render.entity.setLocalScale((nominalX - Math.min(0.006 / width, nominalX * 0.15)) / (maxX - minX), 1,
+        (nominalZ - Math.min(0.006 / depth, nominalZ * 0.15)) / (maxZ - minZ));
+    }
     if (thinFinish) {
       const backing = panel.findByName("Tile backing");
       backing.setLocalPosition(0, 0.003, 0);
@@ -57,7 +78,7 @@ export class WoodenFloor {
     }
     this.#definition = definition;
     this.#entity = new pc.Entity(`${definition.id} island ownership`);
-    this.#visual = WoodenFloor.createPanel(modelLibrary);
+    this.#visual = WoodenFloor.createPanel(modelLibrary, false, Math.abs(to.x - from.x), Math.abs(to.z - from.z));
     this.#visual.name = `${definition.id} wooden floor`;
     this.#visual.tags.add("map-object", definition.id, this.constructor.name);
     const width = Math.abs(to.x - from.x);

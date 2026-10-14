@@ -13,7 +13,8 @@ export class VestibuleCloakRail extends AbstractCastleProp {
    */
   static variation(seed) {
     const random = new GenerationRandom(seed);
-    const hooks = random.shuffle([-0.33, -0.11, 0.11, 0.33]);
+    // Enlarged garments need the outer hooks when both are occupied.
+    const hooks = random.shuffle([-0.33, 0.33]);
     const cloaks = random.shuffle([{ name: "Cloak A", authoredX: -0.11 }, { name: "Cloak B", authoredX: 0.11 }]);
     const colors = [[0.46, 0.57, 0.69], [0.69, 0.34, 0.27], [0.39, 0.51, 0.32],
       [0.70, 0.56, 0.32], [0.55, 0.39, 0.57], [0.42, 0.44, 0.47]];
@@ -55,7 +56,6 @@ export class VestibuleCloakRail extends AbstractCastleProp {
         for (const mesh of render.meshInstances) {
           const material = this.cloneMaterial(mesh.material);
           material.diffuse.set(...item.color);
-          material.diffuseTint = true;
           material.update();
           mesh.material = material;
         }

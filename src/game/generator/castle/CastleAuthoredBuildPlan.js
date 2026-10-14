@@ -1,3 +1,4 @@
+import { RoomPlacementRules } from "./rooms/RoomPlacementRules.js";
 import { CastleGenerationScheduler } from "./CastleGenerationScheduler.js";
 import { CastleBasePlanGenerator } from "./CastleBasePlanGenerator.js";
 import { StairwellRoomGenerator } from "./rooms/StairwellRoomGenerator.js";
@@ -59,7 +60,7 @@ export class CastleAuthoredBuildPlan {
         y, z: origin.z - Math.sin(angle) * x + Math.cos(angle) * z };
     };
     const spaces = [];
-    for (const space of authored.spaces) { spaces.push({ ...space, ...transform(space) }); }
+    for (const space of authored.spaces) { spaces.push({ ...space, ...transform(space), wallBounds: transform(space.wallBounds) }); }
     const placedRooms = spaces.filter(/**
      * @param {import("./CastleBasePlanGenerator.js").CompiledCastleSpace} space
      */
@@ -67,7 +68,7 @@ export class CastleAuthoredBuildPlan {
     const buildings = authored.buildings.map(/**
      * @param {import("./CastleBasePlanGenerator.js").CompiledCastleSpace} building
      */
-    (building) => ({ ...transform(building), floorY: building.floorY }));
+    (building) => ({ ...transform(building), floorY: building.floorY, height: building.height }));
     const openings = [];
     for (const opening of authored.openings) {
       const entrance = opening.roomId === gate.roomId && opening.floorY === baseY && opening.side === gate.side && opening.kind === "door";
@@ -126,7 +127,7 @@ export class CastleAuthoredBuildPlan {
           const distance = dx * dx + dz * dz;
           return !best || distance < best.distance ? { door, dx, dz, distance } : best;
         }, null);
-        const entryYaw = nearest ? Math.round(Math.atan2(nearest.dx, nearest.dz) * 180 / Math.PI / 90) * 90 : (x < 0 ? 180 : 0);
+        const entryYaw = shaft.entrySide ? { WEST: 90, EAST: -90, NORTH: 0, SOUTH: 180 }[shaft.entrySide] : nearest ? Math.round(Math.atan2(nearest.dx, nearest.dz) * 180 / Math.PI / 90) * 90 : (x < 0 ? 180 : 0);
         const flightGap = shaft.flightGap ?? 0;
         const flightShift = shaft.flightShift ?? 0;
         const entryAngle = entryYaw * Math.PI / 180;
@@ -204,7 +205,45 @@ export class CastleAuthoredBuildPlan {
     for (const roof of authored.roofs) {
       if (roof.shape === "flat") { residential.walkableAreas.push({ ...transform(roof), id: `roof:${roof.id}`, floorY: roof.y }); }
     }
+    if (authored.roofAccess) {
+      const hole = transform(authored.roofAccess);
+      residential.roofAccess = { hole, rotation: yaw + 180 + authored.roofAccess.rotation,
+        position: world(gate.center - authored.roofAccess.position.x, gate.coordinate - authored.roofAccess.position.z, authored.roofAccess.position.y),
+        bottom: world(gate.center - authored.roofAccess.bottom.x, gate.coordinate - authored.roofAccess.bottom.z, authored.roofAccess.bottom.y),
+        top: world(gate.center - authored.roofAccess.top.x, gate.coordinate - authored.roofAccess.top.z, authored.roofAccess.top.y) };
+      residential.walkableAreas = residential.walkableAreas.flatMap(/**
+       * @param {{minX:number,maxX:number,minZ:number,maxZ:number,floorY:number,id:string}} area
+       */
+      (area) => {
+        if (area.floorY !== authored.roofAccess.top.y) { return [area]; }
+        const left = Math.max(area.minX, hole.minX), right = Math.min(area.maxX, hole.maxX);
+        const front = Math.max(area.minZ, hole.minZ), rear = Math.min(area.maxZ, hole.maxZ);
+        if (right <= left || rear <= front) { return [area]; }
+        return [{ ...area, maxX: left }, { ...area, minX: right },
+          { ...area, minX: left, maxX: right, maxZ: front }, { ...area, minX: left, maxX: right, minZ: rear }]
+          .filter(/**
+           * @param {{minX:number,maxX:number,minZ:number,maxZ:number}} part
+           */
+          (part) => part.maxX > part.minX && part.maxZ > part.minZ);
+      });
+    }
     for (const building of authored.buildings) {
+      // Upper rooms need the same continuous structural floor as the ground
+      // level, including the wall thickness around their doorways.
+      const levels = new Set(spaces.filter(/**
+                                            * @param {import("./CastleBasePlanGenerator.js").CompiledCastleSpace} space
+                                            */
+        space => space.kind !== "void" &&
+        space.floorY > baseY && space.floorY < building.floorY + building.height &&
+        space.minX >= gate.center - building.maxX && space.maxX <= gate.center - building.minX &&
+        space.minZ >= gate.coordinate - building.maxZ && space.maxZ <= gate.coordinate - building.minZ)
+        .map(/**
+              * @param {import("./CastleBasePlanGenerator.js").CompiledCastleSpace} space
+              */
+          space => space.floorY));
+      for (const floorY of levels) {
+        residential.walkableAreas.push({ ...transform(building), id: `upper-slab:${building.id}:${floorY}`, floorY });
+      }
       if (building.floorY < baseY) {
         // Basement room finishes stop short of the exterior wall. A continuous
         // foundation slab covers those perimeter seams and partition gaps.
@@ -217,10 +256,12 @@ export class CastleAuthoredBuildPlan {
       }
       if (building.id === "base") {
         const floorY = building.floorY + building.height;
+        const baseBounds = transform(building);
         residential.walkableAreas = residential.walkableAreas.filter(/**
          * @param {{floorY:number}} area
          */
-        (area) => area.floorY !== floorY);
+        (area) => area.floorY !== floorY || area.minX < baseBounds.minX || area.maxX > baseBounds.maxX ||
+          area.minZ < baseBounds.minZ || area.maxZ > baseBounds.maxZ);
         residential.walkableAreas.push({ ...transform(building), id: "base-ceiling", floorY });
       }
     }
@@ -374,20 +415,67 @@ export class CastleAuthoredBuildPlan {
      * @param {number} coordinate
      * @param {number} sign
      * @param {number} height
+     * @param {boolean} [envelope]
      */
-    const wall = (room, axis, coordinate, sign, height) => {
+    const wall = (room, axis, coordinate, sign, height, envelope = false) => {
+      let joinedFace = null;
       if (room.kind === "room" && authored.buildings.some(/**
        * @param {{floorY:number,height:number,minX:number,maxX:number,minZ:number,maxZ:number}} building
        */
       (building) => {
         const bounds = transform(building);
         const boundaries = axis === "x" ? [bounds.minX, bounds.maxX] : [bounds.minZ, bounds.maxZ];
-        return room.floorY >= building.floorY && room.floorY + height <= building.floorY + building.height &&
+        // A joined building removes this envelope face. Keep the room's
+        // partition and doorway instead of leaving its frame in open space.
+        const sharedFace = authored.buildings.some(/**
+         * @param {import("./CastleBasePlanGenerator.js").CompiledCastleSpace} other
+         */
+        other => {
+          if (other === building || room.floorY >= other.floorY + other.height || room.floorY + height <= other.floorY) { return false; }
+          const volume = transform(other);
+          const min = axis === "x" ? volume.minX : volume.minZ;
+          const max = axis === "x" ? volume.maxX : volume.maxZ;
+          const alongMin = axis === "x" ? room.minZ : room.minX;
+          const alongMax = axis === "x" ? room.maxZ : room.maxX;
+          const otherMin = axis === "x" ? volume.minZ : volume.minX;
+          const otherMax = axis === "x" ? volume.maxZ : volume.maxX;
+          if (Math.min(alongMax, otherMax) <= Math.max(alongMin, otherMin)) { return false; }
+          return boundaries.some(/**
+           * @param {number} boundary
+           */
+          boundary => Math.abs(boundary - coordinate) <= thickness * 1.1 && boundary > min && boundary < max);
+        });
+        if (sharedFace) {
+          const contained = room.minX >= bounds.minX && room.maxX <= bounds.maxX && room.minZ >= bounds.minZ && room.maxZ <= bounds.maxZ;
+          if (contained) {
+            for (const other of authored.buildings) {
+              if (other === building || room.floorY >= other.floorY + other.height) { continue; }
+              const volume = transform(other);
+              const candidates = axis === "x" ? [volume.minX, volume.maxX] : [volume.minZ, volume.maxZ];
+              const face = candidates.find(/**
+                                            * @param {number} value
+                                            */
+                value => Math.abs(value - coordinate) <= thickness * 1.1);
+              if (face !== undefined) { joinedFace = { coordinate: face, sign: face === candidates[0] ? -1 : 1 }; break; }
+            }
+          }
+          return false;
+        }
+        return room.minX >= bounds.minX - 0.001 && room.maxX <= bounds.maxX + 0.001 &&
+          room.minZ >= bounds.minZ - 0.001 && room.maxZ <= bounds.maxZ + 0.001 &&
+          room.floorY >= building.floorY && room.floorY + height <= building.floorY + building.height &&
           boundaries.some(/**
            * @param {number} boundary
            */
           (boundary) => Math.abs(boundary - coordinate) <= thickness * 1.1);
       })) { return; }
+      if (joinedFace) {
+        for (const opening of openings) {
+          if (opening.roomId === room.id && opening.axis === axis && Math.abs(opening.coordinate - coordinate) <= thickness * 1.1) { opening.coordinate = joinedFace.coordinate; }
+        }
+        coordinate = joinedFace.coordinate;
+        sign = joinedFace.sign;
+      }
       const alongMin = axis === "x" ? room.minZ : room.minX;
       const alongMax = axis === "x" ? room.maxZ : room.maxX;
       let pieces = [{ start: alongMin - thickness, end: alongMax + thickness, bottom: room.floorY, top: room.floorY + height }];
@@ -400,12 +488,27 @@ export class CastleAuthoredBuildPlan {
         // through the wall so its taller centre can swing past either jamb.
         return [{ ...opening, height: opening.height - 0.05 }];
       });
+      if (envelope) {
+        for (const other of authored.buildings) {
+          if (other.id === room.id) { continue; }
+          const volume = transform(other);
+          const min = axis === "x" ? volume.minX : volume.minZ;
+          const max = axis === "x" ? volume.maxX : volume.maxZ;
+          const interior = coordinate > min + 1e-6 && coordinate < max - 1e-6;
+          const sameFace = Math.abs(coordinate - (sign < 0 ? min : max)) < 1e-6;
+          if (!interior && !(sameFace && other.height > height)) { continue; }
+          const start = axis === "x" ? volume.minZ : volume.minX;
+          const end = axis === "x" ? volume.maxZ : volume.maxX;
+          wallOpenings.push({ kind: "door", structuralCut: true, axis, coordinate,
+            center: (start + end) / 2, width: end - start, floorY: other.floorY, height: other.height });
+        }
+      }
       for (const door of wallOpenings) {
         if (door.kind !== "door" || door.axis !== axis || Math.abs(door.coordinate - coordinate) > thickness * 1.1 ||
           door.floorY + door.height <= room.floorY || door.floorY >= room.floorY + height) { continue; }
         // Cut the full wooden frame envelope; the casing overlaps the stone
         // while the jambs fit inside the opening around the unchanged leaf.
-        const frameClearance = door.exteriorEntrance ? 0 : door.width * 0.09 + 0.005;
+        const frameClearance = door.exteriorEntrance || door.structuralCut ? 0 : door.width * 0.09 - 0.01;
         const start = door.center - door.width / 2 - frameClearance;
         const end = door.center + door.width / 2 + frameClearance;
         const next = [];
@@ -413,7 +516,7 @@ export class CastleAuthoredBuildPlan {
           const a = Math.max(piece.start, start);
           const b = Math.min(piece.end, end);
           const bottom = Math.max(piece.bottom, door.floorY);
-          const top = Math.min(piece.top, door.floorY + door.height);
+          const top = Math.min(piece.top, door.floorY + door.height - (door.exteriorEntrance || door.structuralCut ? 0 : 0.05));
           if (b <= a || top <= bottom) { next.push(piece); continue; }
           next.push({ ...piece, end: a }, { ...piece, start: b },
             { start: a, end: b, bottom: piece.bottom, top: bottom }, { start: a, end: b, bottom: top, top: piece.top });
@@ -429,22 +532,37 @@ export class CastleAuthoredBuildPlan {
       }
     };
     for (const building of authored.buildings) {
-      const body = { ...transform(building), floorY: building.floorY, height: building.height };
-      wall(body, "x", body.minX, -1, body.height);
-      wall(body, "x", body.maxX, 1, body.height);
-      wall(body, "z", body.minZ, -1, body.height);
-      wall(body, "z", body.maxZ, 1, body.height);
+      const body = { ...transform(building), id: building.id, floorY: building.floorY, height: building.height };
+      wall(body, "x", body.minX, -1, body.height, true);
+      wall(body, "x", body.maxX, 1, body.height, true);
+      wall(body, "z", body.minZ, -1, body.height, true);
+      wall(body, "z", body.maxZ, 1, body.height, true);
       if (building.id === "base") {
         const terrace = { ...body, floorY: body.floorY + body.height };
-        wall(terrace, "x", body.minX, -1, 0.25); wall(terrace, "x", body.maxX, 1, 0.25);
-        wall(terrace, "z", body.minZ, -1, 0.25); wall(terrace, "z", body.maxZ, 1, 0.25);
+        wall(terrace, "x", body.minX, -1, 0.25, true); wall(terrace, "x", body.maxX, 1, 0.25, true);
+        wall(terrace, "z", body.minZ, -1, 0.25, true); wall(terrace, "z", body.maxZ, 1, 0.25, true);
+        /**
+         * @param {number} x
+         * @param {number} z
+         * @returns {boolean}
+         */
+        const covered = (x, z) => authored.buildings.some(/**
+         * @param {{id:string,minX:number,maxX:number,minZ:number,maxZ:number,floorY:number,height:number}} other
+         */
+        (other) => {
+          const volume = transform(other);
+          return other.id !== building.id && other.floorY <= terrace.floorY && other.floorY + other.height >= terrace.floorY + 0.75 &&
+            x >= volume.minX - thickness && x <= volume.maxX + thickness && z >= volume.minZ - thickness && z <= volume.maxZ + thickness;
+        });
         for (let x = body.minX; x < body.maxX; x += 1) {
           for (const z of [body.minZ - thickness / 2, body.maxZ + thickness / 2]) {
+            if (covered(Math.min(x + 0.25, body.maxX), z)) { continue; }
             addBox({ minX:x, maxX:Math.min(x+0.5,body.maxX),minZ:z-thickness/2,maxZ:z+thickness/2,minY:terrace.floorY+0.25,maxY:terrace.floorY+0.75 });
           }
         }
         for (let z = body.minZ; z < body.maxZ; z += 1) {
           for (const x of [body.minX - thickness / 2, body.maxX + thickness / 2]) {
+            if (covered(x, Math.min(z + 0.25, body.maxZ))) { continue; }
             addBox({ minX:x-thickness/2,maxX:x+thickness/2,minZ:z,maxZ:Math.min(z+0.5,body.maxZ),minY:terrace.floorY+0.25,maxY:terrace.floorY+0.75 });
           }
         }
@@ -471,11 +589,35 @@ export class CastleAuthoredBuildPlan {
     for (const roof of authored.roofs) {
       const bounds = transform(roof);
       if (roof.shape === "flat") {
-        const platform = { ...bounds, floorY: roof.y, height: 0.75 };
-        wall(platform, "x", bounds.minX, -1, 0.75);
-        wall(platform, "x", bounds.maxX, 1, 0.75);
-        wall(platform, "z", bounds.minZ, -1, 0.75);
-        wall(platform, "z", bounds.maxZ, 1, 0.75);
+        const parapetHeight = roof.battlements ? 0.25 : 0.75;
+        const platform = { ...bounds, floorY: roof.y, height: parapetHeight };
+        wall(platform, "x", bounds.minX, -1, parapetHeight);
+        wall(platform, "x", bounds.maxX, 1, parapetHeight);
+        wall(platform, "z", bounds.minZ, -1, parapetHeight);
+        wall(platform, "z", bounds.maxZ, 1, parapetHeight);
+        if (roof.battlements) {
+          for (const axis of ["x", "z"]) {
+            const along = axis === "x" ? "Z" : "X";
+            const across = axis === "x" ? "X" : "Z";
+            const start = bounds[`min${along}`];
+            const end = bounds[`max${along}`];
+            const bays = Math.max(2, Math.round((end - start) / 0.9));
+            const pitch = (end - start) / bays;
+            for (const edge of [-1, 1]) {
+              const face = bounds[`${edge < 0 ? "min" : "max"}${across}`];
+              for (let bay = 0; bay <= bays; bay++) {
+                const center = start + bay * pitch;
+                const low = Math.max(start, center - 0.25);
+                const high = Math.min(end, center + 0.25);
+                addBox({ minX: axis === "x" ? face + Math.min(0, edge * thickness) : low,
+                  maxX: axis === "x" ? face + Math.max(0, edge * thickness) : high,
+                  minZ: axis === "z" ? face + Math.min(0, edge * thickness) : low,
+                  maxZ: axis === "z" ? face + Math.max(0, edge * thickness) : high,
+                  minY: roof.y + parapetHeight, maxY: roof.y + 1 });
+              }
+            }
+          }
+        }
       } else {
         const center = world((bounds.minX + bounds.maxX) / 2, (bounds.minZ + bounds.maxZ) / 2, roof.y);
         geometry.decorations.roofs.push({ ...center, yaw, width: bounds.maxX - bounds.minX,
@@ -491,8 +633,25 @@ export class CastleAuthoredBuildPlan {
       const key = [door.axis, door.floorY, door.coordinate, door.center].join(":");
       if (uniqueDoors.has(key)) { continue; }
       uniqueDoors.add(key);
-      roomDoors.push({ ...world(x, z, door.floorY), roomId: door.roomId, width: door.width, height: door.height - 0.05, mirrored: authored.mirrored,
-        yaw: yaw + { NORTH: 180, SOUTH: 0, WEST: -90, EAST: 90 }[door.side] + (door.swing === "inward" ? 180 : 0), openingInset: door.openingInset ?? 0 });
+      const placement = { ...world(x, z, door.floorY), roomId: door.roomId, width: door.width, height: door.height - 0.05, mirrored: authored.mirrored,
+        yaw: yaw + { NORTH: 180, SOUTH: 0, WEST: -90, EAST: 90 }[door.side] + (door.swing === "inward" ? 180 : 0), openingInset: door.openingInset ?? 0 };
+      const angle = placement.yaw * Math.PI / 180;
+      const nx = Math.round(Math.sin(angle)), nz = Math.round(Math.cos(angle));
+      const tx = nz, tz = -nx;
+      const jambReach = door.width * 0.59 + 0.02;
+      const jamb = cameraBlocks.filter(/**
+                                        * @param {{x:number,y:number,z:number,halfX:number,halfY:number,halfZ:number}} block
+                                        */
+        block => Math.abs(Math.abs((block.x - placement.x) * tx + (block.z - placement.z) * tz) - jambReach) <= Math.abs(tx) * block.halfX + Math.abs(tz) * block.halfZ + 1e-6 &&
+          Math.abs(block.y - (door.floorY + 1)) < block.halfY && Math.abs((block.x - placement.x) * nx + (block.z - placement.z) * nz) < 0.5 &&
+          Math.abs(nx) * block.halfX + Math.abs(nz) * block.halfZ <= 0.25)
+        .sort(/**
+               * @param {{x:number,z:number}} a
+               * @param {{x:number,z:number}} b
+               */
+          (a,b) => Math.abs((a.x-placement.x)*nx+(a.z-placement.z)*nz)-Math.abs((b.x-placement.x)*nx+(b.z-placement.z)*nz))[0];
+      placement.frameOffset = (placement.openingInset ?? 0) + (jamb ? (jamb.x-placement.x)*nx+(jamb.z-placement.z)*nz + Math.abs(nx)*jamb.halfX + Math.abs(nz)*jamb.halfZ - 0.095 : -0.095);
+      roomDoors.push(placement);
     }
     const terraceEntrance = roomDoors.find(/**
      * @param {{roomId:string}} door
@@ -530,7 +689,32 @@ export class CastleAuthoredBuildPlan {
       width: 2 * Math.min(entrance.center - leisure.minX, leisure.maxX - entrance.center) - 0.4,
       depth: leisure.maxZ - leisure.minZ - 0.25,
     } : null;
-    residential.furniture.push(...StairwellRoomGenerator.furnishPockets(residential, options.seed ?? 0));
+    const pocketItems = StairwellRoomGenerator.furnishPockets(residential, options.seed ?? 0);
+    for (const [index, item] of pocketItems.entries()) {
+      item.id = "stair-pocket-" + index;
+      if ((item.y ?? 0) > 0.05) {
+        const support = pocketItems.find(/**
+         *
+         * @param {import("./rooms/AbstractCastleRoomGenerator.js").RoomItem} candidate
+         */
+        candidate => candidate !== item && candidate.floorY === item.floorY &&
+          Math.abs((candidate.y ?? 0) + candidate.height * candidate.scale - item.y) < 0.025 &&
+          Math.abs(candidate.x - item.x) < (candidate.width * candidate.scale + item.width * item.scale) / 2 &&
+          Math.abs(candidate.z - item.z) < (candidate.depth * candidate.scale + item.depth * item.scale) / 2);
+        if (support) { item.supportId = "stair-pocket-" + pocketItems.indexOf(support); }
+      }
+      residential.furniture.push(item);
+    }
+    const angle = yaw * Math.PI / 180;
+    const localWalls = cameraBlocks.map(/**
+     *
+     * @param {{x:number,y:number,z:number,halfX:number,halfY:number,halfZ:number}} block
+     */
+    block => ({ ...block,
+      x: Math.cos(angle) * (block.x - origin.x) - Math.sin(angle) * (block.z - origin.z),
+      z: Math.sin(angle) * (block.x - origin.x) + Math.cos(angle) * (block.z - origin.z),
+      halfX: Math.abs(Math.sin(angle)) > 0.5 ? block.halfZ : block.halfX, halfZ: Math.abs(Math.sin(angle)) > 0.5 ? block.halfX : block.halfZ }));
+    residential.furniture = RoomPlacementRules.repair(residential.furniture, localWalls, spaces, openings);
     return { input: { ...options, doors: adaptedDoors, requestedStyle: options.requestedStyle ?? authored.basePlanId },
       layout: { empty: false, basePlanId: authored.basePlanId, baseY, primarySide: side, widthBlocks: position.width * 4,
         depthBlocks: position.depth * 4, facadeSpan: transverse * 4, castleDepth: inward * 4,

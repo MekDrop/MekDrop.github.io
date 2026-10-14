@@ -69,6 +69,7 @@ export class KitchenRoomGenerator extends AbstractCastleRoomGenerator {
       if (!available(x, z, w, d, fireplace ? -0.22 : wallMounted ? 0 : inset,
         wallMounted ? room.wallBounds ?? room : room)) { return false; }
       items.push({ role: "kitchenProp", object, x, z, width: w, depth: d, scale: 1, y, rotation,
+        ...(wallMounted ? { wallAttachment: true } : {}),
         ...(fireplace ? { wallInset: 0.22 } : {}) });
       return true;
     };

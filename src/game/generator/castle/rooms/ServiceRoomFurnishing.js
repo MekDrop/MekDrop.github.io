@@ -94,7 +94,39 @@ export class ServiceRoomFurnishing {
         else { this.#perimeter("WoodenWashBasin", 0.5899, 0.5084, 0.2362, 0.8); }
         this.#perimeter("WoodenWaterBucket", 0.304, 0.2865, 0.388, 0.85);
       }
-      this.#perimeter("VestibuleCloakRail", 0.85, 0.16, 0.8, 0.75, 1.05);
+      const rail = this.#perimeter("VestibuleCloakRail", 0.85, 0.16, 0.8, 0.75, 1.05);
+      if (rail) {
+        rail.width = rail.rotation % 180 ? 0.1771 : 1.1;
+        rail.depth = rail.rotation % 180 ? 1.1 : 0.1771;
+        rail.height = 1.365;
+        const bounds = room.contentBounds ?? room;
+        const inset = Math.max(0.18, (room.wallThickness ?? 0.25) / 2 + 0.05);
+        rail.x = Math.max(bounds.minX + inset + rail.width * rail.scale / 2, Math.min(rail.x, bounds.maxX - inset - rail.width * rail.scale / 2));
+        rail.z = Math.max(bounds.minZ + inset + rail.depth * rail.scale / 2, Math.min(rail.z, bounds.maxZ - inset - rail.depth * rail.scale / 2));
+        for (const stair of room.stairs ?? []) {
+          const halfX = rail.width * rail.scale / 2, halfZ = rail.depth * rail.scale / 2;
+          if (rail.x + halfX <= stair.minX - 0.45 || rail.x - halfX >= stair.maxX + 0.45 ||
+            rail.z + halfZ <= stair.minZ - 0.45 || rail.z - halfZ >= stair.maxZ + 0.45) { continue; }
+          const candidates = [{ x: stair.minX - 0.45001 - halfX, z: rail.z },
+            { x: stair.maxX + 0.45001 + halfX, z: rail.z },
+            { x: rail.x, z: stair.minZ - 0.45001 - halfZ },
+            { x: rail.x, z: stair.maxZ + 0.45001 + halfZ }];
+          candidates.sort(/**
+           *
+           * @param {{x:number,z:number}} a
+           * @param {{x:number,z:number}} b
+           */
+          (a, b) => Math.hypot(a.x - rail.x, a.z - rail.z) - Math.hypot(b.x - rail.x, b.z - rail.z));
+          const fitted = candidates.find(/**
+           *
+           * @param {{x:number,z:number}} candidate
+           */
+          candidate => candidate.x - halfX >= bounds.minX + inset && candidate.x + halfX <= bounds.maxX - inset &&
+            candidate.z - halfZ >= bounds.minZ + inset && candidate.z + halfZ <= bounds.maxZ - inset);
+          if (fitted) { rail.x = fitted.x; rail.z = fitted.z; }
+        }
+
+      }
       if (!this.#items.some(/**
        * @param {import("./AbstractCastleRoomGenerator.js").RoomItem} item
        */ item => item.object === "ServantBedsideLantern")) {

@@ -347,7 +347,7 @@
             51,
             16
           ],
-          "generator": null,
+          "generator": "LeisureRoomGenerator",
           "openings": []
         },
         {

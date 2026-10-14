@@ -6,7 +6,7 @@ import { InvalidWindowRangeError } from "../../errors/window/index.js";
 export class WindowLayout {
   /**
    * @param {import("../ObjectTypes.js").MapObjectDefinition} definition
-   * @returns {{position: import("../ObjectTypes.js").Point3, width: number, height: number, depth: number, yaw: number, role: string}}
+   * @returns {{position: import("../ObjectTypes.js").Point3, width: number, height: number, depth: number, yaw: number, role: string, open: boolean}}
    */
   static bounds(definition) {
     const { from, to, facing = 1, depth = 0.3, variant = "room" } = definition;
@@ -20,7 +20,7 @@ export class WindowLayout {
     return {
       position: { x: (from.x + to.x) / 2, y: Math.min(from.y, to.y), z: (from.z + to.z) / 2 },
       width: Math.abs(alongX ? to.x - from.x : to.z - from.z), height, depth,
-      yaw: alongX ? (facing === 1 ? 0 : 180) : (facing === 1 ? 90 : -90), role: variant,
+      yaw: alongX ? (facing === 1 ? 0 : 180) : (facing === 1 ? 90 : -90), role: variant, open: definition.open === true,
     };
   }
 }

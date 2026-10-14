@@ -3315,7 +3315,7 @@ export class Hero {
    *
    * @param {string} name
    * @param {number} speed
-   * @param {number} restart
+   * @param {boolean} restart
    */
   #playAnimation(name, speed, restart) {
     const animation = this.#modelRoot.anim;
@@ -3324,7 +3324,8 @@ export class Hero {
     }
     animation.speed = speed;
     if (restart) {
-      animation.baseLayer.play(name);
+      // Keep interrupted clips alive until the controller completes the transition.
+      animation.baseLayer.transition(name, 0);
       this.#animationState = name;
       return;
     }

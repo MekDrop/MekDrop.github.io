@@ -1,4 +1,5 @@
 import { AbstractCastleGenerationStage } from "../AbstractCastleGenerationStage.js";
+import { RoomPlacementRules } from "../rooms/RoomPlacementRules.js";
 
 /**
  * Second pass: furniture uses final room bounds and leaves doorways clear.
@@ -19,6 +20,7 @@ export class RoomFurnishingStage extends AbstractCastleGenerationStage {
       (candidate) => candidate.id === generator.id);
       if (!room) { continue; }
       for (const item of generator.furnish(room)) {
+        if (!RoomPlacementRules.accepts(item, room, plan.furniture)) { continue; }
         const halfX = item.width * item.scale / 2;
         const halfZ = item.depth * item.scale / 2;
         if (item.x - halfX < room.minX || item.x + halfX > room.maxX ||
@@ -38,6 +40,7 @@ export class RoomFurnishingStage extends AbstractCastleGenerationStage {
         plan.furniture.push({ ...item, roomId: room.id, floorY: room.floorY });
       }
     }
+    plan.furniture = RoomPlacementRules.repair(plan.furniture, [], plan.placedRooms, plan.doorways);
     await context.scheduler.yieldIfNeeded(context.yieldState);
   }
 }

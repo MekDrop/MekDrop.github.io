@@ -31,6 +31,10 @@ export class CastleResidentialLayout {
    */
   #audienceFloorBounds = null;
   /**
+   * @type {number}
+   */
+  #audienceDoorClearance = 0.32;
+  /**
    * @type {ResidentialPlacement[]}
    */
   #placements = [];
@@ -427,6 +431,15 @@ export class CastleResidentialLayout {
     this.#origin = plan.origin;
     this.#yaw = plan.origin.yaw;
     this.#rooms = plan.rooms;
+    this.#audienceDoorClearance = Math.max(0.32, ...plan.openings
+      .filter(/**
+       * @param {{kind:string,roomId:string}} opening
+       */
+      opening => opening.kind === "door" && opening.roomId === plan.rooms.work.id)
+      .map(/**
+       * @param {{width:number}} opening
+       */
+      opening => opening.width + 0.2));
     this.#audienceFloorBounds = CastleFloorFinish.bounds(plan.rooms.work, plan.buildings, plan.openings);
     this.#walkableAreas = createCastlePlannedFloorAreas(buildPlan);
     this.#standingObstacles = plan.furniture.map(
@@ -494,6 +507,7 @@ export class CastleResidentialLayout {
    * @returns {{minX:number,maxX:number,minZ:number,maxZ:number,floorY:number}}
    */
   get audienceFloorBounds() { return this.#audienceFloorBounds ?? this.#rooms.work; }
+  get audienceDoorClearance() { return this.#audienceDoorClearance; }
   get walkableAreas() { return this.#walkableAreas; }
   get placements() { return this.#placements; }
 

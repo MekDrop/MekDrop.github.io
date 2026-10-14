@@ -55,6 +55,14 @@ export class Window {
   const visual = modelLibrary.instantiate(window.role === "slit" ? slitUrl : window.role === "hall" && window.height > 0.75 ? hallUrl : roomUrl);
   visual.name = `Castle ${window.role} recessed window`;
   WindowModules.fit(visual, window);
+  if (window.open) {
+    for (const node of visual.find(/**
+     * @param {import("playcanvas").GraphNode} node
+     */
+    (node) => /^(Amber glass pane |Fine oak transom |Central oak mullion)/.test(node.name))) {
+      node.destroy();
+    }
+  }
   // The reveal is part of this wall, including its authored stone texture.
   // Timber and individual translucent panes keep their own materials.
   if (wallMaterial) {
@@ -100,11 +108,13 @@ export class Window {
     topRail.setLocalScale(scale.x, scale.y * (1 + extension / 0.04), scale.z);
   }
   parent.addChild(visual);
+  if (!window.open) {
   const glow = new pc.Entity("Castle amber window glow");
   glow.setLocalPosition(window.position.x - Math.sin(angle) * window.depth * 0.2,
     window.position.y + window.height / 2, window.position.z - Math.cos(angle) * window.depth * 0.2);
   glow.addComponent("light", { type: "omni", color: new pc.Color(1, 0.38, 0.06), intensity: 0.45, range: 0.9, castShadows: false });
   parent.addChild(glow);
+  }
   }
   get entity() { return this.#entity; }
   get definition() { return this.#definition; }

@@ -22,6 +22,12 @@ export class StairwellRoomGenerator extends AbstractCastleRoomGenerator {
     for (const stair of plan.authoredStairs) {
       const firstItem = items.length;
       if (!stair.straight) { continue; }
+      if (plan.spaces?.some(/**
+       * @param {import("./AbstractCastleRoomGenerator.js").PlannedCastleRoom} room
+       */
+      room => room.furnish === false && room.floorY === stair.center.y &&
+        stair.localCenter.x >= room.minX && stair.localCenter.x <= room.maxX &&
+        stair.localCenter.z >= room.minZ && stair.localCenter.z <= room.maxZ)) { continue; }
       const turning = castleStraightStairSurfaces(stair)[1];
       if (turning.high < 1.2 || turning.maxZ - turning.minZ < 0.65) { continue; }
       let state = 2166136261;

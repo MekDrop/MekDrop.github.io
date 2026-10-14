@@ -6,6 +6,7 @@
  * @typedef {{col: number, row: number, elevation?: number, terrainHeight?: number, direction?: string, flowScale?: number}} RiverCell
  * @typedef {object} MapObjectDefinition
  * @property {string} id
+ * @property {{position: Point3, width: number, depth: number}} [hatch] Framed ladder roof hatch.
  * @property {string} object
  * @property {string} [symbol] Gateway banner override.
  * @property {import("../navigation/WalkingPaths.js").WalkingEntry} [entry]
@@ -177,3 +178,4 @@
  */
 
 export {};
+

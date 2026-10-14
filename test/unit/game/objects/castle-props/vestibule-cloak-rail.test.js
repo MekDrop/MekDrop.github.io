@@ -17,7 +17,7 @@ it("varies occupied hooks, garment count and separate colors while remaining sta
     const variation = VestibuleCloakRail.variation(seed);
     assert.deepEqual(VestibuleCloakRail.variation(seed), variation);
     assert.equal(new Set(variation.map(item => item.hookX)).size, variation.length);
-    if (variation.length === 2) { assert.notDeepEqual(variation[0].color, variation[1].color); }
+    if (variation.length === 2) { assert.ok(Math.abs(variation[0].hookX - variation[1].hookX) >= 0.66); assert.notDeepEqual(variation[0].color, variation[1].color); }
     profiles.add(JSON.stringify(variation));
     counts.add(variation.length);
     for (const item of variation) { colors.add(JSON.stringify(item.color)); }
