@@ -5,10 +5,15 @@ import { FoldedLinens } from "./castle-props/FoldedLinens.js";
 import { SewingBasket } from "./castle-props/SewingBasket.js";
 import { ServantBedsideLantern } from "./castle-props/ServantBedsideLantern.js";
 import { VestibuleBench } from "./castle-props/VestibuleBench.js";
+import { VestibuleIslandBench } from "./castle-props/VestibuleIslandBench.js";
+import { VestibuleMapTable } from "./castle-props/VestibuleMapTable.js";
 import { VestibuleBanner } from "./castle-props/VestibuleBanner.js";
 import { VestibulePainting } from "./castle-props/VestibulePainting.js";
 import { VestibuleArmorDisplay } from "./castle-props/VestibuleArmorDisplay.js";
 import { VestibuleTravelKit } from "./castle-props/VestibuleTravelKit.js";
+import { TableLantern } from "./castle-props/TableLantern.js";
+import { VestibuleBrownSatchel } from "./castle-props/VestibuleBrownSatchel.js";
+import { VestibuleOliveSatchel } from "./castle-props/VestibuleOliveSatchel.js";
 import { VestibuleBoots } from "./castle-props/VestibuleBoots.js";
 import { VestibuleStickStand } from "./castle-props/VestibuleStickStand.js";
 import { VestibuleCloakRail } from "./castle-props/VestibuleCloakRail.js";
@@ -106,10 +111,15 @@ const OBJECT_CLASSES = new Map([
   [SewingBasket.name, SewingBasket],
   [ServantBedsideLantern.name, ServantBedsideLantern],
   [VestibuleBench.name, VestibuleBench],
+  [VestibuleIslandBench.name, VestibuleIslandBench],
+  [VestibuleMapTable.name, VestibuleMapTable],
   [VestibuleBanner.name, VestibuleBanner],
   [VestibulePainting.name, VestibulePainting],
   [VestibuleArmorDisplay.name, VestibuleArmorDisplay],
   [VestibuleTravelKit.name, VestibuleTravelKit],
+  [TableLantern.name, TableLantern],
+  [VestibuleBrownSatchel.name, VestibuleBrownSatchel],
+  [VestibuleOliveSatchel.name, VestibuleOliveSatchel],
   [VestibuleBoots.name, VestibuleBoots],
   [VestibuleStickStand.name, VestibuleStickStand],
   [VestibuleCloakRail.name, VestibuleCloakRail],

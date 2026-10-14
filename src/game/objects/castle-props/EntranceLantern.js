@@ -11,8 +11,13 @@ export class EntranceLantern extends AbstractCastleProp {
    */
   constructor(options) {
     super(options);
-    LanternFire.add(options.pc, this.visualRoots[0].children[0], undefined, options.modelLibrary);
+    LanternFire.add(options.pc, this.visualRoots[0].children[0], this.constructor.flamePosition, options.modelLibrary);
   }
+  /**
+   * Model-local wick position.
+   * @returns {{x:number,y:number,z:number}}
+   */
+  static get flamePosition() { return { x: 0, y: 0.102, z: 0.047 }; }
   /**
    * @returns {string}
    */

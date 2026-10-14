@@ -1,0 +1,455 @@
+{
+  "generatedAt": "2026-10-14",
+  "provider": "Tripo Studio H3.1",
+  "mode": "Initial text-to-model assets followed by an approved image-guided bench replacement through authenticated Tripo Studio UI",
+  "totalCredits": 120,
+  "normalization": "Geometry normalized once in Blender to declared dimensions, bottom-centred pivot and +Y up GLB; textures packed at 1024 px.",
+  "assets": [
+    {
+      "name": "vestibule-island-bench",
+      "taskId": "1cbaf942-32dd-47a4-8b70-ac182ea5394e",
+      "provider": "Tripo Studio H3.1",
+      "credits": 30,
+      "sourceSha256": "06e00c839437a31fff747b0233f52ec1580e7055c8f39fb478efc872a1d68d86",
+      "sourceBoundsBlender": [
+        [
+          -0.5,
+          -0.2684631049633026,
+          0
+        ],
+        [
+          0.5,
+          0.2684631049633026,
+          0.45111083984375
+        ]
+      ],
+      "authoredScale": [
+        1.7999999523162842,
+        1.955575942993164,
+        2.327587604522705
+      ],
+      "rotationZ": 90,
+      "boundsBlender": [
+        [
+          -0.8999999761581421,
+          -0.5249999761581421,
+          0
+        ],
+        [
+          0.8999999761581421,
+          0.5249999761581421,
+          1.0499999523162842
+        ]
+      ],
+      "dimensionsGltf": [
+        1.8,
+        1.05,
+        1.05
+      ],
+      "triangles": 3846,
+      "freshImport": true,
+      "texturesMax": 1024,
+      "glbSha256": "ea9cceeaa027088a8fda2a3ba52a3cc9f2be434b596535f8449123dc0f622447",
+      "calibration": {
+        "boundsSource": "vertices",
+        "boundsPose": "static",
+        "aabb": {
+          "min": [
+            -0.9,
+            0,
+            -0.525
+          ],
+          "max": [
+            0.9,
+            1.05,
+            0.525
+          ]
+        },
+        "dims": [
+          1.8,
+          1.05,
+          1.05
+        ],
+        "center": [
+          0,
+          0.525,
+          0
+        ],
+        "groundOffset": 0,
+        "intended": {
+          "dimension": "length",
+          "size": 1.8
+        },
+        "scale": 1,
+        "y": 0,
+        "yaw": 0
+      },
+      "prompt": "Image-to-model from the user-approved isolated double-sided bench reference; no text prompt supplied to Tripo.",
+      "referenceImage": "C:/Users/mekdr/AppData/Roaming/clairvoyance/pictures/generated/vestibule-island-bench-reference-v2.png",
+      "referenceImageSha256": "d3ff915fc58f18e83b2b2fd5e42862fa6bddaf5f0029a137c1b0526d7bc6c7d7",
+      "design": "Horizontal plank backrest, square capped posts, three separate burgundy cushions per side, gold heraldic drape, no armrests, six legs. Bags are separate map objects.",
+      "validation": {
+        "hardGatePass": true,
+        "issues": [],
+        "degenerateFaces": 0,
+        "invalidVertices": 0,
+        "zeroLengthEdges": 0,
+        "multiviewReviewed": [
+          "perspective",
+          "front",
+          "back",
+          "left",
+          "right",
+          "top"
+        ]
+      }
+    },
+    {
+      "name": "vestibule-map-table",
+      "taskId": "c56e5cab-664e-4b5c-ad2f-3ebaf8ba78fe",
+      "provider": "Tripo Studio H3.1",
+      "credits": 30,
+      "sourceSha256": "b59d6ef9743ec9e2531585f45a0bc2577512052edd13978b299e173c9a545818",
+      "sourceBoundsBlender": [
+        [
+          -0.5,
+          -0.2893066108226776,
+          0
+        ],
+        [
+          0.5,
+          0.2893066108226776,
+          0.6851806640625
+        ]
+      ],
+      "authoredScale": [
+        1.7999999523162842,
+        1.728270173072815,
+        1.4594690799713135
+      ],
+      "rotationZ": 90,
+      "boundsBlender": [
+        [
+          -0.8999999761581421,
+          -0.5,
+          0
+        ],
+        [
+          0.8999999761581421,
+          0.5,
+          1
+        ]
+      ],
+      "dimensionsGltf": [
+        1.8,
+        1,
+        1
+      ],
+      "triangles": 4715,
+      "freshImport": true,
+      "texturesMax": 1024,
+      "glbSha256": "2a2d64d413d5c78e40dba91e5c69a61d1216e1b9896787165533f920978d9777",
+      "prompt": "One standalone low-poly medieval adventurer map table, rectangular sturdy warm brown oak table on four chunky square legs and low stretchers, dark iron corner brackets. Broad flat tabletop has a large cream parchment map laid flat, its edges slightly rolled, illustrated muted green forests, blue river and red route marks. Three tiny wooden castle map markers stand on parchment. No chairs, no stools, no floor, no room, no rug, no lantern, no books. Entire table complete with open space beneath. Stylized flat shaded castle game prop, clean readable silhouette, restrained hand painted texture, modest polygon count. Intended dimensions 1.8 metres long, 1.0 metre deep, table surface 0.82 metres high. Map and small markers included as part of asset.",
+      "negativePrompt": "Exclusions embedded in the prompt; no separate Studio negative-prompt field.",
+      "calibration": {
+        "boundsSource": "vertices",
+        "boundsPose": "static",
+        "aabb": {
+          "min": [
+            -0.9,
+            0,
+            -0.5
+          ],
+          "max": [
+            0.9,
+            1,
+            0.5
+          ]
+        },
+        "dims": [
+          1.8,
+          1,
+          1
+        ],
+        "center": [
+          0,
+          0.5,
+          0
+        ],
+        "groundOffset": 0,
+        "intended": {
+          "dimension": "length",
+          "size": 1.8
+        },
+        "scale": 1,
+        "y": 0,
+        "yaw": 0
+      },
+      "validation": {
+        "hardGatePass": true,
+        "issues": [],
+        "degenerateFaces": 0,
+        "invalidVertices": 0,
+        "zeroLengthEdges": 0,
+        "uvMappedMeshes": 1,
+        "multiviewReviewed": [
+          "perspective",
+          "front",
+          "back",
+          "left",
+          "right",
+          "top"
+        ]
+      },
+      "runtimeVerification": {
+        "route": "/map/test_vestibule-arrival",
+        "views": [
+          "Seating and map view",
+          "Reverse room view"
+        ],
+        "position": "[-3.424999952316284, 2.0329999923706055, -4.0625]",
+        "rotation": "[180, 7.0167096047110005e-15, 180]",
+        "aabb": {
+          "min": [
+            -4.324999928474426,
+            2.0329999923706055,
+            -4.5625
+          ],
+          "max": [
+            -2.524999976158142,
+            3.0329999923706055,
+            -3.5625
+          ]
+        },
+        "authoredCollision": true,
+        "rigidbody": true,
+        "rugContactGapMetres": 0.0003998987376689911
+      }
+    }
+  ],
+  "retiredAssets": [
+    {
+      "name": "vestibule-island-bench",
+      "taskId": "21ff941f-da4f-4c8c-87f6-5a572c2b142c",
+      "provider": "Tripo Studio H3.1",
+      "credits": 30,
+      "sourceSha256": "0b3382e400179c860163cc64145da2e93be332f7c76394bc6b69d539ec4b95b2",
+      "sourceBoundsBlender": [
+        [
+          -0.5,
+          -0.3218383193016052,
+          0
+        ],
+        [
+          0.5,
+          0.3218383193016052,
+          0.68914794921875
+        ]
+      ],
+      "authoredScale": [
+        1.7999999523162842,
+        1.6312538385391235,
+        1.52362060546875
+      ],
+      "rotationZ": 0,
+      "boundsBlender": [
+        [
+          -0.8999999761581421,
+          -0.5249999761581421,
+          0
+        ],
+        [
+          0.8999999761581421,
+          0.5249999761581421,
+          1.0500000715255737
+        ]
+      ],
+      "dimensionsGltf": [
+        1.8,
+        1.05,
+        1.05
+      ],
+      "triangles": 4168,
+      "freshImport": true,
+      "texturesMax": 1024,
+      "glbSha256": "b3637c1c9020ac3f1c41eb1604b548709dc3d541c1093ebd133caf42f07c6971",
+      "prompt": "One standalone low-poly medieval double-sided waiting bench island. Two long burgundy upholstered wooden bench seats face opposite directions, sharing one central tall oak plank backrest. Four sturdy square oak legs, dark iron corner brackets, small brass studs on red cushions. Symmetrical front and rear, two seats on EACH side. Freestanding castle vestibule furniture. Warm brown oak, deep burgundy fabric, matte black metal. Simple chunky flat shaded game asset, clean readable silhouette, modest polygon count. No floor, no rug, no room, no people, no bags, no plants. Complete furniture isolated. Intended dimensions 1.8 metres long, 1.05 metres total depth, 1.05 metres high. Backrest along long axis.",
+      "negativePrompt": "Exclusions embedded in the prompt; no separate Studio negative-prompt field.",
+      "calibration": {
+        "boundsSource": "vertices",
+        "boundsPose": "static",
+        "aabb": {
+          "min": [
+            -0.9,
+            0,
+            -0.525
+          ],
+          "max": [
+            0.9,
+            1.05,
+            0.525
+          ]
+        },
+        "dims": [
+          1.8,
+          1.05,
+          1.05
+        ],
+        "center": [
+          0,
+          0.525,
+          0
+        ],
+        "groundOffset": 0,
+        "intended": {
+          "dimension": "length",
+          "size": 1.8
+        },
+        "scale": 1,
+        "y": 0,
+        "yaw": 0
+      },
+      "validation": {
+        "hardGatePass": true,
+        "issues": [],
+        "degenerateFaces": 0,
+        "invalidVertices": 0,
+        "zeroLengthEdges": 0,
+        "uvMappedMeshes": 1,
+        "multiviewReviewed": [
+          "perspective",
+          "front",
+          "back",
+          "left",
+          "right",
+          "top"
+        ]
+      },
+      "runtimeVerification": {
+        "route": "/map/test_vestibule-arrival",
+        "views": [
+          "Seating and map view",
+          "Reverse room view"
+        ],
+        "position": "[-0.7749999761581421, 2.0329999923706055, -4.0625]",
+        "rotation": "[180, 7.0167096047110005e-15, 180]",
+        "aabb": {
+          "min": [
+            -1.6749999523162842,
+            2.0329999923706055,
+            -4.587499976158142
+          ],
+          "max": [
+            0.1250000000000001,
+            3.083000063896179,
+            -3.537500023841858
+          ]
+        },
+        "authoredCollision": true,
+        "rigidbody": true,
+        "rugContactGapMetres": 0.0003998987376689911
+      }
+    }
+  ],
+  "softBags": {
+    "provider": "Tripo Studio H3.1",
+    "taskId": "2859c8ee-bf5e-427f-b6e0-2bdc2c47840a",
+    "credits": 30,
+    "spendCeilingCredits": 30,
+    "authorization": "User explicitly approved up to 30 credits for one reference-guided replacement bag and a local olive variant.",
+    "inputImage": "C:/Users/mekdr/AppData/Roaming/clairvoyance/pictures/generated/vestibule-soft-bag-reference.png",
+    "reference": "User approved vestibule mockup: codex-clipboard-a181cd2a-f17e-4e9c-93e9-96e74dd25aa8.png",
+    "settings": {
+      "textureResolution": 2048,
+      "targetTriangles": 5000,
+      "pbr": true,
+      "parts": false
+    },
+    "requiredAppearance": "Soft squat overstuffed chestnut leather bag, bulging sides, broad rounded overlapping flap, two dark leather straps with heavy buckles and loose ends; no bedroll or rigid case.",
+    "assets": [
+      {
+        "color": "brown",
+        "triangles": 4784,
+        "dimensionsGltf": [
+          0.6000000238418579,
+          0.3025268614292145,
+          0.3643432855606079
+        ],
+        "sourceSha256": "91e82b771bedb7dd56d2d1a97e72bdd6a82b129430272e0e60b2d4be8c8c679c",
+        "glbSha256": "c0d6e15b7e7783e7e73d70926812181a7bfa689c21da15c15699bb5f1b4e9a61",
+        "freshImport": true
+      },
+      {
+        "color": "olive",
+        "triangles": 4784,
+        "dimensionsGltf": [
+          0.6000000238418579,
+          0.3025268614292145,
+          0.3643432855606079
+        ],
+        "sourceSha256": "91e82b771bedb7dd56d2d1a97e72bdd6a82b129430272e0e60b2d4be8c8c679c",
+        "glbSha256": "df5e05424e51593a1fed9bb589bc3d330e77df7fcbd3a35e8a0ba1ba391359e8",
+        "freshImport": true
+      }
+    ],
+    "validation": {
+      "freshImport": true,
+      "benchBagTriangleIntersections": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "bagBagTriangleIntersections": 0,
+      "hardGatePass": true,
+      "issues": [],
+      "degenerateFaces": 0,
+      "invalidVertices": 0,
+      "zeroLengthEdges": 0
+    },
+    "calibration": {
+      "boundsSource": "vertices",
+      "uniformSourceScale": 0.6,
+      "dimensionsGltf": [
+        0.6,
+        0.30252686,
+        0.36434329
+      ],
+      "center": [
+        0,
+        0.15126343,
+        0
+      ],
+      "groundOffset": 0
+    },
+    "placement": {
+      "wideBenchBags": [
+        {
+          "along": -0.85,
+          "side": -0.285,
+          "yaw": 270,
+          "scale": 0.9
+        },
+        {
+          "along": -0.85,
+          "side": 0.285,
+          "yaw": 270,
+          "scale": 0.9
+        },
+        {
+          "along": 0.45,
+          "side": 0.4,
+          "yaw": 0,
+          "scale": 1
+        },
+        {
+          "along": 0.45,
+          "side": -0.4,
+          "yaw": 180,
+          "scale": 1
+        }
+      ],
+      "compactBenchBags": 2
+    }
+  }
+}

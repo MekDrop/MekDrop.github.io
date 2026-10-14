@@ -1,5 +1,71 @@
 # Castle props
 
+## Central vestibule furniture
+
+Wide vestibules choose either a freestanding double-sided upholstered bench or
+an adventurer's map table, centred on a burgundy rug. Each room gets only one
+centre island. The seed alternates variants between full base-plan cycles,
+keeping mirrored pairs consistent. The room generator reserves at least 0.7 m
+around nearby floor furniture, plus the existing door and stair approaches.
+Narrow circulation halls keep their arrival runner.
+
+Both new models were generated through the authenticated Tripo Studio H3.1
+text-to-model UI on 2026-10-14, for 30 credits each (60 total):
+
+| Model | Tripo task | GLB XYZ dimensions | Triangles |
+| --- | --- | --- | --- |
+| vestibule-island-bench | 1cbaf942-32dd-47a4-8b70-ac182ea5394e | 1.80 × 1.05 × 1.05 m | 3,846 |
+| vestibule-map-table | c56e5cab-664e-4b5c-ad2f-3ebaf8ba78fe | 1.80 × 1.00 × 1.00 m | 4,715 |
+
+The bench was replaced from the user-approved isolated reference later that day
+for 30 additional credits (90 total including the retired first bench). It has
+horizontal backrest planks, capped square posts, six separate burgundy cushions,
+a gold heraldic drape and no armrests. Four independent brown and olive satchels
+fill the wide bench's storage space: a near-end pair and two long-side bags.
+They are not baked into the bench.
+These editable Blender assets replace the rejected rigid cases with a
+reference-guided Tripo soft duffel: bulging leather body, rounded overlapping
+flap, two thick straps and dark buckles, without a bedroll or case handle.
+Task `2859c8ee-bf5e-427f-b6e0-2bdc2c47840a` used 30 approved credits.
+Each measures 0.60 × 0.30253 × 0.36434 m with a centred footprint, 4,784 triangles
+and packed 1024 px textures. The olive variant recolors warm leather pixels
+locally while preserving texture detail and neutral metal.
+The source is scaled uniformly by 0.6 to preserve its proportions. The near-end
+pair sits at -0.85 m along the bench, across offsets ±0.285 m at scale 0.9.
+The long-side pair sits at +0.45 m along the bench, across offsets ±0.40 m.
+Wide seating layouts stretch the bench to 2.70 × 1.20 × 1.20 m (XYZ), place
+the long-side bags at scale 1, and use a 4.0 × 2.5 m rug. The console sits beside
+the arrival end of the seating, with at least 0.7 m between their footprints.
+Seating shifts 0.65 m toward the far-wall chest, keeping that end gap around 1 m
+instead of spreading the furnishings evenly along the room. The central layout
+replaces the older wall bench, boots and stick stand rather than duplicating them.
+Smaller rooms retain the compact bench dimensions and scale-0.8 luggage.
+The far-wall luggage chest uses a vertical stretch of 0.82 (18% lower) and
+mounts its measured rear plane directly to the wall; its separate travel kit
+follows the lowered lid. The entrance window bay uses a low library side table
+with a small planter, boots underneath and a reduced stick stand beside it.
+These objects retain doorway clearance and stay below the window glass.
+A blue shield and crossed swords fill the adjacent wall above a second,
+taller storage chest. Folded linens and a portable table lantern sit on its lid;
+the group is mounted flush to the wall and retains its supported details.
+The long wall also receives a console using the existing `WritingDesk` asset,
+with its measured local rear plane (`wallMountBack: -0.275`) touching the wall
+after placement repair; supported tabletop objects follow that adjustment.
+The console has separate coat hooks, a portable table lantern and small planter. Supported objects
+retain their group relationships during placement repair.
+
+The adjacent `.blend` files retain editable Tripo meshes and packed 1024 px
+textures. Calibration is baked once into these sources: centred XZ footprints,
+grounded pivots, long axis along X, glTF +Y up, and runtime scale 1. The table
+includes its parchment map and wooden markers. Authored mesh collision retains
+the open space beneath the furniture. Fresh GLB imports, exact vertex bounds,
+and six-angle renders were checked. Provider provenance, source/output hashes,
+dimensions, and prompts are retained in `vestibule-islands-provenance.json`.
+Scratch import scripts and multiview evidence are in ignored
+`tmp/vestibule-islands/`. Use `/map/test_vestibule-arrival` and its PlayCanvas HUD
+controls for repeatable first-person views from both ends, entrance door states,
+and a castle overview.
+
 ## Vestibule furnishings
 
 The stick stand retains its open oak-stave holder and matte iron hoops. Its two

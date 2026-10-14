@@ -19,8 +19,8 @@ it('gives each entrance-floor room a clear doorway onto the shared hall',async()
     }
     const doors=plan.layout.roomPlan.doorways.filter(d=>['service-quarters','throne-hall','stair-room'].includes(d.roomId) && d.floorY===layout.origin.y);
     assert.equal(doors.length,3);
-    for (const id of ['vestibule','vestibule-south']) {
-      const hall=plan.layout.roomPlan.spaces.find(room=>room.id===id);
+    for (const hall of plan.layout.roomPlan.spaces.filter(room=>room.id.startsWith('vestibule'))) {
+      const id=hall.id;
       const alongX=hall.maxX-hall.minX>hall.maxZ-hall.minZ;
       for(let progress=0.1;progress<0.95;progress+=0.1) {
         const x=alongX?hall.minX+(hall.maxX-hall.minX)*progress:(hall.minX+hall.maxX)/2;

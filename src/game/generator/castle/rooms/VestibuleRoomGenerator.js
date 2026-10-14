@@ -1,7 +1,10 @@
 import { AbstractCastleRoomGenerator } from "./AbstractCastleRoomGenerator.js";
+import { VestibuleIslandFurnishing } from "./VestibuleIslandFurnishing.js";
+import { VestibuleWallFurnishing } from "./VestibuleWallFurnishing.js";
+import { VestibuleWindowFurnishing } from "./VestibuleWindowFurnishing.js";
 
 /**
- * A coat corner and a picture over luggage flank a clear arrival aisle.
+ * Arrival storage surrounds either central seating or a map table where space permits.
  */
 export class VestibuleRoomGenerator extends AbstractCastleRoomGenerator {
   constructor() { super("vestibule", { x: 2, y: 2 }); }
@@ -89,14 +92,16 @@ export class VestibuleRoomGenerator extends AbstractCastleRoomGenerator {
         items.push(planter);
       }
     }
+    const arrivalCornerCount = items.length;
     // The opposite wall's door-free pocket holds luggage and the framed picture.
     if (room.id === "vestibule") {
       const oppositeWall = room.maxX;
       const centerZ = (low + high) / 2;
       for (let offset = 0; offset <= (high - low) / 2; offset += 0.1) {
-        const chest = { role: "vestibuleProp", object: "WoodenStorageChest",
+        const chest = { id: `${room.id}-${room.level}-luggage-chest`, role: "vestibuleProp", object: "WoodenStorageChest",
           x: oppositeWall - 0.405, z: centerZ + offset, width: 0.55, depth: 0.7,
-          height: 0.3291, scale: 1.4, rotation: 270, y: 0.002 };
+          height: 0.3291 * 0.82, scale: 1.4, stretch: { x: 1, y: 0.82, z: 1 },
+          wallMountBack: -0.275, rotation: 270, y: 0.002 };
         const painting = { role: "vestibuleProp", object: "VestibulePainting",
           x: oppositeWall - 0.3, z: chest.z, width: 0.08, depth: 1.05,
           height: 0.78, scale: 1, rotation: 270, y: 1.15 };
@@ -104,7 +109,7 @@ export class VestibuleRoomGenerator extends AbstractCastleRoomGenerator {
         items.push(chest, painting);
         items.push({ role: "vestibuleProp", object: "VestibuleTravelKit",
           x: chest.x, z: chest.z, width: 0.3, depth: 0.48, height: 0.45,
-          scale: 1, rotation: 270, y: 0.3291 * chest.scale + 0.002 });
+          scale: 1, rotation: 270, y: chest.height * chest.scale + 0.002, supportId: chest.id });
         // A single armor display flanks the picture while respecting door swings.
         for (const side of [1, -1]) {
           const armor = { role: "vestibuleProp", object: "VestibuleArmorDisplay",
@@ -138,7 +143,30 @@ export class VestibuleRoomGenerator extends AbstractCastleRoomGenerator {
         scale: 1, stretch: { x: 1.1, y: 1.3, z: 1 }, rotation: 0, y: 2.35 };
       if (safe(banner)) { items.push(banner); }
     }
-    // A thin rug marks the route without narrowing the walking aisle.
+    const wallFurniture = VestibuleWallFurnishing.furnish(room, items, safe, context.wallThickness ?? 0.25);
+    const islands = VestibuleIslandFurnishing.furnish(room, [...items.slice(arrivalCornerCount), ...wallFurniture],
+      safe, context.wallThickness ?? 0.25);
+    // A central arrival layout replaces the old perimeter seating corner.
+    if (islands.length) { items.splice(0, arrivalCornerCount); }
+    items.push(...wallFurniture, ...islands);
+    // Larger rooms use a broad rug to anchor the freestanding furniture group.
+    if (islands.length) {
+      let minX = Infinity, maxX = -Infinity, minZ = Infinity, maxZ = -Infinity;
+      const margin = islands[0].object === "VestibuleIslandBench" && islands[0].width * islands[0].depth > 3 ? 0.65 : 0.3;
+      for (const island of islands) {
+        minX = Math.min(minX, island.x - island.width * island.scale / 2 - margin);
+        maxX = Math.max(maxX, island.x + island.width * island.scale / 2 + margin);
+        minZ = Math.min(minZ, island.z - island.depth * island.scale / 2 - margin);
+        maxZ = Math.max(maxZ, island.z + island.depth * island.scale / 2 + margin);
+      }
+      items.push({ role: "vestibuleProp", object: "VestibuleRug", x: (minX + maxX) / 2,
+        z: (minZ + maxZ) / 2, width: maxX - minX, depth: maxZ - minZ, height: 0.0306,
+        scale: 1, stretch: { x: (maxX - minX) / 1.3, y: 1, z: (maxZ - minZ) / 3.3 },
+        rotation: 0, y: 0.002, floorCovering: true });
+      items.push(...VestibuleWindowFurnishing.furnish(room, items, context.openings ?? [], safe, context.wallThickness ?? 0.25));
+      return items;
+    }
+    // A thin rug marks the route in narrow vestibules.
     const runnerLength = room.maxZ - room.minZ - 0.12;
     const rug = { role: "vestibuleProp", object: "VestibuleRug", x: (room.minX + room.maxX) / 2,
       z: (room.minZ + room.maxZ) / 2, width: 1.3, depth: runnerLength, height: 0.031,

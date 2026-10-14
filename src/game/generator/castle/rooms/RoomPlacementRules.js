@@ -112,7 +112,7 @@ export class RoomPlacementRules {
       if (!room) { placed.push(...group); continue; }
       // Mount fixtures by their rear surface, independently of the hanging contents.
       const bookshelf = root.object === "Bookshelf";
-      const back = bookshelf ? -0.18 - 0.02501 / root.scale : WALL_MOUNTS[root.object];
+      const back = root.wallMountBack ?? (bookshelf ? -0.18 - 0.02501 / root.scale : WALL_MOUNTS[root.object]);
       let mountAxis, mountWall;
       if (back !== undefined) {
         const angle = (root.rotation ?? 0) * Math.PI / 180;
