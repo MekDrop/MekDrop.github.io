@@ -95,7 +95,7 @@ test("keeps neighboring cloak rails visually separated without removing either r
 });
 
 test("wall fixtures contact the masonry by their measured rear plane in all cardinal directions", () => {
-  const mounts = { VestibuleCloakRail: -0.058, VestibulePainting: -0.024, VestibuleBanner: -0.005, HangingFryingPan: -0.0953, KitchenUtensilRail: 0 };
+  const mounts = { VestibuleCloakRail: -0.058, VestibulePainting: -0.024, VestibuleBanner: -0.005, HangingFryingPan: -0.0953, KitchenUtensilRail: 0, RoyalCrest: -0.04, WarCouncilShield: -0.05 };
   for (const [object, back] of Object.entries(mounts)) {
     for (const rotation of [0, 90, 180, 270]) {
       const angle = rotation * Math.PI / 180;
@@ -115,6 +115,21 @@ test("wall fixtures contact the masonry by their measured rear plane in all card
   }
 });
 
+
+test("wall decor slides beside a window without leaving its mounting wall or room", () => {
+  const wall = { x: 2, z: 4, y: 1.5, halfX: 4, halfZ: 0.125, halfY: 1.5 };
+  const fixture = { ...shelf, object: "RoyalCrest", roomId: "room", rotation: 0,
+    floorY: 0, y: 1.1, height: 0.8, x: 2, z: 3.7 };
+  const window = { roomId: "room", kind: "window", axis: "z", coordinate: 4,
+    center: 2, width: 0.75, bottom: 1, height: 1, floorY: 0 };
+  const [fixed] = RoomPlacementRules.repair([fixture], [wall], [{ ...room, id: "room" }], [window]);
+  assert.equal(fixed.wallAttachment, true);
+  assert.equal(fixed.placementIssue, undefined);
+  assert.ok(Math.abs(fixed.z + 0.04 - 3.875) < 1e-6, "rear remains against the wall");
+  assert.ok(Math.abs(fixed.x - window.center) >= window.width / 2 + 0.08 + fixture.width / 2);
+  assert.ok(fixed.x - fixture.width / 2 >= room.minX);
+  assert.ok(fixed.x + fixture.width / 2 <= room.maxX);
+});
 
 test("bookshelves sit close to the wall without embedding their cabinet depth", () => {
   const item = { ...shelf, object: "Bookshelf", floorY: 0, rotation: 0, width: 0.85, depth: 0.36, z: 3.4 };

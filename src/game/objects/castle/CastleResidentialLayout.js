@@ -48,6 +48,10 @@ export class CastleResidentialLayout {
    */
   #throneSupportHeight = 0;
   /**
+   * @type {boolean}
+   */
+  #throneRearWindow = false;
+  /**
    * @type {ResidentialPlacement[]}
    */
   #exteriorWindows = [];
@@ -431,6 +435,14 @@ export class CastleResidentialLayout {
     this.#origin = plan.origin;
     this.#yaw = plan.origin.yaw;
     this.#rooms = plan.rooms;
+    const throneRoom = plan.rooms.work;
+    const throneCenter = (throneRoom.minX + throneRoom.maxX) / 2;
+    this.#throneRearWindow = plan.openings.some(/**
+     * @param {import("../../generator/castle/CastleBasePlanGenerator.js").CompiledCastleOpening} opening
+     */
+    opening => opening.kind === "window" && opening.roomId === throneRoom.id &&
+      opening.axis === "z" && Math.abs(opening.coordinate - throneRoom.maxZ) < 0.3 &&
+      Math.abs(opening.center - throneCenter) < opening.width / 2 + 0.4);
     this.#audienceDoorClearance = Math.max(0.32, ...plan.openings
       .filter(/**
        * @param {{kind:string,roomId:string}} opening
@@ -519,6 +531,7 @@ export class CastleResidentialLayout {
    * @returns {number}
    */
   get throneSupportHeight() { return this.#throneSupportHeight; }
+  get throneRearWindow() { return this.#throneRearWindow; }
   get exteriorWindows() { return this.#exteriorWindows; }
   get exteriorButtresses() { return this.#exteriorButtresses; }
   get buttressFootings() { return this.#buttressFootings; }

@@ -10375,7 +10375,8 @@
           "offset": 13.53846153846154,
           "width": 2
         }
-      ]
+      ],
+      "seedSignId": "audit-seed-sign"
     },
     {
       "id": "hero-spawn",
@@ -10385,6 +10386,22 @@
         "y": 2.014,
         "z": -9
       }
+    },
+    {
+      "id": "audit-seed-sign",
+      "object": "WoodenSign",
+      "text": "Seed 0",
+      "position": {
+        "x": -2,
+        "y": 2.004,
+        "z": -9
+      },
+      "rotation": {
+        "x": 0,
+        "y": 180,
+        "z": 0
+      },
+      "scale": 1
     }
   ],
   "animationViewport": {
@@ -10419,6 +10436,33 @@
           {
             "label": "Automatic doors",
             "script": "const castle=objects.getAll('castle')[0]; castle.testDoorOpenAmount=null;"
+          }
+        ]
+      },
+      {
+        "title": "Wall decoration inspection",
+        "x": 1000,
+        "y": 140,
+        "buttons": [
+          {
+            "label": "Solid wall (seed 0)",
+            "script": "objects.getAll(\"castle\")[0].regenerate(0);"
+          },
+          {
+            "label": "Window wall (seed 4)",
+            "script": "objects.getAll(\"castle\")[0].regenerate(4);"
+          },
+          {
+            "label": "Shield (seed 10)",
+            "script": "objects.getAll(\"castle\")[0].regenerate(10);"
+          },
+          {
+            "label": "View wall decoration",
+            "script": "const prop=[...objects].find(o=>[\"RoyalCrest\",\"WarCouncilShield\"].includes(o.constructor.name)); if (!prop) return; const p=prop.definition.position; const angle=prop.definition.rotation*Math.PI/180; const forward=2.8; const lateral=0; const x=p.x+Math.sin(angle)*forward+Math.cos(angle)*lateral; const z=p.z+Math.cos(angle)*forward-Math.sin(angle)*lateral; const hero=objects.getOne(\"hero\"); camera.setFirstPerson(false); hero.teleport({x,y:p.y-2.15+0.014,z}); hero.firstPersonCameraEnabled=true; hero.firstPersonFacingYaw=Math.atan2(p.x-x,p.z-z)*180/Math.PI; camera.setFirstPerson(true);"
+          },
+          {
+            "label": "Oblique wall view",
+            "script": "const prop=[...objects].find(o=>[\"RoyalCrest\",\"WarCouncilShield\"].includes(o.constructor.name)); if (!prop) return; const p=prop.definition.position; const angle=prop.definition.rotation*Math.PI/180; const forward=2.8; const lateral=0.7; const x=p.x+Math.sin(angle)*forward+Math.cos(angle)*lateral; const z=p.z+Math.cos(angle)*forward-Math.sin(angle)*lateral; const hero=objects.getOne(\"hero\"); camera.setFirstPerson(false); hero.teleport({x,y:p.y-2.15+0.014,z}); hero.firstPersonCameraEnabled=true; hero.firstPersonFacingYaw=Math.atan2(p.x-x,p.z-z)*180/Math.PI; camera.setFirstPerson(true);"
           }
         ]
       }

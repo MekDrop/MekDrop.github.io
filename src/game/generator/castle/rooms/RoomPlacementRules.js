@@ -2,7 +2,8 @@ import { ROOM_PROP_HEIGHTS, ROOM_PROP_BOTTOMS } from "./RoomPropHeights.js";
 
 // Model-local rear mounting planes measured from the source GLBs.
 const WALL_MOUNTS = { VestibuleCloakRail: -0.058, VestibulePainting: -0.024,
-  VestibuleBanner: -0.005, HangingFryingPan: -0.0953, KitchenUtensilRail: 0 };
+  VestibuleBanner: -0.005, HangingFryingPan: -0.0953, KitchenUtensilRail: 0,
+  RoyalCrest: -0.04, WarCouncilShield: -0.05 };
 
 /**
  * Shared rules for the occupied envelopes published by room generators.
@@ -164,12 +165,14 @@ export class RoomPlacementRules {
         return { ...bounds, masonry: false, rail: neighboringRail };
       }));
       for (const door of openings) {
-        if (door.kind !== "door" || door.floorY !== root.floorY || door.roomId !== room.id) { continue; }
+        // Glazed openings still have collision backing, but cannot support decor.
+        if (!["door", "window"].includes(door.kind) || door.floorY !== root.floorY || door.roomId !== room.id) { continue; }
         obstacles.push({ minX: door.axis === "x" ? door.coordinate - 0.15 : door.center - door.width / 2 - 0.08,
           maxX: door.axis === "x" ? door.coordinate + 0.15 : door.center + door.width / 2 + 0.08,
           minZ: door.axis === "z" ? door.coordinate - 0.15 : door.center - door.width / 2 - 0.08,
           maxZ: door.axis === "z" ? door.coordinate + 0.15 : door.center + door.width / 2 + 0.08,
-          bottom: door.floorY + 0.05, top: door.floorY + (door.height ?? 2.45), masonry: false });
+          bottom: door.floorY + (door.kind === "window" ? door.bottom ?? 0 : 0.05),
+          top: door.floorY + (door.bottom ?? 0) + (door.height ?? 2.45), masonry: false });
       }
       const members = group.map(/**
        *
@@ -216,6 +219,9 @@ export class RoomPlacementRules {
           const center = mountAxis === "x" ? mountWall.z : mountWall.x;
           const half = mountAxis === "x" ? mountWall.halfZ : mountWall.halfX;
           if (tangentMin < center - half - 1e-6 || tangentMax > center + half + 1e-6) { return false; }
+          const roomMin = mountAxis === "x" ? room.minZ : room.minX;
+          const roomMax = mountAxis === "x" ? room.maxZ : room.maxX;
+          if (tangentMin < roomMin - 1e-6 || tangentMax > roomMax + 1e-6) { return false; }
         }
         return obstacles.every(/**
          *

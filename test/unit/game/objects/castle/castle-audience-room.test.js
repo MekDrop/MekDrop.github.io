@@ -324,8 +324,14 @@ it("uses the shared room plan and keeps the actual throne dais clear of furnitur
       const room = createRoom(side, null, { residentialLayout: shared });
       const throne = room.entity.children.find((entity) => entity.name === "Throne");
       const seat = shared.toLocal(throne.position.x, throne.position.z);
-      const dais = { minX: seat.x - 1.3, maxX: seat.x + 1.3, minZ: seat.z - 0.675, maxZ: seat.z + 0.875 };
+      const platform = plan.metadata.runtime.residential.furniture.find(item => item.object === "ThroneDais");
+      const dais = { minX: platform.x - platform.width * platform.scale / 2,
+        maxX: platform.x + platform.width * platform.scale / 2,
+        minZ: platform.z - platform.depth * platform.scale / 2,
+        maxZ: platform.z + platform.depth * platform.scale / 2 };
       const work = shared.rooms.work;
+      assert.ok(seat.x - 0.4551 * 0.85 >= work.minX && seat.x + 0.4551 * 0.85 <= work.maxX &&
+        seat.z - 0.36875 * 0.85 >= work.minZ && seat.z + 0.36875 * 0.85 <= work.maxZ, `${style}/${side} chair bounds`);
       assert.ok(dais.minX >= work.minX && dais.maxX <= work.maxX && dais.minZ >= work.minZ && dais.maxZ <= work.maxZ, `${style}/${side} throne bounds`);
       for (const zone of shared.reservations.filter((zone) => ["mainStair", "serviceStair", "workDesk"].includes(zone.role))) {
         assert.ok(dais.maxX <= zone.minX || dais.minX >= zone.maxX || dais.maxZ <= zone.minZ || dais.minZ >= zone.maxZ, `${style}/${side} throne overlaps ${zone.role}`);

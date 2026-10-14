@@ -23,7 +23,7 @@ const CARPET_ENTRANCE_INSET = 0.32;
 const CARPET_REAR_CLEARANCE = 0.36;
 const THRONE_SCALE = 0.85;
 // Keep the chair and its seated royal clear of the rear wall and room furniture.
-const THRONE_REAR_CLEARANCE = 0.9;
+const THRONE_REAR_CLEARANCE = 0.65;
 const ROYAL_COLLISION_RADIUS = 0.22;
 const ROYAL_DOORWAY_INSIDE = 0.35;
 const ROYAL_DOORWAY_OUTSIDE = -0.35;
@@ -577,7 +577,8 @@ export class CastleAudienceRoom {
     const throneZone = this.#residentialLayout?.reservations.find(/**
      * @param {{role: string, maxZ: number}} zone
      */ (zone) => zone.role === "throne");
-    const throneForward = throneZone ? throneZone.maxZ - THRONE_REAR_CLEARANCE : Math.max(0, this.#floorDepth - THRONE_REAR_CLEARANCE);
+    const rearClearance = this.#residentialLayout?.throneRearWindow ? 0.35 : THRONE_REAR_CLEARANCE;
+    const throneForward = throneZone ? throneZone.maxZ - rearClearance : Math.max(0, this.#floorDepth - rearClearance);
     this.#buildFloor(throneForward);
     this.#buildThrone(throneForward);
     this.#buildColumns(throneForward);

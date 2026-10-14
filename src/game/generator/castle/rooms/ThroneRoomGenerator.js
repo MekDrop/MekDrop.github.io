@@ -84,10 +84,17 @@ export class ThroneRoomGenerator extends AbstractCastleRoomGenerator {
       items.at(-1).stretch = { x: 0.975, y: 1.4, z: 1 };
       items.at(-1).height = 1.38;
     }
-    add("ThroneDais", center, bounds.minZ + 0.9, 1.1, 0.95, 0.05);
+    const rearWindow = (context.openings ?? room.openings ?? []).some(/**
+     * @param {import("../CastleBasePlanGenerator.js").CompiledCastleOpening} opening
+     */
+    opening => opening.kind === "window" && opening.roomId === room.id &&
+      opening.axis === "z" && Math.abs(opening.coordinate - bounds.minZ) < 0.3 &&
+      Math.abs(opening.center - center) < opening.width / 2 + 0.4);
+    add("ThroneDais", center, bounds.minZ + (rearWindow ? 0.55 : 0.65), 1.1, 0.95, 0.05);
     items.at(-1).height = 0.1;
+    // Keep the emblem above the throne and the rear wall's window lintel.
     add(variant === "warCouncil" ? "WarCouncilShield" : "RoyalCrest", center,
-      bounds.minZ + 0.2, 0.7, 0.1, 1.12, variant === "warCouncil" ? 0 : 180);
+      bounds.minZ + 0.2, variant === "warCouncil" ? 0.7 : 1, 0.1, 2.15);
     if (variant !== "warCouncil") { items.at(-1).scale = 0.7; }
     const candleForward = bounds.minZ + 0.55 + random() * 0.14;
     for (const side of [-1, 1]) {
