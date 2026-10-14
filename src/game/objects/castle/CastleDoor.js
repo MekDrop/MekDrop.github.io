@@ -273,7 +273,10 @@ export class CastleDoor {
     );
     this.#entity.setLocalEulerAngles(0, geometry.baseYaw + (!bundledEntrance && placement?.arched && placement.swing === "inward" ? 180 : 0), 0);
     if (placement) {
-      this.#entity.setLocalScale((placement.mirrored ? -1 : 1) * this.#width / 2, this.#height / DOOR_HEIGHT, framedInterior ? 0.5 : this.#width / 2);
+      // The authored frame is 0.5 m deep. At half scale both casing faces
+      // coincide with the 0.25 m wall. Give each face physical clearance,
+      // including the back casing; moving the frame only fixes one side.
+      this.#entity.setLocalScale((placement.mirrored ? -1 : 1) * this.#width / 2, this.#height / DOOR_HEIGHT, framedInterior ? 0.54 : this.#width / 2);
     }
     if (framedInterior) {
       // Raise only the moving leaf: jambs meet the floor, while the leaf clears

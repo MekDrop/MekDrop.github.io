@@ -94,7 +94,7 @@ function upperDoor(floorY = 3, side = "NORTH", main = false, placement = null) {
     }
   }
   const entity = new Entity("doors");
-  const left = new Entity("Left hinge"), right = new Entity("Right hinge");
+  const left = new Entity(main ? "Left hinge" : "Right interior door hinge"), right = new Entity("Right hinge");
   left.setLocalPosition(-1, 0, 0); right.setLocalPosition(1, 0, 0);
   entity.addChild(left); if (main) entity.addChild(right);
   const renders = (main ? [left, right] : [left]).map((hinge, index) => {
@@ -122,12 +122,29 @@ function upperDoor(floorY = 3, side = "NORTH", main = false, placement = null) {
 
 it("keeps an upstairs door closed for ground-floor visitors and clear of ground navigation", () => {
   const { door, entity } = upperDoor();
-  assert.deepEqual(entity.getLocalScale().toArray(), [0.5, 2 / 2.4, 0.5]);
+  assert.deepEqual(entity.getLocalScale().toArray(), [0.5, 2 / 2.4, 0.54]);
   door.updateHeroPosition({ x: 0, y: 0, z: 2 });
   door.update(1);
   assert.equal(door.blocksCameraAt(0, 3.5, 2.155, 0.1), true);
   assert.equal(door.intersectsFootprint(0, 2, 0.1), false);
   assert.equal(door.blocksCameraAt(0, 0.5, 2, 0.1), false);
+});
+
+it("keeps both interior casing faces proud of quarter-metre masonry in every orientation", () => {
+  for (const yaw of [0, 90, 180, 270]) {
+    for (const mirrored of [false, true]) {
+      const { entity } = upperDoor(3, "NORTH", false, { x: 0, y: 3, z: 0, yaw, height: 2,
+        mirrored, frameOffset: 0.125 - 0.095 });
+      const transform = entity.getWorldTransform();
+      const radians = yaw * Math.PI / 180;
+      const normal = new pc.Vec3(Math.sin(radians), 0, Math.cos(radians));
+      // Actual GLB casing envelope: -0.31 .. 0.19 along its depth axis.
+      const back = transform.transformPoint(new pc.Vec3(0, 0, -0.31)).dot(normal);
+      const front = transform.transformPoint(new pc.Vec3(0, 0, 0.19)).dot(normal);
+      assert.ok(back < -0.125 - 0.005, `yaw ${yaw}: back casing clears wall`);
+      assert.ok(front > 0.125 + 0.005, `yaw ${yaw}: front casing clears wall`);
+    }
+  }
 });
 
 it("lets test controls force a destination and restore automatic proximity behavior", () => {
