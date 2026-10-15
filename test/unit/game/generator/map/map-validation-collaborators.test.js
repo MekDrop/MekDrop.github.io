@@ -42,7 +42,11 @@ describe("map validation collaborators", () => {
     const validator = new RouteValidator();
     const grid = MapGrid.createGrid(TileType.WATER);
     const layout = {
-      entries: [{ gateCol: 4, gateRows: [5, 6], inwardDirection: "EAST" }],
+      entries: [{
+        gateCol: 4,
+        gateRows: [5, 6],
+        inwardDirection: "EAST",
+      }],
     };
     for (const row of [5, 6]) {
       grid[row][4] = TileType.ENTRY;
@@ -59,9 +63,19 @@ describe("map validation collaborators", () => {
       { routeCells: new Set(["10,10"]) },
       { routeCells: new Set(["10,11"]) },
     ];
-    const layout = { entries: [{ mergeCol: 20 }], pathRows: [20, 21] };
+    const layout = {
+      entries: [{ mergeCol: 20 }],
+      pathRows: [20, 21],
+    };
     assert.throws(() => validator.validateRouteSeparation(branches, layout), UnexpectedPathConnectionError);
-    layout.overpassPlan = { crossing: { col: 10, row: 10, width: 2, depth: 2 } };
+    layout.overpassPlan = {
+      crossing: {
+        col: 10,
+        row: 10,
+        width: 2,
+        depth: 2,
+      },
+    };
     assert.doesNotThrow(() => validator.validateRouteSeparation(branches, layout));
   });
 
@@ -70,10 +84,17 @@ describe("map validation collaborators", () => {
     const grid = MapGrid.createGrid(TileType.GRASS);
     const heights = MapGrid.createGrid(1);
     const metadata = MapGrid.createTileMetadata();
-    const flowers = [{ col: 10, row: 10, variant: "daisy-patch" }];
+    const flowers = [{
+      col: 10,
+      row: 10,
+      variant: "daisy-patch",
+    }];
     assert.doesNotThrow(() => validator.validateGroundCover(grid, heights, metadata, [], [], flowers));
     assert.throws(
-      () => validator.validateGroundCover(grid, heights, metadata, [{ col: 10, row: 10 }], [], flowers),
+      () => validator.validateGroundCover(grid, heights, metadata, [{
+        col: 10,
+        row: 10,
+      }], [], flowers),
       InvalidGroundCoverPlacementError,
     );
     grid[10][10] = TileType.PATH;
@@ -94,7 +115,12 @@ describe("map validation collaborators", () => {
       InvalidLavaRiverCountError,
     );
     assert.throws(
-      () => validator.validateRivers([], [], [], [], {}, [{ id: "short", kind: RIVER_KIND.WATER, cells: [], upstreamLength: 4 }]),
+      () => validator.validateRivers([], [], [], [], {}, [{
+        id: "short",
+        kind: RIVER_KIND.WATER,
+        cells: [],
+        upstreamLength: 4,
+      }]),
       InvalidRiverPathError,
     );
   });
@@ -102,7 +128,12 @@ describe("map validation collaborators", () => {
   describe("generated elevation profiles", () => {
     let original;
     before(async () => {
-      original = await MapGenerator.generate({ mapName: "variant-4", numPaths: 4, numRivers: 0, overpass: true });
+      original = await MapGenerator.generate({
+        mapName: "variant-4",
+        numPaths: 4,
+        numRivers: 0,
+        overpass: true,
+      });
     });
 
     it("rejects a damaged overpass ramp", () => {

@@ -81,9 +81,18 @@ export class SignalBell extends AbstractCastleProp {
     this.#sound = new pc.Asset(`${definition.id} bell strike`, "audio", { url: soundUrl });
     app.assets.add(this.#sound);
     app.assets.load(this.#sound);
-    this.visualRoots[0].addComponent("sound", { positional: false, slots: {
-      ring: { name: "ring", asset: this.#sound.id, volume: 0.65, overlap: false, loop: false },
-    } });
+    this.visualRoots[0].addComponent("sound", {
+      positional: false,
+      slots: {
+        ring: {
+          name: "ring",
+          asset: this.#sound.id,
+          volume: 0.65,
+          overlap: false,
+          loop: false,
+        },
+      },
+    });
   }
 
   /**
@@ -169,9 +178,15 @@ export class SignalBell extends AbstractCastleProp {
     const yaw = (this.definition.rotation ?? 0) * Math.PI / 180;
     const center = this.position;
     return {
-      position: { x: center.x + Math.cos(yaw) * 0.205 + Math.sin(yaw) * 0.5,
-        y: center.y, z: center.z - Math.sin(yaw) * 0.205 + Math.cos(yaw) * 0.5 },
-      facing: { x: -Math.sin(yaw), z: -Math.cos(yaw) },
+      position: {
+        x: center.x + Math.cos(yaw) * 0.205 + Math.sin(yaw) * 0.5,
+        y: center.y,
+        z: center.z - Math.sin(yaw) * 0.205 + Math.cos(yaw) * 0.5,
+      },
+      facing: {
+        x: -Math.sin(yaw),
+        z: -Math.cos(yaw),
+      },
     };
   }
 

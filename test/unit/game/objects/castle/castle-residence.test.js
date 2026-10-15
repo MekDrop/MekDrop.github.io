@@ -32,8 +32,19 @@ const Builder = new Function("CASTLE_BLOCK_SIZE", `${isolated.replace("export cl
  */
 function generate(side = "WEST", style = "twin-tower") {
   return CastleGenerator.generate({
-    position: { x: -4, z: -4, width: 8, depth: 8, elevation: 3 },
-    doors: [{ side, offset: 3, width: 2 }], style,
+    position: {
+      x: -4,
+      z: -4,
+      width: 8,
+      depth: 8,
+      elevation: 3,
+    },
+    doors: [{
+      side,
+      offset: 3,
+      width: 2,
+    }],
+    style,
   });
 }
 
@@ -42,8 +53,14 @@ it("connects the bedroom side door and side terrace to the front balcony for eve
     for (const side of ["WEST", "EAST", "NORTH", "SOUTH"]) {
       const plan = await generate(side, style);
       const layout = new CastleResidentialLayout(plan);
-      const builder = new Builder({ position: plan.input.position, cameraBlocks: plan.metadata.collision.cameraBlocks,
-        residence: { layout, blocksMovementAt: () => false } });
+      const builder = new Builder({
+        position: plan.input.position,
+        cameraBlocks: plan.metadata.collision.cameraBlocks,
+        residence: {
+          layout,
+          blocksMovementAt: () => false,
+        },
+      });
       const door = plan.metadata.runtime.residential.sideDoor;
       const angle = door.yaw * Math.PI / 180;
       for (let offset = -0.5; offset <= 0.5; offset += 0.05) {
@@ -69,19 +86,51 @@ it("excavates authored and generated terrain within the castle envelope while pr
   const layout = new CastleResidentialLayout(plan);
   const room = layout.rooms.servantBedroom;
   const point = layout.toWorld((room.minX + room.maxX) / 2, (room.minZ + room.maxZ) / 2, -1.5);
-  const underground = { object: "Earth", generated: true, position: point };
-  const authored = { ...underground, generated: false };
-  const above = { object: "Grass", generated: true, position: { ...point, y: layout.origin.y + 0.5 } };
-  const turf = { object: "Grass", generated: true, position: { ...point, y: layout.origin.y - 0.5 } };
+  const underground = {
+    object: "Earth",
+    generated: true,
+    position: point,
+  };
+  const authored = {
+    ...underground,
+    generated: false,
+  };
+  const above = {
+    object: "Grass",
+    generated: true,
+    position: {
+      ...point,
+      y: layout.origin.y + 0.5,
+    },
+  };
+  const turf = {
+    object: "Grass",
+    generated: true,
+    position: {
+      ...point,
+      y: layout.origin.y - 0.5,
+    },
+  };
   const grid = [["structure"]];
-  const map = { grid, objects: [{ object: "Castle", buildPlan: plan }, underground, authored, above, turf] };
+  const map = {
+    grid,
+    objects: [{
+      object: "Castle",
+      buildPlan: plan,
+    }, underground, authored, above, turf],
+  };
   Castle.prepareMap(map);
   assert.equal(map.objects.includes(underground), false);
   assert.equal(map.objects.includes(authored), false);
   assert.equal(map.objects.includes(above), false);
   assert.equal(map.objects.includes(turf), false);
   assert.equal(map.grid, grid);
-  assert.doesNotThrow(() => Castle.prepareMap({ objects: [{ object: "Castle", buildPlan: {} }] }));
+  assert.doesNotThrow(() => Castle.prepareMap({
+    objects: [{
+      object: "Castle",
+      buildPlan: {},
+    }],
+  }));
 });
 
 it("only the bound servant can obtain basement support", async () => {
@@ -181,16 +230,28 @@ ${residenceSource.replace("export class", "class").replace("export function", "f
     addComponent() {}
     findComponents() { return [{ meshInstances: [] }]; }
   }
-  const pc = { Entity, Model: class {}, Color: class {} };
-  const modelLibrary = { instantiate: () => new Entity(), instantiateMerged: () => new Entity() };
+  const pc = {
+    Entity,
+    Model: class {},
+    Color: class {},
+  };
+  const modelLibrary = {
+    instantiate: () => new Entity(),
+    instantiateMerged: () => new Entity(),
+  };
   const fixture = JSON.parse(readFileSync(new URL("../../../../../src/game/maps/tests/royal-castles.json", import.meta.url), "utf8"));
   for (const castle of fixture.objects.filter((object) => object.object === "Castle")) {
     const plan = castle.buildPlan;
     plan.metadata.runtime.residential.buttressFootings = createCastleButtressFootings(plan, fixture);
-    const residence = new Residence({ pc, buildPlan: plan, modelLibrary });
+    const residence = new Residence({
+      pc,
+      buildPlan: plan,
+      modelLibrary,
+    });
     const layout = residence.layout;
     const builder = new Builder({
-      residence, position: castle.position,
+      residence,
+      position: castle.position,
       cameraBlocks: plan.metadata.collision.cameraBlocks,
       groundColumns: plan.metadata.collision.groundColumns,
     });
@@ -210,8 +271,11 @@ ${residenceSource.replace("export class", "class").replace("export function", "f
 
 it("includes the exterior servant entrance stairs in aggregate navigation", () => {
   const calls = [];
-  const builder = new Builder({ position: { elevation: 2 }, cameraBlocks: [],
-    serviceStairs: { blocksMovementAt: (...args) => { calls.push(args); return true; } } });
+  const builder = new Builder({
+    position: { elevation: 2 },
+    cameraBlocks: [],
+    serviceStairs: { blocksMovementAt: (...args) => { calls.push(args); return true; } },
+  });
   assert.equal(builder.blocksMovementAt(1, 2, 0.22, 1.75, 0.32), true);
   assert.deepEqual(calls, [[1, 2, 0.22, 1.75, 0.32]]);
 });
@@ -233,16 +297,42 @@ return class { ${method} };`)("stair-model");
     setIndices(indices) { this.indices = indices; }
     update() {}
   }
-  const sourceMesh = { device: {}, getPositions: (out) => out.push(0.08, 0.5, 0.62), getIndices: (out) => out.push(0, 0, 0) };
+  const sourceMesh = {
+    device: {},
+    getPositions: (out) => out.push(0.08, 0.5, 0.62),
+    getIndices: (out) => out.push(0, 0, 0),
+  };
   const merged = () => { const entity = new Entity("Collider"); entity.meshInstances = [{ mesh: sourceMesh }]; return entity; };
   const harness = new Harness();
   harness.entity = new Entity("Rooms");
   harness.entity.setLocalPosition(-0.5, 4, 2.375);
   harness.entity.setLocalEulerAngles(0, 180, 0);
-  harness.layout = { yaw: 180, origin: { y: 4 }, toLocal: () => ({ x: -5, z: 2 }) };
+  harness.layout = {
+    yaw: 180,
+    origin: { y: 4 },
+    toLocal: () => ({
+      x: -5,
+      z: 2,
+    }),
+  };
   harness.stairPhysicsGraphs = [];
-  harness.buildStair({ ...pc, Entity, Mesh }, { instantiate: () => new Entity("Model"), instantiateMerged: merged },
-    { center: { x: 4.5, y: 1.5, z: 0.375 }, radius: 0.45, rise: 2.5 }, "Servant staircase");
+  harness.buildStair({
+    ...pc,
+    Entity,
+    Mesh,
+  }, {
+    instantiate: () => new Entity("Model"),
+    instantiateMerged: merged,
+  },
+  {
+    center: {
+      x: 4.5,
+      y: 1.5,
+      z: 0.375,
+    },
+    radius: 0.45,
+    rise: 2.5,
+  }, "Servant staircase");
   const body = harness.entity.children[0];
   const graph = body.components.collision.model.graph;
   assert.equal(graph.parent, null, "Mesh sources must not include the rigid body's world translation");
@@ -276,7 +366,13 @@ return class { ${method} };`)("stone", "floor");
     harness.solids = [];
     const visuals = [];
     harness.entity = { addChild: (entity) => visuals.push(entity) };
-    harness.addUpperFloorSupport({ instantiate: () => ({ setLocalScale(...scale) { this.scale = scale; }, setLocalPosition(...position) { this.position = position; }, findComponents() { return []; } }) });
+    harness.addUpperFloorSupport({
+      instantiate: () => ({
+        setLocalScale(...scale) { this.scale = scale; },
+        setLocalPosition(...position) { this.position = position; },
+        findComponents() { return []; },
+      }),
+    });
     const threshold = visuals.find((entity) => entity.name === "Castle main entrance threshold");
     assert.equal(threshold.position[1] + threshold.scale[1], 0, "bottom-anchored stone stops at the doorway floor");
     for (const floor of visuals.filter((entity) => entity.name === "Castle enclosed room wooden floor")) {
@@ -309,8 +405,21 @@ it("mounts the entire framed map on continuous masonry away from service doors a
   const findMount = new Function(`${helper.replace("export function", "function")}\nreturn findCastleMapMount;`)();
   for (const style of ["twin-keeps", "courtyard-keep", "long-hall", "l-courtyard", "terraced-keeps"]) {
     for (const side of ["NORTH", "SOUTH", "WEST", "EAST"]) {
-      const plan = await CastleGenerator.generate({ position: { x: -6, z: -6, width: 12, depth: 12, elevation: 3 },
-        doors: [{ side, offset: 5, width: 2 }], style });
+      const plan = await CastleGenerator.generate({
+        position: {
+          x: -6,
+          z: -6,
+          width: 12,
+          depth: 12,
+          elevation: 3,
+        },
+        doors: [{
+          side,
+          offset: 5,
+          width: 2,
+        }],
+        style,
+      });
       const layout = new CastleResidentialLayout(plan);
       const work = layout.rooms.work;
       const desk = layout.reservations.find((area) => area.role === "workDesk");
@@ -335,17 +444,40 @@ it("mounts the entire framed map on continuous masonry away from service doors a
 
 it("excavates buried exterior masonry and basement circulation seams", async () => {
   const plan = await CastleGenerator.generate({
-    position: { x: -14, z: -8, width: 28, depth: 16, elevation: 3 },
-    doors: [{ side: "NORTH", offset: 13, width: 2 }], seed: 1, basePlanId: "castle-demo-compact",
+    position: {
+      x: -14,
+      z: -8,
+      width: 28,
+      depth: 16,
+      elevation: 3,
+    },
+    doors: [{
+      side: "NORTH",
+      offset: 13,
+      width: 2,
+    }],
+    seed: 1,
+    basePlanId: "castle-demo-compact",
   });
   const layout = new CastleResidentialLayout(plan);
   const cuts = createCastleGroundCuts(plan, layout);
   const buried = plan.metadata.collision.cameraBlocks.filter((block) => block.y + block.halfY < 3);
   assert.ok(buried.length > 0);
   for (const block of buried) {
-    const terrain = { id: "buried-wall", object: "Earth", position: { x: block.x, y: block.y, z: block.z },
-      geometry: { method: "addBoxMatrix", args: ["earth", "earth", block.x, block.y, block.z, 0,
-        block.halfX * 2, block.halfY * 2, block.halfZ * 2] } };
+    const terrain = {
+      id: "buried-wall",
+      object: "Earth",
+      position: {
+        x: block.x,
+        y: block.y,
+        z: block.z,
+      },
+      geometry: {
+        method: "addBoxMatrix",
+        args: ["earth", "earth", block.x, block.y, block.z, 0,
+          block.halfX * 2, block.halfY * 2, block.halfZ * 2],
+      },
+    };
     assert.equal(clipCastleTerrainRecord(terrain, cuts).length, 0, "earth must not occupy basement masonry");
   }
   const base = plan.layout.roomPlan.buildings[0];
@@ -359,7 +491,14 @@ it("excavates buried exterior masonry and basement circulation seams", async () 
     assert.equal(extent, base[edge], "basement slab reaches the exterior wall");
   }
   const point = layout.toWorld(base.minX + 0.05, base.minZ + 0.05, 1 - layout.origin.y);
-  const seam = { id: "basement-seam", object: "Earth", position: point,
-    geometry: { method: "addBoxMatrix", args: ["earth", "earth", point.x, point.y, point.z, 0, 0.05, 0.05, 0.05] } };
+  const seam = {
+    id: "basement-seam",
+    object: "Earth",
+    position: point,
+    geometry: {
+      method: "addBoxMatrix",
+      args: ["earth", "earth", point.x, point.y, point.z, 0, 0.05, 0.05, 0.05],
+    },
+  };
   assert.equal(clipCastleTerrainRecord(seam, cuts).length, 0);
 });

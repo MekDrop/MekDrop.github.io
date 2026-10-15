@@ -10,8 +10,16 @@ for (const [index, [name, dx, dz]] of directions.entries()) {
     const [outgoing, ex, ez] = directions[(index + turn + 4) % 4];
     it(`releases source pressure across the entire ${name}/${outgoing} outlet`, () => {
       const profile = new RiverSourceProfile([
-        { col: 5, row: 6, direction: name },
-        { col: 5 + dx, row: 6 + dz, direction: outgoing },
+        {
+          col: 5,
+          row: 6,
+          direction: name,
+        },
+        {
+          col: 5 + dx,
+          row: 6 + dz,
+          direction: outgoing,
+        },
       ]);
       // Include the inside L corner, where angular route coordinates are singular.
       for (let i = 0; i <= 12; i++) {

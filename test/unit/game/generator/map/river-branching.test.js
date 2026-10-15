@@ -14,14 +14,20 @@ function fixture(roll, available = 2, kind = "WATER") {
     heights[20][col] = 4;
   }
   const meta = grid.map(row => row.map(() => ({})));
-  const route = Array.from({ length: 16 }, (_, index) => ({ col: 20 + index, row: 20 }));
+  const route = Array.from({ length: 16 }, (_, index) => ({
+    col: 20 + index,
+    row: 20,
+  }));
   let calls = 0;
   const router = {
     riverSourceHasEarthEnclosure: () => true,
     findRiverRoute: async (...args) => {
       calls++;
       if (calls === 1) {
-        return { route, terminalDirection: "EAST" };
+        return {
+          route,
+          terminalDirection: "EAST",
+        };
       }
       if (calls - 1 > available) {
         return null;
@@ -31,14 +37,37 @@ function fixture(roll, available = 2, kind = "WATER") {
       const step = calls === 2 ? -1 : 1;
       const end = step === -1 ? 6 : 35;
       const tail = Array.from({ length: Math.abs(end - junction.row) }, (_, index) =>
-        ({ col: junction.col, row: junction.row + step * (index + 1) }));
-      return { route: [...prefix, ...tail], terminalDirection: step === -1 ? "NORTH" : "SOUTH" };
+        ({
+          col: junction.col,
+          row: junction.row + step * (index + 1),
+        }));
+      return {
+        route: [...prefix, ...tail],
+        terminalDirection: step === -1 ? "NORTH" : "SOUTH",
+      };
     },
   };
-  const random = { rng: () => roll, shuffle: items => items };
+  const random = {
+    rng: () => roll,
+    shuffle: items => items,
+  };
   const builder = new RiverBuilder(random, router, async () => {});
-  const layout = { castleLeft: -20, castleRight: -10, castleTop: -20, castleBottom: -10, entries: [] };
-  return { builder, grid, heights, meta, mask, layout, kind };
+  const layout = {
+    castleLeft: -20,
+    castleRight: -10,
+    castleTop: -20,
+    castleBottom: -10,
+    entries: [],
+  };
+  return {
+    builder,
+    grid,
+    heights,
+    meta,
+    mask,
+    layout,
+    kind,
+  };
 }
 
 async function splitFixture(roll, available = 2, kind = "WATER") {
@@ -46,9 +75,18 @@ async function splitFixture(roll, available = 2, kind = "WATER") {
   const { builder, grid, heights, meta, mask, layout } = value;
   const rivers = await builder.generateRivers(grid, heights, meta, layout, mask, 1, {});
   rivers[0].kind = kind;
-  const before = JSON.stringify({ grid, heights, meta, rivers });
+  const before = JSON.stringify({
+    grid,
+    heights,
+    meta,
+    rivers,
+  });
   await builder.splitRivers(grid, heights, meta, layout, mask, rivers, {});
-  return { ...value, rivers, before };
+  return {
+    ...value,
+    rivers,
+    before,
+  };
 }
 
 for (const [roll, count] of [[1, 3], [8, 3], [9, 2], [25, 2], [26, 1], [100, 1]]) {
@@ -68,7 +106,12 @@ for (const [roll, count] of [[1, 3], [8, 3], [9, 2], [25, 2], [26, 1], [100, 1]]
 
 it("rolls back the entire fork when only one of two requested outlets fits", async () => {
   const { grid, heights, meta, rivers, before } = await splitFixture(8, 1);
-  assert.equal(JSON.stringify({ grid, heights, meta, rivers }), before);
+  assert.equal(JSON.stringify({
+    grid,
+    heights,
+    meta,
+    rivers,
+  }), before);
 });
 
 it("keeps lava branches in one source family after raising their surfaces", async () => {
@@ -82,7 +125,10 @@ it("keeps lava branches in one source family after raising their surfaces", asyn
 
 for (const [seed, count] of [[0, 2], [908, 3], [1344, 1]]) {
   it(`generates and validates real seeded topology split-check-${seed}`, async () => {
-    const map = await MapGenerator.generate({ mapName: `split-check-${seed}`, numRivers: 1 });
+    const map = await MapGenerator.generate({
+      mapName: `split-check-${seed}`,
+      numRivers: 1,
+    });
     assert.equal(map.riverData.length, count);
   });
 }

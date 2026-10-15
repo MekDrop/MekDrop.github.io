@@ -314,12 +314,20 @@ test("prints object coordinates on an Alt+primary mouse click", async () => {
     mesh: {},
     node: {
       name: "Castle door",
-      getPosition: () => ({ x: 12.5, y: 3, z: -7.25 }),
+      getPosition: () => ({
+        x: 12.5,
+        y: 3,
+        z: -7.25,
+      }),
     },
     renderStyle: 0,
   };
   FakePicker.selection = [meshInstance];
-  FakePicker.worldPoint = { x: 12.75, y: 3.5, z: -7 };
+  FakePicker.worldPoint = {
+    x: 12.75,
+    y: 3.5,
+    z: -7,
+  };
   const inspector = new DevWireframeInspector({
     pc,
     app: { scene: {} },
@@ -350,8 +358,16 @@ test("prints object coordinates on an Alt+primary mouse click", async () => {
       {
         name: "Castle door",
         instanceIndex: null,
-        position: { x: 12.5, y: 3, z: -7.25 },
-        hitPosition: { x: 12.75, y: 3.5, z: -7 },
+        position: {
+          x: 12.5,
+          y: 3,
+          z: -7.25,
+        },
+        hitPosition: {
+          x: 12.75,
+          y: 3.5,
+          z: -7,
+        },
       },
     ],
   ]);

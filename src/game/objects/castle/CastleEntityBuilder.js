@@ -280,7 +280,12 @@ export class CastleEntityBuilder {
       this.#createStairs();
       this.#render();
       if (!buildPlan.layout.empty && buildPlan.metadata.runtime.residential) {
-        this.#residence = new CastleResidence({ pc, buildPlan, modelLibrary, gardenTexture });
+        this.#residence = new CastleResidence({
+          pc,
+          buildPlan,
+          modelLibrary,
+          gardenTexture,
+        });
         this.#entity.addChild(this.#residence.entity);
       }
       this.#createAudienceRoom();
@@ -316,7 +321,11 @@ export class CastleEntityBuilder {
     this.#servant = servant;
     if (this.#residence) {
       this.#residence.servant = servant;
-      servant.bindResidence({ pc: this.#pc, modelLibrary: this.#modelLibrary, residence: this.#residence });
+      servant.bindResidence({
+        pc: this.#pc,
+        modelLibrary: this.#modelLibrary,
+        residence: this.#residence,
+      });
     }
     this.#connectResidents();
   }
@@ -365,7 +374,7 @@ export class CastleEntityBuilder {
        *
        * @param {import("src/game/objects/ObjectTypes.js").CastleDoorDefinition} door
        */
-      (door) => door.intersectsFootprint(x, z, radius))
+        (door) => door.intersectsFootprint(x, z, radius))
     ) {
       return true;
     }
@@ -393,13 +402,13 @@ export class CastleEntityBuilder {
         this.#cameraCollisionBlocks.some(/**
          * @param {{x: number, y: number, z: number, halfX: number, halfY: number, halfZ: number}} block
          */ (block) => {
-          if (block.y + block.halfY <= elevation + Math.max(0.02, stepClearance) + 0.000001 || block.y - block.halfY >= elevation + 0.8) {
-            return false;
-          }
-          const dx = Math.max(Math.abs(x - block.x) - block.halfX, 0);
-          const dz = Math.max(Math.abs(z - block.z) - block.halfZ, 0);
-          return dx * dx + dz * dz <= radius * radius;
-        });
+            if (block.y + block.halfY <= elevation + Math.max(0.02, stepClearance) + 0.000001 || block.y - block.halfY >= elevation + 0.8) {
+              return false;
+            }
+            const dx = Math.max(Math.abs(x - block.x) - block.halfX, 0);
+            const dz = Math.max(Math.abs(z - block.z) - block.halfZ, 0);
+            return dx * dx + dz * dz <= radius * radius;
+          });
     }
     // The room floor supports walking; it must not cancel its solid furniture,
     // walls, or closed doors when the collision world queries this aggregate.
@@ -426,8 +435,8 @@ export class CastleEntityBuilder {
        *
        * @param {import("src/game/objects/ObjectTypes.js").CastleDoorDefinition} door
        */
-      (door) =>
-        door.blocksCameraAt(x, y, z, radius),
+        (door) =>
+          door.blocksCameraAt(x, y, z, radius),
       ) ||
       this.#terraceActivity?.blocksCameraAt(x, y, z, radius)
     ) {
@@ -437,15 +446,15 @@ export class CastleEntityBuilder {
      *
      * @param {{x: number, y: number, z: number, halfX: number, halfY: number, halfZ: number}} block
      */
-    (block) => {
-      const distanceX = Math.max(Math.abs(x - block.x) - block.halfX, 0);
-      const distanceY = Math.max(Math.abs(y - block.y) - block.halfY, 0);
-      const distanceZ = Math.max(Math.abs(z - block.z) - block.halfZ, 0);
-      return (
-        distanceX * distanceX + distanceY * distanceY + distanceZ * distanceZ <=
+      (block) => {
+        const distanceX = Math.max(Math.abs(x - block.x) - block.halfX, 0);
+        const distanceY = Math.max(Math.abs(y - block.y) - block.halfY, 0);
+        const distanceZ = Math.max(Math.abs(z - block.z) - block.halfZ, 0);
+        return (
+          distanceX * distanceX + distanceY * distanceY + distanceZ * distanceZ <=
         radius * radius
-      );
-    });
+        );
+      });
   }
 
   /**
@@ -519,12 +528,12 @@ export class CastleEntityBuilder {
      *
      * @param {CastleDoor} door
      */
-    (door) => door.exteriorEntrance);
+      (door) => door.exteriorEntrance);
     return `Entrance: ${doors.map(/**
      *
      * @param {CastleDoor} door
      */
-    (door) => `${Math.round(door.openAmount * 100)}%`).join(", ")}`;
+      (door) => `${Math.round(door.openAmount * 100)}%`).join(", ")}`;
   }
 
   /**
@@ -595,7 +604,7 @@ export class CastleEntityBuilder {
       return this.#cameraCollisionBlocks.some(/**
        * @param {{x:number,y:number,z:number,halfX:number,halfY:number,halfZ:number}} block
        */
-      (block) => block.y + block.halfY > this.#position.elevation + 0.25 &&
+        (block) => block.y + block.halfY > this.#position.elevation + 0.25 &&
         block.y - block.halfY < this.#position.elevation + 0.8 &&
         Math.max(Math.abs(x - block.x) - block.halfX, 0) ** 2 +
         Math.max(Math.abs(z - block.z) - block.halfZ, 0) ** 2 <= radiusSquared);
@@ -662,7 +671,7 @@ export class CastleEntityBuilder {
       const supported = [...layout.walkableAreas, ...Object.values(layout.rooms)].some(/**
        * @param {{floorY:number,minX:number,maxX:number,minZ:number,maxZ:number}} area
        */ (area) =>
-        Math.abs(area.floorY - point.y) < 0.15 && local.x >= area.minX + 0.5 &&
+          Math.abs(area.floorY - point.y) < 0.15 && local.x >= area.minX + 0.5 &&
         local.x <= area.maxX - 0.5 && local.z >= area.minZ + 0.5 && local.z <= area.maxZ - 0.5);
       if (!supported) { return false; }
     }
@@ -725,7 +734,12 @@ export class CastleEntityBuilder {
       particleTexture: this.#fireParticleTexture,
     });
     this.#entity.addChild(this.#fire.entity);
-    this.#roofs = new CastleRoof({ pc: this.#pc, app: this.#app, modelLibrary: this.#modelLibrary, masonryMaterial: this.#materials.get("castleStoneMid") });
+    this.#roofs = new CastleRoof({
+      pc: this.#pc,
+      app: this.#app,
+      modelLibrary: this.#modelLibrary,
+      masonryMaterial: this.#materials.get("castleStoneMid"),
+    });
     this.#entity.addChild(this.#roofs.entity);
   }
 
@@ -742,9 +756,14 @@ export class CastleEntityBuilder {
     this.#entity.addChild(this.#stairs.entity);
     const serviceEntry = this.#buildPlan.metadata.runtime.residential?.serviceEntry;
     if (serviceEntry) {
-      this.#serviceStairs = new CastleStairs({ pc: this.#pc, position: this.#position,
-        doors: [serviceEntry], cubeSize: CASTLE_BLOCK_SIZE, modelLibrary: this.#modelLibrary,
-        materials: this.#materials });
+      this.#serviceStairs = new CastleStairs({
+        pc: this.#pc,
+        position: this.#position,
+        doors: [serviceEntry],
+        cubeSize: CASTLE_BLOCK_SIZE,
+        modelLibrary: this.#modelLibrary,
+        materials: this.#materials,
+      });
       this.#entity.addChild(this.#serviceStairs.entity);
     }
   }
@@ -767,7 +786,10 @@ export class CastleEntityBuilder {
       residentialLayout: this.#residence?.layout ?? null,
       frontWallDepth: CASTLE_WALL_THICKNESS_BLOCKS * CASTLE_BLOCK_SIZE,
       serviceOpening: serviceStair
-        ? { ...serviceStair.center, radius: serviceStair.radius }
+        ? {
+          ...serviceStair.center,
+          radius: serviceStair.radius,
+        }
         : null,
       modelLibrary: this.#modelLibrary,
       fireParticleTexture: this.#fireParticleTexture,
@@ -811,7 +833,13 @@ export class CastleEntityBuilder {
       if (!matrices.length) continue;
       const { entity, vertexBuffer } = this.#modelLibrary.instantiateMergedBatch(
         stoneBlockUrl, matrices,
-        { name: `${materialName} authored castle masonry`, material: this.#materials.get(materialName), linearVertexColors: true, castShadows: true, receiveShadows: true },
+        {
+          name: `${materialName} authored castle masonry`,
+          material: this.#materials.get(materialName),
+          linearVertexColors: true,
+          castShadows: true,
+          receiveShadows: true,
+        },
       );
       this.#vertexBuffers.push(vertexBuffer);
       this.#entity.addChild(entity);
@@ -848,30 +876,59 @@ export class CastleEntityBuilder {
       /**
        * @param {{x:number,y:number,z:number,halfX:number,halfY:number,halfZ:number}} block
        */
-      (block) => ({ ...block, sx: block.halfX * 2, sy: block.halfY * 2, sz: block.halfZ * 2, yaw: 0 }),
+      (block) => ({
+        ...block,
+        sx: block.halfX * 2,
+        sy: block.halfY * 2,
+        sz: block.halfZ * 2,
+        yaw: 0,
+      }),
     )).map(
       /**
        * @param {import("./CastleWindowLayout.js").MasonryBox} box
        */
-      (box) => ({ x: box.x, y: box.y, z: box.z, halfX: box.sx / 2, halfY: box.sy / 2, halfZ: box.sz / 2 }),
+      (box) => ({
+        x: box.x,
+        y: box.y,
+        z: box.z,
+        halfX: box.sx / 2,
+        halfY: box.sy / 2,
+        halfZ: box.sz / 2,
+      }),
     );
     for (const window of windows.windows) {
       const angle = window.yaw * Math.PI / 180;
       const crosswise = Math.abs(Math.sin(angle)) > 0.5;
       if (!window.open) {
-      this.#cameraCollisionBlocks.push({ x: window.position.x - Math.sin(angle) * window.depth * 0.315,
-        y: window.position.y + window.height / 2, z: window.position.z - Math.cos(angle) * window.depth * 0.315,
-        halfX: crosswise ? 0.025 : window.width / 2, halfY: window.height / 2, halfZ: crosswise ? window.width / 2 : 0.025 });
+        this.#cameraCollisionBlocks.push({
+          x: window.position.x - Math.sin(angle) * window.depth * 0.315,
+          y: window.position.y + window.height / 2,
+          z: window.position.z - Math.cos(angle) * window.depth * 0.315,
+          halfX: crosswise ? 0.025 : window.width / 2,
+          halfY: window.height / 2,
+          halfZ: crosswise ? window.width / 2 : 0.025,
+        });
       }
       const alongX = Math.abs(Math.sin(window.yaw * Math.PI / 180)) < 0.5;
       const half = window.width / 2;
       Window.addVisual(this.#pc, this.#modelLibrary, this.#entity, {
-        id: `castle-${window.role}-window`, object: Window.name,
-        from: { x: window.position.x - (alongX ? half : 0), y: window.position.y, z: window.position.z - (alongX ? 0 : half) },
-        to: { x: window.position.x + (alongX ? half : 0), y: window.position.y + window.height, z: window.position.z + (alongX ? 0 : half) },
-        depth: window.depth, variant: window.role, open: window.open,
+        id: `castle-${window.role}-window`,
+        object: Window.name,
+        from: {
+          x: window.position.x - (alongX ? half : 0),
+          y: window.position.y,
+          z: window.position.z - (alongX ? 0 : half),
+        },
+        to: {
+          x: window.position.x + (alongX ? half : 0),
+          y: window.position.y + window.height,
+          z: window.position.z + (alongX ? 0 : half),
+        },
+        depth: window.depth,
+        variant: window.role,
+        open: window.open,
         facing: (alongX ? Math.cos(window.yaw * Math.PI / 180) : Math.sin(window.yaw * Math.PI / 180)) >= 0 ? 1 : -1,
-    }, this.#materials.get("castleStoneMid"));
+      }, this.#materials.get("castleStoneMid"));
     }
     const batches = new Map();
     for (const box of windows.cutBoxes(geometry.boxes, 0.002)) {
@@ -895,8 +952,13 @@ export class CastleEntityBuilder {
     }
 
     // Solid masonry owns engine contact at every storey, including window glazing.
-    addGeneratedVoxelPhysics({ pc: this.#pc, parent: this.#entity, name: "Castle masonry",
-      voxels: createCastleMasonryVoxels(this.#cameraCollisionBlocks), friction: 0 });
+    addGeneratedVoxelPhysics({
+      pc: this.#pc,
+      parent: this.#entity,
+      name: "Castle masonry",
+      voxels: createCastleMasonryVoxels(this.#cameraCollisionBlocks),
+      friction: 0,
+    });
     this.#createInstancedBatches(batches);
     this.#createAnimatedDoors();
     if (metadata.runtime.terrace) {
@@ -945,11 +1007,11 @@ export class CastleEntityBuilder {
            *
            * @param {{x:number,y:number,z:number,halfX:number,halfY:number,halfZ:number}} block
            */
-          (block) => {
-            if (block.y + block.halfY <= point.y + 0.32 || block.y - block.halfY >= point.y + 1.6) { return false; }
-            return Math.hypot(Math.max(0, Math.abs(point.x - block.x) - block.halfX),
-              Math.max(0, Math.abs(point.z - block.z) - block.halfZ)) < 0.22;
-          }),
+            (block) => {
+              if (block.y + block.halfY <= point.y + 0.32 || block.y - block.halfY >= point.y + 1.6) { return false; }
+              return Math.hypot(Math.max(0, Math.abs(point.x - block.x) - block.halfX),
+                Math.max(0, Math.abs(point.z - block.z) - block.halfZ)) < 0.22;
+            }),
         clear: /**
          * @param {import("playcanvas").Vec3} point
          * @param {import("playcanvas").Entity} operator
@@ -969,7 +1031,7 @@ export class CastleEntityBuilder {
            *
            * @param {import("./CastleDoor.js").CastleDoor} door
            */
-          (door) => door.blocksCameraAt(point.x, point.y + 0.4, point.z, 0.22));
+            (door) => door.blocksCameraAt(point.x, point.y + 0.4, point.z, 0.22));
         },
       },
       servant: this.#servant,
@@ -1000,11 +1062,22 @@ export class CastleEntityBuilder {
          */ (aperture) => aperture.exteriorEntrance);
         CastleEntranceDetails.add(this.#pc, this.#modelLibrary, this.#entity,
           this.#buildPlan, this.#materials.get("castleStoneMid"));
-        const door = new CastleDoor({ pc: this.#pc, castlePosition: this.#position, door: doorData,
-          placement: { ...residential.origin, height: opening.height - 0.05, openingInset: 0, arched: true, swing: opening.swing },
+        const door = new CastleDoor({
+          pc: this.#pc,
+          castlePosition: this.#position,
+          door: doorData,
+          placement: {
+            ...residential.origin,
+            height: opening.height - 0.05,
+            openingInset: 0,
+            arched: true,
+            swing: opening.swing,
+          },
           bundledEntrance: true,
           masonryMaterials: this.#materials,
-          modelLibrary: this.#modelLibrary, woodMaterial: this.#materials.get("castleDoor") });
+          modelLibrary: this.#modelLibrary,
+          woodMaterial: this.#materials.get("castleDoor"),
+        });
         this.#entity.addChild(door.entity);
         this.#animatedDoors.push(door);
         continue;
@@ -1031,7 +1104,10 @@ export class CastleEntityBuilder {
       const door = new CastleDoor({
         pc: this.#pc,
         castlePosition: this.#position,
-        door: { side: this.#doors[0].side, width: upperDoor.width },
+        door: {
+          side: this.#doors[0].side,
+          width: upperDoor.width,
+        },
         placement: upperDoor,
         modelLibrary: this.#modelLibrary,
         woodMaterial: this.#materials.get("castleDoor"),

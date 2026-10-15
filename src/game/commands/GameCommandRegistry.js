@@ -42,8 +42,8 @@ export class GameCommandRegistry {
      * @param {{name: string}} left
      * @param {{name: string}} right
      */
-    (left, right) =>
-      left.name.localeCompare(right.name),
+      (left, right) =>
+        left.name.localeCompare(right.name),
     );
   }
 
@@ -111,6 +111,9 @@ export class GameCommandRegistry {
       value: invocation,
       writable: false,
     });
-    this.#installedProperties.set(command.name, { invocation, previous });
+    this.#installedProperties.set(command.name, {
+      invocation,
+      previous,
+    });
   }
 }

@@ -24,9 +24,16 @@ it("keeps the river open below high bridges while retaining deck collisions", ()
       destroy() {}
     },
     StandardMaterial: class { update() {} destroy() {} },
-    GraphNode: class {}, MeshInstance: class {}, Model: class {},
+    GraphNode: class {},
+    MeshInstance: class {},
+    Model: class {},
   };
-  const surface = new TerrainPhysicsSurface({ pc, app: { graphicsDevice: {} }, mapData, collisionWorld: null });
+  const surface = new TerrainPhysicsSurface({
+    pc,
+    app: { graphicsDevice: {} },
+    mapData,
+    collisionWorld: null,
+  });
   const triangles = new Ammo.btTriangleMesh();
   const vectors = [new Ammo.btVector3(), new Ammo.btVector3(), new Ammo.btVector3()];
   for (let index = 0; index < mesh.indices.length; index += 3) {

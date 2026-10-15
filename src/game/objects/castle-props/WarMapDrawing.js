@@ -53,6 +53,10 @@ export class WarMapDrawing {
         pixels.set([...color, 255], (y * size + x) * 4);
       }
     }
-    return { width: size, height: size, pixels };
+    return {
+      width: size,
+      height: size,
+      pixels,
+    };
   }
 }

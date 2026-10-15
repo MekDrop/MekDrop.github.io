@@ -58,7 +58,10 @@ export class Castle extends CastleEntityBuilder {
    * @returns {Readonly<Record<string, string>>}
    */
   static get textureUrls() {
-    return { castleCarpet: carpetTextureUrl, castleGarden: gardenTextureUrl };
+    return {
+      castleCarpet: carpetTextureUrl,
+      castleGarden: gardenTextureUrl,
+    };
   }
 
   /**
@@ -135,17 +138,24 @@ export class Castle extends CastleEntityBuilder {
     if (this.#regenerating || !this.entity) { return null; }
     this.#regenerating = true;
     try {
-      const buildPlan = await CastleGenerator.generate({ ...this.#definition, seed });
+      const buildPlan = await CastleGenerator.generate({
+        ...this.#definition,
+        seed,
+      });
       if (!this.entity) { return null; }
       const sign = this.#runtime.objects.getAll(SCENE_OBJECT_TYPE.MAP_OBJECT)
         .find(/**
          *
          * @param {import("../ObjectTypes.js").MapObjectLike} object
          */
-        (object) => object.definition?.id === this.#definition.seedSignId);
+          (object) => object.definition?.id === this.#definition.seedSignId);
       const previousText = sign?.definition.text;
       if (sign) { sign.text = `Seed ${seed}`; }
-      const replaced = this.#runtime.replaceObjectDefinition({ ...this.#definition, seed, buildPlan });
+      const replaced = this.#runtime.replaceObjectDefinition({
+        ...this.#definition,
+        seed,
+        buildPlan,
+      });
       if (!replaced && sign) { sign.text = previousText; }
       return replaced ? seed : null;
     } catch (error) {

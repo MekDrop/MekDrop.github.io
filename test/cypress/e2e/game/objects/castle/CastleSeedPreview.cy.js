@@ -36,7 +36,11 @@ async function walkTo(window, target, perspective) {
     }
     await new Promise((resolve) => window.setTimeout(resolve, 30));
   }
-  expect(reached, JSON.stringify({ target, position: driver.state().position, animation: driver.state().animation })).to.equal(true);
+  expect(reached, JSON.stringify({
+    target,
+    position: driver.state().position,
+    animation: driver.state().animation,
+  })).to.equal(true);
   driver.move(0, 0);
   await new Promise((resolve) => window.setTimeout(resolve, 100));
 }
@@ -59,7 +63,10 @@ describe("Castle seed preview", () => {
       const definitions = window.gameMovementTest.mapObjects();
       expect(definitions.filter((entry) => entry.object === "Castle")).to.have.length(1);
       seed=definitions.find((entry) => entry.object === "Castle").seed;
-      await walkTo(window,{x:3,z:-8},true);
+      await walkTo(window,{
+        x:3,
+        z:-8,
+      },true);
     });
     cy.window().should((window) => {
       const objects=window.gameMovementTest.mapObjects();
@@ -73,8 +80,14 @@ describe("Castle seed preview", () => {
     cy.wait(1500);
     cy.window().then({timeout:60000},async (window) => {
       expect(window.gameMovementTest.mapObjects().find((entry) => entry.object === "Castle").seed).to.equal(seed);
-      await walkTo(window,{x:0,z:-9},true);
-      await walkTo(window,{x:3,z:-8},true);
+      await walkTo(window,{
+        x:0,
+        z:-9,
+      },true);
+      await walkTo(window,{
+        x:3,
+        z:-8,
+      },true);
     });
     cy.window().should((window) => {
       const objects=window.gameMovementTest.mapObjects();

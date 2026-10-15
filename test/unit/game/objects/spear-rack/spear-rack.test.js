@@ -7,30 +7,54 @@ import * as pc from "playcanvas";
 const hooks = registerHooks({
   resolve(specifier, context, nextResolve) {
     if (specifier.endsWith(".glb?url")) {
-      return { url: `data:text/javascript,export default ${JSON.stringify(specifier)}`, shortCircuit: true };
+      return {
+        url: `data:text/javascript,export default ${JSON.stringify(specifier)}`,
+        shortCircuit: true,
+      };
     }
     if (specifier.endsWith("/AuthoredMeshPhysics.js")) {
-      return { url: 'data:text/javascript,export function addAuthoredMeshPhysics() {}', shortCircuit: true };
+      return {
+        url: 'data:text/javascript,export function addAuthoredMeshPhysics() {}',
+        shortCircuit: true,
+      };
     }
     return nextResolve(specifier, context);
   },
 });
 const { SpearRack } = await import("../../../../../src/game/objects/spear-rack/SpearRack.js");
 hooks.deregister();
-const app = { _entityIndex: {}, systems: { list: [] } };
+const app = {
+  _entityIndex: {},
+  systems: { list: [] },
+};
 
 function build(overrides = {}) {
   const models = [];
-  const rack = new SpearRack({ pc,
-    modelLibrary: { instantiate() {
-      const model = new pc.Entity("model", app);
-      for (const name of ["Rack rail", "Rack base", "Rack upright", "Rack foot", "Rack crossbeam", "Rack brace", "Rack guide", "Rack socket", "Rack spear"]) { model.addChild(new pc.Entity(name, app)); }
-      models.push(model);
-      return model;
-    } },
-    definition: { id: "rack", object: "SpearRack", position: { x: 0, y: 0, z: 0 }, ...overrides },
+  const rack = new SpearRack({
+    pc,
+    modelLibrary: {
+      instantiate() {
+        const model = new pc.Entity("model", app);
+        for (const name of ["Rack rail", "Rack base", "Rack upright", "Rack foot", "Rack crossbeam", "Rack brace", "Rack guide", "Rack socket", "Rack spear"]) { model.addChild(new pc.Entity(name, app)); }
+        models.push(model);
+        return model;
+      },
+    },
+    definition: {
+      id: "rack",
+      object: "SpearRack",
+      position: {
+        x: 0,
+        y: 0,
+        z: 0,
+      },
+      ...overrides,
+    },
   });
-  return { rack, models };
+  return {
+    rack,
+    models,
+  };
 }
 function snapshot(model) {
   return model.children.map(section => Array.from(section.getLocalTransform().data));
@@ -39,7 +63,10 @@ function snapshot(model) {
 
 
 test("one frame supports all three rows without per-row feet", () => {
-  const { rack, models } = build({ length: 1.6, width: 0.75 });
+  const { rack, models } = build({
+    length: 1.6,
+    width: 0.75,
+  });
   const parts = models[0].children;
   const count = prefix => parts.filter(part => part.name.startsWith(prefix)).length;
   assert.equal(count("Rack upright "), 4);
@@ -57,10 +84,23 @@ test("one frame supports all three rows without per-row feet", () => {
 });
 
 test("seed reproduces render, collision and reload, varying only spear heights", () => {
-  const dimensions = { length: 1.6, width: 0.75, height: 1.4 };
-  const first = build({ ...dimensions, spearSeed: 42 });
-  const second = build({ ...dimensions, spearSeed: 42 });
-  const other = build({ ...dimensions, spearSeed: 43 });
+  const dimensions = {
+    length: 1.6,
+    width: 0.75,
+    height: 1.4,
+  };
+  const first = build({
+    ...dimensions,
+    spearSeed: 42,
+  });
+  const second = build({
+    ...dimensions,
+    spearSeed: 42,
+  });
+  const other = build({
+    ...dimensions,
+    spearSeed: 43,
+  });
   assert.deepEqual(snapshot(first.models[0]), snapshot(first.models[1]));
   assert.deepEqual(snapshot(first.models[0]), snapshot(second.models[0]));
   assert.notDeepEqual(snapshot(first.models[0]), snapshot(other.models[0]));
@@ -70,8 +110,14 @@ test("seed reproduces render, collision and reload, varying only spear heights",
 });
 
 test("more length adds spears along continuous guide rails", () => {
-  const short = build({ length: 0.5, width: 0.25 });
-  const long = build({ length: 1.6, width: 0.25 });
+  const short = build({
+    length: 0.5,
+    width: 0.25,
+  });
+  const long = build({
+    length: 1.6,
+    width: 0.25,
+  });
   const spears = model => model.children.filter(part => part.name.startsWith("Rack spear "));
   assert.ok(spears(long.models[0]).length > spears(short.models[0]).length);
   assert.equal(new Set(spears(long.models[0]).map(part => part.getLocalPosition().z)).size, 1);
@@ -81,7 +127,10 @@ test("more length adds spears along continuous guide rails", () => {
 
 test("width adds rows only when they fit while retaining shared corner supports", () => {
   for (const [width, rows] of [[0.25, 1], [0.49, 1], [0.5, 2], [0.75, 3]]) {
-    const { rack, models } = build({ length: 1.6, width });
+    const { rack, models } = build({
+      length: 1.6,
+      width,
+    });
     assert.equal(models[0].children.filter(part => part.name.startsWith("Rack guide rail ")).length, rows);
     assert.equal(models[0].children.filter(part => part.name.startsWith("Rack foot ")).length, 4);
     rack.destroy();
@@ -109,10 +158,26 @@ function sourceName(name) {
 }
 
 test("actual exported part bounds fit the requested area, including braces", () => {
-  for (const dimensions of [{ length: 1.6, width: 0.75, height: 1.2 },
-    { length: 0.5, width: 0.25, height: 1.2 },
-    { length: 0.04, width: 0.03, height: 0.02 },
-    { length: 3.8, width: 0.5, height: 1.7 }]) {
+  for (const dimensions of [{
+    length: 1.6,
+    width: 0.75,
+    height: 1.2,
+  },
+  {
+    length: 0.5,
+    width: 0.25,
+    height: 1.2,
+  },
+  {
+    length: 0.04,
+    width: 0.03,
+    height: 0.02,
+  },
+  {
+    length: 3.8,
+    width: 0.5,
+    height: 1.7,
+  }]) {
     const { rack, models } = build(dimensions);
     for (const part of models[0].children) {
       const bounds = assetBounds.get(sourceName(part.name));
@@ -146,8 +211,16 @@ test("invalid and excessive dimensions allocate no parts", () => {
 });
 
 test("legacy width/depth maps retain the equivalent length/width dimensions", () => {
-  const legacy = build({ width: 1.6, depth: 0.6, spearSeed: 42 });
-  const current = build({ length: 1.6, width: 0.6, spearSeed: 42 });
+  const legacy = build({
+    width: 1.6,
+    depth: 0.6,
+    spearSeed: 42,
+  });
+  const current = build({
+    length: 1.6,
+    width: 0.6,
+    spearSeed: 42,
+  });
   assert.deepEqual(snapshot(legacy.models[0]), snapshot(current.models[0]));
   legacy.rack.destroy(); current.rack.destroy();
 });

@@ -91,8 +91,20 @@ export class WoodenFloor {
     this.#islandRoots.addChild(this.#visual, definition.tile);
     const support = new pc.Entity(`${definition.id} support`);
     this.#islandRoots.addChild(support, definition.tile);
-    addGeneratedVoxelPhysics({ pc, parent: support, name: definition.id,
-      voxels: [{ x, y: from.y - 0.03, z, width, height: 0.06, depth }], friction: 0.6 });
+    addGeneratedVoxelPhysics({
+      pc,
+      parent: support,
+      name: definition.id,
+      voxels: [{
+        x,
+        y: from.y - 0.03,
+        z,
+        width,
+        height: 0.06,
+        depth,
+      }],
+      friction: 0.6,
+    });
   }
 
   get entity() { return this.#entity; }

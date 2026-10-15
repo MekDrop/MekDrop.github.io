@@ -38,8 +38,16 @@ export class Bowl extends AbstractCastleProp {
     const packedItems = [];
     const { runtime, definition } = this.#options;
     for (const [index, item] of (definition.items ?? []).entries()) {
-      const object = runtime.createObject({ ...item, id: `${definition.id}-item-${index}`,
-        position: { x: 0, y: 0, z: 0 }, rotation: item.rotation ?? 0 });
+      const object = runtime.createObject({
+        ...item,
+        id: `${definition.id}-item-${index}`,
+        position: {
+          x: 0,
+          y: 0,
+          z: 0,
+        },
+        rotation: item.rotation ?? 0,
+      });
       model.addChild(object.entity);
       object.onSceneReady?.();
       // Retain a frozen visual snapshot and release the original object's behavior,

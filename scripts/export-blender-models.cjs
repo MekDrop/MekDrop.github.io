@@ -226,7 +226,10 @@ async function main() {
   let exported = 0;
   let skipped = 0;
   let firstError = null;
-  progressBar.start(models.length, 0, { exported, skipped });
+  progressBar.start(models.length, 0, {
+    exported,
+    skipped,
+  });
 
   async function worker() {
     while (nextIndex < models.length && !firstError) {
@@ -252,7 +255,10 @@ async function main() {
           }
         }
         completed += 1;
-        progressBar.update(completed, { exported, skipped });
+        progressBar.update(completed, {
+          exported,
+          skipped,
+        });
         if (!process.stdout.isTTY && completed < models.length) {
           progressBar.render();
         }

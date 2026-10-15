@@ -12,7 +12,10 @@ describe("Tripo castle props", () => {
         cy.wrap(engineUrl).as("engineUrl");
       });
       cy.viewport(1280, 720);
-      cy.intercept("https://www.googletagmanager.com/**", { statusCode: 204, body: "" });
+      cy.intercept("https://www.googletagmanager.com/**", {
+        statusCode: 204,
+        body: "",
+      });
       cy.visit(`/map/test_castle-props-${batch}?camera-test`);
       cy.get('.background-canvas[data-game-ready="true"]', { timeout: 60000 })
         .should("have.attr", "data-map-name", `test_castle-props-${batch}`);

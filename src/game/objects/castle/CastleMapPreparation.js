@@ -49,7 +49,7 @@ export class CastleMapPreparation {
      *
      * @param {import("../ObjectTypes.js").MapObjectDefinition} definition
      */
-    (definition) => CastleMapPreparation.#exteriorStairFlights(definition.buildPlan, mapData));
+      (definition) => CastleMapPreparation.#exteriorStairFlights(definition.buildPlan, mapData));
     CastleMapPreparation.#buryBasements(mapData, castles, flights);
     const layouts = castles.map(
       /**
@@ -74,7 +74,7 @@ export class CastleMapPreparation {
          *
          * @param {{minX:number,maxX:number,minZ:number,maxZ:number,floorY:number}} area
          */
-        (area) => x + halfX > area.minX && x - halfX < area.maxX &&
+          (area) => x + halfX > area.minX && x - halfX < area.maxX &&
           z + halfZ > area.minZ && z - halfZ < area.maxZ && y + halfY > area.floorY + 0.000001);
         if (flight) {
           const col = definition.tile?.col ?? Math.round(x + (mapData.cols - 1) / 2);
@@ -84,7 +84,13 @@ export class CastleMapPreparation {
           if (mapData.grid?.[row]?.[col] === 1 && mapData.heightmap?.[row]?.[col] > flight.floorY) {
             mapData.heightmap[row][col] = flight.floorY;
             if (mapData.tileMeta?.[row]) {
-              mapData.tileMeta[row][col] = { ...mapData.tileMeta[row][col], baseHeight: flight.floorY, surfaceType: "EARTH", shape: "FLAT", slope: undefined };
+              mapData.tileMeta[row][col] = {
+                ...mapData.tileMeta[row][col],
+                baseHeight: flight.floorY,
+                surfaceType: "EARTH",
+                shape: "FLAT",
+                slope: undefined,
+              };
             }
           }
           return false;
@@ -108,7 +114,7 @@ export class CastleMapPreparation {
      * @param {import("../ObjectTypes.js").MapObjectDefinition} definition
      * @param {number} index
      */
-    (definition, index) => createCastleGroundCuts(definition.buildPlan, layouts[index]));
+      (definition, index) => createCastleGroundCuts(definition.buildPlan, layouts[index]));
     const cutsByTile = new Map();
     for (const cut of groundCuts) {
       for (let row = Math.max(0, Math.floor(cut.minZ + (mapData.rows - 1) / 2 - 1)); row <= Math.min(mapData.rows - 1, Math.ceil(cut.maxZ + (mapData.rows - 1) / 2 + 1)); row += 1) {
@@ -127,20 +133,20 @@ export class CastleMapPreparation {
      *
      * @param {import("../ObjectTypes.js").MapObjectDefinition} definition
      */
-    (definition) => {
-      const tile = definition.tile;
-      return clipCastleTerrainRecord(definition, tile ? cutsByTile.get(`${tile.col},${tile.row}`) ?? [] : groundCuts);
-    });
+      (definition) => {
+        const tile = definition.tile;
+        return clipCastleTerrainRecord(definition, tile ? cutsByTile.get(`${tile.col},${tile.row}`) ?? [] : groundCuts);
+      });
     const turfTiles = new Set(mapData.objects.filter(/**
      *
      * @param {import("../ObjectTypes.js").MapObjectDefinition} definition
      */
-    (definition) => definition.generated && definition.object === "Grass" && definition.tile)
+      (definition) => definition.generated && definition.object === "Grass" && definition.tile)
       .map(/**
        *
        * @param {import("../ObjectTypes.js").MapObjectDefinition} definition
        */
-      (definition) => `${definition.tile.col},${definition.tile.row}`));
+        (definition) => `${definition.tile.col},${definition.tile.row}`));
     // Foundation ownership can extend beyond the castle walls. Publish every
     // surviving turf tile, including lawn untouched by excavation, to the canopy.
     for (const key of new Set([...cutsByTile.keys(), ...turfTiles])) {
@@ -154,9 +160,13 @@ export class CastleMapPreparation {
        *
        * @param {{minX:number,maxX:number,minZ:number,maxZ:number}} cut
        */
-      (cut) => x + 0.5 > cut.minX && x - 0.5 < cut.maxX && z + 0.5 > cut.minZ && z - 0.5 < cut.maxZ);
-      mapData.tileMeta[row][col] = { ...metadata, terrainCutouts, exposedTerrain: turf,
-        surfaceType: intersectsTerrain && !turf && [1, 3, 4].includes(mapData.grid[row][col]) ? "STONE" : metadata.surfaceType };
+        (cut) => x + 0.5 > cut.minX && x - 0.5 < cut.maxX && z + 0.5 > cut.minZ && z - 0.5 < cut.maxZ);
+      mapData.tileMeta[row][col] = {
+        ...metadata,
+        terrainCutouts,
+        exposedTerrain: turf,
+        surfaceType: intersectsTerrain && !turf && [1, 3, 4].includes(mapData.grid[row][col]) ? "STONE" : metadata.surfaceType,
+      };
     }
     CastleGroundWeathering.apply(mapData, castles, groundCuts);
     // Decoration was seeded before the authored footprint was excavated. Keep
@@ -233,25 +243,25 @@ export class CastleMapPreparation {
           if (!inReservation && !supportCuts.some(/**
            * @param {import("./CastleGroundCuts.js").GroundCut} cut
            */
-          (cut) => x + 0.5 > cut.minX - apronWidth && x - 0.5 < cut.maxX + apronWidth &&
+            (cut) => x + 0.5 > cut.minX - apronWidth && x - 0.5 < cut.maxX + apronWidth &&
             z + 0.5 > cut.minZ - apronWidth && z - 0.5 < cut.maxZ + apronWidth)) continue;
           if (mapData.riverData?.some(/**
            * @param {{cells:Array<{col:number,row:number}>}} river
            */
-          (river) => river.cells.some(/**
+            (river) => river.cells.some(/**
            * @param {{col:number,row:number}} cell
            */
-          (cell) => cell.col === col && cell.row === row))) continue;
+              (cell) => cell.col === col && cell.row === row))) continue;
           if (flights.some(/**
            *
            * @param {{minX:number,maxX:number,minZ:number,maxZ:number}} flight
            */
-          (flight) => x + 0.5 > flight.minX && x - 0.5 < flight.maxX &&
+            (flight) => x + 0.5 > flight.minX && x - 0.5 < flight.maxX &&
             z + 0.5 > flight.minZ && z - 0.5 < flight.maxZ)) continue;
           const nearWall = supportCuts.some(/**
            * @param {import("./CastleGroundCuts.js").GroundCut} cut
            */
-          (cut) => x + 0.5 > cut.minX - 0.4 && x - 0.5 < cut.maxX + 0.4 &&
+            (cut) => x + 0.5 > cut.minX - 0.4 && x - 0.5 < cut.maxX + 0.4 &&
             z + 0.5 > cut.minZ - 0.4 && z - 0.5 < cut.maxZ + 0.4);
           const target = Math.max(1, foundationHeight - (nearWall || inReservation || edgeWave > 0.7 ? 0 : 1));
           if (!(mapData.heightmap?.[row]?.[col] < target)) continue;
@@ -261,8 +271,8 @@ export class CastleMapPreparation {
            * @param {number} height
            * @param {import("../ObjectTypes.js").MapObjectDefinition} record
            */
-          (height, record) => Math.max(height,
-            record.position.y + (record.geometry?.method === "addBoxMatrix" ? record.geometry.args[7] / 2 : 0.5)), 0);
+            (height, record) => Math.max(height,
+              record.position.y + (record.geometry?.method === "addBoxMatrix" ? record.geometry.args[7] / 2 : 0.5)), 0);
           for (const record of records) {
             if (record.object !== "Grass") continue;
             record.object = "Earth";
@@ -272,14 +282,33 @@ export class CastleMapPreparation {
           const firstLevel = mapData.grid[row][col] === 0 ? -2 - Math.round((edgeWave + 2) / 2) : Math.ceil(previous);
           for (let level = firstLevel; level < target; level += 1) {
             const turf = level === target - 1;
-            mapData.objects.push({ id: `castle-soil-${col}-${row}-${level}`, generated: true,
-              object: turf ? "Grass" : "Earth", tile: { col, row }, position: { x, y: level + 0.5, z },
-              geometry: { method: "addCubeMatrix", args: [turf ? `grass:${col}:${row}:${level}` : "earth", `${turf ? "turfSide" : "earthSide"}:${col}:${row}:${level}`, x, level + 0.5, z, "full", "earth", turf ? GRASS_SURFACE_LIFT : 0] } });
+            mapData.objects.push({
+              id: `castle-soil-${col}-${row}-${level}`,
+              generated: true,
+              object: turf ? "Grass" : "Earth",
+              tile: {
+                col,
+                row,
+              },
+              position: {
+                x,
+                y: level + 0.5,
+                z,
+              },
+              geometry: {
+                method: "addCubeMatrix",
+                args: [turf ? `grass:${col}:${row}:${level}` : "earth", `${turf ? "turfSide" : "earthSide"}:${col}:${row}:${level}`, x, level + 0.5, z, "full", "earth", turf ? GRASS_SURFACE_LIFT : 0],
+              },
+            });
           }
           mapData.grid[row][col] = mapData.grid[row][col] === 0 ? 1 : mapData.grid[row][col];
           mapData.heightmap[row][col] = target;
           if (mapData.tileMeta?.[row]) mapData.tileMeta[row][col] = {
-            ...mapData.tileMeta[row][col], baseHeight: target, surfaceType: "GRASS", shape: "FLAT", slope: undefined,
+            ...mapData.tileMeta[row][col],
+            baseHeight: target,
+            surfaceType: "GRASS",
+            shape: "FLAT",
+            slope: undefined,
           };
         }
       }
@@ -298,12 +327,12 @@ export class CastleMapPreparation {
     return entries.map(/**
      * @param {import("../ObjectTypes.js").CastleDoorDefinition} door
      */ (door) => {
-      const flight = createCastleStairFlight(position, door, 0.25, mapData);
-      if (flight) {
-        door.stairOffset = flight.offset;
-        door.stairWidth = flight.width;
-      }
-      return flight;
-    }).filter(Boolean);
+        const flight = createCastleStairFlight(position, door, 0.25, mapData);
+        if (flight) {
+          door.stairOffset = flight.offset;
+          door.stairWidth = flight.width;
+        }
+        return flight;
+      }).filter(Boolean);
   }
 }

@@ -35,7 +35,10 @@ export class WalkingPaths {
       if (upper && meta.overpass) {
         return { height: meta.overpass.elevation };
       }
-      return { height: map.heightmap[row][col], slope: meta.slope };
+      return {
+        height: map.heightmap[row][col],
+        slope: meta.slope,
+      };
     };
     /**
      * @param {{height: number, slope?: {lowHeight: number, highHeight: number, riseDirection: string}}} tile
@@ -45,7 +48,12 @@ export class WalkingPaths {
     const heightAt = (tile, dc, dr) => {
       if (!tile.slope) { return tile.height; }
       const { lowHeight, highHeight, riseDirection } = tile.slope;
-      const offset = { EAST: dc, WEST: -dc, SOUTH: dr, NORTH: -dr }[riseDirection];
+      const offset = {
+        EAST: dc,
+        WEST: -dc,
+        SOUTH: dr,
+        NORTH: -dr,
+      }[riseDirection];
       return (lowHeight + highHeight) / 2 + offset * (highHeight - lowHeight);
     };
     /**
@@ -57,7 +65,11 @@ export class WalkingPaths {
       const key = `${col * 2},${row * 2},${Math.round(elevation * 1000) / 1000}`;
       if (!graph.has(key)) {
         graph.set(key, new Set());
-        points.set(key, { col, row, elevation });
+        points.set(key, {
+          col,
+          row,
+          elevation,
+        });
       }
       return key;
     };
@@ -79,15 +91,15 @@ export class WalkingPaths {
              *
              * @param {WalkingSurface} tile
              */
-            (tile) => !tile)) { continue; }
+              (tile) => !tile)) { continue; }
             // Surfaces must agree at the center and across both lanes.
             const heights = tiles.map(/**
              *
              * @param {WalkingSurface} tile
              * @param {number} i
              */
-            (tile, i) => heightAt(tile,
-              i % 2 === 0 ? 0.5 : -0.5, i < 2 ? 0.5 : -0.5));
+              (tile, i) => heightAt(tile,
+                i % 2 === 0 ? 0.5 : -0.5, i < 2 ? 0.5 : -0.5));
             if (Math.max(...heights) - Math.min(...heights) > 0.001) { continue; }
             const firstTiles = vertical ? [0, 1] : [0, 2];
             const secondTiles = vertical ? [2, 3] : [1, 3];
@@ -95,16 +107,16 @@ export class WalkingPaths {
              *
              * @param {number} i
              */
-            (i) => heightAt(tiles[i],
-              vertical ? (i % 2 === 0 ? 0.5 : -0.5) : 0,
-              vertical ? 0 : (i < 2 ? 0.5 : -0.5)));
+              (i) => heightAt(tiles[i],
+                vertical ? (i % 2 === 0 ? 0.5 : -0.5) : 0,
+                vertical ? 0 : (i < 2 ? 0.5 : -0.5)));
             const secondHeights = secondTiles.map(/**
              *
              * @param {number} i
              */
-            (i) => heightAt(tiles[i],
-              vertical ? (i % 2 === 0 ? 0.5 : -0.5) : 0,
-              vertical ? 0 : (i < 2 ? 0.5 : -0.5)));
+              (i) => heightAt(tiles[i],
+                vertical ? (i % 2 === 0 ? 0.5 : -0.5) : 0,
+                vertical ? 0 : (i < 2 ? 0.5 : -0.5)));
             if (Math.abs(firstHeights[0] - firstHeights[1]) > 0.001 ||
               Math.abs(secondHeights[0] - secondHeights[1]) > 0.001) { continue; }
             const center = node(col + 0.5, row + 0.5, heights[0]);
@@ -121,8 +133,8 @@ export class WalkingPaths {
      * @param {string} options."0"
      * @param {WalkingPoint} options."1"
      */
-    ([, point]) =>
-      point.col === door.centerCol && point.row === door.centerRow)?.[0] : null;
+      ([, point]) =>
+        point.col === door.centerCol && point.row === door.centerRow)?.[0] : null;
     const distances = new Map(target ? [[target, 0]] : []);
     const queue = target ? [target] : [];
     for (let index = 0; index < queue.length; index++) {
@@ -139,40 +151,47 @@ export class WalkingPaths {
      * @param {WalkingEntry} entry
      * @param {number} pathIdx
      */
-    (entry, pathIdx) => {
-      const row = entry.rows.reduce(/**
+      (entry, pathIdx) => {
+        const row = entry.rows.reduce(/**
        *
        * @param {number} sum
        * @param {number} value
        */
-      (sum, value) => sum + value, 0) / entry.rows.length;
-      let key = [...points].find(/**
+          (sum, value) => sum + value, 0) / entry.rows.length;
+        let key = [...points].find(/**
        *
        * @param {[string, WalkingPoint]} options
        * @param {string} options."0"
        * @param {WalkingPoint} options."1"
        */
-      ([candidate, point]) => point.col === entry.col &&
+          ([candidate, point]) => point.col === entry.col &&
         point.row === row && distances.has(candidate))?.[0];
-      const route = [];
-      while (key) {
-        route.push(points.get(key));
-        key = [...graph.get(key)].filter(/**
+        const route = [];
+        while (key) {
+          route.push(points.get(key));
+          key = [...graph.get(key)].filter(/**
          *
          * @param {string} neighbor
          */
-        (neighbor) =>
-          distances.get(neighbor) === distances.get(key) - 1).sort()[0];
-      }
-      return { pathIdx, entry, route };
-    });
+            (neighbor) =>
+              distances.get(neighbor) === distances.get(key) - 1).sort()[0];
+        }
+        return {
+          pathIdx,
+          entry,
+          route,
+        };
+      });
     const arrowData = new RouteDataBuilder().buildArrowData(paths.map(/**
      *
      * @param {{route: WalkingPoint[]}} path
      */
-    (path) => path.route));
+      (path) => path.route));
     map.paths = paths;
     map.arrowData = arrowData;
-    return { graph, distances };
+    return {
+      graph,
+      distances,
+    };
   }
 }

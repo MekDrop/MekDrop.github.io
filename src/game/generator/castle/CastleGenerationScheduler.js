@@ -60,13 +60,13 @@ export class CastleGenerationScheduler {
      *
      * @param {(value?: (value?: void) => void) => void} resolve
      */
-    (resolve) => {
-      if (typeof globalThis.requestAnimationFrame === "function") {
-        globalThis.requestAnimationFrame(() => resolve());
-        return;
-      }
-      globalThis.setTimeout(resolve, 0);
-    });
+      (resolve) => {
+        if (typeof globalThis.requestAnimationFrame === "function") {
+          globalThis.requestAnimationFrame(() => resolve());
+          return;
+        }
+        globalThis.setTimeout(resolve, 0);
+      });
     this.throwIfAborted();
   }
 }

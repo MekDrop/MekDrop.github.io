@@ -32,16 +32,37 @@ export function createCliffVineGrowth({ height, seed }) {
     });
     const steps = Math.ceil(length / 0.075);
     const root = point(0);
-    stems.push({ start: { x: root.x, y: 0.006, z: -0.06 }, end: root });
+    stems.push({
+      start: {
+        x: root.x,
+        y: 0.006,
+        z: -0.06,
+      },
+      end: root,
+    });
     for (let index = 0; index < steps; index++) {
-      stems.push({ start: point(index * length / steps), end: point((index + 1) * length / steps) });
+      stems.push({
+        start: point(index * length / steps),
+        end: point((index + 1) * length / steps),
+      });
     }
     let index = 0;
     for (let distance = 0.06; distance < length - 0.13; distance += random.rng(11, 17) / 100) {
       const position = point(distance);
       const scale = random.rng(78, 108) / 100;
-      leaves.push({ ...position, scale, shade: random.rng(0, 2), pitch: 0, yaw: 0, roll: (index++ % 2 ? -1 : 1) * random.rng(20, 55) });
+      leaves.push({
+        ...position,
+        scale,
+        shade: random.rng(0, 2),
+        pitch: 0,
+        yaw: 0,
+        roll: (index++ % 2 ? -1 : 1) * random.rng(20, 55),
+      });
     }
   }
-  return { stems, leaves, crownScale };
+  return {
+    stems,
+    leaves,
+    crownScale,
+  };
 }

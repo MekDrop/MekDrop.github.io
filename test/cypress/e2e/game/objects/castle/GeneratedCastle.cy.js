@@ -40,7 +40,11 @@ async function walkTo(window, target, perspective) {
     }
     await new Promise((resolve) => window.setTimeout(resolve, 30));
   }
-  expect(reached, JSON.stringify({ target, position: driver.state().position, animation: driver.state().animation })).to.equal(true);
+  expect(reached, JSON.stringify({
+    target,
+    position: driver.state().position,
+    animation: driver.state().animation,
+  })).to.equal(true);
   driver.move(0, 0);
   await new Promise((resolve) => window.setTimeout(resolve, 100));
 }
@@ -56,9 +60,18 @@ describe("Generated castle repairs", () => {
     ready(); cy.wait(5000);
     cy.window().then((window) => firstPerson(window)); cy.wait(1000);
     cy.window().then({timeout:60000}, async (window) => {
-      await walkTo(window,{x:2.375,z:1},true);
-      await walkTo(window,{x:2.375,z:-2},true);
-      await walkTo(window,{x:2.375,z:1},true);
+      await walkTo(window,{
+        x:2.375,
+        z:1,
+      },true);
+      await walkTo(window,{
+        x:2.375,
+        z:-2,
+      },true);
+      await walkTo(window,{
+        x:2.375,
+        z:1,
+      },true);
     });
   });
   it("walks through private room entrances in first person", () => {
@@ -73,9 +86,18 @@ describe("Generated castle repairs", () => {
       const room = plan.layout.roomPlan.rooms.service;
       const door = plan.layout.roomPlan.doorways.find((entry) => entry.roomId === "service" && entry.axis === "z");
       const libraryDoor = plan.metadata.runtime.roomDoors.find((entry) => entry.roomId === "library" && entry.y === layout.origin.y && entry.yaw === 0);
-      await walkTo(window, { x: libraryDoor.x, z: libraryDoor.z + 0.65 }, true);
-      await walkTo(window, { x: libraryDoor.x, z: libraryDoor.z - 0.75 }, true);
-      await walkTo(window, { x: libraryDoor.x, z: -2.9 }, true);
+      await walkTo(window, {
+        x: libraryDoor.x,
+        z: libraryDoor.z + 0.65,
+      }, true);
+      await walkTo(window, {
+        x: libraryDoor.x,
+        z: libraryDoor.z - 0.75,
+      }, true);
+      await walkTo(window, {
+        x: libraryDoor.x,
+        z: -2.9,
+      }, true);
       const start = layout.toWorld(0, 1.1);
       await walkTo(window, start, true);
       const side = layout.toWorld(2.8, 1.1);
@@ -86,7 +108,10 @@ describe("Generated castle repairs", () => {
       const yaw = Math.atan2(camera.direction.x, camera.direction.z) * 180 / Math.PI;
       const pitch = Math.asin(camera.direction.y) * 180 / Math.PI;
       window.gameCameraTest.lookFirstPersonBy(-yaw, pitch);
-      window.castleRepairRoom = { room, layout };
+      window.castleRepairRoom = {
+        room,
+        layout,
+      };
     });
     cy.wait(1000);
     cy.get(".background-canvas").screenshot("castle-service-door-first-person");
@@ -118,8 +143,14 @@ describe("Generated castle repairs", () => {
     cy.wait(700);
     cy.get(".background-canvas").screenshot("castle-gallery-exterior-first-person-turned");
     cy.window().then({ timeout: 120000 }, async (window) => {
-      await walkTo(window, { x: 0, z: -9 }, true);
-      await walkTo(window, { x: 0, z: -4.7 }, true);
+      await walkTo(window, {
+        x: 0,
+        z: -9,
+      }, true);
+      await walkTo(window, {
+        x: 0,
+        z: -4.7,
+      }, true);
       const camera = window.gameCameraTest.state().firstPersonCamera;
       const yaw = Math.atan2(camera.direction.x, camera.direction.z) * 180 / Math.PI;
       const pitch = Math.asin(camera.direction.y) * 180 / Math.PI;

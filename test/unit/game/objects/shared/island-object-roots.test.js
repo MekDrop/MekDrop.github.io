@@ -7,7 +7,10 @@ it("preserves prop transforms and follows only the owning island", () => {
   const parent = new pc.Entity("map");
   parent.setLocalPosition(8, 9, 10);
   const roots = new IslandObjectRoots(pc, parent, {
-    islandConnectorData: { nearIsland: ["2,3"], farIsland: ["7,6"] },
+    islandConnectorData: {
+      nearIsland: ["2,3"],
+      farIsland: ["7,6"],
+    },
   });
   const near = new pc.Entity("tree");
   const far = new pc.Entity("rock mesh with map-space vertices");
@@ -16,9 +19,18 @@ it("preserves prop transforms and follows only the owning island", () => {
   near.setLocalEulerAngles(0, 37, 0);
   near.setLocalScale(2, 3, 4);
   const rotation = near.getLocalRotation().clone();
-  roots.addChild(near, { col: 2, row: 3 });
-  roots.addChild(far, { col: 7, row: 6 });
-  roots.addChild(unowned, { col: 0, row: 0 });
+  roots.addChild(near, {
+    col: 2,
+    row: 3,
+  });
+  roots.addChild(far, {
+    col: 7,
+    row: 6,
+  });
+  roots.addChild(unowned, {
+    col: 0,
+    row: 0,
+  });
   for (const [nearOffset, farOffset] of [[0.5, -0.25], [-0.1, 0.75], [0, 0]]) {
     roots.setOffsets(nearOffset, farOffset);
     assert.deepEqual(near.getLocalPosition().toArray(), [-4, 2, 3]);
@@ -32,7 +44,10 @@ it("preserves prop transforms and follows only the owning island", () => {
   const patch = new pc.Entity("dirt patch");
   roots.setOffsets(0.5, -0.25);
   patch.setLocalPosition(1, 2, 3);
-  roots.addChild(patch, { col: 7, row: 6 });
+  roots.addChild(patch, {
+    col: 7,
+    row: 6,
+  });
   assert.equal(patch.getPosition().y, 10.75);
   parent.destroy();
 });
@@ -42,7 +57,10 @@ it("keeps single-island props directly under their original parent", () => {
   const roots = new IslandObjectRoots(pc, parent);
   const prop = new pc.Entity();
   prop.setLocalPosition(1, 2, 3);
-  roots.addChild(prop, { col: 2, row: 3 });
+  roots.addChild(prop, {
+    col: 2,
+    row: 3,
+  });
   roots.setOffsets(1, -1);
   assert.equal(prop.parent, parent);
   assert.deepEqual(prop.getLocalPosition().toArray(), [1, 2, 3]);
@@ -56,7 +74,10 @@ it("moves props on the third island independently", () => {
   });
   const prop = new pc.Entity();
   prop.setLocalPosition(0, 4, 0);
-  roots.addChild(prop, { col: 2, row: 0 });
+  roots.addChild(prop, {
+    col: 2,
+    row: 0,
+  });
   roots.setOffsets(0.1, 0.2, [0.1, 0.2, 0.3]);
   assert.ok(Math.abs(prop.getPosition().y - 4.3) < 1e-6);
   parent.destroy();

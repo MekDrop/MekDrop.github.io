@@ -7,11 +7,20 @@ import { createCliffVineLayout } from "../../../../../src/game/objects/vegetatio
 describe("generated cliff vines", () => {
   it("fills the exposed grass gap between existing patches with varying partial lengths", () => {
     const map = {
-      rows: 2, cols: 5, mapName: "vine-gap",
+      rows: 2,
+      cols: 5,
+      mapName: "vine-gap",
       grid: [Array(5).fill(TileType.GRASS), Array(5).fill(TileType.GRASS)],
       heightmap: [Array(5).fill(6), Array(5).fill(0)],
-      cliffVineData: [0, 4].map((col) => ({ col, row: 0, direction: "SOUTH",
-        topY: 6, bottomY: 5.4, offset: 0, width: 0.16 })),
+      cliffVineData: [0, 4].map((col) => ({
+        col,
+        row: 0,
+        direction: "SOUTH",
+        topY: 6,
+        bottomY: 5.4,
+        offset: 0,
+        width: 0.16,
+      })),
     };
     const faces = createCliffVineLayout(map);
     assert.deepEqual(faces.map(({ col }) => col).sort(), [0, 1, 2, 3, 4]);
@@ -22,13 +31,22 @@ describe("generated cliff vines", () => {
   });
   it("extends vines down the floating island underside even with a one-tile surface elevation", () => {
     const map = {
-      rows: 3, cols: 3, mapName: "underside-vines",
+      rows: 3,
+      cols: 3,
+      mapName: "underside-vines",
       grid: [[TileType.WATER, TileType.WATER, TileType.WATER],
         [TileType.WATER, TileType.GRASS, TileType.WATER],
         [TileType.WATER, TileType.WATER, TileType.WATER]],
       heightmap: [[0, 0, 0], [0, 1, 0], [0, 0, 0]],
-      cliffVineData: [{ col: 1, row: 1, direction: "SOUTH", topY: 0.9,
-        bottomY: 0.3, offset: 0.1, width: 0.16 }],
+      cliffVineData: [{
+        col: 1,
+        row: 1,
+        direction: "SOUTH",
+        topY: 0.9,
+        bottomY: 0.3,
+        offset: 0.1,
+        width: 0.16,
+      }],
     };
     const [face] = createCliffVineLayout(map);
     assert.ok(face.bottomY < 0.3);
@@ -36,10 +54,18 @@ describe("generated cliff vines", () => {
   });
   it("extends tall cliffs and only a seed-stable share of two-tile cliffs", () => {
     const map = {
-      rows: 3, cols: 3,
+      rows: 3,
+      cols: 3,
       heightmap: [[0, 0, 0], [0, 3, 0], [0, 1, 0]],
-      cliffVineData: [{ col: 1, row: 1, direction: "SOUTH", topY: 3,
-        bottomY: 2.4, offset: 0.1, width: 0.16 }],
+      cliffVineData: [{
+        col: 1,
+        row: 1,
+        direction: "SOUTH",
+        topY: 3,
+        bottomY: 2.4,
+        offset: 0.1,
+        width: 0.16,
+      }],
     };
     let extended = 0;
     for (let seed = 0; seed < 1000; seed++) {
@@ -61,10 +87,18 @@ describe("generated cliff vines", () => {
   });
   it("rejects faces buried by changed terrain and clamps anchors away from corners", () => {
     const map = {
-      cols: 3, rows: 3,
+      cols: 3,
+      rows: 3,
       heightmap: [[0, 0, 0], [0, 3, 0], [0, 3, 0]],
-      cliffVineData: [{ col: 1, row: 1, direction: "SOUTH", topY: 3,
-        bottomY: 1, offset: 0.22, width: 0.16 }],
+      cliffVineData: [{
+        col: 1,
+        row: 1,
+        direction: "SOUTH",
+        topY: 3,
+        bottomY: 1,
+        offset: 0.22,
+        width: 0.16,
+      }],
     };
     assert.deepEqual(createCliffVineLayout(map), []);
     map.heightmap[2][1] = 0.5;

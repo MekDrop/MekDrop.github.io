@@ -4,7 +4,10 @@ import { RecordingAudio } from "../../../../../../../src/game/plugins/game-canva
 
 function setup() {
   const destination = { stream: { getTracks: () => [track] } };
-  const track = { stopped: false, stop() { this.stopped = true; } };
+  const track = {
+    stopped: false,
+    stop() { this.stopped = true; },
+  };
   const node = () => ({
     targets: new Set(),
     connect(target) { this.targets.add(target); },
@@ -16,7 +19,12 @@ function setup() {
       }
     },
   });
-  const silence = { ...node(), offset: { value: 1 }, start() {}, stop() {} };
+  const silence = {
+    ...node(),
+    offset: { value: 1 },
+    start() {},
+    stop() {},
+  };
   const context = {
     createMediaStreamDestination: () => destination,
     createConstantSource: () => silence,
@@ -24,14 +32,24 @@ function setup() {
     async resume() {},
   };
   const slot = { instances: [] };
-  const app = { soundManager: { context }, root: { findComponents: () => [{ slots: { tone: slot } }] } };
+  const app = {
+    soundManager: { context },
+    root: { findComponents: () => [{ slots: { tone: slot } }] },
+  };
   const instance = (external = null) => ({
     nodes: [external, external],
     getExternalNodes() { return this.nodes; },
     setExternalNodes(first, last) { this.nodes = [first, last]; },
     clearExternalNodes() { this.nodes = [null, null]; },
   });
-  return { app, slot, instance, node, destination, track };
+  return {
+    app,
+    slot,
+    instance,
+    node,
+    destination,
+    track,
+  };
 }
 
 it("records existing and newly playing sounds and restores their output routing", () => {

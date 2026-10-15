@@ -538,23 +538,23 @@ export class DebugFpsHud {
      * @param {Array} options."3"
      * @param {number} index
      */
-    ([label, framesPerSecond, usedMemory, color], index) => {
-      const y = ROW_BASELINES[index];
-      context.textAlign = "left";
-      context.font = gameUiTheme.font(800, 10);
-      context.strokeText(label, TEXT_PADDING_X, y);
-      context.fillStyle = color;
-      context.fillText(label, TEXT_PADDING_X, y);
+      ([label, framesPerSecond, usedMemory, color], index) => {
+        const y = ROW_BASELINES[index];
+        context.textAlign = "left";
+        context.font = gameUiTheme.font(800, 10);
+        context.strokeText(label, TEXT_PADDING_X, y);
+        context.fillStyle = color;
+        context.fillText(label, TEXT_PADDING_X, y);
 
-      context.textAlign = "right";
-      context.font = gameUiTheme.font(900, 16);
-      context.strokeText(framesPerSecond, FPS_COLUMN_X, y);
-      context.fillText(framesPerSecond, FPS_COLUMN_X, y);
+        context.textAlign = "right";
+        context.font = gameUiTheme.font(900, 16);
+        context.strokeText(framesPerSecond, FPS_COLUMN_X, y);
+        context.fillText(framesPerSecond, FPS_COLUMN_X, y);
 
-      const memory = this.#formatMemory(usedMemory);
-      context.strokeText(memory, MEMORY_COLUMN_X, y);
-      context.fillText(memory, MEMORY_COLUMN_X, y);
-    });
+        const memory = this.#formatMemory(usedMemory);
+        context.strokeText(memory, MEMORY_COLUMN_X, y);
+        context.fillText(memory, MEMORY_COLUMN_X, y);
+      });
     this.#drawFrameRateGraph(context);
     this.#texture.setSource(this.#canvas);
   }
@@ -590,17 +590,17 @@ export class DebugFpsHud {
      * @param {number} value
      * @param {number} index
      */
-    (value, index) => {
-      const y = axisPositions[index];
-      context.beginPath();
-      context.moveTo(GRAPH_LEFT, y);
-      context.lineTo(GRAPH_RIGHT, y);
-      context.strokeStyle = gameUiTheme.withAlpha(gameUiTheme.outline, 0.2);
-      context.lineWidth = 1;
-      context.stroke();
-      context.fillStyle = gameUiTheme.withAlpha(gameUiTheme.textSubtle, 0.82);
-      context.fillText(String(value), GRAPH_LEFT - 4, y);
-    });
+      (value, index) => {
+        const y = axisPositions[index];
+        context.beginPath();
+        context.moveTo(GRAPH_LEFT, y);
+        context.lineTo(GRAPH_RIGHT, y);
+        context.strokeStyle = gameUiTheme.withAlpha(gameUiTheme.outline, 0.2);
+        context.lineWidth = 1;
+        context.stroke();
+        context.fillStyle = gameUiTheme.withAlpha(gameUiTheme.textSubtle, 0.82);
+        context.fillText(String(value), GRAPH_LEFT - 4, y);
+      });
 
     const now = performance.now();
     const windowStartedAt = now - FPS_WINDOW_DURATION;

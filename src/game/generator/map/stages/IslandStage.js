@@ -36,6 +36,10 @@ export class IslandStage extends AbstractMapGenerationStage {
     const islandMask = this.#island.buildIslandMask(layout);
     this.#island.materializeIsland(grid, tileMeta, islandMask);
 
-    context.world = { grid, tileMeta, islandMask };
+    context.world = {
+      grid,
+      tileMeta,
+      islandMask,
+    };
   }
 }

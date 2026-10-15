@@ -42,7 +42,10 @@ export class RoyalTerraceActivityBehavior extends TerraceParticipantStateMachine
    * @param {string|null} options.service
    */
   constructor({ states, phases, onThroneChange, walkSpeed, service = null }) {
-    super({ dormantPhase: phases.throne, states });
+    super({
+      dormantPhase: phases.throne,
+      states,
+    });
     this.#phases = phases;
     this.#onThroneChange = onThroneChange ?? (() => {});
     this.#walkSpeed = walkSpeed;

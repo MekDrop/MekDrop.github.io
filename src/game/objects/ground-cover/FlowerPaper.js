@@ -97,9 +97,16 @@ export class FlowerPaper {
         const links = [];
         for (const link of part.sheet.links) {
           const position = new this.#pc.Vec3(), rotation = new this.#pc.Quat();
-          link.getTransform(position, rotation); links.push({ position, rotation });
+          link.getTransform(position, rotation); links.push({
+            position,
+            rotation,
+          });
         }
-        state.push({ name: part.name, anchor, links });
+        state.push({
+          name: part.name,
+          anchor,
+          links,
+        });
       }
     }
     return state;
@@ -109,7 +116,14 @@ export class FlowerPaper {
    * @param {ReturnType<import("./FlowerPhysics.js").FlowerPhysics["addFlower"]>} flower
    * @param {string} url
    */
-  add(flower, url) { this.#flowers.push({ flower, url, active: false, parts: [], entity: null, mesh: null }); }
+  add(flower, url) { this.#flowers.push({
+    flower,
+    url,
+    active: false,
+    parts: [],
+    entity: null,
+    mesh: null,
+  }); }
 
   /**
    * @param {{x: number, y: number, z: number}} position
@@ -155,7 +169,12 @@ export class FlowerPaper {
           normals.splice(index, 3, n.x, n.y, n.z);
         }
         const flexible = /\b(petal|leaf)\b/i.test(node.name);
-        let geometry = { positions, normals, indices, sections: [] }, sheet = null, attachment = null;
+        let geometry = {
+            positions,
+            normals,
+            indices,
+            sections: [],
+          }, sheet = null, attachment = null;
         if (flexible) {
           const center = new pc.Vec3();
           for (let index = 0; index < positions.length; index += 3) { center.add(new pc.Vec3(...positions.slice(index, index + 3))); }
@@ -191,12 +210,22 @@ export class FlowerPaper {
           }
           const length = Math.max(0.015, (maximum - minimum) * item.flower.scale.x * PAPER_SPREAD);
           geometry = splitPaperGeometry(localPositions, localNormals, indices, length);
-          sheet = this.#simulation.add({ position: worldAttachment, rotation, length, width: Math.max(0.01, width * 2 * item.flower.scale.x * PAPER_SPREAD) });
+          sheet = this.#simulation.add({
+            position: worldAttachment,
+            rotation,
+            length,
+            width: Math.max(0.01, width * 2 * item.flower.scale.x * PAPER_SPREAD),
+          });
         }
         const color = instance.material.diffuse ?? pc.Color.WHITE;
         for (let vertex = 0; vertex < geometry.positions.length / 3; vertex++) { colors.push(Math.round(color.r * 255), Math.round(color.g * 255), Math.round(color.b * 255), 255); }
         for (const index of geometry.indices) { combinedIndices.push(vertexOffset + index); }
-        parts.push({ name: node.name, geometry, sheet, attachment });
+        parts.push({
+          name: node.name,
+          geometry,
+          sheet,
+          attachment,
+        });
         vertexOffset += geometry.positions.length / 3;
       }
       pending.push(...node.children);
@@ -211,7 +240,11 @@ export class FlowerPaper {
     item.entity = new pc.Entity(`Paper ${item.flower.variant}`);
     const instance = new pc.MeshInstance(item.mesh, this.#material, item.entity);
     instance.castShadow = false; instance.receiveShadow = false;
-    item.entity.addComponent("render", { meshInstances: [instance], castShadows: false, receiveShadows: false });
+    item.entity.addComponent("render", {
+      meshInstances: [instance],
+      castShadows: false,
+      receiveShadows: false,
+    });
     this.#entity.addChild(item.entity);
     item.active = true;
     item.flower.paperActive = true;
@@ -237,7 +270,10 @@ export class FlowerPaper {
       /**
        * @param {PaperFlowerState} item
        */
-      (item) => ({ item, distance: item.flower.anchor.getPosition().distance(new pc.Vec3(this.#hero.x, this.#hero.y, this.#hero.z)) }),
+      (item) => ({
+        item,
+        distance: item.flower.anchor.getPosition().distance(new pc.Vec3(this.#hero.x, this.#hero.y, this.#hero.z)),
+      }),
     ).filter(
       /**
        * @param {{item: PaperFlowerState, distance: number}} entry
@@ -331,8 +367,11 @@ export class FlowerPaper {
     // Paper resting on the surface parts the grass underneath its footprint.
     // Otherwise the thin sheet is correctly folded but disappears in blades.
     item.grassContact = Number.isFinite(minX) ? {
-      x: (minX + maxX) / 2, y: root.y, z: (minZ + maxZ) / 2,
-      radius: Math.min(0.4, Math.hypot(maxX - minX, maxZ - minZ) / 2 + 0.02), compression: 0.075,
+      x: (minX + maxX) / 2,
+      y: root.y,
+      z: (minZ + maxZ) / 2,
+      radius: Math.min(0.4, Math.hypot(maxX - minX, maxZ - minZ) / 2 + 0.02),
+      compression: 0.075,
     } : null;
     item.mesh.setPositions(item.positions); item.mesh.setNormals(item.normals); item.mesh.update(pc.PRIMITIVE_TRIANGLES);
   }

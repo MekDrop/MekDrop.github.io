@@ -43,8 +43,12 @@ export class LadderInteraction {
    * @returns {import("../../GameContracts.js").InteractionDescription}
    */
   get description() {
-    return { ...this.#ladder.landing(this.#end), id: this.#ladder.definition.id,
-      labelKey: this.#end === "bottom" ? "game.interaction.climb_ladder" : "game.interaction.descend_ladder", showHealth: false };
+    return {
+      ...this.#ladder.landing(this.#end),
+      id: this.#ladder.definition.id,
+      labelKey: this.#end === "bottom" ? "game.interaction.climb_ladder" : "game.interaction.descend_ladder",
+      showHealth: false,
+    };
   }
 
   /**

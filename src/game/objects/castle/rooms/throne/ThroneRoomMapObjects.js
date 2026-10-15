@@ -13,19 +13,19 @@ export class ThroneRoomMapObjects {
      *
      * @param {import("../../../ObjectTypes.js").MapObjectDefinition} definition
      */
-    (definition) => definition.object === "Castle");
+      (definition) => definition.object === "Castle");
     const castleIds = new Set(castles.map(/**
      *
      * @param {import("../../../ObjectTypes.js").MapObjectDefinition} castle
      */
-    (castle) => castle.id));
+      (castle) => castle.id));
     // A regenerated castle must replace its old seed's props, including omissions.
     mapData.objects = objects.filter(/**
      *
      * @param {import("../../../ObjectTypes.js").MapObjectDefinition} definition
      */
-    (definition) =>
-      !definition.courtFurnishing || !castleIds.has(definition.sourceCastleId));
+      (definition) =>
+        !definition.courtFurnishing || !castleIds.has(definition.sourceCastleId));
     for (const castle of castles) {
       const plan = castle.buildPlan?.metadata?.runtime?.residential;
       if (!plan?.basePlanId) { continue; }
@@ -35,15 +35,34 @@ export class ThroneRoomMapObjects {
         const position = layout.toWorld(item.x, item.z,
           item.floorY - layout.origin.y + (item.elevation ?? 0));
         const rotation = layout.yaw + 180 + (item.rotation ?? 0);
-        const definition = { id: `${castle.id}-court-${index}`, object: item.object,
-          ...(item.type ? { type: item.type } : {}), position, rotation, scale: item.scale, stretch: item.stretch, generated: true,
-          sourceCastleId: castle.id, courtFurnishing: true,
-          tile: { col: Math.round(position.x + (mapData.cols - 1) / 2),
-            row: Math.round(position.z + (mapData.rows - 1) / 2) } };
+        const definition = {
+          id: `${castle.id}-court-${index}`,
+          object: item.object,
+          ...(item.type ? { type: item.type } : {}),
+          position,
+          rotation,
+          scale: item.scale,
+          stretch: item.stretch,
+          generated: true,
+          sourceCastleId: castle.id,
+          courtFurnishing: true,
+          tile: {
+            col: Math.round(position.x + (mapData.cols - 1) / 2),
+            row: Math.round(position.z + (mapData.rows - 1) / 2),
+          },
+        };
         if (item.object === "Bookshelf") {
           const angle = rotation * Math.PI / 180;
-          definition.from = { x: position.x - Math.cos(angle) * 0.425, y: position.y, z: position.z + Math.sin(angle) * 0.425 };
-          definition.to = { x: position.x + Math.cos(angle) * 0.425, y: position.y, z: position.z - Math.sin(angle) * 0.425 };
+          definition.from = {
+            x: position.x - Math.cos(angle) * 0.425,
+            y: position.y,
+            z: position.z + Math.sin(angle) * 0.425,
+          };
+          definition.to = {
+            x: position.x + Math.cos(angle) * 0.425,
+            y: position.y,
+            z: position.z - Math.sin(angle) * 0.425,
+          };
           if (Math.abs(Math.cos(angle)) < 0.5) { definition.from.x = definition.to.x = position.x; }
           else { definition.from.z = definition.to.z = position.z; }
           definition.facing = Math.abs(Math.cos(angle)) > 0.5 ? Math.cos(angle) > 0 ? 1 : -1 : Math.sin(angle) > 0 ? 1 : -1;

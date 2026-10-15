@@ -4,11 +4,32 @@ import { CastleAuthoredBuildPlan } from "../../../../../../../src/game/generator
 import { TowerRoomMapObjects } from "../../../../../../../src/game/objects/castle/rooms/tower/TowerRoomMapObjects.js";
 
 it("publishes floor-correct tower objects once and replaces stale seed placements", async () => {
-  const options = { basePlanId: "castle-01", seed: 2,
-    position: { x: 0, z: 0, width: 52, depth: 32, elevation: 3 },
-    doors: [{ side: "NORTH", offset: 25, width: 2 }] };
-  const castle = { id: "castle-qa", object: "Castle", buildPlan: await CastleAuthoredBuildPlan.generate(options) };
-  const map = { cols: 100, rows: 100, objects: [castle] };
+  const options = {
+    basePlanId: "castle-01",
+    seed: 2,
+    position: {
+      x: 0,
+      z: 0,
+      width: 52,
+      depth: 32,
+      elevation: 3,
+    },
+    doors: [{
+      side: "NORTH",
+      offset: 25,
+      width: 2,
+    }],
+  };
+  const castle = {
+    id: "castle-qa",
+    object: "Castle",
+    buildPlan: await CastleAuthoredBuildPlan.generate(options),
+  };
+  const map = {
+    cols: 100,
+    rows: 100,
+    objects: [castle],
+  };
   TowerRoomMapObjects.prepareMap(map);
   const first = structuredClone(map.objects.slice(1));
   assert.ok(first.length > 0);
@@ -16,7 +37,10 @@ it("publishes floor-correct tower objects once and replaces stale seed placement
   assert.ok(first.every((item) => item.sourceCastleId === castle.id && item.scale === 1));
   TowerRoomMapObjects.prepareMap(map);
   assert.deepEqual(map.objects.slice(1), first);
-  castle.buildPlan = await CastleAuthoredBuildPlan.generate({ ...options, seed: 3 });
+  castle.buildPlan = await CastleAuthoredBuildPlan.generate({
+    ...options,
+    seed: 3,
+  });
   TowerRoomMapObjects.prepareMap(map);
   const expected = castle.buildPlan.metadata.runtime.residential.furniture.filter((item) => item.role === "towerProp");
   assert.equal(map.objects.length, expected.length + 1);

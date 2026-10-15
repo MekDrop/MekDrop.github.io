@@ -12,7 +12,13 @@ if (args.includes("--help")) {
 } else {
   const json = args.includes("--json");
   const inputs = args.filter((arg) => arg !== "--json");
-  const report = { maps: 0, castles: 0, skipped: 0, issues: [], errors: [] };
+  const report = {
+    maps: 0,
+    castles: 0,
+    skipped: 0,
+    issues: [],
+    errors: [],
+  };
   const files = new Set();
   /**
    * @param {string} path
@@ -27,7 +33,10 @@ if (args.includes("--help")) {
   }
   for (const input of inputs.length ? inputs : ["src/game/maps"]) {
     try { await discover(input); }
-    catch (error) { report.errors.push({ map: input, message: error.message }); }
+    catch (error) { report.errors.push({
+      map: input,
+      message: error.message,
+    }); }
   }
   const sortedFiles = [...files].sort();
   const progressBar = json ? null : new cliProgress.SingleBar({
@@ -41,10 +50,18 @@ if (args.includes("--help")) {
     forceRedraw: true,
   });
   let completed = 0;
-  if (sortedFiles.length) progressBar?.start(sortedFiles.length, 0, { castles: 0, skipped: 0, map: "Starting" });
+  if (sortedFiles.length) progressBar?.start(sortedFiles.length, 0, {
+    castles: 0,
+    skipped: 0,
+    map: "Starting",
+  });
   for (const file of sortedFiles) {
     const map = relative(process.cwd(), file);
-    progressBar?.update(completed, { castles: report.castles, skipped: report.skipped, map });
+    progressBar?.update(completed, {
+      castles: report.castles,
+      skipped: report.skipped,
+      map,
+    });
     progressBar?.render();
     try {
       const data = JSON.parse(await readFile(file, "utf8"));
@@ -54,7 +71,7 @@ if (args.includes("--help")) {
       report.castles += castles.length;
       // Match per-castle seed rebuilding performed by the saved-map loader.
       for (const castle of castles) {
-        
+
         castle.buildPlan = await CastleGenerator.generate({
           position: castle.position ?? castle.buildPlan?.input?.position,
           doors: castle.doors ?? castle.buildPlan?.input?.doors,
@@ -64,11 +81,21 @@ if (args.includes("--help")) {
       }
       TerrainBlockDefinitions.populate(data);
       CastleMapPreparation.prepareMap(data);
-      report.issues.push(...validateCastleGround(data).map((issue) => ({ map, ...issue })));
-    } catch (error) { report.errors.push({ map, message: error.message }); }
+      report.issues.push(...validateCastleGround(data).map((issue) => ({
+        map,
+        ...issue,
+      })));
+    } catch (error) { report.errors.push({
+      map,
+      message: error.message,
+    }); }
     finally {
       completed += 1;
-      progressBar?.update(completed, { castles: report.castles, skipped: report.skipped, map });
+      progressBar?.update(completed, {
+        castles: report.castles,
+        skipped: report.skipped,
+        map,
+      });
       progressBar?.render();
     }
   }
@@ -79,7 +106,10 @@ if (args.includes("--help")) {
     for (const issue of report.issues) {
       const family = issue.area.split(":")[0];
       const key = `${issue.map}:${issue.castleId}:${issue.kind}:${family}`;
-      const group = groups.get(key) ?? { issue, count: 0 };
+      const group = groups.get(key) ?? {
+        issue,
+        count: 0,
+      };
       group.count += 1;
       groups.set(key, group);
     }

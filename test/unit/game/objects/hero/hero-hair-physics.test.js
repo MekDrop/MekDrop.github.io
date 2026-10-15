@@ -90,8 +90,16 @@ class FakeHairEntity {
   constructor(name, position) {
     this.name = name;
     this.position = { ...position };
-    this.rotation = { x: 0, y: 0, z: 0 };
-    this.scale = { x: 1, y: 1, z: 1 };
+    this.rotation = {
+      x: 0,
+      y: 0,
+      z: 0,
+    };
+    this.scale = {
+      x: 1,
+      y: 1,
+      z: 1,
+    };
   }
 
   getLocalPosition() {
@@ -107,15 +115,27 @@ class FakeHairEntity {
   }
 
   setLocalPosition(x, y, z) {
-    this.position = { x, y, z };
+    this.position = {
+      x,
+      y,
+      z,
+    };
   }
 
   setLocalEulerAngles(x, y, z) {
-    this.rotation = { x, y, z };
+    this.rotation = {
+      x,
+      y,
+      z,
+    };
   }
 
   setLocalScale(x, y, z) {
-    this.scale = { x, y, z };
+    this.scale = {
+      x,
+      y,
+      z,
+    };
   }
 }
 
@@ -157,7 +177,11 @@ function createPhysics(hairEntities) {
     hairEntities,
     modelScale: 0.65,
   });
-  return { head, physics, root };
+  return {
+    head,
+    physics,
+    root,
+  };
 }
 
 describe("HeroHairPhysics", () => {
@@ -187,7 +211,10 @@ describe("HeroHairPhysics", () => {
     assert.equal(joint.components.get("joint").entityB, anchor);
     assert.equal(joint.components.get("joint").linearMotionY, "limited");
     assert.equal(joint.components.get("joint").angularMotionY, "locked");
-    assert.deepEqual(physics.state, { compression: 0, engine: "ammo" });
+    assert.deepEqual(physics.state, {
+      compression: 0,
+      engine: "ammo",
+    });
     assert.equal(driver.gravity.x, 0);
     assert.equal(driver.gravity.y, 0);
     assert.equal(driver.gravity.z, 0);
@@ -225,12 +252,24 @@ describe("HeroHairPhysics", () => {
     const { head, physics } = createPhysics([cap]);
 
     head.up = new FakeVec3(0, 0.7, 0.7);
-    head.setRotation({ pitch: -14, yaw: 6, roll: 5 });
+    head.setRotation({
+      pitch: -14,
+      yaw: 6,
+      roll: 5,
+    });
     physics.update();
 
     assert.equal(physics.state.compression, 0);
-    assert.deepEqual(cap.position, { x: 0, y: 0.67, z: -0.035 });
-    assert.deepEqual(cap.scale, { x: 1, y: 1, z: 1 });
+    assert.deepEqual(cap.position, {
+      x: 0,
+      y: 0.67,
+      z: -0.035,
+    });
+    assert.deepEqual(cap.scale, {
+      x: 1,
+      y: 1,
+      z: 1,
+    });
   });
 
   it("teleports the driver on a large hero relocation and restores authored hair", () => {
@@ -239,8 +278,16 @@ describe("HeroHairPhysics", () => {
       y: 0.4,
       z: 0.2,
     });
-    lock.rotation = { x: 1, y: 2, z: 3 };
-    lock.scale = { x: 0.9, y: 1.1, z: 1.2 };
+    lock.rotation = {
+      x: 1,
+      y: 2,
+      z: 3,
+    };
+    lock.scale = {
+      x: 0.9,
+      y: 1.1,
+      z: 1.2,
+    };
     const { head, physics, root } = createPhysics([lock]);
     const [, driver] = root.children[0].children;
     driver.position.y -= 0.04;
@@ -253,8 +300,20 @@ describe("HeroHairPhysics", () => {
     assert.equal(driver.rigidbody.activated, activationsBeforeRelocation + 1);
 
     physics.destroy();
-    assert.deepEqual(lock.position, { x: -0.385, y: 0.4, z: 0.2 });
-    assert.deepEqual(lock.rotation, { x: 1, y: 2, z: 3 });
-    assert.deepEqual(lock.scale, { x: 0.9, y: 1.1, z: 1.2 });
+    assert.deepEqual(lock.position, {
+      x: -0.385,
+      y: 0.4,
+      z: 0.2,
+    });
+    assert.deepEqual(lock.rotation, {
+      x: 1,
+      y: 2,
+      z: 3,
+    });
+    assert.deepEqual(lock.scale, {
+      x: 0.9,
+      y: 1.1,
+      z: 1.2,
+    });
   });
 });

@@ -160,7 +160,10 @@ function findCypressSpec(file) {
  * @returns {boolean} Whether the command succeeded.
  */
 function run(command, args) {
-  const result = spawnSync(command, args, { cwd: root, stdio: 'inherit' })
+  const result = spawnSync(command, args, {
+    cwd: root,
+    stdio: 'inherit',
+  })
   return result.status === 0
 }
 
@@ -188,7 +191,10 @@ async function isDevServerAccessible() {
   const controller = new AbortController()
   const timeout = setTimeout(() => controller.abort(), 1500)
   try {
-    await fetch('http://localhost:9000', { signal: controller.signal, redirect: 'manual' })
+    await fetch('http://localhost:9000', {
+      signal: controller.signal,
+      redirect: 'manual',
+    })
     return true
   } catch {
     return false
@@ -264,4 +270,9 @@ if (require.main === module) {
   })
 }
 
-module.exports = { findCypressSpec, getComparisonBase, listChangedPaths, relativeUnitTest }
+module.exports = {
+  findCypressSpec,
+  getComparisonBase,
+  listChangedPaths,
+  relativeUnitTest,
+}

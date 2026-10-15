@@ -7,7 +7,12 @@ function createFixture() {
   const events = [];
   const context = {
     input: { mapName: "decoration-stage" },
-    world: { grid: [], heightmap: [], tileMeta: [], islandMask: [] },
+    world: {
+      grid: [],
+      heightmap: [],
+      tileMeta: [],
+      islandMask: [],
+    },
     routing: { layout: {} },
     features: { riverData: [] },
     yieldState: { lastYield: 0 },
@@ -19,7 +24,11 @@ function createFixture() {
     placeGroundCover: () => { events.push("cover"); return []; },
     placeCliffVines: () => { events.push("vines"); return []; },
   };
-  return { events, context, stage: new DecorationStage(builder) };
+  return {
+    events,
+    context,
+    stage: new DecorationStage(builder),
+  };
 }
 
 describe("DecorationStage scheduling", () => {

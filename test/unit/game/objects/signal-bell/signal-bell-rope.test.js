@@ -14,8 +14,17 @@ let wasmAmmo;
 before(async () => {
   const glueUrl = new URL("../../../../../src/assets/game/wasm/ammo/ammo.wasm.js", import.meta.url);
   const source = readFileSync(glueUrl, "utf8").replace("export default Ammo;", "");
-  const context = { module: { exports: {} }, exports: {}, require: createRequire(import.meta.url),
-    process, __dirname: "", Buffer, console, setTimeout, clearTimeout };
+  const context = {
+    module: { exports: {} },
+    exports: {},
+    require: createRequire(import.meta.url),
+    process,
+    __dirname: "",
+    Buffer,
+    console,
+    setTimeout,
+    clearTimeout,
+  };
   runInNewContext(source, context);
   wasmAmmo = await context.module.exports({
     wasmBinary: readFileSync(new URL("../../../../../src/assets/game/wasm/ammo/ammo.wasm.wasm", import.meta.url)),
@@ -42,7 +51,10 @@ it("updates the visible rope and held grip on the application's actual render ev
   for (const name of ["Signal bell bronze bowl clapper and rope", "Bell pull rope", "Bell rope tail", "Bell rope knot"]) {
     model.addChild(new TestEntity(name));
   }
-  const rope = new SignalBellRope({ Entity: TestEntity, Vec3 }, app, model);
+  const rope = new SignalBellRope({
+    Entity: TestEntity,
+    Vec3,
+  }, app, model);
   try {
     const root = app.root.findByName("Signal bell simulated rope");
     const knot = root.findByName("Bell rope knot");

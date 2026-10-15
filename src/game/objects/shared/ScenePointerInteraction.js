@@ -266,7 +266,10 @@ export class ScenePointerInteraction {
       if (!hit || (closest && hit.distance >= closest.hit.distance)) {
         continue;
       }
-      closest = { object, hit };
+      closest = {
+        object,
+        hit,
+      };
     }
     return closest;
   }

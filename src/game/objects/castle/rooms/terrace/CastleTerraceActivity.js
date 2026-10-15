@@ -143,7 +143,10 @@ export class CastleTerraceActivity {
     this.#kind = royalParticipant.kind;
     // The service arrangement is authored around local z=3.1. Center that
     // arrangement on the terrace while leaving the doorway root in place.
-    const serviceOffset = { x: 0, z: 0 };
+    const serviceOffset = {
+      x: 0,
+      z: 0,
+    };
     if (navigation && this.#kind !== "king") {
       const angle = layout.yaw * Math.PI / 180;
       const dx = layout.serviceCenter ? layout.serviceCenter.x - layout.x : 0;
@@ -310,23 +313,23 @@ export class CastleTerraceActivity {
      *
      * @param {import("src/game/objects/ObjectTypes.js").CastleDoorDefinition} door
      */
-    (door) => {
-      const vertical = door.side === "WEST" || door.side === "EAST";
-      const lateral = vertical ? z - position.z : x - position.x;
-      const boundary =
-        door.side === "WEST"
-          ? position.x
-          : door.side === "EAST"
-            ? position.x + position.width
-            : door.side === "NORTH"
-              ? position.z
-              : position.z + position.depth;
-      return (
-        Math.abs((vertical ? x : z) - boundary) <= distance &&
+      (door) => {
+        const vertical = door.side === "WEST" || door.side === "EAST";
+        const lateral = vertical ? z - position.z : x - position.x;
+        const boundary =
+          door.side === "WEST"
+            ? position.x
+            : door.side === "EAST"
+              ? position.x + position.width
+              : door.side === "NORTH"
+                ? position.z
+                : position.z + position.depth;
+        return (
+          Math.abs((vertical ? x : z) - boundary) <= distance &&
         lateral >= door.offset - 0.55 &&
         lateral <= door.offset + door.width + 0.55
-      );
-    });
+        );
+      });
     return (
       !this.#stopped &&
       (inside || nearDoor) &&

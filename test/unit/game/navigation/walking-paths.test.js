@@ -7,21 +7,42 @@ import { RouteDataBuilder } from "../../../../src/game/generator/map/RouteDataBu
 
 function fixture() {
   return {
-    cols: 7, rows: 2,
+    cols: 7,
+    rows: 2,
     grid: [Array(7).fill(2), Array(7).fill(2)],
     heightmap: [Array(7).fill(2), Array(7).fill(2)],
     tileMeta: [Array.from({length: 7}, () => ({})), Array.from({length: 7}, () => ({}))],
-    entries: [{col: 0, rows: [0, 1]}, {col: 6, rows: [0, 1]}],
-    castle: {doors: [{centerCol: 4, centerRow: 0.5}]},
+    entries: [{
+      col: 0,
+      rows: [0, 1],
+    }, {
+      col: 6,
+      rows: [0, 1],
+    }],
+    castle: {
+      doors: [{
+        centerCol: 4,
+        centerRow: 0.5,
+      }],
+    },
   };
 }
 
 it("derives the same deterministic quickest centerlines and arrows as the layout router", () => {
   const map = fixture();
   const expected = new RouteDataBuilder().buildRouteData({
-    pathRows: [0, 1], castleEntranceCol: 4,
-    entries: [{gateCol: 0, gateRows: [0, 1], mergeCol: 2},
-      {gateCol: 6, gateRows: [0, 1], mergeCol: 2}],
+    pathRows: [0, 1],
+    castleEntranceCol: 4,
+    entries: [{
+      gateCol: 0,
+      gateRows: [0, 1],
+      mergeCol: 2,
+    },
+    {
+      gateCol: 6,
+      gateRows: [0, 1],
+      mergeCol: 2,
+    }],
   });
   WalkingPaths.rebuild(map);
   assert.deepEqual(map.paths.map((path) => path.route), expected.routes);
@@ -47,7 +68,12 @@ it("rebuilds after destruction and restoration without retaining stale connectio
 
 it("loading ignores stale route records and leaves authoritative source tiles unchanged", () => {
   const source = fixture();
-  source.paths = [{route: [{col: -99, row: -99}]}];
+  source.paths = [{
+    route: [{
+      col: -99,
+      row: -99,
+    }],
+  }];
   const original = structuredClone(source);
   const loaded = GameMapLoader.load(source, () => 0.9);
   assert.equal(loaded.paths[0].route.length, 9);
@@ -70,7 +96,13 @@ it("rejects diagonal contact, a missing lane, and discontinuous elevations", () 
 it("connects matching ramp edges using tile slope metadata", () => {
   const map = fixture();
   for (let row = 0; row < 2; row++) {
-    map.tileMeta[row][2] = {slope: {lowHeight: 2, highHeight: 3, riseDirection: "EAST"}};
+    map.tileMeta[row][2] = {
+      slope: {
+        lowHeight: 2,
+        highHeight: 3,
+        riseDirection: "EAST",
+      },
+    };
     map.heightmap[row][2] = 2.5;
     for (let col = 3; col < 7; col++) { map.heightmap[row][col] = 3; }
   }
@@ -81,7 +113,12 @@ it("connects matching ramp edges using tile slope metadata", () => {
 
 it("preserves generated overpass route lengths and keeps crossing levels disconnected", async () => {
   for (const [mapName, lengths] of [["variant-4", [61, 71, 97, 113]], ["variant-2", [117, 99, 73, 61]]]) {
-    const map = await MapGenerator.generate({mapName, numPaths: 4, numRivers: 0, overpass: true});
+    const map = await MapGenerator.generate({
+      mapName,
+      numPaths: 4,
+      numRivers: 0,
+      overpass: true,
+    });
     const {graph} = WalkingPaths.rebuild(map);
     assert.deepEqual(map.paths.map((path) => path.route.length), lengths);
     const {col, row} = map.overpassData.crossing;

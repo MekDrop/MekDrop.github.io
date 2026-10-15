@@ -7,10 +7,30 @@ describe("vegetation dirt patch", () => {
   it("merges the former vegetation footprint into one irregular grass mask", () => {
     const geometry = buildVegetationDirtPatchGeometry(
       [
-        { x: -0.25, z: 0, width: 0.25, depth: 0.25 },
-        { x: 0, z: 0, width: 0.25, depth: 0.25 },
-        { x: 0.25, z: 0, width: 0.25, depth: 0.25 },
-        { x: 0, z: 0.25, width: 0.25, depth: 0.25 },
+        {
+          x: -0.25,
+          z: 0,
+          width: 0.25,
+          depth: 0.25,
+        },
+        {
+          x: 0,
+          z: 0,
+          width: 0.25,
+          depth: 0.25,
+        },
+        {
+          x: 0.25,
+          z: 0,
+          width: 0.25,
+          depth: 0.25,
+        },
+        {
+          x: 0,
+          z: 0.25,
+          width: 0.25,
+          depth: 0.25,
+        },
       ],
       "wide-bush",
     );
@@ -40,11 +60,36 @@ describe("vegetation dirt patch", () => {
   it("clips an overhanging bush footprint to its owning terrain tile", () => {
     const geometry = buildVegetationDirtPatchGeometry(
       [
-        { x: -0.5, z: 0, width: 0.25, depth: 0.25 },
-        { x: -0.25, z: 0, width: 0.25, depth: 0.25 },
-        { x: 0, z: 0, width: 0.25, depth: 0.25 },
-        { x: 0.25, z: 0, width: 0.25, depth: 0.25 },
-        { x: 0.5, z: 0, width: 0.25, depth: 0.25 },
+        {
+          x: -0.5,
+          z: 0,
+          width: 0.25,
+          depth: 0.25,
+        },
+        {
+          x: -0.25,
+          z: 0,
+          width: 0.25,
+          depth: 0.25,
+        },
+        {
+          x: 0,
+          z: 0,
+          width: 0.25,
+          depth: 0.25,
+        },
+        {
+          x: 0.25,
+          z: 0,
+          width: 0.25,
+          depth: 0.25,
+        },
+        {
+          x: 0.5,
+          z: 0,
+          width: 0.25,
+          depth: 0.25,
+        },
       ],
       "edge-bush",
     );

@@ -203,7 +203,7 @@ export class GameOverScene {
        *
        * @param {import("src/game/GameContracts.js").GameObjectContract} object
        */
-      (object) => typeof object.beginGameOver === "function");
+        (object) => typeof object.beginGameOver === "function");
     if (royals.length === 0 || !this.#getCameraPosition()) {
       return;
     }
@@ -212,16 +212,16 @@ export class GameOverScene {
        *
        * @param {{entity: pc.Entity, definition?: GameObjectDefinition}} royal
        */
-      (royal) => ({
-        royal,
-        presentation: royal.beginGameOver(() => this.#getCameraPosition()),
-      }))
+        (royal) => ({
+          royal,
+          presentation: royal.beginGameOver(() => this.#getCameraPosition()),
+        }))
       .filter(/**
        *
        * @param {{presentation: {install?: () => void, destroy?: () => void}}} options
        * @param {{install?: () => void, destroy?: () => void}} options.presentation
        */
-      ({ presentation }) => presentation);
+        ({ presentation }) => presentation);
     if (performances.length === 0) {
       return;
     }

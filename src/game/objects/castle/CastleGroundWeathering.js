@@ -29,7 +29,7 @@ export class CastleGroundWeathering {
           if (cuts.some(/**
            * @param {import("./CastleGroundCuts.js").GroundCut} cut
            */
-          (cut) => x + 1.5 > cut.minX && x - 1.5 < cut.maxX &&
+            (cut) => x + 1.5 > cut.minX && x - 1.5 < cut.maxX &&
             z + 1.5 > cut.minZ && z - 1.5 < cut.maxZ)) continue;
           let protectedTile = false;
           for (let dr = -1; dr <= 1; dr += 1) {
@@ -52,36 +52,41 @@ export class CastleGroundWeathering {
       if (!neighbors.some(/**
        * @param {number[]} cell
        */
-      (cell) => candidates.has(cell.join(",")))) lowered.delete(key);
+        (cell) => candidates.has(cell.join(",")))) lowered.delete(key);
     }
     mapData.objects = mapData.objects.filter(/**
      * @param {import("../ObjectTypes.js").MapObjectDefinition} record
      */
-    (record) => {
-      if (!record.generated || !record.tile || !["Earth", "Grass"].includes(record.object)) return true;
-      const { col, row } = record.tile;
-      const target = lowered.get(`${col},${row}`);
-      if (target === undefined) return true;
-      const halfHeight = record.geometry?.method === "addBoxMatrix" ? record.geometry.args[7] / 2 : 0.5;
-      if (record.position.y + halfHeight > target + 0.000001) return false;
-      if (Math.abs(record.position.y + halfHeight - target) < 0.000001) {
-        record.object = "Grass";
-        record.geometry.args[0] = `grass:${col}:${row}:${target - 1}`;
-        record.geometry.args[1] = `turfSide:${col}:${row}:${target - 1}`;
-        if (record.geometry.method === "addCubeMatrix") {
-          record.geometry.args[5] = "full";
-          record.geometry.args[7] = GRASS_SURFACE_LIFT;
-        } else {
-          record.geometry.args[9] = "full";
-          record.geometry.args[12] = GRASS_SURFACE_LIFT;
+      (record) => {
+        if (!record.generated || !record.tile || !["Earth", "Grass"].includes(record.object)) return true;
+        const { col, row } = record.tile;
+        const target = lowered.get(`${col},${row}`);
+        if (target === undefined) return true;
+        const halfHeight = record.geometry?.method === "addBoxMatrix" ? record.geometry.args[7] / 2 : 0.5;
+        if (record.position.y + halfHeight > target + 0.000001) return false;
+        if (Math.abs(record.position.y + halfHeight - target) < 0.000001) {
+          record.object = "Grass";
+          record.geometry.args[0] = `grass:${col}:${row}:${target - 1}`;
+          record.geometry.args[1] = `turfSide:${col}:${row}:${target - 1}`;
+          if (record.geometry.method === "addCubeMatrix") {
+            record.geometry.args[5] = "full";
+            record.geometry.args[7] = GRASS_SURFACE_LIFT;
+          } else {
+            record.geometry.args[9] = "full";
+            record.geometry.args[12] = GRASS_SURFACE_LIFT;
+          }
         }
-      }
-      return true;
-    });
+        return true;
+      });
     for (const [key, target] of lowered) {
       const [col, row] = key.split(",").map(Number);
       mapData.heightmap[row][col] = target;
-      mapData.tileMeta[row][col] = { ...mapData.tileMeta[row][col], baseHeight: target, surfaceType: "GRASS", castleWeathered: true };
+      mapData.tileMeta[row][col] = {
+        ...mapData.tileMeta[row][col],
+        baseHeight: target,
+        surfaceType: "GRASS",
+        castleWeathered: true,
+      };
     }
     for (const record of mapData.objects) {
       if (!["Vegetation", "StoneCluster"].includes(record.object) || !record.position) continue;

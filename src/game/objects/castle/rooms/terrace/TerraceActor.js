@@ -26,7 +26,11 @@ export class TerraceActor {
   /**
    * @type {{action: string, time: number, blend: number}}
    */
-  #authoredPose = { action: "idle", time: 0, blend: 1 };
+  #authoredPose = {
+    action: "idle",
+    time: 0,
+    blend: 1,
+  };
   /**
    * @type {boolean}
    */
@@ -140,7 +144,7 @@ export class TerraceActor {
        *
        * @param {string} name
        */
-      (name) => this.#model.findByName(name)).find(Boolean);
+        (name) => this.#model.findByName(name)).find(Boolean);
       if (!node) {
         continue;
       }
@@ -211,7 +215,11 @@ export class TerraceActor {
    * @param {number} [blend=1]
    */
   pose(action, time = 0, blend = 1) {
-    if (!this.#applyingDoorPose) { this.#authoredPose = { action, time, blend }; }
+    if (!this.#applyingDoorPose) { this.#authoredPose = {
+      action,
+      time,
+      blend,
+    }; }
     if (!this.#animationLayer) {
       return;
     }
@@ -266,7 +274,11 @@ export class TerraceActor {
   #applyDoorPose(action, time) {
     this.#applyingDoorPose = true;
     try {
-      const pose = action === "resume" ? this.#authoredPose : { action, time, blend: 1 };
+      const pose = action === "resume" ? this.#authoredPose : {
+        action,
+        time,
+        blend: 1,
+      };
       this.pose(pose.action, pose.time, pose.blend);
       this.evaluatePose();
     } finally { this.#applyingDoorPose = false; }

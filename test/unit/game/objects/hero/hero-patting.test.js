@@ -190,7 +190,10 @@ it("anger fades directly to calm without entering another reaction stage", () =>
 
 it("chooses a reachable random destination and follows a route around a wall", () => {
   const escape = new HeroAngryEscapeBehavior();
-  const position = { x: 0, z: 0 };
+  const position = {
+    x: 0,
+    z: 0,
+  };
   const canTraverse = (from, to) => {
     const steps = Math.ceil(Math.hypot(to.x - from.x, to.z - from.z) / 0.05);
     for (let i = 1; i <= steps; i += 1) {
@@ -210,7 +213,10 @@ it("chooses a reachable random destination and follows a route around a wall", (
   assert.ok(target.x > 1.6, "the target is across the wall, requiring a detour");
   for (let frame = 0; frame < 600 && escape.active; frame += 1) {
     const velocity = escape.velocity(position, 6.3);
-    const next = { x: position.x + velocity.x / 120, z: position.z + velocity.z / 120 };
+    const next = {
+      x: position.x + velocity.x / 120,
+      z: position.z + velocity.z / 120,
+    };
     assert.ok(canTraverse(position, next));
     Object.assign(position, next);
     escape.advance(1 / 120, position);
@@ -221,7 +227,10 @@ it("chooses a reachable random destination and follows a route around a wall", (
 
 it("never escapes into disconnected ground and releases control if the route becomes blocked", () => {
   const escape = new HeroAngryEscapeBehavior();
-  const position = { x: 0, z: 0 };
+  const position = {
+    x: 0,
+    z: 0,
+  };
   escape.begin(position, () => false);
   assert.equal(escape.active, false);
   assert.equal(escape.target, null);
@@ -235,7 +244,10 @@ it("never escapes into disconnected ground and releases control if the route bec
 
 it("randomizes the initial escape heading through the full circle instead of grid axes", () => {
   const escape = new HeroAngryEscapeBehavior();
-  const position = { x: 1, z: -2 };
+  const position = {
+    x: 1,
+    z: -2,
+  };
   const headings = new Set();
   for (let i = 0; i < 32; i += 1) {
     const random = (i + 0.37) / 32;
@@ -290,7 +302,10 @@ it("irritation expiry clears its pressure so a new pat starts fresh", () => {
 
 it("successive escape distances grow regardless of random direction and stop at a safe cap", () => {
   const escape = new HeroAngryEscapeBehavior();
-  const position = { x: 0, z: 0 };
+  const position = {
+    x: 0,
+    z: 0,
+  };
   let previous = 0;
   for (let distance = 3; distance <= 12; distance += 1.5) {
     escape.begin(position, () => true, () => distance % 2 ? 0.99 : 0, distance);
@@ -307,14 +322,20 @@ it("successive escape distances grow regardless of random direction and stop at 
 
 it("long escapes stay in the connected enclosure and reach the available farthest band", () => {
   const escape = new HeroAngryEscapeBehavior();
-  const position = { x: 0, z: 0 };
+  const position = {
+    x: 0,
+    z: 0,
+  };
   const canTraverse = (from, to) => Math.abs(to.x) <= 1.5 && Math.abs(to.z) <= 1.5;
   escape.begin(position, canTraverse, () => 0.5, 12);
   const target = escape.target;
   assert.ok(Math.hypot(target.x, target.z) >= 2);
   for (let i = 0; i < 600 && escape.active; i += 1) {
     const velocity = escape.velocity(position, 6.3);
-    const next = { x: position.x + velocity.x / 120, z: position.z + velocity.z / 120 };
+    const next = {
+      x: position.x + velocity.x / 120,
+      z: position.z + velocity.z / 120,
+    };
     assert.ok(canTraverse(position, next));
     Object.assign(position, next);
     escape.advance(1 / 120, position);

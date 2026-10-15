@@ -48,10 +48,24 @@ export class Flag {
          *
          * @param {import("../ObjectTypes.js").MapObjectDefinition} item
          */
-        (item) => item.id === id)) continue;
-        objects.push({ id, object: Flag.name, sourceCastleId: castle.id, sourceCastleSeed: castle.seed, position: { x: flag.x, y: flag.y, z: flag.z },
-          rotation: flag.yaw, width: flag.width, height: flag.height,
-          poleHeight: flag.poleHeight, roofCollider: flag.roofCollider, tile: castle.tile });
+          (item) => item.id === id)) continue;
+        objects.push({
+          id,
+          object: Flag.name,
+          sourceCastleId: castle.id,
+          sourceCastleSeed: castle.seed,
+          position: {
+            x: flag.x,
+            y: flag.y,
+            z: flag.z,
+          },
+          rotation: flag.yaw,
+          width: flag.width,
+          height: flag.height,
+          poleHeight: flag.poleHeight,
+          roofCollider: flag.roofCollider,
+          tile: castle.tile,
+        });
       }
     }
   }
@@ -64,7 +78,7 @@ export class Flag {
    *
    * @param {FlagInstance} flag
    */
-  (flag) => flag.root); }
+    (flag) => flag.root); }
   /**
    * @param {number} near
    * @param {number} far
@@ -77,7 +91,10 @@ export class Flag {
    */
   getPointerHit(rayStart, rayEnd) {
     const hit = this.getFlagHit(rayStart, rayEnd);
-    return hit ? { ...hit, pointerTarget: this } : null;
+    return hit ? {
+      ...hit,
+      pointerTarget: this,
+    } : null;
   }
   /**
    * @param {{hit: Parameters<Flag["beginWindGesture"]>[0]}} options
@@ -167,9 +184,14 @@ export class Flag {
     this.#poleMaterial = this.#createPoleMaterial();
     this.#physics = new AmmoClothPhysics({ pc });
     this.#islandRoots = new IslandObjectRoots(pc, this.#entity, runtime.mapData);
-    this.#add({ ...definition.position, yaw: definition.rotation ?? 0,
-      width: definition.width, height: definition.height,
-      poleHeight: definition.poleHeight, roofCollider: definition.roofCollider });
+    this.#add({
+      ...definition.position,
+      yaw: definition.rotation ?? 0,
+      width: definition.width,
+      height: definition.height,
+      poleHeight: definition.poleHeight,
+      roofCollider: definition.roofCollider,
+    });
     this.#entity.tags.add("map-object", definition.id, Flag.name);
     if (definition.texture) {
       this.#textureAsset = new pc.Asset(`${definition.id} flag texture`, "texture", { url: definition.texture });
@@ -177,10 +199,10 @@ export class Flag {
        *
        * @param {import("playcanvas").Asset} asset
        */
-      (asset) => {
-        this.#flagMaterial.diffuseMap = asset.resource;
-        this.#flagMaterial.update();
-      });
+        (asset) => {
+          this.#flagMaterial.diffuseMap = asset.resource;
+          this.#flagMaterial.update();
+        });
       app.assets.add(this.#textureAsset);
       app.assets.load(this.#textureAsset);
     }
@@ -188,9 +210,9 @@ export class Flag {
      *
      * @param {number} deltaTime
      */
-    (deltaTime) => {
-      this.#animate(deltaTime);
-    });
+      (deltaTime) => {
+        this.#animate(deltaTime);
+      });
   }
 
   get entity() {

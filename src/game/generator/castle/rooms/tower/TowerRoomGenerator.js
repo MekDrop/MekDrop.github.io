@@ -4,7 +4,13 @@ export class TowerRoomGenerator extends AbstractCastleRoomGenerator {
   /**
    * @param {number} index
    */
-  constructor(index) { super(`tower${index}`, { x: 1.75, y: 1.75 }, { x: 2.25, y: 2.25 }); }
+  constructor(index) { super(`tower${index}`, {
+    x: 1.75,
+    y: 1.75,
+  }, {
+    x: 2.25,
+    y: 2.25,
+  }); }
   /**
    * @returns {number[]}
    */
@@ -53,8 +59,12 @@ export class TowerRoomGenerator extends AbstractCastleRoomGenerator {
     const choices = [supplies[0], "SingleCandleStand", "Chair"];
     if (random() < 0.8) { choices.push(supplies[1]); }
     if (random() < 0.5) { choices.push(supplies[0]); }
-    const sizes = { Crate: [0.56, 0.56], Barrel: [0.56, 0.56],
-      Chair: [0.52, 0.52], SingleCandleStand: [0.18, 0.18] };
+    const sizes = {
+      Crate: [0.56, 0.56],
+      Barrel: [0.56, 0.56],
+      Chair: [0.52, 0.52],
+      SingleCandleStand: [0.18, 0.18],
+    };
     for (const object of choices.slice(0, limit)) {
       const [itemWidth, itemDepth] = sizes[object];
       for (let attempt = 0; attempt < 12; attempt++) {
@@ -74,13 +84,13 @@ export class TowerRoomGenerator extends AbstractCastleRoomGenerator {
          *
          * @param {import("../AbstractCastleRoomGenerator.js").RoomItem} item
          */
-        (item) => Math.abs(item.x - x) < (item.width + itemWidth) / 2 + 0.22 &&
+          (item) => Math.abs(item.x - x) < (item.width + itemWidth) / 2 + 0.22 &&
           Math.abs(item.z - z) < (item.depth + itemDepth) / 2 + 0.22)) { continue; }
         if ((context.openings ?? room.openings ?? []).some(/**
          *
          * @param {import("../../CastleBasePlanGenerator.js").CompiledCastleOpening} opening
          */
-        (opening) => opening.roomId === room.id &&
+          (opening) => opening.roomId === room.id &&
           opening.floorY === room.floorY && (opening.axis === "x"
             ? Math.abs(x - opening.coordinate) < halfX + 0.85 && Math.abs(z - opening.center) < halfZ + opening.width / 2 + 0.3
             : Math.abs(z - opening.coordinate) < halfZ + 0.85 && Math.abs(x - opening.center) < halfX + opening.width / 2 + 0.3))) { continue; }
@@ -88,14 +98,27 @@ export class TowerRoomGenerator extends AbstractCastleRoomGenerator {
          *
          * @param {{from:number,to:number,minX:number,maxX:number,minZ:number,maxZ:number}} stair
          */
-        (stair) => room.level >= stair.from && room.level <= stair.to &&
+          (stair) => room.level >= stair.from && room.level <= stair.to &&
           x + halfX > stair.minX - 0.35 && x - halfX < stair.maxX + 0.35 &&
           z + halfZ > stair.minZ - 0.35 && z - halfZ < stair.maxZ + 0.35)) { continue; }
-        items.push({ role: "towerProp", object, x, z, width: itemWidth, depth: itemDepth,
-          height: { Crate: 0.471, Barrel: 0.65, Chair: 0.85, SingleCandleStand: 0.8 }[object],
-          id: `${room.id}-tower-${items.length}`, scale: 1,
+        items.push({
+          role: "towerProp",
+          object,
+          x,
+          z,
+          width: itemWidth,
+          depth: itemDepth,
+          height: {
+            Crate: 0.471,
+            Barrel: 0.65,
+            Chair: 0.85,
+            SingleCandleStand: 0.8,
+          }[object],
+          id: `${room.id}-tower-${items.length}`,
+          scale: 1,
           // This authored chair faces -X; its high back occupies +X in the GLB.
-          rotation: object === "Chair" ? (signZ > 0 ? 90 : 270) : Math.floor(random() * 4) * 90 });
+          rotation: object === "Chair" ? (signZ > 0 ? 90 : 270) : Math.floor(random() * 4) * 90,
+        });
         break;
       }
     }

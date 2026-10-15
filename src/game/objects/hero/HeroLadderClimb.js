@@ -125,13 +125,16 @@ export class HeroLadderClimb {
          * @param {{x:number,z:number}} a
          * @param {{x:number,z:number}} b
          */
-        (a, b) =>
-          Math.hypot(position.x - a.x, position.z - a.z) - Math.hypot(position.x - b.x, position.z - b.z))[0];
+          (a, b) =>
+            Math.hypot(position.x - a.x, position.z - a.z) - Math.hypot(position.x - b.x, position.z - b.z))[0];
         const facing = ladder.climbFacing;
         const toward = movement.x * facing.x + movement.z * facing.z;
         const guide = ladder.climbGuide?.(top.y) ?? bottom;
         const approachLength = Math.hypot(guide.x - top.x, guide.z - top.z) || 1;
-        const roofFacing = { x: (guide.x - top.x) / approachLength, z: (guide.z - top.z) / approachLength };
+        const roofFacing = {
+          x: (guide.x - top.x) / approachLength,
+          z: (guide.z - top.z) / approachLength,
+        };
         const towardRoof = movement.x * roofFacing.x + movement.z * roofFacing.z;
         const lower = Math.abs(position.y - bottom.y) < 0.55 && Math.hypot(position.x - bottom.x, position.z - bottom.z) < 0.6 && toward > 0.25;
         const upper = Math.abs(position.y - top.y) < 0.4 && Math.hypot(position.x - top.x, position.z - top.z) < 0.7 && towardRoof > 0.25;
@@ -148,9 +151,9 @@ export class HeroLadderClimb {
        * @param {{x:number,z:number}} a
        * @param {{x:number,z:number}} b
        */
-      (a, b) => {
-        return movement ? (b.x - a.x) * movement.x + (b.z - a.z) * movement.z : 0;
-      })[0];
+        (a, b) => {
+          return movement ? (b.x - a.x) * movement.x + (b.z - a.z) * movement.z : 0;
+        })[0];
     }
     const top = this.#exitLanding;
     const facing = this.#controlFacing;
@@ -163,9 +166,15 @@ export class HeroLadderClimb {
     if (position.y >= top.y - 0.08 && (speed > 0 || lateral)) this.#exiting = true;
     ladder.openHatch();
     const nextHeight = Math.min(top.y, Math.max(bottom.y, position.y + speed * 1.5 * deltaTime));
-    const guide = ladder.climbGuide?.(nextHeight) ?? { ...bottom, y: nextHeight };
+    const guide = ladder.climbGuide?.(nextHeight) ?? {
+      ...bottom,
+      y: nextHeight,
+    };
     let target = guide;
-    const roofGuide = ladder.climbGuide?.(top.y) ?? { ...bottom, y: top.y };
+    const roofGuide = ladder.climbGuide?.(top.y) ?? {
+      ...bottom,
+      y: top.y,
+    };
     const climbFacing = ladder.climbFacing;
     const axial = (top.x - roofGuide.x) * climbFacing.x + (top.z - roofGuide.z) * climbFacing.z;
     const sideX = top.x - roofGuide.x - axial * climbFacing.x;
@@ -187,7 +196,11 @@ export class HeroLadderClimb {
       }
       const offset = ladderTransferOffset(this.#transferPhase);
       const back = transferBackOffset(this.#transferPhase);
-      target = { x: roofGuide.x + travelX * offset + backX * back, y: top.y, z: roofGuide.z + travelZ * offset + backZ * back };
+      target = {
+        x: roofGuide.x + travelX * offset + backX * back,
+        y: top.y,
+        z: roofGuide.z + travelZ * offset + backZ * back,
+      };
       // A bounded response stays stable when rendering and Ammo use different
       // timesteps; the contact pose follows the actual capsule position.
       horizontalLimit = 1.4; gain = 8;
@@ -234,9 +247,16 @@ export class HeroLadderClimb {
     const rootCorrection = transferring ? {
       x: Math.max(-0.08, Math.min(0.08, roofGuide.x + travelX * poseOffset + backX * poseBack - position.x)),
       z: Math.max(-0.08, Math.min(0.08, roofGuide.z + travelZ * poseOffset + backZ * poseBack - position.z)),
-    } : { x: 0, z: 0 };
+    } : {
+      x: 0,
+      z: 0,
+    };
     return {
-      velocity: { x: Math.max(-horizontalLimit, Math.min(horizontalLimit, (target.x - position.x) * gain)), y: boundedVerticalSpeed, z: Math.max(-horizontalLimit, Math.min(horizontalLimit, (target.z - position.z) * gain)) },
+      velocity: {
+        x: Math.max(-horizontalLimit, Math.min(horizontalLimit, (target.x - position.x) * gain)),
+        y: boundedVerticalSpeed,
+        z: Math.max(-horizontalLimit, Math.min(horizontalLimit, (target.z - position.z) * gain)),
+      },
       facing: this.#exiting || this.#mounting ? transferFacing : climbFacing,
       topSide,
       rootCorrection,

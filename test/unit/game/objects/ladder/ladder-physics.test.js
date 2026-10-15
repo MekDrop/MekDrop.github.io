@@ -8,7 +8,11 @@ import { Entity, Vec3 } from "playcanvas";
 const hooks = registerHooks({
   load(url, context, nextLoad) {
     if (url.endsWith(".glb?url")) {
-      return { format: "module", source: `export default ${JSON.stringify(url)}`, shortCircuit: true };
+      return {
+        format: "module",
+        source: `export default ${JSON.stringify(url)}`,
+        shortCircuit: true,
+      };
     }
     return nextLoad(url, context);
   },
@@ -17,22 +21,62 @@ const { Ladder } = await import("../../../../../src/game/objects/ladder/Ladder.j
 hooks.deregister();
 
 it("places a standalone ladder from two 3D landings without mutating map data", () => {
-  const bottom = { x: 2, y: 4, z: 6 };
-  const definition = { id: "standalone", object: "Ladder", bottom, top: { x: 5, y: 8, z: 6 } };
+  const bottom = {
+    x: 2,
+    y: 4,
+    z: 6,
+  };
+  const definition = {
+    id: "standalone",
+    object: "Ladder",
+    bottom,
+    top: {
+      x: 5,
+      y: 8,
+      z: 6,
+    },
+  };
   const resolved = Ladder.resolveDefinition(definition);
   assert.equal(resolved.rotation, 90);
-  assert.deepEqual(resolved.position, { x: 2.375, y: 4, z: 6 });
+  assert.deepEqual(resolved.position, {
+    x: 2.375,
+    y: 4,
+    z: 6,
+  });
   assert.equal(definition.position, undefined);
   assert.equal(definition.rotation, undefined);
   assert.equal(resolved.bottom, bottom);
-  const explicit = { ...definition, position: { x: 1, y: 4, z: 5 }, rotation: 270 };
+  const explicit = {
+    ...definition,
+    position: {
+      x: 1,
+      y: 4,
+      z: 5,
+    },
+    rotation: 270,
+  };
   assert.deepEqual(Ladder.resolveDefinition(explicit), explicit);
 });
 
 it("uses a stable heading for vertically aligned endpoints", () => {
-  const resolved = Ladder.resolveDefinition({ bottom: { x: 2, y: 1, z: 3 }, top: { x: 2, y: 5, z: 3 } });
+  const resolved = Ladder.resolveDefinition({
+    bottom: {
+      x: 2,
+      y: 1,
+      z: 3,
+    },
+    top: {
+      x: 2,
+      y: 5,
+      z: 3,
+    },
+  });
   assert.equal(resolved.rotation, 0);
-  assert.deepEqual(resolved.position, { x: 2, y: 1, z: 3.375 });
+  assert.deepEqual(resolved.position, {
+    x: 2,
+    y: 1,
+    z: 3.375,
+  });
 });
 
 it("exports the ladder with a bottom-center root pivot", () => {
@@ -55,11 +99,19 @@ it("rests either side of the rail tips against the hatch opening without enterin
     for (const rotation of [0, 90, 180, 270]) {
       const radians = rotation * Math.PI / 180;
       const definition = {
-        position: { x: 5, y: 6, z: 8 },
+        position: {
+          x: 5,
+          y: 6,
+          z: 8,
+        },
         top: { y: 9 },
         rotation,
         hatch: {
-          position: { x: 5 + direction * 0.25 * Math.sin(radians), y: 9, z: 8 + direction * 0.25 * Math.cos(radians) },
+          position: {
+            x: 5 + direction * 0.25 * Math.sin(radians),
+            y: 9,
+            z: 8 + direction * 0.25 * Math.cos(radians),
+          },
           depth: 1,
         },
       };

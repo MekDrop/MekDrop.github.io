@@ -31,9 +31,19 @@ export class LeisureRoomMapObjects {
         const position = layout.toWorld(item.x, item.z, item.floorY - layout.origin.y + (item.yOffset ?? 0));
         // The compiler has already reflected yaw for mirrored seeds.
         const rotation = layout.yaw + 180 + (item.rotation ?? 0);
-        const definition = { id, object: item.object, position, rotation, scale: item.scale, generated: true,
-          sourceCastleId: castle.id, tile: { col: Math.round(position.x + (mapData.cols - 1) / 2),
-            row: Math.round(position.z + (mapData.rows - 1) / 2) } };
+        const definition = {
+          id,
+          object: item.object,
+          position,
+          rotation,
+          scale: item.scale,
+          generated: true,
+          sourceCastleId: castle.id,
+          tile: {
+            col: Math.round(position.x + (mapData.cols - 1) / 2),
+            row: Math.round(position.z + (mapData.rows - 1) / 2),
+          },
+        };
         if (existingIndex >= 0) { objects[existingIndex] = definition; }
         else { objects.push(definition); }
       }

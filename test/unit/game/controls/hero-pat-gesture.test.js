@@ -16,7 +16,10 @@ it("counts actual strokes, leaves other mouse gestures alone, and releases captu
   });
   const canvas = new EventTarget();
   const captured = new Set();
-  canvas.classList = { toggle() {}, remove() {} };
+  canvas.classList = {
+    toggle() {},
+    remove() {},
+  };
   canvas.setPointerCapture = (id) => captured.add(id);
   canvas.hasPointerCapture = (id) => captured.has(id);
   canvas.releasePointerCapture = (id) => captured.delete(id);
@@ -28,8 +31,13 @@ it("counts actual strokes, leaves other mouse gestures alone, and releases captu
   const send = (type, options = {}) => {
     const event = new Event(type, { cancelable: true });
     Object.assign(event, {
-      pointerType: "mouse", pointerId: 1, button: 0, buttons: 1,
-      clientX: 20, clientY: 20, ...options,
+      pointerType: "mouse",
+      pointerId: 1,
+      button: 0,
+      buttons: 1,
+      clientX: 20,
+      clientY: 20,
+      ...options,
     });
     canvas.dispatchEvent(event);
     return event;

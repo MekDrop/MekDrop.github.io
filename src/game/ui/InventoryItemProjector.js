@@ -1,5 +1,9 @@
 const TEXTURE_SIZE = 384;
-const CAMERA_DIRECTION = Object.freeze({ x: 1, y: 1, z: 1 });
+const CAMERA_DIRECTION = Object.freeze({
+  x: 1,
+  y: 1,
+  z: 1,
+});
 
 export class InventoryItemProjector {
   /**
@@ -207,7 +211,7 @@ export class InventoryItemProjector {
        * @param {{meshInstances: import("playcanvas").MeshInstance[]}} options
        * @param {import("playcanvas").MeshInstance[]} options.meshInstances
        */
-      ({ meshInstances }) => meshInstances);
+        ({ meshInstances }) => meshInstances);
     const bounds = meshInstances[0].aabb.clone();
     for (const meshInstance of meshInstances.slice(1)) {
       bounds.add(meshInstance.aabb);
@@ -248,6 +252,9 @@ export class InventoryItemProjector {
         );
       }
     }
-    return { projectedHalfWidth, projectedHalfHeight };
+    return {
+      projectedHalfWidth,
+      projectedHalfHeight,
+    };
   }
 }

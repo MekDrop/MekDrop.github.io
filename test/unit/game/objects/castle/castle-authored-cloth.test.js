@@ -27,7 +27,12 @@ for (const name of ["BannerCloth", "Flag"]) {
       getUvs: (channel, output) => output.push(0.5, 0, 0, 1, 1, 1),
       getIndices: (output) => output.push(...indices),
     };
-    const modelLibrary = { instantiate: () => ({ findComponents: () => [{ meshInstances: [{ mesh }] }], destroy: () => { destroyed = true; } }) };
+    const modelLibrary = {
+      instantiate: () => ({
+        findComponents: () => [{ meshInstances: [{ mesh }] }],
+        destroy: () => { destroyed = true; },
+      }),
+    };
     const Factory = new Function("library", "FakeMesh", `const clothModelUrl = "cloth"; const FLAG_TRAILING_EDGE_HEIGHT_RATIO = 0.2;
       return new class { #modelLibrary = library; #pc = { Mesh: FakeMesh, calculateNormals: () => [] }; #app = { graphicsDevice: null }; ${method} };`);
     const instance = Factory(modelLibrary, FakeMesh);

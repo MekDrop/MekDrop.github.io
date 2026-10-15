@@ -111,7 +111,7 @@ export class TerrainInstanceRenderer {
        * @param {Set<string>} cells
        * @param {number} index
        */
-      (cells, index) => new pc.Entity(`Island ${index} terrain`));
+        (cells, index) => new pc.Entity(`Island ${index} terrain`));
       for (const islandRoot of this.#islandRoots) root.addChild(islandRoot);
     }
     /**
@@ -197,7 +197,7 @@ export class TerrainInstanceRenderer {
     const group = this.#islandCells?.findIndex(/**
      * @param {Set<string>} cells
      */
-    (cells) => cells.has(key)) ?? -1;
+      (cells) => cells.has(key)) ?? -1;
     const materialBatch = `${group}|${topMaterial}|${sideMaterial}|${underlayMaterial}|${coverage}`;
     const data = this.#batches.get(materialBatch) ?? [];
     for (const value of matrix.data) {
@@ -238,7 +238,13 @@ export class TerrainInstanceRenderer {
         }
         // A side's material need not split an otherwise identical top or underside.
         const key = `${group}|${mesh.id}|${material}|${excavatable}`;
-        const batch = batches.get(key) ?? { group, mesh, material, excavatable, matrices: [] };
+        const batch = batches.get(key) ?? {
+          group,
+          mesh,
+          material,
+          excavatable,
+          matrices: [],
+        };
         for (const value of matrices) {
           batch.matrices.push(value);
         }
@@ -278,8 +284,12 @@ export class TerrainInstanceRenderer {
           const y = matrices[offset + 13] + matrices[offset + 5] / 2;
           const z = matrices[offset + 14];
           this.#surfaceInstances.set(`${x},${y.toFixed(4)},${z}`, {
-            buffer, index, y: matrices[offset + 13], parent,
-            material: this.#materials.get(material), halfSize: matrices[offset] / 2,
+            buffer,
+            index,
+            y: matrices[offset + 13],
+            parent,
+            material: this.#materials.get(material),
+            halfSize: matrices[offset] / 2,
           });
         }
       }
@@ -365,10 +375,30 @@ export class TerrainInstanceRenderer {
   #createMeshes() {
     const pc = this.#pc;
     const groups = {
-      underlay: { positions: [], normals: [], uvs: [], indices: [] },
-      bridgeUnderside: { positions: [], normals: [], uvs: [], indices: [] },
-      sides: { positions: [], normals: [], uvs: [], indices: [] },
-      wallSides: { positions: [], normals: [], uvs: [], indices: [] },
+      underlay: {
+        positions: [],
+        normals: [],
+        uvs: [],
+        indices: [],
+      },
+      bridgeUnderside: {
+        positions: [],
+        normals: [],
+        uvs: [],
+        indices: [],
+      },
+      sides: {
+        positions: [],
+        normals: [],
+        uvs: [],
+        indices: [],
+      },
+      wallSides: {
+        positions: [],
+        normals: [],
+        uvs: [],
+        indices: [],
+      },
       bridgeHorizontalSides: {
         positions: [],
         normals: [],
@@ -381,8 +411,18 @@ export class TerrainInstanceRenderer {
         uvs: [],
         indices: [],
       },
-      full: { positions: [], normals: [], uvs: [], indices: [] },
-      block: { positions: [], normals: [], uvs: [], indices: [] },
+      full: {
+        positions: [],
+        normals: [],
+        uvs: [],
+        indices: [],
+      },
+      block: {
+        positions: [],
+        normals: [],
+        uvs: [],
+        indices: [],
+      },
     };
     const slopeGroupNames = {};
     for (const direction of Object.values(SLOPE_DIRECTION)) {
@@ -390,9 +430,22 @@ export class TerrainInstanceRenderer {
         const coverage = `slope${direction}${stage}`;
         const surface = `${coverage}Surface`;
         const sides = `${coverage}Sides`;
-        groups[surface] = { positions: [], normals: [], uvs: [], indices: [] };
-        groups[sides] = { positions: [], normals: [], uvs: [], indices: [] };
-        slopeGroupNames[coverage] = { surface, sides };
+        groups[surface] = {
+          positions: [],
+          normals: [],
+          uvs: [],
+          indices: [],
+        };
+        groups[sides] = {
+          positions: [],
+          normals: [],
+          uvs: [],
+          indices: [],
+        };
+        slopeGroupNames[coverage] = {
+          surface,
+          sides,
+        };
       }
     }
     const half = 0.5;
@@ -409,19 +462,19 @@ export class TerrainInstanceRenderer {
        *
        * @param {import("src/game/GameContracts.js").GridPoint} point
        */
-      (point) => [...point]);
+        (point) => [...point]);
       const edgeA = points[1].map(/**
        *
        * @param {number} value
        * @param {string} axis
        */
-      (value, axis) => value - points[0][axis]);
+        (value, axis) => value - points[0][axis]);
       const edgeB = points[2].map(/**
        *
        * @param {number} value
        * @param {string} axis
        */
-      (value, axis) => value - points[0][axis]);
+        (value, axis) => value - points[0][axis]);
       let normal = [
         edgeA[1] * edgeB[2] - edgeA[2] * edgeB[1],
         edgeA[2] * edgeB[0] - edgeA[0] * edgeB[2],
@@ -438,7 +491,7 @@ export class TerrainInstanceRenderer {
            * @param {number} sum
            * @param {import("src/game/GameContracts.js").GridPoint} point
            */
-          (sum, point) => sum + point[axis], 0) / points.length,
+            (sum, point) => sum + point[axis], 0) / points.length,
       );
       if (
         normal.reduce(/**
@@ -447,21 +500,21 @@ export class TerrainInstanceRenderer {
          * @param {number} value
          * @param {string} axis
          */
-        (sum, value, axis) => sum + value * center[axis], 0) < 0
+          (sum, value, axis) => sum + value * center[axis], 0) < 0
       ) {
         points.reverse();
         normal = normal.map(/**
          *
          * @param {number} value
          */
-        (value) => -value);
+          (value) => -value);
       }
       const normalLength = Math.hypot(...normal);
       normal = normal.map(/**
        *
        * @param {number} value
        */
-      (value) => value / normalLength);
+        (value) => value / normalLength);
 
       const start = group.positions.length / 3;
       const xRange =
@@ -469,60 +522,60 @@ export class TerrainInstanceRenderer {
          *
          * @param {import("src/game/GameContracts.js").GridPoint} point
          */
-        (point) => point[0])) -
+          (point) => point[0])) -
         Math.min(...points.map(/**
          *
          * @param {import("src/game/GameContracts.js").GridPoint} point
          */
-        (point) => point[0]));
+          (point) => point[0]));
       const zRange =
         Math.max(...points.map(/**
          *
          * @param {import("src/game/GameContracts.js").GridPoint} point
          */
-        (point) => point[2])) -
+          (point) => point[2])) -
         Math.min(...points.map(/**
          *
          * @param {import("src/game/GameContracts.js").GridPoint} point
          */
-        (point) => point[2]));
+          (point) => point[2]));
       const horizontalAxis = xRange >= zRange ? 0 : 2;
       const minX = Math.min(...points.map(/**
        *
        * @param {import("src/game/GameContracts.js").GridPoint} point
        */
-      (point) => point[0]));
+        (point) => point[0]));
       const maxX = Math.max(...points.map(/**
        *
        * @param {import("src/game/GameContracts.js").GridPoint} point
        */
-      (point) => point[0]));
+        (point) => point[0]));
       const minZ = Math.min(...points.map(/**
        *
        * @param {import("src/game/GameContracts.js").GridPoint} point
        */
-      (point) => point[2]));
+        (point) => point[2]));
       const maxZ = Math.max(...points.map(/**
        *
        * @param {import("src/game/GameContracts.js").GridPoint} point
        */
-      (point) => point[2]));
+        (point) => point[2]));
       points.forEach(/**
        *
        * @param {import("src/game/GameContracts.js").GridPoint} point
        */
-      (point) => {
-        group.positions.push(...point);
-        group.normals.push(...normal);
-        if (!groupName.toLowerCase().endsWith("sides")) {
-          group.uvs.push(
-            (point[0] - minX) / Math.max(0.001, maxX - minX),
-            (point[2] - minZ) / Math.max(0.001, maxZ - minZ),
-          );
-        } else {
-          group.uvs.push(point[horizontalAxis] + half, half - point[1]);
-        }
-      });
+        (point) => {
+          group.positions.push(...point);
+          group.normals.push(...normal);
+          if (!groupName.toLowerCase().endsWith("sides")) {
+            group.uvs.push(
+              (point[0] - minX) / Math.max(0.001, maxX - minX),
+              (point[2] - minZ) / Math.max(0.001, maxZ - minZ),
+            );
+          } else {
+            group.uvs.push(point[horizontalAxis] + half, half - point[1]);
+          }
+        });
       for (let index = 1; index < points.length - 1; index += 1) {
         group.indices.push(start, start + index, start + index + 1);
       }
@@ -728,13 +781,13 @@ export class TerrainInstanceRenderer {
          * @param {Array} options."0"
          * @param {Array} options."1"
          */
-        ([coverage, groupNames]) => [
-          coverage,
-          {
-            surface: createMesh(groups[groupNames.surface]),
-            sides: createMesh(groups[groupNames.sides]),
-          },
-        ]),
+          ([coverage, groupNames]) => [
+            coverage,
+            {
+              surface: createMesh(groups[groupNames.surface]),
+              sides: createMesh(groups[groupNames.sides]),
+            },
+          ]),
       ),
       surfaces: {
         full: createMesh(groups.full),

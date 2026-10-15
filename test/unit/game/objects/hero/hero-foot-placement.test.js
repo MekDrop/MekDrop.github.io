@@ -21,7 +21,13 @@ function createFoot(side, tiltSole = true) {
   };
   leg.addChild(sole);
   leg.addChild(cuff);
-  return { side, leg, sole, cuff, tiltingParts: tiltSole ? [sole] : [] };
+  return {
+    side,
+    leg,
+    sole,
+    cuff,
+    tiltingParts: tiltSole ? [sole] : [],
+  };
 }
 
 describe("hero foot placement physics contacts", () => {
@@ -30,7 +36,11 @@ describe("hero foot placement physics contacts", () => {
     const placement = new HeroFootPlacement({
       pc,
       surfaceAt: (x, z, maximumHeight) => {
-        raycasts.push({ x, z, maximumHeight });
+        raycasts.push({
+          x,
+          z,
+          maximumHeight,
+        });
         return {
           height: 0,
           normal: new pc.Vec3(0.8, 0.6, 0),

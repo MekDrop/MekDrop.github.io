@@ -54,7 +54,14 @@ function packCollisionCells(voxels) {
         for (let dz = 0; dz < depth; dz++) cells.delete(`${x + dx}:${y + dy}:${z + dz}`);
       }
     }
-    boxes.push({ x, y, z, width, height, depth });
+    boxes.push({
+      x,
+      y,
+      z,
+      width,
+      height,
+      depth,
+    });
   }
   return boxes;
 }

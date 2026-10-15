@@ -13,6 +13,13 @@ export function addAuthoredMeshPhysics(pc, entity, graph) {
      */
     (render) => render.meshInstances,
   );
-  entity.addComponent("collision", { type: "mesh", model });
-  entity.addComponent("rigidbody", { type: "static", friction: 0.6, restitution: 0 });
+  entity.addComponent("collision", {
+    type: "mesh",
+    model,
+  });
+  entity.addComponent("rigidbody", {
+    type: "static",
+    friction: 0.6,
+    restitution: 0,
+  });
 }

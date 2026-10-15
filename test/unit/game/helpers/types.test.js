@@ -23,7 +23,10 @@ describe("type helpers", () => {
     it("accepts arrays and rejects array-like values", () => {
       assert.equal(isArray([]), true);
       assert.equal(isArray(new Array(2)), true);
-      assert.equal(isArray({ 0: "value", length: 1 }), false);
+      assert.equal(isArray({
+        0: "value",
+        length: 1,
+      }), false);
       assert.equal(isArray("value"), false);
     });
   });

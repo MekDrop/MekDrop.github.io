@@ -17,7 +17,7 @@ export class RoomFurnishingStage extends AbstractCastleGenerationStage {
        *
        * @param {import("../rooms/AbstractCastleRoomGenerator.js").PlannedCastleRoom} candidate
        */
-      (candidate) => candidate.id === generator.id);
+        (candidate) => candidate.id === generator.id);
       if (!room) { continue; }
       for (const item of generator.furnish(room)) {
         if (!RoomPlacementRules.accepts(item, room, plan.furniture)) { continue; }
@@ -31,13 +31,17 @@ export class RoomFurnishingStage extends AbstractCastleGenerationStage {
         const blockedEntrance = plan.doorways.some(/**
          * @param {{roomId:string,axis:string,coordinate:number,center:number,width:number,floorY:number}} door
          */
-        (door) => door.floorY === room.floorY &&
+          (door) => door.floorY === room.floorY &&
           (door.axis === "x" ? Math.abs(item.x - door.coordinate) < halfX + door.width + 0.25 &&
             Math.abs(item.z - door.center) < halfZ + door.width / 2 + 0.45 :
             Math.abs(item.z - door.coordinate) < halfZ + door.width + 0.25 &&
             Math.abs(item.x - door.center) < halfX + door.width / 2 + 0.45));
         if (blockedEntrance) { continue; }
-        plan.furniture.push({ ...item, roomId: room.id, floorY: room.floorY });
+        plan.furniture.push({
+          ...item,
+          roomId: room.id,
+          floorY: room.floorY,
+        });
       }
     }
     plan.furniture = RoomPlacementRules.repair(plan.furniture, [], plan.placedRooms, plan.doorways);

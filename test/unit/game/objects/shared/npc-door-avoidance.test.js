@@ -21,7 +21,13 @@ function scene() {
   const npc = new pc.Entity("npc reaction root");
   root.addChild(door);
   root.addChild(npc);
-  return { app, root, door, npc, behavior: new NpcDoorAvoidance(npc, app) };
+  return {
+    app,
+    root,
+    door,
+    npc,
+    behavior: new NpcDoorAvoidance(npc, app),
+  };
 }
 
 it("steps clear, waits while the door is active, and returns after it closes", () => {
@@ -83,8 +89,15 @@ it("hero clearance interrupts only the requested servant", () => {
 
 it("resumes the servant's interrupted work while hero checks continue after moving away", () => {
   const { app, door: hero, npc, behavior } = scene();
-  const role = new ServantStateMachine({ idlePhase: "idle", initialPhase: "work",
-    states: [new ServantWaitState({ phase: "work", duration: 2, nextPhase: "idle" })] });
+  const role = new ServantStateMachine({
+    idlePhase: "idle",
+    initialPhase: "work",
+    states: [new ServantWaitState({
+      phase: "work",
+      duration: 2,
+      nextPhase: "idle",
+    })],
+  });
   role.start();
   role.update(.75);
   const suspended = role.currentState;
@@ -152,13 +165,19 @@ it("interrupts the royal's actual state and resumes its progress without replayi
   const role = new KingTrainingBehavior(() => {});
   let entries = 0;
   let exits = 0;
-  role.actionHandler = { enter: () => entries++, exit: () => exits++ };
+  role.actionHandler = {
+    enter: () => entries++,
+    exit: () => exits++,
+  };
   role.requested = true;
   role.update(1.25);
   const suspended = role.currentState;
   const elapsed = role.elapsed;
   const progress = role.progress;
-  const before = { entries, exits };
+  const before = {
+    entries,
+    exits,
+  };
   behavior.behavior = role;
   try {
     for (let frame = 0; frame < 120; frame++) {
@@ -175,7 +194,10 @@ it("interrupts the royal's actual state and resumes its progress without replayi
     }
     assert.equal(role.currentState, suspended, "Yuka reverts to the exact previous state");
     assert.equal(role.elapsed, elapsed);
-    assert.deepEqual({ entries, exits }, before, "task lifecycle actions are not replayed");
+    assert.deepEqual({
+      entries,
+      exits,
+    }, before, "task lifecycle actions are not replayed");
     role.update(.2);
     assert.ok(Math.abs(role.elapsed - elapsed - .2) < .00001);
   } finally { behavior.destroy(); }
@@ -183,9 +205,20 @@ it("interrupts the royal's actual state and resumes its progress without replayi
 
 it("preserves an already interrupted servant task and its timer", () => {
   const { app, door, behavior } = scene();
-  const role = new ServantStateMachine({ idlePhase: "idle", initialPhase: "work",
-    states: [new ServantWaitState({ phase: "work", duration: 2, nextPhase: "idle" }),
-      new ServantLookLeftState({ phase: "distracted", duration: 1, nextPhase: null })] });
+  const role = new ServantStateMachine({
+    idlePhase: "idle",
+    initialPhase: "work",
+    states: [new ServantWaitState({
+      phase: "work",
+      duration: 2,
+      nextPhase: "idle",
+    }),
+    new ServantLookLeftState({
+      phase: "distracted",
+      duration: 1,
+      nextPhase: null,
+    })],
+  });
   role.start();
   role.update(.75, { doorwayBusy: true });
   role.interrupt("distracted");
@@ -211,9 +244,13 @@ it("preserves an already interrupted servant task and its timer", () => {
 it("reverts a walking royal without restarting the walk", () => {
   let starts = 0;
   const progress = [];
-  const role = new KingGameOverBehavior({ walkDuration: 2, walkStartDelay: 0,
-    beginWalk: () => starts++, move: (value) => { progress.push(value); return true; },
-    playAnimation: () => {} });
+  const role = new KingGameOverBehavior({
+    walkDuration: 2,
+    walkStartDelay: 0,
+    beginWalk: () => starts++,
+    move: (value) => { progress.push(value); return true; },
+    playAnimation: () => {},
+  });
   role.start();
   role.update(.5);
   const suspended = role.stateMachine.currentState;

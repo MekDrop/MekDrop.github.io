@@ -8,7 +8,12 @@ export class KingFinishTrainingState extends AbstractTerraceParticipantState {
    * @param {number} duration
    */
   constructor(duration) {
-    super({ phase: KingFinishTrainingState.name, stagePhase: STAGE.RISE,
-      duration, action: "sword", animation: KING_ANIMATION.SWORD_FINISH });
+    super({
+      phase: KingFinishTrainingState.name,
+      stagePhase: STAGE.RISE,
+      duration,
+      action: "sword",
+      animation: KING_ANIMATION.SWORD_FINISH,
+    });
   }
 }

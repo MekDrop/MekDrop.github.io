@@ -28,11 +28,17 @@ export class HeroBellRingingActionState extends HeroRuntimeActionState {
        * @param {import("src/game/objects/ObjectTypes.js").HeroActionPayload} options.payload
        */
       movement: ({ payload }) => {
-        if (payload.pulling) { return { x: 0, z: 0 }; }
+        if (payload.pulling) { return {
+          x: 0,
+          z: 0,
+        }; }
         const direction = this.#direction(payload);
         const speed = Math.min(0.8, Math.hypot(direction.x, direction.z) * 5);
         const length = Math.hypot(direction.x, direction.z) || 1;
-        return { x: direction.x / length * speed, z: direction.z / length * speed };
+        return {
+          x: direction.x / length * speed,
+          z: direction.z / length * speed,
+        };
       },
     });
   }
@@ -43,7 +49,10 @@ export class HeroBellRingingActionState extends HeroRuntimeActionState {
    */
   #direction(action) {
     const current = action.currentPosition();
-    return { x: action.position.x - current.x, z: action.position.z - current.z };
+    return {
+      x: action.position.x - current.x,
+      z: action.position.z - current.z,
+    };
   }
 
   /**

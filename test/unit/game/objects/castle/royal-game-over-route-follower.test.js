@@ -3,9 +3,21 @@ import { it } from "node:test";
 import { RoyalGameOverRouteFollower } from "../../../../../src/game/objects/castle/RoyalGameOverRouteFollower.js";
 
 const ROUTE = Object.freeze([
-  Object.freeze({ x: 0, y: 0.2, z: 0 }),
-  Object.freeze({ x: 0, y: 0.2, z: 1 }),
-  Object.freeze({ x: 1, y: 0.3, z: 1 }),
+  Object.freeze({
+    x: 0,
+    y: 0.2,
+    z: 0,
+  }),
+  Object.freeze({
+    x: 0,
+    y: 0.2,
+    z: 1,
+  }),
+  Object.freeze({
+    x: 1,
+    y: 0.3,
+    z: 1,
+  }),
 ]);
 
 function createFollower() {

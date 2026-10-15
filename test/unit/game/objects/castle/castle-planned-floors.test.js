@@ -39,12 +39,29 @@ it("keeps continuous timber above masonry in the panel's seams and corners", () 
 
 
 it("keeps authored floor finishes inside room wall reveals and supports all occupied levels", async () => {
-  const plan = await CastleGenerator.generate({position:{x:-14,z:-8,width:28,depth:16,elevation:3},doors:[{side:"NORTH",offset:13,width:2}],seed:1});
+  const plan = await CastleGenerator.generate({
+    position:{
+      x:-14,
+      z:-8,
+      width:28,
+      depth:16,
+      elevation:3,
+    },
+    doors:[{
+      side:"NORTH",
+      offset:13,
+      width:2,
+    }],
+    seed:1,
+  });
   const residential = plan.metadata.runtime.residential;
   residential.furniture = [];
   const layout = new CastleResidentialLayout(plan);
   const builder = new FloorBuilder(layout);
-  builder.build(plan,{instantiate:url=>Object.assign(new Entity(),{url})},{Entity,Color:class {}});
+  builder.build(plan,{instantiate:url=>Object.assign(new Entity(),{url})},{
+    Entity,
+    Color:class {},
+  });
   const timber = builder.children.filter(child=>child.url==="wood");
   assert.ok(timber.length>0);
   assert.ok(!timber.some(panel => panel.name.includes(":straightLanding")), "stairwell landing strips remain stone");
@@ -75,8 +92,21 @@ it("keeps authored floor finishes inside room wall reveals and supports all occu
 
 
 it("gives the complete authored throne floor to the audience object at its actual level", async () => {
-  const plan = await CastleGenerator.generate({ position: { x: -14, z: -8, width: 28, depth: 16, elevation: 3 },
-    doors: [{ side: "NORTH", offset: 13, width: 2 }], seed: 1 });
+  const plan = await CastleGenerator.generate({
+    position: {
+      x: -14,
+      z: -8,
+      width: 28,
+      depth: 16,
+      elevation: 3,
+    },
+    doors: [{
+      side: "NORTH",
+      offset: 13,
+      width: 2,
+    }],
+    seed: 1,
+  });
   plan.metadata.runtime.residential.furniture = [];
   const layout = new CastleResidentialLayout(plan);
   const bounds = layout.audienceFloorBounds;
@@ -84,7 +114,10 @@ it("gives the complete authored throne floor to the audience object at its actua
   assert.ok(bounds.maxX > layout.rooms.work.maxX, "the audience panel includes the wall reveal");
   assert.ok(bounds.minZ < layout.rooms.work.minZ, "the entrance edge belongs to the same panel");
   const builder = new FloorBuilder(layout);
-  builder.build(plan, { instantiate: url => Object.assign(new Entity(), { url }) }, { Entity, Color: class {} });
+  builder.build(plan, { instantiate: url => Object.assign(new Entity(), { url }) }, {
+    Entity,
+    Color: class {},
+  });
   for (const panel of builder.children.filter(child => child.url === "wood")) {
     const [x, y, z] = panel.position;
     if (Math.abs(y - (bounds.floorY - layout.origin.y + 0.001)) > 1e-6) { continue; }
@@ -97,12 +130,28 @@ it("gives the complete authored throne floor to the audience object at its actua
 
 
 it("joins vestibule and basement floor reveals without timber outside the entrance", async () => {
-  const plan = await CastleGenerator.generate({ position: { x: -14, z: -8, width: 28, depth: 16, elevation: 3 },
-    doors: [{ side: "NORTH", offset: 13, width: 2 }], seed: 1 });
+  const plan = await CastleGenerator.generate({
+    position: {
+      x: -14,
+      z: -8,
+      width: 28,
+      depth: 16,
+      elevation: 3,
+    },
+    doors: [{
+      side: "NORTH",
+      offset: 13,
+      width: 2,
+    }],
+    seed: 1,
+  });
   plan.metadata.runtime.residential.furniture = [];
   const layout = new CastleResidentialLayout(plan);
   const builder = new FloorBuilder(layout);
-  builder.build(plan, { instantiate: url => Object.assign(new Entity(), { url }) }, { Entity, Color: class {} });
+  builder.build(plan, { instantiate: url => Object.assign(new Entity(), { url }) }, {
+    Entity,
+    Color: class {},
+  });
   for (const id of ["vestibule", "vestibule-south", "kitchen", "storage-south"]) {
     const panels = builder.children.filter(panel => panel.name === `Castle ${id} wood floor`);
     assert.equal(panels.length, 1, id + " uses one continuous plank layout");

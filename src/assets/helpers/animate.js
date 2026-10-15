@@ -10,25 +10,25 @@ export function animateCSS(element, animation) {
    *
    * @param {(value?: string|PromiseLike<string>) => void} resolve
    */
-  (resolve) => {
-    const node =
-      element instanceof HTMLElement
-        ? element
-        : document.querySelector(element);
+    (resolve) => {
+      const node =
+        element instanceof HTMLElement
+          ? element
+          : document.querySelector(element);
 
-    node.classList.add("animated", animation);
+      node.classList.add("animated", animation);
 
-    // When the animation ends, we clean the classes and resolve the Promise
-    /**
+      // When the animation ends, we clean the classes and resolve the Promise
+      /**
      *
      * @param {Event} event
      */
-    function handleAnimationEnd(event) {
-      event.stopPropagation();
-      node.classList.remove("animated", animation);
-      resolve("Animation ended");
-    }
+      function handleAnimationEnd(event) {
+        event.stopPropagation();
+        node.classList.remove("animated", animation);
+        resolve("Animation ended");
+      }
 
-    node.addEventListener("animationend", handleAnimationEnd, { once: true });
-  });
+      node.addEventListener("animationend", handleAnimationEnd, { once: true });
+    });
 }

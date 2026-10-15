@@ -18,17 +18,17 @@ const LINEAR_COLORS = TILE_COLORS.map(/**
  *
  * @param {string} color
  */
-(color) =>
-  [16, 8, 0].map(/**
+  (color) =>
+    [16, 8, 0].map(/**
    *
    * @param {number} shift
    */
-  (shift) => {
-    const channel = ((color >> shift) & 0xff) / 255;
-    return channel <= 0.04045
-      ? channel / 12.92
-      : ((channel + 0.055) / 1.055) ** 2.4;
-  }),
+      (shift) => {
+        const channel = ((color >> shift) & 0xff) / 255;
+        return channel <= 0.04045
+          ? channel / 12.92
+          : ((channel + 0.055) / 1.055) ** 2.4;
+      }),
 );
 const OPEN_VARIANT_THRESHOLDS = [0.53, 0.622, 0.697, 0.738, 0.825];
 const SHADED_VARIANT_THRESHOLDS = [0.465, 0.525, 0.639, 0.67, 0.73];
@@ -148,27 +148,27 @@ export class GrassSurfaceMaterials {
      * @param {pc.Texture} texture
      * @param {number} index
      */
-    (texture, index) => {
-      createTop(`grass-${index}`, texture, index);
-    });
+      (texture, index) => {
+        createTop(`grass-${index}`, texture, index);
+      });
 
     sideTransforms.forEach(/**
      *
      * @param {pc.Mat4} transform
      * @param {number} index
      */
-    (transform, index) => {
-      const name = `grassSide-${index}`;
-      materials.set(
-        name,
-        createMaterial(name, {
-          texture: "grassSide",
-          color: SIDE_COLORS[index],
-          gloss: 0.05,
-          ...transform,
-        }),
-      );
-    });
+      (transform, index) => {
+        const name = `grassSide-${index}`;
+        materials.set(
+          name,
+          createMaterial(name, {
+            texture: "grassSide",
+            color: SIDE_COLORS[index],
+            gloss: 0.05,
+            ...transform,
+          }),
+        );
+      });
 
   }
 
@@ -246,15 +246,15 @@ export class GrassSurfaceMaterials {
        * @param {import("src/game/GameContracts.js").TileMetadata} options.tile
        * @param {string} options.kind
        */
-      ({ object, tile, kind }) => {
-        if (object !== "Vegetation" || !tile) {
-          return false;
-        }
-        return (
-          Math.max(Math.abs(col - tile.col), Math.abs(row - tile.row)) <=
+        ({ object, tile, kind }) => {
+          if (object !== "Vegetation" || !tile) {
+            return false;
+          }
+          return (
+            Math.max(Math.abs(col - tile.col), Math.abs(row - tile.row)) <=
           (kind === "tree" ? 2 : 1)
-        );
-      })
+          );
+        })
     ) {
       return true;
     }

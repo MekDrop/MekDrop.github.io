@@ -4,11 +4,32 @@ import { CastleAuthoredBuildPlan } from "../../../../../../../src/game/generator
 import { VestibuleRoomMapObjects } from "../../../../../../../src/game/objects/castle/rooms/vestibule/VestibuleRoomMapObjects.js";
 
 it("publishes floor-correct vestibule props once and replaces them after reflection", async () => {
-  const options = { seed: 20, basePlanId: "castle-demo-compact",
-    position: { x: 0, z: 0, width: 8, depth: 8, elevation: 3 },
-    doors: [{ side: "SOUTH", offset: 1, width: 2 }] };
-  const castle = { id: "arrival", object: "Castle", buildPlan: await CastleAuthoredBuildPlan.generate(options) };
-  const map = { cols: 32, rows: 32, objects: [castle] };
+  const options = {
+    seed: 20,
+    basePlanId: "castle-demo-compact",
+    position: {
+      x: 0,
+      z: 0,
+      width: 8,
+      depth: 8,
+      elevation: 3,
+    },
+    doors: [{
+      side: "SOUTH",
+      offset: 1,
+      width: 2,
+    }],
+  };
+  const castle = {
+    id: "arrival",
+    object: "Castle",
+    buildPlan: await CastleAuthoredBuildPlan.generate(options),
+  };
+  const map = {
+    cols: 32,
+    rows: 32,
+    objects: [castle],
+  };
   VestibuleRoomMapObjects.prepareMap(map);
   const first = structuredClone(map.objects.slice(1));
   assert.ok(first.length >= 5);
@@ -26,7 +47,10 @@ it("publishes floor-correct vestibule props once and replaces them after reflect
     (bench.position.z - cloaks.position.z) * Math.cos(facing) > 0);
   VestibuleRoomMapObjects.prepareMap(map);
   assert.deepEqual(map.objects.slice(1), first);
-  castle.buildPlan = await CastleAuthoredBuildPlan.generate({ ...options, seed: 21 });
+  castle.buildPlan = await CastleAuthoredBuildPlan.generate({
+    ...options,
+    seed: 21,
+  });
   VestibuleRoomMapObjects.prepareMap(map);
   const expected = castle.buildPlan.metadata.runtime.residential.furniture.filter(item => item.role === "vestibuleProp");
   const rugCount = expected.filter(item => item.object === "Rug").length;
@@ -38,11 +62,31 @@ it("publishes floor-correct vestibule props once and replaces them after reflect
 
 it("publishes exactly one central island in each variant and reflected service-wing castle", async () => {
   for (const seed of [4, 5, 10, 11]) {
-    const castle = { id: "wide-arrival", object: "Castle", buildPlan: await CastleAuthoredBuildPlan.generate({
-      seed, basePlanId: "castle-compact-service-wing", position: { x: 0, z: 0, width: 16, depth: 12, elevation: 2 },
-      doors: [{ side: "NORTH", offset: 7, width: 2 }],
-    }) };
-    const map = { cols: 24, rows: 24, objects: [castle] };
+    const castle = {
+      id: "wide-arrival",
+      object: "Castle",
+      buildPlan: await CastleAuthoredBuildPlan.generate({
+        seed,
+        basePlanId: "castle-compact-service-wing",
+        position: {
+          x: 0,
+          z: 0,
+          width: 16,
+          depth: 12,
+          elevation: 2,
+        },
+        doors: [{
+          side: "NORTH",
+          offset: 7,
+          width: 2,
+        }],
+      }),
+    };
+    const map = {
+      cols: 24,
+      rows: 24,
+      objects: [castle],
+    };
     VestibuleRoomMapObjects.prepareMap(map);
     const first = structuredClone(map.objects.slice(1));
     const islands = first.filter(item => ["VestibuleIslandBench", "VestibuleMapTable"].includes(item.object));

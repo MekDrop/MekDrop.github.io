@@ -45,7 +45,12 @@ function schedulePageReload(notificationOptions, signature, details) {
       message = translate?.("game.notification.copy_failed") ?? "Copy failed — retry";
       type = "warning";
     }
-    Notify.create({ message, type, position: "bottom", timeout: 2000 });
+    Notify.create({
+      message,
+      type,
+      position: "bottom",
+      timeout: 2000,
+    });
   };
 
   const releaseSignature = () => {
@@ -144,27 +149,27 @@ export function runtimeErrorDetails(error, context) {
      * @param {string} key
      * @param {Error|Record<string, RuntimeErrorInput>|string|number|boolean|bigint|null|undefined} value
      */
-    (key, value) => {
-      if (typeof value === "bigint") {
-        return String(value);
-      }
-      if (value && typeof value === "object") {
-        if (seen.has(value)) {
-          return "[Circular]";
+      (key, value) => {
+        if (typeof value === "bigint") {
+          return String(value);
         }
-        seen.add(value);
-        if (value instanceof Error) {
-          return Object.fromEntries(
-            ["name", ...Object.getOwnPropertyNames(value)].map(/**
+        if (value && typeof value === "object") {
+          if (seen.has(value)) {
+            return "[Circular]";
+          }
+          seen.add(value);
+          if (value instanceof Error) {
+            return Object.fromEntries(
+              ["name", ...Object.getOwnPropertyNames(value)].map(/**
              *
              * @param {string} name
              */
-            (name) => [name, value[name]]),
-          );
+                (name) => [name, value[name]]),
+            );
+          }
         }
-      }
-      return value;
-    }, 2);
+        return value;
+      }, 2);
   } catch {
     serialized = runtimeErrorDescription(error);
   }
@@ -217,47 +222,47 @@ export default boot(/**
  * @param {{app: import("vue").App}} options
  * @param {import("vue").App} options.app
  */
-({ app }) => {
-  const appTranslate = app.config.globalProperties.$t;
-  if (typeof appTranslate === "function") {
+  ({ app }) => {
+    const appTranslate = app.config.globalProperties.$t;
+    if (typeof appTranslate === "function") {
     /**
      *
      * @param {string} key
      * @param {Record<string, string|number>} values
      */
-    translate = (key, values) => appTranslate(key, values);
-  }
+      translate = (key, values) => appTranslate(key, values);
+    }
 
-  const previousVueErrorHandler = app.config.errorHandler;
-  /**
+    const previousVueErrorHandler = app.config.errorHandler;
+    /**
    *
    * @param {RuntimeErrorInput} error
    * @param {import("vue").ComponentPublicInstance|null} instance
    * @param {string} info
    */
-  app.config.errorHandler = (error, instance, info) => {
-    reportGlobalException(error, { context: `Vue (${info})` });
-    previousVueErrorHandler?.(error, instance, info);
-  };
+    app.config.errorHandler = (error, instance, info) => {
+      reportGlobalException(error, { context: `Vue (${info})` });
+      previousVueErrorHandler?.(error, instance, info);
+    };
 
-  if (typeof window === "undefined" || window[INSTALLATION_KEY]) {
-    return;
-  }
-  window[INSTALLATION_KEY] = true;
-  window.addEventListener("error", /**
+    if (typeof window === "undefined" || window[INSTALLATION_KEY]) {
+      return;
+    }
+    window[INSTALLATION_KEY] = true;
+    window.addEventListener("error", /**
    *
    * @param {ErrorEvent} event
    */
-  (event) => {
-    reportGlobalException(event.error ?? event.message);
-    event.preventDefault();
-  });
-  window.addEventListener("unhandledrejection", /**
+      (event) => {
+        reportGlobalException(event.error ?? event.message);
+        event.preventDefault();
+      });
+    window.addEventListener("unhandledrejection", /**
    *
    * @param {PromiseRejectionEvent} event
    */
-  (event) => {
-    reportGlobalException(event.reason, { context: "Promise" });
-    event.preventDefault();
+      (event) => {
+        reportGlobalException(event.reason, { context: "Promise" });
+        event.preventDefault();
+      });
   });
-});

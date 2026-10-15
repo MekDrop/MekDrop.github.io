@@ -9,7 +9,10 @@ import { CastleDoorSwingPhysics } from "../../../../../src/game/objects/castle/C
 
 const source = readFileSync(new URL("../../../../../src/game/objects/castle/CastleDoor.js", import.meta.url), "utf8")
   .replace(/^import[^\n]+\r?\n/gm, "");
-const Door = new Function("interiorDoorUrl", "castleDoorsModelUrl", "CASTLE_DOOR_ANIMATION", "createCastleDoorCollision", "NpcDoorAvoidance", `${source.replace("export class", "class")}\nreturn CastleDoor;`)("interior.glb", "doors.glb", { OPEN: "open", OPEN_WIDE: "wide" }, createCastleDoorCollision, NpcDoorAvoidance);
+const Door = new Function("interiorDoorUrl", "castleDoorsModelUrl", "CASTLE_DOOR_ANIMATION", "createCastleDoorCollision", "NpcDoorAvoidance", `${source.replace("export class", "class")}\nreturn CastleDoor;`)("interior.glb", "doors.glb", {
+  OPEN: "open",
+  OPEN_WIDE: "wide",
+}, createCastleDoorCollision, NpcDoorAvoidance);
 
 it("registers the entrance arch surface as an obstacle without filling its opening", () => {
   let margin;
@@ -17,23 +20,39 @@ it("registers the entrance arch surface as an obstacle without filling its openi
     components = new Map();
     addComponent(type, data) {
       this.components.set(type, data);
-      if (type === "collision") this.collision = { shape: {
-        getNumChildShapes() { return 1; },
-        getChildShape() { return { setMargin(value) { margin = value; } }; },
-      } };
+      if (type === "collision") this.collision = {
+        shape: {
+          getNumChildShapes() { return 1; },
+          getChildShape() { return { setMargin(value) { margin = value; } }; },
+        },
+      };
     }
   }
   const mesh = { curvedSurface: true };
   let released = false;
   class MeshInstance {
-    constructor(sourceMesh, material, node) { Object.assign(this, { mesh: sourceMesh, material, node }); }
+    constructor(sourceMesh, material, node) { Object.assign(this, {
+      mesh: sourceMesh,
+      material,
+      node,
+    }); }
     destroy() { released = true; }
   }
   const entrance = new Entity("Entrance");
   const arch = new Entity("Entrance masonry interior reveal bridge spandrel 0");
   entrance.addChild(arch);
-  entrance.findComponents = () => [{ entity: arch, meshInstances: [{ mesh, material: {} }] }];
-  const collision = createCastleDoorCollision({ ...pc, Entity, MeshInstance }, entrance);
+  entrance.findComponents = () => [{
+    entity: arch,
+    meshInstances: [{
+      mesh,
+      material: {},
+    }],
+  }];
+  const collision = createCastleDoorCollision({
+    ...pc,
+    Entity,
+    MeshInstance,
+  }, entrance);
   const collider = arch.children[0];
   assert.equal(collider.components.get("rigidbody").type, "static");
   const shape = collider.components.get("collision");
@@ -61,20 +80,35 @@ it("uses curved entrance planks for physics while keeping picking at their autho
   const helper = new Entity("Entrance collision door plank 0");
   entrance.addChild(leaf); entrance.addChild(helper);
   const mesh = { getPositions(out) { out.push(-.9, 0, -.025, -.1, 2, .025); } };
-  const hidden = { entity: helper, enabled: true, meshInstances: [{ mesh }] };
-  entrance.findComponents = () => [hidden, { entity: leaf, asset: 123, meshInstances: [{ mesh }] }];
-  const collision = createCastleDoorCollision({ ...pc, Entity }, entrance);
+  const hidden = {
+    entity: helper,
+    enabled: true,
+    meshInstances: [{ mesh }],
+  };
+  entrance.findComponents = () => [hidden, {
+    entity: leaf,
+    asset: 123,
+    meshInstances: [{ mesh }],
+  }];
+  const collision = createCastleDoorCollision({
+    ...pc,
+    Entity,
+  }, entrance);
   assert.equal(hidden.enabled, false);
   assert.equal(helper.children.length, 0, "old tall helper boxes no longer restrict the arch");
   assert.deepEqual(leaf.children[0].components.get("collision"), {
-    type: "mesh", renderAsset: 123, convexHull: true,
+    type: "mesh",
+    renderAsset: 123,
+    convexHull: true,
   });
   assert.deepEqual(leaf.children[0].getLocalPosition().toArray(), [0, 0, 0]);
   let loadedMargin;
-  leaf.children[0].collision = { shape: {
-    getNumChildShapes() { return 1; },
-    getChildShape() { return { setMargin(value) { loadedMargin = value; } }; },
-  } };
+  leaf.children[0].collision = {
+    shape: {
+      getNumChildShapes() { return 1; },
+      getChildShape() { return { setMargin(value) { loadedMargin = value; } }; },
+    },
+  };
   collision.syncFrameBodies();
   assert.equal(loadedMargin, .001, "applies mechanical clearance after the mesh asset loads");
   assert.equal(collision.blocksAt(-.5, 1, 0, .01), true);
@@ -90,7 +124,11 @@ it("uses curved entrance planks for physics while keeping picking at their autho
 function upperDoor(floorY = 3, side = "NORTH", main = false, placement = null) {
   class Entity extends pc.Entity {
     addComponent(type) {
-      if (type === "anim") this.anim = { baseLayer: layer, addAnimationState() {}, update() {} };
+      if (type === "anim") this.anim = {
+        baseLayer: layer,
+        addAnimationState() {},
+        update() {},
+      };
     }
   }
   const entity = new Entity("doors");
@@ -100,30 +138,70 @@ function upperDoor(floorY = 3, side = "NORTH", main = false, placement = null) {
   const renders = (main ? [left, right] : [left]).map((hinge, index) => {
     const plank = new Entity("Castle door plank"); hinge.addChild(plank);
     const x = index === 0 ? [0, main ? 1 : 2] : [-1, 0];
-    return { entity: plank, meshInstances: [{ mesh: { getPositions(out) {
-      out.push(x[0], 0, -.05, x[1], 2.275, .05);
-    } } }] };
+    return {
+      entity: plank,
+      meshInstances: [{
+        mesh: {
+          getPositions(out) {
+            out.push(x[0], 0, -.05, x[1], 2.275, .05);
+          },
+        },
+      }],
+    };
   });
   entity.findComponents = () => renders;
   let wide = false;
-  const layer = { play(name) { wide = name === "wide"; }, set activeStateCurrentTime(time) {
-    left.setLocalEulerAngles(0, (main ? wide ? 179 : 105 : wide ? -179 : -90) * time, 0);
-    right.setLocalEulerAngles(0, (wide ? -179 : -105) * time, 0);
-  } };
+  const layer = {
+    play(name) { wide = name === "wide"; },
+    set activeStateCurrentTime(time) {
+      left.setLocalEulerAngles(0, (main ? wide ? 179 : 105 : wide ? -179 : -90) * time, 0);
+      right.setLocalEulerAngles(0, (wide ? -179 : -105) * time, 0);
+    },
+  };
   const door = new Door({
-    pc: { ...pc, Entity }, castlePosition: { x: 0, z: 0, width: 8, depth: 8, elevation: 0 },
-    door: { side, offset: 3, width: main ? 2 : 1 },
-    placement: placement ?? (main ? null : { x: 0, y: floorY, z: 2, yaw: 0, height: 2 }),
-    modelLibrary: { instantiate: () => entity, getAnimationTracks: () => new Map([["open", { duration: 1 }], ["wide", { duration: 1 }]]) },
+    pc: {
+      ...pc,
+      Entity,
+    },
+    castlePosition: {
+      x: 0,
+      z: 0,
+      width: 8,
+      depth: 8,
+      elevation: 0,
+    },
+    door: {
+      side,
+      offset: 3,
+      width: main ? 2 : 1,
+    },
+    placement: placement ?? (main ? null : {
+      x: 0,
+      y: floorY,
+      z: 2,
+      yaw: 0,
+      height: 2,
+    }),
+    modelLibrary: {
+      instantiate: () => entity,
+      getAnimationTracks: () => new Map([["open", { duration: 1 }], ["wide", { duration: 1 }]]),
+    },
     woodMaterial: {},
   });
-  return { door, entity };
+  return {
+    door,
+    entity,
+  };
 }
 
 it("keeps an upstairs door closed for ground-floor visitors and clear of ground navigation", () => {
   const { door, entity } = upperDoor();
   assert.deepEqual(entity.getLocalScale().toArray(), [0.5, 2 / 2.4, 0.54]);
-  door.updateHeroPosition({ x: 0, y: 0, z: 2 });
+  door.updateHeroPosition({
+    x: 0,
+    y: 0,
+    z: 2,
+  });
   door.update(1);
   assert.equal(door.blocksCameraAt(0, 3.5, 2.155, 0.1), true);
   assert.equal(door.intersectsFootprint(0, 2, 0.1), false);
@@ -133,8 +211,15 @@ it("keeps an upstairs door closed for ground-floor visitors and clear of ground 
 it("keeps both interior casing faces proud of quarter-metre masonry in every orientation", () => {
   for (const yaw of [0, 90, 180, 270]) {
     for (const mirrored of [false, true]) {
-      const { entity } = upperDoor(3, "NORTH", false, { x: 0, y: 3, z: 0, yaw, height: 2,
-        mirrored, frameOffset: 0.125 - 0.095 });
+      const { entity } = upperDoor(3, "NORTH", false, {
+        x: 0,
+        y: 3,
+        z: 0,
+        yaw,
+        height: 2,
+        mirrored,
+        frameOffset: 0.125 - 0.095,
+      });
       const transform = entity.getWorldTransform();
       const radians = yaw * Math.PI / 180;
       const normal = new pc.Vec3(Math.sin(radians), 0, Math.cos(radians));
@@ -149,14 +234,22 @@ it("keeps both interior casing faces proud of quarter-metre masonry in every ori
 
 it("lets test controls force a destination and restore automatic proximity behavior", () => {
   const { door } = upperDoor();
-  door.updateHeroPosition({ x: 0, y: 3, z: 1.5 });
+  door.updateHeroPosition({
+    x: 0,
+    y: 3,
+    z: 1.5,
+  });
   door.testOpenAmount = 0;
   door.update(1);
   assert.equal(door.openAmount, 0);
   door.testOpenAmount = 1;
   door.update(1);
   assert.ok(Math.abs(door.openAmount - 1) < 0.000001);
-  door.updateHeroPosition({ x: 20, y: 3, z: 20 });
+  door.updateHeroPosition({
+    x: 20,
+    y: 3,
+    z: 20,
+  });
   door.testOpenAmount = null;
   door.update(1);
   assert.ok(door.openAmount < 0.000001);
@@ -178,23 +271,39 @@ it("lets a direct door click release the test controls' forced-closed state", ()
 
 it("opens the authored door animation for visitors on the bedroom floor and closes when they leave", () => {
   const { door } = upperDoor();
-  door.updateHeroPosition({ x: 0, y: 3, z: 1.5 });
+  door.updateHeroPosition({
+    x: 0,
+    y: 3,
+    z: 1.5,
+  });
   door.update(1);
   assert.equal(door.blocksCameraAt(0, 3.5, 2, 0.1), false);
-  door.updateHeroPosition({ x: 0, y: 0, z: 1.5 });
+  door.updateHeroPosition({
+    x: 0,
+    y: 0,
+    z: 1.5,
+  });
   door.update(1);
   assert.equal(door.blocksCameraAt(0, 3.5, 2.155, 0.1), true);
 });
 it("keeps a generated ground courtyard doorway solid until its animation opens", () => {
   const { door } = upperDoor(0);
   assert.equal(door.intersectsFootprint(0, 2, 0.18), true);
-  door.updateHeroPosition({ x: 0, y: 0, z: 1.5 });
+  door.updateHeroPosition({
+    x: 0,
+    y: 0,
+    z: 1.5,
+  });
   door.update(1);
   assert.equal(door.intersectsFootprint(0, 2, 0.18), false);
 });
 it("collides with an open leaf instead of the empty doorway", () => {
   const { door, entity } = upperDoor(0);
-  door.updateHeroPosition({ x: 0, y: 0, z: 1.5 });
+  door.updateHeroPosition({
+    x: 0,
+    y: 0,
+    z: 1.5,
+  });
   door.update(1);
   assert.equal(door.blocksCameraAt(0, .5, 2, .1), false);
   const point = entity.children[0].getWorldTransform().transformPoint(new pc.Vec3(.5, .5, 0));
@@ -213,9 +322,22 @@ it("folds exterior leaves away from the castle walls in every orientation", () =
 
 it("swings authored inward entrance leaves into the castle in every orientation", () => {
   for (const side of ["NORTH", "SOUTH", "WEST", "EAST"]) {
-    const yaw = { NORTH: 0, SOUTH: 180, WEST: 90, EAST: -90 }[side];
+    const yaw = {
+      NORTH: 0,
+      SOUTH: 180,
+      WEST: 90,
+      EAST: -90,
+    }[side];
     const { door, entity } = upperDoor(0, side, true,
-      { x: 4, y: 0, z: 4, yaw, height: 2.3, arched: true, swing: "inward" });
+      {
+        x: 4,
+        y: 0,
+        z: 4,
+        yaw,
+        height: 2.3,
+        arched: true,
+        swing: "inward",
+      });
     door.openTemporarily(2); door.update(1);
     for (const [index, hinge] of entity.children.entries()) {
       const tip = hinge.getWorldTransform().transformPoint(new pc.Vec3(index === 0 ? .8 : -.8, .5, 0));
@@ -227,7 +349,13 @@ it("swings authored inward entrance leaves into the castle in every orientation"
 
 it("keeps every wide-open interior door leaf solid while clearing its aperture", () => {
   const { door, entity } = upperDoor(0, "NORTH", false,
-    { x: 0, y: 0, z: 2, yaw: 0, height: 2 });
+    {
+      x: 0,
+      y: 0,
+      z: 2,
+      yaw: 0,
+      height: 2,
+    });
   door.openTemporarily(2); door.update(1);
   const point = entity.children[0].getWorldTransform().transformPoint(new pc.Vec3(1, .5, 0));
   assert.equal(door.blocksCameraAt(point.x, point.y, point.z, .1), true);
@@ -253,7 +381,11 @@ it("stops an interior swing at a real Ammo wall and resumes when it is removed",
     const nativeBody = new Ammo.btPairCachingGhostObject();
     nativeBody.setCollisionShape(shape);
     world.addCollisionObject(nativeBody, 2, -1);
-    collider.rigidbody = { system: { dynamicsWorld: world }, body: nativeBody, syncEntityToBody() {} };
+    collider.rigidbody = {
+      system: { dynamicsWorld: world },
+      body: nativeBody,
+      syncEntityToBody() {},
+    };
     resources.push(nativeBody, shape, extents);
   }
   const wallExtents = new Ammo.btVector3(2, 2, .05);
@@ -278,7 +410,10 @@ it("stops an interior swing at a real Ammo wall and resumes when it is removed",
   floor.setWorldTransform(transform);
   world.addCollisionObject(floor, 1, -1);
   resources.push(floor, floorShape, floorExtents, floorPosition);
-  const probe = new CastleDoorSwingPhysics(colliders.map(entity => ({ entity, half: [] })));
+  const probe = new CastleDoorSwingPhysics(colliders.map(entity => ({
+    entity,
+    half: [],
+  })));
   try {
     assert.equal(probe.contacts().has(Ammo.getPointer(floor)), false,
       "level floor support does not restrict rotation even with a shallow initial overlap");
@@ -351,9 +486,18 @@ it("holds a swinging door until a visible NPC clears its leaf", () => {
 
 it("mirrors the interior hinge and animated leaf while keeping collision and picking aligned", () => {
   for (const yaw of [0, 90, 180, -90]) {
-    const placement = { x: 0, y: 0, z: 2, yaw, height: 2 };
+    const placement = {
+      x: 0,
+      y: 0,
+      z: 2,
+      yaw,
+      height: 2,
+    };
     const original = upperDoor(0, "NORTH", false, placement);
-    const mirror = upperDoor(0, "NORTH", false, { ...placement, mirrored: true });
+    const mirror = upperDoor(0, "NORTH", false, {
+      ...placement,
+      mirrored: true,
+    });
     for (const step of [0, .2, 1]) {
       original.door.openTemporarily(10); original.door.update(step);
       mirror.door.openTemporarily(10); mirror.door.update(step);
@@ -384,12 +528,20 @@ it("lets terrace choreography request a swing without bypassing hero clearance",
   door.sequenceOpenAmount = 1;
   door.update(1);
   assert.ok(Math.abs(door.openAmount - 1) < 0.000001);
-  door.updateHeroPosition({ x: 0, y: 3, z: 1.5 });
+  door.updateHeroPosition({
+    x: 0,
+    y: 3,
+    z: 1.5,
+  });
   assert.equal(openings, 2);
   door.sequenceOpenAmount = 0;
   door.update(1);
   assert.ok(Math.abs(door.openAmount - 1) < 0.000001, "a hero in the doorway prevents closure");
-  door.updateHeroPosition({ x: 20, y: 3, z: 20 });
+  door.updateHeroPosition({
+    x: 20,
+    y: 3,
+    z: 20,
+  });
   door.update(1);
   assert.ok(door.openAmount < 0.000001);
   door.onOpen = null;

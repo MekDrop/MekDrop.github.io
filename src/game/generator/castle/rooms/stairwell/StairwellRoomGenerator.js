@@ -8,7 +8,13 @@ export class StairwellRoomGenerator extends AbstractCastleRoomGenerator {
   /**
    * @param {string} id
    */
-  constructor(id) { super(id, { x: 3, y: 3 }, { x: 3, y: 3 }); }
+  constructor(id) { super(id, {
+    x: 3,
+    y: 3,
+  }, {
+    x: 3,
+    y: 3,
+  }); }
 
   /**
    * Storage belongs only in supported, low-headroom pockets below the turning slab.
@@ -25,7 +31,7 @@ export class StairwellRoomGenerator extends AbstractCastleRoomGenerator {
       if (plan.spaces?.some(/**
        * @param {import("../AbstractCastleRoomGenerator.js").PlannedCastleRoom} room
        */
-      room => room.furnish === false && room.floorY === stair.center.y &&
+        room => room.furnish === false && room.floorY === stair.center.y &&
         stair.localCenter.x >= room.minX && stair.localCenter.x <= room.maxX &&
         stair.localCenter.z >= room.minZ && stair.localCenter.z <= room.maxZ)) { continue; }
       const turning = castleStraightStairSurfaces(stair)[1];
@@ -45,7 +51,10 @@ export class StairwellRoomGenerator extends AbstractCastleRoomGenerator {
       const rowScales = [0.92 + random() * 0.06, 0.92 + random() * 0.06, 0.92 + random() * 0.06];
       const placements = [];
       for (const slot of slots) {
-        for (const row of [0, 1, 2]) { placements.push({ slot, row }); }
+        for (const row of [0, 1, 2]) { placements.push({
+          slot,
+          row,
+        }); }
       }
       for (const { slot, row } of placements) {
         const across = sine < 0 ? -slot : slot;
@@ -86,13 +95,24 @@ export class StairwellRoomGenerator extends AbstractCastleRoomGenerator {
           const footprint = 0.55 * scale * (Math.abs(Math.cos(radians)) + Math.abs(Math.sin(radians)));
           const stagger = (random() - 0.5) * Math.min(0.03, Math.max(0, 0.604 - footprint));
           const sideways = (random() - 0.5) * Math.min(0.014, Math.max(0, 0.558 - footprint));
-          items.push({ role: "stairwellProp", object: broadBase ? "WoodenStorageChest" : "Crate",
+          items.push({
+            role: "stairwellProp",
+            object: broadBase ? "WoodenStorageChest" : "Crate",
             x: x + stagger * sine + sideways * cosine,
-            z: z + stagger * cosine - sideways * sine, floorY,
-            roomId: `under-stair:${stair.id}`, width: broadBase ? 0.7 : 0.55, depth: 0.55, height: authoredHeight, scale,
-            y, rotation: (stair.yaw - plan.origin.yaw) + Math.floor(random() * (broadBase ? 2 : 4)) * (broadBase ? 180 : 90) + yaw + (broadBase && row === 0 ? 90 : 0),
-            weathering: 0.45 + random() * 0.35, ceiling,
-            underStair: true, backWallStorage: row === 0 });
+            z: z + stagger * cosine - sideways * sine,
+            floorY,
+            roomId: `under-stair:${stair.id}`,
+            width: broadBase ? 0.7 : 0.55,
+            depth: 0.55,
+            height: authoredHeight,
+            scale,
+            y,
+            rotation: (stair.yaw - plan.origin.yaw) + Math.floor(random() * (broadBase ? 2 : 4)) * (broadBase ? 180 : 90) + yaw + (broadBase && row === 0 ? 90 : 0),
+            weathering: 0.45 + random() * 0.35,
+            ceiling,
+            underStair: true,
+            backWallStorage: row === 0,
+          });
           y += height;
         }
       }
@@ -110,28 +130,87 @@ export class StairwellRoomGenerator extends AbstractCastleRoomGenerator {
           z - half >= area.minZ && z + half <= area.maxZ)) { continue; }
         let y = 0.002;
         for (const prop of [
-          { object: "WoodenStorageChest", width: 0.7, depth: 0.55, height: 0.32914, scale: 0.84 },
-          { object: "Crate", width: 0.55, depth: 0.55, height: 0.4702, scale: 0.9 },
-          { object: "StoragePotteryJar", width: 0.229, depth: 0.236, height: 0.3, scale: 1 },
+          {
+            object: "WoodenStorageChest",
+            width: 0.7,
+            depth: 0.55,
+            height: 0.32914,
+            scale: 0.84,
+          },
+          {
+            object: "Crate",
+            width: 0.55,
+            depth: 0.55,
+            height: 0.4702,
+            scale: 0.9,
+          },
+          {
+            object: "StoragePotteryJar",
+            width: 0.229,
+            depth: 0.236,
+            height: 0.3,
+            scale: 1,
+          },
         ]) {
           if (y + prop.height * prop.scale > turning.high - 0.3) { break; }
           const offset = prop.object === "StoragePotteryJar" ? 0.055 : 0;
-          items.push({ ...prop, role: "stairwellProp", x: x + offset * sine, z: z + offset * cosine, floorY: stair.center.y,
-            roomId: `under-stair:${stair.id}`, y,
+          items.push({
+            ...prop,
+            role: "stairwellProp",
+            x: x + offset * sine,
+            z: z + offset * cosine,
+            floorY: stair.center.y,
+            roomId: `under-stair:${stair.id}`,
+            y,
             rotation: stair.yaw - plan.origin.yaw + (across < 0 ? 180 : 0) + (prop.object === "WoodenStorageChest" ? 90 : 0),
-            weathering: 0.65, ceiling: turning.high - 0.3,
-            underStair: true, endWallStorage: true });
+            weathering: 0.65,
+            ceiling: turning.high - 0.3,
+            underStair: true,
+            endWallStorage: true,
+          });
           y += prop.height * prop.scale;
         }
       }
       for (const prop of [
-        { object: "Barrel", slot: sine < 0 ? -0.72 : 0.72, along: -0.91, width: 0.554, depth: 0.554, height: 0.65, scale: 0.8,
-          endWallStorage: true },
-        { object: "Barrel", slot: sine < 0 ? -0.72 : 0.72, along: -0.33, width: 0.554, depth: 0.554, height: 0.65, scale: 0.8,
-          endWallStorage: true },
-        { object: "WaterBucket", slot: sine < 0 ? 1.29 : -1.29, along: 0.5, width: 0.3, depth: 0.28, height: 0.4, scale: 1 },
-        { object: "StoragePotteryJar", slot: sine < 0 ? -1.17 : 1.17, along: -0.33, width: 0.229, depth: 0.236, height: 0.3, scale: 1,
-          y: 0.9404 * rowScales[1] },
+        {
+          object: "Barrel",
+          slot: sine < 0 ? -0.72 : 0.72,
+          along: -0.91,
+          width: 0.554,
+          depth: 0.554,
+          height: 0.65,
+          scale: 0.8,
+          endWallStorage: true,
+        },
+        {
+          object: "Barrel",
+          slot: sine < 0 ? -0.72 : 0.72,
+          along: -0.33,
+          width: 0.554,
+          depth: 0.554,
+          height: 0.65,
+          scale: 0.8,
+          endWallStorage: true,
+        },
+        {
+          object: "WaterBucket",
+          slot: sine < 0 ? 1.29 : -1.29,
+          along: 0.5,
+          width: 0.3,
+          depth: 0.28,
+          height: 0.4,
+          scale: 1,
+        },
+        {
+          object: "StoragePotteryJar",
+          slot: sine < 0 ? -1.17 : 1.17,
+          along: -0.33,
+          width: 0.229,
+          depth: 0.236,
+          height: 0.3,
+          scale: 1,
+          y: 0.9404 * rowScales[1],
+        },
       ]) {
         const across = sine < 0 ? -prop.slot : prop.slot;
         // The barrel's upright bottom pivot becomes one end after laying it down.
@@ -144,10 +223,18 @@ export class StairwellRoomGenerator extends AbstractCastleRoomGenerator {
          * @param {{floorY:number,minX:number,maxX:number,minZ:number,maxZ:number}} area
          */ area => area.floorY === stair.center.y && x - half >= area.minX && x + half <= area.maxX &&
           z - half >= area.minZ && z + half <= area.maxZ)) { continue; }
-        items.push({ ...prop, role: "stairwellProp", x, z, floorY: stair.center.y,
-          roomId: `under-stair:${stair.id}`, y: 0.002 + (prop.y ?? 0) + (prop.tilt ? 0.277 * prop.scale : 0),
+        items.push({
+          ...prop,
+          role: "stairwellProp",
+          x,
+          z,
+          floorY: stair.center.y,
+          roomId: `under-stair:${stair.id}`,
+          y: 0.002 + (prop.y ?? 0) + (prop.tilt ? 0.277 * prop.scale : 0),
           rotation: stair.yaw - plan.origin.yaw + (prop.tilt || prop.object === "Barrel" ? 0 : random() * 360),
-          weathering: 0.6, underStair: true });
+          weathering: 0.6,
+          underStair: true,
+        });
       }
       // Fill the small rear pocket beside the barrel without extending storage
       // into the stair approach. These boxes form one supported low stack.
@@ -156,14 +243,25 @@ export class StairwellRoomGenerator extends AbstractCastleRoomGenerator {
       const pocketScale = 0.65;
       const pocketSupported = items.length > firstItem;
       for (let tier = 0; pocketSupported && tier < 2; tier++) {
-        items.push({ role: "stairwellProp", object: "Crate",
+        items.push({
+          role: "stairwellProp",
+          object: "Crate",
           x: stair.localCenter.x + pocketAcross * cosine + pocketAlong * sine,
           z: stair.localCenter.z - pocketAcross * sine + pocketAlong * cosine,
-          floorY: stair.center.y, roomId: `under-stair:${stair.id}`,
-          width: 0.55, depth: 0.5502, height: 0.4702, scale: pocketScale,
-          y: 0.002 + tier * 0.4702 * pocketScale, rotation: stair.yaw - plan.origin.yaw,
-          weathering: 0.55, ceiling: turning.high - 0.3, underStair: true,
-          endWallStorage: true, backPocketStorage: true });
+          floorY: stair.center.y,
+          roomId: `under-stair:${stair.id}`,
+          width: 0.55,
+          depth: 0.5502,
+          height: 0.4702,
+          scale: pocketScale,
+          y: 0.002 + tier * 0.4702 * pocketScale,
+          rotation: stair.yaw - plan.origin.yaw,
+          weathering: 0.55,
+          ceiling: turning.high - 0.3,
+          underStair: true,
+          endWallStorage: true,
+          backPocketStorage: true,
+        });
       }
       // Seat the measured footprint against the room's inner wall face.
       // Each tier keeps its own clearance rather than sharing a fixed centre.
@@ -192,29 +290,53 @@ export class StairwellRoomGenerator extends AbstractCastleRoomGenerator {
         const alongAxis = sine === 0 ? "z" : "x";
         const acrossSign = cosine || -sine;
         const alongSign = sine || cosine;
-        item.stairApproach = { axis: alongAxis, coordinate: stair.localCenter[alongAxis] + 0.75 * alongSign,
-          side: alongSign > 0 ? "max" : "min" };
+        item.stairApproach = {
+          axis: alongAxis,
+          coordinate: stair.localCenter[alongAxis] + 0.75 * alongSign,
+          side: alongSign > 0 ? "max" : "min",
+        };
         // Carry the eligible exterior faces into collision repair. Otherwise
         // its nearest-position rule can undo the wall seating performed here.
         item.wallAlignment = [
-          { axis: acrossAxis, coordinate: stair.localCenter[acrossAxis] + acrossLow * acrossSign, side: acrossSign > 0 ? "min" : "max" },
-          { axis: acrossAxis, coordinate: stair.localCenter[acrossAxis] + acrossHigh * acrossSign, side: acrossSign > 0 ? "max" : "min" },
-          { axis: alongAxis, coordinate: stair.localCenter[alongAxis] + alongLow * alongSign, side: alongSign > 0 ? "min" : "max" },
+          {
+            axis: acrossAxis,
+            coordinate: stair.localCenter[acrossAxis] + acrossLow * acrossSign,
+            side: acrossSign > 0 ? "min" : "max",
+          },
+          {
+            axis: acrossAxis,
+            coordinate: stair.localCenter[acrossAxis] + acrossHigh * acrossSign,
+            side: acrossSign > 0 ? "max" : "min",
+          },
+          {
+            axis: alongAxis,
+            coordinate: stair.localCenter[alongAxis] + alongLow * alongSign,
+            side: alongSign > 0 ? "min" : "max",
+          },
         ];
         if (item.backPocketStorage) { item.wallAlignment = item.wallAlignment.slice(2); }
         // All three enclosing walls are eligible; the central flight divider
         // is deliberately absent. Keep the open stair approach unoccupied.
         const wallSeats = [
-          { across: acrossLow + halfAcross + 0.02, along },
-          { across: acrossHigh - halfAcross - 0.02, along },
-          { across, along: alongLow + halfAlong + 0.02 },
+          {
+            across: acrossLow + halfAcross + 0.02,
+            along,
+          },
+          {
+            across: acrossHigh - halfAcross - 0.02,
+            along,
+          },
+          {
+            across,
+            along: alongLow + halfAlong + 0.02,
+          },
         ];
         if (item.backPocketStorage) { wallSeats.splice(0, 2); }
         wallSeats.sort(/**
          * @param {{across:number,along:number}} first
          * @param {{across:number,along:number}} second
          */
-        (first, second) => Math.hypot(first.across - across, first.along - along) -
+          (first, second) => Math.hypot(first.across - across, first.along - along) -
           Math.hypot(second.across - across, second.along - along));
         const { across: seatedAcross, along: seatedAlong } = wallSeats[0];
         item.x += (seatedAcross - across) * cosine + (seatedAlong - along) * sine;
@@ -240,7 +362,10 @@ export class StairwellRoomGenerator extends AbstractCastleRoomGenerator {
    * @param {{seed?:string|number,stairs:Array,openings:Array,occupied?:Array}} context
    * @returns {import("../AbstractCastleRoomGenerator.js").RoomItem[]}
    */
-  furnish(room, context = { stairs: [], openings: [] }) {
+  furnish(room, context = {
+    stairs: [],
+    openings: [],
+  }) {
     if (!context.stairs.length || room.height < 2.5 || room.purpose === "Library") { return []; }
     let state = 2166136261;
     for (const character of `${context.seed ?? 0}:${room.id}:${room.level}:stairwell`) {
@@ -281,8 +406,22 @@ export class StairwellRoomGenerator extends AbstractCastleRoomGenerator {
          * @param {import("../AbstractCastleRoomGenerator.js").RoomItem} item
          */ item => Math.abs(x - item.x) < item.width * item.scale / 2 + width / 2 + 0.25 &&
           Math.abs(z - item.z) < item.depth * item.scale / 2 + depth / 2 + 0.25)) { continue; }
-        candidates.push({ role: "stairwellProp", object: "WallLantern", x, z, width, depth,
-          scale: 1, y: 1.75 + random() * 0.1, rotation: { NORTH: 0, SOUTH: 180, WEST: 90, EAST: 270 }[side] });
+        candidates.push({
+          role: "stairwellProp",
+          object: "WallLantern",
+          x,
+          z,
+          width,
+          depth,
+          scale: 1,
+          y: 1.75 + random() * 0.1,
+          rotation: {
+            NORTH: 0,
+            SOUTH: 180,
+            WEST: 90,
+            EAST: 270,
+          }[side],
+        });
       }
     }
     const items = [];
@@ -313,8 +452,17 @@ export class StairwellRoomGenerator extends AbstractCastleRoomGenerator {
        * @param {import("../AbstractCastleRoomGenerator.js").RoomItem} item
        */ item => Math.abs(candleX - item.x) < item.width * item.scale / 2 + 0.5 &&
         Math.abs(candleZ - item.z) < item.depth * item.scale / 2 + 0.5)) {
-      items.push({ role: "stairwellProp", object: "SingleCandleStand", x: candleX, z: candleZ,
-        width: 0.173, depth: 0.173, scale: 1, y: 0.002, rotation: random() * 360 });
+      items.push({
+        role: "stairwellProp",
+        object: "SingleCandleStand",
+        x: candleX,
+        z: candleZ,
+        width: 0.173,
+        depth: 0.173,
+        scale: 1,
+        y: 0.002,
+        rotation: random() * 360,
+      });
     }
     return items;
   }
@@ -328,8 +476,16 @@ export class StairwellRoomGenerator extends AbstractCastleRoomGenerator {
   connect(from, to, bounds) {
     if (!from || !to || from.floorY >= to.floorY ||
       bounds.maxX - bounds.minX < this.min.x || bounds.maxZ - bounds.minZ < this.min.y) { return null; }
-    return { ...bounds, id: this.id, fromRoomId: from.id, toRoomId: to.id,
-      fromLevel: from.level, toLevel: to.level, floorY: from.floorY,
-      height: to.floorY - from.floorY, ceilingY: to.floorY + 2.25 };
+    return {
+      ...bounds,
+      id: this.id,
+      fromRoomId: from.id,
+      toRoomId: to.id,
+      fromLevel: from.level,
+      toLevel: to.level,
+      floorY: from.floorY,
+      height: to.floorY - from.floorY,
+      ceilingY: to.floorY + 2.25,
+    };
   }
 }

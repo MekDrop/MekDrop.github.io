@@ -16,18 +16,21 @@ export class BookCover {
     this.tint(model, color, /**
      * @param {import("playcanvas").StandardMaterial} source
      */
-    source => {
-      let colors = this.#materials.get(source);
-      if (!colors) { colors = new Map(); this.#materials.set(source, colors); }
-      const key = color.join(",");
-      let entry = colors.get(key);
-      if (!entry) { entry = { material: source.clone(), users: 0 }; colors.set(key, entry); }
-      entry.users++;
-      model.once("destroy", () => {
-        if (--entry.users === 0) { entry.material.destroy(); colors.delete(key); }
+      source => {
+        let colors = this.#materials.get(source);
+        if (!colors) { colors = new Map(); this.#materials.set(source, colors); }
+        const key = color.join(",");
+        let entry = colors.get(key);
+        if (!entry) { entry = {
+          material: source.clone(),
+          users: 0,
+        }; colors.set(key, entry); }
+        entry.users++;
+        model.once("destroy", () => {
+          if (--entry.users === 0) { entry.material.destroy(); colors.delete(key); }
+        });
+        return entry.material;
       });
-      return entry.material;
-    });
   }
 
   /**

@@ -15,7 +15,11 @@ export class FloorCandelabrum extends AbstractCastleProp {
     const inverse = model.getWorldTransform().clone().invert();
     for (const name of ["Tall candle wick", "Middle candle wick", "Short candle wick"]) {
       const position = inverse.transformPoint(model.findByName(name).getPosition());
-      Fire.attach(options.pc, model, position, { x: 0.0225, y: 0.162, z: 0.0225 });
+      Fire.attach(options.pc, model, position, {
+        x: 0.0225,
+        y: 0.162,
+        z: 0.0225,
+      });
     }
   }
 

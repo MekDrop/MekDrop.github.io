@@ -45,7 +45,10 @@ function addBoundaryEdge(edges, start, end) {
     edges.delete(reverseKey);
     return;
   }
-  edges.set(key, { start, end });
+  edges.set(key, {
+    start,
+    end,
+  });
 }
 
 /**
@@ -57,13 +60,18 @@ function clippedFootprints(footprint) {
    *
    * @param {{x: number, z: number}} part
    */
-  (part) => {
-    const left = Math.max(-MAX_LOCAL_EXTENT, part.x - part.width / 2);
-    const right = Math.min(MAX_LOCAL_EXTENT, part.x + part.width / 2);
-    const near = Math.max(-MAX_LOCAL_EXTENT, part.z - part.depth / 2);
-    const far = Math.min(MAX_LOCAL_EXTENT, part.z + part.depth / 2);
-    return right > left && far > near ? [{ left, right, near, far }] : [];
-  });
+    (part) => {
+      const left = Math.max(-MAX_LOCAL_EXTENT, part.x - part.width / 2);
+      const right = Math.min(MAX_LOCAL_EXTENT, part.x + part.width / 2);
+      const near = Math.max(-MAX_LOCAL_EXTENT, part.z - part.depth / 2);
+      const far = Math.min(MAX_LOCAL_EXTENT, part.z + part.depth / 2);
+      return right > left && far > near ? [{
+        left,
+        right,
+        near,
+        far,
+      }] : [];
+    });
 }
 
 /**
@@ -73,10 +81,22 @@ function clippedFootprints(footprint) {
 function buildBoundary(footprint) {
   const edges = new Map();
   for (const { left, right, near, far } of clippedFootprints(footprint)) {
-    const nearLeft = { x: left, z: near };
-    const nearRight = { x: right, z: near };
-    const farRight = { x: right, z: far };
-    const farLeft = { x: left, z: far };
+    const nearLeft = {
+      x: left,
+      z: near,
+    };
+    const nearRight = {
+      x: right,
+      z: near,
+    };
+    const farRight = {
+      x: right,
+      z: far,
+    };
+    const farLeft = {
+      x: left,
+      z: far,
+    };
     addBoundaryEdge(edges, nearLeft, nearRight);
     addBoundaryEdge(edges, nearRight, farRight);
     addBoundaryEdge(edges, farRight, farLeft);
@@ -92,8 +112,8 @@ function buildBoundary(footprint) {
    * @param {boolean} left
    * @param {number} right
    */
-  (left, right) =>
-    pointKey(left.start).localeCompare(pointKey(right.start)),
+    (left, right) =>
+      pointKey(left.start).localeCompare(pointKey(right.start)),
   )[0];
   if (!first) {
     return [];
@@ -119,21 +139,21 @@ function irregularizeBoundary(boundary, seed) {
    * @param {{x: number, y: number, z: number}} point
    * @param {number} index
    */
-  (point, index) => {
-    const next = boundary[(index + 1) % boundary.length];
-    const deltaX = next.x - point.x;
-    const deltaZ = next.z - point.z;
-    const length = Math.hypot(deltaX, deltaZ);
-    const inset =
-      MIN_EDGE_INSET + randomUnit(seed, index) * EDGE_INSET_RANGE;
-    return [
-      point,
-      {
-        x: (point.x + next.x) / 2 - (deltaZ / length) * inset,
-        z: (point.z + next.z) / 2 + (deltaX / length) * inset,
-      },
-    ];
-  });
+    (point, index) => {
+      const next = boundary[(index + 1) % boundary.length];
+      const deltaX = next.x - point.x;
+      const deltaZ = next.z - point.z;
+      const length = Math.hypot(deltaX, deltaZ);
+      const inset =
+        MIN_EDGE_INSET + randomUnit(seed, index) * EDGE_INSET_RANGE;
+      return [
+        point,
+        {
+          x: (point.x + next.x) / 2 - (deltaZ / length) * inset,
+          z: (point.z + next.z) / 2 + (deltaX / length) * inset,
+        },
+      ];
+    });
 }
 
 /**
@@ -174,7 +194,7 @@ function triangulate(outline) {
    * @param {{x: number, z: number}} _
    * @param {number} index
    */
-  (_, index) => index);
+    (_, index) => index);
   const indices = [];
   while (remaining.length > 3) {
     let clipped = false;

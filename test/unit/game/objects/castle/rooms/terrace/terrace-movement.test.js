@@ -39,9 +39,16 @@ function syncAt({ elapsed, leaving = false, action = "walk" }) {
     target: TARGET,
     leaving,
     action,
-    behavior: { duration: 3.2, elapsed, walkSpeed: 1.25 },
+    behavior: {
+      duration: 3.2,
+      elapsed,
+      walkSpeed: 1.25,
+    },
   });
-  return { actor, calls };
+  return {
+    actor,
+    calls,
+  };
 }
 
 it("preserves the authored doorway delay, stair timing, and visibility", () => {
@@ -78,8 +85,14 @@ it("uses Yuka path steering without changing lateral easing or turn timing", () 
 
 it("reverses Yuka steering along the queen's authored route segments", () => {
   const segment = [
-    { x: 0, z: 1.2 },
-    { x: 0.9, z: 1.65 },
+    {
+      x: 0,
+      z: 1.2,
+    },
+    {
+      x: 0.9,
+      z: 1.65,
+    },
   ];
 
   assert.ok(Math.abs(terracePathYaw(segment) - 63.43494882292201) < 0.0000001);
@@ -87,7 +100,11 @@ it("reverses Yuka steering along the queen's authored route segments", () => {
 });
 
 it("keeps leaving direction, carry animation, and walk phase semantics", () => {
-  const leaving = syncAt({ elapsed: 1.1, leaving: true, action: "carry" });
+  const leaving = syncAt({
+    elapsed: 1.1,
+    leaving: true,
+    action: "carry",
+  });
   const expectedYaw = Math.atan2(TARGET[0], TARGET[2] - 1.1) * 180 / Math.PI;
 
   assert.ok(Math.abs(leaving.calls.rotation[1] - (expectedYaw + 180)) < 0.0000001);
@@ -106,7 +123,15 @@ it("keeps participants on the floor when entering through an existing room door"
   actor.entity.parent = { tags: { has: (tag) => tag === "flat-terrace-entry" } };
   for (const leaving of [false, true]) {
     for (const elapsed of [0, 0.9, 1.3, 2.2, 3.2]) {
-      syncTerraceWalk({ actor, target: TARGET, leaving, behavior: { duration: 3.2, elapsed } });
+      syncTerraceWalk({
+        actor,
+        target: TARGET,
+        leaving,
+        behavior: {
+          duration: 3.2,
+          elapsed,
+        },
+      });
       assert.equal(Math.abs(calls.position[1]), 0);
     }
   }

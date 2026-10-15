@@ -45,7 +45,7 @@ export class CastleFloorFinish {
      *
      * @param {number[]} rectangle
      */
-    (rectangle) => rectangle.slice(0, 4));
+      (rectangle) => rectangle.slice(0, 4));
     let changed = true;
     while (changed) {
       changed = false;

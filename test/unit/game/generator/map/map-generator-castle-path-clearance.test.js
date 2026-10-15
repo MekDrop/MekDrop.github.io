@@ -7,7 +7,10 @@ it("keeps map 5 mirrored walls inside the reservation and connects every gate to
   const map = await MapGenerator.generate({ mapName: "5" });
   const plan = map.objects.find(({ object }) => object === "Castle").buildPlan;
   const { position, doors } = plan.input;
-  const authored = await CastleBasePlanGenerator.generate({ seed: "5", unitMetres: 1 });
+  const authored = await CastleBasePlanGenerator.generate({
+    seed: "5",
+    unitMetres: 1,
+  });
   const doorZ = position.z + doors[0].offset + doors[0].width / 2;
   for (const building of authored.buildings) {
     const minZ = doorZ + building.minX - authored.entrance.center;

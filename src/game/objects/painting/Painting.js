@@ -69,8 +69,15 @@ export class Painting {
         work.minZ + (work.maxZ - work.minZ) * 0.45);
       if (!mount) continue;
       const position = layout.toWorld(mount.x, mount.z, work.floorY - layout.origin.y + 0.85);
-      objects.push({ id, object: Painting.name, position, rotation: layout.yaw + mount.yaw,
-        width: 0.8, height: 0.8, tile: castle.tile });
+      objects.push({
+        id,
+        object: Painting.name,
+        position,
+        rotation: layout.yaw + mount.yaw,
+        width: 0.8,
+        height: 0.8,
+        tile: castle.tile,
+      });
     }
   }
 
@@ -93,7 +100,11 @@ export class Painting {
     const model = modelLibrary.instantiate(modelUrl);
     // Compress only authored depth: the raised frame retains its relief.
     const scale = definition.scale ?? 1;
-    const stretch = definition.stretch ?? { x: 1, y: 1, z: 1 };
+    const stretch = definition.stretch ?? {
+      x: 1,
+      y: 1,
+      z: 1,
+    };
     const authored = modelUrl !== paintingUrl;
     const xScale = scale * stretch.x * (definition.width ?? 1);
     const yScale = scale * stretch.y * (definition.height ?? 1);

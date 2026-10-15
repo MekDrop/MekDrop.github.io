@@ -149,7 +149,10 @@ export class RiverLava extends RiverWater {
    */
   #addWaterfallMist(waterfall, cols, rows, terminal) {
     const direction = this.#directionVector(waterfall.direction);
-    const cross = { col: -direction.row, row: direction.col };
+    const cross = {
+      col: -direction.row,
+      row: direction.col,
+    };
     const col = waterfall.col ?? waterfall.from.col;
     const row = waterfall.row ?? waterfall.from.row;
     const centerX = col - (cols - 1) / 2;
@@ -316,14 +319,26 @@ export class RiverLava extends RiverWater {
    */
   #directionVector(direction) {
     if (direction === 'NORTH') {
-      return { col: 0, row: -1 };
+      return {
+        col: 0,
+        row: -1,
+      };
     }
     if (direction === 'EAST') {
-      return { col: 1, row: 0 };
+      return {
+        col: 1,
+        row: 0,
+      };
     }
     if (direction === 'SOUTH') {
-      return { col: 0, row: 1 };
+      return {
+        col: 0,
+        row: 1,
+      };
     }
-    return { col: -1, row: 0 };
+    return {
+      col: -1,
+      row: 0,
+    };
   }
 }

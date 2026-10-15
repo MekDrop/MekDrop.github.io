@@ -126,7 +126,7 @@ export class GrassCarpet {
        * @param {Set<string>} cells
        * @param {number} index
        */
-      (cells, index) => new pc.Entity(`Island ${index} grass`));
+        (cells, index) => new pc.Entity(`Island ${index} grass`));
       for (const root of this.#islandRoots) this.#entity.addChild(root);
     }
 
@@ -175,7 +175,7 @@ export class GrassCarpet {
       const group = islandCells?.findIndex(/**
        * @param {Set<string>} cells
        */
-      (cells) => cells.has(`${col},${row}`)) ?? -1;
+        (cells) => cells.has(`${col},${row}`)) ?? -1;
       // Share clumps across larger patches without changing their transforms.
       const patch = `${Math.floor(col / 12)},${Math.floor(row / 12)}`;
       const key = `${group}:${patch}:${Boolean(placement.fringe)}:${placement.detail}:${placement.broadleaf}:${placement.boundaryExtension}:${placement.edgeJoins ?? [0, 0]}`;
@@ -205,16 +205,16 @@ export class GrassCarpet {
       const batch = chunk.fringe
         ? GrassEdgeMesh.batch(pc, device, this.#edgeMesh, this.#material, chunk.matrices)
         : modelLibrary.instantiateMergedBatch(
-        modelUrl,
-        chunk.matrices,
-        {
-          name: `Short grass ${key}`,
-          material: this.#material,
-          castShadows: false,
-          receiveShadows: true,
-          dynamic: true,
-        },
-      );
+          modelUrl,
+          chunk.matrices,
+          {
+            name: `Short grass ${key}`,
+            material: this.#material,
+            castShadows: false,
+            receiveShadows: true,
+            dynamic: true,
+          },
+        );
       // Instanced models otherwise have only the source clump's bounds. Bound
       // each terrain patch so offscreen grass can be culled as one draw call.
       const minimum = new pc.Vec3(Infinity, Infinity, Infinity);
@@ -313,14 +313,14 @@ export class GrassCarpet {
        * @param {{x: number, y: number, z: number}} placement
        * @param {number} index
        */
-      (placement, index) => {
-        if (
-          Math.abs(placement.y - y) < 0.25 &&
+        (placement, index) => {
+          if (
+            Math.abs(placement.y - y) < 0.25 &&
           Math.hypot(placement.x - x, placement.z - z) < radius
-        ) {
-          indices.push(index);
-        }
-      });
+          ) {
+            indices.push(index);
+          }
+        });
       if (!indices.length) {
         continue;
       }
@@ -350,7 +350,11 @@ export class GrassCarpet {
           Math.abs(placement.y - y) <= 0.08 &&
           Math.hypot(placement.x - x, placement.z - z) <= radius
         ) {
-          points.push({ x: placement.x, y: placement.y, z: placement.z });
+          points.push({
+            x: placement.x,
+            y: placement.y,
+            z: placement.z,
+          });
         }
       }
     }

@@ -54,25 +54,25 @@ export class CastleBuildPlanStage extends AbstractMapGenerationStage {
      * @param {number} options.width
      * @param {GridCell[]} options.cells
      */
-    ({ side, offset, width, cells = [] }) => {
-      const approachElevations = cells
-        .map(/**
+      ({ side, offset, width, cells = [] }) => {
+        const approachElevations = cells
+          .map(/**
          *
          * @param {{col: number, row: number}} options
          * @param {number} options.col
          * @param {number} options.row
          */
-        ({ col, row }) => heightmap?.[row]?.[col])
-        .filter(Number.isFinite);
-      return {
-        side,
-        offset,
-        width,
-        approachElevation: approachElevations.length
-          ? Math.max(...approachElevations)
-          : castle.position.elevation,
-      };
-    });
+            ({ col, row }) => heightmap?.[row]?.[col])
+          .filter(Number.isFinite);
+        return {
+          side,
+          offset,
+          width,
+          approachElevation: approachElevations.length
+            ? Math.max(...approachElevations)
+            : castle.position.elevation,
+        };
+      });
 
     castle.seed ??= `${context.input?.mapName ?? "map"}:castle:${castle.position.col}:${castle.position.row}`;
     context.output.castleBuildPlan =

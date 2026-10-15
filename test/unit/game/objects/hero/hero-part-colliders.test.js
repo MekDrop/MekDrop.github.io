@@ -34,7 +34,14 @@ class FakeEntity {
 
 function addMesh(part, center, halfExtents) {
   part.render = {
-    meshInstances: [{ mesh: { aabb: { center, halfExtents } } }],
+    meshInstances: [{
+      mesh: {
+        aabb: {
+          center,
+          halfExtents,
+        },
+      },
+    }],
   };
 }
 
@@ -51,7 +58,10 @@ describe("addHeroPartColliders", () => {
     emptyJoint.addChild(boot);
 
     const colliders = addHeroPartColliders({
-      pc: { Entity: FakeEntity, Vec3: FakeVec3 },
+      pc: {
+        Entity: FakeEntity,
+        Vec3: FakeVec3,
+      },
       modelRoot: root,
     });
 
@@ -75,7 +85,10 @@ describe("addHeroPartColliders", () => {
     addMesh(root, new FakeVec3(), new FakeVec3(0, 0.2, 0.001));
 
     addHeroPartColliders({
-      pc: { Entity: FakeEntity, Vec3: FakeVec3 },
+      pc: {
+        Entity: FakeEntity,
+        Vec3: FakeVec3,
+      },
       modelRoot: root,
     });
 

@@ -39,10 +39,15 @@ export class RiverFlowMap {
     const { cols, rows, riverData = [] } = mapData;
     this.#size = [cols, rows];
     this.#texture = new pc.Texture(device, {
-      name: 'River flow coordinates', width: cols, height: rows,
-      format: pc.PIXELFORMAT_RGBA32F, mipmaps: false,
-      minFilter: pc.FILTER_NEAREST, magFilter: pc.FILTER_NEAREST,
-      addressU: pc.ADDRESS_CLAMP_TO_EDGE, addressV: pc.ADDRESS_CLAMP_TO_EDGE,
+      name: 'River flow coordinates',
+      width: cols,
+      height: rows,
+      format: pc.PIXELFORMAT_RGBA32F,
+      mipmaps: false,
+      minFilter: pc.FILTER_NEAREST,
+      magFilter: pc.FILTER_NEAREST,
+      addressU: pc.ADDRESS_CLAMP_TO_EDGE,
+      addressV: pc.ADDRESS_CLAMP_TO_EDGE,
     });
     const data = this.#texture.lock();
     for (const river of riverData) {
@@ -61,10 +66,15 @@ export class RiverFlowMap {
     }
     this.#texture.unlock();
     this.#forkTexture = new pc.Texture(device, {
-      name: 'River fork outlets', width: cols, height: rows,
-      format: pc.PIXELFORMAT_RGBA32F, mipmaps: false,
-      minFilter: pc.FILTER_NEAREST, magFilter: pc.FILTER_NEAREST,
-      addressU: pc.ADDRESS_CLAMP_TO_EDGE, addressV: pc.ADDRESS_CLAMP_TO_EDGE,
+      name: 'River fork outlets',
+      width: cols,
+      height: rows,
+      format: pc.PIXELFORMAT_RGBA32F,
+      mipmaps: false,
+      minFilter: pc.FILTER_NEAREST,
+      magFilter: pc.FILTER_NEAREST,
+      addressU: pc.ADDRESS_CLAMP_TO_EDGE,
+      addressV: pc.ADDRESS_CLAMP_TO_EDGE,
     });
     const forks = this.#forkTexture.lock();
     for (const river of riverData) {
@@ -75,7 +85,7 @@ export class RiverFlowMap {
        *
        * @param {import("src/game/generator/map/MapGenerationTypes.js").RiverData} branch
        */
-      (branch) => branch.sourceId === river.id);
+        (branch) => branch.sourceId === river.id);
       if (!branches.length) {
         continue;
       }
@@ -106,10 +116,15 @@ export class RiverFlowMap {
     const width = cols * resolution;
     const height = rows * resolution;
     this.#impactTexture = new pc.Texture(device, {
-      name: 'Cascade surface currents', width, height,
-      format: pc.PIXELFORMAT_R8_G8_B8_A8, mipmaps: false,
-      minFilter: pc.FILTER_LINEAR, magFilter: pc.FILTER_LINEAR,
-      addressU: pc.ADDRESS_CLAMP_TO_EDGE, addressV: pc.ADDRESS_CLAMP_TO_EDGE,
+      name: 'Cascade surface currents',
+      width,
+      height,
+      format: pc.PIXELFORMAT_R8_G8_B8_A8,
+      mipmaps: false,
+      minFilter: pc.FILTER_LINEAR,
+      magFilter: pc.FILTER_LINEAR,
+      addressU: pc.ADDRESS_CLAMP_TO_EDGE,
+      addressV: pc.ADDRESS_CLAMP_TO_EDGE,
     });
     const current = this.#impactTexture.lock();
     for (let pixel = 0; pixel < current.length; pixel += 4) {
@@ -118,10 +133,15 @@ export class RiverFlowMap {
     }
     const field = new RiverImpactFlow(riverData);
     this.#bankTexture = new pc.Texture(device, {
-      name: 'River closed banks', width: cols, height: rows,
-      format: pc.PIXELFORMAT_R8_G8_B8_A8, mipmaps: false,
-      minFilter: pc.FILTER_NEAREST, magFilter: pc.FILTER_NEAREST,
-      addressU: pc.ADDRESS_CLAMP_TO_EDGE, addressV: pc.ADDRESS_CLAMP_TO_EDGE,
+      name: 'River closed banks',
+      width: cols,
+      height: rows,
+      format: pc.PIXELFORMAT_R8_G8_B8_A8,
+      mipmaps: false,
+      minFilter: pc.FILTER_NEAREST,
+      magFilter: pc.FILTER_NEAREST,
+      addressU: pc.ADDRESS_CLAMP_TO_EDGE,
+      addressV: pc.ADDRESS_CLAMP_TO_EDGE,
     });
     const banks = this.#bankTexture.lock();
     for (const river of riverData) {
@@ -133,8 +153,8 @@ export class RiverFlowMap {
          *
          * @param {number} closed
          */
-        closed => closed * 255),
-          (cell.row * cols + cell.col) * 4);
+          closed => closed * 255),
+        (cell.row * cols + cell.col) * 4);
         for (let z = 0; z < resolution; z++) {
           for (let x = 0; x < resolution; x++) {
             const flow = field.sample(

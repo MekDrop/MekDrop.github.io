@@ -6,7 +6,10 @@ import { RestartGameAction } from "../../../../src/game/actions/RestartGameActio
 it("awaits each regeneration phase before rendering and exposes the full lifecycle", async () => {
   const events = [];
   const mapData = { mapName: "new-map" };
-  const viewport = { x: 4, y: 7 };
+  const viewport = {
+    x: 4,
+    y: 7,
+  };
   let lifecycle;
   const renderer = {
     viewport,

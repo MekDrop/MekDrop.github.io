@@ -34,9 +34,24 @@ export class CastleSignalTowerLayout {
     const banner = layout.toWorld((room.minX + room.maxX) / 2, wall.minZ - 0.275,
       room.floorY + 2.4 - layout.origin.y);
     return {
-      bell: { position, rotation: layout.yaw },
-      flag: { position: flag, rotation: layout.yaw, width: 1.2, height: 0.7, poleHeight: 2.8 },
-      banner: { ...banner, yaw: layout.yaw + 180, width: 0.65, height: 1.7, signalTower: true },
+      bell: {
+        position,
+        rotation: layout.yaw,
+      },
+      flag: {
+        position: flag,
+        rotation: layout.yaw,
+        width: 1.2,
+        height: 0.7,
+        poleHeight: 2.8,
+      },
+      banner: {
+        ...banner,
+        yaw: layout.yaw + 180,
+        width: 0.65,
+        height: 1.7,
+        signalTower: true,
+      },
     };
   }
 }

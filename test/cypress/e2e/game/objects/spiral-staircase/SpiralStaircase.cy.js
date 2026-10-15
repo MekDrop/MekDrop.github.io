@@ -35,7 +35,11 @@ async function walkTo(window, target, perspective) {
     }
     await new Promise((resolve) => window.setTimeout(resolve, 30));
   }
-  expect(reached, JSON.stringify({ target, position: driver.state().position, animation: driver.state().animation })).to.equal(true);
+  expect(reached, JSON.stringify({
+    target,
+    position: driver.state().position,
+    animation: driver.state().animation,
+  })).to.equal(true);
   driver.move(0, 0);
   await new Promise((resolve) => window.setTimeout(resolve, 100));
 }
@@ -53,11 +57,20 @@ describe("Spiral staircase", () => {
       ready();
       cy.window().then({ timeout: 180000 }, async (window) => {
         const driver = window.gameMovementTest;
-        const targets = [{ x: 0.5, z: 2.5 }, { x: 0.5, z: 1.3 }];
+        const targets = [{
+          x: 0.5,
+          z: 2.5,
+        }, {
+          x: 0.5,
+          z: 1.3,
+        }];
         for (let index = 0; index < 16; index++) {
           const angle = index === 15 ? 340 * Math.PI / 180 : (index + 0.5) * Math.PI / 8;
           const radius = index === 15 ? 1.2 : 1;
-          targets.push({ x: Math.sin(angle) * radius, z: Math.cos(angle) * radius });
+          targets.push({
+            x: Math.sin(angle) * radius,
+            z: Math.cos(angle) * radius,
+          });
         }
         try {
           for (const [index, target] of targets.entries()) {
@@ -81,10 +94,28 @@ describe("Spiral staircase", () => {
       try {
         const upperEntry = plan.layout.roomPlan.doorways.find((door) => door.roomId === "leisure");
         const origin = plan.layout.roomPlan.origin;
-        const upperDoor = { x: origin.x + upperEntry.center, z: origin.z + upperEntry.coordinate };
-        for (const target of [{ x: 1.4, z: hallZ }, { x: upperDoor.x, z: upperDoor.z + 0.8 },
-          { x: upperDoor.x, z: upperDoor.z - 0.7 }, { x: upperDoor.x, z: upperDoor.z + 0.8 },
-          { x: 2.8, z: hallZ }]) await walkTo(window, target, true);
+        const upperDoor = {
+          x: origin.x + upperEntry.center,
+          z: origin.z + upperEntry.coordinate,
+        };
+        for (const target of [{
+          x: 1.4,
+          z: hallZ,
+        }, {
+          x: upperDoor.x,
+          z: upperDoor.z + 0.8,
+        },
+        {
+          x: upperDoor.x,
+          z: upperDoor.z - 0.7,
+        }, {
+          x: upperDoor.x,
+          z: upperDoor.z + 0.8,
+        },
+        {
+          x: 2.8,
+          z: hallZ,
+        }]) await walkTo(window, target, true);
         const camera = window.gameCameraTest.state().firstPersonCamera;
         const length = Math.hypot(camera.direction.x, camera.direction.z);
         driver.move(camera.right.x, camera.direction.x / length);
@@ -112,12 +143,30 @@ describe("Spiral staircase", () => {
       const driver = window.gameMovementTest;
       const { stair } = await climbCastle(window);
       try {
-        for (const target of [{ x: stair.center.x + 0.6, z: stair.center.z + 0.35 },
-          { x: stair.center.x + 0.35, z: stair.center.z + 0.65 },
-          { x: stair.center.x + 0.6, z: stair.center.z + 1.05 },
-          { x: stair.center.x + 1.9, z: stair.center.z + 1.05 },
-          { x: stair.center.x + 1.9, z: stair.center.z + 0.35 }]) {
-          await walkTo(window, { ...target, speed: 0.6 }, true);
+        for (const target of [{
+          x: stair.center.x + 0.6,
+          z: stair.center.z + 0.35,
+        },
+        {
+          x: stair.center.x + 0.35,
+          z: stair.center.z + 0.65,
+        },
+        {
+          x: stair.center.x + 0.6,
+          z: stair.center.z + 1.05,
+        },
+        {
+          x: stair.center.x + 1.9,
+          z: stair.center.z + 1.05,
+        },
+        {
+          x: stair.center.x + 1.9,
+          z: stair.center.z + 0.35,
+        }]) {
+          await walkTo(window, {
+            ...target,
+            speed: 0.6,
+          }, true);
           expect(driver.state().position.y).to.be.closeTo(stair.center.y + stair.rise, 0.08);
         }
         const camera = window.gameCameraTest.state().firstPersonCamera;
@@ -140,17 +189,40 @@ async function climbCastle(window) {
   const stair = new CastleResidentialLayout(plan).stairs;
   const entry = plan.metadata.runtime.roomDoors.find((door) => door.roomId === "library" && door.y === stair.center.y);
   const spawn = castleMap.objects.find(({ object }) => object === "SpawnPoint").position;
-  const targets = [{ x: entry.x, z: entry.z + 0.5 }, { x: entry.x, z: entry.z - 0.6 },
-    { x: entry.x, z: entry.z + 0.5 }, spawn, ...stair.treads];
+  const targets = [{
+    x: entry.x,
+    z: entry.z + 0.5,
+  }, {
+    x: entry.x,
+    z: entry.z - 0.6,
+  },
+  {
+    x: entry.x,
+    z: entry.z + 0.5,
+  }, spawn, ...stair.treads];
   const last = targets.at(-1);
-  const outer = { x: stair.center.x + (last.x - stair.center.x) * 1.5,
-    z: stair.center.z + (last.z - stair.center.z) * 1.5 };
+  const outer = {
+    x: stair.center.x + (last.x - stair.center.x) * 1.5,
+    z: stair.center.z + (last.z - stair.center.z) * 1.5,
+  };
   const hallZ = stair.center.z + stair.radius - 0.4;
-  targets.push(outer, { x: outer.x + 0.35, z: outer.z },
-    { x: outer.x + 0.35, z: hallZ }, { x: outer.x + 1.2, z: hallZ });
+  targets.push(outer, {
+    x: outer.x + 0.35,
+    z: outer.z,
+  },
+  {
+    x: outer.x + 0.35,
+    z: hallZ,
+  }, {
+    x: outer.x + 1.2,
+    z: hallZ,
+  });
   try {
     for (const target of targets) {
-      await walkTo(window, { ...target, speed: 0.6 }, true);
+      await walkTo(window, {
+        ...target,
+        speed: 0.6,
+      }, true);
       // Contact support ramps between adjacent treads; detect a wrong turn or fall.
       if (target.y !== undefined && target !== spawn) {
         expect(driver.state().position.y, `tread at ${target.x}, ${target.z}`).to.be.closeTo(target.y, 0.4);
@@ -159,5 +231,9 @@ async function climbCastle(window) {
     expect(driver.state().position.y).to.be.closeTo(stair.center.y + stair.rise, 0.05);
     expect(driver.state().grounded).to.equal(true);
   } finally { driver.move(0, 0); }
-  return { plan, stair, hallZ };
+  return {
+    plan,
+    stair,
+    hallZ,
+  };
 }

@@ -186,7 +186,7 @@ export class InventoryScene {
      *
      * @param {import("src/game/GameContracts.js").GameObjectContract} item
      */
-    (item) => item.state);
+      (item) => item.state);
   }
 
   /**
@@ -198,7 +198,7 @@ export class InventoryScene {
      *
      * @param {import("src/game/GameContracts.js").GameObjectContract} item
      */
-    (item) => item.grassImpressionContacts);
+      (item) => item.grassImpressionContacts);
   }
 
   /**

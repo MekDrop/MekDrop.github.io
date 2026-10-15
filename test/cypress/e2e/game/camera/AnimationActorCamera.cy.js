@@ -22,14 +22,23 @@ describe("Animation actor camera", () => {
           cy.get(".background-canvas").then(($viewport) => {
             const rect = $viewport[0].getBoundingClientRect();
             const pointer = {
-              pointerId: 1, pointerType: "mouse", button: 2, buttons: 2,
+              pointerId: 1,
+              pointerType: "mouse",
+              button: 2,
+              buttons: 2,
               clientX: rect.left + rect.width / 2,
               clientY: rect.top + rect.height / 2,
             };
             cy.wrap($viewport)
               .trigger("pointerdown", pointer)
-              .trigger("pointermove", { ...pointer, clientY: pointer.clientY + direction * 100000 })
-              .trigger("pointerup", { ...pointer, buttons: 0 });
+              .trigger("pointermove", {
+                ...pointer,
+                clientY: pointer.clientY + direction * 100000,
+              })
+              .trigger("pointerup", {
+                ...pointer,
+                buttons: 0,
+              });
           });
           cy.window().then(() => {
             const state = driver.state();

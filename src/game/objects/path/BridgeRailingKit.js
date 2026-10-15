@@ -101,7 +101,7 @@ export class BridgeRailingKit {
        * @param {Set<string>} cells
        * @param {number} index
        */
-      (cells, index) => new pc.Entity(`Island ${index} bridge railings`));
+        (cells, index) => new pc.Entity(`Island ${index} bridge railings`));
       for (const islandRoot of this.#islandRoots) {
         root.addChild(islandRoot);
       }
@@ -192,12 +192,12 @@ export class BridgeRailingKit {
      *
      * @param {number} cell
      */
-    (cell) => cell.row));
+      (cell) => cell.row));
     const end = Math.max(...pathCells.map(/**
      *
      * @param {number} cell
      */
-    (cell) => cell.row));
+      (cell) => cell.row));
     const postPositions = [start - 0.34, end + 0.34];
     for (let position = start + 0.5; position < end; position += 1) {
       postPositions.push(position);
@@ -207,7 +207,7 @@ export class BridgeRailingKit {
      * @param {number} left
      * @param {number} right
      */
-    (left, right) => left - right);
+      (left, right) => left - right);
 
     const centerX =
       overpass.crossing.col +
@@ -280,7 +280,7 @@ export class BridgeRailingKit {
     return this.#islandCells?.findIndex(/**
      * @param {Set<string>} cells
      */
-    (cells) => cells.has(key)) ?? -1;
+      (cells) => cells.has(key)) ?? -1;
   }
 
   /**

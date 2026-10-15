@@ -1,7 +1,13 @@
 import { AbstractCastleRoomGenerator } from "../AbstractCastleRoomGenerator.js";
 
 export class ThroneRoomGenerator extends AbstractCastleRoomGenerator {
-  constructor() { super("throneRoom", { x: 3, y: 3 }, { x: 3, y: 3.25 }); }
+  constructor() { super("throneRoom", {
+    x: 3,
+    y: 3,
+  }, {
+    x: 3,
+    y: 3.25,
+  }); }
   /**
    * @returns {number[]}
    */
@@ -71,23 +77,35 @@ export class ThroneRoomGenerator extends AbstractCastleRoomGenerator {
      */
     const add = (object, x, z, itemWidth, itemDepth, elevation = 0.05, rotation = 0) => {
       const angle = rotation * Math.PI / 180;
-      items.push({ role: "courtProp", object, x, z,
+      items.push({
+        role: "courtProp",
+        object,
+        x,
+        z,
         width: Math.abs(Math.cos(angle)) * itemWidth + Math.abs(Math.sin(angle)) * itemDepth,
         depth: Math.abs(Math.sin(angle)) * itemWidth + Math.abs(Math.cos(angle)) * itemDepth,
-        scale: 1, elevation, rotation, mirrorRotationOffset: object === "Chair" ? 180 : 0 });
+        scale: 1,
+        elevation,
+        rotation,
+        mirrorRotationOffset: object === "Chair" ? 180 : 0,
+      });
     };
     // Top-mounted authored cloth hangs clear of the rear wall and candle groups.
     const bannerLateral = Math.min(1.68, width / 2 - 0.6);
     for (const side of [-1, 1]) {
       add("Banner", center + side * bannerLateral, bounds.minZ + 0.38,
         0.98, 0.1, 2.35);
-      items.at(-1).stretch = { x: 0.975, y: 1.4, z: 1 };
+      items.at(-1).stretch = {
+        x: 0.975,
+        y: 1.4,
+        z: 1,
+      };
       items.at(-1).height = 1.38;
     }
     const rearWindow = (context.openings ?? room.openings ?? []).some(/**
      * @param {import("../../CastleBasePlanGenerator.js").CompiledCastleOpening} opening
      */
-    opening => opening.kind === "window" && opening.roomId === room.id &&
+      opening => opening.kind === "window" && opening.roomId === room.id &&
       opening.axis === "z" && Math.abs(opening.coordinate - bounds.minZ) < 0.3 &&
       Math.abs(opening.center - center) < opening.width / 2 + 0.4);
     add("ThroneDais", center, bounds.minZ + (rearWindow ? 0.55 : 0.65), 1.1, 0.95, 0.05);
@@ -109,13 +127,13 @@ export class ThroneRoomGenerator extends AbstractCastleRoomGenerator {
        *
        * @param {import("../../CastleBasePlanGenerator.js").CompiledCastleOpening} opening
        */
-      (opening) =>
-        opening.kind === "door" && (!opening.roomId || opening.roomId === room.id));
+        (opening) =>
+          opening.kind === "door" && (!opening.roomId || opening.roomId === room.id));
       const side = doors.some(/**
        *
        * @param {import("../../CastleBasePlanGenerator.js").CompiledCastleOpening} door
        */
-      (door) => door.side === "EAST") ? -1 : 1;
+        (door) => door.side === "EAST") ? -1 : 1;
       const x = center + side * (width / 2 - 0.52);
       const z = bounds.maxZ - 0.95 - random() * 0.12;
       if (!fits(x, z, 0.628, 1.25)) { return items; }

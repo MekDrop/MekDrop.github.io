@@ -125,32 +125,32 @@ export class OverpassStairs {
      *
      * @param {number} cell
      */
-    (cell) => cell.col));
+      (cell) => cell.col));
     const maxCol = Math.max(...cells.map(/**
      *
      * @param {number} cell
      */
-    (cell) => cell.col));
+      (cell) => cell.col));
     const minRow = Math.min(...cells.map(/**
      *
      * @param {number} cell
      */
-    (cell) => cell.row));
+      (cell) => cell.row));
     const maxRow = Math.max(...cells.map(/**
      *
      * @param {number} cell
      */
-    (cell) => cell.row));
+      (cell) => cell.row));
     const baseElevation = Math.min(...cells.map(/**
      *
      * @param {number} cell
      */
-    (cell) => cell.lowHeight));
+      (cell) => cell.lowHeight));
     const topElevation = Math.max(...cells.map(/**
      *
      * @param {number} cell
      */
-    (cell) => cell.highHeight));
+      (cell) => cell.highHeight));
     const riseBlocks = Math.round(
       (topElevation - baseElevation) / STAIR_BLOCK_SIZE,
     );

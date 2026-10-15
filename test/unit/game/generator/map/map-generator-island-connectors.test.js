@@ -17,7 +17,10 @@ describe("island connector generation", () => {
     });
     assert.equal(new Set(straightRuns).size, connectors.length);
 
-    const unsplit = await MapGenerator.generate({ mapName: "muk76amh_1dmmup1", islandConnectors: false });
+    const unsplit = await MapGenerator.generate({
+      mapName: "muk76amh_1dmmup1",
+      islandConnectors: false,
+    });
     for (const connector of connectors) {
       for (const cell of connector.cells) {
         for (const step of [-1, 0, 1]) {
@@ -58,7 +61,10 @@ describe("island connector generation", () => {
   });
 
   it("keeps connector generation optional", async () => {
-    const map = await MapGenerator.generate({ mapName: "multi-islands-37", islandConnectors: false });
+    const map = await MapGenerator.generate({
+      mapName: "multi-islands-37",
+      islandConnectors: false,
+    });
     assert.equal(map.islandConnectorData, undefined);
   });
 

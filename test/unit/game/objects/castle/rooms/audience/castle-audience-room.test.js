@@ -7,8 +7,16 @@ class FakeEntity {
     this.name = name;
     this.children = [];
     this.enabled = true;
-    this.position = { x: 0, y: 0, z: 0 };
-    this.scale = { x: 1, y: 1, z: 1 };
+    this.position = {
+      x: 0,
+      y: 0,
+      z: 0,
+    };
+    this.scale = {
+      x: 1,
+      y: 1,
+      z: 1,
+    };
   }
 
   addChild(child) {
@@ -22,13 +30,25 @@ class FakeEntity {
   }
 
   setLocalPosition(x, y, z) {
-    this.position = { x, y, z };
+    this.position = {
+      x,
+      y,
+      z,
+    };
   }
 
-  setLocalEulerAngles(x, y, z) { this.euler = { x, y, z }; }
+  setLocalEulerAngles(x, y, z) { this.euler = {
+    x,
+    y,
+    z,
+  }; }
 
   setLocalScale(x, y, z) {
-    this.scale = { x, y, z };
+    this.scale = {
+      x,
+      y,
+      z,
+    };
   }
 
   getLocalPosition() {
@@ -120,20 +140,44 @@ const modelLibrary = {
 
 const layouts = {
   WEST: {
-    center: { x: 0, z: 4 },
-    inward: { x: 1, z: 0 },
+    center: {
+      x: 0,
+      z: 4,
+    },
+    inward: {
+      x: 1,
+      z: 0,
+    },
   },
   EAST: {
-    center: { x: 8, z: 4 },
-    inward: { x: -1, z: 0 },
+    center: {
+      x: 8,
+      z: 4,
+    },
+    inward: {
+      x: -1,
+      z: 0,
+    },
   },
   NORTH: {
-    center: { x: 4, z: 0 },
-    inward: { x: 0, z: 1 },
+    center: {
+      x: 4,
+      z: 0,
+    },
+    inward: {
+      x: 0,
+      z: 1,
+    },
   },
   SOUTH: {
-    center: { x: 4, z: 8 },
-    inward: { x: 0, z: -1 },
+    center: {
+      x: 4,
+      z: 8,
+    },
+    inward: {
+      x: 0,
+      z: -1,
+    },
   },
 };
 
@@ -141,8 +185,18 @@ function createRoom(side, occupant = null, options = {}) {
   return new CastleAudienceRoom({
     pc,
     app,
-    position: { x: 0, z: 0, width: 8, depth: 8, elevation: 2 },
-    door: { side, offset: 3, width: 2 },
+    position: {
+      x: 0,
+      z: 0,
+      width: 8,
+      depth: 8,
+      elevation: 2,
+    },
+    door: {
+      side,
+      offset: 3,
+      width: 2,
+    },
     occupant: occupant ?? {
       entity: new FakeEntity("Royal"),
       update() {},
@@ -205,7 +259,10 @@ it("keeps the throne room rendered while its entrance is closed", () => {
   const room = createRoom("NORTH");
 
   room.entranceVisible = false;
-  room.updateHeroPosition({ x: -100, z: -100 });
+  room.updateHeroPosition({
+    x: -100,
+    z: -100,
+  });
 
   assert.equal(room.entity.enabled, true);
   room.destroy();
@@ -215,10 +272,22 @@ it("routes a royal through the doorway with castle collision knowledge", () => {
   let gameOverOptions = null;
   const occupant = {
     entity: new FakeEntity("Royal"),
-    gameOverDestination: { lateral: 1.15, forward: -1, elevation: 0.05 },
+    gameOverDestination: {
+      lateral: 1.15,
+      forward: -1,
+      elevation: 0.05,
+    },
     visualBounds: {
-      center: { x: 4, y: 3, z: 3 },
-      size: { x: 1, y: 2, z: 1 },
+      center: {
+        x: 4,
+        y: 3,
+        z: 3,
+      },
+      size: {
+        x: 1,
+        y: 2,
+        z: 1,
+      },
     },
     beginGameOver(options) {
       gameOverOptions = options;
@@ -229,17 +298,33 @@ it("routes a royal through the doorway with castle collision knowledge", () => {
   const isBlocked = () => false;
   const room = createRoom("NORTH", occupant);
 
-  room.beginGameOver(() => ({ x: 0, y: 0, z: 0 }), isBlocked);
+  room.beginGameOver(() => ({
+    x: 0,
+    y: 0,
+    z: 0,
+  }), isBlocked);
   room.startGameOverPerformance();
 
   assert.equal(gameOverOptions.route.isBlocked, isBlocked);
   assert.equal(gameOverOptions.route.collisionRadius, 0.22);
   assert.deepEqual(
-    gameOverOptions.route.waypoints.slice(1).map(({ x, z }) => ({ x, z })),
+    gameOverOptions.route.waypoints.slice(1).map(({ x, z }) => ({
+      x,
+      z,
+    })),
     [
-      { x: 4, z: 0.35 },
-      { x: 4, z: -0.35 },
-      { x: 5.15, z: -1 },
+      {
+        x: 4,
+        z: 0.35,
+      },
+      {
+        x: 4,
+        z: -0.35,
+      },
+      {
+        x: 5.15,
+        z: -1,
+      },
     ],
   );
   room.destroy();
@@ -250,17 +335,39 @@ for (const side of Object.keys(layouts)) {
     const room = createRoom(side, null, {
       availableDepth: 6.5,
       availableWidth: 5,
-      door: { side, offset: 2, width: 2 },
+      door: {
+        side,
+        offset: 2,
+        width: 2,
+      },
     });
     // The room is 8 units wide with half-unit walls. Its doorway is at 3,
     // so the former 5-unit furnished floor left a wider uncovered side strip.
     const inward = layouts[side].inward;
-    const tangent = inward.x ? { x: 0, z: 1 } : { x: 1, z: 0 };
+    const tangent = inward.x ? {
+      x: 0,
+      z: 1,
+    } : {
+      x: 1,
+      z: 0,
+    };
     const center = {
-      WEST: { x: 0, z: 3 },
-      EAST: { x: 8, z: 3 },
-      NORTH: { x: 3, z: 0 },
-      SOUTH: { x: 3, z: 8 },
+      WEST: {
+        x: 0,
+        z: 3,
+      },
+      EAST: {
+        x: 8,
+        z: 3,
+      },
+      NORTH: {
+        x: 3,
+        z: 0,
+      },
+      SOUTH: {
+        x: 3,
+        z: 8,
+      },
     }[side];
     for (const lateral of [-2.49, 4.49]) {
       for (const forward of [0.51, 4.2, 6.49]) {
@@ -295,7 +402,10 @@ it("uses the original carpet texture on a centered authored floor panel", () => 
 it("cuts a service stair opening from the visible floor and support surfaces", () => {
   for (const side of Object.keys(layouts)) {
     const { center, inward } = layouts[side];
-    const tangent = { x: -inward.z, z: inward.x };
+    const tangent = {
+      x: -inward.z,
+      z: inward.x,
+    };
     const opening = {
       x: center.x + inward.x * 2.7 + tangent.x * 1.1,
       z: center.z + inward.z * 2.7 + tangent.z * 1.1,
@@ -317,18 +427,31 @@ it("uses the shared room plan and keeps the actual throne dais clear of furnitur
   for (const style of ["twin-tower", "single-tower", "right-angle", "left-angle"]) {
     for (const side of Object.keys(layouts)) {
       const plan = await CastleGenerator.generate({
-        position: { x: 0, z: 0, width: 8, depth: 8, elevation: 2 },
-        doors: [{ side, offset: 3, width: 2 }], style,
+        position: {
+          x: 0,
+          z: 0,
+          width: 8,
+          depth: 8,
+          elevation: 2,
+        },
+        doors: [{
+          side,
+          offset: 3,
+          width: 2,
+        }],
+        style,
       });
       const shared = new CastleResidentialLayout(plan);
       const room = createRoom(side, null, { residentialLayout: shared });
       const throne = room.entity.children.find((entity) => entity.name === "Throne");
       const seat = shared.toLocal(throne.position.x, throne.position.z);
       const platform = plan.metadata.runtime.residential.furniture.find(item => item.object === "ThroneDais");
-      const dais = { minX: platform.x - platform.width * platform.scale / 2,
+      const dais = {
+        minX: platform.x - platform.width * platform.scale / 2,
         maxX: platform.x + platform.width * platform.scale / 2,
         minZ: platform.z - platform.depth * platform.scale / 2,
-        maxZ: platform.z + platform.depth * platform.scale / 2 };
+        maxZ: platform.z + platform.depth * platform.scale / 2,
+      };
       const work = shared.rooms.work;
       assert.ok(seat.x - 0.4551 * 0.85 >= work.minX && seat.x + 0.4551 * 0.85 <= work.maxX &&
         seat.z - 0.36875 * 0.85 >= work.minZ && seat.z + 0.36875 * 0.85 <= work.maxZ, `${style}/${side} chair bounds`);
@@ -337,7 +460,10 @@ it("uses the shared room plan and keeps the actual throne dais clear of furnitur
         assert.ok(dais.maxX <= zone.minX || dais.minX >= zone.maxX || dais.maxZ <= zone.minZ || dais.minZ >= zone.maxZ, `${style}/${side} throne overlaps ${zone.role}`);
       }
       assert.equal(room.entity.children.some((entity) => entity.name.includes("column")), false);
-      const aisle = { minZ: work.minZ, maxZ: dais.minZ - 0.22 };
+      const aisle = {
+        minZ: work.minZ,
+        maxZ: dais.minZ - 0.22,
+      };
       for (let forward = aisle.minZ; forward < aisle.maxZ; forward += 0.2) {
         const point = shared.toWorld(0, forward);
         assert.equal(room.intersectsFootprint(point.x, point.z, 0.22), false, `${style}/${side} aisle`);
@@ -351,8 +477,21 @@ it("keeps room timber and carpet within the planned chamber", async () => {
   const { CastleResidentialLayout } = await import("../../../../../../../src/game/objects/castle/CastleResidentialLayout.js");
   for (const style of ["twin-keeps", "courtyard-keep", "long-hall", "l-courtyard", "terraced-keeps"]) {
     for (const side of Object.keys(layouts)) {
-      const plan = await CastleGenerator.generate({ position: { x: 0, z: 0, width: 12, depth: 12, elevation: 2 },
-        doors: [{ side, offset: 5, width: 2 }], style });
+      const plan = await CastleGenerator.generate({
+        position: {
+          x: 0,
+          z: 0,
+          width: 12,
+          depth: 12,
+          elevation: 2,
+        },
+        doors: [{
+          side,
+          offset: 5,
+          width: 2,
+        }],
+        style,
+      });
       const shared = new CastleResidentialLayout(plan);
       const room = createRoom(side, null, { residentialLayout: shared });
       const entry = room.entity.children.find((part) => part.name === "Audience entrance floor");
@@ -379,8 +518,21 @@ it("keeps authored throne-room finishes flush and out of the shared hall", async
   const { CastleGenerator } = await import("../../../../../../../src/game/generator/castle/CastleGenerator.js");
   const { CastleResidentialLayout } = await import("../../../../../../../src/game/objects/castle/CastleResidentialLayout.js");
   for (const seed of [4, 5]) {
-    const plan = await CastleGenerator.generate({ position: { x: 0, z: 0, width: 28, depth: 16, elevation: 2 },
-      doors: [{ side: "NORTH", offset: 13, width: 2 }], seed });
+    const plan = await CastleGenerator.generate({
+      position: {
+        x: 0,
+        z: 0,
+        width: 28,
+        depth: 16,
+        elevation: 2,
+      },
+      doors: [{
+        side: "NORTH",
+        offset: 13,
+        width: 2,
+      }],
+      seed,
+    });
     const layout = new CastleResidentialLayout(plan);
     const room = createRoom("NORTH", null, { residentialLayout: layout });
     assert.ok(!room.entity.children.some(part => part.name === "Audience entrance floor"), "no raised floor tongue through the hall");
@@ -399,8 +551,21 @@ it("faces the royal and runner toward the primary entrance in every orientation"
   const { CastleGenerator } = await import("../../../../../../../src/game/generator/castle/CastleGenerator.js");
   const { CastleResidentialLayout } = await import("../../../../../../../src/game/objects/castle/CastleResidentialLayout.js");
   for (const side of Object.keys(layouts)) {
-    const plan = await CastleGenerator.generate({ position: { x: 0, z: 0, width: 12, depth: 12, elevation: 2 },
-      doors: [{ side, offset: 5, width: 2 }], style: "courtyard-keep" });
+    const plan = await CastleGenerator.generate({
+      position: {
+        x: 0,
+        z: 0,
+        width: 12,
+        depth: 12,
+        elevation: 2,
+      },
+      doors: [{
+        side,
+        offset: 5,
+        width: 2,
+      }],
+      style: "courtyard-keep",
+    });
     const shared = new CastleResidentialLayout(plan);
     const occupant = { entity: new FakeEntity("Royal") };
     const room = createRoom(side, occupant, { residentialLayout: shared });
@@ -418,8 +583,14 @@ it("faces the royal and runner toward the primary entrance in every orientation"
 
 it("maps one complete carpet border across different hall lengths", () => {
   for (const availableDepth of [2.8, 4.1]) {
-    const carpetTexture = { width: 512, height: 768 };
-    const room = createRoom("NORTH", null, { carpetTexture, availableDepth });
+    const carpetTexture = {
+      width: 512,
+      height: 768,
+    };
+    const room = createRoom("NORTH", null, {
+      carpetTexture,
+      availableDepth,
+    });
     const runner = room.entity.children.find((part) => part.name === "Audience carpet runner");
     const material = runner.children[0].render.meshInstances[0].material;
     assert.equal(material.diffuseMap, carpetTexture);

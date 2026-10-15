@@ -3,7 +3,10 @@ import { it } from "node:test";
 import { isCastleUpperFloorRoomVoid } from "../../../../../src/game/generator/castle/CastleGeometry.js";
 
 const room = {
-  opening: { start: 12, end: 20 },
+  opening: {
+    start: 12,
+    end: 20,
+  },
   gatehouseDepth: 8,
   wallHeight: 12,
 };
@@ -13,7 +16,12 @@ it("clears the full upper gatehouse interior into one room", () => {
     for (let blockV = 8; blockV < 24; blockV += 1) {
       for (let blockY = 13; blockY < 18; blockY += 1) {
         assert.equal(
-          isCastleUpperFloorRoomVoid({ blockU, blockY, blockV, ...room }),
+          isCastleUpperFloorRoomVoid({
+            blockU,
+            blockY,
+            blockV,
+            ...room,
+          }),
           true,
         );
       }
@@ -31,7 +39,12 @@ it("keeps the upper room floor, ceiling, and exterior shell", () => {
     [3, 14, 24],
   ]) {
     assert.equal(
-      isCastleUpperFloorRoomVoid({ blockU, blockY, blockV, ...room }),
+      isCastleUpperFloorRoomVoid({
+        blockU,
+        blockY,
+        blockV,
+        ...room,
+      }),
       false,
     );
   }

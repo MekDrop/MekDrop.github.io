@@ -52,8 +52,16 @@ export class EarthSurfaceMaterials {
    */
   static register(materials, createMaterial, sideTransforms) {
     for (const [name, definition] of Object.entries({
-      earth: { color: 0xe8c4a0, texture: "earthSide", gloss: 0.08 },
-      islandRock: { color: 0x667482, texture: "earthSide", gloss: 0.03 },
+      earth: {
+        color: 0xe8c4a0,
+        texture: "earthSide",
+        gloss: 0.08,
+      },
+      islandRock: {
+        color: 0x667482,
+        texture: "earthSide",
+        gloss: 0.03,
+      },
     })) {
       materials.set(name, createMaterial(name, definition));
     }
@@ -63,46 +71,46 @@ export class EarthSurfaceMaterials {
      * @param {string} shade
      * @param {number} depth
      */
-    (shade, depth) => {
-      EARTH_TEXTURE_COLORS.forEach(/**
+      (shade, depth) => {
+        EARTH_TEXTURE_COLORS.forEach(/**
        *
        * @param {string} color
        * @param {string} variant
        */
-      (color, variant) => {
-        const bridgeSideTexture = {
-          ...sideTransforms[variant],
-          startV: 0.4,
-          scaleV: 0.6,
-        };
-        const base = {
-          color: shadeHexColor(color, shade),
-          texture: "grassSide",
-          gloss: 0.05,
-          ...bridgeSideTexture,
-        };
-        for (const [name, shader] of [
-          [`grassEarthSide-depth-${depth}-${variant}`, grassSideShader],
-          [`grassTopSide-depth-${depth}-${variant}`, grassTurfSideShader],
-        ]) {
-          const material = createMaterial(name, base);
-          material.shaderChunks.glsl.set("diffusePS", shader);
-          material.update();
-          materials.set(name, material);
-        }
+          (color, variant) => {
+            const bridgeSideTexture = {
+              ...sideTransforms[variant],
+              startV: 0.4,
+              scaleV: 0.6,
+            };
+            const base = {
+              color: shadeHexColor(color, shade),
+              texture: "grassSide",
+              gloss: 0.05,
+              ...bridgeSideTexture,
+            };
+            for (const [name, shader] of [
+              [`grassEarthSide-depth-${depth}-${variant}`, grassSideShader],
+              [`grassTopSide-depth-${depth}-${variant}`, grassTurfSideShader],
+            ]) {
+              const material = createMaterial(name, base);
+              material.shaderChunks.glsl.set("diffusePS", shader);
+              material.update();
+              materials.set(name, material);
+            }
 
-        const overpassName = `overpassEarthSide-depth-${depth}-${variant}`;
-        materials.set(
-          overpassName,
-          createMaterial(overpassName, {
-            color: shadeHexColor(0xffffff, shade),
-            texture: "grassSide",
-            gloss: 0.05,
-            ...bridgeSideTexture,
-          }),
-        );
+            const overpassName = `overpassEarthSide-depth-${depth}-${variant}`;
+            materials.set(
+              overpassName,
+              createMaterial(overpassName, {
+                color: shadeHexColor(0xffffff, shade),
+                texture: "grassSide",
+                gloss: 0.05,
+                ...bridgeSideTexture,
+              }),
+            );
+          });
       });
-    });
   }
 
   /**

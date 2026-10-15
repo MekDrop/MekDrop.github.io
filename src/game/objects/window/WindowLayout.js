@@ -18,9 +18,17 @@ export class WindowLayout {
       throw new InvalidWindowRangeError(definition.id);
     }
     return {
-      position: { x: (from.x + to.x) / 2, y: Math.min(from.y, to.y), z: (from.z + to.z) / 2 },
-      width: Math.abs(alongX ? to.x - from.x : to.z - from.z), height, depth,
-      yaw: alongX ? (facing === 1 ? 0 : 180) : (facing === 1 ? 90 : -90), role: variant, open: definition.open === true,
+      position: {
+        x: (from.x + to.x) / 2,
+        y: Math.min(from.y, to.y),
+        z: (from.z + to.z) / 2,
+      },
+      width: Math.abs(alongX ? to.x - from.x : to.z - from.z),
+      height,
+      depth,
+      yaw: alongX ? (facing === 1 ? 0 : 180) : (facing === 1 ? 90 : -90),
+      role: variant,
+      open: definition.open === true,
     };
   }
 }

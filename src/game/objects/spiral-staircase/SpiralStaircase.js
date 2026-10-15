@@ -102,8 +102,15 @@ export class SpiralStaircase {
          */
         (render) => !entrance && render.entity.name.includes("iron") ? render.meshInstances : []);
       if (model.meshInstances.length) {
-        root.addComponent("collision", { type: "mesh", model });
-        root.addComponent("rigidbody", { type: "static", friction: 0.6, restitution: 0 });
+        root.addComponent("collision", {
+          type: "mesh",
+          model,
+        });
+        root.addComponent("rigidbody", {
+          type: "static",
+          friction: 0.6,
+          restitution: 0,
+        });
       }
       this.#collisionGraphs.push(graph);
     }
@@ -114,9 +121,13 @@ export class SpiralStaircase {
     const source = modelLibrary.instantiate(treadUrl);
     const firstMesh = source.findComponents("render")[0].meshInstances[0];
     const support = createSpiralStairCollision(pc, {
-      device: firstMesh.mesh.device, material: firstMesh.material,
-      innerRadius: 0.24, outerRadius: 1.77, rise: definition.Z2 - definition.Z1,
-      turns: steps.length * SpiralStaircaseLayout.stepAngle / 360, steps: steps.length,
+      device: firstMesh.mesh.device,
+      material: firstMesh.material,
+      innerRadius: 0.24,
+      outerRadius: 1.77,
+      rise: definition.Z2 - definition.Z1,
+      turns: steps.length * SpiralStaircaseLayout.stepAngle / 360,
+      steps: steps.length,
     });
     const supportModel = new pc.Model();
     const supportGraph = new pc.Entity("Spiral support graph");
@@ -124,8 +135,15 @@ export class SpiralStaircase {
     supportModel.graph = supportGraph;
     supportModel.meshInstances = [support];
     this.#supportInstances.push(support);
-    supportRoot.addComponent("collision", {type:"mesh", model:supportModel});
-    supportRoot.addComponent("rigidbody", {type:"static", friction:0.6, restitution:0});
+    supportRoot.addComponent("collision", {
+      type:"mesh",
+      model:supportModel,
+    });
+    supportRoot.addComponent("rigidbody", {
+      type:"static",
+      friction:0.6,
+      restitution:0,
+    });
     this.#collisionGraphs.push(supportGraph, source);
     const height = definition.Z2 - definition.Z1 + HANDRAIL_TOP_HEIGHT;
     const column = new pc.Entity(`${definition.id} center column`);
@@ -172,16 +190,21 @@ export class SpiralStaircase {
       material.update();
       this.#columnMaterials.push(material);
       const batch = modelLibrary.instantiateMergedBatch(columnUrl, batches[index], {
-        name: "Gateway palette column bricks", material,
+        name: "Gateway palette column bricks",
+        material,
       });
       column.addChild(batch.entity);
       this.#columnBuffers.push(batch.vertexBuffer);
     }
     this.#visual.addChild(column);
     column.addComponent("collision", {
-      type: "box", halfExtents: new pc.Vec3(width / 2, height / 2, width / 2),
+      type: "box",
+      halfExtents: new pc.Vec3(width / 2, height / 2, width / 2),
     });
-    column.addComponent("rigidbody", { type: "static", friction: 0.6 });
+    column.addComponent("rigidbody", {
+      type: "static",
+      friction: 0.6,
+    });
   }
 
   get entity() { return this.#entity; }

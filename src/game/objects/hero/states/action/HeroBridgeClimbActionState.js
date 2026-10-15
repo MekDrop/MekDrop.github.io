@@ -136,6 +136,10 @@ export class HeroBridgeClimbActionState extends HeroRuntimeActionState {
       : -10
         * (1 - (elapsed - feedback.climbEnd)
           / (feedback.duration - feedback.climbEnd));
-    feedback.updatePresentation?.({ armPitch, armSpread, headPitch });
+    feedback.updatePresentation?.({
+      armPitch,
+      armSpread,
+      headPitch,
+    });
   }
 }

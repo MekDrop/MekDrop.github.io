@@ -64,15 +64,15 @@ export class RiverPlacementRules {
      *
      * @param {LayoutEntry} entry
      */
-    (entry) =>
-      entry.gateRows.some(
+      (entry) =>
+        entry.gateRows.some(
         /**
          *
          * @param {number} gateRow
          */
-        (gateRow) =>
-          Math.max(Math.abs(entry.gateCol - col), Math.abs(gateRow - row)) <= 1,
-      ),
+          (gateRow) =>
+            Math.max(Math.abs(entry.gateCol - col), Math.abs(gateRow - row)) <= 1,
+        ),
     );
   }
 

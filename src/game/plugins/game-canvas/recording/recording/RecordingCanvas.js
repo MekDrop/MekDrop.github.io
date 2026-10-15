@@ -71,7 +71,10 @@ export class RecordingCanvas {
    * @type {(event: Event) => void}
    */
   #move = (event) => {
-    this.#pointer = { x: event.clientX, y: event.clientY };
+    this.#pointer = {
+      x: event.clientX,
+      y: event.clientY,
+    };
   };
 
   /**

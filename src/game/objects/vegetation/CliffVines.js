@@ -73,7 +73,10 @@ export class CliffVines {
     const batch = modelLibrary.instantiateMergedBatch(
       cliffVineModelUrl,
       matrices,
-      { name: "Instanced cliff vine modules", dynamic: true },
+      {
+        name: "Instanced cliff vine modules",
+        dynamic: true,
+      },
     );
     if (batch) {
       this.#vertexBuffer = batch.vertexBuffer;
@@ -92,7 +95,7 @@ export class CliffVines {
      * @param {number} offset
      * @param {number} index
      */
-    (offset, index) => offset === this.#offsets[index])) {
+      (offset, index) => offset === this.#offsets[index])) {
       return;
     }
     this.#offsets = offsets;

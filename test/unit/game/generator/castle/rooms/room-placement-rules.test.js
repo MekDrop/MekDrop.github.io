@@ -3,14 +3,60 @@ import { test } from "node:test";
 import { RoomPlacementRules } from "../../../../../../src/game/generator/castle/rooms/RoomPlacementRules.js";
 
 test("keeps a complete supported inventory aligned to an eligible outer wall during repair", () => {
-  const room = { id: "storage", minX: 0, maxX: 5, minZ: 0, maxZ: 5, floorY: 0, height: 3 };
-  const alignment = [{ axis: "x", coordinate: 0, side: "min" },
-    { axis: "x", coordinate: 5, side: "max" }, { axis: "z", coordinate: 0, side: "min" }];
-  const items = [{ id: "base", roomId: room.id, object: "WoodenStorageChest", underStair: true,
-    x: 2.5, z: 2.5, width: 0.7, depth: 0.55, scale: 1, height: 0.32914, floorY: 0, y: 0,
-    rotation: 90, wallAlignment: alignment },
-  { id: "top", supportId: "base", roomId: room.id, object: "Crate", underStair: true,
-    x: 2.5, z: 2.5, width: 0.55, depth: 0.55, scale: 1, height: 0.4702, floorY: 0, y: 0.32914 }];
+  const room = {
+    id: "storage",
+    minX: 0,
+    maxX: 5,
+    minZ: 0,
+    maxZ: 5,
+    floorY: 0,
+    height: 3,
+  };
+  const alignment = [{
+    axis: "x",
+    coordinate: 0,
+    side: "min",
+  },
+  {
+    axis: "x",
+    coordinate: 5,
+    side: "max",
+  }, {
+    axis: "z",
+    coordinate: 0,
+    side: "min",
+  }];
+  const items = [{
+    id: "base",
+    roomId: room.id,
+    object: "WoodenStorageChest",
+    underStair: true,
+    x: 2.5,
+    z: 2.5,
+    width: 0.7,
+    depth: 0.55,
+    scale: 1,
+    height: 0.32914,
+    floorY: 0,
+    y: 0,
+    rotation: 90,
+    wallAlignment: alignment,
+  },
+  {
+    id: "top",
+    supportId: "base",
+    roomId: room.id,
+    object: "Crate",
+    underStair: true,
+    x: 2.5,
+    z: 2.5,
+    width: 0.55,
+    depth: 0.55,
+    scale: 1,
+    height: 0.4702,
+    floorY: 0,
+    y: 0.32914,
+  }];
   const repaired = RoomPlacementRules.repair(items, [], [room]);
   assert.equal(repaired.length, items.length);
   assert.deepEqual(repaired.map(item => item.object), items.map(item => item.object));
@@ -21,22 +67,61 @@ test("keeps a complete supported inventory aligned to an eligible outer wall dur
   assert.ok(Math.min(base.x - 0.275, 5 - base.x - 0.275, base.z - 0.35) < 0.04);
 });
 
-const room = { minX: 0, maxX: 4, minZ: 0, maxZ: 4, floorY: 0, height: 3 };
-const shelf = { id: "shelf", role: "storageShelf", x: 2, z: 2, width: 0.8, depth: 0.3, height: 1, scale: 1 };
+const room = {
+  minX: 0,
+  maxX: 4,
+  minZ: 0,
+  maxZ: 4,
+  floorY: 0,
+  height: 3,
+};
+const shelf = {
+  id: "shelf",
+  role: "storageShelf",
+  x: 2,
+  z: 2,
+  width: 0.8,
+  depth: 0.3,
+  height: 1,
+  scale: 1,
+};
 
 test("wall attachments slide clear of perpendicular masonry while retaining their wall mount", () => {
   for (const rotation of [0, 90, 180, 270]) {
     const axis = rotation % 180 ? "x" : "z";
     const tangent = axis === "x" ? "z" : "x";
     const sign = rotation < 180 ? 1 : -1;
-    const backing = { x: 2, z: 2, y: 1.5, halfX: 2, halfZ: 2, halfY: 1.5 };
+    const backing = {
+      x: 2,
+      z: 2,
+      y: 1.5,
+      halfX: 2,
+      halfZ: 2,
+      halfY: 1.5,
+    };
     backing[axis] = sign > 0 ? 4 : 0;
     backing[axis === "x" ? "halfX" : "halfZ"] = 0.125;
-    const corner = { x: 2, z: 2, y: 1.5, halfX: 2, halfZ: 2, halfY: 1.5 };
+    const corner = {
+      x: 2,
+      z: 2,
+      y: 1.5,
+      halfX: 2,
+      halfZ: 2,
+      halfY: 1.5,
+    };
     corner[tangent] = 0;
     corner[tangent === "x" ? "halfX" : "halfZ"] = 0.125;
-    const banner = { ...shelf, object: "CustomWallDecoration", wallAttachment: true, wallMountBack: -0.005, rotation, floorY: 0,
-      y: 2, width: axis === "z" ? 1.1 : 0.1, depth: axis === "z" ? 0.1 : 1.1 };
+    const banner = {
+      ...shelf,
+      object: "CustomWallDecoration",
+      wallAttachment: true,
+      wallMountBack: -0.005,
+      rotation,
+      floorY: 0,
+      y: 2,
+      width: axis === "z" ? 1.1 : 0.1,
+      depth: axis === "z" ? 0.1 : 1.1,
+    };
     banner[axis] = sign > 0 ? 3.7 : 0.3;
     banner[tangent] = 0.6;
     const [fixed] = RoomPlacementRules.repair([banner], [backing, corner], [room]);
@@ -48,27 +133,82 @@ test("wall attachments slide clear of perpendicular masonry while retaining thei
 });
 
 test("ordinary props respect the inside wall face, even with a wallInset field", () => {
-  assert.equal(RoomPlacementRules.accepts({ ...shelf, x: 0.4 }, room, []), false);
-  assert.equal(RoomPlacementRules.accepts({ ...shelf, x: 0.4, wallInset: 1 }, room, []), false);
-  assert.equal(RoomPlacementRules.accepts({ ...shelf, x: 0.55 }, room, []), true);
-  assert.equal(RoomPlacementRules.accepts({ ...shelf, x: 0.4, wallAttachment: true }, room, []), true);
+  assert.equal(RoomPlacementRules.accepts({
+    ...shelf,
+    x: 0.4,
+  }, room, []), false);
+  assert.equal(RoomPlacementRules.accepts({
+    ...shelf,
+    x: 0.4,
+    wallInset: 1,
+  }, room, []), false);
+  assert.equal(RoomPlacementRules.accepts({
+    ...shelf,
+    x: 0.55,
+  }, room, []), true);
+  assert.equal(RoomPlacementRules.accepts({
+    ...shelf,
+    x: 0.4,
+    wallAttachment: true,
+  }, room, []), true);
 });
 
 test("props cannot intersect another prop, but supported contact is allowed", () => {
-  const linen = { id: "linen", role: "serviceProp", x: 2, z: 2, width: 0.3, depth: 0.22, height: 0.16, scale: 1, supportId: "shelf" };
+  const linen = {
+    id: "linen",
+    role: "serviceProp",
+    x: 2,
+    z: 2,
+    width: 0.3,
+    depth: 0.22,
+    height: 0.16,
+    scale: 1,
+    supportId: "shelf",
+  };
   assert.equal(RoomPlacementRules.accepts(linen, room, [shelf]), false);
-  assert.equal(RoomPlacementRules.accepts({ ...linen, y: 1 }, room, [shelf]), true);
-  assert.equal(RoomPlacementRules.accepts({ ...linen, y: 1 }, room, []), false);
-  assert.equal(RoomPlacementRules.accepts({ ...shelf, id: "other", x: 2.1 }, room, [shelf]), false);
-  assert.equal(RoomPlacementRules.accepts({ ...shelf, id: "other", x: 2.8 }, room, [shelf]), true);
+  assert.equal(RoomPlacementRules.accepts({
+    ...linen,
+    y: 1,
+  }, room, [shelf]), true);
+  assert.equal(RoomPlacementRules.accepts({
+    ...linen,
+    y: 1,
+  }, room, []), false);
+  assert.equal(RoomPlacementRules.accepts({
+    ...shelf,
+    id: "other",
+    x: 2.1,
+  }, room, [shelf]), false);
+  assert.equal(RoomPlacementRules.accepts({
+    ...shelf,
+    id: "other",
+    x: 2.8,
+  }, room, [shelf]), true);
 });
 
 import { CastleBasePlanGenerator } from "../../../../../../src/game/generator/castle/CastleBasePlanGenerator.js";
 
 test("repairs all enabled layouts without deleting the original room inventory", async () => {
   for (const seed of [0, 1, 2, 3, 4, 5]) {
-    const original = await CastleBasePlanGenerator.generate({ seed, baseY: 2 });
-    const build = await CastleAuthoredBuildPlan.generate({ position: { x: -4, z: -4, width: 8, depth: 8, elevation: 2 }, doors: [{ side: "NORTH", offset: 3, width: 2 }], seed });
+    const original = await CastleBasePlanGenerator.generate({
+      seed,
+      baseY: 2,
+    });
+    const build = await CastleAuthoredBuildPlan.generate({
+      position: {
+        x: -4,
+        z: -4,
+        width: 8,
+        depth: 8,
+        elevation: 2,
+      },
+      doors: [{
+        side: "NORTH",
+        offset: 3,
+        width: 2,
+      }],
+      seed,
+    });
     const repaired = build.metadata.runtime.residential.furniture;
     assert.equal(repaired.filter(item => !item.underStair).length, original.furniture.length);
     assert.deepEqual(repaired.filter(item => !item.underStair).map(item => [item.object, item.role, item.roomId]), original.furniture.map(item => [item.object, item.role, item.roomId]));
@@ -81,7 +221,21 @@ import { CastleAuthoredBuildPlan } from "../../../../../../src/game/generator/ca
 test("fits the shelf and its supported linens outside final masonry in every castle orientation", async () => {
   for (const side of ["NORTH", "SOUTH", "EAST", "WEST"]) {
     for (const seed of [4, 5]) {
-      const plan = await CastleAuthoredBuildPlan.generate({ position: { x: -4, z: -4, width: 8, depth: 8, elevation: 2 }, doors: [{ side, offset: 3, width: 2 }], seed });
+      const plan = await CastleAuthoredBuildPlan.generate({
+        position: {
+          x: -4,
+          z: -4,
+          width: 8,
+          depth: 8,
+          elevation: 2,
+        },
+        doors: [{
+          side,
+          offset: 3,
+          width: 2,
+        }],
+        seed,
+      });
       const residential = plan.metadata.runtime.residential;
       const shelf = residential.furniture.find(item => item.role === "storageShelf" && item.roomId === "service-quarters");
       const linen = residential.furniture.find(item => item.object === "FoldedLinens" && item.supportId === shelf.id);
@@ -102,9 +256,36 @@ test("fits the shelf and its supported linens outside final masonry in every cas
 });
 
 test("uses the minimum wall correction and moves supported details with their shelf", () => {
-  const original = [{ ...shelf, x: 0.45, floorY: 0 }, { id: "linen", role: "serviceProp", object: "FoldedLinens", x: 0.45, z: 2, width: 0.3, depth: 0.22, height: 0.16, y: 1, scale: 1, floorY: 0, supportId: "shelf" }];
-  const wall = { x: 0, z: 2, y: 1.5, halfX: 0.125, halfZ: 2, halfY: 1.5 };
-  const repaired = RoomPlacementRules.repair(original, [wall], [{ ...room, id: "room" }]);
+  const original = [{
+    ...shelf,
+    x: 0.45,
+    floorY: 0,
+  }, {
+    id: "linen",
+    role: "serviceProp",
+    object: "FoldedLinens",
+    x: 0.45,
+    z: 2,
+    width: 0.3,
+    depth: 0.22,
+    height: 0.16,
+    y: 1,
+    scale: 1,
+    floorY: 0,
+    supportId: "shelf",
+  }];
+  const wall = {
+    x: 0,
+    z: 2,
+    y: 1.5,
+    halfX: 0.125,
+    halfZ: 2,
+    halfY: 1.5,
+  };
+  const repaired = RoomPlacementRules.repair(original, [wall], [{
+    ...room,
+    id: "room",
+  }]);
   assert.equal(repaired.length, original.length);
   assert.ok(Math.abs(repaired[0].x - 0.55001) < 1e-6);
   assert.ok(Math.abs(repaired[1].x - repaired[0].x) < 1e-6);
@@ -113,22 +294,60 @@ test("uses the minimum wall correction and moves supported details with their sh
 });
 
 test("leaves valid furnishings alone and repairs a conflicting item without dropping it", () => {
-  const first = { ...shelf, floorY: 0, roomId: "room" };
-  const second = { ...shelf, id: "second", x: 2.6, floorY: 0, roomId: "room" };
-  const result = RoomPlacementRules.repair([first, second], [], [{ ...room, id: "room" }]);
+  const first = {
+    ...shelf,
+    floorY: 0,
+    roomId: "room",
+  };
+  const second = {
+    ...shelf,
+    id: "second",
+    x: 2.6,
+    floorY: 0,
+    roomId: "room",
+  };
+  const result = RoomPlacementRules.repair([first, second], [], [{
+    ...room,
+    id: "room",
+  }]);
   assert.equal(result.length, 2);
   assert.equal(result[0].x, 2);
   assert.equal(result[0].z, 2);
   assert.ok(Math.abs(result[1].x - 2.80001) < 1e-6);
   assert.equal(result[1].z, 2);
-  const unchanged = RoomPlacementRules.repair([first], [], [{ ...room, id: "room" }]);
+  const unchanged = RoomPlacementRules.repair([first], [], [{
+    ...room,
+    id: "room",
+  }]);
   assert.equal(unchanged[0].x, first.x);
   assert.equal(unchanged[0].z, first.z);
 });
 
 test("keeps neighboring cloak rails visually separated without removing either rail", () => {
-  const rail = { role: "vestibuleProp", object: "VestibuleCloakRail", x: 1, z: 0.3, width: 1.1, depth: 0.1771, height: 1.365, scale: 0.78, y: 1.28, floorY: 0, roomId: "room" };
-  const result = RoomPlacementRules.repair([{ ...rail, id: "left" }, { ...rail, id: "right", x: 1.85 }], [], [{ ...room, id: "room" }]);
+  const rail = {
+    role: "vestibuleProp",
+    object: "VestibuleCloakRail",
+    x: 1,
+    z: 0.3,
+    width: 1.1,
+    depth: 0.1771,
+    height: 1.365,
+    scale: 0.78,
+    y: 1.28,
+    floorY: 0,
+    roomId: "room",
+  };
+  const result = RoomPlacementRules.repair([{
+    ...rail,
+    id: "left",
+  }, {
+    ...rail,
+    id: "right",
+    x: 1.85,
+  }], [], [{
+    ...room,
+    id: "room",
+  }]);
   assert.equal(result.length, 2);
   assert.ok(result.every(item => !item.placementIssue));
   assert.equal(result[0].x, rail.x);
@@ -137,16 +356,41 @@ test("keeps neighboring cloak rails visually separated without removing either r
 });
 
 test("wall fixtures contact the masonry by their measured rear plane in all cardinal directions", () => {
-  const mounts = { VestibuleCloakRail: -0.058, Painting: -0.024, Banner: -0.005, HangingFryingPan: -0.0953, KitchenUtensilRail: 0, RoyalCrest: -0.04, WarCouncilShield: -0.05 };
+  const mounts = {
+    VestibuleCloakRail: -0.058,
+    Painting: -0.024,
+    Banner: -0.005,
+    HangingFryingPan: -0.0953,
+    KitchenUtensilRail: 0,
+    RoyalCrest: -0.04,
+    WarCouncilShield: -0.05,
+  };
   for (const [object, back] of Object.entries(mounts)) {
     for (const rotation of [0, 90, 180, 270]) {
       const angle = rotation * Math.PI / 180;
       const axis = rotation % 180 ? "x" : "z";
       const sign = Math.round(axis === "x" ? Math.sin(angle) : Math.cos(angle));
-      const wall = { x: 2, z: 2, y: 1.5, halfX: 2, halfZ: 2, halfY: 1.5 };
+      const wall = {
+        x: 2,
+        z: 2,
+        y: 1.5,
+        halfX: 2,
+        halfZ: 2,
+        halfY: 1.5,
+      };
       wall[axis] = sign > 0 ? 4 : 0;
       wall[axis === "x" ? "halfX" : "halfZ"] = 0.125;
-      const item = { ...shelf, id: object, object, ...(object === "Painting" ? { wallMountBack: back } : {}), rotation, floorY: 0, y: 1, height: 0.5, scale: 0.8 };
+      const item = {
+        ...shelf,
+        id: object,
+        object,
+        ...(object === "Painting" ? { wallMountBack: back } : {}),
+        rotation,
+        floorY: 0,
+        y: 1,
+        height: 0.5,
+        scale: 0.8,
+      };
       item[axis] = sign > 0 ? 3.7 : 0.3;
       const [fixed] = RoomPlacementRules.repair([item], [wall], [room]);
       const face = wall[axis] - sign * 0.125;
@@ -159,12 +403,40 @@ test("wall fixtures contact the masonry by their measured rear plane in all card
 
 
 test("wall decor slides beside a window without leaving its mounting wall or room", () => {
-  const wall = { x: 2, z: 4, y: 1.5, halfX: 4, halfZ: 0.125, halfY: 1.5 };
-  const fixture = { ...shelf, object: "RoyalCrest", roomId: "room", rotation: 0,
-    floorY: 0, y: 1.1, height: 0.8, x: 2, z: 3.7 };
-  const window = { roomId: "room", kind: "window", axis: "z", coordinate: 4,
-    center: 2, width: 0.75, bottom: 1, height: 1, floorY: 0 };
-  const [fixed] = RoomPlacementRules.repair([fixture], [wall], [{ ...room, id: "room" }], [window]);
+  const wall = {
+    x: 2,
+    z: 4,
+    y: 1.5,
+    halfX: 4,
+    halfZ: 0.125,
+    halfY: 1.5,
+  };
+  const fixture = {
+    ...shelf,
+    object: "RoyalCrest",
+    roomId: "room",
+    rotation: 0,
+    floorY: 0,
+    y: 1.1,
+    height: 0.8,
+    x: 2,
+    z: 3.7,
+  };
+  const window = {
+    roomId: "room",
+    kind: "window",
+    axis: "z",
+    coordinate: 4,
+    center: 2,
+    width: 0.75,
+    bottom: 1,
+    height: 1,
+    floorY: 0,
+  };
+  const [fixed] = RoomPlacementRules.repair([fixture], [wall], [{
+    ...room,
+    id: "room",
+  }], [window]);
   assert.equal(fixed.wallAttachment, true);
   assert.equal(fixed.placementIssue, undefined);
   assert.ok(Math.abs(fixed.z + 0.04 - 3.875) < 1e-6, "rear remains against the wall");
@@ -174,8 +446,23 @@ test("wall decor slides beside a window without leaving its mounting wall or roo
 });
 
 test("bookshelves sit close to the wall without embedding their cabinet depth", () => {
-  const item = { ...shelf, object: "Bookshelf", floorY: 0, rotation: 0, width: 0.85, depth: 0.36, z: 3.4 };
-  const wall = { x: 2, z: 4, y: 1.5, halfX: 2, halfZ: 0.125, halfY: 1.5 };
+  const item = {
+    ...shelf,
+    object: "Bookshelf",
+    floorY: 0,
+    rotation: 0,
+    width: 0.85,
+    depth: 0.36,
+    z: 3.4,
+  };
+  const wall = {
+    x: 2,
+    z: 4,
+    y: 1.5,
+    halfX: 2,
+    halfZ: 0.125,
+    halfY: 1.5,
+  };
   const [fixed] = RoomPlacementRules.repair([item], [wall], [room]);
   assert.ok(Math.abs(fixed.z + 0.18 + 0.02501 - 3.875) < 1e-6);
   assert.equal(fixed.wallAttachment, undefined);

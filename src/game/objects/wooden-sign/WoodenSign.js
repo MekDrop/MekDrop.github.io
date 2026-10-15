@@ -54,14 +54,22 @@ export class WoodenSign {
       id,
       text,
       position,
-      rotation = { x: 0, y: 45, z: 0 },
+      rotation = {
+        x: 0,
+        y: 45,
+        z: 0,
+      },
       scale = 1,
     } = definition;
     this.#definition = definition;
     this.#entity = new pc.Entity(`${id} wooden sign`);
     this.#entity.tags.add("map-object", id, this.constructor.name);
     const angles = typeof rotation === "number"
-      ? { x: 0, y: rotation, z: 0 }
+      ? {
+        x: 0,
+        y: rotation,
+        z: 0,
+      }
       : rotation;
     this.#entity.setLocalEulerAngles(angles.x ?? 0, angles.y ?? 45, angles.z ?? 0);
     this.#entity.setLocalPosition(position.x, position.y, position.z);
@@ -80,7 +88,10 @@ export class WoodenSign {
        */
       (render) => render.entity.name === "Sign inscription" ? [] : render.meshInstances,
     );
-    this.#entity.addComponent("collision", { type: "mesh", model: collisionModel });
+    this.#entity.addComponent("collision", {
+      type: "mesh",
+      model: collisionModel,
+    });
     this.#entity.addComponent("rigidbody", {
       type: "static",
       friction: 0.6,
@@ -144,11 +155,11 @@ export class WoodenSign {
        *
        * @param {Array<number>} line
        */
-      (line) => {
-        const metrics = context.measureText(line);
-        const height = metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent;
-        return metrics.width <= 494 && height <= (lines.length > 1 ? 67 : 142);
-      })) {
+        (line) => {
+          const metrics = context.measureText(line);
+          const height = metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent;
+          return metrics.width <= 494 && height <= (lines.length > 1 ? 67 : 142);
+        })) {
         break;
       }
       fontSize -= 2;

@@ -61,7 +61,9 @@ describe("Game performance", () => {
       onBeforeLoad(win) {
         // Measure gameplay with the FPS counter, without route and axis debug overlays.
         win.sessionStorage.setItem("debug", JSON.stringify({
-          pathArrows: false, debugAxesHud: false, debugFpsHud: true,
+          pathArrows: false,
+          debugAxesHud: false,
+          debugFpsHud: true,
         }));
         cy.stub(win.console, "error").as("consoleError");
       },

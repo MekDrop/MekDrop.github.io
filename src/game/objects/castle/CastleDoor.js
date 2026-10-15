@@ -206,9 +206,19 @@ export class CastleDoor {
     this.#elevated = Boolean(placement && placement.y > castlePosition.elevation + 0.24);
     const angle = (placement?.yaw ?? 0) * Math.PI / 180;
     const geometry = placement ? {
-      center: { x: placement.x, y: placement.y, z: placement.z },
-      inward: { x: Math.sin(angle), z: Math.cos(angle) },
-      tangent: { x: Math.cos(angle), z: -Math.sin(angle) },
+      center: {
+        x: placement.x,
+        y: placement.y,
+        z: placement.z,
+      },
+      inward: {
+        x: Math.sin(angle),
+        z: Math.cos(angle),
+      },
+      tangent: {
+        x: Math.cos(angle),
+        z: -Math.sin(angle),
+      },
       baseYaw: placement.yaw,
     } : this.#doorGeometry(castlePosition, door);
 
@@ -252,7 +262,7 @@ export class CastleDoor {
       this.#archMaterial.update();
       for (const render of this.#entity.findComponents("render")) {
         if (!render.entity.name.startsWith("Entrance masonry")) continue;
-          const material = render.entity.name.startsWith("Entrance masonry arch") ||
+        const material = render.entity.name.startsWith("Entrance masonry arch") ||
             render.entity.name.startsWith("Entrance masonry course")
           ? this.#archMaterial : stone;
         for (const instance of render.meshInstances) {
@@ -349,7 +359,10 @@ export class CastleDoor {
     if (distance === null) {
       return null;
     }
-    return { distance, door: this };
+    return {
+      distance,
+      door: this,
+    };
   }
 
   /**
@@ -359,7 +372,10 @@ export class CastleDoor {
    */
   getPointerHit(rayStart, rayEnd) {
     const hit = this.getHit(rayStart, rayEnd);
-    return hit ? { ...hit, pointerTarget: this } : null;
+    return hit ? {
+      ...hit,
+      pointerTarget: this,
+    } : null;
   }
 
   handlePointerDown() {
@@ -433,14 +449,14 @@ export class CastleDoor {
        *
        * @param {number[]} entry
        */
-      (entry) =>
-        entry[1] > Math.max(0.002, initialContacts.get(entry[0]) ?? 0) + 0.000001);
+        (entry) =>
+          entry[1] > Math.max(0.002, initialContacts.get(entry[0]) ?? 0) + 0.000001);
       const npcObstructed = NpcDoorAvoidance.occupied(this.#entity, /**
        *
        * @param {import("yuka").Vector3} point
        */
-      (point) =>
-        this.#collision.blocksAt(point.x, point.y + 0.6, point.z, 0.5) ||
+        (point) =>
+          this.#collision.blocksAt(point.x, point.y + 0.6, point.z, 0.5) ||
         this.#collision.blocksAt(point.x, point.y + 1.5, point.z, 0.5), this.#operator);
       if (obstructed || npcObstructed) {
         this.#openAmount = previous;
@@ -498,8 +514,14 @@ export class CastleDoor {
           y: castlePosition.elevation,
           z: castlePosition.z + door.offset + door.width / 2,
         },
-        inward: { x: 1, z: 0 },
-        tangent: { x: 0, z: 1 },
+        inward: {
+          x: 1,
+          z: 0,
+        },
+        tangent: {
+          x: 0,
+          z: 1,
+        },
         baseYaw: 90,
       },
       EAST: {
@@ -508,8 +530,14 @@ export class CastleDoor {
           y: castlePosition.elevation,
           z: castlePosition.z + door.offset + door.width / 2,
         },
-        inward: { x: -1, z: 0 },
-        tangent: { x: 0, z: 1 },
+        inward: {
+          x: -1,
+          z: 0,
+        },
+        tangent: {
+          x: 0,
+          z: 1,
+        },
         baseYaw: -90,
       },
       NORTH: {
@@ -518,8 +546,14 @@ export class CastleDoor {
           y: castlePosition.elevation,
           z: castlePosition.z + DOOR_INSET,
         },
-        inward: { x: 0, z: 1 },
-        tangent: { x: 1, z: 0 },
+        inward: {
+          x: 0,
+          z: 1,
+        },
+        tangent: {
+          x: 1,
+          z: 0,
+        },
         baseYaw: 0,
       },
       SOUTH: {
@@ -528,8 +562,14 @@ export class CastleDoor {
           y: castlePosition.elevation,
           z: castlePosition.z + castlePosition.depth - DOOR_INSET,
         },
-        inward: { x: 0, z: -1 },
-        tangent: { x: 1, z: 0 },
+        inward: {
+          x: 0,
+          z: -1,
+        },
+        tangent: {
+          x: 1,
+          z: 0,
+        },
         baseYaw: 180,
       },
     };

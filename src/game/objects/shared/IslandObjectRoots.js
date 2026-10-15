@@ -32,7 +32,7 @@ export class IslandObjectRoots {
      * @param {Set<string>} cells
      * @param {number} index
      */
-    (cells, index) => new pc.Entity(`Island ${index} props`));
+      (cells, index) => new pc.Entity(`Island ${index} props`));
     for (const root of this.#roots) parent.addChild(root);
   }
 

@@ -217,7 +217,10 @@ export class TerrainPhysicsSurface {
     }
     this.#addSupplementalSurfaces(positions, indices, tiles);
     this.#addOverpassDeck(positions, indices);
-    return { positions, indices };
+    return {
+      positions,
+      indices,
+    };
   }
 
   /**
@@ -329,10 +332,34 @@ export class TerrainPhysicsSurface {
     const x = col - (this.#mapData.cols - 1) / 2;
     const z = row - (this.#mapData.rows - 1) / 2;
     const sides = [
-      { dc: 0, dr: -1, a: [x - 0.5, z - 0.5, heights[0]], b: [x + 0.5, z - 0.5, heights[1]], neighbour: [3, 2] },
-      { dc: 1, dr: 0, a: [x + 0.5, z - 0.5, heights[1]], b: [x + 0.5, z + 0.5, heights[2]], neighbour: [0, 3] },
-      { dc: 0, dr: 1, a: [x + 0.5, z + 0.5, heights[2]], b: [x - 0.5, z + 0.5, heights[3]], neighbour: [1, 0] },
-      { dc: -1, dr: 0, a: [x - 0.5, z + 0.5, heights[3]], b: [x - 0.5, z - 0.5, heights[0]], neighbour: [2, 1] },
+      {
+        dc: 0,
+        dr: -1,
+        a: [x - 0.5, z - 0.5, heights[0]],
+        b: [x + 0.5, z - 0.5, heights[1]],
+        neighbour: [3, 2],
+      },
+      {
+        dc: 1,
+        dr: 0,
+        a: [x + 0.5, z - 0.5, heights[1]],
+        b: [x + 0.5, z + 0.5, heights[2]],
+        neighbour: [0, 3],
+      },
+      {
+        dc: 0,
+        dr: 1,
+        a: [x + 0.5, z + 0.5, heights[2]],
+        b: [x - 0.5, z + 0.5, heights[3]],
+        neighbour: [1, 0],
+      },
+      {
+        dc: -1,
+        dr: 0,
+        a: [x - 0.5, z + 0.5, heights[3]],
+        b: [x - 0.5, z - 0.5, heights[0]],
+        neighbour: [2, 1],
+      },
     ];
     for (const side of sides) {
       const neighbour = tiles[row + side.dr]?.[col + side.dc] ?? null;
@@ -355,7 +382,7 @@ export class TerrainPhysicsSurface {
       this.#addTerrainQuad(
         positions,
         indices,
-      this.#mapData.tileMeta?.[row]?.[col]?.terrainCutouts ?? [],
+        this.#mapData.tileMeta?.[row]?.[col]?.terrainCutouts ?? [],
         [side.a[0], side.a[2], side.a[1]],
         [side.b[0], side.b[2], side.b[1]],
         [side.b[0], Math.min(side.b[2], lowB), side.b[1]],
@@ -448,7 +475,7 @@ export class TerrainPhysicsSurface {
      * @param {Array} options."1"
      * @param {Array} options."2"
      */
-    ([x, , z]) => [x, bottom, z]);
+      ([x, , z]) => [x, bottom, z]);
     this.#addQuad(positions, indices, ...topCorners);
     this.#addQuad(positions, indices, ...bottomCorners.toReversed());
     for (let index = 0; index < topCorners.length; index += 1) {

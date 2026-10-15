@@ -122,7 +122,9 @@ export class GameRecorder {
       // Preserve fine grass/model detail, with more bits for larger canvases.
       const bitrate = Math.round(Math.max(30_000_000, width * height * FRAME_RATE * 0.25));
       const codec = await media.getFirstEncodableVideoCodec(["avc", "vp9", "av1"], {
-        width, height, bitrate,
+        width,
+        height,
+        bitrate,
       });
       if (!codec) {
         throw new RecordingVideoEncoderUnavailableError();
@@ -133,7 +135,10 @@ export class GameRecorder {
         quantizer: codec === "avc" ? 18 : codec === "vp9" ? 20 : 80,
         bitrate,
       });
-      if (!(await media.canEncodeAudio("aac", { numberOfChannels: 2, sampleRate: 48000 }))) {
+      if (!(await media.canEncodeAudio("aac", {
+        numberOfChannels: 2,
+        sampleRate: 48000,
+      }))) {
         const { registerAacEncoder } = await import("@mediabunny/aac-encoder");
         registerAacEncoder();
       }
@@ -149,7 +154,10 @@ export class GameRecorder {
       // Feed the canvas directly to the encoder. The MediaStreamTrackProcessor
       // path can leave queued VideoFrames unclosed when recording is stopped.
       session.videoSource = new media.CanvasSource(session.compositor.canvas, {
-        codec, quality, latencyMode: "quality", keyFrameInterval: 2,
+        codec,
+        quality,
+        latencyMode: "quality",
+        keyFrameInterval: 2,
         /**
          *
          * @param {EncodedVideoChunkMetadata} _packet
@@ -159,7 +167,14 @@ export class GameRecorder {
       });
       session.audioSource = new media.MediaStreamAudioTrackSource(
         session.audio.stream.getAudioTracks()[0],
-        { codec: "aac", bitrate: 128_000, transform: { numberOfChannels: 2, sampleRate: 48000 } },
+        {
+          codec: "aac",
+          bitrate: 128_000,
+          transform: {
+            numberOfChannels: 2,
+            sampleRate: 48000,
+          },
+        },
       );
       session.output.addVideoTrack(session.videoSource, { frameRate: FRAME_RATE });
       session.output.addAudioTrack(session.audioSource);
@@ -167,7 +182,7 @@ export class GameRecorder {
        *
        * @param {Error} error
        */
-      (error) => this.#fail(session, error));
+        (error) => this.#fail(session, error));
       await session.output.start();
       if (this.#destroyed || this.#session !== session) {
         return;
@@ -237,7 +252,7 @@ export class GameRecorder {
        *
        * @param {Error} error
        */
-      (error) => this.#fail(session, error))
+        (error) => this.#fail(session, error))
       .finally(() => {
         if (session.videoFramePromise === promise) {
           session.videoFramePending = false;

@@ -2,7 +2,10 @@ import { AbstractCastleRoomGenerator } from "../AbstractCastleRoomGenerator.js";
 import { FireplaceWallBacking } from "../FireplaceWallBacking.js";
 
 export class KitchenRoomGenerator extends AbstractCastleRoomGenerator {
-  constructor() { super("kitchen", { x: 2, y: 2.5 }); }
+  constructor() { super("kitchen", {
+    x: 2,
+    y: 2.5,
+  }); }
   /**
    * @returns {number[]}
    */
@@ -69,8 +72,16 @@ export class KitchenRoomGenerator extends AbstractCastleRoomGenerator {
     const prop = (object, x, z, w, d, y = 0, rotation = 0, contents = undefined, color = undefined) => {
       const wallMounted = ["HangingFryingPan", "Fireplace"].includes(object);
       const fireplace = object === "Fireplace";
-      if (fireplace && !FireplaceWallBacking.accepts({ object, x, z, width: w, depth: d, scale: 1, y },
-        room, context.openings ?? [])) { return false; }
+      if (fireplace && !FireplaceWallBacking.accepts({
+        object,
+        x,
+        z,
+        width: w,
+        depth: d,
+        scale: 1,
+        y,
+      },
+      room, context.openings ?? [])) { return false; }
       if (!available(x, z, w, d, wallMounted ? 0 : ["FirewoodStack", "KitchenTable"].includes(object) ? 0.015 : inset,
         wallMounted ? room.wallBounds ?? room : room)) { return false; }
       if (y === 0 && !wallMounted && items.some(/**
@@ -78,10 +89,24 @@ export class KitchenRoomGenerator extends AbstractCastleRoomGenerator {
        */ item => (item.y ?? 0) === 0 &&
         Math.abs(item.x - x) < (item.width + w) / 2 + 0.04 &&
         Math.abs(item.z - z) < (item.depth + d) / 2 + 0.04)) { return false; }
-      items.push({ role: "kitchenProp", object, x, z, width: w, depth: d, scale: 1, y, rotation,
-        ...(contents ? { items: contents, color, height: 0.231 } : {}),
+      items.push({
+        role: "kitchenProp",
+        object,
+        x,
+        z,
+        width: w,
+        depth: d,
+        scale: 1,
+        y,
+        rotation,
+        ...(contents ? {
+          items: contents,
+          color,
+          height: 0.231,
+        } : {}),
         ...(wallMounted ? { wallAttachment: true } : {}),
-        ...(fireplace ? { wallInset: 0 } : {}) });
+        ...(fireplace ? { wallInset: 0 } : {}),
+      });
       return true;
     };
     // Side entrances face the opposite hearth wall. The preparation bank
@@ -143,8 +168,16 @@ export class KitchenRoomGenerator extends AbstractCastleRoomGenerator {
         sideEntry ? 1.2 : 0.191, sideEntry ? 0.191 : 1.2, 1.05, sideEntry ? tableZ > (room.minZ + room.maxZ) / 2 ? 180 : 0 : -90);
     }
     if (width >= 3.5 && depth >= 3.4) {
-      const shelfCandidates = [{ x: room.minX + (westEntry ? 0.7 : 2.2), z: room.minZ + inset + 0.15, rotation: 0 },
-        ...(westEntry ? [{ x: room.minX + inset + 0.15, z: room.maxZ - inset - 0.85, rotation: 90 }] : [])];
+      const shelfCandidates = [{
+        x: room.minX + (westEntry ? 0.7 : 2.2),
+        z: room.minZ + inset + 0.15,
+        rotation: 0,
+      },
+      ...(westEntry ? [{
+        x: room.minX + inset + 0.15,
+        z: room.maxZ - inset - 0.85,
+        rotation: 90,
+      }] : [])];
       for (const shelf of shelfCandidates) {
         const sideways = shelf.rotation === 90;
         const shelfWidth = sideways ? 0.3 : 0.8, shelfDepth = sideways ? 0.8 : 0.3;
@@ -152,8 +185,15 @@ export class KitchenRoomGenerator extends AbstractCastleRoomGenerator {
          * @param {import("../AbstractCastleRoomGenerator.js").RoomItem} item
          */ item => (item.y ?? 0) === 0 && Math.abs(item.x - shelf.x) < (item.width + shelfWidth) / 2 + 0.04 &&
           Math.abs(item.z - shelf.z) < (item.depth + shelfDepth) / 2 + 0.04)) { continue; }
-        const support = { id: room.id + "-kitchen-pantry-shelf", role: "storageShelf", ...shelf,
-          width: shelfWidth, depth: shelfDepth, height: 0.9625, scale: 1 };
+        const support = {
+          id: room.id + "-kitchen-pantry-shelf",
+          role: "storageShelf",
+          ...shelf,
+          width: shelfWidth,
+          depth: shelfDepth,
+          height: 0.9625,
+          scale: 1,
+        };
         items.push(support);
         if (prop("StoragePotteryJar", shelf.x - (sideways ? 0 : 0.2), shelf.z - (sideways ? 0.2 : 0), 0.229, 0.236, support.height)) {
           items.at(-1).supportId = support.id;

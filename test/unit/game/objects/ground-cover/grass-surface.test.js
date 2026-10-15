@@ -37,7 +37,11 @@ function createSubject(
     getSurfaceContacts,
     getImpressionContacts,
   });
-  return { grass, parameters, update: (deltaTime) => { update(deltaTime); render(); } };
+  return {
+    grass,
+    parameters,
+    update: (deltaTime) => { update(deltaTime); render(); },
+  };
 }
 
 describe("grass canopy wind", () => {

@@ -59,7 +59,10 @@ export class FlowerPaperSimulation {
     this.#world.setGravity(Vec3.ZERO);
     this.#world.nativeWorld.getSolverInfo().set_m_numIterations(30);
     for (let index = 0; index < 2; index++) {
-      this.#feet.push(this.#body(BODYTYPE_KINEMATIC, { type: "box", halfExtents: new Vec3(0.095, 0.3, 0.13) }, this.#previousFeet[index], Quat.IDENTITY));
+      this.#feet.push(this.#body(BODYTYPE_KINEMATIC, {
+        type: "box",
+        halfExtents: new Vec3(0.095, 0.3, 0.13),
+      }, this.#previousFeet[index], Quat.IDENTITY));
     }
   }
 
@@ -72,7 +75,13 @@ export class FlowerPaperSimulation {
    */
   #body(type, description, position, rotation) {
     const shape = this.#world.createShape(description);
-    const body = this.#world.createBody({ type, shape, mass: type === BODYTYPE_DYNAMIC ? 0.001 : 0, position, rotation });
+    const body = this.#world.createBody({
+      type,
+      shape,
+      mass: type === BODYTYPE_DYNAMIC ? 0.001 : 0,
+      position,
+      rotation,
+    });
     const dynamic = type === BODYTYPE_DYNAMIC;
     this.#world.addBody(body, dynamic ? BODYGROUP_USER_1 : BODYGROUP_USER_2, dynamic ? BODYGROUP_USER_2 : BODYGROUP_USER_1);
     body.setDamping(0.72, 0.8);
@@ -92,16 +101,31 @@ export class FlowerPaperSimulation {
    */
   #fold(bodyA, bodyB, offsetA, offsetB) {
     const joint = this.#world.createJoint({
-      type: JOINTTYPE_6DOF, bodyA, bodyB,
-      frameA: new Mat4().setTranslate(offsetA, 0, 0), frameB: new Mat4().setTranslate(offsetB, 0, 0),
+      type: JOINTTYPE_6DOF,
+      bodyA,
+      bodyB,
+      frameA: new Mat4().setTranslate(offsetA, 0, 0),
+      frameB: new Mat4().setTranslate(offsetB, 0, 0),
       enableCollision: false,
       settings: {
-        linearMotionX: MOTION_LOCKED, linearMotionY: MOTION_LOCKED, linearMotionZ: MOTION_LOCKED,
-        linearLimitsX: new Vec3(), linearLimitsY: new Vec3(), linearLimitsZ: new Vec3(),
-        angularMotionX: MOTION_LOCKED, angularMotionY: MOTION_LOCKED, angularMotionZ: MOTION_LIMITED,
-        angularLimitsX: new Vec3(), angularLimitsY: new Vec3(), angularLimitsZ: new Vec3(-82, 45),
-        linearStiffness: new Vec3(), linearDamping: new Vec3(1, 1, 1), linearEquilibrium: new Vec3(),
-        angularStiffness: new Vec3(0, 0, 0.15), angularDamping: new Vec3(1, 1, 0.85), angularEquilibrium: new Vec3(),
+        linearMotionX: MOTION_LOCKED,
+        linearMotionY: MOTION_LOCKED,
+        linearMotionZ: MOTION_LOCKED,
+        linearLimitsX: new Vec3(),
+        linearLimitsY: new Vec3(),
+        linearLimitsZ: new Vec3(),
+        angularMotionX: MOTION_LOCKED,
+        angularMotionY: MOTION_LOCKED,
+        angularMotionZ: MOTION_LIMITED,
+        angularLimitsX: new Vec3(),
+        angularLimitsY: new Vec3(),
+        angularLimitsZ: new Vec3(-82, 45),
+        linearStiffness: new Vec3(),
+        linearDamping: new Vec3(1, 1, 1),
+        linearEquilibrium: new Vec3(),
+        angularStiffness: new Vec3(0, 0, 0.15),
+        angularDamping: new Vec3(1, 1, 0.85),
+        angularEquilibrium: new Vec3(),
       },
     });
     this.#joints.add(joint);
@@ -114,8 +138,11 @@ export class FlowerPaperSimulation {
    * @returns {import("playcanvas").PhysicsBody}
    */
   addSurface(position, radius) {
-    return this.#body(BODYTYPE_KINEMATIC, { type: "box", halfExtents: new Vec3(radius, 0.04, radius) },
-      new Vec3(position.x, position.y - 0.04, position.z), Quat.IDENTITY);
+    return this.#body(BODYTYPE_KINEMATIC, {
+      type: "box",
+      halfExtents: new Vec3(radius, 0.04, radius),
+    },
+    new Vec3(position.x, position.y - 0.04, position.z), Quat.IDENTITY);
   }
 
   /**
@@ -151,17 +178,29 @@ export class FlowerPaperSimulation {
    * @returns {{anchor: import("playcanvas").PhysicsBody, links: import("playcanvas").PhysicsBody[], joints: import("playcanvas").PhysicsJoint[], length: number, rotation: Quat}}
    */
   add({ position, rotation, length, width }) {
-    const anchor = this.#body(BODYTYPE_KINEMATIC, { type: "sphere", radius: 0.001 }, position, rotation);
+    const anchor = this.#body(BODYTYPE_KINEMATIC, {
+      type: "sphere",
+      radius: 0.001,
+    }, position, rotation);
     // Anchors support the sheet but do not collide with the soles.
     this.#world.removeBody(anchor);
     this.#world.addBody(anchor, BODYGROUP_USER_1, 0);
     const links = [];
     for (let index = 0; index < 2; index++) {
       const center = rotation.transformVector(new Vec3(length * (index + 0.5) / 2, 0, 0)).add(position);
-      links.push(this.#body(BODYTYPE_DYNAMIC, { type: "box", halfExtents: new Vec3(length / 4, 0.003, width / 2) }, center, rotation));
+      links.push(this.#body(BODYTYPE_DYNAMIC, {
+        type: "box",
+        halfExtents: new Vec3(length / 4, 0.003, width / 2),
+      }, center, rotation));
     }
     const joints = [this.#fold(anchor, links[0], 0, -length / 4), this.#fold(links[0], links[1], length / 4, -length / 4)];
-    const sheet = { anchor, links, joints, length, rotation: rotation.clone() };
+    const sheet = {
+      anchor,
+      links,
+      joints,
+      length,
+      rotation: rotation.clone(),
+    };
     this.#sheets.add(sheet);
     return sheet;
   }
@@ -207,7 +246,10 @@ export class FlowerPaperSimulation {
       const half = rotation.transformVector(new Vec3(sheet.length / 4, 0, 0));
       position.copy(base).add(half);
       base = position.clone().add(half);
-      poses.push({ position, rotation });
+      poses.push({
+        position,
+        rotation,
+      });
     }
     return poses;
   }
@@ -234,7 +276,7 @@ export class FlowerPaperSimulation {
      * @param {Vec3} foot
      * @param {number} index
      */
-    (foot, index) => foot.distance(this.#previousFeet[index]) > 0.0001) ||
+      (foot, index) => foot.distance(this.#previousFeet[index]) > 0.0001) ||
       Math.abs(facing.dot(this.#previousFacing)) < 0.999999;
     if (moved) {
       this.#stationaryTime = 0;
@@ -252,17 +294,17 @@ export class FlowerPaperSimulation {
          * @param {{position: Vec3}} options
          * @param {Vec3} options.position
          */
-        ({ position }) => feet.some(/**
+          ({ position }) => feet.some(/**
          *
          * @param {Vec3} foot
          */
-        (foot) => {
-          const local = inverse.transformVector(position.clone().sub(foot));
-          // Include the full attached sheet: a sole can load its inner edge
-          // while both section centers remain outside the footprint.
-          return Math.abs(local.x) < 0.095 + sheet.length && Math.abs(local.z) < 0.13 + sheet.length &&
+            (foot) => {
+              const local = inverse.transformVector(position.clone().sub(foot));
+              // Include the full attached sheet: a sole can load its inner edge
+              // while both section centers remain outside the footprint.
+              return Math.abs(local.x) < 0.095 + sheet.length && Math.abs(local.z) < 0.13 + sheet.length &&
             Math.abs(position.y - (foot.y - 0.3)) < 0.2;
-        }));
+            }));
         if (!loaded) { continue; }
         // Bullet's disabled simulation state holds settled, loaded paper. The
         // springs resume when the sole moves; free petals continue recovering.

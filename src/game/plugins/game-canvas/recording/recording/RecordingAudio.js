@@ -92,7 +92,10 @@ export class RecordingAudio {
           if (!first) {
             instance.setExternalNodes(node, node);
           }
-          this.#connections.set(instance, { node, owned: !first });
+          this.#connections.set(instance, {
+            node,
+            owned: !first,
+          });
         }
       }
     }
@@ -116,7 +119,7 @@ export class RecordingAudio {
      *
      * @param {{firstPathIndex: number, secondPathIndex: number, col: number, row: number}} connection
      */
-    (connection) => connection.node === node)) {
+      (connection) => connection.node === node)) {
       node.disconnect(this.#destination);
     }
     if (owned && instance.getExternalNodes()[0] === node) {

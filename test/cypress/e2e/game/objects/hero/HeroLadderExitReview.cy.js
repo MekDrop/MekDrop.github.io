@@ -6,7 +6,13 @@ describe("Recorded ladder exit contact review", () => {
     cy.window().then(window => {
       access = window.gameMovementTest.mapObjects().find(o => o.object === "Castle").buildPlan.metadata.runtime.residential.roofAccess;
       const dx = access.position.x - access.bottom.x, dz = access.position.z - access.bottom.z, length = Math.hypot(dx, dz);
-      forward = { x: dx / length, z: dz / length };right = { x: forward.z, z: -forward.x };
+      forward = {
+        x: dx / length,
+        z: dz / length,
+      };right = {
+        x: forward.z,
+        z: -forward.x,
+      };
       window.gameCameraTest.firstPerson(false);
     });
     for (const side of [-1, 1]) {
@@ -41,8 +47,11 @@ describe("Recorded ladder exit contact review", () => {
          * @returns {void}
          */
         function sample() {
-          samples.push({ elapsed: window.performance.now() - started, body: window.gameMovementTest.state().position,
-            ...window.gameMovementTest.animationPose(["Left ankle", "Right ankle", "Left white glove", "Right white glove"]) });
+          samples.push({
+            elapsed: window.performance.now() - started,
+            body: window.gameMovementTest.state().position,
+            ...window.gameMovementTest.animationPose(["Left ankle", "Right ankle", "Left white glove", "Right white glove"]),
+          });
           const latest = samples[samples.length - 1];
           sawTransfer ||= latest.clip?.startsWith("ClimbTop");
           if (latest.elapsed > 9000 || (sawTransfer && !latest.clip?.startsWith("ClimbTop") && latest.elapsed > 400)) resolve(samples);
@@ -51,36 +60,36 @@ describe("Recorded ladder exit contact review", () => {
         window.requestAnimationFrame(sample);
       })).then(samples => {
         return cy.writeFile(`tmp/ladder-remake/contact-pose-${side}.json`, samples).then(() => {
-        const leading = side > 0 ? "Right ankle" : "Left ankle";
-        const planted = samples.filter(sample => {
-          const phase = (sample.time / 4 - 0.4) / 0.6;
-          return sample.clip?.startsWith("ClimbTop") && phase > 0.56 && phase < 0.69;
-        });
-        expect(planted.length, "recorded planted-foot frames").to.be.greaterThan(4);
-        for (const axis of ["x", "y", "z"]) {
-          const points = planted.map(sample => sample.joints[leading][axis]);
-          expect(Math.max(...points) - Math.min(...points), `${leading} planted ${axis} drift`).to.be.lessThan(0.04);
-        }
-        const bracingHand = side > 0 ? "Right white glove" : "Left white glove";
-        const braced = samples.filter(sample => {
-          const phase = (sample.time / 4 - 0.4) / 0.6;
-          return sample.clip?.startsWith("ClimbTop") && phase > 0.42 && phase < 0.68;
-        });
-        expect(braced.length, "recorded bracing-hand frames").to.be.greaterThan(4);
-        for (const axis of ["x", "y", "z"]) {
-          const points = braced.map(sample => sample.joints[bracingHand][axis]);
-          expect(Math.max(...points) - Math.min(...points), `${bracingHand} contact ${axis} drift`).to.be.lessThan(0.04);
-        }
-        const trailing = side > 0 ? "Left ankle" : "Right ankle";
-        const plantedTrailing = samples.filter(sample => {
-          const phase = (sample.time / 4 - 0.4) / 0.6;
-          return sample.clip?.startsWith("ClimbTop") && phase > 0.72 && phase < 0.83;
-        });
-        expect(plantedTrailing.length, "trailing-foot frames during the turn").to.be.greaterThan(3);
-        for (const axis of ["x", "y", "z"]) {
-          const points = plantedTrailing.map(sample => sample.joints[trailing][axis]);
-          expect(Math.max(...points) - Math.min(...points), `${trailing} turn ${axis} drift`).to.be.lessThan(0.04);
-        }
+          const leading = side > 0 ? "Right ankle" : "Left ankle";
+          const planted = samples.filter(sample => {
+            const phase = (sample.time / 4 - 0.4) / 0.6;
+            return sample.clip?.startsWith("ClimbTop") && phase > 0.56 && phase < 0.69;
+          });
+          expect(planted.length, "recorded planted-foot frames").to.be.greaterThan(4);
+          for (const axis of ["x", "y", "z"]) {
+            const points = planted.map(sample => sample.joints[leading][axis]);
+            expect(Math.max(...points) - Math.min(...points), `${leading} planted ${axis} drift`).to.be.lessThan(0.04);
+          }
+          const bracingHand = side > 0 ? "Right white glove" : "Left white glove";
+          const braced = samples.filter(sample => {
+            const phase = (sample.time / 4 - 0.4) / 0.6;
+            return sample.clip?.startsWith("ClimbTop") && phase > 0.42 && phase < 0.68;
+          });
+          expect(braced.length, "recorded bracing-hand frames").to.be.greaterThan(4);
+          for (const axis of ["x", "y", "z"]) {
+            const points = braced.map(sample => sample.joints[bracingHand][axis]);
+            expect(Math.max(...points) - Math.min(...points), `${bracingHand} contact ${axis} drift`).to.be.lessThan(0.04);
+          }
+          const trailing = side > 0 ? "Left ankle" : "Right ankle";
+          const plantedTrailing = samples.filter(sample => {
+            const phase = (sample.time / 4 - 0.4) / 0.6;
+            return sample.clip?.startsWith("ClimbTop") && phase > 0.72 && phase < 0.83;
+          });
+          expect(plantedTrailing.length, "trailing-foot frames during the turn").to.be.greaterThan(3);
+          for (const axis of ["x", "y", "z"]) {
+            const points = plantedTrailing.map(sample => sample.joints[trailing][axis]);
+            expect(Math.max(...points) - Math.min(...points), `${trailing} turn ${axis} drift`).to.be.lessThan(0.04);
+          }
         });
       });
       cy.window({ timeout: 15000 }).should(window => {

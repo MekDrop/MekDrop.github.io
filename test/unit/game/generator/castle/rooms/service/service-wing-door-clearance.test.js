@@ -6,7 +6,21 @@ import {MOVEMENT_COLLISION_RADIUS,HERO_COLLISION_HEIGHT} from '../../../../../..
 
 it('gives each entrance-floor room a clear doorway onto the shared hall',async()=>{
   for (const seed of [4,5]) {
-    const plan=await CastleGenerator.generate({position:{x:-14,z:-8,width:28,depth:16,elevation:3},doors:[{side:'NORTH',offset:13,width:2}],seed});
+    const plan=await CastleGenerator.generate({
+      position:{
+        x:-14,
+        z:-8,
+        width:28,
+        depth:16,
+        elevation:3,
+      },
+      doors:[{
+        side:'NORTH',
+        offset:13,
+        width:2,
+      }],
+      seed,
+    });
     const layout=new CastleResidentialLayout(plan);
     const entry=plan.layout.roomPlan.doorways.find(door=>door.exteriorEntrance);
     for(const normal of [-0.45,0,0.45]) {
@@ -30,16 +44,16 @@ it('gives each entrance-floor room a clear doorway onto the shared hall',async()
       }
     }
     for (const door of doors) {
-    assert.ok(door.width >= 1);
-    for(let normal=-0.6;normal<=0.6;normal+=0.1) {
-      for(const lateral of [-0.2,0,0.2]) {
-        const x=door.axis==='x'?door.coordinate+normal:door.center+lateral;
-        const z=door.axis==='z'?door.coordinate+normal:door.center+lateral;
-        assert.ok(layout.walkableAreas.some(a=>a.floorY===door.floorY&&x>=a.minX&&x<=a.maxX&&z>=a.minZ&&z<=a.maxZ),'floor supports the doorway approach');
-        const point=layout.toWorld(x,z,door.floorY-layout.origin.y);
-        assert.ok(!plan.metadata.collision.cameraBlocks.some(b=>point.y+HERO_COLLISION_HEIGHT>b.y-b.halfY&&point.y+.05<b.y+b.halfY&&Math.hypot(Math.max(Math.abs(point.x-b.x)-b.halfX,0),Math.max(Math.abs(point.z-b.z)-b.halfZ,0))<MOVEMENT_COLLISION_RADIUS),`${door.roomId} ${normal}/${lateral}: doorway clears the hero body`);
+      assert.ok(door.width >= 1);
+      for(let normal=-0.6;normal<=0.6;normal+=0.1) {
+        for(const lateral of [-0.2,0,0.2]) {
+          const x=door.axis==='x'?door.coordinate+normal:door.center+lateral;
+          const z=door.axis==='z'?door.coordinate+normal:door.center+lateral;
+          assert.ok(layout.walkableAreas.some(a=>a.floorY===door.floorY&&x>=a.minX&&x<=a.maxX&&z>=a.minZ&&z<=a.maxZ),'floor supports the doorway approach');
+          const point=layout.toWorld(x,z,door.floorY-layout.origin.y);
+          assert.ok(!plan.metadata.collision.cameraBlocks.some(b=>point.y+HERO_COLLISION_HEIGHT>b.y-b.halfY&&point.y+.05<b.y+b.halfY&&Math.hypot(Math.max(Math.abs(point.x-b.x)-b.halfX,0),Math.max(Math.abs(point.z-b.z)-b.halfZ,0))<MOVEMENT_COLLISION_RADIUS),`${door.roomId} ${normal}/${lateral}: doorway clears the hero body`);
+        }
       }
-    }
     }
   }
 });

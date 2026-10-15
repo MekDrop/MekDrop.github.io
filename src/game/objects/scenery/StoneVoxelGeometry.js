@@ -123,19 +123,19 @@ function addVoxel(geometry, center, size, color) {
    *
    * @param {{x: number, y: number, z: number}} dimension
    */
-  (dimension) => dimension / 2);
+    (dimension) => dimension / 2);
   const bevel = Math.min(...half) * 0.12;
   const inner = half.map(/**
    *
    * @param {number} value
    */
-  (value) => value - bevel);
+    (value) => value - bevel);
   for (let axis = 0; axis < 3; axis++) {
     const other = [0, 1, 2].filter(/**
      *
      * @param {number} index
      */
-    (index) => index !== axis);
+      (index) => index !== axis);
     for (const sign of [-1, 1]) {
       const points = [
         [-1, -1],
@@ -148,13 +148,13 @@ function addVoxel(geometry, center, size, color) {
        * @param {number} options."0"
        * @param {number} options."1"
        */
-      ([a, b]) => {
-        const point = [...center];
-        point[axis] += sign * half[axis];
-        point[other[0]] += a * inner[other[0]];
-        point[other[1]] += b * inner[other[1]];
-        return point;
-      });
+        ([a, b]) => {
+          const point = [...center];
+          point[axis] += sign * half[axis];
+          point[other[0]] += a * inner[other[0]];
+          point[other[1]] += b * inner[other[1]];
+          return point;
+        });
       const normal = [0, 0, 0];
       normal[axis] = sign;
       addPolygon(geometry, points, normal, color);
@@ -166,7 +166,7 @@ function addVoxel(geometry, center, size, color) {
        *
        * @param {{x: number, y: number, z: number}} axis
        */
-      (axis) => axis !== first && axis !== second);
+        (axis) => axis !== first && axis !== second);
       for (const firstSign of [-1, 1]) {
         for (const secondSign of [-1, 1]) {
           const points = [
@@ -178,13 +178,13 @@ function addVoxel(geometry, center, size, color) {
            *
            * @param {number} coordinates
            */
-          (coordinates) => {
-            const point = [...center];
-            point[first] += coordinates[0] * firstSign;
-            point[second] += coordinates[1] * secondSign;
-            point[third] += coordinates[2];
-            return point;
-          });
+            (coordinates) => {
+              const point = [...center];
+              point[first] += coordinates[0] * firstSign;
+              point[second] += coordinates[1] * secondSign;
+              point[third] += coordinates[2];
+              return point;
+            });
           const normal = [0, 0, 0];
           normal[first] = firstSign;
           normal[second] = secondSign;
@@ -207,7 +207,7 @@ function addVoxel(geometry, center, size, color) {
          * @param {number} options."1"
          * @param {number} options."2"
          */
-        ([x, y, z]) => [center[0] + x, center[1] + y, center[2] + z]);
+          ([x, y, z]) => [center[0] + x, center[1] + y, center[2] + z]);
         addPolygon(geometry, points, [xSign, ySign, zSign], color);
       }
     }
@@ -243,7 +243,7 @@ export function buildStoneVoxels(stones) {
          *
          * @param {number} channel
          */
-        (channel) => channel * shade);
+          (channel) => channel * shade);
         const x = stone.x + (col * cosine - depth * sine) * width;
         const z = stone.z + (col * sine + depth * cosine) * width;
         const y = stone.ground + (row + 0.5) * height;
@@ -267,7 +267,12 @@ export function buildStoneVoxels(stones) {
  * @param {Array<{x: number, y: number, z: number, width: number, height: number, depth: number}>} stones
  */
 export function buildStoneVoxelGeometry(stones) {
-  const geometry = { positions: [], normals: [], colors: [], indices: [] };
+  const geometry = {
+    positions: [],
+    normals: [],
+    colors: [],
+    indices: [],
+  };
   for (const voxel of buildStoneVoxels(stones)) {
     addVoxel(
       geometry,

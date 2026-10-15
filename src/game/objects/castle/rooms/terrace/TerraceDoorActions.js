@@ -110,7 +110,11 @@ export class TerraceDoorActions {
       door.onOpen = onOpen;
     } else {
       this.#door = new TerraceDoor({
-        pc, modelLibrary, wallMaterial, woodMaterial, onOpen,
+        pc,
+        modelLibrary,
+        wallMaterial,
+        woodMaterial,
+        onOpen,
       });
       this.#door.entity.setLocalPosition(0, 0, DOORWAY_POSITION_Z);
       root.addChild(this.#door.entity);
@@ -144,8 +148,8 @@ export class TerraceDoorActions {
       handleGripDistance:
         this.#ownsDoor && this.#inspection.phase === INSPECTION.CLOSE
           ? this.#inspector.rightHand
-              .getPosition()
-              .distance(this.#door.insideHandle.getPosition())
+            .getPosition()
+            .distance(this.#door.insideHandle.getPosition())
           : null,
     };
   }
@@ -247,8 +251,16 @@ export class TerraceDoorActions {
       z = DOORWAY_START_Z;
     } else if (phase === INSPECTION.WALK_OUT) {
       const motion = TerraceInspectorWalk.sample({
-        start: { x: 0, y: 0, z: DOORWAY_START_Z },
-        end: { x: 0, y: 0, z: 1.6 },
+        start: {
+          x: 0,
+          y: 0,
+          z: DOORWAY_START_Z,
+        },
+        end: {
+          x: 0,
+          y: 0,
+          z: 1.6,
+        },
         startYaw: 0,
         endYaw: 0,
         elapsed: this.#inspection.elapsed,
@@ -348,7 +360,11 @@ export class TerraceDoorActions {
         .invert()
         .transformVector(forward, forward);
       const motion = TerraceInspectorWalk.sample({
-        start: { x: 0, y: 0, z: 1.6 * scale },
+        start: {
+          x: 0,
+          y: 0,
+          z: 1.6 * scale,
+        },
         end: gripPosition,
         startYaw: 90,
         endYaw: (Math.atan2(forward.x, forward.z) * 180) / Math.PI,
@@ -369,7 +385,11 @@ export class TerraceDoorActions {
     } else if (phase === INSPECTION.LEAVE) {
       const motion = TerraceInspectorWalk.sample({
         start: gripPosition,
-        end: { x: 0, y: (this.#ownsDoor ? -1.05 : 0) * scale, z: DOORWAY_START_Z * scale },
+        end: {
+          x: 0,
+          y: (this.#ownsDoor ? -1.05 : 0) * scale,
+          z: DOORWAY_START_Z * scale,
+        },
         startYaw: 0,
         endYaw: 180,
         elapsed: this.#inspection.elapsed,
@@ -393,12 +413,24 @@ export class TerraceDoorActions {
     const scale = this.#stage.getLocalScale().x;
     // This leaf swings onto the terrace. Operate it from the landing side,
     // keeping the servant's feet on the floor and body outside the swing arc.
-    const standing = { x: 0, y: 0, z: -0.7 };
+    const standing = {
+      x: 0,
+      y: 0,
+      z: -0.7,
+    };
     if (phase === INSPECTION.RETURN || phase === INSPECTION.LEAVE) {
       const returning = phase === INSPECTION.RETURN;
       const motion = TerraceInspectorWalk.sample({
-        start: returning ? { x: 0, y: 0, z: 1.6 * scale } : standing,
-        end: returning ? standing : { x: 0, y: 0, z: -1.4 },
+        start: returning ? {
+          x: 0,
+          y: 0,
+          z: 1.6 * scale,
+        } : standing,
+        end: returning ? standing : {
+          x: 0,
+          y: 0,
+          z: -1.4,
+        },
         startYaw: returning ? 90 : 0,
         endYaw: returning ? 0 : 180,
         elapsed: this.#inspection.elapsed,

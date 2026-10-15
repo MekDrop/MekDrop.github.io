@@ -25,7 +25,7 @@ export class FoldedLinens extends AbstractCastleProp {
     if (![width, depth, height].every(/**
      * @param {number} value
      */
-    value => Number.isFinite(value) && value > 0)) {
+      value => Number.isFinite(value) && value > 0)) {
       template.destroy();
       return;
     }

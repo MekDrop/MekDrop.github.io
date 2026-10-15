@@ -18,13 +18,27 @@ it("shares top and underside batches across side materials while preserving cube
     constructor(mesh, material) { this.mesh = mesh; this.material = material; }
     setInstancing(buffer) { this.buffer = buffer; }
   }
-  const fakePc = { ...pc, Entity, VertexBuffer, MeshInstance,
+  const fakePc = {
+    ...pc,
+    Entity,
+    VertexBuffer,
+    MeshInstance,
     VertexFormat: { getDefaultInstancingFormat: () => ({}) },
-    Mesh: { fromGeometry: () => ({ id: nextMeshId++, incRefCount() {} }) },
+    Mesh: {
+      fromGeometry: () => ({
+        id: nextMeshId++,
+        incRefCount() {},
+      }),
+    },
   };
   const root = new Entity("Terrain");
   const materials = new Map(["grass-0", "side-0", "side-1", "earth"].map((name) => [name, { name }]));
-  const renderer = new TerrainInstanceRenderer({ pc: fakePc, app: { graphicsDevice: {} }, root, materials });
+  const renderer = new TerrainInstanceRenderer({
+    pc: fakePc,
+    app: { graphicsDevice: {} },
+    root,
+    materials,
+  });
   renderer.addCubeMatrix("grass-0", "side-0", 0, 0.5, 0, "full", "earth");
   renderer.addCubeMatrix("grass-0", "side-1", 2, 0.5, 0, "full", "earth");
   renderer.build();

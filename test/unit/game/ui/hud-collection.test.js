@@ -38,19 +38,31 @@ class StaticHud {
 
 describe("HudCollection", () => {
   it("adds each HUD class once with the shared rendering context", () => {
-    const context = { pc: {}, app: {} };
+    const context = {
+      pc: {},
+      app: {},
+    };
     const huds = new HudCollection(context);
 
-    const hud = huds.add(TestHud, { custom: true, app: "ignored" });
+    const hud = huds.add(TestHud, {
+      custom: true,
+      app: "ignored",
+    });
 
     assert.equal(huds.add(TestHud), hud);
     assert.equal(huds.getHud(TestHud), hud);
     assert.equal(hud.attachCount, 1);
-    assert.deepEqual(hud.context, { ...context, custom: true });
+    assert.deepEqual(hud.context, {
+      ...context,
+      custom: true,
+    });
   });
 
   it("updates compatible HUDs and ignores HUDs without an update method", () => {
-    const huds = new HudCollection({ pc: {}, app: {} });
+    const huds = new HudCollection({
+      pc: {},
+      app: {},
+    });
     const animatedHud = huds.add(TestHud);
     huds.add(StaticHud);
 
@@ -60,7 +72,10 @@ describe("HudCollection", () => {
   });
 
   it("removes individual HUDs and destroys the remainder as a collection", () => {
-    const huds = new HudCollection({ pc: {}, app: {} });
+    const huds = new HudCollection({
+      pc: {},
+      app: {},
+    });
     const removedHud = huds.add(TestHud);
     const remainingHud = huds.add(StaticHud);
 

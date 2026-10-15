@@ -35,8 +35,8 @@ export const useOtherLinksStore = defineStore("other-links", () => {
          *
          * @param {string} tag
          */
-        (tag) =>
-          i18n.te(`tag.${tag}`) ? i18n.t(`tag.${tag}`) : tag,
+          (tag) =>
+            i18n.te(`tag.${tag}`) ? i18n.t(`tag.${tag}`) : tag,
         );
       }
       row.search_words = (row.name + " " + row.tags.join(" ")).split(" ");
@@ -50,7 +50,7 @@ export const useOtherLinksStore = defineStore("other-links", () => {
        * @param {OtherLinkMap} acc
        * @param {string} key
        */
-      (acc, key) => ((acc[key] = data.value[key]), acc), {});
+        (acc, key) => ((acc[key] = data.value[key]), acc), {});
 
     index.value = lunr(function () {
       this.field("tags");
@@ -99,7 +99,7 @@ export const useOtherLinksStore = defineStore("other-links", () => {
      *
      * @param {import("lunr").Index.Result} result
      */
-    (result) => data.value[result.ref]);
+      (result) => data.value[result.ref]);
   };
 
   return {

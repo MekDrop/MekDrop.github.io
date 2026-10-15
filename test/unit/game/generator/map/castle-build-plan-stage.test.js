@@ -8,14 +8,23 @@ describe("CastleBuildPlanStage", () => {
     const calls = [];
     const buildPlan = { geometry: { boxes: [{ id: "wall" }] } };
     const stage = new CastleBuildPlanStage({
-      mapDimensions: { cols: 42, rows: 42 },
+      mapDimensions: {
+        cols: 42,
+        rows: 42,
+      },
       generateCastleBuildPlan: async (options) => {
         calls.push(options);
         return buildPlan;
       },
     });
     const castle = {
-      position: { col: 33, row: 17, width: 5, depth: 7, elevation: 3 },
+      position: {
+        col: 33,
+        row: 17,
+        width: 5,
+        depth: 7,
+        elevation: 3,
+      },
       style: "twin-tower",
       doors: [
         {
@@ -23,8 +32,14 @@ describe("CastleBuildPlanStage", () => {
           offset: 2,
           width: 2,
           cells: [
-            { col: 33, row: 19 },
-            { col: 33, row: 20 },
+            {
+              col: 33,
+              row: 19,
+            },
+            {
+              col: 33,
+              row: 20,
+            },
           ],
         },
       ],

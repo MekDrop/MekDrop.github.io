@@ -27,16 +27,38 @@ export function validateCastleGround(mapData) {
         const box = object.geometry?.method === "addBoxMatrix";
         const width = box ? args[6] : 1, height = box ? args[7] : 1, depth = box ? args[8] : 1;
         const { x, y, z } = object.position;
-        const bounds = { minX: x - width / 2, maxX: x + width / 2, minY: y - height / 2,
-          maxY: y + height / 2, minZ: z - depth / 2, maxZ: z + depth / 2 };
+        const bounds = {
+          minX: x - width / 2,
+          maxX: x + width / 2,
+          minY: y - height / 2,
+          maxY: y + height / 2,
+          minZ: z - depth / 2,
+          maxZ: z + depth / 2,
+        };
         for (const [index, block] of (plan.metadata.collision?.cameraBlocks ?? []).entries()) {
-          const wall = { minX: block.x - block.halfX, maxX: block.x + block.halfX,
-            minY: block.y - block.halfY, maxY: block.y + block.halfY,
-            minZ: block.z - block.halfZ, maxZ: block.z + block.halfZ };
+          const wall = {
+            minX: block.x - block.halfX,
+            maxX: block.x + block.halfX,
+            minY: block.y - block.halfY,
+            maxY: block.y + block.halfY,
+            minZ: block.z - block.halfZ,
+            maxZ: block.z + block.halfZ,
+          };
           if (!overlaps(bounds, wall)) continue;
-          issues.push({ castleId: castle.id ?? "Castle", seed: String(castle.seed ?? ""),
-            area: `wall:${index}`, kind: "terrain", certainty: "confirmed", terrainId: object.id,
-            position: { x, y, z }, bounds });
+          issues.push({
+            castleId: castle.id ?? "Castle",
+            seed: String(castle.seed ?? ""),
+            area: `wall:${index}`,
+            kind: "terrain",
+            certainty: "confirmed",
+            terrainId: object.id,
+            position: {
+              x,
+              y,
+              z,
+            },
+            bounds,
+          });
           break;
         }
       }
@@ -57,18 +79,25 @@ export function validateCastleGround(mapData) {
         .map(/**
               * @param {Array<number>} point
               */ (point) => layout.toWorld(point[0], point[1], 0));
-      areas.push({ area, bounds: { minX: Math.min(...corners.map(/**
+      areas.push({
+        area,
+        bounds: {
+          minX: Math.min(...corners.map(/**
                                                                   * @param {{x:number}} point
                                                                   */ (point) => point.x)),
-        maxX: Math.max(...corners.map(/**
+          maxX: Math.max(...corners.map(/**
                                        * @param {{x:number}} point
                                        */ (point) => point.x)),
-        minZ: Math.min(...corners.map(/**
+          minZ: Math.min(...corners.map(/**
                                        * @param {{z:number}} point
                                        */ (point) => point.z)),
-        maxZ: Math.max(...corners.map(/**
+          maxZ: Math.max(...corners.map(/**
                                        * @param {{z:number}} point
-                                       */ (point) => point.z)), minY: floor, maxY: ceiling } });
+                                       */ (point) => point.z)),
+          minY: floor,
+          maxY: ceiling,
+        },
+      });
     };
     addRoom("work", layout.rooms.work, layout.rooms.work.floorY, layout.rooms.work.floorY + 2);
     for (const building of residential.buildings ?? []) {
@@ -90,8 +119,17 @@ export function validateCastleGround(mapData) {
      */ (stair) => [stair.id, stair])]) {
       if (!stair) continue;
       const { center, radius } = stair;
-      areas.push({ area: name, bounds: { minX: center.x - radius, maxX: center.x + radius,
-        minZ: center.z - radius, maxZ: center.z + radius, minY: center.y, maxY: center.y + stair.rise + 0.8 } });
+      areas.push({
+        area: name,
+        bounds: {
+          minX: center.x - radius,
+          maxX: center.x + radius,
+          minZ: center.z - radius,
+          maxZ: center.z + radius,
+          minY: center.y,
+          maxY: center.y + stair.rise + 0.8,
+        },
+      });
     }
     for (const name of ["servantBedroom", "storage"]) {
       const room = layout.rooms[name];
@@ -99,19 +137,36 @@ export function validateCastleGround(mapData) {
     }
     for (const [index, block] of (plan.metadata.collision?.cameraBlocks ?? []).entries()) {
       if (block.y + block.halfY <= layout.origin.y || block.y - block.halfY > layout.origin.y + 1) continue;
-      areas.push({ area: `wall:${index}`, bounds: { minX: block.x - block.halfX, maxX: block.x + block.halfX,
-        minY: Math.max(layout.origin.y, block.y - block.halfY), maxY: block.y + block.halfY,
-        minZ: block.z - block.halfZ, maxZ: block.z + block.halfZ } });
+      areas.push({
+        area: `wall:${index}`,
+        bounds: {
+          minX: block.x - block.halfX,
+          maxX: block.x + block.halfX,
+          minY: Math.max(layout.origin.y, block.y - block.halfY),
+          maxY: block.y + block.halfY,
+          minZ: block.z - block.halfZ,
+          maxZ: block.z + block.halfZ,
+        },
+      });
     }
     if (!residential.basePlanId && residential.outerBounds) addRoom("castleEnvelope", residential.outerBounds, layout.origin.y, layout.origin.y + 2);
-    const context = { castleId: castle.id ?? "Castle", seed: String(castle.seed ?? plan.input.seed ?? plan.metadata.seed ?? mapData.seed ?? mapData.mapName ?? "") };
+    const context = {
+      castleId: castle.id ?? "Castle",
+      seed: String(castle.seed ?? plan.input.seed ?? plan.metadata.seed ?? mapData.seed ?? mapData.mapName ?? ""),
+    };
     for (const object of terrain) {
       const args = object.geometry?.args;
       const box = object.geometry?.method === "addBoxMatrix";
       const width = box ? args[6] : 1, height = box ? args[7] : 1, depth = box ? args[8] : 1;
       const { x, y, z } = object.position;
-      const bounds = { minX: x - width / 2, maxX: x + width / 2, minY: y - height / 2,
-        maxY: y + height / 2, minZ: z - depth / 2, maxZ: z + depth / 2 };
+      const bounds = {
+        minX: x - width / 2,
+        maxX: x + width / 2,
+        minY: y - height / 2,
+        maxY: y + height / 2,
+        minZ: z - depth / 2,
+        maxZ: z + depth / 2,
+      };
       const hit = areas.find(/**
                               * @param {{bounds:Volume}} area
                               */ (area) => overlaps(bounds, area.bounds));
@@ -121,7 +176,19 @@ export function validateCastleGround(mapData) {
         bounds.maxY <= area.bounds.minY + 0.25 && Math.min(bounds.maxX, area.bounds.maxX) - Math.max(bounds.minX, area.bounds.minX) > 0.000001 &&
         Math.min(bounds.maxZ, area.bounds.maxZ) - Math.max(bounds.minZ, area.bounds.minZ) > 0.000001) : null;
       const collision = hit ?? turfFloor;
-      if (collision) issues.push({ ...context, area: collision.area, kind: turfFloor ? "grass-floor" : "terrain", certainty: "confirmed", terrainId: object.id, position: { x, y, z }, bounds });
+      if (collision) issues.push({
+        ...context,
+        area: collision.area,
+        kind: turfFloor ? "grass-floor" : "terrain",
+        certainty: "confirmed",
+        terrainId: object.id,
+        position: {
+          x,
+          y,
+          z,
+        },
+        bounds,
+      });
     }
     for (const clump of canopy) {
       // Authored model node/accessor bounds (including their transforms), not
@@ -133,27 +200,46 @@ export function validateCastleGround(mapData) {
       const points = [[source[0], source[4]], [source[0], source[5]], [source[1], source[4]], [source[1], source[5]]]
         .map(/**
          * @param {Array<number>} point
-         */ (point) => ({ x: clump.x + clump.width * (point[0] * Math.cos(angle) + point[1] * Math.sin(angle)),
-          z: clump.z + clump.width * (-point[0] * Math.sin(angle) + point[1] * Math.cos(angle)) }));
-      const bounds = { minX: Math.min(...points.map(/**
+         */ (point) => ({
+            x: clump.x + clump.width * (point[0] * Math.cos(angle) + point[1] * Math.sin(angle)),
+            z: clump.z + clump.width * (-point[0] * Math.sin(angle) + point[1] * Math.cos(angle)),
+          }));
+      const bounds = {
+        minX: Math.min(...points.map(/**
         * @param {{x:number}} point
-        */ (point) => point.x)), maxX: Math.max(...points.map(/**
+        */ (point) => point.x)),
+        maxX: Math.max(...points.map(/**
         * @param {{x:number}} point
         */ (point) => point.x)),
         minZ: Math.min(...points.map(/**
         * @param {{z:number}} point
-        */ (point) => point.z)), maxZ: Math.max(...points.map(/**
+        */ (point) => point.z)),
+        maxZ: Math.max(...points.map(/**
         * @param {{z:number}} point
-        */ (point) => point.z)), minY: clump.y + source[2] * clump.height, maxY: clump.y + source[3] * clump.height };
+        */ (point) => point.z)),
+        minY: clump.y + source[2] * clump.height,
+        maxY: clump.y + source[3] * clump.height,
+      };
       const hit = areas.find(/**
                               * @param {{bounds:Volume}} area
                               */ (area) => overlaps(bounds, area.bounds));
       if (hit) {
         const rootInside = clump.x > hit.bounds.minX && clump.x < hit.bounds.maxX && clump.z > hit.bounds.minZ && clump.z < hit.bounds.maxZ && clump.y >= hit.bounds.minY - 0.02 && clump.y < hit.bounds.maxY;
         const interiorRoot = rootInside && !hit.area.startsWith("wall:");
-        issues.push({ ...context, area: hit.area, kind: interiorRoot ? "grass-in-interior" : "canopy-potential", certainty: interiorRoot ? "confirmed" : "potential", rootInside,
+        issues.push({
+          ...context,
+          area: hit.area,
+          kind: interiorRoot ? "grass-in-interior" : "canopy-potential",
+          certainty: interiorRoot ? "confirmed" : "potential",
+          rootInside,
           reason: interiorRoot ? "grass grows inside an occupied castle floor or stair bay" : "rotated authored canopy envelope; triangle gaps and shader deformation not evaluated",
-          position: { x: clump.x, y: clump.y, z: clump.z }, bounds });
+          position: {
+            x: clump.x,
+            y: clump.y,
+            z: clump.z,
+          },
+          bounds,
+        });
       }
     }
   }

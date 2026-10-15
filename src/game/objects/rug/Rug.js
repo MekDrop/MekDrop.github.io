@@ -43,11 +43,11 @@ export class Rug extends AbstractCastleProp {
     this.#textureAsset.once("load", /**
      * @param {import("playcanvas").Asset} asset
      */ (asset) => {
-      for (const material of materials) {
-        material.diffuseMap = asset.resource;
-        material.update();
-      }
-    });
+        for (const material of materials) {
+          material.diffuseMap = asset.resource;
+          material.update();
+        }
+      });
     this.#app.assets.add(this.#textureAsset);
     this.#app.assets.load(this.#textureAsset);
   }
@@ -72,8 +72,12 @@ export class Rug extends AbstractCastleProp {
       uvs1.push((positions[index] - min.x) / size.x, (positions[index + 2] - min.z) / size.z);
     }
     return pc.Mesh.fromGeometry(source.device, {
-      positions, normals, ...(tangents.length ? { tangents } : {}),
-      uvs, uvs1, indices,
+      positions,
+      normals,
+      ...(tangents.length ? { tangents } : {}),
+      uvs,
+      uvs1,
+      indices,
     });
   }
   /**

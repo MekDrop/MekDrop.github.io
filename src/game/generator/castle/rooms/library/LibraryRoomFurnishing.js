@@ -81,8 +81,10 @@ export class LibraryRoomFurnishing {
        * @param {number} z
        * @returns {{x:number,z:number}}
        */
-      const top = (x, z) => ({ x: desk.x + x * Math.cos(angle) + z * Math.sin(angle),
-        z: desk.z - x * Math.sin(angle) + z * Math.cos(angle) });
+      const top = (x, z) => ({
+        x: desk.x + x * Math.cos(angle) + z * Math.sin(angle),
+        z: desk.z - x * Math.sin(angle) + z * Math.cos(angle),
+      });
       // Measured desktop top .650. Replace baked details so reflection cannot
       // put the globe through the original asymmetrically placed ink pot.
       this.#items.push(this.#item("OpenReadingBook", top(0.01, 0.02), 0.36, 0.227, desk.rotation, 0.650));
@@ -103,14 +105,16 @@ export class LibraryRoomFurnishing {
           const stair = (this.#room.stairs ?? []).find(/**
            * @param {StudyBounds & {to?:number}} shaft
            */
-          shaft => shaft.to === this.#room.level);
+            shaft => shaft.to === this.#room.level);
           // The marked corner is the SOUTH window wall meeting the stair
           // opening guard, not an outer corner of the room. The guard's
           // library-side face is one radius plus flight shift from its centre.
           const guardX = stair ? (stair.minX + stair.maxX) / 2 -
             (stair.radius ?? (stair.maxX - stair.minX) / 2 - 0.025) - (stair.flightShift ?? 0) : undefined;
-          const target = stair ? { x: guardX - width / 2 - 0.01,
-            z: bounds.maxZ - depth / 2 - 0.01 } : original;
+          const target = stair ? {
+            x: guardX - width / 2 - 0.01,
+            z: bounds.maxZ - depth / 2 - 0.01,
+          } : original;
           const point = this.#clear(target, width, depth, 0.4, 0, false, undefined, true) ? target : original;
           this.#items.push(this.#item("LibraryStepStool", point, 0.517, 0.488, yaw));
           this.#reserve(point, width, depth);
@@ -130,8 +134,10 @@ export class LibraryRoomFurnishing {
       const angle = table.rotation * Math.PI / 180;
       for (const forward of [0, 0.35, 0.6]) {
         for (const offset of [-0.58, 0.58, -0.72, 0.72]) {
-          const point = { x: table.x + offset * Math.cos(angle) + forward * Math.sin(angle),
-            z: table.z - offset * Math.sin(angle) + forward * Math.cos(angle) };
+          const point = {
+            x: table.x + offset * Math.cos(angle) + forward * Math.sin(angle),
+            z: table.z - offset * Math.sin(angle) + forward * Math.cos(angle),
+          };
           if (!this.#clear(point, 0.173, 0.173, 0.8)) { continue; }
           this.#items.push(this.#item("SingleCandleStand", point, 0.173, 0.173, table.rotation));
           return;
@@ -165,23 +171,33 @@ export class LibraryRoomFurnishing {
         else { shelfPoint.z += wall.maxZ - roomBounds.maxZ; }
         const height = Math.min(2.5, this.#room.height - 0.35);
         if (!this.#clear(access, width, depth, height, 0, true, shelfPoint)) { continue; }
-        this.#items.push({ ...this.#item("Bookshelf", shelfPoint, length, 0.36, yaw), height });
+        this.#items.push({
+          ...this.#item("Bookshelf", shelfPoint, length, 0.36, yaw),
+          height,
+        });
         const angle = yaw * Math.PI / 180;
         const decoration = (this.#shelfCount++ + this.#topOffset) % 4;
         const offset = decoration === 3 ? 0.22 : ((this.#shelfCount % 3) - 1) * 0.12;
         if (decoration & 1) {
           this.#items.push(this.#item("LibraryBookStack", {
-            x: shelfPoint.x - offset * Math.cos(angle), z: shelfPoint.z + offset * Math.sin(angle),
+            x: shelfPoint.x - offset * Math.cos(angle),
+            z: shelfPoint.z + offset * Math.sin(angle),
           }, 0.26, 0.20, yaw, height));
         }
         if (decoration & 2) {
           this.#items.push(this.#item("ParchmentBundle", {
-            x: shelfPoint.x + offset * Math.cos(angle), z: shelfPoint.z - offset * Math.sin(angle),
+            x: shelfPoint.x + offset * Math.cos(angle),
+            z: shelfPoint.z - offset * Math.sin(angle),
           }, 0.30, 0.156, yaw, height));
         }
         this.#reserve(shelfPoint, yaw % 180 ? 0.36 : length, yaw % 180 ? length : 0.36);
-        this.#shelfAisles.push({ minX: access.x - width / 2, maxX: access.x + width / 2,
-          minZ: access.z - depth / 2, maxZ: access.z + depth / 2, alongX: width < depth });
+        this.#shelfAisles.push({
+          minX: access.x - width / 2,
+          maxX: access.x + width / 2,
+          minZ: access.z - depth / 2,
+          maxZ: access.z + depth / 2,
+          alongX: width < depth,
+        });
         if (++count >= wanted) { break; }
       }
       if (count >= wanted) { break; }
@@ -233,10 +249,22 @@ export class LibraryRoomFurnishing {
   #point(yaw, along, inward, wallAligned = false) {
     const bounds = (wallAligned ? this.#room.wallBounds : undefined) ?? this.#room.contentBounds ?? this.#room;
     const inset = wallAligned ? 0 : this.#inset;
-    if (yaw === 0) { return { x: along, z: bounds.minZ + inset + inward }; }
-    if (yaw === 180) { return { x: along, z: bounds.maxZ - inset - inward }; }
-    if (yaw === 90) { return { x: bounds.minX + inset + inward, z: along }; }
-    return { x: bounds.maxX - inset - inward, z: along };
+    if (yaw === 0) { return {
+      x: along,
+      z: bounds.minZ + inset + inward,
+    }; }
+    if (yaw === 180) { return {
+      x: along,
+      z: bounds.maxZ - inset - inward,
+    }; }
+    if (yaw === 90) { return {
+      x: bounds.minX + inset + inward,
+      z: along,
+    }; }
+    return {
+      x: bounds.maxX - inset - inward,
+      z: along,
+    };
   }
   /**
    * @param {string} object
@@ -248,11 +276,19 @@ export class LibraryRoomFurnishing {
    * @returns {import("../AbstractCastleRoomGenerator.js").RoomItem}
    */
   #item(object, point, width, depth, rotation, y = 0) {
-    return { role: "libraryProp", object, ...point, width: rotation % 180 ? depth : width,
-      depth: rotation % 180 ? width : depth, rotation, scale: 1, y,
+    return {
+      role: "libraryProp",
+      object,
+      ...point,
+      width: rotation % 180 ? depth : width,
+      depth: rotation % 180 ? width : depth,
+      rotation,
+      scale: 1,
+      y,
       // Reflection of an X-facing asset requires the opposite yaw correction
       // from the standard Z-facing models. Keep its natural positive scale.
-      mirrorRotationOffset: ["Chair", "Throne"].includes(object) ? 180 : 0 };
+      mirrorRotationOffset: ["Chair", "Throne"].includes(object) ? 180 : 0,
+    };
   }
   /**
    * @param {{x:number,z:number}} point
@@ -260,8 +296,12 @@ export class LibraryRoomFurnishing {
    * @param {number} depth
    */
   #reserve(point, width, depth) {
-    this.#occupied.push({ minX: point.x - width / 2, maxX: point.x + width / 2,
-      minZ: point.z - depth / 2, maxZ: point.z + depth / 2 });
+    this.#occupied.push({
+      minX: point.x - width / 2,
+      maxX: point.x + width / 2,
+      minZ: point.z - depth / 2,
+      maxZ: point.z + depth / 2,
+    });
   }
   /**
    * @param {{x:number,z:number}} point
@@ -277,13 +317,18 @@ export class LibraryRoomFurnishing {
   #clear({ x, z }, width, depth, height, y = 0, sharedShelfAisle = false, shelfPoint, cornerProp = false) {
     const room = this.#room, bounds = sharedShelfAisle || cornerProp ? room.wallBounds ?? room.contentBounds ?? room : room.contentBounds ?? room;
     const inset = cornerProp ? 0.01 : sharedShelfAisle ? 0 : y >= 1.8 ? this.#inset - 0.06 : this.#inset;
-    const box = { minX: x - width / 2, maxX: x + width / 2, minZ: z - depth / 2, maxZ: z + depth / 2 };
+    const box = {
+      minX: x - width / 2,
+      maxX: x + width / 2,
+      minZ: z - depth / 2,
+      maxZ: z + depth / 2,
+    };
     if (box.minX < bounds.minX + inset - 1e-6 || box.maxX > bounds.maxX - inset + 1e-6 ||
         box.minZ < bounds.minZ + inset - 1e-6 || box.maxZ > bounds.maxZ - inset + 1e-6) { return false; }
     const aisles = sharedShelfAisle ? this.#shelfAisles.filter(/**
      * @param {StudyBounds & {alongX:boolean}} aisle
      */
-    aisle => aisle.alongX !== (width < depth)) : this.#shelfAisles;
+      aisle => aisle.alongX !== (width < depth)) : this.#shelfAisles;
     for (const other of this.#occupied.concat(aisles)) {
       if (box.maxX > other.minX && box.minX < other.maxX && box.maxZ > other.minZ && box.minZ < other.maxZ) { return false; }
     }

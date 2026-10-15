@@ -16,14 +16,22 @@ it("registers a double-click control, follows debug state, and unregisters once"
       },
     }),
     registerControlAction: (name, action, options) => {
-      registration = { name, action, options };
+      registration = {
+        name,
+        action,
+        options,
+      };
       return () => { unregisterCount += 1; };
     },
   });
   plugin.install();
   assert.equal(registration.name, "teleportHero");
   assert.deepEqual(registration.options, { doubleClick: true });
-  const event = { button: 0, clientX: 100, clientY: 200 };
+  const event = {
+    button: 0,
+    clientX: 100,
+    clientY: 200,
+  };
   assert.equal(registration.action.invoke(event), false);
   debugStore.hasAny = true;
   assert.equal(registration.action.invoke({ button: 2 }), false);

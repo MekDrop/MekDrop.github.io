@@ -83,7 +83,10 @@ export class WaterfallGeometry {
     const sectionRows = endRow - startRow;
     const radius = Math.min(0.22, drop * 0.22);
     const direction = this.#direction;
-    const cross = { col: -direction.row, row: direction.col };
+    const cross = {
+      col: -direction.row,
+      row: direction.col,
+    };
     /**
      *
      * @param {number} row

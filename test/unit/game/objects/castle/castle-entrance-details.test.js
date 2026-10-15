@@ -8,10 +8,16 @@ import { CastleGenerator } from "../../../../../src/game/generator/castle/Castle
 const hooks = registerHooks({
   resolve(specifier, context, nextResolve) {
     if (specifier.endsWith("/LanternFire.js")) {
-      return { url: "data:text/javascript,export class LanternFire { static add() {} }", shortCircuit: true };
+      return {
+        url: "data:text/javascript,export class LanternFire { static add() {} }",
+        shortCircuit: true,
+      };
     }
     if (specifier.endsWith(".glb?url")) {
-      return { url: `data:text/javascript,export default ${JSON.stringify(specifier)}`, shortCircuit: true };
+      return {
+        url: `data:text/javascript,export default ${JSON.stringify(specifier)}`,
+        shortCircuit: true,
+      };
     }
     return nextResolve(specifier, context);
   },
@@ -25,9 +31,26 @@ test("attached tower exterior trim never projects into the castle interior", asy
   }
   for (const side of ["NORTH", "SOUTH", "EAST", "WEST"]) {
     for (const seed of [4, 5]) {
-      const plan = await CastleGenerator.generate({ position: { x: -14, z: -8, width: 28, depth: 16, elevation: 3 }, doors: [{ side, offset: 13, width: 2 }], seed });
+      const plan = await CastleGenerator.generate({
+        position: {
+          x: -14,
+          z: -8,
+          width: 28,
+          depth: 16,
+          elevation: 3,
+        },
+        doors: [{
+          side,
+          offset: 13,
+          width: 2,
+        }],
+        seed,
+      });
       const parent = new pc.Entity();
-      CastleEntranceDetails.add({ ...pc, Entity: DetailEntity }, { instantiate: () => new DetailEntity() }, parent, plan, null);
+      CastleEntranceDetails.add({
+        ...pc,
+        Entity: DetailEntity,
+      }, { instantiate: () => new DetailEntity() }, parent, plan, null);
       const residential = plan.metadata.runtime.residential;
       const angle = residential.origin.yaw * Math.PI / 180;
       const details = parent.children.filter(node => /corner trim|support band/.test(node.name));
@@ -52,11 +75,35 @@ test("entrance lanterns flank the fixed doorway on every facing and mirrored see
   }
   for (const side of ["NORTH", "SOUTH", "EAST", "WEST"]) {
     for (const seed of [0, 1]) {
-      const plan = await CastleGenerator.generate({ position: { x: -14, z: -8, width: 28, depth: 16, elevation: 3 },
-        doors: [{ side, offset: 13, width: 2 }], seed });
+      const plan = await CastleGenerator.generate({
+        position: {
+          x: -14,
+          z: -8,
+          width: 28,
+          depth: 16,
+          elevation: 3,
+        },
+        doors: [{
+          side,
+          offset: 13,
+          width: 2,
+        }],
+        seed,
+      });
       const parent = new pc.Entity();
-      CastleEntranceDetails.add({ ...pc, Entity: LightEntity }, { instantiate: () => new LightEntity() }, parent, plan, null);
-      const map = { cols: 64, rows: 64, objects: [{ id: "castle", object: "Castle", buildPlan: plan }] };
+      CastleEntranceDetails.add({
+        ...pc,
+        Entity: LightEntity,
+      }, { instantiate: () => new LightEntity() }, parent, plan, null);
+      const map = {
+        cols: 64,
+        rows: 64,
+        objects: [{
+          id: "castle",
+          object: "Castle",
+          buildPlan: plan,
+        }],
+      };
       CastleLanternMapObjects.prepareMap(map);
       const lanterns = map.objects.filter(item => item.castleLantern && item.object === "Lantern" && item.type === "entrance");
       const lights = lanterns.filter(item => item.lighting);

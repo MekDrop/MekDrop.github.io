@@ -16,10 +16,42 @@ export function castleStraightStairSurfaces(stair) {
   // Sink the turning slab half a masonry course into the adjoining walls.
   // Its visible edge and Ammo support share these bounds.
   return [
-    { minX: min, maxX: -inner, minZ: -r + landing + shift, maxZ: r + shift, low: 0, high: landingHeight, reverse: true },
-    { minX: min - 0.125, maxX: max + 0.125, minZ: (stair.landingBack ?? -r) - 0.125, maxZ: -r + landing + shift, low: landingHeight, high: landingHeight, reverse: false },
-    { minX: inner, maxX: max, minZ: -r + landing + shift, maxZ: r - apron + shift, low: stair.rise / 2, high: stair.rise, reverse: false },
-    { minX: inner, maxX: max, minZ: r - apron + shift, maxZ: r + shift, low: stair.rise, high: stair.rise, reverse: false },
+    {
+      minX: min,
+      maxX: -inner,
+      minZ: -r + landing + shift,
+      maxZ: r + shift,
+      low: 0,
+      high: landingHeight,
+      reverse: true,
+    },
+    {
+      minX: min - 0.125,
+      maxX: max + 0.125,
+      minZ: (stair.landingBack ?? -r) - 0.125,
+      maxZ: -r + landing + shift,
+      low: landingHeight,
+      high: landingHeight,
+      reverse: false,
+    },
+    {
+      minX: inner,
+      maxX: max,
+      minZ: -r + landing + shift,
+      maxZ: r - apron + shift,
+      low: stair.rise / 2,
+      high: stair.rise,
+      reverse: false,
+    },
+    {
+      minX: inner,
+      maxX: max,
+      minZ: r - apron + shift,
+      maxZ: r + shift,
+      low: stair.rise,
+      high: stair.rise,
+      reverse: false,
+    },
   ];
 }
 
@@ -98,12 +130,14 @@ export function castleStraightStairAssemblies(layout) {
     stair => stair?.straight);
   return stairs.map(/**
                      * @param {StraightStairGeometry} stair
-                     */ stair => ({...stair,
-    continuesAbove:stairs.some(/**
+                     */ stair => ({
+      ...stair,
+      continuesAbove:stairs.some(/**
                                 * @param {StraightStairGeometry} next
                                 */ next =>
-      Math.abs(next.center.y-stair.center.y-stair.rise)<0.001 &&
-      Math.hypot(next.center.x-stair.center.x,next.center.z-stair.center.z)<0.001)}));
+          Math.abs(next.center.y-stair.center.y-stair.rise)<0.001 &&
+      Math.hypot(next.center.x-stair.center.x,next.center.z-stair.center.z)<0.001),
+    }));
 }
 
 /**
@@ -114,11 +148,23 @@ export function castleStraightStairAssemblies(layout) {
 export function castleStraightStairWalls(stair) {
   const flight = castleStraightStairSurfaces(stair)[0];
   const height = stair.rise+(stair.continuesAbove ? 0 : 0.75);
-  const walls = [{x:0,y:height/2,z:(flight.minZ+flight.maxZ)/2,width:0.25,height,depth:flight.maxZ-flight.minZ}];
+  const walls = [{
+    x:0,
+    y:height/2,
+    z:(flight.minZ+flight.maxZ)/2,
+    width:0.25,
+    height,
+    depth:flight.maxZ-flight.minZ,
+  }];
   if (!stair.continuesAbove) {
-    walls.push({x:(flight.minX-0.125)/2,y:stair.rise+0.375,
+    walls.push({
+      x:(flight.minX-0.125)/2,
+      y:stair.rise+0.375,
       z:stair.radius+(stair.flightShift ?? 0)-0.0625,
-      width:-0.125-flight.minX,height:0.75,depth:0.125});
+      width:-0.125-flight.minX,
+      height:0.75,
+      depth:0.125,
+    });
   }
   return walls;
 }

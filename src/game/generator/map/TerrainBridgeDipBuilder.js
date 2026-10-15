@@ -59,18 +59,18 @@ export class TerrainBridgeDipBuilder {
        *
        * @param {RiverRecord} river
        */
-      (river) =>
-        river.cells
-          .filter(/**
+        (river) =>
+          river.cells
+            .filter(/**
            *
            * @param {MapCell} cell
            */
-          (cell) => cell.underBridge)
-          .map(/**
+              (cell) => cell.underBridge)
+            .map(/**
            *
            * @param {MapCell} cell
            */
-          (cell) => MapGrid.tileKey(cell.col, cell.row)),
+              (cell) => MapGrid.tileKey(cell.col, cell.row)),
       ),
     );
     const stations = [];
@@ -188,7 +188,7 @@ export class TerrainBridgeDipBuilder {
        * @param {{coordinate: number}} left
        * @param {{coordinate: number}} right
        */
-      (left, right) => left.coordinate - right.coordinate);
+        (left, right) => left.coordinate - right.coordinate);
       let run = [];
       const finishRun = () => {
         if (run.length >= TERRAIN_BRIDGE_DIP_MIN_SPAN) {
@@ -268,13 +268,25 @@ export class TerrainBridgeDipBuilder {
   #pathStationCells(axis, cross, coordinate) {
     return axis === "HORIZONTAL"
       ? [
-          { col: coordinate, row: cross },
-          { col: coordinate, row: cross + 1 },
-        ]
+        {
+          col: coordinate,
+          row: cross,
+        },
+        {
+          col: coordinate,
+          row: cross + 1,
+        },
+      ]
       : [
-          { col: cross, row: coordinate },
-          { col: cross + 1, row: coordinate },
-        ];
+        {
+          col: cross,
+          row: coordinate,
+        },
+        {
+          col: cross + 1,
+          row: coordinate,
+        },
+      ];
   }
 
   /**
@@ -358,12 +370,12 @@ export class TerrainBridgeDipBuilder {
          *
          * @param {MapCell} cell
          */
-        (cell) => ({
-          ...cell,
-          lowHeight,
-          highHeight,
-          riseDirection: firstRiseDirection,
-        })),
+          (cell) => ({
+            ...cell,
+            lowHeight,
+            highHeight,
+            riseDirection: firstRiseDirection,
+          })),
         ...this.#pathStationCells(span.axis, span.cross, span.end - offset).map(
           /**
            *

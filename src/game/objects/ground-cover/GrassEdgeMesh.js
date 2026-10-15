@@ -55,15 +55,23 @@ export class GrassEdgeMesh {
   static batch(pc, device, mesh, material, matrices) {
     const vertexBuffer = new pc.VertexBuffer(device,
       pc.VertexFormat.getDefaultInstancingFormat(device), matrices.length / 16,
-      { data: new Float32Array(matrices), usage: pc.BUFFER_DYNAMIC });
+      {
+        data: new Float32Array(matrices),
+        usage: pc.BUFFER_DYNAMIC,
+      });
     const entity = new pc.Entity("Sculpted turf edges");
     const instance = new pc.MeshInstance(mesh, material, entity);
     instance.setInstancing(vertexBuffer, false);
     instance.castShadow = false;
     instance.receiveShadow = true;
     entity.addComponent("render", {
-      meshInstances: [instance], castShadows: false, receiveShadows: true,
+      meshInstances: [instance],
+      castShadows: false,
+      receiveShadows: true,
     });
-    return { entity, vertexBuffer };
+    return {
+      entity,
+      vertexBuffer,
+    };
   }
 }

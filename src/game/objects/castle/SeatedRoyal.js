@@ -23,7 +23,11 @@ const GAME_OVER_BEHAVIOR_TYPES = Object.freeze([
 ]);
 const WALK_OUT_ANIMATION_SPEED = 1.8;
 const WALK_START_DELAY = 0.08;
-const FALLBACK_VISUAL_SIZE = Object.freeze({ x: 1.2, y: 2.2, z: 1.2 });
+const FALLBACK_VISUAL_SIZE = Object.freeze({
+  x: 1.2,
+  y: 2.2,
+  z: 1.2,
+});
 
 /**
  * An imported seated royal whose local +Z axis faces the visitor.
@@ -127,7 +131,11 @@ export class SeatedRoyal {
       1,
       true,
     );
-    this.#tears = new RoyalTears({ pc, app, royal: this.#model });
+    this.#tears = new RoyalTears({
+      pc,
+      app,
+      royal: this.#model,
+    });
     this.#gameOverBehavior = new GameOverBehaviorType({
       walkDuration,
       walkStartDelay: WALK_START_DELAY,

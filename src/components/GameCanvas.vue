@@ -285,7 +285,10 @@ function registerControlAction(
   { binding, keydown = false, keyup = false, consumeKeydown = false, doubleClick = false } = {},
 ) {
   pluginControlActions[name] = action;
-  const entry = { binding, action };
+  const entry = {
+    binding,
+    action,
+  };
   if (keydown) {
     addPluginControlEntry("keydownActions", entry);
   }
@@ -399,13 +402,13 @@ function waitForAnimationFrame() {
    *
    * @param {(value?: void|PromiseLike<void>) => void} resolve
    */
-  (resolve) => {
-    if (typeof requestAnimationFrame === "function") {
-      requestAnimationFrame(() => setTimeout(resolve, 0));
-      return;
-    }
-    setTimeout(resolve, 0);
-  });
+    (resolve) => {
+      if (typeof requestAnimationFrame === "function") {
+        requestAnimationFrame(() => setTimeout(resolve, 0));
+        return;
+      }
+      setTimeout(resolve, 0);
+    });
 }
 
 /**
@@ -486,164 +489,167 @@ async function init() {
     );
     const bindings = DEFAULT_CONTROLS;
     const zoomSettings = import.meta.env.DEV
-      ? { ...bindings.zoom, max: DEVELOPMENT_MAX_ZOOM }
+      ? {
+        ...bindings.zoom,
+        max: DEVELOPMENT_MAX_ZOOM,
+      }
       : bindings.zoom;
     interactionSuggestion = new InteractionSuggestion(/**
      *
      * @param {InteractionTarget|null} target
      */
-    (target) => {
-      interactionTarget.value = target;
-      syncInteractionHud();
-    });
+      (target) => {
+        interactionTarget.value = target;
+        syncInteractionHud();
+      });
 
-  const activeRenderer = new PlayCanvasRenderer(canvas.value, container.value, {
-    onRuntimeError: reportRuntimeError,
-    /**
+    const activeRenderer = new PlayCanvasRenderer(canvas.value, container.value, {
+      onRuntimeError: reportRuntimeError,
+      /**
      *
      * @param {InteractionTarget|null} target
      */
-    onInteractionChange: (target) => {
-      interactionSuggestion?.update(target);
-    },
-    t,
-    debugStore,
-    gameViewStore,
-    graphicsSettingsStore,
-    heroConfigurationStore,
-    heroStateStore,
-  });
-  renderer = activeRenderer;
-  await activeRenderer.init();
-  if (renderer !== activeRenderer) {
-    return;
-  }
-  await gameCanvasPluginRegistry.refresh();
-  graphicsBackend.value = activeRenderer.graphicsBackend;
-  await showLoadingPhase("generating", loadingId);
-  mapData = await createMap(requestedMapName());
-  if (renderer !== activeRenderer) {
-    return;
-  }
-  await showLoadingPhase("rendering", loadingId);
-  renderMap(mapData);
-  await updateCurrentMap(mapData);
-  if (!requestedMapName()) {
-    await router.replace(mapRouteLocation(mapData.mapName));
-  }
-  if (renderer !== activeRenderer) {
-    return;
-  }
-  const regenerateMapAction = new RegenerateMapAction(renderer, createMap, {
-    beforeGeneration: () => showLoadingPhase("generating"),
-    /**
+      onInteractionChange: (target) => {
+        interactionSuggestion?.update(target);
+      },
+      t,
+      debugStore,
+      gameViewStore,
+      graphicsSettingsStore,
+      heroConfigurationStore,
+      heroStateStore,
+    });
+    renderer = activeRenderer;
+    await activeRenderer.init();
+    if (renderer !== activeRenderer) {
+      return;
+    }
+    await gameCanvasPluginRegistry.refresh();
+    graphicsBackend.value = activeRenderer.graphicsBackend;
+    await showLoadingPhase("generating", loadingId);
+    mapData = await createMap(requestedMapName());
+    if (renderer !== activeRenderer) {
+      return;
+    }
+    await showLoadingPhase("rendering", loadingId);
+    renderMap(mapData);
+    await updateCurrentMap(mapData);
+    if (!requestedMapName()) {
+      await router.replace(mapRouteLocation(mapData.mapName));
+    }
+    if (renderer !== activeRenderer) {
+      return;
+    }
+    const regenerateMapAction = new RegenerateMapAction(renderer, createMap, {
+      beforeGeneration: () => showLoadingPhase("generating"),
+      /**
      *
      * @param {GeneratedMap} _generatedMap
      * @param {number} operationId
      */
-    beforeRender: async (_generatedMap, operationId) => {
-      await showLoadingPhase("rendering", operationId);
-      gameCanvasPluginRegistry.beforeRender();
-    },
-    /**
+      beforeRender: async (_generatedMap, operationId) => {
+        await showLoadingPhase("rendering", operationId);
+        gameCanvasPluginRegistry.beforeRender();
+      },
+      /**
      *
      * @param {GeneratedMap} generatedMap
      */
-    onGenerated: async (generatedMap) => {
-      await updateCurrentMap(generatedMap);
-      await router.push(mapRouteLocation(generatedMap.mapName));
-    },
-    onGenerationError: reportRuntimeError,
-    /**
+      onGenerated: async (generatedMap) => {
+        await updateCurrentMap(generatedMap);
+        await router.push(mapRouteLocation(generatedMap.mapName));
+      },
+      onGenerationError: reportRuntimeError,
+      /**
      *
      * @param {GeneratedMap} generatedMap
      */
-    afterRender: (generatedMap) =>
-      gameCanvasPluginRegistry.afterRender(generatedMap),
-    onComplete: finishLoading,
-    /**
+      afterRender: (generatedMap) =>
+        gameCanvasPluginRegistry.afterRender(generatedMap),
+      onComplete: finishLoading,
+      /**
      *
      * @param {Promise<void>} promise
      */
-    onLifecycle: (promise) => {
-      mapRouteLoadPromise = promise;
-    },
-  });
-  restartGameAction = new RestartGameAction(renderer, regenerateMapAction);
-  const heroMovementAction = new HeroMovementAction(renderer);
-  const toggleInventoryAction = new ToggleInventoryAction(
-    renderer,
-    heroMovementAction,
-  );
-  const moveCameraAction = new MoveCameraAction(renderer, bindings.move);
-  const heroDirectionActions = {
-    up: new HeroDirectionAction(
+      onLifecycle: (promise) => {
+        mapRouteLoadPromise = promise;
+      },
+    });
+    restartGameAction = new RestartGameAction(renderer, regenerateMapAction);
+    const heroMovementAction = new HeroMovementAction(renderer);
+    const toggleInventoryAction = new ToggleInventoryAction(
+      renderer,
       heroMovementAction,
-      "up",
-      bindings.dodge.doubleTapWindow,
-    ),
-    down: new HeroDirectionAction(
-      heroMovementAction,
-      "down",
-      bindings.dodge.doubleTapWindow,
-    ),
-    left: new HeroDirectionAction(
-      heroMovementAction,
-      "left",
-      bindings.dodge.doubleTapWindow,
-    ),
-    right: new HeroDirectionAction(
-      heroMovementAction,
-      "right",
-      bindings.dodge.doubleTapWindow,
-    ),
-  };
-  const rotateViewAction = new RotateViewAction(renderer);
-  const zoomInAction = new ZoomAction(
-    renderer,
-    container.value,
-    zoomSettings,
-    zoomSettings.factor,
-  );
-  const zoomOutAction = new ZoomAction(
-    renderer,
-    container.value,
-    zoomSettings,
-    1 / zoomSettings.factor,
-  );
-  const patHeroAction = new HeroPatAction(renderer);
-  const cameraPointerAction = new CameraPointerAction(
-    renderer,
-    container.value,
-    patHeroAction,
-    bindings.cameraPointer,
-  );
-  const actions = {
-    zoomIn: zoomInAction,
-    zoomOut: zoomOutAction,
-    moveCamera: moveCameraAction,
-    cameraPointer: cameraPointerAction,
-    regenerateMap: regenerateMapAction,
-    restartGame: restartGameAction,
-    heroMovement: heroMovementAction,
-    run: heroMovementAction,
-    moveUp: heroDirectionActions.up,
-    moveDown: heroDirectionActions.down,
-    moveLeft: heroDirectionActions.left,
-    moveRight: heroDirectionActions.right,
-    jump: new HeroJumpAction(heroMovementAction),
-    interact: new InteractionAction(renderer),
-    toggleInventory: toggleInventoryAction,
-    closeModal: new CloseModalAction([toggleInventoryAction]),
-    rotateView: rotateViewAction,
-    rotateAnticlockwise: rotateViewAction,
-    toggleArrows: new ToggleArrowsAction(
-      debugStore,
-      undefined,
-      () => !renderer.inventoryVisible,
-    ),
-    ...(import.meta.env.DEV
-      ? {
+    );
+    const moveCameraAction = new MoveCameraAction(renderer, bindings.move);
+    const heroDirectionActions = {
+      up: new HeroDirectionAction(
+        heroMovementAction,
+        "up",
+        bindings.dodge.doubleTapWindow,
+      ),
+      down: new HeroDirectionAction(
+        heroMovementAction,
+        "down",
+        bindings.dodge.doubleTapWindow,
+      ),
+      left: new HeroDirectionAction(
+        heroMovementAction,
+        "left",
+        bindings.dodge.doubleTapWindow,
+      ),
+      right: new HeroDirectionAction(
+        heroMovementAction,
+        "right",
+        bindings.dodge.doubleTapWindow,
+      ),
+    };
+    const rotateViewAction = new RotateViewAction(renderer);
+    const zoomInAction = new ZoomAction(
+      renderer,
+      container.value,
+      zoomSettings,
+      zoomSettings.factor,
+    );
+    const zoomOutAction = new ZoomAction(
+      renderer,
+      container.value,
+      zoomSettings,
+      1 / zoomSettings.factor,
+    );
+    const patHeroAction = new HeroPatAction(renderer);
+    const cameraPointerAction = new CameraPointerAction(
+      renderer,
+      container.value,
+      patHeroAction,
+      bindings.cameraPointer,
+    );
+    const actions = {
+      zoomIn: zoomInAction,
+      zoomOut: zoomOutAction,
+      moveCamera: moveCameraAction,
+      cameraPointer: cameraPointerAction,
+      regenerateMap: regenerateMapAction,
+      restartGame: restartGameAction,
+      heroMovement: heroMovementAction,
+      run: heroMovementAction,
+      moveUp: heroDirectionActions.up,
+      moveDown: heroDirectionActions.down,
+      moveLeft: heroDirectionActions.left,
+      moveRight: heroDirectionActions.right,
+      jump: new HeroJumpAction(heroMovementAction),
+      interact: new InteractionAction(renderer),
+      toggleInventory: toggleInventoryAction,
+      closeModal: new CloseModalAction([toggleInventoryAction]),
+      rotateView: rotateViewAction,
+      rotateAnticlockwise: rotateViewAction,
+      toggleArrows: new ToggleArrowsAction(
+        debugStore,
+        undefined,
+        () => !renderer.inventoryVisible,
+      ),
+      ...(import.meta.env.DEV
+        ? {
           toggleFirstPersonCamera: new FirstPersonCameraAction(
             renderer,
             heroMovementAction,
@@ -657,32 +663,32 @@ async function init() {
             },
           ),
         }
-      : {}),
-    ...pluginControlActions,
-  };
+        : {}),
+      ...pluginControlActions,
+    };
 
-  controls = new GameControls(container.value, actions, pluginControlKeyboard);
+    controls = new GameControls(container.value, actions, pluginControlKeyboard);
 
-  stopMapRouteWatch = watch(
-    () => route.params.mapName,
-    /**
+    stopMapRouteWatch = watch(
+      () => route.params.mapName,
+      /**
      *
      * @param {string} mapName
      */
-    (mapName) => {
-      if (mapName === mapData?.mapName) {
-        return;
-      }
-      mapRouteLoadPromise = loadMapRoute(
-        typeof mapName === "string" ? mapName : null,
-      );
-      void mapRouteLoadPromise.catch(reportRuntimeError);
-    },
-  );
-  showGraphicsFallbackDialog.value = graphicsBackend.value === "webgl2";
-  gameCommandRegistry = createGameCommandRegistry({ target: window });
-  gameCommandRegistry.install();
-  gameReady.value = true;
+      (mapName) => {
+        if (mapName === mapData?.mapName) {
+          return;
+        }
+        mapRouteLoadPromise = loadMapRoute(
+          typeof mapName === "string" ? mapName : null,
+        );
+        void mapRouteLoadPromise.catch(reportRuntimeError);
+      },
+    );
+    showGraphicsFallbackDialog.value = graphicsBackend.value === "webgl2";
+    gameCommandRegistry = createGameCommandRegistry({ target: window });
+    gameCommandRegistry.install();
+    gameReady.value = true;
   } finally {
     finishLoading(loadingId);
   }

@@ -41,7 +41,13 @@ export class Bookshelf {
     this.#islandRoots = new IslandObjectRoots(pc, this.#entity, runtime.mapData);
     this.#islandRoots.addChild(this.#visual, definition.tile);
     const bounds = Bookshelf.addVisual(modelLibrary, this.#visual, definition);
-    addGeneratedVoxelPhysics({ pc, parent: this.#visual, name: definition.id, voxels: [bounds], friction: 0.6 });
+    addGeneratedVoxelPhysics({
+      pc,
+      parent: this.#visual,
+      name: definition.id,
+      voxels: [bounds],
+      friction: 0.6,
+    });
   }
 
   /**
@@ -83,7 +89,7 @@ export class Bookshelf {
          *
          * @param {import("playcanvas").GraphNode} node
          */
-        node => /^(Leather bound book|Book spine brass)/.test(node.name))) { node.destroy(); }
+          node => /^(Leather bound book|Book spine brass)/.test(node.name))) { node.destroy(); }
       }
       model.name = "Castle oak bookcase";
       // The model spans Z=-0.17..0.19, so recenter its 0.36-deep footprint.
@@ -109,7 +115,7 @@ export class Bookshelf {
     const planks = model.find(/**
      * @param {import("playcanvas").GraphNode} node
      */
-    node => /^Shelf plank/.test(node.name));
+      node => /^Shelf plank/.test(node.name));
     const template = planks[0];
     const levels = [];
     const count = Math.max(1, Math.round((height - 0.0775) / 0.35));
@@ -119,13 +125,16 @@ export class Bookshelf {
       const bottom = 0.05 + index * spacing;
       plank.setLocalPosition(0, bottom, 0);
       model.addChild(plank);
-      if (index < count) { levels.push({ bottom: bottom + 0.0275, height: spacing - 0.055 }); }
+      if (index < count) { levels.push({
+        bottom: bottom + 0.0275,
+        height: spacing - 0.055,
+      }); }
     }
     for (const plank of planks) { plank.destroy(); }
     for (const node of model.find(/**
      * @param {import("playcanvas").GraphNode} node
      */
-    node => /^Shelf side/.test(node.name))) {
+      node => /^Shelf side/.test(node.name))) {
       const x = node.getLocalPosition().x;
       if (x < 0 && joinStart) { node.destroy(); continue; }
       node.setLocalScale(x > 0 && joinEnd ? 0.75 : 1, height / 1.35, 1);

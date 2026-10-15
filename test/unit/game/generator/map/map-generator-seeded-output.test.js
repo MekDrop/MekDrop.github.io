@@ -15,12 +15,18 @@ describe("map generation authored-castle compatibility", () => {
   for (const { options, sha256, routingSha256, error } of baselines) {
     it(`preserves the complete result for ${options.mapName}`, async () => {
       if (error) {
-        await assert.rejects(MapGenerator.generate({ ...options, islandConnectors: false }), error);
+        await assert.rejects(MapGenerator.generate({
+          ...options,
+          islandConnectors: false,
+        }), error);
         return;
       }
 
       // Keep connector generation independent of this castle baseline.
-      const map = await MapGenerator.generate({ ...options, islandConnectors: false });
+      const map = await MapGenerator.generate({
+        ...options,
+        islandConnectors: false,
+      });
       // Compare authored generation independently of the storage-schema migration.
       // The original key order is part of the historical checksum.
       const featureTypes = new Set(["Gateway", "Rivers", "GroundCover", "Overpass", "SpawnPoint", "IslandConnector"]);
@@ -66,7 +72,10 @@ describe("map generation authored-castle compatibility", () => {
       });
       assert.equal(createHash("sha256").update(serialized).digest("hex"), sha256);
       const routing = JSON.stringify(
-        { routes: map.paths.map((path) => path.route), arrowData: map.arrowData },
+        {
+          routes: map.paths.map((path) => path.route),
+          arrowData: map.arrowData,
+        },
         (_key, value) => value instanceof Map ? { mapEntries: [...value] } : value,
       );
       assert.equal(createHash("sha256").update(routing).digest("hex"), routingSha256);

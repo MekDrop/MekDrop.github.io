@@ -18,13 +18,13 @@ export class MapFileLoader {
      * @param {number} options."0"
      * @param {number} options."1"
      */
-    ([filePath, loader]) => {
-      const fileName = filePath.substring(
-        filePath.lastIndexOf("/") + 1,
-        filePath.length - 5,
-      );
-      return [`test_${fileName}`, loader];
-    }),
+      ([filePath, loader]) => {
+        const fileName = filePath.substring(
+          filePath.lastIndexOf("/") + 1,
+          filePath.length - 5,
+        );
+        return [`test_${fileName}`, loader];
+      }),
   );
 
   /**

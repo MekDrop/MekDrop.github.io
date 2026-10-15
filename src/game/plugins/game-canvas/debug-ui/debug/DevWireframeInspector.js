@@ -240,7 +240,10 @@ export class DevWireframeInspector {
     }
     event.preventDefault();
     this.#altPressed = true;
-    this.#pointer = { clientX: event.clientX, clientY: event.clientY };
+    this.#pointer = {
+      clientX: event.clientX,
+      clientY: event.clientY,
+    };
     this.#coordinatePrintPointer = this.#pointer;
     this.#schedulePick();
   };
@@ -254,7 +257,10 @@ export class DevWireframeInspector {
     if (event.pointerType !== POINTER_TYPE.MOUSE) {
       return;
     }
-    this.#pointer = { clientX: event.clientX, clientY: event.clientY };
+    this.#pointer = {
+      clientX: event.clientX,
+      clientY: event.clientY,
+    };
     if (!event.altKey) {
       if (this.#altPressed) {
         this.#deactivate();
@@ -440,7 +446,7 @@ export class DevWireframeInspector {
          *
          * @param {pc.RenderComponent} render
          */
-        (render) => render.meshInstances ?? []) ?? [];
+          (render) => render.meshInstances ?? []) ?? [];
     const debugPickInstances = meshInstances.filter(
       /**
        *
@@ -540,7 +546,11 @@ export class DevWireframeInspector {
     if (!point) {
       return null;
     }
-    return { x: point.x, y: point.y, z: point.z };
+    return {
+      x: point.x,
+      y: point.y,
+      z: point.z,
+    };
   }
 
   /**

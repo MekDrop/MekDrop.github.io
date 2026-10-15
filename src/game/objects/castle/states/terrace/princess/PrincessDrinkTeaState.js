@@ -4,7 +4,12 @@ import { AbstractTerraceParticipantState } from "../AbstractTerraceParticipantSt
 
 export class PrincessDrinkTeaState extends AbstractTerraceParticipantState {
   constructor() {
-    super({ phase: PrincessDrinkTeaState.name, stagePhase: STAGE.ACTIVITY,
-      duration: Infinity, action: "drink", animation: ANIMATION.DRINK });
+    super({
+      phase: PrincessDrinkTeaState.name,
+      stagePhase: STAGE.ACTIVITY,
+      duration: Infinity,
+      action: "drink",
+      animation: ANIMATION.DRINK,
+    });
   }
 }

@@ -103,7 +103,12 @@ export class Servant {
    */
   bindResidence({ pc, modelLibrary, residence }) {
     this.#residence = residence;
-    this.#resident = new TerraceActor({ pc, modelLibrary, modelUrl: servantModelUrl, kind: "servant" });
+    this.#resident = new TerraceActor({
+      pc,
+      modelLibrary,
+      modelUrl: servantModelUrl,
+      kind: "servant",
+    });
     this.#resident.entity.name = "Basement servant resident";
     const scale = CHARACTER_HEIGHT / this.#resident.height;
     this.#resident.entity.setLocalScale(scale, scale, scale);
@@ -131,14 +136,21 @@ export class Servant {
         if (items.every(/**
          * @param {{role:string,position:{x:number,z:number},scale:{x:number,z:number}}} item
          */ (item) => {
-          if (Math.abs(item.position.y - room.floorY) > 0.1) { return true; }
-          const local = layout.toLocal(item.position.x, item.position.z);
-          const [width, depth] = { kitchenTable: [0.9, 0.55], servantBed: [0.9, 2],
-            storageShelf: [0.8, 0.3], workDesk: [0.9, 0.55], bookshelf: [0.3, 1],
-            royalBed: [1.2, 1.8], wardrobe: [0.65, 0.46], readingChair: [0.75, 0.735] }[item.role] ?? [1, 1];
-          return Math.hypot(Math.max(0, Math.abs(local.x - x) - (item.footprint?.width ?? width * item.scale.x) / 2),
-            Math.max(0, Math.abs(local.z - z) - (item.footprint?.depth ?? depth * item.scale.z) / 2)) >= 0.45;
-        })) {
+            if (Math.abs(item.position.y - room.floorY) > 0.1) { return true; }
+            const local = layout.toLocal(item.position.x, item.position.z);
+            const [width, depth] = {
+              kitchenTable: [0.9, 0.55],
+              servantBed: [0.9, 2],
+              storageShelf: [0.8, 0.3],
+              workDesk: [0.9, 0.55],
+              bookshelf: [0.3, 1],
+              royalBed: [1.2, 1.8],
+              wardrobe: [0.65, 0.46],
+              readingChair: [0.75, 0.735],
+            }[item.role] ?? [1, 1];
+            return Math.hypot(Math.max(0, Math.abs(local.x - x) - (item.footprint?.width ?? width * item.scale.x) / 2),
+              Math.max(0, Math.abs(local.z - z) - (item.footprint?.depth ?? depth * item.scale.z) / 2)) >= 0.45;
+          })) {
           standing = point;
           break;
         }
@@ -174,7 +186,10 @@ export class Servant {
    * @param {import("../royal/AbstractRoyal.js").AbstractRoyal} options.royal
    * @param {{x: number, z: number}} options.serviceOffset Offset from the doorway toward the terrace center.
    */
-  createTerraceParticipant({ pc, modelLibrary, layout, scale, kind, royal, navigation, serviceOffset = { x: 0, z: 0 } }) {
+  createTerraceParticipant({ pc, modelLibrary, layout, scale, kind, royal, navigation, serviceOffset = {
+    x: 0,
+    z: 0,
+  } }) {
     const stage = new pc.Entity("Servant terrace stage");
     stage.setLocalScale(scale, scale, scale);
     this.#entity.addChild(stage);
@@ -185,20 +200,23 @@ export class Servant {
       layout.z - Math.sin(angle) * serviceOffset.x + Math.cos(angle) * serviceOffset.z,
     );
     stage.setEulerAngles(0, layout.yaw, 0);
-    this.#motion = new CastleResidentMotion({ actor: this.#resident, ...navigation });
+    this.#motion = new CastleResidentMotion({
+      actor: this.#resident,
+      ...navigation,
+    });
     this.#behavior = kind === "king" ? null : new TerraceServantBehavior();
     this.#serviceActions =
       kind === "king"
         ? null
         : new TerraceServiceActions({
-            pc,
-            modelLibrary,
-            stage,
-            kind,
-            royal,
-            actor: this.#resident,
-            motion: this.#motion,
-          });
+          pc,
+          modelLibrary,
+          stage,
+          kind,
+          royal,
+          actor: this.#resident,
+          motion: this.#motion,
+        });
     this.#inspector = this.#resident;
     return {
       behavior: this.#behavior,

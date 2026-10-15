@@ -44,13 +44,24 @@ export class VestibuleIslandFurnishing {
     for (const shift of [anchor, anchor - 0.15, anchor + 0.15, 0, -0.3, 0.3]) {
       const depth = bench ? benchDepth : 1;
       const span = bench ? benchLength : 1.8;
-      const island = { id: `${room.id}-${room.level}-island-${bench ? "bench" : "map"}`,
-        role: "vestibuleProp", object: bench ? "VestibuleIslandBench" : "VestibuleMapTable",
-        x: centerX + (alongX ? shift : lateral), z: centerZ + (alongX ? lateral : shift),
-        width: alongX ? span : depth, depth: alongX ? depth : span,
-        height: bench ? benchHeight : 1, scale: 1,
-        stretch: largeBench ? { x: benchLength / 1.8, y: benchHeight / 1.05, z: benchDepth / 1.05 } : undefined,
-        rotation: alongX ? 0 : 90, y: 0.033 };
+      const island = {
+        id: `${room.id}-${room.level}-island-${bench ? "bench" : "map"}`,
+        role: "vestibuleProp",
+        object: bench ? "VestibuleIslandBench" : "VestibuleMapTable",
+        x: centerX + (alongX ? shift : lateral),
+        z: centerZ + (alongX ? lateral : shift),
+        width: alongX ? span : depth,
+        depth: alongX ? depth : span,
+        height: bench ? benchHeight : 1,
+        scale: 1,
+        stretch: largeBench ? {
+          x: benchLength / 1.8,
+          y: benchHeight / 1.05,
+          z: benchDepth / 1.05,
+        } : undefined,
+        rotation: alongX ? 0 : 90,
+        y: 0.033,
+      };
       if (safe(island) &&
         island.x - island.width / 2 >= room.minX + inset && island.x + island.width / 2 <= room.maxX - inset &&
         island.z - island.depth / 2 >= room.minZ + inset && island.z + island.depth / 2 <= room.maxZ - inset &&
@@ -71,12 +82,21 @@ export class VestibuleIslandFurnishing {
             const turned = yaw % 180 !== 0;
             const width = turned ? 0.365 : 0.6;
             const depth = turned ? 0.6 : 0.365;
-            items.push({ id: `${island.id}-bag-${index}`,
-              role: "vestibuleProp", object: index % 2 === 0 ? "VestibuleBrownSatchel" : "VestibuleOliveSatchel",
-              x: island.x + (alongX ? offset : side), z: island.z + (alongX ? side : offset),
-              width: alongX ? width : depth, depth: alongX ? depth : width, height: 0.303,
-              scale: bagScale * size, rotation: (alongX ? 0 : 90) + yaw, y: island.y,
-              supportId: island.id, underSupport: true });
+            items.push({
+              id: `${island.id}-bag-${index}`,
+              role: "vestibuleProp",
+              object: index % 2 === 0 ? "VestibuleBrownSatchel" : "VestibuleOliveSatchel",
+              x: island.x + (alongX ? offset : side),
+              z: island.z + (alongX ? side : offset),
+              width: alongX ? width : depth,
+              depth: alongX ? depth : width,
+              height: 0.303,
+              scale: bagScale * size,
+              rotation: (alongX ? 0 : 90) + yaw,
+              y: island.y,
+              supportId: island.id,
+              underSupport: true,
+            });
           }
         }
         return items;

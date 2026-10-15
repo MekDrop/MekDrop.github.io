@@ -34,8 +34,15 @@ describe("AmmoClothPhysics", () => {
         }
       }
       const positions = Float32Array.from(vertices);
-      const cloth = physics.createCloth({ positions, indices: Uint16Array.from(indices),
-        pinnedIndices, normalAxis: 2, wallPlane: 0, windExposure: () => 0, seed: 0.3 });
+      const cloth = physics.createCloth({
+        positions,
+        indices: Uint16Array.from(indices),
+        pinnedIndices,
+        normalAxis: 2,
+        wallPlane: 0,
+        windExposure: () => 0,
+        seed: 0.3,
+      });
       for (let frame = 0; frame < 360; frame++) { physics.step(1 / 60); }
       physics.writePositions(cloth, positions);
       const settled = positions.slice();
@@ -52,16 +59,29 @@ describe("AmmoClothPhysics", () => {
     const physics = new AmmoClothPhysics();
     try {
       const positions = new Float32Array([-0.5, 0, 0, 0.5, 0, 0, -0.5, -1, 0, 0.5, -1, 0]);
-      const cloth = physics.createCloth({ positions, indices: new Uint16Array([0, 2, 1, 1, 2, 3]),
-        pinnedIndices: [0, 1], windExposure: () => 0, seed: 0.3,
-        vertexUv: new Float32Array([-1, 0, 1, 0, -1, 1, 1, 1]) });
+      const cloth = physics.createCloth({
+        positions,
+        indices: new Uint16Array([0, 2, 1, 1, 2, 3]),
+        pinnedIndices: [0, 1],
+        windExposure: () => 0,
+        seed: 0.3,
+        vertexUv: new Float32Array([-1, 0, 1, 0, -1, 1, 1, 1]),
+      });
       for (let frame = 0; frame < 180; frame++) { physics.step(1 / 60); }
       physics.writePositions(cloth, positions);
       for (let index = 2; index < positions.length; index += 3) {
         assert.ok(Math.abs(positions[index]) < 0.00001, "ambient wind cannot push sheltered cloth out of plane");
       }
-      physics.beginPointer(cloth, { x: positions[6], y: positions[7], z: 0 });
-      physics.applyPointer(cloth, { x: positions[6] + 0.2, y: positions[7] + 0.2, z: 0 }, 1 / 60);
+      physics.beginPointer(cloth, {
+        x: positions[6],
+        y: positions[7],
+        z: 0,
+      });
+      physics.applyPointer(cloth, {
+        x: positions[6] + 0.2,
+        y: positions[7] + 0.2,
+        z: 0,
+      }, 1 / 60);
       physics.step(1 / 60);
       physics.writePositions(cloth, positions);
       assert.ok(Math.abs(positions[8]) + Math.abs(positions[11]) > 0.00001);
@@ -77,7 +97,11 @@ describe("AmmoClothPhysics", () => {
     const active = Array.from({ length: 30 }, () => new AmmoClothPhysics());
     for (const physics of active) {
       const positions = new Float32Array([-0.5, 0, 0, 0.5, 0, 0, -0.5, -1, 0, 0.5, -1, 0]);
-      const cloth = physics.createCloth({ positions, indices: new Uint16Array([0, 2, 1, 1, 2, 3]), pinnedIndices: [0, 1] });
+      const cloth = physics.createCloth({
+        positions,
+        indices: new Uint16Array([0, 2, 1, 1, 2, 3]),
+        pinnedIndices: [0, 1],
+      });
       physics.step(1 / 60);
       physics.writePositions(cloth, positions);
       assert.equal(positions[0], -0.5);
@@ -208,8 +232,16 @@ describe("AmmoClothPhysics", () => {
       pinnedIndices: [0, 1],
       vertexUv: new Float32Array([-1, 0, 1, 0, -1, 1, 1, 1]),
     });
-    physics.beginPointer(cloth, { x: -0.5, y: -1, z: 0 });
-    physics.applyPointer(cloth, { x: -0.2, y: -0.75, z: 0 }, 1 / 60);
+    physics.beginPointer(cloth, {
+      x: -0.5,
+      y: -1,
+      z: 0,
+    });
+    physics.applyPointer(cloth, {
+      x: -0.2,
+      y: -0.75,
+      z: 0,
+    }, 1 / 60);
     physics.step(1 / 60);
     physics.writePositions(cloth, positions);
 
@@ -230,8 +262,16 @@ describe("AmmoClothPhysics", () => {
       indices: new Uint16Array([0, 2, 1, 1, 2, 3]),
       pinnedIndices: [0, 1],
     });
-    physics.beginPointer(cloth, { x: -0.5, y: -1, z: 0 });
-    physics.applyPointer(cloth, { x: 8, y: 4, z: 12 }, 1 / 120);
+    physics.beginPointer(cloth, {
+      x: -0.5,
+      y: -1,
+      z: 0,
+    });
+    physics.applyPointer(cloth, {
+      x: 8,
+      y: 4,
+      z: 12,
+    }, 1 / 120);
     for (let frame = 0; frame < 120; frame += 1) {
       physics.step(1 / 60);
     }
@@ -367,7 +407,10 @@ describe("AmmoClothPhysics", () => {
       }
     }
     const physics = new AmmoClothPhysics({
-      pc: { Mat4: InverseTransform, Vec3: Vector },
+      pc: {
+        Mat4: InverseTransform,
+        Vec3: Vector,
+      },
     });
     try {
       const positions = new Float32Array([

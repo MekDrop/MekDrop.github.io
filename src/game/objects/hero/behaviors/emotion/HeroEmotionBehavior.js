@@ -116,9 +116,9 @@ export class HeroEmotionBehavior {
       remaining: kind === HERO_MOOD.ANGRY
         ? overstimulated
         : kind === HERO_MOOD.AGITATED
-            ? Math.max(0, 1.25 - this.#sincePat)
+          ? Math.max(0, 1.25 - this.#sincePat)
               + (pressure - AGITATION_THRESHOLD) / 0.8
-            : happyRemaining,
+          : happyRemaining,
       patPulse: Math.max(0, 1 - this.#sincePat / 0.45),
       elapsed: this.#elapsed,
     };

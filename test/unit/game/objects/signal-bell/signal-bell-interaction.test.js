@@ -5,9 +5,29 @@ import { SignalBellInteraction } from "../../../../../src/game/objects/signal-be
 it("starts a hand action only within reach and reserves the bell through release", () => {
   let rings = 0;
   let completions = 0;
-  const bell = { definition: { id: "bell" }, position: { x: 2, y: 12, z: 3 }, canRing: true,
-    beginRinging() { this.canRing = false; }, startPull() {}, strike() { rings++; }, endRinging() { this.canRing = true; } };
-  const hero = { position: { x: 2, y: 9, z: 3 }, isIncapacitated: false, isUsingTool: false, ringBell(action) { this.action = action; return true; } };
+  const bell = {
+    definition: { id: "bell" },
+    position: {
+      x: 2,
+      y: 12,
+      z: 3,
+    },
+    canRing: true,
+    beginRinging() { this.canRing = false; },
+    startPull() {},
+    strike() { rings++; },
+    endRinging() { this.canRing = true; },
+  };
+  const hero = {
+    position: {
+      x: 2,
+      y: 9,
+      z: 3,
+    },
+    isIncapacitated: false,
+    isUsingTool: false,
+    ringBell(action) { this.action = action; return true; },
+  };
   const interaction = new SignalBellInteraction(bell, hero, () => { completions++; });
   assert.equal(interaction.interact(), false, "cannot ring from the room below");
   hero.position.y = 12;

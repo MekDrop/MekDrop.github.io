@@ -6,11 +6,38 @@ import { BookshelfBooks } from "../../../../../src/game/objects/bookshelf/Booksh
 import { BookshelfLayout } from "../../../../../src/game/objects/bookshelf/BookshelfLayout.js";
 
 test("publishes stable independent books, preserves legacy reading placements, and replaces stale contents", () => {
-  const shelf = { id: "library-shelf", object: "Bookshelf", from: { x: 0, y: 2, z: 0 },
-    to: { x: 0.935, y: 2, z: 0 }, height: 1.8, tile: { col: 2, row: 3 }, sourceCastleId: "castle" };
-  const map = { objects: [shelf, ...["Closed", "Open", "Terrace"].map((name, index) => ({
-    id: `reading-${index}`, object: `${name}ReadingBook`, position: { x: index, y: 3, z: 1 }, scale: 0.7,
-  }))] };
+  const shelf = {
+    id: "library-shelf",
+    object: "Bookshelf",
+    from: {
+      x: 0,
+      y: 2,
+      z: 0,
+    },
+    to: {
+      x: 0.935,
+      y: 2,
+      z: 0,
+    },
+    height: 1.8,
+    tile: {
+      col: 2,
+      row: 3,
+    },
+    sourceCastleId: "castle",
+  };
+  const map = {
+    objects: [shelf, ...["Closed", "Open", "Terrace"].map((name, index) => ({
+      id: `reading-${index}`,
+      object: `${name}ReadingBook`,
+      position: {
+        x: index,
+        y: 3,
+        z: 1,
+      },
+      scale: 0.7,
+    }))],
+  };
   BookMapObjects.prepareMap(map);
   const books = map.objects.filter(item => item.sourceShelfId);
   assert.equal(books.length, 50);
@@ -20,7 +47,11 @@ test("publishes stable independent books, preserves legacy reading placements, a
   assert.equal(map.objects[3].style, "classic");
   assert.ok(map.objects.every(item => item.object !== "Book" || !Object.hasOwn(item, "variant")));
   assert.ok(books.every(book => book.isOpen === false && book.pose === "upright"));
-  assert.deepEqual(map.objects[2].position, { x: 1, y: 3, z: 1 });
+  assert.deepEqual(map.objects[2].position, {
+    x: 1,
+    y: 3,
+    z: 1,
+  });
   assert.equal(map.objects[2].scale, 0.7);
   const snapshot = structuredClone(map.objects);
   BookMapObjects.prepareMap(map);
@@ -31,7 +62,13 @@ test("publishes stable independent books, preserves legacy reading placements, a
   map.objects = map.objects.filter(item => item !== shelf);
   BookMapObjects.prepareMap(map);
   assert.equal(map.objects.length, 3, "removed cabinets leave no orphan volumes");
-  const empty = { objects: [{ ...shelf, books: false, booksAsObjects: false }] };
+  const empty = {
+    objects: [{
+      ...shelf,
+      books: false,
+      booksAsObjects: false,
+    }],
+  };
   BookMapObjects.prepareMap(empty);
   assert.equal(empty.objects.length, 1);
 });
@@ -41,8 +78,23 @@ test("world-space book transforms match the former cabinet hierarchy on both axe
     for (const facing of [1, -1]) {
       // A low shelf exercises stacked books and swapping the scaled axis after tipping.
       for (const height of [0.45, 1.8]) {
-        const shelf = { id: "transform-shelf", object: "Bookshelf", seed: 42, facing, height,
-          from: { x: 4, y: 2, z: -3 }, to: { x: alongX ? 4.9 : 4, y: 2, z: alongX ? -3 : -2.1 } };
+        const shelf = {
+          id: "transform-shelf",
+          object: "Bookshelf",
+          seed: 42,
+          facing,
+          height,
+          from: {
+            x: 4,
+            y: 2,
+            z: -3,
+          },
+          to: {
+            x: alongX ? 4.9 : 4,
+            y: 2,
+            z: alongX ? -3 : -2.1,
+          },
+        };
         const bounds = BookshelfLayout.bounds(shelf);
         let state = 2166136261;
         for (const character of "42") { state = Math.imul(state ^ character.charCodeAt(0), 16777619) >>> 0; }
@@ -53,7 +105,8 @@ test("world-space book transforms match the former cabinet hierarchy on both axe
         const rows = Math.max(1, Math.round((height - 0.0775) / 0.35));
         const spacing = (height - 0.0775) / rows;
         const local = BookshelfBooks.layout(random, Array.from({ length: rows }, (_, row) => ({
-          bottom: 0.0775 + row * spacing, height: spacing - 0.055,
+          bottom: 0.0775 + row * spacing,
+          height: spacing - 0.055,
         })));
         const published = BookMapObjects.forShelf(shelf);
         const cabinet = new Entity("cabinet");

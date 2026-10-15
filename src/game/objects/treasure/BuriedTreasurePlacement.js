@@ -61,7 +61,10 @@ export class BuriedTreasurePlacement {
         const roll = random() * 100;
         return roll < 12 ? COIN_TYPE.GOLD : roll < 42 ? COIN_TYPE.SILVER : COIN_TYPE.COPPER;
       });
-      cube.buriedTreasure = { id: `buried-chest-${key}`, contents };
+      cube.buriedTreasure = {
+        id: `buried-chest-${key}`,
+        contents,
+      };
     }
   }
 }

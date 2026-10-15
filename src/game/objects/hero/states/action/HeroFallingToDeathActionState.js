@@ -13,7 +13,10 @@ export class HeroFallingToDeathActionState extends HeroRuntimeActionState {
        * @param {{velocity: {x: number, y: number, z: number}}} options
        * @param {{x: number, y: number, z: number}} options.velocity
        */
-      movement: ({ velocity }) => ({ x: velocity.x, z: velocity.z }),
+      movement: ({ velocity }) => ({
+        x: velocity.x,
+        z: velocity.z,
+      }),
       locksFacing: true,
       allowsFootPlacement: false,
       allowsIdleHeadLook: false,

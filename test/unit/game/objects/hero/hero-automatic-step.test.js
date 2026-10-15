@@ -13,14 +13,25 @@ const Stepper = createStepper(...Object.values(rules));
 it("climbs narrow roof courses without probing past reachable treads", () => {
   const hero = new Stepper();
   Object.assign(hero, {
-    grounded: true, actionBehavior: {}, capsuleSupportOnly: true,
-    position: { x: 0, y: 8, z: 0 }, velocity: { y: 0 },
-    automaticStepGroundingRemaining: 0, automaticStepVisualOffset: 0,
+    grounded: true,
+    actionBehavior: {},
+    capsuleSupportOnly: true,
+    position: {
+      x: 0,
+      y: 8,
+      z: 0,
+    },
+    velocity: { y: 0 },
+    automaticStepGroundingRemaining: 0,
+    automaticStepVisualOffset: 0,
     collisionWorld: { ceilingHeightAt: () => null },
-    physics: { scripted: false, surfaceAt: (x, z, maximumHeight, minimumHeight) => {
-      const height = 8 + Math.floor(x / 0.09) * 0.12;
-      return height <= maximumHeight && height >= minimumHeight ? { height } : null;
-    } },
+    physics: {
+      scripted: false,
+      surfaceAt: (x, z, maximumHeight, minimumHeight) => {
+        const height = 8 + Math.floor(x / 0.09) * 0.12;
+        return height <= maximumHeight && height >= minimumHeight ? { height } : null;
+      },
+    },
   });
   for (let step = 0; step < 40; step += 1) {
     const previousY = hero.position.y;
@@ -34,10 +45,20 @@ it("climbs narrow roof courses without probing past reachable treads", () => {
 it("still refuses a riser above the normal step limit", () => {
   const hero = new Stepper();
   Object.assign(hero, {
-    grounded: true, actionBehavior: {}, capsuleSupportOnly: true,
-    position: { x: 0, y: 8, z: 0 }, velocity: { y: 0 },
+    grounded: true,
+    actionBehavior: {},
+    capsuleSupportOnly: true,
+    position: {
+      x: 0,
+      y: 8,
+      z: 0,
+    },
+    velocity: { y: 0 },
     automaticStepGroundingRemaining: 0,
-    physics: { scripted: false, surfaceAt: () => ({ height: 8.6 }) },
+    physics: {
+      scripted: false,
+      surfaceAt: () => ({ height: 8.6 }),
+    },
   });
   assert.equal(hero.tryAutomaticStepUp(0.01, 0), false);
   assert.equal(hero.position.y, 8);

@@ -28,7 +28,10 @@ describe("game console commands", () => {
   it("installs class-backed commands and prints all of them from help", () => {
     const target = {};
     const logger = createLogger();
-    const registry = createGameCommandRegistry({ target, logger });
+    const registry = createGameCommandRegistry({
+      target,
+      logger,
+    });
 
     registry.install();
     const commands = target.help();
@@ -78,7 +81,10 @@ describe("game console commands", () => {
   it("rejects invalid wind speeds without changing the current speed", () => {
     const target = {};
     const logger = createLogger();
-    const registry = createGameCommandRegistry({ target, logger });
+    const registry = createGameCommandRegistry({
+      target,
+      logger,
+    });
     registry.install();
     target.setWindSpeed(0.3);
 

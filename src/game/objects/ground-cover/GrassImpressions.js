@@ -47,26 +47,26 @@ export class GrassImpressions {
      * @param {{age: number}} options
      * @param {number} options.age
      */
-    ({ age }) => age < RECOVERY_SECONDS);
+      ({ age }) => age < RECOVERY_SECONDS);
     const active = contacts
       .map(/**
        *
        * @param {number} contact
        * @param {number} index
        */
-      (contact, index) => this.#normalize(contact, index))
+        (contact, index) => this.#normalize(contact, index))
       .filter(/**
        *
        * @param {{strength: number}} options
        * @param {number} options.strength
        */
-      ({ strength }) => strength > MINIMUM_STRENGTH)
+        ({ strength }) => strength > MINIMUM_STRENGTH)
       .sort(/**
        *
        * @param {boolean} left
        * @param {number} right
        */
-      (left, right) => right.strength - left.strength)
+        (left, right) => right.strength - left.strength)
       .slice(0, MAXIMUM_IMPRESSIONS);
     for (const contact of active) {
       const previous = this.#contacts.get(contact.id);
@@ -90,7 +90,7 @@ export class GrassImpressions {
        *
        * @param {boolean} candidate
        */
-      (candidate) => candidate.id === id)) {
+        (candidate) => candidate.id === id)) {
         this.#stamp(contact.last);
         this.#contacts.delete(id);
       }
@@ -104,28 +104,28 @@ export class GrassImpressions {
        * @param {{x: number, y: number, z: number, radius: number, strength: number}} impression
        * @param {number} index
        */
-      (impression, index) => {
-        const recovery = Math.min(
-          1,
-          (impression.age ?? 0) / RECOVERY_SECONDS,
-        );
-        const strength =
-          impression.strength *
+        (impression, index) => {
+          const recovery = Math.min(
+            1,
+            (impression.age ?? 0) / RECOVERY_SECONDS,
+          );
+          const strength =
+            impression.strength *
           (1 - recovery * recovery * (3 - 2 * recovery));
-        this.#positions.set(
-          [impression.x, impression.y, impression.z, strength],
-          index * 4,
-        );
-        this.#shapes.set(
-          [
-            impression.directionX,
-            impression.directionZ,
-            impression.halfWidth,
-            impression.halfLength,
-          ],
-          index * 4,
-        );
-      });
+          this.#positions.set(
+            [impression.x, impression.y, impression.z, strength],
+            index * 4,
+          );
+          this.#shapes.set(
+            [
+              impression.directionX,
+              impression.directionZ,
+              impression.halfWidth,
+              impression.halfLength,
+            ],
+            index * 4,
+          );
+        });
   }
 
   /**
@@ -156,7 +156,10 @@ export class GrassImpressions {
    * @param {number} contact
    */
   #stamp(contact) {
-    this.#history.unshift({ ...contact, age: 0 });
+    this.#history.unshift({
+      ...contact,
+      age: 0,
+    });
     this.#history.length = Math.min(
       MAXIMUM_IMPRESSIONS,
       this.#history.length,

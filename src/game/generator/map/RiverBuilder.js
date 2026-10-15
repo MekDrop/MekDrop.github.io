@@ -121,7 +121,10 @@ export class RiverBuilder {
     for (let index = 0; index < route.length; index++) {
       const cell = route[index];
       if (parent && index <= splitIndex) {
-        cells.push({ ...parent.cells[index], direction: MapGrid.directionFromStep(cell, route[index + 1]) });
+        cells.push({
+          ...parent.cells[index],
+          direction: MapGrid.directionFromStep(cell, route[index + 1]),
+        });
         waterElevation = parent.cells[index].elevation;
         continue;
       }
@@ -131,9 +134,9 @@ export class RiverBuilder {
       const heightLimit = underBridge
         ? PATH_HEIGHT - BRIDGE_WATER_CLEARANCE
         : Math.max(
-            RIVER_WATER_DEPTH,
-            terrainHeight - RIVER_SURFACE_INSET,
-          );
+          RIVER_WATER_DEPTH,
+          terrainHeight - RIVER_SURFACE_INSET,
+        );
       const previousElevation = waterElevation;
       waterElevation = Math.min(waterElevation, heightLimit);
       const direction =
@@ -175,7 +178,10 @@ export class RiverBuilder {
     return {
       id: `river-${riverIndex + 1}`,
       kind: parent?.kind ?? RIVER_KIND.WATER,
-      ...(parent ? { sourceId: parent.sourceId ?? parent.id, branchStart: splitIndex + 1 } : {}),
+      ...(parent ? {
+        sourceId: parent.sourceId ?? parent.id,
+        branchStart: splitIndex + 1,
+      } : {}),
       source: {
         col: cells[0].col,
         row: cells[0].row,
@@ -230,7 +236,11 @@ export class RiverBuilder {
           RiverPlacementRules.hasRiverSourceSetback(islandMask, col, row) &&
           !RiverPlacementRules.isNearCastleForRiver(layout, col, row)
         ) {
-          sourceCandidates.push({ col, row, height: heightmap[row][col] });
+          sourceCandidates.push({
+            col,
+            row,
+            height: heightmap[row][col],
+          });
         }
       }
     }
@@ -240,7 +250,7 @@ export class RiverBuilder {
      * @param {{height: number}} left
      * @param {{height: number}} right
      */
-    (left, right) => right.height - left.height);
+      (left, right) => right.height - left.height);
 
     const rivers = [];
     const occupiedRiverCells = new Set();
@@ -308,60 +318,72 @@ export class RiverBuilder {
        *
        * @param {import("./MapGenerationTypes.js").RiverCascade} cascade
        */
-      (cascade) => river.cells.findIndex(
+        (cascade) => river.cells.findIndex(
         /**
          * @param {MapCell} cell
          */
-        (cell) => cell.col === cascade.from.col && cell.row === cascade.from.row,
-      )).filter(/**
+          (cell) => cell.col === cascade.from.col && cell.row === cascade.from.row,
+        )).filter(/**
        *
        * @param {number} index
        */
-      (index) => index > 0 && !river.cells[index].underBridge);
+        (index) => index > 0 && !river.cells[index].underBridge);
       for (const splitIndex of this.#random.shuffle(candidates)) {
         const trialGrid = grid.map(/**
          *
          * @param {number[]} row
          */
-        (row) => [...row]);
+          (row) => [...row]);
         const trialHeights = heightmap.map(/**
          *
          * @param {number[]} row
          */
-        (row) => [...row]);
+          (row) => [...row]);
         const trialMeta = tileMeta.map(/**
          *
          * @param {TileMetadata[]} row
          */
-        (row) => row.map(/**
+          (row) => row.map(/**
          *
          * @param {MapCell} cell
          */
-        (cell) => ({ ...cell })));
+            (cell) => ({ ...cell })));
         const occupied = new Set(rivers.flatMap(/**
          *
          * @param {RiverData} item
          */
-        (item) => item.cells.map(
+          (item) => item.cells.map(
           /**
            * @param {MapCell} cell
            */
-          (cell) => MapGrid.tileKey(cell.col, cell.row),
-        )));
+            (cell) => MapGrid.tileKey(cell.col, cell.row),
+          )));
         const branches = [];
         for (let index = 1; index < branchCount; index++) {
           const prefix = river.cells.slice(0, splitIndex + 1);
           const junction = prefix.at(-1);
           const outlets = [
-            { col: junction.col - 1, row: junction.row },
-            { col: junction.col + 1, row: junction.row },
-            { col: junction.col, row: junction.row - 1 },
-            { col: junction.col, row: junction.row + 1 },
+            {
+              col: junction.col - 1,
+              row: junction.row,
+            },
+            {
+              col: junction.col + 1,
+              row: junction.row,
+            },
+            {
+              col: junction.col,
+              row: junction.row - 1,
+            },
+            {
+              col: junction.col,
+              row: junction.row + 1,
+            },
           ].filter(/**
            *
            * @param {MapCell} cell
            */
-          (cell) => MapGrid.inBounds(cell.col, cell.row) &&
+            (cell) => MapGrid.inBounds(cell.col, cell.row) &&
             trialHeights[cell.row][cell.col] < junction.elevation);
           const result = await this.#router.findRiverRoute(
             trialGrid, trialMeta, islandMask, layout, prefix[0], occupied, yieldState, prefix, outlets,
@@ -388,19 +410,19 @@ export class RiverBuilder {
          *
          * @param {number[]} row
          */
-        (row) => [...row]);
+          (row) => [...row]);
         const allRivers = [...rivers, ...branches];
         this.materializeRiverBanks(trialGrid.map(/**
          *
          * @param {number[]} row
          */
-        (row) => [...row]),
-          trialHeights.map(/**
+          (row) => [...row]),
+        trialHeights.map(/**
            *
            * @param {number[]} row
            */
           (row) => [...row]),
-          trialMeta.map(/**
+        trialMeta.map(/**
            *
            * @param {number[]} row
            */
@@ -408,18 +430,18 @@ export class RiverBuilder {
            *
            * @param {TileMetadata} cell
            */
-          (cell) => ({ ...cell }))), trialMask, allRivers);
+            (cell) => ({ ...cell }))), trialMask, allRivers);
         const blockedOutlet = allRivers.some(/**
          *
          * @param {RiverData} item
          */
-        (item) => {
-          const terminal = item.cells.at(-1);
-          const previous = item.cells.at(-2);
-          const col = terminal.col + terminal.col - previous.col;
-          const row = terminal.row + terminal.row - previous.row;
-          return MapGrid.inBounds(col, row) && trialMask[row][col];
-        });
+          (item) => {
+            const terminal = item.cells.at(-1);
+            const previous = item.cells.at(-2);
+            const col = terminal.col + terminal.col - previous.col;
+            const row = terminal.row + terminal.row - previous.row;
+            return MapGrid.inBounds(col, row) && trialMask[row][col];
+          });
         if (blockedOutlet) {
           continue;
         }
@@ -430,7 +452,7 @@ export class RiverBuilder {
            *
            * @param {import("src/game/generator/map/MapGenerationTypes.js").RiverData} branch
            */
-          (branch) => branch.cells[branch.branchStart].elevation));
+            (branch) => branch.cells[branch.branchStart].elevation));
         for (const channel of [river, ...branches]) {
           for (let index = splitIndex; index < channel.cells.length; index++) {
             const cell = channel.cells[index];
@@ -449,8 +471,14 @@ export class RiverBuilder {
             const cell = channel.cells[index];
             if (previous.elevation - cell.elevation > 0.04) {
               channel.cascades.push({
-                from: { col: previous.col, row: previous.row },
-                to: { col: cell.col, row: cell.row },
+                from: {
+                  col: previous.col,
+                  row: previous.row,
+                },
+                to: {
+                  col: cell.col,
+                  row: cell.row,
+                },
                 direction: MapGrid.directionFromStep(previous, cell),
                 topElevation: previous.elevation,
                 bottomElevation: cell.elevation,
@@ -519,7 +547,7 @@ export class RiverBuilder {
            *
            * @param {RiverData} item
            */
-          (item) => item.id === river.sourceId);
+            (item) => item.id === river.sourceId);
           cell.elevation = parent.cells[index].elevation;
           cell.bedElevation = parent.cells[index].bedElevation;
           previousElevation = cell.elevation;
@@ -528,9 +556,9 @@ export class RiverBuilder {
         const heightLimit = cell.underBridge
           ? PATH_HEIGHT - BRIDGE_WATER_CLEARANCE
           : Math.max(
-              RIVER_WATER_DEPTH,
-              cell.terrainHeight - LAVA_SURFACE_INSET,
-            );
+            RIVER_WATER_DEPTH,
+            cell.terrainHeight - LAVA_SURFACE_INSET,
+          );
         const elevation = Math.min(previousElevation, heightLimit);
         cell.elevation = elevation;
         cell.bedElevation = Math.max(0, elevation - RIVER_WATER_DEPTH);
@@ -544,8 +572,14 @@ export class RiverBuilder {
         if (index > 0 && previousElevation - elevation > 0.04) {
           const previous = river.cells[index - 1];
           cascades.push({
-            from: { col: previous.col, row: previous.row },
-            to: { col: cell.col, row: cell.row },
+            from: {
+              col: previous.col,
+              row: previous.row,
+            },
+            to: {
+              col: cell.col,
+              row: cell.row,
+            },
             direction: MapGrid.directionFromStep(previous, cell),
             topElevation: previousElevation,
             bottomElevation: elevation,
@@ -584,12 +618,12 @@ export class RiverBuilder {
        *
        * @param {RiverRecord} river
        */
-      (river) =>
-        river.cells.map(/**
+        (river) =>
+          river.cells.map(/**
          *
          * @param {MapCell} cell
          */
-        (cell) => MapGrid.tileKey(cell.col, cell.row)),
+            (cell) => MapGrid.tileKey(cell.col, cell.row)),
       ),
     );
 

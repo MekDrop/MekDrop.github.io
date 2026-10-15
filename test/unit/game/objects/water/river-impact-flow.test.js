@@ -8,14 +8,32 @@ const directions = [
 for (const [index, [name, dx, dz]] of directions.entries()) {
   for (const turn of [-1, 0, 1]) {
     const [outgoing, ex, ez] = directions[(index + turn + 4) % 4];
-    const source = { col: 5, row: 5, elevation: 2.5, direction: name };
-    const landing = { col: 5 + dx, row: 5 + dz, elevation: 1.5, direction: outgoing };
+    const source = {
+      col: 5,
+      row: 5,
+      elevation: 2.5,
+      direction: name,
+    };
+    const landing = {
+      col: 5 + dx,
+      row: 5 + dz,
+      elevation: 1.5,
+      direction: outgoing,
+    };
     const river = {
       kind: 'WATER',
       cells: [source, landing, ...[1, 2, 3].map(step => ({
-        ...landing, col: landing.col + ex * step, row: landing.row + ez * step,
+        ...landing,
+        col: landing.col + ex * step,
+        row: landing.row + ez * step,
       }))],
-      cascades: [{ from: source, to: landing, direction: name, topElevation: 2.5, bottomElevation: 1.5 }],
+      cascades: [{
+        from: source,
+        to: landing,
+        direction: name,
+        topElevation: 2.5,
+        bottomElevation: 1.5,
+      }],
     };
     const field = new RiverImpactFlow([river]);
     const sample = (forward, across) => field.sample(
@@ -54,7 +72,10 @@ for (const [index, [name, dx, dz]] of directions.entries()) {
       assert.deepEqual(field.sample(5, 5), [0, 0, 0]);
       assert.deepEqual(field.sample(0, 0), [0, 0, 0]);
       assert.deepEqual(field.sample(landing.col + ex * 3, landing.row + ez * 3), [0, 0, 0]);
-      assert.deepEqual(new RiverImpactFlow([{ ...river, kind: 'LAVA' }]).sample(landing.col, landing.row), [0, 0, 0]);
+      assert.deepEqual(new RiverImpactFlow([{
+        ...river,
+        kind: 'LAVA',
+      }]).sample(landing.col, landing.row), [0, 0, 0]);
     });
   }
 }

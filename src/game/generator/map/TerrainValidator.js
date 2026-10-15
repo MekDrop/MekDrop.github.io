@@ -27,7 +27,10 @@ export class TerrainValidator {
     for (let row = 0; row < MAP_ROWS; row++) {
       for (let col = 0; col < MAP_COLS; col++) {
         if (grid[row][col] !== TileType.WATER) {
-          allLand.push({ col, row });
+          allLand.push({
+            col,
+            row,
+          });
         }
       }
     }
@@ -60,9 +63,12 @@ export class TerrainValidator {
          *
          * @param {TileMetadata} tile
          */
-        (tile) => tile !== TileType.WATER);
+          (tile) => tile !== TileType.WATER);
         if (enclosed) {
-          throw new IsolatedTerrainHoleError({ col, row });
+          throw new IsolatedTerrainHoleError({
+            col,
+            row,
+          });
         }
       }
     }
@@ -126,21 +132,41 @@ export class TerrainValidator {
        * @param {{centerCol: number, centerRow: number, radiusCol: number, radiusRow: number}} ellipse
        * @param {number} index
        */
-      (ellipse, index) => {
-        const base = [
-          { centerCol: 23, centerRow: 16, radiusX: 18, radiusY: 12 },
-          { centerCol: 15, centerRow: 15, radiusX: 12, radiusY: 10 },
-          { centerCol: 14, centerRow: 27, radiusX: 10, radiusY: 7 },
-          { centerCol: 29, centerRow: 13, radiusX: 10, radiusY: 8 },
-        ][index];
-        return (
-          base &&
+        (ellipse, index) => {
+          const base = [
+            {
+              centerCol: 23,
+              centerRow: 16,
+              radiusX: 18,
+              radiusY: 12,
+            },
+            {
+              centerCol: 15,
+              centerRow: 15,
+              radiusX: 12,
+              radiusY: 10,
+            },
+            {
+              centerCol: 14,
+              centerRow: 27,
+              radiusX: 10,
+              radiusY: 7,
+            },
+            {
+              centerCol: 29,
+              centerRow: 13,
+              radiusX: 10,
+              radiusY: 8,
+            },
+          ][index];
+          return (
+            base &&
           ellipse.centerCol === base.centerCol &&
           ellipse.centerRow === base.centerRow &&
           ellipse.radiusX === base.radiusX &&
           ellipse.radiusY === base.radiusY
-        );
-      })
+          );
+        })
     ) {
       throw new InsufficientLayoutVarietyError();
     }

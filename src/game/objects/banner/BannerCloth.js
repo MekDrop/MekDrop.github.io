@@ -91,9 +91,9 @@ export class BannerCloth {
      *
      * @param {number} deltaTime
      */
-    (deltaTime) => {
-      this.#animate(deltaTime);
-    });
+      (deltaTime) => {
+        this.#animate(deltaTime);
+      });
   }
 
   get entity() {
@@ -192,7 +192,13 @@ export class BannerCloth {
       normalAxis: 2,
       seed,
       wallPlane: 0,
-      windExposure: new ClothWindExposure({ pc: this.#pc, app: this.#app, root, width, height }).sample,
+      windExposure: new ClothWindExposure({
+        pc: this.#pc,
+        app: this.#app,
+        root,
+        width,
+        height,
+      }).sample,
     });
     this.#banners.push(banner);
     return true;

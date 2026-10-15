@@ -8,9 +8,23 @@ import { ThroneRoomMapObjects } from "../../../../../../../src/game/objects/cast
 it("mounts court emblems above rear windows through the final map transform", async () => {
   for (const seed of [0, 1, 4, 5, 10]) {
     for (const side of ["NORTH", "SOUTH", "EAST", "WEST"]) {
-      const castle = { id: "wall-decor-test", object: "Castle", seed,
-        position: { x: -14, z: -8, width: 28, depth: 28, elevation: 2 },
-        doors: [{ side, offset: 13, width: 2 }] };
+      const castle = {
+        id: "wall-decor-test",
+        object: "Castle",
+        seed,
+        position: {
+          x: -14,
+          z: -8,
+          width: 28,
+          depth: 28,
+          elevation: 2,
+        },
+        doors: [{
+          side,
+          offset: 13,
+          width: 2,
+        }],
+      };
       castle.buildPlan = await CastleAuthoredBuildPlan.generate(castle);
       const residential = castle.buildPlan.metadata.runtime.residential;
       const emblem = residential.furniture.find(item => ["RoyalCrest", "WarCouncilShield"].includes(item.object));
@@ -21,13 +35,19 @@ it("mounts court emblems above rear windows through the final map transform", as
       assert.ok(emblem.x - emblem.width * emblem.scale / 2 >= room.minX);
       assert.ok(emblem.x + emblem.width * emblem.scale / 2 <= room.maxX);
       assert.ok(emblem.elevation >= 2.1, "above the window lintel and royal actor");
-      const map = { cols: 42, rows: 42, objects: [castle] };
+      const map = {
+        cols: 42,
+        rows: 42,
+        objects: [castle],
+      };
       ThroneRoomMapObjects.prepareMap(map);
       const definition = map.objects.find(item => item.object === emblem.object);
       const back = emblem.object === "RoyalCrest" ? -0.04 : -0.05;
       const yaw = definition.rotation * Math.PI / 180;
-      const rear = { x: definition.position.x + Math.sin(yaw) * back * emblem.scale,
-        z: definition.position.z + Math.cos(yaw) * back * emblem.scale };
+      const rear = {
+        x: definition.position.x + Math.sin(yaw) * back * emblem.scale,
+        z: definition.position.z + Math.cos(yaw) * back * emblem.scale,
+      };
       const originYaw = residential.origin.yaw * Math.PI / 180;
       const localZ = Math.sin(originYaw) * (rear.x - residential.origin.x) +
         Math.cos(originYaw) * (rear.z - residential.origin.z);
@@ -78,19 +98,49 @@ it("reproduces court groups, varies seeds and keeps the central audience lane cl
 
 it("omits optional groups in small rooms and offers a working seat in larger halls", () => {
   const generator = new ThroneRoomGenerator();
-  const room = { id: "throne-hall", minX: 0, minZ: 0, maxX: 3, maxZ: 3.25 };
+  const room = {
+    id: "throne-hall",
+    minX: 0,
+    minZ: 0,
+    maxX: 3,
+    maxZ: 3.25,
+  };
   assert.deepEqual(generator.furnish(room), []);
-  const small = generator.furnish({ ...room, maxX: 3.5 });
+  const small = generator.furnish({
+    ...room,
+    maxX: 3.5,
+  });
   assert.equal(small.filter(item => item.object === "FloorCandelabrum").length, 2);
   assert.ok(!small.some(item => ["Lectern", "WritingDesk", "WarMapTable"].includes(item.object)));
-  const large = generator.furnish({ ...room, maxX: 5, maxZ: 5 }, { seed: 42 });
+  const large = generator.furnish({
+    ...room,
+    maxX: 5,
+    maxZ: 5,
+  }, { seed: 42 });
   assert.ok(large.some(item => item.object === "Chair"));
 });
 
 it("omits a blocked work group together with its tabletop details", () => {
-  const room = { id: "throne-hall", minX: 0, minZ: 0, maxX: 4, maxZ: 3.75, level: 0 };
-  const items = new ThroneRoomGenerator().furnish(room, { seed: 42,
-    openings: [{ roomId: room.id, kind: "door", side: "SOUTH", axis: "z", coordinate: 3.75, center: 3.5, width: 1 }] });
+  const room = {
+    id: "throne-hall",
+    minX: 0,
+    minZ: 0,
+    maxX: 4,
+    maxZ: 3.75,
+    level: 0,
+  };
+  const items = new ThroneRoomGenerator().furnish(room, {
+    seed: 42,
+    openings: [{
+      roomId: room.id,
+      kind: "door",
+      side: "SOUTH",
+      axis: "z",
+      coordinate: 3.75,
+      center: 3.5,
+      width: 1,
+    }],
+  });
   assert.ok(items.some(item => item.object === "FloorCandelabrum"));
   assert.ok(!items.some(item => ["Lectern", "WritingDesk", "WarMapTable", "OpenReadingBook", "DeskGlobe"].includes(item.object)));
 });
@@ -106,15 +156,39 @@ it("faces compact visitors toward the throne in both mirrored layouts", async ()
 });
 
 it("publishes actual prop definitions once and replaces old furnishings on regeneration", async () => {
-  const definition = { id: "court-test", object: "Castle", position: { x: -14, z: -8, width: 28, depth: 16, elevation: 3 },
-    doors: [{ side: "NORTH", offset: 13, width: 2 }], basePlanId: "castle-demo-compact", seed: 42 };
+  const definition = {
+    id: "court-test",
+    object: "Castle",
+    position: {
+      x: -14,
+      z: -8,
+      width: 28,
+      depth: 16,
+      elevation: 3,
+    },
+    doors: [{
+      side: "NORTH",
+      offset: 13,
+      width: 2,
+    }],
+    basePlanId: "castle-demo-compact",
+    seed: 42,
+  };
   definition.buildPlan = await CastleAuthoredBuildPlan.generate(definition);
-  const map = { cols: 42, rows: 32, objects: [definition] };
+  const map = {
+    cols: 42,
+    rows: 32,
+    objects: [definition],
+  };
   ThroneRoomMapObjects.prepareMap(map);
   const banners = map.objects.filter(item => item.object === "Banner");
   assert.equal(banners.length, 2);
   for (const banner of banners) {
-    assert.deepEqual(banner.stretch, { x: 0.975, y: 1.4, z: 1 });
+    assert.deepEqual(banner.stretch, {
+      x: 0.975,
+      y: 1.4,
+      z: 1,
+    });
     const dais = map.objects.find(item => item.object === "ThroneDais");
     assert.ok(Math.abs(banner.position.y - dais.position.y - 2.3) < 0.00001);
   }
@@ -122,7 +196,10 @@ it("publishes actual prop definitions once and replaces old furnishings on regen
   ThroneRoomMapObjects.prepareMap(map);
   assert.deepEqual(map.objects, first);
   assert.ok(map.objects.some(item => ["Lectern", "WritingDesk", "WarMapTable"].includes(item.object)));
-  definition.buildPlan = await CastleAuthoredBuildPlan.generate({ ...definition, seed: 48 });
+  definition.buildPlan = await CastleAuthoredBuildPlan.generate({
+    ...definition,
+    seed: 48,
+  });
   ThroneRoomMapObjects.prepareMap(map);
   assert.equal(map.objects.filter(item => item.courtFurnishing).length,
     definition.buildPlan.metadata.runtime.residential.furniture.filter(item => item.role === "courtProp").length);

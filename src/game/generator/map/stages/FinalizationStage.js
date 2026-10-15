@@ -76,39 +76,45 @@ export class FinalizationStage extends AbstractMapGenerationStage {
        * @param {import("src/game/GameContracts.js").GameObjectDefinition} vegetation
        * @param {number} index
        */
-      (vegetation, index) => ({
-        id: `vegetation-${index}`,
-        object: "Vegetation",
-        variant: vegetation.variant,
-        kind: vegetation.kind,
-        rotation: vegetation.rotation ?? 0,
-        tile: { col: vegetation.col, row: vegetation.row },
-        position: {
-          x: vegetation.col - (cols - 1) / 2,
-          y:
+        (vegetation, index) => ({
+          id: `vegetation-${index}`,
+          object: "Vegetation",
+          variant: vegetation.variant,
+          kind: vegetation.kind,
+          rotation: vegetation.rotation ?? 0,
+          tile: {
+            col: vegetation.col,
+            row: vegetation.row,
+          },
+          position: {
+            x: vegetation.col - (cols - 1) / 2,
+            y:
             heightmap[vegetation.row][vegetation.col] +
             this.#operations.grassSurfaceLift,
-          z: vegetation.row - (rows - 1) / 2,
-        },
-      })),
+            z: vegetation.row - (rows - 1) / 2,
+          },
+        })),
       ...stonePlacements.map(/**
        *
        * @param {number} stone
        * @param {number} index
        */
-      (stone, index) => ({
-        id: `stone-cluster-${index}`,
-        object: "StoneCluster",
-        tile: { col: stone.col, row: stone.row },
-        position: {
-          x: stone.col - (cols - 1) / 2,
-          y:
+        (stone, index) => ({
+          id: `stone-cluster-${index}`,
+          object: "StoneCluster",
+          tile: {
+            col: stone.col,
+            row: stone.row,
+          },
+          position: {
+            x: stone.col - (cols - 1) / 2,
+            y:
             heightmap[stone.row][stone.col] +
             this.#operations.grassSurfaceLift,
-          z: stone.row - (rows - 1) / 2,
-        },
-        parts: stone.parts,
-      })),
+            z: stone.row - (rows - 1) / 2,
+          },
+          parts: stone.parts,
+        })),
     ];
     objects.push(...layout.entries.map(/**
        *
@@ -130,16 +136,32 @@ export class FinalizationStage extends AbstractMapGenerationStage {
         },
       })));
     if (riverData.length) {
-      objects.push({ id: "rivers", object: "Rivers", rivers: riverData });
+      objects.push({
+        id: "rivers",
+        object: "Rivers",
+        rivers: riverData,
+      });
     }
     if (groundCoverData.length) {
-      objects.push({ id: "ground-cover", object: "GroundCover", placements: groundCoverData });
+      objects.push({
+        id: "ground-cover",
+        object: "GroundCover",
+        placements: groundCoverData,
+      });
     }
     if (layout.overpassPlan) {
-      objects.push({ id: "overpass", object: "Overpass", layout: layout.overpassPlan });
+      objects.push({
+        id: "overpass",
+        object: "Overpass",
+        layout: layout.overpassPlan,
+      });
     }
     if (context.features.islandConnectorData) {
-      objects.push({ id: "island-connector", object: "IslandConnector", topology: context.features.islandConnectorData });
+      objects.push({
+        id: "island-connector",
+        object: "IslandConnector",
+        topology: context.features.islandConnectorData,
+      });
     }
     const mapData = {
       grid,
@@ -147,7 +169,10 @@ export class FinalizationStage extends AbstractMapGenerationStage {
       tileMeta,
       cols,
       rows,
-      castlePos: { col: layout.castleLeft, row: layout.pathRows[0] },
+      castlePos: {
+        col: layout.castleLeft,
+        row: layout.pathRows[0],
+      },
       numPaths: layout.entries.length,
       objects,
       cliffVineData,

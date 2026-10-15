@@ -5,18 +5,37 @@ const REFERENCE_HEIGHT = 720;
 const PANEL_WIDTH = 214;
 const PANEL_HEIGHT = 134;
 const TEXTURE_SCALE = 2;
-const AXIS_ORIGIN = Object.freeze({ x: 66, y: 68 });
+const AXIS_ORIGIN = Object.freeze({
+  x: 66,
+  y: 68,
+});
 const GROUND_AXIS_LENGTH = 40;
 const VERTICAL_AXIS_LENGTH = 45;
-const WIND_ORIGIN = Object.freeze({ x: 168, y: 88 });
+const WIND_ORIGIN = Object.freeze({
+  x: 168,
+  y: 88,
+});
 const WIND_ARROW_LENGTH = 23;
 const DEFAULT_DIRECTIONS = Object.freeze({
-  x: { x: 0.88, y: -0.47 },
-  y: { x: 0.88, y: 0.47 },
-  z: { x: 0, y: -1 },
+  x: {
+    x: 0.88,
+    y: -0.47,
+  },
+  y: {
+    x: 0.88,
+    y: 0.47,
+  },
+  z: {
+    x: 0,
+    y: -1,
+  },
 });
 const DEFAULT_WIND = Object.freeze({
-  direction: { x: 0.78, y: 0, z: 0.48 },
+  direction: {
+    x: 0.78,
+    y: 0,
+    z: 0.48,
+  },
   speed: 0,
 });
 
@@ -245,7 +264,7 @@ export class DebugAxesHud {
      *
      * @param {number} value
      */
-    (value) => value.toFixed(3)).join(":");
+      (value) => value.toFixed(3)).join(":");
     if (!force && signature === this.#signature) {
       return;
     }
@@ -346,7 +365,10 @@ export class DebugAxesHud {
       wind.z * directions.y.y +
       wind.y * directions.z.y;
     const length = Math.max(0.001, Math.hypot(x, y));
-    return { x: x / length, y: y / length };
+    return {
+      x: x / length,
+      y: y / length,
+    };
   }
 
   /**

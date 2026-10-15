@@ -4,8 +4,11 @@ import { ExcavatedSurface } from "../../../../../src/game/rendering/terrain/Exca
 
 it("keeps all four tile boundaries and upward faces around the open cavity", () => {
   const mesh = {
-    setPositions(value) { this.positions = value; }, setNormals() {}, setUvs() {},
-    setIndices(value) { this.indices = value; }, update() {},
+    setPositions(value) { this.positions = value; },
+    setNormals() {},
+    setUvs() {},
+    setIndices(value) { this.indices = value; },
+    update() {},
   };
   ExcavatedSurface.updateMesh(mesh, 0.5, 0.31);
   for (let index = 0; index < mesh.positions.length; index += 6) {

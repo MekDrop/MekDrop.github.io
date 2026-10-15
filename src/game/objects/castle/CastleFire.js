@@ -71,10 +71,10 @@ export class CastleFire {
      *
      * @param {number} deltaTime
      */
-    (deltaTime) => {
-      this.#elapsed += deltaTime;
-      this.#animateLights();
-    });
+      (deltaTime) => {
+        this.#elapsed += deltaTime;
+        this.#animateLights();
+      });
   }
 
   get entity() {

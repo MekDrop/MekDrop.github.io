@@ -28,7 +28,7 @@ export function createCastleInteriorFloorAreas(plan, layout) {
    *
    * @param {{floorY:number,minX:number,maxX:number,minZ:number,maxZ:number}} area
    */
-  (area) => Math.abs(area.floorY - floor) < 0.01)];
+    (area) => Math.abs(area.floorY - floor) < 0.01)];
   const rectangles = [];
   const active = new Map();
   for (let row = 1; row < rows - 1; row += 1) {
@@ -41,7 +41,7 @@ export function createCastleInteriorFloorAreas(plan, layout) {
        *
        * @param {{floorY:number,minX:number,maxX:number,minZ:number,maxZ:number}} area
        */
-      (area) => point.x > area.minX - 0.000001 && point.x < area.maxX + 0.000001 && point.z > area.minZ - 0.000001 && point.z < area.maxZ + 0.000001);
+        (area) => point.x > area.minX - 0.000001 && point.x < area.maxX + 0.000001 && point.z > area.minZ - 0.000001 && point.z < area.maxZ + 0.000001);
       const valid = col < cols - 1 && covered.has(key) && !occupied.has(key) && !omitted;
       if (valid && start === null) start = col;
       if (!valid && start !== null) { spans.push([start, col]); start = null; }
@@ -49,7 +49,12 @@ export function createCastleInteriorFloorAreas(plan, layout) {
     const next = new Map();
     for (const [startCol, endCol] of spans) {
       const key = `${startCol},${endCol}`;
-      const rectangle = active.get(key) ?? { startCol, endCol, startRow: row, endRow: row };
+      const rectangle = active.get(key) ?? {
+        startCol,
+        endCol,
+        startRow: row,
+        endRow: row,
+      };
       rectangle.endRow = row + 1;
       if (!active.has(key)) rectangles.push(rectangle);
       next.set(key, rectangle);
@@ -62,10 +67,16 @@ export function createCastleInteriorFloorAreas(plan, layout) {
    * @param {{startCol:number,endCol:number,startRow:number,endRow:number}} rectangle
    * @param {number} index
    */
-  (rectangle, index) => {
-    const a = layout.toLocal(position.x + rectangle.startCol * size, position.z + rectangle.startRow * size);
-    const b = layout.toLocal(position.x + rectangle.endCol * size, position.z + rectangle.endRow * size);
-    return { id: `interiorFloor:${index}`, minX: Math.min(a.x, b.x), maxX: Math.max(a.x, b.x),
-      minZ: Math.min(a.z, b.z), maxZ: Math.max(a.z, b.z), floorY: floor };
-  });
+    (rectangle, index) => {
+      const a = layout.toLocal(position.x + rectangle.startCol * size, position.z + rectangle.startRow * size);
+      const b = layout.toLocal(position.x + rectangle.endCol * size, position.z + rectangle.endRow * size);
+      return {
+        id: `interiorFloor:${index}`,
+        minX: Math.min(a.x, b.x),
+        maxX: Math.max(a.x, b.x),
+        minZ: Math.min(a.z, b.z),
+        maxZ: Math.max(a.z, b.z),
+        floorY: floor,
+      };
+    });
 }

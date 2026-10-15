@@ -22,19 +22,19 @@ export async function loadGameCanvasPluginConfig({
    * @param {{messageKeys: string[]}} options
    * @param {string[]} options.messageKeys
    */
-  ({ messageKeys, ...entry }) => ({
-    ...entry,
-    messages: Object.fromEntries(
-      Object.entries(messageKeys ?? {}).map(/**
+    ({ messageKeys, ...entry }) => ({
+      ...entry,
+      messages: Object.fromEntries(
+        Object.entries(messageKeys ?? {}).map(/**
        *
        * @param {{"0": Array, "1": Array}} options
        * @param {Array} options."0"
        * @param {Array} options."1"
        */
-      ([name, key]) => [
-        name,
-        translate?.(key) ?? key,
-      ]),
-    ),
-  }));
+          ([name, key]) => [
+            name,
+            translate?.(key) ?? key,
+          ]),
+      ),
+    }));
 }

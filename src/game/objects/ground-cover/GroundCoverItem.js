@@ -17,7 +17,11 @@ const MUSHROOM_CRUSH_SPREAD = 0.04;
  */
 function normalizedScale(scale) {
   if (typeof scale === "number") {
-    return { x: scale, y: scale, z: scale };
+    return {
+      x: scale,
+      y: scale,
+      z: scale,
+    };
   }
   return scale;
 }
@@ -209,7 +213,11 @@ export class GroundCoverItem {
 
     this.#variant = variant;
 
-    this.#position = { x, y, z };
+    this.#position = {
+      x,
+      y,
+      z,
+    };
 
     this.#scale = scale;
 

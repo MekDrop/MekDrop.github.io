@@ -12,10 +12,10 @@ import {
 function defaultScale(definition) {
   return definition.category === "flower"
     ? {
-        x: definition.horizontalScale,
-        y: definition.verticalScale,
-        z: definition.horizontalScale,
-      }
+      x: definition.horizontalScale,
+      y: definition.verticalScale,
+      z: definition.horizontalScale,
+    }
     : definition.scale;
 }
 

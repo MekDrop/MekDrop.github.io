@@ -59,7 +59,7 @@ export const ROOM_PROP_HEIGHTS = {
   "WashBasin": 0.2362,
   "WaterBucket": 0.388,
   "Rug": 0.025,
-  "WritingDesk": 0.65
+  "WritingDesk": 0.65,
 };
 export const ROOM_PROP_BOTTOMS = {
   "BedsideDrawers": 0,
@@ -121,5 +121,5 @@ export const ROOM_PROP_BOTTOMS = {
   "WashBasin": 0,
   "WaterBucket": 0,
   "Rug": 0,
-  "WritingDesk": 0
+  "WritingDesk": 0,
 };

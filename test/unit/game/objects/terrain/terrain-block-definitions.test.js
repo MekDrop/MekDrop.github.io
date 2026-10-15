@@ -8,7 +8,22 @@ import { MAP_TILE_TYPE } from "../../../../../src/game/enum/MapTileType.js";
 
 
 function map() {
-  return { cols: 2, rows: 2, grid: [[1, 1], [1, 0]], heightmap: [[2, 1], [1, 0]], tileMeta: [[{}, {}], [{}, {}]], objects: [{ id: "authored", object: "Earth", position: { x: 0, y: 4.5, z: 0 } }] };
+  return {
+    cols: 2,
+    rows: 2,
+    grid: [[1, 1], [1, 0]],
+    heightmap: [[2, 1], [1, 0]],
+    tileMeta: [[{}, {}], [{}, {}]],
+    objects: [{
+      id: "authored",
+      object: "Earth",
+      position: {
+        x: 0,
+        y: 4.5,
+        z: 0,
+      },
+    }],
+  };
 }
 
 describe("terrain map-object integration", () => {
@@ -32,7 +47,14 @@ describe("terrain map-object integration", () => {
     assert.equal(surface.object, "Earth");
     assert.equal(surface.geometry.args[1], "earthSide:0:0:1");
     assert.ok(!subject.renderCommands.some(({ args }) => args[0] === "surface:0:0:1"));
-    assert.deepEqual(clipCastleTerrainRecord(surface, [{ minX: -1, maxX: 0, minY: 1, maxY: 2, minZ: -1, maxZ: 0 }]), []);
+    assert.deepEqual(clipCastleTerrainRecord(surface, [{
+      minX: -1,
+      maxX: 0,
+      minY: 1,
+      maxY: 2,
+      minZ: -1,
+      maxZ: 0,
+    }]), []);
   });
 
   it("materializes surface, fill, and underside blocks without changing authored definitions or grid", () => {
@@ -43,7 +65,11 @@ describe("terrain map-object integration", () => {
     const grass = subject.objects.filter((definition) => definition.object === "Grass");
     assert.equal(grass.length, 3);
     const top = grass.find(({ tile }) => tile.col === 0 && tile.row === 0);
-    assert.deepEqual(top.position, { x: -0.5, y: 1.5, z: -0.5 });
+    assert.deepEqual(top.position, {
+      x: -0.5,
+      y: 1.5,
+      z: -0.5,
+    });
     assert.equal(top.geometry.args[7], GRASS_SURFACE_LIFT);
     assert.ok(subject.objects.some(({ object, position }) => object === "Earth" && position.y < 0));
     const fill = subject.objects.find(({ generated, tile, position }) => generated && tile.col === 0 && tile.row === 0 && position.y === 0.5);
@@ -58,7 +84,11 @@ describe("terrain map-object integration", () => {
   });
 
   it("publishes deterministic object records from generated maps, retaining the original terrain", async () => {
-    const options = { mapName: "terrain-object-contract", numPaths: 2, numRivers: 0 };
+    const options = {
+      mapName: "terrain-object-contract",
+      numPaths: 2,
+      numRivers: 0,
+    };
     const first = await MapGenerator.generate(options);
     const second = await MapGenerator.generate(options);
     assert.deepEqual(first.objects, second.objects);

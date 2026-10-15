@@ -22,8 +22,17 @@ class FakeEntity {
   enabled = true;
   children = [];
   components = new Map();
-  position = { x: 0, y: 0, z: 0 };
-  rotation = { x: 0, y: 0, z: 0, w: 1 };
+  position = {
+    x: 0,
+    y: 0,
+    z: 0,
+  };
+  rotation = {
+    x: 0,
+    y: 0,
+    z: 0,
+    w: 1,
+  };
   angles = null;
   scale = null;
   destroyed = false;
@@ -54,11 +63,19 @@ class FakeEntity {
   setPosition(positionOrX, y, z) {
     this.position = y === undefined
       ? { ...positionOrX }
-      : { x: positionOrX, y, z };
+      : {
+        x: positionOrX,
+        y,
+        z,
+      };
   }
 
   setEulerAngles(x, y, z) {
-    this.angles = { x, y, z };
+    this.angles = {
+      x,
+      y,
+      z,
+    };
   }
 
   getPosition() {
@@ -74,7 +91,11 @@ class FakeEntity {
   }
 
   setLocalScale(x, y, z) {
-    this.scale = { x, y, z };
+    this.scale = {
+      x,
+      y,
+      z,
+    };
   }
 
   destroy() {
@@ -85,7 +106,11 @@ class FakeEntity {
 it("plays one camera-facing double pat at the clicked scalp position, then hides", () => {
   const model = new FakeEntity("Patting hand model");
   const track = { duration: 26 / 24 };
-  let patPosition = { x: 3, y: 4, z: 5 };
+  let patPosition = {
+    x: 3,
+    y: 4,
+    z: 5,
+  };
   let viewRotation = 2;
   let contacts = 0;
   const hand = new HeroPatHand({
@@ -132,12 +157,24 @@ it("plays one camera-facing double pat at the clicked scalp position, then hides
     group: 1024,
     mask: 512,
   });
-  assert.deepEqual(model.scale, { x: 0.75, y: 0.75, z: 0.75 });
+  assert.deepEqual(model.scale, {
+    x: 0.75,
+    y: 0.75,
+    z: 0.75,
+  });
   assert.equal(model.anim.speed, 1);
   assert.equal(hand.pat(), true);
   assert.equal(hand.entity.enabled, true);
-  assert.deepEqual(hand.entity.position, { x: 3, y: 4, z: 5 });
-  assert.deepEqual(hand.entity.angles, { x: 0, y: 225, z: 0 });
+  assert.deepEqual(hand.entity.position, {
+    x: 3,
+    y: 4,
+    z: 5,
+  });
+  assert.deepEqual(hand.entity.angles, {
+    x: 0,
+    y: 225,
+    z: 0,
+  });
   assert.deepEqual(model.anim.baseLayer.played, ["Pat"]);
   assert.equal(hand.pat(), false);
   assert.deepEqual(model.anim.baseLayer.played, ["Pat"]);
@@ -162,17 +199,29 @@ it("plays one camera-facing double pat at the clicked scalp position, then hides
   ]) {
     viewRotation = rotation;
     assert.equal(hand.pat(), true);
-    assert.deepEqual(hand.entity.angles, { x: 0, y: yaw, z: 0 });
+    assert.deepEqual(hand.entity.angles, {
+      x: 0,
+      y: yaw,
+      z: 0,
+    });
     hand.update(2);
     assert.equal(hand.entity.enabled, false);
   }
 
   assert.equal(hand.pat(), true);
-  patPosition = { x: 8, y: 9, z: 10 };
+  patPosition = {
+    x: 8,
+    y: 9,
+    z: 10,
+  };
   viewRotation = 3;
   hand.update(0.7);
   assert.equal(hand.entity.enabled, true);
-  assert.deepEqual(hand.entity.position, { x: 3, y: 4, z: 5 });
+  assert.deepEqual(hand.entity.position, {
+    x: 3,
+    y: 4,
+    z: 5,
+  });
   hand.update(0.4);
   assert.equal(hand.entity.enabled, false);
 

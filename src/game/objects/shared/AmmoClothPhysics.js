@@ -253,7 +253,11 @@ export class AmmoClothPhysics {
       return;
     }
     cloth.pointerPoint = this.#copyPoint(point);
-    this.#applyPointerVelocity(cloth, point, { x: 0, y: 0, z: 0 }, 0.12);
+    this.#applyPointerVelocity(cloth, point, {
+      x: 0,
+      y: 0,
+      z: 0,
+    }, 0.12);
   }
 
   /**
@@ -561,7 +565,7 @@ export class AmmoClothPhysics {
          *
          * @param {number} value
          */
-        (value) => value / restLength),
+          (value) => value / restLength),
         right,
       });
       body.appendLink(nodes.at(left), nodes.at(right), material, false);
@@ -581,7 +585,11 @@ export class AmmoClothPhysics {
         material,
       );
     }
-    return { body, material, stretchConstraints };
+    return {
+      body,
+      material,
+      stretchConstraints,
+    };
   }
 
   /**
@@ -741,8 +749,8 @@ export class AmmoClothPhysics {
      *
      * @param {number} index
      */
-    (index) =>
-      nodes.at(index).get_m_x(),
+      (index) =>
+        nodes.at(index).get_m_x(),
     );
     const centerX = collider.centerX ?? 0;
     const centerZ = collider.centerZ ?? 0;
@@ -849,7 +857,7 @@ export class AmmoClothPhysics {
      *
      * @param {number} index
      */
-    (index) => nodes.at(index).get_m_x());
+      (index) => nodes.at(index).get_m_x());
     const denominator =
       (points[1].z() - points[2].z()) * (points[0].x() - points[2].x()) +
       (points[2].x() - points[1].x()) * (points[0].z() - points[2].z());
@@ -955,7 +963,7 @@ export class AmmoClothPhysics {
      *
      * @param {number} index
      */
-    (index) => nodes.at(index).get_m_x());
+      (index) => nodes.at(index).get_m_x());
     const x = positions.reduce(
       /**
        *
@@ -1013,7 +1021,7 @@ export class AmmoClothPhysics {
      *
      * @param {number} index
      */
-    (index) => nodes.at(index).get_m_v());
+      (index) => nodes.at(index).get_m_v());
     const inwardSpeed = velocities.reduce(
       /**
        *
@@ -1072,20 +1080,23 @@ export class AmmoClothPhysics {
     const normal =
       normalizedX >= normalizedZ
         ? [
-            (Math.sign(offsetX) * collider.height) / collider.halfWidth,
-            1,
-            0,
-          ]
+          (Math.sign(offsetX) * collider.height) / collider.halfWidth,
+          1,
+          0,
+        ]
         : [
-            0,
-            1,
-            (Math.sign(offsetZ) * collider.height) / collider.halfDepth,
-          ];
+          0,
+          1,
+          (Math.sign(offsetZ) * collider.height) / collider.halfDepth,
+        ];
     const inverseNormalLength = 1 / Math.hypot(...normal);
     normal[0] *= inverseNormalLength;
     normal[1] *= inverseNormalLength;
     normal[2] *= inverseNormalLength;
-    return { normal, penetration: roofY - y };
+    return {
+      normal,
+      penetration: roofY - y,
+    };
   }
 
   /**
@@ -1220,6 +1231,10 @@ export class AmmoClothPhysics {
    * @param {{x: number, y: number, z: number}} point
    */
   #copyPoint(point) {
-    return { x: point.x, y: point.y, z: point.z };
+    return {
+      x: point.x,
+      y: point.y,
+      z: point.z,
+    };
   }
 }

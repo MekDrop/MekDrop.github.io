@@ -43,7 +43,10 @@ export class RouteDataBuilder {
     if (previous?.col2 === col2 && previous?.row2 === row2) {
       return;
     }
-    waypoints.push({ col2, row2 });
+    waypoints.push({
+      col2,
+      row2,
+    });
   }
 
   /**
@@ -116,7 +119,10 @@ export class RouteDataBuilder {
       while (col2 !== destination.col2 || row2 !== destination.row2) {
         col2 += stepCol;
         row2 += stepRow;
-        points.push({ col2, row2 });
+        points.push({
+          col2,
+          row2,
+        });
       }
     }
 
@@ -179,7 +185,11 @@ export class RouteDataBuilder {
 
     while (true) {
       const [col2, row2, elevation] = key.split(",").map(Number);
-      route.push({ col: col2 / 2, row: row2 / 2, elevation });
+      route.push({
+        col: col2 / 2,
+        row: row2 / 2,
+        elevation,
+      });
       if (key === targetKey) {
         return route;
       }
@@ -190,7 +200,7 @@ export class RouteDataBuilder {
          *
          * @param {string} neighbor
          */
-        (neighbor) => distances.get(neighbor) === distance - 1)
+          (neighbor) => distances.get(neighbor) === distance - 1)
         .sort()[0];
 
       if (!nextKey) {
@@ -211,100 +221,100 @@ export class RouteDataBuilder {
      * @param {MapCell[]} route
      * @param {number} pathIdx
      */
-    (route, pathIdx) => {
-      const turnIndices = new Set();
-      const distancesToCastle = new Array(route.length).fill(0);
-      for (let index = 1; index < route.length - 1; index++) {
-        const previous = route[index - 1];
-        const current = route[index];
-        const next = route[index + 1];
-        const incomingDc = current.col - previous.col;
-        const incomingDr = current.row - previous.row;
-        const outgoingDc = next.col - current.col;
-        const outgoingDr = next.row - current.row;
-        if (incomingDc !== outgoingDc || incomingDr !== outgoingDr) {
-          turnIndices.add(index);
+      (route, pathIdx) => {
+        const turnIndices = new Set();
+        const distancesToCastle = new Array(route.length).fill(0);
+        for (let index = 1; index < route.length - 1; index++) {
+          const previous = route[index - 1];
+          const current = route[index];
+          const next = route[index + 1];
+          const incomingDc = current.col - previous.col;
+          const incomingDr = current.row - previous.row;
+          const outgoingDc = next.col - current.col;
+          const outgoingDr = next.row - current.row;
+          if (incomingDc !== outgoingDc || incomingDr !== outgoingDr) {
+            turnIndices.add(index);
+          }
         }
-      }
-      for (let index = route.length - 2; index >= 0; index--) {
-        distancesToCastle[index] =
-          distancesToCastle[index + 1] +
+        for (let index = route.length - 2; index >= 0; index--) {
+          distancesToCastle[index] =
+            distancesToCastle[index + 1] +
           Math.hypot(
             route[index + 1].col - route[index].col,
             route[index + 1].row - route[index].row,
           );
-      }
-
-      let distanceFromGate = 0;
-      for (let index = 1; index < route.length - 1; index++) {
-        const current = route[index];
-        const next = route[index + 1];
-        const previous = route[index - 1];
-        distanceFromGate += Math.hypot(
-          current.col - previous.col,
-          current.row - previous.row,
-        );
-        if (
-          distanceFromGate <= MIN_ARROW_GATE_CLEARANCE ||
-          distancesToCastle[index] <= MIN_ARROW_CASTLE_CLEARANCE
-        ) {
-          continue;
         }
-        let dc = next.col - current.col;
-        let dr = next.row - current.row;
-        const previousDc = current.col - previous.col;
-        const previousDr = current.row - previous.row;
-        const startsTurn = turnIndices.has(index);
-        if (startsTurn) {
-          dc += previousDc;
-          dr += previousDr;
-        } else if (
-          [...turnIndices].some(/**
+
+        let distanceFromGate = 0;
+        for (let index = 1; index < route.length - 1; index++) {
+          const current = route[index];
+          const next = route[index + 1];
+          const previous = route[index - 1];
+          distanceFromGate += Math.hypot(
+            current.col - previous.col,
+            current.row - previous.row,
+          );
+          if (
+            distanceFromGate <= MIN_ARROW_GATE_CLEARANCE ||
+          distancesToCastle[index] <= MIN_ARROW_CASTLE_CLEARANCE
+          ) {
+            continue;
+          }
+          let dc = next.col - current.col;
+          let dr = next.row - current.row;
+          const previousDc = current.col - previous.col;
+          const previousDr = current.row - previous.row;
+          const startsTurn = turnIndices.has(index);
+          if (startsTurn) {
+            dc += previousDc;
+            dr += previousDr;
+          } else if (
+            [...turnIndices].some(/**
            *
            * @param {number} turnIndex
            */
-          (turnIndex) => Math.abs(turnIndex - index) <= 2)
-        ) {
-          continue;
-        }
-        const col2 = Math.round(current.col * 2);
-        const row2 = Math.round(current.row * 2);
-        const colParity = Math.abs(col2) % 2;
-        const rowParity = Math.abs(row2) % 2;
-        if (startsTurn) {
-          if (colParity !== 1 || rowParity !== 1) {
+              (turnIndex) => Math.abs(turnIndex - index) <= 2)
+          ) {
             continue;
           }
-        } else if (colParity === rowParity) {
-          continue;
-        }
+          const col2 = Math.round(current.col * 2);
+          const row2 = Math.round(current.row * 2);
+          const colParity = Math.abs(col2) % 2;
+          const rowParity = Math.abs(row2) % 2;
+          if (startsTurn) {
+            if (colParity !== 1 || rowParity !== 1) {
+              continue;
+            }
+          } else if (colParity === rowParity) {
+            continue;
+          }
 
-        const axis2 = dc === 0 ? row2 : col2;
-        if (!startsTurn && Math.abs(axis2) % 4 !== 0) { continue; }
+          const axis2 = dc === 0 ? row2 : col2;
+          if (!startsTurn && Math.abs(axis2) % 4 !== 0) { continue; }
 
-        const elevation = current.elevation ?? PATH_HEIGHT;
-        const nextElevation = next.elevation ?? PATH_HEIGHT;
-        const segmentLength = Math.hypot(
-          next.col - current.col,
-          next.row - current.row,
-        );
-        const surfacePitch = segmentLength
-          ? (Math.atan2(nextElevation - elevation, segmentLength) * 180) /
+          const elevation = current.elevation ?? PATH_HEIGHT;
+          const nextElevation = next.elevation ?? PATH_HEIGHT;
+          const segmentLength = Math.hypot(
+            next.col - current.col,
+            next.row - current.row,
+          );
+          const surfacePitch = segmentLength
+            ? (Math.atan2(nextElevation - elevation, segmentLength) * 180) /
             Math.PI
-          : 0;
-        const key = `${col2 / 2},${row2 / 2},${elevation}`;
-        const arrows = arrowData.get(key) ?? [];
-        arrows.push({
-          dc,
-          dr,
-          elevation,
-          marker: startsTurn ? "turn" : "arrow",
-          pathIdx,
-          surfacePitch,
-        });
-        arrowData.set(key, arrows);
-      }
-    });
+            : 0;
+          const key = `${col2 / 2},${row2 / 2},${elevation}`;
+          const arrows = arrowData.get(key) ?? [];
+          arrows.push({
+            dc,
+            dr,
+            elevation,
+            marker: startsTurn ? "turn" : "arrow",
+            pathIdx,
+            surfacePitch,
+          });
+          arrowData.set(key, arrows);
+        }
+      });
 
     return arrowData;
   }
@@ -319,18 +329,18 @@ export class RouteDataBuilder {
      * @param {LayoutEntry} entry
      * @param {number} pathIdx
      */
-    (entry, pathIdx) => {
-      const route = this.#applyRouteElevations(
-        this.#expandRouteWaypoints(this.#buildRouteWaypoints(layout, entry)),
-        pathIdx,
-        layout.overpassPlan,
-        layout.pathDipPlans,
-      );
-      for (let index = 1; index < route.length; index++) {
-        this.#connectRouteNodes(graph, route[index - 1], route[index]);
-      }
-      return route;
-    });
+      (entry, pathIdx) => {
+        const route = this.#applyRouteElevations(
+          this.#expandRouteWaypoints(this.#buildRouteWaypoints(layout, entry)),
+          pathIdx,
+          layout.overpassPlan,
+          layout.pathDipPlans,
+        );
+        for (let index = 1; index < route.length; index++) {
+          this.#connectRouteNodes(graph, route[index - 1], route[index]);
+        }
+        return route;
+      });
     const targetKey = this.#routeNodeKey(
       layout.castleEntranceCol * 2,
       layout.pathRows[0] + layout.pathRows[1],
@@ -341,16 +351,19 @@ export class RouteDataBuilder {
      *
      * @param {RouteWaypoint[]} route
      */
-    (route) =>
-      this.#followQuickestRoute(
-        graph,
-        distances,
-        this.#routeNodeKey(route[0].col2, route[0].row2, route[0].elevation),
-        targetKey,
-      ),
+      (route) =>
+        this.#followQuickestRoute(
+          graph,
+          distances,
+          this.#routeNodeKey(route[0].col2, route[0].row2, route[0].elevation),
+          targetKey,
+        ),
     );
 
-    return { routes, arrowData: this.buildArrowData(routes) };
+    return {
+      routes,
+      arrowData: this.buildArrowData(routes),
+    };
   }
 
   /**
@@ -364,44 +377,50 @@ export class RouteDataBuilder {
     const crossingRow2 = overpassPlan?.crossing.row * 2 + 1;
     const raisedEntryEndIndex = overpassPlan?.raisedEntryApproach
       ? route.findIndex(
-          /**
+        /**
            *
            * @param {RouteWaypoint} point
            */
-          (point) => point.col2 === crossingCol2 && point.row2 === crossingRow2,
-        )
+        (point) => point.col2 === crossingCol2 && point.row2 === crossingRow2,
+      )
       : -1;
     return route.map(/**
      *
      * @param {RouteWaypoint} point
      * @param {number} pointIndex
      */
-    (point, pointIndex) => {
-      let elevation = this.#terrainPathDipElevation(point, pathDipPlans);
-      if (
-        overpassPlan &&
+      (point, pointIndex) => {
+        let elevation = this.#terrainPathDipElevation(point, pathDipPlans);
+        if (
+          overpassPlan &&
         pathIdx === overpassPlan.upperPathIdx &&
         raisedEntryEndIndex >= 0 &&
         pointIndex <= raisedEntryEndIndex
-      ) {
-        return { ...point, elevation: overpassPlan.deckElevation };
-      }
-      if (
-        overpassPlan &&
+        ) {
+          return {
+            ...point,
+            elevation: overpassPlan.deckElevation,
+          };
+        }
+        if (
+          overpassPlan &&
         pathIdx === overpassPlan.upperPathIdx &&
         point.col2 === crossingCol2
-      ) {
-        const distance = Math.abs(point.row2 - crossingRow2) / 2;
-        if (distance <= 2) {
-          elevation = overpassPlan.deckElevation;
-        } else if (distance <= 2 + OVERPASS_RAMP_TILES) {
-          elevation =
-            overpassPlan.deckElevation -
+        ) {
+          const distance = Math.abs(point.row2 - crossingRow2) / 2;
+          if (distance <= 2) {
+            elevation = overpassPlan.deckElevation;
+          } else if (distance <= 2 + OVERPASS_RAMP_TILES) {
+            elevation =
+              overpassPlan.deckElevation -
             (distance - 2) * OVERPASS_HALF_STEP;
+          }
         }
-      }
-      return { ...point, elevation };
-    });
+        return {
+          ...point,
+          elevation,
+        };
+      });
   }
 
   /**

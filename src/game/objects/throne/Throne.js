@@ -28,8 +28,16 @@ export class Throne extends AbstractCastleProp {
       const forward = (zone?.maxZ ?? room.maxZ) - (layout.throneRearWindow ? 0.35 : 0.65);
       const position = layout.toWorld((room.minX + room.maxX) / 2, Math.max(0, forward), layout.throneSupportHeight);
       const id = castle.id + "-throne";
-      const definition = { id, object: Throne.name, position, rotation: layout.yaw + 270, scale: 0.85,
-        tile: castle.tile, generated: true, sourceCastleId: castle.id };
+      const definition = {
+        id,
+        object: Throne.name,
+        position,
+        rotation: layout.yaw + 270,
+        scale: 0.85,
+        tile: castle.tile,
+        generated: true,
+        sourceCastleId: castle.id,
+      };
       const existing = objects.findIndex(
         /**
          * @param {import("../ObjectTypes.js").MapObjectDefinition} item

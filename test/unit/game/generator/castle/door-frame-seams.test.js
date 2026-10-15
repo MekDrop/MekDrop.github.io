@@ -6,8 +6,19 @@ it("seats every interior door frame against masonry on both faces", async () => 
   for (const seed of [4, 5]) {
     for (const side of ["NORTH", "SOUTH", "EAST", "WEST"]) {
       const build = await CastleGenerator.generate({
-        position: { x: -14, z: -8, width: 28, depth: 16, elevation: 3 },
-        doors: [{ side, offset: 13, width: 2 }], seed,
+        position: {
+          x: -14,
+          z: -8,
+          width: 28,
+          depth: 16,
+          elevation: 3,
+        },
+        doors: [{
+          side,
+          offset: 13,
+          width: 2,
+        }],
+        seed,
       });
       for (const door of build.metadata.runtime.roomDoors) {
         // The inspected frame's front face is at local Z=0.19, with Z scale
@@ -41,7 +52,21 @@ it("seats every interior door frame against masonry on both faces", async () => 
 
 it("keeps the frame front inside the wall opening for every enabled layout", async () => {
   for (const seed of [0, 1, 2, 3, 4, 5]) {
-    const build = await CastleGenerator.generate({ position: { x: -4, z: -4, width: 8, depth: 8, elevation: 2 }, doors: [{ side: "NORTH", offset: 3, width: 2 }], seed });
+    const build = await CastleGenerator.generate({
+      position: {
+        x: -4,
+        z: -4,
+        width: 8,
+        depth: 8,
+        elevation: 2,
+      },
+      doors: [{
+        side: "NORTH",
+        offset: 3,
+        width: 2,
+      }],
+      seed,
+    });
     for (const door of build.metadata.runtime.roomDoors) {
       const angle = door.yaw * Math.PI / 180;
       const across = door.width * 0.59 + 0.02;

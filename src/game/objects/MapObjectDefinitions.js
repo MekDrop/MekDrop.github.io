@@ -19,10 +19,14 @@ export class MapObjectDefinitions {
        *
        * @param {import("./ObjectTypes.js").MapObjectDefinition} definition
        */
-      (definition) => definition.id === uniqueId)) {
+        (definition) => definition.id === uniqueId)) {
         uniqueId += "-legacy";
       }
-      map.objects.push({ id: uniqueId, object, ...properties });
+      map.objects.push({
+        id: uniqueId,
+        object,
+        ...properties,
+      });
     };
     /**
      * @param {string} field
@@ -46,7 +50,7 @@ export class MapObjectDefinitions {
       map.objects = map.objects.filter(/**
        * @param {import("./ObjectTypes.js").MapObjectDefinition} definition
        */
-      (definition) => definition.object !== "SpawnPoint");
+        (definition) => definition.object !== "SpawnPoint");
       add("SpawnPoint", "hero-spawn", { position: map.heroSpawn });
     }
     if (authored("islandConnectorData") && map.islandConnectorData) {
@@ -57,7 +61,7 @@ export class MapObjectDefinitions {
        *
        * @param {import("./ObjectTypes.js").MapObjectDefinition} definition
        */
-      (definition) => definition.object === "Castle");
+        (definition) => definition.object === "Castle");
       if (castle) {
         castle.navigation = map.castle;
       }
@@ -66,7 +70,7 @@ export class MapObjectDefinitions {
       const castles = map.objects.filter(/**
        * @param {import("./ObjectTypes.js").MapObjectDefinition} definition
        */
-      (definition) => definition.object === "Castle");
+        (definition) => definition.object === "Castle");
       for (const [index, navigation] of (map.castles ?? []).entries()) {
         if (castles[index]) {
           castles[index].navigation ??= navigation;
@@ -104,7 +108,7 @@ export class MapObjectDefinitions {
         map.objects = map.objects.filter(/**
          * @param {import("./ObjectTypes.js").MapObjectDefinition} definition
          */
-        (definition) => definition.object !== object);
+          (definition) => definition.object !== object);
       } else if (record) {
         record[field] = value;
       } else {
@@ -117,53 +121,62 @@ export class MapObjectDefinitions {
      * @param {(value: import("./ObjectTypes.js").MapObjectDefinition[keyof import("./ObjectTypes.js").MapObjectDefinition]) => void} [set]
      */
     const view = (field, get, set) => {
-      Object.defineProperty(map, field, { configurable: true, enumerable: false, get, set });
+      Object.defineProperty(map, field, {
+        configurable: true,
+        enumerable: false,
+        get,
+        set,
+      });
     };
     view("entries", () => map.objects.filter(/**
      *
      * @param {import("./ObjectTypes.js").MapObjectDefinition} definition
      */
-    (definition) => definition.object === "Gateway").map(/**
+      (definition) => definition.object === "Gateway").map(/**
      *
      * @param {import("./ObjectTypes.js").MapObjectDefinition} definition
      */
-    (definition) => definition.entry));
+      (definition) => definition.entry));
     view("riverData", () => first("Rivers")?.rivers ?? [], /**
      * @param {import("./ObjectTypes.js").MapObjectDefinition["rivers"]} rivers
      */
-    (rivers) => write("Rivers", "rivers", rivers));
+      (rivers) => write("Rivers", "rivers", rivers));
     view("groundCoverData", () => first("GroundCover")?.placements ?? [], /**
      *
      * @param {import("../generator/map/MapGenerationTypes.js").GroundCoverData} placements
      */
-    (placements) => {
-      map.objects = map.objects.filter(/**
+      (placements) => {
+        map.objects = map.objects.filter(/**
        *
        * @param {import("./ObjectTypes.js").MapObjectDefinition} definition
        */
-      (definition) => definition.object !== "GroundCover");
-      map.objects.push({ id: "ground-cover", object: "GroundCover", placements });
-    });
+          (definition) => definition.object !== "GroundCover");
+        map.objects.push({
+          id: "ground-cover",
+          object: "GroundCover",
+          placements,
+        });
+      });
     view("overpassData", () => first("Overpass")?.layout ?? null, /**
      * @param {import("./ObjectTypes.js").PathOverpass} layout
      */
-    (layout) => write("Overpass", "layout", layout));
+      (layout) => write("Overpass", "layout", layout));
     view("heroSpawn", () => first("SpawnPoint")?.position, /**
      *
      * @param {import("./ObjectTypes.js").Point3} position
      */
-    (position) => {
-      const spawn = first("SpawnPoint");
-      if (spawn) {
-        spawn.position = position;
-      } else {
-        add("SpawnPoint", "hero-spawn", { position });
-      }
-    });
+      (position) => {
+        const spawn = first("SpawnPoint");
+        if (spawn) {
+          spawn.position = position;
+        } else {
+          add("SpawnPoint", "hero-spawn", { position });
+        }
+      });
     view("islandConnectorData", () => first("IslandConnector")?.topology, /**
      * @param {import("./ObjectTypes.js").MapObjectDefinition["topology"]} topology
      */
-    (topology) => write("IslandConnector", "topology", topology));
+      (topology) => write("IslandConnector", "topology", topology));
     if (first("Castle") || !map.castle) {
       view("castle", () => first("Castle")?.navigation ?? null);
     }

@@ -206,9 +206,16 @@ export class RiverRuntimeEffects {
       z - flow.row * radius * 0.8,
     );
     spray.addComponent('particlesystem', {
-      numParticles: 7, lifetime: 0.65, rate: 0.12, rate2: 0.2,
-      loop: true, preWarm: true, lighting: false, depthWrite: false,
-      blendType: this.#pc.BLEND_NORMAL, localSpace: true,
+      numParticles: 7,
+      lifetime: 0.65,
+      rate: 0.12,
+      rate2: 0.2,
+      loop: true,
+      preWarm: true,
+      lighting: false,
+      depthWrite: false,
+      blendType: this.#pc.BLEND_NORMAL,
+      localSpace: true,
       emitterShape: this.#pc.EMITTERSHAPE_BOX,
       emitterExtents: new this.#pc.Vec3(radius * 0.45, 0.015, radius * 0.45),
       colorMap: this.#mistTexture,
@@ -318,14 +325,26 @@ export class RiverRuntimeEffects {
    */
   #directionVector(direction) {
     if (direction === 'NORTH') {
-      return { col: 0, row: -1 };
+      return {
+        col: 0,
+        row: -1,
+      };
     }
     if (direction === 'EAST') {
-      return { col: 1, row: 0 };
+      return {
+        col: 1,
+        row: 0,
+      };
     }
     if (direction === 'SOUTH') {
-      return { col: 0, row: 1 };
+      return {
+        col: 0,
+        row: 1,
+      };
     }
-    return { col: -1, row: 0 };
+    return {
+      col: -1,
+      row: 0,
+    };
   }
 }

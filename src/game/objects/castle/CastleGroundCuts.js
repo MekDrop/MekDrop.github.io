@@ -27,7 +27,7 @@ export function createCastleGroundCuts(plan, layout = null) {
   const authoredGround = residential.basePlanId ? residential.spaces.filter(/**
    * @param {{level:number,kind:string}} space
    */
-  (space) => space.level <= 0 && space.kind !== "void" && space.kind !== "courtyard") : null;
+    (space) => space.level <= 0 && space.kind !== "void" && space.kind !== "courtyard") : null;
   const authoredFloors = residential.basePlanId ? residential.walkableAreas.filter(/**
    * @param {{floorY:number,id:string}} area
    */ (area) => area.floorY <= origin.y && !area.id.includes("courtyard")) : [];
@@ -36,30 +36,30 @@ export function createCastleGroundCuts(plan, layout = null) {
      *
      * @param {RoomBounds & {floorY?:number}} building
      */
-    (building) => building.bounds ?? building),
+      (building) => building.bounds ?? building),
     ...(!residential.basePlanId ? residential.walkableAreas ?? [] : []).filter(/**
      *
      * @param {{id:string,bounds:RoomBounds}} area
      */
-    (area) => area.id !== "courtyard").map(/**
+      (area) => area.id !== "courtyard").map(/**
      *
      * @param {{id:string,bounds:RoomBounds}} area
      */
-    (area) => area.bounds)];
+      (area) => area.bounds)];
   const stairRooms = Object.entries(residential.reservations ?? {})
     .filter(/**
      *
      * @param {[string, RoomBounds]} options
      * @param {string} options."0"
      */
-    ([role]) => role === "mainStair" || role === "serviceStair")
+      ([role]) => role === "mainStair" || role === "serviceStair")
     .map(/**
      *
      * @param {[string, RoomBounds]} options
      * @param {string} options."0"
      * @param {RoomBounds} options."1"
      */
-    ([, bounds]) => bounds);
+      ([, bounds]) => bounds);
   for (const room of [...rooms, ...stairRooms].filter(Boolean)) {
     const corners = [
       [room.minX, room.minZ], [room.minX, room.maxZ],
@@ -70,48 +70,65 @@ export function createCastleGroundCuts(plan, layout = null) {
      * @param {number} options."0"
      * @param {number} options."1"
      */
-    ([x, z]) => ({ x: origin.x + x * c + z * s, z: origin.z - x * s + z * c }));
-    cuts.push({ minX: Math.min(...corners.map(/**
+      ([x, z]) => ({
+        x: origin.x + x * c + z * s,
+        z: origin.z - x * s + z * c,
+      }));
+    cuts.push({
+      minX: Math.min(...corners.map(/**
      *
      * @param {{x:number,z:number}} point
      */
-    (point) => point.x)), maxX: Math.max(...corners.map(/**
+        (point) => point.x)),
+      maxX: Math.max(...corners.map(/**
      *
      * @param {{x:number,z:number}} point
      */
-    (point) => point.x)),
+        (point) => point.x)),
       minZ: Math.min(...corners.map(/**
        *
        * @param {{x:number,z:number}} point
        */
-      (point) => point.z)), maxZ: Math.max(...corners.map(/**
+        (point) => point.z)),
+      maxZ: Math.max(...corners.map(/**
        *
        * @param {{x:number,z:number}} point
        */
-      (point) => point.z)),
+        (point) => point.z)),
       minY: stairRooms.includes(room) ? residential.basement?.floorY ?? origin.y - 0.05 : Math.min(origin.y - (residential.basePlanId ? 0.25 : 0.05), (room.floorY ?? origin.y) - (residential.basePlanId ? 0.25 : 0.05)),
-      maxY: Number.MAX_VALUE });
+      maxY: Number.MAX_VALUE,
+    });
   }
   for (const block of plan.metadata.collision?.cameraBlocks ?? []) {
     if (block.y - block.halfY > origin.y + 1) continue;
-    cuts.push({ minX: block.x - block.halfX, maxX: block.x + block.halfX,
-      minZ: block.z - block.halfZ, maxZ: block.z + block.halfZ,
-      minY: Math.min(origin.y - 0.05, block.y - block.halfY), maxY: Number.MAX_VALUE });
+    cuts.push({
+      minX: block.x - block.halfX,
+      maxX: block.x + block.halfX,
+      minZ: block.z - block.halfZ,
+      maxZ: block.z + block.halfZ,
+      minY: Math.min(origin.y - 0.05, block.y - block.halfY),
+      maxY: Number.MAX_VALUE,
+    });
   }
   const basement = residential.basement;
   if (basement) {
     const rotated = Math.abs(Math.sin(basement.yaw * Math.PI / 180)) > 0.5;
     const halfX = (rotated ? basement.depth : basement.width) / 2;
     const halfZ = (rotated ? basement.width : basement.depth) / 2;
-    cuts.push({ minX: basement.x - halfX, maxX: basement.x + halfX,
-      minZ: basement.z - halfZ, maxZ: basement.z + halfZ,
-      minY: basement.floorY, maxY: basement.ceilingY });
+    cuts.push({
+      minX: basement.x - halfX,
+      maxX: basement.x + halfX,
+      minZ: basement.z - halfZ,
+      maxZ: basement.z + halfZ,
+      minY: basement.floorY,
+      maxY: basement.ceilingY,
+    });
   }
   return [...new Map(cuts.map(/**
    *
    * @param {GroundCut} cut
    */
-  (cut) => [[cut.minX, cut.maxX, cut.minZ, cut.maxZ, cut.minY].join(","), cut])).values()];
+    (cut) => [[cut.minX, cut.maxX, cut.minZ, cut.maxZ, cut.minY].join(","), cut])).values()];
 }
 
 /**
@@ -130,7 +147,14 @@ export function clipCastleTerrainRecord(definition, cuts) {
   const sz = box ? args[8] : 1;
   const { x, y, z } = definition.position;
   const originalTop = y + sy / 2;
-  let pieces = [{ minX: x - sx / 2, maxX: x + sx / 2, minY: y - sy / 2, maxY: originalTop, minZ: z - sz / 2, maxZ: z + sz / 2 }];
+  let pieces = [{
+    minX: x - sx / 2,
+    maxX: x + sx / 2,
+    minY: y - sy / 2,
+    maxY: originalTop,
+    minZ: z - sz / 2,
+    maxZ: z + sz / 2,
+  }];
   let changed = false;
   for (const cut of cuts) {
     const next = [];
@@ -140,14 +164,40 @@ export function clipCastleTerrainRecord(definition, cuts) {
       const iz = Math.max(piece.minZ, cut.minZ), az = Math.min(piece.maxZ, cut.maxZ);
       if (ax - ix < 0.000001 || ay - iy < 0.000001 || az - iz < 0.000001) { next.push(piece); continue; }
       changed = true;
-      if (piece.minX < ix) next.push({ ...piece, maxX: ix });
-      if (ax < piece.maxX) next.push({ ...piece, minX: ax });
-      const middle = { ...piece, minX: ix, maxX: ax };
-      if (piece.minZ < iz) next.push({ ...middle, maxZ: iz });
-      if (az < piece.maxZ) next.push({ ...middle, minZ: az });
-      const center = { ...middle, minZ: iz, maxZ: az };
-      if (piece.minY < iy) next.push({ ...center, maxY: iy });
-      if (ay < piece.maxY) next.push({ ...center, minY: ay });
+      if (piece.minX < ix) next.push({
+        ...piece,
+        maxX: ix,
+      });
+      if (ax < piece.maxX) next.push({
+        ...piece,
+        minX: ax,
+      });
+      const middle = {
+        ...piece,
+        minX: ix,
+        maxX: ax,
+      };
+      if (piece.minZ < iz) next.push({
+        ...middle,
+        maxZ: iz,
+      });
+      if (az < piece.maxZ) next.push({
+        ...middle,
+        minZ: az,
+      });
+      const center = {
+        ...middle,
+        minZ: iz,
+        maxZ: az,
+      };
+      if (piece.minY < iy) next.push({
+        ...center,
+        maxY: iy,
+      });
+      if (ay < piece.maxY) next.push({
+        ...center,
+        minY: ay,
+      });
     }
     pieces = next;
   }
@@ -156,23 +206,35 @@ export function clipCastleTerrainRecord(definition, cuts) {
    *
    * @param {GroundCut} piece
    */
-  (piece) => piece.maxX - piece.minX > 0.000001 &&
+    (piece) => piece.maxX - piece.minX > 0.000001 &&
     piece.maxY - piece.minY > 0.000001 && piece.maxZ - piece.minZ > 0.000001).map(/**
    *
    * @param {GroundCut} piece
    * @param {number} index
    */
-  (piece, index) => {
-    const top = definition.object === "Grass" && Math.abs(piece.maxY - originalTop) < 0.000001;
-    const height = piece.maxY - piece.minY;
-    // Box surfaces receive a bias scaled by their height. Preserve the full
-    // grass cube's rendered top, even when excavation leaves a shallow piece.
-    const lift = top
-      ? (GRASS_SURFACE_LIFT + SURFACE_ELEVATION_BIAS * (1 + GRASS_SURFACE_LIFT - height)) / (1 + SURFACE_ELEVATION_BIAS)
-      : 0;
-    const position = { x: (piece.minX + piece.maxX) / 2, y: (piece.minY + piece.maxY + lift) / 2, z: (piece.minZ + piece.maxZ) / 2 };
-    return { ...definition, id: `${definition.id}-castle-cut-${index}`, object: top ? "Grass" : "Earth", position,
-      geometry: { method: "addBoxMatrix", args: [top ? args?.[0] ?? "grass" : "earth", args?.[1] ?? "earth", position.x, position.y, position.z,
-        0, piece.maxX - piece.minX, height + lift, piece.maxZ - piece.minZ, "full", "earth"] } };
-  });
+    (piece, index) => {
+      const top = definition.object === "Grass" && Math.abs(piece.maxY - originalTop) < 0.000001;
+      const height = piece.maxY - piece.minY;
+      // Box surfaces receive a bias scaled by their height. Preserve the full
+      // grass cube's rendered top, even when excavation leaves a shallow piece.
+      const lift = top
+        ? (GRASS_SURFACE_LIFT + SURFACE_ELEVATION_BIAS * (1 + GRASS_SURFACE_LIFT - height)) / (1 + SURFACE_ELEVATION_BIAS)
+        : 0;
+      const position = {
+        x: (piece.minX + piece.maxX) / 2,
+        y: (piece.minY + piece.maxY + lift) / 2,
+        z: (piece.minZ + piece.maxZ) / 2,
+      };
+      return {
+        ...definition,
+        id: `${definition.id}-castle-cut-${index}`,
+        object: top ? "Grass" : "Earth",
+        position,
+        geometry: {
+          method: "addBoxMatrix",
+          args: [top ? args?.[0] ?? "grass" : "earth", args?.[1] ?? "earth", position.x, position.y, position.z,
+            0, piece.maxX - piece.minX, height + lift, piece.maxZ - piece.minZ, "full", "earth"],
+        },
+      };
+    });
 }

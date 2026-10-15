@@ -33,9 +33,31 @@ test("terrace spares stay in storage with supported tea ware and a central aisle
 });
 
 test("storage equipment publishes through map objects without duplication", async () => {
-  const buildPlan = await CastleAuthoredBuildPlan.generate({ basePlanId: "castle-demo-compact", seed: 2,
-    position: { x: 0, z: 0, width: 8, depth: 8, elevation: 2 }, doors: [{ side: "NORTH", offset: 4, width: 2 }] });
-  const map = { cols: 60, rows: 60, objects: [{ id: "storage-castle", object: "Castle", buildPlan }] };
+  const buildPlan = await CastleAuthoredBuildPlan.generate({
+    basePlanId: "castle-demo-compact",
+    seed: 2,
+    position: {
+      x: 0,
+      z: 0,
+      width: 8,
+      depth: 8,
+      elevation: 2,
+    },
+    doors: [{
+      side: "NORTH",
+      offset: 4,
+      width: 2,
+    }],
+  });
+  const map = {
+    cols: 60,
+    rows: 60,
+    objects: [{
+      id: "storage-castle",
+      object: "Castle",
+      buildPlan,
+    }],
+  };
   KitchenRoomMapObjects.prepareMap(map);
   const first = structuredClone(map.objects);
   KitchenRoomMapObjects.prepareMap(map);

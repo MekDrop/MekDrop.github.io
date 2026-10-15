@@ -22,8 +22,10 @@ export function createCastleStairFlight(position, door, cubeSize = 0.25, mapData
   let acrossStart = acrossOrigin + offset;
   let acrossEnd = acrossStart + width;
   const boundaryEdge = {
-    WEST: position.x, EAST: position.x + position.width,
-    NORTH: position.z, SOUTH: position.z + position.depth,
+    WEST: position.x,
+    EAST: position.x + position.width,
+    NORTH: position.z,
+    SOUTH: position.z + position.depth,
   }[door.side];
   if (!Number.isFinite(boundaryEdge)) return null;
   const outwardSign = door.side === "WEST" || door.side === "NORTH" ? -1 : 1;
@@ -56,10 +58,23 @@ export function createCastleStairFlight(position, door, cubeSize = 0.25, mapData
     width = acrossEnd - acrossStart;
   }
   return {
-    side: door.side, offset, width, vertical, outerEdge, acrossStart, acrossEnd,
-    approachElevation, rise, run, riseBlocks, stepRun: 2 * cubeSize, stepHeight: rise / riseBlocks,
-    minX: vertical ? edgeMin : acrossStart, maxX: vertical ? edgeMax : acrossEnd,
-    minZ: vertical ? acrossStart : edgeMin, maxZ: vertical ? acrossEnd : edgeMax,
+    side: door.side,
+    offset,
+    width,
+    vertical,
+    outerEdge,
+    acrossStart,
+    acrossEnd,
+    approachElevation,
+    rise,
+    run,
+    riseBlocks,
+    stepRun: 2 * cubeSize,
+    stepHeight: rise / riseBlocks,
+    minX: vertical ? edgeMin : acrossStart,
+    maxX: vertical ? edgeMax : acrossEnd,
+    minZ: vertical ? acrossStart : edgeMin,
+    maxZ: vertical ? acrossEnd : edgeMax,
     floorY: approachElevation,
   };
 }

@@ -11,13 +11,13 @@ export class WindowModules {
      *
      * @param {import("playcanvas").GraphNode} node
      */
-    (node) => /^Amber glass pane /.test(node.name));
+      (node) => /^Amber glass pane /.test(node.name));
     if (!panes.length) { return; }
     const sourceColumns = new Set(panes.map(/**
      *
      * @param {import("playcanvas").GraphNode} node
      */
-    (node) => node.name.split(" ")[3])).size;
+      (node) => node.name.split(" ")[3])).size;
     const sourceRows = panes.length / sourceColumns;
     const columns = window.role === "slit" ? sourceColumns : Math.max(sourceColumns, Math.ceil(window.width / 0.5));
     const rows = Math.max(sourceRows, Math.ceil(window.height / 0.5));
@@ -43,7 +43,7 @@ export class WindowModules {
        *
        * @param {import("playcanvas").GraphNode} node
        */
-      (node) => node.name.startsWith(`Stone jamb course ${side} `));
+        (node) => node.name.startsWith(`Stone jamb course ${side} `));
       if (!courses.length) { continue; }
       const count = Math.max(courses.length, Math.ceil(window.height / 0.25));
       const template = courses[0];
@@ -72,7 +72,7 @@ export class WindowModules {
      *
      * @param {import("playcanvas").GraphNode} node
      */
-    (node) => pattern.test(node.name));
+      (node) => pattern.test(node.name));
     if (!nodes.length) { return; }
     const template = nodes[0];
     for (let index = 1; index <= count; index++) {

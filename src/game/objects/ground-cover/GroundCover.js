@@ -34,7 +34,11 @@ export const GROUND_COVER_VARIANTS = Object.freeze({
     horizontalScale: 1.5,
     verticalScale: 2,
     physicsTipHeight: 0.1586,
-    gripPoint: { x: 0, y: 0.02, z: 0 },
+    gripPoint: {
+      x: 0,
+      y: 0.02,
+      z: 0,
+    },
   },
   "buttercup-patch": {
     modelUrl: buttercupPatchModelUrl,
@@ -45,7 +49,11 @@ export const GROUND_COVER_VARIANTS = Object.freeze({
     horizontalScale: 1.55,
     verticalScale: 2.05,
     physicsTipHeight: 0.1454,
-    gripPoint: { x: 0, y: 0.02, z: 0 },
+    gripPoint: {
+      x: 0,
+      y: 0.02,
+      z: 0,
+    },
   },
   "pink-flower-patch": {
     modelUrl: pinkFlowerPatchModelUrl,
@@ -56,7 +64,11 @@ export const GROUND_COVER_VARIANTS = Object.freeze({
     horizontalScale: 1.5,
     verticalScale: 2,
     physicsTipHeight: 0.152,
-    gripPoint: { x: 0, y: 0.02, z: 0 },
+    gripPoint: {
+      x: 0,
+      y: 0.02,
+      z: 0,
+    },
   },
   "blue-flower-patch": {
     modelUrl: blueFlowerPatchModelUrl,
@@ -67,7 +79,11 @@ export const GROUND_COVER_VARIANTS = Object.freeze({
     horizontalScale: 1.5,
     verticalScale: 2,
     physicsTipHeight: 0.162,
-    gripPoint: { x: 0, y: 0.02, z: 0 },
+    gripPoint: {
+      x: 0,
+      y: 0.02,
+      z: 0,
+    },
   },
   "clover-patch": {
     modelUrl: cloverPatchModelUrl,
@@ -78,7 +94,11 @@ export const GROUND_COVER_VARIANTS = Object.freeze({
     horizontalScale: 1.15,
     verticalScale: 0.9,
     physicsTipHeight: 0.1889,
-    gripPoint: { x: 0.03, y: 0.02, z: -0.07 },
+    gripPoint: {
+      x: 0.03,
+      y: 0.02,
+      z: -0.07,
+    },
   },
   "red-mushroom": {
     modelUrl: redMushroomModelUrl,
@@ -88,7 +108,11 @@ export const GROUND_COVER_VARIANTS = Object.freeze({
     interactionRadius: 0.22,
     scale: 0.82,
     flexibility: 0.35,
-    gripPoint: { x: 0.1, y: -0.08, z: 0 },
+    gripPoint: {
+      x: 0.1,
+      y: -0.08,
+      z: 0,
+    },
   },
   "golden-mushroom-pair": {
     modelUrl: goldenMushroomPairModelUrl,
@@ -98,7 +122,11 @@ export const GROUND_COVER_VARIANTS = Object.freeze({
     interactionRadius: 0.24,
     scale: 0.82,
     flexibility: 0.38,
-    gripPoint: { x: -0.02, y: -0.08, z: -0.01 },
+    gripPoint: {
+      x: -0.02,
+      y: -0.08,
+      z: -0.01,
+    },
   },
   "forest-mushroom-cluster": {
     modelUrl: forestMushroomClusterModelUrl,
@@ -108,7 +136,11 @@ export const GROUND_COVER_VARIANTS = Object.freeze({
     interactionRadius: 0.26,
     scale: 0.82,
     flexibility: 0.32,
-    gripPoint: { x: -0.06, y: -0.08, z: 0.03 },
+    gripPoint: {
+      x: -0.06,
+      y: -0.08,
+      z: 0.03,
+    },
   },
 });
 const GPU_CATEGORIES = Object.freeze({
@@ -141,8 +173,13 @@ export class GroundCover {
     if (!mapData.objects.some(/**
      * @param {import("../ObjectTypes.js").MapObjectDefinition} definition
      */
-    (definition) => definition.object === GroundCover.name)) {
-      mapData.objects.push({ id: "ground-cover", object: GroundCover.name, placements: [], generated: true });
+      (definition) => definition.object === GroundCover.name)) {
+      mapData.objects.push({
+        id: "ground-cover",
+        object: GroundCover.name,
+        placements: [],
+        generated: true,
+      });
     }
   }
   /**
@@ -155,7 +192,7 @@ export class GroundCover {
      * @param {{modelUrl: string}} options
      * @param {string} options.modelUrl
      */
-    ({ modelUrl }) => modelUrl);
+      ({ modelUrl }) => modelUrl);
   }
 
   /**
@@ -278,13 +315,17 @@ export class GroundCover {
   }) {
     if (definition) {
       this.definition = definition;
-      mapData = { ...runtime.mapData, groundCoverData: definition.placements,
-        riverData: runtime.mapData.riverData, islandConnectorData: runtime.mapData.islandConnectorData };
+      mapData = {
+        ...runtime.mapData,
+        groundCoverData: definition.placements,
+        riverData: runtime.mapData.riverData,
+        islandConnectorData: runtime.mapData.islandConnectorData,
+      };
       zoom = runtime.camera.zoom;
       onCollect = /**
        * @param {GroundCoverCollectible} item
        */
-      (item) => runtime.getHero()?.collectInventoryItem(item) ?? false;
+        (item) => runtime.getHero()?.collectInventoryItem(item) ?? false;
       onCollectibleRemoved = runtime.onCollectibleRemoved;
     }
     this.#pc = pc;
@@ -292,9 +333,16 @@ export class GroundCover {
     this.#onCollect = onCollect;
     this.#onCollectibleRemoved = onCollectibleRemoved;
     this.#entity = new pc.Entity("GPU-instanced interactive ground cover");
-    this.#flowerPhysics = new FlowerPhysics({ pc, useWorker: true, gravity: app.systems.rigidbody.gravity.y });
+    this.#flowerPhysics = new FlowerPhysics({
+      pc,
+      useWorker: true,
+      gravity: app.systems.rigidbody.gravity.y,
+    });
     this.#entity.addChild(this.#flowerPhysics.entity);
-    this.#mushroomPhysics = new MushroomPhysics({ pc, app });
+    this.#mushroomPhysics = new MushroomPhysics({
+      pc,
+      app,
+    });
     this.#entity.addChild(this.#mushroomPhysics.entity);
     const connector = mapData.islandConnectorData;
     this.#islandCells = connector
@@ -302,7 +350,13 @@ export class GroundCover {
       : [];
     this.#createMaterials();
     this.#flowerPhysics.setContactMaterial(this.#materials.get(FLOWER_CATEGORY));
-    this.#flowerPaper = new FlowerPaper({ pc, app, library: modelLibrary, material: this.#heldMaterials.get(FLOWER_CATEGORY), stem: this.#flowerPhysics });
+    this.#flowerPaper = new FlowerPaper({
+      pc,
+      app,
+      library: modelLibrary,
+      material: this.#heldMaterials.get(FLOWER_CATEGORY),
+      stem: this.#flowerPhysics,
+    });
     this.#entity.addChild(this.#flowerPaper.entity);
     this.zoom = zoom;
     this.#buildGroundCover(mapData, modelLibrary);
@@ -335,7 +389,7 @@ export class GroundCover {
      *
      * @param {GroundCoverCollectible} item
      */
-    (item) => item.grassImpressionContacts);
+      (item) => item.grassImpressionContacts);
   }
 
   /**
@@ -374,9 +428,21 @@ export class GroundCover {
    * @param {{directionX: number, directionZ: number, strength: number}} movement
    */
   applyHeroInteraction({ x, y, z }, movement) {
-    this.#flowerPhysics.updateHeroPosition({ x, y, z }, movement?.direction);
-    this.#flowerPaper.updateHero({ x, y, z });
-    this.#mushroomPhysics.updateHeroPosition({ x, y, z }, movement);
+    this.#flowerPhysics.updateHeroPosition({
+      x,
+      y,
+      z,
+    }, movement?.direction);
+    this.#flowerPaper.updateHero({
+      x,
+      y,
+      z,
+    });
+    this.#mushroomPhysics.updateHeroPosition({
+      x,
+      y,
+      z,
+    }, movement);
   }
 
   /**
@@ -430,17 +496,20 @@ export class GroundCover {
       if (distance > reach || (closest && distance >= closest.distance)) {
         continue;
       }
-      closest = { collectible, distance };
+      closest = {
+        collectible,
+        distance,
+      };
     }
 
     return closest
       ? new GroundCoverInteraction({
-          collectible: closest.collectible,
-          hero,
-          tool: this.#tool,
-          onChange,
-          onComplete,
-        })
+        collectible: closest.collectible,
+        hero,
+        tool: this.#tool,
+        onChange,
+        onComplete,
+      })
       : null;
   }
 
@@ -544,7 +613,11 @@ export class GroundCover {
       const y =
         mapData.heightmap[decoration.row][decoration.col] + GRASS_SURFACE_LIFT;
 
-      const position = { x, y, z };
+      const position = {
+        x,
+        y,
+        z,
+      };
       const group = this.#islandCells.findIndex(
         /**
          * @param {Set<string>} cells
@@ -749,10 +822,10 @@ export class GroundCover {
           scale:
             definition.category === FLOWER_CATEGORY
               ? {
-                  x: decoration.scale * definition.horizontalScale,
-                  y: decoration.scale * definition.verticalScale,
-                  z: decoration.scale * definition.horizontalScale,
-                }
+                x: decoration.scale * definition.horizontalScale,
+                y: decoration.scale * definition.verticalScale,
+                z: decoration.scale * definition.horizontalScale,
+              }
               : decoration.scale * definition.scale,
           material:
             definition.category === FLOWER_CATEGORY

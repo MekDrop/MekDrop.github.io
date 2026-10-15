@@ -47,7 +47,10 @@ export class DynamicRenderBatch {
     let group = groups.get(this.#groupKey);
     if (!group) {
       const batchGroup = app.batcher.addGroup(`${DynamicRenderBatch.name}-${this.#groupKey}`, dynamic, 16);
-      group = { id: batchGroup.id, members: 0 };
+      group = {
+        id: batchGroup.id,
+        members: 0,
+      };
       if (dynamic) {
         group.handle = app.on?.("prerender", /**
          * Installs on newly generated batches after membership changes, too.

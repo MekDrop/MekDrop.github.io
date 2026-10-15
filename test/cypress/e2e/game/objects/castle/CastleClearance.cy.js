@@ -39,7 +39,11 @@ async function walkTo(window, target, perspective) {
     }
     await new Promise((resolve) => window.setTimeout(resolve, 30));
   }
-  expect(reached, JSON.stringify({ target, position: driver.state().position, animation: driver.state().animation })).to.equal(true);
+  expect(reached, JSON.stringify({
+    target,
+    position: driver.state().position,
+    animation: driver.state().animation,
+  })).to.equal(true);
   driver.move(0, 0);
   await new Promise((resolve) => window.setTimeout(resolve, 100));
 }
@@ -60,15 +64,30 @@ describe("Reported castle clearance", () => {
       const plan=await CastleGenerator.generate(castleMap.objects[0]);
       const layout=new CastleResidentialLayout(plan);
       const driver=window.gameMovementTest;
-      for (const tread of layout.stairs.treads) await walkTo(window,{...tread,speed:0.6},true);
+      for (const tread of layout.stairs.treads) await walkTo(window,{
+        ...tread,
+        speed:0.6,
+      },true);
       const door=plan.metadata.runtime.roomDoors.find((entry) => entry.roomId === "library" && entry.y > layout.origin.y);
       const last=layout.stairs.treads.at(-1);
-      await walkTo(window,{x:layout.stairs.center.x+(last.x-layout.stairs.center.x)*1.5,z:layout.stairs.center.z+(last.z-layout.stairs.center.z)*1.5,speed:0.6},true);
+      await walkTo(window,{
+        x:layout.stairs.center.x+(last.x-layout.stairs.center.x)*1.5,
+        z:layout.stairs.center.z+(last.z-layout.stairs.center.z)*1.5,
+        speed:0.6,
+      },true);
       for (const x of [door.x-0.5,door.x+0.6,door.x-0.5,door.x+0.6]) {
-        await walkTo(window,{x,z:door.z,speed:0.6},true);
+        await walkTo(window,{
+          x,
+          z:door.z,
+          speed:0.6,
+        },true);
         expect(driver.state().position.y).to.be.closeTo(door.y,0.18);
       }
-      await walkTo(window,{x:door.x+0.4,z:door.z,speed:0.4},true);
+      await walkTo(window,{
+        x:door.x+0.4,
+        z:door.z,
+        speed:0.4,
+      },true);
       const camera=window.gameCameraTest.state().firstPersonCamera;
       window.gameCameraTest.lookFirstPersonBy(-90-Math.atan2(camera.direction.x,camera.direction.z)*180/Math.PI,Math.asin(camera.direction.y)*180/Math.PI+35);
       await new Promise((resolve) => window.setTimeout(resolve,700));

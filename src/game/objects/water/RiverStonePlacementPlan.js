@@ -29,10 +29,10 @@ export class RiverStonePlacementPlan {
          *
          * @param {number} cascade
          */
-        (cascade) => [
-          `${cascade.from.col},${cascade.from.row}`,
-          `${cascade.to.col},${cascade.to.row}`,
-        ]),
+          (cascade) => [
+            `${cascade.from.col},${cascade.from.row}`,
+            `${cascade.to.col},${cascade.to.row}`,
+          ]),
       ]);
       let stonesPlaced = 0;
       for (const cell of river.cells.slice(river.branchStart ?? 0)) {
@@ -65,7 +65,10 @@ export class RiverStonePlacementPlan {
         const x = cell.col - (cols - 1) / 2 + offsetX;
         const z = cell.row - (rows - 1) / 2 + offsetZ;
         placements.push({
-          cell: { col: cell.col, row: cell.row },
+          cell: {
+            col: cell.col,
+            row: cell.row,
+          },
           modelIndex,
           position: [x, cell.bedElevation - burialDepth, z],
           rotationY: this.#noise(seed + 71) * 360,
@@ -77,12 +80,12 @@ export class RiverStonePlacementPlan {
           contact: cell.bedElevation - burialDepth + rockHeight >
             cell.elevation - 0.025
             ? {
-                x,
-                elevation: cell.elevation,
-                z,
-                radius: Math.min(0.28, footprintScale * 0.19),
-                direction: cell.direction,
-              }
+              x,
+              elevation: cell.elevation,
+              z,
+              radius: Math.min(0.28, footprintScale * 0.19),
+              direction: cell.direction,
+            }
             : null,
         });
         stonesPlaced++;

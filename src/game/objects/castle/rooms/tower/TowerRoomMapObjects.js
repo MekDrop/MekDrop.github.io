@@ -37,16 +37,24 @@ export class TowerRoomMapObjects {
           const room = plan.placedRooms.find(/**
            * @param {import("../../../../generator/castle/rooms/AbstractCastleRoomGenerator.js").PlannedCastleRoom} room
            */
-          (room) => room.id === item.roomId);
+            (room) => room.id === item.roomId);
           // The chair faces -X, unlike the compiler's +Z-facing convention.
           // Derive its facing from final bounds so reflected plans keep it inward.
           rotation = layout.yaw + (item.z < (room.minZ + room.maxZ) / 2 ? 90 : 270);
         }
-        mapData.objects.push({ id: `${castle.id}-tower-furnishing-${item.roomId}-${index}`,
-          object: item.object, position, rotation, scale: item.scale,
-          generated: true, sourceCastleId: castle.id,
-          tile: { col: Math.round(position.x + (mapData.cols - 1) / 2),
-            row: Math.round(position.z + (mapData.rows - 1) / 2) } });
+        mapData.objects.push({
+          id: `${castle.id}-tower-furnishing-${item.roomId}-${index}`,
+          object: item.object,
+          position,
+          rotation,
+          scale: item.scale,
+          generated: true,
+          sourceCastleId: castle.id,
+          tile: {
+            col: Math.round(position.x + (mapData.cols - 1) / 2),
+            row: Math.round(position.z + (mapData.rows - 1) / 2),
+          },
+        });
       }
     }
   }

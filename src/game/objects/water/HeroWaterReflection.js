@@ -75,18 +75,30 @@ export class HeroWaterReflection {
     this.#layer = new pc.Layer({ name: 'Hero water reflection' });
     app.scene.layers.push(this.#layer);
     this.#texture = new pc.Texture(app.graphicsDevice, {
-      name: 'Reflected hero face', width: 256, height: 256,
-      format: pc.PIXELFORMAT_RGBA8, mipmaps: false,
-      minFilter: pc.FILTER_LINEAR, magFilter: pc.FILTER_LINEAR,
-      addressU: pc.ADDRESS_CLAMP_TO_EDGE, addressV: pc.ADDRESS_CLAMP_TO_EDGE,
+      name: 'Reflected hero face',
+      width: 256,
+      height: 256,
+      format: pc.PIXELFORMAT_RGBA8,
+      mipmaps: false,
+      minFilter: pc.FILTER_LINEAR,
+      magFilter: pc.FILTER_LINEAR,
+      addressU: pc.ADDRESS_CLAMP_TO_EDGE,
+      addressV: pc.ADDRESS_CLAMP_TO_EDGE,
     });
-    this.#target = new pc.RenderTarget({ colorBuffer: this.#texture, depth: true });
+    this.#target = new pc.RenderTarget({
+      colorBuffer: this.#texture,
+      depth: true,
+    });
     this.#camera = new pc.Entity('Hero reflection camera');
     this.#camera.addComponent('camera', {
       clearColor: new pc.Color(0, 0, 0, 0),
-      clearColorBuffer: true, clearDepthBuffer: true,
-      projection: pc.PROJECTION_ORTHOGRAPHIC, orthoHeight: 0.68,
-      nearClip: 0.01, farClip: 12, priority: -90,
+      clearColorBuffer: true,
+      clearDepthBuffer: true,
+      projection: pc.PROJECTION_ORTHOGRAPHIC,
+      orthoHeight: 0.68,
+      nearClip: 0.01,
+      farClip: 12,
+      priority: -90,
       layers: [this.#layer.id],
     });
     this.#camera.camera.renderTarget = this.#target;

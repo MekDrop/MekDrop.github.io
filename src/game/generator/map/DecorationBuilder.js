@@ -60,7 +60,10 @@ export class DecorationBuilder {
             row,
           )
         ) {
-          candidates.push({ col, row });
+          candidates.push({
+            col,
+            row,
+          });
         }
       }
     }
@@ -146,7 +149,7 @@ export class DecorationBuilder {
        * @param {undefined} _
        * @param {number} index
        */
-      (_, index) => (index < treeCount ? "tree" : "bush")),
+        (_, index) => (index < treeCount ? "tree" : "bush")),
     );
     let treeIndex = 0;
     let bushIndex = 0;
@@ -155,19 +158,19 @@ export class DecorationBuilder {
      * @param {GridCell} candidate
      * @param {number} index
      */
-    (candidate, index) => {
-      const kind = kinds[index];
-      const variant =
-        kind === "tree"
-          ? treeVariants[treeIndex++ % treeVariants.length]
-          : bushVariants[bushIndex++ % bushVariants.length];
-      return {
-        ...candidate,
-        variant,
-        kind,
-        rotation: this.#random.rng(0, 3) * 90,
-      };
-    });
+      (candidate, index) => {
+        const kind = kinds[index];
+        const variant =
+          kind === "tree"
+            ? treeVariants[treeIndex++ % treeVariants.length]
+            : bushVariants[bushIndex++ % bushVariants.length];
+        return {
+          ...candidate,
+          variant,
+          kind,
+          rotation: this.#random.rng(0, 3) * 90,
+        };
+      });
   }
 
   #rollStoneLevels() {
@@ -205,7 +208,7 @@ export class DecorationBuilder {
        * @param {number} options.col
        * @param {number} options.row
        */
-      ({ col, row }) => MapGrid.tileKey(col, row)),
+        ({ col, row }) => MapGrid.tileKey(col, row)),
     );
     const candidates = [];
     for (let row = 0; row < MAP_ROWS; row++) {
@@ -214,7 +217,10 @@ export class DecorationBuilder {
           !occupied.has(MapGrid.tileKey(col, row)) &&
           DecorationPlacementRules.isGroundCoverCandidate(grid, heightmap, tileMeta, col, row)
         ) {
-          candidates.push({ col, row });
+          candidates.push({
+            col,
+            row,
+          });
         }
       }
     }
@@ -248,15 +254,15 @@ export class DecorationBuilder {
       const partPositions =
         partCount === 3
           ? [
-              [-0.25, -0.25],
-              [0.25, -0.25],
-              [0, 0.25],
-            ]
+            [-0.25, -0.25],
+            [0.25, -0.25],
+            [0, 0.25],
+          ]
           : partCount === 2
             ? [
-                [-0.25, 0],
-                [0.25, 0],
-              ]
+              [-0.25, 0],
+              [0.25, 0],
+            ]
             : [[0, 0]];
       const clusterRotation = partCount === 1 ? 0 : this.#random.rng(0, 3);
       const parts = Array.from({ length: partCount }, /**
@@ -264,37 +270,40 @@ export class DecorationBuilder {
        * @param {undefined} _
        * @param {number} index
        */
-      (_, index) => {
-        const variant = variants[index];
-        const color =
-          colors[
-            (stones.length + variant * Math.floor(colors.length / 3)) %
+        (_, index) => {
+          const variant = variants[index];
+          const color =
+            colors[
+              (stones.length + variant * Math.floor(colors.length / 3)) %
               colors.length
+            ];
+          const levels = index === 0 ? primaryLevels : this.#rollStoneLevels();
+          // Bush cubes use 0.25-unit voxels; stones vary only slightly around that.
+          const voxelSize = this.#random.rng(24, 26) / 100;
+          const [slotX, slotZ] = partPositions[index];
+          const rotatedPositions = [
+            [slotX, slotZ],
+            [-slotZ, slotX],
+            [-slotX, -slotZ],
+            [slotZ, -slotX],
           ];
-        const levels = index === 0 ? primaryLevels : this.#rollStoneLevels();
-        // Bush cubes use 0.25-unit voxels; stones vary only slightly around that.
-        const voxelSize = this.#random.rng(24, 26) / 100;
-        const [slotX, slotZ] = partPositions[index];
-        const rotatedPositions = [
-          [slotX, slotZ],
-          [-slotZ, slotX],
-          [-slotX, -slotZ],
-          [slotZ, -slotX],
-        ];
-        const [offsetX, offsetZ] = rotatedPositions[clusterRotation];
-        return {
-          variant,
-          style: variant * STONE_COLORS.length + STONE_COLORS.indexOf(color),
-          color,
-          levels,
-          offsetX: partCount === 1 ? this.#random.rng(-6, 6) / 100 : offsetX,
-          offsetZ: partCount === 1 ? this.#random.rng(-6, 6) / 100 : offsetZ,
-          diameter: partCount === 1 ? voxelSize * 3 : 0.4,
-          height: voxelSize * levels,
-          rotation: this.#random.rng(0, 3) * 90,
-        };
+          const [offsetX, offsetZ] = rotatedPositions[clusterRotation];
+          return {
+            variant,
+            style: variant * STONE_COLORS.length + STONE_COLORS.indexOf(color),
+            color,
+            levels,
+            offsetX: partCount === 1 ? this.#random.rng(-6, 6) / 100 : offsetX,
+            offsetZ: partCount === 1 ? this.#random.rng(-6, 6) / 100 : offsetZ,
+            diameter: partCount === 1 ? voxelSize * 3 : 0.4,
+            height: voxelSize * levels,
+            rotation: this.#random.rng(0, 3) * 90,
+          };
+        });
+      stones.push({
+        ...candidate,
+        parts,
       });
-      stones.push({ ...candidate, parts });
       if (stones.length >= targetCount) {
         break;
       }
@@ -323,15 +332,18 @@ export class DecorationBuilder {
        * @param {number} options.col
        * @param {number} options.row
        */
-      ({ col, row }) =>
-        MapGrid.tileKey(col, row),
+        ({ col, row }) =>
+          MapGrid.tileKey(col, row),
       ),
     );
     const candidates = [];
     for (let row = 0; row < MAP_ROWS; row++) {
       for (let col = 0; col < MAP_COLS; col++) {
         if (DecorationPlacementRules.isGroundCoverCandidate(grid, heightmap, tileMeta, col, row)) {
-          candidates.push({ col, row });
+          candidates.push({
+            col,
+            row,
+          });
         }
       }
     }
@@ -392,21 +404,37 @@ export class DecorationBuilder {
        *
        * @param {RiverRecord} river
        */
-      (river) =>
-        river.cells.map(/**
+        (river) =>
+          river.cells.map(/**
          *
          * @param {{col: number, row: number}} options
          * @param {number} options.col
          * @param {number} options.row
          */
-        ({ col, row }) => MapGrid.tileKey(col, row)),
+            ({ col, row }) => MapGrid.tileKey(col, row)),
       ),
     );
     const directions = [
-      { direction: DIRECTIONS.NORTH, deltaCol: 0, deltaRow: -1 },
-      { direction: DIRECTIONS.EAST, deltaCol: 1, deltaRow: 0 },
-      { direction: DIRECTIONS.SOUTH, deltaCol: 0, deltaRow: 1 },
-      { direction: DIRECTIONS.WEST, deltaCol: -1, deltaRow: 0 },
+      {
+        direction: DIRECTIONS.NORTH,
+        deltaCol: 0,
+        deltaRow: -1,
+      },
+      {
+        direction: DIRECTIONS.EAST,
+        deltaCol: 1,
+        deltaRow: 0,
+      },
+      {
+        direction: DIRECTIONS.SOUTH,
+        deltaCol: 0,
+        deltaRow: 1,
+      },
+      {
+        direction: DIRECTIONS.WEST,
+        deltaCol: -1,
+        deltaRow: 0,
+      },
     ];
     const candidates = [];
 
@@ -457,7 +485,13 @@ export class DecorationBuilder {
           if (!Number.isFinite(bottomY) || topY - bottomY < 0.9) {
             continue;
           }
-          candidates.push({ col, row, direction, topY, bottomY });
+          candidates.push({
+            col,
+            row,
+            direction,
+            topY,
+            bottomY,
+          });
         }
       }
     }

@@ -57,10 +57,10 @@ export class HelpCommand {
      *
      * @param {string} command
      */
-    (command) => ({
-      command: command.usage,
-      description: command.description,
-    }));
+      (command) => ({
+        command: command.usage,
+        description: command.description,
+      }));
     this.#logger.table(commands);
     return commands;
   }

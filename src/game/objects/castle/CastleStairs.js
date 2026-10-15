@@ -301,10 +301,26 @@ export class CastleStairs {
     const bottom = top + this.#position.depth;
 
     const positions = {
-      WEST: { x: left - distance, y, z: top + across },
-      EAST: { x: right + distance, y, z: top + across },
-      NORTH: { x: left + across, y, z: top - distance },
-      SOUTH: { x: left + across, y, z: bottom + distance },
+      WEST: {
+        x: left - distance,
+        y,
+        z: top + across,
+      },
+      EAST: {
+        x: right + distance,
+        y,
+        z: top + across,
+      },
+      NORTH: {
+        x: left + across,
+        y,
+        z: top - distance,
+      },
+      SOUTH: {
+        x: left + across,
+        y,
+        z: bottom + distance,
+      },
     };
     return positions[side] ?? null;
   }

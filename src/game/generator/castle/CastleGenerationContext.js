@@ -65,7 +65,7 @@ export class CastleGenerationContext {
          *
          * @param {{side: string, offset: number, width: number, cells?: import("src/game/GameContracts.js").GridPoint[]}} door
          */
-        (door) => Object.freeze({ ...door })),
+          (door) => Object.freeze({ ...door })),
       ),
       style: options.style ?? null,
       ...(options.seed === undefined ? {} : { seed: options.seed }),
@@ -109,8 +109,16 @@ export class CastleGenerationContext {
      */
     this.geometry = {
       boxes: [],
-      decorations: { flames: [], banners: [], flags: [], roofs: [] },
-      collision: { groundColumns: [], cameraBlocks: [] },
+      decorations: {
+        flames: [],
+        banners: [],
+        flags: [],
+        roofs: [],
+      },
+      collision: {
+        groundColumns: [],
+        cameraBlocks: [],
+      },
     };
     /**
      *

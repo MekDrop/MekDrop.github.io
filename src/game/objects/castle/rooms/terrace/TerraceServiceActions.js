@@ -49,10 +49,26 @@ export class TerraceServiceActions {
    * @param {import("./TerraceQueen.js").TerraceQueen|import("./TerracePrincess.js").TerracePrincess} options.royal
    */
   constructor({ pc, modelLibrary, stage, kind, royal, actor = null, motion = null }) {
-    this.#servant = new TerraceServantActions({ pc, modelLibrary, stage, actor, motion });
+    this.#servant = new TerraceServantActions({
+      pc,
+      modelLibrary,
+      stage,
+      actor,
+      motion,
+    });
     this.#service = kind === "queen"
-      ? new TerraceSunbedActions({ pc, modelLibrary, stage, royal })
-      : new TerraceTeaActions({ pc, modelLibrary, stage, royal });
+      ? new TerraceSunbedActions({
+        pc,
+        modelLibrary,
+        stage,
+        royal,
+      })
+      : new TerraceTeaActions({
+        pc,
+        modelLibrary,
+        stage,
+        royal,
+      });
   }
 
   /**
@@ -64,7 +80,10 @@ export class TerraceServiceActions {
    * @returns {import("../../../../ObjectTypes.js").TerraceActivityState}
    */
   get state() {
-    return { ...EMPTY_STATE, ...this.#service.state };
+    return {
+      ...EMPTY_STATE,
+      ...this.#service.state,
+    };
   }
 
   /**

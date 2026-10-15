@@ -10,8 +10,16 @@ function createLayout() {
     castleEntranceCol: 12,
     pathDipPlans: [],
     entries: [
-      { gateCol: 0, gateRows: [10, 11], mergeCol: 6 },
-      { gateCol: 20, gateRows: [10, 11], mergeCol: 6 },
+      {
+        gateCol: 0,
+        gateRows: [10, 11],
+        mergeCol: 6,
+      },
+      {
+        gateCol: 20,
+        gateRows: [10, 11],
+        mergeCol: 6,
+      },
     ],
   };
 }
@@ -22,7 +30,11 @@ describe("RouteDataBuilder", () => {
     const { routes, arrowData } = new RouteDataBuilder().buildRouteData(layout);
     assert.deepEqual(routes.map((route) => route.length), [25, 17]);
     for (const [pathIdx, route] of routes.entries()) {
-      assert.deepEqual(route.at(-1), { col: 12, row: 10.5, elevation: 2 });
+      assert.deepEqual(route.at(-1), {
+        col: 12,
+        row: 10.5,
+        elevation: 2,
+      });
       const direction = pathIdx === 0 ? 1 : -1;
       for (let index = 1; index < route.length; index++) {
         assert.equal(route[index].col - route[index - 1].col, direction * 0.5);

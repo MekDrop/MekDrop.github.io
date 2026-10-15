@@ -88,8 +88,18 @@ it("repeats study groups and preserves the end-wall bookcase row across seeds", 
 });
 
 it("small studies omit groups that cannot preserve their approaches", () => {
-  const room = { id: "tiny-library", minX: 0, maxX: 1.75, minZ: 0, maxZ: 2,
-    floorY: 3, level: 1, height: 2.75, floorSpan: 1, purpose: "Library" };
+  const room = {
+    id: "tiny-library",
+    minX: 0,
+    maxX: 1.75,
+    minZ: 0,
+    maxZ: 2,
+    floorY: 3,
+    level: 1,
+    height: 2.75,
+    floorSpan: 1,
+    purpose: "Library",
+  };
   const items = new LibraryRoomGenerator().furnish(room, { seed: 42 });
   assert.ok(!items.some(item => item.object === "WritingDesk"));
   assert.ok(!items.some(item => ["OpenReadingBook", "ClosedReadingBook", "WallLantern"].includes(item.object)));
@@ -141,9 +151,30 @@ it("keeps a connected player-width route from the door to desk and shelf approac
 });
 
 it("publishes registered room objects once through the active authored plan", async () => {
-  const plan = await CastleAuthoredBuildPlan.generate({ position: { x: 0, z: 0, width: 9, depth: 10, elevation: 3 },
-    doors: [{ side: "NORTH", offset: 3, width: 2 }], seed: 48 });
-  const map = { cols: 42, rows: 42, objects: [{ id: "castle-test", object: "Castle", buildPlan: plan }] };
+  const plan = await CastleAuthoredBuildPlan.generate({
+    position: {
+      x: 0,
+      z: 0,
+      width: 9,
+      depth: 10,
+      elevation: 3,
+    },
+    doors: [{
+      side: "NORTH",
+      offset: 3,
+      width: 2,
+    }],
+    seed: 48,
+  });
+  const map = {
+    cols: 42,
+    rows: 42,
+    objects: [{
+      id: "castle-test",
+      object: "Castle",
+      buildPlan: plan,
+    }],
+  };
   LibraryRoomMapObjects.prepareMap(map);
   const first = structuredClone(map.objects.slice(1));
   assert.ok(first.some(item => item.object === "WritingDesk"));

@@ -79,10 +79,17 @@ export class CastleRoof {
       // Primitive collision dimensions and offsets are in world units; Ammo does
       // not apply the imported mesh hierarchy's scale to these box properties.
       const scale = render.entity.getWorldTransform().getScale();
-      render.entity.addComponent("collision", { type: "box", halfExtents: bounds.halfExtents.clone().mul(scale),
-        linearOffset: bounds.center.clone().mul(scale) });
+      render.entity.addComponent("collision", {
+        type: "box",
+        halfExtents: bounds.halfExtents.clone().mul(scale),
+        linearOffset: bounds.center.clone().mul(scale),
+      });
     }
-    roof.addComponent("rigidbody", { type: "static", friction: 0.8, restitution: 0 });
+    roof.addComponent("rigidbody", {
+      type: "static",
+      friction: 0.8,
+      restitution: 0,
+    });
   }
   /**
    * Read roof support from Ammo without creating a duplicate terrain floor.

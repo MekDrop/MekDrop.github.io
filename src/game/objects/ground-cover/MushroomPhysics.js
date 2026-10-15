@@ -116,7 +116,10 @@ export class MushroomPhysics {
    */
   updateHeroPosition(
     { x, y, z },
-    { direction = { x: 0, z: 1 }, speed = 0 } = {},
+    { direction = {
+      x: 0,
+      z: 1,
+    }, speed = 0 } = {},
   ) {
     const directionLength = Math.hypot(direction.x, direction.z) || 1;
     const forwardX = direction.x / directionLength;
@@ -246,7 +249,10 @@ export class MushroomPhysics {
       }
       mushroom.destroyed = true;
       mushroom.entity.enabled = false;
-      mushroom.onDestroy({ directionX, directionZ });
+      mushroom.onDestroy({
+        directionX,
+        directionZ,
+      });
     }
   }
 }

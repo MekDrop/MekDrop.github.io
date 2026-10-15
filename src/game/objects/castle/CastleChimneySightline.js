@@ -20,10 +20,10 @@ export class CastleChimneySightline {
      * @param {import("../../generator/castle/rooms/AbstractCastleRoomGenerator.js").RoomItem} item
      * @returns {import("playcanvas").Mat4}
      */ item => {
-      const position = layout.toWorld(item.x, item.z, item.floorY - layout.origin.y);
-      const rotation = new pc.Quat().setFromEulerAngles(0, layout.yaw + 180 + (item.rotation ?? 0), 0);
-      return new pc.Mat4().setTRS(new pc.Vec3(position.x, position.y, position.z), rotation, new pc.Vec3(1, 1, 1));
-    });
+        const position = layout.toWorld(item.x, item.z, item.floorY - layout.origin.y);
+        const rotation = new pc.Quat().setFromEulerAngles(0, layout.yaw + 180 + (item.rotation ?? 0), 0);
+        return new pc.Mat4().setTRS(new pc.Vec3(position.x, position.y, position.z), rotation, new pc.Vec3(1, 1, 1));
+      });
     if (!flues.length) { return; }
     const materials = new Map();
     for (const render of root.findComponents("render")) {
@@ -71,9 +71,9 @@ export class CastleChimneySightline {
        * @param {import("playcanvas").Mat4} bind
        * @param {number} index
        */ (bind, index) => {
-        const inverse = new pc.Mat4().mul2(root.getWorldTransform(), bind).invert();
-        for (const material of materials.values()) { material.setParameter(`uChimney${index}`, inverse.data); }
-      });
+          const inverse = new pc.Mat4().mul2(root.getWorldTransform(), bind).invert();
+          for (const material of materials.values()) { material.setParameter(`uChimney${index}`, inverse.data); }
+        });
     };
     update();
     const handle = app.on("update", update);

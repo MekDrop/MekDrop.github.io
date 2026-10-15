@@ -97,13 +97,22 @@ export class CastleResidence {
       this.#entity.addChild(visual);
       // Furniture is solid at its occupied level, rather than an infinite column.
       const dimensions = {
-        workDesk: [0.9, 0.73, 0.55], kitchenTable: [0.9, 0.73, 0.55], royalBed: [1.2, 2.03, 1.805],
-        wardrobe: [0.65, 1.15, 0.46], readingChair: [0.429, 0.85, 0.508],
-        servantBed: [0.9, 0.675, 2], storageShelf: [0.8, 1, 0.3],
+        workDesk: [0.9, 0.73, 0.55],
+        kitchenTable: [0.9, 0.73, 0.55],
+        royalBed: [1.2, 2.03, 1.805],
+        wardrobe: [0.65, 1.15, 0.46],
+        readingChair: [0.429, 0.85, 0.508],
+        servantBed: [0.9, 0.675, 2],
+        storageShelf: [0.8, 1, 0.3],
       }[placement.role];
-      this.#solids.push({ x: local.x, y: placement.position.y - origin.y + dimensions[1] * placement.scale.y / 2, z: local.z,
-        width: placement.footprint?.width ?? dimensions[0] * placement.scale.x, height: dimensions[1] * placement.scale.y,
-        depth: placement.footprint?.depth ?? dimensions[2] * placement.scale.z });
+      this.#solids.push({
+        x: local.x,
+        y: placement.position.y - origin.y + dimensions[1] * placement.scale.y / 2,
+        z: local.z,
+        width: placement.footprint?.width ?? dimensions[0] * placement.scale.x,
+        height: dimensions[1] * placement.scale.y,
+        depth: placement.footprint?.depth ?? dimensions[2] * placement.scale.z,
+      });
     }
     if (buildPlan.metadata.runtime.residential?.version === 2) {
       if (!buildPlan.metadata.runtime.residential.basePlanId) { this.#buildExterior(buildPlan, modelLibrary, pc); }
@@ -111,7 +120,13 @@ export class CastleResidence {
       for (const stair of this.#layout.authoredStairs) { this.#buildStair(pc, modelLibrary, stair, "Castle authored staircase", stair.shaft); }
       if (this.#layout.stairs) { this.#buildStair(pc, modelLibrary, this.#layout.stairs, "Castle upper staircase", buildPlan.metadata.runtime.residential.shaft); }
       if (this.#layout.serviceStair) { this.#buildStair(pc, modelLibrary, this.#layout.serviceStair, "Castle basement staircase"); }
-      addGeneratedVoxelPhysics({ pc, parent: this.#entity, name: "Castle rooms", voxels: this.#solids, friction: 0.6 });
+      addGeneratedVoxelPhysics({
+        pc,
+        parent: this.#entity,
+        name: "Castle rooms",
+        voxels: this.#solids,
+        friction: 0.6,
+      });
       return;
     }
     this.#buildExterior(buildPlan, modelLibrary, pc);
@@ -120,7 +135,13 @@ export class CastleResidence {
     this.#buildStair(pc, modelLibrary, this.#layout.stairs, "Castle compact spiral staircase");
     this.#buildStair(pc, modelLibrary, this.#layout.serviceStair, "Servant basement spiral staircase");
     this.#addUpperFloorSupport(modelLibrary, pc, gardenTexture);
-    addGeneratedVoxelPhysics({ pc, parent: this.#entity, name: "Castle private room", voxels: this.#solids, friction: 0.6 });
+    addGeneratedVoxelPhysics({
+      pc,
+      parent: this.#entity,
+      name: "Castle private room",
+      voxels: this.#solids,
+      friction: 0.6,
+    });
   }
 
   /**
@@ -143,8 +164,8 @@ export class CastleResidence {
         .map(/**
          * @param {import("../../generator/castle/rooms/AbstractCastleRoomGenerator.js").PlannedCastleRoom} room
          */ (room) => {
-          return CastleFloorFinish.bounds(room, plan.buildings, plan.openings);
-        });
+            return CastleFloorFinish.bounds(room, plan.buildings, plan.openings);
+          });
       let stonePieces = [[area.minX, area.maxX, area.minZ, area.maxZ]];
       const woodPieces = [];
       for (const room of rooms) {
@@ -165,9 +186,15 @@ export class CastleResidence {
           const front = Math.max(minZ, audienceFloor.minZ);
           const rear = Math.min(maxZ, audienceFloor.maxZ);
           if (right <= left || rear <= front) { continue; }
-          this.#solids.push({ x: (left + right) / 2,
-            y: area.floorY - plan.origin.y - 0.125, z: (front + rear) / 2,
-            width: right - left, height: 0.25, depth: rear - front, floorSupport: true });
+          this.#solids.push({
+            x: (left + right) / 2,
+            y: area.floorY - plan.origin.y - 0.125,
+            z: (front + rear) / 2,
+            width: right - left,
+            height: 0.25,
+            depth: rear - front,
+            floorSupport: true,
+          });
         }
       }
       for (const [pieces, timber] of [[stonePieces, false], [visibleWoodPieces, true]]) {
@@ -188,16 +215,20 @@ export class CastleResidence {
              *
              * @param {{id:string,minX:number,maxX:number,minZ:number,maxZ:number}} room
              */
-            (room) => room.id !== "main-entrance" &&
+              (room) => room.id !== "main-entrance" &&
               x >= room.minX - 1e-6 && x <= room.maxX + 1e-6 &&
               z >= room.minZ - 1e-6 && z <= room.maxZ + 1e-6) ??
               rooms.find(/**
                *
                * @param {{id:string,minX:number,maxX:number,minZ:number,maxZ:number}} room
                */
-              (room) => x >= room.minX && x <= room.maxX && z >= room.minZ && z <= room.maxZ);
+                (room) => x >= room.minX && x <= room.maxX && z >= room.minZ && z <= room.maxZ);
             const key = `${owner.id}:${area.floorY}`;
-            if (!timberFinishes.has(key)) { timberFinishes.set(key, { id: owner.id, y, pieces: [] }); }
+            if (!timberFinishes.has(key)) { timberFinishes.set(key, {
+              id: owner.id,
+              y,
+              pieces: [],
+            }); }
             timberFinishes.get(key).pieces.push([minX, maxX, minZ, maxZ]);
           }
           if (panel && (wood || !plan.basePlanId)) {
@@ -216,8 +247,15 @@ export class CastleResidence {
             backing.setLocalScale(maxX - minX, 0.214, maxZ - minZ);
             this.#entity.addChild(backing);
           }
-          this.#solids.push({ x, y: y - 0.125, z, width: maxX - minX,
-            height: 0.25, depth: maxZ - minZ, floorSupport: true });
+          this.#solids.push({
+            x,
+            y: y - 0.125,
+            z,
+            width: maxX - minX,
+            height: 0.25,
+            depth: maxZ - minZ,
+            floorSupport: true,
+          });
         }
       }
     }
@@ -235,10 +273,20 @@ export class CastleResidence {
     for (const item of plan.furniture) {
       if (item.role !== "bookshelf") { continue; }
       this.#solids.push(Bookshelf.addVisual(models, this.#entity, {
-        id: `castle-${item.roomId}-books`, object: Bookshelf.name,
-        from: { x: item.x, y: item.floorY - plan.origin.y, z: item.z - item.depth * item.scale / 2 },
-        to: { x: item.x, y: item.floorY - plan.origin.y, z: item.z + item.depth * item.scale / 2 },
-        height: 1.6, facing: item.x < 0 ? 1 : -1,
+        id: `castle-${item.roomId}-books`,
+        object: Bookshelf.name,
+        from: {
+          x: item.x,
+          y: item.floorY - plan.origin.y,
+          z: item.z - item.depth * item.scale / 2,
+        },
+        to: {
+          x: item.x,
+          y: item.floorY - plan.origin.y,
+          z: item.z + item.depth * item.scale / 2,
+        },
+        height: 1.6,
+        facing: item.x < 0 ? 1 : -1,
       }));
     }
     for (const room of plan.placedRooms) {
@@ -247,8 +295,13 @@ export class CastleResidence {
        */ item => item.roomId === room.id && item.object === "ServantBedsideLantern");
       const light = new pc.Entity(`Castle ${room.id} light`);
       light.setLocalPosition((room.minX + room.maxX) / 2, room.floorY - plan.origin.y + 1.7, (room.minZ + room.maxZ) / 2);
-      light.addComponent("light", { type: "omni", color: new pc.Color(1, 0.72, 0.4),
-        intensity: bedsideLighting ? 0.6 : 1.2, range: 4, castShadows: false });
+      light.addComponent("light", {
+        type: "omni",
+        color: new pc.Color(1, 0.72, 0.4),
+        intensity: bedsideLighting ? 0.6 : 1.2,
+        range: 4,
+        castShadows: false,
+      });
       this.#entity.addChild(light);
     }
   }
@@ -289,7 +342,10 @@ export class CastleResidence {
     if (this.#layout.basement && !this.#layout.canEnterBasement(null) && elevation + 0.8 <= basementCeiling) {
       const bed = this.#layout.rooms.servantBedroom;
       const storage = this.#layout.rooms.storage;
-      const room = { ...bed, maxX: storage.maxX };
+      const room = {
+        ...bed,
+        maxX: storage.maxX,
+      };
       return local.x >= room.minX - radius && local.x <= room.maxX + radius && local.z >= room.minZ - radius && local.z <= room.maxZ + radius;
     }
     const y = elevation - this.#layout.origin.y;
@@ -404,15 +460,27 @@ export class CastleResidence {
       instance.node.setLocalScale(1, 1, 1);
     }
     const support = createSpiralStairCollision(pc, {
-      device: model.meshInstances[0].mesh.device, material: model.meshInstances[0].material,
-      innerRadius: definition.radius * 0.08 / 0.65, outerRadius: definition.radius * 0.59 / 0.65,
-      rise: definition.rise, turns, steps: 24, landingProfile,
+      device: model.meshInstances[0].mesh.device,
+      material: model.meshInstances[0].material,
+      innerRadius: definition.radius * 0.08 / 0.65,
+      outerRadius: definition.radius * 0.59 / 0.65,
+      rise: definition.rise,
+      turns,
+      steps: 24,
+      landingProfile,
     });
     this.#stairSupportInstances.push(support);
     collisionGraph.addChild(support.node);
     model.meshInstances.push(support);
-    root.addComponent("collision", { type: "mesh", model });
-    root.addComponent("rigidbody", { type: "static", friction: 0.6, restitution: 0 });
+    root.addComponent("collision", {
+      type: "mesh",
+      model,
+    });
+    root.addComponent("rigidbody", {
+      type: "static",
+      friction: 0.6,
+      restitution: 0,
+    });
     this.#stairPhysicsGraphs.push(collisionGraph);
   }
 
@@ -453,10 +521,20 @@ export class CastleResidence {
         const shelfBack = work.minZ + (work.maxZ - work.minZ) * 0.45;
         for (const x of [deskSide > 0 ? work.maxX - 0.24 : work.minX + 0.24]) {
           this.#solids.push(Bookshelf.addVisual(models, this.#entity, {
-            id: "castle-work-bookshelf", object: Bookshelf.name,
-            from: { x, y, z: shelfBack - 0.4675 },
-            to: { x, y, z: shelfBack + 0.4675 },
-            height: 1.8, facing: -deskSide,
+            id: "castle-work-bookshelf",
+            object: Bookshelf.name,
+            from: {
+              x,
+              y,
+              z: shelfBack - 0.4675,
+            },
+            to: {
+              x,
+              y,
+              z: shelfBack + 0.4675,
+            },
+            height: 1.8,
+            facing: -deskSide,
           }));
         }
       }
@@ -473,8 +551,10 @@ export class CastleResidence {
         // Clip boundary panels instead of dropping a whole tile when only
         // its corner touches the stair opening. Match the support cut below.
         const pieces = subtractFloorArea([[x, x + w, z, z + d]], {
-          minX: stair.x - radius, maxX: stair.x + radius,
-          minZ: stair.z - radius, maxZ: stair.z + radius,
+          minX: stair.x - radius,
+          maxX: stair.x + radius,
+          minZ: stair.z - radius,
+          maxZ: stair.z + radius,
         });
         for (const [minX, maxX, minZ, maxZ] of pieces) {
           if (maxX <= minX || maxZ <= minZ) continue;
@@ -506,8 +586,14 @@ export class CastleResidence {
       visual.setLocalEulerAngles(0, placement.yaw - yaw, 0);
       visual.setLocalScale(placement.scale.x, placement.scale.y, placement.scale.z);
       this.#entity.addChild(visual);
-      this.#solids.push({ x: local.x, y: 0.7 * placement.scale.y, z: local.z,
-        width: 0.6 * placement.scale.x, height: 1.4 * placement.scale.y, depth: 0.6 * placement.scale.z });
+      this.#solids.push({
+        x: local.x,
+        y: 0.7 * placement.scale.y,
+        z: local.z,
+        width: 0.6 * placement.scale.x,
+        height: 1.4 * placement.scale.y,
+        depth: 0.6 * placement.scale.z,
+      });
     }
     for (const footing of this.#layout.buttressFootings) {
       const local = this.#layout.toLocal(footing.x, footing.z);
@@ -518,7 +604,14 @@ export class CastleResidence {
       visual.setLocalPosition(local.x, y, local.z);
       visual.setLocalScale(footing.width, height, footing.depth);
       this.#entity.addChild(visual);
-      this.#solids.push({ x: local.x, y, z: local.z, width: footing.width, height, depth: footing.depth });
+      this.#solids.push({
+        x: local.x,
+        y,
+        z: local.z,
+        width: footing.width,
+        height,
+        depth: footing.depth,
+      });
     }
     const residential = buildPlan.metadata.runtime.residential;
     if (residential?.version === 2) {
@@ -526,7 +619,7 @@ export class CastleResidence {
        *
        * @param {import("../../generator/castle/rooms/AbstractCastleRoomGenerator.js").PlannedCastleRoom} room
        */
-      (room) => room.stairHost);
+        (room) => room.stairHost);
       if (keep) {
         const left = (keep.minX + keep.maxX) / 2 < 0;
         const crest = models.instantiate(crestUrl);
@@ -546,7 +639,14 @@ export class CastleResidence {
       visual.setLocalEulerAngles(0, chimney.yaw - yaw, 0);
       visual.setLocalScale(chimney.width / 0.65, chimney.height / 1.5, chimney.depth / 0.65);
       this.#entity.addChild(visual);
-      this.#solids.push({ x: local.x, y: chimney.y - origin.y + chimney.height / 2, z: local.z, width: chimney.width, height: chimney.height, depth: chimney.depth });
+      this.#solids.push({
+        x: local.x,
+        y: chimney.y - origin.y + chimney.height / 2,
+        z: local.z,
+        width: chimney.width,
+        height: chimney.height,
+        depth: chimney.depth,
+      });
     }
   }
   /**
@@ -582,7 +682,15 @@ export class CastleResidence {
         panel.setLocalPosition(x, stoneLanding ? y - 0.25 : y - 0.018, z);
         panel.setLocalScale(width, stoneLanding ? 0.25 : 0.3, depth);
         this.#entity.addChild(panel);
-        this.#solids.push({ x, y: y - 0.125, z, width, height: 0.25, depth, floorSupport: true });
+        this.#solids.push({
+          x,
+          y: y - 0.125,
+          z,
+          width,
+          height: 0.25,
+          depth,
+          floorSupport: true,
+        });
         continue;
       }
       const ground = room.floorY <= this.#layout.origin.y + 0.001;
@@ -597,7 +705,7 @@ export class CastleResidence {
        *
        * @param {{id:string,minX:number,maxX:number,minZ:number,maxZ:number}} area
        */
-      (area) => area.id === "serviceStairLanding") : null;
+        (area) => area.id === "serviceStairLanding") : null;
       // Continue the room floor into the final tread's exit quadrant, using
       // the same surface and thickness as the rest of the room.
       let rectangles = right > left && rear > front ? [
@@ -618,7 +726,7 @@ export class CastleResidence {
            *
            * @param {{id:string,minX:number,maxX:number,minZ:number,maxZ:number}} area
            */
-          (area) => area.id === "courtyard" ||
+            (area) => area.id === "courtyard" ||
             area.id.endsWith("Threshold") || area.id.startsWith("doorThreshold") ||
             (room.id === "castleGroundFloor" && area.id === "serviceGroundBay"))];
         for (const area of exclusions) rectangles = subtractFloorArea(rectangles, area);
@@ -630,7 +738,7 @@ export class CastleResidence {
           ...this.#layout.walkableAreas.filter(/**
            * @param {{id:string}} area
            */
-          (area) => area.id.endsWith("Threshold") || area.id.startsWith("doorThreshold") || area.id === "serviceGroundBay")]) {
+            (area) => area.id.endsWith("Threshold") || area.id.startsWith("doorThreshold") || area.id === "serviceGroundBay")]) {
           rectangles = subtractFloorArea(rectangles, area);
         }
       }
@@ -657,7 +765,15 @@ export class CastleResidence {
           }
           this.#entity.addChild(panel);
         }
-        this.#solids.push({ x: (minX + maxX) / 2, y: room.floorY - this.#layout.origin.y - 0.125, z: (minZ + maxZ) / 2, width: maxX - minX, height: 0.25, depth: maxZ - minZ, floorSupport: true });
+        this.#solids.push({
+          x: (minX + maxX) / 2,
+          y: room.floorY - this.#layout.origin.y - 0.125,
+          z: (minZ + maxZ) / 2,
+          width: maxX - minX,
+          height: 0.25,
+          depth: maxZ - minZ,
+          floorSupport: true,
+        });
       }
     }
   }
@@ -675,13 +791,55 @@ export class CastleResidence {
     const centerZ = (bed.minZ + bed.maxZ) / 2;
     const height = -y - 0.25;
     const boxes = [
-      { x: centerX, y: y - 0.125, z: centerZ, width, height: 0.25, depth },
-      { x: bed.minX - 0.125, y: y + height / 2, z: centerZ, width: 0.25, height, depth },
-      { x: storage.maxX + 0.125, y: y + height / 2, z: centerZ, width: 0.25, height, depth },
-      { x: centerX, y: y + height / 2, z: bed.maxZ + 0.125, width, height, depth: 0.25 },
-      { x: centerX, y: y + height / 2, z: bed.minZ - 0.125, width, height, depth: 0.25 },
+      {
+        x: centerX,
+        y: y - 0.125,
+        z: centerZ,
+        width,
+        height: 0.25,
+        depth,
+      },
+      {
+        x: bed.minX - 0.125,
+        y: y + height / 2,
+        z: centerZ,
+        width: 0.25,
+        height,
+        depth,
+      },
+      {
+        x: storage.maxX + 0.125,
+        y: y + height / 2,
+        z: centerZ,
+        width: 0.25,
+        height,
+        depth,
+      },
+      {
+        x: centerX,
+        y: y + height / 2,
+        z: bed.maxZ + 0.125,
+        width,
+        height,
+        depth: 0.25,
+      },
+      {
+        x: centerX,
+        y: y + height / 2,
+        z: bed.minZ - 0.125,
+        width,
+        height,
+        depth: 0.25,
+      },
       // Partition leaves a doorway at its front end.
-      { x: centerX, y: y + height / 2, z: bed.minZ + 0.8 + (depth - 0.8) / 2, width: 0.1, height, depth: Math.max(0.1, depth - 0.8) },
+      {
+        x: centerX,
+        y: y + height / 2,
+        z: bed.minZ + 0.8 + (depth - 0.8) / 2,
+        width: 0.1,
+        height,
+        depth: Math.max(0.1, depth - 0.8),
+      },
     ];
     for (const box of boxes) {
       const floor = box === boxes[0];
@@ -699,7 +857,13 @@ export class CastleResidence {
     this.#entity.addChild(chest);
     const light = new pc.Entity("Servant cellar lantern light");
     light.setLocalPosition(centerX, y + height - 0.25, centerZ);
-    light.addComponent("light", { type: "omni", color: new pc.Color(1, 0.72, 0.4), intensity: 1.4, range: Math.max(width, depth) + 1, castShadows: false });
+    light.addComponent("light", {
+      type: "omni",
+      color: new pc.Color(1, 0.72, 0.4),
+      intensity: 1.4,
+      range: Math.max(width, depth) + 1,
+      castShadows: false,
+    });
     this.#entity.addChild(light);
   }
 }
@@ -747,7 +911,11 @@ export function findCastleMapMount(plan, layout, preferredSide, shelfBack) {
           }
         }
       }
-      if (supported) return { x: wallX - side * 0.035, z, yaw: -side * 90 };
+      if (supported) return {
+        x: wallX - side * 0.035,
+        z,
+        yaw: -side * 90,
+      };
     }
   }
   return null;
@@ -768,13 +936,13 @@ function subtractFloorArea(rectangles, area) {
    * @param {number} options."2"
    * @param {number} options."3"
    */
-  ([minX, maxX, minZ, maxZ]) => {
-    const left = Math.max(minX, area.minX), right = Math.min(maxX, area.maxX);
-    const front = Math.max(minZ, area.minZ), rear = Math.min(maxZ, area.maxZ);
-    if (right <= left || rear <= front) return [[minX, maxX, minZ, maxZ]];
-    return [[minX, left, minZ, maxZ], [right, maxX, minZ, maxZ],
-      [left, right, minZ, front], [left, right, rear, maxZ]];
-  });
+    ([minX, maxX, minZ, maxZ]) => {
+      const left = Math.max(minX, area.minX), right = Math.min(maxX, area.maxX);
+      const front = Math.max(minZ, area.minZ), rear = Math.min(maxZ, area.maxZ);
+      if (right <= left || rear <= front) return [[minX, maxX, minZ, maxZ]];
+      return [[minX, left, minZ, maxZ], [right, maxX, minZ, maxZ],
+        [left, right, minZ, front], [left, right, rear, maxZ]];
+    });
 }
 
 /**

@@ -124,7 +124,12 @@ export class HeroLifeHud extends GamePanelHud {
     maxCastleLives = 3,
     colors = DEFAULT_COLORS,
   }) {
-    super({ pc, app, name: "Game lives HUD", priority: 100 });
+    super({
+      pc,
+      app,
+      name: "Game lives HUD",
+      priority: 100,
+    });
     this.#colors = colors;
 
     this.#heartTexture = this.#createHeartTexture();

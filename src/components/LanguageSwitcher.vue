@@ -85,16 +85,16 @@ const languageOptions = computed(() => {
    *
    * @param {string} lang
    */
-  (lang) => {
-    const emoji = getLanguageEmoji(lang);
-    return {
-      value: lang,
-      label: i18n.t(`language.${lang}`),
-      emoji,
-      iconHTML: twemoji.parse(emoji, {
-        base: "https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/",
-      }),
-    };
-  });
+    (lang) => {
+      const emoji = getLanguageEmoji(lang);
+      return {
+        value: lang,
+        label: i18n.t(`language.${lang}`),
+        emoji,
+        iconHTML: twemoji.parse(emoji, {
+          base: "https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/",
+        }),
+      };
+    });
 });
 </script>

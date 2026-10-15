@@ -62,18 +62,40 @@ export class ServiceRoomFurnishing {
               this.#supported("ServantBedsideLantern", drawer, 0.187, 0.257, 0.45, -0.16);
               this.#supported("StoragePotteryJar", drawer, 0.229, 0.236, 0.3, 0.18);
             } else if (this.#random() < 0.8) {
-              this.#items.push({ role: "serviceProp", object: "TableCandles", x: drawer.x, z: drawer.z,
-                width: 0.1407, depth: 0.1916, height: 0.3, scale: 1, rotation: drawer.rotation,
-                y: 0.65, supportId: drawer.id, id: `${drawer.id}-candles` });
+              this.#items.push({
+                role: "serviceProp",
+                object: "TableCandles",
+                x: drawer.x,
+                z: drawer.z,
+                width: 0.1407,
+                depth: 0.1916,
+                height: 0.3,
+                scale: 1,
+                rotation: drawer.rotation,
+                y: 0.65,
+                supportId: drawer.id,
+                id: `${drawer.id}-candles`,
+              });
             }
             break;
           }
         }
         if (this.#cozy) {
-          this.#items.push({ role: "serviceProp", object: "Boots", id: `${bed.id}-boots`,
-            x: bed.x + Math.sin(angle) * bedDepth * 0.36, z: bed.z + Math.cos(angle) * bedDepth * 0.36,
-            width: bed.rotation % 180 ? 0.32 : 0.4, depth: bed.rotation % 180 ? 0.4 : 0.32,
-            height: 0.28, scale: 0.7, rotation: bed.rotation, y: 0, supportId: bed.id, underSupport: true });
+          this.#items.push({
+            role: "serviceProp",
+            object: "Boots",
+            id: `${bed.id}-boots`,
+            x: bed.x + Math.sin(angle) * bedDepth * 0.36,
+            z: bed.z + Math.cos(angle) * bedDepth * 0.36,
+            width: bed.rotation % 180 ? 0.32 : 0.4,
+            depth: bed.rotation % 180 ? 0.4 : 0.32,
+            height: 0.28,
+            scale: 0.7,
+            rotation: bed.rotation,
+            y: 0,
+            supportId: bed.id,
+            underSupport: true,
+          });
         }
       }
       if (royal) { this.#perimeter("wardrobe", 0.65, 0.46, 1.15, 0.9); }
@@ -107,21 +129,33 @@ export class ServiceRoomFurnishing {
           const halfX = rail.width * rail.scale / 2, halfZ = rail.depth * rail.scale / 2;
           if (rail.x + halfX <= stair.minX - 0.45 || rail.x - halfX >= stair.maxX + 0.45 ||
             rail.z + halfZ <= stair.minZ - 0.45 || rail.z - halfZ >= stair.maxZ + 0.45) { continue; }
-          const candidates = [{ x: stair.minX - 0.45001 - halfX, z: rail.z },
-            { x: stair.maxX + 0.45001 + halfX, z: rail.z },
-            { x: rail.x, z: stair.minZ - 0.45001 - halfZ },
-            { x: rail.x, z: stair.maxZ + 0.45001 + halfZ }];
+          const candidates = [{
+            x: stair.minX - 0.45001 - halfX,
+            z: rail.z,
+          },
+          {
+            x: stair.maxX + 0.45001 + halfX,
+            z: rail.z,
+          },
+          {
+            x: rail.x,
+            z: stair.minZ - 0.45001 - halfZ,
+          },
+          {
+            x: rail.x,
+            z: stair.maxZ + 0.45001 + halfZ,
+          }];
           candidates.sort(/**
            *
            * @param {{x:number,z:number}} a
            * @param {{x:number,z:number}} b
            */
-          (a, b) => Math.hypot(a.x - rail.x, a.z - rail.z) - Math.hypot(b.x - rail.x, b.z - rail.z));
+            (a, b) => Math.hypot(a.x - rail.x, a.z - rail.z) - Math.hypot(b.x - rail.x, b.z - rail.z));
           const fitted = candidates.find(/**
            *
            * @param {{x:number,z:number}} candidate
            */
-          candidate => candidate.x - halfX >= bounds.minX + inset && candidate.x + halfX <= bounds.maxX - inset &&
+            candidate => candidate.x - halfX >= bounds.minX + inset && candidate.x + halfX <= bounds.maxX - inset &&
             candidate.z - halfZ >= bounds.minZ + inset && candidate.z + halfZ <= bounds.maxZ - inset);
           if (fitted) { rail.x = fitted.x; rail.z = fitted.z; }
         }
@@ -161,32 +195,93 @@ export class ServiceRoomFurnishing {
     this.#items.pop();
     const angle = group.rotation * Math.PI / 180;
     const sideways = group.rotation % 180 !== 0;
-    const desk = { role: "serviceProp", object: "WritingDesk", id: `${group.id}-desk`,
-      x: group.x - Math.sin(angle) * 0.55, z: group.z - Math.cos(angle) * 0.55,
-      width: sideways ? 0.55 : 0.9, depth: sideways ? 0.9 : 0.55,
-      height: 0.65, scale: 1, rotation: group.rotation };
-    const chair = { role: "serviceProp", object: "Chair", id: `${group.id}-chair`,
-      x: group.x + Math.sin(angle) * 0.23, z: group.z + Math.cos(angle) * 0.23,
-      width: sideways ? 0.43 : 0.51, depth: sideways ? 0.51 : 0.43,
-      height: 0.85, scale: 1, rotation: (group.rotation + 270) % 360, mirrorRotationOffset: 180 };
+    const desk = {
+      role: "serviceProp",
+      object: "WritingDesk",
+      id: `${group.id}-desk`,
+      x: group.x - Math.sin(angle) * 0.55,
+      z: group.z - Math.cos(angle) * 0.55,
+      width: sideways ? 0.55 : 0.9,
+      depth: sideways ? 0.9 : 0.55,
+      height: 0.65,
+      scale: 1,
+      rotation: group.rotation,
+    };
+    const chair = {
+      role: "serviceProp",
+      object: "Chair",
+      id: `${group.id}-chair`,
+      x: group.x + Math.sin(angle) * 0.23,
+      z: group.z + Math.cos(angle) * 0.23,
+      width: sideways ? 0.43 : 0.51,
+      depth: sideways ? 0.51 : 0.43,
+      height: 0.85,
+      scale: 1,
+      rotation: (group.rotation + 270) % 360,
+      mirrorRotationOffset: 180,
+    };
     this.#items.push(desk, chair);
-    this.#access.push({ minX: group.x - group.width / 2, maxX: group.x + group.width / 2,
-      minZ: group.z - group.depth / 2, maxZ: group.z + group.depth / 2 });
+    this.#access.push({
+      minX: group.x - group.width / 2,
+      maxX: group.x + group.width / 2,
+      minZ: group.z - group.depth / 2,
+      maxZ: group.z + group.depth / 2,
+    });
     this.#supported(variant === "mending" ? "Basket" : "OpenReadingBook", desk,
       variant === "mending" ? 0.32 : 0.36, variant === "mending" ? 0.28 : 0.227,
       variant === "mending" ? 0.3 : 0.0673, -0.2);
     if (variant === "mending") {
       this.#items.at(-1).items = [
-        { object: "ClothRoll", variant: "cream", scale: 1,
-          position: { x: -0.06704362, y: 0.1580755, z: -0.03098672 } },
-        { object: "ClothRoll", variant: "blue", scale: 1,
-          position: { x: 0.06673919, y: 0.15806977, z: -0.03475429 } },
-        { object: "ThreadSpool", variant: "tilted", scale: 1,
-          position: { x: -0.06510496, y: 0.15822333, z: 0.0715482 } },
-        { object: "ThreadSpool", variant: "small", scale: 1,
-          position: { x: -0.0130072, y: 0.15808284, z: 0.05435761 } },
-        { object: "ThreadSpool", variant: "large", scale: 1,
-          position: { x: 0.03576584, y: 0.17020223, z: 0.07237974 } },
+        {
+          object: "ClothRoll",
+          variant: "cream",
+          scale: 1,
+          position: {
+            x: -0.06704362,
+            y: 0.1580755,
+            z: -0.03098672,
+          },
+        },
+        {
+          object: "ClothRoll",
+          variant: "blue",
+          scale: 1,
+          position: {
+            x: 0.06673919,
+            y: 0.15806977,
+            z: -0.03475429,
+          },
+        },
+        {
+          object: "ThreadSpool",
+          variant: "tilted",
+          scale: 1,
+          position: {
+            x: -0.06510496,
+            y: 0.15822333,
+            z: 0.0715482,
+          },
+        },
+        {
+          object: "ThreadSpool",
+          variant: "small",
+          scale: 1,
+          position: {
+            x: -0.0130072,
+            y: 0.15808284,
+            z: 0.05435761,
+          },
+        },
+        {
+          object: "ThreadSpool",
+          variant: "large",
+          scale: 1,
+          position: {
+            x: 0.03576584,
+            y: 0.17020223,
+            z: 0.07237974,
+          },
+        },
       ];
     }
     this.#supported(variant === "mending" ? "FoldedLinens" : "DeskParchment", desk,
@@ -206,11 +301,20 @@ export class ServiceRoomFurnishing {
   #supported(object, support, width, depth, height, offset = 0) {
     const angle = support.rotation * Math.PI / 180;
     const sideways = support.rotation % 180 !== 0;
-    this.#items.push({ role: "serviceProp", object, id: `${support.id}-${object}`,
-      x: support.x + Math.cos(angle) * offset, z: support.z - Math.sin(angle) * offset,
-      width: sideways ? depth : width, depth: sideways ? width : depth,
-      height, scale: 1, rotation: support.rotation, y: support.height * support.scale,
-      supportId: support.id });
+    this.#items.push({
+      role: "serviceProp",
+      object,
+      id: `${support.id}-${object}`,
+      x: support.x + Math.cos(angle) * offset,
+      z: support.z - Math.sin(angle) * offset,
+      width: sideways ? depth : width,
+      depth: sideways ? width : depth,
+      height,
+      scale: 1,
+      rotation: support.rotation,
+      y: support.height * support.scale,
+      supportId: support.id,
+    });
   }
 
   /**
@@ -244,15 +348,22 @@ export class ServiceRoomFurnishing {
     const halfX = width * scale / 2, halfZ = depth * scale / 2;
     for (const south of [false, true]) {
       for (let x = room.minX + inset + halfX; x <= room.maxX - inset - halfX; x += 0.35) {
-        candidates.push({ x, z: south ? room.maxZ - inset - halfZ : room.minZ + inset + halfZ, rotation: south ? 180 : 0 });
+        candidates.push({
+          x,
+          z: south ? room.maxZ - inset - halfZ : room.minZ + inset + halfZ,
+          rotation: south ? 180 : 0,
+        });
       }
     }
     for (const east of [false, true]) {
       const sideways = role.endsWith("Bed") || ["workspaceReserve", "VestibuleCloakRail", "VestibuleLantern"].includes(role);
       const edgeHalfX = sideways ? halfZ : halfX, edgeHalfZ = sideways ? halfX : halfZ;
       for (let z = room.minZ + inset + edgeHalfZ; z <= room.maxZ - inset - edgeHalfZ; z += 0.35) {
-        candidates.push({ x: east ? room.maxX - inset - edgeHalfX : room.minX + inset + edgeHalfX, z,
-          rotation: sideways ? east ? 270 : 90 : this.#random() < 0.5 ? 0 : 180 });
+        candidates.push({
+          x: east ? room.maxX - inset - edgeHalfX : room.minX + inset + edgeHalfX,
+          z,
+          rotation: sideways ? east ? 270 : 90 : this.#random() < 0.5 ? 0 : 180,
+        });
       }
     }
     for (let index = candidates.length - 1; index > 0; index--) {
@@ -261,8 +372,11 @@ export class ServiceRoomFurnishing {
     }
     if (this.#cozy && role === "servantBed") {
       for (const south of [false, true]) {
-        candidates.push({ x: (this.#room.wallBounds ?? room).maxX - (this.#room.wallThickness ?? 0.25) / 2 - 0.005 - halfX,
-          z: south ? room.maxZ - inset - halfZ : room.minZ + inset + halfZ, rotation: south ? 180 : 0 });
+        candidates.push({
+          x: (this.#room.wallBounds ?? room).maxX - (this.#room.wallThickness ?? 0.25) / 2 - 0.005 - halfX,
+          z: south ? room.maxZ - inset - halfZ : room.minZ + inset + halfZ,
+          rotation: south ? 180 : 0,
+        });
       }
       candidates.sort(/**
        * @param {{x:number,z:number,rotation:number}} first
@@ -280,7 +394,7 @@ export class ServiceRoomFurnishing {
        * @param {{x:number,z:number}} first
        * @param {{x:number,z:number}} second
        */
-      (first, second) => Math.hypot(first.x - this.#storageBank.x, first.z - this.#storageBank.z) -
+        (first, second) => Math.hypot(first.x - this.#storageBank.x, first.z - this.#storageBank.z) -
         Math.hypot(second.x - this.#storageBank.x, second.z - this.#storageBank.z));
     }
     for (const candidate of candidates) {
@@ -352,11 +466,36 @@ export class ServiceRoomFurnishing {
       const bedMaxX = rotation === 90 ? maxX - 0.15 : x;
       const approaches = role.endsWith("Bed")
         ? rotation % 180 === 0
-          ? [{ minX: maxX, maxX: maxX + 0.6, minZ: bedMinZ, maxZ: bedMaxZ },
-            { minX: minX - 0.6, maxX: minX, minZ: bedMinZ, maxZ: bedMaxZ }]
-          : [{ minX: bedMinX, maxX: bedMaxX, minZ: maxZ, maxZ: maxZ + 0.6 },
-            { minX: bedMinX, maxX: bedMaxX, minZ: minZ - 0.6, maxZ: minZ }]
-        : [{ minX, maxX, minZ: rotation === 180 ? minZ - 0.65 : maxZ, maxZ: rotation === 180 ? minZ : maxZ + 0.65 }];
+          ? [{
+            minX: maxX,
+            maxX: maxX + 0.6,
+            minZ: bedMinZ,
+            maxZ: bedMaxZ,
+          },
+          {
+            minX: minX - 0.6,
+            maxX: minX,
+            minZ: bedMinZ,
+            maxZ: bedMaxZ,
+          }]
+          : [{
+            minX: bedMinX,
+            maxX: bedMaxX,
+            minZ: maxZ,
+            maxZ: maxZ + 0.6,
+          },
+          {
+            minX: bedMinX,
+            maxX: bedMaxX,
+            minZ: minZ - 0.6,
+            maxZ: minZ,
+          }]
+        : [{
+          minX,
+          maxX,
+          minZ: rotation === 180 ? minZ - 0.65 : maxZ,
+          maxZ: rotation === 180 ? minZ : maxZ + 0.65,
+        }];
       for (const approach of approaches) {
         if (approach.minX < bounds.minX + inset || approach.maxX > bounds.maxX - inset ||
           approach.minZ < bounds.minZ + inset || approach.maxZ > bounds.maxZ - inset) { continue; }
@@ -370,7 +509,18 @@ export class ServiceRoomFurnishing {
       }
       if (!access) { return; }
     }
-    const item = { role, x, z, width, depth, height, scale, rotation, y, id: `${room.id}-service-${this.#items.length}` };
+    const item = {
+      role,
+      x,
+      z,
+      width,
+      depth,
+      height,
+      scale,
+      rotation,
+      y,
+      id: `${room.id}-service-${this.#items.length}`,
+    };
     if (role[0] === role[0].toUpperCase()) { item.object = role; item.role = "serviceProp"; }
     this.#items.push(item);
     if (access) { this.#access.push(access); }

@@ -93,7 +93,7 @@ export class RiverRouter {
        *
        * @param {MapCell} cell
        */
-      (cell) => MapGrid.tileKey(cell.col, cell.row)),
+        (cell) => MapGrid.tileKey(cell.col, cell.row)),
     );
     for (let deltaRow = -1; deltaRow <= 1; deltaRow++) {
       for (let deltaCol = -1; deltaCol <= 1; deltaCol++) {
@@ -167,7 +167,10 @@ export class RiverRouter {
     let key = terminalKey;
     while (key) {
       const [col, row] = key.split(",").map(Number);
-      route.push({ col, row });
+      route.push({
+        col,
+        row,
+      });
       key = parents.get(key) ?? null;
     }
     route.reverse();
@@ -207,10 +210,10 @@ export class RiverRouter {
      *
      * @param {string} key
      */
-    (key) => {
-      const [col, row] = key.split(",").map(Number);
-      return Math.max(Math.abs(col - junction.col), Math.abs(row - junction.row)) > 1;
-    }));
+      (key) => {
+        const [col, row] = key.split(",").map(Number);
+        return Math.max(Math.abs(col - junction.col), Math.abs(row - junction.row)) > 1;
+      }));
     const queue = [{ ...junction }];
     let queueIndex = 0;
 
@@ -231,14 +234,29 @@ export class RiverRouter {
         this.#validateRiverPathCrossings(grid, tileMeta, route) &&
         this.#riverRouteKeepsIslandConnected(grid, route)
       ) {
-        return { route, terminalDirection };
+        return {
+          route,
+          terminalDirection,
+        };
       }
 
       const neighbors = this.#random.shuffle([
-        { col: current.col - 1, row: current.row },
-        { col: current.col + 1, row: current.row },
-        { col: current.col, row: current.row - 1 },
-        { col: current.col, row: current.row + 1 },
+        {
+          col: current.col - 1,
+          row: current.row,
+        },
+        {
+          col: current.col + 1,
+          row: current.row,
+        },
+        {
+          col: current.col,
+          row: current.row - 1,
+        },
+        {
+          col: current.col,
+          row: current.row + 1,
+        },
       ]);
       for (const neighbor of neighbors) {
         const neighborKey = MapGrid.tileKey(neighbor.col, neighbor.row);
@@ -247,7 +265,7 @@ export class RiverRouter {
            *
            * @param {MapCell} cell
            */
-          (cell) => cell.col === neighbor.col && cell.row === neighbor.row)) {
+            (cell) => cell.col === neighbor.col && cell.row === neighbor.row)) {
           continue;
         }
         if (parents.has(neighborKey) || occupiedRiverCells.has(neighborKey)) {
@@ -281,7 +299,7 @@ export class RiverRouter {
      *
      * @param {number[]} row
      */
-    (row) => [...row]);
+      (row) => [...row]);
     for (const cell of route) {
       if (trialGrid[cell.row][cell.col] === TileType.GRASS) {
         trialGrid[cell.row][cell.col] = TileType.WATER;
@@ -292,7 +310,10 @@ export class RiverRouter {
     for (let row = 0; row < MAP_ROWS; row++) {
       for (let col = 0; col < MAP_COLS; col++) {
         if (trialGrid[row][col] !== TileType.WATER) {
-          land.push({ col, row });
+          land.push({
+            col,
+            row,
+          });
         }
       }
     }
@@ -332,7 +353,7 @@ export class RiverRouter {
            *
            * @param {MapCell} pathCell
            */
-          (pathCell) => tileMeta[pathCell.row][pathCell.col].overpassId)
+            (pathCell) => tileMeta[pathCell.row][pathCell.col].overpassId)
       ) {
         return false;
       }

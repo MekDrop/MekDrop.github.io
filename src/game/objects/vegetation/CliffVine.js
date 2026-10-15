@@ -52,13 +52,31 @@ export class CliffVine {
       if (existing) {
         if (existing.generated) {
           existing.height = face.topY - face.bottomY;
-          existing.position = { x: face.x, y: face.y, z: face.z };
+          existing.position = {
+            x: face.x,
+            y: face.y,
+            z: face.z,
+          };
         }
         continue;
       }
-      objects.push({ id, object: CliffVine.name, tile: { col: face.col, row: face.row },
-        position: { x: face.x, y: face.y, z: face.z }, rotation: face.yaw,
-        height: face.topY - face.bottomY, seed: `${mapData.mapName}:${face.col}:${face.row}:${face.yaw}`, generated: true });
+      objects.push({
+        id,
+        object: CliffVine.name,
+        tile: {
+          col: face.col,
+          row: face.row,
+        },
+        position: {
+          x: face.x,
+          y: face.y,
+          z: face.z,
+        },
+        rotation: face.yaw,
+        height: face.topY - face.bottomY,
+        seed: `${mapData.mapName}:${face.col}:${face.row}:${face.yaw}`,
+        generated: true,
+      });
     }
   }
 
@@ -72,7 +90,10 @@ export class CliffVine {
       /**
        * @param {Set<string>} cells
        */ (cells) => cells.has(`${definition.tile.col},${definition.tile.row}`));
-    const growth = createCliffVineGrowth({ height: definition.height, seed: definition.seed });
+    const growth = createCliffVineGrowth({
+      height: definition.height,
+      seed: definition.seed,
+    });
     const yaw = new pc.Quat().setFromEulerAngles(0, definition.rotation, 0);
     const origin = new pc.Vec3(definition.position.x, definition.position.y, definition.position.z);
     const leafMatrices = [[], [], []];
@@ -89,7 +110,11 @@ export class CliffVine {
       const worldRotation = yaw.clone().mul(rotation);
       matrices.push(...new pc.Mat4().setTRS(position, worldRotation, scale).data);
     };
-    append(crownMatrices, { x: 0, y: 0, z: 0 }, pc.Quat.IDENTITY, new pc.Vec3(growth.crownScale, growth.crownScale, growth.crownScale));
+    append(crownMatrices, {
+      x: 0,
+      y: 0,
+      z: 0,
+    }, pc.Quat.IDENTITY, new pc.Vec3(growth.crownScale, growth.crownScale, growth.crownScale));
     for (const leaf of growth.leaves) {
       append(leafMatrices[leaf.shade], leaf, new pc.Quat().setFromEulerAngles(leaf.pitch, leaf.yaw, leaf.roll), new pc.Vec3(leaf.scale, leaf.scale, leaf.scale));
     }
@@ -101,7 +126,11 @@ export class CliffVine {
       append(stemMatrices, start, rotation, new pc.Vec3(1, length, 1));
     }
     for (const [url, matrices, shade] of [[crownUrl, crownMatrices], [leafUrl, leafMatrices[0], 0], [leafUrl, leafMatrices[1], 1], [leafUrl, leafMatrices[2], 2], [stemUrl, stemMatrices]]) {
-      const batch = modelLibrary.instantiateMergedBatch(url, matrices, { dynamic: true, linearVertexColors: true, name: `${definition.id} growth` });
+      const batch = modelLibrary.instantiateMergedBatch(url, matrices, {
+        dynamic: true,
+        linearVertexColors: true,
+        name: `${definition.id} growth`,
+      });
       if (!batch) continue;
       if (shade !== undefined) {
         const tint = [[0.68, 0.86, 0.62], [0.88, 0.98, 0.8], [1, 1, 0.95]][shade];
@@ -119,7 +148,11 @@ export class CliffVine {
                                                                     * @param {number} unused
                                                                     * @param {number} index
                                                                     */ (unused, index) => values[index * 16 + 13]);
-      this.#batches.push({ buffer: batch.vertexBuffer, matrices: values, heights });
+      this.#batches.push({
+        buffer: batch.vertexBuffer,
+        matrices: values,
+        heights,
+      });
     }
   }
 

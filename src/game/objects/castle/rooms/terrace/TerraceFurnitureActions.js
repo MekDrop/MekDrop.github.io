@@ -3,8 +3,14 @@ import chairUrl from "../../../../models/chair/chair.glb?url";
 import { CASTLE_TERRACE_PHASE as PHASE } from "../../../../enum/CastleTerracePhase.js";
 
 const DEFINITIONS = {
-  table: { url: tableUrl, position: [0.65, 0, 3.1] },
-  chair: { url: chairUrl, position: [-0.75, 0, 3.2] },
+  table: {
+    url: tableUrl,
+    position: [0.65, 0, 3.1],
+  },
+  chair: {
+    url: chairUrl,
+    position: [-0.75, 0, 3.2],
+  },
 };
 const TABLE_GRIPS = [
   [-0.415, 1.069, -0.468],
@@ -31,7 +37,7 @@ export class TerraceFurnitureActions {
      * @param {{url: string}} options
      * @param {string} options.url
      */
-    ({ url }) => url);
+      ({ url }) => url);
   }
 
   /**
@@ -181,8 +187,8 @@ export class TerraceFurnitureActions {
      *
      * @param {{x: number, y: number, z: number}} point
      */
-    (point) => this.#props.table
-      .getWorldTransform().transformPoint(new this.#pc.Vec3(...point)));
+      (point) => this.#props.table
+        .getWorldTransform().transformPoint(new this.#pc.Vec3(...point)));
     const direct = grips[0].distance(hands[0].getPosition()) +
       grips[1].distance(hands[1].getPosition());
     const crossed = grips[0].distance(hands[1].getPosition()) +

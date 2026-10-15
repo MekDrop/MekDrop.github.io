@@ -51,18 +51,18 @@ export class PathArrowTextures {
     this.#updateHandle = app.on("update", /**
      * @param {number} deltaTime
      */
-    (deltaTime) => {
-      this.#time += deltaTime;
-      for (const material of this.#materials.values()) {
-        material.setParameter("uRouteTime", this.#time);
-      }
-      // Instance matrices are authored in map coordinates. Remove the owning
-      // terrain node's transform so paint follows island motion and map rotation.
-      for (const { mesh, inverse } of this.#surfaces) {
-        inverse.copy(mesh.node.getWorldTransform()).invert();
-        mesh.setParameter("uRouteWorldToMap", inverse.data);
-      }
-    });
+      (deltaTime) => {
+        this.#time += deltaTime;
+        for (const material of this.#materials.values()) {
+          material.setParameter("uRouteTime", this.#time);
+        }
+        // Instance matrices are authored in map coordinates. Remove the owning
+        // terrain node's transform so paint follows island motion and map rotation.
+        for (const { mesh, inverse } of this.#surfaces) {
+          inverse.copy(mesh.node.getWorldTransform()).invert();
+          mesh.setParameter("uRouteWorldToMap", inverse.data);
+        }
+      });
   }
 
   get visible() {
@@ -208,7 +208,11 @@ export class PathArrowTextures {
         const inverse = new this.#pc.Mat4().copy(mesh.node.getWorldTransform()).invert();
         mesh.material = material;
         mesh.setParameter("uRouteWorldToMap", inverse.data);
-        this.#surfaces.push({ mesh, original, inverse });
+        this.#surfaces.push({
+          mesh,
+          original,
+          inverse,
+        });
       }
     }
   }
@@ -258,10 +262,15 @@ export class PathArrowTextures {
   #texture(name, width, height, pixels, linear) {
     const pc = this.#pc;
     const texture = new pc.Texture(this.#app.graphicsDevice, {
-      name, width, height, format: pc.PIXELFORMAT_RGBA8, mipmaps: false,
+      name,
+      width,
+      height,
+      format: pc.PIXELFORMAT_RGBA8,
+      mipmaps: false,
       minFilter: linear ? pc.FILTER_LINEAR : pc.FILTER_NEAREST,
       magFilter: linear ? pc.FILTER_LINEAR : pc.FILTER_NEAREST,
-      addressU: pc.ADDRESS_CLAMP_TO_EDGE, addressV: pc.ADDRESS_CLAMP_TO_EDGE,
+      addressU: pc.ADDRESS_CLAMP_TO_EDGE,
+      addressV: pc.ADDRESS_CLAMP_TO_EDGE,
       levels: [pixels],
     });
     texture.upload();

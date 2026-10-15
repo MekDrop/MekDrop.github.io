@@ -10,7 +10,11 @@ const MAXIMUM_ANCHOR_STEP = 0.4;
  * @param {{x: number, y: number, z: number}} vector
  */
 function copyVector(vector) {
-  return { x: vector.x, y: vector.y, z: vector.z };
+  return {
+    x: vector.x,
+    y: vector.y,
+    z: vector.z,
+  };
 }
 
 /**
@@ -148,14 +152,14 @@ export class HeroHairPhysics {
      *
      * @param {import("playcanvas").Entity} entity
      */
-    (entity) => ({
-      entity,
-      position: copyVector(entity.getLocalPosition()),
-      rotation: copyVector(entity.getLocalEulerAngles()),
-      scale: copyVector(entity.getLocalScale()),
-      side: Math.sign(entity.getLocalPosition().x),
-      profile: profileFor(entity.name),
-    }));
+      (entity) => ({
+        entity,
+        position: copyVector(entity.getLocalPosition()),
+        rotation: copyVector(entity.getLocalEulerAngles()),
+        scale: copyVector(entity.getLocalScale()),
+        side: Math.sign(entity.getLocalPosition().x),
+        profile: profileFor(entity.name),
+      }));
     this.#anchorPosition = new pc.Vec3();
     this.#previousAnchorPosition = new pc.Vec3();
 
@@ -277,10 +281,10 @@ export class HeroHairPhysics {
     const distance = initial
       ? 0
       : Math.hypot(
-          this.#anchorPosition.x - this.#previousAnchorPosition.x,
-          this.#anchorPosition.y - this.#previousAnchorPosition.y,
-          this.#anchorPosition.z - this.#previousAnchorPosition.z,
-        );
+        this.#anchorPosition.x - this.#previousAnchorPosition.x,
+        this.#anchorPosition.y - this.#previousAnchorPosition.y,
+        this.#anchorPosition.z - this.#previousAnchorPosition.z,
+      );
     this.#anchor.setPosition(this.#anchorPosition);
     this.#previousAnchorPosition.set(
       this.#anchorPosition.x,

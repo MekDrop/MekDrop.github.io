@@ -7,10 +7,28 @@ import {CastleResidentialLayout} from '../../../../../src/game/objects/castle/Ca
 import {CastleLadderMapObjects} from '../../../../../src/game/objects/castle/CastleLadderMapObjects.js';
 
 it('allows climbing both ways only beside the corresponding ladder landing',()=>{
-  const points={bottom:{x:0,y:12,z:0},top:{x:0,y:15,z:-1.125}};
+  const points={
+    bottom:{
+      x:0,
+      y:12,
+      z:0,
+    },
+    top:{
+      x:0,
+      y:15,
+      z:-1.125,
+    },
+  };
   let openings=0;
-  const ladder={definition:{id:'ladder'},landing:end=>points[end],openHatch(){openings++;}};
-  const hero={position:{...points.bottom},teleport(position){this.position={...position};return true;}};
+  const ladder={
+    definition:{id:'ladder'},
+    landing:end=>points[end],
+    openHatch(){openings++;},
+  };
+  const hero={
+    position:{...points.bottom},
+    teleport(position){this.position={...position};return true;},
+  };
   const up=new LadderInteraction(ladder,hero,'bottom');
   assert.equal(up.description.labelKey,'game.interaction.climb_ladder');
   assert.equal(up.interact(),true);assert.deepEqual(hero.position,points.top);
@@ -22,12 +40,29 @@ it('allows climbing both ways only beside the corresponding ladder landing',()=>
 });
 it('connects stairs to the ladder and retains supported landings around an open roof hatch',async()=>{
   for(const seed of [4,5]) {
-    const build=await CastleGenerator.generate({position:{x:-14,z:-8,width:28,depth:16,elevation:3},doors:[{side:'NORTH',offset:13,width:2}],seed});
+    const build=await CastleGenerator.generate({
+      position:{
+        x:-14,
+        z:-8,
+        width:28,
+        depth:16,
+        elevation:3,
+      },
+      doors:[{
+        side:'NORTH',
+        offset:13,
+        width:2,
+      }],
+      seed,
+    });
     const layout=new CastleResidentialLayout(build);
     const plan=build.metadata.runtime.residential;
     const access=plan.roofAccess;
     const castlePlan=await import('../../../../../src/game/generator/castle/CastleBasePlanGenerator.js');
-    const authored=await castlePlan.CastleBasePlanGenerator.generate({seed,baseY:3});
+    const authored=await castlePlan.CastleBasePlanGenerator.generate({
+      seed,
+      baseY:3,
+    });
     const side=authored.buildings.find(building=>building.id==='base').maxX;
     const tower=authored.buildings.find(building=>building.id==='watchtower');
     const canonicalZ=(tower.minZ+tower.maxZ)/2;
@@ -46,7 +81,12 @@ it('connects stairs to the ladder and retains supported landings around an open 
       const point=layout.toWorld(x,z,room.floorY-layout.origin.y+0.75);
       assert.ok(!build.metadata.collision.cameraBlocks.some(block=>Math.abs(point.x-block.x)<block.halfX-1e-6&&Math.abs(point.y-block.y)<block.halfY-1e-6&&Math.abs(point.z-block.z)<block.halfZ-1e-6),'tower side wall has no inset wall or ledge inside the shaft');
     }
-    const towerBuilding={minX:gate.center-tower.maxX,maxX:gate.center-tower.minX,minZ:gate.coordinate-tower.maxZ,maxZ:gate.coordinate-tower.minZ};
+    const towerBuilding={
+      minX:gate.center-tower.maxX,
+      maxX:gate.center-tower.minX,
+      minZ:gate.coordinate-tower.maxZ,
+      maxZ:gate.coordinate-tower.minZ,
+    };
     for(const room of plan.spaces.filter(space=>space.floorY>layout.origin.y&&space.id.includes('room'))) {
       if(room.minX<towerBuilding.minX||room.maxX>towerBuilding.maxX||room.minZ<towerBuilding.minZ||room.maxZ>towerBuilding.maxZ)continue;
       for(const doorway of plan.openings.filter(opening=>opening.kind==='door'&&opening.roomId===room.id)) {
@@ -81,7 +121,10 @@ it('connects stairs to the ladder and retains supported landings around an open 
     const topLanding=castleStraightStairSurfaces(last)[3];
     const across=(topLanding.minX+topLanding.maxX)/2;
     const approach=last.radius+0.35;
-    const start={x:last.localCenter.x+across*Math.cos(angle)+approach*Math.sin(angle),z:last.localCenter.z-across*Math.sin(angle)+approach*Math.cos(angle)};
+    const start={
+      x:last.localCenter.x+across*Math.cos(angle)+approach*Math.sin(angle),
+      z:last.localCenter.z-across*Math.sin(angle)+approach*Math.cos(angle),
+    };
     const end=layout.toLocal(access.bottom.x,access.bottom.z);
     for(let step=0;step<=20;step++) {
       const x=start.x+(end.x-start.x)*step/20;
@@ -102,7 +145,15 @@ it('connects stairs to the ladder and retains supported landings around an open 
     }
     const hole=access.hole;
     assert.ok(!plan.walkableAreas.some(area=>area.floorY===access.top.y&&area.minX<hole.maxX&&area.maxX>hole.minX&&area.minZ<hole.maxZ&&area.maxZ>hole.minZ),'roof slab leaves ladder shaft open');
-    const map={cols:64,rows:64,objects:[{id:'castle',object:'Castle',buildPlan:build}]};
+    const map={
+      cols:64,
+      rows:64,
+      objects:[{
+        id:'castle',
+        object:'Castle',
+        buildPlan:build,
+      }],
+    };
     CastleLadderMapObjects.prepareMap(map);CastleLadderMapObjects.prepareMap(map);
     assert.equal(map.objects.filter(item=>item.object==='Ladder').length,1,'preparation is repeatable');
     const ladder=map.objects.find(item=>item.object==='Ladder');

@@ -12,8 +12,17 @@ let wasmAmmo;
 before(async () => {
   const glueUrl = new URL("../../../../src/assets/game/wasm/ammo/ammo.wasm.js", import.meta.url);
   const source = readFileSync(glueUrl, "utf8").replace("export default Ammo;", "");
-  const context = { module: { exports: {} }, exports: {}, require: createRequire(import.meta.url),
-    process, __dirname: "", Buffer, console, setTimeout, clearTimeout };
+  const context = {
+    module: { exports: {} },
+    exports: {},
+    require: createRequire(import.meta.url),
+    process,
+    __dirname: "",
+    Buffer,
+    console,
+    setTimeout,
+    clearTimeout,
+  };
   runInNewContext(source, context);
   wasmAmmo = await context.module.exports({
     wasmBinary: readFileSync(new URL("../../../../src/assets/game/wasm/ammo/ammo.wasm.wasm", import.meta.url)),
@@ -38,8 +47,18 @@ describe("anchored flower paper", () => {
     const simulation = new FlowerPaperSimulation();
     try {
       const ground = simulation.addSurface(new Vec3(), 0.5);
-      const sheet = simulation.add({ position: new Vec3(0, 0.12, 0), rotation: new Quat(), length: 0.3, width: 0.08 });
-      const neighbor = simulation.add({ position: new Vec3(0, 0.12, 0.25), rotation: new Quat(), length: 0.3, width: 0.08 });
+      const sheet = simulation.add({
+        position: new Vec3(0, 0.12, 0),
+        rotation: new Quat(),
+        length: 0.3,
+        width: 0.08,
+      });
+      const neighbor = simulation.add({
+        position: new Vec3(0, 0.12, 0.25),
+        rotation: new Quat(),
+        length: 0.3,
+        width: 0.08,
+      });
       const feet = [new Vec3(0.25, 0.32, 0), new Vec3(0, -1000, 0)];
       for (let frame = 0; frame < 300; frame++) {
         simulation.step(1 / 60, feet, Quat.IDENTITY);

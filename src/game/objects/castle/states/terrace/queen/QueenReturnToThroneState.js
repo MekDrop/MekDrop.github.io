@@ -8,7 +8,12 @@ export class QueenReturnToThroneState extends AbstractTerraceParticipantState {
    * @param {number} duration
    */
   constructor(duration) {
-    super({ phase: QueenReturnToThroneState.name, stagePhase: STAGE.ROYAL_EXIT,
-      duration, action: "walk", animation: ANIMATION.WALK });
+    super({
+      phase: QueenReturnToThroneState.name,
+      stagePhase: STAGE.ROYAL_EXIT,
+      duration,
+      action: "walk",
+      animation: ANIMATION.WALK,
+    });
   }
 }

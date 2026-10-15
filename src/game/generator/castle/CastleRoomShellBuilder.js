@@ -15,20 +15,30 @@ export class CastleRoomShellBuilder {
     if (sharedUpper) {
       // These are chambers in one keep, not detached turret buildings.
       // Enclose the shared circulation on the load-bearing exterior walls.
-      plan.rooms.upperGallery = { ...plan.outerBounds, id: "upperGallery", purpose: "upper terrace", level: 1,
-        height: 0.25, floorY: plan.origin.y + plan.rise };
+      plan.rooms.upperGallery = {
+        ...plan.outerBounds,
+        id: "upperGallery",
+        purpose: "upper terrace",
+        level: 1,
+        height: 0.25,
+        floorY: plan.origin.y + plan.rise,
+      };
       rooms.push(plan.rooms.upperGallery);
     }
     if (plan.basement) {
       // The basement shell must retain a soil ceiling outside the stair shaft.
-      rooms.push({ ...plan.outerBounds, id: "basementEnvelope", level: -1,
-        floorY: plan.basement.floorY });
+      rooms.push({
+        ...plan.outerBounds,
+        id: "basementEnvelope",
+        level: -1,
+        floorY: plan.basement.floorY,
+      });
     }
     const opening = context.layout.openings.find(/**
      *
      * @param {{boundary:string}} entry
      */
-    (entry) => entry.boundary === "FRONT");
+      (entry) => entry.boundary === "FRONT");
     const middle = (opening.start + opening.end - 1) / 2;
     const sign = ["WEST", "SOUTH"].includes(context.layout.primarySide) ? -1 : 1;
     for (const room of rooms) {

@@ -29,16 +29,29 @@ it("moves the complete castle with its owning island without accumulating offset
   const mapData = {
     cols: 20,
     rows: 16,
-    islandConnectorData: { nearIsland: ["2,3"], farIsland: ["14,9"] },
+    islandConnectorData: {
+      nearIsland: ["2,3"],
+      farIsland: ["14,9"],
+    },
   };
   for (const [col, row, group] of [[2, 3, 0], [14, 9, 1], [0, 0, -1]]) {
     const castle = new Castle({
       pc,
       definition: {
         id: "castle-test",
-        buildPlan: { input: { position: { x: col - 10, z: row - 8 } } },
+        buildPlan: {
+          input: {
+            position: {
+              x: col - 10,
+              z: row - 8,
+            },
+          },
+        },
       },
-      runtime: { mapData, textureAssets: { get: () => ({ resource: null }) } },
+      runtime: {
+        mapData,
+        textureAssets: { get: () => ({ resource: null }) },
+      },
     });
     try {
       for (const offsets of [[0.5, -0.25], [-0.1, 0.75], [0, 0]]) {

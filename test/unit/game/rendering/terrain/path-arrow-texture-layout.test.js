@@ -7,12 +7,26 @@ describe("PathArrowTextureLayout", () => {
     const markers = PathArrowTextureLayout.markers({
       entries: [{ color: 0xff0000 }, { color: 0x0000ff }],
       arrowData: new Map([
-        ["4,5,2", [{ dc: 1, dr: 0, pathIdx: 0 }]],
-        ["4,5.5,2", [{ dc: 1, dr: 0, pathIdx: 1 }]],
+        ["4,5,2", [{
+          dc: 1,
+          dr: 0,
+          pathIdx: 0,
+        }]],
+        ["4,5.5,2", [{
+          dc: 1,
+          dr: 0,
+          pathIdx: 1,
+        }]],
       ]),
     });
     assert.deepEqual(markers, [{
-      col: 4, row: 5.25, elevation: 2, dx: 1, dz: 0, pitch: 0, palette: 3,
+      col: 4,
+      row: 5.25,
+      elevation: 2,
+      dx: 1,
+      dz: 0,
+      pitch: 0,
+      palette: 3,
     }]);
   });
 
@@ -20,8 +34,18 @@ describe("PathArrowTextureLayout", () => {
     const markers = PathArrowTextureLayout.markers({
       entries: [{ color: 0xff0000 }],
       arrowData: new Map([
-        ["4,5.5,2.5", [{ dc: 0, dr: 1, pathIdx: 0, surfacePitch: 45 }]],
-        ["4,5.5,5.5", [{ dc: -1, dr: 0, pathIdx: 0, surfacePitch: -45 }]],
+        ["4,5.5,2.5", [{
+          dc: 0,
+          dr: 1,
+          pathIdx: 0,
+          surfacePitch: 45,
+        }]],
+        ["4,5.5,5.5", [{
+          dc: -1,
+          dr: 0,
+          pathIdx: 0,
+          surfacePitch: -45,
+        }]],
       ]),
     });
     assert.equal(markers.length, 2);
@@ -36,10 +60,21 @@ describe("PathArrowTextureLayout", () => {
       entries: [{ color: 0xff0000 }],
       overpassData: {
         stairApproach: true,
-        slopeCells: [{ col: 4, row: 6 }, { col: 5, row: 6 }],
+        slopeCells: [{
+          col: 4,
+          row: 6,
+        }, {
+          col: 5,
+          row: 6,
+        }],
       },
       arrowData: new Map([
-        ["4.5,6,2.25", [{ dc: 0, dr: -1, pathIdx: 0, surfacePitch: -Math.atan(0.5) * 180 / Math.PI }]],
+        ["4.5,6,2.25", [{
+          dc: 0,
+          dr: -1,
+          pathIdx: 0,
+          surfacePitch: -Math.atan(0.5) * 180 / Math.PI,
+        }]],
       ]),
     });
     assert.equal(marker.col, 4.5);
@@ -53,7 +88,11 @@ describe("PathArrowTextureLayout", () => {
   it("preserves diagonal turn direction and ignores maps without route markers", () => {
     const [marker] = PathArrowTextureLayout.markers({
       entries: [{ color: 0xff0000 }],
-      arrowData: new Map([["4.5,5.5,2", [{ dc: 1, dr: -1, pathIdx: 0 }]]]),
+      arrowData: new Map([["4.5,5.5,2", [{
+        dc: 1,
+        dr: -1,
+        pathIdx: 0,
+      }]]]),
     });
     assert.equal(marker.col, 4.5);
     assert.equal(marker.row, 5.5);

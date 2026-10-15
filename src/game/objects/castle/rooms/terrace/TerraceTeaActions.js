@@ -41,7 +41,10 @@ export class TerraceTeaActions {
     * @returns {import("src/game/objects/ObjectTypes.js").TerraceActivityState}
    */
   get state() {
-    return { ...this.#furniture.state, ...this.#teaSet.state };
+    return {
+      ...this.#furniture.state,
+      ...this.#teaSet.state,
+    };
   }
 
   /**

@@ -54,19 +54,19 @@ export class CastleDataBuilder {
            *
            * @param {MapCell} cell
            */
-          (cell) => ({ ...cell })),
+            (cell) => ({ ...cell })),
           centerCol: run.reduce(/**
            *
            * @param {number} sum
            * @param {MapCell} cell
            */
-          (sum, cell) => sum + cell.col, 0) / run.length,
+            (sum, cell) => sum + cell.col, 0) / run.length,
           centerRow: run.reduce(/**
            *
            * @param {number} sum
            * @param {MapCell} cell
            */
-          (sum, cell) => sum + cell.row, 0) / run.length,
+            (sum, cell) => sum + cell.row, 0) / run.length,
           inwardDirection,
         });
         run = [];

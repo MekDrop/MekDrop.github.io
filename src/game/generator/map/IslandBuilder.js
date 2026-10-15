@@ -90,7 +90,7 @@ export class IslandBuilder {
            *
            * @param {number} col
            */
-          (col) => col + 1),
+            (col) => col + 1),
         ) + 1;
       this.#fillMaskRect(
         mask,
@@ -110,12 +110,12 @@ export class IslandBuilder {
          *
          * @param {number[]} rows
          */
-        (rows) => rows[0]));
+          (rows) => rows[0]));
         const maxBottom = Math.max(...curveBands.map(/**
          *
          * @param {number[]} rows
          */
-        (rows) => rows[1]));
+          (rows) => rows[1]));
         this.#fillMaskRect(
           mask,
           corridorLeft,
@@ -205,7 +205,10 @@ export class IslandBuilder {
           mask[row][col + 1],
         ].every(Boolean);
         if (enclosed) {
-          holes.push({ col, row });
+          holes.push({
+            col,
+            row,
+          });
         }
       }
     }
@@ -241,9 +244,12 @@ export class IslandBuilder {
          *
          * @param {TileMetadata} tile
          */
-        (tile) => tile !== TileType.WATER);
+          (tile) => tile !== TileType.WATER);
         if (enclosed) {
-          holes.push({ col, row });
+          holes.push({
+            col,
+            row,
+          });
         }
       }
     }

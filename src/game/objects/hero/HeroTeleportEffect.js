@@ -57,12 +57,12 @@ export class HeroTeleportEffect {
      * @param {{x: number, y: number, z: number}} position
      * @param {number} index
      */
-    (position, index) => {
-      const emitter = this.#emitters[index];
-      emitter.setPosition(position.x, position.y + 0.45, position.z);
-      emitter.particlesystem.reset();
-      emitter.particlesystem.play();
-    });
+      (position, index) => {
+        const emitter = this.#emitters[index];
+        emitter.setPosition(position.x, position.y + 0.45, position.z);
+        emitter.particlesystem.reset();
+        emitter.particlesystem.play();
+      });
   }
 
   destroy() {

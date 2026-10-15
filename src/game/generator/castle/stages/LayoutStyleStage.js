@@ -40,24 +40,24 @@ export class LayoutStyleStage extends AbstractCastleGenerationStage {
      *
      * @param {{side: string, offset: number, width: number, cells?: import("src/game/GameContracts.js").GridPoint[]}} door
      */
-    (door) => {
-      const boundary = this.#localBoundary(primarySide, door.side);
-      const start = door.offset * CASTLE_BLOCKS_PER_TILE;
-      const end = (door.offset + door.width) * CASTLE_BLOCKS_PER_TILE;
-      const reverse =
-        (primarySide === "EAST" &&
+      (door) => {
+        const boundary = this.#localBoundary(primarySide, door.side);
+        const start = door.offset * CASTLE_BLOCKS_PER_TILE;
+        const end = (door.offset + door.width) * CASTLE_BLOCKS_PER_TILE;
+        const reverse =
+          (primarySide === "EAST" &&
           [CASTLE_BOUNDARY.LEFT, CASTLE_BOUNDARY.RIGHT].includes(boundary)) ||
         (primarySide === "SOUTH" &&
           [CASTLE_BOUNDARY.LEFT, CASTLE_BOUNDARY.RIGHT].includes(boundary));
-      const axisLength = ["WEST", "EAST"].includes(door.side)
-        ? depthBlocks
-        : widthBlocks;
-      return {
-        boundary,
-        start: reverse ? axisLength - end : start,
-        end: reverse ? axisLength - start : end,
-      };
-    });
+        const axisLength = ["WEST", "EAST"].includes(door.side)
+          ? depthBlocks
+          : widthBlocks;
+        return {
+          boundary,
+          start: reverse ? axisLength - end : start,
+          end: reverse ? axisLength - start : end,
+        };
+      });
     const style = this.#selectStyle({
       preferredStyleId,
       seed,
@@ -141,20 +141,20 @@ export class LayoutStyleStage extends AbstractCastleGenerationStage {
     );
     const styles = preferredStyle
       ? [
-          preferredStyle,
-          ...CASTLE_STYLES.filter(/**
+        preferredStyle,
+        ...CASTLE_STYLES.filter(/**
            *
            * @param {{id: string}} candidate
            */
           (candidate) => candidate !== preferredStyle),
-        ]
+      ]
       : seed === undefined ? CASTLE_STYLES : new GenerationRandom(`castle:${seed}:style`).shuffle([...CASTLE_STYLES]);
     const style = styles.find(/**
      *
      * @param {{id: string}} candidate
      */
-    (candidate) =>
-      this.#styleFits(candidate, openings, facadeSpan, inwardCapacity),
+      (candidate) =>
+        this.#styleFits(candidate, openings, facadeSpan, inwardCapacity),
     );
     if (!style) {
       throw new CastlePlacementError();
@@ -189,57 +189,57 @@ export class LayoutStyleStage extends AbstractCastleGenerationStage {
      *
      * @param {import("src/game/GameContracts.js").CastleOpening} opening
      */
-    (opening) => {
-      if (opening.end - opening.start !== requiredDoorWidth) {
-        return false;
-      }
-      const horizontalLimit = [
-        CASTLE_BOUNDARY.FRONT,
-        CASTLE_BOUNDARY.BACK,
-      ].includes(opening.boundary)
-        ? facadeSpan
-        : castleDepth;
-      if (
-        opening.start < CASTLE_GATE_PYLON_SPAN_BLOCKS ||
-        opening.end > horizontalLimit - CASTLE_GATE_PYLON_SPAN_BLOCKS
-      ) {
-        return false;
-      }
-
-      const towerRanges = [];
-      for (const placement of style.towerPlacements ?? []) {
-        const boundaryRanges = {
-          FRONT_LEFT: {
-            [CASTLE_BOUNDARY.FRONT]: [0, towerSpan],
-            [CASTLE_BOUNDARY.LEFT]: [0, towerSpan],
-          },
-          FRONT_RIGHT: {
-            [CASTLE_BOUNDARY.FRONT]: [facadeSpan - towerSpan, facadeSpan],
-            [CASTLE_BOUNDARY.RIGHT]: [0, towerSpan],
-          },
-          BACK_LEFT: {
-            [CASTLE_BOUNDARY.BACK]: [0, towerSpan],
-            [CASTLE_BOUNDARY.LEFT]: [castleDepth - towerSpan, castleDepth],
-          },
-          BACK_RIGHT: {
-            [CASTLE_BOUNDARY.BACK]: [facadeSpan - towerSpan, facadeSpan],
-            [CASTLE_BOUNDARY.RIGHT]: [castleDepth - towerSpan, castleDepth],
-          },
-        };
-        const range = boundaryRanges[placement]?.[opening.boundary];
-        if (range) {
-          towerRanges.push(range);
+      (opening) => {
+        if (opening.end - opening.start !== requiredDoorWidth) {
+          return false;
         }
-      }
-      return towerRanges.every(
+        const horizontalLimit = [
+          CASTLE_BOUNDARY.FRONT,
+          CASTLE_BOUNDARY.BACK,
+        ].includes(opening.boundary)
+          ? facadeSpan
+          : castleDepth;
+        if (
+          opening.start < CASTLE_GATE_PYLON_SPAN_BLOCKS ||
+        opening.end > horizontalLimit - CASTLE_GATE_PYLON_SPAN_BLOCKS
+        ) {
+          return false;
+        }
+
+        const towerRanges = [];
+        for (const placement of style.towerPlacements ?? []) {
+          const boundaryRanges = {
+            FRONT_LEFT: {
+              [CASTLE_BOUNDARY.FRONT]: [0, towerSpan],
+              [CASTLE_BOUNDARY.LEFT]: [0, towerSpan],
+            },
+            FRONT_RIGHT: {
+              [CASTLE_BOUNDARY.FRONT]: [facadeSpan - towerSpan, facadeSpan],
+              [CASTLE_BOUNDARY.RIGHT]: [0, towerSpan],
+            },
+            BACK_LEFT: {
+              [CASTLE_BOUNDARY.BACK]: [0, towerSpan],
+              [CASTLE_BOUNDARY.LEFT]: [castleDepth - towerSpan, castleDepth],
+            },
+            BACK_RIGHT: {
+              [CASTLE_BOUNDARY.BACK]: [facadeSpan - towerSpan, facadeSpan],
+              [CASTLE_BOUNDARY.RIGHT]: [castleDepth - towerSpan, castleDepth],
+            },
+          };
+          const range = boundaryRanges[placement]?.[opening.boundary];
+          if (range) {
+            towerRanges.push(range);
+          }
+        }
+        return towerRanges.every(
         /**
          *
          * @param {{"0": Array, "1": Array}} options
          * @param {Array} options."0"
          * @param {Array} options."1"
          */
-        ([start, end]) => opening.end <= start || opening.start >= end,
-      );
-    });
+          ([start, end]) => opening.end <= start || opening.start >= end,
+        );
+      });
   }
 }

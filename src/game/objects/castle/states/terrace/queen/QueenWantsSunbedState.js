@@ -4,7 +4,12 @@ import { AbstractTerraceParticipantState } from "../AbstractTerraceParticipantSt
 
 export class QueenWantsSunbedState extends AbstractTerraceParticipantState {
   constructor() {
-    super({ phase: QueenWantsSunbedState.name, stagePhase: STAGE.DORMANT,
-      duration: Infinity, action: "wantSunbed", animation: ANIMATION.IDLE });
+    super({
+      phase: QueenWantsSunbedState.name,
+      stagePhase: STAGE.DORMANT,
+      duration: Infinity,
+      action: "wantSunbed",
+      animation: ANIMATION.IDLE,
+    });
   }
 }

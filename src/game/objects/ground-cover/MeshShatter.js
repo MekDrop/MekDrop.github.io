@@ -90,16 +90,16 @@ export class MeshShatter {
 
     const requestedShardCount = shardCountForMesh
       ? shardCountForMesh({
-          name: meshInstance.node.name,
-          triangleCount,
-        })
+        name: meshInstance.node.name,
+        triangleCount,
+      })
       : Math.max(
-          MIN_SHARDS_PER_MESH,
-          Math.min(
-            MAX_SHARDS_PER_MESH,
-            Math.round(triangleCount / TRIANGLES_PER_SHARD),
-          ),
-        );
+        MIN_SHARDS_PER_MESH,
+        Math.min(
+          MAX_SHARDS_PER_MESH,
+          Math.round(triangleCount / TRIANGLES_PER_SHARD),
+        ),
+      );
     if (requestedShardCount <= 0) {
       return [];
     }
@@ -121,41 +121,41 @@ export class MeshShatter {
      * @param {number} centroid
      * @param {number} triangleIndex
      */
-    (centroid, triangleIndex) => {
-      let closestCluster = 0;
-      let closestDistance = Number.POSITIVE_INFINITY;
-      clusterSeeds.forEach(/**
+      (centroid, triangleIndex) => {
+        let closestCluster = 0;
+        let closestDistance = Number.POSITIVE_INFINITY;
+        clusterSeeds.forEach(/**
        *
        * @param {number} clusterSeed
        * @param {number} clusterIndex
        */
-      (clusterSeed, clusterIndex) => {
-        const distance = this.#distanceSquared(centroid, clusterSeed);
-        if (distance < closestDistance) {
-          closestDistance = distance;
-          closestCluster = clusterIndex;
-        }
+          (clusterSeed, clusterIndex) => {
+            const distance = this.#distanceSquared(centroid, clusterSeed);
+            if (distance < closestDistance) {
+              closestDistance = distance;
+              closestCluster = clusterIndex;
+            }
+          });
+        clusters[closestCluster].push(triangleIndex);
       });
-      clusters[closestCluster].push(triangleIndex);
-    });
 
     return clusters
       .filter(/**
        *
        * @param {number} cluster
        */
-      (cluster) => cluster.length)
+        (cluster) => cluster.length)
       .map(/**
        *
        * @param {number} cluster
        */
-      (cluster) =>
-        this.#createPiece({
-          geometry,
-          triangleIndices: cluster,
-          material: meshInstance.material,
-          scale,
-        }),
+        (cluster) =>
+          this.#createPiece({
+            geometry,
+            triangleIndices: cluster,
+            material: meshInstance.material,
+            scale,
+          }),
       );
   }
 
@@ -243,7 +243,12 @@ export class MeshShatter {
       }
     }
 
-    return { positions, normals, uvs, indices };
+    return {
+      positions,
+      normals,
+      uvs,
+      indices,
+    };
   }
 
   /**
@@ -292,7 +297,7 @@ export class MeshShatter {
            *
            * @param {number} seed
            */
-          (seed) => this.#distanceSquared(centroid, seed)),
+            (seed) => this.#distanceSquared(centroid, seed)),
         );
         const weightedDistance = nearestDistance * (0.9 + random() * 0.2);
         if (weightedDistance > farthestDistance) {
@@ -314,7 +319,11 @@ export class MeshShatter {
    * @param {number} options.scale
    */
   #createPiece({ geometry, triangleIndices, material, scale }) {
-    const centroid = { x: 0, y: 0, z: 0 };
+    const centroid = {
+      x: 0,
+      y: 0,
+      z: 0,
+    };
     let vertexCount = 0;
     for (const triangleIndex of triangleIndices) {
       for (let corner = 0; corner < 3; corner += 1) {
@@ -358,8 +367,19 @@ export class MeshShatter {
           u: geometry.uvs[uvOffset],
           v: geometry.uvs[uvOffset + 1],
         };
-        vertices.push({ x, y, z, normal, uv });
-        this.#pushVertex({ positions, normals, uvs, vertex: vertices[corner] });
+        vertices.push({
+          x,
+          y,
+          z,
+          normal,
+          uv,
+        });
+        this.#pushVertex({
+          positions,
+          normals,
+          uvs,
+          vertex: vertices[corner],
+        });
         radiusSquared = Math.max(radiusSquared, x * x + y * y + z * z);
       }
       this.#appendFillFaces({
@@ -405,7 +425,11 @@ export class MeshShatter {
    * @param {number} options.scale
    */
   #createFillAnchor({ geometry, triangleIndices, centroid, scale }) {
-    const normal = { x: 0, y: 0, z: 0 };
+    const normal = {
+      x: 0,
+      y: 0,
+      z: 0,
+    };
     let farthestVertexDistanceSquared = 0;
     for (const triangleIndex of triangleIndices) {
       for (let corner = 0; corner < 3; corner += 1) {
@@ -432,7 +456,10 @@ export class MeshShatter {
       x: -(normal.x / normalLength) * depth,
       y: -(normal.y / normalLength) * depth,
       z: -(normal.z / normalLength) * depth,
-      uv: { u: 0.5, v: 0.5 },
+      uv: {
+        u: 0.5,
+        v: 0.5,
+      },
     };
   }
 
@@ -454,19 +481,28 @@ export class MeshShatter {
         positions,
         normals,
         uvs,
-        vertex: { ...second, normal },
+        vertex: {
+          ...second,
+          normal,
+        },
       });
       this.#pushVertex({
         positions,
         normals,
         uvs,
-        vertex: { ...first, normal },
+        vertex: {
+          ...first,
+          normal,
+        },
       });
       this.#pushVertex({
         positions,
         normals,
         uvs,
-        vertex: { ...fillAnchor, normal },
+        vertex: {
+          ...fillAnchor,
+          normal,
+        },
       });
     }
   }

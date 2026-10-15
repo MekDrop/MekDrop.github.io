@@ -39,11 +39,11 @@ export class WallStage extends AbstractCastleGenerationStage {
     );
     context.structure.audienceWing = audienceOpening
       ? {
-          opening: { ...audienceOpening },
-          roomStart: 0,
-          roomEnd: facadeSpan,
-          backWallStart: castleDepth - CASTLE_WALL_THICKNESS_BLOCKS,
-        }
+        opening: { ...audienceOpening },
+        roomStart: 0,
+        roomEnd: facadeSpan,
+        backWallStart: castleDepth - CASTLE_WALL_THICKNESS_BLOCKS,
+      }
       : null;
     context.planning.writer = new CastleBuildPlanWriter(context);
     context.planning.geometryPlanner = new CastleGeometryPlanner();

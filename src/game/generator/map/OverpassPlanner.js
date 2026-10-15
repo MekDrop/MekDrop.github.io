@@ -172,7 +172,7 @@ export class OverpassPlanner {
      *
      * @param {LayoutEntry} entry
      */
-    (entry) => entry.curvePlan);
+      (entry) => entry.curvePlan);
     const shuffledCandidates = this.#random.shuffle([...candidates]);
     for (const selected of shuffledCandidates) {
       for (const entry of layout.entries) {
@@ -181,16 +181,16 @@ export class OverpassPlanner {
       layout.entries[selected.upperPathIdx].curvePlan =
         selected.needsPreparation
           ? {
-              turnCols: [selected.preparationCol, selected.crossingCol],
-              bands: [
-                [selected.preparationTop, selected.preparationTop + 1],
-                [selected.landingTop, selected.landingTop + 1],
-              ],
-            }
+            turnCols: [selected.preparationCol, selected.crossingCol],
+            bands: [
+              [selected.preparationTop, selected.preparationTop + 1],
+              [selected.landingTop, selected.landingTop + 1],
+            ],
+          }
           : {
-              turnCols: [selected.crossingCol],
-              bands: [[selected.landingTop, selected.landingTop + 1]],
-            };
+            turnCols: [selected.crossingCol],
+            bands: [[selected.landingTop, selected.landingTop + 1]],
+          };
       const plan = this.#buildVerticalOverpassPlan(
         selected.vertical,
         selected.horizontal,
@@ -228,9 +228,9 @@ export class OverpassPlanner {
      * @param {LayoutEntry} entry
      * @param {number} index
      */
-    (entry, index) => {
-      entry.curvePlan = originalCurvePlans[index];
-    });
+      (entry, index) => {
+        entry.curvePlan = originalCurvePlans[index];
+      });
     return null;
   }
 
@@ -253,10 +253,22 @@ export class OverpassPlanner {
     const slopeCells = [];
 
     for (let lane = 0; lane < 2; lane++) {
-      crossingCells.push({ col: col + lane, row });
-      crossingCells.push({ col: col + lane, row: row + 1 });
-      approachCells.push({ col: col + lane, row: row - 1 });
-      approachCells.push({ col: col + lane, row: row + 2 });
+      crossingCells.push({
+        col: col + lane,
+        row,
+      });
+      crossingCells.push({
+        col: col + lane,
+        row: row + 1,
+      });
+      approachCells.push({
+        col: col + lane,
+        row: row - 1,
+      });
+      approachCells.push({
+        col: col + lane,
+        row: row + 2,
+      });
       for (let step = 0; step < OVERPASS_RAMP_TILES; step++) {
         slopeCells.push({
           col: col + lane,
@@ -297,7 +309,12 @@ export class OverpassPlanner {
         OVERPASS_ELEVATION -
         OVERPASS_DECK_THICKNESS -
         PATH_HEIGHT,
-      crossing: { col, row, width: 2, depth: 2 },
+      crossing: {
+        col,
+        row,
+        width: 2,
+        depth: 2,
+      },
       crossingCells,
       approachCells,
       slopeCells,
@@ -373,16 +390,19 @@ export class OverpassPlanner {
        *
        * @param {string} key
        */
-      (key) => {
-        const [col, row] = key.split(",").map(Number);
-        return { col, row };
-      })
+        (key) => {
+          const [col, row] = key.split(",").map(Number);
+          return {
+            col,
+            row,
+          };
+        })
       .sort(/**
        *
        * @param {GridCell} left
        * @param {GridCell} right
        */
-      (left, right) => left.row - right.row || left.col - right.col);
+        (left, right) => left.row - right.row || left.col - right.col);
     plan.slopeCells = plan.slopeCells.filter(
       /**
        *
@@ -415,15 +435,18 @@ export class OverpassPlanner {
        *
        * @param {string} key
        */
-      (key) => {
-        const [col, row] = key.split(",").map(Number);
-        return { col, row };
-      })
+        (key) => {
+          const [col, row] = key.split(",").map(Number);
+          return {
+            col,
+            row,
+          };
+        })
       .sort(/**
        *
        * @param {GridCell} left
        * @param {GridCell} right
        */
-      (left, right) => left.row - right.row || left.col - right.col);
+        (left, right) => left.row - right.row || left.col - right.col);
   }
 }

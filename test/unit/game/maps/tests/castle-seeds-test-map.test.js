@@ -19,7 +19,10 @@ it("keeps one reproducible castle with a seed sign and a nearby regeneration tri
   assert.deepEqual(await CastleGenerator.generate(castle), await CastleGenerator.generate(castle));
   const selected = new Set();
   for (let seed = 1; seed <= 12; seed++) {
-    const plan = await CastleGenerator.generate({ ...castle, seed });
+    const plan = await CastleGenerator.generate({
+      ...castle,
+      seed,
+    });
     selected.add(plan.layout.basePlanId);
     assert.equal(plan.input.basePlanId, undefined);
 
@@ -31,10 +34,30 @@ it("keeps one reproducible castle with a seed sign and a nearby regeneration tri
   assert.deepEqual([...selected], ["castle-demo-compact"]);
 });
 it("uses seed-only generation without a mode flag or legacy style", async () => {
-  const options = { position: { x: 0, z: 0, width: 28, depth: 16, elevation: 2 }, doors: [{ side: "SOUTH", offset: 5, width: 2 }] };
+  const options = {
+    position: {
+      x: 0,
+      z: 0,
+      width: 28,
+      depth: 16,
+      elevation: 2,
+    },
+    doors: [{
+      side: "SOUTH",
+      offset: 5,
+      width: 2,
+    }],
+  };
   assert.deepEqual(await CastleGenerator.generate(options), await CastleGenerator.generate(options));
-  const plan = await CastleGenerator.generate({ ...options, style: "single-tower", seed: "fixed-style" });
-  assert.equal(plan.layout.basePlanId, (await CastleGenerator.generate({ ...options, seed: "fixed-style" })).layout.basePlanId);
+  const plan = await CastleGenerator.generate({
+    ...options,
+    style: "single-tower",
+    seed: "fixed-style",
+  });
+  assert.equal(plan.layout.basePlanId, (await CastleGenerator.generate({
+    ...options,
+    seed: "fixed-style",
+  })).layout.basePlanId);
 });
 
 it("stores generation inputs rather than castle layouts in every test map", async () => {

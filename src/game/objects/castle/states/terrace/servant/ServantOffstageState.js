@@ -4,7 +4,12 @@ import { AbstractTerraceParticipantState } from "../AbstractTerraceParticipantSt
 
 export class ServantOffstageState extends AbstractTerraceParticipantState {
   constructor() {
-    super({ phase: ServantOffstageState.name, stagePhase: STAGE.DORMANT,
-      duration: Infinity, action: "idle", animation: ANIMATION.IDLE });
+    super({
+      phase: ServantOffstageState.name,
+      stagePhase: STAGE.DORMANT,
+      duration: Infinity,
+      action: "idle",
+      animation: ANIMATION.IDLE,
+    });
   }
 }

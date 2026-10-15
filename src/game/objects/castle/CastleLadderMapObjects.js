@@ -11,7 +11,7 @@ export class CastleLadderMapObjects {
     map.objects = (map.objects ?? []).filter(/**
      * @param {import("../ObjectTypes.js").MapObjectDefinition} item
      */
-    (item) => !(item.generated && item.object === "Ladder" && item.sourceCastleId));
+      (item) => !(item.generated && item.object === "Ladder" && item.sourceCastleId));
     for (const castle of [...map.objects]) {
       const plan = castle.buildPlan?.metadata?.runtime?.residential;
       const access = plan?.roofAccess;
@@ -20,13 +20,26 @@ export class CastleLadderMapObjects {
       const position = access.position ?? access.bottom;
       const hole = access.hole;
       const across = Math.abs(Math.sin(((access.rotation ?? layout.yaw) - layout.yaw) * Math.PI / 180)) > 0.5;
-      const hatch = hole ? { position: layout.toWorld((hole.minX + hole.maxX) / 2, (hole.minZ + hole.maxZ) / 2, access.top.y - layout.origin.y),
+      const hatch = hole ? {
+        position: layout.toWorld((hole.minX + hole.maxX) / 2, (hole.minZ + hole.maxZ) / 2, access.top.y - layout.origin.y),
         width: across ? hole.maxZ - hole.minZ : hole.maxX - hole.minX,
-        depth: across ? hole.maxX - hole.minX : hole.maxZ - hole.minZ } : undefined;
-      map.objects.push({ id: `${castle.id}-crown-ladder`, object: "Ladder", position,
-        bottom: access.bottom, top: access.top, hatch, rotation: access.rotation ?? layout.yaw,
-        generated: true, sourceCastleId: castle.id,
-        tile: { col: Math.round(position.x + (map.cols - 1) / 2), row: Math.round(position.z + (map.rows - 1) / 2) } });
+        depth: across ? hole.maxX - hole.minX : hole.maxZ - hole.minZ,
+      } : undefined;
+      map.objects.push({
+        id: `${castle.id}-crown-ladder`,
+        object: "Ladder",
+        position,
+        bottom: access.bottom,
+        top: access.top,
+        hatch,
+        rotation: access.rotation ?? layout.yaw,
+        generated: true,
+        sourceCastleId: castle.id,
+        tile: {
+          col: Math.round(position.x + (map.cols - 1) / 2),
+          row: Math.round(position.z + (map.rows - 1) / 2),
+        },
+      });
     }
   }
 }

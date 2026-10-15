@@ -126,7 +126,11 @@ export class AbstractRoyal {
     this.#BehaviorType = BehaviorType;
     this.#entity = new pc.Entity(`${definition.id} royal`);
     this.#entity.tags.add("map-object", definition.id, this.constructor.name);
-    this.#resident = new RoyalType({ pc, modelLibrary, performanceSeed: definition.seed ?? 0 });
+    this.#resident = new RoyalType({
+      pc,
+      modelLibrary,
+      performanceSeed: definition.seed ?? 0,
+    });
     this.#audienceActor = new SeatedRoyal({
       resident: this.#resident,
       pc,
@@ -207,10 +211,10 @@ export class AbstractRoyal {
      *
      * @param {boolean} atThrone
      */
-    (atThrone) => {
-      if (atThrone) { this.#audienceActor.sit(); }
-      onRoyalAtThroneChange(atThrone);
-    });
+      (atThrone) => {
+        if (atThrone) { this.#audienceActor.sit(); }
+        onRoyalAtThroneChange(atThrone);
+      });
     this.#actions = new TerraceRoyalActions({
       RoyalType: this.#RoyalType,
       actor: this.#resident,

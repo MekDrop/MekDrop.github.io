@@ -15,10 +15,26 @@ const BLUE_NOISE_CANDIDATES = 48;
 const CLOUD_RECYCLE_PADDING_PIXELS = 32;
 const FAR_CLOUD_BANK_COUNT = 3;
 const FAR_CLOUD_BANK_OFFSETS = Object.freeze([
-  { x: 0, y: 0, z: 0 },
-  { x: 2.7, y: 0.28, z: 0.9 },
-  { x: -2.35, y: -0.16, z: 1.65 },
-  { x: 0.65, y: 0.12, z: -2.15 },
+  {
+    x: 0,
+    y: 0,
+    z: 0,
+  },
+  {
+    x: 2.7,
+    y: 0.28,
+    z: 0.9,
+  },
+  {
+    x: -2.35,
+    y: -0.16,
+    z: 1.65,
+  },
+  {
+    x: 0.65,
+    y: 0.12,
+    z: -2.15,
+  },
 ]);
 const CLOUD_DEPTH_LAYERS = Object.freeze([
   {
@@ -125,8 +141,8 @@ const CLOUD_VARIANTS = Object.freeze(
    * @param {undefined} _
    * @param {number} variant
    */
-  (_, variant) =>
-    createCloudVariant(variant),
+    (_, variant) =>
+      createCloudVariant(variant),
   ),
 );
 
@@ -210,12 +226,20 @@ export class CubeCloudField {
    *
     * @type {{position: Point3, forward: Point3}}
    */
-  #cameraState = { panX: 0, panZ: 0, zoom: 1 };
+  #cameraState = {
+    panX: 0,
+    panZ: 0,
+    zoom: 1,
+  };
   /**
    *
     * @type {{x: number, y: number, z: number}}
    */
-  #floatingOffset = { x: 0, y: 0, z: 0 };
+  #floatingOffset = {
+    x: 0,
+    y: 0,
+    z: 0,
+  };
   /**
    *
     * @type {number}
@@ -251,7 +275,12 @@ export class CubeCloudField {
 
     this.#createResources();
     this.#buildClouds();
-    this.setCameraState({ rotation: 0, panX: 0, panZ: 0, zoom: 1 });
+    this.setCameraState({
+      rotation: 0,
+      panX: 0,
+      panZ: 0,
+      zoom: 1,
+    });
   }
 
   get entity() {
@@ -321,7 +350,11 @@ export class CubeCloudField {
    * @param {number} options.zoom
    */
   setCameraState({ rotation, panX, panZ, zoom }) {
-    this.#cameraState = { panX, panZ, zoom };
+    this.#cameraState = {
+      panX,
+      panZ,
+      zoom,
+    };
     this.#setViewRotation(rotation);
     for (const cluster of this.#clusters) this.#positionCluster(cluster);
   }
@@ -378,31 +411,31 @@ export class CubeCloudField {
      *
      * @param {import("playcanvas").Layer} layer
      */
-    (layer) => {
-      const material = new pc.ShaderMaterial({
-        uniqueName: `shader-cube-clouds-${layer.name}`,
-        vertexGLSL: cloudVertexShader,
-        fragmentGLSL: cloudFragmentShader,
-        attributes: {
-          vertex_position: pc.SEMANTIC_POSITION,
-          vertex_normal: pc.SEMANTIC_NORMAL,
-          instance_line1: pc.SEMANTIC_ATTR11,
-          instance_line2: pc.SEMANTIC_ATTR12,
-          instance_line3: pc.SEMANTIC_ATTR14,
-          instance_line4: pc.SEMANTIC_ATTR15,
-        },
+      (layer) => {
+        const material = new pc.ShaderMaterial({
+          uniqueName: `shader-cube-clouds-${layer.name}`,
+          vertexGLSL: cloudVertexShader,
+          fragmentGLSL: cloudFragmentShader,
+          attributes: {
+            vertex_position: pc.SEMANTIC_POSITION,
+            vertex_normal: pc.SEMANTIC_NORMAL,
+            instance_line1: pc.SEMANTIC_ATTR11,
+            instance_line2: pc.SEMANTIC_ATTR12,
+            instance_line3: pc.SEMANTIC_ATTR14,
+            instance_line4: pc.SEMANTIC_ATTR15,
+          },
+        });
+        material.name = `${layer.name} shader cube clouds`;
+        material.blendType = pc.BLEND_NORMAL;
+        material.depthWrite = false;
+        material.setParameter("uCloudTopColor", layer.topColor);
+        material.setParameter("uCloudSideColor", layer.sideColor);
+        material.setParameter("uLightDirection", [0.42, 0.82, 0.38]);
+        material.setParameter("uOpacity", layer.opacity);
+        material.setParameter("uCloudYaw", [Math.SQRT1_2, Math.SQRT1_2]);
+        material.update();
+        return material;
       });
-      material.name = `${layer.name} shader cube clouds`;
-      material.blendType = pc.BLEND_NORMAL;
-      material.depthWrite = false;
-      material.setParameter("uCloudTopColor", layer.topColor);
-      material.setParameter("uCloudSideColor", layer.sideColor);
-      material.setParameter("uLightDirection", [0.42, 0.82, 0.38]);
-      material.setParameter("uOpacity", layer.opacity);
-      material.setParameter("uCloudYaw", [Math.SQRT1_2, Math.SQRT1_2]);
-      material.update();
-      return material;
-    });
   }
 
   #buildClouds() {
@@ -428,67 +461,67 @@ export class CubeCloudField {
      * @param {undefined} _
      * @param {number} cloudIndex
      */
-    (_, cloudIndex) => {
-      const depthLayerIndex = cloudIndex % CLOUD_DEPTH_LAYERS.length;
-      const depthLayer = CLOUD_DEPTH_LAYERS[depthLayerIndex];
-      const isFarCloud = depthLayerIndex === 0;
-      const farCloudIndex = Math.floor(
-        cloudIndex / CLOUD_DEPTH_LAYERS.length,
-      );
-      const farBankIndex = farCloudIndex % FAR_CLOUD_BANK_COUNT;
-      const farBankSlot = Math.floor(farCloudIndex / FAR_CLOUD_BANK_COUNT);
-      const variantIndex =
-        (variantOffset + cloudIndex * 7) % CLOUD_VARIANT_COUNT;
-      const variant = CLOUD_VARIANTS[variantIndex];
-      const scale =
-        (0.96 + (this.#hash(cloudIndex, 13) % 17) / 100) * depthLayer.scale;
-      const matrices = [];
-
-      for (const [x, y, z] of variant) {
-        const matrix = new pc.Mat4();
-        matrix.setTRS(
-          new pc.Vec3(x * CUBE_STEP, y * CUBE_STEP, z * CUBE_STEP),
-          pc.Quat.IDENTITY,
-          new pc.Vec3(CUBE_SIZE, CUBE_SIZE, CUBE_SIZE),
+      (_, cloudIndex) => {
+        const depthLayerIndex = cloudIndex % CLOUD_DEPTH_LAYERS.length;
+        const depthLayer = CLOUD_DEPTH_LAYERS[depthLayerIndex];
+        const isFarCloud = depthLayerIndex === 0;
+        const farCloudIndex = Math.floor(
+          cloudIndex / CLOUD_DEPTH_LAYERS.length,
         );
-        matrices.push(...matrix.data);
-      }
+        const farBankIndex = farCloudIndex % FAR_CLOUD_BANK_COUNT;
+        const farBankSlot = Math.floor(farCloudIndex / FAR_CLOUD_BANK_COUNT);
+        const variantIndex =
+          (variantOffset + cloudIndex * 7) % CLOUD_VARIANT_COUNT;
+        const variant = CLOUD_VARIANTS[variantIndex];
+        const scale =
+          (0.96 + (this.#hash(cloudIndex, 13) % 17) / 100) * depthLayer.scale;
+        const matrices = [];
 
-      const vertexBuffer = new pc.VertexBuffer(
-        this.#app.graphicsDevice,
-        pc.VertexFormat.getDefaultInstancingFormat(this.#app.graphicsDevice),
-        variant.length,
-        { data: new Float32Array(matrices) },
-      );
-      this.#vertexBuffers.push(vertexBuffer);
+        for (const [x, y, z] of variant) {
+          const matrix = new pc.Mat4();
+          matrix.setTRS(
+            new pc.Vec3(x * CUBE_STEP, y * CUBE_STEP, z * CUBE_STEP),
+            pc.Quat.IDENTITY,
+            new pc.Vec3(CUBE_SIZE, CUBE_SIZE, CUBE_SIZE),
+          );
+          matrices.push(...matrix.data);
+        }
 
-      const meshInstance = new pc.MeshInstance(
-        this.#mesh,
-        this.#materials[depthLayerIndex],
-      );
-      meshInstance.setInstancing(vertexBuffer, false);
-      meshInstance.castShadow = false;
-      meshInstance.receiveShadow = false;
-      meshInstance.pick = false;
+        const vertexBuffer = new pc.VertexBuffer(
+          this.#app.graphicsDevice,
+          pc.VertexFormat.getDefaultInstancingFormat(this.#app.graphicsDevice),
+          variant.length,
+          { data: new Float32Array(matrices) },
+        );
+        this.#vertexBuffers.push(vertexBuffer);
 
-      const clusterEntity = new pc.Entity(
-        `${depthLayer.name} shader cloud ${cloudIndex + 1} / variant ${variantIndex + 1}`,
-      );
-      clusterEntity.addComponent("render", {
-        meshInstances: [meshInstance],
-        castShadows: false,
-        receiveShadows: false,
-        layers: [this.#layerId],
-      });
-      this.#entity.addChild(clusterEntity);
+        const meshInstance = new pc.MeshInstance(
+          this.#mesh,
+          this.#materials[depthLayerIndex],
+        );
+        meshInstance.setInstancing(vertexBuffer, false);
+        meshInstance.castShadow = false;
+        meshInstance.receiveShadow = false;
+        meshInstance.pick = false;
 
-      const bankOffset = FAR_CLOUD_BANK_OFFSETS[farBankSlot];
-      const bankAnchor = farBankAnchors[farBankIndex];
-      const originY = isFarCloud
-        ? 1.65 + (this.#hash(farBankIndex, 29) % 24) / 10 + bankOffset.y
-        : 1.2 + (this.#hash(cloudIndex, 29) % 32) / 10;
-      const initialPosition = isFarCloud
-        ? {
+        const clusterEntity = new pc.Entity(
+          `${depthLayer.name} shader cloud ${cloudIndex + 1} / variant ${variantIndex + 1}`,
+        );
+        clusterEntity.addComponent("render", {
+          meshInstances: [meshInstance],
+          castShadows: false,
+          receiveShadows: false,
+          layers: [this.#layerId],
+        });
+        this.#entity.addChild(clusterEntity);
+
+        const bankOffset = FAR_CLOUD_BANK_OFFSETS[farBankSlot];
+        const bankAnchor = farBankAnchors[farBankIndex];
+        const originY = isFarCloud
+          ? 1.65 + (this.#hash(farBankIndex, 29) % 24) / 10 + bankOffset.y
+          : 1.2 + (this.#hash(cloudIndex, 29) % 32) / 10;
+        const initialPosition = isFarCloud
+          ? {
             x: this.#wrapFieldPosition(
               bankAnchor.x + bankOffset.x,
               fieldMinimum,
@@ -500,15 +533,15 @@ export class CubeCloudField {
               fieldSpan,
             ),
           }
-        : initialPositions[cloudIndex];
-      const speedHashIndex = isFarCloud ? farBankIndex : cloudIndex;
-      const cluster = {
-        entity: clusterEntity,
-        originY,
-        x: initialPosition.x,
-        z: initialPosition.z,
-        baseScale: scale,
-        baseRadius:
+          : initialPositions[cloudIndex];
+        const speedHashIndex = isFarCloud ? farBankIndex : cloudIndex;
+        const cluster = {
+          entity: clusterEntity,
+          originY,
+          x: initialPosition.x,
+          z: initialPosition.z,
+          baseScale: scale,
+          baseRadius:
           (Math.max(...variant.map(/**
            *
            * @param {Array<number>} options
@@ -516,20 +549,20 @@ export class CubeCloudField {
            * @param {number} options."1"
            * @param {number} options."2"
            */
-          ([x, y, z]) => Math.hypot(x, y, z))) *
+            ([x, y, z]) => Math.hypot(x, y, z))) *
             CUBE_STEP +
             (CUBE_SIZE * Math.sqrt(3)) / 2) *
           scale,
-        depthLayerIndex,
-        fieldMinimum,
-        fieldSpan,
-        speedScale:
+          depthLayerIndex,
+          fieldMinimum,
+          fieldSpan,
+          speedScale:
           (0.94 + (this.#hash(speedHashIndex, 53) % 121) / 1000) *
           depthLayer.speed,
-      };
-      this.#positionCluster(cluster);
-      this.#clusters.push(cluster);
-    });
+        };
+        this.#positionCluster(cluster);
+        this.#clusters.push(cluster);
+      });
   }
 
   /**
@@ -638,26 +671,26 @@ export class CubeCloudField {
          * @param {number} nearest
          * @param {{x: number, y: number, z: number}} position
          */
-        (nearest, position) => {
-          const directXDistance = Math.abs(
-            candidate.xFraction - position.xFraction,
-          );
-          const directZDistance = Math.abs(
-            candidate.zFraction - position.zFraction,
-          );
-          const wrappedXDistance = Math.min(
-            directXDistance,
-            1 - directXDistance,
-          );
-          const wrappedZDistance = Math.min(
-            directZDistance,
-            1 - directZDistance,
-          );
-          return Math.min(
-            nearest,
-            Math.hypot(wrappedXDistance, wrappedZDistance),
-          );
-        }, Number.POSITIVE_INFINITY);
+          (nearest, position) => {
+            const directXDistance = Math.abs(
+              candidate.xFraction - position.xFraction,
+            );
+            const directZDistance = Math.abs(
+              candidate.zFraction - position.zFraction,
+            );
+            const wrappedXDistance = Math.min(
+              directXDistance,
+              1 - directXDistance,
+            );
+            const wrappedZDistance = Math.min(
+              directZDistance,
+              1 - directZDistance,
+            );
+            return Math.min(
+              nearest,
+              Math.hypot(wrappedXDistance, wrappedZDistance),
+            );
+          }, Number.POSITIVE_INFINITY);
 
         if (nearestDistance <= bestDistance) continue;
         bestCandidate = candidate;

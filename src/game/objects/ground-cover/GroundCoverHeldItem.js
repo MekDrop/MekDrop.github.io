@@ -118,7 +118,11 @@ export class GroundCoverHeldItem {
     material = null,
     castShadows = true,
     receiveShadows = castShadows,
-    gripPoint = { x: 0, y: 0, z: 0 },
+    gripPoint = {
+      x: 0,
+      y: 0,
+      z: 0,
+    },
     pickupTilt = -68,
     pickupPitch = 0,
     pickupYaw = 0,
@@ -129,7 +133,11 @@ export class GroundCoverHeldItem {
     this.#modelUrl = modelUrl;
     this.#name = name;
     this.#scale = isNumber(scale)
-      ? { x: scale, y: scale, z: scale }
+      ? {
+        x: scale,
+        y: scale,
+        z: scale,
+      }
       : { ...scale };
     if (material?.clone) {
       this.#material = material.clone();
@@ -216,10 +224,10 @@ export class GroundCoverHeldItem {
     const visual = this.#keepCapUpright
       ? this.#modelLibrary.instantiate(this.#modelUrl)
       : this.#modelLibrary.instantiateMerged(this.#modelUrl, {
-          material: this.#material,
-          castShadows: this.#castShadows,
-          receiveShadows: this.#receiveShadows,
-        });
+        material: this.#material,
+        castShadows: this.#castShadows,
+        receiveShadows: this.#receiveShadows,
+      });
     if (this.#keepCapUpright) {
       this.#matchMergedAppearance(visual);
       this.#orientMushroomCaps(visual);
@@ -293,7 +301,7 @@ export class GroundCoverHeldItem {
      *
      * @param {import("playcanvas").Entity} node
      */
-    (node) => node.name.endsWith(" stalk"));
+      (node) => node.name.endsWith(" stalk"));
     const stalkJoints = new Map();
     let heldStalk = null;
     let nearestGripDistance = Infinity;
@@ -340,7 +348,7 @@ export class GroundCoverHeldItem {
      *
      * @param {import("playcanvas").Entity} node
      */
-    (node) => node.name.endsWith(" cap"))) {
+      (node) => node.name.endsWith(" cap"))) {
       const prefix = cap.name.slice(0, -4);
       const parent = cap.parent;
       const joint =

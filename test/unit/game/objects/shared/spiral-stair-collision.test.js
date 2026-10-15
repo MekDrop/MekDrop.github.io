@@ -11,10 +11,18 @@ it("keeps the spiral walking lane gently sloped and its final tread level", () =
   class MeshInstance {
     constructor(mesh) { this.mesh = mesh; }
   }
-  const pc = { Mesh, MeshInstance, GraphNode: class {}, PRIMITIVE_TRIANGLES: 4 };
+  const pc = {
+    Mesh,
+    MeshInstance,
+    GraphNode: class {},
+    PRIMITIVE_TRIANGLES: 4,
+  };
   const { mesh } = createSpiralStairCollision(pc, {
-    innerRadius: 1.5 * 0.08 / 0.65, outerRadius: 1.5 * 0.59 / 0.65,
-    rise: 3, turns: 1.5, steps: 24,
+    innerRadius: 1.5 * 0.08 / 0.65,
+    outerRadius: 1.5 * 0.59 / 0.65,
+    rise: 3,
+    turns: 1.5,
+    steps: 24,
   });
   assert.equal(mesh.positions[1], 0, "stair entry begins at floor level without a raised collision lip");
   const point = (index) => mesh.positions.slice(index * 3, index * 3 + 3);

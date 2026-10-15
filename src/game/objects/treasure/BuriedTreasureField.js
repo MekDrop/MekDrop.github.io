@@ -85,9 +85,18 @@ const FILL_CLOD_COUNT = 9;
 const FILL_CLOD_DURATION = 0.52;
 const FILL_CLOD_STAGGER = 0.035;
 const COIN_DEFINITIONS = new Map([
-  [COIN_TYPE.GOLD, { color: 0xffc84a, weight: 12 }],
-  [COIN_TYPE.SILVER, { color: 0xd8e2ea, weight: 30 }],
-  [COIN_TYPE.COPPER, { color: 0xd7793d, weight: 58 }],
+  [COIN_TYPE.GOLD, {
+    color: 0xffc84a,
+    weight: 12,
+  }],
+  [COIN_TYPE.SILVER, {
+    color: 0xd8e2ea,
+    weight: 30,
+  }],
+  [COIN_TYPE.COPPER, {
+    color: 0xd7793d,
+    weight: 58,
+  }],
 ]);
 const BLOCKED_DIG_ROCKS = [
   {
@@ -300,7 +309,7 @@ export class BuriedTreasureField {
        * @param {{object: string}} options
        * @param {string} options.object
        */
-      ({ object }) => object === "Vegetation")) {
+        ({ object }) => object === "Vegetation")) {
       const key = this.#tileKey(col, row);
       this.#vegetationTileCounts.set(
         key,
@@ -313,7 +322,7 @@ export class BuriedTreasureField {
        * @param {{object: string}} options
        * @param {string} options.object
        */
-      ({ object }) => object === "StoneCluster")) {
+        ({ object }) => object === "StoneCluster")) {
       this.#stoneTiles.add(this.#tileKey(col, row));
     }
     for (const { col, row } of mapData.groundCoverData ?? []) {
@@ -330,9 +339,13 @@ export class BuriedTreasureField {
       }
       const { col, row } = cube.tile;
       const site = {
-        id: this.#tileKey(col, row), col, row,
-        x: cube.position.x, y: mapData.heightmap[row][col] + GRASS_SURFACE_LIFT,
-        z: cube.position.z, contents: cube.buriedTreasure.contents,
+        id: this.#tileKey(col, row),
+        col,
+        row,
+        x: cube.position.x,
+        y: mapData.heightmap[row][col] + GRASS_SURFACE_LIFT,
+        z: cube.position.z,
+        contents: cube.buriedTreasure.contents,
       };
       this.#createChest(site);
       // Buried models must leave the render and animation systems until exposed.
@@ -423,13 +436,13 @@ export class BuriedTreasureField {
     const digTarget = this.#findDigTarget(position, facingDirection);
     return digTarget
       ? new DigInteraction({
-          field: this,
-          target: digTarget,
-          hero,
-          tool: this.#tool,
-          onChange,
-          onComplete,
-        })
+        field: this,
+        target: digTarget,
+        hero,
+        tool: this.#tool,
+        onChange,
+        onComplete,
+      })
       : null;
   }
 
@@ -445,7 +458,7 @@ export class BuriedTreasureField {
      *
      * @param {boolean} candidate
      */
-    (candidate) => candidate.id === id);
+      (candidate) => candidate.id === id);
     return site?.state === "digging" || !this.#dugTiles.has(id);
   }
 
@@ -493,7 +506,7 @@ export class BuriedTreasureField {
      *
      * @param {TreasureSite} site
      */
-    (site) => site.id === target.id);
+      (site) => site.id === target.id);
     if (existingSite) {
       if (existingSite.state !== "digging") {
         return true;
@@ -651,7 +664,10 @@ export class BuriedTreasureField {
    */
   removeMapObject({ object, tile, kind }) {
     if (object === "Vegetation") {
-      this.removeVegetation({ ...tile, kind });
+      this.removeVegetation({
+        ...tile,
+        kind,
+      });
     }
   }
 
@@ -755,7 +771,10 @@ export class BuriedTreasureField {
       ) {
         continue;
       }
-      nearest = { site, distance };
+      nearest = {
+        site,
+        distance,
+      };
     }
     if (!nearest) {
       return null;
@@ -796,18 +815,21 @@ export class BuriedTreasureField {
       ) {
         continue;
       }
-      nearest = { site, distance };
+      nearest = {
+        site,
+        distance,
+      };
     }
     return nearest
       ? {
-          id: nearest.site.id,
-          kind,
-          col: nearest.site.col,
-          row: nearest.site.row,
-          x: nearest.site.x,
-          y: nearest.site.y,
-          z: nearest.site.z,
-        }
+        id: nearest.site.id,
+        kind,
+        col: nearest.site.col,
+        row: nearest.site.row,
+        x: nearest.site.x,
+        y: nearest.site.y,
+        z: nearest.site.z,
+      }
       : null;
   }
 
@@ -822,10 +844,22 @@ export class BuriedTreasureField {
     const originCol = Math.round(centerCol);
     const originRow = Math.round(centerRow);
     const candidates = [
-      { col: originCol + 1, row: originRow },
-      { col: originCol - 1, row: originRow },
-      { col: originCol, row: originRow + 1 },
-      { col: originCol, row: originRow - 1 },
+      {
+        col: originCol + 1,
+        row: originRow,
+      },
+      {
+        col: originCol - 1,
+        row: originRow,
+      },
+      {
+        col: originCol,
+        row: originRow + 1,
+      },
+      {
+        col: originCol,
+        row: originRow - 1,
+      },
     ];
     let nearest = null;
     for (const candidate of candidates) {
@@ -855,7 +889,13 @@ export class BuriedTreasureField {
       ) {
         continue;
       }
-      nearest = { ...candidate, x, y, z, distance };
+      nearest = {
+        ...candidate,
+        x,
+        y,
+        z,
+        distance,
+      };
     }
     if (!nearest) {
       return null;

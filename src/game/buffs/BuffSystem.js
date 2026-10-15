@@ -33,7 +33,7 @@ export class BuffSystem {
        *
        * @param {import("src/game/GameContracts.js").GameObjectDefinition} definition
        */
-      (definition) => [definition.id, definition]),
+        (definition) => [definition.id, definition]),
     );
   }
 
@@ -50,7 +50,7 @@ export class BuffSystem {
      *
      * @param {string} id
      */
-    (id) => this.get(id));
+      (id) => this.get(id));
   }
 
   /**
@@ -62,7 +62,10 @@ export class BuffSystem {
     if (!effect) {
       return null;
     }
-    return structuredClone({ ...this.#definitions.get(id), ...effect });
+    return structuredClone({
+      ...this.#definitions.get(id),
+      ...effect,
+    });
   }
 
   /**
@@ -100,7 +103,7 @@ export class BuffSystem {
      *
      * @param {pc.Entity} blocker
      */
-    (blocker) => this.has(blocker))) {
+      (blocker) => this.has(blocker))) {
       return false;
     }
     for (const replaced of definition.replaces ?? []) {

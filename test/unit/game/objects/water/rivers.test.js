@@ -61,14 +61,29 @@ delete globalThis.__riverMotionTest;
 it("moves water and lava with their banks while advancing every surface clock", () => {
   surfaces.length = 0;
   const riverData = [
-    { kind: "WATER", cells: [{ col: 1, row: 1 }] },
-    { kind: "LAVA", cells: [{ col: 8, row: 1 }] },
+    {
+      kind: "WATER",
+      cells: [{
+        col: 1,
+        row: 1,
+      }],
+    },
+    {
+      kind: "LAVA",
+      cells: [{
+        col: 8,
+        row: 1,
+      }],
+    },
   ];
   const rivers = new Rivers({
     pc: { Entity: FakeEntity },
     mapData: {
       riverData,
-      islandConnectorData: { nearIsland: ["0,1"], farIsland: ["9,1"] },
+      islandConnectorData: {
+        nearIsland: ["0,1"],
+        farIsland: ["9,1"],
+      },
     },
   });
   rivers.setIslandOffsets(0.06, -0.04);
@@ -89,11 +104,22 @@ it("moves water and lava with their banks while advancing every surface clock", 
 });
 
 it("keeps single-island and unassigned rivers on the shared root", () => {
-  for (const islandConnectorData of [undefined, { nearIsland: ["0,0"], farIsland: ["9,9"] }]) {
+  for (const islandConnectorData of [undefined, {
+    nearIsland: ["0,0"],
+    farIsland: ["9,9"],
+  }]) {
     surfaces.length = 0;
     const rivers = new Rivers({
       pc: { Entity: FakeEntity },
-      mapData: { islandConnectorData, riverData: [{ cells: [{ col: 4, row: 4 }] }] },
+      mapData: {
+        islandConnectorData,
+        riverData: [{
+          cells: [{
+            col: 4,
+            row: 4,
+          }],
+        }],
+      },
     });
     rivers.setIslandOffsets(0.06, -0.04);
     rivers.update(0.5);

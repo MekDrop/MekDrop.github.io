@@ -40,8 +40,12 @@ export class SignalBellInteraction {
    * @returns {import("../../GameContracts.js").InteractionDescription}
    */
   get description() {
-    return { ...this.#bell.position, id: this.#bell.definition.id,
-      labelKey: "game.interaction.ring_bell", showHealth: false };
+    return {
+      ...this.#bell.position,
+      id: this.#bell.definition.id,
+      labelKey: "game.interaction.ring_bell",
+      showHealth: false,
+    };
   }
 
   /**

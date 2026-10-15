@@ -10,7 +10,10 @@ export default ssrMiddleware(({ app, resolve, render, serve }) => {
   app.get(resolve.urlPath("*"), (req, res) => {
     res.setHeader("Content-Type", "text/html");
 
-    render(/* the ssrContext: */ { req, res })
+    render(/* the ssrContext: */ {
+      req,
+      res,
+    })
       .then((html) => {
         // now let's send the rendered html to the client
         res.send(html);
@@ -38,7 +41,11 @@ export default ssrMiddleware(({ app, resolve, render, serve }) => {
           // and other useful information
 
           // serve.error is available on dev only
-          serve.error({ err, req, res });
+          serve.error({
+            err,
+            req,
+            res,
+          });
         } else {
           // we're in production, so we should have another method
           // to display something to the client when we encounter an error

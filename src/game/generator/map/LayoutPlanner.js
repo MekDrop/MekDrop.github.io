@@ -61,9 +61,9 @@ export class LayoutPlanner {
      *
      * @param {GenerationTemplate} template
      */
-    (template) => [
-      ...template.gateRows,
-    ]);
+      (template) => [
+        ...template.gateRows,
+      ]);
     let pathRows =
       numPaths > 1
         ? this.#random.randomItem([anchorRows[0], anchorRows[anchorRows.length - 1]])
@@ -76,7 +76,10 @@ export class LayoutPlanner {
           : pathRows[0] <= 6 || pathRows[1] >= 25
             ? 0
             : 3;
-    const castleFootprint = { ...CASTLE_FOOTPRINTS[castleFootprintIndex], ...authoredPlan };
+    const castleFootprint = {
+      ...CASTLE_FOOTPRINTS[castleFootprintIndex],
+      ...authoredPlan,
+    };
     // Keep the castle against the rear of its buildable plateau. The footprint
     // still varies by width and row, while the required grass clearance remains
     // between the back wall and the island edge.
@@ -196,13 +199,13 @@ export class LayoutPlanner {
        * @param {number} a
        * @param {number} b
        */
-      (a, b) => a.gateRows[0] - b.gateRows[0]);
+        (a, b) => a.gateRows[0] - b.gateRows[0]);
     const sharedMinMerge = Math.max(
       ...selected.map(/**
        *
        * @param {GenerationTemplate} template
        */
-      (template) => template.mergeRange[0]),
+        (template) => template.mergeRange[0]),
     );
     const sharedMaxMerge = Math.min(
       castleLeft - 6,
@@ -210,34 +213,37 @@ export class LayoutPlanner {
        *
        * @param {GenerationTemplate} template
        */
-      (template) => template.mergeRange[1]),
+        (template) => template.mergeRange[1]),
     );
     const mergeCol = this.#random.rng(sharedMinMerge, sharedMaxMerge);
     const sides = selected.map(/**
      *
      * @param {GenerationTemplate} template
      */
-    (template) => {
-      if (
-        this.#rowsOverlap(template.gateRows, castleTop - 5, castleBottom + 5)
-      ) {
-        return "LEFT";
-      }
-      return this.#random.rng(0, 1) === 0 ? "LEFT" : "RIGHT";
-    });
+      (template) => {
+        if (
+          this.#rowsOverlap(template.gateRows, castleTop - 5, castleBottom + 5)
+        ) {
+          return "LEFT";
+        }
+        return this.#random.rng(0, 1) === 0 ? "LEFT" : "RIGHT";
+      });
 
     if (selected.length > 1 && sides.every(/**
      *
      * @param {string} side
      */
-    (side) => side === sides[0])) {
+      (side) => side === sides[0])) {
       const candidateIndexes = selected
         .map(/**
          *
          * @param {GenerationTemplate} template
          * @param {number} index
          */
-        (template, index) => ({ template, index }))
+          (template, index) => ({
+            template,
+            index,
+          }))
         .filter(
           /**
            *
@@ -256,7 +262,7 @@ export class LayoutPlanner {
          * @param {{index: number}} options
          * @param {number} options.index
          */
-        ({ index }) => index);
+          ({ index }) => index);
 
       if (candidateIndexes.length) {
         const flipIndex =
@@ -270,30 +276,30 @@ export class LayoutPlanner {
      * @param {GenerationTemplate} template
      * @param {number} index
      */
-    (template, index) => {
-      const side = sides[index];
-      const entry = {
-        ...template,
-        side,
-        gateCol: side === "LEFT" ? LEFT_GATE_COL : RIGHT_GATE_COL,
-        inwardDirection:
+      (template, index) => {
+        const side = sides[index];
+        const entry = {
+          ...template,
+          side,
+          gateCol: side === "LEFT" ? LEFT_GATE_COL : RIGHT_GATE_COL,
+          inwardDirection:
           side === "LEFT" ? DIRECTIONS.EAST : DIRECTIONS.WEST,
-        mergeCol,
-      };
-      return {
-        ...entry,
-        curvePlan: this.#buildCurvePlan(
-          entry,
-          pathRows,
           mergeCol,
-          selected.map(/**
+        };
+        return {
+          ...entry,
+          curvePlan: this.#buildCurvePlan(
+            entry,
+            pathRows,
+            mergeCol,
+            selected.map(/**
            *
            * @param {{gateRows: number[]}} candidate
            */
-          (candidate) => candidate.gateRows[0]),
-        ),
-      };
-    });
+              (candidate) => candidate.gateRows[0]),
+          ),
+        };
+      });
   }
 
   /**
@@ -308,20 +314,20 @@ export class LayoutPlanner {
     const safeBands =
       bottomRow < trunkTop
         ? this.#collectSafeCurveBandStarts(
-            bottomRow + 1,
-            trunkTop - 4,
-            occupiedBandStarts,
-            pathRows[0],
-            1,
-          )
+          bottomRow + 1,
+          trunkTop - 4,
+          occupiedBandStarts,
+          pathRows[0],
+          1,
+        )
         : topRow > trunkBottom
           ? this.#collectSafeCurveBandStarts(
-              trunkBottom + 3,
-              topRow - 2,
-              occupiedBandStarts,
-              pathRows[0],
-              -1,
-            )
+            trunkBottom + 3,
+            topRow - 2,
+            occupiedBandStarts,
+            pathRows[0],
+            -1,
+          )
           : [];
 
     if (!safeBands.length) {
@@ -347,7 +353,7 @@ export class LayoutPlanner {
          *
          * @param {number} start
          */
-        (start) => [start, start + 1]),
+          (start) => [start, start + 1]),
     };
   }
 
@@ -363,7 +369,7 @@ export class LayoutPlanner {
       layout.entries.some(/**
                              * @param {LayoutEntry} entry
                              */
-      (entry) => entry.gateRows[0] === layout.pathRows[0]) &&
+        (entry) => entry.gateRows[0] === layout.pathRows[0]) &&
       layout.entries.some(/**
                            * @param {LayoutEntry} entry
                            */
@@ -383,7 +389,7 @@ export class LayoutPlanner {
      *
      * @param {LayoutEntry} entry
      */
-    (entry) => entry.curvePlan);
+      (entry) => entry.curvePlan);
     for (const entry of layout.entries) {
       entry.curvePlan = null;
     }
@@ -406,12 +412,12 @@ export class LayoutPlanner {
          * @param {number[]} tiles
          * @param {number} row
          */
-        (tiles, row) => row >= layout.castleTop && row <= layout.castleBottom &&
+          (tiles, row) => row >= layout.castleTop && row <= layout.castleBottom &&
           tiles.some(/**
            * @param {number} tile
            * @param {number} col
            */
-          (tile, col) => tile === TileType.PATH && col >= layout.castleLeft &&
+            (tile, col) => tile === TileType.PATH && col >= layout.castleLeft &&
             col <= layout.castleRight && !(col === layout.castleEntranceCol &&
               layout.castleEntranceRows.includes(row)))) ||
         PathTopology.findUnexpectedFlatPathCrossing(previewGrid, null) ||
@@ -455,12 +461,12 @@ export class LayoutPlanner {
        *
        * @param {number} start
        */
-      (start) => Math.abs(candidate - start) >= 4)) { continue; }
+        (start) => Math.abs(candidate - start) >= 4)) { continue; }
       if (!safe.every(/**
        *
        * @param {number} start
        */
-      (start) => Math.abs(candidate - start) >= 4)) { continue; }
+        (start) => Math.abs(candidate - start) >= 4)) { continue; }
       safe.push(candidate);
     }
 

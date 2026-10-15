@@ -19,9 +19,15 @@ self.onmessage = async (event) => {
       self.postMessage({ type: MESSAGE.READY });
     } else if (type === MESSAGE.STEP && simulation) {
       const transforms = simulation.step(event.data);
-      self.postMessage({ type: MESSAGE.RESULT, transforms }, [transforms.buffer]);
+      self.postMessage({
+        type: MESSAGE.RESULT,
+        transforms,
+      }, [transforms.buffer]);
     }
   } catch (error) {
-    self.postMessage({ type: MESSAGE.FAILED, detail: String(error) });
+    self.postMessage({
+      type: MESSAGE.FAILED,
+      detail: String(error),
+    });
   }
 };

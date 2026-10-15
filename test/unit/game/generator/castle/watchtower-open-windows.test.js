@@ -18,7 +18,21 @@ it('places glazed lookout windows on the two exterior corner faces',async()=>{
     assert.ok(opening.width>=1.25 && opening.height>=1.75);
   }
   for(const seed of [4,5]) {
-    const plan=await CastleGenerator.generate({position:{x:-14,z:-8,width:28,depth:16,elevation:3},doors:[{side:'NORTH',offset:13,width:2}],seed});
+    const plan=await CastleGenerator.generate({
+      position:{
+        x:-14,
+        z:-8,
+        width:28,
+        depth:16,
+        elevation:3,
+      },
+      doors:[{
+        side:'NORTH',
+        offset:13,
+        width:2,
+      }],
+      seed,
+    });
     assert.equal(plan.geometry.decorations.roofs.length,0,'defensive tower crown has no domestic pitched roof');
     assert.ok(plan.layout.roomPlan.walkableAreas.some(area=>area.id==='roof:watchtower-roof'),'flat crown retains its platform');
     const windows=new CastleWindowLayout(plan);

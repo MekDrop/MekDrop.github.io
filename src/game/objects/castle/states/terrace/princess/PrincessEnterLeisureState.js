@@ -8,7 +8,12 @@ export class PrincessEnterLeisureState extends AbstractTerraceParticipantState {
    * @param {number} duration
    */
   constructor(duration) {
-    super({ phase: PrincessEnterLeisureState.name, stagePhase: STAGE.ROYAL_ENTER,
-      duration, action: "walk", animation: ANIMATION.WALK });
+    super({
+      phase: PrincessEnterLeisureState.name,
+      stagePhase: STAGE.ROYAL_ENTER,
+      duration,
+      action: "walk",
+      animation: ANIMATION.WALK,
+    });
   }
 }

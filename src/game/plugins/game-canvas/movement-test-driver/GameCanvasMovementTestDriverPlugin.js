@@ -59,7 +59,12 @@ export class GameCanvasMovementTestDriverPlugin {
         const joint = this.#context.renderer().hero?.entity?.findByName(name);
         if (!joint) return null;
         const rotation = joint.getLocalRotation();
-        return { x: rotation.x, y: rotation.y, z: rotation.z, w: rotation.w };
+        return {
+          x: rotation.x,
+          y: rotation.y,
+          z: rotation.z,
+          w: rotation.w,
+        };
       },
       /**
        * @param {string[]} names
@@ -70,9 +75,17 @@ export class GameCanvasMovementTestDriverPlugin {
         const joints = {};
         for (const name of names) {
           const point = hero?.entity?.findByName(name)?.getPosition();
-          if (point) joints[name] = { x: point.x, y: point.y, z: point.z };
+          if (point) joints[name] = {
+            x: point.x,
+            y: point.y,
+            z: point.z,
+          };
         }
-        return { clip: model?.anim?.baseLayer.activeState, time: model?.anim?.baseLayer.activeStateCurrentTime, joints };
+        return {
+          clip: model?.anim?.baseLayer.activeState,
+          time: model?.anim?.baseLayer.activeStateCurrentTime,
+          joints,
+        };
       },
       /**
        *

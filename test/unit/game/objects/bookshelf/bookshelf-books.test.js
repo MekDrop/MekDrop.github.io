@@ -6,7 +6,10 @@ import { BookshelfBooks } from "../../../../../src/game/objects/bookshelf/Booksh
 test("a full-height top compartment receives upright books", () => {
   const shelf = new Entity("shelf");
   const models = { instantiate: () => new Entity("book") };
-  const level = { bottom: 2.15, height: 0.29 };
+  const level = {
+    bottom: 2.15,
+    height: 0.29,
+  };
   BookshelfBooks.populate(models, shelf, "book.glb", () => 0.5, [level]);
   assert.equal(shelf.children.length, 10);
   for (const book of shelf.children) {
@@ -27,12 +30,14 @@ test("reusable books remain supported, fit every shelf and isolate cover colors"
     let state = seed;
     const shelf = new Entity("shelf");
     for (const name of ["Leather bound book", "Book spine brass"]) { shelf.addChild(new Entity(name)); }
-    const models = { instantiate: () => {
-      const book = new Entity("book");
-      const renders = [{ meshInstances: [{ material: original }, { material: fixed }] }];
-      book.findComponents = () => renders;
-      return book;
-    } };
+    const models = {
+      instantiate: () => {
+        const book = new Entity("book");
+        const renders = [{ meshInstances: [{ material: original }, { material: fixed }] }];
+        book.findComponents = () => renders;
+        return book;
+      },
+    };
     BookshelfBooks.populate(models, shelf, "book.glb", () => {
       state = (Math.imul(state, 1664525) + 1013904223) >>> 0;
       return state / 4294967296;

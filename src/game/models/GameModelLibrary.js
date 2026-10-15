@@ -55,7 +55,7 @@ export class GameModelLibrary {
        *
        * @param {string} url
        */
-      (url) => this.#loadModel(url)),
+        (url) => this.#loadModel(url)),
     );
   }
 
@@ -166,7 +166,10 @@ export class GameModelLibrary {
       receiveShadows,
     });
 
-    return { entity, vertexBuffer };
+    return {
+      entity,
+      vertexBuffer,
+    };
   }
 
   /**
@@ -184,14 +187,17 @@ export class GameModelLibrary {
        * @param {{resource: pc.Asset|pc.Texture|pc.Material}} options
        * @param {pc.Asset|pc.Texture|pc.Material} options.resource
        */
-      ({ resource }) => [
-        resource.name,
-        resource,
-      ]),
+        ({ resource }) => [
+          resource.name,
+          resource,
+        ]),
     );
     for (const animation of requiredNames) {
       if (!tracks.has(animation)) {
-        throw new GameModelAnimationMissingError({ url, animation });
+        throw new GameModelAnimationMissingError({
+          url,
+          animation,
+        });
       }
     }
     return tracks;
@@ -227,25 +233,28 @@ export class GameModelLibrary {
      * @param {(value?: (value?: void) => void) => void} resolve
      * @param {(reason?: Error) => void} reject
      */
-    (resolve, reject) => {
-      asset.ready(/**
+      (resolve, reject) => {
+        asset.ready(/**
        *
        * @param {pc.Asset} loadedAsset
        */
-      (loadedAsset) => {
-        this.#assets.set(url, loadedAsset);
-        resolve();
-      });
-      asset.once("error", /**
+          (loadedAsset) => {
+            this.#assets.set(url, loadedAsset);
+            resolve();
+          });
+        asset.once("error", /**
        *
        * @param {string|Error} cause
        */
-      (cause) => {
-        this.#app.assets.remove(asset);
-        reject(new GameModelLoadError({ url, cause }));
+          (cause) => {
+            this.#app.assets.remove(asset);
+            reject(new GameModelLoadError({
+              url,
+              cause,
+            }));
+          });
+        this.#app.assets.load(asset);
       });
-      this.#app.assets.load(asset);
-    });
   }
 
   /**
@@ -400,6 +409,9 @@ export class GameModelLibrary {
     material.useMetalness = true;
     material.update();
 
-    return { mesh, material };
+    return {
+      mesh,
+      material,
+    };
   }
 }

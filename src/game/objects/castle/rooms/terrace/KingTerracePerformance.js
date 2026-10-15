@@ -26,22 +26,78 @@ const ATTACK_SEQUENCE = SWORD_SEQUENCE.filter(/**
  *
  * @param {number} clip
  */
-(clip) => ATTACKS.has(clip));
+  (clip) => ATTACKS.has(clip));
 const POSITION_BY_CLIP = new Map([
-  [KING_ANIMATION.SWORD_READY, { x: 0, y: 0, z: 0 }],
-  [KING_ANIMATION.SWORD_OVERHEAD_STRIKE, { x: -0.7, y: 0, z: 0.1 }],
-  [KING_ANIMATION.SWORD_SIDE_SLASH, { x: 0.65, y: 0, z: 0.2 }],
-  [KING_ANIMATION.SWORD_THRUST, { x: 1.25, y: 0, z: 0.65 }],
-  [KING_ANIMATION.SWORD_PARRY, { x: 0.55, y: 0, z: 0.1 }],
-  [KING_ANIMATION.SWORD_GUARDED, { x: 0, y: 0, z: 0 }],
-  [KING_ANIMATION.SWORD_LUNGE, { x: -1.25, y: 0, z: 0.7 }],
-  [KING_ANIMATION.SWORD_RAISED, { x: -0.5, y: 0, z: -0.15 }],
-  [KING_ANIMATION.SWORD_LOW_DEFENSE, { x: 0.9, y: 0, z: 0.35 }],
-  [KING_ANIMATION.SWORD_TWO_HANDED_SWING, { x: 1.3, y: 0, z: 0.2 }],
-  [KING_ANIMATION.SWORD_RECOVERY, { x: 0.45, y: 0, z: 0.1 }],
-  [KING_ANIMATION.SWORD_FINISH, { x: 0, y: 0, z: 0 }],
-  [KING_ANIMATION.SWORD_FAILURE_LEFT, { x: -0.95, y: 0, z: 0.15 }],
-  [KING_ANIMATION.SWORD_FAILURE_RIGHT, { x: 0.95, y: 0, z: 0.15 }],
+  [KING_ANIMATION.SWORD_READY, {
+    x: 0,
+    y: 0,
+    z: 0,
+  }],
+  [KING_ANIMATION.SWORD_OVERHEAD_STRIKE, {
+    x: -0.7,
+    y: 0,
+    z: 0.1,
+  }],
+  [KING_ANIMATION.SWORD_SIDE_SLASH, {
+    x: 0.65,
+    y: 0,
+    z: 0.2,
+  }],
+  [KING_ANIMATION.SWORD_THRUST, {
+    x: 1.25,
+    y: 0,
+    z: 0.65,
+  }],
+  [KING_ANIMATION.SWORD_PARRY, {
+    x: 0.55,
+    y: 0,
+    z: 0.1,
+  }],
+  [KING_ANIMATION.SWORD_GUARDED, {
+    x: 0,
+    y: 0,
+    z: 0,
+  }],
+  [KING_ANIMATION.SWORD_LUNGE, {
+    x: -1.25,
+    y: 0,
+    z: 0.7,
+  }],
+  [KING_ANIMATION.SWORD_RAISED, {
+    x: -0.5,
+    y: 0,
+    z: -0.15,
+  }],
+  [KING_ANIMATION.SWORD_LOW_DEFENSE, {
+    x: 0.9,
+    y: 0,
+    z: 0.35,
+  }],
+  [KING_ANIMATION.SWORD_TWO_HANDED_SWING, {
+    x: 1.3,
+    y: 0,
+    z: 0.2,
+  }],
+  [KING_ANIMATION.SWORD_RECOVERY, {
+    x: 0.45,
+    y: 0,
+    z: 0.1,
+  }],
+  [KING_ANIMATION.SWORD_FINISH, {
+    x: 0,
+    y: 0,
+    z: 0,
+  }],
+  [KING_ANIMATION.SWORD_FAILURE_LEFT, {
+    x: -0.95,
+    y: 0,
+    z: 0.15,
+  }],
+  [KING_ANIMATION.SWORD_FAILURE_RIGHT, {
+    x: 0.95,
+    y: 0,
+    z: 0.15,
+  }],
 ]);
 const YAW_BY_CLIP = new Map([
   [KING_ANIMATION.SWORD_READY, -12],
@@ -59,7 +115,11 @@ const YAW_BY_CLIP = new Map([
   [KING_ANIMATION.SWORD_FAILURE_LEFT, -65],
   [KING_ANIMATION.SWORD_FAILURE_RIGHT, 65],
 ]);
-const ZERO_POSITION = { x: 0, y: 0, z: 0 };
+const ZERO_POSITION = {
+  x: 0,
+  y: 0,
+  z: 0,
+};
 
 /**
  * Chooses model-authored clips; it never manufactures joint transforms.
@@ -165,9 +225,17 @@ export class KingTerracePerformance {
       );
       for (let index = 0; index < SWORD_SEQUENCE.length; index += 1) {
         const clip = SWORD_SEQUENCE[index];
-        schedule.push({ clip, repeated: false, failed: false });
+        schedule.push({
+          clip,
+          repeated: false,
+          failed: false,
+        });
         if (index === forcedRepeat || this.#noise(cycle * 31 + index, 3) < 0.16) {
-          schedule.push({ clip, repeated: true, failed: false });
+          schedule.push({
+            clip,
+            repeated: true,
+            failed: false,
+          });
         }
         const attackIndex = ATTACK_SEQUENCE.indexOf(clip);
         if (attackIndex >= 0 && (attackIndex === forcedFailure ||
@@ -175,7 +243,11 @@ export class KingTerracePerformance {
           const failure = this.#noise(cycle * 31 + index, 19) < 0.5
             ? KING_ANIMATION.SWORD_FAILURE_LEFT
             : KING_ANIMATION.SWORD_FAILURE_RIGHT;
-          schedule.push({ clip: failure, repeated: false, failed: true });
+          schedule.push({
+            clip: failure,
+            repeated: false,
+            failed: true,
+          });
         }
       }
     }

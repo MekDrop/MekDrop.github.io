@@ -43,13 +43,22 @@ function royalModel(kind) {
     root.addChild(nodes[index]);
   }
   root.findComponents = (type) => type === "render" ? [{ meshInstances: meshes }] : [];
-  return { root, meshes, gltf };
+  return {
+    root,
+    meshes,
+    gltf,
+  };
 }
 
 for (const kind of ["king", "queen", "princess", "servant", "elder-servant"]) {
   it(`normalizes ${kind} and preserves placement and facial attachments`, () => {
     const { root, meshes } = royalModel(kind);
-    const actor = new TerraceActor({ pc, kind, modelUrl: kind, modelLibrary: { instantiate: () => root } });
+    const actor = new TerraceActor({
+      pc,
+      kind,
+      modelUrl: kind,
+      modelLibrary: { instantiate: () => root },
+    });
     const bodyMeshes = meshes.filter((mesh) => !/sword|tear|handkerchief/i.test(mesh.node.name));
     const bottom = Math.min(...bodyMeshes.map((mesh) => mesh.aabb.center.y - mesh.aabb.halfExtents.y));
     const top = Math.max(...bodyMeshes.map((mesh) => mesh.aabb.center.y + mesh.aabb.halfExtents.y));
@@ -82,7 +91,12 @@ for (const kind of ["king", "queen", "princess", "servant", "elder-servant"]) {
 
 it("keeps the authored sword attached to the animated king hand", () => {
   const { root } = royalModel("king");
-  const actor = new TerraceActor({ pc, kind: "king", modelUrl: "king", modelLibrary: { instantiate: () => root } });
+  const actor = new TerraceActor({
+    pc,
+    kind: "king",
+    modelUrl: "king",
+    modelLibrary: { instantiate: () => root },
+  });
   const sword = root.findByName("King sword");
   const grip = sword.getLocalPosition().clone();
   assert.equal(sword.parent, actor.leftHand);

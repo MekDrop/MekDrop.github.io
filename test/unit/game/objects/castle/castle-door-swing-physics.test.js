@@ -28,10 +28,16 @@ it("queries actual Ammo wall contacts at candidate poses without moving the door
   world.addCollisionObject(wall, 1, -1);
   body.setCollisionShape(shape);
   const entity = new pc.Entity("moving door");
-  entity.rigidbody = { system: { dynamicsWorld: world }, body };
+  entity.rigidbody = {
+    system: { dynamicsWorld: world },
+    body,
+  };
   entity._enabledInHierarchy = true;
   entity.setPosition(0, 1, 0);
-  const swing = new CastleDoorSwingPhysics([{ entity, half: [.5, 1, .025] }]);
+  const swing = new CastleDoorSwingPhysics([{
+    entity,
+    half: [.5, 1, .025],
+  }]);
   try {
     assert.equal(swing.contacts().size, 0, "clear pose has no contacts");
     entity.setPosition(.8, 1, 0);

@@ -146,7 +146,10 @@ export class TerraceDoor {
     if (distance < 0 || distance > 1 || x < 0 || x > 1 || y < 0 || y > 1.25) {
       return null;
     }
-    return { distance, pointerTarget: this };
+    return {
+      distance,
+      pointerTarget: this,
+    };
   }
 
   handlePointerDown() {

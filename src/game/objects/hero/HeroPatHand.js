@@ -3,7 +3,11 @@ import pattingHandModelUrl from "../../models/hero/patting-hand.glb?url";
 const PAT_ANIMATION = "Pat";
 const PAT_PLAYBACK_SPEED = 1;
 const MODEL_SCALE = 0.75;
-const COLLIDER_HALF_EXTENTS = Object.freeze({ x: 0.31, y: 0.05, z: 0.34 });
+const COLLIDER_HALF_EXTENTS = Object.freeze({
+  x: 0.31,
+  y: 0.05,
+  z: 0.34,
+});
 const PAT_CONTACT_TIMES = [
   10 / 24 / PAT_PLAYBACK_SPEED,
   16 / 24 / PAT_PLAYBACK_SPEED,

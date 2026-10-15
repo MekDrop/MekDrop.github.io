@@ -3,8 +3,14 @@ import { test } from 'node:test';
 import { FoldingDaybedDelivery } from '../../../../../src/game/objects/castle/FoldingDaybedDelivery.js';
 
 test('sets the folded daybed down before unfolding and folds before lifting', () => {
-  assert.deepEqual(FoldingDaybedDelivery.pose(0), { placement: 0, unfold: 0 });
-  assert.deepEqual(FoldingDaybedDelivery.pose(1), { placement: 1, unfold: 1 });
+  assert.deepEqual(FoldingDaybedDelivery.pose(0), {
+    placement: 0,
+    unfold: 0,
+  });
+  assert.deepEqual(FoldingDaybedDelivery.pose(1), {
+    placement: 1,
+    unfold: 1,
+  });
   for (let step = 0; step <= 100; step++) {
     const progress = step / 100;
     const pose = FoldingDaybedDelivery.pose(progress);

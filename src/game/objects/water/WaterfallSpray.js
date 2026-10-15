@@ -31,7 +31,10 @@ export class WaterfallSpray {
    */
   add(waterfall, cols, rows, terminal) {
     const directions = {
-      NORTH: [0, -1], EAST: [1, 0], SOUTH: [0, 1], WEST: [-1, 0],
+      NORTH: [0, -1],
+      EAST: [1, 0],
+      SOUTH: [0, 1],
+      WEST: [-1, 0],
     };
     const flow = directions[waterfall.direction];
     const cross = [-flow[1], flow[0]];
@@ -178,7 +181,9 @@ export class WaterfallSpray {
       }
     }
     const texture = new this.#pc.Texture(device, {
-      name: 'Waterfall splash droplet', width: size, height: size,
+      name: 'Waterfall splash droplet',
+      width: size,
+      height: size,
       format: this.#pc.PIXELFORMAT_R8_G8_B8_A8,
       mipmaps: true,
       minFilter: this.#pc.FILTER_LINEAR_MIPMAP_LINEAR,

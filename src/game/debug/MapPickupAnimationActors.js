@@ -34,10 +34,10 @@ function findChildByName(root, name) {
 function heldItemScale(definition) {
   return definition.category === "flower"
     ? {
-        x: definition.horizontalScale,
-        y: definition.verticalScale,
-        z: definition.horizontalScale,
-      }
+      x: definition.horizontalScale,
+      y: definition.verticalScale,
+      z: definition.horizontalScale,
+    }
     : definition.scale;
 }
 
@@ -47,8 +47,14 @@ function heldItemScale(definition) {
  */
 function heldMaterialSettings(category) {
   return category === "flower"
-    ? { bendHeight: 0.14, colorBoost: [1.08, 1.04, 1.08] }
-    : { bendHeight: 0.12, colorBoost: [1, 1, 1] };
+    ? {
+      bendHeight: 0.14,
+      colorBoost: [1.08, 1.04, 1.08],
+    }
+    : {
+      bendHeight: 0.12,
+      colorBoost: [1, 1, 1],
+    };
 }
 
 /**
@@ -143,7 +149,7 @@ export class MapPickupAnimationActors {
        * @param {{animation: string}} options
        * @param {string} options.animation
        */
-      ({ animation }) => animation))],
+        ({ animation }) => animation))],
     );
 
     for (const [index, actor] of definitions.entries()) {
@@ -152,7 +158,11 @@ export class MapPickupAnimationActors {
         animation,
         sequence,
         position,
-        rotation = { x: 0, y: 45, z: 0 },
+        rotation = {
+          x: 0,
+          y: 45,
+          z: 0,
+        },
         scale = HERO_ACTOR_SCALE,
       } = actor;
       const sourceItem = items.find(

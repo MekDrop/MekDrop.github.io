@@ -6,10 +6,16 @@ import * as pc from "playcanvas";
 const hooks = registerHooks({
   resolve(specifier, context, nextResolve) {
     if (specifier.endsWith(".glb?url")) {
-      return { url: `data:text/javascript,export default ${JSON.stringify(specifier)}`, shortCircuit: true };
+      return {
+        url: `data:text/javascript,export default ${JSON.stringify(specifier)}`,
+        shortCircuit: true,
+      };
     }
     if (specifier.endsWith("/AuthoredMeshPhysics.js")) {
-      return { url: 'data:text/javascript,export function addAuthoredMeshPhysics() {}', shortCircuit: true };
+      return {
+        url: 'data:text/javascript,export function addAuthoredMeshPhysics() {}',
+        shortCircuit: true,
+      };
     }
     return nextResolve(specifier, context);
   },
@@ -17,22 +23,42 @@ const hooks = registerHooks({
 const { FoldedLinens } = await import("../../../../../src/game/objects/folded-linens/FoldedLinens.js");
 hooks.deregister();
 
-const app = { _entityIndex: {}, systems: { list: [] } };
+const app = {
+  _entityIndex: {},
+  systems: { list: [] },
+};
 
 function build(overrides = {}) {
   const models = [];
-  const stack = new FoldedLinens({ pc,
-    modelLibrary: { instantiate() {
-      const model = new pc.Entity("model", app);
-      const log = new pc.Entity("folded-linens", app);
-      model.addChild(log);
-      models.push(model);
-      return model;
-    } },
-    definition: { id: "pile", object: "FoldedLinens", position: { x: 0, y: 0, z: 0 },
-      width: 0.9, depth: 0.7, height: 0.35, ...overrides },
+  const stack = new FoldedLinens({
+    pc,
+    modelLibrary: {
+      instantiate() {
+        const model = new pc.Entity("model", app);
+        const log = new pc.Entity("folded-linens", app);
+        model.addChild(log);
+        models.push(model);
+        return model;
+      },
+    },
+    definition: {
+      id: "pile",
+      object: "FoldedLinens",
+      position: {
+        x: 0,
+        y: 0,
+        z: 0,
+      },
+      width: 0.9,
+      depth: 0.7,
+      height: 0.35,
+      ...overrides,
+    },
   });
-  return { stack, models };
+  return {
+    stack,
+    models,
+  };
 }
 function snapshot(model) {
   return model.children.map(log => [Array.from(log.getLocalTransform().data)]);
@@ -49,8 +75,16 @@ test("seed reproduces placement for rendering, collision and reload", () => {
 });
 
 test("all authored bundle corners stay inside the supplied area", () => {
-  for (const dimensions of [{ width: 0.9, depth: 0.7, height: 0.35 },
-    { width: 0.03, depth: 0.04, height: 0.02 }]) {
+  for (const dimensions of [{
+    width: 0.9,
+    depth: 0.7,
+    height: 0.35,
+  },
+  {
+    width: 0.03,
+    depth: 0.04,
+    height: 0.02,
+  }]) {
     const { stack, models } = build(dimensions);
     assert.ok(models[0].children.length > 0);
     for (const log of models[0].children) {
@@ -78,8 +112,18 @@ test("empty, invalid and excessive areas do not allocate linen piles", () => {
 });
 
 test("default area keeps one authored bundle and larger areas add supported courses", () => {
-  for (const dimensions of [{ width: 0.3, depth: 0.22, height: 0.16, count: 1 },
-    { width: 0.7, depth: 0.5, height: 0.48, count: 12 }]) {
+  for (const dimensions of [{
+    width: 0.3,
+    depth: 0.22,
+    height: 0.16,
+    count: 1,
+  },
+  {
+    width: 0.7,
+    depth: 0.5,
+    height: 0.48,
+    count: 12,
+  }]) {
     const { stack, models } = build(dimensions);
     assert.equal(models[0].children.length, dimensions.count);
     for (const bundle of models[0].children) {

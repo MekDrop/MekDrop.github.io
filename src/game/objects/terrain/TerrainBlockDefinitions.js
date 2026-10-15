@@ -36,16 +36,29 @@ export class TerrainBlockDefinitions {
       const object = top.startsWith("grass:") ? "Grass" :
         top === "earth" || top === "islandRock" || top.startsWith("earthSide:") || top.startsWith("surface:") ? "Earth" : null;
       if (!object) {
-        commands.push({ method, args });
+        commands.push({
+          method,
+          args,
+        });
         return;
       }
-      const position = { x: args[2], y: args[3], z: args[4] };
+      const position = {
+        x: args[2],
+        y: args[3],
+        z: args[4],
+      };
       objects.push({
         id: `terrain-block-${objects.length}`,
         object,
-        tile: { col: Math.round(position.x + (mapData.cols - 1) / 2), row: Math.round(position.z + (mapData.rows - 1) / 2) },
+        tile: {
+          col: Math.round(position.x + (mapData.cols - 1) / 2),
+          row: Math.round(position.z + (mapData.rows - 1) / 2),
+        },
         position,
-        geometry: { method, args },
+        geometry: {
+          method,
+          args,
+        },
         generated: true,
       });
     };
@@ -65,11 +78,17 @@ export class TerrainBlockDefinitions {
         /**
          * @param {Array} args
          */
-        addSpan: (...args) => commands.push({ method: "addSpan", args }),
+        addSpan: (...args) => commands.push({
+          method: "addSpan",
+          args,
+        }),
         /**
          * @param {Array} args
          */
-        addOverpass: (...args) => commands.push({ method: "addOverpass", args }),
+        addOverpass: (...args) => commands.push({
+          method: "addOverpass",
+          args,
+        }),
       },
       /**
        * @param {number} type

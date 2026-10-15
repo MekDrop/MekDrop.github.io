@@ -102,7 +102,10 @@ const pc = {
   Vec3: FakeVec3,
 };
 
-function createThrownItem(direction = { x: 3, z: 4 }) {
+function createThrownItem(direction = {
+  x: 3,
+  z: 4,
+}) {
   const material = createMaterial();
   const renders = [{ meshInstances: [{ material }, { material }] }];
   const model = new FakeEntity("inventory model");
@@ -110,14 +113,28 @@ function createThrownItem(direction = { x: 3, z: 4 }) {
   const thrownItem = new ThrownInventoryItem({
     pc,
     modelLibrary: { instantiate: () => model },
-    item: { modelUrl: "item.glb", variant: "red-mushroom" },
-    position: { x: 2, y: 3, z: 5 },
+    item: {
+      modelUrl: "item.glb",
+      variant: "red-mushroom",
+    },
+    position: {
+      x: 2,
+      y: 3,
+      z: 5,
+    },
     direction,
   });
-  return { thrownItem, material: renders[0].meshInstances[0].material, model };
+  return {
+    thrownItem,
+    material: renders[0].meshInstances[0].material,
+    model,
+  };
 }
 
-function createDroppedItem(direction = { x: 3, z: 4 }) {
+function createDroppedItem(direction = {
+  x: 3,
+  z: 4,
+}) {
   const material = createMaterial();
   const renders = [{ meshInstances: [{ material }, { material }] }];
   const model = new FakeEntity("inventory model");
@@ -125,12 +142,23 @@ function createDroppedItem(direction = { x: 3, z: 4 }) {
   const thrownItem = new ThrownInventoryItem({
     pc,
     modelLibrary: { instantiate: () => model },
-    item: { modelUrl: "item.glb", variant: "red-mushroom" },
-    position: { x: 2, y: 3, z: 5 },
+    item: {
+      modelUrl: "item.glb",
+      variant: "red-mushroom",
+    },
+    position: {
+      x: 2,
+      y: 3,
+      z: 5,
+    },
     direction,
     dropped: true,
   });
-  return { thrownItem, material: renders[0].meshInstances[0].material, model };
+  return {
+    thrownItem,
+    material: renders[0].meshInstances[0].material,
+    model,
+  };
 }
 
 describe("thrown inventory item", () => {
@@ -186,7 +214,10 @@ describe("thrown inventory item", () => {
   });
 
   it("keeps fading independent from the physics simulation", () => {
-    const { thrownItem, material } = createThrownItem({ x: 0, z: 0 });
+    const { thrownItem, material } = createThrownItem({
+      x: 0,
+      z: 0,
+    });
 
     thrownItem.advance(1);
     assert.equal(thrownItem.expired, false);

@@ -217,26 +217,26 @@ export class HeroRespawnEffect {
      *
      * @param {import("playcanvas").MeshInstance} meshInstance
      */
-    (meshInstance) => {
-      const originalMaterial = meshInstance.material;
-      let fadeMaterial = this.#fadeMaterials.get(originalMaterial);
-      if (!fadeMaterial) {
-        fadeMaterial = originalMaterial.clone();
-        fadeMaterial.name = `${originalMaterial.name} respawn fade`;
-        fadeMaterial.blendType = this.#pc.BLEND_NORMAL;
-        fadeMaterial.depthWrite = false;
-        fadeMaterial.opacity = 0;
-        fadeMaterial.update();
-        this.#fadeMaterials.set(originalMaterial, fadeMaterial);
-      }
-      this.#solidMeshes.push({
-        meshInstance,
-        originalMaterial,
-        fadeMaterial,
-        castShadow: meshInstance.castShadow,
-        receiveShadow: meshInstance.receiveShadow,
+      (meshInstance) => {
+        const originalMaterial = meshInstance.material;
+        let fadeMaterial = this.#fadeMaterials.get(originalMaterial);
+        if (!fadeMaterial) {
+          fadeMaterial = originalMaterial.clone();
+          fadeMaterial.name = `${originalMaterial.name} respawn fade`;
+          fadeMaterial.blendType = this.#pc.BLEND_NORMAL;
+          fadeMaterial.depthWrite = false;
+          fadeMaterial.opacity = 0;
+          fadeMaterial.update();
+          this.#fadeMaterials.set(originalMaterial, fadeMaterial);
+        }
+        this.#solidMeshes.push({
+          meshInstance,
+          originalMaterial,
+          fadeMaterial,
+          castShadow: meshInstance.castShadow,
+          receiveShadow: meshInstance.receiveShadow,
+        });
       });
-    });
   }
 
   #configureOutlineMeshes() {
@@ -244,13 +244,13 @@ export class HeroRespawnEffect {
      *
      * @param {import("playcanvas").MeshInstance} meshInstance
      */
-    (meshInstance) => {
-      meshInstance.material = this.#contourMaterial;
-      meshInstance.renderStyle = this.#pc.RENDERSTYLE_WIREFRAME;
-      meshInstance.castShadow = false;
-      meshInstance.receiveShadow = false;
-      meshInstance.pick = false;
-    });
+      (meshInstance) => {
+        meshInstance.material = this.#contourMaterial;
+        meshInstance.renderStyle = this.#pc.RENDERSTYLE_WIREFRAME;
+        meshInstance.castShadow = false;
+        meshInstance.receiveShadow = false;
+        meshInstance.pick = false;
+      });
   }
 
   /**

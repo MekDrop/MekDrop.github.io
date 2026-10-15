@@ -2,7 +2,11 @@ import { HERO_ANIMATION } from "../../../../../../src/game/enum/HeroAnimation.js
 import { POINTER_TYPE } from "../../../../../../src/game/enum/PointerType.js";
 
 function pressKey(code, modifiers = {}) {
-  cy.window().trigger("keydown", { code, key: code, ...modifiers });
+  cy.window().trigger("keydown", {
+    code,
+    key: code,
+    ...modifiers,
+  });
 }
 
 function collectItem(expectedCount, animation) {
@@ -73,9 +77,21 @@ function dragInventoryItem(fromSlot, target) {
       pointerType: POINTER_TYPE.MOUSE,
     };
     cy.wrap($canvas)
-      .trigger("pointerdown", { ...pointer, ...start, buttons: 1 })
-      .trigger("pointermove", { ...pointer, ...end, buttons: 1 })
-      .trigger("pointerup", { ...pointer, ...end, buttons: 0 });
+      .trigger("pointerdown", {
+        ...pointer,
+        ...start,
+        buttons: 1,
+      })
+      .trigger("pointermove", {
+        ...pointer,
+        ...end,
+        buttons: 1,
+      })
+      .trigger("pointerup", {
+        ...pointer,
+        ...end,
+        buttons: 0,
+      });
   });
 }
 

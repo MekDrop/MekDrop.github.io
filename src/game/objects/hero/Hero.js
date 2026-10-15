@@ -461,12 +461,19 @@ export class Hero {
    *
     * @type {{x: number, y: number, z: number}}
    */
-  #velocity = { x: 0, y: 0, z: 0 };
+  #velocity = {
+    x: 0,
+    y: 0,
+    z: 0,
+  };
   /**
    *
     * @type {import("src/game/objects/ObjectTypes.js").Point3}
    */
-  #input = { x: 0, y: 0 };
+  #input = {
+    x: 0,
+    y: 0,
+  };
   /**
    *
     * @type {boolean}
@@ -735,7 +742,10 @@ export class Hero {
     pc,
     app,
     mapData,
-    spawnCenter = { x: 0, z: 0 },
+    spawnCenter = {
+      x: 0,
+      z: 0,
+    },
     getViewRotation,
     getViewDirection,
     onPositionChange,
@@ -1123,7 +1133,11 @@ export class Hero {
         burning: {
           modelScale: HERO_MODEL_SCALE,
           lives: () => this.#lives,
-          presentation: () => ({ pc, app, parent: this.#entity }),
+          presentation: () => ({
+            pc,
+            app,
+            parent: this.#entity,
+          }),
           /**
            *
            * @param {number} height
@@ -1208,8 +1222,16 @@ export class Hero {
     this.#clearActionInput();
     this.#angryEscapeBehavior.reset();
     this.#actionBehavior.angryEscape = false;
-    this.#position = { x: position.x, y: position.y + 0.04, z: position.z };
-    this.#velocity = { x: 0, y: 0, z: 0 };
+    this.#position = {
+      x: position.x,
+      y: position.y + 0.04,
+      z: position.z,
+    };
+    this.#velocity = {
+      x: 0,
+      y: 0,
+      z: 0,
+    };
     this.#grounded = false;
     this.#coyoteRemaining = 0;
     this.#jumpsUsed = 0;
@@ -1249,7 +1271,7 @@ export class Hero {
     const group = this.#visualIslandCells?.findIndex(/**
      * @param {Set<string>} cells
      */
-    (cells) => cells.has(key)) ?? -1;
+      (cells) => cells.has(key)) ?? -1;
     return this.#visualIslandOffsets[group] ?? 0;
   }
 
@@ -1304,9 +1326,9 @@ export class Hero {
        *
        * @param {{id: string, variant: string, quantity?: number}} item
        */
-      (item) => ({
-        ...item,
-      })),
+        (item) => ({
+          ...item,
+        })),
     };
   }
 
@@ -1563,7 +1585,10 @@ export class Hero {
    */
   get facingDirection() {
     const yaw = (this.#facingYaw * Math.PI) / 180;
-    return { x: Math.sin(yaw), z: Math.cos(yaw) };
+    return {
+      x: Math.sin(yaw),
+      z: Math.cos(yaw),
+    };
   }
 
   /**
@@ -1582,7 +1607,11 @@ export class Hero {
     };
     return {
       position: this.#physics.cameraPosition(anchor),
-      direction: { x: direction.x, y: 0, z: direction.z },
+      direction: {
+        x: direction.x,
+        y: 0,
+        z: direction.z,
+      },
     };
   }
 
@@ -1622,7 +1651,10 @@ export class Hero {
     return {
       direction:
         speed > 0.001
-          ? { x: this.#velocity.x / speed, z: this.#velocity.z / speed }
+          ? {
+            x: this.#velocity.x / speed,
+            z: this.#velocity.z / speed,
+          }
           : this.facingDirection,
       speed,
       running: (this.#running || this.#angryEscapeBehavior.active)
@@ -1715,7 +1747,10 @@ export class Hero {
   }
 
   set idleLookTarget(target) {
-    this.#idleLookTarget = target ? { x: target.x, z: target.z } : null;
+    this.#idleLookTarget = target ? {
+      x: target.x,
+      z: target.z,
+    } : null;
   }
 
   /**
@@ -1871,7 +1906,11 @@ export class Hero {
     this.#queuedFacingDirection = null;
     this.#movementAnimationHoldRemaining = 0;
     this.#actionBehavior.bellAction = {
-      ...options, elapsed: 0, approachElapsed: 0, pulling: false, struck: false,
+      ...options,
+      elapsed: 0,
+      approachElapsed: 0,
+      pulling: false,
+      struck: false,
       currentPosition: () => this.position,
       supported: () => this.#bellSupported,
       begin: () => {
@@ -2192,7 +2231,8 @@ export class Hero {
     this.#actionBehavior.update(deltaTime);
     const wasClimbing = Boolean(this.#climbMotion);
     this.#climbMotion = this.#ladderClimb.update(deltaTime, {
-      position: this.#position, input: this.#input,
+      position: this.#position,
+      input: this.#input,
       movement: this.#projectInput(this.#input.x, this.#input.y),
       jump: this.#jumpBufferRemaining > 0,
       grounded: this.#grounded,
@@ -2299,11 +2339,17 @@ export class Hero {
       return this.#angryEscapeBehavior.velocity(this.#position, RUN_SPEED);
     }
     if (this.#actionsLocked) {
-      return { x: 0, z: 0 };
+      return {
+        x: 0,
+        z: 0,
+      };
     }
     const projected = this.#projectInput(this.#input.x, this.#input.y);
     if (!projected) {
-      return { x: 0, z: 0 };
+      return {
+        x: 0,
+        z: 0,
+      };
     }
     const speed = this.#buffs.modifyStat(
       HERO_STAT.MOVEMENT_SPEED,
@@ -2542,11 +2588,11 @@ export class Hero {
     const safeLanding = this.#actionBehavior.fallingToDeath
       ? null
       : this.#physics.surfaceAt(
-          this.#position.x,
-          this.#position.z,
-          this.#position.y + STEP_CLEARANCE,
-          this.#position.y - MAX_SAFE_STEP_DOWN - STEP_CLEARANCE,
-        );
+        this.#position.x,
+        this.#position.z,
+        this.#position.y + STEP_CLEARANCE,
+        this.#position.y - MAX_SAFE_STEP_DOWN - STEP_CLEARANCE,
+      );
     if (safeLanding === null && this.#actionBehavior.dodgeAction) {
       this.#actionBehavior.dodgeAction.crossedLedge = true;
     }
@@ -2641,7 +2687,11 @@ export class Hero {
     this.#clearActionInput();
     this.#grounded = false;
     this.#coyoteRemaining = 0;
-    this.#velocity = { x: 0, y: 0, z: 0 };
+    this.#velocity = {
+      x: 0,
+      y: 0,
+      z: 0,
+    };
     this.#position.y = height;
     this.#physics.setScripted(this.#position, this.#velocity);
     this.#restartAnimation = true;
@@ -2687,7 +2737,11 @@ export class Hero {
    * @param {{x: number, y: number, z: number}} bridgeCell
    */
   #beginRiverBridgeExit(bridgeCell) {
-    this.#velocity = { x: 0, y: 0, z: 0 };
+    this.#velocity = {
+      x: 0,
+      y: 0,
+      z: 0,
+    };
     const direction = this.#riverDirectionVector(bridgeCell.direction);
     const bridgeX = bridgeCell.col - (this.#mapData.cols - 1) / 2;
     const bridgeZ = bridgeCell.row - (this.#mapData.rows - 1) / 2;
@@ -2720,7 +2774,11 @@ export class Hero {
   }
 
   #finishRiverBridgeExit() {
-    this.#velocity = { x: 0, y: 0, z: 0 };
+    this.#velocity = {
+      x: 0,
+      y: 0,
+      z: 0,
+    };
     this.#grounded = true;
     this.#coyoteRemaining = COYOTE_TIME;
     this.#jumpsUsed = 0;
@@ -2790,15 +2848,27 @@ export class Hero {
    */
   #riverDirectionVector(direction) {
     if (direction === "NORTH") {
-      return { x: 0, z: -1 };
+      return {
+        x: 0,
+        z: -1,
+      };
     }
     if (direction === "EAST") {
-      return { x: 1, z: 0 };
+      return {
+        x: 1,
+        z: 0,
+      };
     }
     if (direction === "SOUTH") {
-      return { x: 0, z: 1 };
+      return {
+        x: 0,
+        z: 1,
+      };
     }
-    return { x: -1, z: 0 };
+    return {
+      x: -1,
+      z: 0,
+    };
   }
 
   /**
@@ -3084,7 +3154,10 @@ export class Hero {
           row >= castleTop - 1 &&
           row <= castleBottom + 1;
         if (behindCastle) continue;
-        const tile = { col, row };
+        const tile = {
+          col,
+          row,
+        };
         const x = col - (cols - 1) / 2;
         const z = row - (rows - 1) / 2;
         const elevation =
@@ -3115,18 +3188,18 @@ export class Hero {
        * @param {number} closest
        * @param {boolean} candidate
        */
-      (closest, candidate) => {
-        if (!closest) {
-          return candidate;
-        }
-        const candidateDistance =
-          (candidate.col - centerCol) ** 2 +
+        (closest, candidate) => {
+          if (!closest) {
+            return candidate;
+          }
+          const candidateDistance =
+            (candidate.col - centerCol) ** 2 +
           (candidate.row - centerRow) ** 2;
-        const closestDistance =
-          (closest.col - centerCol) ** 2 +
+          const closestDistance =
+            (closest.col - centerCol) ** 2 +
           (closest.row - centerRow) ** 2;
-        return candidateDistance < closestDistance ? candidate : closest;
-      }, null);
+          return candidateDistance < closestDistance ? candidate : closest;
+        }, null);
       return {
         x: tile.col - (cols - 1) / 2,
         y: this.#mapData.heightmap[tile.row][tile.col] + GRASS_SURFACE_LIFT,
@@ -3134,7 +3207,11 @@ export class Hero {
       };
     }
 
-    return { x: 0, y: 1, z: 0 };
+    return {
+      x: 0,
+      y: 1,
+      z: 0,
+    };
   }
 
   /**
@@ -3233,7 +3310,11 @@ export class Hero {
       HERO_MODEL_SCALE,
     );
     this.#position = { ...this.#spawn };
-    this.#velocity = { x: 0, y: 0, z: 0 };
+    this.#velocity = {
+      x: 0,
+      y: 0,
+      z: 0,
+    };
     this.#grounded = true;
     this.#coyoteRemaining = COYOTE_TIME;
     this.#jumpBufferRemaining = 0;
@@ -3251,7 +3332,11 @@ export class Hero {
   }
 
   #beginGameOver() {
-    this.#velocity = { x: 0, y: 0, z: 0 };
+    this.#velocity = {
+      x: 0,
+      y: 0,
+      z: 0,
+    };
     this.#physics.setScripted(this.#position, this.#velocity);
     this.#syncState();
   }
@@ -3307,7 +3392,10 @@ export class Hero {
         : this.#hasMovementInput
           ? this.#grounded
             ? this.#desiredVelocity()
-            : { x: this.#velocity.x, z: this.#velocity.z }
+            : {
+              x: this.#velocity.x,
+              z: this.#velocity.z,
+            }
           : this.facingDirection;
     const facingVelocity = this.#actionBehavior.facingFor(defaultFacing);
     const previousFacingYaw = this.#facingYaw;
@@ -3322,10 +3410,10 @@ export class Hero {
       this.#facingYaw = this.#actionBehavior.snapsFacing
         ? targetYaw
         : this.#lerpAngle(
-            this.#facingYaw,
-            targetYaw,
-            Math.min(1, deltaTime * 14),
-          );
+          this.#facingYaw,
+          targetYaw,
+          Math.min(1, deltaTime * 14),
+        );
       if (queuedFacingDirection) {
         const yawDelta = Math.abs(
           ((targetYaw - this.#facingYaw + 540) % 360) - 180,
@@ -3622,8 +3710,8 @@ export class Hero {
          *
          * @param {import("playcanvas").Entity} entity
          */
-        (entity) =>
-          HAIR_ENTITY_NAME.test(entity.name),
+          (entity) =>
+            HAIR_ENTITY_NAME.test(entity.name),
         ) ?? [],
       modelScale: HERO_MODEL_SCALE,
     });
@@ -3639,21 +3727,21 @@ export class Hero {
        *
        * @param {import("playcanvas").Entity} entity
        */
-      (entity) => entity?.render?.meshInstances ?? [])
+        (entity) => entity?.render?.meshInstances ?? [])
       .map(/**
        *
        * @param {import("playcanvas").Mesh} mesh
        */
-      (mesh) => mesh.morphInstance)
+        (mesh) => mesh.morphInstance)
       .filter(/**
        *
        * @param {import("playcanvas").MorphInstance} morph
        */
-      (morph) => morph?.morph.targets.some(/**
+        (morph) => morph?.morph.targets.some(/**
        *
        * @param {{x: number, y: number, z: number}} target
        */
-      (target) => target.name === "HappyPat"));
+          (target) => target.name === "HappyPat"));
     this.#leftArmEntity = this.#findModelEntity("Left arm");
     this.#rightArmEntity = this.#findModelEntity("Right arm");
     this.#toolAttachmentEntity = this.#findModelEntity("Right arm");
@@ -3711,7 +3799,7 @@ export class Hero {
          *
          * @param {string} name
          */
-        (name) => this.#findModelEntity(name)),
+          (name) => this.#findModelEntity(name)),
       },
       right: {
         side: "right",
@@ -3726,7 +3814,7 @@ export class Hero {
          *
          * @param {string} name
          */
-        (name) => this.#findModelEntity(name)),
+          (name) => this.#findModelEntity(name)),
       },
     });
     this.#respawnEffect = new HeroRespawnEffect({
@@ -3777,9 +3865,9 @@ export class Hero {
     const direction =
       targetDistance > 0.001
         ? {
-            x: (targetPosition.x - this.#position.x) / targetDistance,
-            z: (targetPosition.z - this.#position.z) / targetDistance,
-          }
+          x: (targetPosition.x - this.#position.x) / targetDistance,
+          z: (targetPosition.z - this.#position.z) / targetDistance,
+        }
         : this.facingDirection;
     return {
       animationSpeed: 0.8,
@@ -3813,7 +3901,10 @@ export class Hero {
     if (!direction) {
       return false;
     }
-    this.#actionBehavior.repelAction = { ...direction, elapsed: 0 };
+    this.#actionBehavior.repelAction = {
+      ...direction,
+      elapsed: 0,
+    };
     direction.onRepelled?.();
     return true;
   }

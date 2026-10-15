@@ -109,7 +109,7 @@ export class RiverStoneField {
        *
        * @param {string} modelUrl
        */
-      (modelUrl) => [modelUrl, []]),
+        (modelUrl) => [modelUrl, []]),
     );
     const placements = new RiverStonePlacementPlan(stoneModelHeights).create(
       rivers,

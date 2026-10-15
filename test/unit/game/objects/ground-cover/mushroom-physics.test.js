@@ -37,7 +37,11 @@ class FakeEntity {
   }
 
   setLocalPosition(x, y, z) {
-    this.position = { x, y, z };
+    this.position = {
+      x,
+      y,
+      z,
+    };
   }
 
   setPosition(x, y, z) {
@@ -68,7 +72,11 @@ function createSubject() {
       systems: {
         rigidbody: {
           raycastAll(start, end, options) {
-            raycasts.push({ start, end, options });
+            raycasts.push({
+              start,
+              end,
+              options,
+            });
             return raycastHits;
           },
         },
@@ -87,7 +95,11 @@ function createSubject() {
 function createMushroom(physics, onDestroy = () => {}) {
   return physics.addMushroom({
     variant: "red-mushroom",
-    position: { x: 2, y: 3, z: 4 },
+    position: {
+      x: 2,
+      y: 3,
+      z: 4,
+    },
     interactionRadius: 0.22,
     scale: 0.82,
     onDestroy,
@@ -152,12 +164,32 @@ describe("mushroom physics", () => {
     setRaycastHits([{ entity: mushroom.entity }]);
 
     physics.updateHeroPosition(
-      { x: 1, y: 2, z: 3 },
-      { direction: { x: 0, z: 1 }, speed: 0.5 },
+      {
+        x: 1,
+        y: 2,
+        z: 3,
+      },
+      {
+        direction: {
+          x: 0,
+          z: 1,
+        },
+        speed: 0.5,
+      },
     );
     physics.updateHeroPosition(
-      { x: 1, y: 2, z: 3 },
-      { direction: { x: 0, z: 1 }, speed: 0.5 },
+      {
+        x: 1,
+        y: 2,
+        z: 3,
+      },
+      {
+        direction: {
+          x: 0,
+          z: 1,
+        },
+        speed: 0.5,
+      },
     );
 
     assert.deepEqual(raycasts[0].start, new FakeVec3(0.87, 2.2, 3.1));
@@ -166,7 +198,10 @@ describe("mushroom physics", () => {
     assert.equal(raycasts[0].options.filterCallback(mushroom.entity), true);
     assert.equal(mushroom.entity.enabled, false);
     assert.equal(destructionCount, 1);
-    assert.deepEqual(impact, { directionX: 0, directionZ: 1 });
+    assert.deepEqual(impact, {
+      directionX: 0,
+      directionZ: 1,
+    });
   });
 
   it("requires only a gentle walking speed to crush a mushroom", () => {
@@ -178,8 +213,18 @@ describe("mushroom physics", () => {
     setRaycastHits([{ entity: mushroom.entity }]);
 
     physics.updateHeroPosition(
-      { x: 2, y: 3, z: 4 },
-      { direction: { x: 1, z: 0 }, speed: 0.2 },
+      {
+        x: 2,
+        y: 3,
+        z: 4,
+      },
+      {
+        direction: {
+          x: 1,
+          z: 0,
+        },
+        speed: 0.2,
+      },
     );
 
     assert.equal(raycasts.length, 0);
@@ -192,8 +237,18 @@ describe("mushroom physics", () => {
     assert.equal(destructionCount, 0);
 
     physics.updateHeroPosition(
-      { x: 2, y: 3, z: 4 },
-      { direction: { x: 1, z: 0 }, speed: 0.5 },
+      {
+        x: 2,
+        y: 3,
+        z: 4,
+      },
+      {
+        direction: {
+          x: 1,
+          z: 0,
+        },
+        speed: 0.5,
+      },
     );
 
     assert.equal(raycasts.length, 2);
@@ -210,7 +265,11 @@ describe("mushroom physics", () => {
     setRaycastHits([{ entity: mushroom.entity }]);
 
     physics.hide(mushroom);
-    physics.updateHeroPosition({ x: 2, y: 3, z: 4 }, { speed: 0.5 });
+    physics.updateHeroPosition({
+      x: 2,
+      y: 3,
+      z: 4,
+    }, { speed: 0.5 });
 
     assert.equal(mushroom.entity.enabled, false);
     assert.equal(destroyed, false);

@@ -18,17 +18,31 @@ class FakeEntity {
 function surfaceFor(direction, kind = 'WATER') {
   let surface;
   const builder = new RiverMeshBuilder({
-    pc: { Mesh: FakeMesh, MeshInstance: class { setParameter() {} }, Entity: FakeEntity },
+    pc: {
+      Mesh: FakeMesh,
+      MeshInstance: class { setParameter() {} },
+      Entity: FakeEntity,
+    },
     device: null,
     entity: { addChild() {} },
     riverKind: kind,
     mapData: {
-      cols: 3, rows: 3,
+      cols: 3,
+      rows: 3,
       riverData: [{
         kind,
-        cells: [{ col: 1, row: 1, direction, elevation: 2 }],
+        cells: [{
+          col: 1,
+          row: 1,
+          direction,
+          elevation: 2,
+        }],
         cascades: [],
-        waterfall: { col: 1, row: 1, direction },
+        waterfall: {
+          col: 1,
+          row: 1,
+          direction,
+        },
       }],
     },
   });
@@ -99,22 +113,63 @@ it('keeps the waterfall on the upstream animation clock when the landing slows',
     addComponent(_type, options) { this.meshInstances = options.meshInstances; }
   }
   const builder = new RiverMeshBuilder({
-    pc: { Mesh, MeshInstance, Entity }, device: null,
-    entity: { addChild: child => children.push(child) }, riverKind: 'WATER',
-    mapData: { cols: 3, rows: 3, riverData: [{
-      id: 'river', kind: 'WATER',
-      cells: [
-        { col: 1, row: 1, direction: 'WEST', elevation: 2 },
-        { col: 0, row: 1, direction: 'WEST', elevation: 1, flowScale: 1 / 3 },
-      ],
-      cascades: [{ from: { col: 1, row: 1 }, to: { col: 0, row: 1 }, direction: 'WEST', topElevation: 2, bottomElevation: 1 }],
-      waterfall: { col: 0, row: 1, direction: 'WEST' },
-    }] },
+    pc: {
+      Mesh,
+      MeshInstance,
+      Entity,
+    },
+    device: null,
+    entity: { addChild: child => children.push(child) },
+    riverKind: 'WATER',
+    mapData: {
+      cols: 3,
+      rows: 3,
+      riverData: [{
+        id: 'river',
+        kind: 'WATER',
+        cells: [
+          {
+            col: 1,
+            row: 1,
+            direction: 'WEST',
+            elevation: 2,
+          },
+          {
+            col: 0,
+            row: 1,
+            direction: 'WEST',
+            elevation: 1,
+            flowScale: 1 / 3,
+          },
+        ],
+        cascades: [{
+          from: {
+            col: 1,
+            row: 1,
+          },
+          to: {
+            col: 0,
+            row: 1,
+          },
+          direction: 'WEST',
+          topElevation: 2,
+          bottomElevation: 1,
+        }],
+        waterfall: {
+          col: 0,
+          row: 1,
+          direction: 'WEST',
+        },
+      }],
+    },
   });
   builder.build({
-    createSourceProfile: () => null, isSpringSource: () => false,
-    surfaceCorners: () => null, createMaterial: () => null,
-    appendCascade: ({ group }) => { cascadeGroup = group; }, appendTerminal() {},
+    createSourceProfile: () => null,
+    isSpringSource: () => false,
+    surfaceCorners: () => null,
+    createMaterial: () => null,
+    appendCascade: ({ group }) => { cascadeGroup = group; },
+    appendTerminal() {},
   });
   const instances = children.flatMap(child => child.meshInstances);
   const waterfall = instances.find(instance => instance.mesh.positions === cascadeGroup.positions);

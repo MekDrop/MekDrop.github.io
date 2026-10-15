@@ -74,14 +74,14 @@ export class HeroFootPlacement {
        *
        * @param {import("src/game/objects/ObjectTypes.js").HeroFootRig} foot
        */
-      (foot) => [
-        foot.side,
-        {
-          appliedLift: foot.appliedLift,
-          minimumClearance: foot.minimumClearance,
-          tiltDegrees: foot.tiltDegrees,
-        },
-      ]),
+        (foot) => [
+          foot.side,
+          {
+            appliedLift: foot.appliedLift,
+            minimumClearance: foot.minimumClearance,
+            tiltDegrees: foot.tiltDegrees,
+          },
+        ]),
     );
   }
 
@@ -97,30 +97,32 @@ export class HeroFootPlacement {
      *
      * @param {import("src/game/objects/ObjectTypes.js").HeroFootRig} foot
      */
-    (foot) => {
-      const bounds = foot.sole.render?.meshInstances?.[0]?.mesh?.aabb;
-      if (!bounds || foot.minimumClearance === null) {
-        return [];
-      }
-      const transform = foot.sole.getWorldTransform();
-      const center = transform.transformPoint(new this.#pc.Vec3(
-        bounds.center.x, bounds.center.y - bounds.halfExtents.y, bounds.center.z,
-      ));
-      const across = transform.transformVector(new this.#pc.Vec3(bounds.halfExtents.x, 0, 0));
-      const along = transform.transformVector(new this.#pc.Vec3(0, 0, bounds.halfExtents.z));
-      const length = Math.hypot(along.x, along.z);
-      const pressure = Math.max(0, 1 - Math.max(0, foot.minimumClearance - CONTACT_EPSILON) / 0.075);
-      return [{
-        id: `hero-${foot.side}`,
-        side: foot.side,
-        x: center.x, y: center.y, z: center.z,
-        directionX: along.x / Math.max(length, 0.001),
-        directionZ: along.z / Math.max(length, 0.001),
-        halfWidth: Math.hypot(across.x, across.z) + 0.025,
-        halfLength: length + 0.035,
-        pressure,
-      }];
-    });
+      (foot) => {
+        const bounds = foot.sole.render?.meshInstances?.[0]?.mesh?.aabb;
+        if (!bounds || foot.minimumClearance === null) {
+          return [];
+        }
+        const transform = foot.sole.getWorldTransform();
+        const center = transform.transformPoint(new this.#pc.Vec3(
+          bounds.center.x, bounds.center.y - bounds.halfExtents.y, bounds.center.z,
+        ));
+        const across = transform.transformVector(new this.#pc.Vec3(bounds.halfExtents.x, 0, 0));
+        const along = transform.transformVector(new this.#pc.Vec3(0, 0, bounds.halfExtents.z));
+        const length = Math.hypot(along.x, along.z);
+        const pressure = Math.max(0, 1 - Math.max(0, foot.minimumClearance - CONTACT_EPSILON) / 0.075);
+        return [{
+          id: `hero-${foot.side}`,
+          side: foot.side,
+          x: center.x,
+          y: center.y,
+          z: center.z,
+          directionX: along.x / Math.max(length, 0.001),
+          directionZ: along.z / Math.max(length, 0.001),
+          halfWidth: Math.hypot(across.x, across.z) + 0.025,
+          halfLength: length + 0.035,
+          pressure,
+        }];
+      });
   }
 
   /**
@@ -186,17 +188,17 @@ export class HeroFootPlacement {
       );
       foot.minimumClearance = contacts.length
         ? Math.min(
-            ...contacts.map(
-              /**
+          ...contacts.map(
+            /**
                *
                * @param {{solePoint: {x: number, y: number, z: number}, surface: import("src/game/objects/ObjectTypes.js").SurfaceSample}} options
                * @param {{x: number, y: number, z: number}} options.solePoint
                * @param {import("src/game/objects/ObjectTypes.js").SurfaceSample} options.surface
                */
-              ({ solePoint, surface }) =>
-                solePoint.y + foot.appliedLift - surface.height,
-            ),
-          )
+            ({ solePoint, surface }) =>
+              solePoint.y + foot.appliedLift - surface.height,
+          ),
+        )
         : null;
     }
   }
@@ -395,19 +397,22 @@ export class HeroFootPlacement {
      * @param {number} options."1"
      * @param {number} options."2"
      */
-    ([x, y, z]) => {
-      const solePoint = transform.transformPoint(new this.#pc.Vec3(x, y, z));
-      const surface = this.#surfaceAt(
-        solePoint.x,
-        solePoint.z,
-        maximumSurfaceHeight,
-      );
-      return surface &&
+      ([x, y, z]) => {
+        const solePoint = transform.transformPoint(new this.#pc.Vec3(x, y, z));
+        const surface = this.#surfaceAt(
+          solePoint.x,
+          solePoint.z,
+          maximumSurfaceHeight,
+        );
+        return surface &&
         Number.isFinite(surface.height) &&
         surface.normal &&
         surface.point
-        ? [{ solePoint, surface }]
-        : [];
-    });
+          ? [{
+            solePoint,
+            surface,
+          }]
+          : [];
+      });
   }
 }

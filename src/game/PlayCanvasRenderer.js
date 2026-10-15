@@ -68,7 +68,11 @@ const TEXTURE_URLS = {
 };
 
 const MATERIAL_DEFINITIONS = {
-  water: { color: 0xd8f2ff, texture: "water", gloss: 0.22 },
+  water: {
+    color: 0xd8f2ff,
+    texture: "water",
+    gloss: 0.22,
+  },
 };
 
 const SIDE_VARIANT_DEFINITIONS = {
@@ -80,12 +84,36 @@ const SIDE_VARIANT_DEFINITIONS = {
 };
 
 const SIDE_VARIANT_TRANSFORMS = [
-  { startU: 0, scaleU: 0.72, flipU: false },
-  { startU: 0.14, scaleU: 0.72, flipU: true },
-  { startU: 0.28, scaleU: 0.72, flipU: false },
-  { startU: 0, scaleU: 0.72, flipU: true },
-  { startU: 0.14, scaleU: 0.72, flipU: false },
-  { startU: 0.28, scaleU: 0.72, flipU: true },
+  {
+    startU: 0,
+    scaleU: 0.72,
+    flipU: false,
+  },
+  {
+    startU: 0.14,
+    scaleU: 0.72,
+    flipU: true,
+  },
+  {
+    startU: 0.28,
+    scaleU: 0.72,
+    flipU: false,
+  },
+  {
+    startU: 0,
+    scaleU: 0.72,
+    flipU: true,
+  },
+  {
+    startU: 0.14,
+    scaleU: 0.72,
+    flipU: false,
+  },
+  {
+    startU: 0.28,
+    scaleU: 0.72,
+    flipU: true,
+  },
 ];
 const CAMERA_PITCH = Math.atan(1 / Math.sqrt(2));
 const CAMERA_DISTANCE = 80;
@@ -554,8 +582,14 @@ export class PlayCanvasRenderer {
     this.#cloudLayer = new pc.Layer({ name: "Cloud backdrop" });
     this.#app.scene.layers.insert(this.#cloudLayer, 0);
     this.#app.on("update", this.#updateFrame);
-    this.#modelLibrary = new GameModelLibrary({ pc, app: this.#app });
-    this.#huds = new HudCollection({ pc, app: this.#app });
+    this.#modelLibrary = new GameModelLibrary({
+      pc,
+      app: this.#app,
+    });
+    this.#huds = new HudCollection({
+      pc,
+      app: this.#app,
+    });
     this.addHud(HeroLifeHud);
     this.addHud(CoinHud);
     this.addHud(GameStatusHud);
@@ -804,7 +838,7 @@ export class PlayCanvasRenderer {
     return this.#mapData?.objects.filter(/**
      * @param {import("./objects/ObjectTypes.js").MapObjectDefinition} definition
      */
-    (definition) => !definition.generated) ?? [];
+      (definition) => !definition.generated) ?? [];
   }
 
   /**
@@ -818,7 +852,7 @@ export class PlayCanvasRenderer {
        *
        * @param {import("src/game/GameContracts.js").CastleLayout} castle
        */
-      (castle) => castle.royalActivityState);
+        (castle) => castle.royalActivityState);
   }
 
   /**
@@ -874,7 +908,11 @@ export class PlayCanvasRenderer {
   get wind() {
     return (
       this.#cloudField?.wind ?? {
-        direction: { x: 0, y: 0, z: 0 },
+        direction: {
+          x: 0,
+          y: 0,
+          z: 0,
+        },
         speed: 0,
       }
     );
@@ -1012,7 +1050,10 @@ export class PlayCanvasRenderer {
   setInteractionPrompt(target, visible = true) {
     const prompt =
       visible && target?.labelKey
-        ? { ...target, label: this.t(target.labelKey) }
+        ? {
+          ...target,
+          label: this.t(target.labelKey),
+        }
         : null;
     this.getHud(GameStatusHud)?.setInteraction(prompt);
   }
@@ -1261,7 +1302,10 @@ export class PlayCanvasRenderer {
       this.#updateCamera();
       return;
     }
-    const panOrigin = { x: this.#camera.panX, z: this.#camera.panZ };
+    const panOrigin = {
+      x: this.#camera.panX,
+      z: this.#camera.panZ,
+    };
     const offset = this.#screenDeltaToGround(deltaX, deltaY, this.#camera.zoom);
     this.#camera.panX -= offset.x;
     this.#camera.panZ -= offset.z;
@@ -1459,9 +1503,9 @@ export class PlayCanvasRenderer {
        * @param {Array} options."0"
        * @param {Array} options."1"
        */
-      async ([name, url]) => {
-        textures.set(name, await this.#loadTexture(name, url));
-      }),
+        async ([name, url]) => {
+          textures.set(name, await this.#loadTexture(name, url));
+        }),
     );
     for (const [name, definition] of Object.entries(MATERIAL_DEFINITIONS)) {
       this.#materials.set(
@@ -1476,21 +1520,21 @@ export class PlayCanvasRenderer {
        * @param {pc.Mat4} transform
        * @param {number} index
        */
-      (transform, index) => {
-        const variantName = `${name}-${index}`;
-        this.#materials.set(
-          variantName,
-          this.#createMaterial(
+        (transform, index) => {
+          const variantName = `${name}-${index}`;
+          this.#materials.set(
             variantName,
-            {
-              ...definition,
-              ...transform,
-              color: definition.colors[index],
-            },
-            textures,
-          ),
-        );
-      });
+            this.#createMaterial(
+              variantName,
+              {
+                ...definition,
+                ...transform,
+                color: definition.colors[index],
+              },
+              textures,
+            ),
+          );
+        });
     }
 
     MapObjectFactory.registerMaterials(
@@ -1580,34 +1624,34 @@ export class PlayCanvasRenderer {
      * @param {(value?: (value?: void) => void) => void} resolve
      * @param {(reason?: Error) => void} reject
      */
-    (resolve, reject) => {
-      asset.ready(/**
+      (resolve, reject) => {
+        asset.ready(/**
        *
        * @param {pc.Asset} loadedAsset
        */
-      (loadedAsset) => {
-        const texture = loadedAsset.resource;
-        texture.mipmaps = this.#graphicsSettingsStore.mipmaps;
-        texture.minFilter = texture.mipmaps
-          ? pc.FILTER_LINEAR_MIPMAP_LINEAR
-          : pc.FILTER_LINEAR;
-        texture.magFilter =
-          name === "castleStone" ? pc.FILTER_NEAREST : pc.FILTER_LINEAR;
-        texture.anisotropy = this.#graphicsSettingsStore.anisotropy;
-        texture.addressU = pc.ADDRESS_CLAMP_TO_EDGE;
-        texture.addressV =
-          name === "castleDoor" ? pc.ADDRESS_REPEAT : pc.ADDRESS_CLAMP_TO_EDGE;
-        MapObjectFactory.configureTexture(
-          pc,
-          name,
-          texture,
-          this.#graphicsSettingsStore.mipmaps,
-        );
-        resolve(loadedAsset.resource);
+          (loadedAsset) => {
+            const texture = loadedAsset.resource;
+            texture.mipmaps = this.#graphicsSettingsStore.mipmaps;
+            texture.minFilter = texture.mipmaps
+              ? pc.FILTER_LINEAR_MIPMAP_LINEAR
+              : pc.FILTER_LINEAR;
+            texture.magFilter =
+              name === "castleStone" ? pc.FILTER_NEAREST : pc.FILTER_LINEAR;
+            texture.anisotropy = this.#graphicsSettingsStore.anisotropy;
+            texture.addressU = pc.ADDRESS_CLAMP_TO_EDGE;
+            texture.addressV =
+              name === "castleDoor" ? pc.ADDRESS_REPEAT : pc.ADDRESS_CLAMP_TO_EDGE;
+            MapObjectFactory.configureTexture(
+              pc,
+              name,
+              texture,
+              this.#graphicsSettingsStore.mipmaps,
+            );
+            resolve(loadedAsset.resource);
+          });
+        asset.once("error", reject);
+        this.#app.assets.load(asset);
       });
-      asset.once("error", reject);
-      this.#app.assets.load(asset);
-    });
   }
 
   #rebuildScene() {
@@ -1759,47 +1803,50 @@ export class PlayCanvasRenderer {
        * @param {import("src/game/GameContracts.js").CastleLayout} castle
        * @param {number} index
        */
-      (castle, index) => ({
-        name: `castle-${index}`,
-        protectAtPanLimit: true,
-        centerReachableAtEveryZoom: true,
-        root: castle.entity,
-      })),
+        (castle, index) => ({
+          name: `castle-${index}`,
+          protectAtPanLimit: true,
+          centerReachableAtEveryZoom: true,
+          root: castle.entity,
+        })),
       ...gateways.map(/**
        *
        * @param {import("src/game/GameContracts.js").GameObjectContract} gateway
        * @param {number} index
        */
-      (gateway, index) => ({
-        name: `gateway-${index}`,
-        protectAtPanLimit: true,
-        root: gateway.entity,
-      })),
+        (gateway, index) => ({
+          name: `gateway-${index}`,
+          protectAtPanLimit: true,
+          root: gateway.entity,
+        })),
       ...this.#sceneObjects
         .getAll(SCENE_OBJECT_TYPE.MAP_OBJECT)
         .flatMap(/**
          *
          * @param {import("src/game/GameContracts.js").GameObjectContract} object
          */
-        (object) =>
-          (object.visualRoots ?? []).map(/**
+          (object) =>
+            (object.visualRoots ?? []).map(/**
            *
            * @param {pc.Entity} root
            */
-          (root) => ({
-            name: `map-object-${root.name}`,
-            protectAtPanLimit: true,
-            centerReachableAtEveryZoom: true,
-            root,
-          })),
+              (root) => ({
+                name: `map-object-${root.name}`,
+                protectAtPanLimit: true,
+                centerReachableAtEveryZoom: true,
+                root,
+              })),
         ),
-      { name: "ground-cover", root: this.#groundCover?.entity },
+      {
+        name: "ground-cover",
+        root: this.#groundCover?.entity,
+      },
     ].filter(/**
      *
      * @param {{root: pc.Entity}} options
      * @param {pc.Entity} options.root
      */
-    ({ root }) => root);
+      ({ root }) => root);
     for (const {
       name,
       protectAtPanLimit,
@@ -1825,7 +1872,7 @@ export class PlayCanvasRenderer {
      * @param {{object: import("src/game/GameContracts.js").GameObjectContract}} options
      * @param {import("src/game/GameContracts.js").GameObjectContract} options.object
      */
-    ({ object }) => object === Hero.name)) {
+      ({ object }) => object === Hero.name)) {
       return;
     }
     /**
@@ -1844,7 +1891,10 @@ export class PlayCanvasRenderer {
       getViewRotation: () => this.#camera.rotation,
       getViewDirection: () => {
         const state = this.#camera.firstPersonState;
-        return state ? { ...state.direction, right: state.right } : null;
+        return state ? {
+          ...state.direction,
+          right: state.right,
+        } : null;
       },
       onPositionChange: this.#handleHeroPositionChange,
       onFacingChange: this.#handleHeroFacingChange,
@@ -1950,7 +2000,7 @@ export class PlayCanvasRenderer {
        * @param {{findInteraction: (options: {origin: pc.Vec3, direction: pc.Vec3}) => import("src/game/GameContracts.js").InteractionDescription|null}} options
        * @param {(options: {origin: pc.Vec3, direction: pc.Vec3}) => import("src/game/GameContracts.js").InteractionDescription|null} options.findInteraction
        */
-      ({ findInteraction }) => findInteraction),
+        ({ findInteraction }) => findInteraction),
     ];
   }
 
@@ -1999,8 +2049,8 @@ export class PlayCanvasRenderer {
      *
      * @param {import("src/game/GameContracts.js").CastleLayout} castle
      */
-    (castle) =>
-      castle.isRoyalActivityTriggerAt(heroPosition),
+      (castle) =>
+        castle.isRoyalActivityTriggerAt(heroPosition),
     );
     if (hero) {
       hero.boostingCountryFinances = Boolean(activeCastle);
@@ -2082,7 +2132,11 @@ export class PlayCanvasRenderer {
     }
     const count = this.#mapData.islandConnectorData.islands?.length ?? 2;
     const offsets = this.#camera?.firstPersonEnabled
-      ? { near: 0, far: 0, groups: new Array(count).fill(0) }
+      ? {
+        near: 0,
+        far: 0,
+        groups: new Array(count).fill(0),
+      }
       : this.#islandConnectorMotion.update(deltaTime, count);
     this.#terrainRenderer?.setIslandOffsets(offsets.near, offsets.far, offsets.groups);
     this.#bridgeRailingKit?.setIslandOffsets(offsets.near, offsets.far, offsets.groups);
@@ -2306,10 +2360,26 @@ export class PlayCanvasRenderer {
   #handleHeroPositionChange = ({ x, y, z }) => {
     const hero = this.#sceneObjects.getOne(SCENE_OBJECT_TYPE.HERO);
     this.#camera.orbitPivot = null;
-    this.#updateCastlesForHero({ x, y, z });
-    this.#groundCover?.applyHeroInteraction({ x, y, z }, hero?.movementState);
-    this.#buriedTreasure?.applyHeroPosition({ x, y, z });
-    this.#updateInteractionTarget({ x, y, z });
+    this.#updateCastlesForHero({
+      x,
+      y,
+      z,
+    });
+    this.#groundCover?.applyHeroInteraction({
+      x,
+      y,
+      z,
+    }, hero?.movementState);
+    this.#buriedTreasure?.applyHeroPosition({
+      x,
+      y,
+      z,
+    });
+    this.#updateInteractionTarget({
+      x,
+      y,
+      z,
+    });
     if (this.#cameraLocked) {
       return;
     }
@@ -2724,7 +2794,10 @@ export class PlayCanvasRenderer {
    * @param {number} heightClientY
    */
   #inventoryDropPlacement(clientX, clientY, heightClientX, heightClientY) {
-    const ray = this.#pointerRay({ clientX, clientY });
+    const ray = this.#pointerRay({
+      clientX,
+      clientY,
+    });
     const heightRay = this.#pointerRay({
       clientX: heightClientX ?? clientX,
       clientY: heightClientY ?? clientY,
@@ -2776,7 +2849,7 @@ export class PlayCanvasRenderer {
      *
      * @param {pc.PickerSelection} hit
      */
-    (hit) => hit.normal?.y >= 0.35) ?? null;
+      (hit) => hit.normal?.y >= 0.35) ?? null;
   }
 
   /**

@@ -88,7 +88,10 @@ export class HeroPatGesture {
     }
     this.#consume(event);
     this.#pointerId = event.pointerId;
-    this.#previous = { x: event.clientX, y: event.clientY };
+    this.#previous = {
+      x: event.clientX,
+      y: event.clientY,
+    };
     this.#canvas.setPointerCapture(event.pointerId);
     this.#pat();
   };
@@ -122,7 +125,10 @@ export class HeroPatGesture {
     } else {
       this.#distance = 0;
     }
-    this.#previous = { x: event.clientX, y: event.clientY };
+    this.#previous = {
+      x: event.clientX,
+      y: event.clientY,
+    };
   };
 
   /**

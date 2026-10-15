@@ -3,10 +3,25 @@ import { test } from "node:test";
 import { WarMapDrawing } from "../../../../../src/game/objects/castle-props/WarMapDrawing.js";
 
 test("parchment reflects current roads, rivers and castle tiles without changing the world", () => {
-  const map = { cols: 3, rows: 3, grid: [[0, 1, 2], [1, 1, 1], [1, 1, 1]],
+  const map = {
+    cols: 3,
+    rows: 3,
+    grid: [[0, 1, 2], [1, 1, 1], [1, 1, 1]],
     heightmap: [[0, 0, 0], [0, 4, 0], [0, 0, 0]],
-    riverData: [{ cells: [{ col: 2, row: 2 }] }],
-    objects: [{ object: "Castle", tile: { col: 0, row: 2 } }] };
+    riverData: [{
+      cells: [{
+        col: 2,
+        row: 2,
+      }],
+    }],
+    objects: [{
+      object: "Castle",
+      tile: {
+        col: 0,
+        row: 2,
+      },
+    }],
+  };
   const before = structuredClone(map);
   const raster = WarMapDrawing.raster(map, 64);
   const sample = (x, y) => [...raster.pixels.slice((y * 64 + x) * 4, (y * 64 + x) * 4 + 3)];

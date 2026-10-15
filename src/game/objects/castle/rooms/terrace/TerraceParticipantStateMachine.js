@@ -229,7 +229,10 @@ export class TerraceParticipantStateMachine extends NpcStateMachine {
     if (!this.active || !this.get(phase)) {
       return false;
     }
-    this.#interruptions.push({ phase: this.phase, elapsed: this.#elapsed });
+    this.#interruptions.push({
+      phase: this.phase,
+      elapsed: this.#elapsed,
+    });
     this.transition(phase);
     return true;
   }

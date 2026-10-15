@@ -9,7 +9,12 @@ const TEXTURE_SIZE = 64;
  */
 
 const COINS = [
-  { type: COIN_TYPE.COPPER, light: "#ffd0a3", main: "#bd6a32", dark: "#613018" },
+  {
+    type: COIN_TYPE.COPPER,
+    light: "#ffd0a3",
+    main: "#bd6a32",
+    dark: "#613018",
+  },
 ];
 
 // Wallet values are displayed in copper: 100 copper = 1 silver, 100 silver = 1 gold.
@@ -122,36 +127,36 @@ export class CoinHud extends GamePanelHud {
      * @param {CoinStyle} coin
      * @param {number} index
      */
-    (coin, index) => {
-      const coinTexture = this.#createCoinTexture(coin);
-      this.#coinTextures.set(coin.type, coinTexture);
-      const numberTexture = this.createTextureRecord(
-        `${coin.type} coin number texture`,
-        256,
-        64,
-      );
-      this.#numberTextures.set(coin.type, numberTexture);
-      const itemX = panelPaddingX + index * (itemWidth + indicatorGap);
-      this.createImage({
-        parent: this.#panel,
-        name: `${coin.type} coin icon`,
-        x: itemX,
-        y: panelPaddingY,
-        width: iconSize,
-        height: iconSize,
-        texture: coinTexture,
+      (coin, index) => {
+        const coinTexture = this.#createCoinTexture(coin);
+        this.#coinTextures.set(coin.type, coinTexture);
+        const numberTexture = this.createTextureRecord(
+          `${coin.type} coin number texture`,
+          256,
+          64,
+        );
+        this.#numberTextures.set(coin.type, numberTexture);
+        const itemX = panelPaddingX + index * (itemWidth + indicatorGap);
+        this.createImage({
+          parent: this.#panel,
+          name: `${coin.type} coin icon`,
+          x: itemX,
+          y: panelPaddingY,
+          width: iconSize,
+          height: iconSize,
+          texture: coinTexture,
+        });
+        this.createImage({
+          parent: this.#panel,
+          name: `${coin.type} coin count`,
+          x: panelWidth - panelPaddingX - numberWidth,
+          y: panelPaddingY + (iconSize - numberHeight) / 2,
+          width: numberWidth,
+          height: numberHeight,
+          texture: numberTexture.texture,
+        });
+        this.#drawNumber(coin.type);
       });
-      this.createImage({
-        parent: this.#panel,
-        name: `${coin.type} coin count`,
-        x: panelWidth - panelPaddingX - numberWidth,
-        y: panelPaddingY + (iconSize - numberHeight) / 2,
-        width: numberWidth,
-        height: numberHeight,
-        texture: numberTexture.texture,
-      });
-      this.#drawNumber(coin.type);
-    });
     this.syncDrawOrder();
   }
 

@@ -9,21 +9,55 @@ import { RoyalBedroomRoomMapObjects } from "../../../../../../../src/game/object
 import { CastleResidentialLayout } from "../../../../../../../src/game/objects/castle/CastleResidentialLayout.js";
 
 const generator = new RoyalBedroomRoomGenerator();
-const room = { id: "royal-chamber", purpose: "Royal sleeping room", minX: 0.375, maxX: 3.625,
-  minZ: 3.875, maxZ: 7.625, floorY: -3, level: -1, height: 3 };
+const room = {
+  id: "royal-chamber",
+  purpose: "Royal sleeping room",
+  minX: 0.375,
+  maxX: 3.625,
+  minZ: 3.875,
+  maxZ: 7.625,
+  floorY: -3,
+  level: -1,
+  height: 3,
+};
 const openings = [
-  { roomId: "service-quarters", floorY: -3, kind: "door", axis: "z", coordinate: 3.875, center: 0.875, width: 1 },
-  { roomId: "kitchen", floorY: -3, kind: "door", axis: "x", coordinate: 3.625, center: 6.875, width: 1 },
+  {
+    roomId: "service-quarters",
+    floorY: -3,
+    kind: "door",
+    axis: "z",
+    coordinate: 3.875,
+    center: 0.875,
+    width: 1,
+  },
+  {
+    roomId: "kitchen",
+    floorY: -3,
+    kind: "door",
+    axis: "x",
+    coordinate: 3.625,
+    center: 6.875,
+    width: 1,
+  },
 ];
 
 test("royal layouts repeat independently and all five concepts have distinct arrangements", () => {
   const signatures = new Set();
   for (let variant = 0; variant < 5; variant++) {
-    const context = { seed: variant * 2, openings };
+    const context = {
+      seed: variant * 2,
+      openings,
+    };
     const items = generator.furnish(room, context);
-    generator.furnish({ ...room, id: "another-bedroom" }, { seed: 99 });
+    generator.furnish({
+      ...room,
+      id: "another-bedroom",
+    }, { seed: 99 });
     assert.deepEqual(generator.furnish(room, context), items);
-    assert.deepEqual(generator.furnish(room, { ...context, seed: variant * 2 + 1 }), items);
+    assert.deepEqual(generator.furnish(room, {
+      ...context,
+      seed: variant * 2 + 1,
+    }), items);
     assert.ok(items.every(item => item.furnishingVariant === RoyalBedroomRoomGenerator.variations[variant]));
     assert.equal(items.filter(item => item.role === "royalBed").length, 1);
     assert.ok(items.some(item => item.role === "wardrobe"));
@@ -42,8 +76,15 @@ test("royal layouts repeat independently and all five concepts have distinct arr
 test("bedroom props stay inside the room, clear neighbouring door swings and keep supported items grounded", () => {
   for (const [width, depth] of [[3.25, 3.75], [4, 4], [6, 5]]) {
     for (let seed = 0; seed < 10; seed++) {
-      const bounds = { ...room, maxX: room.minX + width, maxZ: room.minZ + depth };
-      const items = generator.furnish(bounds, { seed, openings: openings.slice(0, 1) });
+      const bounds = {
+        ...room,
+        maxX: room.minX + width,
+        maxZ: room.minZ + depth,
+      };
+      const items = generator.furnish(bounds, {
+        seed,
+        openings: openings.slice(0, 1),
+      });
       assert.ok(items.some(item => item.role === "royalBed"));
       for (const item of items) {
         const halfX = item.width * item.scale / 2, halfZ = item.depth * item.scale / 2;
@@ -93,16 +134,38 @@ test("both tower plans publish five furnished variations in every castle orienta
     ["castle-compact-service-wing", [4, 10, 16, 22, 28]]]) {
     for (const side of ["NORTH", "SOUTH", "WEST", "EAST"]) {
       for (const seed of seeds) {
-        const plan = await CastleAuthoredBuildPlan.generate({ basePlanId, seed,
-          position: { x: -8, z: -8, width: 16, depth: 16, elevation: 2 }, doors: [{ side, offset: 7, width: 2 }] });
+        const plan = await CastleAuthoredBuildPlan.generate({
+          basePlanId,
+          seed,
+          position: {
+            x: -8,
+            z: -8,
+            width: 16,
+            depth: 16,
+            elevation: 2,
+          },
+          doors: [{
+            side,
+            offset: 7,
+            width: 2,
+          }],
+        });
         const residential = plan.metadata.runtime.residential;
         const items = residential.furniture.filter(item => item.roomId === room.id);
         assert.ok(items.length > 3);
         assert.ok(items.some(item => item.role === "royalBed"));
         assert.ok(items.some(item => item.role === "wardrobe"));
         assert.ok(items.every(item => !item.placementIssue));
-        const castle = { id: "bedroom-castle", object: "Castle", buildPlan: plan };
-        const map = { cols: 42, rows: 42, objects: [castle] };
+        const castle = {
+          id: "bedroom-castle",
+          object: "Castle",
+          buildPlan: plan,
+        };
+        const map = {
+          cols: 42,
+          rows: 42,
+          objects: [castle],
+        };
         RoyalBedroomRoomMapObjects.prepareMap(map);
         const definitions = structuredClone(map.objects.slice(1));
         RoyalBedroomRoomMapObjects.prepareMap(map);
@@ -153,11 +216,28 @@ test("the saved ladder castle contains the new side-tower bedroom instead of the
 
 
 test("long bedrooms swap the sleeping and study ends while retaining their real doorway", () => {
-  const bounds = { ...room, minZ: 0.375, maxZ: 7.625 };
-  const doors = [{ roomId: "kitchen", floorY: -3, kind: "door", axis: "x", side: "EAST",
-    coordinate: bounds.maxX, center: 5.25, width: 1.25, height: 2.5, swing: "inward" }];
+  const bounds = {
+    ...room,
+    minZ: 0.375,
+    maxZ: 7.625,
+  };
+  const doors = [{
+    roomId: "kitchen",
+    floorY: -3,
+    kind: "door",
+    axis: "x",
+    side: "EAST",
+    coordinate: bounds.maxX,
+    center: 5.25,
+    width: 1.25,
+    height: 2.5,
+    swing: "inward",
+  }];
   const original = structuredClone(doors);
-  const items = generator.furnish(bounds, { seed: 10, openings: doors });
+  const items = generator.furnish(bounds, {
+    seed: 10,
+    openings: doors,
+  });
   const middle = (bounds.minZ + bounds.maxZ) / 2;
   assert.ok(items.find(item => item.role === "royalBed").z < middle);
   assert.ok(items.find(item => item.object === "WritingDesk").z > middle);

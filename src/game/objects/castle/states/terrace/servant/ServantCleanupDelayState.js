@@ -4,8 +4,12 @@ import { AbstractTerraceParticipantState } from "../AbstractTerraceParticipantSt
 
 export class ServantCleanupDelayState extends AbstractTerraceParticipantState {
   constructor() {
-    super({ phase: ServantCleanupDelayState.name,
-      stagePhase: STAGE.CLEANUP_DELAY, duration: 2.5,
-      action: "idle", animation: ANIMATION.IDLE });
+    super({
+      phase: ServantCleanupDelayState.name,
+      stagePhase: STAGE.CLEANUP_DELAY,
+      duration: 2.5,
+      action: "idle",
+      animation: ANIMATION.IDLE,
+    });
   }
 }

@@ -11,7 +11,11 @@ function createSubject() {
     labelKey: "mushroom",
     icon: "mushroom",
     modelUrl: "mushroom.glb",
-    position: { x: 0, y: 0, z: 0 },
+    position: {
+      x: 0,
+      y: 0,
+      z: 0,
+    },
     onCollect: () => {
       events.push("collect");
       return true;
@@ -19,13 +23,19 @@ function createSubject() {
     onHide: () => events.push("hide"),
     onDestroy: (impact) => events.push({ impact }),
   });
-  return { collectible, events };
+  return {
+    collectible,
+    events,
+  };
 }
 
 describe("ground cover collectible destruction", () => {
   it("removes a destroyed mushroom without collecting or hiding its debris", () => {
     const { collectible, events } = createSubject();
-    const impact = { directionX: 1, directionZ: 0 };
+    const impact = {
+      directionX: 1,
+      directionZ: 0,
+    };
 
     collectible.destroy(impact);
 

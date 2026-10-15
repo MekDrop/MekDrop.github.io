@@ -50,7 +50,11 @@ it("reuses servant states in another interruptible sequence", () => {
         duration: 2,
         nextPhase: "work",
       }),
-      new ServantNoticeState({ phase: "work", duration: 4, nextPhase: "idle" }),
+      new ServantNoticeState({
+        phase: "work",
+        duration: 4,
+        nextPhase: "idle",
+      }),
       new ServantLookLeftState({
         phase: "distracted",
         duration: 1,

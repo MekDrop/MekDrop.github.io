@@ -10,8 +10,17 @@ let wasmAmmo;
 before(async () => {
   const glueUrl = new URL("../../../../src/assets/game/wasm/ammo/ammo.wasm.js", import.meta.url);
   const source = readFileSync(glueUrl, "utf8").replace("export default Ammo;", "");
-  const context = { module: { exports: {} }, exports: {}, require: createRequire(import.meta.url),
-    process, __dirname: "", Buffer, console, setTimeout, clearTimeout };
+  const context = {
+    module: { exports: {} },
+    exports: {},
+    require: createRequire(import.meta.url),
+    process,
+    __dirname: "",
+    Buffer,
+    console,
+    setTimeout,
+    clearTimeout,
+  };
   runInNewContext(source, context);
   wasmAmmo = await context.module.exports({
     wasmBinary: readFileSync(new URL("../../../../src/assets/game/wasm/ammo/ammo.wasm.wasm", import.meta.url)),
@@ -26,14 +35,27 @@ before(async () => {
  * @returns {{deltaTime: number, offsets: Float32Array, hidden: Uint8Array, feet: Float32Array}}
  */
 function state(offset = 0, hidden = false, feet = new Float32Array([0, -1000, 0, 0, -1000, 0])) {
-  return { deltaTime: 1 / 60, offsets: new Float32Array([offset]), hidden: new Uint8Array([Number(hidden)]), feet };
+  return {
+    deltaTime: 1 / 60,
+    offsets: new Float32Array([offset]),
+    hidden: new Uint8Array([Number(hidden)]),
+    feet,
+  };
 }
 
 /**
  * @returns {FlowerPhysicsSimulation}
  */
 function createSimulation() {
-  return new FlowerPhysicsSimulation([{ position: { x: 0, y: 0, z: 0 }, pivotHeight: 0.18, radius: 0.38 }], -22);
+  return new FlowerPhysicsSimulation([{
+    position: {
+      x: 0,
+      y: 0,
+      z: 0,
+    },
+    pivotHeight: 0.18,
+    radius: 0.38,
+  }], -22);
 }
 
 describe("flower worker Ammo simulation", () => {
@@ -131,7 +153,10 @@ describe("flower worker Ammo simulation", () => {
           forwardX * 0.1 - forwardZ * 0.13, 0.32, forwardZ * 0.1 + forwardX * 0.13,
           forwardX * 0.1 + forwardZ * 0.13, 0.32, forwardZ * 0.1 - forwardX * 0.13,
         ]);
-        const transform = simulation.step({ ...state(0, false, feet), deltaTime });
+        const transform = simulation.step({
+          ...state(0, false, feet),
+          deltaTime,
+        });
         assert.ok(1 - 2 * (transform[3] ** 2 + transform[5] ** 2) > 0, `inverted at frame ${frame}, dt ${deltaTime}`);
       }
     }

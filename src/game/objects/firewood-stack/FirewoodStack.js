@@ -23,18 +23,18 @@ export class FirewoodStack extends AbstractCastleProp {
      *
      * @param {import("playcanvas").Entity} entity
      */
-    entity => entity.name.startsWith("Cut firewood log "));
+      entity => entity.name.startsWith("Cut firewood log "));
     const templates = originals.map(/**
      *
      * @param {import("playcanvas").Entity} entity
      */
-    entity => entity.clone());
+      entity => entity.clone());
     for (const original of originals) { original.destroy(); }
     if (!templates.length || ![width, depth, height].every(/**
      *
      * @param {number} value
      */
-    value => Number.isFinite(value) && value > 0)) {
+      value => Number.isFinite(value) && value > 0)) {
       for (const template of templates) { template.destroy(); }
       return;
     }

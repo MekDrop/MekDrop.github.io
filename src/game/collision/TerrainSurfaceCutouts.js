@@ -17,15 +17,15 @@ export function subtractTerrainCutouts(polygon, cuts) {
       if ([0, 1, 2].some(/**
        * @param {number} axis
        */
-      (axis) => {
-        const values = piece.map(/**
+        (axis) => {
+          const values = piece.map(/**
          * @param {number[]} point
          */
-        (point) => point[axis]);
-        const minimum = [cut.minX, cut.minY, cut.minZ][axis];
-        const maximum = [cut.maxX, cut.maxY, cut.maxZ][axis];
-        return Math.max(...values) <= minimum + 1e-8 || Math.min(...values) >= maximum - 1e-8;
-      })) {
+            (point) => point[axis]);
+          const minimum = [cut.minX, cut.minY, cut.minZ][axis];
+          const maximum = [cut.maxX, cut.maxY, cut.maxZ][axis];
+          return Math.max(...values) <= minimum + 1e-8 || Math.min(...values) >= maximum - 1e-8;
+        })) {
         retained.push(piece);
         continue;
       }

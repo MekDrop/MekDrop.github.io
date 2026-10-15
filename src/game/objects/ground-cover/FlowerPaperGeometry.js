@@ -7,7 +7,12 @@
  * @returns {{positions: number[], normals: number[], sections: number[], indices: number[]}}
  */
 export function splitPaperGeometry(positions, normals, indices, length) {
-  const result = { positions: [], normals: [], sections: [], indices: [] };
+  const result = {
+    positions: [],
+    normals: [],
+    sections: [],
+    indices: [],
+  };
   const fold = length / 2;
   for (let triangle = 0; triangle < indices.length; triangle += 3) {
     const vertices = indices.slice(triangle, triangle + 3).map(

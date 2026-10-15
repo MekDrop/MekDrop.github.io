@@ -7,7 +7,10 @@ describe("cliff-owned ivy growth", () => {
   it("keeps leaf geometry against the wall and within its supporting tile", () => {
     // The shipped leaf's local bounds, including its cupped surface.
     for (let seed = 0; seed < 30; seed++) {
-      const patch = createCliffVineGrowth({ height: 8, seed: `wall-${seed}` });
+      const patch = createCliffVineGrowth({
+        height: 8,
+        seed: `wall-${seed}`,
+      });
       for (const leaf of patch.leaves) {
         const rotation = new Quat().setFromEulerAngles(leaf.pitch, leaf.yaw, leaf.roll);
         for (const x of [-0.0754, 0.0754]) {
@@ -24,20 +27,38 @@ describe("cliff-owned ivy growth", () => {
     }
   });
   it("keeps the same patch stable and varies different patches", () => {
-    const patch = createCliffVineGrowth({ height: 2, seed: "face-a" });
-    assert.deepEqual(patch, createCliffVineGrowth({ height: 2, seed: "face-a" }));
-    assert.notDeepEqual(patch, createCliffVineGrowth({ height: 2, seed: "face-b" }));
+    const patch = createCliffVineGrowth({
+      height: 2,
+      seed: "face-a",
+    });
+    assert.deepEqual(patch, createCliffVineGrowth({
+      height: 2,
+      seed: "face-a",
+    }));
+    assert.notDeepEqual(patch, createCliffVineGrowth({
+      height: 2,
+      seed: "face-b",
+    }));
   });
   it("reaches the bottom of short faces while keeping slightly uneven tips", () => {
-    const patch = createCliffVineGrowth({ height: 0.975, seed: "short-cliff" });
+    const patch = createCliffVineGrowth({
+      height: 0.975,
+      seed: "short-cliff",
+    });
     const tips = patch.stems.filter(({ end }, index) => index === patch.stems.length - 1 || patch.stems[index + 1].start.z < 0).map(({ end }) => -end.y);
     assert.ok(tips.length >= 2);
     assert.ok(tips.every((tip) => tip >= 0.975 * 0.91 && tip < 0.975));
     assert.ok(Math.max(...tips) >= 0.975 * 0.98);
   });
   it("adds growth on tall faces without stretching leaves", () => {
-    const short = createCliffVineGrowth({ height: 0.6, seed: "face" });
-    const tall = createCliffVineGrowth({ height: 8, seed: "face" });
+    const short = createCliffVineGrowth({
+      height: 0.6,
+      seed: "face",
+    });
+    const tall = createCliffVineGrowth({
+      height: 8,
+      seed: "face",
+    });
     assert.ok(tall.leaves.length > short.leaves.length * 5);
     const roots = tall.stems.filter(({ start }) => start.z < 0);
     assert.ok(roots.length >= 2 && roots.length <= 3);

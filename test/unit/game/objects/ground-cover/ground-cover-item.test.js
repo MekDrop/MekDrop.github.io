@@ -153,7 +153,12 @@ function createSourceMesh(yOffset) {
   );
   return {
     primitive: [
-      { indexed: true, base: 0, count: indices.length, baseVertex: 0 },
+      {
+        indexed: true,
+        base: 0,
+        count: indices.length,
+        baseVertex: 0,
+      },
     ],
     getPositions(target) {
       target.push(...positions);
@@ -200,7 +205,11 @@ function createSubject(ambientMotion) {
     }
 
     setLocalPosition(x, y, z) {
-      this.position = { x, y, z };
+      this.position = {
+        x,
+        y,
+        z,
+      };
     }
 
     setLocalEulerAngles(...angles) {
@@ -212,7 +221,11 @@ function createSubject(ambientMotion) {
     }
 
     getLocalPosition() {
-      return this.position ?? { x: 0, y: 0, z: 0 };
+      return this.position ?? {
+        x: 0,
+        y: 0,
+        z: 0,
+      };
     }
 
     getPosition() {
@@ -288,9 +301,18 @@ function createSubject(ambientMotion) {
     instantiate() {
       const root = new Entity("Mushroom model");
       [
-        { name: "Cap", yOffset: 0.12 },
-        { name: "Stalk", yOffset: 0 },
-        { name: "Spot", yOffset: 0.2 },
+        {
+          name: "Cap",
+          yOffset: 0.12,
+        },
+        {
+          name: "Stalk",
+          yOffset: 0,
+        },
+        {
+          name: "Spot",
+          yOffset: 0.2,
+        },
       ].forEach(({ name, yOffset }, index) => {
         const part = new Entity(name);
         part.render = {
@@ -336,7 +358,12 @@ function createSubject(ambientMotion) {
     phase: 1.3,
     ambientMotion,
   });
-  return { generatedMeshes, item, materials, model: item.entity.children[0] };
+  return {
+    generatedMeshes,
+    item,
+    materials,
+    model: item.entity.children[0],
+  };
 }
 
 describe("ground cover item ambient motion", () => {
@@ -369,7 +396,10 @@ describe("ground cover item ambient motion", () => {
   it("splits every mushroom mesh into fading lightweight physics shards", () => {
     const { generatedMeshes, item, materials, model } = createSubject(0);
 
-    item.crush({ directionX: 3, directionZ: 4 });
+    item.crush({
+      directionX: 3,
+      directionZ: 4,
+    });
 
     assert.equal(item.entity.enabled, true);
     assert.equal(model.enabled, true);

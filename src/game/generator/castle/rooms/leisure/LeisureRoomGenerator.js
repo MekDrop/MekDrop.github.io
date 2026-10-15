@@ -10,8 +10,20 @@ export class LeisureRoomGenerator extends AbstractCastleRoomGenerator {
    * @param {{courtyard?:boolean}} options
    */
   constructor({ courtyard = false } = {}) {
-    super("leisure", courtyard ? { x: 3, y: 6 } : { x: 3, y: 3 },
-      courtyard ? { x: 4, y: 6 } : { x: 4, y: 4.5 });
+    super("leisure", courtyard ? {
+      x: 3,
+      y: 6,
+    } : {
+      x: 3,
+      y: 3,
+    },
+    courtyard ? {
+      x: 4,
+      y: 6,
+    } : {
+      x: 4,
+      y: 4.5,
+    });
     this.#courtyard = courtyard;
   }
   /**
@@ -31,14 +43,22 @@ export class LeisureRoomGenerator extends AbstractCastleRoomGenerator {
     return [room.minX + 0.6, room.maxX - 0.6].map(/**
      * @param {number} x
      */
-      (x) => ({ role: "leisurePlanter", object: "TerracePlanter", x,
-        z: room.maxZ - 0.6, width: 0.665, depth: 0.665, scale: 1, rotation: -180 })).filter(/**
+      (x) => ({
+        role: "leisurePlanter",
+        object: "TerracePlanter",
+        x,
+        z: room.maxZ - 0.6,
+        width: 0.665,
+        depth: 0.665,
+        scale: 1,
+        rotation: -180,
+      })).filter(/**
          * @param {import("../AbstractCastleRoomGenerator.js").RoomItem} item
          */
-        (item) => !(context.openings ?? room.openings ?? []).some(/**
+      (item) => !(context.openings ?? room.openings ?? []).some(/**
          * @param {import("../../CastleBasePlanGenerator.js").CompiledCastleOpening} opening
          */
-          (opening) => opening.kind === "door" && opening.floorY === room.floorY &&
+        (opening) => opening.kind === "door" && opening.floorY === room.floorY &&
             (opening.axis === "x"
               ? Math.abs(item.x - opening.coordinate) < 1.3325 && Math.abs(item.z - opening.center) < opening.width / 2 + 0.6325
               : Math.abs(item.z - opening.coordinate) < 1.3325 && Math.abs(item.x - opening.center) < opening.width / 2 + 0.6325)) &&

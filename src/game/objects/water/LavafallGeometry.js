@@ -109,7 +109,10 @@ export class LavafallGeometry {
    */
   #addLavafall(group, waterfall, cols, rows, terminal, routeDistance) {
     const direction = this.#directionVector(waterfall.direction);
-    const cross = { col: -direction.row, row: direction.col };
+    const cross = {
+      col: -direction.row,
+      row: direction.col,
+    };
     const centerX = waterfall.col - (cols - 1) / 2;
     const centerZ = waterfall.row - (rows - 1) / 2;
     const top = waterfall.topElevation + 0.012;
@@ -120,11 +123,11 @@ export class LavafallGeometry {
     const curtainSegments = terminal
       ? 24
       : Math.max(
-          4,
-          Math.ceil(
-            (waterfall.topElevation - waterfall.bottomElevation) * 6,
-          ),
-        );
+        4,
+        Math.ceil(
+          (waterfall.topElevation - waterfall.bottomElevation) * 6,
+        ),
+      );
     const totalRows = lipSlices + curtainSegments;
     const curtainTop = top - lipRadius;
     const curtainForward = lipStart + lipRadius;
@@ -354,7 +357,10 @@ export class LavafallGeometry {
    */
   #addCascadeImpact(group, cascade, cols, rows) {
     const direction = this.#directionVector(cascade.direction);
-    const cross = { col: -direction.row, row: direction.col };
+    const cross = {
+      col: -direction.row,
+      row: direction.col,
+    };
     const centerX = cascade.from.col - (cols - 1) / 2;
     const centerZ = cascade.from.row - (rows - 1) / 2;
     const widthSegments = 12;
@@ -643,14 +649,26 @@ export class LavafallGeometry {
    */
   #directionVector(direction) {
     if (direction === 'NORTH') {
-      return { col: 0, row: -1 };
+      return {
+        col: 0,
+        row: -1,
+      };
     }
     if (direction === 'EAST') {
-      return { col: 1, row: 0 };
+      return {
+        col: 1,
+        row: 0,
+      };
     }
     if (direction === 'SOUTH') {
-      return { col: 0, row: 1 };
+      return {
+        col: 0,
+        row: 1,
+      };
     }
-    return { col: -1, row: 0 };
+    return {
+      col: -1,
+      row: 0,
+    };
   }
 }

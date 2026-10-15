@@ -221,12 +221,12 @@ export class PathSurfaceValidator {
        *
        * @param {RiverRecord} river
        */
-      (river) =>
-        river.cells.map(/**
+        (river) =>
+          river.cells.map(/**
          *
          * @param {MapCell} cell
          */
-        (cell) => MapGrid.tileKey(cell.col, cell.row)),
+            (cell) => MapGrid.tileKey(cell.col, cell.row)),
       ),
     );
     const planIds = new Set();
@@ -383,18 +383,18 @@ export class PathSurfaceValidator {
        *
        * @param {RiverRecord} river
        */
-      (river) =>
-        river.cells
-          .filter(/**
+        (river) =>
+          river.cells
+            .filter(/**
            *
            * @param {MapCell} cell
            */
-          (cell) => cell.underBridge)
-          .map(/**
+              (cell) => cell.underBridge)
+            .map(/**
            *
            * @param {MapCell} cell
            */
-          (cell) => MapGrid.tileKey(cell.col, cell.row)),
+              (cell) => MapGrid.tileKey(cell.col, cell.row)),
       ),
     );
     for (let row = 0; row < MAP_ROWS; row++) {
@@ -454,7 +454,10 @@ export class PathSurfaceValidator {
             neighborDirection === DIRECTIONS.EAST ||
             neighborDirection === DIRECTIONS.WEST;
           if (horizontal !== neighborHorizontal) {
-            throw new BridgeTurnError({ col, row });
+            throw new BridgeTurnError({
+              col,
+              row,
+            });
           }
         }
       }

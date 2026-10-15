@@ -10,7 +10,10 @@ function controls(context, dodgeAccepted = true) {
   const queuedFacingInputs = [];
   let facingHoldDuration = 0;
   let movementAnimationHoldDuration = 0;
-  let facingDirection = { x: 0, z: 1 };
+  let facingDirection = {
+    x: 0,
+    z: 1,
+  };
   const renderer = {
     inventoryVisible: false,
     hero: {
@@ -46,7 +49,10 @@ function controls(context, dodgeAccepted = true) {
     queuedFacingInputs,
     press(time, repeat = false) {
       now = time;
-      action.pressDirection("down", { repeat, shiftKey: false }, 0.28);
+      action.pressDirection("down", {
+        repeat,
+        shiftKey: false,
+      }, 0.28);
     },
     setFacing(direction) {
       facingDirection = direction;
@@ -62,10 +68,18 @@ it("holds backward facing through the dodge window and preserves dodge facing", 
   assert.deepEqual(input.queuedFacingInputs, [[0, -1]]);
   assert.deepEqual(input.movements.at(-1), [0, -1, false]);
   input.action.releaseDirection("down");
-  input.setFacing({ x: 1, z: 0 });
+  input.setFacing({
+    x: 1,
+    z: 0,
+  });
   input.press(210);
   assert.deepEqual(input.dodges, [
-    [0, -1, "down", { facing: { x: 0, z: 1 } }],
+    [0, -1, "down", {
+      facing: {
+        x: 0,
+        z: 1,
+      },
+    }],
   ]);
 });
 

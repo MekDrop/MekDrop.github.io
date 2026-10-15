@@ -6,9 +6,19 @@
 export function createCastleMasonryVoxels(blocks) {
   let boxes = blocks.map(/**
    * @param {{x:number,y:number,z:number,halfX:number,halfY:number,halfZ:number}} block
-   */ (block) => ({ x: block.x, y: block.y, z: block.z,
-    width: block.halfX * 2, height: block.halfY * 2, depth: block.halfZ * 2 }));
-  const dimensions = { x: "width", y: "height", z: "depth" };
+   */ (block) => ({
+      x: block.x,
+      y: block.y,
+      z: block.z,
+      width: block.halfX * 2,
+      height: block.halfY * 2,
+      depth: block.halfZ * 2,
+    }));
+  const dimensions = {
+    x: "width",
+    y: "height",
+    z: "depth",
+  };
   for (const axis of ["x", "z", "y"]) {
     const size = dimensions[axis];
     const others = ["x", "y", "z"].filter(/**
@@ -19,7 +29,7 @@ export function createCastleMasonryVoxels(blocks) {
       const key = others.map(/**
      * @param {string} value
      */ (value) =>
-        `${box[value].toFixed(6)}:${box[dimensions[value]].toFixed(6)}`).join("/");
+          `${box[value].toFixed(6)}:${box[dimensions[value]].toFixed(6)}`).join("/");
       if (!groups.has(key)) { groups.set(key, []); }
       groups.get(key).push(box);
     }

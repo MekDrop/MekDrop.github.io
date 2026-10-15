@@ -13,15 +13,31 @@ export class SingleCandleStand extends AbstractCastleProp {
     super(options);
     const model = this.visualRoots[0].children[0];
     const app = options.pc.Application.getApplication();
-    const fire = new CastleFire({ pc: options.pc, app, modelLibrary: options.modelLibrary,
-      particleTexture: app.assets.find("castleFireParticle", "texture").resource });
-    fire.add({ x: 0, y: 0.64, z: 0, scale: 0.045, brazier: false, intensity: 0.3 });
+    const fire = new CastleFire({
+      pc: options.pc,
+      app,
+      modelLibrary: options.modelLibrary,
+      particleTexture: app.assets.find("castleFireParticle", "texture").resource,
+    });
+    fire.add({
+      x: 0,
+      y: 0.64,
+      z: 0,
+      scale: 0.045,
+      brazier: false,
+      intensity: 0.3,
+    });
     model.addChild(fire.entity);
     model.once("destroy", () => fire.destroy());
     const light = new options.pc.Entity("Candle warm glow");
     light.setLocalPosition(0, 0.72, 0);
-    light.addComponent("light", { type: "omni", color: new options.pc.Color(1, 0.67, 0.25),
-      intensity: 0.8, range: 2.5, castShadows: false });
+    light.addComponent("light", {
+      type: "omni",
+      color: new options.pc.Color(1, 0.67, 0.25),
+      intensity: 0.8,
+      range: 2.5,
+      castShadows: false,
+    });
     model.addChild(light);
     let elapsed = 0;
     /**

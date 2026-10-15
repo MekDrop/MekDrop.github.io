@@ -22,10 +22,22 @@ export class SaplingTree extends Tree {
     * @type {number}
    */
   static collisionRows = Object.freeze([
-    { y: 0, cells: [[0, 0]] },
-    { y: 1, cells: [[0, 0], [-1, 0], [1, 0], [0, -1]] },
-    { y: 2, cells: [[0, 0], [-1, 0], [1, 0], [0, -1], [0, 1]] },
-    { y: 3, cells: [[0, 0], [1, 0]] },
+    {
+      y: 0,
+      cells: [[0, 0]],
+    },
+    {
+      y: 1,
+      cells: [[0, 0], [-1, 0], [1, 0], [0, -1]],
+    },
+    {
+      y: 2,
+      cells: [[0, 0], [-1, 0], [1, 0], [0, -1], [0, 1]],
+    },
+    {
+      y: 3,
+      cells: [[0, 0], [1, 0]],
+    },
   ]);
 
   /**

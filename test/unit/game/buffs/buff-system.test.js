@@ -23,12 +23,27 @@ it("stacks an effect to its cap, refreshes its timer, then expires all stacks to
 
 it("combines independent flat and percentage buffs and debuffs regardless of application order", () => {
   const definitions = [
-    { id: "boots", kind: BUFF_KIND.BUFF, duration: 5, maxStacks: 1,
-      modifiers: { [HERO_STAT.MOVEMENT_SPEED]: { flat: 2 } } },
-    { id: "haste", kind: BUFF_KIND.BUFF, duration: 3, maxStacks: 2,
-      modifiers: { [HERO_STAT.MOVEMENT_SPEED]: { percent: 0.1 } } },
-    { id: "mud", kind: BUFF_KIND.DEBUFF, duration: 2, maxStacks: 1,
-      modifiers: { [HERO_STAT.MOVEMENT_SPEED]: { percent: -0.3 } } },
+    {
+      id: "boots",
+      kind: BUFF_KIND.BUFF,
+      duration: 5,
+      maxStacks: 1,
+      modifiers: { [HERO_STAT.MOVEMENT_SPEED]: { flat: 2 } },
+    },
+    {
+      id: "haste",
+      kind: BUFF_KIND.BUFF,
+      duration: 3,
+      maxStacks: 2,
+      modifiers: { [HERO_STAT.MOVEMENT_SPEED]: { percent: 0.1 } },
+    },
+    {
+      id: "mud",
+      kind: BUFF_KIND.DEBUFF,
+      duration: 2,
+      maxStacks: 1,
+      modifiers: { [HERO_STAT.MOVEMENT_SPEED]: { percent: -0.3 } },
+    },
   ];
   for (const order of [["boots", "haste", "mud"], ["mud", "haste", "boots"]]) {
     const buffs = new BuffSystem(definitions);
@@ -63,8 +78,19 @@ it("overstimulation replaces affection and blocks it until anger expires", () =>
 
 it("rest-dependent effects pause during activity while ordinary effects keep expiring", () => {
   const buffs = new BuffSystem([
-    { id: "anger", duration: 12, maxStacks: 1, requiresRest: true, modifiers: {} },
-    { id: "haste", duration: 6, maxStacks: 1, modifiers: {} },
+    {
+      id: "anger",
+      duration: 12,
+      maxStacks: 1,
+      requiresRest: true,
+      modifiers: {},
+    },
+    {
+      id: "haste",
+      duration: 6,
+      maxStacks: 1,
+      modifiers: {},
+    },
   ]);
   buffs.apply("anger");
   buffs.apply("haste");
@@ -93,8 +119,12 @@ it("removing or clearing effects restores stats without permanently changing bas
 });
 
 it("does not leak mutable effects or registry definitions to callers", () => {
-  const definitions = [{ id: "test", duration: 6, maxStacks: 2,
-    modifiers: { [HERO_STAT.MOVEMENT_SPEED]: { percent: 0.1 } } }];
+  const definitions = [{
+    id: "test",
+    duration: 6,
+    maxStacks: 2,
+    modifiers: { [HERO_STAT.MOVEMENT_SPEED]: { percent: 0.1 } },
+  }];
   const buffs = new BuffSystem(definitions);
   definitions[0].duration = 999;
   definitions[0].modifiers[HERO_STAT.MOVEMENT_SPEED].percent = 50;

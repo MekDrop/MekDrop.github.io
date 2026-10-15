@@ -40,7 +40,14 @@ async function walkTo(window, target) {
 
   }
   driver.move(0,0);
-  expect(false, JSON.stringify({target,state:{position:driver.state().position,movement:driver.state().movement,facing:driver.state().facing}})).to.equal(true);
+  expect(false, JSON.stringify({
+    target,
+    state:{
+      position:driver.state().position,
+      movement:driver.state().movement,
+      facing:driver.state().facing,
+    },
+  })).to.equal(true);
 }
 
 describe('Compact authored castle traversal', () => {
@@ -56,18 +63,39 @@ describe('Compact authored castle traversal', () => {
       window.dispatchEvent(new KeyboardEvent('keyup',{code:'ScrollLock'}));
       const plan=await CastleGenerator.generate(castleMap.objects.find(o=>o.object==='Castle'));
       const layout=new CastleResidentialLayout(plan), origin=layout.origin;
-      await walkTo(window,{x:0,z:-8.2});
-      await walkTo(window,{x:origin.x,z:-8.2});
-      await walkTo(window,{x:origin.x,z:origin.z+.8});
+      await walkTo(window,{
+        x:0,
+        z:-8.2,
+      });
+      await walkTo(window,{
+        x:origin.x,
+        z:-8.2,
+      });
+      await walkTo(window,{
+        x:origin.x,
+        z:origin.z+.8,
+      });
       const doors=plan.metadata.runtime.roomDoors.filter(d=>d.y===origin.y);
       const corridorX=origin.x;
       const roomSide=Math.sign(doors[0].x-origin.x);
       for(const door of doors) {
-        await walkTo(window,{x:corridorX,z:window.gameMovementTest.state().position.z});
-        await walkTo(window,{x:corridorX,z:door.z});
-        await walkTo(window,{x:door.x+roomSide*.55,z:door.z});
+        await walkTo(window,{
+          x:corridorX,
+          z:window.gameMovementTest.state().position.z,
+        });
+        await walkTo(window,{
+          x:corridorX,
+          z:door.z,
+        });
+        await walkTo(window,{
+          x:door.x+roomSide*.55,
+          z:door.z,
+        });
         expect(window.gameMovementTest.state().position.y,door.roomId).to.be.closeTo(door.y,.2);
-        await walkTo(window,{x:corridorX,z:door.z});
+        await walkTo(window,{
+          x:corridorX,
+          z:door.z,
+        });
       }
       const groundDoor=doors.find(d=>d.roomId==='stair-room');
       const upperDoor=plan.metadata.runtime.roomDoors.find(d=>d.roomId==='upper-stair-room');
@@ -89,7 +117,12 @@ describe('Compact authored castle traversal', () => {
         const x=stair.center.x+lx*Math.cos(angle)+lz*Math.sin(angle),z=stair.center.z-lx*Math.sin(angle)+lz*Math.cos(angle);
         const predicted=stair.center.y+a[2]+(b[2]-a[2])*progress;
         const y=castleStraightStairHeight(stair,x,z,predicted) ?? predicted;
-        return {x,z,y,tolerance:.075};
+        return {
+          x,
+          z,
+          y,
+          tolerance:.075,
+        };
       };
       const verifyFlight=async(stair,ascending)=>{
         for(let step=ascending?1:stair.steps-1;ascending?step<=stair.steps:step>=1;step+=ascending?1:-1){
@@ -105,7 +138,11 @@ describe('Compact authored castle traversal', () => {
             const progress=surface.reverse ? (surface.maxZ-lz)/run : (lz-surface.minZ)/run;
             const index=Math.min(count-1,Math.floor(progress*count));
             const centerZ=surface.reverse ? surface.maxZ-run*(index+.5)/count : surface.minZ+run*(index+.5)/count;
-            await walkTo(window,{x:stair.center.x+lx*Math.cos(angle)+centerZ*Math.sin(angle),z:stair.center.z-lx*Math.sin(angle)+centerZ*Math.cos(angle),tolerance:.01});
+            await walkTo(window,{
+              x:stair.center.x+lx*Math.cos(angle)+centerZ*Math.sin(angle),
+              z:stair.center.z-lx*Math.sin(angle)+centerZ*Math.cos(angle),
+              tolerance:.01,
+            });
             window.gameMovementTest.move(0,0);
             await new Promise(resolve=>window.setTimeout(resolve,500));
             const resting=window.gameMovementTest.state().position;
@@ -116,53 +153,153 @@ describe('Compact authored castle traversal', () => {
           }
         }
       };
-      await walkTo(window,{x:groundDoor.x-roomSide*1.1,z:groundDoor.z});
-      await walkTo(window,{x:groundDoor.x+roomSide*.7,z:groundDoor.z});
+      await walkTo(window,{
+        x:groundDoor.x-roomSide*1.1,
+        z:groundDoor.z,
+      });
+      await walkTo(window,{
+        x:groundDoor.x+roomSide*.7,
+        z:groundDoor.z,
+      });
       const entryX=upper.center.x-roomSide*(upper.radius+.55), entryZ=upper.center.z;
-      await walkTo(window,{x:entryX,z:entryZ});
+      await walkTo(window,{
+        x:entryX,
+        z:entryZ,
+      });
       await walkTo(window,tread(upper,0));
       await verifyFlight(upper,true);
-      await walkTo(window,{x:entryX,z:tread(upper,24).z});
-      await walkTo(window,{x:entryX,z:entryZ});
-      await walkTo(window,{x:upperDoor.x,z:entryZ});
-      await walkTo(window,{x:upperDoor.x,z:upperDoor.z+.7});
-      await walkTo(window,{x:upperDoor.x,z:upperDoor.z-.7});
+      await walkTo(window,{
+        x:entryX,
+        z:tread(upper,24).z,
+      });
+      await walkTo(window,{
+        x:entryX,
+        z:entryZ,
+      });
+      await walkTo(window,{
+        x:upperDoor.x,
+        z:entryZ,
+      });
+      await walkTo(window,{
+        x:upperDoor.x,
+        z:upperDoor.z+.7,
+      });
+      await walkTo(window,{
+        x:upperDoor.x,
+        z:upperDoor.z-.7,
+      });
       expect(window.gameMovementTest.state().position.y).to.be.closeTo(upperDoor.y,.2);
-      await walkTo(window,{x:upperDoor.x,z:upperDoor.z+.7});
-      await walkTo(window,{x:upperDoor.x,z:entryZ});
-      await walkTo(window,{x:entryX,z:entryZ});
-      await walkTo(window,{x:entryX,z:tread(upper,24).z});
+      await walkTo(window,{
+        x:upperDoor.x,
+        z:upperDoor.z+.7,
+      });
+      await walkTo(window,{
+        x:upperDoor.x,
+        z:entryZ,
+      });
+      await walkTo(window,{
+        x:entryX,
+        z:entryZ,
+      });
+      await walkTo(window,{
+        x:entryX,
+        z:tread(upper,24).z,
+      });
       await verifyFlight(upper,false);
-      await walkTo(window,{x:entryX,z:entryZ});
+      await walkTo(window,{
+        x:entryX,
+        z:entryZ,
+      });
       await verifyFlight(lower,false);
       const basementDoor=plan.metadata.runtime.roomDoors.find(d=>d.roomId==='basement-stair-room');
       await walkTo(window,tread(lower,0));
-      await walkTo(window,{x:basementDoor.x+roomSide*.7,z:tread(lower,0).z,tolerance:.025});
-      await walkTo(window,{x:basementDoor.x+roomSide*.7,z:basementDoor.z,tolerance:.01});
-      await walkTo(window,{x:basementDoor.x-roomSide*1.1,z:basementDoor.z,tolerance:.025});
+      await walkTo(window,{
+        x:basementDoor.x+roomSide*.7,
+        z:tread(lower,0).z,
+        tolerance:.025,
+      });
+      await walkTo(window,{
+        x:basementDoor.x+roomSide*.7,
+        z:basementDoor.z,
+        tolerance:.01,
+      });
+      await walkTo(window,{
+        x:basementDoor.x-roomSide*1.1,
+        z:basementDoor.z,
+        tolerance:.025,
+      });
       const kitchen=plan.metadata.runtime.roomDoors.find(d=>d.roomId==='kitchen');
-      await walkTo(window,{x:corridorX,z:basementDoor.z});
-      await walkTo(window,{x:corridorX,z:kitchen.z});
-      await walkTo(window,{x:kitchen.x+roomSide*.55,z:kitchen.z});
+      await walkTo(window,{
+        x:corridorX,
+        z:basementDoor.z,
+      });
+      await walkTo(window,{
+        x:corridorX,
+        z:kitchen.z,
+      });
+      await walkTo(window,{
+        x:kitchen.x+roomSide*.55,
+        z:kitchen.z,
+      });
       expect(window.gameMovementTest.state().position.y).to.be.closeTo(kitchen.y,.2);
-      await walkTo(window,{x:corridorX,z:kitchen.z});
-      returnRoute={origin,groundDoor,basementDoor,lower,entryX,entryZ,corridorX,roomSide,tread,verifyFlight};
+      await walkTo(window,{
+        x:corridorX,
+        z:kitchen.z,
+      });
+      returnRoute={
+        origin,
+        groundDoor,
+        basementDoor,
+        lower,
+        entryX,
+        entryZ,
+        corridorX,
+        roomSide,
+        tread,
+        verifyFlight,
+      };
     });
     cy.get('.background-canvas').screenshot('compact-basement-doors-crossed');
     cy.window().then({timeout:180000},async window=>{
       const {origin,groundDoor,basementDoor,lower,entryX,entryZ,corridorX,roomSide,tread,verifyFlight}=returnRoute;
-      await walkTo(window,{x:corridorX,z:basementDoor.z});
-      await walkTo(window,{x:basementDoor.x+roomSide*.7,z:basementDoor.z,tolerance:.01});
+      await walkTo(window,{
+        x:corridorX,
+        z:basementDoor.z,
+      });
+      await walkTo(window,{
+        x:basementDoor.x+roomSide*.7,
+        z:basementDoor.z,
+        tolerance:.01,
+      });
       expect(window.gameMovementTest.state().position.y).to.be.closeTo(basementDoor.y,.2);
-      await walkTo(window,{x:basementDoor.x+roomSide*.7,z:tread(lower,0).z,tolerance:.025});
+      await walkTo(window,{
+        x:basementDoor.x+roomSide*.7,
+        z:tread(lower,0).z,
+        tolerance:.025,
+      });
       await walkTo(window,tread(lower,0));
       await verifyFlight(lower,true);
-      await walkTo(window,{x:entryX,z:entryZ});
-      await walkTo(window,{x:groundDoor.x+roomSide*.7,z:groundDoor.z});
-      await walkTo(window,{x:corridorX,z:groundDoor.z});
+      await walkTo(window,{
+        x:entryX,
+        z:entryZ,
+      });
+      await walkTo(window,{
+        x:groundDoor.x+roomSide*.7,
+        z:groundDoor.z,
+      });
+      await walkTo(window,{
+        x:corridorX,
+        z:groundDoor.z,
+      });
       expect(window.gameMovementTest.state().position.y).to.be.closeTo(origin.y,.2);
-      await walkTo(window,{x:origin.x,z:origin.z+.8});
-      await walkTo(window,{x:origin.x,z:-8.2});
+      await walkTo(window,{
+        x:origin.x,
+        z:origin.z+.8,
+      });
+      await walkTo(window,{
+        x:origin.x,
+        z:-8.2,
+      });
       expect(window.gameMovementTest.state().position.y).to.be.closeTo(origin.y,.2);
       window.dispatchEvent(new KeyboardEvent('keydown',{code:'ScrollLock'}));
       window.dispatchEvent(new KeyboardEvent('keyup',{code:'ScrollLock'}));

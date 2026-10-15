@@ -182,7 +182,11 @@ export class TriggerArea {
     const grassRootY = position.y + GRASS_ROOT_LIFT;
 
     this.#supportPoints = runtime.getGrassSupportPoints?.(
-      { x: position.x, y: grassRootY, z: position.z },
+      {
+        x: position.x,
+        y: grassRootY,
+        z: position.z,
+      },
       TRIGGER_RADIUS - 0.025,
     ) ?? this.#fallbackSupportPoints(position.x, grassRootY, position.z);
     if (!this.#supportPoints.length) {
@@ -276,7 +280,10 @@ export class TriggerArea {
     this.#heroContact =
       distance <= HERO_PRESS_RADIUS &&
       Math.abs(y - position.y) <= HERO_ELEVATION_TOLERANCE
-        ? { x, z }
+        ? {
+          x,
+          z,
+        }
         : null;
     const active =
       Math.abs(x - position.x) <= ACTIVATION_RADIUS &&
@@ -353,7 +360,11 @@ export class TriggerArea {
    * @param {number} z
    */
   #fallbackSupportPoints(x, y, z) {
-    const points = [{ x, y, z }];
+    const points = [{
+      x,
+      y,
+      z,
+    }];
     for (let index = 0; index < 12; index += 1) {
       const angle = index * Math.PI / 6;
       points.push({

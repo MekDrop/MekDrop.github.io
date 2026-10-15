@@ -127,12 +127,12 @@ export class TerrainBlockLayout {
        *
        * @param {{kind: string, cells: import("src/game/GameContracts.js").GridPoint[]}} river
        */
-      (river) =>
-        river.cells.map(/**
+        (river) =>
+          river.cells.map(/**
          *
          * @param {import("src/game/GameContracts.js").GridPoint} cell
          */
-        (cell) => [`${cell.col},${cell.row}`, cell]),
+            (cell) => [`${cell.col},${cell.row}`, cell]),
       ),
     );
     for (let row = 0; row < rows; row += 1) {
@@ -284,10 +284,10 @@ export class TerrainBlockLayout {
           );
           const { top, sides, underlay } = overpassFill
             ? {
-                top: topCube ? SURFACE_MATERIALS[type] : "earth",
-                sides: this.#pathEarthSideMaterial(col, row, level),
-                underlay: "earth",
-              }
+              top: topCube ? SURFACE_MATERIALS[type] : "earth",
+              sides: this.#pathEarthSideMaterial(col, row, level),
+              underlay: "earth",
+            }
             : this.#cubeMaterials(type, topCube, col, row, level);
           this.#instanceRenderer.addCubeMatrix(
             top,
@@ -440,10 +440,10 @@ export class TerrainBlockLayout {
       const topCube = level === height - 1;
       const { top, sides, underlay } = dirtOnly
         ? {
-            top: "earth",
-            sides: this.#pathEarthSideMaterial(col, row, level),
-            underlay: "earth",
-          }
+          top: "earth",
+          sides: this.#pathEarthSideMaterial(col, row, level),
+          underlay: "earth",
+        }
         : this.#cubeMaterials(TileType.GRASS, topCube, col, row, level);
       this.#instanceRenderer.addCubeMatrix(
         top,
@@ -525,13 +525,25 @@ export class TerrainBlockLayout {
     const horizontal = direction === "EAST" || direction === "WEST";
     const candidates = horizontal
       ? [
-          { col, row: row - 1 },
-          { col, row: row + 1 },
-        ]
+        {
+          col,
+          row: row - 1,
+        },
+        {
+          col,
+          row: row + 1,
+        },
+      ]
       : [
-          { col: col - 1, row },
-          { col: col + 1, row },
-        ];
+        {
+          col: col - 1,
+          row,
+        },
+        {
+          col: col + 1,
+          row,
+        },
+      ];
     return (
       candidates.find(
         /**

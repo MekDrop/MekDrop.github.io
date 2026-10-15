@@ -39,7 +39,7 @@ export function createEarthTextureVariants(mapData) {
      *
      * @param {number} height
      */
-    (height) => Math.ceil(height)),
+      (height) => Math.ceil(height)),
     Math.ceil(mapData.overpassData?.deckElevation ?? 0),
   );
   const seed = hashString(mapData.mapName ?? mapData.layoutSignature ?? "earth");
@@ -48,23 +48,26 @@ export function createEarthTextureVariants(mapData) {
    * @param {undefined} _
    * @param {number} row
    */
-  (_, row) =>
-    Array.from({ length: mapData.cols }, /**
+    (_, row) =>
+      Array.from({ length: mapData.cols }, /**
      *
      * @param {undefined} _
      * @param {number} col
      */
-    (_, col) =>
-      Array.from(
-        { length: highestTerrain - firstLevel + 1 },
-        /**
+        (_, col) =>
+          Array.from(
+            { length: highestTerrain - firstLevel + 1 },
+            /**
          *
          * @param {undefined} _
          * @param {number} index
          */
-        (_, index) => variantForBlock(seed, col, row, firstLevel + index),
+            (_, index) => variantForBlock(seed, col, row, firstLevel + index),
+          ),
       ),
-    ),
   );
-  return { firstLevel, tiles };
+  return {
+    firstLevel,
+    tiles,
+  };
 }

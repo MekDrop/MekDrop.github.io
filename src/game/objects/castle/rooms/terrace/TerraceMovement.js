@@ -76,12 +76,24 @@ export const syncTerraceWalk = ({
   );
   const path = lateral > 0 && lateral < 1
     ? [
-      { x: 0, z: DOORWAY_CLEAR_Z },
-      { x: target[0], z: target[2] },
+      {
+        x: 0,
+        z: DOORWAY_CLEAR_Z,
+      },
+      {
+        x: target[0],
+        z: target[2],
+      },
     ]
     : [
-      { x: 0, z: DOORWAY_START_Z },
-      { x: 0, z: DOORWAY_CLEAR_Z },
+      {
+        x: 0,
+        z: DOORWAY_START_Z,
+      },
+      {
+        x: 0,
+        z: DOORWAY_CLEAR_Z,
+      },
     ];
   const yaw = terracePathYaw(path);
   actor.entity.setLocalEulerAngles(0, yaw + (leaving ? 180 : 0), 0);

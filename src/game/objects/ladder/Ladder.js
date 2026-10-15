@@ -44,18 +44,25 @@ export class Ladder extends AbstractCastleProp {
     const { bottom, top } = definition;
     const rotation = definition.rotation ?? Math.atan2(top.x - bottom.x, top.z - bottom.z) * 180 / Math.PI;
     const angle = rotation * Math.PI / 180;
-    return { ...definition, rotation, position: definition.position ?? {
-      x: bottom.x + Math.sin(angle) * 0.375,
-      y: bottom.y,
-      z: bottom.z + Math.cos(angle) * 0.375,
-    } };
+    return {
+      ...definition,
+      rotation,
+      position: definition.position ?? {
+        x: bottom.x + Math.sin(angle) * 0.375,
+        y: bottom.y,
+        z: bottom.z + Math.cos(angle) * 0.375,
+      },
+    };
   }
 
   /**
    * @param {ConstructorParameters<typeof AbstractCastleProp>[0]} options
    */
   constructor(options) {
-    options = { ...options, definition: Ladder.resolveDefinition(options.definition) };
+    options = {
+      ...options,
+      definition: Ladder.resolveDefinition(options.definition),
+    };
     super(options);
     const { pc, modelLibrary, definition } = options;
     this.#climbUpdate = options.app.on("update", () => {
@@ -106,8 +113,14 @@ export class Ladder extends AbstractCastleProp {
     this.#hatchCollider = new pc.Entity("Closed tower hatch support");
     this.#hatch.addChild(this.#hatchCollider);
     this.#hatchCollider.setLocalPosition(0, -0.03, hatch.depth / 2);
-    this.#hatchCollider.addComponent("collision", { type: "box", halfExtents: new pc.Vec3(hatch.width / 2, 0.03, hatch.depth / 2) });
-    this.#hatchCollider.addComponent("rigidbody", { type: "static", friction: 0.6 });
+    this.#hatchCollider.addComponent("collision", {
+      type: "box",
+      halfExtents: new pc.Vec3(hatch.width / 2, 0.03, hatch.depth / 2),
+    });
+    this.#hatchCollider.addComponent("rigidbody", {
+      type: "static",
+      friction: 0.6,
+    });
   }
 
   /**
@@ -156,7 +169,10 @@ export class Ladder extends AbstractCastleProp {
     const bottom = this.landing("bottom");
     const root = this.visualRoots[0].getPosition();
     const length = Math.hypot(root.x - bottom.x, root.z - bottom.z) || 1;
-    return { x: (root.x - bottom.x) / length, z: (root.z - bottom.z) / length };
+    return {
+      x: (root.x - bottom.x) / length,
+      z: (root.z - bottom.z) / length,
+    };
   }
 
   /**
@@ -174,8 +190,11 @@ export class Ladder extends AbstractCastleProp {
      *
      * @param {number} side
      */
-    side => ({ x: guide.x + side * Math.cos(angle) * offset - facing.x * 0.12,
-      y: top.y, z: guide.z - side * Math.sin(angle) * offset - facing.z * 0.12 }));
+      side => ({
+        x: guide.x + side * Math.cos(angle) * offset - facing.x * 0.12,
+        y: top.y,
+        z: guide.z - side * Math.sin(angle) * offset - facing.z * 0.12,
+      }));
   }
 
   /**
@@ -190,7 +209,11 @@ export class Ladder extends AbstractCastleProp {
     const rail = this.visualRoots[0].children[0].getWorldTransform().transformPoint(new Vec3(0, 3.7 * amount, 0));
     const distance = Math.hypot(bottom.x - root.x, bottom.z - root.z) || 1;
     const clearance = Math.min(1, 0.25 / distance);
-    return { x: rail.x + (bottom.x - root.x) * clearance, y: height, z: rail.z + (bottom.z - root.z) * clearance };
+    return {
+      x: rail.x + (bottom.x - root.x) * clearance,
+      y: height,
+      z: rail.z + (bottom.z - root.z) * clearance,
+    };
   }
 
   /**
@@ -211,7 +234,11 @@ export class Ladder extends AbstractCastleProp {
     const root = this.visualRoots[0].getPosition();
     const target = this.definition[end];
     const anchor = this.definition.position;
-    return { x: root.x + target.x - anchor.x, y: root.y + target.y - anchor.y, z: root.z + target.z - anchor.z };
+    return {
+      x: root.x + target.x - anchor.x,
+      y: root.y + target.y - anchor.y,
+      z: root.z + target.z - anchor.z,
+    };
   }
 
   /**

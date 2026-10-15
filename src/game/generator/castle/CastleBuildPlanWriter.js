@@ -329,7 +329,7 @@ export class CastleBuildPlanWriter {
      *
      * @param {{boundary:string}} entry
      */
-    (entry) => entry.boundary === CASTLE_BOUNDARY.FRONT);
+      (entry) => entry.boundary === CASTLE_BOUNDARY.FRONT);
     const sign = ["WEST", "SOUTH"].includes(this.#layout.primarySide) ? -1 : 1;
     const x = sign * (v - (opening.start + opening.end - 1) / 2) * CASTLE_BLOCK_SIZE;
     const z = (u + 0.5) * CASTLE_BLOCK_SIZE;
@@ -338,7 +338,7 @@ export class CastleBuildPlanWriter {
      *
      * @param {{axis:string,coordinate:number,center:number,width:number,floorY:number}} door
      */
-    (door) => height >= door.floorY && height < door.floorY + 2 &&
+      (door) => height >= door.floorY && height < door.floorY + 2 &&
       Math.abs((door.axis === "x" ? x : z) - door.coordinate) < 0.26 &&
       Math.abs((door.axis === "x" ? z : x) - door.center) < door.width / 2 - 0.00001);
   }
@@ -355,7 +355,7 @@ export class CastleBuildPlanWriter {
        *
        * @param {{boundary:string}} entry
        */
-      (entry) => entry.boundary === CASTLE_BOUNDARY.FRONT);
+        (entry) => entry.boundary === CASTLE_BOUNDARY.FRONT);
       const sign = ["WEST", "SOUTH"].includes(this.#layout.primarySide) ? -1 : 1;
       const x = sign * (blockV - (opening.start + opening.end - 1) / 2) * CASTLE_BLOCK_SIZE;
       const z = (blockU + 0.5) * CASTLE_BLOCK_SIZE;
@@ -367,7 +367,7 @@ export class CastleBuildPlanWriter {
        *
        * @param {import("./rooms/AbstractCastleRoomGenerator.js").PlannedCastleRoom} room
        */
-      (room) => x > room.minX && x < room.maxX &&
+        (room) => x > room.minX && x < room.maxX &&
         z > room.minZ && z < room.maxZ && y >= room.floorY && y < room.floorY + room.height);
     }
     if (plan) {
@@ -499,7 +499,10 @@ export class CastleBuildPlanWriter {
       blockX = blockV;
       blockZ = this.#layout.depthBlocks - 1 - blockU;
     }
-    return { blockX, blockZ };
+    return {
+      blockX,
+      blockZ,
+    };
   }
 
   /**
@@ -522,28 +525,76 @@ export class CastleBuildPlanWriter {
   #boundaryNormal(boundary) {
     const normals = {
       WEST: {
-        [CASTLE_BOUNDARY.FRONT]: { x: -1, z: 0 },
-        [CASTLE_BOUNDARY.BACK]: { x: 1, z: 0 },
-        [CASTLE_BOUNDARY.LEFT]: { x: 0, z: -1 },
-        [CASTLE_BOUNDARY.RIGHT]: { x: 0, z: 1 },
+        [CASTLE_BOUNDARY.FRONT]: {
+          x: -1,
+          z: 0,
+        },
+        [CASTLE_BOUNDARY.BACK]: {
+          x: 1,
+          z: 0,
+        },
+        [CASTLE_BOUNDARY.LEFT]: {
+          x: 0,
+          z: -1,
+        },
+        [CASTLE_BOUNDARY.RIGHT]: {
+          x: 0,
+          z: 1,
+        },
       },
       EAST: {
-        [CASTLE_BOUNDARY.FRONT]: { x: 1, z: 0 },
-        [CASTLE_BOUNDARY.BACK]: { x: -1, z: 0 },
-        [CASTLE_BOUNDARY.LEFT]: { x: 0, z: -1 },
-        [CASTLE_BOUNDARY.RIGHT]: { x: 0, z: 1 },
+        [CASTLE_BOUNDARY.FRONT]: {
+          x: 1,
+          z: 0,
+        },
+        [CASTLE_BOUNDARY.BACK]: {
+          x: -1,
+          z: 0,
+        },
+        [CASTLE_BOUNDARY.LEFT]: {
+          x: 0,
+          z: -1,
+        },
+        [CASTLE_BOUNDARY.RIGHT]: {
+          x: 0,
+          z: 1,
+        },
       },
       NORTH: {
-        [CASTLE_BOUNDARY.FRONT]: { x: 0, z: -1 },
-        [CASTLE_BOUNDARY.BACK]: { x: 0, z: 1 },
-        [CASTLE_BOUNDARY.LEFT]: { x: -1, z: 0 },
-        [CASTLE_BOUNDARY.RIGHT]: { x: 1, z: 0 },
+        [CASTLE_BOUNDARY.FRONT]: {
+          x: 0,
+          z: -1,
+        },
+        [CASTLE_BOUNDARY.BACK]: {
+          x: 0,
+          z: 1,
+        },
+        [CASTLE_BOUNDARY.LEFT]: {
+          x: -1,
+          z: 0,
+        },
+        [CASTLE_BOUNDARY.RIGHT]: {
+          x: 1,
+          z: 0,
+        },
       },
       SOUTH: {
-        [CASTLE_BOUNDARY.FRONT]: { x: 0, z: 1 },
-        [CASTLE_BOUNDARY.BACK]: { x: 0, z: -1 },
-        [CASTLE_BOUNDARY.LEFT]: { x: -1, z: 0 },
-        [CASTLE_BOUNDARY.RIGHT]: { x: 1, z: 0 },
+        [CASTLE_BOUNDARY.FRONT]: {
+          x: 0,
+          z: 1,
+        },
+        [CASTLE_BOUNDARY.BACK]: {
+          x: 0,
+          z: -1,
+        },
+        [CASTLE_BOUNDARY.LEFT]: {
+          x: -1,
+          z: 0,
+        },
+        [CASTLE_BOUNDARY.RIGHT]: {
+          x: 1,
+          z: 0,
+        },
       },
     };
     return normals[this.#layout.primarySide][boundary];

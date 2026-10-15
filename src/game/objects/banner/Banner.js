@@ -51,10 +51,23 @@ export class Banner {
            */
           (item) => item.id === id,
         )) { continue; }
-        objects.push({ id, object: Banner.name, variant: "cloth", castleBanner: true,
-          sourceCastleId: castle.id, sourceCastleSeed: castle.seed, tile: castle.tile,
-          position: { x: banner.x, y: banner.y, z: banner.z }, rotation: banner.yaw,
-          width: banner.width, height: banner.height });
+        objects.push({
+          id,
+          object: Banner.name,
+          variant: "cloth",
+          castleBanner: true,
+          sourceCastleId: castle.id,
+          sourceCastleSeed: castle.seed,
+          tile: castle.tile,
+          position: {
+            x: banner.x,
+            y: banner.y,
+            z: banner.z,
+          },
+          rotation: banner.yaw,
+          width: banner.width,
+          height: banner.height,
+        });
       }
     }
   }
@@ -66,8 +79,13 @@ export class Banner {
     const { pc, definition, runtime = {} } = options;
     this.#definition = definition;
     this.#visual = new BannerCloth(options);
-    this.#visual.add({ ...definition.position, yaw: definition.rotation ?? 0,
-      width: definition.width, height: definition.height, variant: definition.variant });
+    this.#visual.add({
+      ...definition.position,
+      yaw: definition.rotation ?? 0,
+      width: definition.width,
+      height: definition.height,
+      variant: definition.variant,
+    });
     this.#visual.entity.tags.add("map-object", definition.id, Banner.name);
     const root = this.#visual.entity.children[0];
     this.#islandRoots = new IslandObjectRoots(pc, this.#visual.entity, runtime.mapData);
@@ -75,7 +93,11 @@ export class Banner {
     root.setLocalPosition(definition.position.x, definition.position.y, definition.position.z);
     root.setLocalEulerAngles(definition.tilt?.x ?? 0, definition.rotation ?? 0, definition.tilt?.z ?? 0);
     const scale = definition.scale ?? 1;
-    const stretch = definition.stretch ?? { x: 1, y: 1, z: 1 };
+    const stretch = definition.stretch ?? {
+      x: 1,
+      y: 1,
+      z: 1,
+    };
     root.setLocalScale(scale * stretch.x, scale * stretch.y, scale * stretch.z);
   }
 
@@ -102,7 +124,10 @@ export class Banner {
    */
   getPointerHit(start, end) {
     const hit = this.#visual.getBannerHit(start, end);
-    return hit ? { ...hit, pointerTarget: this } : null;
+    return hit ? {
+      ...hit,
+      pointerTarget: this,
+    } : null;
   }
   /**
    * @param {{hit: Parameters<BannerCloth["beginWindGesture"]>[0]}} options

@@ -59,10 +59,26 @@ export class Fireplace extends AbstractCastleProp {
         }
         if (instance.material.name === "Chimney soot-dark stone") { continue; }
         const material = FireSurfaceMaterial.create(pc, app.graphicsDevice, instance.material, {
-          position: { x: 0, y: 0.25, z: -0.08 },
-          volume: { x: 0.74, y: 0.59, z: 0.48 },
-          fadeIn: { x: 0.05, y: 0.06, z: 0.08 },
-          fadeOut: { x: 0.05, y: 0.05, z: 0.08 },
+          position: {
+            x: 0,
+            y: 0.25,
+            z: -0.08,
+          },
+          volume: {
+            x: 0.74,
+            y: 0.59,
+            z: 0.48,
+          },
+          fadeIn: {
+            x: 0.05,
+            y: 0.06,
+            z: 0.08,
+          },
+          fadeOut: {
+            x: 0.05,
+            y: 0.05,
+            z: 0.08,
+          },
         });
         instance.material = material;
         this.#materials.push(material);
@@ -107,7 +123,11 @@ export class Fireplace extends AbstractCastleProp {
         halfExtents: new pc.Vec3(0.29 * scale, height / 2, 0.2 * scale),
         linearOffset: new pc.Vec3(0.028 * scale, 1.65 * scale + height / 2, -0.2073 * scale),
       });
-      this.#chimney.addComponent("rigidbody", { type: "static", friction: 0.6, restitution: 0 });
+      this.#chimney.addComponent("rigidbody", {
+        type: "static",
+        friction: 0.6,
+        restitution: 0,
+      });
     }
     const glow = new pc.Entity("Kitchen hearth glow");
     glow.setLocalPosition(0, 0.55 * scale, 0.24 * scale);

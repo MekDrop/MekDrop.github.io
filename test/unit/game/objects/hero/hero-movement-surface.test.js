@@ -25,23 +25,44 @@ function scenario(overrides = {}) {
   const feet = new HeroFootSupport(terrain);
   const movement = new HeroMovementSurface(terrain, feet, collision);
   const state = Object.freeze({
-    position: Object.freeze({ x: 0, y: 2 + GRASS_SURFACE_LIFT, z: 0 }),
-    direction: Object.freeze({ x: 1, z: 0 }),
+    position: Object.freeze({
+      x: 0,
+      y: 2 + GRASS_SURFACE_LIFT,
+      z: 0,
+    }),
+    direction: Object.freeze({
+      x: 1,
+      z: 0,
+    }),
     grounded: true,
     dodging: false,
     repelled: false,
     fallingToDeath: false,
   });
-  return { map, movement, state, collision };
+  return {
+    map,
+    movement,
+    state,
+    collision,
+  };
 }
 
 it("refuses an unsupported ledge but allows a safe descent, dodge and repulsion", () => {
   const { map, movement, state } = scenario();
   for (const row of map.heightmap) row[4] = 0;
   assert.equal(movement.occupancyAt(0.3, 0, state), "edge");
-  assert.equal(movement.occupancyAt(0.3, 0, { ...state, dodging: true }), "open");
-  assert.equal(movement.occupancyAt(0.3, 0, { ...state, repelled: true }), "open");
-  assert.equal(movement.occupancyAt(0.3, 0, { ...state, grounded: false }), "open");
+  assert.equal(movement.occupancyAt(0.3, 0, {
+    ...state,
+    dodging: true,
+  }), "open");
+  assert.equal(movement.occupancyAt(0.3, 0, {
+    ...state,
+    repelled: true,
+  }), "open");
+  assert.equal(movement.occupancyAt(0.3, 0, {
+    ...state,
+    grounded: false,
+  }), "open");
   for (const row of map.heightmap) row[4] = 1;
   assert.equal(movement.occupancyAt(0.3, 0, state), "open");
 });
@@ -50,8 +71,22 @@ it("uses current query state after relocation and retains forward torso clearanc
   const { map, movement, state } = scenario();
   map.heightmap[3][4] = 4;
   assert.equal(movement.occupancyAt(0.05, 0, state), "blocked");
-  assert.equal(movement.occupancyAt(0.05, 0, { ...state, position: { x: 0, y: 4 + GRASS_SURFACE_LIFT, z: 0 }, grounded: false }), "open");
-  assert.equal(movement.occupancyAt(0.05, 0, { ...state, direction: { x: -1, z: 0 } }), "open");
+  assert.equal(movement.occupancyAt(0.05, 0, {
+    ...state,
+    position: {
+      x: 0,
+      y: 4 + GRASS_SURFACE_LIFT,
+      z: 0,
+    },
+    grounded: false,
+  }), "open");
+  assert.equal(movement.occupancyAt(0.05, 0, {
+    ...state,
+    direction: {
+      x: -1,
+      z: 0,
+    },
+  }), "open");
 });
 
 it("leaves ledge contact to physics-managed supports without exempting authored surfaces", () => {
@@ -91,7 +126,11 @@ it("queries hole refusal at the body then the forward footprint with nullish fal
 
 it("keeps angry escape on connected level ground with clearance for the full route", () => {
   const { map, movement, state, collision } = scenario();
-  const target = { x: 2, y: state.position.y, z: 0 };
+  const target = {
+    x: 2,
+    y: state.position.y,
+    z: 0,
+  };
   assert.equal(movement.canEscapeAcross(state.position, target, state), true);
   map.grid[3][4] = TileType.WATER;
   assert.equal(movement.canEscapeAcross(state.position, target, state), false);

@@ -2,12 +2,17 @@ import { registerHooks } from 'node:module';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-registerHooks({ resolve(specifier, context, nextResolve) {
-  if (specifier.endsWith('?url')) {
-    return { url: `data:text/javascript,export default ${JSON.stringify(specifier)}`, shortCircuit: true };
-  }
-  return nextResolve(specifier, context);
-} });
+registerHooks({
+  resolve(specifier, context, nextResolve) {
+    if (specifier.endsWith('?url')) {
+      return {
+        url: `data:text/javascript,export default ${JSON.stringify(specifier)}`,
+        shortCircuit: true,
+      };
+    }
+    return nextResolve(specifier, context);
+  },
+});
 const { Fire } = await import('../../../../../src/game/objects/fire/Fire.js');
 
 class Entity {
@@ -21,12 +26,37 @@ class Entity {
   destroy() { this.destroyed = true; }
 }
 class Curve { constructor(keys) { this.keys = keys; } }
-class Vec3 { constructor(x, y, z) { Object.assign(this, { x, y, z }); } }
-const pc = { Entity, Curve, CurveSet: Curve, Vec3 };
+class Vec3 { constructor(x, y, z) { Object.assign(this, {
+  x,
+  y,
+  z,
+}); } }
+const pc = {
+  Entity,
+  Curve,
+  CurveSet: Curve,
+  Vec3,
+};
 const app = { assets: { find: () => ({ resource: 'texture' }) } };
 
 test('one volume creates one emitter with derived footprint, height and density', () => {
-  const fire = new Fire({ pc, app, definition: { id: 'fire', position: { x: 2, y: 3, z: 4 }, volume: { x: 2, y: 1, z: 1 } } });
+  const fire = new Fire({
+    pc,
+    app,
+    definition: {
+      id: 'fire',
+      position: {
+        x: 2,
+        y: 3,
+        z: 4,
+      },
+      volume: {
+        x: 2,
+        y: 1,
+        z: 1,
+      },
+    },
+  });
   const root = fire.entity.children[0];
   assert.deepEqual(root.position, [2, 3, 4]);
   assert.equal(root.children.length, 1);
@@ -44,7 +74,24 @@ test('one volume creates one emitter with derived footprint, height and density'
 
 test('intensity changes brightness independently of the box and zero disables flames', () => {
   for (const intensity of [0, 0.5, 2]) {
-    const fire = new Fire({ pc, app, definition: { id: 'fire', position: { x: 0, y: 0, z: 0 }, volume: { x: 2, y: 1, z: 1 }, intensity } });
+    const fire = new Fire({
+      pc,
+      app,
+      definition: {
+        id: 'fire',
+        position: {
+          x: 0,
+          y: 0,
+          z: 0,
+        },
+        volume: {
+          x: 2,
+          y: 1,
+          z: 1,
+        },
+        intensity,
+      },
+    });
     const emitter = fire.entity.children[0].children[0];
     assert.equal(emitter.enabled, intensity > 0);
     assert.equal(emitter.particlesystem.intensity, 1.08 * intensity);
@@ -62,8 +109,20 @@ test('attached prop fire uses the normal emitter in parent space and is destroye
   }
   const parent = new PropEntity('wick');
   parent.setLocalPosition(2, 3, 4);
-  const fire = Fire.attach({ ...engine, Entity: PropEntity, Application: { getApplication: () => app } },
-    parent, { x: 0, y: 0.1, z: 0 }, { x: 0.02, y: 0.08, z: 0.02 });
+  const fire = Fire.attach({
+    ...engine,
+    Entity: PropEntity,
+    Application: { getApplication: () => app },
+  },
+  parent, {
+    x: 0,
+    y: 0.1,
+    z: 0,
+  }, {
+    x: 0.02,
+    y: 0.08,
+    z: 0.02,
+  });
   assert.equal(fire.entity.parent, parent);
   const root = fire.entity.children[0];
   assert.ok(Math.abs(root.getPosition().y - 3.1) < 1e-6);

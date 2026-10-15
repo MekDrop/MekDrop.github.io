@@ -9,7 +9,10 @@ import { it } from "node:test";
 function model(path) {
   const buffer = readFileSync(new URL(`../../../../../src/game/models/castle/${path}.glb`, import.meta.url));
   const jsonLength = buffer.readUInt32LE(12);
-  return { ...JSON.parse(buffer.toString("utf8", 20, 20 + jsonLength)), binary: buffer.subarray(28 + jsonLength) };
+  return {
+    ...JSON.parse(buffer.toString("utf8", 20, 20 + jsonLength)),
+    binary: buffer.subarray(28 + jsonLength),
+  };
 }
 
 it("exports one rectangular interior leaf with an animated right-hand hinge", () => {

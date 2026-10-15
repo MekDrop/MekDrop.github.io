@@ -15,8 +15,14 @@ function riverFixture() {
   }));
   return {
     cells,
-    cascades: [{ from: cells[8], to: cells[9] }],
-    waterfall: { col: 19, row: 3 },
+    cascades: [{
+      from: cells[8],
+      to: cells[9],
+    }],
+    waterfall: {
+      col: 19,
+      row: 3,
+    },
   };
 }
 
@@ -28,12 +34,21 @@ describe('river stone placement plan', () => {
 
     assert.deepEqual(second, first);
     assert.deepEqual(first.map(({ cell }) => cell), [
-      { col: 4, row: 3 },
-      { col: 12, row: 3 },
-      { col: 16, row: 3 },
+      {
+        col: 4,
+        row: 3,
+      },
+      {
+        col: 12,
+        row: 3,
+      },
+      {
+        col: 16,
+        row: 3,
+      },
     ]);
     assert.deepEqual(first.map(({ modelIndex }) => modelIndex), [2, 1, 0]);
-});
+  });
   it('respects blocked cells and the three-stone river limit', () => {
     const placements = new RiverStonePlacementPlan(MODEL_HEIGHTS).create(
       [riverFixture()],

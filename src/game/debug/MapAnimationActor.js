@@ -15,10 +15,10 @@ const ROYAL_VARIANTS = new Map(
    * @param {string} variant
    * @param {number} index
    */
-  (variant, index) => [
-    variant,
-    SeatedRoyal.modelUrls[index],
-  ]),
+    (variant, index) => [
+      variant,
+      SeatedRoyal.modelUrls[index],
+    ]),
 );
 const AXE_ANIMATIONS = new Set([
   HERO_ANIMATION.SUMMON_AXE,
@@ -87,7 +87,11 @@ export class MapAnimationActor {
       object,
       animation,
       position,
-      rotation = { x: 0, y: 45, z: 0 },
+      rotation = {
+        x: 0,
+        y: 45,
+        z: 0,
+      },
       scale = 0.65,
       morph = null,
     } = definition;
@@ -118,7 +122,11 @@ export class MapAnimationActor {
     this.#entity.addChild(this.#model);
 
     if (object === Hero.name) {
-      this.#configureHero({ modelLibrary, animation, morph });
+      this.#configureHero({
+        modelLibrary,
+        animation,
+        morph,
+      });
     } else if (animation === ROYAL_ANIMATION.CRY) {
       this.#ownedObject.beginCrying();
     } else {
@@ -212,22 +220,22 @@ export class MapAnimationActor {
          *
          * @param {pc.RenderComponent} render
          */
-        (render) => render.meshInstances)
+          (render) => render.meshInstances)
         .map(/**
          *
          * @param {pc.Mesh} mesh
          */
-        (mesh) => mesh.morphInstance)
+          (mesh) => mesh.morphInstance)
         .filter(/**
          *
          * @param {pc.Entity|pc.MeshInstance} instance
          */
-        (instance) =>
-          instance?.morph.targets.some(/**
+          (instance) =>
+            instance?.morph.targets.some(/**
            *
            * @param {EventTarget|pc.Entity} target
            */
-          (target) => target.name === morph),
+              (target) => target.name === morph),
         );
     }
     if (animation === HERO_ANIMATION.FILL_HOLE) {

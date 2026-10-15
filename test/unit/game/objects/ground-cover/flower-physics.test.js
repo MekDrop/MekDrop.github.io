@@ -31,7 +31,12 @@ class FakeVec3 {
 
 class FakeQuat {
   setFromDirections() { return this; }
-  set(x, y, z, w) { Object.assign(this, { x, y, z, w }); return this; }
+  set(x, y, z, w) { Object.assign(this, {
+    x,
+    y,
+    z,
+    w,
+  }); return this; }
   setFromEulerAngles() {
     return this;
   }
@@ -79,7 +84,11 @@ class FakeEntity {
   addComponent(type, options) {
     this.components.set(type, options);
     if (type === "rigidbody") {
-      this.rigidbody = { on() {}, syncEntityToBody() {}, teleport: (x, y, z) => this.setPosition(x, y, z) };
+      this.rigidbody = {
+        on() {},
+        syncEntityToBody() {},
+        teleport: (x, y, z) => this.setPosition(x, y, z),
+      };
     }
   }
 
@@ -130,7 +139,11 @@ function createFlower(physics) {
   return physics.addFlower({
     variant: "daisy-patch",
     matrixIndex: 0,
-    position: { x: 2, y: 3, z: 4 },
+    position: {
+      x: 2,
+      y: 3,
+      z: 4,
+    },
     rotation: 20,
     horizontalScale: 1.5,
     verticalScale: 2,
@@ -143,7 +156,10 @@ describe("flower physics", () => {
     const physics = new FlowerPhysics({ pc });
     const flower = createFlower(physics);
     const storage = new Float32Array(16);
-    physics.setBatch("daisy-patch", { lock: () => storage, unlock() {} });
+    physics.setBatch("daisy-patch", {
+      lock: () => storage,
+      unlock() {},
+    });
     flower.body.setPosition(2, 3.18, 4);
     physics.setOffset(flower, 0.6);
     physics.updateMatrices();
@@ -181,8 +197,15 @@ describe("flower physics", () => {
     assert.equal(flower.anchor, anchor);
 
     physics.updateHeroPosition(
-      { x: 1, y: 2, z: 3 },
-      { x: 0, z: 1 },
+      {
+        x: 1,
+        y: 2,
+        z: 3,
+      },
+      {
+        x: 0,
+        z: 1,
+      },
     );
     assert.deepEqual(leftFoot.position, new FakeVec3(0.893, 2.32, 3.076));
     assert.deepEqual(rightFoot.position, new FakeVec3(1.107, 2.32, 3.076));
@@ -212,7 +235,10 @@ describe("flower physics", () => {
     const physics = new FlowerPhysics({ pc });
     const flower = createFlower(physics);
     const storage = new Float32Array(16);
-    physics.setBatch("daisy-patch", { lock: () => storage, unlock() {} });
+    physics.setBatch("daisy-patch", {
+      lock: () => storage,
+      unlock() {},
+    });
     // A compressed, laterally displaced tip must keep the visible canopy below
     // the sole, even when its direction would otherwise rotate the entire patch.
     flower.body.setPosition(2.1, 3.04, 4.08);
@@ -227,20 +253,38 @@ describe("flower physics", () => {
     const physics = new FlowerPhysics({ pc });
     const flower = createFlower(physics);
     const storage = new Float32Array(16);
-    physics.setBatch("daisy-patch", { lock: () => storage, unlock() {} });
+    physics.setBatch("daisy-patch", {
+      lock: () => storage,
+      unlock() {},
+    });
     const contacts = new Map();
     physics.setContactMaterial({ setParameter: (name, value) => contacts.set(name, Array.from(value)) });
     flower.body.setPosition(2, 3.32, 4);
     // No solver step or worker response has occurred yet.
-    physics.updateHeroPosition({ x: 2, y: 3, z: 4 });
+    physics.updateHeroPosition({
+      x: 2,
+      y: 3,
+      z: 4,
+    });
     assert.ok(0.1586 * storage[5] > 0.08, "outer petals must remain visible above the grass");
     assert.ok(Math.abs(contacts.get("uFlowerFoot0")[1] - 3.02) < 1e-5, "shader receives the current sole boundary before a solver response");
-    physics.updateHeroPosition({ x: 2, y: 3, z: 4 }, { x: 0, z: 0 });
+    physics.updateHeroPosition({
+      x: 2,
+      y: 3,
+      z: 4,
+    }, {
+      x: 0,
+      z: 0,
+    });
     assert.deepEqual(contacts.get("uFlowerFootDirection"), [0, 1], "standing still must retain a valid local footprint");
     flower.body.setPosition(2, 3.18, 4);
     physics.updateMatrices();
     assert.ok(0.1586 * storage[5] > 0.08, "contact should retain surrounding petals even with a stale worker pose");
-    physics.updateHeroPosition({ x: 4, y: 3, z: 4 });
+    physics.updateHeroPosition({
+      x: 4,
+      y: 3,
+      z: 4,
+    });
     assert.ok(storage[5] > 0.9, "a released flower must follow its simulated pose again");
   });
 });
@@ -260,10 +304,16 @@ describe("flower worker lifecycle", () => {
     const originalWorker = globalThis.Worker;
     globalThis.Worker = FakeWorker;
     try {
-      const physics = new FlowerPhysics({ pc, useWorker: true });
+      const physics = new FlowerPhysics({
+        pc,
+        useWorker: true,
+      });
       const flower = createFlower(physics);
       const storage = new Float32Array(16);
-      physics.setBatch("daisy-patch", { lock: () => storage, unlock() {} });
+      physics.setBatch("daisy-patch", {
+        lock: () => storage,
+        unlock() {},
+      });
       physics.advance(1 / 60);
       const worker = FakeWorker.current;
       assert.equal(worker.messages[0].type, "initialize");
@@ -273,11 +323,17 @@ describe("flower worker lifecycle", () => {
       physics.advance(1 / 60);
       assert.equal(worker.messages.filter(m => m.type === "step").length, 1);
       physics.setOffset(flower, 0.3);
-      worker.emit({ type: "result", transforms: new Float32Array([2, 3.18, 4, 0, 0, 0, 1]) });
+      worker.emit({
+        type: "result",
+        transforms: new Float32Array([2, 3.18, 4, 0, 0, 0, 1]),
+      });
       physics.advance(1 / 60);
       assert.ok(Math.abs(storage[13] - 3.3) < 1e-5);
       physics.hide(flower);
-      worker.emit({ type: "result", transforms: new Float32Array([2, 3.18, 4, 0, 0, 0, 1]) });
+      worker.emit({
+        type: "result",
+        transforms: new Float32Array([2, 3.18, 4, 0, 0, 0, 1]),
+      });
       physics.advance(1 / 60);
       assert.equal(storage[0], 0);
       assert.equal(worker.messages.at(-1).hidden[0], 1);
@@ -291,13 +347,19 @@ describe("flower worker lifecycle", () => {
     globalThis.Worker = FakeWorker;
     console.warn = () => {};
     try {
-      const physics = new FlowerPhysics({ pc, useWorker: true });
+      const physics = new FlowerPhysics({
+        pc,
+        useWorker: true,
+      });
       createFlower(physics);
       physics.advance(1 / 60);
       const worker = FakeWorker.current;
       worker.emit({ type: "ready" });
       let prevented = false;
-      worker.onerror({ message: "test failure", preventDefault() { prevented = true; } });
+      worker.onerror({
+        message: "test failure",
+        preventDefault() { prevented = true; },
+      });
       assert.equal(prevented, true);
       assert.equal(physics.entity.enabled, true);
       assert.equal(worker.terminated, true);

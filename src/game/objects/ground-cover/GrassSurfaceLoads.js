@@ -33,20 +33,20 @@ export class GrassSurfaceLoads {
      * @param {number} contact
      * @param {number} index
      */
-    (contact, index) => {
-      const offset = index * VALUES_PER_LOAD;
-      this.#positions.set([
-        contact.x ?? 0,
-        contact.y ?? 0,
-        contact.z ?? 0,
-        Math.max(0, contact.radius ?? 0),
-      ], offset);
-      this.#loads.set([
-        Math.max(0, contact.compression ?? 0),
-        contact.slopeX ?? 0,
-        contact.slopeZ ?? 0,
-        1,
-      ], offset);
-    });
+      (contact, index) => {
+        const offset = index * VALUES_PER_LOAD;
+        this.#positions.set([
+          contact.x ?? 0,
+          contact.y ?? 0,
+          contact.z ?? 0,
+          Math.max(0, contact.radius ?? 0),
+        ], offset);
+        this.#loads.set([
+          Math.max(0, contact.compression ?? 0),
+          contact.slopeX ?? 0,
+          contact.slopeZ ?? 0,
+          1,
+        ], offset);
+      });
   }
 }

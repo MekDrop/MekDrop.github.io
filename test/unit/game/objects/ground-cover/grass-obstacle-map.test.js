@@ -168,7 +168,10 @@ describe("grass obstacle field", () => {
         localSamples += 1;
         return remainingWeight(x, y, z);
       },
-      { col: 2, row: 2 },
+      {
+        col: 2,
+        row: 2,
+      },
     );
     fullMap.refresh((x, y, z) => {
       fullSamples += 1;

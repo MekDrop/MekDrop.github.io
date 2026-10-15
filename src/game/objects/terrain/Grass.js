@@ -56,7 +56,11 @@ export class Grass extends Earth {
       return;
     }
     this.#ownsSurface = true;
-    const carpet = new GrassCarpet({ pc, device: app.graphicsDevice, mapData: runtime.mapData, modelLibrary,
+    const carpet = new GrassCarpet({
+      pc,
+      device: app.graphicsDevice,
+      mapData: runtime.mapData,
+      modelLibrary,
       tileColors: GrassSurfaceMaterials.tileColors,
       /**
        * @param {Array<number>} args
@@ -66,7 +70,12 @@ export class Grass extends Earth {
     });
     runtime.root.addChild(carpet.entity);
     const surfaceContacts = new SurfaceContactProviders(runtime.objects, runtime.getContactProviders);
-    const surface = new GrassSurface({ app, pc, mapData: runtime.mapData, terrainMaterials: [carpet.material].filter(Boolean), zoom: runtime.camera.zoom,
+    const surface = new GrassSurface({
+      app,
+      pc,
+      mapData: runtime.mapData,
+      terrainMaterials: [carpet.material].filter(Boolean),
+      zoom: runtime.camera.zoom,
       getImpressionContacts: () => runtime.getContactProviders().flatMap(
         /**
          * @param {import("src/game/GameContracts.js").GameObjectContract} object
@@ -80,7 +89,10 @@ export class Grass extends Earth {
        */
       getWeightAt: (x, y, z) => runtime.collisionWorld.grassWeightAt(x, z, y),
     });
-    runtime.canopy = { carpet, surface };
+    runtime.canopy = {
+      carpet,
+      surface,
+    };
     /**
      * @param {import("../ObjectTypes.js").Point3} position
      * @param {number} radius
@@ -94,7 +106,10 @@ export class Grass extends Earth {
    */
   defaultGeometry(position, runtime) {
     const geometry = super.defaultGeometry(position, runtime);
-    const { col, row } = this.tile ?? { col: Math.round(position.x + (runtime.mapData.cols - 1) / 2), row: Math.round(position.z + (runtime.mapData.rows - 1) / 2) };
+    const { col, row } = this.tile ?? {
+      col: Math.round(position.x + (runtime.mapData.cols - 1) / 2),
+      row: Math.round(position.z + (runtime.mapData.rows - 1) / 2),
+    };
     const level = position.y - 0.5;
     geometry.args[0] = `grass:${col}:${row}:${level}`;
     geometry.args[1] = `turfSide:${col}:${row}:${level}`;

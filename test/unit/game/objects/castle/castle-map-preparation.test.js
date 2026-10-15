@@ -41,8 +41,19 @@ it("grows blades on exposed foundation turf outside excavation cuts", () => {
     grid: [[TileType.CASTLE_WALL]],
     heightmap: [[2]],
     tileMeta: [[{ surfaceType: "STRUCTURE" }]],
-    objects: [{ object: "Grass", generated: true, tile: { col: 0, row: 0 },
-      position: { x: 0, y: 1.5, z: 0 } }],
+    objects: [{
+      object: "Grass",
+      generated: true,
+      tile: {
+        col: 0,
+        row: 0,
+      },
+      position: {
+        x: 0,
+        y: 1.5,
+        z: 0,
+      },
+    }],
   };
   CastleMapPreparation.prepareMap(map);
   assert.equal(map.tileMeta[0][0].exposedTerrain, true);
@@ -50,8 +61,19 @@ it("grows blades on exposed foundation turf outside excavation cuts", () => {
 });
 it("supports raised castles without residential metadata up to their wall base", async () => {
   const plan = await CastleGenerator.generate({
-    position: { x: -4, z: -4, width: 8, depth: 8, elevation: 4 },
-    doors: [{ side: "WEST", offset: 3, width: 2, approachElevation: 1 }],
+    position: {
+      x: -4,
+      z: -4,
+      width: 8,
+      depth: 8,
+      elevation: 4,
+    },
+    doors: [{
+      side: "WEST",
+      offset: 3,
+      width: 2,
+      approachElevation: 1,
+    }],
     style: "courtyard-keep",
   });
   const map = {
@@ -59,7 +81,10 @@ it("supports raised castles without residential metadata up to their wall base",
     rows: 16,
     grid: Array.from({ length: 16 }, () => Array(16).fill(1)),
     heightmap: Array.from({ length: 16 }, () => Array(16).fill(1)),
-    objects: [{ object: "Castle", buildPlan: plan }],
+    objects: [{
+      object: "Castle",
+      buildPlan: plan,
+    }],
   };
   CastleMapPreparation.prepareMap(map);
   assert.equal(map.heightmap[4][4], 4);

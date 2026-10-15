@@ -26,31 +26,31 @@ export class LevelLoader {
        * @param {(map: import("./GameContracts.js").GameMapData) => void} resolve
        * @param {(error: Error) => void} reject
        */
-      (resolve, reject) => {
+        (resolve, reject) => {
         /**
          * @param {MessageEvent<{map?: import("./GameContracts.js").GameMapData, error?: Error}>} event
          */
-        worker.onmessage = ({ data }) => {
-          if (data.error) {
-            reject(data.error);
-          } else {
-            resolve(data.map);
-          }
-        };
-        /**
+          worker.onmessage = ({ data }) => {
+            if (data.error) {
+              reject(data.error);
+            } else {
+              resolve(data.map);
+            }
+          };
+          /**
          * @param {ErrorEvent} event
          */
-        worker.onerror = (event) => {
-          event.preventDefault();
-          resolve(null);
-        };
-        worker.onmessageerror = () => resolve(null);
-        try {
-          worker.postMessage(options);
-        } catch {
-          resolve(null);
-        }
-      });
+          worker.onerror = (event) => {
+            event.preventDefault();
+            resolve(null);
+          };
+          worker.onmessageerror = () => resolve(null);
+          try {
+            worker.postMessage(options);
+          } catch {
+            resolve(null);
+          }
+        });
     } finally {
       worker.terminate();
     }

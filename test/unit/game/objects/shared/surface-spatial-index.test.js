@@ -6,9 +6,17 @@ it("keeps all overlapping surfaces across negative coordinates and cell boundari
   const index = new SurfaceSpatialIndex();
   const entries = [];
   for (let x = -20; x <= 20; x += 2) {
-    const bounds = { minX: x - 1.5, maxX: x + 1.5, minZ: -1.5, maxZ: 1.5 };
+    const bounds = {
+      minX: x - 1.5,
+      maxX: x + 1.5,
+      minZ: -1.5,
+      maxZ: 1.5,
+    };
     const item = { surfaceHeightAt: () => 1 };
-    entries.push({ item, bounds });
+    entries.push({
+      item,
+      bounds,
+    });
     index.add(item, bounds);
   }
   for (let x = -22; x <= 22; x += 0.5) {
@@ -29,7 +37,12 @@ it("deduplicates providers spanning multiple cells and retains live provider sta
   const index = new SurfaceSpatialIndex();
   let height = 3;
   const item = { surfaceHeightAt: () => height };
-  index.add(item, { minX: -8, maxX: 8, minZ: -8, maxZ: 8 });
+  index.add(item, {
+    minX: -8,
+    maxX: 8,
+    minZ: -8,
+    maxZ: 8,
+  });
   const candidates = index.query(0, 0, 10);
   assert.equal(candidates.size, 1);
   height = null;

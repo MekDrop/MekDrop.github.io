@@ -7,7 +7,10 @@ import * as pc from "playcanvas";
 const hooks = registerHooks({
   resolve(specifier, context, nextResolve) {
     if (specifier.endsWith("-window.glb?url")) {
-      return { url: `data:text/javascript,export default ${JSON.stringify(specifier)}`, shortCircuit: true };
+      return {
+        url: `data:text/javascript,export default ${JSON.stringify(specifier)}`,
+        shortCircuit: true,
+      };
     }
     return nextResolve(specifier, context);
   },
@@ -27,7 +30,11 @@ test("larger windows repeat imported panes, dividers and masonry courses", () =>
       entity.setLocalPosition(...node.translation);
       visual.addChild(entity);
     }
-    WindowModules.fit(visual, { width, height, role: "room" });
+    WindowModules.fit(visual, {
+      width,
+      height,
+      role: "room",
+    });
     const panes = visual.children.filter(node => node.name.startsWith("Amber glass pane"));
     assert.equal(panes.length, columns * rows);
     assert.equal(visual.children.filter(node => node.name.startsWith("Fine oak transom")).length, rows - 1);
@@ -66,7 +73,7 @@ test("window sills overlap masonry without sharing its top plane at every size a
       for (const alongX of [true, false]) {
         for (const facing of [-1, 1]) {
           const app = { _entityIndex: {} };
-    const visual = new pc.Entity("Window modules", app);
+          const visual = new pc.Entity("Window modules", app);
           const sillEntity = new pc.Entity(sill.name);
           sillEntity.setLocalPosition(...sill.translation);
           visual.addChild(sillEntity);
@@ -74,10 +81,22 @@ test("window sills overlap masonry without sharing its top plane at every size a
           railEntity.setLocalPosition(...rail.translation);
           visual.addChild(railEntity);
           const parent = new pc.Entity();
-          Window.addVisual({ ...pc, Entity: TestEntity }, { instantiate: () => visual }, parent, {
-            from: { x: 2, y: 3, z: 4 },
-            to: { x: alongX ? 2.5 : 2, y: 3 + height, z: alongX ? 4 : 4.5 },
-            variant, facing,
+          Window.addVisual({
+            ...pc,
+            Entity: TestEntity,
+          }, { instantiate: () => visual }, parent, {
+            from: {
+              x: 2,
+              y: 3,
+              z: 4,
+            },
+            to: {
+              x: alongX ? 2.5 : 2,
+              y: 3 + height,
+              z: alongX ? 4 : 4.5,
+            },
+            variant,
+            facing,
           });
           const position = visual.getLocalPosition();
           const scale = visual.getLocalScale();
@@ -108,16 +127,31 @@ test("open windows retain the surround and remove glazing and internal dividers"
   const app = { _entityIndex: {} };
   const parent = new pc.Entity("Open window", app);
   let visual;
-  const models = { instantiate() {
-    visual = new pc.Entity("Window", app);
-    for (const node of gltf.nodes) {
-      const entity = new pc.Entity(node.name, app);
-      entity.setLocalPosition(...node.translation);
-      visual.addChild(entity);
-    }
-    return visual;
-  } };
-  Window.addVisual(pc, models, parent, { id: "lookout", from: { x: 0, y: 0, z: 0 }, to: { x: 1.25, y: 1.75, z: 0 }, open: true });
+  const models = {
+    instantiate() {
+      visual = new pc.Entity("Window", app);
+      for (const node of gltf.nodes) {
+        const entity = new pc.Entity(node.name, app);
+        entity.setLocalPosition(...node.translation);
+        visual.addChild(entity);
+      }
+      return visual;
+    },
+  };
+  Window.addVisual(pc, models, parent, {
+    id: "lookout",
+    from: {
+      x: 0,
+      y: 0,
+      z: 0,
+    },
+    to: {
+      x: 1.25,
+      y: 1.75,
+      z: 0,
+    },
+    open: true,
+  });
   assert.equal(visual.find(node => /^(Amber glass pane |Fine oak transom |Central oak mullion)/.test(node.name)).length, 0);
   assert.ok(visual.findByName("Projecting stone sill"));
   assert.ok(visual.findByName("Oak frame rail -1"));

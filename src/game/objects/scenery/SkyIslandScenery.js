@@ -35,25 +35,25 @@ export class SkyIslandScenery {
        *
        * @param {number} river
        */
-      (river) =>
-        river.cells
-          .filter(/**
+        (river) =>
+          river.cells
+            .filter(/**
            *
            * @param {number} cell
            */
-          (cell) => !cell.underBridge)
-          .map(/**
+              (cell) => !cell.underBridge)
+            .map(/**
            *
            * @param {number} cell
            */
-          (cell) => `${cell.col},${cell.row}`),
+              (cell) => `${cell.col},${cell.row}`),
       ),
     );
     this.#connectorCells = new Set(
       (mapData.islandConnectorData?.cells ?? []).map(/**
        * @param {{col: number, row: number}} cell
        */
-      ({ col, row }) => `${col},${row}`),
+        ({ col, row }) => `${col},${row}`),
     );
   }
 

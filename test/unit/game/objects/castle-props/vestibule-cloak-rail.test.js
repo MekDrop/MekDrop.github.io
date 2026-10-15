@@ -37,18 +37,33 @@ it("moves matching render and collision garments and clones cloth materials with
      */
     addComponent(type, data) {}
   }
-  const options = { pc: { ...pc, Entity }, definition: { id: "arrival-rail-6", position: { x: 0, y: 1.28, z: 0 } },
-    modelLibrary: { instantiate: () => {
-      const root = new pc.Entity("rail model");
-      for (const name of ["Rail wood and pegs", "Cloak A", "Cloak B"]) {
-        const node = new pc.Entity(name);
-        node.testMesh = { material: shared };
-        node.findComponents = () => [{ meshInstances: [node.testMesh] }];
-        root.addChild(node);
-      }
-      graphs.push(root);
-      return root;
-    } } };
+  const options = {
+    pc: {
+      ...pc,
+      Entity,
+    },
+    definition: {
+      id: "arrival-rail-6",
+      position: {
+        x: 0,
+        y: 1.28,
+        z: 0,
+      },
+    },
+    modelLibrary: {
+      instantiate: () => {
+        const root = new pc.Entity("rail model");
+        for (const name of ["Rail wood and pegs", "Cloak A", "Cloak B"]) {
+          const node = new pc.Entity(name);
+          node.testMesh = { material: shared };
+          node.findComponents = () => [{ meshInstances: [node.testMesh] }];
+          root.addChild(node);
+        }
+        graphs.push(root);
+        return root;
+      },
+    },
+  };
   const rail = new VestibuleCloakRail(options);
   for (const name of ["Cloak A", "Cloak B"]) {
     const render = graphs[0].findByName(name), collision = graphs[1].findByName(name);

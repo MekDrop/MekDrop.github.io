@@ -15,7 +15,11 @@ export class TableCandles extends AbstractCastleProp {
     const inverse = model.getWorldTransform().clone().invert();
     for (const name of ["Tall candle wick", "Middle candle wick", "Short candle wick"]) {
       const position = inverse.transformPoint(model.findByName(name).getPosition());
-      Fire.attach(options.pc, model, position, { x: 0.0115, y: 0.0828, z: 0.0115 });
+      Fire.attach(options.pc, model, position, {
+        x: 0.0115,
+        y: 0.0828,
+        z: 0.0115,
+      });
     }
   }
 

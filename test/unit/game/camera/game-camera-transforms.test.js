@@ -5,7 +5,10 @@ import { GameCamera } from "../../../../src/game/camera/GameCamera.js";
 
 class CameraEntity extends pc.Entity {
   addComponent(type, options) {
-    const engineCamera = new pc.Camera({ width: 800, height: 600 });
+    const engineCamera = new pc.Camera({
+      width: 800,
+      height: 600,
+    });
     engineCamera.node = this;
     Object.assign(engineCamera, options);
     this.camera = {
@@ -25,14 +28,20 @@ class CameraEntity extends pc.Entity {
 
 function createCamera() {
   return new GameCamera({
-    pc: { ...pc, Entity: CameraEntity },
+    pc: {
+      ...pc,
+      Entity: CameraEntity,
+    },
     app: { root: new pc.Entity() },
     cloudLayerId: 100,
     targetY: 0,
   });
 }
 
-const updateOptions = { cameraDistance: 40, cameraPitch: Math.PI / 6 };
+const updateOptions = {
+  cameraDistance: 40,
+  cameraPitch: Math.PI / 6,
+};
 
 it("refreshes projection queries immediately after rotating at every supported zoom", () => {
   for (const zoom of [1, 1.01, 1.5, 3, 6, 50]) {

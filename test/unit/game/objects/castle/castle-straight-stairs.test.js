@@ -5,7 +5,16 @@ import * as pc from "playcanvas";
 import { castleStraightStairHeight, castleStraightStairSurfaces, castleStraightStairStepCount, castleStraightStairTreads } from "../../../../../src/game/objects/castle/CastleStraightStairs.js";
 
 it("provides deep, level tread centres within the automatic step clearance", () => {
-  const stair = { radius: 1.35, rise: 3, yaw: 0, center: { x: 0, y: 0, z: 0 } };
+  const stair = {
+    radius: 1.35,
+    rise: 3,
+    yaw: 0,
+    center: {
+      x: 0,
+      y: 0,
+      z: 0,
+    },
+  };
   for (const surface of castleStraightStairSurfaces(stair).filter(s => s.high > s.low)) {
     const count = castleStraightStairStepCount(surface);
     const depth = (surface.maxZ - surface.minZ) / count;
@@ -24,7 +33,16 @@ it("provides deep, level tread centres within the automatic step clearance", () 
 
 it("supports ascent and descent through a turning landing in every orientation", () => {
   for (const yaw of [0, 90, 180, 270]) {
-    const stair = { radius: 1.35, rise: 3, yaw, center: { x: 7, y: -3, z: -5 } };
+    const stair = {
+      radius: 1.35,
+      rise: 3,
+      yaw,
+      center: {
+        x: 7,
+        y: -3,
+        z: -5,
+      },
+    };
     const route = [[-0.675, 1.35, -3], [-0.675, -0.675, -1.5],
       [-0.675, -1.0125, -1.5], [0.675, -1.0125, -1.5],
       [0.675, -0.675, -1.5], [0.675, 1.215, 0], [0.675, 1.35, 0]];
@@ -52,7 +70,17 @@ it("supports ascent and descent through a turning landing in every orientation",
 });
 
 it("moves flights outward without narrowing their treads or closing the turning landing", () => {
-  const stair = { radius: 1.35, rise: 3, flightGap: 0.5, yaw: 0, center: { x: 0, y: 0, z: 0 } };
+  const stair = {
+    radius: 1.35,
+    rise: 3,
+    flightGap: 0.5,
+    yaw: 0,
+    center: {
+      x: 0,
+      y: 0,
+      z: 0,
+    },
+  };
   const [lower, landing, upper] = castleStraightStairSurfaces(stair);
   assert.equal(lower.maxX, -0.25);
   assert.equal(upper.minX, 0.25);
@@ -65,7 +93,11 @@ it("moves flights outward without narrowing their treads or closing the turning 
 });
 
 it("aligns the raised landing with both adjoining tread tops", () => {
-  const stair = { radius: 1.35, rise: 3, landingLift: 0.3 };
+  const stair = {
+    radius: 1.35,
+    rise: 3,
+    landingLift: 0.3,
+  };
   const [incoming, landing, outgoing] = castleStraightStairSurfaces(stair);
   assert.equal(incoming.high, landing.high);
   const firstOutgoing = outgoing.low + (outgoing.high - outgoing.low) / castleStraightStairStepCount(outgoing);
@@ -82,9 +114,28 @@ it("separates turning-landing faces from shaft masonry without shrinking walking
     `return class { ${method} return positions; } };`)(castleStraightStairSurfaces, castleStraightStairStepCount, "tread", "landing", castleStraightStairTreads);
   const builder = new Builder();
   builder.visual = new pc.Entity();
-  builder.layout = { origin: { y: 0 }, yaw: 0, toLocal: (x, z) => ({ x, z }) };
+  builder.layout = {
+    origin: { y: 0 },
+    yaw: 0,
+    toLocal: (x, z) => ({
+      x,
+      z,
+    }),
+  };
   builder.stairMaterials = new Map();
-  const stair = { center: { x: 0, y: 0, z: 0 }, yaw: 0, radius: 1.35, rise: 3, landingLift: 0.3, flightGap: 0.5, exitFloorOwned: true };
+  const stair = {
+    center: {
+      x: 0,
+      y: 0,
+      z: 0,
+    },
+    yaw: 0,
+    radius: 1.35,
+    rise: 3,
+    landingLift: 0.3,
+    flightGap: 0.5,
+    exitFloorOwned: true,
+  };
   const positions = builder.build(pc, { instantiate: () => new pc.Entity() }, stair);
   const landing = castleStraightStairSurfaces(stair).find(surface => surface.low === surface.high && surface.high < stair.rise);
   const blocks = builder.visual.children.filter(entity => entity.name === "Castle stair turning landing");

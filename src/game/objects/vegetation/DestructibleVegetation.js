@@ -162,14 +162,18 @@ export class DestructibleVegetation {
      * @param {number} options.y
      * @param {number} options.cells
      */
-    ({ y: row, cells }) =>
-      cells.map(/**
+      ({ y: row, cells }) =>
+        cells.map(/**
        *
        * @param {Array<number>} options
        * @param {number} options."0"
        * @param {number} options."1"
        */
-      ([x, z]) => ({ x, y: row, z })),
+          ([x, z]) => ({
+            x,
+            y: row,
+            z,
+          })),
     );
 
     this.#voxelSize = voxelSize;
@@ -178,7 +182,7 @@ export class DestructibleVegetation {
      * @param {{y: number}} options
      * @param {number} options.y
      */
-    ({ y: row }) => row))].sort(
+      ({ y: row }) => row))].sort(
       /**
        *
        * @param {boolean} left
@@ -193,7 +197,7 @@ export class DestructibleVegetation {
        * @param {number} row
        * @param {number} index
        */
-      (row, index) => [row, index + 1]),
+        (row, index) => [row, index + 1]),
     );
 
     this.#interactionHeight = (Math.max(...rows) + 1) * voxelSize;
@@ -255,13 +259,17 @@ export class DestructibleVegetation {
        *
        * @param {import("src/game/objects/ObjectTypes.js").HeroFootRig} footprint
        */
-      (footprint) => ({
-        ...footprint,
-      }));
+        (footprint) => ({
+          ...footprint,
+        }));
       this.#destroyed = true;
       this.#physicsCollider = null;
       this.#entity.destroy();
-      return { ...description, destroyed: true, groundFootprint };
+      return {
+        ...description,
+        destroyed: true,
+        groundFootprint,
+      };
     }
 
     const cutsTaken = this.#maxHealth - this.#health;
@@ -271,10 +279,13 @@ export class DestructibleVegetation {
      *
      * @param {number} rowPart
      */
-    (rowPart) => {
-      rowPart.enabled = false;
-    });
-    return { ...this.describe(), destroyed: false };
+      (rowPart) => {
+        rowPart.enabled = false;
+      });
+    return {
+      ...this.describe(),
+      destroyed: false,
+    };
   }
 
   /**
@@ -455,8 +466,10 @@ export class DestructibleVegetation {
       ));
     }
     return {
-      minX: this.#origin.x - radius, maxX: this.#origin.x + radius,
-      minZ: this.#origin.z - radius, maxZ: this.#origin.z + radius,
+      minX: this.#origin.x - radius,
+      maxX: this.#origin.x + radius,
+      minZ: this.#origin.z - radius,
+      maxZ: this.#origin.z + radius,
     };
   }
 
@@ -492,38 +505,38 @@ export class DestructibleVegetation {
        * @param {{y: number}} options
        * @param {number} options.y
        */
-      ({ y }) => y === 0)
+        ({ y }) => y === 0)
       .map(/**
        *
        * @param {{x: number, z: number}} options
        * @param {number} options.x
        * @param {number} options.z
        */
-      ({ x, z }) => ({
-        x: x * this.#voxelSize,
-        z: z * this.#voxelSize,
-        width: this.#voxelSize,
-        depth: this.#voxelSize,
-      }));
+        ({ x, z }) => ({
+          x: x * this.#voxelSize,
+          z: z * this.#voxelSize,
+          width: this.#voxelSize,
+          depth: this.#voxelSize,
+        }));
 
     const xValues = remainingVoxels.map(/**
      *
      * @param {{x: number}} options
      * @param {number} options.x
      */
-    ({ x }) => x);
+      ({ x }) => x);
     const yValues = remainingVoxels.map(/**
      *
      * @param {{y: number}} options
      * @param {number} options.y
      */
-    ({ y }) => y);
+      ({ y }) => y);
     const zValues = remainingVoxels.map(/**
      *
      * @param {{z: number}} options
      * @param {number} options.z
      */
-    ({ z }) => z);
+      ({ z }) => z);
     const minimumX = Math.min(...xValues);
     const maximumX = Math.max(...xValues);
     const maximumY = Math.max(...yValues);
@@ -557,14 +570,14 @@ export class DestructibleVegetation {
      *
      * @param {import("../shared/MergeCollisionVoxels.js").CollisionBox} voxel
      */
-    (voxel) => ({
-      x: (voxel.x + (voxel.width - 1) / 2) * this.#voxelSize,
-      y: (voxel.y + voxel.height / 2) * this.#voxelSize,
-      z: (voxel.z + (voxel.depth - 1) / 2) * this.#voxelSize,
-      width: voxel.width * this.#voxelSize,
-      height: voxel.height * this.#voxelSize,
-      depth: voxel.depth * this.#voxelSize,
-    }));
+      (voxel) => ({
+        x: (voxel.x + (voxel.width - 1) / 2) * this.#voxelSize,
+        y: (voxel.y + voxel.height / 2) * this.#voxelSize,
+        z: (voxel.z + (voxel.depth - 1) / 2) * this.#voxelSize,
+        width: voxel.width * this.#voxelSize,
+        height: voxel.height * this.#voxelSize,
+        depth: voxel.depth * this.#voxelSize,
+      }));
     this.#physicsCollider = addGeneratedVoxelPhysics({
       pc: this.#pc,
       parent: this.#entity,

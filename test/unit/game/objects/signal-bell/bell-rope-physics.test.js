@@ -11,8 +11,17 @@ let wasmAmmo;
 before(async () => {
   const glueUrl = new URL("../../../../../src/assets/game/wasm/ammo/ammo.wasm.js", import.meta.url);
   const source = readFileSync(glueUrl, "utf8").replace("export default Ammo;", "");
-  const context = { module: { exports: {} }, exports: {}, require: createRequire(import.meta.url),
-    process, __dirname: "", Buffer, console, setTimeout, clearTimeout };
+  const context = {
+    module: { exports: {} },
+    exports: {},
+    require: createRequire(import.meta.url),
+    process,
+    __dirname: "",
+    Buffer,
+    console,
+    setTimeout,
+    clearTimeout,
+  };
   runInNewContext(source, context);
   wasmAmmo = await context.module.exports({
     wasmBinary: readFileSync(new URL("../../../../../src/assets/game/wasm/ammo/ammo.wasm.wasm", import.meta.url)),
@@ -31,7 +40,10 @@ function setup(context) {
   world.nativeWorld.getSolverInfo().set_m_numIterations(40);
   const rope = new BellRopePhysics(world, new Vec3(0, 1, 0));
   context.after(() => { globalThis.Ammo = wasmAmmo; rope.destroy(); world.destroy(); });
-  return { world, rope };
+  return {
+    world,
+    rope,
+  };
 }
 
 describe("bell rope Ammo constraints", () => {
@@ -39,9 +51,17 @@ describe("bell rope Ammo constraints", () => {
   afterEach(() => { globalThis.Ammo = previousAmmo; });
   it("collides with the game's static geometry", (context) => {
     const { world, rope } = setup(context);
-    const shape = world.createShape({ type: "box", halfExtents: new Vec3(1, 0.1, 1) });
-    const floor = world.createBody({ type: "static", shape, mass: 0,
-      position: new Vec3(0, 0.05, 0), rotation: Quat.IDENTITY });
+    const shape = world.createShape({
+      type: "box",
+      halfExtents: new Vec3(1, 0.1, 1),
+    });
+    const floor = world.createBody({
+      type: "static",
+      shape,
+      mass: 0,
+      position: new Vec3(0, 0.05, 0),
+      rotation: Quat.IDENTITY,
+    });
     world.addBody(floor, 2, 65535);
     for (let frame = 0; frame < 240; frame++) {
       rope.updateAttachments(new Vec3(0, 1 - 0.3 * Math.min(1, frame / 120), 0));

@@ -36,7 +36,10 @@ export const CASTLE_MATERIAL_DEFINITIONS = Object.freeze({
     texture: "castleDoor",
     gloss: 0.06,
   }),
-  castleIron: Object.freeze({ color: 0x171b1d, gloss: 0.16 }),
+  castleIron: Object.freeze({
+    color: 0x171b1d,
+    gloss: 0.16,
+  }),
 });
 
 export const CASTLE_STYLES = Object.freeze([

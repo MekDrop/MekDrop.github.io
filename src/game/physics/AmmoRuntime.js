@@ -25,21 +25,21 @@ export class AmmoRuntime {
      * @param {() => void} resolve
      * @param {(error: PhysicsModuleLoadError) => void} reject
      */
-    (resolve, reject) => {
-      createAmmo.call(globalThis, {
-        locateFile: () => ammoWasmUrl,
-        /**
+      (resolve, reject) => {
+        createAmmo.call(globalThis, {
+          locateFile: () => ammoWasmUrl,
+          /**
          * @param {string} detail
          */
-        onAbort: (detail) => reject(new PhysicsModuleLoadError(detail)),
-      }).then(/**
+          onAbort: (detail) => reject(new PhysicsModuleLoadError(detail)),
+        }).then(/**
        * @param {typeof globalThis.Ammo} instance
        */
-      (instance) => {
-        globalThis.Ammo = instance;
-        resolve();
+          (instance) => {
+            globalThis.Ammo = instance;
+            resolve();
+          });
       });
-    });
     return this.#initialization;
   }
 }

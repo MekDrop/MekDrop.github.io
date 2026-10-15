@@ -24,10 +24,12 @@ for (const lives of [1, 2, 3]) {
           modelScale: 0.65,
           syncState: () => {},
         },
-        death: { resolve: () => {
-          deaths += 1;
-          return lives > 1 ? HERO_ACTION.RESPAWNING : HERO_ACTION.GAME_OVER;
-        } },
+        death: {
+          resolve: () => {
+            deaths += 1;
+            return lives > 1 ? HERO_ACTION.RESPAWNING : HERO_ACTION.GAME_OVER;
+          },
+        },
       },
       transition: (...args) => { transition = args; },
     };
@@ -49,7 +51,10 @@ for (const lives of [1, 2, 3]) {
     assert.deepEqual(scale, [0, 0, 0]);
     assert.deepEqual(transition, [
       lives > 1 ? HERO_ACTION.RESPAWNING : HERO_ACTION.GAME_OVER,
-      { elapsed: 0, ashes: lives === 1 },
+      {
+        elapsed: 0,
+        ashes: lives === 1,
+      },
     ]);
     state.exit(owner);
     assert.deepEqual(scale, [0, 0, 0]);

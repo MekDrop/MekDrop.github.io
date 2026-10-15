@@ -105,13 +105,39 @@ const pc = {
 describe("trigger area grass physics", () => {
   it("keeps a restored active plate latched until the hero steps off", () => {
     const objects = { calls: [] };
-    const definition = {id:"latched",color:"#409eff",position:{x:0,y:2,z:0},active:true,script:"objects.calls.push(active);"};
-    const field = new TriggerArea({pc,definition,runtime:{objects}});
-    field.updateHeroPosition({x:0,y:2,z:0});
+    const definition = {
+      id:"latched",
+      color:"#409eff",
+      position:{
+        x:0,
+        y:2,
+        z:0,
+      },
+      active:true,
+      script:"objects.calls.push(active);",
+    };
+    const field = new TriggerArea({
+      pc,
+      definition,
+      runtime:{objects},
+    });
+    field.updateHeroPosition({
+      x:0,
+      y:2,
+      z:0,
+    });
     assert.deepEqual(objects.calls,[]);
-    field.updateHeroPosition({x:3,y:2,z:0});
+    field.updateHeroPosition({
+      x:3,
+      y:2,
+      z:0,
+    });
     assert.equal(definition.active,false);
-    field.updateHeroPosition({x:0,y:2,z:0});
+    field.updateHeroPosition({
+      x:0,
+      y:2,
+      z:0,
+    });
     assert.deepEqual(objects.calls,[false,true]);
     assert.equal(definition.active,true);
     field.destroy();
@@ -123,7 +149,11 @@ describe("trigger area grass physics", () => {
       definition: {
         id: "test-trigger",
         color: "#d8aa3d",
-        position: { x: 0, y: 2, z: -1 },
+        position: {
+          x: 0,
+          y: 2,
+          z: -1,
+        },
         script: "",
       },
     });
@@ -150,14 +180,26 @@ describe("trigger area grass physics", () => {
       definition: {
         id: "test-trigger",
         color: "#d8aa3d",
-        position: { x: 0, y: 2, z: -1 },
+        position: {
+          x: 0,
+          y: 2,
+          z: -1,
+        },
         script: "objects.calls.push(active);",
       },
       runtime: {
         objects,
         getGrassSupportPoints: () => [
-          { x: -0.2, y: 2.002, z: -1 },
-          { x: 0.2, y: 2.002, z: -1 },
+          {
+            x: -0.2,
+            y: 2.002,
+            z: -1,
+          },
+          {
+            x: 0.2,
+            y: 2.002,
+            z: -1,
+          },
         ],
       },
     });
@@ -172,7 +214,11 @@ describe("trigger area grass physics", () => {
     assert.equal(marker.components.get("rigidbody").type, "dynamic");
     assert.equal(marker.components.get("rigidbody").mass, 0.01);
 
-    field.updateHeroPosition({ x: 0.3, y: 2, z: -1 });
+    field.updateHeroPosition({
+      x: 0.3,
+      y: 2,
+      z: -1,
+    });
     assert.deepEqual(objects.calls, [true]);
     update();
     const heroForce = marker.rigidbody.forces.at(-1);
@@ -198,7 +244,11 @@ describe("trigger area grass physics", () => {
         field.surfaceHeightAt(-0.3, -1),
     );
     assert.equal(field.surfaceHeightAt(1, -1), null);
-    field.updateHeroPosition({ x: 1, y: 2, z: -1 });
+    field.updateHeroPosition({
+      x: 1,
+      y: 2,
+      z: -1,
+    });
     assert.deepEqual(objects.calls, [true, false]);
     field.destroy();
   });

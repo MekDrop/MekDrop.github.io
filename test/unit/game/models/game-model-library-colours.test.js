@@ -23,17 +23,43 @@ function bakedColours(linearVertexColors, translationY = 0) {
     update() {} incRefCount() {}
   }
   class Material { update() {} }
-  const pc = { Color, Mat4, Vec3, Mesh, StandardMaterial: Material, math: { clamp: (n, min, max) => Math.min(max, Math.max(min, n)) } };
+  const pc = {
+    Color,
+    Mat4,
+    Vec3,
+    Mesh,
+    StandardMaterial: Material,
+    math: { clamp: (n, min, max) => Math.min(max, Math.max(min, n)) },
+  };
   const transform = new Mat4().setTranslate(0, translationY, 0);
   const mesh = {
-    vertexBuffer: { numVertices: 3 }, primitive: [{ indexed: false, base: 0, count: 3 }],
+    vertexBuffer: { numVertices: 3 },
+    primitive: [{
+      indexed: false,
+      base: 0,
+      count: 3,
+    }],
     getPositions(out) { out.push(0, 0, 0, 1, 0, 0, 0, 1, 0); return 3; },
     getNormals(out) { out.push(0, 0, 1, 0, 0, 1, 0, 0, 1); },
     getUvs(_channel, out) { out.push(0, 0, 1, 0, 0, 1); },
     getIndices() {},
   };
   const diffuse = new Color(17 / 255, 23 / 255, 25 / 255).gamma();
-  const root = { children: [], getWorldTransform: () => transform, destroy() {}, render: { meshInstances: [{ mesh, node: { getWorldTransform: () => transform }, material: { diffuse, opacity: 1 } }] } };
+  const root = {
+    children: [],
+    getWorldTransform: () => transform,
+    destroy() {},
+    render: {
+      meshInstances: [{
+        mesh,
+        node: { getWorldTransform: () => transform },
+        material: {
+          diffuse,
+          opacity: 1,
+        },
+      }],
+    },
+  };
   const result = new Library(pc).merge({ instantiateRenderEntity: () => root }, linearVertexColors);
   return translationY ? result.mesh.positions : result.mesh.colors.slice(0, 4);
 }

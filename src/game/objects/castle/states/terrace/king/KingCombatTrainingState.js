@@ -4,8 +4,12 @@ import { AbstractTerraceParticipantState } from "../AbstractTerraceParticipantSt
 
 export class KingCombatTrainingState extends AbstractTerraceParticipantState {
   constructor() {
-    super({ phase: KingCombatTrainingState.name, stagePhase: STAGE.ACTIVITY,
-      duration: Infinity, action: "sword",
-      animation: KING_ANIMATION.SWORD_READY });
+    super({
+      phase: KingCombatTrainingState.name,
+      stagePhase: STAGE.ACTIVITY,
+      duration: Infinity,
+      action: "sword",
+      animation: KING_ANIMATION.SWORD_READY,
+    });
   }
 }

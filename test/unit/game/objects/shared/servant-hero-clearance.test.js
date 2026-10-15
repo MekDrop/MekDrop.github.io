@@ -8,7 +8,11 @@ it("registers the collider with the supplied application without a global app", 
   const components = [];
   app.systems = Object.fromEntries(["collision", "rigidbody"].map((type) => [type, {
     addComponent(entity, data) {
-      components.push({ type, entity, data });
+      components.push({
+        type,
+        entity,
+        data,
+      });
     },
   }]));
   app.root = new Entity("Scene", app);

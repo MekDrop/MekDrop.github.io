@@ -11,41 +11,41 @@ export default boot(/**
  * @param {import("vue-router").Router} options.router
  * @param {NonNullable<import("@quasar/app-vite").HasSsrParam["ssrContext"]>|null} options.ssrContext
  */
-async ({ app, router, ssrContext }) => {
-  const availableLanguages = Object.keys(messages);
-  const locale = getCurrentLocaleFromRoute(
-    router.currentRoute.value,
-    ssrContext,
-    availableLanguages,
-  );
+  async ({ app, router, ssrContext }) => {
+    const availableLanguages = Object.keys(messages);
+    const locale = getCurrentLocaleFromRoute(
+      router.currentRoute.value,
+      ssrContext,
+      availableLanguages,
+    );
 
-  const i18n = createI18n({
-    locale,
-    fallbackLocale: "en-US",
-    legacy: false,
-    globalInjection: true,
-    allowComposition: true,
-    messages,
-  });
+    const i18n = createI18n({
+      locale,
+      fallbackLocale: "en-US",
+      legacy: false,
+      globalInjection: true,
+      allowComposition: true,
+      messages,
+    });
 
-  await updateQuasarLanguage(locale, availableLanguages, ssrContext);
+    await updateQuasarLanguage(locale, availableLanguages, ssrContext);
 
-  router.beforeEach(/**
+    router.beforeEach(/**
    *
    * @param {import("vue-router").RouteLocationNormalized} to
    */
-  (to) => {
-    i18n.global.locale.value = getCurrentLocaleFromRoute(
-      to,
-      ssrContext,
-      availableLanguages,
-    );
-    updateQuasarLanguage(
-      i18n.global.locale.value,
-      availableLanguages,
-      ssrContext,
-    );
-  });
+      (to) => {
+        i18n.global.locale.value = getCurrentLocaleFromRoute(
+          to,
+          ssrContext,
+          availableLanguages,
+        );
+        updateQuasarLanguage(
+          i18n.global.locale.value,
+          availableLanguages,
+          ssrContext,
+        );
+      });
 
-  app.use(i18n);
-});
+    app.use(i18n);
+  });

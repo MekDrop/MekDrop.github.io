@@ -374,7 +374,7 @@ export default {
        *
        * @param {{url: string, label: string}|null} item
        */
-      (item) => !!item);
+        (item) => !!item);
     });
 
     const otherLinksSearchResults = computed(() => {

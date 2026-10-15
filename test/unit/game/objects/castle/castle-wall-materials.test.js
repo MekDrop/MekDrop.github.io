@@ -37,12 +37,28 @@ it("stone blocks remain opaque from both sides with depth testing and writing en
       materials.push(this);
     }
   }
-  const graphicsDevice = new pc.NullGraphicsDevice({ width: 1, height: 1 });
+  const graphicsDevice = new pc.NullGraphicsDevice({
+    width: 1,
+    height: 1,
+  });
   const castle = new CastleEntityBuilder({
-    pc: { ...pc, StandardMaterial },
-    app: { graphicsDevice, on: () => ({ off() {} }) },
+    pc: {
+      ...pc,
+      StandardMaterial,
+    },
+    app: {
+      graphicsDevice,
+      on: () => ({ off() {} }),
+    },
     buildPlan: {
-      input: { position: { x: 0, y: 0, z: 0 }, doors: [] },
+      input: {
+        position: {
+          x: 0,
+          y: 0,
+          z: 0,
+        },
+        doors: [],
+      },
       layout: { empty: true },
       metadata: { runtime: {} },
     },

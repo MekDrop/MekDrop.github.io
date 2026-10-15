@@ -15,7 +15,7 @@ const hideMortarBacking = (entity) => {
    *
    * @param {string} prefix
    */
-  (prefix) => entity.name.startsWith(prefix))) {
+    (prefix) => entity.name.startsWith(prefix))) {
     entity.enabled = false;
   }
   for (const child of entity.children) {

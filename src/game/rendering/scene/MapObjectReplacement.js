@@ -28,7 +28,7 @@ export class MapObjectReplacement {
      *
      * @param {import("../../objects/ObjectTypes.js").MapObjectDefinition} entry
      */
-    (entry) => entry.id === definition.id)) {
+      (entry) => entry.id === definition.id)) {
       return null;
     }
     const map = structuredClone(this.#template);
@@ -36,17 +36,17 @@ export class MapObjectReplacement {
      *
      * @param {import("../../objects/ObjectTypes.js").MapObjectDefinition} entry
      */
-    (entry) => !entry.generated).map(/**
+      (entry) => !entry.generated).map(/**
      *
      * @param {import("../../objects/ObjectTypes.js").MapObjectDefinition} entry
      */
-    (entry) => [entry.id, entry]));
+      (entry) => [entry.id, entry]));
     current.set(definition.id, definition);
     map.objects = map.objects.map(/**
      *
      * @param {import("../../objects/ObjectTypes.js").MapObjectDefinition} entry
      */
-    (entry) => structuredClone(current.get(entry.id) ?? entry));
+      (entry) => structuredClone(current.get(entry.id) ?? entry));
     MapObjectDefinitions.prepare(map);
     map.heroSpawn = { ...heroPosition };
     return map;

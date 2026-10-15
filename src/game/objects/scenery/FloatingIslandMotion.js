@@ -74,7 +74,10 @@ export class FloatingIslandMotion {
       this.#strength = 0;
     }
     if (this.#strength === 0) {
-      return { x: 0, y: 0 };
+      return {
+        x: 0,
+        y: 0,
+      };
     }
     const phase = (this.#elapsed * Math.PI * 2) / BOB_PERIOD;
     return {

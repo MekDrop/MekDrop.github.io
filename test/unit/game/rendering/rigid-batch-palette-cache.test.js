@@ -9,8 +9,14 @@ it("reuses unchanged GPU palettes and refreshes after ancestor or member motion"
   const bone = new GraphNode("prop");
   parent.addChild(bone);
   let uploads = 0;
-  const skin = { bones: [bone], updateMatrixPalette: () => { uploads++; } };
-  const batch = { dynamic: true, meshInstance: { skinInstance: skin } };
+  const skin = {
+    bones: [bone],
+    updateMatrixPalette: () => { uploads++; },
+  };
+  const batch = {
+    dynamic: true,
+    meshInstance: { skinInstance: skin },
+  };
   cacheRigidBatchPalette(batch);
   cacheRigidBatchPalette(batch);
   for (let frame = 0; frame < 120; frame++) skin.updateMatrixPalette(root, frame);
@@ -35,7 +41,13 @@ it("reuses unchanged GPU palettes and refreshes after ancestor or member motion"
 
 it("leaves static batches alone", () => {
   const update = () => {};
-  const skin = { bones: [], updateMatrixPalette: update };
-  cacheRigidBatchPalette({ dynamic: false, meshInstance: { skinInstance: skin } });
+  const skin = {
+    bones: [],
+    updateMatrixPalette: update,
+  };
+  cacheRigidBatchPalette({
+    dynamic: false,
+    meshInstance: { skinInstance: skin },
+  });
   assert.equal(skin.updateMatrixPalette, update);
 });

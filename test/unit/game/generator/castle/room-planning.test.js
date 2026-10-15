@@ -12,8 +12,22 @@ import { CastleRoomSizeInvalidError } from "../../../../../src/game/errors/castl
 import { CastleResidentialLayout } from "../../../../../src/game/objects/castle/CastleResidentialLayout.js";
 import { createCastleGroundCuts } from "../../../../../src/game/objects/castle/CastleGroundCuts.js";
 
-const options = { position: { x: -4, z: -4, width: 8, depth: 8, elevation: 3 },
-  doors: [{ side: "NORTH", offset: 3, width: 2 }], style: "twin-tower", seed: "rooms" };
+const options = {
+  position: {
+    x: -4,
+    z: -4,
+    width: 8,
+    depth: 8,
+    elevation: 3,
+  },
+  doors: [{
+    side: "NORTH",
+    offset: 3,
+    width: 2,
+  }],
+  style: "twin-tower",
+  seed: "rooms",
+};
 import { ThroneRoomGenerator } from "../../../../../src/game/generator/castle/rooms/throne/ThroneRoomGenerator.js";
 import { LibraryRoomGenerator } from "../../../../../src/game/generator/castle/rooms/library/LibraryRoomGenerator.js";
 import { ServiceRoomGenerator } from "../../../../../src/game/generator/castle/rooms/service/ServiceRoomGenerator.js";
@@ -24,16 +38,30 @@ class UpstairsLeisureGenerator extends LeisureRoomGenerator {
 }
 const basementOptions = () => {
   const service = new ServiceRoomGenerator();
-  service.min = { x: 2, y: 7 };
-  return { ...options, roomGenerators: [new ThroneRoomGenerator(), new LibraryRoomGenerator(), service,
-    new UpstairsLeisureGenerator(), ...[1, 2, 3, 4].map((index) => new TowerRoomGenerator(index))] };
+  service.min = {
+    x: 2,
+    y: 7,
+  };
+  return {
+    ...options,
+    roomGenerators: [new ThroneRoomGenerator(), new LibraryRoomGenerator(), service,
+      new UpstairsLeisureGenerator(), ...[1, 2, 3, 4].map((index) => new TowerRoomGenerator(index))],
+  };
 };
 const order = ["throneRoom", "library", "service", "leisure", "tower1", "tower2", "tower3", "tower4"];
 
 it("uses the full reserved castle footprint and ordered, separated rooms for every orientation", async () => {
   for (const style of ["twin-tower", "right-angle", "single-tower", "left-angle"]) {
     for (const side of ["NORTH", "SOUTH", "WEST", "EAST"]) {
-      const plan = await CastleGenerator.generate({ ...options, style, doors: [{ side, offset: 3, width: 2 }] });
+      const plan = await CastleGenerator.generate({
+        ...options,
+        style,
+        doors: [{
+          side,
+          offset: 3,
+          width: 2,
+        }],
+      });
       assert.equal(plan.layout.castleDepth, 32);
       const layout = new CastleResidentialLayout(plan);
       const entrances = plan.layout.roomPlan.doorways.filter((doorway) =>
@@ -94,8 +122,19 @@ it("moves service rooms to a connected basement and other overflow upstairs", as
   assert.ok(residential.stair);
   assert.ok(residential.serviceStair);
   assert.ok(residential.basement);
-  const spacious = await CastleGenerator.generate({ ...options,
-    position: { ...options.position, width: 12, depth: 12 }, doors: [{ side: "NORTH", offset: 5, width: 2 }] });
+  const spacious = await CastleGenerator.generate({
+    ...options,
+    position: {
+      ...options.position,
+      width: 12,
+      depth: 12,
+    },
+    doors: [{
+      side: "NORTH",
+      offset: 5,
+      width: 2,
+    }],
+  });
   assert.equal(spacious.layout.roomPlan.rooms.service.level, 0);
   assert.equal(spacious.layout.roomPlan.basement, null);
   assert.equal(spacious.layout.roomPlan.serviceStair, null);
@@ -103,7 +142,10 @@ it("moves service rooms to a connected basement and other overflow upstairs", as
 
 it("towers start at ground corners and never occupy an upstairs room footprint", async () => {
   for (let seed = 0; seed < 12; seed++) {
-    const plan = await CastleGenerator.generate({ ...options, seed });
+    const plan = await CastleGenerator.generate({
+      ...options,
+      seed,
+    });
     const { placedRooms, outerBounds } = plan.layout.roomPlan;
     for (const tower of placedRooms.filter((room) => room.id.startsWith("tower"))) {
       assert.equal(tower.level, 0);
@@ -122,10 +164,26 @@ it("towers start at ground corners and never occupy an upstairs room footprint",
 
 it("allows a ground-based tower above a basement room", async () => {
   const custom = basementOptions();
-  custom.roomGenerators[2].min = { x: 2, y: 11 };
+  custom.roomGenerators[2].min = {
+    x: 2,
+    y: 11,
+  };
   custom.roomGenerators[2].max = undefined;
   custom.roomGenerators = custom.roomGenerators.filter((generator) => generator.id !== "leisure");
-  const plan = await CastleGenerator.generate({ ...custom, position: { ...options.position, width: 12, depth: 12 }, doors: [{ side: "NORTH", offset: 5, width: 2 }], seed: "default" });
+  const plan = await CastleGenerator.generate({
+    ...custom,
+    position: {
+      ...options.position,
+      width: 12,
+      depth: 12,
+    },
+    doors: [{
+      side: "NORTH",
+      offset: 5,
+      width: 2,
+    }],
+    seed: "default",
+  });
   const tower = plan.layout.roomPlan.placedRooms.find((room) => room.id.startsWith("tower") && CastleRoomPacker.overlaps(room, plan.layout.roomPlan.rooms.service));
   const service = plan.layout.roomPlan.rooms.service;
   assert.equal(service.level, -1);
@@ -156,14 +214,26 @@ it("plans stairs as subrooms with height and two placed room endpoints", async (
 });
 
 it("uses seeded random sizes with stable output for repeated seeds", async () => {
-  const a = await CastleGenerator.generate({ ...options, seed: "a" });
-  const b = await CastleGenerator.generate({ ...options, seed: "b" });
-  assert.deepEqual(await CastleGenerator.generate({ ...options, seed: "a" }), a);
+  const a = await CastleGenerator.generate({
+    ...options,
+    seed: "a",
+  });
+  const b = await CastleGenerator.generate({
+    ...options,
+    seed: "b",
+  });
+  assert.deepEqual(await CastleGenerator.generate({
+    ...options,
+    seed: "a",
+  }), a);
   assert.notDeepEqual(a.layout.roomPlan.placedRooms, b.layout.roomPlan.placedRooms);
 });
 
 class UnboundedRoomGenerator extends AbstractCastleRoomGenerator {
-  constructor() { super("unbounded", { x: 1, y: 1 }); }
+  constructor() { super("unbounded", {
+    x: 1,
+    y: 1,
+  }); }
 }
 
 it("requires minimum dimensions and treats an omitted maximum as unbounded", () => {
@@ -171,11 +241,25 @@ it("requires minimum dimensions and treats an omitted maximum as unbounded", () 
     constructor(min, max) { super("invalid", min, max); }
   }
   assert.throws(() => new InvalidRoomGenerator(), CastleRoomSizeInvalidError);
-  assert.throws(() => new InvalidRoomGenerator({ x: 0, y: 1 }), CastleRoomSizeInvalidError);
-  assert.throws(() => new InvalidRoomGenerator({ x: 2, y: 2 }, { x: 1, y: 1 }), CastleRoomSizeInvalidError);
+  assert.throws(() => new InvalidRoomGenerator({
+    x: 0,
+    y: 1,
+  }), CastleRoomSizeInvalidError);
+  assert.throws(() => new InvalidRoomGenerator({
+    x: 2,
+    y: 2,
+  }, {
+    x: 1,
+    y: 1,
+  }), CastleRoomSizeInvalidError);
   const generator = new UnboundedRoomGenerator();
   assert.equal(generator.max, undefined);
-  const packer = new CastleRoomPacker({ minX: -5.5, maxX: 5.5, minZ: 0.5, maxZ: 11.5 }, 3, 3, "unbounded");
+  const packer = new CastleRoomPacker({
+    minX: -5.5,
+    maxX: 5.5,
+    minZ: 0.5,
+    maxZ: 11.5,
+  }, 3, 3, "unbounded");
   packer.place([generator]);
   assert.equal(packer.rooms.length, 1);
   assert.ok(packer.rooms[0].maxX - packer.rooms[0].minX >= 1);
@@ -183,7 +267,10 @@ it("requires minimum dimensions and treats an omitted maximum as unbounded", () 
 });
 
 it("furnishes only after every room's area has been placed", async () => {
-  const scheduler = { now: () => 0, yieldIfNeeded: async () => {} };
+  const scheduler = {
+    now: () => 0,
+    yieldIfNeeded: async () => {},
+  };
   const context = new CastleGenerationContext(options, scheduler);
   await new LayoutStyleStage().run(context);
   await new RoomPlanningStage().run(context);
@@ -205,9 +292,17 @@ it("furnishes only after every room's area has been placed", async () => {
 
 it("skips rooms whose minimum cannot fit on either permitted floor", () => {
   class HugeRoomGenerator extends AbstractCastleRoomGenerator {
-    constructor() { super("huge", { x: 20, y: 20 }); }
+    constructor() { super("huge", {
+      x: 20,
+      y: 20,
+    }); }
   }
-  const packer = new CastleRoomPacker({ minX: -3.5, maxX: 3.5, minZ: 0.5, maxZ: 7.5 }, 3, 3, "skip");
+  const packer = new CastleRoomPacker({
+    minX: -3.5,
+    maxX: 3.5,
+    minZ: 0.5,
+    maxZ: 7.5,
+  }, 3, 3, "skip");
   packer.place([new HugeRoomGenerator()]);
   assert.deepEqual(packer.rooms, []);
   assert.deepEqual(packer.skipped, ["huge"]);
@@ -243,7 +338,14 @@ it("encloses covered rooms and leaves the leisure terrace open to the sky", asyn
 
 it("keeps stair shafts clear, supports their exits, and samples the correct upper tread", async () => {
   for (const side of ["NORTH", "SOUTH", "WEST", "EAST"]) {
-    const plan = await CastleGenerator.generate({ ...options, doors: [{ side, offset: 3, width: 2 }] });
+    const plan = await CastleGenerator.generate({
+      ...options,
+      doors: [{
+        side,
+        offset: 3,
+        width: 2,
+      }],
+    });
     const layout = new CastleResidentialLayout(plan);
     const local = layout.toLocal(layout.stairs.center.x, layout.stairs.center.z);
     let elevation = layout.origin.y;
@@ -267,7 +369,14 @@ it("keeps stair shafts clear, supports their exits, and samples the correct uppe
 
 it("excavates a rotated basement within the footprint with a sealed soil ceiling", async () => {
   for (const side of ["NORTH", "SOUTH", "WEST", "EAST"]) {
-    const plan = await CastleGenerator.generate({ ...basementOptions(), doors: [{ side, offset: 3, width: 2 }] });
+    const plan = await CastleGenerator.generate({
+      ...basementOptions(),
+      doors: [{
+        side,
+        offset: 3,
+        width: 2,
+      }],
+    });
     const cuts = createCastleGroundCuts(plan, new CastleResidentialLayout(plan));
     assert.ok(cuts.every((cut) => Object.values(cut).every(Number.isFinite)));
     const basement = cuts.find((cut) => cut.minY === 0.5 && cut.maxY === 2.75);
@@ -305,7 +414,14 @@ it("connects basement tread heights to the ground-floor stair landing", async ()
 
 it("connects tower entrances on both occupied floors", async () => {
   for (const side of ["NORTH", "SOUTH", "WEST", "EAST"]) {
-    const plan = await CastleGenerator.generate({ ...options, doors: [{ side, offset: 3, width: 2 }] });
+    const plan = await CastleGenerator.generate({
+      ...options,
+      doors: [{
+        side,
+        offset: 3,
+        width: 2,
+      }],
+    });
     const layout = new CastleResidentialLayout(plan);
     for (const tower of plan.layout.roomPlan.placedRooms.filter((room) => room.id.startsWith("tower"))) {
       const doorX = (tower.minX + tower.maxX) / 2 < 0 ? tower.maxX + 0.125 : tower.minX - 0.125;
@@ -324,8 +440,22 @@ it("connects tower entrances on both occupied floors", async () => {
 
 
 it("rearranges rooms before accepting a skipped tower and preserves deterministic placement", async () => {
-  const settings = { ...options, seed: 0, position: { ...options.position, x: -6, z: -6, width: 12, depth: 12 },
-    doors: [{ side: "NORTH", offset: 5, width: 2 }] };
+  const settings = {
+    ...options,
+    seed: 0,
+    position: {
+      ...options.position,
+      x: -6,
+      z: -6,
+      width: 12,
+      depth: 12,
+    },
+    doors: [{
+      side: "NORTH",
+      offset: 5,
+      width: 2,
+    }],
+  };
   const first = await CastleGenerator.generate(settings);
   const second = await CastleGenerator.generate(settings);
   const plan = first.layout.roomPlan;

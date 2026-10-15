@@ -42,14 +42,24 @@ export function createCastleDoorCollision(pc, door) {
       model.meshInstances = render.meshInstances.map(/**
        * @param {import("playcanvas").MeshInstance} instance
        */ (instance) =>
-        new pc.MeshInstance(instance.mesh, instance.material, node));
+          new pc.MeshInstance(instance.mesh, instance.material, node));
       const collider = new pc.Entity("Castle entrance frame collider");
       render.entity.addChild(collider);
-      collider.addComponent("collision", { type: "mesh", model });
-      collider.addComponent("rigidbody", { type: "static", friction: 0, restitution: 0 });
+      collider.addComponent("collision", {
+        type: "mesh",
+        model,
+      });
+      collider.addComponent("rigidbody", {
+        type: "static",
+        friction: 0,
+        restitution: 0,
+      });
       // Bullet's default mesh margin is wider than the authored door/frame clearance.
       configureMargin(collider);
-      frameBodies.push({ collider, model });
+      frameBodies.push({
+        collider,
+        model,
+      });
     }
     if (render.entity.name.startsWith("Entrance collision door plank")) {
       // Authored curved-leaf columns supply collision without visible helper cubes.
@@ -72,30 +82,43 @@ export function createCastleDoorCollision(pc, door) {
      * @param {number} value
      * @param {number} axis
      */
-    (value, axis) => (value - min[axis]) / 2);
+      (value, axis) => (value - min[axis]) / 2);
     const center = max.map(/**
      *
      * @param {number} value
      * @param {number} axis
      */
-    (value, axis) => (value + min[axis]) / 2);
+      (value, axis) => (value + min[axis]) / 2);
     if (!curvedLeaf) part.setLocalPosition(...center);
     render.entity.addChild(part);
     // PlayCanvas box half-extents are physics-world dimensions; entity scale
     // affects the mesh and picking transform but does not scale the Ammo box.
     const worldScale = part.getWorldTransform().getScale();
     part.addComponent("collision", curvedLeaf ? {
-      type: "mesh", renderAsset: render.asset, convexHull: true,
-    } : { type: "box", halfExtents: new pc.Vec3(
-      half[0] * Math.abs(worldScale.x),
-      half[1] * Math.abs(worldScale.y),
-      half[2] * Math.abs(worldScale.z),
-    ) });
-    part.addComponent("rigidbody", { type: "kinematic", friction: 0, restitution: 0 });
+      type: "mesh",
+      renderAsset: render.asset,
+      convexHull: true,
+    } : {
+      type: "box",
+      halfExtents: new pc.Vec3(
+        half[0] * Math.abs(worldScale.x),
+        half[1] * Math.abs(worldScale.y),
+        half[2] * Math.abs(worldScale.z),
+      ),
+    });
+    part.addComponent("rigidbody", {
+      type: "kinematic",
+      friction: 0,
+      restitution: 0,
+    });
     if (curvedLeaf) {
       configureMargin(part, true);
     }
-    parts.push({ entity: part, half, center: curvedLeaf ? center : [0, 0, 0] });
+    parts.push({
+      entity: part,
+      half,
+      center: curvedLeaf ? center : [0, 0, 0],
+    });
   }
   const point = new pc.Vec3(), inverse = new pc.Mat4(), scale = new pc.Vec3();
   const swing = new CastleDoorSwingPhysics(parts);
@@ -166,18 +189,18 @@ export function createCastleDoorCollision(pc, door) {
        * @param {number[]} options.half
        * @param {number[]} options.center
        */
-      ({ entity, half, center }) => {
-        const transform = entity.getWorldTransform();
-        inverse.copy(transform).invert().transformPoint(point.set(x, y, z), point);
-        point.x -= center[0]; point.y -= center[1]; point.z -= center[2];
-        transform.getScale(scale);
-        const distance = Math.hypot(
-          Math.max(Math.abs(point.x) - half[0], 0) * scale.x,
-          Math.max(Math.abs(point.y) - half[1], 0) * scale.y,
-          Math.max(Math.abs(point.z) - half[2], 0) * scale.z,
-        );
-        return distance <= radius;
-      });
+        ({ entity, half, center }) => {
+          const transform = entity.getWorldTransform();
+          inverse.copy(transform).invert().transformPoint(point.set(x, y, z), point);
+          point.x -= center[0]; point.y -= center[1]; point.z -= center[2];
+          transform.getScale(scale);
+          const distance = Math.hypot(
+            Math.max(Math.abs(point.x) - half[0], 0) * scale.x,
+            Math.max(Math.abs(point.y) - half[1], 0) * scale.y,
+            Math.max(Math.abs(point.z) - half[2], 0) * scale.z,
+          );
+          return distance <= radius;
+        });
     },
   };
 }

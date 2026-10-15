@@ -26,8 +26,13 @@ export class TerraceInspectorWalk {
     const time = Math.max(0, Math.min(duration, elapsed));
     if (time < turnIn) {
       const t = time / turnIn;
-      return { ...start, yaw: startYaw + firstTurn * this.#ease(t),
-        action: "turn", animationTime: t, progress: 0 };
+      return {
+        ...start,
+        yaw: startYaw + firstTurn * this.#ease(t),
+        action: "turn",
+        animationTime: t,
+        progress: 0,
+      };
     }
     if (time < turnIn + walkDuration) {
       const progress = this.#ease((time - turnIn) / walkDuration);
@@ -37,12 +42,20 @@ export class TerraceInspectorWalk {
         x: start.x + dx * progress,
         y: start.y + (end.y - start.y) * progress,
         z: start.z + dz * progress,
-        yaw: heading, action: "walk", animationTime: cycles * progress, progress,
+        yaw: heading,
+        action: "walk",
+        animationTime: cycles * progress,
+        progress,
       };
     }
     const t = turnOut > 0 ? Math.min(1, (time - turnIn - walkDuration) / turnOut) : 1;
-    return { ...end, yaw: heading + lastTurn * this.#ease(t),
-      action: t < 1 ? "turn" : "idle", animationTime: t, progress: 1 };
+    return {
+      ...end,
+      yaw: heading + lastTurn * this.#ease(t),
+      action: t < 1 ? "turn" : "idle",
+      animationTime: t,
+      progress: 1,
+    };
   }
 
   /**

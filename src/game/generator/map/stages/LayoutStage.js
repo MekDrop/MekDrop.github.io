@@ -37,10 +37,14 @@ export class LayoutStage extends AbstractMapGenerationStage {
     } = context.input;
     const numPaths = this.#layout.selectPathCount(requestedNumPaths);
     const castleSeed = mapName;
-    const basePlan = await CastleBasePlanGenerator.generate({ seed: castleSeed, unitMetres: 1 });
+    const basePlan = await CastleBasePlanGenerator.generate({
+      seed: castleSeed,
+      unitMetres: 1,
+    });
     // West-facing plans swap their north-up axes; leave one tile around the walls.
     const layout = this.#layout.createLayoutConfig(numPaths, {
-      basePlanId: basePlan.basePlanId, width: Math.ceil(basePlan.depth) + 2,
+      basePlanId: basePlan.basePlanId,
+      width: Math.ceil(basePlan.depth) + 2,
       depth: Math.ceil(basePlan.width) + 2,
       entranceInset: (basePlan.entrance.center - basePlan.width / 2) * (basePlan.mirrored ? -1 : 1),
     });

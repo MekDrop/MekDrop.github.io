@@ -8,11 +8,33 @@ test("entrance lantern placements preserve mounting transforms across facings an
   for (const side of ["NORTH", "SOUTH", "EAST", "WEST"]) {
     for (const seed of [0, 1]) {
       const buildPlan = await CastleGenerator.generate({
-        position: { x: -14, z: -8, width: 28, depth: 16, elevation: 3 },
-        doors: [{ side, offset: 13, width: 2 }], seed,
+        position: {
+          x: -14,
+          z: -8,
+          width: 28,
+          depth: 16,
+          elevation: 3,
+        },
+        doors: [{
+          side,
+          offset: 13,
+          width: 2,
+        }],
+        seed,
       });
-      const authored = { id: "independent-lantern", object: "TableLantern" };
-      const map = { cols: 64, rows: 64, objects: [{ id: "castle", object: "Castle", buildPlan }, authored] };
+      const authored = {
+        id: "independent-lantern",
+        object: "TableLantern",
+      };
+      const map = {
+        cols: 64,
+        rows: 64,
+        objects: [{
+          id: "castle",
+          object: "Castle",
+          buildPlan,
+        }, authored],
+      };
       CastleLanternMapObjects.prepareMap(map);
       const first = structuredClone(map.objects);
       CastleLanternMapObjects.prepareMap(map);
@@ -28,7 +50,10 @@ test("entrance lantern placements preserve mounting transforms across facings an
         assert.equal(lantern.rotation, layout.yaw + 180);
         assert.equal(lantern.scale, 1.6);
         assert.equal(lantern.stretch.x, 0.8633);
-        assert.deepEqual(lantern.tile, { col: 18, row: 24 });
+        assert.deepEqual(lantern.tile, {
+          col: 18,
+          row: 24,
+        });
         assert.equal(lantern.lighting.range, 2.2);
       }
       const audience = map.objects.filter(item => item.castleLantern && item.lighting?.flicker);
@@ -41,11 +66,30 @@ test("entrance lantern placements preserve mounting transforms across facings an
 test("castles without residential metadata still publish audience lanterns", async () => {
   for (const side of ["NORTH", "SOUTH", "WEST", "EAST"]) {
     const buildPlan = await CastleGenerator.generate({
-      position: { x: -4, z: -4, width: 8, depth: 8, elevation: 4 },
-      doors: [{ side, offset: 3, width: 2 }], style: "courtyard-keep",
+      position: {
+        x: -4,
+        z: -4,
+        width: 8,
+        depth: 8,
+        elevation: 4,
+      },
+      doors: [{
+        side,
+        offset: 3,
+        width: 2,
+      }],
+      style: "courtyard-keep",
     });
     delete buildPlan.metadata.runtime.residential;
-    const map = { cols: 16, rows: 16, objects: [{ id: "keep", object: "Castle", buildPlan }] };
+    const map = {
+      cols: 16,
+      rows: 16,
+      objects: [{
+        id: "keep",
+        object: "Castle",
+        buildPlan,
+      }],
+    };
     CastleLanternMapObjects.prepareMap(map);
     const lanterns = map.objects.filter(item => item.castleLantern);
     assert.equal(lanterns.length, 2);

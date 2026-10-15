@@ -405,12 +405,12 @@ export class TerrainBuilder {
        *
        * @param {RiverRecord} river
        */
-      (river) =>
-        river.cells.map(/**
+        (river) =>
+          river.cells.map(/**
          *
          * @param {MapCell} cell
          */
-        (cell) => MapGrid.tileKey(cell.col, cell.row)),
+            (cell) => MapGrid.tileKey(cell.col, cell.row)),
       ),
     );
     const processedStations = new Set();
@@ -440,7 +440,7 @@ export class TerrainBuilder {
            *
            * @param {MapCell} cell
            */
-          (cell) => MapGrid.tileKey(cell.col, cell.row))
+            (cell) => MapGrid.tileKey(cell.col, cell.row))
           .sort()
           .join("|")}`;
         if (processedStations.has(stationKey)) {
@@ -529,18 +529,18 @@ export class TerrainBuilder {
        *
        * @param {RiverRecord} river
        */
-      (river) =>
-        river.cells
-          .filter(/**
+        (river) =>
+          river.cells
+            .filter(/**
            *
            * @param {MapCell} cell
            */
-          (cell) => cell.underBridge)
-          .map(/**
+              (cell) => cell.underBridge)
+            .map(/**
            *
            * @param {MapCell} cell
            */
-          (cell) => MapGrid.tileKey(cell.col, cell.row)),
+              (cell) => MapGrid.tileKey(cell.col, cell.row)),
       ),
     );
     for (let row = 0; row < MAP_ROWS; row++) {
@@ -550,8 +550,8 @@ export class TerrainBuilder {
         }
         tileMeta[row][col].bridgeGroundHeight =
           tileMeta[row][col].islandConnector || riverBridgeCells.has(MapGrid.tileKey(col, row))
-          ? null
-          : Math.max(1, heightmap[row][col] - 1);
+            ? null
+            : Math.max(1, heightmap[row][col] - 1);
       }
     }
   }

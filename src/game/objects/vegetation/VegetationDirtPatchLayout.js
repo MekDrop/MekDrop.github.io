@@ -49,7 +49,7 @@ export class VegetationDirtPatchLayout {
      *
      * @param {{x: number, y: number, z: number}} point
      */
-    (point) => ({ ...point }));
+      (point) => ({ ...point }));
     const rotationRadians = (rotation * Math.PI) / 180;
     this.#cosine = Math.cos(rotationRadians);
     this.#sine = Math.sin(rotationRadians);

@@ -6,7 +6,10 @@ import * as pc from "playcanvas";
 const hooks = registerHooks({
   resolve(specifier, context, nextResolve) {
     if (specifier.endsWith(".glb?url")) {
-      return { url: `data:text/javascript,export default ${JSON.stringify(specifier)}`, shortCircuit: true };
+      return {
+        url: `data:text/javascript,export default ${JSON.stringify(specifier)}`,
+        shortCircuit: true,
+      };
     }
     return nextResolve(specifier, context);
   },
@@ -15,8 +18,19 @@ const { Table } = await import("../../../../../src/game/objects/table/Table.js")
 hooks.deregister();
 
 test("dimensions resize visible and collision models identically, retaining placement transforms", () => {
-  const definition = Table.definitionFor({ id: "wide-table", object: "Table",
-    width: 2, height: 0.8, depth: 1, scale: 2, stretch: { x: 1, y: 1.5, z: 0.5 } });
+  const definition = Table.definitionFor({
+    id: "wide-table",
+    object: "Table",
+    width: 2,
+    height: 0.8,
+    depth: 1,
+    scale: 2,
+    stretch: {
+      x: 1,
+      y: 1.5,
+      z: 0.5,
+    },
+  });
   const visual = new pc.Entity();
   const collider = new pc.Entity();
   Table.prototype.prepareModel.call({ definition }, visual, false);
@@ -31,12 +45,18 @@ test("dimensions resize visible and collision models identically, retaining plac
 
 test("legacy names use one table and explicit dimensions override their defaults", () => {
   for (const object of ["KitchenTable", "TeaTable", "LibrarySideTable", "VestibuleMapTable", "WarMapTable"]) {
-    const definition = Table.definitionFor({ object, width: 3 });
+    const definition = Table.definitionFor({
+      object,
+      width: 3,
+    });
     assert.equal(definition.object, "Table");
     assert.equal(definition.width, 3);
     assert.ok(definition.height > 0);
     assert.ok(definition.depth > 0);
     assert.equal(definition.worldMap, ["WarMapTable", "VestibuleMapTable"].includes(object));
   }
-  assert.equal(Table.definitionFor({ object: "WarMapTable", worldMap: false }).worldMap, false);
+  assert.equal(Table.definitionFor({
+    object: "WarMapTable",
+    worldMap: false,
+  }).worldMap, false);
 });

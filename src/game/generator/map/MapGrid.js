@@ -45,22 +45,22 @@ export class MapGrid {
      * @param {undefined} _
      * @param {number} row
      */
-    (_, row) =>
-      Array.from({ length: MAP_COLS }, /**
+      (_, row) =>
+        Array.from({ length: MAP_COLS }, /**
        *
        * @param {undefined} _
        * @param {number} col
        */
-      (_, col) => ({
-        x: col,
-        y: row,
-        baseHeight: WATER_HEIGHT,
-        surfaceType: "WATER",
-        shape: TILE_SHAPE.FLAT,
-        direction: DIRECTIONS.NONE,
-        renderMode: "SOLID",
-        bridgeGroundHeight: null,
-      })),
+          (_, col) => ({
+            x: col,
+            y: row,
+            baseHeight: WATER_HEIGHT,
+            surfaceType: "WATER",
+            shape: TILE_SHAPE.FLAT,
+            direction: DIRECTIONS.NONE,
+            renderMode: "SOLID",
+            bridgeGroundHeight: null,
+          })),
     );
   }
 
@@ -135,7 +135,10 @@ export class MapGrid {
         [0, 1],
         [0, -1],
       ]) {
-        queue.push({ col: col + dc, row: row + dr });
+        queue.push({
+          col: col + dc,
+          row: row + dr,
+        });
       }
     }
 

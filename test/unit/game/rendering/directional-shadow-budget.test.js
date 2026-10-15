@@ -21,7 +21,11 @@ function fixture() {
       }
     },
   };
-  return { light, requests, budget: new DirectionalShadowBudget(pc, light) };
+  return {
+    light,
+    requests,
+    budget: new DirectionalShadowBudget(pc, light),
+  };
 }
 
 it("refreshes immediately on entry and continues requesting shadow updates", () => {

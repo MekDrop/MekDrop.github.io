@@ -164,7 +164,10 @@ export class FirstPersonCameraMode extends AbstractCameraMode {
   update({ hero }) {
     let pose = hero?.firstPersonCameraPose;
     if (!pose) {
-      return { firstPerson: true, position: null };
+      return {
+        firstPerson: true,
+        position: null,
+      };
     }
     const { gameCamera } = this;
     const centerYaw =
@@ -203,6 +206,9 @@ export class FirstPersonCameraMode extends AbstractCameraMode {
       y: gameCamera.right.y,
       z: gameCamera.right.z,
     };
-    return { firstPerson: true, position: this.#position };
+    return {
+      firstPerson: true,
+      position: this.#position,
+    };
   }
 }

@@ -13,7 +13,7 @@ export class LibraryRoomMapObjects {
      *
      * @param {import("../../../ObjectTypes.js").MapObjectDefinition} definition
      */
-    definition => definition.object === "Castle")) {
+      definition => definition.object === "Castle")) {
       const plan = castle.buildPlan?.metadata?.runtime?.residential;
       if (!plan?.basePlanId) { continue; }
       const layout = new CastleResidentialLayout(castle.buildPlan);
@@ -30,9 +30,19 @@ export class LibraryRoomMapObjects {
         counts.set(roomKey, index + 1);
         const position = layout.toWorld(item.x, item.z, item.floorY - layout.origin.y + (item.y ?? 0));
         const rotation = layout.yaw + 180 + (item.rotation ?? 0);
-        const definition = { id: `${prefix}${roomKey}-${index}`, object: item.object, position, rotation,
-          generated: true, libraryFurnishing: true, sourceCastleId: castle.id,
-          tile: { col: Math.round(position.x + (mapData.cols - 1) / 2), row: Math.round(position.z + (mapData.rows - 1) / 2) } };
+        const definition = {
+          id: `${prefix}${roomKey}-${index}`,
+          object: item.object,
+          position,
+          rotation,
+          generated: true,
+          libraryFurnishing: true,
+          sourceCastleId: castle.id,
+          tile: {
+            col: Math.round(position.x + (mapData.cols - 1) / 2),
+            row: Math.round(position.z + (mapData.rows - 1) / 2),
+          },
+        };
         if (item.object === "Bookshelf") {
           const angle = rotation * Math.PI / 180;
           const length = item.rotation % 180 ? item.depth : item.width;
@@ -49,8 +59,16 @@ export class LibraryRoomMapObjects {
               else { definition.joinEnd = true; }
             }
           }
-          definition.from = { x: position.x - Math.cos(angle) * length / 2, y: position.y, z: position.z + Math.sin(angle) * length / 2 };
-          definition.to = { x: position.x + Math.cos(angle) * length / 2, y: position.y, z: position.z - Math.sin(angle) * length / 2 };
+          definition.from = {
+            x: position.x - Math.cos(angle) * length / 2,
+            y: position.y,
+            z: position.z + Math.sin(angle) * length / 2,
+          };
+          definition.to = {
+            x: position.x + Math.cos(angle) * length / 2,
+            y: position.y,
+            z: position.z - Math.sin(angle) * length / 2,
+          };
           // Exact cardinal coordinates keep the shelf range unambiguous.
           if (Math.abs(Math.cos(angle)) < 0.5) { definition.from.x = definition.to.x = position.x; }
           else { definition.from.z = definition.to.z = position.z; }

@@ -13,20 +13,67 @@ const WoodenFloor = new Function("IslandObjectRoots", "addGeneratedVoxelPhysics"
   IslandObjectRoots, (options) => { support = options.voxels[0]; }, InvalidWoodenFloorAreaError);
 
 it("fills reversed rectangle corners with timber ending at the requested walking height", () => {
-  const definition = { id: "room", object: "WoodenFloor", from: { x: 7, y: 3, z: 9 }, to: { x: 1, y: 3, z: 2 } };
-  const floor = new WoodenFloor({ pc, definition, modelLibrary: { instantiate: () => new pc.Entity() } });
+  const definition = {
+    id: "room",
+    object: "WoodenFloor",
+    from: {
+      x: 7,
+      y: 3,
+      z: 9,
+    },
+    to: {
+      x: 1,
+      y: 3,
+      z: 2,
+    },
+  };
+  const floor = new WoodenFloor({
+    pc,
+    definition,
+    modelLibrary: { instantiate: () => new pc.Entity() },
+  });
   const panel = floor.visualRoots[0];
   assert.deepEqual(panel.getLocalPosition().toArray(), [4, 2.94, 5.5]);
   assert.deepEqual(panel.getLocalScale().toArray(), [6, 1, 7]);
   assert.equal(floor.definition, definition);
-  assert.deepEqual(support, { x: 4, y: 2.97, z: 5.5, width: 6, height: 0.06, depth: 7 });
+  assert.deepEqual(support, {
+    x: 4,
+    y: 2.97,
+    z: 5.5,
+    width: 6,
+    height: 0.06,
+    depth: 7,
+  });
   assert.ok(panel.tags.has("map-object", "WoodenFloor"));
   floor.destroy();
 });
 
 it("rejects empty, non-finite, and sloping areas", () => {
-  for (const to of [{ x: 0, y: 1, z: 2 }, { x: 2, y: 2, z: 2 }, { x: NaN, y: 1, z: 2 }]) {
-    assert.throws(() => new WoodenFloor({ pc, definition: { id: "invalid", from: { x: 0, y: 1, z: 0 }, to } }), InvalidWoodenFloorAreaError);
+  for (const to of [{
+    x: 0,
+    y: 1,
+    z: 2,
+  }, {
+    x: 2,
+    y: 2,
+    z: 2,
+  }, {
+    x: NaN,
+    y: 1,
+    z: 2,
+  }]) {
+    assert.throws(() => new WoodenFloor({
+      pc,
+      definition: {
+        id: "invalid",
+        from: {
+          x: 0,
+          y: 1,
+          z: 0,
+        },
+        to,
+      },
+    }), InvalidWoodenFloorAreaError);
   }
 });
 
@@ -71,10 +118,21 @@ it("keeps plank top seams equally narrow when a room stretches the floor panel",
       const top = vertices.filter((value, index) => index % 3 === 1).reduce((a, b) => Math.max(a, b));
       const points = [];
       for (let index = 0; index < vertices.length; index += 3) {
-        if (vertices[index + 1] >= top - 1e-5) { points.push({ x: vertices[index], z: vertices[index + 2] }); }
+        if (vertices[index + 1] >= top - 1e-5) { points.push({
+          x: vertices[index],
+          z: vertices[index + 2],
+        }); }
       }
       node.topPoints = points;
-      renders.push({ entity: node, meshInstances: [{ mesh: { aabb, getPositions: output => output.push(...vertices) } }] });
+      renders.push({
+        entity: node,
+        meshInstances: [{
+          mesh: {
+            aabb,
+            getPositions: output => output.push(...vertices),
+          },
+        }],
+      });
     }
     root.findComponents = () => renders;
     WoodenFloor.createPanel({ instantiate: () => root }, false, width, depth);

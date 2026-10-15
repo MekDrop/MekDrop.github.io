@@ -53,7 +53,10 @@ export class CastleWindowLayout {
       /**
        * @param {MasonryBox} box
        */
-      (box) => ({ ...this.#localBounds(box), box }),
+      (box) => ({
+        ...this.#localBounds(box),
+        box,
+      }),
     );
     for (const block of this.#masonry) {
       for (const axis of ["X", "Z"]) {
@@ -72,7 +75,10 @@ export class CastleWindowLayout {
     const upper = this.#rooms.rooms.bedroom;
     const ground = this.#rooms.rooms.work;
     if (residential?.version === 2) {
-      this.#roomWindows({ ...residential.outerBounds, floorY: this.#rooms.origin.y }, "hall", this.#rooms.origin.y + residential.rise - 0.25);
+      this.#roomWindows({
+        ...residential.outerBounds,
+        floorY: this.#rooms.origin.y,
+      }, "hall", this.#rooms.origin.y + residential.rise - 0.25);
       if (residential.rooms.upperGallery) {
         const gallery = residential.rooms.upperGallery;
         this.#roomWindows(gallery, "slit", gallery.floorY + gallery.height);
@@ -93,7 +99,10 @@ export class CastleWindowLayout {
         continue;
       }
       const role = /leisure|lounge|tea/i.test(building.purpose ?? building.id) ? "leisure" : "room";
-      this.#roomWindows({ ...building.bounds, floorY: building.floorY }, role, building.floorY + building.height);
+      this.#roomWindows({
+        ...building.bounds,
+        floorY: building.floorY,
+      }, role, building.floorY + building.height);
     }
     // An open terrace has parapets rather than enclosed room walls. It must not
     // receive decorative holes at an invented storey height.
@@ -111,7 +120,14 @@ export class CastleWindowLayout {
     const angle = (box.yaw - this.#rooms.yaw) * Math.PI / 180;
     const halfX = (Math.abs(Math.cos(angle)) * box.sx + Math.abs(Math.sin(angle)) * box.sz) / 2;
     const halfZ = (Math.abs(Math.sin(angle)) * box.sx + Math.abs(Math.cos(angle)) * box.sz) / 2;
-    return { minX: center.x - halfX, maxX: center.x + halfX, minZ: center.z - halfZ, maxZ: center.z + halfZ, minY: box.y - box.sy / 2, maxY: box.y + box.sy / 2 };
+    return {
+      minX: center.x - halfX,
+      maxX: center.x + halfX,
+      minZ: center.z - halfZ,
+      maxZ: center.z + halfZ,
+      minY: box.y - box.sy / 2,
+      maxY: box.y + box.sy / 2,
+    };
   }
 
   /**
@@ -145,7 +161,12 @@ export class CastleWindowLayout {
           }
           const key = `${wall.face.toFixed(3)}:${wall.depth.toFixed(3)}`;
           if (!run || run.key !== key) {
-            run = { key, start: t - 0.125, end: t + 0.125, ...wall };
+            run = {
+              key,
+              start: t - 0.125,
+              end: t + 0.125,
+              ...wall,
+            };
             runs.push(run);
           } else {
             run.end = t + 0.125;
@@ -196,12 +217,12 @@ export class CastleWindowLayout {
        *
        * @param {WindowBounds} block
        */
-      (block) => block[`min${axis}`]));
+        (block) => block[`min${axis}`]));
       const max = Math.max(...blocks.map(/**
        *
        * @param {WindowBounds} block
        */
-      (block) => block[`max${axis}`]));
+        (block) => block[`max${axis}`]));
       const exterior = sign < 0 ? min : max;
       const interior = sign < 0 ? max : min;
       if (max - min > 0.8 || (interior - face) * sign < -0.3) {
@@ -221,7 +242,10 @@ export class CastleWindowLayout {
       if (result && (Math.abs(result.face - exterior) > 0.001 || Math.abs(result.depth - (max - min)) > 0.001)) {
         return null;
       }
-      result = { face: exterior, depth: max - min };
+      result = {
+        face: exterior,
+        depth: max - min,
+      };
     }
     return result;
   }
@@ -284,10 +308,20 @@ export class CastleWindowLayout {
     const yaw = this.#rooms.yaw + (axis === "X" ? sign * 90 : sign < 0 ? 180 : 0);
     const position = this.#rooms.toWorld(x, z, sill - this.#rooms.origin.y);
     const angle = yaw * Math.PI / 180;
-    const center = { x: position.x - Math.sin(angle) * depth / 2, z: position.z - Math.cos(angle) * depth / 2 };
+    const center = {
+      x: position.x - Math.sin(angle) * depth / 2,
+      z: position.z - Math.cos(angle) * depth / 2,
+    };
     const halfX = (Math.abs(Math.cos(angle)) * width + Math.abs(Math.sin(angle)) * (depth + 0.02)) / 2;
     const halfZ = (Math.abs(Math.sin(angle)) * width + Math.abs(Math.cos(angle)) * (depth + 0.02)) / 2;
-    const cut = { minX: center.x - halfX, maxX: center.x + halfX, minZ: center.z - halfZ, maxZ: center.z + halfZ, minY: sill, maxY: sill + height };
+    const cut = {
+      minX: center.x - halfX,
+      maxX: center.x + halfX,
+      minZ: center.z - halfZ,
+      maxZ: center.z + halfZ,
+      minY: sill,
+      maxY: sill + height,
+    };
     const stairs = [this.#rooms.stairs, this.#rooms.serviceStair].filter(Boolean);
     if (stairs.some(
       /**
@@ -311,7 +345,7 @@ export class CastleWindowLayout {
      *
      * @param {RecessedWindow} window
      */
-    (window) => CastleWindowLayout.intersects(window.cut, cut))) {
+      (window) => CastleWindowLayout.intersects(window.cut, cut))) {
       return;
     }
     const intersectsStone = this.#plan.geometry.boxes.some(
@@ -321,7 +355,16 @@ export class CastleWindowLayout {
       (box) => box.material.startsWith("castleStone") && CastleWindowLayout.intersects(CastleWindowLayout.bounds(box), cut),
     );
     if (intersectsStone) {
-      this.#windows.push({ role, position, yaw, width, height, depth, cut, floorY });
+      this.#windows.push({
+        role,
+        position,
+        yaw,
+        width,
+        height,
+        depth,
+        cut,
+        floorY,
+      });
     }
   }
 
@@ -344,9 +387,25 @@ export class CastleWindowLayout {
       const z = position.z - Math.cos(angle) * depth / 2;
       const halfX = (Math.abs(Math.cos(angle)) * opening.width + Math.abs(Math.sin(angle)) * (depth + 0.02)) / 2;
       const halfZ = (Math.abs(Math.sin(angle)) * opening.width + Math.abs(Math.cos(angle)) * (depth + 0.02)) / 2;
-      const cut = { minX: x - halfX, maxX: x + halfX, minZ: z - halfZ, maxZ: z + halfZ,
-        minY: position.y, maxY: position.y + opening.height };
-      this.#windows.push({ role: opening.width <= 0.25 ? "slit" : "room", open: opening.open === true, position, yaw, width: opening.width, height: opening.height, depth, cut, floorY: opening.floorY });
+      const cut = {
+        minX: x - halfX,
+        maxX: x + halfX,
+        minZ: z - halfZ,
+        maxZ: z + halfZ,
+        minY: position.y,
+        maxY: position.y + opening.height,
+      };
+      this.#windows.push({
+        role: opening.width <= 0.25 ? "slit" : "room",
+        open: opening.open === true,
+        position,
+        yaw,
+        width: opening.width,
+        height: opening.height,
+        depth,
+        cut,
+        floorY: opening.floorY,
+      });
     }
   }
 
@@ -355,7 +414,14 @@ export class CastleWindowLayout {
    * @returns {WindowBounds}
    */
   static bounds(box) {
-    return { minX: box.x - box.sx / 2, maxX: box.x + box.sx / 2, minY: box.y - box.sy / 2, maxY: box.y + box.sy / 2, minZ: box.z - box.sz / 2, maxZ: box.z + box.sz / 2 };
+    return {
+      minX: box.x - box.sx / 2,
+      maxX: box.x + box.sx / 2,
+      minY: box.y - box.sy / 2,
+      maxY: box.y + box.sy / 2,
+      minZ: box.z - box.sz / 2,
+      maxZ: box.z + box.sz / 2,
+    };
   }
 
   /**
@@ -368,7 +434,7 @@ export class CastleWindowLayout {
      *
      * @param {string} axis
      */
-    (axis) => a[`max${axis}`] > b[`min${axis}`] + 0.00001 && a[`min${axis}`] < b[`max${axis}`] - 0.00001);
+      (axis) => a[`max${axis}`] > b[`min${axis}`] + 0.00001 && a[`min${axis}`] < b[`max${axis}`] - 0.00001);
   }
 
   /**
@@ -383,12 +449,15 @@ export class CastleWindowLayout {
     let result = boxes.map(/**
      * @param {MasonryBox} box
      */
-    (box) => {
-      const angle = box.yaw * Math.PI / 180;
-      return { ...box, yaw: 0,
-        sx: Math.abs(Math.cos(angle)) * box.sx + Math.abs(Math.sin(angle)) * box.sz,
-        sz: Math.abs(Math.sin(angle)) * box.sx + Math.abs(Math.cos(angle)) * box.sz };
-    });
+      (box) => {
+        const angle = box.yaw * Math.PI / 180;
+        return {
+          ...box,
+          yaw: 0,
+          sx: Math.abs(Math.cos(angle)) * box.sx + Math.abs(Math.sin(angle)) * box.sz,
+          sz: Math.abs(Math.sin(angle)) * box.sx + Math.abs(Math.cos(angle)) * box.sz,
+        };
+      });
     for (const window of this.#windows) {
       // The insert's jambs and lintel sit exactly on the aperture boundary.
       // Recess the rendered wall faces beneath that trim instead of drawing
@@ -413,8 +482,19 @@ export class CastleWindowLayout {
               const key = `${side}${axis}`;
               const boundary = cut[key];
               if (side === "min" ? remainder[key] < boundary : remainder[key] > boundary) {
-                const piece = { ...remainder, [`${side === "min" ? "max" : "min"}${axis}`]: boundary };
-                pieces.push({ ...box, x: (piece.minX + piece.maxX) / 2, y: (piece.minY + piece.maxY) / 2, z: (piece.minZ + piece.maxZ) / 2, sx: piece.maxX - piece.minX, sy: piece.maxY - piece.minY, sz: piece.maxZ - piece.minZ });
+                const piece = {
+                  ...remainder,
+                  [`${side === "min" ? "max" : "min"}${axis}`]: boundary,
+                };
+                pieces.push({
+                  ...box,
+                  x: (piece.minX + piece.maxX) / 2,
+                  y: (piece.minY + piece.maxY) / 2,
+                  z: (piece.minZ + piece.maxZ) / 2,
+                  sx: piece.maxX - piece.minX,
+                  sy: piece.maxY - piece.minY,
+                  sz: piece.maxZ - piece.minZ,
+                });
                 remainder[key] = boundary;
               }
             }

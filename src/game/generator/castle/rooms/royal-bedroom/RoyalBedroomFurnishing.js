@@ -130,8 +130,12 @@ export class RoyalBedroomFurnishing {
       group.z + Math.cos(angle) * 0.25, 0.43, 0.51, 0.85, (group.rotation + 270) % 360);
     if (chair) { chair.mirrorRotationOffset = 180; }
     this.#supported("DeskParchment", desk, 0.3034, 0.35, 0.0376);
-    this.#access.push({ minX: group.x - group.width / 2, maxX: group.x + group.width / 2,
-      minZ: group.z - group.depth / 2, maxZ: group.z + group.depth / 2 });
+    this.#access.push({
+      minX: group.x - group.width / 2,
+      maxX: group.x + group.width / 2,
+      minZ: group.z - group.depth / 2,
+      maxZ: group.z + group.depth / 2,
+    });
   }
 
   /**
@@ -153,11 +157,13 @@ export class RoyalBedroomFurnishing {
       const halfX = (sideways ? depth : width) / 2;
       const halfZ = (sideways ? width : depth) / 2;
       for (const fraction of [0.8, 0.2, 0.5, 0, 1, 0.65, 0.35]) {
-        candidates.push({ rotation,
+        candidates.push({
+          rotation,
           x: rotation === 90 ? room.minX + inset + halfX : rotation === 270 ? room.maxX - inset - halfX
             : room.minX + inset + halfX + (room.maxX - room.minX - 2 * (inset + halfX)) * fraction,
           z: rotation === 0 ? room.minZ + inset + halfZ : rotation === 180 ? room.maxZ - inset - halfZ
-            : room.minZ + inset + halfZ + (room.maxZ - room.minZ - 2 * (inset + halfZ)) * fraction });
+            : room.minZ + inset + halfZ + (room.maxZ - room.minZ - 2 * (inset + halfZ)) * fraction,
+        });
       }
     }
     if (near) {
@@ -189,12 +195,26 @@ export class RoyalBedroomFurnishing {
    */
   #place(object, x, z, width, depth, height, rotation) {
     const sideways = rotation % 180 !== 0;
-    const item = { id: `${this.#room.id}-royal-${this.#items.length}`, object: /^[A-Z]/.test(object) ? object : undefined,
-      role: /^[A-Z]/.test(object) ? "royalBedroomProp" : object, x, z, width: sideways ? depth : width,
-      depth: sideways ? width : depth, height, rotation, scale: 1, y: 0 };
+    const item = {
+      id: `${this.#room.id}-royal-${this.#items.length}`,
+      object: /^[A-Z]/.test(object) ? object : undefined,
+      role: /^[A-Z]/.test(object) ? "royalBedroomProp" : object,
+      x,
+      z,
+      width: sideways ? depth : width,
+      depth: sideways ? width : depth,
+      height,
+      rotation,
+      scale: 1,
+      y: 0,
+    };
     if (!RoomPlacementRules.accepts(item, this.#room, this.#items, this.#thickness)) { return; }
-    const bounds = { minX: x - item.width / 2 - 0.05, maxX: x + item.width / 2 + 0.05,
-      minZ: z - item.depth / 2 - 0.05, maxZ: z + item.depth / 2 + 0.05 };
+    const bounds = {
+      minX: x - item.width / 2 - 0.05,
+      maxX: x + item.width / 2 + 0.05,
+      minZ: z - item.depth / 2 - 0.05,
+      maxZ: z + item.depth / 2 + 0.05,
+    };
     const intersects = /**
      * @param {{minX:number,maxX:number,minZ:number,maxZ:number}} area
      */ area => bounds.minX < area.maxX && bounds.maxX > area.minX && bounds.minZ < area.maxZ && bounds.maxZ > area.minZ;
@@ -206,10 +226,12 @@ export class RoyalBedroomFurnishing {
       const swingsIntoRoom = door.swing === undefined || (door.roomId === this.#room.id
         ? door.swing === "inward" : door.swing === "outward");
       const end = door.coordinate + inward * (swingsIntoRoom ? door.width + 0.25 : 0.65);
-      const doorBounds = { minX: crosswise ? Math.min(door.coordinate, end) : door.center - door.width / 2 - 0.15,
+      const doorBounds = {
+        minX: crosswise ? Math.min(door.coordinate, end) : door.center - door.width / 2 - 0.15,
         maxX: crosswise ? Math.max(door.coordinate, end) : door.center + door.width / 2 + 0.15,
         minZ: crosswise ? door.center - door.width / 2 - 0.15 : Math.min(door.coordinate, end),
-        maxZ: crosswise ? door.center + door.width / 2 + 0.15 : Math.max(door.coordinate, end) };
+        maxZ: crosswise ? door.center + door.width / 2 + 0.15 : Math.max(door.coordinate, end),
+      };
       if (intersects(doorBounds)) { return; }
     }
     this.#items.push(item);
@@ -231,12 +253,16 @@ export class RoyalBedroomFurnishing {
       for (let col = 0; col <= columns; col++) {
         const x = room.minX + clearance + col / columns * (room.maxX - room.minX - 2 * clearance);
         const z = room.minZ + clearance + row / rows * (room.maxZ - room.minZ - 2 * clearance);
-        points.push({ x, z, free: !this.#items.some(/**
+        points.push({
+          x,
+          z,
+          free: !this.#items.some(/**
          * @param {import("../AbstractCastleRoomGenerator.js").RoomItem} item
          */ item => Math.abs(x - item.x) < item.width / 2 + clearance && Math.abs(z - item.z) < item.depth / 2 + clearance) &&
           !this.#stairs.some(/**
            * @param {{minX:number,maxX:number,minZ:number,maxZ:number}} stair
-           */ stair => x > stair.minX - clearance && x < stair.maxX + clearance && z > stair.minZ - clearance && z < stair.maxZ + clearance) });
+           */ stair => x > stair.minX - clearance && x < stair.maxX + clearance && z > stair.minZ - clearance && z < stair.maxZ + clearance),
+        });
       }
     }
     const door = this.#doors[0];
@@ -271,8 +297,8 @@ export class RoyalBedroomFurnishing {
     return !bed || queue.some(/**
      * @param {number} index
      */ index => bed.rotation % 180 === 0
-      ? Math.abs(points[index].z - bed.z) < bed.depth / 2 - 0.15 && Math.abs(points[index].x - bed.x) < bed.width / 2 + 0.65
-      : Math.abs(points[index].x - bed.x) < bed.width / 2 - 0.15 && Math.abs(points[index].z - bed.z) < bed.depth / 2 + 0.65);
+        ? Math.abs(points[index].z - bed.z) < bed.depth / 2 - 0.15 && Math.abs(points[index].x - bed.x) < bed.width / 2 + 0.65
+        : Math.abs(points[index].x - bed.x) < bed.width / 2 - 0.15 && Math.abs(points[index].z - bed.z) < bed.depth / 2 + 0.65);
   }
 
   /**
@@ -284,9 +310,20 @@ export class RoyalBedroomFurnishing {
    */
   #supported(object, support, width, depth, height) {
     const sideways = support.rotation % 180 !== 0;
-    const item = { id: `${support.id}-${object}`, role: "royalBedroomProp", object, supportId: support.id,
-      x: support.x, z: support.z, y: support.height, width: sideways ? depth : width,
-      depth: sideways ? width : depth, height, rotation: support.rotation, scale: 1 };
+    const item = {
+      id: `${support.id}-${object}`,
+      role: "royalBedroomProp",
+      object,
+      supportId: support.id,
+      x: support.x,
+      z: support.z,
+      y: support.height,
+      width: sideways ? depth : width,
+      depth: sideways ? width : depth,
+      height,
+      rotation: support.rotation,
+      scale: 1,
+    };
     if (RoomPlacementRules.accepts(item, this.#room, this.#items, this.#thickness)) { this.#items.push(item); }
   }
 
@@ -327,9 +364,22 @@ export class RoyalBedroomFurnishing {
     for (const offset of [0, 0.35, -0.35, 0.7, -0.7]) {
       const x = sideways ? rotation === 90 ? bounds.minX + inset : bounds.maxX - inset : bed.x + offset;
       const z = !sideways ? rotation === 0 ? bounds.minZ + inset : bounds.maxZ - inset : bed.z + offset;
-      const item = { id: this.#room.id + "-bedroom-painting", role: "royalBedroomProp", object: "Painting", variant: "royal-bedroom", wallMountBack: -0.024,
-        x, z, y: 1.3, rotation, width: sideways ? 0.083 : 1.05, depth: sideways ? 1.05 : 0.083,
-        height: 0.78, scale: 1, wallAttachment: true };
+      const item = {
+        id: this.#room.id + "-bedroom-painting",
+        role: "royalBedroomProp",
+        object: "Painting",
+        variant: "royal-bedroom",
+        wallMountBack: -0.024,
+        x,
+        z,
+        y: 1.3,
+        rotation,
+        width: sideways ? 0.083 : 1.05,
+        depth: sideways ? 1.05 : 0.083,
+        height: 0.78,
+        scale: 1,
+        wallAttachment: true,
+      };
       if (!RoomPlacementRules.accepts(item, this.#room, this.#items, this.#thickness)) { continue; }
       if (openings.some(/**
        * @param {import("../../CastleBasePlanGenerator.js").CompiledCastleOpening} opening
@@ -350,19 +400,41 @@ export class RoyalBedroomFurnishing {
     const room = this.#room;
     if ((room.maxX - room.minX) * (room.maxZ - room.minZ) > 18) {
       const sideways = room.maxX - room.minX > room.maxZ - room.minZ;
-      const rug = { id: bed.id + "-royal-rug", role: "royalBedroomProp", object: "Rug", model: "royal-bedroom-rug.glb",
-        x: (room.minX + room.maxX) / 2, z: (room.minZ + room.maxZ) / 2,
-        width: sideways ? 2.3 : 1.7, depth: sideways ? 1.7 : 2.3, height: 0.018,
-        scale: 1, rotation: sideways ? 90 : 0, y: 0.003, floorCovering: true };
+      const rug = {
+        id: bed.id + "-royal-rug",
+        role: "royalBedroomProp",
+        object: "Rug",
+        model: "royal-bedroom-rug.glb",
+        x: (room.minX + room.maxX) / 2,
+        z: (room.minZ + room.maxZ) / 2,
+        width: sideways ? 2.3 : 1.7,
+        depth: sideways ? 1.7 : 2.3,
+        height: 0.018,
+        scale: 1,
+        rotation: sideways ? 90 : 0,
+        y: 0.003,
+        floorCovering: true,
+      };
       if (RoomPlacementRules.accepts(rug, room, [], this.#thickness)) { this.#items.push(rug); }
       return;
     }
     const angle = bed.rotation * Math.PI / 180;
     const x = bed.x + Math.sin(angle) * 0.85, z = bed.z + Math.cos(angle) * 0.85;
     const sideways = bed.rotation % 180 !== 0;
-    const rug = { id: `${bed.id}-rug`, role: "royalBedroomProp", object: "Rug", x, z,
-      width: sideways ? 0.75 : 1.2, depth: sideways ? 1.2 : 0.75, height: 0.025,
-      scale: 1, rotation: bed.rotation, y: 0.003, floorCovering: true };
+    const rug = {
+      id: `${bed.id}-rug`,
+      role: "royalBedroomProp",
+      object: "Rug",
+      x,
+      z,
+      width: sideways ? 0.75 : 1.2,
+      depth: sideways ? 1.2 : 0.75,
+      height: 0.025,
+      scale: 1,
+      rotation: bed.rotation,
+      y: 0.003,
+      floorCovering: true,
+    };
     if (RoomPlacementRules.accepts(rug, this.#room, [], this.#thickness)) { this.#items.push(rug); }
   }
 }

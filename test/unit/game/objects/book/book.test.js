@@ -49,10 +49,23 @@ test("book state is independent of placement and artwork, with matching visual a
     [{}, "closedUrl.glb"],
     [{ isOpen: false }, "closedUrl.glb"],
     [{ isOpen: true }, "openUrl.glb"],
-    [{ isOpen: true, pose: "upright" }, "openUrl.glb"],
-    [{ isOpen: true, style: "classic" }, "classicOpenUrl.glb"],
-    [{ isOpen: false, pose: "upright", sourceShelfId: "cabinet" }, "uprightClosedUrl.glb"],
-    [{ isOpen: false, pose: "upright" }, "uprightClosedUrl.glb"],
+    [{
+      isOpen: true,
+      pose: "upright",
+    }, "openUrl.glb"],
+    [{
+      isOpen: true,
+      style: "classic",
+    }, "classicOpenUrl.glb"],
+    [{
+      isOpen: false,
+      pose: "upright",
+      sourceShelfId: "cabinet",
+    }, "uprightClosedUrl.glb"],
+    [{
+      isOpen: false,
+      pose: "upright",
+    }, "uprightClosedUrl.glb"],
     [{ object: "OpenReadingBook" }, "openUrl.glb"],
     [{ object: "ClosedReadingBook" }, "closedUrl.glb"],
     [{ object: "TerraceReadingBook" }, "classicOpenUrl.glb"],
@@ -60,24 +73,47 @@ test("book state is independent of placement and artwork, with matching visual a
     [{ variant: "closed" }, "closedUrl.glb"],
     [{ variant: "terrace" }, "classicOpenUrl.glb"],
     [{ variant: "shelf" }, "uprightClosedUrl.glb"],
-    [{ variant: "open", isOpen: false }, "closedUrl.glb"],
+    [{
+      variant: "open",
+      isOpen: false,
+    }, "closedUrl.glb"],
     [{ state: "open" }, "openUrl.glb"],
     [{ state: "closed" }, "closedUrl.glb"],
-    [{ state: "open", isOpen: false }, "closedUrl.glb"],
+    [{
+      state: "open",
+      isOpen: false,
+    }, "closedUrl.glb"],
   ]) {
     const loaded = [];
     const renders = [];
     components.length = 0;
-    const book = new Book({ pc: { ...pc, Entity }, definition: { id: "book", object: "Book", ...properties,
-      position: { x: 1, y: 2, z: 3 }, coverColor: [0.2, 0.38, 0.62] },
-    modelLibrary: { instantiate(url) {
-      loaded.push(url);
-      const model = new pc.Entity("model");
-      const render = { meshInstances: [{ material: leather }, { material: parchment }] };
-      renders.push(render);
-      model.findComponents = () => [render];
-      return model;
-    } } });
+    const book = new Book({
+      pc: {
+        ...pc,
+        Entity,
+      },
+      definition: {
+        id: "book",
+        object: "Book",
+        ...properties,
+        position: {
+          x: 1,
+          y: 2,
+          z: 3,
+        },
+        coverColor: [0.2, 0.38, 0.62],
+      },
+      modelLibrary: {
+        instantiate(url) {
+          loaded.push(url);
+          const model = new pc.Entity("model");
+          const render = { meshInstances: [{ material: leather }, { material: parchment }] };
+          renders.push(render);
+          model.findComponents = () => [render];
+          return model;
+        },
+      },
+    });
     assert.equal(book.modelUrl, expected);
     assert.equal(typeof book.definition.isOpen, "boolean");
     assert.equal(Object.hasOwn(book.definition, "state"), false);

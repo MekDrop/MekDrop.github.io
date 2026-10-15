@@ -26,9 +26,20 @@ export class Overpass {
     this.definition = definition;
     this.entity = new pc.Entity(definition.id);
     const { cols, rows } = runtime.mapData;
-    this.#buffers = new OverpassStairs({ pc, modelLibrary, cols, rows,
-      overpass: definition.layout, materials: runtime.materials, root: this.entity }).build();
-    this.#collider = new PathOverpassCollider({ overpass: definition.layout, cols, rows });
+    this.#buffers = new OverpassStairs({
+      pc,
+      modelLibrary,
+      cols,
+      rows,
+      overpass: definition.layout,
+      materials: runtime.materials,
+      root: this.entity,
+    }).build();
+    this.#collider = new PathOverpassCollider({
+      overpass: definition.layout,
+      cols,
+      rows,
+    });
     runtime.collisionWorld.add(this.#collider);
   }
 

@@ -25,9 +25,20 @@ export class StairwellRoomMapObjects {
          * @param {import("../../../ObjectTypes.js").MapObjectDefinition} definition
          */ definition => definition.id === id)) { continue; }
         const position = layout.toWorld(item.x, item.z, item.floorY - layout.origin.y + item.y);
-        objects.push({ id, object: item.object, position, rotation: layout.yaw + (item.underStair ? 0 : 180) + item.rotation,
-          scale: item.scale, stretch: item.stretch, tilt: item.tilt, weathering: item.weathering,
-          generated: true, stairwellFurnishing: true, sourceCastleId: castle.id, tile: castle.tile });
+        objects.push({
+          id,
+          object: item.object,
+          position,
+          rotation: layout.yaw + (item.underStair ? 0 : 180) + item.rotation,
+          scale: item.scale,
+          stretch: item.stretch,
+          tilt: item.tilt,
+          weathering: item.weathering,
+          generated: true,
+          stairwellFurnishing: true,
+          sourceCastleId: castle.id,
+          tile: castle.tile,
+        });
       }
     }
   }

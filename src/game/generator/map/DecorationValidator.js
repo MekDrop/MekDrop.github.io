@@ -105,7 +105,7 @@ export class DecorationValidator {
        * @param {number} options.col
        * @param {number} options.row
        */
-      ({ col, row }) => MapGrid.tileKey(col, row)),
+        ({ col, row }) => MapGrid.tileKey(col, row)),
     );
     const styles = new Set();
     for (const { col, row, parts } of stonePlacements) {
@@ -159,11 +159,17 @@ export class DecorationValidator {
             height > 0.8,
         )
       ) {
-        throw new InvalidStonePlacementError({ col, row });
+        throw new InvalidStonePlacementError({
+          col,
+          row,
+        });
       }
       for (const { style } of parts) {
         if (styles.has(style)) {
-          throw new InvalidStonePlacementError({ col, row });
+          throw new InvalidStonePlacementError({
+            col,
+            row,
+          });
         }
         styles.add(style);
       }
@@ -194,8 +200,8 @@ export class DecorationValidator {
        * @param {number} options.col
        * @param {number} options.row
        */
-      ({ col, row }) =>
-        MapGrid.tileKey(col, row),
+        ({ col, row }) =>
+          MapGrid.tileKey(col, row),
       ),
     );
     for (const decoration of groundCoverData) {

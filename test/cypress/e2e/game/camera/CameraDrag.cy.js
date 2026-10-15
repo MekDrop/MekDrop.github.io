@@ -148,17 +148,26 @@ function expectIslandVisible(
     expect(state.viewport.manuallyMoved).to.equal(manuallyMoved);
     expect(
       state.visibility.panWithinBounds,
-      JSON.stringify({ zoom, ...state }),
+      JSON.stringify({
+        zoom,
+        ...state,
+      }),
     ).to.equal(true);
     expect(
       state.visibility.safeVisibleTileCenters,
-      JSON.stringify({ zoom, ...state }),
+      JSON.stringify({
+        zoom,
+        ...state,
+      }),
     ).to.be.greaterThan(0);
     if (zoom <= LOW_ZOOM_LIMIT) {
       expect(
         state.visibility.safeVisibleTileCenters /
           state.visibility.totalTileCenters,
-        JSON.stringify({ zoom, ...state }),
+        JSON.stringify({
+          zoom,
+          ...state,
+        }),
       ).to.be.at.least(LOW_ZOOM_VISIBLE_TILE_RATIO);
     }
 
@@ -176,7 +185,11 @@ function expectIslandVisible(
           Math.min(bounds.bottom, height - inset) -
             Math.max(bounds.top, inset),
         );
-        return { name, bounds, visibleArea: overlapWidth * overlapHeight };
+        return {
+          name,
+          bounds,
+          visibleArea: overlapWidth * overlapHeight,
+        };
       })
       .filter(({ bounds, visibleArea }) => {
         return (
@@ -203,7 +216,12 @@ function expectIslandVisible(
     });
     expect(
       fullyVisibleGateway,
-      JSON.stringify({ zoom, gateways, width, height }),
+      JSON.stringify({
+        zoom,
+        gateways,
+        width,
+        height,
+      }),
     ).to.exist;
   });
 }
@@ -269,7 +287,11 @@ function startHeroCameraReturn(directionIndex = 0) {
     }
     const started = window.gameCameraTest.returnToHero();
     const immediate = window.gameCameraTest.state().viewport;
-    return { immediate, start, started };
+    return {
+      immediate,
+      start,
+      started,
+    };
   });
 }
 
@@ -647,7 +669,10 @@ describe("Camera dragging", () => {
         expect(
           structureIsFullyVisible(firstLimit, "castle") ||
             structureIsFullyVisible(oppositeLimit, "castle"),
-          JSON.stringify({ firstLimit, oppositeLimit }),
+          JSON.stringify({
+            firstLimit,
+            oppositeLimit,
+          }),
         ).to.equal(true);
       });
     });
@@ -686,7 +711,10 @@ describe("Camera dragging", () => {
         expect(
           structureIsFullyVisible(firstLimit, "castle") ||
             structureIsFullyVisible(oppositeLimit, "castle"),
-          JSON.stringify({ firstLimit, oppositeLimit }),
+          JSON.stringify({
+            firstLimit,
+            oppositeLimit,
+          }),
         ).to.equal(true);
       });
     });
@@ -733,7 +761,10 @@ describe("Camera dragging", () => {
     cy.window().then((window) => {
       for (let step = 0; step < 40; step += 1) {
         window.dispatchEvent(
-          new KeyboardEvent("keydown", { code: "PageUp", key: "PageUp" }),
+          new KeyboardEvent("keydown", {
+            code: "PageUp",
+            key: "PageUp",
+          }),
         );
       }
       expect(window.gameCameraTest.state().viewport.zoom).to.be.closeTo(

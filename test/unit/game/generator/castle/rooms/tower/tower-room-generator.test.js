@@ -5,7 +5,15 @@ import { CastleBasePlanGenerator } from "../../../../../../../src/game/generator
 
 it("keeps a continuous watch aisle and reproduces independently seeded storeys", () => {
   const generator = new TowerRoomGenerator(1);
-  const room = { id: "watch", level: 0, floorY: 3, minX: 0, maxX: 3.5, minZ: 0, maxZ: 3.5 };
+  const room = {
+    id: "watch",
+    level: 0,
+    floorY: 3,
+    minX: 0,
+    maxX: 3.5,
+    minZ: 0,
+    maxZ: 3.5,
+  };
   const variants = new Set();
   for (let seed = 0; seed < 40; seed++) {
     const items = generator.furnish(room, { seed });
@@ -25,21 +33,47 @@ it("keeps a continuous watch aisle and reproduces independently seeded storeys",
     }
   }
   assert.equal(variants.size, 40);
-  assert.notDeepEqual(generator.furnish(room), generator.furnish({ ...room, level: 1, floorY: 7 }));
+  assert.notDeepEqual(generator.furnish(room), generator.furnish({
+    ...room,
+    level: 1,
+    floorY: 7,
+  }));
 });
 
 it("omits furniture from cramped rooms and occupied stair shafts", () => {
   const generator = new TowerRoomGenerator(1);
-  const room = { id: "watch", level: 0, floorY: 0, minX: 0, maxX: 1.75, minZ: 0, maxZ: 1.75 };
+  const room = {
+    id: "watch",
+    level: 0,
+    floorY: 0,
+    minX: 0,
+    maxX: 1.75,
+    minZ: 0,
+    maxZ: 1.75,
+  };
   assert.deepEqual(generator.furnish(room), []);
-  assert.deepEqual(generator.furnish({ ...room, maxX: 3.5, maxZ: 3.5 }, {
-    stairs: [{ from: 0, to: 1, minX: 0, maxX: 3.5, minZ: 0, maxZ: 3.5 }],
+  assert.deepEqual(generator.furnish({
+    ...room,
+    maxX: 3.5,
+    maxZ: 3.5,
+  }, {
+    stairs: [{
+      from: 0,
+      to: 1,
+      minX: 0,
+      maxX: 3.5,
+      minZ: 0,
+      maxZ: 3.5,
+    }],
   }), []);
 });
 
 it("furnishes both authored tower storeys while preserving shooting and door access", async () => {
   for (const seed of [2, 4]) {
-    const plan = await CastleBasePlanGenerator.generate({ planId: "castle-01", seed });
+    const plan = await CastleBasePlanGenerator.generate({
+      planId: "castle-01",
+      seed,
+    });
     const items = plan.furniture.filter((item) => item.role === "towerProp");
     assert.ok(items.some((item) => item.floorY === 0));
     assert.ok(items.some((item) => item.floorY === 4));

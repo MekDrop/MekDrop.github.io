@@ -28,7 +28,10 @@ export class SpareTimberBundle extends AbstractCastleProp {
       /**
        * @param {import("playcanvas").Entity} entity
        */
-      entity => ({ entity: entity.clone(), height: entity.getLocalPosition().y * 2 }),
+      entity => ({
+        entity: entity.clone(),
+        height: entity.getLocalPosition().y * 2,
+      }),
     );
     for (const original of originals) { original.destroy(); }
     const columns = Math.max(1, Math.floor(width / 0.08));

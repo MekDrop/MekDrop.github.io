@@ -6,7 +6,10 @@ import { Entity } from "playcanvas";
 const hooks = registerHooks({
   resolve(specifier, context, nextResolve) {
     if (specifier.endsWith("arrow-signpost.glb?url")) {
-      return { url: 'data:text/javascript,export default "sign.glb"', shortCircuit: true };
+      return {
+        url: 'data:text/javascript,export default "sign.glb"',
+        shortCircuit: true,
+      };
     }
     return nextResolve(specifier, context);
   },
@@ -17,8 +20,16 @@ hooks.deregister();
 test("sign collision excludes lettering and preserves independent scale and facing", () => {
   const previousDocument = globalThis.document;
   const context = {
-    measureText: () => ({ width: 10, actualBoundingBoxAscent: 10, actualBoundingBoxDescent: 0 }),
-    save() {}, translate() {}, rotate() {}, fillText() {}, restore() {},
+    measureText: () => ({
+      width: 10,
+      actualBoundingBoxAscent: 10,
+      actualBoundingBoxDescent: 0,
+    }),
+    save() {},
+    translate() {},
+    rotate() {},
+    fillText() {},
+    restore() {},
   };
   globalThis.document = { createElement: () => ({ getContext: () => context }) };
   class TestEntity extends Entity {
@@ -37,8 +48,14 @@ test("sign collision excludes lettering and preserves independent scale and faci
       const graph = new TestEntity("Sign");
       const wood = new TestEntity("Sign wood");
       const inscription = new TestEntity("Sign inscription");
-      wood.render = { entity: wood, meshInstances: [{ material: null }] };
-      inscription.render = { entity: inscription, meshInstances: [{ material: null }] };
+      wood.render = {
+        entity: wood,
+        meshInstances: [{ material: null }],
+      };
+      inscription.render = {
+        entity: inscription,
+        meshInstances: [{ material: null }],
+      };
       wood.c.render = wood.render;
       inscription.c.render = inscription.render;
       wood.c.render = wood.render;
@@ -50,11 +67,32 @@ test("sign collision excludes lettering and preserves independent scale and faci
     },
   };
   try {
-    for (const rotation of [0, 90, 180, 270, { x: 0, y: -45, z: 0 }]) {
+    for (const rotation of [0, 90, 180, 270, {
+      x: 0,
+      y: -45,
+      z: 0,
+    }]) {
       const sign = new WoodenSign({
-        pc: { Entity: TestEntity, Model: Resource, Texture: Resource, StandardMaterial: Resource, Color: Resource },
-        app: { graphicsDevice: {} }, modelLibrary,
-        definition: { id: "sign", text: "Way out", position: { x: 3, y: 2, z: 4 }, scale: 2, rotation },
+        pc: {
+          Entity: TestEntity,
+          Model: Resource,
+          Texture: Resource,
+          StandardMaterial: Resource,
+          Color: Resource,
+        },
+        app: { graphicsDevice: {} },
+        modelLibrary,
+        definition: {
+          id: "sign",
+          text: "Way out",
+          position: {
+            x: 3,
+            y: 2,
+            z: 4,
+          },
+          scale: 2,
+          rotation,
+        },
       });
       const root = sign.entity;
       assert.equal(root.collision.type, "mesh");

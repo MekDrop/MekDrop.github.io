@@ -22,7 +22,10 @@ it("isolates concurrent requests, propagates failures and terminates workers", a
   try {
     const first = LevelLoader.load({ mapName: "first" });
     const second = LevelLoader.load({ mapName: "second" });
-    const map = { mapName: "second", pipeData: new Map() };
+    const map = {
+      mapName: "second",
+      pipeData: new Map(),
+    };
     workers[1].onmessage({ data: { map } });
     assert.equal(await second, map);
     assert.equal(workers[1].terminated, true);

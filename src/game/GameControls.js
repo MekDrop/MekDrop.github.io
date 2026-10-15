@@ -122,7 +122,7 @@ export class GameControls {
          * @param {string|{value: string, modifiers?: string[]}} options.binding
          * @param {import("src/game/GameContracts.js").GameActionContract} options.action
          */
-        ({ binding, action }) => [binding, action]),
+          ({ binding, action }) => [binding, action]),
       ],
     );
     /**
@@ -145,7 +145,7 @@ export class GameControls {
          * @param {string|{value: string, modifiers?: string[]}} options.binding
          * @param {import("src/game/GameContracts.js").GameActionContract} options.action
          */
-        ({ binding, action }) => [binding, action]),
+          ({ binding, action }) => [binding, action]),
       ],
     );
   }
@@ -163,7 +163,7 @@ export class GameControls {
      *
      * @param {string} name
      */
-    (name) => [this.#config()[name], this.#actions[name]]);
+      (name) => [this.#config()[name], this.#actions[name]]);
   }
 
   connect() {
@@ -515,7 +515,7 @@ export class GameControls {
      *
      * @param {string|{value: string, modifiers?: string[]}} binding
      */
-    (binding) => this.#matchesKey(event, binding));
+      (binding) => this.#matchesKey(event, binding));
   }
 
   /**

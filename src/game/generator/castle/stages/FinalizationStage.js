@@ -13,7 +13,7 @@ export class FinalizationStage extends AbstractCastleGenerationStage {
          *
          * @param {{side: string, offset: number, width: number, cells?: import("src/game/GameContracts.js").GridPoint[]}} door
          */
-        (door) => ({ ...door })),
+          (door) => ({ ...door })),
         requestedStyle: context.input.style,
         ...(context.input.seed === undefined ? {} : { seed: context.input.seed }),
       },

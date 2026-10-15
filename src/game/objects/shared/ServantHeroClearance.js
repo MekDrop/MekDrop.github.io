@@ -42,10 +42,15 @@ export class ServantHeroClearance {
     this.#body.enabled = false;
     app.root.addChild(this.#body);
     this.#body.addComponent("collision", {
-      type: "capsule", axis: 1, radius: RADIUS, height: CHARACTER_HEIGHT,
+      type: "capsule",
+      axis: 1,
+      radius: RADIUS,
+      height: CHARACTER_HEIGHT,
     });
     this.#body.addComponent("rigidbody", {
-      type: "kinematic", friction: 0, restitution: 0,
+      type: "kinematic",
+      friction: 0,
+      restitution: 0,
     });
     this.#handle = app.on("prerender", this.#sync);
   }

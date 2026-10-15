@@ -23,7 +23,10 @@ describe("Signal tower bell", () => {
     cy.window().then(window => {
       const castle = window.gameMovementTest.mapObjects().find(item => item.object === "Castle");
       bell = CastleSignalTowerLayout.describe(castle.buildPlan).bell;
-      window.gameMovementTest.teleport({ ...bell.position, z: bell.position.z + 0.8 });
+      window.gameMovementTest.teleport({
+        ...bell.position,
+        z: bell.position.z + 0.8,
+      });
       window.gameCameraTest.setRotation(3);
       window.gameCameraTest.setZoom(9);
       window.gameCameraTest.returnToHero();
@@ -39,8 +42,14 @@ describe("Signal tower bell", () => {
     cy.get(".interaction-prompt", { timeout: 10000 }).should("contain.text", "Ring bell");
     cy.get(".background-canvas").click("bottomRight");
     cy.then(() => { beforeStrike = audioStarts.callCount; });
-    cy.window().trigger("keydown", { code: "KeyE", key: "e" });
-    cy.window().trigger("keyup", { code: "KeyE", key: "e" });
+    cy.window().trigger("keydown", {
+      code: "KeyE",
+      key: "e",
+    });
+    cy.window().trigger("keyup", {
+      code: "KeyE",
+      key: "e",
+    });
     cy.get(".interaction-prompt").should("not.exist");
     cy.window({ timeout: 20000 }).should(window => {
       const pose = window.gameMovementTest.animationPose(["Right white glove"]);
@@ -67,16 +76,32 @@ describe("Signal tower bell", () => {
       }
     });
     cy.then(() => { beforeStrike = audioStarts.callCount; });
-    cy.window().trigger("keydown", { code: "KeyE", key: "e" });
-    cy.window().trigger("keyup", { code: "KeyE", key: "e" });
+    cy.window().trigger("keydown", {
+      code: "KeyE",
+      key: "e",
+    });
+    cy.window().trigger("keyup", {
+      code: "KeyE",
+      key: "e",
+    });
     cy.wrap(null, { timeout: 20000 }).should(() => { expect(audioStarts.callCount).to.equal(beforeStrike + 1); });
     cy.get(".interaction-prompt", { timeout: 20000 }).should("contain.text", "Ring bell");
     // Interrupt before contact: no delayed strike may survive teleporting away.
     cy.then(() => { beforeStrike = audioStarts.callCount; });
-    cy.window().trigger("keydown", { code: "KeyE", key: "e" });
-    cy.window().trigger("keyup", { code: "KeyE", key: "e" });
+    cy.window().trigger("keydown", {
+      code: "KeyE",
+      key: "e",
+    });
+    cy.window().trigger("keyup", {
+      code: "KeyE",
+      key: "e",
+    });
     cy.window().then(window => {
-      window.gameMovementTest.teleport({ ...bell.position, y: bell.position.y - 3, z: bell.position.z + 0.8 });
+      window.gameMovementTest.teleport({
+        ...bell.position,
+        y: bell.position.y - 3,
+        z: bell.position.z + 0.8,
+      });
     });
     cy.get("body").should("not.contain.text", "E Ring bell");
     cy.window().should(window => { expect(window.gameMovementTest.state().action.name).to.equal("exploring"); });

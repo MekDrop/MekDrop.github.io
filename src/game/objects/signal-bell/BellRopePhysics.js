@@ -64,7 +64,10 @@ export class BellRopePhysics {
       const center = position.clone().add(new Vec3(0, -distance - length / 2, 0));
       const body = this.#body(BODYTYPE_DYNAMIC, center, 0.009 * scale, length);
       this.#joints.push(this.#join(previous, body, -previousLength / 2, length / 2));
-      this.#links.push({ body, length });
+      this.#links.push({
+        body,
+        length,
+      });
       previous = body;
       previousLength = length;
       distance += length;
@@ -80,10 +83,24 @@ export class BellRopePhysics {
    */
   #body(type, position, radius, length = 0) {
     const shape = this.#world.createShape(length
-      ? { type: "capsule", radius, height: length, axis: 1 }
-      : { type: "sphere", radius });
+      ? {
+        type: "capsule",
+        radius,
+        height: length,
+        axis: 1,
+      }
+      : {
+        type: "sphere",
+        radius,
+      });
     shape.setMargin(0.002);
-    const body = this.#world.createBody({ type, shape, mass: length ? 0.015 : 0, position, rotation: Quat.IDENTITY });
+    const body = this.#world.createBody({
+      type,
+      shape,
+      mass: length ? 0.015 : 0,
+      position,
+      rotation: Quat.IDENTITY,
+    });
     // No self-contact or capsule snagging while held. The frame and floor still collide.
     this.#world.addBody(body, BODYGROUP_USER_5, length ? BODYGROUP_STATIC : 0);
     body.setDamping(0.45, 0.55);
@@ -102,9 +119,15 @@ export class BellRopePhysics {
    * @returns {import("playcanvas").PhysicsJoint}
    */
   #join(bodyA, bodyB, offsetA, offsetB) {
-    const joint = this.#world.createJoint({ type: JOINTTYPE_BALL, bodyA, bodyB,
-      frameA: new Mat4().setTranslate(0, offsetA, 0), frameB: new Mat4().setTranslate(0, offsetB, 0),
-      enableCollision: false, settings: { enableLimits: false } });
+    const joint = this.#world.createJoint({
+      type: JOINTTYPE_BALL,
+      bodyA,
+      bodyB,
+      frameA: new Mat4().setTranslate(0, offsetA, 0),
+      frameB: new Mat4().setTranslate(0, offsetB, 0),
+      enableCollision: false,
+      settings: { enableLimits: false },
+    });
     // A short rope needs tighter positional correction than Bullet's default
     // cone-twist ERP, especially in the game's 60 Hz world with ten iterations.
     joint.nativeJoint.setParam(1, 0.8, 0);
@@ -157,12 +180,16 @@ export class BellRopePhysics {
     return this.#links.map(/**
      * @param {{body: import("playcanvas").PhysicsBody, length: number}} link
      */
-    ({ body, length }) => {
-      const position = new Vec3();
-      const rotation = new Quat();
-      body.getTransform(position, rotation);
-      return { position, rotation, length };
-    });
+      ({ body, length }) => {
+        const position = new Vec3();
+        const rotation = new Quat();
+        body.getTransform(position, rotation);
+        return {
+          position,
+          rotation,
+          length,
+        };
+      });
   }
 
   destroy() {

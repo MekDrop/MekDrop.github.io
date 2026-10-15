@@ -6,7 +6,10 @@ import * as pc from "playcanvas";
 const hooks = registerHooks({
   resolve(specifier, context, nextResolve) {
     if (/terrace-(door|stairhead)\.glb\?url$/.test(specifier)) {
-      return { url: `data:text/javascript,export default ${JSON.stringify(specifier)}`, shortCircuit: true };
+      return {
+        url: `data:text/javascript,export default ${JSON.stringify(specifier)}`,
+        shortCircuit: true,
+      };
     }
     return nextResolve(specifier, context);
   },
@@ -17,7 +20,10 @@ hooks.deregister();
 function fixture() {
   const hinge = new pc.Entity("Terrace door hinge");
   hinge.setLocalPosition(-0.5, 0, 0.31);
-  const layer = { play() {}, activeStateCurrentTime: 0 };
+  const layer = {
+    play() {},
+    activeStateCurrentTime: 0,
+  };
   let clicks = 0;
   const door = new TerraceDoor({
     pc,
@@ -28,7 +34,11 @@ function fixture() {
         if (url.includes("terrace-door")) {
           root.addChild(hinge);
           root.addComponent = () => {
-            root.anim = { addAnimationState() {}, update() {}, baseLayer: layer };
+            root.anim = {
+              addAnimationState() {},
+              update() {},
+              baseLayer: layer,
+            };
           };
         }
         return root;
@@ -41,7 +51,13 @@ function fixture() {
     return [matrix.transformPoint(new pc.Vec3(x, y, 2)),
       matrix.transformPoint(new pc.Vec3(x, y, -2))];
   };
-  return { door, hinge, layer, ray, clicks: () => clicks };
+  return {
+    door,
+    hinge,
+    layer,
+    ray,
+    clicks: () => clicks,
+  };
 }
 
 it("picks the actual swinging leaf through rotated and translated castle transforms", () => {

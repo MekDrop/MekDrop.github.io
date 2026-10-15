@@ -33,16 +33,35 @@ export class VestibuleRoomMapObjects {
           const end = Math.max(...rugs.map(/**
            * @param {import("../../../../generator/castle/rooms/AbstractCastleRoomGenerator.js").RoomItem} rug
            */ rug => rug.z + rug.depth * rug.scale / 2));
-          item = { ...item, z: (start + end) / 2, depth: (end - start) / item.scale,
-            stretch: { ...item.stretch, z: (end - start) / (3.3 * item.scale) } };
+          item = {
+            ...item,
+            z: (start + end) / 2,
+            depth: (end - start) / item.scale,
+            stretch: {
+              ...item.stretch,
+              z: (end - start) / (3.3 * item.scale),
+            },
+          };
         }
         const position = layout.toWorld(item.x, item.z, item.floorY - layout.origin.y + (item.y ?? 0));
-        objects.push({ id: `${castle.id}-vestibule-${item.roomId}-${index}`, object: item.object, texture: item.texture, model: item.model, variant: item.variant,
-          position, rotation: layout.yaw + 180 + (item.rotation ?? 0), scale: item.scale,
+        objects.push({
+          id: `${castle.id}-vestibule-${item.roomId}-${index}`,
+          object: item.object,
+          texture: item.texture,
+          model: item.model,
+          variant: item.variant,
+          position,
+          rotation: layout.yaw + 180 + (item.rotation ?? 0),
+          scale: item.scale,
           stretch: item.stretch,
-          generated: true, vestibuleFurnishing: true, sourceCastleId: castle.id,
-          tile: { col: Math.round(position.x + (mapData.cols - 1) / 2),
-            row: Math.round(position.z + (mapData.rows - 1) / 2) } });
+          generated: true,
+          vestibuleFurnishing: true,
+          sourceCastleId: castle.id,
+          tile: {
+            col: Math.round(position.x + (mapData.cols - 1) / 2),
+            row: Math.round(position.z + (mapData.rows - 1) / 2),
+          },
+        });
       }
     }
   }

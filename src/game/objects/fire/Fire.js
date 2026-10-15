@@ -33,9 +33,16 @@ export class Fire {
    * @returns {Fire}
    */
   static attach(pc, parent, position, volume) {
-    const fire = new Fire({ pc, app: pc.Application.getApplication(), definition: {
-      id: `${parent.name} fire`, object: Fire.name, position, volume,
-    } });
+    const fire = new Fire({
+      pc,
+      app: pc.Application.getApplication(),
+      definition: {
+        id: `${parent.name} fire`,
+        object: Fire.name,
+        position,
+        volume,
+      },
+    });
     parent.addChild(fire.entity);
     return fire;
   }
@@ -59,7 +66,7 @@ export class Fire {
      *
      * @param {number} value
      */
-    value => Number.isFinite(value) && value > 0)) { return; }
+      value => Number.isFinite(value) && value > 0)) { return; }
     const size = Math.min(width, depth, height * 0.18);
     const count = Math.min(2048, Math.max(16, Math.ceil(width * depth / (size * size) * 2)));
     const lifetime = 0.42;
@@ -69,12 +76,21 @@ export class Fire {
     emitter.enabled = intensity > 0;
     emitter.setLocalPosition(0, size, 0);
     emitter.addComponent("particlesystem", {
-      numParticles: count, lifetime, rate: lifetime / count, rate2: lifetime / count,
-      loop: true, preWarm: true, lighting: false, intensity: 1.08 * intensity,
+      numParticles: count,
+      lifetime,
+      rate: lifetime / count,
+      rate2: lifetime / count,
+      loop: true,
+      preWarm: true,
+      lighting: false,
+      intensity: 1.08 * intensity,
       // The engine already rotates box spawn bounds into world space. Local
       // simulation applies the model rotation again when rendering particles.
-      depthWrite: false, noFog: true, localSpace: false,
-      sort: pc.PARTICLESORT_OLDER_FIRST, blendType: pc.BLEND_NORMAL,
+      depthWrite: false,
+      noFog: true,
+      localSpace: false,
+      sort: pc.PARTICLESORT_OLDER_FIRST,
+      blendType: pc.BLEND_NORMAL,
       emitterShape: pc.EMITTERSHAPE_BOX,
       emitterExtents: new pc.Vec3(Math.max(0, width - size * 2), 0, Math.max(0, depth - size * 2)),
       colorMap: app.assets.find("castleFireParticle", "texture").resource,
@@ -85,8 +101,10 @@ export class Fire {
       localVelocityGraph2: new pc.CurveSet([[0, 0, 1, 0], [0, (height - size * 2) * 0.5 / lifetime, 1, (height - size * 2) * 0.5 / lifetime], [0, 0, 1, 0]]),
       colorGraph: new pc.CurveSet([[0, 1, 1, 0.74], [0, 0.72, 0.42, 0.3, 1, 0.025], [0, 0.08, 1, 0]]),
       alphaGraph: new pc.Curve([0, 0, 0.02, 0.8, 0.58, 0.5, 1, 0]),
-      alignToMotion: true, stretch: height * 0.14,
-      startAngle: -8, startAngle2: 8,
+      alignToMotion: true,
+      stretch: height * 0.14,
+      startAngle: -8,
+      startAngle2: 8,
     });
     root.addChild(emitter);
   }

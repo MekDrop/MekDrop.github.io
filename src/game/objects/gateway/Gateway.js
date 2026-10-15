@@ -47,7 +47,7 @@ export class Gateway {
      *
      * @param {import("../ObjectTypes.js").MapObjectDefinition} item
      */
-    (item) => item.object === Gateway.name).entries()) {
+      (item) => item.object === Gateway.name).entries()) {
       definition.symbol ??= signs[index % signs.length];
     }
   }
@@ -232,7 +232,10 @@ export class Gateway {
     if (definition) {
       const entry = definition.entry;
       mapData = runtime.mapData;
-      tile = { col: entry.col, row: (entry.rows ?? [entry.row, entry.row + 1])[0] };
+      tile = {
+        col: entry.col,
+        row: (entry.rows ?? [entry.row, entry.row + 1])[0],
+      };
       color = entry.color ?? color;
       symbol = definition.symbol ?? symbol;
       surfaceLift = GRASS_SURFACE_LIFT;
@@ -280,14 +283,14 @@ export class Gateway {
        *
        * @param {number} row
        */
-      (row) => FIXED_HEIGHTS[mapData.grid[row][entry.col]] ?? mapData.heightmap[row][entry.col]));
+        (row) => FIXED_HEIGHTS[mapData.grid[row][entry.col]] ?? mapData.heightmap[row][entry.col]));
       this.#entity.setPosition(entry.col - (mapData.cols - 1) / 2, height,
         gateRows.reduce(/**
          *
          * @param {number} sum
          * @param {number} row
          */
-        (sum, row) => sum + row, 0) / gateRows.length - (mapData.rows - 1) / 2);
+          (sum, row) => sum + row, 0) / gateRows.length - (mapData.rows - 1) / 2);
       if (entry.side === "RIGHT") {
         this.#entity.setEulerAngles(0, 180, 0);
       }
@@ -299,13 +302,13 @@ export class Gateway {
      *
      * @param {number} deltaTime
      */
-    (deltaTime) => {
-      this.#elapsed += deltaTime;
-      this.#repulsionEffect.update(deltaTime);
-      this.#portalMaterial?.setParameter("uTime", this.#elapsed);
-      this.#portalMaterial?.setParameter("uBurstAge", this.#elapsed - this.#burstStarted);
-      this.#animateBanner(deltaTime);
-    });
+      (deltaTime) => {
+        this.#elapsed += deltaTime;
+        this.#repulsionEffect.update(deltaTime);
+        this.#portalMaterial?.setParameter("uTime", this.#elapsed);
+        this.#portalMaterial?.setParameter("uBurstAge", this.#elapsed - this.#burstStarted);
+        this.#animateBanner(deltaTime);
+      });
   }
 
   /**
@@ -450,7 +453,10 @@ export class Gateway {
    */
   getPointerHit(rayStart, rayEnd) {
     const hit = this.getBannerHit(rayStart, rayEnd);
-    return hit ? { ...hit, pointerTarget: this } : null;
+    return hit ? {
+      ...hit,
+      pointerTarget: this,
+    } : null;
   }
 
   /**
@@ -746,7 +752,10 @@ export class Gateway {
       return null;
     }
 
-    return { distance, point };
+    return {
+      distance,
+      point,
+    };
   }
 
   /**

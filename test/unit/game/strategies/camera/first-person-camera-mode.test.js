@@ -15,30 +15,52 @@ class Vec3 {
 }
 
 function cameraFixture() {
-  const transforms = { position: null, target: null };
+  const transforms = {
+    position: null,
+    target: null,
+  };
   const gameCamera = {
     playCanvas: {
       Vec3,
       PROJECTION_PERSPECTIVE: "perspective",
     },
     component: { nearClip: 0.1 },
-    right: { x: -1, y: 0, z: 0 },
+    right: {
+      x: -1,
+      y: 0,
+      z: 0,
+    },
     entity: {
       setPosition(position) {
         transforms.position = position;
       },
       lookAt(x, y, z) {
-        transforms.target = { x, y, z };
+        transforms.target = {
+          x,
+          y,
+          z,
+        };
       },
     },
   };
-  return { gameCamera, transforms };
+  return {
+    gameCamera,
+    transforms,
+  };
 }
 
 const hero = {
   firstPersonCameraPose: {
-    position: { x: 2, y: 3, z: 4 },
-    direction: { x: 0, y: 0, z: 1 },
+    position: {
+      x: 2,
+      y: 3,
+      z: 4,
+    },
+    direction: {
+      x: 0,
+      y: 0,
+      z: 1,
+    },
   },
 };
 
@@ -70,7 +92,10 @@ describe("first-person camera", () => {
     const viewDirection = {
       x: 0,
       z: 1,
-      right: { x: -1, z: 0 },
+      right: {
+        x: -1,
+        z: 0,
+      },
     };
     assert.deepEqual(projectFirstPersonMovement(0, 1, viewDirection), {
       x: 0,
@@ -90,8 +115,16 @@ describe("first-person camera", () => {
     mode.update({ hero });
     assert.equal(gameCamera.component.projection, "perspective");
     assert.deepEqual(transforms.position, new Vec3(2, 3, 4));
-    assert.deepEqual(mode.state.direction, { x: 0, y: 0, z: 1 });
-    assert.deepEqual(mode.state.right, { x: -1, y: 0, z: 0 });
+    assert.deepEqual(mode.state.direction, {
+      x: 0,
+      y: 0,
+      z: 1,
+    });
+    assert.deepEqual(mode.state.right, {
+      x: -1,
+      y: 0,
+      z: 0,
+    });
 
     mode.lookBy(90, -1000);
     mode.update({ hero });
@@ -112,8 +145,16 @@ describe("first-person camera", () => {
       get firstPersonCameraPose() {
         const radians = bodyYaw * Math.PI / 180;
         return {
-          position: { x: 2, y: 3, z: 4 },
-          direction: { x: Math.sin(radians), y: 0, z: Math.cos(radians) },
+          position: {
+            x: 2,
+            y: 3,
+            z: 4,
+          },
+          direction: {
+            x: Math.sin(radians),
+            y: 0,
+            z: Math.cos(radians),
+          },
         };
       },
       set firstPersonFacingYaw(yaw) {
@@ -167,15 +208,24 @@ describe("first-person camera", () => {
     mode.enter();
     mode.update({ hero });
 
-    assert.deepEqual(mode.pointerDown({ button: 0, captured: false }), {
+    assert.deepEqual(mode.pointerDown({
+      button: 0,
+      captured: false,
+    }), {
       capture: true,
       primary: false,
     });
-    assert.deepEqual(mode.pointerDown({ button: 0, captured: true }), {
+    assert.deepEqual(mode.pointerDown({
+      button: 0,
+      captured: true,
+    }), {
       capture: false,
       primary: true,
     });
-    assert.equal(mode.pointerDown({ button: 2, captured: true }), null);
+    assert.equal(mode.pointerDown({
+      button: 2,
+      captured: true,
+    }), null);
     assert.equal(
       mode.pointerMove({
         captured: true,
@@ -226,7 +276,10 @@ describe("first-person camera", () => {
       globalThis.document.pointerLockElement = element;
       assert.equal(pointer.press({ button: 0 }), true);
       assert.equal(patted, 1);
-      assert.equal(pointer.move({ movementX: 1, movementY: 2 }), true);
+      assert.equal(pointer.move({
+        movementX: 1,
+        movementY: 2,
+      }), true);
 
       const cameraPointer = {
         capture: () => pointer.capture(),

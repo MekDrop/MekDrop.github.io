@@ -123,7 +123,10 @@ export class VoxelVegetation {
     this.#onVegetationRemoved = ({ col, row, kind }) =>
       runtime.onObjectRemoved?.({
         object: "Vegetation",
-        tile: { col, row },
+        tile: {
+          col,
+          row,
+        },
         kind,
       });
 
@@ -254,28 +257,34 @@ export class VoxelVegetation {
       if (distance > reach || (closest && distance >= closest.distance)) {
         continue;
       }
-      closest = { item, col, row, rotation, distance };
+      closest = {
+        item,
+        col,
+        row,
+        rotation,
+        distance,
+      };
     }
     return closest
       ? new VegetationInteraction({
-          item: closest.item,
-          hero,
-          tool: this.#tool,
-          onChange,
-          onComplete,
-          /**
+        item: closest.item,
+        hero,
+        tool: this.#tool,
+        onChange,
+        onComplete,
+        /**
            *
            * @param {string} description
            */
-          onDestroyed: (description) => {
-            this.#leaveDirtPatch(description, closest.rotation, closest);
-            this.#onVegetationRemoved({
-              col: closest.col,
-              row: closest.row,
-              kind: description.kind,
-            });
-          },
-        })
+        onDestroyed: (description) => {
+          this.#leaveDirtPatch(description, closest.rotation, closest);
+          this.#onVegetationRemoved({
+            col: closest.col,
+            row: closest.row,
+            kind: description.kind,
+          });
+        },
+      })
       : null;
   }
 
@@ -291,8 +300,8 @@ export class VoxelVegetation {
      * @param {{item: import("./DestructibleVegetation.js").DestructibleVegetation}} options
      * @param {import("./DestructibleVegetation.js").DestructibleVegetation} options.item
      */
-    ({ item }) =>
-      item.intersectsGroundFootprint(x, z, radius),
+      ({ item }) =>
+        item.intersectsGroundFootprint(x, z, radius),
     );
   }
 

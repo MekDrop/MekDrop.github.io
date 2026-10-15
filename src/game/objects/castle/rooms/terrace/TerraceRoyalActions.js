@@ -8,11 +8,31 @@ const DOORWAY_VISIBLE_Z = 0.2;
 const QUEEN_APPROACH_POSITION = [0.62, 0, 3.3];
 const QUEEN_REST_POSITION = [0, 0, 3.1];
 const QUEEN_ROUTE = [
-  { progress: 0, x: 0, z: DOORWAY_START_Z },
-  { progress: 0.55, x: 0, z: 1.2 },
-  { progress: 0.68, x: 0.9, z: 1.65 },
-  { progress: 0.92, x: 0.9, z: 3.3 },
-  { progress: 1, x: QUEEN_APPROACH_POSITION[0], z: QUEEN_APPROACH_POSITION[2] },
+  {
+    progress: 0,
+    x: 0,
+    z: DOORWAY_START_Z,
+  },
+  {
+    progress: 0.55,
+    x: 0,
+    z: 1.2,
+  },
+  {
+    progress: 0.68,
+    x: 0.9,
+    z: 1.65,
+  },
+  {
+    progress: 0.92,
+    x: 0.9,
+    z: 3.3,
+  },
+  {
+    progress: 1,
+    x: QUEEN_APPROACH_POSITION[0],
+    z: QUEEN_APPROACH_POSITION[2],
+  },
 ];
 
 /**
@@ -71,10 +91,17 @@ export class TerraceRoyalActions {
     this.#stage = stage;
     this.#homeRotation = actor?.entity.getRotation().clone();
     this.#ownsActor = !actor;
-    this.#royal = actor ?? new RoyalType({ pc, modelLibrary, performanceSeed });
+    this.#royal = actor ?? new RoyalType({
+      pc,
+      modelLibrary,
+      performanceSeed,
+    });
     if (actor && navigation) {
       if (this.#kind === "king") { actor.performanceFrame = stage; }
-      this.#motion = new CastleResidentMotion({ actor, ...navigation });
+      this.#motion = new CastleResidentMotion({
+        actor,
+        ...navigation,
+      });
       return;
     }
     const scale = CHARACTER_HEIGHT / (this.#royal.height * stage.getLocalScale().y);
@@ -109,7 +136,11 @@ export class TerraceRoyalActions {
     const position = this.#royal.entity.enabled
       ? this.#royal.entity.getLocalPosition() : null;
     return {
-      position: position ? { x: position.x, y: position.y, z: position.z } : null,
+      position: position ? {
+        x: position.x,
+        y: position.y,
+        z: position.z,
+      } : null,
       yaw: this.#royal.entity.enabled
         ? this.#royal.entity.getLocalEulerAngles().y : null,
     };
@@ -265,7 +296,10 @@ export class TerraceRoyalActions {
         z: start.z + (end.z - start.z) * segment,
       };
     }
-    return { x: QUEEN_APPROACH_POSITION[0], z: QUEEN_APPROACH_POSITION[2] };
+    return {
+      x: QUEEN_APPROACH_POSITION[0],
+      z: QUEEN_APPROACH_POSITION[2],
+    };
   }
 
   /**

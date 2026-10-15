@@ -22,7 +22,7 @@ export class SceneObjectRegistry {
       this.#methodMembers.set(method, [...this.#objects.values()].filter(/**
        * @param {import("src/game/GameContracts.js").GameObjectContract} object
        */
-      (object) => typeof object[method] === "function"));
+        (object) => typeof object[method] === "function"));
     }
     return this.#methodMembers.get(method);
   }
@@ -131,7 +131,7 @@ export class SceneObjectRegistry {
        *
        * @param {string} key
        */
-      (key) => this.get(key))
+        (key) => this.get(key))
       .filter(Boolean);
   }
 

@@ -71,7 +71,11 @@ export class TerraceKing {
    *
     * @type {import("src/game/objects/ObjectTypes.js").Point3|null}
    */
-  #lastOffset = { x: 0, y: 0, z: 0 };
+  #lastOffset = {
+    x: 0,
+    y: 0,
+    z: 0,
+  };
   /**
    *
     * @type {number}
@@ -171,7 +175,11 @@ export class TerraceKing {
         ? this.entity.getLocalEulerAngles().clone()
         : null;
       if (action !== "sword") {
-        this.#lastOffset = { x: 0, y: 0, z: 0 };
+        this.#lastOffset = {
+          x: 0,
+          y: 0,
+          z: 0,
+        };
         this.#lastYaw = 0;
       }
     }

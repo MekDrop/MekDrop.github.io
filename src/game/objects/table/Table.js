@@ -23,22 +23,37 @@ export class Table extends AbstractCastleProp {
    */
   constructor(options) {
     const definition = Table.definitionFor(options.definition);
-    super({ ...options, definition });
+    super({
+      ...options,
+      definition,
+    });
     if (!definition.worldMap) { return; }
     const { pc, app, runtime = {} } = options;
-    const raster = WarMapDrawing.raster(runtime.mapData ?? { rows: 0, cols: 0, grid: [], heightmap: [] });
+    const raster = WarMapDrawing.raster(runtime.mapData ?? {
+      rows: 0,
+      cols: 0,
+      grid: [],
+      heightmap: [],
+    });
     const canvas = document.createElement("canvas");
     canvas.width = raster.width;
     canvas.height = raster.height;
     canvas.getContext("2d").putImageData(new ImageData(raster.pixels, raster.width, raster.height), 0, 0);
-    this.#texture = new pc.Texture(app.graphicsDevice, { name: "Current world parchment", mipmaps: true });
+    this.#texture = new pc.Texture(app.graphicsDevice, {
+      name: "Current world parchment",
+      mipmaps: true,
+    });
     this.#texture.setSource(canvas);
     this.#material = new pc.StandardMaterial();
     this.#material.diffuseMap = this.#texture;
     this.#material.gloss = 0;
     this.#material.update();
     const paper = new pc.Entity("Flat current-world map");
-    paper.addComponent("render", { type: "plane", material: this.#material, castShadows: false });
+    paper.addComponent("render", {
+      type: "plane",
+      material: this.#material,
+      castShadows: false,
+    });
     paper.setLocalPosition(0, (definition.height + 0.003) * (definition.scale ?? 1) * (definition.stretch?.y ?? 1), 0);
     paper.setLocalScale(definition.width * 0.75 * (definition.scale ?? 1) * (definition.stretch?.x ?? 1), 1, definition.depth * 0.69 * (definition.scale ?? 1) * (definition.stretch?.z ?? 1));
     this.visualRoots[0].addChild(paper);
@@ -54,11 +69,14 @@ export class Table extends AbstractCastleProp {
       VestibuleMapTable: [1.8, 1, 1],
       TeaTable: [1.25, 1.0622, 1.25],
     }[definition.object] ?? [0.6271365, 0.56465894, 1.25];
-    return { ...definition, object: Table.name,
+    return {
+      ...definition,
+      object: Table.name,
       width: definition.width ?? defaults[0],
       height: definition.height ?? defaults[1],
       depth: definition.depth ?? defaults[2],
-      worldMap: definition.worldMap ?? ["WarMapTable", "VestibuleMapTable"].includes(definition.object) };
+      worldMap: definition.worldMap ?? ["WarMapTable", "VestibuleMapTable"].includes(definition.object),
+    };
   }
 
   /**
@@ -67,7 +85,11 @@ export class Table extends AbstractCastleProp {
    * @param {boolean} collision
    */
   prepareModel(model, collision) {
-    const { width, height, depth, scale = 1, stretch = { x: 1, y: 1, z: 1 } } = this.definition;
+    const { width, height, depth, scale = 1, stretch = {
+      x: 1,
+      y: 1,
+      z: 1,
+    } } = this.definition;
     model.setLocalScale(width / 0.6271365 * scale * stretch.x,
       height / 0.56465894 * scale * stretch.y, depth / 1.25 * scale * stretch.z);
   }

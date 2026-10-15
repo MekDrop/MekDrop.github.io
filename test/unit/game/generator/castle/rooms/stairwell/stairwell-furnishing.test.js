@@ -21,12 +21,21 @@ it("reproduces sparse stair-room decoration and varies independent seed pairs", 
 it("keeps measured lantern bounds, apertures and the full stair approach clear", async () => {
   for (const planId of ["castle-demo-compact", "castle-01", "castle-03", "castle-04"]) {
     for (const seed of [2, 3, 42, 44, 46, 100]) {
-      const plan = await CastleBasePlanGenerator.generate({ planId, seed, baseY: 3 });
+      const plan = await CastleBasePlanGenerator.generate({
+        planId,
+        seed,
+        baseY: 3,
+      });
       for (const item of plan.furniture.filter(item => item.role === "stairwellProp")) {
         const room = plan.spaces.find(room => room.id === item.roomId && room.floorY === item.floorY);
         if (item.object === "WallLantern") {
           assert.ok(item.y >= 1.75 && item.y + 0.6 < room.height);
-          const side = { 0: "NORTH", 90: "WEST", 180: "SOUTH", 270: "EAST" }[((item.rotation % 360) + 360) % 360];
+          const side = {
+            0: "NORTH",
+            90: "WEST",
+            180: "SOUTH",
+            270: "EAST",
+          }[((item.rotation % 360) + 360) % 360];
           const along = ["NORTH", "SOUTH"].includes(side) ? item.x : item.z;
           for (const opening of plan.openings.filter(opening => opening.roomId === item.roomId &&
             opening.floorY === item.floorY && opening.side === side)) {
@@ -53,10 +62,32 @@ it("keeps measured lantern bounds, apertures and the full stair approach clear",
 });
 
 it("publishes native prop definitions once and replaces stale seed furnishings", async () => {
-  const options = { position: { x: -6.5, z: -5.5, width: 12, depth: 11, elevation: 0 },
-    doors: [{ side: "NORTH", offset: 5, width: 2 }] };
-  const castle = { id: "test-castle", object: "Castle", tile: { col: 15, row: 15 },
-    buildPlan: await CastleGenerator.generate({ ...options, seed: 46 }) };
+  const options = {
+    position: {
+      x: -6.5,
+      z: -5.5,
+      width: 12,
+      depth: 11,
+      elevation: 0,
+    },
+    doors: [{
+      side: "NORTH",
+      offset: 5,
+      width: 2,
+    }],
+  };
+  const castle = {
+    id: "test-castle",
+    object: "Castle",
+    tile: {
+      col: 15,
+      row: 15,
+    },
+    buildPlan: await CastleGenerator.generate({
+      ...options,
+      seed: 46,
+    }),
+  };
   const map = { objects: [castle] };
   StairwellRoomMapObjects.prepareMap(map);
   const first = structuredClone(map.objects.slice(1));
@@ -67,22 +98,56 @@ it("publishes native prop definitions once and replaces stale seed furnishings",
   assert.ok(first.every(item => item.sourceCastleId === castle.id && Number.isFinite(item.position.y)));
   StairwellRoomMapObjects.prepareMap(map);
   assert.deepEqual(map.objects.slice(1), first);
-  castle.buildPlan = await CastleGenerator.generate({ ...options, seed: 44 });
+  castle.buildPlan = await CastleGenerator.generate({
+    ...options,
+    seed: 44,
+  });
   StairwellRoomMapObjects.prepareMap(map);
   assert.notDeepEqual(map.objects.slice(1), first);
   assert.equal(new Set(map.objects.map(item => item.id)).size, map.objects.length);
 });
 
 it("omits decoration when a compact host has no safe wall outside its shaft", () => {
-  const room = { id: "tight", level: 0, minX: 0, maxX: 3, minZ: 0, maxZ: 3, floorY: 0, height: 3 };
-  const stairs = [{ minX: 0, maxX: 3, minZ: 0, maxZ: 3 }];
-  assert.deepEqual(new StairwellRoomGenerator("tight").furnish(room, { seed: 1, stairs, openings: [] }), []);
+  const room = {
+    id: "tight",
+    level: 0,
+    minX: 0,
+    maxX: 3,
+    minZ: 0,
+    maxZ: 3,
+    floorY: 0,
+    height: 3,
+  };
+  const stairs = [{
+    minX: 0,
+    maxX: 3,
+    minZ: 0,
+    maxZ: 3,
+  }];
+  assert.deepEqual(new StairwellRoomGenerator("tight").furnish(room, {
+    seed: 1,
+    stairs,
+    openings: [],
+  }), []);
 });
 
 it("confines crates to supported low-headroom stair pockets and leaves floor voids empty", async () => {
   for (const seed of [42, 43, 44]) {
-    const build = await CastleGenerator.generate({ position: { x: -6.5, z: -5.5, width: 12, depth: 11, elevation: 0 },
-      doors: [{ side: "NORTH", offset: 5, width: 2 }], seed });
+    const build = await CastleGenerator.generate({
+      position: {
+        x: -6.5,
+        z: -5.5,
+        width: 12,
+        depth: 11,
+        elevation: 0,
+      },
+      doors: [{
+        side: "NORTH",
+        offset: 5,
+        width: 2,
+      }],
+      seed,
+    });
     const plan = build.metadata.runtime.residential;
     const crates = plan.furniture.filter(item => item.underStair);
     assert.ok(crates.length >= 10, "wall alignment retains the full storage inventory");
@@ -91,8 +156,13 @@ it("confines crates to supported low-headroom stair pockets and leaves floor voi
     assert.equal(pocket[1].supportId, pocket[0].id);
     assert.equal(pocket[0].x, pocket[1].x);
     assert.equal(pocket[0].z, pocket[1].z);
-    for (const [object, count] of Object.entries({ Crate: 12, WoodenStorageChest: 5,
-      Barrel: 2, WaterBucket: 1, StoragePotteryJar: 3 })) {
+    for (const [object, count] of Object.entries({
+      Crate: 12,
+      WoodenStorageChest: 5,
+      Barrel: 2,
+      WaterBucket: 1,
+      StoragePotteryJar: 3,
+    })) {
       assert.equal(crates.filter(item => item.object === object).length, count,
         `${object}: wall alignment must preserve the original inventory`);
     }
@@ -135,7 +205,11 @@ it("confines crates to supported low-headroom stair pockets and leaves floor voi
               child.z - hz - area.minZ, area.maxZ - child.z - hz, child.z - hz - area.minZ - 0.25);
           }
           assert.ok(distances.some(distance => distance >= -1e-5 && distance <= 0.08),
-            JSON.stringify({ seed, item, distances }));
+            JSON.stringify({
+              seed,
+              item,
+              distances,
+            }));
         }
         assert.ok(along < 0.75, "storage leaves the stair approach open");
       }
@@ -158,7 +232,13 @@ it("confines crates to supported low-headroom stair pockets and leaves floor voi
       assert.ok(!build.metadata.collision.cameraBlocks.some(block =>
         Math.abs(x - block.x) < block.halfX + halfX && Math.abs(z - block.z) < block.halfZ + halfZ &&
         item.floorY + item.y + height > block.y - block.halfY &&
-        item.floorY + item.y + 0.01 < block.y + block.halfY), JSON.stringify({ seed, item, halfX, halfZ, blocks: build.metadata.collision.cameraBlocks.filter(block => Math.abs(x-block.x)<block.halfX+halfX && Math.abs(z-block.z)<block.halfZ+halfZ) }));
+        item.floorY + item.y + 0.01 < block.y + block.halfY), JSON.stringify({
+        seed,
+        item,
+        halfX,
+        halfZ,
+        blocks: build.metadata.collision.cameraBlocks.filter(block => Math.abs(x-block.x)<block.halfX+halfX && Math.abs(z-block.z)<block.halfZ+halfZ),
+      }));
     }
   }
 });

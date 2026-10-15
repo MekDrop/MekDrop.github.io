@@ -2,7 +2,13 @@ import { AbstractCastleRoomGenerator } from "../AbstractCastleRoomGenerator.js";
 import { ServiceRoomFurnishing } from "./ServiceRoomFurnishing.js";
 
 export class ServiceRoomGenerator extends AbstractCastleRoomGenerator {
-  constructor() { super("service", { x: 2, y: 2.5 }, { x: 4.5, y: 8 }); }
+  constructor() { super("service", {
+    x: 2,
+    y: 2.5,
+  }, {
+    x: 4.5,
+    y: 8,
+  }); }
   /**
    * @returns {number[]}
    */
@@ -13,16 +19,20 @@ export class ServiceRoomGenerator extends AbstractCastleRoomGenerator {
    * @returns {import("../AbstractCastleRoomGenerator.js").RoomItem[]}
    */
   furnish(room, context = {}) {
-    return new ServiceRoomFurnishing({ ...room, furnishingSeed: context.seed ?? room.furnishingSeed,
-      wallThickness: context.wallThickness ?? room.wallThickness, openings: context.openings?.filter(/**
+    return new ServiceRoomFurnishing({
+      ...room,
+      furnishingSeed: context.seed ?? room.furnishingSeed,
+      wallThickness: context.wallThickness ?? room.wallThickness,
+      openings: context.openings?.filter(/**
        *
        * @param {import("../../CastleBasePlanGenerator.js").CompiledCastleOpening} opening
        */
-      opening => opening.roomId === room.id && opening.floorY === room.floorY) ?? room.openings,
+        opening => opening.roomId === room.id && opening.floorY === room.floorY) ?? room.openings,
       stairs: context.stairs?.filter(/**
        *
        * @param {{from:number,to:number}} stair
        */
-      stair => room.level >= stair.from && room.level <= stair.to) ?? room.stairs }).items;
+        stair => room.level >= stair.from && room.level <= stair.to) ?? room.stairs,
+    }).items;
   }
 }

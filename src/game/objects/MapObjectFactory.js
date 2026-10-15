@@ -219,9 +219,18 @@ export class MapObjectFactory {
     const runtime = options.runtime ?? {};
     runtime.createObject ??= /**
      * @param {import("./ObjectTypes.js").MapObjectDefinition} definition
-     */ (definition) => MapObjectFactory.create({ ...options, definition,
-      runtime: { ...runtime, mapData: undefined } });
-    return new ObjectClass({ ...options, runtime });
+     */ (definition) => MapObjectFactory.create({
+        ...options,
+        definition,
+        runtime: {
+          ...runtime,
+          mapData: undefined,
+        },
+      });
+    return new ObjectClass({
+      ...options,
+      runtime,
+    });
   }
   /**
    * @returns {Readonly<Record<string, string>>}
@@ -354,7 +363,7 @@ export class MapObjectFactory {
          * @param {{definition: import("src/game/objects/ObjectTypes.js").MapObjectDefinition}} options
          * @param {import("src/game/objects/ObjectTypes.js").MapObjectDefinition} options.definition
          */
-        ({ definition }) => definition),
+          ({ definition }) => definition),
       });
       objects.push(pickupActors);
       onCreate(pickupActors);

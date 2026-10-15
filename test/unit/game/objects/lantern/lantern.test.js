@@ -6,22 +6,40 @@ import * as pc from "playcanvas";
 const hooks = registerHooks({
   resolve(specifier, context, nextResolve) {
     if (specifier.endsWith(".glb?url")) {
-      return { url: `data:text/javascript,export default ${JSON.stringify(specifier)}`, shortCircuit: true };
+      return {
+        url: `data:text/javascript,export default ${JSON.stringify(specifier)}`,
+        shortCircuit: true,
+      };
     }
     if (specifier.endsWith("/Fire.js")) {
-      return { url: 'data:text/javascript,export class Fire { static attach(pc, model, position) { model.flame = position; } }', shortCircuit: true };
+      return {
+        url: 'data:text/javascript,export class Fire { static attach(pc, model, position) { model.flame = position; } }',
+        shortCircuit: true,
+      };
     }
     if (specifier.endsWith("/LanternGlass.js")) {
-      return { url: 'data:text/javascript,export class LanternGlass { static add() {} }', shortCircuit: true };
+      return {
+        url: 'data:text/javascript,export class LanternGlass { static add() {} }',
+        shortCircuit: true,
+      };
     }
     if (specifier.endsWith("/CastleFire.js")) {
-      return { url: 'data:text/javascript,export class CastleFire {}', shortCircuit: true };
+      return {
+        url: 'data:text/javascript,export class CastleFire {}',
+        shortCircuit: true,
+      };
     }
     if (specifier.endsWith("/AuthoredMeshPhysics.js")) {
-      return { url: 'data:text/javascript,export function addAuthoredMeshPhysics() {}', shortCircuit: true };
+      return {
+        url: 'data:text/javascript,export function addAuthoredMeshPhysics() {}',
+        shortCircuit: true,
+      };
     }
     if (specifier.endsWith("/DynamicRenderBatch.js")) {
-      return { url: 'data:text/javascript,export class DynamicRenderBatch { destroy() {} }', shortCircuit: true };
+      return {
+        url: 'data:text/javascript,export class DynamicRenderBatch { destroy() {} }',
+        shortCircuit: true,
+      };
     }
     return nextResolve(specifier, context);
   },
@@ -32,9 +50,23 @@ hooks.deregister();
 test("type selects the same asset for the visual and authored collision", () => {
   for (const type of ["entrance", "wall", "table"]) {
     const urls = [];
-    const lantern = new Lantern({ pc: { ...pc, Entity: LanternEntity },
+    const lantern = new Lantern({
+      pc: {
+        ...pc,
+        Entity: LanternEntity,
+      },
       modelLibrary: { instantiate: url => { urls.push(url); return new LanternEntity("model"); } },
-      definition: { id: type, object: "Lantern", type, position: { x: 0, y: 0, z: 0 } } });
+      definition: {
+        id: type,
+        object: "Lantern",
+        type,
+        position: {
+          x: 0,
+          y: 0,
+          z: 0,
+        },
+      },
+    });
     assert.equal(urls.length, 2);
     assert.ok(urls.every(url => url.endsWith(`${type}-lantern.glb?url`)));
     assert.equal(Boolean(lantern.visualRoots[0].children[0].flame), type !== "wall");
@@ -62,14 +94,62 @@ class LanternEntity extends pc.Entity {
 }
 
 test("scaled collision stays on the unscaled semantic root and follows island offsets", () => {
-  const lantern = new Lantern({ pc: { ...pc, Entity: LanternEntity },
+  const lantern = new Lantern({
+    pc: {
+      ...pc,
+      Entity: LanternEntity,
+    },
     modelLibrary: { instantiate: () => new LanternEntity("model") },
-    definition: { id: "test", position: { x: 2, y: 3, z: 4 }, scale: 1.6,
-      stretch: { x: 0.8633, y: 1, z: 0.8633 }, tile: { col: 0, row: 0 },
-      collisionBox: { halfExtents: { x: 0.1, y: 0.2, z: 0.3 }, offset: { x: 0, y: 0.2, z: 0 } },
-      lighting: { position: { x: 0, y: 0.17, z: 0.1 }, modelSpace: true,
-        color: [1, 0.38, 0.06], intensity: 0.85, range: 2.2 } },
-    runtime: { mapData: { islandConnectorData: { nearIsland: ["0,0"], farIsland: ["1,0"] } } } });
+    definition: {
+      id: "test",
+      position: {
+        x: 2,
+        y: 3,
+        z: 4,
+      },
+      scale: 1.6,
+      stretch: {
+        x: 0.8633,
+        y: 1,
+        z: 0.8633,
+      },
+      tile: {
+        col: 0,
+        row: 0,
+      },
+      collisionBox: {
+        halfExtents: {
+          x: 0.1,
+          y: 0.2,
+          z: 0.3,
+        },
+        offset: {
+          x: 0,
+          y: 0.2,
+          z: 0,
+        },
+      },
+      lighting: {
+        position: {
+          x: 0,
+          y: 0.17,
+          z: 0.1,
+        },
+        modelSpace: true,
+        color: [1, 0.38, 0.06],
+        intensity: 0.85,
+        range: 2.2,
+      },
+    },
+    runtime: {
+      mapData: {
+        islandConnectorData: {
+          nearIsland: ["0,0"],
+          farIsland: ["1,0"],
+        },
+      },
+    },
+  });
   const root = lantern.visualRoots[0];
   assert.equal(root.getLocalScale().x, 1);
   assert.equal(root.collision.halfExtents.x, 0.1 * 1.6 * 0.8633);
@@ -87,9 +167,32 @@ test("scaled collision stays on the unscaled semantic root and follows island of
 
 test("asset variants retain their distinct model-space and root-space light offsets", () => {
   for (const [type, modelSpace, y] of [["table", true, 0.15], ["entrance", false, 0.23]]) {
-    const lantern = new Lantern({ pc: { ...pc, Entity: LanternEntity },
+    const lantern = new Lantern({
+      pc: {
+        ...pc,
+        Entity: LanternEntity,
+      },
       modelLibrary: { instantiate: () => new LanternEntity("model") },
-      definition: { id: "variant", type, lighting: modelSpace ? undefined : { position: { x: 0, y, z: 0.17 }, intensity: 0.65, range: 3 }, position: { x: 0, y: 0, z: 0 }, scale: 2 } });
+      definition: {
+        id: "variant",
+        type,
+        lighting: modelSpace ? undefined : {
+          position: {
+            x: 0,
+            y,
+            z: 0.17,
+          },
+          intensity: 0.65,
+          range: 3,
+        },
+        position: {
+          x: 0,
+          y: 0,
+          z: 0,
+        },
+        scale: 2,
+      },
+    });
     const root = lantern.visualRoots[0];
     const light = root.findByName("variant warm light");
     assert.equal(light.parent, modelSpace ? root.children[0] : root);

@@ -75,9 +75,21 @@ describe("async map generation", () => {
   it("preserves deterministic output across representative pipeline paths", async () => {
     const options = [
       { mapName: "pipeline-baseline-default" },
-      { mapName: "pipeline-baseline-rivers", numPaths: 4, numRivers: 6 },
-      { mapName: "pipeline-baseline-no-rivers", numPaths: 1, numRivers: 0 },
-      { mapName: "pipeline-baseline-overpass", numPaths: 4, overpass: true },
+      {
+        mapName: "pipeline-baseline-rivers",
+        numPaths: 4,
+        numRivers: 6,
+      },
+      {
+        mapName: "pipeline-baseline-no-rivers",
+        numPaths: 1,
+        numRivers: 0,
+      },
+      {
+        mapName: "pipeline-baseline-overpass",
+        numPaths: 4,
+        overpass: true,
+      },
     ];
 
     for (const generationOptions of options) {

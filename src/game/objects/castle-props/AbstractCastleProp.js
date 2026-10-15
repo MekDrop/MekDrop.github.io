@@ -61,7 +61,11 @@ export class AbstractCastleProp {
     this.#visual.setLocalEulerAngles(definition.tilt?.x ?? 0, definition.rotation ?? 0, definition.tilt?.z ?? 0);
     const model = modelLibrary.instantiate(this.modelUrl);
     const scale = definition.scale ?? 1;
-    const stretch = definition.stretch ?? { x: 1, y: 1, z: 1 };
+    const stretch = definition.stretch ?? {
+      x: 1,
+      y: 1,
+      z: 1,
+    };
     model.setLocalScale(scale * stretch.x, scale * stretch.y, scale * stretch.z);
     this.prepareModel(model, false);
     this.#visual.addChild(model);

@@ -68,10 +68,10 @@ export class PathTopology {
      *
      * @param {number} col
      */
-    (col) => {
-      const key = MapGrid.tileKey(col, row);
-      return firstCells.has(key) && secondCells.has(key);
-    });
+      (col) => {
+        const key = MapGrid.tileKey(col, row);
+        return firstCells.has(key) && secondCells.has(key);
+      });
   }
 
   /**
@@ -98,8 +98,8 @@ export class PathTopology {
      *
      * @param {number} row
      */
-    (row) =>
-      PathTopology.#routesShareMergeCellAtRow(firstCells, secondCells, layout, row),
+      (row) =>
+        PathTopology.#routesShareMergeCellAtRow(firstCells, secondCells, layout, row),
     );
   }
 
@@ -164,8 +164,14 @@ export class PathTopology {
                 firstCells,
                 secondCells,
                 layout,
-                { col, row },
-                { col: neighborCol, row: neighborRow },
+                {
+                  col,
+                  row,
+                },
+                {
+                  col: neighborCol,
+                  row: neighborRow,
+                },
               ) ||
               PathTopology.#isWithinOverpassCrossing(overpassPlan, col, row) ||
               PathTopology.#isWithinOverpassCrossing(
@@ -201,7 +207,7 @@ export class PathTopology {
           !MapGrid.isRouteTile(grid[row][col]) ||
           !MapGrid.isRouteTile(grid[row + 1][col])
         )
-          { continue; }
+        { continue; }
         if (row > 0 && MapGrid.isRouteTile(grid[row - 1][col])) { continue; }
         horizontalBands.push(row);
       }
@@ -230,7 +236,7 @@ export class PathTopology {
           !MapGrid.isRouteTile(grid[row][col]) ||
           !MapGrid.isRouteTile(grid[row][col + 1])
         )
-          { continue; }
+        { continue; }
         if (col > 0 && MapGrid.isRouteTile(grid[row][col - 1])) { continue; }
         verticalBands.push(col);
       }
@@ -298,7 +304,10 @@ export class PathTopology {
         ) {
           continue;
         }
-        return { col, row };
+        return {
+          col,
+          row,
+        };
       }
     }
     return null;

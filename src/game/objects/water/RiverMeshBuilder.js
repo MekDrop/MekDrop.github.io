@@ -109,10 +109,10 @@ export class RiverMeshBuilder {
       const familyCells = rivers.filter(/**
        * @param {import("src/game/generator/map/MapGenerationTypes.js").RiverData} item
        */
-      (item) => (item.sourceId ?? item.id) === (river.sourceId ?? river.id)).flatMap(/**
+        (item) => (item.sourceId ?? item.id) === (river.sourceId ?? river.id)).flatMap(/**
        * @param {import("src/game/generator/map/MapGenerationTypes.js").RiverData} item
        */
-      (item) => item.cells);
+        (item) => item.cells);
       const surfaceHeights = new RiverSurfaceHeights(familyCells);
       const sourceProfile = createSourceProfile(river.cells);
       const riverCellKeys = new Set(
@@ -120,17 +120,17 @@ export class RiverMeshBuilder {
          *
          * @param {number} cell
          */
-        (cell) => `${cell.col},${cell.row}`),
+          (cell) => `${cell.col},${cell.row}`),
       );
       const spillDirections = new Map(
         river.cascades.map(/**
          *
          * @param {number} cascade
          */
-        (cascade) => [
-          `${cascade.from.col},${cascade.from.row}`,
-          cascade.direction,
-        ]),
+          (cascade) => [
+            `${cascade.from.col},${cascade.from.row}`,
+            cascade.direction,
+          ]),
       );
       spillDirections.set(
         `${river.waterfall.col},${river.waterfall.row}`,
@@ -175,7 +175,7 @@ export class RiverMeshBuilder {
          *
          * @param {import("src/game/objects/ObjectTypes.js").RiverCell} cell
          */
-        (cell) => cell.col === cascade.from.col && cell.row === cascade.from.row);
+          (cell) => cell.col === cascade.from.col && cell.row === cascade.from.row);
         if (cascadeIndex < (river.branchStart ?? 0) - 1) {
           continue;
         }
@@ -752,7 +752,12 @@ export class RiverMeshBuilder {
       uvs.push(uvAt(row, column));
       sources.push(sourceAt(row, column));
     }
-    return { front, rear, uvs, sources };
+    return {
+      front,
+      rear,
+      uvs,
+      sources,
+    };
   }
 
   /**
@@ -789,7 +794,7 @@ export class RiverMeshBuilder {
      *
      * @param {...(number|boolean|Array<number>|((row: number, column: number) => Array<number>)|null)} args
      */
-    (...args) => this.#addGrid(group, ...args), section);
+      (...args) => this.#addGrid(group, ...args), section);
   }
 
   /**
@@ -873,14 +878,26 @@ export class RiverMeshBuilder {
    */
   #directionVector(direction) {
     if (direction === 'NORTH') {
-      return { col: 0, row: -1 };
+      return {
+        col: 0,
+        row: -1,
+      };
     }
     if (direction === 'EAST') {
-      return { col: 1, row: 0 };
+      return {
+        col: 1,
+        row: 0,
+      };
     }
     if (direction === 'SOUTH') {
-      return { col: 0, row: 1 };
+      return {
+        col: 0,
+        row: 1,
+      };
     }
-    return { col: -1, row: 0 };
+    return {
+      col: -1,
+      row: 0,
+    };
   }
 }

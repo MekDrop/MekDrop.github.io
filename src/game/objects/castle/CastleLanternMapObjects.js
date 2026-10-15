@@ -36,13 +36,31 @@ export class CastleLanternMapObjects {
         // Castle parts share the footprint's island even when a wall projects
         // beyond the terrain cell which owns the facade.
         const { x, z } = plan.input.position;
-        mapData.objects.push({ ...item, id: `${castle.id}-lantern-${index++}`,
-          generated: true, castleLantern: true, sourceCastleId: castle.id,
-          tile: { col: Math.floor(x + mapData.cols / 2), row: Math.floor(z + mapData.rows / 2) },
-          position });
+        mapData.objects.push({
+          ...item,
+          id: `${castle.id}-lantern-${index++}`,
+          generated: true,
+          castleLantern: true,
+          sourceCastleId: castle.id,
+          tile: {
+            col: Math.floor(x + mapData.cols / 2),
+            row: Math.floor(z + mapData.rows / 2),
+          },
+          position,
+        });
       };
-      const wallCollision = { halfExtents: { x: 0.0799, y: 0.3, z: 0.13 },
-        offset: { x: 0, y: 0.3, z: 0 } };
+      const wallCollision = {
+        halfExtents: {
+          x: 0.0799,
+          y: 0.3,
+          z: 0.13,
+        },
+        offset: {
+          x: 0,
+          y: 0.3,
+          z: 0,
+        },
+      };
       if (layout && plan.layout.basePlanId && plan.input.doors?.length) {
         const entrance = residential.openings.find(
           /**
@@ -51,22 +69,66 @@ export class CastleLanternMapObjects {
           opening => opening.exteriorEntrance);
         if (entrance) {
           for (const flank of [-1, 1]) {
-            add({ object: "Lantern", type: "entrance", position: layout.toWorld(flank * (entrance.width / 2 + 0.54), -0.48, 1.3),
-              rotation: layout.yaw + 180, scale: 1.6, stretch: { x: 0.8633, y: 1, z: 0.8633 },
-              collisionBox: { halfExtents: { x: 0.0935, y: 0.225, z: 0.1284 }, offset: { x: 0, y: 0.225, z: 0 } },
-              lighting: { position: { x: 0, y: 0.17, z: 0.1 }, modelSpace: true,
-                color: [1, 0.38, 0.06], intensity: 0.85, range: 2.2 } });
+            add({
+              object: "Lantern",
+              type: "entrance",
+              position: layout.toWorld(flank * (entrance.width / 2 + 0.54), -0.48, 1.3),
+              rotation: layout.yaw + 180,
+              scale: 1.6,
+              stretch: {
+                x: 0.8633,
+                y: 1,
+                z: 0.8633,
+              },
+              collisionBox: {
+                halfExtents: {
+                  x: 0.0935,
+                  y: 0.225,
+                  z: 0.1284,
+                },
+                offset: {
+                  x: 0,
+                  y: 0.225,
+                  z: 0,
+                },
+              },
+              lighting: {
+                position: {
+                  x: 0,
+                  y: 0.17,
+                  z: 0.1,
+                },
+                modelSpace: true,
+                color: [1, 0.38, 0.06],
+                intensity: 0.85,
+                range: 2.2,
+              },
+            });
           }
         }
       }
       if (layout && residential.version !== 2) {
         for (const room of [layout.rooms.work, layout.rooms.bedroom]) {
           for (const x of [room.minX + 0.12, room.maxX - 0.12]) {
-            add({ object: "Lantern", type: "wall", position: layout.toWorld(x,
-              room.minZ + (room.maxZ - room.minZ) * 0.65, room.floorY - layout.origin.y + 0.65),
-              rotation: layout.yaw + (x < 0 ? 90 : -90), scale: 0.7, collisionBox: wallCollision,
-              lighting: { position: { x: 0, y: 0.25, z: 0.25 },
-                color: [1, 0.72, 0.38], intensity: 1.25, range: Math.min(3.5, room.maxX - room.minX) } });
+            add({
+              object: "Lantern",
+              type: "wall",
+              position: layout.toWorld(x,
+                room.minZ + (room.maxZ - room.minZ) * 0.65, room.floorY - layout.origin.y + 0.65),
+              rotation: layout.yaw + (x < 0 ? 90 : -90),
+              scale: 0.7,
+              collisionBox: wallCollision,
+              lighting: {
+                position: {
+                  x: 0,
+                  y: 0.25,
+                  z: 0.25,
+                },
+                color: [1, 0.72, 0.38],
+                intensity: 1.25,
+                range: Math.min(3.5, room.maxX - room.minX),
+              },
+            });
           }
         }
       }
@@ -75,10 +137,34 @@ export class CastleLanternMapObjects {
       const { x, z, width, depth, elevation = 0 } = plan.input.position;
       const offset = (door.offset ?? 0) + (door.width ?? 2) / 2;
       const directions = {
-        NORTH: { x: x + offset, z, yaw: 0, span: width, capacity: depth },
-        SOUTH: { x: x + offset, z: z + depth, yaw: 180, span: width, capacity: depth },
-        WEST: { x, z: z + offset, yaw: 90, span: depth, capacity: width },
-        EAST: { x: x + width, z: z + offset, yaw: -90, span: depth, capacity: width },
+        NORTH: {
+          x: x + offset,
+          z,
+          yaw: 0,
+          span: width,
+          capacity: depth,
+        },
+        SOUTH: {
+          x: x + offset,
+          z: z + depth,
+          yaw: 180,
+          span: width,
+          capacity: depth,
+        },
+        WEST: {
+          x,
+          z: z + offset,
+          yaw: 90,
+          span: depth,
+          capacity: width,
+        },
+        EAST: {
+          x: x + width,
+          z: z + offset,
+          yaw: -90,
+          span: depth,
+          capacity: width,
+        },
       };
       const direction = directions[door.side] ?? directions.NORTH;
       const room = layout && (layout.audienceFloorBounds ?? layout.rooms.work);
@@ -102,15 +188,31 @@ export class CastleLanternMapObjects {
       for (const side of [-1, 1]) {
         const lateral = side * Math.min(2.8, roomWidth / 2 - 0.1);
         const center = room ? layout.toWorld((room.minX + room.maxX) / 2, 0, 0) : direction;
-        add({ object: "Lantern", type: "wall", position: {
-          x: center.x + tangentX * lateral + Math.sin(angle) * (forward + 0.6),
-          y: elevation + 0.85,
-          z: center.z + tangentZ * lateral + Math.cos(angle) * (forward + 0.6) },
-          rotation: yaw + 180, scale: 0.85, collisionBox: wallCollision,
-          lighting: { position: { x: 0, y: 0.27, z: 0.25 }, flicker: true, intensity: 0.6, range: 0.78,
+        add({
+          object: "Lantern",
+          type: "wall",
+          position: {
+            x: center.x + tangentX * lateral + Math.sin(angle) * (forward + 0.6),
+            y: elevation + 0.85,
+            z: center.z + tangentZ * lateral + Math.cos(angle) * (forward + 0.6),
+          },
+          rotation: yaw + 180,
+          scale: 0.85,
+          collisionBox: wallCollision,
+          lighting: {
+            position: {
+              x: 0,
+              y: 0.27,
+              z: 0.25,
+            },
+            flicker: true,
+            intensity: 0.6,
+            range: 0.78,
             phase: (side === 1 ? 1.713 : 0) +
               (center.x + tangentX * lateral + Math.sin(angle) * (forward + 0.35)) * 0.37 +
-              (center.z + tangentZ * lateral + Math.cos(angle) * (forward + 0.35)) * 0.53 } });
+              (center.z + tangentZ * lateral + Math.cos(angle) * (forward + 0.35)) * 0.53,
+          },
+        });
       }
     }
   }

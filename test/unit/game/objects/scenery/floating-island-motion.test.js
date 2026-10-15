@@ -7,7 +7,10 @@ describe('floating island motion', () => {
     const motion = new FloatingIslandMotion({ zoom: 1 });
 
     for (let frame = 0; frame < 600; frame += 1) {
-      assert.deepEqual(motion.update(1 / 60), { x: 0, y: 0 });
+      assert.deepEqual(motion.update(1 / 60), {
+        x: 0,
+        y: 0,
+      });
     }
   });
 
@@ -25,6 +28,9 @@ describe('floating island motion', () => {
 
     motion.zoom = 1;
 
-    assert.deepEqual(motion.update(1 / 60), { x: 0, y: 0 });
+    assert.deepEqual(motion.update(1 / 60), {
+      x: 0,
+      y: 0,
+    });
   });
 });

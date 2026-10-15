@@ -6,11 +6,27 @@ import { GAME_OVER_VIEW_ROTATION_BY_SIDE } from "../../../../enum/GameOverViewRo
 import { colorFromHex } from "../../../../helpers/colors.js";
 
 const ROOM_MATERIALS = {
-  carpet: { color: 0xffffff, gloss: 0.04 },
-  wood: { color: 0x4a281a, gloss: 0.05 },
-  woodLight: { color: 0x6b3a22, gloss: 0.06 },
-  gold: { color: 0xd8a936, gloss: 0.36, metalness: 0.28 },
-  iron: { color: 0x171b1d, gloss: 0.16 },
+  carpet: {
+    color: 0xffffff,
+    gloss: 0.04,
+  },
+  wood: {
+    color: 0x4a281a,
+    gloss: 0.05,
+  },
+  woodLight: {
+    color: 0x6b3a22,
+    gloss: 0.06,
+  },
+  gold: {
+    color: 0xd8a936,
+    gloss: 0.36,
+    metalness: 0.28,
+  },
+  iron: {
+    color: 0x171b1d,
+    gloss: 0.16,
+  },
 };
 
 const EDGE_MARGIN = 0.82;
@@ -429,20 +445,20 @@ export class CastleAudienceRoom {
      *
      * @param {{x: number, z: number, radius: number}} obstacle
      */
-    (obstacle) => {
-      const distanceLateral = Math.max(
-        Math.abs(lateral - obstacle.lateral) - obstacle.width / 2,
-        0,
-      );
-      const distanceForward = Math.max(
-        Math.abs(forward - obstacle.forward) - obstacle.depth / 2,
-        0,
-      );
-      return (
-        distanceLateral * distanceLateral + distanceForward * distanceForward <=
+      (obstacle) => {
+        const distanceLateral = Math.max(
+          Math.abs(lateral - obstacle.lateral) - obstacle.width / 2,
+          0,
+        );
+        const distanceForward = Math.max(
+          Math.abs(forward - obstacle.forward) - obstacle.depth / 2,
+          0,
+        );
+        return (
+          distanceLateral * distanceLateral + distanceForward * distanceForward <=
         radius * radius
-      );
-    });
+        );
+      });
   }
 
   destroy() {
@@ -463,30 +479,66 @@ export class CastleAudienceRoom {
     const offset = this.#door.offset ?? 0;
     const definitions = {
       WEST: {
-        center: { x, z: z + offset + doorWidth / 2 },
-        inward: { x: 1, z: 0 },
-        tangent: { x: 0, z: 1 },
+        center: {
+          x,
+          z: z + offset + doorWidth / 2,
+        },
+        inward: {
+          x: 1,
+          z: 0,
+        },
+        tangent: {
+          x: 0,
+          z: 1,
+        },
         capacity: width,
         span: depth,
       },
       EAST: {
-        center: { x: x + width, z: z + offset + doorWidth / 2 },
-        inward: { x: -1, z: 0 },
-        tangent: { x: 0, z: 1 },
+        center: {
+          x: x + width,
+          z: z + offset + doorWidth / 2,
+        },
+        inward: {
+          x: -1,
+          z: 0,
+        },
+        tangent: {
+          x: 0,
+          z: 1,
+        },
         capacity: width,
         span: depth,
       },
       NORTH: {
-        center: { x: x + offset + doorWidth / 2, z },
-        inward: { x: 0, z: 1 },
-        tangent: { x: 1, z: 0 },
+        center: {
+          x: x + offset + doorWidth / 2,
+          z,
+        },
+        inward: {
+          x: 0,
+          z: 1,
+        },
+        tangent: {
+          x: 1,
+          z: 0,
+        },
         capacity: depth,
         span: width,
       },
       SOUTH: {
-        center: { x: x + offset + doorWidth / 2, z: z + depth },
-        inward: { x: 0, z: -1 },
-        tangent: { x: 1, z: 0 },
+        center: {
+          x: x + offset + doorWidth / 2,
+          z: z + depth,
+        },
+        inward: {
+          x: 0,
+          z: -1,
+        },
+        tangent: {
+          x: 1,
+          z: 0,
+        },
         capacity: depth,
         span: width,
       },
@@ -520,9 +572,18 @@ export class CastleAudienceRoom {
       const room = shared.audienceFloorBounds ?? shared.rooms.work;
       const angle = shared.yaw * Math.PI / 180;
       const lateral = (room.minX + room.maxX) / 2;
-      this.#center = { x: shared.origin.x + Math.cos(angle) * lateral, z: shared.origin.z - Math.sin(angle) * lateral };
-      this.#inward = { x: Math.sin(angle), z: Math.cos(angle) };
-      this.#tangent = { x: Math.cos(angle), z: -Math.sin(angle) };
+      this.#center = {
+        x: shared.origin.x + Math.cos(angle) * lateral,
+        z: shared.origin.z - Math.sin(angle) * lateral,
+      };
+      this.#inward = {
+        x: Math.sin(angle),
+        z: Math.cos(angle),
+      };
+      this.#tangent = {
+        x: Math.cos(angle),
+        z: -Math.sin(angle),
+      };
       this.#floorWidth = room.maxX - room.minX;
       this.#floorLateral = 0;
       this.#floorDepth = room.maxZ;
@@ -662,7 +723,10 @@ export class CastleAudienceRoom {
   #buildThrone(throneForward) {
     const supportHeight = this.#residentialLayout?.throneSupportHeight ?? 0;
     if (!this.#residentialLayout) {
-      this.#throne = new CastleThrone({ pc: this.#pc, modelLibrary: this.#modelLibrary });
+      this.#throne = new CastleThrone({
+        pc: this.#pc,
+        modelLibrary: this.#modelLibrary,
+      });
       const throne = this.#throne.entity;
       const thronePosition = this.#point(0, throneForward, supportHeight);
       throne.setLocalPosition(

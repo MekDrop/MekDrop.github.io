@@ -127,20 +127,20 @@ export default function (route, i18n, router, ssrContext) {
           i18n.locale.value === i18n.availableLocales[i]
             ? {}
             : {
-                rel: "alternate",
-                hreflang: i18n.availableLocales[i],
-                href: getRouteUrl(
-                  {
-                    name: route.name,
-                    params: {
-                      ...mapParams,
-                      lang: i18n.availableLocales[i],
-                    },
+              rel: "alternate",
+              hreflang: i18n.availableLocales[i],
+              href: getRouteUrl(
+                {
+                  name: route.name,
+                  params: {
+                    ...mapParams,
+                    lang: i18n.availableLocales[i],
                   },
-                  router,
-                  ssrContext,
-                ),
-              };
+                },
+                router,
+                ssrContext,
+              ),
+            };
       }
       break;
     }

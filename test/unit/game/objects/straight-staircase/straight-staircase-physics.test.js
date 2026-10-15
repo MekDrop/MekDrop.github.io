@@ -11,7 +11,11 @@ const hooks = registerHooks({
   load(url, context, nextLoad) {
     if (url.endsWith(".glb?url") || url.endsWith("?raw")) {
       const source = url.endsWith("?raw") ? readFileSync(new URL(url.slice(0, -4)), "utf8") : url;
-      return {format:"module",source:`export default ${JSON.stringify(source)}`,shortCircuit:true};
+      return {
+        format:"module",
+        source:`export default ${JSON.stringify(source)}`,
+        shortCircuit:true,
+      };
     }
     return nextLoad(url,context);
   },
@@ -22,9 +26,16 @@ hooks.deregister();
 it("matches every transformed tread query to Ammo, preserves openings and removes owned bodies", () => {
   const previousAmmo = globalThis.Ammo;
   globalThis.Ammo = Ammo;
-  const device = new pc.NullGraphicsDevice({width:1,height:1});
+  const device = new pc.NullGraphicsDevice({
+    width:1,
+    height:1,
+  });
   const app = new pc.AppBase({id:"straight-staircase-physics"});
-  app.init({graphicsDevice:device,componentSystems:[pc.RenderComponentSystem,pc.CollisionComponentSystem,pc.RigidBodyComponentSystem],resourceHandlers:[]});
+  app.init({
+    graphicsDevice:device,
+    componentSystems:[pc.RenderComponentSystem,pc.CollisionComponentSystem,pc.RigidBodyComponentSystem],
+    resourceHandlers:[],
+  });
   app.systems.rigidbody.onLibraryLoaded();
   const material = new pc.StandardMaterial();
   const mesh = pc.Mesh.fromGeometry(device,new pc.BoxGeometry());
@@ -40,11 +51,46 @@ it("matches every transformed tread query to Ammo, preserves openings and remove
   try {
     for (const rotation of [0,90,180,270]) {
       for (const continuesAbove of [false,true]) {
-        const definition = {id:"stairs",object:"StraightStaircase",position:{x:7,y:-3,z:-5},rotation,
-          radius:1.35,rise:3,flightGap:0.5,landingLift:0.3,flightShift:0.2,continuesAbove,
-          flightBounds:{minX:-1.47,maxX:1.38,inner:0.12},landingBack:-1.7,
-          tile:{col:0,row:0}};
-        const stair = new StraightStaircase({pc,app,modelLibrary,definition,runtime:{mapData:{islandConnectorData:{nearIsland:["0,0"],farIsland:[]}}}});
+        const definition = {
+          id:"stairs",
+          object:"StraightStaircase",
+          position:{
+            x:7,
+            y:-3,
+            z:-5,
+          },
+          rotation,
+          radius:1.35,
+          rise:3,
+          flightGap:0.5,
+          landingLift:0.3,
+          flightShift:0.2,
+          continuesAbove,
+          flightBounds:{
+            minX:-1.47,
+            maxX:1.38,
+            inner:0.12,
+          },
+          landingBack:-1.7,
+          tile:{
+            col:0,
+            row:0,
+          },
+        };
+        const stair = new StraightStaircase({
+          pc,
+          app,
+          modelLibrary,
+          definition,
+          runtime:{
+            mapData:{
+              islandConnectorData:{
+                nearIsland:["0,0"],
+                farIsland:[],
+              },
+            },
+          },
+        });
         app.root.addChild(stair.entity);
         stair.onSceneReady();
         stair.setIslandOffsets(1.25,8);

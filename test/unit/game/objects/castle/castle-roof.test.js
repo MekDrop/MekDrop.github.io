@@ -28,12 +28,33 @@ it("gives every solid authored roof course matching engine collision, including 
       const accessor=model.accessors[primitive.attributes.POSITION];
       const halfExtents=vector(...accessor.max.map((value,index)=>(value-accessor.min[index])/2));
       const center=vector(...accessor.max.map((value,index)=>(value+accessor.min[index])/2));
-      return {material:{name:model.materials[primitive.material].name},mesh:{aabb:new pc.BoundingBox(center,halfExtents)}};
+      return {
+        material:{name:model.materials[primitive.material].name},
+        mesh:{aabb:new pc.BoundingBox(center,halfExtents)},
+      };
     });
-    return {entity,meshInstances};
+    return {
+      entity,
+      meshInstances,
+    };
   });
-  const roofs=new CastleRoof({pc:{...pc,Entity},modelLibrary:{instantiate:()=>root},masonryMaterial:new pc.StandardMaterial()});
-  roofs.add({x:2,y:7,z:3,yaw:90,width:4,depth:3,height:1});
+  const roofs=new CastleRoof({
+    pc:{
+      ...pc,
+      Entity,
+    },
+    modelLibrary:{instantiate:()=>root},
+    masonryMaterial:new pc.StandardMaterial(),
+  });
+  roofs.add({
+    x:2,
+    y:7,
+    z:3,
+    yaw:90,
+    width:4,
+    depth:3,
+    height:1,
+  });
   assert.equal(root.components.get("collision").type,"compound");
   assert.equal(root.components.get("rigidbody").type,"static");
   assert.ok(root.tags.has("capsule-support"));
@@ -110,19 +131,43 @@ it("gives every solid authored roof course matching engine collision, including 
 it("reports nearby Ammo roof support to walking checks and filters unrelated bodies", () => {
   let hits=[];
   let query;
-  const roof=new CastleRoof({pc:{...pc,Entity},app:{systems:{rigidbody:{raycastAll:(from,to,options)=>{
-    query={from,to,options};
-    return hits;
-  }}}},modelLibrary:{},masonryMaterial:new pc.StandardMaterial()});
+  const roof=new CastleRoof({
+    pc:{
+      ...pc,
+      Entity,
+    },
+    app:{
+      systems:{
+        rigidbody:{
+          raycastAll:(from,to,options)=>{
+            query={
+              from,
+              to,
+              options,
+            };
+            return hits;
+          },
+        },
+      },
+    },
+    modelLibrary:{},
+    masonryMaterial:new pc.StandardMaterial(),
+  });
   const child=new Entity("roof collider");
   roof.entity.addChild(child);
-  hits=[{normal:{y:1},point:{y:8}}];
+  hits=[{
+    normal:{y:1},
+    point:{y:8},
+  }];
   assert.equal(roof.surfaceHeightAt(2,3,8.32),8);
   assert.equal(query.options.filterCallback(child),true);
   assert.equal(query.options.filterCallback(new Entity("hero")),false);
   assert.deepEqual(query.from,new pc.Vec3(2,8.32,3));
   assert.ok(Math.abs(query.to.y-7.68)<1e-6);
-  hits=[{normal:{y:-1},point:{y:8}}];
+  hits=[{
+    normal:{y:-1},
+    point:{y:8},
+  }];
   assert.equal(roof.surfaceHeightAt(2,3,8.32),null);
   hits=[];
   assert.equal(roof.surfaceHeightAt(2,3,5.32),null);
@@ -131,9 +176,23 @@ it("shares wall masonry on continuous gables so courses align", () => {
   const wall=new pc.StandardMaterial();
   const root=new Entity("roof");
   const instance={material:{name:"Roof gable sandstone continuous"}};
-  root.renders=[{entity:new Entity("Gable stone"),meshInstances:[instance]}];
-  const roofs=new CastleRoof({pc:{...pc,Entity},modelLibrary:{instantiate:()=>root},masonryMaterial:wall});
-  roofs.add({x:0,y:0,z:0});
+  root.renders=[{
+    entity:new Entity("Gable stone"),
+    meshInstances:[instance],
+  }];
+  const roofs=new CastleRoof({
+    pc:{
+      ...pc,
+      Entity,
+    },
+    modelLibrary:{instantiate:()=>root},
+    masonryMaterial:wall,
+  });
+  roofs.add({
+    x:0,
+    y:0,
+    z:0,
+  });
   assert.notEqual(instance.material,wall);
   assert.ok(Math.abs(instance.material.diffuse.r-wall.diffuse.r*0.8)<1e-6);
   assert.ok(Math.abs(instance.material.diffuse.g-wall.diffuse.g*0.8)<1e-6);

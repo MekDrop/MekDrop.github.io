@@ -14,10 +14,18 @@ function checkRoutes(plan) {
     const y = layout.origin.y + level * residential.rise;
     const solids = plan.metadata.collision.cameraBlocks.filter((block) =>
       block.y + block.halfY > y + 0.1 && block.y - block.halfY < y + 1.75)
-      .map((block) => ({ ...block, ...layout.toLocal(block.x, block.z) }));
+      .map((block) => ({
+        ...block,
+        ...layout.toLocal(block.x, block.z),
+      }));
     for (const item of residential.furniture) {
       if (item.floorY !== y) continue;
-      solids.push({ x: item.x, z: item.z, halfX: item.width * item.scale / 2, halfZ: item.depth * item.scale / 2 });
+      solids.push({
+        x: item.x,
+        z: item.z,
+        halfX: item.width * item.scale / 2,
+        halfZ: item.depth * item.scale / 2,
+      });
     }
     const clear = (x, z) => !solids.some((block) => Math.hypot(
       Math.max(0, Math.abs(block.x - x) - block.halfX),
@@ -28,11 +36,20 @@ function checkRoutes(plan) {
     for (let z = minZ; z <= residential.outerBounds.maxZ - radius; z += step) {
       for (let x = minX; x <= residential.outerBounds.maxX - radius; x += step) {
         if (clear(x, z) && layout.walkableAreas.some((area) => area.floorY === y &&
-          x >= area.minX && x <= area.maxX && z >= area.minZ && z <= area.maxZ)) cells.push({ x, z });
+          x >= area.minX && x <= area.maxX && z >= area.minZ && z <= area.maxZ)) cells.push({
+          x,
+          z,
+        });
       }
     }
     const landing = layout.walkableAreas.find((area) => area.id === "mainStairLanding");
-    const start = level === 0 ? { x: 0, z: 1.1 } : { x: (landing.minX + landing.maxX) / 2, z: (landing.minZ + landing.maxZ) / 2 };
+    const start = level === 0 ? {
+      x: 0,
+      z: 1.1,
+    } : {
+      x: (landing.minX + landing.maxX) / 2,
+      z: (landing.minZ + landing.maxZ) / 2,
+    };
     const nearest = cells.reduce((best, cell) => Math.hypot(cell.x - start.x, cell.z - start.z) <
       Math.hypot(best.x - start.x, best.z - start.z) ? cell : best);
     assert.ok(Math.hypot(nearest.x - start.x, nearest.z - start.z) < 0.2, "route starts at the entrance or actual stair exit");
@@ -73,8 +90,22 @@ it("preserves wide connected routes for randomized rooms and towers in all orien
   let towers = 0;
   for (const width of [8, 12]) {
     for (const side of ["NORTH", "SOUTH", "WEST", "EAST"]) {
-      const plan = await CastleGenerator.generate({ position: { x: -width / 2, z: -width / 2, width, depth: width, elevation: 3 },
-        doors: [{ side, offset: width / 2 - 1, width: 2 }], style: "twin-tower", seed: `routes-${side}-${width}` });
+      const plan = await CastleGenerator.generate({
+        position: {
+          x: -width / 2,
+          z: -width / 2,
+          width,
+          depth: width,
+          elevation: 3,
+        },
+        doors: [{
+          side,
+          offset: width / 2 - 1,
+          width: 2,
+        }],
+        style: "twin-tower",
+        seed: `routes-${side}-${width}`,
+      });
       towers += plan.layout.roomPlan.placedRooms.filter((room) => room.id.startsWith("tower")).length;
       checkRoutes(plan);
     }
@@ -88,7 +119,10 @@ it("connects the preview castle across ten generated seeds", async () => {
   const castles = map.objects.filter((object) => object.object === "Castle");
   assert.equal(castles.length, 1);
   for (let seed = 1; seed <= 10; seed++) {
-    const castle = { ...castles[0], seed };
+    const castle = {
+      ...castles[0],
+      seed,
+    };
     assert.equal(castle.buildPlan, undefined, "saved seeds must not freeze generated geometry");
     checkRoutes(await CastleGenerator.generate(castle));
   }
@@ -109,7 +143,11 @@ it("keeps every planned doorway free of masonry from other shell layers", async 
         const across = door.axis === "x" ? point.x : point.z;
         const along = door.axis === "x" ? point.z : point.x;
         assert.ok(Math.abs(across - door.coordinate) >= 0.26 - 1e-6 || Math.abs(along - door.center) >= door.width / 2 + 0.125 - 1e-6,
-          `${castle.seed}: ${door.roomId} doorway is filled by another wall ${JSON.stringify({door,block,point})}`);
+          `${castle.seed}: ${door.roomId} doorway is filled by another wall ${JSON.stringify({
+            door,
+            block,
+            point,
+          })}`);
       }
     }
   }

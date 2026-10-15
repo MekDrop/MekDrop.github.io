@@ -18,10 +18,15 @@ export class PathArrowTextureLayout {
        * @param {string} options."0"
        * @param {RouteArrow[]} options."1"
        */
-      ([key, arrows]) => {
-        const [col, row, elevation] = key.split(",").map(Number);
-        return { col, row, elevation, arrows };
-      }),
+        ([key, arrows]) => {
+          const [col, row, elevation] = key.split(",").map(Number);
+          return {
+            col,
+            row,
+            elevation,
+            arrows,
+          };
+        }),
     );
     const result = [];
     while (remaining.size) {
@@ -46,20 +51,23 @@ export class PathArrowTextureLayout {
        *
        * @param {RouteMarker} marker
        */
-      (marker) => marker.arrows);
+        (marker) => marker.arrows);
       const directions = arrows.filter(/**
        *
        * @param {RouteArrow} arrow
        */
-      (arrow) => Math.hypot(arrow.dc, arrow.dr) > 0)
+        (arrow) => Math.hypot(arrow.dc, arrow.dr) > 0)
         .map(/**
          *
          * @param {RouteArrow} arrow
          */
-        (arrow) => {
-          const length = Math.hypot(arrow.dc, arrow.dr);
-          return { dx: arrow.dc / length, dz: arrow.dr / length };
-        });
+          (arrow) => {
+            const length = Math.hypot(arrow.dc, arrow.dr);
+            return {
+              dx: arrow.dc / length,
+              dz: arrow.dr / length,
+            };
+          });
       if (!directions.length || !mapData.entries.length) {
         continue;
       }
@@ -68,13 +76,13 @@ export class PathArrowTextureLayout {
        * @param {number} sum
        * @param {{dx: number, dz: number}} direction
        */
-      (sum, direction) => sum + direction.dx, 0);
+        (sum, direction) => sum + direction.dx, 0);
       let dz = directions.reduce(/**
        *
        * @param {number} sum
        * @param {{dx: number, dz: number}} direction
        */
-      (sum, direction) => sum + direction.dz, 0);
+        (sum, direction) => sum + direction.dz, 0);
       const length = Math.hypot(dx, dz);
       if (length < 0.001) {
         ({ dx, dz } = directions[0]);
@@ -88,19 +96,19 @@ export class PathArrowTextureLayout {
          * @param {number} sum
          * @param {RouteMarker} marker
          */
-        (sum, marker) => sum + marker.col, 0) / group.length,
+          (sum, marker) => sum + marker.col, 0) / group.length,
         row: group.reduce(/**
          *
          * @param {number} sum
          * @param {RouteMarker} marker
          */
-        (sum, marker) => sum + marker.row, 0) / group.length,
+          (sum, marker) => sum + marker.row, 0) / group.length,
         elevation: Math.max(...group.map(/**
          *
          * @param {RouteMarker} marker
          */
-        (marker) => Number.isFinite(marker.elevation)
-          ? marker.elevation : mapData.heightmap[Math.round(marker.row)]?.[Math.round(marker.col)] ?? 0)),
+          (marker) => Number.isFinite(marker.elevation)
+            ? marker.elevation : mapData.heightmap[Math.round(marker.row)]?.[Math.round(marker.col)] ?? 0)),
         dx,
         dz,
         pitch: arrows.reduce(/**
@@ -108,13 +116,13 @@ export class PathArrowTextureLayout {
          * @param {number} sum
          * @param {RouteArrow} arrow
          */
-        (sum, arrow) => sum + (arrow.surfacePitch ?? 0), 0) / arrows.length * Math.PI / 180,
+          (sum, arrow) => sum + (arrow.surfacePitch ?? 0), 0) / arrows.length * Math.PI / 180,
         palette: arrows.reduce(/**
          *
          * @param {number} mask
          * @param {RouteArrow} arrow
          */
-        (mask, arrow) => mask | (1 << (arrow.pathIdx % mapData.entries.length)), 0),
+          (mask, arrow) => mask | (1 << (arrow.pathIdx % mapData.entries.length)), 0),
       });
     }
     if (mapData.overpassData?.stairApproach) {
@@ -122,7 +130,7 @@ export class PathArrowTextureLayout {
         if (!marker.pitch || !mapData.overpassData.slopeCells.some(/**
          * @param {{col: number, row: number}} cell
          */
-        (cell) => Math.abs(cell.col - marker.col) <= 0.5 &&
+          (cell) => Math.abs(cell.col - marker.col) <= 0.5 &&
           Math.abs(cell.row - marker.row) <= 0.5)) {
           continue;
         }

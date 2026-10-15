@@ -11,8 +11,21 @@ import { MapGenerator } from "../../../../../src/game/generator/map/MapGenerator
 it("fits the compact roof to the upper shell's outer wall faces without extra eaves", async () => {
   for (const side of ["NORTH", "SOUTH", "WEST", "EAST"]) {
     for (const seed of [0, 1]) {
-      const plan = await CastleGenerator.generate({ position: { x: -14, z: -8, width: 28, depth: 16, elevation: 3 },
-        doors: [{ side, offset: 13, width: 2 }], seed });
+      const plan = await CastleGenerator.generate({
+        position: {
+          x: -14,
+          z: -8,
+          width: 28,
+          depth: 16,
+          elevation: 3,
+        },
+        doors: [{
+          side,
+          offset: 13,
+          width: 2,
+        }],
+        seed,
+      });
       const residential = plan.metadata.runtime.residential;
       const keep = residential.buildings.find(building => building.floorY === residential.origin.y + residential.floorHeight);
       const roof = plan.geometry.decorations.roofs[0];
@@ -31,9 +44,22 @@ it("builds all reference plans in each gate orientation, preserving authored ape
       const crosswise = ["WEST", "EAST"].includes(side);
       const slot = source.levels.find((floor) => floor.index === 0).spaces.find((space) => space.id === source.entrance.spaceId);
       const offset = Math.round((slot.bounds[0] + source.entrance.offset + source.entrance.width / 2) * 28 / 104 - 1);
-      const plan = await CastleAuthoredBuildPlan.generate({ basePlanId: source.id,
-        position: { x: -8, z: -14, width: crosswise ? 16 : 28, depth: crosswise ? 28 : 16, elevation: 3 },
-        doors: [{ side, offset, width: 2 }], seed: 0 });
+      const plan = await CastleAuthoredBuildPlan.generate({
+        basePlanId: source.id,
+        position: {
+          x: -8,
+          z: -14,
+          width: crosswise ? 16 : 28,
+          depth: crosswise ? 28 : 16,
+          elevation: 3,
+        },
+        doors: [{
+          side,
+          offset,
+          width: 2,
+        }],
+        seed: 0,
+      });
       assert.equal(plan.layout.basePlanId, source.id);
       assert.ok(plan.geometry.boxes.every((brick) => brick.sx <= 0.250001 && brick.sy <= 0.250001 && brick.sz <= 0.250001),
         "authored masonry uses the gate's quarter-metre bricks");
@@ -90,7 +116,11 @@ it("builds all reference plans in each gate orientation, preserving authored ape
 
 it("new generated maps carry the selected reference plan through to the Castle object", async () => {
   for (const numPaths of [1, 2, 3, 4]) {
-    const map = await MapGenerator.generate({ mapName: `dimensioned-castle:${numPaths}`, numPaths, numRivers: 0 });
+    const map = await MapGenerator.generate({
+      mapName: `dimensioned-castle:${numPaths}`,
+      numPaths,
+      numRivers: 0,
+    });
     const castle = map.objects.find((object) => object.object === "Castle");
     assert.equal(castle.basePlanId, map.castle.basePlanId);
     assert.equal(castle.basePlanId, (await CastleBasePlanGenerator.generate({ seed: castle.seed })).basePlanId);
@@ -114,7 +144,21 @@ it("builds the compact reference as one base with a corner keep and open terrace
   assert.equal(keep.minZ, base.minZ);
   assert.equal(source.roofs.length, 1);
   assert.equal(source.roofs[0].y + source.roofs[0].height, 11);
-  const plan = await CastleGenerator.generate({position:{x:-14,z:-8,width:28,depth:16,elevation:3},doors:[{side:"NORTH",offset:13,width:2}],seed:0});
+  const plan = await CastleGenerator.generate({
+    position:{
+      x:-14,
+      z:-8,
+      width:28,
+      depth:16,
+      elevation:3,
+    },
+    doors:[{
+      side:"NORTH",
+      offset:13,
+      width:2,
+    }],
+    seed:0,
+  });
   const layout = new CastleResidentialLayout(plan);
   const terrace = plan.layout.roomPlan.spaces.filter((space) => space.kind === "terrace");
   assert.equal(terrace.length, 2);
@@ -126,9 +170,22 @@ it("builds the compact reference as one base with a corner keep and open terrace
 
 it("keeps the upper landing door swing clear of masonry in every castle orientation", async () => {
   for (const side of ["NORTH", "SOUTH", "WEST", "EAST"]) {
-    const plan = await CastleAuthoredBuildPlan.generate({ basePlanId: "castle-demo-compact",
-      position: { x: 0, z: 0, width: 16, depth: 16, elevation: 0 },
-      doors: [{ side, offset: 7, width: 2 }], seed: "door-swing" });
+    const plan = await CastleAuthoredBuildPlan.generate({
+      basePlanId: "castle-demo-compact",
+      position: {
+        x: 0,
+        z: 0,
+        width: 16,
+        depth: 16,
+        elevation: 0,
+      },
+      doors: [{
+        side,
+        offset: 7,
+        width: 2,
+      }],
+      seed: "door-swing",
+    });
     const door = plan.metadata.runtime.roomDoors.find((entry) => entry.roomId === "upper-stair-room");
     assert.ok(door);
     const yaw = door.yaw * Math.PI / 180;
@@ -138,8 +195,11 @@ it("keeps the upper landing door swing clear of masonry in every castle orientat
         for (const thickness of [-0.045, 0.045]) {
           const x = -door.width * 0.5075 + (along * door.width + door.width * 0.0075) * Math.cos(radians) - (thickness - 0.0575) * Math.sin(radians);
           const z = 0.0575 + (along * door.width + door.width * 0.0075) * Math.sin(radians) + (thickness - 0.0575) * Math.cos(radians);
-          const point = { x: door.x + 0.155 * Math.sin(yaw) + x * Math.cos(yaw) + z * Math.sin(yaw),
-            z: door.z + 0.155 * Math.cos(yaw) - x * Math.sin(yaw) + z * Math.cos(yaw), y: door.y + door.height / 2 };
+          const point = {
+            x: door.x + 0.155 * Math.sin(yaw) + x * Math.cos(yaw) + z * Math.sin(yaw),
+            z: door.z + 0.155 * Math.cos(yaw) - x * Math.sin(yaw) + z * Math.cos(yaw),
+            y: door.y + door.height / 2,
+          };
           assert.ok(!plan.metadata.collision.cameraBlocks.some((box) =>
             Math.abs(point.x - box.x) < box.halfX - 1e-6 &&
             Math.abs(point.y - box.y) < box.halfY - 1e-6 &&
@@ -152,10 +212,28 @@ it("keeps the upper landing door swing clear of masonry in every castle orientat
 
 it("keeps the world entrance fixed when odd seeds mirror the castle in each orientation", async () => {
   for (const side of ["NORTH", "SOUTH", "WEST", "EAST"]) {
-    const options = { position: { x: 0, z: 0, width: 16, depth: 16, elevation: 3 },
-      doors: [{ side, offset: 7, width: 2 }] };
-    const original = await CastleGenerator.generate({ ...options, seed: 42 });
-    const mirrored = await CastleGenerator.generate({ ...options, seed: 43 });
+    const options = {
+      position: {
+        x: 0,
+        z: 0,
+        width: 16,
+        depth: 16,
+        elevation: 3,
+      },
+      doors: [{
+        side,
+        offset: 7,
+        width: 2,
+      }],
+    };
+    const original = await CastleGenerator.generate({
+      ...options,
+      seed: 42,
+    });
+    const mirrored = await CastleGenerator.generate({
+      ...options,
+      seed: 43,
+    });
     assert.deepEqual(mirrored.layout.roomPlan.origin, original.layout.roomPlan.origin);
     const door = (plan) => plan.layout.roomPlan.openings.find((entry) => entry.exteriorEntrance);
     assert.ok(door(original));
@@ -170,8 +248,21 @@ it("keeps the world entrance fixed when odd seeds mirror the castle in each orie
 it("places restored royal activities on an open terrace in every entrance orientation", async () => {
   for (const side of ["NORTH", "SOUTH", "WEST", "EAST"]) {
     for (const seed of [0, 1]) {
-      const plan = await CastleGenerator.generate({ position: { x: -8, z: -8, width: 16, depth: 16, elevation: 3 },
-        doors: [{ side, offset: 7, width: 2 }], seed });
+      const plan = await CastleGenerator.generate({
+        position: {
+          x: -8,
+          z: -8,
+          width: 16,
+          depth: 16,
+          elevation: 3,
+        },
+        doors: [{
+          side,
+          offset: 7,
+          width: 2,
+        }],
+        seed,
+      });
       const activity = plan.metadata.runtime.terrace;
       assert.ok(activity, "authored castles provide a terrace activity location");
       assert.ok(activity.depth > 0 && activity.width > 0);
@@ -188,8 +279,10 @@ it("places restored royal activities on an open terrace in every entrance orient
       const angle = activity.yaw * Math.PI / 180;
       const scale = Math.min(0.45, activity.depth / 5.5, activity.width / 4.2);
       for (const [x, z] of [[0, 0], [0, 1.6 * scale], [0, 3.1 * scale], [-0.75 * scale, 3.2 * scale]]) {
-        const point = { x: activity.x + Math.cos(angle) * x + Math.sin(angle) * z,
-          z: activity.z - Math.sin(angle) * x + Math.cos(angle) * z };
+        const point = {
+          x: activity.x + Math.cos(angle) * x + Math.sin(angle) * z,
+          z: activity.z - Math.sin(angle) * x + Math.cos(angle) * z,
+        };
         const local = layout.toLocal(point.x, point.z);
         assert.ok(plan.layout.roomPlan.spaces.some((area) => area.kind === "terrace" &&
           area.floorY === activity.y && local.x >= area.minX - 0.00001 && local.x <= area.maxX + 0.00001 &&

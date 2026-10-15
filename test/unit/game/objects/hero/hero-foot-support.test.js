@@ -2,12 +2,18 @@ import assert from "node:assert/strict";
 import { it } from "node:test";
 import { HeroFootSupport } from "../../../../../src/game/objects/hero/HeroFootSupport.js";
 
-const north = { x: 0, z: -1 };
+const north = {
+  x: 0,
+  z: -1,
+};
 
 it("identifies the unsupported boot and preserves the caller's alternating refusal foot", () => {
   const feet = new HeroFootSupport({ supportHeightAtPoint: (x) => x >= 0 ? 2 : null });
   assert.equal(feet.unsupportedFootAt(0, 0, 2, north), "right");
-  assert.equal(feet.unsupportedFootAt(0, 0, 2, { x: 0, z: 1 }), "left");
+  assert.equal(feet.unsupportedFootAt(0, 0, 2, {
+    x: 0,
+    z: 1,
+  }), "left");
   assert.equal(feet.unsupportedFootAt(-1, 0, 2, north, "right"), "right");
   assert.equal(feet.unsupportedFootAt(-1, 0, 2, north, "left"), "left");
   assert.equal(feet.unsupportedFootAt(1, 0, 2, north), null);

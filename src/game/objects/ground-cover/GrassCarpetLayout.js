@@ -23,26 +23,26 @@ export class GrassCarpetLayout {
        * @param {{object: string}} options
        * @param {string} options.object
        */
-      ({ object }) => object === "StoneCluster")
+        ({ object }) => object === "StoneCluster")
       .flatMap(/**
        *
        * @param {{position: {x: number, y: number, z: number}, parts: Array<{offsetX: number, offsetZ: number, diameter: number}>}} options
        * @param {{x: number, y: number, z: number}} options.position
        * @param {Array<{offsetX: number, offsetZ: number, diameter: number}>} options.parts
        */
-      ({ position, parts }) =>
-        parts.map(/**
+        ({ position, parts }) =>
+          parts.map(/**
          *
          * @param {{offsetX: number, offsetZ: number, diameter: number}} options
          * @param {number} options.offsetX
          * @param {number} options.offsetZ
          * @param {number} options.diameter
          */
-        ({ offsetX, offsetZ, diameter }) => ({
-          x: position.x + offsetX,
-          z: position.z + offsetZ,
-          radius: diameter / 2,
-        })),
+            ({ offsetX, offsetZ, diameter }) => ({
+              x: position.x + offsetX,
+              z: position.z + offsetZ,
+              radius: diameter / 2,
+            })),
       );
     const sourceCovers = new Map(
       (mapData.riverData ?? []).flatMap(/**
@@ -50,10 +50,10 @@ export class GrassCarpetLayout {
        * @param {{cells: number}} options
        * @param {number} options.cells
        */
-      ({ cells }) =>
-        cells[0]
-          ? [[`${cells[0].col},${cells[0].row}`, cells[0].terrainHeight]]
-          : [],
+        ({ cells }) =>
+          cells[0]
+            ? [[`${cells[0].col},${cells[0].row}`, cells[0].terrainHeight]]
+            : [],
       ),
     );
     for (let row = 0; row < rows; row += 1) {
@@ -107,53 +107,53 @@ export class GrassCarpetLayout {
          * @param {number} options."1"
          * @param {number} side
          */
-        ([dx, dz], side) => {
-          const neighborCol = col + dx;
-          const neighborRow = row + dz;
-          const neighborType = grid[neighborRow]?.[neighborCol];
-          const neighborSource = sourceCovers.get(
-            `${neighborCol},${neighborRow}`,
-          );
-          const neighborMeta = tileMeta?.[neighborRow]?.[neighborCol];
-          const neighborBridgeGround = neighborMeta?.overpassId
-            ? undefined
-            : neighborMeta?.bridgeGroundHeight;
-          const neighborHeight =
-            neighborSource ??
+          ([dx, dz], side) => {
+            const neighborCol = col + dx;
+            const neighborRow = row + dz;
+            const neighborType = grid[neighborRow]?.[neighborCol];
+            const neighborSource = sourceCovers.get(
+              `${neighborCol},${neighborRow}`,
+            );
+            const neighborMeta = tileMeta?.[neighborRow]?.[neighborCol];
+            const neighborBridgeGround = neighborMeta?.overpassId
+              ? undefined
+              : neighborMeta?.bridgeGroundHeight;
+            const neighborHeight =
+              neighborSource ??
             neighborBridgeGround ??
             heightmap[neighborRow]?.[neighborCol] ??
             0;
-          // River banks still have exposed turf. Use a shorter fringe so tips
-          // stay near the bank instead of spanning the channel.
-          if (neighborType === TileType.WATER && neighborSource === undefined &&
+            // River banks still have exposed turf. Use a shorter fringe so tips
+            // stay near the bank instead of spanning the channel.
+            if (neighborType === TileType.WATER && neighborSource === undefined &&
             !Number.isFinite(neighborBridgeGround)) {
+              if (neighborHeight < surfaceHeight - 0.01) {
+                exposedSides |= 1 << side;
+                return 0.1;
+              }
+              return 0;
+            }
             if (neighborHeight < surfaceHeight - 0.01) {
               exposedSides |= 1 << side;
-              return 0.1;
+              return 0.14;
             }
-            return 0;
-          }
-          if (neighborHeight < surfaceHeight - 0.01) {
-            exposedSides |= 1 << side;
-            return 0.14;
-          }
-          if (
-            Math.abs(neighborHeight - surfaceHeight) > 0.01 ||
+            if (
+              Math.abs(neighborHeight - surfaceHeight) > 0.01 ||
             neighborMeta?.shape === TILE_SHAPE.SLOPE ||
             neighborMeta?.renderMode === "BRIDGE"
-          ) {
-            return 0;
-          }
-          if (
-            neighborType === TileType.GRASS ||
+            ) {
+              return 0;
+            }
+            if (
+              neighborType === TileType.GRASS ||
             neighborSource !== undefined ||
             Number.isFinite(neighborBridgeGround)
-          ) {
-            return 0.24;
-          }
-          // Blades over paving compete with the path surface at subpixel depth.
-          return 0;
-        });
+            ) {
+              return 0.24;
+            }
+            // Blades over paving compete with the path surface at subpixel depth.
+            return 0;
+          });
         // A continuous sod lip per exposed side, with lawn blades above it.
         for (let side = 0; side < 4; side += 1) {
           if (!(exposedSides & (1 << side))) continue;
@@ -181,21 +181,27 @@ export class GrassCarpetLayout {
             spans = remaining;
           }
           for (const [low, high] of spans) {
-          const midpoint = (low + high) / 2;
-          const [lowSide, highSide] = [[1, 3], [2, 0], [3, 1], [0, 2]][side];
-          placements.push({
-            x: x + (acrossX ? midpoint : 0),
-            y: surfaceHeight + GRASS_SURFACE_LIFT - 0.002,
-            z: z + (acrossX ? 0 : midpoint),
-            rotation: [270, 180, 90, 0][side], width: high - low, height: 1,
-            fringe: true, broadleaf: false, exposedSides, boundaryExtension,
-            edgeJoins: [
-              Number(low === -0.5 && Boolean(exposedSides & (1 << lowSide))),
-              Number(high === 0.5 && Boolean(exposedSides & (1 << highSide))),
-            ],
-            chunk: `${Math.floor(col / 6)},${Math.floor(row / 6)}`,
-            detail: false, castleRearGrass: Boolean(castleRearGrass),
-          });
+            const midpoint = (low + high) / 2;
+            const [lowSide, highSide] = [[1, 3], [2, 0], [3, 1], [0, 2]][side];
+            placements.push({
+              x: x + (acrossX ? midpoint : 0),
+              y: surfaceHeight + GRASS_SURFACE_LIFT - 0.002,
+              z: z + (acrossX ? 0 : midpoint),
+              rotation: [270, 180, 90, 0][side],
+              width: high - low,
+              height: 1,
+              fringe: true,
+              broadleaf: false,
+              exposedSides,
+              boundaryExtension,
+              edgeJoins: [
+                Number(low === -0.5 && Boolean(exposedSides & (1 << lowSide))),
+                Number(high === 0.5 && Boolean(exposedSides & (1 << highSide))),
+              ],
+              chunk: `${Math.floor(col / 6)},${Math.floor(row / 6)}`,
+              detail: false,
+              castleRearGrass: Boolean(castleRearGrass),
+            });
           }
         }
         for (let index = 0; index < CLUMPS_PER_TILE; index += 1) {
@@ -231,14 +237,14 @@ export class GrassCarpetLayout {
            * @param {number} strength
            * @param {{x: number, z: number, radius: number}} stone
            */
-          (strength, stone) => {
-            const edgeDistance =
-              Math.hypot(x - stone.x, z - stone.z) - stone.radius;
-            return Math.max(
-              strength,
-              edgeDistance >= 0 ? Math.max(0, 1 - edgeDistance / 0.55) : 0,
-            );
-          }, 0);
+            (strength, stone) => {
+              const edgeDistance =
+                Math.hypot(x - stone.x, z - stone.z) - stone.radius;
+              return Math.max(
+                strength,
+                edgeDistance >= 0 ? Math.max(0, 1 - edgeDistance / 0.55) : 0,
+              );
+            }, 0);
           const normalHeight = broadleaf
             ? 0.3 + random(71) * 0.07
             : 0.13 + random(71) * 0.06;

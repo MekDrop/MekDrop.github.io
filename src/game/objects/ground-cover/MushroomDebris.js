@@ -198,7 +198,11 @@ export class MushroomDebris {
 
     this.#pc = pc;
 
-    this.#meshShatter = new MeshShatter({ pc, app, modelLibrary });
+    this.#meshShatter = new MeshShatter({
+      pc,
+      app,
+      modelLibrary,
+    });
 
     this.#modelUrl = modelUrl;
 
@@ -230,18 +234,18 @@ export class MushroomDebris {
      *
      * @param {import("playcanvas").Entity} fragment
      */
-    (fragment) => {
-      const position = fragment.getPosition();
-      const radius = fragment.collision.radius;
-      return {
-        id: fragment,
-        x: position.x,
-        y: position.y - radius * 0.6,
-        z: position.z,
-        radius: Math.max(0.025, radius * 0.9),
-        strength: GRASS_IMPRESSION_STRENGTH,
-      };
-    });
+      (fragment) => {
+        const position = fragment.getPosition();
+        const radius = fragment.collision.radius;
+        return {
+          id: fragment,
+          x: position.x,
+          y: position.y - radius * 0.6,
+          z: position.z,
+          radius: Math.max(0.025, radius * 0.9),
+          strength: GRASS_IMPRESSION_STRENGTH,
+        };
+      });
   }
 
   /**
@@ -278,98 +282,98 @@ export class MushroomDebris {
      * @param {import("src/game/objects/ObjectTypes.js").ShatterPiece} piece
      * @param {number} index
      */
-    (piece, index) => {
-      const spec = FRAGMENT_SPECS[index % FRAGMENT_SPECS.length];
-      const centroidX =
-        piece.centroid.x * rotationCosine + piece.centroid.z * rotationSine;
-      const centroidZ =
-        -piece.centroid.x * rotationSine + piece.centroid.z * rotationCosine;
-      const fragment = new this.#pc.Entity(
-        `${this.#variant} mushroom shard ${index + 1}`,
-      );
-      fragment.tags.add(HERO_SURFACE_IGNORE_TAG);
-      fragment.setLocalPosition(
-        centroidX +
+      (piece, index) => {
+        const spec = FRAGMENT_SPECS[index % FRAGMENT_SPECS.length];
+        const centroidX =
+          piece.centroid.x * rotationCosine + piece.centroid.z * rotationSine;
+        const centroidZ =
+          -piece.centroid.x * rotationSine + piece.centroid.z * rotationCosine;
+        const fragment = new this.#pc.Entity(
+          `${this.#variant} mushroom shard ${index + 1}`,
+        );
+        fragment.tags.add(HERO_SURFACE_IGNORE_TAG);
+        fragment.setLocalPosition(
+          centroidX +
           rightX * spec.side * INITIAL_SIDE_SEPARATION +
           forwardX * spec.forward * INITIAL_FORWARD_SEPARATION,
-        piece.centroid.y + INITIAL_LIFT,
-        centroidZ +
+          piece.centroid.y + INITIAL_LIFT,
+          centroidZ +
           rightZ * spec.side * INITIAL_SIDE_SEPARATION +
           forwardZ * spec.forward * INITIAL_FORWARD_SEPARATION,
-      );
-      fragment.setLocalEulerAngles(
-        spec.rotation[0],
-        this.#rotation + spec.rotation[1],
-        spec.rotation[2],
-      );
-      this.#entity.addChild(fragment);
+        );
+        fragment.setLocalEulerAngles(
+          spec.rotation[0],
+          this.#rotation + spec.rotation[1],
+          spec.rotation[2],
+        );
+        this.#entity.addChild(fragment);
 
-      const meshInstance = new this.#pc.MeshInstance(
-        piece.mesh,
-        this.#cloneMaterial(piece.material),
-        fragment,
-      );
-      meshInstance.castShadow = true;
-      meshInstance.receiveShadow = true;
-      fragment.addComponent("render", { meshInstances: [meshInstance] });
-      fragment.addComponent("collision", {
-        type: "sphere",
-        radius: Math.max(piece.radius * 0.62, 0.01),
-      });
-      fragment.addComponent("rigidbody", {
-        type: this.#pc.BODYTYPE_DYNAMIC,
-        mass: Math.max(
-          MIN_DEBRIS_MASS,
-          piece.triangleCount * MASS_PER_TRIANGLE,
-        ),
-        friction: 0.22,
-        rollingFriction: 0.3,
-        restitution: 0.02,
-        linearDamping: 0.82,
-        angularDamping: 0.88,
-        group: this.#pc.BODYGROUP_USER_5,
-        mask: this.#pc.BODYGROUP_STATIC | this.#pc.BODYGROUP_USER_6,
-      });
-      fragment.rigidbody.linearVelocity = new this.#pc.Vec3(
-        forwardX * DEBRIS_FORWARD_SPEED * spec.forward +
+        const meshInstance = new this.#pc.MeshInstance(
+          piece.mesh,
+          this.#cloneMaterial(piece.material),
+          fragment,
+        );
+        meshInstance.castShadow = true;
+        meshInstance.receiveShadow = true;
+        fragment.addComponent("render", { meshInstances: [meshInstance] });
+        fragment.addComponent("collision", {
+          type: "sphere",
+          radius: Math.max(piece.radius * 0.62, 0.01),
+        });
+        fragment.addComponent("rigidbody", {
+          type: this.#pc.BODYTYPE_DYNAMIC,
+          mass: Math.max(
+            MIN_DEBRIS_MASS,
+            piece.triangleCount * MASS_PER_TRIANGLE,
+          ),
+          friction: 0.22,
+          rollingFriction: 0.3,
+          restitution: 0.02,
+          linearDamping: 0.82,
+          angularDamping: 0.88,
+          group: this.#pc.BODYGROUP_USER_5,
+          mask: this.#pc.BODYGROUP_STATIC | this.#pc.BODYGROUP_USER_6,
+        });
+        fragment.rigidbody.linearVelocity = new this.#pc.Vec3(
+          forwardX * DEBRIS_FORWARD_SPEED * spec.forward +
           rightX * DEBRIS_SIDE_SPEED * spec.side,
-        DEBRIS_LIFT_SPEED * spec.lift,
-        forwardZ * DEBRIS_FORWARD_SPEED * spec.forward +
+          DEBRIS_LIFT_SPEED * spec.lift,
+          forwardZ * DEBRIS_FORWARD_SPEED * spec.forward +
           rightZ * DEBRIS_SIDE_SPEED * spec.side,
-      );
-      fragment.rigidbody.angularVelocity = new this.#pc.Vec3(
-        spec.spin[0] * DEBRIS_SPIN_SCALE,
-        spec.spin[1] * DEBRIS_SPIN_SCALE,
-        spec.spin[2] * DEBRIS_SPIN_SCALE,
-      );
-      /**
+        );
+        fragment.rigidbody.angularVelocity = new this.#pc.Vec3(
+          spec.spin[0] * DEBRIS_SPIN_SCALE,
+          spec.spin[1] * DEBRIS_SPIN_SCALE,
+          spec.spin[2] * DEBRIS_SPIN_SCALE,
+        );
+        /**
        *
        * @param {number} result
        */
-      const handleCollisionStart = (result) => {
-        const touchesTerrain = result.other?.tags?.has(TERRAIN_TAG);
-        const restsOnSurface = result.contacts?.some(
+        const handleCollisionStart = (result) => {
+          const touchesTerrain = result.other?.tags?.has(TERRAIN_TAG);
+          const restsOnSurface = result.contacts?.some(
           /**
            *
            * @param {number} contact
            */
-          (contact) => contact.normal.y >= MINIMUM_SETTLE_NORMAL_Y,
-        );
-        if (touchesTerrain && restsOnSurface) {
-          this.#pendingSettle.add(fragment);
-        }
-      };
-      fragment.rigidbody.on("collisionstart", handleCollisionStart);
-      this.#collisionHandlers.set(fragment, handleCollisionStart);
-      fragment.rigidbody.activate();
-      const initialPosition = fragment.getLocalPosition();
-      this.#fragmentOrigins.set(fragment, {
-        x: initialPosition.x,
-        z: initialPosition.z,
+            (contact) => contact.normal.y >= MINIMUM_SETTLE_NORMAL_Y,
+          );
+          if (touchesTerrain && restsOnSurface) {
+            this.#pendingSettle.add(fragment);
+          }
+        };
+        fragment.rigidbody.on("collisionstart", handleCollisionStart);
+        this.#collisionHandlers.set(fragment, handleCollisionStart);
+        fragment.rigidbody.activate();
+        const initialPosition = fragment.getLocalPosition();
+        this.#fragmentOrigins.set(fragment, {
+          x: initialPosition.x,
+          z: initialPosition.z,
+        });
+        this.#meshes.push(piece.mesh);
+        this.#fragments.push(fragment);
       });
-      this.#meshes.push(piece.mesh);
-      this.#fragments.push(fragment);
-    });
     return true;
   }
 

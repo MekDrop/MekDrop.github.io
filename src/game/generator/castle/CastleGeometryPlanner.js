@@ -52,7 +52,7 @@ export class CastleGeometryPlanner {
         openingAt,
       );
     }
-}
+  }
   /**
    *
    * @param {CastleGenerationContext} context

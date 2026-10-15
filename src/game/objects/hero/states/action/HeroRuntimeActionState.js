@@ -226,7 +226,10 @@ export class HeroRuntimeActionState extends AbstractHeroActionState {
         velocity,
       });
     }
-    return this.#blocksMovement ? { x: 0, z: 0 } : desired;
+    return this.#blocksMovement ? {
+      x: 0,
+      z: 0,
+    } : desired;
   }
 
   /**
@@ -247,7 +250,10 @@ export class HeroRuntimeActionState extends AbstractHeroActionState {
    * @param {import("src/game/objects/ObjectTypes.js").HeroActionContext} owner
    */
   snapsFacing(owner) {
-    return this.#snapFacingResolver({ owner, payload: this.payload });
+    return this.#snapFacingResolver({
+      owner,
+      payload: this.payload,
+    });
   }
 
   /**

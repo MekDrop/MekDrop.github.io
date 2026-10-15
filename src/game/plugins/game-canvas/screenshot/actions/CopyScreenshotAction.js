@@ -36,9 +36,9 @@ export class CopyScreenshotAction {
      *
      * @param {Error} error
      */
-    (error) => {
-      console.error("[CopyScreenshotAction] Screenshot failed.", error);
-    });
+      (error) => {
+        console.error("[CopyScreenshotAction] Screenshot failed.", error);
+      });
   }
 
   async copyScreenshot() {
@@ -48,19 +48,19 @@ export class CopyScreenshotAction {
      * @param {(value?: (value?: void) => void) => void} resolve
      * @param {(reason?: Error) => void} reject
      */
-    (resolve, reject) => {
-      canvas.toBlob(/**
+      (resolve, reject) => {
+        canvas.toBlob(/**
        *
        * @param {{success: boolean, value?: string|number|boolean}} result
        */
-      (result) => {
-        if (result) {
-          resolve(result);
-        } else {
-          reject(new ScreenshotEncodingError());
-        }
-      }, "image/png");
-    });
+          (result) => {
+            if (result) {
+              resolve(result);
+            } else {
+              reject(new ScreenshotEncodingError());
+            }
+          }, "image/png");
+      });
 
     await this.#copyImage(canvas, blob);
     Notify.create({
@@ -115,14 +115,14 @@ export class CopyScreenshotAction {
      * @param {(value?: (value?: void) => void) => void} resolve
      * @param {(reason?: Error) => void} reject
      */
-    (resolve, reject) => {
-      image.addEventListener("load", resolve, { once: true });
-      image.addEventListener(
-        "error",
-        () => reject(new ScreenshotImagePreparationError()),
-        { once: true },
-      );
-    });
+      (resolve, reject) => {
+        image.addEventListener("load", resolve, { once: true });
+        image.addEventListener(
+          "error",
+          () => reject(new ScreenshotImagePreparationError()),
+          { once: true },
+        );
+      });
 
     const wrapper = document.createElement("div");
     wrapper.contentEditable = "true";

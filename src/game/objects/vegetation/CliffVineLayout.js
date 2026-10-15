@@ -6,10 +6,34 @@ import { MAP_TILE_TYPE } from "../../enum/MapTileType.js";
 const MODEL_HEIGHT = 1.663;
 
 const FACE_TRANSFORMS = {
-  NORTH: { normalX: 0, normalZ: -1, tangentX: 1, tangentZ: 0, yaw: 180 },
-  EAST: { normalX: 1, normalZ: 0, tangentX: 0, tangentZ: 1, yaw: 90 },
-  SOUTH: { normalX: 0, normalZ: 1, tangentX: -1, tangentZ: 0, yaw: 0 },
-  WEST: { normalX: -1, normalZ: 0, tangentX: 0, tangentZ: -1, yaw: -90 },
+  NORTH: {
+    normalX: 0,
+    normalZ: -1,
+    tangentX: 1,
+    tangentZ: 0,
+    yaw: 180,
+  },
+  EAST: {
+    normalX: 1,
+    normalZ: 0,
+    tangentX: 0,
+    tangentZ: 1,
+    yaw: 90,
+  },
+  SOUTH: {
+    normalX: 0,
+    normalZ: 1,
+    tangentX: -1,
+    tangentZ: 0,
+    yaw: 0,
+  },
+  WEST: {
+    normalX: -1,
+    normalZ: 0,
+    tangentX: 0,
+    tangentZ: -1,
+    yaw: -90,
+  },
 };
 
 /**
@@ -61,7 +85,12 @@ export function createCliffVineLayout(mapData) {
         }
         const neighbor = mapData.heightmap?.[row + face.normalZ]?.[col + face.normalX];
         if (!clear || neighbor >= top || riverCells.has(`${col},${row}`) || riverCells.has(`${col + face.normalX},${row + face.normalZ}`)) { between.length = 0; break; }
-        between.push({ ...first, col, row, offset: 0 });
+        between.push({
+          ...first,
+          col,
+          row,
+          offset: 0,
+        });
       }
       for (const vine of between) {
         const key = `${vine.col},${vine.row}:${vine.direction}`;
@@ -95,8 +124,8 @@ export function createCliffVineLayout(mapData) {
     const bottomY = extend
       ? topY - faceHeight * random.rng(35, 75) / 100
       : Number.isFinite(footY) && faceHeight <= 1.25
-      ? footY + 0.025
-      : vine.bottomY;
+        ? footY + 0.025
+        : vine.bottomY;
     const length = topY - bottomY;
     if (!(length > 0)) {
       continue;

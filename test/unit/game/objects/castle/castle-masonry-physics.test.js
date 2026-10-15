@@ -4,8 +4,22 @@ import { CastleGenerator } from "../../../../../src/game/generator/castle/Castle
 import { createCastleMasonryVoxels } from "../../../../../src/game/objects/castle/CastleMasonryPhysics.js";
 
 it("merges solid masonry without changing its occupied volume or doorway openings", async () => {
-  const plan = await CastleGenerator.generate({ position: { x: -4, z: -4, width: 8, depth: 8, elevation: 3 },
-    doors: [{ side: "NORTH", offset: 3, width: 2 }], style: "twin-tower", seed: "rooms" });
+  const plan = await CastleGenerator.generate({
+    position: {
+      x: -4,
+      z: -4,
+      width: 8,
+      depth: 8,
+      elevation: 3,
+    },
+    doors: [{
+      side: "NORTH",
+      offset: 3,
+      width: 2,
+    }],
+    style: "twin-tower",
+    seed: "rooms",
+  });
   const blocks = plan.metadata.collision.cameraBlocks;
   const solids = createCastleMasonryVoxels(blocks);
   assert.ok(solids.length < blocks.length / 10);

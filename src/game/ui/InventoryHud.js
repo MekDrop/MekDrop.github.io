@@ -129,7 +129,10 @@ export class InventoryHud {
   /**
    * @type {{x: number, y: number}}
    */
-  #fullReactionAnchor = { x: 0, y: 0 };
+  #fullReactionAnchor = {
+    x: 0,
+    y: 0,
+  };
   /**
    * @type {boolean}
    */
@@ -165,7 +168,10 @@ export class InventoryHud {
   /**
    * @type {InventoryState}
    */
-  #state = { capacity: SLOT_COLUMNS * SLOT_ROWS, items: [] };
+  #state = {
+    capacity: SLOT_COLUMNS * SLOT_ROWS,
+    items: [],
+  };
 
   /**
    *
@@ -379,22 +385,25 @@ export class InventoryHud {
        *
        * @param {InventoryItem} item
        */
-      (item) => {
-        let slot = item.slot;
-        if (
-          !Number.isInteger(slot) ||
+        (item) => {
+          let slot = item.slot;
+          if (
+            !Number.isInteger(slot) ||
           slot < 0 ||
           slot >= state.capacity ||
           occupiedSlots.has(slot)
-        ) {
-          slot = 0;
-          while (occupiedSlots.has(slot) && slot < state.capacity) {
-            slot += 1;
+          ) {
+            slot = 0;
+            while (occupiedSlots.has(slot) && slot < state.capacity) {
+              slot += 1;
+            }
           }
-        }
-        occupiedSlots.add(slot);
-        return { ...item, slot };
-      }),
+          occupiedSlots.add(slot);
+          return {
+            ...item,
+            slot,
+          };
+        }),
     };
     if (
       this.#draggedItemSlot !== null &&
@@ -509,7 +518,10 @@ export class InventoryHud {
     this.#fullIndicatorModel = null;
     this.#fullIndicatorTexture = null;
     this.#fullReactionElapsed = null;
-    this.#fullReactionAnchor = { x: 0, y: 0 };
+    this.#fullReactionAnchor = {
+      x: 0,
+      y: 0,
+    };
     this.#hoveredItemSlot = null;
     this.#dragVisual = null;
     this.#dragStartClient = null;
@@ -1222,7 +1234,10 @@ export class InventoryHud {
     }
     this.#draggedItemSlot = slot;
     this.#dragHoveredSlot = slot;
-    this.#dragStartClient = { x: clientX, y: clientY };
+    this.#dragStartClient = {
+      x: clientX,
+      y: clientY,
+    };
     this.#setHoveredItem(null);
     this.#dragVisual = this.#createItemVisual(item, "Dragged inventory item");
     this.#modalRoot.addChild(this.#dragVisual.entity);
@@ -1248,7 +1263,10 @@ export class InventoryHud {
     const droppedOutside = !this.#dialogContains(clientX, clientY);
     const dropPoint = droppedOutside
       ? this.#dialogBottomDropPoint(clientX)
-      : { clientX, clientY };
+      : {
+        clientX,
+        clientY,
+      };
     const visual = this.#dragVisual;
 
     this.#dragVisual = null;
@@ -1330,7 +1348,10 @@ export class InventoryHud {
       useInput: false,
     });
     entity.element.texture = texture;
-    return { entity, ownedTexture };
+    return {
+      entity,
+      ownedTexture,
+    };
   }
 
   /**
@@ -1382,7 +1403,10 @@ export class InventoryHud {
       PANEL_WIDTH / 2,
       PANEL_HEIGHT + DROP_EDGE_MARGIN,
     );
-    return { clientX, clientY };
+    return {
+      clientX,
+      clientY,
+    };
   }
 
   /**
@@ -1442,7 +1466,7 @@ export class InventoryHud {
      *
      * @param {InventoryItem} item
      */
-    (item) => item.slot === slot) ?? null;
+      (item) => item.slot === slot) ?? null;
   }
 
   /**

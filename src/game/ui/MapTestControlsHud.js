@@ -48,33 +48,70 @@ export class MapTestControlsHud extends GamePanelHud {
    * @param {{pc: typeof import("playcanvas"), app: import("playcanvas").Application, panels: MapTestPanel[], controls: import("../debug/MapTestControls.js").MapTestControls}} options
    */
   constructor({ pc, app, panels, controls }) {
-    super({ pc, app, name: "Map test controls", priority: 108 });
+    super({
+      pc,
+      app,
+      name: "Map test controls",
+      priority: 108,
+    });
     this.#controls = controls;
     this.#canvas = app.graphicsDevice.canvas;
     for (const [index, definition] of panels.entries()) {
       const height = 46 + definition.buttons.length * 38 + (definition.statusTargetId ? 36 : 0);
-      const panel = this.createPanel({ name: definition.title, x: definition.x ?? 16, y: definition.y ?? 140 + index * (height + 12), width: 240, height });
+      const panel = this.createPanel({
+        name: definition.title,
+        x: definition.x ?? 16,
+        y: definition.y ?? 140 + index * (height + 12),
+        width: 240,
+        height,
+      });
       const background = this.createTextureRecord(definition.title, 480, height * 2);
       background.context.scale(2, 2);
       this.drawPanelFrame(background.context, 240, height);
       background.texture.setSource(background.canvas);
-      this.createImage({ parent: panel, name: "Panel background", x: 0, y: 0, width: 240, height, texture: background.texture });
+      this.createImage({
+        parent: panel,
+        name: "Panel background",
+        x: 0,
+        y: 0,
+        width: 240,
+        height,
+        texture: background.texture,
+      });
       this.#panels.push(panel);
       this.#label(panel, definition.title, 10, 10, 220, 26);
       for (const [buttonIndex, button] of definition.buttons.entries()) {
         const entity = this.#label(panel, button.label, 10, 42 + buttonIndex * 38, 220, 30);
-        this.#buttons.push({ entity, button });
+        this.#buttons.push({
+          entity,
+          button,
+        });
       }
       if (definition.statusTargetId) {
         const record = this.createTextureRecord("Test status", 440, 60);
         record.context.scale(2, 2);
-        this.createImage({ parent: panel, name: "Test status", x: 10, y: height - 34, width: 220, height: 30, texture: record.texture });
-        this.#statuses.push({ record, targetId: definition.statusTargetId, previous: "" });
+        this.createImage({
+          parent: panel,
+          name: "Test status",
+          x: 10,
+          y: height - 34,
+          width: 220,
+          height: 30,
+          texture: record.texture,
+        });
+        this.#statuses.push({
+          record,
+          targetId: definition.statusTargetId,
+          previous: "",
+        });
       }
     }
     this.syncDrawOrder();
     for (const type of [INPUT_EVENT_TYPE.POINTER_DOWN, INPUT_EVENT_TYPE.POINTER_UP, INPUT_EVENT_TYPE.POINTER_MOVE, INPUT_EVENT_TYPE.POINTER_CANCEL, INPUT_EVENT_TYPE.WHEEL, INPUT_EVENT_TYPE.DOUBLE_CLICK]) {
-      this.#canvas.addEventListener(type, this.#input, { capture: true, passive: false });
+      this.#canvas.addEventListener(type, this.#input, {
+        capture: true,
+        passive: false,
+      });
     }
   }
 
@@ -98,7 +135,15 @@ export class MapTestControlsHud extends GamePanelHud {
     context.textBaseline = "middle";
     context.fillText(text, width / 2, height / 2, width - 12);
     record.texture.setSource(record.canvas);
-    return this.createImage({ parent, name: text, x, y, width, height, texture: record.texture });
+    return this.createImage({
+      parent,
+      name: text,
+      x,
+      y,
+      width,
+      height,
+      texture: record.texture,
+    });
   }
 
   /**
@@ -123,7 +168,7 @@ export class MapTestControlsHud extends GamePanelHud {
      *
      * @param {import("playcanvas").Entity} panel
      */
-    (panel) => this.#contains(panel, event));
+      (panel) => this.#contains(panel, event));
     if (!inside && this.#pointer === null) { return; }
     event.preventDefault();
     event.stopImmediatePropagation();
@@ -131,7 +176,7 @@ export class MapTestControlsHud extends GamePanelHud {
      *
      * @param {{entity: import("playcanvas").Entity}} button
      */
-    (button) => this.#contains(button.entity, event));
+      (button) => this.#contains(button.entity, event));
     if (event.type === INPUT_EVENT_TYPE.POINTER_DOWN && event.button === 0) {
       this.#pointer = event.pointerId;
       this.#pressed = index;

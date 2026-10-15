@@ -117,7 +117,11 @@ export class HeroPhysicsController {
    */
   get position() {
     const position = this.#entity.getLocalPosition();
-    return { x: position.x, y: position.y, z: position.z };
+    return {
+      x: position.x,
+      y: position.y,
+      z: position.z,
+    };
   }
 
   /**
@@ -127,8 +131,16 @@ export class HeroPhysicsController {
   get velocity() {
     const velocity = this.#entity.rigidbody?.linearVelocity;
     return velocity
-      ? { x: velocity.x, y: velocity.y, z: velocity.z }
-      : { x: 0, y: 0, z: 0 };
+      ? {
+        x: velocity.x,
+        y: velocity.y,
+        z: velocity.z,
+      }
+      : {
+        x: 0,
+        y: 0,
+        z: 0,
+      };
   }
 
   /**
@@ -162,7 +174,11 @@ export class HeroPhysicsController {
     const travel = Math.max(0, Math.min(distance,
       Math.hypot(hit.point.x - start.x, hit.point.y - start.y, hit.point.z - start.z) - CAMERA_WALL_CLEARANCE));
     const fraction = travel / distance;
-    return { x: start.x + dx * fraction, y: start.y + dy * fraction, z: start.z + dz * fraction };
+    return {
+      x: start.x + dx * fraction,
+      y: start.y + dy * fraction,
+      z: start.z + dz * fraction,
+    };
   }
 
   set gravity(value) {
@@ -187,7 +203,11 @@ export class HeroPhysicsController {
    * @param {{x: number, y: number, z: number}} position
    * @param {{x: number, y: number, z: number}} velocity
    */
-  setScripted(position, velocity = { x: 0, y: 0, z: 0 }) {
+  setScripted(position, velocity = {
+    x: 0,
+    y: 0,
+    z: 0,
+  }) {
     if (!this.#scripted) {
       this.#entity.rigidbody.type = "kinematic";
       this.#scripted = true;
@@ -205,7 +225,11 @@ export class HeroPhysicsController {
    * @param {{x: number, y: number, z: number}} position
    * @param {{x: number, y: number, z: number}} velocity
    */
-  resume(position, velocity = { x: 0, y: 0, z: 0 }) {
+  resume(position, velocity = {
+    x: 0,
+    y: 0,
+    z: 0,
+  }) {
     if (this.#scripted) {
       this.#entity.rigidbody.type = "dynamic";
       this.#scripted = false;
@@ -248,7 +272,7 @@ export class HeroPhysicsController {
      * @param {{normal: {x: number, y: number, z: number}}} options
      * @param {{x: number, y: number, z: number}} options.normal
      */
-    ({ normal }) => normal?.y >= GROUND_NORMAL_MINIMUM);
+      ({ normal }) => normal?.y >= GROUND_NORMAL_MINIMUM);
     if (!hit) {
       return null;
     }

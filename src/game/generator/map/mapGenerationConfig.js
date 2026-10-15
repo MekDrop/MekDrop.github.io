@@ -72,14 +72,50 @@ export const VEGETATION_VARIANTS = [
   ...BUSH_VARIANTS,
 ];
 export const CASTLE_FOOTPRINTS = [
-  { width: 16, depth: 28, style: "twin-tower", entranceFraction: 0.48 },
-  { width: 16, depth: 28, style: "right-angle", entranceFraction: 0.43 },
-  { width: 16, depth: 28, style: "single-tower", entranceFraction: 0.22 },
-  { width: 16, depth: 28, style: "left-angle", entranceFraction: 0.22 },
+  {
+    width: 16,
+    depth: 28,
+    style: "twin-tower",
+    entranceFraction: 0.48,
+  },
+  {
+    width: 16,
+    depth: 28,
+    style: "right-angle",
+    entranceFraction: 0.43,
+  },
+  {
+    width: 16,
+    depth: 28,
+    style: "single-tower",
+    entranceFraction: 0.22,
+  },
+  {
+    width: 16,
+    depth: 28,
+    style: "left-angle",
+    entranceFraction: 0.22,
+  },
 ];
 export const ENTRY_TEMPLATES = [
-  { id: "north", gateRows: [5, 6], mergeRange: [18, 24] },
-  { id: "upper", gateRows: [10, 11], mergeRange: [14, 20] },
-  { id: "lower", gateRows: [19, 20], mergeRange: [11, 18] },
-  { id: "south", gateRows: [25, 26], mergeRange: [13, 20] },
+  {
+    id: "north",
+    gateRows: [5, 6],
+    mergeRange: [18, 24],
+  },
+  {
+    id: "upper",
+    gateRows: [10, 11],
+    mergeRange: [14, 20],
+  },
+  {
+    id: "lower",
+    gateRows: [19, 20],
+    mergeRange: [11, 18],
+  },
+  {
+    id: "south",
+    gateRows: [25, 26],
+    mergeRange: [13, 20],
+  },
 ];

@@ -3,7 +3,17 @@ import { describe, it } from "node:test";
 import { GrassImpressions } from "../../../../../src/game/objects/ground-cover/GrassImpressions.js";
 
 function foot(side, x, pressure = 1) {
-  return { side, x, y: 2.15, z: 0, pressure, directionX: 0, directionZ: 1, halfWidth: 0.12, halfLength: 0.2 };
+  return {
+    side,
+    x,
+    y: 2.15,
+    z: 0,
+    pressure,
+    directionX: 0,
+    directionZ: 1,
+    halfWidth: 0.12,
+    halfLength: 0.2,
+  };
 }
 
 describe("grass contact impressions", () => {

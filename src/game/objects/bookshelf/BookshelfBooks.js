@@ -8,8 +8,20 @@ export class BookshelfBooks {
    * Shelf plank tops and clearance below the next plank, measured from bookcase.glb.
    * @type {{bottom:number,height:number}[]}
    */
-  static levels = [{ bottom: 0.08, height: 0.29 }, { bottom: 0.42, height: 0.31 },
-    { bottom: 0.78, height: 0.30 }, { bottom: 1.13, height: 0.145 }];
+  static levels = [{
+    bottom: 0.08,
+    height: 0.29,
+  }, {
+    bottom: 0.42,
+    height: 0.31,
+  },
+  {
+    bottom: 0.78,
+    height: 0.30,
+  }, {
+    bottom: 1.13,
+    height: 0.145,
+  }];
   /**
    * @type {number[][]}
    */
@@ -28,7 +40,7 @@ export class BookshelfBooks {
      *
      * @param {import("playcanvas").GraphNode} node
      */
-    node => /^(Leather bound book|Book spine brass)/.test(node.name))) { node.destroy(); }
+      node => /^(Leather bound book|Book spine brass)/.test(node.name))) { node.destroy(); }
     const materials = new Map();
     shelf.once("destroy", () => {
       for (const material of materials.values()) { material.destroy(); }
@@ -44,11 +56,11 @@ export class BookshelfBooks {
        *
        * @param {import("playcanvas").StandardMaterial} material
        */
-      material => {
-        const key = definition.coverColor.join(",");
-        if (!materials.has(key)) { materials.set(key, material.clone()); }
-        return materials.get(key);
-      });
+        material => {
+          const key = definition.coverColor.join(",");
+          if (!materials.has(key)) { materials.set(key, material.clone()); }
+          return materials.get(key);
+        });
       shelf.addChild(book);
     }
   }
@@ -69,7 +81,7 @@ export class BookshelfBooks {
        * @param {number} sum
        * @param {number} width
        */
-      (sum, width) => sum + width, 0);
+        (sum, width) => sum + width, 0);
       const gap = 0, factor = horizontal ? 1 : 0.71 / total;
       let cursor = -0.355;
       let stackHeight = 0;
@@ -85,18 +97,39 @@ export class BookshelfBooks {
         const height = groupHeight * (0.97 + random() * 0.03);
         const depth = 0.20 * height / 0.26;
         const color = random() < 0.75 ? groupColor : Math.floor(random() * this.colors.length);
-        const book = { id: `book-${row}-${index}`, object: "Book", isOpen: false, pose: "upright",
-          coverColor: this.colors[color], tilt: { x: 0, z: 0 } };
+        const book = {
+          id: `book-${row}-${index}`,
+          object: "Book",
+          isOpen: false,
+          pose: "upright",
+          coverColor: this.colors[color],
+          tilt: {
+            x: 0,
+            z: 0,
+          },
+        };
         if (horizontal) {
           // The authored pivot is at the foot of the spine. After tipping onto
           // its cover, half the thickness raises that pivot onto the plank.
           book.tilt.z = 90;
-          book.position = { x: (index < 3 ? -0.18 : 0.18) + height / 2, y: level.bottom + stackHeight + width / 2, z: -0.11 + depth / 2 };
+          book.position = {
+            x: (index < 3 ? -0.18 : 0.18) + height / 2,
+            y: level.bottom + stackHeight + width / 2,
+            z: -0.11 + depth / 2,
+          };
           stackHeight += width;
         } else {
-          book.position = { x: cursor + width / 2, y: level.bottom, z: -0.11 + depth / 2 };
+          book.position = {
+            x: cursor + width / 2,
+            y: level.bottom,
+            z: -0.11 + depth / 2,
+          };
         }
-        book.stretch = { x: width / 0.065, y: height / 0.26, z: depth / 0.20 };
+        book.stretch = {
+          x: width / 0.065,
+          y: height / 0.26,
+          z: depth / 0.20,
+        };
         books.push(book);
         cursor += width + gap;
       }

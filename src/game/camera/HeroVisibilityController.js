@@ -302,7 +302,7 @@ export class HeroVisibilityController {
        *
        * @param {import("src/game/GameContracts.js").GameObjectContract} item
        */
-      (item) => this.#belongsToHero(item?.node));
+        (item) => this.#belongsToHero(item?.node));
     } catch {
       return null;
     }

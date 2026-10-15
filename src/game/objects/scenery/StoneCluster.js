@@ -73,8 +73,19 @@ export class StoneCluster {
       const z = position.z + stone.offsetZ;
       const halfWidth = stone.diameter / 2;
       const top = position.y + stone.height;
-      stones.push({ ...stone, x, z, ground: position.y });
-      this.#parts.push({ x, z, ground: position.y, top, halfWidth });
+      stones.push({
+        ...stone,
+        x,
+        z,
+        ground: position.y,
+      });
+      this.#parts.push({
+        x,
+        z,
+        ground: position.y,
+        top,
+        halfWidth,
+      });
     }
     if (!stones.length) {
       return;

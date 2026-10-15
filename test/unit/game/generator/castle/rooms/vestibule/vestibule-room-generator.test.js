@@ -65,9 +65,26 @@ it("furnishes the arrival room while preserving circulation and window approache
 });
 
 it("uses both window bays in a long vestibule and keeps tall furniture away from their glass", () => {
-  const room = { id: "vestibule", minX: 0, maxX: 3.5, minZ: 0, maxZ: 7, level: 0, floorY: 0 };
-  const openings = [3.5, 5.8].map(center => ({ roomId: room.id, kind: "window", axis: "x",
-    coordinate: 0, center, width: 0.9, bottom: 1, height: 1.2, floorY: 0 }));
+  const room = {
+    id: "vestibule",
+    minX: 0,
+    maxX: 3.5,
+    minZ: 0,
+    maxZ: 7,
+    level: 0,
+    floorY: 0,
+  };
+  const openings = [3.5, 5.8].map(center => ({
+    roomId: room.id,
+    kind: "window",
+    axis: "x",
+    coordinate: 0,
+    center,
+    width: 0.9,
+    bottom: 1,
+    height: 1.2,
+    floorY: 0,
+  }));
   const items = new VestibuleRoomGenerator().furnish(room, { openings });
   const benches = items.filter(item => item.object === "VestibuleBench" && item.stretch?.x === 0.8);
   assert.equal(benches.length, 2);
@@ -83,10 +100,29 @@ it("uses both window bays in a long vestibule and keeps tall furniture away from
 
 it("leaves cramped and fully occupied stair rooms unfurnished", () => {
   const generator = new VestibuleRoomGenerator();
-  const room = { id: "vestibule", minX: 0, maxX: 1, minZ: 0, maxZ: 1, level: 0, floorY: 0 };
+  const room = {
+    id: "vestibule",
+    minX: 0,
+    maxX: 1,
+    minZ: 0,
+    maxZ: 1,
+    level: 0,
+    floorY: 0,
+  };
   assert.deepEqual(generator.furnish(room), []);
-  assert.deepEqual(generator.furnish({ ...room, maxX: 3, maxZ: 4 }, {
-    stairs: [{ from: 0, to: 1, minX: 0, maxX: 3, minZ: 0, maxZ: 4 }],
+  assert.deepEqual(generator.furnish({
+    ...room,
+    maxX: 3,
+    maxZ: 4,
+  }, {
+    stairs: [{
+      from: 0,
+      to: 1,
+      minX: 0,
+      maxX: 3,
+      minZ: 0,
+      maxZ: 4,
+    }],
   }), []);
 });
 
@@ -179,7 +215,19 @@ it("chooses either seating or a map table and keeps all door approaches connecte
       const key = `${col},${row}`;
       if (visited.has(key) || !free(col, row)) { continue; }
       visited.add(key);
-      queue.push({ col: col + 1, row }, { col: col - 1, row }, { col, row: row + 1 }, { col, row: row - 1 });
+      queue.push({
+        col: col + 1,
+        row,
+      }, {
+        col: col - 1,
+        row,
+      }, {
+        col,
+        row: row + 1,
+      }, {
+        col,
+        row: row - 1,
+      });
     }
     assert.ok(approaches.every(point => visited.has(`${point.col},${point.row}`)), `connected doors seed ${seed}`);
   }
@@ -187,14 +235,29 @@ it("chooses either seating or a map table and keeps all door approaches connecte
 
 it("rotates the selected island in long rooms and leaves narrow corridors clear", () => {
   const generator = new VestibuleRoomGenerator();
-  const room = { id: "arrival", minX: 0, minZ: 0, maxX: 3.875, maxZ: 7.25, floorY: 0, level: 0 };
+  const room = {
+    id: "arrival",
+    minX: 0,
+    minZ: 0,
+    maxX: 3.875,
+    maxZ: 7.25,
+    floorY: 0,
+    level: 0,
+  };
   const items = generator.furnish(room);
   const islands = items.filter(item => ["VestibuleIslandBench", "VestibuleMapTable"].includes(item.object));
   assert.equal(islands.length, 1);
   assert.ok(islands.every(item => item.rotation === 90 && item.depth === 2.7));
-  const smaller = generator.furnish({ ...room, maxX: 4, maxZ: 3.875 });
+  const smaller = generator.furnish({
+    ...room,
+    maxX: 4,
+    maxZ: 3.875,
+  });
   assert.equal(smaller.filter(item => item.object === "VestibuleMapTable").length, 0);
   assert.equal(smaller.filter(item => item.object === "VestibuleIslandBench").length, 1);
-  const narrow = generator.furnish({ ...room, maxX: 2.8 });
+  const narrow = generator.furnish({
+    ...room,
+    maxX: 2.8,
+  });
   assert.equal(narrow.filter(item => ["VestibuleIslandBench", "VestibuleMapTable"].includes(item.object)).length, 0);
 });

@@ -11,7 +11,12 @@ function patchesFor(
 ) {
   const patches = [];
   new WaterfallGeometry(
-    { col: 5, row: 4, topElevation: 2.5, bottomElevation: 2.5 - drop },
+    {
+      col: 5,
+      row: 4,
+      topElevation: 2.5,
+      bottomElevation: 2.5 - drop,
+    },
     direction, 11, 9, terminal, 7, join,
   ).append(
     (
@@ -47,7 +52,10 @@ function patchesFor(
 describe('waterfall geometry', () => {
   for (const drop of [1, 2, 4, 4.5, 6, 13.5]) {
     it(`only narrows drops taller than four cubes (height ${drop})`, () => {
-      const [front] = patchesFor({ col: 1, row: 0 }, true, drop);
+      const [front] = patchesFor({
+        col: 1,
+        row: 0,
+      }, true, drop);
       for (let row = 0; row <= front.rows; row++) {
         const width = front.pointAt(row, front.columns)[2] - front.pointAt(row, 0)[2];
         if (drop <= 4) {
@@ -66,8 +74,20 @@ describe('waterfall geometry', () => {
   }
 
   for (const direction of [
-    { col: 1, row: 0 }, { col: -1, row: 0 },
-    { col: 0, row: 1 }, { col: 0, row: -1 },
+    {
+      col: 1,
+      row: 0,
+    }, {
+      col: -1,
+      row: 0,
+    },
+    {
+      col: 0,
+      row: 1,
+    }, {
+      col: 0,
+      row: -1,
+    },
   ]) {
     it(`joins the full channel width and depth for ${JSON.stringify(direction)}`, () => {
       const [front, rear] = patchesFor(direction, true);
@@ -97,7 +117,10 @@ describe('waterfall geometry', () => {
   }
 
   it('carries side paint forward around the bend before it descends', () => {
-    const [, , ...sides] = patchesFor({ col: 1, row: 0 }, false);
+    const [, , ...sides] = patchesFor({
+      col: 1,
+      row: 0,
+    }, false);
     for (const side of sides) {
       for (const depth of [0, 1]) {
         const start = side.pointAt(0, depth);
@@ -115,7 +138,10 @@ describe('waterfall geometry', () => {
   });
 
   it('keeps the shared lip exact while hiding overlap inside the bend', () => {
-    const [front] = patchesFor({ col: 1, row: 0 }, true);
+    const [front] = patchesFor({
+      col: 1,
+      row: 0,
+    }, true);
     const topWidth = front.pointAt(0, front.columns)[2] - front.pointAt(0, 0)[2];
     const middleWidth = front.pointAt(6, front.columns)[2] -
       front.pointAt(6, 0)[2];
@@ -133,7 +159,10 @@ describe('waterfall geometry', () => {
       uvs: Array.from({ length: 13 }, (_, index) => [index / 12, 9]),
     };
     const [front, rear] = patchesFor(
-      { col: 0, row: 1 },
+      {
+        col: 0,
+        row: 1,
+      },
       true,
       13.5,
       'all',
@@ -164,7 +193,10 @@ describe('waterfall geometry', () => {
       ]),
     };
     const [front, rear, left, right] = patchesFor(
-      { col: 1, row: 0 }, true, 13.5, 'all', join,
+      {
+        col: 1,
+        row: 0,
+      }, true, 13.5, 'all', join,
     );
     const lipStep = 0.22 * Math.PI / 2 / 12;
     for (const patch of [front, rear, left, right]) {
@@ -189,7 +221,10 @@ describe('waterfall geometry', () => {
       sources: Array.from({ length: 13 }, () => [1, 0.42]),
     };
     const [front, rear, left, right] = patchesFor(
-      { col: 0, row: 1 }, false, 1, 'all', join,
+      {
+        col: 0,
+        row: 1,
+      }, false, 1, 'all', join,
     );
     for (let column = 0; column <= front.columns; column++) {
       assert.deepEqual(front.sourceAt(0, column), join.sources[column]);
@@ -212,13 +247,19 @@ describe('waterfall geometry', () => {
       assert.deepEqual(left.sourceAt(row, 1), rear.sourceAt(row, 0));
       assert.deepEqual(right.sourceAt(row, 1), rear.sourceAt(row, front.columns));
     }
-    const [ordinary] = patchesFor({ col: 1, row: 0 }, false);
+    const [ordinary] = patchesFor({
+      col: 1,
+      row: 0,
+    }, false);
     assert.deepEqual(ordinary.sourceAt(0, 6), [0, 0]);
   });
 
   it('keeps edge sway pinned without relying on optional UV0 attributes', () => {
     const [front, rear, left, right] = patchesFor(
-      { col: -1, row: 0 },
+      {
+        col: -1,
+        row: 0,
+      },
       true,
     );
     const middleColumn = front.columns / 2;
@@ -231,7 +272,10 @@ describe('waterfall geometry', () => {
 
   it('keeps the lower side thin once the curtain clears the upstream riverbed', () => {
     for (const drop of [1, 4, 13.5]) {
-      const [front, rear] = patchesFor({ col: 1, row: 0 }, drop > 4, drop);
+      const [front, rear] = patchesFor({
+        col: 1,
+        row: 0,
+      }, drop > 4, drop);
       for (let row = 0; row <= front.rows; row++) {
         for (let column = 0; column <= front.columns; column++) {
           const frontHeight = front.pointAt(row, column)[1];
@@ -244,8 +288,14 @@ describe('waterfall geometry', () => {
   });
 
   it('splits a terminal fall at one exact opaque-to-transparent boundary', () => {
-    const [body] = patchesFor({ col: 0, row: 1 }, true, 13.5, 'body');
-    const [tail] = patchesFor({ col: 0, row: 1 }, true, 13.5, 'tail');
+    const [body] = patchesFor({
+      col: 0,
+      row: 1,
+    }, true, 13.5, 'body');
+    const [tail] = patchesFor({
+      col: 0,
+      row: 1,
+    }, true, 13.5, 'tail');
     assert.ok(body.rows > tail.rows);
     for (let column = 0; column <= body.columns; column++) {
       assert.deepEqual(
@@ -263,7 +313,10 @@ describe('waterfall geometry', () => {
 
   for (const terminal of [false, true]) {
     it(`keeps side faces sealed and flow downhill (${terminal ? 'terminal' : 'landing'})`, () => {
-      const [front, rear, left, right] = patchesFor({ col: 1, row: 0 }, terminal);
+      const [front, rear, left, right] = patchesFor({
+        col: 1,
+        row: 0,
+      }, terminal);
       for (let row = 0; row <= front.rows; row++) {
         assert.deepEqual(left.pointAt(row, 0), front.pointAt(row, 0));
         assert.deepEqual(left.pointAt(row, 1), rear.pointAt(row, 0));

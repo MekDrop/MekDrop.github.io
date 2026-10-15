@@ -81,7 +81,10 @@ export class ZoomAction {
 
   #viewportCenter() {
     if (!this.#element) {
-      return { x: 0, y: 0 };
+      return {
+        x: 0,
+        y: 0,
+      };
     }
 
     return {

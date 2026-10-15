@@ -21,13 +21,25 @@ describe("destructible vegetation grass footprint", () => {
     for (const rotation of [0, 45, 90, 135]) {
       const vegetation = new DestructibleVegetation({
         modelLibrary: { instantiate: () => createEntity() },
-        modelUrl: "vegetation.glb", id: "indexed", variant: "test", kind: "bush",
-        cutsRequired: 3, rotation,
+        modelUrl: "vegetation.glb",
+        id: "indexed",
+        variant: "test",
+        kind: "bush",
+        cutsRequired: 3,
+        rotation,
         collisionRows: [
-          { y: 0, cells: [[-2, -1], [3, 1]] },
-          { y: 1, cells: [[0, 0]] },
+          {
+            y: 0,
+            cells: [[-2, -1], [3, 1]],
+          },
+          {
+            y: 1,
+            cells: [[0, 0]],
+          },
         ],
-        x: -4, y: 3, z: 4,
+        x: -4,
+        y: 3,
+        z: 4,
       });
       const index = new SurfaceSpatialIndex();
       index.add(vegetation, vegetation.surfaceBounds);
@@ -54,8 +66,14 @@ describe("destructible vegetation grass footprint", () => {
       kind: "bush",
       cutsRequired: 2,
       collisionRows: [
-        { y: 0, cells: [[-1, 0], [1, 0]] },
-        { y: 1, cells: [[0, 0]] },
+        {
+          y: 0,
+          cells: [[-1, 0], [1, 0]],
+        },
+        {
+          y: 1,
+          cells: [[0, 0]],
+        },
       ],
       x: 2,
       y: 3,
@@ -70,8 +88,18 @@ describe("destructible vegetation grass footprint", () => {
     vegetation.cut();
     const result = vegetation.cut();
     assert.deepEqual(result.groundFootprint, [
-      { x: -0.25, z: 0, width: 0.25, depth: 0.25 },
-      { x: 0.25, z: 0, width: 0.25, depth: 0.25 },
+      {
+        x: -0.25,
+        z: 0,
+        width: 0.25,
+        depth: 0.25,
+      },
+      {
+        x: 0.25,
+        z: 0,
+        width: 0.25,
+        depth: 0.25,
+      },
     ]);
   });
 
@@ -87,11 +115,19 @@ describe("destructible vegetation grass footprint", () => {
       }
 
       setLocalPosition(x, y, z) {
-        this.position = { x, y, z };
+        this.position = {
+          x,
+          y,
+          z,
+        };
       }
 
       setLocalEulerAngles(x, y, z) {
-        this.rotation = { x, y, z };
+        this.rotation = {
+          x,
+          y,
+          z,
+        };
       }
 
       addChild(child) {
@@ -108,11 +144,18 @@ describe("destructible vegetation grass footprint", () => {
     }
     class Vec3 {
       constructor(x, y, z) {
-        Object.assign(this, { x, y, z });
+        Object.assign(this, {
+          x,
+          y,
+          z,
+        });
       }
     }
     const vegetation = new DestructibleVegetation({
-      pc: { Entity: PhysicsEntity, Vec3 },
+      pc: {
+        Entity: PhysicsEntity,
+        Vec3,
+      },
       modelLibrary: { instantiate: () => createEntity() },
       modelUrl: "tree.glb",
       id: "test-tree",
@@ -120,8 +163,14 @@ describe("destructible vegetation grass footprint", () => {
       kind: "tree",
       cutsRequired: 2,
       collisionRows: [
-        { y: 0, cells: [[0, 0]] },
-        { y: 1, cells: [[0, 0], [-1, 0], [1, 0], [0, -1]] },
+        {
+          y: 0,
+          cells: [[0, 0]],
+        },
+        {
+          y: 1,
+          cells: [[0, 0], [-1, 0], [1, 0], [0, -1]],
+        },
       ],
       x: 0,
       y: 0,
@@ -136,9 +185,29 @@ describe("destructible vegetation grass footprint", () => {
     assert.equal(collider.components.collision.type, "compound");
     assert.equal(collider.children.length, 3);
     for (const point of [
-      { x: 0, y: 0.125, z: 0 }, { x: 0, y: 0.375, z: 0 },
-      { x: -0.25, y: 0.375, z: 0 }, { x: 0.25, y: 0.375, z: 0 },
-      { x: 0, y: 0.375, z: -0.25 },
+      {
+        x: 0,
+        y: 0.125,
+        z: 0,
+      }, {
+        x: 0,
+        y: 0.375,
+        z: 0,
+      },
+      {
+        x: -0.25,
+        y: 0.375,
+        z: 0,
+      }, {
+        x: 0.25,
+        y: 0.375,
+        z: 0,
+      },
+      {
+        x: 0,
+        y: 0.375,
+        z: -0.25,
+      },
     ]) {
       assert.ok(collider.children.some(({ position, components }) => {
         const half = components.collision.halfExtents;
@@ -159,14 +228,20 @@ describe("destructible vegetation grass footprint", () => {
     );
 
     const bush = new DestructibleVegetation({
-      pc: { Entity: PhysicsEntity, Vec3 },
+      pc: {
+        Entity: PhysicsEntity,
+        Vec3,
+      },
       modelLibrary: { instantiate: () => createEntity() },
       modelUrl: "bush.glb",
       id: "test-bush",
       variant: "round-bush",
       kind: "bush",
       cutsRequired: 1,
-      collisionRows: [{ y: 0, cells: [[0, 0], [1, 0]] }],
+      collisionRows: [{
+        y: 0,
+        cells: [[0, 0], [1, 0]],
+      }],
       x: 0,
       y: 0,
       z: 0,

@@ -77,7 +77,11 @@ export class BowlPacking {
     }
     const bounds = new BoundingBox();
     bounds.compute(positions);
-    return { positions, indices, bounds };
+    return {
+      positions,
+      indices,
+      bounds,
+    };
   }
 
   /**
@@ -107,17 +111,31 @@ export class BowlPacking {
          * @param {number} value
          * @param {number} index
          */ (value, index) => value - [center.x, center.y, center.z][index % 3]);
-      const shape = world.createShape({ type: "mesh", sources: [{
-        id: `bowl-packing-${shapes.length}`, positions: dynamic ? BowlPacking.convexPoints(points) : points, indices: geometry.indices,
-        stride: 3, base: 0, count: geometry.indices.length, convexHull: dynamic,
-        position: Vec3.ZERO, rotation: Quat.IDENTITY,
-      }] });
+      const shape = world.createShape({
+        type: "mesh",
+        sources: [{
+          id: `bowl-packing-${shapes.length}`,
+          positions: dynamic ? BowlPacking.convexPoints(points) : points,
+          indices: geometry.indices,
+          stride: 3,
+          base: 0,
+          count: geometry.indices.length,
+          convexHull: dynamic,
+          position: Vec3.ZERO,
+          rotation: Quat.IDENTITY,
+        }],
+      });
       shapes.push(shape);
       for (let index = 0; index < shape.getNumChildShapes(); index++) {
         shape.getChildShape(index).setMargin(0.0005);
       }
-      const body = world.createBody({ type: dynamic ? "dynamic" : "static", shape,
-        mass: dynamic ? 0.01 : 0, position, rotation: Quat.IDENTITY });
+      const body = world.createBody({
+        type: dynamic ? "dynamic" : "static",
+        shape,
+        mass: dynamic ? 0.01 : 0,
+        position,
+        rotation: Quat.IDENTITY,
+      });
       bodies.push(body);
       world.addBody(body, dynamic ? 2 : 1, dynamic ? 1 : 2);
       body.setDamping(0.5, 0.65);
@@ -145,11 +163,19 @@ export class BowlPacking {
         const position = new Vec3(), rotation = new Quat();
         body.getTransform(position, rotation);
         top = Math.max(top, position.y + geometry.bounds.halfExtents.length());
-        poses.push({ position: position.clone().sub(rotation.transformVector(geometry.bounds.center)), rotation });
+        poses.push({
+          position: position.clone().sub(rotation.transformVector(geometry.bounds.center)),
+          rotation,
+        });
         // A disabled dynamic body still owns nonzero inverse mass and can enter
         // contact solving. Replace it with a static support before the next drop.
-        const support = world.createBody({ type: "static", shape: shapes.at(-1), mass: 0,
-          position, rotation });
+        const support = world.createBody({
+          type: "static",
+          shape: shapes.at(-1),
+          mass: 0,
+          position,
+          rotation,
+        });
         world.removeBody(body);
         world.destroyBody(body);
         bodies[bodies.indexOf(body)] = support;

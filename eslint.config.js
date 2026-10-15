@@ -2,6 +2,7 @@ const globals = require("globals");
 const prettier = require("eslint-config-prettier/flat");
 const jsdoc = require("eslint-plugin-jsdoc");
 const vue = require("eslint-plugin-vue");
+const stylistic = require("@stylistic/eslint-plugin");
 
 const oversizedSourceFileExemptions = [
   "src/game/objects/hero/Hero.js",
@@ -280,8 +281,25 @@ module.exports = [
   },
   prettier,
   {
+    plugins: {
+      "@stylistic": stylistic,
+    },
     rules: {
       "vue/no-v-text-v-html-on-component": "off",
+      "@stylistic/object-curly-newline": [
+        "error",
+        {
+          ObjectExpression: {
+            minProperties: 2,
+            multiline: true,
+            consistent: true,
+          },
+        },
+      ],
+      "@stylistic/object-property-newline": "error",
+      "@stylistic/indent": ["error", 2, { SwitchCase: 1 }],
+      "@stylistic/comma-dangle": ["error", "always-multiline"],
+      "@stylistic/no-trailing-spaces": "error",
     },
   },
 ];

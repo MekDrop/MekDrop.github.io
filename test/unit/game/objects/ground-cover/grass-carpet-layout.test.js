@@ -91,8 +91,22 @@ describe("short grass carpet placement", () => {
   it("keeps full grass scatter beneath vegetation for footprint clipping", () => {
     const input = map([[TileType.GRASS, TileType.GRASS]]);
     input.objects = [
-      { object: "Vegetation", tile: { col: 0, row: 0 }, kind: "tree" },
-      { object: "Vegetation", tile: { col: 1, row: 0 }, kind: "bush" },
+      {
+        object: "Vegetation",
+        tile: {
+          col: 0,
+          row: 0,
+        },
+        kind: "tree",
+      },
+      {
+        object: "Vegetation",
+        tile: {
+          col: 1,
+          row: 0,
+        },
+        kind: "bush",
+      },
     ];
 
     const placements = GrassCarpetLayout.create(input);
@@ -117,10 +131,20 @@ describe("short grass carpet placement", () => {
   it("covers solid source caps with grass while keeping downstream water clear", () => {
     const input = map([[TileType.WATER, TileType.WATER]]);
     input.heightmap[0] = [0, 0];
-    input.riverData = [{ cells: [
-      { col: 0, row: 0, terrainHeight: 3 },
-      { col: 1, row: 0, terrainHeight: 2 },
-    ] }];
+    input.riverData = [{
+      cells: [
+        {
+          col: 0,
+          row: 0,
+          terrainHeight: 3,
+        },
+        {
+          col: 1,
+          row: 0,
+          terrainHeight: 2,
+        },
+      ],
+    }];
     const placements = GrassCarpetLayout.create(input);
     assert.equal(placements.length, 76);
     assert.ok(placements.every(({ x, y }) => x < 0 && y > 3 && y < 3 + GRASS_SURFACE_LIFT));
@@ -136,8 +160,14 @@ describe("short grass carpet placement", () => {
   });
   it("scatters freely across the tile and changes the arrangement with the map seed", () => {
     const input = map([[TileType.GRASS]]);
-    const placements = GrassCarpetLayout.create({ ...input, mapName: "lawn-a" });
-    const otherSeed = GrassCarpetLayout.create({ ...input, mapName: "lawn-b" });
+    const placements = GrassCarpetLayout.create({
+      ...input,
+      mapName: "lawn-a",
+    });
+    const otherSeed = GrassCarpetLayout.create({
+      ...input,
+      mapName: "lawn-b",
+    });
     assert.notDeepEqual(placements, otherSeed);
     assert.equal(new Set(placements.filter(({ fringe }) => !fringe).map(({ x }) => x)).size, 72);
     assert.equal(new Set(placements.filter(({ fringe }) => !fringe).map(({ z }) => z)).size, 72);
@@ -187,7 +217,12 @@ describe("short grass carpet placement", () => {
   it("clips only the excavated portion of a turf edge", () => {
     const input = map([[TileType.GRASS]]);
     input.tileMeta[0][0].terrainCutouts = [{
-      minX: -0.1, maxX: 0.1, minY: 1, maxY: 3, minZ: -0.6, maxZ: -0.4,
+      minX: -0.1,
+      maxX: 0.1,
+      minY: 1,
+      maxY: 3,
+      minZ: -0.6,
+      maxZ: -0.4,
     }];
     const north = GrassCarpetLayout.create(input)
       .filter(({ fringe, z }) => fringe && Math.abs(z + 0.49) < 0.001);

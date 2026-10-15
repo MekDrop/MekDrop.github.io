@@ -158,7 +158,7 @@ export class CastleResidentMotion {
      *
      * @param {{floorY:number,minX:number,maxX:number,minZ:number,maxZ:number}} area
      */
-    (area) => Math.abs(area.floorY - y) < 0.01 &&
+      (area) => Math.abs(area.floorY - y) < 0.01 &&
       x >= area.minX && x <= area.maxX && z >= area.minZ && z <= area.maxZ);
   }
 
@@ -171,7 +171,13 @@ export class CastleResidentMotion {
           if (lookup.has(key)) { continue; }
           const point = this.#point(ix / 8, iz / 8, area.floorY);
           if (this.#blocked(point)) { continue; }
-          const node = { point, links: [], ix, iz, y: area.floorY };
+          const node = {
+            point,
+            links: [],
+            ix,
+            iz,
+            y: area.floorY,
+          };
           lookup.set(key, node);
           this.#nodes.push(node);
         }
@@ -201,22 +207,25 @@ export class CastleResidentMotion {
            * @param {number} options."2"
            */
           ([x, z, y]) => {
-          const angle = stair.yaw * Math.PI / 180;
-          const point = this.#actor.entity.getPosition().clone();
-          point.set(stair.center.x + Math.cos(angle) * x + Math.sin(angle) * z,
-            stair.center.y + y, stair.center.z - Math.sin(angle) * x + Math.cos(angle) * z);
-          return point;
-        });
+            const angle = stair.yaw * Math.PI / 180;
+            const point = this.#actor.entity.getPosition().clone();
+            point.set(stair.center.x + Math.cos(angle) * x + Math.sin(angle) * z,
+              stair.center.y + y, stair.center.z - Math.sin(angle) * x + Math.cos(angle) * z);
+            return point;
+          });
       } else { points = stair.treads.map(/**
        *
        * @param {import("playcanvas").Vec3} point
        */
-      (point) => this.#actor.entity.getPosition().clone().set(point.x, point.y, point.z)); }
+        (point) => this.#actor.entity.getPosition().clone().set(point.x, point.y, point.z)); }
       const route = points.map(/**
        *
        * @param {import("playcanvas").Vec3} point
        */
-      (point) => ({ point, links: [] }));
+        (point) => ({
+          point,
+          links: [],
+        }));
       for (let index = 1; index < route.length; index++) {
         route[index - 1].links.push(route[index]); route[index].links.push(route[index - 1]);
       }
@@ -279,8 +288,14 @@ export class CastleResidentMotion {
    * @param {boolean} avoidDoors
    */
   #find(start, target, avoidDoors = false) {
-    const source = { point: start, links: [] };
-    const goal = { point: target, links: [] };
+    const source = {
+      point: start,
+      links: [],
+    };
+    const goal = {
+      point: target,
+      links: [],
+    };
     const goalNeighbors = new Set();
     for (const node of this.#nodes) {
       if (Math.abs(node.point.y - start.y) < 0.5 && node.point.distance(start) < 0.9 && this.#segment(start, node.point, avoidDoors)) { source.links.push(node); }

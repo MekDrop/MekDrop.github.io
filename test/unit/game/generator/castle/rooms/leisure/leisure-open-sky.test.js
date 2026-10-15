@@ -7,8 +7,22 @@ it("keeps ground and upstairs leisure areas free of roofs, ceilings, and higher 
   const levels = new Set();
   for (const width of [8, 12]) {
     for (const side of ["NORTH", "SOUTH", "WEST", "EAST"]) {
-      const build = await CastleGenerator.generate({ position: { x: -width / 2, z: -width / 2, width, depth: width, elevation: 3 },
-        doors: [{ side, offset: width / 2 - 1, width: 2 }], style: "twin-tower", seed: "rooms" });
+      const build = await CastleGenerator.generate({
+        position: {
+          x: -width / 2,
+          z: -width / 2,
+          width,
+          depth: width,
+          elevation: 3,
+        },
+        doors: [{
+          side,
+          offset: width / 2 - 1,
+          width: 2,
+        }],
+        style: "twin-tower",
+        seed: "rooms",
+      });
       const layout = new CastleResidentialLayout(build);
       const room = build.layout.roomPlan.rooms.leisure;
       assert.ok(room);
@@ -38,8 +52,12 @@ it("keeps ground and upstairs leisure areas free of roofs, ceilings, and higher 
         const corners = [-1, 1].flatMap((x) => [-1, 1].map((z) => layout.toLocal(
           roof.x + Math.cos(angle) * x * roof.width / 2 + Math.sin(angle) * z * roof.depth / 2,
           roof.z - Math.sin(angle) * x * roof.width / 2 + Math.cos(angle) * z * roof.depth / 2)));
-        assert.equal(overlaps({ minX: Math.min(...corners.map((p) => p.x)), maxX: Math.max(...corners.map((p) => p.x)),
-          minZ: Math.min(...corners.map((p) => p.z)), maxZ: Math.max(...corners.map((p) => p.z)) }), false, `${side}: leisure has no roof`);
+        assert.equal(overlaps({
+          minX: Math.min(...corners.map((p) => p.x)),
+          maxX: Math.max(...corners.map((p) => p.x)),
+          minZ: Math.min(...corners.map((p) => p.z)),
+          maxZ: Math.max(...corners.map((p) => p.z)),
+        }), false, `${side}: leisure has no roof`);
       }
       for (const area of layout.walkableAreas.filter((area) => area.floorY > room.floorY)) {
         assert.equal(overlaps(area), false, `${side}: leisure has no upper slab`);

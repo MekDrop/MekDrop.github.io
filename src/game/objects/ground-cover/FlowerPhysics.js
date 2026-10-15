@@ -207,7 +207,10 @@ export class FlowerPhysics {
     body.rigidbody.on("simulationenabled", () => this.#configureTipBody(body));
     // A world-fixed joint cannot follow a floating island. Give it a moving
     // kinematic support, isolated from all collision groups.
-    anchor.addComponent("collision", { type: "sphere", radius: 0.01 });
+    anchor.addComponent("collision", {
+      type: "sphere",
+      radius: 0.01,
+    });
     anchor.addComponent("rigidbody", {
       type: this.#pc.BODYTYPE_KINEMATIC,
       group: this.#pc.BODYGROUP_USER_1,
@@ -251,7 +254,11 @@ export class FlowerPhysics {
       variant,
     };
     this.#flowers.push(flower);
-    this.#definitions.push({ position: { ...position }, pivotHeight, radius: interactionRadius });
+    this.#definitions.push({
+      position: { ...position },
+      pivotHeight,
+      radius: interactionRadius,
+    });
     return flower;
   }
 
@@ -289,7 +296,10 @@ export class FlowerPhysics {
    * @param {number} options.z
    * @param {{x: number, y: number, z: number}} direction
    */
-  updateHeroPosition({ x, y, z }, direction = { x: 0, z: 1 }) {
+  updateHeroPosition({ x, y, z }, direction = {
+    x: 0,
+    z: 1,
+  }) {
     const directionLength = Math.hypot(direction.x, direction.z);
     const forwardX = directionLength ? direction.x / directionLength : this.#contactDirection[0];
     const forwardZ = directionLength ? direction.z / directionLength : this.#contactDirection[1];
@@ -384,7 +394,11 @@ export class FlowerPhysics {
         this.#worker = new Worker(new URL("../../physics/FlowerPhysics.worker.js", import.meta.url), { type: "module" });
         this.#worker.onmessage = this.#receiveWorkerMessage;
         this.#worker.onerror = this.#handleWorkerError;
-        this.#worker.postMessage({ type: MESSAGE.INITIALIZE, definitions: this.#definitions, gravity: this.#gravity });
+        this.#worker.postMessage({
+          type: MESSAGE.INITIALIZE,
+          definitions: this.#definitions,
+          gravity: this.#gravity,
+        });
       } catch {
         this.#restoreMainThreadPhysics();
       }
@@ -404,7 +418,13 @@ export class FlowerPhysics {
       }
       this.#submittedOffsets = offsets;
       this.#workerBusy = true;
-      this.#worker.postMessage({ type: MESSAGE.STEP, deltaTime: this.#pendingDelta, offsets, hidden, feet });
+      this.#worker.postMessage({
+        type: MESSAGE.STEP,
+        deltaTime: this.#pendingDelta,
+        offsets,
+        hidden,
+        feet,
+      });
       this.#pendingDelta = 0;
     }
     this.updateMatrices();

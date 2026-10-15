@@ -55,7 +55,10 @@ export class HeroAngryEscapeBehavior {
     const desiredDistance = Number.isFinite(distance)
       ? Math.max(3, Math.min(12, distance)) : 3;
     const angle = random() * Math.PI * 2;
-    const direction = { x: Math.cos(angle), z: Math.sin(angle) };
+    const direction = {
+      x: Math.cos(angle),
+      z: Math.sin(angle),
+    };
     const directTarget = {
       x: position.x + direction.x * desiredDistance,
       z: position.z + direction.z * desiredDistance,
@@ -69,7 +72,13 @@ export class HeroAngryEscapeBehavior {
       return;
     }
     const searchRadius = Math.max(12, Math.ceil(desiredDistance / 0.75) + 4);
-    const nodes = [{ x: position.x, z: position.z, col: 0, row: 0, parent: -1 }];
+    const nodes = [{
+      x: position.x,
+      z: position.z,
+      col: 0,
+      row: 0,
+      parent: -1,
+    }];
     const seen = new Set(["0,0"]);
     for (let index = 0; index < nodes.length && index < 900; index += 1) {
       const node = nodes[index];
@@ -83,7 +92,9 @@ export class HeroAngryEscapeBehavior {
         const next = {
           x: position.x + col * 0.75,
           z: position.z + row * 0.75,
-          col, row, parent: index,
+          col,
+          row,
+          parent: index,
         };
         if (!canTraverse(node, next)) {
           continue;
@@ -100,26 +111,26 @@ export class HeroAngryEscapeBehavior {
      * @param {import("playcanvas").Entity} node
      * @param {number} i
      */
-    (node, i) => ({
-      index: i + 1,
-      difference: Math.abs(Math.hypot(node.col, node.row) * 0.75 - desiredDistance),
-    }));
+      (node, i) => ({
+        index: i + 1,
+        difference: Math.abs(Math.hypot(node.col, node.row) * 0.75 - desiredDistance),
+      }));
     const closest = candidates.reduce(/**
      *
      * @param {{x: number, z: number, score: number}|null} best
      * @param {import("playcanvas").Entity} node
      */
-    (best, node) => Math.min(best, node.difference), Infinity);
+      (best, node) => Math.min(best, node.difference), Infinity);
     const choices = candidates.filter(/**
      *
      * @param {import("playcanvas").Entity} node
      */
-    (node) => node.difference <= closest + 0.15)
+      (node) => node.difference <= closest + 0.15)
       .map(/**
        *
        * @param {import("playcanvas").Entity} node
        */
-      (node) => node.index);
+        (node) => node.index);
     if (!choices.length) {
       return;
     }
@@ -130,20 +141,26 @@ export class HeroAngryEscapeBehavior {
      * @param {{x: number, z: number, score: number}|null} best
      * @param {boolean} candidate
      */
-    (best, candidate) => {
+      (best, candidate) => {
       /**
        *
        * @param {number} i
        */
-      const alignment = (i) => {
-        const node = nodes[i];
-        return (node.col * direction.x + node.row * direction.z) / Math.hypot(node.col, node.row);
-      };
-      return alignment(candidate) > alignment(best) ? candidate : best;
-    });
-    this.#target = { x: nodes[index].x, z: nodes[index].z };
+        const alignment = (i) => {
+          const node = nodes[i];
+          return (node.col * direction.x + node.row * direction.z) / Math.hypot(node.col, node.row);
+        };
+        return alignment(candidate) > alignment(best) ? candidate : best;
+      });
+    this.#target = {
+      x: nodes[index].x,
+      z: nodes[index].z,
+    };
     while (index > 0) {
-      this.#route.unshift({ x: nodes[index].x, z: nodes[index].z });
+      this.#route.unshift({
+        x: nodes[index].x,
+        z: nodes[index].z,
+      });
       index = nodes[index].parent;
     }
     // Remove grid corners only when the entire shortcut passes the same
@@ -175,11 +192,11 @@ export class HeroAngryEscapeBehavior {
      * @param {number} total
      * @param {{x: number, y: number, z: number}} point
      */
-    (total, point) => {
-      const distance = Math.hypot(point.x - previous.x, point.z - previous.z);
-      previous = point;
-      return total + distance;
-    }, 0);
+      (total, point) => {
+        const distance = Math.hypot(point.x - previous.x, point.z - previous.z);
+        previous = point;
+        return total + distance;
+      }, 0);
     this.#remaining = Math.max(5, length / 3 + 1);
   }
 
@@ -213,16 +230,25 @@ export class HeroAngryEscapeBehavior {
    */
   velocity(position, speed) {
     if (!this.active) {
-      return { x: 0, z: 0 };
+      return {
+        x: 0,
+        z: 0,
+      };
     }
     const x = this.#route[0].x - position.x;
     const z = this.#route[0].z - position.z;
     const length = Math.hypot(x, z);
     if (length < 0.001) {
-      return { x: 0, z: 0 };
+      return {
+        x: 0,
+        z: 0,
+      };
     }
     const approachSpeed = Math.min(speed, length * 12);
-    return { x: x / length * approachSpeed, z: z / length * approachSpeed };
+    return {
+      x: x / length * approachSpeed,
+      z: z / length * approachSpeed,
+    };
   }
 
   reset() {

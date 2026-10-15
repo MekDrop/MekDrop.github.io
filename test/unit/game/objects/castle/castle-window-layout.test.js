@@ -7,7 +7,21 @@ import { CastleWindowLayout } from '../../../../../src/game/objects/castle/Castl
 it('cuts genuine apertures for every castle orientation without editing the source plan', async () => {
   for (const style of ['twin-tower', 'right-angle', 'single-tower', 'left-angle']) {
     for (const side of ['NORTH', 'SOUTH', 'WEST', 'EAST']) {
-      const plan = await CastleGenerator.generate({ position: { x: -6, z: -5, width: 12, depth: 11, elevation: 3 }, doors: [{ side, offset: 5, width: 2 }], style });
+      const plan = await CastleGenerator.generate({
+        position: {
+          x: -6,
+          z: -5,
+          width: 12,
+          depth: 11,
+          elevation: 3,
+        },
+        doors: [{
+          side,
+          offset: 5,
+          width: 2,
+        }],
+        style,
+      });
       const original = JSON.stringify(plan);
       const layout = new CastleWindowLayout(plan);
       const boxes = layout.cutBoxes(plan.geometry.boxes);
@@ -33,15 +47,47 @@ it('cuts genuine apertures for every castle orientation without editing the sour
 
 it('preserves masonry volume outside an aperture, including partial voxel intersections', () => {
   const layout = new CastleWindowLayout({ layout: { empty: true } });
-  layout.windows.push({ cut: { minX: -.2, maxX: .2, minY: -.3, maxY: .3, minZ: -.6, maxZ: .6 } });
-  const box = { x: 0, y: 0, z: 0, sx: 1, sy: 1, sz: 1, yaw: 0, material: 'castleStoneMid' };
+  layout.windows.push({
+    cut: {
+      minX: -.2,
+      maxX: .2,
+      minY: -.3,
+      maxY: .3,
+      minZ: -.6,
+      maxZ: .6,
+    },
+  });
+  const box = {
+    x: 0,
+    y: 0,
+    z: 0,
+    sx: 1,
+    sy: 1,
+    sz: 1,
+    yaw: 0,
+    material: 'castleStoneMid',
+  };
   const pieces = layout.cutBoxes([box]);
   assert.ok(Math.abs(pieces.reduce((sum, b) => sum + b.sx * b.sy * b.sz, 0) - .76) < 1e-8);
   assert.ok(pieces.every(b => !CastleWindowLayout.intersects(CastleWindowLayout.bounds(b), layout.windows[0].cut)));
 });
 
 it('uses sparse small rear openings with generous masonry between them', async () => {
-  const plan = await CastleGenerator.generate({ position: { x: 0, z: 0, width: 12, depth: 11, elevation: 2 }, doors: [{ side: 'NORTH', offset: 5, width: 2 }], style: 'twin-tower' });
+  const plan = await CastleGenerator.generate({
+    position: {
+      x: 0,
+      z: 0,
+      width: 12,
+      depth: 11,
+      elevation: 2,
+    },
+    doors: [{
+      side: 'NORTH',
+      offset: 5,
+      width: 2,
+    }],
+    style: 'twin-tower',
+  });
   const rear = new CastleWindowLayout(plan).windows.filter(w => w.yaw === 0);
   const floor = Math.min(...rear.map(w => w.floorY));
   const windows = rear.filter(w => w.floorY === floor).sort((a, b) => a.position.x - b.position.x);
@@ -71,8 +117,26 @@ it("exports amber glazing with alpha blending and editable matching sources", as
 
 it("splits rotated rectangular masonry in world axes without a gap under the sill", () => {
   const layout = new CastleWindowLayout({layout:{empty:true}});
-  layout.windows.push({cut:{minX:-0.3,maxX:0.3,minY:0,maxY:0.75,minZ:-0.2,maxZ:0.2}});
-  const pieces=layout.cutBoxes([{x:0,y:0,z:0,sx:0.25,sy:2,sz:2,yaw:90,material:"castleStoneMid"}]);
+  layout.windows.push({
+    cut:{
+      minX:-0.3,
+      maxX:0.3,
+      minY:0,
+      maxY:0.75,
+      minZ:-0.2,
+      maxZ:0.2,
+    },
+  });
+  const pieces=layout.cutBoxes([{
+    x:0,
+    y:0,
+    z:0,
+    sx:0.25,
+    sy:2,
+    sz:2,
+    yaw:90,
+    material:"castleStoneMid",
+  }]);
   assert.ok(pieces.every((piece) => piece.yaw === 0));
   assert.ok(pieces.some((piece) => piece.y + piece.sy / 2 === 0 && piece.sy === 1));
   assert.ok(Math.abs(pieces.reduce((volume,piece) => volume+piece.sx*piece.sy*piece.sz,0)-0.8875)<1e-8);
@@ -80,14 +144,44 @@ it("splits rotated rectangular masonry in world axes without a gap under the sil
 
 it("separates rendered aperture faces from trim without changing collision or source bounds", () => {
   const layout = new CastleWindowLayout({ layout: { empty: true } });
-  const cut = { minX: -0.2, maxX: 0.2, minY: -0.3, maxY: 0.3, minZ: -0.6, maxZ: 0.6 };
+  const cut = {
+    minX: -0.2,
+    maxX: 0.2,
+    minY: -0.3,
+    maxY: 0.3,
+    minZ: -0.6,
+    maxZ: 0.6,
+  };
   layout.windows.push({ cut });
-  const box = { x: 0, y: 0, z: 0, sx: 1, sy: 1, sz: 1, yaw: 0, material: "castleStoneMid" };
+  const box = {
+    x: 0,
+    y: 0,
+    z: 0,
+    sx: 1,
+    sy: 1,
+    sz: 1,
+    yaw: 0,
+    material: "castleStoneMid",
+  };
   const collision = layout.cutBoxes([box]);
   const visual = layout.cutBoxes([box], 0.002);
-  const expanded = { minX: -0.202, maxX: 0.202, minY: -0.302, maxY: 0.302, minZ: -0.602, maxZ: 0.602 };
+  const expanded = {
+    minX: -0.202,
+    maxX: 0.202,
+    minY: -0.302,
+    maxY: 0.302,
+    minZ: -0.602,
+    maxZ: 0.602,
+  };
   assert.ok(visual.every(piece => !CastleWindowLayout.intersects(CastleWindowLayout.bounds(piece), expanded)));
   assert.ok(Math.abs(visual.reduce((sum, piece) => sum + piece.sx * piece.sy * piece.sz, 0) - (1 - 0.404 * 0.604)) < 1e-8);
   assert.ok(Math.abs(collision.reduce((sum, piece) => sum + piece.sx * piece.sy * piece.sz, 0) - 0.76) < 1e-8);
-  assert.deepEqual(cut, { minX: -0.2, maxX: 0.2, minY: -0.3, maxY: 0.3, minZ: -0.6, maxZ: 0.6 });
+  assert.deepEqual(cut, {
+    minX: -0.2,
+    maxX: 0.2,
+    minY: -0.3,
+    maxY: 0.3,
+    minZ: -0.6,
+    maxZ: 0.6,
+  });
 });

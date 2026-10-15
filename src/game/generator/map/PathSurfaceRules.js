@@ -107,8 +107,14 @@ export class PathSurfaceRules {
         return null;
       }
       return [
-        { col, row: Math.min(row, mateRow) - 1 },
-        { col, row: Math.max(row, mateRow) + 1 },
+        {
+          col,
+          row: Math.min(row, mateRow) - 1,
+        },
+        {
+          col,
+          row: Math.max(row, mateRow) + 1,
+        },
       ];
     }
 
@@ -127,8 +133,14 @@ export class PathSurfaceRules {
         return null;
       }
       return [
-        { col: Math.min(col, mateCol) - 1, row },
-        { col: Math.max(col, mateCol) + 1, row },
+        {
+          col: Math.min(col, mateCol) - 1,
+          row,
+        },
+        {
+          col: Math.max(col, mateCol) + 1,
+          row,
+        },
       ];
     }
 
@@ -148,7 +160,7 @@ export class PathSurfaceRules {
       if (!MapGrid.inBounds(col, candidateRow)) { continue; }
       const candidateTile = grid[candidateRow][col];
       if (candidateTile !== TileType.PATH && candidateTile !== TileType.ENTRY)
-        { continue; }
+      { continue; }
       if (tileMeta[candidateRow][col].direction === direction) {
         return candidateRow;
       }
@@ -169,7 +181,7 @@ export class PathSurfaceRules {
       if (!MapGrid.inBounds(candidateCol, row)) { continue; }
       const candidateTile = grid[row][candidateCol];
       if (candidateTile !== TileType.PATH && candidateTile !== TileType.ENTRY)
-        { continue; }
+      { continue; }
       if (tileMeta[row][candidateCol].direction === direction) {
         return candidateCol;
       }

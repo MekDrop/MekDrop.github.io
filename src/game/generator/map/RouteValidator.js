@@ -125,8 +125,8 @@ export class RouteValidator {
      *
      * @param {number} row
      */
-    (row) =>
-      MapGrid.tileKey(layout.castleEntranceCol, row),
+      (row) =>
+        MapGrid.tileKey(layout.castleEntranceCol, row),
     );
 
     for (const entry of layout.entries) {
@@ -135,7 +135,10 @@ export class RouteValidator {
        *
        * @param {number} row
        */
-      (row) => ({ col: entry.gateCol, row }));
+        (row) => ({
+          col: entry.gateCol,
+          row,
+        }));
 
       while (queue.length) {
         const current = queue.shift();
@@ -151,7 +154,10 @@ export class RouteValidator {
           [0, 1],
           [0, -1],
         ]) {
-          queue.push({ col: current.col + dc, row: current.row + dr });
+          queue.push({
+            col: current.col + dc,
+            row: current.row + dr,
+          });
         }
       }
 
@@ -159,7 +165,7 @@ export class RouteValidator {
        *
        * @param {string} key
        */
-      (key) => seen.has(key))) {
+        (key) => seen.has(key))) {
         throw new EntryPathUnreachableError();
       }
     }

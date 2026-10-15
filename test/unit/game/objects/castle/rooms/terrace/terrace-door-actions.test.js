@@ -17,8 +17,21 @@ const Actions = new Function("CHARACTER_HEIGHT", "PHASE", "INSPECTION", "Terrace
   TerraceDoorInspection, TerraceInspectorWalk);
 
 it("inspects and closes the authored terrace door without adding or destroying castle geometry", async () => {
-  const plan = await CastleGenerator.generate({ position: { x: -8, z: -8, width: 16, depth: 16, elevation: 3 },
-    doors: [{ side: "NORTH", offset: 7, width: 2 }], seed: 0 });
+  const plan = await CastleGenerator.generate({
+    position: {
+      x: -8,
+      z: -8,
+      width: 16,
+      depth: 16,
+      elevation: 3,
+    },
+    doors: [{
+      side: "NORTH",
+      offset: 7,
+      width: 2,
+    }],
+    seed: 0,
+  });
   const root = new pc.Entity("Activity");
   const layout = plan.metadata.runtime.terrace;
   root.setLocalPosition(layout.x, layout.y, layout.z);
@@ -34,15 +47,33 @@ it("inspects and closes the authored terrace door without adding or destroying c
   const handle = new pc.Entity("Handle");
   handle.setLocalPosition(layout.x, layout.y + 1, layout.z);
   doorEntity.addChild(handle);
-  const inspector = { entity: new pc.Entity("Inspector"), height: 1.8, pose() {}, evaluatePose() {} };
+  const inspector = {
+    entity: new pc.Entity("Inspector"),
+    height: 1.8,
+    pose() {},
+    evaluatePose() {},
+  };
   inspector.rightHand = new pc.Entity("Hand");
   inspector.entity.addChild(inspector.rightHand);
   root.addChild(inspector.entity);
-  const door = { entity: doorEntity, insideHandle: handle, hingeRotation: new pc.Quat(), openAmount: 0,
-    sequenceOpenAmount: null, onOpen: null,
+  const door = {
+    entity: doorEntity,
+    insideHandle: handle,
+    hingeRotation: new pc.Quat(),
+    openAmount: 0,
+    sequenceOpenAmount: null,
+    onOpen: null,
     update() { assert.fail("the castle retains ownership of its physics update"); },
-    destroy() { assert.fail("the activity must not destroy the castle's door"); } };
-  const actions = new Actions({ pc, root, stage, inspector, canInspect: () => true, door });
+    destroy() { assert.fail("the activity must not destroy the castle's door"); },
+  };
+  const actions = new Actions({
+    pc,
+    root,
+    stage,
+    inspector,
+    canInspect: () => true,
+    door,
+  });
   const children = [...castle.children];
   assert.equal(door.onOpen(), true);
   const residential = new CastleResidentialLayout(plan);
@@ -85,15 +116,57 @@ it("walks the existing servant from home, inspects, and returns without visibili
   const scene = new pc.Entity(); scene._enabledInHierarchy = true;
   const root = new pc.Entity(); root.setPosition(5, 0, 5); scene.addChild(root);
   const stage = new pc.Entity(); stage.setLocalScale(0.45, 0.45, 0.45); root.addChild(stage);
-  const inspector = { entity: new pc.Entity("Existing servant"), height: 1.8, pose() {}, evaluatePose() {} };
+  const inspector = {
+    entity: new pc.Entity("Existing servant"),
+    height: 1.8,
+    pose() {},
+    evaluatePose() {},
+  };
   scene.addChild(inspector.entity);
   const original = inspector.entity;
-  const layout = { origin: { y: 0 }, walkableAreas: [{ minX: 0, maxX: 10, minZ: 0, maxZ: 10, floorY: 0 }],
-    authoredStairs: [], stairs: null, toLocal: (x, z) => ({ x, z }), toWorld: (x, z, y) => ({ x, y, z }) };
-  const motion = new CastleResidentMotion({ actor: inspector, layout, blocked: () => false, clear: () => true });
-  const door = { entity: new pc.Entity(), openAmount: 1, sequenceOpenAmount: null, onOpen: null };
+  const layout = {
+    origin: { y: 0 },
+    walkableAreas: [{
+      minX: 0,
+      maxX: 10,
+      minZ: 0,
+      maxZ: 10,
+      floorY: 0,
+    }],
+    authoredStairs: [],
+    stairs: null,
+    toLocal: (x, z) => ({
+      x,
+      z,
+    }),
+    toWorld: (x, z, y) => ({
+      x,
+      y,
+      z,
+    }),
+  };
+  const motion = new CastleResidentMotion({
+    actor: inspector,
+    layout,
+    blocked: () => false,
+    clear: () => true,
+  });
+  const door = {
+    entity: new pc.Entity(),
+    openAmount: 1,
+    sequenceOpenAmount: null,
+    onOpen: null,
+  };
   scene.addChild(door.entity);
-  const actions = new Actions({ pc, root, stage, inspector, motion, canInspect: () => true, door });
+  const actions = new Actions({
+    pc,
+    root,
+    stage,
+    inspector,
+    motion,
+    canInspect: () => true,
+    door,
+  });
   assert.equal(inspector.entity, original);
   assert.equal(original.enabled, true);
   door.onOpen();

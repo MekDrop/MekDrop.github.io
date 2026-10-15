@@ -7,12 +7,18 @@ import { DynamicRenderBatch } from "../../../../src/game/rendering/DynamicRender
  */
 function fixture() {
   const added = [], removed = [];
-  const app = { batcher: {
-    addGroup() { const id = added.length; added.push(id); return { id }; },
-    markGroupDirty() {},
-    removeGroup(id) { removed.push(id); },
-  } };
-  return { app, added, removed };
+  const app = {
+    batcher: {
+      addGroup() { const id = added.length; added.push(id); return { id }; },
+      markGroupDirty() {},
+      removeGroup(id) { removed.push(id); },
+    },
+  };
+  return {
+    app,
+    added,
+    removed,
+  };
 }
 
 /**
@@ -20,9 +26,16 @@ function fixture() {
  * @returns {{enabled: boolean, batchGroupId: number, meshInstances: Partial<import("playcanvas").MeshInstance>[]}}
  */
 function render(overrides = {}) {
-  return { enabled: true, batchGroupId: -1, meshInstances: [
-    { mesh: { vertexBuffer: { usage: 0 } }, ...overrides },
-  ] };
+  return {
+    enabled: true,
+    batchGroupId: -1,
+    meshInstances: [
+      {
+        mesh: { vertexBuffer: { usage: 0 } },
+        ...overrides,
+      },
+    ],
+  };
 }
 
 it("shares compatible groups and retains surviving objects when a member is removed", () => {

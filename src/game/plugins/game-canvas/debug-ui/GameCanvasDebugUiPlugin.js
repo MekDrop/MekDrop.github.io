@@ -76,9 +76,15 @@ export class GameCanvasDebugUiPlugin {
     const renderer = this.#context.renderer();
     const pc = renderer.playCanvas;
     const app = renderer.app;
-    this.#castleRoomHud = new DebugCastleRoomHud({ pc, app });
+    this.#castleRoomHud = new DebugCastleRoomHud({
+      pc,
+      app,
+    });
     this.#castleRoomHud.attach();
-    this.#debugFpsHud = new DebugFpsHud({ pc, app });
+    this.#debugFpsHud = new DebugFpsHud({
+      pc,
+      app,
+    });
     this.#debugFpsHud.attach();
     this.#debugAxesHud = new DebugAxesHud({
       pc,
@@ -86,7 +92,10 @@ export class GameCanvasDebugUiPlugin {
       gameCanvas: renderer,
     });
     this.#debugAxesHud.attach();
-    this.#pathArrows = new PathArrowTextures({ pc, app });
+    this.#pathArrows = new PathArrowTextures({
+      pc,
+      app,
+    });
     if (import.meta.env.DEV) {
       this.#devWireframeInspector = new DevWireframeInspector({
         pc,

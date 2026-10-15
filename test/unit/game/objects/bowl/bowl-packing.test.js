@@ -10,8 +10,17 @@ import { AmmoPhysicsWorld } from "playcanvas/build/playcanvas/src/framework/phys
 const previousAmmo = globalThis.Ammo;
 before(async () => {
   const base = new URL("../../../../../src/assets/game/wasm/ammo/", import.meta.url);
-  const context = { module: { exports: {} }, exports: {}, require: createRequire(import.meta.url),
-    process, __dirname: "", Buffer, console, setTimeout, clearTimeout };
+  const context = {
+    module: { exports: {} },
+    exports: {},
+    require: createRequire(import.meta.url),
+    process,
+    __dirname: "",
+    Buffer,
+    console,
+    setTimeout,
+    clearTimeout,
+  };
   runInNewContext(readFileSync(new URL("ammo.wasm.js", base), "utf8").replace("export default Ammo;", ""), context);
   globalThis.Ammo = await context.module.exports({ wasmBinary: readFileSync(new URL("ammo.wasm.wasm", base)) });
 });
@@ -56,7 +65,11 @@ function assetGeometry(path) {
   }
   const bounds = new BoundingBox();
   bounds.compute(positions);
-  return { positions, indices, bounds };
+  return {
+    positions,
+    indices,
+    bounds,
+  };
 }
 
 test("authored voxel bowls cook compact hulls and keep only the current drop dynamic", () => {
@@ -106,16 +119,23 @@ function box(center, half) {
   for (const x of [-1, 1]) { for (const y of [-1, 1]) { for (const z of [-1, 1]) {
     positions.push(center[0] + x * half[0], center[1] + y * half[1], center[2] + z * half[2]);
   } } }
-  return { positions, indices: [0, 1, 3, 0, 3, 2, 4, 6, 7, 4, 7, 5, 0, 4, 5, 0, 5, 1,
-    2, 3, 7, 2, 7, 6, 0, 2, 6, 0, 6, 4, 1, 5, 7, 1, 7, 3],
-  bounds: new BoundingBox(new Vec3(...center), new Vec3(...half)) };
+  return {
+    positions,
+    indices: [0, 1, 3, 0, 3, 2, 4, 6, 7, 4, 7, 5, 0, 4, 5, 0, 5, 1,
+      2, 3, 7, 2, 7, 6, 0, 2, 6, 0, 6, 4, 1, 5, 7, 1, 7, 3],
+    bounds: new BoundingBox(new Vec3(...center), new Vec3(...half)),
+  };
 }
 
 test("Ammo packs unlike shapes inside a hollow shell and returns frozen, repeatable poses", () => {
   const pieces = [box([0, 0.01, 0], [0.12, 0.01, 0.12]),
     box([-0.13, 0.07, 0], [0.01, 0.07, 0.14]), box([0.13, 0.07, 0], [0.01, 0.07, 0.14]),
     box([0, 0.07, -0.13], [0.12, 0.07, 0.01]), box([0, 0.07, 0.13], [0.12, 0.07, 0.01])];
-  const shell = { positions: [], indices: [], bounds: new BoundingBox(new Vec3(0, 0.07, 0), new Vec3(0.14, 0.07, 0.14)) };
+  const shell = {
+    positions: [],
+    indices: [],
+    bounds: new BoundingBox(new Vec3(0, 0.07, 0), new Vec3(0.14, 0.07, 0.14)),
+  };
   for (const piece of pieces) {
     const offset = shell.positions.length / 3;
     shell.positions.push(...piece.positions);

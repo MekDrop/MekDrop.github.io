@@ -15,7 +15,7 @@ export class RiverWater {
    */
   static get modelUrls() {
     return RiverStoneField.modelUrls;
-}
+  }
   /**
    *
     * @type {typeof import("playcanvas")}

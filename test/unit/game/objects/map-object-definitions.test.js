@@ -6,14 +6,46 @@ import { GameMapLoader } from "../../../../src/game/GameMapLoader.js";
 
 it("round-trips legacy features through object records without losing navigation or placements", () => {
   const map = {
-    objects: [{ id: "castle", object: "Castle" }],
-    entries: [{ col: 1, row: 2, rows: [2, 3], side: "LEFT", color: 123 }],
-    riverData: [{ id: "stream", cells: [{ col: 2, row: 3 }] }],
-    groundCoverData: [{ col: 4, row: 5, variant: "daisy-patch", offsetX: 0.1 }],
-    overpassData: { id: "bridge", deckElevation: 4 },
-    heroSpawn: { x: 1, y: 2, z: 3 },
+    objects: [{
+      id: "castle",
+      object: "Castle",
+    }],
+    entries: [{
+      col: 1,
+      row: 2,
+      rows: [2, 3],
+      side: "LEFT",
+      color: 123,
+    }],
+    riverData: [{
+      id: "stream",
+      cells: [{
+        col: 2,
+        row: 3,
+      }],
+    }],
+    groundCoverData: [{
+      col: 4,
+      row: 5,
+      variant: "daisy-patch",
+      offsetX: 0.1,
+    }],
+    overpassData: {
+      id: "bridge",
+      deckElevation: 4,
+    },
+    heroSpawn: {
+      x: 1,
+      y: 2,
+      z: 3,
+    },
     islandConnectorData: { islands: [["1,2"], ["3,4"]] },
-    castle: { doors: [{ centerCol: 2, centerRow: 3 }] },
+    castle: {
+      doors: [{
+        centerCol: 2,
+        centerRow: 3,
+      }],
+    },
   };
   const original = structuredClone(map);
   MapObjectDefinitions.prepare(map);
@@ -28,23 +60,48 @@ it("round-trips legacy features through object records without losing navigation
   for (const field of ["entries", "riverData", "groundCoverData", "overpassData", "heroSpawn", "islandConnectorData", "castle"]) {
     assert.deepEqual(stored[field], original[field], field);
   }
-  stored.heroSpawn = { x: 7, y: 8, z: 9 };
+  stored.heroSpawn = {
+    x: 7,
+    y: 8,
+    z: 9,
+  };
   assert.deepEqual(stored.objects.find(({ object }) => object === "SpawnPoint").position, stored.heroSpawn);
   stored.groundCoverData = [];
   assert.deepEqual(stored.objects.find(({ object }) => object === "GroundCover").placements, []);
-  stored.riverData[0].cells.push({ col: 6, row: 7 });
+  stored.riverData[0].cells.push({
+    col: 6,
+    row: 7,
+  });
   assert.equal(stored.objects.find(({ object }) => object === "Rivers").rivers[0].cells.length, 2);
 });
 
 it("reloads cloned maps and preserves existing spawn identity when replacing runtime position", () => {
-  const source = { objects: [{ id: "start", object: "SpawnPoint", position: { x: 0, y: 2, z: 0 } }] };
+  const source = {
+    objects: [{
+      id: "start",
+      object: "SpawnPoint",
+      position: {
+        x: 0,
+        y: 2,
+        z: 0,
+      },
+    }],
+  };
   MapObjectDefinitions.prepare(source);
   const clone = structuredClone(source);
   MapObjectDefinitions.prepare(clone);
-  clone.heroSpawn = { x: 2, y: 3, z: 4 };
+  clone.heroSpawn = {
+    x: 2,
+    y: 3,
+    z: 4,
+  };
   assert.equal(clone.objects.length, 1);
   assert.equal(clone.objects[0].id, "start");
-  assert.deepEqual(source.heroSpawn, { x: 0, y: 2, z: 0 });
+  assert.deepEqual(source.heroSpawn, {
+    x: 0,
+    y: 2,
+    z: 0,
+  });
 });
 
 it("loads every test map from canonical object records without changing the authored source", async () => {

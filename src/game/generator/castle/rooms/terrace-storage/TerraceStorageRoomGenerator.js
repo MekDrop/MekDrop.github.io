@@ -4,7 +4,10 @@ import { AbstractCastleRoomGenerator } from "../AbstractCastleRoomGenerator.js";
  * Stores spare terrace equipment along the walls, with the tea set on its table.
  */
 export class TerraceStorageRoomGenerator extends AbstractCastleRoomGenerator {
-  constructor() { super("terraceStorage", { x: 3.25, y: 3.75 }); }
+  constructor() { super("terraceStorage", {
+    x: 3.25,
+    y: 3.75,
+  }); }
 
   /**
    * @param {import("../AbstractCastleRoomGenerator.js").PlannedCastleRoom} room
@@ -30,14 +33,19 @@ export class TerraceStorageRoomGenerator extends AbstractCastleRoomGenerator {
      * @param {Array<string|number>} definition
      * @param {number} index
      */
-    ([object, x, z, width, depth, height, scale, y], index) => ({
-      role: "serviceProp", object,
-      x: index >= 3 ? tableX + (x - tableX) * storageScale : x,
-      z: index >= 3 ? tableZ + (z - tableZ) * storageScale : z,
-      width, depth, height, scale: scale * storageScale, y: y * storageScale,
-      rotation: index === 0 ? 90 : 0,
-      id: `${room.id}-terrace-storage-${index}`,
-      ...(index >= 3 ? { supportId: `${room.id}-terrace-storage-${index === 4 || index === 5 ? 3 : 1}` } : {}),
-    }));
+      ([object, x, z, width, depth, height, scale, y], index) => ({
+        role: "serviceProp",
+        object,
+        x: index >= 3 ? tableX + (x - tableX) * storageScale : x,
+        z: index >= 3 ? tableZ + (z - tableZ) * storageScale : z,
+        width,
+        depth,
+        height,
+        scale: scale * storageScale,
+        y: y * storageScale,
+        rotation: index === 0 ? 90 : 0,
+        id: `${room.id}-terrace-storage-${index}`,
+        ...(index >= 3 ? { supportId: `${room.id}-terrace-storage-${index === 4 || index === 5 ? 3 : 1}` } : {}),
+      }));
   }
 }

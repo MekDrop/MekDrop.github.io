@@ -28,7 +28,11 @@ it("restarts during an interrupted blend and safely transitions again", () => {
     updateClipTrack() {},
   };
   const names = ["START", "idle", "walk", "jump"];
-  const controller = new AnimController(evaluator, names.map((name) => ({ name, speed: 1, loop: true })), [], false);
+  const controller = new AnimController(evaluator, names.map((name) => ({
+    name,
+    speed: 1,
+    loop: true,
+  })), [], false);
   for (const name of names.slice(1)) {
     controller.assignAnimation(name, new AnimTrack(name, 1, [], [], []));
   }
@@ -36,7 +40,11 @@ it("restarts during an interrupted blend and safely transitions again", () => {
     baseLayer: {
       reset: () => controller.reset(),
       play: (name) => controller.play(name),
-      transition: (name, time) => controller.updateStateFromTransition(new AnimTransition({ from: controller.activeStateName, to: name, time })),
+      transition: (name, time) => controller.updateStateFromTransition(new AnimTransition({
+        from: controller.activeStateName,
+        to: name,
+        time,
+      })),
     },
   };
   const playback = new Playback(animation);

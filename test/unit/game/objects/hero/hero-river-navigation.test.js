@@ -7,10 +7,23 @@ it("lets the current take a submerged hero even when the riverbed reports suppor
   const state = new HeroDrowningActionState();
   const transitions = [];
   const situation = {
-    grounded: true, fallingToDeath: false, respawning: false,
-    verticalVelocity: 0, position: { x: 0, y: 0.1, z: 0 },
+    grounded: true,
+    fallingToDeath: false,
+    respawning: false,
+    verticalVelocity: 0,
+    position: {
+      x: 0,
+      y: 0.1,
+      z: 0,
+    },
   };
-  const routeEntry = { river: { kind: "WATER" }, cell: { elevation: 0.5, underBridge: false } };
+  const routeEntry = {
+    river: { kind: "WATER" },
+    cell: {
+      elevation: 0.5,
+      underBridge: false,
+    },
+  };
   const owner = {
     feedback: {
       drowning: {
@@ -38,17 +51,31 @@ it("lets the current take a submerged hero even when the riverbed reports suppor
  */
 function createRiver(cells, position, deltaTime = 0.1) {
   const state = new HeroDrowningActionState();
-  state.payload = { elapsed: 0, river: { cells }, targetIndex: 1, exiting: false };
+  state.payload = {
+    elapsed: 0,
+    river: { cells },
+    targetIndex: 1,
+    exiting: false,
+  };
   const transitions = [];
   let velocity;
   const owner = {
     deltaTime,
-    transition: (action, cell) => transitions.push({ action, cell }),
+    transition: (action, cell) => transitions.push({
+      action,
+      cell,
+    }),
     feedback: {
       drowning: {
         position: () => position,
         directionVector: (direction) => direction === "EAST"
-          ? { x: 1, z: 0 } : { x: 0, z: 1 },
+          ? {
+            x: 1,
+            z: 0,
+          } : {
+            x: 0,
+            z: 1,
+          },
         mapColumns: 1,
         mapRows: 1,
         bridgeApproachOffset: 0.94,
@@ -62,16 +89,40 @@ function createRiver(cells, position, deltaTime = 0.1) {
       },
     },
   };
-  return { state, owner, transitions, velocity: () => velocity };
+  return {
+    state,
+    owner,
+    transitions,
+    velocity: () => velocity,
+  };
 }
 
 it("reaches river waypoints without oscillating on slow frames", () => {
   const cells = [
-    { col: 0, row: 0, direction: "EAST", elevation: 0 },
-    { col: 1, row: 0, direction: "SOUTH", elevation: 0 },
-    { col: 1, row: 1, direction: "SOUTH", elevation: 0 },
+    {
+      col: 0,
+      row: 0,
+      direction: "EAST",
+      elevation: 0,
+    },
+    {
+      col: 1,
+      row: 0,
+      direction: "SOUTH",
+      elevation: 0,
+    },
+    {
+      col: 1,
+      row: 1,
+      direction: "SOUTH",
+      elevation: 0,
+    },
   ];
-  const position = { x: 0.94, y: -0.68, z: 0 };
+  const position = {
+    x: 0.94,
+    y: -0.68,
+    z: 0,
+  };
   const river = createRiver(cells, position);
   river.state.execute(river.owner);
   position.x += river.velocity().x * river.owner.deltaTime;
@@ -82,10 +133,26 @@ it("reaches river waypoints without oscillating on slow frames", () => {
 
 it("approaches a turning bridge from upstream instead of the bank", () => {
   const cells = [
-    { col: 0, row: 0, direction: "EAST", elevation: 0 },
-    { col: 1, row: 0, direction: "SOUTH", elevation: 0, terrainHeight: 1, underBridge: true },
+    {
+      col: 0,
+      row: 0,
+      direction: "EAST",
+      elevation: 0,
+    },
+    {
+      col: 1,
+      row: 0,
+      direction: "SOUTH",
+      elevation: 0,
+      terrainHeight: 1,
+      underBridge: true,
+    },
   ];
-  const river = createRiver(cells, { x: 0.06, y: -0.68, z: 0 });
+  const river = createRiver(cells, {
+    x: 0.06,
+    y: -0.68,
+    z: 0,
+  });
   river.state.execute(river.owner);
   assert.equal(river.transitions.length, 1);
   assert.equal(river.transitions[0].action, HERO_ACTION.BRIDGE_CLIMB);
@@ -94,11 +161,32 @@ it("approaches a turning bridge from upstream instead of the bank", () => {
 
 it("passes below a tall bridge without attempting to climb", () => {
   const cells = [
-    { col: 0, row: 0, direction: "EAST", elevation: 0 },
-    { col: 1, row: 0, direction: "SOUTH", elevation: 0, terrainHeight: 2, underBridge: true },
-    { col: 1, row: 1, direction: "SOUTH", elevation: 0 },
+    {
+      col: 0,
+      row: 0,
+      direction: "EAST",
+      elevation: 0,
+    },
+    {
+      col: 1,
+      row: 0,
+      direction: "SOUTH",
+      elevation: 0,
+      terrainHeight: 2,
+      underBridge: true,
+    },
+    {
+      col: 1,
+      row: 1,
+      direction: "SOUTH",
+      elevation: 0,
+    },
   ];
-  const river = createRiver(cells, { x: 1, y: -0.68, z: 0 });
+  const river = createRiver(cells, {
+    x: 1,
+    y: -0.68,
+    z: 0,
+  });
   river.state.execute(river.owner);
   assert.deepEqual(river.transitions, []);
   assert.equal(river.state.payload.targetIndex, 2);

@@ -22,27 +22,32 @@ export class RiverImpactFlow {
        *
        * @param {number} cascade
        */
-      (cascade) => {
-        const flow = this.#direction(cascade.direction);
-        const drop = cascade.topElevation - cascade.bottomElevation;
-        const forward = 0.565 + Math.min(0.22, drop * 0.22);
-        return {
-          col: cascade.from.col + flow[0] * forward,
-          row: cascade.from.row + flow[1] * forward,
-          elevation: cascade.bottomElevation,
-          index: river.cells.findIndex(/**
+        (cascade) => {
+          const flow = this.#direction(cascade.direction);
+          const drop = cascade.topElevation - cascade.bottomElevation;
+          const forward = 0.565 + Math.min(0.22, drop * 0.22);
+          return {
+            col: cascade.from.col + flow[0] * forward,
+            row: cascade.from.row + flow[1] * forward,
+            elevation: cascade.bottomElevation,
+            index: river.cells.findIndex(/**
            *
            * @param {number} cell
            */
-          (cell) =>
-            cell.col === cascade.to.col && cell.row === cascade.to.row),
-        };
-      });
+              (cell) =>
+                cell.col === cascade.to.col && cell.row === cascade.to.row),
+          };
+        });
       for (const [index, cell] of river.cells.entries()) {
         if (index < (river.branchStart ?? 0)) {
           continue;
         }
-        this.#cells.set(`${cell.col},${cell.row}`, { cell, index, impacts, river });
+        this.#cells.set(`${cell.col},${cell.row}`, {
+          cell,
+          index,
+          impacts,
+          river,
+        });
       }
     }
   }
@@ -126,12 +131,12 @@ export class RiverImpactFlow {
      * @param {number} options."0"
      * @param {number} options."1"
      */
-    ([nx, nz]) => {
-      const neighbor = this.#cells.get(`${col + nx},${row + nz}`);
-      return neighbor && (neighbor.river === record.river || (record.river.id &&
+      ([nx, nz]) => {
+        const neighbor = this.#cells.get(`${col + nx},${row + nz}`);
+        return neighbor && (neighbor.river === record.river || (record.river.id &&
         (neighbor.river.sourceId ?? neighbor.river.id) === (record.river.sourceId ?? record.river.id))) &&
         Math.abs(neighbor.cell.elevation - record.cell.elevation) <= 0.04 ? 0 : 1;
-    });
+      });
   }
 
   /**

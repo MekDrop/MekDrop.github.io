@@ -133,7 +133,11 @@ export class StraightStaircase {
    * @returns {number|null}
    */
   surfaceHeightAt(x,z,radius=0,maximumHeight=Infinity) {
-    const point = this.#visual.getWorldTransform().clone().invert().transformPoint({x,y:0,z});
+    const point = this.#visual.getWorldTransform().clone().invert().transformPoint({
+      x,
+      y:0,
+      z,
+    });
     const base = this.#visual.getPosition().y;
     let height = null;
     for (const surface of castleStraightStairSurfaces(this.#definition)) {
@@ -154,7 +158,11 @@ export class StraightStaircase {
    */
   blocksCameraAt(x,y,z,radius=0) {
     const center = this.#visual.getPosition();
-    return castleStraightStairBlocksCamera({...this.#definition,center,yaw:this.#definition.rotation ?? 0},x,y,z,radius);
+    return castleStraightStairBlocksCamera({
+      ...this.#definition,
+      center,
+      yaw:this.#definition.rotation ?? 0,
+    },x,y,z,radius);
   }
 
   onSceneReady() {
@@ -254,8 +262,15 @@ export class StraightStaircase {
     model.meshInstances = [support];
     this.#stairSupportInstances.push(support);
     this.#stairPhysicsGraphs.push(graph);
-    root.addComponent("collision", { type: "mesh", model });
-    root.addComponent("rigidbody", { type: "static", friction: 0.6, restitution: 0 });
+    root.addComponent("collision", {
+      type: "mesh",
+      model,
+    });
+    root.addComponent("rigidbody", {
+      type: "static",
+      friction: 0.6,
+      restitution: 0,
+    });
     this.#buildStairDivider(pc, models, root, stair);
   }
 
@@ -286,7 +301,10 @@ export class StraightStaircase {
       for (let column = 0; column < columns; column++) {
         const shade = (row + column * 3) % 8;
         const material = this.#stairMaterials.get(shade === 0 || shade === 7 ? "castleStoneDark" : "castleStoneMid");
-        const brick = models.instantiateMerged(masonryBlockUrl, { material, linearVertexColors: true });
+        const brick = models.instantiateMerged(masonryBlockUrl, {
+          material,
+          linearVertexColors: true,
+        });
         brick.setLocalPosition(0, -height / 2 + row * courseHeight,
           -length / 2 + (column + 0.5) * brickLength);
         brick.setLocalScale(0.25, courseHeight, brickLength);
@@ -294,9 +312,14 @@ export class StraightStaircase {
       }
     }
     divider.addComponent("collision", {
-      type: "box", halfExtents: new pc.Vec3(0.125, height / 2, length / 2),
+      type: "box",
+      halfExtents: new pc.Vec3(0.125, height / 2, length / 2),
     });
-    divider.addComponent("rigidbody", { type: "static", friction: 0.6, restitution: 0 });
+    divider.addComponent("rigidbody", {
+      type: "static",
+      friction: 0.6,
+      restitution: 0,
+    });
     if (!nextFlight) { this.#buildStairOpeningGuard(pc, models, root, stair); }
   }
 
@@ -318,7 +341,8 @@ export class StraightStaircase {
     for (let row = 0; row < 3; row++) {
       for (let column = 0; column < columns; column++) {
         const brick = models.instantiateMerged(stoneUrl, {
-          material: this.#stairMaterials.get("castleStoneMid"), linearVertexColors: true,
+          material: this.#stairMaterials.get("castleStoneMid"),
+          linearVertexColors: true,
         });
         brick.setLocalPosition(-width / 2 + brickWidth * (column + 0.5), -height / 2 + row * 0.25, 0);
         brick.setLocalScale(brickWidth, 0.25, depth);
@@ -326,9 +350,14 @@ export class StraightStaircase {
       }
     }
     guard.addComponent("collision", {
-      type: "box", halfExtents: new pc.Vec3(width / 2, height / 2, depth / 2),
+      type: "box",
+      halfExtents: new pc.Vec3(width / 2, height / 2, depth / 2),
     });
-    guard.addComponent("rigidbody", { type: "static", friction: 0.6, restitution: 0 });
+    guard.addComponent("rigidbody", {
+      type: "static",
+      friction: 0.6,
+      restitution: 0,
+    });
   }
 
 }

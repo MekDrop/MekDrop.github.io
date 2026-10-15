@@ -90,14 +90,14 @@ export class TerrainStage extends AbstractMapGenerationStage {
     context.features.islandConnectorData = context.input.islandConnectors === false
       ? null
       : this.#connectors.build(
-      grid,
-      heightmap,
-      tileMeta,
-      islandMask,
-      context.input.mapName,
-      this.#random,
-      riverData,
-    );
+        grid,
+        heightmap,
+        tileMeta,
+        islandMask,
+        context.input.mapName,
+        this.#random,
+        riverData,
+      );
     this.#terrain.applyHeightsToMetadata(
       grid,
       tileMeta,

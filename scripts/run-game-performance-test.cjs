@@ -48,7 +48,10 @@ async function waitForServer(timeoutMs) {
 function runNodeCli(cliPath, argumentsList, options = {}) {
   return spawn(process.execPath, [cliPath, ...argumentsList], {
     cwd: projectRoot,
-    env: { ...process.env, NODE_ENV: "test" },
+    env: {
+      ...process.env,
+      NODE_ENV: "test",
+    },
     stdio: "inherit",
     windowsHide: true,
     ...options,
@@ -69,7 +72,10 @@ async function stopServer() {
     const taskkill = spawn(
       "taskkill.exe",
       ["/pid", String(serverProcess.pid), "/t", "/f"],
-      { stdio: "ignore", windowsHide: true },
+      {
+        stdio: "ignore",
+        windowsHide: true,
+      },
     );
     await waitForExit(taskkill);
     return;

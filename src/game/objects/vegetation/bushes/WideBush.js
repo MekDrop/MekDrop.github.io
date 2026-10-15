@@ -37,7 +37,10 @@ export class WideBush extends Bush {
         [1, -1],
       ],
     },
-    { y: 1, cells: [[-1, 0], [0, 0], [1, 0]] },
+    {
+      y: 1,
+      cells: [[-1, 0], [0, 0], [1, 0]],
+    },
   ]);
 
   /**

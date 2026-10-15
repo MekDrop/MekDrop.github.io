@@ -62,10 +62,10 @@ export class GrassObstacleMap {
        * @param {{cells: number}} options
        * @param {number} options.cells
        */
-      ({ cells }) =>
-        cells[0]
-          ? [[cells[0].col + "," + cells[0].row, cells[0].terrainHeight]]
-          : [],
+        ({ cells }) =>
+          cells[0]
+            ? [[cells[0].col + "," + cells[0].row, cells[0].terrainHeight]]
+            : [],
       ),
     );
     this.#texture = new pc.Texture(device, {
@@ -300,7 +300,11 @@ export class GrassObstacleMap {
         if (distance > radius || (nearest && distance >= nearest.distance)) {
           continue;
         }
-        nearest = { x: sampleX, z: sampleZ, distance };
+        nearest = {
+          x: sampleX,
+          z: sampleZ,
+          distance,
+        };
       }
     }
     return nearest;

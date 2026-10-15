@@ -59,7 +59,10 @@ export class MapTestControls {
         /**
          * @param {{zoom: number, rotation: number, panX: number, panZ: number}} viewport
          */
-        setViewport: (viewport) => this.#setViewport({ ...viewport, manuallyMoved: true }),
+        setViewport: (viewport) => this.#setViewport({
+          ...viewport,
+          manuallyMoved: true,
+        }),
         /**
          * @param {boolean} enabled
          */

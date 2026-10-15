@@ -12,7 +12,11 @@ const binaryStart = 28 + jsonLength;
 
 function accessor(index) {
   const item = gltf.accessors[index], view = gltf.bufferViews[item.bufferView];
-  const size = { SCALAR: 1, VEC3: 3, VEC4: 4 }[item.type];
+  const size = {
+    SCALAR: 1,
+    VEC3: 3,
+    VEC4: 4,
+  }[item.type];
   const start = binaryStart + (view.byteOffset ?? 0) + (item.byteOffset ?? 0);
   return Array.from({ length: item.count }, (_, frame) => Array.from({ length: size }, (_, axis) => bytes.readFloatLE(start + frame * size * 4 + axis * 4)));
 }

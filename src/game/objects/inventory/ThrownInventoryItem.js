@@ -6,7 +6,11 @@ const FLOOR_OFFSET = 0.04;
 const DROP_FALL_HEIGHT = 0.85;
 const FLOOR_HALF_SIZE = 3;
 const FLOOR_HALF_HEIGHT = 0.025;
-const BODY_HALF_EXTENTS = Object.freeze({ x: 0.12, y: 0.1, z: 0.12 });
+const BODY_HALF_EXTENTS = Object.freeze({
+  x: 0.12,
+  y: 0.1,
+  z: 0.12,
+});
 const BODY_MASS = 0.08;
 const LINEAR_DAMPING = 0.08;
 const ANGULAR_DAMPING = 0.48;
@@ -108,11 +112,11 @@ export class ThrownInventoryItem {
     const horizontalLength = Math.hypot(direction.x, direction.z) || 1;
     const bodyY = dropped
       ? Math.max(
-          floorSurfaceY + FLOOR_OFFSET,
-          Number.isFinite(dropStartY)
-            ? dropStartY
-            : floorSurfaceY + DROP_FALL_HEIGHT,
-        )
+        floorSurfaceY + FLOOR_OFFSET,
+        Number.isFinite(dropStartY)
+          ? dropStartY
+          : floorSurfaceY + DROP_FALL_HEIGHT,
+      )
       : position.y + 0.86;
 
     this.#entity = new pc.Entity(`Thrown inventory item ${item.variant}`);
@@ -145,17 +149,17 @@ export class ThrownInventoryItem {
     body.rigidbody.linearVelocity = dropped
       ? new pc.Vec3(0, 0, 0)
       : new pc.Vec3(
-          (direction.x / horizontalLength) * THROW_SPEED,
-          THROW_LIFT,
-          (direction.z / horizontalLength) * THROW_SPEED,
-        );
+        (direction.x / horizontalLength) * THROW_SPEED,
+        THROW_LIFT,
+        (direction.z / horizontalLength) * THROW_SPEED,
+      );
     body.rigidbody.angularVelocity = dropped
       ? new pc.Vec3(0, 0, 0)
       : new pc.Vec3(
-          ANGULAR_VELOCITY.x,
-          ANGULAR_VELOCITY.y,
-          ANGULAR_VELOCITY.z,
-        );
+        ANGULAR_VELOCITY.x,
+        ANGULAR_VELOCITY.y,
+        ANGULAR_VELOCITY.z,
+      );
     this.#body = body;
     this.#entity.addChild(body);
 
@@ -202,7 +206,11 @@ export class ThrownInventoryItem {
     const position = this.#body?.getPosition();
     return {
       position: position
-        ? { x: position.x, y: position.y, z: position.z }
+        ? {
+          x: position.x,
+          y: position.y,
+          z: position.z,
+        }
         : null,
     };
   }

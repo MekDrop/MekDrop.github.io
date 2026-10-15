@@ -32,7 +32,10 @@ function normalizeInventorySlots(inventory) {
     }
     occupiedSlots.add(slot);
     if (item.slot !== slot) {
-      inventory.items[index] = { ...item, slot };
+      inventory.items[index] = {
+        ...item,
+        slot,
+      };
       changed = true;
     }
   }
@@ -72,13 +75,16 @@ export const useHeroConfigurationStore = defineStore(
            * @param {InventoryItem} options
            * @param {number} options.slot
            */
-          ({ slot }) => slot),
+            ({ slot }) => slot),
         );
         let slot = 0;
         while (occupiedSlots.has(slot)) {
           slot += 1;
         }
-        this.inventory.items.push({ ...item, slot });
+        this.inventory.items.push({
+          ...item,
+          slot,
+        });
         this.$persist();
         return true;
       },
@@ -99,7 +105,7 @@ export const useHeroConfigurationStore = defineStore(
            * @param {InventoryItem} options
            * @param {number} options.slot
            */
-          ({ slot }) => slot === toSlot)
+            ({ slot }) => slot === toSlot)
         ) {
           return false;
         }
@@ -108,7 +114,7 @@ export const useHeroConfigurationStore = defineStore(
          * @param {InventoryItem} options
          * @param {number} options.slot
          */
-        ({ slot }) => slot === fromSlot);
+          ({ slot }) => slot === fromSlot);
         if (!item) {
           return false;
         }

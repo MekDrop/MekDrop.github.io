@@ -32,11 +32,22 @@ it("applies fixed first-person island transforms once and resumes floating updat
   const objects = [target];
   objects.getOne = () => hero;
   let motionUpdates = 0;
-  const motion = { update() {
-    motionUpdates += 1;
-    return { near: 0.1, far: -0.2, groups: [0.1, -0.2] };
-  } };
-  const driver = new Driver({ camera, target, objects, motion });
+  const motion = {
+    update() {
+      motionUpdates += 1;
+      return {
+        near: 0.1,
+        far: -0.2,
+        groups: [0.1, -0.2],
+      };
+    },
+  };
+  const driver = new Driver({
+    camera,
+    target,
+    objects,
+    motion,
+  });
   for (let frame = 0; frame < 120; frame += 1) {
     driver.update(1 / 60);
   }

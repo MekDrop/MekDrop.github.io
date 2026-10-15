@@ -7,8 +7,19 @@ it("cuts every floor slab to the rear stairwell wall in all gate orientations", 
   for (const side of ["NORTH", "SOUTH", "EAST", "WEST"]) {
     const plan = await CastleAuthoredBuildPlan.generate({
       basePlanId: "castle-demo-compact",
-      position: { x: -14, z: -8, width: 28, depth: 16, elevation: 3 },
-      doors: [{ side, offset: 5, width: 2 }], seed: 1,
+      position: {
+        x: -14,
+        z: -8,
+        width: 28,
+        depth: 16,
+        elevation: 3,
+      },
+      doors: [{
+        side,
+        offset: 5,
+        width: 2,
+      }],
+      seed: 1,
     });
     for (const stair of plan.metadata.runtime.residential.authoredStairs) {
       const turning = castleStraightStairSurfaces(stair)[1];

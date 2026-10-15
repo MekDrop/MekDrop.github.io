@@ -41,7 +41,11 @@ it("starts a fresh timeout after leaving and reentering dying", (context) => {
 });
 function createFeedback(overrides = {}) {
   const feedback = {
-    tool: { begin: () => {}, restartAnimation: () => {}, complete: () => {} },
+    tool: {
+      begin: () => {},
+      restartAnimation: () => {},
+      complete: () => {},
+    },
     collection: {
       positioningDuration: 0.2,
       fullEffectTime: 0.1,
@@ -58,10 +62,19 @@ function createFeedback(overrides = {}) {
     },
     dodge: { complete: () => {} },
     patReaction: { shouldContinue: () => true },
-    repel: { begin: () => {}, end: () => {} },
-    refusal: { beginEdge: () => {}, beginHole: () => {} },
+    repel: {
+      begin: () => {},
+      end: () => {},
+    },
+    refusal: {
+      beginEdge: () => {},
+      beginHole: () => {},
+    },
     blockedDig: { begin: () => {} },
-    drowning: { begin: (payload) => payload, endPresentation: () => {} },
+    drowning: {
+      begin: (payload) => payload,
+      endPresentation: () => {},
+    },
     bridgeClimb: { begin: (payload) => payload },
     burning: {
       lives: () => 3,
@@ -71,13 +84,22 @@ function createFeedback(overrides = {}) {
       modelScale: 0.65,
       syncState: () => {},
     },
-    falling: { begin: () => {}, finished: () => false },
+    falling: {
+      begin: () => {},
+      finished: () => false,
+    },
     death: { resolve: () => HERO_ACTION.RESPAWNING },
-    respawning: { begin: () => {}, resetPresentation: () => {} },
+    respawning: {
+      begin: () => {},
+      resetPresentation: () => {},
+    },
     gameOver: { begin: () => {} },
   };
   for (const [key, value] of Object.entries(overrides)) {
-    feedback[key] = { ...feedback[key], ...value };
+    feedback[key] = {
+      ...feedback[key],
+      ...value,
+    };
   }
   return feedback;
 }
@@ -99,7 +121,10 @@ function createBehavior(options = {}) {
 it("keeps exactly one action and stores its payload on the active state", () => {
   const behavior = createBehavior();
   const toolAction = {
-    tool: { summonAnimation: "summon", dismissAnimation: "dismiss" },
+    tool: {
+      summonAnimation: "summon",
+      dismissAnimation: "dismiss",
+    },
     phase: "summon",
     useAnimation: "use",
   };
@@ -109,7 +134,10 @@ it("keeps exactly one action and stores its payload on the active state", () => 
   assert.equal(behavior.payload, toolAction);
   assert.equal(behavior.animation, "summon");
 
-  behavior.dodgeAction = { direction: "left", duration: 0.3 };
+  behavior.dodgeAction = {
+    direction: "left",
+    duration: 0.3,
+  };
   assert.equal(behavior.state.action, HERO_ACTION.DODGING);
   assert.equal(behavior.toolAction, null);
   assert.equal(behavior.animation, HERO_ANIMATION.DODGE_LEFT);
@@ -121,7 +149,10 @@ it("restores the selected resting action after a committed action", () => {
   behavior.boostingCountryFinances = true;
   assert.equal(behavior.state.action, HERO_ACTION.BOOSTING_COUNTRY_FINANCES);
 
-  behavior.collectAction = { animation: "pick", positioning: null };
+  behavior.collectAction = {
+    animation: "pick",
+    positioning: null,
+  };
   assert.equal(behavior.state.action, HERO_ACTION.COLLECTING);
   behavior.collectAction = null;
 
@@ -248,7 +279,10 @@ it("completes collection from its action state and returns to rest", () => {
 it("lets the drowning state decide whether water or lava feedback begins", () => {
   const routeEntry = {
     river: { kind: RIVER_KIND.WATER },
-    cell: { elevation: 0, underBridge: false },
+    cell: {
+      elevation: 0,
+      underBridge: false,
+    },
   };
   const feedback = {
     drowning: {
@@ -259,7 +293,11 @@ it("lets the drowning state decide whether water or lava feedback begins", () =>
         fallingToDeath: false,
         respawning: false,
         verticalVelocity: -1,
-        position: { x: 0, y: 0.1, z: 0 },
+        position: {
+          x: 0,
+          y: 0.1,
+          z: 0,
+        },
       }),
       hasRiverSourceCover: () => false,
       routeEntryAt: () => routeEntry,
@@ -277,7 +315,10 @@ it("lets the drowning state decide whether water or lava feedback begins", () =>
   assert.equal(behavior.tryBeginDrowning(), true);
   assert.equal(behavior.state.action, HERO_ACTION.BURNING);
   assert.deepEqual(behavior.payload, {
-    elapsed: 0, surfaceY: 0.02, farewell: true, ashes: false,
+    elapsed: 0,
+    surfaceY: 0.02,
+    farewell: true,
+    ashes: false,
   });
 });
 
@@ -313,7 +354,10 @@ it("centralizes action admission on the active and target states", () => {
     x: 1,
     z: 0,
     speed: 4,
-    facing: { x: 0, z: 1 },
+    facing: {
+      x: 0,
+      z: 1,
+    },
     duration: 0.5,
   };
   assert.equal(
@@ -326,7 +370,10 @@ it("centralizes action admission on the active and target states", () => {
   );
 
   behavior.toolAction = {
-    tool: { summonAnimation: "summon", dismissAnimation: "dismiss" },
+    tool: {
+      summonAnimation: "summon",
+      dismissAnimation: "dismiss",
+    },
     phase: "summon",
     useAnimation: "use",
   };
@@ -344,25 +391,56 @@ it("derives movement and facing policy from the active action state", () => {
     x: 1,
     z: -0.5,
     speed: 4,
-    facing: { x: 0, z: 1 },
+    facing: {
+      x: 0,
+      z: 1,
+    },
     duration: 0.5,
   };
 
   assert.deepEqual(
-    behavior.movementFor({ x: 9, z: 9 }, { x: 2, z: 3 }),
-    { x: 4, z: -2 },
+    behavior.movementFor({
+      x: 9,
+      z: 9,
+    }, {
+      x: 2,
+      z: 3,
+    }),
+    {
+      x: 4,
+      z: -2,
+    },
   );
   assert.deepEqual(
-    behavior.facingFor({ x: 1, z: 0 }),
-    { x: 0, z: 1 },
+    behavior.facingFor({
+      x: 1,
+      z: 0,
+    }),
+    {
+      x: 0,
+      z: 1,
+    },
   );
   assert.equal(behavior.snapsFacing, true);
   assert.equal(behavior.allowsFootPlacement, false);
 
-  behavior.repelAction = { x: -1, z: 0.5, elapsed: 0 };
+  behavior.repelAction = {
+    x: -1,
+    z: 0.5,
+    elapsed: 0,
+  };
   assert.deepEqual(
-    behavior.movementFor({ x: 9, z: 9 }, { x: 2, z: 3 }),
-    { x: -2.2, z: 1.1 },
+    behavior.movementFor({
+      x: 9,
+      z: 9,
+    }, {
+      x: 2,
+      z: 3,
+    }),
+    {
+      x: -2.2,
+      z: 1.1,
+    },
   );
   assert(behavior.locksFacing);
 });
@@ -386,7 +464,10 @@ it("lets action states drive and clean up their presentation", () => {
       respawning: {
         duration: 1.55,
         updatePresentation: (progress, elapsed) =>
-          presentations.push(["respawn", { progress, elapsed }]),
+          presentations.push(["respawn", {
+            progress,
+            elapsed,
+          }]),
         resetPresentation: () => resets.push("respawn"),
       },
     },
@@ -445,14 +526,24 @@ it("owns refusal, repulsion, death, and recovery lifecycle effects", () => {
 
   behavior.edgeRefusalAction = {
     foot: "right",
-    direction: { x: 1, z: 0 },
+    direction: {
+      x: 1,
+      z: 0,
+    },
     elapsed: 0,
   };
   behavior.holeRefusalAction = {
-    direction: { x: 1, z: 0 },
+    direction: {
+      x: 1,
+      z: 0,
+    },
     elapsed: 0,
   };
-  behavior.repelAction = { x: -1, z: 0, elapsed: 0 };
+  behavior.repelAction = {
+    x: -1,
+    z: 0,
+    elapsed: 0,
+  };
   behavior.finish();
   behavior.fallingToDeath = true;
   behavior.update(0.1);
@@ -477,24 +568,51 @@ it("owns refusal, repulsion, death, and recovery lifecycle effects", () => {
 it("approaches the rope, strikes during the pull, and releases the action lock", async () => {
   const behavior = createBehavior();
   const events = [];
-  const position = { x: 0, y: 12, z: 0 };
+  const position = {
+    x: 0,
+    y: 12,
+    z: 0,
+  };
   behavior.bellAction = {
-    position: { x: 0.4, y: 12, z: 0 }, facing: { x: -1, z: 0 },
-    elapsed: 0, approachElapsed: 0, pulling: false, struck: false,
-    currentPosition: () => position, supported: () => true,
-    begin: () => events.push("grasp"), onStart: () => events.push("rope"),
-    onStrike: () => events.push("strike"), onEnd: () => events.push("release"),
+    position: {
+      x: 0.4,
+      y: 12,
+      z: 0,
+    },
+    facing: {
+      x: -1,
+      z: 0,
+    },
+    elapsed: 0,
+    approachElapsed: 0,
+    pulling: false,
+    struck: false,
+    currentPosition: () => position,
+    supported: () => true,
+    begin: () => events.push("grasp"),
+    onStart: () => events.push("rope"),
+    onStrike: () => events.push("strike"),
+    onEnd: () => events.push("release"),
   };
   assert.equal(behavior.canStart(HERO_ACTION.DODGING, { grounded: true }), false);
   assert.equal(behavior.canJump, false);
   assert.equal(behavior.animation, HERO_ANIMATION.WALK);
-  assert.ok(behavior.movementFor({ x: -1, z: 1 }, {}).x > 0);
+  assert.ok(behavior.movementFor({
+    x: -1,
+    z: 1,
+  }, {}).x > 0);
   behavior.update(0.1);
   assert.deepEqual(events, []);
   position.x = 0.4;
   behavior.update(0.1);
   assert.equal(behavior.animation, HERO_ANIMATION.RING_BELL);
-  assert.deepEqual(behavior.movementFor({ x: 1, z: 1 }, {}), { x: 0, z: 0 });
+  assert.deepEqual(behavior.movementFor({
+    x: 1,
+    z: 1,
+  }, {}), {
+    x: 0,
+    z: 0,
+  });
   behavior.update(0.89);
   assert.deepEqual(events, ["grasp", "rope"]);
   behavior.update(0.02);
@@ -512,10 +630,29 @@ it("cancels an interrupted or blocked bell approach without a late strike", asyn
     let released = 0;
     let strikes = 0;
     behavior.bellAction = {
-      position: { x: 1, y: 12, z: 0 }, facing: { x: 1, z: 0 },
-      elapsed: 0, approachElapsed: 0, pulling: false, struck: false,
-      currentPosition: () => ({ x: 0, y: 12, z: 0 }), supported: () => interrupt !== "unsupported",
-      begin() {}, onStart() {}, onStrike: () => strikes++, onEnd: () => released++,
+      position: {
+        x: 1,
+        y: 12,
+        z: 0,
+      },
+      facing: {
+        x: 1,
+        z: 0,
+      },
+      elapsed: 0,
+      approachElapsed: 0,
+      pulling: false,
+      struck: false,
+      currentPosition: () => ({
+        x: 0,
+        y: 12,
+        z: 0,
+      }),
+      supported: () => interrupt !== "unsupported",
+      begin() {},
+      onStart() {},
+      onStrike: () => strikes++,
+      onEnd: () => released++,
     };
     if (interrupt === "teleport") { behavior.finish(); } else { behavior.update(3.1); }
     behavior.update(1);
@@ -528,13 +665,32 @@ it("cancels an interrupted or blocked bell approach without a late strike", asyn
 
 it("keeps approaching while the capsule makes progress across slow frames", () => {
   const behavior = createBehavior();
-  const position = { x: 0, y: 12, z: 0 };
+  const position = {
+    x: 0,
+    y: 12,
+    z: 0,
+  };
   let starts = 0;
   behavior.bellAction = {
-    position: { x: 1, y: 12, z: 0 }, facing: { x: 1, z: 0 },
-    elapsed: 0, approachElapsed: 0, pulling: false, struck: false,
-    currentPosition: () => position, supported: () => true,
-    begin() {}, onStart: () => starts++, onStrike() {}, onEnd() {},
+    position: {
+      x: 1,
+      y: 12,
+      z: 0,
+    },
+    facing: {
+      x: 1,
+      z: 0,
+    },
+    elapsed: 0,
+    approachElapsed: 0,
+    pulling: false,
+    struck: false,
+    currentPosition: () => position,
+    supported: () => true,
+    begin() {},
+    onStart: () => starts++,
+    onStrike() {},
+    onEnd() {},
   };
   for (let step = 1; step <= 9; step++) {
     position.x = step / 10;

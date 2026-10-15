@@ -161,7 +161,7 @@ export class PathCarver {
        *
        * @param {LayoutEntry} entry
        */
-      (entry) => entry.mergeCol),
+        (entry) => entry.mergeCol),
     );
 
     this.#drawHorizontalPath(
@@ -327,6 +327,10 @@ export class PathCarver {
       });
     }
 
-    return { mergeZones, routeCellsByPath, trunkStart };
+    return {
+      mergeZones,
+      routeCellsByPath,
+      trunkStart,
+    };
   }
 }

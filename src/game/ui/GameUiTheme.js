@@ -344,7 +344,7 @@ class GameUiTheme {
        *
        * @param {number} component
        */
-      (component) => component.toString(16).padStart(2, "0"))
+        (component) => component.toString(16).padStart(2, "0"))
       .join("")}`;
   }
 
@@ -462,13 +462,13 @@ class GameUiTheme {
       const expanded =
         hex.length === 3
           ? hex
-              .split("")
-              .map(/**
+            .split("")
+            .map(/**
                *
                * @param {string} character
                */
               (character) => character + character)
-              .join("")
+            .join("")
           : hex;
       return {
         red: Number.parseInt(expanded.slice(0, 2), 16),
@@ -488,7 +488,10 @@ class GameUiTheme {
       };
     }
 
-    throw new InvalidGameUiThemeColorError({ role, value });
+    throw new InvalidGameUiThemeColorError({
+      role,
+      value,
+    });
   }
 
   /**

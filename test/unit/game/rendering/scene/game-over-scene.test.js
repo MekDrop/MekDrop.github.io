@@ -34,8 +34,16 @@ function createRoyal(id, calls) {
     beginGameOver() {
       calls.push(`${id}:begin`);
       return {
-        focus: { x: 1, y: 2, z: 3 },
-        visualSize: { x: 1, y: 2, z: 1 },
+        focus: {
+          x: 1,
+          y: 2,
+          z: 3,
+        },
+        visualSize: {
+          x: 1,
+          y: 2,
+          z: 1,
+        },
         viewRotation: 0,
       };
     },
@@ -53,8 +61,16 @@ function createScene(royals, calls) {
     sceneObjects: {
       getAll: () => royals,
     },
-    getViewport: () => ({ panX: 0, panZ: 0, zoom: 1 }),
-    getCameraPosition: () => ({ x: 0, y: 0, z: 0 }),
+    getViewport: () => ({
+      panX: 0,
+      panZ: 0,
+      zoom: 1,
+    }),
+    getCameraPosition: () => ({
+      x: 0,
+      y: 0,
+      z: 0,
+    }),
     getCameraState: () => ({
       rotation: 0,
       panX: 0,
@@ -75,8 +91,14 @@ it("starts no royal reaction before the hero's last life is gone", () => {
   const calls = [];
   const scene = createScene([createRoyal("king", calls)], calls);
 
-  scene.syncHeroState({ lives: 2, gameOver: false });
-  scene.syncHeroState({ lives: 1, gameOver: false });
+  scene.syncHeroState({
+    lives: 2,
+    gameOver: false,
+  });
+  scene.syncHeroState({
+    lives: 1,
+    gameOver: false,
+  });
 
   assert.deepEqual(calls, []);
 });
@@ -88,8 +110,14 @@ it("starts every royal's own final-death performance once", () => {
   );
   const scene = createScene(royals, calls);
 
-  scene.syncHeroState({ lives: 0, gameOver: true });
-  scene.syncHeroState({ lives: 0, gameOver: true });
+  scene.syncHeroState({
+    lives: 0,
+    gameOver: true,
+  });
+  scene.syncHeroState({
+    lives: 0,
+    gameOver: true,
+  });
 
   assert.deepEqual(
     calls.filter((call) => /^(king|queen|princess):/.test(call)),

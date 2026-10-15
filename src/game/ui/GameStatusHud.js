@@ -51,7 +51,12 @@ export class GameStatusHud extends GamePanelHud {
    * @param {import("playcanvas").Application} options.app
    */
   constructor({ pc, app }) {
-    super({ pc, app, name: "Game status HUD", priority: 105 });
+    super({
+      pc,
+      app,
+      name: "Game status HUD",
+      priority: 105,
+    });
     this.#buildFirstPersonPanel();
     this.#buildInteractionPanel();
     this.syncDrawOrder();
@@ -81,11 +86,11 @@ export class GameStatusHud extends GamePanelHud {
   setInteraction(target) {
     const interaction = target?.label
       ? {
-          label: String(target.label),
-          showHealth: Boolean(target.showHealth),
-          health: Math.max(0, Math.floor(Number(target.health) || 0)),
-          maxHealth: Math.max(0, Math.floor(Number(target.maxHealth) || 0)),
-        }
+        label: String(target.label),
+        showHealth: Boolean(target.showHealth),
+        health: Math.max(0, Math.floor(Number(target.health) || 0)),
+        maxHealth: Math.max(0, Math.floor(Number(target.maxHealth) || 0)),
+      }
       : null;
     this.#interaction = interaction;
     if (!this.#interactionPanel) {

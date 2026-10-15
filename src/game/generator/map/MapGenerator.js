@@ -178,7 +178,10 @@ export class MapGenerator {
           }),
         createStages: () => this.#createGenerationStages(),
       });
-      return await generate({ ...normalizedOptions, mapName });
+      return await generate({
+        ...normalizedOptions,
+        mapName,
+      });
     } finally {
       this.#random = previousRandom;
     }
@@ -215,11 +218,17 @@ export class MapGenerator {
       new ValidationStage(),
       new RouteDataStage(),
       new CastleBuildPlanStage({
-        mapDimensions: { cols: MAP_COLS, rows: MAP_ROWS },
+        mapDimensions: {
+          cols: MAP_COLS,
+          rows: MAP_ROWS,
+        },
         generateCastleBuildPlan: CastleGenerator.generate.bind(CastleGenerator),
       }),
       new FinalizationStage({
-        mapDimensions: { cols: MAP_COLS, rows: MAP_ROWS },
+        mapDimensions: {
+          cols: MAP_COLS,
+          rows: MAP_ROWS,
+        },
         gatewayColors: GATEWAY_COLORS,
         grassSurfaceLift: GRASS_SURFACE_LIFT,
         randomUint32: () => Number(this.#random.rng(0, 0xffffffff)) >>> 0,
@@ -251,7 +260,7 @@ export class MapGenerator {
      *
      * @param {(value?: void) => void} resolve
      */
-    (resolve) => globalThis.setTimeout(resolve, 0));
+      (resolve) => globalThis.setTimeout(resolve, 0));
   }
 
   #createMapName() {

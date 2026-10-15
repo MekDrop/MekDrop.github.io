@@ -31,12 +31,15 @@ export class IslandConnectorBuilder {
       const riverCells = riverData.flatMap(/**
        * @param {import("./MapGenerationTypes.js").RiverData} river
        */
-      (river) => river.cells);
+        (river) => river.cells);
       const overpassCells = [];
       for (let row = 0; row < MAP_ROWS; row += 1) {
         for (let col = 0; col < MAP_COLS; col += 1) {
           if (tileMeta[row][col].overpassId || tileMeta[row][col].overpassPlateauId) {
-            overpassCells.push({ col, row });
+            overpassCells.push({
+              col,
+              row,
+            });
           }
         }
       }
@@ -49,8 +52,14 @@ export class IslandConnectorBuilder {
              * @param {number} cross
              */
             const cell = (cross) => horizontal
-              ? { col: station, row: cross }
-              : { col: cross, row: station };
+              ? {
+                col: station,
+                row: cross,
+              }
+              : {
+                col: cross,
+                row: station,
+              };
             /**
              * @param {number} cross
              */
@@ -85,20 +94,20 @@ export class IslandConnectorBuilder {
             if (grassCells.some(/**
              * @param {{col: number, row: number}} grass
              */
-            ({ col, row }) => riverCells.some(/**
+              ({ col, row }) => riverCells.some(/**
               * @param {import("./MapGenerationTypes.js").RiverCell} river
               */
-              (river) => Math.abs(river.col - col) + Math.abs(river.row - row) <= 5,
-            ))) continue;
+                (river) => Math.abs(river.col - col) + Math.abs(river.row - row) <= 5,
+              ))) continue;
             if (grassCells.some(/**
              * @param {{col: number, row: number}} grass
              */
-            ({ col, row }) => overpassCells.some(/**
+              ({ col, row }) => overpassCells.some(/**
               * @param {{col: number, row: number}} overpass
               */
-              (overpass) => Math.abs(overpass.col - col) +
+                (overpass) => Math.abs(overpass.col - col) +
                 Math.abs(overpass.row - row) <= 3,
-            ))) continue;
+              ))) continue;
             const [a, b] = pathCells;
             if (Math.abs(a.col - b.col) + Math.abs(a.row - b.row) !== 1) continue;
             const expectedDirections = horizontal
@@ -113,11 +122,23 @@ export class IslandConnectorBuilder {
               ({ col, row }) => `${col},${row}`,
             )]);
             const before = horizontal
-              ? { col: station - 1, row: a.row }
-              : { col: a.col, row: station - 1 };
+              ? {
+                col: station - 1,
+                row: a.row,
+              }
+              : {
+                col: a.col,
+                row: station - 1,
+              };
             const after = horizontal
-              ? { col: station + 1, row: a.row }
-              : { col: a.col, row: station + 1 };
+              ? {
+                col: station + 1,
+                row: a.row,
+              }
+              : {
+                col: a.col,
+                row: station + 1,
+              };
             const bridgePositions = [...pathCells];
             for (const cell of pathCells) {
               for (const step of [-1, 1]) {
@@ -130,9 +151,9 @@ export class IslandConnectorBuilder {
             if (bridgePositions.some(/**
              * @param {{col: number, row: number}} cell
              */
-            ({ col, row }) => PathSurfaceRules.classifyRenderMode(
-              grid, heightmap, tileMeta, col, row,
-            ) === "BRIDGE")) continue;
+              ({ col, row }) => PathSurfaceRules.classifyRenderMode(
+                grid, heightmap, tileMeta, col, row,
+              ) === "BRIDGE")) continue;
             const nearIsland = this.#flood(grid, before, blocked);
             if (nearIsland.size === 0 ||
               nearIsland.has(`${after.col},${after.row}`)) continue;
@@ -142,8 +163,13 @@ export class IslandConnectorBuilder {
             const score = Math.min(nearIsland.size, farIsland.size);
             if (!best || score > best.score) {
               best = {
-                score, horizontal, station, pathCells, grassCells,
-                nearIsland, farIsland,
+                score,
+                horizontal,
+                station,
+                pathCells,
+                grassCells,
+                nearIsland,
+                farIsland,
               };
             }
           }
@@ -175,7 +201,10 @@ export class IslandConnectorBuilder {
     for (let row = 0; row < MAP_ROWS; row += 1) {
       for (let col = 0; col < MAP_COLS; col += 1) {
         if (grid[row][col] === TileType.WATER || visited.has(`${col},${row}`)) continue;
-        const cells = this.#flood(grid, { col, row }, connectorCells);
+        const cells = this.#flood(grid, {
+          col,
+          row,
+        }, connectorCells);
         for (const key of cells) visited.add(key);
         islands.push([...cells]);
       }
@@ -189,7 +218,7 @@ export class IslandConnectorBuilder {
        *
        * @param {string[]} cells
        */
-      (cells) => cells.includes(ownerKey));
+        (cells) => cells.includes(ownerKey));
       for (const { col, row } of connector.cells) owner.push(`${col},${row}`);
     }
     return {
@@ -198,12 +227,12 @@ export class IslandConnectorBuilder {
        *
        * @param {{cells: Array<{col: number, row: number}>, removedCells: Array<{col: number, row: number}>}} connector
        */
-      (connector) => connector.cells),
+        (connector) => connector.cells),
       removedCells: connectors.flatMap(/**
        *
        * @param {{cells: Array<{col: number, row: number}>, removedCells: Array<{col: number, row: number}>}} connector
        */
-      (connector) => connector.removedCells),
+        (connector) => connector.removedCells),
       islands,
       connectors,
       nearIsland: islands[0],
@@ -226,19 +255,19 @@ export class IslandConnectorBuilder {
         const cells = pathCells.map(/**
          * @param {{col: number, row: number}} cell
          */
-        (cell) => ({
-          col: cell.col + (horizontal ? step * distance : 0),
-          row: cell.row + (horizontal ? 0 : step * distance),
-        }));
+          (cell) => ({
+            col: cell.col + (horizontal ? step * distance : 0),
+            row: cell.row + (horizontal ? 0 : step * distance),
+          }));
         if (cells.some(/**
          * @param {{col: number, row: number}} cell
          */
-        ({ col, row }) => grid[row]?.[col] !== TileType.PATH ||
+          ({ col, row }) => grid[row]?.[col] !== TileType.PATH ||
           tileMeta[row][col].direction !== direction)) break;
         if (cells.some(/**
          * @param {{col: number, row: number}} cell
          */
-        ({ col, row }) => tileMeta[row][col].islandConnector)) return true;
+          ({ col, row }) => tileMeta[row][col].islandConnector)) return true;
       }
     }
     return false;
@@ -255,7 +284,7 @@ export class IslandConnectorBuilder {
     const removed = new Set(removedCells.map(/**
      * @param {{col: number, row: number}} cell
      */
-    (cell) => `${cell.col},${cell.row}`));
+      (cell) => `${cell.col},${cell.row}`));
     const directions = [[1, 0], [-1, 0], [0, 1], [0, -1]];
     for (const cell of removedCells) {
       for (const [dc, dr] of directions) {
@@ -267,7 +296,7 @@ export class IslandConnectorBuilder {
         const related = directions.some(/**
          * @param {number[]} direction
          */
-        ([dx, dy]) => grid[row + dy][col + dx] === TileType.GRASS &&
+          ([dx, dy]) => grid[row + dy][col + dx] === TileType.GRASS &&
           !removed.has(`${col + dx},${row + dy}`) &&
           heightmap[row + dy][col + dx] >= heightmap[row][col] - 1);
         if (!related) return true;
@@ -291,8 +320,20 @@ export class IslandConnectorBuilder {
         blocked.has(key) || visited.has(key) || grid[row][col] === TileType.WATER) continue;
       visited.add(key);
       queue.push(
-        { col: col - 1, row }, { col: col + 1, row },
-        { col, row: row - 1 }, { col, row: row + 1 },
+        {
+          col: col - 1,
+          row,
+        }, {
+          col: col + 1,
+          row,
+        },
+        {
+          col,
+          row: row - 1,
+        }, {
+          col,
+          row: row + 1,
+        },
       );
     }
     return visited;

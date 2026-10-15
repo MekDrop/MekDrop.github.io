@@ -207,8 +207,16 @@ describe("generated stone clusters", () => {
       objects: [
         {
           object: "StoneCluster",
-          position: { x: 0, y: 2.002, z: 0 },
-          parts: [{ offsetX: 0, offsetZ: 0, diameter: 0.75 }],
+          position: {
+            x: 0,
+            y: 2.002,
+            z: 0,
+          },
+          parts: [{
+            offsetX: 0,
+            offsetZ: 0,
+            diameter: 0.75,
+          }],
         },
       ],
     });

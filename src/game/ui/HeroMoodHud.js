@@ -46,7 +46,12 @@ export class HeroMoodHud extends GamePanelHud {
    * @param {() => HeroMoodSnapshot|null} options.getMood
    */
   constructor({ pc, app, getMood }) {
-    super({ pc, app, name: "Hero mood HUD", priority: 106 });
+    super({
+      pc,
+      app,
+      name: "Hero mood HUD",
+      priority: 106,
+    });
     this.#getMood = getMood;
     this.#motionPreference = globalThis.matchMedia?.("(prefers-reduced-motion: reduce)") ?? null;
     for (const [kind, symbol, color] of [

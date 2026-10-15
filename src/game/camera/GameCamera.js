@@ -158,7 +158,10 @@ export class GameCamera {
      */
     const normalize = (x, y) => {
       const length = Math.max(0.0001, Math.hypot(x, y));
-      return { x: x / length, y: y / length };
+      return {
+        x: x / length,
+        y: y / length,
+      };
     };
     return {
       x: normalize(right.x, -up.x),

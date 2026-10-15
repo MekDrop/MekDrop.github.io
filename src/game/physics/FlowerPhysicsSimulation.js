@@ -79,7 +79,12 @@ export class FlowerPhysicsSimulation {
     for (const definition of definitions) {
       const position = new Vec3(definition.position.x, definition.position.y, definition.position.z);
       const body = this.#createBody(BODYTYPE_DYNAMIC, 0.008,
-        { type: "cylinder", radius: definition.radius * 0.72, height: 0.035, axis: 1 },
+        {
+          type: "cylinder",
+          radius: definition.radius * 0.72,
+          height: 0.035,
+          axis: 1,
+        },
         new Vec3(position.x, position.y + definition.pivotHeight, position.z), BODYGROUP_USER_1, BODYGROUP_USER_2);
       body.setFriction(0.75);
       body.setDamping(0.58, 0.7);
@@ -91,26 +96,56 @@ export class FlowerPhysicsSimulation {
       // Bullet's default sleep thresholds stop these tiny springs while visibly bent.
       body.nativeBody.setSleepingThresholds(0.001, 0.001);
       const anchor = this.#createBody(BODYTYPE_KINEMATIC, 0,
-        { type: "sphere", radius: 0.01 }, position, BODYGROUP_USER_1, 0);
+        {
+          type: "sphere",
+          radius: 0.01,
+        }, position, BODYGROUP_USER_1, 0);
       const joint = this.#world.createJoint({
-        type: JOINTTYPE_6DOF, bodyA: anchor, bodyB: body,
-        frameA: new Mat4(), frameB: new Mat4().setTranslate(0, -definition.pivotHeight, 0),
+        type: JOINTTYPE_6DOF,
+        bodyA: anchor,
+        bodyB: body,
+        frameA: new Mat4(),
+        frameB: new Mat4().setTranslate(0, -definition.pivotHeight, 0),
         enableCollision: false,
         settings: {
-          linearMotionX: MOTION_LIMITED, linearMotionY: MOTION_LIMITED, linearMotionZ: MOTION_LIMITED,
-          linearLimitsX: new Vec3(-0.18, 0.18), linearLimitsY: new Vec3(-definition.pivotHeight + 0.001, 0.01), linearLimitsZ: new Vec3(-0.18, 0.18),
-          angularMotionX: MOTION_LOCKED, angularMotionY: MOTION_LOCKED, angularMotionZ: MOTION_LOCKED,
-          angularLimitsX: new Vec3(), angularLimitsY: new Vec3(), angularLimitsZ: new Vec3(),
-          linearStiffness: new Vec3(0.6, 0.6, 0.6), linearDamping: new Vec3(0.86, 0.86, 0.86), linearEquilibrium: new Vec3(),
-          angularStiffness: new Vec3(), angularDamping: new Vec3(1, 1, 1), angularEquilibrium: new Vec3(),
+          linearMotionX: MOTION_LIMITED,
+          linearMotionY: MOTION_LIMITED,
+          linearMotionZ: MOTION_LIMITED,
+          linearLimitsX: new Vec3(-0.18, 0.18),
+          linearLimitsY: new Vec3(-definition.pivotHeight + 0.001, 0.01),
+          linearLimitsZ: new Vec3(-0.18, 0.18),
+          angularMotionX: MOTION_LOCKED,
+          angularMotionY: MOTION_LOCKED,
+          angularMotionZ: MOTION_LOCKED,
+          angularLimitsX: new Vec3(),
+          angularLimitsY: new Vec3(),
+          angularLimitsZ: new Vec3(),
+          linearStiffness: new Vec3(0.6, 0.6, 0.6),
+          linearDamping: new Vec3(0.86, 0.86, 0.86),
+          linearEquilibrium: new Vec3(),
+          angularStiffness: new Vec3(),
+          angularDamping: new Vec3(1, 1, 1),
+          angularEquilibrium: new Vec3(),
         },
       });
       this.#joints.add(joint);
-      this.#flowers.push({ body, anchor, joint, position, radius: definition.radius, pivotHeight: definition.pivotHeight, offset: 0, hidden: false });
+      this.#flowers.push({
+        body,
+        anchor,
+        joint,
+        position,
+        radius: definition.radius,
+        pivotHeight: definition.pivotHeight,
+        offset: 0,
+        hidden: false,
+      });
     }
     for (let index = 0; index < 2; index++) {
       const foot = this.#createBody(BODYTYPE_KINEMATIC, 0,
-        { type: "box", halfExtents: new Vec3(0.17, 0.3, 0.17) }, new Vec3(0, -1000, 0), BODYGROUP_USER_2, BODYGROUP_USER_1);
+        {
+          type: "box",
+          halfExtents: new Vec3(0.17, 0.3, 0.17),
+        }, new Vec3(0, -1000, 0), BODYGROUP_USER_2, BODYGROUP_USER_1);
       foot.setFriction(0.8);
       this.#feet.push(foot);
     }
@@ -141,7 +176,13 @@ export class FlowerPhysicsSimulation {
    */
   #createBody(type, mass, description, position, group, mask) {
     const shape = this.#world.createShape(description);
-    const body = this.#world.createBody({ type, mass, shape, position, rotation: this.#identity });
+    const body = this.#world.createBody({
+      type,
+      mass,
+      shape,
+      position,
+      rotation: this.#identity,
+    });
     this.#world.addBody(body, group, mask);
     this.#bodies.add(body);
     this.#activeBodies.add(body);

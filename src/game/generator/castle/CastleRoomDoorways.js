@@ -10,16 +10,36 @@ export function createCastleRoomDoorways(plan) {
     const x = (room.minX + room.maxX) / 2;
     const z = (room.minZ + room.maxZ) / 2;
     if (room.id === "throneRoom") {
-      result.push({ roomId: room.id, axis: "z", coordinate: room.minZ - 0.125, center: 0, width: 1.2, floorY: room.floorY });
+      result.push({
+        roomId: room.id,
+        axis: "z",
+        coordinate: room.minZ - 0.125,
+        center: 0,
+        width: 1.2,
+        floorY: room.floorY,
+      });
       for (const coordinate of [room.minX - 0.125, room.maxX + 0.125]) {
-        result.push({ roomId: room.id, axis: "x", coordinate, center: room.minZ + 0.6, width: 1.2, floorY: room.floorY });
+        result.push({
+          roomId: room.id,
+          axis: "x",
+          coordinate,
+          center: room.minZ + 0.6,
+          width: 1.2,
+          floorY: room.floorY,
+        });
       }
       continue;
     }
     if (room.level === 1 && !room.id.startsWith("tower")) {
       // Upper chambers open onto the broad rear landing rather than a side slot.
-      result.push({ roomId: room.id, axis: "z", coordinate: room.maxZ + 0.125,
-        center: Math.max(room.minX + 0.75, Math.min(room.maxX - 0.75, x + (plan.shaft.minX < 0 ? 0.5 : -0.5))), width: 1, floorY: room.floorY });
+      result.push({
+        roomId: room.id,
+        axis: "z",
+        coordinate: room.maxZ + 0.125,
+        center: Math.max(room.minX + 0.75, Math.min(room.maxX - 0.75, x + (plan.shaft.minX < 0 ? 0.5 : -0.5))),
+        width: 1,
+        floorY: room.floorY,
+      });
       continue;
     }
     const side = x < 0 ? room.maxX + 0.125 : room.minX - 0.125;
@@ -31,16 +51,16 @@ export function createCastleRoomDoorways(plan) {
      * @param {number} a
      * @param {number} b
      */
-    (a, b) => Math.abs(a - z) - Math.abs(b - z));
+      (a, b) => Math.abs(a - z) - Math.abs(b - z));
     const clearCenter = centers.find(/**
      *
      * @param {number} center
      */
-    (center) => !plan.placedRooms.some(/**
+      (center) => !plan.placedRooms.some(/**
      *
      * @param {import("./rooms/AbstractCastleRoomGenerator.js").PlannedCastleRoom} other
      */
-    (other) => other !== room &&
+        (other) => other !== room &&
       other.level <= room.level && other.level + other.floorSpan > room.level &&
       approachX > other.minX - 0.525 && approachX < other.maxX + 0.525 &&
       center > other.minZ - 0.525 && center < other.maxZ + 0.525)) ?? z;
@@ -49,14 +69,24 @@ export function createCastleRoomDoorways(plan) {
       const shaftCenterZ = (plan.shaft.minZ + plan.shaft.maxZ) / 2;
       const landingMinZ = x < 0 ? shaftCenterZ - 0.2 : plan.shaft.minZ + 0.25;
       const landingMaxZ = x < 0 ? plan.shaft.maxZ - 0.25 : shaftCenterZ + 0.2;
-      result.push({ roomId: room.id, axis: "x", coordinate: side,
+      result.push({
+        roomId: room.id,
+        axis: "x",
+        coordinate: side,
         center: openLanding ? (landingMinZ + landingMaxZ) / 2 : room.stairHost ? plan.shaft.minZ : clearCenter,
         width: openLanding ? Math.min(1.25, landingMaxZ - landingMinZ) : Math.min(1.2, room.maxZ - room.minZ - 0.5),
-        floorY: room.floorY + floor * plan.rise });
+        floorY: room.floorY + floor * plan.rise,
+      });
     }
     if (room.level === 0 && !room.id.startsWith("tower")) {
-      result.push({ roomId: room.id, axis: "z", coordinate: room.minZ - 0.125,
-        center: room.stairHost ? x < 0 ? room.minX + 0.9 : room.maxX - 0.9 : x, width: Math.min(1.2, room.maxX - room.minX - 0.5), floorY: room.floorY });
+      result.push({
+        roomId: room.id,
+        axis: "z",
+        coordinate: room.minZ - 0.125,
+        center: room.stairHost ? x < 0 ? room.minX + 0.9 : room.maxX - 0.9 : x,
+        width: Math.min(1.2, room.maxX - room.minX - 0.5),
+        floorY: room.floorY,
+      });
     }
   }
   // Aperture edges align with voxel edges. The visual leaf and its collider

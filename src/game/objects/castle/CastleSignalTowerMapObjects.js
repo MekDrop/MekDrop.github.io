@@ -30,9 +30,18 @@ export class CastleSignalTowerMapObjects {
         ["bell", "SignalBell", station.bell], ["flag", "Flag", station.flag],
       ]) {
         const { position } = placement;
-        map.objects.push({ id: `${castle.id}-signal-${suffix}`, object, ...placement,
-          generated: true, sourceCastleId: castle.id, sourceCastleSeed: castle.seed,
-          tile: { col: Math.round(position.x + (map.cols - 1) / 2), row: Math.round(position.z + (map.rows - 1) / 2) } });
+        map.objects.push({
+          id: `${castle.id}-signal-${suffix}`,
+          object,
+          ...placement,
+          generated: true,
+          sourceCastleId: castle.id,
+          sourceCastleSeed: castle.seed,
+          tile: {
+            col: Math.round(position.x + (map.cols - 1) / 2),
+            row: Math.round(position.z + (map.rows - 1) / 2),
+          },
+        });
       }
     }
   }

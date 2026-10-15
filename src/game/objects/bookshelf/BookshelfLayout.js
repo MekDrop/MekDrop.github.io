@@ -23,9 +23,14 @@ export class BookshelfLayout {
     }
     const length = Math.abs(alongX ? to.x - from.x : to.z - from.z);
     return {
-      x: (from.x + to.x) / 2, y: from.y + height / 2, z: (from.z + to.z) / 2,
-      width: alongX ? length : this.depth, height, depth: alongX ? this.depth : length,
-      length, rotation: alongX ? (facing === 1 ? 0 : 180) : (facing === 1 ? 90 : -90),
+      x: (from.x + to.x) / 2,
+      y: from.y + height / 2,
+      z: (from.z + to.z) / 2,
+      width: alongX ? length : this.depth,
+      height,
+      depth: alongX ? this.depth : length,
+      length,
+      rotation: alongX ? (facing === 1 ? 0 : 180) : (facing === 1 ? 90 : -90),
     };
   }
 }

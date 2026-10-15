@@ -22,7 +22,15 @@ export class FireplaceChimneyFootprint {
         room.maxZ < z - halfZ || room.minZ > z + halfZ || room.floorY < base) { continue; }
       top = Math.max(top, room.floorY + (room.height ?? 3) + 0.72);
     }
-    return { minX: x - halfX, maxX: x + halfX, minZ: z - halfZ, maxZ: z + halfZ,
-      bottom: base + 1.65 * scale, top, masonry: false, chimney: true };
+    return {
+      minX: x - halfX,
+      maxX: x + halfX,
+      minZ: z - halfZ,
+      maxZ: z + halfZ,
+      bottom: base + 1.65 * scale,
+      top,
+      masonry: false,
+      chimney: true,
+    };
   }
 }

@@ -7,8 +7,19 @@ it("supports stepping from the first authored tread onto its floor in either mir
   for (const side of ["NORTH", "SOUTH", "WEST", "EAST"]) {
     for (const seed of [0, 1]) {
       const plan = await CastleGenerator.generate({
-        position: { x: -14, z: -8, width: 28, depth: 16, elevation: 3 },
-        doors: [{ side, offset: 13, width: 2 }], seed,
+        position: {
+          x: -14,
+          z: -8,
+          width: 28,
+          depth: 16,
+          elevation: 3,
+        },
+        doors: [{
+          side,
+          offset: 13,
+          width: 2,
+        }],
+        seed,
       });
       const layout = new CastleResidentialLayout(plan);
       for (const stair of layout.authoredStairs) {

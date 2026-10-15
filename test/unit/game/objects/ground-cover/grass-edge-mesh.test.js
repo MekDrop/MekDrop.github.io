@@ -10,7 +10,11 @@ it("builds a closed turf volume with finite outward normals", () => {
     setIndices(values) { this.indices = values; }
     update() {}
   }
-  const mesh = GrassEdgeMesh.create({ Mesh, calculateNormals, PRIMITIVE_TRIANGLES: 4 }, null);
+  const mesh = GrassEdgeMesh.create({
+    Mesh,
+    calculateNormals,
+    PRIMITIVE_TRIANGLES: 4,
+  }, null);
   assert.ok(mesh.normals.every(Number.isFinite));
   const edges = new Map();
   for (let i = 0; i < mesh.indices.length; i += 3) {

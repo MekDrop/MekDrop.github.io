@@ -5,7 +5,11 @@ import { HeroMoodHud } from "../../../../src/game/ui/HeroMoodHud.js";
 class Entity {
   children = [];
   addComponent(type, options) {
-    this[type] = { ...options, scale: 2, syncDrawOrder() {} };
+    this[type] = {
+      ...options,
+      scale: 2,
+      syncDrawOrder() {},
+    };
   }
   addChild(child) {
     this.children.push(child);
@@ -36,13 +40,36 @@ it("tracks mood, projection, growth, reduced motion and visibility without DOM i
   const originalMatchMedia = globalThis.matchMedia;
   globalThis.matchMedia = () => preference;
   try {
-    const pc = { Entity, Vec2: class {}, Vec4: class {} };
-    const app = { graphicsDevice: { canvas: { clientWidth: 640, width: 1280 } } };
-    const hud = new TestMoodHud({ pc, app, getMood: () => mood });
+    const pc = {
+      Entity,
+      Vec2: class {},
+      Vec4: class {},
+    };
+    const app = {
+      graphicsDevice: {
+        canvas: {
+          clientWidth: 640,
+          width: 1280,
+        },
+      },
+    };
+    const hud = new TestMoodHud({
+      pc,
+      app,
+      getMood: () => mood,
+    });
     const icon = hud.entity.children[0];
     hud.update(0.016);
     assert.equal(icon.enabled, false);
-    mood = { kind: "happy", reactionProgress: 1, screen: { x: 123, y: 234, radius: 10 } };
+    mood = {
+      kind: "happy",
+      reactionProgress: 1,
+      screen: {
+        x: 123,
+        y: 234,
+        radius: 10,
+      },
+    };
     hud.update(0.016);
     assert.equal(icon.enabled, true);
     assert.equal(icon.element.texture.name, "Hero mood happy");
@@ -82,7 +109,11 @@ it("tracks mood, projection, growth, reduced motion and visibility without DOM i
     hud.update(0.016);
     assert.equal(icon.enabled, false);
     mood.kind = "calm";
-    mood.screen = { x: 123, y: 234, radius: 10 };
+    mood.screen = {
+      x: 123,
+      y: 234,
+      radius: 10,
+    };
     hud.update(0.016);
     assert.equal(icon.enabled, false);
     const root = hud.entity;

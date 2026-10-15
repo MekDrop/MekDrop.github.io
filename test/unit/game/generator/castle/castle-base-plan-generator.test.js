@@ -7,7 +7,11 @@ import { ServiceRoomGenerator } from "../../../../../src/game/generator/castle/r
 it("compiles all authored plans with fixed rooms, stairs, roofs, doors and windows", async () => {
   assert.deepEqual((await CastleBasePlanGenerator.plans).map((plan) => plan.id), ["castle-01", "castle-03", "castle-04", "castle-demo-compact", "castle-compact-tower", "castle-compact-service-wing"]);
   for (const authored of (await CastleBasePlanGenerator.plans)) {
-    const result = await CastleBasePlanGenerator.generate({ planId: authored.id, unitMetres: 0.5, baseY: 3 });
+    const result = await CastleBasePlanGenerator.generate({
+      planId: authored.id,
+      unitMetres: 0.5,
+      baseY: 3,
+    });
     assert.equal(result.spaces.length, authored.levels.reduce((sum, floor) => sum + floor.spaces.length, 0));
     assert.equal(result.openings.length, authored.levels.reduce((sum, floor) =>
       sum + floor.spaces.reduce((count, space) => count + space.openings.length, 0), 0));
@@ -48,8 +52,14 @@ it("selects only enabled layouts and callers cannot mutate the catalogue", async
 });
 
 it("mirrors odd seeds around the unchanged entrance, including every structural footprint", async () => {
-  const original = await CastleBasePlanGenerator.generate({ planId: "castle-demo-compact", seed: 42 });
-  const mirrored = await CastleBasePlanGenerator.generate({ planId: "castle-demo-compact", seed: 43 });
+  const original = await CastleBasePlanGenerator.generate({
+    planId: "castle-demo-compact",
+    seed: 42,
+  });
+  const mirrored = await CastleBasePlanGenerator.generate({
+    planId: "castle-demo-compact",
+    seed: 43,
+  });
   assert.deepEqual(CastleBasePlanGenerator.layoutPlanIds, ["castle-demo-compact", "castle-compact-tower", "castle-compact-service-wing"]);
   assert.equal(original.basePlanId, mirrored.basePlanId);
   assert.equal(original.mirrored, false);
@@ -81,7 +91,10 @@ it("mirrors odd seeds around the unchanged entrance, including every structural 
     assert.equal(mirrored.furniture[index].x, center - item.x);
     assert.equal(mirrored.furniture[index].z, item.z);
   });
-  assert.deepEqual(await CastleBasePlanGenerator.generate({ planId: "castle-demo-compact", seed: "43" }), mirrored);
+  assert.deepEqual(await CastleBasePlanGenerator.generate({
+    planId: "castle-demo-compact",
+    seed: "43",
+  }), mirrored);
   assert.deepEqual(await CastleBasePlanGenerator.generate({ seed: 43 }), mirrored);
 });
 
@@ -89,10 +102,14 @@ it("runs a room generator at every assigned slot without changing its bounds", a
   const generator = new ServiceRoomGenerator();
   const calls = [];
   generator.furnish = (room) => { calls.push({ ...room }); return []; };
-  const result = await CastleBasePlanGenerator.generate({ planId: "castle-03", generators: [generator,
-    ...["LibraryRoomGenerator", "ThroneRoomGenerator", "LeisureRoomGenerator"].map((name) => ({
-      constructor: { name }, furnish: () => [],
-    }))] });
+  const result = await CastleBasePlanGenerator.generate({
+    planId: "castle-03",
+    generators: [generator,
+      ...["LibraryRoomGenerator", "ThroneRoomGenerator", "LeisureRoomGenerator"].map((name) => ({
+        constructor: { name },
+        furnish: () => [],
+      }))],
+  });
   const slots = result.spaces.filter((space) => space.generator === "ServiceRoomGenerator");
   assert.deepEqual(calls, slots);
   assert.ok(calls.length > 1);

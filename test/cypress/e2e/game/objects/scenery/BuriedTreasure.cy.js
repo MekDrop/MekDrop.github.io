@@ -1,7 +1,10 @@
 import { HERO_ANIMATION } from "../../../../../../src/game/enum/HeroAnimation.js";
 
 function pressKey(code) {
-  cy.window().trigger("keydown", { code, key: code });
+  cy.window().trigger("keydown", {
+    code,
+    key: code,
+  });
 }
 
 describe("Buried treasure", () => {

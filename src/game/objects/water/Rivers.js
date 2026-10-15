@@ -29,9 +29,14 @@ export class Rivers {
   constructor(context) {
     if (context.definition) {
       this.definition = context.definition;
-      context = { ...context, mapData: { ...context.runtime.mapData,
-        islandConnectorData: context.runtime.mapData.islandConnectorData,
-        riverData: context.definition.rivers } };
+      context = {
+        ...context,
+        mapData: {
+          ...context.runtime.mapData,
+          islandConnectorData: context.runtime.mapData.islandConnectorData,
+          riverData: context.definition.rivers,
+        },
+      };
     }
     this.entity = new context.pc.Entity('Rivers');
     this.#islandRoots = new IslandObjectRoots(context.pc, this.entity, context.mapData);
@@ -41,12 +46,21 @@ export class Rivers {
       const bank = river.cells[0];
       const group = this.#islandRoots.groupForTile(bank);
       if (!groups.has(group)) {
-        groups.set(group, { bank, rivers: [] });
+        groups.set(group, {
+          bank,
+          rivers: [],
+        });
       }
       groups.get(group).rivers.push(river);
     }
     for (const { bank, rivers } of groups.values()) {
-      const options = { ...context, mapData: { ...context.mapData, riverData: rivers } };
+      const options = {
+        ...context,
+        mapData: {
+          ...context.mapData,
+          riverData: rivers,
+        },
+      };
       for (const Surface of [RiverWater, RiverLava]) {
         const surface = new Surface(options);
         surface.build(context.modelLibrary);

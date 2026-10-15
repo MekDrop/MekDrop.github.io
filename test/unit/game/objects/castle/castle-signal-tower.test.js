@@ -9,8 +9,22 @@ import { CastleWindowLayout } from "../../../../../src/game/objects/castle/Castl
 it("keeps signal props supported and clear of mirrored hatches for every orientation", async () => {
   for (const side of ["NORTH", "SOUTH", "EAST", "WEST"]) {
     for (const seed of [4, 5]) {
-      const buildPlan = await CastleGenerator.generate({ position: { x: -12, z: -12, width: 24, depth: 24, elevation: 3 },
-        doors: [{ side, offset: 11, width: 2 }], seed, basePlanId: "castle-compact-service-wing" });
+      const buildPlan = await CastleGenerator.generate({
+        position: {
+          x: -12,
+          z: -12,
+          width: 24,
+          depth: 24,
+          elevation: 3,
+        },
+        doors: [{
+          side,
+          offset: 11,
+          width: 2,
+        }],
+        seed,
+        basePlanId: "castle-compact-service-wing",
+      });
       const station = CastleSignalTowerLayout.describe(buildPlan);
       assert.ok(station);
       const plan = buildPlan.metadata.runtime.residential;
@@ -25,7 +39,16 @@ it("keeps signal props supported and clear of mirrored hatches for every orienta
       const hole = plan.roofAccess.hole;
       assert.ok(point.x + 0.703 < hole.minX || point.x - 0.703 > hole.maxX ||
         point.z + 0.241 < hole.minZ || point.z - 0.241 > hole.maxZ);
-      const map = { cols: 64, rows: 64, objects: [{ id: "castle", object: "Castle", seed, buildPlan }] };
+      const map = {
+        cols: 64,
+        rows: 64,
+        objects: [{
+          id: "castle",
+          object: "Castle",
+          seed,
+          buildPlan,
+        }],
+      };
       CastleSignalTowerMapObjects.prepareMap(map);
       CastleSignalTowerMapObjects.prepareMap(map);
       assert.equal(map.objects.filter(item => item.object === "SignalBell").length, 1);

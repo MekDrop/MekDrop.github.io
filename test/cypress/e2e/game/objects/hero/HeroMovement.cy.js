@@ -192,30 +192,30 @@ describe("Hero movement on a predefined terrain map", { testIsolation: false }, 
   });
 
   it("walks up castle stairs and through the open entrance without jumping", () => {
-      loadScenario("royal-castles");
-      let usedJumpAnimation = false;
-      let usedWalkAnimation = false;
-      let target;
-      cy.window().then((window) => { target = window; });
-      expectState((state) => {
-        expect(state.grounded).to.equal(true);
-      });
-      expectState((state) => {
-        // Royal activity rotates the camera on the approach. Keep walking north
-        // in world space so this regression checks the doorway, not that turn.
-        const rotation = target.gameCameraTest.state().viewport.rotation;
-        const yaw = Math.PI / 4 + rotation * Math.PI / 2;
-        target.gameMovementTest.move(Math.sin(yaw), Math.cos(yaw));
-        usedJumpAnimation ||= state.animation === HERO_ANIMATION.JUMP;
-        usedWalkAnimation ||= state.animation === HERO_ANIMATION.WALK;
-        expect(state.position.z, JSON.stringify(state)).to.be.lessThan(0.8);
-        expect(state.position.y, JSON.stringify(state)).to.be.greaterThan(3.8);
-        expect(state.grounded).to.equal(true);
-        expect(usedWalkAnimation).to.equal(true);
-        expect(usedJumpAnimation).to.equal(false);
-      });
-      stopMoving();
+    loadScenario("royal-castles");
+    let usedJumpAnimation = false;
+    let usedWalkAnimation = false;
+    let target;
+    cy.window().then((window) => { target = window; });
+    expectState((state) => {
+      expect(state.grounded).to.equal(true);
     });
+    expectState((state) => {
+      // Royal activity rotates the camera on the approach. Keep walking north
+      // in world space so this regression checks the doorway, not that turn.
+      const rotation = target.gameCameraTest.state().viewport.rotation;
+      const yaw = Math.PI / 4 + rotation * Math.PI / 2;
+      target.gameMovementTest.move(Math.sin(yaw), Math.cos(yaw));
+      usedJumpAnimation ||= state.animation === HERO_ANIMATION.JUMP;
+      usedWalkAnimation ||= state.animation === HERO_ANIMATION.WALK;
+      expect(state.position.z, JSON.stringify(state)).to.be.lessThan(0.8);
+      expect(state.position.y, JSON.stringify(state)).to.be.greaterThan(3.8);
+      expect(state.grounded).to.equal(true);
+      expect(usedWalkAnimation).to.equal(true);
+      expect(usedJumpAnimation).to.equal(false);
+    });
+    stopMoving();
+  });
 
   it("walks down onto terrain one block lower", () => {
     loadScenario("safe-descent");
@@ -507,7 +507,10 @@ describe("Hero movement on a predefined terrain map", { testIsolation: false }, 
           const position = window.gameMovementTest.state().position;
           rotations.push(window.gameCameraTest.state().viewport.rotation);
           if (position.x > 1.7 || Date.now() >= deadline) {
-            resolve({ position, rotations });
+            resolve({
+              position,
+              rotations,
+            });
             return;
           }
           window.setTimeout(inspect, 10);

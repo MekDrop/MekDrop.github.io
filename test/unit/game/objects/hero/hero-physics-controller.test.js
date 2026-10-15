@@ -116,14 +116,21 @@ function createFixture({ maxSubSteps = 4, fixedTimeStep } = {}) {
     fixedTimeStep: 1 / 30,
     maxSubSteps,
     raycastAll(start, end, options) {
-      raycasts.push({ start, end, options });
+      raycasts.push({
+        start,
+        end,
+        options,
+      });
       return [];
     },
   };
   const app = { systems: { rigidbody } };
   const entity = new FakeEntity();
   const controller = new HeroPhysicsController({
-    pc: { Entity: FakeEntity, Vec3: FakeVec3 },
+    pc: {
+      Entity: FakeEntity,
+      Vec3: FakeVec3,
+    },
     app,
     entity,
     radius: 0.31,
@@ -131,7 +138,13 @@ function createFixture({ maxSubSteps = 4, fixedTimeStep } = {}) {
     gravity: -18,
     ...(fixedTimeStep === undefined ? {} : { fixedTimeStep }),
   });
-  return { app, controller, destroyed, entity, raycasts };
+  return {
+    app,
+    controller,
+    destroyed,
+    entity,
+    raycasts,
+  };
 }
 
 describe("HeroPhysicsController", () => {
@@ -146,7 +159,11 @@ describe("HeroPhysicsController", () => {
   });
   it("retains animated eye motion when the view is clear", () => {
     const { controller, entity, raycasts } = createFixture();
-    const anchor = { x: 2.15, y: 4.2, z: 4.1 };
+    const anchor = {
+      x: 2.15,
+      y: 4.2,
+      z: 4.1,
+    };
     assert.deepEqual(controller.cameraPosition(anchor), anchor);
     const { start, options } = raycasts[0];
     assert.deepEqual(start, new FakeVec3(2, 3 + 1.44 / 2, 4));
@@ -158,13 +175,37 @@ describe("HeroPhysicsController", () => {
   });
 
   it("pulls eyes back before a stair wall or low ceiling in either travel direction", () => {
-    for (const direction of [{ x: 1, y: 0, z: 0 }, { x: 0, y: 0, z: -1 }, { x: 0, y: 1, z: 0 }]) {
+    for (const direction of [{
+      x: 1,
+      y: 0,
+      z: 0,
+    }, {
+      x: 0,
+      y: 0,
+      z: -1,
+    }, {
+      x: 0,
+      y: 1,
+      z: 0,
+    }]) {
       const { app, controller } = createFixture();
-      const start = { x: 2, y: 3.72, z: 4 };
-      const anchor = { x: start.x + direction.x * 0.3, y: start.y + direction.y * 0.3, z: start.z + direction.z * 0.3 };
-      app.systems.rigidbody.raycastAll = () => [{ point: {
-        x: start.x + direction.x * 0.2, y: start.y + direction.y * 0.2, z: start.z + direction.z * 0.2,
-      } }];
+      const start = {
+        x: 2,
+        y: 3.72,
+        z: 4,
+      };
+      const anchor = {
+        x: start.x + direction.x * 0.3,
+        y: start.y + direction.y * 0.3,
+        z: start.z + direction.z * 0.3,
+      };
+      app.systems.rigidbody.raycastAll = () => [{
+        point: {
+          x: start.x + direction.x * 0.2,
+          y: start.y + direction.y * 0.2,
+          z: start.z + direction.z * 0.2,
+        },
+      }];
       const camera = controller.cameraPosition(anchor);
       const travel = Math.hypot(camera.x - start.x, camera.y - start.y, camera.z - start.z);
       assert.ok(Math.abs(travel - 0.16) < 1e-9);
@@ -176,9 +217,19 @@ describe("HeroPhysicsController", () => {
     const { app, controller } = createFixture();
     app.systems.rigidbody.raycastAll = (start, end) => {
       assert.ok(end.x > 2.31);
-      return [{ point: { x: 2.31, y: 3.72, z: 4 } }];
+      return [{
+        point: {
+          x: 2.31,
+          y: 3.72,
+          z: 4,
+        },
+      }];
     };
-    const camera = controller.cameraPosition({ x: 2.3, y: 3.72, z: 4 });
+    const camera = controller.cameraPosition({
+      x: 2.3,
+      y: 3.72,
+      z: 4,
+    });
     assert.ok(Math.abs(camera.x - 2.27) < 1e-9);
     controller.destroy();
   });
@@ -232,25 +283,65 @@ describe("HeroPhysicsController", () => {
     const { controller, entity } = createFixture();
     const rigidbody = entity.rigidbody;
 
-    controller.velocity = { x: 5, y: 6, z: 7 };
+    controller.velocity = {
+      x: 5,
+      y: 6,
+      z: 7,
+    };
     assert.deepEqual(rigidbody.linearVelocity, new FakeVec3(5, 6, 7));
     assert.equal(rigidbody.activateCount, 2);
 
-    controller.teleport({ x: 8, y: 9, z: 10 });
+    controller.teleport({
+      x: 8,
+      y: 9,
+      z: 10,
+    });
     assert.deepEqual(rigidbody.teleportCalls, [new FakeVec3(8, 9, 10)]);
-    assert.deepEqual(controller.velocity, { x: 5, y: 6, z: 7 });
+    assert.deepEqual(controller.velocity, {
+      x: 5,
+      y: 6,
+      z: 7,
+    });
 
-    controller.setScripted({ x: 11, y: 12, z: 13 }, { x: -1, y: -2, z: -3 });
+    controller.setScripted({
+      x: 11,
+      y: 12,
+      z: 13,
+    }, {
+      x: -1,
+      y: -2,
+      z: -3,
+    });
     assert.equal(controller.scripted, true);
     assert.equal(rigidbody.type, "kinematic");
-    assert.deepEqual(controller.position, { x: 11, y: 12, z: 13 });
-    assert.deepEqual(controller.velocity, { x: -1, y: -2, z: -3 });
+    assert.deepEqual(controller.position, {
+      x: 11,
+      y: 12,
+      z: 13,
+    });
+    assert.deepEqual(controller.velocity, {
+      x: -1,
+      y: -2,
+      z: -3,
+    });
 
-    controller.resume({ x: 14, y: 15, z: 16 }, { x: 1, y: 2, z: 3 });
+    controller.resume({
+      x: 14,
+      y: 15,
+      z: 16,
+    }, {
+      x: 1,
+      y: 2,
+      z: 3,
+    });
     assert.equal(controller.scripted, false);
     assert.equal(rigidbody.type, "dynamic");
     assert.deepEqual(rigidbody.teleportCalls.at(-1), new FakeVec3(14, 15, 16));
-    assert.deepEqual(controller.velocity, { x: 1, y: 2, z: 3 });
+    assert.deepEqual(controller.velocity, {
+      x: 1,
+      y: 2,
+      z: 3,
+    });
     assert.deepEqual(rigidbody.gravityCalls.at(-1), new FakeVec3(0, -18, 0));
 
     controller.destroy();
@@ -265,11 +356,23 @@ describe("HeroPhysicsController", () => {
     };
     const floor = {
       entity: { name: "floor" },
-      normal: { x: 0.1, y: 0.8, z: 0.2 },
-      point: { x: 4, y: 5.5, z: 6 },
+      normal: {
+        x: 0.1,
+        y: 0.8,
+        z: 0.2,
+      },
+      point: {
+        x: 4,
+        y: 5.5,
+        z: 6,
+      },
     };
     app.systems.rigidbody.raycastAll = (start, end, options) => {
-      raycasts.push({ start, end, options });
+      raycasts.push({
+        start,
+        end,
+        options,
+      });
       return [wall, floor];
     };
 
@@ -319,15 +422,24 @@ describe("HeroPhysicsController", () => {
 
     entity.rigidbody.fire("contact", {
       contacts: [
-        { normal: new FakeVec3(1, 0, 0), point: new FakeVec3(2, 3, 4) },
-        { normal: new FakeVec3(0, 1, 0), point: new FakeVec3(2, 3.31, 4) },
+        {
+          normal: new FakeVec3(1, 0, 0),
+          point: new FakeVec3(2, 3, 4),
+        },
+        {
+          normal: new FakeVec3(0, 1, 0),
+          point: new FakeVec3(2, 3.31, 4),
+        },
       ],
     });
     assert.equal(controller.consumeSupportContact(), false);
 
     entity.rigidbody.fire("contact", {
       contacts: [
-        { normal: new FakeVec3(0, 1, 0), point: new FakeVec3(2, 3.2, 4) },
+        {
+          normal: new FakeVec3(0, 1, 0),
+          point: new FakeVec3(2, 3.2, 4),
+        },
       ],
     });
     assert.equal(controller.consumeSupportContact(), true);

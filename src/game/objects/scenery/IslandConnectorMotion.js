@@ -23,11 +23,11 @@ export class IslandConnectorMotion {
      * @param {number} value
      * @param {number} index
      */
-    (value, index) => {
-      const period = index === 0 ? NEAR_PERIOD : FAR_PERIOD + (index - 1) * 2.4;
-      const amplitude = index === 0 ? NEAR_AMPLITUDE : FAR_AMPLITUDE;
-      return Math.sin(this.#elapsed * Math.PI * 2 / period) * amplitude;
-    });
+      (value, index) => {
+        const period = index === 0 ? NEAR_PERIOD : FAR_PERIOD + (index - 1) * 2.4;
+        const amplitude = index === 0 ? NEAR_AMPLITUDE : FAR_AMPLITUDE;
+        return Math.sin(this.#elapsed * Math.PI * 2 / period) * amplitude;
+      });
     return {
       groups,
       near: Math.sin(this.#elapsed * Math.PI * 2 / NEAR_PERIOD) * NEAR_AMPLITUDE,

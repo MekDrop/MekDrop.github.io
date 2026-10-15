@@ -12,11 +12,28 @@ describe("Castle door swing physics", () => {
       const { CastleDoor } = await load("/src/game/objects/castle/CastleDoor.js");
       const { GameModelLibrary } = await load("/src/game/models/GameModelLibrary.js");
       const app = pc.Application.getApplication();
-      const library = new GameModelLibrary({ pc, app });
+      const library = new GameModelLibrary({
+        pc,
+        app,
+      });
       await library.load(CastleDoor.modelUrls);
-      const door = new CastleDoor({ pc, modelLibrary: library,
-        castlePosition: { x: 100, z: 100, width: 8, depth: 8, elevation: 20 },
-        door: { side: "NORTH", width: 2, offset: 0 }, bundledEntrance: true });
+      const door = new CastleDoor({
+        pc,
+        modelLibrary: library,
+        castlePosition: {
+          x: 100,
+          z: 100,
+          width: 8,
+          depth: 8,
+          elevation: 20,
+        },
+        door: {
+          side: "NORTH",
+          width: 2,
+          offset: 0,
+        },
+        bundledEntrance: true,
+      });
       app.root.addChild(door.entity);
       try {
         expect(door.entity.findByName("Castle entrance frame collider")?.rigidbody?.body,
@@ -48,12 +65,34 @@ describe("Castle door swing physics", () => {
       const { ScenePointerInteraction } = await load("/src/game/objects/shared/ScenePointerInteraction.js");
       const { GameModelLibrary } = await load("/src/game/models/GameModelLibrary.js");
       const app = pc.Application.getApplication();
-      const library = new GameModelLibrary({ pc, app });
+      const library = new GameModelLibrary({
+        pc,
+        app,
+      });
       await library.load(CastleDoor.modelUrls);
-      const door = new CastleDoor({ pc, modelLibrary: library,
-        castlePosition: { x: 100, z: 100, width: 8, depth: 8, elevation: 20 },
-        door: { side: "NORTH", width: 1, offset: 0 },
-        placement: { x: 100, y: 20, z: 100, yaw: 0, height: 2.45 } });
+      const door = new CastleDoor({
+        pc,
+        modelLibrary: library,
+        castlePosition: {
+          x: 100,
+          z: 100,
+          width: 8,
+          depth: 8,
+          elevation: 20,
+        },
+        door: {
+          side: "NORTH",
+          width: 1,
+          offset: 0,
+        },
+        placement: {
+          x: 100,
+          y: 20,
+          z: 100,
+          yaw: 0,
+          height: 2.45,
+        },
+      });
       app.root.addChild(door.entity);
       const collider = door.entity.findByName("Castle moving door plank collider");
       expect(collider, "animated leaf collider").to.exist;
@@ -69,7 +108,10 @@ describe("Castle door swing physics", () => {
       door.entity.anim.update(0);
       const sample = hinge.getWorldTransform().transformPoint(new pc.Vec3(1.5, 1, 0));
       wall.setPosition(sample);
-      wall.addComponent("collision", { type: "box", halfExtents: new pc.Vec3(.15, 1.2, .15) });
+      wall.addComponent("collision", {
+        type: "box",
+        halfExtents: new pc.Vec3(.15, 1.2, .15),
+      });
       wall.addComponent("rigidbody", { type: "static" });
       layer.activeStateCurrentTime = 0;
       door.entity.anim.update(0);
@@ -88,7 +130,10 @@ describe("Castle door swing physics", () => {
           sceneObjects: [door],
           pointerRay: () => aimRay,
         });
-        const click = new window.PointerEvent("pointerdown", { button: 0, cancelable: true });
+        const click = new window.PointerEvent("pointerdown", {
+          button: 0,
+          cancelable: true,
+        });
         // Camera dragging also uses left clicks and may register before scene picking.
         const canvas = app.graphicsDevice.canvas;
         const drag = (event) => event.preventDefault();
@@ -119,8 +164,12 @@ describe("Castle door swing physics", () => {
         const { Servant } = await load("/src/game/objects/servant/Servant.js");
         const { TerraceActor } = await load("/src/game/objects/castle/rooms/terrace/TerraceActor.js");
         await library.load([Servant.modelUrls[0]]);
-        const actor = new TerraceActor({ pc, modelLibrary: library,
-          modelUrl: Servant.modelUrls[0], kind: "servant" });
+        const actor = new TerraceActor({
+          pc,
+          modelLibrary: library,
+          modelUrl: Servant.modelUrls[0],
+          kind: "servant",
+        });
         app.root.addChild(actor.entity);
         const reaction = actor.entity.findByName("NPC doorway reaction");
         const originalState = actor.behavior.currentState;
@@ -189,14 +238,21 @@ describe("Castle door swing physics", () => {
       const collider = door.entity.findByName("Castle moving door plank collider");
       const leaves = app.root.findComponents("rigidbody")
         .filter((component) => component.entity.name === "Castle moving door plank collider")
-        .map((component) => ({ entity: component.entity, position: component.entity.getPosition().clone() }));
+        .map((component) => ({
+          entity: component.entity,
+          position: component.entity.getPosition().clone(),
+        }));
       const center = door.entity.getWorldTransform().transformPoint(new pc.Vec3(0, 1.15, 0));
       const screen = camera.worldToScreen(center);
       const canvas = app.graphicsDevice.canvas;
       const rect = canvas.getBoundingClientRect();
       canvas.dispatchEvent(new window.PointerEvent("pointerdown", {
-        button: 0, pointerType: "mouse", bubbles: true, cancelable: true,
-        clientX: rect.left + screen.x, clientY: rect.top + screen.y,
+        button: 0,
+        pointerType: "mouse",
+        bubbles: true,
+        cancelable: true,
+        clientX: rect.left + screen.x,
+        clientY: rect.top + screen.y,
       }));
       await new Promise((resolve) => window.setTimeout(resolve, 250));
       expect(leaves.some(({ entity, position }) => entity.getPosition().distance(position) > .01),

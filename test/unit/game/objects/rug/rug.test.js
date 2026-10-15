@@ -16,7 +16,10 @@ it("keeps the runner visible without a door-blocking body while solid props reta
      * @param {string} type
      * @param {Record<string, string|number>} data
      */
-    addComponent(type, data) { components.push({ type, data }); }
+    addComponent(type, data) { components.push({
+      type,
+      data,
+    }); }
   }
   class SolidProp extends AbstractCastleProp {
     /**
@@ -24,14 +27,39 @@ it("keeps the runner visible without a door-blocking body while solid props reta
      */
     static get modelUrl() { return "solid.glb"; }
   }
-  const options = { pc: { ...pc, Entity }, definition: { id: "arrival-rug",
-    position: { x: 0, y: 2.002, z: 0 }, scale: 1, stretch: { x: 1, y: 1, z: 2 } },
-  modelLibrary: { instantiate: () => new pc.Entity("imported model") } };
+  const options = {
+    pc: {
+      ...pc,
+      Entity,
+    },
+    definition: {
+      id: "arrival-rug",
+      position: {
+        x: 0,
+        y: 2.002,
+        z: 0,
+      },
+      scale: 1,
+      stretch: {
+        x: 1,
+        y: 1,
+        z: 2,
+      },
+    },
+    modelLibrary: { instantiate: () => new pc.Entity("imported model") },
+  };
   const rug = new Rug(options);
   assert.equal(rug.modelUrl, "woven.glb", "omitting texture keeps the default woven model");
   for (const model of ["vestibule-runner.glb", "custom.glb"]) {
-    const authored = new Rug({ ...options, definition: { ...options.definition,
-      model, width: 50, depth: 50 } });
+    const authored = new Rug({
+      ...options,
+      definition: {
+        ...options.definition,
+        model,
+        width: 50,
+        depth: 50,
+      },
+    });
     assert.equal(authored.modelUrl, model === "custom.glb" ? "custom.glb" : "runner.glb");
     assert.equal(authored.visualRoots[0].children[0].getLocalScale().z, 2,
       "authored model stretch is preserved instead of reinterpreting its dimensions");
@@ -55,10 +83,13 @@ it("loads an arbitrary fabric URL on owned materials and releases the asset", as
     .replace('"../castle-props/AbstractCastleProp.js"', JSON.stringify(new URL("../castle-props/AbstractCastleProp.js", sourceUrl).href));
   const { Rug } = await import(`data:text/javascript;base64,${Buffer.from(source).toString("base64")}`);
   const added = [], loaded = [], removed = [];
-  const app = { assets: {
-    add: asset => added.push(asset), load: asset => loaded.push(asset),
-    remove: asset => removed.push(asset),
-  } };
+  const app = {
+    assets: {
+      add: asset => added.push(asset),
+      load: asset => loaded.push(asset),
+      remove: asset => removed.push(asset),
+    },
+  };
   const shared = new pc.StandardMaterial();
   const mesh = {
     device: {},
@@ -69,7 +100,13 @@ it("loads an arbitrary fabric URL on owned materials and releases the asset", as
     getUvs: (channel, values) => values.push(0, 0, 1, 1),
     getIndices: values => values.push(0, 1),
   };
-  const render = { meshInstances: [{ mesh, material: shared, node: null }] };
+  const render = {
+    meshInstances: [{
+      mesh,
+      material: shared,
+      node: null,
+    }],
+  };
   class RugEntity extends pc.Entity {
     findComponents() { return [render]; }
   }
@@ -84,10 +121,26 @@ it("loads an arbitrary fabric URL on owned materials and releases the asset", as
   const model = new pc.Entity("rug model");
   model.findComponents = () => [render];
   const options = {
-    pc: { ...pc, Entity: RugEntity, Mesh: { fromGeometry: (device, data) => { geometry.push(data); return data; } }, MeshInstance },
-    app, modelLibrary: { instantiate: () => model },
-    definition: { id: "custom-rug", object: "Rug", position: { x: 0, y: 0, z: 0 },
-      texture: "/user/fabric-any-name.png", width: 2.4, depth: 3 },
+    pc: {
+      ...pc,
+      Entity: RugEntity,
+      Mesh: { fromGeometry: (device, data) => { geometry.push(data); return data; } },
+      MeshInstance,
+    },
+    app,
+    modelLibrary: { instantiate: () => model },
+    definition: {
+      id: "custom-rug",
+      object: "Rug",
+      position: {
+        x: 0,
+        y: 0,
+        z: 0,
+      },
+      texture: "/user/fabric-any-name.png",
+      width: 2.4,
+      depth: 3,
+    },
   };
   const rug = new Rug(options);
   assert.equal(added[0].file.url, options.definition.texture);

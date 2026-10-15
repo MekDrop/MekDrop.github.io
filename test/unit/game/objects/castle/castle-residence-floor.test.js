@@ -26,8 +26,19 @@ return class { ${movementMethod} };`)();
 it("allows walking into an authored basement while retaining furniture collision", async () => {
   for (const side of ["NORTH", "SOUTH", "WEST", "EAST"]) {
     const plan = await CastleGenerator.generate({
-      position: { x: -14, z: -8, width: 28, depth: 16, elevation: 3 },
-      doors: [{ side, offset: 13, width: 2 }], seed: 1,
+      position: {
+        x: -14,
+        z: -8,
+        width: 28,
+        depth: 16,
+        elevation: 3,
+      },
+      doors: [{
+        side,
+        offset: 13,
+        width: 2,
+      }],
+      seed: 1,
     });
     const harness = new MovementHarness();
     harness.layout = new CastleResidentialLayout(plan);
@@ -38,8 +49,14 @@ it("allows walking into an authored basement while retaining furniture collision
     const z = (room.minZ + room.maxZ) / 2;
     const point = harness.layout.toWorld(x, z, room.floorY - harness.layout.origin.y);
     assert.equal(harness.blocksMovementAt(point.x, point.z, 0.22, room.floorY), false, side);
-    harness.solids.push({ x, z, y: room.floorY - harness.layout.origin.y + 0.4,
-      width: 0.8, depth: 0.8, height: 0.8 });
+    harness.solids.push({
+      x,
+      z,
+      y: room.floorY - harness.layout.origin.y + 0.4,
+      width: 0.8,
+      depth: 0.8,
+      height: 0.8,
+    });
     assert.equal(harness.blocksMovementAt(point.x, point.z, 0.22, room.floorY), true, `${side} furniture`);
   }
 });
@@ -47,9 +64,22 @@ it("allows walking into an authored basement while retaining furniture collision
 it("retains the private basement guard when there is no public staircase", () => {
   const harness = new MovementHarness();
   harness.layout = {
-    origin: { y: 3 }, basement: { floorY: 0.5 },
-    rooms: { servantBedroom: { minX: -2, maxX: 0, minZ: 1, maxZ: 3 }, storage: { maxX: 2 } },
-    toLocal: (x, z) => ({ x, z }), canEnterBasement: () => false,
+    origin: { y: 3 },
+    basement: { floorY: 0.5 },
+    rooms: {
+      servantBedroom: {
+        minX: -2,
+        maxX: 0,
+        minZ: 1,
+        maxZ: 3,
+      },
+      storage: { maxX: 2 },
+    },
+    toLocal: (x, z) => ({
+      x,
+      z,
+    }),
+    canEnterBasement: () => false,
   };
   harness.solids = [];
   assert.equal(harness.blocksMovementAt(-1, 2, 0.22, 0.5), true);
@@ -60,13 +90,29 @@ it("covers every bedroom floor patch outside the exact reserved stair opening", 
   }
   for (const side of ["NORTH", "SOUTH", "WEST", "EAST"]) {
     for (const offset of [2, 3, 4]) {
-      const plan = await CastleGenerator.generate({ position: { x: 0, z: 0, width: 8, depth: 8, elevation: 3 },
-        doors: [{ side, offset, width: 2 }], style: "twin-tower" });
+      const plan = await CastleGenerator.generate({
+        position: {
+          x: 0,
+          z: 0,
+          width: 8,
+          depth: 8,
+          elevation: 3,
+        },
+        doors: [{
+          side,
+          offset,
+          width: 2,
+        }],
+        style: "twin-tower",
+      });
       const harness = new Harness();
       harness.layout = new CastleResidentialLayout(plan);
       harness.entity = new Entity();
       harness.solids = [];
-      harness.furnishRooms({ ...pc, Entity }, { instantiate: () => new Entity() }, plan);
+      harness.furnishRooms({
+        ...pc,
+        Entity,
+      }, { instantiate: () => new Entity() }, plan);
       const room = harness.layout.rooms.bedroom;
       const center = harness.layout.toLocal(harness.layout.stairs.center.x, harness.layout.stairs.center.z);
       const radius = harness.layout.stairs.radius;

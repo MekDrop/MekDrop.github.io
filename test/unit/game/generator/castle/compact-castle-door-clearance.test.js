@@ -5,31 +5,59 @@ import {CastleResidentialLayout} from '../../../../../src/game/objects/castle/Ca
 import {MOVEMENT_COLLISION_RADIUS,HERO_COLLISION_HEIGHT} from '../../../../../src/game/objects/hero/HeroSurfaceRules.js';
 
 it('supports both sides of every interior door and clears the hero body',async()=>{
- for (const seed of [0,1]) {
-  const plan=await CastleGenerator.generate({position:{x:-14,z:-8,width:28,depth:16,elevation:3},doors:[{side:'NORTH',offset:13,width:2}],seed});
-  const layout=new CastleResidentialLayout(plan);
-  assert.ok(!plan.layout.roomPlan.spaces.some(s=>s.id==='study'&&s.level===0));
-  const throne=plan.layout.roomPlan.spaces.find(s=>s.id==='throne-hall');
-  const circulation=plan.layout.roomPlan.spaces.find(s=>s.id==='vestibule-south');
-  assert.ok(seed === 0 ? throne.minX<circulation.minX : throne.minX>circulation.minX, 'throne stays beside the entrance in both orientations');
-  const throneDoor=plan.layout.roomPlan.doorways.find(d=>d.roomId==='throne-hall'&&!d.exteriorEntrance);
-  assert.ok(throneDoor.center-throneDoor.width/2>=throne.minZ && throneDoor.center+throneDoor.width/2<=throne.maxZ, 'connecting doorway fits within the throne-room wall');
-  for(const door of plan.layout.roomPlan.doorways.filter(d=>!d.exteriorEntrance)) {
-    for(const normal of [-.6,0,.6]) {
-      for(const lateral of [-.15,0,.15]) {
-        const x=door.axis==='x'?door.coordinate+normal:door.center+lateral;
-        const z=door.axis==='z'?door.coordinate+normal:door.center+lateral;
-        assert.ok(layout.walkableAreas.some(a=>a.floorY===door.floorY&&x>=a.minX&&x<=a.maxX&&z>=a.minZ&&z<=a.maxZ),`${door.roomId}: supported landing ${normal}/${lateral}`);
-        const point=layout.toWorld(x,z,door.floorY-layout.origin.y);
-        assert.ok(!plan.metadata.collision.cameraBlocks.some(b=>point.y+HERO_COLLISION_HEIGHT>b.y-b.halfY&&point.y+.05<b.y+b.halfY&&Math.hypot(Math.max(Math.abs(point.x-b.x)-b.halfX,0),Math.max(Math.abs(point.z-b.z)-b.halfZ,0))<MOVEMENT_COLLISION_RADIUS),`${door.roomId}: clear body ${normal}/${lateral}`);
+  for (const seed of [0,1]) {
+    const plan=await CastleGenerator.generate({
+      position:{
+        x:-14,
+        z:-8,
+        width:28,
+        depth:16,
+        elevation:3,
+      },
+      doors:[{
+        side:'NORTH',
+        offset:13,
+        width:2,
+      }],
+      seed,
+    });
+    const layout=new CastleResidentialLayout(plan);
+    assert.ok(!plan.layout.roomPlan.spaces.some(s=>s.id==='study'&&s.level===0));
+    const throne=plan.layout.roomPlan.spaces.find(s=>s.id==='throne-hall');
+    const circulation=plan.layout.roomPlan.spaces.find(s=>s.id==='vestibule-south');
+    assert.ok(seed === 0 ? throne.minX<circulation.minX : throne.minX>circulation.minX, 'throne stays beside the entrance in both orientations');
+    const throneDoor=plan.layout.roomPlan.doorways.find(d=>d.roomId==='throne-hall'&&!d.exteriorEntrance);
+    assert.ok(throneDoor.center-throneDoor.width/2>=throne.minZ && throneDoor.center+throneDoor.width/2<=throne.maxZ, 'connecting doorway fits within the throne-room wall');
+    for(const door of plan.layout.roomPlan.doorways.filter(d=>!d.exteriorEntrance)) {
+      for(const normal of [-.6,0,.6]) {
+        for(const lateral of [-.15,0,.15]) {
+          const x=door.axis==='x'?door.coordinate+normal:door.center+lateral;
+          const z=door.axis==='z'?door.coordinate+normal:door.center+lateral;
+          assert.ok(layout.walkableAreas.some(a=>a.floorY===door.floorY&&x>=a.minX&&x<=a.maxX&&z>=a.minZ&&z<=a.maxZ),`${door.roomId}: supported landing ${normal}/${lateral}`);
+          const point=layout.toWorld(x,z,door.floorY-layout.origin.y);
+          assert.ok(!plan.metadata.collision.cameraBlocks.some(b=>point.y+HERO_COLLISION_HEIGHT>b.y-b.halfY&&point.y+.05<b.y+b.halfY&&Math.hypot(Math.max(Math.abs(point.x-b.x)-b.halfX,0),Math.max(Math.abs(point.z-b.z)-b.halfZ,0))<MOVEMENT_COLLISION_RADIUS),`${door.roomId}: clear body ${normal}/${lateral}`);
+        }
       }
     }
   }
- }
 });
 
 it('keeps landing slabs above the walking lane out of hero headroom',async()=>{
-  const plan=await CastleGenerator.generate({position:{x:-14,z:-8,width:28,depth:16,elevation:3},doors:[{side:'NORTH',offset:13,width:2}],seed:0});
+  const plan=await CastleGenerator.generate({
+    position:{
+      x:-14,
+      z:-8,
+      width:28,
+      depth:16,
+      elevation:3,
+    },
+    doors:[{
+      side:'NORTH',
+      offset:13,
+      width:2,
+    }],
+    seed:0,
+  });
   const layout=new CastleResidentialLayout(plan);
   for(const stair of layout.authoredStairs) for(let step=1;step<stair.steps;step++) {
     const angle=Math.PI/2-stair.yaw*Math.PI/180-step/stair.steps*stair.turns*Math.PI*2;
@@ -45,7 +73,21 @@ it('keeps landing slabs above the walking lane out of hero headroom',async()=>{
 
 
 it('does not fill authored stair openings with the legacy room floor',async()=>{
-  const plan=await CastleGenerator.generate({position:{x:-14,z:-8,width:28,depth:16,elevation:3},doors:[{side:'NORTH',offset:13,width:2}],seed:0});
+  const plan=await CastleGenerator.generate({
+    position:{
+      x:-14,
+      z:-8,
+      width:28,
+      depth:16,
+      elevation:3,
+    },
+    doors:[{
+      side:'NORTH',
+      offset:13,
+      width:2,
+    }],
+    seed:0,
+  });
   const layout=new CastleResidentialLayout(plan);
   const stair=layout.authoredStairs.find(s=>s.center.y<layout.origin.y);
   const progress=14.5/stair.steps,angle=Math.PI/2-stair.yaw*Math.PI/180-progress*stair.turns*Math.PI*2;
@@ -56,7 +98,21 @@ it('does not fill authored stair openings with the legacy room floor',async()=>{
 
 
 it('keeps the kitchen entry aisle clear of generated furniture',async()=>{
-  const plan=await CastleGenerator.generate({position:{x:-14,z:-8,width:28,depth:16,elevation:3},doors:[{side:'NORTH',offset:13,width:2}],seed:0});
+  const plan=await CastleGenerator.generate({
+    position:{
+      x:-14,
+      z:-8,
+      width:28,
+      depth:16,
+      elevation:3,
+    },
+    doors:[{
+      side:'NORTH',
+      offset:13,
+      width:2,
+    }],
+    seed:0,
+  });
   const roomPlan=plan.metadata.runtime.residential;
   const door=roomPlan.doorways.find(d=>d.roomId==='kitchen');
   const kitchen=roomPlan.placedRooms.find(r=>r.id==='kitchen');
@@ -73,32 +129,60 @@ it('keeps the kitchen entry aisle clear of generated furniture',async()=>{
 });
 
 it('faces both ends of each compact flight toward its nearest same-floor door',async()=>{
-for(const side of ['NORTH','SOUTH','EAST','WEST']) {
-const plan=await CastleGenerator.generate({position:{x:-14,z:-8,width:28,depth:16,elevation:3},doors:[{side,offset:13,width:2}],seed:0});
-const layout=new CastleResidentialLayout(plan);
-for(const stair of layout.authoredStairs) {
-const doors=plan.metadata.runtime.roomDoors.filter(d=>d.y===stair.center.y);
-const door=doors.reduce((best,d)=>Math.hypot(d.x-stair.center.x,d.z-stair.center.z)<Math.hypot(best.x-stair.center.x,best.z-stair.center.z)?d:best);
-assert.equal(stair.entryDoorId,door.roomId);
-for(const progress of [0,1]) {
-const angle=stair.yaw*Math.PI/180+progress*stair.turns*2*Math.PI;
-const dx=door.x-stair.center.x,dz=door.z-stair.center.z;
-assert.ok((Math.sin(angle)*dx+Math.cos(angle)*dz)/Math.hypot(dx,dz)>.95,'entry and exit face the door side');
-}
-}
-}
+  for(const side of ['NORTH','SOUTH','EAST','WEST']) {
+    const plan=await CastleGenerator.generate({
+      position:{
+        x:-14,
+        z:-8,
+        width:28,
+        depth:16,
+        elevation:3,
+      },
+      doors:[{
+        side,
+        offset:13,
+        width:2,
+      }],
+      seed:0,
+    });
+    const layout=new CastleResidentialLayout(plan);
+    for(const stair of layout.authoredStairs) {
+      const doors=plan.metadata.runtime.roomDoors.filter(d=>d.y===stair.center.y);
+      const door=doors.reduce((best,d)=>Math.hypot(d.x-stair.center.x,d.z-stair.center.z)<Math.hypot(best.x-stair.center.x,best.z-stair.center.z)?d:best);
+      assert.equal(stair.entryDoorId,door.roomId);
+      for(const progress of [0,1]) {
+        const angle=stair.yaw*Math.PI/180+progress*stair.turns*2*Math.PI;
+        const dx=door.x-stair.center.x,dz=door.z-stair.center.z;
+        assert.ok((Math.sin(angle)*dx+Math.cos(angle)*dz)/Math.hypot(dx,dz)>.95,'entry and exit face the door side');
+      }
+    }
+  }
 });
 
 it('covers ground-floor circulation seams and excavates terrain beneath the slab',async()=>{
- const {createCastleGroundCuts}=await import('../../../../../src/game/objects/castle/CastleGroundCuts.js');
- for(const side of ['NORTH','SOUTH','WEST','EAST']){
-  const plan=await CastleGenerator.generate({position:{x:-14,z:-8,width:28,depth:16,elevation:3},doors:[{side,offset:13,width:2}],seed:0});
-  const layout=new CastleResidentialLayout(plan),cuts=createCastleGroundCuts(plan,layout);
-  const seams=layout.walkableAreas.filter(area=>area.id==='ground-slab:base');
-  assert.ok(seams.length,'building slab fills the gaps omitted by room interiors');
-  for(const area of seams){
-   const point=layout.toWorld((area.minX+area.maxX)/2,(area.minZ+area.maxZ)/2);
-   assert.ok(cuts.some(cut=>point.x>=cut.minX-1e-6&&point.x<=cut.maxX+1e-6&&point.z>=cut.minZ-1e-6&&point.z<=cut.maxZ+1e-6&&cut.minY<=area.floorY-.25),'terrain stays beneath the entire structural floor');
+  const {createCastleGroundCuts}=await import('../../../../../src/game/objects/castle/CastleGroundCuts.js');
+  for(const side of ['NORTH','SOUTH','WEST','EAST']){
+    const plan=await CastleGenerator.generate({
+      position:{
+        x:-14,
+        z:-8,
+        width:28,
+        depth:16,
+        elevation:3,
+      },
+      doors:[{
+        side,
+        offset:13,
+        width:2,
+      }],
+      seed:0,
+    });
+    const layout=new CastleResidentialLayout(plan),cuts=createCastleGroundCuts(plan,layout);
+    const seams=layout.walkableAreas.filter(area=>area.id==='ground-slab:base');
+    assert.ok(seams.length,'building slab fills the gaps omitted by room interiors');
+    for(const area of seams){
+      const point=layout.toWorld((area.minX+area.maxX)/2,(area.minZ+area.maxZ)/2);
+      assert.ok(cuts.some(cut=>point.x>=cut.minX-1e-6&&point.x<=cut.maxX+1e-6&&point.z>=cut.minZ-1e-6&&point.z<=cut.maxZ+1e-6&&cut.minY<=area.floorY-.25),'terrain stays beneath the entire structural floor');
+    }
   }
- }
 });
