@@ -148,7 +148,7 @@ export class StairwellRoomGenerator extends AbstractCastleRoomGenerator {
             scale: 0.9,
           },
           {
-            object: "StoragePotteryJar",
+            object: "PotteryJar",
             width: 0.229,
             depth: 0.236,
             height: 0.3,
@@ -156,7 +156,7 @@ export class StairwellRoomGenerator extends AbstractCastleRoomGenerator {
           },
         ]) {
           if (y + prop.height * prop.scale > turning.high - 0.3) { break; }
-          const offset = prop.object === "StoragePotteryJar" ? 0.055 : 0;
+          const offset = prop.object === "PotteryJar" ? 0.055 : 0;
           items.push({
             ...prop,
             role: "stairwellProp",
@@ -205,7 +205,7 @@ export class StairwellRoomGenerator extends AbstractCastleRoomGenerator {
           scale: 1,
         },
         {
-          object: "StoragePotteryJar",
+          object: "PotteryJar",
           slot: sine < 0 ? -1.17 : 1.17,
           along: -0.33,
           width: 0.229,
@@ -280,7 +280,7 @@ export class StairwellRoomGenerator extends AbstractCastleRoomGenerator {
           continue;
         }
         const yaw = (item.rotation - stair.yaw + plan.origin.yaw) * Math.PI / 180;
-        const circular = item.object === "StoragePotteryJar";
+        const circular = item.object === "PotteryJar";
         const halfAcross = item.scale / 2 * (item.tilt ? item.width : circular ? Math.max(item.width, item.depth) :
           item.width * Math.abs(Math.cos(yaw)) + item.depth * Math.abs(Math.sin(yaw)));
         const halfAlong = item.scale / 2 * (item.tilt ? item.depth : circular ? Math.max(item.width, item.depth) :

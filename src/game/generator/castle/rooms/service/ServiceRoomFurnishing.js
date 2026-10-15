@@ -60,7 +60,7 @@ export class ServiceRoomFurnishing {
           if (drawer) {
             if (this.#cozy) {
               this.#supported("ServantBedsideLantern", drawer, 0.187, 0.257, 0.45, -0.16);
-              this.#supported("StoragePotteryJar", drawer, 0.229, 0.236, 0.3, 0.18);
+              this.#supported("PotteryJar", drawer, 0.229, 0.236, 0.3, 0.18);
             } else if (this.#random() < 0.8) {
               this.#items.push({
                 role: "serviceProp",
@@ -107,7 +107,7 @@ export class ServiceRoomFurnishing {
     if (quarters) {
       if (this.#storageBank) {
         this.#supported("FoldedLinens", this.#storageBank, 0.3, 0.22, 0.16, this.#cozy ? -0.17 : 0);
-        if (this.#cozy) { this.#supported("StoragePotteryJar", this.#storageBank, 0.229, 0.236, 0.3, 0.2); }
+        if (this.#cozy) { this.#supported("PotteryJar", this.#storageBank, 0.229, 0.236, 0.3, 0.2); }
       }
       this.#perimeter("WoodenStorageChest", 0.7, 0.55, 0.3291, 1);
       if (this.#cozy) {
@@ -173,7 +173,7 @@ export class ServiceRoomFurnishing {
     const count = quarters ? 0 : sleeping ? 1 + Math.floor(this.#random() * 2) : 3 + Math.floor(this.#random() * 4);
     for (let index = 0; index < count; index++) {
       const choice = Math.floor(this.#random() * 3);
-      const props = [["StoragePotteryJar", 0.2286, 0.2359, 0.3], ["Crate", 0.55, 0.549, 0.4702], ["Barrel", 0.5528, 0.554, 0.65]];
+      const props = [["PotteryJar", 0.2286, 0.2359, 0.3], ["Crate", 0.55, 0.549, 0.4702], ["Barrel", 0.5528, 0.554, 0.65]];
       const [role, width, depth, height] = props[choice];
       const item = this.#perimeter(role, width, depth, height);
       this.#storageBank ??= item;
@@ -387,7 +387,7 @@ export class ServiceRoomFurnishing {
       candidates.sort(ServiceRoomFurnishing.#sortFirst2);
     }
     if (
-      this.#storageBank && ["StoragePotteryJar", "Crate", "Barrel"].includes(role)
+      this.#storageBank && ["PotteryJar", "Crate", "Barrel"].includes(role)
     ) {
       candidates.sort(this.#sortFirst3.bind(this));
     }

@@ -232,7 +232,7 @@ export class KitchenRoomGenerator extends AbstractCastleRoomGenerator {
           scale: 1,
         };
         items.push(support);
-        if (prop("StoragePotteryJar", shelf.x - (sideways ? 0 : 0.2), shelf.z - (sideways ? 0.2 : 0), 0.229, 0.236, support.height)) {
+        if (prop("PotteryJar", shelf.x - (sideways ? 0 : 0.2), shelf.z - (sideways ? 0.2 : 0), 0.229, 0.236, support.height)) {
           items.at(-1).supportId = support.id;
         }
         if (prop("TableCandles", shelf.x + (sideways ? 0 : 0.2), shelf.z + (sideways ? 0.2 : 0), 0.141, 0.192, support.height)) {
@@ -254,7 +254,7 @@ export class KitchenRoomGenerator extends AbstractCastleRoomGenerator {
         for (const z of [room.maxZ - inset - 0.3, room.minZ + inset + 0.3]) {
           const x = room.minX + inset + 0.3 + fraction * (width - 2 * inset - 0.6);
           if (!(x - 0.277 < room.minX + 1.2 && z + 0.277 > room.maxZ - 1.35) && supplies < 3 && prop(supplies === 0 ? "Barrel" : "Crate", x, z, 0.554, 0.554)) {
-            prop(supplies === 0 ? "StoragePotteryJar" : "FoldedLinens", x, z, 0.23, 0.236, supplies === 0 ? 0.65 : 0.4702);
+            prop(supplies === 0 ? "PotteryJar" : "FoldedLinens", x, z, 0.23, 0.236, supplies === 0 ? 0.65 : 0.4702);
             supplies++;
           }
         }

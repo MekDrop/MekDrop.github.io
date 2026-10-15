@@ -212,7 +212,7 @@ test("side-tower kitchens retain preparation, pantry storage and cooking furnish
       seed,
     });
     const items = plan.furniture.filter(item => item.roomId === "kitchen");
-    for (const object of ["Fireplace", "FirewoodStack", "FireplaceCauldron", "KitchenTable", "Bowl", "HangingFryingPan", "StoragePotteryJar"]) {
+    for (const object of ["Fireplace", "FirewoodStack", "FireplaceCauldron", "KitchenTable", "Bowl", "HangingFryingPan", "PotteryJar"]) {
       assert.ok(items.some(item => item.object === object), object + " missing for seed " + seed);
     }
     const shelf = items.find(item => item.role === "storageShelf");

@@ -49,7 +49,7 @@ import { HangingFryingPan } from "./castle-props/HangingFryingPan.js";
 import { Fireplace } from "./fireplace/Fireplace.js";
 import { Bread } from "./bread/Bread.js";
 import { SingleCandleStand } from "./castle-props/SingleCandleStand.js";
-import { StoragePotteryJar } from "./castle-props/StoragePotteryJar.js";
+import { PotteryJar } from "./pottery-jar/PotteryJar.js";
 import { TableCandles } from "./castle-props/TableCandles.js";
 import { Barrel } from "./barrel/Barrel.js";
 import { Crate } from "./crate/Crate.js";
@@ -149,7 +149,8 @@ const OBJECT_CLASSES = new Map([
   ["KitchenTable", Table],
   [Bread.name, Bread],
   [SingleCandleStand.name, SingleCandleStand],
-  [StoragePotteryJar.name, StoragePotteryJar],
+  [PotteryJar.name, PotteryJar],
+  ["StoragePotteryJar", PotteryJar],
   [TableCandles.name, TableCandles],
   [Barrel.name, Barrel],
   [Crate.name, Crate],

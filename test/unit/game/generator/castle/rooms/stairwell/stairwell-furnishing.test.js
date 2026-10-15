@@ -92,7 +92,7 @@ it("publishes native prop definitions once and replaces stale seed furnishings",
   StairwellRoomMapObjects.prepareMap(map);
   const first = structuredClone(map.objects.slice(1));
   assert.ok(first.some(item => item.object === "Crate"));
-  for (const object of ["Barrel", "WaterBucket", "StoragePotteryJar"]) {
+  for (const object of ["Barrel", "WaterBucket", "PotteryJar"]) {
     assert.ok(first.some(item => item.object === object));
   }
   assert.ok(first.every(item => item.sourceCastleId === castle.id && Number.isFinite(item.position.y)));
@@ -161,7 +161,7 @@ it("confines crates to supported low-headroom stair pockets and leaves floor voi
       WoodenStorageChest: 5,
       Barrel: 2,
       WaterBucket: 1,
-      StoragePotteryJar: 3,
+      PotteryJar: 3,
     })) {
       assert.equal(crates.filter(item => item.object === object).length, count,
         `${object}: wall alignment must preserve the original inventory`);
@@ -173,7 +173,7 @@ it("confines crates to supported low-headroom stair pockets and leaves floor voi
     }
     for (const item of crates) {
       const yaw = item.rotation * Math.PI / 180;
-      const circular = item.object === "StoragePotteryJar";
+      const circular = item.object === "PotteryJar";
       const width = item.width;
       const depth = item.depth;
       const halfX = item.scale * (circular ? Math.max(width, depth) :

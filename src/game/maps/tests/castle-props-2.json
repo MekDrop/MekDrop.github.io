@@ -1181,7 +1181,7 @@
     },
     {
       "id": "storage-pottery-jar",
-      "object": "StoragePotteryJar",
+      "object": "PotteryJar",
       "tile": {
         "col": 3,
         "row": 9
