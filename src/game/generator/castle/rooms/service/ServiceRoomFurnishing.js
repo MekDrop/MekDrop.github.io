@@ -144,7 +144,7 @@ export class ServiceRoomFurnishing {
     }
     if (quarters) {
       const bounds = room.contentBounds ?? room;
-      const rug = this.#place("WovenRug", (bounds.minX + bounds.maxX) / 2,
+      const rug = this.#place("Rug", (bounds.minX + bounds.maxX) / 2,
         (bounds.minZ + bounds.maxZ) / 2, 1.2, 0.75, 0.025, this.#cozy ? 1.3 : 1);
       if (rug) { rug.y = 0.003; }
       for (const item of this.#items) { item.furnishingVariant = variant; }

@@ -159,7 +159,7 @@ export class VestibuleRoomGenerator extends AbstractCastleRoomGenerator {
         minZ = Math.min(minZ, island.z - island.depth * island.scale / 2 - margin);
         maxZ = Math.max(maxZ, island.z + island.depth * island.scale / 2 + margin);
       }
-      items.push({ role: "vestibuleProp", object: "VestibuleRug", x: (minX + maxX) / 2,
+      items.push({ role: "vestibuleProp", object: "Rug", model: "vestibule-runner.glb", x: (minX + maxX) / 2,
         z: (minZ + maxZ) / 2, width: maxX - minX, depth: maxZ - minZ, height: 0.0306,
         scale: 1, stretch: { x: (maxX - minX) / 1.3, y: 1, z: (maxZ - minZ) / 3.3 },
         rotation: 0, y: 0.002, floorCovering: true });
@@ -168,7 +168,7 @@ export class VestibuleRoomGenerator extends AbstractCastleRoomGenerator {
     }
     // A thin rug marks the route in narrow vestibules.
     const runnerLength = room.maxZ - room.minZ - 0.12;
-    const rug = { role: "vestibuleProp", object: "VestibuleRug", x: (room.minX + room.maxX) / 2,
+    const rug = { role: "vestibuleProp", object: "Rug", model: "vestibule-runner.glb", x: (room.minX + room.maxX) / 2,
       z: (room.minZ + room.maxZ) / 2, width: 1.3, depth: runnerLength, height: 0.031,
       scale: 1, stretch: { x: 1, y: 1, z: runnerLength / 3.3 }, rotation: 0, y: 0.002 };
     if (safe(rug)) { items.push(rug); }

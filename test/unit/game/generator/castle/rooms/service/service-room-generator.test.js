@@ -75,7 +75,7 @@ test("quarters provide cozy, mending and steward layouts with supported work det
   for (let seed = 0; seed < 20; seed++) {
     const items = generator.furnish(room, { seed });
     variants.set(items[0].furnishingVariant, items);
-    assert.ok(items.some(item => item.object === "WovenRug"));
+    assert.ok(items.some(item => item.object === "Rug"));
     assert.ok(items.some(item => item.object === "FoldedLinens"));
     for (const item of items.filter(item => item.supportId)) {
       const support = items.find(candidate => candidate.id === item.supportId);
@@ -138,7 +138,7 @@ test("the compact castle publishes each requested quarters variant as normal map
     assert.ok(furniture.every(item => item.furnishingVariant === variant));
     const map = { cols: 30, rows: 30, objects: [{ id: "quarters-castle", object: "Castle", buildPlan }] };
     KitchenRoomMapObjects.prepareMap(map);
-    for (const object of ["WovenRug", "FoldedLinens", detail]) {
+    for (const object of ["Rug", "FoldedLinens", detail]) {
       assert.ok(map.objects.some(item => item.object === object && item.sourceCastleId === "quarters-castle"));
     }
   }

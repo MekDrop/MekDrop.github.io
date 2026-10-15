@@ -350,7 +350,7 @@ export class RoyalBedroomFurnishing {
     const room = this.#room;
     if ((room.maxX - room.minX) * (room.maxZ - room.minZ) > 18) {
       const sideways = room.maxX - room.minX > room.maxZ - room.minZ;
-      const rug = { id: bed.id + "-royal-rug", role: "royalBedroomProp", object: "RoyalBedroomRug",
+      const rug = { id: bed.id + "-royal-rug", role: "royalBedroomProp", object: "Rug", model: "royal-bedroom-rug.glb",
         x: (room.minX + room.maxX) / 2, z: (room.minZ + room.maxZ) / 2,
         width: sideways ? 2.3 : 1.7, depth: sideways ? 1.7 : 2.3, height: 0.018,
         scale: 1, rotation: sideways ? 90 : 0, y: 0.003, floorCovering: true };
@@ -360,7 +360,7 @@ export class RoyalBedroomFurnishing {
     const angle = bed.rotation * Math.PI / 180;
     const x = bed.x + Math.sin(angle) * 0.85, z = bed.z + Math.cos(angle) * 0.85;
     const sideways = bed.rotation % 180 !== 0;
-    const rug = { id: `${bed.id}-rug`, role: "royalBedroomProp", object: "WovenRug", x, z,
+    const rug = { id: `${bed.id}-rug`, role: "royalBedroomProp", object: "Rug", x, z,
       width: sideways ? 0.75 : 1.2, depth: sideways ? 1.2 : 0.75, height: 0.025,
       scale: 1, rotation: bed.rotation, y: 0.003, floorCovering: true };
     if (RoomPlacementRules.accepts(rug, this.#room, [], this.#thickness)) { this.#items.push(rug); }

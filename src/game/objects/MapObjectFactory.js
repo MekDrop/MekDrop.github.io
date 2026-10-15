@@ -1,10 +1,11 @@
+import { Book } from "./book/Book.js";
 import { Fire } from "./fire/Fire.js";
 import { Table } from "./table/Table.js";
 import { StraightStaircase } from "./straight-staircase/StraightStaircase.js";
 import { Ladder } from "./castle/Ladder.js";
 import { SignalBell } from "./signal-bell/SignalBell.js";
 import { BedsideDrawers } from "./bedside-drawers/BedsideDrawers.js";
-import { WovenRug } from "./castle-props/WovenRug.js";
+import { Rug } from "./rug/Rug.js";
 import { FoldedLinens } from "./castle-props/FoldedLinens.js";
 import { SewingBasket } from "./castle-props/SewingBasket.js";
 import { VestibuleBench } from "./castle-props/VestibuleBench.js";
@@ -17,7 +18,6 @@ import { VestibuleOliveSatchel } from "./castle-props/VestibuleOliveSatchel.js";
 import { Boots } from "./boots/Boots.js";
 import { VestibuleStickStand } from "./castle-props/VestibuleStickStand.js";
 import { VestibuleCloakRail } from "./castle-props/VestibuleCloakRail.js";
-import { VestibuleRug } from "./castle-props/VestibuleRug.js";
 import { ChoppingToolsSet } from "./chopping-tools-set/ChoppingToolsSet.js";
 import { KitchenUtensilRail } from "./castle-props/KitchenUtensilRail.js";
 import { WoodenWashBasin } from "./castle-props/WoodenWashBasin.js";
@@ -28,17 +28,14 @@ import { ThroneDais } from "./castle-props/ThroneDais.js";
 import { RoyalCrest } from "./castle-props/RoyalCrest.js";
 import { WarCouncilShield } from "./castle-props/WarCouncilShield.js";
 import { SpearRack } from "./castle-props/SpearRack.js";
-import { OpenReadingBook } from "./castle-props/OpenReadingBook.js";
 import { LibraryStepStool } from "./castle-props/LibraryStepStool.js";
 import { ParchmentBundle } from "./castle-props/ParchmentBundle.js";
-import { ClosedReadingBook } from "./castle-props/ClosedReadingBook.js";
 import { LibraryBookStack } from "./castle-props/LibraryBookStack.js";
 import { Sunbed } from "./sunbed/Sunbed.js";
 import { TerraceTeaChair } from "./castle-props/TerraceTeaChair.js";
 import { TerraceServingTray } from "./castle-props/TerraceServingTray.js";
 import { Teapot } from "./teapot/Teapot.js";
 import { Teacup } from "./teacup/Teacup.js";
-import { TerraceReadingBook } from "./castle-props/TerraceReadingBook.js";
 import { TerracePlanter } from "./castle-props/TerracePlanter.js";
 import { BlueArmchair } from "./castle-props/BlueArmchair.js";
 import { Bowl } from "./bowl/Bowl.js";
@@ -57,7 +54,6 @@ import { TableCandles } from "./castle-props/TableCandles.js";
 import { WoodenBarrel } from "./castle-props/WoodenBarrel.js";
 import { WoodenCrate } from "./castle-props/WoodenCrate.js";
 import { WoodenStorageChest } from "./castle-props/WoodenStorageChest.js";
-import { RoyalBedroomRug } from "./castle-props/RoyalBedroomRug.js";
 import { FirewoodStack } from "./firewood-stack/FirewoodStack.js";
 import { SpareTimberBundle } from "./castle-props/SpareTimberBundle.js";
 import { WoodenDeskChair } from "./castle-props/WoodenDeskChair.js";
@@ -105,7 +101,7 @@ const OBJECT_CLASSES = new Map([
   [Overpass.name, Overpass],
   [SpawnPoint.name, SpawnPoint],
   [IslandConnector.name, IslandConnector],
-  [WovenRug.name, WovenRug],
+  [Rug.name, Rug],
   [FoldedLinens.name, FoldedLinens],
   [SewingBasket.name, SewingBasket],
   [VestibuleBench.name, VestibuleBench],
@@ -119,7 +115,6 @@ const OBJECT_CLASSES = new Map([
   [Boots.name, Boots],
   [VestibuleStickStand.name, VestibuleStickStand],
   [VestibuleCloakRail.name, VestibuleCloakRail],
-  [VestibuleRug.name, VestibuleRug],
   [ChoppingToolsSet.name, ChoppingToolsSet],
   [KitchenUtensilRail.name, KitchenUtensilRail],
   [WoodenWashBasin.name, WoodenWashBasin],
@@ -131,11 +126,9 @@ const OBJECT_CLASSES = new Map([
   [WarCouncilShield.name, WarCouncilShield],
   [SpearRack.name, SpearRack],
   ["WarMapTable", Table],
-  [OpenReadingBook.name, OpenReadingBook],
   ["LibrarySideTable", Table],
   [LibraryStepStool.name, LibraryStepStool],
   [ParchmentBundle.name, ParchmentBundle],
-  [ClosedReadingBook.name, ClosedReadingBook],
   [LibraryBookStack.name, LibraryBookStack],
   [BedsideDrawers.name, BedsideDrawers],
   [Sunbed.name, Sunbed],
@@ -143,7 +136,6 @@ const OBJECT_CLASSES = new Map([
   [TerraceServingTray.name, TerraceServingTray],
   [Teapot.name, Teapot],
   [Teacup.name, Teacup],
-  [TerraceReadingBook.name, TerraceReadingBook],
   ["TeaTable", Table],
   [TerracePlanter.name, TerracePlanter],
   [BlueArmchair.name, BlueArmchair],
@@ -164,7 +156,6 @@ const OBJECT_CLASSES = new Map([
   [WoodenBarrel.name, WoodenBarrel],
   [WoodenCrate.name, WoodenCrate],
   [WoodenStorageChest.name, WoodenStorageChest],
-  [RoyalBedroomRug.name, RoyalBedroomRug],
   [FirewoodStack.name, FirewoodStack],
   [SpareTimberBundle.name, SpareTimberBundle],
   [WoodenDeskChair.name, WoodenDeskChair],
@@ -196,6 +187,11 @@ const OBJECT_CLASSES = new Map([
   // Normalize legacy lantern names after castle preparation publishes its props.
   [Lantern.name, Lantern],
   [Fire.name, Fire],
+  // Expand shelf contents after castle preparation publishes its furnishings.
+  [Book.name, Book],
+  ["ClosedReadingBook", Book],
+  ["OpenReadingBook", Book],
+  ["TerraceReadingBook", Book],
 ]);
 
 /**

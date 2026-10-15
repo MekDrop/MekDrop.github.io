@@ -29,7 +29,7 @@ test("royal layouts repeat independently and all five concepts have distinct arr
     assert.ok(items.some(item => item.role === "wardrobe"));
     assert.ok(items.some(item => item.object === "BedsideDrawers"));
     assert.ok(items.some(item => item.object === "TableCandles"));
-    assert.ok(items.some(item => item.object === "WovenRug"));
+    assert.ok(items.some(item => item.object === "Rug"));
     if (variant === 1) { assert.ok(items.some(item => item.object === "WritingDesk")); }
     assert.ok(!items.some(item => item.object === "BlueArmchair"));
     if (variant === 2) { assert.ok(items.some(item => item.object === "WoodenDeskChair")); }
@@ -139,7 +139,7 @@ test("the saved ladder castle contains the new side-tower bedroom instead of the
   const plan = map.objects.find(object => object.object === "Castle").buildPlan.metadata.runtime.residential;
   assert.equal(plan.basePlanId, "castle-compact-service-wing");
   assert.equal(plan.furniture.find(item => item.roomId === "royal-chamber" && item.role === "royalBed").height, 2.03);
-  assert.ok(plan.furniture.some(item => item.roomId === "royal-chamber" && item.object === "RoyalBedroomRug" && item.floorCovering));
+  assert.ok(plan.furniture.some(item => item.roomId === "royal-chamber" && item.object === "Rug" && item.model === "royal-bedroom-rug.glb" && item.floorCovering));
   assert.ok(!plan.furniture.some(item => item.roomId === "royal-chamber" && item.object === "VestibuleBanner"));
   const painting = plan.furniture.find(item => item.roomId === "royal-chamber" && item.object === "Painting" && item.variant === "royal-bedroom");
   const bed = plan.furniture.find(item => item.roomId === "royal-chamber" && item.role === "royalBed");

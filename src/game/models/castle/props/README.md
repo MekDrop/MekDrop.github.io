@@ -232,7 +232,7 @@ wall's clear pocket. The red runner is stretched along the arrival aisle.
 All props enter through registered map objects. Focused generator tests cover
 both mirrored layouts, door/window approaches, stairs, and cramped rooms.
 
-`vestibule-runner.blend/.glb` is a separate refinement of the existing castle
+`../../rug/vestibule-runner.blend/.glb` is a separate refinement of the existing castle
 rug, matching the approved mockup's double gold border, repeating leaf diamonds,
 crimson inset, and short fringe. Its measured glTF dimensions are
 1.300 × 0.0306 × 3.300 metres, with a grounded center pivot and a single mesh

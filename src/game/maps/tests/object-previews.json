@@ -520,6 +520,35 @@
         "y": 2,
         "z": 0
       }
+    },
+    {
+      "id": "preview-rug-0",
+      "object": "Rug",
+      "position": {
+        "x": 32,
+        "y": 2,
+        "z": 0
+      }
+    },
+    {
+      "id": "preview-rug-1",
+      "object": "Rug",
+      "position": {
+        "x": 36,
+        "y": 2,
+        "z": 0
+      },
+      "model": "vestibule-runner.glb"
+    },
+    {
+      "id": "preview-rug-2",
+      "object": "Rug",
+      "position": {
+        "x": 40,
+        "y": 2,
+        "z": 0
+      },
+      "model": "royal-bedroom-rug.glb"
     }
   ]
 }

@@ -30,6 +30,7 @@ class FakeVec3 {
 }
 
 class FakeQuat {
+  setFromDirections() { return this; }
   set(x, y, z, w) { Object.assign(this, { x, y, z, w }); return this; }
   setFromEulerAngles() {
     return this;
@@ -78,7 +79,7 @@ class FakeEntity {
   addComponent(type, options) {
     this.components.set(type, options);
     if (type === "rigidbody") {
-      this.rigidbody = { syncEntityToBody() {}, teleport: (x, y, z) => this.setPosition(x, y, z) };
+      this.rigidbody = { on() {}, syncEntityToBody() {}, teleport: (x, y, z) => this.setPosition(x, y, z) };
     }
   }
 
@@ -170,12 +171,12 @@ describe("flower physics", () => {
     assert.equal(body.components.get("rigidbody").group, 128);
     assert.equal(body.components.get("rigidbody").mask, 256);
     assert.equal(anchor.components.get("joint").type, "6dof");
-    assert.equal(anchor.components.get("joint").entityA, body);
-    assert.equal(anchor.components.get("joint").entityB, anchor);
+    assert.equal(anchor.components.get("joint").entityA, anchor);
+    assert.equal(anchor.components.get("joint").entityB, body);
     assert.equal(anchor.components.get("rigidbody").type, "kinematic");
     assert.equal(anchor.components.get("rigidbody").mask, 0);
     assert.equal(anchor.components.get("joint").linearMotionY, "limited");
-    assert.equal(anchor.components.get("joint").angularMotionX, "limited");
+    assert.equal(anchor.components.get("joint").angularMotionX, "locked");
     assert.equal(anchor.components.get("joint").angularMotionY, "locked");
     assert.equal(flower.anchor, anchor);
 
@@ -183,8 +184,8 @@ describe("flower physics", () => {
       { x: 1, y: 2, z: 3 },
       { x: 0, z: 1 },
     );
-    assert.deepEqual(leftFoot.position, new FakeVec3(0.87, 2.16, 3.1));
-    assert.deepEqual(rightFoot.position, new FakeVec3(1.13, 2.16, 3.1));
+    assert.deepEqual(leftFoot.position, new FakeVec3(0.893, 2.32, 3.076));
+    assert.deepEqual(rightFoot.position, new FakeVec3(1.107, 2.32, 3.076));
   });
 
   it("removes a collected flower from physics and its instance batch", () => {
@@ -206,6 +207,41 @@ describe("flower physics", () => {
     assert.equal(storage[5], 0);
     assert.equal(storage[10], 0);
     assert.equal(unlockCount, 1);
+  });
+  it("retains foot compression without rotating the petal plane into the hero", () => {
+    const physics = new FlowerPhysics({ pc });
+    const flower = createFlower(physics);
+    const storage = new Float32Array(16);
+    physics.setBatch("daisy-patch", { lock: () => storage, unlock() {} });
+    // A compressed, laterally displaced tip must keep the visible canopy below
+    // the sole, even when its direction would otherwise rotate the entire patch.
+    flower.body.setPosition(2.1, 3.04, 4.08);
+    physics.updateMatrices();
+    assert.ok(0.1586 * storage[5] < 0.1, "petals must remain below the foot contact surface");
+    assert.equal(storage[1], 0);
+    assert.equal(storage[9], 0);
+    assert.ok(storage[4] > 0 && storage[6] > 0, "stem should follow the simulated lateral displacement");
+    assert.deepEqual(Array.from(storage.slice(12, 15)), [2, 3, 4]);
+  });
+  it("preserves outer petals and supplies contact poses immediately on spawn", () => {
+    const physics = new FlowerPhysics({ pc });
+    const flower = createFlower(physics);
+    const storage = new Float32Array(16);
+    physics.setBatch("daisy-patch", { lock: () => storage, unlock() {} });
+    const contacts = new Map();
+    physics.setContactMaterial({ setParameter: (name, value) => contacts.set(name, Array.from(value)) });
+    flower.body.setPosition(2, 3.32, 4);
+    // No solver step or worker response has occurred yet.
+    physics.updateHeroPosition({ x: 2, y: 3, z: 4 });
+    assert.ok(0.1586 * storage[5] > 0.08, "outer petals must remain visible above the grass");
+    assert.ok(Math.abs(contacts.get("uFlowerFoot0")[1] - 3.02) < 1e-5, "shader receives the current sole boundary before a solver response");
+    physics.updateHeroPosition({ x: 2, y: 3, z: 4 }, { x: 0, z: 0 });
+    assert.deepEqual(contacts.get("uFlowerFootDirection"), [0, 1], "standing still must retain a valid local footprint");
+    flower.body.setPosition(2, 3.18, 4);
+    physics.updateMatrices();
+    assert.ok(0.1586 * storage[5] > 0.08, "contact should retain surrounding petals even with a stale worker pose");
+    physics.updateHeroPosition({ x: 4, y: 3, z: 4 });
+    assert.ok(storage[5] > 0.9, "a released flower must follow its simulated pose again");
   });
 });
 

@@ -14,8 +14,9 @@ it("publishes floor-correct vestibule props once and replaces them after reflect
   assert.ok(first.length >= 5);
   assert.ok(first.every(item => item.generated && item.sourceCastleId === castle.id));
   assert.ok(first.every(item => item.position.y >= 3 && item.position.y < 6));
-  const runner = first.find(item => item.object === "VestibuleRug");
-  assert.equal(first.filter(item => item.object === "VestibuleRug").length, 1);
+  const runner = first.find(item => item.object === "Rug");
+  assert.equal(first.filter(item => item.object === "Rug").length, 1);
+  assert.equal(runner.model, "vestibule-runner.glb");
   assert.ok(runner.stretch.z > 2, "one carpet spans both vestibule sections");
   const bench = first.find(item => item.object === "VestibuleBench");
   const cloaks = first.find(item => item.object === "VestibuleCloakRail");
@@ -28,9 +29,9 @@ it("publishes floor-correct vestibule props once and replaces them after reflect
   castle.buildPlan = await CastleAuthoredBuildPlan.generate({ ...options, seed: 21 });
   VestibuleRoomMapObjects.prepareMap(map);
   const expected = castle.buildPlan.metadata.runtime.residential.furniture.filter(item => item.role === "vestibuleProp");
-  const rugCount = expected.filter(item => item.object === "VestibuleRug").length;
+  const rugCount = expected.filter(item => item.object === "Rug").length;
   assert.equal(map.objects.length, expected.length + 1 - (rugCount - 1));
-  assert.equal(map.objects.filter(item => item.object === "VestibuleRug").length, 1);
+  assert.equal(map.objects.filter(item => item.object === "Rug").length, 1);
   assert.equal(new Set(map.objects.map(item => item.id)).size, map.objects.length);
   assert.notDeepEqual(map.objects.slice(1), first);
 });
@@ -48,7 +49,7 @@ it("publishes exactly one central island in each variant and reflected service-w
     assert.equal(islands.length, 1);
     assert.equal(islands[0].object, seed < 6 ? "VestibuleIslandBench" : "VestibuleMapTable");
     assert.ok(islands.every(item => Math.abs(item.position.y - 2.033) < 1e-6 && item.scale === 1));
-    const rug = first.find(item => item.object === "VestibuleRug");
+    const rug = first.find(item => item.object === "Rug");
     assert.ok(rug.stretch.x > 1 && rug.stretch.z < 1);
     const authored = castle.buildPlan.metadata.runtime.residential.furniture;
     const chest = authored.find(item => item.object === "WoodenStorageChest");

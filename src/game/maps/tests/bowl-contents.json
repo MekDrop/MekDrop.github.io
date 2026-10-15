@@ -1175,7 +1175,19 @@
     },
     {
       "id": "review-bread",
-      "object": "Bowl", "color": "#ffffff", "items": [{"object":"Bread"},{"object":"Bread"},{"object":"Bread"}],
+      "object": "Bowl",
+      "color": "#ffffff",
+      "items": [
+        {
+          "object": "Bread"
+        },
+        {
+          "object": "Bread"
+        },
+        {
+          "object": "Bread"
+        }
+      ],
       "position": {
         "x": 0,
         "y": 2.566499,

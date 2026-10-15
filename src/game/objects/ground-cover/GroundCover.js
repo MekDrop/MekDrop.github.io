@@ -17,10 +17,13 @@ import { GroundCoverHeldItem } from "./GroundCoverHeldItem.js";
 import { GroundCoverInteraction } from "./GroundCoverInteraction.js";
 import { GroundCoverItem } from "./GroundCoverItem.js";
 import { FlowerPhysics } from "./FlowerPhysics.js";
+import { FlowerPaper } from "./FlowerPaper.js";
 import { MushroomPhysics } from "./MushroomPhysics.js";
 
 export const FLOWER_CATEGORY = "flower";
 export const MUSHROOM_CATEGORY = "mushroom";
+// Physics tip heights are vertex-measured GLB maxima; the collider must reach
+// the rendered petals, rather than the middle of the stem.
 export const GROUND_COVER_VARIANTS = Object.freeze({
   "daisy-patch": {
     modelUrl: daisyPatchModelUrl,
@@ -30,6 +33,7 @@ export const GROUND_COVER_VARIANTS = Object.freeze({
     interactionRadius: 0.38,
     horizontalScale: 1.5,
     verticalScale: 2,
+    physicsTipHeight: 0.1586,
     gripPoint: { x: 0, y: 0.02, z: 0 },
   },
   "buttercup-patch": {
@@ -40,6 +44,7 @@ export const GROUND_COVER_VARIANTS = Object.freeze({
     interactionRadius: 0.4,
     horizontalScale: 1.55,
     verticalScale: 2.05,
+    physicsTipHeight: 0.1454,
     gripPoint: { x: 0, y: 0.02, z: 0 },
   },
   "pink-flower-patch": {
@@ -50,6 +55,7 @@ export const GROUND_COVER_VARIANTS = Object.freeze({
     interactionRadius: 0.38,
     horizontalScale: 1.5,
     verticalScale: 2,
+    physicsTipHeight: 0.152,
     gripPoint: { x: 0, y: 0.02, z: 0 },
   },
   "blue-flower-patch": {
@@ -60,6 +66,7 @@ export const GROUND_COVER_VARIANTS = Object.freeze({
     interactionRadius: 0.38,
     horizontalScale: 1.5,
     verticalScale: 2,
+    physicsTipHeight: 0.162,
     gripPoint: { x: 0, y: 0.02, z: 0 },
   },
   "clover-patch": {
@@ -70,6 +77,7 @@ export const GROUND_COVER_VARIANTS = Object.freeze({
     interactionRadius: 0.34,
     horizontalScale: 1.15,
     verticalScale: 0.9,
+    physicsTipHeight: 0.1889,
     gripPoint: { x: 0.03, y: 0.02, z: -0.07 },
   },
   "red-mushroom": {
@@ -181,6 +189,10 @@ export class GroundCover {
    */
   #flowerPhysics;
   /**
+   * @type {FlowerPaper}
+   */
+  #flowerPaper;
+  /**
    *
     * @type {MushroomPhysics|null}
    */
@@ -289,6 +301,9 @@ export class GroundCover {
       ? new IslandCellOwnership(mapData).groups
       : [];
     this.#createMaterials();
+    this.#flowerPhysics.setContactMaterial(this.#materials.get(FLOWER_CATEGORY));
+    this.#flowerPaper = new FlowerPaper({ pc, app, library: modelLibrary, material: this.#heldMaterials.get(FLOWER_CATEGORY), stem: this.#flowerPhysics });
+    this.#entity.addChild(this.#flowerPaper.entity);
     this.zoom = zoom;
     this.#buildGroundCover(mapData, modelLibrary);
     this.#updateHandle = app.on("update", this.#update);
@@ -323,6 +338,11 @@ export class GroundCover {
     (item) => item.grassImpressionContacts);
   }
 
+  /**
+   * @returns {import("./FlowerPaper.js").PaperGrassContact[]}
+   */
+  get grassSurfaceContacts() { return this.#flowerPaper.grassSurfaceContacts; }
+
   set tool(tool) {
     this.#tool = tool;
   }
@@ -355,6 +375,7 @@ export class GroundCover {
    */
   applyHeroInteraction({ x, y, z }, movement) {
     this.#flowerPhysics.updateHeroPosition({ x, y, z }, movement?.direction);
+    this.#flowerPaper.updateHero({ x, y, z });
     this.#mushroomPhysics.updateHeroPosition({ x, y, z }, movement);
   }
 
@@ -426,6 +447,7 @@ export class GroundCover {
   destroy() {
     this.#updateHandle?.off();
     this.#updateHandle = null;
+    this.#flowerPaper?.destroy();
     this.#flowerPhysics?.destroy();
     this.#flowerPhysics = null;
     this.#mushroomPhysics?.destroy();
@@ -468,6 +490,9 @@ export class GroundCover {
       material.setParameter("uBendHeight", definition.bendHeight);
       material.setParameter("uFlexibility", definition.flexibility);
       material.setParameter("uAmbientMotion", 0);
+      material.setParameter("uFlowerFoot0", [0, -1000, 0, 0]);
+      material.setParameter("uFlowerFoot1", [0, -1000, 0, 0]);
+      material.setParameter("uFlowerFootDirection", [0, 1]);
       material.setParameter("uColorBoost", definition.colorBoost);
       material.setParameter("uLightDirection", [0.42, 0.82, 0.38]);
       material.update();
@@ -619,7 +644,9 @@ export class GroundCover {
         horizontalScale,
         verticalScale,
         interactionRadius: definition.interactionRadius * decoration.scale,
+        tipHeight: definition.physicsTipHeight,
       });
+      this.#flowerPaper.add(flower, definition.modelUrl);
       this.#islandAttachments.push({
         group,
         /**
@@ -755,6 +782,7 @@ export class GroundCover {
       material.setParameter("uTime", this.#elapsed);
     }
     this.#flowerPhysics.advance(frameTime);
+    this.#flowerPaper.advance(frameTime);
     for (const item of this.#items) item.advance(frameTime);
   };
 }

@@ -76,7 +76,15 @@ export class Bookshelf {
       const joinStart = (reversed ? index < count - 1 : index > 0) || definition.joinStart;
       const joinEnd = (reversed ? index > 0 : index < count - 1) || definition.joinEnd;
       const levels = Bookshelf.resize(model, bounds.height, joinStart, joinEnd);
-      BookshelfBooks.populate(models, model, bookUrl, random, levels);
+      if (definition.books !== false) {
+        BookshelfBooks.populate(models, model, bookUrl, random, levels);
+      } else {
+        for (const node of model.find(/**
+         *
+         * @param {import("playcanvas").GraphNode} node
+         */
+        node => /^(Leather bound book|Book spine brass)/.test(node.name))) { node.destroy(); }
+      }
       model.name = "Castle oak bookcase";
       // The model spans Z=-0.17..0.19, so recenter its 0.36-deep footprint.
       const frontOffset = definition.facing === -1 ? 0.01 : -0.01;

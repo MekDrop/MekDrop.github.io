@@ -46,7 +46,7 @@ export class VestibuleWindowFurnishing {
         { role: "vestibuleProp", object: "TableLantern", x: storage.x, z: storage.z - 0.25,
           width: 0.2136, depth: 0.22, height: 0.427, scale: 0.8, rotation: 90,
           y: storage.y + storage.height * storage.scale, supportId: storage.id },
-        { id: `${room.id}-${room.level}-arrival-rug`, role: "vestibuleProp", object: "VestibuleRug",
+        { id: `${room.id}-${room.level}-arrival-rug`, role: "vestibuleProp", object: "Rug", model: "vestibule-runner.glb",
           x: room.minX + 1.05, z: table.z - 0.35, width: 1.5, depth: 2.5,
           height: 0.0306, scale: 1, stretch: { x: 1.5 / 1.3, y: 1, z: 2.5 / 3.3 },
           rotation: 0, y: 0.002, floorCovering: true }];

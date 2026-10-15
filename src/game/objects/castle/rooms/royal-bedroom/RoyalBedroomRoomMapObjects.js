@@ -21,7 +21,7 @@ export class RoyalBedroomRoomMapObjects {
       for (const item of plan.furniture) {
         if (item.role !== "royalBedroomProp" || !item.object) { continue; }
         const position = layout.toWorld(item.x, item.z, item.floorY - layout.origin.y + (item.y ?? 0));
-        objects.push({ id: `${castle.id}-${item.id}`, object: item.object, variant: item.variant, position,
+        objects.push({ id: `${castle.id}-${item.id}`, object: item.object, texture: item.texture, model: item.model, variant: item.variant, position,
           rotation: layout.yaw + (plan.basePlanId ? 180 : 0) + (item.rotation ?? 0),
           scale: item.scale, generated: true, royalBedroomFurnishing: true, sourceCastleId: castle.id,
           tile: { col: Math.round(position.x + (mapData.cols - 1) / 2), row: Math.round(position.z + (mapData.rows - 1) / 2) } });

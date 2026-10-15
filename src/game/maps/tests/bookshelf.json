@@ -1557,6 +1557,57 @@
         "y": 2.14,
         "z": 4
       }
+    },
+    {
+      "id": "book-closed",
+      "object": "Book",
+      "position": {
+        "x": -1,
+        "y": 2.05,
+        "z": 3.5
+      },
+      "rotation": 25,
+      "coverColor": [
+        0.2,
+        0.38,
+        0.62
+      ],
+      "isOpen": false
+    },
+    {
+      "id": "book-open",
+      "object": "Book",
+      "position": {
+        "x": -0.30000000000000004,
+        "y": 2.05,
+        "z": 3.5
+      },
+      "rotation": 25,
+      "isOpen": true
+    },
+    {
+      "id": "book-terrace",
+      "object": "Book",
+      "position": {
+        "x": 0.3999999999999999,
+        "y": 2.05,
+        "z": 3.5
+      },
+      "rotation": 25,
+      "isOpen": true,
+      "style": "classic"
+    },
+    {
+      "id": "book-shelf",
+      "object": "Book",
+      "position": {
+        "x": 1.0999999999999996,
+        "y": 2.05,
+        "z": 3.5
+      },
+      "rotation": 25,
+      "isOpen": false,
+      "pose": "upright"
     }
   ]
 }

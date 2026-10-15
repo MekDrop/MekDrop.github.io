@@ -1,5 +1,7 @@
+import { BookCover } from "../book/BookCover.js";
+
 /**
- * Replaces baked shelf books with one reusable, independently tinted Tripo asset.
+ * Packs individual Book definitions; older composite residences reuse the same layout.
  */
 export class BookshelfBooks {
   /**
@@ -23,15 +25,42 @@ export class BookshelfBooks {
    */
   static populate(models, shelf, bookUrl, random = Math.random, levels = this.levels) {
     for (const node of shelf.find(/**
+     *
      * @param {import("playcanvas").GraphNode} node
      */
-    (node) => /^(Leather bound book|Book spine brass)/.test(node.name))) {
-      node.destroy();
-    }
+    node => /^(Leather bound book|Book spine brass)/.test(node.name))) { node.destroy(); }
     const materials = new Map();
     shelf.once("destroy", () => {
       for (const material of materials.values()) { material.destroy(); }
     });
+    for (const definition of this.layout(random, levels)) {
+      const book = models.instantiate(bookUrl);
+      book.name = definition.id;
+      const { position, stretch, tilt } = definition;
+      book.setLocalPosition(position.x, position.y, position.z);
+      book.setLocalScale(stretch.x, stretch.y, stretch.z);
+      book.setLocalEulerAngles(0, 0, tilt.z);
+      BookCover.tint(book, definition.coverColor, /**
+       *
+       * @param {import("playcanvas").StandardMaterial} material
+       */
+      material => {
+        const key = definition.coverColor.join(",");
+        if (!materials.has(key)) { materials.set(key, material.clone()); }
+        return materials.get(key);
+      });
+      shelf.addChild(book);
+    }
+  }
+
+  /**
+   * Individual placements in the cabinet's authored local coordinates.
+   * @param {() => number} [random]
+   * @param {{bottom:number,height:number}[]} [levels]
+   * @returns {import("../ObjectTypes.js").MapObjectDefinition[]}
+   */
+  static layout(random = Math.random, levels = this.levels) {
+    const books = [];
     for (const [row, level] of levels.entries()) {
       const horizontal = level.height < 0.24;
       const count = horizontal ? 6 : 10;
@@ -56,35 +85,22 @@ export class BookshelfBooks {
         const height = groupHeight * (0.97 + random() * 0.03);
         const depth = 0.20 * height / 0.26;
         const color = random() < 0.75 ? groupColor : Math.floor(random() * this.colors.length);
-        const book = models.instantiate(bookUrl);
-        book.name = `Shelf book ${row}-${index}`;
+        const book = { id: `book-${row}-${index}`, object: "Book", isOpen: false, pose: "upright",
+          coverColor: this.colors[color], tilt: { x: 0, z: 0 } };
         if (horizontal) {
           // The authored pivot is at the foot of the spine. After tipping onto
           // its cover, half the thickness raises that pivot onto the plank.
-          book.setLocalEulerAngles(0, 0, 90);
-          book.setLocalPosition((index < 3 ? -0.18 : 0.18) + height / 2, level.bottom + stackHeight + width / 2, -0.11 + depth / 2);
+          book.tilt.z = 90;
+          book.position = { x: (index < 3 ? -0.18 : 0.18) + height / 2, y: level.bottom + stackHeight + width / 2, z: -0.11 + depth / 2 };
           stackHeight += width;
         } else {
-          book.setLocalPosition(cursor + width / 2, level.bottom, -0.11 + depth / 2);
+          book.position = { x: cursor + width / 2, y: level.bottom, z: -0.11 + depth / 2 };
         }
-        book.setLocalScale(width / 0.065, height / 0.26, depth / 0.20);
-        for (const render of book.findComponents("render")) {
-          for (const mesh of render.meshInstances) {
-            if (mesh.material.name !== "Book leather") { continue; }
-            let material = materials.get(color);
-            if (!material) {
-              material = mesh.material.clone();
-              material.diffuseTint = true;
-              material.diffuse.set(...this.colors[color]);
-              material.update();
-              materials.set(color, material);
-            }
-            mesh.material = material;
-          }
-        }
-        shelf.addChild(book);
+        book.stretch = { x: width / 0.065, y: height / 0.26, z: depth / 0.20 };
+        books.push(book);
         cursor += width + gap;
       }
     }
+    return books;
   }
 }

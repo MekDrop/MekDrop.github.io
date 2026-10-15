@@ -21,10 +21,10 @@ export class VestibuleRoomMapObjects {
       for (const [index, authored] of plan.furniture.entries()) {
         let item = authored;
         if (item.role !== "vestibuleProp") { continue; }
-        if (item.object === "VestibuleRug") {
+        if (item.object === "Rug") {
           const rugs = plan.furniture.filter(/**
            * @param {import("../../../../generator/castle/rooms/AbstractCastleRoomGenerator.js").RoomItem & {floorY:number}} candidate
-           */ candidate => candidate.role === "vestibuleProp" && candidate.object === "VestibuleRug" &&
+           */ candidate => candidate.role === "vestibuleProp" && candidate.object === "Rug" &&
             candidate.floorY === item.floorY && candidate.x === item.x && candidate.rotation === item.rotation);
           if (authored !== rugs[0]) { continue; }
           const start = Math.min(...rugs.map(/**
@@ -37,7 +37,7 @@ export class VestibuleRoomMapObjects {
             stretch: { ...item.stretch, z: (end - start) / (3.3 * item.scale) } };
         }
         const position = layout.toWorld(item.x, item.z, item.floorY - layout.origin.y + (item.y ?? 0));
-        objects.push({ id: `${castle.id}-vestibule-${item.roomId}-${index}`, object: item.object, variant: item.variant,
+        objects.push({ id: `${castle.id}-vestibule-${item.roomId}-${index}`, object: item.object, texture: item.texture, model: item.model, variant: item.variant,
           position, rotation: layout.yaw + 180 + (item.rotation ?? 0), scale: item.scale,
           stretch: item.stretch,
           generated: true, vestibuleFurnishing: true, sourceCastleId: castle.id,

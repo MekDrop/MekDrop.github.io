@@ -38,7 +38,8 @@ test("invalid shelf extents fail before rendering", () => {
 test("demonstration map covers both axes and facing directions", () => {
   const map = JSON.parse(readFileSync(new URL("../../../../../src/game/maps/tests/bookshelf.json", import.meta.url), "utf8"));
   assert.equal(map.mapName, "test_bookshelf");
-  assert.equal(map.objects.length, 7);
-  const rotations = new Set(map.objects.map((definition) => BookshelfLayout.bounds(definition).rotation));
+  const shelves = map.objects.filter(definition => definition.object === "Bookshelf");
+  assert.equal(shelves.length, 7);
+  const rotations = new Set(shelves.map((definition) => BookshelfLayout.bounds(definition).rotation));
   assert.deepEqual([...rotations].sort((a, b) => a - b), [-90, 0, 90, 180]);
 });

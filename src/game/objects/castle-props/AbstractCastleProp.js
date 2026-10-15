@@ -84,7 +84,7 @@ export class AbstractCastleProp {
         }
       }
     }
-    if (this.constructor.hasAuthoredCollision && !definition.collisionBox) {
+    if (this.hasAuthoredCollision && !definition.collisionBox) {
       this.#collisionGraph = modelLibrary.instantiate(this.modelUrl);
       this.#collisionGraph.setLocalScale(scale * stretch.x, scale * stretch.y, scale * stretch.z);
       this.prepareModel(this.#collisionGraph, true);
@@ -96,6 +96,11 @@ export class AbstractCastleProp {
     }
     if (this.#collisionGraph) { addAuthoredMeshPhysics(pc, this.#visual, this.#collisionGraph); }
   }
+
+  /**
+   * @returns {boolean}
+   */
+  get hasAuthoredCollision() { return this.constructor.hasAuthoredCollision; }
 
   get entity() { return this.#entity; }
   /**

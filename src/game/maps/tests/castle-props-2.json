@@ -1141,7 +1141,19 @@
     },
     {
       "id": "plate-bread",
-      "object": "Bowl", "color": "#ffffff", "items": [{"object":"Bread"},{"object":"Bread"},{"object":"Bread"}],
+      "object": "Bowl",
+      "color": "#ffffff",
+      "items": [
+        {
+          "object": "Bread"
+        },
+        {
+          "object": "Bread"
+        },
+        {
+          "object": "Bread"
+        }
+      ],
       "tile": {
         "col": 6,
         "row": 6

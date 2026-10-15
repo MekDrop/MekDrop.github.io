@@ -46,7 +46,6 @@ export const ROOM_PROP_HEIGHTS = {
   "VestibuleCloakRail": 1.365,
   "VestibuleIslandBench": 1.05,
   "VestibuleMapTable": 1,
-  "VestibuleRug": 0.0306,
   "VestibuleStickStand": 1.05,
   "TravelKit": 0.45,
   "WallLantern": 0.6,
@@ -58,7 +57,7 @@ export const ROOM_PROP_HEIGHTS = {
   "WoodenStorageChest": 0.3291,
   "WoodenWashBasin": 0.2362,
   "WoodenWaterBucket": 0.388,
-  "WovenRug": 0.025,
+  "Rug": 0.025,
   "WritingDesk": 0.65
 };
 export const ROOM_PROP_BOTTOMS = {
@@ -108,7 +107,6 @@ export const ROOM_PROP_BOTTOMS = {
   "VestibuleCloakRail": -0.591,
   "VestibuleIslandBench": 0,
   "VestibuleMapTable": 0,
-  "VestibuleRug": 0,
   "VestibuleStickStand": 0,
   "TravelKit": 0,
   "WallLantern": 0,
@@ -120,6 +118,6 @@ export const ROOM_PROP_BOTTOMS = {
   "WoodenStorageChest": 0,
   "WoodenWashBasin": 0,
   "WoodenWaterBucket": 0,
-  "WovenRug": 0,
+  "Rug": 0,
   "WritingDesk": 0
 };

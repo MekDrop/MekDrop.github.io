@@ -1113,7 +1113,37 @@
     },
     {
       "id": "bowl-green-vegetables",
-      "object": "Bowl", "color": "#b16832", "items": [{"object":"GreenVegetable"},{"object":"GreenVegetable"},{"object":"GreenVegetable"},{"object":"GreenVegetable"},{"object":"GreenVegetable"},{"object":"GreenVegetable"},{"object":"GreenVegetable"},{"object":"GreenVegetable"},{"object":"GreenVegetable"}],
+      "object": "Bowl",
+      "color": "#b16832",
+      "items": [
+        {
+          "object": "GreenVegetable"
+        },
+        {
+          "object": "GreenVegetable"
+        },
+        {
+          "object": "GreenVegetable"
+        },
+        {
+          "object": "GreenVegetable"
+        },
+        {
+          "object": "GreenVegetable"
+        },
+        {
+          "object": "GreenVegetable"
+        },
+        {
+          "object": "GreenVegetable"
+        },
+        {
+          "object": "GreenVegetable"
+        },
+        {
+          "object": "GreenVegetable"
+        }
+      ],
       "tile": {
         "col": 9,
         "row": 3
@@ -1127,7 +1157,25 @@
     },
     {
       "id": "bowl-red-fruit",
-      "object": "Bowl", "color": "#ffffff", "items": [{"object":"Apple"},{"object":"Apple"},{"object":"Apple"},{"object":"Apple"},{"object":"Apple"}],
+      "object": "Bowl",
+      "color": "#ffffff",
+      "items": [
+        {
+          "object": "Apple"
+        },
+        {
+          "object": "Apple"
+        },
+        {
+          "object": "Apple"
+        },
+        {
+          "object": "Apple"
+        },
+        {
+          "object": "Apple"
+        }
+      ],
       "tile": {
         "col": 3,
         "row": 6

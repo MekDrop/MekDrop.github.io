@@ -5,9 +5,11 @@ import { BODYTYPE_DYNAMIC, BODYTYPE_KINEMATIC, BODYGROUP_USER_1, BODYGROUP_USER_
 import { JOINTTYPE_6DOF, MOTION_LOCKED, MOTION_LIMITED } from "playcanvas/build/playcanvas/src/framework/components/joint/constants.js";
 import { AmmoPhysicsWorld } from "playcanvas/build/playcanvas/src/framework/physics/ammo/ammo-physics-world.js";
 
+const DISABLE_WORLD_GRAVITY = 1;
+
 /**
  * @typedef {{position: {x: number, y: number, z: number}, pivotHeight: number, radius: number}} FlowerDefinition
- * @typedef {{body: import("playcanvas").PhysicsBody, anchor: import("playcanvas").PhysicsBody, joint: import("playcanvas").PhysicsJoint, position: Vec3, offset: number, hidden: boolean}} SimulatedFlower
+ * @typedef {{body: import("playcanvas").PhysicsBody, anchor: import("playcanvas").PhysicsBody, joint: import("playcanvas").PhysicsJoint, position: Vec3, radius: number, pivotHeight: number, offset: number, hidden: boolean}} SimulatedFlower
  */
 
 /**
@@ -43,9 +45,21 @@ export class FlowerPhysicsSimulation {
    */
   #feet = [];
   /**
+   * @type {Vec3[]}
+   */
+  #footPositions = [new Vec3(0, -1000, 0), new Vec3(0, -1000, 0)];
+  /**
+   * @type {number}
+   */
+  #pendingDelta = 0;
+  /**
    * @type {Vec3}
    */
   #position = new Vec3();
+  /**
+   * @type {Vec3}
+   */
+  #bendDirection = new Vec3();
   /**
    * @type {Quat}
    */
@@ -69,27 +83,34 @@ export class FlowerPhysicsSimulation {
         new Vec3(position.x, position.y + definition.pivotHeight, position.z), BODYGROUP_USER_1, BODYGROUP_USER_2);
       body.setFriction(0.75);
       body.setDamping(0.58, 0.7);
+      // The planted stem supports weight; contact displaces a spring-driven tip.
+      const supportedGravity = new Ammo.btVector3(0, 0, 0);
+      body.nativeBody.setFlags(body.nativeBody.getFlags() | DISABLE_WORLD_GRAVITY);
+      body.nativeBody.setGravity(supportedGravity);
+      Ammo.destroy(supportedGravity);
+      // Bullet's default sleep thresholds stop these tiny springs while visibly bent.
+      body.nativeBody.setSleepingThresholds(0.001, 0.001);
       const anchor = this.#createBody(BODYTYPE_KINEMATIC, 0,
         { type: "sphere", radius: 0.01 }, position, BODYGROUP_USER_1, 0);
       const joint = this.#world.createJoint({
-        type: JOINTTYPE_6DOF, bodyA: body, bodyB: anchor,
-        frameA: new Mat4().setTranslate(0, -definition.pivotHeight, 0), frameB: new Mat4(),
+        type: JOINTTYPE_6DOF, bodyA: anchor, bodyB: body,
+        frameA: new Mat4(), frameB: new Mat4().setTranslate(0, -definition.pivotHeight, 0),
         enableCollision: false,
         settings: {
-          linearMotionX: MOTION_LOCKED, linearMotionY: MOTION_LIMITED, linearMotionZ: MOTION_LOCKED,
-          linearLimitsX: new Vec3(), linearLimitsY: new Vec3(-0.08, 0.01), linearLimitsZ: new Vec3(),
-          angularMotionX: MOTION_LIMITED, angularMotionY: MOTION_LOCKED, angularMotionZ: MOTION_LIMITED,
-          angularLimitsX: new Vec3(-76, 76), angularLimitsY: new Vec3(), angularLimitsZ: new Vec3(-76, 76),
-          linearStiffness: new Vec3(0, 12, 0), linearDamping: new Vec3(1, 0.86, 1), linearEquilibrium: new Vec3(),
-          angularStiffness: new Vec3(0.06, 0, 0.06), angularDamping: new Vec3(0.74, 1, 0.74), angularEquilibrium: new Vec3(),
+          linearMotionX: MOTION_LIMITED, linearMotionY: MOTION_LIMITED, linearMotionZ: MOTION_LIMITED,
+          linearLimitsX: new Vec3(-0.18, 0.18), linearLimitsY: new Vec3(-definition.pivotHeight + 0.001, 0.01), linearLimitsZ: new Vec3(-0.18, 0.18),
+          angularMotionX: MOTION_LOCKED, angularMotionY: MOTION_LOCKED, angularMotionZ: MOTION_LOCKED,
+          angularLimitsX: new Vec3(), angularLimitsY: new Vec3(), angularLimitsZ: new Vec3(),
+          linearStiffness: new Vec3(0.6, 0.6, 0.6), linearDamping: new Vec3(0.86, 0.86, 0.86), linearEquilibrium: new Vec3(),
+          angularStiffness: new Vec3(), angularDamping: new Vec3(1, 1, 1), angularEquilibrium: new Vec3(),
         },
       });
       this.#joints.add(joint);
-      this.#flowers.push({ body, anchor, joint, position, offset: 0, hidden: false });
+      this.#flowers.push({ body, anchor, joint, position, radius: definition.radius, pivotHeight: definition.pivotHeight, offset: 0, hidden: false });
     }
     for (let index = 0; index < 2; index++) {
       const foot = this.#createBody(BODYTYPE_KINEMATIC, 0,
-        { type: "sphere", radius: 0.17 }, new Vec3(0, -1000, 0), BODYGROUP_USER_2, BODYGROUP_USER_1);
+        { type: "box", halfExtents: new Vec3(0.17, 0.3, 0.17) }, new Vec3(0, -1000, 0), BODYGROUP_USER_2, BODYGROUP_USER_1);
       foot.setFriction(0.8);
       this.#feet.push(foot);
     }
@@ -112,7 +133,7 @@ export class FlowerPhysicsSimulation {
   /**
    * @param {string} type
    * @param {number} mass
-   * @param {{type: string, radius: number, height?: number, axis?: number}} description
+   * @param {{type: string, radius?: number, height?: number, axis?: number, halfExtents?: Vec3}} description
    * @param {Vec3} position
    * @param {number} group
    * @param {number} mask
@@ -156,17 +177,56 @@ export class FlowerPhysicsSimulation {
         flower.offset = offsets[index];
       }
     }
+    // Keep the four-step catch-up budget, but distribute foot motion across it.
+    // A single target otherwise becomes the entire frame's motion in 1/120 s.
+    const fixedTimeStep = 1 / 120;
+    this.#pendingDelta = Math.min(this.#pendingDelta + Math.max(0, deltaTime), 4 * fixedTimeStep);
+    const substeps = Math.floor(this.#pendingDelta / fixedTimeStep);
+    this.#pendingDelta -= substeps * fixedTimeStep;
     for (let index = 0; index < 2; index++) {
       this.#position.set(feet[index * 3], feet[index * 3 + 1], feet[index * 3 + 2]);
-      this.#feet[index].setKinematicTarget(this.#position, this.#identity);
+      if (this.#footPositions[index].distance(this.#position) > 1) {
+        // Spawn/respawn jumps are teleports, not thousand-metre foot strikes.
+        this.#feet[index].setTransform(this.#position, this.#identity);
+        this.#feet[index].nativeBody.setInterpolationWorldTransform(this.#feet[index].nativeBody.getWorldTransform());
+        this.#footPositions[index].copy(this.#position);
+        // Resolve spawn penetration toward the sole, rather than letting the
+        // nearest box face eject the canopy upward through the boot.
+        const footPosition = this.#position.clone();
+        for (const flower of this.#flowers) {
+          if (flower.hidden) { continue; }
+          flower.body.getTransform(this.#position, this.#rotation);
+          const dx = Math.max(0, Math.abs(this.#position.x - footPosition.x) - 0.17);
+          const dz = Math.max(0, Math.abs(this.#position.z - footPosition.z) - 0.17);
+          const sole = footPosition.y - 0.3;
+          if (dx * dx + dz * dz < (flower.radius * 0.72) ** 2 &&
+            this.#position.y > sole - 0.0175 && this.#position.y < footPosition.y + 0.3175) {
+            this.#position.y = Math.max(flower.position.y + flower.offset + 0.001, sole - 0.0175);
+            flower.body.setTransform(this.#position, this.#identity);
+          }
+        }
+      }
     }
-    // Decorative springs have a bounded catch-up budget; hero physics is separate.
-    this.#world.step(Math.min(deltaTime, 0.1), 4, 1 / 120);
+    for (let substep = 1; substep <= substeps; substep++) {
+      for (let index = 0; index < 2; index++) {
+        this.#position.set(feet[index * 3], feet[index * 3 + 1], feet[index * 3 + 2]);
+        this.#position.lerp(this.#footPositions[index], this.#position, substep / substeps);
+        this.#feet[index].setKinematicTarget(this.#position, this.#identity);
+      }
+      this.#world.step(fixedTimeStep, 1, fixedTimeStep);
+    }
+    for (let index = 0; substeps > 0 && index < 2; index++) {
+      this.#feet[index].getTransform(this.#footPositions[index], this.#rotation);
+    }
     const transforms = new Float32Array(this.#flowers.length * 7);
     for (let index = 0; index < this.#flowers.length; index++) {
       const flower = this.#flowers[index];
       if (flower.hidden) { continue; }
       flower.body.getTransform(this.#position, this.#rotation);
+      // Preserve the tip's compression as well as lateral displacement.
+      this.#bendDirection.set(this.#position.x - flower.position.x,
+        this.#position.y - flower.position.y - flower.offset, this.#position.z - flower.position.z);
+      this.#rotation.setFromDirections(Vec3.UP, this.#bendDirection);
       transforms.set([this.#position.x, this.#position.y, this.#position.z,
         this.#rotation.x, this.#rotation.y, this.#rotation.z, this.#rotation.w], index * 7);
     }

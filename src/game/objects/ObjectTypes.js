@@ -26,7 +26,15 @@
  * @property {number} [level] Block bottom elevation when position is omitted.
  * @property {boolean} [generated]
  * @property {RenderCommand} [geometry]
- * @property {string} [variant] Prop artwork/model variant.
+ * @property {string} [variant] Prop artwork/model variant. Legacy Book variants are migrated to isOpen, pose, and style.
+ * @property {boolean} [isOpen] Whether the Book is open (default false), independent of its location.
+ * @property {string} [pose] Book model's resting pose: flat (default) or upright; tilt and rotation control final orientation.
+ * @property {string} [style] Book artwork style; classic retains the older painted open volume in any location.
+ * @property {number[]} [coverColor] Book binding color as sRGB components from 0 to 1.
+ * @property {string} [sourceShelfId] Cabinet owning a generated Book's packing and shared collision.
+ * @property {boolean} [books] Bookshelf includes books by default; false allows an empty cabinet.
+ * @property {boolean} [booksAsObjects] Bookshelf contents have been published as separate map objects.
+ * @property {number} [weathering] Prop wear from 0 (fresh) to 1 (fully aged).
  * @property {number} [rotation]
  * @property {Point3} [from] Bookshelf bottom edge, window corner, or WoodenFloor surface corner in world coordinates.
  * @property {Point3} [to] Bookshelf bottom edge or opposite window corner (one differing ground axis); WoodenFloor opposite surface corner (both ground axes differ, equal Y).
@@ -36,7 +44,8 @@
  * @property {number} [height] Table, firewood pile, bookshelf, window, or flag cloth height.
  * @property {number} [chimneyHeight] Fireplace base to the covering roof surface, in metres.
  * @property {number} [poleHeight] Flag pole height in metres (default 1.25).
- * @property {string} [texture] Flag cloth image URL; omitted uses the blue castle crest.
+ * @property {string} [model] Authored rug asset filename under models/rug; omitted uses woven-rug.glb.
+ * @property {string} [texture] Cloth image URL; omitted keeps the flag or rug default fabric.
  * @property {{baseY: number, height: number, clearance?: number}} [roofCollider] Flag roof contact shape passed to cloth physics.
  * @property {string} [sourceCastleId] Castle that supplied a migrated flag.
  * @property {number} [sourceCastleSeed] Seed used to generate the migrated flag.

@@ -7,7 +7,7 @@ it("furnishes the arrival room while preserving circulation and window approache
   for (const seed of [20, 21]) {
     const plan = await CastleBasePlanGenerator.generate({ seed });
     const items = plan.furniture.filter(item => item.role === "vestibuleProp");
-    for (const object of ["VestibuleBench", "VestibuleCloakRail", "VestibuleBanner", "VestibuleRug", "VestibuleLantern",
+    for (const object of ["VestibuleBench", "VestibuleCloakRail", "VestibuleBanner", "Rug", "VestibuleLantern",
       "Painting", "StandingArmor", "WoodenStorageChest", "TravelKit", "Boots", "VestibuleStickStand"]) {
       assert.ok(items.some(item => item.object === object), `${object} seed ${seed}`);
     }
@@ -51,7 +51,7 @@ it("furnishes the arrival room while preserving circulation and window approache
     assert.equal(armor[0].rotation, painting.rotation);
     assert.ok(armor[0].z > painting.z, "use the spacious side opposite the stairs door");
     assert.ok(Math.abs(armor[0].z - painting.z) >= (armor[0].depth + painting.depth) / 2 + 0.08);
-    const runner = items.find(item => item.object === "VestibuleRug" && item.roomId === bench.roomId);
+    const runner = items.find(item => item.object === "Rug" && item.roomId === bench.roomId);
     assert.ok(runner.depth > 3 && runner.width === 1.3);
     const window = plan.openings.find(opening => opening.roomId === bench.roomId && opening.kind === "window");
     const windowBench = items.find(item => item.object === "VestibuleBench" && item.stretch?.x === 0.8);
@@ -117,7 +117,7 @@ it("chooses either seating or a map table and keeps all door approaches connecte
     assert.ok(console, `console for seed ${seed}`);
     assert.ok(!items.some(item => item.object === "VestibuleBench"));
     assert.ok(items.some(item => item.object === "LibrarySideTable" && item.id.endsWith("window-stand")));
-    assert.ok(items.some(item => item.object === "VestibuleRug" && item.id?.endsWith("arrival-rug")),
+    assert.ok(items.some(item => item.object === "Rug" && item.id?.endsWith("arrival-rug")),
       "arrival furniture has its own broad floor covering");
     assert.ok(items.some(item => item.object === "WarCouncilShield" && item.id.endsWith("arrival-shield")),
       "the entrance wall has a shield above the low furnishings");
@@ -137,7 +137,7 @@ it("chooses either seating or a map table and keeps all door approaches connecte
       assert.ok(items.some(item => item.object === object && item.supportId === console.id));
     }
     assert.ok(islands.every(item => item.y === 0.033));
-    const rug = items.find(item => item.object === "VestibuleRug");
+    const rug = items.find(item => item.object === "Rug");
     assert.ok(rug.width > 2 && rug.depth > 1.5);
     if (seed < 6) { assert.ok(rug.width >= 4 && rug.depth >= 2.49); }
     for (const island of islands) {
