@@ -95,17 +95,18 @@ export const useHeroConfigurationStore = defineStore(
        */
       moveInventoryItem(fromSlot, toSlot) {
         this.normalizeInventorySlots();
+        /**
+         *
+         * @param {InventoryItem} options
+         * @param {number} options.slot
+         */
+        const occupiesTargetSlot = ({ slot }) => slot === toSlot;
         if (
           !Number.isInteger(fromSlot) ||
           !Number.isInteger(toSlot) ||
           toSlot < 0 ||
           toSlot >= this.inventory.capacity ||
-          this.inventory.items.some(/**
-           *
-           * @param {InventoryItem} options
-           * @param {number} options.slot
-           */
-            ({ slot }) => slot === toSlot)
+          this.inventory.items.some(occupiesTargetSlot)
         ) {
           return false;
         }

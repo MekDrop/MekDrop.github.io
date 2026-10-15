@@ -91,23 +91,25 @@ export class IslandConnectorBuilder {
             }
             first = last;
             if (!valid || pathCells.length !== 2 || grassCells.length === 0) continue;
-            if (grassCells.some(/**
+            /**
              * @param {{col: number, row: number}} grass
              */
-              ({ col, row }) => riverCells.some(/**
+            const isNearRiver = ({ col, row }) => riverCells.some(/**
               * @param {import("./MapGenerationTypes.js").RiverCell} river
               */
-                (river) => Math.abs(river.col - col) + Math.abs(river.row - row) <= 5,
-              ))) continue;
-            if (grassCells.some(/**
+              (river) => Math.abs(river.col - col) + Math.abs(river.row - row) <= 5,
+            );
+            if (grassCells.some(isNearRiver)) continue;
+            /**
              * @param {{col: number, row: number}} grass
              */
-              ({ col, row }) => overpassCells.some(/**
+            const isNearOverpass = ({ col, row }) => overpassCells.some(/**
               * @param {{col: number, row: number}} overpass
               */
-                (overpass) => Math.abs(overpass.col - col) +
+              (overpass) => Math.abs(overpass.col - col) +
                 Math.abs(overpass.row - row) <= 3,
-              ))) continue;
+            );
+            if (grassCells.some(isNearOverpass)) continue;
             const [a, b] = pathCells;
             if (Math.abs(a.col - b.col) + Math.abs(a.row - b.row) !== 1) continue;
             const expectedDirections = horizontal
@@ -148,12 +150,13 @@ export class IslandConnectorBuilder {
                 });
               }
             }
-            if (bridgePositions.some(/**
+            /**
              * @param {{col: number, row: number}} cell
              */
-              ({ col, row }) => PathSurfaceRules.classifyRenderMode(
-                grid, heightmap, tileMeta, col, row,
-              ) === "BRIDGE")) continue;
+            const isBridgeCell = ({ col, row }) => PathSurfaceRules.classifyRenderMode(
+              grid, heightmap, tileMeta, col, row,
+            ) === "BRIDGE";
+            if (bridgePositions.some(isBridgeCell)) continue;
             const nearIsland = this.#flood(grid, before, blocked);
             if (nearIsland.size === 0 ||
               nearIsland.has(`${after.col},${after.row}`)) continue;
@@ -259,15 +262,17 @@ export class IslandConnectorBuilder {
             col: cell.col + (horizontal ? step * distance : 0),
             row: cell.row + (horizontal ? 0 : step * distance),
           }));
-        if (cells.some(/**
+        /**
          * @param {{col: number, row: number}} cell
          */
-          ({ col, row }) => grid[row]?.[col] !== TileType.PATH ||
-          tileMeta[row][col].direction !== direction)) break;
-        if (cells.some(/**
+        const isInvalidConnectorCell = ({ col, row }) => grid[row]?.[col] !== TileType.PATH ||
+          tileMeta[row][col].direction !== direction;
+        if (cells.some(isInvalidConnectorCell)) break;
+        /**
          * @param {{col: number, row: number}} cell
          */
-          ({ col, row }) => tileMeta[row][col].islandConnector)) return true;
+        const isExistingConnector = ({ col, row }) => tileMeta[row][col].islandConnector;
+        if (cells.some(isExistingConnector)) return true;
       }
     }
     return false;

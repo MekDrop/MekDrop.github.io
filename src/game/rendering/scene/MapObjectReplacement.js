@@ -24,11 +24,12 @@ export class MapObjectReplacement {
    * @returns {import("../../GameContracts.js").GameMapData|null}
    */
   replace(definition, currentDefinitions, heroPosition) {
-    if (!this.#template.objects.some(/**
+    /**
      *
      * @param {import("../../objects/ObjectTypes.js").MapObjectDefinition} entry
      */
-      (entry) => entry.id === definition.id)) {
+    const matchesDefinitionId = (entry) => entry.id === definition.id;
+    if (!this.#template.objects.some(matchesDefinitionId)) {
       return null;
     }
     const map = structuredClone(this.#template);

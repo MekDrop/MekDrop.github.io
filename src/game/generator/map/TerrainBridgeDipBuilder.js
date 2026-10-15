@@ -117,14 +117,12 @@ export class TerrainBridgeDipBuilder {
         seenStations.add(stationKey);
 
         const cells = this.#pathStationCells(axis, cross, coordinate);
-        if (
-          cells.some(
-            /**
-             *
-             * @param {MapCell} cell
-             */
-            (cell) =>
-              mergeZones.has(MapGrid.tileKey(cell.col, cell.row)) ||
+        /**
+         *
+         * @param {MapCell} cell
+         */
+        const isInvalidBridgeCell = (cell) =>
+          mergeZones.has(MapGrid.tileKey(cell.col, cell.row)) ||
               riverBridgeCells.has(MapGrid.tileKey(cell.col, cell.row)) ||
               tileMeta[cell.row][cell.col].overpassId ||
               tileMeta[cell.row][cell.col].shape !== TILE_SHAPE.FLAT ||
@@ -135,8 +133,9 @@ export class TerrainBridgeDipBuilder {
                 tileMeta,
                 cell.col,
                 cell.row,
-              ) !== "BRIDGE",
-          )
+              ) !== "BRIDGE";
+        if (
+          cells.some(isInvalidBridgeCell)
         ) {
           continue;
         }
@@ -147,19 +146,18 @@ export class TerrainBridgeDipBuilder {
           cells[0].col,
           cells[0].row,
         );
-        if (
-          !lateralCells ||
-          lateralCells.some(
-            /**
-             *
-             * @param {MapCell} cell
-             */
-            (cell) =>
-              !MapGrid.inBounds(cell.col, cell.row) ||
+        /**
+         *
+         * @param {MapCell} cell
+         */
+        const isInvalidDipCell = (cell) =>
+          !MapGrid.inBounds(cell.col, cell.row) ||
               grid[cell.row][cell.col] !== TileType.GRASS ||
               heightmap[cell.row][cell.col] !==
-                TERRAIN_BRIDGE_DIP_ELEVATION,
-          )
+                TERRAIN_BRIDGE_DIP_ELEVATION;
+        if (
+          !lateralCells ||
+          lateralCells.some(isInvalidDipCell)
         ) {
           continue;
         }
@@ -308,14 +306,12 @@ export class TerrainBridgeDipBuilder {
     coordinate,
   ) {
     const cells = this.#pathStationCells(span.axis, span.cross, coordinate);
-    if (
-      cells.some(
-        /**
-         *
-         * @param {MapCell} cell
-         */
-        (cell) =>
-          !MapGrid.inBounds(cell.col, cell.row) ||
+    /**
+     *
+     * @param {MapCell} cell
+     */
+    const isInvalidApproachCell = (cell) =>
+      !MapGrid.inBounds(cell.col, cell.row) ||
           grid[cell.row][cell.col] !== TileType.PATH ||
           mergeZones.has(MapGrid.tileKey(cell.col, cell.row)) ||
           riverBridgeCells.has(MapGrid.tileKey(cell.col, cell.row)) ||
@@ -329,8 +325,9 @@ export class TerrainBridgeDipBuilder {
             tileMeta,
             cell.col,
             cell.row,
-          ) !== "SOLID",
-      )
+          ) !== "SOLID";
+    if (
+      cells.some(isInvalidApproachCell)
     ) {
       return false;
     }

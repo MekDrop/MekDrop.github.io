@@ -240,24 +240,27 @@ export class CastleMapPreparation {
             z + 0.5 > position.z - 1 && z - 0.5 < position.z + position.depth + 1;
           const edgeWave = Math.sin((x - position.x) * 0.8 + 0.4) + Math.cos((z - position.z) * 0.7);
           const apronWidth = edgeWave > 0.3 ? 2 : 1;
-          if (!inReservation && !supportCuts.some(/**
+          /**
            * @param {import("./CastleGroundCuts.js").GroundCut} cut
            */
-            (cut) => x + 0.5 > cut.minX - apronWidth && x - 0.5 < cut.maxX + apronWidth &&
-            z + 0.5 > cut.minZ - apronWidth && z - 0.5 < cut.maxZ + apronWidth)) continue;
-          if (mapData.riverData?.some(/**
+          const overlapsSupportApron = (cut) => x + 0.5 > cut.minX - apronWidth && x - 0.5 < cut.maxX + apronWidth &&
+            z + 0.5 > cut.minZ - apronWidth && z - 0.5 < cut.maxZ + apronWidth;
+          if (!inReservation && !supportCuts.some(overlapsSupportApron)) continue;
+          /**
            * @param {{cells:Array<{col:number,row:number}>}} river
            */
-            (river) => river.cells.some(/**
+          const containsRiverCell = (river) => river.cells.some(/**
            * @param {{col:number,row:number}} cell
            */
-              (cell) => cell.col === col && cell.row === row))) continue;
-          if (flights.some(/**
+            (cell) => cell.col === col && cell.row === row);
+          if (mapData.riverData?.some(containsRiverCell)) continue;
+          /**
            *
            * @param {{minX:number,maxX:number,minZ:number,maxZ:number}} flight
            */
-            (flight) => x + 0.5 > flight.minX && x - 0.5 < flight.maxX &&
-            z + 0.5 > flight.minZ && z - 0.5 < flight.maxZ)) continue;
+          const overlapsStairFlight = (flight) => x + 0.5 > flight.minX && x - 0.5 < flight.maxX &&
+            z + 0.5 > flight.minZ && z - 0.5 < flight.maxZ;
+          if (flights.some(overlapsStairFlight)) continue;
           const nearWall = supportCuts.some(/**
            * @param {import("./CastleGroundCuts.js").GroundCut} cut
            */

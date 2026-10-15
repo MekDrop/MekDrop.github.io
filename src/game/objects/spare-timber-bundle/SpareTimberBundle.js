@@ -1,3 +1,4 @@
+import { arePositiveFiniteNumbers } from "../../helpers/types.js";
 import modelUrl from "../../models/castle/props/spare-timber-bundle.glb?url";
 import { AbstractCastleProp } from "../castle-props/AbstractCastleProp.js";
 import { GenerationRandom } from "../../generator/map/GenerationRandom.js";
@@ -36,12 +37,7 @@ export class SpareTimberBundle extends AbstractCastleProp {
     for (const original of originals) { original.destroy(); }
     const columns = Math.max(1, Math.floor(width / 0.08));
     const rows = Math.max(1, Math.ceil(depth / 0.046));
-    if (templates.length && [width, depth, height].every(
-      /**
-       * @param {number} value
-       */
-      value => Number.isFinite(value) && value > 0,
-    ) && columns * rows <= 4096) {
+    if (templates.length && arePositiveFiniteNumbers(width, depth, height) && columns * rows <= 4096) {
       const random = new GenerationRandom(String(timberSeed ?? this.definition.id));
       const cellWidth = width / columns;
       const cellDepth = depth / rows;

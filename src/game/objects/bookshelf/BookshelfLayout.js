@@ -1,3 +1,4 @@
+import { everyFiniteNumber } from "../../helpers/collections.js";
 import { InvalidBookshelfRangeError } from "../../errors/bookshelf/index.js";
 
 /**
@@ -17,7 +18,7 @@ export class BookshelfLayout {
     const { from, to, height = 1.8, facing = 1 } = definition;
     const alongX = from?.x !== to?.x;
     const alongZ = from?.z !== to?.z;
-    if (!from || !to || ![from.x, from.y, from.z, to.x, to.y, to.z, height].every(Number.isFinite) ||
+    if (!from || !to || !everyFiniteNumber([from.x, from.y, from.z, to.x, to.y, to.z, height]) ||
       from.y !== to.y || alongX === alongZ || height <= 0 || ![1, -1].includes(facing)) {
       throw new InvalidBookshelfRangeError(definition.id);
     }

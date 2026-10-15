@@ -323,29 +323,28 @@ export class CastleWindowLayout {
       maxY: sill + height,
     };
     const stairs = [this.#rooms.stairs, this.#rooms.serviceStair].filter(Boolean);
-    if (stairs.some(
-      /**
-       * @param {{center:{x:number,y:number,z:number},radius:number,rise:number}} stair
-       */
-      (stair) => cut.minY < stair.center.y + stair.rise + 1.5 && cut.maxY > stair.center.y &&
-        Math.hypot(Math.max(cut.minX - stair.center.x, stair.center.x - cut.maxX, 0), Math.max(cut.minZ - stair.center.z, stair.center.z - cut.maxZ, 0)) < stair.radius + width,
-    )) {
+    /**
+     * @param {{center:{x:number,y:number,z:number},radius:number,rise:number}} stair
+     */
+    const overlapsStairClearance = (stair) => cut.minY < stair.center.y + stair.rise + 1.5 && cut.maxY > stair.center.y &&
+        Math.hypot(Math.max(cut.minX - stair.center.x, stair.center.x - cut.maxX, 0), Math.max(cut.minZ - stair.center.z, stair.center.z - cut.maxZ, 0)) < stair.radius + width;
+    if (stairs.some(overlapsStairClearance)) {
       return;
     }
     const doors = [...(this.#plan.metadata.runtime.roomDoors ?? []), this.#plan.metadata.runtime.residential?.upperDoor, this.#plan.metadata.runtime.residential?.sideDoor, ...(this.#plan.metadata.runtime.residential?.secondaryDoors ?? [])].filter(Boolean);
-    if (doors.some(
-      /**
-       * @param {{x:number,y:number,z:number,width:number,height:number}} door
-       */
-      (door) => sill < door.y + (door.height ?? 2) && sill + height > door.y && Math.hypot(position.x - door.x, position.z - door.z) < door.width / 2 + width * 1.5,
-    )) {
+    /**
+     * @param {{x:number,y:number,z:number,width:number,height:number}} door
+     */
+    const overlapsDoorClearance = (door) => sill < door.y + (door.height ?? 2) && sill + height > door.y && Math.hypot(position.x - door.x, position.z - door.z) < door.width / 2 + width * 1.5;
+    if (doors.some(overlapsDoorClearance)) {
       return;
     }
-    if (this.#windows.some(/**
+    /**
      *
      * @param {RecessedWindow} window
      */
-      (window) => CastleWindowLayout.intersects(window.cut, cut))) {
+    const intersectsWindowCut = (window) => CastleWindowLayout.intersects(window.cut, cut);
+    if (this.#windows.some(intersectsWindowCut)) {
       return;
     }
     const intersectsStone = this.#plan.geometry.boxes.some(

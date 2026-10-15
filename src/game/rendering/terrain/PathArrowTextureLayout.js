@@ -127,11 +127,12 @@ export class PathArrowTextureLayout {
     }
     if (mapData.overpassData?.stairApproach) {
       for (const marker of result) {
-        if (!marker.pitch || !mapData.overpassData.slopeCells.some(/**
+        /**
          * @param {{col: number, row: number}} cell
          */
-          (cell) => Math.abs(cell.col - marker.col) <= 0.5 &&
-          Math.abs(cell.row - marker.row) <= 0.5)) {
+        const containsSlopeMarker = (cell) => Math.abs(cell.col - marker.col) <= 0.5 &&
+          Math.abs(cell.row - marker.row) <= 0.5;
+        if (!marker.pitch || !mapData.overpassData.slopeCells.some(containsSlopeMarker)) {
           continue;
         }
         // Keep the head's broad base off a riser. Only the narrow shaft crosses

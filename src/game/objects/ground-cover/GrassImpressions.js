@@ -86,11 +86,12 @@ export class GrassImpressions {
       });
     }
     for (const [id, contact] of this.#contacts) {
-      if (!active.some(/**
+      /**
        *
        * @param {boolean} candidate
        */
-        (candidate) => candidate.id === id)) {
+      const hasContactId = (candidate) => candidate.id === id;
+      if (!active.some(hasContactId)) {
         this.#stamp(contact.last);
         this.#contacts.delete(id);
       }

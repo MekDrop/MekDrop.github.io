@@ -170,10 +170,11 @@ export class GroundCover {
    * @param {import("../ObjectTypes.js").GameMapData} mapData
    */
   static prepareMap(mapData) {
-    if (!mapData.objects.some(/**
+    /**
      * @param {import("../ObjectTypes.js").MapObjectDefinition} definition
      */
-      (definition) => definition.object === GroundCover.name)) {
+    const isGroundCover = (definition) => definition.object === GroundCover.name;
+    if (!mapData.objects.some(isGroundCover)) {
       mapData.objects.push({
         id: "ground-cover",
         object: GroundCover.name,

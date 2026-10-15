@@ -82,18 +82,17 @@ export class DecorationBuilder {
     const centerCandidates = this.#random.shuffle([...candidates]);
     const centers = [];
     for (const candidate of centerCandidates) {
+      /**
+       *
+       * @param {GridCell} center
+       */
+      const isNearSelectedCenter = (center) =>
+        Math.max(
+          Math.abs(center.col - candidate.col),
+          Math.abs(center.row - candidate.row),
+        ) < 3;
       if (
-        centers.some(
-          /**
-           *
-           * @param {GridCell} center
-           */
-          (center) =>
-            Math.max(
-              Math.abs(center.col - candidate.col),
-              Math.abs(center.row - candidate.row),
-            ) < 3,
-        )
+        centers.some(isNearSelectedCenter)
       ) {
         continue;
       }
@@ -229,20 +228,19 @@ export class DecorationBuilder {
     const shuffledCandidates = this.#random.shuffle(candidates);
     const colors = this.#random.shuffle([...STONE_COLORS]);
     for (const candidate of shuffledCandidates) {
+      /**
+       *
+       * @param {{col: number, row: number}} options
+       * @param {number} options.col
+       * @param {number} options.row
+       */
+      const isNearCandidate = ({ col, row }) =>
+        Math.max(
+          Math.abs(col - candidate.col),
+          Math.abs(row - candidate.row),
+        ) < 3;
       if (
-        stones.some(
-          /**
-           *
-           * @param {{col: number, row: number}} options
-           * @param {number} options.col
-           * @param {number} options.row
-           */
-          ({ col, row }) =>
-            Math.max(
-              Math.abs(col - candidate.col),
-              Math.abs(row - candidate.row),
-            ) < 3,
-        )
+        stones.some(isNearCandidate)
       ) {
         continue;
       }

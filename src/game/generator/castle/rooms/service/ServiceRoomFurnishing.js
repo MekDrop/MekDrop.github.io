@@ -161,9 +161,11 @@ export class ServiceRoomFurnishing {
         }
 
       }
-      if (!this.#items.some(/**
+      /**
        * @param {import("../AbstractCastleRoomGenerator.js").RoomItem} item
-       */ item => item.object === "ServantBedsideLantern")) {
+       */
+      const isBedsideLantern = item => item.object === "ServantBedsideLantern";
+      if (!this.#items.some(isBedsideLantern)) {
         this.#perimeter("VestibuleLantern", 0.187, 0.257, 0.45, 1, 1.75);
       }
     }

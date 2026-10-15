@@ -103,27 +103,30 @@ export class RiverValidator {
        * @param {RiverData} item
        */
         (item) => item.id === river.sourceId && !item.sourceId);
+      /**
+       *
+       * @param {RiverData} item
+       */
+      const hasMismatchedBranchStart = (item) => item.sourceId && item.branchStart !== river.branchStart;
+      /**
+       *
+       * @param {MapCell} cell
+       * @param {number} index
+       */
+      const differsFromParentCell = (cell, index) =>
+        cell.col !== parent.cells[index]?.col || cell.row !== parent.cells[index]?.row ||
+          cell.elevation !== parent.cells[index]?.elevation;
+      /**
+       * @param {import("./MapGenerationTypes.js").RiverCascade} cascade
+       */
+      const endsAtBranchStart = (cascade) => cascade.to.col === river.cells[river.branchStart - 1].col &&
+          cascade.to.row === river.cells[river.branchStart - 1].row;
       if (family.length > 3 || (river.sourceId && (
         !parent || river.kind !== parent.kind || !Number.isInteger(river.branchStart) ||
-        family.some(/**
-         *
-         * @param {RiverData} item
-         */
-          (item) => item.sourceId && item.branchStart !== river.branchStart) ||
+        family.some(hasMismatchedBranchStart) ||
         river.branchStart < 2 || river.branchStart >= river.cells.length ||
-        river.cells.slice(0, river.branchStart).some(/**
-         *
-         * @param {MapCell} cell
-         * @param {number} index
-         */
-          (cell, index) =>
-            cell.col !== parent.cells[index]?.col || cell.row !== parent.cells[index]?.row ||
-          cell.elevation !== parent.cells[index]?.elevation) ||
-        !parent.cascades.some(/**
-         * @param {import("./MapGenerationTypes.js").RiverCascade} cascade
-         */
-          (cascade) => cascade.to.col === river.cells[river.branchStart - 1].col &&
-          cascade.to.row === river.cells[river.branchStart - 1].row) ||
+        river.cells.slice(0, river.branchStart).some(differsFromParentCell) ||
+        !parent.cascades.some(endsAtBranchStart) ||
         river.cells[river.branchStart].elevation !== river.cells[river.branchStart - 1].elevation
       ))) {
         throw new InvalidRiverPathError({
@@ -253,16 +256,17 @@ export class RiverValidator {
          * @param {RiverData} item
          */
           (item) => item.sourceId)?.branchStart;
-        if (sharedStart && index >= sharedStart && family.some(/**
+        /**
          *
          * @param {RiverData} other
          */
-          (other) => other !== river &&
+        const sharesDownstreamCell = (other) => other !== river &&
           other.cells.slice(sharedStart).some(/**
            *
            * @param {MapCell} otherCell
            */
-            (otherCell) => otherCell.col === cell.col && otherCell.row === cell.row))) {
+            (otherCell) => otherCell.col === cell.col && otherCell.row === cell.row);
+        if (sharedStart && index >= sharedStart && family.some(sharesDownstreamCell)) {
           throw new InvalidRiverPathError({
             riverId: river.id,
             reason: "rejoins or overlaps a downstream branch",

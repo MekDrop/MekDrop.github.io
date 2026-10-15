@@ -110,36 +110,29 @@ export class DecorationValidator {
     const styles = new Set();
     for (const { col, row, parts } of stonePlacements) {
       const key = MapGrid.tileKey(col, row);
-      if (
-        occupied.has(key) ||
-        !DecorationPlacementRules.isGroundCoverCandidate(grid, heightmap, tileMeta, col, row) ||
-        !Array.isArray(parts) ||
-        parts.length < 1 ||
-        parts.length > 3 ||
-        parts.some(
-          /**
-           *
-           * @param {StonePart} options
-           * @param {number} options.variant
-           * @param {number} options.style
-           * @param {string} options.color
-           * @param {number} options.levels
-           * @param {number} options.offsetX
-           * @param {number} options.offsetZ
-           * @param {number} options.diameter
-           * @param {number} options.height
-           */
-          ({
-            variant,
-            style,
-            color,
-            levels,
-            offsetX,
-            offsetZ,
-            diameter,
-            height,
-          }) =>
-            !Number.isInteger(variant) ||
+      /**
+       *
+       * @param {StonePart} options
+       * @param {number} options.variant
+       * @param {number} options.style
+       * @param {string} options.color
+       * @param {number} options.levels
+       * @param {number} options.offsetX
+       * @param {number} options.offsetZ
+       * @param {number} options.diameter
+       * @param {number} options.height
+       */
+      const isInvalidStone = ({
+        variant,
+        style,
+        color,
+        levels,
+        offsetX,
+        offsetZ,
+        diameter,
+        height,
+      }) =>
+        !Number.isInteger(variant) ||
             variant < 0 ||
             variant > 2 ||
             !STONE_COLORS.includes(color) ||
@@ -156,8 +149,14 @@ export class DecorationValidator {
             Math.abs(offsetX) + diameter / 2 > 0.5 ||
             Math.abs(offsetZ) + diameter / 2 > 0.5 ||
             height <= 0 ||
-            height > 0.8,
-        )
+            height > 0.8;
+      if (
+        occupied.has(key) ||
+        !DecorationPlacementRules.isGroundCoverCandidate(grid, heightmap, tileMeta, col, row) ||
+        !Array.isArray(parts) ||
+        parts.length < 1 ||
+        parts.length > 3 ||
+        parts.some(isInvalidStone)
       ) {
         throw new InvalidStonePlacementError({
           col,

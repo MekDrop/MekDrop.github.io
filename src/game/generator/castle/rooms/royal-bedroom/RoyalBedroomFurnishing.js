@@ -286,10 +286,12 @@ export class RoyalBedroomFurnishing {
     // Tiny inaccessible pockets behind furniture are irrelevant; every doorway
     // and a usable side of the bed must belong to the same reachable component.
     for (const door of this.#doors) {
-      if (!queue.some(/**
+      /**
        * @param {number} index
-       */ index => Math.abs((door.axis === "x" ? points[index].x : points[index].z) - door.coordinate) < 0.6 &&
-        Math.abs((door.axis === "x" ? points[index].z : points[index].x) - door.center) < door.width / 2 - 0.15)) { return false; }
+       */
+      const reachesDoor = index => Math.abs((door.axis === "x" ? points[index].x : points[index].z) - door.coordinate) < 0.6 &&
+        Math.abs((door.axis === "x" ? points[index].z : points[index].x) - door.center) < door.width / 2 - 0.15;
+      if (!queue.some(reachesDoor)) { return false; }
     }
     const bed = this.#items.find(/**
      * @param {import("../AbstractCastleRoomGenerator.js").RoomItem} item
@@ -381,12 +383,14 @@ export class RoyalBedroomFurnishing {
         wallAttachment: true,
       };
       if (!RoomPlacementRules.accepts(item, this.#room, this.#items, this.#thickness)) { continue; }
-      if (openings.some(/**
+      /**
        * @param {import("../../CastleBasePlanGenerator.js").CompiledCastleOpening} opening
-       */ opening => opening.axis === (sideways ? "x" : "z") &&
+       */
+      const overlapsWallDecoration = opening => opening.axis === (sideways ? "x" : "z") &&
         Math.abs(opening.coordinate - (sideways ? x : z)) < 0.3 &&
         Math.abs(opening.center - (sideways ? z : x)) < opening.width / 2 + 0.6 &&
-        (opening.bottom ?? 0) < 2.08 && (opening.bottom ?? 0) + opening.height > 1.3)) { continue; }
+        (opening.bottom ?? 0) < 2.08 && (opening.bottom ?? 0) + opening.height > 1.3;
+      if (openings.some(overlapsWallDecoration)) { continue; }
       this.#items.push(item);
       return;
     }

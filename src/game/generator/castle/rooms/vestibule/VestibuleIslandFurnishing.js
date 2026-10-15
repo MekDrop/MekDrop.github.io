@@ -62,14 +62,16 @@ export class VestibuleIslandFurnishing {
         rotation: alongX ? 0 : 90,
         y: 0.033,
       };
+      /**
+       * @param {import("../AbstractCastleRoomGenerator.js").RoomItem} item
+       */
+      const overlapsIslandPlacement = item => (item.y ?? 0) < 1.5 && !item.floorCovering && !item.object?.endsWith("Rug") &&
+          Math.abs(item.x - island.x) < (item.width * item.scale + island.width) / 2 + clearance &&
+          Math.abs(item.z - island.z) < (item.depth * item.scale + island.depth) / 2 + clearance;
       if (safe(island) &&
         island.x - island.width / 2 >= room.minX + inset && island.x + island.width / 2 <= room.maxX - inset &&
         island.z - island.depth / 2 >= room.minZ + inset && island.z + island.depth / 2 <= room.maxZ - inset &&
-        !occupied.some(/**
-         * @param {import("../AbstractCastleRoomGenerator.js").RoomItem} item
-         */ item => (item.y ?? 0) < 1.5 && !item.floorCovering && !item.object?.endsWith("Rug") &&
-          Math.abs(item.x - island.x) < (item.width * item.scale + island.width) / 2 + clearance &&
-          Math.abs(item.z - island.z) < (item.depth * item.scale + island.depth) / 2 + clearance)) {
+        !occupied.some(overlapsIslandPlacement)) {
         const items = [island];
         if (bench) {
           const bagScale = largeBench ? 1 : 0.8;

@@ -11,11 +11,12 @@ const HIDDEN_MORTAR_PREFIXES = [
  * @param {import("playcanvas").Entity} entity
  */
 const hideMortarBacking = (entity) => {
-  if (HIDDEN_MORTAR_PREFIXES.some(/**
+  /**
    *
    * @param {string} prefix
    */
-    (prefix) => entity.name.startsWith(prefix))) {
+  const matchesHiddenMortarPrefix = (prefix) => entity.name.startsWith(prefix);
+  if (HIDDEN_MORTAR_PREFIXES.some(matchesHiddenMortarPrefix)) {
     entity.enabled = false;
   }
   for (const child of entity.children) {

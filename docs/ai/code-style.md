@@ -15,6 +15,8 @@ ESLint and Prettier configuration are authoritative for enforced style. Game-spe
 
 Write object literals with two or more properties on multiple lines: put each property or spread on its own line, place the braces on separate lines, indent properties by two spaces, and include a trailing comma. ESLint enforces the object layout after the Prettier compatibility configuration. `npm run format` reapplies ESLint fixes after Prettier; when running Prettier directly, run `npm run lint -- --fix` afterward to restore this layout.
 
+In `if` conditions, pass named predicates or call named helpers instead of defining inline arrow or function callbacks. For example, use `values.every(isPositiveFiniteNumber)` or `everyFiniteNumber(values)`. ESLint enforces this for callbacks inside the condition; callbacks in the branch body remain allowed.
+
 ## Repository Workflow
 
 Keep commits focused and use short imperative summaries. Store temporary helper, conversion, migration, or diagnostic scripts in the ignored project-root `tmp/`; never stage or commit its contents.

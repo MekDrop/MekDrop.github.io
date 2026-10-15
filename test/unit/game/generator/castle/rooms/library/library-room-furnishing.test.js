@@ -120,10 +120,12 @@ it("keeps a connected player-width route from the door to desk and shelf approac
       for (let z = 0; z < depth; z++) {
         const px = room.minX + (x + 0.5) * step, pz = room.minZ + (z + 0.5) * step;
         if (px < room.minX + radius || px > room.maxX - radius || pz < room.minZ + radius || pz > room.maxZ - radius) { continue; }
-        if (furniture.some(item => Math.hypot(Math.max(0, Math.abs(px - item.x) - item.width / 2),
-          Math.max(0, Math.abs(pz - item.z) - item.depth / 2)) < radius)) { continue; }
-        if (plan.stairs.some(stair => px > stair.minX - radius && px < stair.maxX + radius &&
-          pz > stair.minZ - radius && pz < stair.maxZ + radius)) { continue; }
+        const blocksFurnitureClearance = item => Math.hypot(Math.max(0, Math.abs(px - item.x) - item.width / 2),
+          Math.max(0, Math.abs(pz - item.z) - item.depth / 2)) < radius;
+        if (furniture.some(blocksFurnitureClearance)) { continue; }
+        const blocksStairClearance = stair => px > stair.minX - radius && px < stair.maxX + radius &&
+          pz > stair.minZ - radius && pz < stair.maxZ + radius;
+        if (plan.stairs.some(blocksStairClearance)) { continue; }
         visited.add(`${x},${z}`);
         if (Math.abs(px - door.center) < 0.2 && Math.abs(pz - (door.coordinate - 0.4)) < 0.15) { queue.push([x, z]); }
       }

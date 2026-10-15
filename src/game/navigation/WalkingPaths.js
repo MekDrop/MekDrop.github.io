@@ -1,3 +1,4 @@
+import { everyTruthy } from "../helpers/collections.js";
 import { MAP_TILE_TYPE } from "../enum/MapTileType.js";
 import { RouteDataBuilder } from "../generator/map/RouteDataBuilder.js";
 import { MapObjectDefinitions } from "../objects/MapObjectDefinitions.js";
@@ -87,11 +88,7 @@ export class WalkingPaths {
           for (const upper of [false, true]) {
             const tiles = [surface(col, row, upper), surface(col + 1, row, upper),
               surface(col, row + 1, upper), surface(col + 1, row + 1, upper)];
-            if (tiles.some(/**
-             *
-             * @param {WalkingSurface} tile
-             */
-              (tile) => !tile)) { continue; }
+            if (!everyTruthy(tiles)) { continue; }
             // Surfaces must agree at the center and across both lanes.
             const heights = tiles.map(/**
              *

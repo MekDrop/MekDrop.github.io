@@ -68,13 +68,12 @@ export class DynamicRenderBatch {
     group.members += 1;
     for (const render of root.findComponents("render")) {
       // Skinning, instancing and CPU-deformed cloth already own their vertex updates.
-      if (render.enabled && render.batchGroupId < 0 && render.meshInstances.every(
-        /**
-         * @param {import("playcanvas").MeshInstance} mesh
-         */
-        (mesh) => !mesh.skinInstance && !mesh.morphInstance &&
-          !mesh.instancingData && mesh.mesh.vertexBuffer.usage === staticBufferUsage,
-      )) {
+      /**
+       * @param {import("playcanvas").MeshInstance} mesh
+       */
+      const isStaticBatchableMesh = (mesh) => !mesh.skinInstance && !mesh.morphInstance &&
+          !mesh.instancingData && mesh.mesh.vertexBuffer.usage === staticBufferUsage;
+      if (render.enabled && render.batchGroupId < 0 && render.meshInstances.every(isStaticBatchableMesh)) {
         render.batchGroupId = group.id;
         this.#renders.push(render);
       }

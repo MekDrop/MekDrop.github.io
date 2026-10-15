@@ -1,3 +1,4 @@
+import { arePositiveFiniteNumbers } from "../../helpers/types.js";
 import particleUrl from "src/assets/game/effects/castle-fire-particle.png?url";
 import { IslandObjectRoots } from "../shared/IslandObjectRoots.js";
 
@@ -62,11 +63,7 @@ export class Fire {
     root.setLocalEulerAngles(0, definition.rotation ?? 0, 0);
     const { x: width, y: height, z: depth } = definition.volume;
     // Reject empty or non-finite volumes without allocating a particle system.
-    if (![width, height, depth].every(/**
-     *
-     * @param {number} value
-     */
-      value => Number.isFinite(value) && value > 0)) { return; }
+    if (!arePositiveFiniteNumbers(width, height, depth)) { return; }
     const size = Math.min(width, depth, height * 0.18);
     const count = Math.min(2048, Math.max(16, Math.ceil(width * depth / (size * size) * 2)));
     const lifetime = 0.42;

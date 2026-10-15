@@ -158,7 +158,8 @@ it("towers start at ground corners and never occupy an upstairs room footprint",
       }
     }
     assert.equal(plan.structure.towers.length, placedRooms.filter((room) => room.id.startsWith("tower")).length);
-    if (placedRooms.some((room) => room.level + room.floorSpan > 1)) { assert.ok(plan.layout.roomPlan.stair); }
+    const extendsAboveGroundFloor = (room) => room.level + room.floorSpan > 1;
+    if (placedRooms.some(extendsAboveGroundFloor)) { assert.ok(plan.layout.roomPlan.stair); }
   }
 });
 

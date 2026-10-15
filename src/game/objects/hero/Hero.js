@@ -1,3 +1,4 @@
+import { everyFiniteNumber } from "../../helpers/collections.js";
 import { Vec2 } from "playcanvas";
 import { IslandCellOwnership } from "../shared/IslandCellOwnership.js";
 import { HeroTerrain } from "./HeroTerrain.js";
@@ -1209,7 +1210,7 @@ export class Hero {
    * @returns {boolean}
    */
   teleport(position) {
-    if (this.isGameOver || ![position.x, position.y, position.z].every(Number.isFinite)) {
+    if (this.isGameOver || !everyFiniteNumber([position.x, position.y, position.z])) {
       return false;
     }
     const previous = this.position;

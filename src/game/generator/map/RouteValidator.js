@@ -161,11 +161,12 @@ export class RouteValidator {
         }
       }
 
-      if (!entranceTargets.some(/**
+      /**
        *
        * @param {string} key
        */
-        (key) => seen.has(key))) {
+      const isReachableTarget = (key) => seen.has(key);
+      if (!entranceTargets.some(isReachableTarget)) {
         throw new EntryPathUnreachableError();
       }
     }

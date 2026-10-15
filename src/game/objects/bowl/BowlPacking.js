@@ -1,3 +1,4 @@
+import { everyFiniteNumber } from "../../helpers/collections.js";
 import { Vec3, Quat, Mat4, BoundingBox } from "playcanvas";
 import { AmmoPhysicsWorld } from "playcanvas/build/playcanvas/src/framework/physics/ammo/ammo-physics-world.js";
 import { UnpackableObjectError } from "../../errors/assets/index.js";
@@ -69,10 +70,7 @@ export class BowlPacking {
            */ index => index + base));
       }
     }
-    if (!positions.length || positions.some(
-      /**
-       * @param {number} value
-       */ value => !Number.isFinite(value))) {
+    if (!positions.length || !everyFiniteNumber(positions)) {
       throw new UnpackableObjectError({ name: entity.name });
     }
     const bounds = new BoundingBox();

@@ -708,59 +708,60 @@ export class CastleAuthoredBuildPlan {
      */
     const wall = (room, axis, coordinate, sign, height, envelope = false) => {
       let joinedFace = null;
-      if (room.kind === "room" && authored.buildings.some(/**
+      /**
        * @param {{floorY:number,height:number,minX:number,maxX:number,minZ:number,maxZ:number}} building
        */
-        (building) => {
-          const bounds = transform(building);
-          const boundaries = axis === "x" ? [bounds.minX, bounds.maxX] : [bounds.minZ, bounds.maxZ];
-          // A joined building removes this envelope face. Keep the room's
-          // partition and doorway instead of leaving its frame in open space.
-          const sharedFace = authored.buildings.some(/**
+      const coversRoomFace = (building) => {
+        const bounds = transform(building);
+        const boundaries = axis === "x" ? [bounds.minX, bounds.maxX] : [bounds.minZ, bounds.maxZ];
+        // A joined building removes this envelope face. Keep the room's
+        // partition and doorway instead of leaving its frame in open space.
+        const sharedFace = authored.buildings.some(/**
          * @param {import("./CastleBasePlanGenerator.js").CompiledCastleSpace} other
          */
-            other => {
-              if (other === building || room.floorY >= other.floorY + other.height || room.floorY + height <= other.floorY) { return false; }
-              const volume = transform(other);
-              const min = axis === "x" ? volume.minX : volume.minZ;
-              const max = axis === "x" ? volume.maxX : volume.maxZ;
-              const alongMin = axis === "x" ? room.minZ : room.minX;
-              const alongMax = axis === "x" ? room.maxZ : room.maxX;
-              const otherMin = axis === "x" ? volume.minZ : volume.minX;
-              const otherMax = axis === "x" ? volume.maxZ : volume.maxX;
-              if (Math.min(alongMax, otherMax) <= Math.max(alongMin, otherMin)) { return false; }
-              return boundaries.some(/**
+          other => {
+            if (other === building || room.floorY >= other.floorY + other.height || room.floorY + height <= other.floorY) { return false; }
+            const volume = transform(other);
+            const min = axis === "x" ? volume.minX : volume.minZ;
+            const max = axis === "x" ? volume.maxX : volume.maxZ;
+            const alongMin = axis === "x" ? room.minZ : room.minX;
+            const alongMax = axis === "x" ? room.maxZ : room.maxX;
+            const otherMin = axis === "x" ? volume.minZ : volume.minX;
+            const otherMax = axis === "x" ? volume.maxZ : volume.maxX;
+            if (Math.min(alongMax, otherMax) <= Math.max(alongMin, otherMin)) { return false; }
+            return boundaries.some(/**
            * @param {number} boundary
            */
-                boundary => Math.abs(boundary - coordinate) <= thickness * 1.1 && boundary > min && boundary < max);
-            });
-          if (sharedFace) {
-            const contained = room.minX >= bounds.minX && room.maxX <= bounds.maxX && room.minZ >= bounds.minZ && room.maxZ <= bounds.maxZ;
-            if (contained) {
-              for (const other of authored.buildings) {
-                if (other === building || room.floorY >= other.floorY + other.height) { continue; }
-                const volume = transform(other);
-                const candidates = axis === "x" ? [volume.minX, volume.maxX] : [volume.minZ, volume.maxZ];
-                const face = candidates.find(/**
+              boundary => Math.abs(boundary - coordinate) <= thickness * 1.1 && boundary > min && boundary < max);
+          });
+        if (sharedFace) {
+          const contained = room.minX >= bounds.minX && room.maxX <= bounds.maxX && room.minZ >= bounds.minZ && room.maxZ <= bounds.maxZ;
+          if (contained) {
+            for (const other of authored.buildings) {
+              if (other === building || room.floorY >= other.floorY + other.height) { continue; }
+              const volume = transform(other);
+              const candidates = axis === "x" ? [volume.minX, volume.maxX] : [volume.minZ, volume.maxZ];
+              const face = candidates.find(/**
                                             * @param {number} value
                                             */
-                  value => Math.abs(value - coordinate) <= thickness * 1.1);
-                if (face !== undefined) { joinedFace = {
-                  coordinate: face,
-                  sign: face === candidates[0] ? -1 : 1,
-                }; break; }
-              }
+                value => Math.abs(value - coordinate) <= thickness * 1.1);
+              if (face !== undefined) { joinedFace = {
+                coordinate: face,
+                sign: face === candidates[0] ? -1 : 1,
+              }; break; }
             }
-            return false;
           }
-          return room.minX >= bounds.minX - 0.001 && room.maxX <= bounds.maxX + 0.001 &&
+          return false;
+        }
+        return room.minX >= bounds.minX - 0.001 && room.maxX <= bounds.maxX + 0.001 &&
           room.minZ >= bounds.minZ - 0.001 && room.maxZ <= bounds.maxZ + 0.001 &&
           room.floorY >= building.floorY && room.floorY + height <= building.floorY + building.height &&
           boundaries.some(/**
            * @param {number} boundary
            */
             (boundary) => Math.abs(boundary - coordinate) <= thickness * 1.1);
-        })) { return; }
+      };
+      if (room.kind === "room" && authored.buildings.some(coversRoomFace)) { return; }
       if (joinedFace) {
         for (const opening of openings) {
           if (opening.roomId === room.id && opening.axis === axis && Math.abs(opening.coordinate - coordinate) <= thickness * 1.1) { opening.coordinate = joinedFace.coordinate; }

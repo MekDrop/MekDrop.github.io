@@ -115,11 +115,12 @@ export class RecordingAudio {
    * @param {boolean} options.owned
    */
   #disconnect(instance, { node, owned }) {
-    if (![...this.#connections.values()].some(/**
+    /**
      *
      * @param {{firstPathIndex: number, secondPathIndex: number, col: number, row: number}} connection
      */
-      (connection) => connection.node === node)) {
+    const usesAudioNode = (connection) => connection.node === node;
+    if (![...this.#connections.values()].some(usesAudioNode)) {
       node.disconnect(this.#destination);
     }
     if (owned && instance.getExternalNodes()[0] === node) {

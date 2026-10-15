@@ -55,9 +55,11 @@ export class Painting {
       if (castle.object !== "Castle" || !castle.buildPlan?.input?.position ||
         castle.buildPlan.metadata.runtime.residential?.version === 2) continue;
       const id = `${castle.id}-painting`;
-      if (objects.some(/**
+      /**
        * @param {import("../ObjectTypes.js").MapObjectDefinition} item
-       */ (item) => item.id === id)) continue;
+       */
+      const hasPaintingId = (item) => item.id === id;
+      if (objects.some(hasPaintingId)) continue;
       const layout = new CastleResidentialLayout(castle.buildPlan);
       const work = layout.rooms.work;
       const desk = layout.reservations.find(/**

@@ -82,11 +82,13 @@ export class KitchenRoomGenerator extends AbstractCastleRoomGenerator {
       room, context.openings ?? [])) { return false; }
       if (!available(x, z, w, d, wallMounted ? 0 : ["FirewoodStack", "KitchenTable"].includes(object) ? 0.015 : inset,
         wallMounted ? room.wallBounds ?? room : room)) { return false; }
-      if (y === 0 && !wallMounted && items.some(/**
+      /**
        * @param {import("../AbstractCastleRoomGenerator.js").RoomItem} item
-       */ item => (item.y ?? 0) === 0 &&
+       */
+      const overlapsFloorPlacement = item => (item.y ?? 0) === 0 &&
         Math.abs(item.x - x) < (item.width + w) / 2 + 0.04 &&
-        Math.abs(item.z - z) < (item.depth + d) / 2 + 0.04)) { return false; }
+        Math.abs(item.z - z) < (item.depth + d) / 2 + 0.04;
+      if (y === 0 && !wallMounted && items.some(overlapsFloorPlacement)) { return false; }
       items.push({
         role: "kitchenProp",
         object,
@@ -179,10 +181,12 @@ export class KitchenRoomGenerator extends AbstractCastleRoomGenerator {
       for (const shelf of shelfCandidates) {
         const sideways = shelf.rotation === 90;
         const shelfWidth = sideways ? 0.3 : 0.8, shelfDepth = sideways ? 0.8 : 0.3;
-        if (!available(shelf.x, shelf.z, shelfWidth, shelfDepth) || items.some(/**
+        /**
          * @param {import("../AbstractCastleRoomGenerator.js").RoomItem} item
-         */ item => (item.y ?? 0) === 0 && Math.abs(item.x - shelf.x) < (item.width + shelfWidth) / 2 + 0.04 &&
-          Math.abs(item.z - shelf.z) < (item.depth + shelfDepth) / 2 + 0.04)) { continue; }
+         */
+        const overlapsShelfPlacement = item => (item.y ?? 0) === 0 && Math.abs(item.x - shelf.x) < (item.width + shelfWidth) / 2 + 0.04 &&
+          Math.abs(item.z - shelf.z) < (item.depth + shelfDepth) / 2 + 0.04;
+        if (!available(shelf.x, shelf.z, shelfWidth, shelfDepth) || items.some(overlapsShelfPlacement)) { continue; }
         const support = {
           id: room.id + "-kitchen-pantry-shelf",
           role: "storageShelf",

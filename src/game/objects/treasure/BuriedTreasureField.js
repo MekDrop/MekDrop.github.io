@@ -933,16 +933,15 @@ export class BuriedTreasureField {
     const z = row - (this.#mapData.rows - 1) / 2;
     // The original grid still contains grass beneath excavated castle rooms.
     // Keep the whole dig tile clear of occupied building space.
+    /**
+     * @param {import("../castle/CastleGroundCuts.js").GroundCut} cut
+     */
+    const overlapsTerrainCutout = (cut) =>
+      x + 0.5 > cut.minX && x - 0.5 < cut.maxX &&
+          z + 0.5 > cut.minZ && z - 0.5 < cut.maxZ;
     if (
       metadata?.exposedTerrain === false ||
-      metadata?.terrainCutouts?.some(
-        /**
-         * @param {import("../castle/CastleGroundCuts.js").GroundCut} cut
-         */
-        (cut) =>
-          x + 0.5 > cut.minX && x - 0.5 < cut.maxX &&
-          z + 0.5 > cut.minZ && z - 0.5 < cut.maxZ,
-      )
+      metadata?.terrainCutouts?.some(overlapsTerrainCutout)
     ) {
       return false;
     }

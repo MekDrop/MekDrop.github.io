@@ -1,3 +1,4 @@
+import { everyFiniteNumber } from "../../helpers/collections.js";
 const CONTACT_EPSILON = 0.006;
 const CONTACT_REACH = 0.14;
 const MAXIMUM_FOOT_LIFT = 0.32;
@@ -334,7 +335,7 @@ export class HeroFootPlacement {
       if (
         weight <= 0 ||
         !normal ||
-        ![normal.x, normal.y, normal.z].every(Number.isFinite) ||
+        !everyFiniteNumber([normal.x, normal.y, normal.z]) ||
         normal.y <= 0
       ) {
         continue;

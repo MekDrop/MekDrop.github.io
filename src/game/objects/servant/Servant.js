@@ -133,24 +133,26 @@ export class Servant {
     for (let z = room.minZ + 0.6; z <= room.maxZ - 0.6 && !standing; z += 0.25) {
       for (let x = room.maxX - 0.6; x >= room.minX + 0.6; x -= 0.25) {
         const point = layout.toWorld(x, z, room.floorY - layout.origin.y);
-        if (items.every(/**
+        /**
          * @param {{role:string,position:{x:number,z:number},scale:{x:number,z:number}}} item
-         */ (item) => {
-            if (Math.abs(item.position.y - room.floorY) > 0.1) { return true; }
-            const local = layout.toLocal(item.position.x, item.position.z);
-            const [width, depth] = {
-              kitchenTable: [0.9, 0.55],
-              servantBed: [0.9, 2],
-              storageShelf: [0.8, 0.3],
-              workDesk: [0.9, 0.55],
-              bookshelf: [0.3, 1],
-              royalBed: [1.2, 1.8],
-              wardrobe: [0.65, 0.46],
-              readingChair: [0.75, 0.735],
-            }[item.role] ?? [1, 1];
-            return Math.hypot(Math.max(0, Math.abs(local.x - x) - (item.footprint?.width ?? width * item.scale.x) / 2),
-              Math.max(0, Math.abs(local.z - z) - (item.footprint?.depth ?? depth * item.scale.z) / 2)) >= 0.45;
-          })) {
+         */
+        const leavesStandingClearance = (item) => {
+          if (Math.abs(item.position.y - room.floorY) > 0.1) { return true; }
+          const local = layout.toLocal(item.position.x, item.position.z);
+          const [width, depth] = {
+            kitchenTable: [0.9, 0.55],
+            servantBed: [0.9, 2],
+            storageShelf: [0.8, 0.3],
+            workDesk: [0.9, 0.55],
+            bookshelf: [0.3, 1],
+            royalBed: [1.2, 1.8],
+            wardrobe: [0.65, 0.46],
+            readingChair: [0.75, 0.735],
+          }[item.role] ?? [1, 1];
+          return Math.hypot(Math.max(0, Math.abs(local.x - x) - (item.footprint?.width ?? width * item.scale.x) / 2),
+            Math.max(0, Math.abs(local.z - z) - (item.footprint?.depth ?? depth * item.scale.z) / 2)) >= 0.45;
+        };
+        if (items.every(leavesStandingClearance)) {
           standing = point;
           break;
         }

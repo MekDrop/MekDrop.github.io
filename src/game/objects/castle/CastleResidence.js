@@ -901,11 +901,13 @@ export function findCastleMapMount(plan, layout, preferredSide, shelfBack) {
       for (let across = -0.44; across <= 0.440001 && supported; across += 0.04) {
         for (let height = 0.8; height <= 1.560001; height += 0.04) {
           const point = layout.toWorld(wallX + side * 0.08, z + across, height);
-          if (!blocks.some(/**
+          /**
            * @param {{x:number,y:number,z:number,halfX:number,halfY:number,halfZ:number}} block
-           */ (block) => Math.abs(point.x - block.x) <= block.halfX + 0.000001 &&
+           */
+          const supportsPoint = (block) => Math.abs(point.x - block.x) <= block.halfX + 0.000001 &&
               Math.abs(point.y - block.y) <= block.halfY + 0.000001 &&
-              Math.abs(point.z - block.z) <= block.halfZ + 0.000001)) {
+              Math.abs(point.z - block.z) <= block.halfZ + 0.000001;
+          if (!blocks.some(supportsPoint)) {
             supported = false;
             break;
           }

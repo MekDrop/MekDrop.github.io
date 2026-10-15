@@ -90,12 +90,13 @@ export class CliffVines {
    * @param {number[]} [offsets]
    */
   setIslandOffsets(near, far, offsets = [near, far]) {
-    if (!this.#vertexBuffer || offsets.every(/**
+    /**
      *
      * @param {number} offset
      * @param {number} index
      */
-      (offset, index) => offset === this.#offsets[index])) {
+    const matchesPreviousOffset = (offset, index) => offset === this.#offsets[index];
+    if (!this.#vertexBuffer || offsets.every(matchesPreviousOffset)) {
       return;
     }
     this.#offsets = offsets;

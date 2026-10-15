@@ -133,14 +133,13 @@ export class MapGenerator {
           return await generator.#generateMap(normalizedOptions);
         } catch (error) {
           attempt += 1;
+          /**
+           * @param {typeof Error} ErrorType
+           */
+          const isRetryableError = (ErrorType) => error instanceof ErrorType;
           if (
             attempt >= attempts ||
-            !RETRYABLE_MAP_ERRORS.some(
-              /**
-               * @param {typeof Error} ErrorType
-               */
-              (ErrorType) => error instanceof ErrorType,
-            )
+            !RETRYABLE_MAP_ERRORS.some(isRetryableError)
           ) {
             throw error;
           }

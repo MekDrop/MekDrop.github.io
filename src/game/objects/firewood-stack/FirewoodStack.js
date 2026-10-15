@@ -1,3 +1,4 @@
+import { arePositiveFiniteNumbers } from "../../helpers/types.js";
 import modelUrl from "../../models/castle/props/firewood-stack.glb?url";
 import { AbstractCastleProp } from "../castle-props/AbstractCastleProp.js";
 import { GenerationRandom } from "../../generator/map/GenerationRandom.js";
@@ -30,11 +31,7 @@ export class FirewoodStack extends AbstractCastleProp {
      */
       entity => entity.clone());
     for (const original of originals) { original.destroy(); }
-    if (!templates.length || ![width, depth, height].every(/**
-     *
-     * @param {number} value
-     */
-      value => Number.isFinite(value) && value > 0)) {
+    if (!templates.length || !arePositiveFiniteNumbers(width, depth, height)) {
       for (const template of templates) { template.destroy(); }
       return;
     }

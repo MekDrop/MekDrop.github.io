@@ -260,12 +260,13 @@ export class RiverRouter {
       ]);
       for (const neighbor of neighbors) {
         const neighborKey = MapGrid.tileKey(neighbor.col, neighbor.row);
+        /**
+         *
+         * @param {MapCell} cell
+         */
+        const matchesNeighbor = (cell) => cell.col === neighbor.col && cell.row === neighbor.row;
         if (outlets && currentKey === MapGrid.tileKey(junction.col, junction.row) &&
-          !outlets.some(/**
-           *
-           * @param {MapCell} cell
-           */
-            (cell) => cell.col === neighbor.col && cell.row === neighbor.row)) {
+          !outlets.some(matchesNeighbor)) {
           continue;
         }
         if (parents.has(neighborKey) || occupiedRiverCells.has(neighborKey)) {
@@ -346,14 +347,15 @@ export class RiverRouter {
       if (end - start + 1 !== 2 || start === 0 || end >= route.length - 1) {
         return false;
       }
+      /**
+       *
+       * @param {MapCell} pathCell
+       */
+      const hasOverpass = (pathCell) => tileMeta[pathCell.row][pathCell.col].overpassId;
       if (
         route
           .slice(start, end + 1)
-          .some(/**
-           *
-           * @param {MapCell} pathCell
-           */
-            (pathCell) => tileMeta[pathCell.row][pathCell.col].overpassId)
+          .some(hasOverpass)
       ) {
         return false;
       }

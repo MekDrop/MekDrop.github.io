@@ -268,14 +268,17 @@ export class RouteDataBuilder {
           if (startsTurn) {
             dc += previousDc;
             dr += previousDr;
-          } else if (
-            [...turnIndices].some(/**
-           *
-           * @param {number} turnIndex
-           */
-              (turnIndex) => Math.abs(turnIndex - index) <= 2)
-          ) {
-            continue;
+          } else {
+            /**
+             *
+             * @param {number} turnIndex
+             */
+            const isNearTurn = (turnIndex) => Math.abs(turnIndex - index) <= 2;
+            if (
+              [...turnIndices].some(isNearTurn)
+            ) {
+              continue;
+            }
           }
           const col2 = Math.round(current.col * 2);
           const row2 = Math.round(current.row * 2);

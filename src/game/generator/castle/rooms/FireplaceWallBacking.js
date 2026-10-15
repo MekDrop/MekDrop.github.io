@@ -43,11 +43,13 @@ export class FireplaceWallBacking {
       const along = center - halfAlong + 0.02 + column / columns * (halfAlong * 2 - 0.04);
       for (let row = 0; row <= rows; row++) {
         const y = bottom + 0.1 + row / rows * (top - bottom - 0.2);
-        if (!walls.some(/**
+        /**
          * @param {{x:number,y:number,z:number,halfX:number,halfY:number,halfZ:number}} wall
-         */ wall => Math.abs(coordinate - wall[axis]) <= (crosswise ? wall.halfX : wall.halfZ) + 0.14 &&
+         */
+        const supportsBackingPoint = wall => Math.abs(coordinate - wall[axis]) <= (crosswise ? wall.halfX : wall.halfZ) + 0.14 &&
           Math.abs(along - (crosswise ? wall.z : wall.x)) <= (crosswise ? wall.halfZ : wall.halfX) + 1e-6 &&
-          Math.abs(y - wall.y) <= wall.halfY + 1e-6)) { return false; }
+          Math.abs(y - wall.y) <= wall.halfY + 1e-6;
+        if (!walls.some(supportsBackingPoint)) { return false; }
       }
     }
     return true;

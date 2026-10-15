@@ -14,6 +14,12 @@ const oversizedSourceFileExemptions = [
 const baseRestrictedSyntax = [
   {
     selector:
+      "IfStatement > *.test :matches(ArrowFunctionExpression, FunctionExpression).arguments",
+    message:
+      "Extract inline callbacks from if conditions into named predicates or helpers so the condition stays readable.",
+  },
+  {
+    selector:
       "MethodDefinition[key.type='Identifier'][kind='method'][key.name=/^set[A-Z][A-Za-z0-9]*Visible$/][value.params.length=1]",
     message:
       "Use ES6 setter syntax (`set value(...)`) for one-argument property-style mutators like setVisible/setEntranceVisible.",

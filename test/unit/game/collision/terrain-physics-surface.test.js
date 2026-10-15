@@ -59,7 +59,11 @@ it('leaves a physical basement opening and retains the surrounding terrain',()=>
     },
   });
   const topTriangles=[];
-  for(let i=0;i<mesh.indices.length;i+=3){const points=mesh.indices.slice(i,i+3).map(index=>mesh.positions.slice(index*3,index*3+3));if(points.every(p=>p[1]===2))topTriangles.push(points);}
+  for (let i = 0; i < mesh.indices.length; i += 3) {
+    const points = mesh.indices.slice(i, i + 3).map(index => mesh.positions.slice(index * 3, index * 3 + 3));
+    const isTopVertex = p => p[1] === 2;
+    if (points.every(isTopVertex)) topTriangles.push(points);
+  }
   assert.equal(area(topTriangles),.75);
   for(const triangle of topTriangles){const x=triangle.reduce((v,p)=>v+p[0],0)/3,z=triangle.reduce((v,p)=>v+p[2],0)/3;assert.ok(Math.abs(x)>=.25||Math.abs(z)>=.25);}
   surface.destroy();

@@ -1867,12 +1867,13 @@ export class PlayCanvasRenderer {
   }
 
   #buildHero() {
-    if (this.#mapData.objects?.some(/**
+    /**
      *
      * @param {{object: import("src/game/GameContracts.js").GameObjectContract}} options
      * @param {import("src/game/GameContracts.js").GameObjectContract} options.object
      */
-      ({ object }) => object === Hero.name)) {
+    const isHeroDefinition = ({ object }) => object === Hero.name;
+    if (this.#mapData.objects?.some(isHeroDefinition)) {
       return;
     }
     /**

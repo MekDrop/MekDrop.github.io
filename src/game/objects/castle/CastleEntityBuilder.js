@@ -369,12 +369,13 @@ export class CastleEntityBuilder {
     if (this.#audienceRoom?.intersectsFootprint(x, z, radius)) {
       return true;
     }
+    /**
+     *
+     * @param {import("src/game/objects/ObjectTypes.js").CastleDoorDefinition} door
+     */
+    const intersectsDoorFootprint = (door) => door.intersectsFootprint(x, z, radius);
     if (
-      this.#animatedDoors.some(/**
-       *
-       * @param {import("src/game/objects/ObjectTypes.js").CastleDoorDefinition} door
-       */
-        (door) => door.intersectsFootprint(x, z, radius))
+      this.#animatedDoors.some(intersectsDoorFootprint)
     ) {
       return true;
     }
@@ -430,14 +431,14 @@ export class CastleEntityBuilder {
     if (this.#residence?.blocksCameraAt(x, y, z, radius)) {
       return true;
     }
+    /**
+     *
+     * @param {import("src/game/objects/ObjectTypes.js").CastleDoorDefinition} door
+     */
+    const blocksCamera = (door) =>
+      door.blocksCameraAt(x, y, z, radius);
     if (
-      this.#animatedDoors.some(/**
-       *
-       * @param {import("src/game/objects/ObjectTypes.js").CastleDoorDefinition} door
-       */
-        (door) =>
-          door.blocksCameraAt(x, y, z, radius),
-      ) ||
+      this.#animatedDoors.some(blocksCamera) ||
       this.#terraceActivity?.blocksCameraAt(x, y, z, radius)
     ) {
       return true;

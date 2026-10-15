@@ -1,3 +1,4 @@
+import { everyFiniteNumber } from "../../helpers/collections.js";
 import { InvalidWoodenFloorAreaError } from "../../errors/wooden-floor/index.js";
 import floorUrl from "../../models/castle/residential/floor-panel.glb?url";
 import { IslandObjectRoots } from "../shared/IslandObjectRoots.js";
@@ -72,7 +73,7 @@ export class WoodenFloor {
    */
   constructor({ pc, modelLibrary, definition, runtime = {} }) {
     const { from, to } = definition;
-    if (!from || !to || ![from.x, from.y, from.z, to.x, to.y, to.z].every(Number.isFinite) ||
+    if (!from || !to || !everyFiniteNumber([from.x, from.y, from.z, to.x, to.y, to.z]) ||
       from.y !== to.y || from.x === to.x || from.z === to.z) {
       throw new InvalidWoodenFloorAreaError(definition.id);
     }

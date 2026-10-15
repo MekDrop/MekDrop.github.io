@@ -1,3 +1,4 @@
+import { arePositiveFiniteNumbers } from "../../helpers/types.js";
 import modelUrl from "../../models/castle/props/folded-linens.glb?url";
 import { AbstractCastleProp } from "../castle-props/AbstractCastleProp.js";
 import { GenerationRandom } from "../../generator/map/GenerationRandom.js";
@@ -22,10 +23,7 @@ export class FoldedLinens extends AbstractCastleProp {
     if (!original) { return; }
     const template = original.clone();
     original.destroy();
-    if (![width, depth, height].every(/**
-     * @param {number} value
-     */
-      value => Number.isFinite(value) && value > 0)) {
+    if (!arePositiveFiniteNumbers(width, depth, height)) {
       template.destroy();
       return;
     }

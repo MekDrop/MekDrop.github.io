@@ -31,14 +31,16 @@ export class VestibuleRoomGenerator extends AbstractCastleRoomGenerator {
       const halfZ = item.depth * item.scale / 2;
       if (item.x - halfX < room.minX || item.x + halfX > room.maxX ||
         item.z - halfZ < room.minZ || item.z + halfZ > room.maxZ) { return false; }
-      if ((context.openings ?? []).some(/**
+      /**
        * @param {import("../../CastleBasePlanGenerator.js").CompiledCastleOpening} opening
-       */ opening => opening.floorY === room.floorY && (item.y ?? 0) + item.height * item.scale > 0.05 &&
+       */
+      const blocksOpening = opening => opening.floorY === room.floorY && (item.y ?? 0) + item.height * item.scale > 0.05 &&
         !(opening.kind === "window" && (item.y ?? 0) + item.height * item.scale <= opening.bottom - 0.1) &&
         (opening.axis === "x" ? Math.abs(item.x - opening.coordinate) < halfX + 0.85 &&
           Math.abs(item.z - opening.center) < halfZ + opening.width / 2 + 0.25 :
           Math.abs(item.z - opening.coordinate) < halfZ + 0.85 &&
-          Math.abs(item.x - opening.center) < halfX + opening.width / 2 + 0.25))) { return false; }
+          Math.abs(item.x - opening.center) < halfX + opening.width / 2 + 0.25);
+      if ((context.openings ?? []).some(blocksOpening)) { return false; }
       return !(context.stairs ?? []).some(/**
        * @param {{from:number,to:number,minX:number,maxX:number,minZ:number,maxZ:number}} stair
        */ stair => room.level >= stair.from && room.level <= stair.to &&
@@ -147,11 +149,13 @@ export class VestibuleRoomGenerator extends AbstractCastleRoomGenerator {
         rotation: 90,
         y: 0.002,
       };
-      if (safe(planter) && !items.some(/**
+      /**
        * @param {import("../AbstractCastleRoomGenerator.js").RoomItem} item
-       */ item => (item.y ?? 0) < 0.9 && Math.abs(item.x - planter.x) <
+       */
+      const overlapsPlanter = item => (item.y ?? 0) < 0.9 && Math.abs(item.x - planter.x) <
         (item.width * item.scale + planter.width * planter.scale) / 2 + 0.05 &&
-        Math.abs(item.z - planter.z) < (item.depth * item.scale + planter.depth * planter.scale) / 2 + 0.05)) {
+        Math.abs(item.z - planter.z) < (item.depth * item.scale + planter.depth * planter.scale) / 2 + 0.05;
+      if (safe(planter) && !items.some(overlapsPlanter)) {
         items.push(planter);
       }
     }
@@ -223,10 +227,12 @@ export class VestibuleRoomGenerator extends AbstractCastleRoomGenerator {
             rotation: 270,
             y: 0.002,
           };
-          if (!safe(armor) || items.some(/**
+          /**
            * @param {import("../AbstractCastleRoomGenerator.js").RoomItem} item
-           */ item => Math.abs(item.x - armor.x) < (item.width * item.scale + armor.width) / 2 + 0.05 &&
-            Math.abs(item.z - armor.z) < (item.depth * item.scale + armor.depth) / 2 + 0.08)) { continue; }
+           */
+          const overlapsArmor = item => Math.abs(item.x - armor.x) < (item.width * item.scale + armor.width) / 2 + 0.05 &&
+            Math.abs(item.z - armor.z) < (item.depth * item.scale + armor.depth) / 2 + 0.08;
+          if (!safe(armor) || items.some(overlapsArmor)) { continue; }
           items.push(armor);
           break;
         }
@@ -247,11 +253,13 @@ export class VestibuleRoomGenerator extends AbstractCastleRoomGenerator {
         rotation: 90,
         y: 1.75,
       };
-      if (!safe(lantern) || items.some(/**
+      /**
        * @param {import("../AbstractCastleRoomGenerator.js").RoomItem} item
-       */ item => (item.y ?? 0) + item.height * item.scale > lantern.y - 0.1 &&
+       */
+      const overlapsLantern = item => (item.y ?? 0) + item.height * item.scale > lantern.y - 0.1 &&
           Math.abs(item.x - lantern.x) < 0.7 &&
-          Math.abs(item.z - z) < item.depth * item.scale / 2 + 0.3)) { continue; }
+          Math.abs(item.z - z) < item.depth * item.scale / 2 + 0.3;
+      if (!safe(lantern) || items.some(overlapsLantern)) { continue; }
       items.push(lantern);
       break;
     }

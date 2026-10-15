@@ -1,3 +1,4 @@
+import { everyFiniteNumber } from "../../helpers/collections.js";
 import { TerraceStorageRoomGenerator } from "./rooms/terrace-storage/TerraceStorageRoomGenerator.js";
 import { KitchenRoomGenerator } from "./rooms/kitchen/KitchenRoomGenerator.js";
 import { CastleBasePlanInvalidError } from "../../errors/castle/index.js";
@@ -126,12 +127,13 @@ export class CastleBasePlanGenerator {
         for (const upper of plan.levels) {
           if (upper.index !== floor.index + floorSpan) { continue; }
           for (const voidSpace of upper.spaces) {
+            /**
+             * @param {number} value
+             * @param {number} index
+             */
+            const matchesAuthoredBound = (value, index) => value === authored.bounds[index];
             if (voidSpace.kind === "void" && authored.kind === "room" &&
-              voidSpace.bounds.every(/**
-               * @param {number} value
-               * @param {number} index
-               */
-                (value, index) => value === authored.bounds[index])) { floorSpan++; break; }
+              voidSpace.bounds.every(matchesAuthoredBound)) { floorSpan++; break; }
           }
         }
         const room = {
@@ -436,7 +438,7 @@ export class CastleBasePlanGenerator {
     /**
      * @param {number[]} bounds
      */
-    const boundsValid = (bounds) => Array.isArray(bounds) && bounds.length === 4 && bounds.every(Number.isFinite) &&
+    const boundsValid = (bounds) => Array.isArray(bounds) && bounds.length === 4 && everyFiniteNumber(bounds) &&
       bounds[0] >= 0 && bounds[1] >= 0 && bounds[2] > 0 && bounds[3] > 0 &&
       bounds[0] + bounds[2] <= plan.coordinates.width && bounds[1] + bounds[3] <= plan.coordinates.depth;
     const floors = new Set();
@@ -450,7 +452,7 @@ export class CastleBasePlanGenerator {
         for (const opening of space.openings) {
           const length = ["NORTH", "SOUTH"].includes(opening.side) ? space.bounds[2] : space.bounds[3];
           if (!["NORTH", "SOUTH", "EAST", "WEST"].includes(opening.side) || !["door", "window"].includes(opening.kind) ||
-            ![opening.offset, opening.width, opening.bottom, opening.height].every(Number.isFinite) ||
+            !everyFiniteNumber([opening.offset, opening.width, opening.bottom, opening.height]) ||
             opening.offset < 0 || opening.width <= 0 || opening.offset + opening.width > length ||
             opening.bottom < 0 || opening.height <= 0 || opening.bottom + opening.height > plan.floorHeight) { fail(`opening:${space.id}`); }
         }
@@ -472,12 +474,13 @@ export class CastleBasePlanGenerator {
      * @param {AuthoredCastleSpace} space
      */
       (space) => space.id === plan.entrance.spaceId);
-    if (!entrance || !boundsValid(plan.entrance.bridge) || !entrance.openings.some(/**
+    /**
      *
      * @param {AuthoredCastleOpening} opening
      */
-      (opening) =>
-        opening.kind === "door" && opening.side === plan.entrance.side && opening.offset === plan.entrance.offset &&
-      opening.width === plan.entrance.width)) { fail("entrance"); }
+    const matchesEntranceOpening = (opening) =>
+      opening.kind === "door" && opening.side === plan.entrance.side && opening.offset === plan.entrance.offset &&
+      opening.width === plan.entrance.width;
+    if (!entrance || !boundsValid(plan.entrance.bridge) || !entrance.openings.some(matchesEntranceOpening)) { fail("entrance"); }
   }
 }

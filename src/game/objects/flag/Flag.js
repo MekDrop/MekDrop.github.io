@@ -44,11 +44,12 @@ export class Flag {
       if (castle.object !== "Castle") continue;
       for (const [index, flag] of (castle.buildPlan?.geometry?.decorations?.flags ?? []).entries()) {
         const id = `${castle.id}-flag-${index}`;
-        if (objects.some(/**
+        /**
          *
          * @param {import("../ObjectTypes.js").MapObjectDefinition} item
          */
-          (item) => item.id === id)) continue;
+        const hasFlagId = (item) => item.id === id;
+        if (objects.some(hasFlagId)) continue;
         objects.push({
           id,
           object: Flag.name,

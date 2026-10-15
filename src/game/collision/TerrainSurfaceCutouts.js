@@ -14,18 +14,19 @@ export function subtractTerrainCutouts(polygon, cuts) {
     for (const piece of pieces) {
       // Boundary contact has no excavated volume. Keeping it out of the
       // clipping pass also prevents coplanar faces being retained twice.
-      if ([0, 1, 2].some(/**
+      /**
        * @param {number} axis
        */
-        (axis) => {
-          const values = piece.map(/**
+      const isOutsideCutAxis = (axis) => {
+        const values = piece.map(/**
          * @param {number[]} point
          */
-            (point) => point[axis]);
-          const minimum = [cut.minX, cut.minY, cut.minZ][axis];
-          const maximum = [cut.maxX, cut.maxY, cut.maxZ][axis];
-          return Math.max(...values) <= minimum + 1e-8 || Math.min(...values) >= maximum - 1e-8;
-        })) {
+          (point) => point[axis]);
+        const minimum = [cut.minX, cut.minY, cut.minZ][axis];
+        const maximum = [cut.maxX, cut.maxY, cut.maxZ][axis];
+        return Math.max(...values) <= minimum + 1e-8 || Math.min(...values) >= maximum - 1e-8;
+      };
+      if ([0, 1, 2].some(isOutsideCutAxis)) {
         retained.push(piece);
         continue;
       }

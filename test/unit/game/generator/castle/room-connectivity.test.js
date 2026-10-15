@@ -35,8 +35,9 @@ function checkRoutes(plan) {
     const cells = [];
     for (let z = minZ; z <= residential.outerBounds.maxZ - radius; z += step) {
       for (let x = minX; x <= residential.outerBounds.maxX - radius; x += step) {
-        if (clear(x, z) && layout.walkableAreas.some((area) => area.floorY === y &&
-          x >= area.minX && x <= area.maxX && z >= area.minZ && z <= area.maxZ)) cells.push({
+        const containsWalkablePoint = (area) => area.floorY === y &&
+          x >= area.minX && x <= area.maxX && z >= area.minZ && z <= area.maxZ;
+        if (clear(x, z) && layout.walkableAreas.some(containsWalkablePoint)) cells.push({
           x,
           z,
         });

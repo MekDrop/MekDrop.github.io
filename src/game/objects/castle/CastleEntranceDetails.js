@@ -37,12 +37,13 @@ export class CastleEntranceDetails {
     const addStone = (x, y, z, scale, name) => {
       // A facade detail becomes indoor geometry when another building joins
       // this face. Keep all corner courses and bands outside the joined shell.
-      if (residential.buildings.some(/**
+      /**
        * @param {{minX:number,maxX:number,minZ:number,maxZ:number,floorY:number,height?:number}} building
        */
-        building => Math.min(x + scale[0] / 2, building.maxX) > Math.max(x - scale[0] / 2, building.minX) + 1e-6 &&
+      const overlapsBuilding = building => Math.min(x + scale[0] / 2, building.maxX) > Math.max(x - scale[0] / 2, building.minX) + 1e-6 &&
         Math.min(z + scale[2] / 2, building.maxZ) > Math.max(z - scale[2] / 2, building.minZ) + 1e-6 &&
-        Math.min(y + scale[1] / 2, building.floorY + (building.height ?? floorHeight)) > Math.max(y - scale[1] / 2, building.floorY) + 1e-6)) { return; }
+        Math.min(y + scale[1] / 2, building.floorY + (building.height ?? floorHeight)) > Math.max(y - scale[1] / 2, building.floorY) + 1e-6;
+      if (residential.buildings.some(overlapsBuilding)) { return; }
       const stone = models.instantiate(masonryUrl);
       stone.name = name;
       stone.setLocalPosition(origin.x + Math.cos(angle) * x + Math.sin(angle) * z,

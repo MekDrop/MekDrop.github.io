@@ -1,3 +1,4 @@
+import { everyFiniteNumber } from "../../helpers/collections.js";
 import { InvalidWindowRangeError } from "../../errors/window/index.js";
 
 /**
@@ -13,7 +14,7 @@ export class WindowLayout {
     const alongX = from?.x !== to?.x;
     const alongZ = from?.z !== to?.z;
     const height = from && to ? (from.y === to.y ? definition.height : Math.abs(to.y - from.y)) : 0;
-    if (!from || !to || ![from.x, from.y, from.z, to.x, to.y, to.z, height, depth].every(Number.isFinite) ||
+    if (!from || !to || !everyFiniteNumber([from.x, from.y, from.z, to.x, to.y, to.z, height, depth]) ||
       alongX === alongZ || height <= 0 || depth <= 0 || ![1, -1].includes(facing)) {
       throw new InvalidWindowRangeError(definition.id);
     }

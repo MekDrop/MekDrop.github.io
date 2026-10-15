@@ -1,3 +1,5 @@
+import { everyTruthy } from "../../helpers/collections.js";
+import { arePositiveFiniteNumbers } from "../../helpers/types.js";
 import modelUrl from "../../models/spear-rack/spear-rack.glb?url";
 import { AbstractCastleProp } from "../castle-props/AbstractCastleProp.js";
 import { GenerationRandom } from "../../generator/map/GenerationRandom.js";
@@ -32,12 +34,7 @@ export class SpearRack extends AbstractCastleProp {
     const rows = Math.max(1, Math.floor((width + 1e-6) / 0.25));
     const bays = Math.max(1, Math.ceil(length / 1.8));
     const spears = Math.max(1, Math.floor((length - 0.16 + 1e-6) / 0.18));
-    if ([length, width, height].every(
-      /**
-       * @param {number} value
-       */
-      value => Number.isFinite(value) && value > 0,
-    ) && rows * (2 + spears * 3) + (bays + 1) * 6 + 4 <= 4096 && [...templates.values()].every(Boolean)) {
+    if (arePositiveFiniteNumbers(length, width, height) && rows * (2 + spears * 3) + (bays + 1) * 6 + 4 <= 4096 && everyTruthy(templates.values())) {
       const random = new GenerationRandom(String(spearSeed ?? this.definition.id));
       const sx = Math.min(1, length / 0.25);
       const sz = Math.min(1, width / 0.25);

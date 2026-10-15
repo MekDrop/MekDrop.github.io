@@ -99,11 +99,12 @@ export class BuffSystem {
     const remaining = Number.isFinite(duration) && duration > 0
       ? duration
       : definition.duration;
-    if (definition.blockedBy?.some(/**
+    /**
      *
      * @param {pc.Entity} blocker
      */
-      (blocker) => this.has(blocker))) {
+    const isActiveBlocker = (blocker) => this.has(blocker);
+    if (definition.blockedBy?.some(isActiveBlocker)) {
       return false;
     }
     for (const replaced of definition.replaces ?? []) {

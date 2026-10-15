@@ -26,11 +26,12 @@ export class CastleGroundWeathering {
           if (x < position.x - 2 || x > position.x + position.width + 2 ||
             z < position.z - 2 || z > position.z + position.depth + 2) continue;
           // Leave a full level buffer around occupied masonry and every road lane.
-          if (cuts.some(/**
+          /**
            * @param {import("./CastleGroundCuts.js").GroundCut} cut
            */
-            (cut) => x + 1.5 > cut.minX && x - 1.5 < cut.maxX &&
-            z + 1.5 > cut.minZ && z - 1.5 < cut.maxZ)) continue;
+          const overlapsProtectedGround = (cut) => x + 1.5 > cut.minX && x - 1.5 < cut.maxX &&
+            z + 1.5 > cut.minZ && z - 1.5 < cut.maxZ;
+          if (cuts.some(overlapsProtectedGround)) continue;
           let protectedTile = false;
           for (let dr = -1; dr <= 1; dr += 1) {
             for (let dc = -1; dc <= 1; dc += 1) {
@@ -49,10 +50,11 @@ export class CastleGroundWeathering {
     for (const key of candidates) {
       const [col, row] = key.split(",").map(Number);
       const neighbors = [[col - 1, row], [col + 1, row], [col, row - 1], [col, row + 1]];
-      if (!neighbors.some(/**
+      /**
        * @param {number[]} cell
        */
-        (cell) => candidates.has(cell.join(",")))) lowered.delete(key);
+      const isWeatheringCandidate = (cell) => candidates.has(cell.join(","));
+      if (!neighbors.some(isWeatheringCandidate)) lowered.delete(key);
     }
     mapData.objects = mapData.objects.filter(/**
      * @param {import("../ObjectTypes.js").MapObjectDefinition} record

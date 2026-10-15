@@ -107,12 +107,13 @@ export class CastleRoomPacker {
           if (candidate.maxX - candidate.minX > (generator.max?.x ?? Infinity) ||
             candidate.maxZ - candidate.minZ > (generator.max?.y ?? Infinity)) break;
           if (!room.stairHost && CastleRoomPacker.overlaps(candidate, this.shaft, 0.25)) break;
-          if (this.rooms.some(/**
+          /**
            * @param {import("./rooms/AbstractCastleRoomGenerator.js").PlannedCastleRoom} other
            */
-            (other) => other !== room && candidate.level < other.level + other.floorSpan &&
+          const overlapsExpandedRoom = (other) => other !== room && candidate.level < other.level + other.floorSpan &&
             candidate.level + candidate.floorSpan > other.level && CastleRoomPacker.overlaps(candidate, other,
-              other.id.startsWith("tower") ? 1.5 : 0.25))) break;
+            other.id.startsWith("tower") ? 1.5 : 0.25);
+          if (this.rooms.some(overlapsExpandedRoom)) break;
           room[key] = candidate[key];
         }
       }
@@ -217,11 +218,12 @@ export class CastleRoomPacker {
           if (!host && !basementHost && !foundation && generator.id !== "throneRoom" &&
             room.minX < 1.25 && room.maxX > -1.25) { continue; }
           if (!host && !basementHost && CastleRoomPacker.overlaps(room, this.shaft, 0.25)) { continue; }
-          if (this.rooms.some(/**
+          /**
            *
            * @param {import("./rooms/AbstractCastleRoomGenerator.js").PlannedCastleRoom} placed
            */
-            (placed) => (room.level < placed.level + placed.floorSpan && room.level + room.floorSpan > placed.level) && CastleRoomPacker.overlaps(room, placed, towerIndex ? 1.5 : 0.25))) { continue; }
+          const overlapsPlacedRoom = (placed) => (room.level < placed.level + placed.floorSpan && room.level + room.floorSpan > placed.level) && CastleRoomPacker.overlaps(room, placed, towerIndex ? 1.5 : 0.25);
+          if (this.rooms.some(overlapsPlacedRoom)) { continue; }
           if (level !== 0 && this.shaft.maxX > 0 && this.shaft.minX < 0) { continue; }
           return room;
         }

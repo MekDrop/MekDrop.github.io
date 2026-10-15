@@ -151,15 +151,16 @@ export class WoodenSign {
     context.textBaseline = "alphabetic";
     do {
       context.font = `bold ${fontSize}px "Palatino Linotype", Georgia, serif`;
-      if (lines.every(/**
+      /**
        *
        * @param {Array<number>} line
        */
-        (line) => {
-          const metrics = context.measureText(line);
-          const height = metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent;
-          return metrics.width <= 494 && height <= (lines.length > 1 ? 67 : 142);
-        })) {
+      const fitsSignLine = (line) => {
+        const metrics = context.measureText(line);
+        const height = metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent;
+        return metrics.width <= 494 && height <= (lines.length > 1 ? 67 : 142);
+      };
+      if (lines.every(fitsSignLine)) {
         break;
       }
       fontSize -= 2;

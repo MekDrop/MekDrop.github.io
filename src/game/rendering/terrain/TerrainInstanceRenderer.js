@@ -493,14 +493,15 @@ export class TerrainInstanceRenderer {
            */
             (sum, point) => sum + point[axis], 0) / points.length,
       );
+      /**
+       *
+       * @param {number} sum
+       * @param {number} value
+       * @param {string} axis
+       */
+      const accumulateCenterProjection = (sum, value, axis) => sum + value * center[axis];
       if (
-        normal.reduce(/**
-         *
-         * @param {number} sum
-         * @param {number} value
-         * @param {string} axis
-         */
-          (sum, value, axis) => sum + value * center[axis], 0) < 0
+        normal.reduce(accumulateCenterProjection, 0) < 0
       ) {
         points.reverse();
         normal = normal.map(/**

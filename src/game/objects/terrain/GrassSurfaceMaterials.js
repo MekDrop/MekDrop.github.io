@@ -238,23 +238,24 @@ export class GrassSurfaceMaterials {
     if (nearStructure) {
       return true;
     }
-    if (
-      this.#vegetation.some(/**
-       *
-       * @param {{object: import("src/game/GameContracts.js").GameObjectContract, tile: import("src/game/GameContracts.js").TileMetadata, kind: string}} options
-       * @param {import("src/game/GameContracts.js").GameObjectContract} options.object
-       * @param {import("src/game/GameContracts.js").TileMetadata} options.tile
-       * @param {string} options.kind
-       */
-        ({ object, tile, kind }) => {
-          if (object !== "Vegetation" || !tile) {
-            return false;
-          }
-          return (
-            Math.max(Math.abs(col - tile.col), Math.abs(row - tile.row)) <=
+    /**
+     *
+     * @param {{object: import("src/game/GameContracts.js").GameObjectContract, tile: import("src/game/GameContracts.js").TileMetadata, kind: string}} options
+     * @param {import("src/game/GameContracts.js").GameObjectContract} options.object
+     * @param {import("src/game/GameContracts.js").TileMetadata} options.tile
+     * @param {string} options.kind
+     */
+    const isNearbyVegetation = ({ object, tile, kind }) => {
+      if (object !== "Vegetation" || !tile) {
+        return false;
+      }
+      return (
+        Math.max(Math.abs(col - tile.col), Math.abs(row - tile.row)) <=
           (kind === "tree" ? 2 : 1)
-          );
-        })
+      );
+    };
+    if (
+      this.#vegetation.some(isNearbyVegetation)
     ) {
       return true;
     }

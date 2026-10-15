@@ -21,9 +21,11 @@ export class StairwellRoomMapObjects {
       for (const [index, item] of plan.furniture.entries()) {
         if (item.role !== "stairwellProp") { continue; }
         const id = `${castle.id}-stairwell-prop-${index}`;
-        if (objects.some(/**
+        /**
          * @param {import("../../../ObjectTypes.js").MapObjectDefinition} definition
-         */ definition => definition.id === id)) { continue; }
+         */
+        const hasPropId = definition => definition.id === id;
+        if (objects.some(hasPropId)) { continue; }
         const position = layout.toWorld(item.x, item.z, item.floorY - layout.origin.y + item.y);
         objects.push({
           id,

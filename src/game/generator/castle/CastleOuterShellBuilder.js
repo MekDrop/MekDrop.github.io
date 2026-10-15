@@ -43,9 +43,11 @@ export class CastleOuterShellBuilder {
 
           }
         }
-        if (boundary && !(plan.stair && !plan.placedRooms.some(/**
-       * @param {{id:string}} room
-       */ (room) => room.id.startsWith("tower")))) {
+        /**
+         * @param {{id:string}} room
+         */
+        const isTowerRoom = (room) => room.id.startsWith("tower");
+        if (boundary && !(plan.stair && !plan.placedRooms.some(isTowerRoom))) {
           for (let guard = 1; guard <= 4; guard++) {
             if (guard <= 2 || (u + v) % battlementPeriod === 0) {
               writer.addBlock(u, wallHeight + guard, v, "trim");

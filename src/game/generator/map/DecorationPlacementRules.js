@@ -94,14 +94,13 @@ export class DecorationPlacementRules {
     const x = col - (grid[row].length - 1) / 2;
     const z = row - (grid.length - 1) / 2;
     const y = heightmap[row][col];
-    if (metadata?.terrainCutouts?.some(
-      /**
-       * @param {{minX:number,maxX:number,minY:number,maxY:number,minZ:number,maxZ:number}} cut
-       */
-      (cut) => x + 0.75 > cut.minX && x - 0.75 < cut.maxX &&
+    /**
+     * @param {{minX:number,maxX:number,minY:number,maxY:number,minZ:number,maxZ:number}} cut
+     */
+    const overlapsGroundCut = (cut) => x + 0.75 > cut.minX && x - 0.75 < cut.maxX &&
         z + 0.75 > cut.minZ && z - 0.75 < cut.maxZ &&
-        y + 1 > cut.minY && y < cut.maxY,
-    )) {
+        y + 1 > cut.minY && y < cut.maxY;
+    if (metadata?.terrainCutouts?.some(overlapsGroundCut)) {
       return false;
     }
     return true;

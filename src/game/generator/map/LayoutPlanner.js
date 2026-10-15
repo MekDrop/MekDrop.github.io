@@ -229,11 +229,12 @@ export class LayoutPlanner {
         return this.#random.rng(0, 1) === 0 ? "LEFT" : "RIGHT";
       });
 
-    if (selected.length > 1 && sides.every(/**
+    /**
      *
      * @param {string} side
      */
-      (side) => side === sides[0])) {
+    const matchesFirstSide = (side) => side === sides[0];
+    if (selected.length > 1 && sides.every(matchesFirstSide)) {
       const candidateIndexes = selected
         .map(/**
          *
@@ -363,21 +364,26 @@ export class LayoutPlanner {
   retainSeparatedCurvePlans(layout) {
     // An entry on the trunk plus branches above and below would form a flat
     // four-way crossing at their shared merge. Use separated T junctions.
-    if (layout.entries.every(/**
-                             * @param {LayoutEntry} entry
-                             */ (entry) => entry.mergeCol === layout.entries[0].mergeCol) &&
-      layout.entries.some(/**
-                             * @param {LayoutEntry} entry
-                             */
-        (entry) => entry.gateRows[0] === layout.pathRows[0]) &&
-      layout.entries.some(/**
-                           * @param {LayoutEntry} entry
-                           */
-        (entry) => entry.gateRows[1] < layout.pathRows[0]) &&
-      layout.entries.some(/**
-                           * @param {LayoutEntry} entry
-                           */
-        (entry) => entry.gateRows[0] > layout.pathRows[1])) {
+    /**
+     * @param {LayoutEntry} entry
+     */
+    const matchesFirstMergeColumn = (entry) => entry.mergeCol === layout.entries[0].mergeCol;
+    /**
+     * @param {LayoutEntry} entry
+     */
+    const startsOnFirstPathRow = (entry) => entry.gateRows[0] === layout.pathRows[0];
+    /**
+     * @param {LayoutEntry} entry
+     */
+    const endsBeforeFirstPathRow = (entry) => entry.gateRows[1] < layout.pathRows[0];
+    /**
+     * @param {LayoutEntry} entry
+     */
+    const startsAfterLastPathRow = (entry) => entry.gateRows[0] > layout.pathRows[1];
+    if (layout.entries.every(matchesFirstMergeColumn) &&
+      layout.entries.some(startsOnFirstPathRow) &&
+      layout.entries.some(endsBeforeFirstPathRow) &&
+      layout.entries.some(startsAfterLastPathRow)) {
       for (const entry of layout.entries) {
         if (entry.gateRows[0] >= layout.pathRows[0]) {
           entry.mergeCol -= 4;
@@ -407,19 +413,20 @@ export class LayoutPlanner {
         MapGrid.createTileMetadata(),
         layout,
       );
-      if (
-        previewGrid.some(/**
-         * @param {number[]} tiles
-         * @param {number} row
-         */
-          (tiles, row) => row >= layout.castleTop && row <= layout.castleBottom &&
+      /**
+       * @param {number[]} tiles
+       * @param {number} row
+       */
+      const containsInteriorCastlePath = (tiles, row) => row >= layout.castleTop && row <= layout.castleBottom &&
           tiles.some(/**
            * @param {number} tile
            * @param {number} col
            */
             (tile, col) => tile === TileType.PATH && col >= layout.castleLeft &&
             col <= layout.castleRight && !(col === layout.castleEntranceCol &&
-              layout.castleEntranceRows.includes(row)))) ||
+              layout.castleEntranceRows.includes(row)));
+      if (
+        previewGrid.some(containsInteriorCastlePath) ||
         PathTopology.findUnexpectedFlatPathCrossing(previewGrid, null) ||
         PathTopology.hasInsufficientParallelPathClearance(previewGrid, layout) ||
         PathTopology.findUnexpectedRouteConnection(routeCellsByPath, layout, null)
@@ -457,16 +464,13 @@ export class LayoutPlanner {
 
     const safe = [];
     for (const candidate of candidates) {
-      if (!blocked.every(/**
+      /**
        *
        * @param {number} start
        */
-        (start) => Math.abs(candidate - start) >= 4)) { continue; }
-      if (!safe.every(/**
-       *
-       * @param {number} start
-       */
-        (start) => Math.abs(candidate - start) >= 4)) { continue; }
+      const isFarFromExistingStart = (start) => Math.abs(candidate - start) >= 4;
+      if (!blocked.every(isFarFromExistingStart)) { continue; }
+      if (!safe.every(isFarFromExistingStart)) { continue; }
       safe.push(candidate);
     }
 

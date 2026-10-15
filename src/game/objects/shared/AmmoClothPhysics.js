@@ -755,43 +755,38 @@ export class AmmoClothPhysics {
     const centerX = collider.centerX ?? 0;
     const centerZ = collider.centerZ ?? 0;
     const clearance = collider.clearance ?? ROOF_COLLISION_CLEARANCE;
+    /**
+     *
+     * @param {{x: number, y: number, z: number}} position
+     */
+    const isAboveCollider = (position) =>
+      position.y() >= collider.baseY + collider.height + clearance;
+    /**
+     *
+     * @param {{x: number, y: number, z: number}} position
+     */
+    const isLeftOfCollider = (position) => position.x() < centerX - collider.halfWidth;
+    /**
+     *
+     * @param {{x: number, y: number, z: number}} position
+     */
+    const isRightOfCollider = (position) => position.x() > centerX + collider.halfWidth;
+    /**
+     *
+     * @param {{x: number, y: number, z: number}} position
+     */
+    const isBehindCollider = (position) => position.z() < centerZ - collider.halfDepth;
+    /**
+     *
+     * @param {{x: number, y: number, z: number}} position
+     */
+    const isInFrontOfCollider = (position) => position.z() > centerZ + collider.halfDepth;
     if (
-      facePositions.every(
-        /**
-         *
-         * @param {{x: number, y: number, z: number}} position
-         */
-        (position) =>
-          position.y() >= collider.baseY + collider.height + clearance,
-      ) ||
-      facePositions.every(
-        /**
-         *
-         * @param {{x: number, y: number, z: number}} position
-         */
-        (position) => position.x() < centerX - collider.halfWidth,
-      ) ||
-      facePositions.every(
-        /**
-         *
-         * @param {{x: number, y: number, z: number}} position
-         */
-        (position) => position.x() > centerX + collider.halfWidth,
-      ) ||
-      facePositions.every(
-        /**
-         *
-         * @param {{x: number, y: number, z: number}} position
-         */
-        (position) => position.z() < centerZ - collider.halfDepth,
-      ) ||
-      facePositions.every(
-        /**
-         *
-         * @param {{x: number, y: number, z: number}} position
-         */
-        (position) => position.z() > centerZ + collider.halfDepth,
-      )
+      facePositions.every(isAboveCollider) ||
+      facePositions.every(isLeftOfCollider) ||
+      facePositions.every(isRightOfCollider) ||
+      facePositions.every(isBehindCollider) ||
+      facePositions.every(isInFrontOfCollider)
     ) {
       return;
     }

@@ -34,11 +34,12 @@ export class RoomPlacementRules {
       item.z - halfZ < bounds.minZ + inset - 1e-6 || item.z + halfZ > bounds.maxZ - inset + 1e-6) { return false; }
     const bottom = (item.floorY ?? room.floorY) + (item.y ?? item.elevation ?? 0) + (ROOM_PROP_BOTTOMS[item.object] ?? 0) * item.scale;
     const top = bottom + (item.height ?? ROOM_PROP_HEIGHTS[item.object] ?? room.height) * item.scale;
-    if (item.supportId && !occupied.some(/**
+    /**
      *
      * @param {import("./AbstractCastleRoomGenerator.js").RoomItem} candidate
      */
-      candidate => candidate.id === item.supportId)) { return false; }
+    const isItemSupport = candidate => candidate.id === item.supportId;
+    if (item.supportId && !occupied.some(isItemSupport)) { return false; }
     for (const other of occupied) {
       if (other.object === "Fireplace") {
         const chimney = FireplaceChimneyFootprint.bounds(other, [room]);
@@ -129,11 +130,12 @@ export class RoomPlacementRules {
       const group = [root];
       for (let level = 0; level < result.length; level++) {
         for (const child of result) {
-          if (!group.includes(child) && group.some(/**
+          /**
            *
            * @param {import("./AbstractCastleRoomGenerator.js").RoomItem} parent
            */
-            parent => child.supportId === parent.id)) { group.push(child); }
+          const supportsChild = parent => child.supportId === parent.id;
+          if (!group.includes(child) && group.some(supportsChild)) { group.push(child); }
         }
       }
       const room = rooms.find(/**

@@ -45,12 +45,11 @@ export class Banner {
       if (castle.object !== "Castle") { continue; }
       for (const [index, banner] of (castle.buildPlan?.geometry?.decorations?.banners ?? []).entries()) {
         const id = `${castle.id}-banner-${index}`;
-        if (objects.some(
-          /**
-           * @param {import("../ObjectTypes.js").MapObjectDefinition} item
-           */
-          (item) => item.id === id,
-        )) { continue; }
+        /**
+         * @param {import("../ObjectTypes.js").MapObjectDefinition} item
+         */
+        const hasBannerId = (item) => item.id === id;
+        if (objects.some(hasBannerId)) { continue; }
         objects.push({
           id,
           object: Banner.name,

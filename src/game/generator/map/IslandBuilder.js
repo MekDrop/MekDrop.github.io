@@ -1,3 +1,4 @@
+import { everyTruthy } from "../../helpers/collections.js";
 import {
   MAP_COLS,
   MAP_ROWS,
@@ -198,12 +199,12 @@ export class IslandBuilder {
         if (mask[row][col]) {
           continue;
         }
-        const enclosed = [
+        const enclosed = everyTruthy([
           mask[row - 1][col],
           mask[row + 1][col],
           mask[row][col - 1],
           mask[row][col + 1],
-        ].every(Boolean);
+        ]);
         if (enclosed) {
           holes.push({
             col,

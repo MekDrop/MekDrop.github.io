@@ -23,12 +23,13 @@ export class StairwellRoomGenerator extends AbstractCastleRoomGenerator {
     for (const stair of plan.authoredStairs) {
       const firstItem = items.length;
       if (!stair.straight) { continue; }
-      if (plan.spaces?.some(/**
+      /**
        * @param {import("../AbstractCastleRoomGenerator.js").PlannedCastleRoom} room
        */
-        room => room.furnish === false && room.floorY === stair.center.y &&
+      const containsUnfurnishedStair = room => room.furnish === false && room.floorY === stair.center.y &&
         stair.localCenter.x >= room.minX && stair.localCenter.x <= room.maxX &&
-        stair.localCenter.z >= room.minZ && stair.localCenter.z <= room.maxZ)) { continue; }
+        stair.localCenter.z >= room.minZ && stair.localCenter.z <= room.maxZ;
+      if (plan.spaces?.some(containsUnfurnishedStair)) { continue; }
       const turning = castleStraightStairSurfaces(stair)[1];
       if (turning.high < 1.2 || turning.maxZ - turning.minZ < 0.65) { continue; }
       let state = 2166136261;
@@ -65,10 +66,12 @@ export class StairwellRoomGenerator extends AbstractCastleRoomGenerator {
         const z = stair.localCenter.z - across * sine + along * cosine;
         const floorY = stair.center.y;
         // The grounded crate measures 0.55 × 0.4702 × 0.549 metres.
-        if (!plan.walkableAreas.some(/**
+        /**
          * @param {{floorY:number,minX:number,maxX:number,minZ:number,maxZ:number}} area
-         */ area => area.floorY === floorY && x - half >= area.minX && x + half <= area.maxX &&
-          z - half >= area.minZ && z + half <= area.maxZ)) { continue; }
+         */
+        const containsCrateFootprint = area => area.floorY === floorY && x - half >= area.minX && x + half <= area.maxX &&
+          z - half >= area.minZ && z + half <= area.maxZ;
+        if (!plan.walkableAreas.some(containsCrateFootprint)) { continue; }
         const joinedBase = row !== 1;
         let y = 0.002 + (!outer && joinedBase ? 0.4702 * rowScales[row] * 0.7 : 0);
         const surface = castleStraightStairSurfaces(stair)[across < 0 ? 0 : 2];
@@ -118,11 +121,13 @@ export class StairwellRoomGenerator extends AbstractCastleRoomGenerator {
         const x = stair.localCenter.x + across * cosine + along * sine;
         const z = stair.localCenter.z - across * sine + along * cosine;
         const half = 0.3;
-        if (!plan.walkableAreas.some(/**
+        /**
          * @param {{floorY:number,minX:number,maxX:number,minZ:number,maxZ:number}} area
-         */ area => area.floorY === stair.center.y &&
+         */
+        const containsTerminalStackFootprint = area => area.floorY === stair.center.y &&
           x - half >= area.minX && x + half <= area.maxX &&
-          z - half >= area.minZ && z + half <= area.maxZ)) { continue; }
+          z - half >= area.minZ && z + half <= area.maxZ;
+        if (!plan.walkableAreas.some(containsTerminalStackFootprint)) { continue; }
         let y = 0.002;
         for (const prop of [
           {
@@ -214,10 +219,12 @@ export class StairwellRoomGenerator extends AbstractCastleRoomGenerator {
         const x = stair.localCenter.x + across * cosine + along * sine;
         const z = stair.localCenter.z - across * sine + along * cosine;
         const half = Math.max(prop.width, prop.depth) * prop.scale / 2;
-        if (!plan.walkableAreas.some(/**
+        /**
          * @param {{floorY:number,minX:number,maxX:number,minZ:number,maxZ:number}} area
-         */ area => area.floorY === stair.center.y && x - half >= area.minX && x + half <= area.maxX &&
-          z - half >= area.minZ && z + half <= area.maxZ)) { continue; }
+         */
+        const containsPropFootprint = area => area.floorY === stair.center.y && x - half >= area.minX && x + half <= area.maxX &&
+          z - half >= area.minZ && z + half <= area.maxZ;
+        if (!plan.walkableAreas.some(containsPropFootprint)) { continue; }
         items.push({
           ...prop,
           role: "stairwellProp",
@@ -387,20 +394,26 @@ export class StairwellRoomGenerator extends AbstractCastleRoomGenerator {
         const width = alongX ? 0.16 : 0.26;
         const depth = alongX ? 0.26 : 0.16;
         // Reserve the entire shaft plus extra approach/headroom clearance.
-        if (context.stairs.some(/**
+        /**
          * @param {{minX:number,maxX:number,minZ:number,maxZ:number}} stair
-         */ stair => x + width / 2 > stair.minX - 0.4 &&
+         */
+        const overlapsStairClearance = stair => x + width / 2 > stair.minX - 0.4 &&
           x - width / 2 < stair.maxX + 0.4 && z + depth / 2 > stair.minZ - 0.4 &&
-          z - depth / 2 < stair.maxZ + 0.4)) { continue; }
-        if (context.openings.some(/**
+          z - depth / 2 < stair.maxZ + 0.4;
+        if (context.stairs.some(overlapsStairClearance)) { continue; }
+        /**
          * @param {import("../../CastleBasePlanGenerator.js").CompiledCastleOpening} opening
-         */ opening => opening.roomId === room.id &&
+         */
+        const blocksOpening = opening => opening.roomId === room.id &&
           opening.floorY === room.floorY && opening.side === side &&
-          Math.abs(along - opening.center) < opening.width / 2 + 0.4)) { continue; }
-        if ((context.occupied ?? []).some(/**
+          Math.abs(along - opening.center) < opening.width / 2 + 0.4;
+        if (context.openings.some(blocksOpening)) { continue; }
+        /**
          * @param {import("../AbstractCastleRoomGenerator.js").RoomItem} item
-         */ item => Math.abs(x - item.x) < item.width * item.scale / 2 + width / 2 + 0.25 &&
-          Math.abs(z - item.z) < item.depth * item.scale / 2 + depth / 2 + 0.25)) { continue; }
+         */
+        const overlapsOccupiedItem = item => Math.abs(x - item.x) < item.width * item.scale / 2 + width / 2 + 0.25 &&
+          Math.abs(z - item.z) < item.depth * item.scale / 2 + depth / 2 + 0.25;
+        if ((context.occupied ?? []).some(overlapsOccupiedItem)) { continue; }
         candidates.push({
           role: "stairwellProp",
           object: "WallLantern",
@@ -423,30 +436,38 @@ export class StairwellRoomGenerator extends AbstractCastleRoomGenerator {
     const count = random() < 0.35 ? 2 : 1;
     while (candidates.length && items.length < count) {
       const [item] = candidates.splice(Math.floor(random() * candidates.length), 1);
-      if (items.some(/**
+      /**
        * @param {import("../AbstractCastleRoomGenerator.js").RoomItem} other
-       */ other => Math.hypot(item.x - other.x, item.z - other.z) < 1.3)) { continue; }
+       */
+      const isTooCloseToItem = other => Math.hypot(item.x - other.x, item.z - other.z) < 1.3;
+      if (items.some(isTooCloseToItem)) { continue; }
       items.push(item);
     }
     // A grounded candle stand fits only a broad host's unused north-west corner.
     // No shelf/table is invented in the narrow landing strip.
     const candleX = room.minX + 0.24;
     const candleZ = room.minZ + 0.32;
-    if (room.maxX - room.minX >= 6 && room.maxZ - room.minZ >= 3 && random() < 0.6 &&
-      !context.stairs.some(/**
-       * @param {{minX:number,maxX:number,minZ:number,maxZ:number}} stair
-       */ stair => candleX > stair.minX - 0.75 && candleX < stair.maxX + 0.75 &&
-        candleZ > stair.minZ - 0.75 && candleZ < stair.maxZ + 0.75) &&
-      !context.openings.some(/**
-       * @param {import("../../CastleBasePlanGenerator.js").CompiledCastleOpening} opening
-       */ opening => opening.roomId === room.id && opening.floorY === room.floorY &&
+    /**
+     * @param {{minX:number,maxX:number,minZ:number,maxZ:number}} stair
+     */
+    const blocksCandleStairClearance = stair => candleX > stair.minX - 0.75 && candleX < stair.maxX + 0.75 &&
+        candleZ > stair.minZ - 0.75 && candleZ < stair.maxZ + 0.75;
+    /**
+     * @param {import("../../CastleBasePlanGenerator.js").CompiledCastleOpening} opening
+     */
+    const blocksCandleOpening = opening => opening.roomId === room.id && opening.floorY === room.floorY &&
         (opening.axis === "x" ? Math.abs(candleX - opening.coordinate) < 0.85 &&
           Math.abs(candleZ - opening.center) < opening.width / 2 + 0.4 :
-          Math.abs(candleZ - opening.coordinate) < 0.85 && Math.abs(candleX - opening.center) < opening.width / 2 + 0.4)) &&
-      !(context.occupied ?? []).some(/**
-       * @param {import("../AbstractCastleRoomGenerator.js").RoomItem} item
-       */ item => Math.abs(candleX - item.x) < item.width * item.scale / 2 + 0.5 &&
-        Math.abs(candleZ - item.z) < item.depth * item.scale / 2 + 0.5)) {
+          Math.abs(candleZ - opening.coordinate) < 0.85 && Math.abs(candleX - opening.center) < opening.width / 2 + 0.4);
+    /**
+     * @param {import("../AbstractCastleRoomGenerator.js").RoomItem} item
+     */
+    const overlapsCandlePlacement = item => Math.abs(candleX - item.x) < item.width * item.scale / 2 + 0.5 &&
+        Math.abs(candleZ - item.z) < item.depth * item.scale / 2 + 0.5;
+    if (room.maxX - room.minX >= 6 && room.maxZ - room.minZ >= 3 && random() < 0.6 &&
+      !context.stairs.some(blocksCandleStairClearance) &&
+      !context.openings.some(blocksCandleOpening) &&
+      !(context.occupied ?? []).some(overlapsCandlePlacement)) {
       items.push({
         role: "stairwellProp",
         object: "SingleCandleStand",

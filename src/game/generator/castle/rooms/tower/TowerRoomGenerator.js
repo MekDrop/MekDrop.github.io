@@ -75,27 +75,30 @@ export class TowerRoomGenerator extends AbstractCastleRoomGenerator {
         const centerX = (minX + maxX) / 2;
         const centerZ = (minZ + maxZ) / 2;
         if (Math.abs(x - centerX) < halfX + 0.45 || Math.abs(z - centerZ) < halfZ + 0.45) { continue; }
-        if (items.some(/**
+        /**
          *
          * @param {import("../AbstractCastleRoomGenerator.js").RoomItem} item
          */
-          (item) => Math.abs(item.x - x) < (item.width + itemWidth) / 2 + 0.22 &&
-          Math.abs(item.z - z) < (item.depth + itemDepth) / 2 + 0.22)) { continue; }
-        if ((context.openings ?? room.openings ?? []).some(/**
+        const overlapsPlacedItem = (item) => Math.abs(item.x - x) < (item.width + itemWidth) / 2 + 0.22 &&
+          Math.abs(item.z - z) < (item.depth + itemDepth) / 2 + 0.22;
+        if (items.some(overlapsPlacedItem)) { continue; }
+        /**
          *
          * @param {import("../../CastleBasePlanGenerator.js").CompiledCastleOpening} opening
          */
-          (opening) => opening.roomId === room.id &&
+        const blocksOpening = (opening) => opening.roomId === room.id &&
           opening.floorY === room.floorY && (opening.axis === "x"
-            ? Math.abs(x - opening.coordinate) < halfX + 0.85 && Math.abs(z - opening.center) < halfZ + opening.width / 2 + 0.3
-            : Math.abs(z - opening.coordinate) < halfZ + 0.85 && Math.abs(x - opening.center) < halfX + opening.width / 2 + 0.3))) { continue; }
-        if ((context.stairs ?? room.stairs ?? []).some(/**
+          ? Math.abs(x - opening.coordinate) < halfX + 0.85 && Math.abs(z - opening.center) < halfZ + opening.width / 2 + 0.3
+          : Math.abs(z - opening.coordinate) < halfZ + 0.85 && Math.abs(x - opening.center) < halfX + opening.width / 2 + 0.3);
+        if ((context.openings ?? room.openings ?? []).some(blocksOpening)) { continue; }
+        /**
          *
          * @param {{from:number,to:number,minX:number,maxX:number,minZ:number,maxZ:number}} stair
          */
-          (stair) => room.level >= stair.from && room.level <= stair.to &&
+        const overlapsStairClearance = (stair) => room.level >= stair.from && room.level <= stair.to &&
           x + halfX > stair.minX - 0.35 && x - halfX < stair.maxX + 0.35 &&
-          z + halfZ > stair.minZ - 0.35 && z - halfZ < stair.maxZ + 0.35)) { continue; }
+          z + halfZ > stair.minZ - 0.35 && z - halfZ < stair.maxZ + 0.35;
+        if ((context.stairs ?? room.stairs ?? []).some(overlapsStairClearance)) { continue; }
         items.push({
           role: "towerProp",
           object,
