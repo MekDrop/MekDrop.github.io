@@ -110,7 +110,7 @@ export class CastleResidence {
       this.#entity.addChild(visual);
       // Furniture is solid at its occupied level, rather than an infinite column.
       const dimensions = {
-        workDesk: [0.9, 0.73, 0.55], kitchenTable: [0.9, 0.73, 0.55], royalBed: [1.2, 0.75, 1.8],
+        workDesk: [0.9, 0.73, 0.55], kitchenTable: [0.9, 0.73, 0.55], royalBed: [1.2, 2.03, 1.805],
         wardrobe: [0.65, 1.15, 0.46], readingChair: [0.75, 1.665, 0.735],
         servantBed: [0.9, 0.675, 2], storageShelf: [0.8, 1, 0.3],
       }[placement.role];

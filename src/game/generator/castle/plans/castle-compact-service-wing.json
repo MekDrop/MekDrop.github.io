@@ -59,7 +59,7 @@
       "spaces": [
         {
           "id": "basement-storeroom",
-          "label": "Basement equipment storeroom",
+          "label": "Terrace furniture storeroom",
           "kind": "room",
           "bounds": [
             3.625,
@@ -70,8 +70,8 @@
           "openings": [
             {
               "kind": "door",
-              "side": "WEST",
-              "offset": 2.25,
+              "side": "SOUTH",
+              "offset": 2,
               "width": 1.25,
               "bottom": 0,
               "height": 2.5,
@@ -81,17 +81,27 @@
           "generator": "TerraceStorageRoomGenerator"
         },
         {
-          "id": "basement-passage",
-          "label": "Kitchen and storeroom passage",
-          "kind": "corridor",
+          "id": "kitchen",
+          "label": "Kitchen beside basement stairs",
+          "kind": "room",
           "bounds": [
-            0.375,
-            0.375,
-            3.25,
-            7.25
+            3.625,
+            4.125,
+            4,
+            3.5
           ],
-          "openings": [],
-          "generator": null
+          "openings": [
+            {
+              "kind": "door",
+              "side": "WEST",
+              "offset": 0.5,
+              "width": 1.25,
+              "bottom": 0,
+              "height": 2.5,
+              "swing": "inward"
+            }
+          ],
+          "generator": "KitchenRoomGenerator"
         },
         {
           "id": "basement-stair-room",
@@ -119,16 +129,16 @@
           "furnish": true
         },
         {
-          "id": "basement-east-passage",
-          "label": "Side tower access passage",
-          "kind": "corridor",
+          "id": "royal-chamber",
+          "label": "Royal sleeping room",
+          "kind": "room",
           "bounds": [
-            3.625,
-            4.125,
-            4,
-            3.5
+            0.375,
+            0.375,
+            3.25,
+            7.25
           ],
-          "generator": null,
+          "generator": "RoyalBedroomRoomGenerator",
           "openings": []
         }
       ]

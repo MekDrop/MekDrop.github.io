@@ -2,6 +2,7 @@ import { TerraceStorageRoomGenerator } from "./rooms/TerraceStorageRoomGenerator
 import { KitchenRoomGenerator } from "./rooms/KitchenRoomGenerator.js";
 import { CastleBasePlanInvalidError } from "../../errors/castle/index.js";
 import { ServiceRoomGenerator } from "./rooms/ServiceRoomGenerator.js";
+import { RoyalBedroomRoomGenerator } from "./rooms/RoyalBedroomRoomGenerator.js";
 import { LibraryRoomGenerator } from "./rooms/LibraryRoomGenerator.js";
 import { ThroneRoomGenerator } from "./rooms/ThroneRoomGenerator.js";
 import { LeisureRoomGenerator } from "./rooms/LeisureRoomGenerator.js";
@@ -109,7 +110,7 @@ export class CastleBasePlanGenerator {
     if (!Number.isFinite(scale) || scale <= 0 || !Number.isFinite(baseY)) {
       throw new CastleBasePlanInvalidError(plan.id, "scale/baseY");
     }
-    const generators = options.generators ?? [new ServiceRoomGenerator(), new KitchenRoomGenerator(), new LibraryRoomGenerator(),
+    const generators = options.generators ?? [new ServiceRoomGenerator(), new RoyalBedroomRoomGenerator(), new KitchenRoomGenerator(), new LibraryRoomGenerator(),
       new ThroneRoomGenerator(), new LeisureRoomGenerator(), new TowerRoomGenerator(1), new VestibuleRoomGenerator(), new TerraceStorageRoomGenerator()];
     const registry = new Map(generators.map(/**
      *
@@ -171,7 +172,7 @@ export class CastleBasePlanGenerator {
          */ (stair) => ({ ...stair, ...this.#bounds(stair.bounds, scale) })) })) {
         const halfX = item.width * item.scale / 2;
         const halfZ = item.depth * item.scale / 2;
-        const bounds = item.role === "libraryProp" || item.role === "servantBed" || ["KitchenFireplace", "HangingFryingPan"].includes(item.object) ? room.wallBounds : room;
+        const bounds = item.wallAttachment || item.role === "libraryProp" || item.role === "servantBed" || ["KitchenFireplace", "HangingFryingPan"].includes(item.object) ? room.wallBounds : room;
         const wallInset = item.wallInset ?? 0;
         if (item.x - halfX < bounds.minX - wallInset - 1e-6 || item.x + halfX > bounds.maxX + wallInset + 1e-6 ||
           item.z - halfZ < bounds.minZ - wallInset - 1e-6 || item.z + halfZ > bounds.maxZ + wallInset + 1e-6) { continue; }

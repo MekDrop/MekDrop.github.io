@@ -5,7 +5,7 @@
   "source": {
     "image": "sources/castle-demo-compact-game-constrained.png",
     "method": "authored variant of the compact game-constrained schematic",
-    "accuracy": "Rearranged basement rooms, west library and east watchtower. Dimensions in metres."
+    "accuracy": "Full-width front basement royal bedroom, separate rear kitchen and fixed stair landing; west library and east watchtower. Dimensions in metres."
   },
   "coordinates": {
     "width": 8,
@@ -73,30 +73,6 @@
           "label": "Kitchen / pantry",
           "kind": "room",
           "bounds": [
-            3.625,
-            3.875,
-            4,
-            3.75
-          ],
-          "openings": [
-            {
-              "kind": "door",
-              "side": "WEST",
-              "offset": 2.5,
-              "width": 1,
-              "bottom": 0,
-              "height": 2.5,
-              "swing": "inward",
-              "openingInset": 0.255
-            }
-          ],
-          "generator": "KitchenRoomGenerator"
-        },
-        {
-          "id": "service-quarters",
-          "label": "Service quarters",
-          "kind": "room",
-          "bounds": [
             0.375,
             0.375,
             3.25,
@@ -115,27 +91,37 @@
             {
               "kind": "door",
               "side": "SOUTH",
-              "offset": 0,
+              "offset": 1.75,
               "width": 1,
               "bottom": 0,
               "height": 2.5,
-              "swing": "outward"
+              "swing": "inward"
             }
           ],
-          "generator": "ServiceRoomGenerator"
+          "generator": "KitchenRoomGenerator"
         },
         {
-          "id": "storage-south",
-          "label": "Storage / circulation",
-          "kind": "corridor",
+          "id": "royal-chamber",
+          "label": "Royal sleeping room",
+          "kind": "room",
           "bounds": [
             0.375,
             3.875,
-            3.25,
+            7.25,
             3.75
           ],
-          "openings": [],
-          "generator": "TerraceStorageRoomGenerator"
+          "openings": [
+            {
+              "kind": "door",
+              "side": "NORTH",
+              "offset": 3.5,
+              "width": 1,
+              "bottom": 0,
+              "height": 2.5,
+              "swing": "inward"
+            }
+          ],
+          "generator": "RoyalBedroomRoomGenerator"
         },
         {
           "id": "basement-stair-room",

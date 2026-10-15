@@ -119,12 +119,34 @@ Generated maps reserve the selected plan's rotated metric footprint plus one til
 
 ## Compact tower variant
 
-`castle-compact-tower` keeps the eight-metre envelope, swaps the basement kitchen
-and service quarters, and splits the upper keep into a west library and an east
+`castle-compact-tower` keeps the eight-metre envelope, places a full-width royal
+bedroom in front of the basement kitchen, and splits the upper keep into a west library and an east
 watchtower. The existing stair shaft continues to a lookout at elevation 6 metres;
 the tower roof begins at 9 metres. Seed pairs 0/1 select the original compact plan,
 2/3 select the tower variant, and 4/5 select the service-wing alternative, and the sequence repeats every six numeric seeds.
 Odd seeds mirror the selected layout around its entrance.
+
+## Tower basement
+
+`castle-compact-tower` gives the royal sleeping room the full 7.25-metre interior
+width across the front (south) of the basement. The former north-south divider
+through this area is removed. The kitchen occupies the northwest rear room,
+replacing the old service quarters; its south door connects to the bedroom and
+its east door connects to the fixed northeast stair landing. A separate north
+bedroom door opens directly onto that landing, clear of the stair shaft. There
+is no secret room or concealed passage.
+
+`RoyalBedroomRoomGenerator` now owns this bedroom's furnishing. Its five seeded
+arrangements are quiet bedroom, writing retreat, reading nook, ceremonial bedroom
+and dressing room. The existing royal bed, wardrobe and castle prop models retain
+their materials and full size. Optional furnishings yield to neighbouring door
+swings, the staircase and a connected walking route with bedside access.
+
+Open `/en/map/test_royal-bedroom-layouts` for the real-game preview. Its PlayCanvas
+HUD selects all five arrangements and provides a repeatable inside-bedroom view.
+The preview uses the side-attached tower from the supplied screenshot. Seeds
+10, 22, 4, 16 and 28 select these themes respectively; their odd partners
+mirror the same bedroom inventory around the castle entrance.
 
 ## Service-wing alternative
 
@@ -134,8 +156,12 @@ watchtower attached midway along its east side. The total authored envelope is
 entrance retains its unobstructed two-lane approach.
 
 The shared ground-floor hall opens directly into the tower. The throne room
-and servant quarters retain separate doors, and the basement has storage and
-circulation leading to its own tower entrance. Connected building envelopes omit
+and servant quarters retain separate doors. Entering the basement westward from
+the side-tower stair door leads directly into the kitchen. Terrace equipment
+storage is on the right (north), with its own connecting door and stored sunbed,
+tea table, chair and tea set. The remaining western area is one royal bedroom,
+connected through the kitchen's west door. The saved `ladder-castle` fixture carries a
+rebuilt plan, rather than its former empty passage. Connected building envelopes omit
 shared exterior walls while preserving room partitions and projecting floors.
 
 One west-facing stair shaft uses matching flights and landings through every

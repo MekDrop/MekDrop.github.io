@@ -2,6 +2,7 @@ import { CastleLadderMapObjects } from "./CastleLadderMapObjects.js";
 import { CastleSignalTowerMapObjects } from "./CastleSignalTowerMapObjects.js";
 import { DecorationPlacementRules } from "../../generator/map/DecorationPlacementRules.js";
 import { LibraryRoomMapObjects } from "./LibraryRoomMapObjects.js";
+import { RoyalBedroomRoomMapObjects } from "./RoyalBedroomRoomMapObjects.js";
 import { LeisureRoomMapObjects } from "./LeisureRoomMapObjects.js";
 import { KitchenRoomMapObjects } from "./KitchenRoomMapObjects.js";
 import { ThroneRoomMapObjects } from "./ThroneRoomMapObjects.js";
@@ -24,6 +25,7 @@ export class CastleMapPreparation {
    * @param {import("../../GameContracts.js").GameMapData} mapData
    */
   static prepareMap(mapData) {
+    RoyalBedroomRoomMapObjects.prepareMap(mapData);
     LibraryRoomMapObjects.prepareMap(mapData);
     LeisureRoomMapObjects.prepareMap(mapData);
     KitchenRoomMapObjects.prepareMap(mapData);

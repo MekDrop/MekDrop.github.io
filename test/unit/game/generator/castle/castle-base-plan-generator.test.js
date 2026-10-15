@@ -116,22 +116,42 @@ it("keeps the symmetric throne hall double height and its upper level empty", as
 });
 
 it("selects the tower variant with rearranged rooms and a connected lookout floor", async () => {
-  const compact = await CastleBasePlanGenerator.generate({ seed: 0 });
   const tower = await CastleBasePlanGenerator.generate({ seed: 2 });
   assert.equal(tower.basePlanId, "castle-compact-tower");
   assert.equal(CastleBasePlanGenerator.selectPlanId(3), tower.basePlanId);
   assert.ok(tower.stairs.some((stair) => stair.to === 2));
   assert.ok(tower.spaces.some((room) => room.id === "watchtower" && room.level === 2 && room.generator === "TowerRoomGenerator"));
   assert.ok(tower.roofs.some((roof) => roof.id === "watchtower-roof" && roof.y === 9));
-  for (const id of ["kitchen", "service-quarters"]) {
-    const original = compact.spaces.find((room) => room.id === id);
-    const variant = tower.spaces.find((room) => room.id === id);
-    assert.notEqual(variant.minX, original.minX);
-    assert.notEqual(variant.minZ, original.minZ);
+  assert.equal(tower.spaces.find((room) => room.id === "royal-chamber").generator, "RoyalBedroomRoomGenerator");
+});
+
+it("connects the tower basement bedroom and kitchen to the existing landing", async () => {
+  for (const seed of [2, 3]) {
+    const plan = await CastleBasePlanGenerator.generate({ seed });
+    const bedroom = plan.spaces.find((room) => room.id === "royal-chamber");
+    const kitchen = plan.spaces.find((room) => room.id === "kitchen");
+    const landing = plan.spaces.find((room) => room.id === "basement-stair-room");
+    assert.equal(bedroom.level, -1);
+    assert.equal(bedroom.kind, "room");
+    assert.equal(bedroom.maxX - bedroom.minX, 7.25);
+    assert.equal(bedroom.minX, Math.min(kitchen.minX, landing.minX));
+    assert.equal(bedroom.maxX, Math.max(kitchen.maxX, landing.maxX));
+    assert.equal(bedroom.minZ, kitchen.maxZ);
+    assert.equal(bedroom.minZ, landing.maxZ);
+    assert.ok(plan.furniture.some((item) => item.roomId === bedroom.id && item.role === "royalBed"));
+    assert.ok(plan.furniture.some((item) => item.roomId === bedroom.id && item.role === "wardrobe"));
+    const doors = plan.openings.filter((opening) => opening.roomId === kitchen.id && opening.kind === "door");
+    assert.ok(doors.some((door) => door.axis === "z" && door.coordinate === bedroom.minZ &&
+      door.center > kitchen.minX && door.center < kitchen.maxX));
+    assert.ok(doors.some((door) => door.axis === "x" &&
+      Math.min(Math.abs(door.coordinate - landing.minX), Math.abs(door.coordinate - landing.maxX)) < 1e-6 &&
+      door.center > landing.minZ && door.center < landing.maxZ));
+    assert.ok(plan.openings.some((door) => door.roomId === bedroom.id && door.kind === "door" &&
+      door.axis === "z" && door.coordinate === landing.maxZ && door.center > landing.minX && door.center < landing.maxX));
   }
 });
 
-it("keeps the service-wing alternative separate and moves quarters to the entrance floor", async () => {
+it("places the kitchen at the basement stair door, terrace storage on its right and the bedroom in the remaining area", async () => {
   const plan = await CastleBasePlanGenerator.generate({ seed: 4 });
   assert.equal(plan.basePlanId, "castle-compact-service-wing");
   assert.equal(CastleBasePlanGenerator.selectPlanId(5), plan.basePlanId);
@@ -139,14 +159,31 @@ it("keeps the service-wing alternative separate and moves quarters to the entran
   assert.equal(quarters.level, 0);
   assert.equal(quarters.generator, "ServiceRoomGenerator");
   assert.ok(plan.furniture.some((item) => item.roomId === quarters.id));
-  for (const id of ["basement-storeroom", "basement-passage"]) {
+  for (const id of ["kitchen", "royal-chamber", "basement-storeroom"]) {
     assert.equal(plan.spaces.find((room) => room.id === id).level, -1);
   }
   const tower = await CastleBasePlanGenerator.generate({ planId: "castle-compact-tower" });
-  assert.equal(tower.spaces.find((room) => room.id === "service-quarters").level, -1);
+  assert.equal(tower.spaces.find((room) => room.id === "royal-chamber").level, -1);
   assert.ok(plan.spaces.some((room) => room.id === "watchtower" && room.level === 2));
-  assert.ok(!plan.spaces.some((room) => ["KitchenRoomGenerator", "LibraryRoomGenerator"].includes(room.generator)));
+  assert.ok(!plan.spaces.some((room) => room.generator === "LibraryRoomGenerator"));
+  assert.equal(plan.spaces.find((room) => room.id === "royal-chamber").generator, "RoyalBedroomRoomGenerator");
   assert.ok(plan.spaces.some((room) => room.generator === "ThroneRoomGenerator"));
   assert.ok(plan.spaces.some((room) => room.kind === "terrace"));
-  assert.ok(plan.furniture.some((item) => item.roomId === "basement-storeroom"));
+  assert.ok(plan.furniture.some((item) => item.roomId === "royal-chamber" && item.role === "royalBed"));
+  assert.ok(plan.furniture.some((item) => item.roomId === "kitchen" && item.object === "KitchenFireplace"));
+  const kitchen = plan.spaces.find((room) => room.id === "kitchen");
+  const storage = plan.spaces.find((room) => room.id === "basement-storeroom");
+  const bedroom = plan.spaces.find((room) => room.id === "royal-chamber");
+  const entry = plan.openings.find((door) => door.roomId === "basement-stair-room" && door.kind === "door");
+  assert.equal(entry.side, "WEST");
+  assert.ok(entry.center - entry.width / 2 >= kitchen.minZ && entry.center + entry.width / 2 <= kitchen.maxZ);
+  assert.equal(entry.coordinate - kitchen.maxX, 0.25);
+  assert.equal(storage.maxZ, kitchen.minZ, "storage is north/right when entering westward from the tower stairs");
+  assert.equal(bedroom.maxX, kitchen.minX);
+  assert.equal(bedroom.maxX, storage.minX);
+  assert.equal(bedroom.minZ, storage.minZ);
+  assert.equal(bedroom.maxZ, kitchen.maxZ);
+  for (const object of ["TerraceSunbed", "TeaTable", "TerraceTeaChair"]) {
+    assert.ok(plan.furniture.some(item => item.roomId === storage.id && item.object === object));
+  }
 });

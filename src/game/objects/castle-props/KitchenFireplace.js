@@ -3,6 +3,7 @@ import { AbstractCastleProp } from "./AbstractCastleProp.js";
 import { CastleFire } from "../castle/CastleFire.js";
 import fireGLSL from "./KitchenFire.glsl?raw";
 import fireWGSL from "./KitchenFire.wgsl?raw";
+import terminalModelUrl from "../../models/castle/props/terrace-chimney-terminal.glb?url";
 import chimneyModelUrl from "../../models/castle/props/kitchen-chimney-course.glb?url";
 import { CastleMasonryMaterial } from "../castle/CastleMasonryMaterial.js";
 import { CASTLE_MATERIAL_DEFINITIONS } from "../../generator/castle/CastleGenerationConfig.js";
@@ -119,21 +120,28 @@ ${diffuse.slice(close)}`);
     this.#fire.add({ x: 0.028, y: 0.29, z: -0.2073, scale: 0.075, brazier: false, intensity: 0.15 });
     root.children[0].addChild(this.#fire.entity);
     const top = definition.chimneyHeight ?? 1.65 * scale;
+    const stoneTop = definition.chimneyMetalTerminal ? top - 0.72 : top;
     const courseHeight = 0.24 * scale;
     this.#chimney = new pc.Entity("Kitchen chimney");
     root.addChild(this.#chimney);
-    for (let bottom = 1.65 * scale, index = 0; bottom < top; bottom += courseHeight, index++) {
+    for (let bottom = 1.65 * scale, index = 0; bottom < stoneTop; bottom += courseHeight, index++) {
       const course = options.modelLibrary.instantiate(chimneyModelUrl);
       course.name = `Kitchen chimney course ${index}`;
       course.setLocalPosition(0.028 * scale, bottom, -0.2073 * scale);
       course.setLocalEulerAngles(0, index % 2 * 180, 0);
-      course.setLocalScale(scale, Math.min(courseHeight, top - bottom) / 0.24, scale);
+      course.setLocalScale(scale, Math.min(courseHeight, stoneTop - bottom) / 0.24, scale);
       for (const render of course.findComponents("render")) {
         for (const instance of render.meshInstances) {
           if (instance.material.name !== "Chimney soot-dark stone") { instance.material = masonry; }
         }
       }
       this.#chimney.addChild(course);
+    }
+    if (definition.chimneyMetalTerminal) {
+      const terminal = options.modelLibrary.instantiate(terminalModelUrl);
+      terminal.name = "Covered metal terrace chimney";
+      terminal.setLocalPosition(0.028 * scale, stoneTop, -0.2073 * scale);
+      this.#chimney.addChild(terminal);
     }
     if (top > 1.65 * scale) {
       const height = top - 1.65 * scale;
@@ -188,7 +196,7 @@ ${diffuse.slice(close)}`);
    * @returns {string[]}
    */
   static get modelUrls() {
-    return [modelUrl, chimneyModelUrl];
+    return [modelUrl, chimneyModelUrl, terminalModelUrl];
   }
 
   /**

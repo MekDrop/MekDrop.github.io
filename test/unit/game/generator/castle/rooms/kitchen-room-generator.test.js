@@ -30,7 +30,7 @@ test("kitchen varies coherently and reproduces its local seed", () => {
     for (const item of items) {
       assert.ok(item.x - item.width / 2 >= room.minX);
       assert.ok(item.x + item.width / 2 <= room.maxX);
-      assert.ok(item.z - item.depth / 2 >= room.minZ);
+      assert.ok(item.z - item.depth / 2 >= room.minZ - (item.wallInset ?? 0) - 1e-6);
       assert.ok(item.z + item.depth / 2 <= room.maxZ);
       // Southern west entry and the central service aisle stay traversable.
       assert.ok(!(item.x - item.width / 2 < 1.2 && item.z + item.depth / 2 > 2.4));
@@ -52,21 +52,20 @@ test("compact kitchens omit prep and storage without stranded tabletop props", (
   assert.deepEqual(items.map(item => item.object), ["KitchenFireplace", "FireplaceCauldron"]);
 });
 
-test("west kitchen entry faces the east-wall hearth with a clear cooking area", () => {
+test("west kitchen entry keeps the hearth on the preparation wall with its rear clear of masonry", () => {
   const openings = [{ roomId: room.id, floorY: room.floorY, kind: "door", side: "WEST",
     axis: "x", coordinate: room.minX, center: 3, width: 1 }];
   for (let seed = 0; seed < 24; seed++) {
     const items = new KitchenRoomGenerator().furnish(room, { seed, openings });
     const hearth = items.find(item => item.object === "KitchenFireplace");
     const cauldron = items.find(item => item.object === "FireplaceCauldron");
-    assert.equal(hearth.rotation, -90);
-    assert.equal(hearth.width, 0.815);
-    assert.equal(hearth.depth, 1.407);
-    assert.ok(Math.abs(hearth.z - openings[0].center) < 0.11);
-    assert.ok(Math.abs(hearth.x + hearth.width / 2 - (room.maxX + 0.22)) < 0.000001);
-    assert.ok(hearth.x + 0.2073 > room.maxX, "chimney back is embedded in the wall");
-    assert.ok(cauldron.x < hearth.x);
-    assert.equal(cauldron.z, hearth.z);
+    assert.equal(hearth.rotation, 180);
+    assert.equal(hearth.width, 1.47);
+    assert.equal(hearth.depth, 0.88);
+    assert.ok(Math.abs(hearth.z + 0.42 - (room.maxZ - 0.155)) < 1e-6,
+      "the full rear plane is 3 cm clear of the inner wall face");
+    assert.ok(cauldron.z < hearth.z);
+    assert.equal(cauldron.x, hearth.x);
     const floorProps = items.filter(item => item.y === 0);
     floorProps.forEach((item, index) => {
       for (const other of floorProps.slice(index + 1)) {
@@ -83,11 +82,13 @@ test("blocked prep bank removes its food group and openings exclude tall furnitu
     { roomId: room.id, floorY: room.floorY, kind: "door", axis: "x", coordinate: 4, center: 1.6, width: 1 },
     { roomId: room.id, floorY: room.floorY, kind: "window", axis: "z", coordinate: 0, center: 0.85, width: 1 },
   ] });
-  assert.ok(!items.some(item => ["KitchenTable", "PlateBread", "BowlGreenVegetables", "BowlRedFruit", "KitchenFireplace", "FireplaceCauldron"].includes(item.object)));
+  assert.ok(!items.some(item => ["KitchenTable", "PlateBread", "BowlGreenVegetables", "BowlRedFruit"].includes(item.object)));
+  const hearth = items.find(item => item.object === "KitchenFireplace");
+  assert.ok(!hearth || hearth.x - hearth.width / 2 >= 1.35, "hearth is beside the window or omitted when its larger measured body cannot fit");
 });
 
 test("active authored pipeline publishes kitchen objects and replaces old seeded props", async () => {
-  const authored = await CastleBasePlanGenerator.generate({ seed: 2 });
+  const authored = await CastleBasePlanGenerator.generate({ planId: "castle-demo-compact", seed: 2 });
   const kitchen = authored.spaces.find(space => space.id === "kitchen");
   const quarters = authored.spaces.find(space => space.id === "service-quarters");
   assert.deepEqual([kitchen.minX, kitchen.minZ, kitchen.maxX, kitchen.maxZ], [0.375, 0.375, 3.625, 3.875]);
@@ -102,8 +103,8 @@ test("active authored pipeline publishes kitchen objects and replaces old seeded
   assert.ok(pan.z - pan.depth / 2 > hearth.z + hearth.depth / 2,
     "pan hangs beside the chimney rather than in front of it");
   assert.equal(hearth.rotation, 0);
-  assert.ok(Math.abs(hearth.z - hearth.depth / 2 - (kitchen.wallBounds.minZ - 0.22)) < 0.000001);
-  assert.ok(hearth.z - 0.2073 < kitchen.wallBounds.minZ, "chimney back is embedded in the long side wall");
+  assert.ok(Math.abs(hearth.z - 0.42 - (kitchen.wallBounds.minZ + 0.155)) < 0.000001);
+  assert.ok(hearth.z - 0.42 >= kitchen.wallBounds.minZ + 0.125 - 1e-6, "firebox remains clear of the wall");
   assert.deepEqual([quarters.minX, quarters.minZ, quarters.maxX, quarters.maxZ], [3.625, 3.875, 7.625, 7.625]);
   assert.ok(authored.furniture.some(item => item.roomId === quarters.id && item.role === "servantBed"));
   assert.ok(authored.furniture.some(item => item.object === "KitchenTable"));
@@ -122,4 +123,25 @@ test("active authored pipeline publishes kitchen objects and replaces old seeded
   assert.equal(new Set(map.objects.map(item => item.id)).size, map.objects.length);
   assert.notDeepEqual(map.objects.slice(1), first);
   assert.ok(map.objects.slice(1).every(item => item.position.y >= 0));
+});
+
+
+test("side-tower kitchens retain preparation, pantry storage and cooking furnishings in every theme", async () => {
+  for (const seed of [4, 5, 10, 11, 16, 17, 22, 23, 28, 29]) {
+    const plan = await CastleBasePlanGenerator.generate({ planId: "castle-compact-service-wing", seed });
+    const items = plan.furniture.filter(item => item.roomId === "kitchen");
+    for (const object of ["KitchenFireplace", "FirewoodStack", "FireplaceCauldron", "KitchenTable", "PlateBread", "BowlGreenVegetables", "BowlRedFruit", "HangingFryingPan", "StoragePotteryJar"]) {
+      assert.ok(items.some(item => item.object === object), object + " missing for seed " + seed);
+    }
+    const shelf = items.find(item => item.role === "storageShelf");
+    assert.ok(shelf);
+    const decorations = items.filter(item => item.supportId === shelf.id);
+    assert.equal(decorations.length, 2);
+    for (const item of decorations) {
+      assert.equal(item.y, 0.9625);
+      assert.ok(Math.abs(item.x - shelf.x) + item.width / 2 <= shelf.width / 2 + 1e-6);
+      assert.ok(Math.abs(item.z - shelf.z) + item.depth / 2 <= shelf.depth / 2 + 1e-6);
+    }
+    assert.ok(items.every(item => !item.placementIssue));
+  }
 });

@@ -1,7 +1,8 @@
 import { ROOM_PROP_HEIGHTS, ROOM_PROP_BOTTOMS } from "./RoomPropHeights.js";
+import { FireplaceWallBacking } from "./FireplaceWallBacking.js";
 
 // Model-local rear mounting planes measured from the source GLBs.
-const WALL_MOUNTS = { VestibuleCloakRail: -0.058, VestibulePainting: -0.024,
+const WALL_MOUNTS = { RoyalBedroomPainting: -0.032, KitchenFireplace: -0.45, VestibuleCloakRail: -0.058, VestibulePainting: -0.024,
   VestibuleBanner: -0.005, HangingFryingPan: -0.0953, KitchenUtensilRail: 0,
   RoyalCrest: -0.04, WarCouncilShield: -0.05 };
 
@@ -179,7 +180,7 @@ export class RoomPlacementRules {
       }));
       for (const door of openings) {
         // Glazed openings still have collision backing, but cannot support decor.
-        if (!["door", "window"].includes(door.kind) || door.floorY !== root.floorY || door.roomId !== room.id) { continue; }
+        if (!["door", "window"].includes(door.kind) || door.floorY !== root.floorY) { continue; }
         obstacles.push({ minX: door.axis === "x" ? door.coordinate - 0.15 : door.center - door.width / 2 - 0.08,
           maxX: door.axis === "x" ? door.coordinate + 0.15 : door.center + door.width / 2 + 0.08,
           minZ: door.axis === "z" ? door.coordinate - 0.15 : door.center - door.width / 2 - 0.08,
@@ -246,6 +247,8 @@ export class RoomPlacementRules {
       member => {
         const minX = member.minX + candidate.x, maxX = member.maxX + candidate.x;
         const minZ = member.minZ + candidate.z, maxZ = member.maxZ + candidate.z;
+        if (member.item.object === "KitchenFireplace" && !FireplaceWallBacking.accepts({ ...member.item,
+          x: member.item.x + candidate.x, z: member.item.z + candidate.z }, room, openings, walls, root)) { return false; }
         if (root.stairApproach) {
           const { axis, coordinate, side } = root.stairApproach;
           const edge = side === "max" ? (axis === "x" ? maxX : maxZ) : (axis === "x" ? minX : minZ);

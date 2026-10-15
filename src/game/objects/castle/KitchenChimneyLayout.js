@@ -15,11 +15,12 @@ export class KitchenChimneyLayout {
     const z = position.z - Math.sin(yaw) * 0.028 - Math.cos(yaw) * 0.2073;
     const plan = buildPlan.metadata.runtime.residential;
     let top = position.y + 1.65;
-    let roofClearance = 0.12;
+    const roofClearance = 3 * 0.24;
     for (const space of plan.spaces ?? []) {
       if (item.x >= space.minX && item.x <= space.maxX &&
         item.z >= space.minZ && item.z <= space.maxZ && space.height) {
-        top = Math.max(top, space.floorY + space.height);
+        // Terraces are exposed roof surfaces, not rooms with another ceiling above them.
+        top = Math.max(top, space.floorY + (space.kind === "terrace" ? 0 : space.height));
       }
     }
     for (const area of plan.walkableAreas ?? []) {
@@ -38,7 +39,6 @@ export class KitchenChimneyLayout {
         // The authored blue roof is a gable: its ridge extends along x.
         // Each tile course adds up to 6% above the continuous depth slope.
         top = Math.max(top, roof.y + roof.height * Math.min(1, 1 - v + 0.06));
-        roofClearance = 0.4;
       }
     }
     if (top <= position.y + 1.65) {
@@ -46,4 +46,18 @@ export class KitchenChimneyLayout {
     }
     return Math.max(0, top - position.y + roofClearance);
   }
+  /**
+   * @param {import("../../GameContracts.js").CastleBuildPlan} buildPlan
+   * @param {{x:number,z:number,floorY:number}} item
+   * @param {{x:number,y:number,z:number}} position
+   * @param {number} height
+   * @returns {boolean}
+   */
+  static hasTerraceTerminal(buildPlan, item, position, height) {
+    return (buildPlan.metadata.runtime.residential.spaces ?? []).some(/**
+     * @param {{kind:string,minX:number,maxX:number,minZ:number,maxZ:number,floorY:number}} space
+     */ space => space.kind === "terrace" && item.x >= space.minX && item.x <= space.maxX &&
+      item.z >= space.minZ && item.z <= space.maxZ && Math.abs(space.floorY + 0.72 - position.y - height) < 1e-6);
+  }
+
 }
