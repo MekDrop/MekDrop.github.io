@@ -606,6 +606,131 @@
         "col": 5,
         "row": 5
       }
+    },
+    {
+      "id": "preview-empty-basket",
+      "object": "Basket",
+      "position": {
+        "x": -2,
+        "y": 2,
+        "z": 0
+      }
+    },
+    {
+      "id": "preview-sewing-basket",
+      "object": "Basket",
+      "position": {
+        "x": 2,
+        "y": 2,
+        "z": 0
+      },
+      "items": [
+        {
+          "object": "ClothRoll",
+          "variant": "cream",
+          "scale": 1,
+          "position": {
+            "x": -0.06704362,
+            "y": 0.1580755,
+            "z": -0.03098672
+          }
+        },
+        {
+          "object": "ClothRoll",
+          "variant": "blue",
+          "scale": 1,
+          "position": {
+            "x": 0.06673919,
+            "y": 0.15806977,
+            "z": -0.03475429
+          }
+        },
+        {
+          "object": "ThreadSpool",
+          "variant": "tilted",
+          "scale": 1,
+          "position": {
+            "x": -0.06510496,
+            "y": 0.15822333,
+            "z": 0.0715482
+          }
+        },
+        {
+          "object": "ThreadSpool",
+          "variant": "small",
+          "scale": 1,
+          "position": {
+            "x": -0.0130072,
+            "y": 0.15808284,
+            "z": 0.05435761
+          }
+        },
+        {
+          "object": "ThreadSpool",
+          "variant": "large",
+          "scale": 1,
+          "position": {
+            "x": 0.03576584,
+            "y": 0.17020223,
+            "z": 0.07237974
+          }
+        }
+      ]
+    },
+    {
+      "object": "ClothRoll",
+      "variant": "cream",
+      "scale": 1,
+      "position": {
+        "x": -2,
+        "y": 2,
+        "z": 2
+      },
+      "id": "preview-cream-cloth-roll"
+    },
+    {
+      "object": "ClothRoll",
+      "variant": "blue",
+      "scale": 1,
+      "position": {
+        "x": -1,
+        "y": 2,
+        "z": 2
+      },
+      "id": "preview-blue-cloth-roll"
+    },
+    {
+      "object": "ThreadSpool",
+      "variant": "tilted",
+      "scale": 1,
+      "position": {
+        "x": 0,
+        "y": 2,
+        "z": 2
+      },
+      "id": "preview-tilted-thread-spool"
+    },
+    {
+      "object": "ThreadSpool",
+      "variant": "small",
+      "scale": 1,
+      "position": {
+        "x": 1,
+        "y": 2,
+        "z": 2
+      },
+      "id": "preview-small-thread-spool"
+    },
+    {
+      "object": "ThreadSpool",
+      "variant": "large",
+      "scale": 1,
+      "position": {
+        "x": 2,
+        "y": 2,
+        "z": 2
+      },
+      "id": "preview-large-thread-spool"
     }
   ]
 }

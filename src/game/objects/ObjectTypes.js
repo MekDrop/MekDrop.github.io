@@ -13,7 +13,7 @@
  * @property {boolean} [flame] Override the lantern variant's candle emitter.
  * @property {{halfExtents: Point3, offset: Point3}} [collisionBox] Model-space lantern contact box.
  * @property {{position: Point3, width: number, depth: number}} [hatch] Framed ladder roof hatch.
- * @property {MapObjectDefinition[]} [items] Ordinary game objects packed and frozen by the containing bowl.
+ * @property {MapObjectDefinition[]} [items] Contained game objects; an explicit position preserves a local authored pose, otherwise physics packs them.
  * @property {boolean} [worldMap] Draw the current world on a table.
  * @property {string} object
  * @property {"entrance"|"wall"|"table"|"court"} [type] Lantern or lectern model selection.

@@ -7,7 +7,9 @@ import { SignalBell } from "./signal-bell/SignalBell.js";
 import { BedsideDrawers } from "./bedside-drawers/BedsideDrawers.js";
 import { Rug } from "./rug/Rug.js";
 import { FoldedLinens } from "./folded-linens/FoldedLinens.js";
-import { SewingBasket } from "./castle-props/SewingBasket.js";
+import { Basket } from "./basket/Basket.js";
+import { ClothRoll } from "./cloth-roll/ClothRoll.js";
+import { ThreadSpool } from "./thread-spool/ThreadSpool.js";
 import { VestibuleBench } from "./castle-props/VestibuleBench.js";
 import { VestibuleIslandBench } from "./castle-props/VestibuleIslandBench.js";
 import { VestibuleBanner } from "./castle-props/VestibuleBanner.js";
@@ -103,7 +105,9 @@ const OBJECT_CLASSES = new Map([
   [IslandConnector.name, IslandConnector],
   [Rug.name, Rug],
   [FoldedLinens.name, FoldedLinens],
-  [SewingBasket.name, SewingBasket],
+  [Basket.name, Basket],
+  [ClothRoll.name, ClothRoll],
+  [ThreadSpool.name, ThreadSpool],
   [VestibuleBench.name, VestibuleBench],
   [VestibuleIslandBench.name, VestibuleIslandBench],
   ["VestibuleMapTable", Table],

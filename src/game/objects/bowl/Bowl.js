@@ -35,6 +35,7 @@ export class Bowl extends AbstractCastleProp {
     const model = this.visualRoots[0].children[0];
     const shell = BowlPacking.geometry(model, model);
     const geometries = [];
+    const packedItems = [];
     const { runtime, definition } = this.#options;
     for (const [index, item] of (definition.items ?? []).entries()) {
       const object = runtime.createObject({ ...item, id: `${definition.id}-item-${index}`,
@@ -60,6 +61,11 @@ export class Bowl extends AbstractCastleProp {
         for (const component of contents.findComponents(type)) { component.entity.removeComponent(type); }
       }
       model.addChild(contents);
+      if (item.position) {
+        // Explicit local placement preserves authored arrangements when splitting assets.
+        contents.setLocalPosition(item.position.x, item.position.y, item.position.z);
+        continue;
+      }
       if (item.scale === undefined) {
         const geometry = BowlPacking.geometry(contents, model);
         const size = geometry.bounds.halfExtents;
@@ -68,13 +74,14 @@ export class Bowl extends AbstractCastleProp {
         contents.setLocalScale(fit, fit, fit);
       }
       geometries.push(BowlPacking.geometry(contents, model));
+      packedItems.push(contents);
     }
-    const poses = BowlPacking.settle(shell, geometries);
+    const poses = geometries.length ? BowlPacking.settle(shell, geometries) : [];
     for (const [index, pose] of poses.entries()) {
       // Numeric components also work when the solver and renderer were loaded
       // from different Engine entry points and have distinct Vec3/Quat classes.
-      this.#items[index].setLocalPosition(pose.position.x, pose.position.y, pose.position.z);
-      this.#items[index].setLocalRotation(pose.rotation.x, pose.rotation.y, pose.rotation.z, pose.rotation.w);
+      packedItems[index].setLocalPosition(pose.position.x, pose.position.y, pose.position.z);
+      packedItems[index].setLocalRotation(pose.rotation.x, pose.rotation.y, pose.rotation.z, pose.rotation.w);
     }
     this.#packed = true;
     super.onSceneReady();

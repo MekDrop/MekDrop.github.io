@@ -172,9 +172,23 @@ export class ServiceRoomFurnishing {
     this.#items.push(desk, chair);
     this.#access.push({ minX: group.x - group.width / 2, maxX: group.x + group.width / 2,
       minZ: group.z - group.depth / 2, maxZ: group.z + group.depth / 2 });
-    this.#supported(variant === "mending" ? "SewingBasket" : "OpenReadingBook", desk,
+    this.#supported(variant === "mending" ? "Basket" : "OpenReadingBook", desk,
       variant === "mending" ? 0.32 : 0.36, variant === "mending" ? 0.28 : 0.227,
       variant === "mending" ? 0.3 : 0.0673, -0.2);
+    if (variant === "mending") {
+      this.#items.at(-1).items = [
+        { object: "ClothRoll", variant: "cream", scale: 1,
+          position: { x: -0.06704362, y: 0.1580755, z: -0.03098672 } },
+        { object: "ClothRoll", variant: "blue", scale: 1,
+          position: { x: 0.06673919, y: 0.15806977, z: -0.03475429 } },
+        { object: "ThreadSpool", variant: "tilted", scale: 1,
+          position: { x: -0.06510496, y: 0.15822333, z: 0.0715482 } },
+        { object: "ThreadSpool", variant: "small", scale: 1,
+          position: { x: -0.0130072, y: 0.15808284, z: 0.05435761 } },
+        { object: "ThreadSpool", variant: "large", scale: 1,
+          position: { x: 0.03576584, y: 0.17020223, z: 0.07237974 } },
+      ];
+    }
     this.#supported(variant === "mending" ? "FoldedLinens" : "DeskParchment", desk,
       variant === "mending" ? 0.3 : 0.3034, variant === "mending" ? 0.22 : 0.35,
       variant === "mending" ? 0.16 : 0.0376, 0.2);

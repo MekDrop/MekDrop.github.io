@@ -22,7 +22,8 @@ test("bowls accept ordinary game objects, freeze snapshots, and pack only once",
   }
   const requests = [];
   const modelLibrary = { instantiate(url) { requests.push(url); return new pc.Entity(url); } };
-  const items = [{ object: "Apple" }, { object: "ClosedReadingBook", scale: 0.2 }];
+  const items = [{ object: "Apple" }, { object: "ClosedReadingBook", scale: 0.2 },
+    { object: "ThreadSpool", scale: 1, position: { x: 0.03, y: 0.02, z: -0.01 } }];
   const definition = { id: "mixed", object: "Bowl", position: { x: 2, y: 3, z: 4 },
     rotation: 90, scale: 2, items };
   const created = [], destroyed = [];
@@ -45,15 +46,17 @@ test("bowls accept ordinary game objects, freeze snapshots, and pack only once",
     bowl.onSceneReady();
     bowl.onSceneReady();
     const shell = bowl.visualRoots[0].children[0];
-    assert.equal(shell.children.length, 2);
-    assert.deepEqual(created.map(item => item.object), ["Apple", "ClosedReadingBook"]);
+    assert.equal(shell.children.length, 3);
+    assert.deepEqual(created.map(item => item.object), ["Apple", "ClosedReadingBook", "ThreadSpool"]);
     assert.equal(created[1].scale, 0.2);
-    assert.deepEqual(destroyed, ["mixed-item-0", "mixed-item-1"]);
+    assert.deepEqual(destroyed, ["mixed-item-0", "mixed-item-1", "mixed-item-2"]);
     assert.deepEqual(requests, [Bowl.modelUrl]);
     assert.deepEqual(shell.getLocalScale().toArray(), [2, 2, 2]);
     assert.equal(shell.children[0].getLocalPosition().y, 0.04);
     assert.deepEqual(shell.children[1].getLocalPosition().toArray(), [0.01, 0.04, 0]);
     assert.deepEqual(shell.children[0].getLocalRotation().toArray(), [0, 0, 0, 1]);
+    assert.deepEqual(shell.children[2].getLocalPosition().toArray(), [0.03, 0.02, -0.01]);
+    assert.deepEqual(shell.children[2].getLocalScale().toArray(), [1, 1, 1]);
     const empty = new BowlWithoutPhysics({ pc: engine, modelLibrary, runtime,
       definition: { ...definition, id: "empty", items: [] } });
     empty.onSceneReady();
