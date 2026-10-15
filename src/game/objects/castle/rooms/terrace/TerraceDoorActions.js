@@ -1,7 +1,8 @@
 import { CHARACTER_HEIGHT } from "../../../../config/character-size.js";
 import { CASTLE_TERRACE_PHASE as PHASE } from "../../../../enum/CastleTerracePhase.js";
 import { TERRACE_DOOR_INSPECTION_PHASE as INSPECTION } from "../../../../enum/TerraceDoorInspectionPhase.js";
-import { TerraceDoor } from "./TerraceDoor.js";
+import { Door } from "../../../door/Door.js";
+import { terraceDoorModel } from "../../../door/DoorModels.js";
 import { TerraceDoorInspection } from "./TerraceDoorInspection.js";
 import { TerraceInspectorWalk } from "./TerraceInspectorWalk.js";
 
@@ -23,7 +24,7 @@ export class TerraceDoorActions {
    * @returns {string}
    */
   static get modelUrls() {
-    return TerraceDoor.modelUrls;
+    return [terraceDoorModel.modelUrl, terraceDoorModel.frameModelUrl];
   }
 
   /**
@@ -43,7 +44,7 @@ export class TerraceDoorActions {
   #stage;
   /**
    *
-   * @type {TerraceDoor|import("../../CastleDoor.js").CastleDoor}
+   * @type {import("../../../door/Door.js").Door}
    */
   #door;
   /**
@@ -81,7 +82,7 @@ export class TerraceDoorActions {
    * @param {import("playcanvas").Entity} options.stage
    * @param {number} options.scale
    * @param {import("./TerraceActor.js").TerraceActor} options.inspector
-   * @param {import("../../CastleDoor.js").CastleDoor|null} options.door
+   * @param {import("../../../door/Door.js").Door|null} options.door
    * @param {boolean} options.canInspect
    */
   constructor({
@@ -108,11 +109,14 @@ export class TerraceDoorActions {
       this.#door = door;
       door.onOpen = onOpen;
     } else {
-      this.#door = new TerraceDoor({
+      this.#door = new Door({
+        ...terraceDoorModel,
         pc,
         modelLibrary,
-        wallMaterial,
-        woodMaterial,
+        materials: {
+          wall: wallMaterial,
+          wood: woodMaterial,
+        },
         onOpen,
       });
       this.#door.entity.setLocalPosition(0, 0, DOORWAY_POSITION_Z);

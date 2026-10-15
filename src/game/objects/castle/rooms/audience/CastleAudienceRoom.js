@@ -75,7 +75,7 @@ export class CastleAudienceRoom {
   #position;
   /**
    *
-   * @type {TerraceDoor}
+   * @type {import("../../../door/Door.js").Door}
    */
   #door;
   /**

@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { registerHooks } from "node:module";
 import { it } from "node:test";
 import * as pc from "playcanvas";
+import { Door } from "../../../../../src/game/objects/door/Door.js";
 
 const hooks = registerHooks({
   resolve(specifier, context, nextResolve) {
@@ -14,7 +15,7 @@ const hooks = registerHooks({
     return nextResolve(specifier, context);
   },
 });
-const { TerraceDoor } = await import("../../../../../../../src/game/objects/castle/rooms/terrace/TerraceDoor.js");
+const { terraceDoorModel } = await import("../../../../../src/game/objects/door/DoorModels.js");
 hooks.deregister();
 
 function fixture() {
@@ -25,7 +26,8 @@ function fixture() {
     activeStateCurrentTime: 0,
   };
   let clicks = 0;
-  const door = new TerraceDoor({
+  const door = new Door({
+    ...terraceDoorModel,
     pc,
     onOpen: () => { clicks += 1;
 
@@ -98,4 +100,15 @@ it("samples the embedded opening clip slowly for wind and closes fully", () => {
   assert.equal(door.openAmount, 0);
   assert.equal(layer.activeStateCurrentTime, 0);
   door.destroy();
+});
+
+it("owns the structure separately from its door and destroys both together", () => {
+  const { door } = fixture();
+  const parent = new pc.Entity("Terrace");
+  parent.addChild(door.entity);
+  assert.equal(door.entity.children.length, 1);
+  assert.equal(door.insideHandle, null);
+  door.destroy();
+  assert.equal(parent.children.length, 0);
+  assert.equal(door.entity, null);
 });

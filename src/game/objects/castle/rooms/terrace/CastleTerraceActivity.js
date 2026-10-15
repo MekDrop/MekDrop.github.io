@@ -105,7 +105,7 @@ export class CastleTerraceActivity {
    * @param {{x: number, y: number, z: number}} options.position
    * @param {Array<{side: string, offset: number, width: number, approachElevation?: number}>} options.doors
    * @param {{x: number, y: number, z: number, yaw: number, depth: number, width: number}} options.layout
-   * @param {import("../../CastleDoor.js").CastleDoor|null} options.door
+   * @param {import("../../../door/Door.js").Door|null} options.door
    * @param {(atThrone: boolean) => void} options.onRoyalAtThroneChange
    */
   constructor({

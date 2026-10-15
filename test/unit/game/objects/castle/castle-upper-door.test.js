@@ -3,13 +3,14 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { it } from "node:test";
 import * as pc from "playcanvas";
+import { Door as SharedDoor } from "../../../../../src/game/objects/door/Door.js";
 import { NpcDoorAvoidance } from "../../../../../src/game/objects/shared/NpcDoorAvoidance.js";
 import { createCastleDoorCollision } from "../../../../../src/game/objects/castle/CastleDoorCollision.js";
 import { CastleDoorSwingPhysics } from "../../../../../src/game/objects/castle/CastleDoorSwingPhysics.js";
 
 const source = readFileSync(new URL("../../../../../src/game/objects/castle/CastleDoor.js", import.meta.url), "utf8")
   .replace(/^import[^\n]+\r?\n/gm, "");
-const Door = new Function("interiorDoorUrl", "castleDoorsModelUrl", "CASTLE_DOOR_ANIMATION", "createCastleDoorCollision", "NpcDoorAvoidance", `${source.replace("export class", "class")}\nreturn CastleDoor;`)("interior.glb", "doors.glb", {
+const Door = new Function("Door", "interiorDoorUrl", "castleDoorsModelUrl", "CASTLE_DOOR_ANIMATION", "createCastleDoorCollision", "NpcDoorAvoidance", `${source.replace("export class", "class")}\nreturn CastleDoor;`)(SharedDoor, "interior.glb", "doors.glb", {
   OPEN: "open",
   OPEN_WIDE: "wide",
 }, createCastleDoorCollision, NpcDoorAvoidance);

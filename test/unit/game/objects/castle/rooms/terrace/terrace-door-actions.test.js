@@ -11,10 +11,10 @@ import { TERRACE_DOOR_INSPECTION_PHASE as INSPECTION } from "../../../../../../.
 
 const source = readFileSync(new URL("../../../../../../../src/game/objects/castle/rooms/terrace/TerraceDoorActions.js", import.meta.url), "utf8")
   .replace(/^import[^\n]+\r?\n/gm, "");
-const Actions = new Function("CHARACTER_HEIGHT", "PHASE", "INSPECTION", "TerraceDoor", "TerraceDoorInspection", "TerraceInspectorWalk",
+const Actions = new Function("CHARACTER_HEIGHT", "PHASE", "INSPECTION", "Door", "terraceDoorModel", "TerraceDoorInspection", "TerraceInspectorWalk",
   `${source.replace("export class", "class")}\nreturn TerraceDoorActions;`)(1.8, PHASE, INSPECTION,
   class { constructor() { assert.fail("an existing terrace door must not create a stairhead"); } },
-  TerraceDoorInspection, TerraceInspectorWalk);
+  {}, TerraceDoorInspection, TerraceInspectorWalk);
 
 it("inspects and closes the authored terrace door without adding or destroying castle geometry", async () => {
   const plan = await CastleGenerator.generate({
