@@ -36,3 +36,15 @@ Its HUD buttons place the hero at the lower or upper landing. Ordinary movement
 attaches to the ladder, backward movement reverses traversal, and sideways
 movement or jumping detaches. Reaching a landing requires releasing movement
 before the ladder can attach again.
+
+`RingBell` is a 2.2-second, non-looping right-hand rope pull. The hero first
+approaches the bell through normal capsule movement, then reaches at 0.5 seconds,
+pulls down through 0.9 seconds, releases at 1.2 seconds, and settles back into
+Idle. The bell prop uses the same timeline; its strike sound occurs at 0.9 seconds.
+The exported arm motion is baked from two-link contacts, with the standing pose
+explicitly keyed on the remaining animated joints. Teleporting, losing support,
+or a blocked approach exits the action and releases the bell reservation.
+The string has a knot at the grip and a loose tail. The hand draws the grip
+from 0.65 to 0.5 metres above the floor; both clips are sampled on the action
+clock so a slow frame cannot separate the hand, string, and strike. Existing
+hero clips retain their original 24 fps timing.

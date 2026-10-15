@@ -473,3 +473,79 @@ it("owns refusal, repulsion, death, and recovery lifecycle effects", () => {
     "game-over-enter",
   ]);
 });
+
+it("approaches the rope, strikes during the pull, and releases the action lock", async () => {
+  const behavior = createBehavior();
+  const events = [];
+  const position = { x: 0, y: 12, z: 0 };
+  behavior.bellAction = {
+    position: { x: 0.4, y: 12, z: 0 }, facing: { x: -1, z: 0 },
+    elapsed: 0, approachElapsed: 0, pulling: false, struck: false,
+    currentPosition: () => position, supported: () => true,
+    begin: () => events.push("grasp"), onStart: () => events.push("rope"),
+    onStrike: () => events.push("strike"), onEnd: () => events.push("release"),
+  };
+  assert.equal(behavior.canStart(HERO_ACTION.DODGING, { grounded: true }), false);
+  assert.equal(behavior.canJump, false);
+  assert.equal(behavior.animation, HERO_ANIMATION.WALK);
+  assert.ok(behavior.movementFor({ x: -1, z: 1 }, {}).x > 0);
+  behavior.update(0.1);
+  assert.deepEqual(events, []);
+  position.x = 0.4;
+  behavior.update(0.1);
+  assert.equal(behavior.animation, HERO_ANIMATION.RING_BELL);
+  assert.deepEqual(behavior.movementFor({ x: 1, z: 1 }, {}), { x: 0, z: 0 });
+  behavior.update(0.89);
+  assert.deepEqual(events, ["grasp", "rope"]);
+  behavior.update(0.02);
+  behavior.update(0.1);
+  assert.deepEqual(events, ["grasp", "rope", "strike"]);
+  behavior.update(1.2);
+  await Promise.resolve();
+  assert.equal(behavior.state.action, HERO_ACTION.EXPLORING);
+  assert.deepEqual(events, ["grasp", "rope", "strike", "release"]);
+});
+
+it("cancels an interrupted or blocked bell approach without a late strike", async () => {
+  for (const interrupt of ["blocked", "teleport", "unsupported"]) {
+    const behavior = createBehavior();
+    let released = 0;
+    let strikes = 0;
+    behavior.bellAction = {
+      position: { x: 1, y: 12, z: 0 }, facing: { x: 1, z: 0 },
+      elapsed: 0, approachElapsed: 0, pulling: false, struck: false,
+      currentPosition: () => ({ x: 0, y: 12, z: 0 }), supported: () => interrupt !== "unsupported",
+      begin() {}, onStart() {}, onStrike: () => strikes++, onEnd: () => released++,
+    };
+    if (interrupt === "teleport") { behavior.finish(); } else { behavior.update(3.1); }
+    behavior.update(1);
+    await Promise.resolve();
+    assert.equal(strikes, 0);
+    assert.equal(released, 1);
+    assert.equal(behavior.bellAction, null);
+  }
+});
+
+it("keeps approaching while the capsule makes progress across slow frames", () => {
+  const behavior = createBehavior();
+  const position = { x: 0, y: 12, z: 0 };
+  let starts = 0;
+  behavior.bellAction = {
+    position: { x: 1, y: 12, z: 0 }, facing: { x: 1, z: 0 },
+    elapsed: 0, approachElapsed: 0, pulling: false, struck: false,
+    currentPosition: () => position, supported: () => true,
+    begin() {}, onStart: () => starts++, onStrike() {}, onEnd() {},
+  };
+  for (let step = 1; step <= 9; step++) {
+    position.x = step / 10;
+    behavior.update(0.5);
+    assert.equal(behavior.state.action, HERO_ACTION.RINGING_BELL);
+  }
+  assert.equal(starts, 0);
+  position.x = 0.95;
+  behavior.update(0.5);
+  assert.equal(starts, 1);
+  assert.equal(behavior.animation, HERO_ANIMATION.RING_BELL);
+  assert.equal(behavior.animationSpeed, 0, "the action clock samples the authored clip");
+  behavior.finish();
+});

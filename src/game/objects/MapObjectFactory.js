@@ -1,4 +1,5 @@
 import { Ladder } from "./castle/Ladder.js";
+import { SignalBell } from "./castle-props/SignalBell.js";
 import { BedsideDrawers } from "./castle-props/BedsideDrawers.js";
 import { WovenRug } from "./castle-props/WovenRug.js";
 import { FoldedLinens } from "./castle-props/FoldedLinens.js";
@@ -182,6 +183,7 @@ const OBJECT_CLASSES = new Map([
   [Grass.name, Grass],
   [Castle.name, Castle],
   [Ladder.name, Ladder],
+  [SignalBell.name, SignalBell],
   [GroundCoverItem.name, MapVirtualItem],
   [Hero.name, MapAnimationActor],
   [King.name, King],

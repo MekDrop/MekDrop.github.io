@@ -346,7 +346,7 @@ export class CastleWindowLayout {
       const halfZ = (Math.abs(Math.sin(angle)) * opening.width + Math.abs(Math.cos(angle)) * (depth + 0.02)) / 2;
       const cut = { minX: x - halfX, maxX: x + halfX, minZ: z - halfZ, maxZ: z + halfZ,
         minY: position.y, maxY: position.y + opening.height };
-      this.#windows.push({ role: "room", open: opening.open === true, position, yaw, width: opening.width, height: opening.height, depth, cut, floorY: opening.floorY });
+      this.#windows.push({ role: opening.width <= 0.25 ? "slit" : "room", open: opening.open === true, position, yaw, width: opening.width, height: opening.height, depth, cut, floorY: opening.floorY });
     }
   }
 

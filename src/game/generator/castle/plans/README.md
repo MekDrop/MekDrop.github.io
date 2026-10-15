@@ -146,10 +146,17 @@ landings separately. Preparation publishes a normal `Ladder` map object.
 E transfers between the landings instantly; a climbing animation is not authored.
 The ladder wall remains unfurnished.
 
-The lookout has open south/east windows with 0.75-metre sills and 1.25 by
-1.75-metre apertures. `open: true` removes glazing, dividers, glow, and glazing
-collision while retaining the stone surround. The crown is a flat platform
-with alternating stone merlons and embrasures.
+The service-wing lookout and upper landing use paired 0.25 by 0.9-metre
+amber-lit defensive slit windows on their north, south, and east faces. The
+crown remains an open flat platform with alternating merlons and embrasures.
+Its signal station has a blue crest banner, a separate blue flag, and an open
+timber alarm-bell frame; it has no shelter or fire beacon. Map preparation
+publishes the bell and flag through ordinary map objects, away from the hatch.
+Approach the bell on the crown and press E to grab and pull its hanging string.
+The hero enters a ringing action, with synchronized `RingBell` and `Ring` clips
+and a strike sound at the downward pull. Another ring is available after release.
+Use `/map/test_signal-tower?camera-test` for the rooftop, opposite-side, and
+interior views, the beside-bell teleport, and live strike count.
 
 The authored ladder measures 0.925 by 3.7 by 0.2 metres, uses a bottom-centred
 pivot, and includes 0.7-metre handholds above the climb. Its decoded GLB bounds

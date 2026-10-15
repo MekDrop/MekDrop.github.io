@@ -2,6 +2,7 @@ import { StateMachine } from "yuka";
 import { HeroDyingTimeoutError } from "../../../../errors/hero/index.js";
 import { HERO_ACTION } from "../../../../enum/HeroAction.js";
 import { HERO_ANIMATION } from "../../../../enum/HeroAnimation.js";
+import { HeroBellRingingActionState } from "../../states/action/HeroBellRingingActionState.js";
 import { HeroRuntimeActionState } from "../../states/action/HeroRuntimeActionState.js";
 import { HeroDrowningActionState } from "../../states/action/HeroDrowningActionState.js";
 import { HeroBridgeClimbActionState } from "../../states/action/HeroBridgeClimbActionState.js";
@@ -24,6 +25,7 @@ import {
 } from "../../states/action/HeroRefusalActionState.js";
 
 const USER_ACTIONS = [
+  HERO_ACTION.RINGING_BELL,
   HERO_ACTION.DODGING,
   HERO_ACTION.USING_TOOL,
   HERO_ACTION.COLLECTING,
@@ -182,6 +184,7 @@ export class HeroActionBehavior {
         allowedTransitions: USER_ACTIONS,
         allowsJump: true,
       }),
+      new HeroBellRingingActionState(),
       new HeroToolActionState(),
       new HeroCollectingActionState(),
       new HeroInventoryFullActionState(),
@@ -246,6 +249,7 @@ export class HeroActionBehavior {
     * @returns {number}
    */
   get animationSpeed() {
+    if (this.bellAction?.pulling) { return 0; }
     if (this.collectAction?.positioning || this.inventoryFullAction?.positioning) {
       return this.payload.positioning.animationSpeed ?? 1;
     }
@@ -407,6 +411,13 @@ export class HeroActionBehavior {
   /**
    *
     * @returns {import("src/game/objects/ObjectTypes.js").HeroActionPayload|null}
+   */
+  get bellAction() { return this.#payloadFor(HERO_ACTION.RINGING_BELL); }
+
+  set bellAction(action) { this.#setAction(HERO_ACTION.RINGING_BELL, action); }
+
+  /**
+   * @returns {import("src/game/objects/ObjectTypes.js").HeroActionPayload|null}
    */
   get toolAction() {
     return this.#payloadFor(HERO_ACTION.USING_TOOL);

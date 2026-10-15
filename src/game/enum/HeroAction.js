@@ -2,6 +2,7 @@ export const HERO_ACTION = Object.freeze({
   EXPLORING: "exploring",
   BOOSTING_COUNTRY_FINANCES: "boostingCountryFinances",
   USING_TOOL: "usingTool",
+  RINGING_BELL: "ringingBell",
   COLLECTING: "collecting",
   INVENTORY_FULL_REACTION: "inventoryFullReaction",
   DODGING: "dodging",

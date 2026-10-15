@@ -1450,7 +1450,7 @@ export class Hero {
     * @returns {boolean}
    */
   get isReacting() {
-    return this.#actionBehavior.blockedDigReactionAction !== null || this.#actionsLocked;
+    return this.#actionBehavior.bellAction !== null || this.#actionBehavior.blockedDigReactionAction !== null || this.#actionsLocked;
   }
 
   /**
@@ -1840,6 +1840,45 @@ export class Hero {
   }
 
   /**
+   * Accept a resting capsule's small contact margin above an authored floor.
+   * @returns {boolean}
+   */
+  get #bellSupported() {
+    if (this.#grounded) { return true; }
+    if (Math.abs(this.#velocity.y) > 0.5) { return false; }
+    return this.#physics.surfaceAt(this.#position.x, this.#position.z,
+      this.#position.y + 0.05, this.#position.y - 0.12) !== null;
+  }
+
+  /**
+   * Approach the rope through normal capsule movement, then play the authored pull.
+   * @param {{position: {x:number,y:number,z:number}, facing:{x:number,z:number}, onStart:()=>void, onProgress:(time:number)=>void, onStrike:()=>void, onEnd:()=>void}} options
+   * @returns {boolean}
+   */
+  ringBell(options) {
+    if (!this.#acceptAction() || this.#climbMotion || this.#actionsLocked ||
+      !this.#actionBehavior.canStart(HERO_ACTION.RINGING_BELL, { grounded: this.#bellSupported })) {
+      return false;
+    }
+    this.#clearActionInput();
+    this.#queuedFacingDirection = null;
+    this.#movementAnimationHoldRemaining = 0;
+    this.#actionBehavior.bellAction = {
+      ...options, elapsed: 0, approachElapsed: 0, pulling: false, struck: false,
+      currentPosition: () => this.position,
+      supported: () => this.#bellSupported,
+      begin: () => {
+        this.#velocity.x = 0;
+        this.#velocity.z = 0;
+        this.#facingYaw = Math.atan2(options.facing.x, options.facing.z) * 180 / Math.PI;
+        this.#restartAnimation = true;
+      },
+    };
+    this.#resetBoredom();
+    return true;
+  }
+
+  /**
    *
    * @param {number} category
    * @param {{targetPosition: {x: number, y: number, z: number}, targetRadius: number, tool: import("src/game/objects/hero/tools/HeroTool.js").HeroTool, heldItem: boolean, onImpact: (impact: import("src/game/objects/ObjectTypes.js").HeroActionPayload) => void, onComplete: () => void}} options
@@ -2150,7 +2189,7 @@ export class Hero {
       movement: this.#projectInput(this.#input.x, this.#input.y),
       jump: this.#jumpBufferRemaining > 0,
       grounded: this.#grounded,
-      allowed: !this.isIncapacitated && !this.isUsingTool && !this.#actionsLocked,
+      allowed: !this.isIncapacitated && !this.isUsingTool && !this.#actionsLocked && !this.#actionBehavior.bellAction,
     });
     if (this.#climbMotion) {
       if (!wasClimbing) {
@@ -2211,7 +2250,7 @@ export class Hero {
       desired.z,
       acceleration * deltaTime,
     );
-    if (this.#partCollidersSuspended && !this.#capsuleSupportOnly) {
+    if (this.#partCollidersSuspended && !this.#capsuleSupportOnly && !this.#actionBehavior.bellAction) {
       this.#velocity.x = 0;
       this.#velocity.z = 0;
       this.#velocity.y = Math.min(
@@ -2796,6 +2835,12 @@ export class Hero {
    * @param {number} previousY
    */
   #updateAirborneColliderRecovery(deltaTime, previousY) {
+    if (this.#actionBehavior.bellAction) {
+      // Authored hand contacts may pass close to the frame. Keep movement on
+      // the Ammo capsule, as on ladders, rather than snagging animated limbs.
+      this.#setHeroPartCollidersEnabled(false);
+      return;
+    }
     const previousCapsuleSupport = this.#capsuleSupportOnly;
     const support = this.#physics.surfaceAt(this.#position.x, this.#position.z, this.#position.y + STEP_CLEARANCE, this.#position.y - STEP_CLEARANCE - 0.15);
     let supportOwner = support?.entity;
@@ -3328,6 +3373,9 @@ export class Hero {
       animation = this.#selectIdleAnimation(deltaTime);
     }
     this.#playAnimation(animation, animationSpeed, this.#restartAnimation);
+    if (this.#actionBehavior.bellAction?.pulling) {
+      this.#modelRoot.anim.baseLayer.activeStateCurrentTime = Math.min(2.199, this.#actionBehavior.bellAction.elapsed);
+    }
     if (LADDER_TOP_ANIMATIONS.has(animation)) {
       // Sample the baked contacts by traversal/transfer phase in either direction.
       this.#modelRoot.anim.baseLayer.activeStateCurrentTime = Math.min(3.999, this.#climbMotion.topProgress * 4);
