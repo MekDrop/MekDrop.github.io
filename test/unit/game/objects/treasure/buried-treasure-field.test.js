@@ -55,7 +55,7 @@ it("reveals the already instantiated chest and spawns its stored contents withou
       const entity = new pc.Entity(url);
       // Animation playback normally needs a graphics application; retain real transforms.
       entity.addComponent = () => {
-        entity.anim = { addAnimationState() {}, baseLayer: { play() {} } };
+        entity.anim = { addAnimationState() {}, update() {}, baseLayer: { play() {} } };
       };
       models.push({ url, entity });
       return entity;

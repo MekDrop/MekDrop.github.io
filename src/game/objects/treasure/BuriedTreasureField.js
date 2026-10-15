@@ -1123,6 +1123,7 @@ export class BuriedTreasureField {
     site.chestAnimationLayer = site.chest.anim.baseLayer;
     site.chestAnimationDuration = openTrack.duration;
     site.chestAnimationLayer.activeStateCurrentTime = 0;
+    site.chest.anim.update(0);
     this.#createChestMaterialCopies(site);
     this.#islandRoots.addChild(site.chest, site);
   }
@@ -1355,6 +1356,7 @@ export class BuriedTreasureField {
     const eased = progress * progress * (3 - 2 * progress);
     site.chestAnimationLayer.activeStateCurrentTime =
       site.chestAnimationDuration * eased;
+    site.chest.anim.update(0);
     if (!site.lootSpawned && progress >= 0.38) {
       site.lootSpawned = true;
       this.#spawnCoins(site);
