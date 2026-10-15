@@ -4,8 +4,9 @@ import stoneBlockUrl from "../../models/castle/residential/masonry-block.glb?url
 import { DynamicRenderBatch } from "../../rendering/DynamicRenderBatch.js";
 import { CastleMasonryMaterial } from "./CastleMasonryMaterial.js";
 import { CastleAudienceRoom } from "./rooms/audience/CastleAudienceRoom.js";
-import { CastleDoor } from "./CastleDoor.js";
-import { CastleDoorArch } from "./CastleDoorArch.js";
+import { Door } from "../door/Door.js";
+import { DoorPlacement } from "../door/DoorPlacement.js";
+import { DoorArch } from "../door/DoorArch.js";
 import { CastleEntranceDetails } from "./CastleEntranceDetails.js";
 import { CastleFire } from "./CastleFire.js";
 import { CastleRoof } from "./CastleRoof.js";
@@ -42,8 +43,8 @@ export class CastleEntityBuilder {
       stoneBlockUrl,
       CastleRoof.modelUrl,
       ...CastleFire.modelUrls,
-      ...CastleDoor.modelUrls,
-      CastleDoorArch.modelUrl,
+      ...DoorPlacement.modelUrls,
+      DoorArch.modelUrl,
       ...CastleEntranceDetails.modelUrls,
       CastleStairs.modelUrl,
       ...CastleAudienceRoom.modelUrls,
@@ -156,7 +157,7 @@ export class CastleEntityBuilder {
    */
   #terraceActivity = null;
   /**
-   * @type {CastleDoor|null}
+   * @type {Door|null}
    */
   #terraceDoor = null;
   /**
@@ -186,12 +187,12 @@ export class CastleEntityBuilder {
   #cameraCollisionBlocks = [];
   /**
    *
-   * @type {Array<CastleDoor>}
+   * @type {Array<Door>}
    */
   #animatedDoors = [];
   /**
    *
-   * @type {Array<CastleDoorArch>}
+   * @type {Array<DoorArch>}
    */
   #doorArches = [];
   /**
@@ -398,7 +399,7 @@ export class CastleEntityBuilder {
       // Navigation queries use the authored engine collider dimensions at the
       // actor's current level; ground columns cannot describe multiple floors.
       return this.#animatedDoors.some(/**
-       * @param {CastleDoor} door
+       * @param {Door} door
        */ (door) => door.blocksCameraAt(x, elevation + 0.4, z, radius)) ||
         this.#cameraCollisionBlocks.some(/**
          * @param {{x: number, y: number, z: number, halfX: number, halfY: number, halfZ: number}} block
@@ -990,7 +991,7 @@ export class CastleEntityBuilder {
         );
         CastleEntranceDetails.add(this.#pc, this.#modelLibrary, this.#entity,
           this.#buildPlan, this.#materials.get("castleStoneMid"));
-        const door = new CastleDoor({
+        const door = new Door(DoorPlacement.create({
           pc: this.#pc,
           castlePosition: this.#position,
           door: doorData,
@@ -1005,31 +1006,31 @@ export class CastleEntityBuilder {
           masonryMaterials: this.#materials,
           modelLibrary: this.#modelLibrary,
           woodMaterial: this.#materials.get("castleDoor"),
-        });
+        }));
         this.#entity.addChild(door.entity);
         this.#animatedDoors.push(door);
         continue;
       }
-      const arch = new CastleDoorArch({
+      const arch = new DoorArch({
         castlePosition: this.#position,
         door: doorData,
         modelLibrary: this.#modelLibrary,
       });
       this.#entity.addChild(arch.entity);
       this.#doorArches.push(arch);
-      const door = new CastleDoor({
+      const door = new Door(DoorPlacement.create({
         pc: this.#pc,
         castlePosition: this.#position,
         door: doorData,
         modelLibrary: this.#modelLibrary,
         woodMaterial: this.#materials.get("castleDoor"),
-      });
+      }));
       this.#entity.addChild(door.entity);
       this.#animatedDoors.push(door);
     }
     const residential = this.#buildPlan.metadata.runtime.residential;
     for (const upperDoor of [residential?.upperDoor, residential?.sideDoor, residential?.serviceDoor, ...(residential?.secondaryDoors ?? []), ...(this.#buildPlan.metadata.runtime.roomDoors ?? [])].filter(Boolean)) {
-      const door = new CastleDoor({
+      const door = new Door(DoorPlacement.create({
         pc: this.#pc,
         castlePosition: this.#position,
         door: {
@@ -1039,7 +1040,7 @@ export class CastleEntityBuilder {
         placement: upperDoor,
         modelLibrary: this.#modelLibrary,
         woodMaterial: this.#materials.get("castleDoor"),
-      });
+      }));
       this.#entity.addChild(door.entity);
       this.#animatedDoors.push(door);
       if (upperDoor.roomId === this.#buildPlan.metadata.runtime.terrace?.doorRoomId) {
@@ -1050,7 +1051,7 @@ export class CastleEntityBuilder {
 
   /**
    *
-   * @param {CastleDoor} door
+   * @param {Door} door
    */
   static #filterDoor(door) {
     return door.exteriorEntrance;
@@ -1058,7 +1059,7 @@ export class CastleEntityBuilder {
 
   /**
    *
-   * @param {CastleDoor} door
+   * @param {Door} door
    */
   static #mapDoor(door) {
     return `${Math.round(door.openAmount * 100)}%`;
@@ -1122,7 +1123,7 @@ export class CastleEntityBuilder {
   #blocked(point, avoidDoors = false) {
     return (
       (avoidDoors && this.#animatedDoors.some(/**
-           * @param {CastleDoor} door
+           * @param {Door} door
            */ (door) => door.openAmount > 0.02 && door.blocksCameraAt(point.x, point.y + 0.4, point.z, 0.22))) || this.#residence.blocksMovementAt(point.x, point.z, 0.22, point.y) ||
           this.#cameraCollisionBlocks.some(/**
            *
@@ -1156,7 +1157,7 @@ export class CastleEntityBuilder {
 
     return !this.#animatedDoors.some(/**
            *
-           * @param {import("./CastleDoor.js").CastleDoor} door
+           * @param {Door} door
            */
       (door) => door.blocksCameraAt(point.x, point.y + 0.4, point.z, 0.22));
   }

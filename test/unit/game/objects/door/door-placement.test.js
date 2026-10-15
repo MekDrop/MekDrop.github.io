@@ -5,15 +5,16 @@ import { it } from "node:test";
 import * as pc from "playcanvas";
 import { Door as SharedDoor } from "../../../../../src/game/objects/door/Door.js";
 import { NpcDoorAvoidance } from "../../../../../src/game/objects/shared/NpcDoorAvoidance.js";
-import { createCastleDoorCollision } from "../../../../../src/game/objects/castle/CastleDoorCollision.js";
-import { CastleDoorSwingPhysics } from "../../../../../src/game/objects/castle/CastleDoorSwingPhysics.js";
+import { createDoorCollision } from "../../../../../src/game/objects/door/DoorCollision.js";
+import { DoorSwingPhysics } from "../../../../../src/game/objects/door/DoorSwingPhysics.js";
 
-const source = readFileSync(new URL("../../../../../src/game/objects/castle/CastleDoor.js", import.meta.url), "utf8")
+const source = readFileSync(new URL("../../../../../src/game/objects/door/DoorPlacement.js", import.meta.url), "utf8")
   .replace(/^import[^\n]+\r?\n/gm, "");
-const Door = new Function("Door", "interiorDoorUrl", "castleDoorsModelUrl", "CASTLE_DOOR_ANIMATION", "createCastleDoorCollision", "NpcDoorAvoidance", `${source.replace("export class", "class")}\nreturn CastleDoor;`)(SharedDoor, "interior.glb", "doors.glb", {
+const Placement = new Function("interiorDoorUrl", "castleDoorsModelUrl", "CASTLE_DOOR_ANIMATION", "createDoorCollision", `${source.replace("export class", "class")}\nreturn DoorPlacement;`)("interior.glb", "doors.glb", {
   OPEN: "open",
   OPEN_WIDE: "wide",
-}, createCastleDoorCollision, NpcDoorAvoidance);
+}, createDoorCollision);
+function Door(options) { return new SharedDoor(Placement.create(options)); }
 
 it("registers the entrance arch surface as an obstacle without filling its opening", () => {
   let margin;
@@ -49,7 +50,7 @@ it("registers the entrance arch surface as an obstacle without filling its openi
       material: {},
     }],
   }];
-  const collision = createCastleDoorCollision({
+  const collision = createDoorCollision({
     ...pc,
     Entity,
     MeshInstance,
@@ -91,7 +92,7 @@ it("uses curved entrance planks for physics while keeping picking at their autho
     asset: 123,
     meshInstances: [{ mesh }],
   }];
-  const collision = createCastleDoorCollision({
+  const collision = createDoorCollision({
     ...pc,
     Entity,
   }, entrance);
@@ -413,7 +414,7 @@ it("stops an interior swing at a real Ammo wall and resumes when it is removed",
   floor.setWorldTransform(transform);
   world.addCollisionObject(floor, 1, -1);
   resources.push(floor, floorShape, floorExtents, floorPosition);
-  const probe = new CastleDoorSwingPhysics(colliders.map(entity => ({
+  const probe = new DoorSwingPhysics(colliders.map(entity => ({
     entity,
     half: [],
   })));

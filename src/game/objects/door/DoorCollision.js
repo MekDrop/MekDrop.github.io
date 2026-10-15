@@ -1,11 +1,11 @@
-import { CastleDoorSwingPhysics } from "./CastleDoorSwingPhysics.js";
+import { DoorSwingPhysics } from "./DoorSwingPhysics.js";
 /**
  * The authored planks own the moving door's collision. Camera queries use the
  * same boxes because the camera is not an Ammo body.
  * @param {typeof import("playcanvas")} pc
  * @param {import("playcanvas").Entity} door
  */
-export function createCastleDoorCollision(pc, door) {
+export function createDoorCollision(pc, door) {
   const parts = [];
   const frameBodies = [];
   const configuredShapes = new Set();
@@ -121,7 +121,7 @@ export function createCastleDoorCollision(pc, door) {
     });
   }
   const point = new pc.Vec3(), inverse = new pc.Mat4(), scale = new pc.Vec3();
-  const swing = new CastleDoorSwingPhysics(parts);
+  const swing = new DoorSwingPhysics(parts);
 
   return {
     swing,

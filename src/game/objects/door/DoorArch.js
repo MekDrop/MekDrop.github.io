@@ -27,7 +27,7 @@ const hideMortarBacking = (entity) => {
 /**
  * Imported chunky stone frame around one castle entrance.
  */
-export class CastleDoorArch {
+export class DoorArch {
   /**
    *
     * @returns {string}
@@ -50,7 +50,7 @@ export class CastleDoorArch {
    * @param {string} options.modelLibrary
    */
   constructor({ castlePosition, door, modelLibrary, placement = null }) {
-    this.#entity = modelLibrary.instantiate(CastleDoorArch.modelUrl);
+    this.#entity = modelLibrary.instantiate(DoorArch.modelUrl);
     this.#entity.name = "Castle door stone arch";
     hideMortarBacking(this.#entity);
 

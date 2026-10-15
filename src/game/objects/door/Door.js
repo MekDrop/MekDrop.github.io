@@ -11,6 +11,10 @@ const CLICK_OPEN_SECONDS = 1;
  */
 export class Door {
   /**
+   * @type {import("playcanvas").Material[]}
+   */
+  #ownedMaterials;
+  /**
    *
    * @type {import("playcanvas").Entity}
    */
@@ -187,6 +191,7 @@ export class Door {
     name = null,
     materialBindings = [],
     materials = {},
+    ownedMaterials = [],
     leafBounds = null,
     animationName,
     collision,
@@ -211,6 +216,7 @@ export class Door {
     handleName = null,
   }) {
     this.#entity = entity;
+    this.#ownedMaterials = ownedMaterials;
     this.#animationEntity = animationEntity;
     if (name) entity.name = name;
     if (animationEntity !== entity) entity.addChild(animationEntity);
@@ -444,6 +450,8 @@ export class Door {
   destroy() {
     this.#collision?.destroy();
     this.#entity?.destroy();
+    for (const material of this.#ownedMaterials) material.destroy();
+    this.#ownedMaterials = [];
     this.#hinge = null;
     this.#insideHandle = null;
     this.#entity = null;

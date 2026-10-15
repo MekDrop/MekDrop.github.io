@@ -1,16 +1,15 @@
-import { createCastleDoorCollision } from "./CastleDoorCollision.js";
+import { createDoorCollision } from "./DoorCollision.js";
 import interiorDoorUrl from "../../models/castle/doors/interior-doors.glb?url";
 import castleDoorsModelUrl from "../../models/castle/doors/castle-doors.glb?url";
 import roundedEntranceUrl from "../../models/castle/doors/entrance-rounded.glb?url";
 import { CASTLE_DOOR_ANIMATION } from "../../enum/CastleDoorAnimation.js";
-import { Door } from "../door/Door.js";
-import entranceMasonryShader from "./CastleEntranceMasonry.frag?raw";
-import entranceMasonryWgsl from "./CastleEntranceMasonry.wgsl?raw";
+import entranceMasonryShader from "./DoorMasonry.frag?raw";
+import entranceMasonryWgsl from "./DoorMasonry.wgsl?raw";
 
 const DOOR_INSET = -0.18;
 const DOOR_HEIGHT = 2.3;
 
-export class CastleDoor extends Door {
+export class DoorPlacement {
   /**
    *
    * @returns {string}
@@ -25,10 +24,6 @@ export class CastleDoor extends Door {
   static get modelUrls() { return [castleDoorsModelUrl, interiorDoorUrl, roundedEntranceUrl]; }
 
   /**
-   * @type {import("playcanvas").StandardMaterial|null}
-   */
-  #archMaterial;
-  /**
    *
    * @param {{pc: typeof import("playcanvas"), castlePosition: {x: number, z: number, width: number, depth: number, elevation: number}, door: import("src/game/objects/ObjectTypes.js").CastleDoorDefinition, modelLibrary: import("../../models/GameModelLibrary.js").GameModelLibrary}} options
    * @param {typeof import("playcanvas")} options.pc
@@ -38,8 +33,9 @@ export class CastleDoor extends Door {
    * @param {{x: number, y: number, z: number, yaw: number, height: number, arched?: boolean, mirrored?: boolean, frameOffset?:number}|null} options.placement
    * @param {boolean} options.bundledEntrance Use the complete stone-and-timber entrance.
    * @param {Map<string, import("playcanvas").Material>|null} options.masonryMaterials
+   * @returns {import("./DoorTypes.js").DoorOptions}
    */
-  constructor({ pc, castlePosition, door, modelLibrary, placement = null, bundledEntrance = false, masonryMaterials = null }) {
+  static create({ pc, castlePosition, door, modelLibrary, placement = null, bundledEntrance = false, masonryMaterials = null }) {
     const exteriorEntrance = bundledEntrance || !placement;
 
     const width = door.width;
@@ -63,7 +59,7 @@ export class CastleDoor extends Door {
         z: -Math.sin(angle),
       },
       baseYaw: placement.yaw,
-    } : CastleDoor.#doorGeometry(castlePosition, door);
+    } : DoorPlacement.#doorGeometry(castlePosition, door);
 
     if (placement?.openingInset) {
       geometry.center.x -= geometry.inward.x * placement.openingInset;
@@ -134,12 +130,12 @@ export class CastleDoor extends Door {
       position.y += 0.03;
       hinge.setLocalPosition(position);
     }
-    super({
+    return {
       entity,
       modelLibrary,
       modelUrl,
       animationName: CASTLE_DOOR_ANIMATION.OPEN_WIDE,
-      collision: () => createCastleDoorCollision(pc, entity),
+      collision: () => createDoorCollision(pc, entity),
       center: geometry.center,
       inward: geometry.inward,
       tangent: geometry.tangent,
@@ -148,15 +144,8 @@ export class CastleDoor extends Door {
       upperFloor,
       elevated,
       exteriorEntrance,
-    });
-
-    this.#archMaterial = archMaterial;
-  }
-
-  destroy() {
-    super.destroy();
-    this.#archMaterial?.destroy();
-    this.#archMaterial = null;
+      ownedMaterials: archMaterial ? [archMaterial] : [],
+    };
   }
 
   /**

@@ -30,8 +30,8 @@ Mechanical collision margins are applied after mesh loading. Level floor and
 ceiling support contacts do not restrict a vertical hinge.
 
 The rectangular and pointed alternatives are complete static assemblies.
-Authored castle main entrances use the rounded asset through CastleDoor;
-their previous separate CastleDoorArch instance is omitted. The normal
+Authored castle main entrances use the rounded asset through Door;
+their previous separate DoorArch instance is omitted. The normal
 test_castle-entrance map provides scripted HUD controls and a repeatable inside
 view for checking the closed entrance and its collision-limited opening.
 

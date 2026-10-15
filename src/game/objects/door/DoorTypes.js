@@ -10,7 +10,7 @@
  * @property {(start: import("playcanvas").Vec3, end: import("playcanvas").Vec3) => (number|null)} raycast
  * @property {(x: number, y: number, z: number, radius: number) => boolean} blocksAt
  * @property {() => void} destroy
- * @property {import("../castle/CastleDoorSwingPhysics.js").CastleDoorSwingPhysics} [swing]
+ * @property {import("./DoorSwingPhysics.js").DoorSwingPhysics} [swing]
  * @property {() => void} [syncFrameBodies]
  */
 
@@ -23,6 +23,7 @@
  * @property {string|null} [name]
  * @property {DoorMaterialBinding[]} [materialBindings]
  * @property {Record<string, import("playcanvas").Material>} [materials]
+ * @property {import("playcanvas").Material[]} [ownedMaterials] Instance-specific materials released with the door.
  * @property {{width: number, height: number, depth: number}} [leafBounds]
  * @property {import("../../models/GameModelLibrary.js").GameModelLibrary} modelLibrary
  * @property {string} modelUrl

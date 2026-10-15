@@ -9,15 +9,16 @@ describe("Castle door swing physics", () => {
     cy.window().then({ timeout: 60000 }, async (window) => {
       const load = window.Function("url", "return import(url)");
       const pc = await load(engineUrl);
-      const { CastleDoor } = await load("/src/game/objects/castle/CastleDoor.js");
+      const { Door } = await load("/src/game/objects/door/Door.js");
+      const { DoorPlacement } = await load("/src/game/objects/door/DoorPlacement.js");
       const { GameModelLibrary } = await load("/src/game/models/GameModelLibrary.js");
       const app = pc.Application.getApplication();
       const library = new GameModelLibrary({
         pc,
         app,
       });
-      await library.load(CastleDoor.modelUrls);
-      const door = new CastleDoor({
+      await library.load(DoorPlacement.modelUrls);
+      const door = new Door(DoorPlacement.create({
         pc,
         modelLibrary: library,
         castlePosition: {
@@ -33,7 +34,7 @@ describe("Castle door swing physics", () => {
           offset: 0,
         },
         bundledEntrance: true,
-      });
+      }));
       app.root.addChild(door.entity);
       try {
         expect(door.entity.findByName("Castle entrance frame collider")?.rigidbody?.body,
@@ -61,7 +62,8 @@ describe("Castle door swing physics", () => {
     cy.window().then({ timeout: 60000 }, async (window) => {
       const load = window.Function("url", "return import(url)");
       const pc = await load(engineUrl);
-      const { CastleDoor } = await load("/src/game/objects/castle/CastleDoor.js");
+      const { Door } = await load("/src/game/objects/door/Door.js");
+      const { DoorPlacement } = await load("/src/game/objects/door/DoorPlacement.js");
       const { ScenePointerInteraction } = await load("/src/game/objects/shared/ScenePointerInteraction.js");
       const { GameModelLibrary } = await load("/src/game/models/GameModelLibrary.js");
       const app = pc.Application.getApplication();
@@ -69,8 +71,8 @@ describe("Castle door swing physics", () => {
         pc,
         app,
       });
-      await library.load(CastleDoor.modelUrls);
-      const door = new CastleDoor({
+      await library.load(DoorPlacement.modelUrls);
+      const door = new Door(DoorPlacement.create({
         pc,
         modelLibrary: library,
         castlePosition: {
@@ -92,7 +94,7 @@ describe("Castle door swing physics", () => {
           yaw: 0,
           height: 2.45,
         },
-      });
+      }));
       app.root.addChild(door.entity);
       const collider = door.entity.findByName("Castle moving door plank collider");
       expect(collider, "animated leaf collider").to.exist;

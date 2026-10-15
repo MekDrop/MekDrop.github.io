@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { it } from "node:test";
 import * as pc from "playcanvas";
 import Ammo from "sync-ammo/dist/ammo.module.js";
-import { CastleDoorSwingPhysics } from "../../../../../src/game/objects/castle/CastleDoorSwingPhysics.js";
+import { DoorSwingPhysics } from "../../../../../src/game/objects/door/DoorSwingPhysics.js";
 
 it("queries actual Ammo wall contacts at candidate poses without moving the door body", () => {
   const previousAmmo = globalThis.Ammo;
@@ -34,7 +34,7 @@ it("queries actual Ammo wall contacts at candidate poses without moving the door
   };
   entity._enabledInHierarchy = true;
   entity.setPosition(0, 1, 0);
-  const swing = new CastleDoorSwingPhysics([{
+  const swing = new DoorSwingPhysics([{
     entity,
     half: [.5, 1, .025],
   }]);

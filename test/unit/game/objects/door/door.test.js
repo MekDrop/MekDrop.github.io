@@ -111,3 +111,11 @@ it("lets choreography own click interaction and releases the door hierarchy on d
   assert.equal(door.getPointerHit(new Vec3(), new Vec3()), null);
   assert.equal(door.blocksCameraAt(0, 0, 0), false);
 });
+
+it("releases owned model materials exactly once when destroyed", () => {
+  let destroyed = 0;
+  const { door } = fixture({ ownedMaterials: [{ destroy() { destroyed++; } }] });
+  door.destroy();
+  door.destroy();
+  assert.equal(destroyed, 1);
+});

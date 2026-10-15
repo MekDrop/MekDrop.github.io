@@ -3,7 +3,7 @@
  * the real kinematic bodies. This keeps animation-driven doors from pushing
  * through static masonry or occupants.
  */
-export class CastleDoorSwingPhysics {
+export class DoorSwingPhysics {
   /**
    * @type {Array<{entity: import("playcanvas").Entity, half: number[]}>}
    */
