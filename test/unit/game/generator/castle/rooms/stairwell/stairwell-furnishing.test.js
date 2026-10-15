@@ -158,7 +158,7 @@ it("confines crates to supported low-headroom stair pockets and leaves floor voi
     assert.equal(pocket[0].z, pocket[1].z);
     for (const [object, count] of Object.entries({
       Crate: 12,
-      WoodenStorageChest: 5,
+      Chest: 5,
       Barrel: 2,
       WaterBucket: 1,
       PotteryJar: 3,
@@ -181,7 +181,7 @@ it("confines crates to supported low-headroom stair pockets and leaves floor voi
       const halfZ = item.scale * (circular ? Math.max(width, depth) :
         width * Math.abs(Math.sin(yaw)) + depth * Math.abs(Math.cos(yaw))) / 2;
       const height = (item.height ?? 0.4702) * item.scale;
-      if (["Crate", "WoodenStorageChest"].includes(item.object)) {
+      if (["Crate", "Chest"].includes(item.object)) {
         const stair = plan.authoredStairs.find(stair => item.roomId === `under-stair:${stair.id}`);
         const angle = (stair.yaw - plan.origin.yaw) * Math.PI / 180;
         const along = (item.x - stair.localCenter.x) * Math.sin(angle) +

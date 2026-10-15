@@ -29,7 +29,7 @@ test("keeps a complete supported inventory aligned to an eligible outer wall dur
   const items = [{
     id: "base",
     roomId: room.id,
-    object: "WoodenStorageChest",
+    object: "Chest",
     underStair: true,
     x: 2.5,
     z: 2.5,

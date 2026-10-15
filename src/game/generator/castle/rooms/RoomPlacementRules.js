@@ -230,7 +230,7 @@ export class RoomPlacementRules {
        * @param {{x:number,z:number}} candidate
        * @returns {number}
        */
-      const wallDistance = candidate => Math.min(...(root.endWallStorage && root.object === "WoodenStorageChest"
+      const wallDistance = candidate => Math.min(...(root.endWallStorage && (root.object === "Chest" || root.object === "WoodenStorageChest")
         ? (root.wallAlignment ?? []).slice(0, 2) : root.wallAlignment ?? []).map(/**
        * @param {{axis:string,coordinate:number,side:string}} wall
        */
@@ -359,8 +359,8 @@ export class RoomPlacementRules {
     return (
       Number(second.object === "Fireplace") - Number(first.object === "Fireplace") ||
       Number(Boolean(second.backPocketStorage)) * 2 - Number(Boolean(first.backPocketStorage)) * 2 ||
-      Number(Boolean(second.underStair && second.endWallStorage && second.object === "WoodenStorageChest")) -
-      Number(Boolean(first.underStair && first.endWallStorage && first.object === "WoodenStorageChest"))
+      Number(Boolean(second.underStair && second.endWallStorage && (second.object === "Chest" || second.object === "WoodenStorageChest"))) -
+      Number(Boolean(first.underStair && first.endWallStorage && (first.object === "Chest" || first.object === "WoodenStorageChest")))
     );
   }
 }

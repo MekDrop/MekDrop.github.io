@@ -8,7 +8,7 @@ it("furnishes the arrival room while preserving circulation and window approache
     const plan = await CastleBasePlanGenerator.generate({ seed });
     const items = plan.furniture.filter(item => item.role === "vestibuleProp");
     for (const object of ["VestibuleBench", "VestibuleCloakRail", "Banner", "Rug", "VestibuleLantern",
-      "Painting", "StandingArmor", "WoodenStorageChest", "TravelKit", "Boots", "VestibuleStickStand"]) {
+      "Painting", "StandingArmor", "Chest", "TravelKit", "Boots", "VestibuleStickStand"]) {
       assert.ok(items.some(item => item.object === object), `${object} seed ${seed}`);
     }
     for (const room of plan.spaces.filter(room => room.id.startsWith("vestibule"))) {
@@ -41,7 +41,7 @@ it("furnishes the arrival room while preserving circulation and window approache
     assert.ok(cloaks.every(item => item.y > bench.y + bench.height && item.rotation === bench.rotation));
     assert.ok(Math.abs((cloaks[0].z + cloaks[1].z) / 2 - bench.z) < 1e-6);
     const painting = items.find(item => item.object === "Painting" && item.variant === "vestibule");
-    const chest = items.find(item => item.object === "WoodenStorageChest");
+    const chest = items.find(item => item.object === "Chest");
     assert.equal(painting.z, chest.z);
     assert.ok(painting.y > chest.height * chest.scale);
     assert.ok(Math.abs(painting.x - bench.x) > 2);
@@ -163,7 +163,7 @@ it("chooses either seating or a map table and keeps all door approaches connecte
       assert.equal(islands[0].width, 2.7);
       assert.equal(islands[0].depth, 1.2);
       assert.equal(islands[0].height, 1.2);
-      const chest = items.find(item => item.object === "WoodenStorageChest");
+      const chest = items.find(item => item.object === "Chest");
       const endGap = Math.abs(chest.x - islands[0].x) - (chest.width * chest.scale + islands[0].width) / 2;
       assert.ok(endGap >= 0.7 && endGap <= 1.1, "seating groups with the far-wall chest instead of floating midway along the room");
       assert.ok(console.z - console.depth / 2 - (islands[0].z + islands[0].depth / 2) >= 0.7,

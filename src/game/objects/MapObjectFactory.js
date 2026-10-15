@@ -53,7 +53,7 @@ import { PotteryJar } from "./pottery-jar/PotteryJar.js";
 import { TableCandles } from "./castle-props/TableCandles.js";
 import { Barrel } from "./barrel/Barrel.js";
 import { Crate } from "./crate/Crate.js";
-import { WoodenStorageChest } from "./castle-props/WoodenStorageChest.js";
+import { Chest } from "./chest/Chest.js";
 import { FirewoodStack } from "./firewood-stack/FirewoodStack.js";
 import { SpareTimberBundle } from "./spare-timber-bundle/SpareTimberBundle.js";
 import { Chair } from "./chair/Chair.js";
@@ -154,7 +154,6 @@ const OBJECT_CLASSES = new Map([
   [TableCandles.name, TableCandles],
   [Barrel.name, Barrel],
   [Crate.name, Crate],
-  [WoodenStorageChest.name, WoodenStorageChest],
   [FirewoodStack.name, FirewoodStack],
   [SpareTimberBundle.name, SpareTimberBundle],
   [Chair.name, Chair],
@@ -191,6 +190,8 @@ const OBJECT_CLASSES = new Map([
   [Satchel.name, Satchel],
   ["VestibuleBrownSatchel", Satchel],
   ["VestibuleOliveSatchel", Satchel],
+  [Chest.name, Chest],
+  ["WoodenStorageChest", Chest],
   [Fire.name, Fire],
   // Expand shelf contents after castle preparation publishes its furnishings.
   [Book.name, Book],

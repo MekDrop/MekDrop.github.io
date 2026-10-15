@@ -35,7 +35,7 @@ export class VestibuleWindowFurnishing {
       const storage = {
         id: `${room.id}-${room.level}-arrival-storage`,
         role: "vestibuleProp",
-        object: "WoodenStorageChest",
+        object: "Chest",
         x: room.minX + 0.48,
         z: window.center - 1.5,
         width: 0.55,

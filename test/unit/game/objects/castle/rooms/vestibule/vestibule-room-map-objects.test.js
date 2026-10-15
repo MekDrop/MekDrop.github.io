@@ -132,7 +132,7 @@ it("publishes exactly one central island in each variant and reflected service-w
     const rug = first.find(item => item.object === "Rug");
     assert.ok(rug.stretch.x > 1 && rug.stretch.z < 1);
     const authored = castle.buildPlan.metadata.runtime.residential.furniture;
-    const chest = authored.find(item => item.object === "WoodenStorageChest");
+    const chest = authored.find(item => item.object === "Chest");
     assert.equal(chest.stretch.y, 0.82, "chest height is reduced by eighteen percent");
     assert.ok(chest.wallAttachment && !chest.placementIssue, "chest rear touches the wall");
     const chestBag = authored.find(item => item.object === "TravelKit" && item.supportId === chest.id);

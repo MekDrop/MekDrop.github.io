@@ -98,7 +98,7 @@ export class StairwellRoomGenerator extends AbstractCastleRoomGenerator {
           const sideways = (random() - 0.5) * Math.min(0.014, Math.max(0, 0.558 - footprint));
           items.push({
             role: "stairwellProp",
-            object: broadBase ? "WoodenStorageChest" : "Crate",
+            object: broadBase ? "Chest" : "Crate",
             x: x + stagger * sine + sideways * cosine,
             z: z + stagger * cosine - sideways * sine,
             floorY,
@@ -134,7 +134,7 @@ export class StairwellRoomGenerator extends AbstractCastleRoomGenerator {
         let y = 0.002;
         for (const prop of [
           {
-            object: "WoodenStorageChest",
+            object: "Chest",
             width: 0.7,
             depth: 0.55,
             height: 0.32914,
@@ -165,7 +165,7 @@ export class StairwellRoomGenerator extends AbstractCastleRoomGenerator {
             floorY: stair.center.y,
             roomId: `under-stair:${stair.id}`,
             y,
-            rotation: stair.yaw - plan.origin.yaw + (across < 0 ? 180 : 0) + (prop.object === "WoodenStorageChest" ? 90 : 0),
+            rotation: stair.yaw - plan.origin.yaw + (across < 0 ? 180 : 0) + (prop.object === "Chest" ? 90 : 0),
             weathering: 0.65,
             ceiling: turning.high - 0.3,
             underStair: true,

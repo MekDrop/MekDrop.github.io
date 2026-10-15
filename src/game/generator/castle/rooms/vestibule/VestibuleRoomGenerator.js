@@ -170,7 +170,7 @@ export class VestibuleRoomGenerator extends AbstractCastleRoomGenerator {
         const chest = {
           id: `${room.id}-${room.level}-luggage-chest`,
           role: "vestibuleProp",
-          object: "WoodenStorageChest",
+          object: "Chest",
           x: oppositeWall - 0.405,
           z: centerZ + offset,
           width: 0.55,

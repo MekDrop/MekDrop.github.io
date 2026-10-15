@@ -111,6 +111,6 @@ export class VestibuleIslandFurnishing {
    * @param {import("../AbstractCastleRoomGenerator.js").RoomItem} item
    */
   static #findItem(item) {
-    return item.object === "WoodenStorageChest";
+    return (item.object === "Chest" || item.object === "WoodenStorageChest");
   }
 }

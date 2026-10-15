@@ -109,7 +109,7 @@ export class ServiceRoomFurnishing {
         this.#supported("FoldedLinens", this.#storageBank, 0.3, 0.22, 0.16, this.#cozy ? -0.17 : 0);
         if (this.#cozy) { this.#supported("PotteryJar", this.#storageBank, 0.229, 0.236, 0.3, 0.2); }
       }
-      this.#perimeter("WoodenStorageChest", 0.7, 0.55, 0.3291, 1);
+      this.#perimeter("Chest", 0.7, 0.55, 0.3291, 1);
       if (this.#cozy) {
         const washStand = this.#perimeter("LibrarySideTable", 0.6841, 0.6162, 0.55, 0.9);
         if (washStand) { this.#supported("WashBasin", washStand, 0.5899, 0.5084, 0.2362); }

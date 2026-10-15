@@ -77,7 +77,7 @@ export class RoyalBedroomFurnishing {
       if (washstand) { this.#supported("WashBasin", washstand, 0.5899, 0.5084, 0.2362); }
     }
     this.#perimeter("wardrobe", 0.65, 0.46, 1.15, [0, 270, 180, 90]);
-    const chest = this.#perimeter("WoodenStorageChest", 0.7, 0.55, 0.3291, [180, 0, 270, 90]);
+    const chest = this.#perimeter("Chest", 0.7, 0.55, 0.3291, [180, 0, 270, 90]);
     if (chest && this.#variant === 4) { this.#supported("FoldedLinens", chest, 0.3, 0.22, 0.16); }
     // One desk serves reading and writing; a bookcase and wash cabinet add useful storage.
     if (spacious) {
