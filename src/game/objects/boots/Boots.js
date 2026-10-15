@@ -1,11 +1,11 @@
 import modelUrl from "../../models/castle/props/vestibule-boots.glb?url";
-import { AbstractCastleProp } from "./AbstractCastleProp.js";
+import { AbstractCastleProp } from "../castle-props/AbstractCastleProp.js";
 import { GenerationRandom } from "../../generator/map/GenerationRandom.js";
 
 /**
  * A pair of muddy boots grounded beside resting furniture.
  */
-export class VestibuleBoots extends AbstractCastleProp {
+export class Boots extends AbstractCastleProp {
   /**
    * Keep each pair's placement and leather finish stable across reloads.
    * @param {import("playcanvas").Entity} model

@@ -8,7 +8,7 @@ it("furnishes the arrival room while preserving circulation and window approache
     const plan = await CastleBasePlanGenerator.generate({ seed });
     const items = plan.furniture.filter(item => item.role === "vestibuleProp");
     for (const object of ["VestibuleBench", "VestibuleCloakRail", "VestibuleBanner", "VestibuleRug", "VestibuleLantern",
-      "VestibulePainting", "VestibuleArmorDisplay", "WoodenStorageChest", "VestibuleTravelKit", "VestibuleBoots", "VestibuleStickStand"]) {
+      "VestibulePainting", "StandingArmor", "WoodenStorageChest", "TravelKit", "Boots", "VestibuleStickStand"]) {
       assert.ok(items.some(item => item.object === object), `${object} seed ${seed}`);
     }
     for (const room of plan.spaces.filter(room => room.id.startsWith("vestibule"))) {
@@ -45,7 +45,7 @@ it("furnishes the arrival room while preserving circulation and window approache
     assert.equal(painting.z, chest.z);
     assert.ok(painting.y > chest.height * chest.scale);
     assert.ok(Math.abs(painting.x - bench.x) > 2);
-    const armor = items.filter(item => item.object === "VestibuleArmorDisplay");
+    const armor = items.filter(item => item.object === "StandingArmor");
     assert.equal(armor.length, 1);
     assert.equal(armor[0].roomId, painting.roomId);
     assert.equal(armor[0].rotation, painting.rotation);

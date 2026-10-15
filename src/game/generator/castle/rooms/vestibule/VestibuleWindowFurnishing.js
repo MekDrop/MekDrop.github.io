@@ -31,7 +31,7 @@ export class VestibuleWindowFurnishing {
         { role: "vestibuleProp", object: "TerracePlanter", x: table.x, z: table.z,
           width: 0.745, depth: 0.745, height: 0.99, scale: 0.45, rotation: 90,
           y: 0.55 * table.scale + 0.002, supportId: table.id },
-        { role: "vestibuleProp", object: "VestibuleBoots", x: table.x + 0.03, z: table.z,
+        { role: "vestibuleProp", object: "Boots", x: table.x + 0.03, z: table.z,
           width: 0.5, depth: 0.7, height: 0.28, scale: 0.6, rotation: 90, y: 0.002,
           supportId: table.id, underSupport: true },
         { role: "vestibuleProp", object: "VestibuleStickStand", x: table.x, z: table.z - 0.65,

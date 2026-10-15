@@ -467,6 +467,60 @@
       "depth": 0.7,
       "height": 0.35,
       "firewoodSeed": 42
+    },
+    {
+      "id": "preview-sunbed",
+      "object": "Sunbed",
+      "position": {
+        "x": 20,
+        "y": 2,
+        "z": 0
+      }
+    },
+    {
+      "id": "preview-teacup",
+      "object": "Teacup",
+      "position": {
+        "x": 22,
+        "y": 2,
+        "z": 0
+      }
+    },
+    {
+      "id": "preview-teapot",
+      "object": "Teapot",
+      "position": {
+        "x": 24,
+        "y": 2,
+        "z": 0
+      }
+    },
+    {
+      "id": "preview-boots",
+      "object": "Boots",
+      "position": {
+        "x": 26,
+        "y": 2,
+        "z": 0
+      }
+    },
+    {
+      "id": "preview-travel-kit",
+      "object": "TravelKit",
+      "position": {
+        "x": 28,
+        "y": 2,
+        "z": 0
+      }
+    },
+    {
+      "id": "preview-standing-armor",
+      "object": "StandingArmor",
+      "position": {
+        "x": 30,
+        "y": 2,
+        "z": 0
+      }
     }
   ]
 }

@@ -57,7 +57,7 @@ export class VestibuleRoomGenerator extends AbstractCastleRoomGenerator {
         if (safe(rail)) { items.push(rail); }
       }
       // Tuck the shafts behind the front brace; the low toes fit beneath it.
-      const boots = { role: "vestibuleProp", object: "VestibuleBoots", x: wall + 0.3,
+      const boots = { role: "vestibuleProp", object: "Boots", x: wall + 0.3,
         z: z + 0.05, width: 0.5, depth: 0.7, height: 0.28, scale: 1, rotation: 90, y: 0.002 };
       if (safe(boots)) { items.push(boots); }
       const stand = { role: "vestibuleProp", object: "VestibuleStickStand", x: wall + 0.25,
@@ -107,12 +107,12 @@ export class VestibuleRoomGenerator extends AbstractCastleRoomGenerator {
           height: 0.78, scale: 1, rotation: 270, y: 1.15 };
         if (!safe(chest) || !safe(painting)) { continue; }
         items.push(chest, painting);
-        items.push({ role: "vestibuleProp", object: "VestibuleTravelKit",
+        items.push({ role: "vestibuleProp", object: "TravelKit",
           x: chest.x, z: chest.z, width: 0.3, depth: 0.48, height: 0.45,
           scale: 1, rotation: 270, y: chest.height * chest.scale + 0.002, supportId: chest.id });
         // A single armor display flanks the picture while respecting door swings.
         for (const side of [1, -1]) {
-          const armor = { role: "vestibuleProp", object: "VestibuleArmorDisplay",
+          const armor = { role: "vestibuleProp", object: "StandingArmor",
             x: oppositeWall - 0.34, z: chest.z + side * 1.2,
             width: 0.4, depth: 0.65, height: 1.75, scale: 1, rotation: 270, y: 0.002 };
           if (!safe(armor) || items.some(/**

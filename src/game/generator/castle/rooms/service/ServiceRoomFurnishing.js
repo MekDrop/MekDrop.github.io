@@ -70,7 +70,7 @@ export class ServiceRoomFurnishing {
           }
         }
         if (this.#cozy) {
-          this.#items.push({ role: "serviceProp", object: "VestibuleBoots", id: `${bed.id}-boots`,
+          this.#items.push({ role: "serviceProp", object: "Boots", id: `${bed.id}-boots`,
             x: bed.x + Math.sin(angle) * bedDepth * 0.36, z: bed.z + Math.cos(angle) * bedDepth * 0.36,
             width: bed.rotation % 180 ? 0.32 : 0.4, depth: bed.rotation % 180 ? 0.4 : 0.32,
             height: 0.28, scale: 0.7, rotation: bed.rotation, y: 0, supportId: bed.id, underSupport: true });

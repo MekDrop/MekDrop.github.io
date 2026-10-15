@@ -11,11 +11,11 @@ import { VestibuleBench } from "./castle-props/VestibuleBench.js";
 import { VestibuleIslandBench } from "./castle-props/VestibuleIslandBench.js";
 import { VestibuleBanner } from "./castle-props/VestibuleBanner.js";
 import { VestibulePainting } from "./castle-props/VestibulePainting.js";
-import { VestibuleArmorDisplay } from "./castle-props/VestibuleArmorDisplay.js";
-import { VestibuleTravelKit } from "./castle-props/VestibuleTravelKit.js";
+import { StandingArmor } from "./standing-armor/StandingArmor.js";
+import { TravelKit } from "./travel-kit/TravelKit.js";
 import { VestibuleBrownSatchel } from "./castle-props/VestibuleBrownSatchel.js";
 import { VestibuleOliveSatchel } from "./castle-props/VestibuleOliveSatchel.js";
-import { VestibuleBoots } from "./castle-props/VestibuleBoots.js";
+import { Boots } from "./boots/Boots.js";
 import { VestibuleStickStand } from "./castle-props/VestibuleStickStand.js";
 import { VestibuleCloakRail } from "./castle-props/VestibuleCloakRail.js";
 import { VestibuleRug } from "./castle-props/VestibuleRug.js";
@@ -34,11 +34,11 @@ import { LibraryStepStool } from "./castle-props/LibraryStepStool.js";
 import { ParchmentBundle } from "./castle-props/ParchmentBundle.js";
 import { ClosedReadingBook } from "./castle-props/ClosedReadingBook.js";
 import { LibraryBookStack } from "./castle-props/LibraryBookStack.js";
-import { TerraceSunbed } from "./castle-props/TerraceSunbed.js";
+import { Sunbed } from "./sunbed/Sunbed.js";
 import { TerraceTeaChair } from "./castle-props/TerraceTeaChair.js";
 import { TerraceServingTray } from "./castle-props/TerraceServingTray.js";
-import { TerraceTeapot } from "./castle-props/TerraceTeapot.js";
-import { TerraceTeacup } from "./castle-props/TerraceTeacup.js";
+import { Teapot } from "./teapot/Teapot.js";
+import { Teacup } from "./teacup/Teacup.js";
 import { TerraceReadingBook } from "./castle-props/TerraceReadingBook.js";
 import { TerracePlanter } from "./castle-props/TerracePlanter.js";
 import { BlueArmchair } from "./castle-props/BlueArmchair.js";
@@ -115,11 +115,11 @@ const OBJECT_CLASSES = new Map([
   ["VestibuleMapTable", Table],
   [VestibuleBanner.name, VestibuleBanner],
   [VestibulePainting.name, VestibulePainting],
-  [VestibuleArmorDisplay.name, VestibuleArmorDisplay],
-  [VestibuleTravelKit.name, VestibuleTravelKit],
+  [StandingArmor.name, StandingArmor],
+  [TravelKit.name, TravelKit],
   [VestibuleBrownSatchel.name, VestibuleBrownSatchel],
   [VestibuleOliveSatchel.name, VestibuleOliveSatchel],
-  [VestibuleBoots.name, VestibuleBoots],
+  [Boots.name, Boots],
   [VestibuleStickStand.name, VestibuleStickStand],
   [VestibuleCloakRail.name, VestibuleCloakRail],
   [VestibuleRug.name, VestibuleRug],
@@ -141,11 +141,11 @@ const OBJECT_CLASSES = new Map([
   [ClosedReadingBook.name, ClosedReadingBook],
   [LibraryBookStack.name, LibraryBookStack],
   [BedsideDrawers.name, BedsideDrawers],
-  [TerraceSunbed.name, TerraceSunbed],
+  [Sunbed.name, Sunbed],
   [TerraceTeaChair.name, TerraceTeaChair],
   [TerraceServingTray.name, TerraceServingTray],
-  [TerraceTeapot.name, TerraceTeapot],
-  [TerraceTeacup.name, TerraceTeacup],
+  [Teapot.name, Teapot],
+  [Teacup.name, Teacup],
   [TerraceReadingBook.name, TerraceReadingBook],
   ["TeaTable", Table],
   [TerracePlanter.name, TerracePlanter],
