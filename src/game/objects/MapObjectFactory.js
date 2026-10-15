@@ -26,7 +26,7 @@ import { WritingDesk } from "./castle-props/WritingDesk.js";
 import { Lectern } from "./castle-props/Lectern.js";
 import { ThroneDais } from "./castle-props/ThroneDais.js";
 import { RoyalCrest } from "./castle-props/RoyalCrest.js";
-import { WarCouncilShield } from "./castle-props/WarCouncilShield.js";
+import { WarCouncilShield } from "./war-council-shield/WarCouncilShield.js";
 import { SpearRack } from "./castle-props/SpearRack.js";
 import { LibraryStepStool } from "./castle-props/LibraryStepStool.js";
 import { ParchmentBundle } from "./castle-props/ParchmentBundle.js";
