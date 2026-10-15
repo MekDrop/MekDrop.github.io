@@ -20,7 +20,7 @@ import { VestibuleStickStand } from "./castle-props/VestibuleStickStand.js";
 import { VestibuleCloakRail } from "./castle-props/VestibuleCloakRail.js";
 import { ChoppingToolsSet } from "./chopping-tools-set/ChoppingToolsSet.js";
 import { KitchenUtensilRail } from "./castle-props/KitchenUtensilRail.js";
-import { WoodenWashBasin } from "./castle-props/WoodenWashBasin.js";
+import { WashBasin } from "./wash-basin/WashBasin.js";
 import { WoodenWaterBucket } from "./castle-props/WoodenWaterBucket.js";
 import { WritingDesk } from "./castle-props/WritingDesk.js";
 import { Lectern } from "./castle-props/Lectern.js";
@@ -117,7 +117,7 @@ const OBJECT_CLASSES = new Map([
   [VestibuleCloakRail.name, VestibuleCloakRail],
   [ChoppingToolsSet.name, ChoppingToolsSet],
   [KitchenUtensilRail.name, KitchenUtensilRail],
-  [WoodenWashBasin.name, WoodenWashBasin],
+  [WashBasin.name, WashBasin],
   [WoodenWaterBucket.name, WoodenWaterBucket],
   [WritingDesk.name, WritingDesk],
   [Lectern.name, Lectern],

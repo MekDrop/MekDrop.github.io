@@ -72,7 +72,7 @@ export class RoyalBedroomFurnishing {
     if (this.#variant === 3) { this.#bedside(bed, -1); }
     if (this.#variant === 4) {
       const washstand = this.#perimeter("BedsideDrawers", 0.6004, 0.5604, 0.65, [0, 270, 90, 180]);
-      if (washstand) { this.#supported("WoodenWashBasin", washstand, 0.5899, 0.5084, 0.2362); }
+      if (washstand) { this.#supported("WashBasin", washstand, 0.5899, 0.5084, 0.2362); }
     }
     this.#perimeter("wardrobe", 0.65, 0.46, 1.15, [0, 270, 180, 90]);
     const chest = this.#perimeter("WoodenStorageChest", 0.7, 0.55, 0.3291, [180, 0, 270, 90]);
@@ -84,7 +84,7 @@ export class RoyalBedroomFurnishing {
       if (this.#variant !== 1) { this.#writingDesk(); }
       if (this.#variant !== 4) {
         const washstand = this.#perimeter("BedsideDrawers", 0.6004, 0.5604, 0.65, [270, 90, 180, 0]);
-        if (washstand) { this.#supported("WoodenWashBasin", washstand, 0.5899, 0.5084, 0.2362); }
+        if (washstand) { this.#supported("WashBasin", washstand, 0.5899, 0.5084, 0.2362); }
       }
       if (bookshelf) { this.#extendBookshelf(bookshelf); }
       if (chest && this.#variant !== 4) { this.#supported("FoldedLinens", chest, 0.3, 0.22, 0.16); }

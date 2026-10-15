@@ -90,8 +90,8 @@ export class ServiceRoomFurnishing {
       this.#perimeter("WoodenStorageChest", 0.7, 0.55, 0.3291, 1);
       if (this.#cozy) {
         const washStand = this.#perimeter("LibrarySideTable", 0.6841, 0.6162, 0.55, 0.9);
-        if (washStand) { this.#supported("WoodenWashBasin", washStand, 0.5899, 0.5084, 0.2362); }
-        else { this.#perimeter("WoodenWashBasin", 0.5899, 0.5084, 0.2362, 0.8); }
+        if (washStand) { this.#supported("WashBasin", washStand, 0.5899, 0.5084, 0.2362); }
+        else { this.#perimeter("WashBasin", 0.5899, 0.5084, 0.2362, 0.8); }
         this.#perimeter("WoodenWaterBucket", 0.304, 0.2865, 0.388, 0.85);
       }
       const rail = this.#perimeter("VestibuleCloakRail", 0.85, 0.16, 0.8, 0.75, 1.05);

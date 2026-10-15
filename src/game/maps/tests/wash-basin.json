@@ -1,0 +1,372 @@
+{
+  "grid": [
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      0
+    ],
+    [
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      0
+    ],
+    [
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  ],
+  "heightmap": [
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      0
+    ],
+    [
+      0,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      0
+    ],
+    [
+      0,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  ],
+  "tileMeta": [
+    [
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {}
+    ],
+    [
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {}
+    ],
+    [
+      {},
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS",
+        "shape": "FLAT"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS",
+        "shape": "FLAT"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS",
+        "shape": "FLAT"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS",
+        "shape": "FLAT"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS",
+        "shape": "FLAT"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS",
+        "shape": "FLAT"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS",
+        "shape": "FLAT"
+      },
+      {}
+    ],
+    [
+      {},
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS",
+        "shape": "FLAT"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS",
+        "shape": "FLAT"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS",
+        "shape": "FLAT"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS",
+        "shape": "FLAT"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS",
+        "shape": "FLAT"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS",
+        "shape": "FLAT"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS",
+        "shape": "FLAT"
+      },
+      {}
+    ],
+    [
+      {},
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS",
+        "shape": "FLAT"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS",
+        "shape": "FLAT"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS",
+        "shape": "FLAT"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS",
+        "shape": "FLAT"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS",
+        "shape": "FLAT"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS",
+        "shape": "FLAT"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS",
+        "shape": "FLAT"
+      },
+      {}
+    ],
+    [
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {}
+    ],
+    [
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {}
+    ]
+  ],
+  "cols": 9,
+  "rows": 7,
+  "numPaths": 0,
+  "pipeData": [],
+  "mergeZones": [],
+  "trunkStart": null,
+  "mapName": "Wash basin",
+  "layoutSignature": "test_object-previews",
+  "objects": [
+    {
+      "id": "hero-spawn",
+      "object": "SpawnPoint",
+      "position": {
+        "x": -2,
+        "y": 2.14,
+        "z": 0
+      }
+    },
+    {
+      "id": "preview-wash-basin",
+      "object": "WashBasin",
+      "position": {
+        "x": 0,
+        "y": 2,
+        "z": 0
+      }
+    }
+  ]
+}

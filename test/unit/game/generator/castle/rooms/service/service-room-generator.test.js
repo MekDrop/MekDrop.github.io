@@ -85,7 +85,7 @@ test("quarters provide cozy, mending and steward layouts with supported work det
     }
   }
   assert.deepEqual([...variants.keys()].sort(), ["cozy", "mending", "steward"]);
-  assert.ok(variants.get("cozy").some(item => item.object === "WoodenWashBasin"));
+  assert.ok(variants.get("cozy").some(item => item.object === "WashBasin"));
   assert.ok(variants.get("mending").some(item => item.object === "SewingBasket"));
   assert.ok(variants.get("steward").some(item => item.object === "OpenReadingBook"));
 });
@@ -130,7 +130,7 @@ test("authored service props publish once with supported heights and rotated res
 });
 
 test("the compact castle publishes each requested quarters variant as normal map objects", async () => {
-  for (const [seed, variant, detail] of [[2, "cozy", "WoodenWashBasin"], [0, "mending", "SewingBasket"], [17, "steward", "OpenReadingBook"]]) {
+  for (const [seed, variant, detail] of [[2, "cozy", "WashBasin"], [0, "mending", "SewingBasket"], [17, "steward", "OpenReadingBook"]]) {
     const buildPlan = await CastleAuthoredBuildPlan.generate({ basePlanId: "castle-demo-compact", seed,
       position: { x: -6.5, z: -5.5, width: 12, depth: 11, elevation: 0 }, doors: [{ side: "NORTH", offset: 5, width: 2 }] });
     const furniture = buildPlan.metadata.runtime.residential.furniture.filter(item => item.roomId === "service-quarters");

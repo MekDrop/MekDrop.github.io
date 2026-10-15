@@ -562,6 +562,15 @@
       "depth": 0.5,
       "height": 0.48,
       "linenSeed": 42
+    },
+    {
+      "id": "preview-wash-basin",
+      "object": "WashBasin",
+      "position": {
+        "x": 30,
+        "y": 2,
+        "z": 0
+      }
     }
   ]
 }

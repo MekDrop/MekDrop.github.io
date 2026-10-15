@@ -55,7 +55,7 @@ export const ROOM_PROP_HEIGHTS = {
   "WoodenCrate": 0.4702,
   "WoodenDeskChair": 0.85,
   "WoodenStorageChest": 0.3291,
-  "WoodenWashBasin": 0.2362,
+  "WashBasin": 0.2362,
   "WoodenWaterBucket": 0.388,
   "Rug": 0.025,
   "WritingDesk": 0.65
@@ -116,7 +116,7 @@ export const ROOM_PROP_BOTTOMS = {
   "WoodenCrate": 0,
   "WoodenDeskChair": 0,
   "WoodenStorageChest": 0,
-  "WoodenWashBasin": 0,
+  "WashBasin": 0,
   "WoodenWaterBucket": 0,
   "Rug": 0,
   "WritingDesk": 0
