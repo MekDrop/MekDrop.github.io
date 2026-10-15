@@ -1,3 +1,4 @@
+import { BenchDefinition } from "../../../bench/BenchDefinition.js";
 import { CastleResidentialLayout } from "../../CastleResidentialLayout.js";
 
 /**
@@ -19,7 +20,7 @@ export class VestibuleRoomMapObjects {
         }
       }
       for (const [index, authored] of plan.furniture.entries()) {
-        let item = authored;
+        let item = BenchDefinition.normalize(authored);
         if (item.role !== "vestibuleProp") { continue; }
         if (item.object === "Rug") {
           const rugs = plan.furniture.filter(/**

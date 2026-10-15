@@ -7,7 +7,7 @@ it("furnishes the arrival room while preserving circulation and window approache
   for (const seed of [20, 21]) {
     const plan = await CastleBasePlanGenerator.generate({ seed });
     const items = plan.furniture.filter(item => item.role === "vestibuleProp");
-    for (const object of ["VestibuleBench", "VestibuleCloakRail", "Banner", "Rug", "VestibuleLantern",
+    for (const object of ["Bench", "VestibuleCloakRail", "Banner", "Rug", "VestibuleLantern",
       "Painting", "StandingArmor", "Chest", "TravelKit", "Boots", "VestibuleStickStand"]) {
       assert.ok(items.some(item => item.object === object), `${object} seed ${seed}`);
     }
@@ -18,7 +18,7 @@ it("furnishes the arrival room while preserving circulation and window approache
         const halfZ = item.depth * item.scale / 2;
         assert.ok(item.x - halfX >= room.minX - 1e-6 && item.x + halfX <= room.maxX + 1e-6);
         assert.ok(item.z - halfZ >= room.minZ - 1e-6 && item.z + halfZ <= room.maxZ + 1e-6);
-        if (["VestibuleBench", "VestibuleCloakRail", "VestibuleLantern"].includes(item.object)) {
+        if (["Bench", "VestibuleCloakRail", "VestibuleLantern"].includes(item.object)) {
           assert.ok(Math.abs(item.x - (room.minX + room.maxX) / 2) >= halfX + 0.6);
         }
         for (const opening of plan.openings.filter(opening => opening.floorY === room.floorY)) {
@@ -35,7 +35,7 @@ it("furnishes the arrival room while preserving circulation and window approache
         }
       }
     }
-    const bench = items.find(item => item.object === "VestibuleBench");
+    const bench = items.find(item => item.object === "Bench" && item.variant === "wall");
     const cloaks = items.filter(item => item.object === "VestibuleCloakRail" && item.roomId === bench.roomId);
     assert.equal(cloaks.length, 2);
     assert.ok(cloaks.every(item => item.y > bench.y + bench.height && item.rotation === bench.rotation));
@@ -54,7 +54,7 @@ it("furnishes the arrival room while preserving circulation and window approache
     const runner = items.find(item => item.object === "Rug" && item.roomId === bench.roomId);
     assert.ok(runner.depth > 3 && runner.width === 1.3);
     const window = plan.openings.find(opening => opening.roomId === bench.roomId && opening.kind === "window");
-    const windowBench = items.find(item => item.object === "VestibuleBench" && item.stretch?.x === 0.8);
+    const windowBench = items.find(item => item.object === "Bench" && item.variant === "wall" && item.stretch?.x === 0.8);
     assert.ok(windowBench, `window bay furnished for seed ${seed}`);
     assert.ok(windowBench.y + windowBench.height * windowBench.scale < window.bottom);
     assert.equal(windowBench.height * windowBench.scale, bench.height * bench.scale);
@@ -86,7 +86,7 @@ it("uses both window bays in a long vestibule and keeps tall furniture away from
     floorY: 0,
   }));
   const items = new VestibuleRoomGenerator().furnish(room, { openings });
-  const benches = items.filter(item => item.object === "VestibuleBench" && item.stretch?.x === 0.8);
+  const benches = items.filter(item => item.object === "Bench" && item.variant === "wall" && item.stretch?.x === 0.8);
   assert.equal(benches.length, 2);
   assert.deepEqual(benches.map(item => item.z), openings.map(opening => opening.center));
   for (const opening of openings) {
@@ -131,9 +131,9 @@ it("chooses either seating or a map table and keeps all door approaches connecte
     const plan = await CastleBasePlanGenerator.generate({ seed });
     const room = plan.spaces.find(room => room.id === "vestibule");
     const items = plan.furniture.filter(item => item.roomId === room.id);
-    const islands = items.filter(item => ["VestibuleIslandBench", "VestibuleMapTable"].includes(item.object));
+    const islands = items.filter(item => (item.object === "Bench" && item.variant === "island" || item.object === "VestibuleMapTable"));
     assert.equal(islands.length, 1);
-    assert.equal(islands[0].object, seed < 6 ? "VestibuleIslandBench" : "VestibuleMapTable");
+    assert.equal(islands[0].object, seed < 6 ? "Bench" : "VestibuleMapTable");
     const bags = items.filter(item => item.underSupport && item.supportId === islands[0].id);
     assert.equal(bags.length, seed < 6 ? 4 : 0);
     if (bags.length) {
@@ -152,7 +152,7 @@ it("chooses either seating or a map table and keeps all door approaches connecte
     }
     const console = items.find(item => item.object === "WritingDesk");
     assert.ok(console, `console for seed ${seed}`);
-    assert.ok(!items.some(item => item.object === "VestibuleBench"));
+    assert.ok(!items.some(item => item.object === "Bench" && item.variant === "wall"));
     assert.ok(items.some(item => item.object === "LibrarySideTable" && item.id.endsWith("window-stand")));
     assert.ok(items.some(item => item.object === "Rug" && item.id?.endsWith("arrival-rug")),
       "arrival furniture has its own broad floor covering");
@@ -247,7 +247,7 @@ it("rotates the selected island in long rooms and leaves narrow corridors clear"
     level: 0,
   };
   const items = generator.furnish(room);
-  const islands = items.filter(item => ["VestibuleIslandBench", "VestibuleMapTable"].includes(item.object));
+  const islands = items.filter(item => (item.object === "Bench" && item.variant === "island" || item.object === "VestibuleMapTable"));
   assert.equal(islands.length, 1);
   assert.ok(islands.every(item => item.rotation === 90 && item.depth === 2.7));
   const smaller = generator.furnish({
@@ -256,10 +256,10 @@ it("rotates the selected island in long rooms and leaves narrow corridors clear"
     maxZ: 3.875,
   });
   assert.equal(smaller.filter(item => item.object === "VestibuleMapTable").length, 0);
-  assert.equal(smaller.filter(item => item.object === "VestibuleIslandBench").length, 1);
+  assert.equal(smaller.filter(item => item.object === "Bench" && item.variant === "island").length, 1);
   const narrow = generator.furnish({
     ...room,
     maxX: 2.8,
   });
-  assert.equal(narrow.filter(item => ["VestibuleIslandBench", "VestibuleMapTable"].includes(item.object)).length, 0);
+  assert.equal(narrow.filter(item => (item.object === "Bench" && item.variant === "island" || item.object === "VestibuleMapTable")).length, 0);
 });

@@ -45,7 +45,8 @@ export class VestibuleIslandFurnishing {
       const island = {
         id: `${room.id}-${room.level}-island-${bench ? "bench" : "map"}`,
         role: "vestibuleProp",
-        object: bench ? "VestibuleIslandBench" : "VestibuleMapTable",
+        object: bench ? "Bench" : "VestibuleMapTable",
+        variant: bench ? "island" : undefined,
         x: centerX + (alongX ? shift : lateral),
         z: centerZ + (alongX ? lateral : shift),
         width: alongX ? span : depth,

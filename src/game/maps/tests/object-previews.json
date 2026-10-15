@@ -833,6 +833,28 @@
         "y": 1,
         "z": 2
       }
+    },
+    {
+      "id": "preview-bench-wall",
+      "object": "Bench",
+      "variant": "wall",
+      "position": {
+        "x": 0,
+        "y": 1,
+        "z": 0
+      },
+      "rotation": 0
+    },
+    {
+      "id": "preview-bench-island",
+      "object": "Bench",
+      "variant": "island",
+      "position": {
+        "x": 3,
+        "y": 1,
+        "z": 0
+      },
+      "rotation": 0
     }
   ]
 }

@@ -53,7 +53,8 @@ export class VestibuleRoomGenerator extends AbstractCastleRoomGenerator {
     for (let z = low + 0.65; z <= high - 0.65; z += 0.1) {
       const bench = {
         role: "vestibuleProp",
-        object: "VestibuleBench",
+        object: "Bench",
+        variant: "wall",
         x: wall + 0.27,
         z,
         width: 0.5,
@@ -117,7 +118,8 @@ export class VestibuleRoomGenerator extends AbstractCastleRoomGenerator {
       const z = Math.max(low + 0.52, Math.min(high - 0.52, window.center));
       const bench = {
         role: "vestibuleProp",
-        object: "VestibuleBench",
+        object: "Bench",
+        variant: "wall",
         x: wall + 0.32,
         z,
         width: 0.4,
@@ -294,7 +296,7 @@ export class VestibuleRoomGenerator extends AbstractCastleRoomGenerator {
     // Larger rooms use a broad rug to anchor the freestanding furniture group.
     if (islands.length) {
       let minX = Infinity, maxX = -Infinity, minZ = Infinity, maxZ = -Infinity;
-      const margin = islands[0].object === "VestibuleIslandBench" && islands[0].width * islands[0].depth > 3 ? 0.65 : 0.3;
+      const margin = islands[0].object === "Bench" && islands[0].variant === "island" && islands[0].width * islands[0].depth > 3 ? 0.65 : 0.3;
       for (const island of islands) {
         minX = Math.min(minX, island.x - island.width * island.scale / 2 - margin);
         maxX = Math.max(maxX, island.x + island.width * island.scale / 2 + margin);

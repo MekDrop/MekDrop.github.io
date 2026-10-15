@@ -11,8 +11,7 @@ import { FoldedLinens } from "./folded-linens/FoldedLinens.js";
 import { Basket } from "./basket/Basket.js";
 import { ClothRoll } from "./cloth-roll/ClothRoll.js";
 import { ThreadSpool } from "./thread-spool/ThreadSpool.js";
-import { VestibuleBench } from "./castle-props/VestibuleBench.js";
-import { VestibuleIslandBench } from "./castle-props/VestibuleIslandBench.js";
+import { Bench } from "./bench/Bench.js";
 import { Banner } from "./banner/Banner.js";
 import { StandingArmor } from "./standing-armor/StandingArmor.js";
 import { TravelKit } from "./travel-kit/TravelKit.js";
@@ -104,8 +103,6 @@ const OBJECT_CLASSES = new Map([
   [Basket.name, Basket],
   [ClothRoll.name, ClothRoll],
   [ThreadSpool.name, ThreadSpool],
-  [VestibuleBench.name, VestibuleBench],
-  [VestibuleIslandBench.name, VestibuleIslandBench],
   ["VestibuleMapTable", Table],
   [StandingArmor.name, StandingArmor],
   [TravelKit.name, TravelKit],
@@ -181,6 +178,9 @@ const OBJECT_CLASSES = new Map([
   [Planter.name, Planter],
   ["TerracePlanter", Planter],
   // Normalize legacy lantern names after castle preparation publishes its props.
+  [Bench.name, Bench],
+  ["VestibuleBench", Bench],
+  ["VestibuleIslandBench", Bench],
   [Lantern.name, Lantern],
   [CandleStand.name, CandleStand],
   [Satchel.name, Satchel],
