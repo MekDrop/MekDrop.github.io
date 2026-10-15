@@ -1189,6 +1189,26 @@
         "y": 2.14,
         "z": 4
       }
+    },
+    {
+      "id": "kitchen-fireplace-fire",
+      "object": "Fire",
+      "position": {
+        "x": 3,
+        "y": 2.292,
+        "z": -3.06
+      },
+      "rotation": 0,
+      "tile": {
+        "col": 9,
+        "row": 3
+      },
+      "volume": {
+        "x": 0.64,
+        "y": 0.3,
+        "z": 0.6
+      },
+      "intensity": 0.75
     }
   ]
 }

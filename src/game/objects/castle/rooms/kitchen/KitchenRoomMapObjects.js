@@ -37,6 +37,19 @@ export class KitchenRoomMapObjects {
           } : {}),
           sourceCastleId: castle.id, tile: { col: Math.round(position.x + (mapData.cols - 1) / 2),
             row: Math.round(position.z + (mapData.rows - 1) / 2) } });
+        if (item.object === "KitchenFireplace") {
+          const scale = item.scale ?? 1;
+          const angle = rotation * Math.PI / 180;
+          objects.push({
+            id: `${id}-fire`, object: "Fire",
+            position: { x: position.x - Math.sin(angle) * 0.06 * scale,
+              y: position.y + 0.29 * scale, z: position.z - Math.cos(angle) * 0.06 * scale },
+            rotation, volume: { x: 0.64 * scale, y: 0.3 * scale, z: 0.6 * scale },
+            intensity: 0.75, generated: true, kitchenFurnishing: true, sourceCastleId: castle.id,
+            tile: { col: Math.round(position.x + (mapData.cols - 1) / 2),
+              row: Math.round(position.z + (mapData.rows - 1) / 2) },
+          });
+        }
       }
     }
     mapData.objects = objects;

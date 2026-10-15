@@ -1,8 +1,6 @@
 import modelUrl from "../../models/castle/props/kitchen-fireplace.glb?url";
 import { AbstractCastleProp } from "./AbstractCastleProp.js";
-import { CastleFire } from "../castle/CastleFire.js";
-import fireGLSL from "./KitchenFire.glsl?raw";
-import fireWGSL from "./KitchenFire.wgsl?raw";
+import { FireSurfaceMaterial } from "../fire/FireSurfaceMaterial.js";
 import terminalModelUrl from "../../models/castle/props/terrace-chimney-terminal.glb?url";
 import chimneyModelUrl from "../../models/castle/props/kitchen-chimney-course.glb?url";
 import { CastleMasonryMaterial } from "../castle/CastleMasonryMaterial.js";
@@ -29,10 +27,6 @@ export class KitchenFireplace extends AbstractCastleProp {
    * @type {import("playcanvas").Entity|null}
    */
   #chimney = null;
-  /**
-   * @type {CastleFire|null}
-   */
-  #fire = null;
   /**
    * @type {import("playcanvas").Mat4}
    */
@@ -64,41 +58,12 @@ export class KitchenFireplace extends AbstractCastleProp {
           continue;
         }
         if (instance.material.name === "Chimney soot-dark stone") { continue; }
-        const material = instance.material.clone();
-        material.name = "Animated kitchen hearth";
-        material.shaderChunksVersion = pc.version.split(".").slice(0, 2).join(".");
-        for (const [language, fire] of [
-          [pc.SHADERLANGUAGE_GLSL, fireGLSL],
-          [pc.SHADERLANGUAGE_WGSL, fireWGSL],
-        ]) {
-          const wgsl = language === pc.SHADERLANGUAGE_WGSL;
-          const stock = pc.ShaderChunks.get(app.graphicsDevice, language);
-          const chunks = material.getShaderChunks(language);
-          const varying = wgsl
-            ? "varying vHearthPosition: vec3f;"
-            : "varying vec3 vHearthPosition;";
-          chunks.set("litUserDeclarationVS", varying);
-          chunks.set("litUserMainEndVS", wgsl
-            ? "output.vHearthPosition = vertex_position.xyz;"
-            : "vHearthPosition = vertex_position.xyz;",
-          );
-          const diffuse = stock.get("diffusePS");
-          const close = diffuse.lastIndexOf("}");
-          const declaration = wgsl ? "let" : "vec4";
-          const vector = wgsl ? "vec3f" : "vec3";
-          // Remove the baked flame from the preserved firebox texture.
-          chunks.set("diffusePS", `${fire}
-${diffuse.slice(0, close)}
-  ${declaration} hearth = hearthFire();
-  dAlbedo = mix(dAlbedo, ${vector}(0.012, 0.006, 0.003), hearth.a);
-${diffuse.slice(close)}`);
-          chunks.set("emissivePS", `${wgsl ? "fn" : "void"} getEmission() {
-  ${declaration} hearth = hearthFire();
-  dEmission = ${vector}(0.0);
-}`);
-        }
-        material.setParameter("uHearthTime", 0);
-        material.update();
+        const material = FireSurfaceMaterial.create(pc, app.graphicsDevice, instance.material, {
+          position: { x: 0, y: 0.25, z: -0.08 },
+          volume: { x: 0.74, y: 0.59, z: 0.48 },
+          fadeIn: { x: 0.05, y: 0.06, z: 0.08 },
+          fadeOut: { x: 0.05, y: 0.05, z: 0.08 },
+        });
         instance.material = material;
         this.#materials.push(material);
       }
@@ -110,15 +75,7 @@ ${diffuse.slice(close)}`);
     // Keep full stone courses at their authored proportions. Only the final
     // course is shortened to meet the local roof surface exactly.
     const scale = definition.scale ?? 1;
-    // Reuse the brazier flames in three spatially separated hearth pockets.
-    // The shader only removes the model's baked fire; particles own the flame.
-    this.#fire = new CastleFire({ pc, app, modelLibrary: options.modelLibrary,
-      particleTexture: app.assets.find("castleFireParticle", "texture").resource });
-    for (const x of [-0.16, 0, 0.16]) {
-      this.#fire.add({ x, y: 0.29, z: -0.04, scale: 0.12, brazier: false, intensity: 0 });
-    }
-    this.#fire.add({ x: 0.028, y: 0.29, z: -0.2073, scale: 0.075, brazier: false, intensity: 0.15 });
-    root.children[0].addChild(this.#fire.entity);
+
     const top = definition.chimneyHeight ?? 1.65 * scale;
     const stoneTop = definition.chimneyMetalTerminal ? top - 0.72 : top;
     const courseHeight = 0.24 * scale;
@@ -178,10 +135,6 @@ ${diffuse.slice(close)}`);
   #animate(deltaTime, glow) {
     this.#worldToMasonry.copy(this.visualRoots[0].parent.getWorldTransform()).invert();
     this.#elapsed += deltaTime;
-    // Only uniforms change each frame; compiled shader variants remain cached.
-    for (const material of this.#materials) {
-      material.setParameter("uHearthTime", this.#elapsed);
-    }
     glow.light.intensity = 1.35 + Math.sin(this.#elapsed * 11.1) * 0.2 +
       Math.sin(this.#elapsed * 4.7) * 0.13;
   }
@@ -211,8 +164,6 @@ ${diffuse.slice(close)}`);
   }
 
   destroy() {
-    this.#fire?.destroy();
-    this.#fire = null;
     this.#updateHandle?.off();
     this.#updateHandle = null;
     super.destroy();

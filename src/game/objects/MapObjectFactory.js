@@ -1,3 +1,4 @@
+import { Fire } from "./fire/Fire.js";
 import { Table } from "./table/Table.js";
 import { StraightStaircase } from "./straight-staircase/StraightStaircase.js";
 import { Ladder } from "./castle/Ladder.js";
@@ -198,6 +199,7 @@ const OBJECT_CLASSES = new Map([
   [CliffVine.name, CliffVine],
   // Normalize legacy lantern names after castle preparation publishes its props.
   [Lantern.name, Lantern],
+  [Fire.name, Fire],
 ]);
 
 /**

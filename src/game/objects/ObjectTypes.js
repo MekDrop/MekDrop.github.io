@@ -29,6 +29,8 @@
  * @property {number} [rotation]
  * @property {Point3} [from] Bookshelf bottom edge, window corner, or WoodenFloor surface corner in world coordinates.
  * @property {Point3} [to] Bookshelf bottom edge or opposite window corner (one differing ground axis); WoodenFloor opposite surface corner (both ground axes differ, equal Y).
+ * @property {Point3} [volume] Fire box full dimensions; position is its bottom center.
+ * @property {number} [intensity] Fire brightness multiplier (default 1); zero disables the flames. Volume controls their dimensions.
  * @property {number} [width] Table width in metres, painting horizontal scale, or flag cloth width.
  * @property {number} [height] Table, bookshelf, window, or flag cloth height.
  * @property {number} [chimneyHeight] Fireplace base to the covering roof surface, in metres.
@@ -195,4 +197,3 @@
  */
 
 export {};
-
