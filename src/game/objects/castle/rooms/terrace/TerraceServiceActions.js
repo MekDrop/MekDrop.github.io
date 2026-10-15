@@ -48,7 +48,7 @@ export class TerraceServiceActions {
    * @param {string} options.kind
    * @param {import("./TerraceQueen.js").TerraceQueen|import("./TerracePrincess.js").TerracePrincess} options.royal
    */
-  constructor({ pc, modelLibrary, stage, kind, royal, actor = null, motion = null }) {
+  constructor({ pc, modelLibrary, stage, kind, royal, servingTray, actor = null, motion = null }) {
     this.#servant = new TerraceServantActions({
       pc,
       modelLibrary,
@@ -64,6 +64,7 @@ export class TerraceServiceActions {
         royal,
       })
       : new TerraceTeaActions({
+        servingTray,
         pc,
         modelLibrary,
         stage,

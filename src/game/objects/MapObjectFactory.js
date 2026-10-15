@@ -33,7 +33,7 @@ import { StepStool } from "./step-stool/StepStool.js";
 import { ParchmentBundle } from "./castle-props/ParchmentBundle.js";
 import { LibraryBookStack } from "./castle-props/LibraryBookStack.js";
 import { Sunbed } from "./sunbed/Sunbed.js";
-import { TerraceServingTray } from "./castle-props/TerraceServingTray.js";
+import { ServingTray } from "./serving-tray/ServingTray.js";
 import { Teapot } from "./teapot/Teapot.js";
 import { Teacup } from "./teacup/Teacup.js";
 import { Planter } from "./planter/Planter.js";
@@ -127,7 +127,6 @@ const OBJECT_CLASSES = new Map([
   [LibraryBookStack.name, LibraryBookStack],
   [BedsideDrawers.name, BedsideDrawers],
   [Sunbed.name, Sunbed],
-  [TerraceServingTray.name, TerraceServingTray],
   [Teapot.name, Teapot],
   [Teacup.name, Teacup],
   ["TeaTable", Table],
@@ -173,6 +172,8 @@ const OBJECT_CLASSES = new Map([
   [WoodenSign.name, WoodenSign],
   [SeatedRoyal.name, MapAnimationActor],
   [Servant.name, Servant],
+  [ServingTray.name, ServingTray],
+  ["TerraceServingTray", ServingTray],
   // Attach cliff growth only after terrain population and castle excavation.
   [CliffVine.name, CliffVine],
   [Planter.name, Planter],

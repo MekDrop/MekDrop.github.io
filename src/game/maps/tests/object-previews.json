@@ -855,6 +855,15 @@
         "z": 0
       },
       "rotation": 0
+    },
+    {
+      "id": "preview-serving-tray",
+      "object": "ServingTray",
+      "position": {
+        "x": 0,
+        "y": 1,
+        "z": 0
+      }
     }
   ]
 }

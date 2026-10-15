@@ -1,6 +1,5 @@
 import potUrl from "../../../../models/castle/leisure/teapot.glb?url";
 import cupUrl from "../../../../models/castle/leisure/teacup.glb?url";
-import trayUrl from "../../../../models/castle/leisure/serving-tray.glb?url";
 import { CASTLE_TERRACE_PHASE as PHASE } from "../../../../enum/CastleTerracePhase.js";
 
 const POSITIONS = {
@@ -23,7 +22,7 @@ export class TerraceTeaSetActions {
     * @returns {Array<string>}
    */
   static get modelUrls() {
-    return [potUrl, cupUrl, trayUrl];
+    return [potUrl, cupUrl];
   }
 
   /**
@@ -90,7 +89,7 @@ export class TerraceTeaSetActions {
    * @param {import("playcanvas").Entity} options.stage
    * @param {import("./TerracePrincess.js").TerracePrincess} options.royal
    */
-  constructor({ pc, modelLibrary, stage, royal }) {
+  constructor({ pc, modelLibrary, stage, royal, servingTray }) {
     this.#pc = pc;
     this.#stage = stage;
     this.#royal = royal;
@@ -100,9 +99,7 @@ export class TerraceTeaSetActions {
     this.#cup = modelLibrary.instantiate(cupUrl);
     this.#cup.name = "Terrace cup";
     stage.addChild(this.#cup);
-    this.#tray = modelLibrary.instantiate(trayUrl);
-    this.#tray.name = "Terrace serving tray";
-    stage.addChild(this.#tray);
+    this.#tray = servingTray.attachTo(stage);
     this.#material = new pc.StandardMaterial();
     this.#material.diffuse = new pc.Color(0.48, 0.22, 0.05);
     this.#material.update();

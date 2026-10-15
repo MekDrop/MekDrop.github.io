@@ -12,6 +12,10 @@ export class Servant {
    */
   #pc;
   /**
+   * @type {import("../ObjectTypes.js").MapObjectRuntime}
+   */
+  #runtime;
+  /**
    * @type {import("playcanvas").Application}
    */
   #app;
@@ -75,6 +79,7 @@ export class Servant {
    */
   constructor({ pc, app, definition, runtime }) {
     this.#pc = pc;
+    this.#runtime = runtime;
     this.#app = app;
     this.#definition = definition;
     this.#entity = new pc.Entity(`${definition.id} servant`);
@@ -218,6 +223,12 @@ export class Servant {
           stage,
           kind,
           royal,
+          servingTray: this.#runtime.objects.getAll("mapObject").find(
+            /**
+             * @param {import("../ObjectTypes.js").MapObjectLike} object
+             */
+            (object) => object.definition?.carrierId === this.#definition.id,
+          ),
           actor: this.#resident,
           motion: this.#motion,
         });
