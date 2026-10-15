@@ -1,11 +1,11 @@
-import lanternModelUrl from "../../models/castle/props/wall-lantern.glb?url";
-import carpetModelUrl from "../../models/castle/residential/carpet-panel.glb?url";
-import { WoodenFloor } from "../wooden-floor/WoodenFloor.js";
-import authoredModelUrl from "../../models/castle/residential/stone-block.glb?url";
-import { CastleThrone } from "./CastleThrone.js";
-import { CastleFire } from "./CastleFire.js";
-import { GAME_OVER_VIEW_ROTATION_BY_SIDE } from "../../enum/GameOverViewRotation.js";
-import { colorFromHex } from "../../helpers/colors.js";
+import lanternModelUrl from "../../../../models/castle/props/wall-lantern.glb?url";
+import carpetModelUrl from "../../../../models/castle/residential/carpet-panel.glb?url";
+import { WoodenFloor } from "../../../wooden-floor/WoodenFloor.js";
+import authoredModelUrl from "../../../../models/castle/residential/stone-block.glb?url";
+import { CastleThrone } from "../../CastleThrone.js";
+import { CastleFire } from "../../CastleFire.js";
+import { GAME_OVER_VIEW_ROTATION_BY_SIDE } from "../../../../enum/GameOverViewRotation.js";
+import { colorFromHex } from "../../../../helpers/colors.js";
 
 const ROOM_MATERIALS = {
   carpet: { color: 0xffffff, gloss: 0.04 },
@@ -176,7 +176,7 @@ export class CastleAudienceRoom {
    */
   #serviceOpening = null;
   /**
-   * @type {import("./CastleResidentialLayout.js").CastleResidentialLayout|null}
+   * @type {import("../../CastleResidentialLayout.js").CastleResidentialLayout|null}
    */
   #residentialLayout = null;
   /**
@@ -229,7 +229,7 @@ export class CastleAudienceRoom {
    * @param {number} options.frontWallDepth
    * @param {string} options.modelLibrary
    * @param {import("playcanvas").Texture} options.carpetTexture
-   * @param {import("./CastleResidentialLayout.js").CastleResidentialLayout|null} options.residentialLayout
+   * @param {import("../../CastleResidentialLayout.js").CastleResidentialLayout|null} options.residentialLayout
    * @param {{x: number, z: number, radius: number}|null} options.serviceOpening
    * @param {import("playcanvas").Texture} options.fireParticleTexture
    */

@@ -4,7 +4,7 @@ import stoneBlockUrl from "../../models/castle/residential/masonry-block.glb?url
 import { DynamicRenderBatch } from "../../rendering/DynamicRenderBatch.js";
 import { CastleBanner } from "./CastleBanner.js";
 import { CastleMasonryMaterial } from "./CastleMasonryMaterial.js";
-import { CastleAudienceRoom } from "./CastleAudienceRoom.js";
+import { CastleAudienceRoom } from "./rooms/audience/CastleAudienceRoom.js";
 import { CastleDoor } from "./CastleDoor.js";
 import { CastleDoorArch } from "./CastleDoorArch.js";
 import { CastleEntranceDetails } from "./CastleEntranceDetails.js";

@@ -47,7 +47,7 @@ export class AbstractRoyal {
   #activity = null;
   /**
    *
-    * @type {import("../castle/CastleAudienceRoom.js").CastleAudienceRoom|null}
+    * @type {import("../castle/rooms/audience/CastleAudienceRoom.js").CastleAudienceRoom|null}
    */
   #audienceRoom = null;
   /**
@@ -169,9 +169,9 @@ export class AbstractRoyal {
 
   /**
    *
-   * @param {{servant: import("../servant/Servant.js").Servant, audienceRoom: import("../castle/CastleAudienceRoom.js").CastleAudienceRoom, isBlocked: (x: number, z: number, radius?: number) => boolean, prepareGameOver: () => void}} options
+   * @param {{servant: import("../servant/Servant.js").Servant, audienceRoom: import("../castle/rooms/audience/CastleAudienceRoom.js").CastleAudienceRoom, isBlocked: (x: number, z: number, radius?: number) => boolean, prepareGameOver: () => void}} options
    * @param {import("../servant/Servant.js").Servant} options.servant
-   * @param {import("../castle/CastleAudienceRoom.js").CastleAudienceRoom} options.audienceRoom
+   * @param {import("../castle/rooms/audience/CastleAudienceRoom.js").CastleAudienceRoom} options.audienceRoom
    * @param {(x: number, z: number, radius?: number) => boolean} options.isBlocked
    * @param {() => void} options.prepareGameOver
    */
