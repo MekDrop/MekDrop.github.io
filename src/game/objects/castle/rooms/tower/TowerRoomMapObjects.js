@@ -39,6 +39,7 @@ export class TowerRoomMapObjects {
         mapData.objects.push({
           id: `${castle.id}-tower-furnishing-${item.roomId}-${index}`,
           object: item.object,
+          variant: item.variant,
           position,
           rotation,
           scale: item.scale,

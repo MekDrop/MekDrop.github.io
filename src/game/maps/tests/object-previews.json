@@ -803,6 +803,36 @@
         "z": 0
       },
       "rotation": 0
+    },
+    {
+      "id": "preview-candle-single",
+      "object": "CandleStand",
+      "variant": "single",
+      "position": {
+        "x": -1,
+        "y": 1,
+        "z": 2
+      }
+    },
+    {
+      "id": "preview-candle-floor",
+      "object": "CandleStand",
+      "variant": "floor",
+      "position": {
+        "x": 0,
+        "y": 1,
+        "z": 2
+      }
+    },
+    {
+      "id": "preview-candle-table",
+      "object": "CandleStand",
+      "variant": "table",
+      "position": {
+        "x": 1,
+        "y": 1,
+        "z": 2
+      }
     }
   ]
 }

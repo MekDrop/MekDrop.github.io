@@ -30,6 +30,7 @@ export class StairwellRoomMapObjects {
         objects.push({
           id,
           object: item.object,
+          variant: item.variant,
           position,
           rotation: layout.yaw + (item.underStair ? 0 : 180) + item.rotation,
           scale: item.scale,

@@ -1,3 +1,4 @@
+import { CandleStandDefinition } from "../../../objects/candle-stand/CandleStandDefinition.js";
 import { AbstractCastleGenerationStage } from "../AbstractCastleGenerationStage.js";
 import { RoomPlacementRules } from "../rooms/RoomPlacementRules.js";
 
@@ -45,6 +46,7 @@ export class RoomFurnishingStage extends AbstractCastleGenerationStage {
       }
     }
     plan.furniture = RoomPlacementRules.repair(plan.furniture, [], plan.placedRooms, plan.doorways);
+    for (const item of plan.furniture) { CandleStandDefinition.normalize(item); }
     await context.scheduler.yieldIfNeeded(context.yieldState);
   }
 }

@@ -1,3 +1,4 @@
+import { CandleStand } from "./candle-stand/CandleStand.js";
 import { Book } from "./book/Book.js";
 import { Fire } from "./fire/Fire.js";
 import { Table } from "./table/Table.js";
@@ -44,13 +45,10 @@ import { GreenVegetable } from "./food/GreenVegetable.js";
 import { DeskGlobe } from "./desk-globe/DeskGlobe.js";
 import { DeskParchment } from "./castle-props/DeskParchment.js";
 import { FireplaceCauldron } from "./fireplace-cauldron/FireplaceCauldron.js";
-import { FloorCandelabrum } from "./castle-props/FloorCandelabrum.js";
 import { HangingFryingPan } from "./castle-props/HangingFryingPan.js";
 import { Fireplace } from "./fireplace/Fireplace.js";
 import { Bread } from "./bread/Bread.js";
-import { SingleCandleStand } from "./castle-props/SingleCandleStand.js";
 import { PotteryJar } from "./pottery-jar/PotteryJar.js";
-import { TableCandles } from "./castle-props/TableCandles.js";
 import { Barrel } from "./barrel/Barrel.js";
 import { Crate } from "./crate/Crate.js";
 import { Chest } from "./chest/Chest.js";
@@ -143,15 +141,12 @@ const OBJECT_CLASSES = new Map([
   [DeskGlobe.name, DeskGlobe],
   [DeskParchment.name, DeskParchment],
   [FireplaceCauldron.name, FireplaceCauldron],
-  [FloorCandelabrum.name, FloorCandelabrum],
   [HangingFryingPan.name, HangingFryingPan],
   [Fireplace.name, Fireplace],
   ["KitchenTable", Table],
   [Bread.name, Bread],
-  [SingleCandleStand.name, SingleCandleStand],
   [PotteryJar.name, PotteryJar],
   ["StoragePotteryJar", PotteryJar],
-  [TableCandles.name, TableCandles],
   [Barrel.name, Barrel],
   [Crate.name, Crate],
   [FirewoodStack.name, FirewoodStack],
@@ -187,6 +182,7 @@ const OBJECT_CLASSES = new Map([
   ["TerracePlanter", Planter],
   // Normalize legacy lantern names after castle preparation publishes its props.
   [Lantern.name, Lantern],
+  [CandleStand.name, CandleStand],
   [Satchel.name, Satchel],
   ["VestibuleBrownSatchel", Satchel],
   ["VestibuleOliveSatchel", Satchel],

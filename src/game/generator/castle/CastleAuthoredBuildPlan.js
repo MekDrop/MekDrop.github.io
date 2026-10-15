@@ -1,3 +1,4 @@
+import { CandleStandDefinition } from "../../objects/candle-stand/CandleStandDefinition.js";
 import { RoomPlacementRules } from "./rooms/RoomPlacementRules.js";
 import { CastleGenerationScheduler } from "./CastleGenerationScheduler.js";
 import { CastleBasePlanGenerator } from "./CastleBasePlanGenerator.js";
@@ -1075,6 +1076,7 @@ export class CastleAuthoredBuildPlan {
         halfZ: Math.abs(Math.sin(angle)) > 0.5 ? block.halfX : block.halfZ,
       }));
     residential.furniture = RoomPlacementRules.repair(residential.furniture, localWalls, spaces, openings);
+    for (const item of residential.furniture) { CandleStandDefinition.normalize(item); }
 
     return {
       input: {

@@ -31,6 +31,7 @@ export class LibraryRoomMapObjects {
         const definition = {
           id: `${prefix}${roomKey}-${index}`,
           object: item.object,
+          variant: item.variant,
           position,
           rotation,
           generated: true,

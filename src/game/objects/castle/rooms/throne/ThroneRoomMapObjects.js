@@ -30,6 +30,7 @@ export class ThroneRoomMapObjects {
         const definition = {
           id: `${castle.id}-court-${index}`,
           object: item.object,
+          variant: item.variant,
           ...(item.type ? { type: item.type } : {}),
           position,
           rotation,
