@@ -16,7 +16,7 @@ export class CastleChimneySightline {
     const flues = plan.furniture.filter(/**
      * @param {import("../../generator/castle/rooms/AbstractCastleRoomGenerator.js").RoomItem} item
      * @returns {boolean}
-     */ item => item.object === "KitchenFireplace").map(/**
+     */ item => item.object === "Fireplace").map(/**
      * @param {import("../../generator/castle/rooms/AbstractCastleRoomGenerator.js").RoomItem} item
      * @returns {import("playcanvas").Mat4}
      */ item => {

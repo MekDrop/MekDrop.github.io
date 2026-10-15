@@ -28,16 +28,16 @@ export class KitchenRoomMapObjects {
         const position = layout.toWorld(item.x, item.z, item.floorY - layout.origin.y + (item.y ?? 0));
         // Only compiled base plans transform both horizontal coordinates by 180°.
         const rotation = layout.yaw + (plan.basePlanId ? 180 : 0) + (item.rotation ?? 0);
-        const chimneyHeight = item.object === "KitchenFireplace"
+        const chimneyHeight = item.object === "Fireplace"
           ? KitchenChimneyLayout.height(castle.buildPlan, item, position, rotation) : undefined;
         objects.push({ ...(item.items ? { items: item.items, color: item.color } : {}), id, object: item.object, position, rotation, scale: item.scale, generated: true, kitchenFurnishing: true,
-          ...(item.object === "KitchenFireplace" ? {
+          ...(item.object === "Fireplace" ? {
             chimneyHeight,
             chimneyMetalTerminal: KitchenChimneyLayout.hasTerraceTerminal(castle.buildPlan, item, position, chimneyHeight),
           } : {}),
           sourceCastleId: castle.id, tile: { col: Math.round(position.x + (mapData.cols - 1) / 2),
             row: Math.round(position.z + (mapData.rows - 1) / 2) } });
-        if (item.object === "KitchenFireplace") {
+        if (item.object === "Fireplace") {
           const scale = item.scale ?? 1;
           const angle = rotation * Math.PI / 180;
           objects.push({

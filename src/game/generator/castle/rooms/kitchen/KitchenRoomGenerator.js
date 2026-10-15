@@ -67,8 +67,8 @@ export class KitchenRoomGenerator extends AbstractCastleRoomGenerator {
      * @returns {boolean}
      */
     const prop = (object, x, z, w, d, y = 0, rotation = 0, contents = undefined, color = undefined) => {
-      const wallMounted = ["HangingFryingPan", "KitchenFireplace"].includes(object);
-      const fireplace = object === "KitchenFireplace";
+      const wallMounted = ["HangingFryingPan", "Fireplace"].includes(object);
+      const fireplace = object === "Fireplace";
       if (fireplace && !FireplaceWallBacking.accepts({ object, x, z, width: w, depth: d, scale: 1, y },
         room, context.openings ?? [])) { return false; }
       if (!available(x, z, w, d, wallMounted ? 0 : ["FirewoodStack", "KitchenTable"].includes(object) ? 0.015 : inset,
@@ -103,12 +103,12 @@ export class KitchenRoomGenerator extends AbstractCastleRoomGenerator {
       : walls.minZ + (context.wallThickness ?? 0.25) / 2 + rearOffset;
     const hearthRotation = westEntry ? 180 : 0;
     const hearthWidth = 1.47, hearthDepth = 0.88;
-    let fireplacePlaced = prop("KitchenFireplace", hearthX, hearthZ, hearthWidth, hearthDepth, 0, hearthRotation);
+    let fireplacePlaced = prop("Fireplace", hearthX, hearthZ, hearthWidth, hearthDepth, 0, hearthRotation);
     for (const fraction of [0, 1, 0.5, 0.25, 0.75]) {
       if (fireplacePlaced) { break; }
       const walls = room.wallBounds ?? room;
       hearthX = walls.minX + inset + hearthWidth / 2 + fraction * (walls.maxX - walls.minX - 2 * inset - hearthWidth);
-      fireplacePlaced = prop("KitchenFireplace", hearthX, hearthZ, hearthWidth, hearthDepth, 0, hearthRotation);
+      fireplacePlaced = prop("Fireplace", hearthX, hearthZ, hearthWidth, hearthDepth, 0, hearthRotation);
     }
     if (fireplacePlaced) {
       if (westEntry) { prop("FirewoodStack", hearthX + hearthWidth / 2 + 0.2, hearthZ, 0.269, 0.38); }

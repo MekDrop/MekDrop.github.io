@@ -1113,7 +1113,7 @@
     },
     {
       "id": "kitchen-fireplace",
-      "object": "KitchenFireplace",
+      "object": "Fireplace",
       "tile": {
         "col": 9,
         "row": 3

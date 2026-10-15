@@ -1,8 +1,9 @@
 import { ROOM_PROP_HEIGHTS, ROOM_PROP_BOTTOMS } from "./RoomPropHeights.js";
 import { FireplaceWallBacking } from "./FireplaceWallBacking.js";
+import { FireplaceChimneyFootprint } from "../../../objects/fireplace/FireplaceChimneyFootprint.js";
 
 // Model-local rear mounting planes measured from the source GLBs.
-const WALL_MOUNTS = { RoyalBedroomPainting: -0.032, KitchenFireplace: -0.45, VestibuleCloakRail: -0.058, VestibulePainting: -0.024,
+const WALL_MOUNTS = { RoyalBedroomPainting: -0.032, Fireplace: -0.45, VestibuleCloakRail: -0.058, VestibulePainting: -0.024,
   VestibuleBanner: -0.005, HangingFryingPan: -0.0953, KitchenUtensilRail: 0,
   RoyalCrest: -0.04, WarCouncilShield: -0.05 };
 
@@ -33,6 +34,12 @@ export class RoomPlacementRules {
      */
     candidate => candidate.id === item.supportId)) { return false; }
     for (const other of occupied) {
+      if (other.object === "Fireplace") {
+        const chimney = FireplaceChimneyFootprint.bounds(other, [room]);
+        if (bottom < chimney.top - 0.005 && top > chimney.bottom + 0.005 &&
+          item.x + halfX > chimney.minX && item.x - halfX < chimney.maxX &&
+          item.z + halfZ > chimney.minZ && item.z - halfZ < chimney.maxZ) { return false; }
+      }
       const otherBottom = (other.floorY ?? room.floorY) + (other.y ?? other.elevation ?? 0) + (ROOM_PROP_BOTTOMS[other.object] ?? 0) * other.scale;
       const otherTop = otherBottom + (other.height ?? ROOM_PROP_HEIGHTS[other.object] ?? room.height) * other.scale;
       // Contact at a supporting surface is allowed; intersecting volumes are not.
@@ -100,7 +107,8 @@ export class RoomPlacementRules {
      * @param {import("./AbstractCastleRoomGenerator.js").RoomItem} first
      * @param {import("./AbstractCastleRoomGenerator.js").RoomItem} second
      */
-    (first, second) => Number(Boolean(second.backPocketStorage)) * 2 - Number(Boolean(first.backPocketStorage)) * 2 ||
+    (first, second) => Number(second.object === "Fireplace") - Number(first.object === "Fireplace") ||
+      Number(Boolean(second.backPocketStorage)) * 2 - Number(Boolean(first.backPocketStorage)) * 2 ||
       Number(Boolean(second.underStair && second.endWallStorage && second.object === "WoodenStorageChest")) -
       Number(Boolean(first.underStair && first.endWallStorage && first.object === "WoodenStorageChest")))) {
       const group = [root];
@@ -179,6 +187,9 @@ export class RoomPlacementRules {
         }
         return { ...bounds, masonry: false, rail: neighboringRail };
       }));
+      for (const item of placed) {
+        if (item.object === "Fireplace") { obstacles.push(FireplaceChimneyFootprint.bounds(item, rooms)); }
+      }
       for (const door of openings) {
         // Glazed openings still have collision backing, but cannot support decor.
         if (!["door", "window"].includes(door.kind) || door.floorY !== root.floorY) { continue; }
@@ -201,7 +212,7 @@ export class RoomPlacementRules {
           zs.add(room.minZ - member.minZ); zs.add(room.maxZ - member.maxZ);
         }
         for (const obstacle of obstacles) {
-          if (member.item.floorCovering && !obstacle.masonry || member.bottom >= obstacle.top - 0.005 || member.top <= obstacle.bottom + 0.005 || member.item.wallAttachment && obstacle.masonry && (member.item.object !== "VestibuleBanner" || obstacle.bannerBacking)) { continue; }
+          if (member.item.floorCovering && !obstacle.masonry && !obstacle.chimney || member.bottom >= obstacle.top - 0.005 || member.top <= obstacle.bottom + 0.005 || member.item.wallAttachment && obstacle.masonry && (member.item.object !== "VestibuleBanner" || obstacle.bannerBacking)) { continue; }
           xs.add(obstacle.maxX - member.minX + 0.00001); xs.add(obstacle.minX - member.maxX - 0.00001);
           zs.add(obstacle.maxZ - member.minZ + 0.00001); zs.add(obstacle.minZ - member.maxZ - 0.00001);
         }
@@ -248,7 +259,7 @@ export class RoomPlacementRules {
       member => {
         const minX = member.minX + candidate.x, maxX = member.maxX + candidate.x;
         const minZ = member.minZ + candidate.z, maxZ = member.maxZ + candidate.z;
-        if (member.item.object === "KitchenFireplace" && !FireplaceWallBacking.accepts({ ...member.item,
+        if (member.item.object === "Fireplace" && !FireplaceWallBacking.accepts({ ...member.item,
           x: member.item.x + candidate.x, z: member.item.z + candidate.z }, room, openings, walls, root)) { return false; }
         if (root.stairApproach) {
           const { axis, coordinate, side } = root.stairApproach;
@@ -270,7 +281,7 @@ export class RoomPlacementRules {
          *
          * @param {{minX:number,maxX:number,minZ:number,maxZ:number,bottom:number,top:number,masonry:boolean,bannerBacking?:boolean}} obstacle
          */
-        obstacle => obstacle.rail ? (root.width > root.depth ? maxX <= obstacle.minX + 1e-6 || minX >= obstacle.maxX - 1e-6 : maxZ <= obstacle.minZ + 1e-6 || minZ >= obstacle.maxZ - 1e-6) : member.item.floorCovering && !obstacle.masonry || member.item.wallAttachment && obstacle.masonry && (member.item.object !== "VestibuleBanner" || obstacle.bannerBacking) ||
+        obstacle => obstacle.rail ? (root.width > root.depth ? maxX <= obstacle.minX + 1e-6 || minX >= obstacle.maxX - 1e-6 : maxZ <= obstacle.minZ + 1e-6 || minZ >= obstacle.maxZ - 1e-6) : member.item.floorCovering && !obstacle.masonry && !obstacle.chimney || member.item.wallAttachment && obstacle.masonry && (member.item.object !== "VestibuleBanner" || obstacle.bannerBacking) ||
           member.bottom >= obstacle.top - 0.005 || member.top <= obstacle.bottom + 0.005 ||
           maxX <= obstacle.minX + 1e-6 || minX >= obstacle.maxX - 1e-6 || maxZ <= obstacle.minZ + 1e-6 || minZ >= obstacle.maxZ - 1e-6);
       });

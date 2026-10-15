@@ -49,7 +49,7 @@ test("kitchen varies coherently and reproduces its local seed", () => {
 
 test("compact kitchens omit prep and storage without stranded tabletop props", () => {
   const items = new KitchenRoomGenerator().furnish({ ...room, maxX: 2, maxZ: 2.5 }, { seed: 2 });
-  assert.deepEqual(items.map(item => item.object), ["KitchenFireplace", "FireplaceCauldron"]);
+  assert.deepEqual(items.map(item => item.object), ["Fireplace", "FireplaceCauldron"]);
 });
 
 test("west kitchen entry keeps the hearth on the preparation wall with its rear clear of masonry", () => {
@@ -57,7 +57,7 @@ test("west kitchen entry keeps the hearth on the preparation wall with its rear 
     axis: "x", coordinate: room.minX, center: 3, width: 1 }];
   for (let seed = 0; seed < 24; seed++) {
     const items = new KitchenRoomGenerator().furnish(room, { seed, openings });
-    const hearth = items.find(item => item.object === "KitchenFireplace");
+    const hearth = items.find(item => item.object === "Fireplace");
     const cauldron = items.find(item => item.object === "FireplaceCauldron");
     assert.equal(hearth.rotation, 180);
     assert.equal(hearth.width, 1.47);
@@ -83,7 +83,7 @@ test("blocked prep bank removes its food group and openings exclude tall furnitu
     { roomId: room.id, floorY: room.floorY, kind: "window", axis: "z", coordinate: 0, center: 0.85, width: 1 },
   ] });
   assert.ok(!items.some(item => ["KitchenTable", "Bowl"].includes(item.object)));
-  const hearth = items.find(item => item.object === "KitchenFireplace");
+  const hearth = items.find(item => item.object === "Fireplace");
   assert.ok(!hearth || hearth.x - hearth.width / 2 >= 1.35, "hearth is beside the window or omitted when its larger measured body cannot fit");
 });
 
@@ -92,7 +92,7 @@ test("active authored pipeline publishes kitchen objects and replaces old seeded
   const kitchen = authored.spaces.find(space => space.id === "kitchen");
   const quarters = authored.spaces.find(space => space.id === "service-quarters");
   assert.deepEqual([kitchen.minX, kitchen.minZ, kitchen.maxX, kitchen.maxZ], [0.375, 0.375, 3.625, 3.875]);
-  const hearth = authored.furniture.find(item => item.object === "KitchenFireplace");
+  const hearth = authored.furniture.find(item => item.object === "Fireplace");
   const pan = authored.furniture.find(item => item.object === "HangingFryingPan");
   const table = authored.furniture.find(item => item.object === "KitchenTable");
   assert.ok(Math.abs(pan.z + pan.depth / 2 - kitchen.wallBounds.maxZ) < 0.000001,
@@ -120,7 +120,7 @@ test("active authored pipeline publishes kitchen objects and replaces old seeded
   assert.ok(bowls.some(bowl => bowl.color === "#ffffff" && bowl.items.every(item => item.object === "Apple")));
   assert.ok(bowls.some(bowl => bowl.items.length === 3 && bowl.items.every(item => item.object === "Bread")));
   assert.ok(bowls.some(bowl => bowl.color === "#b16832" && bowl.items.every(item => item.object === "GreenVegetable")));
-  assert.ok(first.find(item => item.object === "KitchenFireplace").chimneyHeight > 9,
+  assert.ok(first.find(item => item.object === "Fireplace").chimneyHeight > 9,
     "basement chimney reaches above the keep roof rather than the terrace");
   KitchenRoomMapObjects.prepareMap(map);
   assert.deepEqual(map.objects.slice(1), first);
@@ -136,7 +136,7 @@ test("side-tower kitchens retain preparation, pantry storage and cooking furnish
   for (const seed of [4, 5, 10, 11, 16, 17, 22, 23, 28, 29]) {
     const plan = await CastleBasePlanGenerator.generate({ planId: "castle-compact-service-wing", seed });
     const items = plan.furniture.filter(item => item.roomId === "kitchen");
-    for (const object of ["KitchenFireplace", "FirewoodStack", "FireplaceCauldron", "KitchenTable", "Bowl", "HangingFryingPan", "StoragePotteryJar"]) {
+    for (const object of ["Fireplace", "FirewoodStack", "FireplaceCauldron", "KitchenTable", "Bowl", "HangingFryingPan", "StoragePotteryJar"]) {
       assert.ok(items.some(item => item.object === object), object + " missing for seed " + seed);
     }
     const shelf = items.find(item => item.role === "storageShelf");

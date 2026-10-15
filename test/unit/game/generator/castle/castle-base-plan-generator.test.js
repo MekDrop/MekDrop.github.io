@@ -170,7 +170,7 @@ it("places the kitchen at the basement stair door, terrace storage on its right 
   assert.ok(plan.spaces.some((room) => room.generator === "ThroneRoomGenerator"));
   assert.ok(plan.spaces.some((room) => room.kind === "terrace"));
   assert.ok(plan.furniture.some((item) => item.roomId === "royal-chamber" && item.role === "royalBed"));
-  assert.ok(plan.furniture.some((item) => item.roomId === "kitchen" && item.object === "KitchenFireplace"));
+  assert.ok(plan.furniture.some((item) => item.roomId === "kitchen" && item.object === "Fireplace"));
   const kitchen = plan.spaces.find((room) => room.id === "kitchen");
   const storage = plan.spaces.find((room) => room.id === "basement-storeroom");
   const bedroom = plan.spaces.find((room) => room.id === "royal-chamber");

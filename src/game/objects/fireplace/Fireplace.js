@@ -1,5 +1,5 @@
 import modelUrl from "../../models/castle/props/kitchen-fireplace.glb?url";
-import { AbstractCastleProp } from "./AbstractCastleProp.js";
+import { AbstractCastleProp } from "../castle-props/AbstractCastleProp.js";
 import { FireSurfaceMaterial } from "../fire/FireSurfaceMaterial.js";
 import terminalModelUrl from "../../models/castle/props/terrace-chimney-terminal.glb?url";
 import chimneyModelUrl from "../../models/castle/props/kitchen-chimney-course.glb?url";
@@ -8,9 +8,9 @@ import { CASTLE_MATERIAL_DEFINITIONS } from "../../generator/castle/CastleGenera
 import { colorFromHex } from "../../helpers/colors.js";
 
 /**
- * Authored kitchen fireplace placed through the map objects array.
+ * Authored fireplace placed through the map objects array.
  */
-export class KitchenFireplace extends AbstractCastleProp {
+export class Fireplace extends AbstractCastleProp {
   /**
    * @type {import("playcanvas").StandardMaterial[]}
    */

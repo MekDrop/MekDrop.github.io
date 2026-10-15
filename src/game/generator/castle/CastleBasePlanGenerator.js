@@ -172,7 +172,7 @@ export class CastleBasePlanGenerator {
          */ (stair) => ({ ...stair, ...this.#bounds(stair.bounds, scale) })) })) {
         const halfX = item.width * item.scale / 2;
         const halfZ = item.depth * item.scale / 2;
-        const bounds = item.wallAttachment || item.role === "libraryProp" || item.role === "servantBed" || ["KitchenFireplace", "HangingFryingPan"].includes(item.object) ? room.wallBounds : room;
+        const bounds = item.wallAttachment || item.role === "libraryProp" || item.role === "servantBed" || ["Fireplace", "HangingFryingPan"].includes(item.object) ? room.wallBounds : room;
         const wallInset = item.wallInset ?? 0;
         if (item.x - halfX < bounds.minX - wallInset - 1e-6 || item.x + halfX > bounds.maxX + wallInset + 1e-6 ||
           item.z - halfZ < bounds.minZ - wallInset - 1e-6 || item.z + halfZ > bounds.maxZ + wallInset + 1e-6) { continue; }
