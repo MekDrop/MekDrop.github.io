@@ -1,5 +1,5 @@
 import { Ladder } from "./castle/Ladder.js";
-import { SignalBell } from "./castle-props/SignalBell.js";
+import { SignalBell } from "./signal-bell/SignalBell.js";
 import { BedsideDrawers } from "./castle-props/BedsideDrawers.js";
 import { WovenRug } from "./castle-props/WovenRug.js";
 import { FoldedLinens } from "./castle-props/FoldedLinens.js";

@@ -1335,6 +1335,13 @@ export class Hero {
   }
 
   /**
+   * @returns {import("playcanvas").Vec3|null}
+   */
+  get bellGripPosition() {
+    return this.#rightHeldItemAttachmentEntity?.getPosition().clone() ?? null;
+  }
+
+  /**
    *
     * @returns {boolean}
    */

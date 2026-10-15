@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { it } from "node:test";
-import { SignalBellInteraction } from "../../../../../src/game/objects/castle/SignalBellInteraction.js";
+import { SignalBellInteraction } from "../../../../../src/game/objects/signal-bell/SignalBellInteraction.js";
 
 it("starts a hand action only within reach and reserves the bell through release", () => {
   let rings = 0;

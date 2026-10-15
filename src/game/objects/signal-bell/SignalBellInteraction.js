@@ -1,9 +1,9 @@
 /**
- * An explicit E action, reachable only from the bell's own rooftop landing.
+ * An explicit E action available within reach and on the bell's elevation.
  */
 export class SignalBellInteraction {
   /**
-   * @type {import("../castle-props/SignalBell.js").SignalBell}
+   * @type {import("./SignalBell.js").SignalBell}
    */
   #bell;
   /**
@@ -16,7 +16,7 @@ export class SignalBellInteraction {
   #onComplete;
 
   /**
-   * @param {import("../castle-props/SignalBell.js").SignalBell} bell
+   * @param {import("./SignalBell.js").SignalBell} bell
    * @param {import("../hero/Hero.js").Hero} hero
    * @param {(()=>void)|undefined} onComplete
    */
@@ -51,7 +51,7 @@ export class SignalBellInteraction {
     if (!this.canInteract) { return false; }
     const accepted = this.#hero.ringBell({
       ...this.#bell.ringingPose,
-      onStart: () => this.#bell.startPull(),
+      onStart: () => this.#bell.startPull(this.#hero),
       /**
        * @param {number} time
        */

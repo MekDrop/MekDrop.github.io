@@ -1,7 +1,8 @@
-import modelUrl from "../../models/castle/props/signal-bell.glb?url";
-import soundUrl from "../../models/castle/props/signal-bell.wav?url";
-import { AbstractCastleProp } from "./AbstractCastleProp.js";
-import { SignalBellInteraction } from "../castle/SignalBellInteraction.js";
+import modelUrl from "../../models/signal-bell/signal-bell.glb?url";
+import soundUrl from "../../models/signal-bell/signal-bell.wav?url";
+import { AbstractCastleProp } from "../castle-props/AbstractCastleProp.js";
+import { SignalBellInteraction } from "./SignalBellInteraction.js";
+import { SignalBellRope } from "./SignalBellRope.js";
 
 /**
  * Map-owned alarm bell with an authored strike clip and an audible, repeatable E action.
@@ -32,6 +33,18 @@ export class SignalBell extends AbstractCastleProp {
    */
   #onRuntimeError;
   /**
+   * @type {SignalBellRope|null}
+   */
+  #rope = null;
+  /**
+   * @type {import("../hero/Hero.js").Hero|null}
+   */
+  #pullingHero = null;
+  /**
+   * @type {typeof import("playcanvas")}
+   */
+  #pc;
+  /**
    * @returns {string}
    */
   static get modelUrl() { return modelUrl; }
@@ -56,6 +69,7 @@ export class SignalBell extends AbstractCastleProp {
     super(options);
     const { pc, app, modelLibrary, definition } = options;
     this.#app = app;
+    this.#pc = pc;
     this.#onRuntimeError = options.runtime?.onRuntimeError;
     this.#model = this.visualRoots[0].children[0];
     const track = modelLibrary.getAnimationTracks(modelUrl, ["Ring"]).get("Ring");
@@ -106,9 +120,11 @@ export class SignalBell extends AbstractCastleProp {
   }
 
   /**
-   * Begin the authored grasp/pull timeline once the hero reaches the rope.
+   * Begin the bell timeline; the rope follows Ammo and the hero's actual glove.
+   * @param {import("../hero/Hero.js").Hero} hero
    */
-  startPull() {
+  startPull(hero) {
+    this.#pullingHero = hero;
     const layer = this.#model.anim.baseLayer;
     layer.play("Ring");
     layer.activeStateCurrentTime = 0;
@@ -120,6 +136,9 @@ export class SignalBell extends AbstractCastleProp {
    * @param {number} time
    */
   setPullTime(time) {
+    if (this.#rope && time >= 0.5 && time < 1.2) {
+      this.#rope.hand = () => this.#pullingHero?.bellGripPosition ?? null;
+    } else { this.#rope?.release(); }
     this.#model.anim.baseLayer.activeStateCurrentTime = time;
     this.#model.anim.update(0);
   }
@@ -137,6 +156,8 @@ export class SignalBell extends AbstractCastleProp {
    */
   endRinging() {
     this.#ringing = false;
+    this.#pullingHero = null;
+    this.#rope?.release();
     if (this.#model.anim) { this.setPullTime(0); }
   }
 
@@ -164,10 +185,14 @@ export class SignalBell extends AbstractCastleProp {
   }
 
   // The fixed frame and animated bell share a model; do not bake it into a batch.
-  onSceneReady() {}
+  onSceneReady() {
+    this.#rope ??= new SignalBellRope(this.#pc, this.#app, this.#model);
+  }
 
   destroy() {
     this.#ringing = false;
+    this.#rope?.destroy();
+    this.#rope = null;
     this.visualRoots[0].sound.stop();
     super.destroy();
     this.#sound.unload();

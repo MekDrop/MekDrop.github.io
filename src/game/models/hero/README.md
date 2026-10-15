@@ -44,7 +44,10 @@ Idle. The bell prop uses the same timeline; its strike sound occurs at 0.9 secon
 The exported arm motion is baked from two-link contacts, with the standing pose
 explicitly keyed on the remaining animated joints. Teleporting, losing support,
 or a blocked approach exits the action and releases the bell reservation.
-The string has a knot at the grip and a loose tail. The hand draws the grip
-from 0.65 to 0.5 metres above the floor; both clips are sampled on the action
-clock so a slow frame cannot separate the hand, string, and strike. Existing
-hero clips retain their original 24 fps timing.
+The string has a knot at the grip and a loose tail. Ammo ball joints simulate
+the rope in the game's physics world, with its top following the bell clapper.
+From 0.5 to 1.2 seconds a temporary joint attaches the grip to the actual right
+glove. Release or interruption removes that joint so the rope swings and settles
+under gravity. Only the hero and bell bowl retain authored motion; the exported
+bell clip contains no rope tracks. Existing hero clips retain their original
+24 fps timing.
