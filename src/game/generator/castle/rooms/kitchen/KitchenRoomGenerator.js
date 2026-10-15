@@ -164,7 +164,7 @@ export class KitchenRoomGenerator extends AbstractCastleRoomGenerator {
         break;
       }
       if (random() < 0.85) {
-        prop(random() < 0.5 ? "WoodenCrate" : "WoodenBarrel", westEntry ? room.minX + 2.2 : room.maxX - 0.43,
+        prop(random() < 0.5 ? "WoodenCrate" : "Barrel", westEntry ? room.minX + 2.2 : room.maxX - 0.43,
           room.maxZ - 0.43, 0.554, 0.554);
       }
       if (depth >= 4.2 && random() < 0.65) {
@@ -176,7 +176,7 @@ export class KitchenRoomGenerator extends AbstractCastleRoomGenerator {
       for (const fraction of [0.2, 0.5, 0.8]) {
         for (const z of [room.maxZ - inset - 0.3, room.minZ + inset + 0.3]) {
           const x = room.minX + inset + 0.3 + fraction * (width - 2 * inset - 0.6);
-          if (!(x - 0.277 < room.minX + 1.2 && z + 0.277 > room.maxZ - 1.35) && supplies < 3 && prop(supplies === 0 ? "WoodenBarrel" : "WoodenCrate", x, z, 0.554, 0.554)) {
+          if (!(x - 0.277 < room.minX + 1.2 && z + 0.277 > room.maxZ - 1.35) && supplies < 3 && prop(supplies === 0 ? "Barrel" : "WoodenCrate", x, z, 0.554, 0.554)) {
             prop(supplies === 0 ? "StoragePotteryJar" : "FoldedLinens", x, z, 0.23, 0.236, supplies === 0 ? 0.65 : 0.4702);
             supplies++;
           }

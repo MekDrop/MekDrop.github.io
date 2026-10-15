@@ -137,7 +137,7 @@ export class ServiceRoomFurnishing {
     const count = quarters ? 0 : sleeping ? 1 + Math.floor(this.#random() * 2) : 3 + Math.floor(this.#random() * 4);
     for (let index = 0; index < count; index++) {
       const choice = Math.floor(this.#random() * 3);
-      const props = [["StoragePotteryJar", 0.2286, 0.2359, 0.3], ["WoodenCrate", 0.55, 0.549, 0.4702], ["WoodenBarrel", 0.5528, 0.554, 0.65]];
+      const props = [["StoragePotteryJar", 0.2286, 0.2359, 0.3], ["WoodenCrate", 0.55, 0.549, 0.4702], ["Barrel", 0.5528, 0.554, 0.65]];
       const [role, width, depth, height] = props[choice];
       const item = this.#perimeter(role, width, depth, height);
       this.#storageBank ??= item;
@@ -261,7 +261,7 @@ export class ServiceRoomFurnishing {
        * @param {{x:number,z:number}} second
        */ (first, second) => first.x - second.x || first.z - second.z);
     }
-    if (this.#storageBank && ["StoragePotteryJar", "WoodenCrate", "WoodenBarrel"].includes(role)) {
+    if (this.#storageBank && ["StoragePotteryJar", "WoodenCrate", "Barrel"].includes(role)) {
       candidates.sort(/**
        * @param {{x:number,z:number}} first
        * @param {{x:number,z:number}} second

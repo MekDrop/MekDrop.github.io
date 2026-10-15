@@ -125,9 +125,9 @@ export class StairwellRoomGenerator extends AbstractCastleRoomGenerator {
         }
       }
       for (const prop of [
-        { object: "WoodenBarrel", slot: sine < 0 ? -0.72 : 0.72, along: -0.91, width: 0.554, depth: 0.554, height: 0.65, scale: 0.8,
+        { object: "Barrel", slot: sine < 0 ? -0.72 : 0.72, along: -0.91, width: 0.554, depth: 0.554, height: 0.65, scale: 0.8,
           endWallStorage: true },
-        { object: "WoodenBarrel", slot: sine < 0 ? -0.72 : 0.72, along: -0.33, width: 0.554, depth: 0.554, height: 0.65, scale: 0.8,
+        { object: "Barrel", slot: sine < 0 ? -0.72 : 0.72, along: -0.33, width: 0.554, depth: 0.554, height: 0.65, scale: 0.8,
           endWallStorage: true },
         { object: "WoodenWaterBucket", slot: sine < 0 ? 1.29 : -1.29, along: 0.5, width: 0.3, depth: 0.28, height: 0.4, scale: 1 },
         { object: "StoragePotteryJar", slot: sine < 0 ? -1.17 : 1.17, along: -0.33, width: 0.229, depth: 0.236, height: 0.3, scale: 1,
@@ -146,7 +146,7 @@ export class StairwellRoomGenerator extends AbstractCastleRoomGenerator {
           z - half >= area.minZ && z + half <= area.maxZ)) { continue; }
         items.push({ ...prop, role: "stairwellProp", x, z, floorY: stair.center.y,
           roomId: `under-stair:${stair.id}`, y: 0.002 + (prop.y ?? 0) + (prop.tilt ? 0.277 * prop.scale : 0),
-          rotation: stair.yaw - plan.origin.yaw + (prop.tilt || prop.object === "WoodenBarrel" ? 0 : random() * 360),
+          rotation: stair.yaw - plan.origin.yaw + (prop.tilt || prop.object === "Barrel" ? 0 : random() * 360),
           weathering: 0.6, underStair: true });
       }
       // Fill the small rear pocket beside the barrel without extending storage
@@ -222,7 +222,7 @@ export class StairwellRoomGenerator extends AbstractCastleRoomGenerator {
         if (item.stackedBarrel) {
           const support = items.slice(firstItem).find(/**
            * @param {{object:string,tilt?:object}} candidate
-           */ candidate => candidate.object === "WoodenBarrel" && !candidate.tilt);
+           */ candidate => candidate.object === "Barrel" && !candidate.tilt);
           if (support) {
             item.x = support.x + 0.325 * item.scale * sine + 0.03 * sine;
             item.z = support.z + 0.325 * item.scale * cosine + 0.03 * cosine;

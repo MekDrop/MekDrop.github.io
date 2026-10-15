@@ -1099,7 +1099,7 @@
     },
     {
       "id": "wooden-barrel",
-      "object": "WoodenBarrel",
+      "object": "Barrel",
       "tile": {
         "col": 6,
         "row": 3

@@ -51,7 +51,7 @@ import { Bread } from "./bread/Bread.js";
 import { SingleCandleStand } from "./castle-props/SingleCandleStand.js";
 import { StoragePotteryJar } from "./castle-props/StoragePotteryJar.js";
 import { TableCandles } from "./castle-props/TableCandles.js";
-import { WoodenBarrel } from "./castle-props/WoodenBarrel.js";
+import { Barrel } from "./barrel/Barrel.js";
 import { WoodenCrate } from "./castle-props/WoodenCrate.js";
 import { WoodenStorageChest } from "./castle-props/WoodenStorageChest.js";
 import { FirewoodStack } from "./firewood-stack/FirewoodStack.js";
@@ -153,7 +153,7 @@ const OBJECT_CLASSES = new Map([
   [SingleCandleStand.name, SingleCandleStand],
   [StoragePotteryJar.name, StoragePotteryJar],
   [TableCandles.name, TableCandles],
-  [WoodenBarrel.name, WoodenBarrel],
+  [Barrel.name, Barrel],
   [WoodenCrate.name, WoodenCrate],
   [WoodenStorageChest.name, WoodenStorageChest],
   [FirewoodStack.name, FirewoodStack],
