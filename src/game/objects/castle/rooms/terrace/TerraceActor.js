@@ -1,6 +1,6 @@
-import { TERRACE_ACTOR_ANIMATION } from "../../enum/TerraceActorAnimation.js";
-import { NpcDoorAvoidance } from "../shared/NpcDoorAvoidance.js";
-import { ServantHeroClearance } from "../shared/ServantHeroClearance.js";
+import { TERRACE_ACTOR_ANIMATION } from "../../../../enum/TerraceActorAnimation.js";
+import { NpcDoorAvoidance } from "../../../shared/NpcDoorAvoidance.js";
+import { ServantHeroClearance } from "../../../shared/ServantHeroClearance.js";
 
 const LOOPING_ANIMATIONS = new Set([
   TERRACE_ACTOR_ANIMATION.IDLE,
@@ -170,12 +170,12 @@ export class TerraceActor {
   }
 
   /**
-   * @returns {import("../shared/NpcStateMachine.js").NpcStateMachine}
+   * @returns {import("../../../shared/NpcStateMachine.js").NpcStateMachine}
    */
   get behavior() { return this.#doorAvoidance.behavior; }
 
   /**
-   * @param {import("../shared/NpcStateMachine.js").NpcStateMachine} behavior
+   * @param {import("../../../shared/NpcStateMachine.js").NpcStateMachine} behavior
    */
   set behavior(behavior) { this.#doorAvoidance.behavior = behavior; }
 

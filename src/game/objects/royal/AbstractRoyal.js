@@ -1,7 +1,7 @@
-import { CastleTerraceActivity } from "../castle/CastleTerraceActivity.js";
+import { CastleTerraceActivity } from "../castle/rooms/terrace/CastleTerraceActivity.js";
 import { DynamicRenderBatch } from "../../rendering/DynamicRenderBatch.js";
 import { SeatedRoyal } from "../castle/SeatedRoyal.js";
-import { TerraceRoyalActions } from "../castle/TerraceRoyalActions.js";
+import { TerraceRoyalActions } from "../castle/rooms/terrace/TerraceRoyalActions.js";
 
 /**
  * Shared map-object lifecycle for a royal resident.
@@ -37,7 +37,7 @@ export class AbstractRoyal {
    */
   #audienceActor;
   /**
-   * @type {import("../castle/TerraceKing.js").TerraceKing|import("../castle/TerraceQueen.js").TerraceQueen|import("../castle/TerracePrincess.js").TerracePrincess}
+   * @type {import("../castle/rooms/terrace/TerraceKing.js").TerraceKing|import("../castle/rooms/terrace/TerraceQueen.js").TerraceQueen|import("../castle/rooms/terrace/TerracePrincess.js").TerracePrincess}
    */
   #resident;
   /**

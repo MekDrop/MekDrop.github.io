@@ -2,14 +2,14 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { it } from "node:test";
 import * as pc from "playcanvas";
-import { TerraceActor } from "../../../../../src/game/objects/castle/TerraceActor.js";
-import { TERRACE_ACTOR_ANIMATION } from "../../../../../src/game/enum/TerraceActorAnimation.js";
+import { TerraceActor } from "../../../../../../../src/game/objects/castle/rooms/terrace/TerraceActor.js";
+import { TERRACE_ACTOR_ANIMATION } from "../../../../../../../src/game/enum/TerraceActorAnimation.js";
 
 // Exercise the authored object hierarchy without a GPU context.
 function royalModel(kind) {
   const directory = kind.endsWith("servant") ? "leisure" : "royals";
   const buffer = readFileSync(new URL(
-    `../../../../../src/game/models/castle/${directory}/${kind}.glb`, import.meta.url,
+    `../../../../../../../src/game/models/castle/${directory}/${kind}.glb`, import.meta.url,
   ));
   const gltf = JSON.parse(buffer.subarray(20, 20 + buffer.readUInt32LE(12)));
   const nodes = gltf.nodes.map((node) => {

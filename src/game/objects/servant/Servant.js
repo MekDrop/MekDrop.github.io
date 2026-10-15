@@ -2,9 +2,9 @@ import servantModelUrl from "../../models/castle/leisure/servant.glb?url";
 import { DynamicRenderBatch } from "../../rendering/DynamicRenderBatch.js";
 import { CHARACTER_HEIGHT } from "../../config/character-size.js";
 import { CastleResidentMotion } from "../castle/CastleResidentMotion.js";
-import { TerraceActor } from "../castle/TerraceActor.js";
-import { TerraceServantBehavior } from "../castle/TerraceServantBehavior.js";
-import { TerraceServiceActions } from "../castle/TerraceServiceActions.js";
+import { TerraceActor } from "../castle/rooms/terrace/TerraceActor.js";
+import { TerraceServantBehavior } from "../castle/rooms/terrace/TerraceServantBehavior.js";
+import { TerraceServiceActions } from "../castle/rooms/terrace/TerraceServiceActions.js";
 
 export class Servant {
   /**
@@ -39,7 +39,7 @@ export class Servant {
   #entity;
   /**
    *
-    * @type {import("../castle/TerraceServantBehavior.js").TerraceServantBehavior|null}
+    * @type {import("../castle/rooms/terrace/TerraceServantBehavior.js").TerraceServantBehavior|null}
    */
   #behavior = null;
   /**

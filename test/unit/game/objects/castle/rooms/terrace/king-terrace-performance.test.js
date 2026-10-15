@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { it } from "node:test";
-import { KING_ANIMATION } from "../../../../../src/game/enum/KingAnimation.js";
-import { KingTerracePerformance } from "../../../../../src/game/objects/castle/KingTerracePerformance.js";
+import { KING_ANIMATION } from "../../../../../../../src/game/enum/KingAnimation.js";
+import { KingTerracePerformance } from "../../../../../../../src/game/objects/castle/rooms/terrace/KingTerracePerformance.js";
 
 it("selects model-authored idle and walk clips", () => {
   const performance = new KingTerracePerformance(0.5);
@@ -59,7 +59,7 @@ import { readFileSync } from "node:fs";
 import * as pc from "playcanvas";
 
 it("keeps resident sword movement in the terrace frame and resumes clips after sitting", () => {
-  const source = readFileSync(new URL("../../../../../src/game/objects/castle/TerraceKing.js", import.meta.url), "utf8")
+  const source = readFileSync(new URL("../../../../../../../src/game/objects/castle/rooms/terrace/TerraceKing.js", import.meta.url), "utf8")
     .replace(/^import[^\n]+\r?\n/gm, "");
   const layer = { activeState: null, play(name) { this.activeState = name; }, transition(name) { this.play(name); } };
   const entity = new pc.Entity();

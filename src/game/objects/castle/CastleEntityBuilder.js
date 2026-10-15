@@ -168,7 +168,7 @@ export class CastleEntityBuilder {
   #audienceRoom = null;
   /**
    *
-    * @type {import("./CastleTerraceActivity.js").CastleTerraceActivity|null}
+    * @type {import("./rooms/terrace/CastleTerraceActivity.js").CastleTerraceActivity|null}
    */
   #terraceActivity = null;
   /**

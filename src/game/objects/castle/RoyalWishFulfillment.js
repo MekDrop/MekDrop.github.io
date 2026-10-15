@@ -4,19 +4,19 @@
 export class RoyalWishFulfillment {
   /**
    *
-    * @type {import("./RoyalTerraceActivityBehavior.js").RoyalTerraceActivityBehavior}
+    * @type {import("./rooms/terrace/RoyalTerraceActivityBehavior.js").RoyalTerraceActivityBehavior}
    */
   #royal;
   /**
    *
-    * @type {import("./TerraceServantBehavior.js").TerraceServantBehavior|null}
+    * @type {import("./rooms/terrace/TerraceServantBehavior.js").TerraceServantBehavior|null}
    */
   #servant;
 
   /**
    *
-   * @param {import("./RoyalTerraceActivityBehavior.js").RoyalTerraceActivityBehavior} royal
-   * @param {import("./TerraceServantBehavior.js").TerraceServantBehavior|null} servant
+   * @param {import("./rooms/terrace/RoyalTerraceActivityBehavior.js").RoyalTerraceActivityBehavior} royal
+   * @param {import("./rooms/terrace/TerraceServantBehavior.js").TerraceServantBehavior|null} servant
    */
   constructor(royal, servant = null) {
     this.#royal = royal;

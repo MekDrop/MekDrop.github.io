@@ -89,7 +89,7 @@ export class AbstractTerraceParticipantState extends State {
 
   /**
    *
-   * @param {import("../../TerraceParticipantStateMachine.js").TerraceParticipantStateMachine} owner
+   * @param {import("../../rooms/terrace/TerraceParticipantStateMachine.js").TerraceParticipantStateMachine} owner
    */
   enter(owner) {
     owner.enterAction(this);
@@ -97,7 +97,7 @@ export class AbstractTerraceParticipantState extends State {
 
   /**
    *
-   * @param {import("../../TerraceParticipantStateMachine.js").TerraceParticipantStateMachine} owner
+   * @param {import("../../rooms/terrace/TerraceParticipantStateMachine.js").TerraceParticipantStateMachine} owner
    */
   execute(owner) {
     owner.updateAction(this);
@@ -106,7 +106,7 @@ export class AbstractTerraceParticipantState extends State {
 
   /**
    *
-   * @param {import("../../TerraceParticipantStateMachine.js").TerraceParticipantStateMachine} owner
+   * @param {import("../../rooms/terrace/TerraceParticipantStateMachine.js").TerraceParticipantStateMachine} owner
    */
   exit(owner) {
     owner.exitAction(this);

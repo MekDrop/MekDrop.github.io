@@ -1,15 +1,15 @@
-import { TERRACE_DOOR_INSPECTION_PHASE as PHASE } from "../../enum/TerraceDoorInspectionPhase.js";
-import { ServantStateMachine } from "./ServantStateMachine.js";
-import { ServantWaitState } from "./states/servant/ServantWaitState.js";
-import { ServantNoticeState } from "./states/servant/ServantNoticeState.js";
-import { ServantWalkOutState } from "./states/servant/ServantWalkOutState.js";
-import { ServantLookLeftState } from "./states/servant/ServantLookLeftState.js";
-import { ServantLookRightState } from "./states/servant/ServantLookRightState.js";
-import { ServantReturnState } from "./states/servant/ServantReturnState.js";
-import { ServantGraspState } from "./states/servant/ServantGraspState.js";
-import { ServantCloseState } from "./states/servant/ServantCloseState.js";
-import { ServantReleaseState } from "./states/servant/ServantReleaseState.js";
-import { ServantLeaveState } from "./states/servant/ServantLeaveState.js";
+import { TERRACE_DOOR_INSPECTION_PHASE as PHASE } from "../../../../enum/TerraceDoorInspectionPhase.js";
+import { ServantStateMachine } from "../../ServantStateMachine.js";
+import { ServantWaitState } from "../../states/servant/ServantWaitState.js";
+import { ServantNoticeState } from "../../states/servant/ServantNoticeState.js";
+import { ServantWalkOutState } from "../../states/servant/ServantWalkOutState.js";
+import { ServantLookLeftState } from "../../states/servant/ServantLookLeftState.js";
+import { ServantLookRightState } from "../../states/servant/ServantLookRightState.js";
+import { ServantReturnState } from "../../states/servant/ServantReturnState.js";
+import { ServantGraspState } from "../../states/servant/ServantGraspState.js";
+import { ServantCloseState } from "../../states/servant/ServantCloseState.js";
+import { ServantReleaseState } from "../../states/servant/ServantReleaseState.js";
+import { ServantLeaveState } from "../../states/servant/ServantLeaveState.js";
 
 const STATES = [
   new ServantWaitState({
@@ -75,7 +75,7 @@ export class TerraceDoorInspection extends ServantStateMachine {
       states: STATES,
       /**
        *
-       * @param {import("./states/servant/AbstractServantState.js").AbstractServantState} state
+       * @param {import("../../states/servant/AbstractServantState.js").AbstractServantState} state
        * @param {{doorwayBusy: boolean}|null} context
        */
       holdState: (state, context) =>

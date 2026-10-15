@@ -5,7 +5,7 @@ import { KingFinishTrainingState } from "./states/terrace/king/KingFinishTrainin
 import { KingOnThroneState } from "./states/terrace/king/KingOnThroneState.js";
 import { KingPrepareTrainingState } from "./states/terrace/king/KingPrepareTrainingState.js";
 import { KingReturnToThroneState } from "./states/terrace/king/KingReturnToThroneState.js";
-import { RoyalTerraceActivityBehavior } from "./RoyalTerraceActivityBehavior.js";
+import { RoyalTerraceActivityBehavior } from "./rooms/terrace/RoyalTerraceActivityBehavior.js";
 
 export class KingTrainingBehavior extends RoyalTerraceActivityBehavior {
   /**

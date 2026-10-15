@@ -61,7 +61,7 @@ export class TerraceServiceActions {
   get arrived() { return this.#servant.arrived; }
 
   /**
-   * @returns {import("../../ObjectTypes.js").TerraceActivityState}
+   * @returns {import("../../../../ObjectTypes.js").TerraceActivityState}
    */
   get state() {
     return { ...EMPTY_STATE, ...this.#service.state };

@@ -1,6 +1,6 @@
-import { CASTLE_TERRACE_PHASE as PHASE } from "../../enum/CastleTerracePhase.js";
-import { CastleResidentMotion } from "./CastleResidentMotion.js";
-import { CHARACTER_HEIGHT } from "../../config/character-size.js";
+import { CASTLE_TERRACE_PHASE as PHASE } from "../../../../enum/CastleTerracePhase.js";
+import { CastleResidentMotion } from "../../CastleResidentMotion.js";
+import { CHARACTER_HEIGHT } from "../../../../config/character-size.js";
 import { syncTerraceWalk, terracePathYaw } from "./TerraceMovement.js";
 
 const DOORWAY_START_Z = -1.4;

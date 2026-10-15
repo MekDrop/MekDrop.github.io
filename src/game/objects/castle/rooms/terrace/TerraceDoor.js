@@ -1,6 +1,6 @@
-import terraceDoorUrl from "../../models/castle/leisure/terrace-door.glb?url";
-import terraceStairheadUrl from "../../models/castle/leisure/terrace-stairhead.glb?url";
-import { CASTLE_DOOR_ANIMATION } from "../../enum/CastleDoorAnimation.js";
+import terraceDoorUrl from "../../../../models/castle/leisure/terrace-door.glb?url";
+import terraceStairheadUrl from "../../../../models/castle/leisure/terrace-stairhead.glb?url";
+import { CASTLE_DOOR_ANIMATION } from "../../../../enum/CastleDoorAnimation.js";
 
 /**
  * A roof stairhead with a single rectangular door opening onto the terrace.

@@ -1,5 +1,5 @@
-import kingModelUrl from "../../models/castle/royals/king.glb?url";
-import { KING_ANIMATION } from "../../enum/KingAnimation.js";
+import kingModelUrl from "../../../../models/castle/royals/king.glb?url";
+import { KING_ANIMATION } from "../../../../enum/KingAnimation.js";
 import { KingTerracePerformance } from "./KingTerracePerformance.js";
 import { TerraceActor } from "./TerraceActor.js";
 
@@ -107,12 +107,12 @@ export class TerraceKing {
   get model() { return this.#actor.model; }
 
   /**
-   * @returns {import("../shared/NpcStateMachine.js").NpcStateMachine}
+   * @returns {import("../../../shared/NpcStateMachine.js").NpcStateMachine}
    */
   get behavior() { return this.#actor.behavior; }
 
   /**
-   * @param {import("../shared/NpcStateMachine.js").NpcStateMachine} value
+   * @param {import("../../../shared/NpcStateMachine.js").NpcStateMachine} value
    */
   set behavior(value) { this.#actor.behavior = value; }
 

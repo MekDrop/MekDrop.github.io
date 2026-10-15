@@ -1,7 +1,7 @@
-import servantUrl from "../../models/castle/leisure/servant.glb?url";
-import { CHARACTER_HEIGHT } from "../../config/character-size.js";
-import elderServantUrl from "../../models/castle/leisure/elder-servant.glb?url";
-import { CASTLE_TERRACE_PHASE as PHASE } from "../../enum/CastleTerracePhase.js";
+import servantUrl from "../../../../models/castle/leisure/servant.glb?url";
+import { CHARACTER_HEIGHT } from "../../../../config/character-size.js";
+import elderServantUrl from "../../../../models/castle/leisure/elder-servant.glb?url";
+import { CASTLE_TERRACE_PHASE as PHASE } from "../../../../enum/CastleTerracePhase.js";
 import { TerraceActor } from "./TerraceActor.js";
 import { syncTerraceWalk } from "./TerraceMovement.js";
 
@@ -33,7 +33,7 @@ export class TerraceServantActions {
    */
   #visit = -1;
   /**
-   * @type {import("./CastleResidentMotion.js").CastleResidentMotion|null}
+   * @type {import("../../CastleResidentMotion.js").CastleResidentMotion|null}
    */
   #motion = null;
   /**

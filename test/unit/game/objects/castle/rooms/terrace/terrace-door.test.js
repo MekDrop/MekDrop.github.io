@@ -11,7 +11,7 @@ const hooks = registerHooks({
     return nextResolve(specifier, context);
   },
 });
-const { TerraceDoor } = await import("../../../../../src/game/objects/castle/TerraceDoor.js");
+const { TerraceDoor } = await import("../../../../../../../src/game/objects/castle/rooms/terrace/TerraceDoor.js");
 hooks.deregister();
 
 function fixture() {

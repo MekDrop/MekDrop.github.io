@@ -1,4 +1,4 @@
-import princessModelUrl from "../../models/castle/royals/princess.glb?url";
+import princessModelUrl from "../../../../models/castle/royals/princess.glb?url";
 import { TerraceActor } from "./TerraceActor.js";
 
 /**
@@ -48,12 +48,12 @@ export class TerracePrincess {
   get model() { return this.#actor.model; }
 
   /**
-   * @returns {import("../shared/NpcStateMachine.js").NpcStateMachine}
+   * @returns {import("../../../shared/NpcStateMachine.js").NpcStateMachine}
    */
   get behavior() { return this.#actor.behavior; }
 
   /**
-   * @param {import("../shared/NpcStateMachine.js").NpcStateMachine} value
+   * @param {import("../../../shared/NpcStateMachine.js").NpcStateMachine} value
    */
   set behavior(value) { this.#actor.behavior = value; }
 

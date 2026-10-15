@@ -1,8 +1,8 @@
-import sunbedUrl from "../../models/castle/leisure/folding-daybed.glb?url";
-import { FoldingDaybedDelivery } from "./FoldingDaybedDelivery.js";
-import bookUrl from "../../models/castle/leisure/open-book.glb?url";
-import { BOOK_ANIMATION } from "../../enum/BookAnimation.js";
-import { CASTLE_TERRACE_PHASE as PHASE } from "../../enum/CastleTerracePhase.js";
+import sunbedUrl from "../../../../models/castle/leisure/folding-daybed.glb?url";
+import { FoldingDaybedDelivery } from "../../FoldingDaybedDelivery.js";
+import bookUrl from "../../../../models/castle/leisure/open-book.glb?url";
+import { BOOK_ANIMATION } from "../../../../enum/BookAnimation.js";
+import { CASTLE_TERRACE_PHASE as PHASE } from "../../../../enum/CastleTerracePhase.js";
 
 const SUNBED_POSITION = [0, 0, 3.1];
 const SUNBED_CARRY_OFFSET = [0, 0.75, 0.9];

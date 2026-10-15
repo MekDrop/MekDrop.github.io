@@ -3,7 +3,7 @@ import { it } from "node:test";
 import {
   syncTerraceWalk,
   terracePathYaw,
-} from "../../../../../src/game/objects/castle/TerraceMovement.js";
+} from "../../../../../../../src/game/objects/castle/rooms/terrace/TerraceMovement.js";
 
 const TARGET = [-0.75, 0, 3.2];
 

@@ -1,4 +1,4 @@
-import { CASTLE_TERRACE_PHASE as STAGE } from "../../enum/CastleTerracePhase.js";
+import { CASTLE_TERRACE_PHASE as STAGE } from "../../../../enum/CastleTerracePhase.js";
 import { TerraceParticipantStateMachine } from "./TerraceParticipantStateMachine.js";
 
 /**

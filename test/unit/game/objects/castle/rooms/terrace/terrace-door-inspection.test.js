@@ -1,12 +1,12 @@
 import assert from "node:assert/strict";
 import { it } from "node:test";
 import { State } from "yuka";
-import { ServantStateMachine } from "../../../../../src/game/objects/castle/ServantStateMachine.js";
-import { TerraceDoorInspection } from "../../../../../src/game/objects/castle/TerraceDoorInspection.js";
-import { ServantWaitState } from "../../../../../src/game/objects/castle/states/servant/ServantWaitState.js";
-import { ServantNoticeState } from "../../../../../src/game/objects/castle/states/servant/ServantNoticeState.js";
-import { ServantLookLeftState } from "../../../../../src/game/objects/castle/states/servant/ServantLookLeftState.js";
-import { ServantCloseState } from "../../../../../src/game/objects/castle/states/servant/ServantCloseState.js";
+import { ServantStateMachine } from "../../../../../../../src/game/objects/castle/ServantStateMachine.js";
+import { TerraceDoorInspection } from "../../../../../../../src/game/objects/castle/rooms/terrace/TerraceDoorInspection.js";
+import { ServantWaitState } from "../../../../../../../src/game/objects/castle/states/servant/ServantWaitState.js";
+import { ServantNoticeState } from "../../../../../../../src/game/objects/castle/states/servant/ServantNoticeState.js";
+import { ServantLookLeftState } from "../../../../../../../src/game/objects/castle/states/servant/ServantLookLeftState.js";
+import { ServantCloseState } from "../../../../../../../src/game/objects/castle/states/servant/ServantCloseState.js";
 
 it("uses distinct Yuka states to notice, inspect, and close the door", () => {
   const notice = new ServantNoticeState({

@@ -102,7 +102,7 @@ it("holds position when a doorway blocks the route and resumes the same actor", 
   for (let index = 0; index < 100; index++) { motion.update(0.1); }
   assert.equal(motion.arrived, true);
 });
-import { TerraceRoyalActions } from "../../../../../src/game/objects/castle/TerraceRoyalActions.js";
+import { TerraceRoyalActions } from "../../../../../src/game/objects/castle/rooms/terrace/TerraceRoyalActions.js";
 import { QueenLeisureBehavior } from "../../../../../src/game/objects/castle/QueenLeisureBehavior.js";
 import { PrincessLeisureBehavior } from "../../../../../src/game/objects/castle/PrincessLeisureBehavior.js";
 import { KingTrainingBehavior } from "../../../../../src/game/objects/castle/KingTrainingBehavior.js";

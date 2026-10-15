@@ -1,7 +1,7 @@
-import potUrl from "../../models/castle/leisure/teapot.glb?url";
-import cupUrl from "../../models/castle/leisure/teacup.glb?url";
-import trayUrl from "../../models/castle/leisure/serving-tray.glb?url";
-import { CASTLE_TERRACE_PHASE as PHASE } from "../../enum/CastleTerracePhase.js";
+import potUrl from "../../../../models/castle/leisure/teapot.glb?url";
+import cupUrl from "../../../../models/castle/leisure/teacup.glb?url";
+import trayUrl from "../../../../models/castle/leisure/serving-tray.glb?url";
+import { CASTLE_TERRACE_PHASE as PHASE } from "../../../../enum/CastleTerracePhase.js";
 
 const POSITIONS = {
   pot: [0.92, 1.2, 3.0],

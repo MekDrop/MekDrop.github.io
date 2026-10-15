@@ -1,7 +1,7 @@
 import kingModelUrl from "../../../models/castle/royals/king.glb?url";
-import { CastleTerraceActivity } from "../../castle/CastleTerraceActivity.js";
+import { CastleTerraceActivity } from "../../castle/rooms/terrace/CastleTerraceActivity.js";
 import { KingTrainingBehavior } from "../../castle/KingTrainingBehavior.js";
-import { TerraceKing } from "../../castle/TerraceKing.js";
+import { TerraceKing } from "../../castle/rooms/terrace/TerraceKing.js";
 import { AbstractRoyal } from "../AbstractRoyal.js";
 
 export class King extends AbstractRoyal {

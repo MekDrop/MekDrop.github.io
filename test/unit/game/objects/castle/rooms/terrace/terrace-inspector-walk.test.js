@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { it } from "node:test";
-import { TerraceInspectorWalk } from "../../../../../src/game/objects/castle/TerraceInspectorWalk.js";
+import { TerraceInspectorWalk } from "../../../../../../../src/game/objects/castle/rooms/terrace/TerraceInspectorWalk.js";
 const route = {
   start: { x: 0, y: 0, z: 0.72 }, end: { x: -0.4, y: 0, z: 0.8 },
   startYaw: 90, endYaw: -100, duration: 3, scale: 0.45,

@@ -1,4 +1,4 @@
-import { NpcStateMachine } from "../shared/NpcStateMachine.js";
+import { NpcStateMachine } from "../../../shared/NpcStateMachine.js";
 
 /**
  * Game-time Yuka machine shared by individual terrace participants.
@@ -22,7 +22,7 @@ export class TerraceParticipantStateMachine extends NpcStateMachine {
   #interruptions = [];
   /**
    *
-    * @type {{enter?: (state: import("./states/terrace/AbstractTerraceParticipantState.js").AbstractTerraceParticipantState, machine: TerraceParticipantStateMachine) => void, update?: (state: import("./states/terrace/AbstractTerraceParticipantState.js").AbstractTerraceParticipantState, machine: TerraceParticipantStateMachine) => void, exit?: (state: import("./states/terrace/AbstractTerraceParticipantState.js").AbstractTerraceParticipantState, machine: TerraceParticipantStateMachine) => void}|null}
+    * @type {{enter?: (state: import("../../states/terrace/AbstractTerraceParticipantState.js").AbstractTerraceParticipantState, machine: TerraceParticipantStateMachine) => void, update?: (state: import("../../states/terrace/AbstractTerraceParticipantState.js").AbstractTerraceParticipantState, machine: TerraceParticipantStateMachine) => void, exit?: (state: import("../../states/terrace/AbstractTerraceParticipantState.js").AbstractTerraceParticipantState, machine: TerraceParticipantStateMachine) => void}|null}
    */
   #actionHandler = null;
   /**
@@ -140,7 +140,7 @@ export class TerraceParticipantStateMachine extends NpcStateMachine {
 
   /**
    *
-   * @param {import("./states/terrace/AbstractTerraceParticipantState.js").AbstractTerraceParticipantState} state
+   * @param {import("../../states/terrace/AbstractTerraceParticipantState.js").AbstractTerraceParticipantState} state
    */
   enterAction(state) {
     if (this.resumingReaction) { return; }
@@ -149,7 +149,7 @@ export class TerraceParticipantStateMachine extends NpcStateMachine {
 
   /**
    *
-   * @param {import("./states/terrace/AbstractTerraceParticipantState.js").AbstractTerraceParticipantState} state
+   * @param {import("../../states/terrace/AbstractTerraceParticipantState.js").AbstractTerraceParticipantState} state
    */
   updateAction(state) {
     this.#actionHandler?.update?.(state, this);
@@ -157,7 +157,7 @@ export class TerraceParticipantStateMachine extends NpcStateMachine {
 
   /**
    *
-   * @param {import("./states/terrace/AbstractTerraceParticipantState.js").AbstractTerraceParticipantState} state
+   * @param {import("../../states/terrace/AbstractTerraceParticipantState.js").AbstractTerraceParticipantState} state
    */
   exitAction(state) {
     if (this.reactionTransition) { return; }
@@ -193,7 +193,7 @@ export class TerraceParticipantStateMachine extends NpcStateMachine {
 
   /**
    *
-   * @param {import("./states/terrace/AbstractTerraceParticipantState.js").AbstractTerraceParticipantState} state
+   * @param {import("../../states/terrace/AbstractTerraceParticipantState.js").AbstractTerraceParticipantState} state
    */
   completeState(state) {
     if (this.#elapsed < state.duration) {
@@ -214,7 +214,7 @@ export class TerraceParticipantStateMachine extends NpcStateMachine {
 
   /**
    *
-   * @param {import("./states/terrace/AbstractTerraceParticipantState.js").AbstractTerraceParticipantState} state
+   * @param {import("../../states/terrace/AbstractTerraceParticipantState.js").AbstractTerraceParticipantState} state
    */
   addInterruption(state) {
     this.add(state.phase, state);

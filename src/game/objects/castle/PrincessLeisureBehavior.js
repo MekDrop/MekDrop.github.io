@@ -7,7 +7,7 @@ import { PrincessReturnToThroneState } from "./states/terrace/princess/PrincessR
 import { PrincessSitState } from "./states/terrace/princess/PrincessSitState.js";
 import { PrincessStandState } from "./states/terrace/princess/PrincessStandState.js";
 import { PrincessWantsTeaState } from "./states/terrace/princess/PrincessWantsTeaState.js";
-import { RoyalTerraceActivityBehavior } from "./RoyalTerraceActivityBehavior.js";
+import { RoyalTerraceActivityBehavior } from "./rooms/terrace/RoyalTerraceActivityBehavior.js";
 
 export class PrincessLeisureBehavior extends RoyalTerraceActivityBehavior {
   /**

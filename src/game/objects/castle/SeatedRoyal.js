@@ -55,7 +55,7 @@ export class SeatedRoyal {
    */
   #model;
   /**
-   * @type {import("./TerraceKing.js").TerraceKing|import("./TerraceQueen.js").TerraceQueen|import("./TerracePrincess.js").TerracePrincess|null}
+   * @type {import("./rooms/terrace/TerraceKing.js").TerraceKing|import("./rooms/terrace/TerraceQueen.js").TerraceQueen|import("./rooms/terrace/TerracePrincess.js").TerracePrincess|null}
    */
   #resident;
   /**

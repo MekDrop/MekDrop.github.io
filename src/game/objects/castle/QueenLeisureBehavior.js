@@ -7,7 +7,7 @@ import { QueenOnThroneState } from "./states/terrace/queen/QueenOnThroneState.js
 import { QueenReadState } from "./states/terrace/queen/QueenReadState.js";
 import { QueenReturnToThroneState } from "./states/terrace/queen/QueenReturnToThroneState.js";
 import { QueenWantsSunbedState } from "./states/terrace/queen/QueenWantsSunbedState.js";
-import { RoyalTerraceActivityBehavior } from "./RoyalTerraceActivityBehavior.js";
+import { RoyalTerraceActivityBehavior } from "./rooms/terrace/RoyalTerraceActivityBehavior.js";
 
 export class QueenLeisureBehavior extends RoyalTerraceActivityBehavior {
   /**

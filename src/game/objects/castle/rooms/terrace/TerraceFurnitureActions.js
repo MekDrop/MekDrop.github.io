@@ -1,6 +1,6 @@
-import tableUrl from "../../models/castle/leisure/tea-table.glb?url";
-import chairUrl from "../../models/castle/leisure/tea-chair.glb?url";
-import { CASTLE_TERRACE_PHASE as PHASE } from "../../enum/CastleTerracePhase.js";
+import tableUrl from "../../../../models/castle/leisure/tea-table.glb?url";
+import chairUrl from "../../../../models/castle/leisure/tea-chair.glb?url";
+import { CASTLE_TERRACE_PHASE as PHASE } from "../../../../enum/CastleTerracePhase.js";
 
 const DEFINITIONS = {
   table: { url: tableUrl, position: [0.65, 0, 3.1] },

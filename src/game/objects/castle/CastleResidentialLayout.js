@@ -89,7 +89,7 @@ export class CastleResidentialLayout {
    */
   #serviceDoor;
   /**
-   * @type {import("./TerraceActor.js").TerraceActor|null}
+   * @type {import("./rooms/terrace/TerraceActor.js").TerraceActor|null}
    */
   #servant = null;
 
@@ -583,12 +583,12 @@ export class CastleResidentialLayout {
   }
 
   /**
-   * @param {import("./TerraceActor.js").TerraceActor|null} actor
+   * @param {import("./rooms/terrace/TerraceActor.js").TerraceActor|null} actor
    */
   set servant(actor) { this.#servant = actor; }
 
   /**
-   * @param {import("./TerraceActor.js").TerraceActor|null} actor
+   * @param {import("./rooms/terrace/TerraceActor.js").TerraceActor|null} actor
    */
   canEnterBasement(actor) { return this.#authoredStairs.some(/**
    * @param {{center:{y:number}}} stair
@@ -617,7 +617,7 @@ export class CastleResidentialLayout {
 
   /**
    * Select only a tread reachable from the caller's current level.
-   * @param {import("./TerraceActor.js").TerraceActor|null} actor
+   * @param {import("./rooms/terrace/TerraceActor.js").TerraceActor|null} actor
    * @param {number} x
    * @param {number} z
    * @param {number} currentElevation
@@ -658,7 +658,7 @@ export class CastleResidentialLayout {
    * @param {number} x
    * @param {number} z
    * @param {number} currentElevation
-   * @param {import("./TerraceActor.js").TerraceActor|null} actor
+   * @param {import("./rooms/terrace/TerraceActor.js").TerraceActor|null} actor
    */
   surfaceHeightAt(x, z, currentElevation, actor = null) {
     const stairHeight = this.stairSurfaceHeightAt(x, z, currentElevation, actor);

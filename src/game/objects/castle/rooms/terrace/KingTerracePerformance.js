@@ -1,4 +1,4 @@
-import { KING_ANIMATION } from "../../enum/KingAnimation.js";
+import { KING_ANIMATION } from "../../../../enum/KingAnimation.js";
 
 const STEP_DURATION = 0.65;
 const SWORD_SEQUENCE = [
