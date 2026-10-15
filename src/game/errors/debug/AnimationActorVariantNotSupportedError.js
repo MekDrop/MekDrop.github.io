@@ -9,6 +9,7 @@ export class AnimationActorVariantNotSupportedError extends Error {
     super(
       `Animation actor variant "${variant}" is not supported for "${object}".`,
     );
+
     /**
      *
      * @type {string}

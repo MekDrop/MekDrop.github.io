@@ -16,6 +16,7 @@ export class Lantern extends AbstractCastleProp {
    */
   constructor(options) {
     super(options);
+
     const { pc, modelLibrary, definition } = options;
     const root = this.visualRoots[0];
     const model = root.children[0];

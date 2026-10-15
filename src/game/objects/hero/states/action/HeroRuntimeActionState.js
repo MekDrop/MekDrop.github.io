@@ -138,6 +138,7 @@ export class HeroRuntimeActionState extends AbstractHeroActionState {
     } = {},
   ) {
     super(action, typeof animation === "function" ? null : animation);
+
     this.#animationResolver = typeof animation === "function" ? animation : null;
     this.#exclusive = exclusive;
     this.#incapacitated = incapacitated;

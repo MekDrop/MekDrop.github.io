@@ -3,7 +3,9 @@ import { AbstractCastleRoomGenerator } from "../AbstractCastleRoomGenerator.js";
 import { LibraryRoomFurnishing } from "./LibraryRoomFurnishing.js";
 
 export class LibraryRoomGenerator extends AbstractCastleRoomGenerator {
-  constructor() { super("library", new Vec2(1.75, 2), new Vec2(6, 4.5)); }
+  constructor() {
+    super("library", new Vec2(1.75, 2), new Vec2(6, 4.5));
+  }
   /**
    * @param {import("../AbstractCastleRoomGenerator.js").PlannedCastleRoom} room
    * @param {{seed?:string|number,openings?:import("../../CastleBasePlanGenerator.js").CompiledCastleOpening[],stairs?:Array<{from:number,to:number,minX:number,maxX:number,minZ:number,maxZ:number}>,wallThickness?:number}} [context]

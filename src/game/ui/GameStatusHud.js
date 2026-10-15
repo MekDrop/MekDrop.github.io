@@ -57,6 +57,7 @@ export class GameStatusHud extends GamePanelHud {
       name: "Game status HUD",
       priority: 105,
     });
+
     this.#buildFirstPersonPanel();
     this.#buildInteractionPanel();
     this.syncDrawOrder();

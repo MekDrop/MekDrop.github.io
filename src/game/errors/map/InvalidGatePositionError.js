@@ -3,6 +3,7 @@ export class InvalidGatePositionError extends Error {
     super(
       "Map validation failed: gate is not placed on the first boundary path tiles.",
     );
+
     /**
      *
      * @type {string}

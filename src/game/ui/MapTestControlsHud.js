@@ -54,6 +54,7 @@ export class MapTestControlsHud extends GamePanelHud {
       name: "Map test controls",
       priority: 108,
     });
+
     this.#controls = controls;
     this.#canvas = app.graphicsDevice.canvas;
     for (const [index, definition] of panels.entries()) {

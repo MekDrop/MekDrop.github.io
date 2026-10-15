@@ -19,6 +19,7 @@ export class Rug extends AbstractCastleProp {
    */
   constructor(options) {
     super(options);
+
     const { pc, definition } = options;
     if (!definition.texture) { return; }
     this.#app = options.app ?? pc.Application.getApplication();

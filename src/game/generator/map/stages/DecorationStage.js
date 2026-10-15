@@ -17,6 +17,7 @@ export class DecorationStage extends AbstractMapGenerationStage {
    */
   constructor(builder) {
     super();
+
     /**
      *
      * @type {DecorationBuilder}

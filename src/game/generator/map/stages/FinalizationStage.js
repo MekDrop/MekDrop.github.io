@@ -18,6 +18,7 @@ export class FinalizationStage extends AbstractMapGenerationStage {
    */
   constructor(operations) {
     super();
+
     /**
      *
      * @type {Array}

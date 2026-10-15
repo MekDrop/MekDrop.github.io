@@ -11,6 +11,7 @@ export class PathRenderModeMismatchError extends Error {
     super(
       `Map validation failed: path tile at (${col}, ${row}) must render as ${expected}, not ${actual}.`,
     );
+
     /**
      *
      * @type {string}

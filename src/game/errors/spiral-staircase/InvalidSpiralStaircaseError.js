@@ -7,6 +7,7 @@ export class InvalidSpiralStaircaseError extends Error {
    */
   constructor(definition) {
     super(`Spiral staircase ${definition.id} requires finite Z1 < Z2 and a rise of at most 64.`);
+
     this.name = "InvalidSpiralStaircaseError";
   }
 }

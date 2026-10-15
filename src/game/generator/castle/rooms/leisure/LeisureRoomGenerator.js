@@ -13,6 +13,7 @@ export class LeisureRoomGenerator extends AbstractCastleRoomGenerator {
   constructor({ courtyard = false } = {}) {
     super("leisure", courtyard ? new Vec2(3, 6) : new Vec2(3, 3),
       courtyard ? new Vec2(4, 6) : new Vec2(4, 4.5));
+
     this.#courtyard = courtyard;
   }
   /**

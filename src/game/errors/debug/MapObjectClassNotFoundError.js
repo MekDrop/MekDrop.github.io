@@ -6,6 +6,7 @@ export class MapObjectClassNotFoundError extends Error {
    */
   constructor({ object }) {
     super(`No map object class is registered for "${object}".`);
+
     /**
      *
      * @type {string}

@@ -9,7 +9,9 @@ export class StairwellRoomGenerator extends AbstractCastleRoomGenerator {
   /**
    * @param {string} id
    */
-  constructor(id) { super(id, new Vec2(3, 3), new Vec2(3, 3)); }
+  constructor(id) {
+    super(id, new Vec2(3, 3), new Vec2(3, 3));
+  }
 
   /**
    * Storage belongs only in supported, low-headroom pockets below the turning slab.

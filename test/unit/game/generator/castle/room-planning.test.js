@@ -231,15 +231,19 @@ it("uses seeded random sizes with stable output for repeated seeds", async () =>
 });
 
 class UnboundedRoomGenerator extends AbstractCastleRoomGenerator {
-  constructor() { super("unbounded", {
-    x: 1,
-    y: 1,
-  }); }
+  constructor() {
+    super("unbounded", {
+      x: 1,
+      y: 1,
+    });
+  }
 }
 
 it("requires minimum dimensions and treats an omitted maximum as unbounded", () => {
   class InvalidRoomGenerator extends AbstractCastleRoomGenerator {
-    constructor(min, max) { super("invalid", min, max); }
+    constructor(min, max) {
+      super("invalid", min, max);
+    }
   }
   assert.throws(() => new InvalidRoomGenerator(), CastleRoomSizeInvalidError);
   assert.throws(() => new InvalidRoomGenerator({
@@ -293,10 +297,12 @@ it("furnishes only after every room's area has been placed", async () => {
 
 it("skips rooms whose minimum cannot fit on either permitted floor", () => {
   class HugeRoomGenerator extends AbstractCastleRoomGenerator {
-    constructor() { super("huge", {
-      x: 20,
-      y: 20,
-    }); }
+    constructor() {
+      super("huge", {
+        x: 20,
+        y: 20,
+      });
+    }
   }
   const packer = new CastleRoomPacker({
     minX: -3.5,

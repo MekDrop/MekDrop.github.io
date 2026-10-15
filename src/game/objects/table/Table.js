@@ -27,6 +27,7 @@ export class Table extends AbstractCastleProp {
       ...options,
       definition,
     });
+
     if (!definition.worldMap) { return; }
     const { pc, app, runtime = {} } = options;
     const raster = WarMapDrawing.raster(runtime.mapData ?? {

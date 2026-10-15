@@ -37,6 +37,7 @@ export class Fireplace extends AbstractCastleProp {
    */
   constructor(options) {
     super(options);
+
     const { pc, app, definition } = options;
     const root = this.visualRoots[0];
     // Castle masonry uses map coordinates, with only the island offset removed.

@@ -3,6 +3,7 @@ export class CastlePlacementError extends Error {
     super(
       "Castle placement failed: no castle style can preserve every full-width door.",
     );
+
     /**
      *
      * @type {string}

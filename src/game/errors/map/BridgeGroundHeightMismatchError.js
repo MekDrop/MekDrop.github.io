@@ -11,6 +11,7 @@ export class BridgeGroundHeightMismatchError extends Error {
     super(
       `Map validation failed: bridge tile at (${col}, ${row}) requires grass ground at height ${expectedHeight}, not ${actualHeight}.`,
     );
+
     /**
      *
      * @type {string}

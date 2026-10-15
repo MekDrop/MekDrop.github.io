@@ -3,7 +3,9 @@ import { AbstractCastleRoomGenerator } from "../AbstractCastleRoomGenerator.js";
 import { ServiceRoomFurnishing } from "./ServiceRoomFurnishing.js";
 
 export class ServiceRoomGenerator extends AbstractCastleRoomGenerator {
-  constructor() { super("service", new Vec2(2, 2.5), new Vec2(4.5, 8)); }
+  constructor() {
+    super("service", new Vec2(2, 2.5), new Vec2(4.5, 8));
+  }
   /**
    * @returns {number[]}
    */

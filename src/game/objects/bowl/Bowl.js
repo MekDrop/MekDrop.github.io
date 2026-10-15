@@ -27,6 +27,7 @@ export class Bowl extends AbstractCastleProp {
    */
   constructor(options) {
     super(options);
+
     this.#options = options;
   }
 

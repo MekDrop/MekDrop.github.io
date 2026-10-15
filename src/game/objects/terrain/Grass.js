@@ -50,6 +50,7 @@ export class Grass extends Earth {
    */
   constructor(options) {
     super(options);
+
     const { pc, app, modelLibrary, runtime } = options;
     this.#runtime = runtime;
     if (runtime.canopy) {

@@ -7,6 +7,7 @@ export class InvalidRiverFlowError extends Error {
    */
   constructor({ riverId, reason }) {
     super(`Map validation failed: ${riverId} ${reason}.`);
+
     /**
      *
      * @type {string}

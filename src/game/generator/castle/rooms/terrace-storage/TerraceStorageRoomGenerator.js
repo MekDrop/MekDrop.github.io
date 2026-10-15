@@ -5,7 +5,9 @@ import { AbstractCastleRoomGenerator } from "../AbstractCastleRoomGenerator.js";
  * Stores spare terrace equipment along the walls, with the tea set on its table.
  */
 export class TerraceStorageRoomGenerator extends AbstractCastleRoomGenerator {
-  constructor() { super("terraceStorage", new Vec2(3.25, 3.75)); }
+  constructor() {
+    super("terraceStorage", new Vec2(3.25, 3.75));
+  }
 
   /**
    * @param {import("../AbstractCastleRoomGenerator.js").PlannedCastleRoom} room

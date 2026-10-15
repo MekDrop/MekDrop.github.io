@@ -7,6 +7,7 @@ describe("Level worker loading", () => {
         window.Worker = class extends BrowserWorker {
           constructor(url, options) {
             super(url, options);
+
             if (String(url).includes("LevelLoader.worker.js")) {
               this.addEventListener("message", ({ data }) => {
                 preparedMap = data.map;

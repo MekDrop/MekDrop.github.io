@@ -23,6 +23,7 @@ export class AbstractHeroActionState extends State {
    */
   constructor(action, animation) {
     super();
+
     this.#action = action;
     this.#animation = animation;
   }

@@ -94,6 +94,7 @@ export class Castle extends CastleEntityBuilder {
       fireParticleTexture: textureAssets.get("castleFireParticle").resource,
       onRuntimeError: runtime.onRuntimeError,
     });
+
     this.#definition = definition;
     this.#runtime = runtime;
     const { mapData } = runtime;

@@ -3,6 +3,7 @@ const prettier = require("eslint-config-prettier/flat");
 const jsdoc = require("eslint-plugin-jsdoc");
 const vue = require("eslint-plugin-vue");
 const stylistic = require("@stylistic/eslint-plugin");
+const superOwnLine = require("./scripts/eslint/super-own-line.cjs");
 
 const oversizedSourceFileExemptions = [
   "src/game/objects/hero/Hero.js",
@@ -289,9 +290,19 @@ module.exports = [
   {
     plugins: {
       "@stylistic": stylistic,
+      local: { rules: { "super-own-line": superOwnLine } },
     },
     rules: {
       "vue/no-v-text-v-html-on-component": "off",
+      "local/super-own-line": "error",
+      "@stylistic/padding-line-between-statements": [
+        "error",
+        {
+          blankLine: "always",
+          prev: { selector: "ExpressionStatement[expression.type='CallExpression'][expression.callee.type='Super']" },
+          next: "*",
+        },
+      ],
       "@stylistic/object-curly-newline": [
         "error",
         {

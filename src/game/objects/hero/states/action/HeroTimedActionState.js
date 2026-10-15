@@ -15,6 +15,7 @@ export class HeroTimedActionState extends HeroRuntimeActionState {
    */
   constructor(action, duration, options) {
     super(action, options);
+
     this.#duration = duration;
   }
 

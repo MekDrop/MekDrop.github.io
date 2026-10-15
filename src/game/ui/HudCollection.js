@@ -16,6 +16,7 @@ export class HudCollection extends Map {
    */
   constructor({ pc, app }) {
     super();
+
     this.#pc = pc;
     this.#app = app;
   }

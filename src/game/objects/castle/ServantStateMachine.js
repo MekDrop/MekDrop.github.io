@@ -61,6 +61,7 @@ export class ServantStateMachine extends NpcStateMachine {
    */
   constructor({ idlePhase, initialPhase, states, holdState = () => false }) {
     super();
+
     this.owner = this;
     this.#idlePhase = idlePhase;
     this.#initialPhase = initialPhase;

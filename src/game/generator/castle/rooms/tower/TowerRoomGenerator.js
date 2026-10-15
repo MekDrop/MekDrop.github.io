@@ -5,7 +5,9 @@ export class TowerRoomGenerator extends AbstractCastleRoomGenerator {
   /**
    * @param {number} index
    */
-  constructor(index) { super(`tower${index}`, new Vec2(1.75, 1.75), new Vec2(2.25, 2.25)); }
+  constructor(index) {
+    super(`tower${index}`, new Vec2(1.75, 1.75), new Vec2(2.25, 2.25));
+  }
   /**
    * @returns {number[]}
    */

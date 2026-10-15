@@ -13,6 +13,8 @@ Follow `.editorconfig`: UTF-8, LF endings, two-space indentation, final newlines
 
 ESLint and Prettier configuration are authoritative for enforced style. Game-specific class, error, enum, and registry conventions are in [game-code-style.md](game-code-style.md).
 
+Place constructor `super()` calls on their own lines, with a blank line before any following statement. Multiline arguments are allowed; no blank line is required when `super()` is the last statement.
+
 Write object literals with two or more properties on multiple lines: put each property or spread on its own line, place the braces on separate lines, indent properties by two spaces, and include a trailing comma. ESLint enforces the object layout after the Prettier compatibility configuration. `npm run format` reapplies ESLint fixes after Prettier; when running Prettier directly, run `npm run lint -- --fix` afterward to restore this layout.
 
 In `if` conditions, pass named predicates or call named helpers instead of defining inline arrow or function callbacks. For example, use `values.every(isPositiveFiniteNumber)` or `everyFiniteNumber(values)`. ESLint enforces this for callbacks inside the condition; callbacks in the branch body remain allowed.

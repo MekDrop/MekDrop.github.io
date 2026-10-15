@@ -24,6 +24,7 @@ export class NpcStateMachine extends StateMachine {
    */
   constructor(owner = null) {
     super(owner);
+
     this.add(NpcIdleState.name, new NpcIdleState());
     this.changeTo(NpcIdleState.name);
   }

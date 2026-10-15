@@ -6,6 +6,7 @@ export class InvalidOverpassError extends Error {
    */
   constructor({ reason }) {
     super(`Map validation failed: grade-separated crossing ${reason}.`);
+
     /**
      *
      * @type {string}

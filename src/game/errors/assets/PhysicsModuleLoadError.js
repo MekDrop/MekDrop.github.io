@@ -4,6 +4,7 @@ export class PhysicsModuleLoadError extends Error {
    */
   constructor(detail) {
     super(`Could not initialize Ammo WebAssembly: ${detail}`);
+
     this.name = PhysicsModuleLoadError.name;
   }
 }

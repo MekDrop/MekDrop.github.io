@@ -9,6 +9,7 @@ export class IsolatedTerrainHoleError extends Error {
     super(
       `Map validation failed: isolated one-tile terrain hole at (${col}, ${row}).`,
     );
+
     /**
      *
      * @type {string}

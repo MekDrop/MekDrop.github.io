@@ -11,6 +11,7 @@ export class UnexpectedPathConnectionError extends Error {
     super(
       `Map validation failed: paths ${firstPathIndex} and ${secondPathIndex} connect outside their merge at (${col}, ${row}).`,
     );
+
     /**
      *
      * @type {string}

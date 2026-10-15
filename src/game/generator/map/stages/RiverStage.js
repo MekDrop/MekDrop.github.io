@@ -20,6 +20,7 @@ export class RiverStage extends AbstractMapGenerationStage {
    */
   constructor(terrain, rivers) {
     super();
+
     this.#terrain = terrain;
     this.#rivers = rivers;
   }

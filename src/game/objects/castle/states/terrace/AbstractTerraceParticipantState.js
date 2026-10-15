@@ -55,6 +55,7 @@ export class AbstractTerraceParticipantState extends State {
     resumeOnComplete = false,
   }) {
     super();
+
     this.#phase = phase;
     this.#stagePhase = stagePhase;
     this.#duration = duration;

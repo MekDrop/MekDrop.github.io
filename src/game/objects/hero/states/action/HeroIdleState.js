@@ -15,6 +15,7 @@ export class HeroIdleState extends AbstractHeroActionState {
    */
   constructor(action, animation, duration = 0) {
     super(action, animation);
+
     this.#duration = duration;
   }
 

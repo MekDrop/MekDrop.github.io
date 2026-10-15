@@ -64,6 +64,7 @@ export class Ladder extends AbstractCastleProp {
       definition: Ladder.resolveDefinition(options.definition),
     };
     super(options);
+
     const { pc, modelLibrary, definition } = options;
     this.#climbUpdate = options.app.on("update", () => {
       if (!this.#releaseClimber) {

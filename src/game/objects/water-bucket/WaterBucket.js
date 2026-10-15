@@ -19,6 +19,7 @@ export class WaterBucket extends AbstractCastleProp {
    */
   constructor(options) {
     super(options);
+
     const { pc } = options;
     const requested = options.definition.fillLevel ?? 0.65;
     const fill = Number.isFinite(requested) ? Math.min(1, Math.max(0, requested)) : 0.65;

@@ -44,6 +44,7 @@ export class TerrainStage extends AbstractMapGenerationStage {
    */
   constructor(terrain, rivers, dips, island, connectors, random) {
     super();
+
     this.#terrain = terrain;
     this.#rivers = rivers;
     this.#dips = dips;

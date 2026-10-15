@@ -11,6 +11,7 @@ export class SingleCandleStand extends AbstractCastleProp {
    */
   constructor(options) {
     super(options);
+
     const model = this.visualRoots[0].children[0];
     const app = options.pc.Application.getApplication();
     const fire = new CastleFire({

@@ -4,6 +4,7 @@ export class ClipboardCopyBlockedError extends Error {
       "This browser blocked both Async Clipboard and legacy image copying. " +
         "Open the site over HTTPS or localhost and allow clipboard access.",
     );
+
     /**
      *
      * @type {string}

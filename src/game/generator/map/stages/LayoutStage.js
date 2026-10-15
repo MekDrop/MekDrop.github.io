@@ -21,6 +21,7 @@ export class LayoutStage extends AbstractMapGenerationStage {
    */
   constructor(layout, overpasses) {
     super();
+
     this.#layout = layout;
     this.#overpasses = overpasses;
   }

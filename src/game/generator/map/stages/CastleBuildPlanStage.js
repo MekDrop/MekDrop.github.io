@@ -20,6 +20,7 @@ export class CastleBuildPlanStage extends AbstractMapGenerationStage {
    */
   constructor(operations) {
     super();
+
     /**
      *
      * @type {Array}

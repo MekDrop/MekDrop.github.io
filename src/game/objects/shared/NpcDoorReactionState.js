@@ -18,6 +18,7 @@ export class NpcDoorReactionState extends State {
    */
   constructor(react) {
     super();
+
     this.#react = react;
   }
 

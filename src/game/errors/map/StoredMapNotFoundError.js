@@ -6,6 +6,7 @@ export class StoredMapNotFoundError extends Error {
    */
   constructor({ mapName }) {
     super(`Stored map "${mapName}" was not found.`);
+
     /**
      *
      * @type {string}

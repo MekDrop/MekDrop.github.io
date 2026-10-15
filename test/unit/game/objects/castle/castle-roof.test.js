@@ -7,7 +7,9 @@ const source=readFileSync(new URL("../../../../../src/game/objects/castle/Castle
 const CastleRoof=Function(source.replace(/^import .*;$/m,'const roofUrl="roof";').replace("export class CastleRoof","class CastleRoof")+"; return CastleRoof;")();
 class Entity extends pc.Entity {
   components=new Map();
-  constructor(name){super(name);}
+  constructor(name){
+    super(name);
+  }
   addChild(child){super.addChild(child);}
   addComponent(type,options){this.components.set(type,options);}
   setLocalPosition(...position){super.setLocalPosition(...position);}

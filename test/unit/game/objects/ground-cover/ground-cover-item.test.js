@@ -182,6 +182,7 @@ function createSubject(ambientMotion) {
   class Mesh extends FakeMesh {
     constructor() {
       super();
+
       generatedMeshes.push(this);
     }
   }

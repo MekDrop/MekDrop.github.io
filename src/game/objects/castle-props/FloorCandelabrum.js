@@ -11,6 +11,7 @@ export class FloorCandelabrum extends AbstractCastleProp {
    */
   constructor(options) {
     super(options);
+
     const model = this.visualRoots[0].children[0];
     const inverse = model.getWorldTransform().clone().invert();
     for (const name of ["Tall candle wick", "Middle candle wick", "Short candle wick"]) {

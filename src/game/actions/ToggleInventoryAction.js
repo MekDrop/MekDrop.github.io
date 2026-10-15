@@ -19,6 +19,7 @@ export class ToggleInventoryAction extends AbstractModalAction {
    */
   constructor(renderer, heroMovement) {
     super();
+
     /**
      *
      * @type {import("../PlayCanvasRenderer.js").PlayCanvasRenderer}

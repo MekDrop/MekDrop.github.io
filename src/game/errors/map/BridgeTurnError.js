@@ -9,6 +9,7 @@ export class BridgeTurnError extends Error {
     super(
       `Map validation failed: bridge at (${col}, ${row}) connects to a perpendicular bridge segment.`,
     );
+
     /**
      *
      * @type {string}

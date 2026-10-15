@@ -43,6 +43,7 @@ export class TerraceParticipantStateMachine extends NpcStateMachine {
    */
   constructor({ dormantPhase, states }) {
     super();
+
     this.owner = this;
     this.#dormantPhase = dormantPhase;
     for (const state of states) {

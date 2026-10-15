@@ -63,6 +63,7 @@ export class CoinHud extends GamePanelHud {
       name: "Coin wallet HUD",
       priority: 101,
     });
+
     this.#build();
   }
 

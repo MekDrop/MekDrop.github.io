@@ -9,6 +9,7 @@ export class UnexpectedPathCrossingError extends Error {
     super(
       `Map validation failed: paths form an unplanned flat crossing at (${col}, ${row}).`,
     );
+
     /**
      *
      * @type {string}

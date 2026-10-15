@@ -10,6 +10,7 @@ export class InvalidGroundCoverPlacementError extends Error {
     super(
       `Map validation failed: ground cover at (${col}, ${row}) ${reason}.`,
     );
+
     /**
      *
      * @type {string}

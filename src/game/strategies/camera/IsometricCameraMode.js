@@ -21,6 +21,7 @@ export class IsometricCameraMode extends AbstractCameraMode {
    */
   constructor(gameCamera, { mapData } = {}) {
     super(gameCamera);
+
     if (mapData) {
       /**
        *

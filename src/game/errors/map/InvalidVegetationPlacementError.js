@@ -10,6 +10,7 @@ export class InvalidVegetationPlacementError extends Error {
     super(
       `Map validation failed: vegetation at (${col}, ${row}) ${reason}.`,
     );
+
     /**
      *
      * @type {string}

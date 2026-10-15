@@ -8,6 +8,7 @@ export class ShaderTranspilerAssetsNotColocatedError extends Error {
     super(
       `Shader transpiler script and WebAssembly assets must be colocated: ${scriptUrl}, ${wasmUrl}`,
     );
+
     /**
      *
      * @type {string}

@@ -23,6 +23,7 @@ export class DebugCastleRoomHud extends GamePanelHud {
       name: "Debug castle room HUD",
       priority: 106,
     });
+
     this.#record = this.createTextureRecord("Debug castle room", WIDTH * 3, HEIGHT * 3);
     this.#record.context.scale(3, 3);
     const top = 36 + gameUiTheme.spaceMd * 2;

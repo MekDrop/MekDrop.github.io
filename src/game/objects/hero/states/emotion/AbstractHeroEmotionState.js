@@ -51,6 +51,7 @@ export class AbstractHeroEmotionState extends State {
     { tracksPressureLevels = true } = {},
   ) {
     super();
+
     this.#emotion = emotion;
     this.#minimumPressure = minimumPressure;
     this.#levelCount = levelCount;

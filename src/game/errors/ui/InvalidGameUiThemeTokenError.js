@@ -7,6 +7,7 @@ export class InvalidGameUiThemeTokenError extends Error {
    */
   constructor({ token, value }) {
     super(`Game UI theme received an invalid Quasar ${token} token.`);
+
     /**
      *
      * @type {string}

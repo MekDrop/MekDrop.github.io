@@ -18,6 +18,7 @@ export class IslandStage extends AbstractMapGenerationStage {
    */
   constructor(island) {
     super();
+
     /**
      *
      * @type {import("../IslandBuilder.js").IslandBuilder}

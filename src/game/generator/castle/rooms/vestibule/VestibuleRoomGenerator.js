@@ -8,7 +8,9 @@ import { VestibuleWindowFurnishing } from "./VestibuleWindowFurnishing.js";
  * Arrival storage surrounds either central seating or a map table where space permits.
  */
 export class VestibuleRoomGenerator extends AbstractCastleRoomGenerator {
-  constructor() { super("vestibule", new Vec2(2, 2)); }
+  constructor() {
+    super("vestibule", new Vec2(2, 2));
+  }
 
   /**
    * @param {import("../AbstractCastleRoomGenerator.js").PlannedCastleRoom} room

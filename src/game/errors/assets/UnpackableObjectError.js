@@ -7,6 +7,7 @@ export class UnpackableObjectError extends Error {
    */
   constructor({ name }) {
     super(`Cannot pack ${name}: the object has no finite rendered geometry.`);
+
     this.name = "UnpackableObjectError";
   }
 }

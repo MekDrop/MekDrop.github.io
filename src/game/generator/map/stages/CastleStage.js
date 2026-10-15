@@ -20,6 +20,7 @@ export class CastleStage extends AbstractMapGenerationStage {
    */
   constructor(castle, island) {
     super();
+
     this.#castle = castle;
     this.#island = island;
   }

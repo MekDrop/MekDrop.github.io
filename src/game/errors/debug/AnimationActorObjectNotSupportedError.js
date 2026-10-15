@@ -6,6 +6,7 @@ export class AnimationActorObjectNotSupportedError extends Error {
    */
   constructor({ object }) {
     super(`Animation actor object "${object}" is not supported.`);
+
     /**
      *
      * @type {string}

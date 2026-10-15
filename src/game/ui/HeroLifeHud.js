@@ -130,6 +130,7 @@ export class HeroLifeHud extends GamePanelHud {
       name: "Game lives HUD",
       priority: 100,
     });
+
     this.#colors = colors;
 
     this.#heartTexture = this.#createHeartTexture();

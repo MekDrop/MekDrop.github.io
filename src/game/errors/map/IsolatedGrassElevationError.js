@@ -3,6 +3,7 @@ export class IsolatedGrassElevationError extends Error {
     super(
       "Map validation failed: grass elevation changes appear as random isolated noise.",
     );
+
     /**
      *
      * @type {string}

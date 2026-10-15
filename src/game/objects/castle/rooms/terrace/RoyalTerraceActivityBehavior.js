@@ -46,6 +46,7 @@ export class RoyalTerraceActivityBehavior extends TerraceParticipantStateMachine
       dormantPhase: phases.throne,
       states,
     });
+
     this.#phases = phases;
     this.#onThroneChange = onThroneChange ?? (() => {});
     this.#walkSpeed = walkSpeed;

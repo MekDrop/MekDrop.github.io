@@ -6,6 +6,7 @@ export class VirtualItemObjectNotSupportedError extends Error {
    */
   constructor({ object }) {
     super(`Virtual item object "${object}" is not supported.`);
+
     /**
      *
      * @type {string}

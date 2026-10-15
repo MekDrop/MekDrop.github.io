@@ -43,7 +43,9 @@ it("updates the visible rope and held grip on the application's actual render ev
     /**
      * @param {string} name
      */
-    constructor(name) { super(name, app); }
+    constructor(name) {
+      super(name, app);
+    }
   }
   app.root = new TestEntity("root");
   const model = new TestEntity("model");

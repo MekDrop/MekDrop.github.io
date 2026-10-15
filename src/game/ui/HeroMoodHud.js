@@ -52,6 +52,7 @@ export class HeroMoodHud extends GamePanelHud {
       name: "Hero mood HUD",
       priority: 106,
     });
+
     this.#getMood = getMood;
     this.#motionPreference = globalThis.matchMedia?.("(prefers-reduced-motion: reduce)") ?? null;
     for (const [kind, symbol, color] of [

@@ -9,6 +9,7 @@ export class InsufficientVegetationVarietyError extends Error {
     super(
       `Map validation failed: expected at least ${expected} vegetation variations but generated ${actual}.`,
     );
+
     /**
      *
      * @type {string}

@@ -67,6 +67,7 @@ export class SignalBell extends AbstractCastleProp {
    */
   constructor(options) {
     super(options);
+
     const { pc, app, modelLibrary, definition } = options;
     this.#app = app;
     this.#pc = pc;

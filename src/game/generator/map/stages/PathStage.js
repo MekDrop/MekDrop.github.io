@@ -27,6 +27,7 @@ export class PathStage extends AbstractMapGenerationStage {
    */
   constructor(paths, overpasses, island) {
     super();
+
     this.#paths = paths;
     this.#overpasses = overpasses;
     this.#island = island;

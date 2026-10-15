@@ -10,6 +10,7 @@ export class InvalidLavaRiverCountError extends Error {
     super(
       `Map validation failed: ${lavaCount} lava rivers cannot appear among ${riverCount} total rivers; lava is limited to ${maximum} rivers and only islands with at most ${maximum} total rivers are eligible.`,
     );
+
     /**
      *
      * @type {string}

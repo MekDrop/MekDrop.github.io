@@ -55,6 +55,7 @@ export class AbstractServantState extends State {
     alignmentAnimation = animation,
   }) {
     super();
+
     this.#phase = phase;
     this.#duration = duration;
     this.#nextPhase = nextPhase;

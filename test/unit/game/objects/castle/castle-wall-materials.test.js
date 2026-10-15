@@ -34,6 +34,7 @@ it("stone blocks remain opaque from both sides with depth testing and writing en
   class StandardMaterial extends pc.StandardMaterial {
     constructor() {
       super();
+
       materials.push(this);
     }
   }

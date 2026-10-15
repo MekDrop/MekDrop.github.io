@@ -24,6 +24,7 @@ export class WashBasin extends AbstractCastleProp {
    */
   constructor(options) {
     super(options);
+
     const { pc, app } = options;
     // The authored interior tapers from radius 0.18 to 0.23 below its 0.205m rim.
     // Keep the surface inside the staves and below the upper retaining hoop.

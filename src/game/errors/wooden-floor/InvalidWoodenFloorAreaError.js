@@ -7,6 +7,7 @@ export class InvalidWoodenFloorAreaError extends Error {
    */
   constructor(id) {
     super(`Wooden floor ${id} requires finite, level opposite corners with positive width and depth.`);
+
     this.name = "InvalidWoodenFloorAreaError";
   }
 }

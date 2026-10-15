@@ -9,6 +9,7 @@ export class InvalidRiverCountError extends Error {
     super(
       `Map validation failed: river count ${count} is outside the allowed range of 0 to ${maximum}.`,
     );
+
     /**
      *
      * @type {string}
