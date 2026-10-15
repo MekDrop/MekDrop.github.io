@@ -36,6 +36,7 @@
  * @property {boolean} [books] Bookshelf includes books by default; false allows an empty cabinet.
  * @property {boolean} [booksAsObjects] Bookshelf contents have been published as separate map objects.
  * @property {number} [weathering] Prop wear from 0 (fresh) to 1 (fully aged).
+ * @property {number} [fillLevel] WaterBucket fill from 0 (empty) to 1 (full); defaults to 0.65.
  * @property {number} [rotation]
  * @property {Point3} [from] Bookshelf bottom edge, window corner, or WoodenFloor surface corner in world coordinates.
  * @property {Point3} [to] Bookshelf bottom edge or opposite window corner (one differing ground axis); WoodenFloor opposite surface corner (both ground axes differ, equal Y).

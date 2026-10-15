@@ -61,7 +61,7 @@ it("publishes native prop definitions once and replaces stale seed furnishings",
   StairwellRoomMapObjects.prepareMap(map);
   const first = structuredClone(map.objects.slice(1));
   assert.ok(first.some(item => item.object === "WoodenCrate"));
-  for (const object of ["Barrel", "WoodenWaterBucket", "StoragePotteryJar"]) {
+  for (const object of ["Barrel", "WaterBucket", "StoragePotteryJar"]) {
     assert.ok(first.some(item => item.object === object));
   }
   assert.ok(first.every(item => item.sourceCastleId === castle.id && Number.isFinite(item.position.y)));
@@ -92,7 +92,7 @@ it("confines crates to supported low-headroom stair pockets and leaves floor voi
     assert.equal(pocket[0].x, pocket[1].x);
     assert.equal(pocket[0].z, pocket[1].z);
     for (const [object, count] of Object.entries({ WoodenCrate: 12, WoodenStorageChest: 5,
-      Barrel: 2, WoodenWaterBucket: 1, StoragePotteryJar: 3 })) {
+      Barrel: 2, WaterBucket: 1, StoragePotteryJar: 3 })) {
       assert.equal(crates.filter(item => item.object === object).length, count,
         `${object}: wall alignment must preserve the original inventory`);
     }

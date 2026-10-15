@@ -129,7 +129,7 @@ export class StairwellRoomGenerator extends AbstractCastleRoomGenerator {
           endWallStorage: true },
         { object: "Barrel", slot: sine < 0 ? -0.72 : 0.72, along: -0.33, width: 0.554, depth: 0.554, height: 0.65, scale: 0.8,
           endWallStorage: true },
-        { object: "WoodenWaterBucket", slot: sine < 0 ? 1.29 : -1.29, along: 0.5, width: 0.3, depth: 0.28, height: 0.4, scale: 1 },
+        { object: "WaterBucket", slot: sine < 0 ? 1.29 : -1.29, along: 0.5, width: 0.3, depth: 0.28, height: 0.4, scale: 1 },
         { object: "StoragePotteryJar", slot: sine < 0 ? -1.17 : 1.17, along: -0.33, width: 0.229, depth: 0.236, height: 0.3, scale: 1,
           y: 0.9404 * rowScales[1] },
       ]) {

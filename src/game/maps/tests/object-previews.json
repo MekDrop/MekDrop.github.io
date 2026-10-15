@@ -571,6 +571,15 @@
         "y": 2,
         "z": 0
       }
+    },
+    {
+      "id": "preview-water-bucket",
+      "object": "WaterBucket",
+      "position": {
+        "x": 14,
+        "y": 2,
+        "z": 0
+      }
     }
   ]
 }
