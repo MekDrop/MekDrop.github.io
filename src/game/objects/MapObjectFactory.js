@@ -60,7 +60,7 @@ import { WoodenCrate } from "./castle-props/WoodenCrate.js";
 import { WoodenStorageChest } from "./castle-props/WoodenStorageChest.js";
 import { RoyalBedroomPainting } from "./castle-props/RoyalBedroomPainting.js";
 import { RoyalBedroomRug } from "./castle-props/RoyalBedroomRug.js";
-import { FirewoodStack } from "./castle-props/FirewoodStack.js";
+import { FirewoodStack } from "./firewood-stack/FirewoodStack.js";
 import { SpareTimberBundle } from "./castle-props/SpareTimberBundle.js";
 import { WoodenDeskChair } from "./castle-props/WoodenDeskChair.js";
 import { Lantern } from "./lantern/Lantern.js";

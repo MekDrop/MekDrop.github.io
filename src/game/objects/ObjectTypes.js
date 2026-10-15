@@ -6,6 +6,7 @@
  * @typedef {{col: number, row: number, elevation?: number, terrainHeight?: number, direction?: string, flowScale?: number}} RiverCell
  * @typedef {object} MapObjectDefinition
  * @property {string} id
+ * @property {string|number} [firewoodSeed] Repeatable FirewoodStack layout; defaults to its id.
  * @property {import("./lantern/Lantern.js").LanternLighting|false} [lighting] Lantern-local illumination override.
  * @property {boolean} [flame] Override the lantern variant's candle emitter.
  * @property {{halfExtents: Point3, offset: Point3}} [collisionBox] Model-space lantern contact box.
@@ -31,8 +32,8 @@
  * @property {Point3} [to] Bookshelf bottom edge or opposite window corner (one differing ground axis); WoodenFloor opposite surface corner (both ground axes differ, equal Y).
  * @property {Point3} [volume] Fire box full dimensions; position is its bottom center.
  * @property {number} [intensity] Fire brightness multiplier (default 1); zero disables the flames. Volume controls their dimensions.
- * @property {number} [width] Table width in metres, painting horizontal scale, or flag cloth width.
- * @property {number} [height] Table, bookshelf, window, or flag cloth height.
+ * @property {number} [width] Table/firewood area width in metres, painting horizontal scale, or flag cloth width.
+ * @property {number} [height] Table, firewood pile, bookshelf, window, or flag cloth height.
  * @property {number} [chimneyHeight] Fireplace base to the covering roof surface, in metres.
  * @property {number} [poleHeight] Flag pole height in metres (default 1.25).
  * @property {string} [texture] Flag cloth image URL; omitted uses the blue castle crest.
@@ -42,7 +43,7 @@
  * @property {number} [facing] Bookshelf/window front direction, 1 or -1 on the perpendicular axis.
  * @property {boolean} [joinStart] Bookshelf shares its local left upright with the previous section.
  * @property {boolean} [joinEnd] Bookshelf supplies a slimmer shared upright at its local right edge.
- * @property {number} [depth] Table depth in metres or window reveal depth (default 0.3).
+ * @property {number} [depth] Table/firewood area depth in metres or window reveal depth (default 0.3).
  * @property {number} [radius] Straight staircase half-run and default lane width.
  * @property {number} [rise] Straight staircase total vertical rise.
  * @property {number} [flightGap] Separation between straight stair lanes.

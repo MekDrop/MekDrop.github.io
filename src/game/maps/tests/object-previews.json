@@ -454,6 +454,19 @@
         "y": 2,
         "z": 0
       }
+    },
+    {
+      "id": "firewood-preview",
+      "object": "FirewoodStack",
+      "position": {
+        "x": 3,
+        "y": 1,
+        "z": 3
+      },
+      "width": 0.9,
+      "depth": 0.7,
+      "height": 0.35,
+      "firewoodSeed": 42
     }
   ]
 }
