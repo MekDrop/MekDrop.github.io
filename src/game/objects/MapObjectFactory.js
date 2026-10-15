@@ -1,3 +1,4 @@
+import { Table } from "./table/Table.js";
 import { Lantern } from "./lantern/Lantern.js";
 import { StraightStaircase } from "./straight-staircase/StraightStaircase.js";
 import { Ladder } from "./castle/Ladder.js";
@@ -8,7 +9,6 @@ import { FoldedLinens } from "./castle-props/FoldedLinens.js";
 import { SewingBasket } from "./castle-props/SewingBasket.js";
 import { VestibuleBench } from "./castle-props/VestibuleBench.js";
 import { VestibuleIslandBench } from "./castle-props/VestibuleIslandBench.js";
-import { VestibuleMapTable } from "./castle-props/VestibuleMapTable.js";
 import { VestibuleBanner } from "./castle-props/VestibuleBanner.js";
 import { VestibulePainting } from "./castle-props/VestibulePainting.js";
 import { VestibuleArmorDisplay } from "./castle-props/VestibuleArmorDisplay.js";
@@ -29,9 +29,7 @@ import { ThroneDais } from "./castle-props/ThroneDais.js";
 import { RoyalCrest } from "./castle-props/RoyalCrest.js";
 import { WarCouncilShield } from "./castle-props/WarCouncilShield.js";
 import { SpearRack } from "./castle-props/SpearRack.js";
-import { WarMapTable } from "./castle-props/WarMapTable.js";
 import { OpenReadingBook } from "./castle-props/OpenReadingBook.js";
-import { LibrarySideTable } from "./castle-props/LibrarySideTable.js";
 import { LibraryStepStool } from "./castle-props/LibraryStepStool.js";
 import { ParchmentBundle } from "./castle-props/ParchmentBundle.js";
 import { ClosedReadingBook } from "./castle-props/ClosedReadingBook.js";
@@ -42,7 +40,6 @@ import { TerraceServingTray } from "./castle-props/TerraceServingTray.js";
 import { TerraceTeapot } from "./castle-props/TerraceTeapot.js";
 import { TerraceTeacup } from "./castle-props/TerraceTeacup.js";
 import { TerraceReadingBook } from "./castle-props/TerraceReadingBook.js";
-import { TeaTable } from "./castle-props/TeaTable.js";
 import { TerracePlanter } from "./castle-props/TerracePlanter.js";
 import { BlueArmchair } from "./castle-props/BlueArmchair.js";
 import { BowlGreenVegetables } from "./castle-props/BowlGreenVegetables.js";
@@ -53,7 +50,6 @@ import { FireplaceCauldron } from "./castle-props/FireplaceCauldron.js";
 import { FloorCandelabrum } from "./castle-props/FloorCandelabrum.js";
 import { HangingFryingPan } from "./castle-props/HangingFryingPan.js";
 import { KitchenFireplace } from "./castle-props/KitchenFireplace.js";
-import { KitchenTable } from "./castle-props/KitchenTable.js";
 import { PlateBread } from "./castle-props/PlateBread.js";
 import { SingleCandleStand } from "./castle-props/SingleCandleStand.js";
 import { StoragePotteryJar } from "./castle-props/StoragePotteryJar.js";
@@ -101,6 +97,7 @@ import { IslandConnector } from "./scenery/IslandConnector.js";
 import { MapObjectDefinitions } from "./MapObjectDefinitions.js";
 
 const OBJECT_CLASSES = new Map([
+  [Table.name, Table],
   [StraightStaircase.name, StraightStaircase],
   [Gateway.name, Gateway],
   [Rivers.name, Rivers],
@@ -113,7 +110,7 @@ const OBJECT_CLASSES = new Map([
   [SewingBasket.name, SewingBasket],
   [VestibuleBench.name, VestibuleBench],
   [VestibuleIslandBench.name, VestibuleIslandBench],
-  [VestibuleMapTable.name, VestibuleMapTable],
+  ["VestibuleMapTable", Table],
   [VestibuleBanner.name, VestibuleBanner],
   [VestibulePainting.name, VestibulePainting],
   [VestibuleArmorDisplay.name, VestibuleArmorDisplay],
@@ -134,9 +131,9 @@ const OBJECT_CLASSES = new Map([
   [RoyalCrest.name, RoyalCrest],
   [WarCouncilShield.name, WarCouncilShield],
   [SpearRack.name, SpearRack],
-  [WarMapTable.name, WarMapTable],
+  ["WarMapTable", Table],
   [OpenReadingBook.name, OpenReadingBook],
-  [LibrarySideTable.name, LibrarySideTable],
+  ["LibrarySideTable", Table],
   [LibraryStepStool.name, LibraryStepStool],
   [ParchmentBundle.name, ParchmentBundle],
   [ClosedReadingBook.name, ClosedReadingBook],
@@ -148,7 +145,7 @@ const OBJECT_CLASSES = new Map([
   [TerraceTeapot.name, TerraceTeapot],
   [TerraceTeacup.name, TerraceTeacup],
   [TerraceReadingBook.name, TerraceReadingBook],
-  [TeaTable.name, TeaTable],
+  ["TeaTable", Table],
   [TerracePlanter.name, TerracePlanter],
   [BlueArmchair.name, BlueArmchair],
   [BowlGreenVegetables.name, BowlGreenVegetables],
@@ -159,7 +156,7 @@ const OBJECT_CLASSES = new Map([
   [FloorCandelabrum.name, FloorCandelabrum],
   [HangingFryingPan.name, HangingFryingPan],
   [KitchenFireplace.name, KitchenFireplace],
-  [KitchenTable.name, KitchenTable],
+  ["KitchenTable", Table],
   [PlateBread.name, PlateBread],
   [SingleCandleStand.name, SingleCandleStand],
   [StoragePotteryJar.name, StoragePotteryJar],
