@@ -25,6 +25,22 @@ export class Fire {
   static get textureUrls() { return { castleFireParticle: particleUrl }; }
 
   /**
+   * Attach normal fire in a prop's local space. Its parent owns its lifetime.
+   * @param {typeof import("playcanvas")} pc
+   * @param {import("playcanvas").Entity} parent
+   * @param {{x: number, y: number, z: number}} position
+   * @param {{x: number, y: number, z: number}} volume
+   * @returns {Fire}
+   */
+  static attach(pc, parent, position, volume) {
+    const fire = new Fire({ pc, app: pc.Application.getApplication(), definition: {
+      id: `${parent.name} fire`, object: Fire.name, position, volume,
+    } });
+    parent.addChild(fire.entity);
+    return fire;
+  }
+
+  /**
    * @param {{pc: typeof import("playcanvas"), app: import("playcanvas").Application, definition: import("../ObjectTypes.js").MapObjectDefinition, runtime?: import("../ObjectTypes.js").MapObjectRuntime}} options
    */
   constructor({ pc, app, definition, runtime = {} }) {

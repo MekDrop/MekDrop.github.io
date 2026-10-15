@@ -1,6 +1,6 @@
 import modelUrl from "../../models/castle/props/table-candles.glb?url";
 import { AbstractCastleProp } from "./AbstractCastleProp.js";
-import { CandleFire } from "./CandleFire.js";
+import { Fire } from "../fire/Fire.js";
 
 /**
  * Authored table candles placed through the map objects array.
@@ -11,7 +11,12 @@ export class TableCandles extends AbstractCastleProp {
    */
   constructor(options) {
     super(options);
-    CandleFire.add(options.pc, this.visualRoots[0].children[0], options.modelLibrary, 0.023);
+    const model = this.visualRoots[0].children[0];
+    const inverse = model.getWorldTransform().clone().invert();
+    for (const name of ["Tall candle wick", "Middle candle wick", "Short candle wick"]) {
+      const position = inverse.transformPoint(model.findByName(name).getPosition());
+      Fire.attach(options.pc, model, position, { x: 0.0115, y: 0.0828, z: 0.0115 });
+    }
   }
 
   /**

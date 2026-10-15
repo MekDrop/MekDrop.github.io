@@ -8,8 +8,11 @@ const hooks = registerHooks({
     if (specifier.endsWith(".glb?url")) {
       return { url: `data:text/javascript,export default ${JSON.stringify(specifier)}`, shortCircuit: true };
     }
-    if (specifier.endsWith("/LanternFire.js")) {
-      return { url: 'data:text/javascript,export class LanternFire { static add(pc, model, position) { model.flame = position; } }', shortCircuit: true };
+    if (specifier.endsWith("/Fire.js")) {
+      return { url: 'data:text/javascript,export class Fire { static attach(pc, model, position) { model.flame = position; } }', shortCircuit: true };
+    }
+    if (specifier.endsWith("/LanternGlass.js")) {
+      return { url: 'data:text/javascript,export class LanternGlass { static add() {} }', shortCircuit: true };
     }
     if (specifier.endsWith("/CastleFire.js")) {
       return { url: 'data:text/javascript,export class CastleFire {}', shortCircuit: true };

@@ -53,3 +53,22 @@ test('intensity changes brightness independently of the box and zero disables fl
     fire.destroy();
   }
 });
+
+
+test('attached prop fire uses the normal emitter in parent space and is destroyed with its parent', async () => {
+  const engine = await import('playcanvas');
+  class PropEntity extends engine.Entity {
+    addComponent(type, options) { this[type] = options; }
+  }
+  const parent = new PropEntity('wick');
+  parent.setLocalPosition(2, 3, 4);
+  const fire = Fire.attach({ ...engine, Entity: PropEntity, Application: { getApplication: () => app } },
+    parent, { x: 0, y: 0.1, z: 0 }, { x: 0.02, y: 0.08, z: 0.02 });
+  assert.equal(fire.entity.parent, parent);
+  const root = fire.entity.children[0];
+  assert.ok(Math.abs(root.getPosition().y - 3.1) < 1e-6);
+  assert.equal(root.children.length, 1);
+  assert.equal(root.children[0].particlesystem.colorMap, 'texture');
+  parent.destroy();
+  assert.equal(fire.entity.parent, null);
+});

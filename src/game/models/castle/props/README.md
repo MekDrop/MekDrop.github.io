@@ -116,7 +116,7 @@ and optional `rotation`, as shown by `castle-props-{1,2,3}.json` under map tests
 They are static props with Ammo triangle-mesh collisions that preserve openings
 under tables and between chair arms. Candles and wall lanterns include textured
 flame/glow geometry. Entrance lanterns use translucent amber glass with a separate
-runtime `CastleFire` particle flame inside the housing, supplied by `LanternFire`.
+runtime `Fire` particle flame inside the housing, with panes supplied by `LanternGlass`.
 
 The entrance lantern was remade from the unlit four-finial concept in Tripo
 Studio H3.1 on 2026-10-10, using 30 credits (task

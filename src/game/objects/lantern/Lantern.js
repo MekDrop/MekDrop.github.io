@@ -2,7 +2,8 @@ import modelUrl from "../../models/castle/props/entrance-lantern.glb?url";
 import wallModelUrl from "../../models/castle/props/wall-lantern.glb?url";
 import tableModelUrl from "../../models/castle/props/table-lantern.glb?url";
 import { AbstractCastleProp } from "../castle-props/AbstractCastleProp.js";
-import { LanternFire } from "../castle-props/LanternFire.js";
+import { LanternGlass } from "./LanternGlass.js";
+import { Fire } from "../fire/Fire.js";
 import { CastleFire } from "../castle/CastleFire.js";
 
 /**
@@ -31,7 +32,9 @@ export class Lantern extends AbstractCastleProp {
     }
     const type = definition.type ?? "entrance";
     if (definition.flame ?? type !== "wall") {
-      LanternFire.add(pc, model, type === "table" ? { x: 0, y: 0.11, z: 0 } : { x: 0, y: 0.102, z: 0.047 }, modelLibrary);
+      LanternGlass.add(pc, model);
+      Fire.attach(pc, model, type === "table" ? { x: 0, y: 0.11, z: 0 } : { x: 0, y: 0.102, z: 0.047 },
+        { x: 0.025, y: 0.0972, z: 0.025 });
     }
     const settings = definition.lighting === false ? null : definition.lighting ?? (type === "table" ? {
       position: { x: 0, y: 0.15, z: 0 }, color: [1, 0.65, 0.28], intensity: 1.2, range: 2.4, modelSpace: true,

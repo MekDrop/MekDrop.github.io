@@ -1,17 +1,12 @@
-import { CastleFire } from "../castle/CastleFire.js";
-
 /**
- * Castle flame particles viewed through translucent lantern panes.
+ * Translucent glass materials for lantern housings.
  */
-export class LanternFire {
+export class LanternGlass {
   /**
    * @param {typeof import("playcanvas")} pc
    * @param {import("playcanvas").Entity} lantern
-   * @param {{x:number,y:number,z:number}} [position]
-   * @param {import("../../models/GameModelLibrary.js").GameModelLibrary} [modelLibrary]
    */
-  static add(pc, lantern, position = { x: 0, y: 0.102, z: 0.047 }, modelLibrary) {
-    const app = pc.Application.getApplication();
+  static add(pc, lantern) {
     const materials = [];
     for (const render of lantern.findComponents("render")) {
       for (const instance of render.meshInstances) {
@@ -31,20 +26,7 @@ export class LanternFire {
         materials.push(material);
       }
     }
-    const fire = new CastleFire({
-      pc, app, modelLibrary,
-      particleTexture: app.assets.find("castleFireParticle", "texture").resource,
-    });
-    fire.add({ ...position, scale: 0.027, brazier: false, intensity: 0.25 });
-    for (const particles of fire.entity.findComponents("particlesystem")) {
-      // Flying sparks would escape this small closed housing.
-      if (particles.entity.name !== "Rising fire particles") {
-        particles.enabled = false;
-      }
-    }
-    lantern.addChild(fire.entity);
     lantern.once("destroy", () => {
-      fire.destroy();
       for (const material of materials) { material.destroy(); }
     });
   }
