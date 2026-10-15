@@ -34,7 +34,6 @@ import { LibraryStepStool } from "./castle-props/LibraryStepStool.js";
 import { ParchmentBundle } from "./castle-props/ParchmentBundle.js";
 import { LibraryBookStack } from "./castle-props/LibraryBookStack.js";
 import { Sunbed } from "./sunbed/Sunbed.js";
-import { TerraceTeaChair } from "./castle-props/TerraceTeaChair.js";
 import { TerraceServingTray } from "./castle-props/TerraceServingTray.js";
 import { Teapot } from "./teapot/Teapot.js";
 import { Teacup } from "./teacup/Teacup.js";
@@ -58,7 +57,7 @@ import { Crate } from "./crate/Crate.js";
 import { WoodenStorageChest } from "./castle-props/WoodenStorageChest.js";
 import { FirewoodStack } from "./firewood-stack/FirewoodStack.js";
 import { SpareTimberBundle } from "./spare-timber-bundle/SpareTimberBundle.js";
-import { WoodenDeskChair } from "./castle-props/WoodenDeskChair.js";
+import { Chair } from "./chair/Chair.js";
 import { Lantern } from "./lantern/Lantern.js";
 import { TowerBrazier } from "./castle-props/TowerBrazier.js";
 import { CliffVine } from "./vegetation/CliffVine.js";
@@ -136,7 +135,6 @@ const OBJECT_CLASSES = new Map([
   [LibraryBookStack.name, LibraryBookStack],
   [BedsideDrawers.name, BedsideDrawers],
   [Sunbed.name, Sunbed],
-  [TerraceTeaChair.name, TerraceTeaChair],
   [TerraceServingTray.name, TerraceServingTray],
   [Teapot.name, Teapot],
   [Teacup.name, Teacup],
@@ -162,7 +160,7 @@ const OBJECT_CLASSES = new Map([
   [WoodenStorageChest.name, WoodenStorageChest],
   [FirewoodStack.name, FirewoodStack],
   [SpareTimberBundle.name, SpareTimberBundle],
-  [WoodenDeskChair.name, WoodenDeskChair],
+  [Chair.name, Chair],
   [TowerBrazier.name, TowerBrazier],
   [Flag.name, Flag],
   [WoodenFloor.name, WoodenFloor],

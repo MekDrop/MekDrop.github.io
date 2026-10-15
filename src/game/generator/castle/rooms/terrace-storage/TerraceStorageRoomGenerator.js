@@ -20,7 +20,7 @@ export class TerraceStorageRoomGenerator extends AbstractCastleRoomGenerator {
       // approach clear even though storage itself authors no door openings.
       ["Sunbed", room.minX + 0.1 + 0.655 * storageScale, room.maxZ - 0.1 - 0.582 * storageScale, 1.31, 1.164, 0.76, 1, 0],
       ["TeaTable", tableX, tableZ, 1.25, 1.25, 1.075, 1, 0],
-      ["TerraceTeaChair", room.minX + 0.1 + 0.375 * storageScale, room.minZ + 1.6, 0.75, 0.77, 1.668, 1, 0.003],
+      ["Chair", room.minX + 0.1 + 0.215 * storageScale, room.minZ + 1.6, 0.43, 0.51, 0.85, 1, 0],
       ["TerraceServingTray", tableX, tableZ - 0.28, 1.24, 0.604, 0.128, 1, 1.075],
       ["Teapot", tableX - 0.2, tableZ - 0.28, 0.83, 0.38, 0.472, 1, 1.11],
       ["Teacup", tableX + 0.37, tableZ - 0.28, 0.482, 0.362, 0.217, 1, 1.11],

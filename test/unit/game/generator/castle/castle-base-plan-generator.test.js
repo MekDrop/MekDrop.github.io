@@ -183,7 +183,7 @@ it("places the kitchen at the basement stair door, terrace storage on its right 
   assert.equal(bedroom.maxX, storage.minX);
   assert.equal(bedroom.minZ, storage.minZ);
   assert.equal(bedroom.maxZ, kitchen.maxZ);
-  for (const object of ["Sunbed", "TeaTable", "TerraceTeaChair"]) {
+  for (const object of ["Sunbed", "TeaTable", "Chair"]) {
     assert.ok(plan.furniture.some(item => item.roomId === storage.id && item.object === object));
   }
 });

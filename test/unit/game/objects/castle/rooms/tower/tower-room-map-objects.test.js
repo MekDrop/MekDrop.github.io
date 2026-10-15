@@ -22,7 +22,7 @@ it("publishes floor-correct tower objects once and replaces stale seed placement
   assert.equal(map.objects.length, expected.length + 1);
   assert.equal(new Set(map.objects.map((item) => item.id)).size, map.objects.length);
   assert.notDeepEqual(map.objects.slice(1), first);
-  for (const item of map.objects.filter((item) => item.object === "WoodenDeskChair")) {
+  for (const item of map.objects.filter((item) => item.object === "Chair")) {
     const placement = expected.find((entry) => item.id.includes(`${entry.roomId}-`) && entry.object === item.object);
     const room = castle.buildPlan.metadata.runtime.residential.placedRooms.find((room) => room.id === placement.roomId);
     assert.equal(item.rotation, placement.z < (room.minZ + room.maxZ) / 2 ? 90 : 270);

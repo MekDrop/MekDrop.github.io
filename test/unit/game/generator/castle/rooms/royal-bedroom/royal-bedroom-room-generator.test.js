@@ -32,7 +32,7 @@ test("royal layouts repeat independently and all five concepts have distinct arr
     assert.ok(items.some(item => item.object === "Rug"));
     if (variant === 1) { assert.ok(items.some(item => item.object === "WritingDesk")); }
     assert.ok(!items.some(item => item.object === "Throne"));
-    if (variant === 2) { assert.ok(items.some(item => item.object === "WoodenDeskChair")); }
+    if (variant === 2) { assert.ok(items.some(item => item.object === "Chair")); }
     if (variant === 4) { assert.ok(items.some(item => item.object === "WashBasin")); }
     signatures.add(JSON.stringify(items.map(item => [item.object ?? item.role, item.x, item.z, item.rotation])));
   }

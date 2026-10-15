@@ -15,7 +15,7 @@ import shelfUrl from "../../models/castle/residential/storage-shelf.glb?url";
 import chestUrl from "../../models/castle/residential/chest.glb?url";
 import stairUrl from "../../models/castle/residential/spiral-staircase.glb?url";
 import stoneUrl from "../../models/castle/residential/stone-block.glb?url";
-import chairUrl from "../../models/castle/leisure/tea-chair.glb?url";
+import chairUrl from "../../models/chair/chair.glb?url";
 import { CastleResidentialLayout } from "./CastleResidentialLayout.js";
 import { addGeneratedVoxelPhysics } from "../shared/GeneratedVoxelPhysics.js";
 import masonryBlockUrl from "../../models/castle/residential/masonry-block.glb?url";
@@ -98,7 +98,7 @@ export class CastleResidence {
       // Furniture is solid at its occupied level, rather than an infinite column.
       const dimensions = {
         workDesk: [0.9, 0.73, 0.55], kitchenTable: [0.9, 0.73, 0.55], royalBed: [1.2, 2.03, 1.805],
-        wardrobe: [0.65, 1.15, 0.46], readingChair: [0.75, 1.665, 0.735],
+        wardrobe: [0.65, 1.15, 0.46], readingChair: [0.429, 0.85, 0.508],
         servantBed: [0.9, 0.675, 2], storageShelf: [0.8, 1, 0.3],
       }[placement.role];
       this.#solids.push({ x: local.x, y: placement.position.y - origin.y + dimensions[1] * placement.scale.y / 2, z: local.z,

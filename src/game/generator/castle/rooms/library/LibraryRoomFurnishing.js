@@ -68,7 +68,7 @@ export class LibraryRoomFurnishing {
         // Keep a 1 cm gap to the actual wall, like the neighbouring bookcases.
         desk = this.#item("WritingDesk", this.#point(yaw, along, 0.285, true), 0.9, 0.55, yaw);
         // Both imported chairs face -X (their tall backs sit on +X).
-        this.#items.push(desk, this.#item("WoodenDeskChair", this.#point(yaw, along, 0.91, true), 0.43, 0.51, (yaw + 270) % 360));
+        this.#items.push(desk, this.#item("Chair", this.#point(yaw, along, 0.91, true), 0.43, 0.51, (yaw + 270) % 360));
         this.#reserve(group, width, depth);
         break;
       }
@@ -252,7 +252,7 @@ export class LibraryRoomFurnishing {
       depth: rotation % 180 ? width : depth, rotation, scale: 1, y,
       // Reflection of an X-facing asset requires the opposite yaw correction
       // from the standard Z-facing models. Keep its natural positive scale.
-      mirrorRotationOffset: ["WoodenDeskChair", "Throne"].includes(object) ? 180 : 0 };
+      mirrorRotationOffset: ["Chair", "Throne"].includes(object) ? 180 : 0 };
   }
   /**
    * @param {{x:number,z:number}} point

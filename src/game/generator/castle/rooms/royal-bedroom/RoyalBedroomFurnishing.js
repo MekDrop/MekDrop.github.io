@@ -65,7 +65,7 @@ export class RoyalBedroomFurnishing {
     if (this.#variant === 1) { this.#writingDesk(); }
     const spacious = (room.maxX - room.minX) * (room.maxZ - room.minZ) > 18;
     if (this.#variant === 2 && !spacious) {
-      const chair = this.#perimeter("WoodenDeskChair", 0.75, 0.735, 0.85, [90, 0, 270, 180]);
+      const chair = this.#perimeter("Chair", 0.75, 0.735, 0.85, [90, 0, 270, 180]);
       const table = this.#perimeter("LibrarySideTable", 0.6841, 0.6162, 0.55, [0, 90, 270, 180], chair);
       if (table) { this.#supported("OpenReadingBook", table, 0.36, 0.227, 0.0673); }
     }
@@ -126,7 +126,7 @@ export class RoyalBedroomFurnishing {
     const desk = this.#place("WritingDesk", group.x - Math.sin(angle) * 0.45,
       group.z - Math.cos(angle) * 0.45, 0.9, 0.55, 0.65, group.rotation);
     if (!desk) { return; }
-    const chair = this.#place("WoodenDeskChair", group.x + Math.sin(angle) * 0.25,
+    const chair = this.#place("Chair", group.x + Math.sin(angle) * 0.25,
       group.z + Math.cos(angle) * 0.25, 0.43, 0.51, 0.85, (group.rotation + 270) % 360);
     if (chair) { chair.mirrorRotationOffset = 180; }
     this.#supported("DeskParchment", desk, 0.3034, 0.35, 0.0376);

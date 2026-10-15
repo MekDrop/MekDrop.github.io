@@ -77,7 +77,7 @@ export class ServiceRoomFurnishing {
         }
       }
       if (royal) { this.#perimeter("wardrobe", 0.65, 0.46, 1.15, 0.9); }
-      if (!quarters && this.#random() < 0.75) { this.#perimeter("readingChair", 0.75, 0.735, 1.665, 0.5); }
+      if (!quarters && this.#random() < 0.75) { this.#perimeter("readingChair", 0.429, 0.508, 0.85, 0.5); }
     }
     if (quarters && variant !== "cozy") { this.#workspace(variant); }
     // Armories have supply storage until actual weapon racks are authored.
@@ -165,7 +165,7 @@ export class ServiceRoomFurnishing {
       x: group.x - Math.sin(angle) * 0.55, z: group.z - Math.cos(angle) * 0.55,
       width: sideways ? 0.55 : 0.9, depth: sideways ? 0.9 : 0.55,
       height: 0.65, scale: 1, rotation: group.rotation };
-    const chair = { role: "serviceProp", object: "WoodenDeskChair", id: `${group.id}-chair`,
+    const chair = { role: "serviceProp", object: "Chair", id: `${group.id}-chair`,
       x: group.x + Math.sin(angle) * 0.23, z: group.z + Math.cos(angle) * 0.23,
       width: sideways ? 0.43 : 0.51, depth: sideways ? 0.51 : 0.43,
       height: 0.85, scale: 1, rotation: (group.rotation + 270) % 360, mirrorRotationOffset: 180 };

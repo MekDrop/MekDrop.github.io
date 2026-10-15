@@ -33,7 +33,7 @@ export class TowerRoomMapObjects {
         if (item.role !== "towerProp" || !item.object) { continue; }
         const position = layout.toWorld(item.x, item.z, item.floorY - layout.origin.y + (item.yOffset ?? 0));
         let rotation = layout.yaw + 180 + (item.rotation ?? 0);
-        if (item.object === "WoodenDeskChair") {
+        if (item.object === "Chair") {
           const room = plan.placedRooms.find(/**
            * @param {import("../../../../generator/castle/rooms/AbstractCastleRoomGenerator.js").PlannedCastleRoom} room
            */

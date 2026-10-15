@@ -74,7 +74,7 @@ export class ThroneRoomGenerator extends AbstractCastleRoomGenerator {
       items.push({ role: "courtProp", object, x, z,
         width: Math.abs(Math.cos(angle)) * itemWidth + Math.abs(Math.sin(angle)) * itemDepth,
         depth: Math.abs(Math.sin(angle)) * itemWidth + Math.abs(Math.cos(angle)) * itemDepth,
-        scale: 1, elevation, rotation, mirrorRotationOffset: object === "WoodenDeskChair" ? 180 : 0 });
+        scale: 1, elevation, rotation, mirrorRotationOffset: object === "Chair" ? 180 : 0 });
     };
     // Top-mounted authored cloth hangs clear of the rear wall and candle groups.
     const bannerLateral = Math.min(1.68, width / 2 - 0.6);
@@ -143,13 +143,13 @@ export class ThroneRoomGenerator extends AbstractCastleRoomGenerator {
       // The measured chair back lies on +X, so its authored front faces -X.
       if (width >= 4.5) {
         if (fits(x - side * 0.76, z + 0.15, 0.429, 0.508)) {
-          add("WoodenDeskChair", x - side * 0.76, z + 0.15, 0.429, 0.508, 0.05, side > 0 ? 180 : 0);
+          add("Chair", x - side * 0.76, z + 0.15, 0.429, 0.508, 0.05, side > 0 ? 180 : 0);
         }
       } else {
         const chairX = center - side * (width / 2 - 0.82);
         const chairZ = bounds.maxZ - 0.43;
         if (fits(chairX, chairZ, 0.508, 0.429)) {
-          add("WoodenDeskChair", chairX, chairZ, 0.429, 0.508, 0.05, -90);
+          add("Chair", chairX, chairZ, 0.429, 0.508, 0.05, -90);
         }
       }
     }

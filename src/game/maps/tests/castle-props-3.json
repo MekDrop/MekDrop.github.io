@@ -1127,7 +1127,7 @@
     },
     {
       "id": "wooden-desk-chair",
-      "object": "WoodenDeskChair",
+      "object": "Chair",
       "tile": {
         "col": 3,
         "row": 6

@@ -84,7 +84,7 @@ it("omits optional groups in small rooms and offers a working seat in larger hal
   assert.equal(small.filter(item => item.object === "FloorCandelabrum").length, 2);
   assert.ok(!small.some(item => ["Lectern", "WritingDesk", "WarMapTable"].includes(item.object)));
   const large = generator.furnish({ ...room, maxX: 5, maxZ: 5 }, { seed: 42 });
-  assert.ok(large.some(item => item.object === "WoodenDeskChair"));
+  assert.ok(large.some(item => item.object === "Chair"));
 });
 
 it("omits a blocked work group together with its tabletop details", () => {
@@ -98,7 +98,7 @@ it("omits a blocked work group together with its tabletop details", () => {
 it("faces compact visitors toward the throne in both mirrored layouts", async () => {
   for (const seed of [42, 43]) {
     const plan = await CastleBasePlanGenerator.generate({ seed });
-    const chair = plan.furniture.find(item => item.role === "courtProp" && item.object === "WoodenDeskChair");
+    const chair = plan.furniture.find(item => item.role === "courtProp" && item.object === "Chair");
     // The GLB's back is on +X: its front after yaw points (-cos(yaw), sin(yaw)).
     assert.ok(Math.abs(Math.cos(chair.rotation * Math.PI / 180)) < 0.0001);
     assert.ok(Math.sin(chair.rotation * Math.PI / 180) < -0.99);

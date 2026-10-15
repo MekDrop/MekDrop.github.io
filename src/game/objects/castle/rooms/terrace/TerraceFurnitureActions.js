@@ -1,5 +1,5 @@
 import tableUrl from "../../../../models/castle/leisure/tea-table.glb?url";
-import chairUrl from "../../../../models/castle/leisure/tea-chair.glb?url";
+import chairUrl from "../../../../models/chair/chair.glb?url";
 import { CASTLE_TERRACE_PHASE as PHASE } from "../../../../enum/CastleTerracePhase.js";
 
 const DEFINITIONS = {
@@ -114,7 +114,7 @@ export class TerraceFurnitureActions {
       prop.enabled = installed || moving;
       prop.setLocalPosition(...definition.position);
       prop.setLocalEulerAngles(0, name === "chair" ? 90 : 0, 0);
-      prop.setLocalScale(1, name === "chair" ? 0.75 : 1, 1);
+      prop.setLocalScale(1, 1, 1);
       if (moving) {
         this.#move(name, prop, definition.position, placing, packing);
       }

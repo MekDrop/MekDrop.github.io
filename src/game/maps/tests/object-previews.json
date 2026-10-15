@@ -744,6 +744,16 @@
         "z": 2
       },
       "id": "preview-large-thread-spool"
+    },
+    {
+      "id": "preview-chair",
+      "object": "Chair",
+      "position": {
+        "x": 2,
+        "y": 3,
+        "z": 0
+      },
+      "rotation": 0
     }
   ]
 }
