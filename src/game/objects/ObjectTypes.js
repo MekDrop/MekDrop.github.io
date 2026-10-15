@@ -6,6 +6,7 @@
  * @typedef {{col: number, row: number, elevation?: number, terrainHeight?: number, direction?: string, flowScale?: number}} RiverCell
  * @typedef {object} MapObjectDefinition
  * @property {string} id
+ * @property {string|number} [timberSeed] Repeatable SpareTimberBundle layout; defaults to its id.
  * @property {string|number} [firewoodSeed] Repeatable FirewoodStack layout; defaults to its id.
  * @property {string|number} [linenSeed] Repeatable FoldedLinens bundle layout; defaults to its id.
  * @property {import("./lantern/Lantern.js").LanternLighting|false} [lighting] Lantern-local illumination override.

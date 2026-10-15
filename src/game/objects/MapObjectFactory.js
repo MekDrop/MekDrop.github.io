@@ -55,7 +55,7 @@ import { Barrel } from "./barrel/Barrel.js";
 import { Crate } from "./crate/Crate.js";
 import { WoodenStorageChest } from "./castle-props/WoodenStorageChest.js";
 import { FirewoodStack } from "./firewood-stack/FirewoodStack.js";
-import { SpareTimberBundle } from "./castle-props/SpareTimberBundle.js";
+import { SpareTimberBundle } from "./spare-timber-bundle/SpareTimberBundle.js";
 import { WoodenDeskChair } from "./castle-props/WoodenDeskChair.js";
 import { Lantern } from "./lantern/Lantern.js";
 import { TowerBrazier } from "./castle-props/TowerBrazier.js";
