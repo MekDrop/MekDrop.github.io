@@ -102,7 +102,7 @@ export class VestibuleRoomGenerator extends AbstractCastleRoomGenerator {
           x: oppositeWall - 0.405, z: centerZ + offset, width: 0.55, depth: 0.7,
           height: 0.3291 * 0.82, scale: 1.4, stretch: { x: 1, y: 0.82, z: 1 },
           wallMountBack: -0.275, rotation: 270, y: 0.002 };
-        const painting = { role: "vestibuleProp", object: "VestibulePainting",
+        const painting = { role: "vestibuleProp", object: "Painting", variant: "vestibule", wallMountBack: -0.024,
           x: oppositeWall - 0.3, z: chest.z, width: 0.08, depth: 1.05,
           height: 0.78, scale: 1, rotation: 270, y: 1.15 };
         if (!safe(chest) || !safe(painting)) { continue; }

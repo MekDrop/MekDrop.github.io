@@ -26,7 +26,7 @@
  * @property {number} [level] Block bottom elevation when position is omitted.
  * @property {boolean} [generated]
  * @property {RenderCommand} [geometry]
- * @property {string} [variant]
+ * @property {string} [variant] Prop artwork/model variant.
  * @property {number} [rotation]
  * @property {Point3} [from] Bookshelf bottom edge, window corner, or WoodenFloor surface corner in world coordinates.
  * @property {Point3} [to] Bookshelf bottom edge or opposite window corner (one differing ground axis); WoodenFloor opposite surface corner (both ground axes differ, equal Y).

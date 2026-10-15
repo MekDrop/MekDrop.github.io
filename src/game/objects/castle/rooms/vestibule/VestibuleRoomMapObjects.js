@@ -37,7 +37,7 @@ export class VestibuleRoomMapObjects {
             stretch: { ...item.stretch, z: (end - start) / (3.3 * item.scale) } };
         }
         const position = layout.toWorld(item.x, item.z, item.floorY - layout.origin.y + (item.y ?? 0));
-        objects.push({ id: `${castle.id}-vestibule-${item.roomId}-${index}`, object: item.object,
+        objects.push({ id: `${castle.id}-vestibule-${item.roomId}-${index}`, object: item.object, variant: item.variant,
           position, rotation: layout.yaw + 180 + (item.rotation ?? 0), scale: item.scale,
           stretch: item.stretch,
           generated: true, vestibuleFurnishing: true, sourceCastleId: castle.id,

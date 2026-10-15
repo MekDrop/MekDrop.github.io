@@ -10,7 +10,6 @@ import { SewingBasket } from "./castle-props/SewingBasket.js";
 import { VestibuleBench } from "./castle-props/VestibuleBench.js";
 import { VestibuleIslandBench } from "./castle-props/VestibuleIslandBench.js";
 import { VestibuleBanner } from "./castle-props/VestibuleBanner.js";
-import { VestibulePainting } from "./castle-props/VestibulePainting.js";
 import { StandingArmor } from "./standing-armor/StandingArmor.js";
 import { TravelKit } from "./travel-kit/TravelKit.js";
 import { VestibuleBrownSatchel } from "./castle-props/VestibuleBrownSatchel.js";
@@ -58,7 +57,6 @@ import { TableCandles } from "./castle-props/TableCandles.js";
 import { WoodenBarrel } from "./castle-props/WoodenBarrel.js";
 import { WoodenCrate } from "./castle-props/WoodenCrate.js";
 import { WoodenStorageChest } from "./castle-props/WoodenStorageChest.js";
-import { RoyalBedroomPainting } from "./castle-props/RoyalBedroomPainting.js";
 import { RoyalBedroomRug } from "./castle-props/RoyalBedroomRug.js";
 import { FirewoodStack } from "./firewood-stack/FirewoodStack.js";
 import { SpareTimberBundle } from "./castle-props/SpareTimberBundle.js";
@@ -114,7 +112,6 @@ const OBJECT_CLASSES = new Map([
   [VestibuleIslandBench.name, VestibuleIslandBench],
   ["VestibuleMapTable", Table],
   [VestibuleBanner.name, VestibuleBanner],
-  [VestibulePainting.name, VestibulePainting],
   [StandingArmor.name, StandingArmor],
   [TravelKit.name, TravelKit],
   [VestibuleBrownSatchel.name, VestibuleBrownSatchel],
@@ -167,7 +164,6 @@ const OBJECT_CLASSES = new Map([
   [WoodenBarrel.name, WoodenBarrel],
   [WoodenCrate.name, WoodenCrate],
   [WoodenStorageChest.name, WoodenStorageChest],
-  [RoyalBedroomPainting.name, RoyalBedroomPainting],
   [RoyalBedroomRug.name, RoyalBedroomRug],
   [FirewoodStack.name, FirewoodStack],
   [SpareTimberBundle.name, SpareTimberBundle],

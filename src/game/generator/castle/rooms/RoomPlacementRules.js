@@ -3,7 +3,7 @@ import { FireplaceWallBacking } from "./FireplaceWallBacking.js";
 import { FireplaceChimneyFootprint } from "../../../objects/fireplace/FireplaceChimneyFootprint.js";
 
 // Model-local rear mounting planes measured from the source GLBs.
-const WALL_MOUNTS = { RoyalBedroomPainting: -0.032, Fireplace: -0.45, VestibuleCloakRail: -0.058, VestibulePainting: -0.024,
+const WALL_MOUNTS = { Fireplace: -0.45, VestibuleCloakRail: -0.058,
   VestibuleBanner: -0.005, HangingFryingPan: -0.0953, KitchenUtensilRail: 0,
   RoyalCrest: -0.04, WarCouncilShield: -0.05 };
 

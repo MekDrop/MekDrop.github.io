@@ -386,8 +386,7 @@
         "y": 2,
         "z": 0
       },
-      "width": 1.2,
-      "height": 0.8
+      "variant": "royal-bedroom"
     },
     {
       "id": "preview-window",

@@ -17,7 +17,7 @@ class IslandRoots {
   constructor(pc, parent) { this.parent = parent; }
   addChild(child) { this.parent.addChild(child); }
 }
-const Painting = new Function("paintingUrl", "IslandObjectRoots", `${source}\nreturn Painting;`)("painting.glb", IslandRoots);
+const Painting = new Function("paintingUrl", "royalBedroomUrl", "vestibuleUrl", "IslandObjectRoots", "addAuthoredMeshPhysics", `${source}\nreturn Painting;`)("painting.glb", "royal.glb", "vestibule.glb", IslandRoots, (pc, root, graph) => { root.collisionGraph = graph; });
 
 test("painting uses world placement and compresses depth independently of picture size", () => {
   const model = new Entity();
@@ -30,4 +30,22 @@ test("painting uses world placement and compresses depth independently of pictur
   assert.equal(painting.definition, definition);
   painting.destroy();
   assert.equal(painting.entity.destroyed, true);
+});
+
+ test("painting variants retain authored depth, scale, and matching collision geometry", () => {
+  assert.deepEqual(Painting.modelUrls, ["painting.glb", "royal.glb", "vestibule.glb"]);
+  for (const [variant, expected] of [["royal-bedroom", "royal.glb"], ["vestibule", "vestibule.glb"]]) {
+    const models = [];
+    const urls = [];
+    const painting = new Painting({ pc: { Entity }, modelLibrary: { instantiate(url) {
+      urls.push(url);
+      const model = new Entity(); models.push(model); return model;
+    } }, definition: { id: "variant", variant, position: { x: 1, y: 2, z: 3 },
+      scale: 2, stretch: { x: 1.5, y: 0.5, z: 1 } } });
+    assert.deepEqual(urls, [expected, expected]);
+    assert.deepEqual(models.map(model => model.scale), [[3, 1, 2], [3, 1, 2]]);
+    assert.equal(painting.visualRoots[0].collisionGraph, models[1]);
+    painting.destroy();
+    assert.ok(models[1].destroyed);
+  }
 });

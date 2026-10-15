@@ -327,7 +327,7 @@ export class RoyalBedroomFurnishing {
     for (const offset of [0, 0.35, -0.35, 0.7, -0.7]) {
       const x = sideways ? rotation === 90 ? bounds.minX + inset : bounds.maxX - inset : bed.x + offset;
       const z = !sideways ? rotation === 0 ? bounds.minZ + inset : bounds.maxZ - inset : bed.z + offset;
-      const item = { id: this.#room.id + "-bedroom-painting", role: "royalBedroomProp", object: "RoyalBedroomPainting",
+      const item = { id: this.#room.id + "-bedroom-painting", role: "royalBedroomProp", object: "Painting", variant: "royal-bedroom", wallMountBack: -0.024,
         x, z, y: 1.3, rotation, width: sideways ? 0.083 : 1.05, depth: sideways ? 1.05 : 0.083,
         height: 0.78, scale: 1, wallAttachment: true };
       if (!RoomPlacementRules.accepts(item, this.#room, this.#items, this.#thickness)) { continue; }

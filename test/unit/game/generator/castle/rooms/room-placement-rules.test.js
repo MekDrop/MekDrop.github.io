@@ -137,7 +137,7 @@ test("keeps neighboring cloak rails visually separated without removing either r
 });
 
 test("wall fixtures contact the masonry by their measured rear plane in all cardinal directions", () => {
-  const mounts = { VestibuleCloakRail: -0.058, VestibulePainting: -0.024, VestibuleBanner: -0.005, HangingFryingPan: -0.0953, KitchenUtensilRail: 0, RoyalCrest: -0.04, WarCouncilShield: -0.05 };
+  const mounts = { VestibuleCloakRail: -0.058, Painting: -0.024, VestibuleBanner: -0.005, HangingFryingPan: -0.0953, KitchenUtensilRail: 0, RoyalCrest: -0.04, WarCouncilShield: -0.05 };
   for (const [object, back] of Object.entries(mounts)) {
     for (const rotation of [0, 90, 180, 270]) {
       const angle = rotation * Math.PI / 180;
@@ -146,7 +146,7 @@ test("wall fixtures contact the masonry by their measured rear plane in all card
       const wall = { x: 2, z: 2, y: 1.5, halfX: 2, halfZ: 2, halfY: 1.5 };
       wall[axis] = sign > 0 ? 4 : 0;
       wall[axis === "x" ? "halfX" : "halfZ"] = 0.125;
-      const item = { ...shelf, id: object, object, rotation, floorY: 0, y: 1, height: 0.5, scale: 0.8 };
+      const item = { ...shelf, id: object, object, ...(object === "Painting" ? { wallMountBack: back } : {}), rotation, floorY: 0, y: 1, height: 0.5, scale: 0.8 };
       item[axis] = sign > 0 ? 3.7 : 0.3;
       const [fixed] = RoomPlacementRules.repair([item], [wall], [room]);
       const face = wall[axis] - sign * 0.125;

@@ -141,11 +141,11 @@ test("the saved ladder castle contains the new side-tower bedroom instead of the
   assert.equal(plan.furniture.find(item => item.roomId === "royal-chamber" && item.role === "royalBed").height, 2.03);
   assert.ok(plan.furniture.some(item => item.roomId === "royal-chamber" && item.object === "RoyalBedroomRug" && item.floorCovering));
   assert.ok(!plan.furniture.some(item => item.roomId === "royal-chamber" && item.object === "VestibuleBanner"));
-  const painting = plan.furniture.find(item => item.roomId === "royal-chamber" && item.object === "RoyalBedroomPainting");
+  const painting = plan.furniture.find(item => item.roomId === "royal-chamber" && item.object === "Painting" && item.variant === "royal-bedroom");
   const bed = plan.furniture.find(item => item.roomId === "royal-chamber" && item.role === "royalBed");
   assert.ok(painting?.wallAttachment);
   assert.equal((painting.rotation - bed.rotation + 360) % 360, 180);
-  assert.ok(!plan.furniture.some(item => item.roomId === "royal-chamber" && item.object === "VestibulePainting"));
+  assert.ok(!plan.furniture.some(item => item.roomId === "royal-chamber" && item.object === "Painting" && item.variant === "vestibule"));
   assert.ok(plan.furniture.some(item => item.roomId === "royal-chamber" && item.role === "royalBed"));
   assert.ok(plan.spaces.some(space => space.id === "royal-chamber" && space.maxX - space.minX === 3.25 && space.maxZ - space.minZ === 7.25));
   assert.ok(!plan.spaces.some(space => space.purpose === "Kitchen and storeroom passage"));
