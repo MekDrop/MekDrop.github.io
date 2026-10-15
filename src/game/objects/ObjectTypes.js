@@ -15,6 +15,8 @@
  * @property {boolean} [flame] Override the lantern variant's candle emitter.
  * @property {{halfExtents: Point3, offset: Point3}} [collisionBox] Model-space lantern contact box.
  * @property {{position: Point3, width: number, depth: number}} [hatch] Framed ladder roof hatch.
+ * @property {Point3} [bottom] Ladder lower landing in world coordinates.
+ * @property {Point3} [top] Ladder upper landing in world coordinates; together with bottom defines placement and heading when position/rotation are omitted.
  * @property {MapObjectDefinition[]} [items] Contained game objects; an explicit position preserves a local authored pose, otherwise physics packs them.
  * @property {boolean} [worldMap] Draw the current world on a table.
  * @property {string} object

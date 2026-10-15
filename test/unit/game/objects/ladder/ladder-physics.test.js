@@ -13,8 +13,27 @@ const hooks = registerHooks({
     return nextLoad(url, context);
   },
 });
-const { Ladder } = await import("../../../../../src/game/objects/castle/Ladder.js");
+const { Ladder } = await import("../../../../../src/game/objects/ladder/Ladder.js");
 hooks.deregister();
+
+it("places a standalone ladder from two 3D landings without mutating map data", () => {
+  const bottom = { x: 2, y: 4, z: 6 };
+  const definition = { id: "standalone", object: "Ladder", bottom, top: { x: 5, y: 8, z: 6 } };
+  const resolved = Ladder.resolveDefinition(definition);
+  assert.equal(resolved.rotation, 90);
+  assert.deepEqual(resolved.position, { x: 2.375, y: 4, z: 6 });
+  assert.equal(definition.position, undefined);
+  assert.equal(definition.rotation, undefined);
+  assert.equal(resolved.bottom, bottom);
+  const explicit = { ...definition, position: { x: 1, y: 4, z: 5 }, rotation: 270 };
+  assert.deepEqual(Ladder.resolveDefinition(explicit), explicit);
+});
+
+it("uses a stable heading for vertically aligned endpoints", () => {
+  const resolved = Ladder.resolveDefinition({ bottom: { x: 2, y: 1, z: 3 }, top: { x: 2, y: 5, z: 3 } });
+  assert.equal(resolved.rotation, 0);
+  assert.deepEqual(resolved.position, { x: 2, y: 1, z: 3.375 });
+});
 
 it("exports the ladder with a bottom-center root pivot", () => {
   const bytes = readFileSync(new URL("../../../../../src/game/models/castle/residential/crown-ladder.glb", import.meta.url));

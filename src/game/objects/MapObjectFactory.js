@@ -2,7 +2,7 @@ import { Book } from "./book/Book.js";
 import { Fire } from "./fire/Fire.js";
 import { Table } from "./table/Table.js";
 import { StraightStaircase } from "./straight-staircase/StraightStaircase.js";
-import { Ladder } from "./castle/Ladder.js";
+import { Ladder } from "./ladder/Ladder.js";
 import { SignalBell } from "./signal-bell/SignalBell.js";
 import { BedsideDrawers } from "./bedside-drawers/BedsideDrawers.js";
 import { Rug } from "./rug/Rug.js";

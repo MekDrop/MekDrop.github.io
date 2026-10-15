@@ -47,11 +47,11 @@ function transferBackOffset(phase) {
  */
 export class HeroLadderClimb {
   /**
-   * @type {Set<import("../castle/Ladder.js").Ladder>}
+   * @type {Set<import("../ladder/Ladder.js").Ladder>}
    */
   #ladders = new Set();
   /**
-   * @type {import("../castle/Ladder.js").Ladder|null}
+   * @type {import("../ladder/Ladder.js").Ladder|null}
    */
   #active = null;
   /**
@@ -92,7 +92,7 @@ export class HeroLadderClimb {
   #needsRelease = false;
 
   /**
-   * @param {import("../castle/Ladder.js").Ladder} ladder
+   * @param {import("../ladder/Ladder.js").Ladder} ladder
    */
   register(ladder) {
     this.#ladders.add(ladder);

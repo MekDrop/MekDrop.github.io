@@ -35,9 +35,27 @@ export class Ladder extends AbstractCastleProp {
   static get modelUrls() { return [modelUrl, hatchUrl, handleUrl]; }
 
   /**
+   * Place the rails ahead of the lower landing when only endpoints are authored.
+   * Explicit castle rail positions and headings retain their existing placement.
+   * @param {import("../ObjectTypes.js").MapObjectDefinition} definition
+   * @returns {import("../ObjectTypes.js").MapObjectDefinition}
+   */
+  static resolveDefinition(definition) {
+    const { bottom, top } = definition;
+    const rotation = definition.rotation ?? Math.atan2(top.x - bottom.x, top.z - bottom.z) * 180 / Math.PI;
+    const angle = rotation * Math.PI / 180;
+    return { ...definition, rotation, position: definition.position ?? {
+      x: bottom.x + Math.sin(angle) * 0.375,
+      y: bottom.y,
+      z: bottom.z + Math.cos(angle) * 0.375,
+    } };
+  }
+
+  /**
    * @param {ConstructorParameters<typeof AbstractCastleProp>[0]} options
    */
   constructor(options) {
+    options = { ...options, definition: Ladder.resolveDefinition(options.definition) };
     super(options);
     const { pc, modelLibrary, definition } = options;
     this.#climbUpdate = options.app.on("update", () => {
