@@ -9,10 +9,11 @@
  * @property {import("./lantern/Lantern.js").LanternLighting|false} [lighting] Lantern-local illumination override.
  * @property {boolean} [flame] Override the lantern variant's candle emitter.
  * @property {{halfExtents: Point3, offset: Point3}} [collisionBox] Model-space lantern contact box.
- * @property {"entrance"|"wall"|"table"} [type] Lantern model selection.
  * @property {{position: Point3, width: number, depth: number}} [hatch] Framed ladder roof hatch.
+ * @property {MapObjectDefinition[]} [items] Ordinary game objects packed and frozen by the containing bowl.
  * @property {boolean} [worldMap] Draw the current world on a table.
  * @property {string} object
+ * @property {"entrance"|"wall"|"table"} [type] Lantern model selection.
  * @property {string} [symbol] Gateway banner override.
  * @property {import("../navigation/WalkingPaths.js").WalkingEntry} [entry]
  * @property {Array<import("../generator/map/MapGenerationTypes.js").RiverData>} [rivers]
@@ -75,6 +76,7 @@
  * @property {{horizontal: boolean, station: number, cells: Array<{col: number, row: number}>, removedCells: Array<{col: number, row: number}>, nearIsland: string[], farIsland: string[], islands?: string[][]}} [islandConnectorData]
  * @property {{position: {col: number, row: number, width: number, depth: number}}} [castle]
  * @typedef {object} MapObjectRuntime
+ * @property {(definition: MapObjectDefinition) => MapObjectLike} [createObject] Creates a registered child object owned by its container.
  * @property {Array<import("playcanvas").Material>} [materials]
  * @property {() => HeroLike} [getHero]
  * @property {(item: MapObjectLike) => void} [onCollectibleRemoved]
@@ -99,6 +101,7 @@
  * @property {import("playcanvas").Entity} entity
  * @property {MapObjectDefinition} [definition]
  * @property {() => void} destroy
+ * @property {() => void} [onSceneReady]
  * @property {(x: number, z: number, radius?: number) => number|null} [surfaceHeightAt]
  * @property {(x: number, z: number, radius?: number) => number|null} [physicsSurfaceHeightAt]
  * @property {(position: Point3) => InteractionLike|null} [getInteraction]

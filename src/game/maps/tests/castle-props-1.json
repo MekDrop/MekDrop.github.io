@@ -1113,7 +1113,7 @@
     },
     {
       "id": "bowl-green-vegetables",
-      "object": "BowlGreenVegetables",
+      "object": "Bowl", "color": "#b16832", "items": [{"object":"GreenVegetable"},{"object":"GreenVegetable"},{"object":"GreenVegetable"},{"object":"GreenVegetable"},{"object":"GreenVegetable"},{"object":"GreenVegetable"},{"object":"GreenVegetable"},{"object":"GreenVegetable"},{"object":"GreenVegetable"}],
       "tile": {
         "col": 9,
         "row": 3
@@ -1127,7 +1127,7 @@
     },
     {
       "id": "bowl-red-fruit",
-      "object": "BowlRedFruit",
+      "object": "Bowl", "color": "#ffffff", "items": [{"object":"Apple"},{"object":"Apple"},{"object":"Apple"},{"object":"Apple"},{"object":"Apple"}],
       "tile": {
         "col": 3,
         "row": 6

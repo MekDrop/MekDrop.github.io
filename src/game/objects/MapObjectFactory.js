@@ -1,5 +1,4 @@
 import { Table } from "./table/Table.js";
-import { Lantern } from "./lantern/Lantern.js";
 import { StraightStaircase } from "./straight-staircase/StraightStaircase.js";
 import { Ladder } from "./castle/Ladder.js";
 import { SignalBell } from "./signal-bell/SignalBell.js";
@@ -42,8 +41,9 @@ import { TerraceTeacup } from "./castle-props/TerraceTeacup.js";
 import { TerraceReadingBook } from "./castle-props/TerraceReadingBook.js";
 import { TerracePlanter } from "./castle-props/TerracePlanter.js";
 import { BlueArmchair } from "./castle-props/BlueArmchair.js";
-import { BowlGreenVegetables } from "./castle-props/BowlGreenVegetables.js";
-import { BowlRedFruit } from "./castle-props/BowlRedFruit.js";
+import { Bowl } from "./bowl/Bowl.js";
+import { Apple } from "./food/Apple.js";
+import { GreenVegetable } from "./food/GreenVegetable.js";
 import { DeskGlobe } from "./castle-props/DeskGlobe.js";
 import { DeskParchment } from "./castle-props/DeskParchment.js";
 import { FireplaceCauldron } from "./castle-props/FireplaceCauldron.js";
@@ -62,6 +62,7 @@ import { RoyalBedroomRug } from "./castle-props/RoyalBedroomRug.js";
 import { FirewoodStack } from "./castle-props/FirewoodStack.js";
 import { SpareTimberBundle } from "./castle-props/SpareTimberBundle.js";
 import { WoodenDeskChair } from "./castle-props/WoodenDeskChair.js";
+import { Lantern } from "./lantern/Lantern.js";
 import { TowerBrazier } from "./castle-props/TowerBrazier.js";
 import { CliffVine } from "./vegetation/CliffVine.js";
 import { WoodenFloor } from "./wooden-floor/WoodenFloor.js";
@@ -148,8 +149,9 @@ const OBJECT_CLASSES = new Map([
   ["TeaTable", Table],
   [TerracePlanter.name, TerracePlanter],
   [BlueArmchair.name, BlueArmchair],
-  [BowlGreenVegetables.name, BowlGreenVegetables],
-  [BowlRedFruit.name, BowlRedFruit],
+  [Bowl.name, Bowl],
+  [Apple.name, Apple],
+  [GreenVegetable.name, GreenVegetable],
   [DeskGlobe.name, DeskGlobe],
   [DeskParchment.name, DeskParchment],
   [FireplaceCauldron.name, FireplaceCauldron],
@@ -206,6 +208,25 @@ const OBJECT_CLASSES = new Map([
  * Creates map objects through the class registered for each object name.
  */
 export class MapObjectFactory {
+  /**
+   * Creates a registered object, including objects owned by another map object.
+   * @param {import("./ObjectTypes.js").MapObjectOptions} options
+   * @returns {import("./ObjectTypes.js").MapObjectLike}
+   */
+  static create(options) {
+    const ObjectClass = OBJECT_CLASSES.get(options.definition.object);
+    if (!ObjectClass) {
+      throw new MapObjectClassNotFoundError({ object: options.definition.object });
+    }
+    // Terrain and ground-cover constructors publish shared resources into this
+    // runtime. Cloning it per object rebuilds the whole canopy for every tile.
+    const runtime = options.runtime ?? {};
+    runtime.createObject ??= /**
+     * @param {import("./ObjectTypes.js").MapObjectDefinition} definition
+     */ (definition) => MapObjectFactory.create({ ...options, definition,
+      runtime: { ...runtime, mapData: undefined } });
+    return new ObjectClass({ ...options, runtime });
+  }
   /**
    * @returns {Readonly<Record<string, string>>}
    */
@@ -305,11 +326,7 @@ export class MapObjectFactory {
         pickupDefinitions.push(definition);
         continue;
       }
-      const MapObjectClass = OBJECT_CLASSES.get(definition.object);
-      if (!MapObjectClass) {
-        throw new MapObjectClassNotFoundError({ object: definition.object });
-      }
-      const object = new MapObjectClass({
+      const object = MapObjectFactory.create({
         pc,
         app,
         modelLibrary,

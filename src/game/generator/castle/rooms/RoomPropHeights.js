@@ -2,8 +2,7 @@
 export const ROOM_PROP_HEIGHTS = {
   "BedsideDrawers": 0.65,
   "BlueArmchair": 1,
-  "BowlGreenVegetables": 0.2653,
-  "BowlRedFruit": 0.2893,
+  "Bowl": 0.231,
   "ChoppingToolsSet": 0.0485,
   "ClosedReadingBook": 0.04,
   "CourtLectern": 0.75,
@@ -67,8 +66,7 @@ export const ROOM_PROP_HEIGHTS = {
 export const ROOM_PROP_BOTTOMS = {
   "BedsideDrawers": 0,
   "BlueArmchair": 0,
-  "BowlGreenVegetables": 0,
-  "BowlRedFruit": 0,
+  "Bowl": 0,
   "ChoppingToolsSet": 0,
   "ClosedReadingBook": 0,
   "CourtLectern": 0,

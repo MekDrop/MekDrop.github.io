@@ -30,7 +30,7 @@ export class KitchenRoomMapObjects {
         const rotation = layout.yaw + (plan.basePlanId ? 180 : 0) + (item.rotation ?? 0);
         const chimneyHeight = item.object === "KitchenFireplace"
           ? KitchenChimneyLayout.height(castle.buildPlan, item, position, rotation) : undefined;
-        objects.push({ id, object: item.object, position, rotation, scale: item.scale, generated: true, kitchenFurnishing: true,
+        objects.push({ ...(item.items ? { items: item.items, color: item.color } : {}), id, object: item.object, position, rotation, scale: item.scale, generated: true, kitchenFurnishing: true,
           ...(item.object === "KitchenFireplace" ? {
             chimneyHeight,
             chimneyMetalTerminal: KitchenChimneyLayout.hasTerraceTerminal(castle.buildPlan, item, position, chimneyHeight),

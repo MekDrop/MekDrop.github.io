@@ -62,9 +62,11 @@ export class KitchenRoomGenerator extends AbstractCastleRoomGenerator {
      * @param {number} d
      * @param {number} [y]
      * @param {number} [rotation]
+     * @param {import("../../../../objects/ObjectTypes.js").MapObjectDefinition[]} [contents]
+     * @param {string} [color]
      * @returns {boolean}
      */
-    const prop = (object, x, z, w, d, y = 0, rotation = 0) => {
+    const prop = (object, x, z, w, d, y = 0, rotation = 0, contents = undefined, color = undefined) => {
       const wallMounted = ["HangingFryingPan", "KitchenFireplace"].includes(object);
       const fireplace = object === "KitchenFireplace";
       if (fireplace && !FireplaceWallBacking.accepts({ object, x, z, width: w, depth: d, scale: 1, y },
@@ -77,6 +79,7 @@ export class KitchenRoomGenerator extends AbstractCastleRoomGenerator {
         Math.abs(item.x - x) < (item.width + w) / 2 + 0.04 &&
         Math.abs(item.z - z) < (item.depth + d) / 2 + 0.04)) { return false; }
       items.push({ role: "kitchenProp", object, x, z, width: w, depth: d, scale: 1, y, rotation,
+        ...(contents ? { items: contents, color, height: 0.231 } : {}),
         ...(wallMounted ? { wallAttachment: true } : {}),
         ...(fireplace ? { wallInset: 0 } : {}) });
       return true;
@@ -130,9 +133,9 @@ export class KitchenRoomGenerator extends AbstractCastleRoomGenerator {
       // Authored table's top is 0.564499 metres above its bottom-centre pivot.
       const top = 0.564499;
       const reverse = random() < 0.5 ? -1 : 1;
-      prop("BowlGreenVegetables", sideEntry ? tableX - reverse * 0.38 : tableX, sideEntry ? tableZ : tableZ - reverse * 0.38, 0.291, 0.3, top, random() < 0.5 ? 0 : 180);
+      prop("Bowl", sideEntry ? tableX - reverse * 0.38 : tableX, sideEntry ? tableZ : tableZ - reverse * 0.38, 0.291, 0.3, top, random() < 0.5 ? 0 : 180, Array.from({ length: 9 }, () => ({ object: "GreenVegetable" })), "#b16832");
       prop("PlateBread", tableX, tableZ, 0.287, 0.3, top, random() < 0.5 ? 0 : 180);
-      prop("BowlRedFruit", sideEntry ? tableX + reverse * 0.38 : tableX, sideEntry ? tableZ : tableZ + reverse * 0.38, 0.278, 0.3, top, random() < 0.5 ? 0 : 180);
+      prop("Bowl", sideEntry ? tableX + reverse * 0.38 : tableX, sideEntry ? tableZ : tableZ + reverse * 0.38, 0.278, 0.3, top, random() < 0.5 ? 0 : 180, Array.from({ length: 5 }, () => ({ object: "Apple" })), "#ffffff");
       // Centre the utensils above the preparation table, with the mounting plates against its wall.
       const walls = room.wallBounds ?? room;
       prop("HangingFryingPan", sideEntry ? tableX : walls.maxX - 0.0955,
