@@ -4,10 +4,11 @@ import { it } from "node:test";
 import { AnimController } from "../../../../../node_modules/playcanvas/build/playcanvas/src/framework/anim/controller/anim-controller.js";
 import { AnimTransition } from "../../../../../node_modules/playcanvas/build/playcanvas/src/framework/anim/controller/anim-transition.js";
 import { AnimTrack } from "../../../../../node_modules/playcanvas/build/playcanvas/src/framework/anim/evaluator/anim-track.js";
+import { HERO_ANIMATION } from "../../../../../src/game/enum/HeroAnimation.js";
 
 const source = readFileSync(new URL("../../../../../src/game/objects/hero/Hero.js", import.meta.url), "utf8");
 const method = source.slice(source.indexOf("  #playAnimation("), source.indexOf("  get #headLookTargetYaw"));
-const Playback = new Function(`
+const Playback = new Function("LADDER_TOP_ANIMATIONS", `
   const ANIMATION_BLEND_TIME = 0.2;
   return class {
     #modelRoot;
@@ -16,7 +17,7 @@ const Playback = new Function(`
     play(...args) { this.#playAnimation(...args); }
     ${method}
   };
-`)();
+`)(new Set([HERO_ANIMATION.CLIMB_TOP, HERO_ANIMATION.CLIMB_TOP_RIGHT]));
 
 it("restarts during an interrupted blend and safely transitions again", () => {
   const evaluator = {

@@ -39,6 +39,7 @@ import { HERO_STAT } from "../../enum/HeroStat.js";
 import { BuffSystem } from "../../buffs/BuffSystem.js";
 import { AxeTool, KnifeTool, ShovelTool } from "./tools/index.js";
 import { projectFirstPersonMovement } from "./projectFirstPersonMovement.js";
+import { HeroLadderClimb } from "./HeroLadderClimb.js";
 
 /**
  * @typedef {{capacity: number, items: Array<{id: string, variant: string, quantity?: number}>}} HeroInventory
@@ -99,7 +100,9 @@ const BLOCKED_PUSH_DURATION = 1;
 const HEAD_LOOK_MAX_YAW = 55;
 const HEAD_LOOK_RESPONSE = 7;
 const HERO_ANIMATION_NAMES = Object.freeze(Object.values(HERO_ANIMATION));
+const LADDER_TOP_ANIMATIONS = new Set([HERO_ANIMATION.CLIMB_TOP, HERO_ANIMATION.CLIMB_TOP_RIGHT]);
 const LOOPING_ANIMATIONS = new Set([
+  HERO_ANIMATION.CLIMB,
   HERO_ANIMATION.IDLE,
   HERO_ANIMATION.WALK,
   HERO_ANIMATION.RUN,
@@ -140,6 +143,19 @@ const PAT_HAIR_CONTACT_HEIGHT = 0.78;
 const HAIR_ENTITY_NAME = /(?:hair|nape lock|swept fringe|layered lock)/i;
 
 export class Hero {
+  /**
+   * @type {HeroLadderClimb}
+   */
+  #ladderClimb = new HeroLadderClimb();
+  /**
+   * @type {ReturnType<HeroLadderClimb["update"]>}
+   */
+  #climbMotion = null;
+
+  /**
+   * @param {import("../castle/Ladder.js").Ladder} ladder
+   */
+  registerLadder(ladder) { return this.#ladderClimb.register(ladder); }
   /**
    * @type {HeroTerrain}
    */
@@ -1185,6 +1201,9 @@ export class Hero {
       return false;
     }
     const previous = this.position;
+    this.#ladderClimb.reset();
+    this.#climbMotion = null;
+    this.#setHeroPartCollidersEnabled(true);
     this.#actionBehavior.finish();
     this.#clearActionInput();
     this.#angryEscapeBehavior.reset();
@@ -2118,11 +2137,39 @@ export class Hero {
       return;
     }
     if (this.#actionBehavior.exclusive) {
+      this.#ladderClimb.reset();
+      if (this.#climbMotion) { this.#physics.gravity = GRAVITY; this.#climbMotion = null; this.#setHeroPartCollidersEnabled(true); }
       this.#actionBehavior.update(deltaTime);
       this.#applyPosition(previousX, previousY, previousZ);
       return;
     }
     this.#actionBehavior.update(deltaTime);
+    const wasClimbing = Boolean(this.#climbMotion);
+    this.#climbMotion = this.#ladderClimb.update(deltaTime, {
+      position: this.#position, input: this.#input,
+      movement: this.#projectInput(this.#input.x, this.#input.y),
+      jump: this.#jumpBufferRemaining > 0,
+      grounded: this.#grounded,
+      allowed: !this.isIncapacitated && !this.isUsingTool && !this.#actionsLocked,
+    });
+    if (this.#climbMotion) {
+      if (!wasClimbing) {
+        this.#physics.gravity = 0;
+        // The capsule handles contact; animated hands must not catch on rungs.
+        this.#setHeroPartCollidersEnabled(false);
+      }
+      this.#velocity = this.#climbMotion.velocity;
+      this.#grounded = false;
+      this.#movementBlocked = false;
+      this.#facingYaw = Math.atan2(this.#climbMotion.facing.x, this.#climbMotion.facing.z) * 180 / Math.PI;
+      this.#applyPosition(previousX, previousY, previousZ);
+      return;
+    }
+    if (wasClimbing) {
+      this.#physics.gravity = GRAVITY;
+      this.#setHeroPartCollidersEnabled(true);
+      this.#coyoteRemaining = COYOTE_TIME;
+    }
     this.#gatewayRepelCooldown = Math.max(
       0,
       this.#gatewayRepelCooldown - deltaTime,
@@ -3172,7 +3219,13 @@ export class Hero {
     if (Math.abs(this.#automaticStepVisualOffset) < 0.0001) {
       this.#automaticStepVisualOffset = 0;
     }
-    this.#modelRoot.setLocalPosition(0, this.#automaticStepVisualOffset, 0);
+    // Warp the authored transfer root by the small physics correction, keeping
+    // planted contacts fixed while the capsule resolves the hatch edge.
+    this.#modelRoot.setLocalPosition(
+      this.#climbMotion?.rootCorrection.x ?? 0,
+      this.#automaticStepVisualOffset,
+      this.#climbMotion?.rootCorrection.z ?? 0,
+    );
     this.#facingHoldRemaining = Math.max(
       0,
       this.#facingHoldRemaining - deltaTime,
@@ -3190,8 +3243,12 @@ export class Hero {
       !this.#holeMovementBlocked &&
       horizontalSpeed <= 0.08;
     const showingBlockedPush = blocked && !this.#blockedPushFinished;
-    const actionAnimation = this.#actionBehavior.animation;
-    const defaultFacing = blocked
+    const actionAnimation = this.#climbMotion
+      ? this.#climbMotion.topProgress > 0
+        ? this.#climbMotion.topSide > 0 ? HERO_ANIMATION.CLIMB_TOP_RIGHT : HERO_ANIMATION.CLIMB_TOP
+        : HERO_ANIMATION.CLIMB
+      : this.#actionBehavior.animation;
+    const defaultFacing = this.#climbMotion ? this.#climbMotion.facing : blocked
       ? this.#desiredVelocity()
       : queuedFacingDirection
         ? queuedFacingDirection
@@ -3237,7 +3294,7 @@ export class Hero {
     let animationSpeed = 1;
     if (actionAnimation) {
       animation = actionAnimation;
-      animationSpeed = this.#actionBehavior.animationSpeed;
+      animationSpeed = LADDER_TOP_ANIMATIONS.has(animation) ? 0 : this.#climbMotion ? this.#climbMotion.speed * 2.8 : this.#actionBehavior.animationSpeed;
       this.#resetBoredom();
     } else if (!this.#grounded && this.#coyoteRemaining === 0) {
       animation = HERO_ANIMATION.JUMP;
@@ -3271,6 +3328,10 @@ export class Hero {
       animation = this.#selectIdleAnimation(deltaTime);
     }
     this.#playAnimation(animation, animationSpeed, this.#restartAnimation);
+    if (LADDER_TOP_ANIMATIONS.has(animation)) {
+      // Sample the baked contacts by traversal/transfer phase in either direction.
+      this.#modelRoot.anim.baseLayer.activeStateCurrentTime = Math.min(3.999, this.#climbMotion.topProgress * 4);
+    }
     this.#restartAnimation = false;
     if (
       animation !== HERO_ANIMATION.PAT_ANNOYED &&
@@ -3323,7 +3384,9 @@ export class Hero {
       return;
     }
     animation.speed = speed;
-    if (restart) {
+    animation.baseLayer.playing = !LADDER_TOP_ANIMATIONS.has(name);
+    if (restart || (this.#animationState !== name &&
+      (LADDER_TOP_ANIMATIONS.has(name) || LADDER_TOP_ANIMATIONS.has(this.#animationState)))) {
       // Keep interrupted clips alive until the controller completes the transition.
       animation.baseLayer.transition(name, 0);
       this.#animationState = name;

@@ -1,0 +1,432 @@
+{
+  "grid": [
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      0
+    ],
+    [
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      0
+    ],
+    [
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  ],
+  "heightmap": [
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      0
+    ],
+    [
+      0,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      0
+    ],
+    [
+      0,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  ],
+  "tileMeta": [
+    [
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {}
+    ],
+    [
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {}
+    ],
+    [
+      {},
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {}
+    ],
+    [
+      {},
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {}
+    ],
+    [
+      {},
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {}
+    ],
+    [
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {}
+    ],
+    [
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {}
+    ]
+  ],
+  "cols": 9,
+  "rows": 7,
+  "numPaths": 0,
+  "pipeData": [],
+  "mergeZones": [],
+  "trunkStart": null,
+  "mapName": "test_ladder-climb",
+  "layoutSignature": "test-ladder-climb-v1",
+  "objects": [
+    {
+      "id": "hero-spawn",
+      "object": "SpawnPoint",
+      "position": {
+        "x": -2,
+        "y": 2.14,
+        "z": 0
+      }
+    },
+    {
+      "id": "test-ladder",
+      "object": "Ladder",
+      "position": {
+        "x": 0,
+        "y": 2.14,
+        "z": 0
+      },
+      "bottom": {
+        "x": 0,
+        "y": 2.14,
+        "z": -0.375
+      },
+      "top": {
+        "x": 0,
+        "y": 5.14,
+        "z": 0.8
+      },
+      "rotation": 0,
+      "hatch": {
+        "position": {
+          "x": 0,
+          "y": 5.14,
+          "z": -0.25
+        },
+        "width": 1.1,
+        "depth": 1
+      }
+    },
+    {
+      "id": "ladder-upper-landing",
+      "object": "WoodenFloor",
+      "from": {
+        "x": -0.7,
+        "y": 5.22,
+        "z": 0.25
+      },
+      "to": {
+        "x": 0.7,
+        "y": 5.22,
+        "z": 1.8
+      }
+    },
+    {
+      "id": "ladder-side--1",
+      "object": "WoodenFloor",
+      "from": {
+        "x": -1.5,
+        "y": 5.22,
+        "z": -0.85
+      },
+      "to": {
+        "x": -0.7,
+        "y": 5.22,
+        "z": 1.8
+      }
+    },
+    {
+      "id": "ladder-side-1",
+      "object": "WoodenFloor",
+      "from": {
+        "x": 0.7,
+        "y": 5.22,
+        "z": -0.85
+      },
+      "to": {
+        "x": 1.5,
+        "y": 5.22,
+        "z": 1.8
+      }
+    }
+  ],
+  "testControls": {
+    "panels": [
+      {
+        "title": "Ladder climbing",
+        "x": 16,
+        "y": 140,
+        "buttons": [
+          {
+            "label": "Ladder bottom",
+            "script": "const ladder=objects.getAll('mapObject').find(o=>o.definition.id==='test-ladder'); const hero=objects.getOne('hero'); hero.teleport(ladder.landing('bottom')); camera.setFirstPerson(false); camera.setViewport({zoom:2,rotation:0,panX:0,panZ:0});"
+          },
+          {
+            "label": "Ladder roof",
+            "script": "const ladder=objects.getAll('mapObject').find(o=>o.definition.id==='test-ladder'); objects.getOne('hero').teleport(ladder.topLandings[0]); camera.setFirstPerson(false); camera.setViewport({zoom:2,rotation:0,panX:0,panZ:0});"
+          }
+        ]
+      }
+    ]
+  }
+}

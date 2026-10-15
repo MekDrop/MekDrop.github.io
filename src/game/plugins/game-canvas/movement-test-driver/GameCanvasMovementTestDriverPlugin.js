@@ -49,6 +49,32 @@ export class GameCanvasMovementTestDriverPlugin {
         this.#context.renderer().hero?.jump();
       },
       /**
+       * @param {{x:number,y:number,z:number}} position
+       */
+      teleport: (position) => this.#context.renderer().hero?.teleport(position),
+      /**
+       * @param {string} name
+       */
+      jointRotation: (name) => {
+        const joint = this.#context.renderer().hero?.entity?.findByName(name);
+        if (!joint) return null;
+        const rotation = joint.getLocalRotation();
+        return { x: rotation.x, y: rotation.y, z: rotation.z, w: rotation.w };
+      },
+      /**
+       * @param {string[]} names
+       */
+      animationPose: (names) => {
+        const hero = this.#context.renderer().hero;
+        const model = hero?.entity?.findByName("Hero model instance");
+        const joints = {};
+        for (const name of names) {
+          const point = hero?.entity?.findByName(name)?.getPosition();
+          if (point) joints[name] = { x: point.x, y: point.y, z: point.z };
+        }
+        return { clip: model?.anim?.baseLayer.activeState, time: model?.anim?.baseLayer.activeStateCurrentTime, joints };
+      },
+      /**
        *
        * @param {number} inputX
        * @param {number} inputY

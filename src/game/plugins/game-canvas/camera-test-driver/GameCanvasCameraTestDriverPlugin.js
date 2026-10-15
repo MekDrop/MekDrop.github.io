@@ -78,6 +78,10 @@ export class GameCanvasCameraTestDriverPlugin {
       moveHero: (inputX, inputY, running = false) =>
         this.#context.renderer().hero?.setMovement(inputX, inputY, running),
       returnToHero: () => this.#context.renderer().returnCameraToHero(),
+      /**
+       * @param {boolean} enabled
+       */
+      firstPerson: (enabled) => { this.#context.renderer().firstPersonCameraEnabled = enabled; return this.#state(); },
       state: () => this.#state(),
     };
     this.#context.target.gameCameraTest = this.#driver;

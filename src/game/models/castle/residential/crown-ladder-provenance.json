@@ -1,0 +1,16 @@
+{
+  "provider": "Tripo Studio",
+  "model": "H3.1",
+  "jobId": "0ef9ca33-ffa4-4a1d-a3ea-73c9d5aeb5e2",
+  "generatedOn": "2026-10-14",
+  "creditsUsed": 30,
+  "input": "Image rendered from the original crown-ladder.blend",
+  "originalTriangles": 3848,
+  "processing": "Clean rectangular plank topology: thirteen separate rungs at 0.27 m spacing, embedded 0.055 m into side rail sockets with 0.001 m joint seams and front faces recessed 0.002 m. Rails are 0.075 m deep. Subtle per-plank oak variation and matte iron. No textures.",
+  "finalTriangles": 956,
+  "rungCount": 13,
+  "dimensionsMeters": { "width": 0.89, "height": 3.7, "depth": 0.085 },
+  "pivot": "Grounded center; Blender depth center 0 m",
+  "source": "crown-ladder.blend",
+  "runtime": "crown-ladder.glb"
+}
