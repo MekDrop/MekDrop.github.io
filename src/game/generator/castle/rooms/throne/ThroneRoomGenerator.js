@@ -1,13 +1,8 @@
+import { Vec2 } from "playcanvas";
 import { AbstractCastleRoomGenerator } from "../AbstractCastleRoomGenerator.js";
 
 export class ThroneRoomGenerator extends AbstractCastleRoomGenerator {
-  constructor() { super("throneRoom", {
-    x: 3,
-    y: 3,
-  }, {
-    x: 3,
-    y: 3.25,
-  }); }
+  constructor() { super("throneRoom", new Vec2(3, 3), new Vec2(3, 3.25)); }
   /**
    * @returns {number[]}
    */

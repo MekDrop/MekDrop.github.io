@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
+import { Vec2 } from 'playcanvas';
 import { FloatingIslandMotion } from '../../../../../src/game/objects/scenery/FloatingIslandMotion.js';
 
 describe('floating island motion', () => {
@@ -7,10 +8,7 @@ describe('floating island motion', () => {
     const motion = new FloatingIslandMotion({ zoom: 1 });
 
     for (let frame = 0; frame < 600; frame += 1) {
-      assert.deepEqual(motion.update(1 / 60), {
-        x: 0,
-        y: 0,
-      });
+      assert.deepEqual(motion.update(1 / 60), new Vec2(0, 0));
     }
   });
 
@@ -28,9 +26,6 @@ describe('floating island motion', () => {
 
     motion.zoom = 1;
 
-    assert.deepEqual(motion.update(1 / 60), {
-      x: 0,
-      y: 0,
-    });
+    assert.deepEqual(motion.update(1 / 60), new Vec2(0, 0));
   });
 });

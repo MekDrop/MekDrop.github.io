@@ -1,3 +1,4 @@
+import { Vec2 } from "playcanvas";
 import { RecordingCanvasUnavailableError } from "../../../../errors/recording/index.js";
 
 /**
@@ -21,7 +22,7 @@ export class RecordingCanvas {
   #context;
   /**
    *
-   * @type {{x: number, y: number}|null}
+   * @type {Vec2|null}
    */
   #pointer = null;
 
@@ -71,10 +72,7 @@ export class RecordingCanvas {
    * @type {(event: Event) => void}
    */
   #move = (event) => {
-    this.#pointer = {
-      x: event.clientX,
-      y: event.clientY,
-    };
+    this.#pointer = new Vec2(event.clientX, event.clientY);
   };
 
   /**

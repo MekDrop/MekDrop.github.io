@@ -1,3 +1,5 @@
+import { Vec2 } from "playcanvas";
+
 export class ZoomAction {
   /**
    *
@@ -66,7 +68,7 @@ export class ZoomAction {
 
   /**
    *
-   * @param {{x: number, y: number}} pivot
+   * @param {Vec2} pivot
    */
   invoke(pivot = this.#viewportCenter()) {
     if (this.#renderer.inventoryVisible) {
@@ -79,18 +81,15 @@ export class ZoomAction {
     this.#renderer.zoomTo(zoom, pivot.x, pivot.y);
   }
 
+  /**
+   * @returns {Vec2}
+   */
   #viewportCenter() {
     if (!this.#element) {
-      return {
-        x: 0,
-        y: 0,
-      };
+      return new Vec2(0, 0);
     }
 
-    return {
-      x: this.#element.clientWidth / 2,
-      y: this.#element.clientHeight / 2,
-    };
+    return new Vec2(this.#element.clientWidth / 2, this.#element.clientHeight / 2);
   }
 
   /**

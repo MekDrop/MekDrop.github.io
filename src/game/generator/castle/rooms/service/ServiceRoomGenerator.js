@@ -1,14 +1,9 @@
+import { Vec2 } from "playcanvas";
 import { AbstractCastleRoomGenerator } from "../AbstractCastleRoomGenerator.js";
 import { ServiceRoomFurnishing } from "./ServiceRoomFurnishing.js";
 
 export class ServiceRoomGenerator extends AbstractCastleRoomGenerator {
-  constructor() { super("service", {
-    x: 2,
-    y: 2.5,
-  }, {
-    x: 4.5,
-    y: 8,
-  }); }
+  constructor() { super("service", new Vec2(2, 2.5), new Vec2(4.5, 8)); }
   /**
    * @returns {number[]}
    */

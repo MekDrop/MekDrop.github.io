@@ -1,22 +1,11 @@
+import { Vec2 } from "playcanvas";
 import { INPUT_EVENT_TYPE } from "../enum/InputEventType.js";
 
 const MOVEMENT_VECTORS = Object.freeze({
-  up: {
-    x: 0,
-    y: 1,
-  },
-  down: {
-    x: 0,
-    y: -1,
-  },
-  left: {
-    x: -1,
-    y: 0,
-  },
-  right: {
-    x: 1,
-    y: 0,
-  },
+  up: new Vec2(0, 1),
+  down: new Vec2(0, -1),
+  left: new Vec2(-1, 0),
+  right: new Vec2(1, 0),
 });
 
 export class HeroMovementAction {

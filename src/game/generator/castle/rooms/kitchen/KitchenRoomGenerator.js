@@ -1,11 +1,9 @@
+import { Vec2 } from "playcanvas";
 import { AbstractCastleRoomGenerator } from "../AbstractCastleRoomGenerator.js";
 import { FireplaceWallBacking } from "../FireplaceWallBacking.js";
 
 export class KitchenRoomGenerator extends AbstractCastleRoomGenerator {
-  constructor() { super("kitchen", {
-    x: 2,
-    y: 2.5,
-  }); }
+  constructor() { super("kitchen", new Vec2(2, 2.5)); }
   /**
    * @returns {number[]}
    */

@@ -1,3 +1,4 @@
+import { Vec2 } from "playcanvas";
 import { AbstractCastleRoomGenerator } from "../AbstractCastleRoomGenerator.js";
 import { castleStraightStairSurfaces } from "../../../../objects/castle/CastleStraightStairs.js";
 
@@ -8,13 +9,7 @@ export class StairwellRoomGenerator extends AbstractCastleRoomGenerator {
   /**
    * @param {string} id
    */
-  constructor(id) { super(id, {
-    x: 3,
-    y: 3,
-  }, {
-    x: 3,
-    y: 3,
-  }); }
+  constructor(id) { super(id, new Vec2(3, 3), new Vec2(3, 3)); }
 
   /**
    * Storage belongs only in supported, low-headroom pockets below the turning slab.

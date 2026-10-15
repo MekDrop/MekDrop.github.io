@@ -1,3 +1,4 @@
+import { Vec2 } from "playcanvas";
 import { DEFAULT_CONTROLS } from "../config/controls.js";
 
 const MINIMUM_MAP_INSET_PIXELS = 32;
@@ -12,7 +13,7 @@ const FULL_STRUCTURE_PAN_ZOOM = DEFAULT_CONTROLS.zoom.max;
  */
 
 /**
- * @typedef {{x: number, y: number}} ScreenPoint
+ * @typedef {Vec2} ScreenPoint
  */
 
 /**
@@ -20,7 +21,7 @@ const FULL_STRUCTURE_PAN_ZOOM = DEFAULT_CONTROLS.zoom.max;
  */
 
 /**
- * @typedef {{x: number, y: number}} ScreenPoint
+ * @typedef {Vec2} ScreenPoint
  */
 
 export class CameraPanBounds {
@@ -284,10 +285,10 @@ export class CameraPanBounds {
      *
      * @param {import("src/game/GameContracts.js").GridPoint} point
      */
-      (point) => ({
-        x: frame.viewportWidth / 2 + (point.x - target.x) / worldPerPixel,
-        y: frame.viewportHeight / 2 + (point.y - target.y) / worldPerPixel,
-      }));
+      (point) => new Vec2(
+        frame.viewportWidth / 2 + (point.x - target.x) / worldPerPixel,
+        frame.viewportHeight / 2 + (point.y - target.y) / worldPerPixel,
+      ));
     return {
       left: Math.min(...screenPoints.map(/**
        *
@@ -351,10 +352,7 @@ export class CameraPanBounds {
       const maximumY = bounds.minimumY + frame.safeHalfHeight;
       const centerX = (minimumX + maximumX) / 2;
       const centerY = (minimumY + maximumY) / 2;
-      const center = {
-        x: centerX,
-        y: centerY,
-      };
+      const center = new Vec2(centerX, centerY);
       const nearestBasePoint =
         allowedHull.length > 0
           ? this.#closestPointInPolygon(center, allowedHull)
@@ -372,22 +370,10 @@ export class CameraPanBounds {
         ((maximumX - minimumX) / 2) * centerExtension;
       const halfRangeY = ((maximumY - minimumY) / 2) * extension;
       points.push(
-        {
-          x: anchorX - halfRangeX,
-          y: anchorY - halfRangeY,
-        },
-        {
-          x: anchorX + halfRangeX,
-          y: anchorY - halfRangeY,
-        },
-        {
-          x: anchorX + halfRangeX,
-          y: anchorY + halfRangeY,
-        },
-        {
-          x: anchorX - halfRangeX,
-          y: anchorY + halfRangeY,
-        },
+        new Vec2(anchorX - halfRangeX, anchorY - halfRangeY),
+        new Vec2(anchorX + halfRangeX, anchorY - halfRangeY),
+        new Vec2(anchorX + halfRangeX, anchorY + halfRangeY),
+        new Vec2(anchorX - halfRangeX, anchorY + halfRangeY),
       );
     }
     return this.#convexHull(points);
@@ -539,10 +525,10 @@ export class CameraPanBounds {
 
       if (currentInside !== previousInside) {
         const progress = previousDistance / (previousDistance - currentDistance);
-        clipped.push({
-          x: previous.x + (current.x - previous.x) * progress,
-          y: previous.y + (current.y - previous.y) * progress,
-        });
+        clipped.push(new Vec2(
+          previous.x + (current.x - previous.x) * progress,
+          previous.y + (current.y - previous.y) * progress,
+        ));
       }
       if (currentInside) {
         clipped.push(current);
@@ -595,10 +581,7 @@ export class CameraPanBounds {
       0,
       1,
     );
-    return {
-      x: start.x + deltaX * progress,
-      y: start.y + deltaY * progress,
-    };
+    return new Vec2(start.x + deltaX * progress, start.y + deltaY * progress);
   }
 
   /**
@@ -618,20 +601,20 @@ export class CameraPanBounds {
     let maximumProgress = 1;
     for (let iteration = 0; iteration < PAN_SEGMENT_SEARCH_STEPS; iteration += 1) {
       const progress = (minimumProgress + maximumProgress) / 2;
-      const candidate = {
-        x: start.x + (end.x - start.x) * progress,
-        y: start.y + (end.y - start.y) * progress,
-      };
+      const candidate = new Vec2(
+        start.x + (end.x - start.x) * progress,
+        start.y + (end.y - start.y) * progress,
+      );
       if (this.#contains(candidate, polygon)) {
         minimumProgress = progress;
       } else {
         maximumProgress = progress;
       }
     }
-    return {
-      x: start.x + (end.x - start.x) * minimumProgress,
-      y: start.y + (end.y - start.y) * minimumProgress,
-    };
+    return new Vec2(
+      start.x + (end.x - start.x) * minimumProgress,
+      start.y + (end.y - start.y) * minimumProgress,
+    );
   }
 
   /**
@@ -777,10 +760,10 @@ export class CameraPanBounds {
    */
   #project(point, frame) {
     const depth = point.x * frame.sinYaw + point.z * frame.cosYaw;
-    return {
-      x: point.x * frame.cosYaw - point.z * frame.sinYaw,
-      y: depth * frame.sinPitch - point.y * frame.cosPitch,
-    };
+    return new Vec2(
+      point.x * frame.cosYaw - point.z * frame.sinYaw,
+      depth * frame.sinPitch - point.y * frame.cosPitch,
+    );
   }
 
   /**

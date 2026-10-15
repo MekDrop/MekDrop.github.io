@@ -1,3 +1,4 @@
+import { Vec2 } from "playcanvas";
 import { InventoryItemProjector } from "./InventoryItemProjector.js";
 import { gameUiTheme } from "./GameUiTheme.js";
 import fullInventoryEffectModelUrl from "../models/ui/full-inventory-effect.glb?url";
@@ -127,12 +128,9 @@ export class InventoryHud {
    */
   #fullReactionElapsed = null;
   /**
-   * @type {{x: number, y: number}}
+   * @type {Vec2}
    */
-  #fullReactionAnchor = {
-    x: 0,
-    y: 0,
-  };
+  #fullReactionAnchor = new Vec2(0, 0);
   /**
    * @type {boolean}
    */
@@ -162,7 +160,7 @@ export class InventoryHud {
    */
   #dragVisual = null;
   /**
-   * @type {{x: number, y: number}|null}
+   * @type {Vec2|null}
    */
   #dragStartClient = null;
   /**
@@ -417,7 +415,7 @@ export class InventoryHud {
 
   /**
    *
-   * @param {{x: number, y: number}|null} screenPosition
+   * @param {Vec2|import("playcanvas").Vec3|null} screenPosition
    */
   showFullReaction(screenPosition = null) {
     if (!this.#fullIndicator || this.#state.items.length < this.#state.capacity) {
@@ -451,7 +449,7 @@ export class InventoryHud {
   /**
    *
    * @param {number} deltaTime
-   * @param {{x: number, y: number}|null} screenPosition
+   * @param {Vec2|import("playcanvas").Vec3|null} screenPosition
    */
   update(deltaTime, screenPosition = null) {
     if (this.#fullReactionElapsed === null || !this.#fullIndicator) {
@@ -518,10 +516,7 @@ export class InventoryHud {
     this.#fullIndicatorModel = null;
     this.#fullIndicatorTexture = null;
     this.#fullReactionElapsed = null;
-    this.#fullReactionAnchor = {
-      x: 0,
-      y: 0,
-    };
+    this.#fullReactionAnchor = new Vec2(0, 0);
     this.#hoveredItemSlot = null;
     this.#dragVisual = null;
     this.#dragStartClient = null;
@@ -1234,10 +1229,7 @@ export class InventoryHud {
     }
     this.#draggedItemSlot = slot;
     this.#dragHoveredSlot = slot;
-    this.#dragStartClient = {
-      x: clientX,
-      y: clientY,
-    };
+    this.#dragStartClient = new Vec2(clientX, clientY);
     this.#setHoveredItem(null);
     this.#dragVisual = this.#createItemVisual(item, "Dragged inventory item");
     this.#modalRoot.addChild(this.#dragVisual.entity);
@@ -1416,14 +1408,12 @@ export class InventoryHud {
    */
   #clientToPanel(clientX, clientY) {
     const { bounds, scale } = this.#canvasMetrics;
-    return {
-      x:
-        (clientX - (bounds.left + bounds.width / 2)) / scale +
+    return new Vec2(
+      (clientX - (bounds.left + bounds.width / 2)) / scale +
         PANEL_WIDTH / 2,
-      y:
-        (clientY - (bounds.top + bounds.height / 2)) / scale +
+      (clientY - (bounds.top + bounds.height / 2)) / scale +
         PANEL_HEIGHT / 2,
-    };
+    );
   }
 
   /**
@@ -1526,7 +1516,7 @@ export class InventoryHud {
 
   /**
    *
-   * @param {{x: number, y: number}|null} screenPosition
+   * @param {Vec2|import("playcanvas").Vec3|null} screenPosition
    */
   #updateFullReactionAnchor(screenPosition) {
     if (!screenPosition) {
@@ -1534,10 +1524,10 @@ export class InventoryHud {
     }
     const canvas = this.#app.graphicsDevice.canvas;
     const { scale } = this.#canvasMetrics;
-    this.#fullReactionAnchor = {
-      x: (screenPosition.x - canvas.clientWidth / 2) / scale,
-      y: (canvas.clientHeight / 2 - screenPosition.y) / scale,
-    };
+    this.#fullReactionAnchor = new Vec2(
+      (screenPosition.x - canvas.clientWidth / 2) / scale,
+      (canvas.clientHeight / 2 - screenPosition.y) / scale,
+    );
   }
 
   /**

@@ -1,3 +1,5 @@
+import { Vec2 } from "playcanvas";
+
 export class HeroPatGesture {
   /**
    *
@@ -26,7 +28,7 @@ export class HeroPatGesture {
   #pointerId = null;
   /**
    *
-   * @type {null}
+   * @type {Vec2|null}
    */
   #previous = null;
   /**
@@ -88,10 +90,7 @@ export class HeroPatGesture {
     }
     this.#consume(event);
     this.#pointerId = event.pointerId;
-    this.#previous = {
-      x: event.clientX,
-      y: event.clientY,
-    };
+    this.#previous = new Vec2(event.clientX, event.clientY);
     this.#canvas.setPointerCapture(event.pointerId);
     this.#pat();
   };
@@ -125,10 +124,7 @@ export class HeroPatGesture {
     } else {
       this.#distance = 0;
     }
-    this.#previous = {
-      x: event.clientX,
-      y: event.clientY,
-    };
+    this.#previous = new Vec2(event.clientX, event.clientY);
   };
 
   /**

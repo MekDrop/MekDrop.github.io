@@ -1,3 +1,4 @@
+import { Vec2 } from "playcanvas";
 import { DEFAULT_CONTROLS } from "src/game/config/controls.js";
 import { CameraDrag } from "src/game/controls/CameraDrag.js";
 import { INPUT_EVENT_TYPE } from "src/game/enum/InputEventType.js";
@@ -337,10 +338,7 @@ export class GameControls {
       return;
     }
     const rect = this.#element.getBoundingClientRect();
-    const pivot = {
-      x: event.clientX - rect.left,
-      y: event.clientY - rect.top,
-    };
+    const pivot = new Vec2(event.clientX - rect.left, event.clientY - rect.top);
     const direction = event.deltaY < 0 ? "up" : "down";
 
     if (this.#config().zoomIn.wheelDirection === direction) {

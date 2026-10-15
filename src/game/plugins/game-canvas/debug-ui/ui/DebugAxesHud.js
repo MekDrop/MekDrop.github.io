@@ -1,3 +1,4 @@
+import { Vec2 } from "playcanvas";
 import { gameUiTheme } from "../../../../ui/GameUiTheme.js";
 
 const REFERENCE_WIDTH = 1280;
@@ -5,30 +6,15 @@ const REFERENCE_HEIGHT = 720;
 const PANEL_WIDTH = 214;
 const PANEL_HEIGHT = 134;
 const TEXTURE_SCALE = 2;
-const AXIS_ORIGIN = Object.freeze({
-  x: 66,
-  y: 68,
-});
+const AXIS_ORIGIN = Object.freeze(new Vec2(66, 68));
 const GROUND_AXIS_LENGTH = 40;
 const VERTICAL_AXIS_LENGTH = 45;
-const WIND_ORIGIN = Object.freeze({
-  x: 168,
-  y: 88,
-});
+const WIND_ORIGIN = Object.freeze(new Vec2(168, 88));
 const WIND_ARROW_LENGTH = 23;
 const DEFAULT_DIRECTIONS = Object.freeze({
-  x: {
-    x: 0.88,
-    y: -0.47,
-  },
-  y: {
-    x: 0.88,
-    y: 0.47,
-  },
-  z: {
-    x: 0,
-    y: -1,
-  },
+  x: new Vec2(0.88, -0.47),
+  y: new Vec2(0.88, 0.47),
+  z: new Vec2(0, -1),
 });
 const DEFAULT_WIND = Object.freeze({
   direction: {
@@ -310,10 +296,10 @@ export class DebugAxesHud {
     context.setLineDash([]);
     this.#drawArrow(
       WIND_ORIGIN,
-      {
-        x: WIND_ORIGIN.x + windDirection.x * WIND_ARROW_LENGTH,
-        y: WIND_ORIGIN.y + windDirection.y * WIND_ARROW_LENGTH,
-      },
+      new Vec2(
+        WIND_ORIGIN.x + windDirection.x * WIND_ARROW_LENGTH,
+        WIND_ORIGIN.y + windDirection.y * WIND_ARROW_LENGTH,
+      ),
       "#ffd166",
     );
     context.beginPath();
@@ -365,10 +351,7 @@ export class DebugAxesHud {
       wind.z * directions.y.y +
       wind.y * directions.z.y;
     const length = Math.max(0.001, Math.hypot(x, y));
-    return {
-      x: x / length,
-      y: y / length,
-    };
+    return new Vec2(x / length, y / length);
   }
 
   /**
@@ -379,10 +362,7 @@ export class DebugAxesHud {
    * @param {string} color
    */
   #drawAxis(direction, length, label, color) {
-    const end = {
-      x: AXIS_ORIGIN.x + direction.x * length,
-      y: AXIS_ORIGIN.y + direction.y * length,
-    };
+    const end = new Vec2(AXIS_ORIGIN.x + direction.x * length, AXIS_ORIGIN.y + direction.y * length);
     this.#drawArrow(AXIS_ORIGIN, end, color);
     const labelX = Math.max(
       15,

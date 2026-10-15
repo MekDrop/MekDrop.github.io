@@ -1,3 +1,4 @@
+import { Vec2 } from "playcanvas";
 import { IslandCellOwnership } from "../shared/IslandCellOwnership.js";
 import { HeroTerrain } from "./HeroTerrain.js";
 import { HERO_MODEL_SCALE } from "../../config/character-size.js";
@@ -61,10 +62,10 @@ import { HeroLadderClimb } from "./HeroLadderClimb.js";
  * @property {{setMood: (mood: {kind: string}|null) => void, sync: (state: HeroState) => void, $reset: () => void} [stateStore]
  * @property {{setLives: (lives: number, maximum: number) => void}} [lifeHud]
  * @property {{setWallet: (wallet: Record<string, number>) => void}} [coinHud]
- * @property {{setInventory: (inventory: HeroInventory) => void, showFullReaction: (position: {x: number, y: number}|null) => void}} [inventoryScene]
+ * @property {{setInventory: (inventory: HeroInventory) => void, showFullReaction: (position: import("playcanvas").Vec3|null) => void}} [inventoryScene]
  * @property {{syncHeroState: (state: HeroState) => void}} [gameOverScene]
- * @property {() => {x: number, y: number}|null} [getInventoryFullScreenPosition]
- * @property {() => {x: number, y: number}|null} [getMoodScreenPosition]
+ * @property {() => import("playcanvas").Vec3|null} [getInventoryFullScreenPosition]
+ * @property {() => {x: number, y: number, radius: number}|null} [getMoodScreenPosition]
  */
 
 const MAX_FRAME_TIME = 0.1;
@@ -468,12 +469,9 @@ export class Hero {
   };
   /**
    *
-    * @type {import("src/game/objects/ObjectTypes.js").Point3}
+    * @type {Vec2}
    */
-  #input = {
-    x: 0,
-    y: 0,
-  };
+  #input = new Vec2(0, 0);
   /**
    *
     * @type {boolean}

@@ -1,3 +1,5 @@
+import { Vec2 } from "playcanvas";
+
 const BOB_PERIOD = 6.5;
 const BOB_HEIGHT_PIXELS = 12;
 const SECONDARY_BOB_HEIGHT_PIXELS = 2;
@@ -64,6 +66,7 @@ export class FloatingIslandMotion {
   /**
    *
    * @param {number} deltaTime
+   * @returns {Vec2}
    */
   update(deltaTime) {
     this.#elapsed += deltaTime;
@@ -74,18 +77,15 @@ export class FloatingIslandMotion {
       this.#strength = 0;
     }
     if (this.#strength === 0) {
-      return {
-        x: 0,
-        y: 0,
-      };
+      return new Vec2(0, 0);
     }
     const phase = (this.#elapsed * Math.PI * 2) / BOB_PERIOD;
-    return {
-      x: Math.sin(phase * 0.5) * SWAY_WIDTH_PIXELS * this.#strength,
-      y: (
+    return new Vec2(
+      Math.sin(phase * 0.5) * SWAY_WIDTH_PIXELS * this.#strength,
+      (
         Math.sin(phase) * BOB_HEIGHT_PIXELS +
         Math.sin(phase * 2) * SECONDARY_BOB_HEIGHT_PIXELS
       ) * this.#strength,
-    };
+    );
   }
 }

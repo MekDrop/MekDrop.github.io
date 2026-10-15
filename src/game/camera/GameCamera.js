@@ -1,3 +1,4 @@
+import { Vec2 } from "playcanvas";
 import { FirstPersonCameraMode } from "../strategies/camera/FirstPersonCameraMode.js";
 import { IsometricCameraMode } from "../strategies/camera/IsometricCameraMode.js";
 
@@ -146,7 +147,7 @@ export class GameCamera {
 
   /**
    * Screen directions depend on orientation, never on camera position or zoom.
-   * @returns {{x: {x: number, y: number}, y: {x: number, y: number}, z: {x: number, y: number}}}
+   * @returns {{x: Vec2, y: Vec2, z: Vec2}}
    */
   get debugDirections() {
     const right = this.#entity.right;
@@ -154,14 +155,11 @@ export class GameCamera {
     /**
      * @param {number} x
      * @param {number} y
-     * @returns {{x: number, y: number}}
+     * @returns {Vec2}
      */
     const normalize = (x, y) => {
       const length = Math.max(0.0001, Math.hypot(x, y));
-      return {
-        x: x / length,
-        y: y / length,
-      };
+      return new Vec2(x / length, y / length);
     };
     return {
       x: normalize(right.x, -up.x),

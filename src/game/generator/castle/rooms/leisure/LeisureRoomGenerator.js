@@ -1,3 +1,4 @@
+import { Vec2 } from "playcanvas";
 import { AbstractCastleRoomGenerator } from "../AbstractCastleRoomGenerator.js";
 
 export class LeisureRoomGenerator extends AbstractCastleRoomGenerator {
@@ -10,20 +11,8 @@ export class LeisureRoomGenerator extends AbstractCastleRoomGenerator {
    * @param {{courtyard?:boolean}} options
    */
   constructor({ courtyard = false } = {}) {
-    super("leisure", courtyard ? {
-      x: 3,
-      y: 6,
-    } : {
-      x: 3,
-      y: 3,
-    },
-    courtyard ? {
-      x: 4,
-      y: 6,
-    } : {
-      x: 4,
-      y: 4.5,
-    });
+    super("leisure", courtyard ? new Vec2(3, 6) : new Vec2(3, 3),
+      courtyard ? new Vec2(4, 6) : new Vec2(4, 4.5));
     this.#courtyard = courtyard;
   }
   /**

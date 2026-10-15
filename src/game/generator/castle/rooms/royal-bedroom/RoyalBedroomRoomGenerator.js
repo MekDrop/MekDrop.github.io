@@ -1,3 +1,4 @@
+import { Vec2 } from "playcanvas";
 import { AbstractCastleRoomGenerator } from "../AbstractCastleRoomGenerator.js";
 import { RoyalBedroomFurnishing } from "./RoyalBedroomFurnishing.js";
 
@@ -5,13 +6,7 @@ import { RoyalBedroomFurnishing } from "./RoyalBedroomFurnishing.js";
  * Royal sleeping rooms keep their own layout stream and measured castle props.
  */
 export class RoyalBedroomRoomGenerator extends AbstractCastleRoomGenerator {
-  constructor() { super("royalBedroom", {
-    x: 3,
-    y: 3,
-  }, {
-    x: 8,
-    y: 8,
-  }); }
+  constructor() { super("royalBedroom", new Vec2(3, 3), new Vec2(8, 8)); }
 
   /**
    * @returns {number[]}
