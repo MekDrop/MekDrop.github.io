@@ -1113,7 +1113,7 @@
     },
     {
       "id": "wooden-crate",
-      "object": "WoodenCrate",
+      "object": "Crate",
       "tile": {
         "col": 9,
         "row": 3

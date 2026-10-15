@@ -86,7 +86,7 @@ export class StairwellRoomGenerator extends AbstractCastleRoomGenerator {
           const footprint = 0.55 * scale * (Math.abs(Math.cos(radians)) + Math.abs(Math.sin(radians)));
           const stagger = (random() - 0.5) * Math.min(0.03, Math.max(0, 0.604 - footprint));
           const sideways = (random() - 0.5) * Math.min(0.014, Math.max(0, 0.558 - footprint));
-          items.push({ role: "stairwellProp", object: broadBase ? "WoodenStorageChest" : "WoodenCrate",
+          items.push({ role: "stairwellProp", object: broadBase ? "WoodenStorageChest" : "Crate",
             x: x + stagger * sine + sideways * cosine,
             z: z + stagger * cosine - sideways * sine, floorY,
             roomId: `under-stair:${stair.id}`, width: broadBase ? 0.7 : 0.55, depth: 0.55, height: authoredHeight, scale,
@@ -111,7 +111,7 @@ export class StairwellRoomGenerator extends AbstractCastleRoomGenerator {
         let y = 0.002;
         for (const prop of [
           { object: "WoodenStorageChest", width: 0.7, depth: 0.55, height: 0.32914, scale: 0.84 },
-          { object: "WoodenCrate", width: 0.55, depth: 0.55, height: 0.4702, scale: 0.9 },
+          { object: "Crate", width: 0.55, depth: 0.55, height: 0.4702, scale: 0.9 },
           { object: "StoragePotteryJar", width: 0.229, depth: 0.236, height: 0.3, scale: 1 },
         ]) {
           if (y + prop.height * prop.scale > turning.high - 0.3) { break; }
@@ -156,7 +156,7 @@ export class StairwellRoomGenerator extends AbstractCastleRoomGenerator {
       const pocketScale = 0.65;
       const pocketSupported = items.length > firstItem;
       for (let tier = 0; pocketSupported && tier < 2; tier++) {
-        items.push({ role: "stairwellProp", object: "WoodenCrate",
+        items.push({ role: "stairwellProp", object: "Crate",
           x: stair.localCenter.x + pocketAcross * cosine + pocketAlong * sine,
           z: stair.localCenter.z - pocketAcross * sine + pocketAlong * cosine,
           floorY: stair.center.y, roomId: `under-stair:${stair.id}`,

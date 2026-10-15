@@ -12,7 +12,7 @@ test("chimney reservations follow rotated and scaled courses through upper rooms
   for (const rotation of [0, 90, 180, 270]) {
     const item = { ...hearth, x: 2, z: 2, rotation, scale: 1.5 };
     const bounds = FireplaceChimneyFootprint.bounds(item, [kitchen, upper]);
-    const furniture = { object: "WoodenCrate", x: (bounds.minX + bounds.maxX) / 2,
+    const furniture = { object: "Crate", x: (bounds.minX + bounds.maxX) / 2,
       z: (bounds.minZ + bounds.maxZ) / 2, width: 0.3, depth: 0.3, height: 0.5, scale: 1, floorY: 3 };
     assert.equal(RoomPlacementRules.accepts(furniture, upper, [item]), false);
     assert.equal(RoomPlacementRules.accepts({ ...furniture, x: 3.5, z: 3.5 }, upper, [item]), true);

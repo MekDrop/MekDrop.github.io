@@ -9,7 +9,7 @@ test("keeps a complete supported inventory aligned to an eligible outer wall dur
   const items = [{ id: "base", roomId: room.id, object: "WoodenStorageChest", underStair: true,
     x: 2.5, z: 2.5, width: 0.7, depth: 0.55, scale: 1, height: 0.32914, floorY: 0, y: 0,
     rotation: 90, wallAlignment: alignment },
-  { id: "top", supportId: "base", roomId: room.id, object: "WoodenCrate", underStair: true,
+  { id: "top", supportId: "base", roomId: room.id, object: "Crate", underStair: true,
     x: 2.5, z: 2.5, width: 0.55, depth: 0.55, scale: 1, height: 0.4702, floorY: 0, y: 0.32914 }];
   const repaired = RoomPlacementRules.repair(items, [], [room]);
   assert.equal(repaired.length, items.length);

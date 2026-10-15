@@ -60,7 +60,7 @@ it("publishes native prop definitions once and replaces stale seed furnishings",
   const map = { objects: [castle] };
   StairwellRoomMapObjects.prepareMap(map);
   const first = structuredClone(map.objects.slice(1));
-  assert.ok(first.some(item => item.object === "WoodenCrate"));
+  assert.ok(first.some(item => item.object === "Crate"));
   for (const object of ["Barrel", "WaterBucket", "StoragePotteryJar"]) {
     assert.ok(first.some(item => item.object === object));
   }
@@ -91,7 +91,7 @@ it("confines crates to supported low-headroom stair pockets and leaves floor voi
     assert.equal(pocket[1].supportId, pocket[0].id);
     assert.equal(pocket[0].x, pocket[1].x);
     assert.equal(pocket[0].z, pocket[1].z);
-    for (const [object, count] of Object.entries({ WoodenCrate: 12, WoodenStorageChest: 5,
+    for (const [object, count] of Object.entries({ Crate: 12, WoodenStorageChest: 5,
       Barrel: 2, WaterBucket: 1, StoragePotteryJar: 3 })) {
       assert.equal(crates.filter(item => item.object === object).length, count,
         `${object}: wall alignment must preserve the original inventory`);
@@ -111,7 +111,7 @@ it("confines crates to supported low-headroom stair pockets and leaves floor voi
       const halfZ = item.scale * (circular ? Math.max(width, depth) :
         width * Math.abs(Math.sin(yaw)) + depth * Math.abs(Math.cos(yaw))) / 2;
       const height = (item.height ?? 0.4702) * item.scale;
-      if (["WoodenCrate", "WoodenStorageChest"].includes(item.object)) {
+      if (["Crate", "WoodenStorageChest"].includes(item.object)) {
         const stair = plan.authoredStairs.find(stair => item.roomId === `under-stair:${stair.id}`);
         const angle = (stair.yaw - plan.origin.yaw) * Math.PI / 180;
         const along = (item.x - stair.localCenter.x) * Math.sin(angle) +
@@ -139,11 +139,11 @@ it("confines crates to supported low-headroom stair pockets and leaves floor voi
         }
         assert.ok(along < 0.75, "storage leaves the stair approach open");
       }
-      if (item.object === "WoodenCrate") {
+      if (item.object === "Crate") {
         assert.ok(item.width * item.scale >= (item.backPocketStorage ? 0.35 : 0.48));
         assert.ok(item.y + height <= item.ceiling);
       }
-      if (item.y > 0.002 && item.object === "WoodenCrate") {
+      if (item.y > 0.002 && item.object === "Crate") {
         assert.ok(crates.some(below => Math.abs(below.x - item.x) < 0.3 && Math.abs(below.z - item.z) < 0.3 &&
           Math.abs(below.y + (below.height ?? 0.4702) * below.scale - item.y) < 0.00001));
       }

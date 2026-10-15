@@ -111,7 +111,7 @@ test("real Engine objects survive source destruction and remain fixed after Ammo
   try {
     bowl = new Bowl({ pc, app, modelLibrary: { instantiate }, runtime, definition: {
       id: "physics-bowl", object: "Bowl", position: { x: 2, y: 3, z: 4 },
-      items: [{ object: "ClosedReadingBook" }, { object: "WoodenCrate" }],
+      items: [{ object: "ClosedReadingBook" }, { object: "Crate" }],
     } });
     app.root.addChild(bowl.entity);
     bowl.onSceneReady();

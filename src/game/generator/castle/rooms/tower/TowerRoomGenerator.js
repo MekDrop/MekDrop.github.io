@@ -49,11 +49,11 @@ export class TowerRoomGenerator extends AbstractCastleRoomGenerator {
       [maxX, maxZ, -1, -1], [minX, maxZ, 1, -1]];
     const start = Math.floor(random() * corners.length);
     const reverse = random() < 0.5 ? 1 : -1;
-    const supplies = random() < 0.5 ? ["WoodenCrate", "Barrel"] : ["Barrel", "WoodenCrate"];
+    const supplies = random() < 0.5 ? ["Crate", "Barrel"] : ["Barrel", "Crate"];
     const choices = [supplies[0], "SingleCandleStand", "WoodenDeskChair"];
     if (random() < 0.8) { choices.push(supplies[1]); }
     if (random() < 0.5) { choices.push(supplies[0]); }
-    const sizes = { WoodenCrate: [0.56, 0.56], Barrel: [0.56, 0.56],
+    const sizes = { Crate: [0.56, 0.56], Barrel: [0.56, 0.56],
       WoodenDeskChair: [0.52, 0.52], SingleCandleStand: [0.18, 0.18] };
     for (const object of choices.slice(0, limit)) {
       const [itemWidth, itemDepth] = sizes[object];
@@ -92,7 +92,7 @@ export class TowerRoomGenerator extends AbstractCastleRoomGenerator {
           x + halfX > stair.minX - 0.35 && x - halfX < stair.maxX + 0.35 &&
           z + halfZ > stair.minZ - 0.35 && z - halfZ < stair.maxZ + 0.35)) { continue; }
         items.push({ role: "towerProp", object, x, z, width: itemWidth, depth: itemDepth,
-          height: { WoodenCrate: 0.471, Barrel: 0.65, WoodenDeskChair: 0.85, SingleCandleStand: 0.8 }[object],
+          height: { Crate: 0.471, Barrel: 0.65, WoodenDeskChair: 0.85, SingleCandleStand: 0.8 }[object],
           id: `${room.id}-tower-${items.length}`, scale: 1,
           // This authored chair faces -X; its high back occupies +X in the GLB.
           rotation: object === "WoodenDeskChair" ? (signZ > 0 ? 90 : 270) : Math.floor(random() * 4) * 90 });
