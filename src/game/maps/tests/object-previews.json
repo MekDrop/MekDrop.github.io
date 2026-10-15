@@ -427,6 +427,33 @@
         "y": 2.14,
         "z": 0
       }
+    },
+    {
+      "id": "preview-chopping-tools-set",
+      "object": "ChoppingToolsSet",
+      "position": {
+        "x": 14,
+        "y": 2,
+        "z": 0
+      }
+    },
+    {
+      "id": "preview-bedside-drawers",
+      "object": "BedsideDrawers",
+      "position": {
+        "x": 16,
+        "y": 2,
+        "z": 0
+      }
+    },
+    {
+      "id": "preview-desk-globe",
+      "object": "DeskGlobe",
+      "position": {
+        "x": 18,
+        "y": 2,
+        "z": 0
+      }
     }
   ]
 }
