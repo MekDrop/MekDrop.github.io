@@ -678,6 +678,19 @@
       ]
     },
     {
+      "id": "preview-spear-rack",
+      "object": "SpearRack",
+      "position": {
+        "x": -3,
+        "y": 2,
+        "z": 3
+      },
+      "length": 1.6,
+      "width": 0.75,
+      "height": 1.2,
+      "spearSeed": 42
+    },
+    {
       "object": "ClothRoll",
       "variant": "cream",
       "scale": 1,

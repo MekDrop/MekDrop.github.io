@@ -1,0 +1,22 @@
+{
+  "contract": "Three guided spear rows on a single braced oak-and-iron frame; preserve map-driven length, width, height, seed and common collision assembly.",
+  "concept": "concept.png",
+  "candidateEvidence": "../../../../tmp/spear-concept-pass1.png",
+  "iterations": [
+    {"pass": 1, "verdict": "revise", "defects": ["timber and steel too dark", "blade silhouettes too narrow", "guide fingers visually disconnected"]},
+    {"pass": 2, "verdict": "revise", "changes": ["brighter oak and steel", "broader leaf blades", "leather wraps"], "defects": ["guide comb continuity and post weight still weaker than concept"]},
+    {"pass": 3, "verdict": "retain", "changes": ["thicker iron-banded corner posts", "continuous rounded slotted guide boards", "bounded spacing", "full-depth end braces"]}
+  ],
+  "criticalRequirements": {
+    "singleJoinedFrame": "pass: front and reverse game captures",
+    "threeRows": "pass: top capture and 24 individual spears",
+    "shaftGuidesAndButtSockets": "pass: open-slot source geometry and game views",
+    "warmOakAndIronStyle": "pass: revised front capture; game lighting and geometry remain simpler than concept illustration",
+    "renderCollisionParity": "pass: focused test compares full transforms",
+    "requestedBounds": "pass: tests use actual exported GLB bounds including braces and rivets",
+    "editablePackedSourceAndFreshImport": "pass: Blender 5.2.1 fresh import, 9 mesh parts, 2692 kit triangles, 5 materials, 1 packed texture"
+  },
+  "finalEvidence": ["../../objects/spear-rack/preview.png", "../../../../tmp/spear-final-front.png", "../../../../tmp/spear-final-reverse.png", "../../../../tmp/spear-final-top.png"],
+  "historicalClaim": "historically informed design; exact three-row arrangement is not independently attested by researched sources",
+  "decision": "retain_repair"
+}

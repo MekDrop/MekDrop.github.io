@@ -8,6 +8,8 @@
  * @property {string} id
  * @property {string|number} [timberSeed] Repeatable SpareTimberBundle layout; defaults to its id.
  * @property {string|number} [firewoodSeed] Repeatable FirewoodStack layout; defaults to its id.
+ * @property {string|number} [spearSeed] Repeatable SpearRack spear variation; defaults to its id.
+ * @property {number} [length] SpearRack line length along local X in metres; width spans parallel lines along local Z.
  * @property {string|number} [linenSeed] Repeatable FoldedLinens bundle layout; defaults to its id.
  * @property {import("./lantern/Lantern.js").LanternLighting|false} [lighting] Lantern-local illumination override.
  * @property {boolean} [flame] Override the lantern variant's candle emitter.
