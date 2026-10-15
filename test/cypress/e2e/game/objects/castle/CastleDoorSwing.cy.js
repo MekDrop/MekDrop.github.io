@@ -1,4 +1,39 @@
 describe("Castle door swing physics", () => {
+  it("opens the rounded entrance fully without hitting its inner arch", () => {
+    let engineUrl;
+    cy.request("/src/game/PlayCanvasRenderer.js").then(({ body }) => {
+      engineUrl = body.match(/import \* as playCanvas from "([^"]+)"/)[1];
+    });
+    cy.visit("/en/map/test_flat?camera-test");
+    cy.get('.background-canvas[data-game-ready="true"]', { timeout: 60000 }).should("be.visible");
+    cy.window().then({ timeout: 60000 }, async (window) => {
+      const load = window.Function("url", "return import(url)");
+      const pc = await load(engineUrl);
+      const { CastleDoor } = await load("/src/game/objects/castle/CastleDoor.js");
+      const { GameModelLibrary } = await load("/src/game/models/GameModelLibrary.js");
+      const app = pc.Application.getApplication();
+      const library = new GameModelLibrary({ pc, app });
+      await library.load(CastleDoor.modelUrls);
+      const door = new CastleDoor({ pc, modelLibrary: library,
+        castlePosition: { x: 100, z: 100, width: 8, depth: 8, elevation: 20 },
+        door: { side: "NORTH", width: 2, offset: 0 }, bundledEntrance: true });
+      app.root.addChild(door.entity);
+      try {
+        expect(door.entity.findByName("Castle entrance frame collider")?.rigidbody?.body,
+          "authored masonry participates in Ammo collision").to.exist;
+        door.openTemporarily(10);
+        door.update(1);
+        expect(door.openAmount, "both leaves clear the inner arch through the full swing")
+          .to.be.closeTo(1, .001);
+        door.update(20);
+        expect(door.openAmount, "both leaves can close again").to.be.closeTo(0, .001);
+      } finally {
+        door.destroy();
+        library.destroy();
+      }
+    });
+  });
+
   it("limits an imported door against live Ammo masonry and releases it when clear", () => {
     let engineUrl;
     cy.request("/src/game/PlayCanvasRenderer.js").then(({ body }) => {
