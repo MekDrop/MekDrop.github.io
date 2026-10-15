@@ -2,12 +2,12 @@ import { GenerationRandom } from "../../map/GenerationRandom.js";
 import { createCastleRoomDoorways } from "../CastleRoomDoorways.js";
 import { AbstractCastleGenerationStage } from "../AbstractCastleGenerationStage.js";
 import { CastleRoomPacker } from "../CastleRoomPacker.js";
-import { ThroneRoomGenerator } from "../rooms/ThroneRoomGenerator.js";
-import { LibraryRoomGenerator } from "../rooms/LibraryRoomGenerator.js";
-import { ServiceRoomGenerator } from "../rooms/ServiceRoomGenerator.js";
-import { LeisureRoomGenerator } from "../rooms/LeisureRoomGenerator.js";
-import { StairwellRoomGenerator } from "../rooms/StairwellRoomGenerator.js";
-import { TowerRoomGenerator } from "../rooms/TowerRoomGenerator.js";
+import { ThroneRoomGenerator } from "../rooms/throne/ThroneRoomGenerator.js";
+import { LibraryRoomGenerator } from "../rooms/library/LibraryRoomGenerator.js";
+import { ServiceRoomGenerator } from "../rooms/service/ServiceRoomGenerator.js";
+import { LeisureRoomGenerator } from "../rooms/leisure/LeisureRoomGenerator.js";
+import { StairwellRoomGenerator } from "../rooms/stairwell/StairwellRoomGenerator.js";
+import { TowerRoomGenerator } from "../rooms/tower/TowerRoomGenerator.js";
 import { CastlePlacementError } from "../../../errors/castle/index.js";
 
 /**

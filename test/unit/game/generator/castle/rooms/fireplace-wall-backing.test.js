@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { FireplaceWallBacking } from "../../../../../../src/game/generator/castle/rooms/FireplaceWallBacking.js";
-import { KitchenRoomGenerator } from "../../../../../../src/game/generator/castle/rooms/KitchenRoomGenerator.js";
+import { KitchenRoomGenerator } from "../../../../../../src/game/generator/castle/rooms/kitchen/KitchenRoomGenerator.js";
 import { CastleAuthoredBuildPlan } from "../../../../../../src/game/generator/castle/CastleAuthoredBuildPlan.js";
 
 const room = { id: "kitchen", minX: 0, maxX: 4, minZ: 0, maxZ: 4, floorY: 0, height: 3, level: 0 };

@@ -1,7 +1,7 @@
 import { RoomPlacementRules } from "./rooms/RoomPlacementRules.js";
 import { CastleGenerationScheduler } from "./CastleGenerationScheduler.js";
 import { CastleBasePlanGenerator } from "./CastleBasePlanGenerator.js";
-import { StairwellRoomGenerator } from "./rooms/StairwellRoomGenerator.js";
+import { StairwellRoomGenerator } from "./rooms/stairwell/StairwellRoomGenerator.js";
 import { CastleBasePlanInvalidError } from "../../errors/castle/index.js";
 import { createCastlePlannedFloorAreas } from "../../objects/castle/CastlePlannedFloorAreas.js";
 import { castleStraightStairSurfaces } from "../../objects/castle/CastleStraightStairs.js";

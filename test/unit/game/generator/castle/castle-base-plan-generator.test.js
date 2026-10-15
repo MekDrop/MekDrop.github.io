@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { it } from "node:test";
 import { CastleBasePlanGenerator } from "../../../../../src/game/generator/castle/CastleBasePlanGenerator.js";
 import { CastleBasePlanInvalidError } from "../../../../../src/game/errors/castle/index.js";
-import { ServiceRoomGenerator } from "../../../../../src/game/generator/castle/rooms/ServiceRoomGenerator.js";
+import { ServiceRoomGenerator } from "../../../../../src/game/generator/castle/rooms/service/ServiceRoomGenerator.js";
 
 it("compiles all authored plans with fixed rooms, stairs, roofs, doors and windows", async () => {
   assert.deepEqual((await CastleBasePlanGenerator.plans).map((plan) => plan.id), ["castle-01", "castle-03", "castle-04", "castle-demo-compact", "castle-compact-tower", "castle-compact-service-wing"]);

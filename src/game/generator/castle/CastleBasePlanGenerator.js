@@ -1,14 +1,14 @@
-import { TerraceStorageRoomGenerator } from "./rooms/TerraceStorageRoomGenerator.js";
-import { KitchenRoomGenerator } from "./rooms/KitchenRoomGenerator.js";
+import { TerraceStorageRoomGenerator } from "./rooms/terrace-storage/TerraceStorageRoomGenerator.js";
+import { KitchenRoomGenerator } from "./rooms/kitchen/KitchenRoomGenerator.js";
 import { CastleBasePlanInvalidError } from "../../errors/castle/index.js";
-import { ServiceRoomGenerator } from "./rooms/ServiceRoomGenerator.js";
-import { RoyalBedroomRoomGenerator } from "./rooms/RoyalBedroomRoomGenerator.js";
-import { LibraryRoomGenerator } from "./rooms/LibraryRoomGenerator.js";
-import { ThroneRoomGenerator } from "./rooms/ThroneRoomGenerator.js";
-import { LeisureRoomGenerator } from "./rooms/LeisureRoomGenerator.js";
-import { TowerRoomGenerator } from "./rooms/TowerRoomGenerator.js";
-import { VestibuleRoomGenerator } from "./rooms/VestibuleRoomGenerator.js";
-import { StairwellRoomGenerator } from "./rooms/StairwellRoomGenerator.js";
+import { ServiceRoomGenerator } from "./rooms/service/ServiceRoomGenerator.js";
+import { RoyalBedroomRoomGenerator } from "./rooms/royal-bedroom/RoyalBedroomRoomGenerator.js";
+import { LibraryRoomGenerator } from "./rooms/library/LibraryRoomGenerator.js";
+import { ThroneRoomGenerator } from "./rooms/throne/ThroneRoomGenerator.js";
+import { LeisureRoomGenerator } from "./rooms/leisure/LeisureRoomGenerator.js";
+import { TowerRoomGenerator } from "./rooms/tower/TowerRoomGenerator.js";
+import { VestibuleRoomGenerator } from "./rooms/vestibule/VestibuleRoomGenerator.js";
+import { StairwellRoomGenerator } from "./rooms/stairwell/StairwellRoomGenerator.js";
 
 /**
  * @typedef {{kind:string,side:string,offset:number,width:number,bottom:number,height:number,swing?:string,openingInset?:number,open?:boolean}} AuthoredCastleOpening

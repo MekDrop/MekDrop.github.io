@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { it } from "node:test";
 import { CastleGenerator } from "../../../../../src/game/generator/castle/CastleGenerator.js";
-import { StairwellRoomGenerator } from "../../../../../src/game/generator/castle/rooms/StairwellRoomGenerator.js";
+import { StairwellRoomGenerator } from "../../../../../src/game/generator/castle/rooms/stairwell/StairwellRoomGenerator.js";
 import { CastleRoomPacker } from "../../../../../src/game/generator/castle/CastleRoomPacker.js";
 import { CastleGenerationContext } from "../../../../../src/game/generator/castle/CastleGenerationContext.js";
 import { LayoutStyleStage } from "../../../../../src/game/generator/castle/stages/LayoutStyleStage.js";
@@ -14,11 +14,11 @@ import { createCastleGroundCuts } from "../../../../../src/game/objects/castle/C
 
 const options = { position: { x: -4, z: -4, width: 8, depth: 8, elevation: 3 },
   doors: [{ side: "NORTH", offset: 3, width: 2 }], style: "twin-tower", seed: "rooms" };
-import { ThroneRoomGenerator } from "../../../../../src/game/generator/castle/rooms/ThroneRoomGenerator.js";
-import { LibraryRoomGenerator } from "../../../../../src/game/generator/castle/rooms/LibraryRoomGenerator.js";
-import { ServiceRoomGenerator } from "../../../../../src/game/generator/castle/rooms/ServiceRoomGenerator.js";
-import { LeisureRoomGenerator } from "../../../../../src/game/generator/castle/rooms/LeisureRoomGenerator.js";
-import { TowerRoomGenerator } from "../../../../../src/game/generator/castle/rooms/TowerRoomGenerator.js";
+import { ThroneRoomGenerator } from "../../../../../src/game/generator/castle/rooms/throne/ThroneRoomGenerator.js";
+import { LibraryRoomGenerator } from "../../../../../src/game/generator/castle/rooms/library/LibraryRoomGenerator.js";
+import { ServiceRoomGenerator } from "../../../../../src/game/generator/castle/rooms/service/ServiceRoomGenerator.js";
+import { LeisureRoomGenerator } from "../../../../../src/game/generator/castle/rooms/leisure/LeisureRoomGenerator.js";
+import { TowerRoomGenerator } from "../../../../../src/game/generator/castle/rooms/tower/TowerRoomGenerator.js";
 class UpstairsLeisureGenerator extends LeisureRoomGenerator {
   get levels() { return [1]; }
 }
