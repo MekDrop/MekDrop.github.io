@@ -763,6 +763,16 @@
         "y": 0,
         "z": -3
       }
+    },
+    {
+      "id": "preview-step-stool",
+      "object": "StepStool",
+      "position": {
+        "x": 2,
+        "y": 1,
+        "z": 0
+      },
+      "rotation": 0
     }
   ]
 }

@@ -172,7 +172,7 @@ H3.1 on 2026-10-10. Three image-to-model jobs used 90 credits total:
 | Object | Model | Task | glTF XYZ metres | Triangles |
 | --- | --- | --- | --- | --- |
 | LibrarySideTable | library-side-table | 61b0a163-dfe4-4bed-b542-983937366882 | 0.684 × 0.550 × 0.616 | 4392 |
-| LibraryStepStool | library-step-stool | b1a307aa-aea4-4f31-9f95-e6f8e19c9854 | 0.517 × 0.400 × 0.488 | 4300 |
+| StepStool | library-step-stool | b1a307aa-aea4-4f31-9f95-e6f8e19c9854 | 0.517 × 0.400 × 0.488 | 4300 |
 | ParchmentBundle | library-parchment-bundle | 3ab1000d-7531-43c8-8e0a-3cc684c9bd3f | 0.300 × 0.134 × 0.156 | 4674 |
 
 References are saved as matching PNG filenames under the user's Clairvoyance

@@ -115,7 +115,7 @@ export class LibraryRoomFurnishing {
             z: bounds.maxZ - depth / 2 - 0.01,
           } : original;
           const point = this.#clear(target, width, depth, 0.4, 0, false, undefined, true) ? target : original;
-          this.#items.push(this.#item("LibraryStepStool", point, 0.517, 0.488, yaw));
+          this.#items.push(this.#item("StepStool", point, 0.517, 0.488, yaw));
           this.#reserve(point, width, depth);
           break stool;
         }

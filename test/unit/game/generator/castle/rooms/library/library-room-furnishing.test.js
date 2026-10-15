@@ -30,10 +30,10 @@ it("repeats study groups and preserves the end-wall bookcase row across seeds", 
     }
     assert.equal(furniture.filter(item => item.object === "WritingDesk").length, 1);
     assert.ok(!furniture.some(item => ["LibrarySideTable", "ClosedReadingBook"].includes(item.object)));
-    for (const object of ["LibraryStepStool", "ParchmentBundle", "LibraryBookStack"]) {
+    for (const object of ["StepStool", "ParchmentBundle", "LibraryBookStack"]) {
       assert.ok(furniture.some(item => item.object === object), `seed ${seed} uses ${object}`);
     }
-    const stool = furniture.find(item => item.object === "LibraryStepStool");
+    const stool = furniture.find(item => item.object === "StepStool");
     const shaft = plan.stairs.find(item => item.to === room.level);
     const xGap = Math.abs(stool.x - (shaft.minX + shaft.maxX) / 2) - shaft.radius - shaft.flightShift - stool.width / 2;
     const zGap = room.wallBounds.maxZ - stool.z - stool.depth / 2;
@@ -64,7 +64,7 @@ it("repeats study groups and preserves the end-wall bookcase row across seeds", 
     }
     for (const stair of plan.stairs) {
       for (const item of furniture) {
-        const clearance = item.object === "LibraryStepStool" ? 0 : 0.39;
+        const clearance = item.object === "StepStool" ? 0 : 0.39;
         assert.ok(item.x + item.width / 2 <= stair.minX - clearance || item.x - item.width / 2 >= stair.maxX + clearance ||
           item.z + item.depth / 2 <= stair.minZ - clearance || item.z - item.depth / 2 >= stair.maxZ + clearance);
       }

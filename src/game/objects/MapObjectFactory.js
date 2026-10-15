@@ -30,7 +30,7 @@ import { ThroneDais } from "./castle-props/ThroneDais.js";
 import { RoyalCrest } from "./castle-props/RoyalCrest.js";
 import { WarCouncilShield } from "./war-council-shield/WarCouncilShield.js";
 import { SpearRack } from "./spear-rack/SpearRack.js";
-import { LibraryStepStool } from "./castle-props/LibraryStepStool.js";
+import { StepStool } from "./step-stool/StepStool.js";
 import { ParchmentBundle } from "./castle-props/ParchmentBundle.js";
 import { LibraryBookStack } from "./castle-props/LibraryBookStack.js";
 import { Sunbed } from "./sunbed/Sunbed.js";
@@ -129,7 +129,8 @@ const OBJECT_CLASSES = new Map([
   [SpearRack.name, SpearRack],
   ["WarMapTable", Table],
   ["LibrarySideTable", Table],
-  [LibraryStepStool.name, LibraryStepStool],
+  [StepStool.name, StepStool],
+  ["LibraryStepStool", StepStool],
   [ParchmentBundle.name, ParchmentBundle],
   [LibraryBookStack.name, LibraryBookStack],
   [BedsideDrawers.name, BedsideDrawers],
