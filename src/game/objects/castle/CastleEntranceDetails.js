@@ -1,6 +1,4 @@
-import lanternUrl from "../../models/castle/props/entrance-lantern.glb?url";
 import masonryUrl from "../../models/castle/residential/masonry-block.glb?url";
-import { LanternFire } from "../castle-props/LanternFire.js";
 
 /**
  * Imported entrance lighting and corner courses for authored castle shells.
@@ -9,7 +7,7 @@ export class CastleEntranceDetails {
   /**
    * @returns {string[]}
    */
-  static get modelUrls() { return [lanternUrl, masonryUrl]; }
+  static get modelUrls() { return [masonryUrl]; }
 
   /**
    * @param {typeof import("playcanvas")} pc
@@ -56,32 +54,6 @@ export class CastleEntranceDetails {
       }
       parent.addChild(stone);
     };
-    const lanternScale = 1.6;
-    const lanternHorizontalScale = lanternScale * (1 - 0.1367);
-    // Keep the rear bracket against the outer masonry face, with the cage clear.
-    const lanternWallOffset = 0.48;
-    for (const flank of [-1, 1]) {
-      const offset = flank * (entrance.width / 2 + 0.54);
-      const x = origin.x + Math.cos(angle) * offset - Math.sin(angle) * lanternWallOffset;
-      const z = origin.z - Math.sin(angle) * offset - Math.cos(angle) * lanternWallOffset;
-      const lantern = models.instantiate(lanternUrl);
-      lantern.name = "Castle entrance wall lantern";
-      lantern.setLocalPosition(x, origin.y + 1.3, z);
-      lantern.setLocalEulerAngles(0, origin.yaw + 180, 0);
-      lantern.setLocalScale(lanternHorizontalScale, lanternScale, lanternHorizontalScale);
-      parent.addChild(lantern);
-      LanternFire.add(pc, lantern, undefined, models);
-      lantern.addComponent("collision", { type: "box", halfExtents: new pc.Vec3(0.0935, 0.225, 0.1284),
-        linearOffset: new pc.Vec3(0, 0.225, 0) });
-      lantern.addComponent("rigidbody", { type: "static", friction: 0.6, restitution: 0 });
-      const light = new pc.Entity("Castle entrance lantern light");
-      light.setLocalPosition(x - Math.sin(angle) * 0.1 * lanternHorizontalScale,
-        origin.y + 1.3 + 0.17 * lanternScale,
-        z - Math.cos(angle) * 0.1 * lanternHorizontalScale);
-      light.addComponent("light", { type: "omni", color: new pc.Color(1, 0.38, 0.06),
-        intensity: 0.85, range: 2.2, castShadows: false });
-      parent.addChild(light);
-    }
     for (const building of residential.buildings) {
       if (building.floorY > origin.y) { continue; }
       for (const x of [building.minX, building.maxX]) {

@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { registerHooks } from "node:module";
 import { test } from "node:test";
 import * as pc from "playcanvas";
+import { CastleLanternMapObjects } from "../../../../../src/game/objects/castle/CastleLanternMapObjects.js";
 import { CastleGenerator } from "../../../../../src/game/generator/castle/CastleGenerator.js";
 
 const hooks = registerHooks({
@@ -55,8 +56,10 @@ test("entrance lanterns flank the fixed doorway on every facing and mirrored see
         doors: [{ side, offset: 13, width: 2 }], seed });
       const parent = new pc.Entity();
       CastleEntranceDetails.add({ ...pc, Entity: LightEntity }, { instantiate: () => new LightEntity() }, parent, plan, null);
-      const lanterns = parent.children.filter(node => node.name === "Castle entrance wall lantern");
-      const lights = parent.children.filter(node => node.name === "Castle entrance lantern light");
+      const map = { cols: 64, rows: 64, objects: [{ id: "castle", object: "Castle", buildPlan: plan }] };
+      CastleLanternMapObjects.prepareMap(map);
+      const lanterns = map.objects.filter(item => item.castleLantern && item.object === "Lantern" && item.type === "entrance");
+      const lights = lanterns.filter(item => item.lighting);
       const trim = parent.children.filter(node => node.name === "Castle ground floor corner trim");
       assert.equal(lanterns.length, 2);
       assert.equal(lights.length, 2);
@@ -99,12 +102,13 @@ test("entrance lanterns flank the fixed doorway on every facing and mirrored see
           position.y === space.floorY && x > space.minX + 0.33 && x < space.maxX - 0.33 &&
           z > space.minZ + 0.33 && z < space.maxZ - 0.33));
       }
+      const entrance = plan.metadata.runtime.residential.openings.find(item => item.exteriorEntrance);
       for (const lantern of lanterns) {
-        const position = lantern.getLocalPosition();
+        const position = lantern.position;
         const dx = position.x - origin.x;
         const dz = position.z - origin.z;
-        assert.ok(Math.abs(Math.abs(dx * Math.cos(angle) - dz * Math.sin(angle)) - 1.65) < 1e-6);
-        assert.ok(Math.abs(dx * Math.sin(angle) + dz * Math.cos(angle) + 0.35) < 1e-6);
+        assert.ok(Math.abs(Math.abs(dx * Math.cos(angle) - dz * Math.sin(angle)) - (entrance.width / 2 + 0.54)) < 1e-6);
+        assert.ok(Math.abs(dx * Math.sin(angle) + dz * Math.cos(angle) + 0.48) < 1e-6);
         assert.equal(position.y, origin.y + 1.3);
       }
       parent.destroy();

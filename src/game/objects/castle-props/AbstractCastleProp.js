@@ -59,7 +59,7 @@ export class AbstractCastleProp {
     const { x, y, z } = definition.position;
     this.#visual.setLocalPosition(x, y, z);
     this.#visual.setLocalEulerAngles(definition.tilt?.x ?? 0, definition.rotation ?? 0, definition.tilt?.z ?? 0);
-    const model = modelLibrary.instantiate(this.constructor.modelUrl);
+    const model = modelLibrary.instantiate(this.modelUrl);
     const scale = definition.scale ?? 1;
     const stretch = definition.stretch ?? { x: 1, y: 1, z: 1 };
     model.setLocalScale(scale * stretch.x, scale * stretch.y, scale * stretch.z);
@@ -84,8 +84,8 @@ export class AbstractCastleProp {
         }
       }
     }
-    if (this.constructor.hasAuthoredCollision) {
-      this.#collisionGraph = modelLibrary.instantiate(this.constructor.modelUrl);
+    if (this.constructor.hasAuthoredCollision && !definition.collisionBox) {
+      this.#collisionGraph = modelLibrary.instantiate(this.modelUrl);
       this.#collisionGraph.setLocalScale(scale * stretch.x, scale * stretch.y, scale * stretch.z);
       this.prepareModel(this.#collisionGraph, true);
     }
@@ -98,6 +98,11 @@ export class AbstractCastleProp {
   }
 
   get entity() { return this.#entity; }
+  /**
+   * Instance-selected model used by both rendering and collision.
+   * @returns {string}
+   */
+  get modelUrl() { return this.constructor.modelUrl; }
   /**
    * Apply instance-specific authored part placement before creating its collider.
    * @param {import("playcanvas").Entity} model

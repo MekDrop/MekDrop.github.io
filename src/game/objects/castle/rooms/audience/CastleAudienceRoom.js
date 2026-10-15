@@ -1,9 +1,7 @@
-import lanternModelUrl from "../../../../models/castle/props/wall-lantern.glb?url";
 import carpetModelUrl from "../../../../models/castle/residential/carpet-panel.glb?url";
 import { WoodenFloor } from "../../../wooden-floor/WoodenFloor.js";
 import authoredModelUrl from "../../../../models/castle/residential/stone-block.glb?url";
 import { CastleThrone } from "../../CastleThrone.js";
-import { CastleFire } from "../../CastleFire.js";
 import { GAME_OVER_VIEW_ROTATION_BY_SIDE } from "../../../../enum/GameOverViewRotation.js";
 import { colorFromHex } from "../../../../helpers/colors.js";
 
@@ -41,7 +39,7 @@ export class CastleAudienceRoom {
     * @returns {Array<string>}
    */
   static get modelUrls() {
-    return [CastleThrone.modelUrl, authoredModelUrl, ...WoodenFloor.modelUrls, carpetModelUrl, lanternModelUrl, ...CastleFire.modelUrls];
+    return [CastleThrone.modelUrl, authoredModelUrl, ...WoodenFloor.modelUrls, carpetModelUrl];
   }
 
   /**
@@ -89,11 +87,6 @@ export class CastleAudienceRoom {
     * @type {Map<string, import("playcanvas").StandardMaterial>}
    */
   #materials = new Map();
-  /**
-   *
-    * @type {CastleFire|null}
-   */
-  #fire = null;
   /**
    *
     * @type {{x: number, y: number, z: number}|null}
@@ -262,13 +255,6 @@ export class CastleAudienceRoom {
     this.#residentialLayout = residentialLayout;
     this.#entity = new pc.Entity("Castle audience chamber");
     this.#baseY = position.elevation ?? 0;
-    this.#fire = new CastleFire({
-      pc,
-      app,
-      particleTexture: fireParticleTexture,
-      modelLibrary,
-    });
-    this.#entity.addChild(this.#fire.entity);
 
     this.#resolveLayout();
     if (serviceOpening) {
@@ -460,8 +446,6 @@ export class CastleAudienceRoom {
   }
 
   destroy() {
-    this.#fire?.destroy();
-    this.#fire = null;
     this.#occupant = null;
     this.#throne?.destroy();
     this.#throne = null;
@@ -582,7 +566,6 @@ export class CastleAudienceRoom {
     this.#buildFloor(throneForward);
     this.#buildThrone(throneForward);
     this.#buildColumns(throneForward);
-    this.#buildBraziers(throneForward);
   }
 
   /**
@@ -788,28 +771,6 @@ export class CastleAudienceRoom {
           [0.16, 0.68, 1.05],
         );
       }
-    }
-  }
-
-  /**
-   *
-   * @param {{x: number, y: number, z: number}} throneForward
-   */
-  #buildBraziers(throneForward) {
-    const lateral = Math.min(2.8, this.#roomWidth / 2 - 0.1);
-    for (const side of [-1, 1]) {
-      const position = this.#point(side * lateral, throneForward + 0.6, 0.85);
-      const lantern = this.#modelLibrary.instantiate(lanternModelUrl);
-      lantern.name = "Royal chamber wall lantern";
-      lantern.setLocalPosition(position.x, position.y, position.z);
-      lantern.setLocalEulerAngles(0, this.#roomYaw() + 180, 0);
-      lantern.setLocalScale(0.85, 0.85, 0.85);
-      this.#entity.addChild(lantern);
-      lantern.addComponent("collision", { type: "box", halfExtents: new this.#pc.Vec3(0.0799, 0.3, 0.13),
-        linearOffset: new this.#pc.Vec3(0, 0.3, 0) });
-      lantern.addComponent("rigidbody", { type: "static", friction: 0.6, restitution: 0 });
-      const glow = this.#point(side * lateral, throneForward + 0.35, 1.12);
-      this.#fire.add({ ...glow, scale: 0.065, brazier: false, intensity: 0.6, flame: false });
     }
   }
 

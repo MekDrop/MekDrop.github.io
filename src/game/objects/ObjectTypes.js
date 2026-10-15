@@ -6,6 +6,10 @@
  * @typedef {{col: number, row: number, elevation?: number, terrainHeight?: number, direction?: string, flowScale?: number}} RiverCell
  * @typedef {object} MapObjectDefinition
  * @property {string} id
+ * @property {import("./lantern/Lantern.js").LanternLighting|false} [lighting] Lantern-local illumination override.
+ * @property {boolean} [flame] Override the lantern variant's candle emitter.
+ * @property {{halfExtents: Point3, offset: Point3}} [collisionBox] Model-space lantern contact box.
+ * @property {"entrance"|"wall"|"table"} [type] Lantern model selection.
  * @property {{position: Point3, width: number, depth: number}} [hatch] Framed ladder roof hatch.
  * @property {string} object
  * @property {string} [symbol] Gateway banner override.

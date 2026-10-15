@@ -1,3 +1,4 @@
+import { Lantern } from "./lantern/Lantern.js";
 import { StraightStaircase } from "./straight-staircase/StraightStaircase.js";
 import { Ladder } from "./castle/Ladder.js";
 import { SignalBell } from "./signal-bell/SignalBell.js";
@@ -5,7 +6,6 @@ import { BedsideDrawers } from "./castle-props/BedsideDrawers.js";
 import { WovenRug } from "./castle-props/WovenRug.js";
 import { FoldedLinens } from "./castle-props/FoldedLinens.js";
 import { SewingBasket } from "./castle-props/SewingBasket.js";
-import { ServantBedsideLantern } from "./castle-props/ServantBedsideLantern.js";
 import { VestibuleBench } from "./castle-props/VestibuleBench.js";
 import { VestibuleIslandBench } from "./castle-props/VestibuleIslandBench.js";
 import { VestibuleMapTable } from "./castle-props/VestibuleMapTable.js";
@@ -13,13 +13,11 @@ import { VestibuleBanner } from "./castle-props/VestibuleBanner.js";
 import { VestibulePainting } from "./castle-props/VestibulePainting.js";
 import { VestibuleArmorDisplay } from "./castle-props/VestibuleArmorDisplay.js";
 import { VestibuleTravelKit } from "./castle-props/VestibuleTravelKit.js";
-import { TableLantern } from "./castle-props/TableLantern.js";
 import { VestibuleBrownSatchel } from "./castle-props/VestibuleBrownSatchel.js";
 import { VestibuleOliveSatchel } from "./castle-props/VestibuleOliveSatchel.js";
 import { VestibuleBoots } from "./castle-props/VestibuleBoots.js";
 import { VestibuleStickStand } from "./castle-props/VestibuleStickStand.js";
 import { VestibuleCloakRail } from "./castle-props/VestibuleCloakRail.js";
-import { VestibuleLantern } from "./castle-props/VestibuleLantern.js";
 import { VestibuleRug } from "./castle-props/VestibuleRug.js";
 import { ChoppingToolsSet } from "./castle-props/ChoppingToolsSet.js";
 import { KitchenUtensilRail } from "./castle-props/KitchenUtensilRail.js";
@@ -68,8 +66,6 @@ import { RoyalBedroomRug } from "./castle-props/RoyalBedroomRug.js";
 import { FirewoodStack } from "./castle-props/FirewoodStack.js";
 import { SpareTimberBundle } from "./castle-props/SpareTimberBundle.js";
 import { WoodenDeskChair } from "./castle-props/WoodenDeskChair.js";
-import { WallLantern } from "./castle-props/WallLantern.js";
-import { EntranceLantern } from "./castle-props/EntranceLantern.js";
 import { TowerBrazier } from "./castle-props/TowerBrazier.js";
 import { CliffVine } from "./vegetation/CliffVine.js";
 import { WoodenFloor } from "./wooden-floor/WoodenFloor.js";
@@ -115,7 +111,6 @@ const OBJECT_CLASSES = new Map([
   [WovenRug.name, WovenRug],
   [FoldedLinens.name, FoldedLinens],
   [SewingBasket.name, SewingBasket],
-  [ServantBedsideLantern.name, ServantBedsideLantern],
   [VestibuleBench.name, VestibuleBench],
   [VestibuleIslandBench.name, VestibuleIslandBench],
   [VestibuleMapTable.name, VestibuleMapTable],
@@ -123,14 +118,12 @@ const OBJECT_CLASSES = new Map([
   [VestibulePainting.name, VestibulePainting],
   [VestibuleArmorDisplay.name, VestibuleArmorDisplay],
   [VestibuleTravelKit.name, VestibuleTravelKit],
-  [TableLantern.name, TableLantern],
   [VestibuleBrownSatchel.name, VestibuleBrownSatchel],
   [VestibuleOliveSatchel.name, VestibuleOliveSatchel],
   [VestibuleBoots.name, VestibuleBoots],
   [VestibuleStickStand.name, VestibuleStickStand],
   [VestibuleCloakRail.name, VestibuleCloakRail],
   [VestibuleRug.name, VestibuleRug],
-  [VestibuleLantern.name, VestibuleLantern],
   [ChoppingToolsSet.name, ChoppingToolsSet],
   [KitchenUtensilRail.name, KitchenUtensilRail],
   [WoodenWashBasin.name, WoodenWashBasin],
@@ -179,8 +172,6 @@ const OBJECT_CLASSES = new Map([
   [FirewoodStack.name, FirewoodStack],
   [SpareTimberBundle.name, SpareTimberBundle],
   [WoodenDeskChair.name, WoodenDeskChair],
-  [WallLantern.name, WallLantern],
-  [EntranceLantern.name, EntranceLantern],
   [TowerBrazier.name, TowerBrazier],
   [Flag.name, Flag],
   [WoodenFloor.name, WoodenFloor],
@@ -206,6 +197,8 @@ const OBJECT_CLASSES = new Map([
   [Servant.name, Servant],
   // Attach cliff growth only after terrain population and castle excavation.
   [CliffVine.name, CliffVine],
+  // Normalize legacy lantern names after castle preparation publishes its props.
+  [Lantern.name, Lantern],
 ]);
 
 /**

@@ -1,5 +1,6 @@
 import { CastleStraightStairMapObjects } from "./CastleStraightStairMapObjects.js";
 import { CastleLadderMapObjects } from "./CastleLadderMapObjects.js";
+import { CastleLanternMapObjects } from "./CastleLanternMapObjects.js";
 import { CastleSignalTowerMapObjects } from "./CastleSignalTowerMapObjects.js";
 import { DecorationPlacementRules } from "../../generator/map/DecorationPlacementRules.js";
 import { LibraryRoomMapObjects } from "./rooms/library/LibraryRoomMapObjects.js";
@@ -37,6 +38,7 @@ export class CastleMapPreparation {
     CastleLadderMapObjects.prepareMap(mapData);
     CastleSignalTowerMapObjects.prepareMap(mapData);
     VestibuleRoomMapObjects.prepareMap(mapData);
+    CastleLanternMapObjects.prepareMap(mapData);
     const castles = (mapData.objects ?? []).filter(
       /**
        * @param {import("../ObjectTypes.js").MapObjectDefinition} definition

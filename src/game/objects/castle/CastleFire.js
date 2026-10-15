@@ -91,8 +91,9 @@ export class CastleFire {
    * @param {boolean} options.brazier
    * @param {boolean} [options.flame]
    * @param {number} options.intensity
+   * @param {number} [options.phase] Stable flicker phase when glow uses a different parent space.
    */
-  add({ x, y, z, scale = 0.25, brazier = true, intensity = 1, flame = true }) {
+  add({ x, y, z, scale = 0.25, brazier = true, intensity = 1, flame = true, phase }) {
     const root = new this.#pc.Entity("Castle fire");
     root.setPosition(x, y, z);
     this.#entity.addChild(root);
@@ -116,7 +117,7 @@ export class CastleFire {
 
     this.#lights.push({
       entity: light,
-      phase: this.#lights.length * 1.713 + x * 0.37 + z * 0.53,
+      phase: phase ?? this.#lights.length * 1.713 + x * 0.37 + z * 0.53,
       intensity,
     });
   }
