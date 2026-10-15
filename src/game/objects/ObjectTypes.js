@@ -35,6 +35,15 @@
  * @property {boolean} [joinStart] Bookshelf shares its local left upright with the previous section.
  * @property {boolean} [joinEnd] Bookshelf supplies a slimmer shared upright at its local right edge.
  * @property {number} [depth] Window reveal depth; defaults to 0.3.
+ * @property {number} [radius] Straight staircase half-run and default lane width.
+ * @property {number} [rise] Straight staircase total vertical rise.
+ * @property {number} [flightGap] Separation between straight stair lanes.
+ * @property {number} [flightShift] Local Z displacement of straight flights.
+ * @property {number} [landingBack] Local rear extent of a turning landing.
+ * @property {number} [landingLift] Additional turning landing elevation.
+ * @property {{minX:number,maxX:number,inner:number}} [flightBounds] Explicit straight stair lane bounds.
+ * @property {boolean} [continuesAbove] A stacked flight owns the next opening.
+ * @property {boolean} [exitFloorOwned] Adjoining floor supplies the exit apron's visible surface.
  * @property {number} [Z1] Spiral staircase lower map elevation (world Y).
  * @property {number} [Z2] Spiral staircase upper map elevation (world Y), above Z1.
  * @property {{col: number, row: number}} [tile]

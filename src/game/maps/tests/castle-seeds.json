@@ -10436,5 +10436,32 @@
     "rotation": 2,
     "panX": 0,
     "panZ": 0
+  },
+  "testControls": {
+    "panels": [
+      {
+        "title": "Straight stair assembly",
+        "x": 16,
+        "y": 140,
+        "buttons": [
+          {
+            "label": "Lower stair view",
+            "script": "const stair=objects.getAll('mapObject').filter(o=>o.definition?.object==='StraightStaircase').sort((a,b)=>b.definition.position.y-a.definition.position.y)[0]; if(stair){ const d=stair.definition; const angle=d.rotation*Math.PI/180; const x=-1*(d.radius/2+(d.flightGap ?? 0)/2); const z=d.radius+(d.flightShift ?? 0)-0.3; const y=0.3; const hero=objects.getOne('hero'); camera.setFirstPerson(false); hero.teleport({x:d.position.x+x*Math.cos(angle)+z*Math.sin(angle),y:d.position.y+y+0.014,z:d.position.z-x*Math.sin(angle)+z*Math.cos(angle)}); hero.firstPersonCameraEnabled=true; hero.firstPersonFacingYaw=d.rotation+180; camera.setFirstPerson(true); }"
+          },
+          {
+            "label": "Turning landing view",
+            "script": "const stair=objects.getAll('mapObject').filter(o=>o.definition?.object==='StraightStaircase').sort((a,b)=>b.definition.position.y-a.definition.position.y)[0]; if(stair){ const d=stair.definition; const angle=d.rotation*Math.PI/180; const x=(d.flightBounds?.minX ?? -d.radius-(d.flightGap ?? 0)/2)/2; const z=-d.radius+Math.min(0.7,d.radius*0.5)*0.5+(d.flightShift ?? 0); const y=d.rise/2+(d.landingLift ?? 0); const hero=objects.getOne('hero'); camera.setFirstPerson(false); hero.teleport({x:d.position.x+x*Math.cos(angle)+z*Math.sin(angle),y:d.position.y+y+0.014,z:d.position.z-x*Math.sin(angle)+z*Math.cos(angle)}); hero.firstPersonCameraEnabled=true; hero.firstPersonFacingYaw=d.rotation+0; camera.setFirstPerson(true); }"
+          },
+          {
+            "label": "Upper stair view",
+            "script": "const stair=objects.getAll('mapObject').filter(o=>o.definition?.object==='StraightStaircase').sort((a,b)=>b.definition.position.y-a.definition.position.y)[0]; if(stair){ const d=stair.definition; const angle=d.rotation*Math.PI/180; const x=1*(d.radius/2+(d.flightGap ?? 0)/2); const z=d.radius+(d.flightShift ?? 0)-0.3; const y=d.rise; const hero=objects.getOne('hero'); camera.setFirstPerson(false); hero.teleport({x:d.position.x+x*Math.cos(angle)+z*Math.sin(angle),y:d.position.y+y+0.014,z:d.position.z-x*Math.sin(angle)+z*Math.cos(angle)}); hero.firstPersonCameraEnabled=true; hero.firstPersonFacingYaw=d.rotation+180; camera.setFirstPerson(true); }"
+          },
+          {
+            "label": "Castle overview",
+            "script": "camera.setFirstPerson(false); camera.setViewport({zoom:1.5,rotation:2,panX:0,panZ:0});"
+          }
+        ]
+      }
+    ]
   }
 }

@@ -1,3 +1,4 @@
+import { CastleStraightStairMapObjects } from "./CastleStraightStairMapObjects.js";
 import { CastleLadderMapObjects } from "./CastleLadderMapObjects.js";
 import { CastleSignalTowerMapObjects } from "./CastleSignalTowerMapObjects.js";
 import { DecorationPlacementRules } from "../../generator/map/DecorationPlacementRules.js";
@@ -25,6 +26,7 @@ export class CastleMapPreparation {
    * @param {import("../../GameContracts.js").GameMapData} mapData
    */
   static prepareMap(mapData) {
+    CastleStraightStairMapObjects.prepareMap(mapData);
     RoyalBedroomRoomMapObjects.prepareMap(mapData);
     LibraryRoomMapObjects.prepareMap(mapData);
     LeisureRoomMapObjects.prepareMap(mapData);

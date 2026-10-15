@@ -296,7 +296,7 @@ export class CastleEntityBuilder {
       this.#createStairs();
       this.#render();
       if (!buildPlan.layout.empty && buildPlan.metadata.runtime.residential) {
-        this.#residence = new CastleResidence({ pc, buildPlan, modelLibrary, gardenTexture, stairMaterials: this.#materials });
+        this.#residence = new CastleResidence({ pc, buildPlan, modelLibrary, gardenTexture });
         this.#entity.addChild(this.#residence.entity);
       }
       this.#createAudienceRoom();

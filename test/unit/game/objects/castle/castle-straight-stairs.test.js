@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { it } from "node:test";
 import { readFileSync } from "node:fs";
 import * as pc from "playcanvas";
-import { castleStraightStairHeight, castleStraightStairSurfaces, castleStraightStairStepCount } from "../../../../../src/game/objects/castle/CastleStraightStairs.js";
+import { castleStraightStairHeight, castleStraightStairSurfaces, castleStraightStairStepCount, castleStraightStairTreads } from "../../../../../src/game/objects/castle/CastleStraightStairs.js";
 
 it("provides deep, level tread centres within the automatic step clearance", () => {
   const stair = { radius: 1.35, rise: 3, yaw: 0, center: { x: 0, y: 0, z: 0 } };
@@ -74,20 +74,20 @@ it("aligns the raised landing with both adjoining tread tops", () => {
 });
 
 it("separates turning-landing faces from shaft masonry without shrinking walking support", () => {
-  const source = readFileSync(new URL("../../../../../src/game/objects/castle/CastleResidence.js", import.meta.url), "utf8");
-  const start = source.indexOf("  #buildStraightStair(pc, models, stair)");
+  const source = readFileSync(new URL("../../../../../src/game/objects/straight-staircase/StraightStaircase.js", import.meta.url), "utf8");
+  const start = source.indexOf("  #build(pc, models, stair)");
   const end = source.indexOf("    const mesh =", start);
-  const method = source.slice(start, end).replace("#buildStraightStair", "build").replaceAll("this.#", "this.");
-  const Builder = new Function("castleStraightStairSurfaces", "castleStraightStairStepCount", "stairModuleUrl", "masonryBlockUrl",
-    `return class { ${method} return positions; } };`)(castleStraightStairSurfaces, castleStraightStairStepCount, "tread", "landing");
+  const method = source.slice(start, end).replace("#build", "build").replaceAll("this.#", "this.");
+  const Builder = new Function("castleStraightStairSurfaces", "castleStraightStairStepCount", "stairModuleUrl", "masonryBlockUrl", "castleStraightStairTreads",
+    `return class { ${method} return positions; } };`)(castleStraightStairSurfaces, castleStraightStairStepCount, "tread", "landing", castleStraightStairTreads);
   const builder = new Builder();
-  builder.entity = new pc.Entity();
+  builder.visual = new pc.Entity();
   builder.layout = { origin: { y: 0 }, yaw: 0, toLocal: (x, z) => ({ x, z }) };
   builder.stairMaterials = new Map();
-  const stair = { center: { x: 0, y: 0, z: 0 }, yaw: 0, radius: 1.35, rise: 3, landingLift: 0.3, flightGap: 0.5 };
+  const stair = { center: { x: 0, y: 0, z: 0 }, yaw: 0, radius: 1.35, rise: 3, landingLift: 0.3, flightGap: 0.5, exitFloorOwned: true };
   const positions = builder.build(pc, { instantiate: () => new pc.Entity() }, stair);
   const landing = castleStraightStairSurfaces(stair).find(surface => surface.low === surface.high && surface.high < stair.rise);
-  const blocks = builder.entity.children[0].children.filter(entity => entity.name === "Castle stair turning landing");
+  const blocks = builder.visual.children.filter(entity => entity.name === "Castle stair turning landing");
   assert.ok(blocks.length > 0);
   for (const block of blocks) {
     const center = block.getLocalPosition(), size = block.getLocalScale();

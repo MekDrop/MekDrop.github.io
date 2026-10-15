@@ -1,3 +1,4 @@
+import { StraightStaircase } from "./straight-staircase/StraightStaircase.js";
 import { Ladder } from "./castle/Ladder.js";
 import { SignalBell } from "./signal-bell/SignalBell.js";
 import { BedsideDrawers } from "./castle-props/BedsideDrawers.js";
@@ -104,6 +105,7 @@ import { IslandConnector } from "./scenery/IslandConnector.js";
 import { MapObjectDefinitions } from "./MapObjectDefinitions.js";
 
 const OBJECT_CLASSES = new Map([
+  [StraightStaircase.name, StraightStaircase],
   [Gateway.name, Gateway],
   [Rivers.name, Rivers],
   [GroundCover.name, GroundCover],
