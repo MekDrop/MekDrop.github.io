@@ -24,7 +24,7 @@ test("keeps a complete supported inventory aligned to an eligible outer wall dur
 const room = { minX: 0, maxX: 4, minZ: 0, maxZ: 4, floorY: 0, height: 3 };
 const shelf = { id: "shelf", role: "storageShelf", x: 2, z: 2, width: 0.8, depth: 0.3, height: 1, scale: 1 };
 
-test("banners slide clear of perpendicular masonry while retaining their wall mount", () => {
+test("wall attachments slide clear of perpendicular masonry while retaining their wall mount", () => {
   for (const rotation of [0, 90, 180, 270]) {
     const axis = rotation % 180 ? "x" : "z";
     const tangent = axis === "x" ? "z" : "x";
@@ -35,7 +35,7 @@ test("banners slide clear of perpendicular masonry while retaining their wall mo
     const corner = { x: 2, z: 2, y: 1.5, halfX: 2, halfZ: 2, halfY: 1.5 };
     corner[tangent] = 0;
     corner[tangent === "x" ? "halfX" : "halfZ"] = 0.125;
-    const banner = { ...shelf, object: "VestibuleBanner", rotation, floorY: 0,
+    const banner = { ...shelf, object: "CustomWallDecoration", wallAttachment: true, wallMountBack: -0.005, rotation, floorY: 0,
       y: 2, width: axis === "z" ? 1.1 : 0.1, depth: axis === "z" ? 0.1 : 1.1 };
     banner[axis] = sign > 0 ? 3.7 : 0.3;
     banner[tangent] = 0.6;
@@ -137,7 +137,7 @@ test("keeps neighboring cloak rails visually separated without removing either r
 });
 
 test("wall fixtures contact the masonry by their measured rear plane in all cardinal directions", () => {
-  const mounts = { VestibuleCloakRail: -0.058, Painting: -0.024, VestibuleBanner: -0.005, HangingFryingPan: -0.0953, KitchenUtensilRail: 0, RoyalCrest: -0.04, WarCouncilShield: -0.05 };
+  const mounts = { VestibuleCloakRail: -0.058, Painting: -0.024, Banner: -0.005, HangingFryingPan: -0.0953, KitchenUtensilRail: 0, RoyalCrest: -0.04, WarCouncilShield: -0.05 };
   for (const [object, back] of Object.entries(mounts)) {
     for (const rotation of [0, 90, 180, 270]) {
       const angle = rotation * Math.PI / 180;

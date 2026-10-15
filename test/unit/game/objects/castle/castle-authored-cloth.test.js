@@ -12,13 +12,13 @@ class FakeMesh {
   incRefCount() {}
 }
 
-for (const name of ["CastleBanner", "Flag"]) {
+for (const name of ["BannerCloth", "Flag"]) {
   it(`${name} clones authored topology and selects pins independent of vertex ordering`, () => {
-    const source = readFileSync(new URL(`../../../../../src/game/objects/${name === "Flag" ? "flag" : "castle"}/${name}.js`, import.meta.url), "utf8");
+    const source = readFileSync(new URL(`../../../../../src/game/objects/${name === "Flag" ? "flag" : "banner"}/${name}.js`, import.meta.url), "utf8");
     const start = source.indexOf("  #createMesh(");
     const end = source.indexOf("\n  /**", start);
     const method = source.slice(start, end).replace("#createMesh", "createMesh");
-    const banner = name === "CastleBanner";
+    const banner = name === "BannerCloth";
     const positions = banner ? [0, -1, 0, -0.5, 0, 0, 0.5, 0, 0] : [1, 0.1, 0, 0, -0.5, 0, 0, 0.5, 0];
     const indices = [2, 0, 1];
     let destroyed = false;
@@ -31,12 +31,24 @@ for (const name of ["CastleBanner", "Flag"]) {
     const Factory = new Function("library", "FakeMesh", `const clothModelUrl = "cloth"; const FLAG_TRAILING_EDGE_HEIGHT_RATIO = 0.2;
       return new class { #modelLibrary = library; #pc = { Mesh: FakeMesh, calculateNormals: () => [] }; #app = { graphicsDevice: null }; ${method} };`);
     const instance = Factory(modelLibrary, FakeMesh);
-    const geometry = instance.createMesh(2, 3, 4);
+    const geometry = banner ? instance.createMesh(2, 3) : instance.createMesh(2, 3, 4);
     assert.deepEqual([...geometry.indices], indices);
     assert.deepEqual(geometry.pinnedIndices, [1, 2]);
     assert.equal(geometry.positions[0], banner ? 0 : 2);
     assert.ok(Math.abs(geometry.positions[4] - (banner ? 0 : 4 - 3 - 0.12)) < 1e-6);
     assert.equal(destroyed, true);
+    if (banner) {
+      const rectangle = instance.createMesh(2, 3, true);
+      assert.equal(rectangle.pinnedIndices.length, 9);
+      const bottom = [];
+      for (let index = 0; index < rectangle.positions.length; index += 3) {
+        if (rectangle.positions[index + 1] === -3) { bottom.push(rectangle.positions[index]); }
+      }
+      assert.equal(bottom.length, 9);
+      assert.equal(Math.min(...bottom), -1);
+      assert.equal(Math.max(...bottom), 1);
+      assert.ok(rectangle.indices.length > 0);
+    }
   });
 }
 

@@ -12,7 +12,7 @@ import { ClothRoll } from "./cloth-roll/ClothRoll.js";
 import { ThreadSpool } from "./thread-spool/ThreadSpool.js";
 import { VestibuleBench } from "./castle-props/VestibuleBench.js";
 import { VestibuleIslandBench } from "./castle-props/VestibuleIslandBench.js";
-import { VestibuleBanner } from "./castle-props/VestibuleBanner.js";
+import { Banner } from "./banner/Banner.js";
 import { StandingArmor } from "./standing-armor/StandingArmor.js";
 import { TravelKit } from "./travel-kit/TravelKit.js";
 import { VestibuleBrownSatchel } from "./castle-props/VestibuleBrownSatchel.js";
@@ -110,7 +110,6 @@ const OBJECT_CLASSES = new Map([
   [VestibuleBench.name, VestibuleBench],
   [VestibuleIslandBench.name, VestibuleIslandBench],
   ["VestibuleMapTable", Table],
-  [VestibuleBanner.name, VestibuleBanner],
   [StandingArmor.name, StandingArmor],
   [TravelKit.name, TravelKit],
   [VestibuleBrownSatchel.name, VestibuleBrownSatchel],
@@ -170,6 +169,7 @@ const OBJECT_CLASSES = new Map([
   [Earth.name, Earth],
   [Grass.name, Grass],
   [Castle.name, Castle],
+  [Banner.name, Banner],
   [Ladder.name, Ladder],
   [SignalBell.name, SignalBell],
   [GroundCoverItem.name, MapVirtualItem],

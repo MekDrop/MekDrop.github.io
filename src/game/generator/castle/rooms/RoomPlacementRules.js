@@ -4,7 +4,7 @@ import { FireplaceChimneyFootprint } from "../../../objects/fireplace/FireplaceC
 
 // Model-local rear mounting planes measured from the source GLBs.
 const WALL_MOUNTS = { Fireplace: -0.45, VestibuleCloakRail: -0.058,
-  VestibuleBanner: -0.005, HangingFryingPan: -0.0953, KitchenUtensilRail: 0,
+  Banner: -0.005, HangingFryingPan: -0.0953, KitchenUtensilRail: 0,
   RoyalCrest: -0.04, WarCouncilShield: -0.05 };
 
 /**
@@ -169,7 +169,7 @@ export class RoomPlacementRules {
       wall => ({ minX: wall.x - wall.halfX - 0.025, maxX: wall.x + wall.halfX + 0.025,
         minZ: wall.z - wall.halfZ - 0.025, maxZ: wall.z + wall.halfZ + 0.025,
         bottom: wall.y - wall.halfY, top: wall.y + wall.halfY, masonry: true,
-        bannerBacking: wall === mountWall }));
+        mountingWall: wall === mountWall }));
       obstacles.push(...placed.map(/**
        *
        * @param {import("./AbstractCastleRoomGenerator.js").RoomItem} item
@@ -212,7 +212,7 @@ export class RoomPlacementRules {
           zs.add(room.minZ - member.minZ); zs.add(room.maxZ - member.maxZ);
         }
         for (const obstacle of obstacles) {
-          if (member.item.floorCovering && !obstacle.masonry && !obstacle.chimney || member.bottom >= obstacle.top - 0.005 || member.top <= obstacle.bottom + 0.005 || member.item.wallAttachment && obstacle.masonry && (member.item.object !== "VestibuleBanner" || obstacle.bannerBacking)) { continue; }
+          if (member.item.floorCovering && !obstacle.masonry && !obstacle.chimney || member.bottom >= obstacle.top - 0.005 || member.top <= obstacle.bottom + 0.005 || member.item.wallAttachment && obstacle.masonry && obstacle.mountingWall) { continue; }
           xs.add(obstacle.maxX - member.minX + 0.00001); xs.add(obstacle.minX - member.maxX - 0.00001);
           zs.add(obstacle.maxZ - member.minZ + 0.00001); zs.add(obstacle.minZ - member.maxZ - 0.00001);
         }
@@ -279,9 +279,9 @@ export class RoomPlacementRules {
         }
         return obstacles.every(/**
          *
-         * @param {{minX:number,maxX:number,minZ:number,maxZ:number,bottom:number,top:number,masonry:boolean,bannerBacking?:boolean}} obstacle
+         * @param {{minX:number,maxX:number,minZ:number,maxZ:number,bottom:number,top:number,masonry:boolean,mountingWall?:boolean}} obstacle
          */
-        obstacle => obstacle.rail ? (root.width > root.depth ? maxX <= obstacle.minX + 1e-6 || minX >= obstacle.maxX - 1e-6 : maxZ <= obstacle.minZ + 1e-6 || minZ >= obstacle.maxZ - 1e-6) : member.item.floorCovering && !obstacle.masonry && !obstacle.chimney || member.item.wallAttachment && obstacle.masonry && (member.item.object !== "VestibuleBanner" || obstacle.bannerBacking) ||
+        obstacle => obstacle.rail ? (root.width > root.depth ? maxX <= obstacle.minX + 1e-6 || minX >= obstacle.maxX - 1e-6 : maxZ <= obstacle.minZ + 1e-6 || minZ >= obstacle.maxZ - 1e-6) : member.item.floorCovering && !obstacle.masonry && !obstacle.chimney || member.item.wallAttachment && obstacle.masonry && obstacle.mountingWall ||
           member.bottom >= obstacle.top - 0.005 || member.top <= obstacle.bottom + 0.005 ||
           maxX <= obstacle.minX + 1e-6 || minX >= obstacle.maxX - 1e-6 || maxZ <= obstacle.minZ + 1e-6 || minZ >= obstacle.maxZ - 1e-6);
       });

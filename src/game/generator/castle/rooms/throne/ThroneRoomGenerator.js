@@ -79,7 +79,7 @@ export class ThroneRoomGenerator extends AbstractCastleRoomGenerator {
     // Top-mounted authored cloth hangs clear of the rear wall and candle groups.
     const bannerLateral = Math.min(1.68, width / 2 - 0.6);
     for (const side of [-1, 1]) {
-      add("VestibuleBanner", center + side * bannerLateral, bounds.minZ + 0.38,
+      add("Banner", center + side * bannerLateral, bounds.minZ + 0.38,
         0.98, 0.1, 2.35);
       items.at(-1).stretch = { x: 0.975, y: 1.4, z: 1 };
       items.at(-1).height = 1.38;

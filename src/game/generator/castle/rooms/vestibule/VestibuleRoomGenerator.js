@@ -138,7 +138,7 @@ export class VestibuleRoomGenerator extends AbstractCastleRoomGenerator {
       break;
     }
     if (room.id === "vestibule") {
-      const banner = { role: "vestibuleProp", object: "VestibuleBanner", x: (room.minX + room.maxX) / 2,
+      const banner = { role: "vestibuleProp", object: "Banner", x: (room.minX + room.maxX) / 2,
         z: room.minZ + 0.02, width: 1.1, depth: 0.03, height: 1.3,
         scale: 1, stretch: { x: 1.1, y: 1.3, z: 1 }, rotation: 0, y: 2.35 };
       if (safe(banner)) { items.push(banner); }

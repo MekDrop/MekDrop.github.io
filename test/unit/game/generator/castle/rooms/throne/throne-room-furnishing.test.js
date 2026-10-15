@@ -31,7 +31,7 @@ it("mounts court emblems above rear windows through the final map transform", as
       const originYaw = residential.origin.yaw * Math.PI / 180;
       const localZ = Math.sin(originYaw) * (rear.x - residential.origin.x) +
         Math.cos(originYaw) * (rear.z - residential.origin.z);
-      const banner = residential.furniture.find(item => item.role === "courtProp" && item.object === "VestibuleBanner");
+      const banner = residential.furniture.find(item => item.role === "courtProp" && item.object === "Banner");
       assert.ok(Math.abs(localZ - (banner.z + 0.005)) < 1e-6, "rear touches the same wall as the banners");
     }
   }
@@ -111,7 +111,7 @@ it("publishes actual prop definitions once and replaces old furnishings on regen
   definition.buildPlan = await CastleAuthoredBuildPlan.generate(definition);
   const map = { cols: 42, rows: 32, objects: [definition] };
   ThroneRoomMapObjects.prepareMap(map);
-  const banners = map.objects.filter(item => item.object === "VestibuleBanner");
+  const banners = map.objects.filter(item => item.object === "Banner");
   assert.equal(banners.length, 2);
   for (const banner of banners) {
     assert.deepEqual(banner.stretch, { x: 0.975, y: 1.4, z: 1 });

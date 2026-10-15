@@ -22,7 +22,7 @@ class Decoration {
   constructor({ pc }) { this.entity = new pc.Entity('decoration'); }
   destroy() { this.entity.destroy(); }
 }
-const CastleFire = Decoration, CastleBanner = Decoration,
+const CastleFire = Decoration,
   CastleRoof = Decoration, CastleStairs = Decoration;
 `;
 const { CastleEntityBuilder } = await import(

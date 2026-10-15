@@ -144,7 +144,7 @@ export class AmmoClothPhysics {
 
   /**
    *
-   * @param {{positions: Array<{x: number, y: number, z: number}>, indices: Array<number>, pinnedIndices: Array<number>, vertexUv: import("src/game/objects/ObjectTypes.js").Point3, root: import("playcanvas").Entity, normalAxis: {x: number, y: number, z: number}, seed: number, wallPlane: {normal: import("src/game/objects/ObjectTypes.js").Point3, distance: number}|null, wallOpeningWindExposure: (position: import("src/game/objects/ObjectTypes.js").Point3) => number, roofCollider: number, bendingStiffness: number, selfCollision: boolean}} options
+   * @param {{positions: Array<{x: number, y: number, z: number}>, indices: Array<number>, pinnedIndices: Array<number>, vertexUv: import("src/game/objects/ObjectTypes.js").Point3, root: import("playcanvas").Entity, normalAxis: {x: number, y: number, z: number}, seed: number, wallPlane: {normal: import("src/game/objects/ObjectTypes.js").Point3, distance: number}|null, wallOpeningWindExposure: (position: import("src/game/objects/ObjectTypes.js").Point3) => number, roofCollider: number, bendingStiffness: number, selfCollision: boolean, windExposure?: (direction: import("../ObjectTypes.js").Point3, elapsed: number) => number}} options
    * @param {Array<{x: number, y: number, z: number}>} options.positions
    * @param {Array<number>} options.indices
    * @param {Array<number>} options.pinnedIndices
@@ -154,6 +154,7 @@ export class AmmoClothPhysics {
    * @param {number} options.seed
    * @param {{normal: import("src/game/objects/ObjectTypes.js").Point3, distance: number}|null} options.wallPlane
    * @param {(position: import("src/game/objects/ObjectTypes.js").Point3) => number} options.wallOpeningWindExposure
+   * @param {(direction: import("../ObjectTypes.js").Point3, elapsed: number) => number} [options.windExposure] Fraction of ambient wind reaching this cloth.
    * @param {number} options.roofCollider
    * @param {number} options.bendingStiffness
    * @param {boolean} options.selfCollision
@@ -168,6 +169,7 @@ export class AmmoClothPhysics {
     seed = 0,
     wallPlane = null,
     wallOpeningWindExposure = null,
+    windExposure = null,
     roofCollider = null,
     bendingStiffness = 0.86,
     selfCollision = false,
@@ -234,6 +236,7 @@ export class AmmoClothPhysics {
       vertexUv,
       wallPlane,
       wallOpeningWindExposure,
+      windExposure,
       worldWind: this.#pc && root ? new this.#pc.Vec3() : null,
     };
     this.#cloths.push(cloth);
@@ -420,6 +423,11 @@ export class AmmoClothPhysics {
    * @param {{direction: import("src/game/objects/ObjectTypes.js").Point3, speed: number}} wind
    */
   #applyWind(cloth, wind) {
+    const environmentExposure = Math.max(0, Math.min(1, cloth.windExposure?.(wind.direction, this.#elapsed) ?? 1));
+    // Sheltered cloth must dissipate prior gust/gesture energy rather than keep
+    // ringing with the outdoor flutter damping after the airflow is blocked.
+    cloth.body.get_m_cfg().set_kDP(0.08 + (1 - environmentExposure) * 0.42);
+    if (environmentExposure === 0) { return; }
     let windX = wind.direction.x;
     let windZ = wind.direction.z;
     if (cloth.root && cloth.inverseWorldTransform) {
@@ -446,7 +454,7 @@ export class AmmoClothPhysics {
 
     // btSoftBody.addForce applies this force to every dynamic node, so this
     // must be a per-vertex force rather than the cloth's total force.
-    const forceScale = VERTEX_MASS * wind.speed * WIND_ACCELERATION;
+    const forceScale = VERTEX_MASS * wind.speed * WIND_ACCELERATION * environmentExposure;
     const force = [windX * forceScale, 0, windZ * forceScale];
     const turbulenceFrequency =
       TURBULENCE_BASE_FREQUENCY +
@@ -465,7 +473,7 @@ export class AmmoClothPhysics {
     const flutterForce =
       (primaryFlutter * 0.72 + secondaryFlutter * 0.28) *
       VERTEX_MASS *
-      turbulenceAcceleration;
+      turbulenceAcceleration * environmentExposure;
     force[cloth.normalAxis] += flutterForce * exposure;
     if (
       cloth.wallPlane !== null &&

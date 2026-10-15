@@ -7,7 +7,7 @@ it("furnishes the arrival room while preserving circulation and window approache
   for (const seed of [20, 21]) {
     const plan = await CastleBasePlanGenerator.generate({ seed });
     const items = plan.furniture.filter(item => item.role === "vestibuleProp");
-    for (const object of ["VestibuleBench", "VestibuleCloakRail", "VestibuleBanner", "Rug", "VestibuleLantern",
+    for (const object of ["VestibuleBench", "VestibuleCloakRail", "Banner", "Rug", "VestibuleLantern",
       "Painting", "StandingArmor", "WoodenStorageChest", "TravelKit", "Boots", "VestibuleStickStand"]) {
       assert.ok(items.some(item => item.object === object), `${object} seed ${seed}`);
     }

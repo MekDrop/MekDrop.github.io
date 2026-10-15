@@ -1,20 +1,21 @@
+import { ClothWindExposure } from "../shared/ClothWindExposure.js";
+import vestibuleModelUrl from "../../models/castle/props/vestibule-banner.glb?url";
 import clothModelUrl from "../../models/castle/residential/banner-cloth.glb?url";
 import authoredModelUrl from "../../models/castle/residential/metal-pole.glb?url";
 import { AmmoClothPhysics } from "../shared/AmmoClothPhysics.js";
 
 const BANNER_TEXTURE_WIDTH = 64;
 const BANNER_TEXTURE_HEIGHT = 96;
-const BANNER_POINT_START = 0.8;
 
 /**
- * @typedef {{root: import("playcanvas").Entity, width: number, height: number, cloth: ReturnType<AmmoClothPhysics["createCloth"]>, mesh: import("playcanvas").Mesh, positions: Float32Array, vertexUv: Float32Array, indices: Uint16Array}} CastleBannerInstance
+ * @typedef {{root: import("playcanvas").Entity, width: number, height: number, cloth: ReturnType<AmmoClothPhysics["createCloth"]>, mesh: import("playcanvas").Mesh, positions: Float32Array, vertexUv: Float32Array, indices: Uint16Array}} BannerClothInstance
  */
 
-export class CastleBanner {
+export class BannerCloth {
   /**
    * @returns {string[]}
    */
-  static get modelUrls() { return [authoredModelUrl, clothModelUrl]; }
+  static get modelUrls() { return [authoredModelUrl, clothModelUrl, vestibuleModelUrl]; }
   /**
    * @type {import("../../models/GameModelLibrary.js").GameModelLibrary}
    */
@@ -51,12 +52,12 @@ export class CastleBanner {
   #texture;
   /**
    *
-    * @type {Array<CastleBannerInstance>}
+    * @type {Array<BannerClothInstance>}
    */
   #banners = [];
   /**
    *
-    * @type {CastleBannerInstance|null}
+    * @type {BannerClothInstance|null}
    */
   #activeBanner = null;
   /**
@@ -101,24 +102,47 @@ export class CastleBanner {
 
   /**
    *
-   * @param {{x: number, y: number, z: number, yaw: number, width: number, height: number}} options
+   * @param {{x: number, y: number, z: number, yaw: number, width: number, height: number, variant?: string}} options
    * @param {number} options.x
    * @param {number} options.y
    * @param {number} options.z
    * @param {number} options.yaw
    * @param {number} options.width
+   * @param {string} [options.variant]
    * @param {number} options.height
    */
-  add({ x, y, z, yaw = 0, width = 1, height = 1.5 }) {
+  add({ x, y, z, yaw = 0, width, height, variant }) {
+    const vestibule = variant !== "cloth";
+    width ??= vestibule ? 0.8 : 1;
+    height ??= vestibule ? 0.95 : 1.5;
+    const authored = vestibule ? this.#modelLibrary.instantiate(vestibuleModelUrl) : null;
+    let fabricMaterial = this.#material;
+    if (authored) {
+      for (const render of authored.findComponents("render")) {
+        fabricMaterial = render.meshInstances.find(
+          /**
+           * @param {import("playcanvas").MeshInstance} instance
+           */
+          (instance) => instance.material.name === "Textured navy and gold woven cloth",
+        )?.material ?? fabricMaterial;
+        for (const instance of render.meshInstances) {
+          if (instance.material.name === "Textured navy and gold woven cloth") {
+            instance.visible = false;
+            instance.castShadow = false;
+            instance.pick = false;
+          }
+        }
+      }
+    }
     const root = new this.#pc.Entity("Hanging castle banner");
     root.setPosition(x, y, z);
     root.setEulerAngles(0, yaw, 0);
     this.#entity.addChild(root);
 
-    const geometry = this.#createMesh(width, height);
+    const geometry = this.#createMesh(width, height, vestibule);
     const meshInstance = new this.#pc.MeshInstance(
       geometry.mesh,
-      this.#material,
+      fabricMaterial,
     );
     meshInstance.castShadow = true;
     meshInstance.receiveShadow = true;
@@ -129,20 +153,25 @@ export class CastleBanner {
       castShadows: true,
       receiveShadows: true,
     });
+    if (vestibule) { cloth.setLocalPosition(0, -0.035, 0.04); }
     root.addChild(cloth);
 
-    const rail = this.#modelLibrary.instantiate(authoredModelUrl);
+    const rail = authored ?? this.#modelLibrary.instantiate(authoredModelUrl);
     rail.name = "Castle banner rail";
-    for (const instance of rail.findComponents("render").flatMap(/**
-     * @param {import("playcanvas").RenderComponent} render
-     */ (render) => render.meshInstances)) {
-      instance.material = this.#railMaterial;
-      instance.castShadow = true;
-      instance.receiveShadow = true;
+    if (vestibule) {
+      rail.setLocalScale(width / 0.8, height / 0.95, 1);
+    } else {
+      for (const instance of rail.findComponents("render").flatMap(/**
+       * @param {import("playcanvas").RenderComponent} render
+       */ (render) => render.meshInstances)) {
+        instance.material = this.#railMaterial;
+        instance.castShadow = true;
+        instance.receiveShadow = true;
+      }
+      rail.setLocalPosition(0, 0.035, 0.012);
+      rail.setLocalEulerAngles(0, 0, 90);
+      rail.setLocalScale(0.055, width + 0.18, 0.055);
     }
-    rail.setLocalPosition(0, 0.035, 0.012);
-    rail.setLocalEulerAngles(0, 0, 90);
-    rail.setLocalScale(0.055, width + 0.18, 0.055);
     root.addChild(rail);
 
     const seed = Math.abs(
@@ -163,6 +192,7 @@ export class CastleBanner {
       normalAxis: 2,
       seed,
       wallPlane: 0,
+      windExposure: new ClothWindExposure({ pc: this.#pc, app: this.#app, root, width, height }).sample,
     });
     this.#banners.push(banner);
     return true;
@@ -185,7 +215,7 @@ export class CastleBanner {
 
   /**
    *
-   * @param {{banner: CastleBannerInstance, point: import("playcanvas").Vec3}} hit
+   * @param {{banner: BannerClothInstance, point: import("playcanvas").Vec3}} hit
    */
   beginWindGesture(hit) {
     if (!hit?.banner) {
@@ -310,16 +340,35 @@ export class CastleBanner {
    *
    * @param {number} width
    * @param {number} height
+   * @param {boolean} [rectangular]
    */
-  #createMesh(width, height) {
-    const authored = this.#modelLibrary.instantiate(clothModelUrl);
-    const sourceMesh = authored.findComponents("render")[0].meshInstances[0].mesh;
+  #createMesh(width, height, rectangular = false) {
     const positions = [];
     const textureUvs = [];
     const indices = [];
-    sourceMesh.getPositions(positions);
-    sourceMesh.getUvs(0, textureUvs);
-    sourceMesh.getIndices(indices);
+    if (rectangular) {
+      // Preserve the complete rectangular embroidered border of indoor artwork.
+      const columns = 8, rows = 12;
+      for (let row = 0; row <= rows; row++) {
+        for (let column = 0; column <= columns; column++) {
+          const u = column / columns, v = row / rows;
+          positions.push(u - 0.5, -v, 0);
+          textureUvs.push(u, v);
+          if (row < rows && column < columns) {
+            const first = row * (columns + 1) + column;
+            indices.push(first, first + columns + 1, first + 1,
+              first + 1, first + columns + 1, first + columns + 2);
+          }
+        }
+      }
+    } else {
+      const authored = this.#modelLibrary.instantiate(clothModelUrl);
+      const sourceMesh = authored.findComponents("render")[0].meshInstances[0].mesh;
+      sourceMesh.getPositions(positions);
+      sourceMesh.getUvs(0, textureUvs);
+      sourceMesh.getIndices(indices);
+      authored.destroy();
+    }
     const vertexUv = [];
     const pinnedIndices = [];
     for (let index = 0; index < positions.length; index += 3) {
@@ -330,7 +379,6 @@ export class CastleBanner {
       vertexUv.push(u, v);
       if (v < 0.001) { pinnedIndices.push(index / 3); }
     }
-    authored.destroy();
     const animatedPositions = Float32Array.from(positions);
     const meshIndices = Uint16Array.from(indices);
     const mesh = new this.#pc.Mesh(this.#app.graphicsDevice);
@@ -404,7 +452,7 @@ export class CastleBanner {
       banner.mesh.setNormals(
         this.#pc.calculateNormals(banner.positions, banner.indices),
       );
-      banner.mesh.update(this.#pc.PRIMITIVE_TRIANGLES, false);
+      banner.mesh.update(this.#pc.PRIMITIVE_TRIANGLES);
     }
   }
 }

@@ -19,6 +19,58 @@ afterEach(() => {
 });
 
 describe("AmmoClothPhysics", () => {
+  it("settles a dense sheltered banner instead of perpetually oscillating", () => {
+    const physics = new AmmoClothPhysics();
+    try {
+      const vertices = [], indices = [], pinnedIndices = [];
+      for (let row = 0; row <= 12; row++) {
+        for (let column = 0; column <= 8; column++) {
+          vertices.push((column / 8 - 0.5) * 0.8, -row / 12 * 0.95, 0);
+          if (row === 0) { pinnedIndices.push(column); }
+          if (row < 12 && column < 8) {
+            const first = row * 9 + column;
+            indices.push(first, first + 9, first + 1, first + 1, first + 9, first + 10);
+          }
+        }
+      }
+      const positions = Float32Array.from(vertices);
+      const cloth = physics.createCloth({ positions, indices: Uint16Array.from(indices),
+        pinnedIndices, normalAxis: 2, wallPlane: 0, windExposure: () => 0, seed: 0.3 });
+      for (let frame = 0; frame < 360; frame++) { physics.step(1 / 60); }
+      physics.writePositions(cloth, positions);
+      const settled = positions.slice();
+      for (let frame = 0; frame < 120; frame++) { physics.step(1 / 60); }
+      physics.writePositions(cloth, positions);
+      assert.ok(positions.every((value, index) => Math.abs(value - settled[index]) < 0.000001));
+    } finally {
+      physics.destroy();
+    }
+  });
+
+  it("shelters indoor cloth from wind and turbulence while retaining pointer impulses", () => {
+    setAmbientWindSpeed(10);
+    const physics = new AmmoClothPhysics();
+    try {
+      const positions = new Float32Array([-0.5, 0, 0, 0.5, 0, 0, -0.5, -1, 0, 0.5, -1, 0]);
+      const cloth = physics.createCloth({ positions, indices: new Uint16Array([0, 2, 1, 1, 2, 3]),
+        pinnedIndices: [0, 1], windExposure: () => 0, seed: 0.3,
+        vertexUv: new Float32Array([-1, 0, 1, 0, -1, 1, 1, 1]) });
+      for (let frame = 0; frame < 180; frame++) { physics.step(1 / 60); }
+      physics.writePositions(cloth, positions);
+      for (let index = 2; index < positions.length; index += 3) {
+        assert.ok(Math.abs(positions[index]) < 0.00001, "ambient wind cannot push sheltered cloth out of plane");
+      }
+      physics.beginPointer(cloth, { x: positions[6], y: positions[7], z: 0 });
+      physics.applyPointer(cloth, { x: positions[6] + 0.2, y: positions[7] + 0.2, z: 0 }, 1 / 60);
+      physics.step(1 / 60);
+      physics.writePositions(cloth, positions);
+      assert.ok(Math.abs(positions[8]) + Math.abs(positions[11]) > 0.00001);
+    } finally {
+      physics.destroy();
+      resetAmbientWindSpeed();
+    }
+  });
+
   it("fits thirty active castle cloth collections plus unused flags inside Ammo's fixed heap", () => {
     const unused = Array.from({ length: 24 }, () => new AmmoClothPhysics());
     for (const physics of unused) physics.step(1 / 60);

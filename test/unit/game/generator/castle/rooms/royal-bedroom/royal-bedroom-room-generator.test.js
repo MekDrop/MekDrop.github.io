@@ -140,7 +140,7 @@ test("the saved ladder castle contains the new side-tower bedroom instead of the
   assert.equal(plan.basePlanId, "castle-compact-service-wing");
   assert.equal(plan.furniture.find(item => item.roomId === "royal-chamber" && item.role === "royalBed").height, 2.03);
   assert.ok(plan.furniture.some(item => item.roomId === "royal-chamber" && item.object === "Rug" && item.model === "royal-bedroom-rug.glb" && item.floorCovering));
-  assert.ok(!plan.furniture.some(item => item.roomId === "royal-chamber" && item.object === "VestibuleBanner"));
+  assert.ok(!plan.furniture.some(item => item.roomId === "royal-chamber" && item.object === "Banner"));
   const painting = plan.furniture.find(item => item.roomId === "royal-chamber" && item.object === "Painting" && item.variant === "royal-bedroom");
   const bed = plan.furniture.find(item => item.roomId === "royal-chamber" && item.role === "royalBed");
   assert.ok(painting?.wallAttachment);

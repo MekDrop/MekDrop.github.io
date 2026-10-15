@@ -2,7 +2,6 @@ import { createCastleMasonryVoxels } from "./CastleMasonryPhysics.js";
 import { addGeneratedVoxelPhysics } from "../shared/GeneratedVoxelPhysics.js";
 import stoneBlockUrl from "../../models/castle/residential/masonry-block.glb?url";
 import { DynamicRenderBatch } from "../../rendering/DynamicRenderBatch.js";
-import { CastleBanner } from "./CastleBanner.js";
 import { CastleMasonryMaterial } from "./CastleMasonryMaterial.js";
 import { CastleAudienceRoom } from "./rooms/audience/CastleAudienceRoom.js";
 import { CastleDoor } from "./CastleDoor.js";
@@ -33,10 +32,6 @@ import {
  * @property {(atThrone: boolean) => void} onRoyalAtThroneChange
  */
 
-/**
- * @typedef {Parameters<CastleBanner["beginWindGesture"]>[0]} CastleWindHit
- */
-
 export class CastleEntityBuilder {
   /**
    *
@@ -47,7 +42,6 @@ export class CastleEntityBuilder {
       stoneBlockUrl,
       CastleRoof.modelUrl,
       ...CastleFire.modelUrls,
-      ...CastleBanner.modelUrls,
       ...CastleDoor.modelUrls,
       CastleDoorArch.modelUrl,
       ...CastleEntranceDetails.modelUrls,
@@ -137,16 +131,6 @@ export class CastleEntityBuilder {
     * @type {CastleFire|null}
    */
   #fire = null;
-  /**
-   *
-    * @type {CastleBanner|null}
-   */
-  #banners = null;
-  /**
-   *
-    * @type {CastleBanner|null}
-   */
-  #activeWindTarget = null;
   /**
    *
     * @type {CastleRoof|null}
@@ -544,88 +528,11 @@ export class CastleEntityBuilder {
   }
 
   /**
-   *
-   * @param {number} rayStart
-   * @param {number} rayEnd
-   */
-  getBannerHit(rayStart, rayEnd) {
-    return this.#banners?.getBannerHit(rayStart, rayEnd) ?? null;
-  }
-
-  /**
-   *
-   * @param {number} rayStart
-   * @param {number} rayEnd
+   * @param {import("playcanvas").Vec3} rayStart
+   * @param {import("playcanvas").Vec3} rayEnd
    */
   getPointerHit(rayStart, rayEnd) {
-    const bannerHit = this.getBannerHit(rayStart, rayEnd);
-    const pointerBannerHit = bannerHit
-      ? { ...bannerHit, pointerTarget: this }
-      : null;
-    const doorHit = this.#getDoorHit(rayStart, rayEnd);
-    if (!pointerBannerHit) {
-      return doorHit;
-    }
-    if (!doorHit) {
-      return pointerBannerHit;
-    }
-    return doorHit.distance < pointerBannerHit.distance
-      ? doorHit
-      : pointerBannerHit;
-  }
-
-  /**
-   *
-   * @param {CastleWindHit} hit
-   */
-  beginWindGesture(hit) {
-    this.#activeWindTarget = this.#banners;
-    this.#activeWindTarget?.beginWindGesture(hit);
-  }
-
-  /**
-   *
-   * @param {{hit: CastleWindHit}} options
-   * @param {CastleWindHit} options.hit
-   */
-  handlePointerDown({ hit }) {
-    this.beginWindGesture(hit);
-    return { capturePointer: true };
-  }
-
-  /**
-   *
-   * @param {{ray: number, deltaTime: number}} options
-   * @param {number} options.ray
-   * @param {number} options.deltaTime
-   */
-  handlePointerMove({ ray, deltaTime }) {
-    this.applyMouseWind(ray.start, ray.end, deltaTime);
-    return true;
-  }
-
-  handlePointerUp() {
-    this.endWindGesture();
-    return true;
-  }
-
-  handlePointerCancel() {
-    this.endWindGesture();
-  }
-
-  /**
-   *
-   * @param {number} rayStart
-   * @param {number} rayEnd
-   * @param {number} deltaTime
-   */
-  applyMouseWind(rayStart, rayEnd, deltaTime) {
-    this.#activeWindTarget?.applyMouseWind(rayStart, rayEnd, deltaTime);
-  }
-
-  endWindGesture() {
-    this.#activeWindTarget?.endWindGesture();
-    this.#activeWindTarget = null;
+    return this.#getDoorHit(rayStart, rayEnd);
   }
 
   onSceneReady() {
@@ -641,7 +548,6 @@ export class CastleEntityBuilder {
     this.#renderBatch = null;
     this.#updateHandle?.off();
     this.#updateHandle = null;
-    this.endWindGesture();
     for (const door of this.#animatedDoors) door.destroy();
     this.#animatedDoors = [];
     for (const arch of this.#doorArches) arch.destroy();
@@ -657,8 +563,6 @@ export class CastleEntityBuilder {
     this.#servant = null;
     this.#fire?.destroy();
     this.#fire = null;
-    this.#banners?.destroy();
-    this.#banners = null;
     this.#roofs?.destroy();
     this.#roofs = null;
     this.#stairs?.destroy();
@@ -821,8 +725,6 @@ export class CastleEntityBuilder {
       particleTexture: this.#fireParticleTexture,
     });
     this.#entity.addChild(this.#fire.entity);
-    this.#banners = new CastleBanner({ pc: this.#pc, app: this.#app, modelLibrary: this.#modelLibrary });
-    this.#entity.addChild(this.#banners.entity);
     this.#roofs = new CastleRoof({ pc: this.#pc, app: this.#app, modelLibrary: this.#modelLibrary, masonryMaterial: this.#materials.get("castleStoneMid") });
     this.#entity.addChild(this.#roofs.entity);
   }
@@ -987,9 +889,6 @@ export class CastleEntityBuilder {
     }
     for (const flame of geometry.decorations.flames) {
       this.#fire.add(flame);
-    }
-    for (const banner of geometry.decorations.banners) {
-      this.#banners.add(banner);
     }
     for (const roof of geometry.decorations.roofs) {
       this.#roofs.add(roof);
