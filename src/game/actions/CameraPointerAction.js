@@ -59,7 +59,7 @@ export class CameraPointerAction {
     }
     const request = this.#element.requestPointerLock?.();
     if (request?.catch) {
-      void request.catch(() => {});
+      void request.catch(CameraPointerAction.#catch);
     }
     return true;
   }
@@ -106,4 +106,6 @@ export class CameraPointerAction {
       degreesPerPixel: this.#degreesPerPixel,
     });
   }
+
+  static #catch() {}
 }

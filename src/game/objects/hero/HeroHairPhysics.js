@@ -70,67 +70,67 @@ function profileFor(name) {
 export class HeroHairPhysics {
   /**
    *
-    * @type {typeof import("playcanvas")}
+   * @type {typeof import("playcanvas")}
    */
   #pc;
   /**
    *
-    * @type {import("playcanvas").Entity}
+   * @type {import("playcanvas").Entity}
    */
   #headEntity;
   /**
    *
-    * @type {string}
+   * @type {string}
    */
   #modelScale;
   /**
    *
-    * @type {Array<{entity: import("playcanvas").Entity, body: import("playcanvas").RigidBodyComponent}>}
+   * @type {Array<{entity: import("playcanvas").Entity, body: import("playcanvas").RigidBodyComponent}>}
    */
   #parts;
   /**
    *
-    * @type {import("playcanvas").Entity}
+   * @type {import("playcanvas").Entity}
    */
   #entity;
   /**
    *
-    * @type {typeof import("playcanvas")}
+   * @type {typeof import("playcanvas")}
    */
   #anchor;
   /**
    *
-    * @type {typeof import("playcanvas")}
+   * @type {typeof import("playcanvas")}
    */
   #driver;
   /**
    *
-    * @type {typeof import("playcanvas")}
+   * @type {typeof import("playcanvas")}
    */
   #joint;
   /**
    *
-    * @type {{x: number, y: number, z: number}}
+   * @type {{x: number, y: number, z: number}}
    */
   #anchorPosition;
   /**
    *
-    * @type {{x: number, y: number, z: number}}
+   * @type {{x: number, y: number, z: number}}
    */
   #previousAnchorPosition;
   /**
    *
-    * @type {typeof import("playcanvas")}
+   * @type {typeof import("playcanvas")}
    */
   #anchorHeight;
   /**
    *
-    * @type {typeof import("playcanvas")}
+   * @type {typeof import("playcanvas")}
    */
   #gravityVector = null;
   /**
    *
-    * @type {number}
+   * @type {number}
    */
   #compression = 0;
 
@@ -148,18 +148,7 @@ export class HeroHairPhysics {
     this.#headEntity = headEntity;
     this.#modelScale = modelScale;
     this.#anchorHeight = DRIVER_LOCAL_HEIGHT * modelScale;
-    this.#parts = hairEntities.filter(Boolean).map(/**
-     *
-     * @param {import("playcanvas").Entity} entity
-     */
-      (entity) => ({
-        entity,
-        position: copyVector(entity.getLocalPosition()),
-        rotation: copyVector(entity.getLocalEulerAngles()),
-        scale: copyVector(entity.getLocalScale()),
-        side: Math.sign(entity.getLocalPosition().x),
-        profile: profileFor(entity.name),
-      }));
+    this.#parts = hairEntities.filter(Boolean).map(HeroHairPhysics.#mapEntity);
     this.#anchorPosition = new pc.Vec3();
     this.#previousAnchorPosition = new pc.Vec3();
 
@@ -217,7 +206,7 @@ export class HeroHairPhysics {
 
   /**
    *
-    * @returns {{entity: import("playcanvas").Entity, body: import("playcanvas").RigidBodyComponent}}
+   * @returns {{entity: import("playcanvas").Entity, body: import("playcanvas").RigidBodyComponent}}
    */
   get state() {
     return {
@@ -327,5 +316,20 @@ export class HeroHairPhysics {
         scale.z * (1 + response * profile.widthSpread),
       );
     }
+  }
+
+  /**
+   *
+   * @param {import("playcanvas").Entity} entity
+   */
+  static #mapEntity(entity) {
+    return {
+      entity,
+      position: copyVector(entity.getLocalPosition()),
+      rotation: copyVector(entity.getLocalEulerAngles()),
+      scale: copyVector(entity.getLocalScale()),
+      side: Math.sign(entity.getLocalPosition().x),
+      profile: profileFor(entity.name),
+    };
   }
 }

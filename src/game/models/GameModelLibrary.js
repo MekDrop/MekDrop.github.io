@@ -50,13 +50,7 @@ export class GameModelLibrary {
    * @param {string[]} urls
    */
   async load(urls) {
-    await Promise.all(
-      [...new Set(urls)].map(/**
-       *
-       * @param {string} url
-       */
-        (url) => this.#loadModel(url)),
-    );
+    await Promise.all([...new Set(urls)].map(this.#mapUrl.bind(this)));
   }
 
   /**
@@ -184,15 +178,7 @@ export class GameModelLibrary {
     if (!asset?.resource) throw new GameModelUnavailableError({ url });
 
     const tracks = new Map(
-      (asset.resource.animations ?? []).map(/**
-       *
-       * @param {{resource: pc.Asset|pc.Texture|pc.Material}} options
-       * @param {pc.Asset|pc.Texture|pc.Material} options.resource
-       */
-        ({ resource }) => [
-          resource.name,
-          resource,
-        ]),
+      (asset.resource.animations ?? []).map(GameModelLibrary.#map),
     );
     for (const animation of requiredNames) {
       if (!tracks.has(animation)) {
@@ -416,5 +402,22 @@ export class GameModelLibrary {
       mesh,
       material,
     };
+  }
+
+  /**
+   *
+   * @param {string} url
+   */
+  #mapUrl(url) {
+    return this.#loadModel(url);
+  }
+
+  /**
+   *
+   * @param {{resource: pc.Asset|pc.Texture|pc.Material}} options
+   * @param {pc.Asset|pc.Texture|pc.Material} options.resource
+   */
+  static #map({ resource }) {
+    return [resource.name, resource];
   }
 }

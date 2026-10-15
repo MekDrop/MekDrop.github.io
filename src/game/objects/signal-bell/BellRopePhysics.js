@@ -179,20 +179,7 @@ export class BellRopePhysics {
    * @returns {{position: Vec3, rotation: Quat, length: number}[]}
    */
   get transforms() {
-    return this.#links.map(/**
-     * @param {{body: import("playcanvas").PhysicsBody, length: number}} link
-     */
-      ({ body, length }) => {
-        const position = new Vec3();
-        const rotation = new Quat();
-        body.getTransform(position, rotation);
-
-        return {
-          position,
-          rotation,
-          length,
-        };
-      });
+    return this.#links.map(BellRopePhysics.#map);
   }
 
   destroy() {
@@ -207,5 +194,20 @@ export class BellRopePhysics {
     this.#bodies = [];
     this.#shapes = [];
     this.#links = [];
+  }
+
+  /**
+   * @param {{body: import("playcanvas").PhysicsBody, length: number}} link
+   */
+  static #map({ body, length }) {
+    const position = new Vec3();
+    const rotation = new Quat();
+    body.getTransform(position, rotation);
+
+    return {
+      position,
+      rotation,
+      length,
+    };
   }
 }

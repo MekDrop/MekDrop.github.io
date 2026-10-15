@@ -40,28 +40,7 @@ export class MapGrid {
   }
 
   static createTileMetadata() {
-    return Array.from({ length: MAP_ROWS }, /**
-     *
-     * @param {undefined} _
-     * @param {number} row
-     */
-      (_, row) =>
-        Array.from({ length: MAP_COLS }, /**
-       *
-       * @param {undefined} _
-       * @param {number} col
-       */
-          (_, col) => ({
-            x: col,
-            y: row,
-            baseHeight: WATER_HEIGHT,
-            surfaceType: "WATER",
-            shape: TILE_SHAPE.FLAT,
-            direction: DIRECTIONS.NONE,
-            renderMode: "SOLID",
-            bridgeGroundHeight: null,
-          })),
-    );
+    return Array.from({ length: MAP_ROWS }, MapGrid.#from);
   }
 
   /**
@@ -181,5 +160,28 @@ export class MapGrid {
    */
   static clamp(value, min, max) {
     return Math.max(min, Math.min(max, value));
+  }
+
+  /**
+   *
+   * @param {undefined} _
+   * @param {number} row
+   */
+  static #from(_, row) {
+    return Array.from({ length: MAP_COLS }, /**
+       *
+       * @param {undefined} _
+       * @param {number} col
+       */
+      (_, col) => ({
+        x: col,
+        y: row,
+        baseHeight: WATER_HEIGHT,
+        surfaceType: "WATER",
+        shape: TILE_SHAPE.FLAT,
+        direction: DIRECTIONS.NONE,
+        renderMode: "SOLID",
+        bridgeGroundHeight: null,
+      }));
   }
 }

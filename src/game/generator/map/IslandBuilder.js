@@ -64,9 +64,7 @@ export class IslandBuilder {
    * @param {MapLayout} layout
    */
   buildIslandMask(layout) {
-    const mask = Array.from({ length: MAP_ROWS }, () =>
-      new Array(MAP_COLS).fill(false),
-    );
+    const mask = Array.from({ length: MAP_ROWS }, IslandBuilder.#from);
 
     for (const ellipse of layout.islandEllipses) {
       this.#addEllipse(
@@ -87,11 +85,7 @@ export class IslandBuilder {
         Math.max(
           entry.gateCol,
           entry.mergeCol + 1,
-          ...curveColumns.map(/**
-           *
-           * @param {number} col
-           */
-            (col) => col + 1),
+          ...curveColumns.map(IslandBuilder.#mapCol),
         ) + 1;
       this.#fillMaskRect(
         mask,
@@ -107,16 +101,8 @@ export class IslandBuilder {
           ...entry.curvePlan.bands,
           [layout.pathRows[0], layout.pathRows[1]],
         ];
-        const minTop = Math.min(...curveBands.map(/**
-         *
-         * @param {number[]} rows
-         */
-          (rows) => rows[0]));
-        const maxBottom = Math.max(...curveBands.map(/**
-         *
-         * @param {number[]} rows
-         */
-          (rows) => rows[1]));
+        const minTop = Math.min(...curveBands.map(IslandBuilder.#mapRows));
+        const maxBottom = Math.max(...curveBands.map(IslandBuilder.#mapRows2));
         this.#fillMaskRect(
           mask,
           corridorLeft,
@@ -242,11 +228,7 @@ export class IslandBuilder {
           grid[row + 1][col],
           grid[row][col - 1],
           grid[row][col + 1],
-        ].every(/**
-         *
-         * @param {TileMetadata} tile
-         */
-          (tile) => tile !== TileType.WATER);
+        ].every(IslandBuilder.#everyTile);
         if (enclosed) {
           holes.push({
             col,
@@ -282,5 +264,41 @@ export class IslandBuilder {
         });
       }
     }
+  }
+
+  static #from() {
+    return new Array(MAP_COLS).fill(false);
+  }
+
+  /**
+   *
+   * @param {number} col
+   */
+  static #mapCol(col) {
+    return col + 1;
+  }
+
+  /**
+   *
+   * @param {number[]} rows
+   */
+  static #mapRows(rows) {
+    return rows[0];
+  }
+
+  /**
+   *
+   * @param {number[]} rows
+   */
+  static #mapRows2(rows) {
+    return rows[1];
+  }
+
+  /**
+   *
+   * @param {TileMetadata} tile
+   */
+  static #everyTile(tile) {
+    return tile !== TileType.WATER;
   }
 }

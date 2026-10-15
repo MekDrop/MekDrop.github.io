@@ -59,11 +59,7 @@ export class TerrainValidator {
           grid[row + 1][col],
           grid[row][col - 1],
           grid[row][col + 1],
-        ].every(/**
-         *
-         * @param {TileMetadata} tile
-         */
-          (tile) => tile !== TileType.WATER);
+        ].every(TerrainValidator.#everyTile);
         if (enclosed) {
           throw new IsolatedTerrainHoleError({
             col,
@@ -131,46 +127,61 @@ export class TerrainValidator {
      * @param {{centerCol: number, centerRow: number, radiusCol: number, radiusRow: number}} ellipse
      * @param {number} index
      */
-    const matchesDefaultEllipse = (ellipse, index) => {
-      const base = [
-        {
-          centerCol: 23,
-          centerRow: 16,
-          radiusX: 18,
-          radiusY: 12,
-        },
-        {
-          centerCol: 15,
-          centerRow: 15,
-          radiusX: 12,
-          radiusY: 10,
-        },
-        {
-          centerCol: 14,
-          centerRow: 27,
-          radiusX: 10,
-          radiusY: 7,
-        },
-        {
-          centerCol: 29,
-          centerRow: 13,
-          radiusX: 10,
-          radiusY: 8,
-        },
-      ][index];
-
-      return (
-        base &&
-          ellipse.centerCol === base.centerCol &&
-          ellipse.centerRow === base.centerRow &&
-          ellipse.radiusX === base.radiusX &&
-          ellipse.radiusY === base.radiusY
-      );
-    };
+    const matchesDefaultEllipse = TerrainValidator.#matchesDefaultEllipse;
     if (
       layout.islandEllipses.every(matchesDefaultEllipse)
     ) {
       throw new InsufficientLayoutVarietyError();
     }
+  }
+
+  /**
+   *
+   * @param {TileMetadata} tile
+   */
+  static #everyTile(tile) {
+    return tile !== TileType.WATER;
+  }
+
+  /**
+   *
+   * @param {{centerCol: number, centerRow: number, radiusCol: number, radiusRow: number}} ellipse
+   * @param {number} index
+   */
+  static #matchesDefaultEllipse(ellipse, index) {
+    const base = [
+      {
+        centerCol: 23,
+        centerRow: 16,
+        radiusX: 18,
+        radiusY: 12,
+      },
+      {
+        centerCol: 15,
+        centerRow: 15,
+        radiusX: 12,
+        radiusY: 10,
+      },
+      {
+        centerCol: 14,
+        centerRow: 27,
+        radiusX: 10,
+        radiusY: 7,
+      },
+      {
+        centerCol: 29,
+        centerRow: 13,
+        radiusX: 10,
+        radiusY: 8,
+      },
+    ][index];
+
+    return (
+      base &&
+          ellipse.centerCol === base.centerCol &&
+          ellipse.centerRow === base.centerRow &&
+          ellipse.radiusX === base.radiusX &&
+          ellipse.radiusY === base.radiusY
+    );
   }
 }

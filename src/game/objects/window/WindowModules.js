@@ -7,17 +7,11 @@ export class WindowModules {
    * @param {{width:number,height:number,role:string}} window
    */
   static fit(visual, window) {
-    const panes = visual.find(/**
-     *
-     * @param {import("playcanvas").GraphNode} node
-     */
-      (node) => /^Amber glass pane /.test(node.name));
-    if (!panes.length) { return; }
-    const sourceColumns = new Set(panes.map(/**
-     *
-     * @param {import("playcanvas").GraphNode} node
-     */
-      (node) => node.name.split(" ")[3])).size;
+    const panes = visual.find(WindowModules.#findNode);
+    if (!panes.length) {
+      return;
+    }
+    const sourceColumns = new Set(panes.map(WindowModules.#mapNode)).size;
     const sourceRows = panes.length / sourceColumns;
     const columns = window.role === "slit" ? sourceColumns : Math.max(sourceColumns, Math.ceil(window.width / 0.5));
     const rows = Math.max(sourceRows, Math.ceil(window.height / 0.5));
@@ -84,5 +78,21 @@ export class WindowModules {
       template.parent.addChild(copy);
     }
     for (const node of nodes) { node.destroy(); }
+  }
+
+  /**
+   *
+   * @param {import("playcanvas").GraphNode} node
+   */
+  static #findNode(node) {
+    return /^Amber glass pane /.test(node.name);
+  }
+
+  /**
+   *
+   * @param {import("playcanvas").GraphNode} node
+   */
+  static #mapNode(node) {
+    return node.name.split(" ")[3];
   }
 }

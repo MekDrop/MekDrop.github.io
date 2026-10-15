@@ -55,9 +55,11 @@ test("type selects the same asset for the visual and authored collision", () => 
         ...pc,
         Entity: LanternEntity,
       },
-      modelLibrary: { instantiate: url => { urls.push(url);
+      modelLibrary: {
+        instantiate: url => { urls.push(url);
 
- return new LanternEntity("model"); } },
+          return new LanternEntity("model"); },
+      },
       definition: {
         id: type,
         object: "Lantern",

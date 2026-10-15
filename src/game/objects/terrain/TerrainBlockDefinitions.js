@@ -26,7 +26,7 @@ export class TerrainBlockDefinitions {
      * @param {number} row
      * @param {number} level
      */
-    const material = (kind, col, row, level) => `${kind}:${col}:${row}:${level}`;
+    const material = TerrainBlockDefinitions.#material;
     /**
      * @param {string} method
      * @param {Array} args
@@ -121,9 +121,29 @@ export class TerrainBlockDefinitions {
        * @param {number} row
        * @param {number} level
        */
-      sideVariant: (name, col, row, level) => `${name}-${tileVariantIndex(col, row, level, 37, 6)}`,
+      sideVariant: TerrainBlockDefinitions.#sideVariant,
     }).build(new SkyIslandScenery(mapData).createUndersideVoxels());
     mapData.objects = [...objects, ...(mapData.objects ?? [])];
     mapData.renderCommands = commands;
+  }
+
+  /**
+   * @param {string} kind
+   * @param {number} col
+   * @param {number} row
+   * @param {number} level
+   */
+  static #material(kind, col, row, level) {
+    return `${kind}:${col}:${row}:${level}`;
+  }
+
+  /**
+   * @param {string} name
+   * @param {number} col
+   * @param {number} row
+   * @param {number} level
+   */
+  static #sideVariant(name, col, row, level) {
+    return `${name}-${tileVariantIndex(col, row, level, 37, 6)}`;
   }
 }

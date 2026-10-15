@@ -19,21 +19,8 @@ export class SpareTimberBundle extends AbstractCastleProp {
    */
   prepareModel(model, collision) {
     const { width = 0.08, depth = 0.127, height = 0.72, timberSeed } = this.definition;
-    const originals = model.find(
-      /**
-       * @param {import("playcanvas").Entity} entity
-       */
-      entity => entity.name.startsWith("Stored spare timber board"),
-    );
-    const templates = originals.map(
-      /**
-       * @param {import("playcanvas").Entity} entity
-       */
-      entity => ({
-        entity: entity.clone(),
-        height: entity.getLocalPosition().y * 2,
-      }),
-    );
+    const originals = model.find(SpareTimberBundle.#findEntity);
+    const templates = originals.map(SpareTimberBundle.#mapEntity);
     for (const original of originals) { original.destroy(); }
     const columns = Math.max(1, Math.floor(width / 0.08));
     const rows = Math.max(1, Math.ceil(depth / 0.046));
@@ -72,5 +59,22 @@ export class SpareTimberBundle extends AbstractCastleProp {
       }
     }
     for (const template of templates) { template.entity.destroy(); }
+  }
+
+  /**
+   * @param {import("playcanvas").Entity} entity
+   */
+  static #findEntity(entity) {
+    return entity.name.startsWith("Stored spare timber board");
+  }
+
+  /**
+   * @param {import("playcanvas").Entity} entity
+   */
+  static #mapEntity(entity) {
+    return {
+      entity: entity.clone(),
+      height: entity.getLocalPosition().y * 2,
+    };
   }
 }

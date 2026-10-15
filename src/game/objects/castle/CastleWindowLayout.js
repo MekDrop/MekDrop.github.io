@@ -45,20 +45,9 @@ export class CastleWindowLayout {
 
       return;
     }
-    this.#masonry = plan.geometry.boxes.filter(
-      /**
-       * @param {MasonryBox} box
-       */
-      (box) => box.material.startsWith("castleStone") || box.material === "castleArchStone",
-    ).map(
-      /**
-       * @param {MasonryBox} box
-       */
-      (box) => ({
-        ...this.#localBounds(box),
-        box,
-      }),
-    );
+    this.#masonry = plan.geometry.boxes
+      .filter(CastleWindowLayout.#filterBox)
+      .map(this.#mapBox.bind(this));
     for (const block of this.#masonry) {
       for (const axis of ["X", "Z"]) {
         const along = axis === "X" ? "Z" : "X";
@@ -449,19 +438,7 @@ export class CastleWindowLayout {
   cutBoxes(boxes, clearance = 0) {
     // Apertures use world axes. Normalize quarter-turn masonry before splitting;
     // retaining its old yaw would rotate the cut fragments a second time.
-    let result = boxes.map(/**
-     * @param {MasonryBox} box
-     */
-      (box) => {
-        const angle = box.yaw * Math.PI / 180;
-
-        return {
-          ...box,
-          yaw: 0,
-          sx: Math.abs(Math.cos(angle)) * box.sx + Math.abs(Math.sin(angle)) * box.sz,
-          sz: Math.abs(Math.sin(angle)) * box.sx + Math.abs(Math.cos(angle)) * box.sz,
-        };
-      });
+    let result = boxes.map(CastleWindowLayout.#mapBox2);
     for (const window of this.#windows) {
       // The insert's jambs and lintel sit exactly on the aperture boundary.
       // Recess the rendered wall faces beneath that trim instead of drawing
@@ -510,5 +487,38 @@ export class CastleWindowLayout {
     }
 
     return result;
+  }
+
+  /**
+   * @param {MasonryBox} box
+   */
+  static #filterBox(box) {
+    return (
+      box.material.startsWith("castleStone") || box.material === "castleArchStone"
+    );
+  }
+
+  /**
+   * @param {MasonryBox} box
+   */
+  #mapBox(box) {
+    return {
+      ...this.#localBounds(box),
+      box,
+    };
+  }
+
+  /**
+   * @param {MasonryBox} box
+   */
+  static #mapBox2(box) {
+    const angle = box.yaw * Math.PI / 180;
+
+    return {
+      ...box,
+      yaw: 0,
+      sx: Math.abs(Math.cos(angle)) * box.sx + Math.abs(Math.sin(angle)) * box.sz,
+      sz: Math.abs(Math.sin(angle)) * box.sx + Math.abs(Math.cos(angle)) * box.sz,
+    };
   }
 }

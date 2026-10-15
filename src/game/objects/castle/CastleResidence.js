@@ -495,9 +495,9 @@ export class CastleResidence {
    */
   #furnishRooms(pc, models, buildPlan) {
     const { work, bedroom } = this.#layout.rooms;
-    const desk = this.#layout.reservations.find(/**
-     * @param {{role: string}} reservation
-     */ (reservation) => reservation.role === "workDesk");
+    const desk = this.#layout.reservations.find(
+      CastleResidence.#findReservation,
+    );
     const deskSide = (desk.minX + desk.maxX) / 2 > (work.minX + work.maxX) / 2 ? 1 : -1;
     /**
      * @param {string} url
@@ -620,11 +620,7 @@ export class CastleResidence {
     }
     const residential = buildPlan.metadata.runtime.residential;
     if (residential?.version === 2) {
-      const keep = residential.placedRooms.find(/**
-       *
-       * @param {import("../../generator/castle/rooms/AbstractCastleRoomGenerator.js").PlannedCastleRoom} room
-       */
-        (room) => room.stairHost);
+      const keep = residential.placedRooms.find(CastleResidence.#findRoom);
       if (keep) {
         const left = (keep.minX + keep.maxX) / 2 < 0;
         const crest = models.instantiate(crestUrl);
@@ -664,9 +660,9 @@ export class CastleResidence {
       gardenTexture.addressU = pc.ADDRESS_REPEAT;
       gardenTexture.addressV = pc.ADDRESS_REPEAT;
     }
-    const threshold = this.#layout.walkableAreas.find(/**
-     * @param {{id: string}} area
-     */ (area) => area.id === "mainDoorThreshold");
+    const threshold = this.#layout.walkableAreas.find(
+      CastleResidence.#findArea,
+    );
     const stone = modelLibrary.instantiate(stoneUrl);
     stone.name = "Castle main entrance threshold";
     stone.setLocalScale(threshold.maxX - threshold.minX, 0.25, threshold.maxZ - threshold.minZ);
@@ -706,11 +702,9 @@ export class CastleResidence {
       const right = Math.min(room.maxX, center.x + radius);
       const front = Math.max(room.minZ, center.z - radius);
       const rear = Math.min(room.maxZ, center.z + radius);
-      const exit = ground ? this.#layout.walkableAreas.find(/**
-       *
-       * @param {{id:string,minX:number,maxX:number,minZ:number,maxZ:number}} area
-       */
-        (area) => area.id === "serviceStairLanding") : null;
+      const exit = ground
+        ? this.#layout.walkableAreas.find(CastleResidence.#findArea2)
+        : null;
       // Continue the room floor into the final tread's exit quadrant, using
       // the same surface and thickness as the rest of the room.
       let rectangles = right > left && rear > front ? [
@@ -739,11 +733,10 @@ export class CastleResidence {
       if (room.id === "courtyard") {
         // Stone thresholds pass through the garden. They own those patches;
         // the grass finish must stop at their edges rather than share a plane.
-        for (const area of [this.#layout.rooms.work,
-          ...this.#layout.walkableAreas.filter(/**
-           * @param {{id:string}} area
-           */
-            (area) => area.id.endsWith("Threshold") || area.id.startsWith("doorThreshold") || area.id === "serviceGroundBay")]) {
+        for (const area of [
+          this.#layout.rooms.work,
+          ...this.#layout.walkableAreas.filter(CastleResidence.#filterArea),
+        ]) {
           rectangles = subtractFloorArea(rectangles, area);
         }
       }
@@ -871,21 +864,46 @@ export class CastleResidence {
     });
     this.#entity.addChild(light);
   }
+
+  /**
+   * @param {{role: string}} reservation
+   */
+  static #findReservation(reservation) {
+    return reservation.role === "workDesk";
+  }
+
+  /**
+   *
+   * @param {import("../../generator/castle/rooms/AbstractCastleRoomGenerator.js").PlannedCastleRoom} room
+   */
+  static #findRoom(room) {
+    return room.stairHost;
+  }
+
+  /**
+   * @param {{id: string}} area
+   */
+  static #findArea(area) {
+    return area.id === "mainDoorThreshold";
+  }
+
+  /**
+   *
+   * @param {{id:string,minX:number,maxX:number,minZ:number,maxZ:number}} area
+   */
+  static #findArea2(area) {
+    return area.id === "serviceStairLanding";
+  }
+
+  /**
+   * @param {{id:string}} area
+   */
+  static #filterArea(area) {
+    return (
+      area.id.endsWith("Threshold") || area.id.startsWith("doorThreshold") || area.id === "serviceGroundBay"
+    );
+  }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 /**
  * Find continuous masonry behind the entire authored .89m frame at .8 scale.

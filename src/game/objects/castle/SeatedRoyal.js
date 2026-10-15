@@ -43,7 +43,7 @@ export class SeatedRoyal {
   #suspendedAnimationSpeed = null;
   /**
    *
-    * @returns {string}
+   * @returns {string}
    */
   static get modelUrls() {
     return MODEL_URLS;
@@ -51,7 +51,7 @@ export class SeatedRoyal {
 
   /**
    *
-    * @type {import("playcanvas").Entity}
+   * @type {import("playcanvas").Entity}
    */
   #entity;
   /**
@@ -72,22 +72,22 @@ export class SeatedRoyal {
   #returning = false;
   /**
    *
-    * @type {KingGameOverBehavior|QueenGameOverBehavior|PrincessGameOverBehavior}
+   * @type {KingGameOverBehavior|QueenGameOverBehavior|PrincessGameOverBehavior}
    */
   #gameOverBehavior;
   /**
    *
-    * @type {{follower: RoyalGameOverRouteFollower, collisionRadius: number, isBlocked: (x: number, z: number, radius: number) => boolean, getCameraPosition: () => {x: number, y: number, z: number}}|null}
+   * @type {{follower: RoyalGameOverRouteFollower, collisionRadius: number, isBlocked: (x: number, z: number, radius: number) => boolean, getCameraPosition: () => {x: number, y: number, z: number}}|null}
    */
   #gameOverRoute = null;
   /**
    *
-    * @type {RoyalTears}
+   * @type {RoyalTears}
    */
   #tears;
   /**
    *
-    * @type {number}
+   * @type {number}
    */
   #walkDuration;
 
@@ -139,19 +139,18 @@ export class SeatedRoyal {
     this.#gameOverBehavior = new GameOverBehaviorType({
       walkDuration,
       walkStartDelay: WALK_START_DELAY,
-      beginWalk: () => this.#beginGameOverWalk(),
+      beginWalk: this.#beginWalk.bind(this),
       /**
        *
        * @param {number} progress
        */
-      move: (progress) => this.#moveGameOverWalk(progress),
+      move: this.#move2.bind(this),
       /**
        *
        * @param {string} animation
        * @param {number} blendDuration
        */
-      playAnimation: (animation, blendDuration) =>
-        this.#playAnimation(animation, blendDuration),
+      playAnimation: this.#playAnimation2.bind(this),
     });
     if (!resident) {
       this.#doorAvoidance = new NpcDoorAvoidance(this.#entity, app);
@@ -176,7 +175,7 @@ export class SeatedRoyal {
 
   /**
    *
-    * @returns {{lateral: number, forward: number, elevation: number}}
+   * @returns {{lateral: number, forward: number, elevation: number}}
    */
   get gameOverDestination() {
     return this.#gameOverBehavior.destination;
@@ -210,7 +209,7 @@ export class SeatedRoyal {
 
   /**
    *
-    * @returns {{center: {x: number, y: number, z: number}, size: {x: number, y: number, z: number}}}
+   * @returns {{center: {x: number, y: number, z: number}, size: {x: number, y: number, z: number}}}
    */
   get visualBounds() {
     let minimumX = Number.POSITIVE_INFINITY;
@@ -427,5 +426,26 @@ export class SeatedRoyal {
       (Math.atan2(x, z) * 180) / Math.PI,
       0,
     );
+  }
+
+  #beginWalk() {
+    return this.#beginGameOverWalk();
+  }
+
+  /**
+   *
+   * @param {number} progress
+   */
+  #move2(progress) {
+    return this.#moveGameOverWalk(progress);
+  }
+
+  /**
+   *
+   * @param {string} animation
+   * @param {number} blendDuration
+   */
+  #playAnimation2(animation, blendDuration) {
+    return this.#playAnimation(animation, blendDuration);
   }
 }

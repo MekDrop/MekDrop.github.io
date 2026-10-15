@@ -32,13 +32,7 @@ export class CopyScreenshotAction {
   }
 
   invoke() {
-    void this.copyScreenshot().catch(/**
-     *
-     * @param {Error} error
-     */
-      (error) => {
-        console.error("[CopyScreenshotAction] Screenshot failed.", error);
-      });
+    void this.copyScreenshot().catch(CopyScreenshotAction.#catch);
   }
 
   async copyScreenshot() {
@@ -146,5 +140,13 @@ export class CopyScreenshotAction {
       selection?.removeAllRanges();
       wrapper.remove();
     }
+  }
+
+  /**
+   *
+   * @param {Error} error
+   */
+  static #catch(error) {
+    console.error("[CopyScreenshotAction] Screenshot failed.", error);
   }
 }

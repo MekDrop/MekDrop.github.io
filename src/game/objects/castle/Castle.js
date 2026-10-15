@@ -36,7 +36,7 @@ export class Castle extends CastleEntityBuilder {
   }
   /**
    *
-    * @type {import("src/game/objects/ObjectTypes.js").MapObjectDefinition}
+   * @type {import("src/game/objects/ObjectTypes.js").MapObjectDefinition}
    */
   #definition;
   /**
@@ -47,7 +47,6 @@ export class Castle extends CastleEntityBuilder {
    * @type {boolean}
    */
   #regenerating = false;
-
 
   /**
    * @type {number}
@@ -145,11 +144,7 @@ export class Castle extends CastleEntityBuilder {
       });
       if (!this.entity) { return null; }
       const sign = this.#runtime.objects.getAll(SCENE_OBJECT_TYPE.MAP_OBJECT)
-        .find(/**
-         *
-         * @param {import("../ObjectTypes.js").MapObjectLike} object
-         */
-          (object) => object.definition?.id === this.#definition.seedSignId);
+        .find(this.#findObject.bind(this));
       const previousText = sign?.definition.text;
       if (sign) { sign.text = `Seed ${seed}`; }
       const replaced = this.#runtime.replaceObjectDefinition({
@@ -174,7 +169,7 @@ export class Castle extends CastleEntityBuilder {
 
   /**
    *
-    * @returns {string|number}
+   * @returns {string|number}
    */
   get sceneObjectType() {
     return SCENE_OBJECT_TYPE.CASTLE;
@@ -182,7 +177,7 @@ export class Castle extends CastleEntityBuilder {
 
   /**
    *
-    * @returns {boolean}
+   * @returns {boolean}
    */
   get isGroundCollider() {
     return true;
@@ -190,9 +185,17 @@ export class Castle extends CastleEntityBuilder {
 
   /**
    *
-    * @returns {Array<import("playcanvas").Entity>}
+   * @returns {Array<import("playcanvas").Entity>}
    */
   get visualRoots() {
     return [this.entity];
+  }
+
+  /**
+   *
+   * @param {import("../ObjectTypes.js").MapObjectLike} object
+   */
+  #findObject(object) {
+    return object.definition?.id === this.#definition.seedSignId;
   }
 }

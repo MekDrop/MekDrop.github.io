@@ -189,8 +189,9 @@ export class TerrainPhysicsSurface {
   #buildGeometry() {
     const positions = [];
     const indices = [];
-    const tiles = Array.from({ length: this.#mapData.rows }, () =>
-      Array(this.#mapData.cols).fill(null),
+    const tiles = Array.from(
+      { length: this.#mapData.rows },
+      this.#from.bind(this),
     );
     for (let row = 0; row < this.#mapData.rows; row += 1) {
       for (let col = 0; col < this.#mapData.cols; col += 1) {
@@ -526,4 +527,7 @@ export class TerrainPhysicsSurface {
     }
   }
 
+  #from() {
+    return Array(this.#mapData.cols).fill(null);
+  }
 }

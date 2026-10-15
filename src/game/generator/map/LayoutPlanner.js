@@ -57,13 +57,7 @@ export class LayoutPlanner {
    * @param {{basePlanId:string,entranceInset:number,width:number,depth:number}} [authoredPlan]
    */
   createLayoutConfig(numPaths, authoredPlan) {
-    const anchorRows = ENTRY_TEMPLATES.map(/**
-     *
-     * @param {GenerationTemplate} template
-     */
-      (template) => [
-        ...template.gateRows,
-      ]);
+    const anchorRows = ENTRY_TEMPLATES.map(LayoutPlanner.#mapTemplate);
     let pathRows =
       numPaths > 1
         ? this.#random.randomItem([anchorRows[0], anchorRows[anchorRows.length - 1]])
@@ -180,40 +174,19 @@ export class LayoutPlanner {
    * @param {number} castleBottom
    * @param {number[]} pathRows
    */
-  #selectEntries(
-    numPaths,
-    castleLeft,
-    castleTop,
-    castleBottom,
-    pathRows,
-  ) {
+  #selectEntries(numPaths, castleLeft, castleTop, castleBottom, pathRows) {
     const requested = Number.isFinite(numPaths)
       ? Math.round(numPaths)
       : this.#random.rng(DEFAULT_MIN_PATHS, DEFAULT_MAX_PATHS);
     const count = MapGrid.clamp(requested, 1, ENTRY_TEMPLATES.length);
     const shuffled = this.#random.shuffle([...ENTRY_TEMPLATES]);
-    const selected = shuffled
-      .slice(0, count)
-      .sort(/**
-       *
-       * @param {number} a
-       * @param {number} b
-       */
-        (a, b) => a.gateRows[0] - b.gateRows[0]);
+    const selected = shuffled.slice(0, count).sort(LayoutPlanner.#sortA);
     const sharedMinMerge = Math.max(
-      ...selected.map(/**
-       *
-       * @param {GenerationTemplate} template
-       */
-        (template) => template.mergeRange[0]),
+      ...selected.map(LayoutPlanner.#mapTemplate2),
     );
     const sharedMaxMerge = Math.min(
       castleLeft - 6,
-      ...selected.map(/**
-       *
-       * @param {GenerationTemplate} template
-       */
-        (template) => template.mergeRange[1]),
+      ...selected.map(LayoutPlanner.#mapTemplate3),
     );
     const mergeCol = this.#random.rng(sharedMinMerge, sharedMaxMerge);
     const sides = selected.map(/**
@@ -236,15 +209,7 @@ export class LayoutPlanner {
     const matchesFirstSide = (side) => side === sides[0];
     if (selected.length > 1 && sides.every(matchesFirstSide)) {
       const candidateIndexes = selected
-        .map(/**
-         *
-         * @param {GenerationTemplate} template
-         * @param {number} index
-         */
-          (template, index) => ({
-            template,
-            index,
-          }))
+        .map(LayoutPlanner.#mapTemplate4)
         .filter(
           /**
            *
@@ -258,12 +223,7 @@ export class LayoutPlanner {
               castleBottom + 5,
             ),
         )
-        .map(/**
-         *
-         * @param {{index: number}} options
-         * @param {number} options.index
-         */
-          ({ index }) => index);
+        .map(LayoutPlanner.#map);
 
       if (candidateIndexes.length) {
         const flipIndex =
@@ -272,11 +232,12 @@ export class LayoutPlanner {
       }
     }
 
-    return selected.map(/**
-     *
-     * @param {GenerationTemplate} template
-     * @param {number} index
-     */
+    return selected.map(
+      /**
+       *
+       * @param {GenerationTemplate} template
+       * @param {number} index
+       */
       (template, index) => {
         const side = sides[index];
         const entry = {
@@ -294,14 +255,11 @@ export class LayoutPlanner {
             entry,
             pathRows,
             mergeCol,
-            selected.map(/**
-           *
-           * @param {{gateRows: number[]}} candidate
-           */
-              (candidate) => candidate.gateRows[0]),
+            selected.map(LayoutPlanner.#mapCandidate),
           ),
         };
-      });
+      },
+    );
   }
 
   /**
@@ -351,11 +309,7 @@ export class LayoutPlanner {
       turnCols,
       bands: bandStarts
         .slice(0, turnCols.length)
-        .map(/**
-         *
-         * @param {number} start
-         */
-          (start) => [start, start + 1]),
+        .map(LayoutPlanner.#mapStart),
     };
   }
 
@@ -392,11 +346,7 @@ export class LayoutPlanner {
         }
       }
     }
-    const curvePlans = layout.entries.map(/**
-     *
-     * @param {LayoutEntry} entry
-     */
-      (entry) => entry.curvePlan);
+    const curvePlans = layout.entries.map(LayoutPlanner.#mapEntry);
     for (const entry of layout.entries) {
       entry.curvePlan = null;
     }
@@ -567,5 +517,83 @@ export class LayoutPlanner {
       1,
       ENTRY_TEMPLATES.length,
     );
+  }
+
+  /**
+   *
+   * @param {GenerationTemplate} template
+   */
+  static #mapTemplate(template) {
+    return [...template.gateRows];
+  }
+
+  /**
+   *
+   * @param {number} a
+   * @param {number} b
+   */
+  static #sortA(a, b) {
+    return a.gateRows[0] - b.gateRows[0];
+  }
+
+  /**
+   *
+   * @param {GenerationTemplate} template
+   */
+  static #mapTemplate2(template) {
+    return template.mergeRange[0];
+  }
+
+  /**
+   *
+   * @param {GenerationTemplate} template
+   */
+  static #mapTemplate3(template) {
+    return template.mergeRange[1];
+  }
+
+  /**
+   *
+   * @param {GenerationTemplate} template
+   * @param {number} index
+   */
+  static #mapTemplate4(template, index) {
+    return {
+      template,
+      index,
+    };
+  }
+
+  /**
+   *
+   * @param {{index: number}} options
+   * @param {number} options.index
+   */
+  static #map({ index }) {
+    return index;
+  }
+
+  /**
+   *
+   * @param {{gateRows: number[]}} candidate
+   */
+  static #mapCandidate(candidate) {
+    return candidate.gateRows[0];
+  }
+
+  /**
+   *
+   * @param {number} start
+   */
+  static #mapStart(start) {
+    return [start, start + 1];
+  }
+
+  /**
+   *
+   * @param {LayoutEntry} entry
+   */
+  static #mapEntry(entry) {
+    return entry.curvePlan;
   }
 }

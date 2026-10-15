@@ -61,7 +61,7 @@ export class Gateway {
   #burstStarted = -10;
   /**
    *
-    * @returns {string}
+   * @returns {string}
    */
   static get modelUrl() {
     return gatewayFrameModelUrl;
@@ -69,22 +69,22 @@ export class Gateway {
 
   /**
    *
-    * @type {typeof import("playcanvas")}
+   * @type {typeof import("playcanvas")}
    */
   #pc;
   /**
    *
-    * @type {import("playcanvas").Application}
+   * @type {import("playcanvas").Application}
    */
   #app;
   /**
    *
-    * @type {import("playcanvas").Entity}
+   * @type {import("playcanvas").Entity}
    */
   #entity;
   /**
    *
-    * @type {number}
+   * @type {number}
    */
   #cubeSize;
   /**
@@ -97,107 +97,107 @@ export class Gateway {
   #islandGroup = -1;
   /**
    *
-    * @type {string}
+   * @type {string}
    */
   #symbol;
   /**
    *
-    * @type {string}
+   * @type {string}
    */
   #modelLibrary;
   /**
    *
-    * @type {Array<import("playcanvas").Material>}
+   * @type {Array<import("playcanvas").Material>}
    */
   #materials = [];
   /**
    *
-    * @type {Array<import("playcanvas").Mesh>}
+   * @type {Array<import("playcanvas").Mesh>}
    */
   #meshes = [];
   /**
    *
-    * @type {Array<import("playcanvas").Texture>}
+   * @type {Array<import("playcanvas").Texture>}
    */
   #textures = [];
   /**
    *
-    * @type {ShaderMaterial}
+   * @type {ShaderMaterial}
    */
   #portalMaterial = null;
   /**
    *
-    * @type {import("playcanvas").StandardMaterial}
+   * @type {import("playcanvas").StandardMaterial}
    */
   #bannerMaterial = null;
   /**
    *
-    * @type {import("playcanvas").Mesh}
+   * @type {import("playcanvas").Mesh}
    */
   #bannerMesh = null;
   /**
    *
-    * @type {Float32Array}
+   * @type {Float32Array}
    */
   #bannerPositions = null;
   /**
    *
-    * @type {Float32Array}
+   * @type {Float32Array}
    */
   #bannerVertexUv = null;
   /**
    *
-    * @type {Uint16Array|Uint32Array}
+   * @type {Uint16Array|Uint32Array}
    */
   #bannerIndices = null;
   /**
    *
-    * @type {{update: (deltaTime: number) => void, destroy: () => void}}
+   * @type {{update: (deltaTime: number) => void, destroy: () => void}}
    */
   #bannerCloth = null;
   /**
    *
-    * @type {Array<AmmoClothPhysics>}
+   * @type {Array<AmmoClothPhysics>}
    */
   #bannerPhysics = null;
   /**
    *
-    * @type {import("src/game/objects/ObjectTypes.js").InteractionLike|null}
+   * @type {import("src/game/objects/ObjectTypes.js").InteractionLike|null}
    */
   #bannerInteraction = null;
   /**
    *
-    * @type {import("playcanvas").EventHandle|null}
+   * @type {import("playcanvas").EventHandle|null}
    */
   #updateHandle = null;
   /**
    *
-    * @type {number}
+   * @type {number}
    */
   #elapsed = 0;
   /**
    *
-    * @type {typeof import("playcanvas")}
+   * @type {typeof import("playcanvas")}
    */
   #inverseWorldTransform = null;
   /**
    *
-    * @type {number}
+   * @type {number}
    */
   #collisionWorldPoint = null;
   /**
    *
-    * @type {number}
+   * @type {number}
    */
   #collisionLocalPoint = null;
   /**
    *
-    * @type {number}
+   * @type {number}
    */
   #repulsionFromLocalPoint = null;
   /**
    *
-    * @type {number}
+   * @type {number}
    */
   #repulsionDirection = null;
 
@@ -284,31 +284,19 @@ export class Gateway {
        * @param {number} row
        */
         (row) => FIXED_HEIGHTS[mapData.grid[row][entry.col]] ?? mapData.heightmap[row][entry.col]));
-      this.#entity.setPosition(entry.col - (mapData.cols - 1) / 2, height,
-        gateRows.reduce(/**
-         *
-         * @param {number} sum
-         * @param {number} row
-         */
-          (sum, row) => sum + row, 0) / gateRows.length - (mapData.rows - 1) / 2);
+      this.#entity.setPosition(
+        entry.col - (mapData.cols - 1) / 2,
+        height,
+        gateRows.reduce(Gateway.#reduceSum, 0) / gateRows.length -
+          (mapData.rows - 1) / 2,
+      );
       if (entry.side === "RIGHT") {
         this.#entity.setEulerAngles(0, 180, 0);
       }
       runtime.collisionWorld.add(this);
     }
 
-
-    this.#updateHandle = app.on("update", /**
-     *
-     * @param {number} deltaTime
-     */
-      (deltaTime) => {
-        this.#elapsed += deltaTime;
-        this.#repulsionEffect.update(deltaTime);
-        this.#portalMaterial?.setParameter("uTime", this.#elapsed);
-        this.#portalMaterial?.setParameter("uBurstAge", this.#elapsed - this.#burstStarted);
-        this.#animateBanner(deltaTime);
-      });
+    this.#updateHandle = app.on("update", this.#on.bind(this));
   }
 
   /**
@@ -653,15 +641,7 @@ export class Gateway {
     this.#bannerCloth = this.#bannerPhysics.createCloth({
       positions: this.#bannerPositions,
       indices: this.#bannerIndices,
-      pinnedIndices: Array.from(
-        { length: columnSegments + 1 },
-        /**
-         *
-         * @param {undefined} _
-         * @param {number} index
-         */
-        (_, index) => index,
-      ),
+      pinnedIndices: Array.from({ length: columnSegments + 1 }, Gateway.#from),
       vertexUv: this.#bannerVertexUv,
       root: this.#entity,
       normalAxis: 0,
@@ -869,5 +849,35 @@ export class Gateway {
       receiveShadows: false,
     });
     this.#visualRoot.addChild(portal);
+  }
+
+  /**
+   *
+   * @param {number} sum
+   * @param {number} row
+   */
+  static #reduceSum(sum, row) {
+    return sum + row;
+  }
+
+  /**
+   *
+   * @param {number} deltaTime
+   */
+  #on(deltaTime) {
+    this.#elapsed += deltaTime;
+    this.#repulsionEffect.update(deltaTime);
+    this.#portalMaterial?.setParameter("uTime", this.#elapsed);
+    this.#portalMaterial?.setParameter("uBurstAge", this.#elapsed - this.#burstStarted);
+    this.#animateBanner(deltaTime);
+  }
+
+  /**
+   *
+   * @param {undefined} _
+   * @param {number} index
+   */
+  static #from(_, index) {
+    return index;
   }
 }

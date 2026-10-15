@@ -9,10 +9,9 @@ export class LeisureRoomMapObjects {
    */
   static prepareMap(mapData) {
     const objects = mapData.objects ?? [];
-    for (const castle of objects.filter(/**
-      * @param {import("../../../ObjectTypes.js").MapObjectDefinition} definition
-      */
-      (definition) => definition.object === "Castle")) {
+    for (const castle of objects.filter(
+      LeisureRoomMapObjects.#filterDefinition,
+    )) {
       const plan = castle.buildPlan?.metadata?.runtime?.residential;
       if (!plan?.basePlanId) { continue; }
       const layout = new CastleResidentialLayout(castle.buildPlan);
@@ -54,5 +53,12 @@ export class LeisureRoomMapObjects {
       }
     }
     mapData.objects = objects;
+  }
+
+  /**
+   * @param {import("../../../ObjectTypes.js").MapObjectDefinition} definition
+   */
+  static #filterDefinition(definition) {
+    return definition.object === "Castle";
   }
 }

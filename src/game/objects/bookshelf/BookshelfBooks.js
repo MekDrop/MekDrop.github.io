@@ -35,12 +35,16 @@ export class BookshelfBooks {
    * @param {() => number} random
    * @param {{bottom:number,height:number}[]} [levels]
    */
-  static populate(models, shelf, bookUrl, random = Math.random, levels = this.levels) {
-    for (const node of shelf.find(/**
-     *
-     * @param {import("playcanvas").GraphNode} node
-     */
-      node => /^(Leather bound book|Book spine brass)/.test(node.name))) { node.destroy(); }
+  static populate(
+    models,
+    shelf,
+    bookUrl,
+    random = Math.random,
+    levels = this.levels,
+  ) {
+    for (const node of shelf.find(BookshelfBooks.#findNode)) {
+      node.destroy();
+    }
     const materials = new Map();
     shelf.once("destroy", () => {
       for (const material of materials.values()) { material.destroy(); }
@@ -77,11 +81,7 @@ export class BookshelfBooks {
       const horizontal = level.height < 0.24;
       const count = horizontal ? 6 : 10;
       const widths = Array.from({ length: count }, () => horizontal ? 0.032 + random() * 0.008 : 0.04 + random() * 0.025);
-      const total = widths.reduce(/**
-       * @param {number} sum
-       * @param {number} width
-       */
-        (sum, width) => sum + width, 0);
+      const total = widths.reduce(BookshelfBooks.#reduceSum, 0);
       const gap = 0, factor = horizontal ? 1 : 0.71 / total;
       let cursor = -0.355;
       let stackHeight = 0;
@@ -136,5 +136,21 @@ export class BookshelfBooks {
     }
 
     return books;
+  }
+
+  /**
+   *
+   * @param {import("playcanvas").GraphNode} node
+   */
+  static #findNode(node) {
+    return /^(Leather bound book|Book spine brass)/.test(node.name);
+  }
+
+  /**
+   * @param {number} sum
+   * @param {number} width
+   */
+  static #reduceSum(sum, width) {
+    return sum + width;
   }
 }

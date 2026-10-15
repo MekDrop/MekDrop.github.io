@@ -199,29 +199,13 @@ export class GameOverScene {
     }
     const royals = this.#sceneObjects
       .getAll(SCENE_OBJECT_TYPE.MAP_OBJECT)
-      .filter(/**
-       *
-       * @param {import("src/game/GameContracts.js").GameObjectContract} object
-       */
-        (object) => typeof object.beginGameOver === "function");
+      .filter(GameOverScene.#filterObject);
     if (royals.length === 0 || !this.#getCameraPosition()) {
       return;
     }
     const performances = royals
-      .map(/**
-       *
-       * @param {{entity: pc.Entity, definition?: GameObjectDefinition}} royal
-       */
-        (royal) => ({
-          royal,
-          presentation: royal.beginGameOver(() => this.#getCameraPosition()),
-        }))
-      .filter(/**
-       *
-       * @param {{presentation: {install?: () => void, destroy?: () => void}}} options
-       * @param {{install?: () => void, destroy?: () => void}} options.presentation
-       */
-        ({ presentation }) => presentation);
+      .map(this.#mapRoyal.bind(this))
+      .filter(GameOverScene.#filter);
     if (performances.length === 0) {
       return;
     }
@@ -328,5 +312,37 @@ export class GameOverScene {
       (2 * cameraState.baseOrthoHeight * ROYAL_VIEWPORT_HEIGHT) /
         projectedHeight,
     );
+  }
+
+  /**
+   *
+   * @param {import("src/game/GameContracts.js").GameObjectContract} object
+   */
+  static #filterObject(object) {
+    return typeof object.beginGameOver === "function";
+  }
+
+  /**
+   *
+   * @param {{entity: pc.Entity, definition?: GameObjectDefinition}} royal
+   */
+  #mapRoyal(royal) {
+    return {
+      royal,
+      presentation: royal.beginGameOver(this.#beginGameOver.bind(this)),
+    };
+  }
+
+  /**
+   *
+   * @param {{presentation: {install?: () => void, destroy?: () => void}}} options
+   * @param {{install?: () => void, destroy?: () => void}} options.presentation
+   */
+  static #filter({ presentation }) {
+    return presentation;
+  }
+
+  #beginGameOver() {
+    return this.#getCameraPosition();
   }
 }

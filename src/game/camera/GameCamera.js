@@ -157,11 +157,7 @@ export class GameCamera {
      * @param {number} y
      * @returns {Vec2}
      */
-    const normalize = (x, y) => {
-      const length = Math.max(0.0001, Math.hypot(x, y));
-
-      return new Vec2(x / length, y / length);
-    };
+    const normalize = GameCamera.#normalize;
 
     return {
       x: normalize(right.x, -up.x),
@@ -448,5 +444,16 @@ export class GameCamera {
 
   getRotation() {
     return this.#entity.getRotation();
+  }
+
+  /**
+   * @param {number} x
+   * @param {number} y
+   * @returns {Vec2}
+   */
+  static #normalize(x, y) {
+    const length = Math.max(0.0001, Math.hypot(x, y));
+
+    return new Vec2(x / length, y / length);
   }
 }

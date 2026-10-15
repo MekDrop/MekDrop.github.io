@@ -47,30 +47,22 @@ export class MapObjectDefinitions {
       add("Overpass", "overpass", { layout: map.overpassData });
     }
     if (authored("heroSpawn") && map.heroSpawn) {
-      map.objects = map.objects.filter(/**
-       * @param {import("./ObjectTypes.js").MapObjectDefinition} definition
-       */
-        (definition) => definition.object !== "SpawnPoint");
+      map.objects = map.objects.filter(MapObjectDefinitions.#filterDefinition);
       add("SpawnPoint", "hero-spawn", { position: map.heroSpawn });
     }
     if (authored("islandConnectorData") && map.islandConnectorData) {
       add("IslandConnector", "island-connector", { topology: map.islandConnectorData });
     }
     if (authored("castle") && map.castle) {
-      const castle = map.objects.find(/**
-       *
-       * @param {import("./ObjectTypes.js").MapObjectDefinition} definition
-       */
-        (definition) => definition.object === "Castle");
+      const castle = map.objects.find(MapObjectDefinitions.#findDefinition);
       if (castle) {
         castle.navigation = map.castle;
       }
     }
     if (authored("castles")) {
-      const castles = map.objects.filter(/**
-       * @param {import("./ObjectTypes.js").MapObjectDefinition} definition
-       */
-        (definition) => definition.object === "Castle");
+      const castles = map.objects.filter(
+        MapObjectDefinitions.#filterDefinition2,
+      );
       for (const [index, navigation] of (map.castles ?? []).entries()) {
         if (castles[index]) {
           castles[index].navigation ??= navigation;
@@ -128,35 +120,36 @@ export class MapObjectDefinitions {
         set,
       });
     };
-    view("entries", () => map.objects.filter(/**
-     *
-     * @param {import("./ObjectTypes.js").MapObjectDefinition} definition
-     */
-      (definition) => definition.object === "Gateway").map(/**
-     *
-     * @param {import("./ObjectTypes.js").MapObjectDefinition} definition
-     */
-      (definition) => definition.entry));
+    view("entries", () =>
+      map.objects
+        .filter(MapObjectDefinitions.#filterDefinition3)
+        .map(MapObjectDefinitions.#mapDefinition),
+    );
     view("riverData", () => first("Rivers")?.rivers ?? [], /**
      * @param {import("./ObjectTypes.js").MapObjectDefinition["rivers"]} rivers
      */
       (rivers) => write("Rivers", "rivers", rivers));
-    view("groundCoverData", () => first("GroundCover")?.placements ?? [], /**
-     *
-     * @param {import("../generator/map/MapGenerationTypes.js").GroundCoverData} placements
-     */
-      (placements) => {
-        map.objects = map.objects.filter(/**
+    view(
+      "groundCoverData",
+      () => first("GroundCover")?.placements ?? [] /**
        *
-       * @param {import("./ObjectTypes.js").MapObjectDefinition} definition
+       * @param {import("../generator/map/MapGenerationTypes.js").GroundCoverData} placements
+       */,
+      /**
+       *
+       * @param {import("../generator/map/MapGenerationTypes.js").GroundCoverData} placements
        */
-          (definition) => definition.object !== "GroundCover");
+      (placements) => {
+        map.objects = map.objects.filter(
+          MapObjectDefinitions.#filterDefinition4,
+        );
         map.objects.push({
           id: "ground-cover",
           object: "GroundCover",
           placements,
         });
-      });
+      },
+    );
     view("overpassData", () => first("Overpass")?.layout ?? null, /**
      * @param {import("./ObjectTypes.js").PathOverpass} layout
      */
@@ -181,5 +174,51 @@ export class MapObjectDefinitions {
       view("castle", () => first("Castle")?.navigation ?? null);
     }
     delete map.castles;
+  }
+
+  /**
+   * @param {import("./ObjectTypes.js").MapObjectDefinition} definition
+   */
+  static #filterDefinition(definition) {
+    return definition.object !== "SpawnPoint";
+  }
+
+  /**
+   *
+   * @param {import("./ObjectTypes.js").MapObjectDefinition} definition
+   */
+  static #findDefinition(definition) {
+    return definition.object === "Castle";
+  }
+
+  /**
+   * @param {import("./ObjectTypes.js").MapObjectDefinition} definition
+   */
+  static #filterDefinition2(definition) {
+    return definition.object === "Castle";
+  }
+
+  /**
+   *
+   * @param {import("./ObjectTypes.js").MapObjectDefinition} definition
+   */
+  static #filterDefinition3(definition) {
+    return definition.object === "Gateway";
+  }
+
+  /**
+   *
+   * @param {import("./ObjectTypes.js").MapObjectDefinition} definition
+   */
+  static #mapDefinition(definition) {
+    return definition.entry;
+  }
+
+  /**
+   *
+   * @param {import("./ObjectTypes.js").MapObjectDefinition} definition
+   */
+  static #filterDefinition4(definition) {
+    return definition.object !== "GroundCover";
   }
 }

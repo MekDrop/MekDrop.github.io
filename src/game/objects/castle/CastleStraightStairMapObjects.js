@@ -9,12 +9,9 @@ export class CastleStraightStairMapObjects {
    * @param {import("../../GameContracts.js").GameMapData} map
    */
   static prepareMap(map) {
-    map.objects = (map.objects ?? []).filter(/**
-     *
-     * @param {import("../ObjectTypes.js").MapObjectDefinition} item
-     */
-      item =>
-        !(item.generated && item.object === "StraightStaircase" && item.sourceCastleId));
+    map.objects = (map.objects ?? []).filter(
+      CastleStraightStairMapObjects.#filterItem,
+    );
     for (const castle of [...map.objects]) {
       if (castle.object !== "Castle" || !castle.buildPlan?.metadata?.runtime?.residential) { continue; }
       const layout = new CastleResidentialLayout(castle.buildPlan);
@@ -45,5 +42,13 @@ export class CastleStraightStairMapObjects {
         });
       }
     }
+  }
+
+  /**
+   *
+   * @param {import("../ObjectTypes.js").MapObjectDefinition} item
+   */
+  static #filterItem(item) {
+    return !(item.generated && item.object === "StraightStaircase" && item.sourceCastleId);
   }
 }

@@ -172,7 +172,7 @@ export class TerraceRoyalActions {
       if (phase === PHASE.SETTLE) { this.#activityTime = 0; }
       if (this.#kind === "queen") { this.#syncQueen(behavior);
 
- return; }
+        return; }
       const target = this.#kind === "princess" ? [-0.75, 0, 3.2] : [0, 0, 3.1];
       this.#place(...target, this.#kind === "princess" ? 90 : 0);
       this.#royal.pose(behavior.action, this.#activityTime, phase === PHASE.SETTLE

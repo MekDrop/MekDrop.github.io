@@ -4,22 +4,22 @@ import { Tree } from "../Tree.js";
 export class OakTree extends Tree {
   /**
    *
-    * @type {string}
+   * @type {string}
    */
   static modelUrl = oakModelUrl;
   /**
    *
-    * @type {number}
+   * @type {number}
    */
   static rowCount = 6;
   /**
    *
-    * @type {number}
+   * @type {number}
    */
   static cutsRequired = OakTree.rowCount;
   /**
    *
-    * @type {number}
+   * @type {number}
    */
   static collisionRows = Object.freeze([
     {
@@ -40,17 +40,7 @@ export class OakTree extends Tree {
     },
     {
       y: 4,
-      cells: [-1, 0, 1].flatMap(/**
-       *
-       * @param {number} x
-       */
-        (x) =>
-          [-1, 0, 1].map(/**
-         *
-         * @param {number} z
-         */
-            (z) => [x, z]),
-      ),
+      cells: [-1, 0, 1].flatMap(OakTree.#flatMapX),
     },
     {
       y: 5,
@@ -70,5 +60,17 @@ export class OakTree extends Tree {
       cutsRequired: OakTree.cutsRequired,
       collisionRows: OakTree.collisionRows,
     });
+  }
+
+  /**
+   *
+   * @param {number} x
+   */
+  static #flatMapX(x) {
+    return [-1, 0, 1].map(/**
+         *
+         * @param {number} z
+         */
+      (z) => [x, z]);
   }
 }

@@ -41,7 +41,7 @@ function bakedColours(linearVertexColors, translationY = 0) {
     }],
     getPositions(out) { out.push(0, 0, 0, 1, 0, 0, 0, 1, 0);
 
- return 3; },
+      return 3; },
     getNormals(out) { out.push(0, 0, 1, 0, 0, 1, 0, 0, 1); },
     getUvs(_channel, out) { out.push(0, 0, 1, 0, 0, 1); },
     getIndices() {},

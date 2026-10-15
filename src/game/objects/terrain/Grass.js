@@ -77,11 +77,8 @@ export class Grass extends Earth {
       mapData: runtime.mapData,
       terrainMaterials: [carpet.material].filter(Boolean),
       zoom: runtime.camera.zoom,
-      getImpressionContacts: () => runtime.getContactProviders().flatMap(
-        /**
-         * @param {import("src/game/GameContracts.js").GameObjectContract} object
-         */
-        (object) => object?.grassFootContacts ?? object?.grassImpressionContacts ?? []),
+      getImpressionContacts: () =>
+        runtime.getContactProviders().flatMap(Grass.#flatMapObject),
       getSurfaceContacts: () => surfaceContacts.contacts,
       /**
        * @param {number} x
@@ -166,5 +163,12 @@ export class Grass extends Earth {
       this.#runtime.canopy.carpet.destroy();
     }
     super.destroy();
+  }
+
+  /**
+   * @param {import("src/game/GameContracts.js").GameObjectContract} object
+   */
+  static #flatMapObject(object) {
+    return object?.grassFootContacts ?? object?.grassImpressionContacts ?? [];
   }
 }

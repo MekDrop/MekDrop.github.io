@@ -47,31 +47,9 @@ export class TerrainBridgeDipBuilder {
    * @param {RiverData[]} riverData
    * @param {Set<string>} mergeZones
    */
-  applyTerrainBridgeDips(
-    grid,
-    heightmap,
-    tileMeta,
-    riverData,
-    mergeZones,
-  ) {
+  applyTerrainBridgeDips(grid, heightmap, tileMeta, riverData, mergeZones) {
     const riverBridgeCells = new Set(
-      riverData.flatMap(/**
-       *
-       * @param {RiverRecord} river
-       */
-        (river) =>
-          river.cells
-            .filter(/**
-           *
-           * @param {MapCell} cell
-           */
-              (cell) => cell.underBridge)
-            .map(/**
-           *
-           * @param {MapCell} cell
-           */
-              (cell) => MapGrid.tileKey(cell.col, cell.row)),
-      ),
+      riverData.flatMap(TerrainBridgeDipBuilder.#flatMapRiver),
     );
     const stations = [];
     const seenStations = new Set();
@@ -181,12 +159,7 @@ export class TerrainBridgeDipBuilder {
 
     const eligibleSpans = [];
     for (const group of groupedStations.values()) {
-      group.sort(/**
-       *
-       * @param {{coordinate: number}} left
-       * @param {{coordinate: number}} right
-       */
-        (left, right) => left.coordinate - right.coordinate);
+      group.sort(TerrainBridgeDipBuilder.#sortLeft);
       let run = [];
       const finishRun = () => {
         if (run.length >= TERRAIN_BRIDGE_DIP_MIN_SPAN) {
@@ -235,17 +208,7 @@ export class TerrainBridgeDipBuilder {
       finishRun();
     }
 
-    eligibleSpans.sort(
-      /**
-       *
-       * @param {PathDipSpan} left
-       * @param {PathDipSpan} right
-       */
-      (left, right) =>
-        left.axis.localeCompare(right.axis) ||
-        left.cross - right.cross ||
-        left.start - right.start,
-    );
+    eligibleSpans.sort(TerrainBridgeDipBuilder.#sortLeft2);
     const plans = [];
     for (const span of eligibleSpans) {
       if (this.#random.rng(1, 100) > TERRAIN_BRIDGE_DIP_CHANCE) {
@@ -444,5 +407,53 @@ export class TerrainBridgeDipBuilder {
         pathDipId: plan.id,
       };
     }
+  }
+
+  /**
+   *
+   * @param {RiverRecord} river
+   */
+  static #flatMapRiver(river) {
+    return river.cells
+      .filter(TerrainBridgeDipBuilder.#filterCell)
+      .map(TerrainBridgeDipBuilder.#mapCell);
+  }
+
+  /**
+   *
+   * @param {{coordinate: number}} left
+   * @param {{coordinate: number}} right
+   */
+  static #sortLeft(left, right) {
+    return left.coordinate - right.coordinate;
+  }
+
+  /**
+   *
+   * @param {PathDipSpan} left
+   * @param {PathDipSpan} right
+   */
+  static #sortLeft2(left, right) {
+    return (
+      left.axis.localeCompare(right.axis) ||
+        left.cross - right.cross ||
+        left.start - right.start
+    );
+  }
+
+  /**
+   *
+   * @param {MapCell} cell
+   */
+  static #filterCell(cell) {
+    return cell.underBridge;
+  }
+
+  /**
+   *
+   * @param {MapCell} cell
+   */
+  static #mapCell(cell) {
+    return MapGrid.tileKey(cell.col, cell.row);
   }
 }

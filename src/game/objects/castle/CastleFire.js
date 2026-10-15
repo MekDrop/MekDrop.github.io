@@ -12,42 +12,42 @@ export class CastleFire {
   #modelLibrary;
   /**
    *
-    * @type {typeof import("playcanvas")}
+   * @type {typeof import("playcanvas")}
    */
   #pc;
   /**
    *
-    * @type {import("playcanvas").Application}
+   * @type {import("playcanvas").Application}
    */
   #app;
   /**
    *
-    * @type {import("playcanvas").Entity}
+   * @type {import("playcanvas").Entity}
    */
   #entity;
   /**
    *
-    * @type {import("playcanvas").StandardMaterial}
+   * @type {import("playcanvas").StandardMaterial}
    */
   #brazierMaterial;
   /**
    *
-    * @type {import("playcanvas").Texture}
+   * @type {import("playcanvas").Texture}
    */
   #particleTexture;
   /**
    *
-    * @type {Array<{entity: import("playcanvas").Entity, phase: number, intensity: number}>}
+   * @type {Array<{entity: import("playcanvas").Entity, phase: number, intensity: number}>}
    */
   #lights = [];
   /**
    *
-    * @type {number}
+   * @type {number}
    */
   #elapsed = 0;
   /**
    *
-    * @type {{off: () => void}|null}
+   * @type {{off: () => void}|null}
    */
   #updateHandle = null;
 
@@ -67,14 +67,7 @@ export class CastleFire {
     this.#brazierMaterial = this.#createBrazierMaterial();
     this.#particleTexture = particleTexture;
 
-    this.#updateHandle = app.on("update", /**
-     *
-     * @param {number} deltaTime
-     */
-      (deltaTime) => {
-        this.#elapsed += deltaTime;
-        this.#animateLights();
-      });
+    this.#updateHandle = app.on("update", this.#on.bind(this));
   }
 
   get entity() {
@@ -141,9 +134,7 @@ export class CastleFire {
   #createBrazier(parent, scale) {
     const brazier = this.#modelLibrary.instantiate(authoredModelUrl);
     brazier.name = "Fire brazier";
-    for (const meshInstance of brazier.findComponents("render").flatMap(/**
-     * @param {import("playcanvas").RenderComponent} render
-     */ (render) => render.meshInstances)) {
+    for (const meshInstance of brazier.findComponents("render").flatMap(CastleFire.#flatMapRender)) {
       meshInstance.material = this.#brazierMaterial;
       meshInstance.castShadow = true;
       meshInstance.receiveShadow = true;
@@ -339,4 +330,19 @@ export class CastleFire {
     }
   }
 
+  /**
+   *
+   * @param {number} deltaTime
+   */
+  #on(deltaTime) {
+    this.#elapsed += deltaTime;
+    this.#animateLights();
+  }
+
+  /**
+   * @param {import("playcanvas").RenderComponent} render
+   */
+  static #flatMapRender(render) {
+    return render.meshInstances;
+  }
 }

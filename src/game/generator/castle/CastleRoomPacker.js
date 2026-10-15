@@ -139,23 +139,18 @@ export class CastleRoomPacker {
     this.#random.shuffle(candidates);
     // Smaller first-pass rooms leave space for later requirements. Expansion
     // happens only after all rooms have had a chance to occupy the footprint.
-    if (this.#compact) candidates.sort(/**
-     *
-     * @param {number[]} a
-     * @param {number[]} b
-     */
-      (a, b) => a[0] * a[1] - b[0] * b[1]);
+    if (this.#compact) candidates.sort(CastleRoomPacker.#sortA);
     // Prefer a stacked keep: upstairs walls bear on an existing room below.
-    const foundation = level === 1 ? [...this.rooms].sort(/**
-     *
-     * @param {{id:string}} a
-     * @param {{id:string}} b
-     */
-      (a, b) => Number(b.id === "throneRoom") - Number(a.id === "throneRoom")).find(/**
-     * @param {import("./rooms/AbstractCastleRoomGenerator.js").PlannedCastleRoom} room
-     */ (room) =>
-        room.level === 0 && !room.stairHost &&
-      room.maxX - room.minX >= generator.min.x && room.maxZ - room.minZ >= generator.min.y) : null;
+    const foundation =
+      level === 1
+        ? [...this.rooms].sort(CastleRoomPacker.#sortA2).find(
+          /**
+             * @param {import("./rooms/AbstractCastleRoomGenerator.js").PlannedCastleRoom} room
+             */ (room) =>
+            room.level === 0 && !room.stairHost &&
+      room.maxX - room.minX >= generator.min.x && room.maxZ - room.minZ >= generator.min.y,
+        )
+        : null;
     for (const [width, depth] of candidates) {
       if (foundation && (width > foundation.maxX - foundation.minX || depth > foundation.maxZ - foundation.minZ)) { continue; }
       const towerIndex = generator.id.startsWith("tower") ? Number(generator.id.slice(5)) : 0;
@@ -243,5 +238,22 @@ export class CastleRoomPacker {
     return a.minX < b.maxX + gap - 0.001 && a.maxX > b.minX - gap + 0.001 &&
       a.minZ < b.maxZ + gap - 0.001 && a.maxZ > b.minZ - gap + 0.001;
   }
-}
 
+  /**
+   *
+   * @param {number[]} a
+   * @param {number[]} b
+   */
+  static #sortA(a, b) {
+    return a[0] * a[1] - b[0] * b[1];
+  }
+
+  /**
+   *
+   * @param {{id:string}} a
+   * @param {{id:string}} b
+   */
+  static #sortA2(a, b) {
+    return Number(b.id === "throneRoom") - Number(a.id === "throneRoom");
+  }
+}

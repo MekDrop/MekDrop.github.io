@@ -128,7 +128,7 @@ const BLOCKED_DIG_ROCKS = [
 export class BuriedTreasureField {
   /**
    *
-    * @returns {Array<string>}
+   * @returns {Array<string>}
    */
   static get modelUrls() {
     return [
@@ -145,22 +145,22 @@ export class BuriedTreasureField {
 
   /**
    *
-    * @type {typeof import("playcanvas")}
+   * @type {typeof import("playcanvas")}
    */
   #pc;
   /**
    *
-    * @type {import("src/game/objects/ObjectTypes.js").GameMapData}
+   * @type {import("src/game/objects/ObjectTypes.js").GameMapData}
    */
   #mapData;
   /**
    *
-    * @type {import("src/game/models/GameModelLibrary.js").GameModelLibrary}
+   * @type {import("src/game/models/GameModelLibrary.js").GameModelLibrary}
    */
   #modelLibrary;
   /**
    *
-    * @type {import("playcanvas").Entity}
+   * @type {import("playcanvas").Entity}
    */
   #entity;
   /**
@@ -169,52 +169,52 @@ export class BuriedTreasureField {
   #islandRoots;
   /**
    *
-    * @type {import("../hero/tools/HeroTool.js").HeroTool|null}
+   * @type {import("../hero/tools/HeroTool.js").HeroTool|null}
    */
   #tool = null;
   /**
    *
-    * @type {Set}
+   * @type {Set}
    */
   #dugTiles = new Set();
   /**
    *
-    * @type {Map}
+   * @type {Map}
    */
   #vegetationTileCounts = new Map();
   /**
    *
-    * @type {Map}
+   * @type {Map}
    */
   #groundCoverTileCounts = new Map();
   /**
    *
-    * @type {Set}
+   * @type {Set}
    */
   #stoneTiles = new Set();
   /**
    *
-    * @type {Set}
+   * @type {Set}
    */
   #harvestedFlowerTiles = new Set();
   /**
    *
-    * @type {Set}
+   * @type {Set}
    */
   #harvestedMushroomTiles = new Set();
   /**
    *
-    * @type {Set}
+   * @type {Set}
    */
   #felledTreeTiles = new Set();
   /**
    *
-    * @type {Map}
+   * @type {Map}
    */
   #riverSourceCovers = new Map();
   /**
    *
-    * @type {Array<TreasureSite>}
+   * @type {Array<TreasureSite>}
    */
   #sites = [];
   /**
@@ -223,47 +223,47 @@ export class BuriedTreasureField {
   #buriedChests = new Map();
   /**
    *
-    * @type {Array<TreasureCoin>}
+   * @type {Array<TreasureCoin>}
    */
   #coins = [];
   /**
    *
-    * @type {Array<FillClod>}
+   * @type {Array<FillClod>}
    */
   #fillClods = [];
   /**
    *
-    * @type {Map}
+   * @type {Map}
    */
   #materials = new Map();
   /**
    *
-    * @type {typeof import("playcanvas")}
+   * @type {typeof import("playcanvas")}
    */
   #soilMaterial;
   /**
    *
-    * @type {{x: number, y: number, z: number}}
+   * @type {{x: number, y: number, z: number}}
    */
   #heroPosition = null;
   /**
    *
-    * @type {(coinType: string, amount: number) => void}
+   * @type {(coinType: string, amount: number) => void}
    */
   #onCollectCoin;
   /**
    *
-    * @type {(interaction: import("src/game/objects/ObjectTypes.js").InteractionLike|null) => void}
+   * @type {(interaction: import("src/game/objects/ObjectTypes.js").InteractionLike|null) => void}
    */
   #onInteractionChange;
   /**
    *
-    * @type {(position: {x: number, y: number, z: number}, radius: number) => void}
+   * @type {(position: {x: number, y: number, z: number}, radius: number) => void}
    */
   #onTerrainExcavated;
   /**
    *
-    * @type {import("playcanvas").EventHandle|null}
+   * @type {import("playcanvas").EventHandle|null}
    */
   #updateHandle = null;
 
@@ -287,7 +287,6 @@ export class BuriedTreasureField {
     onInteractionChange = null,
     onTerrainExcavated = null,
   }) {
-
     this.#pc = pc;
 
     this.#mapData = mapData;
@@ -303,26 +302,18 @@ export class BuriedTreasureField {
     this.#entity = new pc.Entity("Buried treasure field");
     this.#islandRoots = new IslandObjectRoots(pc, this.#entity, mapData);
     this.#registerRiverSourceCovers();
-    for (const { tile: { col, row } } of (mapData.objects ?? [])
-      .filter(/**
-       *
-       * @param {{object: string}} options
-       * @param {string} options.object
-       */
-        ({ object }) => object === "Vegetation")) {
+    for (const {
+      tile: { col, row },
+    } of (mapData.objects ?? []).filter(BuriedTreasureField.#filter)) {
       const key = this.#tileKey(col, row);
       this.#vegetationTileCounts.set(
         key,
         (this.#vegetationTileCounts.get(key) ?? 0) + 1,
       );
     }
-    for (const { tile: { col, row } } of (mapData.objects ?? [])
-      .filter(/**
-       *
-       * @param {{object: string}} options
-       * @param {string} options.object
-       */
-        ({ object }) => object === "StoneCluster")) {
+    for (const {
+      tile: { col, row },
+    } of (mapData.objects ?? []).filter(BuriedTreasureField.#filter2)) {
       this.#stoneTiles.add(this.#tileKey(col, row));
     }
     for (const { col, row } of mapData.groundCoverData ?? []) {
@@ -1297,7 +1288,7 @@ export class BuriedTreasureField {
   /**
    *
    * @param {number} deltaTime
-    * @type {(deltaTime: number) => void}
+   * @type {(deltaTime: number) => void}
    */
   #update = (deltaTime) => {
     const frameTime = Math.min(0.1, Math.max(0, deltaTime));
@@ -1633,5 +1624,23 @@ export class BuriedTreasureField {
    */
   #tileKey(col, row) {
     return `${row}:${col}`;
+  }
+
+  /**
+   *
+   * @param {{object: string}} options
+   * @param {string} options.object
+   */
+  static #filter({ object }) {
+    return object === "Vegetation";
+  }
+
+  /**
+   *
+   * @param {{object: string}} options
+   * @param {string} options.object
+   */
+  static #filter2({ object }) {
+    return object === "StoneCluster";
   }
 }

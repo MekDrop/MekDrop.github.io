@@ -28,67 +28,37 @@ export class GameCanvasCameraTestDriverPlugin {
        *
        * @param {number} zoom
        */
-      setZoom: (zoom) => {
-        const renderer = this.#context.renderer();
-        const container = this.#context.container();
-        renderer.setViewport({ zoom: 1 });
-        renderer.zoomTo(
-          zoom,
-          container.clientWidth / 2,
-          container.clientHeight / 2,
-        );
-
-        return this.#state();
-      },
+      setZoom: this.#setZoom.bind(this),
       /**
        *
        * @param {pc.Vec3} rotation
        */
-      setRotation: (rotation) => {
-        const renderer = this.#context.renderer();
-        renderer.setViewport({
-          ...renderer.viewport,
-          rotation,
-        });
-
-        return this.#state();
-      },
+      setRotation: this.#setRotation.bind(this),
       /**
        *
        * @param {number} deltaX
        * @param {number} deltaY
        */
-      panBy: (deltaX, deltaY) => {
-        this.#context.renderer().panBy(deltaX, deltaY);
-
-        return this.#state();
-      },
+      panBy: this.#panBy.bind(this),
       /**
        *
        * @param {number} yawDegrees
        * @param {number} pitchDegrees
        */
-      lookFirstPersonBy: (yawDegrees, pitchDegrees) => {
-        this.#context.renderer().lookFirstPersonBy(yawDegrees, pitchDegrees);
-
-        return this.#state();
-      },
+      lookFirstPersonBy: this.#lookFirstPersonBy.bind(this),
       /**
        *
        * @param {number} inputX
        * @param {number} inputY
        * @param {boolean} running
        */
-      moveHero: (inputX, inputY, running = false) =>
-        this.#context.renderer().hero?.setMovement(inputX, inputY, running),
-      returnToHero: () => this.#context.renderer().returnCameraToHero(),
+      moveHero: this.#moveHero.bind(this),
+      returnToHero: this.#returnToHero.bind(this),
       /**
        * @param {boolean} enabled
        */
-      firstPerson: (enabled) => { this.#context.renderer().firstPersonCameraEnabled = enabled;
-
- return this.#state(); },
-      state: () => this.#state(),
+      firstPerson: this.#firstPerson.bind(this),
+      state: this.#state2.bind(this),
     };
     this.#context.target.gameCameraTest = this.#driver;
   }
@@ -114,5 +84,83 @@ export class GameCanvasCameraTestDriverPlugin {
       viewport: renderer.viewport,
       visibility: renderer.mapVisibility,
     };
+  }
+
+  /**
+   *
+   * @param {number} zoom
+   */
+  #setZoom(zoom) {
+    const renderer = this.#context.renderer();
+    const container = this.#context.container();
+    renderer.setViewport({ zoom: 1 });
+    renderer.zoomTo(
+      zoom,
+      container.clientWidth / 2,
+      container.clientHeight / 2,
+    );
+
+    return this.#state();
+  }
+
+  /**
+   *
+   * @param {pc.Vec3} rotation
+   */
+  #setRotation(rotation) {
+    const renderer = this.#context.renderer();
+    renderer.setViewport({
+      ...renderer.viewport,
+      rotation,
+    });
+
+    return this.#state();
+  }
+
+  /**
+   *
+   * @param {number} deltaX
+   * @param {number} deltaY
+   */
+  #panBy(deltaX, deltaY) {
+    this.#context.renderer().panBy(deltaX, deltaY);
+
+    return this.#state();
+  }
+
+  /**
+   *
+   * @param {number} yawDegrees
+   * @param {number} pitchDegrees
+   */
+  #lookFirstPersonBy(yawDegrees, pitchDegrees) {
+    this.#context.renderer().lookFirstPersonBy(yawDegrees, pitchDegrees);
+
+    return this.#state();
+  }
+
+  /**
+   *
+   * @param {number} inputX
+   * @param {number} inputY
+   * @param {boolean} running
+   */
+  #moveHero(inputX, inputY, running = false) {
+    return this.#context.renderer().hero?.setMovement(inputX, inputY, running);
+  }
+
+  #returnToHero() {
+    return this.#context.renderer().returnCameraToHero();
+  }
+
+  /**
+   * @param {boolean} enabled
+   */
+  #firstPerson(enabled) { this.#context.renderer().firstPersonCameraEnabled = enabled;
+
+    return this.#state(); }
+
+  #state2() {
+    return this.#state();
   }
 }

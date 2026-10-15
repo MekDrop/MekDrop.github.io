@@ -9,7 +9,7 @@ import { TerraceServiceActions } from "./TerraceServiceActions.js";
 export class CastleTerraceActivity {
   /**
    *
-    * @returns {Array<string>}
+   * @returns {Array<string>}
    */
   static get modelUrls() {
     return [
@@ -20,67 +20,67 @@ export class CastleTerraceActivity {
 
   /**
    *
-    * @type {import("playcanvas").Entity}
+   * @type {import("playcanvas").Entity}
    */
   #entity;
   /**
    *
-    * @type {import("playcanvas").Entity}
+   * @type {import("playcanvas").Entity}
    */
   #stage;
   /**
    *
-    * @type {string}
+   * @type {string}
    */
   #kind;
   /**
    *
-    * @type {import("./RoyalTerraceActivityBehavior.js").RoyalTerraceActivityBehavior}
+   * @type {import("./RoyalTerraceActivityBehavior.js").RoyalTerraceActivityBehavior}
    */
   #royalBehavior;
   /**
    *
-    * @type {import("./TerraceServantBehavior.js").TerraceServantBehavior|null}
+   * @type {import("./TerraceServantBehavior.js").TerraceServantBehavior|null}
    */
   #servantBehavior;
   /**
    *
-    * @type {RoyalWishFulfillment}
+   * @type {RoyalWishFulfillment}
    */
   #wishFulfillment;
   /**
    *
-    * @type {import("./TerraceRoyalActions.js").TerraceRoyalActions}
+   * @type {import("./TerraceRoyalActions.js").TerraceRoyalActions}
    */
   #royalActions;
   /**
    *
-    * @type {TerraceServiceActions|null}
+   * @type {TerraceServiceActions|null}
    */
   #serviceActions;
   /**
    *
-    * @type {TerraceDoorActions}
+   * @type {TerraceDoorActions}
    */
   #doorActions;
   /**
    *
-    * @type {{x: number, y: number, z: number}}
+   * @type {{x: number, y: number, z: number}}
    */
   #position;
   /**
    *
-    * @type {Array<{side: string, offset: number, width: number, approachElevation?: number}>}
+   * @type {Array<{side: string, offset: number, width: number, approachElevation?: number}>}
    */
   #doors;
   /**
    *
-    * @type {boolean}
+   * @type {boolean}
    */
   #triggered = false;
   /**
    *
-    * @type {boolean}
+   * @type {boolean}
    */
   #stopped = false;
 
@@ -174,7 +174,7 @@ export class CastleTerraceActivity {
       navigation,
     });
     this.#servantMotion = servantParticipant.motion;
-    this.#royalBehavior.canComplete = () => ![PHASE.ROYAL_ENTER, PHASE.ROYAL_EXIT].includes(this.#royalBehavior.stagePhase) || this.#royalActions.arrived;
+    this.#royalBehavior.canComplete = this.#canComplete.bind(this);
     this.#servantBehavior =
       this.#kind === "king" ? null : servantParticipant.behavior;
     this.#serviceActions =
@@ -194,18 +194,18 @@ export class CastleTerraceActivity {
       scale,
       inspector: servantParticipant.inspector,
       motion: this.#servantMotion,
-      canInspect: () => !this.#stopped,
+      canInspect: this.#canInspect.bind(this),
       door,
     });
     const actionHandler = {
-      enter: () => this.#syncParticipantActions(),
-      update: () => this.#syncParticipantActions(),
-      exit: () => this.#syncParticipantActions(),
+      enter: this.#enter.bind(this),
+      update: this.#update.bind(this),
+      exit: this.#exit.bind(this),
     };
     this.#royalBehavior.actionHandler = actionHandler;
     if (this.#servantBehavior) {
       this.#servantBehavior.actionHandler = actionHandler;
-      this.#servantBehavior.canComplete = () => this.#serviceActions.arrived;
+      this.#servantBehavior.canComplete = this.#canComplete2.bind(this);
     }
     this.#syncParticipantActions();
   }
@@ -216,7 +216,7 @@ export class CastleTerraceActivity {
 
   /**
    *
-    * @returns {boolean}
+   * @returns {boolean}
    */
   get active() {
     return (
@@ -228,7 +228,7 @@ export class CastleTerraceActivity {
 
   /**
    *
-    * @returns {import("src/game/objects/ObjectTypes.js").TerraceActivityState}
+   * @returns {import("src/game/objects/ObjectTypes.js").TerraceActivityState}
    */
   get state() {
     const behavior = this.#activeBehavior;
@@ -385,7 +385,7 @@ export class CastleTerraceActivity {
 
   /**
    *
-    * @returns {number}
+   * @returns {number}
    */
   get #activeBehavior() {
     if (this.#royalBehavior.active) {
@@ -402,5 +402,31 @@ export class CastleTerraceActivity {
     if (this.#serviceActions && !this.#doorActions?.inspecting) {
       this.#serviceActions.sync(this.#servantBehavior, this.#royalBehavior);
     }
+  }
+
+  #canComplete() {
+    return (
+      ![PHASE.ROYAL_ENTER, PHASE.ROYAL_EXIT].includes(this.#royalBehavior.stagePhase) || this.#royalActions.arrived
+    );
+  }
+
+  #canInspect() {
+    return !this.#stopped;
+  }
+
+  #enter() {
+    return this.#syncParticipantActions();
+  }
+
+  #update() {
+    return this.#syncParticipantActions();
+  }
+
+  #exit() {
+    return this.#syncParticipantActions();
+  }
+
+  #canComplete2() {
+    return this.#serviceActions.arrived;
   }
 }

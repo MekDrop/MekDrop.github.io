@@ -114,41 +114,25 @@ export class GameControls {
      *
      * @type {Map}
      */
-    this.#keydownActions = new Map(
-      [
-        ...this.#entriesFor(keydownActionNames),
-        ...keydownActions.map(/**
-         *
-         * @param {{action: import("src/game/GameContracts.js").GameActionContract}} options
-         * @param {string|{value: string, modifiers?: string[]}} options.binding
-         * @param {import("src/game/GameContracts.js").GameActionContract} options.action
-         */
-          ({ binding, action }) => [binding, action]),
-      ],
-    );
+    this.#keydownActions = new Map([
+      ...this.#entriesFor(keydownActionNames),
+      ...keydownActions.map(GameControls.#map),
+    ]);
     /**
      *
      * @type {Map}
      */
-    this.#keyupActions = new Map(
-      [
-        ...this.#entriesFor([
-          "regenerateMap",
-          "run",
-          "moveUp",
-          "moveDown",
-          "moveLeft",
-          "moveRight",
-        ]),
-        ...keyupActions.map(/**
-         *
-         * @param {{action: import("src/game/GameContracts.js").GameActionContract}} options
-         * @param {string|{value: string, modifiers?: string[]}} options.binding
-         * @param {import("src/game/GameContracts.js").GameActionContract} options.action
-         */
-          ({ binding, action }) => [binding, action]),
-      ],
-    );
+    this.#keyupActions = new Map([
+      ...this.#entriesFor([
+        "regenerateMap",
+        "run",
+        "moveUp",
+        "moveDown",
+        "moveLeft",
+        "moveRight",
+      ]),
+      ...keyupActions.map(GameControls.#map2),
+    ]);
   }
 
   #config() {
@@ -160,11 +144,7 @@ export class GameControls {
    * @param {string[]} names
    */
   #entriesFor(names) {
-    return names.map(/**
-     *
-     * @param {string} name
-     */
-      (name) => [this.#config()[name], this.#actions[name]]);
+    return names.map(this.#mapName.bind(this));
   }
 
   connect() {
@@ -555,5 +535,33 @@ export class GameControls {
       (target.isContentEditable ||
         ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName))
     );
+  }
+
+  /**
+   *
+   * @param {{action: import("src/game/GameContracts.js").GameActionContract}} options
+   * @param {string|{value: string, modifiers?: string[]}} options.binding
+   * @param {import("src/game/GameContracts.js").GameActionContract} options.action
+   */
+  static #map({ binding, action }) {
+    return [binding, action];
+  }
+
+  /**
+   *
+   * @param {{action: import("src/game/GameContracts.js").GameActionContract}} options
+   * @param {string|{value: string, modifiers?: string[]}} options.binding
+   * @param {import("src/game/GameContracts.js").GameActionContract} options.action
+   */
+  static #map2({ binding, action }) {
+    return [binding, action];
+  }
+
+  /**
+   *
+   * @param {string} name
+   */
+  #mapName(name) {
+    return [this.#config()[name], this.#actions[name]];
   }
 }

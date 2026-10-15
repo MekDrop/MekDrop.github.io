@@ -27,12 +27,8 @@ export class VestibuleRoomMapObjects {
            */ candidate => candidate.role === "vestibuleProp" && candidate.object === "Rug" &&
             candidate.floorY === item.floorY && candidate.x === item.x && candidate.rotation === item.rotation);
           if (authored !== rugs[0]) { continue; }
-          const start = Math.min(...rugs.map(/**
-           * @param {import("../../../../generator/castle/rooms/AbstractCastleRoomGenerator.js").RoomItem} rug
-           */ rug => rug.z - rug.depth * rug.scale / 2));
-          const end = Math.max(...rugs.map(/**
-           * @param {import("../../../../generator/castle/rooms/AbstractCastleRoomGenerator.js").RoomItem} rug
-           */ rug => rug.z + rug.depth * rug.scale / 2));
+          const start = Math.min(...rugs.map(VestibuleRoomMapObjects.#mapRug));
+          const end = Math.max(...rugs.map(VestibuleRoomMapObjects.#mapRug2));
           item = {
             ...item,
             z: (start + end) / 2,
@@ -64,5 +60,19 @@ export class VestibuleRoomMapObjects {
         });
       }
     }
+  }
+
+  /**
+   * @param {import("../../../../generator/castle/rooms/AbstractCastleRoomGenerator.js").RoomItem} rug
+   */
+  static #mapRug(rug) {
+    return rug.z - rug.depth * rug.scale / 2;
+  }
+
+  /**
+   * @param {import("../../../../generator/castle/rooms/AbstractCastleRoomGenerator.js").RoomItem} rug
+   */
+  static #mapRug2(rug) {
+    return rug.z + rug.depth * rug.scale / 2;
   }
 }

@@ -1,27 +1,27 @@
 export class GroundCoverInteraction {
   /**
    *
-    * @type {number}
+   * @type {number}
    */
   #collectible;
   /**
    *
-    * @type {import("src/game/objects/ObjectTypes.js").HeroLike}
+   * @type {import("src/game/objects/ObjectTypes.js").HeroLike}
    */
   #hero;
   /**
    *
-    * @type {import("src/game/objects/hero/tools/HeroTool.js").HeroTool|null}
+   * @type {import("src/game/objects/hero/tools/HeroTool.js").HeroTool|null}
    */
   #tool;
   /**
    *
-    * @type {(value: import("src/game/objects/ObjectTypes.js").InteractionLike|null) => void}
+   * @type {(value: import("src/game/objects/ObjectTypes.js").InteractionLike|null) => void}
    */
   #onChange;
   /**
    *
-    * @type {() => void}
+   * @type {() => void}
    */
   #onComplete;
 
@@ -44,7 +44,7 @@ export class GroundCoverInteraction {
 
   /**
    *
-    * @returns {boolean}
+   * @returns {boolean}
    */
   get canInteract() {
     return (
@@ -56,7 +56,7 @@ export class GroundCoverInteraction {
 
   /**
    *
-    * @returns {import("src/game/objects/ObjectTypes.js").InteractionDescription}
+   * @returns {import("src/game/objects/ObjectTypes.js").InteractionDescription}
    */
   get description() {
     return this.#collectible.describe();
@@ -82,20 +82,21 @@ export class GroundCoverInteraction {
       return started;
     }
 
-    const started = this.#hero.collectGroundCover(
-      this.#collectible.category,
-      {
-        targetPosition: this.#collectible.position,
-        targetRadius: this.#collectible.interactionRadius,
-        tool: this.#tool,
-        heldItem: this.#collectible.createHeldItem(),
-        onImpact: () => this.#collectible.collect(),
-        onComplete: this.#onComplete,
-      },
-    );
+    const started = this.#hero.collectGroundCover(this.#collectible.category, {
+      targetPosition: this.#collectible.position,
+      targetRadius: this.#collectible.interactionRadius,
+      tool: this.#tool,
+      heldItem: this.#collectible.createHeldItem(),
+      onImpact: this.#onImpact.bind(this),
+      onComplete: this.#onComplete,
+    });
     if (started) {
       this.#onChange?.();
     }
     return started;
+  }
+
+  #onImpact() {
+    return this.#collectible.collect();
   }
 }

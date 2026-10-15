@@ -78,14 +78,13 @@ export class TerraceDoorInspection extends ServantStateMachine {
        * @param {import("../../states/servant/AbstractServantState.js").AbstractServantState} state
        * @param {{doorwayBusy: boolean}|null} context
        */
-      holdState: (state, context) =>
-        state.phase === PHASE.WAIT && context?.doorwayBusy,
+      holdState: TerraceDoorInspection.#holdState,
     });
   }
 
   /**
    *
-    * @returns {boolean}
+   * @returns {boolean}
    */
   get inspecting() {
     return this.active && this.phase !== PHASE.WAIT;
@@ -93,7 +92,7 @@ export class TerraceDoorInspection extends ServantStateMachine {
 
   /**
    *
-    * @returns {boolean}
+   * @returns {boolean}
    */
   get doorOpen() {
     return (
@@ -109,5 +108,14 @@ export class TerraceDoorInspection extends ServantStateMachine {
    */
   update(deltaTime, doorwayBusy = false) {
     super.update(deltaTime, { doorwayBusy });
+  }
+
+  /**
+   *
+   * @param {import("../../states/servant/AbstractServantState.js").AbstractServantState} state
+   * @param {{doorwayBusy: boolean}|null} context
+   */
+  static #holdState(state, context) {
+    return state.phase === PHASE.WAIT && context?.doorwayBusy;
   }
 }

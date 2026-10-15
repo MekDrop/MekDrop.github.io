@@ -144,15 +144,9 @@ export class MapPickupAnimationActors {
      * @type {pc.Entity}
      */
     this.#entity = new pc.Entity("Map pickup animation actors");
-    const tracks = modelLibrary.getAnimationTracks(
-      Hero.modelUrl,
-      [...new Set(definitions.map(/**
-       *
-       * @param {{animation: string}} options
-       * @param {string} options.animation
-       */
-        ({ animation }) => animation))],
-    );
+    const tracks = modelLibrary.getAnimationTracks(Hero.modelUrl, [
+      ...new Set(definitions.map(MapPickupAnimationActors.#map)),
+    ]);
 
     for (const [index, actor] of definitions.entries()) {
       const {
@@ -338,4 +332,13 @@ export class MapPickupAnimationActors {
       }
     }
   };
+
+  /**
+   *
+   * @param {{animation: string}} options
+   * @param {string} options.animation
+   */
+  static #map({ animation }) {
+    return animation;
+  }
 }

@@ -275,9 +275,11 @@ it("includes the exterior servant entrance stairs in aggregate navigation", () =
   const builder = new Builder({
     position: { elevation: 2 },
     cameraBlocks: [],
-    serviceStairs: { blocksMovementAt: (...args) => { calls.push(args);
+    serviceStairs: {
+      blocksMovementAt: (...args) => { calls.push(args);
 
- return true; } },
+        return true; },
+    },
   });
   assert.equal(builder.blocksMovementAt(1, 2, 0.22, 1.75, 0.32), true);
   assert.deepEqual(calls, [[1, 2, 0.22, 1.75, 0.32]]);
@@ -307,7 +309,7 @@ return class { ${method} };`)("stair-model");
   };
   const merged = () => { const entity = new Entity("Collider"); entity.meshInstances = [{ mesh: sourceMesh }];
 
- return entity; };
+    return entity; };
   const harness = new Harness();
   harness.entity = new Entity("Rooms");
   harness.entity.setLocalPosition(-0.5, 4, 2.375);

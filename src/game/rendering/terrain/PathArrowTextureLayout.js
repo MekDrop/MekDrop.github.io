@@ -12,22 +12,9 @@ export class PathArrowTextureLayout {
    */
   static markers(mapData) {
     const remaining = new Set(
-      [...(mapData.arrowData ?? new Map()).entries()].map(/**
-       *
-       * @param {[string, RouteArrow[]]} options
-       * @param {string} options."0"
-       * @param {RouteArrow[]} options."1"
-       */
-        ([key, arrows]) => {
-          const [col, row, elevation] = key.split(",").map(Number);
-
-          return {
-            col,
-            row,
-            elevation,
-            arrows,
-          };
-        }),
+      [...(mapData.arrowData ?? new Map()).entries()].map(
+        PathArrowTextureLayout.#map,
+      ),
     );
     const result = [];
     while (remaining.size) {
@@ -48,43 +35,15 @@ export class PathArrowTextureLayout {
           group.push(candidate);
         }
       }
-      const arrows = group.flatMap(/**
-       *
-       * @param {RouteMarker} marker
-       */
-        (marker) => marker.arrows);
-      const directions = arrows.filter(/**
-       *
-       * @param {RouteArrow} arrow
-       */
-        (arrow) => Math.hypot(arrow.dc, arrow.dr) > 0)
-        .map(/**
-         *
-         * @param {RouteArrow} arrow
-         */
-          (arrow) => {
-            const length = Math.hypot(arrow.dc, arrow.dr);
-
-            return {
-              dx: arrow.dc / length,
-              dz: arrow.dr / length,
-            };
-          });
+      const arrows = group.flatMap(PathArrowTextureLayout.#flatMapMarker);
+      const directions = arrows
+        .filter(PathArrowTextureLayout.#filterArrow)
+        .map(PathArrowTextureLayout.#mapArrow);
       if (!directions.length || !mapData.entries.length) {
         continue;
       }
-      let dx = directions.reduce(/**
-       *
-       * @param {number} sum
-       * @param {{dx: number, dz: number}} direction
-       */
-        (sum, direction) => sum + direction.dx, 0);
-      let dz = directions.reduce(/**
-       *
-       * @param {number} sum
-       * @param {{dx: number, dz: number}} direction
-       */
-        (sum, direction) => sum + direction.dz, 0);
+      let dx = directions.reduce(PathArrowTextureLayout.#reduceSum, 0);
+      let dz = directions.reduce(PathArrowTextureLayout.#reduceSum2, 0);
       const length = Math.hypot(dx, dz);
       if (length < 0.001) {
         ({ dx, dz } = directions[0]);
@@ -93,18 +52,8 @@ export class PathArrowTextureLayout {
         dz /= length;
       }
       result.push({
-        col: group.reduce(/**
-         *
-         * @param {number} sum
-         * @param {RouteMarker} marker
-         */
-          (sum, marker) => sum + marker.col, 0) / group.length,
-        row: group.reduce(/**
-         *
-         * @param {number} sum
-         * @param {RouteMarker} marker
-         */
-          (sum, marker) => sum + marker.row, 0) / group.length,
+        col: group.reduce(PathArrowTextureLayout.#reduceSum3, 0) / group.length,
+        row: group.reduce(PathArrowTextureLayout.#reduceSum4, 0) / group.length,
         elevation: Math.max(...group.map(/**
          *
          * @param {RouteMarker} marker
@@ -113,12 +62,11 @@ export class PathArrowTextureLayout {
             ? marker.elevation : mapData.heightmap[Math.round(marker.row)]?.[Math.round(marker.col)] ?? 0)),
         dx,
         dz,
-        pitch: arrows.reduce(/**
-         *
-         * @param {number} sum
-         * @param {RouteArrow} arrow
-         */
-          (sum, arrow) => sum + (arrow.surfacePitch ?? 0), 0) / arrows.length * Math.PI / 180,
+        pitch:
+          ((arrows.reduce(PathArrowTextureLayout.#reduceSum5, 0) /
+            arrows.length) *
+            Math.PI) /
+          180,
         palette: arrows.reduce(/**
          *
          * @param {number} mask
@@ -146,5 +94,96 @@ export class PathArrowTextureLayout {
       }
     }
     return result;
+  }
+
+  /**
+   *
+   * @param {[string, RouteArrow[]]} options
+   * @param {string} options."0"
+   * @param {RouteArrow[]} options."1"
+   */
+  static #map([key, arrows]) {
+    const [col, row, elevation] = key.split(",").map(Number);
+
+    return {
+      col,
+      row,
+      elevation,
+      arrows,
+    };
+  }
+
+  /**
+   *
+   * @param {RouteMarker} marker
+   */
+  static #flatMapMarker(marker) {
+    return marker.arrows;
+  }
+
+  /**
+   *
+   * @param {RouteArrow} arrow
+   */
+  static #filterArrow(arrow) {
+    return Math.hypot(arrow.dc, arrow.dr) > 0;
+  }
+
+  /**
+   *
+   * @param {RouteArrow} arrow
+   */
+  static #mapArrow(arrow) {
+    const length = Math.hypot(arrow.dc, arrow.dr);
+
+    return {
+      dx: arrow.dc / length,
+      dz: arrow.dr / length,
+    };
+  }
+
+  /**
+   *
+   * @param {number} sum
+   * @param {{dx: number, dz: number}} direction
+   */
+  static #reduceSum(sum, direction) {
+    return sum + direction.dx;
+  }
+
+  /**
+   *
+   * @param {number} sum
+   * @param {{dx: number, dz: number}} direction
+   */
+  static #reduceSum2(sum, direction) {
+    return sum + direction.dz;
+  }
+
+  /**
+   *
+   * @param {number} sum
+   * @param {RouteMarker} marker
+   */
+  static #reduceSum3(sum, marker) {
+    return sum + marker.col;
+  }
+
+  /**
+   *
+   * @param {number} sum
+   * @param {RouteMarker} marker
+   */
+  static #reduceSum4(sum, marker) {
+    return sum + marker.row;
+  }
+
+  /**
+   *
+   * @param {number} sum
+   * @param {RouteArrow} arrow
+   */
+  static #reduceSum5(sum, arrow) {
+    return sum + (arrow.surfacePitch ?? 0);
   }
 }

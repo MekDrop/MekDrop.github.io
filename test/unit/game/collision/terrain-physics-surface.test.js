@@ -7,7 +7,7 @@ import {TerrainPhysicsSurface} from '../../../../src/game/collision/TerrainPhysi
 
 const area = polygons => polygons.reduce((sum,p)=>sum+Math.abs(p.reduce((value,a,i)=>{const b=p[(i+1)%p.length];
 
-return value+a[0]*b[2]-b[0]*a[2];},0))/2,0);
+  return value+a[0]*b[2]-b[0]*a[2];},0))/2,0);
 it('subtracts a partial excavation while retaining the sloped surface plane',()=>{
   const polygon=[[0,2,0],[2,4,0],[2,4,2],[0,2,2]];
   const result=subtractTerrainCutouts(polygon,[{

@@ -166,11 +166,7 @@ export class HeroVisibilityController {
 
     const elapsed = performance.now() - this.#lastCheckTime;
     const delay = Math.max(0, CHECK_INTERVAL - elapsed);
-    this.#timer = window.setTimeout(() => {
-      this.#timer = null;
-      this.#checkPending = false;
-      void this.#keepVisible();
-    }, delay);
+    this.#timer = window.setTimeout(this.#setTimeout.bind(this), delay);
   }
 
   destroy() {
@@ -299,11 +295,7 @@ export class HeroVisibilityController {
       if (generation !== this.#generation) {
         return null;
       }
-      return selection.some(/**
-       *
-       * @param {import("src/game/GameContracts.js").GameObjectContract} item
-       */
-        (item) => this.#belongsToHero(item?.node));
+      return selection.some(this.#someItem.bind(this));
     } catch {
       return null;
     }
@@ -337,5 +329,19 @@ export class HeroVisibilityController {
     } catch {
       return false;
     }
+  }
+
+  #setTimeout() {
+    this.#timer = null;
+    this.#checkPending = false;
+    void this.#keepVisible();
+  }
+
+  /**
+   *
+   * @param {import("src/game/GameContracts.js").GameObjectContract} item
+   */
+  #someItem(item) {
+    return this.#belongsToHero(item?.node);
   }
 }

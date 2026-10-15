@@ -6,97 +6,97 @@ const DAMAGE_ROW_PATTERN = /^Voxel damage row (\d+)/;
 export class DestructibleVegetation {
   /**
    *
-    * @type {import("playcanvas").Entity}
+   * @type {import("playcanvas").Entity}
    */
   #entity;
   /**
    *
-    * @type {string}
+   * @type {string}
    */
   #id;
   /**
    *
-    * @type {string}
+   * @type {string}
    */
   #variant;
   /**
    *
-    * @type {string}
+   * @type {string}
    */
   #kind;
   /**
    *
-    * @type {number}
+   * @type {number}
    */
   #health;
   /**
    *
-    * @type {number}
+   * @type {number}
    */
   #maxHealth;
   /**
    *
-    * @type {number}
+   * @type {number}
    */
   #damageStage = 0;
   /**
    *
-    * @type {boolean}
+   * @type {boolean}
    */
   #destroyed = false;
   /**
    *
-    * @type {Array<{y: number, cells: Array<[number, number]>}>}
+   * @type {Array<{y: number, cells: Array<[number, number]>}>}
    */
   #damageRows;
   /**
    *
-    * @type {{x: number, y: number, z: number}}
+   * @type {{x: number, y: number, z: number}}
    */
   #origin;
   /**
    *
-    * @type {number}
+   * @type {number}
    */
   #interactionHeight;
   /**
    *
-    * @type {number}
+   * @type {number}
    */
   #collisionVoxels;
   /**
    *
-    * @type {Map<number, number>}
+   * @type {Map<number, number>}
    */
   #damageStageByRow;
   /**
    *
-    * @type {number}
+   * @type {number}
    */
   #voxelSize;
   /**
    *
-    * @type {typeof import("playcanvas")}
+   * @type {typeof import("playcanvas")}
    */
   #pc;
   /**
    *
-    * @type {import("playcanvas").Entity|null}
+   * @type {import("playcanvas").Entity|null}
    */
   #physicsCollider = null;
   /**
    *
-    * @type {Array<{x: number, z: number, radius: number}>}
+   * @type {Array<{x: number, z: number, radius: number}>}
    */
   #collisionFootprints = [];
   /**
    *
-    * @type {Array<{x: number, z: number, radius: number}>}
+   * @type {Array<{x: number, z: number, radius: number}>}
    */
   #grassFootprints = [];
   /**
    *
-    * @type {number}
+   * @type {number}
    */
   #rotationRadians;
 
@@ -132,7 +132,6 @@ export class DestructibleVegetation {
     z,
     rotation = 0,
   }) {
-
     this.#pc = pc;
 
     this.#id = id;
@@ -156,49 +155,16 @@ export class DestructibleVegetation {
 
     this.#damageRows = this.#findDamageRows();
 
-    this.#collisionVoxels = collisionRows.flatMap(/**
-     *
-     * @param {{y: number, cells: number}} options
-     * @param {number} options.y
-     * @param {number} options.cells
-     */
-      ({ y: row, cells }) =>
-        cells.map(/**
-       *
-       * @param {Array<number>} options
-       * @param {number} options."0"
-       * @param {number} options."1"
-       */
-          ([x, z]) => ({
-            x,
-            y: row,
-            z,
-          })),
+    this.#collisionVoxels = collisionRows.flatMap(
+      DestructibleVegetation.#flatMap,
     );
 
     this.#voxelSize = voxelSize;
-    const rows = [...new Set(collisionRows.map(/**
-     *
-     * @param {{y: number}} options
-     * @param {number} options.y
-     */
-      ({ y: row }) => row))].sort(
-      /**
-       *
-       * @param {boolean} left
-       * @param {number} right
-       */
-      (left, right) => right - left,
-    );
+    const rows = [
+      ...new Set(collisionRows.map(DestructibleVegetation.#map)),
+    ].sort(DestructibleVegetation.#sortLeft);
 
-    this.#damageStageByRow = new Map(
-      rows.map(/**
-       *
-       * @param {number} row
-       * @param {number} index
-       */
-        (row, index) => [row, index + 1]),
-    );
+    this.#damageStageByRow = new Map(rows.map(DestructibleVegetation.#mapRow));
 
     this.#interactionHeight = (Math.max(...rows) + 1) * voxelSize;
 
@@ -222,7 +188,7 @@ export class DestructibleVegetation {
 
   /**
    *
-    * @returns {boolean}
+   * @returns {boolean}
    */
   get canInteract() {
     return !this.#destroyed;
@@ -255,13 +221,9 @@ export class DestructibleVegetation {
     this.#health -= 1;
     if (this.#health <= 0) {
       const description = this.describe();
-      const groundFootprint = this.#grassFootprints.map(/**
-       *
-       * @param {import("src/game/objects/ObjectTypes.js").HeroFootRig} footprint
-       */
-        (footprint) => ({
-          ...footprint,
-        }));
+      const groundFootprint = this.#grassFootprints.map(
+        DestructibleVegetation.#mapFootprint,
+      );
       this.#destroyed = true;
       this.#physicsCollider = null;
       this.#entity.destroy();
@@ -276,13 +238,7 @@ export class DestructibleVegetation {
     const cutsTaken = this.#maxHealth - this.#health;
     this.#damageStage = cutsTaken;
     this.#applyCollisionState();
-    this.#damageRows.get(this.#damageStage)?.forEach(/**
-     *
-     * @param {number} rowPart
-     */
-      (rowPart) => {
-        rowPart.enabled = false;
-      });
+    this.#damageRows.get(this.#damageStage)?.forEach(DestructibleVegetation.#forEachRowPart);
 
     return {
       ...this.describe(),
@@ -493,12 +449,7 @@ export class DestructibleVegetation {
 
   #applyCollisionState() {
     const remainingVoxels = this.#collisionVoxels.filter(
-      /**
-       *
-       * @param {{x: number, y: number, z: number}} voxel
-       */
-      (voxel) =>
-        this.#damageStageByRow.get(voxel.y) > this.#damageStage,
+      this.#filterVoxel.bind(this),
     );
     if (!remainingVoxels.length) {
       this.#destroyPhysicsCollider();
@@ -509,43 +460,12 @@ export class DestructibleVegetation {
     }
 
     this.#grassFootprints = remainingVoxels
-      .filter(/**
-       *
-       * @param {{y: number}} options
-       * @param {number} options.y
-       */
-        ({ y }) => y === 0)
-      .map(/**
-       *
-       * @param {{x: number, z: number}} options
-       * @param {number} options.x
-       * @param {number} options.z
-       */
-        ({ x, z }) => ({
-          x: x * this.#voxelSize,
-          z: z * this.#voxelSize,
-          width: this.#voxelSize,
-          depth: this.#voxelSize,
-        }));
+      .filter(DestructibleVegetation.#filter)
+      .map(this.#map2.bind(this));
 
-    const xValues = remainingVoxels.map(/**
-     *
-     * @param {{x: number}} options
-     * @param {number} options.x
-     */
-      ({ x }) => x);
-    const yValues = remainingVoxels.map(/**
-     *
-     * @param {{y: number}} options
-     * @param {number} options.y
-     */
-      ({ y }) => y);
-    const zValues = remainingVoxels.map(/**
-     *
-     * @param {{z: number}} options
-     * @param {number} options.z
-     */
-      ({ z }) => z);
+    const xValues = remainingVoxels.map(DestructibleVegetation.#map3);
+    const yValues = remainingVoxels.map(DestructibleVegetation.#map4);
+    const zValues = remainingVoxels.map(DestructibleVegetation.#map5);
     const minimumX = Math.min(...xValues);
     const maximumX = Math.max(...xValues);
     const maximumY = Math.max(...yValues);
@@ -575,18 +495,9 @@ export class DestructibleVegetation {
       return;
     }
     const physicsName = this.#kind === "tree" ? "Tree" : "Bush";
-    const physicsVoxels = mergeCollisionVoxels(voxels).map(/**
-     *
-     * @param {import("../shared/MergeCollisionVoxels.js").CollisionBox} voxel
-     */
-      (voxel) => ({
-        x: (voxel.x + (voxel.width - 1) / 2) * this.#voxelSize,
-        y: (voxel.y + voxel.height / 2) * this.#voxelSize,
-        z: (voxel.z + (voxel.depth - 1) / 2) * this.#voxelSize,
-        width: voxel.width * this.#voxelSize,
-        height: voxel.height * this.#voxelSize,
-        depth: voxel.depth * this.#voxelSize,
-      }));
+    const physicsVoxels = mergeCollisionVoxels(voxels).map(
+      this.#mapVoxel.bind(this),
+    );
     this.#physicsCollider = addGeneratedVoxelPhysics({
       pc: this.#pc,
       parent: this.#entity,
@@ -652,5 +563,144 @@ export class DestructibleVegetation {
     }
 
     return groups;
+  }
+
+  /**
+   *
+   * @param {{y: number, cells: number}} options
+   * @param {number} options.y
+   * @param {number} options.cells
+   */
+  static #flatMap({ y: row, cells }) {
+    return cells.map(/**
+       *
+       * @param {Array<number>} options
+       * @param {number} options."0"
+       * @param {number} options."1"
+       */
+      ([x, z]) => ({
+        x,
+        y: row,
+        z,
+      }));
+  }
+
+  /**
+   *
+   * @param {{y: number}} options
+   * @param {number} options.y
+   */
+  static #map({ y: row }) {
+    return row;
+  }
+
+  /**
+   *
+   * @param {boolean} left
+   * @param {number} right
+   */
+  static #sortLeft(left, right) {
+    return right - left;
+  }
+
+  /**
+   *
+   * @param {number} row
+   * @param {number} index
+   */
+  static #mapRow(row, index) {
+    return [row, index + 1];
+  }
+
+  /**
+   *
+   * @param {import("src/game/objects/ObjectTypes.js").HeroFootRig} footprint
+   */
+  static #mapFootprint(footprint) {
+    return {
+      ...footprint,
+    };
+  }
+
+  /**
+   *
+   * @param {number} rowPart
+   */
+  static #forEachRowPart(rowPart) {
+    rowPart.enabled = false;
+  }
+
+  /**
+   *
+   * @param {{x: number, y: number, z: number}} voxel
+   */
+  #filterVoxel(voxel) {
+    return this.#damageStageByRow.get(voxel.y) > this.#damageStage;
+  }
+
+  /**
+   *
+   * @param {{y: number}} options
+   * @param {number} options.y
+   */
+  static #filter({ y }) {
+    return y === 0;
+  }
+
+  /**
+   *
+   * @param {{x: number, z: number}} options
+   * @param {number} options.x
+   * @param {number} options.z
+   */
+  #map2({ x, z }) {
+    return {
+      x: x * this.#voxelSize,
+      z: z * this.#voxelSize,
+      width: this.#voxelSize,
+      depth: this.#voxelSize,
+    };
+  }
+
+  /**
+   *
+   * @param {{x: number}} options
+   * @param {number} options.x
+   */
+  static #map3({ x }) {
+    return x;
+  }
+
+  /**
+   *
+   * @param {{y: number}} options
+   * @param {number} options.y
+   */
+  static #map4({ y }) {
+    return y;
+  }
+
+  /**
+   *
+   * @param {{z: number}} options
+   * @param {number} options.z
+   */
+  static #map5({ z }) {
+    return z;
+  }
+
+  /**
+   *
+   * @param {import("../shared/MergeCollisionVoxels.js").CollisionBox} voxel
+   */
+  #mapVoxel(voxel) {
+    return {
+      x: (voxel.x + (voxel.width - 1) / 2) * this.#voxelSize,
+      y: (voxel.y + voxel.height / 2) * this.#voxelSize,
+      z: (voxel.z + (voxel.depth - 1) / 2) * this.#voxelSize,
+      width: voxel.width * this.#voxelSize,
+      height: voxel.height * this.#voxelSize,
+      depth: voxel.depth * this.#voxelSize,
+    };
   }
 }

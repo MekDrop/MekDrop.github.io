@@ -30,16 +30,30 @@ export class SurfaceContactProviders {
    * @returns {Array<{x: number, y: number, z: number, radius: number}>}
    */
   get contacts() {
-    if (this.#objects.revision === undefined || this.#revision !== this.#objects.revision) {
+    if (
+      this.#objects.revision === undefined || this.#revision !== this.#objects.revision
+    ) {
       this.#revision = this.#objects.revision;
-      this.#providers = [...this.#objects].filter(/**
-       * @param {import("../../GameContracts.js").GameObjectContract} object
-       */
-        (object) => object && "grassSurfaceContacts" in object);
+      this.#providers = [...this.#objects].filter(
+        SurfaceContactProviders.#filterObject,
+      );
     }
-    return [...new Set([...this.#providers, ...this.#getAdditional()])].flatMap(/**
-     * @param {import("../../GameContracts.js").GameObjectContract} object
-     */
-      (object) => object?.grassSurfaceContacts ?? []);
+    return [...new Set([...this.#providers, ...this.#getAdditional()])].flatMap(
+      SurfaceContactProviders.#flatMapObject,
+    );
+  }
+
+  /**
+   * @param {import("../../GameContracts.js").GameObjectContract} object
+   */
+  static #filterObject(object) {
+    return object && "grassSurfaceContacts" in object;
+  }
+
+  /**
+   * @param {import("../../GameContracts.js").GameObjectContract} object
+   */
+  static #flatMapObject(object) {
+    return object?.grassSurfaceContacts ?? [];
   }
 }

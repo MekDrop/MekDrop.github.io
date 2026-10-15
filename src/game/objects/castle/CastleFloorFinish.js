@@ -42,11 +42,7 @@ export class CastleFloorFinish {
    * @returns {number[][]}
    */
   static merge(rectangles) {
-    const result = rectangles.map(/**
-     *
-     * @param {number[]} rectangle
-     */
-      (rectangle) => rectangle.slice(0, 4));
+    const result = rectangles.map(CastleFloorFinish.#mapRectangle);
     let changed = true;
     while (changed) {
       changed = false;
@@ -68,5 +64,13 @@ export class CastleFloorFinish {
     }
 
     return result;
+  }
+
+  /**
+   *
+   * @param {number[]} rectangle
+   */
+  static #mapRectangle(rectangle) {
+    return rectangle.slice(0, 4);
   }
 }

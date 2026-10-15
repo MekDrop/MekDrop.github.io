@@ -10,42 +10,42 @@ const SOLID_FADE_END = 0.82;
 export class HeroRespawnEffect {
   /**
    *
-    * @type {typeof import("playcanvas")}
+   * @type {typeof import("playcanvas")}
    */
   #pc;
   /**
    *
-    * @type {import("playcanvas").Entity}
+   * @type {import("playcanvas").Entity}
    */
   #modelRoot;
   /**
    *
-    * @type {import("playcanvas").Entity}
+   * @type {import("playcanvas").Entity}
    */
   #outlineRoot;
   /**
    *
-    * @type {number}
+   * @type {number}
    */
   #contourMaterial;
   /**
    *
-    * @type {Array<{meshInstance: import("playcanvas").MeshInstance, fadeMaterial: import("playcanvas").Material}>}
+   * @type {Array<{meshInstance: import("playcanvas").MeshInstance, fadeMaterial: import("playcanvas").Material}>}
    */
   #solidMeshes = [];
   /**
    *
-    * @type {Map}
+   * @type {Map}
    */
   #fadeMaterials = new Map();
   /**
    *
-    * @type {string}
+   * @type {string}
    */
   #modelScale;
   /**
    *
-    * @type {typeof import("playcanvas")}
+   * @type {typeof import("playcanvas")}
    */
   #startHeight;
 
@@ -213,44 +213,11 @@ export class HeroRespawnEffect {
   }
 
   #collectSolidMeshes() {
-    this.#forEachMesh(this.#modelRoot, /**
-     *
-     * @param {import("playcanvas").MeshInstance} meshInstance
-     */
-      (meshInstance) => {
-        const originalMaterial = meshInstance.material;
-        let fadeMaterial = this.#fadeMaterials.get(originalMaterial);
-        if (!fadeMaterial) {
-          fadeMaterial = originalMaterial.clone();
-          fadeMaterial.name = `${originalMaterial.name} respawn fade`;
-          fadeMaterial.blendType = this.#pc.BLEND_NORMAL;
-          fadeMaterial.depthWrite = false;
-          fadeMaterial.opacity = 0;
-          fadeMaterial.update();
-          this.#fadeMaterials.set(originalMaterial, fadeMaterial);
-        }
-        this.#solidMeshes.push({
-          meshInstance,
-          originalMaterial,
-          fadeMaterial,
-          castShadow: meshInstance.castShadow,
-          receiveShadow: meshInstance.receiveShadow,
-        });
-      });
+    this.#forEachMesh(this.#modelRoot, this.#forEachMesh2.bind(this));
   }
 
   #configureOutlineMeshes() {
-    this.#forEachMesh(this.#outlineRoot, /**
-     *
-     * @param {import("playcanvas").MeshInstance} meshInstance
-     */
-      (meshInstance) => {
-        meshInstance.material = this.#contourMaterial;
-        meshInstance.renderStyle = this.#pc.RENDERSTYLE_WIREFRAME;
-        meshInstance.castShadow = false;
-        meshInstance.receiveShadow = false;
-        meshInstance.pick = false;
-      });
+    this.#forEachMesh(this.#outlineRoot, this.#forEachMesh3.bind(this));
   }
 
   /**
@@ -291,5 +258,42 @@ export class HeroRespawnEffect {
    */
   #smoothStep(value) {
     return value * value * (3 - 2 * value);
+  }
+
+  /**
+   *
+   * @param {import("playcanvas").MeshInstance} meshInstance
+   */
+  #forEachMesh2(meshInstance) {
+    const originalMaterial = meshInstance.material;
+    let fadeMaterial = this.#fadeMaterials.get(originalMaterial);
+    if (!fadeMaterial) {
+      fadeMaterial = originalMaterial.clone();
+      fadeMaterial.name = `${originalMaterial.name} respawn fade`;
+      fadeMaterial.blendType = this.#pc.BLEND_NORMAL;
+      fadeMaterial.depthWrite = false;
+      fadeMaterial.opacity = 0;
+      fadeMaterial.update();
+      this.#fadeMaterials.set(originalMaterial, fadeMaterial);
+    }
+    this.#solidMeshes.push({
+      meshInstance,
+      originalMaterial,
+      fadeMaterial,
+      castShadow: meshInstance.castShadow,
+      receiveShadow: meshInstance.receiveShadow,
+    });
+  }
+
+  /**
+   *
+   * @param {import("playcanvas").MeshInstance} meshInstance
+   */
+  #forEachMesh3(meshInstance) {
+    meshInstance.material = this.#contourMaterial;
+    meshInstance.renderStyle = this.#pc.RENDERSTYLE_WIREFRAME;
+    meshInstance.castShadow = false;
+    meshInstance.receiveShadow = false;
+    meshInstance.pick = false;
   }
 }

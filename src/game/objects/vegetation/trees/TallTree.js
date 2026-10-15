@@ -4,22 +4,22 @@ import { Tree } from "../Tree.js";
 export class TallTree extends Tree {
   /**
    *
-    * @type {string}
+   * @type {string}
    */
   static modelUrl = tallTreeModelUrl;
   /**
    *
-    * @type {number}
+   * @type {number}
    */
   static rowCount = 7;
   /**
    *
-    * @type {number}
+   * @type {number}
    */
   static cutsRequired = TallTree.rowCount;
   /**
    *
-    * @type {number}
+   * @type {number}
    */
   static collisionRows = Object.freeze([
     {
@@ -52,15 +52,7 @@ export class TallTree extends Tree {
     },
     {
       y: 5,
-      cells: [-1, 0, 1].flatMap(/**
-       *
-       * @param {number} x
-       */
-        (x) => [0, 1].map(/**
-       *
-       * @param {number} z
-       */
-          (z) => [x, z])),
+      cells: [-1, 0, 1].flatMap(TallTree.#flatMapX),
     },
     {
       y: 6,
@@ -80,5 +72,17 @@ export class TallTree extends Tree {
       cutsRequired: TallTree.cutsRequired,
       collisionRows: TallTree.collisionRows,
     });
+  }
+
+  /**
+   *
+   * @param {number} x
+   */
+  static #flatMapX(x) {
+    return [0, 1].map(/**
+       *
+       * @param {number} z
+       */
+      (z) => [x, z]);
   }
 }

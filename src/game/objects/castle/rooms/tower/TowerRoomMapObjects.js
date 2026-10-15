@@ -10,14 +10,8 @@ export class TowerRoomMapObjects {
    */
   static prepareMap(mapData) {
     const objects = mapData.objects ?? [];
-    const castles = objects.filter(/**
-                                    * @param {import("../../../ObjectTypes.js").MapObjectDefinition} definition
-                                    */
-      (definition) => definition.object === "Castle");
-    const prefixes = castles.map(/**
-                                  * @param {import("../../../ObjectTypes.js").MapObjectDefinition} castle
-                                  */
-      (castle) => `${castle.id}-tower-furnishing-`);
+    const castles = objects.filter(TowerRoomMapObjects.#filterDefinition);
+    const prefixes = castles.map(TowerRoomMapObjects.#mapCastle);
     mapData.objects = objects.filter(/**
                                       * @param {import("../../../ObjectTypes.js").MapObjectDefinition} definition
                                       */
@@ -57,5 +51,19 @@ export class TowerRoomMapObjects {
         });
       }
     }
+  }
+
+  /**
+   * @param {import("../../../ObjectTypes.js").MapObjectDefinition} definition
+   */
+  static #filterDefinition(definition) {
+    return definition.object === "Castle";
+  }
+
+  /**
+   * @param {import("../../../ObjectTypes.js").MapObjectDefinition} castle
+   */
+  static #mapCastle(castle) {
+    return `${castle.id}-tower-furnishing-`;
   }
 }

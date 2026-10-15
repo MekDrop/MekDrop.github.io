@@ -123,17 +123,7 @@ export class TerrainBlockLayout {
     }
     const processedBridgeCells = new Set();
     const riverCells = new Map(
-      (this.#mapData.riverData ?? []).flatMap(/**
-       *
-       * @param {{kind: string, cells: import("src/game/GameContracts.js").GridPoint[]}} river
-       */
-        (river) =>
-          river.cells.map(/**
-         *
-         * @param {import("src/game/GameContracts.js").GridPoint} cell
-         */
-            (cell) => [`${cell.col},${cell.row}`, cell]),
-      ),
+      (this.#mapData.riverData ?? []).flatMap(TerrainBlockLayout.#flatMapRiver),
     );
     for (let row = 0; row < rows; row += 1) {
       for (let col = 0; col < cols; col += 1) {
@@ -636,5 +626,21 @@ export class TerrainBlockLayout {
       return "none";
     }
     return "full";
+  }
+
+  /**
+   *
+   * @param {{kind: string, cells: import("src/game/GameContracts.js").GridPoint[]}} river
+   */
+  static #flatMapRiver(river) {
+    return river.cells.map(TerrainBlockLayout.#mapCell);
+  }
+
+  /**
+   *
+   * @param {import("src/game/GameContracts.js").GridPoint} cell
+   */
+  static #mapCell(cell) {
+    return [`${cell.col},${cell.row}`, cell];
   }
 }

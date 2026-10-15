@@ -41,7 +41,7 @@ class FakeQuat {
     w,
   });
 
- return this; }
+  return this; }
   setFromEulerAngles() {
     return this;
   }

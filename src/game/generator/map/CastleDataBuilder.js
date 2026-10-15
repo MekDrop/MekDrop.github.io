@@ -50,23 +50,9 @@ export class CastleDataBuilder {
             (verticalSide ? run[0].row : run[0].col) -
             (verticalSide ? layout.castleTop : layout.castleLeft),
           width: run.length,
-          cells: run.map(/**
-           *
-           * @param {MapCell} cell
-           */
-            (cell) => ({ ...cell })),
-          centerCol: run.reduce(/**
-           *
-           * @param {number} sum
-           * @param {MapCell} cell
-           */
-            (sum, cell) => sum + cell.col, 0) / run.length,
-          centerRow: run.reduce(/**
-           *
-           * @param {number} sum
-           * @param {MapCell} cell
-           */
-            (sum, cell) => sum + cell.row, 0) / run.length,
+          cells: run.map(CastleDataBuilder.#mapCell),
+          centerCol: run.reduce(CastleDataBuilder.#reduceSum, 0) / run.length,
+          centerRow: run.reduce(CastleDataBuilder.#reduceSum2, 0) / run.length,
           inwardDirection,
         });
         run = [];
@@ -176,5 +162,31 @@ export class CastleDataBuilder {
       seed: layout.castleSeed,
       doors,
     };
+  }
+
+  /**
+   *
+   * @param {MapCell} cell
+   */
+  static #mapCell(cell) {
+    return { ...cell };
+  }
+
+  /**
+   *
+   * @param {number} sum
+   * @param {MapCell} cell
+   */
+  static #reduceSum(sum, cell) {
+    return sum + cell.col;
+  }
+
+  /**
+   *
+   * @param {number} sum
+   * @param {MapCell} cell
+   */
+  static #reduceSum2(sum, cell) {
+    return sum + cell.row;
   }
 }

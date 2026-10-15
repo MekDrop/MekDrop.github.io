@@ -7,17 +7,17 @@ const MIN_FILL_DEPTH = 0.01;
 export class MeshShatter {
   /**
    *
-    * @type {typeof import("playcanvas")}
+   * @type {typeof import("playcanvas")}
    */
   #pc;
   /**
    *
-    * @type {import("playcanvas").Application}
+   * @type {import("playcanvas").Application}
    */
   #app;
   /**
    *
-    * @type {string}
+   * @type {string}
    */
   #modelLibrary;
 
@@ -115,7 +115,7 @@ export class MeshShatter {
       shardCount,
       random,
     );
-    const clusters = Array.from({ length: shardCount }, () => []);
+    const clusters = Array.from({ length: shardCount }, MeshShatter.#from);
 
     centroids.forEach(/**
      *
@@ -140,24 +140,19 @@ export class MeshShatter {
         clusters[closestCluster].push(triangleIndex);
       });
 
-    return clusters
-      .filter(/**
+    return clusters.filter(MeshShatter.#filterCluster).map(
+      /**
        *
        * @param {number} cluster
        */
-        (cluster) => cluster.length)
-      .map(/**
-       *
-       * @param {number} cluster
-       */
-        (cluster) =>
-          this.#createPiece({
-            geometry,
-            triangleIndices: cluster,
-            material: meshInstance.material,
-            scale,
-          }),
-      );
+      (cluster) =>
+        this.#createPiece({
+          geometry,
+          triangleIndices: cluster,
+          material: meshInstance.material,
+          scale,
+        }),
+    );
   }
 
   /**
@@ -580,5 +575,17 @@ export class MeshShatter {
 
       return ((value ^ (value >>> 14)) >>> 0) / 4294967296;
     };
+  }
+
+  static #from() {
+    return [];
+  }
+
+  /**
+   *
+   * @param {number} cluster
+   */
+  static #filterCluster(cluster) {
+    return cluster.length;
   }
 }

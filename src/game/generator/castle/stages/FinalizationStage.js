@@ -9,11 +9,7 @@ export class FinalizationStage extends AbstractCastleGenerationStage {
     context.output.buildPlan = {
       input: {
         position: context.input.position ? { ...context.input.position } : null,
-        doors: context.input.doors.map(/**
-         *
-         * @param {{side: string, offset: number, width: number, cells?: import("src/game/GameContracts.js").GridPoint[]}} door
-         */
-          (door) => ({ ...door })),
+        doors: context.input.doors.map(FinalizationStage.#mapDoor),
         requestedStyle: context.input.style,
         ...(context.input.seed === undefined ? {} : { seed: context.input.seed }),
       },
@@ -33,5 +29,13 @@ export class FinalizationStage extends AbstractCastleGenerationStage {
    */
   #clone(value) {
     return JSON.parse(JSON.stringify(value));
+  }
+
+  /**
+   *
+   * @param {{side: string, offset: number, width: number, cells?: import("src/game/GameContracts.js").GridPoint[]}} door
+   */
+  static #mapDoor(door) {
+    return { ...door };
   }
 }

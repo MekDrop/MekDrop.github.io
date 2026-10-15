@@ -9,15 +9,7 @@ export class HeroToolActionState extends HeroRuntimeActionState {
        * @param {{payload: import("src/game/objects/ObjectTypes.js").HeroActionPayload}} options
        * @param {import("src/game/objects/ObjectTypes.js").HeroActionPayload} options.payload
        */
-      animation: ({ payload }) => {
-        if (payload.phase === "summon") {
-          return payload.tool.summonAnimation;
-        }
-        if (payload.phase === "dismiss") {
-          return payload.tool.dismissAnimation;
-        }
-        return payload.useAnimation;
-      },
+      animation: HeroToolActionState.#animation,
       requiresGrounded: true,
       blocksMovement: true,
       allowsIdleHeadLook: false,
@@ -83,5 +75,20 @@ export class HeroToolActionState extends HeroRuntimeActionState {
     const action = this.payload;
     owner.feedback.tool.complete(action);
     super.exit(owner);
+  }
+
+  /**
+   *
+   * @param {{payload: import("src/game/objects/ObjectTypes.js").HeroActionPayload}} options
+   * @param {import("src/game/objects/ObjectTypes.js").HeroActionPayload} options.payload
+   */
+  static #animation({ payload }) {
+    if (payload.phase === "summon") {
+      return payload.tool.summonAnimation;
+    }
+    if (payload.phase === "dismiss") {
+      return payload.tool.dismissAnimation;
+    }
+    return payload.useAnimation;
   }
 }

@@ -62,13 +62,13 @@ export class RoomPlanningStage extends AbstractCastleGenerationStage {
       maxZ: castleDepth / 4 - 0.5,
     };
     const rise = (style.wallHeightBlocks + 1) / 4;
-    const generators = context.planning.roomGenerators ?? [new ThroneRoomGenerator(), new LibraryRoomGenerator(),
-      new ServiceRoomGenerator(), new LeisureRoomGenerator({ courtyard: true }),
-      ...[1, 2, 3, 4].map(/**
-       *
-       * @param {number} index
-       */
-        (index) => new TowerRoomGenerator(index))];
+    const generators = context.planning.roomGenerators ?? [
+      new ThroneRoomGenerator(),
+      new LibraryRoomGenerator(),
+      new ServiceRoomGenerator(),
+      new LeisureRoomGenerator({ courtyard: true }),
+      ...[1, 2, 3, 4].map(RoomPlanningStage.#mapIndex),
+    ];
     let packer = null;
     let bestScore = -Infinity;
     // Bounded seeded retries reconsider earlier room sizes and positions before
@@ -96,12 +96,10 @@ export class RoomPlanningStage extends AbstractCastleGenerationStage {
       if (score > bestScore) { packer = candidate; bestScore = score; }
       await context.scheduler.yieldIfNeeded(context.yieldState);
     }
-    if (!context.planning.roomGenerators && packer.skipped.includes("leisure")) {
-      packer.skipped = packer.skipped.filter(/**
-       *
-       * @param {string} id
-       */
-        (id) => id !== "leisure");
+    if (
+      !context.planning.roomGenerators && packer.skipped.includes("leisure")
+    ) {
+      packer.skipped = packer.skipped.filter(RoomPlanningStage.#filterId);
       generators[3] = new LeisureRoomGenerator();
       packer.place([generators[3]]);
       packer.rooms.sort(/**
@@ -124,22 +122,10 @@ export class RoomPlanningStage extends AbstractCastleGenerationStage {
     for (const room of packer.rooms) {
       if (room.level === 0 && room.floorSpan === 1 && room.id !== "leisure") room.height = rise - 0.25;
     }
-    const throne = packer.rooms.find(/**
-     *
-     * @param {import("../rooms/AbstractCastleRoomGenerator.js").PlannedCastleRoom} room
-     */
-      (room) => room.id === "throneRoom");
+    const throne = packer.rooms.find(RoomPlanningStage.#findRoom);
     if (!throne) { throw new CastlePlacementError(); }
-    const hasUpper = packer.rooms.some(/**
-     *
-     * @param {import("../rooms/AbstractCastleRoomGenerator.js").PlannedCastleRoom} room
-     */
-      (room) => !room.stairHost && room.level + room.floorSpan > 1);
-    const hasBasement = packer.rooms.some(/**
-     *
-     * @param {import("../rooms/AbstractCastleRoomGenerator.js").PlannedCastleRoom} room
-     */
-      (room) => room.level === -1);
+    const hasUpper = packer.rooms.some(RoomPlanningStage.#someRoom);
+    const hasBasement = packer.rooms.some(RoomPlanningStage.#someRoom2);
     const hostRoom = packer.rooms.find(/**
      * @param {import("../rooms/AbstractCastleRoomGenerator.js").PlannedCastleRoom} room
      */
@@ -159,14 +145,8 @@ export class RoomPlanningStage extends AbstractCastleGenerationStage {
       y,
       z: origin.z - Math.sin(radians) * x + Math.cos(radians) * z,
     });
-    const upperOccupant = packer.rooms.find(/**
-     * @param {import("../rooms/AbstractCastleRoomGenerator.js").PlannedCastleRoom} room
-     */
-      (room) => !room.stairHost && (room.level === 1 || room.floorSpan === 2));
-    const basementOccupant = packer.rooms.find(/**
-     * @param {import("../rooms/AbstractCastleRoomGenerator.js").PlannedCastleRoom} room
-     */
-      (room) => room.level === -1);
+    const upperOccupant = packer.rooms.find(RoomPlanningStage.#findRoom2);
+    const basementOccupant = packer.rooms.find(RoomPlanningStage.#findRoom3);
     const mainConnection = new StairwellRoomGenerator("mainStair").connect(hostRoom,
       upperOccupant ? {
         ...upperOccupant,
@@ -178,11 +158,9 @@ export class RoomPlanningStage extends AbstractCastleGenerationStage {
       ...toWorld(centerX, centerZ),
       radius: 1.5,
     };
-    const rooms = Object.fromEntries(packer.rooms.map(/**
-     *
-     * @param {import("../rooms/AbstractCastleRoomGenerator.js").PlannedCastleRoom} room
-     */
-      (room) => [room.id, room]));
+    const rooms = Object.fromEntries(
+      packer.rooms.map(RoomPlanningStage.#mapRoom),
+    );
     const upperHall = {
       ...outerBounds,
       floorY: baseY + rise,
@@ -274,14 +252,7 @@ export class RoomPlanningStage extends AbstractCastleGenerationStage {
       placedRooms: packer.rooms,
       skippedRooms: packer.skipped,
       subrooms: [mainConnection, basementConnection].filter(Boolean),
-      roomRequirements: generators.map(/**
-     * @param {import("../rooms/AbstractCastleRoomGenerator.js").AbstractCastleRoomGenerator} generator
-     */
-        (generator) => ({
-          id: generator.id,
-          min: generator.min,
-          ...(generator.max ? { max: generator.max } : {}),
-        })),
+      roomRequirements: generators.map(RoomPlanningStage.#mapGenerator),
       walkableAreas,
       stair: mainConnection ? {
         ...stair,
@@ -327,5 +298,78 @@ export class RoomPlanningStage extends AbstractCastleGenerationStage {
     context.layout.roomPlan.doorways = createCastleRoomDoorways(context.layout.roomPlan);
     context.planning.roomGenerators = generators;
     await context.scheduler.yieldIfNeeded(context.yieldState);
+  }
+
+  /**
+   *
+   * @param {number} index
+   */
+  static #mapIndex(index) {
+    return new TowerRoomGenerator(index);
+  }
+
+  /**
+   *
+   * @param {string} id
+   */
+  static #filterId(id) {
+    return id !== "leisure";
+  }
+
+  /**
+   *
+   * @param {import("../rooms/AbstractCastleRoomGenerator.js").PlannedCastleRoom} room
+   */
+  static #findRoom(room) {
+    return room.id === "throneRoom";
+  }
+
+  /**
+   *
+   * @param {import("../rooms/AbstractCastleRoomGenerator.js").PlannedCastleRoom} room
+   */
+  static #someRoom(room) {
+    return !room.stairHost && room.level + room.floorSpan > 1;
+  }
+
+  /**
+   *
+   * @param {import("../rooms/AbstractCastleRoomGenerator.js").PlannedCastleRoom} room
+   */
+  static #someRoom2(room) {
+    return room.level === -1;
+  }
+
+  /**
+   * @param {import("../rooms/AbstractCastleRoomGenerator.js").PlannedCastleRoom} room
+   */
+  static #findRoom2(room) {
+    return !room.stairHost && (room.level === 1 || room.floorSpan === 2);
+  }
+
+  /**
+   * @param {import("../rooms/AbstractCastleRoomGenerator.js").PlannedCastleRoom} room
+   */
+  static #findRoom3(room) {
+    return room.level === -1;
+  }
+
+  /**
+   *
+   * @param {import("../rooms/AbstractCastleRoomGenerator.js").PlannedCastleRoom} room
+   */
+  static #mapRoom(room) {
+    return [room.id, room];
+  }
+
+  /**
+   * @param {import("../rooms/AbstractCastleRoomGenerator.js").AbstractCastleRoomGenerator} generator
+   */
+  static #mapGenerator(generator) {
+    return {
+      id: generator.id,
+      min: generator.min,
+      ...(generator.max ? { max: generator.max } : {}),
+    };
   }
 }

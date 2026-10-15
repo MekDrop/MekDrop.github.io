@@ -19,11 +19,12 @@ export class CastleEntranceDetails {
   static add(pc, models, parent, plan, stoneMaterial) {
     const residential = plan.metadata.runtime.residential;
     const { origin, floorHeight } = residential;
-    const entrance = residential.openings.find(/**
-     * @param {{exteriorEntrance:boolean}} opening
-     */
-      opening => opening.exteriorEntrance);
-    if (!entrance) { return; }
+    const entrance = residential.openings.find(
+      CastleEntranceDetails.#findOpening,
+    );
+    if (!entrance) {
+      return;
+    }
     const angle = origin.yaw * Math.PI / 180;
     // Bury inward trim faces beneath the shell rather than sharing its plane.
     const faceClearance = 0.004;
@@ -85,5 +86,12 @@ export class CastleEntranceDetails {
         }
       }
     }
+  }
+
+  /**
+   * @param {{exteriorEntrance:boolean}} opening
+   */
+  static #findOpening(opening) {
+    return opening.exteriorEntrance;
   }
 }

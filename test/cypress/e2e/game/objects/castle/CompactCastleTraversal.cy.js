@@ -33,7 +33,7 @@ async function walkTo(window, target) {
     const dx = target.x - state.position.x, dz = target.z - state.position.z;
     if (Math.hypot(dx,dz) < (target.tolerance ?? .12)) { driver.move(0,0);
 
- return; }
+      return; }
     const camera = window.gameCameraTest.state().firstPersonCamera;
     const distance=Math.hypot(dx,dz), speed=Math.min(.45,distance*.8), forwardLength=Math.hypot(camera.direction.x,camera.direction.z);
     driver.move((camera.right.x*dx+camera.right.z*dz)/distance*speed,

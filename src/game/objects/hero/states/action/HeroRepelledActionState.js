@@ -17,10 +17,7 @@ export class HeroRepelledActionState extends HeroTimedActionState {
        * @param {import("src/game/objects/ObjectTypes.js").HeroActionContext} options.owner
        * @param {import("src/game/objects/ObjectTypes.js").HeroActionPayload} options.payload
        */
-      movement: ({ owner, payload }) => ({
-        x: payload.x * owner.repelSpeed,
-        z: payload.z * owner.repelSpeed,
-      }),
+      movement: HeroRepelledActionState.#movement,
       locksFacing: true,
       allowsIdleHeadLook: false,
     });
@@ -42,5 +39,18 @@ export class HeroRepelledActionState extends HeroTimedActionState {
   exit(owner) {
     owner.feedback.repel.end();
     super.exit(owner);
+  }
+
+  /**
+   *
+   * @param {{owner: import("src/game/objects/ObjectTypes.js").HeroActionContext, payload: import("src/game/objects/ObjectTypes.js").HeroActionPayload}} options
+   * @param {import("src/game/objects/ObjectTypes.js").HeroActionContext} options.owner
+   * @param {import("src/game/objects/ObjectTypes.js").HeroActionPayload} options.payload
+   */
+  static #movement({ owner, payload }) {
+    return {
+      x: payload.x * owner.repelSpeed,
+      z: payload.z * owner.repelSpeed,
+    };
   }
 }

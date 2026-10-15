@@ -11,12 +11,7 @@ export class CastleSignalTowerLayout {
   static describe(buildPlan) {
     const plan = buildPlan?.metadata?.runtime?.residential;
     if (!plan?.roofAccess) { return null; }
-    const room = plan.placedRooms.find(
-      /**
-       * @param {import("./CastleResidentialLayout.js").ResidentialRoom} room
-       */
-      room => room.id === "watchtower",
-    );
+    const room = plan.placedRooms.find(CastleSignalTowerLayout.#findRoom);
     if (!room || room.maxX - room.minX < 3 || room.maxZ - room.minZ < 2.5) { return null; }
     const layout = new CastleResidentialLayout(buildPlan);
     const floorY = plan.roofAccess.top.y;
@@ -54,5 +49,12 @@ export class CastleSignalTowerLayout {
         signalTower: true,
       },
     };
+  }
+
+  /**
+   * @param {import("./CastleResidentialLayout.js").ResidentialRoom} room
+   */
+  static #findRoom(room) {
+    return room.id === "watchtower";
   }
 }

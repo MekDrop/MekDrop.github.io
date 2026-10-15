@@ -9,37 +9,37 @@ const INNER_DIRECTION_SAMPLES = 6;
 export class GrassObstacleMap {
   /**
    *
-    * @type {string}
+   * @type {string}
    */
   #texture;
   /**
    *
-    * @type {import("src/game/objects/ObjectTypes.js").GameMapData}
+   * @type {import("src/game/objects/ObjectTypes.js").GameMapData}
    */
   #mapData;
   /**
    *
-    * @type {number}
+   * @type {number}
    */
   #width;
   /**
    *
-    * @type {number}
+   * @type {number}
    */
   #height;
   /**
    *
-    * @type {number}
+   * @type {number}
    */
   #weights;
   /**
    *
-    * @type {Uint8Array}
+   * @type {Uint8Array}
    */
   #field;
   /**
    *
-    * @type {Map<string, {x: number, z: number, radius: number}>}
+   * @type {Map<string, {x: number, z: number, radius: number}>}
    */
   #sourceCovers;
 
@@ -57,16 +57,7 @@ export class GrassObstacleMap {
     this.#weights = new Uint8Array(this.#width * this.#height);
     this.#field = new Uint8Array(this.#width * this.#height * 4);
     this.#sourceCovers = new Map(
-      (this.#mapData.riverData ?? []).flatMap(/**
-       *
-       * @param {{cells: number}} options
-       * @param {number} options.cells
-       */
-        ({ cells }) =>
-          cells[0]
-            ? [[cells[0].col + "," + cells[0].row, cells[0].terrainHeight]]
-            : [],
-      ),
+      (this.#mapData.riverData ?? []).flatMap(GrassObstacleMap.#flatMap),
     );
     this.#texture = new pc.Texture(device, {
       name: "Grass surface obstruction field",
@@ -310,5 +301,16 @@ export class GrassObstacleMap {
     }
 
     return nearest;
+  }
+
+  /**
+   *
+   * @param {{cells: number}} options
+   * @param {number} options.cells
+   */
+  static #flatMap({ cells }) {
+    return cells[0]
+      ? [[cells[0].col + "," + cells[0].row, cells[0].terrainHeight]]
+      : [];
   }
 }

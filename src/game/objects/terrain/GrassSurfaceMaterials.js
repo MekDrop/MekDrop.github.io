@@ -60,10 +60,8 @@ export class GrassSurfaceMaterials {
      */
     this.#mapData = mapData;
     this.#vegetation = (mapData?.objects ?? []).filter(
-      /**
-       * @param {import("src/game/objects/ObjectTypes.js").MapObjectDefinition} definition
-       */
-      (definition) => definition.object === "Vegetation");
+      GrassSurfaceMaterials.#filterDefinition,
+    );
   }
 
   /**
@@ -284,5 +282,12 @@ export class GrassSurfaceMaterials {
     }
 
     return false;
+  }
+
+  /**
+   * @param {import("src/game/objects/ObjectTypes.js").MapObjectDefinition} definition
+   */
+  static #filterDefinition(definition) {
+    return definition.object === "Vegetation";
   }
 }

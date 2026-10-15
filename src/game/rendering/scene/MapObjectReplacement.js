@@ -33,15 +33,11 @@ export class MapObjectReplacement {
       return null;
     }
     const map = structuredClone(this.#template);
-    const current = new Map(currentDefinitions.filter(/**
-     *
-     * @param {import("../../objects/ObjectTypes.js").MapObjectDefinition} entry
-     */
-      (entry) => !entry.generated).map(/**
-     *
-     * @param {import("../../objects/ObjectTypes.js").MapObjectDefinition} entry
-     */
-      (entry) => [entry.id, entry]));
+    const current = new Map(
+      currentDefinitions
+        .filter(MapObjectReplacement.#filterEntry)
+        .map(MapObjectReplacement.#mapEntry),
+    );
     current.set(definition.id, definition);
     map.objects = map.objects.map(/**
      *
@@ -52,5 +48,21 @@ export class MapObjectReplacement {
     map.heroSpawn = { ...heroPosition };
 
     return map;
+  }
+
+  /**
+   *
+   * @param {import("../../objects/ObjectTypes.js").MapObjectDefinition} entry
+   */
+  static #filterEntry(entry) {
+    return !entry.generated;
+  }
+
+  /**
+   *
+   * @param {import("../../objects/ObjectTypes.js").MapObjectDefinition} entry
+   */
+  static #mapEntry(entry) {
+    return [entry.id, entry];
   }
 }

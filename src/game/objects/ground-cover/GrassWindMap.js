@@ -19,22 +19,22 @@ const DIRECTION_REFRESH_DOT = 0.9999;
 export class GrassWindMap {
   /**
    *
-    * @type {string}
+   * @type {string}
    */
   #texture;
   /**
    *
-    * @type {import("src/game/objects/ObjectTypes.js").GameMapData}
+   * @type {import("src/game/objects/ObjectTypes.js").GameMapData}
    */
   #mapData;
   /**
    *
-    * @type {Array<{x: number, z: number, radius: number}>}
+   * @type {Array<{x: number, z: number, radius: number}>}
    */
   #blockers = [];
   /**
    *
-    * @type {{x: number, y: number, z: number}}
+   * @type {{x: number, y: number, z: number}}
    */
   #lastDirection = null;
 
@@ -148,12 +148,7 @@ export class GrassWindMap {
     }
 
     for (const vegetation of (this.#mapData.objects ?? []).filter(
-      /**
-       *
-       * @param {{object: import("src/game/objects/ObjectTypes.js").MapObjectLike}} options
-       * @param {import("src/game/objects/ObjectTypes.js").MapObjectLike} options.object
-       */
-      ({ object }) => object === "Vegetation",
+      GrassWindMap.#filter,
     )) {
       const tree = vegetation.kind === "tree";
       this.#blockers.push({
@@ -200,5 +195,14 @@ export class GrassWindMap {
     }
 
     return Math.max(MINIMUM_EXPOSURE, exposure);
+  }
+
+  /**
+   *
+   * @param {{object: import("src/game/objects/ObjectTypes.js").MapObjectLike}} options
+   * @param {import("src/game/objects/ObjectTypes.js").MapObjectLike} options.object
+   */
+  static #filter({ object }) {
+    return object === "Vegetation";
   }
 }

@@ -24,9 +24,11 @@ test("bowls accept ordinary game objects, freeze snapshots, and pack only once",
     static get hasAuthoredCollision() { return false; }
   }
   const requests = [];
-  const modelLibrary = { instantiate(url) { requests.push(url);
+  const modelLibrary = {
+    instantiate(url) { requests.push(url);
 
- return new pc.Entity(url); } };
+      return new pc.Entity(url); },
+  };
   const items = [{ object: "Apple" }, {
     object: "ClosedReadingBook",
     scale: 0.2,
@@ -136,7 +138,7 @@ test("shell tint clones materials and never recolors shared assets or contents",
     definition: { color: "#804020" },
     cloneMaterial(material) { const clone = material.clone(); clones.push(clone);
 
- return clone; },
+      return clone; },
   },
   { findComponents: () => [{ meshInstances: [mesh] }] }, false);
   assert.notEqual(mesh.material, original);

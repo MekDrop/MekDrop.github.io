@@ -156,13 +156,7 @@ export class PathCarver {
   carvePaths(grid, tileMeta, layout) {
     const mergeZones = new Set();
     const routeCellsByPath = [];
-    const trunkStart = Math.min(
-      ...layout.entries.map(/**
-       *
-       * @param {LayoutEntry} entry
-       */
-        (entry) => entry.mergeCol),
-    );
+    const trunkStart = Math.min(...layout.entries.map(PathCarver.#mapEntry));
 
     this.#drawHorizontalPath(
       grid,
@@ -332,5 +326,13 @@ export class PathCarver {
       routeCellsByPath,
       trunkStart,
     };
+  }
+
+  /**
+   *
+   * @param {LayoutEntry} entry
+   */
+  static #mapEntry(entry) {
+    return entry.mergeCol;
   }
 }

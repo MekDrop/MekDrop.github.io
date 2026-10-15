@@ -12,7 +12,7 @@ export class HeroBellRingingActionState extends HeroRuntimeActionState {
        * @param {{payload: import("src/game/objects/ObjectTypes.js").HeroActionPayload}} options
        * @param {import("src/game/objects/ObjectTypes.js").HeroActionPayload} options.payload
        */
-      animation: ({ payload }) => payload.pulling ? HERO_ANIMATION.RING_BELL : HERO_ANIMATION.WALK,
+      animation: HeroBellRingingActionState.#animation,
       requiresGrounded: true,
       allowsFootPlacement: false,
       allowsIdleHeadLook: false,
@@ -107,5 +107,13 @@ export class HeroBellRingingActionState extends HeroRuntimeActionState {
     super.exit(owner);
     // Defer refresh until the state machine has installed its next state.
     queueMicrotask(end);
+  }
+
+  /**
+   * @param {{payload: import("src/game/objects/ObjectTypes.js").HeroActionPayload}} options
+   * @param {import("src/game/objects/ObjectTypes.js").HeroActionPayload} options.payload
+   */
+  static #animation({ payload }) {
+    return payload.pulling ? HERO_ANIMATION.RING_BELL : HERO_ANIMATION.WALK;
   }
 }

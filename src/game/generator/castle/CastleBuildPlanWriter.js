@@ -327,11 +327,9 @@ export class CastleBuildPlanWriter {
   #isRoomDoorway(u, y, v) {
     const plan = this.#layout.roomPlan;
     if (plan?.version !== 2) return false;
-    const opening = this.#layout.openings.find(/**
-     *
-     * @param {{boundary:string}} entry
-     */
-      (entry) => entry.boundary === CASTLE_BOUNDARY.FRONT);
+    const opening = this.#layout.openings.find(
+      CastleBuildPlanWriter.#findEntry,
+    );
     const sign = ["WEST", "SOUTH"].includes(this.#layout.primarySide) ? -1 : 1;
     const x = sign * (v - (opening.start + opening.end - 1) / 2) * CASTLE_BLOCK_SIZE;
     const z = (u + 0.5) * CASTLE_BLOCK_SIZE;
@@ -354,11 +352,9 @@ export class CastleBuildPlanWriter {
   #isTerraceAccessVoid(blockU, blockY, blockV) {
     const plan = this.#layout.roomPlan;
     if (plan?.version === 2) {
-      const opening = this.#layout.openings.find(/**
-       *
-       * @param {{boundary:string}} entry
-       */
-        (entry) => entry.boundary === CASTLE_BOUNDARY.FRONT);
+      const opening = this.#layout.openings.find(
+        CastleBuildPlanWriter.#findEntry2,
+      );
       const sign = ["WEST", "SOUTH"].includes(this.#layout.primarySide) ? -1 : 1;
       const x = sign * (blockV - (opening.start + opening.end - 1) / 2) * CASTLE_BLOCK_SIZE;
       const z = (blockU + 0.5) * CASTLE_BLOCK_SIZE;
@@ -375,10 +371,7 @@ export class CastleBuildPlanWriter {
     }
     if (plan) {
       const opening = this.#layout.openings.find(
-        /**
-         * @param {{boundary: string}} candidate
-         */
-        (candidate) => candidate.boundary === CASTLE_BOUNDARY.FRONT,
+        CastleBuildPlanWriter.#findCandidate,
       );
       const sign = ["WEST", "SOUTH"].includes(this.#layout.primarySide) ? -1 : 1;
       const x = sign * (blockV - (opening.start + opening.end - 1) / 2) * CASTLE_BLOCK_SIZE;
@@ -396,11 +389,7 @@ export class CastleBuildPlanWriter {
       }
     }
     const opening = this.#layout.openings.find(
-      /**
-       *
-       * @param {{boundary: string, start: number, end: number}} candidate
-       */
-      (candidate) => candidate.boundary === CASTLE_BOUNDARY.FRONT,
+      CastleBuildPlanWriter.#findCandidate2,
     );
     if (!opening) {
       return false;
@@ -605,5 +594,36 @@ export class CastleBuildPlanWriter {
     };
 
     return normals[this.#layout.primarySide][boundary];
+  }
+
+  /**
+   *
+   * @param {{boundary:string}} entry
+   */
+  static #findEntry(entry) {
+    return entry.boundary === CASTLE_BOUNDARY.FRONT;
+  }
+
+  /**
+   *
+   * @param {{boundary:string}} entry
+   */
+  static #findEntry2(entry) {
+    return entry.boundary === CASTLE_BOUNDARY.FRONT;
+  }
+
+  /**
+   * @param {{boundary: string}} candidate
+   */
+  static #findCandidate(candidate) {
+    return candidate.boundary === CASTLE_BOUNDARY.FRONT;
+  }
+
+  /**
+   *
+   * @param {{boundary: string, start: number, end: number}} candidate
+   */
+  static #findCandidate2(candidate) {
+    return candidate.boundary === CASTLE_BOUNDARY.FRONT;
   }
 }

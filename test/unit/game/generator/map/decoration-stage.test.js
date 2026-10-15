@@ -21,16 +21,16 @@ function createFixture() {
   const builder = {
     placeVegetation: () => { events.push("vegetation");
 
- return []; },
+      return []; },
     placeStones: () => { events.push("stones");
 
- return []; },
+      return []; },
     placeGroundCover: () => { events.push("cover");
 
- return []; },
+      return []; },
     placeCliffVines: () => { events.push("vines");
 
- return []; },
+      return []; },
   };
 
   return {

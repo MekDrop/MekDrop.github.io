@@ -52,7 +52,7 @@ const ROYAL_DOORWAY_OUTSIDE = -0.35;
 export class CastleAudienceRoom {
   /**
    *
-    * @returns {Array<string>}
+   * @returns {Array<string>}
    */
   static get modelUrls() {
     return [CastleThrone.modelUrl, authoredModelUrl, ...WoodenFloor.modelUrls, carpetModelUrl];
@@ -60,82 +60,82 @@ export class CastleAudienceRoom {
 
   /**
    *
-    * @type {typeof import("playcanvas")}
+   * @type {typeof import("playcanvas")}
    */
   #pc;
   /**
    *
-    * @type {import("playcanvas").Application}
+   * @type {import("playcanvas").Application}
    */
   #app;
   /**
    *
-    * @type {{x: number, y: number, z: number}}
+   * @type {{x: number, y: number, z: number}}
    */
   #position;
   /**
    *
-    * @type {TerraceDoor}
+   * @type {TerraceDoor}
    */
   #door;
   /**
    *
-    * @type {SeatedRoyal|null}
+   * @type {SeatedRoyal|null}
    */
   #occupant;
   /**
    *
-    * @type {Map<string, import("playcanvas").Material>}
+   * @type {Map<string, import("playcanvas").Material>}
    */
   #sharedMaterials;
   /**
    *
-    * @type {string}
+   * @type {string}
    */
   #modelLibrary;
   /**
    *
-    * @type {import("playcanvas").Entity}
+   * @type {import("playcanvas").Entity}
    */
   #entity;
   /**
    *
-    * @type {Map<string, import("playcanvas").StandardMaterial>}
+   * @type {Map<string, import("playcanvas").StandardMaterial>}
    */
   #materials = new Map();
   /**
    *
-    * @type {{x: number, y: number, z: number}|null}
+   * @type {{x: number, y: number, z: number}|null}
    */
   #royalPosition = null;
   /**
    *
-    * @type {CastleThrone|null}
+   * @type {CastleThrone|null}
    */
   #throne = null;
   /**
    *
-    * @type {{x: number, z: number}}
+   * @type {{x: number, z: number}}
    */
   #center;
   /**
    *
-    * @type {{x: number, z: number}}
+   * @type {{x: number, z: number}}
    */
   #inward;
   /**
    *
-    * @type {{x: number, z: number}}
+   * @type {{x: number, z: number}}
    */
   #tangent;
   /**
    *
-    * @type {number}
+   * @type {number}
    */
   #forwardCapacity;
   /**
    *
-    * @type {number}
+   * @type {number}
    */
   #roomWidth;
   /**
@@ -152,32 +152,32 @@ export class CastleAudienceRoom {
   #floorDepth;
   /**
    *
-    * @type {number}
+   * @type {number}
    */
   #baseY;
   /**
    *
-    * @type {number}
+   * @type {number}
    */
   #availableDepth;
   /**
    *
-    * @type {number}
+   * @type {number}
    */
   #availableWidth;
   /**
    *
-    * @type {number}
+   * @type {number}
    */
   #frontWallDepth;
   /**
    *
-    * @type {Array<{lateral: number, forward: number, width: number, depth: number}>}
+   * @type {Array<{lateral: number, forward: number, width: number, depth: number}>}
    */
   #obstacles = [];
   /**
    *
-    * @type {Array<{lateral: number, forward: number, width: number, depth: number, height: number}>}
+   * @type {Array<{lateral: number, forward: number, width: number, depth: number, height: number}>}
    */
   #floorSurfaces = [];
   /**
@@ -190,37 +190,37 @@ export class CastleAudienceRoom {
   #residentialLayout = null;
   /**
    *
-    * @type {boolean}
+   * @type {boolean}
    */
   #heroWithinVisibility = false;
   /**
    *
-    * @type {boolean}
+   * @type {boolean}
    */
   #entranceVisible = true;
   /**
    *
-    * @type {boolean}
+   * @type {boolean}
    */
   #gameOverPerformance = false;
   /**
    *
-    * @type {boolean}
+   * @type {boolean}
    */
   #gameOverPerformanceStarted = false;
   /**
    *
-    * @type {{x: number, y: number, z: number}}
+   * @type {{x: number, y: number, z: number}}
    */
   #gameOverEndPosition = null;
   /**
    *
-    * @type {{waypoints: Array<{x: number, y: number, z: number}>, collisionRadius: number, isBlocked: (x: number, z: number, radius: number) => boolean}|null}
+   * @type {{waypoints: Array<{x: number, y: number, z: number}>, collisionRadius: number, isBlocked: (x: number, z: number, radius: number) => boolean}|null}
    */
   #gameOverRoute = null;
   /**
    *
-    * @type {(() => {x: number, y: number, z: number})|null}
+   * @type {(() => {x: number, y: number, z: number})|null}
    */
   #getGameOverCameraPosition = null;
 
@@ -623,9 +623,9 @@ export class CastleAudienceRoom {
   }
 
   #build() {
-    const throneZone = this.#residentialLayout?.reservations.find(/**
-     * @param {{role: string, maxZ: number}} zone
-     */ (zone) => zone.role === "throne");
+    const throneZone = this.#residentialLayout?.reservations.find(
+      CastleAudienceRoom.#findZone,
+    );
     const rearClearance = this.#residentialLayout?.throneRearWindow ? 0.35 : THRONE_REAR_CLEARANCE;
     const throneForward = throneZone ? throneZone.maxZ - rearClearance : Math.max(0, this.#floorDepth - rearClearance);
     this.#buildFloor(throneForward);
@@ -898,9 +898,7 @@ export class CastleAudienceRoom {
     model.setLocalScale(1, 1 / authoredHeight, 1);
     model.setLocalPosition(0, carpet ? 0 : -0.5, 0);
     if (!floor || carpet) {
-      for (const meshInstance of model.findComponents("render").flatMap(/**
-       * @param {import("playcanvas").RenderComponent} render
-       */ (render) => render.meshInstances)) {
+      for (const meshInstance of model.findComponents("render").flatMap(CastleAudienceRoom.#flatMapRender)) {
         meshInstance.material = this.#material(materialName);
       }
     }
@@ -960,5 +958,19 @@ export class CastleAudienceRoom {
     }[name];
 
     return this.#materials.get(name) ?? this.#sharedMaterials.get(sharedName);
+  }
+
+  /**
+   * @param {{role: string, maxZ: number}} zone
+   */
+  static #findZone(zone) {
+    return zone.role === "throne";
+  }
+
+  /**
+   * @param {import("playcanvas").RenderComponent} render
+   */
+  static #flatMapRender(render) {
+    return render.meshInstances;
   }
 }

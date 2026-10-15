@@ -11,9 +11,9 @@ export class CastleOuterShellBuilder {
   async build(context, writer) {
     const { castleDepth, facadeSpan, wallHeight, battlementPeriod } = context.structure.wall;
     const plan = context.layout.roomPlan;
-    const opening = context.layout.openings.find(/**
-   * @param {{boundary:string}} entry
-   */ (entry) => entry.boundary === CASTLE_BOUNDARY.FRONT);
+    const opening = context.layout.openings.find(
+      CastleOuterShellBuilder.#findEntry,
+    );
     const middle = (opening.start + opening.end - 1) / 2;
     const sign = ["WEST", "SOUTH"].includes(context.layout.primarySide) ? -1 : 1;
     for (let u = 0; u < castleDepth; u++) {
@@ -46,7 +46,7 @@ export class CastleOuterShellBuilder {
         /**
          * @param {{id:string}} room
          */
-        const isTowerRoom = (room) => room.id.startsWith("tower");
+        const isTowerRoom = CastleOuterShellBuilder.#isTowerRoom;
         if (boundary && !(plan.stair && !plan.placedRooms.some(isTowerRoom))) {
           for (let guard = 1; guard <= 4; guard++) {
             if (guard <= 2 || (u + v) % battlementPeriod === 0) {
@@ -57,5 +57,19 @@ export class CastleOuterShellBuilder {
       }
     }
     await context.scheduler.yieldIfNeeded(context.yieldState);
+  }
+
+  /**
+   * @param {{boundary:string}} entry
+   */
+  static #findEntry(entry) {
+    return entry.boundary === CASTLE_BOUNDARY.FRONT;
+  }
+
+  /**
+   * @param {{id:string}} room
+   */
+  static #isTowerRoom(room) {
+    return room.id.startsWith("tower");
   }
 }

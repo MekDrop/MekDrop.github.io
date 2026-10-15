@@ -163,7 +163,7 @@ export class GameRecorder {
          * @param {EncodedVideoChunkMetadata} _packet
          * @param {{name?: string, type?: string, value?: string|number|boolean}} metadata
          */
-        onEncodedPacket: (_packet, metadata) => AvcRecordingConfiguration.repair(metadata),
+        onEncodedPacket: GameRecorder.#onEncodedPacket,
       });
       session.audioSource = new media.MediaStreamAudioTrackSource(
         session.audio.stream.getAudioTracks()[0],
@@ -294,7 +294,7 @@ export class GameRecorder {
       session.compositor?.destroy();
     }
     if (cancel) {
-      await session.output?.cancel().catch(() => {});
+      await session.output?.cancel().catch(GameRecorder.#catch);
     }
   }
 
@@ -316,4 +316,15 @@ export class GameRecorder {
       void this.#release(this.#session, true);
     }
   }
+
+  /**
+   *
+   * @param {EncodedVideoChunkMetadata} _packet
+   * @param {{name?: string, type?: string, value?: string|number|boolean}} metadata
+   */
+  static #onEncodedPacket(_packet, metadata) {
+    return AvcRecordingConfiguration.repair(metadata);
+  }
+
+  static #catch() {}
 }

@@ -15,12 +15,7 @@ export class IslandCellOwnership {
     if (!connector) {
       return;
     }
-    this.#groups = (connector.islands ?? [connector.nearIsland, connector.farIsland]).map(
-      /**
-       * @param {string[]} cells
-       */
-      (cells) => new Set(cells),
-    );
+    this.#groups = (connector.islands ?? [connector.nearIsland, connector.farIsland]).map(IslandCellOwnership.#mapCells);
     for (const river of mapData.riverData ?? []) {
       let owner = -1;
       for (const { col, row } of river.cells) {
@@ -45,17 +40,13 @@ export class IslandCellOwnership {
         }
       }
     }
-    const connectorCells = new Set((connector.cells ?? []).map(/**
-     * @param {{col: number, row: number}} cell
-     */
-      (cell) => `${cell.col},${cell.row}`));
+    const connectorCells = new Set(
+      (connector.cells ?? []).map(IslandCellOwnership.#mapCell),
+    );
     for (const command of mapData.renderCommands ?? []) {
       if (command.method !== "addSpan") continue;
       const span = command.args[0];
-      const keys = span.cells.map(/**
-       * @param {{col: number, row: number}} cell
-       */
-        (cell) => `${cell.col},${cell.row}`);
+      const keys = span.cells.map(IslandCellOwnership.#mapCell2);
       // Prefer the connector's near-island owner, even if the render span starts
       // on the other island. All deck tiles, fascia, and rails share this owner.
       const anchor = keys.find(/**
@@ -76,5 +67,26 @@ export class IslandCellOwnership {
 
   get groups() {
     return this.#groups;
+  }
+
+  /**
+   * @param {string[]} cells
+   */
+  static #mapCells(cells) {
+    return new Set(cells);
+  }
+
+  /**
+   * @param {{col: number, row: number}} cell
+   */
+  static #mapCell(cell) {
+    return `${cell.col},${cell.row}`;
+  }
+
+  /**
+   * @param {{col: number, row: number}} cell
+   */
+  static #mapCell2(cell) {
+    return `${cell.col},${cell.row}`;
   }
 }

@@ -246,11 +246,7 @@ export class DebugAxesHud {
       wind.speed,
       zoom,
     ];
-    const signature = values.map(/**
-     *
-     * @param {number} value
-     */
-      (value) => value.toFixed(3)).join(":");
+    const signature = values.map(DebugAxesHud.#mapValue).join(":");
     if (!force && signature === this.#signature) {
       return;
     }
@@ -438,5 +434,13 @@ export class DebugAxesHud {
     context.strokeText(text, x, y);
     context.fillStyle = color;
     context.fillText(text, x, y);
+  }
+
+  /**
+   *
+   * @param {number} value
+   */
+  static #mapValue(value) {
+    return value.toFixed(3);
   }
 }

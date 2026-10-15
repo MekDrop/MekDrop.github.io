@@ -29,7 +29,7 @@ function fixture() {
     pc,
     onOpen: () => { clicks += 1;
 
- return true; },
+      return true; },
     modelLibrary: {
       instantiate(url) {
         const root = new pc.Entity("Imported model");

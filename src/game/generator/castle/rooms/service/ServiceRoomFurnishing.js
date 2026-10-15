@@ -164,7 +164,7 @@ export class ServiceRoomFurnishing {
       /**
        * @param {import("../AbstractCastleRoomGenerator.js").RoomItem} item
        */
-      const isBedsideLantern = item => item.object === "ServantBedsideLantern";
+      const isBedsideLantern = ServiceRoomFurnishing.#isBedsideLantern;
       if (!this.#items.some(isBedsideLantern)) {
         this.#perimeter("VestibuleLantern", 0.187, 0.257, 0.45, 1, 1.75);
       }
@@ -381,24 +381,15 @@ export class ServiceRoomFurnishing {
           rotation: south ? 180 : 0,
         });
       }
-      candidates.sort(/**
-       * @param {{x:number,z:number,rotation:number}} first
-       * @param {{x:number,z:number,rotation:number}} second
-       */ (first, second) => Number(first.rotation !== 0) - Number(second.rotation !== 0) || second.x - first.x || first.z - second.z);
+      candidates.sort(ServiceRoomFurnishing.#sortFirst);
     }
     if (this.#cozy && role === "storageShelf") {
-      candidates.sort(/**
-       * @param {{x:number,z:number}} first
-       * @param {{x:number,z:number}} second
-       */ (first, second) => first.x - second.x || first.z - second.z);
+      candidates.sort(ServiceRoomFurnishing.#sortFirst2);
     }
-    if (this.#storageBank && ["StoragePotteryJar", "Crate", "Barrel"].includes(role)) {
-      candidates.sort(/**
-       * @param {{x:number,z:number}} first
-       * @param {{x:number,z:number}} second
-       */
-        (first, second) => Math.hypot(first.x - this.#storageBank.x, first.z - this.#storageBank.z) -
-        Math.hypot(second.x - this.#storageBank.x, second.z - this.#storageBank.z));
+    if (
+      this.#storageBank && ["StoragePotteryJar", "Crate", "Barrel"].includes(role)
+    ) {
+      candidates.sort(this.#sortFirst3.bind(this));
     }
     for (const candidate of candidates) {
       const sideways = candidate.rotation % 180 !== 0;
@@ -528,5 +519,41 @@ export class ServiceRoomFurnishing {
     this.#items.push(item);
     if (access) { this.#access.push(access); }
     return item;
+  }
+
+  /**
+   * @param {import("../AbstractCastleRoomGenerator.js").RoomItem} item
+   */
+  static #isBedsideLantern(item) {
+    return item.object === "ServantBedsideLantern";
+  }
+
+  /**
+   * @param {{x:number,z:number,rotation:number}} first
+   * @param {{x:number,z:number,rotation:number}} second
+   */
+  static #sortFirst(first, second) {
+    return (
+      Number(first.rotation !== 0) - Number(second.rotation !== 0) || second.x - first.x || first.z - second.z
+    );
+  }
+
+  /**
+   * @param {{x:number,z:number}} first
+   * @param {{x:number,z:number}} second
+   */
+  static #sortFirst2(first, second) {
+    return first.x - second.x || first.z - second.z;
+  }
+
+  /**
+   * @param {{x:number,z:number}} first
+   * @param {{x:number,z:number}} second
+   */
+  #sortFirst3(first, second) {
+    return (
+      Math.hypot(first.x - this.#storageBank.x, first.z - this.#storageBank.z) -
+        Math.hypot(second.x - this.#storageBank.x, second.z - this.#storageBank.z)
+    );
   }
 }

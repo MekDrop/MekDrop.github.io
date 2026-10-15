@@ -35,7 +35,7 @@ import {
 export class CastleEntityBuilder {
   /**
    *
-    * @returns {Array<string>}
+   * @returns {Array<string>}
    */
   static get modelUrls() {
     return [
@@ -54,12 +54,12 @@ export class CastleEntityBuilder {
 
   /**
    *
-    * @type {typeof import("playcanvas")}
+   * @type {typeof import("playcanvas")}
    */
   #pc;
   /**
    *
-    * @type {import("playcanvas").Application}
+   * @type {import("playcanvas").Application}
    */
   #app;
   /**
@@ -68,27 +68,27 @@ export class CastleEntityBuilder {
   #renderBatch = null;
   /**
    *
-    * @type {{x: number, y: number, z: number}}
+   * @type {{x: number, y: number, z: number}}
    */
   #position;
   /**
    *
-    * @type {Array<{side: string, offset: number, width: number, approachElevation?: number}>}
+   * @type {Array<{side: string, offset: number, width: number, approachElevation?: number}>}
    */
   #doors;
   /**
    *
-    * @type {import("src/game/generator/castle/CastleBuildPlanWriter.js").CastleBuildPlan}
+   * @type {import("src/game/generator/castle/CastleBuildPlanWriter.js").CastleBuildPlan}
    */
   #buildPlan;
   /**
    *
-    * @type {import("src/game/models/GameModelLibrary.js").GameModelLibrary}
+   * @type {import("src/game/models/GameModelLibrary.js").GameModelLibrary}
    */
   #modelLibrary;
   /**
    *
-    * @type {import("playcanvas").Texture}
+   * @type {import("playcanvas").Texture}
    */
   #fireParticleTexture;
 
@@ -98,17 +98,17 @@ export class CastleEntityBuilder {
   #carpetTexture;
   /**
    *
-    * @type {import("playcanvas").Entity}
+   * @type {import("playcanvas").Entity}
    */
   #entity;
   /**
    *
-    * @type {Map<string, import("playcanvas").StandardMaterial>}
+   * @type {Map<string, import("playcanvas").StandardMaterial>}
    */
   #materials = new Map();
   /**
    *
-    * @type {import("playcanvas").Texture|null}
+   * @type {import("playcanvas").Texture|null}
    */
   #stoneTexture = null;
 
@@ -118,27 +118,27 @@ export class CastleEntityBuilder {
   #worldToCastle;
   /**
    *
-    * @type {import("playcanvas").Texture|null}
+   * @type {import("playcanvas").Texture|null}
    */
   #doorTexture = null;
   /**
    *
-    * @type {Array<import("playcanvas").VertexBuffer>}
+   * @type {Array<import("playcanvas").VertexBuffer>}
    */
   #vertexBuffers = [];
   /**
    *
-    * @type {CastleFire|null}
+   * @type {CastleFire|null}
    */
   #fire = null;
   /**
    *
-    * @type {CastleRoof|null}
+   * @type {CastleRoof|null}
    */
   #roofs = null;
   /**
    *
-    * @type {CastleStairs|null}
+   * @type {CastleStairs|null}
    */
   #stairs = null;
   /**
@@ -147,12 +147,12 @@ export class CastleEntityBuilder {
   #serviceStairs = null;
   /**
    *
-    * @type {CastleAudienceRoom|null}
+   * @type {CastleAudienceRoom|null}
    */
   #audienceRoom = null;
   /**
    *
-    * @type {import("./rooms/terrace/CastleTerraceActivity.js").CastleTerraceActivity|null}
+   * @type {import("./rooms/terrace/CastleTerraceActivity.js").CastleTerraceActivity|null}
    */
   #terraceActivity = null;
   /**
@@ -161,62 +161,62 @@ export class CastleEntityBuilder {
   #terraceDoor = null;
   /**
    *
-    * @type {CastleTerraceContext|null}
+   * @type {CastleTerraceContext|null}
    */
   #terraceContext = null;
   /**
    *
-    * @type {import("../royal/AbstractRoyal.js").AbstractRoyal|null}
+   * @type {import("../royal/AbstractRoyal.js").AbstractRoyal|null}
    */
   #royal = null;
   /**
    *
-    * @type {import("../servant/Servant.js").Servant|null}
+   * @type {import("../servant/Servant.js").Servant|null}
    */
   #servant = null;
   /**
    *
-    * @type {Array<{x: number, z: number}>}
+   * @type {Array<{x: number, z: number}>}
    */
   #groundCollisionColumns = [];
   /**
    *
-    * @type {Array<{x: number, y: number, z: number, halfX: number, halfY: number, halfZ: number}>}
+   * @type {Array<{x: number, y: number, z: number, halfX: number, halfY: number, halfZ: number}>}
    */
   #cameraCollisionBlocks = [];
   /**
    *
-    * @type {Array<CastleDoor>}
+   * @type {Array<CastleDoor>}
    */
   #animatedDoors = [];
   /**
    *
-    * @type {Array<CastleDoorArch>}
+   * @type {Array<CastleDoorArch>}
    */
   #doorArches = [];
   /**
    *
-    * @type {{off: () => void}|null}
+   * @type {{off: () => void}|null}
    */
   #updateHandle = null;
   /**
    *
-    * @type {((error: Error) => void)|null}
+   * @type {((error: Error) => void)|null}
    */
   #onRuntimeError;
   /**
    *
-    * @type {boolean}
+   * @type {boolean}
    */
   #updateFailed = false;
   /**
    *
-    * @type {number}
+   * @type {number}
    */
   #interiorDepth = 0;
   /**
    *
-    * @type {number}
+   * @type {number}
    */
   #interiorWidth = 0;
 
@@ -337,7 +337,7 @@ export class CastleEntityBuilder {
 
   /**
    *
-    * @returns {number}
+   * @returns {number}
    */
   get royalActivityState() {
     return this.#terraceActivity?.state ?? null;
@@ -527,17 +527,9 @@ export class CastleEntityBuilder {
    * @returns {string}
    */
   get testStatus() {
-    const doors = this.#animatedDoors.filter(/**
-     *
-     * @param {CastleDoor} door
-     */
-      (door) => door.exteriorEntrance);
+    const doors = this.#animatedDoors.filter(CastleEntityBuilder.#filterDoor);
 
-    return `Entrance: ${doors.map(/**
-     *
-     * @param {CastleDoor} door
-     */
-      (door) => `${Math.round(door.openAmount * 100)}%`).join(", ")}`;
+    return `Entrance: ${doors.map(CastleEntityBuilder.#mapDoor).join(", ")}`;
   }
 
   /**
@@ -633,7 +625,7 @@ export class CastleEntityBuilder {
   /**
    *
    * @param {number} deltaTime
-    * @type {boolean}
+   * @type {boolean}
    */
   #update = (deltaTime) => {
     if (this.#updateFailed) {
@@ -862,47 +854,18 @@ export class CastleEntityBuilder {
     this.#interiorDepth = metadata.runtime.interiorDepth;
     this.#interiorWidth = metadata.runtime.interiorWidth;
     this.#groundCollisionColumns = metadata.collision.groundColumns.map(
-      /**
-       *
-       * @param {number} column
-       */
-      (column) => ({ ...column }),
+      CastleEntityBuilder.#mapColumn,
     );
     this.#cameraCollisionBlocks = metadata.collision.cameraBlocks.map(
-      /**
-       *
-       * @param {{x: number, y: number, z: number, halfX: number, halfY: number, halfZ: number}} block
-       */
-      (block) => ({ ...block }),
+      CastleEntityBuilder.#mapBlock,
     );
 
     const windows = new CastleWindowLayout(this.#buildPlan);
     // Use the same subtraction for masonry and camera collision. The glazing
     // closes each recess while preserving the visible depth of its stone reveal.
-    this.#cameraCollisionBlocks = windows.cutBoxes(this.#cameraCollisionBlocks.map(
-      /**
-       * @param {{x:number,y:number,z:number,halfX:number,halfY:number,halfZ:number}} block
-       */
-      (block) => ({
-        ...block,
-        sx: block.halfX * 2,
-        sy: block.halfY * 2,
-        sz: block.halfZ * 2,
-        yaw: 0,
-      }),
-    )).map(
-      /**
-       * @param {import("./CastleWindowLayout.js").MasonryBox} box
-       */
-      (box) => ({
-        x: box.x,
-        y: box.y,
-        z: box.z,
-        halfX: box.sx / 2,
-        halfY: box.sy / 2,
-        halfZ: box.sz / 2,
-      }),
-    );
+    this.#cameraCollisionBlocks = windows
+      .cutBoxes(this.#cameraCollisionBlocks.map(CastleEntityBuilder.#mapBlock2))
+      .map(CastleEntityBuilder.#mapBox);
     for (const window of windows.windows) {
       const angle = window.yaw * Math.PI / 180;
       const crosswise = Math.abs(Math.sin(angle)) > 0.5;
@@ -981,9 +944,7 @@ export class CastleEntityBuilder {
          *
          * @param {boolean} atThrone
          */
-        onRoyalAtThroneChange: (atThrone) => {
-          if (this.#audienceRoom) { this.#audienceRoom.royalVisible = atThrone; }
-        },
+        onRoyalAtThroneChange: this.#onRoyalAtThroneChange.bind(this),
       };
       this.#connectResidents();
     }
@@ -1004,44 +965,8 @@ export class CastleEntityBuilder {
       door: this.#terraceDoor,
       navigation: {
         layout: this.#residence.layout,
-        blocked: /**
-         * @param {import("playcanvas").Vec3} point
-         * @param {boolean} avoidDoors
-         */ (point, avoidDoors = false) => (avoidDoors && this.#animatedDoors.some(/**
-           * @param {CastleDoor} door
-           */ (door) => door.openAmount > 0.02 && door.blocksCameraAt(point.x, point.y + 0.4, point.z, 0.22))) || this.#residence.blocksMovementAt(point.x, point.z, 0.22, point.y) ||
-          this.#cameraCollisionBlocks.some(/**
-           *
-           * @param {{x:number,y:number,z:number,halfX:number,halfY:number,halfZ:number}} block
-           */
-            (block) => {
-              if (block.y + block.halfY <= point.y + 0.32 || block.y - block.halfY >= point.y + 1.6) { return false; }
-              return Math.hypot(Math.max(0, Math.abs(point.x - block.x) - block.halfX),
-                Math.max(0, Math.abs(point.z - block.z) - block.halfZ)) < 0.22;
-            }),
-        clear: /**
-         * @param {import("playcanvas").Vec3} point
-         * @param {import("playcanvas").Entity} operator
-         */ (point, operator) => {
-          if (!point) {
-            for (const door of this.#animatedDoors) { if (door.operator === operator) { door.operator = null; } }
-
-            return true;
-          }
-          for (const door of this.#animatedDoors) {
-            if (Math.hypot(door.entity.getPosition().x - point.x, door.entity.getPosition().z - point.z) < 2.4 &&
-              Math.abs(door.entity.getPosition().y - point.y) < 2.8) {
-              door.operator = operator; door.openTemporarily(1);
-            }
-            else if (door.operator === operator) { door.operator = null; }
-          }
-
-          return !this.#animatedDoors.some(/**
-           *
-           * @param {import("./CastleDoor.js").CastleDoor} door
-           */
-            (door) => door.blocksCameraAt(point.x, point.y + 0.4, point.z, 0.22));
-        },
+        blocked: this.#blocked.bind(this),
+        clear: this.#clear.bind(this),
       },
       servant: this.#servant,
       audienceRoom: this.#audienceRoom,
@@ -1051,14 +976,8 @@ export class CastleEntityBuilder {
        * @param {number} z
        * @param {number} radius
        */
-      isBlocked: (x, z, radius) => this.#intersectsGroundColumns(x, z, radius),
-      prepareGameOver: () => {
-        this.#terraceActivity?.stop();
-        this.#syncAudienceRoomVisibility();
-        for (const door of this.#animatedDoors) {
-          door.openTemporarily(10);
-        }
-      },
+      isBlocked: this.#isBlocked.bind(this),
+      prepareGameOver: this.#prepareGameOver.bind(this),
     });
   }
 
@@ -1066,9 +985,9 @@ export class CastleEntityBuilder {
     for (const doorData of this.#doors) {
       if (this.#buildPlan.layout.basePlanId) {
         const residential = this.#buildPlan.metadata.runtime.residential;
-        const opening = residential.openings.find(/**
-         * @param {{exteriorEntrance:boolean}} aperture
-         */ (aperture) => aperture.exteriorEntrance);
+        const opening = residential.openings.find(
+          CastleEntityBuilder.#findAperture,
+        );
         CastleEntranceDetails.add(this.#pc, this.#modelLibrary, this.#entity,
           this.#buildPlan, this.#materials.get("castleStoneMid"));
         const door = new CastleDoor({
@@ -1127,7 +1046,143 @@ export class CastleEntityBuilder {
         this.#terraceDoor = door;
       }
     }
-
   }
 
+  /**
+   *
+   * @param {CastleDoor} door
+   */
+  static #filterDoor(door) {
+    return door.exteriorEntrance;
+  }
+
+  /**
+   *
+   * @param {CastleDoor} door
+   */
+  static #mapDoor(door) {
+    return `${Math.round(door.openAmount * 100)}%`;
+  }
+
+  /**
+   *
+   * @param {number} column
+   */
+  static #mapColumn(column) {
+    return { ...column };
+  }
+
+  /**
+   *
+   * @param {{x: number, y: number, z: number, halfX: number, halfY: number, halfZ: number}} block
+   */
+  static #mapBlock(block) {
+    return { ...block };
+  }
+
+  /**
+   * @param {{x:number,y:number,z:number,halfX:number,halfY:number,halfZ:number}} block
+   */
+  static #mapBlock2(block) {
+    return {
+      ...block,
+      sx: block.halfX * 2,
+      sy: block.halfY * 2,
+      sz: block.halfZ * 2,
+      yaw: 0,
+    };
+  }
+
+  /**
+   * @param {import("./CastleWindowLayout.js").MasonryBox} box
+   */
+  static #mapBox(box) {
+    return {
+      x: box.x,
+      y: box.y,
+      z: box.z,
+      halfX: box.sx / 2,
+      halfY: box.sy / 2,
+      halfZ: box.sz / 2,
+    };
+  }
+
+  /**
+   *
+   * @param {boolean} atThrone
+   */
+  #onRoyalAtThroneChange(atThrone) {
+    if (this.#audienceRoom) { this.#audienceRoom.royalVisible = atThrone; }
+  }
+
+  /**
+   * @param {import("playcanvas").Vec3} point
+   * @param {boolean} avoidDoors
+   */
+  #blocked(point, avoidDoors = false) {
+    return (
+      (avoidDoors && this.#animatedDoors.some(/**
+           * @param {CastleDoor} door
+           */ (door) => door.openAmount > 0.02 && door.blocksCameraAt(point.x, point.y + 0.4, point.z, 0.22))) || this.#residence.blocksMovementAt(point.x, point.z, 0.22, point.y) ||
+          this.#cameraCollisionBlocks.some(/**
+           *
+           * @param {{x:number,y:number,z:number,halfX:number,halfY:number,halfZ:number}} block
+           */
+            (block) => {
+              if (block.y + block.halfY <= point.y + 0.32 || block.y - block.halfY >= point.y + 1.6) { return false; }
+              return Math.hypot(Math.max(0, Math.abs(point.x - block.x) - block.halfX),
+                Math.max(0, Math.abs(point.z - block.z) - block.halfZ)) < 0.22;
+            })
+    );
+  }
+
+  /**
+   * @param {import("playcanvas").Vec3} point
+   * @param {import("playcanvas").Entity} operator
+   */
+  #clear(point, operator) {
+    if (!point) {
+      for (const door of this.#animatedDoors) { if (door.operator === operator) { door.operator = null; } }
+
+      return true;
+    }
+    for (const door of this.#animatedDoors) {
+      if (Math.hypot(door.entity.getPosition().x - point.x, door.entity.getPosition().z - point.z) < 2.4 &&
+              Math.abs(door.entity.getPosition().y - point.y) < 2.8) {
+        door.operator = operator; door.openTemporarily(1);
+      }
+      else if (door.operator === operator) { door.operator = null; }
+    }
+
+    return !this.#animatedDoors.some(/**
+           *
+           * @param {import("./CastleDoor.js").CastleDoor} door
+           */
+      (door) => door.blocksCameraAt(point.x, point.y + 0.4, point.z, 0.22));
+  }
+
+  /**
+   *
+   * @param {number} x
+   * @param {number} z
+   * @param {number} radius
+   */
+  #isBlocked(x, z, radius) {
+    return this.#intersectsGroundColumns(x, z, radius);
+  }
+
+  #prepareGameOver() {
+    this.#terraceActivity?.stop();
+    this.#syncAudienceRoomVisibility();
+    for (const door of this.#animatedDoors) {
+      door.openTemporarily(10);
+    }
+  }
+
+  /**
+   * @param {{exteriorEntrance:boolean}} aperture
+   */
+  static #findAperture(aperture) {
+    return aperture.exteriorEntrance;
+  }
 }

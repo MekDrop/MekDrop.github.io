@@ -3,33 +3,33 @@
 export class HeroAngryEscapeBehavior {
   /**
    *
-    * @type {Array<{x: number, y: number, z: number}>}
+   * @type {Array<{x: number, y: number, z: number}>}
    */
   #route = [];
   /**
    *
-    * @type {{x: number, y: number, z: number}}
+   * @type {{x: number, y: number, z: number}}
    */
   #target = null;
   /**
    *
-    * @type {number}
+   * @type {number}
    */
   #remaining = 0;
   /**
    *
-    * @type {number}
+   * @type {number}
    */
   #stalled = 0;
   /**
    *
-    * @type {{x: number, y: number, z: number}|null}
+   * @type {{x: number, y: number, z: number}|null}
    */
   #previous = null;
 
   /**
    *
-    * @returns {boolean}
+   * @returns {boolean}
    */
   get active() {
     return this.#route.length > 0;
@@ -37,7 +37,7 @@ export class HeroAngryEscapeBehavior {
 
   /**
    *
-    * @returns {{x: number, y: number, z: number}}
+   * @returns {{x: number, y: number, z: number}}
    */
   get target() {
     return this.#target ? { ...this.#target } : null;
@@ -116,22 +116,16 @@ export class HeroAngryEscapeBehavior {
         index: i + 1,
         difference: Math.abs(Math.hypot(node.col, node.row) * 0.75 - desiredDistance),
       }));
-    const closest = candidates.reduce(/**
-     *
-     * @param {{x: number, z: number, score: number}|null} best
-     * @param {import("playcanvas").Entity} node
-     */
-      (best, node) => Math.min(best, node.difference), Infinity);
+    const closest = candidates.reduce(
+      HeroAngryEscapeBehavior.#reduceBest,
+      Infinity,
+    );
     const choices = candidates.filter(/**
      *
      * @param {import("playcanvas").Entity} node
      */
       (node) => node.difference <= closest + 0.15)
-      .map(/**
-       *
-       * @param {import("playcanvas").Entity} node
-       */
-        (node) => node.index);
+      .map(HeroAngryEscapeBehavior.#mapNode);
     if (!choices.length) {
       return;
     }
@@ -262,5 +256,22 @@ export class HeroAngryEscapeBehavior {
     this.#remaining = 0;
     this.#stalled = 0;
     this.#previous = null;
+  }
+
+  /**
+   *
+   * @param {{x: number, z: number, score: number}|null} best
+   * @param {import("playcanvas").Entity} node
+   */
+  static #reduceBest(best, node) {
+    return Math.min(best, node.difference);
+  }
+
+  /**
+   *
+   * @param {import("playcanvas").Entity} node
+   */
+  static #mapNode(node) {
+    return node.index;
   }
 }

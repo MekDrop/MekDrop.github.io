@@ -35,9 +35,7 @@ export class VestibuleIslandFurnishing {
     const benchHeight = largeBench ? 1.2 : 1.05;
     const lateral = 0;
     // Group seating with the chest at the far end, leaving the arrival end open.
-    const chest = occupied.find(/**
-     * @param {import("../AbstractCastleRoomGenerator.js").RoomItem} item
-     */ item => item.object === "WoodenStorageChest");
+    const chest = occupied.find(VestibuleIslandFurnishing.#findItem);
     const anchor = largeBench && chest
       ? Math.sign(alongX ? chest.x - centerX : chest.z - centerZ) * 0.65 : 0;
     // Keep the first valid composition near the middle, rather than at a wall.
@@ -106,5 +104,12 @@ export class VestibuleIslandFurnishing {
     }
 
     return [];
+  }
+
+  /**
+   * @param {import("../AbstractCastleRoomGenerator.js").RoomItem} item
+   */
+  static #findItem(item) {
+    return item.object === "WoodenStorageChest";
   }
 }

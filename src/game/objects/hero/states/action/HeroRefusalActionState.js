@@ -15,9 +15,7 @@ export class HeroEdgeRefusalActionState extends HeroTimedActionState {
        * @param {{payload: import("src/game/objects/ObjectTypes.js").HeroActionPayload}} options
        * @param {import("src/game/objects/ObjectTypes.js").HeroActionPayload} options.payload
        */
-      animation: ({ payload }) => payload.foot === FOOT_SIDE.RIGHT
-        ? HERO_ANIMATION.EDGE_REFUSE_RIGHT
-        : HERO_ANIMATION.EDGE_REFUSE_LEFT,
+      animation: HeroEdgeRefusalActionState.#animation,
       allowedTransitions: [HERO_ACTION.BLOCKED_DIG_REACTION],
       allowsJump: true,
       blocksMovement: true,
@@ -26,7 +24,7 @@ export class HeroEdgeRefusalActionState extends HeroTimedActionState {
        * @param {{payload: import("src/game/objects/ObjectTypes.js").HeroActionPayload}} options
        * @param {import("src/game/objects/ObjectTypes.js").HeroActionPayload} options.payload
        */
-      facing: ({ payload }) => payload.direction,
+      facing: HeroEdgeRefusalActionState.#facing,
     });
   }
 
@@ -37,6 +35,26 @@ export class HeroEdgeRefusalActionState extends HeroTimedActionState {
   enter(owner) {
     super.enter(owner);
     owner.feedback.refusal.beginEdge(this.payload);
+  }
+
+  /**
+   *
+   * @param {{payload: import("src/game/objects/ObjectTypes.js").HeroActionPayload}} options
+   * @param {import("src/game/objects/ObjectTypes.js").HeroActionPayload} options.payload
+   */
+  static #animation({ payload }) {
+    return payload.foot === FOOT_SIDE.RIGHT
+      ? HERO_ANIMATION.EDGE_REFUSE_RIGHT
+      : HERO_ANIMATION.EDGE_REFUSE_LEFT;
+  }
+
+  /**
+   *
+   * @param {{payload: import("src/game/objects/ObjectTypes.js").HeroActionPayload}} options
+   * @param {import("src/game/objects/ObjectTypes.js").HeroActionPayload} options.payload
+   */
+  static #facing({ payload }) {
+    return payload.direction;
   }
 }
 
@@ -55,7 +73,7 @@ export class HeroHoleRefusalActionState extends HeroTimedActionState {
        * @param {{payload: import("src/game/objects/ObjectTypes.js").HeroActionPayload}} options
        * @param {import("src/game/objects/ObjectTypes.js").HeroActionPayload} options.payload
        */
-      facing: ({ payload }) => payload.direction,
+      facing: HeroHoleRefusalActionState.#facing,
       allowsIdleHeadLook: false,
       locksHeadForward: true,
     });
@@ -68,5 +86,14 @@ export class HeroHoleRefusalActionState extends HeroTimedActionState {
   enter(owner) {
     super.enter(owner);
     owner.feedback.refusal.beginHole(this.payload);
+  }
+
+  /**
+   *
+   * @param {{payload: import("src/game/objects/ObjectTypes.js").HeroActionPayload}} options
+   * @param {import("src/game/objects/ObjectTypes.js").HeroActionPayload} options.payload
+   */
+  static #facing({ payload }) {
+    return payload.direction;
   }
 }

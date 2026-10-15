@@ -1,32 +1,32 @@
 export class VegetationInteraction {
   /**
    *
-    * @type {import("./DestructibleVegetation.js").DestructibleVegetation}
+   * @type {import("./DestructibleVegetation.js").DestructibleVegetation}
    */
   #item;
   /**
    *
-    * @type {import("src/game/objects/ObjectTypes.js").HeroLike}
+   * @type {import("src/game/objects/ObjectTypes.js").HeroLike}
    */
   #hero;
   /**
    *
-    * @type {import("src/game/objects/hero/tools/HeroTool.js").HeroTool|null}
+   * @type {import("src/game/objects/hero/tools/HeroTool.js").HeroTool|null}
    */
   #tool;
   /**
    *
-    * @type {(value: import("src/game/objects/ObjectTypes.js").InteractionLike|null) => void}
+   * @type {(value: import("src/game/objects/ObjectTypes.js").InteractionLike|null) => void}
    */
   #onChange;
   /**
    *
-    * @type {() => void}
+   * @type {() => void}
    */
   #onComplete;
   /**
    *
-    * @type {() => void}
+   * @type {() => void}
    */
   #onDestroyed;
 
@@ -51,7 +51,7 @@ export class VegetationInteraction {
 
   /**
    *
-    * @returns {boolean}
+   * @returns {boolean}
    */
   get canInteract() {
     return (
@@ -62,7 +62,7 @@ export class VegetationInteraction {
 
   /**
    *
-    * @returns {{x: number, y: number, z: number}}
+   * @returns {{x: number, y: number, z: number}}
    */
   get description() {
     const target = this.#item.describe();
@@ -90,20 +90,22 @@ export class VegetationInteraction {
     const accepted = this.#hero.useTool(this.#tool, {
       targetPosition: target,
       context: { heightClass: target.heightClass },
-      onImpact: () => {
-        const result = this.#item.interact();
-        if (result?.destroyed) {
-          this.#onDestroyed?.(result);
-        }
-        this.#onChange?.();
-
-        return result?.destroyed ?? true;
-      },
+      onImpact: this.#onImpact.bind(this),
       onComplete: this.#onComplete,
     });
     if (accepted) {
       this.#onChange?.();
     }
     return accepted;
+  }
+
+  #onImpact() {
+    const result = this.#item.interact();
+    if (result?.destroyed) {
+      this.#onDestroyed?.(result);
+    }
+    this.#onChange?.();
+
+    return result?.destroyed ?? true;
   }
 }

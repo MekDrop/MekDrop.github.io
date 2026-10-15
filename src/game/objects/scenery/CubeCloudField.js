@@ -149,82 +149,82 @@ const CLOUD_VARIANTS = Object.freeze(
 export class CubeCloudField {
   /**
    *
-    * @type {typeof import("playcanvas")}
+   * @type {typeof import("playcanvas")}
    */
   #pc;
   /**
    *
-    * @type {import("playcanvas").Application}
+   * @type {import("playcanvas").Application}
    */
   #app;
   /**
    *
-    * @type {import("playcanvas").Entity}
+   * @type {import("playcanvas").Entity}
    */
   #camera;
   /**
    *
-    * @type {boolean}
+   * @type {boolean}
    */
   #canvas;
   /**
    *
-    * @type {import("src/game/objects/ObjectTypes.js").GameMapData}
+   * @type {import("src/game/objects/ObjectTypes.js").GameMapData}
    */
   #mapData;
   /**
    *
-    * @type {number}
+   * @type {number}
    */
   #layerId;
   /**
    *
-    * @type {import("playcanvas").Entity}
+   * @type {import("playcanvas").Entity}
    */
   #entity;
   /**
    *
-    * @type {import("playcanvas").Mesh}
+   * @type {import("playcanvas").Mesh}
    */
   #mesh;
   /**
    *
-    * @type {Array<import("playcanvas").Material>}
+   * @type {Array<import("playcanvas").Material>}
    */
   #materials = [];
   /**
    *
-    * @type {Array<{entity: import("playcanvas").Entity, baseRadius: number}>}
+   * @type {Array<{entity: import("playcanvas").Entity, baseRadius: number}>}
    */
   #clusters = [];
   /**
    *
-    * @type {Array<import("playcanvas").VertexBuffer>}
+   * @type {Array<import("playcanvas").VertexBuffer>}
    */
   #vertexBuffers = [];
   /**
    *
-    * @type {number}
+   * @type {number}
    */
   #elapsed = 0;
   /**
    *
-    * @type {typeof import("playcanvas")}
+   * @type {typeof import("playcanvas")}
    */
   #windSpeed = AMBIENT_WIND_BASE_SPEED;
   /**
    *
-    * @type {{x: number, y: number, z: number}}
+   * @type {{x: number, y: number, z: number}}
    */
   #windDirection = { ...AMBIENT_WIND_DIRECTION };
   /**
    *
-    * @type {{x: number, y: number, z: number}}
+   * @type {{x: number, y: number, z: number}}
    */
   #viewRotation = null;
   /**
    *
-    * @type {{position: Point3, forward: Point3}}
+   * @type {{position: Point3, forward: Point3}}
    */
   #cameraState = {
     panX: 0,
@@ -233,7 +233,7 @@ export class CubeCloudField {
   };
   /**
    *
-    * @type {{x: number, y: number, z: number}}
+   * @type {{x: number, y: number, z: number}}
    */
   #floatingOffset = {
     x: 0,
@@ -242,7 +242,7 @@ export class CubeCloudField {
   };
   /**
    *
-    * @type {number}
+   * @type {number}
    */
   #seed;
 
@@ -293,7 +293,7 @@ export class CubeCloudField {
 
   /**
    *
-    * @returns {{direction: import("src/game/objects/ObjectTypes.js").Point3, speed: number}}
+   * @returns {{direction: import("src/game/objects/ObjectTypes.js").Point3, speed: number}}
    */
   get wind() {
     return {
@@ -457,11 +457,16 @@ export class CubeCloudField {
       seedSalt: 211,
     });
 
-    Array.from({ length: CLOUD_COUNT }, /**
-     *
-     * @param {undefined} _
-     * @param {number} cloudIndex
-     */
+    Array.from(
+      { length: CLOUD_COUNT } /**
+       *
+       * @param {undefined} _
+       * @param {number} cloudIndex
+       */,
+      /**
+       * @param {undefined} _
+       * @param {number} cloudIndex
+       */
       (_, cloudIndex) => {
         const depthLayerIndex = cloudIndex % CLOUD_DEPTH_LAYERS.length;
         const depthLayer = CLOUD_DEPTH_LAYERS[depthLayerIndex];
@@ -543,17 +548,9 @@ export class CubeCloudField {
           z: initialPosition.z,
           baseScale: scale,
           baseRadius:
-          (Math.max(...variant.map(/**
-           *
-           * @param {Array<number>} options
-           * @param {number} options."0"
-           * @param {number} options."1"
-           * @param {number} options."2"
-           */
-            ([x, y, z]) => Math.hypot(x, y, z))) *
-            CUBE_STEP +
-            (CUBE_SIZE * Math.sqrt(3)) / 2) *
-          scale,
+            (Math.max(...variant.map(CubeCloudField.#map2)) * CUBE_STEP +
+              (CUBE_SIZE * Math.sqrt(3)) / 2) *
+            scale,
           depthLayerIndex,
           fieldMinimum,
           fieldSpan,
@@ -563,7 +560,8 @@ export class CubeCloudField {
         };
         this.#positionCluster(cluster);
         this.#clusters.push(cluster);
-      });
+      },
+    );
   }
 
   /**
@@ -751,5 +749,16 @@ export class CubeCloudField {
     }
 
     return hash >>> 0;
+  }
+
+  /**
+   *
+   * @param {Array<number>} options
+   * @param {number} options."0"
+   * @param {number} options."1"
+   * @param {number} options."2"
+   */
+  static #map2([x, y, z]) {
+    return Math.hypot(x, y, z);
   }
 }

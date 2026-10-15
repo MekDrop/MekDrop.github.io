@@ -21,10 +21,7 @@ export class HeroBridgeClimbActionState extends HeroRuntimeActionState {
        * @param {import("src/game/objects/ObjectTypes.js").HeroActionPayload} options.payload
        * @param {ConstructorParameters<typeof HeroRuntimeActionState>[0]} options.bridgeClimbEnd
        */
-      animation: ({ payload, bridgeClimbEnd }) =>
-        payload.elapsed < bridgeClimbEnd
-          ? HERO_ANIMATION.BLOCKED_PUSH
-          : HERO_ANIMATION.JUMP,
+      animation: HeroBridgeClimbActionState.#animation,
       exclusive: true,
       incapacitated: true,
       allowsFootPlacement: false,
@@ -142,5 +139,17 @@ export class HeroBridgeClimbActionState extends HeroRuntimeActionState {
       armSpread,
       headPitch,
     });
+  }
+
+  /**
+   *
+   * @param {{payload: import("src/game/objects/ObjectTypes.js").HeroActionPayload, bridgeClimbEnd: ConstructorParameters<typeof HeroRuntimeActionState>[0]}} options
+   * @param {import("src/game/objects/ObjectTypes.js").HeroActionPayload} options.payload
+   * @param {ConstructorParameters<typeof HeroRuntimeActionState>[0]} options.bridgeClimbEnd
+   */
+  static #animation({ payload, bridgeClimbEnd }) {
+    return payload.elapsed < bridgeClimbEnd
+      ? HERO_ANIMATION.BLOCKED_PUSH
+      : HERO_ANIMATION.JUMP;
   }
 }

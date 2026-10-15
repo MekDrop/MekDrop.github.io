@@ -192,25 +192,11 @@ export class DecorationBuilder {
    * @param {VegetationPlacement[]} vegetationPlacements
    * @param {string} mapName
    */
-  placeStones(
-    grid,
-    heightmap,
-    tileMeta,
-    vegetationPlacements,
-    mapName,
-  ) {
+  placeStones(grid, heightmap, tileMeta, vegetationPlacements, mapName) {
     if (this.#random.hashMapName(`${mapName}:stone-presence`) % 10000 < 2827) {
       return [];
     }
-    const occupied = new Set(
-      vegetationPlacements.map(/**
-       *
-       * @param {{col: number, row: number}} options
-       * @param {number} options.col
-       * @param {number} options.row
-       */
-        ({ col, row }) => MapGrid.tileKey(col, row)),
-    );
+    const occupied = new Set(vegetationPlacements.map(DecorationBuilder.#map));
     const candidates = [];
     for (let row = 0; row < MAP_ROWS; row++) {
       for (let col = 0; col < MAP_COLS; col++) {
@@ -328,14 +314,8 @@ export class DecorationBuilder {
     stonePlacements,
   ) {
     const occupied = new Set(
-      [...vegetationPlacements, ...stonePlacements].map(/**
-       *
-       * @param {{col: number, row: number}} options
-       * @param {number} options.col
-       * @param {number} options.row
-       */
-        ({ col, row }) =>
-          MapGrid.tileKey(col, row),
+      [...vegetationPlacements, ...stonePlacements].map(
+        DecorationBuilder.#map2,
       ),
     );
     const candidates = [];
@@ -403,19 +383,7 @@ export class DecorationBuilder {
    */
   placeCliffVines(grid, heightmap, islandMask, riverData) {
     const riverTiles = new Set(
-      riverData.flatMap(/**
-       *
-       * @param {RiverRecord} river
-       */
-        (river) =>
-          river.cells.map(/**
-         *
-         * @param {{col: number, row: number}} options
-         * @param {number} options.col
-         * @param {number} options.row
-         */
-            ({ col, row }) => MapGrid.tileKey(col, row)),
-      ),
+      riverData.flatMap(DecorationBuilder.#flatMapRiver),
     );
     const directions = [
       {
@@ -533,5 +501,43 @@ export class DecorationBuilder {
     }
 
     return selected;
+  }
+
+  /**
+   *
+   * @param {{col: number, row: number}} options
+   * @param {number} options.col
+   * @param {number} options.row
+   */
+  static #map({ col, row }) {
+    return MapGrid.tileKey(col, row);
+  }
+
+  /**
+   *
+   * @param {{col: number, row: number}} options
+   * @param {number} options.col
+   * @param {number} options.row
+   */
+  static #map2({ col, row }) {
+    return MapGrid.tileKey(col, row);
+  }
+
+  /**
+   *
+   * @param {RiverRecord} river
+   */
+  static #flatMapRiver(river) {
+    return river.cells.map(DecorationBuilder.#map3);
+  }
+
+  /**
+   *
+   * @param {{col: number, row: number}} options
+   * @param {number} options.col
+   * @param {number} options.row
+   */
+  static #map3({ col, row }) {
+    return MapGrid.tileKey(col, row);
   }
 }

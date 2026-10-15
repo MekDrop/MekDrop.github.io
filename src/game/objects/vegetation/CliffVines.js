@@ -8,18 +8,18 @@ import { createCliffVineLayout } from "./CliffVineLayout.js";
 export class CliffVines {
   /**
    *
-    * @type {Array<string>}
+   * @type {Array<string>}
    */
   static modelUrls = [cliffVineModelUrl];
 
   /**
    *
-    * @type {import("playcanvas").Entity}
+   * @type {import("playcanvas").Entity}
    */
   #entity;
   /**
    *
-    * @type {import("playcanvas").Entity}
+   * @type {import("playcanvas").Entity}
    */
   #vertexBuffer = null;
   /**
@@ -95,7 +95,7 @@ export class CliffVines {
      * @param {number} offset
      * @param {number} index
      */
-    const matchesPreviousOffset = (offset, index) => offset === this.#offsets[index];
+    const matchesPreviousOffset = this.#matchesPreviousOffset.bind(this);
     if (!this.#vertexBuffer || offsets.every(matchesPreviousOffset)) {
       return;
     }
@@ -116,5 +116,14 @@ export class CliffVines {
     this.#entity = null;
     this.#vertexBuffer?.destroy();
     this.#vertexBuffer = null;
+  }
+
+  /**
+   *
+   * @param {number} offset
+   * @param {number} index
+   */
+  #matchesPreviousOffset(offset, index) {
+    return offset === this.#offsets[index];
   }
 }

@@ -117,25 +117,7 @@ export class FinalizationStage extends AbstractMapGenerationStage {
           parts: stone.parts,
         })),
     ];
-    objects.push(...layout.entries.map(/**
-       *
-       * @param {import("src/game/GameContracts.js").GameCanvasPluginEntry} entry
-       * @param {number} index
-       */
-      (entry, index) => ({
-        id: `gateway-${index}`,
-        object: "Gateway",
-        entry: {
-          col: entry.gateCol,
-          row: entry.gateRows[0],
-          rows: [...entry.gateRows],
-          side: entry.side,
-          color:
-            this.#operations.gatewayColors[
-              index % this.#operations.gatewayColors.length
-            ],
-        },
-      })));
+    objects.push(...layout.entries.map(this.#mapEntry.bind(this)));
     if (riverData.length) {
       objects.push({
         id: "rivers",
@@ -187,5 +169,27 @@ export class FinalizationStage extends AbstractMapGenerationStage {
     WalkingPaths.rebuild(mapData);
     TerrainBlockDefinitions.populate(mapData);
     context.output.mapData = mapData;
+  }
+
+  /**
+   *
+   * @param {import("src/game/GameContracts.js").GameCanvasPluginEntry} entry
+   * @param {number} index
+   */
+  #mapEntry(entry, index) {
+    return {
+      id: `gateway-${index}`,
+      object: "Gateway",
+      entry: {
+        col: entry.gateCol,
+        row: entry.gateRows[0],
+        rows: [...entry.gateRows],
+        side: entry.side,
+        color:
+            this.#operations.gatewayColors[
+              index % this.#operations.gatewayColors.length
+            ],
+      },
+    };
   }
 }

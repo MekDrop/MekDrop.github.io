@@ -11,34 +11,34 @@ import { RiverStoneField } from './RiverStoneField.js';
 export class RiverWater {
   /**
    *
-    * @returns {string}
+   * @returns {string}
    */
   static get modelUrls() {
     return RiverStoneField.modelUrls;
   }
   /**
    *
-    * @type {typeof import("playcanvas")}
+   * @type {typeof import("playcanvas")}
    */
   #pc;
   /**
    *
-    * @type {Map}
+   * @type {Map}
    */
   #materials = new Map();
   /**
    *
-    * @type {RiverRuntimeEffects}
+   * @type {RiverRuntimeEffects}
    */
   #effects;
   /**
    *
-    * @type {typeof import("playcanvas")}
+   * @type {typeof import("playcanvas")}
    */
   #meshBuilder;
   /**
    *
-    * @type {typeof import("playcanvas")}
+   * @type {typeof import("playcanvas")}
    */
   #stoneField;
 
@@ -86,36 +86,34 @@ export class RiverWater {
        *
        * @param {number} cells
        */
-      createSourceProfile: (cells) => this.createSourceProfile(cells),
+      createSourceProfile: this.#createSourceProfile.bind(this),
       /**
        *
        * @param {number} cellIndex
        * @param {number} cascadeLanding
        */
-      isSpringSource: (cellIndex, cascadeLanding) =>
-        this.isSpringSource(cellIndex, cascadeLanding),
+      isSpringSource: this.#isSpringSource.bind(this),
       /**
        *
        * @param {Array<number>} surfaceHeights
        * @param {number} cell
        */
-      surfaceCorners: (surfaceHeights, cell) =>
-        this.surfaceCorners(surfaceHeights, cell),
+      surfaceCorners: this.#surfaceCorners.bind(this),
       /**
        *
        * @param {{group: import("src/game/objects/ObjectTypes.js").RiverGeometryGroup, waterfall: import("src/game/objects/ObjectTypes.js").WaterfallDefinition, cols: number, rows: number, routeDistance: number, join?: import("src/game/objects/ObjectTypes.js").WaterfallJoin|null}} options
        */
-      appendCascade: (options) => this.appendCascade(options),
+      appendCascade: this.#appendCascade.bind(this),
       /**
        *
        * @param {{group: import("src/game/objects/ObjectTypes.js").RiverGeometryGroup, waterfall: import("src/game/objects/ObjectTypes.js").WaterfallDefinition, cols: number, rows: number, routeDistance: number, join?: import("src/game/objects/ObjectTypes.js").WaterfallJoin|null}} options
        */
-      appendTerminal: (options) => this.appendTerminal(options),
+      appendTerminal: this.#appendTerminal.bind(this),
       /**
        *
        * @param {boolean} translucent
        */
-      createMaterial: (translucent) => this.createMaterial(translucent),
+      createMaterial: this.#createMaterial.bind(this),
     });
     this.#stoneField.build(modelLibrary);
     for (const material of this.#materials.values()) {
@@ -125,7 +123,7 @@ export class RiverWater {
 
   /**
    *
-    * @returns {string|number}
+   * @returns {string|number}
    */
   get riverKind() {
     return RIVER_KIND.WATER;
@@ -137,7 +135,7 @@ export class RiverWater {
 
   /**
    *
-    * @returns {import("playcanvas").Texture}
+   * @returns {import("playcanvas").Texture}
    */
   get mistTexture() {
     return this.#effects.mistTexture;
@@ -145,7 +143,7 @@ export class RiverWater {
 
   /**
    *
-    * @returns {boolean}
+   * @returns {boolean}
    */
   get hasRockContactEffects() {
     return true;
@@ -153,7 +151,7 @@ export class RiverWater {
 
   /**
    *
-    * @returns {boolean}
+   * @returns {boolean}
    */
   get hasWaterEffects() {
     return true;
@@ -342,5 +340,55 @@ export class RiverWater {
     this.#materials.set(key, material);
 
     return material;
+  }
+
+  /**
+   *
+   * @param {number} cells
+   */
+  #createSourceProfile(cells) {
+    return this.createSourceProfile(cells);
+  }
+
+  /**
+   *
+   * @param {number} cellIndex
+   * @param {number} cascadeLanding
+   */
+  #isSpringSource(cellIndex, cascadeLanding) {
+    return this.isSpringSource(cellIndex, cascadeLanding);
+  }
+
+  /**
+   *
+   * @param {Array<number>} surfaceHeights
+   * @param {number} cell
+   */
+  #surfaceCorners(surfaceHeights, cell) {
+    return this.surfaceCorners(surfaceHeights, cell);
+  }
+
+  /**
+   *
+   * @param {{group: import("src/game/objects/ObjectTypes.js").RiverGeometryGroup, waterfall: import("src/game/objects/ObjectTypes.js").WaterfallDefinition, cols: number, rows: number, routeDistance: number, join?: import("src/game/objects/ObjectTypes.js").WaterfallJoin|null}} options
+   */
+  #appendCascade(options) {
+    return this.appendCascade(options);
+  }
+
+  /**
+   *
+   * @param {{group: import("src/game/objects/ObjectTypes.js").RiverGeometryGroup, waterfall: import("src/game/objects/ObjectTypes.js").WaterfallDefinition, cols: number, rows: number, routeDistance: number, join?: import("src/game/objects/ObjectTypes.js").WaterfallJoin|null}} options
+   */
+  #appendTerminal(options) {
+    return this.appendTerminal(options);
+  }
+
+  /**
+   *
+   * @param {boolean} translucent
+   */
+  #createMaterial(translucent) {
+    return this.createMaterial(translucent);
   }
 }

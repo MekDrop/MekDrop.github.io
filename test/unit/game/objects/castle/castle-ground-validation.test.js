@@ -33,19 +33,19 @@ function mapWith(buildPlan,terrain){return {
 };}
 function terrainAt(layout,area,object="Earth",y=3.25){const point=layout.toWorld((area.minX+area.maxX)/2,(area.minZ+area.maxZ)/2,0);
 
-return {
-  id:"test-terrain",
-  object,
-  position:{
-    x:point.x,
-    y,
-    z:point.z,
-  },
-  geometry:{
-    method:"addBoxMatrix",
-    args:["earth","earth",point.x,y,point.z,0,0.1,0.5,0.1],
-  },
-};}
+  return {
+    id:"test-terrain",
+    object,
+    position:{
+      x:point.x,
+      y,
+      z:point.z,
+    },
+    geometry:{
+      method:"addBoxMatrix",
+      args:["earth","earth",point.x,y,point.z,0,0.1,0.5,0.1],
+    },
+  };}
 it("detects terrain in every authored ground room and permits Earth beneath its floor",async()=>{
   for(const side of ["NORTH","SOUTH","WEST","EAST"]){const cross=["WEST","EAST"].includes(side);const plan=await CastleGenerator.generate({
     ...options,

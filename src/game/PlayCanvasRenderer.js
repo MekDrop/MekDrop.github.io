@@ -498,9 +498,10 @@ export class PlayCanvasRenderer {
      *
      * @type {() => void}
      */
-    this.#saveViewportDebounced = useDebounceFn(() => {
-      this.#saveViewport();
-    }, 150);
+    this.#saveViewportDebounced = useDebounceFn(
+      this.#useDebounceFn.bind(this),
+      150,
+    );
     /**
      *
      * @type {ScenePointerInteraction}
@@ -512,10 +513,9 @@ export class PlayCanvasRenderer {
        *
        * @param {Event} event
        */
-      pointerRay: (event) =>
-        this.#camera.firstPersonEnabled ? null : this.#pointerRay(event),
+      pointerRay: this.#pointerRay2.bind(this),
       onMousePointerMove: this.#trackHeroLookPointer,
-      onMousePointerLeave: () => this.#clearHeroIdleLookTarget(),
+      onMousePointerLeave: this.#onMousePointerLeave.bind(this),
     });
   }
 
@@ -594,15 +594,15 @@ export class PlayCanvasRenderer {
     this.addHud(HeroLifeHud);
     this.addHud(CoinHud);
     this.addHud(GameStatusHud);
-    this.addHud(HeroMoodHud, { getMood: () => this.#heroStateStore?.mood ?? null });
+    this.addHud(HeroMoodHud, { getMood: this.#getMood.bind(this) });
     this.#inventoryScene = new InventoryScene({
       pc,
       app: this.#app,
       modelLibrary: this.#modelLibrary,
       heroConfigurationStore: this.#heroConfigurationStore,
       translate: this.#translate,
-      getHero: () => this.#sceneObjects.getOne(SCENE_OBJECT_TYPE.HERO),
-      getMapRoot: () => this.#mapRoot,
+      getHero: this.#getHero.bind(this),
+      getMapRoot: this.#getMapRoot.bind(this),
       /**
        *
        * @param {number} clientX
@@ -610,32 +610,23 @@ export class PlayCanvasRenderer {
        * @param {number} heightClientX
        * @param {number} heightClientY
        */
-      getDropPlacement: (clientX, clientY, heightClientX, heightClientY) =>
-        this.#inventoryDropPlacement(
-          clientX,
-          clientY,
-          heightClientX,
-          heightClientY,
-        ),
+      getDropPlacement: this.#getDropPlacement.bind(this),
     });
     this.#scene = new GameOverScene({
       pc,
       app: this.#app,
       translate: this.#translate,
       sceneObjects: this.#sceneObjects,
-      getViewport: () => this.viewport,
-      getCameraPosition: () => this.#camera?.getPosition() ?? null,
-      getCameraState: () => this.#cameraState,
+      getViewport: this.#getViewport.bind(this),
+      getCameraPosition: this.#getCameraPosition.bind(this),
+      getCameraState: this.#getCameraState.bind(this),
       /**
        *
        * @param {import("src/game/GameContracts.js").StoreContract} state
        */
-      setCameraState: (state) => this.#setCameraState(state),
-      clearCameraReturn: () => {
-        this.#camera.returnTransition = null;
-        this.#camera.orbitPivot = null;
-      },
-      updateCamera: () => this.#updateCamera(),
+      setCameraState: this.#setCameraState2.bind(this),
+      clearCameraReturn: this.#clearCameraReturn.bind(this),
+      updateCamera: this.#updateCamera2.bind(this),
       cameraPitch: CAMERA_PITCH,
       mapFitZoom: MAP_FIT_ZOOM,
     });
@@ -682,9 +673,9 @@ export class PlayCanvasRenderer {
     }
     this.resize();
     this.#applyDebugSettings();
-    this.#stopDebugStoreSubscription = this.#debugStore.$subscribe(() => {
-      this.#applyDebugSettings();
-    });
+    this.#stopDebugStoreSubscription = this.#debugStore.$subscribe(
+      this.#$subscribe.bind(this),
+    );
     this.#app.start();
     this.#connectPointerInteractions();
   }
@@ -717,17 +708,17 @@ export class PlayCanvasRenderer {
       this.#huds.add(MapTestControlsHud, {
         panels: mapData.testControls.panels,
         controls: new MapTestControls({
-          getObjects: () => this.#sceneObjects,
-          getMap: () => this.#mapData,
+          getObjects: this.#getObjects.bind(this),
+          getMap: this.#getMap.bind(this),
           onRuntimeError: this.#onRuntimeError,
           /**
            * @param {{zoom: number, rotation: number, panX: number, panZ: number}} viewport
            */
-          setViewport: (viewport) => this.setViewport(viewport),
+          setViewport: this.#setViewport.bind(this),
           /**
            * @param {boolean} enabled
            */
-          setFirstPerson: (enabled) => { this.firstPersonCameraEnabled = enabled; },
+          setFirstPerson: this.#setFirstPerson.bind(this),
         }),
       });
     }
@@ -836,10 +827,9 @@ export class PlayCanvasRenderer {
    * @returns {import("./objects/ObjectTypes.js").MapObjectDefinition[]}
    */
   get authoredObjectDefinitions() {
-    return this.#mapData?.objects.filter(/**
-     * @param {import("./objects/ObjectTypes.js").MapObjectDefinition} definition
-     */
-      (definition) => !definition.generated) ?? [];
+    return (
+      this.#mapData?.objects.filter(PlayCanvasRenderer.#filterDefinition) ?? []
+    );
   }
 
   /**
@@ -849,11 +839,7 @@ export class PlayCanvasRenderer {
   get royalCastleStates() {
     return this.#sceneObjects
       .getAll(SCENE_OBJECT_TYPE.CASTLE)
-      .map(/**
-       *
-       * @param {import("src/game/GameContracts.js").CastleLayout} castle
-       */
-        (castle) => castle.royalActivityState);
+      .map(PlayCanvasRenderer.#mapCastle);
   }
 
   /**
@@ -1752,11 +1738,11 @@ export class PlayCanvasRenderer {
       runtime: {
         mapData: this.#mapData,
         materials: this.#materials,
-        getHero: () => this.#sceneObjects.getOne(SCENE_OBJECT_TYPE.HERO),
+        getHero: this.#getHero2.bind(this),
         /**
          * @param {import("./objects/ground-cover/GroundCoverCollectible.js").GroundCoverCollectible} item
          */
-        onCollectibleRemoved: (item) => this.#buriedTreasure?.removeGroundCover(item),
+        onCollectibleRemoved: this.#onCollectibleRemoved.bind(this),
         objects: this.#sceneObjects,
         /**
          * @param {import("./objects/ObjectTypes.js").MapObjectDefinition} definition
@@ -1770,27 +1756,20 @@ export class PlayCanvasRenderer {
         /**
          * @param {(value: string) => string} value
          */
-        setMaterialResolver: (value) => { this.#terrainRenderer.resolveMaterial = value; },
+        setMaterialResolver: this.#setMaterialResolver.bind(this),
         sideVariantCount: SIDE_VARIANT_TRANSFORMS.length,
-        getContactProviders: () => [this.#sceneObjects.getOne(SCENE_OBJECT_TYPE.HERO), this.#inventoryScene, this.#groundCover],
+        getContactProviders: this.#getContactProviders.bind(this),
         /**
          * @param {import("src/game/GameContracts.js").GameObjectContract} removedObject
          */
-        onObjectRemoved: (removedObject) => {
-          this.#buriedTreasure?.removeMapObject(removedObject);
-          for (const object of this.#sceneObjects.getAll(SCENE_OBJECT_TYPE.MAP_OBJECT)) object.onObjectRemoved?.(removedObject);
-        },
+        onObjectRemoved: this.#onObjectRemoved.bind(this),
         onRuntimeError: this.#onRuntimeError,
       },
       /**
        *
        * @param {import("src/game/GameContracts.js").GameObjectContract} object
        */
-      onCreate: (object) =>
-        this.#sceneObjects.add(
-          object.sceneObjectType ?? SCENE_OBJECT_TYPE.MAP_OBJECT,
-          object,
-        ),
+      onCreate: this.#onCreate.bind(this),
     })) {
       this.#mapRoot.addChild(object.entity);
       if (object.isGroundCollider) {
@@ -1806,55 +1785,16 @@ export class PlayCanvasRenderer {
     const castles = this.#sceneObjects.getAll(SCENE_OBJECT_TYPE.CASTLE);
     const gateways = this.#sceneObjects.getAll(SCENE_OBJECT_TYPE.GATEWAY);
     const roots = [
-      ...castles.map(/**
-       *
-       * @param {import("src/game/GameContracts.js").CastleLayout} castle
-       * @param {number} index
-       */
-        (castle, index) => ({
-          name: `castle-${index}`,
-          protectAtPanLimit: true,
-          centerReachableAtEveryZoom: true,
-          root: castle.entity,
-        })),
-      ...gateways.map(/**
-       *
-       * @param {import("src/game/GameContracts.js").GameObjectContract} gateway
-       * @param {number} index
-       */
-        (gateway, index) => ({
-          name: `gateway-${index}`,
-          protectAtPanLimit: true,
-          root: gateway.entity,
-        })),
+      ...castles.map(PlayCanvasRenderer.#mapCastle2),
+      ...gateways.map(PlayCanvasRenderer.#mapGateway),
       ...this.#sceneObjects
         .getAll(SCENE_OBJECT_TYPE.MAP_OBJECT)
-        .flatMap(/**
-         *
-         * @param {import("src/game/GameContracts.js").GameObjectContract} object
-         */
-          (object) =>
-            (object.visualRoots ?? []).map(/**
-           *
-           * @param {pc.Entity} root
-           */
-              (root) => ({
-                name: `map-object-${root.name}`,
-                protectAtPanLimit: true,
-                centerReachableAtEveryZoom: true,
-                root,
-              })),
-        ),
+        .flatMap(PlayCanvasRenderer.#flatMapObject),
       {
         name: "ground-cover",
         root: this.#groundCover?.entity,
       },
-    ].filter(/**
-     *
-     * @param {{root: pc.Entity}} options
-     * @param {pc.Entity} options.root
-     */
-      ({ root }) => root);
+    ].filter(PlayCanvasRenderer.#filter);
     for (const {
       name,
       protectAtPanLimit,
@@ -1880,7 +1820,7 @@ export class PlayCanvasRenderer {
      * @param {{object: import("src/game/GameContracts.js").GameObjectContract}} options
      * @param {import("src/game/GameContracts.js").GameObjectContract} options.object
      */
-    const isHeroDefinition = ({ object }) => object === Hero.name;
+    const isHeroDefinition = PlayCanvasRenderer.#isHeroDefinition;
     if (this.#mapData.objects?.some(isHeroDefinition)) {
       return;
     }
@@ -1888,7 +1828,7 @@ export class PlayCanvasRenderer {
      *
      * @param {new (options: new (options: {pc: typeof pc, app: pc.Application, root: pc.Entity}) => {entity: pc.Entity, destroy: () => void, update?: (deltaTime: number) => void}) => new (options: {pc: typeof pc, app: pc.Application, root: pc.Entity}) => {entity: pc.Entity, destroy: () => void, update?: (deltaTime: number) => void}} HudClass
      */
-    const getHud = (HudClass) => this.getHud(HudClass);
+    const getHud = this.#getHud.bind(this);
     const hero = new Hero({
       pc: this.#pc,
       app: this.#app,
@@ -1897,18 +1837,11 @@ export class PlayCanvasRenderer {
         x: this.#camera.fitCenterX,
         z: this.#camera.fitCenterZ,
       },
-      getViewRotation: () => this.#camera.rotation,
-      getViewDirection: () => {
-        const state = this.#camera.firstPersonState;
-
-        return state ? {
-          ...state.direction,
-          right: state.right,
-        } : null;
-      },
+      getViewRotation: this.#getViewRotation.bind(this),
+      getViewDirection: this.#getViewDirection.bind(this),
       onPositionChange: this.#handleHeroPositionChange,
       onFacingChange: this.#handleHeroFacingChange,
-      onMovementInput: () => this.#startHeroCameraReturn(),
+      onMovementInput: this.#onMovementInput.bind(this),
       heroConfigurationStore: this.#heroConfigurationStore,
       presentation: {
         get lifeHud() {
@@ -1920,9 +1853,9 @@ export class PlayCanvasRenderer {
         inventoryScene: this.#inventoryScene,
         gameOverScene: this.#scene,
         stateStore: this.#heroStateStore,
-        getMoodScreenPosition: () => this.#heroPatScreenPosition(0.6),
-        getInventoryFullScreenPosition: () =>
-          this.#inventoryFullIndicatorScreenPosition(),
+        getMoodScreenPosition: this.#getMoodScreenPosition.bind(this),
+        getInventoryFullScreenPosition:
+          this.#getInventoryFullScreenPosition.bind(this),
       },
       collisionWorld: this.#collisionWorld,
       modelLibrary: this.#modelLibrary,
@@ -1933,7 +1866,7 @@ export class PlayCanvasRenderer {
       pc: this.#pc,
       modelLibrary: this.#modelLibrary,
       getPatPosition: () => hero.patPosition,
-      getViewRotation: () => this.#camera.rotation,
+      getViewRotation: this.#getViewRotation2.bind(this),
       onContact: () => hero.pat(),
     });
     this.#mapRoot.addChild(this.#heroPatHand.entity);
@@ -1942,7 +1875,7 @@ export class PlayCanvasRenderer {
        *
        * @param {Event} event
        */
-      hitTest: (event) => this.#isHeroPatHit(event),
+      hitTest: this.#hitTest.bind(this),
       pat: () => {
         if (hero.canBePatted) {
           this.#heroPatHand?.pat();
@@ -1955,7 +1888,7 @@ export class PlayCanvasRenderer {
       canvas: this.canvas,
       camera: this.#camera.camera,
       hero: hero.entity,
-      getRotation: () => this.#camera.rotation,
+      getRotation: this.#getRotation.bind(this),
       /**
        *
        * @param {pc.Vec3} rotation
@@ -2005,12 +1938,7 @@ export class PlayCanvasRenderer {
       this.#buriedTreasure.tool = hero.tools.get(ShovelTool.name);
     }
     this.#interactionProviders = [
-      ...mapObjects.filter(/**
-       *
-       * @param {{findInteraction: (options: {origin: pc.Vec3, direction: pc.Vec3}) => import("src/game/GameContracts.js").InteractionDescription|null}} options
-       * @param {(options: {origin: pc.Vec3, direction: pc.Vec3}) => import("src/game/GameContracts.js").InteractionDescription|null} options.findInteraction
-       */
-        ({ findInteraction }) => findInteraction),
+      ...mapObjects.filter(PlayCanvasRenderer.#filter2),
     ];
   }
 
@@ -2025,22 +1953,14 @@ export class PlayCanvasRenderer {
        * @param {string} type
        * @param {number} amount
        */
-      onCollectCoin: (type, amount) =>
-        this.#sceneObjects
-          .getOne(SCENE_OBJECT_TYPE.HERO)
-          ?.collectCoin(type, amount),
-      onInteractionChange: () => this.#updateInteractionTarget(),
+      onCollectCoin: this.#onCollectCoin.bind(this),
+      onInteractionChange: this.#onInteractionChange2.bind(this),
       /**
        *
        * @param {pc.Vec3} position
        * @param {number} radius
        */
-      onTerrainExcavated: (position, radius) =>
-        this.#sceneObjects.getAll(SCENE_OBJECT_TYPE.MAP_OBJECT).forEach(
-          /**
-           * @param {import("src/game/GameContracts.js").GameObjectContract} object
-           */
-          (object) => object.onTerrainExcavated?.(position, radius)),
+      onTerrainExcavated: this.#onTerrainExcavated.bind(this),
     });
     this.#collisionWorld.add(this.#buriedTreasure);
     this.#sceneObjects.add(SCENE_OBJECT_TYPE.MAP_OBJECT, this.#buriedTreasure);
@@ -2071,9 +1991,7 @@ export class PlayCanvasRenderer {
       );
       castle.updateHeroPosition(position);
     }
-    for (const object of this.#sceneObjects.getAll(
-      SCENE_OBJECT_TYPE.MAP_OBJECT,
-    )) {
+    for (const object of this.#sceneObjects.getAll(SCENE_OBJECT_TYPE.MAP_OBJECT)) {
       object.updateHeroPosition?.(position);
     }
   }
@@ -2869,11 +2787,7 @@ export class PlayCanvasRenderer {
         sort: true,
       }) ?? [];
 
-    return hits.find(/**
-     *
-     * @param {pc.PickerSelection} hit
-     */
-      (hit) => hit.normal?.y >= 0.35) ?? null;
+    return hits.find(PlayCanvasRenderer.#findHit) ?? null;
   }
 
   /**
@@ -3109,6 +3023,317 @@ export class PlayCanvasRenderer {
     this.#collisionWorld.clear();
     for (const buffer of this.#vertexBuffers) buffer.destroy();
     this.#vertexBuffers = [];
+  }
+
+  #useDebounceFn() {
+    this.#saveViewport();
+  }
+
+  /**
+   *
+   * @param {Event} event
+   */
+  #pointerRay2(event) {
+    return this.#camera.firstPersonEnabled ? null : this.#pointerRay(event);
+  }
+
+  #onMousePointerLeave() {
+    return this.#clearHeroIdleLookTarget();
+  }
+
+  #getMood() {
+    return this.#heroStateStore?.mood ?? null;
+  }
+
+  #getHero() {
+    return this.#sceneObjects.getOne(SCENE_OBJECT_TYPE.HERO);
+  }
+
+  #getMapRoot() {
+    return this.#mapRoot;
+  }
+
+  /**
+   *
+   * @param {number} clientX
+   * @param {number} clientY
+   * @param {number} heightClientX
+   * @param {number} heightClientY
+   */
+  #getDropPlacement(clientX, clientY, heightClientX, heightClientY) {
+    return this.#inventoryDropPlacement(
+      clientX,
+      clientY,
+      heightClientX,
+      heightClientY,
+    );
+  }
+
+  #getViewport() {
+    return this.viewport;
+  }
+
+  #getCameraPosition() {
+    return this.#camera?.getPosition() ?? null;
+  }
+
+  #getCameraState() {
+    return this.#cameraState;
+  }
+
+  /**
+   *
+   * @param {import("src/game/GameContracts.js").StoreContract} state
+   */
+  #setCameraState2(state) {
+    return this.#setCameraState(state);
+  }
+
+  #clearCameraReturn() {
+    this.#camera.returnTransition = null;
+    this.#camera.orbitPivot = null;
+  }
+
+  #updateCamera2() {
+    return this.#updateCamera();
+  }
+
+  #$subscribe() {
+    this.#applyDebugSettings();
+  }
+
+  #getObjects() {
+    return this.#sceneObjects;
+  }
+
+  #getMap() {
+    return this.#mapData;
+  }
+
+  /**
+   * @param {{zoom: number, rotation: number, panX: number, panZ: number}} viewport
+   */
+  #setViewport(viewport) {
+    return this.setViewport(viewport);
+  }
+
+  /**
+   * @param {boolean} enabled
+   */
+  #setFirstPerson(enabled) { this.firstPersonCameraEnabled = enabled; }
+
+  /**
+   * @param {import("./objects/ObjectTypes.js").MapObjectDefinition} definition
+   */
+  static #filterDefinition(definition) {
+    return !definition.generated;
+  }
+
+  /**
+   *
+   * @param {import("src/game/GameContracts.js").CastleLayout} castle
+   */
+  static #mapCastle(castle) {
+    return castle.royalActivityState;
+  }
+
+  #getHero2() {
+    return this.#sceneObjects.getOne(SCENE_OBJECT_TYPE.HERO);
+  }
+
+  /**
+   * @param {import("./objects/ground-cover/GroundCoverCollectible.js").GroundCoverCollectible} item
+   */
+  #onCollectibleRemoved(item) {
+    return this.#buriedTreasure?.removeGroundCover(item);
+  }
+
+  /**
+   * @param {(value: string) => string} value
+   */
+  #setMaterialResolver(value) { this.#terrainRenderer.resolveMaterial = value; }
+
+  #getContactProviders() {
+    return [this.#sceneObjects.getOne(SCENE_OBJECT_TYPE.HERO), this.#inventoryScene, this.#groundCover];
+  }
+
+  /**
+   * @param {import("src/game/GameContracts.js").GameObjectContract} removedObject
+   */
+  #onObjectRemoved(removedObject) {
+    this.#buriedTreasure?.removeMapObject(removedObject);
+    for (const object of this.#sceneObjects.getAll(SCENE_OBJECT_TYPE.MAP_OBJECT)) object.onObjectRemoved?.(removedObject);
+  }
+
+  /**
+   *
+   * @param {import("src/game/GameContracts.js").GameObjectContract} object
+   */
+  #onCreate(object) {
+    return this.#sceneObjects.add(
+      object.sceneObjectType ?? SCENE_OBJECT_TYPE.MAP_OBJECT,
+      object,
+    );
+  }
+
+  /**
+   *
+   * @param {import("src/game/GameContracts.js").CastleLayout} castle
+   * @param {number} index
+   */
+  static #mapCastle2(castle, index) {
+    return {
+      name: `castle-${index}`,
+      protectAtPanLimit: true,
+      centerReachableAtEveryZoom: true,
+      root: castle.entity,
+    };
+  }
+
+  /**
+   *
+   * @param {import("src/game/GameContracts.js").GameObjectContract} gateway
+   * @param {number} index
+   */
+  static #mapGateway(gateway, index) {
+    return {
+      name: `gateway-${index}`,
+      protectAtPanLimit: true,
+      root: gateway.entity,
+    };
+  }
+
+  /**
+   *
+   * @param {import("src/game/GameContracts.js").GameObjectContract} object
+   */
+  static #flatMapObject(object) {
+    return (object.visualRoots ?? []).map(PlayCanvasRenderer.#mapRoot2);
+  }
+
+  /**
+   *
+   * @param {{root: pc.Entity}} options
+   * @param {pc.Entity} options.root
+   */
+  static #filter({ root }) {
+    return root;
+  }
+
+  /**
+   *
+   * @param {{object: import("src/game/GameContracts.js").GameObjectContract}} options
+   * @param {import("src/game/GameContracts.js").GameObjectContract} options.object
+   */
+  static #isHeroDefinition({ object }) {
+    return object === Hero.name;
+  }
+
+  /**
+   *
+   * @param {new (options: new (options: {pc: typeof pc, app: pc.Application, root: pc.Entity}) => {entity: pc.Entity, destroy: () => void, update?: (deltaTime: number) => void}) => new (options: {pc: typeof pc, app: pc.Application, root: pc.Entity}) => {entity: pc.Entity, destroy: () => void, update?: (deltaTime: number) => void}} HudClass
+   */
+  #getHud(HudClass) {
+    return this.getHud(HudClass);
+  }
+
+  #getViewRotation() {
+    return this.#camera.rotation;
+  }
+
+  #getViewDirection() {
+    const state = this.#camera.firstPersonState;
+
+    return state ? {
+      ...state.direction,
+      right: state.right,
+    } : null;
+  }
+
+  #onMovementInput() {
+    return this.#startHeroCameraReturn();
+  }
+
+  #getMoodScreenPosition() {
+    return this.#heroPatScreenPosition(0.6);
+  }
+
+  #getInventoryFullScreenPosition() {
+    return this.#inventoryFullIndicatorScreenPosition();
+  }
+
+  #getViewRotation2() {
+    return this.#camera.rotation;
+  }
+
+  /**
+   *
+   * @param {Event} event
+   */
+  #hitTest(event) {
+    return this.#isHeroPatHit(event);
+  }
+
+  #getRotation() {
+    return this.#camera.rotation;
+  }
+
+  /**
+   *
+   * @param {{findInteraction: (options: {origin: pc.Vec3, direction: pc.Vec3}) => import("src/game/GameContracts.js").InteractionDescription|null}} options
+   * @param {(options: {origin: pc.Vec3, direction: pc.Vec3}) => import("src/game/GameContracts.js").InteractionDescription|null} options.findInteraction
+   */
+  static #filter2({ findInteraction }) {
+    return findInteraction;
+  }
+
+  /**
+   *
+   * @param {string} type
+   * @param {number} amount
+   */
+  #onCollectCoin(type, amount) {
+    return this.#sceneObjects
+      .getOne(SCENE_OBJECT_TYPE.HERO)
+      ?.collectCoin(type, amount);
+  }
+
+  #onInteractionChange2() {
+    return this.#updateInteractionTarget();
+  }
+
+  /**
+   *
+   * @param {pc.Vec3} position
+   * @param {number} radius
+   */
+  #onTerrainExcavated(position, radius) {
+    return this.#sceneObjects.getAll(SCENE_OBJECT_TYPE.MAP_OBJECT).forEach(
+      /**
+           * @param {import("src/game/GameContracts.js").GameObjectContract} object
+           */
+      (object) => object.onTerrainExcavated?.(position, radius));
+  }
+
+  /**
+   *
+   * @param {pc.PickerSelection} hit
+   */
+  static #findHit(hit) {
+    return hit.normal?.y >= 0.35;
+  }
+
+  /**
+   *
+   * @param {pc.Entity} root
+   */
+  static #mapRoot2(root) {
+    return {
+      name: `map-object-${root.name}`,
+      protectAtPanLimit: true,
+      centerReachableAtEveryZoom: true,
+      root,
+    };
   }
 }
 

@@ -46,18 +46,7 @@ export class WalkingPaths {
      * @param {number} dc
      * @param {number} dr
      */
-    const heightAt = (tile, dc, dr) => {
-      if (!tile.slope) { return tile.height; }
-      const { lowHeight, highHeight, riseDirection } = tile.slope;
-      const offset = {
-        EAST: dc,
-        WEST: -dc,
-        SOUTH: dr,
-        NORTH: -dr,
-      }[riseDirection];
-
-      return (lowHeight + highHeight) / 2 + offset * (highHeight - lowHeight);
-    };
+    const heightAt = WalkingPaths.#heightAt;
     /**
      * @param {number} col
      * @param {number} row
@@ -144,18 +133,15 @@ export class WalkingPaths {
         }
       }
     }
-    const paths = (map.entries ?? []).map(/**
-     *
-     * @param {WalkingEntry} entry
-     * @param {number} pathIdx
-     */
-      (entry, pathIdx) => {
-        const row = entry.rows.reduce(/**
+    const paths = (map.entries ?? []).map(
+      /**
        *
-       * @param {number} sum
-       * @param {number} value
+       * @param {WalkingEntry} entry
+       * @param {number} pathIdx
        */
-          (sum, value) => sum + value, 0) / entry.rows.length;
+      (entry, pathIdx) => {
+        const row =
+          entry.rows.reduce(WalkingPaths.#reduceSum, 0) / entry.rows.length;
         let key = [...points].find(/**
        *
        * @param {[string, WalkingPoint]} options
@@ -180,12 +166,11 @@ export class WalkingPaths {
           entry,
           route,
         };
-      });
-    const arrowData = new RouteDataBuilder().buildArrowData(paths.map(/**
-     *
-     * @param {{route: WalkingPoint[]}} path
-     */
-      (path) => path.route));
+      },
+    );
+    const arrowData = new RouteDataBuilder().buildArrowData(
+      paths.map(WalkingPaths.#mapPath),
+    );
     map.paths = paths;
     map.arrowData = arrowData;
 
@@ -193,5 +178,46 @@ export class WalkingPaths {
       graph,
       distances,
     };
+  }
+
+  /**
+   * @param {{height: number, slope?: {lowHeight: number, highHeight: number, riseDirection: string}}} tile
+   * @param {number} dc
+   * @param {number} dr
+   */
+
+  /**
+   * @param {{height: number, slope?: {lowHeight: number, highHeight: number, riseDirection: string}}} tile
+   * @param {number} dc
+   * @param {number} dr
+   */
+  static #heightAt(tile, dc, dr) {
+    if (!tile.slope) { return tile.height; }
+    const { lowHeight, highHeight, riseDirection } = tile.slope;
+    const offset = {
+      EAST: dc,
+      WEST: -dc,
+      SOUTH: dr,
+      NORTH: -dr,
+    }[riseDirection];
+
+    return (lowHeight + highHeight) / 2 + offset * (highHeight - lowHeight);
+  }
+
+  /**
+   *
+   * @param {number} sum
+   * @param {number} value
+   */
+  static #reduceSum(sum, value) {
+    return sum + value;
+  }
+
+  /**
+   *
+   * @param {{route: WalkingPoint[]}} path
+   */
+  static #mapPath(path) {
+    return path.route;
   }
 }

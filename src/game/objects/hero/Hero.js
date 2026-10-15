@@ -175,33 +175,33 @@ export class Hero {
 
   /**
    *
-    * @type {BuffSystem}
+   * @type {BuffSystem}
    */
   #buffs = new BuffSystem();
   /**
    *
-    * @type {HeroEmotionBehavior}
+   * @type {HeroEmotionBehavior}
    */
   #emotionBehavior = new HeroEmotionBehavior(this.#buffs);
   /**
    *
-    * @type {HeroAngryEscapeBehavior}
+   * @type {HeroAngryEscapeBehavior}
    */
   #angryEscapeBehavior = new HeroAngryEscapeBehavior();
   /**
    *
-    * @type {HeroIdleBehavior}
+   * @type {HeroIdleBehavior}
    */
   #idleBehavior = new HeroIdleBehavior();
   /**
    *
-    * @type {Array<{meshInstance: import("playcanvas").MeshInstance, morphInstance: import("playcanvas").MorphInstance}>}
+   * @type {Array<{meshInstance: import("playcanvas").MeshInstance, morphInstance: import("playcanvas").MorphInstance}>}
    */
   #faceMorphs = [];
 
   /**
    *
-    * @returns {string}
+   * @returns {string}
    */
   get mood() {
     return {
@@ -214,7 +214,7 @@ export class Hero {
 
   /**
    *
-    * @returns {Array<{type: string, remaining: number}>}
+   * @returns {Array<{type: string, remaining: number}>}
    */
   get buffs() {
     return this.#buffs.state;
@@ -222,7 +222,7 @@ export class Hero {
 
   /**
    *
-    * @returns {{walkSpeed: number, runSpeed: number}}
+   * @returns {{walkSpeed: number, runSpeed: number}}
    */
   get stats() {
     return {
@@ -264,7 +264,7 @@ export class Hero {
 
   /**
    *
-    * @returns {boolean}
+   * @returns {boolean}
    */
   get canBePatted() {
     return Boolean(this.#headEntity)
@@ -275,7 +275,7 @@ export class Hero {
 
   /**
    *
-    * @returns {{x: number, y: number, z: number}}
+   * @returns {{x: number, y: number, z: number}}
    */
   get patPosition() {
     return this.#headEntity?.getWorldTransform().transformPoint(
@@ -315,7 +315,7 @@ export class Hero {
 
   /**
    *
-    * @returns {string}
+   * @returns {string}
    */
   static get modelUrl() {
     return heroModelUrl;
@@ -323,7 +323,7 @@ export class Hero {
 
   /**
    *
-    * @returns {Array<string>}
+   * @returns {Array<string>}
    */
   static get modelUrls() {
     return [
@@ -336,7 +336,7 @@ export class Hero {
 
   /**
    *
-    * @returns {number}
+   * @returns {number}
    */
   static get inventoryCapacity() {
     return HERO_INVENTORY_CAPACITY;
@@ -344,127 +344,127 @@ export class Hero {
 
   /**
    *
-    * @type {typeof import("playcanvas")}
+   * @type {typeof import("playcanvas")}
    */
   #pc;
   /**
    *
-    * @type {import("playcanvas").Application}
+   * @type {import("playcanvas").Application}
    */
   #app;
   /**
    *
-    * @type {import("src/game/objects/ObjectTypes.js").GameMapData}
+   * @type {import("src/game/objects/ObjectTypes.js").GameMapData}
    */
   #mapData;
   /**
    *
-    * @type {{x: number, y: number, z: number}}
+   * @type {{x: number, y: number, z: number}}
    */
   #spawnCenter;
   /**
    *
-    * @type {() => number}
+   * @type {() => number}
    */
   #getViewRotation;
   /**
    *
-    * @type {() => {x: number, y: number, z: number}}
+   * @type {() => {x: number, y: number, z: number}}
    */
   #getViewDirection;
   /**
    *
-    * @type {(position: {x: number, y: number, z: number}) => void}
+   * @type {(position: {x: number, y: number, z: number}) => void}
    */
   #onPositionChange;
   /**
    *
-    * @type {(yaw: number) => void}
+   * @type {(yaw: number) => void}
    */
   #onFacingChange;
   /**
    *
-    * @type {import("src/game/collision/GroundCollisionWorld.js").GroundCollisionWorld}
+   * @type {import("src/game/collision/GroundCollisionWorld.js").GroundCollisionWorld}
    */
   #collisionWorld;
   /**
    *
-    * @type {import("src/game/models/GameModelLibrary.js").GameModelLibrary}
+   * @type {import("src/game/models/GameModelLibrary.js").GameModelLibrary}
    */
   #modelLibrary;
   /**
    *
-    * @type {import("playcanvas").Entity}
+   * @type {import("playcanvas").Entity}
    */
   #entity;
   /**
    *
-    * @type {HeroPhysicsController}
+   * @type {HeroPhysicsController}
    */
   #physics;
   /**
    *
-    * @type {import("playcanvas").Entity}
+   * @type {import("playcanvas").Entity}
    */
   #modelRoot;
   /**
    *
-    * @type {import("playcanvas").Entity}
+   * @type {import("playcanvas").Entity}
    */
   #headEntity;
   /**
    *
-    * @type {import("playcanvas").Entity}
+   * @type {import("playcanvas").Entity}
    */
   #mouthEntity;
   /**
    *
-    * @type {import("playcanvas").Entity}
+   * @type {import("playcanvas").Entity}
    */
   #leftEyeEntity;
   /**
    *
-    * @type {import("playcanvas").Entity}
+   * @type {import("playcanvas").Entity}
    */
   #rightEyeEntity;
   /**
    *
-    * @type {import("playcanvas").Entity}
+   * @type {import("playcanvas").Entity}
    */
   #leftArmEntity;
   /**
    *
-    * @type {import("playcanvas").Entity}
+   * @type {import("playcanvas").Entity}
    */
   #rightArmEntity;
   /**
    *
-    * @type {import("playcanvas").Entity}
+   * @type {import("playcanvas").Entity}
    */
   #toolAttachmentEntity;
   /**
    *
-    * @type {import("playcanvas").Entity}
+   * @type {import("playcanvas").Entity}
    */
   #rightHeldItemAttachmentEntity;
   /**
    *
-    * @type {import("playcanvas").Entity}
+   * @type {import("playcanvas").Entity}
    */
   #leftHeldItemAttachmentEntity;
   /**
    *
-    * @type {import("src/game/objects/ObjectTypes.js").Point3}
+   * @type {import("src/game/objects/ObjectTypes.js").Point3}
    */
   #spawn;
   /**
    *
-    * @type {{x: number, y: number, z: number}}
+   * @type {{x: number, y: number, z: number}}
    */
   #position;
   /**
    *
-    * @type {{x: number, y: number, z: number}}
+   * @type {{x: number, y: number, z: number}}
    */
   #velocity = {
     x: 0,
@@ -473,47 +473,47 @@ export class Hero {
   };
   /**
    *
-    * @type {Vec2}
+   * @type {Vec2}
    */
   #input = new Vec2(0, 0);
   /**
    *
-    * @type {boolean}
+   * @type {boolean}
    */
   #running = false;
   /**
    *
-    * @type {boolean}
+   * @type {boolean}
    */
   #movementBlocked = false;
   /**
    *
-    * @type {number}
+   * @type {number}
    */
   #automaticStepGroundingRemaining = 0;
   /**
    *
-    * @type {number|null}
+   * @type {number|null}
    */
   #automaticStepTargetHeight = null;
   /**
    *
-    * @type {number}
+   * @type {number}
    */
   #automaticStepVisualOffset = 0;
   /**
    *
-    * @type {Array<import("playcanvas").Entity>}
+   * @type {Array<import("playcanvas").Entity>}
    */
   #heroPartColliders = [];
   /**
    *
-    * @type {number}
+   * @type {number}
    */
   #airborneStallElapsed = 0;
   /**
    *
-    * @type {boolean}
+   * @type {boolean}
    */
   #partCollidersSuspended = false;
   /**
@@ -522,122 +522,122 @@ export class Hero {
   #capsuleSupportOnly = false;
   /**
    *
-    * @type {number}
+   * @type {number}
    */
   #blockedPushElapsed = 0;
   /**
    *
-    * @type {boolean}
+   * @type {boolean}
    */
   #blockedPushFinished = false;
   /**
    *
-    * @type {boolean}
+   * @type {boolean}
    */
   #holeRefusalAcknowledged = false;
   /**
    *
-    * @type {boolean}
+   * @type {boolean}
    */
   #holeMovementBlocked = false;
   /**
    *
-    * @type {string|number}
+   * @type {string|number}
    */
   #lastEdgeRefusalFoot = FOOT_SIDE.RIGHT;
   /**
    *
-    * @type {{x: number, y: number, z: number}}
+   * @type {{x: number, y: number, z: number}}
    */
   #stableGroundPosition;
   /**
    *
-    * @type {boolean}
+   * @type {boolean}
    */
   #grounded = true;
   /**
    *
-    * @type {boolean}
+   * @type {boolean}
    */
   #physicsSupportContact = false;
   /**
    *
-    * @type {number}
+   * @type {number}
    */
   #coyoteRemaining = COYOTE_TIME;
   /**
    *
-    * @type {number}
+   * @type {number}
    */
   #jumpBufferRemaining = 0;
   /**
    *
-    * @type {number}
+   * @type {number}
    */
   #jumpsUsed = 0;
   /**
    *
-    * @type {number}
+   * @type {number}
    */
   #facingYaw = 0;
   /**
    *
-    * @type {boolean}
+   * @type {boolean}
    */
   #animationState = null;
   /**
    *
-    * @type {boolean}
+   * @type {boolean}
    */
   #restartAnimation = false;
   /**
    *
-    * @type {string}
+   * @type {string}
    */
   #idleLookTarget = null;
   /**
    *
-    * @type {{x: number, y: number, z: number}}
+   * @type {{x: number, y: number, z: number}}
    */
   #queuedFacingDirection = null;
   /**
    *
-    * @type {number}
+   * @type {number}
    */
   #headLookYaw = 0;
   /**
    *
-    * @type {import("playcanvas").EventHandle|null}
+   * @type {import("playcanvas").EventHandle|null}
    */
   #updateHandle = null;
   /**
    *
-    * @type {import("src/game/objects/hero/tools/HeroTool.js").HeroTool|null}
+   * @type {import("src/game/objects/hero/tools/HeroTool.js").HeroTool|null}
    */
   #tool = null;
   /**
    *
-    * @type {Map}
+   * @type {Map}
    */
   #tools = new Map();
   /**
    *
-    * @type {number}
+   * @type {number}
    */
   #facingHoldRemaining = 0;
   /**
    *
-    * @type {number}
+   * @type {number}
    */
   #movementAnimationHoldRemaining = 0;
   /**
    *
-    * @type {string}
+   * @type {string}
    */
   #actionBehavior;
   /**
    *
-    * @type {number}
+   * @type {number}
    */
   #respawnEffect = null;
 
@@ -647,7 +647,7 @@ export class Hero {
   #teleportEffect = null;
   /**
    *
-    * @type {HeroFootPlacement}
+   * @type {HeroFootPlacement}
    */
   #footPlacement = null;
   /**
@@ -660,37 +660,37 @@ export class Hero {
   #visualIslandOffsets = [0, 0];
   /**
    *
-    * @type {HeroHairPhysics|null}
+   * @type {HeroHairPhysics|null}
    */
   #hairPhysics = null;
   /**
    *
-    * @type {Map}
+   * @type {Map}
    */
   #riverRoutesByCell = new Map();
   /**
    *
-    * @type {Array<import("./HeroSurfaceTypes.js").RiverSourceCover>}
+   * @type {Array<import("./HeroSurfaceTypes.js").RiverSourceCover>}
    */
   #riverSourceCovers = [];
   /**
    *
-    * @type {Map}
+   * @type {Map}
    */
   #drowningRenderStates = new Map();
   /**
    *
-    * @type {number}
+   * @type {number}
    */
   #lives = MAX_LIVES;
   /**
    *
-    * @type {number}
+   * @type {number}
    */
   #gatewayRepelCooldown = 0;
   /**
    *
-    * @type {Record<string, number>}
+   * @type {Record<string, number>}
    */
   #wallet = {
     [COIN_TYPE.GOLD]: 0,
@@ -699,27 +699,27 @@ export class Hero {
   };
   /**
    *
-    * @type {HeroConfigurationStore}
+   * @type {HeroConfigurationStore}
    */
   #heroConfigurationStore;
   /**
    *
-    * @type {(x: number, z: number) => void}
+   * @type {(x: number, z: number) => void}
    */
   #onMovementInput;
   /**
    *
-    * @type {HeroPresentation}
+   * @type {HeroPresentation}
    */
   #presentation;
   /**
    *
-    * @type {boolean}
+   * @type {boolean}
    */
   #moodVisible = false;
   /**
    *
-    * @type {boolean}
+   * @type {boolean}
    */
   #firstPersonCameraEnabled = false;
 
@@ -816,36 +816,19 @@ export class Hero {
       repelDuration: GATEWAY_REPEL_DURATION,
       repelSpeed: GATEWAY_REPEL_SPEED,
       feedback: {
-        actionComplete: () => {
-          this.#restartAnimation = true;
-        },
+        actionComplete: this.#actionComplete.bind(this),
         tool: {
           /**
            *
            * @param {string} action
            */
-          begin: (action) => {
-            action.tool.mount(this.#toolAttachmentEntity);
-            action.tool.visible = true;
-            this.#tool = action.tool;
-            this.#velocity.x = 0;
-            this.#velocity.z = 0;
-            this.#restartAnimation = true;
-            this.#resetBoredom();
-          },
-          restartAnimation: () => {
-            this.#restartAnimation = true;
-          },
+          begin: this.#begin2.bind(this),
+          restartAnimation: this.#restartAnimation2.bind(this),
           /**
            *
            * @param {string} action
            */
-          complete: (action) => {
-            action.tool.visible = false;
-            this.#tool = null;
-            this.#restartAnimation = true;
-            action.onComplete?.();
-          },
+          complete: this.#complete.bind(this),
         },
         collection: {
           positioningDuration: PICKUP_POSITIONING_DURATION,
@@ -856,125 +839,55 @@ export class Hero {
            * @param {number} x
            * @param {number} z
            */
-          canOccupy: (x, z) =>
-            this.#movementSurface.occupancyAt(x, z, this.#surfaceState) === OCCUPANCY.open,
+          canOccupy: this.#canOccupy.bind(this),
           /**
            *
            * @param {number} x
            * @param {number} z
            */
-          moveTo: (x, z) => {
-            this.#position.x = x;
-            this.#position.z = z;
-          },
+          moveTo: this.#moveTo.bind(this),
           /**
            *
            * @param {import("../ground-cover/GroundCoverHeldItem.js").GroundCoverHeldItem} item
            * @param {import("playcanvas").Entity} attachment
            */
-          mountHeldItem: (item, attachment) =>
-            item.mount(this.#entity, attachment),
+          mountHeldItem: this.#mountHeldItem.bind(this),
           /**
            *
            * @param {string} action
            */
-          begin: (action) => {
-            if (action.tool) {
-              action.tool.mount(this.#toolAttachmentEntity);
-              action.tool.visible = true;
-            }
-            this.#velocity.x = 0;
-            this.#velocity.z = 0;
-            this.#restartAnimation = true;
-            this.#resetBoredom();
-          },
-          beginInventoryFull: () => {
-            this.#velocity.x = 0;
-            this.#velocity.z = 0;
-            this.#restartAnimation = true;
-            this.#resetBoredom();
-          },
-          restartAnimation: () => {
-            this.#restartAnimation = true;
-          },
+          begin: this.#begin3.bind(this),
+          beginInventoryFull: this.#beginInventoryFull.bind(this),
+          restartAnimation: this.#restartAnimation3.bind(this),
           /**
            *
            * @param {string} action
            */
-          endCollection: (action) => {
-            if (action.tool) {
-              action.tool.visible = false;
-            }
-            action.heldItem?.destroy();
-            this.#restartAnimation = true;
-            if (action.completed) {
-              action.onComplete?.();
-            }
-          },
-          showInventoryFull: () => this.#showInventoryFull(),
+          endCollection: this.#endCollection.bind(this),
+          showInventoryFull: this.#showInventoryFull2.bind(this),
           /**
            *
            * @param {string} action
            */
-          endInventoryFull: (action) => {
-            this.#restartAnimation = true;
-            if (action.completed) {
-              action.onComplete?.();
-            }
-          },
+          endInventoryFull: this.#endInventoryFull.bind(this),
         },
         dodge: {
           /**
            *
            * @param {number} crossedLedge
            */
-          complete: (crossedLedge) => {
-            if (crossedLedge) {
-              const riverRouteEntry = this.#riverRouteEntryAt(
-                this.#position.x,
-                this.#position.z,
-              );
-              const landingSurface = this.#physics.surfaceAt(
-                this.#position.x,
-                this.#position.z,
-                this.#position.y + STEP_CLEARANCE,
-                FALL_EXIT_HEIGHT,
-              );
-              if (
-                (!riverRouteEntry || riverRouteEntry.cell.underBridge)
-                && landingSurface === null
-              ) {
-                this.#actionBehavior.fallingToDeath = true;
-              }
-            }
-            this.#restartAnimation = true;
-          },
+          complete: this.#complete2.bind(this),
         },
         patReaction: {
-          shouldContinue: () => {
-            const kind = this.#emotionBehavior.state.kind;
-
-            return this.canBePatted
-              && !this.#angryEscapeBehavior.active
-              && !this.#hasMovementInput
-              && Math.hypot(this.#velocity.x, this.#velocity.z) <= 0.08
-              && (kind === HERO_MOOD.AGITATED || kind === HERO_MOOD.ANGRY);
-          },
+          shouldContinue: this.#shouldContinue.bind(this),
         },
         repel: {
           /**
            *
            * @param {{x: number, y: number, z: number}} direction
            */
-          begin: (direction) => {
-            this.#velocity.x = direction.x * GATEWAY_REPEL_SPEED;
-            this.#velocity.z = direction.z * GATEWAY_REPEL_SPEED;
-            this.#restartAnimation = true;
-            this.#resetBoredom();
-          },
-          end: () => {
-            this.#gatewayRepelCooldown = GATEWAY_REPEL_COOLDOWN;
-          },
+          begin: this.#begin4.bind(this),
+          end: this.#end.bind(this),
         },
         refusal: {
           /**
@@ -982,27 +895,11 @@ export class Hero {
            * @param {{foot: import("src/game/objects/ObjectTypes.js").HeroFootRig}} options
            * @param {import("src/game/objects/ObjectTypes.js").HeroFootRig} options.foot
            */
-          beginEdge: ({ foot }) => {
-            this.#lastEdgeRefusalFoot = foot;
-            this.#velocity.x = 0;
-            this.#velocity.z = 0;
-            this.#restartAnimation = true;
-            this.#resetBoredom();
-          },
-          beginHole: () => {
-            this.#velocity.x = 0;
-            this.#velocity.z = 0;
-            this.#restartAnimation = true;
-            this.#resetBoredom();
-          },
+          beginEdge: this.#beginEdge2.bind(this),
+          beginHole: this.#beginHole.bind(this),
         },
         blockedDig: {
-          begin: () => {
-            this.#velocity.x = 0;
-            this.#velocity.z = 0;
-            this.#restartAnimation = true;
-            this.#resetBoredom();
-          },
+          begin: this.#begin5.bind(this),
         },
         drowning: {
           lavaEntryClearance: LAVA_ENTRY_CLEARANCE,
@@ -1015,58 +912,48 @@ export class Hero {
           submergeDepth: DROWNING_SUBMERGE_DEPTH,
           sinkSpeed: DROWNING_SINK_SPEED,
           currentSpeed: RIVER_CURRENT_SPEED,
-          situation: () => ({
-            grounded: this.#grounded,
-            fallingToDeath: this.#actionBehavior?.fallingToDeath ?? false,
-            respawning: this.#actionBehavior?.respawning ?? false,
-            verticalVelocity: this.#velocity.y,
-            position: this.#position,
-          }),
+          situation: this.#situation.bind(this),
           /**
            *
            * @param {{x: number, z: number}} options
            * @param {number} options.x
            * @param {number} options.z
            */
-          hasRiverSourceCover: ({ x, z }) =>
-            this.#terrain.riverSourceCoverHeightAt(x, z) !== null,
+          hasRiverSourceCover: this.#hasRiverSourceCover.bind(this),
           /**
            *
            * @param {{x: number, z: number}} options
            * @param {number} options.x
            * @param {number} options.z
            */
-          routeEntryAt: ({ x, z }) => this.#riverRouteEntryAt(x, z),
-          position: () => this.#position,
+          routeEntryAt: this.#routeEntryAt.bind(this),
+          position: this.#position2.bind(this),
           /**
            *
            * @param {{x: number, y: number, z: number}} direction
            */
-          directionVector: (direction) => this.#riverDirectionVector(direction),
+          directionVector: this.#directionVector.bind(this),
           /**
            *
            * @param {number} cell
            */
-          canClimbBridge: (cell) => this.#canClimbRiverBridge(cell),
+          canClimbBridge: this.#canClimbBridge.bind(this),
           /**
            *
            * @param {{x: number, y: number, z: number}} velocity
            */
-          setVelocity: (velocity) => {
-            this.#velocity = velocity;
-          },
+          setVelocity: this.#setVelocity.bind(this),
           /**
            *
            * @param {{x: number, y: number, z: number}} direction
            */
-          finishAtWaterfall: (direction) =>
-            this.#finishDrowningAtWaterfall(direction),
+          finishAtWaterfall: this.#finishAtWaterfall.bind(this),
           /**
            *
            * @param {number} routeEntry
            */
-          begin: (routeEntry) => this.#beginDrowning(routeEntry),
-          endPresentation: () => this.#setDrowningPresentation(false),
+          begin: this.#begin6.bind(this),
+          endPresentation: this.#endPresentation.bind(this),
           /**
            *
            * @param {{pitch: number, yaw: number, roll: number, mouthScale: {x: number, y: number, z: number}}} options
@@ -1075,11 +962,7 @@ export class Hero {
            * @param {number} options.roll
            * @param {{x: number, y: number, z: number}} options.mouthScale
            */
-          updatePresentation: ({ pitch, yaw, roll, mouthScale }) => {
-            this.#headLookYaw = yaw;
-            this.#headEntity?.setLocalEulerAngles(pitch, yaw, roll);
-            this.#mouthEntity?.setLocalScale(1, mouthScale, 1);
-          },
+          updatePresentation: this.#updatePresentation.bind(this),
         },
         bridgeClimb: {
           duration: RIVER_BRIDGE_EXIT_DURATION,
@@ -1092,22 +975,14 @@ export class Hero {
            *
            * @param {number} cell
            */
-          begin: (cell) => this.#beginRiverBridgeExit(cell),
+          begin: this.#begin7.bind(this),
           /**
            *
            * @param {{x: number, y: number, z: number}} position
            * @param {number} deltaTime
            */
-          moveTo: (position, deltaTime) => {
-            const previous = this.#position;
-            this.#position = position;
-            this.#velocity = {
-              x: (position.x - previous.x) / deltaTime,
-              y: (position.y - previous.y) / deltaTime,
-              z: (position.z - previous.z) / deltaTime,
-            };
-          },
-          complete: () => this.#finishRiverBridgeExit(),
+          moveTo: this.#moveTo2.bind(this),
+          complete: this.#complete3.bind(this),
           /**
            *
            * @param {{armPitch: number, armSpread: number, headPitch: number}} options
@@ -1115,27 +990,12 @@ export class Hero {
            * @param {number} options.armSpread
            * @param {number} options.headPitch
            */
-          updatePresentation: ({ armPitch, armSpread, headPitch }) => {
-            this.#leftArmEntity?.setLocalEulerAngles(
-              armPitch,
-              0,
-              -armSpread,
-            );
-            this.#rightArmEntity?.setLocalEulerAngles(
-              armPitch,
-              0,
-              armSpread,
-            );
-            this.#headEntity?.setLocalEulerAngles(headPitch, 0, 0);
-          },
-          resetPresentation: () => {
-            this.#leftArmEntity?.setLocalEulerAngles(0, 0, 0);
-            this.#rightArmEntity?.setLocalEulerAngles(0, 0, 0);
-          },
+          updatePresentation: this.#updatePresentation2.bind(this),
+          resetPresentation: this.#resetPresentation.bind(this),
         },
         burning: {
           modelScale: HERO_MODEL_SCALE,
-          lives: () => this.#lives,
+          lives: this.#lives2.bind(this),
           presentation: () => ({
             pc,
             app,
@@ -1145,48 +1005,42 @@ export class Hero {
            *
            * @param {number} height
            */
-          freezeAtHeight: (height) => this.#freezeAtHeight(height),
+          freezeAtHeight: this.#freezeAtHeight2.bind(this),
           /**
            *
            * @param {number} height
            */
-          setHeight: (height) => {
-            this.#position.y = height;
-          },
+          setHeight: this.#setHeight.bind(this),
           /**
            *
            * @param {number} x
            * @param {number} y
            * @param {number} z
            */
-          setModelScale: (x, y, z) => this.#modelRoot?.setLocalScale(x, y, z),
-          syncState: () => this.#syncState(),
+          setModelScale: this.#setModelScale.bind(this),
+          syncState: this.#syncState2.bind(this),
         },
         falling: {
-          begin: () => this.#beginFallDeath(),
-          finished: () => this.#position.y < FALL_EXIT_HEIGHT,
+          begin: this.#begin8.bind(this),
+          finished: this.#finished.bind(this),
         },
         death: {
-          resolve: () => this.#resolveDeath(),
+          resolve: this.#resolve2.bind(this),
         },
         respawning: {
           duration: RESPAWN_ANIMATION_DURATION,
-          begin: () => this.#beginRespawn(),
+          begin: this.#begin9.bind(this),
           /**
            *
            * @param {number} progress
            * @param {number} elapsed
            */
-          updatePresentation: (progress, elapsed) => {
-            this.#respawnEffect?.update(progress, elapsed, this.#position.y);
-          },
-          resetPresentation: () => this.#respawnEffect?.reset(),
-          complete: () => {
-            this.#restartAnimation = true;
-          },
+          updatePresentation: this.#updatePresentation3.bind(this),
+          resetPresentation: this.#resetPresentation2.bind(this),
+          complete: this.#complete4.bind(this),
         },
         gameOver: {
-          begin: () => this.#beginGameOver(),
+          begin: this.#begin10.bind(this),
         },
       },
     });
@@ -1203,7 +1057,7 @@ export class Hero {
 
   /**
    *
-    * @returns {import("src/game/objects/ObjectTypes.js").Point3}
+   * @returns {import("src/game/objects/ObjectTypes.js").Point3}
    */
   get position() {
     return { ...this.#position };
@@ -1282,7 +1136,7 @@ export class Hero {
 
   /**
    *
-    * @returns {boolean}
+   * @returns {boolean}
    */
   get isUsingTool() {
     return this.#actionBehavior.toolAction !== null;
@@ -1290,7 +1144,7 @@ export class Hero {
 
   /**
    *
-    * @returns {boolean}
+   * @returns {boolean}
    */
   get isCollecting() {
     return this.#actionBehavior.collectAction !== null;
@@ -1298,7 +1152,7 @@ export class Hero {
 
   /**
    *
-    * @returns {boolean}
+   * @returns {boolean}
    */
   get isRefusingInventoryPickup() {
     return this.#actionBehavior.inventoryFullAction !== null;
@@ -1314,7 +1168,7 @@ export class Hero {
 
   /**
    *
-    * @returns {Record<string, number>}
+   * @returns {Record<string, number>}
    */
   get wallet() {
     return { ...this.#wallet };
@@ -1322,24 +1176,18 @@ export class Hero {
 
   /**
    *
-    * @returns {HeroInventory}
+   * @returns {HeroInventory}
    */
   get inventory() {
     return {
       capacity: this.#heroConfigurationStore.inventory.capacity,
-      items: this.#heroConfigurationStore.inventory.items.map(/**
-       *
-       * @param {{id: string, variant: string, quantity?: number}} item
-       */
-        (item) => ({
-          ...item,
-        })),
+      items: this.#heroConfigurationStore.inventory.items.map(Hero.#mapItem),
     };
   }
 
   /**
    *
-    * @returns {boolean}
+   * @returns {boolean}
    */
   get inventoryFull() {
     return (
@@ -1350,7 +1198,7 @@ export class Hero {
 
   /**
    *
-    * @returns {import("src/game/objects/ObjectTypes.js").Point3}
+   * @returns {import("src/game/objects/ObjectTypes.js").Point3}
    */
   get inventoryFullIndicatorPosition() {
     const anchor = this.#headEntity?.getPosition() ?? this.#entity.getPosition();
@@ -1371,7 +1219,7 @@ export class Hero {
 
   /**
    *
-    * @returns {boolean}
+   * @returns {boolean}
    */
   get isGameOver() {
     return this.#actionBehavior.gameOver;
@@ -1383,7 +1231,7 @@ export class Hero {
 
   /**
    *
-    * @returns {boolean}
+   * @returns {boolean}
    */
   get animationTransitioning() {
     return this.#modelRoot?.anim?.baseLayer.transitioning ?? false;
@@ -1399,7 +1247,7 @@ export class Hero {
 
   /**
    *
-    * @returns {Record<string, {appliedLift: number, minimumClearance: number, tiltDegrees: number}>|null}
+   * @returns {Record<string, {appliedLift: number, minimumClearance: number, tiltDegrees: number}>|null}
    */
   get footPlacementState() {
     return this.#footPlacement?.state ?? null;
@@ -1407,7 +1255,7 @@ export class Hero {
 
   /**
    *
-    * @returns {Array<{x: number, y: number, z: number, directionX: number, directionZ: number, strength: number}>}
+   * @returns {Array<{x: number, y: number, z: number, directionX: number, directionZ: number, strength: number}>}
    */
   get grassFootContacts() {
     return this.#footPlacement?.grassContacts ?? [];
@@ -1415,7 +1263,7 @@ export class Hero {
 
   /**
    *
-    * @returns {boolean}
+   * @returns {boolean}
    */
   get isIncapacitated() {
     return this.#actionBehavior.incapacitated;
@@ -1423,7 +1271,7 @@ export class Hero {
 
   /**
    *
-    * @returns {boolean}
+   * @returns {boolean}
    */
   get isDying() {
     return this.#actionBehavior.dying;
@@ -1431,7 +1279,7 @@ export class Hero {
 
   /**
    *
-    * @returns {boolean}
+   * @returns {boolean}
    */
   get isRespawning() {
     return this.#actionBehavior.respawning;
@@ -1439,7 +1287,7 @@ export class Hero {
 
   /**
    *
-    * @returns {boolean}
+   * @returns {boolean}
    */
   get drowning() {
     return this.#actionBehavior.drowning;
@@ -1447,7 +1295,7 @@ export class Hero {
 
   /**
    *
-    * @returns {{head: import("playcanvas").Entity, x: number, z: number, surfaceY: number}|null}
+   * @returns {{head: import("playcanvas").Entity, x: number, z: number, surfaceY: number}|null}
    */
   get waterPresentation() {
     if (!this.#actionBehavior.drowningAction || !this.#headEntity) {
@@ -1467,7 +1315,7 @@ export class Hero {
 
   /**
    *
-    * @returns {boolean}
+   * @returns {boolean}
    */
   get burning() {
     return this.#actionBehavior.burning && !this.ashes;
@@ -1482,7 +1330,7 @@ export class Hero {
 
   /**
    *
-    * @returns {boolean}
+   * @returns {boolean}
    */
   get isReacting() {
     return this.#actionBehavior.bellAction !== null || this.#actionBehavior.blockedDigReactionAction !== null || this.#actionsLocked;
@@ -1490,7 +1338,7 @@ export class Hero {
 
   /**
    *
-    * @returns {string}
+   * @returns {string}
    */
   get actionState() {
     return this.#actionBehavior.state;
@@ -1508,7 +1356,7 @@ export class Hero {
 
   /**
    *
-    * @returns {number}
+   * @returns {number}
    */
   get #actionsLocked() {
     return this.#angryEscapeBehavior.active || !this.#emotionBehavior.acceptsActions;
@@ -1548,13 +1396,7 @@ export class Hero {
     this.#clearActionInput();
     this.#angryEscapeBehavior.begin(
       this.#position,
-      /**
-       *
-       * @param {import("src/game/objects/ObjectTypes.js").Point3} from
-       * @param {import("src/game/objects/ObjectTypes.js").Point3} to
-       */
-      (from, to) =>
-        this.#movementSurface.canEscapeAcross(from, to, this.#surfaceState),
+      this.#begin11.bind(this),
       Math.random,
       distance,
     );
@@ -1577,7 +1419,7 @@ export class Hero {
 
   /**
    *
-    * @returns {boolean}
+   * @returns {boolean}
    */
   get #restingForMood() {
     return this.canBePatted && !this.#angryEscapeBehavior.active
@@ -1588,7 +1430,7 @@ export class Hero {
 
   /**
    *
-    * @returns {{x: number, z: number}}
+   * @returns {{x: number, z: number}}
    */
   get facingDirection() {
     const yaw = (this.#facingYaw * Math.PI) / 180;
@@ -1601,7 +1443,7 @@ export class Hero {
 
   /**
    *
-    * @returns {{position:{x:number,y:number,z:number},direction:{x:number,y:number,z:number}}}
+   * @returns {{position:{x:number,y:number,z:number},direction:{x:number,y:number,z:number}}}
    */
   get firstPersonCameraPose() {
     const direction = this.facingDirection;
@@ -1653,7 +1495,7 @@ export class Hero {
 
   /**
    *
-    * @returns {{direction: {x: number, z: number}, speed: number, running: boolean}}
+   * @returns {{direction: {x: number, z: number}, speed: number, running: boolean}}
    */
   get movementState() {
     const speed = Math.hypot(this.#velocity.x, this.#velocity.z);
@@ -1924,8 +1766,8 @@ export class Hero {
       approachElapsed: 0,
       pulling: false,
       struck: false,
-      currentPosition: () => this.position,
-      supported: () => this.#bellSupported,
+      currentPosition: this.#currentPosition.bind(this),
+      supported: this.#supported.bind(this),
       begin: () => {
         this.#velocity.x = 0;
         this.#velocity.z = 0;
@@ -2184,7 +2026,7 @@ export class Hero {
   /**
    *
    * @param {number} deltaTime
-    * @type {(deltaTime: number) => void}
+   * @type {(deltaTime: number) => void}
    */
   #update = (deltaTime) => {
     this.#step(Math.min(deltaTime, MAX_FRAME_TIME));
@@ -2292,8 +2134,7 @@ export class Hero {
       : Math.max(0, this.#coyoteRemaining - deltaTime);
     this.#updateAirborneColliderRecovery(deltaTime, previousY);
     if (
-      !this.#grounded &&
-      this.#coyoteRemaining === 0 &&
+      !this.#grounded && this.#coyoteRemaining === 0 &&
       this.#jumpsUsed === 0
     ) {
       this.#jumpsUsed = 1;
@@ -2546,25 +2387,8 @@ export class Hero {
       this.#position.y - STEP_CLEARANCE,
     )?.height;
     const stepHeight = [physicsHeight]
-      .filter(
-        /**
-         *
-         * @param {number} height
-         */
-        (height) =>
-          Number.isFinite(height) &&
-          height - this.#position.y >= MIN_AUTOMATIC_STEP_HEIGHT &&
-          height - this.#position.y <= MAX_AUTOMATIC_STEP_HEIGHT,
-      )
-      .reduce(
-        /**
-         *
-         * @param {number} highest
-         * @param {number} height
-         */
-        (highest, height) => Math.max(highest, height),
-        -Infinity,
-      );
+      .filter(this.#filterHeight.bind(this))
+      .reduce(Hero.#reduceHighest, -Infinity);
     if (!Number.isFinite(stepHeight)) {
       return false;
     }
@@ -3055,7 +2879,7 @@ export class Hero {
 
   /**
    *
-    * @returns {{x: number, z: number}}
+   * @returns {{x: number, z: number}}
    */
   get #movementDirection() {
     const speed = Math.hypot(this.#velocity.x, this.#velocity.z);
@@ -3070,7 +2894,7 @@ export class Hero {
 
   /**
    *
-    * @returns {boolean}
+   * @returns {boolean}
    */
   get #hasMovementInput() {
     return this.#angryEscapeBehavior.active || (!this.#actionsLocked
@@ -3079,7 +2903,7 @@ export class Hero {
 
   /**
    *
-    * @returns {string}
+   * @returns {string}
    */
   get #alternateEdgeFoot() {
     return this.#lastEdgeRefusalFoot === FOOT_SIDE.LEFT
@@ -3583,7 +3407,7 @@ export class Hero {
 
   /**
    *
-    * @returns {number}
+   * @returns {number}
    */
   get #headLookTargetYaw() {
     if (
@@ -3748,14 +3572,7 @@ export class Hero {
       pc: this.#pc,
       app: this.#app,
       headEntity: this.#headEntity,
-      hairEntities:
-        this.#headEntity?.children.filter(/**
-         *
-         * @param {import("playcanvas").Entity} entity
-         */
-          (entity) =>
-            HAIR_ENTITY_NAME.test(entity.name),
-        ) ?? [],
+      hairEntities: this.#headEntity?.children.filter(Hero.#filterEntity) ?? [],
       modelScale: HERO_MODEL_SCALE,
     });
     this.#mouthEntity = this.#findModelEntity("Mouth");
@@ -3766,25 +3583,9 @@ export class Hero {
       this.#findModelEntity("Left cyan eyebrow"),
       this.#findModelEntity("Right cyan eyebrow"),
     ]
-      .flatMap(/**
-       *
-       * @param {import("playcanvas").Entity} entity
-       */
-        (entity) => entity?.render?.meshInstances ?? [])
-      .map(/**
-       *
-       * @param {import("playcanvas").Mesh} mesh
-       */
-        (mesh) => mesh.morphInstance)
-      .filter(/**
-       *
-       * @param {import("playcanvas").MorphInstance} morph
-       */
-        (morph) => morph?.morph.targets.some(/**
-       *
-       * @param {{x: number, y: number, z: number}} target
-       */
-          (target) => target.name === "HappyPat"));
+      .flatMap(Hero.#flatMapEntity)
+      .map(Hero.#mapMesh)
+      .filter(Hero.#filterMorph);
     this.#leftArmEntity = this.#findModelEntity("Left arm");
     this.#rightArmEntity = this.#findModelEntity("Right arm");
     this.#toolAttachmentEntity = this.#findModelEntity("Right arm");
@@ -3821,14 +3622,13 @@ export class Hero {
        * @param {number} z
        * @param {number} maximumHeight
        */
-      surfaceAt: (x, z, maximumHeight) =>
-        this.#physics.surfaceAt(x, z, maximumHeight),
-      getHeroPosition: () => this.#position,
+      surfaceAt: this.#surfaceAt.bind(this),
+      getHeroPosition: this.#getHeroPosition.bind(this),
       /**
        * @param {number} x
        * @param {number} z
        */
-      visualOffsetAt: (x, z) => this.#islandVisualOffsetAt(x, z),
+      visualOffsetAt: this.#visualOffsetAt.bind(this),
       left: {
         side: "left",
         leg: this.#findModelEntity("Left leg"),
@@ -3838,11 +3638,9 @@ export class Hero {
           "Boot shaft",
           "Boot front strap",
           "Left ankle",
-        ].map(/**
-         *
-         * @param {string} name
-         */
-          (name) => this.#findModelEntity(name)),
+        ].map(
+          this.#mapName.bind(this),
+        ),
       },
       right: {
         side: "right",
@@ -3853,11 +3651,7 @@ export class Hero {
           "Boot shaft.001",
           "Boot front strap.001",
           "Right ankle",
-        ].map(/**
-         *
-         * @param {string} name
-         */
-          (name) => this.#findModelEntity(name)),
+        ].map(this.#mapName2.bind(this)),
       },
     });
     this.#respawnEffect = new HeroRespawnEffect({
@@ -4036,5 +3830,544 @@ export class Hero {
     const difference = ((to - from + 540) % 360) - 180;
 
     return from + difference * amount;
+  }
+
+  #actionComplete() {
+    this.#restartAnimation = true;
+  }
+
+  /**
+   *
+   * @param {string} action
+   */
+  #begin2(action) {
+    action.tool.mount(this.#toolAttachmentEntity);
+    action.tool.visible = true;
+    this.#tool = action.tool;
+    this.#velocity.x = 0;
+    this.#velocity.z = 0;
+    this.#restartAnimation = true;
+    this.#resetBoredom();
+  }
+
+  #restartAnimation2() {
+    this.#restartAnimation = true;
+  }
+
+  /**
+   *
+   * @param {string} action
+   */
+  #complete(action) {
+    action.tool.visible = false;
+    this.#tool = null;
+    this.#restartAnimation = true;
+    action.onComplete?.();
+  }
+
+  /**
+   *
+   * @param {number} x
+   * @param {number} z
+   */
+  #canOccupy(x, z) {
+    return (
+      this.#movementSurface.occupancyAt(x, z, this.#surfaceState) === OCCUPANCY.open
+    );
+  }
+
+  /**
+   *
+   * @param {number} x
+   * @param {number} z
+   */
+  #moveTo(x, z) {
+    this.#position.x = x;
+    this.#position.z = z;
+  }
+
+  /**
+   *
+   * @param {import("../ground-cover/GroundCoverHeldItem.js").GroundCoverHeldItem} item
+   * @param {import("playcanvas").Entity} attachment
+   */
+  #mountHeldItem(item, attachment) {
+    return item.mount(this.#entity, attachment);
+  }
+
+  /**
+   *
+   * @param {string} action
+   */
+  #begin3(action) {
+    if (action.tool) {
+      action.tool.mount(this.#toolAttachmentEntity);
+      action.tool.visible = true;
+    }
+    this.#velocity.x = 0;
+    this.#velocity.z = 0;
+    this.#restartAnimation = true;
+    this.#resetBoredom();
+  }
+
+  #beginInventoryFull() {
+    this.#velocity.x = 0;
+    this.#velocity.z = 0;
+    this.#restartAnimation = true;
+    this.#resetBoredom();
+  }
+
+  #restartAnimation3() {
+    this.#restartAnimation = true;
+  }
+
+  /**
+   *
+   * @param {string} action
+   */
+  #endCollection(action) {
+    if (action.tool) {
+      action.tool.visible = false;
+    }
+    action.heldItem?.destroy();
+    this.#restartAnimation = true;
+    if (action.completed) {
+      action.onComplete?.();
+    }
+  }
+
+  #showInventoryFull2() {
+    return this.#showInventoryFull();
+  }
+
+  /**
+   *
+   * @param {string} action
+   */
+  #endInventoryFull(action) {
+    this.#restartAnimation = true;
+    if (action.completed) {
+      action.onComplete?.();
+    }
+  }
+
+  /**
+   *
+   * @param {number} crossedLedge
+   */
+  #complete2(crossedLedge) {
+    if (crossedLedge) {
+      const riverRouteEntry = this.#riverRouteEntryAt(
+        this.#position.x,
+        this.#position.z,
+      );
+      const landingSurface = this.#physics.surfaceAt(
+        this.#position.x,
+        this.#position.z,
+        this.#position.y + STEP_CLEARANCE,
+        FALL_EXIT_HEIGHT,
+      );
+      if (
+        (!riverRouteEntry || riverRouteEntry.cell.underBridge)
+                && landingSurface === null
+      ) {
+        this.#actionBehavior.fallingToDeath = true;
+      }
+    }
+    this.#restartAnimation = true;
+  }
+
+  #shouldContinue() {
+    const kind = this.#emotionBehavior.state.kind;
+
+    return this.canBePatted
+              && !this.#angryEscapeBehavior.active
+              && !this.#hasMovementInput
+              && Math.hypot(this.#velocity.x, this.#velocity.z) <= 0.08
+              && (kind === HERO_MOOD.AGITATED || kind === HERO_MOOD.ANGRY);
+  }
+
+  /**
+   *
+   * @param {{x: number, y: number, z: number}} direction
+   */
+  #begin4(direction) {
+    this.#velocity.x = direction.x * GATEWAY_REPEL_SPEED;
+    this.#velocity.z = direction.z * GATEWAY_REPEL_SPEED;
+    this.#restartAnimation = true;
+    this.#resetBoredom();
+  }
+
+  #end() {
+    this.#gatewayRepelCooldown = GATEWAY_REPEL_COOLDOWN;
+  }
+
+  /**
+   *
+   * @param {{foot: import("src/game/objects/ObjectTypes.js").HeroFootRig}} options
+   * @param {import("src/game/objects/ObjectTypes.js").HeroFootRig} options.foot
+   */
+  #beginEdge2({ foot }) {
+    this.#lastEdgeRefusalFoot = foot;
+    this.#velocity.x = 0;
+    this.#velocity.z = 0;
+    this.#restartAnimation = true;
+    this.#resetBoredom();
+  }
+
+  #beginHole() {
+    this.#velocity.x = 0;
+    this.#velocity.z = 0;
+    this.#restartAnimation = true;
+    this.#resetBoredom();
+  }
+
+  #begin5() {
+    this.#velocity.x = 0;
+    this.#velocity.z = 0;
+    this.#restartAnimation = true;
+    this.#resetBoredom();
+  }
+
+  #situation() {
+    return {
+      grounded: this.#grounded,
+      fallingToDeath: this.#actionBehavior?.fallingToDeath ?? false,
+      respawning: this.#actionBehavior?.respawning ?? false,
+      verticalVelocity: this.#velocity.y,
+      position: this.#position,
+    };
+  }
+
+  /**
+   *
+   * @param {{x: number, z: number}} options
+   * @param {number} options.x
+   * @param {number} options.z
+   */
+  #hasRiverSourceCover({ x, z }) {
+    return this.#terrain.riverSourceCoverHeightAt(x, z) !== null;
+  }
+
+  /**
+   *
+   * @param {{x: number, z: number}} options
+   * @param {number} options.x
+   * @param {number} options.z
+   */
+  #routeEntryAt({ x, z }) {
+    return this.#riverRouteEntryAt(x, z);
+  }
+
+  #position2() {
+    return this.#position;
+  }
+
+  /**
+   *
+   * @param {{x: number, y: number, z: number}} direction
+   */
+  #directionVector(direction) {
+    return this.#riverDirectionVector(direction);
+  }
+
+  /**
+   *
+   * @param {number} cell
+   */
+  #canClimbBridge(cell) {
+    return this.#canClimbRiverBridge(cell);
+  }
+
+  /**
+   *
+   * @param {{x: number, y: number, z: number}} velocity
+   */
+  #setVelocity(velocity) {
+    this.#velocity = velocity;
+  }
+
+  /**
+   *
+   * @param {{x: number, y: number, z: number}} direction
+   */
+  #finishAtWaterfall(direction) {
+    return this.#finishDrowningAtWaterfall(direction);
+  }
+
+  /**
+   *
+   * @param {number} routeEntry
+   */
+  #begin6(routeEntry) {
+    return this.#beginDrowning(routeEntry);
+  }
+
+  #endPresentation() {
+    return this.#setDrowningPresentation(false);
+  }
+
+  /**
+   *
+   * @param {{pitch: number, yaw: number, roll: number, mouthScale: {x: number, y: number, z: number}}} options
+   * @param {number} options.pitch
+   * @param {number} options.yaw
+   * @param {number} options.roll
+   * @param {{x: number, y: number, z: number}} options.mouthScale
+   */
+  #updatePresentation({ pitch, yaw, roll, mouthScale }) {
+    this.#headLookYaw = yaw;
+    this.#headEntity?.setLocalEulerAngles(pitch, yaw, roll);
+    this.#mouthEntity?.setLocalScale(1, mouthScale, 1);
+  }
+
+  /**
+   *
+   * @param {number} cell
+   */
+  #begin7(cell) {
+    return this.#beginRiverBridgeExit(cell);
+  }
+
+  /**
+   *
+   * @param {{x: number, y: number, z: number}} position
+   * @param {number} deltaTime
+   */
+  #moveTo2(position, deltaTime) {
+    const previous = this.#position;
+    this.#position = position;
+    this.#velocity = {
+      x: (position.x - previous.x) / deltaTime,
+      y: (position.y - previous.y) / deltaTime,
+      z: (position.z - previous.z) / deltaTime,
+    };
+  }
+
+  #complete3() {
+    return this.#finishRiverBridgeExit();
+  }
+
+  /**
+   *
+   * @param {{armPitch: number, armSpread: number, headPitch: number}} options
+   * @param {number} options.armPitch
+   * @param {number} options.armSpread
+   * @param {number} options.headPitch
+   */
+  #updatePresentation2({ armPitch, armSpread, headPitch }) {
+    this.#leftArmEntity?.setLocalEulerAngles(
+      armPitch,
+      0,
+      -armSpread,
+    );
+    this.#rightArmEntity?.setLocalEulerAngles(
+      armPitch,
+      0,
+      armSpread,
+    );
+    this.#headEntity?.setLocalEulerAngles(headPitch, 0, 0);
+  }
+
+  #resetPresentation() {
+    this.#leftArmEntity?.setLocalEulerAngles(0, 0, 0);
+    this.#rightArmEntity?.setLocalEulerAngles(0, 0, 0);
+  }
+
+  #lives2() {
+    return this.#lives;
+  }
+
+  /**
+   *
+   * @param {number} height
+   */
+  #freezeAtHeight2(height) {
+    return this.#freezeAtHeight(height);
+  }
+
+  /**
+   *
+   * @param {number} height
+   */
+  #setHeight(height) {
+    this.#position.y = height;
+  }
+
+  /**
+   *
+   * @param {number} x
+   * @param {number} y
+   * @param {number} z
+   */
+  #setModelScale(x, y, z) {
+    return this.#modelRoot?.setLocalScale(x, y, z);
+  }
+
+  #syncState2() {
+    return this.#syncState();
+  }
+
+  #begin8() {
+    return this.#beginFallDeath();
+  }
+
+  #finished() {
+    return this.#position.y < FALL_EXIT_HEIGHT;
+  }
+
+  #resolve2() {
+    return this.#resolveDeath();
+  }
+
+  #begin9() {
+    return this.#beginRespawn();
+  }
+
+  /**
+   *
+   * @param {number} progress
+   * @param {number} elapsed
+   */
+  #updatePresentation3(progress, elapsed) {
+    this.#respawnEffect?.update(progress, elapsed, this.#position.y);
+  }
+
+  #resetPresentation2() {
+    return this.#respawnEffect?.reset();
+  }
+
+  #complete4() {
+    this.#restartAnimation = true;
+  }
+
+  #begin10() {
+    return this.#beginGameOver();
+  }
+
+  /**
+   *
+   * @param {{id: string, variant: string, quantity?: number}} item
+   */
+  static #mapItem(item) {
+    return {
+      ...item,
+    };
+  }
+
+  /**
+   *
+   * @param {import("src/game/objects/ObjectTypes.js").Point3} from
+   * @param {import("src/game/objects/ObjectTypes.js").Point3} to
+   */
+  #begin11(from, to) {
+    return this.#movementSurface.canEscapeAcross(from, to, this.#surfaceState);
+  }
+
+  #currentPosition() {
+    return this.position;
+  }
+
+  #supported() {
+    return this.#bellSupported;
+  }
+
+  /**
+   *
+   * @param {number} height
+   */
+  #filterHeight(height) {
+    return (
+      Number.isFinite(height) &&
+          height - this.#position.y >= MIN_AUTOMATIC_STEP_HEIGHT &&
+          height - this.#position.y <= MAX_AUTOMATIC_STEP_HEIGHT
+    );
+  }
+
+  /**
+   *
+   * @param {number} highest
+   * @param {number} height
+   */
+  static #reduceHighest(highest, height) {
+    return Math.max(highest, height);
+  }
+
+  /**
+   *
+   * @param {import("playcanvas").Entity} entity
+   */
+  static #filterEntity(entity) {
+    return HAIR_ENTITY_NAME.test(entity.name);
+  }
+
+  /**
+   *
+   * @param {import("playcanvas").Entity} entity
+   */
+  static #flatMapEntity(entity) {
+    return entity?.render?.meshInstances ?? [];
+  }
+
+  /**
+   *
+   * @param {import("playcanvas").Mesh} mesh
+   */
+  static #mapMesh(mesh) {
+    return mesh.morphInstance;
+  }
+
+  /**
+   *
+   * @param {import("playcanvas").MorphInstance} morph
+   */
+  static #filterMorph(morph) {
+    return morph?.morph.targets.some(Hero.#someTarget);
+  }
+
+  /**
+   *
+   * @param {number} x
+   * @param {number} z
+   * @param {number} maximumHeight
+   */
+  #surfaceAt(x, z, maximumHeight) {
+    return this.#physics.surfaceAt(x, z, maximumHeight);
+  }
+
+  #getHeroPosition() {
+    return this.#position;
+  }
+
+  /**
+   * @param {number} x
+   * @param {number} z
+   */
+  #visualOffsetAt(x, z) {
+    return this.#islandVisualOffsetAt(x, z);
+  }
+
+  /**
+   *
+   * @param {string} name
+   */
+  #mapName(name) {
+    return this.#findModelEntity(name);
+  }
+
+  /**
+   *
+   * @param {string} name
+   */
+  #mapName2(name) {
+    return this.#findModelEntity(name);
+  }
+
+  /**
+   *
+   * @param {{x: number, y: number, z: number}} target
+   */
+  static #someTarget(target) {
+    return target.name === "HappyPat";
   }
 }

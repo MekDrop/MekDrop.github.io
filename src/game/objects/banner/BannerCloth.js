@@ -22,52 +22,52 @@ export class BannerCloth {
   #modelLibrary;
   /**
    *
-    * @type {typeof import("playcanvas")}
+   * @type {typeof import("playcanvas")}
    */
   #pc;
   /**
    *
-    * @type {import("playcanvas").Application}
+   * @type {import("playcanvas").Application}
    */
   #app;
   /**
    *
-    * @type {import("playcanvas").Entity}
+   * @type {import("playcanvas").Entity}
    */
   #entity;
   /**
    *
-    * @type {import("playcanvas").StandardMaterial}
+   * @type {import("playcanvas").StandardMaterial}
    */
   #material;
   /**
    *
-    * @type {import("playcanvas").StandardMaterial}
+   * @type {import("playcanvas").StandardMaterial}
    */
   #railMaterial;
   /**
    *
-    * @type {import("playcanvas").Texture}
+   * @type {import("playcanvas").Texture}
    */
   #texture;
   /**
    *
-    * @type {Array<BannerClothInstance>}
+   * @type {Array<BannerClothInstance>}
    */
   #banners = [];
   /**
    *
-    * @type {BannerClothInstance|null}
+   * @type {BannerClothInstance|null}
    */
   #activeBanner = null;
   /**
    *
-    * @type {AmmoClothPhysics}
+   * @type {AmmoClothPhysics}
    */
   #physics;
   /**
    *
-    * @type {{off: () => void}|null}
+   * @type {{off: () => void}|null}
    */
   #updateHandle = null;
 
@@ -87,13 +87,7 @@ export class BannerCloth {
     this.#material = this.#createMaterial();
     this.#railMaterial = this.#createRailMaterial();
     this.#physics = new AmmoClothPhysics({ pc });
-    this.#updateHandle = app.on("update", /**
-     *
-     * @param {number} deltaTime
-     */
-      (deltaTime) => {
-        this.#animate(deltaTime);
-      });
+    this.#updateHandle = app.on("update", this.#on.bind(this));
   }
 
   get entity() {
@@ -119,12 +113,9 @@ export class BannerCloth {
     let fabricMaterial = this.#material;
     if (authored) {
       for (const render of authored.findComponents("render")) {
-        fabricMaterial = render.meshInstances.find(
-          /**
-           * @param {import("playcanvas").MeshInstance} instance
-           */
-          (instance) => instance.material.name === "Textured navy and gold woven cloth",
-        )?.material ?? fabricMaterial;
+        fabricMaterial =
+          render.meshInstances.find(BannerCloth.#findInstance)?.material ??
+          fabricMaterial;
         for (const instance of render.meshInstances) {
           if (instance.material.name === "Textured navy and gold woven cloth") {
             instance.visible = false;
@@ -161,9 +152,7 @@ export class BannerCloth {
     if (vestibule) {
       rail.setLocalScale(width / 0.8, height / 0.95, 1);
     } else {
-      for (const instance of rail.findComponents("render").flatMap(/**
-       * @param {import("playcanvas").RenderComponent} render
-       */ (render) => render.meshInstances)) {
+      for (const instance of rail.findComponents("render").flatMap(BannerCloth.#flatMapRender)) {
         instance.material = this.#railMaterial;
         instance.castShadow = true;
         instance.receiveShadow = true;
@@ -465,5 +454,27 @@ export class BannerCloth {
       );
       banner.mesh.update(this.#pc.PRIMITIVE_TRIANGLES);
     }
+  }
+
+  /**
+   *
+   * @param {number} deltaTime
+   */
+  #on(deltaTime) {
+    this.#animate(deltaTime);
+  }
+
+  /**
+   * @param {import("playcanvas").MeshInstance} instance
+   */
+  static #findInstance(instance) {
+    return instance.material.name === "Textured navy and gold woven cloth";
+  }
+
+  /**
+   * @param {import("playcanvas").RenderComponent} render
+   */
+  static #flatMapRender(render) {
+    return render.meshInstances;
   }
 }

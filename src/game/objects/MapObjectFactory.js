@@ -237,11 +237,12 @@ export class MapObjectFactory {
    * @returns {Readonly<Record<string, string>>}
    */
   static get textureUrls() {
-    return Object.assign({}, ...[...new Set(OBJECT_CLASSES.values())].map(
-      /**
-       * @param {MapObjectConstructor} ObjectClass
-       */
-      (ObjectClass) => ObjectClass.textureUrls ?? {}));
+    return Object.assign(
+      {},
+      ...[...new Set(OBJECT_CLASSES.values())].map(
+        MapObjectFactory.#mapObjectClass,
+      ),
+    );
   }
   /**
    * @param {number} type
@@ -279,19 +280,13 @@ export class MapObjectFactory {
 
   /**
    *
-    * @returns {Array<string>}
+   * @returns {Array<string>}
    */
   static get modelUrls() {
     return [
       ...new Set(
         [...OBJECT_CLASSES.values()].flatMap(
-          /**
-           *
-           * @param {MapObjectConstructor} ObjectClass
-           */
-          (ObjectClass) =>
-            ObjectClass.modelUrls ??
-            (ObjectClass.modelUrl ? [ObjectClass.modelUrl] : []),
+          MapObjectFactory.#flatMapObjectClass,
         ),
       ),
     ];
@@ -359,16 +354,38 @@ export class MapObjectFactory {
         app,
         modelLibrary,
         definitions: pickupDefinitions,
-        items: objects.filter(/**
-         *
-         * @param {{definition: import("src/game/objects/ObjectTypes.js").MapObjectDefinition}} options
-         * @param {import("src/game/objects/ObjectTypes.js").MapObjectDefinition} options.definition
-         */
-          ({ definition }) => definition),
+        items: objects.filter(MapObjectFactory.#filter),
       });
       objects.push(pickupActors);
       onCreate(pickupActors);
     }
     return objects;
+  }
+
+  /**
+   * @param {MapObjectConstructor} ObjectClass
+   */
+  static #mapObjectClass(ObjectClass) {
+    return ObjectClass.textureUrls ?? {};
+  }
+
+  /**
+   *
+   * @param {MapObjectConstructor} ObjectClass
+   */
+  static #flatMapObjectClass(ObjectClass) {
+    return (
+      ObjectClass.modelUrls ??
+            (ObjectClass.modelUrl ? [ObjectClass.modelUrl] : [])
+    );
+  }
+
+  /**
+   *
+   * @param {{definition: import("src/game/objects/ObjectTypes.js").MapObjectDefinition}} options
+   * @param {import("src/game/objects/ObjectTypes.js").MapObjectDefinition} options.definition
+   */
+  static #filter({ definition }) {
+    return definition;
   }
 }

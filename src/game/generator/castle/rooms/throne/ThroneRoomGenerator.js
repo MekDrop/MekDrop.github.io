@@ -8,7 +8,9 @@ export class ThroneRoomGenerator extends AbstractCastleRoomGenerator {
   /**
    * @returns {number[]}
    */
-  get levels() { return [0]; }
+  get levels() {
+    return [0];
+  }
   /**
    * The audience object keeps its throne, runner and rear lanterns.
    * Court furniture stays outside its central visitor and royal movement lane.
@@ -128,11 +130,7 @@ export class ThroneRoomGenerator extends AbstractCastleRoomGenerator {
        */
         (opening) =>
           opening.kind === "door" && (!opening.roomId || opening.roomId === room.id));
-      const side = doors.some(/**
-       *
-       * @param {import("../../CastleBasePlanGenerator.js").CompiledCastleOpening} door
-       */
-        (door) => door.side === "EAST") ? -1 : 1;
+      const side = doors.some(ThroneRoomGenerator.#someDoor) ? -1 : 1;
       const x = center + side * (width / 2 - 0.52);
       const z = bounds.maxZ - 0.95 - random() * 0.12;
       if (!fits(x, z, 0.628, 1.25)) { return items; }
@@ -171,5 +169,13 @@ export class ThroneRoomGenerator extends AbstractCastleRoomGenerator {
       }
     }
     return items;
+  }
+
+  /**
+   *
+   * @param {import("../../CastleBasePlanGenerator.js").CompiledCastleOpening} door
+   */
+  static #someDoor(door) {
+    return door.side === "EAST";
   }
 }

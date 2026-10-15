@@ -15,29 +15,22 @@ export class WarMapDrawing {
     const ratio = Math.min((size - margin * 2) / Math.max(1, map.cols),
       (size - margin * 2) / Math.max(1, map.rows));
     const left = (size - map.cols * ratio) / 2, top = (size - map.rows * ratio) / 2;
-    const rivers = new Set((map.riverData ?? []).flatMap(
-      /**
-       * @param {{cells:Array<{col:number,row:number}>}} river
-       */
-      river => river.cells.map(
+    const rivers = new Set(
+      (map.riverData ?? []).flatMap(WarMapDrawing.#flatMapRiver),
+    );
+    const castles = new Set(
+      (map.objects ?? []).filter(WarMapDrawing.#filterItem).map(
         /**
-         * @param {{col:number,row:number}} cell
+         * @param {import("../ObjectTypes.js").MapObjectDefinition} item
          */
-        cell => `${cell.col}:${cell.row}`)));
-    const castles = new Set((map.objects ?? []).filter(
-      /**
-       * @param {import("../ObjectTypes.js").MapObjectDefinition} item
-       */
-      item => item.object === "Castle").map(
-      /**
-       * @param {import("../ObjectTypes.js").MapObjectDefinition} item
-       */
-      item => {
-        const col = item.tile?.col ?? Math.round(item.position.x + (item.position.width ?? 0) / 2 + (map.cols - 1) / 2);
-        const row = item.tile?.row ?? Math.round(item.position.z + (item.position.depth ?? 0) / 2 + (map.rows - 1) / 2);
+        item => {
+          const col = item.tile?.col ?? Math.round(item.position.x + (item.position.width ?? 0) / 2 + (map.cols - 1) / 2);
+          const row = item.tile?.row ?? Math.round(item.position.z + (item.position.depth ?? 0) / 2 + (map.rows - 1) / 2);
 
-        return `${col}:${row}`;
-      }));
+          return `${col}:${row}`;
+        },
+      ),
+    );
     for (let y = 0; y < size; y++) {
       for (let x = 0; x < size; x++) {
         const col = Math.floor((x - left) / ratio), row = Math.floor((y - top) / ratio);
@@ -60,5 +53,26 @@ export class WarMapDrawing {
       height: size,
       pixels,
     };
+  }
+
+  /**
+   * @param {{cells:Array<{col:number,row:number}>}} river
+   */
+  static #flatMapRiver(river) {
+    return river.cells.map(WarMapDrawing.#mapCell);
+  }
+
+  /**
+   * @param {import("../ObjectTypes.js").MapObjectDefinition} item
+   */
+  static #filterItem(item) {
+    return item.object === "Castle";
+  }
+
+  /**
+   * @param {{col:number,row:number}} cell
+   */
+  static #mapCell(cell) {
+    return `${cell.col}:${cell.row}`;
   }
 }

@@ -29,27 +29,27 @@ const STATE_DURATIONS = new Map([
 export class HeroIdleBehavior {
   /**
    *
-    * @type {string}
+   * @type {string}
    */
   #stateMachine;
   /**
    *
-    * @type {number}
+   * @type {number}
    */
   #context;
   /**
    *
-    * @type {number}
+   * @type {number}
    */
   #boredIndex = 0;
   /**
    *
-    * @type {boolean}
+   * @type {boolean}
    */
   #hasLookTarget = false;
   /**
    *
-    * @type {number}
+   * @type {number}
    */
   #random;
 
@@ -63,7 +63,7 @@ export class HeroIdleBehavior {
       remaining: IDLE_DELAY,
       deltaTime: 0,
       idleDuration: IDLE_DELAY,
-      complete: () => this.#complete(),
+      complete: this.#complete2.bind(this),
     };
     this.#stateMachine = new StateMachine(this.#context);
     for (const [state, animation] of STATE_ANIMATIONS) {
@@ -81,7 +81,7 @@ export class HeroIdleBehavior {
 
   /**
    *
-    * @returns {boolean}
+   * @returns {boolean}
    */
   get animation() {
     return this.#stateMachine.currentState.animation;
@@ -125,7 +125,7 @@ export class HeroIdleBehavior {
 
   /**
    *
-    * @returns {number}
+   * @returns {number}
    */
   get #nextBoredState() {
     let state;
@@ -138,5 +138,9 @@ export class HeroIdleBehavior {
     );
 
     return state;
+  }
+
+  #complete2() {
+    return this.#complete();
   }
 }

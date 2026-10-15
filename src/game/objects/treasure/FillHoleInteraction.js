@@ -1,32 +1,32 @@
 export class FillHoleInteraction {
   /**
    *
-    * @type {import("./BuriedTreasureField.js").BuriedTreasureField}
+   * @type {import("./BuriedTreasureField.js").BuriedTreasureField}
    */
   #field;
   /**
    *
-    * @type {{x: number, y: number, z: number}}
+   * @type {{x: number, y: number, z: number}}
    */
   #target;
   /**
    *
-    * @type {import("src/game/objects/ObjectTypes.js").HeroLike}
+   * @type {import("src/game/objects/ObjectTypes.js").HeroLike}
    */
   #hero;
   /**
    *
-    * @type {import("src/game/objects/hero/tools/HeroTool.js").HeroTool|null}
+   * @type {import("src/game/objects/hero/tools/HeroTool.js").HeroTool|null}
    */
   #tool;
   /**
    *
-    * @type {(value: import("src/game/objects/ObjectTypes.js").InteractionLike|null) => void}
+   * @type {(value: import("src/game/objects/ObjectTypes.js").InteractionLike|null) => void}
    */
   #onChange;
   /**
    *
-    * @type {() => void}
+   * @type {() => void}
    */
   #onComplete;
 
@@ -51,7 +51,7 @@ export class FillHoleInteraction {
 
   /**
    *
-    * @returns {boolean}
+   * @returns {boolean}
    */
   get canInteract() {
     return (
@@ -62,7 +62,7 @@ export class FillHoleInteraction {
 
   /**
    *
-    * @returns {import("src/game/objects/ObjectTypes.js").InteractionDescription}
+   * @returns {import("src/game/objects/ObjectTypes.js").InteractionDescription}
    */
   get description() {
     return {
@@ -85,17 +85,19 @@ export class FillHoleInteraction {
     const accepted = this.#hero.useTool(this.#tool, {
       targetPosition: this.#target,
       context: { action: "fill" },
-      onImpact: () => {
-        const finished = this.#field.fill(this.#target);
-        this.#onChange?.();
-
-        return finished;
-      },
+      onImpact: this.#onImpact.bind(this),
       onComplete: this.#onComplete,
     });
     if (accepted) {
       this.#onChange?.();
     }
     return accepted;
+  }
+
+  #onImpact() {
+    const finished = this.#field.fill(this.#target);
+    this.#onChange?.();
+
+    return finished;
   }
 }

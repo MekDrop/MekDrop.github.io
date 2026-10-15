@@ -27,7 +27,7 @@ import { SLOPE_DIRECTION } from "../../enum/SlopeDirection.js";
 export class BridgeRailingKit {
   /**
    *
-    * @returns {Array<string>}
+   * @returns {Array<string>}
    */
   static get modelUrls() {
     return [bridgeRailingSegmentModelUrl, bridgeRailingPostModelUrl];
@@ -35,22 +35,22 @@ export class BridgeRailingKit {
 
   /**
    *
-    * @type {typeof import("playcanvas")}
+   * @type {typeof import("playcanvas")}
    */
   #pc;
   /**
    *
-    * @type {import("../../models/GameModelLibrary.js").GameModelLibrary}
+   * @type {import("../../models/GameModelLibrary.js").GameModelLibrary}
    */
   #modelLibrary;
   /**
    *
-    * @type {Map<string, import("playcanvas").Material>}
+   * @type {Map<string, import("playcanvas").Material>}
    */
   #materials;
   /**
    *
-    * @type {import("playcanvas").Entity}
+   * @type {import("playcanvas").Entity}
    */
   #root;
   /**
@@ -67,12 +67,12 @@ export class BridgeRailingKit {
   #currentGroup = -1;
   /**
    *
-    * @type {Map<string, Array<number>>}
+   * @type {Map<string, Array<number>>}
    */
   #segmentMatrices = new Map();
   /**
    *
-    * @type {Map<string, Array<number>>}
+   * @type {Map<string, Array<number>>}
    */
   #postMatrices = new Map();
 
@@ -130,12 +130,7 @@ export class BridgeRailingKit {
       postPositions.push(position);
     }
     const uniquePostPositions = [...new Set(postPositions)].sort(
-      /**
-       *
-       * @param {number} left
-       * @param {number} right
-       */
-      (left, right) => left - right,
+      BridgeRailingKit.#sortLeft,
     );
 
     for (const side of [-1, 1]) {
@@ -188,26 +183,13 @@ export class BridgeRailingKit {
       ...overpass.approachCells,
       ...overpass.crossingCells,
     ];
-    const start = Math.min(...pathCells.map(/**
-     *
-     * @param {number} cell
-     */
-      (cell) => cell.row));
-    const end = Math.max(...pathCells.map(/**
-     *
-     * @param {number} cell
-     */
-      (cell) => cell.row));
+    const start = Math.min(...pathCells.map(BridgeRailingKit.#mapCell));
+    const end = Math.max(...pathCells.map(BridgeRailingKit.#mapCell2));
     const postPositions = [start - 0.34, end + 0.34];
     for (let position = start + 0.5; position < end; position += 1) {
       postPositions.push(position);
     }
-    postPositions.sort(/**
-     *
-     * @param {number} left
-     * @param {number} right
-     */
-      (left, right) => left - right);
+    postPositions.sort(BridgeRailingKit.#sortLeft2);
 
     const centerX =
       overpass.crossing.col +
@@ -398,5 +380,39 @@ export class BridgeRailingKit {
     }
 
     return vertexBuffers;
+  }
+
+  /**
+   *
+   * @param {number} left
+   * @param {number} right
+   */
+  static #sortLeft(left, right) {
+    return left - right;
+  }
+
+  /**
+   *
+   * @param {number} cell
+   */
+  static #mapCell(cell) {
+    return cell.row;
+  }
+
+  /**
+   *
+   * @param {number} cell
+   */
+  static #mapCell2(cell) {
+    return cell.row;
+  }
+
+  /**
+   *
+   * @param {number} left
+   * @param {number} right
+   */
+  static #sortLeft2(left, right) {
+    return left - right;
   }
 }

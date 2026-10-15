@@ -56,18 +56,20 @@ export class CastleGenerationScheduler {
 
   async yieldToMainThread() {
     this.throwIfAborted();
-    await new Promise(/**
-     *
-     * @param {(value?: (value?: void) => void) => void} resolve
-     */
-      (resolve) => {
-        if (typeof globalThis.requestAnimationFrame === "function") {
-          globalThis.requestAnimationFrame(() => resolve());
-
-          return;
-        }
-        globalThis.setTimeout(resolve, 0);
-      });
+    await new Promise(CastleGenerationScheduler.#Promise);
     this.throwIfAborted();
+  }
+
+  /**
+   *
+   * @param {(value?: (value?: void) => void) => void} resolve
+   */
+  static #Promise(resolve) {
+    if (typeof globalThis.requestAnimationFrame === "function") {
+      globalThis.requestAnimationFrame(() => resolve());
+
+      return;
+    }
+    globalThis.setTimeout(resolve, 0);
   }
 }

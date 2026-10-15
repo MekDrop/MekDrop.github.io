@@ -106,9 +106,11 @@ it("reveals the already instantiated chest and spawns its stored contents withou
     pc,
     mapData,
     modelLibrary,
-    app: { on(event, callback) { update = callback;
+    app: {
+      on(event, callback) { update = callback;
 
- return { off() {} }; } },
+        return { off() {} }; },
+    },
   });
   // Mirror the live application root for hierarchy-enabled checks.
   const root = new pc.GraphNode();

@@ -9,9 +9,8 @@ export class CastleRoomShellBuilder {
     const plan = context.layout.roomPlan;
     const rooms = [...plan.placedRooms];
     const leisure = plan.rooms.leisure;
-    const sharedUpper = plan.stair && !rooms.some(/**
-     * @param {{id:string}} room
-     */ (room) => room.id.startsWith("tower"));
+    const sharedUpper =
+      plan.stair && !rooms.some(CastleRoomShellBuilder.#someRoom);
     if (sharedUpper) {
       // These are chambers in one keep, not detached turret buildings.
       // Enclose the shared circulation on the load-bearing exterior walls.
@@ -34,11 +33,9 @@ export class CastleRoomShellBuilder {
         floorY: plan.basement.floorY,
       });
     }
-    const opening = context.layout.openings.find(/**
-     *
-     * @param {{boundary:string}} entry
-     */
-      (entry) => entry.boundary === "FRONT");
+    const opening = context.layout.openings.find(
+      CastleRoomShellBuilder.#findEntry,
+    );
     const middle = (opening.start + opening.end - 1) / 2;
     const sign = ["WEST", "SOUTH"].includes(context.layout.primarySide) ? -1 : 1;
     for (const room of rooms) {
@@ -121,5 +118,20 @@ export class CastleRoomShellBuilder {
       }
       await context.scheduler.yieldIfNeeded(context.yieldState);
     }
+  }
+
+  /**
+   * @param {{id:string}} room
+   */
+  static #someRoom(room) {
+    return room.id.startsWith("tower");
+  }
+
+  /**
+   *
+   * @param {{boundary:string}} entry
+   */
+  static #findEntry(entry) {
+    return entry.boundary === "FRONT";
   }
 }

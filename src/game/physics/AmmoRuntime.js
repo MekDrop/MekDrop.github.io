@@ -21,26 +21,36 @@ export class AmmoRuntime {
     if (globalThis.Ammo?.btVector3) {
       return Promise.resolve();
     }
-    this.#initialization ??= new Promise(/**
-     * @param {() => void} resolve
-     * @param {(error: PhysicsModuleLoadError) => void} reject
-     */
-      (resolve, reject) => {
-        createAmmo.call(globalThis, {
-          locateFile: () => ammoWasmUrl,
-          /**
-         * @param {string} detail
-         */
-          onAbort: (detail) => reject(new PhysicsModuleLoadError(detail)),
-        }).then(/**
-       * @param {typeof globalThis.Ammo} instance
-       */
-          (instance) => {
-            globalThis.Ammo = instance;
-            resolve();
-          });
-      });
+    this.#initialization ??= new Promise(AmmoRuntime.#Promise);
 
     return this.#initialization;
+  }
+
+  /**
+   * @param {() => void} resolve
+   * @param {(error: PhysicsModuleLoadError) => void} reject
+   */
+  static #Promise(resolve, reject) {
+    createAmmo
+      .call(globalThis, {
+        locateFile: AmmoRuntime.#locateFile,
+        /**
+         * @param {string} detail
+         */
+        onAbort: (detail) => reject(new PhysicsModuleLoadError(detail)),
+      })
+      .then(
+        /**
+         * @param {typeof globalThis.Ammo} instance
+         */
+        (instance) => {
+          globalThis.Ammo = instance;
+          resolve();
+        },
+      );
+  }
+
+  static #locateFile() {
+    return ammoWasmUrl;
   }
 }

@@ -48,9 +48,9 @@ export class RoyalBedroomFurnishing {
    */
   constructor(room, context) {
     this.#room = room;
-    this.#doors = context.openings.filter(/**
-     * @param {import("../../CastleBasePlanGenerator.js").CompiledCastleOpening} opening
-     */ opening => opening.kind === "door");
+    this.#doors = context.openings.filter(
+      RoyalBedroomFurnishing.#filterOpening,
+    );
     this.#stairs = context.stairs;
     this.#thickness = context.wallThickness;
     let seed = Number(context.seed);
@@ -61,7 +61,9 @@ export class RoyalBedroomFurnishing {
     this.#variant = Math.floor(Math.abs(seed) / 2) % 5;
     const walls = this.#variant === 1 || this.#variant === 3 ? [180, 90, 0, 270] : [90, 180, 270, 0];
     const bed = this.#perimeter("royalBed", 1.2, 1.805, 2.03, walls);
-    if (!bed) { return; }
+    if (!bed) {
+      return;
+    }
     if (this.#variant === 1) { this.#writingDesk(); }
     const spacious = (room.maxX - room.minX) * (room.maxZ - room.minZ) > 18;
     if (this.#variant === 2 && !spacious) {
@@ -238,7 +240,7 @@ export class RoyalBedroomFurnishing {
     this.#items.push(item);
     if (!this.#connected()) { this.#items.pop();
 
- return; }
+      return; }
     return item;
   }
 
@@ -296,9 +298,7 @@ export class RoyalBedroomFurnishing {
         Math.abs((door.axis === "x" ? points[index].z : points[index].x) - door.center) < door.width / 2 - 0.15;
       if (!queue.some(reachesDoor)) { return false; }
     }
-    const bed = this.#items.find(/**
-     * @param {import("../AbstractCastleRoomGenerator.js").RoomItem} item
-     */ item => item.role === "royalBed");
+    const bed = this.#items.find(RoyalBedroomFurnishing.#findItem);
 
     return !bed || queue.some(/**
      * @param {number} index
@@ -445,5 +445,19 @@ export class RoyalBedroomFurnishing {
       floorCovering: true,
     };
     if (RoomPlacementRules.accepts(rug, this.#room, [], this.#thickness)) { this.#items.push(rug); }
+  }
+
+  /**
+   * @param {import("../../CastleBasePlanGenerator.js").CompiledCastleOpening} opening
+   */
+  static #filterOpening(opening) {
+    return opening.kind === "door";
+  }
+
+  /**
+   * @param {import("../AbstractCastleRoomGenerator.js").RoomItem} item
+   */
+  static #findItem(item) {
+    return item.role === "royalBed";
   }
 }

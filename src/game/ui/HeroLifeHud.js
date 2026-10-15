@@ -422,13 +422,7 @@ export class HeroLifeHud extends GamePanelHud {
       "Hero heart icon",
       TEXTURE_SIZE,
       TEXTURE_SIZE,
-      /**
-       *
-       * @param {CanvasRenderingContext2D} context
-       */
-      (context) => {
-        this.#drawHeart(context);
-      },
+      this.#createDrawnTexture.bind(this),
     );
   }
 
@@ -641,36 +635,7 @@ export class HeroLifeHud extends GamePanelHud {
       "Castle shield icon",
       TEXTURE_SIZE,
       TEXTURE_SIZE,
-      /**
-       *
-       * @param {CanvasRenderingContext2D} context
-       */
-      (context) => {
-        const gradient = context.createLinearGradient(0, 7, 0, 58);
-        gradient.addColorStop(0, "#35c7ff");
-        gradient.addColorStop(0.5, "#078dde");
-        gradient.addColorStop(1, "#0750a8");
-        this.#shieldPath(context);
-        context.fillStyle = gradient;
-        context.fill();
-        context.lineJoin = "round";
-        context.strokeStyle = "#06355d";
-        context.lineWidth = 9;
-        context.stroke();
-        this.#shieldPath(context);
-        context.strokeStyle = "#9deaff";
-        context.lineWidth = 4;
-        context.stroke();
-
-        context.beginPath();
-        context.moveTo(23, 17);
-        context.lineTo(23, 38);
-        context.bezierCurveTo(23, 44, 27, 48, 31, 51);
-        context.strokeStyle = "rgba(224, 250, 255, 0.66)";
-        context.lineCap = "round";
-        context.lineWidth = 3;
-        context.stroke();
-      },
+      this.#createDrawnTexture2.bind(this),
     );
   }
 
@@ -712,5 +677,44 @@ export class HeroLifeHud extends GamePanelHud {
    */
   #normalizeLives(value, maximum) {
     return Math.min(maximum, Math.max(0, Math.floor(Number(value) || 0)));
+  }
+
+  /**
+   *
+   * @param {CanvasRenderingContext2D} context
+   */
+  #createDrawnTexture(context) {
+    this.#drawHeart(context);
+  }
+
+  /**
+   *
+   * @param {CanvasRenderingContext2D} context
+   */
+  #createDrawnTexture2(context) {
+    const gradient = context.createLinearGradient(0, 7, 0, 58);
+    gradient.addColorStop(0, "#35c7ff");
+    gradient.addColorStop(0.5, "#078dde");
+    gradient.addColorStop(1, "#0750a8");
+    this.#shieldPath(context);
+    context.fillStyle = gradient;
+    context.fill();
+    context.lineJoin = "round";
+    context.strokeStyle = "#06355d";
+    context.lineWidth = 9;
+    context.stroke();
+    this.#shieldPath(context);
+    context.strokeStyle = "#9deaff";
+    context.lineWidth = 4;
+    context.stroke();
+
+    context.beginPath();
+    context.moveTo(23, 17);
+    context.lineTo(23, 38);
+    context.bezierCurveTo(23, 44, 27, 48, 31, 51);
+    context.strokeStyle = "rgba(224, 250, 255, 0.66)";
+    context.lineCap = "round";
+    context.lineWidth = 3;
+    context.stroke();
   }
 }

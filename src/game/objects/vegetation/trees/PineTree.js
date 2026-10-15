@@ -4,22 +4,22 @@ import { Tree } from "../Tree.js";
 export class PineTree extends Tree {
   /**
    *
-    * @type {string}
+   * @type {string}
    */
   static modelUrl = pineModelUrl;
   /**
    *
-    * @type {number}
+   * @type {number}
    */
   static rowCount = 6;
   /**
    *
-    * @type {number}
+   * @type {number}
    */
   static cutsRequired = PineTree.rowCount;
   /**
    *
-    * @type {number}
+   * @type {number}
    */
   static collisionRows = Object.freeze([
     {
@@ -32,17 +32,7 @@ export class PineTree extends Tree {
     },
     {
       y: 2,
-      cells: [-1, 0, 1].flatMap(/**
-       *
-       * @param {number} x
-       */
-        (x) =>
-          [-1, 0, 1].map(/**
-         *
-         * @param {number} z
-         */
-            (z) => [x, z]),
-      ),
+      cells: [-1, 0, 1].flatMap(PineTree.#flatMapX),
     },
     {
       y: 3,
@@ -70,5 +60,17 @@ export class PineTree extends Tree {
       cutsRequired: PineTree.cutsRequired,
       collisionRows: PineTree.collisionRows,
     });
+  }
+
+  /**
+   *
+   * @param {number} x
+   */
+  static #flatMapX(x) {
+    return [-1, 0, 1].map(/**
+         *
+         * @param {number} z
+         */
+      (z) => [x, z]);
   }
 }

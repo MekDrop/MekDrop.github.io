@@ -67,38 +67,12 @@ export class RoomPlacementRules {
    * @returns {import("./AbstractCastleRoomGenerator.js").RoomItem[]}
    */
   static repair(items, walls, rooms, openings = []) {
-    const result = items.map(/**
-     *
-     * @param {import("./AbstractCastleRoomGenerator.js").RoomItem} item
-     * @param {number} index
-     */
-      (item, index) => ({
-        ...item,
-        id: item.id ?? "room-placement-" + index,
-        floorCovering: item.floorCovering ?? item.object?.endsWith("Rug") ?? false,
-      }));
+    const result = items.map(RoomPlacementRules.#mapItem);
     /**
      * @param {import("./AbstractCastleRoomGenerator.js").RoomItem} item
      * @returns {{minX:number,maxX:number,minZ:number,maxZ:number,bottom:number,top:number}}
      */
-    const envelope = item => {
-      const bottom = item.floorY + (item.y ?? item.elevation ?? 0) + (ROOM_PROP_BOTTOMS[item.object] ?? 0) * item.scale;
-      const angle = item.underStair ? (item.rotation ?? 0) * Math.PI / 180 : 0;
-      const width = item.width * Math.abs(Math.cos(angle)) + item.depth * Math.abs(Math.sin(angle));
-      const depth = item.width * Math.abs(Math.sin(angle)) + item.depth * Math.abs(Math.cos(angle));
-      const pivotOffset = item.underStair && item.tilt ? item.depth * item.scale / 2 : 0;
-      const x = item.x - Math.sin(angle) * pivotOffset;
-      const z = item.z - Math.cos(angle) * pivotOffset;
-
-      return {
-        minX: x - width * item.scale / 2,
-        maxX: x + width * item.scale / 2,
-        minZ: z - depth * item.scale / 2,
-        maxZ: z + depth * item.scale / 2,
-        bottom,
-        top: bottom + (item.height ?? ROOM_PROP_HEIGHTS[item.object] ?? 1) * item.scale,
-      };
-    };
+    const envelope = RoomPlacementRules.#envelope;
     // Older generators publish supported tabletop details without explicit IDs.
     for (const item of result) {
       if (item.supportId || (item.y ?? item.elevation ?? 0) < 0.05 ||
@@ -117,19 +91,9 @@ export class RoomPlacementRules {
       if (support) { item.supportId = support.id; }
     }
     const placed = [];
-    for (const root of result.filter(/**
-     *
-     * @param {import("./AbstractCastleRoomGenerator.js").RoomItem} item
-     */
-      item => !item.supportId).sort(/**
-     * Reserve perimeter space for complete terminal stacks before loose rows.
-     * @param {import("./AbstractCastleRoomGenerator.js").RoomItem} first
-     * @param {import("./AbstractCastleRoomGenerator.js").RoomItem} second
-     */
-      (first, second) => Number(second.object === "Fireplace") - Number(first.object === "Fireplace") ||
-      Number(Boolean(second.backPocketStorage)) * 2 - Number(Boolean(first.backPocketStorage)) * 2 ||
-      Number(Boolean(second.underStair && second.endWallStorage && second.object === "WoodenStorageChest")) -
-      Number(Boolean(first.underStair && first.endWallStorage && first.object === "WoodenStorageChest")))) {
+    for (const root of result
+      .filter(RoomPlacementRules.#filterItem)
+      .sort(RoomPlacementRules.#sortFirst)) {
       const group = [root];
       for (let level = 0; level < result.length; level++) {
         for (const child of result) {
@@ -341,5 +305,62 @@ export class RoomPlacementRules {
 
     return result;
   }
-}
 
+  /**
+   *
+   * @param {import("./AbstractCastleRoomGenerator.js").RoomItem} item
+   * @param {number} index
+   */
+  static #mapItem(item, index) {
+    return {
+      ...item,
+      id: item.id ?? "room-placement-" + index,
+      floorCovering: item.floorCovering ?? item.object?.endsWith("Rug") ?? false,
+    };
+  }
+
+  /**
+   * @param {import("./AbstractCastleRoomGenerator.js").RoomItem} item
+   * @returns {{minX:number,maxX:number,minZ:number,maxZ:number,bottom:number,top:number}}
+   */
+  static #envelope(item) {
+    const bottom = item.floorY + (item.y ?? item.elevation ?? 0) + (ROOM_PROP_BOTTOMS[item.object] ?? 0) * item.scale;
+    const angle = item.underStair ? (item.rotation ?? 0) * Math.PI / 180 : 0;
+    const width = item.width * Math.abs(Math.cos(angle)) + item.depth * Math.abs(Math.sin(angle));
+    const depth = item.width * Math.abs(Math.sin(angle)) + item.depth * Math.abs(Math.cos(angle));
+    const pivotOffset = item.underStair && item.tilt ? item.depth * item.scale / 2 : 0;
+    const x = item.x - Math.sin(angle) * pivotOffset;
+    const z = item.z - Math.cos(angle) * pivotOffset;
+
+    return {
+      minX: x - width * item.scale / 2,
+      maxX: x + width * item.scale / 2,
+      minZ: z - depth * item.scale / 2,
+      maxZ: z + depth * item.scale / 2,
+      bottom,
+      top: bottom + (item.height ?? ROOM_PROP_HEIGHTS[item.object] ?? 1) * item.scale,
+    };
+  }
+
+  /**
+   *
+   * @param {import("./AbstractCastleRoomGenerator.js").RoomItem} item
+   */
+  static #filterItem(item) {
+    return !item.supportId;
+  }
+
+  /**
+   * Reserve perimeter space for complete terminal stacks before loose rows.
+   * @param {import("./AbstractCastleRoomGenerator.js").RoomItem} first
+   * @param {import("./AbstractCastleRoomGenerator.js").RoomItem} second
+   */
+  static #sortFirst(first, second) {
+    return (
+      Number(second.object === "Fireplace") - Number(first.object === "Fireplace") ||
+      Number(Boolean(second.backPocketStorage)) * 2 - Number(Boolean(first.backPocketStorage)) * 2 ||
+      Number(Boolean(second.underStair && second.endWallStorage && second.object === "WoodenStorageChest")) -
+      Number(Boolean(first.underStair && first.endWallStorage && first.object === "WoodenStorageChest"))
+    );
+  }
+}

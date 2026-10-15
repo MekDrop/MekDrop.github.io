@@ -12,20 +12,7 @@ export class MapFileLoader {
   static #loaders = new Map(
     Object.entries(
       import.meta.glob("./maps/tests/*.json", { import: "default" }),
-    ).map(/**
-     *
-     * @param {{"0": number, "1": number}} options
-     * @param {number} options."0"
-     * @param {number} options."1"
-     */
-      ([filePath, loader]) => {
-        const fileName = filePath.substring(
-          filePath.lastIndexOf("/") + 1,
-          filePath.length - 5,
-        );
-
-        return [`test_${fileName}`, loader];
-      }),
+    ).map(MapFileLoader.#map),
   );
 
   /**
@@ -55,5 +42,20 @@ export class MapFileLoader {
     TerrainBlockDefinitions.populate(mapData);
 
     return mapData;
+  }
+
+  /**
+   *
+   * @param {{"0": number, "1": number}} options
+   * @param {number} options."0"
+   * @param {number} options."1"
+   */
+  static #map([filePath, loader]) {
+    const fileName = filePath.substring(
+      filePath.lastIndexOf("/") + 1,
+      filePath.length - 5,
+    );
+
+    return [`test_${fileName}`, loader];
   }
 }

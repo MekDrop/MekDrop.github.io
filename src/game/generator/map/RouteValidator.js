@@ -178,12 +178,7 @@ export class RouteValidator {
    */
   validateCastleEntrance(grid, layout) {
     const entranceRows = [...layout.castleEntranceRows].sort(
-      /**
-       *
-       * @param {number} left
-       * @param {number} right
-       */
-      (left, right) => left - right,
+      RouteValidator.#sortLeft,
     );
     if (entranceRows.length !== 2 || entranceRows[1] !== entranceRows[0] + 1) {
       throw new InvalidCastleEntranceWidthError();
@@ -216,5 +211,14 @@ export class RouteValidator {
         }
       }
     }
+  }
+
+  /**
+   *
+   * @param {number} left
+   * @param {number} right
+   */
+  static #sortLeft(left, right) {
+    return left - right;
   }
 }

@@ -16,17 +16,17 @@ const CAMERA_WALL_CLEARANCE = 0.04;
 export class HeroPhysicsController {
   /**
    *
-    * @type {typeof import("playcanvas")}
+   * @type {typeof import("playcanvas")}
    */
   #pc;
   /**
    *
-    * @type {import("playcanvas").Application}
+   * @type {import("playcanvas").Application}
    */
   #app;
   /**
    *
-    * @type {import("playcanvas").Entity}
+   * @type {import("playcanvas").Entity}
    */
   #entity;
   /**
@@ -35,22 +35,22 @@ export class HeroPhysicsController {
   #height;
   /**
    *
-    * @type {typeof import("playcanvas")}
+   * @type {typeof import("playcanvas")}
    */
   #gravity;
   /**
    *
-    * @type {typeof import("playcanvas")}
+   * @type {typeof import("playcanvas")}
    */
   #gravityVector = null;
   /**
    *
-    * @type {boolean}
+   * @type {boolean}
    */
   #scripted = false;
   /**
    *
-    * @type {boolean}
+   * @type {boolean}
    */
   #supportContact = false;
 
@@ -113,7 +113,7 @@ export class HeroPhysicsController {
 
   /**
    *
-    * @returns {{x: number, y: number, z: number}}
+   * @returns {{x: number, y: number, z: number}}
    */
   get position() {
     const position = this.#entity.getLocalPosition();
@@ -127,7 +127,7 @@ export class HeroPhysicsController {
 
   /**
    *
-    * @returns {{x: number, y: number, z: number}}
+   * @returns {{x: number, y: number, z: number}}
    */
   get velocity() {
     const velocity = this.#entity.rigidbody?.linearVelocity;
@@ -164,13 +164,7 @@ export class HeroPhysicsController {
       /**
        * @param {import("playcanvas").Entity} entity
        */
-      filterCallback: (entity) => {
-        for (let node = entity; node; node = node.parent) {
-          if (node === this.#entity) { return false; }
-        }
-
-        return true;
-      },
+      filterCallback: this.#filterCallback.bind(this),
     });
     const hit = hits[0];
     if (!hit) { return { ...anchor }; }
@@ -268,15 +262,9 @@ export class HeroPhysicsController {
        *
        * @param {import("playcanvas").Entity} entity
        */
-      filterCallback: (entity) =>
-        entity !== this.#entity && !entity.tags?.has(HERO_SURFACE_IGNORE_TAG),
+      filterCallback: this.#filterCallback2.bind(this),
     });
-    const hit = hits.find(/**
-     *
-     * @param {{normal: {x: number, y: number, z: number}}} options
-     * @param {{x: number, y: number, z: number}} options.normal
-     */
-      ({ normal }) => normal?.y >= GROUND_NORMAL_MINIMUM);
+    const hit = hits.find(HeroPhysicsController.#find);
     if (!hit) {
       return null;
     }
@@ -344,7 +332,7 @@ export class HeroPhysicsController {
   /**
    *
    * @param {number} result
-    * @type {(result: {other: import("playcanvas").Entity, contacts: Array<{normal: import("src/game/objects/ObjectTypes.js").Point3}>}) => void}
+   * @type {(result: {other: import("playcanvas").Entity, contacts: Array<{normal: import("src/game/objects/ObjectTypes.js").Point3}>}) => void}
    */
   #handleContact = (result) => {
     const position = this.#entity?.getLocalPosition?.();
@@ -372,5 +360,35 @@ export class HeroPhysicsController {
     this.#gravityVector.setValue(0, this.#gravity, 0);
     body.setGravity(this.#gravityVector);
     this.#entity.rigidbody.activate();
+  }
+
+  /**
+   * @param {import("playcanvas").Entity} entity
+   */
+  #filterCallback(entity) {
+    for (let node = entity; node; node = node.parent) {
+      if (node === this.#entity) { return false; }
+    }
+
+    return true;
+  }
+
+  /**
+   *
+   * @param {import("playcanvas").Entity} entity
+   */
+  #filterCallback2(entity) {
+    return (
+      entity !== this.#entity && !entity.tags?.has(HERO_SURFACE_IGNORE_TAG)
+    );
+  }
+
+  /**
+   *
+   * @param {{normal: {x: number, y: number, z: number}}} options
+   * @param {{x: number, y: number, z: number}} options.normal
+   */
+  static #find({ normal }) {
+    return normal?.y >= GROUND_NORMAL_MINIMUM;
   }
 }

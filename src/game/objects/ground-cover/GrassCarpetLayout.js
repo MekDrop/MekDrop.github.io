@@ -18,43 +18,10 @@ export class GrassCarpetLayout {
       mapSeed = (Math.imul(mapSeed, 31) + character.charCodeAt(0)) | 0;
     }
     const stoneParts = (mapData.objects ?? [])
-      .filter(/**
-       *
-       * @param {{object: string}} options
-       * @param {string} options.object
-       */
-        ({ object }) => object === "StoneCluster")
-      .flatMap(/**
-       *
-       * @param {{position: {x: number, y: number, z: number}, parts: Array<{offsetX: number, offsetZ: number, diameter: number}>}} options
-       * @param {{x: number, y: number, z: number}} options.position
-       * @param {Array<{offsetX: number, offsetZ: number, diameter: number}>} options.parts
-       */
-        ({ position, parts }) =>
-          parts.map(/**
-         *
-         * @param {{offsetX: number, offsetZ: number, diameter: number}} options
-         * @param {number} options.offsetX
-         * @param {number} options.offsetZ
-         * @param {number} options.diameter
-         */
-            ({ offsetX, offsetZ, diameter }) => ({
-              x: position.x + offsetX,
-              z: position.z + offsetZ,
-              radius: diameter / 2,
-            })),
-      );
+      .filter(GrassCarpetLayout.#filter)
+      .flatMap(GrassCarpetLayout.#flatMap);
     const sourceCovers = new Map(
-      (mapData.riverData ?? []).flatMap(/**
-       *
-       * @param {{cells: number}} options
-       * @param {number} options.cells
-       */
-        ({ cells }) =>
-          cells[0]
-            ? [[`${cells[0].col},${cells[0].row}`, cells[0].terrainHeight]]
-            : [],
-      ),
+      (mapData.riverData ?? []).flatMap(GrassCarpetLayout.#flatMap2),
     );
     for (let row = 0; row < rows; row += 1) {
       for (let col = 0; col < cols; col += 1) {
@@ -292,5 +259,46 @@ export class GrassCarpetLayout {
     value = Math.imul(value ^ (value >>> 16), 0x45d9f3b);
 
     return ((value ^ (value >>> 16)) >>> 0) / 4294967296;
+  }
+
+  /**
+   *
+   * @param {{object: string}} options
+   * @param {string} options.object
+   */
+  static #filter({ object }) {
+    return object === "StoneCluster";
+  }
+
+  /**
+   *
+   * @param {{position: {x: number, y: number, z: number}, parts: Array<{offsetX: number, offsetZ: number, diameter: number}>}} options
+   * @param {{x: number, y: number, z: number}} options.position
+   * @param {Array<{offsetX: number, offsetZ: number, diameter: number}>} options.parts
+   */
+  static #flatMap({ position, parts }) {
+    return parts.map(/**
+         *
+         * @param {{offsetX: number, offsetZ: number, diameter: number}} options
+         * @param {number} options.offsetX
+         * @param {number} options.offsetZ
+         * @param {number} options.diameter
+         */
+      ({ offsetX, offsetZ, diameter }) => ({
+        x: position.x + offsetX,
+        z: position.z + offsetZ,
+        radius: diameter / 2,
+      }));
+  }
+
+  /**
+   *
+   * @param {{cells: number}} options
+   * @param {number} options.cells
+   */
+  static #flatMap2({ cells }) {
+    return cells[0]
+      ? [[`${cells[0].col},${cells[0].row}`, cells[0].terrainHeight]]
+      : [];
   }
 }

@@ -72,7 +72,7 @@ export class InteractionSuggestion {
     }
 
     this.#timeoutId = window.setTimeout(
-      () => this.#applyPendingTarget(),
+      this.#setTimeout.bind(this),
       remainingMilliseconds,
     );
   }
@@ -107,5 +107,9 @@ export class InteractionSuggestion {
     }
     this.#pendingTarget = null;
     this.#hasPendingTarget = false;
+  }
+
+  #setTimeout() {
+    return this.#applyPendingTarget();
   }
 }

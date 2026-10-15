@@ -458,11 +458,7 @@ export class TerrainInstanceRenderer {
      */
     const addFace = (groupName, sourcePoints) => {
       const group = groups[groupName];
-      const points = sourcePoints.map(/**
-       *
-       * @param {import("src/game/GameContracts.js").GridPoint} point
-       */
-        (point) => [...point]);
+      const points = sourcePoints.map(TerrainInstanceRenderer.#mapPoint);
       const edgeA = points[1].map(/**
        *
        * @param {number} value
@@ -500,15 +496,9 @@ export class TerrainInstanceRenderer {
        * @param {string} axis
        */
       const accumulateCenterProjection = (sum, value, axis) => sum + value * center[axis];
-      if (
-        normal.reduce(accumulateCenterProjection, 0) < 0
-      ) {
+      if (normal.reduce(accumulateCenterProjection, 0) < 0) {
         points.reverse();
-        normal = normal.map(/**
-         *
-         * @param {number} value
-         */
-          (value) => -value);
+        normal = normal.map(TerrainInstanceRenderer.#mapValue);
       }
       const normalLength = Math.hypot(...normal);
       normal = normal.map(/**
@@ -519,48 +509,16 @@ export class TerrainInstanceRenderer {
 
       const start = group.positions.length / 3;
       const xRange =
-        Math.max(...points.map(/**
-         *
-         * @param {import("src/game/GameContracts.js").GridPoint} point
-         */
-          (point) => point[0])) -
-        Math.min(...points.map(/**
-         *
-         * @param {import("src/game/GameContracts.js").GridPoint} point
-         */
-          (point) => point[0]));
+        Math.max(...points.map(TerrainInstanceRenderer.#mapPoint2)) -
+        Math.min(...points.map(TerrainInstanceRenderer.#mapPoint3));
       const zRange =
-        Math.max(...points.map(/**
-         *
-         * @param {import("src/game/GameContracts.js").GridPoint} point
-         */
-          (point) => point[2])) -
-        Math.min(...points.map(/**
-         *
-         * @param {import("src/game/GameContracts.js").GridPoint} point
-         */
-          (point) => point[2]));
+        Math.max(...points.map(TerrainInstanceRenderer.#mapPoint4)) -
+        Math.min(...points.map(TerrainInstanceRenderer.#mapPoint5));
       const horizontalAxis = xRange >= zRange ? 0 : 2;
-      const minX = Math.min(...points.map(/**
-       *
-       * @param {import("src/game/GameContracts.js").GridPoint} point
-       */
-        (point) => point[0]));
-      const maxX = Math.max(...points.map(/**
-       *
-       * @param {import("src/game/GameContracts.js").GridPoint} point
-       */
-        (point) => point[0]));
-      const minZ = Math.min(...points.map(/**
-       *
-       * @param {import("src/game/GameContracts.js").GridPoint} point
-       */
-        (point) => point[2]));
-      const maxZ = Math.max(...points.map(/**
-       *
-       * @param {import("src/game/GameContracts.js").GridPoint} point
-       */
-        (point) => point[2]));
+      const minX = Math.min(...points.map(TerrainInstanceRenderer.#mapPoint6));
+      const maxX = Math.max(...points.map(TerrainInstanceRenderer.#mapPoint7));
+      const minZ = Math.min(...points.map(TerrainInstanceRenderer.#mapPoint8));
+      const maxZ = Math.max(...points.map(TerrainInstanceRenderer.#mapPoint9));
       points.forEach(/**
        *
        * @param {import("src/game/GameContracts.js").GridPoint} point
@@ -807,5 +765,85 @@ export class TerrainInstanceRenderer {
     if (mesh.refCount < 1) {
       mesh.destroy();
     }
+  }
+
+  /**
+   *
+   * @param {import("src/game/GameContracts.js").GridPoint} point
+   */
+  static #mapPoint(point) {
+    return [...point];
+  }
+
+  /**
+   *
+   * @param {number} value
+   */
+  static #mapValue(value) {
+    return -value;
+  }
+
+  /**
+   *
+   * @param {import("src/game/GameContracts.js").GridPoint} point
+   */
+  static #mapPoint2(point) {
+    return point[0];
+  }
+
+  /**
+   *
+   * @param {import("src/game/GameContracts.js").GridPoint} point
+   */
+  static #mapPoint3(point) {
+    return point[0];
+  }
+
+  /**
+   *
+   * @param {import("src/game/GameContracts.js").GridPoint} point
+   */
+  static #mapPoint4(point) {
+    return point[2];
+  }
+
+  /**
+   *
+   * @param {import("src/game/GameContracts.js").GridPoint} point
+   */
+  static #mapPoint5(point) {
+    return point[2];
+  }
+
+  /**
+   *
+   * @param {import("src/game/GameContracts.js").GridPoint} point
+   */
+  static #mapPoint6(point) {
+    return point[0];
+  }
+
+  /**
+   *
+   * @param {import("src/game/GameContracts.js").GridPoint} point
+   */
+  static #mapPoint7(point) {
+    return point[0];
+  }
+
+  /**
+   *
+   * @param {import("src/game/GameContracts.js").GridPoint} point
+   */
+  static #mapPoint8(point) {
+    return point[2];
+  }
+
+  /**
+   *
+   * @param {import("src/game/GameContracts.js").GridPoint} point
+   */
+  static #mapPoint9(point) {
+    return point[2];
   }
 }

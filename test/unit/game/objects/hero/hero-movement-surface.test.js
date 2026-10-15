@@ -107,7 +107,7 @@ it("checks the ceiling and scenery at the hero's elevation and forward footprint
   const probes = [];
   collision.isMovementBlocked = (...args) => { probes.push(args);
 
- return args[2] > 0.3; };
+    return args[2] > 0.3; };
   assert.equal(movement.occupancyAt(0.1, 0, state), "blocked");
   assert.equal(probes.length, 2);
   assert.equal(probes[0][5], state.position.y);
@@ -119,14 +119,14 @@ it("queries hole refusal at the body then the forward footprint with nullish fal
   const probes = [];
   collision.movementRefusalAt = (...args) => { probes.push(args);
 
- return args[0] > 0.2 ? "hole" : null; };
+    return args[0] > 0.2 ? "hole" : null; };
   assert.equal(movement.refusalAt(0, 0, state.position.y, state.direction), "hole");
   assert.equal(probes.length, 2);
   assert.equal(probes[1][3], state.position.y);
   probes.length = 0;
   collision.movementRefusalAt = (...args) => { probes.push(args);
 
- return "hole"; };
+    return "hole"; };
   assert.equal(movement.refusalAt(0, 0, state.position.y, state.direction), "hole");
   assert.equal(probes.length, 1);
 });

@@ -5,22 +5,22 @@ import { RiverImpactFlow } from './RiverImpactFlow.js';
 export class RiverFlowMap {
   /**
    *
-    * @type {string}
+   * @type {string}
    */
   #texture;
   /**
    *
-    * @type {number}
+   * @type {number}
    */
   #impactTexture;
   /**
    *
-    * @type {number}
+   * @type {number}
    */
   #bankTexture;
   /**
    *
-    * @type {number}
+   * @type {number}
    */
   #size;
 
@@ -149,12 +149,10 @@ export class RiverFlowMap {
         continue;
       }
       for (const cell of river.cells) {
-        banks.set(field.bankMask(cell.col, cell.row).map(/**
-         *
-         * @param {number} closed
-         */
-          closed => closed * 255),
-        (cell.row * cols + cell.col) * 4);
+        banks.set(
+          field.bankMask(cell.col, cell.row).map(RiverFlowMap.#mapClosed),
+          (cell.row * cols + cell.col) * 4,
+        );
         for (let z = 0; z < resolution; z++) {
           for (let x = 0; x < resolution; x++) {
             const flow = field.sample(
@@ -205,5 +203,13 @@ export class RiverFlowMap {
       case 'SOUTH': return [0, 1];
       default: return [-1, 0];
     }
+  }
+
+  /**
+   *
+   * @param {number} closed
+   */
+  static #mapClosed(closed) {
+    return closed * 255;
   }
 }

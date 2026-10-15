@@ -36,22 +36,22 @@ const USER_ACTIONS = [
 export class HeroActionBehavior {
   /**
    *
-    * @type {string}
+   * @type {string}
    */
   #stateMachine;
   /**
    *
-    * @type {number}
+   * @type {number}
    */
   #context;
   /**
    *
-    * @type {import("src/game/objects/ObjectTypes.js").HeroActionPayload|null}
+   * @type {import("src/game/objects/ObjectTypes.js").HeroActionPayload|null}
    */
   #pendingPayload = null;
   /**
    *
-    * @type {number}
+   * @type {number}
    */
   #deltaTime = 0;
   /**
@@ -60,17 +60,17 @@ export class HeroActionBehavior {
   #dyingElapsed = 0;
   /**
    *
-    * @type {{enter?: (state: HeroRuntimeActionState, behavior: HeroActionBehavior) => void, update?: (state: HeroRuntimeActionState, behavior: HeroActionBehavior, deltaTime: number) => void, exit?: (state: HeroRuntimeActionState, behavior: HeroActionBehavior) => void}|null}
+   * @type {{enter?: (state: HeroRuntimeActionState, behavior: HeroActionBehavior) => void, update?: (state: HeroRuntimeActionState, behavior: HeroActionBehavior, deltaTime: number) => void, exit?: (state: HeroRuntimeActionState, behavior: HeroActionBehavior) => void}|null}
    */
   #handler = null;
   /**
    *
-    * @type {string|number}
+   * @type {string|number}
    */
   #restingAction = HERO_ACTION.EXPLORING;
   /**
    *
-    * @type {Map}
+   * @type {Map}
    */
   #statesByAction = new Map();
 
@@ -98,7 +98,6 @@ export class HeroActionBehavior {
     feedback,
     handler = null,
   }) {
-
     this.#handler = handler;
 
     this.#context = {
@@ -122,35 +121,23 @@ export class HeroActionBehavior {
        * @param {string} action
        * @param {import("src/game/objects/ObjectTypes.js").HeroActionPayload} payload
        */
-      transition: (action, payload) => this.#transition(action, payload),
-      finish: () => this.finish(),
+      transition: this.#transition2.bind(this),
+      finish: this.#finish.bind(this),
       /**
        *
        * @param {string} state
        */
-      enterState: (state) => {
-        state.payload = this.#pendingPayload;
-
-        this.#pendingPayload = null;
-        this.#handler?.enter?.(state, this);
-      },
+      enterState: this.#enterState.bind(this),
       /**
        *
        * @param {string} state
        */
-      updateState: (state) => this.#handler?.update?.(
-        state,
-        this,
-        this.#deltaTime,
-      ),
+      updateState: this.#updateState.bind(this),
       /**
        *
        * @param {string} state
        */
-      exitState: (state) => {
-        this.#handler?.exit?.(state, this);
-        state.payload = null;
-      },
+      exitState: this.#exitState.bind(this),
     };
 
     this.#stateMachine = new StateMachine(this.#context);
@@ -163,7 +150,7 @@ export class HeroActionBehavior {
 
   /**
    *
-    * @returns {Array<HeroRuntimeActionState>}
+   * @returns {Array<HeroRuntimeActionState>}
    */
   get #states() {
     /**
@@ -171,7 +158,7 @@ export class HeroActionBehavior {
      * @param {string} action
      * @param {ConstructorParameters<typeof HeroRuntimeActionState>[1]} options
      */
-    const state = (action, options) => new HeroRuntimeActionState(action, options);
+    const state = HeroActionBehavior.#state2;
 
     return [
       state(HERO_ACTION.EXPLORING, {
@@ -209,7 +196,7 @@ export class HeroActionBehavior {
 
   /**
    *
-    * @returns {{name: string, action: string, animation: string|number, animationSpeed: number, incapacitated: boolean, dying: boolean, canBePatted: boolean, boostingCountryFinances: boolean}}
+   * @returns {{name: string, action: string, animation: string|number, animationSpeed: number, incapacitated: boolean, dying: boolean, canBePatted: boolean, boostingCountryFinances: boolean}}
    */
   get state() {
     const current = this.#stateMachine.currentState;
@@ -228,7 +215,7 @@ export class HeroActionBehavior {
 
   /**
    *
-    * @returns {import("src/game/objects/ObjectTypes.js").HeroActionPayload|null}
+   * @returns {import("src/game/objects/ObjectTypes.js").HeroActionPayload|null}
    */
   get payload() {
     return this.#stateMachine.currentState.payload;
@@ -240,7 +227,7 @@ export class HeroActionBehavior {
 
   /**
    *
-    * @returns {number}
+   * @returns {number}
    */
   get animation() {
     return this.#stateMachine.currentState.animationFor(this.#context);
@@ -248,7 +235,7 @@ export class HeroActionBehavior {
 
   /**
    *
-    * @returns {number}
+   * @returns {number}
    */
   get animationSpeed() {
     if (this.bellAction?.pulling) { return 0; }
@@ -263,7 +250,7 @@ export class HeroActionBehavior {
 
   /**
    *
-    * @returns {boolean}
+   * @returns {boolean}
    */
   get exclusive() {
     return this.#stateMachine.currentState.exclusive;
@@ -271,7 +258,7 @@ export class HeroActionBehavior {
 
   /**
    *
-    * @returns {boolean}
+   * @returns {boolean}
    */
   get incapacitated() {
     return this.#stateMachine.currentState.incapacitated;
@@ -279,7 +266,7 @@ export class HeroActionBehavior {
 
   /**
    *
-    * @returns {boolean}
+   * @returns {boolean}
    */
   get dying() {
     return this.#stateMachine.currentState.dying;
@@ -287,7 +274,7 @@ export class HeroActionBehavior {
 
   /**
    *
-    * @returns {boolean}
+   * @returns {boolean}
    */
   get canBePatted() {
     return this.#stateMachine.currentState.canBePatted;
@@ -295,7 +282,7 @@ export class HeroActionBehavior {
 
   /**
    *
-    * @returns {boolean}
+   * @returns {boolean}
    */
   get canJump() {
     return this.#stateMachine.currentState.allowsJump;
@@ -303,7 +290,7 @@ export class HeroActionBehavior {
 
   /**
    *
-    * @returns {boolean}
+   * @returns {boolean}
    */
   get locksFacing() {
     return this.#stateMachine.currentState.locksFacing;
@@ -311,7 +298,7 @@ export class HeroActionBehavior {
 
   /**
    *
-    * @returns {boolean}
+   * @returns {boolean}
    */
   get snapsFacing() {
     return this.#stateMachine.currentState.snapsFacing(this.#context);
@@ -319,7 +306,7 @@ export class HeroActionBehavior {
 
   /**
    *
-    * @returns {boolean}
+   * @returns {boolean}
    */
   get allowsFootPlacement() {
     return this.#stateMachine.currentState.allowsFootPlacement;
@@ -327,7 +314,7 @@ export class HeroActionBehavior {
 
   /**
    *
-    * @returns {boolean}
+   * @returns {boolean}
    */
   get allowsIdleHeadLook() {
     return this.#stateMachine.currentState.allowsIdleHeadLook;
@@ -335,7 +322,7 @@ export class HeroActionBehavior {
 
   /**
    *
-    * @returns {{x: number, y: number, z: number}}
+   * @returns {{x: number, y: number, z: number}}
    */
   get locksHeadForward() {
     return this.#stateMachine.currentState.locksHeadForward;
@@ -343,7 +330,7 @@ export class HeroActionBehavior {
 
   /**
    *
-    * @returns {number}
+   * @returns {number}
    */
   get controlsHeadPresentation() {
     return this.#stateMachine.currentState.controlsHeadPresentation;
@@ -395,7 +382,7 @@ export class HeroActionBehavior {
 
   /**
    *
-    * @returns {boolean}
+   * @returns {boolean}
    */
   get boostingCountryFinances() {
     return this.#restingAction === HERO_ACTION.BOOSTING_COUNTRY_FINANCES;
@@ -412,7 +399,7 @@ export class HeroActionBehavior {
 
   /**
    *
-    * @returns {import("src/game/objects/ObjectTypes.js").HeroActionPayload|null}
+   * @returns {import("src/game/objects/ObjectTypes.js").HeroActionPayload|null}
    */
   get bellAction() { return this.#payloadFor(HERO_ACTION.RINGING_BELL); }
 
@@ -431,7 +418,7 @@ export class HeroActionBehavior {
 
   /**
    *
-    * @returns {number}
+   * @returns {number}
    */
   get collectAction() {
     return this.#payloadFor(HERO_ACTION.COLLECTING);
@@ -443,7 +430,7 @@ export class HeroActionBehavior {
 
   /**
    *
-    * @returns {import("src/game/objects/ObjectTypes.js").HeroActionPayload|null}
+   * @returns {import("src/game/objects/ObjectTypes.js").HeroActionPayload|null}
    */
   get inventoryFullAction() {
     return this.#payloadFor(HERO_ACTION.INVENTORY_FULL_REACTION);
@@ -455,7 +442,7 @@ export class HeroActionBehavior {
 
   /**
    *
-    * @returns {import("src/game/objects/ObjectTypes.js").HeroActionPayload|null}
+   * @returns {import("src/game/objects/ObjectTypes.js").HeroActionPayload|null}
    */
   get dodgeAction() {
     return this.#payloadFor(HERO_ACTION.DODGING);
@@ -467,7 +454,7 @@ export class HeroActionBehavior {
 
   /**
    *
-    * @returns {number}
+   * @returns {number}
    */
   get repelAction() {
     return this.#payloadFor(HERO_ACTION.REPELLED);
@@ -479,7 +466,7 @@ export class HeroActionBehavior {
 
   /**
    *
-    * @returns {import("src/game/objects/ObjectTypes.js").HeroActionPayload|null}
+   * @returns {import("src/game/objects/ObjectTypes.js").HeroActionPayload|null}
    */
   get edgeRefusalAction() {
     return this.#payloadFor(HERO_ACTION.EDGE_REFUSAL);
@@ -491,7 +478,7 @@ export class HeroActionBehavior {
 
   /**
    *
-    * @returns {import("src/game/objects/ObjectTypes.js").HeroActionPayload|null}
+   * @returns {import("src/game/objects/ObjectTypes.js").HeroActionPayload|null}
    */
   get holeRefusalAction() {
     return this.#payloadFor(HERO_ACTION.HOLE_REFUSAL);
@@ -503,7 +490,7 @@ export class HeroActionBehavior {
 
   /**
    *
-    * @returns {boolean}
+   * @returns {boolean}
    */
   get blockedDigReactionAction() {
     return this.#payloadFor(HERO_ACTION.BLOCKED_DIG_REACTION);
@@ -515,7 +502,7 @@ export class HeroActionBehavior {
 
   /**
    *
-    * @returns {number}
+   * @returns {number}
    */
   get patReactionRemaining() {
     return this.#payloadFor(HERO_ACTION.PAT_REACTION)?.remaining ?? 0;
@@ -530,7 +517,7 @@ export class HeroActionBehavior {
 
   /**
    *
-    * @returns {boolean}
+   * @returns {boolean}
    */
   get angryEscape() {
     return this.#stateMachine.in(HERO_ACTION.ANGRY_ESCAPE);
@@ -542,7 +529,7 @@ export class HeroActionBehavior {
 
   /**
    *
-    * @returns {boolean}
+   * @returns {boolean}
    */
   get drowning() {
     return this.#stateMachine.in(HERO_ACTION.DROWNING);
@@ -550,7 +537,7 @@ export class HeroActionBehavior {
 
   /**
    *
-    * @returns {import("src/game/objects/ObjectTypes.js").HeroActionPayload|null}
+   * @returns {import("src/game/objects/ObjectTypes.js").HeroActionPayload|null}
    */
   get drowningAction() {
     return this.#payloadFor(HERO_ACTION.DROWNING);
@@ -562,7 +549,7 @@ export class HeroActionBehavior {
 
   /**
    *
-    * @returns {boolean}
+   * @returns {boolean}
    */
   get bridgeClimbing() {
     return this.#stateMachine.in(HERO_ACTION.BRIDGE_CLIMB);
@@ -570,7 +557,7 @@ export class HeroActionBehavior {
 
   /**
    *
-    * @returns {import("src/game/objects/ObjectTypes.js").HeroActionPayload|null}
+   * @returns {import("src/game/objects/ObjectTypes.js").HeroActionPayload|null}
    */
   get bridgeClimbAction() {
     return this.#payloadFor(HERO_ACTION.BRIDGE_CLIMB);
@@ -582,7 +569,7 @@ export class HeroActionBehavior {
 
   /**
    *
-    * @returns {boolean}
+   * @returns {boolean}
    */
   get fallingToDeath() {
     return this.#stateMachine.in(HERO_ACTION.FALLING_TO_DEATH);
@@ -594,7 +581,7 @@ export class HeroActionBehavior {
 
   /**
    *
-    * @returns {boolean}
+   * @returns {boolean}
    */
   get burning() {
     return this.#stateMachine.in(HERO_ACTION.BURNING);
@@ -609,7 +596,7 @@ export class HeroActionBehavior {
 
   /**
    *
-    * @returns {import("src/game/objects/ObjectTypes.js").HeroActionPayload|null}
+   * @returns {import("src/game/objects/ObjectTypes.js").HeroActionPayload|null}
    */
   get lavaDeathAction() {
     return this.#payloadFor(HERO_ACTION.BURNING);
@@ -621,7 +608,7 @@ export class HeroActionBehavior {
 
   /**
    *
-    * @returns {number}
+   * @returns {number}
    */
   get respawning() {
     return this.#stateMachine.in(HERO_ACTION.RESPAWNING);
@@ -629,7 +616,7 @@ export class HeroActionBehavior {
 
   /**
    *
-    * @returns {number}
+   * @returns {number}
    */
   get respawnAction() {
     return this.#payloadFor(HERO_ACTION.RESPAWNING);
@@ -641,7 +628,7 @@ export class HeroActionBehavior {
 
   /**
    *
-    * @returns {number}
+   * @returns {number}
    */
   get gameOver() {
     return this.#stateMachine.in(HERO_ACTION.GAME_OVER);
@@ -686,7 +673,7 @@ export class HeroActionBehavior {
 
   /**
    *
-    * @returns {number}
+   * @returns {number}
    */
   get #isResting() {
     return this.#stateMachine.in(HERO_ACTION.EXPLORING)
@@ -731,5 +718,59 @@ export class HeroActionBehavior {
     }
     this.#pendingPayload = payload;
     this.#stateMachine.changeTo(action);
+  }
+
+  /**
+   *
+   * @param {string} action
+   * @param {import("src/game/objects/ObjectTypes.js").HeroActionPayload} payload
+   */
+  #transition2(action, payload) {
+    return this.#transition(action, payload);
+  }
+
+  #finish() {
+    return this.finish();
+  }
+
+  /**
+   *
+   * @param {string} state
+   */
+  #enterState(state) {
+    state.payload = this.#pendingPayload;
+
+    this.#pendingPayload = null;
+    this.#handler?.enter?.(state, this);
+  }
+
+  /**
+   *
+   * @param {string} state
+   */
+  #updateState(state) {
+    return this.#handler?.update?.(
+      state,
+      this,
+      this.#deltaTime,
+    );
+  }
+
+  /**
+   *
+   * @param {string} state
+   */
+  #exitState(state) {
+    this.#handler?.exit?.(state, this);
+    state.payload = null;
+  }
+
+  /**
+   *
+   * @param {string} action
+   * @param {ConstructorParameters<typeof HeroRuntimeActionState>[1]} options
+   */
+  static #state2(action, options) {
+    return new HeroRuntimeActionState(action, options);
   }
 }

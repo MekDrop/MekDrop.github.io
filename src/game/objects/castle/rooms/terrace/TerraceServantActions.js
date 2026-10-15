@@ -53,7 +53,7 @@ export class TerraceServantActions {
     this.#motion = motion;
     if (actor) { this.#servant = actor;
 
- return; }
+      return; }
     for (const modelUrl of TerraceServantActions.modelUrls) {
       const actor = new TerraceActor({
         pc,
@@ -88,7 +88,7 @@ export class TerraceServantActions {
     if (behavior.reacting) { return; }
     if (this.#motion) { this.#syncResident(behavior);
 
- return; }
+      return; }
     if (this.#visit !== behavior.visitId) {
       this.#visit = behavior.visitId;
       for (const servant of this.#servants) {

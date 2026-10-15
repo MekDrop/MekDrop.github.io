@@ -18,9 +18,7 @@ export class PathTopology {
    * @param {number} row
    */
   static #isWithinMergeZone(layout, col, row) {
-    const mergeCols = layout.entries.map(/**
-                                          * @param {import("./MapGenerationTypes.js").LayoutEntry} entry
-                                          */ (entry) => entry.mergeCol);
+    const mergeCols = layout.entries.map(PathTopology.#mapEntry);
     const mergeCol = mergeCols[0];
     if (!Number.isFinite(mergeCol)) {
       return false;
@@ -39,9 +37,7 @@ export class PathTopology {
    * @param {number} col
    */
   static #isWithinMergeCorridor(layout, col) {
-    const mergeCols = layout.entries.map(/**
-                                          * @param {import("./MapGenerationTypes.js").LayoutEntry} entry
-                                          */ (entry) => entry.mergeCol);
+    const mergeCols = layout.entries.map(PathTopology.#mapEntry2);
     const mergeCol = mergeCols[0];
 
     return mergeCols.some(/**
@@ -56,24 +52,22 @@ export class PathTopology {
    * @param {number} row
    */
   static #routesShareMergeCellAtRow(firstCells, secondCells, layout, row) {
-    const mergeCols = layout.entries.map(/**
-                                          * @param {import("./MapGenerationTypes.js").LayoutEntry} entry
-                                          */ (entry) => entry.mergeCol);
+    const mergeCols = layout.entries.map(PathTopology.#mapEntry3);
     const mergeCol = mergeCols[0];
     if (!Number.isFinite(mergeCol)) {
       return false;
     }
-    return mergeCols.flatMap(/**
-                              * @param {number} start
-                              */ (start) => [start, start + 1]).some(/**
-     *
-     * @param {number} col
-     */
+    return mergeCols.flatMap(PathTopology.#flatMapStart).some(
+      /**
+       *
+       * @param {number} col
+       */
       (col) => {
         const key = MapGrid.tileKey(col, row);
 
         return firstCells.has(key) && secondCells.has(key);
-      });
+      },
+    );
   }
 
   /**
@@ -317,5 +311,33 @@ export class PathTopology {
     }
 
     return null;
+  }
+
+  /**
+   * @param {import("./MapGenerationTypes.js").LayoutEntry} entry
+   */
+  static #mapEntry(entry) {
+    return entry.mergeCol;
+  }
+
+  /**
+   * @param {import("./MapGenerationTypes.js").LayoutEntry} entry
+   */
+  static #mapEntry2(entry) {
+    return entry.mergeCol;
+  }
+
+  /**
+   * @param {import("./MapGenerationTypes.js").LayoutEntry} entry
+   */
+  static #mapEntry3(entry) {
+    return entry.mergeCol;
+  }
+
+  /**
+   * @param {number} start
+   */
+  static #flatMapStart(start) {
+    return [start, start + 1];
   }
 }

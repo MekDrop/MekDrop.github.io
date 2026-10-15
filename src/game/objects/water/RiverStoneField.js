@@ -7,7 +7,7 @@ import { RiverStonePlacementPlan } from './RiverStonePlacementPlan.js';
 export class RiverStoneField {
   /**
    *
-    * @returns {Array<string>}
+   * @returns {Array<string>}
    */
   static get modelUrls() {
     return [
@@ -19,37 +19,37 @@ export class RiverStoneField {
 
   /**
    *
-    * @type {typeof import("playcanvas")}
+   * @type {typeof import("playcanvas")}
    */
   #pc;
   /**
    *
-    * @type {import("src/game/objects/ObjectTypes.js").GameMapData}
+   * @type {import("src/game/objects/ObjectTypes.js").GameMapData}
    */
   #mapData;
   /**
    *
-    * @type {number}
+   * @type {number}
    */
   #riverKind;
   /**
    *
-    * @type {import("playcanvas").Entity}
+   * @type {import("playcanvas").Entity}
    */
   #entity;
   /**
    *
-    * @type {import("./RiverRuntimeEffects.js").RiverRuntimeEffects}
+   * @type {import("./RiverRuntimeEffects.js").RiverRuntimeEffects}
    */
   #effects;
   /**
    *
-    * @type {boolean}
+   * @type {boolean}
    */
   #hasRockContactEffects;
   /**
    *
-    * @type {Array<import("playcanvas").VertexBuffer>}
+   * @type {Array<import("playcanvas").VertexBuffer>}
    */
   #vertexBuffers = [];
 
@@ -91,13 +91,7 @@ export class RiverStoneField {
    */
   build(modelLibrary) {
     const { cols, rows, riverData = [] } = this.#mapData;
-    const rivers = riverData.filter(
-      /**
-       *
-       * @param {number} river
-       */
-      (river) => (river.kind ?? RIVER_KIND.WATER) === this.#riverKind,
-    );
+    const rivers = riverData.filter(this.#filterRiver.bind(this));
     const stoneModels = [
       riverStoneModelUrl,
       riverStoneFlatModelUrl,
@@ -105,11 +99,7 @@ export class RiverStoneField {
     ];
     const stoneModelHeights = [0.20761, 0.14188, 0.27262];
     const matricesByModel = new Map(
-      stoneModels.map(/**
-       *
-       * @param {string} modelUrl
-       */
-        (modelUrl) => [modelUrl, []]),
+      stoneModels.map(RiverStoneField.#mapModelUrl),
     );
     const placements = new RiverStonePlacementPlan(stoneModelHeights).create(
       rivers,
@@ -162,4 +152,19 @@ export class RiverStoneField {
     this.#vertexBuffers = [];
   }
 
+  /**
+   *
+   * @param {number} river
+   */
+  #filterRiver(river) {
+    return (river.kind ?? RIVER_KIND.WATER) === this.#riverKind;
+  }
+
+  /**
+   *
+   * @param {string} modelUrl
+   */
+  static #mapModelUrl(modelUrl) {
+    return [modelUrl, []];
+  }
 }

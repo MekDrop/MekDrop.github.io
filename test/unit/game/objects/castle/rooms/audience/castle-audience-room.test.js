@@ -71,7 +71,7 @@ class FakeEntity {
 
   findComponents() { this.render ??= { meshInstances: [{ material: null }] };
 
- return [this.render]; }
+    return [this.render]; }
   destroy() {}
 }
 
@@ -80,7 +80,7 @@ class FakeMaterial {
 
   findComponents() { this.render ??= { meshInstances: [{ material: null }] };
 
- return [this.render]; }
+    return [this.render]; }
   destroy() {}
 }
 

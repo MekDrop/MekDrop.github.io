@@ -208,12 +208,7 @@ export class InventoryItemProjector {
   #modelBounds(model) {
     const meshInstances = model
       .findComponents("render")
-      .flatMap(/**
-       *
-       * @param {{meshInstances: import("playcanvas").MeshInstance[]}} options
-       * @param {import("playcanvas").MeshInstance[]} options.meshInstances
-       */
-        ({ meshInstances }) => meshInstances);
+      .flatMap(InventoryItemProjector.#flatMap);
     const bounds = meshInstances[0].aabb.clone();
     for (const meshInstance of meshInstances.slice(1)) {
       bounds.add(meshInstance.aabb);
@@ -260,5 +255,14 @@ export class InventoryItemProjector {
       projectedHalfWidth,
       projectedHalfHeight,
     };
+  }
+
+  /**
+   *
+   * @param {{meshInstances: import("playcanvas").MeshInstance[]}} options
+   * @param {import("playcanvas").MeshInstance[]} options.meshInstances
+   */
+  static #flatMap({ meshInstances }) {
+    return meshInstances;
   }
 }

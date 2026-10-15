@@ -110,7 +110,7 @@ export class InventoryScene {
        * @param {number} fromSlot
        * @param {number} toSlot
        */
-      onMoveItem: (fromSlot, toSlot) => this.moveItem(fromSlot, toSlot),
+      onMoveItem: this.#onMoveItem.bind(this),
       /**
        *
        * @param {number} slot
@@ -119,8 +119,7 @@ export class InventoryScene {
        * @param {number} heightClientX
        * @param {number} heightClientY
        */
-      onDropItem: (slot, clientX, clientY, heightClientX, heightClientY) =>
-        this.dropItem(slot, clientX, clientY, heightClientX, heightClientY),
+      onDropItem: this.#onDropItem.bind(this),
     });
     this.#hud.attach();
     this.#hud.visible = Boolean(this.#heroConfigurationStore.inventory.visible);
@@ -183,11 +182,7 @@ export class InventoryScene {
    * @returns {Array}
    */
   get thrownItemStates() {
-    return this.#thrownItems.map(/**
-     *
-     * @param {import("src/game/GameContracts.js").GameObjectContract} item
-     */
-      (item) => item.state);
+    return this.#thrownItems.map(InventoryScene.#mapItem);
   }
 
   /**
@@ -195,11 +190,7 @@ export class InventoryScene {
    * @returns {Array}
    */
   get grassImpressionContacts() {
-    return this.#thrownItems.flatMap(/**
-     *
-     * @param {import("src/game/GameContracts.js").GameObjectContract} item
-     */
-      (item) => item.grassImpressionContacts);
+    return this.#thrownItems.flatMap(InventoryScene.#flatMapItem);
   }
 
   /**
@@ -403,5 +394,42 @@ export class InventoryScene {
       }
     }
     this.#thrownItems = remainingItems;
+  }
+
+  /**
+   *
+   * @param {number} fromSlot
+   * @param {number} toSlot
+   */
+  #onMoveItem(fromSlot, toSlot) {
+    return this.moveItem(fromSlot, toSlot);
+  }
+
+  /**
+   *
+   * @param {number} slot
+   * @param {number} clientX
+   * @param {number} clientY
+   * @param {number} heightClientX
+   * @param {number} heightClientY
+   */
+  #onDropItem(slot, clientX, clientY, heightClientX, heightClientY) {
+    return this.dropItem(slot, clientX, clientY, heightClientX, heightClientY);
+  }
+
+  /**
+   *
+   * @param {import("src/game/GameContracts.js").GameObjectContract} item
+   */
+  static #mapItem(item) {
+    return item.state;
+  }
+
+  /**
+   *
+   * @param {import("src/game/GameContracts.js").GameObjectContract} item
+   */
+  static #flatMapItem(item) {
+    return item.grassImpressionContacts;
   }
 }

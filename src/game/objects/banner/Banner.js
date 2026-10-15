@@ -134,16 +134,16 @@ export class Banner {
    */
   handlePointerDown({ hit }) { this.#visual.beginWindGesture(hit);
 
- return { capturePointer: true }; }
+    return { capturePointer: true }; }
   /**
    * @param {{ray: {start: import("playcanvas").Vec3, end: import("playcanvas").Vec3}, deltaTime: number}} options
    */
   handlePointerMove({ ray, deltaTime }) { this.#visual.applyMouseWind(ray.start, ray.end, deltaTime);
 
- return true; }
+    return true; }
   handlePointerUp() { this.#visual.endWindGesture();
 
- return true; }
+    return true; }
   handlePointerCancel() { this.#visual.endWindGesture(); }
   destroy() { this.#visual.destroy(); }
 }

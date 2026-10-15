@@ -56,21 +56,38 @@ export class SignalBellInteraction {
     if (!this.canInteract) { return false; }
     const accepted = this.#hero.ringBell({
       ...this.#bell.ringingPose,
-      onStart: () => this.#bell.startPull(this.#hero),
+      onStart: this.#onStart.bind(this),
       /**
        * @param {number} time
        */
-      onProgress: (time) => this.#bell.setPullTime(time),
-      onStrike: () => this.#bell.strike(),
-      onEnd: () => {
-        this.#bell.endRinging();
-        this.#onComplete?.();
-      },
+      onProgress: this.#onProgress.bind(this),
+      onStrike: this.#onStrike.bind(this),
+      onEnd: this.#onEnd.bind(this),
     });
     if (!accepted) { return false; }
     this.#bell.beginRinging();
     this.#onComplete?.();
 
     return true;
+  }
+
+  #onStart() {
+    return this.#bell.startPull(this.#hero);
+  }
+
+  /**
+   * @param {number} time
+   */
+  #onProgress(time) {
+    return this.#bell.setPullTime(time);
+  }
+
+  #onStrike() {
+    return this.#bell.strike();
+  }
+
+  #onEnd() {
+    this.#bell.endRinging();
+    this.#onComplete?.();
   }
 }

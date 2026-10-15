@@ -53,16 +53,20 @@ export class HelpCommand {
   }
 
   execute() {
-    const commands = this.#registry.commands.map(/**
-     *
-     * @param {string} command
-     */
-      (command) => ({
-        command: command.usage,
-        description: command.description,
-      }));
+    const commands = this.#registry.commands.map(HelpCommand.#mapCommand);
     this.#logger.table(commands);
 
     return commands;
+  }
+
+  /**
+   *
+   * @param {string} command
+   */
+  static #mapCommand(command) {
+    return {
+      command: command.usage,
+      description: command.description,
+    };
   }
 }

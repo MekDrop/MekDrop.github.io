@@ -56,10 +56,7 @@ export class Window {
     visual.name = `Castle ${window.role} recessed window`;
     WindowModules.fit(visual, window);
     if (window.open) {
-      for (const node of visual.find(/**
-     * @param {import("playcanvas").GraphNode} node
-     */
-        (node) => /^(Amber glass pane |Fine oak transom |Central oak mullion)/.test(node.name))) {
+      for (const node of visual.find(Window.#findNode)) {
         node.destroy();
       }
     }
@@ -135,4 +132,11 @@ export class Window {
    */
   setIslandOffsets(near, far, offsets = [near, far]) { this.#islandRoots.setOffsets(near, far, offsets); }
   destroy() { this.#entity.destroy(); }
+
+  /**
+   * @param {import("playcanvas").GraphNode} node
+   */
+  static #findNode(node) {
+    return /^(Amber glass pane |Fine oak transom |Central oak mullion)/.test(node.name);
+  }
 }

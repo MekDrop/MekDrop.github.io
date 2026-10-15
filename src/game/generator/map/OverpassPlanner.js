@@ -168,11 +168,7 @@ export class OverpassPlanner {
     if (!candidates.length) {
       return null;
     }
-    const originalCurvePlans = layout.entries.map(/**
-     *
-     * @param {LayoutEntry} entry
-     */
-      (entry) => entry.curvePlan);
+    const originalCurvePlans = layout.entries.map(OverpassPlanner.#mapEntry);
     const shuffledCandidates = this.#random.shuffle([...candidates]);
     for (const selected of shuffledCandidates) {
       for (const entry of layout.entries) {
@@ -389,24 +385,8 @@ export class OverpassPlanner {
     }
 
     plan.raisedApproachCells = [...raisedApproachKeys]
-      .map(/**
-       *
-       * @param {string} key
-       */
-        (key) => {
-          const [col, row] = key.split(",").map(Number);
-
-          return {
-            col,
-            row,
-          };
-        })
-      .sort(/**
-       *
-       * @param {GridCell} left
-       * @param {GridCell} right
-       */
-        (left, right) => left.row - right.row || left.col - right.col);
+      .map(OverpassPlanner.#mapKey)
+      .sort(OverpassPlanner.#sortLeft);
     plan.slopeCells = plan.slopeCells.filter(
       /**
        *
@@ -435,23 +415,59 @@ export class OverpassPlanner {
       }
     }
     plan.raisedTerrainCells = [...raisedTerrainKeys]
-      .map(/**
-       *
-       * @param {string} key
-       */
-        (key) => {
-          const [col, row] = key.split(",").map(Number);
+      .map(OverpassPlanner.#mapKey2)
+      .sort(OverpassPlanner.#sortLeft2);
+  }
 
-          return {
-            col,
-            row,
-          };
-        })
-      .sort(/**
-       *
-       * @param {GridCell} left
-       * @param {GridCell} right
-       */
-        (left, right) => left.row - right.row || left.col - right.col);
+  /**
+   *
+   * @param {LayoutEntry} entry
+   */
+  static #mapEntry(entry) {
+    return entry.curvePlan;
+  }
+
+  /**
+   *
+   * @param {string} key
+   */
+  static #mapKey(key) {
+    const [col, row] = key.split(",").map(Number);
+
+    return {
+      col,
+      row,
+    };
+  }
+
+  /**
+   *
+   * @param {GridCell} left
+   * @param {GridCell} right
+   */
+  static #sortLeft(left, right) {
+    return left.row - right.row || left.col - right.col;
+  }
+
+  /**
+   *
+   * @param {string} key
+   */
+  static #mapKey2(key) {
+    const [col, row] = key.split(",").map(Number);
+
+    return {
+      col,
+      row,
+    };
+  }
+
+  /**
+   *
+   * @param {GridCell} left
+   * @param {GridCell} right
+   */
+  static #sortLeft2(left, right) {
+    return left.row - right.row || left.col - right.col;
   }
 }

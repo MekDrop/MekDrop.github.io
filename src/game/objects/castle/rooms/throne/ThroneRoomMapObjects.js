@@ -9,16 +9,8 @@ export class ThroneRoomMapObjects {
    */
   static prepareMap(mapData) {
     const objects = mapData.objects ?? [];
-    const castles = objects.filter(/**
-     *
-     * @param {import("../../../ObjectTypes.js").MapObjectDefinition} definition
-     */
-      (definition) => definition.object === "Castle");
-    const castleIds = new Set(castles.map(/**
-     *
-     * @param {import("../../../ObjectTypes.js").MapObjectDefinition} castle
-     */
-      (castle) => castle.id));
+    const castles = objects.filter(ThroneRoomMapObjects.#filterDefinition);
+    const castleIds = new Set(castles.map(ThroneRoomMapObjects.#mapCastle));
     // A regenerated castle must replace its old seed's props, including omissions.
     mapData.objects = objects.filter(/**
      *
@@ -72,5 +64,21 @@ export class ThroneRoomMapObjects {
         mapData.objects.push(definition);
       }
     }
+  }
+
+  /**
+   *
+   * @param {import("../../../ObjectTypes.js").MapObjectDefinition} definition
+   */
+  static #filterDefinition(definition) {
+    return definition.object === "Castle";
+  }
+
+  /**
+   *
+   * @param {import("../../../ObjectTypes.js").MapObjectDefinition} castle
+   */
+  static #mapCastle(castle) {
+    return castle.id;
   }
 }

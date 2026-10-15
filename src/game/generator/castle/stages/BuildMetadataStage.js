@@ -17,13 +17,7 @@ export class BuildMetadataStage extends AbstractCastleGenerationStage {
     const { castleDepth, facadeSpan, openings, primarySide, baseY } =
       context.layout;
     const { towerSpan, wallHeight } = context.structure.wall;
-    const audienceOpening = openings.find(
-      /**
-       *
-       * @param {import("src/game/GameContracts.js").CastleOpening} opening
-       */
-      (opening) => opening.boundary === CASTLE_BOUNDARY.FRONT,
-    );
+    const audienceOpening = openings.find(BuildMetadataStage.#findOpening);
     const interiorDepth =
       (castleDepth - CASTLE_WALL_THICKNESS_BLOCKS) * CASTLE_BLOCK_SIZE;
     let interiorWidth = 0;
@@ -78,33 +72,37 @@ export class BuildMetadataStage extends AbstractCastleGenerationStage {
       } else { terrace = null; }
     }
     // Keep circulation open. Private rooms get one door; roof entrances close out the weather.
-    const roomDoors = context.layout.roomPlan?.version === 2
-      ? context.layout.roomPlan.doorways.filter(/**
-       *
-       * @param {{roomId:string}} doorway
-       */
-        (doorway) => !doorway.roomId.startsWith("tower")).filter(/**
-       * @param {{roomId:string,axis:string,floorY:number}} doorway
-       */ (doorway) => (doorway.roomId !== "leisure" && doorway.floorY > context.layout.roomPlan.origin.y) ||
-         (["library", "service"].includes(doorway.roomId) && doorway.floorY <= context.layout.roomPlan.origin.y)).map(/**
-       * @param {{roomId:string,axis:string,coordinate:number,center:number,width:number,floorY:number}} doorway
-       */ (doorway) => {
-          const plan = context.layout.roomPlan;
-          const angle = plan.origin.yaw * Math.PI / 180;
-          const x = doorway.axis === "x" ? doorway.coordinate : doorway.center;
-          const z = doorway.axis === "z" ? doorway.coordinate : doorway.center;
+    const roomDoors =
+      context.layout.roomPlan?.version === 2
+        ? context.layout.roomPlan.doorways.filter(BuildMetadataStage.#filterDoorway)
+          .filter(
+            /**
+               * @param {{roomId:string,axis:string,floorY:number}} doorway
+               */ (doorway) => (doorway.roomId !== "leisure" && doorway.floorY > context.layout.roomPlan.origin.y) ||
+         (["library", "service"].includes(doorway.roomId) && doorway.floorY <= context.layout.roomPlan.origin.y),
+          )
+          .map(
+            /**
+               * @param {{roomId:string,axis:string,coordinate:number,center:number,width:number,floorY:number}} doorway
+               */ (doorway) => {
+              const plan = context.layout.roomPlan;
+              const angle = plan.origin.yaw * Math.PI / 180;
+              const x = doorway.axis === "x" ? doorway.coordinate : doorway.center;
+              const z = doorway.axis === "z" ? doorway.coordinate : doorway.center;
 
-          return {
-            roomId: doorway.roomId,
-            x: plan.origin.x + Math.cos(angle) * x + Math.sin(angle) * z,
-            z: plan.origin.z - Math.sin(angle) * x + Math.cos(angle) * z,
-            y: doorway.floorY,
-            width: doorway.width,
-            height: 1.84,
-            openingInset: 0,
-            yaw: plan.origin.yaw + (doorway.axis === "z" ? 0 : x < 0 ? -90 : 90),
-          };
-        }) : [];
+              return {
+                roomId: doorway.roomId,
+                x: plan.origin.x + Math.cos(angle) * x + Math.sin(angle) * z,
+                z: plan.origin.z - Math.sin(angle) * x + Math.cos(angle) * z,
+                y: doorway.floorY,
+                width: doorway.width,
+                height: 1.84,
+                openingInset: 0,
+                yaw: plan.origin.yaw + (doorway.axis === "z" ? 0 : x < 0 ? -90 : 90),
+              };
+            },
+          )
+        : [];
     context.metadata.runtime = {
       roomDoors,
       interiorDepth,
@@ -121,20 +119,12 @@ export class BuildMetadataStage extends AbstractCastleGenerationStage {
         y: CASTLE_BLOCK_SIZE / 2,
         z: CASTLE_BLOCK_SIZE / 2,
       },
-      groundColumns: context.geometry.collision.groundColumns.map(/**
-       *
-       * @param {number} column
-       */
-        (column) => ({
-          ...column,
-        })),
-      cameraBlocks: context.geometry.collision.cameraBlocks.map(/**
-       *
-       * @param {{x: number, y: number, z: number, role?: string}} block
-       */
-        (block) => ({
-          ...block,
-        })),
+      groundColumns: context.geometry.collision.groundColumns.map(
+        BuildMetadataStage.#mapColumn,
+      ),
+      cameraBlocks: context.geometry.collision.cameraBlocks.map(
+        BuildMetadataStage.#mapBlock,
+      ),
     };
   }
 
@@ -159,6 +149,42 @@ export class BuildMetadataStage extends AbstractCastleGenerationStage {
     return {
       x: layout.worldLeft + (blockX + 0.5) * CASTLE_BLOCK_SIZE,
       z: layout.worldTop + (blockZ + 0.5) * CASTLE_BLOCK_SIZE,
+    };
+  }
+
+  /**
+   *
+   * @param {import("src/game/GameContracts.js").CastleOpening} opening
+   */
+  static #findOpening(opening) {
+    return opening.boundary === CASTLE_BOUNDARY.FRONT;
+  }
+
+  /**
+   *
+   * @param {{roomId:string}} doorway
+   */
+  static #filterDoorway(doorway) {
+    return !doorway.roomId.startsWith("tower");
+  }
+
+  /**
+   *
+   * @param {number} column
+   */
+  static #mapColumn(column) {
+    return {
+      ...column,
+    };
+  }
+
+  /**
+   *
+   * @param {{x: number, y: number, z: number, role?: string}} block
+   */
+  static #mapBlock(block) {
+    return {
+      ...block,
     };
   }
 }

@@ -120,12 +120,7 @@ export class SignalBell extends AbstractCastleProp {
     this.#app.soundManager.resume();
     const context = this.#app.soundManager.context;
     if (context?.state === "suspended") {
-      context.resume().catch(
-        /**
-         * @param {Error} error
-         */
-        error => this.#onRuntimeError?.(error),
-      );
+      context.resume().catch(this.#catch.bind(this));
     }
   }
 
@@ -147,8 +142,10 @@ export class SignalBell extends AbstractCastleProp {
    */
   setPullTime(time) {
     if (this.#rope && time >= 0.5 && time < 1.2) {
-      this.#rope.hand = () => this.#pullingHero?.bellGripPosition ?? null;
-    } else { this.#rope?.release(); }
+      this.#rope.hand = this.#hand.bind(this);
+    } else {
+      this.#rope?.release();
+    }
     this.#model.anim.baseLayer.activeStateCurrentTime = time;
     this.#model.anim.update(0);
   }
@@ -215,5 +212,16 @@ export class SignalBell extends AbstractCastleProp {
     super.destroy();
     this.#sound.unload();
     this.#app.assets.remove(this.#sound);
+  }
+
+  /**
+   * @param {Error} error
+   */
+  #catch(error) {
+    return this.#onRuntimeError?.(error);
+  }
+
+  #hand() {
+    return this.#pullingHero?.bellGripPosition ?? null;
   }
 }

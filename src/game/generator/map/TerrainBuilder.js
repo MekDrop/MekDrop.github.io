@@ -130,11 +130,7 @@ export class TerrainBuilder {
       topPadRight,
       8,
       1,
-      /**
-       *
-       * @param {number} tile
-       */
-      (tile) => tile === TileType.GRASS,
+      TerrainBuilder.#fillHeightRect2,
     );
     this.#fillHeightRect(
       grid,
@@ -144,11 +140,7 @@ export class TerrainBuilder {
       12,
       33,
       1,
-      /**
-       *
-       * @param {number} tile
-       */
-      (tile) => tile === TileType.GRASS,
+      TerrainBuilder.#fillHeightRect3,
     );
     this.#fillHeightRect(
       grid,
@@ -158,11 +150,7 @@ export class TerrainBuilder {
       24,
       29,
       2,
-      /**
-       *
-       * @param {number} tile
-       */
-      (tile) => tile === TileType.GRASS,
+      TerrainBuilder.#fillHeightRect4,
     );
     this.#fillHeightRect(
       grid,
@@ -172,14 +160,7 @@ export class TerrainBuilder {
       layout.castleRight + CASTLE_REAR_GROUND_CLEARANCE,
       layout.castleBottom + 2,
       FOUNDATION_HEIGHT,
-      /**
-       *
-       * @param {number} tile
-       */
-      (tile) =>
-        tile !== TileType.WATER &&
-        tile !== TileType.PATH &&
-        tile !== TileType.ENTRY,
+      TerrainBuilder.#fillHeightRect5,
     );
     this.#fillHeightRect(
       grid,
@@ -189,11 +170,7 @@ export class TerrainBuilder {
       layout.castleEntranceCol,
       layout.pathRows[1],
       PATH_HEIGHT,
-      /**
-       *
-       * @param {number} tile
-       */
-      (tile) => tile === TileType.PATH || tile === TileType.ENTRY,
+      TerrainBuilder.#fillHeightRect6,
     );
   }
 
@@ -402,19 +379,7 @@ export class TerrainBuilder {
    * @param {RiverData[]} riverData
    */
   materializePathSupports(grid, heightmap, tileMeta, riverData) {
-    const riverCells = new Set(
-      riverData.flatMap(/**
-       *
-       * @param {RiverRecord} river
-       */
-        (river) =>
-          river.cells.map(/**
-         *
-         * @param {MapCell} cell
-         */
-            (cell) => MapGrid.tileKey(cell.col, cell.row)),
-      ),
-    );
+    const riverCells = new Set(riverData.flatMap(TerrainBuilder.#flatMapRiver));
     const processedStations = new Set();
     for (let row = 0; row < MAP_ROWS; row++) {
       for (let col = 0; col < MAP_COLS; col++) {
@@ -438,11 +403,7 @@ export class TerrainBuilder {
             ? "H"
             : "V";
         const stationKey = `${axis}:${lateralCells
-          .map(/**
-           *
-           * @param {MapCell} cell
-           */
-            (cell) => MapGrid.tileKey(cell.col, cell.row))
+          .map(TerrainBuilder.#mapCell)
           .sort()
           .join("|")}`;
         if (processedStations.has(stationKey)) {
@@ -527,23 +488,7 @@ export class TerrainBuilder {
    */
   #assignBridgeGround(tileMeta, heightmap, riverData) {
     const riverBridgeCells = new Set(
-      riverData.flatMap(/**
-       *
-       * @param {RiverRecord} river
-       */
-        (river) =>
-          river.cells
-            .filter(/**
-           *
-           * @param {MapCell} cell
-           */
-              (cell) => cell.underBridge)
-            .map(/**
-           *
-           * @param {MapCell} cell
-           */
-              (cell) => MapGrid.tileKey(cell.col, cell.row)),
-      ),
+      riverData.flatMap(TerrainBuilder.#flatMapRiver2),
     );
     for (let row = 0; row < MAP_ROWS; row++) {
       for (let col = 0; col < MAP_COLS; col++) {
@@ -556,5 +501,99 @@ export class TerrainBuilder {
             : Math.max(1, heightmap[row][col] - 1);
       }
     }
+  }
+
+  /**
+   *
+   * @param {number} tile
+   */
+  static #fillHeightRect2(tile) {
+    return tile === TileType.GRASS;
+  }
+
+  /**
+   *
+   * @param {number} tile
+   */
+  static #fillHeightRect3(tile) {
+    return tile === TileType.GRASS;
+  }
+
+  /**
+   *
+   * @param {number} tile
+   */
+  static #fillHeightRect4(tile) {
+    return tile === TileType.GRASS;
+  }
+
+  /**
+   *
+   * @param {number} tile
+   */
+  static #fillHeightRect5(tile) {
+    return (
+      tile !== TileType.WATER &&
+        tile !== TileType.PATH &&
+        tile !== TileType.ENTRY
+    );
+  }
+
+  /**
+   *
+   * @param {number} tile
+   */
+  static #fillHeightRect6(tile) {
+    return tile === TileType.PATH || tile === TileType.ENTRY;
+  }
+
+  /**
+   *
+   * @param {RiverRecord} river
+   */
+  static #flatMapRiver(river) {
+    return river.cells.map(TerrainBuilder.#mapCell2);
+  }
+
+  /**
+   *
+   * @param {MapCell} cell
+   */
+  static #mapCell(cell) {
+    return MapGrid.tileKey(cell.col, cell.row);
+  }
+
+  /**
+   *
+   * @param {RiverRecord} river
+   */
+  static #flatMapRiver2(river) {
+    return river.cells
+      .filter(TerrainBuilder.#filterCell)
+      .map(TerrainBuilder.#mapCell3);
+  }
+
+  /**
+   *
+   * @param {MapCell} cell
+   */
+  static #mapCell2(cell) {
+    return MapGrid.tileKey(cell.col, cell.row);
+  }
+
+  /**
+   *
+   * @param {MapCell} cell
+   */
+  static #filterCell(cell) {
+    return cell.underBridge;
+  }
+
+  /**
+   *
+   * @param {MapCell} cell
+   */
+  static #mapCell3(cell) {
+    return MapGrid.tileKey(cell.col, cell.row);
   }
 }

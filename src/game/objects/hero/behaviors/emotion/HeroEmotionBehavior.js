@@ -15,42 +15,42 @@ const SNAP_THRESHOLD = 9;
 export class HeroEmotionBehavior {
   /**
    *
-    * @type {import("../../../../buffs/BuffSystem.js").BuffSystem}
+   * @type {import("../../../../buffs/BuffSystem.js").BuffSystem}
    */
   #buffs;
   /**
    *
-    * @type {string}
+   * @type {string}
    */
   #stateMachine;
   /**
    *
-    * @type {number}
+   * @type {number}
    */
   #context;
   /**
    *
-    * @type {boolean}
+   * @type {boolean}
    */
   #wasOverstimulated = false;
   /**
    *
-    * @type {number}
+   * @type {number}
    */
   #sincePat = Infinity;
   /**
    *
-    * @type {number}
+   * @type {number}
    */
   #sinceProvoked = Infinity;
   /**
    *
-    * @type {number}
+   * @type {number}
    */
   #elapsed = 0;
   /**
    *
-    * @type {number}
+   * @type {number}
    */
   #reactionRevision = 0;
 
@@ -59,19 +59,10 @@ export class HeroEmotionBehavior {
    * @param {import("../../../../buffs/BuffSystem.js").BuffSystem} buffs
    */
   constructor(buffs) {
-
     this.#buffs = buffs;
 
     this.#context = {
-      refreshAnger: () => {
-        const state = this.#stateMachine.currentState;
-        state.pressure = SNAP_THRESHOLD;
-        this.#buffs.apply(HERO_BUFF.OVERSTIMULATED, {
-          duration: ANGRY_DURATION + (state.level - 1) * ANGER_LEVEL_DURATION,
-        });
-
-        this.#wasOverstimulated = true;
-      },
+      refreshAnger: this.#refreshAnger.bind(this),
     };
 
     this.#stateMachine = new StateMachine(this.#context);
@@ -85,7 +76,7 @@ export class HeroEmotionBehavior {
 
   /**
    *
-    * @returns {string}
+   * @returns {string}
    */
   get state() {
     const overstimulated = this.#buffs.remaining(HERO_BUFF.OVERSTIMULATED);
@@ -127,7 +118,7 @@ export class HeroEmotionBehavior {
 
   /**
    *
-    * @returns {boolean}
+   * @returns {boolean}
    */
   get acceptsActions() {
     return this.#stateMachine.currentState.acceptsActions ?? true;
@@ -237,7 +228,7 @@ export class HeroEmotionBehavior {
 
   /**
    *
-    * @returns {number}
+   * @returns {number}
    */
   get #pressure() {
     return this.#stateMachine.currentState.pressure ?? 0;
@@ -274,5 +265,15 @@ export class HeroEmotionBehavior {
     if (!this.#stateMachine.in(kind)) {
       this.#stateMachine.changeTo(kind);
     }
+  }
+
+  #refreshAnger() {
+    const state = this.#stateMachine.currentState;
+    state.pressure = SNAP_THRESHOLD;
+    this.#buffs.apply(HERO_BUFF.OVERSTIMULATED, {
+      duration: ANGRY_DURATION + (state.level - 1) * ANGER_LEVEL_DURATION,
+    });
+
+    this.#wasOverstimulated = true;
   }
 }

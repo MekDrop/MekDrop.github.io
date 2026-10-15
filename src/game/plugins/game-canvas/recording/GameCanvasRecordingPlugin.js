@@ -76,7 +76,7 @@ export class GameCanvasRecordingPlugin {
        *
        * @param {import("src/game/GameContracts.js").StoreContract} state
        */
-      onStateChange: (state) => this.#setState(state),
+      onStateChange: this.#onStateChange.bind(this),
       onError: this.#reportError,
     });
     this.#unregisterControlAction = this.#context.registerControlAction(
@@ -148,4 +148,12 @@ export class GameCanvasRecordingPlugin {
   #reportError = (error) => {
     reportGlobalException(error, { context: "Game recording" });
   };
+
+  /**
+   *
+   * @param {import("src/game/GameContracts.js").StoreContract} state
+   */
+  #onStateChange(state) {
+    return this.#setState(state);
+  }
 }

@@ -222,13 +222,7 @@ export class GameCanvasPluginRegistry {
    */
   #isEnabled(entry) {
     const hasRequiredState = Object.entries(entry.requires ?? {}).every(
-      /**
-       *
-       * @param {{"0": number, "1": number}} options
-       * @param {number} options."0"
-       * @param {number} options."1"
-       */
-      ([key, value]) => this.#state[key] === value,
+      this.#every.bind(this),
     );
     if (!hasRequiredState) {
       return false;
@@ -239,5 +233,15 @@ export class GameCanvasPluginRegistry {
     return new URLSearchParams(
       this.#context.target.location?.search ?? "",
     ).has(entry.queryParameter);
+  }
+
+  /**
+   *
+   * @param {{"0": number, "1": number}} options
+   * @param {number} options."0"
+   * @param {number} options."1"
+   */
+  #every([key, value]) {
+    return this.#state[key] === value;
   }
 }

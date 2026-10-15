@@ -10,7 +10,7 @@ const STAIR_MODULE_RUN_BLOCKS = 2;
 export class OverpassStairs {
   /**
    *
-    * @returns {string}
+   * @returns {string}
    */
   static get modelUrl() {
     return stairModuleModelUrl;
@@ -18,37 +18,37 @@ export class OverpassStairs {
 
   /**
    *
-    * @type {typeof import("playcanvas")}
+   * @type {typeof import("playcanvas")}
    */
   #pc;
   /**
    *
-    * @type {{stairApproach?: boolean, slopeCells: Array<{col: number, row: number, riseDirection: number, lowHeight: number, highHeight: number}>}}
+   * @type {{stairApproach?: boolean, slopeCells: Array<{col: number, row: number, riseDirection: number, lowHeight: number, highHeight: number}>}}
    */
   #overpass;
   /**
    *
-    * @type {number}
+   * @type {number}
    */
   #cols;
   /**
    *
-    * @type {number}
+   * @type {number}
    */
   #rows;
   /**
    *
-    * @type {string}
+   * @type {string}
    */
   #modelLibrary;
   /**
    *
-    * @type {Array<import("playcanvas").Material>}
+   * @type {Array<import("playcanvas").Material>}
    */
   #materials;
   /**
    *
-    * @type {import("playcanvas").Entity}
+   * @type {import("playcanvas").Entity}
    */
   #root;
 
@@ -122,36 +122,12 @@ export class OverpassStairs {
       return;
     }
 
-    const minCol = Math.min(...cells.map(/**
-     *
-     * @param {number} cell
-     */
-      (cell) => cell.col));
-    const maxCol = Math.max(...cells.map(/**
-     *
-     * @param {number} cell
-     */
-      (cell) => cell.col));
-    const minRow = Math.min(...cells.map(/**
-     *
-     * @param {number} cell
-     */
-      (cell) => cell.row));
-    const maxRow = Math.max(...cells.map(/**
-     *
-     * @param {number} cell
-     */
-      (cell) => cell.row));
-    const baseElevation = Math.min(...cells.map(/**
-     *
-     * @param {number} cell
-     */
-      (cell) => cell.lowHeight));
-    const topElevation = Math.max(...cells.map(/**
-     *
-     * @param {number} cell
-     */
-      (cell) => cell.highHeight));
+    const minCol = Math.min(...cells.map(OverpassStairs.#mapCell));
+    const maxCol = Math.max(...cells.map(OverpassStairs.#mapCell2));
+    const minRow = Math.min(...cells.map(OverpassStairs.#mapCell3));
+    const maxRow = Math.max(...cells.map(OverpassStairs.#mapCell4));
+    const baseElevation = Math.min(...cells.map(OverpassStairs.#mapCell5));
+    const topElevation = Math.max(...cells.map(OverpassStairs.#mapCell6));
     const riseBlocks = Math.round(
       (topElevation - baseElevation) / STAIR_BLOCK_SIZE,
     );
@@ -204,5 +180,53 @@ export class OverpassStairs {
     for (const value of matrix.data) {
       matrices.push(value);
     }
+  }
+
+  /**
+   *
+   * @param {number} cell
+   */
+  static #mapCell(cell) {
+    return cell.col;
+  }
+
+  /**
+   *
+   * @param {number} cell
+   */
+  static #mapCell2(cell) {
+    return cell.col;
+  }
+
+  /**
+   *
+   * @param {number} cell
+   */
+  static #mapCell3(cell) {
+    return cell.row;
+  }
+
+  /**
+   *
+   * @param {number} cell
+   */
+  static #mapCell4(cell) {
+    return cell.row;
+  }
+
+  /**
+   *
+   * @param {number} cell
+   */
+  static #mapCell5(cell) {
+    return cell.lowHeight;
+  }
+
+  /**
+   *
+   * @param {number} cell
+   */
+  static #mapCell6(cell) {
+    return cell.highHeight;
   }
 }

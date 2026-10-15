@@ -108,13 +108,7 @@ export class CastleRoof {
          * @param {import("playcanvas").Entity} entity
          * @returns {boolean}
          */
-        filterCallback: (entity) => {
-          for (let node = entity; node; node = node.parent) {
-            if (node === this.#entity) { return true; }
-          }
-
-          return false;
-        },
+        filterCallback: this.#filterCallback.bind(this),
       },
     );
     for (const hit of hits) {
@@ -126,5 +120,17 @@ export class CastleRoof {
   destroy() {
     this.#entity.destroy();
     this.#masonryMaterial.destroy();
+  }
+
+  /**
+   * @param {import("playcanvas").Entity} entity
+   * @returns {boolean}
+   */
+  #filterCallback(entity) {
+    for (let node = entity; node; node = node.parent) {
+      if (node === this.#entity) { return true; }
+    }
+
+    return false;
   }
 }

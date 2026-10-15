@@ -215,13 +215,9 @@ export class CastleResidentialLayout {
         ...runtime.residential.rooms,
       };
     }
-    this.#walkableAreas = (runtime.residential?.walkableAreas ?? []).map(/**
-     * @param {{id: string, bounds?: object, floorY: number}} area
-     */ (area) => ({
-        ...area,
-        ...(area.bounds ?? {}),
-        floorY: area.floorY,
-      }));
+    this.#walkableAreas = (runtime.residential?.walkableAreas ?? []).map(
+      CastleResidentialLayout.#mapArea,
+    );
     // Bridge the full front-wall depth between the last exterior tread and
     // the courtyard/work floor. The door opening must have actual support.
     this.#walkableAreas.push({
@@ -257,7 +253,7 @@ export class CastleResidentialLayout {
     const stairYaw = this.#yaw + (radius > 1 && stairLocal.x < (this.#rooms.bedroom.minX + this.#rooms.bedroom.maxX) / 2 ? 180 : 0);
     const treads = [];
     for (let step = 1; step <= steps; step += 1) {
-      const angle = Math.PI / 2 - stairYaw * Math.PI / 180 - ((step - 0.5) / steps) * turns * Math.PI * 2;
+      const angle = Math.PI / 2 - stairYaw * Math.PI / 180 - (step - 0.5) / steps * turns * Math.PI * 2;
       treads.push({
         x: stairCenter.x + Math.cos(angle) * radius * 0.335 / 0.65,
         y: this.#origin.y + rise * step / steps,
@@ -386,9 +382,7 @@ export class CastleResidentialLayout {
     const work = this.#rooms.work;
     const mainLocal = this.toLocal(this.#stairs.center.x, this.#stairs.center.z);
     const serviceLocal = this.toLocal(this.#basement.access.x, this.#basement.access.z);
-    const desk = this.#placements.find(/**
-     * @param {ResidentialPlacement} placement
-     */ (placement) => placement.role === "workDesk");
+    const desk = this.#placements.find(CastleResidentialLayout.#findPlacement);
     const deskLocal = this.toLocal(desk.position.x, desk.position.z);
     this.#reservations = [
       {
@@ -436,13 +430,11 @@ export class CastleResidentialLayout {
         minY: 0,
         maxY: 0.73 * desk.scale.y,
       },
-    ];    if (runtime.residential?.reservations) {
-      this.#reservations = Object.entries(runtime.residential.reservations).map(/**
-       * @param {[string, {minX: number, maxX: number, minZ: number, maxZ: number, minY: number, maxY: number}]} entry
-       */ ([role, bounds]) => ({
-          role,
-          ...bounds,
-        }));
+    ];
+    if (runtime.residential?.reservations) {
+      this.#reservations = Object.entries(runtime.residential.reservations).map(
+        CastleResidentialLayout.#map,
+      );
     }
     const deskSide = deskLocal.x > (work.minX + work.maxX) / 2 ? 1 : -1;
     this.#reservations.push({
@@ -578,9 +570,9 @@ export class CastleResidentialLayout {
       if (!buildings) {
         this.#exteriorWindows = runtime.residential.exteriorWindows;
       } else {
-        const courtyard = this.#walkableAreas.some(/**
-         * @param {{id: string}} area
-         */ (area) => area.id === "courtyard");
+        const courtyard = this.#walkableAreas.some(
+          CastleResidentialLayout.#someArea,
+        );
         const lowerWindows = this.#exteriorWindows.filter(/**
          * @param {ResidentialPlacement} placement
          */ (placement) => placement.role === "towerWindow" || (placement.position.y < room.floorY && (!courtyard || placement.yaw - this.#yaw !== 180)));
@@ -656,13 +648,13 @@ export class CastleResidentialLayout {
 
         return distance > this.#stairs.radius + 0.22;
       });
-    const primaryBounds = runtime.residential?.buildings?.find(/**
-     * @param {{id: string, bounds: {minX:number,maxX:number,minZ:number,maxZ:number}}} building
-     */ (building) => building.id === "residence")?.bounds;
+    const primaryBounds = runtime.residential?.buildings?.find(
+      CastleResidentialLayout.#findBuilding,
+    )?.bounds;
     if (primaryBounds) {
-      const landing = this.#walkableAreas.find(/**
-       * @param {{id: string}} area
-       */ (area) => area.id === "mainStairLanding");
+      const landing = this.#walkableAreas.find(
+        CastleResidentialLayout.#findArea,
+      );
       // The landing's tread overlap may reach the wall; its visible timber
       // and collision must stop at the occupied keep's interior face.
       landing.minX = Math.max(landing.minX, primaryBounds.minX);
@@ -722,11 +714,7 @@ export class CastleResidentialLayout {
    */
   #loadPlannedRooms(buildPlan) {
     const plan = buildPlan.metadata.runtime.residential;
-    const platform = plan.furniture.find(
-      /**
-       * @param {import("../../generator/castle/rooms/AbstractCastleRoomGenerator.js").RoomItem} item
-       */
-      item => item.object === "ThroneDais");
+    const platform = plan.furniture.find(CastleResidentialLayout.#findItem);
     this.#throneSupportHeight = platform ? (platform.elevation ?? 0) + platform.height * platform.scale : 0;
     this.#origin = plan.origin;
     this.#yaw = plan.origin.yaw;
@@ -739,67 +727,24 @@ export class CastleResidentialLayout {
       opening => opening.kind === "window" && opening.roomId === throneRoom.id &&
       opening.axis === "z" && Math.abs(opening.coordinate - throneRoom.maxZ) < 0.3 &&
       Math.abs(opening.center - throneCenter) < opening.width / 2 + 0.4);
-    this.#audienceDoorClearance = Math.max(0.32, ...plan.openings
-      .filter(/**
+    this.#audienceDoorClearance = Math.max(
+      0.32,
+      ...plan.openings
+        .filter(/**
        * @param {{kind:string,roomId:string}} opening
        */
-        opening => opening.kind === "door" && opening.roomId === plan.rooms.work.id)
-      .map(/**
-       * @param {{width:number}} opening
-       */
-        opening => opening.width + 0.2));
+          opening => opening.kind === "door" && opening.roomId === plan.rooms.work.id)
+        .map(CastleResidentialLayout.#mapOpening),
+    );
     this.#audienceFloorBounds = CastleFloorFinish.bounds(plan.rooms.work, plan.buildings, plan.openings);
     this.#walkableAreas = createCastlePlannedFloorAreas(buildPlan);
-    this.#standingObstacles = plan.furniture.map(
-      /**
-       * @param {import("../../generator/castle/rooms/AbstractCastleRoomGenerator.js").RoomItem} item
-       */
-      (item) => ({
-        role: item.role,
-        footprint: {
-          width: item.width * item.scale,
-          depth: item.depth * item.scale,
-        },
-        position: this.toWorld(item.x, item.z, item.floorY - this.#origin.y),
-        scale: {
-          x: item.scale,
-          y: item.scale,
-          z: item.scale,
-        },
-        yaw: this.#yaw,
-      }),
+    this.#standingObstacles = plan.furniture.map(this.#mapItem.bind(this));
+    this.#placements = plan.furniture
+      .filter(CastleResidentialLayout.#filterItem)
+      .map(this.#mapItem2.bind(this));
+    this.#reservations = Object.entries(plan.reservations).map(
+      CastleResidentialLayout.#map2,
     );
-    this.#placements = plan.furniture.filter(/**
-     * @param {import("../../generator/castle/rooms/AbstractCastleRoomGenerator.js").RoomItem} item
-     */
-      item => !item.object).map(/**
-     *
-     * @param {{role:string,x:number,z:number,scale:number,floorY:number}} item
-     */
-      (item) => ({
-        role: item.role,
-        footprint: {
-          width: item.width * item.scale,
-          depth: item.depth * item.scale,
-        },
-        position: this.toWorld(item.x, item.z, item.floorY - this.#origin.y),
-        scale: {
-          x: item.scale,
-          y: item.scale,
-          z: item.scale,
-        },
-        yaw: this.#yaw + (item.rotation === undefined ? 0 : 180 + item.rotation),
-      }));
-    this.#reservations = Object.entries(plan.reservations).map(/**
-     *
-     * @param {[string, {minX:number,maxX:number,minZ:number,maxZ:number,minY:number,maxY:number}]} options
-     * @param {string} options."0"
-     * @param {{minX:number,maxX:number,minZ:number,maxZ:number,minY:number,maxY:number}} options."1"
-     */
-      ([role, bounds]) => ({
-        role,
-        ...bounds,
-      }));
     if (plan.stair) {
       const yaw = this.#yaw;
       const steps = 24;
@@ -835,13 +780,9 @@ export class CastleResidentialLayout {
     } : null;
     this.#serviceDoor = plan.serviceStair;
     if (plan.basePlanId) {
-      this.#authoredStairs = plan.authoredStairs.map(/**
-       * @param {{radius:number}} stair
-       */
-        (stair) => ({
-          ...stair,
-          innerRadius: stair.radius * 0.08 / 0.65,
-        }));
+      this.#authoredStairs = plan.authoredStairs.map(
+        CastleResidentialLayout.#mapStair,
+      );
     } else { this.#planButtresses(buildPlan); }
   }
 
@@ -915,18 +856,7 @@ export class CastleResidentialLayout {
     const doorway = Math.min(0.8, depth / 2);
     specs.push(["partition", centerX, bedroom.minZ + doorway + (depth - doorway) / 2, bottom + height / 2, 0.1, height, depth - doorway]);
 
-    return specs.map(/**
-     * @param {Array<string|number>} spec
-     */ (spec) => ({
-        role: spec[0],
-        position: this.toWorld(spec[1], spec[2], spec[3]),
-        scale: {
-          x: spec[4],
-          y: spec[5],
-          z: spec[6],
-        },
-        yaw: this.#yaw,
-      }));
+    return specs.map(this.#mapSpec.bind(this));
   }
 
   /**
@@ -937,9 +867,12 @@ export class CastleResidentialLayout {
   /**
    * @param {import("./rooms/terrace/TerraceActor.js").TerraceActor|null} actor
    */
-  canEnterBasement(actor) { return this.#authoredStairs.some(/**
-   * @param {{center:{y:number}}} stair
-   */ (stair) => stair.center.y < this.#origin.y) || (this.#servant !== null && actor === this.#servant); }
+  canEnterBasement(actor) {
+    return (
+      this.#authoredStairs.some(this.#someStair.bind(this)) ||
+      (this.#servant !== null && actor === this.#servant)
+    );
+  }
 
   /**
    * @param {number} lateral
@@ -1035,7 +968,15 @@ export class CastleResidentialLayout {
     // Authored floor areas already exclude stair openings.
     if (this.#authoredStairs.length > 0) { return null; }
     for (const [name, room] of Object.entries(this.#rooms)) {
-      if (!room || (room.purpose === "upper hall" || room.purpose === "upper terrace") || room.purpose === "unused" || (room.floorY < this.#origin.y && !this.canEnterBasement(actor))) { continue; }
+      if (
+        !room ||
+        room.purpose === "upper hall" ||
+        room.purpose === "upper terrace" ||
+        room.purpose === "unused" ||
+        (room.floorY < this.#origin.y && !this.canEnterBasement(actor))
+      ) {
+        continue;
+      }
       if (["servantBedroom", "storage"].includes(name) && !this.canEnterBasement(actor)) { continue; }
       if (Math.abs(room.floorY - currentElevation) <= 0.24 && local.x >= room.minX && local.x <= room.maxX && local.z >= room.minZ && local.z <= room.maxZ) { return room.floorY; }
     }
@@ -1062,37 +1003,164 @@ export class CastleResidentialLayout {
       yaw: this.#yaw,
     });
   }
+
+  /**
+   * @param {{id: string, bounds?: object, floorY: number}} area
+   */
+  static #mapArea(area) {
+    return {
+      ...area,
+      ...(area.bounds ?? {}),
+      floorY: area.floorY,
+    };
+  }
+
+  /**
+   * @param {ResidentialPlacement} placement
+   */
+  static #findPlacement(placement) {
+    return placement.role === "workDesk";
+  }
+
+  /**
+   * @param {[string, {minX: number, maxX: number, minZ: number, maxZ: number, minY: number, maxY: number}]} entry
+   */
+  static #map([role, bounds]) {
+    return {
+      role,
+      ...bounds,
+    };
+  }
+
+  /**
+   * @param {{id: string}} area
+   */
+  static #someArea(area) {
+    return area.id === "courtyard";
+  }
+
+  /**
+   * @param {{id: string, bounds: {minX:number,maxX:number,minZ:number,maxZ:number}}} building
+   */
+  static #findBuilding(building) {
+    return building.id === "residence";
+  }
+
+  /**
+   * @param {{id: string}} area
+   */
+  static #findArea(area) {
+    return area.id === "mainStairLanding";
+  }
+
+  /**
+   * @param {import("../../generator/castle/rooms/AbstractCastleRoomGenerator.js").RoomItem} item
+   */
+  static #findItem(item) {
+    return item.object === "ThroneDais";
+  }
+
+  /**
+   * @param {{width:number}} opening
+   */
+  static #mapOpening(opening) {
+    return opening.width + 0.2;
+  }
+
+  /**
+   * @param {import("../../generator/castle/rooms/AbstractCastleRoomGenerator.js").RoomItem} item
+   */
+  #mapItem(item) {
+    return {
+      role: item.role,
+      footprint: {
+        width: item.width * item.scale,
+        depth: item.depth * item.scale,
+      },
+      position: this.toWorld(item.x, item.z, item.floorY - this.#origin.y),
+      scale: {
+        x: item.scale,
+        y: item.scale,
+        z: item.scale,
+      },
+      yaw: this.#yaw,
+    };
+  }
+
+  /**
+   * @param {import("../../generator/castle/rooms/AbstractCastleRoomGenerator.js").RoomItem} item
+   */
+  static #filterItem(item) {
+    return !item.object;
+  }
+
+  /**
+   *
+   * @param {{role:string,x:number,z:number,scale:number,floorY:number}} item
+   */
+  #mapItem2(item) {
+    return {
+      role: item.role,
+      footprint: {
+        width: item.width * item.scale,
+        depth: item.depth * item.scale,
+      },
+      position: this.toWorld(item.x, item.z, item.floorY - this.#origin.y),
+      scale: {
+        x: item.scale,
+        y: item.scale,
+        z: item.scale,
+      },
+      yaw: this.#yaw + (item.rotation === undefined ? 0 : 180 + item.rotation),
+    };
+  }
+
+  /**
+   *
+   * @param {[string, {minX:number,maxX:number,minZ:number,maxZ:number,minY:number,maxY:number}]} options
+   * @param {string} options."0"
+   * @param {{minX:number,maxX:number,minZ:number,maxZ:number,minY:number,maxY:number}} options."1"
+   */
+  static #map2([role, bounds]) {
+    return {
+      role,
+      ...bounds,
+    };
+  }
+
+  /**
+   * @param {{radius:number}} stair
+   */
+  static #mapStair(stair) {
+    return {
+      ...stair,
+      innerRadius: stair.radius * 0.08 / 0.65,
+    };
+  }
+
+  /**
+   * @param {Array<string|number>} spec
+   */
+  #mapSpec(spec) {
+    return {
+      role: spec[0],
+      position: this.toWorld(spec[1], spec[2], spec[3]),
+      scale: {
+        x: spec[4],
+        y: spec[5],
+        z: spec[6],
+      },
+      yaw: this.#yaw,
+    };
+  }
+
+  /**
+   * @param {{center:{y:number}}} stair
+   */
+  #someStair(stair) {
+    return stair.center.y < this.#origin.y;
+  }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 /**
  * Grounds each existing buttress footprint on the lowest touched terrain tile.

@@ -107,17 +107,12 @@ export class GameCanvasDebugUiPlugin {
     this.resize();
     this.#applyDebugSettings();
     this.#syncDebugFramesPerSecond();
-    this.#debugStatsTimer = useIntervalFn(() => {
-      if (this.#context.debugStore.hasAny) {
-        this.#syncDebugFramesPerSecond();
-        this.#syncCastleRoom();
-      }
-    }, GameCanvasDebugUiPlugin.#DEBUG_STATS_UPDATE_INTERVAL);
+    this.#debugStatsTimer = useIntervalFn(
+      this.#useIntervalFn.bind(this),
+      GameCanvasDebugUiPlugin.#DEBUG_STATS_UPDATE_INTERVAL,
+    );
     this.#stopDebugStoreSubscription = this.#context.debugStore.$subscribe(
-      () => {
-        this.#applyDebugSettings();
-        this.#syncDebugFramesPerSecond();
-      },
+      this.#$subscribe.bind(this),
     );
   }
 
@@ -215,4 +210,15 @@ export class GameCanvasDebugUiPlugin {
     this.#castleRoomHud.message = message;
   }
 
+  #useIntervalFn() {
+    if (this.#context.debugStore.hasAny) {
+      this.#syncDebugFramesPerSecond();
+      this.#syncCastleRoom();
+    }
+  }
+
+  #$subscribe() {
+    this.#applyDebugSettings();
+    this.#syncDebugFramesPerSecond();
+  }
 }

@@ -349,13 +349,7 @@ class GameUiTheme {
     this.#initialize();
     const { red, green, blue } = this.#get(name);
 
-    return `#${[red, green, blue]
-      .map(/**
-       *
-       * @param {number} component
-       */
-        (component) => component.toString(16).padStart(2, "0"))
-      .join("")}`;
+    return `#${[red, green, blue].map(GameUiTheme.#mapComponent).join("")}`;
   }
 
   /**
@@ -473,14 +467,7 @@ class GameUiTheme {
     if (hex) {
       const expanded =
         hex.length === 3
-          ? hex
-            .split("")
-            .map(/**
-               *
-               * @param {string} character
-               */
-              (character) => character + character)
-            .join("")
+          ? hex.split("").map(GameUiTheme.#mapCharacter).join("")
           : hex;
 
       return {
@@ -525,6 +512,22 @@ class GameUiTheme {
    */
   #clamp(value, minimum, maximum) {
     return Math.min(maximum, Math.max(minimum, value));
+  }
+
+  /**
+   *
+   * @param {number} component
+   */
+  static #mapComponent(component) {
+    return component.toString(16).padStart(2, "0");
+  }
+
+  /**
+   *
+   * @param {string} character
+   */
+  static #mapCharacter(character) {
+    return character + character;
   }
 }
 

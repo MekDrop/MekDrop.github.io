@@ -89,13 +89,7 @@ export class RiverRouter {
       return false;
     }
     const source = route[0];
-    const routeCells = new Set(
-      route.map(/**
-       *
-       * @param {MapCell} cell
-       */
-        (cell) => MapGrid.tileKey(cell.col, cell.row)),
-    );
+    const routeCells = new Set(route.map(RiverRouter.#mapCell));
     for (let deltaRow = -1; deltaRow <= 1; deltaRow++) {
       for (let deltaCol = -1; deltaCol <= 1; deltaCol++) {
         if (deltaCol === 0 && deltaRow === 0) {
@@ -302,11 +296,7 @@ export class RiverRouter {
    * @param {MapCell[]} route
    */
   #riverRouteKeepsIslandConnected(grid, route) {
-    const trialGrid = grid.map(/**
-     *
-     * @param {number[]} row
-     */
-      (row) => [...row]);
+    const trialGrid = grid.map(RiverRouter.#mapRow);
     for (const cell of route) {
       if (trialGrid[cell.row][cell.col] === TileType.GRASS) {
         trialGrid[cell.row][cell.col] = TileType.WATER;
@@ -396,5 +386,21 @@ export class RiverRouter {
     }
 
     return true;
+  }
+
+  /**
+   *
+   * @param {MapCell} cell
+   */
+  static #mapCell(cell) {
+    return MapGrid.tileKey(cell.col, cell.row);
+  }
+
+  /**
+   *
+   * @param {number[]} row
+   */
+  static #mapRow(row) {
+    return [...row];
   }
 }

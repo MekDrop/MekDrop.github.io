@@ -357,10 +357,9 @@ export class DevWireframeInspector {
     if (this.#pickInProgress || this.#frameRequest !== null) {
       return;
     }
-    this.#frameRequest = window.requestAnimationFrame(() => {
-      this.#frameRequest = null;
-      void this.#pickHoveredMesh();
-    });
+    this.#frameRequest = window.requestAnimationFrame(
+      this.#requestAnimationFrame.bind(this),
+    );
   }
 
   #cancelScheduledPick() {
@@ -442,18 +441,9 @@ export class DevWireframeInspector {
     const meshInstances =
       this.#app.root
         ?.findComponents("render")
-        .flatMap(/**
-         *
-         * @param {pc.RenderComponent} render
-         */
-          (render) => render.meshInstances ?? []) ?? [];
+        .flatMap(DevWireframeInspector.#flatMapRender) ?? [];
     const debugPickInstances = meshInstances.filter(
-      /**
-       *
-       * @param {pc.MeshInstance} meshInstance
-       */
-      (meshInstance) =>
-        meshInstance.devWireframeInspectable && meshInstance.pick === false,
+      DevWireframeInspector.#filterMeshInstance,
     );
     for (const meshInstance of debugPickInstances) {
       meshInstance.pick = true;
@@ -730,5 +720,26 @@ export class DevWireframeInspector {
       instanceSource,
       overlay,
     };
+  }
+
+  #requestAnimationFrame() {
+    this.#frameRequest = null;
+    void this.#pickHoveredMesh();
+  }
+
+  /**
+   *
+   * @param {pc.RenderComponent} render
+   */
+  static #flatMapRender(render) {
+    return render.meshInstances ?? [];
+  }
+
+  /**
+   *
+   * @param {pc.MeshInstance} meshInstance
+   */
+  static #filterMeshInstance(meshInstance) {
+    return meshInstance.devWireframeInspectable && meshInstance.pick === false;
   }
 }

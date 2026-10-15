@@ -9,17 +9,17 @@ const TILT_RESPONSE = 20;
 export class HeroFootPlacement {
   /**
    *
-    * @type {typeof import("playcanvas")}
+   * @type {typeof import("playcanvas")}
    */
   #pc;
   /**
    *
-    * @type {typeof import("playcanvas")}
+   * @type {typeof import("playcanvas")}
    */
   #surfaceAt;
   /**
    *
-    * @type {() => {x: number, y: number, z: number}}
+   * @type {() => {x: number, y: number, z: number}}
    */
   #getHeroPosition;
   /**
@@ -28,12 +28,12 @@ export class HeroFootPlacement {
   #visualOffsetAt;
   /**
    *
-    * @type {typeof import("playcanvas")}
+   * @type {typeof import("playcanvas")}
    */
   #feet;
   /**
    *
-    * @type {boolean}
+   * @type {boolean}
    */
   #enabled = false;
 
@@ -67,64 +67,21 @@ export class HeroFootPlacement {
 
   /**
    *
-    * @returns {boolean}
+   * @returns {boolean}
    */
   get state() {
-    return Object.fromEntries(
-      this.#feet.map(/**
-       *
-       * @param {import("src/game/objects/ObjectTypes.js").HeroFootRig} foot
-       */
-        (foot) => [
-          foot.side,
-          {
-            appliedLift: foot.appliedLift,
-            minimumClearance: foot.minimumClearance,
-            tiltDegrees: foot.tiltDegrees,
-          },
-        ]),
-    );
+    return Object.fromEntries(this.#feet.map(HeroFootPlacement.#mapFoot));
   }
 
   /**
    *
-    * @returns {Array<{minX: number, maxX: number, minZ: number, maxZ: number}>}
+   * @returns {Array<{minX: number, maxX: number, minZ: number, maxZ: number}>}
    */
   get grassContacts() {
     if (!this.#enabled) {
       return [];
     }
-    return this.#feet.flatMap(/**
-     *
-     * @param {import("src/game/objects/ObjectTypes.js").HeroFootRig} foot
-     */
-      (foot) => {
-        const bounds = foot.sole.render?.meshInstances?.[0]?.mesh?.aabb;
-        if (!bounds || foot.minimumClearance === null) {
-          return [];
-        }
-        const transform = foot.sole.getWorldTransform();
-        const center = transform.transformPoint(new this.#pc.Vec3(
-          bounds.center.x, bounds.center.y - bounds.halfExtents.y, bounds.center.z,
-        ));
-        const across = transform.transformVector(new this.#pc.Vec3(bounds.halfExtents.x, 0, 0));
-        const along = transform.transformVector(new this.#pc.Vec3(0, 0, bounds.halfExtents.z));
-        const length = Math.hypot(along.x, along.z);
-        const pressure = Math.max(0, 1 - Math.max(0, foot.minimumClearance - CONTACT_EPSILON) / 0.075);
-
-        return [{
-          id: `hero-${foot.side}`,
-          side: foot.side,
-          x: center.x,
-          y: center.y,
-          z: center.z,
-          directionX: along.x / Math.max(length, 0.001),
-          directionZ: along.z / Math.max(length, 0.001),
-          halfWidth: Math.hypot(across.x, across.z) + 0.025,
-          halfLength: length + 0.035,
-          pressure,
-        }];
-      });
+    return this.#feet.flatMap(this.#flatMapFoot.bind(this));
   }
 
   /**
@@ -146,10 +103,7 @@ export class HeroFootPlacement {
         continue;
       }
 
-      const unadjustedContacts = this.#contacts(
-        foot,
-        maximumSurfaceHeight,
-      );
+      const unadjustedContacts = this.#contacts(foot, maximumSurfaceHeight);
       this.#alignBootToSurface(
         foot,
         unadjustedContacts,
@@ -158,19 +112,7 @@ export class HeroFootPlacement {
       const contacts = this.#contacts(foot, maximumSurfaceHeight);
       const targetLift = Math.min(
         MAXIMUM_FOOT_LIFT,
-        Math.max(
-          0,
-          ...contacts.map(
-            /**
-             *
-             * @param {{solePoint: {x: number, y: number, z: number}, surface: import("src/game/objects/ObjectTypes.js").SurfaceSample}} options
-             * @param {{x: number, y: number, z: number}} options.solePoint
-             * @param {import("src/game/objects/ObjectTypes.js").SurfaceSample} options.surface
-             */
-            ({ solePoint, surface }) =>
-              surface.height - solePoint.y + CONTACT_EPSILON,
-          ),
-        ),
+        Math.max(0, ...contacts.map(HeroFootPlacement.#map)),
       );
       if (targetLift >= foot.appliedLift) {
         foot.appliedLift = targetLift;
@@ -421,5 +363,62 @@ export class HeroFootPlacement {
           }]
           : [];
       });
+  }
+
+  /**
+   *
+   * @param {import("src/game/objects/ObjectTypes.js").HeroFootRig} foot
+   */
+  static #mapFoot(foot) {
+    return [
+      foot.side,
+      {
+        appliedLift: foot.appliedLift,
+        minimumClearance: foot.minimumClearance,
+        tiltDegrees: foot.tiltDegrees,
+      },
+    ];
+  }
+
+  /**
+   *
+   * @param {import("src/game/objects/ObjectTypes.js").HeroFootRig} foot
+   */
+  #flatMapFoot(foot) {
+    const bounds = foot.sole.render?.meshInstances?.[0]?.mesh?.aabb;
+    if (!bounds || foot.minimumClearance === null) {
+      return [];
+    }
+    const transform = foot.sole.getWorldTransform();
+    const center = transform.transformPoint(new this.#pc.Vec3(
+      bounds.center.x, bounds.center.y - bounds.halfExtents.y, bounds.center.z,
+    ));
+    const across = transform.transformVector(new this.#pc.Vec3(bounds.halfExtents.x, 0, 0));
+    const along = transform.transformVector(new this.#pc.Vec3(0, 0, bounds.halfExtents.z));
+    const length = Math.hypot(along.x, along.z);
+    const pressure = Math.max(0, 1 - Math.max(0, foot.minimumClearance - CONTACT_EPSILON) / 0.075);
+
+    return [{
+      id: `hero-${foot.side}`,
+      side: foot.side,
+      x: center.x,
+      y: center.y,
+      z: center.z,
+      directionX: along.x / Math.max(length, 0.001),
+      directionZ: along.z / Math.max(length, 0.001),
+      halfWidth: Math.hypot(across.x, across.z) + 0.025,
+      halfLength: length + 0.035,
+      pressure,
+    }];
+  }
+
+  /**
+   *
+   * @param {{solePoint: {x: number, y: number, z: number}, surface: import("src/game/objects/ObjectTypes.js").SurfaceSample}} options
+   * @param {{x: number, y: number, z: number}} options.solePoint
+   * @param {import("src/game/objects/ObjectTypes.js").SurfaceSample} options.surface
+   */
+  static #map({ solePoint, surface }) {
+    return surface.height - solePoint.y + CONTACT_EPSILON;
   }
 }

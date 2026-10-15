@@ -61,11 +61,7 @@ export class CastleGenerationContext {
     this.input = Object.freeze({
       position: options.position ? Object.freeze({ ...options.position }) : null,
       doors: Object.freeze(
-        (options.doors ?? []).map(/**
-         *
-         * @param {{side: string, offset: number, width: number, cells?: import("src/game/GameContracts.js").GridPoint[]}} door
-         */
-          (door) => Object.freeze({ ...door })),
+        (options.doors ?? []).map(CastleGenerationContext.#mapDoor),
       ),
       style: options.style ?? null,
       ...(options.seed === undefined ? {} : { seed: options.seed }),
@@ -148,5 +144,13 @@ export class CastleGenerationContext {
     for (const callback of this.#cleanupCallbacks.splice(0).reverse()) {
       callback();
     }
+  }
+
+  /**
+   *
+   * @param {{side: string, offset: number, width: number, cells?: import("src/game/GameContracts.js").GridPoint[]}} door
+   */
+  static #mapDoor(door) {
+    return Object.freeze({ ...door });
   }
 }

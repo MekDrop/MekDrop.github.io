@@ -37,57 +37,57 @@ export class TerraceActor {
   #applyingDoorPose = false;
   /**
    *
-    * @type {import("playcanvas").Entity}
+   * @type {import("playcanvas").Entity}
    */
   #entity;
   /**
    *
-    * @type {import("playcanvas").Entity}
+   * @type {import("playcanvas").Entity}
    */
   #body;
   /**
    *
-    * @type {import("playcanvas").Entity}
+   * @type {import("playcanvas").Entity}
    */
   #model;
   /**
    *
-    * @type {string}
+   * @type {string}
    */
   #kind;
   /**
    *
-    * @type {Map<string, import("playcanvas").Entity>}
+   * @type {Map<string, import("playcanvas").Entity>}
    */
   #joints = new Map();
   /**
    *
-    * @type {number}
+   * @type {number}
    */
   #height = 2.2;
   /**
    *
-    * @type {import("playcanvas").Entity|null}
+   * @type {import("playcanvas").Entity|null}
    */
   #rightHand;
   /**
    *
-    * @type {import("playcanvas").Entity|null}
+   * @type {import("playcanvas").Entity|null}
    */
   #leftHand;
   /**
    *
-    * @type {import("playcanvas").AnimController|null}
+   * @type {import("playcanvas").AnimController|null}
    */
   #animationLayer;
   /**
    *
-    * @type {string}
+   * @type {string}
    */
   #animationName;
   /**
    *
-    * @type {Map<string, number>}
+   * @type {Map<string, number>}
    */
   #animationDurations = new Map();
 
@@ -140,11 +140,7 @@ export class TerraceActor {
       ["rightWrist", "Princess right wrist", "Servant right wrist"],
     ];
     for (const [key, ...names] of jointNames) {
-      const node = names.map(/**
-       *
-       * @param {string} name
-       */
-        (name) => this.#model.findByName(name)).find(Boolean);
+      const node = names.map(this.#mapName.bind(this)).find(Boolean);
       if (!node) {
         continue;
       }
@@ -157,12 +153,11 @@ export class TerraceActor {
       this.#setupAnimations(modelLibrary, modelUrl);
       this.pose("idle", 0);
     }
-    this.#doorAvoidance = new NpcDoorAvoidance(avoidanceRoot, pc.Application?.getApplication(),
-      /**
-       * @param {string} action
-       * @param {number} time
-       */
-      (action, time) => this.#applyDoorPose(action, time));
+    this.#doorAvoidance = new NpcDoorAvoidance(
+      avoidanceRoot,
+      pc.Application?.getApplication(),
+      this.#NpcDoorAvoidance.bind(this),
+    );
     const app = pc.Application?.getApplication();
     if (kind === "servant" && app?.systems.rigidbody) {
       this.#heroClearance = new ServantHeroClearance(avoidanceRoot, app);
@@ -197,7 +192,7 @@ export class TerraceActor {
 
   /**
    *
-    * @returns {import("playcanvas").Entity|undefined}
+   * @returns {import("playcanvas").Entity|undefined}
    */
   get head() {
     return this.#joints.get("head");
@@ -326,7 +321,7 @@ export class TerraceActor {
 
   /**
    *
-    * @returns {Array<string>}
+   * @returns {Array<string>}
    */
   get #animationNames() {
     switch (this.#kind) {
@@ -424,5 +419,21 @@ export class TerraceActor {
     const scale = this.#height / (top - bottom);
     this.#body.setLocalScale(scale, scale, scale);
     this.#body.setLocalPosition(0, -bottom * scale, 0);
+  }
+
+  /**
+   *
+   * @param {string} name
+   */
+  #mapName(name) {
+    return this.#model.findByName(name);
+  }
+
+  /**
+   * @param {string} action
+   * @param {number} time
+   */
+  #NpcDoorAvoidance(action, time) {
+    return this.#applyDoorPose(action, time);
   }
 }

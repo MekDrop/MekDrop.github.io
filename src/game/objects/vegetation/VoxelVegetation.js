@@ -24,26 +24,22 @@ const MINIMUM_FACING_DOT = Math.cos((50 * Math.PI) / 180);
 export class VoxelVegetation {
   /**
    *
-    * @returns {Array<string>}
+   * @returns {Array<string>}
    */
   static get modelUrls() {
     return Object.values(VEGETATION_TYPES).map(
-      /**
-       *
-       * @param {typeof import("./DestructibleVegetation.js").DestructibleVegetation} VegetationType
-       */
-      (VegetationType) => VegetationType.modelUrl,
+      VoxelVegetation.#mapVegetationType,
     );
   }
 
   /**
    *
-    * @type {import("playcanvas").Entity}
+   * @type {import("playcanvas").Entity}
    */
   #entity;
   /**
    *
-    * @type {Array<{item: import("./DestructibleVegetation.js").DestructibleVegetation, col: number, row: number, rotation: number}>}
+   * @type {Array<{item: import("./DestructibleVegetation.js").DestructibleVegetation, col: number, row: number, rotation: number}>}
    */
   #items = [];
   /**
@@ -60,17 +56,17 @@ export class VoxelVegetation {
   #islandRoots;
   /**
    *
-    * @type {Array<VegetationDirtPatch>}
+   * @type {Array<VegetationDirtPatch>}
    */
   #dirtPatches = [];
   /**
    *
-    * @type {typeof import("playcanvas")}
+   * @type {typeof import("playcanvas")}
    */
   #pc;
   /**
    *
-    * @type {import("playcanvas").Application}
+   * @type {import("playcanvas").Application}
    */
   #app;
   /**
@@ -79,12 +75,12 @@ export class VoxelVegetation {
   #renderBatch = null;
   /**
    *
-    * @type {import("playcanvas").Entity}
+   * @type {import("playcanvas").Entity}
    */
   #tool = null;
   /**
    *
-    * @type {({col, row, kind}: {col: number, row: number, kind: string}) => void}
+   * @type {({col, row, kind}: {col: number, row: number, kind: string}) => void}
    */
   #onVegetationRemoved;
 
@@ -179,7 +175,7 @@ export class VoxelVegetation {
 
   /**
    *
-    * @returns {boolean}
+   * @returns {boolean}
    */
   get isGroundCollider() {
     return true;
@@ -187,7 +183,7 @@ export class VoxelVegetation {
 
   /**
    *
-    * @returns {boolean}
+   * @returns {boolean}
    */
   get physicsSurface() {
     return false;
@@ -195,7 +191,7 @@ export class VoxelVegetation {
 
   /**
    *
-    * @returns {string}
+   * @returns {string}
    */
   get toolName() {
     return "AxeTool";
@@ -203,7 +199,7 @@ export class VoxelVegetation {
 
   /**
    *
-    * @returns {Array<import("playcanvas").Entity>}
+   * @returns {Array<import("playcanvas").Entity>}
    */
   get visualRoots() {
     return [this.#entity];
@@ -492,5 +488,13 @@ export class VoxelVegetation {
     });
     this.#islandRoots.addChild(patch.entity, tile);
     this.#dirtPatches.push(patch);
+  }
+
+  /**
+   *
+   * @param {typeof import("./DestructibleVegetation.js").DestructibleVegetation} VegetationType
+   */
+  static #mapVegetationType(VegetationType) {
+    return VegetationType.modelUrl;
   }
 }

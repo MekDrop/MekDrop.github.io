@@ -29,11 +29,7 @@ export class BuffSystem {
      * @type {Map}
      */
     this.#definitions = new Map(
-      structuredClone(definitions).map(/**
-       *
-       * @param {import("src/game/GameContracts.js").GameObjectDefinition} definition
-       */
-        (definition) => [definition.id, definition]),
+      structuredClone(definitions).map(BuffSystem.#mapDefinition),
     );
   }
 
@@ -46,11 +42,7 @@ export class BuffSystem {
    * @returns {Array}
    */
   get state() {
-    return [...this.#active.keys()].map(/**
-     *
-     * @param {string} id
-     */
-      (id) => this.get(id));
+    return [...this.#active.keys()].map(this.#mapId.bind(this));
   }
 
   /**
@@ -103,7 +95,7 @@ export class BuffSystem {
      *
      * @param {pc.Entity} blocker
      */
-    const isActiveBlocker = (blocker) => this.has(blocker);
+    const isActiveBlocker = this.#isActiveBlocker.bind(this);
     if (definition.blockedBy?.some(isActiveBlocker)) {
       return false;
     }
@@ -177,5 +169,29 @@ export class BuffSystem {
 
     // Add bonuses and penalties before scaling the base to avoid order effects.
     return Math.max(0, (baseValue + flat) * (1 + percent));
+  }
+
+  /**
+   *
+   * @param {import("src/game/GameContracts.js").GameObjectDefinition} definition
+   */
+  static #mapDefinition(definition) {
+    return [definition.id, definition];
+  }
+
+  /**
+   *
+   * @param {string} id
+   */
+  #mapId(id) {
+    return this.get(id);
+  }
+
+  /**
+   *
+   * @param {pc.Entity} blocker
+   */
+  #isActiveBlocker(blocker) {
+    return this.has(blocker);
   }
 }

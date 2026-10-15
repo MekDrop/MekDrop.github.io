@@ -27,20 +27,14 @@ export class BookMapObjects {
    * @param {import("../ObjectTypes.js").GameMapData} mapData
    */
   static prepareMap(mapData) {
-    const objects = (mapData.objects ?? []).filter(/**
-     *
-     * @param {import("../ObjectTypes.js").MapObjectDefinition} definition
-     */
-      definition => !definition.sourceShelfId);
+    const objects = (mapData.objects ?? []).filter(
+      BookMapObjects.#filterDefinition,
+    );
     for (const definition of objects) {
       this.normalize(definition);
     }
     // Iterate a snapshot: newly generated volumes are ordinary map records.
-    for (const shelf of objects.filter(/**
-     *
-     * @param {import("../ObjectTypes.js").MapObjectDefinition} definition
-     */
-      definition => definition.object === "Bookshelf")) {
+    for (const shelf of objects.filter(BookMapObjects.#filterDefinition2)) {
       if (shelf.books === false && !shelf.booksAsObjects) { continue; }
       objects.push(...this.forShelf(shelf));
       shelf.books = false;
@@ -112,5 +106,21 @@ export class BookMapObjects {
     }
 
     return books;
+  }
+
+  /**
+   *
+   * @param {import("../ObjectTypes.js").MapObjectDefinition} definition
+   */
+  static #filterDefinition(definition) {
+    return !definition.sourceShelfId;
+  }
+
+  /**
+   *
+   * @param {import("../ObjectTypes.js").MapObjectDefinition} definition
+   */
+  static #filterDefinition2(definition) {
+    return definition.object === "Bookshelf";
   }
 }

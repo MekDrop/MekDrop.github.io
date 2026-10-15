@@ -86,11 +86,9 @@ export class Bookshelf {
       if (definition.books !== false) {
         BookshelfBooks.populate(models, model, bookUrl, random, levels);
       } else {
-        for (const node of model.find(/**
-         *
-         * @param {import("playcanvas").GraphNode} node
-         */
-          node => /^(Leather bound book|Book spine brass)/.test(node.name))) { node.destroy(); }
+        for (const node of model.find(Bookshelf.#findNode)) {
+          node.destroy();
+        }
       }
       model.name = "Castle oak bookcase";
       // The model spans Z=-0.17..0.19, so recenter its 0.36-deep footprint.
@@ -114,10 +112,7 @@ export class Bookshelf {
    * @returns {{bottom:number,height:number}[]}
    */
   static resize(model, height, joinStart = false, joinEnd = false) {
-    const planks = model.find(/**
-     * @param {import("playcanvas").GraphNode} node
-     */
-      node => /^Shelf plank/.test(node.name));
+    const planks = model.find(Bookshelf.#findNode2);
     const template = planks[0];
     const levels = [];
     const count = Math.max(1, Math.round((height - 0.0775) / 0.35));
@@ -133,10 +128,7 @@ export class Bookshelf {
       }); }
     }
     for (const plank of planks) { plank.destroy(); }
-    for (const node of model.find(/**
-     * @param {import("playcanvas").GraphNode} node
-     */
-      node => /^Shelf side/.test(node.name))) {
+    for (const node of model.find(Bookshelf.#findNode3)) {
       const x = node.getLocalPosition().x;
       if (x < 0 && joinStart) { node.destroy(); continue; }
       node.setLocalScale(x > 0 && joinEnd ? 0.75 : 1, height / 1.35, 1);
@@ -164,4 +156,26 @@ export class Bookshelf {
    */
   setIslandOffsets(near, far, offsets = [near, far]) { this.#islandRoots.setOffsets(near, far, offsets); }
   destroy() { this.#entity.destroy(); }
+
+  /**
+   *
+   * @param {import("playcanvas").GraphNode} node
+   */
+  static #findNode(node) {
+    return /^(Leather bound book|Book spine brass)/.test(node.name);
+  }
+
+  /**
+   * @param {import("playcanvas").GraphNode} node
+   */
+  static #findNode2(node) {
+    return /^Shelf plank/.test(node.name);
+  }
+
+  /**
+   * @param {import("playcanvas").GraphNode} node
+   */
+  static #findNode3(node) {
+    return /^Shelf side/.test(node.name);
+  }
 }

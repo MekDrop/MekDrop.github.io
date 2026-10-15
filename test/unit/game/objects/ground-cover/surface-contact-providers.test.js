@@ -9,7 +9,7 @@ it("avoids repeated scene scans while retaining live contacts and detecting repl
   const iterate = objects[Symbol.iterator].bind(objects);
   objects[Symbol.iterator] = () => { scans++;
 
- return iterate(); };
+    return iterate(); };
   for (let index = 0; index < 7000; index++) objects.add("terrain", {});
   let x = 1;
   const provider = {

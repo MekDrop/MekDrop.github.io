@@ -1,7 +1,7 @@
 export class RiverSurfaceHeights {
   /**
    *
-    * @type {Map}
+   * @type {Map}
    */
   #cells;
 
@@ -10,11 +10,7 @@ export class RiverSurfaceHeights {
    * @param {number} cells
    */
   constructor(cells) {
-    this.#cells = new Map(cells.map(/**
-     *
-     * @param {number} cell
-     */
-      (cell) => [`${cell.col},${cell.row}`, cell]));
+    this.#cells = new Map(cells.map(RiverSurfaceHeights.#mapCell));
   }
 
   /**
@@ -22,12 +18,13 @@ export class RiverSurfaceHeights {
    * @param {number} cell
    */
   cornersFor(cell) {
-    return [[0, 0], [1, 0], [0, 1], [1, 1]].map(/**
-     *
-     * @param {Array<number>} options
-     * @param {number} options."0"
-     * @param {number} options."1"
-     */
+    return [[0, 0], [1, 0], [0, 1], [1, 1]].map(
+      /**
+       *
+       * @param {Array<number>} options
+       * @param {number} options."0"
+       * @param {number} options."1"
+       */
       ([dx, dz]) => {
         const heights = [];
         for (const col of [cell.col + dx - 1, cell.col + dx]) {
@@ -41,12 +38,28 @@ export class RiverSurfaceHeights {
           }
         }
 
-        return heights.reduce(/**
-       *
-       * @param {number} sum
-       * @param {number} elevation
-       */
-          (sum, elevation) => sum + elevation, 0) / heights.length + 0.012;
-      });
+        return (
+          heights.reduce(RiverSurfaceHeights.#reduceSum, 0) / heights.length +
+          0.012
+        );
+      },
+    );
+  }
+
+  /**
+   *
+   * @param {number} cell
+   */
+  static #mapCell(cell) {
+    return [`${cell.col},${cell.row}`, cell];
+  }
+
+  /**
+   *
+   * @param {number} sum
+   * @param {number} elevation
+   */
+  static #reduceSum(sum, elevation) {
+    return sum + elevation;
   }
 }

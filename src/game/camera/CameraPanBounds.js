@@ -292,30 +292,10 @@ export class CameraPanBounds {
       ));
 
     return {
-      left: Math.min(...screenPoints.map(/**
-       *
-       * @param {{x: number}} options
-       * @param {number} options.x
-       */
-        ({ x }) => x)),
-      top: Math.min(...screenPoints.map(/**
-       *
-       * @param {{y: number}} options
-       * @param {number} options.y
-       */
-        ({ y }) => y)),
-      right: Math.max(...screenPoints.map(/**
-       *
-       * @param {{x: number}} options
-       * @param {number} options.x
-       */
-        ({ x }) => x)),
-      bottom: Math.max(...screenPoints.map(/**
-       *
-       * @param {{y: number}} options
-       * @param {number} options.y
-       */
-        ({ y }) => y)),
+      left: Math.min(...screenPoints.map(CameraPanBounds.#map)),
+      top: Math.min(...screenPoints.map(CameraPanBounds.#map2)),
+      right: Math.max(...screenPoints.map(CameraPanBounds.#map3)),
+      bottom: Math.max(...screenPoints.map(CameraPanBounds.#map4)),
     };
   }
 
@@ -398,30 +378,10 @@ export class CameraPanBounds {
       (point) => this.#project(point, frame));
 
     return {
-      minimumX: Math.min(...projected.map(/**
-       *
-       * @param {{x: number}} options
-       * @param {number} options.x
-       */
-        ({ x }) => x)),
-      minimumY: Math.min(...projected.map(/**
-       *
-       * @param {{y: number}} options
-       * @param {number} options.y
-       */
-        ({ y }) => y)),
-      maximumX: Math.max(...projected.map(/**
-       *
-       * @param {{x: number}} options
-       * @param {number} options.x
-       */
-        ({ x }) => x)),
-      maximumY: Math.max(...projected.map(/**
-       *
-       * @param {{y: number}} options
-       * @param {number} options.y
-       */
-        ({ y }) => y)),
+      minimumX: Math.min(...projected.map(CameraPanBounds.#map5)),
+      minimumY: Math.min(...projected.map(CameraPanBounds.#map6)),
+      maximumX: Math.max(...projected.map(CameraPanBounds.#map7)),
+      maximumY: Math.max(...projected.map(CameraPanBounds.#map8)),
     };
   }
 
@@ -660,19 +620,8 @@ export class CameraPanBounds {
    */
   #convexHull(points) {
     const uniquePoints = [
-      ...new Map(
-        points.map(/**
-         *
-         * @param {import("src/game/GameContracts.js").GridPoint} point
-         */
-          (point) => [`${point.x}:${point.y}`, point]),
-      ).values(),
-    ].sort(/**
-     *
-     * @param {ScreenPoint} left
-     * @param {ScreenPoint} right
-     */
-      (left, right) => left.x - right.x || left.y - right.y);
+      ...new Map(points.map(CameraPanBounds.#mapPoint)).values(),
+    ].sort(CameraPanBounds.#sortLeft);
     if (uniquePoints.length <= 2) {
       return uniquePoints;
     }
@@ -681,20 +630,7 @@ export class CameraPanBounds {
      *
      * @param {Array} orderedPoints
      */
-    const buildHalf = (orderedPoints) => {
-      const half = [];
-      for (const point of orderedPoints) {
-        while (
-          half.length >= 2 &&
-          this.#cross(half.at(-2), half.at(-1), point) <= 0
-        ) {
-          half.pop();
-        }
-        half.push(point);
-      }
-
-      return half;
-    };
+    const buildHalf = this.#buildHalf.bind(this);
     const lower = buildHalf(uniquePoints);
     const upper = buildHalf([...uniquePoints].reverse());
     lower.pop();
@@ -803,5 +739,123 @@ export class CameraPanBounds {
    */
   #clamp(value, minimum, maximum) {
     return Math.max(minimum, Math.min(maximum, value));
+  }
+
+  /**
+   *
+   * @param {{x: number}} options
+   * @param {number} options.x
+   */
+  static #map({ x }) {
+    return x;
+  }
+
+  /**
+   *
+   * @param {{y: number}} options
+   * @param {number} options.y
+   */
+  static #map2({ y }) {
+    return y;
+  }
+
+  /**
+   *
+   * @param {{x: number}} options
+   * @param {number} options.x
+   */
+  static #map3({ x }) {
+    return x;
+  }
+
+  /**
+   *
+   * @param {{y: number}} options
+   * @param {number} options.y
+   */
+  static #map4({ y }) {
+    return y;
+  }
+
+  /**
+   *
+   * @param {{x: number}} options
+   * @param {number} options.x
+   */
+  static #map5({ x }) {
+    return x;
+  }
+
+  /**
+   *
+   * @param {{y: number}} options
+   * @param {number} options.y
+   */
+  static #map6({ y }) {
+    return y;
+  }
+
+  /**
+   *
+   * @param {{x: number}} options
+   * @param {number} options.x
+   */
+  static #map7({ x }) {
+    return x;
+  }
+
+  /**
+   *
+   * @param {{y: number}} options
+   * @param {number} options.y
+   */
+  static #map8({ y }) {
+    return y;
+  }
+
+  /**
+   *
+   * @param {import("src/game/GameContracts.js").GridPoint} point
+   */
+  static #mapPoint(point) {
+    return [`${point.x}:${point.y}`, point];
+  }
+
+  /**
+   *
+   * @param {ScreenPoint} left
+   * @param {ScreenPoint} right
+   */
+  static #sortLeft(left, right) {
+    return left.x - right.x || left.y - right.y;
+  }
+
+  /**
+   *
+   * @param {Array} orderedPoints
+   */
+
+  /**
+   *
+   * @param {Array} orderedPoints
+   */
+
+  /**
+   *
+   * @param {Array} orderedPoints
+   */
+  #buildHalf(orderedPoints) {
+    const half = [];
+    for (const point of orderedPoints) {
+      while (
+        half.length >= 2 &&
+          this.#cross(half.at(-2), half.at(-1), point) <= 0
+      ) {
+        half.pop();
+      }
+      half.push(point);
+    }
+
+    return half;
   }
 }

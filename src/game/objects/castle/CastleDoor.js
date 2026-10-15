@@ -15,11 +15,10 @@ const CLOSE_INSIDE_DISTANCE = 0.9;
 const CLICK_OPEN_SECONDS = 1;
 const DOOR_HEIGHT = 2.3;
 
-
 export class CastleDoor {
   /**
    *
-    * @returns {string}
+   * @returns {string}
    */
   static get modelUrl() {
     return castleDoorsModelUrl;
@@ -32,12 +31,12 @@ export class CastleDoor {
 
   /**
    *
-    * @type {typeof import("playcanvas")}
+   * @type {typeof import("playcanvas")}
    */
   #pc;
   /**
    *
-    * @type {import("playcanvas").Entity}
+   * @type {import("playcanvas").Entity}
    */
   #entity;
   /**
@@ -46,32 +45,32 @@ export class CastleDoor {
   #archMaterial = null;
   /**
    *
-    * @type {import("playcanvas").AnimController}
+   * @type {import("playcanvas").AnimController}
    */
   #animationLayer;
   /**
    *
-    * @type {number}
+   * @type {number}
    */
   #animationDuration;
   /**
    *
-    * @type {{x: number, y: number, z: number}}
+   * @type {{x: number, y: number, z: number}}
    */
   #center;
   /**
    *
-    * @type {{x: number, z: number}}
+   * @type {{x: number, z: number}}
    */
   #inward;
   /**
    *
-    * @type {{x: number, z: number}}
+   * @type {{x: number, z: number}}
    */
   #tangent;
   /**
    *
-    * @type {number}
+   * @type {number}
    */
   #width;
   /**
@@ -92,12 +91,12 @@ export class CastleDoor {
   #elevated = false;
   /**
    *
-    * @type {boolean}
+   * @type {boolean}
    */
   #targetOpen = false;
   /**
    *
-    * @type {number}
+   * @type {number}
    */
   #openAmount = 0;
 
@@ -157,7 +156,7 @@ export class CastleDoor {
 
   /**
    *
-    * @type {number}
+   * @type {number}
    */
   #manualOpenRemaining = 0;
   /**
@@ -330,7 +329,7 @@ export class CastleDoor {
 
   /**
    *
-    * @returns {boolean}
+   * @returns {boolean}
    */
   get revealsInterior() {
     return this.#shouldOpen() || this.#openAmount > 0.001;
@@ -455,13 +454,11 @@ export class CastleDoor {
        */
         (entry) =>
           entry[1] > Math.max(0.002, initialContacts.get(entry[0]) ?? 0) + 0.000001);
-      const npcObstructed = NpcDoorAvoidance.occupied(this.#entity, /**
-       *
-       * @param {import("yuka").Vector3} point
-       */
-        (point) =>
-          this.#collision.blocksAt(point.x, point.y + 0.6, point.z, 0.5) ||
-        this.#collision.blocksAt(point.x, point.y + 1.5, point.z, 0.5), this.#operator);
+      const npcObstructed = NpcDoorAvoidance.occupied(
+        this.#entity,
+        this.#occupied.bind(this),
+        this.#operator,
+      );
       if (obstructed || npcObstructed) {
         this.#openAmount = previous;
         break;
@@ -589,5 +586,16 @@ export class CastleDoor {
 
   #shouldOpen() {
     return this.#targetOpen || this.#manualOpenRemaining > 0;
+  }
+
+  /**
+   *
+   * @param {import("yuka").Vector3} point
+   */
+  #occupied(point) {
+    return (
+      this.#collision.blocksAt(point.x, point.y + 0.6, point.z, 0.5) ||
+        this.#collision.blocksAt(point.x, point.y + 1.5, point.z, 0.5)
+    );
   }
 }

@@ -11,7 +11,7 @@ function fixture() {
     batcher: {
       addGroup() { const id = added.length; added.push(id);
 
- return { id }; },
+        return { id }; },
       markGroupDirty() {},
       removeGroup(id) { removed.push(id); },
     },

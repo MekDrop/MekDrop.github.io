@@ -276,7 +276,9 @@ export class StairwellRoomGenerator extends AbstractCastleRoomGenerator {
          */ candidate => candidate.kind === "room" && candidate.floorY === item.floorY &&
           item.x >= candidate.minX && item.x <= candidate.maxX &&
           item.z >= candidate.minZ && item.z <= candidate.maxZ);
-        if (!area) { continue; }
+        if (!area) {
+          continue;
+        }
         const yaw = (item.rotation - stair.yaw + plan.origin.yaw) * Math.PI / 180;
         const circular = item.object === "StoragePotteryJar";
         const halfAcross = item.scale / 2 * (item.tilt ? item.width : circular ? Math.max(item.width, item.depth) :
@@ -347,9 +349,9 @@ export class StairwellRoomGenerator extends AbstractCastleRoomGenerator {
         item.x += (seatedAcross - across) * cosine + (seatedAlong - along) * sine;
         item.z += -(seatedAcross - across) * sine + (seatedAlong - along) * cosine;
         if (item.stackedBarrel) {
-          const support = items.slice(firstItem).find(/**
-           * @param {{object:string,tilt?:object}} candidate
-           */ candidate => candidate.object === "Barrel" && !candidate.tilt);
+          const support = items
+            .slice(firstItem)
+            .find(StairwellRoomGenerator.#findCandidate);
           if (support) {
             item.x = support.x + 0.325 * item.scale * sine + 0.03 * sine;
             item.z = support.z + 0.325 * item.scale * cosine + 0.03 * cosine;
@@ -508,5 +510,12 @@ export class StairwellRoomGenerator extends AbstractCastleRoomGenerator {
       height: to.floorY - from.floorY,
       ceilingY: to.floorY + 2.25,
     };
+  }
+
+  /**
+   * @param {{object:string,tilt?:object}} candidate
+   */
+  static #findCandidate(candidate) {
+    return candidate.object === "Barrel" && !candidate.tilt;
   }
 }

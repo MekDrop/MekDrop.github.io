@@ -19,12 +19,7 @@ export class Throne extends AbstractCastleProp {
       if (castle.object !== "Castle" || !castle.buildPlan?.metadata?.runtime?.residential) { continue; }
       const layout = new CastleResidentialLayout(castle.buildPlan);
       const room = layout.audienceFloorBounds ?? layout.rooms.work;
-      const zone = layout.reservations.find(
-        /**
-         * @param {{role: string}} reservation
-         */
-        reservation => reservation.role === "throne",
-      );
+      const zone = layout.reservations.find(Throne.#findReservation);
       const forward = (zone?.maxZ ?? room.maxZ) - (layout.throneRearWindow ? 0.35 : 0.65);
       const position = layout.toWorld((room.minX + room.maxX) / 2, Math.max(0, forward), layout.throneSupportHeight);
       const id = castle.id + "-throne";
@@ -53,4 +48,11 @@ export class Throne extends AbstractCastleProp {
    * @returns {string}
    */
   static get modelUrl() { return modelUrl; }
+
+  /**
+   * @param {{role: string}} reservation
+   */
+  static #findReservation(reservation) {
+    return reservation.role === "throne";
+  }
 }

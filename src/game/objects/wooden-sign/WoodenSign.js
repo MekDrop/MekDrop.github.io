@@ -6,7 +6,7 @@ import signModelUrl from "../../models/scenery/arrow-signpost.glb?url";
 export class WoodenSign {
   /**
    *
-    * @type {import("playcanvas").Entity}
+   * @type {import("playcanvas").Entity}
    */
   #entity;
   /**
@@ -19,23 +19,23 @@ export class WoodenSign {
   #collisionGraph;
   /**
    *
-    * @type {import("src/game/objects/ObjectTypes.js").MapObjectDefinition}
+   * @type {import("src/game/objects/ObjectTypes.js").MapObjectDefinition}
    */
   #definition;
   /**
    *
-    * @type {string}
+   * @type {string}
    */
   #texture;
   /**
    *
-    * @type {import("playcanvas").Material}
+   * @type {import("playcanvas").Material}
    */
   #material;
 
   /**
    *
-    * @returns {string}
+   * @returns {string}
    */
   static get modelUrl() {
     return signModelUrl;
@@ -82,12 +82,7 @@ export class WoodenSign {
     this.#collisionGraph.setLocalScale(scale, scale, scale);
     const collisionModel = new pc.Model();
     collisionModel.graph = this.#collisionGraph;
-    collisionModel.meshInstances = this.#collisionGraph.findComponents("render").flatMap(
-      /**
-       * @param {import("playcanvas").RenderComponent} render
-       */
-      (render) => render.entity.name === "Sign inscription" ? [] : render.meshInstances,
-    );
+    collisionModel.meshInstances = this.#collisionGraph.findComponents("render").flatMap(WoodenSign.#flatMapRender);
     this.#entity.addComponent("collision", {
       type: "mesh",
       model: collisionModel,
@@ -206,7 +201,7 @@ export class WoodenSign {
 
   /**
    *
-    * @returns {Array<import("playcanvas").Entity>}
+   * @returns {Array<import("playcanvas").Entity>}
    */
   get visualRoots() {
     return [this.#entity];
@@ -217,5 +212,12 @@ export class WoodenSign {
     this.#collisionGraph.destroy();
     this.#material.destroy();
     this.#texture.destroy();
+  }
+
+  /**
+   * @param {import("playcanvas").RenderComponent} render
+   */
+  static #flatMapRender(render) {
+    return render.entity.name === "Sign inscription" ? [] : render.meshInstances;
   }
 }

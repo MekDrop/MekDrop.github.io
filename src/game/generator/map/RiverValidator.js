@@ -35,32 +35,15 @@ export class RiverValidator {
    * @param {MapLayout} layout
    * @param {RiverData[]} riverData
    */
-  validateRivers(
-    grid,
-    heightmap,
-    tileMeta,
-    islandMask,
-    layout,
-    riverData,
-  ) {
-    const sources = riverData.filter(/**
-     *
-     * @param {RiverData} river
-     */
-      (river) => !river.sourceId);
+  validateRivers(grid, heightmap, tileMeta, islandMask, layout, riverData) {
+    const sources = riverData.filter(RiverValidator.#filterRiver);
     if (sources.length > MAX_RIVERS) {
       throw new InvalidRiverCountError({
         count: riverData.length,
         maximum: MAX_RIVERS,
       });
     }
-    const lavaRiverCount = sources.filter(
-      /**
-       *
-       * @param {RiverRecord} river
-       */
-      (river) => river.kind === RIVER_KIND.LAVA,
-    ).length;
+    const lavaRiverCount = sources.filter(RiverValidator.#filterRiver2).length;
     if (
       lavaRiverCount > MAX_LAVA_ELIGIBLE_RIVERS ||
       (sources.length > MAX_LAVA_ELIGIBLE_RIVERS && lavaRiverCount > 0)
@@ -73,17 +56,7 @@ export class RiverValidator {
     }
 
     const allRiverCells = new Set(
-      riverData.flatMap(/**
-       *
-       * @param {RiverRecord} river
-       */
-        (river) =>
-          river.cells.map(/**
-         *
-         * @param {MapCell} cell
-         */
-            (cell) => MapGrid.tileKey(cell.col, cell.row)),
-      ),
+      riverData.flatMap(RiverValidator.#flatMapRiver),
     );
     const directionOffsets = {
       [DIRECTIONS.NORTH]: [0, -1],
@@ -134,51 +107,41 @@ export class RiverValidator {
           reason: "has an invalid cliff branch",
         });
       }
-      const foreign = new Set(riverData.filter(/**
+      const foreign = new Set(
+        riverData.filter(/**
        *
        * @param {RiverData} item
        */
-        (item) => (item.sourceId ?? item.id) !== familyId)
-        .flatMap(/**
-         *
-         * @param {RiverData} item
-         */
-          (item) => item.cells.map(/**
-         *
-         * @param {MapCell} cell
-         */
-            (cell) => MapGrid.tileKey(cell.col, cell.row))));
-      const buffered = new Set(riverData.filter(/**
+          (item) => (item.sourceId ?? item.id) !== familyId)
+          .flatMap(RiverValidator.#flatMapItem),
+      );
+      const buffered = new Set(
+        riverData.filter(/**
        *
        * @param {RiverData} item
        */
-        (item) => item !== river).flatMap(/**
-       *
-       * @param {RiverData} other
-       */
-        (other) => {
-          if ((other.sourceId ?? other.id) !== familyId) {
-            return other.cells.map(/**
-           *
-           * @param {MapCell} cell
-           */
-              (cell) => MapGrid.tileKey(cell.col, cell.row));
-          }
-          const start = river.branchStart ?? other.branchStart;
-          const junction = river.cells[start - 1];
+          (item) => item !== river).flatMap(
+          /**
+             *
+             * @param {RiverData} other
+             */
+          (other) => {
+            if ((other.sourceId ?? other.id) !== familyId) {
+              return other.cells.map(RiverValidator.#mapCell);
+            }
+            const start = river.branchStart ?? other.branchStart;
+            const junction = river.cells[start - 1];
 
-          return other.cells.slice(start).filter(/**
+            return other.cells.slice(start).filter(/**
          *
          * @param {MapCell} cell
          */
-            (cell) =>
-              Math.max(Math.abs(cell.col - junction.col), Math.abs(cell.row - junction.row)) > 1,
-          ).map(/**
-         *
-         * @param {MapCell} cell
-         */
-            (cell) => MapGrid.tileKey(cell.col, cell.row));
-        }));
+              (cell) =>
+                Math.max(Math.abs(cell.col - junction.col), Math.abs(cell.row - junction.row)) > 1,
+            ).map(RiverValidator.#mapCell2);
+          },
+        ),
+      );
       const riverCells = new Set();
       if (
         river.cells.length < MIN_RIVER_TILES ||
@@ -210,15 +173,9 @@ export class RiverValidator {
         source.elevation + RiverPlacementRules.riverSurfaceInset(river),
       );
       const riverCellKeys = new Set(
-        family.flatMap(/**
-         *
-         * @param {RiverData} item
-         */
-          (item) => item.cells).map(/**
-         *
-         * @param {MapCell} cell
-         */
-          (cell) => MapGrid.tileKey(cell.col, cell.row)),
+        family
+          .flatMap(RiverValidator.#flatMapItem2)
+          .map(RiverValidator.#mapCell3),
       );
       for (let deltaRow = -1; deltaRow <= 1; deltaRow++) {
         for (let deltaCol = -1; deltaCol <= 1; deltaCol++) {
@@ -252,11 +209,9 @@ export class RiverValidator {
             reason: `reuses its own flow tile at (${cell.col}, ${cell.row})`,
           });
         }
-        const sharedStart = river.branchStart ?? family.find(/**
-         *
-         * @param {RiverData} item
-         */
-          (item) => item.sourceId)?.branchStart;
+        const sharedStart =
+          river.branchStart ??
+          family.find(RiverValidator.#findItem)?.branchStart;
         /**
          *
          * @param {RiverData} other
@@ -455,5 +410,93 @@ export class RiverValidator {
         }
       }
     }
+  }
+
+  /**
+   *
+   * @param {RiverData} river
+   */
+  static #filterRiver(river) {
+    return !river.sourceId;
+  }
+
+  /**
+   *
+   * @param {RiverRecord} river
+   */
+  static #filterRiver2(river) {
+    return river.kind === RIVER_KIND.LAVA;
+  }
+
+  /**
+   *
+   * @param {RiverRecord} river
+   */
+  static #flatMapRiver(river) {
+    return river.cells.map(RiverValidator.#mapCell4);
+  }
+
+  /**
+   *
+   * @param {RiverData} item
+   */
+  static #flatMapItem(item) {
+    return item.cells.map(RiverValidator.#mapCell5);
+  }
+
+  /**
+   *
+   * @param {MapCell} cell
+   */
+  static #mapCell(cell) {
+    return MapGrid.tileKey(cell.col, cell.row);
+  }
+
+  /**
+   *
+   * @param {MapCell} cell
+   */
+  static #mapCell2(cell) {
+    return MapGrid.tileKey(cell.col, cell.row);
+  }
+
+  /**
+   *
+   * @param {RiverData} item
+   */
+  static #flatMapItem2(item) {
+    return item.cells;
+  }
+
+  /**
+   *
+   * @param {MapCell} cell
+   */
+  static #mapCell3(cell) {
+    return MapGrid.tileKey(cell.col, cell.row);
+  }
+
+  /**
+   *
+   * @param {RiverData} item
+   */
+  static #findItem(item) {
+    return item.sourceId;
+  }
+
+  /**
+   *
+   * @param {MapCell} cell
+   */
+  static #mapCell4(cell) {
+    return MapGrid.tileKey(cell.col, cell.row);
+  }
+
+  /**
+   *
+   * @param {MapCell} cell
+   */
+  static #mapCell5(cell) {
+    return MapGrid.tileKey(cell.col, cell.row);
   }
 }

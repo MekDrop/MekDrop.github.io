@@ -3,92 +3,92 @@ import { isNumber } from "../../helpers/types.js";
 export class GroundCoverHeldItem {
   /**
    *
-    * @type {typeof import("playcanvas")}
+   * @type {typeof import("playcanvas")}
    */
   #pc;
   /**
    *
-    * @type {string}
+   * @type {string}
    */
   #modelLibrary;
   /**
    *
-    * @type {string}
+   * @type {string}
    */
   #modelUrl;
   /**
    *
-    * @type {string}
+   * @type {string}
    */
   #name;
   /**
    *
-    * @type {number}
+   * @type {number}
    */
   #scale;
   /**
    *
-    * @type {import("playcanvas").Material}
+   * @type {import("playcanvas").Material}
    */
   #material;
   /**
    *
-    * @type {number}
+   * @type {number}
    */
   #castShadows;
   /**
    *
-    * @type {number}
+   * @type {number}
    */
   #receiveShadows;
   /**
    *
-    * @type {{x: number, y: number, z: number}}
+   * @type {{x: number, y: number, z: number}}
    */
   #gripPoint;
   /**
    *
-    * @type {number}
+   * @type {number}
    */
   #pickupTilt;
   /**
    *
-    * @type {number}
+   * @type {number}
    */
   #pickupPitch;
   /**
    *
-    * @type {number}
+   * @type {number}
    */
   #pickupYaw;
   /**
    *
-    * @type {boolean}
+   * @type {boolean}
    */
   #keepCapUpright;
   /**
    *
-    * @type {import("playcanvas").Entity}
+   * @type {import("playcanvas").Entity}
    */
   #entity = null;
   /**
    *
-    * @type {import("playcanvas").Entity}
+   * @type {import("playcanvas").Entity}
    */
   #visualPivot = null;
   /**
    *
-    * @type {{x: number, y: number, z: number}}
+   * @type {{x: number, y: number, z: number}}
    */
   #followTarget = null;
   /**
    *
-    * @type {boolean}
+   * @type {boolean}
    */
   #ownsMaterial = false;
   /**
    *
-    * @type {Array<import("playcanvas").Material>}
+   * @type {Array<import("playcanvas").Material>}
    */
   #ownedPartMaterials = [];
 
@@ -297,11 +297,7 @@ export class GroundCoverHeldItem {
       pending.push(...node.children);
     }
 
-    const stalks = nodes.filter(/**
-     *
-     * @param {import("playcanvas").Entity} node
-     */
-      (node) => node.name.endsWith(" stalk"));
+    const stalks = nodes.filter(GroundCoverHeldItem.#filterNode);
     const stalkJoints = new Map();
     let heldStalk = null;
     let nearestGripDistance = Infinity;
@@ -344,11 +340,7 @@ export class GroundCoverHeldItem {
       );
     }
 
-    for (const cap of nodes.filter(/**
-     *
-     * @param {import("playcanvas").Entity} node
-     */
-      (node) => node.name.endsWith(" cap"))) {
+    for (const cap of nodes.filter(GroundCoverHeldItem.#filterNode2)) {
       const prefix = cap.name.slice(0, -4);
       const parent = cap.parent;
       const joint =
@@ -387,5 +379,21 @@ export class GroundCoverHeldItem {
       );
       pivot.setLocalRotation(undoTilt.mul(undoPitch));
     }
+  }
+
+  /**
+   *
+   * @param {import("playcanvas").Entity} node
+   */
+  static #filterNode(node) {
+    return node.name.endsWith(" stalk");
+  }
+
+  /**
+   *
+   * @param {import("playcanvas").Entity} node
+   */
+  static #filterNode2(node) {
+    return node.name.endsWith(" cap");
   }
 }

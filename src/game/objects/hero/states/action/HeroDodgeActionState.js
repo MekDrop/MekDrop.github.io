@@ -17,8 +17,7 @@ export class HeroDodgeActionState extends HeroRuntimeActionState {
        * @param {{payload: import("src/game/objects/ObjectTypes.js").HeroActionPayload}} options
        * @param {import("src/game/objects/ObjectTypes.js").HeroActionPayload} options.payload
        */
-      animation: ({ payload }) => ANIMATIONS[payload.direction]
-        ?? HERO_ANIMATION.DODGE_FORWARD,
+      animation: HeroDodgeActionState.#animation,
       allowedTransitions: [
         HERO_ACTION.USING_TOOL,
         HERO_ACTION.BLOCKED_DIG_REACTION,
@@ -30,23 +29,19 @@ export class HeroDodgeActionState extends HeroRuntimeActionState {
        * @param {{payload: import("src/game/objects/ObjectTypes.js").HeroActionPayload}} options
        * @param {import("src/game/objects/ObjectTypes.js").HeroActionPayload} options.payload
        */
-      movement: ({ payload }) => ({
-        x: payload.x * payload.speed,
-        z: payload.z * payload.speed,
-      }),
+      movement: HeroDodgeActionState.#movement,
       /**
        *
        * @param {{payload: import("src/game/objects/ObjectTypes.js").HeroActionPayload}} options
        * @param {import("src/game/objects/ObjectTypes.js").HeroActionPayload} options.payload
        */
-      facing: ({ payload }) => payload.facing,
+      facing: HeroDodgeActionState.#facing,
       /**
        *
        * @param {{payload: import("src/game/objects/ObjectTypes.js").HeroActionPayload}} options
        * @param {import("src/game/objects/ObjectTypes.js").HeroActionPayload} options.payload
        */
-      snapFacing: ({ payload }) =>
-        payload.direction === "left" || payload.direction === "right",
+      snapFacing: HeroDodgeActionState.#snapFacing,
       allowsFootPlacement: false,
       allowsIdleHeadLook: false,
     });
@@ -68,5 +63,45 @@ export class HeroDodgeActionState extends HeroRuntimeActionState {
     const crossedLedge = action.crossedLedge;
     owner.finish();
     owner.feedback.dodge.complete(crossedLedge);
+  }
+
+  /**
+   *
+   * @param {{payload: import("src/game/objects/ObjectTypes.js").HeroActionPayload}} options
+   * @param {import("src/game/objects/ObjectTypes.js").HeroActionPayload} options.payload
+   */
+  static #animation({ payload }) {
+    return ANIMATIONS[payload.direction]
+        ?? HERO_ANIMATION.DODGE_FORWARD;
+  }
+
+  /**
+   *
+   * @param {{payload: import("src/game/objects/ObjectTypes.js").HeroActionPayload}} options
+   * @param {import("src/game/objects/ObjectTypes.js").HeroActionPayload} options.payload
+   */
+  static #movement({ payload }) {
+    return {
+      x: payload.x * payload.speed,
+      z: payload.z * payload.speed,
+    };
+  }
+
+  /**
+   *
+   * @param {{payload: import("src/game/objects/ObjectTypes.js").HeroActionPayload}} options
+   * @param {import("src/game/objects/ObjectTypes.js").HeroActionPayload} options.payload
+   */
+  static #facing({ payload }) {
+    return payload.facing;
+  }
+
+  /**
+   *
+   * @param {{payload: import("src/game/objects/ObjectTypes.js").HeroActionPayload}} options
+   * @param {import("src/game/objects/ObjectTypes.js").HeroActionPayload} options.payload
+   */
+  static #snapFacing({ payload }) {
+    return payload.direction === "left" || payload.direction === "right";
   }
 }

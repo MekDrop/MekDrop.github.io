@@ -130,11 +130,7 @@ export class SceneObjectRegistry {
    */
   getAll(type) {
     return (this.#keysByType.get(type) ?? [])
-      .map(/**
-       *
-       * @param {string} key
-       */
-        (key) => this.get(key))
+      .map(this.#mapKey.bind(this))
       .filter(Boolean);
   }
 
@@ -187,5 +183,13 @@ export class SceneObjectRegistry {
     this.#objects.delete(type);
     this.#keysByType.delete(type);
     this.#countsByType.delete(type);
+  }
+
+  /**
+   *
+   * @param {string} key
+   */
+  #mapKey(key) {
+    return this.get(key);
   }
 }

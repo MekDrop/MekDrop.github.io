@@ -28,10 +28,9 @@ export class IslandConnectorBuilder {
     const connectorCells = new Set();
     while (true) {
       let best = null;
-      const riverCells = riverData.flatMap(/**
-       * @param {import("./MapGenerationTypes.js").RiverData} river
-       */
-        (river) => river.cells);
+      const riverCells = riverData.flatMap(
+        IslandConnectorBuilder.#flatMapRiver,
+      );
       const overpassCells = [];
       for (let row = 0; row < MAP_ROWS; row += 1) {
         for (let col = 0; col < MAP_COLS; col += 1) {
@@ -119,11 +118,10 @@ export class IslandConnectorBuilder {
             if (!expectedDirections.includes(tileMeta[a.row][a.col].direction) ||
               tileMeta[a.row][a.col].direction !== tileMeta[b.row][b.col].direction) continue;
             if (this.#hasConnectorOnStraightRun(grid, tileMeta, pathCells, horizontal)) continue;
-            const blocked = new Set([...connectorCells, ...[...pathCells, ...grassCells].map(/**
-             * @param {{col: number, row: number}} point
-             */
-              ({ col, row }) => `${col},${row}`,
-            )]);
+            const blocked = new Set([
+              ...connectorCells,
+              ...[...pathCells, ...grassCells].map(IslandConnectorBuilder.#map),
+            ]);
             const before = horizontal
               ? {
                 col: station - 1,
@@ -228,16 +226,10 @@ export class IslandConnectorBuilder {
 
     return {
       ...connectors[0],
-      cells: connectors.flatMap(/**
-       *
-       * @param {{cells: Array<{col: number, row: number}>, removedCells: Array<{col: number, row: number}>}} connector
-       */
-        (connector) => connector.cells),
-      removedCells: connectors.flatMap(/**
-       *
-       * @param {{cells: Array<{col: number, row: number}>, removedCells: Array<{col: number, row: number}>}} connector
-       */
-        (connector) => connector.removedCells),
+      cells: connectors.flatMap(IslandConnectorBuilder.#flatMapConnector),
+      removedCells: connectors.flatMap(
+        IslandConnectorBuilder.#flatMapConnector2,
+      ),
       islands,
       connectors,
       nearIsland: islands[0],
@@ -289,10 +281,7 @@ export class IslandConnectorBuilder {
    * @returns {boolean}
    */
   #isolatesGrass(grid, heightmap, removedCells) {
-    const removed = new Set(removedCells.map(/**
-     * @param {{col: number, row: number}} cell
-     */
-      (cell) => `${cell.col},${cell.row}`));
+    const removed = new Set(removedCells.map(IslandConnectorBuilder.#mapCell));
     const directions = [[1, 0], [-1, 0], [0, 1], [0, -1]];
     for (const cell of removedCells) {
       for (const [dc, dr] of directions) {
@@ -347,5 +336,42 @@ export class IslandConnectorBuilder {
     }
 
     return visited;
+  }
+
+  /**
+   * @param {import("./MapGenerationTypes.js").RiverData} river
+   */
+  static #flatMapRiver(river) {
+    return river.cells;
+  }
+
+  /**
+   * @param {{col: number, row: number}} point
+   */
+  static #map({ col, row }) {
+    return `${col},${row}`;
+  }
+
+  /**
+   *
+   * @param {{cells: Array<{col: number, row: number}>, removedCells: Array<{col: number, row: number}>}} connector
+   */
+  static #flatMapConnector(connector) {
+    return connector.cells;
+  }
+
+  /**
+   *
+   * @param {{cells: Array<{col: number, row: number}>, removedCells: Array<{col: number, row: number}>}} connector
+   */
+  static #flatMapConnector2(connector) {
+    return connector.removedCells;
+  }
+
+  /**
+   * @param {{col: number, row: number}} cell
+   */
+  static #mapCell(cell) {
+    return `${cell.col},${cell.row}`;
   }
 }

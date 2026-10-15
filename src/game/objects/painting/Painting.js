@@ -62,9 +62,7 @@ export class Painting {
       if (objects.some(hasPaintingId)) continue;
       const layout = new CastleResidentialLayout(castle.buildPlan);
       const work = layout.rooms.work;
-      const desk = layout.reservations.find(/**
-       * @param {{role: string}} item
-       */ (item) => item.role === "workDesk");
+      const desk = layout.reservations.find(Painting.#findItem);
       if (!desk) continue;
       const side = (desk.minX + desk.maxX) / 2 > (work.minX + work.maxX) / 2 ? 1 : -1;
       const mount = findCastleMapMount(castle.buildPlan, layout, side,
@@ -146,5 +144,12 @@ export class Painting {
     this.#renderBatch?.destroy();
     this.#entity.destroy();
     this.#collisionGraph?.destroy();
+  }
+
+  /**
+   * @param {{role: string}} item
+   */
+  static #findItem(item) {
+    return item.role === "workDesk";
   }
 }

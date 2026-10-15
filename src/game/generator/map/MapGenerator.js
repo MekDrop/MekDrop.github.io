@@ -146,7 +146,7 @@ export class MapGenerator {
         }
       }
     });
-    this.#generationQueue = generation.catch(() => {});
+    this.#generationQueue = generation.catch(MapGenerator.#catch);
 
     return generation;
   }
@@ -166,17 +166,8 @@ export class MapGenerator {
          *
          * @param {MapGenerationOptions} pipelineOptions
          */
-        createContext: (pipelineOptions) =>
-          new GenerationContext(pipelineOptions, {
-            now: () => this.#now(),
-            /**
-             *
-             * @param {GenerationYieldState} state
-             */
-            yieldIfNeeded: (state) => this.#yieldIfNeeded(state),
-            yieldToMainThread: () => this.#yieldToMainThread(),
-          }),
-        createStages: () => this.#createGenerationStages(),
+        createContext: this.#createContext.bind(this),
+        createStages: this.#createStages.bind(this),
       });
 
       return await generate({
@@ -192,7 +183,7 @@ export class MapGenerator {
     /**
      * @param {GenerationYieldState} state
      */
-    const yieldIfNeeded = (state) => this.#yieldIfNeeded(state);
+    const yieldIfNeeded = this.#yieldIfNeeded2.bind(this);
     const terrain = new TerrainBuilder();
     const rivers = new RiverBuilder(
       this.#random,
@@ -233,7 +224,7 @@ export class MapGenerator {
         },
         gatewayColors: GATEWAY_COLORS,
         grassSurfaceLift: GRASS_SURFACE_LIFT,
-        randomUint32: () => Number(this.#random.rng(0, 0xffffffff)) >>> 0,
+        randomUint32: this.#randomUint32.bind(this),
       }),
     ];
   }
@@ -258,11 +249,7 @@ export class MapGenerator {
       globalThis instanceof globalThis.WorkerGlobalScope) {
       return Promise.resolve();
     }
-    return new Promise(/**
-     *
-     * @param {(value?: void) => void} resolve
-     */
-      (resolve) => globalThis.setTimeout(resolve, 0));
+    return new Promise(MapGenerator.#Promise);
   }
 
   #createMapName() {
@@ -284,6 +271,61 @@ export class MapGenerator {
     return options ?? {};
   }
 
+  static #catch() {}
+
+  /**
+   *
+   * @param {MapGenerationOptions} pipelineOptions
+   */
+  #createContext(pipelineOptions) {
+    return new GenerationContext(pipelineOptions, {
+      now: this.#now2.bind(this),
+      /**
+       *
+       * @param {GenerationYieldState} state
+       */
+      yieldIfNeeded: this.#yieldIfNeeded3.bind(this),
+      yieldToMainThread: this.#yieldToMainThread2.bind(this),
+    });
+  }
+
+  #createStages() {
+    return this.#createGenerationStages();
+  }
+
+  /**
+   * @param {GenerationYieldState} state
+   */
+  #yieldIfNeeded2(state) {
+    return this.#yieldIfNeeded(state);
+  }
+
+  #randomUint32() {
+    return Number(this.#random.rng(0, 0xffffffff)) >>> 0;
+  }
+
+  /**
+   *
+   * @param {(value?: void) => void} resolve
+   */
+  static #Promise(resolve) {
+    return globalThis.setTimeout(resolve, 0);
+  }
+
+  #now2() {
+    return this.#now();
+  }
+
+  /**
+   * @param {GenerationYieldState} state
+   */
+  #yieldIfNeeded3(state) {
+    return this.#yieldIfNeeded(state);
+  }
+
+  #yieldToMainThread2() {
+    return this.#yieldToMainThread();
+  }
 }
 
 /**

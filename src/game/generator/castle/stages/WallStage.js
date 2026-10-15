@@ -30,13 +30,7 @@ export class WallStage extends AbstractCastleGenerationStage {
       wallWings: [...style.wallWings],
     };
 
-    const audienceOpening = openings.find(
-      /**
-       *
-       * @param {import("src/game/GameContracts.js").CastleOpening} opening
-       */
-      (opening) => opening.boundary === CASTLE_BOUNDARY.FRONT,
-    );
+    const audienceOpening = openings.find(WallStage.#findOpening);
     context.structure.audienceWing = audienceOpening
       ? {
         opening: { ...audienceOpening },
@@ -51,5 +45,13 @@ export class WallStage extends AbstractCastleGenerationStage {
       context,
       context.planning.writer,
     );
+  }
+
+  /**
+   *
+   * @param {import("src/game/GameContracts.js").CastleOpening} opening
+   */
+  static #findOpening(opening) {
+    return opening.boundary === CASTLE_BOUNDARY.FRONT;
   }
 }

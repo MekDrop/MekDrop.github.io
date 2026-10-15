@@ -20,16 +20,8 @@ export class FirewoodStack extends AbstractCastleProp {
    */
   prepareModel(model, collision) {
     const { width = 0.269, depth = 0.38, height = 0.2433, firewoodSeed } = this.definition;
-    const originals = model.find(/**
-     *
-     * @param {import("playcanvas").Entity} entity
-     */
-      entity => entity.name.startsWith("Cut firewood log "));
-    const templates = originals.map(/**
-     *
-     * @param {import("playcanvas").Entity} entity
-     */
-      entity => entity.clone());
+    const originals = model.find(FirewoodStack.#findEntity);
+    const templates = originals.map(FirewoodStack.#mapEntity);
     for (const original of originals) { original.destroy(); }
     if (!templates.length || !arePositiveFiniteNumbers(width, depth, height)) {
       for (const template of templates) { template.destroy(); }
@@ -72,5 +64,21 @@ export class FirewoodStack extends AbstractCastleProp {
       }
     }
     for (const template of templates) { template.destroy(); }
+  }
+
+  /**
+   *
+   * @param {import("playcanvas").Entity} entity
+   */
+  static #findEntity(entity) {
+    return entity.name.startsWith("Cut firewood log ");
+  }
+
+  /**
+   *
+   * @param {import("playcanvas").Entity} entity
+   */
+  static #mapEntity(entity) {
+    return entity.clone();
   }
 }

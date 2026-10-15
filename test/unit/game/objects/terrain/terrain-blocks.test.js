@@ -66,9 +66,11 @@ function fixture() {
       addBoxMatrix: (...args) => cubes.push(args),
       excavateSurface: (...args) => cubes.push(["excavate", ...args]),
     },
-    collisionWorld: { grassWeightAt: (...args) => { weightQueries.push(args);
+    collisionWorld: {
+      grassWeightAt: (...args) => { weightQueries.push(args);
 
- return 0.4; } },
+        return 0.4; },
+    },
     getContactProviders: () => contacts,
   };
 

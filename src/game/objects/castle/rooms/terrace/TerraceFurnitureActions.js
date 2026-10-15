@@ -29,40 +29,35 @@ const ease = (value) => value * value * (3 - 2 * value);
 export class TerraceFurnitureActions {
   /**
    *
-    * @returns {number}
+   * @returns {number}
    */
   static get modelUrls() {
-    return Object.values(DEFINITIONS).map(/**
-     *
-     * @param {{url: string}} options
-     * @param {string} options.url
-     */
-      ({ url }) => url);
+    return Object.values(DEFINITIONS).map(TerraceFurnitureActions.#map);
   }
 
   /**
    *
-    * @type {typeof import("playcanvas")}
+   * @type {typeof import("playcanvas")}
    */
   #pc;
   /**
    *
-    * @type {import("playcanvas").Entity}
+   * @type {import("playcanvas").Entity}
    */
   #stage;
   /**
    *
-    * @type {Record<string, import("playcanvas").Entity>}
+   * @type {Record<string, import("playcanvas").Entity>}
    */
   #props = {};
   /**
    *
-    * @type {import("./TerraceActor.js").TerraceActor|null}
+   * @type {import("./TerraceActor.js").TerraceActor|null}
    */
   #servant = null;
   /**
    *
-    * @type {import("./TerraceServantBehavior.js").TerraceServantBehavior|null}
+   * @type {import("./TerraceServantBehavior.js").TerraceServantBehavior|null}
    */
   #behavior = null;
 
@@ -86,13 +81,11 @@ export class TerraceFurnitureActions {
 
   /**
    *
-    * @returns {import("src/game/objects/ObjectTypes.js").TerraceActivityState}
+   * @returns {import("src/game/objects/ObjectTypes.js").TerraceActivityState}
    */
   get state() {
-    const carryingTable = this.#behavior?.cargo === "table" && [
-      PHASE.SERVANT_ENTER,
-      PHASE.SERVANT_LEAVE,
-    ].includes(this.#behavior?.stagePhase);
+    const carryingTable = this.#behavior?.cargo === "table" && [PHASE.SERVANT_ENTER, PHASE.SERVANT_LEAVE]
+      .includes(this.#behavior?.stagePhase);
 
     return {
       tableGripDistance: carryingTable ? this.#tableGripDistance() : null,
@@ -174,8 +167,7 @@ export class TerraceFurnitureActions {
       const offset = this.#servant.entity.getWorldTransform()
         .transformVector(new this.#pc.Vec3(...TABLE_GRIP_MIDPOINT));
 
-      return this.#stage.getWorldTransform().clone().invert()
-        .transformPoint(midpoint.sub(offset));
+      return this.#stage.getWorldTransform().clone().invert().transformPoint(midpoint.sub(offset));
     }
     const world = this.#servant.entity.getWorldTransform().transformPoint(
       new this.#pc.Vec3(0, 0.55, 0.75),
@@ -186,17 +178,30 @@ export class TerraceFurnitureActions {
 
   #tableGripDistance() {
     const hands = [this.#servant.leftHand, this.#servant.rightHand];
-    const grips = TABLE_GRIPS.map(/**
-     *
-     * @param {{x: number, y: number, z: number}} point
-     */
-      (point) => this.#props.table
-        .getWorldTransform().transformPoint(new this.#pc.Vec3(...point)));
+    const grips = TABLE_GRIPS.map(this.#mapPoint.bind(this));
     const direct = grips[0].distance(hands[0].getPosition()) +
       grips[1].distance(hands[1].getPosition());
     const crossed = grips[0].distance(hands[1].getPosition()) +
       grips[1].distance(hands[0].getPosition());
 
     return Math.min(direct, crossed) / TABLE_GRIPS.length;
+  }
+
+  /**
+   *
+   * @param {{url: string}} options
+   * @param {string} options.url
+   */
+  static #map({ url }) {
+    return url;
+  }
+
+  /**
+   *
+   * @param {{x: number, y: number, z: number}} point
+   */
+  #mapPoint(point) {
+    return this.#props.table
+      .getWorldTransform().transformPoint(new this.#pc.Vec3(...point));
   }
 }

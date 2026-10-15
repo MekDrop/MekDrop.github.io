@@ -251,7 +251,7 @@ it("reverts a walking royal without restarting the walk", () => {
     beginWalk: () => starts++,
     move: (value) => { progress.push(value);
 
- return true; },
+      return true; },
     playAnimation: () => {},
   });
   role.start();

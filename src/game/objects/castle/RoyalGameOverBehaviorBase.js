@@ -8,17 +8,17 @@ import { RoyalWalkOutState } from "./RoyalWalkOutState.js";
 export class RoyalGameOverBehaviorBase {
   /**
    *
-    * @type {NpcStateMachine}
+   * @type {NpcStateMachine}
    */
   #stateMachine;
   /**
    *
-    * @type {{isResumingReaction: () => boolean, elapsed: number, deltaTime: number, walkDuration: number, walkStartDelay: number, beginWalk: () => void, move: (progress: number) => boolean|null, playAnimation: (animation: string, blendDuration: number) => void, completeWalk: () => void}}
+   * @type {{isResumingReaction: () => boolean, elapsed: number, deltaTime: number, walkDuration: number, walkStartDelay: number, beginWalk: () => void, move: (progress: number) => boolean|null, playAnimation: (animation: string, blendDuration: number) => void, completeWalk: () => void}}
    */
   #context;
   /**
    *
-    * @type {{lateral: number, forward: number, elevation: number}}
+   * @type {{lateral: number, forward: number, elevation: number}}
    */
   #destination;
 
@@ -44,7 +44,7 @@ export class RoyalGameOverBehaviorBase {
   }) {
     this.#destination = Object.freeze({ ...destination });
     this.#context = {
-      isResumingReaction: () => this.#stateMachine.resumingReaction,
+      isResumingReaction: this.#isResumingReaction.bind(this),
       elapsed: 0,
       deltaTime: 0,
       walkDuration,
@@ -73,7 +73,7 @@ export class RoyalGameOverBehaviorBase {
 
   /**
    *
-    * @returns {boolean}
+   * @returns {boolean}
    */
   get active() {
     return this.#stateMachine.taskState !== null;
@@ -81,7 +81,7 @@ export class RoyalGameOverBehaviorBase {
 
   /**
    *
-    * @returns {number}
+   * @returns {number}
    */
   get phase() {
     return this.#stateMachine.taskState?.phase ?? null;
@@ -106,5 +106,9 @@ export class RoyalGameOverBehaviorBase {
     }
     this.#context.deltaTime = deltaTime;
     this.#stateMachine.update();
+  }
+
+  #isResumingReaction() {
+    return this.#stateMachine.resumingReaction;
   }
 }

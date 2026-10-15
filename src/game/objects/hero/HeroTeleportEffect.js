@@ -53,16 +53,7 @@ export class HeroTeleportEffect {
    * @param {{x: number, y: number, z: number}} to
    */
   play(from, to) {
-    [from, to].forEach(/**
-     * @param {{x: number, y: number, z: number}} position
-     * @param {number} index
-     */
-      (position, index) => {
-        const emitter = this.#emitters[index];
-        emitter.setPosition(position.x, position.y + 0.45, position.z);
-        emitter.particlesystem.reset();
-        emitter.particlesystem.play();
-      });
+    [from, to].forEach(this.#forEachPosition.bind(this));
   }
 
   destroy() {
@@ -70,5 +61,16 @@ export class HeroTeleportEffect {
       emitter.destroy();
     }
     this.#emitters = [];
+  }
+
+  /**
+   * @param {{x: number, y: number, z: number}} position
+   * @param {number} index
+   */
+  #forEachPosition(position, index) {
+    const emitter = this.#emitters[index];
+    emitter.setPosition(position.x, position.y + 0.45, position.z);
+    emitter.particlesystem.reset();
+    emitter.particlesystem.play();
   }
 }

@@ -13,19 +13,20 @@ export class CastleChimneySightline {
   static add(pc, app, root, buildPlan) {
     const plan = buildPlan.metadata.runtime.residential;
     const layout = new CastleResidentialLayout(buildPlan);
-    const flues = plan.furniture.filter(/**
-     * @param {import("../../generator/castle/rooms/AbstractCastleRoomGenerator.js").RoomItem} item
-     * @returns {boolean}
-     */ item => item.object === "Fireplace").map(/**
-     * @param {import("../../generator/castle/rooms/AbstractCastleRoomGenerator.js").RoomItem} item
-     * @returns {import("playcanvas").Mat4}
-     */ item => {
+    const flues = plan.furniture.filter(CastleChimneySightline.#filterItem).map(
+      /**
+       * @param {import("../../generator/castle/rooms/AbstractCastleRoomGenerator.js").RoomItem} item
+       * @returns {import("playcanvas").Mat4}
+       */ item => {
         const position = layout.toWorld(item.x, item.z, item.floorY - layout.origin.y);
         const rotation = new pc.Quat().setFromEulerAngles(0, layout.yaw + 180 + (item.rotation ?? 0), 0);
 
         return new pc.Mat4().setTRS(new pc.Vec3(position.x, position.y, position.z), rotation, new pc.Vec3(1, 1, 1));
-      });
-    if (!flues.length) { return; }
+      },
+    );
+    if (!flues.length) {
+      return;
+    }
     const materials = new Map();
     for (const render of root.findComponents("render")) {
       for (const instance of render.meshInstances) {
@@ -82,5 +83,13 @@ export class CastleChimneySightline {
       handle.off();
       for (const material of materials.values()) { material.destroy(); }
     });
+  }
+
+  /**
+   * @param {import("../../generator/castle/rooms/AbstractCastleRoomGenerator.js").RoomItem} item
+   * @returns {boolean}
+   */
+  static #filterItem(item) {
+    return item.object === "Fireplace";
   }
 }

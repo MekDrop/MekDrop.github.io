@@ -526,7 +526,7 @@ it("lets terrace choreography request a swing without bypassing hero clearance",
   let openings = 0;
   door.onOpen = () => { openings++;
 
- return true; };
+    return true; };
   assert.equal(door.handlePointerDown(), true);
   assert.equal(openings, 1);
   door.sequenceOpenAmount = 1;

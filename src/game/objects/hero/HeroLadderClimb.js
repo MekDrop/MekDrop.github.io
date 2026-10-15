@@ -221,7 +221,7 @@ export class HeroLadderClimb {
     if (landed || outsideLadder || (!this.#exiting && !this.#mounting && speed < 0 && position.y <= bottom.y + 0.025)) {
       this.reset();
 
- return null;
+      return null;
     }
     // Roof collision supports the capsule while approaching the opening. Once
     // that support ends, descend immediately rather than holding it in midair.

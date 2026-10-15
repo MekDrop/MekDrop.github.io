@@ -48,21 +48,7 @@ export class PathArrowTextures {
   constructor({ pc, app }) {
     this.#pc = pc;
     this.#app = app;
-    this.#updateHandle = app.on("update", /**
-     * @param {number} deltaTime
-     */
-      (deltaTime) => {
-        this.#time += deltaTime;
-        for (const material of this.#materials.values()) {
-          material.setParameter("uRouteTime", this.#time);
-        }
-        // Instance matrices are authored in map coordinates. Remove the owning
-        // terrain node's transform so paint follows island motion and map rotation.
-        for (const { mesh, inverse } of this.#surfaces) {
-          inverse.copy(mesh.node.getWorldTransform()).invert();
-          mesh.setParameter("uRouteWorldToMap", inverse.data);
-        }
-      });
+    this.#updateHandle = app.on("update", this.#on.bind(this));
   }
 
   get visible() {
@@ -299,5 +285,21 @@ export class PathArrowTextures {
   destroy() {
     this.clear();
     this.#updateHandle.off();
+  }
+
+  /**
+   * @param {number} deltaTime
+   */
+  #on(deltaTime) {
+    this.#time += deltaTime;
+    for (const material of this.#materials.values()) {
+      material.setParameter("uRouteTime", this.#time);
+    }
+    // Instance matrices are authored in map coordinates. Remove the owning
+    // terrain node's transform so paint follows island motion and map rotation.
+    for (const { mesh, inverse } of this.#surfaces) {
+      inverse.copy(mesh.node.getWorldTransform()).invert();
+      mesh.setParameter("uRouteWorldToMap", inverse.data);
+    }
   }
 }

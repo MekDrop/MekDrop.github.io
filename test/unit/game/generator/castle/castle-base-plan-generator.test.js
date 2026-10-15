@@ -103,7 +103,7 @@ it("runs a room generator at every assigned slot without changing its bounds", a
   const calls = [];
   generator.furnish = (room) => { calls.push({ ...room });
 
- return []; };
+    return []; };
   const result = await CastleBasePlanGenerator.generate({
     planId: "castle-03",
     generators: [generator,

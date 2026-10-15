@@ -102,10 +102,9 @@ export class LibraryRoomFurnishing {
           const width = yaw % 180 ? 0.488 : 0.517, depth = yaw % 180 ? 0.517 : 0.488;
           if (!this.#clear(original, width, depth, 0.4)) { continue; }
           const bounds = this.#room.wallBounds ?? this.#room.contentBounds ?? this.#room;
-          const stair = (this.#room.stairs ?? []).find(/**
-           * @param {StudyBounds & {to?:number}} shaft
-           */
-            shaft => shaft.to === this.#room.level);
+          const stair = (this.#room.stairs ?? []).find(
+            this.#findShaft.bind(this),
+          );
           // The marked corner is the SOUTH window wall meeting the stair
           // opening guard, not an outer corner of the room. The guard's
           // library-side face is one radius plus flight shift from its centre.
@@ -122,7 +121,9 @@ export class LibraryRoomFurnishing {
         }
       }
     }
-    if (!desk) { return; }
+    if (!desk) {
+      return;
+    }
     // Floor candle beside the reading furniture, with its base clear of
     // the table, chair, bookcase aisle and door approach.
     this.#occupied = [];
@@ -362,5 +363,12 @@ export class LibraryRoomFurnishing {
     }
 
     return true;
+  }
+
+  /**
+   * @param {StudyBounds & {to?:number}} shaft
+   */
+  #findShaft(shaft) {
+    return shaft.to === this.#room.level;
   }
 }

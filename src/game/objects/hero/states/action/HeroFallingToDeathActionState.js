@@ -13,10 +13,7 @@ export class HeroFallingToDeathActionState extends HeroRuntimeActionState {
        * @param {{velocity: {x: number, y: number, z: number}}} options
        * @param {{x: number, y: number, z: number}} options.velocity
        */
-      movement: ({ velocity }) => ({
-        x: velocity.x,
-        z: velocity.z,
-      }),
+      movement: HeroFallingToDeathActionState.#movement,
       locksFacing: true,
       allowsFootPlacement: false,
       allowsIdleHeadLook: false,
@@ -42,5 +39,17 @@ export class HeroFallingToDeathActionState extends HeroRuntimeActionState {
     }
     const nextAction = owner.feedback.death.resolve();
     owner.transition(nextAction, { elapsed: 0 });
+  }
+
+  /**
+   *
+   * @param {{velocity: {x: number, y: number, z: number}}} options
+   * @param {{x: number, y: number, z: number}} options.velocity
+   */
+  static #movement({ velocity }) {
+    return {
+      x: velocity.x,
+      z: velocity.z,
+    };
   }
 }

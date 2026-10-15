@@ -59,14 +59,11 @@ export class MapTestControls {
         /**
          * @param {{zoom: number, rotation: number, panX: number, panZ: number}} viewport
          */
-        setViewport: (viewport) => this.#setViewport({
-          ...viewport,
-          manuallyMoved: true,
-        }),
+        setViewport: this.#setViewport2.bind(this),
         /**
          * @param {boolean} enabled
          */
-        setFirstPerson: (enabled) => this.#setFirstPerson(enabled),
+        setFirstPerson: this.#setFirstPerson2.bind(this),
       });
 
       return true;
@@ -91,5 +88,22 @@ export class MapTestControls {
     );
 
     return target?.testStatus ?? "Target unavailable";
+  }
+
+  /**
+   * @param {{zoom: number, rotation: number, panX: number, panZ: number}} viewport
+   */
+  #setViewport2(viewport) {
+    return this.#setViewport({
+      ...viewport,
+      manuallyMoved: true,
+    });
+  }
+
+  /**
+   * @param {boolean} enabled
+   */
+  #setFirstPerson2(enabled) {
+    return this.#setFirstPerson(enabled);
   }
 }

@@ -70,17 +70,9 @@ export class FlowerPaper {
    * @returns {PaperGrassContact[]}
    */
   get grassSurfaceContacts() {
-    return this.#flowers.filter(
-      /**
-       * @param {PaperFlowerState} item
-       */
-      (item) => item.active && item.grassContact,
-    ).map(
-      /**
-       * @param {PaperFlowerState} item
-       */
-      (item) => item.grassContact,
-    );
+    return this.#flowers
+      .filter(FlowerPaper.#filterItem)
+      .map(FlowerPaper.#mapItem);
   }
 
   /**
@@ -139,17 +131,8 @@ export class FlowerPaper {
     this.#simulation ??= new FlowerPaperSimulation();
     item.surface = this.#simulation.addSurface(item.flower.anchor.getPosition(), item.flower.radius + 0.2);
     const source = this.#library.instantiate(item.url);
-    const stemPoints = source.findComponents("render").filter(
-      /**
-       * @param {import("playcanvas").RenderComponent} render
-       */
-      (render) => /\bstem\b/i.test(render.entity.name),
-    ).map(
-      /**
-       * @param {import("playcanvas").RenderComponent} render
-       */
-      (render) => render.entity.getPosition().clone(),
-    );
+    const stemPoints = source.findComponents("render").filter(FlowerPaper.#filterRender)
+      .map(FlowerPaper.#mapRender);
     const pending = [source];
     const rest = new pc.Mat4().setTRS(item.flower.anchor.getPosition(), item.flower.rotation, item.flower.scale);
     const parts = [];
@@ -233,14 +216,19 @@ export class FlowerPaper {
     }
     source.destroy();
     item.parts = parts;
-    item.positions = new Float32Array(vertexOffset * 3); item.normals = new Float32Array(vertexOffset * 3);
+    item.positions = new Float32Array(vertexOffset * 3);
+    item.normals = new Float32Array(vertexOffset * 3);
     item.mesh = new pc.Mesh(this.#app.graphicsDevice);
     item.mesh.clear(true, false, vertexOffset, combinedIndices.length);
-    item.mesh.setPositions(item.positions); item.mesh.setNormals(item.normals); item.mesh.setColors32(colors); item.mesh.setIndices(combinedIndices);
+    item.mesh.setPositions(item.positions);
+    item.mesh.setNormals(item.normals);
+    item.mesh.setColors32(colors);
+    item.mesh.setIndices(combinedIndices);
     item.mesh.update(pc.PRIMITIVE_TRIANGLES);
     item.entity = new pc.Entity(`Paper ${item.flower.variant}`);
     const instance = new pc.MeshInstance(item.mesh, this.#material, item.entity);
-    instance.castShadow = false; instance.receiveShadow = false;
+    instance.castShadow = false;
+    instance.receiveShadow = false;
     item.entity.addComponent("render", {
       meshInstances: [instance],
       castShadows: false,
@@ -265,7 +253,9 @@ export class FlowerPaper {
    * @param {number} deltaTime
    */
   advance(deltaTime) {
-    if (!this.#hero) { return; }
+    if (!this.#hero) {
+      return;
+    }
     const pc = this.#pc;
     const candidates = this.#flowers.map(
       /**
@@ -275,24 +265,10 @@ export class FlowerPaper {
         item,
         distance: item.flower.anchor.getPosition().distance(new pc.Vec3(this.#hero.x, this.#hero.y, this.#hero.z)),
       }),
-    ).filter(
-      /**
-       * @param {{item: PaperFlowerState, distance: number}} entry
-       */
-      ({ item, distance }) => !item.flower.hidden && distance < (item.active ? RELEASE_RADIUS : ACTIVE_RADIUS),
-    ).sort(
-      /**
-       * @param {{distance: number}} a
-       * @param {{distance: number}} b
-       */
-      (a, b) => a.distance - b.distance,
-    ).slice(0, MAX_ACTIVE_FLOWERS);
-    const desired = new Set(candidates.map(
-      /**
-       * @param {{item: PaperFlowerState}} entry
-       */
-      ({ item }) => item,
-    ));
+    ).filter(FlowerPaper.#filter)
+      .sort(FlowerPaper.#sortA)
+      .slice(0, MAX_ACTIVE_FLOWERS);
+    const desired = new Set(candidates.map(FlowerPaper.#map));
     for (const item of this.#flowers) {
       if (item.active && !desired.has(item)) { this.#deactivate(item); }
       if (!item.active && desired.has(item)) { this.#activate(item); }
@@ -380,5 +356,57 @@ export class FlowerPaper {
   destroy() {
     for (const item of this.#flowers) { if (item.active) { this.#deactivate(item); } }
     this.#simulation?.destroy(); this.#entity.destroy(); this.#flowers = [];
+  }
+
+  /**
+   * @param {PaperFlowerState} item
+   */
+  static #filterItem(item) {
+    return item.active && item.grassContact;
+  }
+
+  /**
+   * @param {PaperFlowerState} item
+   */
+  static #mapItem(item) {
+    return item.grassContact;
+  }
+
+  /**
+   * @param {import("playcanvas").RenderComponent} render
+   */
+  static #filterRender(render) {
+    return /\bstem\b/i.test(render.entity.name);
+  }
+
+  /**
+   * @param {import("playcanvas").RenderComponent} render
+   */
+  static #mapRender(render) {
+    return render.entity.getPosition().clone();
+  }
+
+  /**
+   * @param {{item: PaperFlowerState, distance: number}} entry
+   */
+  static #filter({ item, distance }) {
+    return (
+      !item.flower.hidden && distance < (item.active ? RELEASE_RADIUS : ACTIVE_RADIUS)
+    );
+  }
+
+  /**
+   * @param {{distance: number}} a
+   * @param {{distance: number}} b
+   */
+  static #sortA(a, b) {
+    return a.distance - b.distance;
+  }
+
+  /**
+   * @param {{item: PaperFlowerState}} entry
+   */
+  static #map({ item }) {
+    return item;
   }
 }

@@ -185,45 +185,40 @@ export class GroundCover {
   }
   /**
    *
-    * @returns {number}
+   * @returns {number}
    */
   static get modelUrls() {
-    return Object.values(GROUND_COVER_VARIANTS).map(/**
-     *
-     * @param {{modelUrl: string}} options
-     * @param {string} options.modelUrl
-     */
-      ({ modelUrl }) => modelUrl);
+    return Object.values(GROUND_COVER_VARIANTS).map(GroundCover.#map);
   }
 
   /**
    *
-    * @type {typeof import("playcanvas")}
+   * @type {typeof import("playcanvas")}
    */
   #pc;
   /**
    *
-    * @type {import("playcanvas").Application}
+   * @type {import("playcanvas").Application}
    */
   #app;
   /**
    *
-    * @type {import("playcanvas").Entity}
+   * @type {import("playcanvas").Entity}
    */
   #entity;
   /**
    *
-    * @type {Array<GroundCoverItem>}
+   * @type {Array<GroundCoverItem>}
    */
   #items = [];
   /**
    *
-    * @type {Array<GroundCoverCollectible>}
+   * @type {Array<GroundCoverCollectible>}
    */
   #collectibles = [];
   /**
    *
-    * @type {FlowerPhysics|null}
+   * @type {FlowerPhysics|null}
    */
   #flowerPhysics;
   /**
@@ -232,32 +227,32 @@ export class GroundCover {
   #flowerPaper;
   /**
    *
-    * @type {MushroomPhysics|null}
+   * @type {MushroomPhysics|null}
    */
   #mushroomPhysics;
   /**
    *
-    * @type {Map}
+   * @type {Map}
    */
   #materials = new Map();
   /**
    *
-    * @type {Map}
+   * @type {Map}
    */
   #heldMaterials = new Map();
   /**
    *
-    * @type {Array<import("playcanvas").VertexBuffer>}
+   * @type {Array<import("playcanvas").VertexBuffer>}
    */
   #vertexBuffers = [];
   /**
    *
-    * @type {import("playcanvas").EventHandle|null}
+   * @type {import("playcanvas").EventHandle|null}
    */
   #updateHandle = null;
   /**
    *
-    * @type {number}
+   * @type {number}
    */
   #elapsed = 0;
   /**
@@ -270,23 +265,23 @@ export class GroundCover {
   #islandCells = [];
   /**
    *
-    * @type {number}
+   * @type {number}
    */
   #ambientMotion = 0;
 
   /**
    *
-    * @type {(item: GroundCoverCollectible) => void}
+   * @type {(item: GroundCoverCollectible) => void}
    */
   #onCollect;
   /**
    *
-    * @type {(item: GroundCoverCollectible) => void}
+   * @type {(item: GroundCoverCollectible) => void}
    */
   #onCollectibleRemoved;
   /**
    *
-    * @type {typeof import("playcanvas")}
+   * @type {typeof import("playcanvas")}
    */
   #tool = null;
 
@@ -383,14 +378,10 @@ export class GroundCover {
 
   /**
    *
-    * @returns {boolean}
+   * @returns {boolean}
    */
   get grassImpressionContacts() {
-    return this.#items.flatMap(/**
-     *
-     * @param {GroundCoverCollectible} item
-     */
-      (item) => item.grassImpressionContacts);
+    return this.#items.flatMap(GroundCover.#flatMapItem);
   }
 
   /**
@@ -846,7 +837,7 @@ export class GroundCover {
   /**
    *
    * @param {number} deltaTime
-    * @type {(deltaTime: number) => void}
+   * @type {(deltaTime: number) => void}
    */
   #update = (deltaTime) => {
     const frameTime = Math.min(deltaTime, 0.1);
@@ -859,4 +850,21 @@ export class GroundCover {
     this.#flowerPaper.advance(frameTime);
     for (const item of this.#items) item.advance(frameTime);
   };
+
+  /**
+   *
+   * @param {{modelUrl: string}} options
+   * @param {string} options.modelUrl
+   */
+  static #map({ modelUrl }) {
+    return modelUrl;
+  }
+
+  /**
+   *
+   * @param {GroundCoverCollectible} item
+   */
+  static #flatMapItem(item) {
+    return item.grassImpressionContacts;
+  }
 }

@@ -99,13 +99,7 @@ export class DecorationValidator {
     stonePlacements,
   ) {
     const occupied = new Set(
-      vegetationPlacements.map(/**
-       *
-       * @param {{col: number, row: number}} options
-       * @param {number} options.col
-       * @param {number} options.row
-       */
-        ({ col, row }) => MapGrid.tileKey(col, row)),
+      vegetationPlacements.map(DecorationValidator.#map),
     );
     const styles = new Set();
     for (const { col, row, parts } of stonePlacements) {
@@ -122,34 +116,7 @@ export class DecorationValidator {
        * @param {number} options.diameter
        * @param {number} options.height
        */
-      const isInvalidStone = ({
-        variant,
-        style,
-        color,
-        levels,
-        offsetX,
-        offsetZ,
-        diameter,
-        height,
-      }) =>
-        !Number.isInteger(variant) ||
-            variant < 0 ||
-            variant > 2 ||
-            !STONE_COLORS.includes(color) ||
-            !Number.isInteger(levels) ||
-            levels < 1 ||
-            levels > 3 ||
-            !Number.isInteger(style) ||
-            style !==
-              variant * STONE_COLORS.length + STONE_COLORS.indexOf(color) ||
-            !Number.isFinite(offsetX) ||
-            !Number.isFinite(offsetZ) ||
-            !Number.isFinite(diameter) ||
-            !Number.isFinite(height) ||
-            Math.abs(offsetX) + diameter / 2 > 0.5 ||
-            Math.abs(offsetZ) + diameter / 2 > 0.5 ||
-            height <= 0 ||
-            height > 0.8;
+      const isInvalidStone = DecorationValidator.#isInvalidStone;
       if (
         occupied.has(key) ||
         !DecorationPlacementRules.isGroundCoverCandidate(grid, heightmap, tileMeta, col, row) ||
@@ -193,14 +160,8 @@ export class DecorationValidator {
     groundCoverData,
   ) {
     const vegetationTiles = new Set(
-      [...vegetationPlacements, ...stonePlacements].map(/**
-       *
-       * @param {{col: number, row: number}} options
-       * @param {number} options.col
-       * @param {number} options.row
-       */
-        ({ col, row }) =>
-          MapGrid.tileKey(col, row),
+      [...vegetationPlacements, ...stonePlacements].map(
+        DecorationValidator.#map2,
       ),
     );
     for (const decoration of groundCoverData) {
@@ -228,5 +189,69 @@ export class DecorationValidator {
         });
       }
     }
+  }
+
+  /**
+   *
+   * @param {{col: number, row: number}} options
+   * @param {number} options.col
+   * @param {number} options.row
+   */
+  static #map({ col, row }) {
+    return MapGrid.tileKey(col, row);
+  }
+
+  /**
+   *
+   * @param {StonePart} options
+   * @param {number} options.variant
+   * @param {number} options.style
+   * @param {string} options.color
+   * @param {number} options.levels
+   * @param {number} options.offsetX
+   * @param {number} options.offsetZ
+   * @param {number} options.diameter
+   * @param {number} options.height
+   */
+  static #isInvalidStone({
+    variant,
+    style,
+    color,
+    levels,
+    offsetX,
+    offsetZ,
+    diameter,
+    height,
+  }) {
+    return (
+      !Number.isInteger(variant) ||
+            variant < 0 ||
+            variant > 2 ||
+            !STONE_COLORS.includes(color) ||
+            !Number.isInteger(levels) ||
+            levels < 1 ||
+            levels > 3 ||
+            !Number.isInteger(style) ||
+            style !==
+              variant * STONE_COLORS.length + STONE_COLORS.indexOf(color) ||
+            !Number.isFinite(offsetX) ||
+            !Number.isFinite(offsetZ) ||
+            !Number.isFinite(diameter) ||
+            !Number.isFinite(height) ||
+            Math.abs(offsetX) + diameter / 2 > 0.5 ||
+            Math.abs(offsetZ) + diameter / 2 > 0.5 ||
+            height <= 0 ||
+            height > 0.8
+    );
+  }
+
+  /**
+   *
+   * @param {{col: number, row: number}} options
+   * @param {number} options.col
+   * @param {number} options.row
+   */
+  static #map2({ col, row }) {
+    return MapGrid.tileKey(col, row);
   }
 }

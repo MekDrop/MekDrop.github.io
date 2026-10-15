@@ -9,15 +9,9 @@ export class CastleLanternMapObjects {
    */
   static prepareMap(mapData) {
     const castles = (mapData.objects ?? []).filter(
-      /**
-       * @param {import("../ObjectTypes.js").MapObjectDefinition} item
-       */
-      item => item.object === "Castle" && item.buildPlan?.input?.position);
-    const ids = new Set(castles.map(
-      /**
-       * @param {import("../ObjectTypes.js").MapObjectDefinition} castle
-       */
-      castle => castle.id));
+      CastleLanternMapObjects.#filterItem,
+    );
+    const ids = new Set(castles.map(CastleLanternMapObjects.#mapCastle));
     mapData.objects = (mapData.objects ?? []).filter(
       /**
        * @param {import("../ObjectTypes.js").MapObjectDefinition} item
@@ -63,10 +57,8 @@ export class CastleLanternMapObjects {
       };
       if (layout && plan.layout.basePlanId && plan.input.doors?.length) {
         const entrance = residential.openings.find(
-          /**
-           * @param {{exteriorEntrance:boolean}} opening
-           */
-          opening => opening.exteriorEntrance);
+          CastleLanternMapObjects.#findOpening,
+        );
         if (entrance) {
           for (const flank of [-1, 1]) {
             add({
@@ -133,7 +125,9 @@ export class CastleLanternMapObjects {
         }
       }
       const door = plan.input.doors?.[0];
-      if (!door) { continue; }
+      if (!door) {
+        continue;
+      }
       const { x, z, width, depth, elevation = 0 } = plan.input.position;
       const offset = (door.offset ?? 0) + (door.width ?? 2) / 2;
       const directions = {
@@ -173,10 +167,8 @@ export class CastleLanternMapObjects {
       const floorDepth = room ? room.maxZ : Math.min(Math.max(0, direction.capacity - 0.5),
         Math.max(0, plan.metadata.runtime.interiorDepth));
       const throne = layout?.reservations.find(
-        /**
-         * @param {{role:string}} zone
-         */
-        zone => zone.role === "throne");
+        CastleLanternMapObjects.#findZone,
+      );
       const clearance = layout?.throneRearWindow ? 0.35 : 0.65;
       const forward = throne ? throne.maxZ - clearance : Math.max(0, floorDepth - clearance);
       const yaw = layout?.yaw ?? direction.yaw;
@@ -215,5 +207,33 @@ export class CastleLanternMapObjects {
         });
       }
     }
+  }
+
+  /**
+   * @param {import("../ObjectTypes.js").MapObjectDefinition} item
+   */
+  static #filterItem(item) {
+    return item.object === "Castle" && item.buildPlan?.input?.position;
+  }
+
+  /**
+   * @param {import("../ObjectTypes.js").MapObjectDefinition} castle
+   */
+  static #mapCastle(castle) {
+    return castle.id;
+  }
+
+  /**
+   * @param {{exteriorEntrance:boolean}} opening
+   */
+  static #findOpening(opening) {
+    return opening.exteriorEntrance;
+  }
+
+  /**
+   * @param {{role:string}} zone
+   */
+  static #findZone(zone) {
+    return zone.role === "throne";
   }
 }

@@ -217,17 +217,7 @@ export class PathSurfaceValidator {
    */
   validatePathDips(grid, heightmap, tileMeta, plans, riverData) {
     const riverCells = new Set(
-      riverData.flatMap(/**
-       *
-       * @param {RiverRecord} river
-       */
-        (river) =>
-          river.cells.map(/**
-         *
-         * @param {MapCell} cell
-         */
-            (cell) => MapGrid.tileKey(cell.col, cell.row)),
-      ),
+      riverData.flatMap(PathSurfaceValidator.#flatMapRiver),
     );
     const planIds = new Set();
     const plannedCells = new Set();
@@ -379,23 +369,7 @@ export class PathSurfaceValidator {
    */
   validateBridgeGroundHeights(heightmap, tileMeta, riverData) {
     const riverBridgeCells = new Set(
-      riverData.flatMap(/**
-       *
-       * @param {RiverRecord} river
-       */
-        (river) =>
-          river.cells
-            .filter(/**
-           *
-           * @param {MapCell} cell
-           */
-              (cell) => cell.underBridge)
-            .map(/**
-           *
-           * @param {MapCell} cell
-           */
-              (cell) => MapGrid.tileKey(cell.col, cell.row)),
-      ),
+      riverData.flatMap(PathSurfaceValidator.#flatMapRiver2),
     );
     for (let row = 0; row < MAP_ROWS; row++) {
       for (let col = 0; col < MAP_COLS; col++) {
@@ -462,5 +436,47 @@ export class PathSurfaceValidator {
         }
       }
     }
+  }
+
+  /**
+   *
+   * @param {RiverRecord} river
+   */
+  static #flatMapRiver(river) {
+    return river.cells.map(PathSurfaceValidator.#mapCell);
+  }
+
+  /**
+   *
+   * @param {RiverRecord} river
+   */
+  static #flatMapRiver2(river) {
+    return river.cells
+      .filter(PathSurfaceValidator.#filterCell)
+      .map(PathSurfaceValidator.#mapCell2);
+  }
+
+  /**
+   *
+   * @param {MapCell} cell
+   */
+  static #mapCell(cell) {
+    return MapGrid.tileKey(cell.col, cell.row);
+  }
+
+  /**
+   *
+   * @param {MapCell} cell
+   */
+  static #filterCell(cell) {
+    return cell.underBridge;
+  }
+
+  /**
+   *
+   * @param {MapCell} cell
+   */
+  static #mapCell2(cell) {
+    return MapGrid.tileKey(cell.col, cell.row);
   }
 }

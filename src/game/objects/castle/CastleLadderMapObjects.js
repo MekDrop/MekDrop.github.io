@@ -8,10 +8,9 @@ export class CastleLadderMapObjects {
    * @param {import("../../GameContracts.js").GameMapData} map
    */
   static prepareMap(map) {
-    map.objects = (map.objects ?? []).filter(/**
-     * @param {import("../ObjectTypes.js").MapObjectDefinition} item
-     */
-      (item) => !(item.generated && item.object === "Ladder" && item.sourceCastleId));
+    map.objects = (map.objects ?? []).filter(
+      CastleLadderMapObjects.#filterItem,
+    );
     for (const castle of [...map.objects]) {
       const plan = castle.buildPlan?.metadata?.runtime?.residential;
       const access = plan?.roofAccess;
@@ -41,5 +40,12 @@ export class CastleLadderMapObjects {
         },
       });
     }
+  }
+
+  /**
+   * @param {import("../ObjectTypes.js").MapObjectDefinition} item
+   */
+  static #filterItem(item) {
+    return !(item.generated && item.object === "Ladder" && item.sourceCastleId);
   }
 }

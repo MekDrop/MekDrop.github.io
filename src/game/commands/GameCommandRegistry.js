@@ -37,14 +37,7 @@ export class GameCommandRegistry {
    * @returns {Array}
    */
   get commands() {
-    return [...this.#commands.values()].sort(/**
-     *
-     * @param {{name: string}} left
-     * @param {{name: string}} right
-     */
-      (left, right) =>
-        left.name.localeCompare(right.name),
-    );
+    return [...this.#commands.values()].sort(GameCommandRegistry.#sortLeft);
   }
 
   /**
@@ -115,5 +108,14 @@ export class GameCommandRegistry {
       invocation,
       previous,
     });
+  }
+
+  /**
+   *
+   * @param {{name: string}} left
+   * @param {{name: string}} right
+   */
+  static #sortLeft(left, right) {
+    return left.name.localeCompare(right.name);
   }
 }

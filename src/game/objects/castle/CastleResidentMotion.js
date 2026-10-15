@@ -214,19 +214,10 @@ export class CastleResidentMotion {
 
             return point;
           });
-      } else { points = stair.treads.map(/**
-       *
-       * @param {import("playcanvas").Vec3} point
-       */
-        (point) => this.#actor.entity.getPosition().clone().set(point.x, point.y, point.z)); }
-      const route = points.map(/**
-       *
-       * @param {import("playcanvas").Vec3} point
-       */
-        (point) => ({
-          point,
-          links: [],
-        }));
+      } else {
+        points = stair.treads.map(this.#mapPoint.bind(this));
+      }
+      const route = points.map(CastleResidentMotion.#mapPoint2);
       for (let index = 1; index < route.length; index++) {
         route[index - 1].links.push(route[index]); route[index].links.push(route[index - 1]);
       }
@@ -328,5 +319,24 @@ export class CastleResidentMotion {
     }
 
     return null;
+  }
+
+  /**
+   *
+   * @param {import("playcanvas").Vec3} point
+   */
+  #mapPoint(point) {
+    return this.#actor.entity.getPosition().clone().set(point.x, point.y, point.z);
+  }
+
+  /**
+   *
+   * @param {import("playcanvas").Vec3} point
+   */
+  static #mapPoint2(point) {
+    return {
+      point,
+      links: [],
+    };
   }
 }

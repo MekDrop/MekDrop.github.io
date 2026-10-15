@@ -9,21 +9,17 @@ export class CastleSignalTowerMapObjects {
    */
   static prepareMap(map) {
     map.objects = (map.objects ?? []).filter(
-      /**
-       * @param {import("../ObjectTypes.js").MapObjectDefinition} item
-       */
-      item => !(item.generated && item.id.startsWith(`${item.sourceCastleId}-signal-`)),
+      CastleSignalTowerMapObjects.#filterItem,
     );
     for (const castle of [...map.objects]) {
       if (castle.object !== "Castle") { continue; }
       const station = CastleSignalTowerLayout.describe(castle.buildPlan);
-      if (!station) { continue; }
+      if (!station) {
+        continue;
+      }
       const decorations = castle.buildPlan.geometry.decorations;
       decorations.banners = decorations.banners.filter(
-        /**
-         * @param {{signalTower?:boolean}} banner
-         */
-        banner => !banner.signalTower,
+        CastleSignalTowerMapObjects.#filterBanner,
       );
       decorations.banners.push(station.banner);
       for (const [suffix, object, placement] of [
@@ -44,5 +40,19 @@ export class CastleSignalTowerMapObjects {
         });
       }
     }
+  }
+
+  /**
+   * @param {import("../ObjectTypes.js").MapObjectDefinition} item
+   */
+  static #filterItem(item) {
+    return !(item.generated && item.id.startsWith(`${item.sourceCastleId}-signal-`));
+  }
+
+  /**
+   * @param {{signalTower?:boolean}} banner
+   */
+  static #filterBanner(banner) {
+    return !banner.signalTower;
   }
 }

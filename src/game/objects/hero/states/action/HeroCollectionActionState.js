@@ -46,9 +46,7 @@ export class HeroCollectingActionState extends HeroRuntimeActionState {
        * @param {{payload: import("src/game/objects/ObjectTypes.js").HeroActionPayload}} options
        * @param {import("src/game/objects/ObjectTypes.js").HeroActionPayload} options.payload
        */
-      animation: ({ payload }) => payload.positioning
-        ? HERO_ANIMATION.WALK
-        : payload.animation,
+      animation: HeroCollectingActionState.#animation,
       allowedTransitions: [HERO_ACTION.BLOCKED_DIG_REACTION],
       requiresGrounded: true,
       blocksMovement: true,
@@ -108,6 +106,17 @@ export class HeroCollectingActionState extends HeroRuntimeActionState {
     owner.feedback.collection.endCollection(action);
     super.exit(owner);
   }
+
+  /**
+   *
+   * @param {{payload: import("src/game/objects/ObjectTypes.js").HeroActionPayload}} options
+   * @param {import("src/game/objects/ObjectTypes.js").HeroActionPayload} options.payload
+   */
+  static #animation({ payload }) {
+    return payload.positioning
+      ? HERO_ANIMATION.WALK
+      : payload.animation;
+  }
 }
 
 export class HeroInventoryFullActionState extends HeroRuntimeActionState {
@@ -118,9 +127,7 @@ export class HeroInventoryFullActionState extends HeroRuntimeActionState {
        * @param {{payload: import("src/game/objects/ObjectTypes.js").HeroActionPayload}} options
        * @param {import("src/game/objects/ObjectTypes.js").HeroActionPayload} options.payload
        */
-      animation: ({ payload }) => payload.positioning
-        ? HERO_ANIMATION.WALK
-        : HERO_ANIMATION.INVENTORY_FULL_COLLAPSE,
+      animation: HeroInventoryFullActionState.#animation,
       allowedTransitions: [HERO_ACTION.BLOCKED_DIG_REACTION],
       requiresGrounded: true,
       blocksMovement: true,
@@ -166,5 +173,16 @@ export class HeroInventoryFullActionState extends HeroRuntimeActionState {
     const action = this.payload;
     owner.feedback.collection.endInventoryFull(action);
     super.exit(owner);
+  }
+
+  /**
+   *
+   * @param {{payload: import("src/game/objects/ObjectTypes.js").HeroActionPayload}} options
+   * @param {import("src/game/objects/ObjectTypes.js").HeroActionPayload} options.payload
+   */
+  static #animation({ payload }) {
+    return payload.positioning
+      ? HERO_ANIMATION.WALK
+      : HERO_ANIMATION.INVENTORY_FULL_COLLAPSE;
   }
 }

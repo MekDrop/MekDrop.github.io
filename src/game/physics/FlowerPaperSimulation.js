@@ -275,12 +275,8 @@ export class FlowerPaperSimulation {
    * @param {Quat} facing
    */
   step(deltaTime, feet, facing) {
-    const moved = feet.some(/**
-     *
-     * @param {Vec3} foot
-     * @param {number} index
-     */
-      (foot, index) => foot.distance(this.#previousFeet[index]) > 0.0001) ||
+    const moved =
+      feet.some(this.#someFoot.bind(this)) ||
       Math.abs(facing.dot(this.#previousFacing)) < 0.999999;
     if (moved) {
       this.#stationaryTime = 0;
@@ -348,5 +344,14 @@ export class FlowerPaperSimulation {
     for (const shape of this.#shapes.values()) { this.#world.destroyShape(shape); }
     this.#world.destroy();
     this.#joints.clear(); this.#bodies.clear(); this.#shapes.clear();
+  }
+
+  /**
+   *
+   * @param {Vec3} foot
+   * @param {number} index
+   */
+  #someFoot(foot, index) {
+    return foot.distance(this.#previousFeet[index]) > 0.0001;
   }
 }

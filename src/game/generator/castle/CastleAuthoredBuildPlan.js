@@ -103,10 +103,7 @@ export class CastleAuthoredBuildPlan {
       ...transform(space),
       wallBounds: transform(space.wallBounds),
     }); }
-    const placedRooms = spaces.filter(/**
-     * @param {import("./CastleBasePlanGenerator.js").CompiledCastleSpace} space
-     */
-      (space) => space.kind === "room");
+    const placedRooms = spaces.filter(CastleAuthoredBuildPlan.#filterSpace);
     const buildings = authored.buildings.map(/**
      * @param {import("./CastleBasePlanGenerator.js").CompiledCastleSpace} building
      */
@@ -143,10 +140,9 @@ export class CastleAuthoredBuildPlan {
         if (Math.abs(opening.coordinate - boundary) <= thickness * 1.1) { opening.coordinate = boundary; }
       }
     }
-    const rooms = Object.fromEntries(placedRooms.map(/**
-     * @param {import("./CastleBasePlanGenerator.js").CompiledCastleSpace} room
-     */
-      (room) => [room.id, room]));
+    const rooms = Object.fromEntries(
+      placedRooms.map(CastleAuthoredBuildPlan.#mapRoom),
+    );
     rooms.work = rooms["throne-hall"];
     rooms.bedroom = rooms["royal-chamber"] ?? rooms.work;
     rooms.service = rooms["service-quarters"] ?? rooms.kitchen ?? rooms.armory ?? rooms.work;
@@ -317,10 +313,7 @@ export class CastleAuthoredBuildPlan {
       spaces,
       placedRooms,
       openings,
-      doorways: openings.filter(/**
-       * @param {import("./CastleBasePlanGenerator.js").CompiledCastleOpening} opening
-       */
-        (opening) => opening.kind === "door"),
+      doorways: openings.filter(CastleAuthoredBuildPlan.#filterOpening),
       furniture,
       rise: authored.floorHeight,
       floorHeight: authored.floorHeight,
@@ -361,9 +354,10 @@ export class CastleAuthoredBuildPlan {
         bottom: world(gate.center - authored.roofAccess.bottom.x, gate.coordinate - authored.roofAccess.bottom.z, authored.roofAccess.bottom.y),
         top: world(gate.center - authored.roofAccess.top.x, gate.coordinate - authored.roofAccess.top.z, authored.roofAccess.top.y),
       };
-      residential.walkableAreas = residential.walkableAreas.flatMap(/**
-       * @param {{minX:number,maxX:number,minZ:number,maxZ:number,floorY:number,id:string}} area
-       */
+      residential.walkableAreas = residential.walkableAreas.flatMap(
+        /**
+         * @param {{minX:number,maxX:number,minZ:number,maxZ:number,floorY:number,id:string}} area
+         */
         (area) => {
           if (area.floorY !== authored.roofAccess.top.y) { return [area]; }
           const left = Math.max(area.minX, hole.minX), right = Math.min(area.maxX, hole.maxX);
@@ -381,32 +375,30 @@ export class CastleAuthoredBuildPlan {
             minX: left,
             maxX: right,
             maxZ: front,
-          }, {
+          },
+          {
             ...area,
             minX: left,
             maxX: right,
             minZ: rear,
           }]
-            .filter(/**
-           * @param {{minX:number,maxX:number,minZ:number,maxZ:number}} part
-           */
-              (part) => part.maxX > part.minX && part.maxZ > part.minZ);
-        });
+            .filter(CastleAuthoredBuildPlan.#filterPart);
+        },
+      );
     }
     for (const building of authored.buildings) {
       // Upper rooms need the same continuous structural floor as the ground
       // level, including the wall thickness around their doorways.
-      const levels = new Set(spaces.filter(/**
+      const levels = new Set(
+        spaces.filter(/**
                                             * @param {import("./CastleBasePlanGenerator.js").CompiledCastleSpace} space
                                             */
-        space => space.kind !== "void" &&
+          space => space.kind !== "void" &&
         space.floorY > baseY && space.floorY < building.floorY + building.height &&
         space.minX >= gate.center - building.maxX && space.maxX <= gate.center - building.minX &&
         space.minZ >= gate.coordinate - building.maxZ && space.maxZ <= gate.coordinate - building.minZ)
-        .map(/**
-              * @param {import("./CastleBasePlanGenerator.js").CompiledCastleSpace} space
-              */
-          space => space.floorY));
+          .map(CastleAuthoredBuildPlan.#mapSpace),
+      );
       for (const floorY of levels) {
         residential.walkableAreas.push({
           ...transform(building),
@@ -451,9 +443,10 @@ export class CastleAuthoredBuildPlan {
     for (const stair of stairs) {
       const shaft = stair.shaft;
       const topY = stair.center.y + stair.rise;
-      residential.walkableAreas = residential.walkableAreas.flatMap(/**
-       * @param {{minX:number,maxX:number,minZ:number,maxZ:number,floorY:number,id:string}} area
-       */ (area) => {
+      residential.walkableAreas = residential.walkableAreas.flatMap(
+        /**
+         * @param {{minX:number,maxX:number,minZ:number,maxZ:number,floorY:number,id:string}} area
+         */ (area) => {
           if (area.floorY !== topY) { return [area]; }
           const left = Math.max(area.minX, shaft.minX), right = Math.min(area.maxX, shaft.maxX);
           const front = Math.max(area.minZ, shaft.minZ), rear = Math.min(area.maxZ, shaft.maxZ);
@@ -477,10 +470,9 @@ export class CastleAuthoredBuildPlan {
             maxX: right,
             minZ: rear,
           }]
-            .filter(/**
-           * @param {{minX:number,maxX:number,minZ:number,maxZ:number}} piece
-           */ piece => piece.maxX > piece.minX && piece.maxZ > piece.minZ);
-        });
+            .filter(CastleAuthoredBuildPlan.#filterPiece);
+        },
+      );
       const angle = (stair.yaw - yaw) * Math.PI / 180;
       const cosine = Math.round(Math.cos(angle)), sine = Math.round(Math.sin(angle));
       const cx = stair.localCenter.x, cz = stair.localCenter.z;
@@ -496,18 +488,10 @@ export class CastleAuthoredBuildPlan {
       residential.walkableAreas.push({
         id: stair.id + ':straightLanding',
         floorY: topY,
-        minX: Math.min(...corners.map(/**
-                                       * @param {{x:number,z:number}} point
-                                       */ point => point.x)),
-        maxX: Math.max(...corners.map(/**
-                                       * @param {{x:number,z:number}} point
-                                       */ point => point.x)),
-        minZ: Math.min(...corners.map(/**
-                                       * @param {{x:number,z:number}} point
-                                       */ point => point.z)),
-        maxZ: Math.max(...corners.map(/**
-                                       * @param {{x:number,z:number}} point
-                                       */ point => point.z)),
+        minX: Math.min(...corners.map(CastleAuthoredBuildPlan.#mapPoint)),
+        maxX: Math.max(...corners.map(CastleAuthoredBuildPlan.#mapPoint2)),
+        minZ: Math.min(...corners.map(CastleAuthoredBuildPlan.#mapPoint3)),
+        maxZ: Math.max(...corners.map(CastleAuthoredBuildPlan.#mapPoint4)),
       });
     }
     // Thresholds on the lowest floor also need a single surface owner.
@@ -541,12 +525,11 @@ export class CastleAuthoredBuildPlan {
       },
     });
     // Remove every upper void after thresholds and stair landings are compiled.
-    for (const space of spaces.filter(/**
-                                       * @param {import("./CastleBasePlanGenerator.js").CompiledCastleSpace} space
-                                       */ (space) => space.kind === "void")) {
-      residential.walkableAreas = residential.walkableAreas.flatMap(/**
-                                                                     * @param {{floorY:number,minX:number,maxX:number,minZ:number,maxZ:number}} area
-                                                                     */ (area) => {
+    for (const space of spaces.filter(CastleAuthoredBuildPlan.#filterSpace2)) {
+      residential.walkableAreas = residential.walkableAreas.flatMap(
+        /**
+         * @param {{floorY:number,minX:number,maxX:number,minZ:number,maxZ:number}} area
+         */ (area) => {
           if (area.floorY !== space.floorY) { return [area]; }
           const a = Math.max(area.minX, space.minX);
           const b = Math.min(area.maxX, space.maxX);
@@ -571,10 +554,9 @@ export class CastleAuthoredBuildPlan {
             maxX: b,
             minZ: d,
           }]
-            .filter(/**
-                   * @param {{minX:number,maxX:number,minZ:number,maxZ:number}} piece
-                   */ (piece) => piece.maxX > piece.minX && piece.maxZ > piece.minZ);
-        });
+            .filter(CastleAuthoredBuildPlan.#filterPiece2);
+        },
+      );
     }
     const geometry = {
       boxes: [],
@@ -599,10 +581,8 @@ export class CastleAuthoredBuildPlan {
       const sx = crosswise ? bounds.maxZ - bounds.minZ : bounds.maxX - bounds.minX;
       const sz = crosswise ? bounds.maxX - bounds.minX : bounds.maxZ - bounds.minZ;
       const sy = bounds.maxY - bounds.minY;
-      const key = [point.x, point.y, point.z, sx, sy, sz].map(/**
-       * @param {number} value
-       */
-        (value) => value.toFixed(5)).join(":");
+      const key = [point.x, point.y, point.z, sx, sy, sz].map(CastleAuthoredBuildPlan.#mapValue)
+        .join(":");
       if (uniqueBoxes.has(key)) { return; }
       uniqueBoxes.add(key);
       // The gate's quarter-metre masonry vocabulary, instanced by material.
@@ -650,9 +630,10 @@ export class CastleAuthoredBuildPlan {
     const addBox = (bounds, material = "castleStoneMid") => {
       let pieces = [bounds];
       for (const occupied of occupiedBounds) {
-        pieces = pieces.flatMap(/**
-         * @param {{minX:number,maxX:number,minZ:number,maxZ:number,minY:number,maxY:number}} piece
-         */ (piece) => {
+        pieces = pieces.flatMap(
+          /**
+           * @param {{minX:number,maxX:number,minZ:number,maxZ:number,minY:number,maxY:number}} piece
+           */ (piece) => {
             const minX = Math.max(piece.minX, occupied.minX), maxX = Math.min(piece.maxX, occupied.maxX);
             const minY = Math.max(piece.minY, occupied.minY), maxY = Math.min(piece.maxY, occupied.maxY);
             const minZ = Math.max(piece.minZ, occupied.minZ), maxZ = Math.min(piece.maxZ, occupied.maxZ);
@@ -690,11 +671,9 @@ export class CastleAuthoredBuildPlan {
               maxY,
               minZ: maxZ,
               maxZ: piece.maxZ,
-            }].filter(/**
-             * @param {{minX:number,maxX:number,minZ:number,maxZ:number,minY:number,maxY:number}} remainder
-             */ (remainder) => remainder.maxX - remainder.minX > 1e-6 &&
-              remainder.maxY - remainder.minY > 1e-6 && remainder.maxZ - remainder.minZ > 1e-6);
-          });
+            }].filter(CastleAuthoredBuildPlan.#filterRemainder);
+          },
+        );
         if (!pieces.length) { return; }
       }
       for (const piece of pieces) { emitBox(piece, material); }
@@ -779,18 +758,9 @@ export class CastleAuthoredBuildPlan {
         bottom: room.floorY,
         top: room.floorY + height,
       }];
-      const wallOpenings = openings.flatMap(/**
-       * @param {import("./CastleBasePlanGenerator.js").CompiledCastleOpening} opening
-       */
-        (opening) => {
-          if (!opening.exteriorEntrance) { return [opening]; }
-          // The bundled arch closes the shoulders. Clear the full leaf height
-          // through the wall so its taller centre can swing past either jamb.
-          return [{
-            ...opening,
-            height: opening.height - 0.05,
-          }];
-        });
+      const wallOpenings = openings.flatMap(
+        CastleAuthoredBuildPlan.#flatMapOpening,
+      );
       if (envelope) {
         for (const other of authored.buildings) {
           if (other.id === room.id) { continue; }
@@ -1038,19 +1008,13 @@ export class CastleAuthoredBuildPlan {
       placement.frameOffset = (placement.openingInset ?? 0) + (jamb ? (jamb.x-placement.x)*nx+(jamb.z-placement.z)*nz + Math.abs(nx)*jamb.halfX + Math.abs(nz)*jamb.halfZ - 0.095 : -0.095);
       roomDoors.push(placement);
     }
-    const terraceEntrance = roomDoors.find(/**
-     * @param {{roomId:string}} door
-     */
-      (door) => door.roomId === "upper-stair-room");
+    const terraceEntrance = roomDoors.find(CastleAuthoredBuildPlan.#findDoor);
     const leisure = spaces.find(/**
      * @param {import("./CastleBasePlanGenerator.js").CompiledCastleSpace} space
      */
       (space) => space.kind === "terrace" && space.maxZ === rooms["upper-stair-room"]?.minZ);
     // Use the authored upper landing doorway; never add a second stairhead.
-    const entrance = openings.find(/**
-     * @param {import("./CastleBasePlanGenerator.js").CompiledCastleOpening} opening
-     */
-      (opening) => opening.roomId === "upper-stair-room" && opening.kind === "door");
+    const entrance = openings.find(CastleAuthoredBuildPlan.#findOpening);
     const terraceAreas = leisure ? spaces.filter(/**
      * @param {import("./CastleBasePlanGenerator.js").CompiledCastleSpace} space
      */
@@ -1174,7 +1138,132 @@ export class CastleAuthoredBuildPlan {
       },
     };
   }
+
+  /**
+   * @param {import("./CastleBasePlanGenerator.js").CompiledCastleSpace} space
+   */
+  static #filterSpace(space) {
+    return space.kind === "room";
+  }
+
+  /**
+   * @param {import("./CastleBasePlanGenerator.js").CompiledCastleSpace} room
+   */
+  static #mapRoom(room) {
+    return [room.id, room];
+  }
+
+  /**
+   * @param {import("./CastleBasePlanGenerator.js").CompiledCastleOpening} opening
+   */
+  static #filterOpening(opening) {
+    return opening.kind === "door";
+  }
+
+  /**
+   * @param {{minX:number,maxX:number,minZ:number,maxZ:number}} part
+   */
+  static #filterPart(part) {
+    return part.maxX > part.minX && part.maxZ > part.minZ;
+  }
+
+  /**
+   * @param {import("./CastleBasePlanGenerator.js").CompiledCastleSpace} space
+   */
+  static #mapSpace(space) {
+    return space.floorY;
+  }
+
+  /**
+   * @param {{minX:number,maxX:number,minZ:number,maxZ:number}} piece
+   */
+  static #filterPiece(piece) {
+    return piece.maxX > piece.minX && piece.maxZ > piece.minZ;
+  }
+
+  /**
+   * @param {{x:number,z:number}} point
+   */
+  static #mapPoint(point) {
+    return point.x;
+  }
+
+  /**
+   * @param {{x:number,z:number}} point
+   */
+  static #mapPoint2(point) {
+    return point.x;
+  }
+
+  /**
+   * @param {{x:number,z:number}} point
+   */
+  static #mapPoint3(point) {
+    return point.z;
+  }
+
+  /**
+   * @param {{x:number,z:number}} point
+   */
+  static #mapPoint4(point) {
+    return point.z;
+  }
+
+  /**
+   * @param {import("./CastleBasePlanGenerator.js").CompiledCastleSpace} space
+   */
+  static #filterSpace2(space) {
+    return space.kind === "void";
+  }
+
+  /**
+   * @param {{minX:number,maxX:number,minZ:number,maxZ:number}} piece
+   */
+  static #filterPiece2(piece) {
+    return piece.maxX > piece.minX && piece.maxZ > piece.minZ;
+  }
+
+  /**
+   * @param {number} value
+   */
+  static #mapValue(value) {
+    return value.toFixed(5);
+  }
+
+  /**
+   * @param {{minX:number,maxX:number,minZ:number,maxZ:number,minY:number,maxY:number}} remainder
+   */
+  static #filterRemainder(remainder) {
+    return (
+      remainder.maxX - remainder.minX > 1e-6 &&
+              remainder.maxY - remainder.minY > 1e-6 && remainder.maxZ - remainder.minZ > 1e-6
+    );
+  }
+
+  /**
+   * @param {import("./CastleBasePlanGenerator.js").CompiledCastleOpening} opening
+   */
+  static #flatMapOpening(opening) {
+    if (!opening.exteriorEntrance) { return [opening]; }
+    // The bundled arch closes the shoulders. Clear the full leaf height
+    // through the wall so its taller centre can swing past either jamb.
+    return [{
+      ...opening,
+      height: opening.height - 0.05,
+    }];
+  }
+
+  /**
+   * @param {{roomId:string}} door
+   */
+  static #findDoor(door) {
+    return door.roomId === "upper-stair-room";
+  }
+
+  /**
+   * @param {import("./CastleBasePlanGenerator.js").CompiledCastleOpening} opening
+   */
+  static #findOpening(opening) {
+    return opening.roomId === "upper-stair-room" && opening.kind === "door";
+  }
 }
-
-
-

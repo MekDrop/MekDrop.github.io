@@ -6,22 +6,22 @@ const MINIMUM_STRENGTH = 0.025;
 export class GrassImpressions {
   /**
    *
-    * @type {Array<{x: number, z: number, age: number, strength: number}>}
+   * @type {Array<{x: number, z: number, age: number, strength: number}>}
    */
   #history = [];
   /**
    *
-    * @type {Map}
+   * @type {Map}
    */
   #contacts = new Map();
   /**
    *
-    * @type {Float32Array}
+   * @type {Float32Array}
    */
   #positions = new Float32Array(MAXIMUM_IMPRESSIONS * 4);
   /**
    *
-    * @type {Float32Array}
+   * @type {Float32Array}
    */
   #shapes = new Float32Array(MAXIMUM_IMPRESSIONS * 4);
 
@@ -42,31 +42,11 @@ export class GrassImpressions {
     for (const impression of this.#history) {
       impression.age += deltaTime;
     }
-    this.#history = this.#history.filter(/**
-     *
-     * @param {{age: number}} options
-     * @param {number} options.age
-     */
-      ({ age }) => age < RECOVERY_SECONDS);
+    this.#history = this.#history.filter(GrassImpressions.#filter);
     const active = contacts
-      .map(/**
-       *
-       * @param {number} contact
-       * @param {number} index
-       */
-        (contact, index) => this.#normalize(contact, index))
-      .filter(/**
-       *
-       * @param {{strength: number}} options
-       * @param {number} options.strength
-       */
-        ({ strength }) => strength > MINIMUM_STRENGTH)
-      .sort(/**
-       *
-       * @param {boolean} left
-       * @param {number} right
-       */
-        (left, right) => right.strength - left.strength)
+      .map(this.#mapContact.bind(this))
+      .filter(GrassImpressions.#filter2)
+      .sort(GrassImpressions.#sortLeft)
       .slice(0, MAXIMUM_IMPRESSIONS);
     for (const contact of active) {
       const previous = this.#contacts.get(contact.id);
@@ -100,33 +80,7 @@ export class GrassImpressions {
     this.#shapes.fill(0);
     [...active, ...this.#history]
       .slice(0, MAXIMUM_IMPRESSIONS)
-      .forEach(/**
-       *
-       * @param {{x: number, y: number, z: number, radius: number, strength: number}} impression
-       * @param {number} index
-       */
-        (impression, index) => {
-          const recovery = Math.min(
-            1,
-            (impression.age ?? 0) / RECOVERY_SECONDS,
-          );
-          const strength =
-            impression.strength *
-          (1 - recovery * recovery * (3 - 2 * recovery));
-          this.#positions.set(
-            [impression.x, impression.y, impression.z, strength],
-            index * 4,
-          );
-          this.#shapes.set(
-            [
-              impression.directionX,
-              impression.directionZ,
-              impression.halfWidth,
-              impression.halfLength,
-            ],
-            index * 4,
-          );
-        });
+      .forEach(this.#forEachImpression.bind(this));
   }
 
   /**
@@ -165,6 +119,70 @@ export class GrassImpressions {
     this.#history.length = Math.min(
       MAXIMUM_IMPRESSIONS,
       this.#history.length,
+    );
+  }
+
+  /**
+   *
+   * @param {{age: number}} options
+   * @param {number} options.age
+   */
+  static #filter({ age }) {
+    return age < RECOVERY_SECONDS;
+  }
+
+  /**
+   *
+   * @param {number} contact
+   * @param {number} index
+   */
+  #mapContact(contact, index) {
+    return this.#normalize(contact, index);
+  }
+
+  /**
+   *
+   * @param {{strength: number}} options
+   * @param {number} options.strength
+   */
+  static #filter2({ strength }) {
+    return strength > MINIMUM_STRENGTH;
+  }
+
+  /**
+   *
+   * @param {boolean} left
+   * @param {number} right
+   */
+  static #sortLeft(left, right) {
+    return right.strength - left.strength;
+  }
+
+  /**
+   *
+   * @param {{x: number, y: number, z: number, radius: number, strength: number}} impression
+   * @param {number} index
+   */
+  #forEachImpression(impression, index) {
+    const recovery = Math.min(
+      1,
+      (impression.age ?? 0) / RECOVERY_SECONDS,
+    );
+    const strength =
+      impression.strength *
+          (1 - recovery * recovery * (3 - 2 * recovery));
+    this.#positions.set(
+      [impression.x, impression.y, impression.z, strength],
+      index * 4,
+    );
+    this.#shapes.set(
+      [
+        impression.directionX,
+        impression.directionZ,
+        impression.halfWidth,
+        impression.halfLength,
+      ],
+      index * 4,
     );
   }
 }

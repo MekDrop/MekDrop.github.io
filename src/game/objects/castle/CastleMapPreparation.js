@@ -40,10 +40,7 @@ export class CastleMapPreparation {
     VestibuleRoomMapObjects.prepareMap(mapData);
     CastleLanternMapObjects.prepareMap(mapData);
     const castles = (mapData.objects ?? []).filter(
-      /**
-       * @param {import("../ObjectTypes.js").MapObjectDefinition} definition
-       */
-      (definition) => definition.object === "Castle" && definition.buildPlan?.input?.position,
+      CastleMapPreparation.#filterDefinition,
     );
     const flights = castles.flatMap(/**
      *
@@ -51,12 +48,7 @@ export class CastleMapPreparation {
      */
       (definition) => CastleMapPreparation.#exteriorStairFlights(definition.buildPlan, mapData));
     CastleMapPreparation.#buryBasements(mapData, castles, flights);
-    const layouts = castles.map(
-      /**
-       * @param {import("../ObjectTypes.js").MapObjectDefinition} definition
-       */
-      (definition) => new CastleResidentialLayout(definition.buildPlan),
-    );
+    const layouts = castles.map(CastleMapPreparation.#mapDefinition);
     mapData.objects = (mapData.objects ?? []).filter(
       /**
        * @param {import("../ObjectTypes.js").MapObjectDefinition} definition
@@ -139,16 +131,11 @@ export class CastleMapPreparation {
 
         return clipCastleTerrainRecord(definition, tile ? cutsByTile.get(`${tile.col},${tile.row}`) ?? [] : groundCuts);
       });
-    const turfTiles = new Set(mapData.objects.filter(/**
-     *
-     * @param {import("../ObjectTypes.js").MapObjectDefinition} definition
-     */
-      (definition) => definition.generated && definition.object === "Grass" && definition.tile)
-      .map(/**
-       *
-       * @param {import("../ObjectTypes.js").MapObjectDefinition} definition
-       */
-        (definition) => `${definition.tile.col},${definition.tile.row}`));
+    const turfTiles = new Set(
+      mapData.objects
+        .filter(CastleMapPreparation.#filterDefinition2)
+        .map(CastleMapPreparation.#mapDefinition2),
+    );
     // Foundation ownership can extend beyond the castle walls. Publish every
     // surviving turf tile, including lawn untouched by excavation, to the canopy.
     for (const key of new Set([...cutsByTile.keys(), ...turfTiles])) {
@@ -272,13 +259,10 @@ export class CastleMapPreparation {
           const target = Math.max(1, foundationHeight - (nearWall || inReservation || edgeWave > 0.7 ? 0 : 1));
           if (!(mapData.heightmap?.[row]?.[col] < target)) continue;
           const records = terrain.get(`${col},${row}`) ?? [];
-          const previous = records.reduce(/**
-           *
-           * @param {number} height
-           * @param {import("../ObjectTypes.js").MapObjectDefinition} record
-           */
-            (height, record) => Math.max(height,
-              record.position.y + (record.geometry?.method === "addBoxMatrix" ? record.geometry.args[7] / 2 : 0.5)), 0);
+          const previous = records.reduce(
+            CastleMapPreparation.#reduceHeight,
+            0,
+          );
           for (const record of records) {
             if (record.object !== "Grass") continue;
             record.object = "Earth";
@@ -340,5 +324,49 @@ export class CastleMapPreparation {
         }
         return flight;
       }).filter(Boolean);
+  }
+
+  /**
+   * @param {import("../ObjectTypes.js").MapObjectDefinition} definition
+   */
+  static #filterDefinition(definition) {
+    return (
+      definition.object === "Castle" && definition.buildPlan?.input?.position
+    );
+  }
+
+  /**
+   * @param {import("../ObjectTypes.js").MapObjectDefinition} definition
+   */
+  static #mapDefinition(definition) {
+    return new CastleResidentialLayout(definition.buildPlan);
+  }
+
+  /**
+   *
+   * @param {import("../ObjectTypes.js").MapObjectDefinition} definition
+   */
+  static #filterDefinition2(definition) {
+    return (
+      definition.generated && definition.object === "Grass" && definition.tile
+    );
+  }
+
+  /**
+   *
+   * @param {import("../ObjectTypes.js").MapObjectDefinition} definition
+   */
+  static #mapDefinition2(definition) {
+    return `${definition.tile.col},${definition.tile.row}`;
+  }
+
+  /**
+   *
+   * @param {number} height
+   * @param {import("../ObjectTypes.js").MapObjectDefinition} record
+   */
+  static #reduceHeight(height, record) {
+    return Math.max(height,
+      record.position.y + (record.geometry?.method === "addBoxMatrix" ? record.geometry.args[7] / 2 : 0.5));
   }
 }

@@ -75,11 +75,9 @@ export class Flag {
   /**
    * @returns {import("playcanvas").Entity[]}
    */
-  get visualRoots() { return this.#flags.map(/**
-   *
-   * @param {FlagInstance} flag
-   */
-    (flag) => flag.root); }
+  get visualRoots() {
+    return this.#flags.map(Flag.#mapFlag);
+  }
   /**
    * @param {number} near
    * @param {number} far
@@ -103,16 +101,16 @@ export class Flag {
    */
   handlePointerDown({ hit }) { this.beginWindGesture(hit);
 
- return { capturePointer: true }; }
+    return { capturePointer: true }; }
   /**
    * @param {{ray: {start: import("playcanvas").Vec3, end: import("playcanvas").Vec3}, deltaTime: number}} options
    */
   handlePointerMove({ ray, deltaTime }) { this.applyMouseWind(ray.start, ray.end, deltaTime);
 
- return true; }
+    return true; }
   handlePointerUp() { this.endWindGesture();
 
- return true; }
+    return true; }
   handlePointerCancel() { this.endWindGesture(); }
 
   /**
@@ -125,52 +123,52 @@ export class Flag {
   #modelLibrary;
   /**
    *
-    * @type {typeof import("playcanvas")}
+   * @type {typeof import("playcanvas")}
    */
   #pc;
   /**
    *
-    * @type {import("playcanvas").Application}
+   * @type {import("playcanvas").Application}
    */
   #app;
   /**
    *
-    * @type {import("playcanvas").Entity}
+   * @type {import("playcanvas").Entity}
    */
   #entity;
   /**
    *
-    * @type {import("playcanvas").StandardMaterial}
+   * @type {import("playcanvas").StandardMaterial}
    */
   #flagMaterial;
   /**
    *
-    * @type {import("playcanvas").StandardMaterial}
+   * @type {import("playcanvas").StandardMaterial}
    */
   #poleMaterial;
   /**
    *
-    * @type {import("playcanvas").Texture}
+   * @type {import("playcanvas").Texture}
    */
   #texture;
   /**
    *
-    * @type {Array<FlagInstance>}
+   * @type {Array<FlagInstance>}
    */
   #flags = [];
   /**
    *
-    * @type {FlagInstance|null}
+   * @type {FlagInstance|null}
    */
   #activeFlag = null;
   /**
    *
-    * @type {AmmoClothPhysics}
+   * @type {AmmoClothPhysics}
    */
   #physics;
   /**
    *
-    * @type {{off: () => void}|null}
+   * @type {{off: () => void}|null}
    */
   #updateHandle = null;
 
@@ -203,24 +201,11 @@ export class Flag {
     this.#entity.tags.add("map-object", definition.id, Flag.name);
     if (definition.texture) {
       this.#textureAsset = new pc.Asset(`${definition.id} flag texture`, "texture", { url: definition.texture });
-      this.#textureAsset.once("load", /**
-       *
-       * @param {import("playcanvas").Asset} asset
-       */
-        (asset) => {
-          this.#flagMaterial.diffuseMap = asset.resource;
-          this.#flagMaterial.update();
-        });
+      this.#textureAsset.once("load", this.#once.bind(this));
       app.assets.add(this.#textureAsset);
       app.assets.load(this.#textureAsset);
     }
-    this.#updateHandle = app.on("update", /**
-     *
-     * @param {number} deltaTime
-     */
-      (deltaTime) => {
-        this.#animate(deltaTime);
-      });
+    this.#updateHandle = app.on("update", this.#on.bind(this));
   }
 
   get entity() {
@@ -270,9 +255,7 @@ export class Flag {
 
     const pole = this.#modelLibrary.instantiate(authoredModelUrl);
     pole.name = "Flag pole";
-    for (const instance of pole.findComponents("render").flatMap(/**
-     * @param {import("playcanvas").RenderComponent} render
-     */ (render) => render.meshInstances)) {
+    for (const instance of pole.findComponents("render").flatMap(Flag.#flatMapRender)) {
       instance.material = this.#poleMaterial;
     }
     pole.setLocalPosition(0, poleHeight / 2, 0);
@@ -281,9 +264,7 @@ export class Flag {
 
     const finial = this.#modelLibrary.instantiate(finialModelUrl);
     finial.name = "Flag finial";
-    for (const instance of finial.findComponents("render").flatMap(/**
-     * @param {import("playcanvas").RenderComponent} render
-     */ (render) => render.meshInstances)) {
+    for (const instance of finial.findComponents("render").flatMap(Flag.#flatMapRender2)) {
       instance.material = this.#poleMaterial;
     }
     finial.setLocalPosition(0, poleHeight + 0.035, 0);
@@ -659,5 +640,44 @@ export class Flag {
       // deformed cloth instead of the flag's original flat silhouette.
       flag.mesh.update(this.#pc.PRIMITIVE_TRIANGLES, true);
     }
+  }
+
+  /**
+   *
+   * @param {FlagInstance} flag
+   */
+  static #mapFlag(flag) {
+    return flag.root;
+  }
+
+  /**
+   *
+   * @param {import("playcanvas").Asset} asset
+   */
+  #once(asset) {
+    this.#flagMaterial.diffuseMap = asset.resource;
+    this.#flagMaterial.update();
+  }
+
+  /**
+   *
+   * @param {number} deltaTime
+   */
+  #on(deltaTime) {
+    this.#animate(deltaTime);
+  }
+
+  /**
+   * @param {import("playcanvas").RenderComponent} render
+   */
+  static #flatMapRender(render) {
+    return render.meshInstances;
+  }
+
+  /**
+   * @param {import("playcanvas").RenderComponent} render
+   */
+  static #flatMapRender2(render) {
+    return render.meshInstances;
   }
 }

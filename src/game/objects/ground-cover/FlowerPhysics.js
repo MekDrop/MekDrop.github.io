@@ -49,27 +49,27 @@ export class FlowerPhysics {
   #definitions = [];
   /**
    *
-    * @type {typeof import("playcanvas")}
+   * @type {typeof import("playcanvas")}
    */
   #pc;
   /**
    *
-    * @type {import("playcanvas").Entity}
+   * @type {import("playcanvas").Entity}
    */
   #entity;
   /**
    *
-    * @type {Array<{entity: import("playcanvas").Entity, body: import("playcanvas").RigidBodyComponent}>}
+   * @type {Array<{entity: import("playcanvas").Entity, body: import("playcanvas").RigidBodyComponent}>}
    */
   #feet = [];
   /**
    *
-    * @type {Array<{entity: import("playcanvas").Entity, matrixIndex: number}>}
+   * @type {Array<{entity: import("playcanvas").Entity, matrixIndex: number}>}
    */
   #flowers = [];
   /**
    *
-    * @type {Map}
+   * @type {Map}
    */
   #batches = new Map();
   /**
@@ -86,12 +86,12 @@ export class FlowerPhysics {
   #contactDirection = new Float32Array([0, 1]);
   /**
    *
-    * @type {{x: number, y: number, z: number}}
+   * @type {{x: number, y: number, z: number}}
    */
   #visualPosition;
   /**
    *
-    * @type {{x: number, y: number, z: number}}
+   * @type {{x: number, y: number, z: number}}
    */
   #visualRotation;
   /**
@@ -100,12 +100,12 @@ export class FlowerPhysics {
   #deformedScale;
   /**
    *
-    * @type {boolean}
+   * @type {boolean}
    */
   #hiddenRotation;
   /**
    *
-    * @type {typeof import("playcanvas")}
+   * @type {typeof import("playcanvas")}
    */
   #hiddenScale;
 
@@ -136,12 +136,9 @@ export class FlowerPhysics {
   /**
    * @returns {import("playcanvas").Vec3[]}
    */
-  get footPositions() { return this.#feet.map(
-    /**
-     * @param {import("playcanvas").Entity} foot
-     */
-    (foot) => foot.getPosition().clone(),
-  ); }
+  get footPositions() {
+    return this.#feet.map(FlowerPhysics.#mapFoot);
+  }
 
   get footDirection() { return this.#contactDirection; }
 
@@ -575,5 +572,12 @@ export class FlowerPhysics {
       matrices.set(flower.matrix.data, flower.matrixIndex * 16);
     }
     vertexBuffer.unlock();
+  }
+
+  /**
+   * @param {import("playcanvas").Entity} foot
+   */
+  static #mapFoot(foot) {
+    return foot.getPosition().clone();
   }
 }

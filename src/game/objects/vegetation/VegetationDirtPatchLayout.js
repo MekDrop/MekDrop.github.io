@@ -3,32 +3,32 @@ const GRASS_HEIGHT_TOLERANCE = 0.08;
 export class VegetationDirtPatchLayout {
   /**
    *
-    * @type {number}
+   * @type {number}
    */
   #x;
   /**
    *
-    * @type {number}
+   * @type {number}
    */
   #y;
   /**
    *
-    * @type {number}
+   * @type {number}
    */
   #z;
   /**
    *
-    * @type {number}
+   * @type {number}
    */
   #outline;
   /**
    *
-    * @type {number}
+   * @type {number}
    */
   #cosine;
   /**
    *
-    * @type {number}
+   * @type {number}
    */
   #sine;
 
@@ -45,11 +45,7 @@ export class VegetationDirtPatchLayout {
     this.#x = x;
     this.#y = y;
     this.#z = z;
-    this.#outline = outline.map(/**
-     *
-     * @param {{x: number, y: number, z: number}} point
-     */
-      (point) => ({ ...point }));
+    this.#outline = outline.map(VegetationDirtPatchLayout.#mapPoint);
     const rotationRadians = (rotation * Math.PI) / 180;
     this.#cosine = Math.cos(rotationRadians);
     this.#sine = Math.sin(rotationRadians);
@@ -90,5 +86,13 @@ export class VegetationDirtPatchLayout {
     }
 
     return inside ? 1 : 0;
+  }
+
+  /**
+   *
+   * @param {{x: number, y: number, z: number}} point
+   */
+  static #mapPoint(point) {
+    return { ...point };
   }
 }

@@ -247,12 +247,7 @@ export class RiverBuilder {
       }
     }
     this.#random.shuffle(sourceCandidates);
-    sourceCandidates.sort(/**
-     *
-     * @param {{height: number}} left
-     * @param {{height: number}} right
-     */
-      (left, right) => right.height - left.height);
+    sourceCandidates.sort(RiverBuilder.#sortLeft);
 
     const rivers = [];
     const occupiedRiverCells = new Set();
@@ -308,7 +303,15 @@ export class RiverBuilder {
    * @param {RiverData[]} rivers
    * @param {GenerationYieldState} yieldState
    */
-  async splitRivers(grid, heightmap, tileMeta, layout, islandMask, rivers, yieldState) {
+  async splitRivers(
+    grid,
+    heightmap,
+    tileMeta,
+    layout,
+    islandMask,
+    rivers,
+    yieldState,
+  ) {
     for (const river of [...rivers]) {
       const roll = this.#random.rng(1, 100);
       const branchCount = roll <= RIVER_THREE_BRANCH_CHANCE ? 3 :
@@ -332,35 +335,10 @@ export class RiverBuilder {
        */
         (index) => index > 0 && !river.cells[index].underBridge);
       for (const splitIndex of this.#random.shuffle(candidates)) {
-        const trialGrid = grid.map(/**
-         *
-         * @param {number[]} row
-         */
-          (row) => [...row]);
-        const trialHeights = heightmap.map(/**
-         *
-         * @param {number[]} row
-         */
-          (row) => [...row]);
-        const trialMeta = tileMeta.map(/**
-         *
-         * @param {TileMetadata[]} row
-         */
-          (row) => row.map(/**
-         *
-         * @param {MapCell} cell
-         */
-            (cell) => ({ ...cell })));
-        const occupied = new Set(rivers.flatMap(/**
-         *
-         * @param {RiverData} item
-         */
-          (item) => item.cells.map(
-          /**
-           * @param {MapCell} cell
-           */
-            (cell) => MapGrid.tileKey(cell.col, cell.row),
-          )));
+        const trialGrid = grid.map(RiverBuilder.#mapRow);
+        const trialHeights = heightmap.map(RiverBuilder.#mapRow2);
+        const trialMeta = tileMeta.map(RiverBuilder.#mapRow3);
+        const occupied = new Set(rivers.flatMap(RiverBuilder.#flatMapItem));
         const branches = [];
         for (let index = 1; index < branchCount; index++) {
           const prefix = river.cells.slice(0, splitIndex + 1);
@@ -409,31 +387,15 @@ export class RiverBuilder {
         if (branches.length !== branchCount - 1) {
           continue;
         }
-        const trialMask = islandMask.map(/**
-         *
-         * @param {number[]} row
-         */
-          (row) => [...row]);
+        const trialMask = islandMask.map(RiverBuilder.#mapRow4);
         const allRivers = [...rivers, ...branches];
-        this.materializeRiverBanks(trialGrid.map(/**
-         *
-         * @param {number[]} row
-         */
-          (row) => [...row]),
-        trialHeights.map(/**
-           *
-           * @param {number[]} row
-           */
-          (row) => [...row]),
-        trialMeta.map(/**
-           *
-           * @param {number[]} row
-           */
-          (row) => row.map(/**
-           *
-           * @param {TileMetadata} cell
-           */
-            (cell) => ({ ...cell }))), trialMask, allRivers);
+        this.materializeRiverBanks(
+          trialGrid.map(RiverBuilder.#mapRow5),
+          trialHeights.map(RiverBuilder.#mapRow6),
+          trialMeta.map(RiverBuilder.#mapRow7),
+          trialMask,
+          allRivers,
+        );
         const blockedOutlet = allRivers.some(/**
          *
          * @param {RiverData} item
@@ -451,12 +413,10 @@ export class RiverBuilder {
         }
         // One upstream fall feeds a shared lower basin. Independent curtains
         // leaving adjacent sides of a raised square intersect at its corners.
-        const basinElevation = Math.min(river.cells[splitIndex + 1].elevation,
-          ...branches.map(/**
-           *
-           * @param {import("src/game/generator/map/MapGenerationTypes.js").RiverData} branch
-           */
-            (branch) => branch.cells[branch.branchStart].elevation));
+        const basinElevation = Math.min(
+          river.cells[splitIndex + 1].elevation,
+          ...branches.map(RiverBuilder.#mapBranch),
+        );
         for (const channel of [river, ...branches]) {
           for (let index = splitIndex; index < channel.cells.length; index++) {
             const cell = channel.cells[index];
@@ -604,13 +564,7 @@ export class RiverBuilder {
    * @param {boolean[][]} islandMask
    * @param {RiverData[]} riverData
    */
-  materializeRiverBanks(
-    grid,
-    heightmap,
-    tileMeta,
-    islandMask,
-    riverData,
-  ) {
+  materializeRiverBanks(grid, heightmap, tileMeta, islandMask, riverData) {
     const directionOffsets = {
       [DIRECTIONS.NORTH]: [0, -1],
       [DIRECTIONS.EAST]: [1, 0],
@@ -618,17 +572,7 @@ export class RiverBuilder {
       [DIRECTIONS.WEST]: [-1, 0],
     };
     const riverCellKeys = new Set(
-      riverData.flatMap(/**
-       *
-       * @param {RiverRecord} river
-       */
-        (river) =>
-          river.cells.map(/**
-         *
-         * @param {MapCell} cell
-         */
-            (cell) => MapGrid.tileKey(cell.col, cell.row)),
-      ),
+      riverData.flatMap(RiverBuilder.#flatMapRiver),
     );
 
     for (const river of riverData) {
@@ -649,9 +593,9 @@ export class RiverBuilder {
           const key = MapGrid.tileKey(col, row);
           if (
             !MapGrid.inBounds(col, row) ||
-            riverCellKeys.has(key) ||
-            (grid[row][col] !== TileType.GRASS &&
-              grid[row][col] !== TileType.WATER)
+          riverCellKeys.has(key) ||
+          (grid[row][col] !== TileType.GRASS &&
+            grid[row][col] !== TileType.WATER)
           ) {
             continue;
           }
@@ -762,5 +706,125 @@ export class RiverBuilder {
         }
       }
     }
+  }
+
+  /**
+   *
+   * @param {{height: number}} left
+   * @param {{height: number}} right
+   */
+  static #sortLeft(left, right) {
+    return right.height - left.height;
+  }
+
+  /**
+   *
+   * @param {number[]} row
+   */
+  static #mapRow(row) {
+    return [...row];
+  }
+
+  /**
+   *
+   * @param {number[]} row
+   */
+  static #mapRow2(row) {
+    return [...row];
+  }
+
+  /**
+   *
+   * @param {TileMetadata[]} row
+   */
+  static #mapRow3(row) {
+    return row.map(RiverBuilder.#mapCell);
+  }
+
+  /**
+   *
+   * @param {RiverData} item
+   */
+  static #flatMapItem(item) {
+    return item.cells.map(RiverBuilder.#mapCell2);
+  }
+
+  /**
+   *
+   * @param {number[]} row
+   */
+  static #mapRow4(row) {
+    return [...row];
+  }
+
+  /**
+   *
+   * @param {number[]} row
+   */
+  static #mapRow5(row) {
+    return [...row];
+  }
+
+  /**
+   *
+   * @param {number[]} row
+   */
+  static #mapRow6(row) {
+    return [...row];
+  }
+
+  /**
+   *
+   * @param {number[]} row
+   */
+  static #mapRow7(row) {
+    return row.map(RiverBuilder.#mapCell3);
+  }
+
+  /**
+   *
+   * @param {import("src/game/generator/map/MapGenerationTypes.js").RiverData} branch
+   */
+  static #mapBranch(branch) {
+    return branch.cells[branch.branchStart].elevation;
+  }
+
+  /**
+   *
+   * @param {RiverRecord} river
+   */
+  static #flatMapRiver(river) {
+    return river.cells.map(RiverBuilder.#mapCell4);
+  }
+
+  /**
+   *
+   * @param {TileMetadata} cell
+   */
+  static #mapCell(cell) {
+    return { ...cell };
+  }
+
+  /**
+   * @param {MapCell} cell
+   */
+  static #mapCell2(cell) {
+    return MapGrid.tileKey(cell.col, cell.row);
+  }
+
+  /**
+   *
+   * @param {TileMetadata} cell
+   */
+  static #mapCell3(cell) {
+    return { ...cell };
+  }
+
+  /**
+   *
+   * @param {MapCell} cell
+   */
+  static #mapCell4(cell) {
+    return MapGrid.tileKey(cell.col, cell.row);
   }
 }

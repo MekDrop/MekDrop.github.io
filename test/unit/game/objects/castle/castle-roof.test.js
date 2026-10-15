@@ -94,7 +94,7 @@ it("gives every solid authored roof course matching engine collision, including 
   const allocated=[];
   const own=(value)=>{allocated.push(value);
 
-return value;};
+    return value;};
   const config=own(new Ammo.btDefaultCollisionConfiguration());
   const dispatcher=own(new Ammo.btCollisionDispatcher(config));
   const broadphase=own(new Ammo.btDbvtBroadphase());

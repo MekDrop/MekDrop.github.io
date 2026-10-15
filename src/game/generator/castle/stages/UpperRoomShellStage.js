@@ -18,10 +18,7 @@ export class UpperRoomShellStage extends AbstractCastleGenerationStage {
     }
     const room = plan.envelope;
     const opening = context.layout.openings.find(
-      /**
-       * @param {{boundary: string}} entry
-       */
-      (entry) => entry.boundary === "FRONT",
+      UpperRoomShellStage.#findEntry,
     );
     const middle = (opening.start + opening.end - 1) / 2;
     const sign = ["WEST", "SOUTH"].includes(context.layout.primarySide) ? -1 : 1;
@@ -51,5 +48,12 @@ export class UpperRoomShellStage extends AbstractCastleGenerationStage {
       }
     }
     await context.scheduler.yieldIfNeeded(context.yieldState);
+  }
+
+  /**
+   * @param {{boundary: string}} entry
+   */
+  static #findEntry(entry) {
+    return entry.boundary === "FRONT";
   }
 }

@@ -20,7 +20,7 @@ const ease = (value) => value * value * (3 - 2 * value);
 export class TerraceDoorActions {
   /**
    *
-    * @returns {string}
+   * @returns {string}
    */
   static get modelUrls() {
     return TerraceDoor.modelUrls;
@@ -28,37 +28,37 @@ export class TerraceDoorActions {
 
   /**
    *
-    * @type {typeof import("playcanvas")}
+   * @type {typeof import("playcanvas")}
    */
   #pc;
   /**
    *
-    * @type {import("playcanvas").Entity}
+   * @type {import("playcanvas").Entity}
    */
   #root;
   /**
    *
-    * @type {import("playcanvas").Entity}
+   * @type {import("playcanvas").Entity}
    */
   #stage;
   /**
    *
-    * @type {TerraceDoor|import("../../CastleDoor.js").CastleDoor}
+   * @type {TerraceDoor|import("../../CastleDoor.js").CastleDoor}
    */
   #door;
   /**
    *
-    * @type {TerraceDoorInspection}
+   * @type {TerraceDoorInspection}
    */
   #inspection = new TerraceDoorInspection();
   /**
    *
-    * @type {import("./TerraceActor.js").TerraceActor|null}
+   * @type {import("./TerraceActor.js").TerraceActor|null}
    */
   #inspector;
   /**
    *
-    * @type {() => boolean}
+   * @type {() => boolean}
    */
   #canInspect;
   /**
@@ -98,13 +98,12 @@ export class TerraceDoorActions {
   }) {
     this.#pc = pc;
     this.#motion = motion;
-    this.#inspection.canComplete = () => !this.#motion ||
-      ![INSPECTION.NOTICE, INSPECTION.WALK_OUT, INSPECTION.RETURN, INSPECTION.LEAVE].includes(this.#inspection.phase) || this.#motion.arrived;
+    this.#inspection.canComplete = this.#canComplete.bind(this);
     this.#root = root;
     this.#stage = stage;
     this.#canInspect = canInspect;
     this.#ownsDoor = !door;
-    const onOpen = () => this.#canInspect() && this.#inspection.start();
+    const onOpen = this.#onOpen.bind(this);
     if (door) {
       this.#door = door;
       door.onOpen = onOpen;
@@ -129,7 +128,7 @@ export class TerraceDoorActions {
 
   /**
    *
-    * @returns {boolean}
+   * @returns {boolean}
    */
   get inspecting() {
     return this.#inspection.inspecting;
@@ -137,7 +136,7 @@ export class TerraceDoorActions {
 
   /**
    *
-    * @returns {import("src/game/objects/ObjectTypes.js").TerraceActivityState}
+   * @returns {import("src/game/objects/ObjectTypes.js").TerraceActivityState}
    */
   get state() {
     return {
@@ -149,7 +148,8 @@ export class TerraceDoorActions {
         this.#ownsDoor && this.#inspection.phase === INSPECTION.CLOSE
           ? this.#inspector.rightHand
             .getPosition()
-            .distance(this.#door.insideHandle.getPosition())
+            .distance(this.#door.insideHandle
+              .getPosition())
           : null,
     };
   }
@@ -240,7 +240,7 @@ export class TerraceDoorActions {
   #syncInspector() {
     if (this.#motion) { this.#syncResidentInspector();
 
- return; }
+      return; }
     if (this.#inspection.reacting) { return; }
     const phase = this.#inspection.phase;
     const progress = this.#inspection.progress;
@@ -453,5 +453,16 @@ export class TerraceDoorActions {
     }
     actor.entity.enabled = phase !== INSPECTION.LEAVE || progress < 0.95;
     actor.evaluatePose();
+  }
+
+  #canComplete() {
+    return (
+      !this.#motion ||
+      ![INSPECTION.NOTICE, INSPECTION.WALK_OUT, INSPECTION.RETURN, INSPECTION.LEAVE].includes(this.#inspection.phase) || this.#motion.arrived
+    );
+  }
+
+  #onOpen() {
+    return this.#canInspect() && this.#inspection.start();
   }
 }

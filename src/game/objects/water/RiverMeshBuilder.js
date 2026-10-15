@@ -17,32 +17,32 @@ import { WaterfallGeometry } from './WaterfallGeometry.js';
 export class RiverMeshBuilder {
   /**
    *
-    * @type {typeof import("playcanvas")}
+   * @type {typeof import("playcanvas")}
    */
   #pc;
   /**
    *
-    * @type {import("playcanvas").GraphicsDevice}
+   * @type {import("playcanvas").GraphicsDevice}
    */
   #device;
   /**
    *
-    * @type {import("src/game/objects/ObjectTypes.js").GameMapData}
+   * @type {import("src/game/objects/ObjectTypes.js").GameMapData}
    */
   #mapData;
   /**
    *
-    * @type {number}
+   * @type {number}
    */
   #riverKind;
   /**
    *
-    * @type {import("playcanvas").Entity}
+   * @type {import("playcanvas").Entity}
    */
   #entity;
   /**
    *
-    * @type {Array<import("playcanvas").Mesh>}
+   * @type {Array<import("playcanvas").Mesh>}
    */
   #meshes = [];
 
@@ -88,13 +88,7 @@ export class RiverMeshBuilder {
   }) {
     const groups = new Map();
     const { cols, rows, riverData = [] } = this.#mapData;
-    const rivers = riverData.filter(
-      /**
-       *
-       * @param {number} river
-       */
-      (river) => (river.kind ?? RIVER_KIND.WATER) === this.#riverKind,
-    );
+    const rivers = riverData.filter(this.#filterRiver.bind(this));
     for (const [riverIndex, river] of rivers.entries()) {
       const riverGroup = this.#group(
         groups,
@@ -109,28 +103,12 @@ export class RiverMeshBuilder {
       const familyCells = rivers.filter(/**
        * @param {import("src/game/generator/map/MapGenerationTypes.js").RiverData} item
        */
-        (item) => (item.sourceId ?? item.id) === (river.sourceId ?? river.id)).flatMap(/**
-       * @param {import("src/game/generator/map/MapGenerationTypes.js").RiverData} item
-       */
-        (item) => item.cells);
+        (item) => (item.sourceId ?? item.id) === (river.sourceId ?? river.id)).flatMap(RiverMeshBuilder.#flatMapItem);
       const surfaceHeights = new RiverSurfaceHeights(familyCells);
       const sourceProfile = createSourceProfile(river.cells);
-      const riverCellKeys = new Set(
-        familyCells.map(/**
-         *
-         * @param {number} cell
-         */
-          (cell) => `${cell.col},${cell.row}`),
-      );
+      const riverCellKeys = new Set(familyCells.map(RiverMeshBuilder.#mapCell));
       const spillDirections = new Map(
-        river.cascades.map(/**
-         *
-         * @param {number} cascade
-         */
-          (cascade) => [
-            `${cascade.from.col},${cascade.from.row}`,
-            cascade.direction,
-          ]),
+        river.cascades.map(RiverMeshBuilder.#mapCascade),
       );
       spillDirections.set(
         `${river.waterfall.col},${river.waterfall.row}`,
@@ -171,11 +149,13 @@ export class RiverMeshBuilder {
         }
       }
       for (const cascade of river.cascades) {
-        const cascadeIndex = river.cells.findIndex(/**
-         *
-         * @param {import("src/game/objects/ObjectTypes.js").RiverCell} cell
-         */
-          (cell) => cell.col === cascade.from.col && cell.row === cascade.from.row);
+        const cascadeIndex = river.cells.findIndex(
+          /**
+             *
+             * @param {number} cell
+             */
+          (cell) => cell.col === cascade.from.col && cell.row === cascade.from.row,
+        );
         if (cascadeIndex < (river.branchStart ?? 0) - 1) {
           continue;
         }
@@ -905,5 +885,39 @@ export class RiverMeshBuilder {
       col: -1,
       row: 0,
     };
+  }
+
+  /**
+   *
+   * @param {number} river
+   */
+  #filterRiver(river) {
+    return (river.kind ?? RIVER_KIND.WATER) === this.#riverKind;
+  }
+
+  /**
+   * @param {import("src/game/generator/map/MapGenerationTypes.js").RiverData} item
+   */
+  static #flatMapItem(item) {
+    return item.cells;
+  }
+
+  /**
+   *
+   * @param {number} cell
+   */
+  static #mapCell(cell) {
+    return `${cell.col},${cell.row}`;
+  }
+
+  /**
+   *
+   * @param {number} cascade
+   */
+  static #mapCascade(cascade) {
+    return [
+      `${cascade.from.col},${cascade.from.row}`,
+      cascade.direction,
+    ];
   }
 }

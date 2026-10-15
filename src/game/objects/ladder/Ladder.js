@@ -149,14 +149,13 @@ export class Ladder extends AbstractCastleProp {
    * Open for the climb, then leave the rooftop sealed again.
    */
   openHatch() {
-    if (!this.#hatch) { return; }
+    if (!this.#hatch) {
+      return;
+    }
     clearTimeout(this.#closeTimer);
     this.#hatchCollider.enabled = false;
     this.#hatch.setLocalEulerAngles(-100, 0, 0);
-    this.#closeTimer = setTimeout(() => {
-      this.#hatch.setLocalEulerAngles(0, 0, 0);
-      this.#hatchCollider.enabled = true;
-    }, 2000);
+    this.#closeTimer = setTimeout(this.#setTimeout.bind(this), 2000);
   }
 
   // The movable lid must retain its own transform rather than enter a static batch.
@@ -254,5 +253,9 @@ export class Ladder extends AbstractCastleProp {
   findInteraction() {
     return null;
   }
-}
 
+  #setTimeout() {
+    this.#hatch.setLocalEulerAngles(0, 0, 0);
+    this.#hatchCollider.enabled = true;
+  }
+}

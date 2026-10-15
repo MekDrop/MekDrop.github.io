@@ -4,17 +4,17 @@ import { MAX_UNDERSIDE_DEPTH } from "../../config/terrain.js";
 export class SkyIslandScenery {
   /**
    *
-    * @type {import("src/game/objects/ObjectTypes.js").GameMapData}
+   * @type {import("src/game/objects/ObjectTypes.js").GameMapData}
    */
   #mapData;
   /**
    *
-    * @type {number}
+   * @type {number}
    */
   #seed;
   /**
    *
-    * @type {Set<string>}
+   * @type {Set<string>}
    */
   #riverCells;
 
@@ -31,29 +31,10 @@ export class SkyIslandScenery {
     this.#mapData = mapData;
     this.#seed = this.#hashString(mapData.layoutSignature ?? "sky-island");
     this.#riverCells = new Set(
-      (mapData.riverData ?? []).flatMap(/**
-       *
-       * @param {number} river
-       */
-        (river) =>
-          river.cells
-            .filter(/**
-           *
-           * @param {number} cell
-           */
-              (cell) => !cell.underBridge)
-            .map(/**
-           *
-           * @param {number} cell
-           */
-              (cell) => `${cell.col},${cell.row}`),
-      ),
+      (mapData.riverData ?? []).flatMap(SkyIslandScenery.#flatMapRiver),
     );
     this.#connectorCells = new Set(
-      (mapData.islandConnectorData?.cells ?? []).map(/**
-       * @param {{col: number, row: number}} cell
-       */
-        ({ col, row }) => `${col},${row}`),
+      (mapData.islandConnectorData?.cells ?? []).map(SkyIslandScenery.#map2),
     );
   }
 
@@ -201,5 +182,38 @@ export class SkyIslandScenery {
     }
 
     return hash >>> 0;
+  }
+
+  /**
+   *
+   * @param {number} river
+   */
+  static #flatMapRiver(river) {
+    return river.cells
+      .filter(SkyIslandScenery.#filterCell)
+      .map(SkyIslandScenery.#mapCell);
+  }
+
+  /**
+   * @param {{col: number, row: number}} cell
+   */
+  static #map2({ col, row }) {
+    return `${col},${row}`;
+  }
+
+  /**
+   *
+   * @param {number} cell
+   */
+  static #filterCell(cell) {
+    return !cell.underBridge;
+  }
+
+  /**
+   *
+   * @param {number} cell
+   */
+  static #mapCell(cell) {
+    return `${cell.col},${cell.row}`;
   }
 }

@@ -12,32 +12,32 @@ const HERO_SURFACE_IGNORE_TAG = "hero-surface-ignore";
 export class MushroomPhysics {
   /**
    *
-    * @type {typeof import("playcanvas")}
+   * @type {typeof import("playcanvas")}
    */
   #pc;
   /**
    *
-    * @type {import("playcanvas").Entity}
+   * @type {import("playcanvas").Entity}
    */
   #entity;
   /**
    *
-    * @type {number}
+   * @type {number}
    */
   #rigidbodySystem;
   /**
    *
-    * @type {Array<{entity: import("playcanvas").Entity, body: import("playcanvas").RigidBodyComponent}>}
+   * @type {Array<{entity: import("playcanvas").Entity, body: import("playcanvas").RigidBodyComponent}>}
    */
   #debrisFeet = [];
   /**
    *
-    * @type {Array<{entity: import("playcanvas").Entity, item: GroundCoverItem}>}
+   * @type {Array<{entity: import("playcanvas").Entity, item: GroundCoverItem}>}
    */
   #mushrooms = [];
   /**
    *
-    * @type {Map}
+   * @type {Map}
    */
   #mushroomsByEntity = new Map();
 
@@ -241,7 +241,7 @@ export class MushroomPhysics {
          *
          * @param {import("playcanvas").Entity} entity
          */
-        filterCallback: (entity) => this.#mushroomsByEntity.has(entity),
+        filterCallback: this.#filterCallback.bind(this),
       },
     );
     for (const { entity } of hits) {
@@ -256,5 +256,13 @@ export class MushroomPhysics {
         directionZ,
       });
     }
+  }
+
+  /**
+   *
+   * @param {import("playcanvas").Entity} entity
+   */
+  #filterCallback(entity) {
+    return this.#mushroomsByEntity.has(entity);
   }
 }

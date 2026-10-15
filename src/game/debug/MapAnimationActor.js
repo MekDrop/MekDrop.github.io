@@ -217,20 +217,13 @@ export class MapAnimationActor {
     if (morph) {
       this.#morphInstances = this.#model
         .findComponents("render")
-        .flatMap(/**
-         *
-         * @param {pc.RenderComponent} render
-         */
-          (render) => render.meshInstances)
-        .map(/**
-         *
-         * @param {pc.Mesh} mesh
-         */
-          (mesh) => mesh.morphInstance)
-        .filter(/**
-         *
-         * @param {pc.Entity|pc.MeshInstance} instance
-         */
+        .flatMap(MapAnimationActor.#flatMapRender)
+        .map(MapAnimationActor.#mapMesh)
+        .filter(
+          /**
+           *
+           * @param {pc.Entity|pc.MeshInstance} instance
+           */
           (instance) =>
             instance?.morph.targets.some(/**
            *
@@ -265,4 +258,20 @@ export class MapAnimationActor {
       instance.setWeight(this.#morph, expression);
     }
   };
+
+  /**
+   *
+   * @param {pc.RenderComponent} render
+   */
+  static #flatMapRender(render) {
+    return render.meshInstances;
+  }
+
+  /**
+   *
+   * @param {pc.Mesh} mesh
+   */
+  static #mapMesh(mesh) {
+    return mesh.morphInstance;
+  }
 }
