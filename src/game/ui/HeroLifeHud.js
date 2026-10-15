@@ -209,6 +209,7 @@ export class HeroLifeHud extends GamePanelHud {
     );
     if (this.#deathAnimationElapsed >= DEATH_ANIMATION_DURATION) {
       this.#finishDeathAnimation();
+
       return;
     }
 
@@ -533,6 +534,7 @@ export class HeroLifeHud extends GamePanelHud {
     });
     entity.element.pivot = new this.pc.Vec2(0.5, 0.5);
     entity.enabled = false;
+
     return entity;
   }
 
@@ -548,6 +550,7 @@ export class HeroLifeHud extends GamePanelHud {
       globalThis.matchMedia?.("(prefers-reduced-motion: reduce)").matches
     ) {
       this.#finishDeathAnimation();
+
       return;
     }
 

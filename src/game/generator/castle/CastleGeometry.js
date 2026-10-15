@@ -19,6 +19,7 @@ export const castleGateArchHeight = (opening, horizontalBlock) => {
     1,
     distanceFromEdge / Math.max(1, halfWidth - 1),
   );
+
   return Math.min(
     CASTLE_GATE_OPENING_HEIGHT_BLOCKS,
     Math.floor(

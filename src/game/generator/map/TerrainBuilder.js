@@ -51,6 +51,7 @@ export class TerrainBuilder {
   #insideEllipse(col, row, centerCol, centerRow, radiusX, radiusY) {
     const dx = (col - centerCol) / radiusX;
     const dy = (row - centerRow) / radiusY;
+
     return dx * dx + dy * dy <= 1;
   }
 
@@ -238,6 +239,7 @@ export class TerrainBuilder {
     this.smoothGrassHeights(grid, heightmap);
     this.#blendGrassNearPaths(grid, heightmap);
     this.#flattenBuildableZones(grid, heightmap, layout);
+
     return heightmap;
   }
 

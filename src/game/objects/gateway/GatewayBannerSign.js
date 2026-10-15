@@ -51,6 +51,7 @@ export class GatewayBannerSign {
       mipmaps: true,
     });
     texture.setSource(canvas);
+
     return texture;
   }
 }

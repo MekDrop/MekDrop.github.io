@@ -21,6 +21,7 @@ function git(args) {
 function getComparisonBase() {
   try {
     const upstream = git(['rev-parse', '--abbrev-ref', '--symbolic-full-name', '@{upstream}']).trim()
+
     return git(['merge-base', 'HEAD', upstream]).trim()
   } catch {
     for (const candidate of ['origin/HEAD', 'origin/main', 'origin/master', 'main', 'master']) {
@@ -30,6 +31,7 @@ function getComparisonBase() {
         // Try the next conventional base.
       }
     }
+
     return null
   }
 }
@@ -57,6 +59,7 @@ function listChangedPaths() {
 
   return [...changed].filter((file) => {
     const parts = file.split(/[\\/]/)
+
     return !parts.some((part) => ignoredDirectories.has(part)) && /\.(?:js|vue)$/i.test(file)
   }).sort()
 }
@@ -93,6 +96,7 @@ function relativeUnitTest(file) {
   const normalizedBase = base.replace(/[^a-z0-9]/g, '')
   const matches = candidates.filter((candidate) => {
     const testBase = path.basename(candidate).replace(/\.test\.js$/i, '').replace(/[^a-z0-9]/gi, '').toLowerCase()
+
     return testBase === normalizedBase
   })
 
@@ -134,6 +138,7 @@ function findCypressSpec(file) {
 
   const matching = specs.filter((spec) => {
     const specBase = path.basename(spec).replace(/\.cy\.js$/i, '').toLowerCase()
+
     return specBase === changedBase || spec.toLowerCase().includes(changedBase)
   })
   if (matching.length === 1) {
@@ -142,11 +147,13 @@ function findCypressSpec(file) {
 
   if (normalized.startsWith('src/pages/') || normalized.startsWith('src/router/') || normalized.startsWith('src/layouts/')) {
     const indexSpec = 'test/cypress/e2e/pages/IndexPage.cy.js'
+
     return existsSync(path.join(root, indexSpec)) ? indexSpec : null
   }
 
   if (normalized === 'src/components/GameCanvas.vue') {
     const movementSpec = 'test/cypress/e2e/game/objects/hero/HeroMovement.cy.js'
+
     return existsSync(path.join(root, movementSpec)) ? movementSpec : null
   }
 
@@ -164,6 +171,7 @@ function run(command, args) {
     cwd: root,
     stdio: 'inherit',
   })
+
   return result.status === 0
 }
 
@@ -184,6 +192,7 @@ function runNpm(args) {
     stdio: 'inherit',
     shell: process.platform === 'win32',
   })
+
   return result.status === 0
 }
 
@@ -195,6 +204,7 @@ async function isDevServerAccessible() {
       signal: controller.signal,
       redirect: 'manual',
     })
+
     return true
   } catch {
     return false
@@ -207,6 +217,7 @@ async function main() {
   const files = listChangedPaths()
   if (files.length === 0) {
     console.log('check:changed: no changed JavaScript or Vue files found.')
+
     return
   }
 
@@ -215,6 +226,7 @@ async function main() {
   console.log('\nRunning focused lint...')
   if (!run(process.execPath, [eslint, ...files])) {
     process.exitCode = 1
+
     return
   }
 
@@ -223,6 +235,7 @@ async function main() {
     console.log(`\nRunning nearest unit tests:\n${unitTests.map((file) => `  ${file}`).join('\n')}`)
     if (!run(process.execPath, ['--test', '--test-isolation=none', ...unitTests])) {
       process.exitCode = 1
+
       return
     }
   } else {
@@ -234,6 +247,7 @@ async function main() {
     console.log(`\nRunning targeted Cypress specs:\n${cypressSpecs.map((file) => `  ${file}`).join('\n')}`)
     if (!runNpm(['run', 'test:e2e:ci', '--', '--spec', cypressSpecs.join(',')])) {
       process.exitCode = 1
+
       return
     }
   } else {
@@ -253,6 +267,7 @@ async function main() {
       console.log(`\nRunning build check: npm run build:${buildKind}`)
       if (!runNpm(['run', `build:${buildKind}`])) {
         process.exitCode = 1
+
         return
       }
     }

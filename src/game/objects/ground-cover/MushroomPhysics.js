@@ -101,6 +101,7 @@ export class MushroomPhysics {
     this.#entity.addChild(entity);
     this.#mushrooms.push(mushroom);
     this.#mushroomsByEntity.set(entity, mushroom);
+
     return mushroom;
   }
 
@@ -218,6 +219,7 @@ export class MushroomPhysics {
       mask: this.#pc.BODYGROUP_USER_5,
     });
     this.#entity.addChild(foot);
+
     return foot;
   }
 

@@ -88,6 +88,7 @@ export class VegetationDirtPatchLayout {
         inside = !inside;
       }
     }
+
     return inside ? 1 : 0;
   }
 }

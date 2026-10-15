@@ -136,6 +136,7 @@ export class MapTestControlsHud extends GamePanelHud {
     context.textBaseline = "middle";
     context.fillText(text, width / 2, height / 2, width - 12);
     record.texture.setSource(record.canvas);
+
     return this.createImage({
       parent,
       name: text,
@@ -157,6 +158,7 @@ export class MapTestControlsHud extends GamePanelHud {
     const x = (event.clientX - bounds.left) * this.#canvas.clientWidth / bounds.width;
     const y = (event.clientY - bounds.top) * this.#canvas.clientHeight / bounds.height;
     const corners = entity.element.canvasCorners;
+
     return x >= corners[0].x && x <= corners[2].x && y >= corners[2].y && y <= corners[0].y;
   }
 

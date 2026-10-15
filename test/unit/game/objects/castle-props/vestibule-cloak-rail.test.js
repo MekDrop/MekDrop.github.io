@@ -60,6 +60,7 @@ it("moves matching render and collision garments and clones cloth materials with
           root.addChild(node);
         }
         graphs.push(root);
+
         return root;
       },
     },

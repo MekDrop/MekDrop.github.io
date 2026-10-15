@@ -186,6 +186,7 @@ export class IslandBuilder {
     }
 
     this.#fillSingleCellTerrainHoles(mask);
+
     return mask;
   }
 

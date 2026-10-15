@@ -72,6 +72,7 @@ export class Rug extends AbstractCastleProp {
     for (let index = 0; index < positions.length; index += 3) {
       uvs1.push((positions[index] - min.x) / size.x, (positions[index + 2] - min.z) / size.z);
     }
+
     return pc.Mesh.fromGeometry(source.device, {
       positions,
       normals,

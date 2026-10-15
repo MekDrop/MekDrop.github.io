@@ -30,11 +30,13 @@ it("gives every solid authored roof course matching engine collision, including 
       const accessor=model.accessors[primitive.attributes.POSITION];
       const halfExtents=vector(...accessor.max.map((value,index)=>(value-accessor.min[index])/2));
       const center=vector(...accessor.max.map((value,index)=>(value+accessor.min[index])/2));
+
       return {
         material:{name:model.materials[primitive.material].name},
         mesh:{aabb:new pc.BoundingBox(center,halfExtents)},
       };
     });
+
     return {
       entity,
       meshInstances,
@@ -80,6 +82,7 @@ it("gives every solid authored roof course matching engine collision, including 
   const courses=colliders.filter(({entity})=>entity.name.startsWith("Hipped roof course"));
   const tops=courses.map(({entity})=>{
     const box=entity.components.get("collision");
+
     return (box.linearOffset.y+box.halfExtents.y)*2;
   }).sort((a,b)=>a-b);
   let previous=0;
@@ -89,7 +92,9 @@ it("gives every solid authored roof course matching engine collision, including 
   }
   const Ammo=AmmoModule.default ?? AmmoModule;
   const allocated=[];
-  const own=(value)=>{allocated.push(value);return value;};
+  const own=(value)=>{allocated.push(value);
+
+return value;};
   const config=own(new Ammo.btDefaultCollisionConfiguration());
   const dispatcher=own(new Ammo.btCollisionDispatcher(config));
   const broadphase=own(new Ammo.btDbvtBroadphase());
@@ -147,6 +152,7 @@ it("reports nearby Ammo roof support to walking checks and filters unrelated bod
               to,
               options,
             };
+
             return hits;
           },
         },

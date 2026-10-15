@@ -46,6 +46,7 @@ function patchesFor(
     },
     section,
   );
+
   return patches;
 }
 

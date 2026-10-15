@@ -190,6 +190,7 @@ it("publishes registered room objects once through the active authored plan", as
       if (!section[flag]) { continue; }
       assert.ok(neighbours.some(item => {
         const dx = item.position.x - section.position.x, dz = item.position.z - section.position.z;
+
         return sign * (dx * Math.cos(angle) - dz * Math.sin(angle)) > 0 &&
           Math.abs(dx * Math.sin(angle) + dz * Math.cos(angle)) < 0.01;
       }), `${flag} has a neighbour on the model's corresponding side`);

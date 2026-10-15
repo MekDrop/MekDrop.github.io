@@ -44,6 +44,7 @@ export class Ladder extends AbstractCastleProp {
     const { bottom, top } = definition;
     const rotation = definition.rotation ?? Math.atan2(top.x - bottom.x, top.z - bottom.z) * 180 / Math.PI;
     const angle = rotation * Math.PI / 180;
+
     return {
       ...definition,
       rotation,
@@ -170,6 +171,7 @@ export class Ladder extends AbstractCastleProp {
     const bottom = this.landing("bottom");
     const root = this.visualRoots[0].getPosition();
     const length = Math.hypot(root.x - bottom.x, root.z - bottom.z) || 1;
+
     return {
       x: (root.x - bottom.x) / length,
       z: (root.z - bottom.z) / length,
@@ -187,6 +189,7 @@ export class Ladder extends AbstractCastleProp {
     const angle = (this.definition.rotation ?? 0) * Math.PI / 180;
     const offset = this.definition.hatch.width / 2 + 0.2;
     const facing = this.climbFacing;
+
     return [-1, 1].map(/**
      *
      * @param {number} side
@@ -210,6 +213,7 @@ export class Ladder extends AbstractCastleProp {
     const rail = this.visualRoots[0].children[0].getWorldTransform().transformPoint(new Vec3(0, 3.7 * amount, 0));
     const distance = Math.hypot(bottom.x - root.x, bottom.z - root.z) || 1;
     const clearance = Math.min(1, 0.25 / distance);
+
     return {
       x: rail.x + (bottom.x - root.x) * clearance,
       y: height,
@@ -235,6 +239,7 @@ export class Ladder extends AbstractCastleProp {
     const root = this.visualRoots[0].getPosition();
     const target = this.definition[end];
     const anchor = this.definition.position;
+
     return {
       x: root.x + target.x - anchor.x,
       y: root.y + target.y - anchor.y,

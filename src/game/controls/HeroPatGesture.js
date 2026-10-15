@@ -111,6 +111,7 @@ export class HeroPatGesture {
     this.#consume(event);
     if (!(event.buttons & 1)) {
       this.cancel();
+
       return;
     }
     if (overHead) {

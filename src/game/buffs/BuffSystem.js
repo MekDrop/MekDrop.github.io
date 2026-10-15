@@ -115,6 +115,7 @@ export class BuffSystem {
       remaining,
     });
     this.#revision += 1;
+
     return true;
   }
 
@@ -173,6 +174,7 @@ export class BuffSystem {
         percent += (modifier.percent ?? 0) * effect.stacks;
       }
     }
+
     // Add bonuses and penalties before scaling the base to avoid order effects.
     return Math.max(0, (baseValue + flat) * (1 + percent));
   }

@@ -17,6 +17,7 @@ export function createGameCommandRegistry({
   registry.register(new GetWindSpeedCommand());
   registry.register(new SetWindSpeedCommand(logger));
   registry.register(new HelpCommand(registry, logger));
+
   return registry;
 }
 

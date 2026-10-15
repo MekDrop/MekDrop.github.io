@@ -65,6 +65,7 @@ export class IslandConnectorBuilder {
              */
             const tileAt = (cross) => {
               const { col, row } = cell(cross);
+
               return grid[row][col];
             };
             if (tileAt(first) === TileType.WATER) continue;
@@ -224,6 +225,7 @@ export class IslandConnectorBuilder {
         (cells) => cells.includes(ownerKey));
       for (const { col, row } of connector.cells) owner.push(`${col},${row}`);
     }
+
     return {
       ...connectors[0],
       cells: connectors.flatMap(/**
@@ -275,6 +277,7 @@ export class IslandConnectorBuilder {
         if (cells.some(isExistingConnector)) return true;
       }
     }
+
     return false;
   }
 
@@ -307,6 +310,7 @@ export class IslandConnectorBuilder {
         if (!related) return true;
       }
     }
+
     return false;
   }
 
@@ -341,6 +345,7 @@ export class IslandConnectorBuilder {
         },
       );
     }
+
     return visited;
   }
 }

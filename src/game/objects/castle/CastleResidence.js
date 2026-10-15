@@ -127,6 +127,7 @@ export class CastleResidence {
         voxels: this.#solids,
         friction: 0.6,
       });
+
       return;
     }
     this.#buildExterior(buildPlan, modelLibrary, pc);
@@ -346,9 +347,11 @@ export class CastleResidence {
         ...bed,
         maxX: storage.maxX,
       };
+
       return local.x >= room.minX - radius && local.x <= room.maxX + radius && local.z >= room.minZ - radius && local.z <= room.maxZ + radius;
     }
     const y = elevation - this.#layout.origin.y;
+
     return this.#solids.some(
       /**
        * @param {{x: number, y: number, z: number, width: number, height: number, depth: number, floorSupport?: boolean}} solid
@@ -365,6 +368,7 @@ export class CastleResidence {
    */
   blocksCameraAt(x, y, z, radius) {
     const local = this.#layout.toLocal(x, z);
+
     return castleStraightStairAssemblies(this.#layout).some(
       /**
        * @param {import("./CastleStraightStairs.js").StraightStairGeometry} stair
@@ -511,6 +515,7 @@ export class CastleResidence {
       entity.setLocalScale(scale, scale, scale);
       entity.setLocalEulerAngles(0, yaw, 0);
       this.#entity.addChild(entity);
+
       return entity;
     };
     for (const room of [work, bedroom]) {
@@ -920,6 +925,7 @@ export function findCastleMapMount(plan, layout, preferredSide, shelfBack) {
       };
     }
   }
+
   return null;
 }
 
@@ -1001,5 +1007,6 @@ function reshapeSpiralModel(pc, graph, shaft, radius, landingProfile = true, tur
     render.entity.setLocalEulerAngles(0, 0, 0);
     render.entity.setLocalScale(1, 1, 1);
   }
+
   return meshes;
 }

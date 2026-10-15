@@ -93,6 +93,7 @@ export class TerraceFurnitureActions {
       PHASE.SERVANT_ENTER,
       PHASE.SERVANT_LEAVE,
     ].includes(this.#behavior?.stagePhase);
+
     return {
       tableGripDistance: carryingTable ? this.#tableGripDistance() : null,
     };
@@ -172,12 +173,14 @@ export class TerraceFurnitureActions {
       );
       const offset = this.#servant.entity.getWorldTransform()
         .transformVector(new this.#pc.Vec3(...TABLE_GRIP_MIDPOINT));
+
       return this.#stage.getWorldTransform().clone().invert()
         .transformPoint(midpoint.sub(offset));
     }
     const world = this.#servant.entity.getWorldTransform().transformPoint(
       new this.#pc.Vec3(0, 0.55, 0.75),
     );
+
     return this.#stage.getWorldTransform().clone().invert().transformPoint(world);
   }
 
@@ -193,6 +196,7 @@ export class TerraceFurnitureActions {
       grips[1].distance(hands[1].getPosition());
     const crossed = grips[0].distance(hands[1].getPosition()) +
       grips[1].distance(hands[0].getPosition());
+
     return Math.min(direct, crossed) / TABLE_GRIPS.length;
   }
 }

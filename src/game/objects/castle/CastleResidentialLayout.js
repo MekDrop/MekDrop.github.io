@@ -99,6 +99,7 @@ export class CastleResidentialLayout {
   constructor(buildPlan) {
     if (buildPlan.metadata.runtime.residential?.version === 2) {
       this.#loadPlannedRooms(buildPlan);
+
       return;
     }
     const { position, doors } = buildPlan.input;
@@ -493,6 +494,7 @@ export class CastleResidentialLayout {
                                                                    * @param {{v: number, span: number, front: boolean}} tower
                                                                    */ (tower) => {
           const lateral = lateralSign * (tower.v + (tower.span - 1) / 2 - (opening.start + opening.end - 1) / 2) * blockSize;
+
           return tower.front && Math.sign(lateral) === flank;
         });
       const towerCenter = frontTower ? lateralSign * (frontTower.v + (frontTower.span - 1) / 2 - (opening.start + opening.end - 1) / 2) * blockSize : 0;
@@ -651,6 +653,7 @@ export class CastleResidentialLayout {
         const inward = Math.abs(dx * normal.x + dz * normal.z);
         const halfWidth = placement.role === "squareWindow" ? 0.75 : 0.3 * placement.scale.x;
         const distance = Math.hypot(Math.max(0, lateral - halfWidth), Math.max(0, inward - 0.6));
+
         return distance > this.#stairs.radius + 0.22;
       });
     const primaryBounds = runtime.residential?.buildings?.find(/**
@@ -911,6 +914,7 @@ export class CastleResidentialLayout {
     ];
     const doorway = Math.min(0.8, depth / 2);
     specs.push(["partition", centerX, bedroom.minZ + doorway + (depth - doorway) / 2, bottom + height / 2, 0.1, height, depth - doorway]);
+
     return specs.map(/**
      * @param {Array<string|number>} spec
      */ (spec) => ({
@@ -944,6 +948,7 @@ export class CastleResidentialLayout {
    */
   toWorld(lateral, forward, elevation = 0) {
     const radians = this.#yaw * Math.PI / 180;
+
     return {
       x: this.#origin.x + Math.cos(radians) * lateral + Math.sin(radians) * forward,
       y: this.#origin.y + elevation,
@@ -959,6 +964,7 @@ export class CastleResidentialLayout {
     const radians = this.#yaw * Math.PI / 180;
     const dx = x - this.#origin.x;
     const dz = z - this.#origin.z;
+
     return {
       x: Math.cos(radians) * dx - Math.sin(radians) * dz,
       z: Math.sin(radians) * dx + Math.cos(radians) * dz,
@@ -1006,6 +1012,7 @@ export class CastleResidentialLayout {
       }
       if (best !== null && (result === null || Math.abs(best - currentElevation) < Math.abs(result - currentElevation))) { result = best; }
     }
+
     return result;
   }
 
@@ -1032,6 +1039,7 @@ export class CastleResidentialLayout {
       if (["servantBedroom", "storage"].includes(name) && !this.canEnterBasement(actor)) { continue; }
       if (Math.abs(room.floorY - currentElevation) <= 0.24 && local.x >= room.minX && local.x <= room.maxX && local.z >= room.minZ && local.z <= room.maxZ) { return room.floorY; }
     }
+
     return null;
   }
 
@@ -1118,5 +1126,6 @@ export const createCastleButtressFootings = (plan, mapData) => {
       depth,
     });
   }
+
   return footings;
 };

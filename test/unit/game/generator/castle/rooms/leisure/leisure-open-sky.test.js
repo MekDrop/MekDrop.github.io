@@ -89,6 +89,7 @@ it("places exactly one large courtyard or continuous upper terrace in every seed
     const z = (leisure[0].minZ + leisure[0].maxZ) / 2;
     assert.ok(build.metadata.collision.cameraBlocks.some((block) => {
       const local = layout.toLocal(block.x, block.z);
+
       return Math.abs(local.x - x) <= block.halfX + 0.125 && Math.abs(local.z - z) <= block.halfZ + 0.125 &&
         Math.abs(block.y + block.halfY - leisure[0].floorY) < 1e-6;
     }), `${castle.seed}: leisure terrace has a masonry floor`);

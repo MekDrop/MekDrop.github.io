@@ -9,9 +9,11 @@ export function ladderTransferOffset(phase) {
     const [end, value] = stages[index], [start, previous] = stages[index - 1];
     if (phase <= end) {
       const t = Math.max(0, (phase - start) / (end - start));
+
       return previous + (value - previous) * t * t * (3 - 2 * t);
     }
   }
+
   return 1;
 }
 
@@ -27,9 +29,11 @@ function transferPosePhase(offset) {
     if (offset <= value) {
       const t = Math.max(0, Math.min(1, (offset - previous) / (value - previous)));
       const inverse = 0.5 - Math.sin(Math.asin(1 - 2 * t) / 3);
+
       return start + (end - start) * inverse;
     }
   }
+
   return 0.85;
 }
 
@@ -39,6 +43,7 @@ function transferPosePhase(offset) {
  */
 function transferBackOffset(phase) {
   const t = Math.max(0, Math.min(1, (phase - 0.4) / 0.3));
+
   return t * t * (3 - 2 * t);
 }
 
@@ -96,6 +101,7 @@ export class HeroLadderClimb {
    */
   register(ladder) {
     this.#ladders.add(ladder);
+
     return () => {
       this.#ladders.delete(ladder);
       if (this.#active === ladder) this.reset();
@@ -213,7 +219,9 @@ export class HeroLadderClimb {
     const outsideLadder = position.y > top.y + 0.55 || position.y < bottom.y - 0.55 ||
       Math.min(landingDistance, Math.hypot(position.x - guide.x, position.z - guide.z)) > 1;
     if (landed || outsideLadder || (!this.#exiting && !this.#mounting && speed < 0 && position.y <= bottom.y + 0.025)) {
-      this.reset(); return null;
+      this.reset();
+
+ return null;
     }
     // Roof collision supports the capsule while approaching the opening. Once
     // that support ends, descend immediately rather than holding it in midair.
@@ -251,6 +259,7 @@ export class HeroLadderClimb {
       x: 0,
       z: 0,
     };
+
     return {
       velocity: {
         x: Math.max(-horizontalLimit, Math.min(horizontalLimit, (target.x - position.x) * gain)),

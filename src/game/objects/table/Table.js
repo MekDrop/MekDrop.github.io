@@ -70,6 +70,7 @@ export class Table extends AbstractCastleProp {
       VestibuleMapTable: [1.8, 1, 1],
       TeaTable: [1.25, 1.0622, 1.25],
     }[definition.object] ?? [0.6271365, 0.56465894, 1.25];
+
     return {
       ...definition,
       object: Table.name,

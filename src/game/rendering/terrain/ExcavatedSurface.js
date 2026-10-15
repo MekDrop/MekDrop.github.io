@@ -11,6 +11,7 @@ export class ExcavatedSurface {
   static createMesh(pc, device, halfSize, radius) {
     const mesh = new pc.Mesh(device);
     this.updateMesh(mesh, halfSize, radius);
+
     return mesh;
   }
 

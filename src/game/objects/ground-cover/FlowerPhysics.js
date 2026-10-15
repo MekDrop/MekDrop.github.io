@@ -156,6 +156,7 @@ export class FlowerPhysics {
       new this.#pc.Vec3(flower.scale.x, flower.scale.y * compression, flower.scale.z));
     matrix.data[4] += (tip.x - root.x) * flower.scale.y / flower.pivotHeight;
     matrix.data[6] += (tip.z - root.z) * flower.scale.y / flower.pivotHeight;
+
     return matrix;
   }
 
@@ -259,6 +260,7 @@ export class FlowerPhysics {
       pivotHeight,
       radius: interactionRadius,
     });
+
     return flower;
   }
 
@@ -512,6 +514,7 @@ export class FlowerPhysics {
       mask: this.#pc.BODYGROUP_USER_1,
     });
     this.#entity.addChild(foot);
+
     return foot;
   }
 

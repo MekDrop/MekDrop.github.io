@@ -24,6 +24,7 @@ export class LayoutStyleStage extends AbstractCastleGenerationStage {
     const { position, doors, style: preferredStyleId, seed } = context.input;
     if (!position || !doors.length) {
       context.layout.empty = true;
+
       return;
     }
 
@@ -52,6 +53,7 @@ export class LayoutStyleStage extends AbstractCastleGenerationStage {
         const axisLength = ["WEST", "EAST"].includes(door.side)
           ? depthBlocks
           : widthBlocks;
+
         return {
           boundary,
           start: reverse ? axisLength - end : start,
@@ -113,6 +115,7 @@ export class LayoutStyleStage extends AbstractCastleGenerationStage {
         EAST: CASTLE_BOUNDARY.RIGHT,
       },
     };
+
     return boundaries[primarySide]?.[side] ?? CASTLE_BOUNDARY.FRONT;
   }
 
@@ -185,6 +188,7 @@ export class LayoutStyleStage extends AbstractCastleGenerationStage {
     }
 
     const requiredDoorWidth = CASTLE_DOOR_WIDTH_TILES * CASTLE_BLOCKS_PER_TILE;
+
     return openings.every(/**
      *
      * @param {import("src/game/GameContracts.js").CastleOpening} opening
@@ -231,6 +235,7 @@ export class LayoutStyleStage extends AbstractCastleGenerationStage {
             towerRanges.push(range);
           }
         }
+
         return towerRanges.every(
         /**
          *

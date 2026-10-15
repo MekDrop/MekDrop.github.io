@@ -111,6 +111,7 @@ export class HeroFootPlacement {
         const along = transform.transformVector(new this.#pc.Vec3(0, 0, bounds.halfExtents.z));
         const length = Math.hypot(along.x, along.z);
         const pressure = Math.max(0, 1 - Math.max(0, foot.minimumClearance - CONTACT_EPSILON) / 0.075);
+
         return [{
           id: `hero-${foot.side}`,
           side: foot.side,
@@ -246,6 +247,7 @@ export class HeroFootPlacement {
       part.setLocalRotation(rotation);
       part.setLocalScale(scale);
     }
+
     return {
       side,
       sole,
@@ -289,6 +291,7 @@ export class HeroFootPlacement {
     if (foot.tiltWeight < 0.001) {
       foot.tiltWeight = 0;
       foot.tiltDegrees = 0;
+
       return;
     }
 
@@ -360,6 +363,7 @@ export class HeroFootPlacement {
       return normal;
     }
     const horizontalScale = Math.sin(maximumTilt) / horizontalLength;
+
     return new this.#pc.Vec3(
       normal.x * horizontalScale,
       Math.cos(maximumTilt),
@@ -391,6 +395,7 @@ export class HeroFootPlacement {
       [maximumX, minimumY, maximumZ],
     ];
     const transform = foot.sole.getWorldTransform();
+
     return contactCoordinates.flatMap(/**
      *
      * @param {Array<number>} options
@@ -405,6 +410,7 @@ export class HeroFootPlacement {
           solePoint.z,
           maximumSurfaceHeight,
         );
+
         return surface &&
         Number.isFinite(surface.height) &&
         surface.normal &&

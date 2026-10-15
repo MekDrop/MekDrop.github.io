@@ -129,12 +129,14 @@ export class GrassCarpetLayout {
             !Number.isFinite(neighborBridgeGround)) {
               if (neighborHeight < surfaceHeight - 0.01) {
                 exposedSides |= 1 << side;
+
                 return 0.1;
               }
               return 0;
             }
             if (neighborHeight < surfaceHeight - 0.01) {
               exposedSides |= 1 << side;
+
               return 0.14;
             }
             if (
@@ -240,6 +242,7 @@ export class GrassCarpetLayout {
             (strength, stone) => {
               const edgeDistance =
                 Math.hypot(x - stone.x, z - stone.z) - stone.radius;
+
               return Math.max(
                 strength,
                 edgeDistance >= 0 ? Math.max(0, 1 - edgeDistance / 0.55) : 0,
@@ -276,6 +279,7 @@ export class GrassCarpetLayout {
         }
       }
     }
+
     return placements;
   }
 
@@ -286,6 +290,7 @@ export class GrassCarpetLayout {
   static #random(seed) {
     let value = Math.imul(seed ^ (seed >>> 16), 0x45d9f3b);
     value = Math.imul(value ^ (value >>> 16), 0x45d9f3b);
+
     return ((value ^ (value >>> 16)) >>> 0) / 4294967296;
   }
 }

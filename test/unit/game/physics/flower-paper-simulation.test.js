@@ -37,6 +37,7 @@ before(async () => {
 function point(body, x) {
   const position = new Vec3(), rotation = new Quat();
   body.getTransform(position, rotation);
+
   return rotation.transformVector(new Vec3(x, 0, 0)).add(position);
 }
 

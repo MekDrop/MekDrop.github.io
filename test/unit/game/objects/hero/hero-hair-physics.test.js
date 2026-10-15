@@ -18,6 +18,7 @@ class FakeVec3 {
     this.x = x;
     this.y = y;
     this.z = z;
+
     return this;
   }
 }
@@ -64,6 +65,7 @@ class FakeEntity {
   setPosition(positionOrX, y, z) {
     if (y === undefined) {
       this.position.set(positionOrX.x, positionOrX.y, positionOrX.z);
+
       return;
     }
     this.position.set(positionOrX, y, z);
@@ -177,6 +179,7 @@ function createPhysics(hairEntities) {
     hairEntities,
     modelScale: 0.65,
   });
+
   return {
     head,
     physics,

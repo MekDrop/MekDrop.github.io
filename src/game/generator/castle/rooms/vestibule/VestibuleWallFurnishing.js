@@ -75,8 +75,10 @@ export class VestibuleWallFurnishing {
         };
         if (safe(item) && RoomPlacementRules.accepts(item, room, [...occupied, ...items], wallThickness)) { items.push(item); }
       }
+
       return items;
     }
+
     return [];
   }
 }

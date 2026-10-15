@@ -100,6 +100,7 @@ test("world-space book transforms match the former cabinet hierarchy on both axe
         for (const character of "42") { state = Math.imul(state ^ character.charCodeAt(0), 16777619) >>> 0; }
         const random = () => {
           state = (Math.imul(state, 1664525) + 1013904223) >>> 0;
+
           return state / 4294967296;
         };
         const rows = Math.max(1, Math.round((height - 0.0775) / 0.35));

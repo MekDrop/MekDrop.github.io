@@ -42,6 +42,7 @@ export class GrassEdgeMesh {
     mesh.setNormals(pc.calculateNormals(positions, indices));
     mesh.setIndices(indices);
     mesh.update(pc.PRIMITIVE_TRIANGLES);
+
     return mesh;
   }
 
@@ -69,6 +70,7 @@ export class GrassEdgeMesh {
       castShadows: false,
       receiveShadows: true,
     });
+
     return {
       entity,
       vertexBuffer,

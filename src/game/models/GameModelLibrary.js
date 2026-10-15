@@ -72,6 +72,7 @@ export class GameModelLibrary {
       receiveShadows: true,
     });
     this.#configureRenderHierarchy(entity);
+
     return entity;
   }
 
@@ -108,6 +109,7 @@ export class GameModelLibrary {
       castShadows,
       receiveShadows,
     });
+
     return entity;
   }
 
@@ -200,6 +202,7 @@ export class GameModelLibrary {
         });
       }
     }
+
     return tracks;
   }
 

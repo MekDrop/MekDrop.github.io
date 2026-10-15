@@ -15,6 +15,7 @@ class FakeQuat {
     target.x = vector.x;
     target.y = vector.y;
     target.z = vector.z;
+
     return target;
   }
 }
@@ -124,6 +125,7 @@ function createThrownItem(direction = {
     },
     direction,
   });
+
   return {
     thrownItem,
     material: renders[0].meshInstances[0].material,
@@ -154,6 +156,7 @@ function createDroppedItem(direction = {
     direction,
     dropped: true,
   });
+
   return {
     thrownItem,
     material: renders[0].meshInstances[0].material,

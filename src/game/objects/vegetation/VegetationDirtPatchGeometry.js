@@ -19,6 +19,7 @@ function randomUnit(seed, index) {
   hash ^= hash >>> 16;
   hash = Math.imul(hash, 2246822507);
   hash ^= hash >>> 13;
+
   return (hash >>> 0) / 4294967295;
 }
 
@@ -43,6 +44,7 @@ function addBoundaryEdge(edges, start, end) {
   const reverseKey = `${pointKey(end)}>${pointKey(start)}`;
   if (edges.has(reverseKey)) {
     edges.delete(reverseKey);
+
     return;
   }
   edges.set(key, {
@@ -65,6 +67,7 @@ function clippedFootprints(footprint) {
       const right = Math.min(MAX_LOCAL_EXTENT, part.x + part.width / 2);
       const near = Math.max(-MAX_LOCAL_EXTENT, part.z - part.depth / 2);
       const far = Math.min(MAX_LOCAL_EXTENT, part.z + part.depth / 2);
+
       return right > left && far > near ? [{
         left,
         right,
@@ -125,6 +128,7 @@ function buildBoundary(footprint) {
     boundary.push(edge.start);
     edge = edgeByStart.get(pointKey(edge.end));
   } while (edge && edge !== first && boundary.length <= edges.size);
+
   return boundary;
 }
 
@@ -146,6 +150,7 @@ function irregularizeBoundary(boundary, seed) {
       const length = Math.hypot(deltaX, deltaZ);
       const inset =
         MIN_EDGE_INSET + randomUnit(seed, index) * EDGE_INSET_RANGE;
+
       return [
         point,
         {
@@ -265,6 +270,7 @@ export function buildVegetationDirtPatchGeometry(footprint, seed) {
       0xff,
     );
   }
+
   return {
     outline,
     positions,

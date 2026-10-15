@@ -7,6 +7,7 @@ const RESPAWN_CAMERA_DRAG_DISTANCE = 100000;
 function loadScenario(scenario) {
   cy.window().then((window) => {
     window.gameMovementTest.moveForward(false);
+
     return window.gameMovementTest.loadScenario(scenario);
   });
 }
@@ -76,6 +77,7 @@ function setMovementKey(code, pressed) {
 function expectState(assertion, timeout = 8000) {
   cy.window().then({ timeout: timeout + 1000 }, (window) => {
     const startedAt = Date.now();
+
     return new Cypress.Promise((resolve, reject) => {
       const inspect = () => {
         try {
@@ -84,6 +86,7 @@ function expectState(assertion, timeout = 8000) {
         } catch (cause) {
           if (Date.now() - startedAt >= timeout) {
             reject(cause);
+
             return;
           }
           window.setTimeout(inspect, 16);
@@ -97,16 +100,19 @@ function expectState(assertion, timeout = 8000) {
 function expectStateContinually(assertion, duration = 250) {
   cy.window().then({ timeout: duration + 1000 }, (window) => {
     const startedAt = Date.now();
+
     return new Cypress.Promise((resolve, reject) => {
       const inspect = () => {
         try {
           assertion(window.gameMovementTest.state());
         } catch (cause) {
           reject(cause);
+
           return;
         }
         if (Date.now() - startedAt >= duration) {
           resolve();
+
           return;
         }
         window.setTimeout(inspect, 16);
@@ -502,6 +508,7 @@ describe("Hero movement on a predefined terrain map", { testIsolation: false }, 
     cy.window().then({ timeout: 9000 }, (window) => {
       const rotations = [];
       const deadline = Date.now() + 8000;
+
       return new Cypress.Promise((resolve) => {
         const inspect = () => {
           const position = window.gameMovementTest.state().position;
@@ -511,6 +518,7 @@ describe("Hero movement on a predefined terrain map", { testIsolation: false }, 
               position,
               rotations,
             });
+
             return;
           }
           window.setTimeout(inspect, 10);

@@ -17,6 +17,7 @@ it("updates exposure when collision opens, closes, or partly obstructs the upwin
             start: start.clone(),
             end: end.clone(),
           });
+
           return blocked ? {} : null;
         },
       },

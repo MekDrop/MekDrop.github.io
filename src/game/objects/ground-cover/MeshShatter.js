@@ -69,6 +69,7 @@ export class MeshShatter {
     }
 
     source.destroy();
+
     return pieces;
   }
 
@@ -277,6 +278,7 @@ export class MeshShatter {
           3,
       });
     }
+
     return centroids;
   }
 
@@ -307,6 +309,7 @@ export class MeshShatter {
       }
       seeds.push(farthest);
     }
+
     return seeds;
   }
 
@@ -452,6 +455,7 @@ export class MeshShatter {
       MIN_FILL_DEPTH,
       Math.sqrt(farthestVertexDistanceSquared) * FILL_DEPTH_SCALE,
     );
+
     return {
       x: -(normal.x / normalLength) * depth,
       y: -(normal.y / normalLength) * depth,
@@ -540,6 +544,7 @@ export class MeshShatter {
       z: edgeAx * edgeBy - edgeAy * edgeBx,
     };
     const length = Math.hypot(normal.x, normal.y, normal.z) || 1;
+
     return {
       x: normal.x / length,
       y: normal.y / length,
@@ -556,6 +561,7 @@ export class MeshShatter {
     const x = first.x - second.x;
     const y = first.y - second.y;
     const z = first.z - second.z;
+
     return x * x + y * y + z * z;
   }
 
@@ -565,11 +571,13 @@ export class MeshShatter {
    */
   #createRandom(seed) {
     let state = seed >>> 0;
+
     return () => {
       state += 0x6d2b79f5;
       let value = state;
       value = Math.imul(value ^ (value >>> 15), value | 1);
       value ^= value + Math.imul(value ^ (value >>> 7), value | 61);
+
       return ((value ^ (value >>> 14)) >>> 0) / 4294967296;
     };
   }

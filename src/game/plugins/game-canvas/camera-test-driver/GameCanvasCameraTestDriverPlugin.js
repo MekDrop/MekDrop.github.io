@@ -37,6 +37,7 @@ export class GameCanvasCameraTestDriverPlugin {
           container.clientWidth / 2,
           container.clientHeight / 2,
         );
+
         return this.#state();
       },
       /**
@@ -49,6 +50,7 @@ export class GameCanvasCameraTestDriverPlugin {
           ...renderer.viewport,
           rotation,
         });
+
         return this.#state();
       },
       /**
@@ -58,6 +60,7 @@ export class GameCanvasCameraTestDriverPlugin {
        */
       panBy: (deltaX, deltaY) => {
         this.#context.renderer().panBy(deltaX, deltaY);
+
         return this.#state();
       },
       /**
@@ -67,6 +70,7 @@ export class GameCanvasCameraTestDriverPlugin {
        */
       lookFirstPersonBy: (yawDegrees, pitchDegrees) => {
         this.#context.renderer().lookFirstPersonBy(yawDegrees, pitchDegrees);
+
         return this.#state();
       },
       /**
@@ -81,7 +85,9 @@ export class GameCanvasCameraTestDriverPlugin {
       /**
        * @param {boolean} enabled
        */
-      firstPerson: (enabled) => { this.#context.renderer().firstPersonCameraEnabled = enabled; return this.#state(); },
+      firstPerson: (enabled) => { this.#context.renderer().firstPersonCameraEnabled = enabled;
+
+ return this.#state(); },
       state: () => this.#state(),
     };
     this.#context.target.gameCameraTest = this.#driver;
@@ -96,6 +102,7 @@ export class GameCanvasCameraTestDriverPlugin {
 
   #state() {
     const renderer = this.#context.renderer();
+
     return {
       cameraReturningToHero: renderer.cameraReturningToHero,
       firstPersonCameraEnabled: renderer.firstPersonCameraEnabled,

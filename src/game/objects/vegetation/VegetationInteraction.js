@@ -67,6 +67,7 @@ export class VegetationInteraction {
   get description() {
     const target = this.#item.describe();
     const active = this.#hero.tool === this.#tool;
+
     return {
       ...target,
       labelKey: active
@@ -95,6 +96,7 @@ export class VegetationInteraction {
           this.#onDestroyed?.(result);
         }
         this.#onChange?.();
+
         return result?.destroyed ?? true;
       },
       onComplete: this.#onComplete,

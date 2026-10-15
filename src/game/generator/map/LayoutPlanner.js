@@ -287,6 +287,7 @@ export class LayoutPlanner {
           side === "LEFT" ? DIRECTIONS.EAST : DIRECTIONS.WEST,
           mergeCol,
         };
+
         return {
           ...entry,
           curvePlan: this.#buildCurvePlan(
@@ -487,6 +488,7 @@ export class LayoutPlanner {
   #selectCurveBandStarts(safeBands) {
     if (safeBands.length >= 3) {
       const midIndex = Math.floor(safeBands.length / 2);
+
       return [
         safeBands[0],
         safeBands[midIndex],

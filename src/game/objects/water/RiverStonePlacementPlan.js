@@ -91,6 +91,7 @@ export class RiverStonePlacementPlan {
         stonesPlaced++;
       }
     }
+
     return placements;
   }
 
@@ -100,6 +101,7 @@ export class RiverStonePlacementPlan {
    */
   #noise(seed) {
     const value = Math.sin(seed * 12.9898) * 43758.5453;
+
     return value - Math.floor(value);
   }
 }

@@ -195,6 +195,7 @@ export class AbstractRoyal {
       servant,
     });
     this.#entity.addChild(this.#activity.entity);
+
     return this.#activity;
   }
 
@@ -226,6 +227,7 @@ export class AbstractRoyal {
     });
     this.#audienceActor.navigation = this.#actions.motion;
     this.#actions.actor.behavior = this.#behavior;
+
     return {
       kind: this.#RoyalType.kind,
       behavior: this.#behavior,
@@ -239,6 +241,7 @@ export class AbstractRoyal {
    */
   beginGameOver(getCameraPosition) {
     this.#prepareGameOver?.();
+
     return (
       this.#audienceRoom?.beginGameOver(getCameraPosition, this.#isBlocked) ??
       null
@@ -288,6 +291,7 @@ export class AbstractRoyal {
       this.#activity?.stop();
       if (this.#onRuntimeError) {
         this.#onRuntimeError(error);
+
         return;
       }
       throw error;

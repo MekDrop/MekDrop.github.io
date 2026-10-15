@@ -42,6 +42,7 @@ const basementOptions = () => {
     x: 2,
     y: 7,
   };
+
   return {
     ...options,
     roomGenerators: [new ThroneRoomGenerator(), new LibraryRoomGenerator(), service,
@@ -320,6 +321,7 @@ it("encloses covered rooms and leaves the leisure terrace open to the sky", asyn
   const layout = new CastleResidentialLayout(plan);
   const solidAt = (x, z, y) => {
     const point = layout.toWorld(x, z, y - layout.origin.y);
+
     return plan.metadata.collision.cameraBlocks.some((block) => Math.abs(block.x - point.x) < block.halfX + 1e-6 &&
       Math.abs(block.z - point.z) < block.halfZ + 1e-6 && Math.abs(block.y - point.y) < block.halfY + 1e-6);
   };
@@ -492,6 +494,7 @@ it("closes private room entrances at their masonry plane and carries partitions 
   for (const room of plan.placedRooms.filter((entry) => entry.level === 0 && entry.floorSpan === 1 && entry.id !== "leisure")) {
     assert.ok(generated.metadata.collision.cameraBlocks.some((block) => {
       const point = layout.toLocal(block.x, block.z);
+
       return Math.abs(point.z - room.maxZ - 0.125) < 0.13 && point.x > room.minX && point.x < room.maxX &&
         block.y > room.floorY + plan.rise - 0.25 && block.y < room.floorY + plan.rise;
     }), `${room.id} has masonry reaching the ceiling underside`);

@@ -93,6 +93,7 @@ export class BuildMetadataStage extends AbstractCastleGenerationStage {
           const angle = plan.origin.yaw * Math.PI / 180;
           const x = doorway.axis === "x" ? doorway.coordinate : doorway.center;
           const z = doorway.axis === "z" ? doorway.coordinate : doorway.center;
+
           return {
             roomId: doorway.roomId,
             x: plan.origin.x + Math.cos(angle) * x + Math.sin(angle) * z,

@@ -26,6 +26,7 @@ function advancePositioning(action, owner) {
     action.positioning = null;
     action.positioningElapsed = 0;
     feedback.restartAnimation();
+
     return true;
   }
   feedback.moveTo(x, z);

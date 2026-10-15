@@ -11,6 +11,7 @@ class FakeVec3 {
     this.x = x;
     this.y = y;
     this.z = z;
+
     return this;
   }
 
@@ -19,6 +20,7 @@ class FakeVec3 {
     this.x /= length;
     this.y /= length;
     this.z /= length;
+
     return this;
   }
 }
@@ -151,6 +153,7 @@ function createSourceMesh(yOffset) {
     { length: positions.length / 3 },
     (_, index) => index,
   );
+
   return {
     primitive: [
       {
@@ -162,6 +165,7 @@ function createSourceMesh(yOffset) {
     ],
     getPositions(target) {
       target.push(...positions);
+
       return positions.length / 3;
     },
     getNormals(target) {
@@ -327,6 +331,7 @@ function createSubject(ambientMotion) {
         };
         root.addChild(part);
       });
+
       return root;
     },
   };
@@ -359,6 +364,7 @@ function createSubject(ambientMotion) {
     phase: 1.3,
     ambientMotion,
   });
+
   return {
     generatedMeshes,
     item,
@@ -475,6 +481,7 @@ describe("ground cover item ambient motion", () => {
     assert.equal(
       fragments.every((fragment, index) => {
         const initial = initialPositions[index];
+
         return (
           Math.hypot(
             fragment.position.x - initial.x,

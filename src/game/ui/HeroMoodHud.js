@@ -101,6 +101,7 @@ export class HeroMoodHud extends GamePanelHud {
     if (!visible) {
       this.#kind = null;
       this.#leaveElapsed = null;
+
       return;
     }
     const reduced = this.#motionPreference?.matches;

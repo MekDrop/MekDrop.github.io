@@ -162,6 +162,7 @@ export class EarthSurfaceMaterials {
    */
   #variant(col, row, level) {
     const selection = this.#mapData.earthTextureVariants;
+
     return selection?.tiles[row]?.[col]?.[Math.floor(level) - selection.firstLevel] ?? 0;
   }
 }

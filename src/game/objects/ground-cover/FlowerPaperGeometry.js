@@ -48,5 +48,6 @@ export function splitPaperGeometry(positions, normals, indices, length) {
       for (let vertex = 1; vertex < polygon.length - 1; vertex++) { result.indices.push(base, base + vertex, base + vertex + 1); }
     }
   }
+
   return result;
 }

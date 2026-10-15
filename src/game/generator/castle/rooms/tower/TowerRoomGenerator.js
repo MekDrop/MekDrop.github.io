@@ -35,6 +35,7 @@ export class TowerRoomGenerator extends AbstractCastleRoomGenerator {
      */
     const random = () => {
       hash = (Math.imul(hash, 1664525) + 1013904223) >>> 0;
+
       return hash / 4294967296;
     };
     const inset = (context.wallThickness ?? room.wallThickness ?? 0.25) / 2 + 0.08;
@@ -122,6 +123,7 @@ export class TowerRoomGenerator extends AbstractCastleRoomGenerator {
         break;
       }
     }
+
     return items;
   }
 }

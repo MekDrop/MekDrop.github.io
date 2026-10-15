@@ -12,6 +12,7 @@ export function tileVariantIndex(col, row, level, salt, count) {
     Math.imul(row + 31, 19349663) ^
     Math.imul(level + 7, 83492791) ^
     salt;
+
   return (hash >>> 0) % count;
 }
 
@@ -45,5 +46,6 @@ export function tilePatchValue(col, row, level) {
     sample(cellX + 1, cellZ + 1) * blendX;
   const broadPatch = north * (1 - blendZ) + south * blendZ;
   const localVariation = tileVariantIndex(col, row, level, 53, 10000) / 10000;
+
   return broadPatch * 0.9 + localVariation * 0.1;
 }

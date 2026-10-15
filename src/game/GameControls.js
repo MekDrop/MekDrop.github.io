@@ -262,12 +262,14 @@ export class GameControls {
 
     if (this.#matchesAnyKey(event, this.#keydownConsumeBindings)) {
       this.#cancelKeyboardEvent(event);
+
       return;
     }
 
     if (!event.repeat && this.#actions.restartGame?.restart()) {
       event.preventDefault();
       event.stopImmediatePropagation();
+
       return;
     }
 
@@ -323,6 +325,7 @@ export class GameControls {
         event.preventDefault();
         this.#cameraDrag.cancel();
         this.#clearMovement();
+
         return;
       }
     }
@@ -372,10 +375,12 @@ export class GameControls {
     if (this.#actions.restartGame?.restart()) {
       event.preventDefault();
       event.stopImmediatePropagation();
+
       return;
     }
     if (this.#actions.cameraPointer?.press(event)) {
       event.preventDefault();
+
       return;
     }
     this.#cameraDrag.start(event);
@@ -402,6 +407,7 @@ export class GameControls {
         event.clientX,
         event.clientY,
       );
+
       return;
     }
     this.#cameraDrag.move(event);
@@ -455,8 +461,10 @@ export class GameControls {
 
       this.#cancelKeyboardEvent(event);
       action.invoke(event);
+
       return true;
     }
+
     return false;
   }
 
@@ -500,6 +508,7 @@ export class GameControls {
         return false;
       }
     }
+
     return binding.allowRepeat !== false || !event.repeat;
   }
 

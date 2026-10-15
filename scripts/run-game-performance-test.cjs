@@ -29,6 +29,7 @@ function delay(durationMs) {
 async function serverIsReady() {
   try {
     const response = await fetch(serverUrl);
+
     return response.ok;
   } catch {
     return false;
@@ -42,6 +43,7 @@ async function waitForServer(timeoutMs) {
     if (serverProcess?.exitCode !== null) return false;
     await delay(250);
   }
+
   return false;
 }
 
@@ -78,6 +80,7 @@ async function stopServer() {
       },
     );
     await waitForExit(taskkill);
+
     return;
   }
 
@@ -98,6 +101,7 @@ async function main() {
       console.error(`Game test server did not become ready at ${serverUrl}.`);
       await stopServer();
       process.exitCode = 1;
+
       return;
     }
   }

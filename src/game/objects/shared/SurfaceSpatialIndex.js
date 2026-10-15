@@ -45,6 +45,7 @@ export class SurfaceSpatialIndex {
         }
       }
     }
+
     return items;
   }
 }

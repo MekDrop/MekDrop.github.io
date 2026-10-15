@@ -126,6 +126,7 @@ export class HeroLavaDeathEffect {
       rotationSpeedGraph2: this.#curve([0, 22, 1, -26]),
     });
     flames.setLocalPosition(0, 0.55, 0);
+
     return flames;
   }
 
@@ -159,6 +160,7 @@ export class HeroLavaDeathEffect {
       mipmaps: true,
     });
     texture.setSource(canvas);
+
     return texture;
   }
 
@@ -169,6 +171,7 @@ export class HeroLavaDeathEffect {
   #curve(keys) {
     const curve = new this.#pc.Curve(keys);
     curve.type = this.#pc.CURVE_SMOOTHSTEP;
+
     return curve;
   }
 
@@ -179,6 +182,7 @@ export class HeroLavaDeathEffect {
   #curveSet(...channels) {
     const curves = new this.#pc.CurveSet(channels);
     curves.type = this.#pc.CURVE_SMOOTHSTEP;
+
     return curves;
   }
 
@@ -189,6 +193,7 @@ export class HeroLavaDeathEffect {
   #stepCurveSet(...channels) {
     const curves = new this.#pc.CurveSet(channels);
     curves.type = this.#pc.CURVE_STEP;
+
     return curves;
   }
 }

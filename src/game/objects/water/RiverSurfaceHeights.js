@@ -40,6 +40,7 @@ export class RiverSurfaceHeights {
             }
           }
         }
+
         return heights.reduce(/**
        *
        * @param {number} sum

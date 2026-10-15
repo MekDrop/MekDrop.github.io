@@ -290,6 +290,7 @@ export class RiverWater {
    */
   createMaterial(translucent = false) {
     const key = translucent ? 'translucent' : 'opaque';
+
     return this.materialFor(key, () => {
       const material = new this.#pc.StandardMaterial();
       material.name = `Painted river ${key}`;
@@ -321,6 +322,7 @@ export class RiverWater {
         material.shaderChunks.glsl.set('opacityPS', riverWaterOpacityShader);
       }
       material.setParameter('uRiverLava', 0);
+
       return material;
     });
   }
@@ -338,6 +340,7 @@ export class RiverWater {
     this.#effects.apply(material);
     material.update();
     this.#materials.set(key, material);
+
     return material;
   }
 }

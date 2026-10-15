@@ -170,6 +170,7 @@ export class LavafallGeometry {
           top -
           (1 - Math.cos(angle)) * lipRadius +
           normalY * curvedThickness;
+
         return [
           centerX + direction.col * forward + cross.col * acrossBase,
           y,
@@ -192,6 +193,7 @@ export class LavafallGeometry {
         Math.sin(acrossBase * Math.PI * 6 + progress * 7.0 + seed) *
         0.014 *
         progress;
+
       return [
         centerX +
           direction.col *
@@ -243,6 +245,7 @@ export class LavafallGeometry {
         color[3],
         Math.round(Math.min(1, row / lipSlices) * 255),
       );
+
       return color;
     };
     /**
@@ -294,6 +297,7 @@ export class LavafallGeometry {
       point[0] -= direction.col * Math.sin(angle) * thickness;
       point[1] -= Math.cos(angle) * thickness;
       point[2] -= direction.row * Math.sin(angle) * thickness;
+
       return point;
     };
     this.#addGrid(
@@ -387,6 +391,7 @@ export class LavafallGeometry {
             ) * 0.012;
           const forward =
             baseForward + arch + irregularity + edge * thickness;
+
           return [
             centerX + direction.col * forward + cross.col * across * 0.86,
             cascade.bottomElevation + 0.045,
@@ -640,6 +645,7 @@ export class LavafallGeometry {
    */
   #waterfallNoise(seed) {
     const value = Math.sin(seed * 12.9898) * 43758.5453;
+
     return value - Math.floor(value);
   }
 

@@ -16,6 +16,7 @@ function createScheduler() {
 
 function createContext() {
   const cleanupCallbacks = [];
+
   return {
     output: {},
     scheduler: createScheduler(),

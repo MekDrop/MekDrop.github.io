@@ -124,6 +124,7 @@ export class Bowl extends AbstractCastleProp {
     if (indices.length) { mesh.setIndices(indices); }
     mesh.update(source.primitive[0].type);
     this.#meshes.set(source, mesh);
+
     return mesh;
   }
 

@@ -14,6 +14,7 @@ describe("CastleBuildPlanStage", () => {
       },
       generateCastleBuildPlan: async (options) => {
         calls.push(options);
+
         return buildPlan;
       },
     });

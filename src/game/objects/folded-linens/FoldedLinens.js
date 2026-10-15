@@ -25,6 +25,7 @@ export class FoldedLinens extends AbstractCastleProp {
     original.destroy();
     if (!arePositiveFiniteNumbers(width, depth, height)) {
       template.destroy();
+
       return;
     }
     const columns = Math.max(1, Math.floor((width + 1e-6) / 0.3));
@@ -32,6 +33,7 @@ export class FoldedLinens extends AbstractCastleProp {
     const layers = Math.max(1, Math.ceil(height / 0.16));
     if (columns * rows * layers > 4096) {
       template.destroy();
+
       return;
     }
     const random = new GenerationRandom(String(linenSeed ?? this.definition.id));

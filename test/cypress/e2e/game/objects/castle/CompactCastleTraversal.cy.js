@@ -31,7 +31,9 @@ async function walkTo(window, target) {
     if (alert) { expect(false, alert.textContent).to.equal(true); }
     const state = driver.state();
     const dx = target.x - state.position.x, dz = target.z - state.position.z;
-    if (Math.hypot(dx,dz) < (target.tolerance ?? .12)) { driver.move(0,0); return; }
+    if (Math.hypot(dx,dz) < (target.tolerance ?? .12)) { driver.move(0,0);
+
+ return; }
     const camera = window.gameCameraTest.state().firstPersonCamera;
     const distance=Math.hypot(dx,dz), speed=Math.min(.45,distance*.8), forwardLength=Math.hypot(camera.direction.x,camera.direction.z);
     driver.move((camera.right.x*dx+camera.right.z*dz)/distance*speed,
@@ -117,6 +119,7 @@ describe('Compact authored castle traversal', () => {
         const x=stair.center.x+lx*Math.cos(angle)+lz*Math.sin(angle),z=stair.center.z-lx*Math.sin(angle)+lz*Math.cos(angle);
         const predicted=stair.center.y+a[2]+(b[2]-a[2])*progress;
         const y=castleStraightStairHeight(stair,x,z,predicted) ?? predicted;
+
         return {
           x,
           z,

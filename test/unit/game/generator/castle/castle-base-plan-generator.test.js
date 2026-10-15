@@ -101,7 +101,9 @@ it("mirrors odd seeds around the unchanged entrance, including every structural 
 it("runs a room generator at every assigned slot without changing its bounds", async () => {
   const generator = new ServiceRoomGenerator();
   const calls = [];
-  generator.furnish = (room) => { calls.push({ ...room }); return []; };
+  generator.furnish = (room) => { calls.push({ ...room });
+
+ return []; };
   const result = await CastleBasePlanGenerator.generate({
     planId: "castle-03",
     generators: [generator,

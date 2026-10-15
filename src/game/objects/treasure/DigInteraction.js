@@ -90,6 +90,7 @@ export class DigInteraction {
         revealedBlockedDig =
           this.#target.kind === "blocked-dig" && finished;
         this.#onChange?.();
+
         return finished;
       },
       onComplete: () => {

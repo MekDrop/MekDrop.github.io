@@ -146,6 +146,7 @@ export class HeroPatHand {
     this.#entity.enabled = true;
     this.#animationLayer.play(PAT_ANIMATION);
     this.#syncContactCollider();
+
     return true;
   }
 
@@ -194,6 +195,7 @@ export class HeroPatHand {
       45 + (this.#getViewRotation?.() ?? 0) * 90,
       0,
     );
+
     return true;
   }
 
@@ -210,6 +212,7 @@ export class HeroPatHand {
       }
       pending.push(...entity.children);
     }
+
     return this.#model;
   }
 

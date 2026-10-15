@@ -45,6 +45,7 @@ export class Fire {
       },
     });
     parent.addChild(fire.entity);
+
     return fire;
   }
 

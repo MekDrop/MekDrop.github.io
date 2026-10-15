@@ -261,6 +261,7 @@ export class TriggerArea {
       return null;
     }
     const surface = this.#surfaceState();
+
     return surface.topCenterY -
       (surface.normal.x * (x - surface.position.x) +
         surface.normal.z * (z - surface.position.z)) /
@@ -299,6 +300,7 @@ export class TriggerArea {
     } catch (error) {
       if (this.#onRuntimeError) {
         this.#onRuntimeError(error);
+
         return;
       }
       throw error;
@@ -312,6 +314,7 @@ export class TriggerArea {
   get grassSurfaceContacts() {
     const { position } = this.#definition;
     const surface = this.#surfaceState();
+
     return [{
       x: position.x,
       y: position.y + GRASS_ROOT_LIFT,
@@ -329,6 +332,7 @@ export class TriggerArea {
    */
   get physicsState() {
     const surface = this.#surfaceState();
+
     return {
       position: {
         x: surface.position.x,
@@ -373,12 +377,14 @@ export class TriggerArea {
         z: z + Math.sin(angle) * TRIGGER_RADIUS * 0.72,
       });
     }
+
     return points;
   }
 
   #surfaceState() {
     const position = this.#entity.getPosition();
     this.#entity.getRotation().transformVector(this.#up, this.#normal);
+
     return {
       position,
       normal: this.#normal,

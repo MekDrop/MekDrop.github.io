@@ -193,6 +193,7 @@ export class TerraceSunbedActions {
     if (!visible) {
       this.#bookOpenAmount = 0;
       this.#setBookOpenAmount(0);
+
       return;
     }
     const mountProgress = phase === PHASE.SETTLE

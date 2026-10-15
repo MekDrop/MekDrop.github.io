@@ -109,6 +109,7 @@ export class PathSurfaceMaterials {
       59;
     const weight = (hash >>> 0) % TOP_VARIANT_WEIGHTS.length;
     const variant = TOP_VARIANT_WEIGHTS[weight];
+
     return variant === 0 ? "path" : `path-${variant}`;
   }
 }

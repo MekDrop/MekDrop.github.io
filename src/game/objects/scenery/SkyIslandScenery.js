@@ -185,6 +185,7 @@ export class SkyIslandScenery {
     value = Math.imul(value ^ (first + 101), 2246822519);
     value = Math.imul(value ^ (second + 211), 3266489917);
     value ^= value >>> 16;
+
     return value >>> 0;
   }
 
@@ -198,6 +199,7 @@ export class SkyIslandScenery {
       hash ^= value.charCodeAt(index);
       hash = Math.imul(hash, 16777619);
     }
+
     return hash >>> 0;
   }
 }

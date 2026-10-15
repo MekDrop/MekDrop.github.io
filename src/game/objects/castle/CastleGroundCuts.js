@@ -225,6 +225,7 @@ export function clipCastleTerrainRecord(definition, cuts) {
         y: (piece.minY + piece.maxY + lift) / 2,
         z: (piece.minZ + piece.maxZ) / 2,
       };
+
       return {
         ...definition,
         id: `${definition.id}-castle-cut-${index}`,

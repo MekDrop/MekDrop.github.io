@@ -99,6 +99,7 @@ export class TerrainMaterialSelector {
       return material;
     }
     const index = tileVariantIndex(col, row, level, 37, this.#sideVariantCount);
+
     return `${material}-${index}`;
   }
 }

@@ -62,6 +62,7 @@ export class HelpCommand {
         description: command.description,
       }));
     this.#logger.table(commands);
+
     return commands;
   }
 }

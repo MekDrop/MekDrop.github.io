@@ -33,6 +33,7 @@ export class RoyalWishFulfillment {
     if (wish && this.#servant) {
       this.#servant.fulfill(wish);
       this.#royal.fulfillWish(this.#servant.fulfilledService);
+
       return;
     }
     if (!triggered && this.#royal.onThrone) {

@@ -90,6 +90,7 @@ export class CastleAuthoredBuildPlan {
      */
     const world = (x, z, y) => {
       const angle = yaw * Math.PI / 180;
+
       return {
         x: origin.x + Math.cos(angle) * x + Math.sin(angle) * z,
         y,
@@ -185,6 +186,7 @@ export class CastleAuthoredBuildPlan {
             const dx = (door.axis === "x" ? door.coordinate : door.center) - x;
             const dz = (door.axis === "z" ? door.coordinate : door.center) - z;
             const distance = dx * dx + dz * dz;
+
             return !best || distance < best.distance ? {
               door,
               dx,
@@ -887,6 +889,7 @@ export class CastleAuthoredBuildPlan {
          */
           (other) => {
             const volume = transform(other);
+
             return other.id !== building.id && other.floorY <= terrace.floorY && other.floorY + other.height >= terrace.floorY + 0.75 &&
             x >= volume.minX - thickness && x <= volume.maxX + thickness && z >= volume.minZ - thickness && z <= volume.maxZ + thickness;
           });
@@ -1108,6 +1111,7 @@ export class CastleAuthoredBuildPlan {
         halfZ: Math.abs(Math.sin(angle)) > 0.5 ? block.halfX : block.halfZ,
       }));
     residential.furniture = RoomPlacementRules.repair(residential.furniture, localWalls, spaces, openings);
+
     return {
       input: {
         ...options,

@@ -123,6 +123,7 @@ export class Banner {
    */
   getPointerHit(start, end) {
     const hit = this.#visual.getBannerHit(start, end);
+
     return hit ? {
       ...hit,
       pointerTarget: this,
@@ -131,12 +132,18 @@ export class Banner {
   /**
    * @param {{hit: Parameters<BannerCloth["beginWindGesture"]>[0]}} options
    */
-  handlePointerDown({ hit }) { this.#visual.beginWindGesture(hit); return { capturePointer: true }; }
+  handlePointerDown({ hit }) { this.#visual.beginWindGesture(hit);
+
+ return { capturePointer: true }; }
   /**
    * @param {{ray: {start: import("playcanvas").Vec3, end: import("playcanvas").Vec3}, deltaTime: number}} options
    */
-  handlePointerMove({ ray, deltaTime }) { this.#visual.applyMouseWind(ray.start, ray.end, deltaTime); return true; }
-  handlePointerUp() { this.#visual.endWindGesture(); return true; }
+  handlePointerMove({ ray, deltaTime }) { this.#visual.applyMouseWind(ray.start, ray.end, deltaTime);
+
+ return true; }
+  handlePointerUp() { this.#visual.endWindGesture();
+
+ return true; }
   handlePointerCancel() { this.#visual.endWindGesture(); }
   destroy() { this.#visual.destroy(); }
 }

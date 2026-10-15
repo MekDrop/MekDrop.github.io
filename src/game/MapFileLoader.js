@@ -23,6 +23,7 @@ export class MapFileLoader {
           filePath.lastIndexOf("/") + 1,
           filePath.length - 5,
         );
+
         return [`test_${fileName}`, loader];
       }),
   );
@@ -52,6 +53,7 @@ export class MapFileLoader {
     mapData.mapName = mapName;
     WalkingPaths.rebuild(mapData);
     TerrainBlockDefinitions.populate(mapData);
+
     return mapData;
   }
 }

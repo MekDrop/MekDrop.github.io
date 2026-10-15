@@ -40,6 +40,7 @@ export class RoyalBedroomRoomGenerator extends AbstractCastleRoomGenerator {
         const high = crosswise ? room.maxX : room.maxZ;
         const alongLow = crosswise ? room.minZ : room.minX;
         const alongHigh = crosswise ? room.maxZ : room.maxX;
+
         return (Math.abs(opening.coordinate - low) <= thickness || Math.abs(opening.coordinate - high) <= thickness) &&
         opening.center + opening.width / 2 > alongLow && opening.center - opening.width / 2 < alongHigh;
       });

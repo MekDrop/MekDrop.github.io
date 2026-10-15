@@ -77,12 +77,14 @@ function createSubject() {
               end,
               options,
             });
+
             return raycastHits;
           },
         },
       },
     },
   });
+
   return {
     physics,
     raycasts,

@@ -157,6 +157,7 @@ export class VestibuleWindowFurnishing {
         if (safe(item) && RoomPlacementRules.accepts(item, room, obstacles, wallThickness)) { items.push(item); }
       }
     }
+
     return items;
   }
 }

@@ -18,11 +18,13 @@ function createSubject() {
     },
     onCollect: () => {
       events.push("collect");
+
       return true;
     },
     onHide: () => events.push("hide"),
     onDestroy: (impact) => events.push({ impact }),
   });
+
   return {
     collectible,
     events,

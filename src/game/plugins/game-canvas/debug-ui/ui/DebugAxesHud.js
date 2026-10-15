@@ -351,6 +351,7 @@ export class DebugAxesHud {
       wind.z * directions.y.y +
       wind.y * directions.z.y;
     const length = Math.max(0.001, Math.hypot(x, y));
+
     return new Vec2(x / length, y / length);
   }
 

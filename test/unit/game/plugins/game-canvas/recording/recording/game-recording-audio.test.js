@@ -42,6 +42,7 @@ function setup() {
     setExternalNodes(first, last) { this.nodes = [first, last]; },
     clearExternalNodes() { this.nodes = [null, null]; },
   });
+
   return {
     app,
     slot,

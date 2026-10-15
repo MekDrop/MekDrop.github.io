@@ -136,6 +136,7 @@ export class GrassObstacleMap {
       };
     }
     const tilePadding = 1;
+
     return {
       minimumX: Math.max(0, (tile.col - tilePadding) * SAMPLES_PER_TILE),
       maximumX: Math.min(
@@ -307,6 +308,7 @@ export class GrassObstacleMap {
         };
       }
     }
+
     return nearest;
   }
 }

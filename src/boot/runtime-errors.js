@@ -173,6 +173,7 @@ export function runtimeErrorDetails(error, context) {
   } catch {
     serialized = runtimeErrorDescription(error);
   }
+
   return [
     `Context: ${context}`,
     `Page: ${window.location?.href ?? ""}`,

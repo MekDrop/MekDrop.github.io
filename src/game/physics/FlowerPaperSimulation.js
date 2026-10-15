@@ -89,6 +89,7 @@ export class FlowerPaperSimulation {
     body.nativeBody.setSleepingThresholds(0.0005, 0.0005);
     this.#bodies.add(body);
     this.#shapes.set(body, shape);
+
     return body;
   }
 
@@ -129,6 +130,7 @@ export class FlowerPaperSimulation {
       },
     });
     this.#joints.add(joint);
+
     return joint;
   }
 
@@ -202,6 +204,7 @@ export class FlowerPaperSimulation {
       rotation: rotation.clone(),
     };
     this.#sheets.add(sheet);
+
     return sheet;
   }
 
@@ -251,6 +254,7 @@ export class FlowerPaperSimulation {
         rotation,
       });
     }
+
     return poses;
   }
 
@@ -300,6 +304,7 @@ export class FlowerPaperSimulation {
          */
             (foot) => {
               const local = inverse.transformVector(position.clone().sub(foot));
+
               // Include the full attached sheet: a sole can load its inner edge
               // while both section centers remain outside the footprint.
               return Math.abs(local.x) < 0.095 + sheet.length && Math.abs(local.z) < 0.13 + sheet.length &&

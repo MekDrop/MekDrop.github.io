@@ -104,6 +104,7 @@ export class OverpassStairs {
       return [];
     }
     this.#root.addChild(batch.entity);
+
     return [batch.vertexBuffer];
   }
 

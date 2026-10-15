@@ -62,6 +62,7 @@ export function createCastleInteriorFloorAreas(plan, layout) {
     active.clear();
     for (const [key, rectangle] of next) active.set(key, rectangle);
   }
+
   return rectangles.map(/**
    *
    * @param {{startCol:number,endCol:number,startRow:number,endRow:number}} rectangle
@@ -70,6 +71,7 @@ export function createCastleInteriorFloorAreas(plan, layout) {
     (rectangle, index) => {
       const a = layout.toLocal(position.x + rectangle.startCol * size, position.z + rectangle.startRow * size);
       const b = layout.toLocal(position.x + rectangle.endCol * size, position.z + rectangle.endRow * size);
+
       return {
         id: `interiorFloor:${index}`,
         minX: Math.min(a.x, b.x),

@@ -544,6 +544,7 @@ export class TerrainBlockLayout {
           row,
         },
       ];
+
     return (
       candidates.find(
         /**
@@ -594,6 +595,7 @@ export class TerrainBlockLayout {
           return false;
         }
       }
+
       return true;
     };
     let start = horizontal ? col : row;
@@ -613,6 +615,7 @@ export class TerrainBlockLayout {
         });
       }
     }
+
     return {
       cells,
       horizontal,

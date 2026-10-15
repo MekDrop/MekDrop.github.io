@@ -36,11 +36,13 @@ function controls(context, dodgeAccepted = true) {
       queueFacingInput: (...args) => queuedFacingInputs.push(args),
       dodge: (...args) => {
         dodges.push(args);
+
         return dodgeAccepted;
       },
     },
   };
   const action = new HeroMovementAction(renderer);
+
   return {
     action,
     renderer,

@@ -229,6 +229,7 @@ class GameUiTheme {
    */
   get fontFamily() {
     this.#initialize();
+
     return this.#fontFamily;
   }
 
@@ -237,6 +238,7 @@ class GameUiTheme {
    */
   get borderRadius() {
     this.#initialize();
+
     return this.#borderRadius;
   }
 
@@ -245,6 +247,7 @@ class GameUiTheme {
    */
   get spaceXs() {
     this.#initialize();
+
     return this.#spacing.get("xs");
   }
 
@@ -253,6 +256,7 @@ class GameUiTheme {
    */
   get spaceSm() {
     this.#initialize();
+
     return this.#spacing.get("sm");
   }
 
@@ -261,6 +265,7 @@ class GameUiTheme {
    */
   get spaceMd() {
     this.#initialize();
+
     return this.#spacing.get("md");
   }
 
@@ -269,6 +274,7 @@ class GameUiTheme {
    */
   get spaceLg() {
     this.#initialize();
+
     return this.#spacing.get("lg");
   }
 
@@ -277,6 +283,7 @@ class GameUiTheme {
    */
   get spaceXl() {
     this.#initialize();
+
     return this.#spacing.get("xl");
   }
 
@@ -296,6 +303,7 @@ class GameUiTheme {
    */
   withAlpha(color, alpha) {
     const { red, green, blue } = this.#parseColor(color, "runtime color");
+
     return `rgba(${red}, ${green}, ${blue}, ${this.#clamp(alpha, 0, 1)})`;
   }
 
@@ -307,6 +315,7 @@ class GameUiTheme {
    */
   playCanvasColor(pc, color, alpha = 1) {
     const value = this.#parseColor(color, "runtime color");
+
     return new pc.Color(
       this.#srgbToLinear(value.red / 255),
       this.#srgbToLinear(value.green / 255),
@@ -339,6 +348,7 @@ class GameUiTheme {
   #hex(name) {
     this.#initialize();
     const { red, green, blue } = this.#get(name);
+
     return `#${[red, green, blue]
       .map(/**
        *
@@ -356,6 +366,7 @@ class GameUiTheme {
    */
   #mix(first, second, amount) {
     const weight = this.#clamp(amount, 0, 1);
+
     return {
       red: Math.round(first.red + (second.red - first.red) * weight),
       green: Math.round(first.green + (second.green - first.green) * weight),
@@ -378,6 +389,7 @@ class GameUiTheme {
       weight < 0
         ? component * (1 + weight)
         : component + (255 - component) * weight;
+
     return {
       red: Math.round(nextComponent(color.red)),
       green: Math.round(nextComponent(color.green)),
@@ -470,6 +482,7 @@ class GameUiTheme {
               (character) => character + character)
             .join("")
           : hex;
+
       return {
         red: Number.parseInt(expanded.slice(0, 2), 16),
         green: Number.parseInt(expanded.slice(2, 4), 16),

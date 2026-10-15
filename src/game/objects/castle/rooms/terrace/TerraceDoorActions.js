@@ -238,7 +238,9 @@ export class TerraceDoorActions {
   }
 
   #syncInspector() {
-    if (this.#motion) { this.#syncResidentInspector(); return; }
+    if (this.#motion) { this.#syncResidentInspector();
+
+ return; }
     if (this.#inspection.reacting) { return; }
     const phase = this.#inspection.phase;
     const progress = this.#inspection.progress;
@@ -288,6 +290,7 @@ export class TerraceDoorActions {
       ].includes(phase)
     ) {
       this.#syncInspectorClosing();
+
       return;
     }
     const stairProgress = ease(
@@ -333,6 +336,7 @@ export class TerraceDoorActions {
   #syncInspectorClosing() {
     if (!this.#ownsDoor) {
       this.#syncExistingDoorInspectorClosing();
+
       return;
     }
     const phase = this.#inspection.phase;

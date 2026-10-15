@@ -58,5 +58,6 @@ export function addHeroPartColliders({ pc, modelRoot }) {
       colliders.push(collider);
     }
   }
+
   return colliders;
 }

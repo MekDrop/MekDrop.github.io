@@ -95,6 +95,7 @@ export const useOtherLinksStore = defineStore("other-links", () => {
     const searchTerm = `*${lunr.utils.asString(term)}* ${lunr.utils.asString(term)}~1`;
 
     const results = index.value.search(searchTerm);
+
     return results.map(/**
      *
      * @param {import("lunr").Index.Result} result

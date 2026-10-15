@@ -16,6 +16,7 @@ export function mergeCollisionVoxels(voxels) {
    * @param {CollisionCell} right
    */
     (left, right) => right.y - left.y || left.x - right.x || left.z - right.z));
+
   return topFirst.length < original.length ? topFirst : original;
 }
 
@@ -63,5 +64,6 @@ function packCollisionCells(voxels) {
       depth,
     });
   }
+
   return boxes;
 }

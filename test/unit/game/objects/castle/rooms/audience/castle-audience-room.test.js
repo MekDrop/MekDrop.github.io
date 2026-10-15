@@ -69,14 +69,18 @@ class FakeEntity {
     };
   }
 
-  findComponents() { this.render ??= { meshInstances: [{ material: null }] }; return [this.render]; }
+  findComponents() { this.render ??= { meshInstances: [{ material: null }] };
+
+ return [this.render]; }
   destroy() {}
 }
 
 class FakeMaterial {
   update() {}
 
-  findComponents() { this.render ??= { meshInstances: [{ material: null }] }; return [this.render]; }
+  findComponents() { this.render ??= { meshInstances: [{ material: null }] };
+
+ return [this.render]; }
   destroy() {}
 }
 
@@ -212,6 +216,7 @@ function createRoom(side, occupant = null, options = {}) {
 
 function forwardPosition(entity, side) {
   const { center, inward } = layouts[side];
+
   return (
     (entity.position.x - center.x) * inward.x +
     (entity.position.z - center.z) * inward.z

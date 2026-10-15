@@ -50,6 +50,7 @@ export class PathSurfaceRules {
       ({ col: sideCol, row: sideRow }) =>
         PathSurfaceRules.hasPathSideBlock(grid, heightmap, sideCol, sideRow, pathHeight),
     );
+
     return hasLateralSupport ? "SOLID" : "BRIDGE";
   }
 
@@ -165,6 +166,7 @@ export class PathSurfaceRules {
         return candidateRow;
       }
     }
+
     return null;
   }
 
@@ -186,6 +188,7 @@ export class PathSurfaceRules {
         return candidateCol;
       }
     }
+
     return null;
   }
 }

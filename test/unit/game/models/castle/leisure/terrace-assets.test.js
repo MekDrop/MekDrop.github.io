@@ -11,6 +11,7 @@ function glb(name) {
   const json = JSON.parse(
     buffer.subarray(20, 20 + buffer.readUInt32LE(12)),
   );
+
   return {
     json,
     url,

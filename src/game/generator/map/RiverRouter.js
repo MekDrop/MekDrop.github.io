@@ -76,6 +76,7 @@ export class RiverRouter {
     }
 
     const tile = grid[row][col];
+
     return tile === TileType.GRASS || tile === TileType.PATH;
   }
 
@@ -110,6 +111,7 @@ export class RiverRouter {
         }
       }
     }
+
     return true;
   }
 
@@ -155,6 +157,7 @@ export class RiverRouter {
         return null;
       }
     }
+
     return MapGrid.directionFromStep(previous, terminal);
   }
 
@@ -174,6 +177,7 @@ export class RiverRouter {
       key = parents.get(key) ?? null;
     }
     route.reverse();
+
     return route;
   }
 
@@ -212,6 +216,7 @@ export class RiverRouter {
      */
       (key) => {
         const [col, row] = key.split(",").map(Number);
+
         return Math.max(Math.abs(col - junction.col), Math.abs(row - junction.row)) > 1;
       }));
     const queue = [{ ...junction }];
@@ -288,6 +293,7 @@ export class RiverRouter {
         queue.push(neighbor);
       }
     }
+
     return null;
   }
 
@@ -318,6 +324,7 @@ export class RiverRouter {
         }
       }
     }
+
     return (
       land.length > 0 &&
       MapGrid.findConnectedComponent(trialGrid, [land[0]]).size === land.length
@@ -387,6 +394,7 @@ export class RiverRouter {
         return false;
       }
     }
+
     return true;
   }
 }

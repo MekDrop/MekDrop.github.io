@@ -138,6 +138,7 @@ export class RegenerateMapAction {
   regenerateMap(viewport = this.#renderer.viewport) {
     const lifecycle = this.#runRegeneration(viewport);
     this.#onLifecycle(lifecycle);
+
     return lifecycle;
   }
 
@@ -163,6 +164,7 @@ export class RegenerateMapAction {
       return mapData;
     } catch (error) {
       await this.#onGenerationError(error, operation);
+
       return null;
     } finally {
       await this.#onComplete?.(operation);

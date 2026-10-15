@@ -135,6 +135,7 @@ test("open windows retain the surround and remove glazing and internal dividers"
         entity.setLocalPosition(...node.translation);
         visual.addChild(entity);
       }
+
       return visual;
     },
   };

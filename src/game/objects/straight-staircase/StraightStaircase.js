@@ -145,6 +145,7 @@ export class StraightStaircase {
       const top = base + castleStraightStairSurfaceHeight(surface, point.z);
       if (top <= maximumHeight+1e-6) { height = height === null ? top : Math.max(height,top); }
     }
+
     return height;
   }
 
@@ -158,6 +159,7 @@ export class StraightStaircase {
    */
   blocksCameraAt(x,y,z,radius=0) {
     const center = this.#visual.getPosition();
+
     return castleStraightStairBlocksCamera({
       ...this.#definition,
       center,

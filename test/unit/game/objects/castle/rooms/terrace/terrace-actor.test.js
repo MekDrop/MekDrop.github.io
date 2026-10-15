@@ -17,6 +17,7 @@ function royalModel(kind) {
     entity.setLocalPosition(...(node.translation ?? [0, 0, 0]));
     entity.setLocalRotation(new pc.Quat(...(node.rotation ?? [0, 0, 0, 1])));
     entity.setLocalScale(...(node.scale ?? [1, 1, 1]));
+
     return entity;
   });
   const meshes = [];
@@ -33,6 +34,7 @@ function royalModel(kind) {
         get aabb() {
           const transformed = new pc.BoundingBox();
           transformed.setFromTransformedAabb(local, nodes[index].getWorldTransform());
+
           return transformed;
         },
       });
@@ -43,6 +45,7 @@ function royalModel(kind) {
     root.addChild(nodes[index]);
   }
   root.findComponents = (type) => type === "render" ? [{ meshInstances: meshes }] : [];
+
   return {
     root,
     meshes,

@@ -109,6 +109,7 @@ export class FlowerPaper {
         });
       }
     }
+
     return state;
   }
 

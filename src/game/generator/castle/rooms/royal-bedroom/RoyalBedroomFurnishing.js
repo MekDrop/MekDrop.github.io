@@ -111,6 +111,7 @@ export class RoyalBedroomFurnishing {
       const drawer = this.#place("BedsideDrawers", x, z, 0.6004, 0.5604, 0.65, bed.rotation);
       if (!drawer) { continue; }
       this.#supported("TableCandles", drawer, 0.1407, 0.1916, 0.2311);
+
       return;
     }
   }
@@ -235,7 +236,9 @@ export class RoyalBedroomFurnishing {
       if (intersects(doorBounds)) { return; }
     }
     this.#items.push(item);
-    if (!this.#connected()) { this.#items.pop(); return; }
+    if (!this.#connected()) { this.#items.pop();
+
+ return; }
     return item;
   }
 
@@ -296,6 +299,7 @@ export class RoyalBedroomFurnishing {
     const bed = this.#items.find(/**
      * @param {import("../AbstractCastleRoomGenerator.js").RoomItem} item
      */ item => item.role === "royalBed");
+
     return !bed || queue.some(/**
      * @param {number} index
      */ index => bed.rotation % 180 === 0
@@ -392,6 +396,7 @@ export class RoyalBedroomFurnishing {
         (opening.bottom ?? 0) < 2.08 && (opening.bottom ?? 0) + opening.height > 1.3;
       if (openings.some(overlapsWallDecoration)) { continue; }
       this.#items.push(item);
+
       return;
     }
   }

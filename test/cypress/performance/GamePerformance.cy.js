@@ -19,6 +19,7 @@ function sampleFrameTimes(win, durationMs) {
 
       if (frameAt - startedAt >= durationMs) {
         resolve(frameTimes);
+
         return;
       }
 
@@ -85,6 +86,7 @@ describe("Game performance", () => {
             .should("be.visible")
             .and("contain.text", "WebGPU is unavailable");
           cy.get(".site-notice-dialog .q-btn").contains("OK").click();
+
           return;
         }
 
@@ -130,6 +132,7 @@ describe("Game performance", () => {
           metrics.longFrameRatio,
           `long-frame ratio (${summary})`,
         ).to.be.at.most(MAX_LONG_FRAME_RATIO);
+
         return cy.task("reportGamePerformance", summary);
       });
     cy.get(".background-canvas canvas").should(($canvas) => {

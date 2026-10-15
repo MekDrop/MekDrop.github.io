@@ -265,6 +265,7 @@ export class DestructibleVegetation {
       this.#destroyed = true;
       this.#physicsCollider = null;
       this.#entity.destroy();
+
       return {
         ...description,
         destroyed: true,
@@ -282,6 +283,7 @@ export class DestructibleVegetation {
       (rowPart) => {
         rowPart.enabled = false;
       });
+
     return {
       ...this.describe(),
       destroyed: false,
@@ -304,6 +306,7 @@ export class DestructibleVegetation {
       return Infinity;
     }
     const local = this.#toLocalCoordinates(x, z);
+
     return this.#collisionFootprints.reduce(
       /**
        *
@@ -330,6 +333,7 @@ export class DestructibleVegetation {
       return false;
     }
     const local = this.#toLocalCoordinates(x, z);
+
     return this.#collisionFootprints.some(
       /**
        *
@@ -354,6 +358,7 @@ export class DestructibleVegetation {
       return 0;
     }
     const local = this.#toLocalCoordinates(x, z);
+
     return this.#grassFootprints.some(
       /**
        *
@@ -399,6 +404,7 @@ export class DestructibleVegetation {
         radius - signedDistance,
       );
     }
+
     return Math.max(0, deepestCollision);
   }
 
@@ -450,6 +456,7 @@ export class DestructibleVegetation {
           ? footprint.surfaceHeight
           : Math.max(highestSurface, footprint.surfaceHeight);
     }
+
     return highestSurface;
   }
 
@@ -465,6 +472,7 @@ export class DestructibleVegetation {
         Math.abs(footprint.z) + footprint.depth / 2,
       ));
     }
+
     return {
       minX: this.#origin.x - radius,
       maxX: this.#origin.x + radius,
@@ -496,6 +504,7 @@ export class DestructibleVegetation {
       this.#destroyPhysicsCollider();
       this.#collisionFootprints = [];
       this.#grassFootprints = [];
+
       return;
     }
 
@@ -601,6 +610,7 @@ export class DestructibleVegetation {
     const deltaZ = z - this.#origin.z;
     const cosine = Math.cos(this.#rotationRadians);
     const sine = Math.sin(this.#rotationRadians);
+
     return {
       x: cosine * deltaX - sine * deltaZ,
       z: sine * deltaX + cosine * deltaZ,
@@ -622,6 +632,7 @@ export class DestructibleVegetation {
       Math.abs(z - footprint.z) - footprint.depth / 2,
       0,
     );
+
     return Math.hypot(distanceX, distanceZ);
   }
 
@@ -639,6 +650,7 @@ export class DestructibleVegetation {
       }
       pending.push(...entity.children);
     }
+
     return groups;
   }
 }

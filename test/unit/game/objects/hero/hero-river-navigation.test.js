@@ -89,6 +89,7 @@ function createRiver(cells, position, deltaTime = 0.1) {
       },
     },
   };
+
   return {
     state,
     owner,

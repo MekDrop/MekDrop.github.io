@@ -23,6 +23,7 @@ export class HeroPatReactionActionState extends HeroRuntimeActionState {
   execute(owner) {
     if (!owner.feedback.patReaction.shouldContinue()) {
       owner.finish();
+
       return;
     }
     this.payload.remaining = Math.max(

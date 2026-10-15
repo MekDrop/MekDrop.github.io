@@ -55,6 +55,7 @@ export class RoomPlacementRules {
       if (Math.abs(item.x - other.x) < halfX + other.width * other.scale / 2 - 1e-6 &&
         Math.abs(item.z - other.z) < halfZ + other.depth * other.scale / 2 - 1e-6) { return false; }
     }
+
     return true;
   }
   /**
@@ -88,6 +89,7 @@ export class RoomPlacementRules {
       const pivotOffset = item.underStair && item.tilt ? item.depth * item.scale / 2 : 0;
       const x = item.x - Math.sin(angle) * pivotOffset;
       const z = item.z - Math.cos(angle) * pivotOffset;
+
       return {
         minX: x - width * item.scale / 2,
         maxX: x + width * item.scale / 2,
@@ -109,6 +111,7 @@ export class RoomPlacementRules {
         other => {
           if (other === item || other.floorY !== item.floorY) { return false; }
           const b = envelope(other);
+
           return Math.abs(a.bottom - b.top) < 0.025 && item.x >= b.minX && item.x <= b.maxX && item.z >= b.minZ && item.z <= b.maxZ;
         });
       if (support) { item.supportId = support.id; }
@@ -273,6 +276,7 @@ export class RoomPlacementRules {
           for (const member of members) {
             edge = wall.side === "min" ? Math.min(edge, member["min" + axis]) : Math.max(edge, member["max" + axis]);
           }
+
           return Math.abs(edge + candidate[wall.axis] - wall.coordinate);
         }));
       if (root.wallAlignment?.length) {
@@ -334,6 +338,7 @@ export class RoomPlacementRules {
       }
       placed.push(...group);
     }
+
     return result;
   }
 }

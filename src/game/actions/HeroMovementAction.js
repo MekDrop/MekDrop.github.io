@@ -102,6 +102,7 @@ export class HeroMovementAction {
       if (isDoubleTap && this.dodge(direction, firstTapFacing)) {
         this.#dodgeFacingAtFirstTap.delete(direction);
         this.#consumedDodgeDirections.add(direction);
+
         return;
       }
       this.#dodgeFacingAtFirstTap.set(direction, hero?.facingDirection ?? null);
@@ -209,6 +210,7 @@ export class HeroMovementAction {
     }
 
     this.#lastDirectionTapAt.delete(direction);
+
     return true;
   }
 

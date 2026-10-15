@@ -37,6 +37,7 @@ function build(overrides = {}) {
         const model = new pc.Entity("model", app);
         for (const name of ["Rack rail", "Rack base", "Rack upright", "Rack foot", "Rack crossbeam", "Rack brace", "Rack guide", "Rack socket", "Rack spear"]) { model.addChild(new pc.Entity(name, app)); }
         models.push(model);
+
         return model;
       },
     },
@@ -51,6 +52,7 @@ function build(overrides = {}) {
       ...overrides,
     },
   });
+
   return {
     rack,
     models,
@@ -144,6 +146,7 @@ const assetBounds = new Map(gltf.nodes.map(node => {
   assert.equal(node.rotation, undefined);
   assert.equal(node.translation, undefined);
   const accessors = gltf.meshes[node.mesh].primitives.map(primitive => gltf.accessors[primitive.attributes.POSITION]);
+
   return [node.name, {
     min: [0, 1, 2].map(axis => Math.min(...accessors.map(accessor => accessor.min[axis]))),
     max: [0, 1, 2].map(axis => Math.max(...accessors.map(accessor => accessor.max[axis]))),

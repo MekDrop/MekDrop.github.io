@@ -82,6 +82,7 @@ export class CastleDoorSwingPhysics {
       this.#probe.setWorldTransform(this.#transform);
       world.contactTest(this.#probe, this.#callback);
     }
+
     return this.#contacts;
   }
 
@@ -134,6 +135,7 @@ export class CastleDoorSwingPhysics {
       const pointer = ammo.getPointer(other);
       if (this.#ownBodies.has(pointer) || (other.getCollisionFlags() & 4)) return 0;
       this.#contacts.set(pointer, Math.max(this.#contacts.get(pointer) ?? 0, depth));
+
       return 0;
     };
   }

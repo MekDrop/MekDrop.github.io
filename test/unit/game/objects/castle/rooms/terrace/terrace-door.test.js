@@ -27,7 +27,9 @@ function fixture() {
   let clicks = 0;
   const door = new TerraceDoor({
     pc,
-    onOpen: () => { clicks += 1; return true; },
+    onOpen: () => { clicks += 1;
+
+ return true; },
     modelLibrary: {
       instantiate(url) {
         const root = new pc.Entity("Imported model");
@@ -48,9 +50,11 @@ function fixture() {
   });
   const ray = (x, y) => {
     const matrix = hinge.getWorldTransform();
+
     return [matrix.transformPoint(new pc.Vec3(x, y, 2)),
       matrix.transformPoint(new pc.Vec3(x, y, -2))];
   };
+
   return {
     door,
     hinge,

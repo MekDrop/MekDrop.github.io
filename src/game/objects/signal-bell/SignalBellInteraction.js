@@ -32,6 +32,7 @@ export class SignalBellInteraction {
   get canInteract() {
     const position = this.#hero.position;
     const bell = this.#bell.position;
+
     return !this.#hero.isIncapacitated && !this.#hero.isUsingTool && !this.#hero.isReacting && this.#bell.canRing &&
       Math.abs(position.y - bell.y) < 0.7 && Math.hypot(position.x - bell.x, position.z - bell.z) < 1.25;
   }
@@ -69,6 +70,7 @@ export class SignalBellInteraction {
     if (!accepted) { return false; }
     this.#bell.beginRinging();
     this.#onComplete?.();
+
     return true;
   }
 }

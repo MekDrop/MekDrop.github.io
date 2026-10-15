@@ -26,6 +26,7 @@ export class CastleRoomLocator {
         room = space;
       }
     }
+
     return room;
   }
 }

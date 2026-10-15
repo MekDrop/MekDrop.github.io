@@ -294,6 +294,7 @@ export class CastleFire {
   #curve(keys) {
     const curve = new this.#pc.Curve(keys);
     curve.type = this.#pc.CURVE_SMOOTHSTEP;
+
     return curve;
   }
 
@@ -304,6 +305,7 @@ export class CastleFire {
   #curveSet(...channels) {
     const curves = new this.#pc.CurveSet(channels);
     curves.type = this.#pc.CURVE_SMOOTHSTEP;
+
     return curves;
   }
 
@@ -314,6 +316,7 @@ export class CastleFire {
   #stepCurveSet(...channels) {
     const curves = new this.#pc.CurveSet(channels);
     curves.type = this.#pc.CURVE_STEP;
+
     return curves;
   }
 
@@ -323,6 +326,7 @@ export class CastleFire {
     material.diffuse = colorFromHex(this.#pc, 0x202528);
     material.gloss = 0.14;
     material.update();
+
     return material;
   }
 

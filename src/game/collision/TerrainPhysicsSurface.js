@@ -217,6 +217,7 @@ export class TerrainPhysicsSurface {
     }
     this.#addSupplementalSurfaces(positions, indices, tiles);
     this.#addOverpassDeck(positions, indices);
+
     return {
       positions,
       indices,
@@ -264,6 +265,7 @@ export class TerrainPhysicsSurface {
           : slope.riseDirection === SLOPE_DIRECTION.WEST
             ? slope.lowHeight
             : null;
+
       return [
         northHeight ?? westHeight,
         northHeight ?? eastHeight,
@@ -274,6 +276,7 @@ export class TerrainPhysicsSurface {
     const height =
       this.#mapData.heightmap[row][col] +
       (GRASS_SURFACE_TILES.has(type) ? GRASS_SURFACE_LIFT : 0);
+
     return [height, height, height, height];
   }
 

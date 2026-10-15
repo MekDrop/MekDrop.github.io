@@ -161,6 +161,7 @@ export class Castle extends CastleEntityBuilder {
       return replaced ? seed : null;
     } catch (error) {
       this.#runtime.onRuntimeError?.(error);
+
       return null;
     } finally {
       this.#regenerating = false;

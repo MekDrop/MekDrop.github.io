@@ -9,6 +9,7 @@ function hashString(value) {
   for (const character of String(value)) {
     hash = Math.imul(hash ^ character.charCodeAt(0), 16777619);
   }
+
   return hash >>> 0;
 }
 
@@ -24,6 +25,7 @@ function variantForBlock(seed, col, row, level) {
   hash = Math.imul(hash ^ Math.imul(col + 1, 73856093), 16777619);
   hash = Math.imul(hash ^ Math.imul(row + 1, 19349663), 16777619);
   hash = Math.imul(hash ^ Math.imul(level + MAX_UNDERSIDE_DEPTH + 1, 83492791), 16777619);
+
   return (hash >>> 0) % EARTH_TEXTURE_VARIANT_COUNT;
 }
 
@@ -66,6 +68,7 @@ export function createEarthTextureVariants(mapData) {
           ),
       ),
   );
+
   return {
     firstLevel,
     tiles,

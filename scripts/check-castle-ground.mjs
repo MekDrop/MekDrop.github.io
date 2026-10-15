@@ -24,7 +24,9 @@ if (args.includes("--help")) {
    * @param {string} path
    */
   async function discover(path) {
-    if (path.endsWith(".json")) { files.add(resolve(path)); return; }
+    if (path.endsWith(".json")) { files.add(resolve(path));
+
+ return; }
     for (const entry of await readdir(path, { withFileTypes: true })) {
       const child = resolve(path, entry.name);
       if (entry.isDirectory()) await discover(child);

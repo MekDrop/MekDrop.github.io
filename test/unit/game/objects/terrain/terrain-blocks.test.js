@@ -13,6 +13,7 @@ const hooks = registerHooks({
   resolve(specifier, context, nextResolve) {
     if (context.parentURL?.endsWith("/terrain/Grass.js") && /Grass(Carpet|Surface)\.js$/.test(specifier)) {
       const name = specifier.includes("Carpet") ? "GrassCarpet" : "GrassSurface";
+
       return {
         shortCircuit: true,
         url: `data:text/javascript,${encodeURIComponent(`
@@ -65,9 +66,12 @@ function fixture() {
       addBoxMatrix: (...args) => cubes.push(args),
       excavateSurface: (...args) => cubes.push(["excavate", ...args]),
     },
-    collisionWorld: { grassWeightAt: (...args) => { weightQueries.push(args); return 0.4; } },
+    collisionWorld: { grassWeightAt: (...args) => { weightQueries.push(args);
+
+ return 0.4; } },
     getContactProviders: () => contacts,
   };
+
   return {
     runtime,
     cubes,

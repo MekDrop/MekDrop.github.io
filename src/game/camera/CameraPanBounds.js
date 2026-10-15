@@ -242,6 +242,7 @@ export class CameraPanBounds {
           frame.safeHalfWidth + VISIBILITY_TOLERANCE &&
         Math.abs(projected.y - target.y) <=
           frame.safeHalfHeight + VISIBILITY_TOLERANCE;
+
         return count + Number(visible);
       }, 0);
 
@@ -289,6 +290,7 @@ export class CameraPanBounds {
         frame.viewportWidth / 2 + (point.x - target.x) / worldPerPixel,
         frame.viewportHeight / 2 + (point.y - target.y) / worldPerPixel,
       ));
+
     return {
       left: Math.min(...screenPoints.map(/**
        *
@@ -376,6 +378,7 @@ export class CameraPanBounds {
         new Vec2(anchorX - halfRangeX, anchorY + halfRangeY),
       );
     }
+
     return this.#convexHull(points);
   }
 
@@ -393,6 +396,7 @@ export class CameraPanBounds {
      * @param {import("src/game/GameContracts.js").GridPoint} point
      */
       (point) => this.#project(point, frame));
+
     return {
       minimumX: Math.min(...projected.map(/**
        *
@@ -465,6 +469,7 @@ export class CameraPanBounds {
         maximumScale = scale;
       }
     }
+
     return this.#cacheAllowedHull(cacheKey, allowedHull);
   }
 
@@ -476,6 +481,7 @@ export class CameraPanBounds {
   #cacheAllowedHull(cacheKey, hull) {
     this.#allowedHullCacheKey = cacheKey;
     this.#allowedHullCache = hull;
+
     return hull;
   }
 
@@ -501,6 +507,7 @@ export class CameraPanBounds {
         return polygon;
       }
     }
+
     return polygon;
   }
 
@@ -534,6 +541,7 @@ export class CameraPanBounds {
         clipped.push(current);
       }
     }
+
     return clipped;
   }
 
@@ -559,6 +567,7 @@ export class CameraPanBounds {
         nearestDistance = distance;
       }
     }
+
     return nearest;
   }
 
@@ -581,6 +590,7 @@ export class CameraPanBounds {
       0,
       1,
     );
+
     return new Vec2(start.x + deltaX * progress, start.y + deltaY * progress);
   }
 
@@ -611,6 +621,7 @@ export class CameraPanBounds {
         maximumProgress = progress;
       }
     }
+
     return new Vec2(
       start.x + (end.x - start.x) * minimumProgress,
       start.y + (end.y - start.y) * minimumProgress,
@@ -639,6 +650,7 @@ export class CameraPanBounds {
         return false;
       }
     }
+
     return true;
   }
 
@@ -680,12 +692,14 @@ export class CameraPanBounds {
         }
         half.push(point);
       }
+
       return half;
     };
     const lower = buildHalf(uniquePoints);
     const upper = buildHalf([...uniquePoints].reverse());
     lower.pop();
     upper.pop();
+
     return [...lower, ...upper];
   }
 
@@ -703,6 +717,7 @@ export class CameraPanBounds {
       const next = polygon[(index + 1) % polygon.length];
       doubledArea += point.x * next.y - point.y * next.x;
     }
+
     return Math.abs(doubledArea) > VISIBILITY_TOLERANCE;
   }
 
@@ -760,6 +775,7 @@ export class CameraPanBounds {
    */
   #project(point, frame) {
     const depth = point.x * frame.sinYaw + point.z * frame.cosYaw;
+
     return new Vec2(
       point.x * frame.cosYaw - point.z * frame.sinYaw,
       depth * frame.sinPitch - point.y * frame.cosPitch,

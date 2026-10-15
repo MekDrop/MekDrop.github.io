@@ -237,6 +237,7 @@ export class MushroomDebris {
       (fragment) => {
         const position = fragment.getPosition();
         const radius = fragment.collision.radius;
+
         return {
           id: fragment,
           x: position.x,
@@ -374,6 +375,7 @@ export class MushroomDebris {
         this.#meshes.push(piece.mesh);
         this.#fragments.push(fragment);
       });
+
     return true;
   }
 
@@ -472,6 +474,7 @@ export class MushroomDebris {
     material.name = `${sourceMaterial.name} mushroom debris`;
     this.#materialClones.set(sourceMaterial, material);
     this.#materials.push(material);
+
     return material;
   }
 

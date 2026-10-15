@@ -99,6 +99,7 @@ export class HeroEmotionBehavior {
     const angryProgress = kind === HERO_MOOD.ANGRY
       ? Math.max(0, Math.min(1, (level - 1) / 2))
       : 0;
+
     return {
       kind,
       level,
@@ -175,6 +176,7 @@ export class HeroEmotionBehavior {
     }
     this.#updateState(pressure);
     const kind = this.state.kind;
+
     return {
       accepted: true,
       kind,

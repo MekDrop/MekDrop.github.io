@@ -58,6 +58,7 @@ describe("grass obstacle field", () => {
     const elevations = [];
     obstacleMap.refresh((x, y, z) => {
       elevations.push(y);
+
       return Math.hypot(x, z) < 0.16 ? 0.5 : 0;
     });
 
@@ -166,6 +167,7 @@ describe("grass obstacle field", () => {
     localMap.refresh(
       (x, y, z) => {
         localSamples += 1;
+
         return remainingWeight(x, y, z);
       },
       {
@@ -175,6 +177,7 @@ describe("grass obstacle field", () => {
     );
     fullMap.refresh((x, y, z) => {
       fullSamples += 1;
+
       return remainingWeight(x, y, z);
     });
 

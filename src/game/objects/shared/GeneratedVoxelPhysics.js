@@ -39,5 +39,6 @@ export function addGeneratedVoxelPhysics({
     friction,
     restitution: 0,
   });
+
   return collider;
 }

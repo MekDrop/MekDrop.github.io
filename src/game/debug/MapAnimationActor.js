@@ -197,6 +197,7 @@ export class MapAnimationActor {
       modelLibrary,
       modelUrl,
     });
+
     return this.#ownedObject.entity;
   }
 

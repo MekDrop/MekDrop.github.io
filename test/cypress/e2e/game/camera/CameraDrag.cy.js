@@ -16,6 +16,7 @@ function supportedZoomLevels() {
     zoom = Math.min(MAX_ZOOM, zoom * ZOOM_FACTOR);
     levels.push(zoom);
   }
+
   return levels;
 }
 
@@ -122,6 +123,7 @@ function dragCameraInSteps(deltaX, deltaY, steps) {
         clientY: clientY + (deltaY * step) / steps,
       });
     }
+
     return drag.trigger("pointerup", {
       pointerId,
       pointerType: POINTER_TYPE.MOUSE,
@@ -185,6 +187,7 @@ function expectIslandVisible(
           Math.min(bounds.bottom, height - inset) -
             Math.max(bounds.top, inset),
         );
+
         return {
           name,
           bounds,
@@ -245,6 +248,7 @@ function structureFitsSafeViewport(state, name) {
     return false;
   }
   const inset = state.visibility.insetPixels;
+
   return (
     bounds.right - bounds.left <=
       state.visibility.viewportWidth - inset * 2 &&
@@ -255,6 +259,7 @@ function structureFitsSafeViewport(state, name) {
 
 function horizontalPanProjection(viewport) {
   const yaw = Math.PI / 4 + viewport.rotation * (Math.PI / 2);
+
   return viewport.panX * Math.cos(yaw) - viewport.panZ * Math.sin(yaw);
 }
 
@@ -275,6 +280,7 @@ function startHeroCameraReturn(directionIndex = 0) {
   const [deltaX, deltaY] = directions[directionIndex];
   setZoom(MAX_ZOOM);
   dragCamera(deltaX, deltaY);
+
   return cy.window().then((window) => {
     const state = window.gameCameraTest.state();
     const start = state.viewport;
@@ -287,6 +293,7 @@ function startHeroCameraReturn(directionIndex = 0) {
     }
     const started = window.gameCameraTest.returnToHero();
     const immediate = window.gameCameraTest.state().viewport;
+
     return {
       immediate,
       start,

@@ -34,6 +34,7 @@ export class RestartGameAction {
     }
     const viewport = this.#renderer.gameOverReturnViewport;
     void this.#regenerateMap.regenerateMap(viewport);
+
     return true;
   }
 }

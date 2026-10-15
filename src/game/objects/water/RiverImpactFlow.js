@@ -26,6 +26,7 @@ export class RiverImpactFlow {
           const flow = this.#direction(cascade.direction);
           const drop = cascade.topElevation - cascade.bottomElevation;
           const forward = 0.565 + Math.min(0.22, drop * 0.22);
+
           return {
             col: cascade.from.col + flow[0] * forward,
             row: cascade.from.row + flow[1] * forward,
@@ -110,6 +111,7 @@ export class RiverImpactFlow {
       velocity[1] -= nz * intoBank;
     }
     const limit = Math.max(1, Math.hypot(...velocity) / 0.95);
+
     return [velocity[0] / limit, velocity[1] / limit, influence];
   }
 
@@ -133,6 +135,7 @@ export class RiverImpactFlow {
      */
       ([nx, nz]) => {
         const neighbor = this.#cells.get(`${col + nx},${row + nz}`);
+
         return neighbor && (neighbor.river === record.river || (record.river.id &&
         (neighbor.river.sourceId ?? neighbor.river.id) === (record.river.sourceId ?? record.river.id))) &&
         Math.abs(neighbor.cell.elevation - record.cell.elevation) <= 0.04 ? 0 : 1;
@@ -147,6 +150,7 @@ export class RiverImpactFlow {
    */
   #smooth(start, end, value) {
     const t = Math.max(0, Math.min(1, (value - start) / (end - start)));
+
     return t * t * (3 - 2 * t);
   }
 

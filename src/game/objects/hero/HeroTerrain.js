@@ -220,6 +220,7 @@ export class HeroTerrain {
     const tileZ = row - (this.#mapData.rows - 1) / 2;
     const distanceX = Math.max(Math.abs(x - tileX) - 0.5, 0);
     const distanceZ = Math.max(Math.abs(z - tileZ) - 0.5, 0);
+
     return distanceX * distanceX + distanceZ * distanceZ;
   }
 
@@ -256,6 +257,7 @@ export class HeroTerrain {
       const dz = Math.max(minZ - z, z - maxZ, 0);
       distance = Math.min(distance, dx * dx + dz * dz);
     }
+
     return distance;
   }
 
@@ -325,6 +327,7 @@ export class HeroTerrain {
         }
       }
     }
+
     return highestSurface;
   }
 
@@ -352,6 +355,7 @@ export class HeroTerrain {
         type === TileType.WATER
           ? this.riverSourceCoverHeightAt(x, z, col, row)
           : null;
+
       return sourceCoverHeight !== null && sourceCoverHeight <= maximumHeight
         ? sourceCoverHeight
         : null;
@@ -375,6 +379,7 @@ export class HeroTerrain {
         highestSurface = surfaceHeight;
       }
     }
+
     return highestSurface;
   }
 
@@ -403,6 +408,7 @@ export class HeroTerrain {
             : slope.riseDirection === SLOPE_DIRECTION.WEST
               ? 1 - localX
               : localX;
+
       return slope.lowHeight +
         (slope.highHeight - slope.lowHeight) * progress;
     }
@@ -421,6 +427,7 @@ export class HeroTerrain {
   isBeyondMapEdge(x, z) {
     const gridX = x + (this.#mapData.cols - 1) / 2;
     const gridZ = z + (this.#mapData.rows - 1) / 2;
+
     return (
       gridX < -0.5 ||
       gridZ < -0.5 ||
@@ -458,6 +465,7 @@ export class HeroTerrain {
         return cover.height;
       }
     }
+
     return null;
   }
 

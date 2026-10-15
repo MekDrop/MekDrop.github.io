@@ -229,6 +229,7 @@ export class HeroVisibilityController {
         }
         if (!candidateIsVisible) continue;
         this.#setRotation(rotation);
+
         return;
       }
     } finally {
@@ -318,6 +319,7 @@ export class HeroVisibilityController {
         return true;
       }
     }
+
     return false;
   }
 

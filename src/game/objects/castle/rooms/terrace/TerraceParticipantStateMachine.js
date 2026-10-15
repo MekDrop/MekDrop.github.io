@@ -202,11 +202,13 @@ export class TerraceParticipantStateMachine extends NpcStateMachine {
     }
     if (this.#canComplete && !this.#canComplete()) {
       this.#elapsed = state.duration;
+
       return;
     }
     const remaining = this.#elapsed - state.duration;
     if (state.resumeOnComplete && this.resume()) {
       this.#elapsed += remaining;
+
       return;
     }
     this.transition(this.nextPhase(state.phase));
@@ -219,6 +221,7 @@ export class TerraceParticipantStateMachine extends NpcStateMachine {
    */
   addInterruption(state) {
     this.add(state.phase, state);
+
     return this;
   }
 
@@ -235,6 +238,7 @@ export class TerraceParticipantStateMachine extends NpcStateMachine {
       elapsed: this.#elapsed,
     });
     this.transition(phase);
+
     return true;
   }
 
@@ -245,6 +249,7 @@ export class TerraceParticipantStateMachine extends NpcStateMachine {
     }
     this.changeTo(interrupted.phase);
     this.#elapsed = interrupted.elapsed;
+
     return true;
   }
 

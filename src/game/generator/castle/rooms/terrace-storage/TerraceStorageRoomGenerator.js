@@ -29,6 +29,7 @@ export class TerraceStorageRoomGenerator extends AbstractCastleRoomGenerator {
       ["Teacup", tableX + 0.37, tableZ - 0.28, 0.482, 0.362, 0.217, 1, 1.11],
       ["TerraceReadingBook", tableX, tableZ + 0.24, 0.619, 0.69, 0.164, 0.6, 1.075],
     ];
+
     return definitions.map(/**
      * @param {Array<string|number>} definition
      * @param {number} index

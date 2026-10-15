@@ -51,6 +51,7 @@ export class AbstractCastleRoomGenerator {
    */
   furnish(room) {
     void room;
+
     return [];
   }
 }

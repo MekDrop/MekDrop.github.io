@@ -117,6 +117,7 @@ export class ServantHeroClearance {
       }
       const floor = physics.raycastFirst(new Vec3(point.x, point.y + 0.15, point.z),
         new Vec3(point.x, point.y - 0.25, point.z), { filterCallback });
+
       return Boolean(floor && floor.normal.y > 0.65);
     };
     NpcDoorAvoidance.requestClearance(hero, hazard, canMove, this.#actor);

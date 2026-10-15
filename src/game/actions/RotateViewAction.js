@@ -54,6 +54,7 @@ export class RotateViewAction {
       verticalQuarterTurns,
     );
     this.#onChange(rotation);
+
     return rotation;
   }
 }

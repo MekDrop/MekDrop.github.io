@@ -158,6 +158,7 @@ export class TerrainValidator {
           radiusY: 8,
         },
       ][index];
+
       return (
         base &&
           ellipse.centerCol === base.centerCol &&

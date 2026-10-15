@@ -344,6 +344,7 @@ export class Gateway {
       this.#collisionWorldPoint,
       this.#collisionLocalPoint,
     );
+
     return (
       Math.abs(this.#collisionLocalPoint.x) <=
         PORTAL_COLLISION_HALF_DEPTH + radius &&
@@ -405,6 +406,7 @@ export class Gateway {
       return null;
     }
     const impactZ = Math.max(-this.#cubeSize * 4, Math.min(this.#cubeSize * 4, this.#collisionLocalPoint.z));
+
     return {
       x: this.#repulsionDirection.x / length,
       z: this.#repulsionDirection.z / length,
@@ -453,6 +455,7 @@ export class Gateway {
    */
   getPointerHit(rayStart, rayEnd) {
     const hit = this.getBannerHit(rayStart, rayEnd);
+
     return hit ? {
       ...hit,
       pointerTarget: this,
@@ -466,6 +469,7 @@ export class Gateway {
    */
   handlePointerDown({ hit }) {
     this.beginWindGesture(hit);
+
     return { capturePointer: true };
   }
 
@@ -477,11 +481,13 @@ export class Gateway {
    */
   handlePointerMove({ ray, deltaTime }) {
     this.applyMouseWind(ray.start, ray.end, deltaTime);
+
     return true;
   }
 
   handlePointerUp() {
     this.endWindGesture();
+
     return true;
   }
 

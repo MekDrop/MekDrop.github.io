@@ -9,6 +9,7 @@ function kingGltf() {
     import.meta.url,
   ));
   const jsonLength = buffer.readUInt32LE(12);
+
   return {
     buffer,
     binaryOffset: 20 + jsonLength + 8,
@@ -22,6 +23,7 @@ function accessorFloats({ buffer, binaryOffset, gltf }, accessorIndex) {
   const offset = binaryOffset + (view.byteOffset ?? 0) +
     (accessor.byteOffset ?? 0);
   const components = accessor.type === "VEC4" ? 4 : 1;
+
   return Array.from({ length: accessor.count * components }, (_, index) =>
     buffer.readFloatLE(offset + index * 4));
 }

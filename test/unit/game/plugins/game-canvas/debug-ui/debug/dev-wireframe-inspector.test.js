@@ -30,6 +30,7 @@ class FakeWindow extends FakeEventTarget {
     const id = this.#nextFrameId;
     this.#nextFrameId += 1;
     this.#callbacks.set(id, callback);
+
     return id;
   }
 

@@ -250,6 +250,7 @@ export class SpiralStaircase {
       if (entity !== this.#visual || hit.normal.y < 0.5 || hit.point.y > top) { continue; }
       height = height === null ? hit.point.y : Math.max(height, hit.point.y);
     }
+
     return height;
   }
 

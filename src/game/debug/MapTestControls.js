@@ -68,10 +68,12 @@ export class MapTestControls {
          */
         setFirstPerson: (enabled) => this.#setFirstPerson(enabled),
       });
+
       return true;
     } catch (error) {
       if (!this.#onRuntimeError) { throw error; }
       this.#onRuntimeError(error);
+
       return false;
     }
   }
@@ -87,6 +89,7 @@ export class MapTestControls {
        */
       (object) => object.definition?.id === targetId,
     );
+
     return target?.testStatus ?? "Target unavailable";
   }
 }

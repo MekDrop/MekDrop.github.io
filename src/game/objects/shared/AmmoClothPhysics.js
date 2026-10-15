@@ -118,6 +118,7 @@ export class AmmoClothPhysics {
       this.#gravity = owner.#gravity;
       this.#force = owner.#force;
       owners.add(this);
+
       return;
     }
     this.#collisionConfiguration =
@@ -240,6 +241,7 @@ export class AmmoClothPhysics {
       worldWind: this.#pc && root ? new this.#pc.Vec3() : null,
     };
     this.#cloths.push(cloth);
+
     return cloth;
   }
 
@@ -372,6 +374,7 @@ export class AmmoClothPhysics {
     const node = nodes.at(closestIndex);
     const position = node.get_m_x();
     const normal = node.get_m_n();
+
     return {
       position: {
         x: position.x(),
@@ -399,6 +402,7 @@ export class AmmoClothPhysics {
     owners.delete(this);
     if (owners.size) {
       this.#world = null;
+
       return;
     }
     AmmoClothPhysics.#worldOwners.delete(this.#ammo);
@@ -508,6 +512,7 @@ export class AmmoClothPhysics {
         cloth.body.addForce(this.#force, index);
       }
       cloth.body.activate();
+
       return;
     }
     this.#force.setValue(force[0], force[1], force[2]);
@@ -585,6 +590,7 @@ export class AmmoClothPhysics {
         material,
       );
     }
+
     return {
       body,
       material,
@@ -1088,6 +1094,7 @@ export class AmmoClothPhysics {
     normal[0] *= inverseNormalLength;
     normal[1] *= inverseNormalLength;
     normal[2] *= inverseNormalLength;
+
     return {
       normal,
       penetration: roofY - y,
@@ -1214,6 +1221,7 @@ export class AmmoClothPhysics {
         maximum[axis] = Math.max(maximum[axis], positions[index + axis]);
       }
     }
+
     return {
       x: maximum[0] - minimum[0],
       y: maximum[1] - minimum[1],

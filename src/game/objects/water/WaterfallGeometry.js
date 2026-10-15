@@ -135,6 +135,7 @@ export class WaterfallGeometry {
       const rearHeight = Math.min(rearLip, frontHeight - 0.025);
       const thickness = 0.055 * arc * (1 - fall * 0.25);
       const surfaceForward = forward - (rear ? thickness : 0);
+
       return [
         this.#center[0] +
           direction.col * surfaceForward +
@@ -153,6 +154,7 @@ export class WaterfallGeometry {
     const colorAt = (row, rear = false) => {
       const fall = Math.max(0, (row - lipRows) / fallRows);
       const fade = this.#terminal ? Math.max(0, (fall - 0.78) / 0.22) : 0;
+
       return [
         rear ? 255 : 0,
         Math.round(fall * 255),
@@ -176,6 +178,7 @@ export class WaterfallGeometry {
         column / width,
         this.#routeDistance,
       ];
+
       return [
         boundaryUv[0],
         boundaryUv[1] + Math.min(1, row / lipRows) * radius * Math.PI / 2 +
@@ -197,6 +200,7 @@ export class WaterfallGeometry {
       }
       const progress = Math.min(1, row / lipRows);
       const fade = 1 - progress * progress * (3 - 2 * progress);
+
       return [source[0] * fade, source[1]];
     };
     /**
@@ -205,6 +209,7 @@ export class WaterfallGeometry {
      */
     const metadataAt = (column) => {
       const magnitude = 2 + column / width;
+
       return [direction.col * magnitude, direction.row * magnitude];
     };
     grid(

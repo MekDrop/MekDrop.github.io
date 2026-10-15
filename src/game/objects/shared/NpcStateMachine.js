@@ -43,6 +43,7 @@ export class NpcStateMachine extends StateMachine {
    */
   get taskState() {
     const state = this.reacting ? this.currentState.suspendedState : this.currentState;
+
     return state instanceof NpcIdleState ? null : state;
   }
 
@@ -60,6 +61,7 @@ export class NpcStateMachine extends StateMachine {
       // Yuka records currentState in previousState before entering the reaction.
       super.changeTo(state.constructor.name);
     } finally { this.#reactionTransition = false; }
+
     return true;
   }
 
@@ -77,6 +79,7 @@ export class NpcStateMachine extends StateMachine {
     } finally { this.#resumingReaction = false; }
     this.#savedPrevious = null;
     state.suspendedState = null;
+
     return true;
   }
 

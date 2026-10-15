@@ -149,5 +149,6 @@ export function createCliffVineLayout(mapData) {
       moduleBottomY: bottomY,
     });
   }
+
   return modules;
 }

@@ -60,6 +60,7 @@ describe("cliff vine map objects", () => {
           destroy() {},
         };
         uploads.push([...matrices]);
+
         return {
           entity: new pc.Entity(url),
           vertexBuffer: buffer,

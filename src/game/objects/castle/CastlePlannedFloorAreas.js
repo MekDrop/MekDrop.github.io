@@ -122,6 +122,7 @@ export function createCastlePlannedFloorAreas(buildPlan) {
     unique.push(...pieces);
   }
   const leisure = plan.rooms.leisure;
+
   return unique.flatMap(/**
    * @param {{id:string,minX:number,maxX:number,minZ:number,maxZ:number,floorY:number}} area
    */ (area) => {

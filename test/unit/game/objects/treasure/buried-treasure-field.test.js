@@ -97,6 +97,7 @@ it("reveals the already instantiated chest and spawns its stored contents withou
         url,
         entity,
       });
+
       return entity;
     },
     getAnimationTracks() { return new Map([["Open", { duration: 1 }], ["open", { duration: 1 }]]); },
@@ -105,7 +106,9 @@ it("reveals the already instantiated chest and spawns its stored contents withou
     pc,
     mapData,
     modelLibrary,
-    app: { on(event, callback) { update = callback; return { off() {} }; } },
+    app: { on(event, callback) { update = callback;
+
+ return { off() {} }; } },
   });
   // Mirror the live application root for hierarchy-enabled checks.
   const root = new pc.GraphNode();

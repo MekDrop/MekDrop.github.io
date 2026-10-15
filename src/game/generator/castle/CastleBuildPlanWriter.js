@@ -70,6 +70,7 @@ export class CastleBuildPlanWriter {
         horizontalBlock >= candidate.start &&
         horizontalBlock < candidate.end,
     );
+
     return Boolean(opening) && blockY < CASTLE_GATE_OPENING_HEIGHT_BLOCKS;
   }
 
@@ -306,6 +307,7 @@ export class CastleBuildPlanWriter {
         "trim",
       );
     }
+
     return {
       blockU: turretU,
       blockV: turretV,
@@ -334,6 +336,7 @@ export class CastleBuildPlanWriter {
     const x = sign * (v - (opening.start + opening.end - 1) / 2) * CASTLE_BLOCK_SIZE;
     const z = (u + 0.5) * CASTLE_BLOCK_SIZE;
     const height = this.#layout.baseY + y * CASTLE_BLOCK_SIZE;
+
     return plan.doorways.some(/**
      *
      * @param {{axis:string,coordinate:number,center:number,width:number,floorY:number}} door
@@ -431,6 +434,7 @@ export class CastleBuildPlanWriter {
       blockV >= roofDoorStart - 1 &&
       blockV <= roofDoorStart + roofDoorWidth &&
       blockY === roofDoorBase + 5;
+
     return (
       doorway ||
       stairheadSideWall ||
@@ -470,6 +474,7 @@ export class CastleBuildPlanWriter {
       Math.imul(blockU + 11, 73856093) ^
       Math.imul(blockY + 17, 19349663) ^
       Math.imul(blockV + 23, 83492791);
+
     return [
       "castleStoneDark",
       "castleStoneMid",
@@ -512,6 +517,7 @@ export class CastleBuildPlanWriter {
    */
   #localToWorld(blockU, blockV) {
     const { blockX, blockZ } = this.#localToBlock(blockU, blockV);
+
     return {
       x: this.#layout.worldLeft + (blockX + 0.5) * CASTLE_BLOCK_SIZE,
       z: this.#layout.worldTop + (blockZ + 0.5) * CASTLE_BLOCK_SIZE,
@@ -597,6 +603,7 @@ export class CastleBuildPlanWriter {
         },
       },
     };
+
     return normals[this.#layout.primarySide][boundary];
   }
 }

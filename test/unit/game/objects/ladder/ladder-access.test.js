@@ -27,7 +27,9 @@ it('allows climbing both ways only beside the corresponding ladder landing',()=>
   };
   const hero={
     position:{...points.bottom},
-    teleport(position){this.position={...position};return true;},
+    teleport(position){this.position={...position};
+
+return true;},
   };
   const up=new LadderInteraction(ladder,hero,'bottom');
   assert.equal(up.description.labelKey,'game.interaction.climb_ladder');

@@ -372,6 +372,7 @@ export class CastleAudienceRoom {
       .transformPoint(
         new this.#pc.Vec3(endPosition.x, endPosition.y, endPosition.z),
       );
+
     return {
       focus: {
         x: endWorldPosition.x + visualBounds.center.x - currentPosition.x,
@@ -427,6 +428,7 @@ export class CastleAudienceRoom {
         height = Math.max(height ?? this.#baseY, surface.height);
       }
     }
+
     return height;
   }
 
@@ -441,6 +443,7 @@ export class CastleAudienceRoom {
     const deltaZ = z - this.#center.z;
     const lateral = deltaX * this.#tangent.x + deltaZ * this.#tangent.z;
     const forward = deltaX * this.#inward.x + deltaZ * this.#inward.z;
+
     return this.#obstacles.some(/**
      *
      * @param {{x: number, z: number, radius: number}} obstacle
@@ -454,6 +457,7 @@ export class CastleAudienceRoom {
           Math.abs(forward - obstacle.forward) - obstacle.depth / 2,
           0,
         );
+
         return (
           distanceLateral * distanceLateral + distanceForward * distanceForward <=
         radius * radius
@@ -881,6 +885,7 @@ export class CastleAudienceRoom {
               (minZ + maxZ) / 2, y, [maxX - minX, scale[1], maxZ - minZ]);
           }
         }
+
         return null;
       }
     }
@@ -953,6 +958,7 @@ export class CastleAudienceRoom {
       stone: "castleStoneMid",
       stoneLight: "castleStoneLight",
     }[name];
+
     return this.#materials.get(name) ?? this.#sharedMaterials.get(sharedName);
   }
 }

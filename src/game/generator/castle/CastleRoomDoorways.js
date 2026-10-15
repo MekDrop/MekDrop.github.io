@@ -97,5 +97,6 @@ export function createCastleRoomDoorways(plan) {
     const offset = blocks % 2 ? 0.125 : 0;
     doorway.center = Math.round((doorway.center - offset) * 4) / 4 + offset;
   }
+
   return result;
 }

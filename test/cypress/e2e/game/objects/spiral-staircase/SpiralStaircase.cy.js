@@ -231,6 +231,7 @@ async function climbCastle(window) {
     expect(driver.state().position.y).to.be.closeTo(stair.center.y + stair.rise, 0.05);
     expect(driver.state().grounded).to.equal(true);
   } finally { driver.move(0, 0); }
+
   return {
     plan,
     stair,

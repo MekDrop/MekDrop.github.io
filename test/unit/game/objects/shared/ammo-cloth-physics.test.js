@@ -127,6 +127,7 @@ describe("AmmoClothPhysics", () => {
         -1,
         0,
       ]);
+
       return {
         cloth: physics.createCloth({
           positions,
@@ -280,6 +281,7 @@ describe("AmmoClothPhysics", () => {
     const distance = (left, right) => {
       const leftOffset = left * 3;
       const rightOffset = right * 3;
+
       return Math.hypot(
         positions[rightOffset] - positions[leftOffset],
         positions[rightOffset + 1] - positions[leftOffset + 1],
@@ -390,6 +392,7 @@ describe("AmmoClothPhysics", () => {
         this.x = x;
         this.y = y;
         this.z = z;
+
         return this;
       }
     }
@@ -591,6 +594,7 @@ describe("AmmoClothPhysics", () => {
     const distance = (values, left, right) => {
       const leftOffset = left * 3;
       const rightOffset = right * 3;
+
       return Math.hypot(
         values[rightOffset] - values[leftOffset],
         values[rightOffset + 1] - values[leftOffset + 1],

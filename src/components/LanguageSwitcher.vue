@@ -87,6 +87,7 @@ const languageOptions = computed(() => {
    */
     (lang) => {
       const emoji = getLanguageEmoji(lang);
+
       return {
         value: lang,
         label: i18n.t(`language.${lang}`),

@@ -34,6 +34,7 @@ export class ToggleInventoryAction extends AbstractModalAction {
 
   invoke() {
     this.#heroMovement?.clear();
+
     return this.toggleInventory();
   }
 

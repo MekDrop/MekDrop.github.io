@@ -157,6 +157,7 @@ export class ServantStateMachine extends NpcStateMachine {
     }
     this.changeTo(this.#initialPhase);
     this.#elapsed = 0;
+
     return true;
   }
 
@@ -178,6 +179,7 @@ export class ServantStateMachine extends NpcStateMachine {
         break;
       }
     }
+
     return this;
   }
 
@@ -191,6 +193,7 @@ export class ServantStateMachine extends NpcStateMachine {
     }
     if ((this.#canComplete && !this.#canComplete()) || this.#holdState(state, this.#context)) {
       this.#elapsed = state.duration;
+
       return false;
     }
     return true;
@@ -220,6 +223,7 @@ export class ServantStateMachine extends NpcStateMachine {
     this.changeTo(phase);
     this.#elapsed = 0;
     this.#context = null;
+
     return true;
   }
 
@@ -231,6 +235,7 @@ export class ServantStateMachine extends NpcStateMachine {
     this.changeTo(interrupted.phase);
     this.#elapsed = interrupted.elapsed;
     this.#context = interrupted.context;
+
     return true;
   }
 

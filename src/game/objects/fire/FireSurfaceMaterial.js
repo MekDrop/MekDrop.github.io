@@ -49,6 +49,7 @@ ${diffuse.slice(close)}`);
     material.setParameter("uFireInnerMin", [min[0] + fadeIn.x, min[1] + fadeIn.y, min[2] + fadeIn.z]);
     material.setParameter("uFireInnerMax", [max[0] - fadeOut.x, max[1] - fadeOut.y, max[2] - fadeOut.z]);
     material.update();
+
     return material;
   }
 }

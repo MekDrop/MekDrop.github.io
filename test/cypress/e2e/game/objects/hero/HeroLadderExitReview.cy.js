@@ -63,6 +63,7 @@ describe("Recorded ladder exit contact review", () => {
           const leading = side > 0 ? "Right ankle" : "Left ankle";
           const planted = samples.filter(sample => {
             const phase = (sample.time / 4 - 0.4) / 0.6;
+
             return sample.clip?.startsWith("ClimbTop") && phase > 0.56 && phase < 0.69;
           });
           expect(planted.length, "recorded planted-foot frames").to.be.greaterThan(4);
@@ -73,6 +74,7 @@ describe("Recorded ladder exit contact review", () => {
           const bracingHand = side > 0 ? "Right white glove" : "Left white glove";
           const braced = samples.filter(sample => {
             const phase = (sample.time / 4 - 0.4) / 0.6;
+
             return sample.clip?.startsWith("ClimbTop") && phase > 0.42 && phase < 0.68;
           });
           expect(braced.length, "recorded bracing-hand frames").to.be.greaterThan(4);
@@ -83,6 +85,7 @@ describe("Recorded ladder exit contact review", () => {
           const trailing = side > 0 ? "Left ankle" : "Right ankle";
           const plantedTrailing = samples.filter(sample => {
             const phase = (sample.time / 4 - 0.4) / 0.6;
+
             return sample.clip?.startsWith("ClimbTop") && phase > 0.72 && phase < 0.83;
           });
           expect(plantedTrailing.length, "trailing-foot frames during the turn").to.be.greaterThan(3);

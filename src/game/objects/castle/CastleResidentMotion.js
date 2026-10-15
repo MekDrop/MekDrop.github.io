@@ -211,6 +211,7 @@ export class CastleResidentMotion {
             const point = this.#actor.entity.getPosition().clone();
             point.set(stair.center.x + Math.cos(angle) * x + Math.sin(angle) * z,
               stair.center.y + y, stair.center.z - Math.sin(angle) * x + Math.cos(angle) * z);
+
             return point;
           });
       } else { points = stair.treads.map(/**
@@ -248,6 +249,7 @@ export class CastleResidentMotion {
    */
   #point(x, z, y) {
     const world = this.#layout.toWorld(x, z, y - this.#layout.origin.y);
+
     return this.#actor.entity.getPosition().clone().set(world.x, world.y, world.z);
   }
 
@@ -263,6 +265,7 @@ export class CastleResidentMotion {
       const local = this.#layout.toLocal(point.x, point.z);
       if (!this.#floor(local.x, local.z, end.y) || this.#blocked(point, avoidDoors)) { return false; }
     }
+
     return true;
   }
 
@@ -279,6 +282,7 @@ export class CastleResidentMotion {
     for (let step = 0; step <= steps; step++) {
       if (this.#blocked(start.clone().lerp(start, end, step / steps), avoidDoors)) { return false; }
     }
+
     return true;
   }
 
@@ -311,6 +315,7 @@ export class CastleResidentMotion {
       if (current === goal) {
         const route = [];
         for (let node = goal; node !== source; node = previous.get(node)) { route.unshift(node.point); }
+
         return route;
       }
       open.delete(current);
@@ -321,6 +326,7 @@ export class CastleResidentMotion {
         costs.set(neighbor, cost); previous.set(neighbor, current); open.add(neighbor);
       }
     }
+
     return null;
   }
 }

@@ -35,6 +35,7 @@ export class GenerationRandom {
       let value = state;
       value = Math.imul(value ^ (value >>> 15), value | 1);
       value ^= value + Math.imul(value ^ (value >>> 7), value | 61);
+
       return ((value ^ (value >>> 14)) >>> 0) / 0x100000000;
     };
   }
@@ -48,6 +49,7 @@ export class GenerationRandom {
       hash ^= character.codePointAt(0);
       hash = Math.imul(hash, 0x01000193);
     }
+
     return hash >>> 0;
   }
 
@@ -79,6 +81,7 @@ export class GenerationRandom {
       const swapIndex = this.rng(0, index);
       [items[index], items[swapIndex]] = [items[swapIndex], items[index]];
     }
+
     return items;
   }
 }

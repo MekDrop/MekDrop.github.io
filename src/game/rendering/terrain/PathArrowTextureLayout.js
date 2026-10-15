@@ -20,6 +20,7 @@ export class PathArrowTextureLayout {
        */
         ([key, arrows]) => {
           const [col, row, elevation] = key.split(",").map(Number);
+
           return {
             col,
             row,
@@ -63,6 +64,7 @@ export class PathArrowTextureLayout {
          */
           (arrow) => {
             const length = Math.hypot(arrow.dc, arrow.dr);
+
             return {
               dx: arrow.dc / length,
               dz: arrow.dr / length,

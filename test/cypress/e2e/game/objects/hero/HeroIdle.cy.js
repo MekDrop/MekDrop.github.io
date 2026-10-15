@@ -4,6 +4,7 @@ import { POINTER_TYPE } from "../../../../../../src/game/enum/PointerType.js";
 function expectState(assertion, timeout = 8000) {
   cy.window().then({ timeout: timeout + 1000 }, (window) => {
     const startedAt = Date.now();
+
     return new Cypress.Promise((resolve, reject) => {
       const inspect = () => {
         try {
@@ -12,6 +13,7 @@ function expectState(assertion, timeout = 8000) {
         } catch (cause) {
           if (Date.now() - startedAt >= timeout) {
             reject(cause);
+
             return;
           }
           window.setTimeout(inspect, 16);

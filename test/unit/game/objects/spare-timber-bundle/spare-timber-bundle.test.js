@@ -39,6 +39,7 @@ function build(overrides = {}) {
         log.setLocalPosition(0, 0.36, 0);
         model.addChild(log);
         models.push(model);
+
         return model;
       },
     },
@@ -56,6 +57,7 @@ function build(overrides = {}) {
       ...overrides,
     },
   });
+
   return {
     stack,
     models,

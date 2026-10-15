@@ -63,6 +63,7 @@ export class CastleGenerationScheduler {
       (resolve) => {
         if (typeof globalThis.requestAnimationFrame === "function") {
           globalThis.requestAnimationFrame(() => resolve());
+
           return;
         }
         globalThis.setTimeout(resolve, 0);

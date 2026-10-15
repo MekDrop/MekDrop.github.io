@@ -80,6 +80,7 @@ export class FloatingIslandMotion {
       return new Vec2(0, 0);
     }
     const phase = (this.#elapsed * Math.PI * 2) / BOB_PERIOD;
+
     return new Vec2(
       Math.sin(phase * 0.5) * SWAY_WIDTH_PIXELS * this.#strength,
       (

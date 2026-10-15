@@ -122,6 +122,7 @@ export function createCastleDoorCollision(pc, door) {
   }
   const point = new pc.Vec3(), inverse = new pc.Mat4(), scale = new pc.Vec3();
   const swing = new CastleDoorSwingPhysics(parts);
+
   return {
     swing,
     syncFrameBodies() {
@@ -173,6 +174,7 @@ export function createCastleDoorCollision(pc, door) {
         }
         if (near <= far && (closest === null || near < closest)) closest = near;
       }
+
       return closest;
     },
     /**
@@ -199,6 +201,7 @@ export function createCastleDoorCollision(pc, door) {
             Math.max(Math.abs(point.y) - half[1], 0) * scale.y,
             Math.max(Math.abs(point.z) - half[2], 0) * scale.z,
           );
+
           return distance <= radius;
         });
     },

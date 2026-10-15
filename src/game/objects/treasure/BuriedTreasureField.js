@@ -434,6 +434,7 @@ export class BuriedTreasureField {
       });
     }
     const digTarget = this.#findDigTarget(position, facingDirection);
+
     return digTarget
       ? new DigInteraction({
         field: this,
@@ -459,6 +460,7 @@ export class BuriedTreasureField {
      * @param {boolean} candidate
      */
       (candidate) => candidate.id === id);
+
     return site?.state === "digging" || !this.#dugTiles.has(id);
   }
 
@@ -513,6 +515,7 @@ export class BuriedTreasureField {
       }
       existingSite.state = "expanding";
       existingSite.elapsed = 0;
+
       // Treasure and contents were assigned when this map was loaded.
       return true;
     }
@@ -552,6 +555,7 @@ export class BuriedTreasureField {
     this.#createHole(site);
 
     this.#sites.push(site);
+
     return false;
   }
 
@@ -578,9 +582,11 @@ export class BuriedTreasureField {
       site.earthPile.enabled = false;
       site.state = "filled";
       this.#onTerrainExcavated?.(site, 0);
+
       return true;
     }
     site.state = "filling";
+
     return false;
   }
 
@@ -602,6 +608,7 @@ export class BuriedTreasureField {
     }
     site.state = "opening";
     site.elapsed = 0;
+
     return true;
   }
 
@@ -699,6 +706,7 @@ export class BuriedTreasureField {
         CHEST_COLLISION_RADIUS + radius - Math.hypot(x - site.x, z - site.z),
       );
     }
+
     return Math.max(0, depth);
   }
 
@@ -720,6 +728,7 @@ export class BuriedTreasureField {
         Math.abs(site.y - elevation) <= 0.85 &&
         Math.hypot(x - site.x, z - site.z) < HOLE_COLLISION_RADIUS + radius,
     );
+
     return blocksHole ? MOVEMENT_REFUSAL.HOLE : null;
   }
 
@@ -820,6 +829,7 @@ export class BuriedTreasureField {
         distance,
       };
     }
+
     return nearest
       ? {
         id: nearest.site.id,
@@ -954,6 +964,7 @@ export class BuriedTreasureField {
        */
       (site) => site.id === key && site.state === "digging",
     );
+
     return (
       this.#mapData.grid[row][col] === TileType.GRASS &&
       (this.#mapData.tileMeta?.[row]?.[col]?.shape ?? "FLAT") === "FLAT" &&
@@ -1034,6 +1045,7 @@ export class BuriedTreasureField {
     }
     this.#sites.push(site);
     this.#onInteractionChange?.();
+
     return true;
   }
 
@@ -1278,6 +1290,7 @@ export class BuriedTreasureField {
     material.useMetalness = true;
     material.gloss = metalness > 0.5 ? 0.7 : 0.05;
     material.update();
+
     return material;
   }
 
@@ -1344,6 +1357,7 @@ export class BuriedTreasureField {
       return false;
     }
     clod.entity.destroy();
+
     return true;
   }
 
@@ -1355,6 +1369,7 @@ export class BuriedTreasureField {
   #advanceSite(site, deltaTime) {
     if (site.state === "vanishing") {
       this.#advanceChestVanish(site, deltaTime);
+
       return;
     }
     if (site.state === "expanding") {
@@ -1482,6 +1497,7 @@ export class BuriedTreasureField {
       coin.position.z,
     );
     coin.entity.setLocalEulerAngles(90, coin.rotation, coin.rotation * 0.35);
+
     return false;
   }
 
@@ -1527,6 +1543,7 @@ export class BuriedTreasureField {
     const controlAWeight = 3 * remaining ** 2 * progress;
     const controlBWeight = 3 * remaining * progress ** 2;
     const endWeight = progress ** 3;
+
     return {
       x:
         start.x * startWeight +

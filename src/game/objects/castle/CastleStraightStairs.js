@@ -13,6 +13,7 @@ export function castleStraightStairSurfaces(stair) {
   const shift = stair.flightShift ?? 0;
   const landingHeight = stair.rise / 2 + (stair.landingLift ?? 0);
   const apron = Math.min(0.15, r * 0.1);
+
   // Sink the turning slab half a masonry course into the adjoining walls.
   // Its visible edge and Ammo support share these bounds.
   return [
@@ -73,6 +74,7 @@ export function castleStraightStairHeight(stair, x, z, elevation) {
     const height = stair.center.y + castleStraightStairSurfaceHeight(surface, localZ);
     if (Math.abs(height - elevation) <= 0.32 && (best === null || Math.abs(height - elevation) < Math.abs(best - elevation))) { best = height; }
   }
+
   return best;
 }
 
@@ -83,6 +85,7 @@ export function castleStraightStairHeight(stair, x, z, elevation) {
  */
 export function castleStraightStairStepCount(surface) {
   const rise = surface.high - surface.low;
+
   return Math.max(1, Math.ceil(rise ? rise / 0.3 - 1e-6 : (surface.maxZ - surface.minZ) / 0.25));
 }
 
@@ -97,6 +100,7 @@ export function castleStraightStairTreads(surface) {
   for (let index = 0; index < count; index++) {
     treads.push(castleStraightStairTread(surface, index, count));
   }
+
   return treads;
 }
 
@@ -110,6 +114,7 @@ export function castleStraightStairSurfaceHeight(surface,z) {
   if (surface.reverse) { progress = 1-progress; }
   const count = castleStraightStairStepCount(surface);
   const index = Math.min(count - 1, Math.floor(progress * count + 1e-6));
+
   return castleStraightStairTread(surface, index, count).height;
 }
 
@@ -128,6 +133,7 @@ export function castleStraightStairAssemblies(layout) {
      * @param {StraightStairGeometry|null} stair
      */
     stair => stair?.straight);
+
   return stairs.map(/**
                      * @param {StraightStairGeometry} stair
                      */ stair => ({
@@ -184,6 +190,7 @@ export function castleStraightStairBlocksCamera(stair,x,y,z,radius) {
   const localX=dx*Math.cos(angle)-dz*Math.sin(angle);
   const localZ=dx*Math.sin(angle)+dz*Math.cos(angle);
   const wall=castleStraightStairWalls(stair)[0];
+
   return Math.hypot(Math.max(Math.abs(localX-wall.x)-wall.width/2,0),
     Math.max(Math.abs(y-stair.center.y-wall.y)-wall.height/2,0),
     Math.max(Math.abs(localZ-wall.z)-wall.depth/2,0))<=radius;
@@ -201,6 +208,7 @@ function castleStraightStairTread(surface, index, count) {
   const front = surface.reverse
     ? surface.maxZ - run * (index + 1) / count
     : surface.minZ + run * index / count;
+
   return {
     front,
     rear: front + run / count,

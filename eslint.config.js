@@ -299,6 +299,16 @@ module.exports = [
         "error",
         {
           blankLine: "always",
+          prev: "*",
+          next: "return",
+        },
+        {
+          blankLine: "any",
+          prev: ["if", "case"],
+          next: "return",
+        },
+        {
+          blankLine: "always",
           prev: { selector: "ExpressionStatement[expression.type='CallExpression'][expression.callee.type='Super']" },
           next: "*",
         },

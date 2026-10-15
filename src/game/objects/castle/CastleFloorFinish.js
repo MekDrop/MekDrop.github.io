@@ -32,6 +32,7 @@ export class CastleFloorFinish {
         }
       }
     }
+
     return finish;
   }
 
@@ -65,6 +66,7 @@ export class CastleFloorFinish {
         }
       }
     }
+
     return result;
   }
 }

@@ -434,6 +434,7 @@ export class CubeCloudField {
         material.setParameter("uOpacity", layer.opacity);
         material.setParameter("uCloudYaw", [Math.SQRT1_2, Math.SQRT1_2]);
         material.update();
+
         return material;
       });
   }
@@ -608,6 +609,7 @@ export class CubeCloudField {
     const margin =
       cluster.baseRadius * displayScale * pixelsPerWorldUnit +
       CLOUD_RECYCLE_PADDING_PIXELS;
+
     return (
       screenPosition.x < -margin ||
       screenPosition.x > width + margin ||
@@ -625,6 +627,7 @@ export class CubeCloudField {
   #clusterPosition(cluster, x, z) {
     const depthLayer = CLOUD_DEPTH_LAYERS[cluster.depthLayerIndex];
     const { panX, panZ } = this.#cameraState;
+
     return new this.#pc.Vec3(
       x + panX * depthLayer.cameraFollow + this.#floatingOffset.x,
       cluster.originY + this.#floatingOffset.y,
@@ -686,6 +689,7 @@ export class CubeCloudField {
               directZDistance,
               1 - directZDistance,
             );
+
             return Math.min(
               nearest,
               Math.hypot(wrappedXDistance, wrappedZDistance),
@@ -731,6 +735,7 @@ export class CubeCloudField {
     let value = this.#seed ^ salt;
     value = Math.imul(value ^ (index + 101), 2246822519);
     value ^= value >>> 16;
+
     return value >>> 0;
   }
 
@@ -744,6 +749,7 @@ export class CubeCloudField {
       hash ^= value.charCodeAt(index);
       hash = Math.imul(hash, 16777619);
     }
+
     return hash >>> 0;
   }
 }

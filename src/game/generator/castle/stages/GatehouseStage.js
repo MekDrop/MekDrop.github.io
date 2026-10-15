@@ -37,6 +37,7 @@ export class GatehouseStage extends AbstractCastleGenerationStage {
           (opening.start + opening.end - roofDoorWidth) / 2,
         );
         const wallHeight = style.wallHeightBlocks ?? CASTLE_WALL_HEIGHT_BLOCKS;
+
         return {
           opening: { ...opening },
           primary,

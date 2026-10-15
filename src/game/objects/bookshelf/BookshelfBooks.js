@@ -134,6 +134,7 @@ export class BookshelfBooks {
         cursor += width + gap;
       }
     }
+
     return books;
   }
 }

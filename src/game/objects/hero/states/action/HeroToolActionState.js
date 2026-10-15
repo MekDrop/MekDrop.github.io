@@ -66,6 +66,7 @@ export class HeroToolActionState extends HeroRuntimeActionState {
       action.elapsed = 0;
       action.impacted = false;
       feedback.restartAnimation();
+
       return;
     }
     action.phase = "dismiss";

@@ -173,6 +173,7 @@ export class TerraceDoor {
       new this.#pc.Vec3(x, y, z),
       new this.#pc.Vec3(),
     );
+
     return (
       point.x >= -radius &&
       point.x <= 1 + radius &&

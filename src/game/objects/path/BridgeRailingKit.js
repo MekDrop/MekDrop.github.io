@@ -277,6 +277,7 @@ export class BridgeRailingKit {
    */
   #groupForCell(col, row) {
     const key = `${col},${row}`;
+
     return this.#islandCells?.findIndex(/**
      * @param {Set<string>} cells
      */
@@ -360,11 +361,13 @@ export class BridgeRailingKit {
         slope.riseDirection === SLOPE_DIRECTION.NORTH
           ? 1 - localPosition
           : localPosition;
+
       return (
         slope.lowHeight +
         (slope.highHeight - slope.lowHeight) * progress
       );
     }
+
     return overpass.deckElevation;
   }
 
@@ -393,6 +396,7 @@ export class BridgeRailingKit {
       (this.#islandRoots?.[Number(group)] ?? this.#root).addChild(batch.entity);
       vertexBuffers.push(batch.vertexBuffer);
     }
+
     return vertexBuffers;
   }
 }

@@ -78,6 +78,7 @@ describe("ground collision world physics surfaces", () => {
           z,
           radius,
         });
+
         return x + radius >= 2;
       },
     });

@@ -187,6 +187,7 @@ export class FlowerPhysicsSimulation {
     this.#bodies.add(body);
     this.#activeBodies.add(body);
     this.#shapes.add(shape);
+
     return body;
   }
 
@@ -271,6 +272,7 @@ export class FlowerPhysicsSimulation {
       transforms.set([this.#position.x, this.#position.y, this.#position.z,
         this.#rotation.x, this.#rotation.y, this.#rotation.z, this.#rotation.w], index * 7);
     }
+
     return transforms;
   }
 }

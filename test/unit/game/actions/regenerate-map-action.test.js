@@ -18,10 +18,12 @@ it("awaits each regeneration phase before rendering and exposes the full lifecyc
   };
   const action = new RegenerateMapAction(renderer, async () => {
     events.push("generate");
+
     return mapData;
   }, {
     beforeGeneration: async () => {
       events.push("generating");
+
       return 42;
     },
     beforeRender: async (map, operation) =>
@@ -66,6 +68,7 @@ it("reports generation errors, skips rendering, and still completes cleanup", as
   }, {
     beforeGeneration: () => {
       events.push("generating");
+
       return "operation";
     },
     onGenerationError: (caughtError, operation) =>

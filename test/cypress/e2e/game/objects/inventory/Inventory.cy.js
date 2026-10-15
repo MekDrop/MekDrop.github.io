@@ -46,6 +46,7 @@ function inventorySlotPoint(bounds, slot) {
   const scale = Math.sqrt((bounds.width / 1280) * (bounds.height / 720));
   const column = slot % 4;
   const row = Math.floor(slot / 4);
+
   return {
     clientX: bounds.left + bounds.width / 2 + (-147 + column * 98) * scale,
     clientY: bounds.top + bounds.height / 2 + (-67 + row * 98) * scale,
@@ -54,6 +55,7 @@ function inventorySlotPoint(bounds, slot) {
 
 function inventoryDialogPoint(bounds, panelX, panelY) {
   const scale = Math.sqrt((bounds.width / 1280) * (bounds.height / 720));
+
   return {
     clientX: bounds.left + bounds.width / 2 + (panelX - 215) * scale,
     clientY: bounds.top + bounds.height / 2 + (panelY - 210) * scale,

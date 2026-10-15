@@ -30,6 +30,7 @@ export class CastleGenerationPipeline {
         await context.scheduler.yieldIfNeeded(context.yieldState);
       }
       await context.scheduler.yieldToMainThread();
+
       return context.output.buildPlan;
     } catch (error) {
       context.cleanup();

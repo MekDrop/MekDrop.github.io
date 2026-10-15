@@ -119,6 +119,7 @@ export class CameraDrag {
     this.#distance = 0;
     this.#setDragging(this.#mode === CAMERA_DRAG_MODE.PAN);
     this.#element.setPointerCapture(event.pointerId);
+
     return true;
   }
 
@@ -150,10 +151,12 @@ export class CameraDrag {
         deltaX * this.#rotateConfig.quarterTurnsPerPixel,
         deltaY * this.#rotateConfig.quarterTurnsPerPixel,
       );
+
       return true;
     }
 
     this.#moveCamera.moveBy(deltaX, deltaY);
+
     return true;
   }
 
@@ -168,6 +171,7 @@ export class CameraDrag {
 
     this.#releasePointer(event.pointerId);
     this.#reset();
+
     return true;
   }
 

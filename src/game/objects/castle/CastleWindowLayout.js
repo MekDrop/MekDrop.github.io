@@ -42,6 +42,7 @@ export class CastleWindowLayout {
     this.#rooms = new CastleResidentialLayout(plan);
     if (plan.layout.basePlanId) {
       this.#authoredWindows(plan);
+
       return;
     }
     this.#masonry = plan.geometry.boxes.filter(
@@ -87,6 +88,7 @@ export class CastleWindowLayout {
         if (!residential.rooms.upperGallery && room.level === 1) { this.#roomWindows(room, "room", room.floorY + 2.25); }
       }
       this.#towerWindows();
+
       return;
     }
     this.#roomWindows(ground, "hall", upper.floorY - 0.25);
@@ -120,6 +122,7 @@ export class CastleWindowLayout {
     const angle = (box.yaw - this.#rooms.yaw) * Math.PI / 180;
     const halfX = (Math.abs(Math.cos(angle)) * box.sx + Math.abs(Math.sin(angle)) * box.sz) / 2;
     const halfZ = (Math.abs(Math.sin(angle)) * box.sx + Math.abs(Math.cos(angle)) * box.sz) / 2;
+
     return {
       minX: center.x - halfX,
       maxX: center.x + halfX,
@@ -247,6 +250,7 @@ export class CastleWindowLayout {
         depth: max - min,
       };
     }
+
     return result;
   }
 
@@ -450,6 +454,7 @@ export class CastleWindowLayout {
      */
       (box) => {
         const angle = box.yaw * Math.PI / 180;
+
         return {
           ...box,
           yaw: 0,
@@ -498,10 +503,12 @@ export class CastleWindowLayout {
               }
             }
           }
+
           return pieces;
         },
       );
     }
+
     return result;
   }
 }

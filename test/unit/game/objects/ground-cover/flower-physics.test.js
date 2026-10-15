@@ -11,6 +11,7 @@ class FakeVec3 {
     this.x = x;
     this.y = y;
     this.z = z;
+
     return this;
   }
 
@@ -18,6 +19,7 @@ class FakeVec3 {
     this.x += other.x;
     this.y += other.y;
     this.z += other.z;
+
     return this;
   }
 
@@ -25,6 +27,7 @@ class FakeVec3 {
     this.x *= value;
     this.y *= value;
     this.z *= value;
+
     return this;
   }
 }
@@ -36,7 +39,9 @@ class FakeQuat {
     y,
     z,
     w,
-  }); return this; }
+  });
+
+ return this; }
   setFromEulerAngles() {
     return this;
   }
@@ -62,6 +67,7 @@ class FakeMat4 {
     this.data[13] = position.y;
     this.data[14] = position.z;
     this.data[15] = 1;
+
     return this;
   }
 }

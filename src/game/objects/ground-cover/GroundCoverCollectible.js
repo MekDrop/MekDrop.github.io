@@ -170,6 +170,7 @@ export class GroundCoverCollectible {
 
     this.#collected = true;
     this.#onHide();
+
     return true;
   }
 

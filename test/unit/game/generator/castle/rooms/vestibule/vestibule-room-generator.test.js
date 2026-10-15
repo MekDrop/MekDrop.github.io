@@ -189,6 +189,7 @@ it("chooses either seating or a map table and keeps all door approaches connecte
     const free = (col, row) => {
       const x = room.minX + (col + 0.5) * step;
       const z = room.minZ + (row + 0.5) * step;
+
       return col >= 0 && col < cols && row >= 0 && row < rows &&
         x >= room.minX + radius && x <= room.maxX - radius &&
         z >= room.minZ + radius && z <= room.maxZ - radius &&

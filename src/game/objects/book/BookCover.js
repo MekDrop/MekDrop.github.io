@@ -29,6 +29,7 @@ export class BookCover {
         model.once("destroy", () => {
           if (--entry.users === 0) { entry.material.destroy(); colors.delete(key); }
         });
+
         return entry.material;
       });
   }

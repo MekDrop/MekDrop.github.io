@@ -51,6 +51,7 @@ describe("Bush collision", () => {
   it("lands on top when descending vertically instead of sinking inside", () => {
     cy.window().then((window) => {
       window.gameMovementTest.move(0, 0);
+
       return window.gameMovementTest.loadScenario("bush-landing");
     });
     cy.wait(1800);

@@ -21,6 +21,7 @@ function createFoot(side, tiltSole = true) {
   };
   leg.addChild(sole);
   leg.addChild(cuff);
+
   return {
     side,
     leg,
@@ -41,6 +42,7 @@ describe("hero foot placement physics contacts", () => {
           z,
           maximumHeight,
         });
+
         return {
           height: 0,
           normal: new pc.Vec3(0.8, 0.6, 0),

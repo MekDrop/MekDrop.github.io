@@ -292,6 +292,7 @@ export class GroundCoverItem {
   stepOn(directionX, directionZ) {
     if (this.#stepReaction === "disappear") {
       this.#entity.enabled = false;
+
       return;
     }
     if (this.#stepReaction !== "recover") {
@@ -348,6 +349,7 @@ export class GroundCoverItem {
     ) {
       debris.destroy();
       this.#entity.enabled = false;
+
       return;
     }
     this.#debris = debris;
@@ -366,6 +368,7 @@ export class GroundCoverItem {
     }
     if (this.#destroyed) {
       this.#advanceDestruction(deltaTime);
+
       return;
     }
     this.#elapsed += deltaTime;

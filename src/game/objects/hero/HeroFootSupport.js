@@ -66,6 +66,7 @@ export class HeroFootSupport {
     const rightZ = -direction.x;
     const forwardX = direction.x * FOOT_FORWARD_OFFSET;
     const forwardZ = direction.z * FOOT_FORWARD_OFFSET;
+
     return {
       left: this.#footHasSupport(
         x + forwardX - rightX * FOOT_LATERAL_OFFSET,
@@ -99,6 +100,7 @@ export class HeroFootSupport {
     const rightZ = -direction.x;
     const forwardX = direction.x * FOOT_FORWARD_OFFSET;
     const forwardZ = direction.z * FOOT_FORWARD_OFFSET;
+
     return (
       this.#supportMatchesElevation(
         x + forwardX - rightX * FOOT_LATERAL_OFFSET,
@@ -145,6 +147,7 @@ export class HeroFootSupport {
         return candidate;
       }
     }
+
     return null;
   }
 
@@ -199,6 +202,7 @@ export class HeroFootSupport {
       supportAtOffset(-FOOT_HALF_LENGTH, -FOOT_HALF_WIDTH),
       supportAtOffset(-FOOT_HALF_LENGTH, FOOT_HALF_WIDTH),
     ].filter(Boolean).length;
+
     return (
       supportedPerimeterPoints >= FOOT_REQUIRED_PERIMETER_SUPPORTS
     );
@@ -217,6 +221,7 @@ export class HeroFootSupport {
       z,
       elevation + STEP_CLEARANCE,
     );
+
     return (
       supportHeight !== null &&
       Math.abs(supportHeight - elevation) <= STEP_CLEARANCE

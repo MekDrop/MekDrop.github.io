@@ -162,6 +162,7 @@ export class HeroMovementSurface {
         position.x,
         position.z,
       );
+
     return (
       !Number.isFinite(authoredSurfaceHeight) ||
       authoredSurfaceHeight < surfaceHeight - STEP_CLEARANCE
@@ -182,6 +183,7 @@ export class HeroMovementSurface {
       MOVEMENT_COLLISION_RADIUS,
       elevation,
     );
+
     return (
       Number.isFinite(ceiling) &&
       elevation + HERO_COLLISION_HEIGHT > ceiling
@@ -225,6 +227,7 @@ export class HeroMovementSurface {
         return false;
       }
     }
+
     return true;
   }
 

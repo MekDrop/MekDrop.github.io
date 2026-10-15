@@ -26,6 +26,7 @@ class FakeVec3 {
     this.x = x;
     this.y = y;
     this.z = z;
+
     return this;
   }
 }
@@ -171,6 +172,7 @@ describe("trigger area grass physics", () => {
       on(event, callback) {
         assert.equal(event, "update");
         update = callback;
+
         return { off() {} };
       },
     };

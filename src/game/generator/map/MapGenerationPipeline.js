@@ -28,6 +28,7 @@ export class MapGenerationPipeline {
       await context.scheduler.yieldIfNeeded(context.yieldState);
     }
     await context.scheduler.yieldToMainThread();
+
     return context.output.mapData;
   }
 }

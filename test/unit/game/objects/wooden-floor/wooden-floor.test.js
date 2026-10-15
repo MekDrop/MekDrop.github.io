@@ -139,6 +139,7 @@ it("keeps plank top seams equally narrow when a room stretches the floor panel",
     const edge = (name, axis, maximum) => {
       const node = root.findByName(name);
       const points = node.topPoints.map(point => (node.getLocalPosition()[axis] + point[axis] * node.getLocalScale()[axis]) * (axis === "x" ? width : depth));
+
       return maximum ? Math.max(...points) : Math.min(...points);
     };
     const endGap = edge("Oak plank row 1 section 2", "x", false) - edge("Oak plank row 1 section 1", "x", true);

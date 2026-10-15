@@ -124,7 +124,9 @@ it("loads an arbitrary fabric URL on owned materials and releases the asset", as
     pc: {
       ...pc,
       Entity: RugEntity,
-      Mesh: { fromGeometry: (device, data) => { geometry.push(data); return data; } },
+      Mesh: { fromGeometry: (device, data) => { geometry.push(data);
+
+ return data; } },
       MeshInstance,
     },
     app,

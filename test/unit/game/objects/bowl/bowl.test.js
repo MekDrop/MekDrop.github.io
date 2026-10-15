@@ -24,7 +24,9 @@ test("bowls accept ordinary game objects, freeze snapshots, and pack only once",
     static get hasAuthoredCollision() { return false; }
   }
   const requests = [];
-  const modelLibrary = { instantiate(url) { requests.push(url); return new pc.Entity(url); } };
+  const modelLibrary = { instantiate(url) { requests.push(url);
+
+ return new pc.Entity(url); } };
   const items = [{ object: "Apple" }, {
     object: "ClosedReadingBook",
     scale: 0.2,
@@ -56,6 +58,7 @@ test("bowls accept ordinary game objects, freeze snapshots, and pack only once",
       created.push(item);
       const entity = new pc.Entity(item.id);
       entity.clone = () => new pc.Entity(item.id);
+
       return {
         entity,
         destroy() { destroyed.push(item.id); entity.destroy(); },
@@ -131,7 +134,9 @@ test("shell tint clones materials and never recolors shared assets or contents",
   const clones = [];
   Bowl.prototype.prepareModel.call({
     definition: { color: "#804020" },
-    cloneMaterial(material) { const clone = material.clone(); clones.push(clone); return clone; },
+    cloneMaterial(material) { const clone = material.clone(); clones.push(clone);
+
+ return clone; },
   },
   { findComponents: () => [{ meshInstances: [mesh] }] }, false);
   assert.notEqual(mesh.material, original);
@@ -165,6 +170,7 @@ test("real Engine objects survive source destruction and remain fixed after Ammo
   const instantiate = () => {
     const entity = new pc.Entity("shell");
     entity.addComponent("render", { meshInstances: [new pc.MeshInstance(shellMesh, material, entity)] });
+
     return entity;
   };
   let disposed = 0;
@@ -173,6 +179,7 @@ test("real Engine objects survive source destruction and remain fixed after Ammo
       const entity = new pc.Entity(definition.object);
       const mesh = pc.Mesh.fromGeometry(device, new pc.BoxGeometry({ halfExtents: new pc.Vec3(0.03, 0.02, 0.01) }));
       entity.addComponent("render", { meshInstances: [new pc.MeshInstance(mesh, material, entity)] });
+
       return {
         entity,
         destroy() { disposed++; entity.destroy(); mesh.destroy(); },

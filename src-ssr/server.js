@@ -55,6 +55,7 @@ export const create = ssrCreate((/* { ... } */) => {
  */
 export const listen = ssrListen(async ({ app, port, isReady }) => {
   await isReady();
+
   return app.listen(port, () => {
     if (process.env.PROD) {
       console.log("Server listening at port " + port);

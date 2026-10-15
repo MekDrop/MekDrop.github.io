@@ -38,6 +38,7 @@ export function colorFromValue(pc, value, fallback = 0xffffff) {
   const parsed = isString(value)
     ? Number.parseInt(value.replace(/^#/, ""), 16)
     : value;
+
   return colorFromHex(pc, Number.isFinite(parsed) ? parsed : fallback);
 }
 
@@ -50,5 +51,6 @@ export function shadeHexColor(value, shade) {
   const red = Math.round(((value >> 16) & 0xff) * shade);
   const green = Math.round(((value >> 8) & 0xff) * shade);
   const blue = Math.round((value & 0xff) * shade);
+
   return (red << 16) | (green << 8) | blue;
 }

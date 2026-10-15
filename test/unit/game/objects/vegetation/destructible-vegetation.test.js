@@ -211,12 +211,14 @@ describe("destructible vegetation grass footprint", () => {
     ]) {
       assert.ok(collider.children.some(({ position, components }) => {
         const half = components.collision.halfExtents;
+
         return Math.abs(position.x - point.x) < half.x &&
           Math.abs(position.y - point.y) < half.y && Math.abs(position.z - point.z) < half.z;
       }));
     }
     const volume = collider.children.reduce((total, child) => {
       const half = child.components.collision.halfExtents;
+
       return total + 8 * half.x * half.y * half.z;
     }, 0);
     assert.equal(volume, 5 * 0.25 ** 3);

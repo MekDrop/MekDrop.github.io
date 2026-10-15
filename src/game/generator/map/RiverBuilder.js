@@ -88,6 +88,7 @@ export class RiverBuilder {
         return count;
       }
     }
+
     return MAX_RIVERS;
   }
 
@@ -175,6 +176,7 @@ export class RiverBuilder {
     }
 
     const terminal = cells[cells.length - 1];
+
     return {
       id: `river-${riverIndex + 1}`,
       kind: parent?.kind ?? RIVER_KIND.WATER,
@@ -292,6 +294,7 @@ export class RiverBuilder {
         occupiedRiverCells.add(MapGrid.tileKey(cell.col, cell.row));
       }
     }
+
     return rivers;
   }
 
@@ -440,6 +443,7 @@ export class RiverBuilder {
             const previous = item.cells.at(-2);
             const col = terminal.col + terminal.col - previous.col;
             const row = terminal.row + terminal.row - previous.row;
+
             return MapGrid.inBounds(col, row) && trialMask[row][col];
           });
         if (blockedOutlet) {

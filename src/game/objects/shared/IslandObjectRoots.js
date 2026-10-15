@@ -51,6 +51,7 @@ export class IslandObjectRoots {
    */
   groupForTile(tile) {
     const key = `${tile?.col},${tile?.row}`;
+
     return this.#cells.findIndex(
       /**
        * @param {Set<string>} cells

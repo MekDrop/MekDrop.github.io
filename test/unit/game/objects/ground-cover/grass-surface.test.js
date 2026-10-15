@@ -37,6 +37,7 @@ function createSubject(
     getSurfaceContacts,
     getImpressionContacts,
   });
+
   return {
     grass,
     parameters,

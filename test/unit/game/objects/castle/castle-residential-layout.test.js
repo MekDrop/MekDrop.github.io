@@ -47,6 +47,7 @@ it("keeps two occupied floors and basement distinct with an empty balcony", () =
   assert.ok(layout.placements.every((item) => {
     const local = layout.toLocal(item.position.x, item.position.z);
     const balcony = layout.rooms.balcony;
+
     return item.position.y !== balcony.floorY || local.z < balcony.minZ;
   }));
 });
@@ -139,6 +140,7 @@ it("fits bedroom furniture without overlaps in sixteen style/orientation layouts
       const boxes = layout.placements.filter((item) => metrics[item.role]).map((item) => {
         const local = layout.toLocal(item.position.x, item.position.z);
         const [width, depth] = metrics[item.role];
+
         return {
           minX: local.x - width * item.scale.x / 2,
           maxX: local.x + width * item.scale.x / 2,

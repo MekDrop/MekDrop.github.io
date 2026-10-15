@@ -138,6 +138,7 @@ function upperDoor(floorY = 3, side = "NORTH", main = false, placement = null) {
   const renders = (main ? [left, right] : [left]).map((hinge, index) => {
     const plank = new Entity("Castle door plank"); hinge.addChild(plank);
     const x = index === 0 ? [0, main ? 1 : 2] : [-1, 0];
+
     return {
       entity: plank,
       meshInstances: [{
@@ -188,6 +189,7 @@ function upperDoor(floorY = 3, side = "NORTH", main = false, placement = null) {
     },
     woodMaterial: {},
   });
+
   return {
     door,
     entity,
@@ -522,7 +524,9 @@ it("mirrors the interior hinge and animated leaf while keeping collision and pic
 it("lets terrace choreography request a swing without bypassing hero clearance", () => {
   const { door } = upperDoor();
   let openings = 0;
-  door.onOpen = () => { openings++; return true; };
+  door.onOpen = () => { openings++;
+
+ return true; };
   assert.equal(door.handlePointerDown(), true);
   assert.equal(openings, 1);
   door.sequenceOpenAmount = 1;

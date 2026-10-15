@@ -62,6 +62,7 @@ export class SpearRack extends AbstractCastleProp {
         part.setLocalEulerAngles(0, 0, 0);
         part.setLocalScale(scaleX, scaleY * sy, scaleZ);
         model.addChild(part);
+
         return part;
       };
       // Two side frames connect every row: no separate rack feet per row.

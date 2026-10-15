@@ -234,6 +234,7 @@ export class CastleTerraceActivity {
     const behavior = this.#activeBehavior;
     const door = this.#doorActions.state;
     const royal = this.#royalActions.state;
+
     return {
       kind: this.#kind,
       phase: behavior.stagePhase,
@@ -324,12 +325,14 @@ export class CastleTerraceActivity {
               : door.side === "NORTH"
                 ? position.z
                 : position.z + position.depth;
+
         return (
           Math.abs((vertical ? x : z) - boundary) <= distance &&
         lateral >= door.offset - 0.55 &&
         lateral <= door.offset + door.width + 0.55
         );
       });
+
     return (
       !this.#stopped &&
       (inside || nearDoor) &&

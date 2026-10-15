@@ -102,6 +102,7 @@ export class TerraceRoyalActions {
         actor,
         ...navigation,
       });
+
       return;
     }
     const scale = CHARACTER_HEIGHT / (this.#royal.height * stage.getLocalScale().y);
@@ -135,6 +136,7 @@ export class TerraceRoyalActions {
   get state() {
     const position = this.#royal.entity.enabled
       ? this.#royal.entity.getLocalPosition() : null;
+
     return {
       position: position ? {
         x: position.x,
@@ -159,6 +161,7 @@ export class TerraceRoyalActions {
           : this.#kind === "princess" ? [-0.75, 0, 3.2] : [0, 0, 3.1];
         this.#motion.moveTo(phase === PHASE.ROYAL_EXIT ? this.#motion.home
           : this.#world(...target));
+
         return;
       }
       if (![PHASE.SETTLE, PHASE.ACTIVITY, PHASE.RISE].includes(phase)) {
@@ -167,11 +170,14 @@ export class TerraceRoyalActions {
       }
       if (phase === PHASE.ACTIVITY) { this.#activityTime = behavior.elapsed; }
       if (phase === PHASE.SETTLE) { this.#activityTime = 0; }
-      if (this.#kind === "queen") { this.#syncQueen(behavior); return; }
+      if (this.#kind === "queen") { this.#syncQueen(behavior);
+
+ return; }
       const target = this.#kind === "princess" ? [-0.75, 0, 3.2] : [0, 0, 3.1];
       this.#place(...target, this.#kind === "princess" ? 90 : 0);
       this.#royal.pose(behavior.action, this.#activityTime, phase === PHASE.SETTLE
         ? behavior.progress : phase === PHASE.RISE ? 1 - behavior.progress : 1);
+
       return;
     }
     const visible = [PHASE.ROYAL_ENTER, PHASE.SETTLE, PHASE.ACTIVITY,
@@ -187,6 +193,7 @@ export class TerraceRoyalActions {
     }
     if (this.#kind === "queen") {
       this.#syncQueen(behavior);
+
       return;
     }
     const target = this.#kind === "princess"
@@ -198,6 +205,7 @@ export class TerraceRoyalActions {
         leaving: phase === PHASE.ROYAL_EXIT,
         behavior,
       });
+
       return;
     }
     this.#royal.entity.setLocalPosition(...target);
@@ -228,12 +236,14 @@ export class TerraceRoyalActions {
     const phase = behavior.stagePhase;
     if ([PHASE.ROYAL_ENTER, PHASE.ROYAL_EXIT].includes(phase)) {
       this.#walkQueen(behavior, phase === PHASE.ROYAL_EXIT);
+
       return;
     }
     if ([PHASE.SETTLE, PHASE.RISE].includes(phase)) {
       const progress = phase === PHASE.SETTLE
         ? behavior.progress : 1 - behavior.progress;
       this.#poseQueenOnSunbed(progress, behavior.action);
+
       return;
     }
     this.#place(...QUEEN_REST_POSITION, 0);
@@ -291,11 +301,13 @@ export class TerraceRoyalActions {
       const segment = ease(
         (clamped - start.progress) / (end.progress - start.progress),
       );
+
       return {
         x: start.x + (end.x - start.x) * segment,
         z: start.z + (end.z - start.z) * segment,
       };
     }
+
     return {
       x: QUEEN_APPROACH_POSITION[0],
       z: QUEEN_APPROACH_POSITION[2],
@@ -310,6 +322,7 @@ export class TerraceRoyalActions {
    */
   #world(x, y, z) {
     const point = this.#royal.entity.getPosition().clone().set(x, y, z);
+
     return this.#stage.getWorldTransform().transformPoint(point, point);
   }
 

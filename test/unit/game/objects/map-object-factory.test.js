@@ -17,6 +17,7 @@ const hooks = registerHooks({
     }
     if (specifier.includes("?raw")) {
       const source = readFileSync(new URL(specifier.split("?")[0], context.parentURL), "utf8");
+
       return {
         url: `data:text/javascript,export default ${encodeURIComponent(JSON.stringify(source))}`,
         shortCircuit: true,

@@ -18,6 +18,7 @@ function createBehavior(events, BehaviorType = KingGameOverBehavior) {
     beginWalk: () => events.push("walk"),
     move: (progress) => {
       events.push(["move", progress]);
+
       return true;
     },
     playAnimation: (animation, blendDuration = 0) =>

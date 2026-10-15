@@ -125,6 +125,7 @@ export class CameraOrbitPivot {
       return Infinity;
     }
     const distance = edge2.dot(q) / determinant;
+
     return distance > 0 ? distance : Infinity;
   }
 }

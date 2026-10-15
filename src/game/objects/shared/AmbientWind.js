@@ -18,6 +18,7 @@ export const AMBIENT_WIND_DIRECTION = Object.freeze({
 export function getAmbientWindSpeed(elapsedSeconds) {
   if (ambientWindSpeedOverride !== null) {
     currentAmbientWindSpeed = ambientWindSpeedOverride;
+
     return currentAmbientWindSpeed;
   }
   const broadVariation = Math.sin(elapsedSeconds * 0.31) * 0.014;
@@ -33,6 +34,7 @@ export function getAmbientWindSpeed(elapsedSeconds) {
     0.11,
     AMBIENT_WIND_BASE_SPEED + broadVariation + slowVariation + gust,
   );
+
   return currentAmbientWindSpeed;
 }
 
@@ -63,6 +65,7 @@ export function getAmbientWind(elapsedSeconds) {
     AMBIENT_WIND_BASE_ANGLE +
     Math.sin(elapsedSeconds * 0.035) * 0.18 +
     Math.sin(elapsedSeconds * 0.013 + 1.7) * 0.1;
+
   return {
     direction: {
       x: Math.cos(angle),

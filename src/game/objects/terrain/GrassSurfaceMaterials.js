@@ -25,6 +25,7 @@ const LINEAR_COLORS = TILE_COLORS.map(/**
    */
       (shift) => {
         const channel = ((color >> shift) & 0xff) / 255;
+
         return channel <= 0.04045
           ? channel / 12.92
           : ((channel + 0.055) / 1.055) ** 2.4;
@@ -198,6 +199,7 @@ export class GrassSurfaceMaterials {
         return index;
       }
     }
+
     return thresholds.length;
   }
 
@@ -208,6 +210,7 @@ export class GrassSurfaceMaterials {
    */
   #tileHeight(col, row) {
     const type = this.#mapData.grid[row][col];
+
     return type in FIXED_HEIGHTS
       ? FIXED_HEIGHTS[type]
       : this.#mapData.heightmap[row][col];
@@ -279,6 +282,7 @@ export class GrassSurfaceMaterials {
         return true;
       }
     }
+
     return false;
   }
 }

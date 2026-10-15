@@ -11,6 +11,7 @@ module.exports = defineConfig({
   e2e: {
     setupNodeEvents(on, config) {
       registerCodeCoverageTasks(on, config);
+
       return config;
     },
     baseUrl: 'http://localhost:9000/',
@@ -20,6 +21,7 @@ module.exports = defineConfig({
   component: {
     setupNodeEvents(on, config) {
       registerCodeCoverageTasks(on, config);
+
       return config;
     },
     supportFile: 'test/cypress/support/component.js',

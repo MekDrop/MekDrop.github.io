@@ -40,6 +40,7 @@ export class TerrainBlockDefinitions {
           method,
           args,
         });
+
         return;
       }
       const position = {
@@ -99,6 +100,7 @@ export class TerrainBlockDefinitions {
        */
       cubeMaterials: (type, topCube, col, row, level) => {
         const turf = type === MAP_TILE_TYPE.GRASS || type === MAP_TILE_TYPE.CASTLE_WALL || type === MAP_TILE_TYPE.CASTLE_TOWER;
+
         return {
           top: !topCube ? "earth" : turf ? material("grass", col, row, level) : material("surface", col, row, level),
           sides: material(topCube && turf ? "turfSide" : "earthSide", col, row, level),

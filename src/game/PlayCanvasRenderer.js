@@ -563,6 +563,7 @@ export class PlayCanvasRenderer {
     });
     if (this.#destroyed) {
       graphicsDevice.destroy();
+
       return;
     }
     this.#app = new pc.Application(this.canvas, { graphicsDevice });
@@ -1145,6 +1146,7 @@ export class PlayCanvasRenderer {
     }
     this.#setInventoryVisible(true);
     this.#setInteractionTarget(null);
+
     return true;
   }
 
@@ -1154,6 +1156,7 @@ export class PlayCanvasRenderer {
     }
     this.#setInventoryVisible(false);
     this.#updateInteractionTarget();
+
     return true;
   }
 
@@ -1194,6 +1197,7 @@ export class PlayCanvasRenderer {
       return false;
     }
     const shouldClose = this.#inventoryScene.pointerUp(clientX, clientY);
+
     return shouldClose ? this.closeInventory() : false;
   }
 
@@ -1300,6 +1304,7 @@ export class PlayCanvasRenderer {
       this.#camera.panZ = this.#camera.fitCenterZ;
       this.#camera.manuallyMoved = false;
       this.#updateCamera();
+
       return;
     }
     const panOrigin = {
@@ -1354,6 +1359,7 @@ export class PlayCanvasRenderer {
     }
     this.#updateCamera(null, preserveFocus);
     this.#heroVisibility?.schedule();
+
     return this.#camera.rotation;
   }
 
@@ -1387,6 +1393,7 @@ export class PlayCanvasRenderer {
       return false;
     }
     this.#updateCamera();
+
     return true;
   }
 
@@ -1605,6 +1612,7 @@ export class PlayCanvasRenderer {
       material.depthWrite = false;
     }
     material.update();
+
     return material;
   }
 
@@ -1892,6 +1900,7 @@ export class PlayCanvasRenderer {
       getViewRotation: () => this.#camera.rotation,
       getViewDirection: () => {
         const state = this.#camera.firstPersonState;
+
         return state ? {
           ...state.direction,
           right: state.right,
@@ -2085,6 +2094,7 @@ export class PlayCanvasRenderer {
       this.#frameUpdateFailed = true;
       if (this.#onRuntimeError) {
         this.#onRuntimeError(error);
+
         return;
       }
       throw error;
@@ -2166,6 +2176,7 @@ export class PlayCanvasRenderer {
     }
     if (this.#camera.firstPersonEnabled) {
       this.#setFloatingCameraOffset(0, 0);
+
       return;
     }
     const offset = this.#floatingIslandMotion.update(deltaTime);
@@ -2226,6 +2237,7 @@ export class PlayCanvasRenderer {
       return null;
     }
     const position = hero.inventoryFullIndicatorPosition;
+
     return this.#camera.camera.worldToScreen(
       new this.#pc.Vec3(position.x, position.y, position.z),
     );
@@ -2245,6 +2257,7 @@ export class PlayCanvasRenderer {
     const edge = this.#camera.camera.worldToScreen(
       position.clone().add(this.#camera.right.clone().mulScalar(0.42)),
     );
+
     return {
       x: center.x,
       y: center.y,
@@ -2291,6 +2304,7 @@ export class PlayCanvasRenderer {
    */
   #tileHeight(col, row) {
     const type = this.#mapData.grid[row][col];
+
     return type in FIXED_HEIGHTS
       ? FIXED_HEIGHTS[type]
       : this.#mapData.heightmap[row][col];
@@ -2342,6 +2356,7 @@ export class PlayCanvasRenderer {
     if (!Number.isFinite(minimumProjection)) {
       this.#camera.fitCenterX = 0;
       this.#camera.fitCenterZ = 0;
+
       return;
     }
 
@@ -2386,6 +2401,7 @@ export class PlayCanvasRenderer {
     }
     if (this.#camera.firstPersonEnabled) {
       this.#updateCamera();
+
       return;
     }
     const heroWorldPosition = hero.entity.getPosition();
@@ -2420,6 +2436,7 @@ export class PlayCanvasRenderer {
         });
       }
       this.#heroVisibility?.schedule();
+
       return;
     }
 
@@ -2429,12 +2446,14 @@ export class PlayCanvasRenderer {
 
     if (this.#camera.manuallyMoved) {
       this.#heroVisibility?.schedule();
+
       return;
     } else if (this.#camera.zoom > MAP_FIT_ZOOM) {
       this.#camera.panX = heroWorldPosition.x;
       this.#camera.panZ = heroWorldPosition.z;
     } else if (!heroIsOutOfBounds) {
       this.#heroVisibility?.schedule();
+
       return;
     } else {
       const correction = this.#screenDeltaToGround(
@@ -2503,6 +2522,7 @@ export class PlayCanvasRenderer {
       preserveFocus,
     };
     this.#camera.orbitPivot = null;
+
     return true;
   }
 
@@ -2747,6 +2767,7 @@ export class PlayCanvasRenderer {
     const downX = Math.sin(yaw);
     const downZ = Math.cos(yaw);
     const verticalScale = worldPerPixel / Math.sin(CAMERA_PITCH);
+
     return {
       x: rightX * deltaX * worldPerPixel + downX * deltaY * verticalScale,
       z: rightZ * deltaX * worldPerPixel + downZ * deltaY * verticalScale,
@@ -2773,6 +2794,7 @@ export class PlayCanvasRenderer {
     const rect = this.canvas.getBoundingClientRect();
     const screenX = event.clientX - rect.left;
     const screenY = event.clientY - rect.top;
+
     return {
       start: this.#camera.camera.screenToWorld(
         screenX,
@@ -2846,6 +2868,7 @@ export class PlayCanvasRenderer {
       this.#app?.systems.rigidbody?.raycastAll?.(ray.start, ray.end, {
         sort: true,
       }) ?? [];
+
     return hits.find(/**
      *
      * @param {pc.PickerSelection} hit
@@ -2872,6 +2895,7 @@ export class PlayCanvasRenderer {
       clientY - rect.top - center.y,
       this.#camera.zoom,
     );
+
     return new this.#pc.Vec3(
       this.#camera.panX + correction.x,
       height,
@@ -2901,6 +2925,7 @@ export class PlayCanvasRenderer {
     }
     const fallHeight =
       (upwardScreenDistance * worldPerPixel) / Math.cos(CAMERA_PITCH);
+
     return (
       position.y +
       Math.max(
@@ -2957,6 +2982,7 @@ export class PlayCanvasRenderer {
       this.#heroLookPointer.clientY > rect.bottom
     ) {
       this.#clearHeroIdleLookTarget();
+
       return;
     }
     const ray = this.#pointerRay(this.#heroLookPointer);
@@ -2994,6 +3020,7 @@ export class PlayCanvasRenderer {
       hero.isReacting
     ) {
       this.#setInteractionTarget(null);
+
       return;
     }
     if (hero.isUsingTool) {

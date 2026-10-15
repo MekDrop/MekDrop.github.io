@@ -233,6 +233,7 @@ export class NpcDoorAvoidance {
       if (participant.#entity.root === door.root && participant.#entity.enabled &&
         blocks(participant.#entity.getPosition())) { return true; }
     }
+
     return false;
   }
 
@@ -283,10 +284,12 @@ export class NpcDoorAvoidance {
         this.#homeRotation = null;
         this.#target = null;
         this.#transition(PHASE.IDLE);
+
         return;
       }
       this.#target = null;
       this.#transition(PHASE.WAIT);
+
       return;
     }
     this.#entity.setPosition(next.x, position.y, next.z);

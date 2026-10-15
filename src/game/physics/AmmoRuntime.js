@@ -40,6 +40,7 @@ export class AmmoRuntime {
             resolve();
           });
       });
+
     return this.#initialization;
   }
 }

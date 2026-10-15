@@ -291,6 +291,7 @@ export class HeroHairPhysics {
       this.#anchorPosition.y,
       this.#anchorPosition.z,
     );
+
     return distance;
   }
 

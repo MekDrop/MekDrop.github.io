@@ -37,6 +37,7 @@ export class RiverPlacementRules {
         }
       }
     }
+
     return true;
   }
 
@@ -91,6 +92,7 @@ export class RiverPlacementRules {
         }
       }
     }
+
     return false;
   }
 

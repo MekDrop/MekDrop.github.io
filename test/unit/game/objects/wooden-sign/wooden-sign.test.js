@@ -63,6 +63,7 @@ test("sign collision excludes lettering and preserves independent scale and faci
       graph.addChild(wood);
       graph.addChild(inscription);
       graphs.push(graph);
+
       return graph;
     },
   };

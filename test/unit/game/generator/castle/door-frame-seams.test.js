@@ -74,6 +74,7 @@ it("keeps the frame front inside the wall opening for every enabled layout", asy
       assert.ok([-1, 1].some(sign => {
         const x = door.x + sign * across * Math.cos(angle) + depth * Math.sin(angle);
         const z = door.z - sign * across * Math.sin(angle) + depth * Math.cos(angle);
+
         return build.metadata.collision.cameraBlocks.some(block => Math.abs(x - block.x) <= block.halfX + 1e-6 &&
           Math.abs(z - block.z) <= block.halfZ + 1e-6 && Math.abs(door.y + 1 - block.y) <= block.halfY);
       }), `${seed}/${door.roomId}: frame front meets actual jamb masonry`);

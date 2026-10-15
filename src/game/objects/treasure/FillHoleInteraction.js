@@ -88,6 +88,7 @@ export class FillHoleInteraction {
       onImpact: () => {
         const finished = this.#field.fill(this.#target);
         this.#onChange?.();
+
         return finished;
       },
       onComplete: this.#onComplete,

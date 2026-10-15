@@ -16,6 +16,7 @@ export function projectFirstPersonMovement(inputX, inputY, viewDirection) {
   const forwardZ = viewDirection.z / viewLength;
   const rightX = viewDirection.right?.x ?? -forwardZ;
   const rightZ = viewDirection.right?.z ?? forwardX;
+
   return {
     x: rightX * inputX + forwardX * inputY,
     z: rightZ * inputX + forwardZ * inputY,

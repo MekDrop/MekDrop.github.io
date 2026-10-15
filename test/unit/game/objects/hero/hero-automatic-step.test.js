@@ -29,6 +29,7 @@ it("climbs narrow roof courses without probing past reachable treads", () => {
       scripted: false,
       surfaceAt: (x, z, maximumHeight, minimumHeight) => {
         const height = 8 + Math.floor(x / 0.09) * 0.12;
+
         return height <= maximumHeight && height >= minimumHeight ? { height } : null;
       },
     },

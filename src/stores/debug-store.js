@@ -20,6 +20,7 @@ export const useDebugStore = defineStore(
       pathArrows.value = shouldEnable;
       debugAxesHud.value = shouldEnable;
       debugFpsHud.value = shouldEnable;
+
       return shouldEnable;
     };
 

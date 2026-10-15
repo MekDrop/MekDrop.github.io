@@ -41,6 +41,7 @@ function fixture(roll, available = 2, kind = "WATER") {
           col: junction.col,
           row: junction.row + step * (index + 1),
         }));
+
       return {
         route: [...prefix, ...tail],
         terminalDirection: step === -1 ? "NORTH" : "SOUTH",
@@ -59,6 +60,7 @@ function fixture(roll, available = 2, kind = "WATER") {
     castleBottom: -10,
     entries: [],
   };
+
   return {
     builder,
     grid,
@@ -82,6 +84,7 @@ async function splitFixture(roll, available = 2, kind = "WATER") {
     rivers,
   });
   await builder.splitRivers(grid, heights, meta, layout, mask, rivers, {});
+
   return {
     ...value,
     rivers,

@@ -140,6 +140,7 @@ export class InventoryScene {
    */
   get state() {
     const hero = this.#getHero();
+
     return {
       ...(hero?.inventory ?? {
         capacity: Hero.inventoryCapacity,
@@ -318,11 +319,13 @@ export class InventoryScene {
     const droppedItem = this.#heroConfigurationStore.dropInventoryItem(slot);
     if (!droppedItem) {
       thrownItem.destroy();
+
       return null;
     }
     mapRoot.addChild(thrownItem.entity);
     this.#thrownItems.push(thrownItem);
     this.setInventory(this.state);
+
     return droppedItem;
   }
 

@@ -11,6 +11,7 @@ test("equal bindings share materials until the last book is removed", () => {
   const meshes = models.map(model => {
     const mesh = { material: source };
     model.findComponents = () => [{ meshInstances: [mesh] }];
+
     return mesh;
   });
   BookCover.apply(models[0], [0.2, 0.3, 0.4]);
@@ -110,6 +111,7 @@ test("book state is independent of placement and artwork, with matching visual a
           const render = { meshInstances: [{ material: leather }, { material: parchment }] };
           renders.push(render);
           model.findComponents = () => [render];
+
           return model;
         },
       },

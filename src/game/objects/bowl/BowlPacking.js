@@ -37,6 +37,7 @@ export class BowlPacking {
         const offset = start + index * 4;
         result.push(Ammo.HEAPF32[offset], Ammo.HEAPF32[offset + 1], Ammo.HEAPF32[offset + 2]);
       }
+
       return result;
     } finally {
       if (hull) { Ammo.destroy(hull); }
@@ -75,6 +76,7 @@ export class BowlPacking {
     }
     const bounds = new BoundingBox();
     bounds.compute(positions);
+
     return {
       positions,
       indices,
@@ -140,6 +142,7 @@ export class BowlPacking {
       body.setFriction(0.8);
       body.setRestitution(0);
       body.nativeBody.setSleepingThresholds(0.002, 0.02);
+
       return body;
     };
     try {
@@ -180,6 +183,7 @@ export class BowlPacking {
         support.setFriction(0.8);
         world.addBody(support, 1, 2);
       }
+
       return poses;
     } finally {
       for (const body of bodies) { world.removeBody(body); world.destroyBody(body); }

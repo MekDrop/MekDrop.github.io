@@ -201,6 +201,7 @@ export class BannerCloth {
       }).sample,
     });
     this.#banners.push(banner);
+
     return true;
   }
 
@@ -216,6 +217,7 @@ export class BannerCloth {
       if (!hit || (closest && hit.distance >= closest.distance)) continue;
       closest = hit;
     }
+
     return closest;
   }
 
@@ -317,6 +319,7 @@ export class BannerCloth {
       mipmaps: true,
     });
     texture.setSource(canvas);
+
     return texture;
   }
 
@@ -330,6 +333,7 @@ export class BannerCloth {
     material.metalness = 0;
     material.useMetalness = true;
     material.update();
+
     return material;
   }
 
@@ -339,6 +343,7 @@ export class BannerCloth {
     material.diffuse = new this.#pc.Color(0.78, 0.58, 0.18);
     material.gloss = 0.16;
     material.update();
+
     return material;
   }
 

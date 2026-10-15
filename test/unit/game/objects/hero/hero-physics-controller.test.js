@@ -121,6 +121,7 @@ function createFixture({ maxSubSteps = 4, fixedTimeStep } = {}) {
         end,
         options,
       });
+
       return [];
     },
   };
@@ -138,6 +139,7 @@ function createFixture({ maxSubSteps = 4, fixedTimeStep } = {}) {
     gravity: -18,
     ...(fixedTimeStep === undefined ? {} : { fixedTimeStep }),
   });
+
   return {
     app,
     controller,
@@ -217,6 +219,7 @@ describe("HeroPhysicsController", () => {
     const { app, controller } = createFixture();
     app.systems.rigidbody.raycastAll = (start, end) => {
       assert.ok(end.x > 2.31);
+
       return [{
         point: {
           x: 2.31,
@@ -373,6 +376,7 @@ describe("HeroPhysicsController", () => {
         end,
         options,
       });
+
       return [wall, floor];
     };
 

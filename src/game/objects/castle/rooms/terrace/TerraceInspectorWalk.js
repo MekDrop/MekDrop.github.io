@@ -26,6 +26,7 @@ export class TerraceInspectorWalk {
     const time = Math.max(0, Math.min(duration, elapsed));
     if (time < turnIn) {
       const t = time / turnIn;
+
       return {
         ...start,
         yaw: startYaw + firstTurn * this.#ease(t),
@@ -38,6 +39,7 @@ export class TerraceInspectorWalk {
       const progress = this.#ease((time - turnIn) / walkDuration);
       // End on a planted half-cycle. The model's full stride covers ~1.25 units.
       const cycles = Math.max(0.5, Math.round(distance / scale / 1.25 * 2) / 2);
+
       return {
         x: start.x + dx * progress,
         y: start.y + (end.y - start.y) * progress,
@@ -49,6 +51,7 @@ export class TerraceInspectorWalk {
       };
     }
     const t = turnOut > 0 ? Math.min(1, (time - turnIn - walkDuration) / turnOut) : 1;
+
     return {
       ...end,
       yaw: heading + lastTurn * this.#ease(t),

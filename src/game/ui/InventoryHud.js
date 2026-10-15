@@ -261,6 +261,7 @@ export class InventoryHud {
 
   toggle() {
     this.visible = !this.visible;
+
     return this.visible;
   }
 
@@ -285,6 +286,7 @@ export class InventoryHud {
       bounds.height / 2 -
       (PANEL_HEIGHT / 2 - 18 - CLOSE_BUTTON_SIZE / 2) * scale;
     const hitRadius = Math.max(18, CLOSE_BUTTON_SIZE * scale * 0.75);
+
     return (
       Math.abs(clientX - centerX) <= hitRadius &&
       Math.abs(clientY - centerY) <= hitRadius
@@ -309,6 +311,7 @@ export class InventoryHud {
       return false;
     }
     this.#beginItemDrag(itemSlot, clientX, clientY);
+
     return true;
   }
 
@@ -325,6 +328,7 @@ export class InventoryHud {
       this.#setCloseButtonState(false, false);
       this.#drawPanel();
       this.#updateCursor();
+
       return true;
     }
 
@@ -334,6 +338,7 @@ export class InventoryHud {
       hovered,
       this.#closeArmed && hovered,
     );
+
     return hovered || this.#hoveredItemSlot !== null;
   }
 
@@ -345,12 +350,14 @@ export class InventoryHud {
   pointerUp(clientX, clientY) {
     if (this.#draggedItemSlot !== null) {
       this.#finishItemDrag(clientX, clientY);
+
       return false;
     }
     const activate =
       this.#closeArmed && this.closeButtonContains(clientX, clientY);
     this.#closeArmed = false;
     this.#setCloseButtonState(activate, false);
+
     return activate;
   }
 
@@ -358,6 +365,7 @@ export class InventoryHud {
     if (this.#draggedItemSlot !== null) {
       this.#dragHoveredSlot = null;
       this.#drawPanel();
+
       return;
     }
     this.#setHoveredItem(null);
@@ -397,6 +405,7 @@ export class InventoryHud {
             }
           }
           occupiedSlots.add(slot);
+
           return {
             ...item,
             slot,
@@ -443,6 +452,7 @@ export class InventoryHud {
     this.#fullIndicator.setLocalEulerAngles(0, 0, 0);
     this.#fullIndicator.setLocalScale(0.01, 0.01, 1);
     this.#drawFullIndicator(0);
+
     return true;
   }
 
@@ -878,14 +888,17 @@ export class InventoryHud {
   #updateCursor() {
     if (!this.visible) {
       this.#setCursor("");
+
       return;
     }
     if (this.#draggedItemSlot !== null) {
       this.#setCursor("grabbing");
+
       return;
     }
     if (this.#closeHovered) {
       this.#setCursor("pointer");
+
       return;
     }
     this.#setCursor(this.#hoveredItemSlot === null ? "default" : "grab");
@@ -1061,6 +1074,7 @@ export class InventoryHud {
       context.setLineDash([3, 3]);
       context.stroke();
       context.setLineDash([]);
+
       return;
     }
 
@@ -1099,6 +1113,7 @@ export class InventoryHud {
     context.font = gameUiTheme.font(600, 10);
     if (context.measureText(label).width <= ITEM_LABEL_MAXIMUM_WIDTH) {
       this.#tooltip.enabled = false;
+
       return;
     }
 
@@ -1188,6 +1203,7 @@ export class InventoryHud {
       }
       return occupiedOnly && !this.#itemAtSlot(index) ? null : index;
     }
+
     return null;
   }
 
@@ -1340,6 +1356,7 @@ export class InventoryHud {
       useInput: false,
     });
     entity.element.texture = texture;
+
     return {
       entity,
       ownedTexture,
@@ -1383,6 +1400,7 @@ export class InventoryHud {
    */
   #dialogContains(clientX, clientY) {
     const { x, y } = this.#clientToPanel(clientX, clientY);
+
     return x >= 0 && x <= PANEL_WIDTH && y >= 0 && y <= PANEL_HEIGHT;
   }
 
@@ -1395,6 +1413,7 @@ export class InventoryHud {
       PANEL_WIDTH / 2,
       PANEL_HEIGHT + DROP_EDGE_MARGIN,
     );
+
     return {
       clientX,
       clientY,
@@ -1408,6 +1427,7 @@ export class InventoryHud {
    */
   #clientToPanel(clientX, clientY) {
     const { bounds, scale } = this.#canvasMetrics;
+
     return new Vec2(
       (clientX - (bounds.left + bounds.width / 2)) / scale +
         PANEL_WIDTH / 2,
@@ -1423,6 +1443,7 @@ export class InventoryHud {
    */
   #panelToClient(x, y) {
     const { bounds, scale } = this.#canvasMetrics;
+
     return {
       clientX: bounds.left + bounds.width / 2 + (x - PANEL_WIDTH / 2) * scale,
       clientY: bounds.top + bounds.height / 2 + (y - PANEL_HEIGHT / 2) * scale,
@@ -1435,6 +1456,7 @@ export class InventoryHud {
   get #canvasMetrics() {
     const canvas = this.#app.graphicsDevice.canvas;
     const bounds = canvas.getBoundingClientRect();
+
     return {
       bounds,
       scale: Math.sqrt(
@@ -1489,6 +1511,7 @@ export class InventoryHud {
     ) {
       fitted = fitted.slice(0, -1);
     }
+
     return fitted + "…";
   }
 
@@ -1511,6 +1534,7 @@ export class InventoryHud {
     });
     texture.name = name;
     texture.setSource(canvas);
+
     return texture;
   }
 
@@ -1536,6 +1560,7 @@ export class InventoryHud {
    */
   #smoothstep(value) {
     const clamped = Math.max(0, Math.min(1, value));
+
     return clamped * clamped * (3 - 2 * clamped);
   }
 

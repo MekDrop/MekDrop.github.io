@@ -229,6 +229,7 @@ export class CastleRoomPacker {
         }
       }
     }
+
     return null;
   }
 

@@ -50,6 +50,7 @@ export class MapObjectReplacement {
       (entry) => structuredClone(current.get(entry.id) ?? entry));
     MapObjectDefinitions.prepare(map);
     map.heroSpawn = { ...heroPosition };
+
     return map;
   }
 }

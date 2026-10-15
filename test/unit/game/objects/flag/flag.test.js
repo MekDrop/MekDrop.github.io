@@ -93,6 +93,7 @@ it("owns custom texture loading, placement, dimensions, and cleanup", () => {
     instantiate: () => {
       const entity = new pc.Entity("model");
       entity.findComponents = () => [{ meshInstances: [{ mesh }] }];
+
       return entity;
     },
   };

@@ -9,11 +9,14 @@ function fixture() {
   const added = [], removed = [];
   const app = {
     batcher: {
-      addGroup() { const id = added.length; added.push(id); return { id }; },
+      addGroup() { const id = added.length; added.push(id);
+
+ return { id }; },
       markGroupDirty() {},
       removeGroup(id) { removed.push(id); },
     },
   };
+
   return {
     app,
     added,
@@ -76,6 +79,7 @@ it("keeps stationary and moving batches separate through independent destruction
     modes.push(dynamic);
     const id = added.length;
     added.push(id);
+
     return { id };
   };
   const moving = render(), stationary = render(), secondStationary = render();

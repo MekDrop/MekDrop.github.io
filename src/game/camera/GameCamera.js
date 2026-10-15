@@ -159,8 +159,10 @@ export class GameCamera {
      */
     const normalize = (x, y) => {
       const length = Math.max(0.0001, Math.hypot(x, y));
+
       return new Vec2(x / length, y / length);
     };
+
     return {
       x: normalize(right.x, -up.x),
       y: normalize(right.z, -up.z),
@@ -389,6 +391,7 @@ export class GameCamera {
       ? new FirstPersonCameraMode(this)
       : new IsometricCameraMode(this, { mapData });
     this.#mode.enter();
+
     return true;
   }
 
@@ -401,6 +404,7 @@ export class GameCamera {
     // PlayCanvas otherwise invalidates these cached matrices only at prerender.
     // Input and scene updates query projections before that event.
     this.#entity.camera.onAppPrerender();
+
     return result;
   }
 

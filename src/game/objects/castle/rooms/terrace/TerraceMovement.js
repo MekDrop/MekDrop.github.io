@@ -32,6 +32,7 @@ export const terracePathYaw = (points, reverse = false) => {
     desiredMotion,
   );
   const yaw = Math.atan2(desiredMotion.x, desiredMotion.z) * RAD_TO_DEG;
+
   return Object.is(yaw, -0) ? 0 : yaw;
 };
 

@@ -80,6 +80,7 @@ export class GroundCollisionWorld {
         weight = Math.max(weight, objectWeight);
       }
     }
+
     return weight;
   }
 
@@ -110,6 +111,7 @@ export class GroundCollisionWorld {
         return true;
       }
     }
+
     return false;
   }
 
@@ -152,6 +154,7 @@ export class GroundCollisionWorld {
       stepClearance,
       true,
     );
+
     return currentDepth <= 0 || destinationDepth >= currentDepth - 0.000001;
   }
 
@@ -174,6 +177,7 @@ export class GroundCollisionWorld {
         return refusal;
       }
     }
+
     return null;
   }
 
@@ -198,6 +202,7 @@ export class GroundCollisionWorld {
         return direction;
       }
     }
+
     return null;
   }
 
@@ -250,6 +255,7 @@ export class GroundCollisionWorld {
         depth += 1;
       }
     }
+
     return depth;
   }
 
@@ -276,6 +282,7 @@ export class GroundCollisionWorld {
       return false;
     }
     const surfaceHeight = collider.surfaceHeightAt?.(x, z, radius, elevation + stepClearance);
+
     return !(
       Number.isFinite(surfaceHeight) &&
       surfaceHeight <= elevation + stepClearance
@@ -328,6 +335,7 @@ export class GroundCollisionWorld {
       highestSurface =
         highestSurface === null ? height : Math.max(highestSurface, height);
     }
+
     return highestSurface;
   }
 
@@ -348,6 +356,7 @@ export class GroundCollisionWorld {
       lowestCeiling =
         lowestCeiling === null ? height : Math.min(lowestCeiling, height);
     }
+
     return lowestCeiling;
   }
 }

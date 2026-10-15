@@ -199,6 +199,7 @@ export class KingTerracePerformance {
     const to = POSITION_BY_CLIP.get(entry.clip) ?? ZERO_POSITION;
     const fromYaw = step === 0 ? 0 : YAW_BY_CLIP.get(previous.clip) ?? 0;
     const toYaw = YAW_BY_CLIP.get(entry.clip) ?? 0;
+
     return {
       ...entry,
       sequenceStep: step,
@@ -251,6 +252,7 @@ export class KingTerracePerformance {
         }
       }
     }
+
     return schedule;
   }
 
@@ -263,6 +265,7 @@ export class KingTerracePerformance {
     const value = Math.sin(
       (index + 1) * 12.9898 + (this.#seed + salt) * 78.233,
     ) * 43758.5453;
+
     return value - Math.floor(value);
   }
 

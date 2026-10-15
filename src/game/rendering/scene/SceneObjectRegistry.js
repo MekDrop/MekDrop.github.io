@@ -76,6 +76,7 @@ export class SceneObjectRegistry {
     this.#objects.set(type, object);
     this.#keysByType.set(type, [type]);
     this.#countsByType.set(type, 1);
+
     return type;
   }
 
@@ -93,6 +94,7 @@ export class SceneObjectRegistry {
     const keys = this.#keysByType.get(type) ?? [];
     keys.push(key);
     this.#keysByType.set(type, keys);
+
     return key;
   }
 
@@ -118,6 +120,7 @@ export class SceneObjectRegistry {
    */
   getFirst(type) {
     const keys = this.#keysByType.get(type) ?? [];
+
     return this.get(keys[0]);
   }
 
@@ -169,6 +172,7 @@ export class SceneObjectRegistry {
   #nextCollectionKey(type) {
     const count = this.#countsByType.get(type) ?? 0;
     this.#countsByType.set(type, count + 1);
+
     return `${type}_${count}`;
   }
 

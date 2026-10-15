@@ -158,6 +158,7 @@ export class WoodenSign {
       const fitsSignLine = (line) => {
         const metrics = context.measureText(line);
         const height = metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent;
+
         return metrics.width <= 494 && height <= (lines.length > 1 ? 67 : 142);
       };
       if (lines.every(fitsSignLine)) {
@@ -182,6 +183,7 @@ export class WoodenSign {
         x += context.measureText(letter).width;
       }
     }
+
     return canvas;
   }
 

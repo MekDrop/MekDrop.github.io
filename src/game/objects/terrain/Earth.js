@@ -92,6 +92,7 @@ export class Earth {
       row: Math.round(position.z + (runtime.mapData.rows - 1) / 2),
     };
     const level = position.y - 0.5;
+
     return {
       method: "addCubeMatrix",
       args: ["earth", `earthSide:${col}:${row}:${level}`, position.x, position.y, position.z, "full", "earth", 0],

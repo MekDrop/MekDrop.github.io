@@ -61,6 +61,7 @@ export class RiverLava extends RiverWater {
    */
   createMaterial(translucent = false) {
     const key = translucent ? 'translucent' : 'opaque';
+
     return this.materialFor(key, () => {
       const material = new this.pc.StandardMaterial();
       material.name = `Molten river ${key}`;
@@ -86,6 +87,7 @@ export class RiverLava extends RiverWater {
         material.shaderChunks.glsl.set('opacityPS', lavaWaterOpacityShader);
       }
       material.setParameter('uRiverLava', 1);
+
       return material;
     });
   }
@@ -300,6 +302,7 @@ export class RiverLava extends RiverWater {
   #curve(keys) {
     const curve = new this.pc.Curve(keys);
     curve.type = this.pc.CURVE_SMOOTHSTEP;
+
     return curve;
   }
 
@@ -310,6 +313,7 @@ export class RiverLava extends RiverWater {
   #curveSet(...channels) {
     const curves = new this.pc.CurveSet(channels);
     curves.type = this.pc.CURVE_SMOOTHSTEP;
+
     return curves;
   }
 

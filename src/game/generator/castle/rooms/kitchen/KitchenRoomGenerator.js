@@ -26,6 +26,7 @@ export class KitchenRoomGenerator extends AbstractCastleRoomGenerator {
      */
     const random = () => {
       state = (Math.imul(state, 1664525) + 1013904223) >>> 0;
+
       return state / 4294967296;
     };
     const width = room.maxX - room.minX;
@@ -54,6 +55,7 @@ export class KitchenRoomGenerator extends AbstractCastleRoomGenerator {
         if (room.level >= stair.from && room.level <= stair.to && x + w / 2 > stair.minX && x - w / 2 < stair.maxX &&
           z + d / 2 > stair.minZ && z - d / 2 < stair.maxZ) { return false; }
       }
+
       return true;
     };
     /**
@@ -109,6 +111,7 @@ export class KitchenRoomGenerator extends AbstractCastleRoomGenerator {
         ...(wallMounted ? { wallAttachment: true } : {}),
         ...(fireplace ? { wallInset: 0 } : {}),
       });
+
       return true;
     };
     // Side entrances face the opposite hearth wall. The preparation bank

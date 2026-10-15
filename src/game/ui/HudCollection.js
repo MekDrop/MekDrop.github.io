@@ -46,6 +46,7 @@ export class HudCollection extends Map {
       hud.destroy();
       throw error;
     }
+
     return hud;
   }
 
@@ -70,6 +71,7 @@ export class HudCollection extends Map {
 
     this.delete(key);
     hud.destroy();
+
     return true;
   }
 

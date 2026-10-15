@@ -89,6 +89,7 @@ export class RoomPlanningStage extends AbstractCastleGenerationStage {
          * @param {{id:string}} entry
          */
             (entry) => entry.id === generator.id);
+
           return value + (room ? 2 ** (generators.length - index) * 1000 +
           (room.level === 0 ? 100 : 0) : 0);
         }, 0);

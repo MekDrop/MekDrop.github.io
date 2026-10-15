@@ -115,6 +115,7 @@ export class TerraceServantBehavior extends TerraceParticipantStateMachine {
     this.#visitId += 1;
     this.#delivery = 0;
     this.transition(ServantCarryInState.name);
+
     return true;
   }
 
@@ -125,6 +126,7 @@ export class TerraceServantBehavior extends TerraceParticipantStateMachine {
     }
     this.#delivery = this.#installed - 1;
     this.transition(ServantCleanupDelayState.name);
+
     return true;
   }
 
@@ -138,6 +140,7 @@ export class TerraceServantBehavior extends TerraceParticipantStateMachine {
         return ServantFurnishState.name;
       case ServantFurnishState.name:
         this.#installed += 1;
+
         return this.#service === TERRACE_SERVICE.TEA && this.#delivery === 2
           ? ServantPourTeaState.name : ServantExitState.name;
       case ServantPourTeaState.name:
@@ -145,10 +148,12 @@ export class TerraceServantBehavior extends TerraceParticipantStateMachine {
       case ServantExitState.name:
         if (!this.#requested) {
           this.#delivery = this.#installed - 1;
+
           return ServantCleanupDelayState.name;
         }
         if (this.#delivery < this.#deliveries.length - 1) {
           this.#delivery += 1;
+
           return ServantCarryInState.name;
         }
         return ServantOffstageState.name;
@@ -158,14 +163,17 @@ export class TerraceServantBehavior extends TerraceParticipantStateMachine {
         return ServantPackState.name;
       case ServantPackState.name:
         this.#installed -= 1;
+
         return ServantCarryOutState.name;
       case ServantCarryOutState.name:
         if (this.#installed > 0) {
           this.#delivery = this.#installed - 1;
+
           return ServantReturnState.name;
         }
         this.#service = null;
         this.#deliveries = [];
+
         return ServantOffstageState.name;
       default:
         return phase;

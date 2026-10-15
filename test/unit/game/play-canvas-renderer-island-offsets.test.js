@@ -35,6 +35,7 @@ it("applies fixed first-person island transforms once and resumes floating updat
   const motion = {
     update() {
       motionUpdates += 1;
+
       return {
         near: 0.1,
         far: -0.2,

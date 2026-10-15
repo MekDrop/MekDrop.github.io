@@ -166,6 +166,7 @@ export class RiverValidator {
           }
           const start = river.branchStart ?? other.branchStart;
           const junction = river.cells[start - 1];
+
           return other.cells.slice(start).filter(/**
          *
          * @param {MapCell} cell
@@ -288,6 +289,7 @@ export class RiverValidator {
               return false;
             }
             const junction = item.cells[item.branchStart - 1];
+
             return index < item.branchStart || Math.max(Math.abs(cell.col - junction.col), Math.abs(cell.row - junction.row)) <= 1;
           });
         if (RiverPlacementRules.touchesOccupiedRiver(nearFork ? foreign : buffered, cell.col, cell.row)) {

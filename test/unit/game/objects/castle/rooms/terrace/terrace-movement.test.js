@@ -13,6 +13,7 @@ function createActor() {
     rotation: null,
     pose: null,
   };
+
   return {
     calls,
     actor: {
@@ -45,6 +46,7 @@ function syncAt({ elapsed, leaving = false, action = "walk" }) {
       walkSpeed: 1.25,
     },
   });
+
   return {
     actor,
     calls,

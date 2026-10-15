@@ -9,6 +9,7 @@ function readGlb(relativePath) {
   const url = new URL(`../../../../${relativePath}`, import.meta.url);
   const buffer = readFileSync(url);
   const jsonLength = buffer.readUInt32LE(12);
+
   return {
     json: JSON.parse(buffer.subarray(20, 20 + jsonLength)),
     url,
@@ -18,6 +19,7 @@ function readGlb(relativePath) {
 function animationTargets(json, name) {
   const animation = json.animations.find((item) => item.name === name);
   assert.ok(animation, `missing embedded animation ${name}`);
+
   return animation.channels.map(({ target }) => ({
     node: json.nodes[target.node].name,
     path: target.path,

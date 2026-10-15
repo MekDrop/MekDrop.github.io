@@ -33,6 +33,7 @@ export class FirewoodStack extends AbstractCastleProp {
     for (const original of originals) { original.destroy(); }
     if (!templates.length || !arePositiveFiniteNumbers(width, depth, height)) {
       for (const template of templates) { template.destroy(); }
+
       return;
     }
     const random = new GenerationRandom(String(firewoodSeed ?? this.definition.id));
@@ -45,6 +46,7 @@ export class FirewoodStack extends AbstractCastleProp {
     const layers = Math.min(columns, Math.max(1, Math.ceil((height - logHeight) / courseRise) + 1));
     if (columns * rows * layers > 4096) {
       for (const template of templates) { template.destroy(); }
+
       return;
     }
     const cellZ = depth / rows;

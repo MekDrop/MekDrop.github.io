@@ -13,6 +13,7 @@ describe("island connector generation", () => {
     assert.equal(connectors.length, 2, "the reported seed must not be sliced into repeated bridge slivers");
     const straightRuns = connectors.map((connector) => {
       const cell = connector.cells[0];
+
       return `${connector.horizontal}:${connector.horizontal ? cell.row : cell.col}`;
     });
     assert.equal(new Set(straightRuns).size, connectors.length);

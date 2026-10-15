@@ -201,6 +201,7 @@ it("fits the authored work desk outside masonry and both stair shafts", async ()
           return false;
         }
         const point = layout.toLocal(block.x, block.z);
+
         return Math.abs(point.x - center.x) < halfWidth + 0.125 &&
           Math.abs(point.z - center.z) < halfDepth + 0.125;
       });
@@ -274,7 +275,9 @@ it("includes the exterior servant entrance stairs in aggregate navigation", () =
   const builder = new Builder({
     position: { elevation: 2 },
     cameraBlocks: [],
-    serviceStairs: { blocksMovementAt: (...args) => { calls.push(args); return true; } },
+    serviceStairs: { blocksMovementAt: (...args) => { calls.push(args);
+
+ return true; } },
   });
   assert.equal(builder.blocksMovementAt(1, 2, 0.22, 1.75, 0.32), true);
   assert.deepEqual(calls, [[1, 2, 0.22, 1.75, 0.32]]);
@@ -302,7 +305,9 @@ return class { ${method} };`)("stair-model");
     getPositions: (out) => out.push(0.08, 0.5, 0.62),
     getIndices: (out) => out.push(0, 0, 0),
   };
-  const merged = () => { const entity = new Entity("Collider"); entity.meshInstances = [{ mesh: sourceMesh }]; return entity; };
+  const merged = () => { const entity = new Entity("Collider"); entity.meshInstances = [{ mesh: sourceMesh }];
+
+ return entity; };
   const harness = new Harness();
   harness.entity = new Entity("Rooms");
   harness.entity.setLocalPosition(-0.5, 4, 2.375);

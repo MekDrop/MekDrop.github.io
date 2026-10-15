@@ -248,6 +248,7 @@ export class PathArrowTextures {
     }
     const texture = this.#texture("Route colors", 128, 16, pixels, true);
     texture.addressU = this.#pc.ADDRESS_REPEAT;
+
     return texture;
   }
 
@@ -275,6 +276,7 @@ export class PathArrowTextures {
     });
     texture.upload();
     this.#textures.push(texture);
+
     return texture;
   }
 

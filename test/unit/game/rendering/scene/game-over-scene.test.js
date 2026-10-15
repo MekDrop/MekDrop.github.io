@@ -33,6 +33,7 @@ function createRoyal(id, calls) {
   return {
     beginGameOver() {
       calls.push(`${id}:begin`);
+
       return {
         focus: {
           x: 1,

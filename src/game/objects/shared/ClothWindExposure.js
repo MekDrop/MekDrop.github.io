@@ -71,6 +71,7 @@ export class ClothWindExposure {
       if (!physics.raycastFirst(this.#start, this.#end)) { clear++; }
     }
     this.#exposure = clear / 3;
+
     return this.#exposure;
   };
 }

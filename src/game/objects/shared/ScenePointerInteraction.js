@@ -271,6 +271,7 @@ export class ScenePointerInteraction {
         hit,
       };
     }
+
     return closest;
   }
 

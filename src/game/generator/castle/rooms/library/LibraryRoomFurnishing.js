@@ -140,6 +140,7 @@ export class LibraryRoomFurnishing {
           };
           if (!this.#clear(point, 0.173, 0.173, 0.8)) { continue; }
           this.#items.push(this.#item("SingleCandleStand", point, 0.173, 0.173, table.rotation));
+
           return;
         }
       }
@@ -217,6 +218,7 @@ export class LibraryRoomFurnishing {
     // A desk can leave a usable gap between the regular module positions.
     // Check those gaps too, after the adjoining row has been placed.
     for (let along = min + half + 0.01; along <= max - half - 0.01; along += 0.1) { values.push(along); }
+
     return values;
   }
   /**
@@ -224,6 +226,7 @@ export class LibraryRoomFurnishing {
    */
   #random() {
     this.#state = (Math.imul(this.#state, 1664525) + 1013904223) >>> 0;
+
     return this.#state / 4294967296;
   }
   /**
@@ -237,6 +240,7 @@ export class LibraryRoomFurnishing {
     const values = [];
     for (let along = min + this.#inset + 0.6; along < max - this.#inset - 0.6; along += 0.45) { values.push(along); }
     const start = Math.floor(this.#random() * Math.max(1, values.length));
+
     return values.slice(start).concat(values.slice(0, start));
   }
   /**
@@ -356,6 +360,7 @@ export class LibraryRoomFurnishing {
       if (box.maxX > stair.minX - clearance && box.minX < stair.maxX + clearance &&
           box.maxZ > stair.minZ - clearance && box.minZ < stair.maxZ + clearance) { return false; }
     }
+
     return true;
   }
 }

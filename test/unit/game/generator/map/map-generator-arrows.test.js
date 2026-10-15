@@ -10,8 +10,10 @@ describe("map direction arrows", () => {
     const arrowsTooCloseToGateways = mapData.entries.flatMap(
       (entry, pathIdx) => {
         const gateRow = entry.rows.reduce((sum, row) => sum + row, 0) / 2;
+
         return [...mapData.arrowData.entries()].filter(([key, arrows]) => {
           const [col, row] = key.split(",").map(Number);
+
           return (
             arrows.some((arrow) => arrow.pathIdx === pathIdx) &&
             Math.abs(col - entry.col) + Math.abs(row - gateRow) <= 0.5
@@ -21,8 +23,10 @@ describe("map direction arrows", () => {
     );
     const arrowsTooCloseToCastle = mapData.paths.flatMap((path, pathIdx) => {
       const castleEntrance = path.route.at(-1);
+
       return [...mapData.arrowData.entries()].filter(([key, arrows]) => {
         const [col, row] = key.split(",").map(Number);
+
         return (
           arrows.some((arrow) => arrow.pathIdx === pathIdx) &&
           Math.abs(col - castleEntrance.col) +
@@ -44,6 +48,7 @@ describe("map direction arrows", () => {
         .filter(([key]) => {
           const [col, row] = key.split(",").map(Number);
           const inwardDistance = (col - entry.col) * inwardDc;
+
           return row === gateRow && inwardDistance > 0.5 && inwardDistance <= 2;
         })
         .flatMap(([, arrows]) =>

@@ -8,6 +8,7 @@ import { HeroRuntimeActionState } from "./HeroRuntimeActionState.js";
  */
 function smoothProgress(progress) {
   const clamped = Math.max(0, Math.min(1, progress));
+
   return clamped * clamped * (3 - 2 * clamped);
 }
 

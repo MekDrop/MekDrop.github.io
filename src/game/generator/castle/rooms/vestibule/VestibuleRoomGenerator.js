@@ -321,6 +321,7 @@ export class VestibuleRoomGenerator extends AbstractCastleRoomGenerator {
         floorCovering: true,
       });
       items.push(...VestibuleWindowFurnishing.furnish(room, items, context.openings ?? [], safe, context.wallThickness ?? 0.25));
+
       return items;
     }
     // A thin rug marks the route in narrow vestibules.

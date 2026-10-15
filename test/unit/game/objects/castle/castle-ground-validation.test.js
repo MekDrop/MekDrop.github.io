@@ -31,7 +31,9 @@ function mapWith(buildPlan,terrain){return {
     buildPlan,
   },terrain],
 };}
-function terrainAt(layout,area,object="Earth",y=3.25){const point=layout.toWorld((area.minX+area.maxX)/2,(area.minZ+area.maxZ)/2,0);return {
+function terrainAt(layout,area,object="Earth",y=3.25){const point=layout.toWorld((area.minX+area.maxX)/2,(area.minZ+area.maxZ)/2,0);
+
+return {
   id:"test-terrain",
   object,
   position:{

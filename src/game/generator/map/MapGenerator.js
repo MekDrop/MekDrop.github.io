@@ -147,6 +147,7 @@ export class MapGenerator {
       }
     });
     this.#generationQueue = generation.catch(() => {});
+
     return generation;
   }
 
@@ -177,6 +178,7 @@ export class MapGenerator {
           }),
         createStages: () => this.#createGenerationStages(),
       });
+
       return await generate({
         ...normalizedOptions,
         mapName,
@@ -199,6 +201,7 @@ export class MapGenerator {
     );
     const paths = new PathCarver();
     const overpasses = new OverpassPlanner(this.#random, paths);
+
     return [
       new LayoutStage(new LayoutPlanner(this.#random, paths), overpasses),
       new IslandStage(this.#island),
@@ -267,6 +270,7 @@ export class MapGenerator {
     const randomPart = Math.floor(Math.random() * 0x100000000)
       .toString(36)
       .padStart(7, "0");
+
     return `${timestamp}_${randomPart}`;
   }
 

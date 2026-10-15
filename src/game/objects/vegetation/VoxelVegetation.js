@@ -265,6 +265,7 @@ export class VoxelVegetation {
         distance,
       };
     }
+
     return closest
       ? new VegetationInteraction({
         item: closest.item,
@@ -323,6 +324,7 @@ export class VoxelVegetation {
         Math.max(weight, item.grassWeightAt(x, z, elevation)),
       0,
     );
+
     return this.#dirtPatches.reduce(
       /**
        *
@@ -447,6 +449,7 @@ export class VoxelVegetation {
           ? surfaceHeight
           : Math.max(highestSurface, surfaceHeight);
     }
+
     return highestSurface;
   }
 

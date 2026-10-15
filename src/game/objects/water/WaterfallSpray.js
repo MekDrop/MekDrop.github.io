@@ -150,6 +150,7 @@ export class WaterfallSpray {
   #curve(keys) {
     const curve = new this.#pc.Curve(keys);
     curve.type = this.#pc.CURVE_SMOOTHSTEP;
+
     return curve;
   }
 
@@ -160,6 +161,7 @@ export class WaterfallSpray {
   #curves(...channels) {
     const curves = new this.#pc.CurveSet(channels);
     curves.type = this.#pc.CURVE_SMOOTHSTEP;
+
     return curves;
   }
 
@@ -193,6 +195,7 @@ export class WaterfallSpray {
     });
     texture.lock().set(pixels);
     texture.unlock();
+
     return texture;
   }
 }

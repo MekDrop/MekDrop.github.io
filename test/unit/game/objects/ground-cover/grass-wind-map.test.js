@@ -31,6 +31,7 @@ const pc = {
 function createMap() {
   const cols = 9;
   const rows = 5;
+
   return {
     cols,
     rows,

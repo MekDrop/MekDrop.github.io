@@ -35,11 +35,13 @@ test("reusable books remain supported, fit every shelf and isolate cover colors"
         const book = new Entity("book");
         const renders = [{ meshInstances: [{ material: original }, { material: fixed }] }];
         book.findComponents = () => renders;
+
         return book;
       },
     };
     BookshelfBooks.populate(models, shelf, "book.glb", () => {
       state = (Math.imul(state, 1664525) + 1013904223) >>> 0;
+
       return state / 4294967296;
     });
     assert.equal(shelf.children.length, 36);

@@ -175,6 +175,7 @@ export class GameOverHud {
     });
     texture.name = "Game over panel texture";
     texture.setSource(canvas);
+
     return texture;
   }
 

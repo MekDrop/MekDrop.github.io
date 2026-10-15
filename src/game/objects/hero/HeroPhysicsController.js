@@ -117,6 +117,7 @@ export class HeroPhysicsController {
    */
   get position() {
     const position = this.#entity.getLocalPosition();
+
     return {
       x: position.x,
       y: position.y,
@@ -130,6 +131,7 @@ export class HeroPhysicsController {
    */
   get velocity() {
     const velocity = this.#entity.rigidbody?.linearVelocity;
+
     return velocity
       ? {
         x: velocity.x,
@@ -166,6 +168,7 @@ export class HeroPhysicsController {
         for (let node = entity; node; node = node.parent) {
           if (node === this.#entity) { return false; }
         }
+
         return true;
       },
     });
@@ -174,6 +177,7 @@ export class HeroPhysicsController {
     const travel = Math.max(0, Math.min(distance,
       Math.hypot(hit.point.x - start.x, hit.point.y - start.y, hit.point.z - start.z) - CAMERA_WALL_CLEARANCE));
     const fraction = travel / distance;
+
     return {
       x: start.x + dx * fraction,
       y: start.y + dy * fraction,
@@ -322,6 +326,7 @@ export class HeroPhysicsController {
   consumeSupportContact() {
     const supported = this.#supportContact;
     this.#supportContact = false;
+
     return supported;
   }
 

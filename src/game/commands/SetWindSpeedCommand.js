@@ -56,6 +56,7 @@ export class SetWindSpeedCommand {
   execute(speed) {
     if (speed === "auto") {
       resetAmbientWindSpeed();
+
       return getCurrentAmbientWindSpeed();
     }
     if (
@@ -66,9 +67,11 @@ export class SetWindSpeedCommand {
       this.#logger.warn(
         'setWindSpeed(speed) expects a non-negative number, or "auto".',
       );
+
       return null;
     }
     setAmbientWindSpeed(speed);
+
     return speed;
   }
 }

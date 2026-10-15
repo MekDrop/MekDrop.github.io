@@ -92,6 +92,7 @@ export class RoyalGameOverBehaviorBase {
       return false;
     }
     this.#stateMachine.changeTo(RoyalWalkOutState.name);
+
     return true;
   }
 

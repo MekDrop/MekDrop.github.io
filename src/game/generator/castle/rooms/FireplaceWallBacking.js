@@ -52,6 +52,7 @@ export class FireplaceWallBacking {
         if (!walls.some(supportsBackingPoint)) { return false; }
       }
     }
+
     return true;
   }
 }

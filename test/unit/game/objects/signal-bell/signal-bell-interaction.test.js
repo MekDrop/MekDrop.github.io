@@ -26,7 +26,9 @@ it("starts a hand action only within reach and reserves the bell through release
     },
     isIncapacitated: false,
     isUsingTool: false,
-    ringBell(action) { this.action = action; return true; },
+    ringBell(action) { this.action = action;
+
+ return true; },
   };
   const interaction = new SignalBellInteraction(bell, hero, () => { completions++; });
   assert.equal(interaction.interact(), false, "cannot ring from the room below");

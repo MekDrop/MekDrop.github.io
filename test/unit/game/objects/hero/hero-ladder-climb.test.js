@@ -36,6 +36,7 @@ function fixture(topLandings) {
     jump: false,
     allowed: true,
   };
+
   return {
     controller,
     options,
@@ -58,6 +59,7 @@ function advance(f, seconds, roofHeight = f.top.y) {
     if (!motion) return null;
     position.x += motion.velocity.x / 120;position.y += motion.velocity.y / 120;position.z += motion.velocity.z / 120;
   }
+
   return motion;
 }
 

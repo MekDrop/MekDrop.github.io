@@ -1,6 +1,7 @@
 function expectGame(assertion, timeout = 8000) {
   cy.window().then({ timeout: timeout + 1000 }, (window) => {
     const startedAt = Date.now();
+
     return new Cypress.Promise((resolve, reject) => {
       const inspect = () => {
         try {
@@ -9,6 +10,7 @@ function expectGame(assertion, timeout = 8000) {
         } catch (cause) {
           if (Date.now() - startedAt >= timeout) {
             reject(cause);
+
             return;
           }
           window.setTimeout(inspect, 16);

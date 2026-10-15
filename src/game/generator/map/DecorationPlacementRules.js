@@ -61,6 +61,7 @@ export class DecorationPlacementRules {
         }
       }
     }
+
     return true;
   }
 

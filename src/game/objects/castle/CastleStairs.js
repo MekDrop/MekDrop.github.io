@@ -138,6 +138,7 @@ export class CastleStairs {
 
       return this.#heightAt(surface, inward);
     }
+
     return null;
   }
 
@@ -170,6 +171,7 @@ export class CastleStairs {
         return true;
       }
     }
+
     return false;
   }
 
@@ -202,6 +204,7 @@ export class CastleStairs {
       surface.riseBlocks - 1,
       Math.floor(Math.max(0, inward) / surface.stepRun),
     );
+
     return surface.approachElevation + (level + 1) * surface.stepHeight;
   }
 
@@ -322,6 +325,7 @@ export class CastleStairs {
         z: bottom + distance,
       },
     };
+
     return positions[side] ?? null;
   }
 
@@ -336,6 +340,7 @@ export class CastleStairs {
       Math.imul(distanceBlocks + 11, 73856093) ^
       Math.imul(acrossBlocks + 17, 19349663) ^
       Math.imul(layer + 23, 83492791);
+
     return STONE_MATERIAL_NAMES[(hash >>> 0) % STONE_MATERIAL_NAMES.length];
   }
 

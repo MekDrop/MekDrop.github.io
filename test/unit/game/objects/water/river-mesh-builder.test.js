@@ -54,6 +54,7 @@ function surfaceFor(direction, kind = 'WATER') {
     appendTerminal: ({ riverGroup }) => { surface = riverGroup; },
     createMaterial: () => null,
   });
+
   return surface;
 }
 

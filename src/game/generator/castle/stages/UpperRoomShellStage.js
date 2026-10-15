@@ -13,6 +13,7 @@ export class UpperRoomShellStage extends AbstractCastleGenerationStage {
     if (!plan) return;
     if (plan.version === 2) {
       await new CastleRoomShellBuilder().build(context);
+
       return;
     }
     const room = plan.envelope;

@@ -35,6 +35,7 @@ export class HeroBellRingingActionState extends HeroRuntimeActionState {
         const direction = this.#direction(payload);
         const speed = Math.min(0.8, Math.hypot(direction.x, direction.z) * 5);
         const length = Math.hypot(direction.x, direction.z) || 1;
+
         return {
           x: direction.x / length * speed,
           z: direction.z / length * speed,
@@ -49,6 +50,7 @@ export class HeroBellRingingActionState extends HeroRuntimeActionState {
    */
   #direction(action) {
     const current = action.currentPosition();
+
     return {
       x: action.position.x - current.x,
       z: action.position.z - current.z,
@@ -64,6 +66,7 @@ export class HeroBellRingingActionState extends HeroRuntimeActionState {
     const distance = Math.hypot(direction.x, direction.z);
     if (!action.supported() || (action.pulling && distance > 0.15)) {
       owner.finish();
+
       return;
     }
     if (!action.pulling) {
@@ -72,6 +75,7 @@ export class HeroBellRingingActionState extends HeroRuntimeActionState {
         action.pulling = true;
         action.begin();
         action.onStart();
+
         return;
       }
       action.approachElapsed += owner.deltaTime;

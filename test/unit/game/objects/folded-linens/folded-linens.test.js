@@ -38,6 +38,7 @@ function build(overrides = {}) {
         const log = new pc.Entity("folded-linens", app);
         model.addChild(log);
         models.push(model);
+
         return model;
       },
     },
@@ -55,6 +56,7 @@ function build(overrides = {}) {
       ...overrides,
     },
   });
+
   return {
     stack,
     models,

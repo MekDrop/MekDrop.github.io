@@ -69,6 +69,7 @@ export class HeroAngryEscapeBehavior {
       this.#target = directTarget;
       this.#route = [directTarget];
       this.#start(position);
+
       return;
     }
     const searchRadius = Math.max(12, Math.ceil(desiredDistance / 0.75) + 4);
@@ -148,8 +149,10 @@ export class HeroAngryEscapeBehavior {
        */
         const alignment = (i) => {
           const node = nodes[i];
+
           return (node.col * direction.x + node.row * direction.z) / Math.hypot(node.col, node.row);
         };
+
         return alignment(candidate) > alignment(best) ? candidate : best;
       });
     this.#target = {
@@ -195,6 +198,7 @@ export class HeroAngryEscapeBehavior {
       (total, point) => {
         const distance = Math.hypot(point.x - previous.x, point.z - previous.z);
         previous = point;
+
         return total + distance;
       }, 0);
     this.#remaining = Math.max(5, length / 3 + 1);
@@ -245,6 +249,7 @@ export class HeroAngryEscapeBehavior {
       };
     }
     const approachSpeed = Math.min(speed, length * 12);
+
     return {
       x: x / length * approachSpeed,
       z: z / length * approachSpeed,

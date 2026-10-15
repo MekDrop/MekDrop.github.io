@@ -7,6 +7,7 @@ describe("Hero boot contact", () => {
 
     cy.window().then((window) => {
       const startedAt = Date.now();
+
       return new Cypress.Promise((resolve, reject) => {
         const inspect = () => {
           try {
@@ -20,6 +21,7 @@ describe("Hero boot contact", () => {
           } catch (cause) {
             if (Date.now() - startedAt >= 8000) {
               reject(cause);
+
               return;
             }
             window.setTimeout(inspect, 16);

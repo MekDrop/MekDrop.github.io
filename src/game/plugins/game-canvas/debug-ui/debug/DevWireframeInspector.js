@@ -458,6 +458,7 @@ export class DevWireframeInspector {
     for (const meshInstance of debugPickInstances) {
       meshInstance.pick = true;
     }
+
     return debugPickInstances;
   }
 
@@ -486,6 +487,7 @@ export class DevWireframeInspector {
         meshInstance,
         instanceIndex,
       );
+
       return;
     }
     this.#selection = {
@@ -505,6 +507,7 @@ export class DevWireframeInspector {
   #printObjectCoordinates(meshInstance, worldPoint) {
     if (!meshInstance) {
       console.info("[DevWireframeInspector] No object selected.");
+
       return;
     }
     const instanceIndex = this.#findInstanceIndex(meshInstance, worldPoint);
@@ -535,6 +538,7 @@ export class DevWireframeInspector {
       values.subarray(instanceIndex * 16, instanceIndex * 16 + 16),
     );
     worldMatrix.mul2(meshInstance.node.getWorldTransform(), instanceMatrix);
+
     return worldMatrix.getTranslation();
   }
 
@@ -570,6 +574,7 @@ export class DevWireframeInspector {
     if (overlay) {
       overlay.destroy();
       this.#selection = null;
+
       return;
     }
     if (meshInstance.material === this.#wireframeMaterial) {
@@ -587,6 +592,7 @@ export class DevWireframeInspector {
       return null;
     }
     this.#clearSelection();
+
     return selection;
   }
 
@@ -640,6 +646,7 @@ export class DevWireframeInspector {
         closestIndex = index;
       }
     }
+
     return closestIndex;
   }
 
@@ -716,6 +723,7 @@ export class DevWireframeInspector {
       overlay.render.layers = [...meshInstance.node.render.layers];
     }
     meshInstance.node.addChild(overlay);
+
     return {
       meshInstance,
       instanceIndex,

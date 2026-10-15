@@ -115,6 +115,7 @@ export class Grass extends Earth {
     geometry.args[0] = `grass:${col}:${row}:${level}`;
     geometry.args[1] = `turfSide:${col}:${row}:${level}`;
     geometry.args[7] = GRASS_SURFACE_LIFT;
+
     return geometry;
   }
   onSceneReady() {

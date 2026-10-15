@@ -43,6 +43,7 @@ function cameraFixture() {
       },
     },
   };
+
   return {
     gameCamera,
     transforms,
@@ -144,6 +145,7 @@ describe("first-person camera", () => {
     const turningHero = {
       get firstPersonCameraPose() {
         const radians = bodyYaw * Math.PI / 180;
+
         return {
           position: {
             x: 2,

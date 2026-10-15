@@ -45,6 +45,7 @@ export function createSpiralStairCollision(pc, { device, material, innerRadius, 
   mesh.setPositions(positions);
   mesh.setIndices(indices);
   mesh.update(pc.PRIMITIVE_TRIANGLES);
+
   return new pc.MeshInstance(mesh, material, new pc.GraphNode("Spiral tread support"));
 }
 

@@ -113,6 +113,7 @@ export class RoyalGameOverRouteFollower {
    */
   get pose() {
     const { position, rotation } = this.#vehicle;
+
     return {
       position: {
         x: position.x,

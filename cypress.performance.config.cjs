@@ -12,6 +12,7 @@ module.exports = defineConfig({
       on("task", {
         reportGamePerformance(summary) {
           console.log(`\nGame performance: ${summary}\n`);
+
           return null;
         },
       });

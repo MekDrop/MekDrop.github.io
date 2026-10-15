@@ -22,6 +22,7 @@ export class CloseModalAction {
         return modal.close();
       }
     }
+
     return false;
   }
 }

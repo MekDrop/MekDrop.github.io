@@ -19,6 +19,7 @@ describe("map generation authored-castle compatibility", () => {
           ...options,
           islandConnectors: false,
         }), error);
+
         return;
       }
 
@@ -33,6 +34,7 @@ describe("map generation authored-castle compatibility", () => {
       const objects = map.objects.filter(({ generated, object }) => !generated && !featureTypes.has(object)).map((definition) => {
         const original = { ...definition };
         delete original.navigation;
+
         return original;
       });
       const originalContract = {

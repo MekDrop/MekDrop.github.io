@@ -765,6 +765,7 @@ export class TerrainInstanceRenderer {
       geometry.indices = group.indices;
       const mesh = pc.Mesh.fromGeometry(this.#app.graphicsDevice, geometry);
       mesh.incRefCount();
+
       return mesh;
     };
 

@@ -172,6 +172,7 @@ export class HeroActionBehavior {
      * @param {ConstructorParameters<typeof HeroRuntimeActionState>[1]} options
      */
     const state = (action, options) => new HeroRuntimeActionState(action, options);
+
     return [
       state(HERO_ACTION.EXPLORING, {
         canBePatted: true,
@@ -212,6 +213,7 @@ export class HeroActionBehavior {
    */
   get state() {
     const current = this.#stateMachine.currentState;
+
     return {
       name: current.action,
       action: current.action,
@@ -675,6 +677,7 @@ export class HeroActionBehavior {
         );
         this.#transition(HERO_ACTION.RESPAWNING, { elapsed: 0 });
         console.error(error);
+
         return;
       }
     }
@@ -723,6 +726,7 @@ export class HeroActionBehavior {
     if (this.#stateMachine.in(action)) {
       this.#stateMachine.currentState.payload = payload;
       this.#stateMachine.currentState.reenter?.(this.#context);
+
       return;
     }
     this.#pendingPayload = payload;

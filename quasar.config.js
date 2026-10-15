@@ -16,6 +16,7 @@ function getRoutes() {
     .readdirSync("./src/i18n")
     .filter((file) => /\.(yaml|yml)$/.test(file))
     .map((file) => "/" + path.parse(file).name);
+
   return ["/"].concat(files);
 }
 
@@ -158,6 +159,7 @@ module.exports = configure(function (ctx) {
 
           sitemapPlugin.closeBundle = function () {
             fs.mkdirSync(viteConf.build.outDir, { recursive: true });
+
             return generateSitemap.call(this);
           };
           viteConf.plugins.push(sitemapPlugin);

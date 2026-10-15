@@ -40,6 +40,7 @@ function setup(context) {
   world.nativeWorld.getSolverInfo().set_m_numIterations(40);
   const rope = new BellRopePhysics(world, new Vec3(0, 1, 0));
   context.after(() => { globalThis.Ammo = wasmAmmo; rope.destroy(); world.destroy(); });
+
   return {
     world,
     rope,

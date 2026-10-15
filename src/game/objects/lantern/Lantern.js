@@ -88,6 +88,7 @@ export class Lantern extends AbstractCastleProp {
       });
       parent.addChild(fire.entity);
       root.once("destroy", () => fire.destroy());
+
       return;
     }
     const light = new pc.Entity(`${definition.id} warm light`);

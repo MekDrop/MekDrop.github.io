@@ -106,6 +106,7 @@ export class CastleDoorArch {
         yaw: 0,
       },
     };
+
     return placements[door.side] ?? placements.NORTH;
   }
 }

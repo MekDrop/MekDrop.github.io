@@ -24,6 +24,7 @@ export function subtractTerrainCutouts(polygon, cuts) {
           (point) => point[axis]);
         const minimum = [cut.minX, cut.minY, cut.minZ][axis];
         const maximum = [cut.maxX, cut.maxY, cut.maxZ][axis];
+
         return Math.max(...values) <= minimum + 1e-8 || Math.min(...values) >= maximum - 1e-8;
       };
       if ([0, 1, 2].some(isOutsideCutAxis)) {
@@ -40,6 +41,7 @@ export function subtractTerrainCutouts(polygon, cuts) {
     }
     pieces = retained;
   }
+
   return pieces;
 }
 
@@ -67,6 +69,7 @@ function clipHalfSpace(polygon, axis, value, greater) {
         (coordinate, dimension) => coordinate + (b[dimension] - coordinate) * progress));
     }
   }
+
   return result;
 }
 
@@ -84,5 +87,6 @@ function hasSurfaceArea(polygon) {
     normal[1] += (a[2] - b[2]) * (a[0] + b[0]);
     normal[2] += (a[0] - b[0]) * (a[1] + b[1]);
   }
+
   return Math.hypot(...normal) > 1e-8;
 }

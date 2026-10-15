@@ -149,6 +149,7 @@ export class Servant {
             wardrobe: [0.65, 0.46],
             readingChair: [0.75, 0.735],
           }[item.role] ?? [1, 1];
+
           return Math.hypot(Math.max(0, Math.abs(local.x - x) - (item.footprint?.width ?? width * item.scale.x) / 2),
             Math.max(0, Math.abs(local.z - z) - (item.footprint?.depth ?? depth * item.scale.z) / 2)) >= 0.45;
         };
@@ -162,6 +163,7 @@ export class Servant {
     const point = standing;
     this.#entity.setLocalPosition(point.x, point.y, point.z);
     this.#entity.setLocalEulerAngles(0, layout.yaw, 0);
+
     return true;
   }
 
@@ -220,6 +222,7 @@ export class Servant {
           motion: this.#motion,
         });
     this.#inspector = this.#resident;
+
     return {
       behavior: this.#behavior,
       serviceActions: this.#serviceActions,

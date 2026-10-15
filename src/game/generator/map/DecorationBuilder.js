@@ -152,6 +152,7 @@ export class DecorationBuilder {
     );
     let treeIndex = 0;
     let bushIndex = 0;
+
     return selected.map(/**
      *
      * @param {GridCell} candidate
@@ -163,6 +164,7 @@ export class DecorationBuilder {
           kind === "tree"
             ? treeVariants[treeIndex++ % treeVariants.length]
             : bushVariants[bushIndex++ % bushVariants.length];
+
         return {
           ...candidate,
           variant,
@@ -286,6 +288,7 @@ export class DecorationBuilder {
             [slotZ, -slotX],
           ];
           const [offsetX, offsetZ] = rotatedPositions[clusterRotation];
+
           return {
             variant,
             style: variant * STONE_COLORS.length + STONE_COLORS.indexOf(color),
@@ -306,6 +309,7 @@ export class DecorationBuilder {
         break;
       }
     }
+
     return stones;
   }
 
@@ -369,6 +373,7 @@ export class DecorationBuilder {
         );
       }
     }
+
     return groundCover;
   }
 
@@ -526,6 +531,7 @@ export class DecorationBuilder {
         break;
       }
     }
+
     return selected;
   }
 }

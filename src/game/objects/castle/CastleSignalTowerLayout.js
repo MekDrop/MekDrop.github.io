@@ -33,6 +33,7 @@ export class CastleSignalTowerLayout {
     const wall = room.wallBounds ?? room;
     const banner = layout.toWorld((room.minX + room.maxX) / 2, wall.minZ - 0.275,
       room.floorY + 2.4 - layout.origin.y);
+
     return {
       bell: {
         position,

@@ -59,6 +59,7 @@ export class BuriedTreasurePlacement {
       const amount = Math.round((5 + Math.floor(random() * 8)) * multiplier);
       const contents = Array.from({ length: amount }, () => {
         const roll = random() * 100;
+
         return roll < 12 ? COIN_TYPE.GOLD : roll < 42 ? COIN_TYPE.SILVER : COIN_TYPE.COPPER;
       });
       cube.buriedTreasure = {

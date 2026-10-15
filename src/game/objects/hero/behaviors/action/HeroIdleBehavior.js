@@ -100,6 +100,7 @@ export class HeroIdleBehavior {
     this.#hasLookTarget = hasLookTarget;
     this.#context.deltaTime = deltaTime;
     this.#stateMachine.update();
+
     return this.animation;
   }
 
@@ -116,6 +117,7 @@ export class HeroIdleBehavior {
       this.#context.idleDuration =
         BREAK_MIN + this.#random() * BREAK_VARIANCE;
       this.#stateMachine.changeTo(HERO_IDLE_ACTION.WAIT);
+
       return;
     }
     this.#stateMachine.changeTo(this.#nextBoredState);
@@ -134,6 +136,7 @@ export class HeroIdleBehavior {
       state === HERO_IDLE_ACTION.CURSOR_LOOK &&
       !this.#hasLookTarget
     );
+
     return state;
   }
 }

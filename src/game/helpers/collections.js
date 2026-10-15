@@ -10,6 +10,7 @@ export function everyTruthy(values) {
       return false;
     }
   }
+
   return true;
 }
 

@@ -78,6 +78,7 @@ export class IsometricCameraMode extends AbstractCameraMode {
     );
     gameCamera.entity.lookAt(target);
     gameCamera.component.orthoHeight = gameCamera.baseOrthoHeight / gameCamera.zoom;
+
     return {
       free: false,
       position: gameCamera.entity.getPosition(),

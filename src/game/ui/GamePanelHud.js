@@ -124,6 +124,7 @@ export class GamePanelHud {
     });
     panel.setLocalPosition(x, -y, 0);
     this.#entity.addChild(panel);
+
     return panel;
   }
 
@@ -157,6 +158,7 @@ export class GamePanelHud {
     entity.element.texture = texture;
     entity.setLocalPosition(x, -y, 0);
     parent.addChild(entity);
+
     return entity;
   }
 
@@ -170,6 +172,7 @@ export class GamePanelHud {
     const canvas = document.createElement("canvas");
     canvas.width = width;
     canvas.height = height;
+
     return {
       canvas,
       context: canvas.getContext("2d"),
@@ -200,6 +203,7 @@ export class GamePanelHud {
     const record = this.createTextureRecord(name, width, height);
     draw(record.context);
     record.texture.setSource(record.canvas);
+
     return record.texture;
   }
 
@@ -216,6 +220,7 @@ export class GamePanelHud {
     const context = canvas.getContext("2d");
     context.scale(PANEL_TEXTURE_SCALE, PANEL_TEXTURE_SCALE);
     this.drawPanelFrame(context, width, height);
+
     return this.createTexture(name, canvas);
   }
 
@@ -243,6 +248,7 @@ export class GamePanelHud {
     texture.name = name;
     texture.setSource(canvas);
     this.#textures.add(texture);
+
     return texture;
   }
 
@@ -322,6 +328,7 @@ export class GamePanelHud {
       context.strokeText(amount, amountX, y);
       context.fillText(amount, amountX, y);
       texture.setSource(canvas);
+
       return;
     }
     context.strokeText(text, x, y);

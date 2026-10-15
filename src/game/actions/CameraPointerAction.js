@@ -69,6 +69,7 @@ export class CameraPointerAction {
       return false;
     }
     document.exitPointerLock?.();
+
     return true;
   }
 

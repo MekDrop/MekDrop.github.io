@@ -41,6 +41,7 @@ export class RoyalWalkOutState extends State {
     const pathClear = owner.move(easedProgress);
     if (pathClear === null) {
       owner.elapsed -= owner.deltaTime;
+
       return;
     }
     if (!pathClear || travelProgress === 1) {

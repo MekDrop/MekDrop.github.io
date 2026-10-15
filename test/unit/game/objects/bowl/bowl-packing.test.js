@@ -53,6 +53,7 @@ function assetGeometry(path) {
           bytes === 2 ? binary.readUInt16LE(offset) : binary.readUInt32LE(offset));
       }
     }
+
     return values;
   };
   const positions = [], indices = [];
@@ -65,6 +66,7 @@ function assetGeometry(path) {
   }
   const bounds = new BoundingBox();
   bounds.compute(positions);
+
   return {
     positions,
     indices,
@@ -89,10 +91,12 @@ test("authored voxel bowls cook compact hulls and keep only the current drop dyn
     if (body._type === "dynamic") { dynamic.add(body); }
     else { supports++; }
     assert.ok(dynamic.size <= 1, "settled items must become static supports");
+
     return addBody.call(this, body, group, mask);
   };
   AmmoPhysicsWorld.prototype.removeBody = function (body) {
     dynamic.delete(body);
+
     return removeBody.call(this, body);
   };
   try {
@@ -119,6 +123,7 @@ function box(center, half) {
   for (const x of [-1, 1]) { for (const y of [-1, 1]) { for (const z of [-1, 1]) {
     positions.push(center[0] + x * half[0], center[1] + y * half[1], center[2] + z * half[2]);
   } } }
+
   return {
     positions,
     indices: [0, 1, 3, 0, 3, 2, 4, 6, 7, 4, 7, 5, 0, 4, 5, 0, 5, 1,

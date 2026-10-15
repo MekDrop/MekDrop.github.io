@@ -57,7 +57,9 @@ test("painting variants retain authored depth, scale, and matching collision geo
       modelLibrary: {
         instantiate(url) {
           urls.push(url);
-          const model = new Entity(); models.push(model); return model;
+          const model = new Entity(); models.push(model);
+
+ return model;
         },
       },
       definition: {

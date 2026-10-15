@@ -177,6 +177,7 @@ export class CastleDoor {
   #inNpcSwing = (point) => {
     const dx = point.x - this.#center.x;
     const dz = point.z - this.#center.z;
+
     return point.y < this.#center.y + this.#height && point.y + 2.2 > this.#center.y &&
       Math.abs(dx * this.#tangent.x + dz * this.#tangent.z) < this.#width / 2 + 0.6 &&
       Math.abs(dx * this.#inward.x + dz * this.#inward.z) < this.#width + 0.6;
@@ -372,6 +373,7 @@ export class CastleDoor {
    */
   getPointerHit(rayStart, rayEnd) {
     const hit = this.getHit(rayStart, rayEnd);
+
     return hit ? {
       ...hit,
       pointerTarget: this,
@@ -384,6 +386,7 @@ export class CastleDoor {
       return this.#onOpen();
     }
     this.openTemporarily();
+
     return true;
   }
 
@@ -396,6 +399,7 @@ export class CastleDoor {
   updateHeroPosition({ x, y, z }) {
     if (this.#upperFloor && (y === undefined || Math.abs(y - this.#center.y) > 0.7)) {
       this.#targetOpen = false;
+
       return;
     }
     const wasOpen = this.#targetOpen;
@@ -573,6 +577,7 @@ export class CastleDoor {
         baseYaw: 180,
       },
     };
+
     return geometryBySide[door.side];
   }
 

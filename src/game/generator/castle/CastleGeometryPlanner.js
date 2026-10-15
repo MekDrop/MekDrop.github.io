@@ -26,6 +26,7 @@ export class CastleGeometryPlanner {
     }
     if (context.layout.roomPlan?.version === 2) {
       await new CastleOuterShellBuilder().build(context, writer);
+
       return;
     }
     const addBlock = writer.addBlock.bind(writer);
@@ -297,6 +298,7 @@ export class CastleGeometryPlanner {
       wallHeight,
       battlementPeriod,
     );
+
     return interiorWidth;
   }
 

@@ -16,6 +16,7 @@ describe("GameCanvasScreenshotPlugin", () => {
           action,
           options,
         });
+
         return () => {
           unregisterCount += 1;
         };

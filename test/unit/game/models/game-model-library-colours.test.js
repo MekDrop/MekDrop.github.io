@@ -39,7 +39,9 @@ function bakedColours(linearVertexColors, translationY = 0) {
       base: 0,
       count: 3,
     }],
-    getPositions(out) { out.push(0, 0, 0, 1, 0, 0, 0, 1, 0); return 3; },
+    getPositions(out) { out.push(0, 0, 0, 1, 0, 0, 0, 1, 0);
+
+ return 3; },
     getNormals(out) { out.push(0, 0, 1, 0, 0, 1, 0, 0, 1); },
     getUvs(_channel, out) { out.push(0, 0, 1, 0, 0, 1); },
     getIndices() {},
@@ -61,6 +63,7 @@ function bakedColours(linearVertexColors, translationY = 0) {
     },
   };
   const result = new Library(pc).merge({ instantiateRenderEntity: () => root }, linearVertexColors);
+
   return translationY ? result.mesh.positions : result.mesh.colors.slice(0, 4);
 }
 

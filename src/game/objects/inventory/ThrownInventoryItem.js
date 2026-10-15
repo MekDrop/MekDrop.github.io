@@ -204,6 +204,7 @@ export class ThrownInventoryItem {
    */
   get state() {
     const position = this.#body?.getPosition();
+
     return {
       position: position
         ? {
@@ -229,6 +230,7 @@ export class ThrownInventoryItem {
       .transformVector(this.#forward, this.#worldForward);
     const directionLength =
       Math.hypot(this.#worldForward.x, this.#worldForward.z) || 1;
+
     return [{
       id: this,
       x: position.x,

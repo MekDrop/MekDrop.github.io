@@ -178,6 +178,7 @@ export class SignalBell extends AbstractCastleProp {
   get ringingPose() {
     const yaw = (this.definition.rotation ?? 0) * Math.PI / 180;
     const center = this.position;
+
     return {
       position: {
         x: center.x + Math.cos(yaw) * 0.205 + Math.sin(yaw) * 0.5,
@@ -197,6 +198,7 @@ export class SignalBell extends AbstractCastleProp {
    */
   findInteraction({ hero, onComplete }) {
     const interaction = new SignalBellInteraction(this, hero, onComplete);
+
     return interaction.canInteract ? interaction : null;
   }
 

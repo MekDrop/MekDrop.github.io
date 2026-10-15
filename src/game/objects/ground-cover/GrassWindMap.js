@@ -198,6 +198,7 @@ export class GrassWindMap {
         (0.65 + centerFade * 0.35);
       exposure = Math.min(exposure, 1 - occlusion);
     }
+
     return Math.max(MINIMUM_EXPOSURE, exposure);
   }
 }

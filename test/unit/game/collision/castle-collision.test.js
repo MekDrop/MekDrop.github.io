@@ -156,6 +156,7 @@ it("fills the widened whole-cell excavation with rendered treads and matching su
           for (let offset = 0; offset < matrices.length; offset += 16) {
             acrossCenters.push(matrices[offset + (bounds.vertical ? 14 : 12)]);
           }
+
           return null;
         },
       },
@@ -299,6 +300,7 @@ it("keeps exterior stair supports behind the authored basement wall", () => {
               `${side}: supports stop inside the outward wall thickness`);
             count++;
           }
+
           return null;
         },
       },
@@ -334,6 +336,7 @@ it("authored entrance masonry owns the final tread without changing walking supp
         modelLibrary: {
           instantiateMergedBatch: (_url, matrices) => {
             count += matrices.length / 16;
+
             return null;
           },
         },

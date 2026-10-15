@@ -51,7 +51,9 @@ export class TerraceServantActions {
   constructor({ pc, modelLibrary, stage, actor = null, motion = null }) {
     this.#stage = stage;
     this.#motion = motion;
-    if (actor) { this.#servant = actor; return; }
+    if (actor) { this.#servant = actor;
+
+ return; }
     for (const modelUrl of TerraceServantActions.modelUrls) {
       const actor = new TerraceActor({
         pc,
@@ -84,7 +86,9 @@ export class TerraceServantActions {
    */
   sync(behavior) {
     if (behavior.reacting) { return; }
-    if (this.#motion) { this.#syncResident(behavior); return; }
+    if (this.#motion) { this.#syncResident(behavior);
+
+ return; }
     if (this.#visit !== behavior.visitId) {
       this.#visit = behavior.visitId;
       for (const servant of this.#servants) {
@@ -116,6 +120,7 @@ export class TerraceServantActions {
         behavior,
         action: behavior.action,
       });
+
       return;
     }
     this.#servant.entity.setLocalPosition(...target);

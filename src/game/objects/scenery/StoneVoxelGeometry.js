@@ -153,6 +153,7 @@ function addVoxel(geometry, center, size, color) {
           point[axis] += sign * half[axis];
           point[other[0]] += a * inner[other[0]];
           point[other[1]] += b * inner[other[1]];
+
           return point;
         });
       const normal = [0, 0, 0];
@@ -183,6 +184,7 @@ function addVoxel(geometry, center, size, color) {
               point[first] += coordinates[0] * firstSign;
               point[second] += coordinates[1] * secondSign;
               point[third] += coordinates[2];
+
               return point;
             });
           const normal = [0, 0, 0];
@@ -259,6 +261,7 @@ export function buildStoneVoxels(stones) {
       }
     }
   }
+
   return voxels;
 }
 
@@ -281,5 +284,6 @@ export function buildStoneVoxelGeometry(stones) {
       voxel.color,
     );
   }
+
   return geometry;
 }

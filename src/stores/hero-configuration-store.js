@@ -86,6 +86,7 @@ export const useHeroConfigurationStore = defineStore(
           slot,
         });
         this.$persist();
+
         return true;
       },
       /**
@@ -122,6 +123,7 @@ export const useHeroConfigurationStore = defineStore(
 
         item.slot = toSlot;
         this.$persist();
+
         return true;
       },
       /**
@@ -143,6 +145,7 @@ export const useHeroConfigurationStore = defineStore(
 
         const [item] = this.inventory.items.splice(itemIndex, 1);
         this.$persist();
+
         return { ...item };
       },
       /**

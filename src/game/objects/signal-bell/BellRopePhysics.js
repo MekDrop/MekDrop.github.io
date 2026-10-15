@@ -108,6 +108,7 @@ export class BellRopePhysics {
     body.nativeBody.setSleepingThresholds(0.001, 0.001);
     this.#bodies.push(body);
     this.#shapes.push(shape);
+
     return body;
   }
 
@@ -131,6 +132,7 @@ export class BellRopePhysics {
     // A short rope needs tighter positional correction than Bullet's default
     // cone-twist ERP, especially in the game's 60 Hz world with ten iterations.
     joint.nativeJoint.setParam(1, 0.8, 0);
+
     return joint;
   }
 
@@ -184,6 +186,7 @@ export class BellRopePhysics {
         const position = new Vec3();
         const rotation = new Quat();
         body.getTransform(position, rotation);
+
         return {
           position,
           rotation,

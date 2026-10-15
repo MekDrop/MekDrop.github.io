@@ -40,6 +40,7 @@ it("counts actual strokes, leaves other mouse gestures alone, and releases captu
       ...options,
     });
     canvas.dispatchEvent(event);
+
     return event;
   };
   for (const options of [{ button: 2 }, { clientX: 80 }, { pointerType: "touch" }, { altKey: true }]) {

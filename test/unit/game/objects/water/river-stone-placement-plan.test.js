@@ -13,6 +13,7 @@ function riverFixture() {
     direction: 'EAST',
     underBridge: col === 5,
   }));
+
   return {
     cells,
     cascades: [{

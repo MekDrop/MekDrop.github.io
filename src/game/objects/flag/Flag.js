@@ -92,6 +92,7 @@ export class Flag {
    */
   getPointerHit(rayStart, rayEnd) {
     const hit = this.getFlagHit(rayStart, rayEnd);
+
     return hit ? {
       ...hit,
       pointerTarget: this,
@@ -100,12 +101,18 @@ export class Flag {
   /**
    * @param {{hit: Parameters<Flag["beginWindGesture"]>[0]}} options
    */
-  handlePointerDown({ hit }) { this.beginWindGesture(hit); return { capturePointer: true }; }
+  handlePointerDown({ hit }) { this.beginWindGesture(hit);
+
+ return { capturePointer: true }; }
   /**
    * @param {{ray: {start: import("playcanvas").Vec3, end: import("playcanvas").Vec3}, deltaTime: number}} options
    */
-  handlePointerMove({ ray, deltaTime }) { this.applyMouseWind(ray.start, ray.end, deltaTime); return true; }
-  handlePointerUp() { this.endWindGesture(); return true; }
+  handlePointerMove({ ray, deltaTime }) { this.applyMouseWind(ray.start, ray.end, deltaTime);
+
+ return true; }
+  handlePointerUp() { this.endWindGesture();
+
+ return true; }
   handlePointerCancel() { this.endWindGesture(); }
 
   /**
@@ -335,6 +342,7 @@ export class Flag {
       if (!hit || (closest && hit.distance >= closest.distance)) continue;
       closest = hit;
     }
+
     return closest;
   }
 
@@ -434,6 +442,7 @@ export class Flag {
       mipmaps: true,
     });
     texture.setSource(canvas);
+
     return texture;
   }
 
@@ -446,6 +455,7 @@ export class Flag {
     material.twoSidedLighting = true;
     material.gloss = 0.02;
     material.update();
+
     return material;
   }
 
@@ -455,6 +465,7 @@ export class Flag {
     material.diffuse = new this.#pc.Color(0.76, 0.55, 0.16);
     material.gloss = 0.18;
     material.update();
+
     return material;
   }
 

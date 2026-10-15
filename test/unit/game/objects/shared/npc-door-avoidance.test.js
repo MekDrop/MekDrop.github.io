@@ -21,6 +21,7 @@ function scene() {
   const npc = new pc.Entity("npc reaction root");
   root.addChild(door);
   root.addChild(npc);
+
   return {
     app,
     root,
@@ -248,7 +249,9 @@ it("reverts a walking royal without restarting the walk", () => {
     walkDuration: 2,
     walkStartDelay: 0,
     beginWalk: () => starts++,
-    move: (value) => { progress.push(value); return true; },
+    move: (value) => { progress.push(value);
+
+ return true; },
     playAnimation: () => {},
   });
   role.start();

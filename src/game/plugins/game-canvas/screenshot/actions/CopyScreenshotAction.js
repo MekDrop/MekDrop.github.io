@@ -69,6 +69,7 @@ export class CopyScreenshotAction {
       message: this.#renderer.t("game.notification.screenshot_copied"),
       timeout: 2000,
     });
+
     return blob;
   }
 
@@ -87,6 +88,7 @@ export class CopyScreenshotAction {
           [blob.type]: blob,
         }),
       ]);
+
       return;
     }
 

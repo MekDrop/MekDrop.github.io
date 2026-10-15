@@ -130,11 +130,13 @@ it("plays one camera-facing double pat at the clicked scalp position, then hides
     modelLibrary: {
       instantiate: (url) => {
         assert.equal(url, "patting-hand.glb");
+
         return model;
       },
       getAnimationTracks: (url, names) => {
         assert.equal(url, "patting-hand.glb");
         assert.deepEqual(names, ["Pat"]);
+
         return new Map([["Pat", track]]);
       },
     },

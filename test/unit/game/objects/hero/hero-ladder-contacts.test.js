@@ -18,6 +18,7 @@ function accessor(index) {
     VEC4: 4,
   }[item.type];
   const start = binaryStart + (view.byteOffset ?? 0) + (item.byteOffset ?? 0);
+
   return Array.from({ length: item.count }, (_, frame) => Array.from({ length: size }, (_, axis) => bytes.readFloatLE(start + frame * size * 4 + axis * 4)));
 }
 
@@ -53,6 +54,7 @@ function footPosition(clip, side, phase, foot) {
     for (const child of gltf.nodes[index].children ?? []) visit(child, world[index]);
   }
   for (const index of gltf.scenes[gltf.scene ?? 0].nodes) visit(index, external);
+
   return world[gltf.nodes.findIndex(node => node.name === foot)].getTranslation();
 }
 

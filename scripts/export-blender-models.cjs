@@ -103,6 +103,7 @@ function getSourceSizeFromGlb(filePath) {
     }
     const gltf = JSON.parse(glb.toString("utf8", 20, 20 + jsonLength));
     const sourceSize = gltf.scenes?.[gltf.scene ?? 0]?.extras?.[sourceSizeKey];
+
     return Number.isSafeInteger(sourceSize) && sourceSize >= 0
       ? sourceSize
       : null;
@@ -175,6 +176,7 @@ async function exportModel(model, blender, sourceSize) {
       throw new BlenderExportError("Blender did not embed the source size in the GLB");
     }
     fs.renameSync(temporaryOutput, output);
+
     return fs.readFileSync(logPath, "utf8").trim();
   } catch (error) {
     const blenderOutput = fs.existsSync(logPath)

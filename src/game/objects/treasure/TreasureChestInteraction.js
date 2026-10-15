@@ -60,6 +60,7 @@ export class TreasureChestInteraction {
       return false;
     }
     this.#onComplete?.();
+
     return true;
   }
 }

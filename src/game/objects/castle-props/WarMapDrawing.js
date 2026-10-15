@@ -35,6 +35,7 @@ export class WarMapDrawing {
       item => {
         const col = item.tile?.col ?? Math.round(item.position.x + (item.position.width ?? 0) / 2 + (map.cols - 1) / 2);
         const row = item.tile?.row ?? Math.round(item.position.z + (item.position.depth ?? 0) / 2 + (map.rows - 1) / 2);
+
         return `${col}:${row}`;
       }));
     for (let y = 0; y < size; y++) {
@@ -53,6 +54,7 @@ export class WarMapDrawing {
         pixels.set([...color, 255], (y * size + x) * 4);
       }
     }
+
     return {
       width: size,
       height: size,

@@ -42,6 +42,7 @@ export class StairwellRoomGenerator extends AbstractCastleRoomGenerator {
       const cosine = Math.round(Math.cos(angle)), sine = Math.round(Math.sin(angle));
       const random = () => {
         state = (Math.imul(state, 1664525) + 1013904223) >>> 0;
+
         return state / 4294967296;
       };
       // Keep a continuous walkable strip against the central stair divider.
@@ -356,6 +357,7 @@ export class StairwellRoomGenerator extends AbstractCastleRoomGenerator {
         }
       }
     }
+
     return items;
   }
 
@@ -380,6 +382,7 @@ export class StairwellRoomGenerator extends AbstractCastleRoomGenerator {
      */
     const random = () => {
       state = (Math.imul(state, 1664525) + 1013904223) >>> 0;
+
       return state / 4294967296;
     };
     const candidates = [];

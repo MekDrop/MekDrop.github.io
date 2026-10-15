@@ -140,6 +140,7 @@ export class TerraceTeaSetActions {
         .transformVector(new this.#pc.Vec3(0, 0, 1)).normalize()
       : null;
     const cupFromMouth = sipping ? rim.clone().sub(mouth) : null;
+
     return {
       trayVisible: this.#tray.enabled,
       potHandDistance,
@@ -299,6 +300,7 @@ export class TerraceTeaSetActions {
       0.5,
     );
     world.y -= 0.1;
+
     return this.#stage.getWorldTransform().clone().invert().transformPoint(world);
   }
 
@@ -311,6 +313,7 @@ export class TerraceTeaSetActions {
       ? new this.#pc.Vec3(0.31, 0.12, -0.08)
       : new this.#pc.Vec3(-0.36, 0.12, 0.17);
     const world = this.#tray.getWorldTransform().transformPoint(offset);
+
     return this.#stage.getWorldTransform().clone().invert().transformPoint(world);
   }
 
@@ -318,6 +321,7 @@ export class TerraceTeaSetActions {
     const phase = this.#royalBehavior.stagePhase;
     if (![PHASE.SETTLE, PHASE.ACTIVITY, PHASE.RISE].includes(phase)) {
       this.#setSaucerVisible(true);
+
       return;
     }
     const mix = phase === PHASE.SETTLE

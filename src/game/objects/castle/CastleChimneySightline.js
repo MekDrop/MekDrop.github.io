@@ -22,6 +22,7 @@ export class CastleChimneySightline {
      */ item => {
         const position = layout.toWorld(item.x, item.z, item.floorY - layout.origin.y);
         const rotation = new pc.Quat().setFromEulerAngles(0, layout.yaw + 180 + (item.rotation ?? 0), 0);
+
         return new pc.Mat4().setTRS(new pc.Vec3(position.x, position.y, position.z), rotation, new pc.Vec3(1, 1, 1));
       });
     if (!flues.length) { return; }

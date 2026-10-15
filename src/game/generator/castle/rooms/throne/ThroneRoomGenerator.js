@@ -31,6 +31,7 @@ export class ThroneRoomGenerator extends AbstractCastleRoomGenerator {
     }
     const random = () => {
       state = (Math.imul(state, 1664525) + 1013904223) >>> 0;
+
       return state / 4294967296;
     };
     const variant = ["royalCourt", "scholarKing", "warCouncil"][Math.floor(random() * 3)];
@@ -61,6 +62,7 @@ export class ThroneRoomGenerator extends AbstractCastleRoomGenerator {
         if (x + halfX > stair.minX && x - halfX < stair.maxX &&
           z + halfZ > stair.minZ && z - halfZ < stair.maxZ) { return false; }
       }
+
       return true;
     };
     /**

@@ -255,6 +255,7 @@ export class TerrainBridgeDipBuilder {
       this.#applyTerrainBridgeDipPlan(heightmap, tileMeta, plan);
       plans.push(plan);
     }
+
     return plans;
   }
 
@@ -337,6 +338,7 @@ export class TerrainBridgeDipBuilder {
       cells[0].col,
       cells[0].row,
     );
+
     return Boolean(
       lateralCells && !PathSurfaceRules.isPathTurnPosition(grid, lateralCells),
     );
@@ -397,6 +399,7 @@ export class TerrainBridgeDipBuilder {
         ...this.#pathStationCells(span.axis, span.cross, coordinate),
       );
     }
+
     return {
       id: `terrain-path-dip-${index}`,
       ...span,

@@ -21,6 +21,7 @@ function fixture() {
       }
     },
   };
+
   return {
     light,
     requests,

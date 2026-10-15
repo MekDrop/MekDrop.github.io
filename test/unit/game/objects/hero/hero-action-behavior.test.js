@@ -101,6 +101,7 @@ function createFeedback(overrides = {}) {
       ...value,
     };
   }
+
   return feedback;
 }
 
@@ -218,6 +219,7 @@ it("runs the full tool sequence inside the tool action state", () => {
     stopAfterCycle: false,
     onImpact: () => {
       impactCount += 1;
+
       return true;
     },
     onComplete: () => {
@@ -512,6 +514,7 @@ it("owns refusal, repulsion, death, and recovery lifecycle effects", () => {
       death: {
         resolve: () => {
           events.push("death-resolved");
+
           return HERO_ACTION.RESPAWNING;
         },
       },

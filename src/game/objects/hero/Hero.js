@@ -245,6 +245,7 @@ export class Hero {
       return false;
     }
     this.#syncState();
+
     return true;
   }
 
@@ -257,6 +258,7 @@ export class Hero {
       return false;
     }
     this.#syncState();
+
     return true;
   }
 
@@ -307,6 +309,7 @@ export class Hero {
     }
     this.#resetBoredom();
     this.#syncState();
+
     return true;
   }
 
@@ -950,6 +953,7 @@ export class Hero {
         patReaction: {
           shouldContinue: () => {
             const kind = this.#emotionBehavior.state.kind;
+
             return this.canBePatted
               && !this.#angryEscapeBehavior.active
               && !this.#hasMovementInput
@@ -1247,6 +1251,7 @@ export class Hero {
     this.#restartAnimation = true;
     this.#resetBoredom();
     this.#syncState();
+
     return true;
   }
 
@@ -1271,6 +1276,7 @@ export class Hero {
      * @param {Set<string>} cells
      */
       (cells) => cells.has(key)) ?? -1;
+
     return this.#visualIslandOffsets[group] ?? 0;
   }
 
@@ -1348,6 +1354,7 @@ export class Hero {
    */
   get inventoryFullIndicatorPosition() {
     const anchor = this.#headEntity?.getPosition() ?? this.#entity.getPosition();
+
     return {
       x: anchor.x,
       y: anchor.y + INVENTORY_FULL_INDICATOR_CLEARANCE,
@@ -1515,6 +1522,7 @@ export class Hero {
     const acceptsEmotion = attempt
       ? this.#attemptEmotionAction().accepted
       : this.#emotionBehavior.acceptsActions;
+
     return acceptsEmotion && !this.#angryEscapeBehavior.active;
   }
 
@@ -1584,6 +1592,7 @@ export class Hero {
    */
   get facingDirection() {
     const yaw = (this.#facingYaw * Math.PI) / 180;
+
     return {
       x: Math.sin(yaw),
       z: Math.cos(yaw),
@@ -1604,6 +1613,7 @@ export class Hero {
       y: body.y + HERO_COLLISION_HEIGHT * 0.8,
       z: body.z,
     };
+
     return {
       position: this.#physics.cameraPosition(anchor),
       direction: {
@@ -1647,6 +1657,7 @@ export class Hero {
    */
   get movementState() {
     const speed = Math.hypot(this.#velocity.x, this.#velocity.z);
+
     return {
       direction:
         speed > 0.001
@@ -1701,6 +1712,7 @@ export class Hero {
     const hasInput = Math.hypot(inputX, inputY) > 0.001;
     if (!this.#acceptAction(hasInput)) {
       this.#clearActionInput();
+
       return;
     }
     this.#input.x = Math.max(-1, Math.min(1, inputX));
@@ -1829,6 +1841,7 @@ export class Hero {
     };
     this.#restartAnimation = true;
     this.#resetBoredom();
+
     return true;
   }
 
@@ -1877,6 +1890,7 @@ export class Hero {
       onImpact,
       onComplete,
     };
+
     return true;
   }
 
@@ -1920,6 +1934,7 @@ export class Hero {
       },
     };
     this.#resetBoredom();
+
     return true;
   }
 
@@ -1991,6 +2006,7 @@ export class Hero {
       onImpact,
       onComplete,
     };
+
     return true;
   }
 
@@ -2005,6 +2021,7 @@ export class Hero {
     }
     this.#wallet[type] += Math.max(0, Math.floor(amount));
     this.#syncState();
+
     return true;
   }
 
@@ -2018,6 +2035,7 @@ export class Hero {
       return false;
     }
     this.#actionBehavior.blockedDigReactionAction = { elapsed: 0 };
+
     return true;
   }
 
@@ -2028,10 +2046,12 @@ export class Hero {
   collectInventoryItem(item) {
     if (!this.#heroConfigurationStore.addInventoryItem(item)) {
       this.#showInventoryFull();
+
       return false;
     }
 
     this.#syncState();
+
     return true;
   }
 
@@ -2082,6 +2102,7 @@ export class Hero {
       positioningElapsed: 0,
       onComplete,
     };
+
     return true;
   }
 
@@ -2225,6 +2246,7 @@ export class Hero {
       if (this.#climbMotion) { this.#physics.gravity = GRAVITY; this.#climbMotion = null; this.#setHeroPartCollidersEnabled(true); }
       this.#actionBehavior.update(deltaTime);
       this.#applyPosition(previousX, previousY, previousZ);
+
       return;
     }
     this.#actionBehavior.update(deltaTime);
@@ -2248,6 +2270,7 @@ export class Hero {
       this.#movementBlocked = false;
       this.#facingYaw = Math.atan2(this.#climbMotion.facing.x, this.#climbMotion.facing.z) * 180 / Math.PI;
       this.#applyPosition(previousX, previousY, previousZ);
+
       return;
     }
     if (wasClimbing) {
@@ -2354,6 +2377,7 @@ export class Hero {
       HERO_STAT.MOVEMENT_SPEED,
       this.#running ? RUN_SPEED : MOVE_SPEED,
     );
+
     return {
       x: projected.x * speed,
       z: projected.z * speed,
@@ -2393,6 +2417,7 @@ export class Hero {
       Math.abs(axisDifference) < 0.000001
         ? preferXOnTie
         : axisDifference > 0;
+
     return {
       x: useXAxis ? Math.sign(projectedX) : 0,
       z: useXAxis ? 0 : Math.sign(projectedZ),
@@ -2567,6 +2592,7 @@ export class Hero {
     this.#velocity.y = Math.max(0, this.#velocity.y);
     this.#grounded = true;
     this.#automaticStepGroundingRemaining = AUTOMATIC_STEP_GROUNDING_GRACE;
+
     return true;
   }
 
@@ -2675,6 +2701,7 @@ export class Hero {
   #riverRouteEntryAt(x, z) {
     const col = Math.round(x + (this.#mapData.cols - 1) / 2);
     const row = Math.round(z + (this.#mapData.rows - 1) / 2);
+
     return this.#riverRoutesByCell.get(`${col},${row}`) ?? null;
   }
 
@@ -2728,6 +2755,7 @@ export class Hero {
     this.#setDrowningPresentation(true);
     this.#restartAnimation = true;
     this.#resetBoredom();
+
     return action;
   }
 
@@ -2747,6 +2775,7 @@ export class Hero {
     this.#physics.gravity = GRAVITY;
     this.#physics.setScripted(this.#position, this.#velocity);
     this.#restartAnimation = true;
+
     return {
       cell: bridgeCell,
       direction,
@@ -2820,6 +2849,7 @@ export class Hero {
         }
       }
       this.#drowningRenderStates.clear();
+
       return;
     }
 
@@ -2915,6 +2945,7 @@ export class Hero {
       // Authored hand contacts may pass close to the frame. Keep movement on
       // the Ammo capsule, as on ladders, rather than snagging animated limbs.
       this.#setHeroPartCollidersEnabled(false);
+
       return;
     }
     const previousCapsuleSupport = this.#capsuleSupportOnly;
@@ -2940,12 +2971,14 @@ export class Hero {
     if (this.#capsuleSupportOnly) {
       this.#airborneStallElapsed = 0;
       this.#setHeroPartCollidersEnabled(false);
+
       return;
     }
     if (previousCapsuleSupport) { this.#setHeroPartCollidersEnabled(true); }
     if (this.#grounded || this.#physics.scripted) {
       this.#airborneStallElapsed = 0;
       this.#setHeroPartCollidersEnabled(true);
+
       return;
     }
     const verticallyStalled =
@@ -3006,6 +3039,7 @@ export class Hero {
     if (!blocked) {
       this.#blockedPushElapsed = 0;
       this.#blockedPushFinished = false;
+
       return;
     }
     if (this.#blockedPushFinished) {
@@ -3122,6 +3156,7 @@ export class Hero {
       elapsed: 0,
     };
     this.#holeRefusalAcknowledged = true;
+
     return true;
   }
 
@@ -3197,8 +3232,10 @@ export class Hero {
           const closestDistance =
             (closest.col - centerCol) ** 2 +
           (closest.row - centerRow) ** 2;
+
           return candidateDistance < closestDistance ? candidate : closest;
         }, null);
+
       return {
         x: tile.col - (cols - 1) / 2,
         y: this.#mapData.heightmap[tile.row][tile.col] + GRASS_SURFACE_LIFT,
@@ -3262,6 +3299,7 @@ export class Hero {
       }
       exits += 1;
     }
+
     return exits >= 2;
   }
 
@@ -3299,6 +3337,7 @@ export class Hero {
   #resolveDeath() {
     this.#lives = Math.max(0, this.#lives - 1);
     this.#syncState();
+
     return this.#lives === 0 ? HERO_ACTION.GAME_OVER : HERO_ACTION.RESPAWNING;
   }
 
@@ -3532,6 +3571,7 @@ export class Hero {
       // Keep interrupted clips alive until the controller completes the transition.
       animation.baseLayer.transition(name, 0);
       this.#animationState = name;
+
       return;
     }
     if (this.#animationState === name) {
@@ -3563,6 +3603,7 @@ export class Hero {
         180) /
       Math.PI;
     const relativeYaw = ((targetYaw - this.#facingYaw + 540) % 360) - 180;
+
     return Math.max(
       -HEAD_LOOK_MAX_YAW,
       Math.min(HEAD_LOOK_MAX_YAW, relativeYaw),
@@ -3576,6 +3617,7 @@ export class Hero {
   #updateHeadLook(deltaTime) {
     if (this.#actionBehavior.locksHeadForward) {
       this.#headLookYaw = 0;
+
       return;
     }
     this.#setAngryFace(0);
@@ -3594,6 +3636,7 @@ export class Hero {
           relativeYaw,
           0,
         );
+
         return;
       }
     }
@@ -3663,6 +3706,7 @@ export class Hero {
         entity?.setLocalScale(1, 1, 1);
         entity?.setLocalEulerAngles(0, 0, 0);
       }
+
       return;
     }
     const eyeHeight = 1 - amount * 0.68;
@@ -3868,6 +3912,7 @@ export class Hero {
           z: (targetPosition.z - this.#position.z) / targetDistance,
         }
         : this.facingDirection;
+
     return {
       animationSpeed: 0.8,
       startX: this.#position.x,
@@ -3905,6 +3950,7 @@ export class Hero {
       elapsed: 0,
     };
     direction.onRepelled?.();
+
     return true;
   }
 
@@ -3963,6 +4009,7 @@ export class Hero {
       }
       pending.push(...entity.children);
     }
+
     return null;
   }
 
@@ -3987,6 +4034,7 @@ export class Hero {
    */
   #lerpAngle(from, to, amount) {
     const difference = ((to - from + 540) % 360) - 180;
+
     return from + difference * amount;
   }
 }

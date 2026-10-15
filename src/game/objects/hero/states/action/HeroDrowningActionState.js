@@ -103,6 +103,7 @@ export class HeroDrowningActionState extends HeroRuntimeActionState {
     if (distance <= feedback.waypointEpsilon) {
       if (action.exiting) {
         feedback.finishAtWaterfall(direction);
+
         return;
       }
       if (climbsBridge) {
@@ -110,6 +111,7 @@ export class HeroDrowningActionState extends HeroRuntimeActionState {
           ...targetCell,
           direction: approachCell.direction,
         });
+
         return;
       }
       if (action.targetIndex < cells.length - 1) {

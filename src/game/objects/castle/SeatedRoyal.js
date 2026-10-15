@@ -202,6 +202,7 @@ export class SeatedRoyal {
       }
     }
     const height = top - bottom;
+
     return Number.isFinite(height) && height >= 0.01
       ? (CHARACTER_HEIGHT * this.#entity.getLocalScale().y) / height
       : 0.45;
@@ -233,6 +234,7 @@ export class SeatedRoyal {
 
     if (!Number.isFinite(minimumX)) {
       const position = this.#entity.getPosition();
+
       return {
         center: {
           x: position.x,
@@ -343,6 +345,7 @@ export class SeatedRoyal {
     if (this.#navigation && this.#entity.getPosition().distance(this.#navigation.home) > 0.025) {
       this.#returning = true;
       this.#navigation.moveTo(this.#navigation.home);
+
       return;
     }
     this.#applyGameOverPose(this.#gameOverRoute.follower.pose);
@@ -370,6 +373,7 @@ export class SeatedRoyal {
       )
     ) {
       this.#faceGameOverCamera(this.#entity.getLocalPosition());
+
       return false;
     }
     this.#applyGameOverPose(pose);

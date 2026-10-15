@@ -407,6 +407,7 @@ export class DebugFpsHud {
         latestSample.framesPerSecond,
         sample.framesPerSecond,
       );
+
       return;
     }
 
@@ -683,6 +684,7 @@ export class DebugFpsHud {
   #formatGraphDuration(duration) {
     if (duration >= 60 * 1000) {
       const minutes = duration / (60 * 1000);
+
       return `${minutes < 10 ? minutes.toFixed(1) : Math.round(minutes)}m`;
     }
     return `${Math.max(1, Math.round(duration / 1000))}s`;

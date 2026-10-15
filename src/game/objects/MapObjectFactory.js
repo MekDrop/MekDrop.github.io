@@ -227,6 +227,7 @@ export class MapObjectFactory {
           mapData: undefined,
         },
       });
+
     return new ObjectClass({
       ...options,
       runtime,

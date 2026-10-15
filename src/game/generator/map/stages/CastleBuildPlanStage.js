@@ -65,6 +65,7 @@ export class CastleBuildPlanStage extends AbstractMapGenerationStage {
          */
             ({ col, row }) => heightmap?.[row]?.[col])
           .filter(Number.isFinite);
+
         return {
           side,
           offset,

@@ -24,6 +24,7 @@ export class SpiralStaircaseLayout {
       throw new InvalidSpiralStaircaseError(definition);
     }
     const count = Math.ceil((Z2 - Z1) / this.stepRise - 1e-8);
+
     return Array.from({ length: count },
       /**
        * @param {number} unused

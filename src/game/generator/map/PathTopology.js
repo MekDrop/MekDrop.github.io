@@ -43,6 +43,7 @@ export class PathTopology {
                                           * @param {import("./MapGenerationTypes.js").LayoutEntry} entry
                                           */ (entry) => entry.mergeCol);
     const mergeCol = mergeCols[0];
+
     return mergeCols.some(/**
                            * @param {number} start
                            */ (start) => Number.isFinite(start) && col >= start && col <= start + 1);
@@ -70,6 +71,7 @@ export class PathTopology {
      */
       (col) => {
         const key = MapGrid.tileKey(col, row);
+
         return firstCells.has(key) && secondCells.has(key);
       });
   }
@@ -113,6 +115,7 @@ export class PathTopology {
       return false;
     }
     const { crossing } = overpassPlan;
+
     return (
       col >= crossing.col &&
       col < crossing.col + crossing.width &&
@@ -192,6 +195,7 @@ export class PathTopology {
         }
       }
     }
+
     return null;
   }
 
@@ -257,6 +261,7 @@ export class PathTopology {
         }
       }
     }
+
     return false;
   }
 
@@ -310,6 +315,7 @@ export class PathTopology {
         };
       }
     }
+
     return null;
   }
 }

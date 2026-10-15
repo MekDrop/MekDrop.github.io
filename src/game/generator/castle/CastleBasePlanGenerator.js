@@ -43,6 +43,7 @@ export class CastleBasePlanGenerator {
    */
   static selectPlanId(seed) {
     const ids = this.layoutPlanIds;
+
     return ids[Math.floor(this.#seedNumber(seed) / 2) % ids.length];
   }
 
@@ -60,6 +61,7 @@ export class CastleBasePlanGenerator {
     for (const character of String(seed)) {
       hash = (Math.imul(hash, 31) + character.charCodeAt(0)) >>> 0;
     }
+
     return hash;
   }
 

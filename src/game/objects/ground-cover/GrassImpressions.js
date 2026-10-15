@@ -138,6 +138,7 @@ export class GrassImpressions {
     const radius = Math.max(0.001, contact.radius ?? 0.1);
     const directionLength =
       Math.hypot(contact.directionX ?? 0, contact.directionZ ?? 1) || 1;
+
     return {
       ...contact,
       id: contact.id ?? contact.side ?? `contact-${index}`,

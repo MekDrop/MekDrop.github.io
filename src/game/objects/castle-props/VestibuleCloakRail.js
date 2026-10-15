@@ -26,6 +26,7 @@ export class VestibuleCloakRail extends AbstractCastleProp {
       [0.70, 0.56, 0.32], [0.55, 0.39, 0.57], [0.42, 0.44, 0.47]];
     const firstColor = random.rng(0, colors.length - 1);
     const secondColor = (firstColor + random.rng(1, colors.length - 1)) % colors.length;
+
     return cloaks.slice(0, random.rng(1, 2)).map(/**
      * @param {{name:string,authoredX:number}} cloak
      * @param {number} index

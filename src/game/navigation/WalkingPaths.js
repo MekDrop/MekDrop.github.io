@@ -55,6 +55,7 @@ export class WalkingPaths {
         SOUTH: dr,
         NORTH: -dr,
       }[riseDirection];
+
       return (lowHeight + highHeight) / 2 + offset * (highHeight - lowHeight);
     };
     /**
@@ -173,6 +174,7 @@ export class WalkingPaths {
             (neighbor) =>
               distances.get(neighbor) === distances.get(key) - 1).sort()[0];
         }
+
         return {
           pathIdx,
           entry,
@@ -186,6 +188,7 @@ export class WalkingPaths {
       (path) => path.route));
     map.paths = paths;
     map.arrowData = arrowData;
+
     return {
       graph,
       distances,

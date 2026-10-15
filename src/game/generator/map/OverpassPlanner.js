@@ -231,6 +231,7 @@ export class OverpassPlanner {
       (entry, index) => {
         entry.curvePlan = originalCurvePlans[index];
       });
+
     return null;
   }
 
@@ -290,6 +291,7 @@ export class OverpassPlanner {
         });
       }
     }
+
     return {
       id: "path-overpass-0",
       upperPathIdx: vertical.pathIdx,
@@ -343,6 +345,7 @@ export class OverpassPlanner {
         return false;
       }
     }
+
     return true;
   }
 
@@ -392,6 +395,7 @@ export class OverpassPlanner {
        */
         (key) => {
           const [col, row] = key.split(",").map(Number);
+
           return {
             col,
             row,
@@ -437,6 +441,7 @@ export class OverpassPlanner {
        */
         (key) => {
           const [col, row] = key.split(",").map(Number);
+
           return {
             col,
             row,

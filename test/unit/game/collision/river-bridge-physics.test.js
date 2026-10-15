@@ -68,6 +68,7 @@ it("keeps the river open below high bridges while retaining deck collisions", ()
     world.rayTest(from, to, callback);
     const hit = callback.hasHit();
     Ammo.destroy(callback);
+
     return hit;
   };
   try {

@@ -23,6 +23,7 @@ export class BookshelfLayout {
       throw new InvalidBookshelfRangeError(definition.id);
     }
     const length = Math.abs(alongX ? to.x - from.x : to.z - from.z);
+
     return {
       x: (from.x + to.x) / 2,
       y: from.y + height / 2,

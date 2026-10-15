@@ -11,6 +11,7 @@ const hooks = registerHooks({
   load(url, context, nextLoad) {
     if (url.endsWith(".glb?url") || url.endsWith("?raw")) {
       const source = url.endsWith("?raw") ? readFileSync(new URL(url.slice(0, -4)), "utf8") : url;
+
       return {
         format:"module",
         source:`export default ${JSON.stringify(source)}`,
@@ -44,6 +45,7 @@ it("matches every transformed tread query to Ammo, preserves openings and remove
     instantiate() {
       const entity = new pc.Entity();
       entity.addComponent("render",{meshInstances:[new pc.MeshInstance(mesh,material,entity)]});
+
       return entity;
     },
     instantiateMerged() { return this.instantiate(); },
@@ -100,6 +102,7 @@ it("matches every transformed tread query to Ammo, preserves openings and remove
         const sample = (x,y,z) => transform.transformPoint(new pc.Vec3(x,y,z));
         const ray = (x,y,z) => {
           const from=sample(x,y,z),to=sample(x,-0.2,z);
+
           return app.systems.rigidbody.raycastFirst(from,to);
         };
         assert.equal(root.getPosition().y,-1.75,"uses its owning island offset");

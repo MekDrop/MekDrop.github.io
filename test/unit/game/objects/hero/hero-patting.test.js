@@ -10,6 +10,7 @@ import { HERO_BUFF } from "../../../../../src/game/enum/HeroBuff.js";
 function createMood() {
   const buffs = new BuffSystem();
   const mood = new HeroEmotionBehavior(buffs);
+
   return {
     buffs,
     get state() {
@@ -204,6 +205,7 @@ it("chooses a reachable random destination and follows a route around a wall", (
         return false;
       }
     }
+
     return true;
   };
   escape.begin(position, canTraverse, () => 0.99);

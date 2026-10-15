@@ -325,10 +325,12 @@ function requestedMapName() {
 async function createMap(mapName = null) {
   if (!import.meta.env.DEV || !mapName?.startsWith("test_")) {
     mapFileLoader = null;
+
     return LevelLoader.load(mapName ? { mapName } : undefined);
   }
   const { MapFileLoader } = await import("src/game/MapFileLoader.js");
   mapFileLoader = MapFileLoader;
+
   return GameMapLoader.load(await MapFileLoader.load(mapName));
 }
 
@@ -405,6 +407,7 @@ function waitForAnimationFrame() {
     (resolve) => {
       if (typeof requestAnimationFrame === "function") {
         requestAnimationFrame(() => setTimeout(resolve, 0));
+
         return;
       }
       setTimeout(resolve, 0);
@@ -428,6 +431,7 @@ async function showLoadingPhase(phase, operationId = null) {
   disconnectControls();
   await nextTick();
   await waitForAnimationFrame();
+
   return nextOperationId;
 }
 

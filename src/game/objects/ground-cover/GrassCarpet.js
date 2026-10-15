@@ -18,6 +18,7 @@ const DETAIL_FADE_END_ZOOM = 2.25;
  */
 function revealAtZoom(zoom, start, end) {
   const progress = Math.max(0, Math.min(1, (zoom - start) / (end - start)));
+
   return progress * progress * (3 - 2 * progress);
 }
 
@@ -358,6 +359,7 @@ export class GrassCarpet {
         }
       }
     }
+
     return points;
   }
 

@@ -69,6 +69,7 @@ export class RoyalTerraceActivityBehavior extends TerraceParticipantStateMachine
     }
     if (!this.#requested && this.in(this.#phases.wish)) {
       this.transition(this.#phases.throne);
+
       return;
     }
     if (!this.#requested && this.stagePhase === STAGE.ACTIVITY) {
@@ -116,6 +117,7 @@ export class RoyalTerraceActivityBehavior extends TerraceParticipantStateMachine
       return false;
     }
     this.#leaveThrone();
+
     return true;
   }
 
@@ -141,6 +143,7 @@ export class RoyalTerraceActivityBehavior extends TerraceParticipantStateMachine
           return this.#phases.enter;
         }
         this.#onThroneChange(true);
+
         return this.#phases.throne;
       default:
         return phase;

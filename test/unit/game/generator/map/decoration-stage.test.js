@@ -19,11 +19,20 @@ function createFixture() {
     scheduler: { yieldIfNeeded: async () => { events.push("yield"); } },
   };
   const builder = {
-    placeVegetation: () => { events.push("vegetation"); return []; },
-    placeStones: () => { events.push("stones"); return []; },
-    placeGroundCover: () => { events.push("cover"); return []; },
-    placeCliffVines: () => { events.push("vines"); return []; },
+    placeVegetation: () => { events.push("vegetation");
+
+ return []; },
+    placeStones: () => { events.push("stones");
+
+ return []; },
+    placeGroundCover: () => { events.push("cover");
+
+ return []; },
+    placeCliffVines: () => { events.push("vines");
+
+ return []; },
   };
+
   return {
     events,
     context,

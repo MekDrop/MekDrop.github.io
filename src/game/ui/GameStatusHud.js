@@ -258,6 +258,7 @@ export class GameStatusHud extends GamePanelHud {
     entity.element.texture = texture;
     entity.setLocalPosition(0, y, 0);
     this.entity.addChild(entity);
+
     return entity;
   }
 

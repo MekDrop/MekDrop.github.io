@@ -12,6 +12,7 @@ it("registers a double-click control, follows debug state, and unregisters once"
     renderer: () => ({
       teleportHeroAtPointer: (event) => {
         received.push(event);
+
         return true;
       },
     }),
@@ -21,6 +22,7 @@ it("registers a double-click control, follows debug state, and unregisters once"
         action,
         options,
       };
+
       return () => { unregisterCount += 1; };
     },
   });

@@ -135,6 +135,7 @@ export class RoyalTears {
     }
     if (!crying) {
       this.#cryElapsed = 0;
+
       return;
     }
     if (this.#royal.anim.speed > 0) {

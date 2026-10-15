@@ -126,6 +126,7 @@ export class AbstractCastleProp {
   cloneMaterial(material) {
     const clone = material.clone();
     this.#instanceMaterials.push(clone);
+
     return clone;
   }
   get definition() { return this.#definition; }

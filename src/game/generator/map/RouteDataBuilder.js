@@ -342,6 +342,7 @@ export class RouteDataBuilder {
         for (let index = 1; index < route.length; index++) {
           this.#connectRouteNodes(graph, route[index - 1], route[index]);
         }
+
         return route;
       });
     const targetKey = this.#routeNodeKey(
@@ -387,6 +388,7 @@ export class RouteDataBuilder {
         (point) => point.col2 === crossingCol2 && point.row2 === crossingRow2,
       )
       : -1;
+
     return route.map(/**
      *
      * @param {RouteWaypoint} point
@@ -465,6 +467,7 @@ export class RouteDataBuilder {
           (PATH_HEIGHT - plan.elevation)
       );
     }
+
     return PATH_HEIGHT;
   }
 }

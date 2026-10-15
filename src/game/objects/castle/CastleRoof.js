@@ -112,6 +112,7 @@ export class CastleRoof {
           for (let node = entity; node; node = node.parent) {
             if (node === this.#entity) { return true; }
           }
+
           return false;
         },
       },
@@ -119,6 +120,7 @@ export class CastleRoof {
     for (const hit of hits) {
       if (hit.normal.y >= 0.35) { return hit.point.y; }
     }
+
     return null;
   }
   destroy() {

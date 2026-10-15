@@ -351,6 +351,7 @@ it("carries terrace equipment out of furnished basement storage and back in both
     const blocks = plan.metadata.collision.cameraBlocks;
     const blocked = point => {
       const local = layout.toLocal(point.x, point.z);
+
       return blocks.some(block => block.y + block.halfY > point.y + 0.32 &&
         block.y - block.halfY < point.y + 1.6 && Math.hypot(
         Math.max(0, Math.abs(point.x - block.x) - block.halfX),

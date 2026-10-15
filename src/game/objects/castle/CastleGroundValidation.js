@@ -243,6 +243,7 @@ export function validateCastleGround(mapData) {
       }
     }
   }
+
   return issues;
 }
 

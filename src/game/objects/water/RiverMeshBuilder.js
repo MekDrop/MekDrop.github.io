@@ -402,6 +402,7 @@ export class RiverMeshBuilder {
       const v = row / surfaceSegments;
       const north = surfaceCorners[0] * (1 - u) + surfaceCorners[1] * u;
       const south = surfaceCorners[2] * (1 - u) + surfaceCorners[3] * u;
+
       return north * (1 - v) + south * v;
     };
     const outgoing = this.#directionVector(cell.direction);
@@ -422,6 +423,7 @@ export class RiverMeshBuilder {
         (column / surfaceSegments - 0.5) * spillFlow.col +
         (row / surfaceSegments - 0.5) * spillFlow.row;
       const blend = Math.max(0, Math.min(1, (progress - 0.65) / 0.35));
+
       return Math.round((1 - blend * blend * (3 - 2 * blend)) * 255);
     };
     const surfaceMetadata = [outgoing.col, outgoing.row];
@@ -447,6 +449,7 @@ export class RiverMeshBuilder {
       const before = Math.max(0, -dx * outgoing.col - dz * outgoing.row);
       const progress = Math.atan2(along, before) / (Math.PI / 2);
       const radius = Math.hypot(dx, dz);
+
       return [0.5 + turn * (0.5 - radius), cellIndex + progress];
     };
     /**
@@ -477,6 +480,7 @@ export class RiverMeshBuilder {
       const normalized = cellIndex === 0
         ? progress
         : 1 - Math.max(0, Math.min(1, progress / 0.86));
+
       return normalized * normalized * (3 - 2 * normalized);
     };
     /**
@@ -520,6 +524,7 @@ export class RiverMeshBuilder {
         surfaceSegments - row,
         surfaceSegments - column,
       );
+
       return Math.min(1, edgeDistance / 2);
     };
     /**
@@ -752,6 +757,7 @@ export class RiverMeshBuilder {
       uvs.push(uvAt(row, column));
       sources.push(sourceAt(row, column));
     }
+
     return {
       front,
       rear,

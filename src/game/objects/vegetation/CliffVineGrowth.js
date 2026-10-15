@@ -60,6 +60,7 @@ export function createCliffVineGrowth({ height, seed }) {
       });
     }
   }
+
   return {
     stems,
     leaves,

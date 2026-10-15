@@ -72,6 +72,7 @@ export class Bookshelf {
      */
     const random = definition.seed === undefined ? Math.random : () => {
       state = (Math.imul(state, 1664525) + 1013904223) >>> 0;
+
       return state / 4294967296;
     };
     for (let index = 0; index < count; index += 1) {
@@ -99,6 +100,7 @@ export class Bookshelf {
       model.setLocalEulerAngles(0, bounds.rotation, 0);
       parent.addChild(model);
     }
+
     return bounds;
   }
 
@@ -145,6 +147,7 @@ export class Bookshelf {
     backing.setLocalPosition(0, height / 2 + 0.005, -0.14);
     const trim = model.findByName("Top carved trim");
     trim.setLocalPosition(0, height - 0.0275, 0.17);
+
     return levels;
   }
 

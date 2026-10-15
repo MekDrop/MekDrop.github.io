@@ -50,5 +50,6 @@ export function createCastleMasonryVoxels(blocks) {
       }
     }
   }
+
   return boxes;
 }

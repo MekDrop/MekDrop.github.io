@@ -104,6 +104,7 @@ export class CastleMapPreparation {
             const { x, y, z } = definition.position;
             const point = layout.toLocal(x, z);
             const { servantBedroom, storage } = layout.rooms;
+
             return y + halfY > servantBedroom.floorY + 0.000001 && y - halfY < layout.origin.y - 0.25 - 0.000001 && point.x + halfX > servantBedroom.minX + 0.000001 && point.x - halfX < storage.maxX - 0.000001 && point.z + halfZ > storage.minZ + 0.000001 && point.z - halfZ < storage.maxZ - 0.000001;
           },
         );
@@ -135,6 +136,7 @@ export class CastleMapPreparation {
      */
       (definition) => {
         const tile = definition.tile;
+
         return clipCastleTerrainRecord(definition, tile ? cutsByTile.get(`${tile.col},${tile.row}`) ?? [] : groundCuts);
       });
     const turfTiles = new Set(mapData.objects.filter(/**
@@ -182,6 +184,7 @@ export class CastleMapPreparation {
         }
         const { x, y, z } = definition.position;
         const height = definition.object === "Vegetation" ? 2 : 1;
+
         return !groundCuts.some(
           /**
            * @param {import("./CastleGroundCuts.js").GroundCut} cut

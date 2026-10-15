@@ -408,6 +408,7 @@ export class CastleEntityBuilder {
             }
             const dx = Math.max(Math.abs(x - block.x) - block.halfX, 0);
             const dz = Math.max(Math.abs(z - block.z) - block.halfZ, 0);
+
             return dx * dx + dz * dz <= radius * radius;
           });
     }
@@ -451,6 +452,7 @@ export class CastleEntityBuilder {
         const distanceX = Math.max(Math.abs(x - block.x) - block.halfX, 0);
         const distanceY = Math.max(Math.abs(y - block.y) - block.halfY, 0);
         const distanceZ = Math.max(Math.abs(z - block.z) - block.halfZ, 0);
+
         return (
           distanceX * distanceX + distanceY * distanceY + distanceZ * distanceZ <=
         radius * radius
@@ -530,6 +532,7 @@ export class CastleEntityBuilder {
      * @param {CastleDoor} door
      */
       (door) => door.exteriorEntrance);
+
     return `Entrance: ${doors.map(/**
      *
      * @param {CastleDoor} door
@@ -623,6 +626,7 @@ export class CastleEntityBuilder {
         return true;
       }
     }
+
     return false;
   }
 
@@ -647,6 +651,7 @@ export class CastleEntityBuilder {
       this.#terraceActivity?.stop();
       if (this.#onRuntimeError) {
         this.#onRuntimeError(error);
+
         return;
       }
       throw error;
@@ -695,6 +700,7 @@ export class CastleEntityBuilder {
       }
       closest = hit;
     }
+
     return closest;
   }
 
@@ -1019,6 +1025,7 @@ export class CastleEntityBuilder {
          */ (point, operator) => {
           if (!point) {
             for (const door of this.#animatedDoors) { if (door.operator === operator) { door.operator = null; } }
+
             return true;
           }
           for (const door of this.#animatedDoors) {
@@ -1028,6 +1035,7 @@ export class CastleEntityBuilder {
             }
             else if (door.operator === operator) { door.operator = null; }
           }
+
           return !this.#animatedDoors.some(/**
            *
            * @param {import("./CastleDoor.js").CastleDoor} door

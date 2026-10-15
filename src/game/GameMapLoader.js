@@ -15,6 +15,7 @@ export class GameMapLoader {
     WalkingPaths.rebuild(mapData);
     TerrainBlockDefinitions.populate(mapData);
     BuriedTreasurePlacement.populate(mapData, random);
+
     return mapData;
   }
 }

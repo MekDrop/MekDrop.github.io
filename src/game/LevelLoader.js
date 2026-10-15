@@ -54,6 +54,7 @@ export class LevelLoader {
     } finally {
       worker.terminate();
     }
+
     return map ?? this.#loadLocally(options);
   }
 

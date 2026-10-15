@@ -24,6 +24,7 @@ function findChildByName(root, name) {
     }
     pending.push(...entity.children);
   }
+
   return null;
 }
 
@@ -80,6 +81,7 @@ function createHeldMaterial(pc, category) {
   material.setParameter("uColorBoost", settings.colorBoost);
   material.setParameter("uLightDirection", [0.42, 0.82, 0.38]);
   material.update();
+
   return material;
 }
 /**

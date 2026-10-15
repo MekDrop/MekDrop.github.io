@@ -39,6 +39,7 @@ it("suppresses open duplicate errors and allows them again after dismissal", () 
   try {
     Notify.create = (options) => {
       notifications.push(options);
+
       return () => null;
     };
     console.error = () => null;
@@ -90,6 +91,7 @@ it("counts down and reloads immediately from the recovery action", () => {
   try {
     Notify.create = (options) => {
       notification = options;
+
       return (updatedOptions) => {
         notification = updatedOptions;
       };
@@ -99,6 +101,7 @@ it("counts down and reloads immediately from the recovery action", () => {
     globalThis.clearInterval = (id) => clearedIntervals.push(id);
     globalThis.setInterval = (callback) => {
       intervalCallback = callback;
+
       return 11;
     };
     globalThis.window = {
@@ -144,6 +147,7 @@ it("reloads automatically when the recovery timer expires", () => {
     globalThis.clearInterval = () => null;
     globalThis.setInterval = (callback) => {
       intervalCallback = callback;
+
       return 21;
     };
     globalThis.window = {
@@ -182,9 +186,11 @@ it("dismisses the recovery notification and cancels its reload timer", () => {
   try {
     Notify.create = (options) => {
       notification = options;
+
       return (updatedOptions) => {
         if (updatedOptions) {
           notification = updatedOptions;
+
           return;
         }
         dismissed += 1;
@@ -245,9 +251,11 @@ it("copies full error details and reports clipboard failures without dismissing"
     Notify.create = (options) => {
       if (!options.actions) {
         feedback.push(options);
+
         return () => null;
       }
       notification = options;
+
       return (updated) => {
         if (updated) {
           notification = updated;

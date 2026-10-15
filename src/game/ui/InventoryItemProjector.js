@@ -167,6 +167,7 @@ export class InventoryItemProjector {
       projection.model.enabled = false;
       projection.renderHandle = null;
     });
+
     return projection;
   }
 
@@ -196,6 +197,7 @@ export class InventoryItemProjector {
       material.diffuseMap = null;
     }
     material.update();
+
     return material;
   }
 
@@ -216,6 +218,7 @@ export class InventoryItemProjector {
     for (const meshInstance of meshInstances.slice(1)) {
       bounds.add(meshInstance.aabb);
     }
+
     return bounds;
   }
 
@@ -252,6 +255,7 @@ export class InventoryItemProjector {
         );
       }
     }
+
     return {
       projectedHalfWidth,
       projectedHalfHeight,

@@ -92,6 +92,7 @@ export class FirstPersonCameraMode extends AbstractCameraMode {
       -movementX * degreesPerPixel,
       movementY * degreesPerPixel,
     );
+
     return true;
   }
 
@@ -206,6 +207,7 @@ export class FirstPersonCameraMode extends AbstractCameraMode {
       y: gameCamera.right.y,
       z: gameCamera.right.z,
     };
+
     return {
       firstPerson: true,
       position: this.#position,

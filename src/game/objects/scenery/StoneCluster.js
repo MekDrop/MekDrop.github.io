@@ -184,6 +184,7 @@ export class StoneCluster {
       }
       height = height === null ? part.top : Math.max(height, part.top);
     }
+
     return height;
   }
 
@@ -212,6 +213,7 @@ export class StoneCluster {
         ),
       );
     }
+
     return Math.max(0, depth);
   }
 

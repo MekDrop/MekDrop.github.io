@@ -64,6 +64,7 @@ export class InteractionSuggestion {
     );
     if (remainingMilliseconds === 0) {
       this.#applyPendingTarget();
+
       return;
     }
     if (this.#timeoutId !== null) {

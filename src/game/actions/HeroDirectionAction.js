@@ -48,6 +48,7 @@ export class HeroDirectionAction {
   invoke(event) {
     if (event.type === INPUT_EVENT_TYPE.KEY_UP) {
       this.#heroMovement.releaseDirection(this.#direction);
+
       return;
     }
 
