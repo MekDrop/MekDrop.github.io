@@ -60,7 +60,7 @@ it("furnishes the arrival room while preserving circulation and window approache
     assert.equal(windowBench.height * windowBench.scale, bench.height * bench.scale);
     const arrivalRoom = plan.spaces.find(room => room.id === bench.roomId);
     assert.ok(runner.depth >= arrivalRoom.maxZ - arrivalRoom.minZ - 0.13);
-    assert.ok(items.some(item => item.object === "TerracePlanter"));
+    assert.ok(items.some(item => item.object === "Planter"));
   }
 });
 
@@ -169,7 +169,7 @@ it("chooses either seating or a map table and keeps all door approaches connecte
         "the console-side aisle remains comfortable");
     }
     assert.ok(items.some(item => item.object === "VestibuleCloakRail" && item.id === `${console.id}-hooks`));
-    for (const object of ["TableLantern", "TerracePlanter"]) {
+    for (const object of ["TableLantern", "Planter"]) {
       assert.ok(items.some(item => item.object === object && item.supportId === console.id));
     }
     assert.ok(islands.every(item => item.y === 0.033));

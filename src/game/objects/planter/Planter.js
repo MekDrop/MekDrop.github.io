@@ -1,11 +1,21 @@
 import modelUrl from "../../models/castle/residential/terrace-planter.glb?url";
-import { AbstractCastleProp } from "./AbstractCastleProp.js";
+import { AbstractCastleProp } from "../castle-props/AbstractCastleProp.js";
 import { GenerationRandom } from "../../generator/map/GenerationRandom.js";
 
 /**
  * Boxwood in a stone planter, placed through the room's map objects.
  */
-export class TerracePlanter extends AbstractCastleProp {
+export class Planter extends AbstractCastleProp {
+  /**
+   * Normalize saved map names after castle rooms publish their objects.
+   * @param {import("../../GameContracts.js").GameMapData} mapData
+   */
+  static prepareMap(mapData) {
+    for (const definition of mapData.objects ?? []) {
+      if (definition.object === "TerracePlanter") { definition.object = Planter.name; }
+    }
+  }
+
   /**
    * Vary foliage placement while preserving authored block shapes and colors.
    * @param {import("playcanvas").Entity} model

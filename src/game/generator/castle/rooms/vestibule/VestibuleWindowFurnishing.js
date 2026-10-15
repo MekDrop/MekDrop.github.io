@@ -54,7 +54,7 @@ export class VestibuleWindowFurnishing {
       const candidates = [table,
         {
           role: "vestibuleProp",
-          object: "TerracePlanter",
+          object: "Planter",
           x: table.x,
           z: table.z,
           width: 0.745,

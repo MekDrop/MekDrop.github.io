@@ -18,7 +18,7 @@ export class LeisureRoomMapObjects {
       const roomOrdinals = new Map();
       const generatedIds = new Set();
       for (const item of plan.furniture) {
-        if (!item.role.startsWith("leisure") || item.object !== "TerracePlanter") { continue; }
+        if (!item.role.startsWith("leisure") || !["Planter", "TerracePlanter"].includes(item.object)) { continue; }
         const index = roomOrdinals.get(item.roomId) ?? 0;
         roomOrdinals.set(item.roomId, index + 1);
         const id = `${castle.id}-leisure-${item.roomId}-${index}`;
@@ -32,7 +32,7 @@ export class LeisureRoomMapObjects {
         const rotation = layout.yaw + 180 + (item.rotation ?? 0);
         const definition = {
           id,
-          object: item.object,
+          object: "Planter",
           position,
           rotation,
           scale: item.scale,

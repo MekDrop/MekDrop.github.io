@@ -35,7 +35,7 @@ export class LeisureRoomGenerator extends AbstractCastleRoomGenerator {
      */
       (x) => ({
         role: "leisurePlanter",
-        object: "TerracePlanter",
+        object: "Planter",
         x,
         z: room.maxZ - 0.6,
         width: 0.665,

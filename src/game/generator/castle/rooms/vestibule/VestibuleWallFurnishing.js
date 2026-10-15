@@ -58,7 +58,7 @@ export class VestibuleWallFurnishing {
       if (safe(rail) && RoomPlacementRules.accepts(rail, room, [...occupied, ...items], wallThickness)) { items.push(rail); }
       for (const [object, offset, width, depth, height, scale] of [
         ["TableLantern", -0.35, 0.22, 0.2136, 0.427, 0.8],
-        ["TerracePlanter", 0.35, 0.745, 0.745, 0.99, 0.27],
+        ["Planter", 0.35, 0.745, 0.745, 0.99, 0.27],
       ]) {
         const item = {
           role: "vestibuleProp",

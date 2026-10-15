@@ -29,7 +29,7 @@ it("restores the two terrace planters away from the entrance without seeded vari
     x: 2.4,
     z: 3.4,
   }]);
-  assert.ok(items.every((item) => item.object === "TerracePlanter"));
+  assert.ok(items.every((item) => item.object === "Planter"));
   assert.deepEqual(generator.furnish(room, { seed: 20 }), generator.furnish(room, { seed: 22 }));
   assert.deepEqual(generator.furnish({
     ...room,
@@ -65,7 +65,7 @@ it("uses only plants in both active authored terraces", async () => {
     for (const id of ["terrace-west", "terrace-south"]) {
       const items = plan.furniture.filter((item) => item.roomId === id);
       assert.ok(items.length > 0);
-      assert.ok(items.every((item) => item.object === "TerracePlanter"));
+      assert.ok(items.every((item) => item.object === "Planter"));
     }
   }
 });
@@ -112,7 +112,7 @@ it("publishes plants idempotently and removes obsolete leisure furniture", async
   });
   LeisureRoomMapObjects.prepareMap(map);
   assert.ok(map.objects.length > 1);
-  assert.ok(map.objects.slice(1).every((item) => item.object === "TerracePlanter"));
+  assert.ok(map.objects.slice(1).every((item) => item.object === "Planter"));
   const once = structuredClone(map.objects);
   LeisureRoomMapObjects.prepareMap(map);
   assert.deepEqual(map.objects, once);

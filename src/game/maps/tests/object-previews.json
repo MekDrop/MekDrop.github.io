@@ -754,6 +754,15 @@
         "z": 0
       },
       "rotation": 0
+    },
+    {
+      "id": "preview-planter",
+      "object": "Planter",
+      "position": {
+        "x": 3,
+        "y": 0,
+        "z": -3
+      }
     }
   ]
 }

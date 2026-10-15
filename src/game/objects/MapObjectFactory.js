@@ -37,7 +37,7 @@ import { Sunbed } from "./sunbed/Sunbed.js";
 import { TerraceServingTray } from "./castle-props/TerraceServingTray.js";
 import { Teapot } from "./teapot/Teapot.js";
 import { Teacup } from "./teacup/Teacup.js";
-import { TerracePlanter } from "./castle-props/TerracePlanter.js";
+import { Planter } from "./planter/Planter.js";
 import { Throne } from "./throne/Throne.js";
 import { Bowl } from "./bowl/Bowl.js";
 import { Apple } from "./food/Apple.js";
@@ -138,7 +138,6 @@ const OBJECT_CLASSES = new Map([
   [Teapot.name, Teapot],
   [Teacup.name, Teacup],
   ["TeaTable", Table],
-  [TerracePlanter.name, TerracePlanter],
   [Throne.name, Throne],
   [Bowl.name, Bowl],
   [Apple.name, Apple],
@@ -186,6 +185,8 @@ const OBJECT_CLASSES = new Map([
   [Servant.name, Servant],
   // Attach cliff growth only after terrain population and castle excavation.
   [CliffVine.name, CliffVine],
+  [Planter.name, Planter],
+  ["TerracePlanter", Planter],
   // Normalize legacy lantern names after castle preparation publishes its props.
   [Lantern.name, Lantern],
   [Fire.name, Fire],

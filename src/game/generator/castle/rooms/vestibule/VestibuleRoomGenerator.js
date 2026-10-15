@@ -141,7 +141,7 @@ export class VestibuleRoomGenerator extends AbstractCastleRoomGenerator {
       items.push(bench);
       const planter = {
         role: "vestibuleProp",
-        object: "TerracePlanter",
+        object: "Planter",
         x: wall + 0.35,
         z: z - 0.85,
         width: 0.665,
