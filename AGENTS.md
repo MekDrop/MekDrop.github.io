@@ -17,6 +17,8 @@ Follow `.editorconfig` and [docs/ai/code-style.md](docs/ai/code-style.md). ESLin
 
 ## Verification
 
+Maintain a `preview.png` in each main game object's owning folder under `src/game/objects/`. Capture one representative variant from the actual game rendering, frame the complete object, and preserve a transparent PNG alpha channel without scenery, HUD, or unrelated objects. Do not create separate previews for subobjects or component parts. Whenever a main object's visible appearance changes (including models, materials, textures, geometry, or visual assembly), regenerate its preview in the same change and verify that it is nonempty and retains transparency.
+
 Choose the smallest check that covers changed behavior, as listed in the task map and [docs/ai/testing.md](docs/ai/testing.md). Avoid broad suites by default. Before a build or Prettier command, check whether `http://localhost:9000` is accessible; if so, skip that build or formatting step. Relevant lint and focused checks may still run.
 
 ## Focused Rules

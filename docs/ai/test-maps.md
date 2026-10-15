@@ -1,5 +1,17 @@
 # Reproducible game previews
 
+For main-object `preview.png` captures, reuse these routes and the small
+`/map/test_object-previews` fixture for flag, painting, window, fire, and
+ground-cover variants. Render the complete representative object into a
+transparent RGBA target using the production meshes and materials; exclude HUD,
+unrelated meshes, and their shadow casters. Include opaque and transparent passes,
+calculate bounds from instance transforms for batched geometry, and check image
+orientation (WebGPU and WebGL readback use different row conventions). Particle
+materials normally disable alpha writes; enable them only for capture and export
+straight alpha. Verify visible pixels, transparent pixels, and clear image margins.
+Refresh the owning main object's preview after appearance changes; do not create
+separate previews for its subobjects or component parts.
+
 Use saved JSON maps under `src/game/maps/tests/` for interactive visual checks.
 Open them through the normal `/map/test_<filename>` route. Reuse production
 object classes, camera, lighting, HUD, physics, and asset loading. Do not create
