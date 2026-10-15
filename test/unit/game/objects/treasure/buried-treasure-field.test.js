@@ -15,6 +15,34 @@ const hooks = registerHooks({
 const { BuriedTreasureField } = await import("../../../../../src/game/objects/treasure/BuriedTreasureField.js");
 hooks.deregister();
 
+it("keeps digging out of castle cutouts while preserving outdoor grass", () => {
+  const mapData = {
+    cols: 3, rows: 3,
+    grid: Array.from({ length: 3 }, () => [1, 1, 1]),
+    heightmap: Array.from({ length: 3 }, () => [0, 0, 0]),
+    tileMeta: Array.from({ length: 3 }, () => [{}, {}, {}]),
+    objects: [],
+  };
+  const field = new BuriedTreasureField({
+    pc, mapData, modelLibrary: {},
+    app: { on() { return { off() {} }; } },
+  });
+  field.tool = {};
+  const hero = { position: { x: 0, y: 0, z: 0 }, facingDirection: { x: 1, z: 0 } };
+  const interaction = () => field.findInteraction({ hero });
+  assert.equal(interaction()?.description.labelKey, "game.interaction.dig");
+  mapData.tileMeta[1][2] = { exposedTerrain: false };
+  assert.equal(interaction(), null, "removed turf cannot be dug through a floor");
+  mapData.tileMeta[1][2] = {
+    exposedTerrain: true,
+    terrainCutouts: [{ minX: 1.2, maxX: 2, minZ: -0.5, maxZ: 0.5, minY: -1, maxY: 10 }],
+  };
+  assert.equal(interaction(), null, "partial turf beside a wall cannot overlap the room");
+  mapData.tileMeta[1][2].terrainCutouts[0].minX = 1.5;
+  assert.ok(interaction(), "grass outside the cutout remains diggable");
+  field.destroy();
+});
+
 it("reveals the already instantiated chest and spawns its stored contents without rerolling", () => {
   const mapData = GameMapLoader.load({ cols: 1, rows: 1, grid: [[1]], heightmap: [[2]], objects: [] }, () => 0.1);
   mapData.islandConnectorData = { nearIsland: ["0,0"], farIsland: [] };

@@ -888,6 +888,24 @@ export class BuriedTreasureField {
       return false;
     }
     const key = this.#tileKey(col, row);
+    const metadata = this.#mapData.tileMeta?.[row]?.[col];
+    const x = col - (this.#mapData.cols - 1) / 2;
+    const z = row - (this.#mapData.rows - 1) / 2;
+    // The original grid still contains grass beneath excavated castle rooms.
+    // Keep the whole dig tile clear of occupied building space.
+    if (
+      metadata?.exposedTerrain === false ||
+      metadata?.terrainCutouts?.some(
+        /**
+         * @param {import("../castle/CastleGroundCuts.js").GroundCut} cut
+         */
+        (cut) =>
+          x + 0.5 > cut.minX && x - 0.5 < cut.maxX &&
+          z + 0.5 > cut.minZ && z - 0.5 < cut.maxZ,
+      )
+    ) {
+      return false;
+    }
     if (this.#riverSourceCovers.has(key)) {
       return !this.#dugTiles.has(key);
     }
