@@ -14,7 +14,7 @@ it("repeats study groups and preserves the end-wall bookcase row across seeds", 
     const desk = furniture.find(item => item.object === "WritingDesk");
     assert.ok(desk);
     assert.ok(furniture.filter(item => item.object === "WoodenDeskChair").length >= 1);
-    assert.ok(!furniture.some(item => item.object === "BlueArmchair"));
+    assert.ok(!furniture.some(item => item.object === "Throne"));
     assert.ok(!plan.furniture.some(item => item.roomId === room.id && item.object === "WallLantern"));
     assert.ok(furniture.some(item => item.object === "SingleCandleStand"), `seed ${seed} lights the reading furniture`);
     const chair = furniture.find(item => item.object === "WoodenDeskChair");
@@ -127,7 +127,7 @@ it("keeps a connected player-width route from the door to desk and shelf approac
       }
     }
     assert.ok(reached.size > 50, `seed ${seed} door route`);
-    for (const item of furniture.filter(item => ["WoodenDeskChair", "Bookshelf", "BlueArmchair"].includes(item.object))) {
+    for (const item of furniture.filter(item => ["WoodenDeskChair", "Bookshelf", "Throne"].includes(item.object))) {
       const angle = item.rotation * Math.PI / 180;
       const chair = item.object !== "Bookshelf";
       // Approach the desk chair from behind; bookcases and armchairs from front.

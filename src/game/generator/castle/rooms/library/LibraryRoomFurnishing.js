@@ -252,7 +252,7 @@ export class LibraryRoomFurnishing {
       depth: rotation % 180 ? width : depth, rotation, scale: 1, y,
       // Reflection of an X-facing asset requires the opposite yaw correction
       // from the standard Z-facing models. Keep its natural positive scale.
-      mirrorRotationOffset: ["WoodenDeskChair", "BlueArmchair"].includes(object) ? 180 : 0 };
+      mirrorRotationOffset: ["WoodenDeskChair", "Throne"].includes(object) ? 180 : 0 };
   }
   /**
    * @param {{x:number,z:number}} point

@@ -660,19 +660,21 @@ export class CastleAudienceRoom {
    * @param {{x: number, y: number, z: number}} throneForward
    */
   #buildThrone(throneForward) {
-    this.#throne = new CastleThrone({ pc: this.#pc, modelLibrary: this.#modelLibrary });
-    const throne = this.#throne.entity;
     const supportHeight = this.#residentialLayout?.throneSupportHeight ?? 0;
-    const thronePosition = this.#point(0, throneForward, supportHeight);
-    throne.setLocalPosition(
-      thronePosition.x,
-      thronePosition.y,
-      thronePosition.z,
-    );
-    // Tripo authored this chair facing -X; the royal's seated pose faces +Z.
-    throne.setLocalEulerAngles(0, this.#visitorFacingYaw() + 90, 0);
-    throne.setLocalScale(THRONE_SCALE, THRONE_SCALE, THRONE_SCALE);
-    this.#entity.addChild(throne);
+    if (!this.#residentialLayout) {
+      this.#throne = new CastleThrone({ pc: this.#pc, modelLibrary: this.#modelLibrary });
+      const throne = this.#throne.entity;
+      const thronePosition = this.#point(0, throneForward, supportHeight);
+      throne.setLocalPosition(
+        thronePosition.x,
+        thronePosition.y,
+        thronePosition.z,
+      );
+      // Tripo authored this chair facing -X; the royal's seated pose faces +Z.
+      throne.setLocalEulerAngles(0, this.#visitorFacingYaw() + 90, 0);
+      throne.setLocalScale(THRONE_SCALE, THRONE_SCALE, THRONE_SCALE);
+      this.#entity.addChild(throne);
+    }
     this.#obstacles.push({
       lateral: 0,
       forward: throneForward,

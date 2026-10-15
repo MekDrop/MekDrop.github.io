@@ -1,7 +1,7 @@
 // Grounded GLB heights measured with inspect-glb; refresh when source assets change.
 export const ROOM_PROP_HEIGHTS = {
   "BedsideDrawers": 0.65,
-  "BlueArmchair": 1,
+  "Throne": 1,
   "Bowl": 0.231,
   "ChoppingToolsSet": 0.0485,
   "ClosedReadingBook": 0.04,
@@ -62,7 +62,7 @@ export const ROOM_PROP_HEIGHTS = {
 };
 export const ROOM_PROP_BOTTOMS = {
   "BedsideDrawers": 0,
-  "BlueArmchair": 0,
+  "Throne": 0,
   "Bowl": 0,
   "ChoppingToolsSet": 0,
   "ClosedReadingBook": 0,

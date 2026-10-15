@@ -1098,8 +1098,8 @@
       "rotation": 0
     },
     {
-      "id": "blue-armchair",
-      "object": "BlueArmchair",
+      "id": "throne",
+      "object": "Throne",
       "tile": {
         "col": 6,
         "row": 3

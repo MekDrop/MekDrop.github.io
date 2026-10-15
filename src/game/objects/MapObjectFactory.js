@@ -37,7 +37,7 @@ import { TerraceServingTray } from "./castle-props/TerraceServingTray.js";
 import { Teapot } from "./teapot/Teapot.js";
 import { Teacup } from "./teacup/Teacup.js";
 import { TerracePlanter } from "./castle-props/TerracePlanter.js";
-import { BlueArmchair } from "./castle-props/BlueArmchair.js";
+import { Throne } from "./throne/Throne.js";
 import { Bowl } from "./bowl/Bowl.js";
 import { Apple } from "./food/Apple.js";
 import { GreenVegetable } from "./food/GreenVegetable.js";
@@ -138,7 +138,7 @@ const OBJECT_CLASSES = new Map([
   [Teacup.name, Teacup],
   ["TeaTable", Table],
   [TerracePlanter.name, TerracePlanter],
-  [BlueArmchair.name, BlueArmchair],
+  [Throne.name, Throne],
   [Bowl.name, Bowl],
   [Apple.name, Apple],
   [GreenVegetable.name, GreenVegetable],

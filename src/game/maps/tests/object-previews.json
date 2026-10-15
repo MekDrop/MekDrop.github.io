@@ -593,6 +593,19 @@
       "depth": 0.127,
       "height": 0.72,
       "timberSeed": 42
+    },
+    {
+      "id": "preview-throne",
+      "object": "Throne",
+      "position": {
+        "x": 0,
+        "y": 2,
+        "z": 0
+      },
+      "tile": {
+        "col": 5,
+        "row": 5
+      }
     }
   ]
 }

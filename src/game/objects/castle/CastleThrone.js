@@ -1,4 +1,4 @@
-import throneModelUrl from "../../models/castle/props/blue-armchair.glb?url";
+import { Throne } from "../throne/Throne.js";
 import { addAuthoredMeshPhysics } from "../shared/AuthoredMeshPhysics.js";
 
 export class CastleThrone {
@@ -7,7 +7,7 @@ export class CastleThrone {
     * @returns {string}
    */
   static get modelUrl() {
-    return throneModelUrl;
+    return Throne.modelUrl;
   }
 
   /**
