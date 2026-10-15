@@ -85,7 +85,8 @@ export class VestibuleIslandFurnishing {
             items.push({
               id: `${island.id}-bag-${index}`,
               role: "vestibuleProp",
-              object: index % 2 === 0 ? "VestibuleBrownSatchel" : "VestibuleOliveSatchel",
+              object: "Satchel",
+              variant: index % 2 === 0 ? "brown" : "olive",
               x: island.x + (alongX ? offset : side),
               z: island.z + (alongX ? side : offset),
               width: alongX ? width : depth,

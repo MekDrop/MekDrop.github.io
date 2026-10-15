@@ -3,6 +3,42 @@ import { it } from "node:test";
 import { CastleAuthoredBuildPlan } from "../../../../../../../src/game/generator/castle/CastleAuthoredBuildPlan.js";
 import { VestibuleRoomMapObjects } from "../../../../../../../src/game/objects/castle/rooms/vestibule/VestibuleRoomMapObjects.js";
 
+it("publishes independent Satchel objects with both authored finishes", async () => {
+  const buildPlan = await CastleAuthoredBuildPlan.generate({
+    seed: 4,
+    basePlanId: "castle-compact-service-wing",
+    position: {
+      x: 0,
+      z: 0,
+      width: 16,
+      depth: 12,
+      elevation: 2,
+    },
+    doors: [{
+      side: "NORTH",
+      offset: 7,
+      width: 2,
+    }],
+  });
+  const map = {
+    cols: 32,
+    rows: 32,
+    objects: [{
+      id: "arrival-satchels",
+      object: "Castle",
+      buildPlan,
+    }],
+  };
+  VestibuleRoomMapObjects.prepareMap(map);
+  const bags = map.objects.filter(item => item.object === "Satchel");
+  assert.equal(bags.length, 4);
+  assert.deepEqual(bags.map(item => item.variant), ["brown", "olive", "brown", "olive"]);
+  assert.ok(bags.every(item => item.sourceCastleId === "arrival-satchels" && Number.isFinite(item.position.y)));
+  const first = structuredClone(bags);
+  VestibuleRoomMapObjects.prepareMap(map);
+  assert.deepEqual(map.objects.filter(item => item.object === "Satchel"), first);
+});
+
 it("publishes floor-correct vestibule props once and replaces them after reflection", async () => {
   const options = {
     seed: 20,
@@ -115,7 +151,8 @@ it("publishes exactly one central island in each variant and reflected service-w
       assert.ok(Math.abs(bag.x - bench.x) + bag.width * bag.scale / 2 < bench.width / 2);
       assert.ok(Math.abs(bag.z - bench.z) + bag.depth * bag.scale / 2 < bench.depth / 2);
     }
-    assert.equal(first.filter(item => ["VestibuleBrownSatchel", "VestibuleOliveSatchel"].includes(item.object)).length, bags.length);
+    assert.equal(first.filter(item => item.object === "Satchel").length, bags.length);
+    assert.deepEqual(first.filter(item => item.object === "Satchel").map(item => item.variant), bags.map(item => item.variant));
     assert.ok(!first.some(item => item.object === "VestibuleBench"));
     if (bench) { assert.equal(islands[0].stretch.x, 1.5); }
     assert.equal(first.filter(item => item.object === "WritingDesk").length, 1);

@@ -15,8 +15,7 @@ import { VestibuleIslandBench } from "./castle-props/VestibuleIslandBench.js";
 import { Banner } from "./banner/Banner.js";
 import { StandingArmor } from "./standing-armor/StandingArmor.js";
 import { TravelKit } from "./travel-kit/TravelKit.js";
-import { VestibuleBrownSatchel } from "./castle-props/VestibuleBrownSatchel.js";
-import { VestibuleOliveSatchel } from "./castle-props/VestibuleOliveSatchel.js";
+import { Satchel } from "./satchel/Satchel.js";
 import { Boots } from "./boots/Boots.js";
 import { VestibuleStickStand } from "./castle-props/VestibuleStickStand.js";
 import { VestibuleCloakRail } from "./castle-props/VestibuleCloakRail.js";
@@ -112,8 +111,6 @@ const OBJECT_CLASSES = new Map([
   ["VestibuleMapTable", Table],
   [StandingArmor.name, StandingArmor],
   [TravelKit.name, TravelKit],
-  [VestibuleBrownSatchel.name, VestibuleBrownSatchel],
-  [VestibuleOliveSatchel.name, VestibuleOliveSatchel],
   [Boots.name, Boots],
   [VestibuleStickStand.name, VestibuleStickStand],
   [VestibuleCloakRail.name, VestibuleCloakRail],
@@ -190,6 +187,9 @@ const OBJECT_CLASSES = new Map([
   ["TerracePlanter", Planter],
   // Normalize legacy lantern names after castle preparation publishes its props.
   [Lantern.name, Lantern],
+  [Satchel.name, Satchel],
+  ["VestibuleBrownSatchel", Satchel],
+  ["VestibuleOliveSatchel", Satchel],
   [Fire.name, Fire],
   // Expand shelf contents after castle preparation publishes its furnishings.
   [Book.name, Book],

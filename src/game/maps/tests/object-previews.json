@@ -773,6 +773,26 @@
         "z": 0
       },
       "rotation": 0
+    },
+    {
+      "id": "preview-satchel-brown",
+      "object": "Satchel",
+      "variant": "brown",
+      "position": {
+        "x": -1,
+        "y": 1,
+        "z": -2
+      }
+    },
+    {
+      "id": "preview-satchel-olive",
+      "object": "Satchel",
+      "variant": "olive",
+      "position": {
+        "x": 0,
+        "y": 1,
+        "z": -2
+      }
     }
   ]
 }

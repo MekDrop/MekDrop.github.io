@@ -140,10 +140,11 @@ it("chooses either seating or a map table and keeps all door approaches connecte
       assert.equal(bags[0].x, bags[1].x, "the near end has a visible pair of bags");
       assert.ok(Math.abs(bags[0].z - bags[1].z) >= 0.55, "the near-end bags are separated");
       assert.equal(bags[2].rotation, islands[0].rotation, "additional bags fill the long-side bays");
-      assert.notEqual(bags[0].object, bags[1].object, "brown and olive luggage remain separate assets");
+      assert.notEqual(bags[0].variant, bags[1].variant, "brown and olive luggage retain their authored finishes");
     }
     for (const bag of bags) {
-      assert.ok(["VestibuleBrownSatchel", "VestibuleOliveSatchel"].includes(bag.object));
+      assert.equal(bag.object, "Satchel");
+      assert.ok(["brown", "olive"].includes(bag.variant));
       assert.equal(bag.y, islands[0].y);
       assert.ok(bag.y + bag.height * bag.scale < 0.44);
       assert.ok(Math.abs(bag.x - islands[0].x) + bag.width * bag.scale / 2 < islands[0].width / 2);
