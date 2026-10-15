@@ -1,5 +1,5 @@
 import modelUrl from "../../models/castle/props/fireplace-cauldron.glb?url";
-import { AbstractCastleProp } from "./AbstractCastleProp.js";
+import { AbstractCastleProp } from "../castle-props/AbstractCastleProp.js";
 
 /**
  * Authored fireplace cauldron placed through the map objects array.

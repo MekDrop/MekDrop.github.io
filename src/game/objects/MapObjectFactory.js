@@ -43,7 +43,7 @@ import { Apple } from "./food/Apple.js";
 import { GreenVegetable } from "./food/GreenVegetable.js";
 import { DeskGlobe } from "./desk-globe/DeskGlobe.js";
 import { DeskParchment } from "./castle-props/DeskParchment.js";
-import { FireplaceCauldron } from "./castle-props/FireplaceCauldron.js";
+import { FireplaceCauldron } from "./fireplace-cauldron/FireplaceCauldron.js";
 import { FloorCandelabrum } from "./castle-props/FloorCandelabrum.js";
 import { HangingFryingPan } from "./castle-props/HangingFryingPan.js";
 import { Fireplace } from "./fireplace/Fireplace.js";
