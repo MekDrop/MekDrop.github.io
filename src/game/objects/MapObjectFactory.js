@@ -24,7 +24,7 @@ import { KitchenUtensilRail } from "./castle-props/KitchenUtensilRail.js";
 import { WoodenWashBasin } from "./castle-props/WoodenWashBasin.js";
 import { WoodenWaterBucket } from "./castle-props/WoodenWaterBucket.js";
 import { WritingDesk } from "./castle-props/WritingDesk.js";
-import { CourtLectern } from "./castle-props/CourtLectern.js";
+import { Lectern } from "./castle-props/Lectern.js";
 import { ThroneDais } from "./castle-props/ThroneDais.js";
 import { RoyalCrest } from "./castle-props/RoyalCrest.js";
 import { WarCouncilShield } from "./castle-props/WarCouncilShield.js";
@@ -128,7 +128,7 @@ const OBJECT_CLASSES = new Map([
   [WoodenWashBasin.name, WoodenWashBasin],
   [WoodenWaterBucket.name, WoodenWaterBucket],
   [WritingDesk.name, WritingDesk],
-  [CourtLectern.name, CourtLectern],
+  [Lectern.name, Lectern],
   [ThroneDais.name, ThroneDais],
   [RoyalCrest.name, RoyalCrest],
   [WarCouncilShield.name, WarCouncilShield],

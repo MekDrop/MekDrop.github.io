@@ -49,7 +49,7 @@ it("reproduces court groups, varies seeds and keeps the central audience lane cl
     const room = plan.spaces.find(space => space.id === "throne-hall");
     const center = (room.minX + room.maxX) / 2;
     assert.equal(items.filter(item => item.object === "FloorCandelabrum").length, 2);
-    const work = items.filter(item => ["CourtLectern", "WritingDesk", "WarMapTable"].includes(item.object));
+    const work = items.filter(item => ["Lectern", "WritingDesk", "WarMapTable"].includes(item.object));
     assert.equal(work.length, 1);
     variants.add(work[0].object);
     assert.equal(items.filter(item => item.object === "ThroneDais").length, 1);
@@ -82,7 +82,7 @@ it("omits optional groups in small rooms and offers a working seat in larger hal
   assert.deepEqual(generator.furnish(room), []);
   const small = generator.furnish({ ...room, maxX: 3.5 });
   assert.equal(small.filter(item => item.object === "FloorCandelabrum").length, 2);
-  assert.ok(!small.some(item => ["CourtLectern", "WritingDesk", "WarMapTable"].includes(item.object)));
+  assert.ok(!small.some(item => ["Lectern", "WritingDesk", "WarMapTable"].includes(item.object)));
   const large = generator.furnish({ ...room, maxX: 5, maxZ: 5 }, { seed: 42 });
   assert.ok(large.some(item => item.object === "WoodenDeskChair"));
 });
@@ -92,7 +92,7 @@ it("omits a blocked work group together with its tabletop details", () => {
   const items = new ThroneRoomGenerator().furnish(room, { seed: 42,
     openings: [{ roomId: room.id, kind: "door", side: "SOUTH", axis: "z", coordinate: 3.75, center: 3.5, width: 1 }] });
   assert.ok(items.some(item => item.object === "FloorCandelabrum"));
-  assert.ok(!items.some(item => ["CourtLectern", "WritingDesk", "WarMapTable", "OpenReadingBook", "DeskGlobe"].includes(item.object)));
+  assert.ok(!items.some(item => ["Lectern", "WritingDesk", "WarMapTable", "OpenReadingBook", "DeskGlobe"].includes(item.object)));
 });
 
 it("faces compact visitors toward the throne in both mirrored layouts", async () => {
@@ -121,7 +121,7 @@ it("publishes actual prop definitions once and replaces old furnishings on regen
   const first = structuredClone(map.objects);
   ThroneRoomMapObjects.prepareMap(map);
   assert.deepEqual(map.objects, first);
-  assert.ok(map.objects.some(item => ["CourtLectern", "WritingDesk", "WarMapTable"].includes(item.object)));
+  assert.ok(map.objects.some(item => ["Lectern", "WritingDesk", "WarMapTable"].includes(item.object)));
   definition.buildPlan = await CastleAuthoredBuildPlan.generate({ ...definition, seed: 48 });
   ThroneRoomMapObjects.prepareMap(map);
   assert.equal(map.objects.filter(item => item.courtFurnishing).length,

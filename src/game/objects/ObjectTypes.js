@@ -13,7 +13,7 @@
  * @property {MapObjectDefinition[]} [items] Ordinary game objects packed and frozen by the containing bowl.
  * @property {boolean} [worldMap] Draw the current world on a table.
  * @property {string} object
- * @property {"entrance"|"wall"|"table"} [type] Lantern model selection.
+ * @property {"entrance"|"wall"|"table"|"court"} [type] Lantern or lectern model selection.
  * @property {string} [symbol] Gateway banner override.
  * @property {import("../navigation/WalkingPaths.js").WalkingEntry} [entry]
  * @property {Array<import("../generator/map/MapGenerationTypes.js").RiverData>} [rivers]

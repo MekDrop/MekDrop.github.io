@@ -36,7 +36,7 @@ export class ThroneRoomMapObjects {
           item.floorY - layout.origin.y + (item.elevation ?? 0));
         const rotation = layout.yaw + 180 + (item.rotation ?? 0);
         const definition = { id: `${castle.id}-court-${index}`, object: item.object,
-          position, rotation, scale: item.scale, stretch: item.stretch, generated: true,
+          ...(item.type ? { type: item.type } : {}), position, rotation, scale: item.scale, stretch: item.stretch, generated: true,
           sourceCastleId: castle.id, courtFurnishing: true,
           tile: { col: Math.round(position.x + (mapData.cols - 1) / 2),
             row: Math.round(position.z + (mapData.rows - 1) / 2) } };

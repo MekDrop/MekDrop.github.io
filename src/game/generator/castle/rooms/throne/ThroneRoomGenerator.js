@@ -120,7 +120,8 @@ export class ThroneRoomGenerator extends AbstractCastleRoomGenerator {
       const z = bounds.maxZ - 0.95 - random() * 0.12;
       if (!fits(x, z, 0.628, 1.25)) { return items; }
       if (variant === "royalCourt") {
-        add("CourtLectern", x, z, 0.45, 0.45, 0.05, side > 0 ? 90 : -90);
+        add("Lectern", x, z, 0.45, 0.45, 0.05, side > 0 ? 90 : -90);
+        items.at(-1).type = "court";
       } else if (variant === "scholarKing") {
         add("WritingDesk", x, z, 0.9, 0.55, 0.05, 90);
         add("OpenReadingBook", x, z + 0.1, 0.36, 0.227, 0.7, 90);
