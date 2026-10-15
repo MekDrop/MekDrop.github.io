@@ -549,6 +549,19 @@
         "z": 0
       },
       "model": "royal-bedroom-rug.glb"
+    },
+    {
+      "id": "folded-linens-preview",
+      "object": "FoldedLinens",
+      "position": {
+        "x": 5,
+        "y": 1,
+        "z": 3
+      },
+      "width": 0.7,
+      "depth": 0.5,
+      "height": 0.48,
+      "linenSeed": 42
     }
   ]
 }

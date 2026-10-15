@@ -6,7 +6,7 @@ import { Ladder } from "./castle/Ladder.js";
 import { SignalBell } from "./signal-bell/SignalBell.js";
 import { BedsideDrawers } from "./bedside-drawers/BedsideDrawers.js";
 import { Rug } from "./rug/Rug.js";
-import { FoldedLinens } from "./castle-props/FoldedLinens.js";
+import { FoldedLinens } from "./folded-linens/FoldedLinens.js";
 import { SewingBasket } from "./castle-props/SewingBasket.js";
 import { VestibuleBench } from "./castle-props/VestibuleBench.js";
 import { VestibuleIslandBench } from "./castle-props/VestibuleIslandBench.js";
