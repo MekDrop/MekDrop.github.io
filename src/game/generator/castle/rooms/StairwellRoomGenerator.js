@@ -127,7 +127,8 @@ export class StairwellRoomGenerator extends AbstractCastleRoomGenerator {
       for (const prop of [
         { object: "WoodenBarrel", slot: sine < 0 ? -0.72 : 0.72, along: -0.91, width: 0.554, depth: 0.554, height: 0.65, scale: 0.8,
           endWallStorage: true },
-        { object: "WoodenBarrel", slot: sine < 0 ? -0.72 : 0.72, along: -0.91, width: 0.554, depth: 0.65, height: 0.554, scale: 0.8, tilt: { x: -90 }, y: 0.52, endWallStorage: true, preserveAlong: true, stackedBarrel: true },
+        { object: "WoodenBarrel", slot: sine < 0 ? -0.72 : 0.72, along: -0.33, width: 0.554, depth: 0.554, height: 0.65, scale: 0.8,
+          endWallStorage: true },
         { object: "WoodenWaterBucket", slot: sine < 0 ? 1.29 : -1.29, along: 0.5, width: 0.3, depth: 0.28, height: 0.4, scale: 1 },
         { object: "StoragePotteryJar", slot: sine < 0 ? -1.17 : 1.17, along: -0.33, width: 0.229, depth: 0.236, height: 0.3, scale: 1,
           y: 0.9404 * rowScales[1] },
@@ -148,6 +149,22 @@ export class StairwellRoomGenerator extends AbstractCastleRoomGenerator {
           rotation: stair.yaw - plan.origin.yaw + (prop.tilt || prop.object === "WoodenBarrel" ? 0 : random() * 360),
           weathering: 0.6, underStair: true });
       }
+      // Fill the small rear pocket beside the barrel without extending storage
+      // into the stair approach. These boxes form one supported low stack.
+      const pocketAcross = 0.18;
+      const pocketAlong = -0.91;
+      const pocketScale = 0.65;
+      const pocketSupported = items.length > firstItem;
+      for (let tier = 0; pocketSupported && tier < 2; tier++) {
+        items.push({ role: "stairwellProp", object: "WoodenCrate",
+          x: stair.localCenter.x + pocketAcross * cosine + pocketAlong * sine,
+          z: stair.localCenter.z - pocketAcross * sine + pocketAlong * cosine,
+          floorY: stair.center.y, roomId: `under-stair:${stair.id}`,
+          width: 0.55, depth: 0.5502, height: 0.4702, scale: pocketScale,
+          y: 0.002 + tier * 0.4702 * pocketScale, rotation: stair.yaw - plan.origin.yaw,
+          weathering: 0.55, ceiling: turning.high - 0.3, underStair: true,
+          endWallStorage: true, backPocketStorage: true });
+      }
       // Seat the measured footprint against the room's inner wall face.
       // Each tier keeps its own clearance rather than sharing a fixed centre.
       for (const item of items.slice(firstItem)) {
@@ -165,14 +182,41 @@ export class StairwellRoomGenerator extends AbstractCastleRoomGenerator {
           item.width * Math.abs(Math.sin(yaw)) + item.depth * Math.abs(Math.cos(yaw)));
         const across = (item.x - stair.localCenter.x) * cosine - (item.z - stair.localCenter.z) * sine;
         const along = (item.x - stair.localCenter.x) * sine + (item.z - stair.localCenter.z) * cosine;
-        const acrossLow = cosine === 0 ? (sine > 0 ? stair.localCenter.z - area.maxZ : area.minZ + 0.25 - stair.localCenter.z) :
+        const acrossLow = cosine === 0 ? (sine > 0 ? stair.localCenter.z - area.maxZ : area.minZ - stair.localCenter.z) :
           (cosine > 0 ? area.minX - stair.localCenter.x : stair.localCenter.x - area.maxX);
-        const acrossHigh = cosine === 0 ? (sine > 0 ? stair.localCenter.z - area.minZ - 0.25 : area.maxZ - stair.localCenter.z) :
+        const acrossHigh = cosine === 0 ? (sine > 0 ? stair.localCenter.z - area.minZ : area.maxZ - stair.localCenter.z) :
           (cosine > 0 ? area.maxX - stair.localCenter.x : stair.localCenter.x - area.minX);
-        const alongLow = sine === 0 ? (cosine > 0 ? area.minZ + 0.25 - stair.localCenter.z : stair.localCenter.z - area.maxZ) :
+        const alongLow = sine === 0 ? (cosine > 0 ? area.minZ - stair.localCenter.z : stair.localCenter.z - area.maxZ) :
           (sine > 0 ? area.minX - stair.localCenter.x : stair.localCenter.x - area.maxX);
-        const seatedAcross = item.endWallStorage ? across : across < 0 ? acrossLow + halfAcross + 0.02 : acrossHigh - halfAcross - 0.02;
-        const seatedAlong = !item.preserveAlong && (item.endWallStorage || item.backWallStorage) ? alongLow + halfAlong + 0.02 : along;
+        const acrossAxis = cosine === 0 ? "z" : "x";
+        const alongAxis = sine === 0 ? "z" : "x";
+        const acrossSign = cosine || -sine;
+        const alongSign = sine || cosine;
+        item.stairApproach = { axis: alongAxis, coordinate: stair.localCenter[alongAxis] + 0.75 * alongSign,
+          side: alongSign > 0 ? "max" : "min" };
+        // Carry the eligible exterior faces into collision repair. Otherwise
+        // its nearest-position rule can undo the wall seating performed here.
+        item.wallAlignment = [
+          { axis: acrossAxis, coordinate: stair.localCenter[acrossAxis] + acrossLow * acrossSign, side: acrossSign > 0 ? "min" : "max" },
+          { axis: acrossAxis, coordinate: stair.localCenter[acrossAxis] + acrossHigh * acrossSign, side: acrossSign > 0 ? "max" : "min" },
+          { axis: alongAxis, coordinate: stair.localCenter[alongAxis] + alongLow * alongSign, side: alongSign > 0 ? "min" : "max" },
+        ];
+        if (item.backPocketStorage) { item.wallAlignment = item.wallAlignment.slice(2); }
+        // All three enclosing walls are eligible; the central flight divider
+        // is deliberately absent. Keep the open stair approach unoccupied.
+        const wallSeats = [
+          { across: acrossLow + halfAcross + 0.02, along },
+          { across: acrossHigh - halfAcross - 0.02, along },
+          { across, along: alongLow + halfAlong + 0.02 },
+        ];
+        if (item.backPocketStorage) { wallSeats.splice(0, 2); }
+        wallSeats.sort(/**
+         * @param {{across:number,along:number}} first
+         * @param {{across:number,along:number}} second
+         */
+        (first, second) => Math.hypot(first.across - across, first.along - along) -
+          Math.hypot(second.across - across, second.along - along));
+        const { across: seatedAcross, along: seatedAlong } = wallSeats[0];
         item.x += (seatedAcross - across) * cosine + (seatedAlong - along) * sine;
         item.z += -(seatedAcross - across) * sine + (seatedAlong - along) * cosine;
         if (item.stackedBarrel) {

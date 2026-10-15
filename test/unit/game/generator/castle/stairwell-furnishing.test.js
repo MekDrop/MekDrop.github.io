@@ -85,8 +85,22 @@ it("confines crates to supported low-headroom stair pockets and leaves floor voi
       doors: [{ side: "NORTH", offset: 5, width: 2 }], seed });
     const plan = build.metadata.runtime.residential;
     const crates = plan.furniture.filter(item => item.underStair);
-    assert.ok(crates.length >= 10);
+    assert.ok(crates.length >= 10, "wall alignment retains the full storage inventory");
+    const pocket = crates.filter(item => item.backPocketStorage);
+    assert.equal(pocket.length, 2);
+    assert.equal(pocket[1].supportId, pocket[0].id);
+    assert.equal(pocket[0].x, pocket[1].x);
+    assert.equal(pocket[0].z, pocket[1].z);
+    for (const [object, count] of Object.entries({ WoodenCrate: 12, WoodenStorageChest: 5,
+      WoodenBarrel: 2, WoodenWaterBucket: 1, StoragePotteryJar: 3 })) {
+      assert.equal(crates.filter(item => item.object === object).length, count,
+        `${object}: wall alignment must preserve the original inventory`);
+    }
     assert.ok(crates.every(item => item.floorY === -3));
+    for (const barrel of crates.filter(item => item.object === "WoodenBarrel")) {
+      assert.equal(barrel.y, 0.002, "barrels rest on the pocket floor");
+      assert.equal(barrel.tilt, undefined, "barrels remain upright");
+    }
     for (const item of crates) {
       const yaw = item.rotation * Math.PI / 180;
       const circular = item.object === "StoragePotteryJar";
@@ -97,18 +111,48 @@ it("confines crates to supported low-headroom stair pockets and leaves floor voi
       const halfZ = item.scale * (circular ? Math.max(width, depth) :
         width * Math.abs(Math.sin(yaw)) + depth * Math.abs(Math.cos(yaw))) / 2;
       const height = (item.height ?? 0.4702) * item.scale;
+      if (["WoodenCrate", "WoodenStorageChest"].includes(item.object)) {
+        const stair = plan.authoredStairs.find(stair => item.roomId === `under-stair:${stair.id}`);
+        const angle = (stair.yaw - plan.origin.yaw) * Math.PI / 180;
+        const along = (item.x - stair.localCenter.x) * Math.sin(angle) +
+          (item.z - stair.localCenter.z) * Math.cos(angle);
+        const area = plan.walkableAreas.find(area => area.kind === "room" && area.floorY === item.floorY &&
+          item.x >= area.minX && item.x <= area.maxX && item.z >= area.minZ && item.z <= area.maxZ);
+        const distances = [item.x - halfX - area.minX, area.maxX - item.x - halfX,
+          item.z - halfZ - area.minZ, area.maxZ - item.z - halfZ];
+        distances.push(distances[2] - 0.25);
+        if (!item.supportId) {
+          const group = new Set([item.id]);
+          for (let level = 0; level < crates.length; level++) {
+            for (const child of crates) { if (group.has(child.supportId)) { group.add(child.id); } }
+          }
+          for (const child of crates) {
+            if (!group.has(child.id) || child === item) { continue; }
+            const angle = child.rotation * Math.PI / 180;
+            const hx = child.scale * (child.width * Math.abs(Math.cos(angle)) + child.depth * Math.abs(Math.sin(angle))) / 2;
+            const hz = child.scale * (child.width * Math.abs(Math.sin(angle)) + child.depth * Math.abs(Math.cos(angle))) / 2;
+            distances.push(child.x - hx - area.minX, area.maxX - child.x - hx,
+              child.z - hz - area.minZ, area.maxZ - child.z - hz, child.z - hz - area.minZ - 0.25);
+          }
+          assert.ok(distances.some(distance => distance >= -1e-5 && distance <= 0.08),
+            JSON.stringify({ seed, item, distances }));
+        }
+        assert.ok(along < 0.75, "storage leaves the stair approach open");
+      }
       if (item.object === "WoodenCrate") {
-        assert.ok(item.width * item.scale >= 0.48);
+        assert.ok(item.width * item.scale >= (item.backPocketStorage ? 0.35 : 0.48));
         assert.ok(item.y + height <= item.ceiling);
       }
       if (item.y > 0.002 && item.object === "WoodenCrate") {
         assert.ok(crates.some(below => Math.abs(below.x - item.x) < 0.3 && Math.abs(below.z - item.z) < 0.3 &&
           Math.abs(below.y + (below.height ?? 0.4702) * below.scale - item.y) < 0.00001));
       }
-      assert.ok(plan.walkableAreas.some(area => area.floorY === item.floorY &&
-        item.x - halfX >= area.minX && item.x + halfX <= area.maxX &&
-        item.z - halfZ >= area.minZ && item.z + halfZ <= area.maxZ));
       const pivotOffset = item.tilt ? item.depth * item.scale / 2 : 0;
+      const centerX = item.x - Math.sin(yaw) * pivotOffset;
+      const centerZ = item.z - Math.cos(yaw) * pivotOffset;
+      assert.ok(plan.walkableAreas.some(area => area.floorY === item.floorY &&
+        centerX - halfX >= area.minX - 1e-6 && centerX + halfX <= area.maxX + 1e-6 &&
+        centerZ - halfZ >= area.minZ - 1e-6 && centerZ + halfZ <= area.maxZ + 1e-6));
       const x = plan.origin.x + item.x - Math.sin(yaw) * pivotOffset;
       const z = plan.origin.z + item.z - Math.cos(yaw) * pivotOffset;
       assert.ok(!build.metadata.collision.cameraBlocks.some(block =>

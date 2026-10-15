@@ -1319,6 +1319,14 @@
             "script": "objects.getAll('castle').find(c => c.definition.id === 'vestibule-castle').testEntranceOpenAmount = 0;"
           },
           {
+            "label": "Under-stair storage",
+            "script": "camera.setFirstPerson(false); const hero = objects.getOne('hero'); hero.teleport({\"x\":-6.5,\"y\":-0.986,\"z\":-3.3}); hero.firstPersonCameraEnabled = true; hero.firstPersonFacingYaw = -90; camera.setFirstPerson(true);"
+          },
+          {
+            "label": "Barrel storage view",
+            "script": "camera.setFirstPerson(false); const hero = objects.getOne('hero'); hero.teleport({\"x\":-8.5,\"y\":-0.986,\"z\":-1.5}); hero.firstPersonCameraEnabled = true; hero.firstPersonFacingYaw = -110; camera.setFirstPerson(true);"
+          },
+          {
             "label": "Castle overview",
             "script": "camera.setFirstPerson(false); camera.setViewport({zoom:2,rotation:2,panX:-2.25,panZ:-4.0625});"
           }

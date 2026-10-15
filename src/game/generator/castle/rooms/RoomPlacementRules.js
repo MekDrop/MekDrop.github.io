@@ -63,8 +63,14 @@ export class RoomPlacementRules {
      */
     const envelope = item => {
       const bottom = item.floorY + (item.y ?? item.elevation ?? 0) + (ROOM_PROP_BOTTOMS[item.object] ?? 0) * item.scale;
-      return { minX: item.x - item.width * item.scale / 2, maxX: item.x + item.width * item.scale / 2,
-        minZ: item.z - item.depth * item.scale / 2, maxZ: item.z + item.depth * item.scale / 2,
+      const angle = item.underStair ? (item.rotation ?? 0) * Math.PI / 180 : 0;
+      const width = item.width * Math.abs(Math.cos(angle)) + item.depth * Math.abs(Math.sin(angle));
+      const depth = item.width * Math.abs(Math.sin(angle)) + item.depth * Math.abs(Math.cos(angle));
+      const pivotOffset = item.underStair && item.tilt ? item.depth * item.scale / 2 : 0;
+      const x = item.x - Math.sin(angle) * pivotOffset;
+      const z = item.z - Math.cos(angle) * pivotOffset;
+      return { minX: x - width * item.scale / 2, maxX: x + width * item.scale / 2,
+        minZ: z - depth * item.scale / 2, maxZ: z + depth * item.scale / 2,
         bottom, top: bottom + (item.height ?? ROOM_PROP_HEIGHTS[item.object] ?? 1) * item.scale };
     };
     // Older generators publish supported tabletop details without explicit IDs.
@@ -88,7 +94,14 @@ export class RoomPlacementRules {
      *
      * @param {import("./AbstractCastleRoomGenerator.js").RoomItem} item
      */
-    item => !item.supportId)) {
+    item => !item.supportId).sort(/**
+     * Reserve perimeter space for complete terminal stacks before loose rows.
+     * @param {import("./AbstractCastleRoomGenerator.js").RoomItem} first
+     * @param {import("./AbstractCastleRoomGenerator.js").RoomItem} second
+     */
+    (first, second) => Number(Boolean(second.backPocketStorage)) * 2 - Number(Boolean(first.backPocketStorage)) * 2 ||
+      Number(Boolean(second.underStair && second.endWallStorage && second.object === "WoodenStorageChest")) -
+      Number(Boolean(first.underStair && first.endWallStorage && first.object === "WoodenStorageChest")))) {
       const group = [root];
       for (let level = 0; level < result.length; level++) {
         for (const child of result) {
@@ -195,12 +208,33 @@ export class RoomPlacementRules {
       if (!bookshelf && mountAxis === "z") { zs.clear(); zs.add(0); }
       const candidates = [];
       for (const x of xs) { for (const z of zs) { candidates.push({ x, z, distance: x * x + z * z }); } }
+      /**
+       * Prefer a clear perimeter position for the complete supported group.
+       * @param {{x:number,z:number}} candidate
+       * @returns {number}
+       */
+      const wallDistance = candidate => Math.min(...(root.endWallStorage && root.object === "WoodenStorageChest"
+        ? (root.wallAlignment ?? []).slice(0, 2) : root.wallAlignment ?? []).map(/**
+       * @param {{axis:string,coordinate:number,side:string}} wall
+       */
+      wall => {
+        const axis = wall.axis === "x" ? "X" : "Z";
+        let edge = wall.side === "min" ? Infinity : -Infinity;
+        for (const member of members) {
+          edge = wall.side === "min" ? Math.min(edge, member["min" + axis]) : Math.max(edge, member["max" + axis]);
+        }
+        return Math.abs(edge + candidate[wall.axis] - wall.coordinate);
+      }));
+      if (root.wallAlignment?.length) {
+        for (const candidate of candidates) { candidate.wallDistance = Math.floor(wallDistance(candidate) / 0.04); }
+      }
       candidates.sort(/**
        *
        * @param {{x:number,z:number,distance:number}} a
        * @param {{x:number,z:number,distance:number}} b
        */
-      (a, b) => a.distance - b.distance || Math.abs(a.x) - Math.abs(b.x) || a.z - b.z);
+      (a, b) => (root.wallAlignment?.length ? a.wallDistance - b.wallDistance : 0) ||
+        a.distance - b.distance || Math.abs(a.x) - Math.abs(b.x) || a.z - b.z);
       /**
      * @param {{x:number,z:number}} candidate
      * @returns {boolean}
@@ -212,6 +246,11 @@ export class RoomPlacementRules {
       member => {
         const minX = member.minX + candidate.x, maxX = member.maxX + candidate.x;
         const minZ = member.minZ + candidate.z, maxZ = member.maxZ + candidate.z;
+        if (root.stairApproach) {
+          const { axis, coordinate, side } = root.stairApproach;
+          const edge = side === "max" ? (axis === "x" ? maxX : maxZ) : (axis === "x" ? minX : minZ);
+          if (side === "max" ? edge > coordinate : edge < coordinate) { return false; }
+        }
         if (!member.item.wallAttachment && (minX < room.minX - 1e-6 || maxX > room.maxX + 1e-6 || minZ < room.minZ - 1e-6 || maxZ > room.maxZ + 1e-6)) { return false; }
         if (!bookshelf && mountAxis && mountWall) {
           const tangentMin = mountAxis === "x" ? minZ : minX;

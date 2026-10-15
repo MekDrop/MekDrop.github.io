@@ -2,6 +2,25 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { RoomPlacementRules } from "../../../../../../src/game/generator/castle/rooms/RoomPlacementRules.js";
 
+test("keeps a complete supported inventory aligned to an eligible outer wall during repair", () => {
+  const room = { id: "storage", minX: 0, maxX: 5, minZ: 0, maxZ: 5, floorY: 0, height: 3 };
+  const alignment = [{ axis: "x", coordinate: 0, side: "min" },
+    { axis: "x", coordinate: 5, side: "max" }, { axis: "z", coordinate: 0, side: "min" }];
+  const items = [{ id: "base", roomId: room.id, object: "WoodenStorageChest", underStair: true,
+    x: 2.5, z: 2.5, width: 0.7, depth: 0.55, scale: 1, height: 0.32914, floorY: 0, y: 0,
+    rotation: 90, wallAlignment: alignment },
+  { id: "top", supportId: "base", roomId: room.id, object: "WoodenCrate", underStair: true,
+    x: 2.5, z: 2.5, width: 0.55, depth: 0.55, scale: 1, height: 0.4702, floorY: 0, y: 0.32914 }];
+  const repaired = RoomPlacementRules.repair(items, [], [room]);
+  assert.equal(repaired.length, items.length);
+  assert.deepEqual(repaired.map(item => item.object), items.map(item => item.object));
+  const base = repaired[0], top = repaired[1];
+  assert.equal(base.x, top.x);
+  assert.equal(base.z, top.z);
+  assert.equal(top.y, items[1].y);
+  assert.ok(Math.min(base.x - 0.275, 5 - base.x - 0.275, base.z - 0.35) < 0.04);
+});
+
 const room = { minX: 0, maxX: 4, minZ: 0, maxZ: 4, floorY: 0, height: 3 };
 const shelf = { id: "shelf", role: "storageShelf", x: 2, z: 2, width: 0.8, depth: 0.3, height: 1, scale: 1 };
 
