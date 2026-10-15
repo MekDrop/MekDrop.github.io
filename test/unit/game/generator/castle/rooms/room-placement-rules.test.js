@@ -24,6 +24,29 @@ test("keeps a complete supported inventory aligned to an eligible outer wall dur
 const room = { minX: 0, maxX: 4, minZ: 0, maxZ: 4, floorY: 0, height: 3 };
 const shelf = { id: "shelf", role: "storageShelf", x: 2, z: 2, width: 0.8, depth: 0.3, height: 1, scale: 1 };
 
+test("banners slide clear of perpendicular masonry while retaining their wall mount", () => {
+  for (const rotation of [0, 90, 180, 270]) {
+    const axis = rotation % 180 ? "x" : "z";
+    const tangent = axis === "x" ? "z" : "x";
+    const sign = rotation < 180 ? 1 : -1;
+    const backing = { x: 2, z: 2, y: 1.5, halfX: 2, halfZ: 2, halfY: 1.5 };
+    backing[axis] = sign > 0 ? 4 : 0;
+    backing[axis === "x" ? "halfX" : "halfZ"] = 0.125;
+    const corner = { x: 2, z: 2, y: 1.5, halfX: 2, halfZ: 2, halfY: 1.5 };
+    corner[tangent] = 0;
+    corner[tangent === "x" ? "halfX" : "halfZ"] = 0.125;
+    const banner = { ...shelf, object: "VestibuleBanner", rotation, floorY: 0,
+      y: 2, width: axis === "z" ? 1.1 : 0.1, depth: axis === "z" ? 0.1 : 1.1 };
+    banner[axis] = sign > 0 ? 3.7 : 0.3;
+    banner[tangent] = 0.6;
+    const [fixed] = RoomPlacementRules.repair([banner], [backing, corner], [room]);
+    assert.equal(fixed.placementIssue, undefined);
+    assert.ok(fixed[tangent] - 0.55 >= 0.15, "entire pole clears the corner by 25 mm");
+    assert.ok(Math.abs(fixed[axis] - (backing[axis] - sign * 0.13)) < 1e-6,
+      "rear mounting plane stays on its supporting wall");
+  }
+});
+
 test("ordinary props respect the inside wall face, even with a wallInset field", () => {
   assert.equal(RoomPlacementRules.accepts({ ...shelf, x: 0.4 }, room, []), false);
   assert.equal(RoomPlacementRules.accepts({ ...shelf, x: 0.4, wallInset: 1 }, room, []), false);
