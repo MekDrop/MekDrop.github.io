@@ -34,7 +34,7 @@ test("kitchen varies coherently and reproduces its local seed", () => {
       assert.ok(item.z + item.depth / 2 <= room.maxZ);
       // Southern west entry and the central service aisle stay traversable.
       assert.ok(!(item.x - item.width / 2 < 1.2 && item.z + item.depth / 2 > 2.4));
-      if (["Bowl", "PlateBread"].includes(item.object)) {
+      if (item.object === "Bowl") {
         assert.equal(item.y, 0.564499);
         assert.ok(Math.abs(item.x - table.x) + item.width / 2 < table.width / 2);
         assert.ok(Math.abs(item.z - table.z) + item.depth / 2 < table.depth / 2);
@@ -82,7 +82,7 @@ test("blocked prep bank removes its food group and openings exclude tall furnitu
     { roomId: room.id, floorY: room.floorY, kind: "door", axis: "x", coordinate: 4, center: 1.6, width: 1 },
     { roomId: room.id, floorY: room.floorY, kind: "window", axis: "z", coordinate: 0, center: 0.85, width: 1 },
   ] });
-  assert.ok(!items.some(item => ["KitchenTable", "PlateBread", "Bowl"].includes(item.object)));
+  assert.ok(!items.some(item => ["KitchenTable", "Bowl"].includes(item.object)));
   const hearth = items.find(item => item.object === "KitchenFireplace");
   assert.ok(!hearth || hearth.x - hearth.width / 2 >= 1.35, "hearth is beside the window or omitted when its larger measured body cannot fit");
 });
@@ -115,9 +115,10 @@ test("active authored pipeline publishes kitchen objects and replaces old seeded
   KitchenRoomMapObjects.prepareMap(map);
   const first = structuredClone(map.objects.slice(1));
   const bowls = first.filter(item => item.object === "Bowl");
-  assert.equal(bowls.length, 2);
-  assert.deepEqual(bowls.map(bowl => bowl.items.length).sort((a, b) => a - b), [5, 9]);
+  assert.equal(bowls.length, 3);
+  assert.deepEqual(bowls.map(bowl => bowl.items.length).sort((a, b) => a - b), [3, 5, 9]);
   assert.ok(bowls.some(bowl => bowl.color === "#ffffff" && bowl.items.every(item => item.object === "Apple")));
+  assert.ok(bowls.some(bowl => bowl.items.length === 3 && bowl.items.every(item => item.object === "Bread")));
   assert.ok(bowls.some(bowl => bowl.color === "#b16832" && bowl.items.every(item => item.object === "GreenVegetable")));
   assert.ok(first.find(item => item.object === "KitchenFireplace").chimneyHeight > 9,
     "basement chimney reaches above the keep roof rather than the terrace");
@@ -135,7 +136,7 @@ test("side-tower kitchens retain preparation, pantry storage and cooking furnish
   for (const seed of [4, 5, 10, 11, 16, 17, 22, 23, 28, 29]) {
     const plan = await CastleBasePlanGenerator.generate({ planId: "castle-compact-service-wing", seed });
     const items = plan.furniture.filter(item => item.roomId === "kitchen");
-    for (const object of ["KitchenFireplace", "FirewoodStack", "FireplaceCauldron", "KitchenTable", "PlateBread", "Bowl", "HangingFryingPan", "StoragePotteryJar"]) {
+    for (const object of ["KitchenFireplace", "FirewoodStack", "FireplaceCauldron", "KitchenTable", "Bowl", "HangingFryingPan", "StoragePotteryJar"]) {
       assert.ok(items.some(item => item.object === object), object + " missing for seed " + seed);
     }
     const shelf = items.find(item => item.role === "storageShelf");
