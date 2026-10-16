@@ -9,8 +9,8 @@ import { RoomPlanningStage } from "../../../../../src/game/generator/castle/stag
 import { RoomFurnishingStage } from "../../../../../src/game/generator/castle/stages/RoomFurnishingStage.js";
 import { AbstractCastleRoomGenerator } from "../../../../../src/game/generator/castle/rooms/AbstractCastleRoomGenerator.js";
 import { CastleRoomSizeInvalidError } from "../../../../../src/game/errors/castle/index.js";
-import { CastleResidentialLayout } from "../../../../../src/game/objects/castle/CastleResidentialLayout.js";
-import { createCastleGroundCuts } from "../../../../../src/game/objects/castle/CastleGroundCuts.js";
+import { CastleResidentialLayout } from "../../../../../src/game/objects/castle/residents/CastleResidentialLayout.js";
+import { createCastleGroundCuts } from "../../../../../src/game/objects/castle/ground/CastleGroundCuts.js";
 
 const options = {
   position: {

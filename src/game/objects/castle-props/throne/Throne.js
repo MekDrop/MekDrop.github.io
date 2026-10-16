@@ -1,5 +1,5 @@
 import modelUrl from "../../../models/castle/props/throne.glb?url";
-import { CastleResidentialLayout } from "../../castle/CastleResidentialLayout.js";
+import { CastleResidentialLayout } from "../../castle/residents/CastleResidentialLayout.js";
 import { AbstractCastleProp } from "../../shared/AbstractCastleProp.js";
 
 /**

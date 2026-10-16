@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import { it } from "node:test";
 import * as pc from "playcanvas";
 import { CastleGenerator } from "../../../../../../../src/game/generator/castle/CastleGenerator.js";
-import { CastleResidentialLayout } from "../../../../../../../src/game/objects/castle/CastleResidentialLayout.js";
+import { CastleResidentialLayout } from "../../../../../../../src/game/objects/castle/residents/CastleResidentialLayout.js";
 import { TerraceDoorInspection } from "../../../../../../../src/game/objects/castle/rooms/terrace/TerraceDoorInspection.js";
 import { TerraceInspectorWalk } from "../../../../../../../src/game/objects/castle/rooms/terrace/TerraceInspectorWalk.js";
 import { CASTLE_TERRACE_PHASE as PHASE } from "../../../../../../../src/game/enum/CastleTerracePhase.js";
@@ -112,7 +112,7 @@ it("inspects and closes the authored terrace door without adding or destroying c
 });
 
 it("walks the existing servant from home, inspects, and returns without visibility swaps", async () => {
-  const { CastleResidentMotion } = await import("../../../../../../../src/game/objects/castle/CastleResidentMotion.js");
+  const { CastleResidentMotion } = await import("../../../../../../../src/game/objects/castle/residents/CastleResidentMotion.js");
   const scene = new pc.Entity(); scene._enabledInHierarchy = true;
   const root = new pc.Entity(); root.setPosition(5, 0, 5); scene.addChild(root);
   const stage = new pc.Entity(); stage.setLocalScale(0.45, 0.45, 0.45); root.addChild(stage);

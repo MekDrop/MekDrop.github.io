@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { it } from "node:test";
 import { CastleGenerator } from "../../../../../src/game/generator/castle/CastleGenerator.js";
-import { CastleResidentialLayout } from "../../../../../src/game/objects/castle/CastleResidentialLayout.js";
+import { CastleResidentialLayout } from "../../../../../src/game/objects/castle/residents/CastleResidentialLayout.js";
 import { MapGenerator } from "../../../../../src/game/generator/map/MapGenerator.js";
 
 // Check actual collision geometry with a wider clearance than the hero capsule.

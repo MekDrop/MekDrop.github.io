@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { it } from "node:test";
 import { CastleGenerator } from "../../../../../../../src/game/generator/castle/CastleGenerator.js";
-import { CastleResidentialLayout } from "../../../../../../../src/game/objects/castle/CastleResidentialLayout.js";
+import { CastleResidentialLayout } from "../../../../../../../src/game/objects/castle/residents/CastleResidentialLayout.js";
 
 it("keeps ground and upstairs leisure areas free of roofs, ceilings, and higher floor slabs", async () => {
   const levels = new Set();

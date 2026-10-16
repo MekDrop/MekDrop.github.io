@@ -1,5 +1,5 @@
 import { CASTLE_TERRACE_PHASE as PHASE } from "../../../../enum/CastleTerracePhase.js";
-import { CastleResidentMotion } from "../../CastleResidentMotion.js";
+import { CastleResidentMotion } from "../../residents/CastleResidentMotion.js";
 import { CHARACTER_HEIGHT } from "../../../../config/character-size.js";
 import { syncTerraceWalk, terracePathYaw } from "./TerraceMovement.js";
 

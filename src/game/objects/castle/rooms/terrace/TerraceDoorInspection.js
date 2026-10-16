@@ -1,5 +1,5 @@
 import { TERRACE_DOOR_INSPECTION_PHASE as PHASE } from "../../../../enum/TerraceDoorInspectionPhase.js";
-import { ServantStateMachine } from "../../ServantStateMachine.js";
+import { ServantStateMachine } from "../../residents/ServantStateMachine.js";
 import { ServantWaitState } from "../../states/servant/ServantWaitState.js";
 import { ServantNoticeState } from "../../states/servant/ServantNoticeState.js";
 import { ServantWalkOutState } from "../../states/servant/ServantWalkOutState.js";

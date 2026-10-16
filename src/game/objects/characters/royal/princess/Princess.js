@@ -1,6 +1,6 @@
 import princessModelUrl from "../../../../models/castle/royals/princess.glb?url";
 import { CastleTerraceActivity } from "../../../castle/rooms/terrace/CastleTerraceActivity.js";
-import { PrincessLeisureBehavior } from "../../../castle/PrincessLeisureBehavior.js";
+import { PrincessLeisureBehavior } from "../../../castle/residents/PrincessLeisureBehavior.js";
 import { TerracePrincess } from "../../../castle/rooms/terrace/TerracePrincess.js";
 import { AbstractRoyal } from "../AbstractRoyal.js";
 

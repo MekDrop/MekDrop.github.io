@@ -1,4 +1,4 @@
-import { CastleResidentialLayout } from "../../CastleResidentialLayout.js";
+import { CastleResidentialLayout } from "../../residents/CastleResidentialLayout.js";
 
 /**
  * Publishes leisure plants through registered map-object classes.

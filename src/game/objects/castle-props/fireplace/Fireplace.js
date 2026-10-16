@@ -3,7 +3,7 @@ import { AbstractCastleProp } from "../../shared/AbstractCastleProp.js";
 import { FireSurfaceMaterial } from "../../fire/FireSurfaceMaterial.js";
 import terminalModelUrl from "../../../models/castle/props/terrace-chimney-terminal.glb?url";
 import chimneyModelUrl from "../../../models/castle/props/kitchen-chimney-course.glb?url";
-import { CastleMasonryMaterial } from "../../castle/CastleMasonryMaterial.js";
+import { CastleMasonryMaterial } from "../../castle/structure/CastleMasonryMaterial.js";
 import { CASTLE_MATERIAL_DEFINITIONS } from "../../../generator/castle/CastleGenerationConfig.js";
 import { colorFromHex } from "../../../helpers/colors.js";
 

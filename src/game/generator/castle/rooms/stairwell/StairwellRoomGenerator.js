@@ -1,6 +1,6 @@
 import { Vec2 } from "playcanvas";
 import { AbstractCastleRoomGenerator } from "../AbstractCastleRoomGenerator.js";
-import { castleStraightStairSurfaces } from "../../../../objects/castle/CastleStraightStairs.js";
+import { castleStraightStairSurfaces } from "../../../../objects/castle/stairs/CastleStraightStairs.js";
 
 /**
  * A stair is a vertical connecting subroom, created after both endpoints exist.

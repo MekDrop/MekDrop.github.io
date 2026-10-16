@@ -1,4 +1,4 @@
-import { CastleSignalTowerLayout } from "../../../../../../src/game/objects/castle/CastleSignalTowerLayout.js";
+import { CastleSignalTowerLayout } from "../../../../../../src/game/objects/castle/signal-tower/CastleSignalTowerLayout.js";
 
 describe("Signal tower bell", () => {
   it("reaches with a hand, pulls before striking, and releases the action lock", () => {

@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import {it} from 'node:test';
 import {subtractTerrainCutouts} from '../../../../src/game/collision/TerrainSurfaceCutouts.js';
 import {MapGenerator} from '../../../../src/game/generator/map/MapGenerator.js';
-import {CastleMapPreparation} from '../../../../src/game/objects/castle/CastleMapPreparation.js';
+import {CastleMapPreparation} from '../../../../src/game/objects/castle/ground/CastleMapPreparation.js';
 import {TerrainPhysicsSurface} from '../../../../src/game/collision/TerrainPhysicsSurface.js';
 
 const area = polygons => polygons.reduce((sum,p)=>sum+Math.abs(p.reduce((value,a,i)=>{const b=p[(i+1)%p.length];

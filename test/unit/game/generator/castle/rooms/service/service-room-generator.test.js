@@ -3,7 +3,7 @@ import { test } from "node:test";
 import { ServiceRoomGenerator } from "../../../../../../../src/game/generator/castle/rooms/service/ServiceRoomGenerator.js";
 import { CastleBasePlanGenerator } from "../../../../../../../src/game/generator/castle/CastleBasePlanGenerator.js";
 import { CastleAuthoredBuildPlan } from "../../../../../../../src/game/generator/castle/CastleAuthoredBuildPlan.js";
-import { CastleResidentialLayout } from "../../../../../../../src/game/objects/castle/CastleResidentialLayout.js";
+import { CastleResidentialLayout } from "../../../../../../../src/game/objects/castle/residents/CastleResidentialLayout.js";
 import { KitchenRoomMapObjects } from "../../../../../../../src/game/objects/castle/rooms/kitchen/KitchenRoomMapObjects.js";
 
 const generator = new ServiceRoomGenerator();

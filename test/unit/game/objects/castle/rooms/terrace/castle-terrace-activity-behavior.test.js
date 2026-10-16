@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 import { it } from "node:test";
-import { KingTrainingBehavior } from "../../../../../../../src/game/objects/castle/KingTrainingBehavior.js";
-import { PrincessLeisureBehavior } from "../../../../../../../src/game/objects/castle/PrincessLeisureBehavior.js";
-import { QueenLeisureBehavior } from "../../../../../../../src/game/objects/castle/QueenLeisureBehavior.js";
+import { KingTrainingBehavior } from "../../../../../../../src/game/objects/castle/residents/KingTrainingBehavior.js";
+import { PrincessLeisureBehavior } from "../../../../../../../src/game/objects/castle/residents/PrincessLeisureBehavior.js";
+import { QueenLeisureBehavior } from "../../../../../../../src/game/objects/castle/residents/QueenLeisureBehavior.js";
 import { TerraceServantBehavior } from "../../../../../../../src/game/objects/castle/rooms/terrace/TerraceServantBehavior.js";
 import { KingCombatTrainingState } from "../../../../../../../src/game/objects/castle/states/terrace/king/KingCombatTrainingState.js";
 import { KingOnThroneState } from "../../../../../../../src/game/objects/castle/states/terrace/king/KingOnThroneState.js";
@@ -14,7 +14,7 @@ import { ServantOffstageState } from "../../../../../../../src/game/objects/cast
 import { QueenWantsSunbedState } from "../../../../../../../src/game/objects/castle/states/terrace/queen/QueenWantsSunbedState.js";
 import { PrincessWantsTeaState } from "../../../../../../../src/game/objects/castle/states/terrace/princess/PrincessWantsTeaState.js";
 import { TERRACE_SERVICE } from "../../../../../../../src/game/enum/TerraceService.js";
-import { RoyalWishFulfillment } from "../../../../../../../src/game/objects/castle/RoyalWishFulfillment.js";
+import { RoyalWishFulfillment } from "../../../../../../../src/game/objects/castle/residents/RoyalWishFulfillment.js";
 
 const ROYAL_CASES = [
   [KingTrainingBehavior, KingOnThroneState, null, null,

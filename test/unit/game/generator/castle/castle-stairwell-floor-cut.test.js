@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { it } from "node:test";
 import { CastleAuthoredBuildPlan } from "../../../../../src/game/generator/castle/CastleAuthoredBuildPlan.js";
-import { castleStraightStairSurfaces } from "../../../../../src/game/objects/castle/CastleStraightStairs.js";
+import { castleStraightStairSurfaces } from "../../../../../src/game/objects/castle/stairs/CastleStraightStairs.js";
 
 it("cuts every floor slab to the rear stairwell wall in all gate orientations", async () => {
   for (const side of ["NORTH", "SOUTH", "EAST", "WEST"]) {

@@ -1,4 +1,4 @@
-import { CastleResidentialLayout } from "../../CastleResidentialLayout.js";
+import { CastleResidentialLayout } from "../../residents/CastleResidentialLayout.js";
 
 /**
  * Publishes the tower generator's props through their registered object classes.

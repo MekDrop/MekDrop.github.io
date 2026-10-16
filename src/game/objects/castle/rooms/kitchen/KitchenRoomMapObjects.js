@@ -1,4 +1,4 @@
-import { CastleResidentialLayout } from "../../CastleResidentialLayout.js";
+import { CastleResidentialLayout } from "../../residents/CastleResidentialLayout.js";
 import { FireplaceGenerator } from "../../../castle-props/fireplace/FireplaceGenerator.js";
 
 /**

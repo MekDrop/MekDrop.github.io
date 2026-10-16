@@ -1,11 +1,11 @@
 import assert from "node:assert/strict";
-import { castleStraightStairSurfaces } from "../../../../../src/game/objects/castle/CastleStraightStairs.js";
+import { castleStraightStairSurfaces } from "../../../../../src/game/objects/castle/stairs/CastleStraightStairs.js";
 import { it } from "node:test";
 import { CastleAuthoredBuildPlan } from "../../../../../src/game/generator/castle/CastleAuthoredBuildPlan.js";
 import { CastleGenerator } from "../../../../../src/game/generator/castle/CastleGenerator.js";
 import { CastleBasePlanGenerator } from "../../../../../src/game/generator/castle/CastleBasePlanGenerator.js";
-import { CastleResidentialLayout } from "../../../../../src/game/objects/castle/CastleResidentialLayout.js";
-import { CastleWindowLayout } from "../../../../../src/game/objects/castle/CastleWindowLayout.js";
+import { CastleResidentialLayout } from "../../../../../src/game/objects/castle/residents/CastleResidentialLayout.js";
+import { CastleWindowLayout } from "../../../../../src/game/objects/castle/structure/CastleWindowLayout.js";
 import { MapGenerator } from "../../../../../src/game/generator/map/MapGenerator.js";
 
 it("fits the compact roof to the upper shell's outer wall faces without extra eaves", async () => {

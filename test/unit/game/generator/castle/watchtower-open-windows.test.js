@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import {it} from 'node:test';
 import {CastleBasePlanGenerator} from '../../../../../src/game/generator/castle/CastleBasePlanGenerator.js';
 import {CastleGenerator} from '../../../../../src/game/generator/castle/CastleGenerator.js';
-import {CastleWindowLayout} from '../../../../../src/game/objects/castle/CastleWindowLayout.js';
+import {CastleWindowLayout} from '../../../../../src/game/objects/castle/structure/CastleWindowLayout.js';
 
 it('places glazed lookout windows on the two exterior corner faces',async()=>{
   const source=(await CastleBasePlanGenerator.plans).find(p=>p.id==='castle-compact-service-wing');

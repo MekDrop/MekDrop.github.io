@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { it } from "node:test";
 import { CastleGenerator } from "../../../../../../src/game/generator/castle/CastleGenerator.js";
-import { CastleResidentialLayout } from "../../../../../../src/game/objects/castle/CastleResidentialLayout.js";
+import { CastleResidentialLayout } from "../../../../../../src/game/objects/castle/residents/CastleResidentialLayout.js";
 import { CastleWardrobeMapObjects } from "../../../../../../src/game/objects/castle-props/wardrobe/CastleWardrobeMapObjects.js";
 
 it("publishes wardrobes with unchanged placement and castle-aligned collision in every orientation", async () => {

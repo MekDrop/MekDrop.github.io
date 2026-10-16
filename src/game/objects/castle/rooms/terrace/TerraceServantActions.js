@@ -33,7 +33,7 @@ export class TerraceServantActions {
    */
   #visit = -1;
   /**
-   * @type {import("../../CastleResidentMotion.js").CastleResidentMotion|null}
+   * @type {import("../../residents/CastleResidentMotion.js").CastleResidentMotion|null}
    */
   #motion = null;
   /**

@@ -65,7 +65,7 @@ import { Earth } from "./terrain/Earth.js";
 import { Window } from "./architecture/window/Window.js";
 import { Shelf } from "./castle-props/shelf/Shelf.js";
 import { Grass } from "./terrain/Grass.js";
-import { SeatedRoyal } from "./castle/SeatedRoyal.js";
+import { SeatedRoyal } from "./castle/residents/SeatedRoyal.js";
 import { Castle } from "./castle/Castle.js";
 import { MapObjectClassNotFoundError } from "../errors/debug/index.js";
 import { GroundCoverItem } from "./ground-cover/GroundCoverItem.js";

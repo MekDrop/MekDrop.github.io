@@ -1,4 +1,4 @@
-import { CastleResidentialLayout } from "../../castle/CastleResidentialLayout.js";
+import { CastleResidentialLayout } from "../../castle/residents/CastleResidentialLayout.js";
 
 /**
  * Opens the fireplace flue through castle surface materials.

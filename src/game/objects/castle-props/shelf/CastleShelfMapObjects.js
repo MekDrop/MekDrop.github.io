@@ -1,4 +1,4 @@
-import { CastleResidentialLayout } from "../../castle/CastleResidentialLayout.js";
+import { CastleResidentialLayout } from "../../castle/residents/CastleResidentialLayout.js";
 
 /**
  * Publishes castle cabinets through the same ownership as authored shelves.

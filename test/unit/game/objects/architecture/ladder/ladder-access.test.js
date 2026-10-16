@@ -1,10 +1,10 @@
-import {castleStraightStairSurfaces,castleStraightStairStepCount} from '../../../../../../src/game/objects/castle/CastleStraightStairs.js';
+import {castleStraightStairSurfaces,castleStraightStairStepCount} from '../../../../../../src/game/objects/castle/stairs/CastleStraightStairs.js';
 import assert from 'node:assert/strict';
 import {it} from 'node:test';
 import {LadderInteraction} from '../../../../../../src/game/objects/architecture/ladder/LadderInteraction.js';
 import {CastleGenerator} from '../../../../../../src/game/generator/castle/CastleGenerator.js';
-import {CastleResidentialLayout} from '../../../../../../src/game/objects/castle/CastleResidentialLayout.js';
-import {CastleLadderMapObjects} from '../../../../../../src/game/objects/castle/CastleLadderMapObjects.js';
+import {CastleResidentialLayout} from '../../../../../../src/game/objects/castle/residents/CastleResidentialLayout.js';
+import {CastleLadderMapObjects} from '../../../../../../src/game/objects/castle/stairs/CastleLadderMapObjects.js';
 
 it('allows climbing both ways only beside the corresponding ladder landing',()=>{
   const points={

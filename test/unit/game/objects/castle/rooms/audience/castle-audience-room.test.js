@@ -428,7 +428,7 @@ it("cuts a service stair opening from the visible floor and support surfaces", (
 
 it("uses the shared room plan and keeps the actual throne dais clear of furniture and stair bays", async () => {
   const { CastleGenerator } = await import("../../../../../../../src/game/generator/castle/CastleGenerator.js");
-  const { CastleResidentialLayout } = await import("../../../../../../../src/game/objects/castle/CastleResidentialLayout.js");
+  const { CastleResidentialLayout } = await import("../../../../../../../src/game/objects/castle/residents/CastleResidentialLayout.js");
   for (const style of ["twin-tower", "single-tower", "right-angle", "left-angle"]) {
     for (const side of Object.keys(layouts)) {
       const plan = await CastleGenerator.generate({
@@ -479,7 +479,7 @@ it("uses the shared room plan and keeps the actual throne dais clear of furnitur
 });
 it("keeps room timber and carpet within the planned chamber", async () => {
   const { CastleGenerator } = await import("../../../../../../../src/game/generator/castle/CastleGenerator.js");
-  const { CastleResidentialLayout } = await import("../../../../../../../src/game/objects/castle/CastleResidentialLayout.js");
+  const { CastleResidentialLayout } = await import("../../../../../../../src/game/objects/castle/residents/CastleResidentialLayout.js");
   for (const style of ["twin-keeps", "courtyard-keep", "long-hall", "l-courtyard", "terraced-keeps"]) {
     for (const side of Object.keys(layouts)) {
       const plan = await CastleGenerator.generate({
@@ -521,7 +521,7 @@ it("keeps room timber and carpet within the planned chamber", async () => {
 
 it("keeps authored throne-room finishes flush and out of the shared hall", async () => {
   const { CastleGenerator } = await import("../../../../../../../src/game/generator/castle/CastleGenerator.js");
-  const { CastleResidentialLayout } = await import("../../../../../../../src/game/objects/castle/CastleResidentialLayout.js");
+  const { CastleResidentialLayout } = await import("../../../../../../../src/game/objects/castle/residents/CastleResidentialLayout.js");
   for (const seed of [4, 5]) {
     const plan = await CastleGenerator.generate({
       position: {
@@ -554,7 +554,7 @@ it("keeps authored throne-room finishes flush and out of the shared hall", async
 
 it("faces the royal and runner toward the primary entrance in every orientation", async () => {
   const { CastleGenerator } = await import("../../../../../../../src/game/generator/castle/CastleGenerator.js");
-  const { CastleResidentialLayout } = await import("../../../../../../../src/game/objects/castle/CastleResidentialLayout.js");
+  const { CastleResidentialLayout } = await import("../../../../../../../src/game/objects/castle/residents/CastleResidentialLayout.js");
   for (const side of Object.keys(layouts)) {
     const plan = await CastleGenerator.generate({
       position: {

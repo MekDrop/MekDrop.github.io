@@ -3,9 +3,9 @@ import { DynamicRenderBatch } from "../../../rendering/DynamicRenderBatch.js";
 import stairModuleUrl from "../../../models/castle/stairs/castle-stair-module.glb?url";
 import masonryBlockUrl from "../../../models/castle/residential/masonry-block.glb?url";
 import stoneUrl from "../../../models/castle/residential/stone-block.glb?url";
-import { castleStraightStairSurfaces, castleStraightStairTreads, castleStraightStairSurfaceHeight, castleStraightStairWalls, castleStraightStairBlocksCamera } from "../../castle/CastleStraightStairs.js";
+import { castleStraightStairSurfaces, castleStraightStairTreads, castleStraightStairSurfaceHeight, castleStraightStairWalls, castleStraightStairBlocksCamera } from "../../castle/stairs/CastleStraightStairs.js";
 import { IslandObjectRoots } from "../../shared/IslandObjectRoots.js";
-import { CastleMasonryMaterial } from "../../castle/CastleMasonryMaterial.js";
+import { CastleMasonryMaterial } from "../../castle/structure/CastleMasonryMaterial.js";
 import { CASTLE_MATERIAL_DEFINITIONS } from "../../../generator/castle/CastleGenerationConfig.js";
 import { colorFromHex } from "../../../helpers/colors.js";
 

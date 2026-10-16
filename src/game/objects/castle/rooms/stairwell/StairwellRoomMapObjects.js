@@ -1,4 +1,4 @@
-import { CastleResidentialLayout } from "../../CastleResidentialLayout.js";
+import { CastleResidentialLayout } from "../../residents/CastleResidentialLayout.js";
 
 /**
  * Publish stair-room decoration through registered map object classes.

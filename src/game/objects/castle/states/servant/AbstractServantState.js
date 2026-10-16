@@ -90,7 +90,7 @@ export class AbstractServantState extends State {
 
   /**
    *
-   * @param {import("../../ServantStateMachine.js").ServantStateMachine} owner
+   * @param {import("../../residents/ServantStateMachine.js").ServantStateMachine} owner
    */
   execute(owner) {
     if (!owner.canAdvance(this)) {

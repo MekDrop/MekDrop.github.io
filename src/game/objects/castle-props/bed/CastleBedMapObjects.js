@@ -1,4 +1,4 @@
-import { CastleResidentialLayout } from "../../castle/CastleResidentialLayout.js";
+import { CastleResidentialLayout } from "../../castle/residents/CastleResidentialLayout.js";
 
 /**
  * Publishes both planned and compact castle beds through normal map ownership.

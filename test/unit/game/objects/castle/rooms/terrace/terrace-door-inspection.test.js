@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { it } from "node:test";
 import { State } from "yuka";
-import { ServantStateMachine } from "../../../../../../../src/game/objects/castle/ServantStateMachine.js";
+import { ServantStateMachine } from "../../../../../../../src/game/objects/castle/residents/ServantStateMachine.js";
 import { TerraceDoorInspection } from "../../../../../../../src/game/objects/castle/rooms/terrace/TerraceDoorInspection.js";
 import { ServantWaitState } from "../../../../../../../src/game/objects/castle/states/servant/ServantWaitState.js";
 import { ServantNoticeState } from "../../../../../../../src/game/objects/castle/states/servant/ServantNoticeState.js";

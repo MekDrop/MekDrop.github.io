@@ -1,6 +1,6 @@
 import { CastleGenerator } from "../../../../../../src/game/generator/castle/CastleGenerator.js";
 import castleMap from "../../../../../../src/game/maps/tests/castle-clearance.json";
-import { CastleResidentialLayout } from "../../../../../../src/game/objects/castle/CastleResidentialLayout.js";
+import { CastleResidentialLayout } from "../../../../../../src/game/objects/castle/residents/CastleResidentialLayout.js";
 function firstPerson(window) {
   // Cypress moves its pointer while capturing elements. Keep these camera
   // inspections controlled by the test driver rather than that synthetic input.

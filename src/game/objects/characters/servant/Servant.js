@@ -1,7 +1,7 @@
 import servantModelUrl from "../../../models/castle/leisure/servant.glb?url";
 import { DynamicRenderBatch } from "../../../rendering/DynamicRenderBatch.js";
 import { CHARACTER_HEIGHT } from "../../../config/character-size.js";
-import { CastleResidentMotion } from "../../castle/CastleResidentMotion.js";
+import { CastleResidentMotion } from "../../castle/residents/CastleResidentMotion.js";
 import { TerraceActor } from "../../castle/rooms/terrace/TerraceActor.js";
 import { TerraceServantBehavior } from "../../castle/rooms/terrace/TerraceServantBehavior.js";
 import { TerraceServiceActions } from "../../castle/rooms/terrace/TerraceServiceActions.js";
@@ -57,7 +57,7 @@ export class Servant {
    */
   #inspector = null;
   /**
-   * @type {import("../../castle/CastleResidence.js").CastleResidence|null}
+   * @type {import("../../castle/residents/CastleResidence.js").CastleResidence|null}
    */
   #residence = null;
   /**
@@ -101,10 +101,10 @@ export class Servant {
   }
 
   /**
-   * @param {{pc: typeof import("playcanvas"), modelLibrary: import("../../../models/GameModelLibrary.js").GameModelLibrary, residence: import("../../castle/CastleResidence.js").CastleResidence}} options
+   * @param {{pc: typeof import("playcanvas"), modelLibrary: import("../../../models/GameModelLibrary.js").GameModelLibrary, residence: import("../../castle/residents/CastleResidence.js").CastleResidence}} options
    * @param {typeof import("playcanvas")} options.pc
    * @param {import("../../../models/GameModelLibrary.js").GameModelLibrary} options.modelLibrary
-   * @param {import("../../castle/CastleResidence.js").CastleResidence} options.residence
+   * @param {import("../../castle/residents/CastleResidence.js").CastleResidence} options.residence
    */
   bindResidence({ pc, modelLibrary, residence }) {
     this.#residence = residence;

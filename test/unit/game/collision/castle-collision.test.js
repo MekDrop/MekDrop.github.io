@@ -1,4 +1,4 @@
-import { createCastleStairFlight } from "../../../../src/game/objects/castle/CastleStairFlight.js";
+import { createCastleStairFlight } from "../../../../src/game/objects/castle/stairs/CastleStairFlight.js";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { it } from "node:test";
@@ -9,13 +9,13 @@ import { CASTLE_BOUNDARY } from "../../../../src/game/enum/CastleBoundary.js";
 // Vite owns asset URL imports. Keep the real collision implementation while
 // substituting only rendering imports that require a browser/GPU in Node.
 const stairSource = readFileSync(new URL(
-  "../../../../src/game/objects/castle/CastleStairs.js", import.meta.url,
+  "../../../../src/game/objects/castle/stairs/CastleStairs.js", import.meta.url,
 ), "utf8").replace(/^import \{ createCastleStairFlight \}[^\n]*\n/, `const createCastleStairFlight = ${createCastleStairFlight.toString()};\n`).replace(/^import stairModuleModelUrl[^\n]*\n/m, 'const stairModuleModelUrl = "stair-model";\n');
 const { CastleStairs } = await import(
   `data:text/javascript;base64,${Buffer.from(stairSource).toString("base64")}`
 );
 const castleSource = readFileSync(new URL(
-  "../../../../src/game/objects/castle/CastleEntityBuilder.js", import.meta.url,
+  "../../../../src/game/objects/castle/structure/CastleEntityBuilder.js", import.meta.url,
 ), "utf8").replace(/^import[\s\S]*?from "[^"]+";\r?\n/gm, "");
 const { CastleEntityBuilder } = await import(`data:text/javascript;base64,${Buffer.from(
   `const CASTLE_BOUNDARY = ${JSON.stringify(CASTLE_BOUNDARY)};\n${castleSource}`,

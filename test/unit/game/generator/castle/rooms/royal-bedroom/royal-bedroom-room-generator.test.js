@@ -6,7 +6,7 @@ import { RoyalBedroomRoomGenerator } from "../../../../../../../src/game/generat
 import { CastleBasePlanGenerator } from "../../../../../../../src/game/generator/castle/CastleBasePlanGenerator.js";
 import { CastleAuthoredBuildPlan } from "../../../../../../../src/game/generator/castle/CastleAuthoredBuildPlan.js";
 import { RoyalBedroomRoomMapObjects } from "../../../../../../../src/game/objects/castle/rooms/royal-bedroom/RoyalBedroomRoomMapObjects.js";
-import { CastleResidentialLayout } from "../../../../../../../src/game/objects/castle/CastleResidentialLayout.js";
+import { CastleResidentialLayout } from "../../../../../../../src/game/objects/castle/residents/CastleResidentialLayout.js";
 
 const generator = new RoyalBedroomRoomGenerator();
 const room = {

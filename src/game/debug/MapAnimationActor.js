@@ -5,7 +5,7 @@ import {
   AnimationActorObjectNotSupportedError,
   AnimationActorVariantNotSupportedError,
 } from "../errors/debug/index.js";
-import { SeatedRoyal } from "../objects/castle/SeatedRoyal.js";
+import { SeatedRoyal } from "../objects/castle/residents/SeatedRoyal.js";
 import { Hero } from "../objects/characters/hero/Hero.js";
 import { AxeTool, ShovelTool } from "../objects/characters/hero/tools/index.js";
 

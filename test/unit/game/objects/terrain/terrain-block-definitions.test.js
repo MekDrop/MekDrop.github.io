@@ -3,7 +3,7 @@ import { describe, it } from "node:test";
 import { TerrainBlockDefinitions } from "../../../../../src/game/objects/terrain/TerrainBlockDefinitions.js";
 import { MapGenerator } from "../../../../../src/game/generator/map/MapGenerator.js";
 import { GRASS_SURFACE_LIFT } from "../../../../../src/game/config/terrain.js";
-import { clipCastleTerrainRecord } from "../../../../../src/game/objects/castle/CastleGroundCuts.js";
+import { clipCastleTerrainRecord } from "../../../../../src/game/objects/castle/ground/CastleGroundCuts.js";
 import { MAP_TILE_TYPE } from "../../../../../src/game/enum/MapTileType.js";
 
 

@@ -1,5 +1,5 @@
 import sunbedUrl from "../../../../models/castle/leisure/folding-daybed.glb?url";
-import { FoldingDaybedDelivery } from "../../FoldingDaybedDelivery.js";
+import { FoldingDaybedDelivery } from "../../residents/FoldingDaybedDelivery.js";
 import bookUrl from "../../../../models/castle/leisure/open-book.glb?url";
 import { BOOK_ANIMATION } from "../../../../enum/BookAnimation.js";
 import { CASTLE_TERRACE_PHASE as PHASE } from "../../../../enum/CastleTerracePhase.js";

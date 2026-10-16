@@ -1,6 +1,6 @@
 import { CastleGenerator } from '../../../../../../src/game/generator/castle/CastleGenerator.js';
-import { CastleResidentialLayout } from '../../../../../../src/game/objects/castle/CastleResidentialLayout.js';
-import {castleStraightStairHeight, castleStraightStairSurfaces, castleStraightStairStepCount} from '../../../../../../src/game/objects/castle/CastleStraightStairs.js';
+import { CastleResidentialLayout } from '../../../../../../src/game/objects/castle/residents/CastleResidentialLayout.js';
+import {castleStraightStairHeight, castleStraightStairSurfaces, castleStraightStairStepCount} from '../../../../../../src/game/objects/castle/stairs/CastleStraightStairs.js';
 import castleMap from '../../../../../../src/game/maps/tests/castle-seeds.json';
 
 async function walkTo(window, target) {

@@ -67,7 +67,7 @@ export class TerraceDoorActions {
    */
   #ownsDoor;
   /**
-   * @type {import("../../CastleResidentMotion.js").CastleResidentMotion|null}
+   * @type {import("../../residents/CastleResidentMotion.js").CastleResidentMotion|null}
    */
   #motion;
 

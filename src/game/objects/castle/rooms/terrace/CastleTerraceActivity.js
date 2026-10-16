@@ -1,5 +1,5 @@
 import { CASTLE_TERRACE_PHASE as PHASE } from "../../../../enum/CastleTerracePhase.js";
-import { RoyalWishFulfillment } from "../../RoyalWishFulfillment.js";
+import { RoyalWishFulfillment } from "../../residents/RoyalWishFulfillment.js";
 import { TerraceDoorActions } from "./TerraceDoorActions.js";
 import { TerraceServiceActions } from "./TerraceServiceActions.js";
 
@@ -89,7 +89,7 @@ export class CastleTerraceActivity {
    */
   #servant;
   /**
-   * @type {import("../../CastleResidentMotion.js").CastleResidentMotion}
+   * @type {import("../../residents/CastleResidentMotion.js").CastleResidentMotion}
    */
   #servantMotion;
 

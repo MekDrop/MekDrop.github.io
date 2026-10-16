@@ -1,8 +1,8 @@
 import { CastleGenerator } from "../../generator/castle/CastleGenerator.js";
-import { CastleMapPreparation } from "./CastleMapPreparation.js";
+import { CastleMapPreparation } from "./ground/CastleMapPreparation.js";
 import gardenTextureUrl from "src/assets/game/tiles/grass-top.png";
 import carpetTextureUrl from "src/assets/game/textures/castle-carpet.png";
-import { CastleEntityBuilder } from "./CastleEntityBuilder.js";
+import { CastleEntityBuilder } from "./structure/CastleEntityBuilder.js";
 import { FireplaceChimneySightline } from "../castle-props/fireplace/FireplaceChimneySightline.js";
 import { IslandCellOwnership } from "../shared/IslandCellOwnership.js";
 import { SCENE_OBJECT_TYPE } from "../../enum/SceneObjectType.js";

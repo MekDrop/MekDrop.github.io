@@ -1,11 +1,11 @@
 import assert from "node:assert/strict";
 import { it } from "node:test";
 import { NpcDoorReactionState } from "../../../../../src/game/objects/shared/NpcDoorReactionState.js";
-import { KingTrainingBehavior } from "../../../../../src/game/objects/castle/KingTrainingBehavior.js";
-import { ServantStateMachine } from "../../../../../src/game/objects/castle/ServantStateMachine.js";
+import { KingTrainingBehavior } from "../../../../../src/game/objects/castle/residents/KingTrainingBehavior.js";
+import { ServantStateMachine } from "../../../../../src/game/objects/castle/residents/ServantStateMachine.js";
 import { ServantWaitState } from "../../../../../src/game/objects/castle/states/servant/ServantWaitState.js";
 import { ServantLookLeftState } from "../../../../../src/game/objects/castle/states/servant/ServantLookLeftState.js";
-import { KingGameOverBehavior } from "../../../../../src/game/objects/castle/KingGameOverBehavior.js";
+import { KingGameOverBehavior } from "../../../../../src/game/objects/castle/residents/KingGameOverBehavior.js";
 import * as pc from "playcanvas";
 import { NpcDoorAvoidance } from "../../../../../src/game/objects/shared/NpcDoorAvoidance.js";
 import { NPC_DOOR_AVOIDANCE_PHASE as PHASE } from "../../../../../src/game/enum/NpcDoorAvoidancePhase.js";

@@ -3,8 +3,8 @@ import { readdir, readFile } from "node:fs/promises";
 import { resolve, relative } from "node:path";
 import { CastleGenerator } from "../src/game/generator/castle/CastleGenerator.js";
 import { TerrainBlockDefinitions } from "../src/game/objects/terrain/TerrainBlockDefinitions.js";
-import { CastleMapPreparation } from "../src/game/objects/castle/CastleMapPreparation.js";
-import { validateCastleGround } from "../src/game/objects/castle/CastleGroundValidation.js";
+import { CastleMapPreparation } from "../src/game/objects/castle/ground/CastleMapPreparation.js";
+import { validateCastleGround } from "../src/game/objects/castle/ground/CastleGroundValidation.js";
 
 const args = process.argv.slice(2);
 if (args.includes("--help")) {

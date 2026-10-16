@@ -1,6 +1,6 @@
 import { CastleTerraceActivity } from "../../castle/rooms/terrace/CastleTerraceActivity.js";
 import { DynamicRenderBatch } from "../../../rendering/DynamicRenderBatch.js";
-import { SeatedRoyal } from "../../castle/SeatedRoyal.js";
+import { SeatedRoyal } from "../../castle/residents/SeatedRoyal.js";
 import { TerraceRoyalActions } from "../../castle/rooms/terrace/TerraceRoyalActions.js";
 
 /**

@@ -1,4 +1,4 @@
-import { CastleResidentialLayout } from "../../castle/CastleResidentialLayout.js";
+import { CastleResidentialLayout } from "../../castle/residents/CastleResidentialLayout.js";
 
 /**
  * Publishes castle desks and kitchen tables through normal map ownership.

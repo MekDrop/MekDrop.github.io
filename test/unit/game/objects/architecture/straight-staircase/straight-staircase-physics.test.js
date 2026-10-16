@@ -4,7 +4,7 @@ import { registerHooks } from "node:module";
 import { readFileSync } from "node:fs";
 import * as pc from "playcanvas";
 import Ammo from "sync-ammo/dist/ammo.module.js";
-import { castleStraightStairSurfaces, castleStraightStairTreads, castleStraightStairWalls } from "../../../../../../src/game/objects/castle/CastleStraightStairs.js";
+import { castleStraightStairSurfaces, castleStraightStairTreads, castleStraightStairWalls } from "../../../../../../src/game/objects/castle/stairs/CastleStraightStairs.js";
 
 // Keep Vite asset imports as URLs and read the actual masonry shader sources.
 const hooks = registerHooks({

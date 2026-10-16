@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import {it} from 'node:test';
 import {CastleGenerator} from '../../../../../src/game/generator/castle/CastleGenerator.js';
-import {CastleResidentialLayout} from '../../../../../src/game/objects/castle/CastleResidentialLayout.js';
+import {CastleResidentialLayout} from '../../../../../src/game/objects/castle/residents/CastleResidentialLayout.js';
 import {MOVEMENT_COLLISION_RADIUS,HERO_COLLISION_HEIGHT} from '../../../../../src/game/objects/characters/hero/HeroSurfaceRules.js';
 
 it('supports both sides of every interior door and clears the hero body',async()=>{
@@ -160,7 +160,7 @@ it('faces both ends of each compact flight toward its nearest same-floor door',a
 });
 
 it('covers ground-floor circulation seams and excavates terrain beneath the slab',async()=>{
-  const {createCastleGroundCuts}=await import('../../../../../src/game/objects/castle/CastleGroundCuts.js');
+  const {createCastleGroundCuts}=await import('../../../../../src/game/objects/castle/ground/CastleGroundCuts.js');
   for(const side of ['NORTH','SOUTH','WEST','EAST']){
     const plan=await CastleGenerator.generate({
       position:{
