@@ -1,5 +1,6 @@
 *.bak
 *.blend1
+*.blend@
 .idea/
 build/
 node_modules/

@@ -43,9 +43,9 @@ export class VestibuleRoomMapObjects {
         objects.push({
           id: `${castle.id}-vestibule-${item.roomId}-${index}`,
           object: item.object,
+          variant: item.variant,
           texture: item.texture,
           model: item.model,
-          variant: item.variant,
           ...item.properties,
           position,
           rotation: layout.yaw + 180 + (item.rotation ?? 0),
