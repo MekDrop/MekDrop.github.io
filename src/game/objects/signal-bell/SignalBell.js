@@ -178,9 +178,9 @@ export class SignalBell extends AbstractCastleProp {
 
     return {
       position: {
-        x: center.x + Math.cos(yaw) * 0.205 + Math.sin(yaw) * 0.5,
+        x: center.x + Math.cos(yaw) * 0.1 + Math.sin(yaw) * 0.45,
         y: center.y,
-        z: center.z - Math.sin(yaw) * 0.205 + Math.cos(yaw) * 0.5,
+        z: center.z - Math.sin(yaw) * 0.1 + Math.cos(yaw) * 0.45,
       },
       facing: {
         x: -Math.sin(yaw),

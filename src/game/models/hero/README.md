@@ -39,8 +39,15 @@ before the ladder can attach again.
 
 `RingBell` is a 2.2-second, non-looping right-hand rope pull. The hero first
 approaches the bell through normal capsule movement, then reaches at 0.5 seconds,
-pulls down through 0.9 seconds, releases at 1.2 seconds, and settles back into
+draws the rope toward the body through 0.9 seconds, releases at 1.2 seconds, and settles back into
 Idle. The bell prop uses the same timeline; its strike sound occurs at 0.9 seconds.
+The stance sits 0.45 metres in front of the bell and 0.1 metres to its side,
+keeping the head clear of the bowl and the capsule clear of the frame feet. A baked shoulder turn
+and slight lean carry the reaching glove to the hanging knot before contact; the rope
+only attaches within the glove's grasp, then follows the simulated pull.
+The hand follows a 0.5-metre arc below the animated attachment, preserving rope
+length rather than stretching the joints with a straight downward pull. The head
+counterturns to keep looking toward the rope as the shoulder reaches.
 The exported arm motion is baked from two-link contacts, with the standing pose
 explicitly keyed on the remaining animated joints. Teleporting, losing support,
 or a blocked approach exits the action and releases the bell reservation.

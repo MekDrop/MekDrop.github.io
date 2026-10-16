@@ -6,6 +6,7 @@ import { runInNewContext } from "node:vm";
 import { SignalBellRope } from "../../../../../src/game/objects/signal-bell/SignalBellRope.js";
 import { AmmoPhysicsWorld } from "playcanvas/build/playcanvas/src/framework/physics/ammo/ammo-physics-world.js";
 import { Vec3 } from "playcanvas/build/playcanvas/src/core/math/vec3.js";
+import { Quat } from "playcanvas/build/playcanvas/src/core/math/quat.js";
 import { Entity } from "playcanvas/build/playcanvas/src/framework/entity.js";
 import { EventHandler } from "playcanvas/build/playcanvas/src/core/event-handler.js";
 
@@ -56,20 +57,39 @@ it("updates the visible rope and held grip on the application's actual render ev
   const rope = new SignalBellRope({
     Entity: TestEntity,
     Vec3,
+    Quat,
   }, app, model);
   try {
     const root = app.root.findByName("Signal bell simulated rope");
     const knot = root.findByName("Bell rope knot");
-    const hand = new Vec3(0, 0.5, 0.18);
+    const hand = new Vec3(0, 0.65, 0.3);
     rope.hand = () => hand;
+    for (let frame = 0; frame < 60; frame++) {
+      world.step(1 / 60, 1, 1 / 60);
+      app.fire("prerender");
+    }
+    assert.ok(Math.abs(knot.getPosition().z) < 0.01, "a distant glove cannot attract the rope");
+    assert.ok(Math.abs(knot.getPosition().y - 0.65) < 0.02, "the knot hangs at the authored grasp height");
+    hand.copy(knot.getPosition());
+    app.fire("prerender");
     let maxError = 0;
+    let maxJointGap = 0;
     for (let frame = 0; frame < 120; frame++) {
-      hand.y = 0.5 - 0.05 * frame / 120;
+      hand.z = 0.18 * frame / 120;
+      hand.y = 1.15 - Math.sqrt(0.5 ** 2 - hand.z ** 2);
       world.step(1 / 60, 1, 1 / 60);
       app.fire("prerender");
       if (frame > 5) { maxError = Math.max(maxError, knot.getPosition().distance(hand)); }
+      for (let index = 1; index < 8; index++) {
+        const previous = root.findByName(`Rope link ${index - 1}`);
+        const next = root.findByName(`Rope link ${index}`);
+        const end = previous.getPosition().clone().add(previous.getRotation().transformVector(new Vec3(0, -previous.getLocalScale().y / 2, 0)));
+        const start = next.getPosition().clone().add(next.getRotation().transformVector(new Vec3(0, next.getLocalScale().y / 2, 0)));
+        maxJointGap = Math.max(maxJointGap, end.distance(start));
+      }
     }
     assert.ok(maxError < 0.025, `visible hand/rope gap: ${maxError}`);
+    assert.ok(maxJointGap < 0.00001, `rope stays connected during the draw: ${maxJointGap}`);
     const before = knot.getPosition().clone();
     rope.release();
     for (let frame = 0; frame < 120; frame++) {

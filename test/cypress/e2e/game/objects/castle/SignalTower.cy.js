@@ -12,7 +12,12 @@ describe("Signal tower bell", () => {
         audioStarts = cy.spy(window.AudioBufferSourceNode.prototype, "start");
         const sample = () => {
           const pose = window.gameMovementTest?.animationPose(["Right white glove", "Right elbow"]);
-          if (pose?.clip === "RingBell") { samples.push(pose); }
+          if (pose?.clip === "RingBell") {
+            samples.push({
+              ...pose,
+              position: window.gameMovementTest.state().position,
+            });
+          }
           window.requestAnimationFrame(sample);
         };
         window.requestAnimationFrame(sample);
@@ -38,6 +43,7 @@ describe("Signal tower bell", () => {
       const canvas = window.document.querySelector(".background-canvas");
       const head = window.gameMovementTest.state().patScreenPosition;
       window.gameCameraTest.panBy(canvas.clientWidth / 2 - head.x, canvas.clientHeight / 2 - head.y);
+      window.gameCameraTest.setRotation(2);
     });
     cy.get(".interaction-prompt", { timeout: 10000 }).should("contain.text", "Ring bell");
     cy.get(".background-canvas").click("bottomRight");
@@ -68,10 +74,14 @@ describe("Signal tower bell", () => {
       const grips = samples.filter(pose => pose.time >= 0.5 && pose.time <= 1.15);
       expect(grips.length).to.be.greaterThan(2);
       const heights = grips.map(pose => pose.joints["Right white glove"].y);
-      expect(Math.max(...heights) - Math.min(...heights)).to.be.greaterThan(0.08);
+      const draws = grips.map(pose => pose.joints["Right white glove"].z - bell.position.z);
+      expect(Math.max(...draws) - Math.min(...draws)).to.be.greaterThan(0.1);
+      expect(Math.max(...heights) - Math.min(...heights)).to.be.lessThan(0.08);
       for (const pose of grips) {
         const hand = pose.joints["Right white glove"];
-        expect(Math.hypot(hand.x - bell.position.x, hand.z - bell.position.z - 0.28)).to.be.lessThan(0.1);
+        expect(Math.abs(pose.position.y - bell.position.y)).to.be.lessThan(0.05);
+        expect(Math.abs(hand.x - bell.position.x)).to.be.lessThan(0.04);
+        expect(hand.z - bell.position.z).to.be.within(-0.04, 0.23);
         expect(Number.isFinite(pose.joints["Right elbow"].y)).to.equal(true);
       }
     });

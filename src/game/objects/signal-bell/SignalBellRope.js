@@ -40,6 +40,10 @@ export class SignalBellRope {
    * @type {(()=>import("playcanvas").Vec3|null)|null}
    */
   #hand = null;
+  /**
+   * @type {boolean}
+   */
+  #grasped = false;
 
   /**
    * @param {typeof import("playcanvas")} pc
@@ -75,7 +79,8 @@ export class SignalBellRope {
    * @returns {import("playcanvas").Vec3}
    */
   get #anchor() {
-    return this.#bowl.getWorldTransform().transformPoint(new this.#pc.Vec3(0, 0.9, 0));
+    // RingBell's grasp is 0.65 m high, with 0.5 m of rope above the knot.
+    return this.#bowl.getWorldTransform().transformPoint(new this.#pc.Vec3(0, 1.15, 0));
   }
 
   /**
@@ -84,24 +89,53 @@ export class SignalBellRope {
   set hand(hand) { this.#hand = hand; }
 
   #sync() {
-    this.#physics.updateAttachments(this.#anchor, this.#hand?.() ?? null);
+    const hand = this.#hand?.() ?? null;
+    // Establish contact only when the reaching glove actually encloses the knot.
+    // Once held, Ammo keeps the knot attached throughout the pull.
+    if (hand && !this.#grasped) {
+      this.#grasped = hand.distance(this.#knot.getPosition()) <= 0.055 * this.#scale;
+    }
+    const anchor = this.#anchor;
+    this.#physics.updateAttachments(anchor, this.#grasped ? hand : null);
     const transforms = this.#physics.transforms;
+    // Bullet permits small joint residuals, especially immediately after release.
+    // Share visual endpoints between neighboring bodies so the string stays
+    // continuous while its bend and swing still come entirely from Ammo.
+    const points = [anchor];
+    for (let index = 1; index < transforms.length; index++) {
+      const end = this.#endpoint(transforms[index - 1], -1);
+      const start = this.#endpoint(transforms[index], 1);
+      points.push(end.add(start).mulScalar(0.5));
+    }
+    points.push(this.#endpoint(transforms.at(-1), -1));
+    if (this.#grasped && hand) { points[8] = hand.clone(); }
     for (let index = 0; index < transforms.length; index++) {
-      const { position, rotation, length } = transforms[index];
+      const top = points[index];
+      const bottom = points[index + 1];
+      const direction = top.clone().sub(bottom);
+      const length = direction.length();
       const segment = this.#segments[index];
-      segment.setPosition(position);
-      segment.setRotation(rotation);
+      segment.setPosition(top.clone().add(bottom).mulScalar(0.5));
+      segment.setRotation(new this.#pc.Quat().setFromDirections(this.#pc.Vec3.UP, direction.normalize()));
       segment.setLocalScale(this.#scale, length, this.#scale);
     }
-    const grip = transforms[7];
-    const offset = grip.rotation.transformVector(new this.#pc.Vec3(0, -grip.length / 2, 0));
-    this.#knot.setPosition(grip.position.clone().add(offset));
-    this.#knot.setRotation(grip.rotation);
+    this.#knot.setPosition(points[8]);
+    this.#knot.setRotation(this.#segments[7].getRotation());
     this.#knot.setLocalScale(this.#scale, this.#scale, this.#scale);
+  }
+
+  /**
+   * @param {{position: import("playcanvas").Vec3, rotation: import("playcanvas").Quat, length: number}} transform
+   * @param {number} direction
+   * @returns {import("playcanvas").Vec3}
+   */
+  #endpoint({ position, rotation, length }, direction) {
+    return position.clone().add(rotation.transformVector(new this.#pc.Vec3(0, direction * length / 2, 0)));
   }
 
   release() {
     this.#hand = null;
+    this.#grasped = false;
     this.#physics.release();
   }
 

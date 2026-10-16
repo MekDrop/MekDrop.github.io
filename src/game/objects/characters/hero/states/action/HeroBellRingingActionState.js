@@ -70,8 +70,8 @@ export class HeroBellRingingActionState extends HeroRuntimeActionState {
       return;
     }
     if (!action.pulling) {
-      // Allow the capsule's resting margin; the glove encloses the rope here.
-      if (distance <= 0.065) {
+      // Finish the reach alignment before playing the authored grasp.
+      if (distance <= 0.015) {
         action.pulling = true;
         action.begin();
         action.onStart();
