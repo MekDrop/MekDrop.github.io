@@ -1,3 +1,8 @@
+import { HeroSpawn } from "./HeroSpawn.js";
+import {
+  HeroAnimationPlayback,
+  LADDER_TOP_ANIMATIONS,
+} from "./HeroAnimationPlayback.js";
 import { everyFiniteNumber } from "../../../helpers/collections.js";
 import { Vec2 } from "playcanvas";
 import { IslandCellOwnership } from "../../shared/IslandCellOwnership.js";
@@ -12,10 +17,7 @@ import {
   HERO_COLLISION_HEIGHT,
   MOVEMENT_COLLISION_RADIUS,
   MOVEMENT_FORWARD_COLLISION_OFFSET,
-  WALKABLE_TILES,
-  GRASS_SURFACE_TILES,
 } from "./HeroSurfaceRules.js";
-import { TileType } from "../../../generator/map/MapGenerator.js";
 import { GRASS_SURFACE_LIFT } from "../../../config/terrain.js";
 import heroModelUrl from "../../../models/hero/hero.glb?url";
 import { HeroRespawnEffect } from "./HeroRespawnEffect.js";
@@ -97,19 +99,9 @@ const MAX_AUTOMATIC_STEP_HEIGHT = 0.32;
 const AUTOMATIC_STEP_SURFACE_CLEARANCE = 0.015;
 const AUTOMATIC_STEP_GROUNDING_GRACE = 0.2;
 const AUTOMATIC_STEP_VISUAL_RESPONSE = 14;
-const ANIMATION_BLEND_TIME = 0.14;
 const BLOCKED_PUSH_DURATION = 1;
 const HEAD_LOOK_MAX_YAW = 55;
 const HEAD_LOOK_RESPONSE = 7;
-const HERO_ANIMATION_NAMES = Object.freeze(Object.values(HERO_ANIMATION));
-const LADDER_TOP_ANIMATIONS = new Set([HERO_ANIMATION.CLIMB_TOP, HERO_ANIMATION.CLIMB_TOP_RIGHT]);
-const LOOPING_ANIMATIONS = new Set([
-  HERO_ANIMATION.CLIMB,
-  HERO_ANIMATION.IDLE,
-  HERO_ANIMATION.WALK,
-  HERO_ANIMATION.RUN,
-  HERO_ANIMATION.BLOCKED_PUSH,
-]);
 const EDGE_REFUSAL_DURATION = 0.8;
 const HOLE_REFUSAL_DURATION = 1.45;
 const BLOCKED_DIG_REACTION_DURATION = 42 / 24;
@@ -361,11 +353,6 @@ export class Hero {
   #mapData;
   /**
    *
-   * @type {{x: number, y: number, z: number}}
-   */
-  #spawnCenter;
-  /**
-   *
    * @type {() => number}
    */
   #getViewRotation;
@@ -583,10 +570,9 @@ export class Hero {
    */
   #facingYaw = 0;
   /**
-   *
-   * @type {boolean}
+   * @type {HeroAnimationPlayback}
    */
-  #animationState = null;
+  #animationPlayback = new HeroAnimationPlayback();
   /**
    *
    * @type {boolean}
@@ -767,7 +753,6 @@ export class Hero {
       this.#visualIslandCells = new IslandCellOwnership(mapData).groups;
     }
     this.#buildRiverRouteLookup();
-    this.#spawnCenter = spawnCenter;
     this.#getViewRotation = getViewRotation;
     this.#getViewDirection = getViewDirection;
     this.#onPositionChange = onPositionChange;
@@ -792,10 +777,11 @@ export class Hero {
     this.#tools.set(KnifeTool.name, new KnifeTool({ modelLibrary }));
     this.#tools.set(ShovelTool.name, new ShovelTool({ modelLibrary }));
     this.#entity = new pc.Entity("Hero");
-    this.#spawn = this.#findSpawn();
+    const spawn = new HeroSpawn(mapData, collisionWorld, spawnCenter);
+    this.#spawn = spawn.position;
     this.#position = { ...this.#spawn };
     this.#stableGroundPosition = { ...this.#spawn };
-    this.#facingYaw = this.#initialFacingYaw();
+    this.#facingYaw = spawn.facingYaw(this.#position);
     this.#entity.setLocalPosition(
       this.#position.x,
       this.#position.y,
@@ -1227,8 +1213,11 @@ export class Hero {
     return this.#actionBehavior.gameOver;
   }
 
+  /**
+   * @returns {string|null}
+   */
   get animationState() {
-    return this.#animationState;
+    return this.#animationPlayback.state;
   }
 
   /**
@@ -1564,7 +1553,7 @@ export class Hero {
     this.#running = running;
     if (
       !this.#hasMovementInput &&
-      this.#animationState === HERO_ANIMATION.BLOCKED_PUSH
+      this.#animationPlayback.state === HERO_ANIMATION.BLOCKED_PUSH
     ) {
       this.#movementBlocked = false;
       this.#blockedPushElapsed = 0;
@@ -1572,7 +1561,7 @@ export class Hero {
       this.#velocity.x = 0;
       this.#velocity.z = 0;
       this.#resetBoredom();
-      this.#playAnimation(HERO_ANIMATION.IDLE, 1, true);
+      this.#animationPlayback.play(HERO_ANIMATION.IDLE, 1, true);
       this.#restartAnimation = false;
     }
     if (!this.#hasMovementInput) {
@@ -2024,7 +2013,7 @@ export class Hero {
     this.#rightHeldItemAttachmentEntity = null;
     this.#leftHeldItemAttachmentEntity = null;
     this.#heroPartColliders = [];
-    this.#animationState = null;
+    this.#animationPlayback.destroy();
     this.#tool = null;
     this.#stableGroundPosition = null;
   }
@@ -3000,179 +2989,6 @@ export class Hero {
     return true;
   }
 
-  #findSpawn() {
-    const explicitSpawn = this.#mapData.heroSpawn;
-    if (
-      Number.isFinite(explicitSpawn?.x) &&
-      Number.isFinite(explicitSpawn?.y) &&
-      Number.isFinite(explicitSpawn?.z)
-    ) {
-      return { ...explicitSpawn };
-    }
-
-    const { castle, cols, rows } = this.#mapData;
-    const grassTiles = [];
-    const safeGrassTiles = [];
-    const castleLeft = castle?.position?.col;
-    const castleTop = castle?.position?.row;
-    const castleRight = castleLeft + (castle?.position?.width ?? 0) - 1;
-    const castleBottom = castleTop + (castle?.position?.depth ?? 0) - 1;
-
-    for (let row = 0; row < rows; row += 1) {
-      for (let col = 0; col < cols; col += 1) {
-        if (this.#mapData.grid[row][col] !== TileType.GRASS) {
-          continue;
-        }
-        const behindCastle =
-          Number.isFinite(castleRight) &&
-          Number.isFinite(castleTop) &&
-          col > castleRight &&
-          row >= castleTop - 1 &&
-          row <= castleBottom + 1;
-        if (behindCastle) {
-          continue;
-        }
-        const tile = {
-          col,
-          row,
-        };
-        const x = col - (cols - 1) / 2;
-        const z = row - (rows - 1) / 2;
-        const elevation =
-          this.#mapData.heightmap[row][col] + GRASS_SURFACE_LIFT;
-        if (
-          this.#collisionWorld?.isBlocked(
-            x,
-            z,
-            HERO_RADIUS,
-            elevation,
-            STEP_CLEARANCE,
-          )
-        ) {
-          continue;
-        }
-        grassTiles.push(tile);
-        if (!this.#hasSpawnExit(col, row)) {
-          continue;
-        }
-        safeGrassTiles.push(tile);
-      }
-    }
-
-    const candidates = safeGrassTiles.length ? safeGrassTiles : grassTiles;
-    if (candidates.length) {
-      const centerCol = this.#spawnCenter.x + (cols - 1) / 2;
-      const centerRow = this.#spawnCenter.z + (rows - 1) / 2;
-      const tile = candidates.reduce(/**
-       *
-       * @param {number} closest
-       * @param {boolean} candidate
-       */
-        (closest, candidate) => {
-          if (!closest) {
-            return candidate;
-          }
-          const candidateDistance =
-            (candidate.col - centerCol) ** 2 +
-          (candidate.row - centerRow) ** 2;
-          const closestDistance =
-            (closest.col - centerCol) ** 2 +
-          (closest.row - centerRow) ** 2;
-
-          return candidateDistance < closestDistance ? candidate : closest;
-        }, null);
-
-      return {
-        x: tile.col - (cols - 1) / 2,
-        y: this.#mapData.heightmap[tile.row][tile.col] + GRASS_SURFACE_LIFT,
-        z: tile.row - (rows - 1) / 2,
-      };
-    }
-
-    return {
-      x: 0,
-      y: 1,
-      z: 0,
-    };
-  }
-
-  /**
-   *
-   * @param {number} col
-   * @param {number} row
-   */
-  #hasSpawnExit(col, row) {
-    const height = this.#mapData.heightmap[row][col];
-    let exits = 0;
-    for (const [deltaCol, deltaRow] of [
-      [-1, 0],
-      [1, 0],
-      [0, -1],
-      [0, 1],
-    ]) {
-      const neighbourCol = col + deltaCol;
-      const neighbourRow = row + deltaRow;
-      if (
-        neighbourCol < 0 ||
-        neighbourRow < 0 ||
-        neighbourCol >= this.#mapData.cols ||
-        neighbourRow >= this.#mapData.rows
-      ) {
-        continue;
-      }
-      if (
-        !WALKABLE_TILES.has(this.#mapData.grid[neighbourRow][neighbourCol]) ||
-        this.#mapData.heightmap[neighbourRow][neighbourCol] > height
-      ) {
-        continue;
-      }
-      const x = neighbourCol - (this.#mapData.cols - 1) / 2;
-      const z = neighbourRow - (this.#mapData.rows - 1) / 2;
-      const type = this.#mapData.grid[neighbourRow][neighbourCol];
-      const elevation =
-        this.#mapData.heightmap[neighbourRow][neighbourCol] +
-        (GRASS_SURFACE_TILES.has(type) ? GRASS_SURFACE_LIFT : 0);
-      if (
-        this.#collisionWorld?.isBlocked(
-          x,
-          z,
-          HERO_RADIUS,
-          elevation,
-          STEP_CLEARANCE,
-        )
-      ) {
-        continue;
-      }
-      exits += 1;
-    }
-
-    return exits >= 2;
-  }
-
-  #initialFacingYaw() {
-    const { castle, cols, rows } = this.#mapData;
-    const castlePosition = castle?.position;
-    if (!castlePosition) {
-      return 0;
-    }
-
-    const castleCenterX =
-      castlePosition.col +
-      (castlePosition.width - 1) / 2 -
-      (cols - 1) / 2;
-    const castleCenterZ =
-      castlePosition.row +
-      (castlePosition.depth - 1) / 2 -
-      (rows - 1) / 2;
-    const directionX = castleCenterX - this.#position.x;
-    const directionZ = castleCenterZ - this.#position.z;
-    if (Math.hypot(directionX, directionZ) <= 0.001) {
-      return 0;
-    }
-
-    return (Math.atan2(directionX, directionZ) * 180) / Math.PI;
-  }
-
   #beginFallDeath() {
     this.#physics.gravity = GRAVITY;
     this.#clearActionInput();
@@ -3351,7 +3167,7 @@ export class Hero {
     } else {
       animation = this.#selectIdleAnimation(deltaTime);
     }
-    this.#playAnimation(animation, animationSpeed, this.#restartAnimation);
+    this.#animationPlayback.play(animation, animationSpeed, this.#restartAnimation);
     if (this.#actionBehavior.bellAction?.pulling) {
       this.#modelRoot.anim.baseLayer.activeStateCurrentTime = Math.min(2.199, this.#actionBehavior.bellAction.elapsed);
     }
@@ -3401,39 +3217,11 @@ export class Hero {
 
   /**
    *
-   * @param {string} name
-   * @param {number} speed
-   * @param {boolean} restart
-   */
-  #playAnimation(name, speed, restart) {
-    const animation = this.#modelRoot.anim;
-    if (!animation) {
-      return;
-    }
-    animation.speed = speed;
-    animation.baseLayer.playing = !LADDER_TOP_ANIMATIONS.has(name);
-    if (restart || (this.#animationState !== name &&
-      (LADDER_TOP_ANIMATIONS.has(name) || LADDER_TOP_ANIMATIONS.has(this.#animationState)))) {
-      // Keep interrupted clips alive until the controller completes the transition.
-      animation.baseLayer.transition(name, 0);
-      this.#animationState = name;
-
-      return;
-    }
-    if (this.#animationState === name) {
-      return;
-    }
-    animation.baseLayer.transition(name, ANIMATION_BLEND_TIME);
-    this.#animationState = name;
-  }
-
-  /**
-   *
    * @returns {number}
    */
   get #headLookTargetYaw() {
     if (
-      this.#animationState !== HERO_ANIMATION.BORED_CURSOR_LOOK ||
+      this.#animationPlayback.state !== HERO_ANIMATION.BORED_CURSOR_LOOK ||
       !this.#idleLookTarget ||
       this.#hasMovementInput ||
       !this.#grounded ||
@@ -3620,24 +3408,11 @@ export class Hero {
       modelRoot: this.#modelRoot,
     });
 
-    const animationTracks = this.#modelLibrary.getAnimationTracks(
+    const animationTracks = this.#animationPlayback.initialize(
+      this.#modelRoot,
+      this.#modelLibrary,
       Hero.modelUrl,
-      HERO_ANIMATION_NAMES,
     );
-    this.#modelRoot.addComponent("anim", { activate: true });
-    for (const [name, track] of animationTracks) {
-      if (!HERO_ANIMATION_NAMES.includes(name)) {
-        continue;
-      }
-      this.#modelRoot.anim.addAnimationState(
-        name,
-        track,
-        1,
-        LOOPING_ANIMATIONS.has(name),
-      );
-    }
-    this.#modelRoot.anim.baseLayer.play(HERO_ANIMATION.IDLE);
-    this.#animationState = HERO_ANIMATION.IDLE;
     this.#footPlacement = new HeroFootPlacement({
       pc: this.#pc,
       /**
