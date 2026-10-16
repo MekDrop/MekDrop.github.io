@@ -220,7 +220,7 @@ export class CastleBasePlanGenerator {
          */
           (opening) => opening.roomId === room.id && opening.kind === "door" &&
           (item.y ?? 0) + (item.height ?? Infinity) * item.scale > 0.05 &&
-          !(item.object === "Bookshelf" && (opening.axis === "z" ?
+          !(item.object === "Shelf" && (opening.axis === "z" ?
             Math.abs(item.x - opening.center) >= halfX + opening.width / 2 && Math.abs(item.z - opening.coordinate) >= halfZ + 0.1 :
             Math.abs(item.z - opening.center) >= halfZ + opening.width / 2 && Math.abs(item.x - opening.coordinate) >= halfX + 0.1)) &&
           (opening.axis === "x" ? Math.abs(item.x - opening.coordinate) < halfX + 0.75 &&

@@ -146,7 +146,7 @@ export class ThroneRoomGenerator extends AbstractCastleRoomGenerator {
         const shelfX = center - side * (width / 2 - 0.35);
         const shelfZ = bounds.minZ + 1.55;
         if (fits(shelfX, shelfZ, 0.36, 0.85)) {
-          add("Bookshelf", shelfX, shelfZ, 0.85, 0.36, 0.05, side > 0 ? -90 : 90);
+          add("Shelf", shelfX, shelfZ, 0.85, 0.36, 0.05, side > 0 ? -90 : 90);
           items.at(-1).height = 1.35;
         }
       } else {

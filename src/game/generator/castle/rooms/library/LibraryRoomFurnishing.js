@@ -174,7 +174,7 @@ export class LibraryRoomFurnishing {
         const height = Math.min(2.5, this.#room.height - 0.35);
         if (!this.#clear(access, width, depth, height, 0, true, shelfPoint)) { continue; }
         this.#items.push({
-          ...this.#item("Bookshelf", shelfPoint, length, 0.36, yaw),
+          ...this.#item("Shelf", shelfPoint, length, 0.36, yaw),
           height,
         });
         const angle = yaw * Math.PI / 180;

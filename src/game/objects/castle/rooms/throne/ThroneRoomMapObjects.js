@@ -45,7 +45,7 @@ export class ThroneRoomMapObjects {
             row: Math.round(position.z + (mapData.rows - 1) / 2),
           },
         };
-        if (item.object === "Bookshelf") {
+        if (item.object === "Shelf") {
           const angle = rotation * Math.PI / 180;
           definition.from = {
             x: position.x - Math.cos(angle) * 0.425,

@@ -43,12 +43,12 @@ export class LibraryRoomMapObjects {
             row: Math.round(position.z + (mapData.rows - 1) / 2),
           },
         };
-        if (item.object === "Bookshelf") {
+        if (item.object === "Shelf") {
           const angle = rotation * Math.PI / 180;
           const length = item.rotation % 180 ? item.depth : item.width;
           const localAngle = item.rotation * Math.PI / 180;
           for (const neighbour of plan.furniture) {
-            if (neighbour === item || neighbour.object !== "Bookshelf" || neighbour.roomId !== item.roomId || neighbour.floorY !== item.floorY || neighbour.rotation !== item.rotation) { continue; }
+            if (neighbour === item || neighbour.object !== "Shelf" || neighbour.roomId !== item.roomId || neighbour.floorY !== item.floorY || neighbour.rotation !== item.rotation) { continue; }
             const dx = neighbour.x - item.x, dz = neighbour.z - item.z;
             // Model orientation includes the castle's 180-degree correction.
             const along = -dx * Math.cos(localAngle) + dz * Math.sin(localAngle);

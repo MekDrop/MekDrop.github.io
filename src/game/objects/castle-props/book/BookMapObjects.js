@@ -1,5 +1,5 @@
-import { BookshelfBooks } from "../bookshelf/BookshelfBooks.js";
-import { BookshelfLayout } from "../bookshelf/BookshelfLayout.js";
+import { ShelfBooks } from "../shelf/ShelfBooks.js";
+import { ShelfLayout } from "../shelf/ShelfLayout.js";
 
 /**
  * Publishes individual shelf volumes as map objects.
@@ -29,7 +29,7 @@ export class BookMapObjects {
    * @returns {import("../../ObjectTypes.js").MapObjectDefinition[]}
    */
   static forShelf(shelf) {
-    const bounds = BookshelfLayout.bounds(shelf);
+    const bounds = ShelfLayout.bounds(shelf);
     const count = Math.max(1, Math.ceil(bounds.length / 0.935 - 1e-9));
     const length = bounds.length / count;
     const scaleX = length / 0.85;
@@ -60,7 +60,7 @@ export class BookMapObjects {
     const books = [];
     for (let module = 0; module < count; module++) {
       const offset = -bounds.length / 2 + (module + 0.5) * length;
-      for (const book of BookshelfBooks.layout(random, levels)) {
+      for (const book of ShelfBooks.layout(random, levels)) {
         const x = book.position.x * scaleX, z = book.position.z;
         const horizontal = book.tilt.z === 90;
         books.push({
@@ -93,7 +93,7 @@ export class BookMapObjects {
    * @param {import("../../ObjectTypes.js").MapObjectDefinition} definition
    */
   static #filterDefinition(definition) {
-    return !definition.sourceShelfId;
+    return !definition.sourceShelfId || definition.shelfItem;
   }
 
   /**
@@ -101,6 +101,6 @@ export class BookMapObjects {
    * @param {import("../../ObjectTypes.js").MapObjectDefinition} definition
    */
   static #filterDefinition2(definition) {
-    return definition.object === "Bookshelf";
+    return definition.object === "Shelf" && definition.variant !== "storage" && !definition.items;
   }
 }

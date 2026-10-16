@@ -3,7 +3,7 @@ import { BookCover } from "../book/BookCover.js";
 /**
  * Packs individual Book definitions; older composite residences reuse the same layout.
  */
-export class BookshelfBooks {
+export class ShelfBooks {
   /**
    * Shelf plank tops and clearance below the next plank, measured from bookcase.glb.
    * @type {{bottom:number,height:number}[]}
@@ -42,7 +42,7 @@ export class BookshelfBooks {
     random = Math.random,
     levels = this.levels,
   ) {
-    for (const node of shelf.find(BookshelfBooks.#findNode)) {
+    for (const node of shelf.find(ShelfBooks.#findNode)) {
       node.destroy();
     }
     const materials = new Map();
@@ -81,7 +81,7 @@ export class BookshelfBooks {
       const horizontal = level.height < 0.24;
       const count = horizontal ? 6 : 10;
       const widths = Array.from({ length: count }, () => horizontal ? 0.032 + random() * 0.008 : 0.04 + random() * 0.025);
-      const total = widths.reduce(BookshelfBooks.#reduceSum, 0);
+      const total = widths.reduce(ShelfBooks.#reduceSum, 0);
       const gap = 0, factor = horizontal ? 1 : 0.71 / total;
       let cursor = -0.355;
       let stackHeight = 0;

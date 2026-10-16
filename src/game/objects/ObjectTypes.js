@@ -17,7 +17,7 @@
  * @property {{position: Point3, width: number, depth: number}} [hatch] Framed ladder roof hatch.
  * @property {Point3} [bottom] Ladder lower landing in world coordinates.
  * @property {Point3} [top] Ladder upper landing in world coordinates; together with bottom defines placement and heading when position/rotation are omitted.
- * @property {MapObjectDefinition[]} [items] Contained game objects; an explicit position preserves a local authored pose, otherwise physics packs them.
+ * @property {MapObjectDefinition[]} [items] Contained game objects; an explicit position preserves a local authored pose, otherwise the container packs them (Shelf spaces them along its bottom board).
  * @property {string} [carrierId] Servant owning an activity ServingTray.
  * @property {string} object Registered class name.
  * @property {"entrance"|"wall"|"table"|"court"} [type] Lantern or lectern model selection.
@@ -33,19 +33,21 @@
  * @property {boolean} [generated]
  * @property {RenderCommand} [geometry]
  * @property {boolean} [castleBanner] Banner extracted from castle decorations.
- * @property {string} [variant] Prop artwork/model variant. Bed uses royal (default) or servant. CandleStand uses single (default), floor, or table. Bench uses wall (default) or island. Satchel uses brown (default) or olive, preserving each model's authored leather finish. Banner uses navy-and-gold artwork by default or cloth for castle artwork; both simulate cloth.
+ * @property {string} [variant] Prop artwork/model variant. Shelf uses a ranged book cabinet by default or storage with position/rotation. Bed uses royal (default) or servant. CandleStand uses single (default), floor, or table. Bench uses wall (default) or island. Satchel uses brown (default) or olive, preserving each model's authored leather finish. Banner uses navy-and-gold artwork by default or cloth for castle artwork; both simulate cloth.
  * @property {boolean} [isOpen] Whether the Book is open (default false), independent of its location.
  * @property {string} [pose] Book model's resting pose: flat (default) or upright; tilt and rotation control final orientation.
  * @property {string} [style] Book artwork style; classic retains the older painted open volume in any location.
  * @property {number[]} [coverColor] Book binding color as sRGB components from 0 to 1.
  * @property {string} [sourceShelfId] Cabinet owning a generated Book's packing and shared collision.
- * @property {boolean} [books] Bookshelf includes books by default; false allows an empty cabinet.
- * @property {boolean} [booksAsObjects] Bookshelf contents have been published as separate map objects.
+ * @property {boolean} [castleShelf] Generated castle shelf ownership marker.
+ * @property {boolean} [shelfItem] Supplied shelf content published as a map object.
+ * @property {boolean} [books] Shelf includes books by default; false allows an empty cabinet.
+ * @property {boolean} [booksAsObjects] Shelf contents have been published as separate map objects.
  * @property {number} [weathering] Prop wear from 0 (fresh) to 1 (fully aged).
  * @property {number} [fillLevel] WaterBucket fill from 0 (empty) to 1 (full); defaults to 0.65.
  * @property {number} [rotation]
- * @property {Point3} [from] Bookshelf bottom edge, window corner, or WoodenFloor surface corner in world coordinates.
- * @property {Point3} [to] Bookshelf bottom edge or opposite window corner (one differing ground axis); WoodenFloor opposite surface corner (both ground axes differ, equal Y).
+ * @property {Point3} [from] Shelf bottom edge, window corner, or WoodenFloor surface corner in world coordinates.
+ * @property {Point3} [to] Shelf bottom edge or opposite window corner (one differing ground axis); WoodenFloor opposite surface corner (both ground axes differ, equal Y).
  * @property {Point3} [volume] Fire box full dimensions; position is its bottom center.
  * @property {number} [intensity] Fire brightness multiplier (default 1); zero disables the flames. Volume controls their dimensions.
  * @property {number} [width] Table/firewood/linen area width in metres, painting horizontal scale, or flag cloth width.
@@ -60,9 +62,9 @@
  * @property {{baseY: number, height: number, clearance?: number}} [roofCollider] Flag roof contact shape passed to cloth physics.
  * @property {string} [sourceCastleId] Castle that supplied a migrated flag.
  * @property {number} [sourceCastleSeed] Seed used to generate the migrated flag.
- * @property {number} [facing] Bookshelf/window front direction, 1 or -1 on the perpendicular axis.
- * @property {boolean} [joinStart] Bookshelf shares its local left upright with the previous section.
- * @property {boolean} [joinEnd] Bookshelf supplies a slimmer shared upright at its local right edge.
+ * @property {number} [facing] Shelf/window front direction, 1 or -1 on the perpendicular axis.
+ * @property {boolean} [joinStart] Shelf shares its local left upright with the previous section.
+ * @property {boolean} [joinEnd] Shelf supplies a slimmer shared upright at its local right edge.
  * @property {number} [depth] Table/firewood/linen area depth in metres or window reveal depth (default 0.3).
  * @property {number} [radius] Straight staircase half-run and default lane width.
  * @property {number} [rise] Straight staircase total vertical rise.

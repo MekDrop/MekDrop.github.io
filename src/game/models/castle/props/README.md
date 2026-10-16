@@ -157,7 +157,7 @@ facing +Z. Its mesh is reduced to about 1500 triangles for repeated shelf use.
 `Book leather` is neutralized for cover-only runtime tint;
 `Book parchment and brass` retains its original texture and color.
 
-`BookshelfBooks` replaces the bookcase's embedded books at runtime and varies
+`ShelfBooks` replaces the bookcase's embedded books at runtime and varies
 width, height, depth, and six leather colors with the shelf's seeded random
 source. Upright volumes touch their neighbors, align at the back, and are grouped
 by similar size and cover color. The shallow top compartment holds two supported

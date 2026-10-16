@@ -13,7 +13,7 @@ const bookcaseUrl = "books", mapUrl = "map", lanternUrl = "lantern", crestUrl = 
   floorUrl = "floor", rugUrl = "rug";
 const WoodenFloor = { createPanel: (models) => models.instantiate(floorUrl) };
 const findCastleMapMount = () => null;
-const Bookshelf = { name: "Bookshelf", addVisual: () => ({}) };
+const Shelf = { name: "Shelf", addVisual: () => ({}) };
 ${source.slice(source.indexOf("function subtractFloorArea"))}
 return class { ${method} };`)();
 

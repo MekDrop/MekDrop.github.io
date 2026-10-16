@@ -21,8 +21,8 @@ it("repeats study groups and preserves the end-wall bookcase row across seeds", 
     const angle = chair.rotation * Math.PI / 180;
     // Native chair front is -X. It must face the desk on mirrored seeds too.
     assert.ok(-Math.cos(angle) * (desk.x - chair.x) + Math.sin(angle) * (desk.z - chair.z) > 0.6);
-    assert.ok(furniture.some(item => item.object === "Bookshelf"));
-    const endWallShelves = furniture.filter(item => item.object === "Bookshelf" && Math.abs(item.rotation % 180) === 90);
+    assert.ok(furniture.some(item => item.object === "Shelf"));
+    const endWallShelves = furniture.filter(item => item.object === "Shelf" && Math.abs(item.rotation % 180) === 90);
     assert.ok(endWallShelves.length >= 4, `seed ${seed} fills the solid end wall`);
     assert.ok(Math.abs(Math.abs(endWallShelves[0].z - endWallShelves[1].z) - 0.791) < 1e-6);
     for (const shelf of endWallShelves) {
@@ -44,14 +44,14 @@ it("repeats study groups and preserves the end-wall bookcase row across seeds", 
       assert.equal(stool.rotation, 180, "preserves the original stool orientation");
     }
     for (const detail of furniture.filter(item => item.object === "ParchmentBundle" || item.object === "Book" && !item.properties?.isOpen)) {
-      const shelf = furniture.find(item => item.object === "Bookshelf" &&
+      const shelf = furniture.find(item => item.object === "Shelf" &&
         (detail.object === "Book" ? [0, 0.04, 0.08].some(offset => Math.abs(item.height + offset - detail.y) < 1e-6) : item.height === detail.y) &&
         Math.abs(detail.x - item.x) + detail.width / 2 <= item.width / 2 + 1e-6 &&
         Math.abs(detail.z - item.z) + detail.depth / 2 <= item.depth / 2 + 1e-6);
       assert.ok(shelf, `seed ${seed} ${detail.object} shelf support`);
     }
     assert.ok(endWallShelves.every(item => item.height === 2.5));
-    const bareShelf = furniture.find(item => item.object === "Bookshelf" && !furniture.some(detail =>
+    const bareShelf = furniture.find(item => item.object === "Shelf" && !furniture.some(detail =>
       ["Book", "ParchmentBundle"].includes(detail.object) &&
       Math.abs(detail.x - item.x) <= item.width / 2 && Math.abs(detail.z - item.z) <= item.depth / 2));
     assert.ok(bareShelf, `seed ${seed} leaves a shelf top bare`);
@@ -104,7 +104,7 @@ it("small studies omit groups that cannot preserve their approaches", () => {
   const items = new LibraryRoomGenerator().furnish(room, { seed: 42 });
   assert.ok(!items.some(item => item.object === "Table" && (item.variant ?? item.properties?.variant) === "writingDesk"));
   assert.ok(!items.some(item => item.object === "Book" && item.properties?.isOpen || item.object === "Lantern"));
-  assert.ok(items.some(item => item.object === "Bookshelf"));
+  assert.ok(items.some(item => item.object === "Shelf"));
 });
 
 it("keeps a connected player-width route from the door to desk and shelf approaches", async () => {
@@ -140,9 +140,9 @@ it("keeps a connected player-width route from the door to desk and shelf approac
       }
     }
     assert.ok(reached.size > 50, `seed ${seed} door route`);
-    for (const item of furniture.filter(item => ["Chair", "Bookshelf", "Throne"].includes(item.object))) {
+    for (const item of furniture.filter(item => ["Chair", "Shelf", "Throne"].includes(item.object))) {
       const angle = item.rotation * Math.PI / 180;
-      const chair = item.object !== "Bookshelf";
+      const chair = item.object !== "Shelf";
       // Approach the desk chair from behind; bookcases and armchairs from front.
       const direction = item === furniture.find(prop => prop.object === "Chair") ? 1 : -1;
       const tx = item.x + (chair ? direction * Math.cos(angle) : Math.sin(angle)) * 0.75;
@@ -182,11 +182,11 @@ it("publishes registered room objects once through the active authored plan", as
   const first = structuredClone(map.objects.slice(1));
   assert.ok(first.some(item => item.object === "Table" && (item.variant ?? item.properties?.variant) === "writingDesk"));
   assert.ok(first.some(item => item.object === "DeskGlobe"));
-  const shelf = first.find(item => item.object === "Bookshelf");
+  const shelf = first.find(item => item.object === "Shelf");
   assert.notEqual(shelf.from.x === shelf.to.x, shelf.from.z === shelf.to.z);
-  for (const section of first.filter(item => item.object === "Bookshelf")) {
+  for (const section of first.filter(item => item.object === "Shelf")) {
     const angle = section.rotation * Math.PI / 180;
-    const neighbours = first.filter(item => item !== section && item.object === "Bookshelf" && item.rotation === section.rotation);
+    const neighbours = first.filter(item => item !== section && item.object === "Shelf" && item.rotation === section.rotation);
     for (const [flag, sign] of [["joinStart", -1], ["joinEnd", 1]]) {
       if (!section[flag]) { continue; }
       assert.ok(neighbours.some(item => {
@@ -209,7 +209,7 @@ it("builds shelf-top stacks from three touching independently colored closed boo
   assert.equal(books.length % 3, 0);
   for (let index = 0; index < books.length; index += 3) {
     const stack = books.slice(index, index + 3);
-    const shelf = furniture.find(item => item.object === "Bookshelf" &&
+    const shelf = furniture.find(item => item.object === "Shelf" &&
       Math.abs(item.height - stack[0].y) < 1e-6 &&
       Math.abs(item.x - stack[0].x) + stack[0].width / 2 <= item.width / 2 + 1e-6 &&
       Math.abs(item.z - stack[0].z) + stack[0].depth / 2 <= item.depth / 2 + 1e-6);

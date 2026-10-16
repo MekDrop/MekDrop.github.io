@@ -1,22 +1,33 @@
+import { ShelfItems } from "./ShelfItems.js";
+import storageUrl from "../../../models/castle/residential/storage-shelf.glb?url";
 import bookcaseUrl from "../../../models/castle/residential/bookcase.glb?url";
 import bookUrl from "../../../models/castle/props/closed-shelf-book.glb?url";
-import { BookshelfBooks } from "./BookshelfBooks.js";
-import { BookshelfLayout } from "./BookshelfLayout.js";
+import { ShelfBooks } from "./ShelfBooks.js";
+import { ShelfLayout } from "./ShelfLayout.js";
 import { IslandObjectRoots } from "../../shared/IslandObjectRoots.js";
 import { addGeneratedVoxelPhysics } from "../../shared/GeneratedVoxelPhysics.js";
 
 /**
- * Book-filled oak shelves shared by authored maps and castle rooms.
+ * Storage racks and book cabinets shared by authored maps and castle rooms.
  */
-export class Bookshelf {
+export class Shelf {
+  /**
+   * @param {import("../../ObjectTypes.js").GameMapData} mapData
+   */
+  static prepareMap(mapData) { ShelfItems.prepareMap(mapData); }
+
   /**
    * @returns {string[]}
    */
-  static get modelUrls() { return [bookcaseUrl, bookUrl]; }
+  static get modelUrls() { return [storageUrl, bookcaseUrl, bookUrl]; }
   /**
    * @type {import("playcanvas").Entity}
    */
   #entity;
+  /**
+   * @type {import("playcanvas").Entity}
+   */
+  #collider;
   /**
    * @type {import("playcanvas").Entity}
    */
@@ -36,12 +47,12 @@ export class Bookshelf {
   constructor({ pc, modelLibrary, definition, runtime = {} }) {
     this.#definition = definition;
     this.#entity = new pc.Entity(`${definition.id} island ownership`);
-    this.#visual = new pc.Entity(`${definition.id} bookshelf`);
+    this.#visual = new pc.Entity(`${definition.id} shelf`);
     this.#visual.tags.add("map-object", definition.id, this.constructor.name);
     this.#islandRoots = new IslandObjectRoots(pc, this.#entity, runtime.mapData);
     this.#islandRoots.addChild(this.#visual, definition.tile);
-    const bounds = Bookshelf.addVisual(modelLibrary, this.#visual, definition);
-    addGeneratedVoxelPhysics({
+    const bounds = Shelf.addVisual(modelLibrary, this.#visual, definition);
+    this.#collider = addGeneratedVoxelPhysics({
       pc,
       parent: this.#visual,
       name: definition.id,
@@ -55,10 +66,38 @@ export class Bookshelf {
    * @param {import("../../../models/GameModelLibrary.js").GameModelLibrary} models
    * @param {import("playcanvas").Entity} parent
    * @param {import("../../ObjectTypes.js").MapObjectDefinition} definition
-   * @returns {ReturnType<typeof BookshelfLayout.bounds>}
+   * @returns {ReturnType<typeof ShelfLayout.bounds>}
    */
   static addVisual(models, parent, definition) {
-    const bounds = BookshelfLayout.bounds(definition);
+    if (definition.variant === "storage") {
+      const scale = definition.scale ?? 1;
+      const stretch = definition.stretch ?? {
+        x: 1,
+        y: 1,
+        z: 1,
+      };
+      const model = models.instantiate(storageUrl);
+      if (definition.items) {
+        for (const node of model.find(Shelf.#isStorageContent)) { node.destroy(); }
+      }
+      const position = definition.position;
+      parent.setLocalPosition(position.x, position.y, position.z);
+      const rotation = definition.collisionRotation ?? definition.rotation ?? 0;
+      parent.setLocalEulerAngles(0, rotation, 0);
+      model.setLocalEulerAngles(0, (definition.rotation ?? 0) - rotation, 0);
+      model.setLocalScale(scale * stretch.x, scale * stretch.y, scale * stretch.z);
+      parent.addChild(model);
+
+      return {
+        x: 0,
+        y: scale * stretch.y / 2,
+        z: 0,
+        width: definition.footprint?.width ?? 0.8 * scale * stretch.x,
+        height: scale * stretch.y,
+        depth: definition.footprint?.depth ?? 0.3 * scale * stretch.z,
+      };
+    }
+    const bounds = ShelfLayout.bounds(definition);
     // Repeat modules for long shelves so individual books retain their proportions.
     const count = Math.max(1, Math.ceil(bounds.length / 0.935 - 1e-9));
     const length = bounds.length / count;
@@ -82,11 +121,11 @@ export class Bookshelf {
       const reversed = (alongX ? Math.cos(angle) : -Math.sin(angle)) < 0;
       const joinStart = (reversed ? index < count - 1 : index > 0) || definition.joinStart;
       const joinEnd = (reversed ? index > 0 : index < count - 1) || definition.joinEnd;
-      const levels = Bookshelf.resize(model, bounds.height, joinStart, joinEnd);
-      if (definition.books !== false) {
-        BookshelfBooks.populate(models, model, bookUrl, random, levels);
+      const levels = Shelf.resize(model, bounds.height, joinStart, joinEnd);
+      if (definition.books !== false && !definition.items) {
+        ShelfBooks.populate(models, model, bookUrl, random, levels);
       } else {
-        for (const node of model.find(Bookshelf.#findNode)) {
+        for (const node of model.find(Shelf.#findNode)) {
           node.destroy();
         }
       }
@@ -112,7 +151,7 @@ export class Bookshelf {
    * @returns {{bottom:number,height:number}[]}
    */
   static resize(model, height, joinStart = false, joinEnd = false) {
-    const planks = model.find(Bookshelf.#findNode2);
+    const planks = model.find(Shelf.#findNode2);
     const template = planks[0];
     const levels = [];
     const count = Math.max(1, Math.round((height - 0.0775) / 0.35));
@@ -128,7 +167,7 @@ export class Bookshelf {
       }); }
     }
     for (const plank of planks) { plank.destroy(); }
-    for (const node of model.find(Bookshelf.#findNode3)) {
+    for (const node of model.find(Shelf.#findNode3)) {
       const x = node.getLocalPosition().x;
       if (x < 0 && joinStart) { node.destroy(); continue; }
       node.setLocalScale(x > 0 && joinEnd ? 0.75 : 1, height / 1.35, 1);
@@ -154,11 +193,22 @@ export class Bookshelf {
    * @param {number} far
    * @param {number[]} [offsets]
    */
-  setIslandOffsets(near, far, offsets = [near, far]) { this.#islandRoots.setOffsets(near, far, offsets); }
+  setIslandOffsets(near, far, offsets = [near, far]) {
+    this.#islandRoots.setOffsets(near, far, offsets);
+    this.#collider.rigidbody?.syncEntityToBody();
+  }
+  onSceneReady() { this.#collider.rigidbody?.syncEntityToBody(); }
   destroy() { this.#entity.destroy(); }
 
   /**
    *
+   * @param {import("playcanvas").GraphNode} node
+   */
+  static #isStorageContent(node) {
+    return /^(Supply crate|Crate iron band)/.test(node.name);
+  }
+
+  /**
    * @param {import("playcanvas").GraphNode} node
    */
   static #findNode(node) {

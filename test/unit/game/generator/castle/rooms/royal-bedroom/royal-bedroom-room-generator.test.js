@@ -171,11 +171,11 @@ test("both tower plans publish five furnished variations in every castle orienta
         RoyalBedroomRoomMapObjects.prepareMap(map);
         assert.deepEqual(map.objects.slice(1), definitions);
         assert.equal(definitions.length, items.filter(item => item.role === "royalBedroomProp").length);
-        assert.ok(items.some(item => item.object === "Bookshelf"));
+        assert.ok(items.some(item => item.object === "Shelf"));
         assert.equal(items.filter(item => item.object === "Table" && (item.variant ?? item.properties?.variant) === "writingDesk").length, 1);
         assert.ok(!items.some(item => item.object === "Table" && (item.variant ?? item.properties?.variant) !== "writingDesk"));
         LibraryRoomMapObjects.prepareMap(map);
-        assert.ok(map.objects.some(item => item.object === "Bookshelf" && item.id.includes(room.id)));
+        assert.ok(map.objects.some(item => item.object === "Shelf" && item.id.includes(room.id)));
         const layout = new CastleResidentialLayout(plan);
         const bedroom = residential.rooms[room.id];
         assert.equal(bedroom.maxX - bedroom.minX, basePlanId === "castle-compact-service-wing" ? 3.25 : 7.25);

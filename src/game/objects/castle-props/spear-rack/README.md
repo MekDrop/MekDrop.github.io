@@ -28,7 +28,7 @@ Each shaft rests on an inset butt socket and occupies an open rounded guide
 slot; it does not pass through a solid rail. Collision uses exactly the same
 assembly. Rails, bases, posts, braces, guides, sockets and spears are
 separate authored parts in `src/game/models/spear-rack/spear-rack.blend` and
-its adjacent GLB, following the Bookshelf approach to resizing structural parts.
+its adjacent GLB, following the Shelf approach to resizing structural parts.
 The Blender file packs its timber texture. `models/spear-rack/concept.png`
 records the visual target; `reference_notes.md` distinguishes documented
 historical storage from the proposed multi-row frame. This is a historically

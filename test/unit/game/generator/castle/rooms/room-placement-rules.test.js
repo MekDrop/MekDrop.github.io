@@ -448,7 +448,7 @@ test("wall decor slides beside a window without leaving its mounting wall or roo
 test("bookshelves sit close to the wall without embedding their cabinet depth", () => {
   const item = {
     ...shelf,
-    object: "Bookshelf",
+    object: "Shelf",
     floorY: 0,
     rotation: 0,
     width: 0.85,

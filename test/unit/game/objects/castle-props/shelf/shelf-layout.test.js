@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
-import { BookshelfLayout } from "../../../../../../src/game/objects/castle-props/bookshelf/BookshelfLayout.js";
+import { ShelfLayout } from "../../../../../../src/game/objects/castle-props/shelf/ShelfLayout.js";
 
 test("shelf ranges preserve edges and fixed depth in both directions on both axes", () => {
   for (const facing of [1, -1]) {
@@ -17,7 +17,7 @@ test("shelf ranges preserve edges and fixed depth in both directions on both axe
           y: 3,
           z: alongX ? 4 : 9,
         };
-        const bounds = BookshelfLayout.bounds({
+        const bounds = ShelfLayout.bounds({
           id: "shelf",
           from: reverse ? end : start,
           to: reverse ? start : end,
@@ -89,18 +89,18 @@ test("invalid shelf extents fail before rendering", () => {
       facing: 0,
     },
   ]) {
-    assert.throws(() => BookshelfLayout.bounds({
+    assert.throws(() => ShelfLayout.bounds({
       id: "invalid",
       ...definition,
-    }), { name: "InvalidBookshelfRangeError" });
+    }), { name: "InvalidShelfRangeError" });
   }
 });
 
 test("demonstration map covers both axes and facing directions", () => {
   const map = JSON.parse(readFileSync(new URL("../../../../../../src/game/maps/tests/bookshelf.json", import.meta.url), "utf8"));
   assert.equal(map.mapName, "test_bookshelf");
-  const shelves = map.objects.filter(definition => definition.object === "Bookshelf");
+  const shelves = map.objects.filter(definition => definition.object === "Shelf" && definition.variant !== "storage");
   assert.equal(shelves.length, 7);
-  const rotations = new Set(shelves.map((definition) => BookshelfLayout.bounds(definition).rotation));
+  const rotations = new Set(shelves.map((definition) => ShelfLayout.bounds(definition).rotation));
   assert.deepEqual([...rotations].sort((a, b) => a - b), [-90, 0, 90, 180]);
 });

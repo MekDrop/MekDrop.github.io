@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { Entity, StandardMaterial } from "playcanvas";
-import { BookshelfBooks } from "../../../../../../src/game/objects/castle-props/bookshelf/BookshelfBooks.js";
+import { ShelfBooks } from "../../../../../../src/game/objects/castle-props/shelf/ShelfBooks.js";
 
 test("a full-height top compartment receives upright books", () => {
   const shelf = new Entity("shelf");
@@ -10,7 +10,7 @@ test("a full-height top compartment receives upright books", () => {
     bottom: 2.15,
     height: 0.29,
   };
-  BookshelfBooks.populate(models, shelf, "book.glb", () => 0.5, [level]);
+  ShelfBooks.populate(models, shelf, "book.glb", () => 0.5, [level]);
   assert.equal(shelf.children.length, 10);
   for (const book of shelf.children) {
     assert.equal(book.getLocalPosition().y, level.bottom);
@@ -39,7 +39,7 @@ test("reusable books remain supported, fit every shelf and isolate cover colors"
         return book;
       },
     };
-    BookshelfBooks.populate(models, shelf, "book.glb", () => {
+    ShelfBooks.populate(models, shelf, "book.glb", () => {
       state = (Math.imul(state, 1664525) + 1013904223) >>> 0;
 
       return state / 4294967296;
@@ -47,7 +47,7 @@ test("reusable books remain supported, fit every shelf and isolate cover colors"
     assert.equal(shelf.children.length, 36);
     const materials = new Set();
     const signature = [];
-    for (const [row, level] of BookshelfBooks.levels.slice(0, 3).entries()) {
+    for (const [row, level] of ShelfBooks.levels.slice(0, 3).entries()) {
       let edge = -0.355;
       for (const book of shelf.children.slice(row * 10, row * 10 + 10)) {
         const point = book.getLocalPosition(), scale = book.getLocalScale();

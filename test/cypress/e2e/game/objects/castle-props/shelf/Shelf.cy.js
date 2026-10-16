@@ -1,4 +1,4 @@
-describe("Bookshelf map", () => {
+describe("Shelf map", () => {
   it("loads the coordinate-based shelf variations with books and physics", () => {
     cy.visit("/en/map/test_bookshelf?camera-test");
     cy.get('.background-canvas[data-game-ready="true"]', { timeout: 30000 }).should("be.visible");

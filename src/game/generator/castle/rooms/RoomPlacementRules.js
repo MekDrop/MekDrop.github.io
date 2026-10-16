@@ -117,7 +117,7 @@ export class RoomPlacementRules {
           candidate => candidate.floorY === root.floorY && root.x >= candidate.minX && root.x <= candidate.maxX && root.z >= candidate.minZ && root.z <= candidate.maxZ);
       if (!room) { placed.push(...group); continue; }
       // Mount fixtures by their rear surface, independently of the hanging contents.
-      const bookshelf = root.object === "Bookshelf";
+      const bookshelf = root.object === "Shelf";
       const back = root.wallMountBack ?? (bookshelf ? -0.18 - 0.02501 / root.scale : WALL_MOUNTS[root.object]);
       let mountAxis, mountWall;
       if (back !== undefined) {

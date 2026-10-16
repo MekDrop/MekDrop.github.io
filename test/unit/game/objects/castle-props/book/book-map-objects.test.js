@@ -2,13 +2,13 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { Entity, Vec3 } from "playcanvas";
 import { BookMapObjects } from "../../../../../../src/game/objects/castle-props/book/BookMapObjects.js";
-import { BookshelfBooks } from "../../../../../../src/game/objects/castle-props/bookshelf/BookshelfBooks.js";
-import { BookshelfLayout } from "../../../../../../src/game/objects/castle-props/bookshelf/BookshelfLayout.js";
+import { ShelfBooks } from "../../../../../../src/game/objects/castle-props/shelf/ShelfBooks.js";
+import { ShelfLayout } from "../../../../../../src/game/objects/castle-props/shelf/ShelfLayout.js";
 
 test("publishes stable independent books, preserves authored reading placements, and replaces stale contents", () => {
   const shelf = {
     id: "library-shelf",
-    object: "Bookshelf",
+    object: "Shelf",
     from: {
       x: 0,
       y: 2,
@@ -82,7 +82,7 @@ test("world-space book transforms match the former cabinet hierarchy on both axe
       for (const height of [0.45, 1.8]) {
         const shelf = {
           id: "transform-shelf",
-          object: "Bookshelf",
+          object: "Shelf",
           seed: 42,
           facing,
           height,
@@ -97,7 +97,7 @@ test("world-space book transforms match the former cabinet hierarchy on both axe
             z: alongX ? -3 : -2.1,
           },
         };
-        const bounds = BookshelfLayout.bounds(shelf);
+        const bounds = ShelfLayout.bounds(shelf);
         let state = 2166136261;
         for (const character of "42") { state = Math.imul(state ^ character.charCodeAt(0), 16777619) >>> 0; }
         const random = () => {
@@ -107,7 +107,7 @@ test("world-space book transforms match the former cabinet hierarchy on both axe
         };
         const rows = Math.max(1, Math.round((height - 0.0775) / 0.35));
         const spacing = (height - 0.0775) / rows;
-        const local = BookshelfBooks.layout(random, Array.from({ length: rows }, (_, row) => ({
+        const local = ShelfBooks.layout(random, Array.from({ length: rows }, (_, row) => ({
           bottom: 0.0775 + row * spacing,
           height: spacing - 0.055,
         })));

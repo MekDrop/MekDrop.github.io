@@ -10,7 +10,7 @@ const source = readFileSync(new URL("../../../../../src/game/objects/castle/Cast
 const start = source.indexOf("  #buildPlannedFloors(buildPlan, models, pc)");
 const end = source.indexOf("\n  /**", start);
 // Exercise the real construction method without a GPU or model loader.
-const FloorBuilder = new Function("floorUrl", "stoneUrl", "Bookshelf", "CastleFloorFinish", `
+const FloorBuilder = new Function("floorUrl", "stoneUrl", "Shelf", "CastleFloorFinish", `
 ${source.slice(source.indexOf("function subtractFloorArea("))}
 const WoodenFloor = { createPanel: (models) => models.instantiate(floorUrl) };
 return class {

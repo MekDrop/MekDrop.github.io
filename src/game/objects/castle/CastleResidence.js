@@ -4,12 +4,10 @@ import { createSpiralStairCollision, spiralStairRise } from "../shared/SpiralSta
 import buttressUrl from "../../models/castle/residential/corner-buttress.glb?url";
 import chimneyUrl from "../../models/castle/residential/chimney.glb?url";
 import crestUrl from "../../models/castle/residential/crown-crest.glb?url";
-import { Bookshelf } from "../castle-props/bookshelf/Bookshelf.js";
 import { WoodenFloor } from "../architecture/wooden-floor/WoodenFloor.js";
 import rugUrl from "../../models/castle/residential/rug.glb?url";
 import wardrobeUrl from "../../models/castle/residential/wardrobe.glb?url";
 import deskUrl from "../../models/castle/residential/writing-desk.glb?url";
-import shelfUrl from "../../models/castle/residential/storage-shelf.glb?url";
 import chestUrl from "../../models/castle/residential/chest.glb?url";
 import stairUrl from "../../models/castle/residential/spiral-staircase.glb?url";
 import stoneUrl from "../../models/castle/residential/stone-block.glb?url";
@@ -26,7 +24,6 @@ const MODEL_URLS = {
   kitchenTable: deskUrl,
   wardrobe: wardrobeUrl,
   readingChair: chairUrl,
-  storageShelf: shelfUrl,
 };
 
 /**
@@ -66,7 +63,7 @@ export class CastleResidence {
    * @returns {string[]}
    */
   static get modelUrls() {
-    return [...Object.values(MODEL_URLS), chestUrl, stairUrl, masonryBlockUrl, stoneUrl, ...Bookshelf.modelUrls, ...WoodenFloor.modelUrls, rugUrl, crestUrl, buttressUrl, chimneyUrl];
+    return [...Object.values(MODEL_URLS), chestUrl, stairUrl, masonryBlockUrl, stoneUrl, ...WoodenFloor.modelUrls, rugUrl, crestUrl, buttressUrl, chimneyUrl];
   }
 
   /**
@@ -83,7 +80,7 @@ export class CastleResidence {
     this.#entity.setLocalPosition(origin.x, origin.y, origin.z);
     this.#entity.setLocalEulerAngles(0, yaw, 0);
     for (const placement of this.#layout.placements) {
-      if (["bookshelf", "royalBed", "servantBed"].includes(placement.role)) { continue; }
+      if (["bookshelf", "storageShelf", "royalBed", "servantBed"].includes(placement.role)) { continue; }
       const visual = modelLibrary.instantiate(MODEL_URLS[placement.role]);
       visual.name = `Castle ${placement.role}`;
       const local = this.#layout.toLocal(placement.position.x, placement.position.z);
@@ -97,7 +94,6 @@ export class CastleResidence {
         kitchenTable: [0.9, 0.73, 0.55],
         wardrobe: [0.65, 1.15, 0.46],
         readingChair: [0.429, 0.85, 0.508],
-        storageShelf: [0.8, 1, 0.3],
       }[placement.role];
       this.#solids.push({
         x: local.x,
@@ -265,25 +261,6 @@ export class CastleResidence {
       }
     }
 
-    for (const item of plan.furniture) {
-      if (item.role !== "bookshelf") { continue; }
-      this.#solids.push(Bookshelf.addVisual(models, this.#entity, {
-        id: `castle-${item.roomId}-books`,
-        object: Bookshelf.name,
-        from: {
-          x: item.x,
-          y: item.floorY - plan.origin.y,
-          z: item.z - item.depth * item.scale / 2,
-        },
-        to: {
-          x: item.x,
-          y: item.floorY - plan.origin.y,
-          z: item.z + item.depth * item.scale / 2,
-        },
-        height: 1.6,
-        facing: item.x < 0 ? 1 : -1,
-      }));
-    }
     for (const room of plan.placedRooms) {
       const bedsideLighting = plan.furniture.some(/**
        * @param {import("../../generator/castle/rooms/AbstractCastleRoomGenerator.js").RoomItem & {roomId:string}} item
@@ -488,11 +465,9 @@ export class CastleResidence {
    * @param {import("../../GameContracts.js").CastleBuildPlan} buildPlan
    */
   #furnishRooms(pc, models, buildPlan) {
-    const { work, bedroom } = this.#layout.rooms;
-    const desk = this.#layout.reservations.find(
-      CastleResidence.#findReservation,
-    );
-    const deskSide = (desk.minX + desk.maxX) / 2 > (work.minX + work.maxX) / 2 ? 1 : -1;
+    const { bedroom } = this.#layout.rooms;
+
+
     /**
      * @param {string} url
      * @param {string} name
@@ -512,33 +487,6 @@ export class CastleResidence {
 
       return entity;
     };
-    for (const room of [work, bedroom]) {
-      const y = room.floorY - this.#layout.origin.y;
-      const back = room.maxZ - 0.22;
-      // Books and the map occupy the walls, leaving the central walking route clear.
-      if (room === work) {
-        const shelfBack = work.minZ + (work.maxZ - work.minZ) * 0.45;
-        for (const x of [deskSide > 0 ? work.maxX - 0.24 : work.minX + 0.24]) {
-          this.#solids.push(Bookshelf.addVisual(models, this.#entity, {
-            id: "castle-work-bookshelf",
-            object: Bookshelf.name,
-            from: {
-              x,
-              y,
-              z: shelfBack - 0.4675,
-            },
-            to: {
-              x,
-              y,
-              z: shelfBack + 0.4675,
-            },
-            height: 1.8,
-            facing: -deskSide,
-          }));
-        }
-      }
-
-    }
     place(crestUrl, "Castle entry crown crest", 0, 2.55, -0.17, 0.45, 180);
     const y = bedroom.floorY - this.#layout.origin.y;
     const stair = this.#layout.toLocal(this.#layout.stairs.center.x, this.#layout.stairs.center.z);
@@ -857,13 +805,6 @@ export class CastleResidence {
       castShadows: false,
     });
     this.#entity.addChild(light);
-  }
-
-  /**
-   * @param {{role: string}} reservation
-   */
-  static #findReservation(reservation) {
-    return reservation.role === "workDesk";
   }
 
   /**

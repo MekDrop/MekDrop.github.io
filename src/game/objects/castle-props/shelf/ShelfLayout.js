@@ -1,10 +1,10 @@
 import { everyFiniteNumber } from "../../../helpers/collections.js";
-import { InvalidBookshelfRangeError } from "../../../errors/bookshelf/index.js";
+import { InvalidShelfRangeError } from "../../../errors/shelf/index.js";
 
 /**
  * Coordinate ranges describe the outer shelf edges; the fixed axis is its centerline.
  */
-export class BookshelfLayout {
+export class ShelfLayout {
   /**
    * @returns {number}
    */
@@ -20,7 +20,7 @@ export class BookshelfLayout {
     const alongZ = from?.z !== to?.z;
     if (!from || !to || !everyFiniteNumber([from.x, from.y, from.z, to.x, to.y, to.z, height]) ||
       from.y !== to.y || alongX === alongZ || height <= 0 || ![1, -1].includes(facing)) {
-      throw new InvalidBookshelfRangeError(definition.id);
+      throw new InvalidShelfRangeError(definition.id);
     }
     const length = Math.abs(alongX ? to.x - from.x : to.z - from.z);
 

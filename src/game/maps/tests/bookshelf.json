@@ -1411,7 +1411,7 @@
   "objects": [
     {
       "id": "x-short",
-      "object": "Bookshelf",
+      "object": "Shelf",
       "from": {
         "x": -10,
         "y": 2,
@@ -1431,7 +1431,7 @@
     },
     {
       "id": "x-wide",
-      "object": "Bookshelf",
+      "object": "Shelf",
       "from": {
         "x": -6,
         "y": 2,
@@ -1451,7 +1451,7 @@
     },
     {
       "id": "x-tall-reverse",
-      "object": "Bookshelf",
+      "object": "Shelf",
       "from": {
         "x": 2,
         "y": 2,
@@ -1471,7 +1471,7 @@
     },
     {
       "id": "z-short",
-      "object": "Bookshelf",
+      "object": "Shelf",
       "from": {
         "x": -9,
         "y": 2,
@@ -1491,7 +1491,7 @@
     },
     {
       "id": "z-long-reverse",
-      "object": "Bookshelf",
+      "object": "Shelf",
       "from": {
         "x": -4,
         "y": 2,
@@ -1511,7 +1511,7 @@
     },
     {
       "id": "z-low",
-      "object": "Bookshelf",
+      "object": "Shelf",
       "from": {
         "x": 3,
         "y": 2,
@@ -1531,7 +1531,7 @@
     },
     {
       "id": "x-low-reversed-range",
-      "object": "Bookshelf",
+      "object": "Shelf",
       "from": {
         "x": 10,
         "y": 2,
@@ -1608,6 +1608,63 @@
       "rotation": 25,
       "isOpen": false,
       "pose": "upright"
+    },
+    {
+      "id": "storage-supplies",
+      "object": "Shelf",
+      "variant": "storage",
+      "position": {
+        "x": 7,
+        "y": 2,
+        "z": -1
+      },
+      "rotation": 90,
+      "tile": {
+        "col": 21,
+        "row": 6
+      }
+    },
+    {
+      "id": "storage-items",
+      "object": "Shelf",
+      "variant": "storage",
+      "position": {
+        "x": 9,
+        "y": 2,
+        "z": -1
+      },
+      "items": [
+        {
+          "id": "volume",
+          "object": "Book",
+          "isOpen": false,
+          "position": {
+            "x": 0,
+            "y": 0.5025,
+            "z": 0
+          },
+          "scale": 0.55
+        }
+      ],
+      "tile": {
+        "col": 23,
+        "row": 6
+      }
+    },
+    {
+      "id": "storage-empty",
+      "object": "Shelf",
+      "variant": "storage",
+      "position": {
+        "x": 11,
+        "y": 2,
+        "z": -1
+      },
+      "items": [],
+      "tile": {
+        "col": 25,
+        "row": 6
+      }
     }
   ]
 }

@@ -62,7 +62,7 @@ import { Flag } from "./flag/Flag.js";
 import { Painting } from "./castle-props/painting/Painting.js";
 import { Earth } from "./terrain/Earth.js";
 import { Window } from "./architecture/window/Window.js";
-import { Bookshelf } from "./castle-props/bookshelf/Bookshelf.js";
+import { Shelf } from "./castle-props/shelf/Shelf.js";
 import { Grass } from "./terrain/Grass.js";
 import { SeatedRoyal } from "./castle/SeatedRoyal.js";
 import { Castle } from "./castle/Castle.js";
@@ -143,7 +143,6 @@ const OBJECT_CLASSES = new Map([
   [TowerBrazier.name, TowerBrazier],
   [Flag.name, Flag],
   [WoodenFloor.name, WoodenFloor],
-  [Bookshelf.name, Bookshelf],
   [Bed.name, Bed],
   [Painting.name, Painting],
   [Window.name, Window],
@@ -176,6 +175,7 @@ const OBJECT_CLASSES = new Map([
   [Chest.name, Chest],
   [Fire.name, Fire],
   // Expand shelf contents after castle preparation publishes its furnishings.
+  [Shelf.name, Shelf],
   [Book.name, Book],
 ]);
 

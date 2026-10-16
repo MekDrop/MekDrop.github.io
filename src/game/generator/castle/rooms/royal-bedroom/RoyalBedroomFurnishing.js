@@ -85,14 +85,14 @@ export class RoyalBedroomFurnishing {
     if (chest && this.#variant === 4) { this.#supported("FoldedLinens", chest, 0.3, 0.22, 0.16); }
     // One desk serves reading and writing; a bookcase and wash cabinet add useful storage.
     if (spacious) {
-      const bookshelf = this.#perimeter("Bookshelf", 0.935, 0.36, 1.8, [90, 270, 0, 180]);
+      const bookshelf = this.#perimeter("Shelf", 0.935, 0.36, 1.8, [90, 270, 0, 180]);
       if (bookshelf) { bookshelf.role = "libraryProp"; }
       if (this.#variant !== 1) { this.#writingDesk(); }
       if (this.#variant !== 4) {
         const washstand = this.#perimeter("BedsideDrawers", 0.6004, 0.5604, 0.65, [270, 90, 180, 0]);
         if (washstand) { this.#supported("WashBasin", washstand, 0.5899, 0.5084, 0.2362); }
       }
-      if (bookshelf) { this.#extendBookshelf(bookshelf); }
+      if (bookshelf) { this.#extendShelf(bookshelf); }
       if (chest && this.#variant !== 4) { this.#supported("FoldedLinens", chest, 0.3, 0.22, 0.16); }
     }
     this.#picture(bed, context.openings);
@@ -346,7 +346,7 @@ export class RoyalBedroomFurnishing {
    * Grow a continuous modular row up to furniture, door swings or the wall end.
    * @param {import("../AbstractCastleRoomGenerator.js").RoomItem} first
    */
-  #extendBookshelf(first) {
+  #extendShelf(first) {
     const sideways = first.rotation % 180 !== 0;
     for (const direction of [1, -1]) {
       let previous = first;
@@ -355,7 +355,7 @@ export class RoyalBedroomFurnishing {
         const previousLength = sideways ? previous.depth : previous.width;
         for (const length of [0.935, 0.8, 0.6]) {
           const offset = direction * (previousLength + length) / 2;
-          next = this.#place("Bookshelf", previous.x + (sideways ? 0 : offset),
+          next = this.#place("Shelf", previous.x + (sideways ? 0 : offset),
             previous.z + (sideways ? offset : 0), length, 0.36, 1.8, first.rotation);
           if (next) { break; }
         }
