@@ -780,38 +780,13 @@ export class CastleAudienceRoom {
   #buildColumns(throneForward) {
     // Room-first castles supply their supports through the structural shell.
     // Extra audience columns must not occupy reserved furniture or walking space.
-    if (this.#residentialLayout) return;
+    if (this.#residentialLayout) { return; }
     const lateral = Math.max(1.35, this.#roomWidth / 2 - 0.76);
     const rows = [Math.min(1.72, throneForward * 0.38), throneForward * 0.72];
-    for (const forward of rows) {
-      for (const side of [-1, 1]) {
-        this.#boxAt(
-          "Audience column plinth",
-          "wood",
-          side * lateral,
-          forward,
-          0.14,
-          [0.62, 0.28, 0.62],
-          true,
-        );
-        this.#boxAt(
-          "Audience square column",
-          "woodLight",
-          side * lateral,
-          forward,
-          0.93,
-          [0.38, 1.58, 0.38],
-        );
-        this.#boxAt(
-          "Audience column capital",
-          "gold",
-          side * lateral,
-          forward,
-          1.78,
-          [0.58, 0.14, 0.58],
-        );
-      }
-    }
+    this.#buildColumn(lateral, rows[0], -1);
+    this.#buildColumn(lateral, rows[0], 1);
+    this.#buildColumn(lateral, rows[1], -1);
+    this.#buildColumn(lateral, rows[1], 1);
   }
 
   /**
@@ -820,28 +795,10 @@ export class CastleAudienceRoom {
    */
   #buildBenches(throneForward) {
     const lateral = Math.max(1.35, this.#roomWidth / 2 - 0.78);
-    for (const side of [-1, 1]) {
-      for (const forward of [2.35, Math.min(3.8, throneForward - 1.35)]) {
-        if (forward >= throneForward - 0.65) continue;
-        this.#boxAt(
-          "Court visitor bench",
-          "woodLight",
-          side * lateral,
-          forward,
-          0.34,
-          [0.54, 0.24, 1.05],
-          true,
-        );
-        this.#boxAt(
-          "Court visitor bench back",
-          "wood",
-          side * (lateral + 0.22),
-          forward,
-          0.66,
-          [0.16, 0.68, 1.05],
-        );
-      }
-    }
+    this.#buildBench(throneForward, -1, lateral, 2.35);
+    this.#buildBench(throneForward, -1, lateral, Math.min(3.8, throneForward - 1.35));
+    this.#buildBench(throneForward, 1, lateral, 2.35);
+    this.#buildBench(throneForward, 1, lateral, Math.min(3.8, throneForward - 1.35));
   }
 
   /**
@@ -972,5 +929,65 @@ export class CastleAudienceRoom {
    */
   static #flatMapRender(render) {
     return render.meshInstances;
+  }
+
+  /**
+   * @param {number} lateral
+   * @param {number} forward
+   * @param {number} side
+   */
+  #buildColumn(lateral, forward, side) {
+    this.#boxAt(
+      "Audience column plinth",
+      "wood",
+      side * lateral,
+      forward,
+      0.14,
+      [0.62, 0.28, 0.62],
+      true,
+    );
+    this.#boxAt(
+      "Audience square column",
+      "woodLight",
+      side * lateral,
+      forward,
+      0.93,
+      [0.38, 1.58, 0.38],
+    );
+    this.#boxAt(
+      "Audience column capital",
+      "gold",
+      side * lateral,
+      forward,
+      1.78,
+      [0.58, 0.14, 0.58],
+    );
+  }
+
+  /**
+   * @param {number} throneForward
+   * @param {number} side
+   * @param {number} lateral
+   * @param {number} forward
+   */
+  #buildBench(throneForward, side, lateral, forward) {
+    if (forward >= throneForward - 0.65) { return; }
+    this.#boxAt(
+      "Court visitor bench",
+      "woodLight",
+      side * lateral,
+      forward,
+      0.34,
+      [0.54, 0.24, 1.05],
+      true,
+    );
+    this.#boxAt(
+      "Court visitor bench back",
+      "wood",
+      side * (lateral + 0.22),
+      forward,
+      0.66,
+      [0.16, 0.68, 1.05],
+    );
   }
 }

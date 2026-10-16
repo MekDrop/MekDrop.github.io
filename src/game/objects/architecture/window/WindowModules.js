@@ -32,26 +32,8 @@ export class WindowModules {
     for (const node of panes) { node.destroy(); }
     this.#repeat(visual, /^Fine oak transom /, rows - 1, "y", rows);
     this.#repeat(visual, /^Central oak mullion/, columns - 1, "x", columns);
-    for (const side of [1, -1]) {
-      const courses = visual.find(/**
-       *
-       * @param {import("playcanvas").GraphNode} node
-       */
-        (node) => node.name.startsWith(`Stone jamb course ${side} `));
-      if (!courses.length) { continue; }
-      const count = Math.max(courses.length, Math.ceil(window.height / 0.25));
-      const template = courses[0];
-      for (let index = 0; index < count; index++) {
-        const copy = template.clone();
-        copy.name = `Stone jamb course ${side} ${index}`;
-        const position = template.getLocalPosition();
-        copy.setLocalPosition(position.x, (index + 0.5) / count, position.z);
-        const scale = template.getLocalScale();
-        copy.setLocalScale(scale.x, scale.y * courses.length / count, scale.z);
-        template.parent.addChild(copy);
-      }
-      for (const node of courses) { node.destroy(); }
-    }
+    WindowModules.#fitJamb(visual, window, 1);
+    WindowModules.#fitJamb(visual, window, -1);
   }
 
   /**
@@ -94,5 +76,31 @@ export class WindowModules {
    */
   static #mapNode(node) {
     return node.name.split(" ")[3];
+  }
+
+  /**
+   * @param {import("playcanvas").Entity} visual
+   * @param {{width:number,height:number,role:string}} window
+   * @param {number} side
+   */
+  static #fitJamb(visual, window, side) {
+    const courses = visual.find(/**
+     *
+     * @param {import("playcanvas").GraphNode} node
+     */
+      (node) => node.name.startsWith(`Stone jamb course ${side} `));
+    if (!courses.length) { return; }
+    const count = Math.max(courses.length, Math.ceil(window.height / 0.25));
+    const template = courses[0];
+    for (let index = 0; index < count; index++) {
+      const copy = template.clone();
+      copy.name = `Stone jamb course ${side} ${index}`;
+      const position = template.getLocalPosition();
+      copy.setLocalPosition(position.x, (index + 0.5) / count, position.z);
+      const scale = template.getLocalScale();
+      copy.setLocalScale(scale.x, scale.y * courses.length / count, scale.z);
+      template.parent.addChild(copy);
+    }
+    for (const node of courses) { node.destroy(); }
   }
 }

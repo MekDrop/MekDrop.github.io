@@ -864,30 +864,44 @@ export class CastleAuthoredBuildPlan {
             x >= volume.minX - thickness && x <= volume.maxX + thickness && z >= volume.minZ - thickness && z <= volume.maxZ + thickness;
           });
         for (let x = body.minX; x < body.maxX; x += 1) {
-          for (const z of [body.minZ - thickness / 2, body.maxZ + thickness / 2]) {
-            if (covered(Math.min(x + 0.25, body.maxX), z)) { continue; }
-            addBox({
-              minX:x,
-              maxX:Math.min(x+0.5,body.maxX),
-              minZ:z-thickness/2,
-              maxZ:z+thickness/2,
-              minY:terrace.floorY+0.25,
-              maxY:terrace.floorY+0.75,
-            });
-          }
+          CastleAuthoredBuildPlan.#addHorizontalBattlement(
+            covered,
+            x,
+            body,
+            addBox,
+            thickness,
+            terrace,
+            body.minZ - thickness / 2,
+          );
+          CastleAuthoredBuildPlan.#addHorizontalBattlement(
+            covered,
+            x,
+            body,
+            addBox,
+            thickness,
+            terrace,
+            body.maxZ + thickness / 2,
+          );
         }
         for (let z = body.minZ; z < body.maxZ; z += 1) {
-          for (const x of [body.minX - thickness / 2, body.maxX + thickness / 2]) {
-            if (covered(x, Math.min(z + 0.25, body.maxZ))) { continue; }
-            addBox({
-              minX:x-thickness/2,
-              maxX:x+thickness/2,
-              minZ:z,
-              maxZ:Math.min(z+0.5,body.maxZ),
-              minY:terrace.floorY+0.25,
-              maxY:terrace.floorY+0.75,
-            });
-          }
+          CastleAuthoredBuildPlan.#addVerticalBattlement(
+            covered,
+            z,
+            body,
+            addBox,
+            thickness,
+            terrace,
+            body.minX - thickness / 2,
+          );
+          CastleAuthoredBuildPlan.#addVerticalBattlement(
+            covered,
+            z,
+            body,
+            addBox,
+            thickness,
+            terrace,
+            body.maxX + thickness / 2,
+          );
         }
       }
     }
@@ -1265,5 +1279,63 @@ export class CastleAuthoredBuildPlan {
    */
   static #findOpening(opening) {
     return opening.roomId === "upper-stair-room" && opening.kind === "door";
+  }
+
+  /**
+   * @param {(x:number,z:number)=>boolean} covered
+   * @param {number} x
+   * @param {{minX:number,maxX:number,minZ:number,maxZ:number}} body
+   * @param {(box:{minX:number,maxX:number,minZ:number,maxZ:number,minY:number,maxY:number})=>void} addBox
+   * @param {number} thickness
+   * @param {{floorY:number}} terrace
+   * @param {number} z
+   */
+  static #addHorizontalBattlement(
+    covered,
+    x,
+    body,
+    addBox,
+    thickness,
+    terrace,
+    z,
+  ) {
+    if (covered(Math.min(x + 0.25, body.maxX), z)) { return; }
+    addBox({
+      minX:x,
+      maxX:Math.min(x+0.5,body.maxX),
+      minZ:z-thickness/2,
+      maxZ:z+thickness/2,
+      minY:terrace.floorY+0.25,
+      maxY:terrace.floorY+0.75,
+    });
+  }
+
+  /**
+   * @param {(x:number,z:number)=>boolean} covered
+   * @param {number} z
+   * @param {{minX:number,maxX:number,minZ:number,maxZ:number}} body
+   * @param {(box:{minX:number,maxX:number,minZ:number,maxZ:number,minY:number,maxY:number})=>void} addBox
+   * @param {number} thickness
+   * @param {{floorY:number}} terrace
+   * @param {number} x
+   */
+  static #addVerticalBattlement(
+    covered,
+    z,
+    body,
+    addBox,
+    thickness,
+    terrace,
+    x,
+  ) {
+    if (covered(x, Math.min(z + 0.25, body.maxZ))) { return; }
+    addBox({
+      minX:x-thickness/2,
+      maxX:x+thickness/2,
+      minZ:z,
+      maxZ:Math.min(z+0.5,body.maxZ),
+      minY:terrace.floorY+0.25,
+      maxY:terrace.floorY+0.75,
+    });
   }
 }

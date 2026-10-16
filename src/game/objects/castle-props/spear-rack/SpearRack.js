@@ -67,24 +67,46 @@ export class SpearRack extends AbstractCastleProp {
       // Two side frames connect every row: no separate rack feet per row.
       for (let index = 0; index <= bays; index++) {
         const x = -spanX / 2 + index * spanX / bays;
-        for (const side of [-1, 1]) {
-          const z = side * spanZ / 2;
-          add("Rack upright", `Rack upright ${index}-${side}`, x, 0.445, z, sx, 1, sz);
-          add("Rack foot", `Rack foot ${index}-${side}`, x, 0.0225, z, sx, 1, sz);
-        }
+        SpearRack.#addFrameSide(
+          spanZ,
+          add,
+          index,
+          x,
+          sx,
+          sz,
+          -1,
+        );
+        SpearRack.#addFrameSide(
+          spanZ,
+          add,
+          index,
+          x,
+          sx,
+          sz,
+          1,
+        );
         for (const y of [0.09, 0.78]) {
           add("Rack crossbeam", `Rack crossbeam ${index}-${y}`, x, y, 0, sx, 1, spanZ / 0.25);
         }
       }
-      for (const side of [-1, 1]) {
-        const x = side * spanX / 2;
-        const diagonal = Math.hypot(0.62 * sy, spanZ);
-        const brace = add("Rack brace", `Rack end brace ${side}`, x, 0.435, 0,
-          sx, diagonal / sy, Math.min(sz, sy));
-        brace.setLocalEulerAngles(Math.atan2(spanZ, 0.62 * sy) * 180 / Math.PI * side, 0, 0);
-        add("Rack base", `Rack perimeter base ${side}`, 0, 0.09, side * spanZ / 2,
-          spanX / 0.5, 1, sz);
-      }
+      SpearRack.#addEndBrace(
+        spanX,
+        sy,
+        spanZ,
+        add,
+        sx,
+        sz,
+        -1,
+      );
+      SpearRack.#addEndBrace(
+        spanX,
+        sy,
+        spanZ,
+        add,
+        sx,
+        sz,
+        1,
+      );
       for (let row = 0; row < rows; row++) {
         const z = rows === 1 ? 0 : -rowSpan / 2 + row * rowSpan / (rows - 1);
         add("Rack base", `Rack row base ${row}`, 0, 0.09, z, spanX / 0.5, 1, sz);
@@ -100,5 +122,55 @@ export class SpearRack extends AbstractCastleProp {
       }
     }
     for (const template of templates.values()) { template?.destroy(); }
+  }
+
+  /**
+   * @param {number} spanZ
+   * @param {(type:string,name:string,x:number,y:number,z:number,scaleX:number,scaleY:number,scaleZ:number)=>import("playcanvas").Entity} add
+   * @param {number} index
+   * @param {number} x
+   * @param {number} sx
+   * @param {number} sz
+   * @param {number} side
+   */
+  static #addFrameSide(
+    spanZ,
+    add,
+    index,
+    x,
+    sx,
+    sz,
+    side,
+  ) {
+    const z = side * spanZ / 2;
+    add("Rack upright", `Rack upright ${index}-${side}`, x, 0.445, z, sx, 1, sz);
+    add("Rack foot", `Rack foot ${index}-${side}`, x, 0.0225, z, sx, 1, sz);
+  }
+
+  /**
+   * @param {number} spanX
+   * @param {number} sy
+   * @param {number} spanZ
+   * @param {(type:string,name:string,x:number,y:number,z:number,scaleX:number,scaleY:number,scaleZ:number)=>import("playcanvas").Entity} add
+   * @param {number} sx
+   * @param {number} sz
+   * @param {number} side
+   */
+  static #addEndBrace(
+    spanX,
+    sy,
+    spanZ,
+    add,
+    sx,
+    sz,
+    side,
+  ) {
+    const x = side * spanX / 2;
+    const diagonal = Math.hypot(0.62 * sy, spanZ);
+    const brace = add("Rack brace", `Rack end brace ${side}`, x, 0.435, 0,
+      sx, diagonal / sy, Math.min(sz, sy));
+    brace.setLocalEulerAngles(Math.atan2(spanZ, 0.62 * sy) * 180 / Math.PI * side, 0, 0);
+    add("Rack base", `Rack perimeter base ${side}`, 0, 0.09, side * spanZ / 2,
+      spanX / 0.5, 1, sz);
   }
 }

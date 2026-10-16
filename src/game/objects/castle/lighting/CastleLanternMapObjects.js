@@ -60,43 +60,8 @@ export class CastleLanternMapObjects {
           CastleLanternMapObjects.#findOpening,
         );
         if (entrance) {
-          for (const flank of [-1, 1]) {
-            add({
-              object: "Lantern",
-              type: "entrance",
-              position: layout.toWorld(flank * (entrance.width / 2 + 0.54), -0.48, 1.3),
-              rotation: layout.yaw + 180,
-              scale: 1.6,
-              stretch: {
-                x: 0.8633,
-                y: 1,
-                z: 0.8633,
-              },
-              collisionBox: {
-                halfExtents: {
-                  x: 0.0935,
-                  y: 0.225,
-                  z: 0.1284,
-                },
-                offset: {
-                  x: 0,
-                  y: 0.225,
-                  z: 0,
-                },
-              },
-              lighting: {
-                position: {
-                  x: 0,
-                  y: 0.17,
-                  z: 0.1,
-                },
-                modelSpace: true,
-                color: [1, 0.38, 0.06],
-                intensity: 0.85,
-                range: 2.2,
-              },
-            });
-          }
+          CastleLanternMapObjects.#addEntranceLantern(add, layout, entrance, -1);
+          CastleLanternMapObjects.#addEntranceLantern(add, layout, entrance, 1);
         }
       }
 
@@ -153,35 +118,36 @@ export class CastleLanternMapObjects {
       // facades; planned residential rooms use their rotated local X axis.
       const tangentX = room ? Math.cos(angle) : ["NORTH", "SOUTH"].includes(door.side) ? 1 : 0;
       const tangentZ = room ? -Math.sin(angle) : ["WEST", "EAST"].includes(door.side) ? 1 : 0;
-      for (const side of [-1, 1]) {
-        const lateral = side * Math.min(2.8, roomWidth / 2 - 0.1);
-        const center = room ? layout.toWorld((room.minX + room.maxX) / 2, 0, 0) : direction;
-        add({
-          object: "Lantern",
-          type: "wall",
-          position: {
-            x: center.x + tangentX * lateral + Math.sin(angle) * (forward + 0.6),
-            y: elevation + 0.85,
-            z: center.z + tangentZ * lateral + Math.cos(angle) * (forward + 0.6),
-          },
-          rotation: yaw + 180,
-          scale: 0.85,
-          collisionBox: wallCollision,
-          lighting: {
-            position: {
-              x: 0,
-              y: 0.27,
-              z: 0.25,
-            },
-            flicker: true,
-            intensity: 0.6,
-            range: 0.78,
-            phase: (side === 1 ? 1.713 : 0) +
-              (center.x + tangentX * lateral + Math.sin(angle) * (forward + 0.35)) * 0.37 +
-              (center.z + tangentZ * lateral + Math.cos(angle) * (forward + 0.35)) * 0.53,
-          },
-        });
-      }
+      CastleLanternMapObjects.#addWallLantern(
+        roomWidth,
+        room,
+        layout,
+        direction,
+        add,
+        tangentX,
+        angle,
+        forward,
+        elevation,
+        tangentZ,
+        yaw,
+        wallCollision,
+        -1,
+      );
+      CastleLanternMapObjects.#addWallLantern(
+        roomWidth,
+        room,
+        layout,
+        direction,
+        add,
+        tangentX,
+        angle,
+        forward,
+        elevation,
+        tangentZ,
+        yaw,
+        wallCollision,
+        1,
+      );
     }
   }
 
@@ -211,5 +177,108 @@ export class CastleLanternMapObjects {
    */
   static #findZone(zone) {
     return zone.role === "throne";
+  }
+
+  /**
+   * @param {(item:import("../../ObjectTypes.js").MapObjectDefinition)=>void} add
+   * @param {CastleResidentialLayout} layout
+   * @param {{width:number}} entrance
+   * @param {number} flank
+   */
+  static #addEntranceLantern(add, layout, entrance, flank) {
+    add({
+      object: "Lantern",
+      type: "entrance",
+      position: layout.toWorld(flank * (entrance.width / 2 + 0.54), -0.48, 1.3),
+      rotation: layout.yaw + 180,
+      scale: 1.6,
+      stretch: {
+        x: 0.8633,
+        y: 1,
+        z: 0.8633,
+      },
+      collisionBox: {
+        halfExtents: {
+          x: 0.0935,
+          y: 0.225,
+          z: 0.1284,
+        },
+        offset: {
+          x: 0,
+          y: 0.225,
+          z: 0,
+        },
+      },
+      lighting: {
+        position: {
+          x: 0,
+          y: 0.17,
+          z: 0.1,
+        },
+        modelSpace: true,
+        color: [1, 0.38, 0.06],
+        intensity: 0.85,
+        range: 2.2,
+      },
+    });
+  }
+
+  /**
+   * @param {number} roomWidth
+   * @param {{minX:number,maxX:number,minZ:number,maxZ:number}} room
+   * @param {CastleResidentialLayout} layout
+   * @param {{x:number,z:number,yaw:number,span:number,capacity:number}} direction
+   * @param {(item:import("../../ObjectTypes.js").MapObjectDefinition)=>void} add
+   * @param {number} tangentX
+   * @param {number} angle
+   * @param {number} forward
+   * @param {number} elevation
+   * @param {number} tangentZ
+   * @param {number} yaw
+   * @param {{halfExtents:{x:number,y:number,z:number},offset:{x:number,y:number,z:number}}} wallCollision
+   * @param {number} side
+   */
+  static #addWallLantern(
+    roomWidth,
+    room,
+    layout,
+    direction,
+    add,
+    tangentX,
+    angle,
+    forward,
+    elevation,
+    tangentZ,
+    yaw,
+    wallCollision,
+    side,
+  ) {
+    const lateral = side * Math.min(2.8, roomWidth / 2 - 0.1);
+    const center = room ? layout.toWorld((room.minX + room.maxX) / 2, 0, 0) : direction;
+    add({
+      object: "Lantern",
+      type: "wall",
+      position: {
+        x: center.x + tangentX * lateral + Math.sin(angle) * (forward + 0.6),
+        y: elevation + 0.85,
+        z: center.z + tangentZ * lateral + Math.cos(angle) * (forward + 0.6),
+      },
+      rotation: yaw + 180,
+      scale: 0.85,
+      collisionBox: wallCollision,
+      lighting: {
+        position: {
+          x: 0,
+          y: 0.27,
+          z: 0.25,
+        },
+        flicker: true,
+        intensity: 0.6,
+        range: 0.78,
+        phase: (side === 1 ? 1.713 : 0) +
+          (center.x + tangentX * lateral + Math.sin(angle) * (forward + 0.35)) * 0.37 +
+          (center.z + tangentZ * lateral + Math.cos(angle) * (forward + 0.35)) * 0.53,
+      },
+    });
   }
 }

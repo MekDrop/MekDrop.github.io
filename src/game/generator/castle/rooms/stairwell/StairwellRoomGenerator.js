@@ -119,61 +119,24 @@ export class StairwellRoomGenerator extends AbstractCastleRoomGenerator {
       }
       // The walking strip ends at the back wall: a low terminal stack closes
       // that dead end without narrowing the route alongside the main pile.
-      for (const across of [-0.30, 0.24]) {
-        const along = -0.91;
-        const x = stair.localCenter.x + across * cosine + along * sine;
-        const z = stair.localCenter.z - across * sine + along * cosine;
-        const half = 0.3;
-        /**
-         * @param {{floorY:number,minX:number,maxX:number,minZ:number,maxZ:number}} area
-         */
-        const containsTerminalStackFootprint = area => area.floorY === stair.center.y &&
-          x - half >= area.minX && x + half <= area.maxX &&
-          z - half >= area.minZ && z + half <= area.maxZ;
-        if (!plan.walkableAreas.some(containsTerminalStackFootprint)) { continue; }
-        let y = 0.002;
-        for (const prop of [
-          {
-            object: "Chest",
-            width: 0.7,
-            depth: 0.55,
-            height: 0.32914,
-            scale: 0.84,
-          },
-          {
-            object: "Crate",
-            width: 0.55,
-            depth: 0.55,
-            height: 0.4702,
-            scale: 0.9,
-          },
-          {
-            object: "PotteryJar",
-            width: 0.229,
-            depth: 0.236,
-            height: 0.3,
-            scale: 1,
-          },
-        ]) {
-          if (y + prop.height * prop.scale > turning.high - 0.3) { break; }
-          const offset = prop.object === "PotteryJar" ? 0.055 : 0;
-          items.push({
-            ...prop,
-            role: "stairwellProp",
-            x: x + offset * sine,
-            z: z + offset * cosine,
-            floorY: stair.center.y,
-            roomId: `under-stair:${stair.id}`,
-            y,
-            rotation: stair.yaw - plan.origin.yaw + (across < 0 ? 180 : 0) + (prop.object === "Chest" ? 90 : 0),
-            weathering: 0.65,
-            ceiling: turning.high - 0.3,
-            underStair: true,
-            endWallStorage: true,
-          });
-          y += prop.height * prop.scale;
-        }
-      }
+      StairwellRoomGenerator.#addTerminalStack(
+        stair,
+        cosine,
+        sine,
+        plan,
+        turning,
+        items,
+        -0.30,
+      );
+      StairwellRoomGenerator.#addTerminalStack(
+        stair,
+        cosine,
+        sine,
+        plan,
+        turning,
+        items,
+        0.24,
+      );
       for (const prop of [
         {
           object: "Barrel",
@@ -519,5 +482,78 @@ export class StairwellRoomGenerator extends AbstractCastleRoomGenerator {
    */
   static #findCandidate(candidate) {
     return candidate.object === "Barrel" && !candidate.tilt;
+  }
+
+  /**
+   * @param {{id:string,localCenter:{x:number,z:number},center:{y:number},yaw:number}} stair
+   * @param {number} cosine
+   * @param {number} sine
+   * @param {{walkableAreas:Array<{minX:number,maxX:number,minZ:number,maxZ:number}&{floorY:number}>,origin:{yaw:number}}} plan
+   * @param {{high:number}} turning
+   * @param {import("../AbstractCastleRoomGenerator.js").RoomItem[]} items
+   * @param {number} across
+   */
+  static #addTerminalStack(
+    stair,
+    cosine,
+    sine,
+    plan,
+    turning,
+    items,
+    across,
+  ) {
+    const along = -0.91;
+    const x = stair.localCenter.x + across * cosine + along * sine;
+    const z = stair.localCenter.z - across * sine + along * cosine;
+    const half = 0.3;
+    /**
+     * @param {{floorY:number,minX:number,maxX:number,minZ:number,maxZ:number}} area
+     */
+    const containsTerminalStackFootprint = area => area.floorY === stair.center.y &&
+      x - half >= area.minX && x + half <= area.maxX &&
+      z - half >= area.minZ && z + half <= area.maxZ;
+    if (!plan.walkableAreas.some(containsTerminalStackFootprint)) { return; }
+    let y = 0.002;
+    for (const prop of [
+      {
+        object: "Chest",
+        width: 0.7,
+        depth: 0.55,
+        height: 0.32914,
+        scale: 0.84,
+      },
+      {
+        object: "Crate",
+        width: 0.55,
+        depth: 0.55,
+        height: 0.4702,
+        scale: 0.9,
+      },
+      {
+        object: "PotteryJar",
+        width: 0.229,
+        depth: 0.236,
+        height: 0.3,
+        scale: 1,
+      },
+    ]) {
+      if (y + prop.height * prop.scale > turning.high - 0.3) { break; }
+      const offset = prop.object === "PotteryJar" ? 0.055 : 0;
+      items.push({
+        ...prop,
+        role: "stairwellProp",
+        x: x + offset * sine,
+        z: z + offset * cosine,
+        floorY: stair.center.y,
+        roomId: `under-stair:${stair.id}`,
+        y,
+        rotation: stair.yaw - plan.origin.yaw + (across < 0 ? 180 : 0) + (prop.object === "Chest" ? 90 : 0),
+        weathering: 0.65,
+        ceiling: turning.high - 0.3,
+        underStair: true,
+        endWallStorage: true,
+      });
+      y += prop.height * prop.scale;
+    }
   }
 }

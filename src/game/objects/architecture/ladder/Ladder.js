@@ -83,18 +83,50 @@ export class Ladder extends AbstractCastleProp {
     this.visualRoots[0].addChild(this.#hatch);
     this.#hatch.setLocalPosition(x, hatch.position.y - definition.position.y, z - hatch.depth / 2);
     // Four reused timber modules form a fixed frame outside the clear opening.
-    for (const [offsetX, offsetZ, width, depth] of [
-      [-hatch.width / 2 - 0.04, 0, 0.08, hatch.depth + 0.16],
-      [hatch.width / 2 + 0.04, 0, 0.08, hatch.depth + 0.16],
-      [0, -hatch.depth / 2 - 0.04, hatch.width, 0.08],
-      [0, hatch.depth / 2 + 0.04, hatch.width, 0.08],
-    ]) {
-      const frame = modelLibrary.instantiate(hatchUrl);
-      frame.name = "Tower hatch fixed oak frame";
-      frame.setLocalScale(width, 1, depth);
-      frame.setLocalPosition(x + offsetX, hatch.position.y - definition.position.y - 0.04, z + offsetZ);
-      this.visualRoots[0].addChild(frame);
-    }
+    this.#addHatchFrame(
+      modelLibrary,
+      x,
+      hatch,
+      definition,
+      z,
+      -hatch.width / 2 - 0.04,
+      0,
+      0.08,
+      hatch.depth + 0.16,
+    );
+    this.#addHatchFrame(
+      modelLibrary,
+      x,
+      hatch,
+      definition,
+      z,
+      hatch.width / 2 + 0.04,
+      0,
+      0.08,
+      hatch.depth + 0.16,
+    );
+    this.#addHatchFrame(
+      modelLibrary,
+      x,
+      hatch,
+      definition,
+      z,
+      0,
+      -hatch.depth / 2 - 0.04,
+      hatch.width,
+      0.08,
+    );
+    this.#addHatchFrame(
+      modelLibrary,
+      x,
+      hatch,
+      definition,
+      z,
+      0,
+      hatch.depth / 2 + 0.04,
+      hatch.width,
+      0.08,
+    );
     const panel = modelLibrary.instantiate(hatchUrl);
     panel.setLocalScale(hatch.width - 0.01, 1, hatch.depth - 0.01);
     panel.setLocalPosition(0, -0.05, hatch.depth / 2);
@@ -102,14 +134,8 @@ export class Ladder extends AbstractCastleProp {
     const handleSource = modelLibrary.instantiate(handleUrl);
     const ring = handleSource.findByName("Right castle door ring handle");
     if (ring) {
-      for (const side of [1, -1]) {
-        const handle = ring.clone();
-        handle.name = side > 0 ? "Roof hatch outside handle" : "Roof hatch inside handle";
-        handle.setLocalPosition(0, side > 0 ? 0.025 : -0.085, hatch.depth * 0.78);
-        handle.setLocalEulerAngles(side > 0 ? -90 : 90, 0, 0);
-        handle.setLocalScale(0.75, 0.75, 0.75);
-        this.#hatch.addChild(handle);
-      }
+      this.#addHatchHandle(ring, hatch, 1);
+      this.#addHatchHandle(ring, hatch, -1);
     }
     handleSource.destroy();
     this.#hatchCollider = new pc.Entity("Closed tower hatch support");
@@ -257,5 +283,48 @@ export class Ladder extends AbstractCastleProp {
   #setTimeout() {
     this.#hatch.setLocalEulerAngles(0, 0, 0);
     this.#hatchCollider.enabled = true;
+  }
+
+  /**
+   * @param {import("../../../models/GameModelLibrary.js").GameModelLibrary} modelLibrary
+   * @param {number} x
+   * @param {import("../../ObjectTypes.js").MapObjectDefinition["hatch"]} hatch
+   * @param {import("../../ObjectTypes.js").MapObjectDefinition} definition
+   * @param {number} z
+   * @param {number} offsetX
+   * @param {number} offsetZ
+   * @param {number} width
+   * @param {number} depth
+   */
+  #addHatchFrame(
+    modelLibrary,
+    x,
+    hatch,
+    definition,
+    z,
+    offsetX,
+    offsetZ,
+    width,
+    depth,
+  ) {
+    const frame = modelLibrary.instantiate(hatchUrl);
+    frame.name = "Tower hatch fixed oak frame";
+    frame.setLocalScale(width, 1, depth);
+    frame.setLocalPosition(x + offsetX, hatch.position.y - definition.position.y - 0.04, z + offsetZ);
+    this.visualRoots[0].addChild(frame);
+  }
+
+  /**
+   * @param {import("playcanvas").Entity} ring
+   * @param {import("../../ObjectTypes.js").MapObjectDefinition["hatch"]} hatch
+   * @param {number} side
+   */
+  #addHatchHandle(ring, hatch, side) {
+    const handle = ring.clone();
+    handle.name = side > 0 ? "Roof hatch outside handle" : "Roof hatch inside handle";
+    handle.setLocalPosition(0, side > 0 ? 0.025 : -0.085, hatch.depth * 0.78);
+    handle.setLocalEulerAngles(side > 0 ? -90 : 90, 0, 0);
+    handle.setLocalScale(0.75, 0.75, 0.75);
+    this.#hatch.addChild(handle);
   }
 }

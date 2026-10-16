@@ -140,15 +140,8 @@ export class FlowerPhysicsSimulation {
         hidden: false,
       });
     }
-    for (let index = 0; index < 2; index++) {
-      const foot = this.#createBody(BODYTYPE_KINEMATIC, 0,
-        {
-          type: "box",
-          halfExtents: new Vec3(0.17, 0.3, 0.17),
-        }, new Vec3(0, -1000, 0), BODYGROUP_USER_2, BODYGROUP_USER_1);
-      foot.setFriction(0.8);
-      this.#feet.push(foot);
-    }
+    this.#addFoot();
+    this.#addFoot();
   }
 
   destroy() {
@@ -274,5 +267,15 @@ export class FlowerPhysicsSimulation {
     }
 
     return transforms;
+  }
+
+  #addFoot() {
+    const foot = this.#createBody(BODYTYPE_KINEMATIC, 0,
+      {
+        type: "box",
+        halfExtents: new Vec3(0.17, 0.3, 0.17),
+      }, new Vec3(0, -1000, 0), BODYGROUP_USER_2, BODYGROUP_USER_1);
+    foot.setFriction(0.8);
+    this.#feet.push(foot);
   }
 }

@@ -12,40 +12,8 @@ export class HeroTeleportEffect {
    * @param {import("playcanvas").Application} app
    */
   constructor(pc, app) {
-    for (let index = 0; index < 2; index += 1) {
-      const emitter = new pc.Entity("hero-teleport-sparks");
-      emitter.addComponent("particlesystem", {
-        autoPlay: false,
-        loop: false,
-        numParticles: 48,
-        lifetime: 0.65,
-        rate: 0.002,
-        emitterShape: pc.EMITTERSHAPE_SPHERE,
-        emitterRadius: 0.45,
-        blendType: pc.BLEND_ADDITIVE,
-        lighting: false,
-        depthWrite: false,
-        localVelocityGraph: new pc.CurveSet(
-          [0, -0.8, 1, -0.2],
-          [0, 1.8, 1, 0.4],
-          [0, -0.8, 1, -0.2],
-        ),
-        localVelocityGraph2: new pc.CurveSet(
-          [0, 0.8, 1, 0.2],
-          [0, 3, 1, 0.6],
-          [0, 0.8, 1, 0.2],
-        ),
-        colorGraph: new pc.CurveSet(
-          [0, 0.35, 1, 0.65],
-          [0, 0.8, 1, 0.3],
-          [0, 1, 1, 1],
-        ),
-        scaleGraph: new pc.Curve([0, 0.1, 0.2, 0.16, 1, 0]),
-        alphaGraph: new pc.Curve([0, 0, 0.08, 1, 0.6, 0.8, 1, 0]),
-      });
-      app.root.addChild(emitter);
-      this.#emitters.push(emitter);
-    }
+    this.#addEmitter(pc, app);
+    this.#addEmitter(pc, app);
   }
 
   /**
@@ -72,5 +40,44 @@ export class HeroTeleportEffect {
     emitter.setPosition(position.x, position.y + 0.45, position.z);
     emitter.particlesystem.reset();
     emitter.particlesystem.play();
+  }
+
+  /**
+   * @param {typeof import("playcanvas")} pc
+   * @param {import("playcanvas").Application} app
+   */
+  #addEmitter(pc, app) {
+    const emitter = new pc.Entity("hero-teleport-sparks");
+    emitter.addComponent("particlesystem", {
+      autoPlay: false,
+      loop: false,
+      numParticles: 48,
+      lifetime: 0.65,
+      rate: 0.002,
+      emitterShape: pc.EMITTERSHAPE_SPHERE,
+      emitterRadius: 0.45,
+      blendType: pc.BLEND_ADDITIVE,
+      lighting: false,
+      depthWrite: false,
+      localVelocityGraph: new pc.CurveSet(
+        [0, -0.8, 1, -0.2],
+        [0, 1.8, 1, 0.4],
+        [0, -0.8, 1, -0.2],
+      ),
+      localVelocityGraph2: new pc.CurveSet(
+        [0, 0.8, 1, 0.2],
+        [0, 3, 1, 0.6],
+        [0, 0.8, 1, 0.2],
+      ),
+      colorGraph: new pc.CurveSet(
+        [0, 0.35, 1, 0.65],
+        [0, 0.8, 1, 0.3],
+        [0, 1, 1, 1],
+      ),
+      scaleGraph: new pc.Curve([0, 0.1, 0.2, 0.16, 1, 0]),
+      alphaGraph: new pc.Curve([0, 0, 0.08, 1, 0.6, 0.8, 1, 0]),
+    });
+    app.root.addChild(emitter);
+    this.#emitters.push(emitter);
   }
 }

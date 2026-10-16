@@ -95,16 +95,22 @@ export class ThroneRoomGenerator extends AbstractCastleRoomGenerator {
     };
     // Top-mounted authored cloth hangs clear of the rear wall and candle groups.
     const bannerLateral = Math.min(1.68, width / 2 - 0.6);
-    for (const side of [-1, 1]) {
-      add("Banner", center + side * bannerLateral, bounds.minZ + 0.38,
-        0.98, 0.1, 2.35);
-      items.at(-1).stretch = {
-        x: 0.975,
-        y: 1.4,
-        z: 1,
-      };
-      items.at(-1).height = 1.38;
-    }
+    this.#addBanner(
+      add,
+      center,
+      bannerLateral,
+      bounds,
+      items,
+      -1,
+    );
+    this.#addBanner(
+      add,
+      center,
+      bannerLateral,
+      bounds,
+      items,
+      1,
+    );
     const rearWindow = (context.openings ?? room.openings ?? []).some(/**
      * @param {import("../../CastleBasePlanGenerator.js").CompiledCastleOpening} opening
      */
@@ -118,12 +124,22 @@ export class ThroneRoomGenerator extends AbstractCastleRoomGenerator {
       bounds.minZ + 0.2, variant === "warCouncil" ? 0.7 : 1, 0.1, 2.15);
     if (variant !== "warCouncil") { items.at(-1).scale = 0.7; }
     const candleForward = bounds.minZ + 0.55 + random() * 0.14;
-    for (const side of [-1, 1]) {
-      const x = center + side * (width / 2 - 0.45);
-      if (fits(x, candleForward, 0.308, 0.325)) {
-        add("CandleStand", x, candleForward, 0.308, 0.325, undefined, undefined, {variant: "floor"});
-      }
-    }
+    this.#addCandleStand(
+      center,
+      width,
+      fits,
+      candleForward,
+      add,
+      -1,
+    );
+    this.#addCandleStand(
+      center,
+      width,
+      fits,
+      candleForward,
+      add,
+      1,
+    );
     // Each work group occupies the front corner opposite the audience doorway.
     if (width >= 3.8 && depth >= 3.65) {
       const doors = (context.openings ?? room.openings ?? []).filter(/**
@@ -187,5 +203,53 @@ export class ThroneRoomGenerator extends AbstractCastleRoomGenerator {
    */
   static #someDoor(door) {
     return door.side === "EAST";
+  }
+
+  /**
+   * @param {(object:string,x:number,z:number,width:number,depth:number,elevation?:number,rotation?:number,properties?:Partial<import("../../../../objects/ObjectTypes.js").MapObjectDefinition>)=>void} add
+   * @param {number} center
+   * @param {number} bannerLateral
+   * @param {{minX:number,maxX:number,minZ:number,maxZ:number}} bounds
+   * @param {import("../AbstractCastleRoomGenerator.js").RoomItem[]} items
+   * @param {number} side
+   */
+  #addBanner(
+    add,
+    center,
+    bannerLateral,
+    bounds,
+    items,
+    side,
+  ) {
+    add("Banner", center + side * bannerLateral, bounds.minZ + 0.38,
+      0.98, 0.1, 2.35);
+    items.at(-1).stretch = {
+      x: 0.975,
+      y: 1.4,
+      z: 1,
+    };
+    items.at(-1).height = 1.38;
+  }
+
+  /**
+   * @param {number} center
+   * @param {number} width
+   * @param {(x:number,z:number,width:number,depth:number)=>boolean} fits
+   * @param {number} candleForward
+   * @param {(object:string,x:number,z:number,width:number,depth:number,elevation?:number,rotation?:number,properties?:Partial<import("../../../../objects/ObjectTypes.js").MapObjectDefinition>)=>void} add
+   * @param {number} side
+   */
+  #addCandleStand(
+    center,
+    width,
+    fits,
+    candleForward,
+    add,
+    side,
+  ) {
+    const x = center + side * (width / 2 - 0.45);
+    if (fits(x, candleForward, 0.308, 0.325)) {
+      add("CandleStand", x, candleForward, 0.308, 0.325, undefined, undefined, {variant: "floor"});
+    }
   }
 }

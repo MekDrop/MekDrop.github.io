@@ -22,23 +22,8 @@ export class CastleSignalTowerMapObjects {
         CastleSignalTowerMapObjects.#filterBanner,
       );
       decorations.banners.push(station.banner);
-      for (const [suffix, object, placement] of [
-        ["bell", "SignalBell", station.bell], ["flag", "Flag", station.flag],
-      ]) {
-        const { position } = placement;
-        map.objects.push({
-          id: `${castle.id}-signal-${suffix}`,
-          object,
-          ...placement,
-          generated: true,
-          sourceCastleId: castle.id,
-          sourceCastleSeed: castle.seed,
-          tile: {
-            col: Math.round(position.x + (map.cols - 1) / 2),
-            row: Math.round(position.z + (map.rows - 1) / 2),
-          },
-        });
-      }
+      CastleSignalTowerMapObjects.#addStationObject(map, castle, "bell", "SignalBell", station.bell);
+      CastleSignalTowerMapObjects.#addStationObject(map, castle, "flag", "Flag", station.flag);
     }
   }
 
@@ -54,5 +39,28 @@ export class CastleSignalTowerMapObjects {
    */
   static #filterBanner(banner) {
     return !banner.signalTower;
+  }
+
+  /**
+   * @param {import("../../ObjectTypes.js").GameMapData} map
+   * @param {import("../../ObjectTypes.js").MapObjectDefinition} castle
+   * @param {string} suffix
+   * @param {string} object
+   * @param {import("../../ObjectTypes.js").MapObjectDefinition} placement
+   */
+  static #addStationObject(map, castle, suffix, object, placement) {
+    const { position } = placement;
+    map.objects.push({
+      id: `${castle.id}-signal-${suffix}`,
+      object,
+      ...placement,
+      generated: true,
+      sourceCastleId: castle.id,
+      sourceCastleSeed: castle.seed,
+      tile: {
+        col: Math.round(position.x + (map.cols - 1) / 2),
+        row: Math.round(position.z + (map.rows - 1) / 2),
+      },
+    });
   }
 }

@@ -43,38 +43,50 @@ export class VestibuleCloakRail extends AbstractCastleProp {
    */
   prepareModel(model, collision) {
     const variation = VestibuleCloakRail.variation(this.definition.id);
-    for (const name of ["Cloak A", "Cloak B"]) {
-      const node = model.findByName(name);
-      if (!node) { continue; }
-      const item = variation.find(/**
-       * @param {{name:string}} cloak
-       */ cloak => cloak.name === name);
-      if (!item) { node.destroy(); continue; }
-      const position = node.getLocalPosition().clone();
-      position.x += item.hookX - item.authoredX;
-      // Adult-sized garments: enlarge around the authored loop.
-      const garmentScale = 1.75;
-      const loopHeight = 0.78;
-      const scale = node.getLocalScale().clone();
-      position.y -= loopHeight * scale.y * (garmentScale - 1);
-      // Seat the loop over the peg's upper/front edge rather than inside its shaft.
-      position.y += 0.005;
-      position.z += 0.012;
-      node.setLocalScale(scale.x * garmentScale, scale.y * garmentScale, scale.z);
-      node.setLocalPosition(position);
-      if (collision) { continue; }
-      for (const render of node.findComponents("render")) {
-        for (const mesh of render.meshInstances) {
-          const material = this.cloneMaterial(mesh.material);
-          material.diffuse.set(...item.color);
-          material.update();
-          mesh.material = material;
-        }
-      }
-    }
+    VestibuleCloakRail.#prepareCloak(this, model, variation, collision, "Cloak A");
+    VestibuleCloakRail.#prepareCloak(this, model, variation, collision, "Cloak B");
   }
   /**
    * @returns {string}
    */
   static get modelUrl() { return modelUrl; }
+
+  /**
+   * @param {VestibuleCloakRail} rail
+   * @param {import("playcanvas").Entity} model
+   * @param {ReturnType<typeof VestibuleCloakRail.variation>} variation
+   * @param {boolean} collision
+   * @param {string} name
+   */
+  static #prepareCloak(rail, model, variation, collision, name) {
+    const node = model.findByName(name);
+    if (!node) { return; }
+    const item = variation.find(/**
+     * @param {{name:string}} cloak
+     */ cloak => cloak.name === name);
+    if (!item) { node.destroy();
+
+      return; }
+    const position = node.getLocalPosition().clone();
+    position.x += item.hookX - item.authoredX;
+    // Adult-sized garments: enlarge around the authored loop.
+    const garmentScale = 1.75;
+    const loopHeight = 0.78;
+    const scale = node.getLocalScale().clone();
+    position.y -= loopHeight * scale.y * (garmentScale - 1);
+    // Seat the loop over the peg's upper/front edge rather than inside its shaft.
+    position.y += 0.005;
+    position.z += 0.012;
+    node.setLocalScale(scale.x * garmentScale, scale.y * garmentScale, scale.z);
+    node.setLocalPosition(position);
+    if (collision) { return; }
+    for (const render of node.findComponents("render")) {
+      for (const mesh of render.meshInstances) {
+        const material = rail.cloneMaterial(mesh.material);
+        material.diffuse.set(...item.color);
+        material.update();
+        mesh.material = material;
+      }
+    }
+  }
 }

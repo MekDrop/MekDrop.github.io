@@ -449,107 +449,63 @@ export class CastleResidentialLayout {
     const room = this.#rooms.bedroom;
     const upperFront = (runtime.residential?.balcony?.endDepth ?? room.minZ - 0.125) - 0.14;
     const centerX = (work.minX + work.maxX) / 2;
-    for (const flank of [-1, 1]) {
-      this.#exteriorWindows.push({
-        role: "squareWindow",
-        position: this.toWorld(centerX + flank * Math.min(1.25, (work.maxX - work.minX) / 4), upperFront, rise + 0.9),
-        scale: {
-          x: 1,
-          y: 1,
-          z: 1,
-        },
-        yaw: this.#yaw + 180,
-      });
-      const lateral = bedroomCenter.x + flank * (bedroomWidth / 2 + 0.26);
-      let forward = room.minZ + (room.maxZ - room.minZ) * 0.72;
-      if (sideDoor) {
-        const door = this.toLocal(sideDoor.x, sideDoor.z);
-        const doorFlank = door.x < centerX ? -1 : 1;
-        if (doorFlank === flank && Math.abs(door.z - forward) < (sideDoor.width ?? 0.9) / 2 + 0.42) {
-          forward = room.maxZ - 0.4;
-        }
-      }
-      this.#exteriorWindows.push({
-        role: "squareWindow",
-        position: this.toWorld(lateral, forward, rise + 0.9),
-        scale: {
-          x: 1,
-          y: 1,
-          z: 1,
-        },
-        yaw: this.#yaw + flank * 90,
-      });
-    }
+    this.#addUpperSideWindows(
+      centerX,
+      work,
+      upperFront,
+      rise,
+      bedroomCenter,
+      bedroomWidth,
+      room,
+      sideDoor,
+      -1,
+    );
+    this.#addUpperSideWindows(
+      centerX,
+      work,
+      upperFront,
+      rise,
+      bedroomCenter,
+      bedroomWidth,
+      room,
+      sideDoor,
+      1,
+    );
     const portalHalfWidth = door.width / 2 + 0.25;
-    for (const flank of [-1, 1]) {
-      const frontTower = (buildPlan.structure?.towers ?? []).find(/**
-                                                                   * @param {{v: number, span: number, front: boolean}} tower
-                                                                   */ (tower) => {
-          const lateral = lateralSign * (tower.v + (tower.span - 1) / 2 - (opening.start + opening.end - 1) / 2) * blockSize;
-
-          return tower.front && Math.sign(lateral) === flank;
-        });
-      const towerCenter = frontTower ? lateralSign * (frontTower.v + (frontTower.span - 1) / 2 - (opening.start + opening.end - 1) / 2) * blockSize : 0;
-      const edge = frontTower ? Math.abs(towerCenter) - frontTower.span * blockSize / 2 : (work.maxX - work.minX) / 2;
-      if (edge - portalHalfWidth < 0.6) continue;
-      const lateral = flank * (edge + portalHalfWidth) / 2;
-      this.#exteriorWindows.push({
-        role: "squareWindow",
-        position: this.toWorld(lateral, (runtime.residential?.facadeDepth ?? 0.75) - 0.14, 1.1),
-        scale: {
-          x: 0.75,
-          y: 1,
-          z: 1,
-        },
-        yaw: this.#yaw + 180,
-      });
-    }
+    this.#addPortalWindow(
+      buildPlan,
+      lateralSign,
+      opening,
+      blockSize,
+      work,
+      portalHalfWidth,
+      runtime,
+      -1,
+    );
+    this.#addPortalWindow(
+      buildPlan,
+      lateralSign,
+      opening,
+      blockSize,
+      work,
+      portalHalfWidth,
+      runtime,
+      1,
+    );
     const rearFace = depth - 0.085;
     const upperCenter = (room.minX + room.maxX) / 2;
-    for (const flank of [-1, 1]) {
-      const lateral = upperCenter + flank * Math.min(1.1, (room.maxX - room.minX) / 4);
-      this.#exteriorWindows.push({
-        role: "squareWindow",
-        position: this.toWorld(lateral, rearFace, rise + 0.9),
-        scale: {
-          x: 1,
-          y: 1,
-          z: 1,
-        },
-        yaw: this.#yaw,
-      });
-    }
-    for (const fraction of [0.25, 0.5, 0.75]) {
-      const lateral = work.minX + (work.maxX - work.minX) * fraction;
-      this.#exteriorWindows.push({
-        role: "squareWindow",
-        position: this.toWorld(lateral, rearFace, 1.1),
-        scale: {
-          x: 1,
-          y: 1,
-          z: 1,
-        },
-        yaw: this.#yaw,
-      });
-    }
+    this.#addUpperRearWindow(upperCenter, room, rearFace, rise, -1);
+    this.#addUpperRearWindow(upperCenter, room, rearFace, rise, 1);
+    this.#addLowerRearWindow(work, rearFace, 0.25);
+    this.#addLowerRearWindow(work, rearFace, 0.5);
+    this.#addLowerRearWindow(work, rearFace, 0.75);
     const openingMiddle = (opening.start + opening.end - 1) / 2;
     const faceStart = lateralSign * -openingMiddle * blockSize;
     const facadeSpan = layout.facadeSpan ?? (["WEST", "EAST"].includes(side) ? position.depth : position.width) / blockSize;
     const faceEnd = lateralSign * (facadeSpan - 1 - openingMiddle) * blockSize;
     const sideFaces = [Math.min(faceStart, faceEnd) - blockSize / 2, Math.max(faceStart, faceEnd) + blockSize / 2];
-    for (const [index, lateral] of sideFaces.entries()) {
-      const flank = index === 0 ? -1 : 1;
-      this.#exteriorWindows.push({
-        role: "squareWindow",
-        position: this.toWorld(lateral + flank * 0.015, (work.minZ + work.maxZ) / 2, 1.1),
-        scale: {
-          x: 1,
-          y: 1,
-          z: 1,
-        },
-        yaw: this.#yaw + flank * 90,
-      });
-    }
+    this.#addLowerSideWindow(work, 0, sideFaces[0]);
+    this.#addLowerSideWindow(work, 1, sideFaces[1]);
     for (const tower of buildPlan.structure?.towers ?? []) {
 
       const lateral = lateralSign * (tower.v + (tower.span - 1) / 2 - (opening.start + opening.end - 1) / 2) * blockSize;
@@ -578,47 +534,15 @@ export class CastleResidentialLayout {
          */ (placement) => placement.role === "towerWindow" || (placement.position.y < room.floorY && (!courtyard || placement.yaw - this.#yaw !== 180)));
         this.#exteriorWindows = [...runtime.residential.exteriorWindows, ...lowerWindows];
         if (courtyard) {
-          for (const flank of [-1, 1]) {
-            this.#exteriorWindows.push({
-              role: "squareWindow",
-              position: this.toWorld(centerX + flank * (work.maxX - work.minX) * 0.32, work.minZ - 0.29, 1.1),
-              scale: {
-                x: 1,
-                y: 1,
-                z: 1,
-              },
-              yaw: this.#yaw + 180,
-            });
-          }
+          this.#addCourtyardWindow(centerX, work, -1);
+          this.#addCourtyardWindow(centerX, work, 1);
         }
         for (const building of buildings) {
           const bounds = building.bounds;
-          for (const fraction of [0.27, 0.73]) {
-            this.#exteriorWindows.push({
-              role: "squareWindow",
-              position: this.toWorld(bounds.minX + (bounds.maxX - bounds.minX) * fraction, bounds.maxZ + 0.29, building.floorY - this.#origin.y + 0.9),
-              scale: {
-                x: 1,
-                y: 1,
-                z: 1,
-              },
-              yaw: this.#yaw,
-            });
-          }
-          for (const flank of [-1, 1]) {
-            const x = flank < 0 ? bounds.minX - 0.29 : bounds.maxX + 0.29;
-            const z = bounds.minZ + (bounds.maxZ - bounds.minZ) * 0.72;
-            this.#exteriorWindows.push({
-              role: "squareWindow",
-              position: this.toWorld(x, z, building.floorY - this.#origin.y + 0.9),
-              scale: {
-                x: 1,
-                y: 1,
-                z: 1,
-              },
-              yaw: this.#yaw + flank * 90,
-            });
-          }
+          this.#addBuildingRearWindow(bounds, building, 0.27);
+          this.#addBuildingRearWindow(bounds, building, 0.73);
+          this.#addBuildingSideWindow(bounds, building, -1);
+          this.#addBuildingSideWindow(bounds, building, 1);
         }
       }
     }
@@ -677,33 +601,8 @@ export class CastleResidentialLayout {
     for (const tower of plan.structure?.towers ?? []) {
       if (plan.layout.roomPlan?.version === 2) continue;
       const centerX = lateralSign * (tower.v + (tower.span - 1) / 2 - middle) * blockSize;
-      for (const flank of [-1, 1]) {
-        const x = centerX + flank * (tower.span * blockSize / 2 + 0.1);
-        const z = tower.front ? tower.u * blockSize - 0.225 : (tower.u + (tower.depth ?? tower.span)) * blockSize - 0.025;
-        this.#exteriorButtresses.push({
-          role: "cornerButtress",
-          position: this.toWorld(x, z),
-          scale: {
-            x: 1,
-            y: 1,
-            z: 1,
-          },
-          yaw: this.#yaw + (tower.front ? (flank < 0 ? -90 : 180) : (flank < 0 ? 0 : 90)),
-        });
-        if (tower.front && Math.sign(centerX) === flank) {
-          const rearZ = (tower.u + (tower.depth ?? tower.span)) * blockSize - 0.025;
-          this.#exteriorButtresses.push({
-            role: "outerButtress",
-            position: this.toWorld(x, rearZ),
-            scale: {
-              x: 1,
-              y: 0.85 + (tower.v % 3) * 0.075,
-              z: 1,
-            },
-            yaw: this.#yaw + (flank < 0 ? 0 : 90),
-          });
-        }
-      }
+      this.#addTowerButtresses(centerX, tower, blockSize, -1);
+      this.#addTowerButtresses(centerX, tower, blockSize, 1);
     }
     this.#buttressFootings = plan.metadata.runtime.residential?.buttressFootings ?? [];
   }
@@ -1159,6 +1058,190 @@ export class CastleResidentialLayout {
    */
   #someStair(stair) {
     return stair.center.y < this.#origin.y;
+  }
+
+  /**
+   * @param {number} centerX
+   * @param {ResidentialRoom} work
+   * @param {number} upperFront
+   * @param {number} rise
+   * @param {{x:number,z:number}} bedroomCenter
+   * @param {number} bedroomWidth
+   * @param {ResidentialRoom} room
+   * @param {{x:number,z:number,width?:number}|undefined} sideDoor
+   * @param {number} flank
+   */
+  #addUpperSideWindows(
+    centerX,
+    work,
+    upperFront,
+    rise,
+    bedroomCenter,
+    bedroomWidth,
+    room,
+    sideDoor,
+    flank,
+  ) {
+    this.#addExteriorWindow(centerX + flank * Math.min(1.25, (work.maxX - work.minX) / 4), upperFront, rise + 0.9, this.#yaw + 180);
+    const lateral = bedroomCenter.x + flank * (bedroomWidth / 2 + 0.26);
+    let forward = room.minZ + (room.maxZ - room.minZ) * 0.72;
+    if (sideDoor) {
+      const door = this.toLocal(sideDoor.x, sideDoor.z);
+      const doorFlank = door.x < centerX ? -1 : 1;
+      if (doorFlank === flank && Math.abs(door.z - forward) < (sideDoor.width ?? 0.9) / 2 + 0.42) {
+        forward = room.maxZ - 0.4;
+      }
+    }
+    this.#addExteriorWindow(lateral, forward, rise + 0.9, this.#yaw + flank * 90);
+  }
+
+  /**
+   * @param {import("../../../GameContracts.js").CastleBuildPlan} buildPlan
+   * @param {number} lateralSign
+   * @param {{start:number,end:number}} opening
+   * @param {number} blockSize
+   * @param {ResidentialRoom} work
+   * @param {number} portalHalfWidth
+   * @param {import("../../../GameContracts.js").CastleBuildPlan["metadata"]["runtime"]} runtime
+   * @param {number} flank
+   */
+  #addPortalWindow(
+    buildPlan,
+    lateralSign,
+    opening,
+    blockSize,
+    work,
+    portalHalfWidth,
+    runtime,
+    flank,
+  ) {
+    const frontTower = (buildPlan.structure?.towers ?? []).find(/**
+                                                                 * @param {{v: number, span: number, front: boolean}} tower
+                                                                 */ (tower) => {
+        const lateral = lateralSign * (tower.v + (tower.span - 1) / 2 - (opening.start + opening.end - 1) / 2) * blockSize;
+
+        return tower.front && Math.sign(lateral) === flank;
+      });
+    const towerCenter = frontTower ? lateralSign * (frontTower.v + (frontTower.span - 1) / 2 - (opening.start + opening.end - 1) / 2) * blockSize : 0;
+    const edge = frontTower ? Math.abs(towerCenter) - frontTower.span * blockSize / 2 : (work.maxX - work.minX) / 2;
+    if (edge - portalHalfWidth < 0.6) { return; }
+    const lateral = flank * (edge + portalHalfWidth) / 2;
+    this.#addExteriorWindow(lateral, (runtime.residential?.facadeDepth ?? 0.75) - 0.14, 1.1, this.#yaw + 180, 0.75);
+  }
+
+  /**
+   * @param {number} upperCenter
+   * @param {ResidentialRoom} room
+   * @param {number} rearFace
+   * @param {number} rise
+   * @param {number} flank
+   */
+  #addUpperRearWindow(upperCenter, room, rearFace, rise, flank) {
+    const lateral = upperCenter + flank * Math.min(1.1, (room.maxX - room.minX) / 4);
+    this.#addExteriorWindow(lateral, rearFace, rise + 0.9, this.#yaw);
+  }
+
+  /**
+   * @param {ResidentialRoom} work
+   * @param {number} rearFace
+   * @param {number} fraction
+   */
+  #addLowerRearWindow(work, rearFace, fraction) {
+    const lateral = work.minX + (work.maxX - work.minX) * fraction;
+    this.#addExteriorWindow(lateral, rearFace, 1.1, this.#yaw);
+  }
+
+  /**
+   * @param {number} centerX
+   * @param {ResidentialRoom} work
+   * @param {number} flank
+   */
+  #addCourtyardWindow(centerX, work, flank) {
+    this.#addExteriorWindow(centerX + flank * (work.maxX - work.minX) * 0.32, work.minZ - 0.29, 1.1, this.#yaw + 180);
+  }
+
+  /**
+   * @param {{minX:number,maxX:number,minZ:number,maxZ:number}} bounds
+   * @param {{floorY:number}} building
+   * @param {number} fraction
+   */
+  #addBuildingRearWindow(bounds, building, fraction) {
+    this.#addExteriorWindow(bounds.minX + (bounds.maxX - bounds.minX) * fraction, bounds.maxZ + 0.29, building.floorY - this.#origin.y + 0.9, this.#yaw);
+  }
+
+  /**
+   * @param {{minX:number,maxX:number,minZ:number,maxZ:number}} bounds
+   * @param {{floorY:number}} building
+   * @param {number} flank
+   */
+  #addBuildingSideWindow(bounds, building, flank) {
+    const x = flank < 0 ? bounds.minX - 0.29 : bounds.maxX + 0.29;
+    const z = bounds.minZ + (bounds.maxZ - bounds.minZ) * 0.72;
+    this.#addExteriorWindow(x, z, building.floorY - this.#origin.y + 0.9, this.#yaw + flank * 90);
+  }
+
+  /**
+   * @param {number} centerX
+   * @param {{v:number,u:number,span:number,depth?:number,front:boolean}} tower
+   * @param {number} blockSize
+   * @param {number} flank
+   */
+  #addTowerButtresses(centerX, tower, blockSize, flank) {
+    const x = centerX + flank * (tower.span * blockSize / 2 + 0.1);
+    const z = tower.front ? tower.u * blockSize - 0.225 : (tower.u + (tower.depth ?? tower.span)) * blockSize - 0.025;
+    this.#exteriorButtresses.push({
+      role: "cornerButtress",
+      position: this.toWorld(x, z),
+      scale: {
+        x: 1,
+        y: 1,
+        z: 1,
+      },
+      yaw: this.#yaw + (tower.front ? (flank < 0 ? -90 : 180) : (flank < 0 ? 0 : 90)),
+    });
+    if (tower.front && Math.sign(centerX) === flank) {
+      const rearZ = (tower.u + (tower.depth ?? tower.span)) * blockSize - 0.025;
+      this.#exteriorButtresses.push({
+        role: "outerButtress",
+        position: this.toWorld(x, rearZ),
+        scale: {
+          x: 1,
+          y: 0.85 + (tower.v % 3) * 0.075,
+          z: 1,
+        },
+        yaw: this.#yaw + (flank < 0 ? 0 : 90),
+      });
+    }
+  }
+
+  /**
+   * @param {ResidentialRoom} work
+   * @param {number} index
+   * @param {number} lateral
+   */
+  #addLowerSideWindow(work, index, lateral) {
+    const flank = index === 0 ? -1 : 1;
+    this.#addExteriorWindow(lateral + flank * 0.015, (work.minZ + work.maxZ) / 2, 1.1, this.#yaw + flank * 90);
+  }
+
+  /**
+   * @param {number} lateral
+   * @param {number} forward
+   * @param {number} height
+   * @param {number} yaw
+   * @param {number} [scaleX]
+   */
+  #addExteriorWindow(lateral, forward, height, yaw, scaleX = 1) {
+    this.#exteriorWindows.push({
+      role: "squareWindow",
+      position: this.toWorld(lateral, forward, height),
+      scale: {
+        x: scaleX,
+        y: 1,
+        z: 1,
+      },
+      yaw,
+    });
   }
 }
 

@@ -58,33 +58,17 @@ export class CastleEntranceDetails {
     };
     for (const building of residential.buildings) {
       if (building.floorY > origin.y) { continue; }
-      for (const x of [building.minX, building.maxX]) {
-        for (const z of [building.minZ, building.maxZ]) {
-          for (let y = 0.125; y < floorHeight; y += 0.25) {
-            const width = y % 0.5 < 0.25 ? 0.44 : 0.34;
-            const depth = y % 0.5 < 0.25 ? 0.34 : 0.44;
-            // Keep the alternating courses outside both interior wall faces.
-            addStone(x + (x === building.minX ? -width / 2 - faceClearance : width / 2 + faceClearance),
-              origin.y + y, z + (z === building.minZ ? -depth / 2 - faceClearance : depth / 2 + faceClearance),
-              [width, 0.248, depth], "Castle ground floor corner trim");
-          }
-        }
-      }
+      CastleEntranceDetails.#addCorner(building, floorHeight, addStone, faceClearance, origin, building.minX, building.minZ);
+      CastleEntranceDetails.#addCorner(building, floorHeight, addStone, faceClearance, origin, building.minX, building.maxZ);
+      CastleEntranceDetails.#addCorner(building, floorHeight, addStone, faceClearance, origin, building.maxX, building.minZ);
+      CastleEntranceDetails.#addCorner(building, floorHeight, addStone, faceClearance, origin, building.maxX, building.maxZ);
       // Recess the trim beneath the floor: its top otherwise shares the
       // masonry's plane and flickers as the floating island moves.
       const bandY = origin.y + floorHeight - 0.125 - 0.002;
-      for (const z of [building.minZ - 0.2 - faceClearance, building.maxZ + 0.2 + faceClearance]) {
-        for (let x = building.minX; x < building.maxX; x += 0.5) {
-          const width = Math.min(0.5, building.maxX - x);
-          addStone(x + width / 2, bandY, z, [width, 0.25, 0.4], "Castle terrace support band");
-        }
-      }
-      for (const x of [building.minX - 0.2 - faceClearance, building.maxX + 0.2 + faceClearance]) {
-        for (let z = building.minZ; z < building.maxZ; z += 0.5) {
-          const depth = Math.min(0.5, building.maxZ - z);
-          addStone(x, bandY, z + depth / 2, [0.4, 0.25, depth], "Castle terrace support band");
-        }
-      }
+      CastleEntranceDetails.#addHorizontalBand(building, addStone, bandY, building.minZ - 0.2 - faceClearance);
+      CastleEntranceDetails.#addHorizontalBand(building, addStone, bandY, building.maxZ + 0.2 + faceClearance);
+      CastleEntranceDetails.#addVerticalBand(building, addStone, bandY, building.minX - 0.2 - faceClearance);
+      CastleEntranceDetails.#addVerticalBand(building, addStone, bandY, building.maxX + 0.2 + faceClearance);
     }
   }
 
@@ -93,5 +77,59 @@ export class CastleEntranceDetails {
    */
   static #findOpening(opening) {
     return opening.exteriorEntrance;
+  }
+
+  /**
+   * @param {{minX:number,maxX:number,minZ:number,maxZ:number}&{floorY:number}} building
+   * @param {number} floorHeight
+   * @param {(x:number,y:number,z:number,scale:number[],name:string)=>void} addStone
+   * @param {number} faceClearance
+   * @param {{x:number,y:number,z:number}} origin
+   * @param {number} x
+   * @param {number} z
+   */
+  static #addCorner(
+    building,
+    floorHeight,
+    addStone,
+    faceClearance,
+    origin,
+    x,
+    z,
+  ) {
+    for (let y = 0.125; y < floorHeight; y += 0.25) {
+      const width = y % 0.5 < 0.25 ? 0.44 : 0.34;
+      const depth = y % 0.5 < 0.25 ? 0.34 : 0.44;
+      // Keep the alternating courses outside both interior wall faces.
+      addStone(x + (x === building.minX ? -width / 2 - faceClearance : width / 2 + faceClearance),
+        origin.y + y, z + (z === building.minZ ? -depth / 2 - faceClearance : depth / 2 + faceClearance),
+        [width, 0.248, depth], "Castle ground floor corner trim");
+    }
+  }
+
+  /**
+   * @param {{minX:number,maxX:number,minZ:number,maxZ:number}&{floorY:number}} building
+   * @param {(x:number,y:number,z:number,scale:number[],name:string)=>void} addStone
+   * @param {number} bandY
+   * @param {number} z
+   */
+  static #addHorizontalBand(building, addStone, bandY, z) {
+    for (let x = building.minX; x < building.maxX; x += 0.5) {
+      const width = Math.min(0.5, building.maxX - x);
+      addStone(x + width / 2, bandY, z, [width, 0.25, 0.4], "Castle terrace support band");
+    }
+  }
+
+  /**
+   * @param {{minX:number,maxX:number,minZ:number,maxZ:number}&{floorY:number}} building
+   * @param {(x:number,y:number,z:number,scale:number[],name:string)=>void} addStone
+   * @param {number} bandY
+   * @param {number} x
+   */
+  static #addVerticalBand(building, addStone, bandY, x) {
+    for (let z = building.minZ; z < building.maxZ; z += 0.5) {
+      const depth = Math.min(0.5, building.maxZ - z);
+      addStone(x, bandY, z + depth / 2, [0.4, 0.25, depth], "Castle terrace support band");
+    }
   }
 }

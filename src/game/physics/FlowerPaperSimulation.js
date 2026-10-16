@@ -58,12 +58,8 @@ export class FlowerPaperSimulation {
   constructor() {
     this.#world.setGravity(Vec3.ZERO);
     this.#world.nativeWorld.getSolverInfo().set_m_numIterations(30);
-    for (let index = 0; index < 2; index++) {
-      this.#feet.push(this.#body(BODYTYPE_KINEMATIC, {
-        type: "box",
-        halfExtents: new Vec3(0.095, 0.3, 0.13),
-      }, this.#previousFeet[index], Quat.IDENTITY));
-    }
+    this.#addFoot(0);
+    this.#addFoot(1);
   }
 
   /**
@@ -353,5 +349,15 @@ export class FlowerPaperSimulation {
    */
   #someFoot(foot, index) {
     return foot.distance(this.#previousFeet[index]) > 0.0001;
+  }
+
+  /**
+   * @param {number} index
+   */
+  #addFoot(index) {
+    this.#feet.push(this.#body(BODYTYPE_KINEMATIC, {
+      type: "box",
+      halfExtents: new Vec3(0.095, 0.3, 0.13),
+    }, this.#previousFeet[index], Quat.IDENTITY));
   }
 }

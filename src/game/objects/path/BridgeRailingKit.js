@@ -133,37 +133,28 @@ export class BridgeRailingKit {
       BridgeRailingKit.#sortLeft,
     );
 
-    for (const side of [-1, 1]) {
-      const railX = span.horizontal ? centerX : centerX + side * 0.93;
-      const railZ = span.horizontal ? centerZ + side * 0.93 : centerZ;
-      for (let index = 1; index < uniquePostPositions.length; index += 1) {
-        const segmentStart = uniquePostPositions[index - 1];
-        const segmentEnd = uniquePostPositions[index];
-        this.#addSegment(
-          material,
-          new this.#pc.Vec3(
-            span.horizontal ? segmentStart - (cols - 1) / 2 : railX,
-            height + 0.34,
-            span.horizontal ? railZ : segmentStart - (rows - 1) / 2,
-          ),
-          new this.#pc.Vec3(
-            span.horizontal ? segmentEnd - (cols - 1) / 2 : railX,
-            height + 0.34,
-            span.horizontal ? railZ : segmentEnd - (rows - 1) / 2,
-          ),
-        );
-      }
-      for (const position of uniquePostPositions) {
-        this.#addPost(
-          material,
-          new this.#pc.Vec3(
-            span.horizontal ? position - (cols - 1) / 2 : railX,
-            height + 0.17,
-            span.horizontal ? railZ : position - (rows - 1) / 2,
-          ),
-        );
-      }
-    }
+    this.#addSpanSide(
+      span,
+      centerX,
+      centerZ,
+      uniquePostPositions,
+      material,
+      cols,
+      height,
+      rows,
+      -1,
+    );
+    this.#addSpanSide(
+      span,
+      centerX,
+      centerZ,
+      uniquePostPositions,
+      material,
+      cols,
+      height,
+      rows,
+      1,
+    );
   }
 
   /**
@@ -195,36 +186,22 @@ export class BridgeRailingKit {
       overpass.crossing.col +
       (overpass.crossing.width - 1) / 2 -
       (cols - 1) / 2;
-    for (const side of [-1, 1]) {
-      const railX = centerX + side * 0.93;
-      for (let index = 1; index < postPositions.length; index += 1) {
-        const segmentStart = postPositions[index - 1];
-        const segmentEnd = postPositions[index];
-        this.#addSegment(
-          material,
-          new this.#pc.Vec3(
-            railX,
-            this.#overpassHeightAt(overpass, segmentStart) + 0.34,
-            segmentStart - (rows - 1) / 2,
-          ),
-          new this.#pc.Vec3(
-            railX,
-            this.#overpassHeightAt(overpass, segmentEnd) + 0.34,
-            segmentEnd - (rows - 1) / 2,
-          ),
-        );
-      }
-      for (const position of postPositions) {
-        this.#addPost(
-          material,
-          new this.#pc.Vec3(
-            railX,
-            this.#overpassHeightAt(overpass, position) + 0.17,
-            position - (rows - 1) / 2,
-          ),
-        );
-      }
-    }
+    this.#addOverpassSide(
+      centerX,
+      postPositions,
+      material,
+      overpass,
+      rows,
+      -1,
+    );
+    this.#addOverpassSide(
+      centerX,
+      postPositions,
+      material,
+      overpass,
+      rows,
+      1,
+    );
   }
 
   build() {
@@ -414,5 +391,104 @@ export class BridgeRailingKit {
    */
   static #sortLeft2(left, right) {
     return left - right;
+  }
+
+  /**
+   * @param {BridgeSpan} span
+   * @param {number} centerX
+   * @param {number} centerZ
+   * @param {number[]} uniquePostPositions
+   * @param {string} material
+   * @param {number} cols
+   * @param {number} height
+   * @param {number} rows
+   * @param {number} side
+   */
+  #addSpanSide(
+    span,
+    centerX,
+    centerZ,
+    uniquePostPositions,
+    material,
+    cols,
+    height,
+    rows,
+    side,
+  ) {
+    const railX = span.horizontal ? centerX : centerX + side * 0.93;
+    const railZ = span.horizontal ? centerZ + side * 0.93 : centerZ;
+    for (let index = 1; index < uniquePostPositions.length; index += 1) {
+      const segmentStart = uniquePostPositions[index - 1];
+      const segmentEnd = uniquePostPositions[index];
+      this.#addSegment(
+        material,
+        new this.#pc.Vec3(
+          span.horizontal ? segmentStart - (cols - 1) / 2 : railX,
+          height + 0.34,
+          span.horizontal ? railZ : segmentStart - (rows - 1) / 2,
+        ),
+        new this.#pc.Vec3(
+          span.horizontal ? segmentEnd - (cols - 1) / 2 : railX,
+          height + 0.34,
+          span.horizontal ? railZ : segmentEnd - (rows - 1) / 2,
+        ),
+      );
+    }
+    for (const position of uniquePostPositions) {
+      this.#addPost(
+        material,
+        new this.#pc.Vec3(
+          span.horizontal ? position - (cols - 1) / 2 : railX,
+          height + 0.17,
+          span.horizontal ? railZ : position - (rows - 1) / 2,
+        ),
+      );
+    }
+  }
+
+  /**
+   * @param {number} centerX
+   * @param {number[]} postPositions
+   * @param {string} material
+   * @param {PathOverpass} overpass
+   * @param {number} rows
+   * @param {number} side
+   */
+  #addOverpassSide(
+    centerX,
+    postPositions,
+    material,
+    overpass,
+    rows,
+    side,
+  ) {
+    const railX = centerX + side * 0.93;
+    for (let index = 1; index < postPositions.length; index += 1) {
+      const segmentStart = postPositions[index - 1];
+      const segmentEnd = postPositions[index];
+      this.#addSegment(
+        material,
+        new this.#pc.Vec3(
+          railX,
+          this.#overpassHeightAt(overpass, segmentStart) + 0.34,
+          segmentStart - (rows - 1) / 2,
+        ),
+        new this.#pc.Vec3(
+          railX,
+          this.#overpassHeightAt(overpass, segmentEnd) + 0.34,
+          segmentEnd - (rows - 1) / 2,
+        ),
+      );
+    }
+    for (const position of postPositions) {
+      this.#addPost(
+        material,
+        new this.#pc.Vec3(
+          railX,
+          this.#overpassHeightAt(overpass, position) + 0.17,
+          position - (rows - 1) / 2,
+        ),
+      );
+    }
   }
 }

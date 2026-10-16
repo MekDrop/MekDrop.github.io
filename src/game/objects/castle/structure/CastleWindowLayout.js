@@ -135,50 +135,10 @@ export class CastleWindowLayout {
       return;
     }
     const sill = room.floorY + sillHeight;
-    for (const axis of ["X", "Z"]) {
-      const along = axis === "X" ? "Z" : "X";
-      for (const sign of [-1, 1]) {
-        const face = room[`${sign < 0 ? "min" : "max"}${axis}`];
-        const start = room[`min${along}`], end = room[`max${along}`];
-        const isRear = axis === "Z" && sign > 0;
-        const openingHeight = isRear ? Math.min(height, 0.75) : height;
-        const openingRole = isRear && role === "hall" ? "room" : role;
-        const runs = [];
-        let run = null;
-        for (let t = start + 0.125; t < end; t += 0.25) {
-          const wall = this.#wallAt(axis, face, t, sill, openingHeight, sign);
-          if (!wall) {
-            run = null;
-            continue;
-          }
-          const key = `${wall.face.toFixed(3)}:${wall.depth.toFixed(3)}`;
-          if (!run || run.key !== key) {
-            run = {
-              key,
-              start: t - 0.125,
-              end: t + 0.125,
-              ...wall,
-            };
-            runs.push(run);
-          } else {
-            run.end = t + 0.125;
-          }
-        }
-        for (const section of runs) {
-          const length = section.end - section.start;
-          const count = Math.min(role === "slit" ? 2 : isRear ? 3 : Infinity, Math.floor((length - 0.75) / (isRear ? 2.5 : 1.5)));
-          if (count < 1) {
-            continue;
-          }
-          // A common bay grid for both floors. Equal-length walls get precisely
-          // the same centers, independent of window height.
-          const pitch = length / (count + 1);
-          for (let bay = 1; bay <= count; bay += 1) {
-            this.#add(axis, section.face, section.start + pitch * bay, sign, sill, width, openingHeight, section.depth, role, room.floorY);
-          }
-        }
-      }
-    }
+    this.#addRoomWallWindows(room, "X", "Z", height, role, sill, width, -1);
+    this.#addRoomWallWindows(room, "X", "Z", height, role, sill, width, 1);
+    this.#addRoomWallWindows(room, "Z", "X", height, role, sill, width, -1);
+    this.#addRoomWallWindows(room, "Z", "X", height, role, sill, width, 1);
   }
 
   /**
@@ -520,5 +480,66 @@ export class CastleWindowLayout {
       sx: Math.abs(Math.cos(angle)) * box.sx + Math.abs(Math.sin(angle)) * box.sz,
       sz: Math.abs(Math.sin(angle)) * box.sx + Math.abs(Math.cos(angle)) * box.sz,
     };
+  }
+
+  /**
+   * @param {import("../residents/CastleResidentialLayout.js").ResidentialRoom} room
+   * @param {string} axis
+   * @param {string} along
+   * @param {number} height
+   * @param {string} role
+   * @param {number} sill
+   * @param {number} width
+   * @param {number} sign
+   */
+  #addRoomWallWindows(
+    room,
+    axis,
+    along,
+    height,
+    role,
+    sill,
+    width,
+    sign,
+  ) {
+    const face = room[`${sign < 0 ? "min" : "max"}${axis}`];
+    const start = room[`min${along}`], end = room[`max${along}`];
+    const isRear = axis === "Z" && sign > 0;
+    const openingHeight = isRear ? Math.min(height, 0.75) : height;
+    const openingRole = isRear && role === "hall" ? "room" : role;
+    const runs = [];
+    let run = null;
+    for (let t = start + 0.125; t < end; t += 0.25) {
+      const wall = this.#wallAt(axis, face, t, sill, openingHeight, sign);
+      if (!wall) {
+        run = null;
+        continue;
+      }
+      const key = `${wall.face.toFixed(3)}:${wall.depth.toFixed(3)}`;
+      if (!run || run.key !== key) {
+        run = {
+          key,
+          start: t - 0.125,
+          end: t + 0.125,
+          ...wall,
+        };
+        runs.push(run);
+      } else {
+        run.end = t + 0.125;
+      }
+    }
+    for (const section of runs) {
+      const length = section.end - section.start;
+      const count = Math.min(role === "slit" ? 2 : isRear ? 3 : Infinity, Math.floor((length - 0.75) / (isRear ? 2.5 : 1.5)));
+      if (count < 1) {
+        continue;
+      }
+      // A common bay grid for both floors. Equal-length walls get precisely
+      // the same centers, independent of window height.
+      const pitch = length / (count + 1);
+      for (let bay = 1; bay <= count; bay += 1) {
+        this.#add(axis, section.face, section.start + pitch * bay, sign, sill, width, openingHeight, section.depth, role, room.floorY);
+      }
+    }
   }
 }

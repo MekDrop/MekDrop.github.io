@@ -62,48 +62,8 @@ export class RoyalTears {
     this.#mesh.update();
     this.#mesh.incRefCount();
 
-    for (const [index, side] of ["left", "right"].entries()) {
-      const originalTear = royal.findByName(`Royal tear ${side}`);
-      for (const render of originalTear?.findComponents("render") ?? []) {
-        render.enabled = false;
-      }
-      const eye = royal.findByName(`Royal ${side} eye`);
-      const material = new pc.ShaderMaterial({
-        uniqueName: "royal-cel-shaded-tears",
-        vertexGLSL: vertexShader,
-        fragmentGLSL: fragmentShader,
-        attributes: {
-          vertex_position: pc.SEMANTIC_POSITION,
-          vertex_texCoord0: pc.SEMANTIC_TEXCOORD0,
-        },
-      });
-      material.name = `Royal ${side} cel-shaded tears`;
-      material.cull = pc.CULLFACE_NONE;
-      material.setParameter("uTime", 0);
-      material.setParameter("uPhase", index * 0.12);
-      material.setParameter("uPrincess", this.#princess ? 1 : 0);
-      material.setParameter("uWipeAt", side === "right" ? 0.29 : 0.54);
-      material.setParameter("uRareDrop", 0);
-      material.update();
-      this.#materials.push(material);
-
-      const particle = new pc.Entity(`Royal ${side} tear shader`);
-      const surface = royal.findByName(`Royal ${side} tear surface`);
-      // Authored anchors follow the faceted cheek directly below each eye.
-      particle.setLocalPosition(surface.getLocalPosition());
-      eye.parent.addChild(particle);
-      const instance = new pc.MeshInstance(this.#mesh, material, particle);
-      instance.castShadow = false;
-      instance.receiveShadow = false;
-      instance.pick = false;
-      particle.addComponent("render", {
-        meshInstances: [instance],
-        castShadows: false,
-        receiveShadows: false,
-      });
-      particle.enabled = false;
-      this.#particles.push(particle);
-    }
+    this.#addEyeTears(royal, pc, 0, "left");
+    this.#addEyeTears(royal, pc, 1, "right");
     this.#updateHandle = app.on("update", this.#update, this);
   }
 
@@ -149,5 +109,54 @@ export class RoyalTears {
       // The princess usually catches her tears; only one eye spills every fourth loop.
       material.setParameter("uRareDrop", this.#princess && spill && index === 1 ? 1 : 0);
     }
+  }
+
+  /**
+   * @param {import("playcanvas").Entity} royal
+   * @param {typeof import("playcanvas")} pc
+   * @param {number} index
+   * @param {string} side
+   */
+  #addEyeTears(royal, pc, index, side) {
+    const originalTear = royal.findByName(`Royal tear ${side}`);
+    for (const render of originalTear?.findComponents("render") ?? []) {
+      render.enabled = false;
+    }
+    const eye = royal.findByName(`Royal ${side} eye`);
+    const material = new pc.ShaderMaterial({
+      uniqueName: "royal-cel-shaded-tears",
+      vertexGLSL: vertexShader,
+      fragmentGLSL: fragmentShader,
+      attributes: {
+        vertex_position: pc.SEMANTIC_POSITION,
+        vertex_texCoord0: pc.SEMANTIC_TEXCOORD0,
+      },
+    });
+    material.name = `Royal ${side} cel-shaded tears`;
+    material.cull = pc.CULLFACE_NONE;
+    material.setParameter("uTime", 0);
+    material.setParameter("uPhase", index * 0.12);
+    material.setParameter("uPrincess", this.#princess ? 1 : 0);
+    material.setParameter("uWipeAt", side === "right" ? 0.29 : 0.54);
+    material.setParameter("uRareDrop", 0);
+    material.update();
+    this.#materials.push(material);
+
+    const particle = new pc.Entity(`Royal ${side} tear shader`);
+    const surface = royal.findByName(`Royal ${side} tear surface`);
+    // Authored anchors follow the faceted cheek directly below each eye.
+    particle.setLocalPosition(surface.getLocalPosition());
+    eye.parent.addChild(particle);
+    const instance = new pc.MeshInstance(this.#mesh, material, particle);
+    instance.castShadow = false;
+    instance.receiveShadow = false;
+    instance.pick = false;
+    particle.addComponent("render", {
+      meshInstances: [instance],
+      castShadows: false,
+      receiveShadows: false,
+    });
+    particle.enabled = false;
+    this.#particles.push(particle);
   }
 }

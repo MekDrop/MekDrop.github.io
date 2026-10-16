@@ -66,21 +66,8 @@ export class VestibuleRoomGenerator extends AbstractCastleRoomGenerator {
       };
       if (!safe(bench)) { continue; }
       items.push(bench);
-      for (const offset of [-0.35, 0.35]) {
-        const rail = {
-          role: "vestibuleProp",
-          object: "VestibuleCloakRail",
-          x: wall + 0.09,
-          z: z + offset,
-          width: 0.1771,
-          depth: 1.1,
-          height: 1.365,
-          scale: 0.78,
-          rotation: 90,
-          y: 1.28,
-        };
-        if (safe(rail)) { items.push(rail); }
-      }
+      this.#addCloakRail(wall, z, safe, items, -0.35);
+      this.#addCloakRail(wall, z, safe, items, 0.35);
       // Tuck the shafts behind the front brace; the low toes fit beneath it.
       const boots = {
         role: "vestibuleProp",
@@ -361,5 +348,28 @@ export class VestibuleRoomGenerator extends AbstractCastleRoomGenerator {
     };
     if (safe(rug)) { items.push(rug); }
     return items;
+  }
+
+  /**
+   * @param {number} wall
+   * @param {number} z
+   * @param {(item:import("../AbstractCastleRoomGenerator.js").RoomItem)=>boolean} safe
+   * @param {import("../AbstractCastleRoomGenerator.js").RoomItem[]} items
+   * @param {number} offset
+   */
+  #addCloakRail(wall, z, safe, items, offset) {
+    const rail = {
+      role: "vestibuleProp",
+      object: "VestibuleCloakRail",
+      x: wall + 0.09,
+      z: z + offset,
+      width: 0.1771,
+      depth: 1.1,
+      height: 1.365,
+      scale: 0.78,
+      rotation: 90,
+      y: 1.28,
+    };
+    if (safe(rail)) { items.push(rail); }
   }
 }
