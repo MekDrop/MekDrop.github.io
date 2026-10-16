@@ -48,7 +48,7 @@ These objects retain doorway clearance and stay below the window glass.
 A blue shield and crossed swords fill the adjacent wall above a second,
 taller storage chest. Folded linens and a portable table lantern sit on its lid;
 the group is mounted flush to the wall and retains its supported details.
-The long wall also receives a console using the existing `WritingDesk` asset,
+The long wall also receives a console using the `Table` writing-desk variant,
 with its measured local rear plane (`wallMountBack: -0.275`) touching the wall
 after placement repair; supported tabletop objects follow that adjustment.
 The console has separate coat hooks, a portable table lantern and small planter. Supported objects
@@ -110,7 +110,8 @@ Models use metres, +Y up in glTF, and a grounded, horizontally centered pivot.
 Facing follows the original generated model; map definitions may specify yaw in
 degrees through `rotation`.
 
-The classes in `src/game/objects/castle-props` register through `MapObjectFactory`.
+Each prop has its own folder under `src/game/objects/` and registers through
+`MapObjectFactory`. Shared lifecycle code lives in `shared/AbstractCastleProp.js`.
 Place them in the map's `objects` array using `id`, `object`, `tile`, `position`,
 and optional `rotation`, as shown by `castle-props-{1,2,3}.json` under map tests.
 They are static props with Ammo triangle-mesh collisions that preserve openings
@@ -183,11 +184,10 @@ normalization script, request prompts, and fresh-import receipts remain in ignor
 `tmp/book-assets`. All three classes register through `MapObjectFactory` for
 placement through normal map objects, inheriting authored mesh collision.
 
-`ClosedReadingBook` and `LibraryBookStack` reuse `closed-shelf-book.blend`:
-horizontal books measure 0.260 × 0.040 × 0.200 metres in glTF XYZ. The stack
-contains three touching books, for a total height of 0.120 metres, with red,
-green, and brown leather. Both have editable adjacent Blender sources and
-registered object classes. No additional Tripo generation was used.
+Closed `Book` objects reuse `closed-reading-book.blend`: horizontal books measure
+0.260 × 0.040 × 0.200 metres in glTF XYZ. Library shelf-top stacks contain
+three independent closed books with touching faces and red, green, and brown
+leather covers. No separate stack object or model is needed.
 
 `LibraryRoomFurnishing` places stacks and scroll bundles on measured shelf tops,
 a closed book on the side table, and a floor step stool. It reserves the desk

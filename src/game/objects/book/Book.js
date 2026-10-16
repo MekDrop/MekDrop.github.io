@@ -2,7 +2,7 @@ import closedUrl from "../../models/castle/props/closed-reading-book.glb?url";
 import openUrl from "../../models/castle/props/open-reading-book.glb?url";
 import classicOpenUrl from "../../models/castle/leisure/open-book.glb?url";
 import uprightClosedUrl from "../../models/castle/props/closed-shelf-book.glb?url";
-import { AbstractCastleProp } from "../castle-props/AbstractCastleProp.js";
+import { AbstractCastleProp } from "../shared/AbstractCastleProp.js";
 import { BookCover } from "./BookCover.js";
 import { BookMapObjects } from "./BookMapObjects.js";
 

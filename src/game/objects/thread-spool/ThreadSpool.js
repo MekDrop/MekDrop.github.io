@@ -1,7 +1,7 @@
 import tiltedUrl from "../../models/thread-spool/tilted-thread-spool.glb?url";
 import smallUrl from "../../models/thread-spool/small-thread-spool.glb?url";
 import largeUrl from "../../models/thread-spool/large-thread-spool.glb?url";
-import { AbstractCastleProp } from "../castle-props/AbstractCastleProp.js";
+import { AbstractCastleProp } from "../shared/AbstractCastleProp.js";
 
 /**
  * One original sewing thread spool, independently placeable or contained by a basket.

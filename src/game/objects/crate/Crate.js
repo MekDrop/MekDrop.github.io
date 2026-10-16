@@ -1,5 +1,5 @@
 import modelUrl from "../../models/castle/props/wooden-crate.glb?url";
-import { AbstractCastleProp } from "../castle-props/AbstractCastleProp.js";
+import { AbstractCastleProp } from "../shared/AbstractCastleProp.js";
 
 /**
  * Reusable crate placed through the map objects array.

@@ -64,7 +64,7 @@ test("royal layouts repeat independently and all five concepts have distinct arr
     assert.ok(items.some(item => item.object === "BedsideDrawers"));
     assert.ok(items.some(item => item.object === "CandleStand"));
     assert.ok(items.some(item => item.object === "Rug"));
-    if (variant === 1) { assert.ok(items.some(item => item.object === "WritingDesk")); }
+    if (variant === 1) { assert.ok(items.some(item => item.object === "Table" && (item.variant ?? item.properties?.variant) === "writingDesk")); }
     assert.ok(!items.some(item => item.object === "Throne"));
     if (variant === 2) { assert.ok(items.some(item => item.object === "Chair")); }
     if (variant === 4) { assert.ok(items.some(item => item.object === "WashBasin")); }
@@ -172,8 +172,8 @@ test("both tower plans publish five furnished variations in every castle orienta
         assert.deepEqual(map.objects.slice(1), definitions);
         assert.equal(definitions.length, items.filter(item => item.role === "royalBedroomProp").length);
         assert.ok(items.some(item => item.object === "Bookshelf"));
-        assert.equal(items.filter(item => item.object === "WritingDesk").length, 1);
-        assert.ok(!items.some(item => item.object === "Table"));
+        assert.equal(items.filter(item => item.object === "Table" && (item.variant ?? item.properties?.variant) === "writingDesk").length, 1);
+        assert.ok(!items.some(item => item.object === "Table" && (item.variant ?? item.properties?.variant) !== "writingDesk"));
         LibraryRoomMapObjects.prepareMap(map);
         assert.ok(map.objects.some(item => item.object === "Bookshelf" && item.id.includes(room.id)));
         const layout = new CastleResidentialLayout(plan);
@@ -239,6 +239,6 @@ test("long bedrooms swap the sleeping and study ends while retaining their real 
   });
   const middle = (bounds.minZ + bounds.maxZ) / 2;
   assert.ok(items.find(item => item.role === "royalBed").z < middle);
-  assert.ok(items.find(item => item.object === "WritingDesk").z > middle);
+  assert.ok(items.find(item => item.object === "Table" && (item.variant ?? item.properties?.variant) === "writingDesk").z > middle);
   assert.deepEqual(doors, original);
 });

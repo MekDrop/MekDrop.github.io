@@ -42,3 +42,24 @@ test("dimensions resize visible and collision models identically, retaining plac
   visual.destroy();
   collider.destroy();
 });
+
+test("writing desks use their own model and matching dimensions without baked decorations", () => {
+  const definition = Table.definitionFor({
+    id: "desk",
+    variant: "writingDesk",
+  });
+  assert.equal(definition.width, 0.9);
+  assert.equal(definition.height, 0.65);
+  assert.equal(definition.depth, 0.55);
+  const model = new pc.Entity();
+  for (const name of ["Parchment", "Ink pot", "Timber"]) { model.addChild(new pc.Entity(name)); }
+  Table.prototype.prepareModel.call({ definition }, model, false);
+  assert.deepEqual(model.getLocalScale().toArray(), [1, 1, 1]);
+  assert.equal(model.findByName("Parchment"), null);
+  assert.equal(model.findByName("Ink pot"), null);
+  assert.ok(model.findByName("Timber"));
+  const getter = Object.getOwnPropertyDescriptor(Table.prototype, "modelUrl").get;
+  assert.match(getter.call({ definition }), /writing-desk/);
+  assert.equal(Table.modelUrls.length, 2);
+  model.destroy();
+});

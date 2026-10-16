@@ -1,6 +1,7 @@
 import { CandleStand } from "./candle-stand/CandleStand.js";
 import { Book } from "./book/Book.js";
 import { Fire } from "./fire/Fire.js";
+import { WarMapDrawing } from "./war-map-drawing/WarMapDrawing.js";
 import { Table } from "./table/Table.js";
 import { StraightStaircase } from "./straight-staircase/StraightStaircase.js";
 import { Ladder } from "./ladder/Ladder.js";
@@ -17,21 +18,19 @@ import { StandingArmor } from "./standing-armor/StandingArmor.js";
 import { TravelKit } from "./travel-kit/TravelKit.js";
 import { Satchel } from "./satchel/Satchel.js";
 import { Boots } from "./boots/Boots.js";
-import { VestibuleStickStand } from "./castle-props/VestibuleStickStand.js";
-import { VestibuleCloakRail } from "./castle-props/VestibuleCloakRail.js";
+import { VestibuleStickStand } from "./vestibule-stick-stand/VestibuleStickStand.js";
+import { VestibuleCloakRail } from "./vestibule-cloak-rail/VestibuleCloakRail.js";
 import { ChoppingToolsSet } from "./chopping-tools-set/ChoppingToolsSet.js";
-import { KitchenUtensilRail } from "./castle-props/KitchenUtensilRail.js";
+import { KitchenUtensilRail } from "./kitchen-utensil-rail/KitchenUtensilRail.js";
 import { WashBasin } from "./wash-basin/WashBasin.js";
 import { WaterBucket } from "./water-bucket/WaterBucket.js";
-import { WritingDesk } from "./castle-props/WritingDesk.js";
-import { Lectern } from "./castle-props/Lectern.js";
-import { ThroneDais } from "./castle-props/ThroneDais.js";
-import { RoyalCrest } from "./castle-props/RoyalCrest.js";
+import { Lectern } from "./lectern/Lectern.js";
+import { ThroneDais } from "./throne-dais/ThroneDais.js";
+import { RoyalCrest } from "./royal-crest/RoyalCrest.js";
 import { WarCouncilShield } from "./war-council-shield/WarCouncilShield.js";
 import { SpearRack } from "./spear-rack/SpearRack.js";
 import { StepStool } from "./step-stool/StepStool.js";
-import { ParchmentBundle } from "./castle-props/ParchmentBundle.js";
-import { LibraryBookStack } from "./castle-props/LibraryBookStack.js";
+import { ParchmentBundle } from "./parchment-bundle/ParchmentBundle.js";
 import { Sunbed } from "./sunbed/Sunbed.js";
 import { ServingTray } from "./serving-tray/ServingTray.js";
 import { Teapot } from "./teapot/Teapot.js";
@@ -42,9 +41,9 @@ import { Bowl } from "./bowl/Bowl.js";
 import { Apple } from "./food/Apple.js";
 import { GreenVegetable } from "./food/GreenVegetable.js";
 import { DeskGlobe } from "./desk-globe/DeskGlobe.js";
-import { DeskParchment } from "./castle-props/DeskParchment.js";
+import { DeskParchment } from "./desk-parchment/DeskParchment.js";
 import { FireplaceCauldron } from "./fireplace-cauldron/FireplaceCauldron.js";
-import { HangingFryingPan } from "./castle-props/HangingFryingPan.js";
+import { HangingFryingPan } from "./hanging-frying-pan/HangingFryingPan.js";
 import { Fireplace } from "./fireplace/Fireplace.js";
 import { Bread } from "./bread/Bread.js";
 import { PotteryJar } from "./pottery-jar/PotteryJar.js";
@@ -55,7 +54,7 @@ import { FirewoodStack } from "./firewood-stack/FirewoodStack.js";
 import { SpareTimberBundle } from "./spare-timber-bundle/SpareTimberBundle.js";
 import { Chair } from "./chair/Chair.js";
 import { Lantern } from "./lantern/Lantern.js";
-import { TowerBrazier } from "./castle-props/TowerBrazier.js";
+import { TowerBrazier } from "./tower-brazier/TowerBrazier.js";
 import { CliffVine } from "./vegetation/CliffVine.js";
 import { WoodenFloor } from "./wooden-floor/WoodenFloor.js";
 import { Flag } from "./flag/Flag.js";
@@ -91,6 +90,7 @@ import { MapObjectDefinitions } from "./MapObjectDefinitions.js";
 
 const OBJECT_CLASSES = new Map([
   [Table.name, Table],
+  [WarMapDrawing.name, WarMapDrawing],
   [StraightStaircase.name, StraightStaircase],
   [Gateway.name, Gateway],
   [Rivers.name, Rivers],
@@ -112,7 +112,6 @@ const OBJECT_CLASSES = new Map([
   [KitchenUtensilRail.name, KitchenUtensilRail],
   [WashBasin.name, WashBasin],
   [WaterBucket.name, WaterBucket],
-  [WritingDesk.name, WritingDesk],
   [Lectern.name, Lectern],
   [ThroneDais.name, ThroneDais],
   [RoyalCrest.name, RoyalCrest],
@@ -120,7 +119,6 @@ const OBJECT_CLASSES = new Map([
   [SpearRack.name, SpearRack],
   [StepStool.name, StepStool],
   [ParchmentBundle.name, ParchmentBundle],
-  [LibraryBookStack.name, LibraryBookStack],
   [BedsideDrawers.name, BedsideDrawers],
   [Sunbed.name, Sunbed],
   [Teapot.name, Teapot],

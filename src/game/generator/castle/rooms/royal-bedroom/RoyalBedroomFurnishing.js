@@ -130,8 +130,8 @@ export class RoyalBedroomFurnishing {
     if (!group) { return; }
     this.#items.pop();
     const angle = group.rotation * Math.PI / 180;
-    const desk = this.#place("WritingDesk", group.x - Math.sin(angle) * 0.45,
-      group.z - Math.cos(angle) * 0.45, 0.9, 0.55, 0.65, group.rotation);
+    const desk = this.#place("Table", group.x - Math.sin(angle) * 0.45,
+      group.z - Math.cos(angle) * 0.45, 0.9, 0.55, 0.65, group.rotation, { variant: "writingDesk" });
     if (!desk) { return; }
     const chair = this.#place("Chair", group.x + Math.sin(angle) * 0.25,
       group.z + Math.cos(angle) * 0.25, 0.43, 0.51, 0.85, (group.rotation + 270) % 360);

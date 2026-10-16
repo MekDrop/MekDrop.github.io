@@ -66,7 +66,7 @@ export class LibraryRoomFurnishing {
         const width = yaw % 180 ? 1.7 : 1.05, depth = yaw % 180 ? 1.05 : 1.7;
         if (!this.#clear(group, width, depth, 1.1)) { continue; }
         // Keep a 1 cm gap to the actual wall, like the neighbouring bookcases.
-        desk = this.#item("WritingDesk", this.#point(yaw, along, 0.285, true), 0.9, 0.55, yaw);
+        desk = this.#item("Table", this.#point(yaw, along, 0.285, true), 0.9, 0.55, yaw, 0, { variant: "writingDesk" });
         // Both imported chairs face -X (their tall backs sit on +X).
         this.#items.push(desk, this.#item("Chair", this.#point(yaw, along, 0.91, true), 0.43, 0.51, (yaw + 270) % 360));
         this.#reserve(group, width, depth);
@@ -131,7 +131,7 @@ export class LibraryRoomFurnishing {
       if (item.y === 0) { this.#reserve(item, item.width + 0.06, item.depth + 0.06); }
     }
     for (const table of this.#items) {
-      if (!["WritingDesk"].includes(table.object)) { continue; }
+      if (table.object !== "Table" || table.properties?.variant !== "writingDesk") { continue; }
       const angle = table.rotation * Math.PI / 180;
       for (const forward of [0, 0.35, 0.6]) {
         for (const offset of [-0.58, 0.58, -0.72, 0.72]) {
@@ -181,10 +181,16 @@ export class LibraryRoomFurnishing {
         const decoration = (this.#shelfCount++ + this.#topOffset) % 4;
         const offset = decoration === 3 ? 0.22 : ((this.#shelfCount % 3) - 1) * 0.12;
         if (decoration & 1) {
-          this.#items.push(this.#item("LibraryBookStack", {
-            x: shelfPoint.x - offset * Math.cos(angle),
-            z: shelfPoint.z + offset * Math.sin(angle),
-          }, 0.26, 0.20, yaw, height));
+          const colors = [[0.65, 0.22, 0.22], [0.27, 0.48, 0.30], [0.33, 0.24, 0.19]];
+          for (const [index, coverColor] of colors.entries()) {
+            this.#items.push(this.#item("Book", {
+              x: shelfPoint.x - offset * Math.cos(angle),
+              z: shelfPoint.z + offset * Math.sin(angle),
+            }, 0.26, 0.20, yaw, height + index * 0.04, {
+              isOpen: false,
+              coverColor,
+            }));
+          }
         }
         if (decoration & 2) {
           this.#items.push(this.#item("ParchmentBundle", {

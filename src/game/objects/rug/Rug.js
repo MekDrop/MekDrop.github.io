@@ -1,5 +1,5 @@
 import { rugModels } from "./RugModels.js";
-import { AbstractCastleProp } from "../castle-props/AbstractCastleProp.js";
+import { AbstractCastleProp } from "../shared/AbstractCastleProp.js";
 
 /**
  * Floor covering with an optional fabric image URL and inherited weathering.

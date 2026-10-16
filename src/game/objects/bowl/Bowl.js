@@ -1,5 +1,5 @@
 import modelUrl from "../../models/bowl/bowl.glb?url";
-import { AbstractCastleProp } from "../castle-props/AbstractCastleProp.js";
+import { AbstractCastleProp } from "../shared/AbstractCastleProp.js";
 import { BowlPacking } from "./BowlPacking.js";
 
 /**

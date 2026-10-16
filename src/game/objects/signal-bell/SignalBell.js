@@ -1,6 +1,6 @@
 import modelUrl from "../../models/signal-bell/signal-bell.glb?url";
 import soundUrl from "../../models/signal-bell/signal-bell.wav?url";
-import { AbstractCastleProp } from "../castle-props/AbstractCastleProp.js";
+import { AbstractCastleProp } from "../shared/AbstractCastleProp.js";
 import { SignalBellInteraction } from "./SignalBellInteraction.js";
 import { SignalBellRope } from "./SignalBellRope.js";
 

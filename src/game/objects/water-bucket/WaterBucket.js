@@ -1,5 +1,5 @@
 import modelUrl from "../../models/castle/props/wooden-water-bucket.glb?url";
-import { AbstractCastleProp } from "../castle-props/AbstractCastleProp.js";
+import { AbstractCastleProp } from "../shared/AbstractCastleProp.js";
 
 /**
  * Reusable wooden bucket with water contained inside its authored shell.

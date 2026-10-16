@@ -23,7 +23,8 @@ export class VestibuleWallFurnishing {
       const console = {
         id: `${room.id}-${room.level}-arrival-console`,
         role: "vestibuleProp",
-        object: "WritingDesk",
+        object: "Table",
+        variant: "writingDesk",
         x,
         z,
         width: alongX ? 1.6 : 0.45,

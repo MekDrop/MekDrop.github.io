@@ -1,5 +1,5 @@
 import modelUrl from "../../models/castle/props/kitchen-utensil-rail.glb?url";
-import { AbstractCastleProp } from "./AbstractCastleProp.js";
+import { AbstractCastleProp } from "../shared/AbstractCastleProp.js";
 
 /**
  * Wall-mounted forged rail with connected brackets and three open hooks.

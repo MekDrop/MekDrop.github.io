@@ -1,5 +1,5 @@
-import { IslandObjectRoots } from "../shared/IslandObjectRoots.js";
-import { addAuthoredMeshPhysics } from "../shared/AuthoredMeshPhysics.js";
+import { IslandObjectRoots } from "./IslandObjectRoots.js";
+import { addAuthoredMeshPhysics } from "./AuthoredMeshPhysics.js";
 import { DynamicRenderBatch } from "../../rendering/DynamicRenderBatch.js";
 
 /**

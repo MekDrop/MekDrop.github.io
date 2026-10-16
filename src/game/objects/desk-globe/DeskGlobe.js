@@ -1,5 +1,5 @@
 import modelUrl from "../../models/castle/props/desk-globe.glb?url";
-import { AbstractCastleProp } from "../castle-props/AbstractCastleProp.js";
+import { AbstractCastleProp } from "../shared/AbstractCastleProp.js";
 
 /**
  * Authored desk globe placed through the map objects array.

@@ -1,5 +1,5 @@
 import modelUrl from "../../models/castle/leisure/folding-daybed.glb?url";
-import { AbstractCastleProp } from "../castle-props/AbstractCastleProp.js";
+import { AbstractCastleProp } from "../shared/AbstractCastleProp.js";
 
 /**
  * Reusable sunbed placed through the map objects array.

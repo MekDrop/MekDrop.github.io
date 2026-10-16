@@ -1,5 +1,5 @@
 import modelUrl from "../../models/castle/props/library-step-stool.glb?url";
-import { AbstractCastleProp } from "../castle-props/AbstractCastleProp.js";
+import { AbstractCastleProp } from "../shared/AbstractCastleProp.js";
 
 /**
  * Independent two-step oak stool with authored mesh collision.

@@ -1,5 +1,5 @@
 import modelUrl from "../../models/castle/leisure/teapot.glb?url";
-import { AbstractCastleProp } from "../castle-props/AbstractCastleProp.js";
+import { AbstractCastleProp } from "../shared/AbstractCastleProp.js";
 
 /**
  * Reusable teapot placed through the map objects array.

@@ -1,5 +1,5 @@
 import modelUrl from "../../models/castle/residential/crown-crest.glb?url";
-import { AbstractCastleProp } from "./AbstractCastleProp.js";
+import { AbstractCastleProp } from "../shared/AbstractCastleProp.js";
 
 /**
  * Reuses the existing authored crown crest.

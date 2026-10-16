@@ -11,7 +11,7 @@ it("repeats study groups and preserves the end-wall bookcase row across seeds", 
     const plan = await CastleBasePlanGenerator.generate({ seed });
     const furniture = plan.furniture.filter(item => item.role === "libraryProp");
     const room = plan.spaces.find(room => room.purpose === "Library");
-    const desk = furniture.find(item => item.object === "WritingDesk");
+    const desk = furniture.find(item => item.object === "Table" && (item.variant ?? item.properties?.variant) === "writingDesk");
     assert.ok(desk);
     assert.ok(furniture.filter(item => item.object === "Chair").length >= 1);
     assert.ok(!furniture.some(item => item.object === "Throne"));
@@ -28,10 +28,10 @@ it("repeats study groups and preserves the end-wall bookcase row across seeds", 
     for (const shelf of endWallShelves) {
       assert.ok(Math.abs(Math.min(Math.abs(shelf.x - room.wallBounds.minX), Math.abs(shelf.x - room.wallBounds.maxX)) - 0.18) < 1e-6);
     }
-    assert.equal(furniture.filter(item => item.object === "WritingDesk").length, 1);
+    assert.equal(furniture.filter(item => item.object === "Table" && (item.variant ?? item.properties?.variant) === "writingDesk").length, 1);
     assert.ok(!furniture.some(item => item.object === "Table" && item.properties?.height === 1.0622 ||
       item.object === "Book" && item.properties?.style === "classic"));
-    for (const object of ["StepStool", "ParchmentBundle", "LibraryBookStack"]) {
+    for (const object of ["StepStool", "ParchmentBundle", "Book"]) {
       assert.ok(furniture.some(item => item.object === object), `seed ${seed} uses ${object}`);
     }
     const stool = furniture.find(item => item.object === "StepStool");
@@ -43,16 +43,16 @@ it("repeats study groups and preserves the end-wall bookcase row across seeds", 
     if (seed === 48) {
       assert.equal(stool.rotation, 180, "preserves the original stool orientation");
     }
-    for (const detail of furniture.filter(item => ["LibraryBookStack", "ParchmentBundle"].includes(item.object))) {
+    for (const detail of furniture.filter(item => item.object === "ParchmentBundle" || item.object === "Book" && !item.properties?.isOpen)) {
       const shelf = furniture.find(item => item.object === "Bookshelf" &&
-        item.height === detail.y &&
+        (detail.object === "Book" ? [0, 0.04, 0.08].some(offset => Math.abs(item.height + offset - detail.y) < 1e-6) : item.height === detail.y) &&
         Math.abs(detail.x - item.x) + detail.width / 2 <= item.width / 2 + 1e-6 &&
         Math.abs(detail.z - item.z) + detail.depth / 2 <= item.depth / 2 + 1e-6);
       assert.ok(shelf, `seed ${seed} ${detail.object} shelf support`);
     }
     assert.ok(endWallShelves.every(item => item.height === 2.5));
     const bareShelf = furniture.find(item => item.object === "Bookshelf" && !furniture.some(detail =>
-      ["LibraryBookStack", "ParchmentBundle"].includes(detail.object) &&
+      ["Book", "ParchmentBundle"].includes(detail.object) &&
       Math.abs(detail.x - item.x) <= item.width / 2 && Math.abs(detail.z - item.z) <= item.depth / 2));
     assert.ok(bareShelf, `seed ${seed} leaves a shelf top bare`);
     const floorItems = furniture.filter(item => item.y === 0);
@@ -102,8 +102,8 @@ it("small studies omit groups that cannot preserve their approaches", () => {
     purpose: "Library",
   };
   const items = new LibraryRoomGenerator().furnish(room, { seed: 42 });
-  assert.ok(!items.some(item => item.object === "WritingDesk"));
-  assert.ok(!items.some(item => ["Book", "Book", "Lantern"].includes(item.object)));
+  assert.ok(!items.some(item => item.object === "Table" && (item.variant ?? item.properties?.variant) === "writingDesk"));
+  assert.ok(!items.some(item => item.object === "Book" && item.properties?.isOpen || item.object === "Lantern"));
   assert.ok(items.some(item => item.object === "Bookshelf"));
 });
 
@@ -180,7 +180,7 @@ it("publishes registered room objects once through the active authored plan", as
   };
   LibraryRoomMapObjects.prepareMap(map);
   const first = structuredClone(map.objects.slice(1));
-  assert.ok(first.some(item => item.object === "WritingDesk"));
+  assert.ok(first.some(item => item.object === "Table" && (item.variant ?? item.properties?.variant) === "writingDesk"));
   assert.ok(first.some(item => item.object === "DeskGlobe"));
   const shelf = first.find(item => item.object === "Bookshelf");
   assert.notEqual(shelf.from.x === shelf.to.x, shelf.from.z === shelf.to.z);
@@ -199,4 +199,27 @@ it("publishes registered room objects once through the active authored plan", as
   }
   LibraryRoomMapObjects.prepareMap(map);
   assert.deepEqual(map.objects.slice(1), first);
+});
+
+it("builds shelf-top stacks from three touching independently colored closed books", async () => {
+  const plan = await CastleBasePlanGenerator.generate({ seed: 48 });
+  const furniture = plan.furniture.filter(item => item.role === "libraryProp");
+  const books = furniture.filter(item => item.object === "Book" && item.properties?.isOpen === false);
+  assert.ok(books.length >= 3);
+  assert.equal(books.length % 3, 0);
+  for (let index = 0; index < books.length; index += 3) {
+    const stack = books.slice(index, index + 3);
+    const shelf = furniture.find(item => item.object === "Bookshelf" &&
+      Math.abs(item.height - stack[0].y) < 1e-6 &&
+      Math.abs(item.x - stack[0].x) + stack[0].width / 2 <= item.width / 2 + 1e-6 &&
+      Math.abs(item.z - stack[0].z) + stack[0].depth / 2 <= item.depth / 2 + 1e-6);
+    assert.ok(shelf, "bottom volume rests on its shelf top");
+    assert.equal(new Set(stack.map(item => JSON.stringify(item.properties.coverColor))).size, 3);
+    for (const [level, book] of stack.entries()) {
+      assert.equal(book.x, stack[0].x);
+      assert.equal(book.z, stack[0].z);
+      assert.equal(book.rotation, stack[0].rotation);
+      assert.ok(Math.abs(book.y - shelf.height - level * 0.04) < 1e-6);
+    }
+  }
 });

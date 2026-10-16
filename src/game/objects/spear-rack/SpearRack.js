@@ -1,7 +1,7 @@
 import { everyTruthy } from "../../helpers/collections.js";
 import { arePositiveFiniteNumbers } from "../../helpers/types.js";
 import modelUrl from "../../models/spear-rack/spear-rack.glb?url";
-import { AbstractCastleProp } from "../castle-props/AbstractCastleProp.js";
+import { AbstractCastleProp } from "../shared/AbstractCastleProp.js";
 import { GenerationRandom } from "../../generator/map/GenerationRandom.js";
 
 /**

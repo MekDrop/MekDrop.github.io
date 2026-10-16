@@ -228,7 +228,8 @@ export class ServiceRoomFurnishing {
     const sideways = group.rotation % 180 !== 0;
     const desk = {
       role: "serviceProp",
-      object: "WritingDesk",
+      object: "Table",
+      variant: "writingDesk",
       id: `${group.id}-desk`,
       x: group.x - Math.sin(angle) * 0.55,
       z: group.z - Math.cos(angle) * 0.55,

@@ -1,5 +1,5 @@
 import modelUrl from "../../models/castle/props/kitchen-fireplace.glb?url";
-import { AbstractCastleProp } from "../castle-props/AbstractCastleProp.js";
+import { AbstractCastleProp } from "../shared/AbstractCastleProp.js";
 import { FireSurfaceMaterial } from "../fire/FireSurfaceMaterial.js";
 import terminalModelUrl from "../../models/castle/props/terrace-chimney-terminal.glb?url";
 import chimneyModelUrl from "../../models/castle/props/kitchen-chimney-course.glb?url";

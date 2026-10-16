@@ -1,6 +1,6 @@
 import modelUrl from "../../models/castle/props/throne.glb?url";
 import { CastleResidentialLayout } from "../castle/CastleResidentialLayout.js";
-import { AbstractCastleProp } from "../castle-props/AbstractCastleProp.js";
+import { AbstractCastleProp } from "../shared/AbstractCastleProp.js";
 
 /**
  * Authored throne placed through the map objects array.

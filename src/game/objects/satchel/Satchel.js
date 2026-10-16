@@ -1,6 +1,6 @@
 import brownModelUrl from "../../models/castle/props/vestibule-brown-satchel.glb?url";
 import oliveModelUrl from "../../models/castle/props/vestibule-olive-satchel.glb?url";
-import { AbstractCastleProp } from "../castle-props/AbstractCastleProp.js";
+import { AbstractCastleProp } from "../shared/AbstractCastleProp.js";
 
 /**
  * Freestanding leather luggage with authored brown and olive finishes.

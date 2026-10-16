@@ -3,10 +3,10 @@ import { readFile } from "node:fs/promises";
 import { it } from "node:test";
 import * as pc from "playcanvas";
 
-const sourceUrl = new URL("../../../../../src/game/objects/castle-props/VestibuleCloakRail.js", import.meta.url);
+const sourceUrl = new URL("../../../../../src/game/objects/vestibule-cloak-rail/VestibuleCloakRail.js", import.meta.url);
 const source = (await readFile(sourceUrl, "utf8"))
   .replace(/import modelUrl from [^;]+;/, 'const modelUrl = "cloak-rail.glb";')
-  .replace('"./AbstractCastleProp.js"', JSON.stringify(new URL("AbstractCastleProp.js", sourceUrl).href))
+  .replace('"../shared/AbstractCastleProp.js"', JSON.stringify(new URL("../shared/AbstractCastleProp.js", sourceUrl).href))
   .replace('"../../generator/map/GenerationRandom.js"', JSON.stringify(new URL("../../generator/map/GenerationRandom.js", sourceUrl).href));
 const { VestibuleCloakRail } = await import(`data:text/javascript;base64,${Buffer.from(source).toString("base64")}`);
 

@@ -1,5 +1,5 @@
 import modelUrl from "../../models/castle/props/desk-parchment.glb?url";
-import { AbstractCastleProp } from "./AbstractCastleProp.js";
+import { AbstractCastleProp } from "../shared/AbstractCastleProp.js";
 
 /**
  * Authored desk parchment placed through the map objects array.

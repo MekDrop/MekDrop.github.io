@@ -1,5 +1,5 @@
 import modelUrl from "../../models/castle/props/storage-pottery-jar.glb?url";
-import { AbstractCastleProp } from "../castle-props/AbstractCastleProp.js";
+import { AbstractCastleProp } from "../shared/AbstractCastleProp.js";
 
 /**
  * Standalone authored pottery jar placed through the map objects array.

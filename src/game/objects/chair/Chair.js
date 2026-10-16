@@ -1,5 +1,5 @@
 import modelUrl from "../../models/chair/chair.glb?url";
-import { AbstractCastleProp } from "../castle-props/AbstractCastleProp.js";
+import { AbstractCastleProp } from "../shared/AbstractCastleProp.js";
 
 /**
  * Shared wooden chair placed through the map objects array.

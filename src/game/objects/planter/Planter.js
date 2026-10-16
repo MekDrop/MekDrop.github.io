@@ -1,5 +1,5 @@
 import modelUrl from "../../models/castle/residential/terrace-planter.glb?url";
-import { AbstractCastleProp } from "../castle-props/AbstractCastleProp.js";
+import { AbstractCastleProp } from "../shared/AbstractCastleProp.js";
 import { GenerationRandom } from "../../generator/map/GenerationRandom.js";
 
 /**

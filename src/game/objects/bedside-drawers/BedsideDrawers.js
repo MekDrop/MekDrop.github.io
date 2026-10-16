@@ -1,5 +1,5 @@
 import modelUrl from "../../models/castle/props/bedside-drawers.glb?url";
-import { AbstractCastleProp } from "../castle-props/AbstractCastleProp.js";
+import { AbstractCastleProp } from "../shared/AbstractCastleProp.js";
 
 /**
  * Authored bedside drawers placed through the map objects array.

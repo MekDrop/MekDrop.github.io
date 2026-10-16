@@ -51,7 +51,6 @@ export class VestibuleIslandFurnishing {
           width: 1.8,
           height: 1,
           depth: 1,
-          worldMap: true,
         },
         x: centerX + (alongX ? shift : lateral),
         z: centerZ + (alongX ? lateral : shift),
@@ -78,6 +77,21 @@ export class VestibuleIslandFurnishing {
         island.z - island.depth / 2 >= room.minZ + inset && island.z + island.depth / 2 <= room.maxZ - inset &&
         !occupied.some(overlapsIslandPlacement)) {
         const items = [island];
+        if (!bench) {
+          items.push({
+            ...island,
+            id: `${island.id}-drawing`,
+            object: "WarMapDrawing",
+            properties: {
+              width: 1.8 * 0.75,
+              depth: 0.69,
+            },
+            width: alongX ? 1.8 * 0.75 : 0.69,
+            depth: alongX ? 0.69 : 1.8 * 0.75,
+            height: 0,
+            y: island.y + 1.003,
+          });
+        }
         if (bench) {
           const bagScale = largeBench ? 1 : 0.8;
           const luggage = largeBench

@@ -2,7 +2,7 @@ import handleUrl from "../../models/castle/doors/interior-doors.glb?url";
 import { Vec3 } from "playcanvas";
 import hatchUrl from "../../models/castle/residential/floor-panel.glb?url";
 import modelUrl from "../../models/castle/residential/crown-ladder.glb?url";
-import { AbstractCastleProp } from "../castle-props/AbstractCastleProp.js";
+import { AbstractCastleProp } from "../shared/AbstractCastleProp.js";
 
 /**
  * A map-owned ladder linking supported lower and upper landings.

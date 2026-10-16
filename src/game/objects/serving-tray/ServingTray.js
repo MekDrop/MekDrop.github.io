@@ -1,5 +1,5 @@
 import modelUrl from "../../models/castle/leisure/serving-tray.glb?url";
-import { AbstractCastleProp } from "../castle-props/AbstractCastleProp.js";
+import { AbstractCastleProp } from "../shared/AbstractCastleProp.js";
 
 /**
  * Reusable stored or carrier-mounted serving tray.

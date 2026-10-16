@@ -140,7 +140,7 @@ export class ThroneRoomGenerator extends AbstractCastleRoomGenerator {
         add("Lectern", x, z, 0.45, 0.45, 0.05, side > 0 ? 90 : -90);
         items.at(-1).type = "court";
       } else if (variant === "scholarKing") {
-        add("WritingDesk", x, z, 0.9, 0.55, 0.05, 90);
+        add("Table", x, z, 0.9, 0.55, 0.05, 90, { variant: "writingDesk" });
         add("Book", x, z + 0.1, 0.36, 0.227, 0.7, 90, {isOpen: true});
         if (random() > 0.3) { add("DeskGlobe", x, z - 0.305, 0.24, 0.285, 0.7); }
         const shelfX = center - side * (width / 2 - 0.35);
@@ -154,7 +154,10 @@ export class ThroneRoomGenerator extends AbstractCastleRoomGenerator {
           width: 0.6271365,
           height: 0.56465894,
           depth: 1.25,
-          worldMap: true,
+        });
+        add("WarMapDrawing", x, z, 0.6271365 * 0.75, 1.25 * 0.69, 0.05 + 0.56465894 + 0.003, 0, {
+          width: 0.6271365 * 0.75,
+          depth: 1.25 * 0.69,
         });
         const rackX = center - side * (width / 2 - 0.45);
         const rackZ = bounds.minZ + 1.55;

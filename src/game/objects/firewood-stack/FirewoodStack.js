@@ -1,6 +1,6 @@
 import { arePositiveFiniteNumbers } from "../../helpers/types.js";
 import modelUrl from "../../models/castle/props/firewood-stack.glb?url";
-import { AbstractCastleProp } from "../castle-props/AbstractCastleProp.js";
+import { AbstractCastleProp } from "../shared/AbstractCastleProp.js";
 import { GenerationRandom } from "../../generator/map/GenerationRandom.js";
 
 /**

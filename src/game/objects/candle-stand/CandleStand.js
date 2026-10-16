@@ -2,7 +2,7 @@ import singleModelUrl from "../../models/castle/props/single-candle-stand.glb?ur
 import floorModelUrl from "../../models/castle/props/floor-candelabrum.glb?url";
 import tableModelUrl from "../../models/castle/props/table-candles.glb?url";
 import { Fire } from "../fire/Fire.js";
-import { AbstractCastleProp } from "../castle-props/AbstractCastleProp.js";
+import { AbstractCastleProp } from "../shared/AbstractCastleProp.js";
 import { CastleFire } from "../castle/CastleFire.js";
 
 /**

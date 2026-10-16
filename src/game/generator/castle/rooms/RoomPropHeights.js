@@ -13,7 +13,6 @@ export const ROOM_PROP_HEIGHTS = {
   "HangingFryingPan": 0.5786,
   "Fireplace": 1.65,
   "KitchenUtensilRail": 0.1984,
-  "LibraryBookStack": 0.12,
   "StepStool": 0.4,
   "ParchmentBundle": 0.1341,
   "RoyalCrest": 0.8,
@@ -45,7 +44,6 @@ export const ROOM_PROP_HEIGHTS = {
   "WashBasin": 0.2362,
   "WaterBucket": 0.388,
   "Rug": 0.025,
-  "WritingDesk": 0.65,
   "Table": 0.5647,
   "Book": 0.04,
   "Lantern": 0.45,
@@ -65,7 +63,6 @@ export const ROOM_PROP_BOTTOMS = {
   "HangingFryingPan": 0,
   "Fireplace": 0,
   "KitchenUtensilRail": 0,
-  "LibraryBookStack": 0,
   "StepStool": 0,
   "ParchmentBundle": 0,
   "RoyalCrest": 0,
@@ -97,7 +94,6 @@ export const ROOM_PROP_BOTTOMS = {
   "WashBasin": 0,
   "WaterBucket": 0,
   "Rug": 0,
-  "WritingDesk": 0,
   "Table": 0,
   "Book": 0,
   "Lantern": 0,
@@ -112,6 +108,7 @@ export const ROOM_PROP_BOTTOMS = {
 export function roomPropHeight(item, fallback) {
   if (item.height !== undefined) { return item.height; }
   if (item.properties?.height !== undefined) { return item.properties.height; }
+  if (item.object === "Table" && (item.variant ?? item.properties?.variant) === "writingDesk") { return item.properties?.height ?? 0.65; }
   if (item.object === "Book" && item.properties?.isOpen) { return item.properties.style === "classic" ? 0.1607 : 0.0673; }
   if (item.object === "CandleStand") { return (item.variant ?? item.properties?.variant) === "floor" ? 0.5836 : (item.variant ?? item.properties?.variant) === "table" ? 0.2311 : 0.6387; }
   if (item.object === "Lantern" && item.properties?.type === "wall") { return 0.6; }

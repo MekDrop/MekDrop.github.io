@@ -2,13 +2,13 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { it } from "node:test";
 import * as pc from "playcanvas";
-import { AbstractCastleProp } from "../../../../../src/game/objects/castle-props/AbstractCastleProp.js";
+import { AbstractCastleProp } from "../../../../../src/game/objects/shared/AbstractCastleProp.js";
 
 it("keeps the runner visible without a door-blocking body while solid props retain collision", async () => {
   const sourceUrl = new URL("../../../../../src/game/objects/rug/Rug.js", import.meta.url);
   const source = (await readFile(sourceUrl, "utf8"))
     .replace('import { rugModels } from "./RugModels.js";', 'const rugModels = { "../../models/rug/woven-rug.glb": "woven.glb", "../../models/rug/vestibule-runner.glb": "runner.glb", "../../models/rug/custom.glb": "custom.glb" };')
-    .replace('"../castle-props/AbstractCastleProp.js"', JSON.stringify(new URL("../castle-props/AbstractCastleProp.js", sourceUrl).href));
+    .replace('"../shared/AbstractCastleProp.js"', JSON.stringify(new URL("../shared/AbstractCastleProp.js", sourceUrl).href));
   const { Rug } = await import(`data:text/javascript;base64,${Buffer.from(source).toString("base64")}`);
   const components = [];
   class Entity extends pc.Entity {
@@ -80,7 +80,7 @@ it("loads an arbitrary fabric URL on owned materials and releases the asset", as
   const sourceUrl = new URL("../../../../../src/game/objects/rug/Rug.js", import.meta.url);
   const source = (await readFile(sourceUrl, "utf8"))
     .replace('import { rugModels } from "./RugModels.js";', 'const rugModels = { "../../models/rug/woven-rug.glb": "woven.glb", "../../models/rug/vestibule-runner.glb": "runner.glb", "../../models/rug/custom.glb": "custom.glb" };')
-    .replace('"../castle-props/AbstractCastleProp.js"', JSON.stringify(new URL("../castle-props/AbstractCastleProp.js", sourceUrl).href));
+    .replace('"../shared/AbstractCastleProp.js"', JSON.stringify(new URL("../shared/AbstractCastleProp.js", sourceUrl).href));
   const { Rug } = await import(`data:text/javascript;base64,${Buffer.from(source).toString("base64")}`);
   const added = [], loaded = [], removed = [];
   const app = {

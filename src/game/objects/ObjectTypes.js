@@ -18,7 +18,6 @@
  * @property {Point3} [bottom] Ladder lower landing in world coordinates.
  * @property {Point3} [top] Ladder upper landing in world coordinates; together with bottom defines placement and heading when position/rotation are omitted.
  * @property {MapObjectDefinition[]} [items] Contained game objects; an explicit position preserves a local authored pose, otherwise physics packs them.
- * @property {boolean} [worldMap] Draw the current world on a table.
  * @property {string} [carrierId] Servant owning an activity ServingTray.
  * @property {string} object Registered class name.
  * @property {"entrance"|"wall"|"table"|"court"} [type] Lantern or lectern model selection.

@@ -1,7 +1,7 @@
 import modelUrl from "../../models/castle/props/entrance-lantern.glb?url";
 import wallModelUrl from "../../models/castle/props/wall-lantern.glb?url";
 import tableModelUrl from "../../models/castle/props/table-lantern.glb?url";
-import { AbstractCastleProp } from "../castle-props/AbstractCastleProp.js";
+import { AbstractCastleProp } from "../shared/AbstractCastleProp.js";
 import { LanternGlass } from "./LanternGlass.js";
 import { Fire } from "../fire/Fire.js";
 import { CastleFire } from "../castle/CastleFire.js";

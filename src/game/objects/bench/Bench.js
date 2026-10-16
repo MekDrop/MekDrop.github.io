@@ -1,6 +1,6 @@
 import wallModelUrl from "../../models/castle/props/vestibule-bench.glb?url";
 import islandModelUrl from "../../models/castle/props/vestibule-island-bench.glb?url";
-import { AbstractCastleProp } from "../castle-props/AbstractCastleProp.js";
+import { AbstractCastleProp } from "../shared/AbstractCastleProp.js";
 
 /**
  * Independent seating with wall and freestanding island model variants.

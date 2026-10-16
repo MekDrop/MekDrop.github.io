@@ -162,7 +162,7 @@ it("publishes exactly one central island in each variant and reflected service-w
     };
     VestibuleRoomMapObjects.prepareMap(map);
     const first = structuredClone(map.objects.slice(1));
-    const islands = first.filter(item => (item.object === "Bench" && item.variant === "island" || item.object === "Table" && item.worldMap));
+    const islands = first.filter(item => (item.object === "Bench" && item.variant === "island" || item.object === "Table" && item.height === 1));
     assert.equal(islands.length, 1);
     assert.equal(islands[0].object, seed < 6 ? "Bench" : "Table");
     assert.ok(islands.every(item => Math.abs(item.position.y - 2.033) < 1e-6 && item.scale === 1));
@@ -174,7 +174,7 @@ it("publishes exactly one central island in each variant and reflected service-w
     assert.ok(chest.wallAttachment && !chest.placementIssue, "chest rear touches the wall");
     const chestBag = authored.find(item => item.object === "TravelKit" && item.supportId === chest.id);
     assert.ok(Math.abs(chestBag.y - (chest.y + chest.height * chest.scale)) < 1e-6, "luggage rests on the lowered lid");
-    const console = authored.find(item => item.object === "WritingDesk");
+    const console = authored.find(item => item.object === "Table" && (item.variant ?? item.properties?.variant) === "writingDesk");
     const room = castle.buildPlan.metadata.runtime.residential.spaces.find(item => item.id === console.roomId);
     assert.ok(console.wallAttachment, "console uses its measured rear mounting plane");
     assert.ok(Math.min(Math.abs(console.z - console.depth / 2 - room.minZ),
@@ -192,7 +192,7 @@ it("publishes exactly one central island in each variant and reflected service-w
     assert.deepEqual(first.filter(item => item.object === "Satchel").map(item => item.variant), bags.map(item => item.variant));
     assert.ok(!first.some(item => item.object === "Bench" && item.variant === "wall"));
     if (bench) { assert.equal(islands[0].stretch.x, 1.5); }
-    assert.equal(first.filter(item => item.object === "WritingDesk").length, 1);
+    assert.equal(first.filter(item => item.object === "Table" && (item.variant ?? item.properties?.variant) === "writingDesk").length, 1);
     assert.equal(first.filter(item => item.object === "Lantern").length, 2);
     const arrivalStorage = authored.find(item => item.id.endsWith("arrival-storage"));
     assert.ok(arrivalStorage && !arrivalStorage.placementIssue, "storage fills the bay beneath the shield");

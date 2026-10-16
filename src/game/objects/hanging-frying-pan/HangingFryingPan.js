@@ -1,5 +1,5 @@
 import modelUrl from "../../models/castle/props/hanging-frying-pan.glb?url";
-import { AbstractCastleProp } from "./AbstractCastleProp.js";
+import { AbstractCastleProp } from "../shared/AbstractCastleProp.js";
 
 /**
  * Wall-mounted iron rail carrying six textured medieval kitchen implements.

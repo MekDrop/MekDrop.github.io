@@ -1,5 +1,5 @@
 import modelUrl from "../../models/castle/props/wooden-wash-basin.glb?url";
-import { AbstractCastleProp } from "../castle-props/AbstractCastleProp.js";
+import { AbstractCastleProp } from "../shared/AbstractCastleProp.js";
 
 /**
  * Hollow wooden wash basin, placed with a shallow filling of water.
