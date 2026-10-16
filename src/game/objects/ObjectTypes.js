@@ -6,10 +6,10 @@
  * @typedef {{col: number, row: number, elevation?: number, terrainHeight?: number, direction?: string, flowScale?: number}} RiverCell
  * @typedef {object} MapObjectDefinition
  * @property {string} id
- * @property {string|number} [timberSeed] Repeatable SpareTimberBundle layout; defaults to its id.
  * @property {string|number} [firewoodSeed] Repeatable FirewoodStack layout; defaults to its id.
  * @property {string|number} [spearSeed] Repeatable SpearRack spear variation; defaults to its id.
  * @property {number} [length] SpearRack line length along local X in metres; width spans parallel lines along local Z.
+ * @property {string|number} [timberSeed] Repeatable SpareTimberBundle layout; defaults to its id.
  * @property {string|number} [linenSeed] Repeatable FoldedLinens bundle layout; defaults to its id.
  * @property {import("./lantern/Lantern.js").LanternLighting|false} [lighting] Lantern-local illumination override.
  * @property {boolean} [flame] Override the lantern variant's candle emitter.
@@ -33,7 +33,7 @@
  * @property {boolean} [generated]
  * @property {RenderCommand} [geometry]
  * @property {boolean} [castleBanner] Banner extracted from castle decorations.
- * @property {string} [variant] Prop artwork/model variant. Bench uses wall (default) or island. CandleStand uses single (default), floor, or table. Satchel uses brown (default) or olive, preserving each model's authored leather finish. Banner uses navy-and-gold artwork by default or cloth for castle artwork; both simulate cloth.
+ * @property {string} [variant] Prop artwork/model variant. CandleStand uses single (default), floor, or table. Bench uses wall (default) or island. Satchel uses brown (default) or olive, preserving each model's authored leather finish. Banner uses navy-and-gold artwork by default or cloth for castle artwork; both simulate cloth.
  * @property {boolean} [isOpen] Whether the Book is open (default false), independent of its location.
  * @property {string} [pose] Book model's resting pose: flat (default) or upright; tilt and rotation control final orientation.
  * @property {string} [style] Book artwork style; classic retains the older painted open volume in any location.
