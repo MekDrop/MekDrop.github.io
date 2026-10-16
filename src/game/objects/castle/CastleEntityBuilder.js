@@ -4,16 +4,16 @@ import stoneBlockUrl from "../../models/castle/residential/masonry-block.glb?url
 import { DynamicRenderBatch } from "../../rendering/DynamicRenderBatch.js";
 import { CastleMasonryMaterial } from "./CastleMasonryMaterial.js";
 import { CastleAudienceRoom } from "./rooms/audience/CastleAudienceRoom.js";
-import { Door } from "../door/Door.js";
-import { DoorPlacement } from "../door/DoorPlacement.js";
-import { DoorArch } from "../door/DoorArch.js";
+import { Door } from "../architecture/door/Door.js";
+import { DoorPlacement } from "../architecture/door/DoorPlacement.js";
+import { DoorArch } from "../architecture/door/DoorArch.js";
 import { CastleEntranceDetails } from "./CastleEntranceDetails.js";
 import { CastleFire } from "./CastleFire.js";
 import { CastleRoof } from "./CastleRoof.js";
 import { CastleStairs } from "./CastleStairs.js";
 import { CastleResidence } from "./CastleResidence.js";
 import { CastleWindowLayout } from "./CastleWindowLayout.js";
-import { Window } from "../window/Window.js";
+import { Window } from "../architecture/window/Window.js";
 import { colorFromHex } from "../../helpers/colors.js";
 import {
   CASTLE_BLOCK_SIZE,

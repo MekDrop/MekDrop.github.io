@@ -1,5 +1,5 @@
 import carpetModelUrl from "../../../../models/castle/residential/carpet-panel.glb?url";
-import { WoodenFloor } from "../../../wooden-floor/WoodenFloor.js";
+import { WoodenFloor } from "../../../architecture/wooden-floor/WoodenFloor.js";
 import authoredModelUrl from "../../../../models/castle/residential/stone-block.glb?url";
 import { CastleThrone } from "../../CastleThrone.js";
 import { GAME_OVER_VIEW_ROTATION_BY_SIDE } from "../../../../enum/GameOverViewRotation.js";
@@ -75,7 +75,7 @@ export class CastleAudienceRoom {
   #position;
   /**
    *
-   * @type {import("../../../door/Door.js").Door}
+   * @type {import("../../../architecture/door/Door.js").Door}
    */
   #door;
   /**

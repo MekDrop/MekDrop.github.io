@@ -155,7 +155,7 @@ export class Hero {
   #climbMotion = null;
 
   /**
-   * @param {import("../ladder/Ladder.js").Ladder} ladder
+   * @param {import("../architecture/ladder/Ladder.js").Ladder} ladder
    */
   registerLadder(ladder) { return this.#ladderClimb.register(ladder); }
   /**

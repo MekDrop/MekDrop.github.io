@@ -106,7 +106,7 @@ it("aligns the raised landing with both adjoining tread tops", () => {
 });
 
 it("separates turning-landing faces from shaft masonry without shrinking walking support", () => {
-  const source = readFileSync(new URL("../../../../../src/game/objects/straight-staircase/StraightStaircase.js", import.meta.url), "utf8");
+  const source = readFileSync(new URL("../../../../../src/game/objects/architecture/straight-staircase/StraightStaircase.js", import.meta.url), "utf8");
   const start = source.indexOf("  #build(pc, models, stair)");
   const end = source.indexOf("    const mesh =", start);
   const method = source.slice(start, end).replace("#build", "build").replaceAll("this.#", "this.");
