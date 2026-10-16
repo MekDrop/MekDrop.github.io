@@ -63,3 +63,17 @@ test("writing desks use their own model and matching dimensions without baked de
   assert.equal(Table.modelUrls.length, 2);
   model.destroy();
 });
+
+test("desk contents remain on castle desks at the original model scale", () => {
+  const definition = Table.definitionFor({
+    variant: "writingDesk",
+    deskContents: true,
+  });
+  const model = new pc.Entity();
+  for (const name of ["Parchment", "Ink pot", "Timber"]) { model.addChild(new pc.Entity(name)); }
+  Table.prototype.prepareModel.call({ definition }, model, false);
+  assert.deepEqual(model.getLocalScale().toArray(), [1, 1, 1]);
+  assert.ok(model.findByName("Parchment"));
+  assert.ok(model.findByName("Ink pot"));
+  model.destroy();
+});
